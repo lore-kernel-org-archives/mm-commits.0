@@ -1,254 +1,153 @@
 From: akpm@linux-foundation.org
-Subject: - revert-acpica-fixes-for-unload-and-ddbhandles.patch removed from -mm tree
-Date: Fri, 16 May 2008 15:53:44 -0700
-Message-ID: <200805162253.m4GMriHA003166@imap1.linux-foundation.org>
+Subject: - tty_check_change-avoid-taking-tasklist_lock-while-holding-tty-ctrl_lock.patch removed from -mm tree
+Date: Fri, 16 May 2008 15:53:36 -0700
+Message-ID: <200805162253.m4GMrax9003150@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51169 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58913 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756758AbYEPWx4 (ORCPT
+	by vger.kernel.org with ESMTP id S1757889AbYEPWxq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 May 2008 18:53:56 -0400
+	Fri, 16 May 2008 18:53:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, astarikovskiy@suse.de, len.brown@intel.com, ming.m.lin@intel.com, penberg@cs.helsinki.fi, robert.moore@intel.com, vegard.nossum@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, marcin.slusarz@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert "ACPICA: Fixes for Unload and DDBHandles"
+     tty_check_change(): avoid taking tasklist_lock while holding tty->ctrl_lock
 has been removed from the -mm tree.  Its filename was
-     revert-acpica-fixes-for-unload-and-ddbhandles.patch
+     tty_check_change-avoid-taking-tasklist_lock-while-holding-tty-ctrl_lock.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert "ACPICA: Fixes for Unload and DDBHandles"
+Subject: tty_check_change(): avoid taking tasklist_lock while holding tty->ctrl_lock
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Revert
+May 11 09:42:27 [kernel] [ 1104.496819] rarian-sk-get-c[5630]: segfault at 0 ip 7f478556caf0 sp 7fff8e3fe338 error 4 in libc-2.6.1.so[7f47854f9000+136000]
+May 11 10:59:48 [kernel] [ 2494.165792] 
+May 11 10:59:48 [kernel] [ 2494.165794] =======================================================
+May 11 10:59:48 [kernel] [ 2494.165801] [ INFO: possible circular locking dependency detected ]
+May 11 10:59:48 [kernel] [ 2494.165805] 2.6.26-rc1-00007-g91b3a7a #217
+May 11 10:59:48 [kernel] [ 2494.165807] -------------------------------------------------------
+May 11 10:59:48 [kernel] [ 2494.165809] less/7053 is trying to acquire lock:
+May 11 10:59:48 [kernel] [ 2494.165812]  (tasklist_lock){..??}, at: [<ffffffff80232e95>] is_current_pgrp_orphaned+0x15/0x50
+May 11 10:59:48 [kernel] [ 2494.165821] 
+May 11 10:59:48 [kernel] [ 2494.165822] but task is already holding lock:
+May 11 10:59:48 [kernel] [ 2494.165824]  (&tty->ctrl_lock){....}, at: [<ffffffff803d5f31>] tty_check_change+0x61/0x110
+May 11 10:59:48 [kernel] [ 2494.165831] 
+May 11 10:59:48 [kernel] [ 2494.165832] which lock already depends on the new lock.
+May 11 10:59:48 [kernel] [ 2494.165833] 
+May 11 10:59:48 [kernel] [ 2494.165835] 
+May 11 10:59:48 [kernel] [ 2494.165836] the existing dependency chain (in reverse order) is:
+May 11 10:59:48 [kernel] [ 2494.165838] 
+May 11 10:59:48 [kernel] [ 2494.165839] -> #2 (&tty->ctrl_lock){....}:
+May 11 10:59:48 [kernel] [ 2494.165843]        [<ffffffff80253796>] __lock_acquire+0xf86/0x1080
+May 11 10:59:48 [kernel] [ 2494.165851]        [<ffffffff80253922>] lock_acquire+0x92/0xc0
+May 11 10:59:48 [kernel] [ 2494.165858]        [<ffffffff804deee0>] _spin_lock_irqsave+0x40/0x60
+May 11 10:59:48 [kernel] [ 2494.165866]        [<ffffffff803d31b5>] __proc_set_tty+0x35/0xe0
+May 11 10:59:48 [kernel] [ 2494.165873]        [<ffffffff803d76d4>] tty_ioctl+0xbf4/0xfe0
+May 11 10:59:48 [kernel] [ 2494.165880]        [<ffffffff802a05e1>] vfs_ioctl+0x31/0x90
+May 11 10:59:48 [kernel] [ 2494.165888]        [<ffffffff802a06b3>] do_vfs_ioctl+0x73/0x2d0
+May 11 10:59:48 [kernel] [ 2494.165895]        [<ffffffff802a095a>] sys_ioctl+0x4a/0x80
+May 11 10:59:48 [kernel] [ 2494.165902]        [<ffffffff8020b5ab>] system_call_after_swapgs+0x7b/0x80
+May 11 10:59:48 [kernel] [ 2494.165910]        [<ffffffffffffffff>] 0xffffffffffffffff
+May 11 10:59:48 [kernel] [ 2494.165924] 
+May 11 10:59:48 [kernel] [ 2494.165925] -> #1 (&sighand->siglock){++..}:
+May 11 10:59:48 [kernel] [ 2494.165929]        [<ffffffff80253796>] __lock_acquire+0xf86/0x1080
+May 11 10:59:48 [kernel] [ 2494.165936]        [<ffffffff80253922>] lock_acquire+0x92/0xc0
+May 11 10:59:48 [kernel] [ 2494.165943]        [<ffffffff804dec1f>] _spin_lock+0x2f/0x40
+May 11 10:59:48 [kernel] [ 2494.165951]        [<ffffffff8022d5a3>] copy_process+0x973/0x1210
+May 11 10:59:48 [kernel] [ 2494.165959]        [<ffffffff8022df12>] do_fork+0x82/0x2f0
+May 11 10:59:48 [kernel] [ 2494.165967]        [<ffffffff8020bfe1>] kernel_thread+0x81/0xde
+May 11 10:59:48 [kernel] [ 2494.165974]        [<ffffffff8020c048>] child_rip+0xa/0x12
+May 11 10:59:48 [kernel] [ 2494.165981]        [<ffffffffffffffff>] 0xffffffffffffffff
+May 11 10:59:48 [kernel] [ 2494.166038] 
+May 11 10:59:48 [kernel] [ 2494.166039] -> #0 (tasklist_lock){..??}:
+May 11 10:59:48 [kernel] [ 2494.166043]        [<ffffffff802535ab>] __lock_acquire+0xd9b/0x1080
+May 11 10:59:48 [kernel] [ 2494.166050]        [<ffffffff80253922>] lock_acquire+0x92/0xc0
+May 11 10:59:48 [kernel] [ 2494.166057]        [<ffffffff804dede2>] _read_lock+0x32/0x50
+May 11 10:59:48 [kernel] [ 2494.166063]        [<ffffffff80232e95>] is_current_pgrp_orphaned+0x15/0x50
+May 11 10:59:48 [kernel] [ 2494.166071]        [<ffffffff803d5f80>] tty_check_change+0xb0/0x110
+May 11 10:59:48 [kernel] [ 2494.166078]        [<ffffffff803dac5f>] set_termios+0x1f/0x4c0
+May 11 10:59:48 [kernel] [ 2494.166085]        [<ffffffff803db379>] tty_mode_ioctl+0x279/0x3e0
+May 11 10:59:48 [kernel] [ 2494.166092]        [<ffffffff803db51d>] n_tty_ioctl+0x3d/0x260
+May 11 10:59:48 [kernel] [ 2494.166100]        [<ffffffff803d6c34>] tty_ioctl+0x154/0xfe0
+May 11 10:59:48 [kernel] [ 2494.166107]        [<ffffffff802a05e1>] vfs_ioctl+0x31/0x90
+May 11 10:59:48 [kernel] [ 2494.166114]        [<ffffffff802a06b3>] do_vfs_ioctl+0x73/0x2d0
+May 11 10:59:48 [kernel] [ 2494.166121]        [<ffffffff802a095a>] sys_ioctl+0x4a/0x80
+May 11 10:59:48 [kernel] [ 2494.166128]        [<ffffffff8020b5ab>] system_call_after_swapgs+0x7b/0x80
+May 11 10:59:48 [kernel] [ 2494.166135]        [<ffffffffffffffff>] 0xffffffffffffffff
+May 11 10:59:48 [kernel] [ 2494.166142] 
+May 11 10:59:48 [kernel] [ 2494.166143] other info that might help us debug this:
+May 11 10:59:48 [kernel] [ 2494.166144] 
+May 11 10:59:48 [kernel] [ 2494.166146] 1 lock held by less/7053:
+May 11 10:59:48 [kernel] [ 2494.166148]  #0:  (&tty->ctrl_lock){....}, at: [<ffffffff803d5f31>] tty_check_change+0x61/0x110
+May 11 10:59:48 [kernel] [ 2494.166155] 
+May 11 10:59:48 [kernel] [ 2494.166156] stack backtrace:
+May 11 10:59:48 [kernel] [ 2494.166159] Pid: 7053, comm: less Not tainted 2.6.26-rc1-00007-g91b3a7a #217
+May 11 10:59:48 [kernel] [ 2494.166161] 
+May 11 10:59:48 [kernel] [ 2494.166162] Call Trace:
+May 11 10:59:48 [kernel] [ 2494.166168]  [<ffffffff80251223>] print_circular_bug_tail+0x83/0x90
+May 11 10:59:48 [kernel] [ 2494.166172]  [<ffffffff80250889>] ? print_circular_bug_entry+0x49/0x60
+May 11 10:59:48 [kernel] [ 2494.166178]  [<ffffffff802535ab>] __lock_acquire+0xd9b/0x1080
+May 11 10:59:48 [kernel] [ 2494.166184]  [<ffffffff80232e95>] ? is_current_pgrp_orphaned+0x15/0x50
+May 11 10:59:48 [kernel] [ 2494.166189]  [<ffffffff80253922>] lock_acquire+0x92/0xc0
+May 11 10:59:48 [kernel] [ 2494.166206]  [<ffffffff803d5f80>] tty_check_change+0xb0/0x110
+May 11 10:59:48 [kernel] [ 2494.166211]  [<ffffffff803dac5f>] set_termios+0x1f/0x4c0
+May 11 10:59:48 [kernel] [ 2494.166216]  [<ffffffff803d3423>] ? tty_ldisc_try+0x23/0x60
+May 11 10:59:48 [kernel] [ 2494.166220]  [<ffffffff803d3444>] ? tty_ldisc_try+0x44/0x60
+May 11 10:59:48 [kernel] [ 2494.166224]  [<ffffffff804df2c5>] ? _spin_unlock_irqrestore+0x65/0x80
+May 11 10:59:48 [kernel] [ 2494.166230]  [<ffffffff803db379>] tty_mode_ioctl+0x279/0x3e0
+May 11 10:59:48 [kernel] [ 2494.166234]  [<ffffffff803d3444>] ? tty_ldisc_try+0x44/0x60
+May 11 10:59:48 [kernel] [ 2494.166239]  [<ffffffff803db51d>] n_tty_ioctl+0x3d/0x260
+May 11 10:59:48 [kernel] [ 2494.166244]  [<ffffffff803d6c34>] tty_ioctl+0x154/0xfe0
+May 11 10:59:48 [kernel] [ 2494.166249]  [<ffffffff80252baa>] ? __lock_acquire+0x39a/0x1080
+May 11 10:59:48 [kernel] [ 2494.166256]  [<ffffffff80252baa>] ? __lock_acquire+0x39a/0x1080
+May 11 10:59:48 [kernel] [ 2494.166263]  [<ffffffff80252baa>] ? __lock_acquire+0x39a/0x1080
+May 11 10:59:48 [kernel] [ 2494.166269]  [<ffffffff802a05e1>] vfs_ioctl+0x31/0x90
+May 11 10:59:48 [kernel] [ 2494.166274]  [<ffffffff802a06b3>] do_vfs_ioctl+0x73/0x2d0
+May 11 10:59:48 [kernel] [ 2494.166280]  [<ffffffff802a095a>] sys_ioctl+0x4a/0x80
+May 11 10:59:48 [kernel] [ 2494.166286]  [<ffffffff8020b5ab>] system_call_after_swapgs+0x7b/0x80
+May 11 10:59:48 [kernel] [ 2494.166292] 
 
-commit bc7a36ab74e09da7bb63e2477b0740ac992b290e
-Author: Lin Ming <ming.m.lin@intel.com>
-Date:   Thu Apr 10 19:06:42 2008 +0400
-
-    ACPICA: Fixes for Unload and DDBHandles
-    
-    Implemented support for the use of DDBHandles as an Indexed
-    Reference, as per the ACPI spec.
-    
-    http://www.acpica.org/bugzilla/show_bug.cgi?id=486.
-    
-    Implemented support for UserTerm (Method invocation) for the Unload operator
-    as per the ACPI spec.
-    
-    http://www.acpica.org/bugzilla/show_bug.cgi?id=580
-    
-    Signed-off-by: Bob Moore <robert.moore@intel.com>
-    Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-Due to a use-after-free identified with kmemcheck.
-
-
-Cc: "Vegard Nossum" <vegard.nossum@gmail.com>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: "Lin Ming" <ming.m.lin@intel.com>
-Cc: "Bob Moore" <robert.moore@intel.com>
-Cc: Bob Moore <robert.moore@intel.com>
-Cc: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: Len Brown <len.brown@intel.com>
+Acked-by: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Reported-by: Marcin Slusarz <marcin.slusarz@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/executer/exdump.c   |   27 ++++++---------------
- drivers/acpi/executer/exresolv.c |   13 +++-------
- drivers/acpi/executer/exstore.c  |   23 +++---------------
- drivers/acpi/parser/psargs.c     |   37 ++---------------------------
- drivers/acpi/utilities/utcopy.c  |    8 ------
- 5 files changed, 20 insertions(+), 88 deletions(-)
+ drivers/char/tty_io.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN drivers/acpi/executer/exdump.c~revert-acpica-fixes-for-unload-and-ddbhandles drivers/acpi/executer/exdump.c
---- a/drivers/acpi/executer/exdump.c~revert-acpica-fixes-for-unload-and-ddbhandles
-+++ a/drivers/acpi/executer/exdump.c
-@@ -895,25 +895,14 @@ static void acpi_ex_dump_reference_obj(u
- 	} else if (obj_desc->reference.object) {
- 		if (ACPI_GET_DESCRIPTOR_TYPE(obj_desc) ==
- 		    ACPI_DESC_TYPE_OPERAND) {
--			acpi_os_printf(" Target: %p",
--				       obj_desc->reference.object);
--			if (obj_desc->reference.opcode == AML_LOAD_OP) {
--				/*
--				 * For DDBHandle reference,
--				 * obj_desc->Reference.Object is the table index
--				 */
--				acpi_os_printf(" [DDBHandle]\n");
--			} else {
--				acpi_os_printf(" [%s]\n",
--					       acpi_ut_get_type_name(((union
--								       acpi_operand_object
--								       *)
--								      obj_desc->
--								      reference.
--								      object)->
--								     common.
--								     type));
--			}
-+			acpi_os_printf(" Target: %p [%s]\n",
-+				       obj_desc->reference.object,
-+				       acpi_ut_get_type_name(((union
-+							       acpi_operand_object
-+							       *)obj_desc->
-+							      reference.
-+							      object)->common.
-+							     type));
- 		} else {
- 			acpi_os_printf(" Target: %p\n",
- 				       obj_desc->reference.object);
-diff -puN drivers/acpi/executer/exresolv.c~revert-acpica-fixes-for-unload-and-ddbhandles drivers/acpi/executer/exresolv.c
---- a/drivers/acpi/executer/exresolv.c~revert-acpica-fixes-for-unload-and-ddbhandles
-+++ a/drivers/acpi/executer/exresolv.c
-@@ -382,10 +382,10 @@ acpi_ex_resolve_multiple(struct acpi_wal
+diff -puN drivers/char/tty_io.c~tty_check_change-avoid-taking-tasklist_lock-while-holding-tty-ctrl_lock drivers/char/tty_io.c
+--- a/drivers/char/tty_io.c~tty_check_change-avoid-taking-tasklist_lock-while-holding-tty-ctrl_lock
++++ a/drivers/char/tty_io.c
+@@ -1215,10 +1215,11 @@ int tty_check_change(struct tty_struct *
+ 
+ 	if (!tty->pgrp) {
+ 		printk(KERN_WARNING "tty_check_change: tty->pgrp == NULL!\n");
+-		goto out;
++		goto out_unlock;
  	}
- 
- 	/*
--	 * For reference objects created via the ref_of, Index, or Load/load_table
--	 * operators, we need to get to the base object (as per the ACPI
--	 * specification of the object_type and size_of operators). This means
--	 * traversing the list of possibly many nested references.
-+	 * For reference objects created via the ref_of or Index operators,
-+	 * we need to get to the base object (as per the ACPI specification
-+	 * of the object_type and size_of operators). This means traversing
-+	 * the list of possibly many nested references.
- 	 */
- 	while (ACPI_GET_OBJECT_TYPE(obj_desc) == ACPI_TYPE_LOCAL_REFERENCE) {
- 		switch (obj_desc->reference.opcode) {
-@@ -455,11 +455,6 @@ acpi_ex_resolve_multiple(struct acpi_wal
- 			}
- 			break;
- 
--		case AML_LOAD_OP:
--
--			type = ACPI_TYPE_DDB_HANDLE;
--			goto exit;
--
- 		case AML_LOCAL_OP:
- 		case AML_ARG_OP:
- 
-diff -puN drivers/acpi/executer/exstore.c~revert-acpica-fixes-for-unload-and-ddbhandles drivers/acpi/executer/exstore.c
---- a/drivers/acpi/executer/exstore.c~revert-acpica-fixes-for-unload-and-ddbhandles
-+++ a/drivers/acpi/executer/exstore.c
-@@ -462,24 +462,11 @@ acpi_ex_store_object_to_index(union acpi
- 		 */
- 		obj_desc = *(index_desc->reference.where);
- 
--		if (ACPI_GET_OBJECT_TYPE(source_desc) ==
--		    ACPI_TYPE_LOCAL_REFERENCE
--		    && source_desc->reference.opcode == AML_LOAD_OP) {
--
--			/* This is a DDBHandle, just add a reference to it */
--
--			acpi_ut_add_reference(source_desc);
--			new_desc = source_desc;
--		} else {
--			/* Normal object, copy it */
--
--			status =
--			    acpi_ut_copy_iobject_to_iobject(source_desc,
--							    &new_desc,
--							    walk_state);
--			if (ACPI_FAILURE(status)) {
--				return_ACPI_STATUS(status);
--			}
-+		status =
-+		    acpi_ut_copy_iobject_to_iobject(source_desc, &new_desc,
-+						    walk_state);
-+		if (ACPI_FAILURE(status)) {
-+			return_ACPI_STATUS(status);
- 		}
- 
- 		if (obj_desc) {
-diff -puN drivers/acpi/parser/psargs.c~revert-acpica-fixes-for-unload-and-ddbhandles drivers/acpi/parser/psargs.c
---- a/drivers/acpi/parser/psargs.c~revert-acpica-fixes-for-unload-and-ddbhandles
-+++ a/drivers/acpi/parser/psargs.c
-@@ -235,7 +235,6 @@ acpi_ps_get_next_namepath(struct acpi_wa
- 	union acpi_parse_object *name_op;
- 	union acpi_operand_object *method_desc;
- 	struct acpi_namespace_node *node;
--	u8 *start = parser_state->aml;
- 
- 	ACPI_FUNCTION_TRACE(ps_get_next_namepath);
- 
-@@ -268,16 +267,6 @@ acpi_ps_get_next_namepath(struct acpi_wa
- 	 */
- 	if (ACPI_SUCCESS(status) &&
- 	    possible_method_call && (node->type == ACPI_TYPE_METHOD)) {
--		if (walk_state->op->common.aml_opcode == AML_UNLOAD_OP) {
--			/*
--			 * acpi_ps_get_next_namestring has increased the AML pointer,
--			 * so we need to restore the saved AML pointer for method call.
--			 */
--			walk_state->parser_state.aml = start;
--			walk_state->arg_count = 1;
--			acpi_ps_init_op(arg, AML_INT_METHODCALL_OP);
--			return_ACPI_STATUS(AE_OK);
--		}
- 
- 		/* This name is actually a control method invocation */
- 
-@@ -689,29 +678,9 @@ acpi_ps_get_next_arg(struct acpi_walk_st
- 				return_ACPI_STATUS(AE_NO_MEMORY);
- 			}
- 
--			/* To support super_name arg of Unload */
--
--			if (walk_state->op->common.aml_opcode == AML_UNLOAD_OP) {
--				status =
--				    acpi_ps_get_next_namepath(walk_state,
--							      parser_state, arg,
--							      1);
--
--				/*
--				 * If the super_name arg of Unload is a method call,
--				 * we have restored the AML pointer, just free this Arg
--				 */
--				if (arg->common.aml_opcode ==
--				    AML_INT_METHODCALL_OP) {
--					acpi_ps_free_op(arg);
--					arg = NULL;
--				}
--			} else {
--				status =
--				    acpi_ps_get_next_namepath(walk_state,
--							      parser_state, arg,
--							      0);
--			}
-+			status =
-+			    acpi_ps_get_next_namepath(walk_state, parser_state,
-+						      arg, 0);
- 		} else {
- 			/* Single complex argument, nothing returned */
- 
-diff -puN drivers/acpi/utilities/utcopy.c~revert-acpica-fixes-for-unload-and-ddbhandles drivers/acpi/utilities/utcopy.c
---- a/drivers/acpi/utilities/utcopy.c~revert-acpica-fixes-for-unload-and-ddbhandles
-+++ a/drivers/acpi/utilities/utcopy.c
-@@ -742,15 +742,7 @@ acpi_ut_copy_simple_object(union acpi_op
- 		/*
- 		 * We copied the reference object, so we now must add a reference
- 		 * to the object pointed to by the reference
--		 *
--		 * DDBHandle reference (from Load/load_table is a special reference,
--		 * it's Reference.Object is the table index, so does not need to
--		 * increase the reference count
- 		 */
--		if (source_desc->reference.opcode == AML_LOAD_OP) {
--			break;
--		}
--
- 		acpi_ut_add_reference(source_desc->reference.object);
- 		break;
- 
+ 	if (task_pgrp(current) == tty->pgrp)
+-		goto out;
++		goto out_unlock;
++	spin_unlock_irqrestore(&tty->ctrl_lock, flags);
+ 	if (is_ignored(SIGTTOU))
+ 		goto out;
+ 	if (is_current_pgrp_orphaned()) {
+@@ -1229,6 +1230,8 @@ int tty_check_change(struct tty_struct *
+ 	set_thread_flag(TIF_SIGPENDING);
+ 	ret = -ERESTARTSYS;
+ out:
++	return ret;
++out_unlock:
+ 	spin_unlock_irqrestore(&tty->ctrl_lock, flags);
+ 	return ret;
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
