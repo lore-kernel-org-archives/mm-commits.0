@@ -1,58 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: - cgroups-fix-compile-warning.patch removed from -mm tree
-Date: Fri, 16 May 2008 15:53:07 -0700
-Message-ID: <200805162253.m4GMr758003111@imap1.linux-foundation.org>
+Subject: - char-select-fw_loader-by-moxa.patch removed from -mm tree
+Date: Fri, 16 May 2008 15:53:29 -0700
+Message-ID: <200805162253.m4GMrTJX003144@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44006 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46871 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759520AbYEPWxZ (ORCPT
+	by vger.kernel.org with ESMTP id S1757031AbYEPWxe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 May 2008 18:53:25 -0400
+	Fri, 16 May 2008 18:53:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mt-ml@gmx.de, menage@google.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, p.o.roussel@free.fr, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cgroups: fix compile warning
+     char: select fw_loader by moxa
 has been removed from the -mm tree.  Its filename was
-     cgroups-fix-compile-warning.patch
+     char-select-fw_loader-by-moxa.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: fix compile warning
-From: Mirco Tischler <mt-ml@gmx.de>
+Subject: char: select fw_loader by moxa
+From: Jiri Slaby <jirislaby@gmail.com>
 
-Return type of cpu_rt_runtime_write() should be int instead of ssize_t.
+Select FW_LOADER since moxa needs it, otherwise we face link problems such
+as:
 
-Signed-off-by: Mirco Tischler <mt-ml@gmx.de>
-Acked-by: Paul Menage <menage@google.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+drivers/built-in.o: In function
+moxa_pci_probe':moxa.c:(.devinit.text+0x76d8): undefined reference to
+request_firmware'
+:moxa.c:(.devinit.text+0x7e6e): undefined reference to release_firmware'
+make: *** [.tmp_vmlinux1] Error 1
+
+Reported-by: Philippe Roussel <p.o.roussel@free.fr>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN kernel/sched.c~cgroups-fix-compile-warning kernel/sched.c
---- a/kernel/sched.c~cgroups-fix-compile-warning
-+++ a/kernel/sched.c
-@@ -8986,7 +8986,7 @@ static u64 cpu_shares_read_u64(struct cg
- #endif
+diff -puN drivers/char/Kconfig~char-select-fw_loader-by-moxa drivers/char/Kconfig
+--- a/drivers/char/Kconfig~char-select-fw_loader-by-moxa
++++ a/drivers/char/Kconfig
+@@ -196,6 +196,7 @@ config ESPSERIAL
+ config MOXA_INTELLIO
+ 	tristate "Moxa Intellio support"
+ 	depends on SERIAL_NONSTANDARD && (ISA || EISA || PCI)
++	select FW_LOADER
+ 	help
+ 	  Say Y here if you have a Moxa Intellio multiport serial card.
  
- #ifdef CONFIG_RT_GROUP_SCHED
--static ssize_t cpu_rt_runtime_write(struct cgroup *cgrp, struct cftype *cft,
-+static int cpu_rt_runtime_write(struct cgroup *cgrp, struct cftype *cft,
- 				s64 val)
- {
- 	return sched_group_set_rt_runtime(cgroup_tg(cgrp), val);
 _
 
-Patches currently in -mm which might be from mt-ml@gmx.de are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
 origin.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+reiser4.patch
+shrink_slab-handle-bad-shrinkers.patch
 
