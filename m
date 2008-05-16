@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues.patch added to -mm tree
-Date: Thu, 15 May 2008 17:02:05 -0700
-Message-ID: <200805160002.m4G025ar017286@imap1.linux-foundation.org>
+Subject: + percpu-introduce-define_per_cpu_page_aligned.patch added to -mm tree
+Date: Thu, 15 May 2008 17:06:51 -0700
+Message-ID: <200805160006.m4G06pZi017394@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42849 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34492 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751228AbYEPACe (ORCPT
+	by vger.kernel.org with ESMTP id S1756042AbYEPAHh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 May 2008 20:02:34 -0400
+	Thu, 15 May 2008 20:07:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cooloney@kernel.org, david-b@pacbell.net, gregkh@suse.de, harvey.harrison@gmail.com, jie.zhang@analog.com, stern@rowland.harvard.edu
+Cc: dada1@cosmosbay.com, mingo@elte.hu, rusty@rustcorp.com.au, tglx@linutronix.de
 
 
 The patch titled
-     usb/host: use get/put_unaligned_* helpers to fix more potential unaligned issues.
+     percpu: introduce DEFINE_PER_CPU_PAGE_ALIGNED()
 has been added to the -mm tree.  Its filename is
-     usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues.patch
+     percpu-introduce-define_per_cpu_page_aligned.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,72 +34,130 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb/host: use get/put_unaligned_* helpers to fix more potential unaligned issues.
-From: Bryan Wu <cooloney@kernel.org>
+Subject: percpu: introduce DEFINE_PER_CPU_PAGE_ALIGNED()
+From: Eric Dumazet <dada1@cosmosbay.com>
 
-Cc: Harvey Harrison <harvey.harrison@gmail.com>
-Signed-off-by: Jie Zhang <jie.zhang@analog.com>
-Signed-off-by: Bryan Wu <cooloney@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Alan Stern <stern@rowland.harvard.edu>
-Cc: David Brownell <david-b@pacbell.net>
+While examining percpu section on i386 I found we were wasting about 8000
+bytes because of two large holes :
+
+c05dd000 D __per_cpu_start
+c05dd000 D per_cpu__current_task
+c05dd004 D per_cpu__cpu_number
+c05dd008 D per_cpu__irq_regs
+c05dd00c D per_cpu__x86_cpu_to_apicid
+c05dd010 d per_cpu__cpu_devices
+c05dd044 D per_cpu__cyc2ns
+*HOLE* of 4Kbytes
+c05de000 d per_cpu__cpuid4_info
+c05de004 d per_cpu__cache_kobject
+c05de008 d per_cpu__index_kobject
+*HOLE* of 4Kbytes
+c05df000 D per_cpu__gdt_page
+c05e0000 d per_cpu__next_check
+c05e0008 d per_cpu__thermal_throttle_count
+
+This is because gdt_page is a percpu variable, defined with a page
+alignement, and linker is doing its job, two times because of .o nesting
+in the build process, mixing variables with quite different alignment
+requirements.
+
+I introduced a new macro DEFINE_PER_CPU_PAGE_ALIGNED() to avoid wasting
+this space.  All page aligned variables (only one at this time) are put in
+a separate subsection .data.percpu.page_aligned.
+
+# size -A vmlinux.old vmlinux | grep percpu
+.data.percpu                22272   3227373568
+.data.percpu                30336   3227373568
+
+Thats 8064 bytes saved for each CPU (plus one for the .data.percpu storage
+itself)
+
+Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/host/isp116x-hcd.c |    4 ++--
- drivers/usb/host/uhci-hub.c    |    6 +++---
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ arch/x86/kernel/cpu/common.c      |    2 +-
+ arch/x86/kernel/vmlinux_32.lds.S  |    1 +
+ include/asm-generic/vmlinux.lds.h |    1 +
+ include/linux/percpu.h            |   11 ++++++++++-
+ 4 files changed, 13 insertions(+), 2 deletions(-)
 
-diff -puN drivers/usb/host/isp116x-hcd.c~usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues drivers/usb/host/isp116x-hcd.c
---- a/drivers/usb/host/isp116x-hcd.c~usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues
-+++ a/drivers/usb/host/isp116x-hcd.c
-@@ -1024,7 +1024,7 @@ static int isp116x_hub_control(struct us
- 		break;
- 	case GetHubStatus:
- 		DBG("GetHubStatus\n");
--		*(__le32 *) buf = 0;
-+		put_unaligned_le32(0, buf);
- 		break;
- 	case GetPortStatus:
- 		DBG("GetPortStatus\n");
-@@ -1033,7 +1033,7 @@ static int isp116x_hub_control(struct us
- 		spin_lock_irqsave(&isp116x->lock, flags);
- 		tmp = isp116x_read_reg32(isp116x, (--wIndex) ? HCRHPORT2 : HCRHPORT1);
- 		spin_unlock_irqrestore(&isp116x->lock, flags);
--		*(__le32 *) buf = cpu_to_le32(tmp);
-+		put_unaligned_le32(tmp, buf);
- 		DBG("GetPortStatus: port[%d]  %08x\n", wIndex + 1, tmp);
- 		break;
- 	case ClearPortFeature:
-diff -puN drivers/usb/host/uhci-hub.c~usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues drivers/usb/host/uhci-hub.c
---- a/drivers/usb/host/uhci-hub.c~usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues
-+++ a/drivers/usb/host/uhci-hub.c
-@@ -253,7 +253,7 @@ static int uhci_hub_control(struct usb_h
- 	switch (typeReq) {
+diff -puN arch/x86/kernel/cpu/common.c~percpu-introduce-define_per_cpu_page_aligned arch/x86/kernel/cpu/common.c
+--- a/arch/x86/kernel/cpu/common.c~percpu-introduce-define_per_cpu_page_aligned
++++ a/arch/x86/kernel/cpu/common.c
+@@ -21,7 +21,7 @@
  
- 	case GetHubStatus:
--		*(__le32 *)buf = cpu_to_le32(0);
-+		put_unaligned_le32(0, buf);
- 		OK(4);		/* hub power */
- 	case GetPortStatus:
- 		if (port >= uhci->rh_numports)
-@@ -306,8 +306,8 @@ static int uhci_hub_control(struct usb_h
- 			dev_dbg(uhci_dev(uhci), "port %d portsc %04x,%02x\n",
- 					wIndex, status, lstatus);
+ #include "cpu.h"
  
--		*(__le16 *)buf = cpu_to_le16(wPortStatus);
--		*(__le16 *)(buf + 2) = cpu_to_le16(wPortChange);
-+		put_unaligned_le16(wPortStatus, buf);
-+		put_unaligned_le16(wPortChange, buf + 2);
- 		OK(4);
- 	case SetHubFeature:		/* We don't implement these */
- 	case ClearHubFeature:
+-DEFINE_PER_CPU(struct gdt_page, gdt_page) = { .gdt = {
++DEFINE_PER_CPU_PAGE_ALIGNED(struct gdt_page, gdt_page) = { .gdt = {
+ 	[GDT_ENTRY_KERNEL_CS] = { { { 0x0000ffff, 0x00cf9a00 } } },
+ 	[GDT_ENTRY_KERNEL_DS] = { { { 0x0000ffff, 0x00cf9200 } } },
+ 	[GDT_ENTRY_DEFAULT_USER_CS] = { { { 0x0000ffff, 0x00cffa00 } } },
+diff -puN arch/x86/kernel/vmlinux_32.lds.S~percpu-introduce-define_per_cpu_page_aligned arch/x86/kernel/vmlinux_32.lds.S
+--- a/arch/x86/kernel/vmlinux_32.lds.S~percpu-introduce-define_per_cpu_page_aligned
++++ a/arch/x86/kernel/vmlinux_32.lds.S
+@@ -189,6 +189,7 @@ SECTIONS
+   . = ALIGN(PAGE_SIZE);
+   .data.percpu  : AT(ADDR(.data.percpu) - LOAD_OFFSET) {
+ 	__per_cpu_start = .;
++	*(.data.percpu.page_aligned)
+ 	*(.data.percpu)
+ 	*(.data.percpu.shared_aligned)
+ 	__per_cpu_end = .;
+diff -puN include/asm-generic/vmlinux.lds.h~percpu-introduce-define_per_cpu_page_aligned include/asm-generic/vmlinux.lds.h
+--- a/include/asm-generic/vmlinux.lds.h~percpu-introduce-define_per_cpu_page_aligned
++++ a/include/asm-generic/vmlinux.lds.h
+@@ -348,6 +348,7 @@
+ 	. = ALIGN(align);						\
+ 	__per_cpu_start = .;						\
+ 	.data.percpu  : AT(ADDR(.data.percpu) - LOAD_OFFSET) {		\
++		*(.data.percpu.page_aligned)				\
+ 		*(.data.percpu)						\
+ 		*(.data.percpu.shared_aligned)				\
+ 	}								\
+diff -puN include/linux/percpu.h~percpu-introduce-define_per_cpu_page_aligned include/linux/percpu.h
+--- a/include/linux/percpu.h~percpu-introduce-define_per_cpu_page_aligned
++++ a/include/linux/percpu.h
+@@ -15,19 +15,28 @@
+ 
+ #ifdef MODULE
+ #define SHARED_ALIGNED_SECTION ".data.percpu"
++#define PAGE_ALIGNED_SECTION   ".data.percpu"
+ #else
+ #define SHARED_ALIGNED_SECTION ".data.percpu.shared_aligned"
++#define PAGE_ALIGNED_SECTION   ".data.percpu.page_aligned"
+ #endif
+ 
+ #define DEFINE_PER_CPU_SHARED_ALIGNED(type, name)			\
+ 	__attribute__((__section__(SHARED_ALIGNED_SECTION)))		\
+ 	PER_CPU_ATTRIBUTES __typeof__(type) per_cpu__##name		\
+ 	____cacheline_aligned_in_smp
++
++#define DEFINE_PER_CPU_PAGE_ALIGNED(type, name)				\
++	__attribute__((__section__(PAGE_ALIGNED_SECTION)))		\
++	PER_CPU_ATTRIBUTES __typeof__(type) per_cpu__##name
+ #else
+ #define DEFINE_PER_CPU(type, name)					\
+ 	PER_CPU_ATTRIBUTES __typeof__(type) per_cpu__##name
+ 
+-#define DEFINE_PER_CPU_SHARED_ALIGNED(type, name)		      \
++#define DEFINE_PER_CPU_SHARED_ALIGNED(type, name)			\
++	DEFINE_PER_CPU(type, name)
++
++#define DEFINE_PER_CPU_PAGE_ALIGNED(type, name)				\
+ 	DEFINE_PER_CPU(type, name)
+ #endif
+ 
 _
 
-Patches currently in -mm which might be from cooloney@kernel.org are
+Patches currently in -mm which might be from dada1@cosmosbay.com are
 
-origin.patch
-video-logo-add-support-for-blackfin-linux-logo-for-framebuffer-console.patch
-usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues.patch
-git-watchdog.patch
+oprofile-dont-request-cache-line-alignment-for-cpu_buffer.patch
+per_cpu-fix-define_per_cpu_shared_aligned-for-modules.patch
+linux-next.patch
+percpu-introduce-define_per_cpu_page_aligned.patch
 
