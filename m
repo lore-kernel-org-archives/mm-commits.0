@@ -1,73 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - memory_hotplug-check-for-walk_memory_resource-failure-in-online_pages.patch removed from -mm tree
-Date: Fri, 16 May 2008 15:53:19 -0700
-Message-ID: <200805162253.m4GMrJJR003126@imap1.linux-foundation.org>
+Subject: - macintosh-replace-deprecated-__initcall-with-device_initcall.patch removed from -mm tree
+Date: Fri, 16 May 2008 15:53:51 -0700
+Message-ID: <200805162253.m4GMrpAd003179@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53366 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39210 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757917AbYEPWxm (ORCPT
+	by vger.kernel.org with ESMTP id S1757564AbYEPWyE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 May 2008 18:53:42 -0400
+	Fri, 16 May 2008 18:54:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geoffrey.levand@am.sony.com, clameter@sgi.com, haveblue@us.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, kmannth@us.ibm.com, pj@sgi.com, y-goto@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: rpjday@crashcourse.ca, benh@kernel.crashing.org, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memory_hotplug: check for walk_memory_resource() failure in online_pages()
+     macintosh: replace deprecated __initcall with device_initcall
 has been removed from the -mm tree.  Its filename was
-     memory_hotplug-check-for-walk_memory_resource-failure-in-online_pages.patch
+     macintosh-replace-deprecated-__initcall-with-device_initcall.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memory_hotplug: check for walk_memory_resource() failure in online_pages()
-From: Geoff Levand <geoffrey.levand@am.sony.com>
+Subject: macintosh: replace deprecated __initcall with device_initcall
+From: "Robert P. J. Day" <rpjday@crashcourse.ca>
 
-Add a check to online_pages() to test for failure of
-walk_memory_resource().  This fixes a condition where a failure
-of walk_memory_resource() can lead to online_pages() returning
-success without the requested pages being onlined.
-
-Signed-off-by: Geoff Levand <geoffrey.levand@am.sony.com>
-Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Dave Hansen <haveblue@us.ibm.com>
-Cc: Keith Mannthey <kmannth@us.ibm.com>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Paul Jackson <pj@sgi.com>
+Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
+Acked-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ drivers/macintosh/adb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memory_hotplug.c~memory_hotplug-check-for-walk_memory_resource-failure-in-online_pages mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~memory_hotplug-check-for-walk_memory_resource-failure-in-online_pages
-+++ a/mm/memory_hotplug.c
-@@ -404,8 +404,15 @@ int online_pages(unsigned long pfn, unsi
- 	if (!populated_zone(zone))
- 		need_zonelists_rebuild = 1;
+diff -puN drivers/macintosh/adb.c~macintosh-replace-deprecated-__initcall-with-device_initcall drivers/macintosh/adb.c
+--- a/drivers/macintosh/adb.c~macintosh-replace-deprecated-__initcall-with-device_initcall
++++ a/drivers/macintosh/adb.c
+@@ -334,7 +334,7 @@ int __init adb_init(void)
+ 	return 0;
+ }
  
--	walk_memory_resource(pfn, nr_pages, &onlined_pages,
-+	ret = walk_memory_resource(pfn, nr_pages, &onlined_pages,
- 		online_pages_range);
-+	if (ret) {
-+		printk(KERN_DEBUG "online_pages %lx at %lx failed\n",
-+			nr_pages, pfn);
-+		memory_notify(MEM_CANCEL_ONLINE, &arg);
-+		return ret;
-+	}
-+
- 	zone->present_pages += onlined_pages;
- 	zone->zone_pgdat->node_present_pages += onlined_pages;
+-__initcall(adb_init);
++device_initcall(adb_init);
  
+ static int
+ do_adb_reset_bus(void)
 _
 
-Patches currently in -mm which might be from geoffrey.levand@am.sony.com are
+Patches currently in -mm which might be from rpjday@crashcourse.ca are
 
 origin.patch
+linux-next.patch
+kbuild-remove-final-references-to-deprecated-unreferenced-topdir.patch
+xtensa-warn-about-including-asm-rwsemh-directly.patch
+xtensa-use-newer-__spin_lock_unlocked-macro.patch
+remove-apparently-unused-fd1772h-header-file.patch
+init-delete-hard-coded-setting-and-testing-of-build_cramdisk.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+lists-remove-a-redundant-conditional-definition-of-list_add.patch
+zorro-replace-deprecated-__initcall-with-equivalent-device_initcall.patch
+spi-kconfig-simplifications.patch
 
