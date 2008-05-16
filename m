@@ -1,98 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: - m68knommu-add-info-about-removing-mcfserial.patch removed from -mm tree
-Date: Fri, 16 May 2008 15:52:28 -0700
-Message-ID: <200805162252.m4GMqSDF003044@imap1.linux-foundation.org>
+Subject: - atmel_lcdfb-fix-initialization-of-a-pre-allocated-framebuffer.patch removed from -mm tree
+Date: Fri, 16 May 2008 15:52:48 -0700
+Message-ID: <200805162252.m4GMqmV2003090@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42754 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51196 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756202AbYEPWxE (ORCPT
+	by vger.kernel.org with ESMTP id S1756819AbYEPWxM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 May 2008 18:53:04 -0400
+	Fri, 16 May 2008 18:53:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bigeasy@linutronix.de, alan@redhat.com, gerg@uclinux.org, mm-commits@vger.kernel.org
+To: nicolas.ferre@atmel.com, hskinnemoen@atmel.com, linux@maxim.org.za, mm-commits@vger.kernel.org
 
 
 The patch titled
-     m68knommu: add info about removing mcfserial
+     atmel_lcdfb: fix initialization of a pre-allocated framebuffer
 has been removed from the -mm tree.  Its filename was
-     m68knommu-add-info-about-removing-mcfserial.patch
+     atmel_lcdfb-fix-initialization-of-a-pre-allocated-framebuffer.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: m68knommu: add info about removing mcfserial
-From: Sebastian Siewior <bigeasy@linutronix.de>
+Subject: atmel_lcdfb: fix initialization of a pre-allocated framebuffer
+From: Nicolas Ferre <nicolas.ferre@atmel.com>
 
-Schedule a removal for this driver. Alternative driver is available for
-a while now.
+Fix initialization of framebuffer not calling ioremap_writecombine() function
+and not using internal SRAM for at91sam9rl.
 
-Signed-off-by: Sebastian Siewior <bigeasy@linutronix.de>
-Acked-by: Greg Ungerer <gerg@uclinux.org>
-Acked-by: Alan Cox <alan@redhat.com>
+This is a little rework of the "Don't initialize a pre-allocated framebuffer"
+patch that corrects the call to ioremap_writecombine() function.
+
+It also cuts the use of internal SRAM for at91sam9rl : it is a bit small
+for a framebuffer.
+
+Signed-off-by: Nicolas Ferre <nicolas.ferre@atmel.com>
+Cc: Andrew Victor <linux@maxim.org.za>
+Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/feature-removal-schedule.txt |    8 ++++++++
- drivers/serial/Kconfig                     |    6 +++++-
- drivers/serial/mcfserial.c                 |    1 +
- 3 files changed, 14 insertions(+), 1 deletion(-)
+ arch/arm/mach-at91/at91sam9261_devices.c |    4 ++--
+ arch/arm/mach-at91/at91sam9rl_devices.c  |   21 ---------------------
+ 2 files changed, 2 insertions(+), 23 deletions(-)
 
-diff -puN Documentation/feature-removal-schedule.txt~m68knommu-add-info-about-removing-mcfserial Documentation/feature-removal-schedule.txt
---- a/Documentation/feature-removal-schedule.txt~m68knommu-add-info-about-removing-mcfserial
-+++ a/Documentation/feature-removal-schedule.txt
-@@ -289,6 +289,14 @@ Who:	Glauber Costa <gcosta@redhat.com>
+diff -puN arch/arm/mach-at91/at91sam9261_devices.c~atmel_lcdfb-fix-initialization-of-a-pre-allocated-framebuffer arch/arm/mach-at91/at91sam9261_devices.c
+--- a/arch/arm/mach-at91/at91sam9261_devices.c~atmel_lcdfb-fix-initialization-of-a-pre-allocated-framebuffer
++++ a/arch/arm/mach-at91/at91sam9261_devices.c
+@@ -544,10 +544,10 @@ void __init at91_add_device_lcdc(struct 
+ 		struct resource *fb_res = &lcdc_resources[2];
+ 		size_t fb_len = fb_res->end - fb_res->start + 1;
  
- ---------------------------
+-		fb = ioremap_writecombine(fb_res->start, fb_len);
++		fb = ioremap(fb_res->start, fb_len);
+ 		if (fb) {
+ 			memset(fb, 0, fb_len);
+-			iounmap(fb, fb_len);
++			iounmap(fb);
+ 		}
+ 	}
+ 	lcdc_data = *data;
+diff -puN arch/arm/mach-at91/at91sam9rl_devices.c~atmel_lcdfb-fix-initialization-of-a-pre-allocated-framebuffer arch/arm/mach-at91/at91sam9rl_devices.c
+--- a/arch/arm/mach-at91/at91sam9rl_devices.c~atmel_lcdfb-fix-initialization-of-a-pre-allocated-framebuffer
++++ a/arch/arm/mach-at91/at91sam9rl_devices.c
+@@ -332,13 +332,6 @@ static struct resource lcdc_resources[] 
+ 		.end	= AT91SAM9RL_ID_LCDC,
+ 		.flags	= IORESOURCE_IRQ,
+ 	},
+-#if defined(CONFIG_FB_INTSRAM)
+-	[2] = {
+-		.start	= AT91SAM9RL_SRAM_BASE,
+-		.end	= AT91SAM9RL_SRAM_BASE + AT91SAM9RL_SRAM_SIZE - 1,
+-		.flags	= IORESOURCE_MEM,
+-	},
+-#endif
+ };
  
-+What:	old style serial driver for ColdFire (CONFIG_SERIAL_COLDFIRE)
-+When:	2.6.28
-+Why:	This driver still uses the old interface and has been replaced
-+	by CONFIG_SERIAL_MCF.
-+Who:	Sebastian Siewior <sebastian@breakpoint.cc>
-+
-+---------------------------
-+
- What:	/sys/o2cb symlink
- When:	January 2010
- Why:	/sys/fs/o2cb is the proper location for this information - /sys/o2cb
-diff -puN drivers/serial/Kconfig~m68knommu-add-info-about-removing-mcfserial drivers/serial/Kconfig
---- a/drivers/serial/Kconfig~m68knommu-add-info-about-removing-mcfserial
-+++ a/drivers/serial/Kconfig
-@@ -976,11 +976,15 @@ config SERIAL_68328_RTS_CTS
- 	depends on SERIAL_68328
+ static struct platform_device at91_lcdc_device = {
+@@ -381,20 +374,6 @@ void __init at91_add_device_lcdc(struct 
+ 	at91_set_B_periph(AT91_PIN_PC24, 0);	/* LCDD22 */
+ 	at91_set_B_periph(AT91_PIN_PC25, 0);	/* LCDD23 */
  
- config SERIAL_COLDFIRE
--	bool "ColdFire serial support"
-+	bool "ColdFire serial support (DEPRECATED)"
- 	depends on COLDFIRE
- 	help
- 	  This driver supports the built-in serial ports of the Motorola ColdFire
- 	  family of CPUs.
-+	  This driver is deprecated because it supports only the old interface
-+	  for serial drivers and features like magic keys are not working.
-+	  Please switch to the new style driver because this driver will be
-+	  removed soon.
- 
- config SERIAL_MCF
- 	bool "Coldfire serial support (new style driver)"
-diff -puN drivers/serial/mcfserial.c~m68knommu-add-info-about-removing-mcfserial drivers/serial/mcfserial.c
---- a/drivers/serial/mcfserial.c~m68knommu-add-info-about-removing-mcfserial
-+++ a/drivers/serial/mcfserial.c
-@@ -1,3 +1,4 @@
-+#warning This driver is deprecated. Check Kconfig for details.
- /*
-  * mcfserial.c -- serial driver for ColdFire internal UARTS.
-  *
-_
-
-Patches currently in -mm which might be from bigeasy@linutronix.de are
-
-origin.patch
-linux-next.patch
-add-the-carmine-fb-driver.patch
-add-the-carmine-fb-driver-update.patch
-
+-#ifdef CONFIG_FB_INTSRAM
+-	{
+-		void __iomem *fb;
+-		struct resource *fb_res = &lcdc_resources[2];
+-		size_t fb_len = fb_res->end - fb_res->start + 1;
+-
+-		fb = ioremap_writecombine(fb_res->start, fb_len);
+-		if (fb) {
+-			memset(fb, 0, fb_len);
+-			iounmap(fb, fb_len);
+-		}
+-	}
+-#endif
