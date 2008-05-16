@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-handle-swap-cache.patch added to -mm tree
-Date: Thu, 15 May 2008 19:53:21 -0700
-Message-ID: <200805160253.m4G2rLsj023235@imap1.linux-foundation.org>
+Subject: + memcg-add-hints-for-branch.patch added to -mm tree
+Date: Thu, 15 May 2008 19:53:24 -0700
+Message-ID: <200805160253.m4G2rO0g023241@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38048 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59681 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753950AbYEPCyX (ORCPT
+	by vger.kernel.org with ESMTP id S1752832AbYEPCyW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 May 2008 22:54:23 -0400
+	Thu, 15 May 2008 22:54:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, ebiederm@xmission.com, hu
 
 
 The patch titled
-     memcg: handle swap cache
+     memcg: add hints for branch
 has been added to the -mm tree.  Its filename is
-     memcg-handle-swap-cache.patch
+     memcg-add-hints-for-branch.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,27 +34,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: handle swap cache
+Subject: memcg: add hints for branch
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Now swapcache is not accounted. (because it had some troubles.)
-
-This is retrying account swap cache, based on remove-refcnt patch.
-
- * If a page is swap-cache,  mem_cgroup_uncharge_page() will *not*
-   uncharge a page even if page->mapcount == 0.
- * If a page is removed from swap-cache, mem_cgroup_uncharge_page()
-   is called.
- * A new swapcache page is not charged until when it's mapped. By this
-   we can avoid complicated read-ahead troubles.
-
- A file, memory.stat,"rss" member is changed to "anon/swapcache".
- (rss is not precise name here...)
- When all processes in cgroup exits, rss/swapcache counter can have some
- numbers because of lazy behavior of LRU. So the word "rss" is confusing.
-
- I can easily imagine a user says "Oh, there may be memory leak..."
- Precise counting of swapcache will be tried in future (if necessary)
+Showing brach direction for obvious conditions.
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Balbir Singh <balbir@in.ibm.com>
@@ -68,70 +51,48 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    9 +++++----
- mm/migrate.c    |    3 ++-
- mm/swap_state.c |    1 +
- 3 files changed, 8 insertions(+), 5 deletions(-)
+ mm/memcontrol.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-handle-swap-cache mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-handle-swap-cache
+diff -puN mm/memcontrol.c~memcg-add-hints-for-branch mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-add-hints-for-branch
 +++ a/mm/memcontrol.c
-@@ -44,10 +44,10 @@ static struct kmem_cache *page_cgroup_ca
-  */
- enum mem_cgroup_stat_index {
- 	/*
--	 * For MEM_CONTAINER_TYPE_ALL, usage = pagecache + rss.
-+	 * For MEM_CONTAINER_TYPE_ALL, usage = pagecache + rss/swapcache.
+@@ -550,7 +550,7 @@ retry:
+ 	 * The page_cgroup exists and
+ 	 * the page has already been accounted.
  	 */
- 	MEM_CGROUP_STAT_CACHE, 	   /* # of pages charged as cache */
--	MEM_CGROUP_STAT_RSS,	   /* # of pages charged as rss */
-+	MEM_CGROUP_STAT_RSS,	   /* # of pages charged as anon/swapcache */
- 	MEM_CGROUP_STAT_PGPGIN_COUNT,	/* # of pages paged in */
- 	MEM_CGROUP_STAT_PGPGOUT_COUNT,	/* # of pages paged out */
+-	if (pc) {
++	if (unlikely(pc)) {
+ 		VM_BUG_ON(pc->page != page);
+ 		VM_BUG_ON(!pc->mem_cgroup);
+ 		unlock_page_cgroup(page);
+@@ -559,7 +559,7 @@ retry:
+ 	unlock_page_cgroup(page);
  
-@@ -697,7 +697,8 @@ __mem_cgroup_uncharge_common(struct page
+ 	pc = kmem_cache_alloc(page_cgroup_cache, gfp_mask);
+-	if (pc == NULL)
++	if (unlikely(pc == NULL))
+ 		goto err;
  
- 	if ((ctype == MEM_CGROUP_CHARGE_TYPE_MAPPED)
- 	    && ((pc->flags & PAGE_CGROUP_FLAG_CACHE)
--		|| page_mapped(page)))
-+		|| page_mapped(page)
-+		|| PageSwapCache(page)))
+ 	/*
+@@ -616,7 +616,7 @@ retry:
+ 		pc->flags = PAGE_CGROUP_FLAG_ACTIVE;
+ 
+ 	lock_page_cgroup(page);
+-	if (page_get_page_cgroup(page)) {
++	if (unlikely(page_get_page_cgroup(page))) {
+ 		unlock_page_cgroup(page);
+ 		/*
+ 		 * Another charge has been added to this page already.
+@@ -690,7 +690,7 @@ __mem_cgroup_uncharge_common(struct page
+ 	 */
+ 	lock_page_cgroup(page);
+ 	pc = page_get_page_cgroup(page);
+-	if (!pc)
++	if (unlikely(!pc))
  		goto unlock;
  
- 	mz = page_cgroup_zoneinfo(pc);
-@@ -904,7 +905,7 @@ static const struct mem_cgroup_stat_desc
- 	u64 unit;
- } mem_cgroup_stat_desc[] = {
- 	[MEM_CGROUP_STAT_CACHE] = { "cache", PAGE_SIZE, },
--	[MEM_CGROUP_STAT_RSS] = { "rss", PAGE_SIZE, },
-+	[MEM_CGROUP_STAT_RSS] = { "anon/swapcache", PAGE_SIZE, },
- 	[MEM_CGROUP_STAT_PGPGIN_COUNT] = {"pgpgin", 1, },
- 	[MEM_CGROUP_STAT_PGPGOUT_COUNT] = {"pgpgout", 1, },
- };
-diff -puN mm/migrate.c~memcg-handle-swap-cache mm/migrate.c
---- a/mm/migrate.c~memcg-handle-swap-cache
-+++ a/mm/migrate.c
-@@ -360,7 +360,8 @@ static int migrate_page_move_mapping(str
- 	write_unlock_irq(&mapping->tree_lock);
- 	if (!PageSwapCache(newpage)) {
- 		mem_cgroup_uncharge_cache_page(page);
--	}
-+	} else
-+		mem_cgroup_uncharge_page(page);
- 
- 	return 0;
- }
-diff -puN mm/swap_state.c~memcg-handle-swap-cache mm/swap_state.c
---- a/mm/swap_state.c~memcg-handle-swap-cache
-+++ a/mm/swap_state.c
-@@ -110,6 +110,7 @@ void __delete_from_swap_cache(struct pag
- 	total_swapcache_pages--;
- 	__dec_zone_page_state(page, NR_FILE_PAGES);
- 	INC_CACHE_INFO(del_total);
-+	mem_cgroup_uncharge_page(page);
- }
- 
- /**
+ 	VM_BUG_ON(pc->page != page);
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
