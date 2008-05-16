@@ -1,98 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - atmel_lcdfb-fix-initialization-of-a-pre-allocated-framebuffer.patch removed from -mm tree
-Date: Fri, 16 May 2008 15:52:48 -0700
-Message-ID: <200805162252.m4GMqmV2003090@imap1.linux-foundation.org>
+Subject: - jbd-need-to-hold-j_state_lock-to-updates-to-transaction-t_state-to-t_commit.patch removed from -mm tree
+Date: Fri, 16 May 2008 15:52:56 -0700
+Message-ID: <200805162252.m4GMqujQ003099@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51196 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53136 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756819AbYEPWxM (ORCPT
+	by vger.kernel.org with ESMTP id S1757024AbYEPWxR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 May 2008 18:53:12 -0400
+	Fri, 16 May 2008 18:53:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nicolas.ferre@atmel.com, hskinnemoen@atmel.com, linux@maxim.org.za, mm-commits@vger.kernel.org
+To: cmm@us.ibm.com, jack@ucw.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atmel_lcdfb: fix initialization of a pre-allocated framebuffer
+     jbd: need to hold j_state_lock to updates to transaction t_state to T_COMMIT
 has been removed from the -mm tree.  Its filename was
-     atmel_lcdfb-fix-initialization-of-a-pre-allocated-framebuffer.patch
+     jbd-need-to-hold-j_state_lock-to-updates-to-transaction-t_state-to-t_commit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atmel_lcdfb: fix initialization of a pre-allocated framebuffer
-From: Nicolas Ferre <nicolas.ferre@atmel.com>
+Subject: jbd: need to hold j_state_lock to updates to transaction t_state to T_COMMIT
+From: Mingming Cao <cmm@us.ibm.com>
 
-Fix initialization of framebuffer not calling ioremap_writecombine() function
-and not using internal SRAM for at91sam9rl.
+Updating the current transaction's t_state is protected by j_state_lock.  We
+need to do the same when updating the t_state to T_COMMIT.
 
-This is a little rework of the "Don't initialize a pre-allocated framebuffer"
-patch that corrects the call to ioremap_writecombine() function.
-
-It also cuts the use of internal SRAM for at91sam9rl : it is a bit small
-for a framebuffer.
-
-Signed-off-by: Nicolas Ferre <nicolas.ferre@atmel.com>
-Cc: Andrew Victor <linux@maxim.org.za>
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Signed-off-by: Mingming Cao <cmm@us.ibm.com>
+Acked-by: Jan Kara <jack@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-at91/at91sam9261_devices.c |    4 ++--
- arch/arm/mach-at91/at91sam9rl_devices.c  |   21 ---------------------
- 2 files changed, 2 insertions(+), 23 deletions(-)
+ fs/jbd/commit.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN arch/arm/mach-at91/at91sam9261_devices.c~atmel_lcdfb-fix-initialization-of-a-pre-allocated-framebuffer arch/arm/mach-at91/at91sam9261_devices.c
---- a/arch/arm/mach-at91/at91sam9261_devices.c~atmel_lcdfb-fix-initialization-of-a-pre-allocated-framebuffer
-+++ a/arch/arm/mach-at91/at91sam9261_devices.c
-@@ -544,10 +544,10 @@ void __init at91_add_device_lcdc(struct 
- 		struct resource *fb_res = &lcdc_resources[2];
- 		size_t fb_len = fb_res->end - fb_res->start + 1;
+diff -puN fs/jbd/commit.c~jbd-need-to-hold-j_state_lock-to-updates-to-transaction-t_state-to-t_commit fs/jbd/commit.c
+--- a/fs/jbd/commit.c~jbd-need-to-hold-j_state_lock-to-updates-to-transaction-t_state-to-t_commit
++++ a/fs/jbd/commit.c
+@@ -470,7 +470,9 @@ void journal_commit_transaction(journal_
+ 	 * transaction!  Now comes the tricky part: we need to write out
+ 	 * metadata.  Loop over the transaction's entire buffer list:
+ 	 */
++	spin_lock(&journal->j_state_lock);
+ 	commit_transaction->t_state = T_COMMIT;
++	spin_unlock(&journal->j_state_lock);
  
--		fb = ioremap_writecombine(fb_res->start, fb_len);
-+		fb = ioremap(fb_res->start, fb_len);
- 		if (fb) {
- 			memset(fb, 0, fb_len);
--			iounmap(fb, fb_len);
-+			iounmap(fb);
- 		}
- 	}
- 	lcdc_data = *data;
-diff -puN arch/arm/mach-at91/at91sam9rl_devices.c~atmel_lcdfb-fix-initialization-of-a-pre-allocated-framebuffer arch/arm/mach-at91/at91sam9rl_devices.c
---- a/arch/arm/mach-at91/at91sam9rl_devices.c~atmel_lcdfb-fix-initialization-of-a-pre-allocated-framebuffer
-+++ a/arch/arm/mach-at91/at91sam9rl_devices.c
-@@ -332,13 +332,6 @@ static struct resource lcdc_resources[] 
- 		.end	= AT91SAM9RL_ID_LCDC,
- 		.flags	= IORESOURCE_IRQ,
- 	},
--#if defined(CONFIG_FB_INTSRAM)
--	[2] = {
--		.start	= AT91SAM9RL_SRAM_BASE,
--		.end	= AT91SAM9RL_SRAM_BASE + AT91SAM9RL_SRAM_SIZE - 1,
--		.flags	= IORESOURCE_MEM,
--	},
--#endif
- };
- 
- static struct platform_device at91_lcdc_device = {
-@@ -381,20 +374,6 @@ void __init at91_add_device_lcdc(struct 
- 	at91_set_B_periph(AT91_PIN_PC24, 0);	/* LCDD22 */
- 	at91_set_B_periph(AT91_PIN_PC25, 0);	/* LCDD23 */
- 
--#ifdef CONFIG_FB_INTSRAM
--	{
--		void __iomem *fb;
--		struct resource *fb_res = &lcdc_resources[2];
--		size_t fb_len = fb_res->end - fb_res->start + 1;
--
--		fb = ioremap_writecombine(fb_res->start, fb_len);
--		if (fb) {
--			memset(fb, 0, fb_len);
--			iounmap(fb, fb_len);
--		}
--	}
--#endif
+ 	J_ASSERT(commit_transaction->t_nr_buffers <=
+ 		 commit_transaction->t_outstanding_credits);
+_
+
+Patches currently in -mm which might be from cmm@us.ibm.com are
+
+origin.patch
+linux-next.patch
+
