@@ -1,158 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - revert-9p-convert-from-semaphore-to-spinlock.patch removed from -mm tree
-Date: Fri, 16 May 2008 15:53:41 -0700
-Message-ID: <200805162253.m4GMrfio003158@imap1.linux-foundation.org>
+Subject: - net-irda-irnet-irnet_irdac-needs-unalignedh.patch removed from -mm tree
+Date: Fri, 16 May 2008 15:53:39 -0700
+Message-ID: <200805162253.m4GMrdwj003154@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37733 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55532 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757024AbYEPWxv (ORCPT
+	by vger.kernel.org with ESMTP id S1757414AbYEPWxm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 May 2008 18:53:51 -0400
+	Fri, 16 May 2008 18:53:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, matthew@wil.cx, sfr@canb.auug.org.au, willy@linux.intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert 9p: Convert from semaphore to spinlock
+     net/irda/irnet/irnet_irda.c needs unaligned.h
 has been removed from the -mm tree.  Its filename was
-     revert-9p-convert-from-semaphore-to-spinlock.patch
+     net-irda-irnet-irnet_irdac-needs-unalignedh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert 9p: Convert from semaphore to spinlock
+Subject: net/irda/irnet/irnet_irda.c needs unaligned.h
 From: Andrew Morton <akpm@linux-foundation.org>
 
-revert
+net/irda/irnet/irnet_irda.c: In function 'irnet_discovery_indication':
+net/irda/irnet/irnet_irda.c:1676: error: implicit declaration of function 'get_unaligned'
 
-commit 2c77d192c68a95a188dd326db1315b3492487c41
-Author: Matthew Wilcox <matthew@wil.cx>
-Date:   Wed Apr 23 08:41:35 2008 -0400
-
-    9p: Convert from semaphore to spinlock
-    
-    The virtio_9p_lock is only held for very short periods of time and
-    never does a blocking operation while it's held, so it really should be
-    a spinlock.
-    
-    Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
-
-because it craps all over the maintainer's tree.
-
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Matthew Wilcox <willy@linux.intel.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/9p/trans_virtio.c |   44 +++++++++++++++++++---------------------
- 1 file changed, 21 insertions(+), 23 deletions(-)
+ net/irda/irnet/irnet_irda.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN net/9p/trans_virtio.c~revert-9p-convert-from-semaphore-to-spinlock net/9p/trans_virtio.c
---- a/net/9p/trans_virtio.c~revert-9p-convert-from-semaphore-to-spinlock
-+++ a/net/9p/trans_virtio.c
-@@ -28,30 +28,28 @@
-  *
-  */
+diff -puN net/irda/irnet/irnet_irda.c~net-irda-irnet-irnet_irdac-needs-unalignedh net/irda/irnet/irnet_irda.c
+--- a/net/irda/irnet/irnet_irda.c~net-irda-irnet-irnet_irdac-needs-unalignedh
++++ a/net/irda/irnet/irnet_irda.c
+@@ -10,6 +10,7 @@
  
--#include <linux/errno.h>
--#include <linux/file.h>
--#include <linux/idr.h>
--#include <linux/inet.h>
- #include <linux/in.h>
--#include <linux/ipv6.h>
--#include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/net.h>
--#include <linux/parser.h>
--#include <linux/scatterlist.h>
--#include <linux/spinlock.h>
--#include <linux/uaccess.h>
-+#include <linux/ipv6.h>
-+#include <linux/errno.h>
-+#include <linux/kernel.h>
- #include <linux/un.h>
--#include <linux/virtio_9p.h>
--#include <linux/virtio.h>
--
-+#include <linux/uaccess.h>
-+#include <linux/inet.h>
-+#include <linux/idr.h>
-+#include <linux/file.h>
- #include <net/9p/9p.h>
-+#include <linux/parser.h>
- #include <net/9p/transport.h>
-+#include <linux/scatterlist.h>
-+#include <linux/virtio.h>
-+#include <linux/virtio_9p.h>
+ #include "irnet_irda.h"		/* Private header */
+ #include <linux/seq_file.h>
++#include <asm/unaligned.h>
  
- #define VIRTQUEUE_NUM	128
- 
--/* a single lock to manage channel initialization and attachment */
--static DEFINE_SPINLOCK(virtio_9p_lock);
-+/* a single mutex to manage channel initialization and attachment */
-+static DECLARE_MUTEX(virtio_9p_lock);
- /* global which tracks highest initialized channel */
- static int chan_index;
- 
-@@ -146,9 +144,9 @@ static void p9_virtio_close(struct p9_tr
- 	chan->max_tag = 0;
- 	spin_unlock_irqrestore(&chan->lock, flags);
- 
--	spin_lock(&virtio_9p_lock);
-+	down(&virtio_9p_lock);
- 	chan->inuse = false;
--	spin_unlock(&virtio_9p_lock);
-+	up(&virtio_9p_lock);
- 
- 	kfree(trans);
- }
-@@ -271,10 +269,10 @@ static int p9_virtio_probe(struct virtio
- 	struct virtio_chan *chan;
- 	int index;
- 
--	spin_lock(&virtio_9p_lock);
-+	down(&virtio_9p_lock);
- 	index = chan_index++;
- 	chan = &channels[index];
--	spin_unlock(&virtio_9p_lock);
-+	up(&virtio_9p_lock);
- 
- 	if (chan_index > MAX_9P_CHAN) {
- 		printk(KERN_ERR "9p: virtio: Maximum channels exceeded\n");
-@@ -303,9 +301,9 @@ static int p9_virtio_probe(struct virtio
- out_free_vq:
- 	vdev->config->del_vq(chan->vq);
- fail:
--	spin_lock(&virtio_9p_lock);
-+	down(&virtio_9p_lock);
- 	chan_index--;
--	spin_unlock(&virtio_9p_lock);
-+	up(&virtio_9p_lock);
- 	return err;
- }
- 
-@@ -322,7 +320,7 @@ p9_virtio_create(const char *devname, ch
- 	struct virtio_chan *chan = channels;
- 	int index = 0;
- 
--	spin_lock(&virtio_9p_lock);
-+	down(&virtio_9p_lock);
- 	while (index < MAX_9P_CHAN) {
- 		if (chan->initialized && !chan->inuse) {
- 			chan->inuse = true;
-@@ -332,7 +330,7 @@ p9_virtio_create(const char *devname, ch
- 			chan = &channels[index];
- 		}
- 	}
--	spin_unlock(&virtio_9p_lock);
-+	up(&virtio_9p_lock);
- 
- 	if (index >= MAX_9P_CHAN) {
- 		printk(KERN_ERR "9p: no channels available\n");
+ /*
+  * PPP disconnect work: we need to make sure we're in
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
