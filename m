@@ -1,77 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: - per_cpu-fix-define_per_cpu_shared_aligned-for-modules.patch removed from -mm tree
-Date: Fri, 16 May 2008 15:53:22 -0700
-Message-ID: <200805162253.m4GMrMIq003131@imap1.linux-foundation.org>
+Subject: - ext3-4-fix-uninitialized-bs-in-ext3-4_xattr_set_handle.patch removed from -mm tree
+Date: Fri, 16 May 2008 15:53:09 -0700
+Message-ID: <200805162253.m4GMr90t003114@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38571 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57750 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757333AbYEPWxg (ORCPT
+	by vger.kernel.org with ESMTP id S1761570AbYEPWxg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 16 May 2008 18:53:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dada1@cosmosbay.com, fenghua.yu@intel.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: tiger.yang@oracle.com, adilger@sun.com, agruen@suse.de, linux-ext4@vger.kernel.org, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     per_cpu: fix DEFINE_PER_CPU_SHARED_ALIGNED for modules
+     ext3/4: fix uninitialized bs in ext3/4_xattr_set_handle()
 has been removed from the -mm tree.  Its filename was
-     per_cpu-fix-define_per_cpu_shared_aligned-for-modules.patch
+     ext3-4-fix-uninitialized-bs-in-ext3-4_xattr_set_handle.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: per_cpu: fix DEFINE_PER_CPU_SHARED_ALIGNED for modules
-From: Eric Dumazet <dada1@cosmosbay.com>
+Subject: ext3/4: fix uninitialized bs in ext3/4_xattr_set_handle()
+From: Tiger Yang <tiger.yang@oracle.com>
 
-Current module loader lookups ".data.percpu" ELF section to perform
-per_cpu relocation.  But DEFINE_PER_CPU_SHARED_ALIGNED() uses another
-section (".data.percpu.shared_aligned"), currently only handled in
-vmlinux.lds, not by module loader.
+This fix the uninitialized bs when we try to replace a xattr entry in
+ibody with the new value which require more than free space.
 
-To correct this problem, instead of adding logic into module loader, or
-using at build time a module.lds file for all arches to group
-".data.percpu.shared_aligned" into ".data.percpu", just use ".data.percpu"
-for modules.
+This situation only happens we format ext3/4 with inode size more than 128 and
+we have put xattr entries both in ibody and block.  The consequences about
+this bug is we will lost the xattr block which pointed by i_file_acl with all
+xattr entires in it.  We will alloc a new xattr block and put that large value
+entry in it.  The old xattr block will become orphan block.
 
-Alignment requirements are correctly handled by ld and module loader.
-
-Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
+Signed-off-by: Tiger Yang <tiger.yang@oracle.com>
+Cc: <linux-ext4@vger.kernel.org>
+Cc: Andreas Gruenbacher <agruen@suse.de>
+Acked-by: Andreas Dilger <adilger@sun.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/percpu.h |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ fs/ext3/xattr.c |    5 +++++
+ fs/ext4/xattr.c |    5 +++++
+ 2 files changed, 10 insertions(+)
 
-diff -puN include/linux/percpu.h~per_cpu-fix-define_per_cpu_shared_aligned-for-modules include/linux/percpu.h
---- a/include/linux/percpu.h~per_cpu-fix-define_per_cpu_shared_aligned-for-modules
-+++ a/include/linux/percpu.h
-@@ -13,8 +13,14 @@
- 	__attribute__((__section__(".data.percpu")))			\
- 	PER_CPU_ATTRIBUTES __typeof__(type) per_cpu__##name
- 
-+#ifdef MODULE
-+#define SHARED_ALIGNED_SECTION ".data.percpu"
-+#else
-+#define SHARED_ALIGNED_SECTION ".data.percpu.shared_aligned"
-+#endif
-+
- #define DEFINE_PER_CPU_SHARED_ALIGNED(type, name)			\
--	__attribute__((__section__(".data.percpu.shared_aligned")))	\
-+	__attribute__((__section__(SHARED_ALIGNED_SECTION)))		\
- 	PER_CPU_ATTRIBUTES __typeof__(type) per_cpu__##name		\
- 	____cacheline_aligned_in_smp
- #else
+diff -puN fs/ext3/xattr.c~ext3-4-fix-uninitialized-bs-in-ext3-4_xattr_set_handle fs/ext3/xattr.c
+--- a/fs/ext3/xattr.c~ext3-4-fix-uninitialized-bs-in-ext3-4_xattr_set_handle
++++ a/fs/ext3/xattr.c
+@@ -1000,6 +1000,11 @@ ext3_xattr_set_handle(handle_t *handle, 
+ 			i.value = NULL;
+ 			error = ext3_xattr_block_set(handle, inode, &i, &bs);
+ 		} else if (error == -ENOSPC) {
++			if (EXT3_I(inode)->i_file_acl && !bs.s.base) {
++				error = ext3_xattr_block_find(inode, &i, &bs);
++				if (error)
++					goto cleanup;
++			}
+ 			error = ext3_xattr_block_set(handle, inode, &i, &bs);
+ 			if (error)
+ 				goto cleanup;
+diff -puN fs/ext4/xattr.c~ext3-4-fix-uninitialized-bs-in-ext3-4_xattr_set_handle fs/ext4/xattr.c
+--- a/fs/ext4/xattr.c~ext3-4-fix-uninitialized-bs-in-ext3-4_xattr_set_handle
++++ a/fs/ext4/xattr.c
+@@ -1009,6 +1009,11 @@ ext4_xattr_set_handle(handle_t *handle, 
+ 			i.value = NULL;
+ 			error = ext4_xattr_block_set(handle, inode, &i, &bs);
+ 		} else if (error == -ENOSPC) {
++			if (EXT4_I(inode)->i_file_acl && !bs.s.base) {
++				error = ext4_xattr_block_find(inode, &i, &bs);
++				if (error)
++					goto cleanup;
++			}
+ 			error = ext4_xattr_block_set(handle, inode, &i, &bs);
+ 			if (error)
+ 				goto cleanup;
 _
 
-Patches currently in -mm which might be from dada1@cosmosbay.com are
+Patches currently in -mm which might be from tiger.yang@oracle.com are
 
 origin.patch
-linux-next.patch
-percpu-introduce-define_per_cpu_page_aligned.patch
 
