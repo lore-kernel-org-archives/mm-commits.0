@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-remove-a-redundant-check.patch added to -mm tree
-Date: Thu, 15 May 2008 19:53:26 -0700
-Message-ID: <200805160253.m4G2rQni023244@imap1.linux-foundation.org>
+Subject: + memcg-remove-refcnt-from-page_cgroup.patch added to -mm tree
+Date: Thu, 15 May 2008 19:53:17 -0700
+Message-ID: <200805160253.m4G2rH4I023232@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59396 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40085 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753327AbYEPCyV (ORCPT
+	by vger.kernel.org with ESMTP id S1752178AbYEPCyU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 May 2008 22:54:21 -0400
+	Thu, 15 May 2008 22:54:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, ebiederm@xmission.com, hu
 
 
 The patch titled
-     memcg: remove a redundant check
+     memcg: remove refcnt from page_cgroup
 has been added to the -mm tree.  Its filename is
-     memcg-remove-a-redundant-check.patch
+     memcg-remove-refcnt-from-page_cgroup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,25 +34,102 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: remove a redundant check
+Subject: memcg: remove refcnt from page_cgroup
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Because of remove refcnt patch, it's very rare case to that
-mem_cgroup_charge_common() is called against a page which is accounted.
+memcg: performance improvements
 
-mem_cgroup_charge_common() is called when.
- 1. a page is added into file cache.
- 2. an anon page is _newly_ mapped.
+Patch Description
+ 1/5 ... remove refcnt fron page_cgroup patch (shmem handling is fixed)
+ 2/5 ... swapcache handling patch
+ 3/5 ... add helper function for shmem's memory reclaim patch
+ 4/5 ... optimize by likely/unlikely ppatch
+ 5/5 ... remove redundunt check patch (shmem handling is fixed.)
 
-A racy case is that a newly-swapped-in anonymous page is referred from
-prural threads in do_swap_page() at the same time.
-(a page is not Locked when mem_cgroup_charge() is called from do_swap_page.)
+Unix bench result.
 
-Another case is shmem. It charges its page before calling add_to_page_cache().
-Then, mem_cgroup_charge_cache() is called twice. This case is handled in
-mem_cgroup_cache_charge(). But this check may be too hacky...
+== 2.6.26-rc2-mm1 + memory resource controller
+Execl Throughput                           2915.4 lps   (29.6 secs, 3 samples)
+C Compiler Throughput                      1019.3 lpm   (60.0 secs, 3 samples)
+Shell Scripts (1 concurrent)               5796.0 lpm   (60.0 secs, 3 samples)
+Shell Scripts (8 concurrent)               1097.7 lpm   (60.0 secs, 3 samples)
+Shell Scripts (16 concurrent)               565.3 lpm   (60.0 secs, 3 samples)
+File Read 1024 bufsize 2000 maxblocks    1022128.0 KBps  (30.0 secs, 3 samples)
+File Write 1024 bufsize 2000 maxblocks   544057.0 KBps  (30.0 secs, 3 samples)
+File Copy 1024 bufsize 2000 maxblocks    346481.0 KBps  (30.0 secs, 3 samples)
+File Read 256 bufsize 500 maxblocks      319325.0 KBps  (30.0 secs, 3 samples)
+File Write 256 bufsize 500 maxblocks     148788.0 KBps  (30.0 secs, 3 samples)
+File Copy 256 bufsize 500 maxblocks       99051.0 KBps  (30.0 secs, 3 samples)
+File Read 4096 bufsize 8000 maxblocks    2058917.0 KBps  (30.0 secs, 3 samples)
+File Write 4096 bufsize 8000 maxblocks   1606109.0 KBps  (30.0 secs, 3 samples)
+File Copy 4096 bufsize 8000 maxblocks    854789.0 KBps  (30.0 secs, 3 samples)
+Dc: sqrt(2) to 99 decimal places         126145.2 lpm   (30.0 secs, 3 samples)
 
-Signed-off-by : KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+
+                     INDEX VALUES
+TEST                                        BASELINE     RESULT      INDEX
+
+Execl Throughput                                43.0     2915.4      678.0
+File Copy 1024 bufsize 2000 maxblocks         3960.0   346481.0      875.0
+File Copy 256 bufsize 500 maxblocks           1655.0    99051.0      598.5
+File Copy 4096 bufsize 8000 maxblocks         5800.0   854789.0     1473.8
+Shell Scripts (8 concurrent)                     6.0     1097.7     1829.5
+                                                                 =========
+     FINAL SCORE                                                     991.3
+
+== 2.6.26-rc2-mm1 + this set ==
+Execl Throughput                           3012.9 lps   (29.9 secs, 3 samples)
+C Compiler Throughput                       981.0 lpm   (60.0 secs, 3 samples)
+Shell Scripts (1 concurrent)               5872.0 lpm   (60.0 secs, 3 samples)
+Shell Scripts (8 concurrent)               1120.3 lpm   (60.0 secs, 3 samples)
+Shell Scripts (16 concurrent)               578.0 lpm   (60.0 secs, 3 samples)
+File Read 1024 bufsize 2000 maxblocks    1003993.0 KBps  (30.0 secs, 3 samples)
+File Write 1024 bufsize 2000 maxblocks   550452.0 KBps  (30.0 secs, 3 samples)
+File Copy 1024 bufsize 2000 maxblocks    347159.0 KBps  (30.0 secs, 3 samples)
+File Read 256 bufsize 500 maxblocks      314644.0 KBps  (30.0 secs, 3 samples)
+File Write 256 bufsize 500 maxblocks     151852.0 KBps  (30.0 secs, 3 samples)
+File Copy 256 bufsize 500 maxblocks      101000.0 KBps  (30.0 secs, 3 samples)
+File Read 4096 bufsize 8000 maxblocks    2033256.0 KBps  (30.0 secs, 3 samples)
+File Write 4096 bufsize 8000 maxblocks   1611814.0 KBps  (30.0 secs, 3 samples)
+File Copy 4096 bufsize 8000 maxblocks    847979.0 KBps  (30.0 secs, 3 samples)
+Dc: sqrt(2) to 99 decimal places         128148.7 lpm   (30.0 secs, 3 samples)
+
+
+                     INDEX VALUES
+TEST                                        BASELINE     RESULT      INDEX
+
+Execl Throughput                                43.0     3012.9      700.7
+File Copy 1024 bufsize 2000 maxblocks         3960.0   347159.0      876.7
+File Copy 256 bufsize 500 maxblocks           1655.0   101000.0      610.3
+File Copy 4096 bufsize 8000 maxblocks         5800.0   847979.0     1462.0
+Shell Scripts (8 concurrent)                     6.0     1120.3     1867.2
+                                                                 =========
+     FINAL SCORE                                                    1004.6
+
+
+
+
+
+This patch:
+
+Remove refcnt from page_cgroup().
+
+After this,
+
+ * A page is charged only when !page_mapped() && no page_cgroup is assigned.
+	* Anon page is newly mapped.
+	* File page is added to mapping->tree.
+
+ * A page is uncharged only when
+	* Anon page is fully unmapped.
+	* File page is removed from LRU.
+
+There is no change in behavior from user's view.
+
+This patch also removes unnecessary calls in rmap.c which was used only for
+refcnt mangement.
+
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Balbir Singh <balbir@in.ibm.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: Pavel Emelyanov <xemul@openvz.org>
@@ -64,91 +141,416 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   53 +++++++++++++++++++++-------------------------
- 1 file changed, 25 insertions(+), 28 deletions(-)
+ include/linux/memcontrol.h |   10 +--
+ mm/filemap.c               |    6 +-
+ mm/memcontrol.c            |   97 ++++++++++++++++++-----------------
+ mm/migrate.c               |    3 -
+ mm/rmap.c                  |   14 -----
+ mm/shmem.c                 |   42 ++++++++++-----
+ 6 files changed, 90 insertions(+), 82 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-remove-a-redundant-check mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-remove-a-redundant-check
-+++ a/mm/memcontrol.c
-@@ -536,28 +536,6 @@ static int mem_cgroup_charge_common(stru
- 	if (mem_cgroup_subsys.disabled)
- 		return 0;
+diff -puN include/linux/memcontrol.h~memcg-remove-refcnt-from-page_cgroup include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-remove-refcnt-from-page_cgroup
++++ a/include/linux/memcontrol.h
+@@ -35,6 +35,7 @@ extern int mem_cgroup_charge(struct page
+ extern int mem_cgroup_cache_charge(struct page *page, struct mm_struct *mm,
+ 					gfp_t gfp_mask);
+ extern void mem_cgroup_uncharge_page(struct page *page);
++extern void mem_cgroup_uncharge_cache_page(struct page *page);
+ extern void mem_cgroup_move_lists(struct page *page, bool active);
+ extern unsigned long mem_cgroup_isolate_pages(unsigned long nr_to_scan,
+ 					struct list_head *dst,
+@@ -53,7 +54,6 @@ extern struct mem_cgroup *mem_cgroup_fro
+ extern int
+ mem_cgroup_prepare_migration(struct page *page, struct page *newpage);
+ extern void mem_cgroup_end_migration(struct page *page);
+-extern int mem_cgroup_getref(struct page *page);
  
--	/*
--	 * Should page_cgroup's go to their own slab?
--	 * One could optimize the performance of the charging routine
--	 * by saving a bit in the page_flags and using it as a lock
--	 * to see if the cgroup page already has a page_cgroup associated
--	 * with it
--	 */
--retry:
--	lock_page_cgroup(page);
--	pc = page_get_page_cgroup(page);
--	/*
--	 * The page_cgroup exists and
--	 * the page has already been accounted.
--	 */
--	if (unlikely(pc)) {
--		VM_BUG_ON(pc->page != page);
--		VM_BUG_ON(!pc->mem_cgroup);
--		unlock_page_cgroup(page);
--		goto done;
--	}
--	unlock_page_cgroup(page);
+ /*
+  * For memory reclaim.
+@@ -98,6 +98,10 @@ static inline void mem_cgroup_uncharge_p
+ {
+ }
+ 
++static inline void mem_cgroup_uncharge_cache_page(struct page *page)
++{
++}
++
+ static inline void mem_cgroup_move_lists(struct page *page, bool active)
+ {
+ }
+@@ -123,10 +127,6 @@ static inline void mem_cgroup_end_migrat
+ {
+ }
+ 
+-static inline void mem_cgroup_getref(struct page *page)
+-{
+-}
 -
- 	pc = kmem_cache_alloc(page_cgroup_cache, gfp_mask);
- 	if (unlikely(pc == NULL))
- 		goto err;
-@@ -618,15 +596,10 @@ retry:
- 	lock_page_cgroup(page);
- 	if (unlikely(page_get_page_cgroup(page))) {
- 		unlock_page_cgroup(page);
--		/*
--		 * Another charge has been added to this page already.
--		 * We take lock_page_cgroup(page) again and read
--		 * page->cgroup, increment refcnt.... just retry is OK.
--		 */
- 		res_counter_uncharge(&mem->res, PAGE_SIZE);
- 		css_put(&mem->css);
- 		kmem_cache_free(page_cgroup_cache, pc);
--		goto retry;
-+		goto done;
- 	}
- 	page_assign_page_cgroup(page, pc);
+ static inline int mem_cgroup_calc_mapped_ratio(struct mem_cgroup *mem)
+ {
+ 	return 0;
+diff -puN mm/filemap.c~memcg-remove-refcnt-from-page_cgroup mm/filemap.c
+--- a/mm/filemap.c~memcg-remove-refcnt-from-page_cgroup
++++ a/mm/filemap.c
+@@ -115,7 +115,7 @@ void __remove_from_page_cache(struct pag
+ {
+ 	struct address_space *mapping = page->mapping;
  
-@@ -665,8 +638,32 @@ int mem_cgroup_charge(struct page *page,
+-	mem_cgroup_uncharge_page(page);
++	mem_cgroup_uncharge_cache_page(page);
+ 	radix_tree_delete(&mapping->page_tree, page->index);
+ 	page->mapping = NULL;
+ 	mapping->nrpages--;
+@@ -473,12 +473,12 @@ int add_to_page_cache(struct page *page,
+ 			mapping->nrpages++;
+ 			__inc_zone_page_state(page, NR_FILE_PAGES);
+ 		} else
+-			mem_cgroup_uncharge_page(page);
++			mem_cgroup_uncharge_cache_page(page);
+ 
+ 		write_unlock_irq(&mapping->tree_lock);
+ 		radix_tree_preload_end();
+ 	} else
+-		mem_cgroup_uncharge_page(page);
++		mem_cgroup_uncharge_cache_page(page);
+ out:
+ 	return error;
+ }
+diff -puN mm/memcontrol.c~memcg-remove-refcnt-from-page_cgroup mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-remove-refcnt-from-page_cgroup
++++ a/mm/memcontrol.c
+@@ -166,7 +166,6 @@ struct page_cgroup {
+ 	struct list_head lru;		/* per cgroup LRU list */
+ 	struct page *page;
+ 	struct mem_cgroup *mem_cgroup;
+-	int ref_cnt;			/* cached, mapped, migrating */
+ 	int flags;
+ };
+ #define PAGE_CGROUP_FLAG_CACHE	(0x1)	/* charged as cache */
+@@ -185,6 +184,7 @@ static enum zone_type page_cgroup_zid(st
+ enum charge_type {
+ 	MEM_CGROUP_CHARGE_TYPE_CACHE = 0,
+ 	MEM_CGROUP_CHARGE_TYPE_MAPPED,
++	MEM_CGROUP_CHARGE_TYPE_FORCE,	/* used by force_empty */
+ };
+ 
+ /*
+@@ -552,9 +552,7 @@ retry:
+ 	 */
+ 	if (pc) {
+ 		VM_BUG_ON(pc->page != page);
+-		VM_BUG_ON(pc->ref_cnt <= 0);
+-
+-		pc->ref_cnt++;
++		VM_BUG_ON(!pc->mem_cgroup);
+ 		unlock_page_cgroup(page);
+ 		goto done;
+ 	}
+@@ -570,10 +568,7 @@ retry:
+ 	 * thread group leader migrates. It's possible that mm is not
+ 	 * set, if so charge the init_mm (happens for pagecache usage).
+ 	 */
+-	if (!memcg) {
+-		if (!mm)
+-			mm = &init_mm;
+-
++	if (likely(!memcg)) {
+ 		rcu_read_lock();
+ 		mem = mem_cgroup_from_task(rcu_dereference(mm->owner));
+ 		/*
+@@ -609,7 +604,6 @@ retry:
+ 		}
+ 	}
+ 
+-	pc->ref_cnt = 1;
+ 	pc->mem_cgroup = mem;
+ 	pc->page = page;
+ 	/*
+@@ -653,6 +647,17 @@ err:
+ 
+ int mem_cgroup_charge(struct page *page, struct mm_struct *mm, gfp_t gfp_mask)
+ {
++	/*
++	 * If already mapped, we don't have to account.
++	 * If page cache, page->mapping has address_space.
++	 * But page->mapping may have out-of-use anon_vma pointer,
++	 * detecit it by PageAnon() check. newly-mapped-anon's page->mapping
++	 * is NULL.
++  	 */
++	if (page_mapped(page) || (page->mapping && !PageAnon(page)))
++		return 0;
++	if (unlikely(!mm))
++		mm = &init_mm;
+ 	return mem_cgroup_charge_common(page, mm, gfp_mask,
+ 				MEM_CGROUP_CHARGE_TYPE_MAPPED, NULL);
+ }
+@@ -660,32 +665,17 @@ int mem_cgroup_charge(struct page *page,
  int mem_cgroup_cache_charge(struct page *page, struct mm_struct *mm,
  				gfp_t gfp_mask)
  {
-+	/*
-+	 * Corner case handling. This is called from add_to_page_cache()
-+	 * in usual. But some FS (shmem) precharges this page before calling it
-+	 * and call add_to_page_cache() with GFP_NOWAIT.
-+	 *
-+	 * For GFP_NOWAIT case, the page may be pre-charged before calling
-+	 * add_to_page_cache(). (See shmem.c) check it here and avoid to call
-+	 * charge twice. (It works but has to pay a bit larger cost.)
-+	 */
-+	if (!(gfp_mask & __GFP_WAIT)) {
-+		struct page_cgroup *pc;
-+
-+		lock_page_cgroup(page);
-+		pc = page_get_page_cgroup(page);
-+		if (pc) {
-+			VM_BUG_ON(pc->page != page);
-+			VM_BUG_ON(!pc->mem_cgroup);
-+			unlock_page_cgroup(page);
-+			return 0;
-+		}
-+		unlock_page_cgroup(page);
-+	}
-+
- 	if (unlikely(!mm))
+-	if (!mm)
++	if (unlikely(!mm))
  		mm = &init_mm;
-+
  	return mem_cgroup_charge_common(page, mm, gfp_mask,
  				MEM_CGROUP_CHARGE_TYPE_CACHE, NULL);
  }
+ 
+-int mem_cgroup_getref(struct page *page)
+-{
+-	struct page_cgroup *pc;
+-
+-	if (mem_cgroup_subsys.disabled)
+-		return 0;
+-
+-	lock_page_cgroup(page);
+-	pc = page_get_page_cgroup(page);
+-	VM_BUG_ON(!pc);
+-	pc->ref_cnt++;
+-	unlock_page_cgroup(page);
+-	return 0;
+-}
+-
+ /*
+- * Uncharging is always a welcome operation, we never complain, simply
+- * uncharge.
++ * uncharge if !page_mapped(page)
+  */
+-void mem_cgroup_uncharge_page(struct page *page)
++static void
++__mem_cgroup_uncharge_common(struct page *page, enum charge_type ctype)
+ {
+ 	struct page_cgroup *pc;
+ 	struct mem_cgroup *mem;
+@@ -704,29 +694,41 @@ void mem_cgroup_uncharge_page(struct pag
+ 		goto unlock;
+ 
+ 	VM_BUG_ON(pc->page != page);
+-	VM_BUG_ON(pc->ref_cnt <= 0);
+ 
+-	if (--(pc->ref_cnt) == 0) {
+-		mz = page_cgroup_zoneinfo(pc);
+-		spin_lock_irqsave(&mz->lru_lock, flags);
+-		__mem_cgroup_remove_list(mz, pc);
+-		spin_unlock_irqrestore(&mz->lru_lock, flags);
++	if ((ctype == MEM_CGROUP_CHARGE_TYPE_MAPPED)
++	    && ((pc->flags & PAGE_CGROUP_FLAG_CACHE)
++		|| page_mapped(page)))
++		goto unlock;
+ 
+-		page_assign_page_cgroup(page, NULL);
+-		unlock_page_cgroup(page);
++	mz = page_cgroup_zoneinfo(pc);
++	spin_lock_irqsave(&mz->lru_lock, flags);
++	__mem_cgroup_remove_list(mz, pc);
++	spin_unlock_irqrestore(&mz->lru_lock, flags);
+ 
+-		mem = pc->mem_cgroup;
+-		res_counter_uncharge(&mem->res, PAGE_SIZE);
+-		css_put(&mem->css);
++	page_assign_page_cgroup(page, NULL);
++	unlock_page_cgroup(page);
+ 
+-		kmem_cache_free(page_cgroup_cache, pc);
+-		return;
+-	}
++	mem = pc->mem_cgroup;
++	res_counter_uncharge(&mem->res, PAGE_SIZE);
++	css_put(&mem->css);
+ 
++	kmem_cache_free(page_cgroup_cache, pc);
++	return;
+ unlock:
+ 	unlock_page_cgroup(page);
+ }
+ 
++void mem_cgroup_uncharge_page(struct page *page)
++{
++	__mem_cgroup_uncharge_common(page, MEM_CGROUP_CHARGE_TYPE_MAPPED);
++}
++
++void mem_cgroup_uncharge_cache_page(struct page *page)
++{
++	VM_BUG_ON(page_mapped(page));
++	__mem_cgroup_uncharge_common(page, MEM_CGROUP_CHARGE_TYPE_CACHE);
++}
++
+ /*
+  * Before starting migration, account against new page.
+  */
+@@ -757,15 +759,17 @@ int mem_cgroup_prepare_migration(struct 
+ 	return ret;
+ }
+ 
+-/* remove redundant charge */
++/* remove redundant charge if migration failed*/
+ void mem_cgroup_end_migration(struct page *newpage)
+ {
+-	mem_cgroup_uncharge_page(newpage);
++	/* At success, page->mapping is not NULL */
++	if (newpage->mapping)
++		__mem_cgroup_uncharge_common(newpage,
++					 MEM_CGROUP_CHARGE_TYPE_FORCE);
+ }
+ 
+ /*
+  * This routine traverse page_cgroup in given list and drop them all.
+- * This routine ignores page_cgroup->ref_cnt.
+  * *And* this routine doesn't reclaim page itself, just removes page_cgroup.
+  */
+ #define FORCE_UNCHARGE_BATCH	(128)
+@@ -795,7 +799,8 @@ static void mem_cgroup_force_empty_list(
+ 		 * if it's under page migration.
+ 		 */
+ 		if (PageLRU(page)) {
+-			mem_cgroup_uncharge_page(page);
++			__mem_cgroup_uncharge_common(page,
++					MEM_CGROUP_CHARGE_TYPE_FORCE);
+ 			put_page(page);
+ 			if (--count <= 0) {
+ 				count = FORCE_UNCHARGE_BATCH;
+diff -puN mm/migrate.c~memcg-remove-refcnt-from-page_cgroup mm/migrate.c
+--- a/mm/migrate.c~memcg-remove-refcnt-from-page_cgroup
++++ a/mm/migrate.c
+@@ -359,8 +359,7 @@ static int migrate_page_move_mapping(str
+ 
+ 	write_unlock_irq(&mapping->tree_lock);
+ 	if (!PageSwapCache(newpage)) {
+-		mem_cgroup_uncharge_page(page);
+-		mem_cgroup_getref(newpage);
++		mem_cgroup_uncharge_cache_page(page);
+ 	}
+ 
+ 	return 0;
+diff -puN mm/rmap.c~memcg-remove-refcnt-from-page_cgroup mm/rmap.c
+--- a/mm/rmap.c~memcg-remove-refcnt-from-page_cgroup
++++ a/mm/rmap.c
+@@ -576,14 +576,8 @@ void page_add_anon_rmap(struct page *pag
+ 	VM_BUG_ON(address < vma->vm_start || address >= vma->vm_end);
+ 	if (atomic_inc_and_test(&page->_mapcount))
+ 		__page_set_anon_rmap(page, vma, address);
+-	else {
++	else
+ 		__page_check_anon_rmap(page, vma, address);
+-		/*
+-		 * We unconditionally charged during prepare, we uncharge here
+-		 * This takes care of balancing the reference counts
+-		 */
+-		mem_cgroup_uncharge_page(page);
+-	}
+ }
+ 
+ /**
+@@ -614,12 +608,6 @@ void page_add_file_rmap(struct page *pag
+ {
+ 	if (atomic_inc_and_test(&page->_mapcount))
+ 		__inc_zone_page_state(page, NR_FILE_MAPPED);
+-	else
+-		/*
+-		 * We unconditionally charged during prepare, we uncharge here
+-		 * This takes care of balancing the reference counts
+-		 */
+-		mem_cgroup_uncharge_page(page);
+ }
+ 
+ #ifdef CONFIG_DEBUG_VM
+diff -puN mm/shmem.c~memcg-remove-refcnt-from-page_cgroup mm/shmem.c
+--- a/mm/shmem.c~memcg-remove-refcnt-from-page_cgroup
++++ a/mm/shmem.c
+@@ -922,20 +922,29 @@ found:
+ 	error = 1;
+ 	if (!inode)
+ 		goto out;
+-	/* Precharge page while we can wait, compensate afterwards */
+-	error = mem_cgroup_cache_charge(page, current->mm, GFP_KERNEL);
++	error = radix_tree_preload(GFP_KERNEL);
+ 	if (error)
+ 		goto out;
+-	error = radix_tree_preload(GFP_KERNEL);
++	/*
++	 * Because we use GFP_NOWAIT in add_to_page_cache(), we can see -ENOMEM
++	 * failure because of memory pressure in memory resource controller.
++	 * Then, precharge page while we can wait, uncharge at failure will be
++	 * automatically done in add_to_page_cache()
++	 */
++	error = mem_cgroup_cache_charge(page, current->mm, GFP_KERNEL);
+ 	if (error)
+-		goto uncharge;
++		goto preload_out;
++
+ 	error = 1;
+ 
+ 	spin_lock(&info->lock);
+ 	ptr = shmem_swp_entry(info, idx, NULL);
+ 	if (ptr && ptr->val == entry.val)
+-		error = add_to_page_cache(page, inode->i_mapping,
+-						idx, GFP_NOWAIT);
++		error = add_to_page_cache(page, inode->i_mapping, idx,
++					GFP_NOWAIT);
++	else /* we don't have to account this page. */
++		mem_cgroup_uncharge_cache_page(page);
++
+ 	if (error == -EEXIST) {
+ 		struct page *filepage = find_get_page(inode->i_mapping, idx);
+ 		error = 1;
+@@ -960,9 +969,8 @@ found:
+ 	if (ptr)
+ 		shmem_swp_unmap(ptr);
+ 	spin_unlock(&info->lock);
++preload_out:
+ 	radix_tree_preload_end();
+-uncharge:
+-	mem_cgroup_uncharge_page(page);
+ out:
+ 	unlock_page(page);
+ 	page_cache_release(page);
+@@ -1319,7 +1327,7 @@ repeat:
+ 					page_cache_release(swappage);
+ 					goto failed;
+ 				}
+-				mem_cgroup_uncharge_page(swappage);
++				mem_cgroup_uncharge_cache_page(swappage);
+ 			}
+ 			page_cache_release(swappage);
+ 			goto repeat;
+@@ -1358,6 +1366,8 @@ repeat:
+ 		}
+ 
+ 		if (!filepage) {
++			int ret;
++
+ 			spin_unlock(&info->lock);
+ 			filepage = shmem_alloc_page(gfp, info, idx);
+ 			if (!filepage) {
+@@ -1386,10 +1396,17 @@ repeat:
+ 				swap = *entry;
+ 				shmem_swp_unmap(entry);
+ 			}
+-			if (error || swap.val || 0 != add_to_page_cache_lru(
+-					filepage, mapping, idx, GFP_NOWAIT)) {
++			if (error || swap.val)
++				mem_cgroup_uncharge_cache_page(filepage);
++			else
++				ret = add_to_page_cache_lru(filepage, mapping,
++						idx, GFP_NOWAIT);
++			/*
++			 * At add_to_page_cache_lru() failure, uncharge will
++			 * be done automatically.
++			 */
++			if (error || swap.val || ret) {
+ 				spin_unlock(&info->lock);
+-				mem_cgroup_uncharge_page(filepage);
+ 				page_cache_release(filepage);
+ 				shmem_unacct_blocks(info->flags, 1);
+ 				shmem_free_blocks(inode, 1);
+@@ -1398,7 +1415,6 @@ repeat:
+ 					goto failed;
+ 				goto repeat;
+ 			}
+-			mem_cgroup_uncharge_page(filepage);
+ 			info->flags |= SHMEM_PAGEIN;
+ 		}
+ 
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
