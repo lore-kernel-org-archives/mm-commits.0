@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + percpu-introduce-define_per_cpu_page_aligned.patch added to -mm tree
-Date: Thu, 15 May 2008 17:06:51 -0700
-Message-ID: <200805160006.m4G06pZi017394@imap1.linux-foundation.org>
+Subject: + pnp-dont-sort-by-type-in-sys-resources.patch added to -mm tree
+Date: Thu, 15 May 2008 17:11:40 -0700
+Message-ID: <200805160011.m4G0Bekx017592@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34492 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41118 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756042AbYEPAHh (ORCPT
+	by vger.kernel.org with ESMTP id S1757634AbYEPAMD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 May 2008 20:07:37 -0400
+	Thu, 15 May 2008 20:12:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dada1@cosmosbay.com, mingo@elte.hu, rusty@rustcorp.com.au, tglx@linutronix.de
+Cc: bjorn.helgaas@hp.com, abelay@mit.edu, ambx1@neo.rr.com, castet.matthieu@free.fr, perex@perex.cz, rene.herman@keyaccess.nl, shaohua.li@intel.com, tiwai@suse.de, trenn@suse.de
 
 
 The patch titled
-     percpu: introduce DEFINE_PER_CPU_PAGE_ALIGNED()
+     pnp: dont sort by type in /sys/.../resources
 has been added to the -mm tree.  Its filename is
-     percpu-introduce-define_per_cpu_page_aligned.patch
+     pnp-dont-sort-by-type-in-sys-resources.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,130 +34,144 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: percpu: introduce DEFINE_PER_CPU_PAGE_ALIGNED()
-From: Eric Dumazet <dada1@cosmosbay.com>
+Subject: pnp: dont sort by type in /sys/.../resources
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-While examining percpu section on i386 I found we were wasting about 8000
-bytes because of two large holes :
+Rather than stepping through all IO resources, then stepping through
+all MMIO resources, etc., we can just iterate over the resource list
+once directly.
 
-c05dd000 D __per_cpu_start
-c05dd000 D per_cpu__current_task
-c05dd004 D per_cpu__cpu_number
-c05dd008 D per_cpu__irq_regs
-c05dd00c D per_cpu__x86_cpu_to_apicid
-c05dd010 d per_cpu__cpu_devices
-c05dd044 D per_cpu__cyc2ns
-*HOLE* of 4Kbytes
-c05de000 d per_cpu__cpuid4_info
-c05de004 d per_cpu__cache_kobject
-c05de008 d per_cpu__index_kobject
-*HOLE* of 4Kbytes
-c05df000 D per_cpu__gdt_page
-c05e0000 d per_cpu__next_check
-c05e0008 d per_cpu__thermal_throttle_count
+This can change the order in /sys, e.g.,
 
-This is because gdt_page is a percpu variable, defined with a page
-alignement, and linker is doing its job, two times because of .o nesting
-in the build process, mixing variables with quite different alignment
-requirements.
+    # cat /sys/devices/pnp0/00:07/resources     # OLD
+    state = active
+    io 0x3f8-0x3ff
+    irq 4
 
-I introduced a new macro DEFINE_PER_CPU_PAGE_ALIGNED() to avoid wasting
-this space.  All page aligned variables (only one at this time) are put in
-a separate subsection .data.percpu.page_aligned.
+    # cat /sys/devices/pnp0/00:07/resources     # NEW
+    state = active
+    irq 4
+    io 0x3f8-0x3ff
 
-# size -A vmlinux.old vmlinux | grep percpu
-.data.percpu                22272   3227373568
-.data.percpu                30336   3227373568
+The old code artificially sorted resources by type; the new code
+just lists them in the order we read them from the ISAPNP hardware
+or the BIOS.
 
-Thats 8064 bytes saved for each CPU (plus one for the .data.percpu storage
-itself)
-
-Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Adam Belay <ambx1@neo.rr.com>
+Cc: Adam M Belay <abelay@mit.edu>
+Cc: Li Shaohua <shaohua.li@intel.com>
+Cc: Matthieu Castet <castet.matthieu@free.fr>
+Cc: Thomas Renninger <trenn@suse.de>
+Cc: Rene Herman <rene.herman@keyaccess.nl>
+Cc: Jaroslav Kysela <perex@perex.cz>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/common.c      |    2 +-
- arch/x86/kernel/vmlinux_32.lds.S  |    1 +
- include/asm-generic/vmlinux.lds.h |    1 +
- include/linux/percpu.h            |   11 ++++++++++-
- 4 files changed, 13 insertions(+), 2 deletions(-)
+ drivers/pnp/interface.c |   58 +++++++++++++++-----------------------
+ 1 file changed, 23 insertions(+), 35 deletions(-)
 
-diff -puN arch/x86/kernel/cpu/common.c~percpu-introduce-define_per_cpu_page_aligned arch/x86/kernel/cpu/common.c
---- a/arch/x86/kernel/cpu/common.c~percpu-introduce-define_per_cpu_page_aligned
-+++ a/arch/x86/kernel/cpu/common.c
-@@ -21,7 +21,7 @@
+diff -puN drivers/pnp/interface.c~pnp-dont-sort-by-type-in-sys-resources drivers/pnp/interface.c
+--- a/drivers/pnp/interface.c~pnp-dont-sort-by-type-in-sys-resources
++++ a/drivers/pnp/interface.c
+@@ -248,8 +248,9 @@ static ssize_t pnp_show_current_resource
+ 					  char *buf)
+ {
+ 	struct pnp_dev *dev = to_pnp_dev(dmdev);
++	struct pnp_resource *pnp_res;
+ 	struct resource *res;
+-	int i, ret;
++	int ret;
+ 	pnp_info_buffer_t *buffer;
  
- #include "cpu.h"
+ 	if (!dev)
+@@ -262,46 +263,33 @@ static ssize_t pnp_show_current_resource
+ 	buffer->buffer = buf;
+ 	buffer->curr = buffer->buffer;
  
--DEFINE_PER_CPU(struct gdt_page, gdt_page) = { .gdt = {
-+DEFINE_PER_CPU_PAGE_ALIGNED(struct gdt_page, gdt_page) = { .gdt = {
- 	[GDT_ENTRY_KERNEL_CS] = { { { 0x0000ffff, 0x00cf9a00 } } },
- 	[GDT_ENTRY_KERNEL_DS] = { { { 0x0000ffff, 0x00cf9200 } } },
- 	[GDT_ENTRY_DEFAULT_USER_CS] = { { { 0x0000ffff, 0x00cffa00 } } },
-diff -puN arch/x86/kernel/vmlinux_32.lds.S~percpu-introduce-define_per_cpu_page_aligned arch/x86/kernel/vmlinux_32.lds.S
---- a/arch/x86/kernel/vmlinux_32.lds.S~percpu-introduce-define_per_cpu_page_aligned
-+++ a/arch/x86/kernel/vmlinux_32.lds.S
-@@ -189,6 +189,7 @@ SECTIONS
-   . = ALIGN(PAGE_SIZE);
-   .data.percpu  : AT(ADDR(.data.percpu) - LOAD_OFFSET) {
- 	__per_cpu_start = .;
-+	*(.data.percpu.page_aligned)
- 	*(.data.percpu)
- 	*(.data.percpu.shared_aligned)
- 	__per_cpu_end = .;
-diff -puN include/asm-generic/vmlinux.lds.h~percpu-introduce-define_per_cpu_page_aligned include/asm-generic/vmlinux.lds.h
---- a/include/asm-generic/vmlinux.lds.h~percpu-introduce-define_per_cpu_page_aligned
-+++ a/include/asm-generic/vmlinux.lds.h
-@@ -348,6 +348,7 @@
- 	. = ALIGN(align);						\
- 	__per_cpu_start = .;						\
- 	.data.percpu  : AT(ADDR(.data.percpu) - LOAD_OFFSET) {		\
-+		*(.data.percpu.page_aligned)				\
- 		*(.data.percpu)						\
- 		*(.data.percpu.shared_aligned)				\
- 	}								\
-diff -puN include/linux/percpu.h~percpu-introduce-define_per_cpu_page_aligned include/linux/percpu.h
---- a/include/linux/percpu.h~percpu-introduce-define_per_cpu_page_aligned
-+++ a/include/linux/percpu.h
-@@ -15,19 +15,28 @@
- 
- #ifdef MODULE
- #define SHARED_ALIGNED_SECTION ".data.percpu"
-+#define PAGE_ALIGNED_SECTION   ".data.percpu"
- #else
- #define SHARED_ALIGNED_SECTION ".data.percpu.shared_aligned"
-+#define PAGE_ALIGNED_SECTION   ".data.percpu.page_aligned"
- #endif
- 
- #define DEFINE_PER_CPU_SHARED_ALIGNED(type, name)			\
- 	__attribute__((__section__(SHARED_ALIGNED_SECTION)))		\
- 	PER_CPU_ATTRIBUTES __typeof__(type) per_cpu__##name		\
- 	____cacheline_aligned_in_smp
+-	pnp_printf(buffer, "state = ");
+-	if (dev->active)
+-		pnp_printf(buffer, "active\n");
+-	else
+-		pnp_printf(buffer, "disabled\n");
+-
+-	for (i = 0; (res = pnp_get_resource(dev, IORESOURCE_IO, i)); i++) {
+-		pnp_printf(buffer, "io");
+-		if (res->flags & IORESOURCE_DISABLED)
+-			pnp_printf(buffer, " disabled\n");
+-		else
+-			pnp_printf(buffer, " 0x%llx-0x%llx\n",
+-				   (unsigned long long) res->start,
+-				   (unsigned long long) res->end);
+-	}
+-	for (i = 0; (res = pnp_get_resource(dev, IORESOURCE_MEM, i)); i++) {
+-		pnp_printf(buffer, "mem");
+-		if (res->flags & IORESOURCE_DISABLED)
++	pnp_printf(buffer, "state = %s\n", dev->active ? "active" : "disabled");
 +
-+#define DEFINE_PER_CPU_PAGE_ALIGNED(type, name)				\
-+	__attribute__((__section__(PAGE_ALIGNED_SECTION)))		\
-+	PER_CPU_ATTRIBUTES __typeof__(type) per_cpu__##name
- #else
- #define DEFINE_PER_CPU(type, name)					\
- 	PER_CPU_ATTRIBUTES __typeof__(type) per_cpu__##name
- 
--#define DEFINE_PER_CPU_SHARED_ALIGNED(type, name)		      \
-+#define DEFINE_PER_CPU_SHARED_ALIGNED(type, name)			\
-+	DEFINE_PER_CPU(type, name)
++	list_for_each_entry(pnp_res, &dev->resources, list) {
++		res = &pnp_res->res;
 +
-+#define DEFINE_PER_CPU_PAGE_ALIGNED(type, name)				\
- 	DEFINE_PER_CPU(type, name)
- #endif
- 
++		pnp_printf(buffer, pnp_resource_type_name(res));
++
++		if (res->flags & IORESOURCE_DISABLED) {
+ 			pnp_printf(buffer, " disabled\n");
+-		else
+-			pnp_printf(buffer, " 0x%llx-0x%llx\n",
++			continue;
++		}
++
++		switch (pnp_resource_type(res)) {
++		case IORESOURCE_IO:
++		case IORESOURCE_MEM:
++			pnp_printf(buffer, " %#llx-%#llx\n",
+ 				   (unsigned long long) res->start,
+ 				   (unsigned long long) res->end);
+-	}
+-	for (i = 0; (res = pnp_get_resource(dev, IORESOURCE_IRQ, i)); i++) {
+-		pnp_printf(buffer, "irq");
+-		if (res->flags & IORESOURCE_DISABLED)
+-			pnp_printf(buffer, " disabled\n");
+-		else
+-			pnp_printf(buffer, " %lld\n",
+-				   (unsigned long long) res->start);
+-	}
+-	for (i = 0; (res = pnp_get_resource(dev, IORESOURCE_DMA, i)); i++) {
+-		pnp_printf(buffer, "dma");
+-		if (res->flags & IORESOURCE_DISABLED)
+-			pnp_printf(buffer, " disabled\n");
+-		else
++			break;
++		case IORESOURCE_IRQ:
++		case IORESOURCE_DMA:
+ 			pnp_printf(buffer, " %lld\n",
+ 				   (unsigned long long) res->start);
++			break;
++		}
+ 	}
++
+ 	ret = (buffer->curr - buf);
+ 	kfree(buffer);
+ 	return ret;
 _
 
-Patches currently in -mm which might be from dada1@cosmosbay.com are
+Patches currently in -mm which might be from bjorn.helgaas@hp.com are
 
-oprofile-dont-request-cache-line-alignment-for-cpu_buffer.patch
-per_cpu-fix-define_per_cpu_shared_aligned-for-modules.patch
-linux-next.patch
-percpu-introduce-define_per_cpu_page_aligned.patch
+origin.patch
+pnp-cleanup-pnp_fixup_device.patch
+pnp-add-pnp_build_option-to-the-api.patch
+pnp-add-isapnp-mpu-option-quirks.patch
+acpi_pm_device_sleep_state-cleanup.patch
+acpi-fix-drivers-acpi-gluec-build-error.patch
+mm-only-enforce-acpi-resource-conflict-checks.patch
+pnp-add-detail-to-debug-resource-dump.patch
+pnp-remove-pnp_resourceindex.patch
+pnp-add-pnp_resource_type-internal-interface.patch
+pnp-add-pnp_resource_type_name-helper-function.patch
+pnp-make-pnp_portmemetc_start-et-al-work-for-invalid-resources.patch
+pnp-replace-pnp_resource_table-with-dynamically-allocated-resources.patch
+pnp-remove-ratelimit-on-add-resource-failures.patch
+pnp-dont-sort-by-type-in-sys-resources.patch
+make-pnp_add_card_id-static.patch
 
