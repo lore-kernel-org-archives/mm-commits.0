@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + add-a-warn-macro-this-is-warn_on-printk-arguments-fix-2.patch added to -mm tree
-Date: Thu, 15 May 2008 16:43:00 -0700
-Message-ID: <200805152343.m4FNh05j016564@imap1.linux-foundation.org>
+Subject: + usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues.patch added to -mm tree
+Date: Thu, 15 May 2008 17:02:05 -0700
+Message-ID: <200805160002.m4G025ar017286@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39806 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42849 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761153AbYEOXnf (ORCPT
+	by vger.kernel.org with ESMTP id S1751228AbYEPACe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 May 2008 19:43:35 -0400
+	Thu, 15 May 2008 20:02:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: arjan@infradead.org, arjan@linux.intel.com
+Cc: cooloney@kernel.org, david-b@pacbell.net, gregkh@suse.de, harvey.harrison@gmail.com, jie.zhang@analog.com, stern@rowland.harvard.edu
 
 
 The patch titled
-     Fix WARN() for the !CONFIG_BUG case
+     usb/host: use get/put_unaligned_* helpers to fix more potential unaligned issues.
 has been added to the -mm tree.  Its filename is
-     add-a-warn-macro-this-is-warn_on-printk-arguments-fix-2.patch
+     usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,72 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Fix WARN() for the !CONFIG_BUG case
-From: Arjan van de Ven <arjan@infradead.org>
+Subject: usb/host: use get/put_unaligned_* helpers to fix more potential unaligned issues.
+From: Bryan Wu <cooloney@kernel.org>
 
-For the CONFIG_BUG=n case we need to provide a stub WARN() macro;
-do this in the same style as WARN_ON() is done.
-
-Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Harvey Harrison <harvey.harrison@gmail.com>
+Signed-off-by: Jie Zhang <jie.zhang@analog.com>
+Signed-off-by: Bryan Wu <cooloney@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Alan Stern <stern@rowland.harvard.edu>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/bug.h |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/usb/host/isp116x-hcd.c |    4 ++--
+ drivers/usb/host/uhci-hub.c    |    6 +++---
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN include/asm-generic/bug.h~add-a-warn-macro-this-is-warn_on-printk-arguments-fix-2 include/asm-generic/bug.h
---- a/include/asm-generic/bug.h~add-a-warn-macro-this-is-warn_on-printk-arguments-fix-2
-+++ a/include/asm-generic/bug.h
-@@ -77,6 +77,14 @@ extern void warn_slowpath(const char *fi
- 	unlikely(__ret_warn_on);					\
- })
- #endif
-+
-+#ifndef WARN
-+#define WARN(condition, format...) ({					\
-+	int __ret_warn_on = !!(condition);				\
-+	unlikely(__ret_warn_on);					\
-+})
-+#endif
-+
- #endif
+diff -puN drivers/usb/host/isp116x-hcd.c~usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues drivers/usb/host/isp116x-hcd.c
+--- a/drivers/usb/host/isp116x-hcd.c~usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues
++++ a/drivers/usb/host/isp116x-hcd.c
+@@ -1024,7 +1024,7 @@ static int isp116x_hub_control(struct us
+ 		break;
+ 	case GetHubStatus:
+ 		DBG("GetHubStatus\n");
+-		*(__le32 *) buf = 0;
++		put_unaligned_le32(0, buf);
+ 		break;
+ 	case GetPortStatus:
+ 		DBG("GetPortStatus\n");
+@@ -1033,7 +1033,7 @@ static int isp116x_hub_control(struct us
+ 		spin_lock_irqsave(&isp116x->lock, flags);
+ 		tmp = isp116x_read_reg32(isp116x, (--wIndex) ? HCRHPORT2 : HCRHPORT1);
+ 		spin_unlock_irqrestore(&isp116x->lock, flags);
+-		*(__le32 *) buf = cpu_to_le32(tmp);
++		put_unaligned_le32(tmp, buf);
+ 		DBG("GetPortStatus: port[%d]  %08x\n", wIndex + 1, tmp);
+ 		break;
+ 	case ClearPortFeature:
+diff -puN drivers/usb/host/uhci-hub.c~usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues drivers/usb/host/uhci-hub.c
+--- a/drivers/usb/host/uhci-hub.c~usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues
++++ a/drivers/usb/host/uhci-hub.c
+@@ -253,7 +253,7 @@ static int uhci_hub_control(struct usb_h
+ 	switch (typeReq) {
  
- #define WARN_ON_ONCE(condition)	({				\
+ 	case GetHubStatus:
+-		*(__le32 *)buf = cpu_to_le32(0);
++		put_unaligned_le32(0, buf);
+ 		OK(4);		/* hub power */
+ 	case GetPortStatus:
+ 		if (port >= uhci->rh_numports)
+@@ -306,8 +306,8 @@ static int uhci_hub_control(struct usb_h
+ 			dev_dbg(uhci_dev(uhci), "port %d portsc %04x,%02x\n",
+ 					wIndex, status, lstatus);
+ 
+-		*(__le16 *)buf = cpu_to_le16(wPortStatus);
+-		*(__le16 *)(buf + 2) = cpu_to_le16(wPortChange);
++		put_unaligned_le16(wPortStatus, buf);
++		put_unaligned_le16(wPortChange, buf + 2);
+ 		OK(4);
+ 	case SetHubFeature:		/* We don't implement these */
+ 	case ClearHubFeature:
 _
 
-Patches currently in -mm which might be from arjan@infradead.org are
+Patches currently in -mm which might be from cooloney@kernel.org are
 
-linux-next.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-unionfs.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments-fix-2.patch
+origin.patch
+video-logo-add-support-for-blackfin-linux-logo-for-framebuffer-console.patch
+usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues.patch
+git-watchdog.patch
 
