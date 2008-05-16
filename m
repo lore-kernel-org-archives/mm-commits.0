@@ -1,153 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: - tty_check_change-avoid-taking-tasklist_lock-while-holding-tty-ctrl_lock.patch removed from -mm tree
-Date: Fri, 16 May 2008 15:53:36 -0700
-Message-ID: <200805162253.m4GMrax9003150@imap1.linux-foundation.org>
+Subject: - hysdn-no-longer-broken-on-smp.patch removed from -mm tree
+Date: Fri, 16 May 2008 15:54:01 -0700
+Message-ID: <200805162254.m4GMs1Yu003194@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58913 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42632 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757889AbYEPWxq (ORCPT
+	by vger.kernel.org with ESMTP id S1757611AbYEPWyF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 May 2008 18:53:46 -0400
+	Fri, 16 May 2008 18:54:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, marcin.slusarz@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, kkeil@suse.de, mark.asselstine@windriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tty_check_change(): avoid taking tasklist_lock while holding tty->ctrl_lock
+     hysdn: no longer broken on SMP
 has been removed from the -mm tree.  Its filename was
-     tty_check_change-avoid-taking-tasklist_lock-while-holding-tty-ctrl_lock.patch
+     hysdn-no-longer-broken-on-smp.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tty_check_change(): avoid taking tasklist_lock while holding tty->ctrl_lock
+Subject: hysdn: no longer broken on SMP
 From: Andrew Morton <akpm@linux-foundation.org>
 
-May 11 09:42:27 [kernel] [ 1104.496819] rarian-sk-get-c[5630]: segfault at 0 ip 7f478556caf0 sp 7fff8e3fe338 error 4 in libc-2.6.1.so[7f47854f9000+136000]
-May 11 10:59:48 [kernel] [ 2494.165792] 
-May 11 10:59:48 [kernel] [ 2494.165794] =======================================================
-May 11 10:59:48 [kernel] [ 2494.165801] [ INFO: possible circular locking dependency detected ]
-May 11 10:59:48 [kernel] [ 2494.165805] 2.6.26-rc1-00007-g91b3a7a #217
-May 11 10:59:48 [kernel] [ 2494.165807] -------------------------------------------------------
-May 11 10:59:48 [kernel] [ 2494.165809] less/7053 is trying to acquire lock:
-May 11 10:59:48 [kernel] [ 2494.165812]  (tasklist_lock){..??}, at: [<ffffffff80232e95>] is_current_pgrp_orphaned+0x15/0x50
-May 11 10:59:48 [kernel] [ 2494.165821] 
-May 11 10:59:48 [kernel] [ 2494.165822] but task is already holding lock:
-May 11 10:59:48 [kernel] [ 2494.165824]  (&tty->ctrl_lock){....}, at: [<ffffffff803d5f31>] tty_check_change+0x61/0x110
-May 11 10:59:48 [kernel] [ 2494.165831] 
-May 11 10:59:48 [kernel] [ 2494.165832] which lock already depends on the new lock.
-May 11 10:59:48 [kernel] [ 2494.165833] 
-May 11 10:59:48 [kernel] [ 2494.165835] 
-May 11 10:59:48 [kernel] [ 2494.165836] the existing dependency chain (in reverse order) is:
-May 11 10:59:48 [kernel] [ 2494.165838] 
-May 11 10:59:48 [kernel] [ 2494.165839] -> #2 (&tty->ctrl_lock){....}:
-May 11 10:59:48 [kernel] [ 2494.165843]        [<ffffffff80253796>] __lock_acquire+0xf86/0x1080
-May 11 10:59:48 [kernel] [ 2494.165851]        [<ffffffff80253922>] lock_acquire+0x92/0xc0
-May 11 10:59:48 [kernel] [ 2494.165858]        [<ffffffff804deee0>] _spin_lock_irqsave+0x40/0x60
-May 11 10:59:48 [kernel] [ 2494.165866]        [<ffffffff803d31b5>] __proc_set_tty+0x35/0xe0
-May 11 10:59:48 [kernel] [ 2494.165873]        [<ffffffff803d76d4>] tty_ioctl+0xbf4/0xfe0
-May 11 10:59:48 [kernel] [ 2494.165880]        [<ffffffff802a05e1>] vfs_ioctl+0x31/0x90
-May 11 10:59:48 [kernel] [ 2494.165888]        [<ffffffff802a06b3>] do_vfs_ioctl+0x73/0x2d0
-May 11 10:59:48 [kernel] [ 2494.165895]        [<ffffffff802a095a>] sys_ioctl+0x4a/0x80
-May 11 10:59:48 [kernel] [ 2494.165902]        [<ffffffff8020b5ab>] system_call_after_swapgs+0x7b/0x80
-May 11 10:59:48 [kernel] [ 2494.165910]        [<ffffffffffffffff>] 0xffffffffffffffff
-May 11 10:59:48 [kernel] [ 2494.165924] 
-May 11 10:59:48 [kernel] [ 2494.165925] -> #1 (&sighand->siglock){++..}:
-May 11 10:59:48 [kernel] [ 2494.165929]        [<ffffffff80253796>] __lock_acquire+0xf86/0x1080
-May 11 10:59:48 [kernel] [ 2494.165936]        [<ffffffff80253922>] lock_acquire+0x92/0xc0
-May 11 10:59:48 [kernel] [ 2494.165943]        [<ffffffff804dec1f>] _spin_lock+0x2f/0x40
-May 11 10:59:48 [kernel] [ 2494.165951]        [<ffffffff8022d5a3>] copy_process+0x973/0x1210
-May 11 10:59:48 [kernel] [ 2494.165959]        [<ffffffff8022df12>] do_fork+0x82/0x2f0
-May 11 10:59:48 [kernel] [ 2494.165967]        [<ffffffff8020bfe1>] kernel_thread+0x81/0xde
-May 11 10:59:48 [kernel] [ 2494.165974]        [<ffffffff8020c048>] child_rip+0xa/0x12
-May 11 10:59:48 [kernel] [ 2494.165981]        [<ffffffffffffffff>] 0xffffffffffffffff
-May 11 10:59:48 [kernel] [ 2494.166038] 
-May 11 10:59:48 [kernel] [ 2494.166039] -> #0 (tasklist_lock){..??}:
-May 11 10:59:48 [kernel] [ 2494.166043]        [<ffffffff802535ab>] __lock_acquire+0xd9b/0x1080
-May 11 10:59:48 [kernel] [ 2494.166050]        [<ffffffff80253922>] lock_acquire+0x92/0xc0
-May 11 10:59:48 [kernel] [ 2494.166057]        [<ffffffff804dede2>] _read_lock+0x32/0x50
-May 11 10:59:48 [kernel] [ 2494.166063]        [<ffffffff80232e95>] is_current_pgrp_orphaned+0x15/0x50
-May 11 10:59:48 [kernel] [ 2494.166071]        [<ffffffff803d5f80>] tty_check_change+0xb0/0x110
-May 11 10:59:48 [kernel] [ 2494.166078]        [<ffffffff803dac5f>] set_termios+0x1f/0x4c0
-May 11 10:59:48 [kernel] [ 2494.166085]        [<ffffffff803db379>] tty_mode_ioctl+0x279/0x3e0
-May 11 10:59:48 [kernel] [ 2494.166092]        [<ffffffff803db51d>] n_tty_ioctl+0x3d/0x260
-May 11 10:59:48 [kernel] [ 2494.166100]        [<ffffffff803d6c34>] tty_ioctl+0x154/0xfe0
-May 11 10:59:48 [kernel] [ 2494.166107]        [<ffffffff802a05e1>] vfs_ioctl+0x31/0x90
-May 11 10:59:48 [kernel] [ 2494.166114]        [<ffffffff802a06b3>] do_vfs_ioctl+0x73/0x2d0
-May 11 10:59:48 [kernel] [ 2494.166121]        [<ffffffff802a095a>] sys_ioctl+0x4a/0x80
-May 11 10:59:48 [kernel] [ 2494.166128]        [<ffffffff8020b5ab>] system_call_after_swapgs+0x7b/0x80
-May 11 10:59:48 [kernel] [ 2494.166135]        [<ffffffffffffffff>] 0xffffffffffffffff
-May 11 10:59:48 [kernel] [ 2494.166142] 
-May 11 10:59:48 [kernel] [ 2494.166143] other info that might help us debug this:
-May 11 10:59:48 [kernel] [ 2494.166144] 
-May 11 10:59:48 [kernel] [ 2494.166146] 1 lock held by less/7053:
-May 11 10:59:48 [kernel] [ 2494.166148]  #0:  (&tty->ctrl_lock){....}, at: [<ffffffff803d5f31>] tty_check_change+0x61/0x110
-May 11 10:59:48 [kernel] [ 2494.166155] 
-May 11 10:59:48 [kernel] [ 2494.166156] stack backtrace:
-May 11 10:59:48 [kernel] [ 2494.166159] Pid: 7053, comm: less Not tainted 2.6.26-rc1-00007-g91b3a7a #217
-May 11 10:59:48 [kernel] [ 2494.166161] 
-May 11 10:59:48 [kernel] [ 2494.166162] Call Trace:
-May 11 10:59:48 [kernel] [ 2494.166168]  [<ffffffff80251223>] print_circular_bug_tail+0x83/0x90
-May 11 10:59:48 [kernel] [ 2494.166172]  [<ffffffff80250889>] ? print_circular_bug_entry+0x49/0x60
-May 11 10:59:48 [kernel] [ 2494.166178]  [<ffffffff802535ab>] __lock_acquire+0xd9b/0x1080
-May 11 10:59:48 [kernel] [ 2494.166184]  [<ffffffff80232e95>] ? is_current_pgrp_orphaned+0x15/0x50
-May 11 10:59:48 [kernel] [ 2494.166189]  [<ffffffff80253922>] lock_acquire+0x92/0xc0
-May 11 10:59:48 [kernel] [ 2494.166206]  [<ffffffff803d5f80>] tty_check_change+0xb0/0x110
-May 11 10:59:48 [kernel] [ 2494.166211]  [<ffffffff803dac5f>] set_termios+0x1f/0x4c0
-May 11 10:59:48 [kernel] [ 2494.166216]  [<ffffffff803d3423>] ? tty_ldisc_try+0x23/0x60
-May 11 10:59:48 [kernel] [ 2494.166220]  [<ffffffff803d3444>] ? tty_ldisc_try+0x44/0x60
-May 11 10:59:48 [kernel] [ 2494.166224]  [<ffffffff804df2c5>] ? _spin_unlock_irqrestore+0x65/0x80
-May 11 10:59:48 [kernel] [ 2494.166230]  [<ffffffff803db379>] tty_mode_ioctl+0x279/0x3e0
-May 11 10:59:48 [kernel] [ 2494.166234]  [<ffffffff803d3444>] ? tty_ldisc_try+0x44/0x60
-May 11 10:59:48 [kernel] [ 2494.166239]  [<ffffffff803db51d>] n_tty_ioctl+0x3d/0x260
-May 11 10:59:48 [kernel] [ 2494.166244]  [<ffffffff803d6c34>] tty_ioctl+0x154/0xfe0
-May 11 10:59:48 [kernel] [ 2494.166249]  [<ffffffff80252baa>] ? __lock_acquire+0x39a/0x1080
-May 11 10:59:48 [kernel] [ 2494.166256]  [<ffffffff80252baa>] ? __lock_acquire+0x39a/0x1080
-May 11 10:59:48 [kernel] [ 2494.166263]  [<ffffffff80252baa>] ? __lock_acquire+0x39a/0x1080
-May 11 10:59:48 [kernel] [ 2494.166269]  [<ffffffff802a05e1>] vfs_ioctl+0x31/0x90
-May 11 10:59:48 [kernel] [ 2494.166274]  [<ffffffff802a06b3>] do_vfs_ioctl+0x73/0x2d0
-May 11 10:59:48 [kernel] [ 2494.166280]  [<ffffffff802a095a>] sys_ioctl+0x4a/0x80
-May 11 10:59:48 [kernel] [ 2494.166286]  [<ffffffff8020b5ab>] system_call_after_swapgs+0x7b/0x80
-May 11 10:59:48 [kernel] [ 2494.166292] 
+With the cli/sti code sorted out we think this driver is OK for use on SMP
+systems.
 
-Acked-by: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Reported-by: Marcin Slusarz <marcin.slusarz@gmail.com>
+Acked-by: Mark Asselstine <mark.asselstine@windriver.com>
+Acked-by: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tty_io.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ drivers/isdn/hysdn/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/tty_io.c~tty_check_change-avoid-taking-tasklist_lock-while-holding-tty-ctrl_lock drivers/char/tty_io.c
---- a/drivers/char/tty_io.c~tty_check_change-avoid-taking-tasklist_lock-while-holding-tty-ctrl_lock
-+++ a/drivers/char/tty_io.c
-@@ -1215,10 +1215,11 @@ int tty_check_change(struct tty_struct *
- 
- 	if (!tty->pgrp) {
- 		printk(KERN_WARNING "tty_check_change: tty->pgrp == NULL!\n");
--		goto out;
-+		goto out_unlock;
- 	}
- 	if (task_pgrp(current) == tty->pgrp)
--		goto out;
-+		goto out_unlock;
-+	spin_unlock_irqrestore(&tty->ctrl_lock, flags);
- 	if (is_ignored(SIGTTOU))
- 		goto out;
- 	if (is_current_pgrp_orphaned()) {
-@@ -1229,6 +1230,8 @@ int tty_check_change(struct tty_struct *
- 	set_thread_flag(TIF_SIGPENDING);
- 	ret = -ERESTARTSYS;
- out:
-+	return ret;
-+out_unlock:
- 	spin_unlock_irqrestore(&tty->ctrl_lock, flags);
- 	return ret;
- }
+diff -puN drivers/isdn/hysdn/Kconfig~hysdn-no-longer-broken-on-smp drivers/isdn/hysdn/Kconfig
+--- a/drivers/isdn/hysdn/Kconfig~hysdn-no-longer-broken-on-smp
++++ a/drivers/isdn/hysdn/Kconfig
+@@ -3,7 +3,7 @@
+ #
+ config HYSDN
+ 	tristate "Hypercope HYSDN cards (Champ, Ergo, Metro) support (module only)"
+-	depends on m && PROC_FS && PCI && BROKEN_ON_SMP
++	depends on m && PROC_FS && PCI
+ 	help
+ 	  Say Y here if you have one of Hypercope's active PCI ISDN cards
+ 	  Champ, Ergo and Metro. You will then get a module called hysdn.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
