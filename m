@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + lockd-dont-return-eagain-for-a-permanent-error.patch added to -mm tree
-Date: Thu, 15 May 2008 17:16:02 -0700
-Message-ID: <200805160016.m4G0G29g017755@imap1.linux-foundation.org>
+Subject: + locks-cleanup-code-duplication.patch added to -mm tree
+Date: Thu, 15 May 2008 17:16:07 -0700
+Message-ID: <200805160016.m4G0G7mV017761@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41835 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53465 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752980AbYEPAQr (ORCPT
+	by vger.kernel.org with ESMTP id S1753069AbYEPAQu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 May 2008 20:16:47 -0400
+	Thu, 15 May 2008 20:16:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mszeredi@suse.cz, bfields@fieldses.org, hch@lst.de, matthew@wil.cx, teigland
 
 
 The patch titled
-     lockd: dont return EAGAIN for a permanent error
+     locks: cleanup code duplication
 has been added to the -mm tree.  Its filename is
-     lockd-dont-return-eagain-for-a-permanent-error.patch
+     locks-cleanup-code-duplication.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,81 +34,118 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lockd: dont return EAGAIN for a permanent error
+Subject: locks: cleanup code duplication
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-Fix nlm_fopen() to return NLM_FAILED (or NLM_LCK_DENIED_NOLOCKS) instead
-of NLM_LCK_DENIED.  The latter means the lock request failed because of a
-conflicting lock (i.e.  a temporary error), which is wrong in this case.
-
-Also fix the client to return ENOLCK instead of EAGAIN if a blocking lock
-request returns with NLM_LOCK_DENIED.
+Extract common code into a function.
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
 Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
 Cc: Matthew Wilcox <matthew@wil.cx>
 Cc: David Teigland <teigland@redhat.com>
 Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/lockd/clntproc.c |   10 +++++++++-
- fs/nfsd/lockd.c     |   13 +++++++++----
- 2 files changed, 18 insertions(+), 5 deletions(-)
+ fs/locks.c |   71 ++++++++++++++++++++++-----------------------------
+ 1 file changed, 31 insertions(+), 40 deletions(-)
 
-diff -puN fs/lockd/clntproc.c~lockd-dont-return-eagain-for-a-permanent-error fs/lockd/clntproc.c
---- a/fs/lockd/clntproc.c~lockd-dont-return-eagain-for-a-permanent-error
-+++ a/fs/lockd/clntproc.c
-@@ -580,7 +580,15 @@ again:
- 	}
- 	if (status < 0)
- 		goto out_unlock;
--	status = nlm_stat_to_errno(resp->status);
-+	/*
-+	 * EAGAIN doesn't make sense for sleeping locks, and in some
-+	 * cases NLM_LCK_DENIED is returned for a permanent error.  So
-+	 * turn it into an ENOLCK.
-+	 */
-+	if (resp->status == nlm_lck_denied && (fl_flags & FL_SLEEP))
-+		status = -ENOLCK;
-+	else
-+		status = nlm_stat_to_errno(resp->status);
- out_unblock:
- 	nlmclnt_finish_block(block);
- out:
-diff -puN fs/nfsd/lockd.c~lockd-dont-return-eagain-for-a-permanent-error fs/nfsd/lockd.c
---- a/fs/nfsd/lockd.c~lockd-dont-return-eagain-for-a-permanent-error
-+++ a/fs/nfsd/lockd.c
-@@ -19,6 +19,13 @@
- 
- #define NFSDDBG_FACILITY		NFSDDBG_LOCKD
- 
-+#ifdef CONFIG_LOCKD_V4
-+#define nlm_stale_fh	nlm4_stale_fh
-+#define nlm_failed	nlm4_failed
-+#else
-+#define nlm_stale_fh	nlm_lck_denied_nolocks
-+#define nlm_failed	nlm_lck_denied_nolocks
-+#endif
- /*
-  * Note: we hold the dentry use count while the file is open.
-  */
-@@ -47,12 +54,10 @@ nlm_fopen(struct svc_rqst *rqstp, struct
- 		return 0;
- 	case nfserr_dropit:
- 		return nlm_drop_reply;
--#ifdef CONFIG_LOCKD_V4
- 	case nfserr_stale:
--		return nlm4_stale_fh;
--#endif
-+		return nlm_stale_fh;
- 	default:
--		return nlm_lck_denied;
-+		return nlm_failed;
- 	}
+diff -puN fs/locks.c~locks-cleanup-code-duplication fs/locks.c
+--- a/fs/locks.c~locks-cleanup-code-duplication
++++ a/fs/locks.c
+@@ -1744,6 +1744,35 @@ int vfs_lock_file(struct file *filp, uns
  }
+ EXPORT_SYMBOL_GPL(vfs_lock_file);
  
++static int do_lock_file_wait(struct file *filp, unsigned int cmd,
++			     struct file_lock *fl)
++{
++	int error;
++
++	error = security_file_lock(filp, fl->fl_type);
++	if (error)
++		return error;
++
++	if (filp->f_op && filp->f_op->lock != NULL)
++		error = filp->f_op->lock(filp, cmd, fl);
++	else {
++		for (;;) {
++			error = posix_lock_file(filp, fl, NULL);
++			if (error != FILE_LOCK_DEFERRED)
++				break;
++			error = wait_event_interruptible(fl->fl_wait,
++							 !fl->fl_next);
++			if (!error)
++				continue;
++
++			locks_delete_block(fl);
++			break;
++		}
++	}
++
++	return error;
++}
++
+ /* Apply the lock described by l to an open file descriptor.
+  * This implements both the F_SETLK and F_SETLKW commands of fcntl().
+  */
+@@ -1801,26 +1830,7 @@ again:
+ 		goto out;
+ 	}
+ 
+-	error = security_file_lock(filp, file_lock->fl_type);
+-	if (error)
+-		goto out;
+-
+-	if (filp->f_op && filp->f_op->lock != NULL)
+-		error = filp->f_op->lock(filp, cmd, file_lock);
+-	else {
+-		for (;;) {
+-			error = posix_lock_file(filp, file_lock, NULL);
+-			if (error != FILE_LOCK_DEFERRED)
+-				break;
+-			error = wait_event_interruptible(file_lock->fl_wait,
+-					!file_lock->fl_next);
+-			if (!error)
+-				continue;
+-
+-			locks_delete_block(file_lock);
+-			break;
+-		}
+-	}
++	error = do_lock_file_wait(filp, cmd, file_lock);
+ 
+ 	/*
+ 	 * Attempt to detect a close/fcntl race and recover by
+@@ -1938,26 +1948,7 @@ again:
+ 		goto out;
+ 	}
+ 
+-	error = security_file_lock(filp, file_lock->fl_type);
+-	if (error)
+-		goto out;
+-
+-	if (filp->f_op && filp->f_op->lock != NULL)
+-		error = filp->f_op->lock(filp, cmd, file_lock);
+-	else {
+-		for (;;) {
+-			error = posix_lock_file(filp, file_lock, NULL);
+-			if (error != FILE_LOCK_DEFERRED)
+-				break;
+-			error = wait_event_interruptible(file_lock->fl_wait,
+-					!file_lock->fl_next);
+-			if (!error)
+-				continue;
+-
+-			locks_delete_block(file_lock);
+-			break;
+-		}
+-	}
++	error = do_lock_file_wait(filp, cmd, file_lock);
+ 
+ 	/*
+ 	 * Attempt to detect a close/fcntl race and recover by
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
