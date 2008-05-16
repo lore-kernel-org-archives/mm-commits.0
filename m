@@ -1,149 +1,199 @@
 From: akpm@linux-foundation.org
-Subject: - net-irda-irnet-irnet_irdac-needs-unalignedh.patch removed from -mm tree
-Date: Fri, 16 May 2008 15:53:39 -0700
-Message-ID: <200805162253.m4GMrdwj003154@imap1.linux-foundation.org>
+Subject: - lib-create-common-ascii-hex-array.patch removed from -mm tree
+Date: Fri, 16 May 2008 15:53:15 -0700
+Message-ID: <200805162253.m4GMrF8a003121@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55532 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41401 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757414AbYEPWxm (ORCPT
+	by vger.kernel.org with ESMTP id S1761573AbYEPWxl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 May 2008 18:53:42 -0400
+	Fri, 16 May 2008 18:53:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davem@davemloft.net, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, jason.wessel@windriver.com, lethal@linux-sh.org, mingo@elte.hu, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     net/irda/irnet/irnet_irda.c needs unaligned.h
+     lib: create common ascii hex array
 has been removed from the -mm tree.  Its filename was
-     net-irda-irnet-irnet_irdac-needs-unalignedh.patch
+     lib-create-common-ascii-hex-array.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: net/irda/irnet/irnet_irda.c needs unaligned.h
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: lib: create common ascii hex array
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-net/irda/irnet/irnet_irda.c: In function 'irnet_discovery_indication':
-net/irda/irnet/irnet_irda.c:1676: error: implicit declaration of function 'get_unaligned'
+Add a common hex array in hexdump.c so everyone can use it.
 
-Cc: "David S. Miller" <davem@davemloft.net>
+Add a common hi/lo helper to avoid the shifting masking that is
+done to get the upper and lower nibbles of a byte value.
+
+Pull the pack_hex_byte helper from kgdb as it is opencoded many
+places in the tree that will be consolidated.
+
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Acked-by: Paul Mundt <lethal@linux-sh.org>
+Cc: Jason Wessel <jason.wessel@windriver.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/irda/irnet/irnet_irda.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/sh/kernel/kgdb_stub.c |    8 --------
+ drivers/pnp/support.c      |    8 ++++----
+ include/linux/kernel.h     |   12 +++++++++++-
+ kernel/kgdb.c              |    8 --------
+ lib/hexdump.c              |    7 +++++--
+ 5 files changed, 20 insertions(+), 23 deletions(-)
 
-diff -puN net/irda/irnet/irnet_irda.c~net-irda-irnet-irnet_irdac-needs-unalignedh net/irda/irnet/irnet_irda.c
---- a/net/irda/irnet/irnet_irda.c~net-irda-irnet-irnet_irdac-needs-unalignedh
-+++ a/net/irda/irnet/irnet_irda.c
-@@ -10,6 +10,7 @@
+diff -puN arch/sh/kernel/kgdb_stub.c~lib-create-common-ascii-hex-array arch/sh/kernel/kgdb_stub.c
+--- a/arch/sh/kernel/kgdb_stub.c~lib-create-common-ascii-hex-array
++++ a/arch/sh/kernel/kgdb_stub.c
+@@ -330,14 +330,6 @@ static char *ebin_to_mem(const char *buf
+ 	return mem;
+ }
  
- #include "irnet_irda.h"		/* Private header */
- #include <linux/seq_file.h>
-+#include <asm/unaligned.h>
+-/* Pack a hex byte */
+-static char *pack_hex_byte(char *pkt, int byte)
+-{
+-	*pkt++ = hexchars[(byte >> 4) & 0xf];
+-	*pkt++ = hexchars[(byte & 0xf)];
+-	return pkt;
+-}
+-
+ /* Scan for the start char '$', read the packet and check the checksum */
+ static void get_packet(char *buffer, int buflen)
+ {
+diff -puN drivers/pnp/support.c~lib-create-common-ascii-hex-array drivers/pnp/support.c
+--- a/drivers/pnp/support.c~lib-create-common-ascii-hex-array
++++ a/drivers/pnp/support.c
+@@ -45,10 +45,10 @@ void pnp_eisa_id_to_string(u32 id, char 
+ 	str[0] = 'A' + ((id >> 26) & 0x3f) - 1;
+ 	str[1] = 'A' + ((id >> 21) & 0x1f) - 1;
+ 	str[2] = 'A' + ((id >> 16) & 0x1f) - 1;
+-	str[3] = hex_asc((id >> 12) & 0xf);
+-	str[4] = hex_asc((id >>  8) & 0xf);
+-	str[5] = hex_asc((id >>  4) & 0xf);
+-	str[6] = hex_asc((id >>  0) & 0xf);
++	str[3] = hex_asc_hi(id >> 8);
++	str[4] = hex_asc_lo(id >> 8);
++	str[5] = hex_asc_hi(id);
++	str[6] = hex_asc_lo(id);
+ 	str[7] = '\0';
+ }
  
+diff -puN include/linux/kernel.h~lib-create-common-ascii-hex-array include/linux/kernel.h
+--- a/include/linux/kernel.h~lib-create-common-ascii-hex-array
++++ a/include/linux/kernel.h
+@@ -276,7 +276,17 @@ extern void print_hex_dump(const char *l
+ 				const void *buf, size_t len, bool ascii);
+ extern void print_hex_dump_bytes(const char *prefix_str, int prefix_type,
+ 			const void *buf, size_t len);
+-#define hex_asc(x)	"0123456789abcdef"[x]
++
++extern const char hex_asc[];
++#define hex_asc_lo(x)	hex_asc[((x) & 0x0f)]
++#define hex_asc_hi(x)	hex_asc[((x) & 0xf0) >> 4]
++
++static inline char *pack_hex_byte(char *buf, u8 byte)
++{
++	*buf++ = hex_asc_hi(byte);
++	*buf++ = hex_asc_lo(byte);
++	return buf;
++}
+ 
+ #define pr_emerg(fmt, arg...) \
+ 	printk(KERN_EMERG fmt, ##arg)
+diff -puN kernel/kgdb.c~lib-create-common-ascii-hex-array kernel/kgdb.c
+--- a/kernel/kgdb.c~lib-create-common-ascii-hex-array
++++ a/kernel/kgdb.c
+@@ -346,14 +346,6 @@ static void put_packet(char *buffer)
+ 	}
+ }
+ 
+-static char *pack_hex_byte(char *pkt, u8 byte)
+-{
+-	*pkt++ = hexchars[byte >> 4];
+-	*pkt++ = hexchars[byte & 0xf];
+-
+-	return pkt;
+-}
+-
  /*
-  * PPP disconnect work: we need to make sure we're in
+  * Convert the memory pointed to by mem into hex, placing result in buf.
+  * Return a pointer to the last char put in buf (null). May return an error.
+diff -puN lib/hexdump.c~lib-create-common-ascii-hex-array lib/hexdump.c
+--- a/lib/hexdump.c~lib-create-common-ascii-hex-array
++++ a/lib/hexdump.c
+@@ -12,6 +12,9 @@
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ 
++const char hex_asc[] = "0123456789abcdef";
++EXPORT_SYMBOL(hex_asc);
++
+ /**
+  * hex_dump_to_buffer - convert a blob of data to "hex ASCII" in memory
+  * @buf: data blob to dump
+@@ -93,8 +96,8 @@ void hex_dump_to_buffer(const void *buf,
+ 		for (j = 0; (j < rowsize) && (j < len) && (lx + 4) < linebuflen;
+ 		     j++) {
+ 			ch = ptr[j];
+-			linebuf[lx++] = hex_asc(ch >> 4);
+-			linebuf[lx++] = hex_asc(ch & 0x0f);
++			linebuf[lx++] = hex_asc_hi(ch);
++			linebuf[lx++] = hex_asc_lo(ch);
+ 			linebuf[lx++] = ' ';
+ 		}
+ 		ascii_column = 3 * rowsize + 2;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
 origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-fix-kobject-fix-kobject_rename-and-config_sysfs.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-video-balcklist-fujitsu-lifebook-s6410.patch
-git-x86-fixup.patch
-arch-x86-mm-patc-use-boot_cpu_has.patch
-x86-setup_force_cpu_cap-dont-do-clear_bitnon-unsigned-long.patch
-lguest-use-cpu-capability-accessors.patch
-x86-set_restore_sigmask-avoid-bitop-on-a-u32.patch
-x86-bitops-take-an-unsigned-long.patch
-arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
-audit_send_reply-fix-error-path-memory-leak.patch
-zoran-use-correct-type-for-cpu-flags.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-drivers-infiniband-hw-mlx4-qpc-fix-uninitialised-var-warning.patch
+kgdb-use-put_unaligned_be32-helper.patch
+cifs-remove-global_extern-macro.patch
+media-use-get_unaligned_-helpers.patch
+hid-use-get-put_unaligned_-helpers.patch
 git-input.patch
-git-jg-misc-git-rejects.patch
-drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
-fsldma-the-mpc8377mds-board-device-tree-node-for-fsldma-driver.patch
-mmc-sd-host-driver-for-ricoh-bay1controllers.patch
-git-ubifs.patch
-sundance-set-carrier-status-on-link-change-events.patch
-dm9000-use-delayed-work-to-update-mii-phy-state-fix.patch
-pcnet32-fix-warning.patch
-drivers-net-tokenring-3c359c-squish-a-warning.patch
-drivers-net-tokenring-olympicc-fix-warning.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-battery.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-pci-hotplug-introduce-pci_slot.patch
-pci-hotplug-acpi-pci-slot-detection-driver.patch
-drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
-s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-git-logfs-fixup.patch
-drivers-uwb-nehc-processor-flags-have-type-unsigned-long.patch
-drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
-uwb-fix-scscanf-warning.patch
-drivers-uwb-wlp-sysfsc-dead-code.patch
-drivers-uwb-i1480-dfu-macc-fix-min-warning.patch
-drivers-uwb-whcic-needs-dma-mappingh.patch
-git-vfs-cleanups-reject.patch
+ata-remove-fit-macro.patch
+mtd-mtdcharc-silence-sparse-warning.patch
+mtd-mtdcharc-remove-shadowed-variable-warnings.patch
+nfs-replace-remaining-__function__-occurrences.patch
+scsi-replace-remaining-__function__-occurrences.patch
+fusion-replace-remaining-__function__-occurrences.patch
+scsi-replace-__inline-with-inline.patch
+scsi-use-get_unaligned_-helpers.patch
+scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
+scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
+block-use-get_unaligned_-helpers.patch
+usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues.patch
 git-watchdog.patch
-git-watchdog-git-rejects.patch
-watchdog-fix-booke_wdtc-on-mpc85xx-smp-system.patch
-wireless-airo-waitbusy-wont-delay-checkpatch-fixes.patch
-git-xtensa.patch
-ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware-ia64-warnings.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-colibri-fix-support-for-dm9000-ethernet-device.patch
-mm-verify-the-page-links-and-memory-model.patch
-mspec-convert-nopfn-to-fault-fix.patch
-page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
-kill-generic_file_direct_io-checkpatch-fixes.patch
-spufs-use-the-new-vm_ops-access-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-split-the-typecheck-macros-out-of-include-linux-kernelh.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
-remove-apparently-unused-fd1772h-header-file.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
-rename-warn-to-warning-to-clear-the-namespace-fix.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
-flag-parameters-paccept-fix.patch
-flag-parameters-paccept-sys_ni.patch
-flag-parameters-anon_inode_getfd-extension-fix.patch
-flag-parameters-signalfd-fix.patch
-flag-parameters-eventfd-fix.patch
-flag-parameters-inotify_init-fix.patch
-flag-parameters-check-magic-constants-alpha-hack.patch
-drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
-reiserfs-convert-j_flush_sem-to-mutex-fix.patch
-reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
+mac80211-michaelc-use-kernel-provided-infrastructure.patch
+mac80211-introduce-struct-michael_mic_ctx-and-static-helpers.patch
+mac80211-add-const-remove-unused-function-make-one-function-static.patch
+mac80211-add-a-struct-to-hold-tkip-context.patch
+mac80211-tkipc-use-struct-tkip_ctx-in-phase-1-key-mixing.patch
+mac80211-tkipc-use-struct-tkip_ctx-in-phase-2-key-mixing.patch
+xfs-use-get_unaligned_-helpers.patch
+xtensa-replace-remaining-__function__-occurences.patch
+fs-ldm-use-get_unaligned_-helpers.patch
+include-use-get-put_unaligned_-helpers.patch
+lzo-use-get-put_unaligned_-helpers.patch
+video-fix-integer-as-null-pointer-warnings.patch
+scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
+isdn-use-the-common-ascii-hex-helpers.patch
+net-use-the-common-ascii-hex-helpers.patch
+kgdb-use-the-common-ascii-hex-helpers.patch
+cris-use-the-common-ascii-hex-helpers.patch
+frv-use-the-common-ascii-hex-helpers.patch
+mips-use-the-common-ascii-hex-helpers.patch
+sh-use-the-common-ascii-hex-helpers.patch
+ppc-use-the-common-ascii-hex-helpers.patch
 ppc-use-the-common-ascii-hex-helpers-fix.patch
-reiser4.patch
-reiser4-semaphore-fix.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+mn10300-use-the-common-ascii-hex-helpers.patch
 
