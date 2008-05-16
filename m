@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co.patch added to -mm tree
-Date: Thu, 15 May 2008 20:14:33 -0700
-Message-ID: <200805160314.m4G3EX4F023915@imap1.linux-foundation.org>
+Subject: + spufs-use-the-new-vm_ops-access-fix.patch added to -mm tree
+Date: Fri, 16 May 2008 09:55:08 -0700
+Message-ID: <200805161655.m4GGt8U5021834@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36467 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42491 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750744AbYEPDPJ (ORCPT
+	by vger.kernel.org with ESMTP id S1751585AbYEPQz6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 May 2008 23:15:09 -0400
+	Fri, 16 May 2008 12:55:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jbeulich@novell.com, benh@kernel.crashing.org, clameter@sgi.com, davem@davemloft.net, hugh@veritas.com, lethal@linux-sh.org, npiggin@suse.de, paulus@samba.org, tony.luck@intel.com
+Cc: akpm@linux-foundation.org, airlied@linux.ie, arnd@arndb.de, benh@kernel.crashing.org, hugh@veritas.com, paulus@samba.org, riel@redhat.com
 
 
 The patch titled
-     mm: remove double indirection on tlb parameter to free_pgd_range() & Co
+     spufs-use-the-new-vm_ops-access-fix
 has been added to the -mm tree.  Its filename is
-     mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co.patch
+     spufs-use-the-new-vm_ops-access-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,265 +34,148 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: remove double indirection on tlb parameter to free_pgd_range() & Co
-From: "Jan Beulich" <jbeulich@novell.com>
+Subject: spufs-use-the-new-vm_ops-access-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The double indirection here is not needed anywhere and hence (at least)
-confusing.
-
-Signed-off-by: Jan Beulich <jbeulich@novell.com>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Nick Piggin <npiggin@suse.de>
-Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Dave Airlie <airlied@linux.ie>
+Cc: Hugh Dickins <hugh@veritas.com>
 Cc: Paul Mackerras <paulus@samba.org>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/mm/hugetlbpage.c    |    2 +-
- arch/powerpc/mm/hugetlbpage.c |    8 ++++----
- fs/exec.c                     |    4 ++--
- include/asm-ia64/hugetlb.h    |    2 +-
- include/asm-powerpc/hugetlb.h |    2 +-
- include/asm-sh/hugetlb.h      |    2 +-
- include/asm-sparc64/hugetlb.h |    2 +-
- include/asm-x86/hugetlb.h     |    2 +-
- include/linux/mm.h            |    4 +---
- mm/internal.h                 |    3 +++
- mm/memory.c                   |   10 ++++++----
- mm/mmap.c                     |    6 ++++--
- 12 files changed, 26 insertions(+), 21 deletions(-)
+ arch/powerpc/platforms/cell/spufs/file.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/ia64/mm/hugetlbpage.c~mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co arch/ia64/mm/hugetlbpage.c
---- a/arch/ia64/mm/hugetlbpage.c~mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co
-+++ a/arch/ia64/mm/hugetlbpage.c
-@@ -112,7 +112,7 @@ follow_huge_pmd(struct mm_struct *mm, un
- 	return NULL;
+diff -puN arch/powerpc/platforms/cell/spufs/file.c~spufs-use-the-new-vm_ops-access-fix arch/powerpc/platforms/cell/spufs/file.c
+--- a/arch/powerpc/platforms/cell/spufs/file.c~spufs-use-the-new-vm_ops-access-fix
++++ a/arch/powerpc/platforms/cell/spufs/file.c
+@@ -287,7 +287,7 @@ spufs_mem_mmap_fault(struct vm_area_stru
+ 	return VM_FAULT_NOPAGE;
  }
  
--void hugetlb_free_pgd_range(struct mmu_gather **tlb,
-+void hugetlb_free_pgd_range(struct mmu_gather *tlb,
- 			unsigned long addr, unsigned long end,
- 			unsigned long floor, unsigned long ceiling)
+-static int spufs_mem_mmep_access(struct vm_area_struct *vma,
++static int spufs_mem_mmap_access(struct vm_area_struct *vma,
+ 				unsigned long address,
+ 				void *buf, int len, int write)
  {
-diff -puN arch/powerpc/mm/hugetlbpage.c~mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co arch/powerpc/mm/hugetlbpage.c
---- a/arch/powerpc/mm/hugetlbpage.c~mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co
-+++ a/arch/powerpc/mm/hugetlbpage.c
-@@ -255,7 +255,7 @@ static void hugetlb_free_pud_range(struc
-  *
-  * Must be called with pagetable lock held.
-  */
--void hugetlb_free_pgd_range(struct mmu_gather **tlb,
-+void hugetlb_free_pgd_range(struct mmu_gather *tlb,
- 			    unsigned long addr, unsigned long end,
- 			    unsigned long floor, unsigned long ceiling)
- {
-@@ -315,13 +315,13 @@ void hugetlb_free_pgd_range(struct mmu_g
- 		return;
+@@ -312,7 +312,7 @@ static int spufs_mem_mmep_access(struct 
  
- 	start = addr;
--	pgd = pgd_offset((*tlb)->mm, addr);
-+	pgd = pgd_offset(tlb->mm, addr);
- 	do {
--		BUG_ON(get_slice_psize((*tlb)->mm, addr) != mmu_huge_psize);
-+		BUG_ON(get_slice_psize(tlb->mm, addr) != mmu_huge_psize);
- 		next = pgd_addr_end(addr, end);
- 		if (pgd_none_or_clear_bad(pgd))
- 			continue;
--		hugetlb_free_pud_range(*tlb, pgd, addr, next, floor, ceiling);
-+		hugetlb_free_pud_range(tlb, pgd, addr, next, floor, ceiling);
- 	} while (pgd++, addr = next, addr != end);
- }
+ static struct vm_operations_struct spufs_mem_mmap_vmops = {
+ 	.fault = spufs_mem_mmap_fault,
+-	.access = spufs_mem_mmep_access,
++	.access = spufs_mem_mmap_access,
+ };
  
-diff -puN fs/exec.c~mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co fs/exec.c
---- a/fs/exec.c~mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co
-+++ a/fs/exec.c
-@@ -537,7 +537,7 @@ static int shift_arg_pages(struct vm_are
- 		/*
- 		 * when the old and new regions overlap clear from new_end.
- 		 */
--		free_pgd_range(&tlb, new_end, old_end, new_end,
-+		free_pgd_range(tlb, new_end, old_end, new_end,
- 			vma->vm_next ? vma->vm_next->vm_start : 0);
- 	} else {
- 		/*
-@@ -546,7 +546,7 @@ static int shift_arg_pages(struct vm_are
- 		 * have constraints on va-space that make this illegal (IA64) -
- 		 * for the others its just a little faster.
- 		 */
--		free_pgd_range(&tlb, old_start, old_end, new_end,
-+		free_pgd_range(tlb, old_start, old_end, new_end,
- 			vma->vm_next ? vma->vm_next->vm_start : 0);
- 	}
- 	tlb_finish_mmu(tlb, new_end, old_end);
-diff -puN include/asm-ia64/hugetlb.h~mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co include/asm-ia64/hugetlb.h
---- a/include/asm-ia64/hugetlb.h~mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co
-+++ a/include/asm-ia64/hugetlb.h
-@@ -4,7 +4,7 @@
- #include <asm/page.h>
- 
- 
--void hugetlb_free_pgd_range(struct mmu_gather **tlb, unsigned long addr,
-+void hugetlb_free_pgd_range(struct mmu_gather *tlb, unsigned long addr,
- 			    unsigned long end, unsigned long floor,
- 			    unsigned long ceiling);
- 
-diff -puN include/asm-powerpc/hugetlb.h~mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co include/asm-powerpc/hugetlb.h
---- a/include/asm-powerpc/hugetlb.h~mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co
-+++ a/include/asm-powerpc/hugetlb.h
-@@ -7,7 +7,7 @@
- int is_hugepage_only_range(struct mm_struct *mm, unsigned long addr,
- 			   unsigned long len);
- 
--void hugetlb_free_pgd_range(struct mmu_gather **tlb, unsigned long addr,
-+void hugetlb_free_pgd_range(struct mmu_gather *tlb, unsigned long addr,
- 			    unsigned long end, unsigned long floor,
- 			    unsigned long ceiling);
- 
-diff -puN include/asm-sh/hugetlb.h~mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co include/asm-sh/hugetlb.h
---- a/include/asm-sh/hugetlb.h~mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co
-+++ a/include/asm-sh/hugetlb.h
-@@ -26,7 +26,7 @@ static inline int prepare_hugepage_range
- static inline void hugetlb_prefault_arch_hook(struct mm_struct *mm) {
- }
- 
--static inline void hugetlb_free_pgd_range(struct mmu_gather **tlb,
-+static inline void hugetlb_free_pgd_range(struct mmu_gather *tlb,
- 					  unsigned long addr, unsigned long end,
- 					  unsigned long floor,
- 					  unsigned long ceiling)
-diff -puN include/asm-sparc64/hugetlb.h~mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co include/asm-sparc64/hugetlb.h
---- a/include/asm-sparc64/hugetlb.h~mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co
-+++ a/include/asm-sparc64/hugetlb.h
-@@ -31,7 +31,7 @@ static inline int prepare_hugepage_range
- 	return 0;
- }
- 
--static inline void hugetlb_free_pgd_range(struct mmu_gather **tlb,
-+static inline void hugetlb_free_pgd_range(struct mmu_gather *tlb,
- 					  unsigned long addr, unsigned long end,
- 					  unsigned long floor,
- 					  unsigned long ceiling)
-diff -puN include/asm-x86/hugetlb.h~mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co include/asm-x86/hugetlb.h
---- a/include/asm-x86/hugetlb.h~mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co
-+++ a/include/asm-x86/hugetlb.h
-@@ -26,7 +26,7 @@ static inline int prepare_hugepage_range
- static inline void hugetlb_prefault_arch_hook(struct mm_struct *mm) {
- }
- 
--static inline void hugetlb_free_pgd_range(struct mmu_gather **tlb,
-+static inline void hugetlb_free_pgd_range(struct mmu_gather *tlb,
- 					  unsigned long addr, unsigned long end,
- 					  unsigned long floor,
- 					  unsigned long ceiling)
-diff -puN include/linux/mm.h~mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co include/linux/mm.h
---- a/include/linux/mm.h~mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co
-+++ a/include/linux/mm.h
-@@ -767,10 +767,8 @@ struct mm_walk {
- int walk_page_range(const struct mm_struct *, unsigned long addr,
- 		    unsigned long end, const struct mm_walk *walk,
- 		    void *private);
--void free_pgd_range(struct mmu_gather **tlb, unsigned long addr,
-+void free_pgd_range(struct mmu_gather *tlb, unsigned long addr,
- 		unsigned long end, unsigned long floor, unsigned long ceiling);
--void free_pgtables(struct mmu_gather **tlb, struct vm_area_struct *start_vma,
--		unsigned long floor, unsigned long ceiling);
- int copy_page_range(struct mm_struct *dst, struct mm_struct *src,
- 			struct vm_area_struct *vma);
- void unmap_mapping_range(struct address_space *mapping,
-diff -puN mm/internal.h~mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co mm/internal.h
---- a/mm/internal.h~mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co
-+++ a/mm/internal.h
-@@ -13,6 +13,9 @@
- 
- #include <linux/mm.h>
- 
-+void free_pgtables(struct mmu_gather *tlb, struct vm_area_struct *start_vma,
-+		unsigned long floor, unsigned long ceiling);
-+
- static inline void set_page_count(struct page *page, int v)
- {
- 	atomic_set(&page->_count, v);
-diff -puN mm/memory.c~mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co mm/memory.c
---- a/mm/memory.c~mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co
-+++ a/mm/memory.c
-@@ -61,6 +61,8 @@
- #include <linux/swapops.h>
- #include <linux/elf.h>
- 
-+#include "internal.h"
-+
- #ifndef CONFIG_NEED_MULTIPLE_NODES
- /* use the per-pgdat data instead for discontigmem - mbligh */
- unsigned long max_mapnr;
-@@ -211,7 +213,7 @@ static inline void free_pud_range(struct
-  *
-  * Must be called with pagetable lock held.
-  */
--void free_pgd_range(struct mmu_gather **tlb,
-+void free_pgd_range(struct mmu_gather *tlb,
- 			unsigned long addr, unsigned long end,
- 			unsigned long floor, unsigned long ceiling)
- {
-@@ -262,16 +264,16 @@ void free_pgd_range(struct mmu_gather **
- 		return;
- 
- 	start = addr;
--	pgd = pgd_offset((*tlb)->mm, addr);
-+	pgd = pgd_offset(tlb->mm, addr);
- 	do {
- 		next = pgd_addr_end(addr, end);
- 		if (pgd_none_or_clear_bad(pgd))
- 			continue;
--		free_pud_range(*tlb, pgd, addr, next, floor, ceiling);
-+		free_pud_range(tlb, pgd, addr, next, floor, ceiling);
- 	} while (pgd++, addr = next, addr != end);
- }
- 
--void free_pgtables(struct mmu_gather **tlb, struct vm_area_struct *vma,
-+void free_pgtables(struct mmu_gather *tlb, struct vm_area_struct *vma,
- 		unsigned long floor, unsigned long ceiling)
- {
- 	while (vma) {
-diff -puN mm/mmap.c~mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co mm/mmap.c
---- a/mm/mmap.c~mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co
-+++ a/mm/mmap.c
-@@ -32,6 +32,8 @@
- #include <asm/tlb.h>
- #include <asm/mmu_context.h>
- 
-+#include "internal.h"
-+
- #ifndef arch_mmap_check
- #define arch_mmap_check(addr, len, flags)	(0)
- #endif
-@@ -1756,7 +1758,7 @@ static void unmap_region(struct mm_struc
- 	update_hiwater_rss(mm);
- 	unmap_vmas(&tlb, vma, start, end, &nr_accounted, NULL);
- 	vm_unacct_memory(nr_accounted);
--	free_pgtables(&tlb, vma, prev? prev->vm_end: FIRST_USER_ADDRESS,
-+	free_pgtables(tlb, vma, prev? prev->vm_end: FIRST_USER_ADDRESS,
- 				 next? next->vm_start: 0);
- 	tlb_finish_mmu(tlb, start, end);
- }
-@@ -2056,7 +2058,7 @@ void exit_mmap(struct mm_struct *mm)
- 	/* Use -1 here to ensure all VMAs in the mm are unmapped */
- 	end = unmap_vmas(&tlb, vma, 0, -1, &nr_accounted, NULL);
- 	vm_unacct_memory(nr_accounted);
--	free_pgtables(&tlb, vma, FIRST_USER_ADDRESS, 0);
-+	free_pgtables(tlb, vma, FIRST_USER_ADDRESS, 0);
- 	tlb_finish_mmu(tlb, 0, end);
- 
- 	/*
+ static int spufs_mem_mmap(struct file *file, struct vm_area_struct *vma)
 _
 
-Patches currently in -mm which might be from jbeulich@novell.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-acpi-fix-fadt-parsing.patch
-acpi-adjust-register-handling.patch
-acpi-adjust-_acpi_modulefunction_name-definitions.patch
-mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co.patch
+origin.patch
+tty_check_change-avoid-taking-tasklist_lock-while-holding-tty-ctrl_lock.patch
+net-irda-irnet-irnet_irdac-needs-unalignedh.patch
+linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+revert-9p-convert-from-semaphore-to-spinlock.patch
+fix-kobject-fix-kobject_rename-and-config_sysfs.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-video-balcklist-fujitsu-lifebook-s6410.patch
+revert-acpica-fixes-for-unload-and-ddbhandles.patch
+git-x86-fixup.patch
+arch-x86-mm-patc-use-boot_cpu_has.patch
+x86-setup_force_cpu_cap-dont-do-clear_bitnon-unsigned-long.patch
+lguest-use-cpu-capability-accessors.patch
+x86-set_restore_sigmask-avoid-bitop-on-a-u32.patch
+x86-bitops-take-an-unsigned-long.patch
+arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
+audit_send_reply-fix-error-path-memory-leak.patch
+cifs-suppress-warning.patch
+sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
+zoran-use-correct-type-for-cpu-flags.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+drivers-infiniband-hw-mlx4-qpc-fix-uninitialised-var-warning.patch
+git-input.patch
+git-jg-misc-git-rejects.patch
+drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
+fsldma-the-mpc8377mds-board-device-tree-node-for-fsldma-driver.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers.patch
+git-ubifs.patch
+hysdn-no-longer-broken-on-smp.patch
+sundance-set-carrier-status-on-link-change-events.patch
+dm9000-use-delayed-work-to-update-mii-phy-state-fix.patch
+pcnet32-fix-warning.patch
+drivers-net-tokenring-3c359c-squish-a-warning.patch
+drivers-net-tokenring-olympicc-fix-warning.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+arch-parisc-kernel-unalignedc-use-time_-macros.patch
+pci-hotplug-introduce-pci_slot.patch
+pci-hotplug-acpi-pci-slot-detection-driver.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-logfs-fixup.patch
+drivers-uwb-nehc-processor-flags-have-type-unsigned-long.patch
+drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
+uwb-fix-scscanf-warning.patch
+drivers-uwb-wlp-sysfsc-dead-code.patch
+drivers-uwb-i1480-dfu-macc-fix-min-warning.patch
+drivers-uwb-whcic-needs-dma-mappingh.patch
+git-v9fs.patch
+git-watchdog.patch
+git-watchdog-git-rejects.patch
+watchdog-fix-booke_wdtc-on-mpc85xx-smp-system.patch
+wireless-fix-iwlwifi-unify-init-driver-flow.patch
+wireless-airo-waitbusy-wont-delay-checkpatch-fixes.patch
+git-xtensa.patch
+git-orion-git-rejects.patch
+ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware-ia64-warnings.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+colibri-fix-support-for-dm9000-ethernet-device.patch
+mm-verify-the-page-links-and-memory-model.patch
+mspec-convert-nopfn-to-fault-fix.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+kill-generic_file_direct_io-checkpatch-fixes.patch
+spufs-use-the-new-vm_ops-access-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+rename-warn-to-warning-to-clear-the-namespace-fix.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-paccept-sys_ni.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-signalfd-fix.patch
+flag-parameters-eventfd-fix.patch
+flag-parameters-inotify_init-fix.patch
+flag-parameters-check-magic-constants-alpha-hack.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+reiserfs-convert-j_flush_sem-to-mutex-fix.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+reiser4.patch
+reiser4-semaphore-fix.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
