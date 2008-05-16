@@ -1,153 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: - b43-use-the-bitrev-helpers-rather-than-rolling-a-private-one.patch removed from -mm tree
-Date: Fri, 16 May 2008 15:54:25 -0700
-Message-ID: <200805162254.m4GMsPS8003242@imap1.linux-foundation.org>
+Subject: - hostap-procfs-fix-for-hostap_fwc.patch removed from -mm tree
+Date: Fri, 16 May 2008 15:54:33 -0700
+Message-ID: <200805162254.m4GMsXLZ003254@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57524 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36422 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758250AbYEPWyu (ORCPT
+	by vger.kernel.org with ESMTP id S1758243AbYEPWzB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 May 2008 18:54:50 -0400
+	Fri, 16 May 2008 18:55:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, linville@tuxdriver.com, mb@bu3sch.de, mm-commits@vger.kernel.org
+To: mchouque@free.fr, jkmaline@cc.hut.fi, linville@tuxdriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     b43: use the bitrev helpers rather than rolling a private one
+     hostap: procfs fix for hostap_fw.c
 has been removed from the -mm tree.  Its filename was
-     b43-use-the-bitrev-helpers-rather-than-rolling-a-private-one.patch
+     hostap-procfs-fix-for-hostap_fwc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: b43: use the bitrev helpers rather than rolling a private one
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: hostap: procfs fix for hostap_fw.c
+From: Mathieu Chouquet-Stringer <mchouque@free.fr>
 
-The 4-bit reversal flip_4bit is replaced with the bitrev helper bitrev8
-and a 4-bit shift.  The B43_WARN is moved to the location where a register
-is read from for checking there.  The other caller explicitly passes an
-array index which is guaranteed to be within range and so a B43_WARN is
-not added there.
+I've been toying with hostap_pci and found a bug that is triggered when you
+unload/reload the module.
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Acked-by: Michael Buesch <mb@bu3sch.de>
-Cc: "John W. Linville" <linville@tuxdriver.com>
+If you don't have PRISM2_NO_PROCFS_DEBUG defined (which is the default, as per
+hostap_config.h), the driver creates a "registers" file in /proc used to dump
+PRISM registers (function prism2_init_local_data):
+
+#ifndef PRISM2_NO_PROCFS_DEBUG
+        create_proc_read_entry("registers", 0, local->proc,
+                               prism2_registers_proc_read, local);
+#endif /* PRISM2_NO_PROCFS_DEBUG */
+
+Note that create_proc_read_entry is being called with local->proc which isn't
+defined at the time: "registers" ends up being created as /proc/registers.
+
+When hostap_pci is done initializing the hardware, it calls hostap_hw_ready
+which in turns creates all the files in /proc through hostap_init_proc
+(hostap_proc.c):
+
+        local->proc = NULL;
+
+        if (hostap_proc == NULL) {
+                printk(KERN_WARNING "%s: hostap proc directory not created\n",
+                       local->dev->name);
+                return;
+        }
+
+        local->proc = proc_mkdir(local->ddev->name, hostap_proc);
+
+So far so good, well sort of...  When you unload the module,
+prism2_free_local_data does this:
+
+#ifndef PRISM2_NO_PROCFS_DEBUG
+        if (local->proc != NULL)
+                remove_proc_entry("registers", local->proc);
+#endif /* PRISM2_NO_PROCFS_DEBUG */
+        hostap_remove_proc(local);
+
+Problem is local->proc has now been overwritten by hostap_init_proc meaning
+"registers" isn't removed.  When you reload the module you get an error
+telling you "registers" already exists (and you then get duplicate "registers"
+files in /proc).
+
+So in a nutshell "registers" should be created after calling hostap_init_proc
+(this way it'll be created where it belongs - /proc/net/hostap/%s) making it
+removable at module unload.
+
+Signed-off-by: Mathieu Chouquet-Stringer <mchouque@free.fr>
+Cc: Jouni Malinen <jkmaline@cc.hut.fi>
+Cc: John W. Linville <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/b43/phy.c |   26 +++++---------------------
- 1 file changed, 5 insertions(+), 21 deletions(-)
+ drivers/net/wireless/hostap/hostap_hw.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN drivers/net/wireless/b43/phy.c~b43-use-the-bitrev-helpers-rather-than-rolling-a-private-one drivers/net/wireless/b43/phy.c
---- a/drivers/net/wireless/b43/phy.c~b43-use-the-bitrev-helpers-rather-than-rolling-a-private-one
-+++ a/drivers/net/wireless/b43/phy.c
-@@ -28,6 +28,7 @@
- #include <linux/delay.h>
- #include <linux/io.h>
- #include <linux/types.h>
-+#include <linux/bitrev.h>
+diff -puN drivers/net/wireless/hostap/hostap_hw.c~hostap-procfs-fix-for-hostap_fwc drivers/net/wireless/hostap/hostap_hw.c
+--- a/drivers/net/wireless/hostap/hostap_hw.c~hostap-procfs-fix-for-hostap_fwc
++++ a/drivers/net/wireless/hostap/hostap_hw.c
+@@ -3276,11 +3276,6 @@ while (0)
+ 	}
+ 	printk(KERN_INFO "%s: Registered netdevice %s\n", dev_info, dev->name);
  
- #include "b43.h"
- #include "phy.h"
-@@ -85,23 +86,6 @@ const u8 b43_radio_channel_codes_bg[] = 
- 
- static void b43_phy_initg(struct b43_wldev *dev);
- 
--/* Reverse the bits of a 4bit value.
-- * Example:  1101 is flipped 1011
-- */
--static u16 flip_4bit(u16 value)
--{
--	u16 flipped = 0x0000;
--
--	B43_WARN_ON(value & ~0x000F);
--
--	flipped |= (value & 0x0001) << 3;
--	flipped |= (value & 0x0002) << 1;
--	flipped |= (value & 0x0004) >> 1;
--	flipped |= (value & 0x0008) >> 3;
--
--	return flipped;
--}
--
- static void generate_rfatt_list(struct b43_wldev *dev,
- 				struct b43_rfatt_list *list)
- {
-@@ -2891,13 +2875,13 @@ b43_radio_interference_mitigation_enable
- 		}
- 		radio_stacksave(0x0078);
- 		tmp = (b43_radio_read16(dev, 0x0078) & 0x001E);
--		flipped = flip_4bit(tmp);
-+		B43_WARN_ON(tmp > 15);
-+		flipped = bitrev8(tmp) >> 4;
- 		if (flipped < 10 && flipped >= 8)
- 			flipped = 7;
- 		else if (flipped >= 10)
- 			flipped -= 3;
--		flipped = flip_4bit(flipped);
--		flipped = (flipped << 1) | 0x0020;
-+		flipped = (bitrev8(flipped) >> 3) | 0x0020;
- 		b43_radio_write16(dev, 0x0078, flipped);
- 
- 		b43_calc_nrssi_threshold(dev);
-@@ -3530,7 +3514,7 @@ u16 b43_radio_init2050(struct b43_wldev 
- 	tmp1 >>= 9;
- 
- 	for (i = 0; i < 16; i++) {
--		radio78 = ((flip_4bit(i) << 1) | 0x20);
-+		radio78 = (bitrev8(i) >> 3) | 0x0020;
- 		b43_radio_write16(dev, 0x78, radio78);
- 		udelay(10);
- 		for (j = 0; j < 16; j++) {
-_
-
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
-
-origin.patch
-linux-next.patch
-kgdb-use-put_unaligned_be32-helper.patch
-cifs-remove-global_extern-macro.patch
-media-use-get_unaligned_-helpers.patch
-hid-use-get-put_unaligned_-helpers.patch
-git-input.patch
-ata-remove-fit-macro.patch
-mtd-mtdcharc-silence-sparse-warning.patch
-mtd-mtdcharc-remove-shadowed-variable-warnings.patch
-nfs-replace-remaining-__function__-occurrences.patch
-scsi-replace-remaining-__function__-occurrences.patch
-fusion-replace-remaining-__function__-occurrences.patch
-scsi-replace-__inline-with-inline.patch
-scsi-use-get_unaligned_-helpers.patch
-scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
-scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
-block-use-get_unaligned_-helpers.patch
-usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues.patch
-git-watchdog.patch
-mac80211-michaelc-use-kernel-provided-infrastructure.patch
-mac80211-introduce-struct-michael_mic_ctx-and-static-helpers.patch
-mac80211-add-const-remove-unused-function-make-one-function-static.patch
-mac80211-add-a-struct-to-hold-tkip-context.patch
-mac80211-tkipc-use-struct-tkip_ctx-in-phase-1-key-mixing.patch
-mac80211-tkipc-use-struct-tkip_ctx-in-phase-2-key-mixing.patch
-xfs-use-get_unaligned_-helpers.patch
-xtensa-replace-remaining-__function__-occurences.patch
-fs-ldm-use-get_unaligned_-helpers.patch
-include-use-get-put_unaligned_-helpers.patch
-lzo-use-get-put_unaligned_-helpers.patch
-video-fix-integer-as-null-pointer-warnings.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-isdn-use-the-common-ascii-hex-helpers.patch
-net-use-the-common-ascii-hex-helpers.patch
-kgdb-use-the-common-ascii-hex-helpers.patch
-cris-use-the-common-ascii-hex-helpers.patch
-frv-use-the-common-ascii-hex-helpers.patch
-mips-use-the-common-ascii-hex-helpers.patch
-sh-use-the-common-ascii-hex-helpers.patch
-ppc-use-the-common-ascii-hex-helpers.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-mn10300-use-the-common-ascii-hex-helpers.patch
-
+-#ifndef PRISM2_NO_PROCFS_DEBUG
+-	create_proc_read_entry("registers", 0, local->proc,
+-			       prism2_registers_proc_read, local);
+-#endif /* PRISM2_NO_PROCFS_DEBUG */
