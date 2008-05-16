@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-helper-function-for-relcaim-from-shmem.patch added to -mm tree
-Date: Thu, 15 May 2008 19:53:22 -0700
-Message-ID: <200805160253.m4G2rMbZ023238@imap1.linux-foundation.org>
+Subject: + memcg-handle-swap-cache.patch added to -mm tree
+Date: Thu, 15 May 2008 19:53:21 -0700
+Message-ID: <200805160253.m4G2rLsj023235@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46689 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38048 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751645AbYEPCyU (ORCPT
+	by vger.kernel.org with ESMTP id S1753950AbYEPCyX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 May 2008 22:54:20 -0400
+	Thu, 15 May 2008 22:54:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, ebiederm@xmission.com, hu
 
 
 The patch titled
-     memcg: helper function for relcaim from shmem.
+     memcg: handle swap cache
 has been added to the -mm tree.  Its filename is
-     memcg-helper-function-for-relcaim-from-shmem.patch
+     memcg-handle-swap-cache.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,16 +34,27 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: helper function for relcaim from shmem.
+Subject: memcg: handle swap cache
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-A new call, mem_cgroup_shrink_usage() is added for shmem handling and
-relacing non-standard usage of mem_cgroup_charge/uncharge.
+Now swapcache is not accounted. (because it had some troubles.)
 
-Now, shmem calls mem_cgroup_charge() just for reclaim some pages from
-mem_cgroup.  In general, shmem is used by some process group and not for
-global resource (like file caches).  So, it's reasonable to reclaim pages
-from mem_cgroup where shmem is mainly used.
+This is retrying account swap cache, based on remove-refcnt patch.
+
+ * If a page is swap-cache,  mem_cgroup_uncharge_page() will *not*
+   uncharge a page even if page->mapcount == 0.
+ * If a page is removed from swap-cache, mem_cgroup_uncharge_page()
+   is called.
+ * A new swapcache page is not charged until when it's mapped. By this
+   we can avoid complicated read-ahead troubles.
+
+ A file, memory.stat,"rss" member is changed to "anon/swapcache".
+ (rss is not precise name here...)
+ When all processes in cgroup exits, rss/swapcache counter can have some
+ numbers because of lazy behavior of LRU. So the word "rss" is confusing.
+
+ I can easily imagine a user says "Oh, there may be memory leak..."
+ Precise counting of swapcache will be tried in future (if necessary)
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Balbir Singh <balbir@in.ibm.com>
@@ -57,89 +68,70 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    7 +++++++
- mm/memcontrol.c            |   25 +++++++++++++++++++++++++
- mm/shmem.c                 |    5 ++---
- 3 files changed, 34 insertions(+), 3 deletions(-)
+ mm/memcontrol.c |    9 +++++----
+ mm/migrate.c    |    3 ++-
+ mm/swap_state.c |    1 +
+ 3 files changed, 8 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/memcontrol.h~memcg-helper-function-for-relcaim-from-shmem include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-helper-function-for-relcaim-from-shmem
-+++ a/include/linux/memcontrol.h
-@@ -37,6 +37,8 @@ extern int mem_cgroup_cache_charge(struc
- extern void mem_cgroup_uncharge_page(struct page *page);
- extern void mem_cgroup_uncharge_cache_page(struct page *page);
- extern void mem_cgroup_move_lists(struct page *page, bool active);
-+extern int mem_cgroup_shrink_usage(struct mm_struct *mm, gfp_t gfp_mask);
-+
- extern unsigned long mem_cgroup_isolate_pages(unsigned long nr_to_scan,
- 					struct list_head *dst,
- 					unsigned long *scanned, int order,
-@@ -102,6 +104,11 @@ static inline void mem_cgroup_uncharge_c
- {
- }
- 
-+static inline int mem_cgroup_shrink_usage(struct mm_struct *mm, gfp_t gfp_mask)
-+{
-+	return 0;
-+}
-+
- static inline void mem_cgroup_move_lists(struct page *page, bool active)
- {
- }
-diff -puN mm/memcontrol.c~memcg-helper-function-for-relcaim-from-shmem mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-helper-function-for-relcaim-from-shmem
+diff -puN mm/memcontrol.c~memcg-handle-swap-cache mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-handle-swap-cache
 +++ a/mm/memcontrol.c
-@@ -770,6 +770,31 @@ void mem_cgroup_end_migration(struct pag
+@@ -44,10 +44,10 @@ static struct kmem_cache *page_cgroup_ca
+  */
+ enum mem_cgroup_stat_index {
+ 	/*
+-	 * For MEM_CONTAINER_TYPE_ALL, usage = pagecache + rss.
++	 * For MEM_CONTAINER_TYPE_ALL, usage = pagecache + rss/swapcache.
+ 	 */
+ 	MEM_CGROUP_STAT_CACHE, 	   /* # of pages charged as cache */
+-	MEM_CGROUP_STAT_RSS,	   /* # of pages charged as rss */
++	MEM_CGROUP_STAT_RSS,	   /* # of pages charged as anon/swapcache */
+ 	MEM_CGROUP_STAT_PGPGIN_COUNT,	/* # of pages paged in */
+ 	MEM_CGROUP_STAT_PGPGOUT_COUNT,	/* # of pages paged out */
+ 
+@@ -697,7 +697,8 @@ __mem_cgroup_uncharge_common(struct page
+ 
+ 	if ((ctype == MEM_CGROUP_CHARGE_TYPE_MAPPED)
+ 	    && ((pc->flags & PAGE_CGROUP_FLAG_CACHE)
+-		|| page_mapped(page)))
++		|| page_mapped(page)
++		|| PageSwapCache(page)))
+ 		goto unlock;
+ 
+ 	mz = page_cgroup_zoneinfo(pc);
+@@ -904,7 +905,7 @@ static const struct mem_cgroup_stat_desc
+ 	u64 unit;
+ } mem_cgroup_stat_desc[] = {
+ 	[MEM_CGROUP_STAT_CACHE] = { "cache", PAGE_SIZE, },
+-	[MEM_CGROUP_STAT_RSS] = { "rss", PAGE_SIZE, },
++	[MEM_CGROUP_STAT_RSS] = { "anon/swapcache", PAGE_SIZE, },
+ 	[MEM_CGROUP_STAT_PGPGIN_COUNT] = {"pgpgin", 1, },
+ 	[MEM_CGROUP_STAT_PGPGOUT_COUNT] = {"pgpgout", 1, },
+ };
+diff -puN mm/migrate.c~memcg-handle-swap-cache mm/migrate.c
+--- a/mm/migrate.c~memcg-handle-swap-cache
++++ a/mm/migrate.c
+@@ -360,7 +360,8 @@ static int migrate_page_move_mapping(str
+ 	write_unlock_irq(&mapping->tree_lock);
+ 	if (!PageSwapCache(newpage)) {
+ 		mem_cgroup_uncharge_cache_page(page);
+-	}
++	} else
++		mem_cgroup_uncharge_page(page);
+ 
+ 	return 0;
+ }
+diff -puN mm/swap_state.c~memcg-handle-swap-cache mm/swap_state.c
+--- a/mm/swap_state.c~memcg-handle-swap-cache
++++ a/mm/swap_state.c
+@@ -110,6 +110,7 @@ void __delete_from_swap_cache(struct pag
+ 	total_swapcache_pages--;
+ 	__dec_zone_page_state(page, NR_FILE_PAGES);
+ 	INC_CACHE_INFO(del_total);
++	mem_cgroup_uncharge_page(page);
  }
  
- /*
-+ * A call to try to shrink memory usage under specified resource controller.
-+ * This is typically used for page reclaiming for shmem for reducing side
-+ * effect of page allocation from shmem, which is used by some mem_cgroup.
-+ */
-+int mem_cgroup_shrink_usage(struct mm_struct *mm, gfp_t gfp_mask)
-+{
-+	struct mem_cgroup *mem;
-+	int progress = 0;
-+	int retry = MEM_CGROUP_RECLAIM_RETRIES;
-+
-+	rcu_read_lock();
-+	mem = mem_cgroup_from_task(rcu_dereference(mm->owner));
-+	css_get(&mem->css);
-+	rcu_read_unlock();
-+
-+	do {
-+		progress = try_to_free_mem_cgroup_pages(mem, gfp_mask);
-+	} while (!progress && --retry);
-+
-+	if (!retry)
-+		return -ENOMEM;
-+	return 0;
-+}
-+
-+/*
-  * This routine traverse page_cgroup in given list and drop them all.
-  * *And* this routine doesn't reclaim page itself, just removes page_cgroup.
-  */
-diff -puN mm/shmem.c~memcg-helper-function-for-relcaim-from-shmem mm/shmem.c
---- a/mm/shmem.c~memcg-helper-function-for-relcaim-from-shmem
-+++ a/mm/shmem.c
-@@ -1321,13 +1321,12 @@ repeat:
- 			unlock_page(swappage);
- 			if (error == -ENOMEM) {
- 				/* allow reclaim from this memory cgroup */
--				error = mem_cgroup_cache_charge(swappage,
--					current->mm, gfp & ~__GFP_HIGHMEM);
-+				error = mem_cgroup_shrink_usage(current->mm,
-+					gfp & ~__GFP_HIGHMEM);
- 				if (error) {
- 					page_cache_release(swappage);
- 					goto failed;
- 				}
--				mem_cgroup_uncharge_cache_page(swappage);
- 			}
- 			page_cache_release(swappage);
- 			goto repeat;
+ /**
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
