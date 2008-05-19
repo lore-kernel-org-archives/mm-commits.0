@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kbuild-delay-object-file-renaming-during-module-versioning.patch added to -mm tree
-Date: Mon, 19 May 2008 15:12:35 -0700
-Message-ID: <200805192212.m4JMCZ7G023393@imap1.linux-foundation.org>
+Subject: + seq_file-add-function-to-write-binary-data.patch added to -mm tree
+Date: Mon, 19 May 2008 15:12:37 -0700
+Message-ID: <200805192212.m4JMCbTR023398@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36224 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51931 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765451AbYESWNi (ORCPT
+	by vger.kernel.org with ESMTP id S1765137AbYESWOO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 May 2008 18:13:38 -0400
+	Mon, 19 May 2008 18:14:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: peter.oberparleiter@de.ibm.com, sam@ravnborg.org
+Cc: peter.oberparleiter@de.ibm.com
 
 
 The patch titled
-     kbuild: delay object file renaming during module versioning
+     seq_file: add function to write binary data
 has been added to the -mm tree.  Its filename is
-     kbuild-delay-object-file-renaming-during-module-versioning.patch
+     seq_file-add-function-to-write-binary-data.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,73 +34,62 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kbuild: delay object file renaming during module versioning
+Subject: seq_file: add function to write binary data
 From: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
 
-Change module versioning to alter object file names only after compiling.
-
-Required by the gcov profiling infrastructure: when compiling with option
--fprofile-arcs, gcc stores file names inside object files.  A name change
-before compilation would prevent the gcov tool from finding the
-corresponding source files.
+seq_write() can be used to construct seq_files containing arbitrary data. 
+Required by the gcov-profiling interface to synthesize binary profiling
+data files.
 
 Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/Makefile.build |   25 ++++++++++---------------
- 1 file changed, 10 insertions(+), 15 deletions(-)
+ fs/seq_file.c            |   20 ++++++++++++++++++++
+ include/linux/seq_file.h |    1 +
+ 2 files changed, 21 insertions(+)
 
-diff -puN scripts/Makefile.build~kbuild-delay-object-file-renaming-during-module-versioning scripts/Makefile.build
---- a/scripts/Makefile.build~kbuild-delay-object-file-renaming-during-module-versioning
-+++ a/scripts/Makefile.build
-@@ -165,26 +165,23 @@ $(obj)/%.symtypes : $(src)/%.c FORCE
- # (See cmd_cc_o_c + relevant part of rule_cc_o_c)
+diff -puN fs/seq_file.c~seq_file-add-function-to-write-binary-data fs/seq_file.c
+--- a/fs/seq_file.c~seq_file-add-function-to-write-binary-data
++++ a/fs/seq_file.c
+@@ -554,6 +554,26 @@ int seq_puts(struct seq_file *m, const c
+ }
+ EXPORT_SYMBOL(seq_puts);
  
- quiet_cmd_cc_o_c = CC $(quiet_modtag)  $@
--
--ifndef CONFIG_MODVERSIONS
- cmd_cc_o_c = $(CC) $(c_flags) -c -o $@ $<
++/**
++ * seq_write - write arbitrary data to buffer
++ * @seq: seq_file identifying the buffer to which data should be written
++ * @data: data address
++ * @len: number of bytes
++ *
++ * Return 0 on success, non-zero otherwise.
++ */
++int seq_write(struct seq_file *seq, const void *data, size_t len)
++{
++	if (seq->count + len < seq->size) {
++		memcpy(seq->buf + seq->count, data, len);
++		seq->count += len;
++		return 0;
++	}
++	seq->count = seq->size;
++	return -1;
++}
++EXPORT_SYMBOL(seq_write);
++
+ struct list_head *seq_list_start(struct list_head *head, loff_t pos)
+ {
+ 	struct list_head *lh;
+diff -puN include/linux/seq_file.h~seq_file-add-function-to-write-binary-data include/linux/seq_file.h
+--- a/include/linux/seq_file.h~seq_file-add-function-to-write-binary-data
++++ a/include/linux/seq_file.h
+@@ -39,6 +39,7 @@ int seq_release(struct inode *, struct f
+ int seq_escape(struct seq_file *, const char *, const char *);
+ int seq_putc(struct seq_file *m, char c);
+ int seq_puts(struct seq_file *m, const char *s);
++int seq_write(struct seq_file *seq, const void *data, size_t len);
  
--else
--# When module versioning is enabled the following steps are executed:
--# o compile a .tmp_<file>.o from <file>.c
--# o if .tmp_<file>.o doesn't contain a __ksymtab version, i.e. does
--#   not export symbols, we just rename .tmp_<file>.o to <file>.o and
--#   are done.
--# o otherwise, we calculate symbol versions using the good old
--#   genksyms on the preprocessed source and postprocess them in a way
--#   that they are usable as a linker script
-+ifdef CONFIG_MODVERSIONS
-+# When module versioning is enabled the following steps are executed
-+# in addition to compiling:
-+# o if <file>.o doesn't contain a __ksymtab version, i.e. does
-+#   not export symbols, we are done
-+# o otherwise, we rename <file>.o into .tmp_<file.o> and calculate symbol
-+#   versions using the good old genksyms on the preprocessed source and
-+#   postprocess them in a way that they are usable as a linker script
- # o generate <file>.o from .tmp_<file>.o using the linker to
- #   replace the unresolved symbols __crc_exported_symbol with
- #   the actual value of the checksum generated by genksyms
- 
--cmd_cc_o_c = $(CC) $(c_flags) -c -o $(@D)/.tmp_$(@F) $<
- cmd_modversions =							\
--	if $(OBJDUMP) -h $(@D)/.tmp_$(@F) | grep -q __ksymtab; then	\
-+	if $(OBJDUMP) -h $@ | grep -q __ksymtab; then			\
-+		mv -f $@ $(@D)/.tmp_$(@F);				\
- 		$(CPP) -D__GENKSYMS__ $(c_flags) $<			\
- 		| $(GENKSYMS) $(if $(KBUILD_SYMTYPES),			\
- 			      -T $(@D)/$(@F:.o=.symtypes)) -a $(ARCH)	\
-@@ -193,8 +190,6 @@ cmd_modversions =							\
- 		$(LD) $(LDFLAGS) -r -o $@ $(@D)/.tmp_$(@F) 		\
- 			-T $(@D)/.tmp_$(@F:.o=.ver);			\
- 		rm -f $(@D)/.tmp_$(@F) $(@D)/.tmp_$(@F:.o=.ver);	\
--	else								\
--		mv -f $(@D)/.tmp_$(@F) $@;				\
- 	fi;
- endif
- 
+ int seq_printf(struct seq_file *, const char *, ...)
+ 	__attribute__ ((format (printf,2,3)));
 _
 
 Patches currently in -mm which might be from peter.oberparleiter@de.ibm.com are
