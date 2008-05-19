@@ -1,84 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - power_supply-add-charge_counter-property-and-olpc_battery-support-for-it-fix.patch removed from -mm tree
-Date: Mon, 19 May 2008 02:18:34 -0700
-Message-ID: <200805190918.m4J9IYih025355@imap1.linux-foundation.org>
+Subject: - fix-parenthesis-in-include-asm-arm-arch-omap-controlh.patch removed from -mm tree
+Date: Mon, 19 May 2008 02:18:37 -0700
+Message-ID: <200805190918.m4J9IbMj025358@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45479 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58848 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753645AbYESJTZ (ORCPT
+	by vger.kernel.org with ESMTP id S1753696AbYESJTk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 May 2008 05:19:25 -0400
+	Mon, 19 May 2008 05:19:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dilinger@queued.net, cbouatmailru@gmail.com, dilinger@debian.org, richard@laptop.org, mm-commits@vger.kernel.org
+To: m.kozlowski@tuxland.pl, paul@pwsan.com, rmk@arm.linux.org.uk, tony@atomide.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     power_supply: fix up CHARGE_COUNTER output to be more precise
+     fix parenthesis in include/asm-arm/arch-omap/control.h
 has been removed from the -mm tree.  Its filename was
-     power_supply-add-charge_counter-property-and-olpc_battery-support-=
-for-it-fix.patch
+     fix-parenthesis-in-include-asm-arm-arch-omap-controlh.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: power_supply: fix up CHARGE_COUNTER output to be more precise
-=46rom: Andres Salomon <dilinger@queued.net>
+Subject: fix parenthesis in include/asm-arm/arch-omap/control.h
+From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
-As Richard Smith pointed out, ACR * 6250 / 15 provides for less
-precision loss than ACR * 4167 / 10, _and_ it doesn't overflow.  Switch
-to using that equation for CHARGE_COUNTER.
+Parenthesis fix in include/asm-arm/arch-omap/control.h
 
-Signed-off-by: Andres Salomon <dilinger@debian.org>
-Cc: "Richard A. Smith" <richard@laptop.org>
-Cc: Anton Vorontsov <cbouatmailru@gmail.com>
+Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/power/olpc_battery.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/asm-arm/arch-omap/control.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/power/olpc_battery.c~power_supply-add-charge_counter-=
-property-and-olpc_battery-support-for-it-fix drivers/power/olpc_battery=
-=2Ec
---- a/drivers/power/olpc_battery.c~power_supply-add-charge_counter-prop=
-erty-and-olpc_battery-support-for-it-fix
-+++ a/drivers/power/olpc_battery.c
-@@ -19,7 +19,7 @@
-=20
- #define EC_BAT_VOLTAGE	0x10	/* uint16_t,	*9.76/32,    mV   */
- #define EC_BAT_CURRENT	0x11	/* int16_t,	*15.625/120, mA   */
--#define EC_BAT_ACR	0x12	/* int16_t,	*416.7,      =C2=B5Ah  */
-+#define EC_BAT_ACR	0x12	/* int16_t,	*6250/15,    =C2=B5Ah  */
- #define EC_BAT_TEMP	0x13	/* uint16_t,	*100/256,   =C2=B0C  */
- #define EC_AMB_TEMP	0x14	/* uint16_t,	*100/256,   =C2=B0C  */
- #define EC_BAT_STATUS	0x15	/* uint8_t,	bitmask */
-@@ -295,7 +295,7 @@ static int olpc_bat_get_property(struct=20
- 			return ret;
-=20
- 		ec_word =3D be16_to_cpu(ec_word);
--		val->intval =3D ec_word * 4167 / 10;
-+		val->intval =3D ec_word * 6250 / 15;
- 		break;
- 	case POWER_SUPPLY_PROP_SERIAL_NUMBER:
- 		ret =3D olpc_ec_cmd(EC_BAT_SERIAL, NULL, 0, (void *)&ser_buf, 8);
+diff -puN include/asm-arm/arch-omap/control.h~fix-parenthesis-in-include-asm-arm-arch-omap-controlh include/asm-arm/arch-omap/control.h
+--- a/include/asm-arm/arch-omap/control.h~fix-parenthesis-in-include-asm-arm-arch-omap-controlh
++++ a/include/asm-arm/arch-omap/control.h
+@@ -80,7 +80,7 @@
+ #define OMAP24XX_CONTROL_SEC_TAP	(OMAP2_CONTROL_GENERAL + 0x0064)
+ #define OMAP24XX_CONTROL_OCM_PUB_RAM_ADD	(OMAP2_CONTROL_GENERAL + 0x006c)
+ #define OMAP24XX_CONTROL_EXT_SEC_RAM_START_ADD	(OMAP2_CONTROL_GENERAL + 0x0070)
+-#define OMAP24XX_CONTROL_EXT_SEC_RAM_STOP_ADD	(OMAP2_CONTROL_GENERAL + 0x0074
++#define OMAP24XX_CONTROL_EXT_SEC_RAM_STOP_ADD	(OMAP2_CONTROL_GENERAL + 0x0074)
+ #define OMAP24XX_CONTROL_SEC_STATUS		(OMAP2_CONTROL_GENERAL + 0x0080)
+ #define OMAP24XX_CONTROL_SEC_ERR_STATUS		(OMAP2_CONTROL_GENERAL + 0x0084)
+ #define OMAP24XX_CONTROL_STATUS			(OMAP2_CONTROL_GENERAL + 0x0088)
 _
 
-Patches currently in -mm which might be from dilinger@queued.net are
+Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
 
-git-input.patch
-git-battery.patch
+linux-next.patch
+fix-parenthesis-in-include-asm-mips-gich.patch
+fix-parenthesis-in-include-asm-mips-mach-au1x00-au1000h.patch
+reiser4.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
