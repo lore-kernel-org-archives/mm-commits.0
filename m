@@ -1,60 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: - x86-fix-crash-on-cpu-hotplug-on-pat-incapable-machines.patch removed from -mm tree
-Date: Mon, 19 May 2008 02:18:45 -0700
-Message-ID: <200805190918.m4J9IjPK025364@imap1.linux-foundation.org>
+Subject: - power_supply-add-charge_counter-property-and-olpc_battery-support-for-it-fix.patch removed from -mm tree
+Date: Mon, 19 May 2008 02:18:34 -0700
+Message-ID: <200805190918.m4J9IYih025355@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58292 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45479 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753587AbYESJTQ (ORCPT
+	by vger.kernel.org with ESMTP id S1753645AbYESJTZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 May 2008 05:19:16 -0400
+	Mon, 19 May 2008 05:19:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: avi@qumranet.com, mm-commits@vger.kernel.org
+To: dilinger@queued.net, cbouatmailru@gmail.com, dilinger@debian.org, richard@laptop.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86: fix crash on cpu hotplug on pat-incapable machines
+     power_supply: fix up CHARGE_COUNTER output to be more precise
 has been removed from the -mm tree.  Its filename was
-     x86-fix-crash-on-cpu-hotplug-on-pat-incapable-machines.patch
+     power_supply-add-charge_counter-property-and-olpc_battery-support-=
+for-it-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: x86: fix crash on cpu hotplug on pat-incapable machines
-From: Avi Kivity <avi@qumranet.com>
+Subject: power_supply: fix up CHARGE_COUNTER output to be more precise
+=46rom: Andres Salomon <dilinger@queued.net>
 
-pat_disable() is __init, which means it goes away after booting is
-complete.  Unfortunately it is used by the hotplug code if the machine is
-not pat-capable, causing a crash.
+As Richard Smith pointed out, ACR * 6250 / 15 provides for less
+precision loss than ACR * 4167 / 10, _and_ it doesn't overflow.  Switch
+to using that equation for CHARGE_COUNTER.
 
-Fix by marking pat_disable() as __cpuinit.
-
-Signed-off-by: Avi Kivity <avi@qumranet.com>
+Signed-off-by: Andres Salomon <dilinger@debian.org>
+Cc: "Richard A. Smith" <richard@laptop.org>
+Cc: Anton Vorontsov <cbouatmailru@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/pat.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/power/olpc_battery.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/mm/pat.c~x86-fix-crash-on-cpu-hotplug-on-pat-incapable-machines arch/x86/mm/pat.c
---- a/arch/x86/mm/pat.c~x86-fix-crash-on-cpu-hotplug-on-pat-incapable-machines
-+++ a/arch/x86/mm/pat.c
-@@ -28,7 +28,7 @@
- #ifdef CONFIG_X86_PAT
- int __read_mostly pat_wc_enabled = 1;
- 
--void __init pat_disable(char *reason)
-+void __cpuinit pat_disable(char *reason)
- {
- 	pat_wc_enabled = 0;
- 	printk(KERN_INFO "%s\n", reason);
+diff -puN drivers/power/olpc_battery.c~power_supply-add-charge_counter-=
+property-and-olpc_battery-support-for-it-fix drivers/power/olpc_battery=
+=2Ec
+--- a/drivers/power/olpc_battery.c~power_supply-add-charge_counter-prop=
+erty-and-olpc_battery-support-for-it-fix
++++ a/drivers/power/olpc_battery.c
+@@ -19,7 +19,7 @@
+=20
+ #define EC_BAT_VOLTAGE	0x10	/* uint16_t,	*9.76/32,    mV   */
+ #define EC_BAT_CURRENT	0x11	/* int16_t,	*15.625/120, mA   */
+-#define EC_BAT_ACR	0x12	/* int16_t,	*416.7,      =C2=B5Ah  */
++#define EC_BAT_ACR	0x12	/* int16_t,	*6250/15,    =C2=B5Ah  */
+ #define EC_BAT_TEMP	0x13	/* uint16_t,	*100/256,   =C2=B0C  */
+ #define EC_AMB_TEMP	0x14	/* uint16_t,	*100/256,   =C2=B0C  */
+ #define EC_BAT_STATUS	0x15	/* uint8_t,	bitmask */
+@@ -295,7 +295,7 @@ static int olpc_bat_get_property(struct=20
+ 			return ret;
+=20
+ 		ec_word =3D be16_to_cpu(ec_word);
+-		val->intval =3D ec_word * 4167 / 10;
++		val->intval =3D ec_word * 6250 / 15;
+ 		break;
+ 	case POWER_SUPPLY_PROP_SERIAL_NUMBER:
+ 		ret =3D olpc_ec_cmd(EC_BAT_SERIAL, NULL, 0, (void *)&ser_buf, 8);
 _
 
-Patches currently in -mm which might be from avi@qumranet.com are
+Patches currently in -mm which might be from dilinger@queued.net are
 
-linux-next.patch
+git-input.patch
+git-battery.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
