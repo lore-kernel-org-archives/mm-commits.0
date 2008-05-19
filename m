@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + update-cell-and-spufs-maintainers-entry.patch added to -mm tree
-Date: Mon, 19 May 2008 14:40:02 -0700
-Message-ID: <200805192140.m4JLe2sj021851@imap1.linux-foundation.org>
+Subject: + x86-fix-mprotects-nx-handling-on-pae.patch added to -mm tree
+Date: Mon, 19 May 2008 14:43:17 -0700
+Message-ID: <200805192143.m4JLhHBN022009@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46491 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36009 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760360AbYESVkn (ORCPT
+	by vger.kernel.org with ESMTP id S1757664AbYESVnv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 May 2008 17:40:43 -0400
+	Mon, 19 May 2008 17:43:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: arnd@arndb.de, jk@ozlabs.org
+Cc: hugh@veritas.com
 
 
 The patch titled
-     Update Cell and spufs MAINTAINERS entry
+     x86: fix mprotect's NX handling on PAE
 has been added to the -mm tree.  Its filename is
-     update-cell-and-spufs-maintainers-entry.patch
+     x86-fix-mprotects-nx-handling-on-pae.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,77 +34,66 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Update Cell and spufs MAINTAINERS entry
-From: Arnd Bergmann <arnd@arndb.de>
+Subject: x86: fix mprotect's NX handling on PAE
+From: Hugh Dickins <hugh@veritas.com>
 
-The MAINTAINERS file entry for the cell platform is outdated, even the
-name of the platform changed since the early days when it was initially
-submitted.  The SPU file system is now maintained by Jeremy Kerr.
+2.6.26-rc3 with CONFIG_X86_PAE may leave the NX bit set when PROT_EXEC
+is intending to clear it, causing irqbalance and others to segfault,
+and X startup to fail.
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Jeremy Kerr <jk@ozlabs.org>
+This comes from an assumption in
+1c12c4cf9411eb130b245fa8d0fbbaf989477c7b mprotect: prevent alteration
+of the PAT bits, that PTE_MASK is what it's supposed to be: whereas
+it's been wrong forever with PAE, staying 32-bit where 64-bit is
+needed.
+
+Jeremy Fitzhardinge already has patches to fix that in Ingo's tree; but
+if they're not considered 2.6.26 material, or people want a quick
+two-liner to get working, here's a shorter hack to fix up pte_modify.
+
+I apologize to those we've broken, and to Venki Pallipadi: it was I who
+persuaded him to change his working patch to make that false
+assumption.
+
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   23 ++++++++++++++++-------
- 1 file changed, 16 insertions(+), 7 deletions(-)
+ include/asm-x86/pgtable.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN MAINTAINERS~update-cell-and-spufs-maintainers-entry MAINTAINERS
---- a/MAINTAINERS~update-cell-and-spufs-maintainers-entry
-+++ a/MAINTAINERS
-@@ -982,13 +982,6 @@ L:	bonding-devel@lists.sourceforge.net
- W:	http://sourceforge.net/projects/bonding/
- S:	Supported
+diff -puN include/asm-x86/pgtable.h~x86-fix-mprotects-nx-handling-on-pae include/asm-x86/pgtable.h
+--- a/include/asm-x86/pgtable.h~x86-fix-mprotects-nx-handling-on-pae
++++ a/include/asm-x86/pgtable.h
+@@ -57,8 +57,8 @@
+ #define _KERNPG_TABLE	(_PAGE_PRESENT | _PAGE_RW | _PAGE_ACCESSED |	\
+ 			 _PAGE_DIRTY)
  
--BROADBAND PROCESSOR ARCHITECTURE
--P:	Arnd Bergmann
--M:	arnd@arndb.de
--L:	linuxppc-dev@ozlabs.org
--W:	http://www.penguinppc.org/ppc64/
--S:	Supported
--
- BROADCOM B44 10/100 ETHERNET DRIVER
- P:	Gary Zambrano
- M:	zambrano@broadcom.com
-@@ -1052,6 +1045,14 @@ L:	linux-kernel@vger.kernel.org
- L:	discuss@x86-64.org
- S:	Maintained
+-#define _PAGE_CHG_MASK	(PTE_MASK | _PAGE_PCD | _PAGE_PWT |		\
+-			 _PAGE_ACCESSED | _PAGE_DIRTY)
++#define _PAGE_CHG_MASK	(((pteval_t) PTE_MASK & ~_PAGE_NX) | 		\
++			 _PAGE_PCD | _PAGE_PWT | _PAGE_ACCESSED | _PAGE_DIRTY)
  
-+CELL BROADBAND ENGINE ARCHITECTURE
-+P:	Arnd Bergmann
-+M:	arnd@arndb.de
-+L:	linuxppc-dev@ozlabs.org
-+L:	cbe-oss-dev@ozlabs.org
-+W:	http://www.ibm.com/developerworks/power/cell/
-+S:	Supported
-+
- CFAG12864B LCD DRIVER
- P:	Miguel Ojeda Sandonis
- M:	maxextreme@gmail.com
-@@ -3774,6 +3775,14 @@ M:	dbrownell@users.sourceforge.net
- L:	spi-devel-general@lists.sourceforge.net
- S:	Maintained
- 
-+SPU FILE SYSTEM
-+P:	Jeremy Kerr
-+M:	jk@ozlabs.org
-+L:	linuxppc-dev@ozlabs.org
-+L:	cbe-oss-dev@ozlabs.org
-+W:	http://www.ibm.com/developerworks/power/cell/
-+S:	Supported
-+
- STABLE BRANCH:
- P:	Greg Kroah-Hartman
- M:	greg@kroah.com
+ #define _PAGE_CACHE_MASK	(_PAGE_PCD | _PAGE_PWT)
+ #define _PAGE_CACHE_WB		(0)
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from hugh@veritas.com are
 
-update-cell-and-spufs-maintainers-entry.patch
+git-unionfs.patch
+x86-fix-mprotects-nx-handling-on-pae.patch
 access_process_vm-device-memory-infrastructure.patch
 use-generic_access_phys-for-dev-mem-mappings.patch
 use-generic_access_phys-for-pci-mmap-on-x86.patch
 powerpc-ioremap_prot.patch
 spufs-use-the-new-vm_ops-access.patch
 spufs-use-the-new-vm_ops-access-fix.patch
+mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co.patch
+memcg-better-migration-handling.patch
+memcg-remove-refcnt-from-page_cgroup.patch
+memcg-handle-swap-cache.patch
+memcg-helper-function-for-relcaim-from-shmem.patch
+memcg-add-hints-for-branch.patch
+memcg-remove-a-redundant-check.patch
+prio_tree-debugging-patch.patch
 
