@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + md-allow-parallel-resync-of-md-devices.patch added to -mm tree
-Date: Sun, 18 May 2008 18:27:41 -0700
-Message-ID: <200805190127.m4J1RfGn009573@imap1.linux-foundation.org>
+Subject: + md-restart-recovery-cleanly-after-device-failure.patch added to -mm tree
+Date: Sun, 18 May 2008 18:27:44 -0700
+Message-ID: <200805190127.m4J1RiZo009580@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43170 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53383 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752459AbYESB1u (ORCPT
+	by vger.kernel.org with ESMTP id S1752233AbYESB1u (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Sun, 18 May 2008 21:27:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bs@q-leap.de, neilb@suse.de
+Cc: neilb@suse.de, ivan@kasenna.com
 
 
 The patch titled
-     md: allow parallel resync of md-devices.
+     md: restart recovery cleanly after device failure.
 has been added to the -mm tree.  Its filename is
-     md-allow-parallel-resync-of-md-devices.patch
+     md-restart-recovery-cleanly-after-device-failure.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,119 +34,295 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: md: allow parallel resync of md-devices.
-From: Bernd Schubert <bs@q-leap.de>
+Subject: md: restart recovery cleanly after device failure.
+From: NeilBrown <neilb@suse.de>
 
-In some configurations, a raid6 resync can be limited by CPU speed
-(Calculating P and Q and moving data) rather than by device speed.  In
-these cases there is nothing to be gained byt serialising resync of arrays
-that share a device, and doing the resync in parallel can provide benefit.
- So add a sysfs tunable to flag an array as being allowed to resync in
-parallel with other arrays that use (a different part of) the same device.
+When we get any IO error during a recovery (rebuilding a spare), we abort
+the recovery and restart it.
 
-Signed-off-by: Bernd Schubert <bs@q-leap.de>
+For RAID6 (and multi-drive RAID1) it may not be best to restart at the
+beginning: when multiple failures can be tolerated, the recovery may be
+able to continue and re-doing all that has already been done doesn't make
+sense.
+
+We already have the infrastructure to record where a recovery is up to
+and restart from there, but it is not being used properly.
+This is because:
+  - We sometimes abort with MD_RECOVERY_ERR rather than just MD_RECOVERY_INTR,
+    which causes the recovery not be be checkpointed.
+  - We remove spares and then re-added them which loses important state
+    information.
+
+The distinction between MD_RECOVERY_ERR and MD_RECOVERY_INTR really isn't
+needed.  If there is an error, the relevant drive will be marked as
+Faulty, and that is enough to ensure correct handling of the error.  So we
+first remove MD_RECOVERY_ERR, changing some of the uses of it to
+MD_RECOVERY_INTR.
+
+Then we cause the attempt to remove a non-faulty device from an array to
+fail (unless recovery is impossible as the array is too degraded).  Then
+when remove_and_add_spares attempts to remove the devices on which
+recovery can continue, it will fail, they will remain in place, and
+recovery will continue on them as desired.
+
+Issue:  If we are halfway through rebuilding a spare and another drive
+fails, and a new spare is immediately available,  do we want to:
+ 1/ complete the current rebuild, then go back and rebuild the new spare or
+ 2/ restart the rebuild from the start and rebuild both devices in
+    parallel.
+
+Both options can be argued for.  The code currently takes option 2 as
+  a/ this requires least code change
+  b/ this results in a minimally-degraded array in minimal time.
+
+Cc: "Eivind Sarto" <ivan@kasenna.com>
 Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/md.c           |   40 ++++++++++++++++++++++++++++++++----
- include/linux/raid/md_k.h |    3 ++
- 2 files changed, 39 insertions(+), 4 deletions(-)
+ drivers/md/md.c           |   22 +++++++++++-----------
+ drivers/md/multipath.c    |    3 ++-
+ drivers/md/raid1.c        |   10 +++++++++-
+ drivers/md/raid10.c       |   14 ++++++++++++--
+ drivers/md/raid5.c        |   10 +++++++++-
+ include/linux/raid/md_k.h |    4 +---
+ 6 files changed, 44 insertions(+), 19 deletions(-)
 
-diff -puN drivers/md/md.c~md-allow-parallel-resync-of-md-devices drivers/md/md.c
---- a/drivers/md/md.c~md-allow-parallel-resync-of-md-devices
+diff -puN drivers/md/md.c~md-restart-recovery-cleanly-after-device-failure drivers/md/md.c
+--- a/drivers/md/md.c~md-restart-recovery-cleanly-after-device-failure
 +++ a/drivers/md/md.c
-@@ -74,6 +74,8 @@ static DEFINE_SPINLOCK(pers_lock);
+@@ -5434,7 +5434,7 @@ void md_done_sync(mddev_t *mddev, int bl
+ 	atomic_sub(blocks, &mddev->recovery_active);
+ 	wake_up(&mddev->recovery_wait);
+ 	if (!ok) {
+-		set_bit(MD_RECOVERY_ERR, &mddev->recovery);
++		set_bit(MD_RECOVERY_INTR, &mddev->recovery);
+ 		md_wakeup_thread(mddev->thread);
+ 		// stop recovery, signal do_sync ....
+ 	}
+@@ -5690,7 +5690,7 @@ void md_do_sync(mddev_t *mddev)
+ 		sectors = mddev->pers->sync_request(mddev, j, &skipped,
+ 						  currspeed < speed_min(mddev));
+ 		if (sectors == 0) {
+-			set_bit(MD_RECOVERY_ERR, &mddev->recovery);
++			set_bit(MD_RECOVERY_INTR, &mddev->recovery);
+ 			goto out;
+ 		}
  
- static void md_print_devices(void);
+@@ -5713,8 +5713,7 @@ void md_do_sync(mddev_t *mddev)
  
-+static DECLARE_WAIT_QUEUE_HEAD(resync_wait);
-+
- #define MD_BUG(x...) { printk("md: bug in file %s, line %d\n", __FILE__, __LINE__); md_print_devices(); }
+ 		last_check = io_sectors;
  
- /*
-@@ -3013,6 +3015,36 @@ degraded_show(mddev_t *mddev, char *page
- static struct md_sysfs_entry md_degraded = __ATTR_RO(degraded);
+-		if (test_bit(MD_RECOVERY_INTR, &mddev->recovery) ||
+-		    test_bit(MD_RECOVERY_ERR, &mddev->recovery))
++		if (test_bit(MD_RECOVERY_INTR, &mddev->recovery))
+ 			break;
  
- static ssize_t
-+sync_force_parallel_show(mddev_t *mddev, char *page)
-+{
-+	return sprintf(page, "%d\n", mddev->parallel_resync);
-+}
-+
-+static ssize_t
-+sync_force_parallel_store(mddev_t *mddev, const char *buf, size_t len)
-+{
-+	long n;
-+
-+	if (strict_strtol(buf, 10, &n))
-+		return -EINVAL;
-+
-+	if (n != 0 && n != 1)
-+		return -EINVAL;
-+
-+	mddev->parallel_resync = n;
-+
-+	if (mddev->sync_thread)
-+		wake_up(&resync_wait);
-+
-+	return len;
-+}
-+
-+/* force parallel resync, even with shared block devices */
-+static struct md_sysfs_entry md_sync_force_parallel =
-+__ATTR(sync_force_parallel, S_IRUGO|S_IWUSR,
-+       sync_force_parallel_show, sync_force_parallel_store);
-+
-+static ssize_t
- sync_speed_show(mddev_t *mddev, char *page)
- {
- 	unsigned long resync, dt, db;
-@@ -3187,6 +3219,7 @@ static struct attribute *md_redundancy_a
- 	&md_sync_min.attr,
- 	&md_sync_max.attr,
- 	&md_sync_speed.attr,
-+	&md_sync_force_parallel.attr,
- 	&md_sync_completed.attr,
- 	&md_max_sync.attr,
- 	&md_suspend_lo.attr,
-@@ -5487,8 +5520,6 @@ void md_allow_write(mddev_t *mddev)
+ 	repeat:
+@@ -5768,8 +5767,7 @@ void md_do_sync(mddev_t *mddev)
+ 	/* tell personality that we are finished */
+ 	mddev->pers->sync_request(mddev, max_sectors, &skipped, 1);
+ 
+-	if (!test_bit(MD_RECOVERY_ERR, &mddev->recovery) &&
+-	    !test_bit(MD_RECOVERY_CHECK, &mddev->recovery) &&
++	if (!test_bit(MD_RECOVERY_CHECK, &mddev->recovery) &&
+ 	    mddev->curr_resync > 2) {
+ 		if (test_bit(MD_RECOVERY_SYNC, &mddev->recovery)) {
+ 			if (test_bit(MD_RECOVERY_INTR, &mddev->recovery)) {
+@@ -5838,7 +5836,10 @@ static int remove_and_add_spares(mddev_t
+ 		}
+ 
+ 	if (mddev->degraded) {
+-		rdev_for_each(rdev, rtmp, mddev)
++		rdev_for_each(rdev, rtmp, mddev) {
++			if (rdev->raid_disk >= 0 &&
++			    !test_bit(In_sync, &rdev->flags))
++				spares++;
+ 			if (rdev->raid_disk < 0
+ 			    && !test_bit(Faulty, &rdev->flags)) {
+ 				rdev->recovery_offset = 0;
+@@ -5856,6 +5857,7 @@ static int remove_and_add_spares(mddev_t
+ 				} else
+ 					break;
+ 			}
++		}
+ 	}
+ 	return spares;
  }
- EXPORT_SYMBOL_GPL(md_allow_write);
+@@ -5869,7 +5871,7 @@ static int remove_and_add_spares(mddev_t
+  * to do that as needed.
+  * When it is determined that resync is needed, we set MD_RECOVERY_RUNNING in
+  * "->recovery" and create a thread at ->sync_thread.
+- * When the thread finishes it sets MD_RECOVERY_DONE (and might set MD_RECOVERY_ERR)
++ * When the thread finishes it sets MD_RECOVERY_DONE
+  * and wakeups up this thread which will reap the thread and finish up.
+  * This thread also removes any faulty devices (with nr_pending == 0).
+  *
+@@ -5944,8 +5946,7 @@ void md_check_recovery(mddev_t *mddev)
+ 			/* resync has finished, collect result */
+ 			md_unregister_thread(mddev->sync_thread);
+ 			mddev->sync_thread = NULL;
+-			if (!test_bit(MD_RECOVERY_ERR, &mddev->recovery) &&
+-			    !test_bit(MD_RECOVERY_INTR, &mddev->recovery)) {
++			if (!test_bit(MD_RECOVERY_INTR, &mddev->recovery)) {
+ 				/* success...*/
+ 				/* activate any spares */
+ 				mddev->pers->spare_active(mddev);
+@@ -5969,7 +5970,6 @@ void md_check_recovery(mddev_t *mddev)
+ 		 * might be left set
+ 		 */
+ 		clear_bit(MD_RECOVERY_NEEDED, &mddev->recovery);
+-		clear_bit(MD_RECOVERY_ERR, &mddev->recovery);
+ 		clear_bit(MD_RECOVERY_INTR, &mddev->recovery);
+ 		clear_bit(MD_RECOVERY_DONE, &mddev->recovery);
  
--static DECLARE_WAIT_QUEUE_HEAD(resync_wait);
--
- #define SYNC_MARKS	10
- #define	SYNC_MARK_STEP	(3*HZ)
- void md_do_sync(mddev_t *mddev)
-@@ -5552,8 +5583,9 @@ void md_do_sync(mddev_t *mddev)
- 		for_each_mddev(mddev2, tmp) {
- 			if (mddev2 == mddev)
- 				continue;
--			if (mddev2->curr_resync && 
--			    match_mddev_units(mddev,mddev2)) {
-+			if (!mddev->parallel_resync
-+			&&  mddev2->curr_resync
-+			&&  match_mddev_units(mddev, mddev2)) {
- 				DEFINE_WAIT(wq);
- 				if (mddev < mddev2 && mddev->curr_resync == 2) {
- 					/* arbitrarily yield */
-diff -puN include/linux/raid/md_k.h~md-allow-parallel-resync-of-md-devices include/linux/raid/md_k.h
---- a/include/linux/raid/md_k.h~md-allow-parallel-resync-of-md-devices
-+++ a/include/linux/raid/md_k.h
-@@ -180,6 +180,9 @@ struct mddev_s
- 	int				sync_speed_min;
- 	int				sync_speed_max;
+diff -puN drivers/md/multipath.c~md-restart-recovery-cleanly-after-device-failure drivers/md/multipath.c
+--- a/drivers/md/multipath.c~md-restart-recovery-cleanly-after-device-failure
++++ a/drivers/md/multipath.c
+@@ -327,7 +327,8 @@ static int multipath_remove_disk(mddev_t
+ 	if (rdev) {
+ 		if (test_bit(In_sync, &rdev->flags) ||
+ 		    atomic_read(&rdev->nr_pending)) {
+-			printk(KERN_ERR "hot-remove-disk, slot %d is identified"				" but is still operational!\n", number);
++			printk(KERN_ERR "hot-remove-disk, slot %d is identified"
++			       " but is still operational!\n", number);
+ 			err = -EBUSY;
+ 			goto abort;
+ 		}
+diff -puN drivers/md/raid1.c~md-restart-recovery-cleanly-after-device-failure drivers/md/raid1.c
+--- a/drivers/md/raid1.c~md-restart-recovery-cleanly-after-device-failure
++++ a/drivers/md/raid1.c
+@@ -1027,7 +1027,7 @@ static void error(mddev_t *mddev, mdk_rd
+ 		/*
+ 		 * if recovery is running, make sure it aborts.
+ 		 */
+-		set_bit(MD_RECOVERY_ERR, &mddev->recovery);
++		set_bit(MD_RECOVERY_INTR, &mddev->recovery);
+ 	} else
+ 		set_bit(Faulty, &rdev->flags);
+ 	set_bit(MD_CHANGE_DEVS, &mddev->flags);
+@@ -1148,6 +1148,14 @@ static int raid1_remove_disk(mddev_t *md
+ 			err = -EBUSY;
+ 			goto abort;
+ 		}
++		/* Only remove non-faulty devices is recovery
++		 * is not possible.
++		 */
++		if (!test_bit(Faulty, &rdev->flags) &&
++		    mddev->degraded < conf->raid_disks) {
++			err = -EBUSY;
++			goto abort;
++		}
+ 		p->rdev = NULL;
+ 		synchronize_rcu();
+ 		if (atomic_read(&rdev->nr_pending)) {
+diff -puN drivers/md/raid10.c~md-restart-recovery-cleanly-after-device-failure drivers/md/raid10.c
+--- a/drivers/md/raid10.c~md-restart-recovery-cleanly-after-device-failure
++++ a/drivers/md/raid10.c
+@@ -1020,7 +1020,7 @@ static void error(mddev_t *mddev, mdk_rd
+ 		/*
+ 		 * if recovery is running, make sure it aborts.
+ 		 */
+-		set_bit(MD_RECOVERY_ERR, &mddev->recovery);
++		set_bit(MD_RECOVERY_INTR, &mddev->recovery);
+ 	}
+ 	set_bit(Faulty, &rdev->flags);
+ 	set_bit(MD_CHANGE_DEVS, &mddev->flags);
+@@ -1171,6 +1171,14 @@ static int raid10_remove_disk(mddev_t *m
+ 			err = -EBUSY;
+ 			goto abort;
+ 		}
++		/* Only remove faulty devices in recovery
++		 * is not possible.
++		 */
++		if (!test_bit(Faulty, &rdev->flags) &&
++		    enough(conf)) {
++			err = -EBUSY;
++			goto abort;
++		}
+ 		p->rdev = NULL;
+ 		synchronize_rcu();
+ 		if (atomic_read(&rdev->nr_pending)) {
+@@ -1237,6 +1245,7 @@ static void end_sync_write(struct bio *b
  
-+	/* resync even though the same disks are shared among md-devices */
-+	int				parallel_resync;
+ 	if (!uptodate)
+ 		md_error(mddev, conf->mirrors[d].rdev);
 +
- 	int				ok_start_degraded;
- 	/* recovery/resync flags 
+ 	update_head_pos(i, r10_bio);
+ 
+ 	while (atomic_dec_and_test(&r10_bio->remaining)) {
+@@ -1844,7 +1853,8 @@ static sector_t sync_request(mddev_t *md
+ 					if (rb2)
+ 						atomic_dec(&rb2->remaining);
+ 					r10_bio = rb2;
+-					if (!test_and_set_bit(MD_RECOVERY_ERR, &mddev->recovery))
++					if (!test_and_set_bit(MD_RECOVERY_INTR,
++							      &mddev->recovery))
+ 						printk(KERN_INFO "raid10: %s: insufficient working devices for recovery.\n",
+ 						       mdname(mddev));
+ 					break;
+diff -puN drivers/md/raid5.c~md-restart-recovery-cleanly-after-device-failure drivers/md/raid5.c
+--- a/drivers/md/raid5.c~md-restart-recovery-cleanly-after-device-failure
++++ a/drivers/md/raid5.c
+@@ -1268,7 +1268,7 @@ static void error(mddev_t *mddev, mdk_rd
+ 			/*
+ 			 * if recovery was running, make sure it aborts.
+ 			 */
+-			set_bit(MD_RECOVERY_ERR, &mddev->recovery);
++			set_bit(MD_RECOVERY_INTR, &mddev->recovery);
+ 		}
+ 		set_bit(Faulty, &rdev->flags);
+ 		printk (KERN_ALERT
+@@ -4574,6 +4574,14 @@ static int raid5_remove_disk(mddev_t *md
+ 			err = -EBUSY;
+ 			goto abort;
+ 		}
++		/* Only remove non-faulty devices if recovery
++		 * isn't possible.
++		 */
++		if (!test_bit(Faulty, &rdev->flags) &&
++		    mddev->degraded <= conf->max_degraded) {
++			err = -EBUSY;
++			goto abort;
++		}
+ 		p->rdev = NULL;
+ 		synchronize_rcu();
+ 		if (atomic_read(&rdev->nr_pending)) {
+diff -puN include/linux/raid/md_k.h~md-restart-recovery-cleanly-after-device-failure include/linux/raid/md_k.h
+--- a/include/linux/raid/md_k.h~md-restart-recovery-cleanly-after-device-failure
++++ a/include/linux/raid/md_k.h
+@@ -188,8 +188,7 @@ struct mddev_s
  	 * NEEDED:   we might need to start a resync/recover
+ 	 * RUNNING:  a thread is running, or about to be started
+ 	 * SYNC:     actually doing a resync, not a recovery
+-	 * ERR:      and IO error was detected - abort the resync/recovery
+-	 * INTR:     someone requested a (clean) early abort.
++	 * INTR:     resync needs to be aborted for some reason
+ 	 * DONE:     thread is done and is waiting to be reaped
+ 	 * REQUEST:  user-space has requested a sync (used with SYNC)
+ 	 * CHECK:    user-space request for for check-only, no repair
+@@ -199,7 +198,6 @@ struct mddev_s
+ 	 */
+ #define	MD_RECOVERY_RUNNING	0
+ #define	MD_RECOVERY_SYNC	1
+-#define	MD_RECOVERY_ERR		2
+ #define	MD_RECOVERY_INTR	3
+ #define	MD_RECOVERY_DONE	4
+ #define	MD_RECOVERY_NEEDED	5
 _
 
-Patches currently in -mm which might be from bs@q-leap.de are
+Patches currently in -mm which might be from neilb@suse.de are
 
+origin.patch
+linux-next.patch
+md-fix-possible-oops-when-removing-a-bitmap-from-an-active-array.patch
+md-proper-extern-for-mdp_major.patch
+md-kill-file_path-wrapper.patch
+md-md-raid5-rate-limit-error-printk.patch
+md-raid1-fix-restoration-of-bio-between-failed-read-and-write.patch
+md-notify-userspace-on-write-pending-changes-to-array_state.patch
+md-notify-userspace-on-stop-events.patch
+md-improve-setting-of-events_cleared-for-write-intent-bitmaps.patch
 md-allow-parallel-resync-of-md-devices.patch
+md-restart-recovery-cleanly-after-device-failure.patch
 
