@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + md-fix-possible-oops-when-removing-a-bitmap-from-an-active-array.patch added to -mm tree
-Date: Sun, 18 May 2008 18:27:25 -0700
-Message-ID: <200805190127.m4J1RPP9009546@imap1.linux-foundation.org>
+Subject: + md-md-raid5-rate-limit-error-printk.patch added to -mm tree
+Date: Sun, 18 May 2008 18:27:31 -0700
+Message-ID: <200805190127.m4J1RV6i009555@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46468 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44913 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751625AbYESB1b (ORCPT
+	by vger.kernel.org with ESMTP id S1751864AbYESB1j (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 18 May 2008 21:27:31 -0400
+	Sun, 18 May 2008 21:27:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: neilb@suse.de
+Cc: bernd-schubert@gmx.de, dan.j.williams@intel.com, neilb@suse.de
 
 
 The patch titled
-     md: fix possible oops when removing a bitmap from an active array
+     md: md: raid5 rate limit error printk
 has been added to the -mm tree.  Its filename is
-     md-fix-possible-oops-when-removing-a-bitmap-from-an-active-array.patch
+     md-md-raid5-rate-limit-error-printk.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,61 +34,92 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: md: fix possible oops when removing a bitmap from an active array
-From: NeilBrown <neilb@suse.de>
+Subject: md: md: raid5 rate limit error printk
+From: Bernd Schubert <bernd-schubert@gmx.de>
 
-It is possible to add a write-intent bitmap to an active array, or remove
-the bitmap that is there.
+Last night we had scsi problems and a hardware raid unit was offlined
+during heavy i/o.  While this happened we got for about 3 minutes a huge
+number messages like these
 
-When we do with the 'quiesce' the array, which causes make_request to
-block in "wait_barrier()".
+Apr 12 03:36:07 pfs1n14 kernel: [197510.696595] raid5:md7: read error not correctable (sector 2993096568 on sdj2).
 
-However we are sampling the value of "mddev->bitmap" before the
-wait_barrier call, and using it afterwards.  This can result in using a
-bitmap structure that has been freed.
+I guess the high error rate is responsible for not scheduling other events
+- during this time the system was not pingable and in the end also other
+devices run into scsi command timeouts causing problems on these unrelated
+devices as well.
 
+Signed-off-by: Bernd Schubert <bernd-schubert@gmx.de>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/raid1.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/md/raid5.c |   34 ++++++++++++++++++++++------------
+ 1 file changed, 22 insertions(+), 12 deletions(-)
 
-diff -puN drivers/md/raid1.c~md-fix-possible-oops-when-removing-a-bitmap-from-an-active-array drivers/md/raid1.c
---- a/drivers/md/raid1.c~md-fix-possible-oops-when-removing-a-bitmap-from-an-active-array
-+++ a/drivers/md/raid1.c
-@@ -773,7 +773,7 @@ static int make_request(struct request_q
- 	r1bio_t *r1_bio;
- 	struct bio *read_bio;
- 	int i, targets = 0, disks;
--	struct bitmap *bitmap = mddev->bitmap;
-+	struct bitmap *bitmap;
- 	unsigned long flags;
- 	struct bio_list bl;
- 	struct page **behind_pages = NULL;
-@@ -802,6 +802,8 @@ static int make_request(struct request_q
+diff -puN drivers/md/raid5.c~md-md-raid5-rate-limit-error-printk drivers/md/raid5.c
+--- a/drivers/md/raid5.c~md-md-raid5-rate-limit-error-printk
++++ a/drivers/md/raid5.c
+@@ -94,6 +94,8 @@
+ #define __inline__
+ #endif
  
- 	wait_barrier(conf);
- 
-+	bitmap = mddev->bitmap;
++#define printk_rl(args...) ((void) (printk_ratelimit() && printk(args)))
 +
- 	disk_stat_inc(mddev->gendisk, ios[rw]);
- 	disk_stat_add(mddev->gendisk, sectors[rw], bio_sectors(bio));
- 
+ #if !RAID6_USE_EMPTY_ZERO_PAGE
+ /* In .bss so it's zeroed */
+ const char raid6_empty_zero_page[PAGE_SIZE] __attribute__((aligned(256)));
+@@ -1143,10 +1145,12 @@ static void raid5_end_read_request(struc
+ 		set_bit(R5_UPTODATE, &sh->dev[i].flags);
+ 		if (test_bit(R5_ReadError, &sh->dev[i].flags)) {
+ 			rdev = conf->disks[i].rdev;
+-			printk(KERN_INFO "raid5:%s: read error corrected (%lu sectors at %llu on %s)\n",
+-			       mdname(conf->mddev), STRIPE_SECTORS,
+-			       (unsigned long long)(sh->sector + rdev->data_offset),
+-			       bdevname(rdev->bdev, b));
++			printk_rl(KERN_INFO "raid5:%s: read error corrected"
++				  " (%lu sectors at %llu on %s)\n",
++				  mdname(conf->mddev), STRIPE_SECTORS,
++				  (unsigned long long)(sh->sector
++						       + rdev->data_offset),
++				  bdevname(rdev->bdev, b));
+ 			clear_bit(R5_ReadError, &sh->dev[i].flags);
+ 			clear_bit(R5_ReWrite, &sh->dev[i].flags);
+ 		}
+@@ -1160,16 +1164,22 @@ static void raid5_end_read_request(struc
+ 		clear_bit(R5_UPTODATE, &sh->dev[i].flags);
+ 		atomic_inc(&rdev->read_errors);
+ 		if (conf->mddev->degraded)
+-			printk(KERN_WARNING "raid5:%s: read error not correctable (sector %llu on %s).\n",
+-			       mdname(conf->mddev),
+-			       (unsigned long long)(sh->sector + rdev->data_offset),
+-			       bdn);
++			printk_rl(KERN_WARNING
++				  "raid5:%s: read error not correctable "
++				  "(sector %llu on %s).\n",
++				  mdname(conf->mddev),
++				  (unsigned long long)(sh->sector
++						       + rdev->data_offset),
++				  bdn);
+ 		else if (test_bit(R5_ReWrite, &sh->dev[i].flags))
+ 			/* Oh, no!!! */
+-			printk(KERN_WARNING "raid5:%s: read error NOT corrected!! (sector %llu on %s).\n",
+-			       mdname(conf->mddev),
+-			       (unsigned long long)(sh->sector + rdev->data_offset),
+-			       bdn);
++			printk_rl(KERN_WARNING
++				  "raid5:%s: read error NOT corrected!! "
++				  "(sector %llu on %s).\n",
++				  mdname(conf->mddev),
++				  (unsigned long long)(sh->sector
++						       + rdev->data_offset),
++				  bdn);
+ 		else if (atomic_read(&rdev->read_errors)
+ 			 > conf->max_nr_stripes)
+ 			printk(KERN_WARNING
 _
 
-Patches currently in -mm which might be from neilb@suse.de are
+Patches currently in -mm which might be from bernd-schubert@gmx.de are
 
-origin.patch
-linux-next.patch
-md-fix-possible-oops-when-removing-a-bitmap-from-an-active-array.patch
-md-proper-extern-for-mdp_major.patch
-md-kill-file_path-wrapper.patch
 md-md-raid5-rate-limit-error-printk.patch
-md-raid1-fix-restoration-of-bio-between-failed-read-and-write.patch
-md-notify-userspace-on-write-pending-changes-to-array_state.patch
-md-notify-userspace-on-stop-events.patch
-md-improve-setting-of-events_cleared-for-write-intent-bitmaps.patch
-md-allow-parallel-resync-of-md-devices.patch
-md-restart-recovery-cleanly-after-device-failure.patch
 
