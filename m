@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + buddy-clarify-comments-describing-buddy-merge.patch added to -mm tree
-Date: Mon, 19 May 2008 14:09:06 -0700
-Message-ID: <200805192109.m4JL97pq020619@imap1.linux-foundation.org>
+Subject: + oss-trident-switch-from-write_proc.patch added to -mm tree
+Date: Mon, 19 May 2008 14:10:33 -0700
+Message-ID: <200805192110.m4JLAXHr020645@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57791 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52465 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756979AbYESVJU (ORCPT
+	by vger.kernel.org with ESMTP id S1758738AbYESVLW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 May 2008 17:09:20 -0400
+	Mon, 19 May 2008 17:11:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: apw@shadowen.org
+Cc: adobriyan@gmail.com, muli@il.ibm.com
 
 
 The patch titled
-     buddy: clarify comments describing buddy merge
+     OSS trident: switch from ->write_proc
 has been added to the -mm tree.  Its filename is
-     buddy-clarify-comments-describing-buddy-merge.patch
+     oss-trident-switch-from-write_proc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,60 +34,76 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: buddy: clarify comments describing buddy merge
-From: Andy Whitcroft <apw@shadowen.org>
+Subject: OSS trident: switch from ->write_proc
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-In __free_one_page(), the comment "Move the buddy up one level" appears
-attached to the break and by implication when the break is taken we are
-moving it up one level:
-
-	if (!page_is_buddy(page, buddy, order))
-		break;          /* Move the buddy up one level. */
-
-In reality the inverse is true, we break out when we can no longer merge
-this page with its buddy.  Looking back into pre-history (into the full
-git history) it appears that these two lines accidentally got joined as
-part of another change.
-
-Move the comment down where it belongs below the if and clarify its
-language.
-
-Signed-off-by: Andy Whitcroft <apw@shadowen.org>
+[muli@il.ibm.com: don't leak the proc entry]
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Signed-off-by: Muli Ben-Yehuda <muli@il.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ sound/oss/trident.c |   18 ++++++++++--------
+ 1 file changed, 10 insertions(+), 8 deletions(-)
 
-diff -puN mm/page_alloc.c~buddy-clarify-comments-describing-buddy-merge mm/page_alloc.c
---- a/mm/page_alloc.c~buddy-clarify-comments-describing-buddy-merge
-+++ a/mm/page_alloc.c
-@@ -441,8 +441,9 @@ static inline void __free_one_page(struc
+diff -puN sound/oss/trident.c~oss-trident-switch-from-write_proc sound/oss/trident.c
+--- a/sound/oss/trident.c~oss-trident-switch-from-write_proc
++++ a/sound/oss/trident.c
+@@ -4028,10 +4028,10 @@ ali_free_other_states_resources(struct t
  
- 		buddy = __page_find_buddy(page, page_idx, order);
- 		if (!page_is_buddy(page, buddy, order))
--			break;		/* Move the buddy up one level. */
-+			break;
+ static struct proc_dir_entry *res;
  
-+		/* Our buddy is free, merge with it and move up one order. */
- 		list_del(&buddy->lru);
- 		zone->free_area[order].nr_free--;
- 		rmv_page_order(buddy);
+-static int
+-ali_write_proc(struct file *file, const char __user *buffer, unsigned long count, void *data)
++static ssize_t
++ali_write_proc(struct file *file, const char __user *buffer, size_t count, loff_t *ppos)
+ {
+-	struct trident_card *card = (struct trident_card *) data;
++	struct trident_card *card = PDE(file->f_path.dentry->d_inode)->data;
+ 	unsigned long flags;
+ 	char c;
+ 
+@@ -4068,6 +4068,11 @@ ali_write_proc(struct file *file, const 
+ 	return count;
+ }
+ 
++static const struct file_operations ali_proc_fops = {
++	.owner	= THIS_MODULE,
++	.write	= ali_write_proc,
++};
++
+ /* OSS /dev/mixer file operation methods */
+ static int
+ trident_open_mixdev(struct inode *inode, struct file *file)
+@@ -4441,11 +4446,8 @@ trident_probe(struct pci_dev *pci_dev, c
+ 		/* ALi SPDIF OUT function */
+ 		if (card->revision == ALI_5451_V02) {
+ 			ali_setup_spdif_out(card, ALI_PCM_TO_SPDIF_OUT);
+-			res = create_proc_entry("ALi5451", 0, NULL);
+-			if (res) {
+-				res->write_proc = ali_write_proc;
+-				res->data = card;
+-			}
++			res = proc_create_data("ALi5451", 0, NULL,
++					       &ali_proc_fops, card);
+ 		}
+ 
+ 		/* Add H/W Volume Control By Matt Wu Jul. 06, 2001 */
 _
 
-Patches currently in -mm which might be from apw@shadowen.org are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-mm-add-a-basic-debugging-framework-for-memory-initialisation.patch
-mm-add-a-basic-debugging-framework-for-memory-initialisation-fix.patch
-mm-verify-the-page-links-and-memory-model.patch
-mm-make-defensive-checks-around-pfn-values-registered-for-memory-usage.patch
-mm-print-out-the-zonelists-on-request-for-manual-verification.patch
-mm-move-bootmem-descriptors-definition-to-a-single-place.patch
-mm-fix-free_all_bootmem_core-alignment-check.patch
-mm-normalize-internal-argument-passing-of-bootmem-data.patch
-mm-unexport-__alloc_bootmem_core.patch
-buddy-clarify-comments-describing-buddy-merge.patch
-update-checkpatchpl-to-version-019.patch
-update-checkpatchpl-to-version-019-fix.patch
-page-owner-tracking-leak-detector.patch
+linux-next.patch
+cifs-switch-to-seq_files.patch
+git-kbuild-fixes.patch
+atl1-fix-4g-memory-corruption-bug.patch
+mpt-remove-unused-struct-mpt_proc_entry_t.patch
+rndis-switch-to-seq_files.patch
+oss-trident-switch-from-write_proc.patch
+move-proc_kmsg_operations-to-fs-proc-internalh.patch
+split-listh-and-move-rcu-protected-lists-into-rculisth.patch
+rculisth-use-the-rcu-api.patch
+proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
+likely_prof-changed-to-use-proc_create.patch
+proc-remove-proc_root-from-drivers-likelyprof.patch
 
