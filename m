@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + md-raid1-fix-restoration-of-bio-between-failed-read-and-write.patch added to -mm tree
-Date: Sun, 18 May 2008 18:27:33 -0700
-Message-ID: <200805190127.m4J1RX0E009558@imap1.linux-foundation.org>
+Subject: + md-notify-userspace-on-write-pending-changes-to-array_state.patch added to -mm tree
+Date: Sun, 18 May 2008 18:27:35 -0700
+Message-ID: <200805190127.m4J1RZph009563@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58663 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43921 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751903AbYESB1j (ORCPT
+	by vger.kernel.org with ESMTP id S1751939AbYESB1k (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 18 May 2008 21:27:39 -0400
+	Sun, 18 May 2008 21:27:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: neilb@suse.de, David.Fairbanks@stratus.com
+Cc: neilb@suse.de
 
 
 The patch titled
-     md: raid1: Fix restoration of bio between failed read and write.
+     md: notify userspace on 'write-pending' changes to array_state
 has been added to the -mm tree.  Its filename is
-     md-raid1-fix-restoration-of-bio-between-failed-read-and-write.patch
+     md-notify-userspace-on-write-pending-changes-to-array_state.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,65 +34,53 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: md: raid1: Fix restoration of bio between failed read and write.
+Subject: md: notify userspace on 'write-pending' changes to array_state
 From: NeilBrown <neilb@suse.de>
 
-When performing a "recovery" or "check" pass on a RAID1 array, we read
-from each device and possible, if there is a difference or a read error,
-write back to some devices.
+When an array enters write pending, 'array_state' changes, so we must be
+sure to sysfs_notify.
 
-We use the same 'bio' for both read and write, resetting various fields
-between the two operations.
+Also, when waiting for user-space to acknowledge 'write-pending' by
+marking the metadata as dirty, we don't want to wait for MD_CHANGE_DEVS to
+be cleared as that might not happen.  So explicity test for the bits that
+we are really interested in.
 
-We forgot to reset bv_offset and bv_len however.  These are often left
-unchanged, but in the case where there is an IO error one or two sectors
-into a page, they are changed.
-
-This results in correctable errors not being corrected properly.  It does
-not result in any data corruption.
-
-Cc: "Fairbanks, David" <David.Fairbanks@stratus.com>
 Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/raid1.c |   15 +++++++++++++--
- 1 file changed, 13 insertions(+), 2 deletions(-)
+ drivers/md/md.c |   11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
-diff -puN drivers/md/raid1.c~md-raid1-fix-restoration-of-bio-between-failed-read-and-write drivers/md/raid1.c
---- a/drivers/md/raid1.c~md-raid1-fix-restoration-of-bio-between-failed-read-and-write
-+++ a/drivers/md/raid1.c
-@@ -1284,6 +1284,7 @@ static void sync_request_write(mddev_t *
- 					rdev_dec_pending(conf->mirrors[i].rdev, mddev);
- 				} else {
- 					/* fixup the bio for reuse */
-+					int size;
- 					sbio->bi_vcnt = vcnt;
- 					sbio->bi_size = r1_bio->sectors << 9;
- 					sbio->bi_idx = 0;
-@@ -1297,10 +1298,20 @@ static void sync_request_write(mddev_t *
- 					sbio->bi_sector = r1_bio->sector +
- 						conf->mirrors[i].rdev->data_offset;
- 					sbio->bi_bdev = conf->mirrors[i].rdev->bdev;
--					for (j = 0; j < vcnt ; j++)
--						memcpy(page_address(sbio->bi_io_vec[j].bv_page),
-+					size = sbio->bi_size;
-+					for (j = 0; j < vcnt ; j++) {
-+						struct bio_vec *bi;
-+						bi = &sbio->bi_io_vec[j];
-+						bi->bv_offset = 0;
-+						if (size > PAGE_SIZE)
-+							bi->bv_len = PAGE_SIZE;
-+						else
-+							bi->bv_len = size;
-+						size -= PAGE_SIZE;
-+						memcpy(page_address(bi->bv_page),
- 						       page_address(pbio->bi_io_vec[j].bv_page),
- 						       PAGE_SIZE);
-+					}
+diff -puN drivers/md/md.c~md-notify-userspace-on-write-pending-changes-to-array_state drivers/md/md.c
+--- a/drivers/md/md.c~md-notify-userspace-on-write-pending-changes-to-array_state
++++ a/drivers/md/md.c
+@@ -5435,8 +5435,11 @@ void md_write_start(mddev_t *mddev, stru
+ 			md_wakeup_thread(mddev->thread);
+ 		}
+ 		spin_unlock_irq(&mddev->write_lock);
++		sysfs_notify(&mddev->kobj, NULL, "array_state");
+ 	}
+-	wait_event(mddev->sb_wait, mddev->flags==0);
++	wait_event(mddev->sb_wait,
++		   !test_bit(MD_CHANGE_CLEAN, &mddev->flags) &&
++		   !test_bit(MD_CHANGE_PENDING, &mddev->flags));
+ }
  
- 				}
- 			}
+ void md_write_end(mddev_t *mddev)
+@@ -5471,6 +5474,12 @@ void md_allow_write(mddev_t *mddev)
+ 			mddev->safemode = 1;
+ 		spin_unlock_irq(&mddev->write_lock);
+ 		md_update_sb(mddev, 0);
++
++		sysfs_notify(&mddev->kobj, NULL, "array_state");
++		/* wait for the dirty state to be recorded in the metadata */
++		wait_event(mddev->sb_wait,
++			   !test_bit(MD_CHANGE_CLEAN, &mddev->flags) &&
++			   !test_bit(MD_CHANGE_PENDING, &mddev->flags));
+ 	} else
+ 		spin_unlock_irq(&mddev->write_lock);
+ }
 _
 
 Patches currently in -mm which might be from neilb@suse.de are
