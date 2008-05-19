@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + md-improve-setting-of-events_cleared-for-write-intent-bitmaps.patch added to -mm tree
-Date: Sun, 18 May 2008 18:27:39 -0700
-Message-ID: <200805190127.m4J1RdDw009570@imap1.linux-foundation.org>
+Subject: + md-allow-parallel-resync-of-md-devices.patch added to -mm tree
+Date: Sun, 18 May 2008 18:27:41 -0700
+Message-ID: <200805190127.m4J1RfGn009573@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44111 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43170 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752233AbYESB1o (ORCPT
+	by vger.kernel.org with ESMTP id S1752459AbYESB1u (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 18 May 2008 21:27:44 -0400
+	Sun, 18 May 2008 21:27:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: neilb@suse.de, snitzer@gmail.com
+Cc: bs@q-leap.de, neilb@suse.de
 
 
 The patch titled
-     md: improve setting of "events_cleared" for write-intent bitmaps.
+     md: allow parallel resync of md-devices.
 has been added to the -mm tree.  Its filename is
-     md-improve-setting-of-events_cleared-for-write-intent-bitmaps.patch
+     md-allow-parallel-resync-of-md-devices.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,96 +34,119 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: md: improve setting of "events_cleared" for write-intent bitmaps.
-From: NeilBrown <neilb@suse.de>
+Subject: md: allow parallel resync of md-devices.
+From: Bernd Schubert <bs@q-leap.de>
 
-When an array is degraded, bits in the write-intent bitmap are not
-cleared, so that if the missing device is re-added, it can be synced by
-only updated those parts of the device that have changed since it was
-removed.
+In some configurations, a raid6 resync can be limited by CPU speed
+(Calculating P and Q and moving data) rather than by device speed.  In
+these cases there is nothing to be gained byt serialising resync of arrays
+that share a device, and doing the resync in parallel can provide benefit.
+ So add a sysfs tunable to flag an array as being allowed to resync in
+parallel with other arrays that use (a different part of) the same device.
 
-The enable this a 'events_cleared' value is stored.  It is the event
-counter for the array the last time that any bits were cleared.
-
-Sometime - if a device disappears from an array while it is 'clean' - the
-events_cleared value gets updated incorrectly (there are subtle ordering
-issues between updateing events in the main metadata and the bitmap
-metadata) resulting in the missing device appearing to require a full
-resync when it is re-added.
-
-With this patch, we update events_cleared precised when we are about to
-clear a bit in the bitmap.  This makes it more "obviously correct".  We
-also need to update events_cleared when the event_count is going backwards
-(as happens on a dirty->clean transition of a non-degraded array).
-
-Thanks to Mike Snitzer for identifying this problem and testing early
-"fixes".
-
-Cc: "Mike Snitzer" <snitzer@gmail.com>
+Signed-off-by: Bernd Schubert <bs@q-leap.de>
 Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/bitmap.c |   26 +++++++++++++++++++++-----
- 1 file changed, 21 insertions(+), 5 deletions(-)
+ drivers/md/md.c           |   40 ++++++++++++++++++++++++++++++++----
+ include/linux/raid/md_k.h |    3 ++
+ 2 files changed, 39 insertions(+), 4 deletions(-)
 
-diff -puN drivers/md/bitmap.c~md-improve-setting-of-events_cleared-for-write-intent-bitmaps drivers/md/bitmap.c
---- a/drivers/md/bitmap.c~md-improve-setting-of-events_cleared-for-write-intent-bitmaps
-+++ a/drivers/md/bitmap.c
-@@ -454,8 +454,11 @@ void bitmap_update_sb(struct bitmap *bit
- 	spin_unlock_irqrestore(&bitmap->lock, flags);
- 	sb = (bitmap_super_t *)kmap_atomic(bitmap->sb_page, KM_USER0);
- 	sb->events = cpu_to_le64(bitmap->mddev->events);
--	if (!bitmap->mddev->degraded)
--		sb->events_cleared = cpu_to_le64(bitmap->mddev->events);
-+	if (bitmap->mddev->events < bitmap->events_cleared) {
-+		/* rocking back to read-only */
-+		bitmap->events_cleared = bitmap->mddev->events;
-+		sb->events_cleared = cpu_to_le64(bitmap->events_cleared);
-+	}
- 	kunmap_atomic(sb, KM_USER0);
- 	write_page(bitmap, bitmap->sb_page, 1);
- }
-@@ -1085,9 +1088,22 @@ void bitmap_daemon_work(struct bitmap *b
- 			} else
- 				spin_unlock_irqrestore(&bitmap->lock, flags);
- 			lastpage = page;
--/*
--			printk("bitmap clean at page %lu\n", j);
--*/
+diff -puN drivers/md/md.c~md-allow-parallel-resync-of-md-devices drivers/md/md.c
+--- a/drivers/md/md.c~md-allow-parallel-resync-of-md-devices
++++ a/drivers/md/md.c
+@@ -74,6 +74,8 @@ static DEFINE_SPINLOCK(pers_lock);
+ 
+ static void md_print_devices(void);
+ 
++static DECLARE_WAIT_QUEUE_HEAD(resync_wait);
 +
-+			/* We are possibly going to clear some bits, so make
-+			 * sure that events_cleared is up-to-date.
-+			 */
-+			if (bitmap->events_cleared < bitmap->mddev->events) {
-+				bitmap_super_t *sb;
-+				bitmap->events_cleared = bitmap->mddev->events;
-+				wait_event(bitmap->mddev->sb_wait,
-+				    !test_bit(MD_CHANGE_CLEAN,
-+					      &bitmap->mddev->flags));
-+				sb = kmap_atomic(bitmap->sb_page, KM_USER0);
-+				sb->events_cleared =
-+					cpu_to_le64(bitmap->events_cleared);
-+				kunmap_atomic(sb, KM_USER0);
-+				write_page(bitmap, bitmap->sb_page, 1);
-+			}
- 			spin_lock_irqsave(&bitmap->lock, flags);
- 			clear_page_attr(bitmap, page, BITMAP_PAGE_CLEAN);
- 		}
+ #define MD_BUG(x...) { printk("md: bug in file %s, line %d\n", __FILE__, __LINE__); md_print_devices(); }
+ 
+ /*
+@@ -3013,6 +3015,36 @@ degraded_show(mddev_t *mddev, char *page
+ static struct md_sysfs_entry md_degraded = __ATTR_RO(degraded);
+ 
+ static ssize_t
++sync_force_parallel_show(mddev_t *mddev, char *page)
++{
++	return sprintf(page, "%d\n", mddev->parallel_resync);
++}
++
++static ssize_t
++sync_force_parallel_store(mddev_t *mddev, const char *buf, size_t len)
++{
++	long n;
++
++	if (strict_strtol(buf, 10, &n))
++		return -EINVAL;
++
++	if (n != 0 && n != 1)
++		return -EINVAL;
++
++	mddev->parallel_resync = n;
++
++	if (mddev->sync_thread)
++		wake_up(&resync_wait);
++
++	return len;
++}
++
++/* force parallel resync, even with shared block devices */
++static struct md_sysfs_entry md_sync_force_parallel =
++__ATTR(sync_force_parallel, S_IRUGO|S_IWUSR,
++       sync_force_parallel_show, sync_force_parallel_store);
++
++static ssize_t
+ sync_speed_show(mddev_t *mddev, char *page)
+ {
+ 	unsigned long resync, dt, db;
+@@ -3187,6 +3219,7 @@ static struct attribute *md_redundancy_a
+ 	&md_sync_min.attr,
+ 	&md_sync_max.attr,
+ 	&md_sync_speed.attr,
++	&md_sync_force_parallel.attr,
+ 	&md_sync_completed.attr,
+ 	&md_max_sync.attr,
+ 	&md_suspend_lo.attr,
+@@ -5487,8 +5520,6 @@ void md_allow_write(mddev_t *mddev)
+ }
+ EXPORT_SYMBOL_GPL(md_allow_write);
+ 
+-static DECLARE_WAIT_QUEUE_HEAD(resync_wait);
+-
+ #define SYNC_MARKS	10
+ #define	SYNC_MARK_STEP	(3*HZ)
+ void md_do_sync(mddev_t *mddev)
+@@ -5552,8 +5583,9 @@ void md_do_sync(mddev_t *mddev)
+ 		for_each_mddev(mddev2, tmp) {
+ 			if (mddev2 == mddev)
+ 				continue;
+-			if (mddev2->curr_resync && 
+-			    match_mddev_units(mddev,mddev2)) {
++			if (!mddev->parallel_resync
++			&&  mddev2->curr_resync
++			&&  match_mddev_units(mddev, mddev2)) {
+ 				DEFINE_WAIT(wq);
+ 				if (mddev < mddev2 && mddev->curr_resync == 2) {
+ 					/* arbitrarily yield */
+diff -puN include/linux/raid/md_k.h~md-allow-parallel-resync-of-md-devices include/linux/raid/md_k.h
+--- a/include/linux/raid/md_k.h~md-allow-parallel-resync-of-md-devices
++++ a/include/linux/raid/md_k.h
+@@ -180,6 +180,9 @@ struct mddev_s
+ 	int				sync_speed_min;
+ 	int				sync_speed_max;
+ 
++	/* resync even though the same disks are shared among md-devices */
++	int				parallel_resync;
++
+ 	int				ok_start_degraded;
+ 	/* recovery/resync flags 
+ 	 * NEEDED:   we might need to start a resync/recover
 _
 
-Patches currently in -mm which might be from neilb@suse.de are
+Patches currently in -mm which might be from bs@q-leap.de are
 
-origin.patch
-linux-next.patch
-md-fix-possible-oops-when-removing-a-bitmap-from-an-active-array.patch
-md-proper-extern-for-mdp_major.patch
-md-kill-file_path-wrapper.patch
-md-md-raid5-rate-limit-error-printk.patch
-md-raid1-fix-restoration-of-bio-between-failed-read-and-write.patch
-md-notify-userspace-on-write-pending-changes-to-array_state.patch
-md-notify-userspace-on-stop-events.patch
-md-improve-setting-of-events_cleared-for-write-intent-bitmaps.patch
 md-allow-parallel-resync-of-md-devices.patch
-md-restart-recovery-cleanly-after-device-failure.patch
 
