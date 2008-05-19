@@ -1,71 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: - colibri-fix-support-for-dm9000-ethernet-device.patch removed from -mm tree
-Date: Mon, 19 May 2008 02:18:41 -0700
-Message-ID: <200805190918.m4J9IfZD025361@imap1.linux-foundation.org>
+Subject: + fuse-fix-bdi-naming-conflict.patch added to -mm tree
+Date: Mon, 19 May 2008 13:03:36 -0700
+Message-ID: <200805192003.m4JK3acZ018050@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34464 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51977 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752115AbYESJUk (ORCPT
+	by vger.kernel.org with ESMTP id S1761599AbYESUDm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 May 2008 05:20:40 -0400
+	Mon, 19 May 2008 16:03:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: michael.abbott@diamond.ac.uk, ben-linux@fluff.org, daniel@caiaq.org, jeff@garzik.org, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: mszeredi@suse.cz, opslynx@gmail.com
 
 
 The patch titled
-     colibri: fix support for DM9000 ethernet device
-has been removed from the -mm tree.  Its filename was
-     colibri-fix-support-for-dm9000-ethernet-device.patch
+     fuse: fix bdi naming conflict
+has been added to the -mm tree.  Its filename is
+     fuse-fix-bdi-naming-conflict.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: colibri: fix support for DM9000 ethernet device
-From: Michael Abbott <michael.abbott@diamond.ac.uk>
+Subject: fuse: fix bdi naming conflict
+From: Miklos Szeredi <mszeredi@suse.cz>
 
-Two changes are necessary to enable proper operation of the DM9000 device with
-the Colibri PXA 270 board: firstly, the IRQ type needs to be configured for
-rising edge interrupts, and secondly this configuration needs to be
-communicated through to the DM9000.
+Fuse allocates a separate bdi for each filesystem, and registers them
+in sysfs with "MAJOR:MINOR" of sb->s_dev (st_dev).  This works fine for
+anon devices normally used by fuse, but can conflict with an already
+registered BDI for "fuseblk" filesystems, where sb->s_dev represents a
+real block device.  In particularl this happens if a non-partitioned
+device is being mounted.
 
-[akpm@linux-foundation.org: remove set_irq_type() call as per ben-linux request]
-Signed-off-by: Michael Abbott <michael.abbott@diamond.ac.uk>
-Cc: Daniel Mack <daniel@caiaq.org>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Ben Dooks <ben-linux@fluff.org>
+Fix by registering with a different name for "fuseblk" filesystems.
+
+Thanks to Ioan Ionita for the bug report.
+
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Reported-by: Ioan Ionita <opslynx@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-pxa/colibri.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ Documentation/ABI/testing/sysfs-class-bdi |    4 ++++
+ fs/fuse/inode.c                           |    7 ++++++-
+ 2 files changed, 10 insertions(+), 1 deletion(-)
 
-diff -puN arch/arm/mach-pxa/colibri.c~colibri-fix-support-for-dm9000-ethernet-device arch/arm/mach-pxa/colibri.c
---- a/arch/arm/mach-pxa/colibri.c~colibri-fix-support-for-dm9000-ethernet-device
-+++ a/arch/arm/mach-pxa/colibri.c
-@@ -98,7 +98,7 @@ static struct resource dm9000_resources[
- 	[2] = {
- 		.start	= COLIBRI_ETH_IRQ,
- 		.end	= COLIBRI_ETH_IRQ,
--		.flags	= IORESOURCE_IRQ,
-+		.flags	= IORESOURCE_IRQ | IRQF_TRIGGER_RISING,
- 	},
- };
+diff -puN Documentation/ABI/testing/sysfs-class-bdi~fuse-fix-bdi-naming-conflict Documentation/ABI/testing/sysfs-class-bdi
+--- a/Documentation/ABI/testing/sysfs-class-bdi~fuse-fix-bdi-naming-conflict
++++ a/Documentation/ABI/testing/sysfs-class-bdi
+@@ -14,6 +14,10 @@ MAJOR:MINOR
+ 	non-block filesystems which provide their own BDI, such as NFS
+ 	and FUSE.
  
-@@ -119,7 +119,6 @@ static void __init colibri_init(void)
- 	/* DM9000 LAN */
- 	pxa_gpio_mode(GPIO78_nCS_2_MD);
- 	pxa_gpio_mode(GPIO_DM9000 | GPIO_IN);
--	set_irq_type(COLIBRI_ETH_IRQ, IRQT_FALLING);
++MAJOR:MINOR-fuseblk
++
++	Value of st_dev on fuseblk filesystems.
++
+ default
  
- 	platform_add_devices(colibri_devices, ARRAY_SIZE(colibri_devices));
- }
+ 	The default backing dev, used for non-block device backed
+diff -puN fs/fuse/inode.c~fuse-fix-bdi-naming-conflict fs/fuse/inode.c
+--- a/fs/fuse/inode.c~fuse-fix-bdi-naming-conflict
++++ a/fs/fuse/inode.c
+@@ -488,7 +488,12 @@ static struct fuse_conn *new_conn(struct
+ 		err = bdi_init(&fc->bdi);
+ 		if (err)
+ 			goto error_kfree;
+-		err = bdi_register_dev(&fc->bdi, fc->dev);
++		if (sb->s_bdev) {
++			err = bdi_register(&fc->bdi, NULL, "%u:%u-fuseblk",
++					   MAJOR(fc->dev), MINOR(fc->dev));
++		} else {
++			err = bdi_register_dev(&fc->bdi, fc->dev);
++		}
+ 		if (err)
+ 			goto error_bdi_destroy;
+ 		/*
 _
 
-Patches currently in -mm which might be from michael.abbott@diamond.ac.uk are
+Patches currently in -mm which might be from mszeredi@suse.cz are
 
+fuse-fix-bdi-naming-conflict.patch
+git-vfs-cleanups.patch
+git-unprivileged-mounts.patch
+lockd-dont-return-eagain-for-a-permanent-error.patch
+locks-add-special-return-value-for-asynchronous-locks.patch
+locks-cleanup-code-duplication.patch
+locks-allow-lock-to-return-file_lock_deferred.patch
+fuse-prepare-lookup-for-nfs-export.patch
+fuse-add-export-operations.patch
+fuse-add-fuse_lookup_name-helper.patch
+fuse-nfs-export-special-lookups.patch
+fuse-lockd-support.patch
 
