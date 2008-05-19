@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + md-kill-file_path-wrapper.patch added to -mm tree
-Date: Sun, 18 May 2008 18:27:29 -0700
-Message-ID: <200805190127.m4J1RTIG009552@imap1.linux-foundation.org>
+Subject: + md-improve-setting-of-events_cleared-for-write-intent-bitmaps.patch added to -mm tree
+Date: Sun, 18 May 2008 18:27:39 -0700
+Message-ID: <200805190127.m4J1RdDw009570@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33586 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44111 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751993AbYESB1n (ORCPT
+	by vger.kernel.org with ESMTP id S1752233AbYESB1o (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 18 May 2008 21:27:43 -0400
+	Sun, 18 May 2008 21:27:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hch@lst.de, neilb@suse.de
+Cc: neilb@suse.de, snitzer@gmail.com
 
 
 The patch titled
-     md: kill file_path wrapper
+     md: improve setting of "events_cleared" for write-intent bitmaps.
 has been added to the -mm tree.  Its filename is
-     md-kill-file_path-wrapper.patch
+     md-improve-setting-of-events_cleared-for-write-intent-bitmaps.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,100 +34,96 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: md: kill file_path wrapper
-From: Christoph Hellwig <hch@lst.de>
+Subject: md: improve setting of "events_cleared" for write-intent bitmaps.
+From: NeilBrown <neilb@suse.de>
 
-Kill the trivial and rather pointless file_path wrapper around d_path.
+When an array is degraded, bits in the write-intent bitmap are not
+cleared, so that if the missing device is re-added, it can be synced by
+only updated those parts of the device that have changed since it was
+removed.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+The enable this a 'events_cleared' value is stored.  It is the event
+counter for the array the last time that any bits were cleared.
+
+Sometime - if a device disappears from an array while it is 'clean' - the
+events_cleared value gets updated incorrectly (there are subtle ordering
+issues between updateing events in the main metadata and the bitmap
+metadata) resulting in the missing device appearing to require a full
+resync when it is re-added.
+
+With this patch, we update events_cleared precised when we are about to
+clear a bit in the bitmap.  This makes it more "obviously correct".  We
+also need to update events_cleared when the event_count is going backwards
+(as happens on a dirty->clean transition of a non-degraded array).
+
+Thanks to Mike Snitzer for identifying this problem and testing early
+"fixes".
+
+Cc: "Mike Snitzer" <snitzer@gmail.com>
 Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/bitmap.c         |   17 ++++-------------
- drivers/md/md.c             |    4 ++--
- include/linux/raid/bitmap.h |    1 -
- 3 files changed, 6 insertions(+), 16 deletions(-)
+ drivers/md/bitmap.c |   26 +++++++++++++++++++++-----
+ 1 file changed, 21 insertions(+), 5 deletions(-)
 
-diff -puN drivers/md/bitmap.c~md-kill-file_path-wrapper drivers/md/bitmap.c
---- a/drivers/md/bitmap.c~md-kill-file_path-wrapper
+diff -puN drivers/md/bitmap.c~md-improve-setting-of-events_cleared-for-write-intent-bitmaps drivers/md/bitmap.c
+--- a/drivers/md/bitmap.c~md-improve-setting-of-events_cleared-for-write-intent-bitmaps
 +++ a/drivers/md/bitmap.c
-@@ -203,17 +203,6 @@ static void bitmap_checkfree(struct bitm
-  * bitmap file handling - read and write the bitmap file and its superblock
-  */
- 
--/* copy the pathname of a file to a buffer */
--char *file_path(struct file *file, char *buf, int count)
--{
--	if (!buf)
--		return NULL;
--
--	buf = d_path(&file->f_path, buf, count);
--
--	return IS_ERR(buf) ? NULL : buf;
--}
--
- /*
-  * basic page I/O operations
-  */
-@@ -721,11 +710,13 @@ static void bitmap_file_kick(struct bitm
- 		if (bitmap->file) {
- 			path = kmalloc(PAGE_SIZE, GFP_KERNEL);
- 			if (path)
--				ptr = file_path(bitmap->file, path, PAGE_SIZE);
-+				ptr = d_path(&bitmap->file->f_path, path,
-+					     PAGE_SIZE);
+@@ -454,8 +454,11 @@ void bitmap_update_sb(struct bitmap *bit
+ 	spin_unlock_irqrestore(&bitmap->lock, flags);
+ 	sb = (bitmap_super_t *)kmap_atomic(bitmap->sb_page, KM_USER0);
+ 	sb->events = cpu_to_le64(bitmap->mddev->events);
+-	if (!bitmap->mddev->degraded)
+-		sb->events_cleared = cpu_to_le64(bitmap->mddev->events);
++	if (bitmap->mddev->events < bitmap->events_cleared) {
++		/* rocking back to read-only */
++		bitmap->events_cleared = bitmap->mddev->events;
++		sb->events_cleared = cpu_to_le64(bitmap->events_cleared);
++	}
+ 	kunmap_atomic(sb, KM_USER0);
+ 	write_page(bitmap, bitmap->sb_page, 1);
+ }
+@@ -1085,9 +1088,22 @@ void bitmap_daemon_work(struct bitmap *b
+ 			} else
+ 				spin_unlock_irqrestore(&bitmap->lock, flags);
+ 			lastpage = page;
+-/*
+-			printk("bitmap clean at page %lu\n", j);
+-*/
 +
- 
- 			printk(KERN_ALERT
- 			      "%s: kicking failed bitmap file %s from array!\n",
--			      bmname(bitmap), ptr ? ptr : "");
-+			      bmname(bitmap), IS_ERR(ptr) ? "" : ptr);
- 
- 			kfree(path);
- 		} else
-diff -puN drivers/md/md.c~md-kill-file_path-wrapper drivers/md/md.c
---- a/drivers/md/md.c~md-kill-file_path-wrapper
-+++ a/drivers/md/md.c
-@@ -3987,8 +3987,8 @@ static int get_bitmap_file(mddev_t * mdd
- 	if (!buf)
- 		goto out;
- 
--	ptr = file_path(mddev->bitmap->file, buf, sizeof(file->pathname));
--	if (!ptr)
-+	ptr = d_path(&mddev->bitmap->file->f_path, buf, sizeof(file->pathname));
-+	if (IS_ERR(ptr))
- 		goto out;
- 
- 	strcpy(file->pathname, ptr);
-diff -puN include/linux/raid/bitmap.h~md-kill-file_path-wrapper include/linux/raid/bitmap.h
---- a/include/linux/raid/bitmap.h~md-kill-file_path-wrapper
-+++ a/include/linux/raid/bitmap.h
-@@ -262,7 +262,6 @@ int  bitmap_create(mddev_t *mddev);
- void bitmap_flush(mddev_t *mddev);
- void bitmap_destroy(mddev_t *mddev);
- 
--char *file_path(struct file *file, char *buf, int count);
- void bitmap_print_sb(struct bitmap *bitmap);
- void bitmap_update_sb(struct bitmap *bitmap);
- 
++			/* We are possibly going to clear some bits, so make
++			 * sure that events_cleared is up-to-date.
++			 */
++			if (bitmap->events_cleared < bitmap->mddev->events) {
++				bitmap_super_t *sb;
++				bitmap->events_cleared = bitmap->mddev->events;
++				wait_event(bitmap->mddev->sb_wait,
++				    !test_bit(MD_CHANGE_CLEAN,
++					      &bitmap->mddev->flags));
++				sb = kmap_atomic(bitmap->sb_page, KM_USER0);
++				sb->events_cleared =
++					cpu_to_le64(bitmap->events_cleared);
++				kunmap_atomic(sb, KM_USER0);
++				write_page(bitmap, bitmap->sb_page, 1);
++			}
+ 			spin_lock_irqsave(&bitmap->lock, flags);
+ 			clear_page_attr(bitmap, page, BITMAP_PAGE_CLEAN);
+ 		}
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from neilb@suse.de are
 
 origin.patch
 linux-next.patch
-git-unionfs.patch
+md-fix-possible-oops-when-removing-a-bitmap-from-an-active-array.patch
+md-proper-extern-for-mdp_major.patch
 md-kill-file_path-wrapper.patch
-kill-generic_file_direct_io.patch
-kill-generic_file_direct_io-checkpatch-fixes.patch
-lockd-dont-return-eagain-for-a-permanent-error.patch
-locks-add-special-return-value-for-asynchronous-locks.patch
-locks-cleanup-code-duplication.patch
-locks-allow-lock-to-return-file_lock_deferred.patch
-fuse-prepare-lookup-for-nfs-export.patch
-fuse-add-export-operations.patch
-fuse-add-fuse_lookup_name-helper.patch
-fuse-nfs-export-special-lookups.patch
-fuse-lockd-support.patch
+md-md-raid5-rate-limit-error-printk.patch
+md-raid1-fix-restoration-of-bio-between-failed-read-and-write.patch
+md-notify-userspace-on-write-pending-changes-to-array_state.patch
+md-notify-userspace-on-stop-events.patch
+md-improve-setting-of-events_cleared-for-write-intent-bitmaps.patch
+md-allow-parallel-resync-of-md-devices.patch
+md-restart-recovery-cleanly-after-device-failure.patch
 
