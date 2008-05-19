@@ -1,27 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + remove-drivers-acorn-char-defkeymap-l7200c.patch added to -mm tree
-Date: Mon, 19 May 2008 14:36:19 -0700
-Message-ID: <200805192136.m4JLaJhv021658@imap1.linux-foundation.org>
+Subject: + access_process_vm-device-memory-infrastructure-fix.patch added to -mm tree
+Date: Mon, 19 May 2008 14:38:28 -0700
+Message-ID: <200805192138.m4JLcSwo021796@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34129 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55494 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755112AbYESVhE (ORCPT
+	by vger.kernel.org with ESMTP id S1756273AbYESVj7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 May 2008 17:37:04 -0400
+	Mon, 19 May 2008 17:39:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org
+Cc: riel@redhat.com, a.p.zijlstra@chello.nl
 
 
 The patch titled
-     remove drivers/acorn/char/defkeymap-l7200.c
+     Add documentation for the vm_ops->access function.
 has been added to the -mm tree.  Its filename is
-     remove-drivers-acorn-char-defkeymap-l7200c.patch
+     access_process_vm-device-memory-infrastructure-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -29,565 +26,78 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
-find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: remove drivers/acorn/char/defkeymap-l7200.c
-=46rom: Adrian Bunk <bunk@kernel.org>
+Subject: Add documentation for the vm_ops->access function.
+From: Rik van Riel <riel@redhat.com>
 
-The config option for building drivers/acorn/char/defkeymap-l7200.c is
-not present since at least kernel 2.6.0.
+Add documentation for the vm_ops->access function.
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Signed-off-by: Rik van Riel <riel@redhat.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/Makefile                    |    2=20
- drivers/acorn/char/Makefile          |    5=20
- drivers/acorn/char/defkeymap-l7200.c |  386 -------------------------
- 3 files changed, 393 deletions(-)
+ Documentation/filesystems/Locking |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN arch/arm/Makefile~remove-drivers-acorn-char-defkeymap-l7200c =
-arch/arm/Makefile
---- a/arch/arm/Makefile~remove-drivers-acorn-char-defkeymap-l7200c
-+++ a/arch/arm/Makefile
-@@ -188,8 +188,6 @@ core-$(CONFIG_PLAT_S3C24XX)		+=3D arch/arm
- core-$(CONFIG_ARCH_MXC)		+=3D arch/arm/plat-mxc/
-=20
- drivers-$(CONFIG_OPROFILE)      +=3D arch/arm/oprofile/
--drivers-$(CONFIG_ARCH_CLPS7500)	+=3D drivers/acorn/char/
--drivers-$(CONFIG_ARCH_L7200)	+=3D drivers/acorn/char/
-=20
- libs-y				:=3D arch/arm/lib/ $(libs-y)
-=20
-diff -puN drivers/acorn/char/Makefile~remove-drivers-acorn-char-defkeym=
-ap-l7200c /dev/null
---- a/drivers/acorn/char/Makefile
-+++ /dev/null
-@@ -1,5 +0,0 @@
--#
--# Makefile for the acorn character device drivers.
--#
--
--obj-$(CONFIG_L7200_KEYB)	+=3D defkeymap-l7200.o keyb_l7200.o
-diff -puN drivers/acorn/char/defkeymap-l7200.c~remove-drivers-acorn-cha=
-r-defkeymap-l7200c /dev/null
---- a/drivers/acorn/char/defkeymap-l7200.c
-+++ /dev/null
-@@ -1,386 +0,0 @@
--/*
-- * linux/drivers/acorn/char/defkeymap-l7200.c
-- *
-- * Default keyboard maps for LinkUp Systems L7200 board
-- *
-- * Copyright (C) 2000 Steve Hill (sjhill@cotw.com)
-- *
-- * Changelog:
-- *   08-04-2000 SJH     Created file
-- */
--
--#include <linux/types.h>
--#include <linux/keyboard.h>
--#include <linux/kd.h>
--
--/* Normal (maps 1:1 with no processing) */
--#define KTn	0xF0
--/* Function keys */
--#define KTf	0xF1
--/* Special (Performs special house-keeping funcs) */
--#define KTs	0xF2
--#define KIGNORE		K(KTs, 0)	/* Ignore */
--#define KENTER		K(KTs, 1)	/* Enter */
--#define KREGS		K(KTs, 2)	/* Regs */
--#define KMEM		K(KTs, 3)	/* Mem */
--#define KSTAT		K(KTs, 4)	/* State */
--#define KINTR		K(KTs, 5)	/* Intr */
--#define Ksl	6	/* Last console */
--#define KCAPSLK		K(KTs, 7)	/* Caps lock */
--#define KNUMLK		K(KTs, 8)	/* Num-lock */
--#define KSCRLLK		K(KTs, 9)	/* Scroll-lock */
--#define KSCRLFOR	K(KTs,10)	/* Scroll forward */
--#define KSCRLBAK	K(KTs,11)	/* Scroll back */
--#define KREBOOT		K(KTs,12)	/* Reboot */
--#define KCAPSON		K(KTs,13)	/* Caps on */
--#define KCOMPOSE	K(KTs,14)	/* Compose */
--#define KSAK		K(KTs,15)	/* SAK */
--#define CONS_DEC	K(KTs,16)	/* Dec console */
--#define CONS_INC	K(KTs,17)	/* Incr console */
--#define KFLOPPY		K(KTs,18)	/* Floppy */
--/* Key pad (0-9 =3D digits, 10=3D+, 11=3D-, 12=3D*, 13=3D/, 14=3Denter=
-, 16=3D., 17=3D# */
--#define KTp	0xF3
--#define KPAD_0		K(KTp, 0 )
--#define KPAD_1  	K(KTp, 1 )
--#define KPAD_2		K(KTp, 2 )
--#define KPAD_3		K(KTp, 3 )
--#define KPAD_4		K(KTp, 4 )
--#define KPAD_5		K(KTp, 5 )
--#define KPAD_6		K(KTp, 6 )
--#define KPAD_7		K(KTp, 7 )
--#define KPAD_8		K(KTp, 8 )
--#define KPAD_9		K(KTp, 9 )
--#define KPAD_PL		K(KTp,10 )
--#define KPAD_MI		K(KTp,11 )
--#define KPAD_ML		K(KTp,12 )
--#define KPAD_DV		K(KTp,13 )
--#define KPAD_EN		K(KTp,14 )
--#define KPAD_DT		K(KTp,16 )
--#define KPAD_HS		K(KTp,20 )
--/* Console switching */
--#define KCn	0xF5
--/* Cursor */
--#define KTc	0xF6
--#define Kcd	0	/* Cursor down */
--#define Kcl	1	/* Cursor left */
--#define Kcr	2	/* Cursor right */
--#define Kcu	3	/* Cursor up */
--/* Shift/alt modifiers etc */
--#define KMd	0xF7
--#define KSHIFT		K(KMd, 0 )
--#define KALTGR		K(KMd, 1 )
--#define KCTRL		K(KMd, 2 )
--#define KALT		K(KMd, 3 )
--/* Meta */
--#define KMt	0xF8
--#define KAs	0xF9
--#define KPADA_0		K(KAs, 0 )
--#define KPADA_1		K(KAs, 1 )
--#define KPADA_2		K(KAs, 2 )
--#define KPADA_3		K(KAs, 3 )
--#define KPADA_4		K(KAs, 4 )
--#define KPADA_5		K(KAs, 5 )
--#define KPADA_6		K(KAs, 6 )
--#define KPADA_7		K(KAs, 7 )
--#define KPADA_8		K(KAs, 8 )
--#define KPADA_9		K(KAs, 9 )
--#define KPADB_0		K(KAs,10 )
--#define KPADB_1		K(KAs,11 )
--#define KPADB_2		K(KAs,12 )
--#define KPADB_3		K(KAs,13 )
--#define KPADB_4		K(KAs,14 )
--#define KPADB_5		K(KAs,15 )
--#define KPADB_6		K(KAs,16 )
--#define KPADB_7		K(KAs,17 )
--#define KPADB_8		K(KAs,18 )
--#define KPADB_9		K(KAs,19 )
--/* Locking keys */
--#define KLk	0xFA
--/* Letters */
--#define KTl	0xFB
--
--/*
-- * Here is the layout of the keys for the Fujitsu QWERTY
-- * style keyboard:
-- *
-- *	static char Fujitsu_Key_Table[] =3D
-- *	{
-- *        KALT, '`' , KNUL, KCTL, KFUN, KESC, '1' , '2' ,
-- *	  '9' , '0' , '-' , '=3D' , KNUL, KBSP, KNUL, KNUL,
-- *	  KNUL, KBSL, KSHF, KNUL, KNUL, KDEL, KNUL, 't' ,
-- *	  'y' , 'u' , 'i' , KRET, KSHF, KPGD, KNUL, KNUL,
-- *	  KNUL, KTAB, KNUL, KNUL, KNUL, 'q' , 'w' , 'e' ,
-- *	  'r' , 'o' , 'p' , '[' , KNUL, ']' , KNUL, KNUL,
-- *	  KNUL, 'z' , KNUL, KNUL, KNUL, KSHL, KNUL, KNUL,
-- *	  'k' , 'l' , ';' , KSQT, KNUL, KPGU, KNUL, KNUL,
-- *	  KNUL, 'a' , KNUL, KNUL, KNUL, 's' , 'd' , 'f' ,
-- *	  'g' , 'h' , 'j' , '/' , KNUL, KHME, KNUL, KNUL,
-- *	  KNUL, 'x' , KNUL, KNUL, KNUL, 'c' , 'v' , 'b' ,
-- *	  'n' , 'm' , ',' , '.' , KNUL, ' ' , KNUL, KNUL,
-- *	  KNUL, KNUL, KNUL, KNUL, KNUL, '3' , '4' , '5' ,
-- *	  '6' , '7' , '8' , KNUL, KPRG, KNUL, KEND, KNUL,
-- *	};
-- */
--
--u_short plain_map[NR_KEYS]=3D
--{
--	0xf703, 0xf060, 0xf200, 0xf702, 0xf200, 0xf01b, 0xf031, 0xf032,
--	0xf039, 0xf030, 0xf02d, 0xf03d, 0xf200, 0xf07f, 0xf200, 0xf200,
--	0xf200, 0xf05c, 0xf700, 0xf200, 0xf200, 0xf116, 0xf000, 0xfb74,
--	0xfb79, 0xfb75, 0xfb69, 0xf201, 0xf700, 0xf600, 0xf200, 0xf200,
--	0xf200, 0xf009, 0xf200, 0xf200, 0xf200, 0xfb71, 0xfb77, 0xfb65,
--	0xfb72, 0xfb6f, 0xfb70, 0xf05b, 0xf200, 0xf05d, 0xf200, 0xf200,
--	0xf200, 0xfb7a, 0xf200, 0xf200, 0xf200, 0xf207, 0xf200, 0xf200,
--	0xfb6b, 0xfb6c, 0xf03b, 0xf027, 0xf200, 0xf603, 0xf200, 0xf200,
--	0xf200, 0xfb61, 0xf200, 0xf200, 0xf200, 0xfb73, 0xfb64, 0xfb66,
--	0xfb67, 0xfb68, 0xfb6a, 0xf02f, 0xf200, 0xf601, 0xf200, 0xf200,
--	0xf200, 0xfb78, 0xf200, 0xf200, 0xf200, 0xfb63, 0xfb76, 0xfb62,
--	0xfb6e, 0xfb6d, 0xf02c, 0xf02e, 0xf200, 0xf020, 0xf200, 0xf200,
--	0xf200, 0xf200, 0xf200, 0xf200, 0xf200, 0xf033, 0xf034, 0xf035,=20
--	0xf036, 0xf037, 0xf038, 0xf200, 0xf200, 0xf200, 0xf602, 0xf200,=20
--	0xf200, 0xf200, 0xf200, 0xf200, 0xf200, 0xf200, 0xf200, 0xf200,=20
--	0xf200, 0xf200, 0xf200, 0xf200, 0xf200, 0xf200, 0xf200, 0xf200,=20
--};
--
--u_short shift_map[NR_KEYS]=3D
--{
--	0xf703, 0xf07e, 0xf200, 0xf702, 0xf200, 0xf01b, 0xf021, 0xf040,
--	0xf028, 0xf029, 0xf05f, 0xf02b, 0xf200, 0xf07f, 0xf200, 0xf200,
--	0xf200, 0xf07c, 0xf700, 0xf200, 0xf200, 0xf116, 0xf000, 0xfb54,
--	0xfb59, 0xfb55, 0xfb49, 0xf201, 0xf700, 0xf600, 0xf200, 0xf200,
-- 	0xf200, 0xf009, 0xf200, 0xf200, 0xf200, 0xfb51, 0xfb57, 0xfb45,
--	0xfb52, 0xfb4f, 0xfb50, 0xf07b, 0xf200, 0xf07d, 0xf200, 0xf200,
--	0xf200, 0xfb5a, 0xf200, 0xf200, 0xf200, 0xf207, 0xf200, 0xf200,
--	0xfb4b, 0xfb4c, 0xf03a, 0xf022, 0xf200, 0xf603, 0xf200, 0xf200,
--	0xf200, 0xfb41, 0xf200, 0xf200, 0xf200, 0xfb53, 0xfb44, 0xfb46,
--	0xfb47, 0xfb48, 0xfb4a, 0xf03f, 0xf200, 0xf601, 0xf200, 0xf200,
--	0xf200, 0xfb58, 0xf200, 0xf200, 0xf200, 0xfb43, 0xfb56, 0xfb42,
--	0xfb4e, 0xfb4d, 0xf03c, 0xf03e, 0xf200, 0xf020, 0xf200, 0xf200,
--	0xf200, 0xf200, 0xf200, 0xf200, 0xf200, 0xf023, 0xf024, 0xf025,=20
--	0xf05e, 0xf026, 0xf02a, 0xf200, 0xf200, 0xf200, 0xf602, 0xf200,=20
--	0xf200, 0xf200, 0xf200, 0xf200, 0xf200, 0xf200, 0xf200, 0xf200,=20
--	0xf200, 0xf200, 0xf200, 0xf200, 0xf200, 0xf200, 0xf200, 0xf200,=20
--};
--
--u_short altgr_map[NR_KEYS]=3D
--{
--  KIGNORE   ,K(KCn,12 ),K(KCn,13 ),K(KCn,14  ),K(KCn,15 ),K(KCn,16 ),K=
-(KCn,17  ),K(KCn, 18),
--  K(KCn, 19),K(KCn,20 ),K(KCn,21 ),K(KCn,22  ),K(KCn,23 ),KIGNORE   ,K=
-REGS      ,KINTR     ,
--  KIGNORE   ,KIGNORE   ,K(KTn,'@'),KIGNORE    ,K(KTn,'$'),KIGNORE   ,K=
-IGNORE    ,K(KTn,'{'),
--  K(KTn,'['),K(KTn,']'),K(KTn,'}'),K(KTn,'\\'),KIGNORE   ,KIGNORE   ,K=
-IGNORE    ,K(KTf,21 ),
--  K(KTf,20 ),K(KTf,24 ),KNUMLK    ,KPAD_DV    ,KPAD_ML   ,KPAD_HS   ,K=
-IGNORE    ,K(KTl,'q'),
--  K(KTl,'w'),K(KTl,'e'),K(KTl,'r'),K(KTl,'t' ),K(KTl,'y'),K(KTl,'u'),K=
-(KTl,'i' ),K(KTl,'o'),
--  K(KTl,'p'),KIGNORE   ,K(KTn,'~'),KIGNORE    ,K(KTf,22 ),K(KTf,23 ),K=
-(KTf,25  ),KPADB_7   ,
--  KPADB_8   ,KPADB_9   ,KPAD_MI   ,KCTRL      ,K(KAs,20 ),K(KTl,'s'),K=
-(KAs,23  ),K(KAs,25 ),
--  K(KTl,'g'),K(KTl,'h'),K(KTl,'j'),K(KTl,'k' ),K(KTl,'l'),KIGNORE   ,K=
-IGNORE    ,KENTER    ,
--  KPADB_4   ,KPADB_5   ,KPADB_6   ,KPAD_PL    ,KSHIFT    ,KIGNORE   ,K=
-(KTl,'z' ),K(KTl,'x'),
--  K(KAs,22 ),K(KTl,'v'),K(KTl,21 ),K(KTl,'n' ),K(KTl,'m'),KIGNORE   ,K=
-IGNORE    ,KIGNORE   ,
--  KSHIFT    ,K(KTc,Kcu),KPADB_1   ,KPADB_2    ,KPADB_3   ,KCAPSLK   ,K=
-ALT       ,KIGNORE   ,
--  KALTGR    ,KCTRL     ,K(KTc,Kcl),K(KTc,Kcd ),K(KTc,Kcr),KPADB_0   ,K=
-PAD_DT    ,KPAD_EN   ,
--  KIGNORE   ,KIGNORE   ,KIGNORE   ,KIGNORE    ,KIGNORE   ,KIGNORE   ,K=
-IGNORE    ,KIGNORE   ,
--  KIGNORE   ,KIGNORE   ,KIGNORE   ,KIGNORE    ,KIGNORE   ,KIGNORE   ,K=
-IGNORE    ,KIGNORE   ,
--  KIGNORE   ,KIGNORE   ,KIGNORE   ,KIGNORE    ,KIGNORE   ,KIGNORE   ,K=
-IGNORE    ,KIGNORE   ,
--};
--
--u_short ctrl_map[NR_KEYS]=3D
--{
--	0xf703, 0xf200, 0xf200, 0xf702, 0xf200, 0xf200, 0xf001, 0xf002,
--	0xf009, 0xf000, 0xf031, 0xf200, 0xf200, 0xf07f, 0xf200, 0xf200,
--	0xf200, 0xf01c, 0xf700, 0xf200, 0xf200, 0xf116, 0xf000, 0xf020,
--	0xf019, 0xf015, 0xf009, 0xf201, 0xf700, 0xf600, 0xf200, 0xf200,
--	0xf200, 0xf009, 0xf200, 0xf200, 0xf200, 0xf011, 0xf017, 0xf005,
--	0xf012, 0xf00f, 0xf010, 0xf01b, 0xf200, 0xf01d, 0xf200, 0xf200,
--	0xf200, 0xf01a, 0xf200, 0xf200, 0xf200, 0xf207, 0xf200, 0xf200,
--	0xf00b, 0xf00c, 0xf200, 0xf007, 0xf200, 0xf603, 0xf200, 0xf200,
--	0xf200, 0xf001, 0xf200, 0xf200, 0xf200, 0xf001, 0xf013, 0xf006,
--	0xf007, 0xf008, 0xf00a, 0xf07f, 0xf200, 0xf601, 0xf200, 0xf200,
--	0xf200, 0xf018, 0xf200, 0xf200, 0xf200, 0xf003, 0xf016, 0xf002,
--	0xf00e, 0xf00d, 0xf200, 0xf200, 0xf200, 0xf000, 0xf200, 0xf200,
--	0xf200, 0xf200, 0xf200, 0xf200, 0xf200, 0xf01b, 0xf01c, 0xf01d,=20
--	0xf036, 0xf037, 0xf038, 0xf200, 0xf200, 0xf200, 0xf602, 0xf200,=20
--	0xf200, 0xf200, 0xf200, 0xf200, 0xf200, 0xf200, 0xf200, 0xf200,=20
--	0xf200, 0xf200, 0xf200, 0xf200, 0xf200, 0xf200, 0xf602, 0xf200,=20
--};
--
--u_short shift_ctrl_map[NR_KEYS]=3D
--{
--  KIGNORE   ,KIGNORE   ,KIGNORE   ,KIGNORE    ,KIGNORE   ,KIGNORE   ,K=
-IGNORE    ,KIGNORE   ,
--  KIGNORE   ,KIGNORE   ,KIGNORE   ,KIGNORE    ,KIGNORE   ,KIGNORE   ,K=
-=46LOPPY    ,KINTR     ,
--  KIGNORE   ,KIGNORE   ,K(KTn, 0 ),KIGNORE    ,KIGNORE   ,KIGNORE   ,K=
-IGNORE    ,KIGNORE   ,
--  KIGNORE   ,KIGNORE   ,KIGNORE   ,K(KTn,31  ),KIGNORE   ,KIGNORE   ,K=
-IGNORE    ,K(KTf,21 ),
--  K(KTf,20 ),K(KTf,24 ),KNUMLK    ,KPAD_DV    ,KPAD_ML   ,KPAD_HS   ,K=
-IGNORE    ,K(KTn,17 ),
--  K(KTn,23 ),K(KTn, 5 ),K(KTn,18 ),K(KTn,20  ),K(KTn,25 ),K(KTn,21 ),K=
-(KTn, 9  ),K(KTn,15 ),
--  K(KTn,16 ),KIGNORE   ,KIGNORE   ,KIGNORE    ,K(KTf,22 ),K(KTf,23 ),K=
-(KTf,25  ),KPAD_7    ,
--  KPAD_8    ,KPAD_9    ,KPAD_MI   ,KCTRL      ,K(KTn, 1 ),K(KTn,19 ),K=
-(KTn, 4  ),K(KTn, 6 ),
--  K(KTn, 7 ),K(KTn, 8 ),K(KTn,10 ),K(KTn,11  ),K(KTn,12 ),KIGNORE   ,K=
-(KTn, 7  ),KENTER    ,
--  KPAD_4    ,KPAD_5    ,KPAD_6    ,KPAD_PL    ,KSHIFT    ,KIGNORE   ,K=
-(KTn,26  ),K(KTn,24 ),
--  K(KTn, 3 ),K(KTn,22 ),K(KTn, 2 ),K(KTn,14  ),K(KTn,13 ),KIGNORE   ,K=
-IGNORE    ,KIGNORE   ,
--  KSHIFT    ,K(KTc,Kcu),KPAD_1    ,KPAD_2     ,KPAD_3    ,KCAPSLK   ,K=
-ALT       ,K(KTn, 0 ),
--  KALTGR    ,KCTRL     ,K(KTc,Kcl),K(KTc,Kcd ),K(KTc,Kcr),KPAD_0    ,K=
-PAD_DT    ,KPAD_EN   ,
--  KIGNORE   ,KIGNORE   ,KIGNORE   ,KIGNORE    ,KIGNORE   ,KIGNORE   ,K=
-IGNORE    ,KIGNORE   ,
--  KIGNORE   ,KIGNORE   ,KIGNORE   ,KIGNORE    ,KIGNORE   ,KIGNORE   ,K=
-IGNORE    ,KIGNORE   ,
--  KIGNORE   ,KIGNORE   ,KIGNORE   ,KIGNORE    ,KIGNORE   ,KIGNORE   ,K=
-IGNORE    ,KIGNORE   ,
--};
--
--u_short alt_map[NR_KEYS]=3D
--{
--  K(KMt,27 ),K(KCn, 0 ),K(KCn, 1 ),K(KCn, 2  ),K(KCn, 3 ),K(KCn, 4 ),K=
-(KCn, 5  ),K(KCn, 6 ),
--  K(KCn, 7 ),K(KCn, 8 ),K(KCn, 9 ),K(KCn,10  ),K(KCn,11 ),KIGNORE   ,K=
-SCRLLK    ,KINTR     ,
--  K(KMt,'`'),K(KMt,'1'),K(KMt,'2'),K(KMt,'3' ),K(KMt,'4'),K(KMt,'5'),K=
-(KMt,'6' ),K(KMt,'7'),
--  K(KMt,'8'),K(KMt,'9'),K(KMt,'0'),K(KMt,'-' ),K(KMt,'=3D'),K(KMt,'=A3=
-'),K(KMt,127 ),K(KTf,21 ),
--  K(KTf,20 ),K(KTf,24 ),KNUMLK    ,KPAD_DV    ,KPAD_ML   ,KPAD_HS   ,K=
-(KMt, 9  ),K(KMt,'q'),
--  K(KMt,'w'),K(KMt,'e'),K(KMt,'r'),K(KMt,'t' ),K(KMt,'y'),K(KMt,'u'),K=
-(KMt,'i' ),K(KMt,'o'),
--  K(KMt,'p'),K(KMt,'['),K(KMt,']'),K(KMt,'\\'),K(KTf,22 ),K(KTf,23 ),K=
-(KTf,25  ),KPADA_7   ,
--  KPADA_8   ,KPADA_9   ,KPAD_MI   ,KCTRL      ,K(KMt,'a'),K(KMt,'s'),K=
-(KMt,'d' ),K(KMt,'f'),
--  K(KMt,'g'),K(KMt,'h'),K(KMt,'j'),K(KMt,'k' ),K(KMt,'l'),K(KMt,';'),K=
-(KMt,'\''),K(KMt,13 ),
--  KPADA_4   ,KPADA_5   ,KPADA_6   ,KPAD_PL    ,KSHIFT    ,KIGNORE   ,K=
-(KMt,'z' ),K(KMt,'x'),
--  K(KMt,'c'),K(KMt,'v'),K(KMt,'b'),K(KMt,'n' ),K(KMt,'m'),K(KMt,','),K=
-(KMt,'.' ),KIGNORE   ,
--  KSHIFT    ,K(KTc,Kcu),KPADA_1   ,KPADA_2    ,KPADA_3   ,KCAPSLK   ,K=
-ALT       ,K(KMt,' '),
--  KALTGR    ,KCTRL     ,CONS_DEC  ,K(KTc,Kcd ),CONS_INC  ,KPADA_0   ,K=
-PAD_DT    ,KPAD_EN   ,
--  KIGNORE   ,KIGNORE   ,KIGNORE   ,KIGNORE    ,KIGNORE   ,KIGNORE   ,K=
-IGNORE    ,KIGNORE   ,
--  KIGNORE   ,KIGNORE   ,KIGNORE   ,KIGNORE    ,KIGNORE   ,KIGNORE   ,K=
-IGNORE    ,KIGNORE   ,
--  KIGNORE   ,KIGNORE   ,KIGNORE   ,KIGNORE    ,KIGNORE   ,KIGNORE   ,K=
-IGNORE    ,KIGNORE   ,
--};
--
--u_short ctrl_alt_map[NR_KEYS]=3D
--{
--  KIGNORE   ,K(KCn, 0 ),K(KCn, 1 ),K(KCn, 2  ),K(KCn, 3 ),K(KCn, 4 ),K=
-(KCn, 5  ),K(KCn, 6 ),
--  K(KCn, 7 ),K(KCn, 8 ),K(KCn, 9 ),K(KCn,10  ),K(KCn,11 ),KIGNORE   ,K=
-IGNORE    ,KINTR     ,
--  KIGNORE   ,KIGNORE   ,KIGNORE   ,KIGNORE    ,KIGNORE   ,KIGNORE   ,K=
-IGNORE    ,KIGNORE   ,
--  KIGNORE   ,KIGNORE   ,KIGNORE   ,KIGNORE    ,KIGNORE   ,KIGNORE   ,K=
-IGNORE    ,K(KTf,21 ),
--  K(KTf,20 ),K(KTf,24 ),KNUMLK    ,KPAD_DV    ,KPAD_ML   ,KPAD_HS   ,K=
-IGNORE    ,K(KMt,17 ),
--  K(KMt,23 ),K(KMt, 5 ),K(KMt,18 ),K(KMt,20  ),K(KMt,25 ),K(KMt,21 ),K=
-(KMt, 9  ),K(KMt,15 ),
--  K(KMt,16 ),KIGNORE   ,KIGNORE   ,KIGNORE    ,KREBOOT   ,K(KTf,23 ),K=
-(KTf,25  ),KPAD_7    ,
--  KPAD_8    ,KPAD_9    ,KPAD_MI   ,KCTRL      ,K(KMt, 1 ),K(KMt,19 ),K=
-(KMt, 4  ),K(KMt, 6 ),
--  K(KMt, 7 ),K(KMt, 8 ),K(KMt,10 ),K(KMt,11  ),K(KMt,12 ),KIGNORE   ,K=
-IGNORE    ,KENTER    ,
--  KPAD_4    ,KPAD_5    ,KPAD_6    ,KPAD_PL    ,KSHIFT    ,KIGNORE   ,K=
-(KMt,26  ),K(KMt,24 ),
--  K(KMt, 3 ),K(KMt,22 ),K(KMt, 2 ),K(KMt,14  ),K(KMt,13 ),KIGNORE   ,K=
-IGNORE    ,KIGNORE   ,
--  KSHIFT    ,K(KTc,Kcu),KPAD_1    ,KPAD_2     ,KPAD_3    ,KCAPSLK   ,K=
-ALT       ,KIGNORE   ,
--  KALTGR    ,KCTRL     ,K(KTc,Kcl),K(KTc,Kcd ),K(KTc,Kcr),KPAD_0    ,K=
-REBOOT    ,KPAD_EN   ,
--  KIGNORE   ,KIGNORE   ,KIGNORE   ,KIGNORE    ,KIGNORE   ,KIGNORE   ,K=
-IGNORE    ,KIGNORE   ,
--  KIGNORE   ,KIGNORE   ,KIGNORE   ,KIGNORE    ,KIGNORE   ,KIGNORE   ,K=
-IGNORE    ,KIGNORE   ,
--  KIGNORE   ,KIGNORE   ,KIGNORE   ,KIGNORE    ,KIGNORE   ,KIGNORE   ,K=
-IGNORE    ,KIGNORE   ,
--};
--
--ushort *key_maps[MAX_NR_KEYMAPS] =3D {
--	plain_map, shift_map, altgr_map, 0,
--	ctrl_map, shift_ctrl_map, 0, 0,
--	alt_map, 0, 0, 0,
--	ctrl_alt_map,	0
--};
--
--unsigned int keymap_count =3D 7;
--
--/*
-- * Philosophy: most people do not define more strings, but they who do
-- * often want quite a lot of string space. So, we statically allocate
-- * the default and allocate dynamically in chunks of 512 bytes.
-- */
--
--char func_buf[] =3D {
--	'\033', '[', '[', 'A', 0,
--	'\033', '[', '[', 'B', 0,
--	'\033', '[', '[', 'C', 0,
--	'\033', '[', '[', 'D', 0,
--	'\033', '[', '[', 'E', 0,
--	'\033', '[', '1', '7', '~', 0,
--	'\033', '[', '1', '8', '~', 0,
--	'\033', '[', '1', '9', '~', 0,
--	'\033', '[', '2', '0', '~', 0,
--	'\033', '[', '2', '1', '~', 0,
--	'\033', '[', '2', '3', '~', 0,
--	'\033', '[', '2', '4', '~', 0,
--	'\033', '[', '2', '5', '~', 0,
--	'\033', '[', '2', '6', '~', 0,
--	'\033', '[', '2', '8', '~', 0,
--	'\033', '[', '2', '9', '~', 0,
--	'\033', '[', '3', '1', '~', 0,
--	'\033', '[', '3', '2', '~', 0,
--	'\033', '[', '3', '3', '~', 0,
--	'\033', '[', '3', '4', '~', 0,
--	'\033', '[', '1', '~', 0,
--	'\033', '[', '2', '~', 0,
--	'\033', '[', '3', '~', 0,
--	'\033', '[', '4', '~', 0,
--	'\033', '[', '5', '~', 0,
--	'\033', '[', '6', '~', 0,
--	'\033', '[', 'M', 0,
--	'\033', '[', 'P', 0,
--};
--
--char *funcbufptr =3D func_buf;
--int funcbufsize =3D sizeof(func_buf);
--int funcbufleft =3D 0;          /* space left */
--
--char *func_table[MAX_NR_FUNC] =3D {
--	func_buf + 0,
--	func_buf + 5,
--	func_buf + 10,
--	func_buf + 15,
--	func_buf + 20,
--	func_buf + 25,
--	func_buf + 31,
--	func_buf + 37,
--	func_buf + 43,
--	func_buf + 49,
--	func_buf + 55,
--	func_buf + 61,
--	func_buf + 67,
--	func_buf + 73,
--	func_buf + 79,
--	func_buf + 85,
--	func_buf + 91,
--	func_buf + 97,
--	func_buf + 103,
--	func_buf + 109,
--	func_buf + 115,
--	func_buf + 120,
--	func_buf + 125,
--	func_buf + 130,
--	func_buf + 135,
--	func_buf + 140,
--	func_buf + 145,
--	0,
--	0,
--	func_buf + 149,
--	0,
--};
--
--struct kbdiacruc accent_table[MAX_DIACR] =3D {
--	{'`', 'A', 0300},	{'`', 'a', 0340},
--	{'\'', 'A', 0301},	{'\'', 'a', 0341},
--	{'^', 'A', 0302},	{'^', 'a', 0342},
--	{'~', 'A', 0303},	{'~', 'a', 0343},
--	{'"', 'A', 0304},	{'"', 'a', 0344},
--	{'O', 'A', 0305},	{'o', 'a', 0345},
--	{'0', 'A', 0305},	{'0', 'a', 0345},
--	{'A', 'A', 0305},	{'a', 'a', 0345},
--	{'A', 'E', 0306},	{'a', 'e', 0346},
--	{',', 'C', 0307},	{',', 'c', 0347},
--	{'`', 'E', 0310},	{'`', 'e', 0350},
--	{'\'', 'E', 0311},	{'\'', 'e', 0351},
--	{'^', 'E', 0312},	{'^', 'e', 0352},
--	{'"', 'E', 0313},	{'"', 'e', 0353},
--	{'`', 'I', 0314},	{'`', 'i', 0354},
--	{'\'', 'I', 0315},	{'\'', 'i', 0355},
--	{'^', 'I', 0316},	{'^', 'i', 0356},
--	{'"', 'I', 0317},	{'"', 'i', 0357},
--	{'-', 'D', 0320},	{'-', 'd', 0360},
--	{'~', 'N', 0321},	{'~', 'n', 0361},
--	{'`', 'O', 0322},	{'`', 'o', 0362},
--	{'\'', 'O', 0323},	{'\'', 'o', 0363},
--	{'^', 'O', 0324},	{'^', 'o', 0364},
--	{'~', 'O', 0325},	{'~', 'o', 0365},
--	{'"', 'O', 0326},	{'"', 'o', 0366},
--	{'/', 'O', 0330},	{'/', 'o', 0370},
--	{'`', 'U', 0331},	{'`', 'u', 0371},
--	{'\'', 'U', 0332},	{'\'', 'u', 0372},
--	{'^', 'U', 0333},	{'^', 'u', 0373},
--	{'"', 'U', 0334},	{'"', 'u', 0374},
--	{'\'', 'Y', 0335},	{'\'', 'y', 0375},
--	{'T', 'H', 0336},	{'t', 'h', 0376},
--	{'s', 's', 0337},	{'"', 'y', 0377},
--	{'s', 'z', 0337},	{'i', 'j', 0377},
--};
--
--unsigned int accent_table_size =3D 68;
+diff -puN Documentation/filesystems/Locking~access_process_vm-device-memory-infrastructure-fix Documentation/filesystems/Locking
+--- a/Documentation/filesystems/Locking~access_process_vm-device-memory-infrastructure-fix
++++ a/Documentation/filesystems/Locking
+@@ -510,6 +510,7 @@ prototypes:
+ 	void (*close)(struct vm_area_struct*);
+ 	int (*fault)(struct vm_area_struct*, struct vm_fault *);
+ 	int (*page_mkwrite)(struct vm_area_struct *, struct page *);
++	int (*access)(struct vm_area_struct *, unsigned long, void*, int, int);
+ 
+ locking rules:
+ 		BKL	mmap_sem	PageLocked(page)
+@@ -517,6 +518,7 @@ open:		no	yes
+ close:		no	yes
+ fault:		no	yes
+ page_mkwrite:	no	yes		no
++access:		no	yes
+ 
+ 	->page_mkwrite() is called when a previously read-only page is
+ about to become writeable. The file system is responsible for
+@@ -525,6 +527,11 @@ taking to lock out truncate, the page ra
+ within i_size. The page mapping should also be checked that it is not
+ NULL.
+ 
++	->access() is called when get_user_pages() fails in
++acces_process_vm(), typically used to debug a process through
++/proc/pid/mem or ptrace.  This function is needed only for
++VM_IO | VM_PFNMAP VMAs.
++
+ ================================================================================
+ 			Dubious stuff
+ 
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from riel@redhat.com are
 
-linux-next.patch
-proper-prototype-for-acpi_processor_tstate_has_changed.patch
-remove-drivers-acorn-char-defkeymap-l7200c.patch
-drm-make-drm_minors_cleanup-static.patch
-git-input.patch
-nfs-make-nfs4_drop_state_owner-static.patch
-show_schedstat-fix-memleak.patch
-if-0-ses_match_host.patch
-git-watchdog.patch
-git-xtensa.patch
-ibmaem-fix-64-bit-division-on-32-bit-platforms-update.patch
-md-proper-extern-for-mdp_major.patch
-mm-migratec-should-include-linux-syscallsh.patch
-mm-vmstatc-proper-externs.patch
-mm-hugetlbc-fix-duplicate-variable.patch
-remove-include-asm-h8300-keyboardh.patch
-remove-the-v850-port.patch
-init-do_mountsc-should-include-linux-initrdh.patch
-proper-spawn_ksoftirqd-prototype.patch
-remove-the-oss-trident-driver.patch
-serial-8250_gscc-add-module_license.patch
-mfd-sm501c-if-0-unused-functions.patch
-xen-drivers-xen-balloonc-make-a-function-static.patch
-video-sis-remove-compat-code.patch
-minix-remove-no_truncate-code.patch
-remove-is_tty.patch
-proper-extern-for-mwave_s_mdd.patch
-if-0-hpet_unregister.patch
-unexport-proc_clear_tty.patch
-move-proc_kmsg_operations-to-fs-proc-internalh.patch
-proper-pidhashmap_init-prototypes.patch
-unexport-uts_sem.patch
-parport-sharec-proper-externs.patch
-tpm_biosc-make-2-structs-static.patch
-make-cgroup_seqfile_release-static.patch
-make-kprobe_blacklist-static.patch
-make-pnp_add_card_id-static.patch
-make-struct-mpt_proc_root_dir-static.patch
-make-parport_cs_release-static.patch
-make-mm-sparsec-make-a-function-static.patch
-mm-allocpercpuc-make-4-functions-static.patch
-make-mm-memoryc-print_bad_pte-static.patch
-mm-swapfilec-make-code-static.patch
+access_process_vm-device-memory-infrastructure.patch
+access_process_vm-device-memory-infrastructure-fix.patch
+use-generic_access_phys-for-dev-mem-mappings.patch
+use-generic_access_phys-for-pci-mmap-on-x86.patch
+powerpc-ioremap_prot.patch
+spufs-use-the-new-vm_ops-access.patch
+spufs-use-the-new-vm_ops-access-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+idr-change-the-idr-structure.patch
+idr-rename-some-of-the-idr-apis-internal-routines.patch
+idr-fix-a-printk-call.patch
+idr-error-checking-factorization.patch
+idr-make-idr_get_new-rcu-safe.patch
+idr-make-idr_find-rcu-safe.patch
+idr-make-idr_remove-rcu-safe.patch
+ipc-call-idr_find-without-locking-in-ipc_lock.patch
+ipc-get-rid-of-ipc_lock_down.patch
 make-mm-rmapc-anon_vma_cachep-static.patch
-drivers-char-rtcc-make-2-functions-static.patch
-make-init-do_mountsc-root_device_name-static.patch
-reiser4.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
