@@ -1,89 +1,140 @@
 From: akpm@linux-foundation.org
-Subject: - x86-fix-mprotects-nx-handling-on-pae.patch removed from -mm tree
-Date: Mon, 19 May 2008 16:29:08 -0700
-Message-ID: <200805192329.m4JNT8AH026744@imap1.linux-foundation.org>
+Subject: + lib-add-byteorder-helpers-for-the-aligned-case.patch added to -mm tree
+Date: Mon, 19 May 2008 16:44:19 -0700
+Message-ID: <200805192344.m4JNiJtt027351@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59042 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58627 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752989AbYESX3d (ORCPT
+	by vger.kernel.org with ESMTP id S1756688AbYESXoo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 May 2008 19:29:33 -0400
+	Mon, 19 May 2008 19:44:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh@veritas.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: harvey.harrison@gmail.com, stern@rowland.harvard.edu
 
 
 The patch titled
-     x86: fix mprotect's NX handling on PAE
-has been removed from the -mm tree.  Its filename was
-     x86-fix-mprotects-nx-handling-on-pae.patch
+     lib: add byteorder helpers for the aligned case
+has been added to the -mm tree.  Its filename is
+     lib-add-byteorder-helpers-for-the-aligned-case.patch
 
-This patch was dropped because Linus woke up
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: fix mprotect's NX handling on PAE
-From: Hugh Dickins <hugh@veritas.com>
+Subject: lib: add byteorder helpers for the aligned case
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-2.6.26-rc3 with CONFIG_X86_PAE may leave the NX bit set when PROT_EXEC
-is intending to clear it, causing irqbalance and others to segfault,
-and X startup to fail.
+Some users know the pointer they are writing to are aligned, rather than
+doing *(__le16 *)ptr = cpu_to_le16(val) add helpers wrapping this up that
+have the same convention as put_unaligned_le/be.
 
-This comes from an assumption in
-1c12c4cf9411eb130b245fa8d0fbbaf989477c7b mprotect: prevent alteration
-of the PAT bits, that PTE_MASK is what it's supposed to be: whereas
-it's been wrong forever with PAE, staying 32-bit where 64-bit is
-needed.
-
-Jeremy Fitzhardinge already has patches to fix that in Ingo's tree; but
-if they're not considered 2.6.26 material, or people want a quick
-two-liner to get working, here's a shorter hack to fix up pte_modify.
-
-I apologize to those we've broken, and to Venki Pallipadi: it was I who
-persuaded him to change his working patch to make that false
-assumption.
-
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Alan Stern <stern@rowland.harvard.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-x86/pgtable.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/byteorder/generic.h |   30 ++++++++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
 
-diff -puN include/asm-x86/pgtable.h~x86-fix-mprotects-nx-handling-on-pae include/asm-x86/pgtable.h
---- a/include/asm-x86/pgtable.h~x86-fix-mprotects-nx-handling-on-pae
-+++ a/include/asm-x86/pgtable.h
-@@ -57,8 +57,8 @@
- #define _KERNPG_TABLE	(_PAGE_PRESENT | _PAGE_RW | _PAGE_ACCESSED |	\
- 			 _PAGE_DIRTY)
+diff -puN include/linux/byteorder/generic.h~lib-add-byteorder-helpers-for-the-aligned-case include/linux/byteorder/generic.h
+--- a/include/linux/byteorder/generic.h~lib-add-byteorder-helpers-for-the-aligned-case
++++ a/include/linux/byteorder/generic.h
+@@ -119,6 +119,36 @@
+ #define cpu_to_be16s __cpu_to_be16s
+ #define be16_to_cpus __be16_to_cpus
  
--#define _PAGE_CHG_MASK	(PTE_MASK | _PAGE_PCD | _PAGE_PWT |		\
--			 _PAGE_ACCESSED | _PAGE_DIRTY)
-+#define _PAGE_CHG_MASK	(((pteval_t) PTE_MASK & ~_PAGE_NX) | 		\
-+			 _PAGE_PCD | _PAGE_PWT | _PAGE_ACCESSED | _PAGE_DIRTY)
- 
- #define _PAGE_CACHE_MASK	(_PAGE_PCD | _PAGE_PWT)
- #define _PAGE_CACHE_WB		(0)
++static inline void put_le16(u16 val, void *ptr)
++{
++	*(__le16 *)ptr = cpu_to_le16(val);
++}
++
++static inline void put_le32(u32 val, void *ptr)
++{
++	*(__le32 *)ptr = cpu_to_le32(val);
++}
++
++static inline void put_le64(u64 val, void *ptr)
++{
++	*(__le64 *)ptr = cpu_to_le64(val);
++}
++
++static inline void put_be16(u16 val, void *ptr)
++{
++	*(__be16 *)ptr = cpu_to_be16(val);
++}
++
++static inline void put_be32(u32 val, void *ptr)
++{
++	*(__be32 *)ptr = cpu_to_be32(val);
++}
++
++static inline void put_be64(u64 val, void *ptr)
++{
++	*(__be64 *)ptr = cpu_to_be64(val);
++}
++
+ /*
+  * They have to be macros in order to do the constant folding
+  * correctly - if the argument passed into a inline function
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
-git-unionfs.patch
-x86-fix-mprotects-nx-handling-on-pae.patch
-access_process_vm-device-memory-infrastructure.patch
-use-generic_access_phys-for-dev-mem-mappings.patch
-use-generic_access_phys-for-pci-mmap-on-x86.patch
-powerpc-ioremap_prot.patch
-spufs-use-the-new-vm_ops-access.patch
-spufs-use-the-new-vm_ops-access-fix.patch
-mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co.patch
-memcg-better-migration-handling.patch
-memcg-remove-refcnt-from-page_cgroup.patch
-memcg-handle-swap-cache.patch
-memcg-helper-function-for-relcaim-from-shmem.patch
-memcg-add-hints-for-branch.patch
-memcg-remove-a-redundant-check.patch
-prio_tree-debugging-patch.patch
+linux-next.patch
+kgdb-use-put_unaligned_be32-helper.patch
+cifs-remove-global_extern-macro.patch
+media-use-get_unaligned_-helpers.patch
+hid-use-get-put_unaligned_-helpers.patch
+git-input.patch
+ata-remove-fit-macro.patch
+mtd-mtdcharc-silence-sparse-warning.patch
+mtd-mtdcharc-remove-shadowed-variable-warnings.patch
+nfs-replace-remaining-__function__-occurrences.patch
+scsi-replace-remaining-__function__-occurrences.patch
+fusion-replace-remaining-__function__-occurrences.patch
+scsi-replace-__inline-with-inline.patch
+scsi-use-get_unaligned_-helpers.patch
+scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
+scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
+block-use-get_unaligned_-helpers.patch
+usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues.patch
+usb-file-storagec-use-unaligned-access-helpers.patch
+git-watchdog.patch
+mac80211-michaelc-use-kernel-provided-infrastructure.patch
+mac80211-introduce-struct-michael_mic_ctx-and-static-helpers.patch
+mac80211-add-const-remove-unused-function-make-one-function-static.patch
+mac80211-add-a-struct-to-hold-tkip-context.patch
+mac80211-tkipc-use-struct-tkip_ctx-in-phase-1-key-mixing.patch
+mac80211-tkipc-use-struct-tkip_ctx-in-phase-2-key-mixing.patch
+xfs-use-get_unaligned_-helpers.patch
+xtensa-replace-remaining-__function__-occurences.patch
+fs-ldm-use-get_unaligned_-helpers.patch
+include-use-get-put_unaligned_-helpers.patch
+lzo-use-get-put_unaligned_-helpers.patch
+video-fix-integer-as-null-pointer-warnings.patch
+scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
+isdn-use-the-common-ascii-hex-helpers.patch
+net-use-the-common-ascii-hex-helpers.patch
+kgdb-use-the-common-ascii-hex-helpers.patch
+cris-use-the-common-ascii-hex-helpers.patch
+frv-use-the-common-ascii-hex-helpers.patch
+mips-use-the-common-ascii-hex-helpers.patch
+sh-use-the-common-ascii-hex-helpers.patch
+ppc-use-the-common-ascii-hex-helpers.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+mn10300-use-the-common-ascii-hex-helpers.patch
+lib-add-byteorder-helpers-for-the-aligned-case.patch
 
