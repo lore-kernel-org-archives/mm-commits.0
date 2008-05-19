@@ -1,156 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: + atmel_lcdfb-fifo-underflow-management.patch added to -mm tree
-Date: Mon, 19 May 2008 15:56:13 -0700
-Message-ID: <200805192256.m4JMuDXH025258@imap1.linux-foundation.org>
+Subject: - x86-fix-mprotects-nx-handling-on-pae.patch removed from -mm tree
+Date: Mon, 19 May 2008 16:29:08 -0700
+Message-ID: <200805192329.m4JNT8AH026744@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51673 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59042 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752902AbYESW4n (ORCPT
+	by vger.kernel.org with ESMTP id S1752989AbYESX3d (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 May 2008 18:56:43 -0400
+	Mon, 19 May 2008 19:29:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: nicolas.ferre@atmel.com, hskinnemoen@atmel.com, linux@maxim.org.za
+To: hugh@veritas.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atmel_lcdfb: FIFO underflow management
-has been added to the -mm tree.  Its filename is
-     atmel_lcdfb-fifo-underflow-management.patch
+     x86: fix mprotect's NX handling on PAE
+has been removed from the -mm tree.  Its filename was
+     x86-fix-mprotects-nx-handling-on-pae.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because Linus woke up
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atmel_lcdfb: FIFO underflow management
-From: Nicolas Ferre <nicolas.ferre@atmel.com>
+Subject: x86: fix mprotect's NX handling on PAE
+From: Hugh Dickins <hugh@veritas.com>
 
-Manage atmel_lcdfb FIFO underflow
+2.6.26-rc3 with CONFIG_X86_PAE may leave the NX bit set when PROT_EXEC
+is intending to clear it, causing irqbalance and others to segfault,
+and X startup to fail.
 
-Resetting the LCD and DMA allows to fix screen shifting after a FIFO
-underflow.  It follows reset sequence from errata "LCD Screen Shifting
-After a Reset".
+This comes from an assumption in
+1c12c4cf9411eb130b245fa8d0fbbaf989477c7b mprotect: prevent alteration
+of the PAT bits, that PTE_MASK is what it's supposed to be: whereas
+it's been wrong forever with PAE, staying 32-bit where 64-bit is
+needed.
 
-Signed-off-by: Nicolas Ferre <nicolas.ferre@atmel.com>
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Cc: Andrew Victor <linux@maxim.org.za>
+Jeremy Fitzhardinge already has patches to fix that in Ingo's tree; but
+if they're not considered 2.6.26 material, or people want a quick
+two-liner to get working, here's a shorter hack to fix up pte_modify.
+
+I apologize to those we've broken, and to Venki Pallipadi: it was I who
+persuaded him to change his working patch to make that false
+assumption.
+
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/atmel_lcdfb.c |   50 +++++++++++++++++++++++++++++++++-
- include/video/atmel_lcdc.h  |    1 
- 2 files changed, 50 insertions(+), 1 deletion(-)
+ include/asm-x86/pgtable.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/atmel_lcdfb.c~atmel_lcdfb-fifo-underflow-management drivers/video/atmel_lcdfb.c
---- a/drivers/video/atmel_lcdfb.c~atmel_lcdfb-fifo-underflow-management
-+++ a/drivers/video/atmel_lcdfb.c
-@@ -379,6 +379,33 @@ static int atmel_lcdfb_check_var(struct 
- 	return 0;
- }
+diff -puN include/asm-x86/pgtable.h~x86-fix-mprotects-nx-handling-on-pae include/asm-x86/pgtable.h
+--- a/include/asm-x86/pgtable.h~x86-fix-mprotects-nx-handling-on-pae
++++ a/include/asm-x86/pgtable.h
+@@ -57,8 +57,8 @@
+ #define _KERNPG_TABLE	(_PAGE_PRESENT | _PAGE_RW | _PAGE_ACCESSED |	\
+ 			 _PAGE_DIRTY)
  
-+/*
-+ * LCD reset sequence
-+ */
-+static void atmel_lcdfb_reset(struct atmel_lcdfb_info *sinfo)
-+{
-+	/* LCD power off */
-+	lcdc_writel(sinfo, ATMEL_LCDC_PWRCON, sinfo->guard_time << ATMEL_LCDC_GUARDT_OFFSET);
-+
-+	/* wait for the LCDC core to become idle */
-+	while (lcdc_readl(sinfo, ATMEL_LCDC_PWRCON) & ATMEL_LCDC_BUSY)
-+		msleep(10);
-+
-+	/* DMA disable */
-+	lcdc_writel(sinfo, ATMEL_LCDC_DMACON, 0);
-+
-+	/* wait for DMA engine to become idle */
-+	while (lcdc_readl(sinfo, ATMEL_LCDC_DMACON) & ATMEL_LCDC_DMABUSY)
-+		msleep(10);
-+
-+	/* LCD power on */
-+	lcdc_writel(sinfo, ATMEL_LCDC_PWRCON,
-+		(sinfo->guard_time << ATMEL_LCDC_GUARDT_OFFSET) | ATMEL_LCDC_PWR);
-+
-+	/* DMA enable */
-+	lcdc_writel(sinfo, ATMEL_LCDC_DMACON, sinfo->default_dmacon);
-+}
-+
- /**
-  *      atmel_lcdfb_set_par - Alters the hardware state.
-  *      @info: frame buffer structure that represents a single frame buffer
-@@ -511,6 +538,8 @@ static int atmel_lcdfb_set_par(struct fb
+-#define _PAGE_CHG_MASK	(PTE_MASK | _PAGE_PCD | _PAGE_PWT |		\
+-			 _PAGE_ACCESSED | _PAGE_DIRTY)
++#define _PAGE_CHG_MASK	(((pteval_t) PTE_MASK & ~_PAGE_NX) | 		\
++			 _PAGE_PCD | _PAGE_PWT | _PAGE_ACCESSED | _PAGE_DIRTY)
  
- 	/* Disable all interrupts */
- 	lcdc_writel(sinfo, ATMEL_LCDC_IDR, ~0UL);
-+	/* Enable FIFO & DMA errors */
-+	lcdc_writel(sinfo, ATMEL_LCDC_IER, ATMEL_LCDC_UFLWI | ATMEL_LCDC_OWRI | ATMEL_LCDC_MERI);
- 
- 	/* ...wait for DMA engine to become idle... */
- 	while (lcdc_readl(sinfo, ATMEL_LCDC_DMACON) & ATMEL_LCDC_DMABUSY)
-@@ -645,10 +674,26 @@ static irqreturn_t atmel_lcdfb_interrupt
- 	u32 status;
- 
- 	status = lcdc_readl(sinfo, ATMEL_LCDC_ISR);
--	lcdc_writel(sinfo, ATMEL_LCDC_IDR, status);
-+	if (status & ATMEL_LCDC_UFLWI) {
-+		dev_warn(info->device, "FIFO underflow %#x\n", status);
-+		/* reset DMA and FIFO to avoid screen shifting */
-+		schedule_work(&sinfo->task);
-+	}
-+	lcdc_writel(sinfo, ATMEL_LCDC_ICR, status);
- 	return IRQ_HANDLED;
- }
- 
-+/*
-+ * LCD controller task (to reset the LCD)
-+ */
-+static void atmel_lcdfb_task(struct work_struct *work)
-+{
-+	struct atmel_lcdfb_info *sinfo =
-+		container_of(work, struct atmel_lcdfb_info, task);
-+
-+	atmel_lcdfb_reset(sinfo);
-+}
-+
- static int __init atmel_lcdfb_init_fbinfo(struct atmel_lcdfb_info *sinfo)
- {
- 	struct fb_info *info = sinfo->info;
-@@ -824,6 +869,9 @@ static int __init atmel_lcdfb_probe(stru
- 		goto unmap_mmio;
- 	}
- 
-+	/* Initialize bottom half workqueue */
-+	INIT_WORK(&sinfo->task, atmel_lcdfb_task);
-+
- 	ret = atmel_lcdfb_init_fbinfo(sinfo);
- 	if (ret < 0) {
- 		dev_err(dev, "init fbinfo failed: %d\n", ret);
-diff -puN include/video/atmel_lcdc.h~atmel_lcdfb-fifo-underflow-management include/video/atmel_lcdc.h
---- a/include/video/atmel_lcdc.h~atmel_lcdfb-fifo-underflow-management
-+++ a/include/video/atmel_lcdc.h
-@@ -37,6 +37,7 @@ struct atmel_lcdfb_info {
- 	struct fb_info		*info;
- 	void __iomem		*mmio;
- 	unsigned long		irq_base;
-+	struct work_struct	task;
- 
- 	unsigned int		guard_time;
- 	struct platform_device	*pdev;
+ #define _PAGE_CACHE_MASK	(_PAGE_PCD | _PAGE_PWT)
+ #define _PAGE_CACHE_WB		(0)
 _
 
-Patches currently in -mm which might be from nicolas.ferre@atmel.com are
+Patches currently in -mm which might be from hugh@veritas.com are
 
-atmel_lcdfb-fifo-underflow-management.patch
+git-unionfs.patch
+x86-fix-mprotects-nx-handling-on-pae.patch
+access_process_vm-device-memory-infrastructure.patch
+use-generic_access_phys-for-dev-mem-mappings.patch
+use-generic_access_phys-for-pci-mmap-on-x86.patch
+powerpc-ioremap_prot.patch
+spufs-use-the-new-vm_ops-access.patch
+spufs-use-the-new-vm_ops-access-fix.patch
+mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co.patch
+memcg-better-migration-handling.patch
+memcg-remove-refcnt-from-page_cgroup.patch
+memcg-handle-swap-cache.patch
+memcg-helper-function-for-relcaim-from-shmem.patch
+memcg-add-hints-for-branch.patch
+memcg-remove-a-redundant-check.patch
+prio_tree-debugging-patch.patch
 
