@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + seq_file-add-function-to-write-binary-data.patch added to -mm tree
-Date: Mon, 19 May 2008 15:12:37 -0700
-Message-ID: <200805192212.m4JMCbTR023398@imap1.linux-foundation.org>
+Subject: + kernel-introduce-gcc_version_lower-macro.patch added to -mm tree
+Date: Mon, 19 May 2008 15:12:33 -0700
+Message-ID: <200805192212.m4JMCXOj023387@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51931 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51491 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765137AbYESWOO (ORCPT
+	by vger.kernel.org with ESMTP id S1765607AbYESWOS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 May 2008 18:14:14 -0400
+	Mon, 19 May 2008 18:14:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: peter.oberparleiter@de.ibm.com
 
 
 The patch titled
-     seq_file: add function to write binary data
+     kernel: introduce GCC_VERSION_LOWER macro
 has been added to the -mm tree.  Its filename is
-     seq_file-add-function-to-write-binary-data.patch
+     kernel-introduce-gcc_version_lower-macro.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,62 +34,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: seq_file: add function to write binary data
+Subject: kernel: introduce GCC_VERSION_LOWER macro
 From: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
 
-seq_write() can be used to construct seq_files containing arbitrary data. 
-Required by the gcov-profiling interface to synthesize binary profiling
-data files.
+GCC_VERSION_LOWER() can be used to check for gcc versions below a certain
+level.
 
 Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/seq_file.c            |   20 ++++++++++++++++++++
- include/linux/seq_file.h |    1 +
- 2 files changed, 21 insertions(+)
+ include/linux/compiler-gcc.h |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN fs/seq_file.c~seq_file-add-function-to-write-binary-data fs/seq_file.c
---- a/fs/seq_file.c~seq_file-add-function-to-write-binary-data
-+++ a/fs/seq_file.c
-@@ -554,6 +554,26 @@ int seq_puts(struct seq_file *m, const c
- }
- EXPORT_SYMBOL(seq_puts);
+diff -puN include/linux/compiler-gcc.h~kernel-introduce-gcc_version_lower-macro include/linux/compiler-gcc.h
+--- a/include/linux/compiler-gcc.h~kernel-introduce-gcc_version_lower-macro
++++ a/include/linux/compiler-gcc.h
+@@ -6,6 +6,9 @@
+  * Common definitions for all gcc versions go here.
+  */
  
-+/**
-+ * seq_write - write arbitrary data to buffer
-+ * @seq: seq_file identifying the buffer to which data should be written
-+ * @data: data address
-+ * @len: number of bytes
-+ *
-+ * Return 0 on success, non-zero otherwise.
-+ */
-+int seq_write(struct seq_file *seq, const void *data, size_t len)
-+{
-+	if (seq->count + len < seq->size) {
-+		memcpy(seq->buf + seq->count, data, len);
-+		seq->count += len;
-+		return 0;
-+	}
-+	seq->count = seq->size;
-+	return -1;
-+}
-+EXPORT_SYMBOL(seq_write);
-+
- struct list_head *seq_list_start(struct list_head *head, loff_t pos)
- {
- 	struct list_head *lh;
-diff -puN include/linux/seq_file.h~seq_file-add-function-to-write-binary-data include/linux/seq_file.h
---- a/include/linux/seq_file.h~seq_file-add-function-to-write-binary-data
-+++ a/include/linux/seq_file.h
-@@ -39,6 +39,7 @@ int seq_release(struct inode *, struct f
- int seq_escape(struct seq_file *, const char *, const char *);
- int seq_putc(struct seq_file *m, char c);
- int seq_puts(struct seq_file *m, const char *s);
-+int seq_write(struct seq_file *seq, const void *data, size_t len);
++#define GCC_VERSION_LOWER(major, minor) ((__GNUC__ < major) || \
++					 (__GNUC__ == major) && \
++					 (__GNUC_MINOR__ < minor))
  
- int seq_printf(struct seq_file *, const char *, ...)
- 	__attribute__ ((format (printf,2,3)));
+ /* Optimization barrier */
+ /* The "volatile" is due to gcc bugs */
 _
 
 Patches currently in -mm which might be from peter.oberparleiter@de.ibm.com are
