@@ -1,144 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: - documentation-build-source-files-in-documentation-sub-dir-disable.patch removed from -mm tree
-Date: Mon, 19 May 2008 13:36:11 -0700
-Message-ID: <200805192036.m4JKaBNZ019316@imap1.linux-foundation.org>
+Subject: + buddy-clarify-comments-describing-buddy-merge.patch added to -mm tree
+Date: Mon, 19 May 2008 14:09:06 -0700
+Message-ID: <200805192109.m4JL97pq020619@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39843 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57791 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752148AbYESUgX (ORCPT
+	by vger.kernel.org with ESMTP id S1756979AbYESVJU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 May 2008 16:36:23 -0400
+	Mon, 19 May 2008 17:09:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: apw@shadowen.org
 
 
 The patch titled
-     documentation-build-source-files-in-documentation-sub-dir-disable
-has been removed from the -mm tree.  Its filename was
-     documentation-build-source-files-in-documentation-sub-dir-disable.patch
+     buddy: clarify comments describing buddy merge
+has been added to the -mm tree.  Its filename is
+     buddy-clarify-comments-describing-buddy-merge.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: documentation-build-source-files-in-documentation-sub-dir-disable
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: buddy: clarify comments describing buddy merge
+From: Andy Whitcroft <apw@shadowen.org>
 
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
+In __free_one_page(), the comment "Move the buddy up one level" appears
+attached to the break and by implication when the break is taken we are
+moving it up one level:
+
+	if (!page_is_buddy(page, buddy, order))
+		break;          /* Move the buddy up one level. */
+
+In reality the inverse is true, we break out when we can no longer merge
+this page with its buddy.  Looking back into pre-history (into the full
+git history) it appears that these two lines accidentally got joined as
+part of another change.
+
+Move the comment down where it belongs below the if and clarify its
+language.
+
+Signed-off-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug |    1 +
- 1 file changed, 1 insertion(+)
+ mm/page_alloc.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN lib/Kconfig.debug~documentation-build-source-files-in-documentation-sub-dir-disable lib/Kconfig.debug
---- a/lib/Kconfig.debug~documentation-build-source-files-in-documentation-sub-dir-disable
-+++ a/lib/Kconfig.debug
-@@ -645,6 +645,7 @@ config FIREWIRE_OHCI_REMOTE_DMA
+diff -puN mm/page_alloc.c~buddy-clarify-comments-describing-buddy-merge mm/page_alloc.c
+--- a/mm/page_alloc.c~buddy-clarify-comments-describing-buddy-merge
++++ a/mm/page_alloc.c
+@@ -441,8 +441,9 @@ static inline void __free_one_page(struc
  
- menuconfig BUILD_DOCSRC
- 	bool "Build targets in Documentation/ tree"
-+	depends on BROKEN
- 	help
- 	  This option attempts to build objects from the source files in the
- 	  kernel Documentation/ tree.
+ 		buddy = __page_find_buddy(page, page_idx, order);
+ 		if (!page_is_buddy(page, buddy, order))
+-			break;		/* Move the buddy up one level. */
++			break;
+ 
++		/* Our buddy is free, merge with it and move up one order. */
+ 		list_del(&buddy->lru);
+ 		zone->free_area[order].nr_free--;
+ 		rmv_page_order(buddy);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from apw@shadowen.org are
 
-linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-fix-kobject-fix-kobject_rename-and-config_sysfs.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-video-balcklist-fujitsu-lifebook-s6410.patch
-git-x86-fixup.patch
-arch-x86-mm-patc-use-boot_cpu_has.patch
-x86-setup_force_cpu_cap-dont-do-clear_bitnon-unsigned-long.patch
-lguest-use-cpu-capability-accessors.patch
-x86-set_restore_sigmask-avoid-bitop-on-a-u32.patch
-x86-bitops-take-an-unsigned-long.patch
-arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
-audit_send_reply-fix-error-path-memory-leak.patch
-zoran-use-correct-type-for-cpu-flags.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-drivers-infiniband-hw-mlx4-qpc-fix-uninitialised-var-warning.patch
-git-input.patch
-git-jg-misc-git-rejects.patch
-drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
-fsldma-the-mpc8377mds-board-device-tree-node-for-fsldma-driver.patch
-mmc-sd-host-driver-for-ricoh-bay1controllers.patch
-git-ubifs.patch
-sundance-set-carrier-status-on-link-change-events.patch
-dm9000-use-delayed-work-to-update-mii-phy-state-fix.patch
-pcnet32-fix-warning.patch
-drivers-net-tokenring-3c359c-squish-a-warning.patch
-drivers-net-tokenring-olympicc-fix-warning.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-battery.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-pci-hotplug-introduce-pci_slot.patch
-pci-hotplug-acpi-pci-slot-detection-driver.patch
-drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
-s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-git-logfs-fixup.patch
-drivers-uwb-nehc-processor-flags-have-type-unsigned-long.patch
-drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
-uwb-fix-scscanf-warning.patch
-drivers-uwb-wlp-sysfsc-dead-code.patch
-drivers-uwb-i1480-dfu-macc-fix-min-warning.patch
-drivers-uwb-whcic-needs-dma-mappingh.patch
-git-vfs-cleanups-reject.patch
-git-watchdog.patch
-git-watchdog-git-rejects.patch
-watchdog-fix-booke_wdtc-on-mpc85xx-smp-system.patch
-wireless-airo-waitbusy-wont-delay-checkpatch-fixes.patch
-git-xtensa.patch
-ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware-ia64-warnings.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-add-a-basic-debugging-framework-for-memory-initialisation.patch
+mm-add-a-basic-debugging-framework-for-memory-initialisation-fix.patch
 mm-verify-the-page-links-and-memory-model.patch
-mspec-convert-nopfn-to-fault-fix.patch
-page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
-kill-generic_file_direct_io-checkpatch-fixes.patch
-spufs-use-the-new-vm_ops-access-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-split-the-typecheck-macros-out-of-include-linux-kernelh.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
-remove-apparently-unused-fd1772h-header-file.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
-rename-warn-to-warning-to-clear-the-namespace-fix.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
-flag-parameters-paccept-fix.patch
-flag-parameters-paccept-sys_ni.patch
-flag-parameters-anon_inode_getfd-extension-fix.patch
-flag-parameters-signalfd-fix.patch
-flag-parameters-eventfd-fix.patch
-flag-parameters-inotify_init-fix.patch
-flag-parameters-check-magic-constants-alpha-hack.patch
-drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
-reiserfs-convert-j_flush_sem-to-mutex-fix.patch
-reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-reiser4.patch
-reiser4-semaphore-fix.patch
+mm-make-defensive-checks-around-pfn-values-registered-for-memory-usage.patch
+mm-print-out-the-zonelists-on-request-for-manual-verification.patch
+mm-move-bootmem-descriptors-definition-to-a-single-place.patch
+mm-fix-free_all_bootmem_core-alignment-check.patch
+mm-normalize-internal-argument-passing-of-bootmem-data.patch
+mm-unexport-__alloc_bootmem_core.patch
+buddy-clarify-comments-describing-buddy-merge.patch
+update-checkpatchpl-to-version-019.patch
+update-checkpatchpl-to-version-019-fix.patch
 page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
 
