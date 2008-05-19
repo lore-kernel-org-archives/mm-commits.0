@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-altix-boot-breakage-in-acpi.patch added to -mm tree
-Date: Sat, 17 May 2008 09:40:06 -0700
-Message-ID: <200805171640.m4HGe6oe007121@imap1.linux-foundation.org>
+Subject: + md-fix-possible-oops-when-removing-a-bitmap-from-an-active-array.patch added to -mm tree
+Date: Sun, 18 May 2008 18:27:25 -0700
+Message-ID: <200805190127.m4J1RPP9009546@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47224 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46468 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751523AbYEQQlK (ORCPT
+	by vger.kernel.org with ESMTP id S1751625AbYESB1b (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 17 May 2008 12:41:10 -0400
+	Sun, 18 May 2008 21:27:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rja@sgi.com, lenb@kernel.org, mingo@elte.hu, tony.luck@intel.com
+Cc: neilb@suse.de
 
 
 The patch titled
-     Fix Altix boot breakage in ACPI
+     md: fix possible oops when removing a bitmap from an active array
 has been added to the -mm tree.  Its filename is
-     fix-altix-boot-breakage-in-acpi.patch
+     md-fix-possible-oops-when-removing-a-bitmap-from-an-active-array.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,52 +34,61 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Fix Altix boot breakage in ACPI
-From: Russ Anderson <rja@sgi.com>
+Subject: md: fix possible oops when removing a bitmap from an active array
+From: NeilBrown <neilb@suse.de>
 
-A recent ACPI change (commit 5dc90c0b2d4bd0127624bab67cec159b2c6c4daf)
-inadvertently broke Altix boot.  This patch allow Altix to boot.
+It is possible to add a write-intent bitmap to an active array, or remove
+the bitmap that is there.
 
-Signed-off-by: Russ Anderson <rja@sgi.com>
-Acked-by: Ingo Molnar <mingo@elte.hu>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Len Brown <lenb@kernel.org>
+When we do with the 'quiesce' the array, which causes make_request to
+block in "wait_barrier()".
+
+However we are sampling the value of "mddev->bitmap" before the
+wait_barrier call, and using it afterwards.  This can result in using a
+bitmap structure that has been freed.
+
+Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/Kconfig    |    4 ++++
- include/linux/acpi.h |    2 +-
- 2 files changed, 5 insertions(+), 1 deletion(-)
+ drivers/md/raid1.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN arch/ia64/Kconfig~fix-altix-boot-breakage-in-acpi arch/ia64/Kconfig
---- a/arch/ia64/Kconfig~fix-altix-boot-breakage-in-acpi
-+++ a/arch/ia64/Kconfig
-@@ -60,6 +60,10 @@ config RWSEM_XCHGADD_ALGORITHM
- 	bool
- 	default y
+diff -puN drivers/md/raid1.c~md-fix-possible-oops-when-removing-a-bitmap-from-an-active-array drivers/md/raid1.c
+--- a/drivers/md/raid1.c~md-fix-possible-oops-when-removing-a-bitmap-from-an-active-array
++++ a/drivers/md/raid1.c
+@@ -773,7 +773,7 @@ static int make_request(struct request_q
+ 	r1bio_t *r1_bio;
+ 	struct bio *read_bio;
+ 	int i, targets = 0, disks;
+-	struct bitmap *bitmap = mddev->bitmap;
++	struct bitmap *bitmap;
+ 	unsigned long flags;
+ 	struct bio_list bl;
+ 	struct page **behind_pages = NULL;
+@@ -802,6 +802,8 @@ static int make_request(struct request_q
  
-+config HAVE_ARCH_PARSE_SRAT
-+	bool
-+	default y
+ 	wait_barrier(conf);
+ 
++	bitmap = mddev->bitmap;
 +
- config ARCH_HAS_ILOG2_U32
- 	bool
- 	default n
-diff -puN include/linux/acpi.h~fix-altix-boot-breakage-in-acpi include/linux/acpi.h
---- a/include/linux/acpi.h~fix-altix-boot-breakage-in-acpi
-+++ a/include/linux/acpi.h
-@@ -93,7 +93,7 @@ int acpi_parse_mcfg (struct acpi_table_h
- void acpi_table_print_madt_entry (struct acpi_subtable_header *madt);
+ 	disk_stat_inc(mddev->gendisk, ios[rw]);
+ 	disk_stat_add(mddev->gendisk, sectors[rw], bio_sectors(bio));
  
- /* the following four functions are architecture-dependent */
--#ifdef CONFIG_HAVE_ARCH_PARSE_SRAT
-+#if defined(CONFIG_HAVE_ARCH_PARSE_SRAT) && !defined(NR_NODE_MEMBLKS)
- #define NR_NODE_MEMBLKS MAX_NUMNODES
- #define acpi_numa_slit_init(slit) do {} while (0)
- #define acpi_numa_processor_affinity_init(pa) do {} while (0)
 _
 
-Patches currently in -mm which might be from rja@sgi.com are
+Patches currently in -mm which might be from neilb@suse.de are
 
-fix-altix-boot-breakage-in-acpi.patch
+origin.patch
+linux-next.patch
+md-fix-possible-oops-when-removing-a-bitmap-from-an-active-array.patch
+md-proper-extern-for-mdp_major.patch
+md-kill-file_path-wrapper.patch
+md-md-raid5-rate-limit-error-printk.patch
+md-raid1-fix-restoration-of-bio-between-failed-read-and-write.patch
+md-notify-userspace-on-write-pending-changes-to-array_state.patch
+md-notify-userspace-on-stop-events.patch
+md-improve-setting-of-events_cleared-for-write-intent-bitmaps.patch
+md-allow-parallel-resync-of-md-devices.patch
+md-restart-recovery-cleanly-after-device-failure.patch
 
