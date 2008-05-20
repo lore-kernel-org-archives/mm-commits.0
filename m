@@ -1,79 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: - ext3-call-blkdev_issue_flush-on-fsync.patch removed from -mm tree
-Date: Mon, 19 May 2008 19:42:17 -0700
-Message-ID: <200805200242.m4K2gHIc001163@imap1.linux-foundation.org>
+Subject: + 3c515-fix-using-pnp_get_resource-when-config_isapnp=n.patch added to -mm tree
+Date: Mon, 19 May 2008 20:23:59 -0700
+Message-ID: <200805200323.m4K3NxtJ002547@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59737 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40718 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755758AbYETCnI (ORCPT
+	by vger.kernel.org with ESMTP id S1755633AbYETDYZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 May 2008 22:43:08 -0400
+	Mon, 19 May 2008 23:24:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sandeen@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: randy.dunlap@oracle.com, ambx1@neo.rr.com, bjorn.helgaas@hp.com, jeff@garzik.org
 
 
 The patch titled
-     ext3: call blkdev_issue_flush on fsync
-has been removed from the -mm tree.  Its filename was
-     ext3-call-blkdev_issue_flush-on-fsync.patch
+     3c515: fix using pnp_get_resource when CONFIG_ISAPNP=n
+has been added to the -mm tree.  Its filename is
+     3c515-fix-using-pnp_get_resource-when-config_isapnp=n.patch
 
-This patch was dropped because it was nacked
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext3: call blkdev_issue_flush on fsync
-From: Eric Sandeen <sandeen@redhat.com>
+Subject: 3c515: fix using pnp_get_resource when CONFIG_ISAPNP=n
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-To ensure that bits are truly on-disk after an fsync, ext3 should call
-blkdev_issue_flush if barriers are supported.
+3c515.c uses pnp_irq(), which calls pnp_get_resource(), which is not
+defined when CONFIG_PNP=n, so in that case, get the IRQ from a hardware
+register.
 
-Inspired by an old thread on barriers, by reiserfs & xfs which do the
-same, and by a patch SuSE ships with their kernel.
+3c515.c:(.text+0x3adc0): undefined reference to `pnp_get_resource'
 
-Signed-off-by: Eric Sandeen <sandeen@redhat.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Acked-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Adam Belay <ambx1@neo.rr.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/fsync.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/net/3c515.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN fs/ext3/fsync.c~ext3-call-blkdev_issue_flush-on-fsync fs/ext3/fsync.c
---- a/fs/ext3/fsync.c~ext3-call-blkdev_issue_flush-on-fsync
-+++ a/fs/ext3/fsync.c
-@@ -27,6 +27,7 @@
- #include <linux/sched.h>
- #include <linux/writeback.h>
- #include <linux/jbd.h>
-+#include <linux/blkdev.h>
- #include <linux/ext3_fs.h>
- #include <linux/ext3_jbd.h>
+diff -puN drivers/net/3c515.c~3c515-fix-using-pnp_get_resource-when-config_isapnp=n drivers/net/3c515.c
+--- a/drivers/net/3c515.c~3c515-fix-using-pnp_get_resource-when-config_isapnp=n
++++ a/drivers/net/3c515.c
+@@ -572,12 +572,16 @@ static int corkscrew_setup(struct net_de
+ 	int irq;
+ 	DECLARE_MAC_BUF(mac);
  
-@@ -45,6 +46,7 @@
- int ext3_sync_file(struct file * file, struct dentry *dentry, int datasync)
- {
- 	struct inode *inode = dentry->d_inode;
-+	journal_t *journal = EXT3_SB(inode->i_sb)->s_journal;
- 	int ret = 0;
- 
- 	J_ASSERT(ext3_journal_current_handle() == NULL);
-@@ -85,6 +87,9 @@ int ext3_sync_file(struct file * file, s
- 			.nr_to_write = 0, /* sys_fsync did this */
- 		};
- 		ret = sync_inode(inode, &wbc);
-+
-+		if (journal && (journal->j_flags & JFS_BARRIER))
-+			blkdev_issue_flush(inode->i_sb->s_bdev, NULL);
++#ifdef __ISAPNP__
+ 	if (idev) {
+ 		irq = pnp_irq(idev, 0);
+ 		vp->dev = &idev->dev;
+ 	} else {
+ 		irq = inw(ioaddr + 0x2002) & 15;
  	}
- out:
- 	return ret;
++#else
++	irq = inw(ioaddr + 0x2002) & 15;
++#endif
+ 
+ 	dev->base_addr = ioaddr;
+ 	dev->irq = irq;
 _
 
-Patches currently in -mm which might be from sandeen@redhat.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-find-dynamic-stack-allocations-in-checkstackpl.patch
-fix-checkstackpl-arch-detection.patch
-ext3-call-blkdev_issue_flush-on-fsync.patch
+linux-next.patch
+documentation-build-source-files-in-documentation-sub-dir.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
+3c515-fix-using-pnp_get_resource-when-config_isapnp=n.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+git-unionfs.patch
+uwb-fix-kconfig-causing-undefined-references.patch
+uwb-fix-all-printk-format-warnings.patch
+scsi-do-not-automatically-select-scsi_dh-for-dm-multipath.patch
+flag-parameters-signalfd-fix.patch
+flag-parameters-eventfd-fix.patch
+bsdacct-stir-up-comments-around-acct_process.patch
+profile-likely-unlikely-macros.patch
 
