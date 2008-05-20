@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + uml-activate_mm-remove-the-dead-pf_borrowed_mm-check.patch added to -mm tree
-Date: Tue, 20 May 2008 00:30:54 -0700
-Message-ID: <200805200730.m4K7UsN3011058@imap1.linux-foundation.org>
+Subject: + xprtrdma-fix-err_ptre-typo.patch added to -mm tree
+Date: Tue, 20 May 2008 00:34:07 -0700
+Message-ID: <200805200734.m4K7Y7NI011132@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49978 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35401 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753517AbYETHbQ (ORCPT
+	by vger.kernel.org with ESMTP id S1753207AbYETHea (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 May 2008 03:31:16 -0400
+	Tue, 20 May 2008 03:34:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, jdike@addtoit.com
+Cc: adobriyan@gmail.com, bfields@fieldses.org, davem@davemloft.net, trond.myklebust@fys.uio.no
 
 
 The patch titled
-     uml: activate_mm: remove the dead PF_BORROWED_MM check
+     xprtrdma: fix ERR_PTR(E typo
 has been added to the -mm tree.  Its filename is
-     uml-activate_mm-remove-the-dead-pf_borrowed_mm-check.patch
+     xprtrdma-fix-err_ptre-typo.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,54 +34,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: activate_mm: remove the dead PF_BORROWED_MM check
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: xprtrdma: fix ERR_PTR(E typo
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-use_mm() was changed to use switch_mm() instead of activate_mm(), since
-then nobody calls (and nobody should call) activate_mm() with
-PF_BORROWED_MM bit set.
-
-As Jeff Dike pointed out, we can also remove the "old != new" check, it is
-always true.
-
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Jeff Dike <jdike@addtoit.com>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c                     |    4 ----
- include/asm-um/mmu_context.h |   12 +++---------
- 2 files changed, 3 insertions(+), 13 deletions(-)
+ net/sunrpc/xprtrdma/svc_rdma_transport.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/aio.c~uml-activate_mm-remove-the-dead-pf_borrowed_mm-check fs/aio.c
---- a/fs/aio.c~uml-activate_mm-remove-the-dead-pf_borrowed_mm-check
-+++ a/fs/aio.c
-@@ -591,10 +591,6 @@ static void use_mm(struct mm_struct *mm)
- 	atomic_inc(&mm->mm_count);
- 	tsk->mm = mm;
- 	tsk->active_mm = mm;
--	/*
--	 * Note that on UML this *requires* PF_BORROWED_MM to be set, otherwise
--	 * it won't work. Update it accordingly if you change it here
--	 */
- 	switch_mm(active_mm, mm, tsk);
- 	task_unlock(tsk);
+diff -puN net/sunrpc/xprtrdma/svc_rdma_transport.c~xprtrdma-fix-err_ptre-typo net/sunrpc/xprtrdma/svc_rdma_transport.c
+--- a/net/sunrpc/xprtrdma/svc_rdma_transport.c~xprtrdma-fix-err_ptre-typo
++++ a/net/sunrpc/xprtrdma/svc_rdma_transport.c
+@@ -661,7 +661,7 @@ static struct svc_xprt *svc_rdma_create(
  
-diff -puN include/asm-um/mmu_context.h~uml-activate_mm-remove-the-dead-pf_borrowed_mm-check include/asm-um/mmu_context.h
---- a/include/asm-um/mmu_context.h~uml-activate_mm-remove-the-dead-pf_borrowed_mm-check
-+++ a/include/asm-um/mmu_context.h
-@@ -22,16 +22,10 @@ extern void force_flush_all(void);
- static inline void activate_mm(struct mm_struct *old, struct mm_struct *new)
- {
- 	/*
--	 * This is called by fs/exec.c and fs/aio.c. In the first case, for an
--	 * exec, we don't need to do anything as we're called from userspace
--	 * and thus going to use a new host PID. In the second, we're called
--	 * from a kernel thread, and thus need to go doing the mmap's on the
--	 * host. Since they're very expensive, we want to avoid that as far as
--	 * possible.
-+	 * This is called by fs/exec.c and sys_unshare()
-+	 * when the new ->mm is used for the first time.
- 	 */
--	if (old != new && (current->flags & PF_BORROWED_MM))
--		__switch_mm(&new->context.id);
+ 	cma_xprt = rdma_create_xprt(serv, 1);
+ 	if (!cma_xprt)
+-		return ERR_PTR(ENOMEM);
++		return ERR_PTR(-ENOMEM);
+ 	xprt = &cma_xprt->sc_xprt;
+ 
+ 	listen_id = rdma_create_id(rdma_listen_handler, cma_xprt, RDMA_PS_TCP);
+_
+
+Patches currently in -mm which might be from adobriyan@gmail.com are
+
+linux-next.patch
+cifs-switch-to-seq_files.patch
+git-kbuild-fixes.patch
+atl1-fix-4g-memory-corruption-bug.patch
+xprtrdma-fix-err_ptre-typo.patch
+mpt-remove-unused-struct-mpt_proc_entry_t.patch
+rndis-switch-to-seq_files.patch
+move-proc_kmsg_operations-to-fs-proc-internalh.patch
+split-listh-and-move-rcu-protected-lists-into-rculisth.patch
+rculisth-use-the-rcu-api.patch
+proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
+likely_prof-changed-to-use-proc_create.patch
+proc-remove-proc_root-from-drivers-likelyprof.patch
+
