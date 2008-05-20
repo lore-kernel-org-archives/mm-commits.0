@@ -1,61 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: - uwb-fix-scscanf-warning.patch removed from -mm tree
-Date: Tue, 20 May 2008 14:04:12 -0700
-Message-ID: <200805202104.m4KL4Dld011029@imap1.linux-foundation.org>
+Subject: - drivers-uwb-i1480-dfu-macc-fix-min-warning.patch removed from -mm tree
+Date: Tue, 20 May 2008 14:06:14 -0700
+Message-ID: <200805202106.m4KL6Er5011129@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54559 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58163 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760463AbYETVEP (ORCPT
+	by vger.kernel.org with ESMTP id S1759598AbYETVGQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 May 2008 17:04:15 -0400
+	Tue, 20 May 2008 17:06:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uwb: fix scscanf warning
+     drivers/uwb/i1480/dfu/mac.c: fix min() warning
 has been removed from the -mm tree.  Its filename was
-     uwb-fix-scscanf-warning.patch
+     drivers-uwb-i1480-dfu-macc-fix-min-warning.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uwb: fix scscanf warning
+Subject: drivers/uwb/i1480/dfu/mac.c: fix min() warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/uwb/wlp/eda.c:426: warning: format '%u' expects type 'unsigned int *', but argument 12 has type 'enum wlp_wss_connect *'
+drivers/uwb/i1480/dfu/mac.c: In function 'i1480_mac_fw_upload':
+drivers/uwb/i1480/dfu/mac.c:507: warning: comparison of distinct pointer types lacks a cast
 
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/uwb/wlp/eda.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/uwb/i1480/dfu/mac.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/uwb/wlp/eda.c~uwb-fix-scscanf-warning drivers/uwb/wlp/eda.c
---- a/drivers/uwb/wlp/eda.c~uwb-fix-scscanf-warning
-+++ a/drivers/uwb/wlp/eda.c
-@@ -417,13 +417,15 @@ ssize_t wlp_eda_store(struct wlp *wlp, c
- 	struct uwb_dev_addr dev_addr;
- 	u8 tag;
- 	enum wlp_wss_connect state;
-+	unsigned int s;
- 
- 	result = sscanf(buf, "%02hhx:%02hhx:%02hhx:%02hhx:%02hhx:%02hhx "
- 			"%02hhx:%02hhx %02hhx %u\n",
- 			 &eth_addr[0], &eth_addr[1],
- 			 &eth_addr[2], &eth_addr[3],
- 			 &eth_addr[4], &eth_addr[5],
--			 &dev_addr.data[1], &dev_addr.data[0], &tag, &state);
-+			 &dev_addr.data[1], &dev_addr.data[0], &tag, &s);
-+	state = s;
- 	switch (result) {
- 	case 6: /* no dev addr specified -- remove entry NOT IMPLEMENTED */
- 		/*result = wlp_eda_rm(eda, eth_addr, &dev_addr);*/
+diff -puN drivers/uwb/i1480/dfu/mac.c~drivers-uwb-i1480-dfu-macc-fix-min-warning drivers/uwb/i1480/dfu/mac.c
+--- a/drivers/uwb/i1480/dfu/mac.c~drivers-uwb-i1480-dfu-macc-fix-min-warning
++++ a/drivers/uwb/i1480/dfu/mac.c
+@@ -504,7 +504,8 @@ int i1480_mac_fw_upload(struct i1480 *i1
+ 		dev_err(i1480->dev, "MAC fw '%s': initialization event returns "
+ 			"wrong size (%zu bytes vs %zu needed)\n",
+ 			i1480->mac_fw_name, i1480->evt_result, sizeof(*rcebe));
+-		dump_bytes(i1480->dev, rcebe, min(i1480->evt_result, 32));
++		dump_bytes(i1480->dev, rcebe,
++				min_t(ssize_t, i1480->evt_result, 32));
+ 		goto error_size;
+ 	}
+ 	result = -EIO;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -95,7 +89,6 @@ git-unionfs-fixup.patch
 git-logfs-fixup.patch
 drivers-uwb-nehc-processor-flags-have-type-unsigned-long.patch
 drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
-uwb-fix-scscanf-warning.patch
 drivers-uwb-wlp-sysfsc-dead-code.patch
 drivers-uwb-i1480-dfu-macc-fix-min-warning.patch
 drivers-uwb-whcic-needs-dma-mappingh.patch
