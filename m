@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + watchdog-ks8695_wdt-clean-up-coding-style-unlocked_ioctl.patch added to -mm tree
-Date: Tue, 20 May 2008 01:28:10 -0700
-Message-ID: <200805200828.m4K8SADv013134@imap1.linux-foundation.org>
+Subject: + watchdog-sbc_epx_c3_wdt-switch-to-unlocked_ioctl.patch added to -mm tree
+Date: Tue, 20 May 2008 01:28:36 -0700
+Message-ID: <200805200828.m4K8Saww013185@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37395 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33739 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760725AbYETI2c (ORCPT
+	by vger.kernel.org with ESMTP id S1761260AbYETI3P (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 May 2008 04:28:32 -0400
+	Tue, 20 May 2008 04:29:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@redhat.com
 
 
 The patch titled
-     watchdog: ks8695_wdt: clean up, coding style, unlocked_ioctl
+     watchdog: sbc_epx_c3_wdt: switch to unlocked_ioctl
 has been added to the -mm tree.  Its filename is
-     watchdog-ks8695_wdt-clean-up-coding-style-unlocked_ioctl.patch
+     watchdog-sbc_epx_c3_wdt-switch-to-unlocked_ioctl.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: watchdog: ks8695_wdt: clean up, coding style, unlocked_ioctl
+Subject: watchdog: sbc_epx_c3_wdt: switch to unlocked_ioctl
 From: Alan Cox <alan@redhat.com>
 
 
@@ -42,250 +42,48 @@ Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/ks8695_wdt.c |  119 ++++++++++++++++----------------
- 1 file changed, 62 insertions(+), 57 deletions(-)
+ drivers/watchdog/sbc_epx_c3.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN drivers/watchdog/ks8695_wdt.c~watchdog-ks8695_wdt-clean-up-coding-style-unlocked_ioctl drivers/watchdog/ks8695_wdt.c
---- a/drivers/watchdog/ks8695_wdt.c~watchdog-ks8695_wdt-clean-up-coding-style-unlocked_ioctl
-+++ a/drivers/watchdog/ks8695_wdt.c
-@@ -19,8 +19,8 @@
- #include <linux/platform_device.h>
- #include <linux/types.h>
- #include <linux/watchdog.h>
--#include <asm/io.h>
+diff -puN drivers/watchdog/sbc_epx_c3.c~watchdog-sbc_epx_c3_wdt-switch-to-unlocked_ioctl drivers/watchdog/sbc_epx_c3.c
+--- a/drivers/watchdog/sbc_epx_c3.c~watchdog-sbc_epx_c3_wdt-switch-to-unlocked_ioctl
++++ a/drivers/watchdog/sbc_epx_c3.c
+@@ -25,8 +25,8 @@
+ #include <linux/reboot.h>
+ #include <linux/init.h>
+ #include <linux/ioport.h>
 -#include <asm/uaccess.h>
-+#include <linux/io.h>
+-#include <asm/io.h>
 +#include <linux/uaccess.h>
- #include <asm/arch/regs-timer.h>
++#include <linux/io.h>
  
- 
-@@ -31,38 +31,44 @@ static int wdt_time = WDT_DEFAULT_TIME;
- static int nowayout = WATCHDOG_NOWAYOUT;
- 
- module_param(wdt_time, int, 0);
--MODULE_PARM_DESC(wdt_time, "Watchdog time in seconds. (default="__MODULE_STRING(WDT_DEFAULT_TIME) ")");
-+MODULE_PARM_DESC(wdt_time, "Watchdog time in seconds. (default="
-+					__MODULE_STRING(WDT_DEFAULT_TIME) ")");
- 
- #ifdef CONFIG_WATCHDOG_NOWAYOUT
- module_param(nowayout, int, 0);
--MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started (default=" __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
-+MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started (default="
-+				__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
- #endif
- 
- 
- static unsigned long ks8695wdt_busy;
-+static spinlock_t ks8695_lock;
- 
- /* ......................................................................... */
- 
- /*
-  * Disable the watchdog.
-  */
--static void inline ks8695_wdt_stop(void)
-+static inline void ks8695_wdt_stop(void)
- {
- 	unsigned long tmcon;
- 
-+	spin_lock(&ks8695_lock);
- 	/* disable timer0 */
- 	tmcon = __raw_readl(KS8695_TMR_VA + KS8695_TMCON);
- 	__raw_writel(tmcon & ~TMCON_T0EN, KS8695_TMR_VA + KS8695_TMCON);
-+	spin_unlock(&ks8695_lock);
- }
- 
- /*
-  * Enable and reset the watchdog.
-  */
--static void inline ks8695_wdt_start(void)
-+static inline void ks8695_wdt_start(void)
- {
- 	unsigned long tmcon;
- 	unsigned long tval = wdt_time * CLOCK_TICK_RATE;
- 
-+	spin_lock(&ks8695_lock);
- 	/* disable timer0 */
- 	tmcon = __raw_readl(KS8695_TMR_VA + KS8695_TMCON);
- 	__raw_writel(tmcon & ~TMCON_T0EN, KS8695_TMR_VA + KS8695_TMCON);
-@@ -73,19 +79,22 @@ static void inline ks8695_wdt_start(void
- 	/* re-enable timer0 */
- 	tmcon = __raw_readl(KS8695_TMR_VA + KS8695_TMCON);
- 	__raw_writel(tmcon | TMCON_T0EN, KS8695_TMR_VA + KS8695_TMCON);
-+	spin_unlock(&ks8695_lock);
- }
- 
- /*
-  * Reload the watchdog timer.  (ie, pat the watchdog)
-  */
--static void inline ks8695_wdt_reload(void)
-+static inline void ks8695_wdt_reload(void)
- {
- 	unsigned long tmcon;
- 
-+	spin_lock(&ks8695_lock);
- 	/* disable, then re-enable timer0 */
- 	tmcon = __raw_readl(KS8695_TMR_VA + KS8695_TMCON);
- 	__raw_writel(tmcon & ~TMCON_T0EN, KS8695_TMR_VA + KS8695_TMCON);
- 	__raw_writel(tmcon | TMCON_T0EN, KS8695_TMR_VA + KS8695_TMCON);
-+	spin_unlock(&ks8695_lock);
- }
- 
- /*
-@@ -102,7 +111,8 @@ static int ks8695_wdt_settimeout(int new
- 	if ((new_time <= 0) || (new_time > WDT_MAX_TIME))
- 		return -EINVAL;
- 
--	/* Set new watchdog time. It will be used when ks8695_wdt_start() is called. */
-+	/* Set new watchdog time. It will be used when
-+	   ks8695_wdt_start() is called. */
- 	wdt_time = new_time;
- 	return 0;
- }
-@@ -128,9 +138,9 @@ static int ks8695_wdt_open(struct inode 
-  */
- static int ks8695_wdt_close(struct inode *inode, struct file *file)
- {
-+	/* Disable the watchdog when file is closed */
- 	if (!nowayout)
--		ks8695_wdt_stop();	/* Disable the watchdog when file is closed */
--
-+		ks8695_wdt_stop();
- 	clear_bit(0, &ks8695wdt_busy);
- 	return 0;
- }
-@@ -143,60 +153,52 @@ static struct watchdog_info ks8695_wdt_i
- /*
-  * Handle commands from user-space.
-  */
--static int ks8695_wdt_ioctl(struct inode *inode, struct file *file,
--		unsigned int cmd, unsigned long arg)
-+static long ks8695_wdt_ioctl(struct file *file, unsigned int cmd,
-+							unsigned long arg)
- {
- 	void __user *argp = (void __user *)arg;
- 	int __user *p = argp;
- 	int new_value;
- 
--	switch(cmd) {
--		case WDIOC_KEEPALIVE:
--			ks8695_wdt_reload();	/* pat the watchdog */
--			return 0;
--
--		case WDIOC_GETSUPPORT:
--			return copy_to_user(argp, &ks8695_wdt_info, sizeof(ks8695_wdt_info)) ? -EFAULT : 0;
--
--		case WDIOC_SETTIMEOUT:
--			if (get_user(new_value, p))
--				return -EFAULT;
--
--			if (ks8695_wdt_settimeout(new_value))
--				return -EINVAL;
--
--			/* Enable new time value */
-+	switch (cmd) {
-+	case WDIOC_KEEPALIVE:
-+		ks8695_wdt_reload();	/* pat the watchdog */
-+		return 0;
-+	case WDIOC_GETSUPPORT:
-+		return copy_to_user(argp, &ks8695_wdt_info,
-+					sizeof(ks8695_wdt_info)) ? -EFAULT : 0;
-+	case WDIOC_SETTIMEOUT:
-+		if (get_user(new_value, p))
-+			return -EFAULT;
-+		if (ks8695_wdt_settimeout(new_value))
-+			return -EINVAL;
-+		/* Enable new time value */
-+		ks8695_wdt_start();
-+		/* Return current value */
-+		return put_user(wdt_time, p);
-+	case WDIOC_GETTIMEOUT:
-+		return put_user(wdt_time, p);
-+	case WDIOC_GETSTATUS:
-+	case WDIOC_GETBOOTSTATUS:
-+		return put_user(0, p);
-+	case WDIOC_SETOPTIONS:
-+		if (get_user(new_value, p))
-+			return -EFAULT;
-+		if (new_value & WDIOS_DISABLECARD)
-+			ks8695_wdt_stop();
-+		if (new_value & WDIOS_ENABLECARD)
- 			ks8695_wdt_start();
--
--			/* Return current value */
--			return put_user(wdt_time, p);
--
--		case WDIOC_GETTIMEOUT:
--			return put_user(wdt_time, p);
--
--		case WDIOC_GETSTATUS:
--		case WDIOC_GETBOOTSTATUS:
--			return put_user(0, p);
--
--		case WDIOC_SETOPTIONS:
--			if (get_user(new_value, p))
--				return -EFAULT;
--
--			if (new_value & WDIOS_DISABLECARD)
--				ks8695_wdt_stop();
--			if (new_value & WDIOS_ENABLECARD)
--				ks8695_wdt_start();
--			return 0;
--
--		default:
--			return -ENOTTY;
-+		return 0;
-+	default:
-+		return -ENOTTY;
- 	}
- }
- 
- /*
-  * Pat the watchdog whenever device is written to.
-  */
--static ssize_t ks8695_wdt_write(struct file *file, const char *data, size_t len, loff_t *ppos)
-+static ssize_t ks8695_wdt_write(struct file *file, const char *data,
-+						size_t len, loff_t *ppos)
- {
- 	ks8695_wdt_reload();		/* pat the watchdog */
+ #define PFX "epx_c3: "
+ static int epx_c3_alive;
+@@ -100,12 +100,12 @@ static ssize_t epx_c3_write(struct file 
  	return len;
-@@ -207,7 +209,7 @@ static ssize_t ks8695_wdt_write(struct f
- static const struct file_operations ks8695wdt_fops = {
+ }
+ 
+-static int epx_c3_ioctl(struct inode *inode, struct file *file,
+-			unsigned int cmd, unsigned long arg)
++static long epx_c3_ioctl(struct file *file, unsigned int cmd,
++						unsigned long arg)
+ {
+ 	int options, retval = -EINVAL;
+ 	int __user *argp = (void __user *)arg;
+-	static struct watchdog_info ident = {
++	static const struct watchdog_info ident = {
+ 		.options		= WDIOF_KEEPALIVEPING |
+ 					  WDIOF_MAGICCLOSE,
+ 		.firmware_version	= 0,
+@@ -158,7 +158,7 @@ static const struct file_operations epx_
  	.owner		= THIS_MODULE,
  	.llseek		= no_llseek,
--	.ioctl		= ks8695_wdt_ioctl,
-+	.unlocked_ioctl	= ks8695_wdt_ioctl,
- 	.open		= ks8695_wdt_open,
- 	.release	= ks8695_wdt_close,
- 	.write		= ks8695_wdt_write,
-@@ -231,7 +233,8 @@ static int __init ks8695wdt_probe(struct
- 	if (res)
- 		return res;
- 
--	printk("KS8695 Watchdog Timer enabled (%d seconds%s)\n", wdt_time, nowayout ? ", nowayout" : "");
-+	printk(KERN_INFO "KS8695 Watchdog Timer enabled (%d seconds%s)\n",
-+				wdt_time, nowayout ? ", nowayout" : "");
- 	return 0;
- }
- 
-@@ -285,12 +288,14 @@ static struct platform_driver ks8695wdt_
- 
- static int __init ks8695_wdt_init(void)
- {
--	/* Check that the heartbeat value is within range; if not reset to the default */
-+	spin_lock_init(&ks8695_lock);
-+	/* Check that the heartbeat value is within range;
-+	   if not reset to the default */
- 	if (ks8695_wdt_settimeout(wdt_time)) {
- 		ks8695_wdt_settimeout(WDT_DEFAULT_TIME);
--		pr_info("ks8695_wdt: wdt_time value must be 1 <= wdt_time <= %i, using %d\n", wdt_time, WDT_MAX_TIME);
-+		pr_info("ks8695_wdt: wdt_time value must be 1 <= wdt_time <= %i, using %d\n",
-+							wdt_time, WDT_MAX_TIME);
- 	}
--
- 	return platform_driver_register(&ks8695wdt_driver);
- }
- 
+ 	.write		= epx_c3_write,
+-	.ioctl		= epx_c3_ioctl,
++	.unlocked_ioctl	= epx_c3_ioctl,
+ 	.open		= epx_c3_open,
+ 	.release	= epx_c3_release,
+ };
 _
 
 Patches currently in -mm which might be from alan@redhat.com are
