@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + watchdog-atp-watchdog.patch added to -mm tree
-Date: Tue, 20 May 2008 01:27:46 -0700
-Message-ID: <200805200827.m4K8Rkj5013051@imap1.linux-foundation.org>
+Subject: + watchdog-ar7-watchdog.patch added to -mm tree
+Date: Tue, 20 May 2008 01:27:45 -0700
+Message-ID: <200805200827.m4K8Rj8P013048@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33291 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56547 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759431AbYETI2E (ORCPT
+	by vger.kernel.org with ESMTP id S1759610AbYETI2E (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 20 May 2008 04:28:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@redhat.com
 
 
 The patch titled
-     watchdog: atp watchdog
+     watchdog: aR7 watchdog
 has been added to the -mm tree.  Its filename is
-     watchdog-atp-watchdog.patch
+     watchdog-ar7-watchdog.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,125 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: watchdog: atp watchdog
+Subject: watchdog: aR7 watchdog
 From: Alan Cox <alan@redhat.com>
 
-Switch to unlocked_ioctl
+Fix locking
+Use unlocked_ioctl
+Remove semaphores
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/at32ap700x_wdt.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ drivers/watchdog/ar7_wdt.c |   29 +++++++++++++++++------------
+ 1 file changed, 17 insertions(+), 12 deletions(-)
 
-diff -puN drivers/watchdog/at32ap700x_wdt.c~watchdog-atp-watchdog drivers/watchdog/at32ap700x_wdt.c
---- a/drivers/watchdog/at32ap700x_wdt.c~watchdog-atp-watchdog
-+++ a/drivers/watchdog/at32ap700x_wdt.c
-@@ -212,8 +212,8 @@ static struct watchdog_info at32_wdt_inf
- /*
-  * Handle commands from user-space.
-  */
--static int at32_wdt_ioctl(struct inode *inode, struct file *file,
--		unsigned int cmd, unsigned long arg)
-+static long at32_wdt_ioctl(struct file *file,
-+				unsigned int cmd, unsigned long arg)
+diff -puN drivers/watchdog/ar7_wdt.c~watchdog-ar7-watchdog drivers/watchdog/ar7_wdt.c
+--- a/drivers/watchdog/ar7_wdt.c~watchdog-ar7-watchdog
++++ a/drivers/watchdog/ar7_wdt.c
+@@ -69,7 +69,8 @@ struct ar7_wdt {
+ 	u32 prescale;
+ };
+ 
+-static struct semaphore open_semaphore;
++static unsigned long wdt_is_open;
++static spinlock_t wdt_lock;
+ static unsigned expect_close;
+ 
+ /* XXX currently fixed, allows max margin ~68.72 secs */
+@@ -154,8 +155,10 @@ static void ar7_wdt_update_margin(int ne
+ 	u32 change;
+ 
+ 	change = new_margin * (ar7_vbus_freq() / prescale_value);
+-	if (change < 1) change = 1;
+-	if (change > 0xffff) change = 0xffff;
++	if (change < 1)
++		change = 1;
++	if (change > 0xffff)
++		change = 0xffff;
+ 	ar7_wdt_change(change);
+ 	margin = change * prescale_value / ar7_vbus_freq();
+ 	printk(KERN_INFO DRVNAME
+@@ -179,7 +182,7 @@ static void ar7_wdt_disable_wdt(void)
+ static int ar7_wdt_open(struct inode *inode, struct file *file)
  {
- 	int ret = -ENOTTY;
- 	int time;
-@@ -298,7 +298,7 @@ static ssize_t at32_wdt_write(struct fil
- static const struct file_operations at32_wdt_fops = {
- 	.owner		= THIS_MODULE,
- 	.llseek		= no_llseek,
--	.ioctl		= at32_wdt_ioctl,
-+	.unlocked_ioctl	= at32_wdt_ioctl,
- 	.open		= at32_wdt_open,
- 	.release	= at32_wdt_close,
- 	.write		= at32_wdt_write,
-@@ -391,7 +391,6 @@ static int __exit at32_wdt_remove(struct
- 		wdt = NULL;
- 		platform_set_drvdata(pdev, NULL);
- 	}
+ 	/* only allow one at a time */
+-	if (!down_nowait(&open_semaphore))
++	if (test_and_set_bit(0, &wdt_is_open))
+ 		return -EBUSY;
+ 	ar7_wdt_enable_wdt();
+ 	expect_close = 0;
+@@ -195,9 +198,7 @@ static int ar7_wdt_release(struct inode 
+ 		"will not disable the watchdog timer\n");
+ 	else if (!nowayout)
+ 		ar7_wdt_disable_wdt();
 -
+-	up(&open_semaphore);
+-
++	clear_bit(0, &wdt_is_open);
  	return 0;
  }
  
+@@ -222,7 +223,9 @@ static ssize_t ar7_wdt_write(struct file
+ 	if (len) {
+ 		size_t i;
+ 
++		spin_lock(&wdt_lock);
+ 		ar7_wdt_kick(1);
++		spin_unlock(&wdt_lock);
+ 
+ 		expect_close = 0;
+ 		for (i = 0; i < len; ++i) {
+@@ -237,8 +240,8 @@ static ssize_t ar7_wdt_write(struct file
+ 	return len;
+ }
+ 
+-static int ar7_wdt_ioctl(struct inode *inode, struct file *file,
+-			 unsigned int cmd, unsigned long arg)
++static long ar7_wdt_ioctl(struct file *file,
++					unsigned int cmd, unsigned long arg)
+ {
+ 	static struct watchdog_info ident = {
+ 		.identity = LONGNAME,
+@@ -269,8 +272,10 @@ static int ar7_wdt_ioctl(struct inode *i
+ 		if (new_margin < 1)
+ 			return -EINVAL;
+ 
++		spin_lock(&wdt_lock);
+ 		ar7_wdt_update_margin(new_margin);
+ 		ar7_wdt_kick(1);
++		spin_unlock(&wdt_lock);
+ 
+ 	case WDIOC_GETTIMEOUT:
+ 		if (put_user(margin, (int *)arg))
+@@ -282,7 +287,7 @@ static int ar7_wdt_ioctl(struct inode *i
+ static const struct file_operations ar7_wdt_fops = {
+ 	.owner		= THIS_MODULE,
+ 	.write		= ar7_wdt_write,
+-	.ioctl		= ar7_wdt_ioctl,
++	.unlocked_ioctl	= ar7_wdt_ioctl,
+ 	.open		= ar7_wdt_open,
+ 	.release	= ar7_wdt_release,
+ };
+@@ -297,6 +302,8 @@ static int __init ar7_wdt_init(void)
+ {
+ 	int rc;
+ 
++	spin_lock_init(&wdt_lock);
++
+ 	ar7_wdt_get_regs();
+ 
+ 	if (!request_mem_region(ar7_regs_wdt, sizeof(struct ar7_wdt),
+@@ -312,8 +319,6 @@ static int __init ar7_wdt_init(void)
+ 	ar7_wdt_prescale(prescale_value);
+ 	ar7_wdt_update_margin(margin);
+ 
+-	sema_init(&open_semaphore, 1);
+-
+ 	rc = register_reboot_notifier(&ar7_wdt_notifier);
+ 	if (rc) {
+ 		printk(KERN_ERR DRVNAME
 _
 
 Patches currently in -mm which might be from alan@redhat.com are
