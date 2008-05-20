@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + watchdog-mixcomwd-coding-style-locking-unlocked_ioctl.patch added to -mm tree
-Date: Tue, 20 May 2008 01:28:14 -0700
-Message-ID: <200805200828.m4K8SE39013140@imap1.linux-foundation.org>
+Subject: + watchdog-ibmasr-coding-style-locking-verify.patch added to -mm tree
+Date: Tue, 20 May 2008 01:28:00 -0700
+Message-ID: <200805200828.m4K8S0BG013107@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55197 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33761 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760365AbYETI2f (ORCPT
+	by vger.kernel.org with ESMTP id S1759781AbYETI2U (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 May 2008 04:28:35 -0400
+	Tue, 20 May 2008 04:28:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@redhat.com
 
 
 The patch titled
-     watchdog: mixcomwd: coding style locking, unlocked_ioctl
+     watchdog: ibmasr: coding style, locking verify
 has been added to the -mm tree.  Its filename is
-     watchdog-mixcomwd-coding-style-locking-unlocked_ioctl.patch
+     watchdog-ibmasr-coding-style-locking-verify.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,282 +34,302 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: watchdog: mixcomwd: coding style locking, unlocked_ioctl
+Subject: watchdog: ibmasr: coding style, locking verify
 From: Alan Cox <alan@redhat.com>
 
+There is a new #if 0 section here which is a suggested fix for the horrible
+PCI hack in the existing code. Would be good if someone with a box that uses
+this device could test it.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/mixcomwd.c |  133 ++++++++++++++++------------------
- 1 file changed, 63 insertions(+), 70 deletions(-)
+ drivers/watchdog/ibmasr.c |  149 +++++++++++++++++++++---------------
+ 1 file changed, 87 insertions(+), 62 deletions(-)
 
-diff -puN drivers/watchdog/mixcomwd.c~watchdog-mixcomwd-coding-style-locking-unlocked_ioctl drivers/watchdog/mixcomwd.c
---- a/drivers/watchdog/mixcomwd.c~watchdog-mixcomwd-coding-style-locking-unlocked_ioctl
-+++ a/drivers/watchdog/mixcomwd.c
-@@ -29,7 +29,8 @@
-  *		- support for one more type board
-  *
-  * Version 0.5 (2001/12/14) Matt Domsch <Matt_Domsch@dell.com>
-- *		- added nowayout module option to override CONFIG_WATCHDOG_NOWAYOUT
-+ *		- added nowayout module option to override
-+ *		  CONFIG_WATCHDOG_NOWAYOUT
-  *
-  * Version 0.6 (2002/04/12): Rob Radez <rob@osinvestor.com>
-  *		- make mixcomwd_opened unsigned,
-@@ -53,8 +54,8 @@
- #include <linux/init.h>
- #include <linux/jiffies.h>
- #include <linux/timer.h>
--#include <asm/uaccess.h>
--#include <asm/io.h>
-+#include <linux/uaccess.h>
-+#include <linux/io.h>
- 
- /*
-  * We have two types of cards that can be probed:
-@@ -108,18 +109,19 @@ static char expect_close;
- 
- static int nowayout = WATCHDOG_NOWAYOUT;
- module_param(nowayout, int, 0);
--MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started (default=" __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
-+MODULE_PARM_DESC(nowayout,
-+		"Watchdog cannot be stopped once started (default="
-+				__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
- 
- static void mixcomwd_ping(void)
- {
--	outb_p(55,watchdog_port);
-+	outb_p(55, watchdog_port);
- 	return;
- }
- 
- static void mixcomwd_timerfun(unsigned long d)
- {
- 	mixcomwd_ping();
+diff -puN drivers/watchdog/ibmasr.c~watchdog-ibmasr-coding-style-locking-verify drivers/watchdog/ibmasr.c
+--- a/drivers/watchdog/ibmasr.c~watchdog-ibmasr-coding-style-locking-verify
++++ a/drivers/watchdog/ibmasr.c
+@@ -19,9 +19,8 @@
+ #include <linux/miscdevice.h>
+ #include <linux/watchdog.h>
+ #include <linux/dmi.h>
 -
- 	mod_timer(&mixcomwd_timer, jiffies + 5 * HZ);
- }
+-#include <asm/io.h>
+-#include <asm/uaccess.h>
++#include <linux/io.h>
++#include <linux/uaccess.h>
  
-@@ -129,22 +131,22 @@ static void mixcomwd_timerfun(unsigned l
  
- static int mixcomwd_open(struct inode *inode, struct file *file)
+ enum {
+@@ -70,10 +69,13 @@ static char asr_expect_close;
+ static unsigned int asr_type, asr_base, asr_length;
+ static unsigned int asr_read_addr, asr_write_addr;
+ static unsigned char asr_toggle_mask, asr_disable_mask;
++static spinlock_t asr_lock;
+ 
+-static void asr_toggle(void)
++static void __asr_toggle(void)
  {
--	if(test_and_set_bit(0,&mixcomwd_opened)) {
-+	if (test_and_set_bit(0, &mixcomwd_opened))
- 		return -EBUSY;
--	}
+-	unsigned char reg = inb(asr_read_addr);
++	unsigned char reg;
 +
- 	mixcomwd_ping();
++	reg = inb(asr_read_addr);
  
--	if (nowayout) {
-+	if (nowayout)
- 		/*
- 		 * fops_get() code via open() has already done
- 		 * a try_module_get() so it is safe to do the
- 		 * __module_get().
+ 	outb(reg & ~asr_toggle_mask, asr_write_addr);
+ 	reg = inb(asr_read_addr);
+@@ -83,12 +85,21 @@ static void asr_toggle(void)
+ 
+ 	outb(reg & ~asr_toggle_mask, asr_write_addr);
+ 	reg = inb(asr_read_addr);
++	spin_unlock(&asr_lock);
++}
++
++static void asr_toggle(void)
++{
++	spin_lock(&asr_lock);
++	__asr_toggle();
++	spin_unlock(&asr_lock);
+ }
+ 
+ static void asr_enable(void)
+ {
+ 	unsigned char reg;
+ 
++	spin_lock(&asr_lock);
+ 	if (asr_type == ASMTYPE_TOPAZ) {
+ 		/* asr_write_addr == asr_read_addr */
+ 		reg = inb(asr_read_addr);
+@@ -99,17 +110,21 @@ static void asr_enable(void)
+ 		 * First make sure the hardware timer is reset by toggling
+ 		 * ASR hardware timer line.
  		 */
- 		__module_get(THIS_MODULE);
--	} else {
--		if(mixcomwd_timer_alive) {
-+	else {
-+		if (mixcomwd_timer_alive) {
- 			del_timer(&mixcomwd_timer);
--			mixcomwd_timer_alive=0;
-+			mixcomwd_timer_alive = 0;
- 		}
+-		asr_toggle();
++		__asr_toggle();
+ 
+ 		reg = inb(asr_read_addr);
+ 		outb(reg & ~asr_disable_mask, asr_write_addr);
  	}
- 	return nonseekable_open(inode, file);
-@@ -153,26 +155,27 @@ static int mixcomwd_open(struct inode *i
- static int mixcomwd_release(struct inode *inode, struct file *file)
- {
- 	if (expect_close == 42) {
--		if(mixcomwd_timer_alive) {
--			printk(KERN_ERR PFX "release called while internal timer alive");
-+		if (mixcomwd_timer_alive) {
-+			printk(KERN_ERR PFX
-+				"release called while internal timer alive");
- 			return -EBUSY;
- 		}
--		mixcomwd_timer_alive=1;
-+		mixcomwd_timer_alive = 1;
- 		mod_timer(&mixcomwd_timer, jiffies + 5 * HZ);
--	} else {
--		printk(KERN_CRIT PFX "WDT device closed unexpectedly.  WDT will not stop!\n");
--	}
-+	} else
-+		printk(KERN_CRIT PFX
-+		    "WDT device closed unexpectedly.  WDT will not stop!\n");
- 
--	clear_bit(0,&mixcomwd_opened);
--	expect_close=0;
-+	clear_bit(0, &mixcomwd_opened);
-+	expect_close = 0;
- 	return 0;
+ 	reg = inb(asr_read_addr);
++	spin_unlock(&asr_lock);
  }
  
- 
--static ssize_t mixcomwd_write(struct file *file, const char __user *data, size_t len, loff_t *ppos)
-+static ssize_t mixcomwd_write(struct file *file, const char __user *data,
-+						size_t len, loff_t *ppos)
+ static void asr_disable(void)
  {
--	if(len)
--	{
-+	if (len) {
- 		if (!nowayout) {
- 			size_t i;
+-	unsigned char reg = inb(asr_read_addr);
++	unsigned char reg;
++
++	spin_lock(&asr_lock);
++	reg = inb(asr_read_addr);
  
-@@ -192,8 +195,8 @@ static ssize_t mixcomwd_write(struct fil
- 	return len;
+ 	if (asr_type == ASMTYPE_TOPAZ)
+ 		/* asr_write_addr == asr_read_addr */
+@@ -122,6 +137,7 @@ static void asr_disable(void)
+ 		outb(reg | asr_disable_mask, asr_write_addr);
+ 	}
+ 	reg = inb(asr_read_addr);
++	spin_unlock(&asr_lock);
  }
  
--static int mixcomwd_ioctl(struct inode *inode, struct file *file,
--	unsigned int cmd, unsigned long arg)
-+static long mixcomwd_ioctl(struct file *file,
-+				unsigned int cmd, unsigned long arg)
+ static int __init asr_get_base_address(void)
+@@ -133,7 +149,8 @@ static int __init asr_get_base_address(v
+ 
+ 	switch (asr_type) {
+ 	case ASMTYPE_TOPAZ:
+-		/* SELECT SuperIO CHIP FOR QUERYING (WRITE 0x07 TO BOTH 0x2E and 0x2F) */
++		/* SELECT SuperIO CHIP FOR QUERYING
++		   (WRITE 0x07 TO BOTH 0x2E and 0x2F) */
+ 		outb(0x07, 0x2e);
+ 		outb(0x07, 0x2f);
+ 
+@@ -154,14 +171,26 @@ static int __init asr_get_base_address(v
+ 
+ 	case ASMTYPE_JASPER:
+ 		type = "Jaspers ";
+-
+-		/* FIXME: need to use pci_config_lock here, but it's not exported */
++#if 0
++		u32 r;
++		/* Suggested fix */
++		pdev = pci_get_bus_and_slot(0, DEVFN(0x1f, 0));
++		if (pdev == NULL)
++			return -ENODEV;
++		pci_read_config_dword(pdev, 0x58, &r);
++		asr_base = r & 0xFFFE;
++		pci_dev_put(pdev);
++#else
++		/* FIXME: need to use pci_config_lock here,
++		   but it's not exported */
+ 
+ /*		spin_lock_irqsave(&pci_config_lock, flags);*/
+ 
+ 		/* Select the SuperIO chip in the PCI I/O port register */
+ 		outl(0x8000f858, 0xcf8);
+ 
++		/* BUS 0, Slot 1F, fnc 0, offset 58 */
++
+ 		/*
+ 		 * Read the base address for the SuperIO chip.
+ 		 * Only the lower 16 bits are valid, but the address is word
+@@ -170,7 +199,7 @@ static int __init asr_get_base_address(v
+ 		asr_base = inl(0xcfc) & 0xfffe;
+ 
+ /*		spin_unlock_irqrestore(&pci_config_lock, flags);*/
+-
++#endif
+ 		asr_read_addr = asr_write_addr =
+ 			asr_base + JASPER_ASR_REG_OFFSET;
+ 		asr_toggle_mask = JASPER_ASR_TOGGLE_MASK;
+@@ -241,11 +270,10 @@ static ssize_t asr_write(struct file *fi
+ 	return count;
+ }
+ 
+-static int asr_ioctl(struct inode *inode, struct file *file,
+-		     unsigned int cmd, unsigned long arg)
++static long asr_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
  {
- 	void __user *argp = (void __user *)arg;
- 	int __user *p = argp;
-@@ -204,32 +207,23 @@ static int mixcomwd_ioctl(struct inode *
- 		.identity = "MixCOM watchdog",
+ 	static const struct watchdog_info ident = {
+-		.options =	WDIOF_KEEPALIVEPING | 
++		.options =	WDIOF_KEEPALIVEPING |
+ 				WDIOF_MAGICCLOSE,
+ 		.identity =	"IBM ASR"
  	};
+@@ -254,53 +282,45 @@ static int asr_ioctl(struct inode *inode
+ 	int heartbeat;
  
--	switch(cmd)
--	{
--		case WDIOC_GETSTATUS:
--			status=mixcomwd_opened;
--			if (!nowayout) {
--				status|=mixcomwd_timer_alive;
--			}
--			if (copy_to_user(p, &status, sizeof(int))) {
--				return -EFAULT;
--			}
--			break;
--		case WDIOC_GETBOOTSTATUS:
--			if (copy_to_user(p, &status, sizeof(int))) {
--				return -EFAULT;
--			}
--			break;
+ 	switch (cmd) {
 -		case WDIOC_GETSUPPORT:
--			if (copy_to_user(argp, &ident, sizeof(ident))) {
--				return -EFAULT;
--			}
--			break;
+-			return copy_to_user(argp, &ident, sizeof(ident)) ?
+-				-EFAULT : 0;
+-
+-		case WDIOC_GETSTATUS:
+-		case WDIOC_GETBOOTSTATUS:
+-			return put_user(0, p);
+-
 -		case WDIOC_KEEPALIVE:
--			mixcomwd_ping();
--			break;
--		default:
--			return -ENOTTY;
-+	switch (cmd) {
++	case WDIOC_GETSUPPORT:
++		return copy_to_user(argp, &ident, sizeof(ident)) ? -EFAULT : 0;
 +	case WDIOC_GETSTATUS:
-+		status = mixcomwd_opened;
-+		if (!nowayout)
-+			status |= mixcomwd_timer_alive;
-+		return put_user(status, p);
 +	case WDIOC_GETBOOTSTATUS:
 +		return put_user(0, p);
-+	case WDIOC_GETSUPPORT:
-+		if (copy_to_user(argp, &ident, sizeof(ident)))
-+			return -EFAULT;
-+		break;
 +	case WDIOC_KEEPALIVE:
-+		mixcomwd_ping();
-+		break;
++		asr_toggle();
++		return 0;
++	/*
++	 * The hardware has a fixed timeout value, so no WDIOC_SETTIMEOUT
++	 * and WDIOC_GETTIMEOUT always returns 256.
++	 */
++	case WDIOC_GETTIMEOUT:
++		heartbeat = 256;
++		return put_user(heartbeat, p);
++	case WDIOC_SETOPTIONS:
++	{
++		int new_options, retval = -EINVAL;
++		if (get_user(new_options, p))
++			return -EFAULT;
++		if (new_options & WDIOS_DISABLECARD) {
++			asr_disable();
++			retval = 0;
++		}
++		if (new_options & WDIOS_ENABLECARD) {
++			asr_enable();
+ 			asr_toggle();
+-			return 0;
+-
+-		/*
+-		 * The hardware has a fixed timeout value, so no WDIOC_SETTIMEOUT
+-		 * and WDIOC_GETTIMEOUT always returns 256.
+-		 */
+-		case WDIOC_GETTIMEOUT:
+-			heartbeat = 256;
+-			return put_user(heartbeat, p);
+-
+-		case WDIOC_SETOPTIONS: {
+-			int new_options, retval = -EINVAL;
+-
+-			if (get_user(new_options, p))
+-				return -EFAULT;
+-
+-			if (new_options & WDIOS_DISABLECARD) {
+-				asr_disable();
+-				retval = 0;
+-			}
+-
+-			if (new_options & WDIOS_ENABLECARD) {
+-				asr_enable();
+-				asr_toggle();
+-				retval = 0;
+-			}
+-
+-			return retval;
++			retval = 0;
+ 		}
++		return retval;
++	}
 +	default:
 +		return -ENOTTY;
  	}
- 	return 0;
+-
+-	return -ENOTTY;
  }
-@@ -238,7 +232,7 @@ static const struct file_operations mixc
- 	.owner		= THIS_MODULE,
- 	.llseek		= no_llseek,
- 	.write		= mixcomwd_write,
--	.ioctl		= mixcomwd_ioctl,
-+	.unlocked_ioctl	= mixcomwd_ioctl,
- 	.open		= mixcomwd_open,
- 	.release	= mixcomwd_release,
+ 
+ static int asr_open(struct inode *inode, struct file *file)
+ {
+-	if(test_and_set_bit(0, &asr_is_open))
++	if (test_and_set_bit(0, &asr_is_open))
+ 		return -EBUSY;
+ 
+ 	asr_toggle();
+@@ -314,7 +334,8 @@ static int asr_release(struct inode *ino
+ 	if (asr_expect_close == 42)
+ 		asr_disable();
+ 	else {
+-		printk(KERN_CRIT PFX "unexpected close, not stopping watchdog!\n");
++		printk(KERN_CRIT PFX
++				"unexpected close, not stopping watchdog!\n");
+ 		asr_toggle();
+ 	}
+ 	clear_bit(0, &asr_is_open);
+@@ -323,12 +344,12 @@ static int asr_release(struct inode *ino
+ }
+ 
+ static const struct file_operations asr_fops = {
+-	.owner =	THIS_MODULE,
+-	.llseek	=	no_llseek,
+-	.write =	asr_write,
+-	.ioctl =	asr_ioctl,
+-	.open =		asr_open,
+-	.release =	asr_release,
++	.owner =		THIS_MODULE,
++	.llseek	=		no_llseek,
++	.write =		asr_write,
++	.unlocked_ioctl =	asr_ioctl,
++	.open =			asr_open,
++	.release =		asr_release,
  };
-@@ -253,15 +247,14 @@ static int __init checkcard(int port, in
- {
- 	int id;
  
--	if (!request_region(port, 1, "MixCOM watchdog")) {
-+	if (!request_region(port, 1, "MixCOM watchdog"))
- 		return 0;
--	}
- 
--	id=inb_p(port);
--	if (card_id==MIXCOM_ID)
-+	id = inb_p(port);
-+	if (card_id == MIXCOM_ID)
- 		id &= 0x3f;
- 
--	if (id!=card_id) {
-+	if (id != card_id) {
- 		release_region(port, 1);
- 		return 0;
- 	}
-@@ -270,9 +263,7 @@ static int __init checkcard(int port, in
- 
- static int __init mixcomwd_init(void)
- {
--	int i;
--	int ret;
--	int found=0;
-+	int i, ret, found = 0;
- 
- 	for (i = 0; !found && mixcomwd_io_info[i].ioport != 0; i++) {
- 		if (checkcard(mixcomwd_io_info[i].ioport,
-@@ -283,20 +274,22 @@ static int __init mixcomwd_init(void)
- 	}
- 
- 	if (!found) {
--		printk(KERN_ERR PFX "No card detected, or port not available.\n");
-+		printk(KERN_ERR PFX
-+			"No card detected, or port not available.\n");
+ static struct miscdevice asr_miscdev = {
+@@ -367,6 +388,8 @@ static int __init ibmasr_init(void)
+ 	if (!asr_type)
  		return -ENODEV;
- 	}
  
- 	ret = misc_register(&mixcomwd_miscdev);
--	if (ret)
--	{
--		printk(KERN_ERR PFX "cannot register miscdev on minor=%d (err=%d)\n",
--			WATCHDOG_MINOR, ret);
-+	if (ret) {
-+		printk(KERN_ERR PFX
-+			"cannot register miscdev on minor=%d (err=%d)\n",
-+					WATCHDOG_MINOR, ret);
- 		goto error_misc_register_watchdog;
- 	}
++	spin_lock_init(&asr_lock);
++
+ 	rc = asr_get_base_address();
+ 	if (rc)
+ 		return rc;
+@@ -395,7 +418,9 @@ module_init(ibmasr_init);
+ module_exit(ibmasr_exit);
  
--	printk(KERN_INFO "MixCOM watchdog driver v%s, watchdog port at 0x%3x\n",
--		VERSION, watchdog_port);
-+	printk(KERN_INFO
-+		"MixCOM watchdog driver v%s, watchdog port at 0x%3x\n",
-+					VERSION, watchdog_port);
+ module_param(nowayout, int, 0);
+-MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started (default=" __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
++MODULE_PARM_DESC(nowayout,
++	"Watchdog cannot be stopped once started (default="
++				__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
  
- 	return 0;
- 
-@@ -309,15 +302,15 @@ error_misc_register_watchdog:
- static void __exit mixcomwd_exit(void)
- {
- 	if (!nowayout) {
--		if(mixcomwd_timer_alive) {
-+		if (mixcomwd_timer_alive) {
- 			printk(KERN_WARNING PFX "I quit now, hardware will"
- 			       " probably reboot!\n");
- 			del_timer_sync(&mixcomwd_timer);
--			mixcomwd_timer_alive=0;
-+			mixcomwd_timer_alive = 0;
- 		}
- 	}
- 	misc_deregister(&mixcomwd_miscdev);
--	release_region(watchdog_port,1);
-+	release_region(watchdog_port, 1);
- }
- 
- module_init(mixcomwd_init);
+ MODULE_DESCRIPTION("IBM Automatic Server Restart driver");
+ MODULE_AUTHOR("Andrey Panin");
 _
 
 Patches currently in -mm which might be from alan@redhat.com are
