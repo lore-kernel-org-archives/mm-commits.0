@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + make-list_poison-less-deadly-v2.patch added to -mm tree
-Date: Tue, 20 May 2008 02:37:19 -0700
-Message-ID: <200805200937.m4K9bJ05015943__37304.7325214886$1211276357$gmane$org@imap1.linux-foundation.org>
+Subject: + build-kernel-profileo-only-when-requested-cleanups.patch added to -mm tree
+Date: Tue, 20 May 2008 03:35:39 -0700
+Message-ID: <200805201035.m4KAZdIh018299@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54521 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35374 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753539AbYETJiO (ORCPT
+	by vger.kernel.org with ESMTP id S1752852AbYETKgJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 May 2008 05:38:14 -0400
+	Tue, 20 May 2008 06:36:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: avi@qumranet.com, linux-arch@vger.kernel.org, mingo@elte.hu, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, bunk@kernel.org, mingo@elte.hu
 
 
 The patch titled
-     Make LIST_POISON less deadly
+     build-kernel-profileo-only-when-requested-cleanups
 has been added to the -mm tree.  Its filename is
-     make-list_poison-less-deadly-v2.patch
+     build-kernel-profileo-only-when-requested-cleanups.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,77 +34,131 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Make LIST_POISON less deadly
-From: Avi Kivity <avi@qumranet.com>
+Subject: build-kernel-profileo-only-when-requested-cleanups
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The list macros use LIST_POISON1 and LIST_POISON2 as undereferencable
-pointers in order to trap erronous use of freed list_heads.  Unfortunately
-userspace can arrange for those pointers to actually be dereferencable,
-potentially turning an oops to an expolit.
-
-To avoid this allow architectures (currently x86_64 only) to override the
-default values for these pointers with truly-undereferncable values.  This
-is easy on x86_64 as the virtual address space is smaller than the range
-spanned by pointer values.
-
-Signed-off-by: Avi Kivity <avi@qumranet.com>
-Cc: <linux-arch@vger.kernel.org>
+Cc: Adrian Bunk <bunk@kernel.org>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig       |    5 +++++
- include/linux/poison.h |   10 ++++++++--
- 2 files changed, 13 insertions(+), 2 deletions(-)
+ include/linux/profile.h |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/Kconfig~make-list_poison-less-deadly-v2 arch/x86/Kconfig
---- a/arch/x86/Kconfig~make-list_poison-less-deadly-v2
-+++ a/arch/x86/Kconfig
-@@ -1025,6 +1025,11 @@ config ARCH_MEMORY_PROBE
- 	def_bool X86_64
- 	depends on MEMORY_HOTPLUG
+diff -puN include/linux/profile.h~build-kernel-profileo-only-when-requested-cleanups include/linux/profile.h
+--- a/include/linux/profile.h~build-kernel-profileo-only-when-requested-cleanups
++++ a/include/linux/profile.h
+@@ -18,9 +18,11 @@ struct pt_regs;
+ struct notifier_block;
  
-+config ILLEGAL_POINTER_VALUE
-+       hex
-+       default 0 if X86_32
-+       default 0x8888888800000000 if X86_64
-+
- source "mm/Kconfig"
+ #if defined(CONFIG_PROFILING) && defined(CONFIG_PROC_FS)
+-void create_prof_cpu_mask(struct proc_dir_entry *);
++void create_prof_cpu_mask(struct proc_dir_entry *de);
+ #else
+-#define create_prof_cpu_mask(x)			do { (void)(x); } while (0)
++static inline void create_prof_cpu_mask(struct proc_dir_entry *de)
++{
++}
+ #endif
  
- config HIGHPTE
-diff -puN include/linux/poison.h~make-list_poison-less-deadly-v2 include/linux/poison.h
---- a/include/linux/poison.h~make-list_poison-less-deadly-v2
-+++ a/include/linux/poison.h
-@@ -1,14 +1,20 @@
- #ifndef _LINUX_POISON_H
- #define _LINUX_POISON_H
- 
-+#ifdef CONFIG_ILLEGAL_POINTER_VALUE
-+#define POISON_POINTER_DELTA CONFIG_ILLEGAL_POINTER_VALUE
-+#else
-+#define POISON_POINTER_DELTA 0L
-+#endif
-+
- /********** include/linux/list.h **********/
- /*
-  * These are non-NULL pointers that will result in page faults
-  * under normal circumstances, used to verify that nobody uses
-  * non-initialized list entries.
-  */
--#define LIST_POISON1  ((void *) 0x00100100)
--#define LIST_POISON2  ((void *) 0x00200200)
-+#define LIST_POISON1  ((void *) 0x00100100 + POISON_POINTER_DELTA)
-+#define LIST_POISON2  ((void *) 0x00200200 + POISON_POINTER_DELTA)
- 
- /********** include/linux/timer.h **********/
- /*
+ enum profile_type {
 _
 
-Patches currently in -mm which might be from avi@qumranet.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-make-list_poison-less-deadly-v2.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+fix-kobject-fix-kobject_rename-and-config_sysfs.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-video-balcklist-fujitsu-lifebook-s6410.patch
+git-x86-fixup.patch
+arch-x86-mm-patc-use-boot_cpu_has.patch
+x86-setup_force_cpu_cap-dont-do-clear_bitnon-unsigned-long.patch
+lguest-use-cpu-capability-accessors.patch
+x86-set_restore_sigmask-avoid-bitop-on-a-u32.patch
+x86-bitops-take-an-unsigned-long.patch
+arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
+audit_send_reply-fix-error-path-memory-leak.patch
+zoran-use-correct-type-for-cpu-flags.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+drivers-infiniband-hw-mlx4-qpc-fix-uninitialised-var-warning.patch
+git-input.patch
+git-jg-misc-git-rejects.patch
+drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
+fsldma-the-mpc8377mds-board-device-tree-node-for-fsldma-driver.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers.patch
+git-ubifs.patch
+sundance-set-carrier-status-on-link-change-events.patch
+dm9000-use-delayed-work-to-update-mii-phy-state-fix.patch
+pcnet32-fix-warning.patch
+drivers-net-tokenring-3c359c-squish-a-warning.patch
+drivers-net-tokenring-olympicc-fix-warning.patch
+sfc-correct-and-expand-some-comments.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+pci-hotplug-introduce-pci_slot.patch
+pci-hotplug-acpi-pci-slot-detection-driver.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-logfs-fixup.patch
+drivers-uwb-nehc-processor-flags-have-type-unsigned-long.patch
+drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
+uwb-fix-scscanf-warning.patch
+drivers-uwb-wlp-sysfsc-dead-code.patch
+drivers-uwb-i1480-dfu-macc-fix-min-warning.patch
+drivers-uwb-whcic-needs-dma-mappingh.patch
+git-vfs-cleanups-reject.patch
+git-watchdog.patch
+git-watchdog-git-rejects.patch
+watchdog-fix-booke_wdtc-on-mpc85xx-smp-system.patch
+wireless-airo-waitbusy-wont-delay-checkpatch-fixes.patch
+git-xtensa.patch
+ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware-ia64-warnings.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-verify-the-page-links-and-memory-model.patch
+mspec-convert-nopfn-to-fault-fix.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+kill-generic_file_direct_io-checkpatch-fixes.patch
+spufs-use-the-new-vm_ops-access-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+rename-warn-to-warning-to-clear-the-namespace-fix.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-paccept-sys_ni.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-signalfd-fix.patch
+flag-parameters-eventfd-fix.patch
+flag-parameters-inotify_init-fix.patch
+flag-parameters-check-magic-constants-alpha-hack.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+reiserfs-convert-j_flush_sem-to-mutex-fix.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+reiser4.patch
+reiser4-semaphore-fix.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
