@@ -1,67 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: - hid-use-get-put_unaligned_-helpers.patch removed from -mm tree
-Date: Tue, 20 May 2008 14:14:09 -0700
-Message-ID: <200805202114.m4KLE9dt011439@imap1.linux-foundation.org>
+Subject: - sh-use-the-common-ascii-hex-helpers.patch removed from -mm tree
+Date: Tue, 20 May 2008 14:14:54 -0700
+Message-ID: <200805202114.m4KLEs8Z011505@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36020 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59986 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761209AbYETVWY (ORCPT
+	by vger.kernel.org with ESMTP id S1761759AbYETVW4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 May 2008 17:22:24 -0400
+	Tue, 20 May 2008 17:22:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, jkosina@suse.cz, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, lethal@linux-sh.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hid: use get/put_unaligned_* helpers
+     sh: use the common ascii hex helpers
 has been removed from the -mm tree.  Its filename was
-     hid-use-get-put_unaligned_-helpers.patch
+     sh-use-the-common-ascii-hex-helpers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hid: use get/put_unaligned_* helpers
+Subject: sh: use the common ascii hex helpers
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Jiri Kosina <jkosina@suse.cz>
+Acked-by: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hid/hid-core.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ arch/sh/kernel/kgdb_stub.c |   11 +++++------
+ drivers/serial/sh-sci.c    |    8 ++++----
+ include/asm-sh/kgdb.h      |   14 --------------
+ 3 files changed, 9 insertions(+), 24 deletions(-)
 
-diff -puN drivers/hid/hid-core.c~hid-use-get-put_unaligned_-helpers drivers/hid/hid-core.c
---- a/drivers/hid/hid-core.c~hid-use-get-put_unaligned_-helpers
-+++ a/drivers/hid/hid-core.c
-@@ -780,7 +780,7 @@ static __inline__ __u32 extract(__u8 *re
-  */
- static __inline__ void implement(__u8 *report, unsigned offset, unsigned n, __u32 value)
- {
--	__le64 x;
-+	u64 x;
- 	u64 m = (1ULL << n) - 1;
+diff -puN arch/sh/kernel/kgdb_stub.c~sh-use-the-common-ascii-hex-helpers arch/sh/kernel/kgdb_stub.c
+--- a/arch/sh/kernel/kgdb_stub.c~sh-use-the-common-ascii-hex-helpers
++++ a/arch/sh/kernel/kgdb_stub.c
+@@ -274,8 +274,7 @@ static char *mem_to_hex(const char *mem,
+ 	}
+ 	for (i = 0; i < count; i++) {
+ 		ch = *mem++;
+-		*buf++ = highhex(ch);
+-		*buf++ = lowhex(ch);
++		buf = pack_hex_byte(buf, ch);
+ 	}
+ 	*buf = 0;
+ 	return (buf);
+@@ -427,8 +426,8 @@ static void put_packet(char *buffer)
  
- 	if (n > 32)
-@@ -796,10 +796,10 @@ static __inline__ void implement(__u8 *r
- 	report += offset >> 3;
- 	offset &= 7;
- 
--	x = get_unaligned((__le64 *)report);
--	x &= cpu_to_le64(~(m << offset));
--	x |= cpu_to_le64(((u64) value) << offset);
--	put_unaligned(x, (__le64 *) report);
-+	x = get_unaligned_le64(report);
-+	x &= ~(m << offset);
-+	x |= ((u64)value) << offset;
-+	put_unaligned_le64(x, report);
+ 		/* '#' Separator, put high and low components of checksum */
+ 		put_debug_char('#');
+-		put_debug_char(highhex(checksum));
+-		put_debug_char(lowhex(checksum));
++		put_debug_char(hex_asc_hi(checksum));
++		put_debug_char(hex_asc_lo(checksum));
+ 	}
+ 	while ((get_debug_char()) != '+');	/* While no ack */
  }
+@@ -650,8 +649,8 @@ static void undo_single_step(void)
+ static void send_signal_msg(const int signum)
+ {
+ 	out_buffer[0] = 'S';
+-	out_buffer[1] = highhex(signum);
+-	out_buffer[2] = lowhex(signum);
++	out_buffer[1] = hex_asc_hi(signum);
++	out_buffer[2] = hex_asc_lo(signum);
+ 	out_buffer[3] = 0;
+ 	put_packet(out_buffer);
+ }
+diff -puN drivers/serial/sh-sci.c~sh-use-the-common-ascii-hex-helpers drivers/serial/sh-sci.c
+--- a/drivers/serial/sh-sci.c~sh-use-the-common-ascii-hex-helpers
++++ a/drivers/serial/sh-sci.c
+@@ -184,15 +184,15 @@ static void put_string(struct sci_port *
+ 			int h, l;
  
- /*
+ 			c = *p++;
+-			h = highhex(c);
+-			l = lowhex(c);
++			h = hex_asc_hi(c);
++			l = hex_asc_lo(c);
+ 			put_char(port, h);
+ 			put_char(port, l);
+ 			checksum += h + l;
+ 		}
+ 		put_char(port, '#');
+-		put_char(port, highhex(checksum));
+-		put_char(port, lowhex(checksum));
++		put_char(port, hex_asc_hi(checksum));
++		put_char(port, hex_asc_lo(checksum));
+ 	    } while  (get_char(port) != '+');
+ 	} else
+ #endif /* CONFIG_SH_STANDARD_BIOS || CONFIG_SH_KGDB */
+diff -puN include/asm-sh/kgdb.h~sh-use-the-common-ascii-hex-helpers include/asm-sh/kgdb.h
+--- a/include/asm-sh/kgdb.h~sh-use-the-common-ascii-hex-helpers
++++ a/include/asm-sh/kgdb.h
+@@ -66,18 +66,4 @@ extern int     setjmp(jmp_buf __jmpb);
+ /* Forced breakpoint */
+ #define breakpoint()	__asm__ __volatile__("trapa   #0x3c")
+ 
+-/* Taken from sh-stub.c of GDB 4.18 */
+-static const char hexchars[] = "0123456789abcdef";
+-
+-/* Get high hex bits */
+-static inline char highhex(const int x)
+-{
+-	return hexchars[(x >> 4) & 0xf];
+-}
+-
+-/* Get low hex bits */
+-static inline char lowhex(const int x)
+-{
+-	return hexchars[x & 0xf];
+-}
+ #endif
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
