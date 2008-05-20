@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + watchdog-ixp4xx_wdt-unlocked_ioctl.patch added to -mm tree
-Date: Tue, 20 May 2008 01:28:09 -0700
-Message-ID: <200805200828.m4K8S983013131@imap1.linux-foundation.org>
+Subject: + watchdog-ib700wdt-clean-up-and-switch-to-unlocked_ioctl.patch added to -mm tree
+Date: Tue, 20 May 2008 01:27:56 -0700
+Message-ID: <200805200827.m4K8Ru2r013101@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36239 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47893 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753433AbYETI21 (ORCPT
+	by vger.kernel.org with ESMTP id S1760244AbYETI2R (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 May 2008 04:28:27 -0400
+	Tue, 20 May 2008 04:28:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@redhat.com
 
 
 The patch titled
-     watchdog: ixp4xx_wdt: unlocked_ioctl
+     watchdog: ib700wdt: clean up and switch to unlocked_ioctl
 has been added to the -mm tree.  Its filename is
-     watchdog-ixp4xx_wdt-unlocked_ioctl.patch
+     watchdog-ib700wdt-clean-up-and-switch-to-unlocked_ioctl.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: watchdog: ixp4xx_wdt: unlocked_ioctl
+Subject: watchdog: ib700wdt: clean up and switch to unlocked_ioctl
 From: Alan Cox <alan@redhat.com>
 
 
@@ -42,128 +42,230 @@ Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/ixp4xx_wdt.c |   41 +++++++++++++-------------------
- 1 file changed, 17 insertions(+), 24 deletions(-)
+ drivers/watchdog/ib700wdt.c |  103 +++++++++++++++++-----------------
+ 1 file changed, 52 insertions(+), 51 deletions(-)
 
-diff -puN drivers/watchdog/ixp4xx_wdt.c~watchdog-ixp4xx_wdt-unlocked_ioctl drivers/watchdog/ixp4xx_wdt.c
---- a/drivers/watchdog/ixp4xx_wdt.c~watchdog-ixp4xx_wdt-unlocked_ioctl
-+++ a/drivers/watchdog/ixp4xx_wdt.c
-@@ -30,40 +30,40 @@ static int nowayout = WATCHDOG_NOWAYOUT;
- static int heartbeat = 60;	/* (secs) Default is 1 minute */
- static unsigned long wdt_status;
- static unsigned long boot_status;
-+static spin_lock_t wdt_lock;
+diff -puN drivers/watchdog/ib700wdt.c~watchdog-ib700wdt-clean-up-and-switch-to-unlocked_ioctl drivers/watchdog/ib700wdt.c
+--- a/drivers/watchdog/ib700wdt.c~watchdog-ib700wdt-clean-up-and-switch-to-unlocked_ioctl
++++ a/drivers/watchdog/ib700wdt.c
+@@ -42,8 +42,8 @@
+ #include <linux/moduleparam.h>
+ #include <linux/platform_device.h>
  
- #define WDT_TICK_RATE (IXP4XX_PERIPHERAL_BUS_CLOCK * 1000000UL)
+-#include <asm/io.h>
+-#include <asm/uaccess.h>
++#include <linux/io.h>
++#include <linux/uaccess.h>
+ #include <asm/system.h>
  
- #define	WDT_IN_USE		0
- #define	WDT_OK_TO_CLOSE		1
+ static struct platform_device *ibwdt_platform_device;
+@@ -120,7 +120,9 @@ static int wd_margin = WD_TIMO;
  
--static void
--wdt_enable(void)
-+static void wdt_enable(void)
+ static int nowayout = WATCHDOG_NOWAYOUT;
+ module_param(nowayout, int, 0);
+-MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started (default=" __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
++MODULE_PARM_DESC(nowayout,
++		"Watchdog cannot be stopped once started (default="
++				__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
+ 
+ 
+ /*
+@@ -165,8 +167,8 @@ ibwdt_set_heartbeat(int t)
+  *	/dev/watchdog handling
+  */
+ 
+-static ssize_t
+-ibwdt_write(struct file *file, const char __user *buf, size_t count, loff_t *ppos)
++static ssize_t ibwdt_write(struct file *file, const char __user *buf,
++						size_t count, loff_t *ppos)
  {
-+	spin_lock(&wdt_lock);
- 	*IXP4XX_OSWK = IXP4XX_WDT_KEY;
- 	*IXP4XX_OSWE = 0;
- 	*IXP4XX_OSWT = WDT_TICK_RATE * heartbeat;
- 	*IXP4XX_OSWE = IXP4XX_WDT_COUNT_ENABLE | IXP4XX_WDT_RESET_ENABLE;
- 	*IXP4XX_OSWK = 0;
-+	spin_unlock(&wdt_lock);
- }
- 
--static void
--wdt_disable(void)
-+static void wdt_disable(void)
- {
-+	spin_lock(&wdt_lock);
- 	*IXP4XX_OSWK = IXP4XX_WDT_KEY;
- 	*IXP4XX_OSWE = 0;
- 	*IXP4XX_OSWK = 0;
-+	spin_unlock(&wdt_lock);
+ 	if (count) {
+ 		if (!nowayout) {
+@@ -188,77 +190,71 @@ ibwdt_write(struct file *file, const cha
+ 	return count;
  }
  
 -static int
--ixp4xx_wdt_open(struct inode *inode, struct file *file)
-+static int ixp4xx_wdt_open(struct inode *inode, struct file *file)
+-ibwdt_ioctl(struct inode *inode, struct file *file, unsigned int cmd,
+-	  unsigned long arg)
++static long ibwdt_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
  {
- 	if (test_and_set_bit(WDT_IN_USE, &wdt_status))
- 		return -EBUSY;
+ 	int new_margin;
+ 	void __user *argp = (void __user *)arg;
+ 	int __user *p = argp;
  
- 	clear_bit(WDT_OK_TO_CLOSE, &wdt_status);
--
- 	wdt_enable();
--
- 	return nonseekable_open(inode, file);
- }
+ 	static struct watchdog_info ident = {
+-		.options = WDIOF_KEEPALIVEPING | WDIOF_SETTIMEOUT | WDIOF_MAGICCLOSE,
++		.options = WDIOF_KEEPALIVEPING | WDIOF_SETTIMEOUT
++							| WDIOF_MAGICCLOSE,
+ 		.firmware_version = 1,
+ 		.identity = "IB700 WDT",
+ 	};
  
-@@ -87,7 +87,6 @@ ixp4xx_wdt_write(struct file *file, cons
- 		}
- 		wdt_enable();
+ 	switch (cmd) {
+ 	case WDIOC_GETSUPPORT:
+-	  if (copy_to_user(argp, &ident, sizeof(ident)))
+-	    return -EFAULT;
+-	  break;
++		if (copy_to_user(argp, &ident, sizeof(ident)))
++			return -EFAULT;
++		break;
+ 
+ 	case WDIOC_GETSTATUS:
+ 	case WDIOC_GETBOOTSTATUS:
+-	  return put_user(0, p);
++		return put_user(0, p);
+ 
+ 	case WDIOC_KEEPALIVE:
+-	  ibwdt_ping();
+-	  break;
++		ibwdt_ping();
++		break;
+ 
+ 	case WDIOC_SETTIMEOUT:
+-	  if (get_user(new_margin, p))
+-		  return -EFAULT;
+-	  if (ibwdt_set_heartbeat(new_margin))
+-		  return -EINVAL;
+-	  ibwdt_ping();
+-	  /* Fall */
++		if (get_user(new_margin, p))
++			return -EFAULT;
++		if (ibwdt_set_heartbeat(new_margin))
++			return -EINVAL;
++		ibwdt_ping();
++		/* Fall */
+ 
+ 	case WDIOC_GETTIMEOUT:
+-	  return put_user(wd_times[wd_margin], p);
++		return put_user(wd_times[wd_margin], p);
+ 
+ 	case WDIOC_SETOPTIONS:
+ 	{
+-	  int options, retval = -EINVAL;
++		int options, retval = -EINVAL;
+ 
+-	  if (get_user(options, p))
+-	    return -EFAULT;
++		if (get_user(options, p))
++			return -EFAULT;
+ 
+-	  if (options & WDIOS_DISABLECARD) {
+-	    ibwdt_disable();
+-	    retval = 0;
+-	  }
+-
+-	  if (options & WDIOS_ENABLECARD) {
+-	    ibwdt_ping();
+-	    retval = 0;
+-	  }
+-
+-	  return retval;
++		if (options & WDIOS_DISABLECARD) {
++			ibwdt_disable();
++			retval = 0;
++		}
++		if (options & WDIOS_ENABLECARD) {
++			ibwdt_ping();
++			retval = 0;
++		}
++		return retval;
  	}
 -
- 	return len;
- }
- 
-@@ -98,9 +97,8 @@ static struct watchdog_info ident = {
- };
- 
- 
--static int
--ixp4xx_wdt_ioctl(struct inode *inode, struct file *file, unsigned int cmd,
--			unsigned long arg)
-+static long ixp4xx_wdt_ioctl(struct file *file, unsigned int cmd,
-+							unsigned long arg)
- {
- 	int ret = -ENOTTY;
- 	int time;
-@@ -145,16 +143,13 @@ ixp4xx_wdt_ioctl(struct inode *inode, st
- 	return ret;
+ 	default:
+-	  return -ENOTTY;
++		return -ENOTTY;
+ 	}
+ 	return 0;
  }
  
 -static int
--ixp4xx_wdt_release(struct inode *inode, struct file *file)
-+static int ixp4xx_wdt_release(struct inode *inode, struct file *file)
+-ibwdt_open(struct inode *inode, struct file *file)
++static int ibwdt_open(struct inode *inode, struct file *file)
  {
--	if (test_bit(WDT_OK_TO_CLOSE, &wdt_status)) {
-+	if (test_bit(WDT_OK_TO_CLOSE, &wdt_status))
- 		wdt_disable();
--	} else {
-+	else
- 		printk(KERN_CRIT "WATCHDOG: Device closed unexpectedly - "
- 					"timer will not stop\n");
+-	if (test_and_set_bit(0, &ibwdt_is_open)) {
++	if (test_and_set_bit(0, &ibwdt_is_open))
+ 		return -EBUSY;
 -	}
--
- 	clear_bit(WDT_IN_USE, &wdt_status);
- 	clear_bit(WDT_OK_TO_CLOSE, &wdt_status);
+ 	if (nowayout)
+ 		__module_get(THIS_MODULE);
  
-@@ -167,7 +162,7 @@ static const struct file_operations ixp4
+@@ -273,7 +269,8 @@ ibwdt_close(struct inode *inode, struct 
+ 	if (expect_close == 42) {
+ 		ibwdt_disable();
+ 	} else {
+-		printk(KERN_CRIT PFX "WDT device closed unexpectedly.  WDT will not stop!\n");
++		printk(KERN_CRIT PFX
++		     "WDT device closed unexpectedly.  WDT will not stop!\n");
+ 		ibwdt_ping();
+ 	}
+ 	clear_bit(0, &ibwdt_is_open);
+@@ -289,7 +286,7 @@ static const struct file_operations ibwd
  	.owner		= THIS_MODULE,
  	.llseek		= no_llseek,
- 	.write		= ixp4xx_wdt_write,
--	.ioctl		= ixp4xx_wdt_ioctl,
-+	.unlocked_ioctl	= ixp4xx_wdt_ioctl,
- 	.open		= ixp4xx_wdt_open,
- 	.release	= ixp4xx_wdt_release,
+ 	.write		= ibwdt_write,
+-	.ioctl		= ibwdt_ioctl,
++	.unlocked_ioctl	= ibwdt_ioctl,
+ 	.open		= ibwdt_open,
+ 	.release	= ibwdt_close,
  };
-@@ -191,14 +186,12 @@ static int __init ixp4xx_wdt_init(void)
+@@ -310,21 +307,23 @@ static int __devinit ibwdt_probe(struct 
  
- 		return -ENODEV;
+ #if WDT_START != WDT_STOP
+ 	if (!request_region(WDT_STOP, 1, "IB700 WDT")) {
+-		printk (KERN_ERR PFX "STOP method I/O %X is not available.\n", WDT_STOP);
++		printk(KERN_ERR PFX "STOP method I/O %X is not available.\n",
++								WDT_STOP);
+ 		res = -EIO;
+ 		goto out_nostopreg;
  	}
--
-+	spin_lock_init(&wdt_lock);
-+	boot_status = (*IXP4XX_OSST & IXP4XX_OSST_TIMER_WARM_RESET) ?
-+			WDIOF_CARDRESET : 0;
- 	ret = misc_register(&ixp4xx_wdt_miscdev);
- 	if (ret == 0)
- 		printk("IXP4xx Watchdog Timer: heartbeat %d sec\n", heartbeat);
--
--	boot_status = (*IXP4XX_OSST & IXP4XX_OSST_TIMER_WARM_RESET) ?
--			WDIOF_CARDRESET : 0;
--
- 	return ret;
- }
+ #endif
  
+ 	if (!request_region(WDT_START, 1, "IB700 WDT")) {
+-		printk (KERN_ERR PFX "START method I/O %X is not available.\n", WDT_START);
++		printk(KERN_ERR PFX "START method I/O %X is not available.\n",
++								WDT_START);
+ 		res = -EIO;
+ 		goto out_nostartreg;
+ 	}
+ 
+ 	res = misc_register(&ibwdt_miscdev);
+ 	if (res) {
+-		printk (KERN_ERR PFX "failed to register misc device\n");
++		printk(KERN_ERR PFX "failed to register misc device\n");
+ 		goto out_nomisc;
+ 	}
+ 	return 0;
+@@ -342,9 +341,9 @@ out_nostopreg:
+ static int __devexit ibwdt_remove(struct platform_device *dev)
+ {
+ 	misc_deregister(&ibwdt_miscdev);
+-	release_region(WDT_START,1);
++	release_region(WDT_START, 1);
+ #if WDT_START != WDT_STOP
+-	release_region(WDT_STOP,1);
++	release_region(WDT_STOP, 1);
+ #endif
+ 	return 0;
+ }
+@@ -369,13 +368,15 @@ static int __init ibwdt_init(void)
+ {
+ 	int err;
+ 
+-	printk(KERN_INFO PFX "WDT driver for IB700 single board computer initialising.\n");
++	printk(KERN_INFO PFX
++		"WDT driver for IB700 single board computer initialising.\n");
+ 
+ 	err = platform_driver_register(&ibwdt_driver);
+ 	if (err)
+ 		return err;
+ 
+-	ibwdt_platform_device = platform_device_register_simple(DRV_NAME, -1, NULL, 0);
++	ibwdt_platform_device = platform_device_register_simple(DRV_NAME,
++								-1, NULL, 0);
+ 	if (IS_ERR(ibwdt_platform_device)) {
+ 		err = PTR_ERR(ibwdt_platform_device);
+ 		goto unreg_platform_driver;
 _
 
 Patches currently in -mm which might be from alan@redhat.com are
