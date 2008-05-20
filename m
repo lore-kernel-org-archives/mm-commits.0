@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + posix-timers-release_posix_timer-kill-the-bogus-put_task_struct-it_process.patch added to -mm tree
-Date: Mon, 19 May 2008 23:33:01 -0700
-Message-ID: <200805200633.m4K6X1K8008974@imap1.linux-foundation.org>
+Subject: + kbuild-move-non-__kernel__-checking-headers-to-header-y.patch added to -mm tree
+Date: Tue, 20 May 2008 00:10:08 -0700
+Message-ID: <200805200710.m4K7A83w010360@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56339 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36006 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756835AbYETGuv (ORCPT
+	by vger.kernel.org with ESMTP id S1756243AbYETHKM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 May 2008 02:50:51 -0400
+	Tue, 20 May 2008 03:10:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, johnstul@us.ibm.com, roland@redhat.com, tglx@linutronix.de
+Cc: rpjday@crashcourse.ca
 
 
 The patch titled
-     posix timers: release_posix_timer: kill the bogus put_task_struct(->it_process);
+     kbuild: move non-__KERNEL__-checking headers to header-y
 has been added to the -mm tree.  Its filename is
-     posix-timers-release_posix_timer-kill-the-bogus-put_task_struct-it_process.patch
+     kbuild-move-non-__kernel__-checking-headers-to-header-y.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,51 +34,96 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: posix timers: release_posix_timer: kill the bogus put_task_struct(->it_process);
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: kbuild: move non-__KERNEL__-checking headers to header-y
+From: "Robert P. J. Day" <rpjday@crashcourse.ca>
 
-release_posix_timer() can't be called with ->it_process != NULL.  Once
-sys_timer_create() sets ->it_process it must not call
-release_posix_timer(), otherwise we can race with another thread doing
-sys_timer_delete(), this timer is visible to idr_find() and unlocked.
+Move exported header files under include/linux that don't check the
+__KERNEL__ preprocessor from unifdef-y to header-y.
 
-The same is true for two other callers (actually, for any possible
-caller), sys_timer_delete() and itimer_delete().  They must clear
-->it_process before unlock_timer() + release_posix_timer().
-
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Acked-by: Roland McGrath <roland@redhat.com>
-Cc: john stultz <johnstul@us.ibm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Roland McGrath <roland@redhat.com>
+Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/posix-timers.c |    3 ---
- 1 file changed, 3 deletions(-)
+ include/linux/Kbuild |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN kernel/posix-timers.c~posix-timers-release_posix_timer-kill-the-bogus-put_task_struct-it_process kernel/posix-timers.c
---- a/kernel/posix-timers.c~posix-timers-release_posix_timer-kill-the-bogus-put_task_struct-it_process
-+++ a/kernel/posix-timers.c
-@@ -449,9 +449,6 @@ static void release_posix_timer(struct k
- 		spin_unlock_irqrestore(&idr_lock, flags);
- 	}
- 	sigqueue_free(tmr->sigq);
--	if (unlikely(tmr->it_process) &&
--	    tmr->it_sigev_notify == (SIGEV_SIGNAL|SIGEV_THREAD_ID))
--		put_task_struct(tmr->it_process);
- 	kmem_cache_free(posix_timers_cache, tmr);
- }
+diff -puN include/linux/Kbuild~kbuild-move-non-__kernel__-checking-headers-to-header-y include/linux/Kbuild
+--- a/include/linux/Kbuild~kbuild-move-non-__kernel__-checking-headers-to-header-y
++++ a/include/linux/Kbuild
+@@ -104,6 +104,7 @@ header-y += iso_fs.h
+ header-y += ixjuser.h
+ header-y += jffs2.h
+ header-y += keyctl.h
++header-y += kvm.h
+ header-y += limits.h
+ header-y += dlm_plock.h
+ header-y += magic.h
+@@ -157,11 +158,18 @@ header-y += toshiba.h
+ header-y += udf_fs_i.h
+ header-y += ultrasound.h
+ header-y += un.h
++header-y += unistd.h
+ header-y += utime.h
+ header-y += veth.h
+ header-y += video_decoder.h
+ header-y += video_encoder.h
+ header-y += videotext.h
++header-y += virtio_blk.h
++header-y += virtio_net.h
++header-y += virtio_9p.h
++header-y += virtio_balloon.h
++header-y += virtio_pci.h
++header-y += wireless.h
+ header-y += x25.h
+ 
+ unifdef-y += acct.h
+@@ -254,7 +262,6 @@ unifdef-y += kd.h
+ unifdef-y += kernelcapi.h
+ unifdef-y += kernel.h
+ unifdef-y += keyboard.h
+-unifdef-y += kvm.h
+ unifdef-y += llc.h
+ unifdef-y += loop.h
+ unifdef-y += lp.h
+@@ -339,24 +346,17 @@ unifdef-y += types.h
+ unifdef-y += udp.h
+ unifdef-y += uinput.h
+ unifdef-y += uio.h
+-unifdef-y += unistd.h
+ unifdef-y += usbdevice_fs.h
+ unifdef-y += utsname.h
+ unifdef-y += videodev2.h
+ unifdef-y += videodev.h
+ unifdef-y += virtio_config.h
+-unifdef-y += virtio_blk.h
+-unifdef-y += virtio_net.h
+-unifdef-y += virtio_9p.h
+-unifdef-y += virtio_balloon.h
+ unifdef-y += virtio_console.h
+-unifdef-y += virtio_pci.h
+ unifdef-y += virtio_ring.h
+ unifdef-y += vt.h
+ unifdef-y += wait.h
+ unifdef-y += wanrouter.h
+ unifdef-y += watchdog.h
+-unifdef-y += wireless.h
+ unifdef-y += xattr.h
+ unifdef-y += xfrm.h
  
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from rpjday@crashcourse.ca are
 
-signals-fix-sigqueue_free-vs-__exit_signal-race.patch
-posix-timers-timer_delete-remove-the-bogus-it_process-=-null-check.patch
-posix-timers-release_posix_timer-kill-the-bogus-put_task_struct-it_process.patch
-signals-sigqueue_free-dont-free-sigqueue-if-it-is-queued.patch
-signals-introduce-sigqueue_cancelled.patch
-posix-timers-use-sigqueue_cancelled-when-the-timer-is-destroyed.patch
-put_pid-make-sure-we-dont-free-the-live-pid.patch
+linux-next.patch
+kbuild-remove-final-references-to-deprecated-unreferenced-topdir.patch
+kbuild-move-non-__kernel__-checking-headers-to-header-y.patch
+xtensa-warn-about-including-asm-rwsemh-directly.patch
+xtensa-use-newer-__spin_lock_unlocked-macro.patch
+remove-apparently-unused-fd1772h-header-file.patch
+init-delete-hard-coded-setting-and-testing-of-build_cramdisk.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+lists-remove-a-redundant-conditional-definition-of-list_add.patch
+zorro-replace-deprecated-__initcall-with-equivalent-device_initcall.patch
+spi-kconfig-simplifications.patch
 
