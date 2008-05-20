@@ -1,116 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: - linux-next-git-rejects.patch removed from -mm tree
-Date: Tue, 20 May 2008 13:52:44 -0700
-Message-ID: <200805202052.m4KKqiB3010572@imap1.linux-foundation.org>
+Subject: - fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch removed from -mm tree
+Date: Tue, 20 May 2008 13:58:26 -0700
+Message-ID: <200805202058.m4KKwQnA010801@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60417 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58373 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758862AbYETUwr (ORCPT
+	by vger.kernel.org with ESMTP id S1759588AbYETU6s (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 May 2008 16:52:47 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m4KKqj4k020296
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 20 May 2008 13:52:46 -0700
+	Tue, 20 May 2008 16:58:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, bfields@fieldses.org, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next-git-rejects
+     fs/nfs/callback_xdr.c: suppress uninitialiized variable warnings
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
+Subject: fs/nfs/callback_xdr.c: suppress uninitialiized variable warnings
 From: Andrew Morton <akpm@linux-foundation.org>
 
+I'm tired of reading this:
+
+fs/nfs/callback_xdr.c: In function 'nfs4_callback_compound':
+fs/nfs/callback_xdr.c:404: warning: 'hdr_arg.taglen' may be used uninitialized in this function
+fs/nfs/callback_xdr.c:404: warning: 'hdr_arg.tag' may be used uninitialized in this function
+fs/nfs/callback_xdr.c:404: warning: 'hdr_arg.nops' may be used uninitialized in this function
+
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/balloc.c |    4 ----
- init/main.c      |    8 --------
- 2 files changed, 12 deletions(-)
+ fs/nfs/callback_xdr.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ext4/balloc.c~linux-next-git-rejects fs/ext4/balloc.c
---- a/fs/ext4/balloc.c~linux-next-git-rejects
-+++ a/fs/ext4/balloc.c
-@@ -290,11 +290,7 @@ read_block_bitmap(struct super_block *sb
- 	ext4_valid_block_bitmap(sb, desc, block_group, bh);
- 	/*
- 	 * file system mounted not to panic on error,
--<<<<<<< HEAD:fs/ext4/balloc.c
- 	 * continue with corrupt bitmap
--=======
--	 * continue with corrput bitmap
-->>>>>>> FETCH_HEAD:fs/ext4/balloc.c
- 	 */
- 	return bh;
- }
-diff -puN init/main.c~linux-next-git-rejects init/main.c
---- a/init/main.c~linux-next-git-rejects
-+++ a/init/main.c
-@@ -724,19 +724,11 @@ static void __init do_one_initcall(initc
- 	if (preempt_count() != count) {
- 		strlcat(msgbuf, "preemption imbalance ", sizeof(msgbuf));
- 		preempt_count() = count;
--<<<<<<< HEAD:init/main.c
- 	}
- 	if (irqs_disabled()) {
- 		strlcat(msgbuf, "disabled interrupts ", sizeof(msgbuf));
- 		local_irq_enable();
- 	}
--=======
--	}
--	if (irqs_disabled()) {
--		strlcat(msgbuf, "disabled interrupts ", sizeof(msgbuf));
--		local_irq_enable();
--	}
-->>>>>>> FETCH_HEAD:init/main.c
- 	if (msgbuf[0]) {
- 		print_fn_descriptor_symbol(KERN_WARNING "initcall %s", fn);
- 		printk(" returned with %s\n", msgbuf);
+diff -puN fs/nfs/callback_xdr.c~fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings fs/nfs/callback_xdr.c
+--- a/fs/nfs/callback_xdr.c~fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings
++++ a/fs/nfs/callback_xdr.c
+@@ -401,7 +401,7 @@ static __be32 process_op(struct svc_rqst
+  */
+ static __be32 nfs4_callback_compound(struct svc_rqst *rqstp, void *argp, void *resp)
+ {
+-	struct cb_compound_hdr_arg hdr_arg;
++	struct cb_compound_hdr_arg uninitialized_var(hdr_arg);
+ 	struct cb_compound_hdr_res hdr_res;
+ 	struct xdr_stream xdr_in, xdr_out;
+ 	__be32 *p;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
 next-remove-localversion.patch
 fix-kobject-fix-kobject_rename-and-config_sysfs.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 acpi-video-balcklist-fujitsu-lifebook-s6410.patch
 git-x86-fixup.patch
-arch-x86-mm-patc-use-boot_cpu_has.patch
-x86-setup_force_cpu_cap-dont-do-clear_bitnon-unsigned-long.patch
 lguest-use-cpu-capability-accessors.patch
-x86-set_restore_sigmask-avoid-bitop-on-a-u32.patch
-x86-bitops-take-an-unsigned-long.patch
 arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
-audit_send_reply-fix-error-path-memory-leak.patch
-git-cifs.patch
-git-dvb.patch
 zoran-use-correct-type-for-cpu-flags.patch
 i2c-renesas-highlander-fpga-smbus-support.patch
-git-hid.patch
 drivers-infiniband-hw-mlx4-qpc-fix-uninitialised-var-warning.patch
 git-input.patch
 git-jg-misc-git-rejects.patch
 drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
-git-kvm.patch
 fsldma-the-mpc8377mds-board-device-tree-node-for-fsldma-driver.patch
-git-mmc.patch
 mmc-sd-host-driver-for-ricoh-bay1controllers.patch
 git-ubifs.patch
-git-net.patch
-git-net-next.patch
 sundance-set-carrier-status-on-link-change-events.patch
 dm9000-use-delayed-work-to-update-mii-phy-state-fix.patch
 pcnet32-fix-warning.patch
