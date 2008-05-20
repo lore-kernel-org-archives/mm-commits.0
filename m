@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes.patch added to -mm tree
-Date: Mon, 19 May 2008 23:09:44 -0700
-Message-ID: <200805200609.m4K69iY8008113@imap1.linux-foundation.org>
+Subject: + pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup.patch added to -mm tree
+Date: Mon, 19 May 2008 23:12:17 -0700
+Message-ID: <200805200612.m4K6CHF1008222@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33984 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57332 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753839AbYETGKa (ORCPT
+	by vger.kernel.org with ESMTP id S1753870AbYETGNA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 May 2008 02:10:30 -0400
+	Tue, 20 May 2008 02:13:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, cooloney@kernel.org, michael.hennerich@analog.com
 
 
 The patch titled
-     pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes
+     pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup
 has been added to the -mm tree.  Its filename is
-     pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes.patch
+     pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,74 +34,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes
+Subject: pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup
 From: Andrew Morton <akpm@linux-foundation.org>
-
-WARNING: Use #include <linux/io.h> instead of <asm/io.h>
-#86: FILE: drivers/pcmcia/bfin_cf_pcmcia.c:41:
-+#include <asm/io.h>
-
-WARNING: Use #include <linux/gpio.h> instead of <asm/gpio.h>
-#87: FILE: drivers/pcmcia/bfin_cf_pcmcia.c:42:
-+#include <asm/gpio.h>
-
-ERROR: "foo * bar" should be "foo *bar"
-#150: FILE: drivers/pcmcia/bfin_cf_pcmcia.c:105:
-+static int bfin_cf_get_status(struct pcmcia_socket *s, u_int * sp)
-
-WARNING: __func__ should be used instead of gcc specific __FUNCTION__
-#200: FILE: drivers/pcmcia/bfin_cf_pcmcia.c:155:
-+	pr_debug("%s: %s\n", driver_name, __FUNCTION__);
-
-total: 1 errors, 3 warnings, 369 lines checked
-
-./patches/pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
 
 Cc: Bryan Wu <cooloney@kernel.org>
 Cc: Michael Hennerich <michael.hennerich@analog.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pcmcia/bfin_cf_pcmcia.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/pcmcia/bfin_cf_pcmcia.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/pcmcia/bfin_cf_pcmcia.c~pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes drivers/pcmcia/bfin_cf_pcmcia.c
---- a/drivers/pcmcia/bfin_cf_pcmcia.c~pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes
+diff -puN drivers/pcmcia/bfin_cf_pcmcia.c~pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup drivers/pcmcia/bfin_cf_pcmcia.c
+--- a/drivers/pcmcia/bfin_cf_pcmcia.c~pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup
 +++ a/drivers/pcmcia/bfin_cf_pcmcia.c
-@@ -35,10 +35,10 @@
- #include <linux/delay.h>
- #include <linux/interrupt.h>
- #include <linux/irq.h>
-+#include <linux/io.h>
+@@ -228,9 +228,7 @@ static int __init bfin_cf_probe(struct p
  
- #include <pcmcia/ss.h>
- #include <pcmcia/cisreg.h>
--#include <asm/io.h>
- #include <asm/gpio.h>
+ 	cf->cd_pfx = cd_pfx;
  
- #define	SZ_1K	0x00000400
-@@ -102,7 +102,7 @@ static void bfin_cf_timer(unsigned long 
- 		mod_timer(&cf->timer, jiffies + POLL_INTERVAL);
- }
+-	init_timer(&cf->timer);
+-	cf->timer.function = bfin_cf_timer;
+-	cf->timer.data = (unsigned long)cf;
++	setup_timer(&cf->timer, bfin_cf_timer, (unsigned long)cf);
  
--static int bfin_cf_get_status(struct pcmcia_socket *s, u_int * sp)
-+static int bfin_cf_get_status(struct pcmcia_socket *s, u_int *sp)
- {
- 	struct bfin_cf_socket *cf;
- 
-@@ -152,7 +152,7 @@ bfin_cf_set_socket(struct pcmcia_socket 
- 
- static int bfin_cf_ss_suspend(struct pcmcia_socket *s)
- {
--	pr_debug("%s: %s\n", driver_name, __FUNCTION__);
-+	pr_debug("%s: %s\n", driver_name, __func__);
- 	return bfin_cf_set_socket(s, &dead_socket);
- }
- 
+ 	cf->pdev = pdev;
+ 	platform_set_drvdata(pdev, cf);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -159,6 +116,7 @@ wireless-airo-waitbusy-wont-delay-checkpatch-fixes.patch
 git-xtensa.patch
 ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware-ia64-warnings.patch
 pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
 mm-verify-the-page-links-and-memory-model.patch
 mspec-convert-nopfn-to-fault-fix.patch
