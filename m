@@ -1,133 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: - rndis-switch-to-seq_files.patch removed from -mm tree
-Date: Tue, 20 May 2008 14:14:37 -0700
-Message-ID: <200805202114.m4KLEbvT011481@imap1.linux-foundation.org>
+Subject: - show_schedstat-fix-memleak.patch removed from -mm tree
+Date: Tue, 20 May 2008 14:14:29 -0700
+Message-ID: <200805202114.m4KLETpe011469@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34126 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44341 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932071AbYETVPN (ORCPT
+	by vger.kernel.org with ESMTP id S932367AbYETVPZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 May 2008 17:15:13 -0400
+	Tue, 20 May 2008 17:15:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, david-b@pacbell.net, greg@kroah.com, mm-commits@vger.kernel.org
+To: bunk@kernel.org, mingo@elte.hu, travis@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rndis: switch to seq_files
+     show_schedstat(): fix memleak
 has been removed from the -mm tree.  Its filename was
-     rndis-switch-to-seq_files.patch
+     show_schedstat-fix-memleak.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rndis: switch to seq_files
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: show_schedstat(): fix memleak
+From: Adrian Bunk <bunk@kernel.org>
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: David Brownell <david-b@pacbell.net>
+The Coverity checker spotted a memleak introduced by commit
+39106dcf85285e78f3b290022122c76f851379b8 (cpumask: use new cpus_scnprintf
+function).
+
+It seems the kfree() got lost between v2 and v3 of this patch...
+
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: Mike Travis <travis@sgi.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/gadget/rndis.c |   53 ++++++++++++++++-------------------
- 1 file changed, 25 insertions(+), 28 deletions(-)
+ kernel/sched_stats.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/usb/gadget/rndis.c~rndis-switch-to-seq_files drivers/usb/gadget/rndis.c
---- a/drivers/usb/gadget/rndis.c~rndis-switch-to-seq_files
-+++ a/drivers/usb/gadget/rndis.c
-@@ -30,6 +30,7 @@
- #include <linux/init.h>
- #include <linux/list.h>
- #include <linux/proc_fs.h>
-+#include <linux/seq_file.h>
- #include <linux/netdevice.h>
- 
- #include <asm/io.h>
-@@ -1296,14 +1297,11 @@ int rndis_rm_hdr(struct sk_buff *skb)
- 
- #ifdef	CONFIG_USB_GADGET_DEBUG_FILES
- 
--static int rndis_proc_read (char *page, char **start, off_t off, int count, int *eof,
--		void *data)
-+static int rndis_proc_show(struct seq_file *m, void *v)
- {
--	char *out = page;
--	int len;
--	rndis_params *param = (rndis_params *) data;
-+	rndis_params *param = m->private;
- 
--	out += snprintf (out, count,
-+	seq_printf(m,
- 			 "Config Nr. %d\n"
- 			 "used      : %s\n"
- 			 "state     : %s\n"
-@@ -1326,25 +1324,13 @@ static int rndis_proc_read (char *page, 
- 			 (param->media_state) ? 0 : param->speed*100,
- 			 (param->media_state) ? "disconnected" : "connected",
- 			 param->vendorID, param->vendorDescr);
--
--	len = out - page;
--	len -= off;
--
--	if (len < count) {
--		*eof = 1;
--		if (len <= 0)
--			return 0;
--	} else
--		len = count;
--
--	*start = page + off;
--	return len;
-+	return 0;
+diff -puN kernel/sched_stats.h~show_schedstat-fix-memleak kernel/sched_stats.h
+--- a/kernel/sched_stats.h~show_schedstat-fix-memleak
++++ a/kernel/sched_stats.h
+@@ -67,6 +67,7 @@ static int show_schedstat(struct seq_fil
+ 		preempt_enable();
+ #endif
+ 	}
++	kfree(mask_str);
+ 	return 0;
  }
  
--static int rndis_proc_write (struct file *file, const char __user *buffer,
--		unsigned long count, void *data)
-+static ssize_t rndis_proc_write(struct file *file, const char __user *buffer,
-+		size_t count, loff_t *ppos)
- {
--	rndis_params *p = data;
-+	rndis_params *p = PDE(file->f_path.dentry->d_inode)->data;
- 	u32 speed = 0;
- 	int i, fl_speed = 0;
- 
-@@ -1386,6 +1372,20 @@ static int rndis_proc_write (struct file
- 	return count;
- }
- 
-+static int rndis_proc_open(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, rndis_proc_show, PDE(inode)->data);
-+}
-+
-+static const struct file_operations rndis_proc_fops = {
-+	.owner		= THIS_MODULE,
-+	.open		= rndis_proc_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= single_release,
-+	.write		= rndis_proc_write,
-+};
-+
- #define	NAME_TEMPLATE	"driver/rndis-%03d"
- 
- static struct proc_dir_entry *rndis_connect_state [RNDIS_MAX_CONFIGS];
-@@ -1403,7 +1403,9 @@ int __init rndis_init (void)
- 
- 		sprintf (name, NAME_TEMPLATE, i);
- 		if (!(rndis_connect_state [i]
--				= create_proc_entry (name, 0660, NULL)))
-+				= proc_create_data(name, 0660, NULL,
-+					&rndis_proc_fops,
-+					(void *)(rndis_per_dev_params + i))))
- 		{
- 			DBG("%s :remove entries", __func__);
- 			while (i) {
-@@ -1413,11 +1415,6 @@ int __init rndis_init (void)
- 			DBG("\n");
- 			return -EIO;
- 		}
+_
+
+Patches currently in -mm which might be from bunk@kernel.org are
+
+origin.patch
+linux-next.patch
+proper-prototype-for-acpi_processor_tstate_has_changed.patch
+remove-drivers-acorn-char-defkeymap-l7200c.patch
+drm-make-drm_minors_cleanup-static.patch
+git-input.patch
+if-0-ses_match_host.patch
+git-sparc64.patch
+git-watchdog.patch
+git-xtensa.patch
+ibmaem-fix-64-bit-division-on-32-bit-platforms-update.patch
+md-proper-extern-for-mdp_major.patch
+mm-migratec-should-include-linux-syscallsh.patch
+mm-vmstatc-proper-externs.patch
+mm-hugetlbc-fix-duplicate-variable.patch
+remove-include-asm-h8300-keyboardh.patch
+remove-the-v850-port.patch
+init-do_mountsc-should-include-linux-initrdh.patch
+proper-spawn_ksoftirqd-prototype.patch
+build-kernel-profileo-only-when-requested.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+asm-generic-int-ll64h-always-provide-__su64.patch
+remove-the-oss-trident-driver.patch
+serial-8250_gscc-add-module_license.patch
+mfd-sm501c-if-0-unused-functions.patch
+xen-drivers-xen-balloonc-make-a-function-static.patch
+video-sis-remove-compat-code.patch
+minix-remove-no_truncate-code.patch
+remove-is_tty.patch
+proper-extern-for-mwave_s_mdd.patch
+if-0-hpet_unregister.patch
+unexport-proc_clear_tty.patch
+move-proc_kmsg_operations-to-fs-proc-internalh.patch
+proper-pidhashmap_init-prototypes.patch
+unexport-uts_sem.patch
+parport-sharec-proper-externs.patch
+tpm_biosc-make-2-structs-static.patch
+make-cgroup_seqfile_release-static.patch
+make-kprobe_blacklist-static.patch
+make-pnp_add_card_id-static.patch
+make-struct-mpt_proc_root_dir-static.patch
+make-parport_cs_release-static.patch
+make-mm-sparsec-make-a-function-static.patch
+mm-allocpercpuc-make-4-functions-static.patch
+make-mm-memoryc-print_bad_pte-static.patch
+mm-swapfilec-make-code-static.patch
+make-mm-rmapc-anon_vma_cachep-static.patch
+drivers-char-rtcc-make-2-functions-static.patch
+make-init-do_mountsc-root_device_name-static.patch
+reiser4.patch
+
