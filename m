@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + linux-aouth-is-not-exported-to-userspace.patch added to -mm tree
-Date: Mon, 19 May 2008 21:12:57 -0700
-Message-ID: <200805200412.m4K4CvYR004278@imap1.linux-foundation.org>
+Subject: + rtc-m41t80-century-bit-support.patch added to -mm tree
+Date: Mon, 19 May 2008 21:14:40 -0700
+Message-ID: <200805200414.m4K4Eexl004296@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57742 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49849 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751698AbYETENP (ORCPT
+	by vger.kernel.org with ESMTP id S1751599AbYETEPo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 May 2008 00:13:15 -0400
+	Tue, 20 May 2008 00:15:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: raj.khem@gmail.com, stable@kernel.org
+Cc: macro@linux-mips.org, a.zummo@towertech.it, david-b@pacbell.net, hvr@gnu.org
 
 
 The patch titled
-     linux/a.out.h is not exported to userspace
+     rtc: m41t80: cenutury bit support
 has been added to the -mm tree.  Its filename is
-     linux-aouth-is-not-exported-to-userspace.patch
+     rtc-m41t80-century-bit-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,80 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux/a.out.h is not exported to userspace
-From: Khem Raj <raj.khem@gmail.com>
+Subject: rtc: m41t80: cenutury bit support
+From: "Maciej W. Rozycki" <macro@linux-mips.org>
 
-Looking for a compile failure for a package on uclibc system using
-kernel-headers from 2.6.25 I found that linux/a.out.h is no more exported
-to userland anymore.
+Make use of the Century Bit to support years in the range from 1970 to
+2169.  Enable toggling of the bit at the end of a century on a clock
+update.
 
-This commit below has disabled it from being exported.  The commit Do not
-export asm/page.h during make headers_install so I was wondering if it was
-intended to unexport linux/a.out.h or not.
+The clock is used with the Broadcom SWARM and the D-Link DNS-323 platform.
 
-http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git;a=3Dcomm=
-itdiff;h=3Ded7b1889da256977574663689b598d88950bbd23
+I have verified correct operation with the SWARM -- the firmware assumes
+19YY when CB is clear and 20YY otherwise.  Which means years 1900-1969
+will be shown as 2100-2169 in Linux.  I think this is a feature rather
+than a problem.  The firmware does not set the CEB bit itself and does not
+care of what its state is.
 
-Looking at the patch from lkml post
-
-http://linux.derkeiler.com/Mailing-Lists/Kernel/2007-10/msg08913.html
-
-second hunk to include/linux/Kbuild was not applied which caused this
-problem.
-
-Tested-by: Khem Raj <raj.khem@gmail.com>
-Cc: <stable@kernel.org>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Herbert Valerio Riedel <hvr@gnu.org>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/Kbuild |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/rtc/rtc-m41t80.c |   18 +++++++++++++++---
+ 1 file changed, 15 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/Kbuild~linux-aouth-is-not-exported-to-userspace include/linux/Kbuild
---- a/include/linux/Kbuild~linux-aouth-is-not-exported-to-userspace
-+++ a/include/linux/Kbuild
-@@ -168,6 +168,7 @@ unifdef-y += acct.h
- unifdef-y += adb.h
- unifdef-y += adfs_fs.h
- unifdef-y += agpgart.h
-+unifdef-y += a.out.h
- unifdef-y += apm_bios.h
- unifdef-y += atalk.h
- unifdef-y += atmdev.h
+diff -puN drivers/rtc/rtc-m41t80.c~rtc-m41t80-century-bit-support drivers/rtc/rtc-m41t80.c
+--- a/drivers/rtc/rtc-m41t80.c~rtc-m41t80-century-bit-support
++++ a/drivers/rtc/rtc-m41t80.c
+@@ -50,6 +50,8 @@
+ 	(M41T80_REG_ALARM_SEC + 1 - M41T80_REG_ALARM_MON)
+ 
+ #define M41T80_SEC_ST		(1 << 7)	/* ST: Stop Bit */
++#define M41T80_HOUR_CEB		(1 << 7)	/* CEB: Century Enable Bit */
++#define M41T80_HOUR_CB		(1 << 6)	/* CB: Century Bit */
+ #define M41T80_ALMON_AFE	(1 << 7)	/* AFE: AF Enable Bit */
+ #define M41T80_ALMON_SQWE	(1 << 6)	/* SQWE: SQW Enable Bit */
+ #define M41T80_ALHOUR_HT	(1 << 6)	/* HT: Halt Update Bit */
+@@ -110,8 +112,12 @@ static int m41t80_get_datetime(struct i2
+ 	tm->tm_wday = buf[M41T80_REG_WDAY] & 0x07;
+ 	tm->tm_mon = BCD2BIN(buf[M41T80_REG_MON] & 0x1f) - 1;
+ 
+-	/* assume 20YY not 19YY, and ignore the Century Bit */
+-	tm->tm_year = BCD2BIN(buf[M41T80_REG_YEAR]) + 100;
++	/* Assume 1970-2169, taking the Century Bit into account. */
++	tm->tm_year = BCD2BIN(buf[M41T80_REG_YEAR]);
++	if ((buf[M41T80_REG_HOUR] & M41T80_HOUR_CB) != 0)
++		tm->tm_year += 100;
++	if (tm->tm_year < 70)
++		tm->tm_year += 200;
+ 	return 0;
+ }
+ 
+@@ -165,8 +171,14 @@ static int m41t80_set_datetime(struct i2
+ 		BIN2BCD(tm->tm_mday) | (buf[M41T80_REG_DAY] & ~0x3f);
+ 	buf[M41T80_REG_MON] =
+ 		BIN2BCD(tm->tm_mon + 1) | (buf[M41T80_REG_MON] & ~0x1f);
+-	/* assume 20YY not 19YY */
++	/* Assume 1970-2169 and set the Century Bit for 19YY/21YY. */
+ 	buf[M41T80_REG_YEAR] = BIN2BCD(tm->tm_year % 100);
++	if ((tm->tm_year / 100) % 2 != 0)
++		buf[M41T80_REG_HOUR] |= M41T80_HOUR_CB;
++	else
++		buf[M41T80_REG_HOUR] &= ~M41T80_HOUR_CB;
++	/* Enable toggling of the Century Bit at the end of a century. ;-) */
++	buf[M41T80_REG_HOUR] |= M41T80_HOUR_CEB;
+ 
+ 	if (i2c_transfer(client->adapter, msgs, 1) != 1) {
+ 		dev_err(&client->dev, "write error\n");
 _
 
-Patches currently in -mm which might be from raj.khem@gmail.com are
+Patches currently in -mm which might be from macro@linux-mips.org are
 
-linux-aouth-is-not-exported-to-userspace.patch
+ntp-make-the-rtc-sync-mode-11-minute-again.patch
+ntp-fix-calculation-of-the-next-jiffie-to-trigger-rtc-sync.patch
+rtc-m41t80-sort-header-inclusions-for-readability.patch
+rtc-m41t80-use-pr_info-as-appropriate.patch
+rtc-m41t80-century-bit-support.patch
 
