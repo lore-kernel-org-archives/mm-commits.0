@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kbuild-move-non-__kernel__-checking-headers-to-header-y.patch added to -mm tree
-Date: Tue, 20 May 2008 00:10:08 -0700
-Message-ID: <200805200710.m4K7A83w010360@imap1.linux-foundation.org>
+Subject: + gpio-pca953x-driver-handles-pca9554-too.patch added to -mm tree
+Date: Tue, 20 May 2008 00:18:39 -0700
+Message-ID: <200805200718.m4K7IdYM010602@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36006 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41375 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756243AbYETHKM (ORCPT
+	by vger.kernel.org with ESMTP id S1750899AbYETHSu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 May 2008 03:10:12 -0400
+	Tue, 20 May 2008 03:18:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rpjday@crashcourse.ca
+Cc: david-b@pacbell.net, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     kbuild: move non-__KERNEL__-checking headers to header-y
+     gpio: pca953x driver handles pca9554 too
 has been added to the -mm tree.  Its filename is
-     kbuild-move-non-__kernel__-checking-headers-to-header-y.patch
+     gpio-pca953x-driver-handles-pca9554-too.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,96 +34,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kbuild: move non-__KERNEL__-checking headers to header-y
-From: "Robert P. J. Day" <rpjday@crashcourse.ca>
+Subject: gpio: pca953x driver handles pca9554 too
+From: David Brownell <david-b@pacbell.net>
 
-Move exported header files under include/linux that don't check the
-__KERNEL__ preprocessor from unifdef-y to header-y.
+Teach drivers/gpio/pca953x.c about PCA9554, another compatible chip.
 
-Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/Kbuild |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ drivers/gpio/pca953x.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/Kbuild~kbuild-move-non-__kernel__-checking-headers-to-header-y include/linux/Kbuild
---- a/include/linux/Kbuild~kbuild-move-non-__kernel__-checking-headers-to-header-y
-+++ a/include/linux/Kbuild
-@@ -104,6 +104,7 @@ header-y += iso_fs.h
- header-y += ixjuser.h
- header-y += jffs2.h
- header-y += keyctl.h
-+header-y += kvm.h
- header-y += limits.h
- header-y += dlm_plock.h
- header-y += magic.h
-@@ -157,11 +158,18 @@ header-y += toshiba.h
- header-y += udf_fs_i.h
- header-y += ultrasound.h
- header-y += un.h
-+header-y += unistd.h
- header-y += utime.h
- header-y += veth.h
- header-y += video_decoder.h
- header-y += video_encoder.h
- header-y += videotext.h
-+header-y += virtio_blk.h
-+header-y += virtio_net.h
-+header-y += virtio_9p.h
-+header-y += virtio_balloon.h
-+header-y += virtio_pci.h
-+header-y += wireless.h
- header-y += x25.h
- 
- unifdef-y += acct.h
-@@ -254,7 +262,6 @@ unifdef-y += kd.h
- unifdef-y += kernelcapi.h
- unifdef-y += kernel.h
- unifdef-y += keyboard.h
--unifdef-y += kvm.h
- unifdef-y += llc.h
- unifdef-y += loop.h
- unifdef-y += lp.h
-@@ -339,24 +346,17 @@ unifdef-y += types.h
- unifdef-y += udp.h
- unifdef-y += uinput.h
- unifdef-y += uio.h
--unifdef-y += unistd.h
- unifdef-y += usbdevice_fs.h
- unifdef-y += utsname.h
- unifdef-y += videodev2.h
- unifdef-y += videodev.h
- unifdef-y += virtio_config.h
--unifdef-y += virtio_blk.h
--unifdef-y += virtio_net.h
--unifdef-y += virtio_9p.h
--unifdef-y += virtio_balloon.h
- unifdef-y += virtio_console.h
--unifdef-y += virtio_pci.h
- unifdef-y += virtio_ring.h
- unifdef-y += vt.h
- unifdef-y += wait.h
- unifdef-y += wanrouter.h
- unifdef-y += watchdog.h
--unifdef-y += wireless.h
- unifdef-y += xattr.h
- unifdef-y += xfrm.h
- 
+diff -puN drivers/gpio/pca953x.c~gpio-pca953x-driver-handles-pca9554-too drivers/gpio/pca953x.c
+--- a/drivers/gpio/pca953x.c~gpio-pca953x-driver-handles-pca9554-too
++++ a/drivers/gpio/pca953x.c
+@@ -30,6 +30,7 @@ static const struct i2c_device_id pca953
+ 	{ "pca9537", 4, },
+ 	{ "pca9538", 8, },
+ 	{ "pca9539", 16, },
++	{ "pca9554", 8, },
+ 	{ "pca9555", 16, },
+ 	{ "pca9557", 8, },
+ 	/* REVISIT several pca955x parts should work here too */
 _
 
-Patches currently in -mm which might be from rpjday@crashcourse.ca are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
 linux-next.patch
-kbuild-remove-final-references-to-deprecated-unreferenced-topdir.patch
-kbuild-move-non-__kernel__-checking-headers-to-header-y.patch
-xtensa-warn-about-including-asm-rwsemh-directly.patch
-xtensa-use-newer-__spin_lock_unlocked-macro.patch
-remove-apparently-unused-fd1772h-header-file.patch
-init-delete-hard-coded-setting-and-testing-of-build_cramdisk.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
-lists-remove-a-redundant-conditional-definition-of-list_add.patch
-zorro-replace-deprecated-__initcall-with-equivalent-device_initcall.patch
-spi-kconfig-simplifications.patch
+jffs2-summary-allocation-dont-use-vmalloc.patch
+rndis_host-increase-delay-in-command-response-loop.patch
+net-usb-add-support-for-apple-usb-ethernet-adapter.patch
+rndis-switch-to-seq_files.patch
+usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues.patch
+usb-file-storagec-use-unaligned-access-helpers.patch
+gpio-pca953x-driver-handles-pca9554-too.patch
+asic3-gpiolib-support.patch
+asic3-remove-children-platform-data.patch
+asic3-new-gpio-configuration-code.patch
+rtc-rtc-rs5c372-smbus-conversion-support.patch
+rtc-rtc-rs5c732-add-support-for-ricoh-r2025s-d-rtc.patch
+rtc-m41t80-sort-header-inclusions-for-readability.patch
+rtc-m41t80-use-pr_info-as-appropriate.patch
+rtc-m41t80-century-bit-support.patch
+gpio-sysfs-interface.patch
 
