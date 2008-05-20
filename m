@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + block-use-arch_kmalloc_minalign-as-the-default-dma-pad-mask.patch added to -mm tree
-Date: Tue, 20 May 2008 02:34:14 -0700
-Message-ID: <200805200934.m4K9YErC015817@imap1.linux-foundation.org>
+Subject: + make-list_poison-less-deadly-v2.patch added to -mm tree
+Date: Tue, 20 May 2008 02:37:19 -0700
+Message-ID: <200805200937.m4K9bJ05015943__37304.7325214886$1211276357$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48603 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54521 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761924AbYETJez (ORCPT
+	by vger.kernel.org with ESMTP id S1753539AbYETJiO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 May 2008 05:34:55 -0400
+	Tue, 20 May 2008 05:38:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fujita.tomonori@lab.ntt.co.jp, bzolnier@gmail.com, htejun@gmail.com, jens.axboe@oracle.com, tsbogend@alpha.franken.de
+Cc: avi@qumranet.com, linux-arch@vger.kernel.org, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     block: use ARCH_KMALLOC_MINALIGN as the default dma pad mask
+     Make LIST_POISON less deadly
 has been added to the -mm tree.  Its filename is
-     block-use-arch_kmalloc_minalign-as-the-default-dma-pad-mask.patch
+     make-list_poison-less-deadly-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,92 +34,77 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: block: use ARCH_KMALLOC_MINALIGN as the default dma pad mask
-From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Subject: Make LIST_POISON less deadly
+From: Avi Kivity <avi@qumranet.com>
 
-The goal of this patchset is reverting the commit
-22a9189fd073db3d03a4cf8b8c098aa207602de1 (cdrom: use kmalloced buffers
-instead of buffers on stack).
+The list macros use LIST_POISON1 and LIST_POISON2 as undereferencable
+pointers in order to trap erronous use of freed list_heads.  Unfortunately
+userspace can arrange for those pointers to actually be dereferencable,
+potentially turning an oops to an expolit.
 
-http://lkml.org/lkml/2008/4/21/634
+To avoid this allow architectures (currently x86_64 only) to override the
+default values for these pointers with truly-undereferncable values.  This
+is easy on x86_64 as the virtual address space is smaller than the range
+spanned by pointer values.
 
-The commit is using kmalloced buffers for cdrom packet commands to avoid
-stack corruption on non coherent platforms.  But allocating a small buffer
-like this is not nice (unnecessary complicity):
-
-+	buffer = kmalloc(8, GFP_KERNEL);
-
-I tried to remove generic_packet() and convert cdrom users to use the
-block queue like pkt_generic_packet (as Jens suggested in the thread if I
-correctly understand), but it turned out that it needs tricky surgery
-(like handling ssleep and retries for packet commands in ide).
-
-Then I found that we can easily handle packet commands on non coherent
-platforms.  The diffstat is pretty small except for the revert.  All this
-patchset does is just setting the dma_pad_mask to ARCH_KMALLOC_MINALIGN.
-
-Only scsi and ide-cd do DMA generic_packet.  In the case of scsi,
-sr_packet uses blk_rq_map_kern (the commit
-68154e90c9d1492d570671ae181d9a8f8530da55) post 2.6.25.  So if we set the
-dma padding on non coherent platforms, sr_packet uses allocated pages
-properly.
-
-In the case of IDE, ide-cd has a mechanism to handle alignment and
-padding for SG_IO. So we can easily exploit it for packet commands.
-
-If some architectures can't do DMA on stack, we also need to a new
-queue_flag like QUEUE_FLAG_NO_DMA_ON_STACK in addtion of this patchset.
-
-
-
-This patch:
-
-This sets the default dma pad mask to ARCH_KMALLOC_MINALIGN in
-blk_queue_make_request().  It affects only non-coherent platforms.
-
-Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: Tejun Heo <htejun@gmail.com>
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Signed-off-by: Avi Kivity <avi@qumranet.com>
+Cc: <linux-arch@vger.kernel.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/blk-settings.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ arch/x86/Kconfig       |    5 +++++
+ include/linux/poison.h |   10 ++++++++--
+ 2 files changed, 13 insertions(+), 2 deletions(-)
 
-diff -puN block/blk-settings.c~block-use-arch_kmalloc_minalign-as-the-default-dma-pad-mask block/blk-settings.c
---- a/block/blk-settings.c~block-use-arch_kmalloc_minalign-as-the-default-dma-pad-mask
-+++ a/block/blk-settings.c
-@@ -84,6 +84,11 @@ EXPORT_SYMBOL(blk_queue_softirq_done);
-  **/
- void blk_queue_make_request(struct request_queue *q, make_request_fn *mfn)
- {
-+#ifndef ARCH_KMALLOC_MINALIGN
-+#define ARCH_KMALLOC_MINALIGN 1
-+#endif
-+	unsigned int min_align = ARCH_KMALLOC_MINALIGN;
-+
- 	/*
- 	 * set defaults
- 	 */
-@@ -98,6 +103,7 @@ void blk_queue_make_request(struct reque
- 	blk_queue_max_sectors(q, SAFE_MAX_SECTORS);
- 	blk_queue_hardsect_size(q, 512);
- 	blk_queue_dma_alignment(q, 511);
-+	blk_queue_dma_pad(q, min_align - 1);
- 	blk_queue_congestion_threshold(q);
- 	q->nr_batching = BLK_BATCH_REQ;
+diff -puN arch/x86/Kconfig~make-list_poison-less-deadly-v2 arch/x86/Kconfig
+--- a/arch/x86/Kconfig~make-list_poison-less-deadly-v2
++++ a/arch/x86/Kconfig
+@@ -1025,6 +1025,11 @@ config ARCH_MEMORY_PROBE
+ 	def_bool X86_64
+ 	depends on MEMORY_HOTPLUG
  
++config ILLEGAL_POINTER_VALUE
++       hex
++       default 0 if X86_32
++       default 0x8888888800000000 if X86_64
++
+ source "mm/Kconfig"
+ 
+ config HIGHPTE
+diff -puN include/linux/poison.h~make-list_poison-less-deadly-v2 include/linux/poison.h
+--- a/include/linux/poison.h~make-list_poison-less-deadly-v2
++++ a/include/linux/poison.h
+@@ -1,14 +1,20 @@
+ #ifndef _LINUX_POISON_H
+ #define _LINUX_POISON_H
+ 
++#ifdef CONFIG_ILLEGAL_POINTER_VALUE
++#define POISON_POINTER_DELTA CONFIG_ILLEGAL_POINTER_VALUE
++#else
++#define POISON_POINTER_DELTA 0L
++#endif
++
+ /********** include/linux/list.h **********/
+ /*
+  * These are non-NULL pointers that will result in page faults
+  * under normal circumstances, used to verify that nobody uses
+  * non-initialized list entries.
+  */
+-#define LIST_POISON1  ((void *) 0x00100100)
+-#define LIST_POISON2  ((void *) 0x00200200)
++#define LIST_POISON1  ((void *) 0x00100100 + POISON_POINTER_DELTA)
++#define LIST_POISON2  ((void *) 0x00200200 + POISON_POINTER_DELTA)
+ 
+ /********** include/linux/timer.h **********/
+ /*
 _
 
-Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
+Patches currently in -mm which might be from avi@qumranet.com are
 
 linux-next.patch
-block-use-arch_kmalloc_minalign-as-the-default-dma-pad-mask.patch
-block-add-blk_queue_update_dma_pad.patch
-ide-use-the-dma-safe-check-for-req_type_ata_pc.patch
-cdrom-revert-commit-22a9189-cdrom-use-kmalloced-buffers-instead-of-buffers-on-stack.patch
+make-list_poison-less-deadly-v2.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error.patch
 dma-mapping-x86-per-device-dma_mapping_ops-support.patch
 
