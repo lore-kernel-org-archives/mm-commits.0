@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + watchdog-sc520_wdt-clean-up-and-switch-to-unlocked_ioctl.patch added to -mm tree
-Date: Tue, 20 May 2008 01:28:41 -0700
-Message-ID: <200805200828.m4K8SfEC013194@imap1.linux-foundation.org>
+Subject: + watchdog-machzwd-clean-up-coding-style-unlocked_ioctl.patch added to -mm tree
+Date: Tue, 20 May 2008 01:28:12 -0700
+Message-ID: <200805200828.m4K8SC7Z013137@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51644 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52180 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761450AbYETI3T (ORCPT
+	by vger.kernel.org with ESMTP id S1760267AbYETI2d (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 May 2008 04:29:19 -0400
+	Tue, 20 May 2008 04:28:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@redhat.com
 
 
 The patch titled
-     watchdog: sc520_wdt: Clean up and switch to unlocked_ioctl
+     watchdog: machzwd: clean up, coding style, unlocked_ioctl
 has been added to the -mm tree.  Its filename is
-     watchdog-sc520_wdt-clean-up-and-switch-to-unlocked_ioctl.patch
+     watchdog-machzwd-clean-up-coding-style-unlocked_ioctl.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: watchdog: sc520_wdt: Clean up and switch to unlocked_ioctl
+Subject: watchdog: machzwd: clean up, coding style, unlocked_ioctl
 From: Alan Cox <alan@redhat.com>
 
 
@@ -42,16 +42,16 @@ Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/sc520_wdt.c |  161 +++++++++++++++++----------------
- 1 file changed, 86 insertions(+), 75 deletions(-)
+ drivers/watchdog/machzwd.c |  108 ++++++++++++-----------------------
+ 1 file changed, 40 insertions(+), 68 deletions(-)
 
-diff -puN drivers/watchdog/sc520_wdt.c~watchdog-sc520_wdt-clean-up-and-switch-to-unlocked_ioctl drivers/watchdog/sc520_wdt.c
---- a/drivers/watchdog/sc520_wdt.c~watchdog-sc520_wdt-clean-up-and-switch-to-unlocked_ioctl
-+++ a/drivers/watchdog/sc520_wdt.c
-@@ -64,9 +64,9 @@
+diff -puN drivers/watchdog/machzwd.c~watchdog-machzwd-clean-up-coding-style-unlocked_ioctl drivers/watchdog/machzwd.c
+--- a/drivers/watchdog/machzwd.c~watchdog-machzwd-clean-up-coding-style-unlocked_ioctl
++++ a/drivers/watchdog/machzwd.c
+@@ -40,9 +40,9 @@
+ #include <linux/notifier.h>
  #include <linux/reboot.h>
  #include <linux/init.h>
- #include <linux/jiffies.h>
 +#include <linux/io.h>
 +#include <linux/uaccess.h>
  
@@ -59,19 +59,8 @@ diff -puN drivers/watchdog/sc520_wdt.c~watchdog-sc520_wdt-clean-up-and-switch-to
 -#include <asm/uaccess.h>
  #include <asm/system.h>
  
- #define OUR_NAME "sc520_wdt"
-@@ -91,13 +91,18 @@
-  */
- 
- #define WATCHDOG_TIMEOUT 30		/* 30 sec default timeout */
--static int timeout = WATCHDOG_TIMEOUT;	/* in seconds, will be multiplied by HZ to get seconds to wait for a ping */
-+/* in seconds, will be multiplied by HZ to get seconds to wait for a ping */
-+static int timeout = WATCHDOG_TIMEOUT;
- module_param(timeout, int, 0);
--MODULE_PARM_DESC(timeout, "Watchdog timeout in seconds. (1<=timeout<=3600, default=" __MODULE_STRING(WATCHDOG_TIMEOUT) ")");
-+MODULE_PARM_DESC(timeout,
-+	"Watchdog timeout in seconds. (1 <= timeout <= 3600, default="
-+				__MODULE_STRING(WATCHDOG_TIMEOUT) ")");
+ /* ports */
+@@ -95,7 +95,9 @@ MODULE_ALIAS_MISCDEV(WATCHDOG_MINOR);
  
  static int nowayout = WATCHDOG_NOWAYOUT;
  module_param(nowayout, int, 0);
@@ -80,266 +69,265 @@ diff -puN drivers/watchdog/sc520_wdt.c~watchdog-sc520_wdt-clean-up-and-switch-to
 +		"Watchdog cannot be stopped once started (default="
 +				__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
  
- /*
-  * AMD Elan SC520 - Watchdog Timer Registers
-@@ -136,8 +141,7 @@ static void wdt_timer_ping(unsigned long
- 	/* If we got a heartbeat pulse within the WDT_US_INTERVAL
- 	 * we agree to ping the WDT
- 	 */
--	if(time_before(jiffies, next_heartbeat))
--	{
-+	if (time_before(jiffies, next_heartbeat)) {
- 		/* Ping the WDT */
- 		spin_lock(&wdt_spinlock);
- 		writew(0xAAAA, wdtmrctl);
-@@ -146,9 +150,9 @@ static void wdt_timer_ping(unsigned long
+ #define PFX "machzwd"
  
- 		/* Re-set the timer interval */
- 		mod_timer(&timer, jiffies + WDT_INTERVAL);
--	} else {
--		printk(KERN_WARNING PFX "Heartbeat lost! Will not ping the watchdog\n");
--	}
-+	} else
-+		printk(KERN_WARNING PFX
-+			"Heartbeat lost! Will not ping the watchdog\n");
+@@ -114,7 +116,7 @@ static struct watchdog_info zf_info = {
+  * 3 = GEN_SCI
+  * defaults to GEN_RESET (0)
+  */
+-static int action = 0;
++static int action;
+ module_param(action, int, 0);
+ MODULE_PARM_DESC(action, "after watchdog resets, generate: 0 = RESET(*)  1 = SMI  2 = NMI  3 = SCI");
+ 
+@@ -123,10 +125,9 @@ static void zf_ping(unsigned long data);
+ static int zf_action = GEN_RESET;
+ static unsigned long zf_is_open;
+ static char zf_expect_close;
+-static DEFINE_SPINLOCK(zf_lock);
+ static DEFINE_SPINLOCK(zf_port_lock);
+ static DEFINE_TIMER(zf_timer, zf_ping, 0, 0);
+-static unsigned long next_heartbeat = 0;
++static unsigned long next_heartbeat;
+ 
+ 
+ /* timeout for user land heart beat (10 seconds) */
+@@ -171,13 +172,13 @@ static inline void zf_set_control(unsign
+ 
+ static inline void zf_set_timer(unsigned short new, unsigned char n)
+ {
+-	switch(n){
+-		case WD1:
+-			zf_writew(COUNTER_1, new);
+-		case WD2:
+-			zf_writeb(COUNTER_2, new > 0xff ? 0xff : new);
+-		default:
+-			return;
++	switch (n) {
++	case WD1:
++		zf_writew(COUNTER_1, new);
++	case WD2:
++		zf_writeb(COUNTER_2, new > 0xff ? 0xff : new);
++	default:
++		return;
+ 	}
  }
  
- /*
-@@ -162,7 +166,7 @@ static void wdt_config(int writeval)
+@@ -241,10 +242,8 @@ static void zf_ping(unsigned long data)
  
- 	/* buy some time (ping) */
- 	spin_lock_irqsave(&wdt_spinlock, flags);
--	dummy=readw(wdtmrctl);	/* ensure write synchronization */
-+	dummy = readw(wdtmrctl);	/* ensure write synchronization */
- 	writew(0xAAAA, wdtmrctl);
- 	writew(0x5555, wdtmrctl);
- 	/* unlock WDT = make WDT configuration register writable one time */
-@@ -219,10 +223,11 @@ static int wdt_set_heartbeat(int t)
-  *	/dev/watchdog handling
-  */
+ 	zf_writeb(COUNTER_2, 0xff);
  
--static ssize_t fop_write(struct file * file, const char __user * buf, size_t count, loff_t * ppos)
-+static ssize_t fop_write(struct file *file, const char __user *buf,
-+						size_t count, loff_t *ppos)
+-	if(time_before(jiffies, next_heartbeat)){
+-
++	if (time_before(jiffies, next_heartbeat)) {
+ 		dprintk("time_before: %ld\n", next_heartbeat - jiffies);
+-
+ 		/*
+ 		 * reset event is activated by transition from 0 to 1 on
+ 		 * RESET_WD1 bit and we assume that it is already zero...
+@@ -261,24 +260,21 @@ static void zf_ping(unsigned long data)
+ 		spin_unlock_irqrestore(&zf_port_lock, flags);
+ 
+ 		mod_timer(&zf_timer, jiffies + ZF_HW_TIMEO);
+-	}else{
++	} else
+ 		printk(KERN_CRIT PFX ": I will reset your machine\n");
+-	}
+ }
+ 
+ static ssize_t zf_write(struct file *file, const char __user *buf, size_t count,
+ 								loff_t *ppos)
  {
- 	/* See if we got the magic character 'V' and reload the timer */
--	if(count) {
+ 	/* See if we got the magic character */
+-	if(count){
+-
 +	if (count) {
+ 		/*
+ 		 * no need to check for close confirmation
+ 		 * no way to disable watchdog ;)
+ 		 */
  		if (!nowayout) {
  			size_t ofs;
- 
-@@ -231,25 +236,26 @@ static ssize_t fop_write(struct file * f
- 			wdt_expect_close = 0;
+-
+ 			/*
+ 			 * note: just in case someone wrote the magic character
+ 			 * five months ago...
+@@ -286,11 +282,11 @@ static ssize_t zf_write(struct file *fil
+ 			zf_expect_close = 0;
  
  			/* now scan */
--			for(ofs = 0; ofs != count; ofs++) {
+-			for (ofs = 0; ofs != count; ofs++){
 +			for (ofs = 0; ofs != count; ofs++) {
  				char c;
  				if (get_user(c, buf + ofs))
  					return -EFAULT;
--				if(c == 'V')
-+				if (c == 'V')
- 					wdt_expect_close = 42;
- 			}
- 		}
- 
--		/* Well, anyhow someone wrote to us, we should return that favour */
-+		/* Well, anyhow someone wrote to us, we should
-+		   return that favour */
- 		wdt_keepalive();
+-				if (c == 'V'){
++				if (c == 'V') {
+ 					zf_expect_close = 42;
+ 					dprintk("zf_expect_close = 42\n");
+ 				}
+@@ -303,14 +299,11 @@ static ssize_t zf_write(struct file *fil
+ 		 */
+ 		next_heartbeat = jiffies + ZF_USER_TIMEO;
+ 		dprintk("user ping at %ld\n", jiffies);
+-
  	}
+-
  	return count;
  }
  
--static int fop_open(struct inode * inode, struct file * file)
-+static int fop_open(struct inode *inode, struct file *file)
- {
- 	/* Just in case we're already talking to someone... */
--	if(test_and_set_bit(0, &wdt_is_open))
-+	if (test_and_set_bit(0, &wdt_is_open))
- 		return -EBUSY;
- 	if (nowayout)
- 		__module_get(THIS_MODULE);
-@@ -259,12 +265,13 @@ static int fop_open(struct inode * inode
- 	return nonseekable_open(inode, file);
- }
- 
--static int fop_close(struct inode * inode, struct file * file)
-+static int fop_close(struct inode *inode, struct file *file)
- {
--	if(wdt_expect_close == 42) {
-+	if (wdt_expect_close == 42)
- 		wdt_turnoff();
--	} else {
--		printk(KERN_CRIT PFX "Unexpected close, not stopping watchdog!\n");
-+	else {
-+		printk(KERN_CRIT PFX
-+			"Unexpected close, not stopping watchdog!\n");
- 		wdt_keepalive();
- 	}
- 	clear_bit(0, &wdt_is_open);
-@@ -272,63 +279,63 @@ static int fop_close(struct inode * inod
- 	return 0;
- }
- 
--static int fop_ioctl(struct inode *inode, struct file *file, unsigned int cmd,
+-static int zf_ioctl(struct inode *inode, struct file *file, unsigned int cmd,
 -	unsigned long arg)
-+static int fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
++static long zf_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
  {
  	void __user *argp = (void __user *)arg;
  	int __user *p = argp;
--	static struct watchdog_info ident = {
--		.options = WDIOF_KEEPALIVEPING | WDIOF_SETTIMEOUT | WDIOF_MAGICCLOSE,
-+	static const struct watchdog_info ident = {
-+		.options = WDIOF_KEEPALIVEPING | WDIOF_SETTIMEOUT
-+							| WDIOF_MAGICCLOSE,
- 		.firmware_version = 1,
- 		.identity = "SC520",
- 	};
- 
--	switch(cmd)
-+	switch (cmd)
- 	{
--		default:
--			return -ENOTTY;
--		case WDIOC_GETSUPPORT:
--			return copy_to_user(argp, &ident, sizeof(ident))?-EFAULT:0;
--		case WDIOC_GETSTATUS:
--		case WDIOC_GETBOOTSTATUS:
--			return put_user(0, p);
--		case WDIOC_KEEPALIVE:
--			wdt_keepalive();
--			return 0;
--		case WDIOC_SETOPTIONS:
--		{
--			int new_options, retval = -EINVAL;
+@@ -319,55 +312,38 @@ static int zf_ioctl(struct inode *inode,
+ 		if (copy_to_user(argp, &zf_info, sizeof(zf_info)))
+ 			return -EFAULT;
+ 		break;
 -
--			if(get_user(new_options, p))
--				return -EFAULT;
+ 	case WDIOC_GETSTATUS:
+ 	case WDIOC_GETBOOTSTATUS:
+ 		return put_user(0, p);
 -
--			if(new_options & WDIOS_DISABLECARD) {
--				wdt_turnoff();
--				retval = 0;
--			}
-+	default:
-+		return -ENOTTY;
-+	case WDIOC_GETSUPPORT:
-+		return copy_to_user(argp, &ident, sizeof(ident)) ? -EFAULT : 0;
-+	case WDIOC_GETSTATUS:
-+	case WDIOC_GETBOOTSTATUS:
-+		return put_user(0, p);
-+	case WDIOC_KEEPALIVE:
-+		wdt_keepalive();
-+		return 0;
-+	case WDIOC_SETOPTIONS:
-+	{
-+		int new_options, retval = -EINVAL;
- 
--			if(new_options & WDIOS_ENABLECARD) {
--				wdt_startup();
--				retval = 0;
--			}
-+		if (get_user(new_options, p))
-+			return -EFAULT;
-+
-+		if (new_options & WDIOS_DISABLECARD) {
-+			wdt_turnoff();
-+			retval = 0;
-+		}
- 
--			return retval;
-+		if (new_options & WDIOS_ENABLECARD) {
-+			wdt_startup();
-+			retval = 0;
- 		}
--		case WDIOC_SETTIMEOUT:
--		{
--			int new_timeout;
- 
--			if(get_user(new_timeout, p))
--				return -EFAULT;
-+		return retval;
-+	}
-+	case WDIOC_SETTIMEOUT:
-+	{
-+		int new_timeout;
- 
--			if(wdt_set_heartbeat(new_timeout))
--				return -EINVAL;
-+		if (get_user(new_timeout, p))
-+			return -EFAULT;
- 
--			wdt_keepalive();
--			/* Fall through */
--		}
--		case WDIOC_GETTIMEOUT:
--			return put_user(timeout, p);
-+		if (wdt_set_heartbeat(new_timeout))
-+			return -EINVAL;
-+
-+		wdt_keepalive();
-+		/* Fall through */
-+	}
-+	case WDIOC_GETTIMEOUT:
-+		return put_user(timeout, p);
+ 	case WDIOC_KEEPALIVE:
+ 		zf_ping(0);
+ 		break;
+-
+ 	default:
+ 		return -ENOTTY;
  	}
+-
+ 	return 0;
  }
  
-@@ -354,7 +361,7 @@ static struct miscdevice wdt_miscdev = {
- static int wdt_notify_sys(struct notifier_block *this, unsigned long code,
- 	void *unused)
+ static int zf_open(struct inode *inode, struct file *file)
  {
--	if(code==SYS_DOWN || code==SYS_HALT)
+-	spin_lock(&zf_lock);
+-	if(test_and_set_bit(0, &zf_is_open)) {
+-		spin_unlock(&zf_lock);
++	if (test_and_set_bit(0, &zf_is_open))
+ 		return -EBUSY;
+-	}
+-
+ 	if (nowayout)
+ 		__module_get(THIS_MODULE);
+-
+-	spin_unlock(&zf_lock);
+-
+ 	zf_timer_on();
+-
+ 	return nonseekable_open(inode, file);
+ }
+ 
+ static int zf_close(struct inode *inode, struct file *file)
+ {
+-	if(zf_expect_close == 42){
++	if (zf_expect_close == 42)
+ 		zf_timer_off();
+-	} else {
++	else {
+ 		del_timer(&zf_timer);
+ 		printk(KERN_ERR PFX ": device file closed unexpectedly. Will not stop the WDT!\n");
+ 	}
+-
+-	spin_lock(&zf_lock);
+ 	clear_bit(0, &zf_is_open);
+-	spin_unlock(&zf_lock);
+-
+ 	zf_expect_close = 0;
+-
+ 	return 0;
+ }
+ 
+@@ -378,23 +354,18 @@ static int zf_close(struct inode *inode,
+ static int zf_notify_sys(struct notifier_block *this, unsigned long code,
+ 								void *unused)
+ {
+-	if(code == SYS_DOWN || code == SYS_HALT){
 +	if (code == SYS_DOWN || code == SYS_HALT)
- 		wdt_turnoff();
+ 		zf_timer_off();
+-	}
+-
  	return NOTIFY_DONE;
  }
-@@ -383,11 +390,13 @@ static int __init sc520_wdt_init(void)
+ 
+-
+-
+-
+ static const struct file_operations zf_fops = {
+-	.owner          = THIS_MODULE,
+-	.llseek         = no_llseek,
+-	.write          = zf_write,
+-	.ioctl          = zf_ioctl,
+-	.open           = zf_open,
+-	.release        = zf_close,
++	.owner		= THIS_MODULE,
++	.llseek		= no_llseek,
++	.write		= zf_write,
++	.unlocked_ioctl = zf_ioctl,
++	.open		= zf_open,
++	.release	= zf_close,
+ };
+ 
+ static struct miscdevice zf_miscdev = {
+@@ -402,7 +373,7 @@ static struct miscdevice zf_miscdev = {
+ 	.name = "watchdog",
+ 	.fops = &zf_fops,
+ };
+- 
++
+ 
+ /*
+  * The device needs to learn about soft shutdowns in order to
+@@ -423,22 +394,23 @@ static int __init zf_init(void)
  {
- 	int rc = -EBUSY;
+ 	int ret;
  
--	/* Check that the timeout value is within it's range ; if not reset to the default */
-+	/* Check that the timeout value is within it's range ;
-+	   if not reset to the default */
- 	if (wdt_set_heartbeat(timeout)) {
- 		wdt_set_heartbeat(WATCHDOG_TIMEOUT);
--		printk(KERN_INFO PFX "timeout value must be 1<=timeout<=3600, using %d\n",
--			WATCHDOG_TIMEOUT);
-+		printk(KERN_INFO PFX
-+		    "timeout value must be 1 <= timeout <= 3600, using %d\n",
-+							WATCHDOG_TIMEOUT);
- 	}
- 
- 	wdtmrctl = ioremap((unsigned long)(MMCR_BASE + OFFS_WDTMRCTL), 2);
-@@ -399,20 +408,22 @@ static int __init sc520_wdt_init(void)
- 
- 	rc = register_reboot_notifier(&wdt_notifier);
- 	if (rc) {
--		printk(KERN_ERR PFX "cannot register reboot notifier (err=%d)\n",
--			rc);
-+		printk(KERN_ERR PFX
-+			"cannot register reboot notifier (err=%d)\n", rc);
- 		goto err_out_ioremap;
- 	}
- 
- 	rc = misc_register(&wdt_miscdev);
- 	if (rc) {
--		printk(KERN_ERR PFX "cannot register miscdev on minor=%d (err=%d)\n",
--			WATCHDOG_MINOR, rc);
-+		printk(KERN_ERR PFX
-+			"cannot register miscdev on minor=%d (err=%d)\n",
-+							WATCHDOG_MINOR, rc);
- 		goto err_out_notifier;
- 	}
- 
--	printk(KERN_INFO PFX "WDT driver for SC520 initialised. timeout=%d sec (nowayout=%d)\n",
--		timeout,nowayout);
+-	printk(KERN_INFO PFX ": MachZ ZF-Logic Watchdog driver initializing.\n");
 +	printk(KERN_INFO PFX
-+	   "WDT driver for SC520 initialised. timeout=%d sec (nowayout=%d)\n",
-+							timeout, nowayout);
++		": MachZ ZF-Logic Watchdog driver initializing.\n");
  
- 	return 0;
+ 	ret = zf_get_ZFL_version();
+-	if ((!ret) || (ret == 0xffff)) {
++	if (!ret || ret == 0xffff) {
+ 		printk(KERN_WARNING PFX ": no ZF-Logic found\n");
+ 		return -ENODEV;
+ 	}
  
+-	if((action <= 3) && (action >= 0)){
+-		zf_action = zf_action>>action;
+-	} else
++	if (action <= 3 && action >= 0)
++		zf_action = zf_action >> action;
++	else
+ 		action = 0;
+ 
+ 	zf_show_action(action);
+ 
+-	if(!request_region(ZF_IOBASE, 3, "MachZ ZFL WDT")){
++	if (!request_region(ZF_IOBASE, 3, "MachZ ZFL WDT")) {
+ 		printk(KERN_ERR "cannot reserve I/O ports at %d\n",
+ 							ZF_IOBASE);
+ 		ret = -EBUSY;
+@@ -446,14 +418,14 @@ static int __init zf_init(void)
+ 	}
+ 
+ 	ret = register_reboot_notifier(&zf_notifier);
+-	if(ret){
++	if (ret) {
+ 		printk(KERN_ERR "can't register reboot notifier (err=%d)\n",
+ 									ret);
+ 		goto no_reboot;
+ 	}
+ 
+ 	ret = misc_register(&zf_miscdev);
+-	if (ret){
++	if (ret) {
+ 		printk(KERN_ERR "can't misc_register on minor=%d\n",
+ 							WATCHDOG_MINOR);
+ 		goto no_misc;
 _
 
 Patches currently in -mm which might be from alan@redhat.com are
