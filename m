@@ -1,79 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - kernel-doc-allow-unnamed-bit-fields.patch removed from -mm tree
-Date: Tue, 20 May 2008 14:14:41 -0700
-Message-ID: <200805202114.m4KLEfHk011490@imap1.linux-foundation.org>
+Subject: - infiniband-hw-nes-avoid-unnecessary-memset.patch removed from -mm tree
+Date: Tue, 20 May 2008 14:14:11 -0700
+Message-ID: <200805202114.m4KLEB1J011442@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43430 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43673 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765082AbYETVVe (ORCPT
+	by vger.kernel.org with ESMTP id S1756376AbYETVWA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 May 2008 17:21:34 -0400
+	Tue, 20 May 2008 17:22:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: christophe.jaillet@wanadoo.fr, faisal@neteffect.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kernel-doc: allow unnamed bit-fields
+     infiniband/hw/nes/: avoid unnecessary memset
 has been removed from the -mm tree.  Its filename was
-     kernel-doc-allow-unnamed-bit-fields.patch
+     infiniband-hw-nes-avoid-unnecessary-memset.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel-doc: allow unnamed bit-fields
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: infiniband/hw/nes/: avoid unnecessary memset
+From: Christophe Jaillet <christophe.jaillet@wanadoo.fr>
 
-Allow for unnamed bit-fields and skip them instead of printing an
-erroneous warning message for them, such as:
+Remove an explicit memset(.., 0, ...) to a variable allocated with kzalloc
+(i.e.  'listener').
 
-Warning(include/asm-s390/cio.h:103): No description found for parameter 'u32'
-
-which contains:
-
-struct tm_scsw {
-	u32 :1;
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Christophe Jaillet <christophe.jaillet@wanadoo.fr>
+Acked-by: Faisal Latif <faisal@neteffect.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kernel-doc |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/nes/nes_cm.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN scripts/kernel-doc~kernel-doc-allow-unnamed-bit-fields scripts/kernel-doc
---- a/scripts/kernel-doc~kernel-doc-allow-unnamed-bit-fields
-+++ a/scripts/kernel-doc
-@@ -1556,7 +1556,9 @@ sub create_parameterlist($$$) {
- 		    push_parameter($2, "$type $1", $file);
+diff -puN drivers/infiniband/hw/nes/nes_cm.c~infiniband-hw-nes-avoid-unnecessary-memset drivers/infiniband/hw/nes/nes_cm.c
+--- a/drivers/infiniband/hw/nes/nes_cm.c~infiniband-hw-nes-avoid-unnecessary-memset
++++ a/drivers/infiniband/hw/nes/nes_cm.c
+@@ -1603,7 +1603,6 @@ static struct nes_cm_listener *mini_cm_l
+ 			return NULL;
  		}
- 		elsif ($param =~ m/(.*?):(\d+)/) {
--		    push_parameter($1, "$type:$2", $file)
-+		    if ($type ne "") { # skip unnamed bit-fields
-+			push_parameter($1, "$type:$2", $file)
-+		    }
- 		}
- 		else {
- 		    push_parameter($param, $type, $file);
+ 
+-		memset(listener, 0, sizeof(struct nes_cm_listener));
+ 		listener->loc_addr = htonl(cm_info->loc_addr);
+ 		listener->loc_port = htons(cm_info->loc_port);
+ 		listener->reused_node = 0;
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from christophe.jaillet@wanadoo.fr are
 
 origin.patch
 linux-next.patch
-documentation-build-source-files-in-documentation-sub-dir.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
-3c515-fix-using-pnp_get_resource-when-config_isapnp=n.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-git-unionfs.patch
-uwb-fix-kconfig-causing-undefined-references.patch
-audit-fix-kernel-doc-parameter-notation.patch
-scsi-do-not-automatically-select-scsi_dh-for-dm-multipath.patch
-flag-parameters-signalfd-fix.patch
-flag-parameters-eventfd-fix.patch
-bsdacct-stir-up-comments-around-acct_process.patch
-profile-likely-unlikely-macros.patch
+drivers-net-ehea-remove-unnecessary-memset-after-kzalloc.patch
+accessrunner-avoid-unnecessary-memset.patch
 
