@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-fix-err_ptr-abuse-in-generic_readlink.patch added to -mm tree
-Date: Tue, 20 May 2008 00:36:02 -0700
-Message-ID: <200805200736.m4K7a2Ek011228@imap1.linux-foundation.org>
+Subject: + dma-mapping-x86-per-device-dma_mapping_ops-support.patch added to -mm tree
+Date: Tue, 20 May 2008 01:06:24 -0700
+Message-ID: <200805200806.m4K86Opd012299@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56629 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35471 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754762AbYETHgX (ORCPT
+	by vger.kernel.org with ESMTP id S1754989AbYETIHs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 May 2008 03:36:23 -0400
+	Tue, 20 May 2008 04:07:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: marcin.slusarz@gmail.com, hch@lst.de, miklos@szeredi.hu, viro@ZenIV.linux.org.uk
+Cc: fujita.tomonori@lab.ntt.co.jp, andi@firstfloor.org, avi@qumranet.com, mingo@elte.hu, muli@il.ibm.com, tglx@linutronix.de
 
 
 The patch titled
-     vfs: fix ERR_PTR abuse in generic_readlink
+     dma-mapping: x86: per-device dma_mapping_ops support
 has been added to the -mm tree.  Its filename is
-     vfs-fix-err_ptr-abuse-in-generic_readlink.patch
+     dma-mapping-x86-per-device-dma_mapping_ops-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,58 +34,319 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: fix ERR_PTR abuse in generic_readlink
-From: Marcin Slusarz <marcin.slusarz@gmail.com>
+Subject: dma-mapping: x86: per-device dma_mapping_ops support
+From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 
-generic_readlink calls ERR_PTR for negative and positive values
-(vfs_readlink returns length of "link"), but it should not
-(not an errno) and does not need to.
+This adds per-device dma_mapping_ops support for CONFIG_X86_64.
 
-Signed-off-by: Marcin Slusarz <marcin.slusarz@gmail.com>
-Cc: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Miklos Szeredi <miklos@szeredi.hu>
+A pointer to dma_mapping_ops to struct dev_archdata is added. If the
+pointer is non NULL, DMA operations in asm/dma-mapping.h use it. If
+it's NULL, the system-wide dma_ops pointer is used as before.
+
+Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Acked-by: Muli Ben-Yehuda <muli@il.ibm.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namei.c |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ arch/x86/kernel/pci-calgary_64.c |    2 
+ arch/x86/kernel/pci-dma.c        |    2 
+ arch/x86/kernel/pci-gart_64.c    |    2 
+ arch/x86/kernel/pci-nommu.c      |   14 ----
+ arch/x86/kernel/pci-swiotlb_64.c |    2 
+ include/asm-x86/device.h         |    3 
+ include/asm-x86/dma-mapping.h    |   95 ++++++++++++++++++++---------
+ 7 files changed, 74 insertions(+), 46 deletions(-)
 
-diff -puN fs/namei.c~vfs-fix-err_ptr-abuse-in-generic_readlink fs/namei.c
---- a/fs/namei.c~vfs-fix-err_ptr-abuse-in-generic_readlink
-+++ a/fs/namei.c
-@@ -2857,16 +2857,17 @@ int generic_readlink(struct dentry *dent
- {
- 	struct nameidata nd;
- 	void *cookie;
-+	int res;
- 
- 	nd.depth = 0;
- 	cookie = dentry->d_inode->i_op->follow_link(dentry, &nd);
--	if (!IS_ERR(cookie)) {
--		int res = vfs_readlink(dentry, buffer, buflen, nd_get_link(&nd));
--		if (dentry->d_inode->i_op->put_link)
--			dentry->d_inode->i_op->put_link(dentry, &nd, cookie);
--		cookie = ERR_PTR(res);
--	}
--	return PTR_ERR(cookie);
-+	if (IS_ERR(cookie))
-+		return PTR_ERR(cookie);
-+
-+	res = vfs_readlink(dentry, buffer, buflen, nd_get_link(&nd));
-+	if (dentry->d_inode->i_op->put_link)
-+		dentry->d_inode->i_op->put_link(dentry, &nd, cookie);
-+	return res;
+diff -puN arch/x86/kernel/pci-calgary_64.c~dma-mapping-x86-per-device-dma_mapping_ops-support arch/x86/kernel/pci-calgary_64.c
+--- a/arch/x86/kernel/pci-calgary_64.c~dma-mapping-x86-per-device-dma_mapping_ops-support
++++ a/arch/x86/kernel/pci-calgary_64.c
+@@ -541,7 +541,7 @@ error:
+ 	return ret;
  }
  
- int vfs_follow_link(struct nameidata *nd, const char *link)
+-static const struct dma_mapping_ops calgary_dma_ops = {
++static struct dma_mapping_ops calgary_dma_ops = {
+ 	.alloc_coherent = calgary_alloc_coherent,
+ 	.map_single = calgary_map_single,
+ 	.unmap_single = calgary_unmap_single,
+diff -puN arch/x86/kernel/pci-dma.c~dma-mapping-x86-per-device-dma_mapping_ops-support arch/x86/kernel/pci-dma.c
+--- a/arch/x86/kernel/pci-dma.c~dma-mapping-x86-per-device-dma_mapping_ops-support
++++ a/arch/x86/kernel/pci-dma.c
+@@ -11,7 +11,7 @@
+ int forbid_dac __read_mostly;
+ EXPORT_SYMBOL(forbid_dac);
+ 
+-const struct dma_mapping_ops *dma_ops;
++struct dma_mapping_ops *dma_ops;
+ EXPORT_SYMBOL(dma_ops);
+ 
+ static int iommu_sac_force __read_mostly;
+diff -puN arch/x86/kernel/pci-gart_64.c~dma-mapping-x86-per-device-dma_mapping_ops-support arch/x86/kernel/pci-gart_64.c
+--- a/arch/x86/kernel/pci-gart_64.c~dma-mapping-x86-per-device-dma_mapping_ops-support
++++ a/arch/x86/kernel/pci-gart_64.c
+@@ -619,7 +619,7 @@ static __init int init_k8_gatt(struct ag
+ 
+ extern int agp_amd64_init(void);
+ 
+-static const struct dma_mapping_ops gart_dma_ops = {
++static struct dma_mapping_ops gart_dma_ops = {
+ 	.map_single			= gart_map_single,
+ 	.map_simple			= gart_map_simple,
+ 	.unmap_single			= gart_unmap_single,
+diff -puN arch/x86/kernel/pci-nommu.c~dma-mapping-x86-per-device-dma_mapping_ops-support arch/x86/kernel/pci-nommu.c
+--- a/arch/x86/kernel/pci-nommu.c~dma-mapping-x86-per-device-dma_mapping_ops-support
++++ a/arch/x86/kernel/pci-nommu.c
+@@ -72,21 +72,9 @@ static int nommu_map_sg(struct device *h
+ 	return nents;
+ }
+ 
+-/* Make sure we keep the same behaviour */
+-static int nommu_mapping_error(struct device *hwdev, dma_addr_t dma_addr)
+-{
+-#ifdef CONFIG_X86_32
+-	return 0;
+-#else
+-	return (dma_addr == bad_dma_address);
+-#endif
+-}
+-
+-
+-const struct dma_mapping_ops nommu_dma_ops = {
++struct dma_mapping_ops nommu_dma_ops = {
+ 	.map_single = nommu_map_single,
+ 	.map_sg = nommu_map_sg,
+-	.mapping_error = nommu_mapping_error,
+ 	.is_phys = 1,
+ };
+ 
+diff -puN arch/x86/kernel/pci-swiotlb_64.c~dma-mapping-x86-per-device-dma_mapping_ops-support arch/x86/kernel/pci-swiotlb_64.c
+--- a/arch/x86/kernel/pci-swiotlb_64.c~dma-mapping-x86-per-device-dma_mapping_ops-support
++++ a/arch/x86/kernel/pci-swiotlb_64.c
+@@ -18,7 +18,7 @@ swiotlb_map_single_phys(struct device *h
+ 	return swiotlb_map_single(hwdev, phys_to_virt(paddr), size, direction);
+ }
+ 
+-const struct dma_mapping_ops swiotlb_dma_ops = {
++struct dma_mapping_ops swiotlb_dma_ops = {
+ 	.mapping_error = swiotlb_dma_mapping_error,
+ 	.alloc_coherent = swiotlb_alloc_coherent,
+ 	.free_coherent = swiotlb_free_coherent,
+diff -puN include/asm-x86/device.h~dma-mapping-x86-per-device-dma_mapping_ops-support include/asm-x86/device.h
+--- a/include/asm-x86/device.h~dma-mapping-x86-per-device-dma_mapping_ops-support
++++ a/include/asm-x86/device.h
+@@ -5,6 +5,9 @@ struct dev_archdata {
+ #ifdef CONFIG_ACPI
+ 	void	*acpi_handle;
+ #endif
++#ifdef CONFIG_X86_64
++struct dma_mapping_ops *dma_ops;
++#endif
+ #ifdef CONFIG_DMAR
+ 	void *iommu; /* hook for IOMMU specific extension */
+ #endif
+diff -puN include/asm-x86/dma-mapping.h~dma-mapping-x86-per-device-dma_mapping_ops-support include/asm-x86/dma-mapping.h
+--- a/include/asm-x86/dma-mapping.h~dma-mapping-x86-per-device-dma_mapping_ops-support
++++ a/include/asm-x86/dma-mapping.h
+@@ -58,14 +58,33 @@ struct dma_mapping_ops {
+ 	int		is_phys;
+ };
+ 
+-extern const struct dma_mapping_ops *dma_ops;
++extern struct dma_mapping_ops *dma_ops;
+ 
++static inline struct dma_mapping_ops *get_dma_ops(struct device *dev)
++{
++#ifdef CONFIG_X86_32
++	return dma_ops;
++#else
++	if (unlikely(!dev) || !dev->archdata.dma_ops)
++		return dma_ops;
++	else
++		return dev->archdata.dma_ops;
++#endif
++}
++
++/* Make sure we keep the same behaviour */
+ static inline int dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
+ {
+-	if (dma_ops->mapping_error)
+-		return dma_ops->mapping_error(dev, dma_addr);
++	struct dma_mapping_ops *ops = get_dma_ops(dev);
++
++#ifdef CONFIG_X86_32
++	return 0;
++#else
++	if (ops->mapping_error)
++		return ops->mapping_error(dev, dma_addr);
+ 
+ 	return (dma_addr == bad_dma_address);
++#endif
+ }
+ 
+ #define dma_alloc_noncoherent(d, s, h, f) dma_alloc_coherent(d, s, h, f)
+@@ -85,44 +104,53 @@ static inline dma_addr_t
+ dma_map_single(struct device *hwdev, void *ptr, size_t size,
+ 	       int direction)
+ {
++	struct dma_mapping_ops *ops = get_dma_ops(hwdev);
++
+ 	BUG_ON(!valid_dma_direction(direction));
+-	return dma_ops->map_single(hwdev, virt_to_phys(ptr), size, direction);
++	return ops->map_single(hwdev, virt_to_phys(ptr), size, direction);
+ }
+ 
+ static inline void
+ dma_unmap_single(struct device *dev, dma_addr_t addr, size_t size,
+ 		 int direction)
+ {
++	struct dma_mapping_ops *ops = get_dma_ops(dev);
++
+ 	BUG_ON(!valid_dma_direction(direction));
+-	if (dma_ops->unmap_single)
+-		dma_ops->unmap_single(dev, addr, size, direction);
++	if (ops->unmap_single)
++		ops->unmap_single(dev, addr, size, direction);
+ }
+ 
+ static inline int
+ dma_map_sg(struct device *hwdev, struct scatterlist *sg,
+ 	   int nents, int direction)
+ {
++	struct dma_mapping_ops *ops = get_dma_ops(hwdev);
++
+ 	BUG_ON(!valid_dma_direction(direction));
+-	return dma_ops->map_sg(hwdev, sg, nents, direction);
++	return ops->map_sg(hwdev, sg, nents, direction);
+ }
+ 
+ static inline void
+ dma_unmap_sg(struct device *hwdev, struct scatterlist *sg, int nents,
+ 	     int direction)
+ {
++	struct dma_mapping_ops *ops = get_dma_ops(hwdev);
++
+ 	BUG_ON(!valid_dma_direction(direction));
+-	if (dma_ops->unmap_sg)
+-		dma_ops->unmap_sg(hwdev, sg, nents, direction);
++	if (ops->unmap_sg)
++		ops->unmap_sg(hwdev, sg, nents, direction);
+ }
+ 
+ static inline void
+ dma_sync_single_for_cpu(struct device *hwdev, dma_addr_t dma_handle,
+ 			size_t size, int direction)
+ {
++	struct dma_mapping_ops *ops = get_dma_ops(hwdev);
++
+ 	BUG_ON(!valid_dma_direction(direction));
+-	if (dma_ops->sync_single_for_cpu)
+-		dma_ops->sync_single_for_cpu(hwdev, dma_handle, size,
+-					     direction);
++	if (ops->sync_single_for_cpu)
++		ops->sync_single_for_cpu(hwdev, dma_handle, size, direction);
+ 	flush_write_buffers();
+ }
+ 
+@@ -130,10 +158,11 @@ static inline void
+ dma_sync_single_for_device(struct device *hwdev, dma_addr_t dma_handle,
+ 			   size_t size, int direction)
+ {
++	struct dma_mapping_ops *ops = get_dma_ops(hwdev);
++
+ 	BUG_ON(!valid_dma_direction(direction));
+-	if (dma_ops->sync_single_for_device)
+-		dma_ops->sync_single_for_device(hwdev, dma_handle, size,
+-						direction);
++	if (ops->sync_single_for_device)
++		ops->sync_single_for_device(hwdev, dma_handle, size, direction);
+ 	flush_write_buffers();
+ }
+ 
+@@ -141,11 +170,12 @@ static inline void
+ dma_sync_single_range_for_cpu(struct device *hwdev, dma_addr_t dma_handle,
+ 			      unsigned long offset, size_t size, int direction)
+ {
+-	BUG_ON(!valid_dma_direction(direction));
+-	if (dma_ops->sync_single_range_for_cpu)
+-		dma_ops->sync_single_range_for_cpu(hwdev, dma_handle, offset,
+-						   size, direction);
++	struct dma_mapping_ops *ops = get_dma_ops(hwdev);
+ 
++	BUG_ON(!valid_dma_direction(direction));
++	if (ops->sync_single_range_for_cpu)
++		ops->sync_single_range_for_cpu(hwdev, dma_handle, offset,
++					       size, direction);
+ 	flush_write_buffers();
+ }
+ 
+@@ -154,11 +184,12 @@ dma_sync_single_range_for_device(struct 
+ 				 unsigned long offset, size_t size,
+ 				 int direction)
+ {
+-	BUG_ON(!valid_dma_direction(direction));
+-	if (dma_ops->sync_single_range_for_device)
+-		dma_ops->sync_single_range_for_device(hwdev, dma_handle,
+-						      offset, size, direction);
++	struct dma_mapping_ops *ops = get_dma_ops(hwdev);
+ 
++	BUG_ON(!valid_dma_direction(direction));
++	if (ops->sync_single_range_for_device)
++		ops->sync_single_range_for_device(hwdev, dma_handle,
++						  offset, size, direction);
+ 	flush_write_buffers();
+ }
+ 
+@@ -166,9 +197,11 @@ static inline void
+ dma_sync_sg_for_cpu(struct device *hwdev, struct scatterlist *sg,
+ 		    int nelems, int direction)
+ {
++	struct dma_mapping_ops *ops = get_dma_ops(hwdev);
++
+ 	BUG_ON(!valid_dma_direction(direction));
+-	if (dma_ops->sync_sg_for_cpu)
+-		dma_ops->sync_sg_for_cpu(hwdev, sg, nelems, direction);
++	if (ops->sync_sg_for_cpu)
++		ops->sync_sg_for_cpu(hwdev, sg, nelems, direction);
+ 	flush_write_buffers();
+ }
+ 
+@@ -176,9 +209,11 @@ static inline void
+ dma_sync_sg_for_device(struct device *hwdev, struct scatterlist *sg,
+ 		       int nelems, int direction)
+ {
++	struct dma_mapping_ops *ops = get_dma_ops(hwdev);
++
+ 	BUG_ON(!valid_dma_direction(direction));
+-	if (dma_ops->sync_sg_for_device)
+-		dma_ops->sync_sg_for_device(hwdev, sg, nelems, direction);
++	if (ops->sync_sg_for_device)
++		ops->sync_sg_for_device(hwdev, sg, nelems, direction);
+ 
+ 	flush_write_buffers();
+ }
+@@ -187,9 +222,11 @@ static inline dma_addr_t dma_map_page(st
+ 				      size_t offset, size_t size,
+ 				      int direction)
+ {
++	struct dma_mapping_ops *ops = get_dma_ops(dev);
++
+ 	BUG_ON(!valid_dma_direction(direction));
+-	return dma_ops->map_single(dev, page_to_phys(page)+offset,
+-				   size, direction);
++	return ops->map_single(dev, page_to_phys(page) + offset,
++			       size, direction);
+ }
+ 
+ static inline void dma_unmap_page(struct device *dev, dma_addr_t addr,
 _
 
-Patches currently in -mm which might be from marcin.slusarz@gmail.com are
+Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
 
 linux-next.patch
-drm-radeon-radeon_enable_vblank-should-return-negative-error.patch
-net-s2io-set_rxd_buffer_pointer-returns-enomem-not-enomem.patch
-vfs-fix-err_ptr-abuse-in-generic_readlink.patch
-ntfs-le_add_cpu-conversion.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support.patch
 
