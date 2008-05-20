@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + watchdog-mv64x60_wdt-clean-up-and-locking-checks.patch added to -mm tree
-Date: Tue, 20 May 2008 01:28:21 -0700
-Message-ID: <200805200828.m4K8SL8X013152@imap1.linux-foundation.org>
+Subject: + watchdog-at91-watchdog-to-unlocked_ioctl.patch added to -mm tree
+Date: Tue, 20 May 2008 01:27:47 -0700
+Message-ID: <200805200827.m4K8RlAB013059@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32946 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42382 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760679AbYETI2j (ORCPT
+	by vger.kernel.org with ESMTP id S1759643AbYETI2F (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 May 2008 04:28:39 -0400
+	Tue, 20 May 2008 04:28:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@redhat.com
 
 
 The patch titled
-     watchdog: mv64x60_wdt: clean up and locking checks
+     watchdog: at91: watchdog to unlocked_ioctl
 has been added to the -mm tree.  Its filename is
-     watchdog-mv64x60_wdt-clean-up-and-locking-checks.patch
+     watchdog-at91-watchdog-to-unlocked_ioctl.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,89 +34,222 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: watchdog: mv64x60_wdt: clean up and locking checks
+Subject: watchdog: at91: watchdog to unlocked_ioctl
 From: Alan Cox <alan@redhat.com>
 
+Review and switch to unlocked_ioctl
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/mv64x60_wdt.c |   20 +++++++++++---------
- 1 file changed, 11 insertions(+), 9 deletions(-)
+ drivers/watchdog/at91rm9200_wdt.c |  108 ++++++++++++++--------------
+ 1 file changed, 54 insertions(+), 54 deletions(-)
 
-diff -puN drivers/watchdog/mv64x60_wdt.c~watchdog-mv64x60_wdt-clean-up-and-locking-checks drivers/watchdog/mv64x60_wdt.c
---- a/drivers/watchdog/mv64x60_wdt.c~watchdog-mv64x60_wdt-clean-up-and-locking-checks
-+++ a/drivers/watchdog/mv64x60_wdt.c
-@@ -8,7 +8,7 @@
-  * and services the watchdog.
-  *
-  * Derived from mpc8xx_wdt.c, with the following copyright.
-- * 
-+ *
-  * 2002 (c) Florian Schirmer <jolt@tuxbox.org> This file is licensed under
-  * the terms of the GNU General Public License version 2. This program
-  * is licensed "as is" without any warranty of any kind, whether express
-@@ -24,8 +24,8 @@
+diff -puN drivers/watchdog/at91rm9200_wdt.c~watchdog-at91-watchdog-to-unlocked_ioctl drivers/watchdog/at91rm9200_wdt.c
+--- a/drivers/watchdog/at91rm9200_wdt.c~watchdog-at91-watchdog-to-unlocked_ioctl
++++ a/drivers/watchdog/at91rm9200_wdt.c
+@@ -20,7 +20,7 @@
  #include <linux/platform_device.h>
- 
- #include <linux/mv643xx.h>
+ #include <linux/types.h>
+ #include <linux/watchdog.h>
 -#include <asm/uaccess.h>
--#include <asm/io.h>
 +#include <linux/uaccess.h>
-+#include <linux/io.h>
+ #include <asm/arch/at91_st.h>
  
- #define MV64x60_WDT_WDC_OFFSET	0
  
-@@ -61,7 +61,9 @@ static DEFINE_SPINLOCK(mv64x60_wdt_spinl
- 
+@@ -31,11 +31,14 @@ static int wdt_time = WDT_DEFAULT_TIME;
  static int nowayout = WATCHDOG_NOWAYOUT;
+ 
+ module_param(wdt_time, int, 0);
+-MODULE_PARM_DESC(wdt_time, "Watchdog time in seconds. (default="__MODULE_STRING(WDT_DEFAULT_TIME) ")");
++MODULE_PARM_DESC(wdt_time, "Watchdog time in seconds. (default="
++				__MODULE_STRING(WDT_DEFAULT_TIME) ")");
+ 
+ #ifdef CONFIG_WATCHDOG_NOWAYOUT
  module_param(nowayout, int, 0);
 -MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started (default=" __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
 +MODULE_PARM_DESC(nowayout,
 +		"Watchdog cannot be stopped once started (default="
 +				__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
+ #endif
  
- static int mv64x60_wdt_toggle_wdc(int enabled_predicate, int field_shift)
+ 
+@@ -46,7 +49,7 @@ static unsigned long at91wdt_busy;
+ /*
+  * Disable the watchdog.
+  */
+-static void inline at91_wdt_stop(void)
++static inline void at91_wdt_stop(void)
  {
-@@ -150,7 +152,7 @@ static int mv64x60_wdt_release(struct in
+ 	at91_sys_write(AT91_ST_WDMR, AT91_ST_EXTEN);
+ }
+@@ -54,16 +57,17 @@ static void inline at91_wdt_stop(void)
+ /*
+  * Enable and reset the watchdog.
+  */
+-static void inline at91_wdt_start(void)
++static inline void at91_wdt_start(void)
+ {
+-	at91_sys_write(AT91_ST_WDMR, AT91_ST_EXTEN | AT91_ST_RSTEN | (((65536 * wdt_time) >> 8) & AT91_ST_WDV));
++	at91_sys_write(AT91_ST_WDMR, AT91_ST_EXTEN | AT91_ST_RSTEN |
++				(((65536 * wdt_time) >> 8) & AT91_ST_WDV));
+ 	at91_sys_write(AT91_ST_CR, AT91_ST_WDRST);
  }
  
- static ssize_t mv64x60_wdt_write(struct file *file, const char __user *data,
--				 size_t len, loff_t * ppos)
-+				 size_t len, loff_t *ppos)
+ /*
+  * Reload the watchdog timer.  (ie, pat the watchdog)
+  */
+-static void inline at91_wdt_reload(void)
++static inline void at91_wdt_reload(void)
  {
- 	if (len) {
- 		if (!nowayout) {
-@@ -160,7 +162,7 @@ static ssize_t mv64x60_wdt_write(struct 
- 
- 			for (i = 0; i != len; i++) {
- 				char c;
--				if(get_user(c, data + i))
-+				if (get_user(c, data + i))
- 					return -EFAULT;
- 				if (c == 'V')
- 					expect_close = 42;
-@@ -172,8 +174,8 @@ static ssize_t mv64x60_wdt_write(struct 
- 	return len;
+ 	at91_sys_write(AT91_ST_CR, AT91_ST_WDRST);
  }
+@@ -89,8 +93,9 @@ static int at91_wdt_open(struct inode *i
+  */
+ static int at91_wdt_close(struct inode *inode, struct file *file)
+ {
++	/* Disable the watchdog when file is closed */
+ 	if (!nowayout)
+-		at91_wdt_stop();	/* Disable the watchdog when file is closed */
++		at91_wdt_stop();
  
--static int mv64x60_wdt_ioctl(struct inode *inode, struct file *file,
--			     unsigned int cmd, unsigned long arg)
-+static long mv64x60_wdt_ioctl(struct file *file,
+ 	clear_bit(0, &at91wdt_busy);
+ 	return 0;
+@@ -110,7 +115,8 @@ static int at91_wdt_settimeout(int new_t
+ 	if ((new_time <= 0) || (new_time > WDT_MAX_TIME))
+ 		return -EINVAL;
+ 
+-	/* Set new watchdog time. It will be used when at91_wdt_start() is called. */
++	/* Set new watchdog time. It will be used when
++	   at91_wdt_start() is called. */
+ 	wdt_time = new_time;
+ 	return 0;
+ }
+@@ -123,60 +129,52 @@ static struct watchdog_info at91_wdt_inf
+ /*
+  * Handle commands from user-space.
+  */
+-static int at91_wdt_ioctl(struct inode *inode, struct file *file,
+-		unsigned int cmd, unsigned long arg)
++static long at91_wdt_ioct(struct file *file,
 +					unsigned int cmd, unsigned long arg)
  {
- 	int timeout;
- 	int options;
-@@ -240,7 +242,7 @@ static const struct file_operations mv64
- 	.owner = THIS_MODULE,
- 	.llseek = no_llseek,
- 	.write = mv64x60_wdt_write,
--	.ioctl = mv64x60_wdt_ioctl,
-+	.unlocked_ioctl = mv64x60_wdt_ioctl,
- 	.open = mv64x60_wdt_open,
- 	.release = mv64x60_wdt_release,
- };
+ 	void __user *argp = (void __user *)arg;
+ 	int __user *p = argp;
+ 	int new_value;
+ 
+-	switch(cmd) {
+-		case WDIOC_KEEPALIVE:
+-			at91_wdt_reload();	/* pat the watchdog */
+-			return 0;
+-
+-		case WDIOC_GETSUPPORT:
+-			return copy_to_user(argp, &at91_wdt_info, sizeof(at91_wdt_info)) ? -EFAULT : 0;
+-
+-		case WDIOC_SETTIMEOUT:
+-			if (get_user(new_value, p))
+-				return -EFAULT;
+-
+-			if (at91_wdt_settimeout(new_value))
+-				return -EINVAL;
+-
+-			/* Enable new time value */
++	switch (cmd) {
++	case WDIOC_KEEPALIVE:
++		at91_wdt_reload();	/* pat the watchdog */
++		return 0;
++	case WDIOC_GETSUPPORT:
++		return copy_to_user(argp, &at91_wdt_info,
++				sizeof(at91_wdt_info)) ? -EFAULT : 0;
++	case WDIOC_SETTIMEOUT:
++		if (get_user(new_value, p))
++			return -EFAULT;
++		if (at91_wdt_settimeout(new_value))
++			return -EINVAL;
++		/* Enable new time value */
++		at91_wdt_start();
++		/* Return current value */
++		return put_user(wdt_time, p);
++	case WDIOC_GETTIMEOUT:
++		return put_user(wdt_time, p);
++	case WDIOC_GETSTATUS:
++	case WDIOC_GETBOOTSTATUS:
++		return put_user(0, p);
++	case WDIOC_SETOPTIONS:
++		if (get_user(new_value, p))
++			return -EFAULT;
++		if (new_value & WDIOS_DISABLECARD)
++			at91_wdt_stop();
++		if (new_value & WDIOS_ENABLECARD)
+ 			at91_wdt_start();
+-
+-			/* Return current value */
+-			return put_user(wdt_time, p);
+-
+-		case WDIOC_GETTIMEOUT:
+-			return put_user(wdt_time, p);
+-
+-		case WDIOC_GETSTATUS:
+-		case WDIOC_GETBOOTSTATUS:
+-			return put_user(0, p);
+-
+-		case WDIOC_SETOPTIONS:
+-			if (get_user(new_value, p))
+-				return -EFAULT;
+-
+-			if (new_value & WDIOS_DISABLECARD)
+-				at91_wdt_stop();
+-			if (new_value & WDIOS_ENABLECARD)
+-				at91_wdt_start();
+-			return 0;
+-
+-		default:
+-			return -ENOTTY;
++		return 0;
++	default:
++		return -ENOTTY;
+ 	}
+ }
+ 
+ /*
+  * Pat the watchdog whenever device is written to.
+  */
+-static ssize_t at91_wdt_write(struct file *file, const char *data, size_t len, loff_t *ppos)
++static ssize_t at91_wdt_write(struct file *file, const char *data,
++						size_t len, loff_t *ppos)
+ {
+ 	at91_wdt_reload();		/* pat the watchdog */
+ 	return len;
+@@ -187,7 +185,7 @@ static ssize_t at91_wdt_write(struct fil
+ static const struct file_operations at91wdt_fops = {
+ 	.owner		= THIS_MODULE,
+ 	.llseek		= no_llseek,
+-	.ioctl		= at91_wdt_ioctl,
++	.unlocked_ioctl	= at91_wdt_ioctl,
+ 	.open		= at91_wdt_open,
+ 	.release	= at91_wdt_close,
+ 	.write		= at91_wdt_write,
+@@ -211,7 +209,8 @@ static int __init at91wdt_probe(struct p
+ 	if (res)
+ 		return res;
+ 
+-	printk("AT91 Watchdog Timer enabled (%d seconds%s)\n", wdt_time, nowayout ? ", nowayout" : "");
++	printk(KERN_INFO "AT91 Watchdog Timer enabled (%d seconds%s)\n",
++				wdt_time, nowayout ? ", nowayout" : "");
+ 	return 0;
+ }
+ 
+@@ -265,7 +264,8 @@ static struct platform_driver at91wdt_dr
+ 
+ static int __init at91_wdt_init(void)
+ {
+-	/* Check that the heartbeat value is within range; if not reset to the default */
++	/* Check that the heartbeat value is within range;
++	   if not reset to the default */
+ 	if (at91_wdt_settimeout(wdt_time)) {
+ 		at91_wdt_settimeout(WDT_DEFAULT_TIME);
+ 		pr_info("at91_wdt: wdt_time value must be 1 <= wdt_time <= 256, using %d\n", wdt_time);
 _
 
 Patches currently in -mm which might be from alan@redhat.com are
