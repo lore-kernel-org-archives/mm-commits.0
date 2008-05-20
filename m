@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + watchdog-machzwd-clean-up-coding-style-unlocked_ioctl.patch added to -mm tree
-Date: Tue, 20 May 2008 01:28:12 -0700
-Message-ID: <200805200828.m4K8SC7Z013137@imap1.linux-foundation.org>
+Subject: + watchdog-s3c2410-watchdog-cleanup-and-switch-to-unlocked_ioctl.patch added to -mm tree
+Date: Tue, 20 May 2008 01:28:29 -0700
+Message-ID: <200805200828.m4K8STJq013170@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52180 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57562 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760267AbYETI2d (ORCPT
+	by vger.kernel.org with ESMTP id S1761097AbYETI3A (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 May 2008 04:28:33 -0400
+	Tue, 20 May 2008 04:29:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@redhat.com
 
 
 The patch titled
-     watchdog: machzwd: clean up, coding style, unlocked_ioctl
+     watchdog: s3c2410: watchdog cleanup and switch to unlocked_ioctl
 has been added to the -mm tree.  Its filename is
-     watchdog-machzwd-clean-up-coding-style-unlocked_ioctl.patch
+     watchdog-s3c2410-watchdog-cleanup-and-switch-to-unlocked_ioctl.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: watchdog: machzwd: clean up, coding style, unlocked_ioctl
+Subject: watchdog: s3c2410: watchdog cleanup and switch to unlocked_ioctl
 From: Alan Cox <alan@redhat.com>
 
 
@@ -42,292 +42,318 @@ Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/machzwd.c |  108 ++++++++++++-----------------------
- 1 file changed, 40 insertions(+), 68 deletions(-)
+ drivers/watchdog/s3c2410_wdt.c |  148 ++++++++++++++++---------------
+ 1 file changed, 80 insertions(+), 68 deletions(-)
 
-diff -puN drivers/watchdog/machzwd.c~watchdog-machzwd-clean-up-coding-style-unlocked_ioctl drivers/watchdog/machzwd.c
---- a/drivers/watchdog/machzwd.c~watchdog-machzwd-clean-up-coding-style-unlocked_ioctl
-+++ a/drivers/watchdog/machzwd.c
-@@ -40,9 +40,9 @@
- #include <linux/notifier.h>
- #include <linux/reboot.h>
- #include <linux/init.h>
-+#include <linux/io.h>
-+#include <linux/uaccess.h>
- 
--#include <asm/io.h>
+diff -puN drivers/watchdog/s3c2410_wdt.c~watchdog-s3c2410-watchdog-cleanup-and-switch-to-unlocked_ioctl drivers/watchdog/s3c2410_wdt.c
+--- a/drivers/watchdog/s3c2410_wdt.c~watchdog-s3c2410-watchdog-cleanup-and-switch-to-unlocked_ioctl
++++ a/drivers/watchdog/s3c2410_wdt.c
+@@ -46,9 +46,8 @@
+ #include <linux/platform_device.h>
+ #include <linux/interrupt.h>
+ #include <linux/clk.h>
+-
 -#include <asm/uaccess.h>
- #include <asm/system.h>
+-#include <asm/io.h>
++#include <linux/uaccess.h>
++#include <linux/io.h>
  
- /* ports */
-@@ -95,7 +95,9 @@ MODULE_ALIAS_MISCDEV(WATCHDOG_MINOR);
+ #include <asm/arch/map.h>
  
- static int nowayout = WATCHDOG_NOWAYOUT;
- module_param(nowayout, int, 0);
+@@ -65,8 +64,8 @@
+ static int nowayout	= WATCHDOG_NOWAYOUT;
+ static int tmr_margin	= CONFIG_S3C2410_WATCHDOG_DEFAULT_TIME;
+ static int tmr_atboot	= CONFIG_S3C2410_WATCHDOG_ATBOOT;
+-static int soft_noboot	= 0;
+-static int debug	= 0;
++static int soft_noboot;
++static int debug;
+ 
+ module_param(tmr_margin,  int, 0);
+ module_param(tmr_atboot,  int, 0);
+@@ -74,24 +73,23 @@ module_param(nowayout,    int, 0);
+ module_param(soft_noboot, int, 0);
+ module_param(debug,	  int, 0);
+ 
+-MODULE_PARM_DESC(tmr_margin, "Watchdog tmr_margin in seconds. default=" __MODULE_STRING(CONFIG_S3C2410_WATCHDOG_DEFAULT_TIME) ")");
+-
+-MODULE_PARM_DESC(tmr_atboot, "Watchdog is started at boot time if set to 1, default=" __MODULE_STRING(CONFIG_S3C2410_WATCHDOG_ATBOOT));
+-
 -MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started (default=" __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
-+MODULE_PARM_DESC(nowayout,
-+		"Watchdog cannot be stopped once started (default="
-+				__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
- 
- #define PFX "machzwd"
- 
-@@ -114,7 +116,7 @@ static struct watchdog_info zf_info = {
-  * 3 = GEN_SCI
-  * defaults to GEN_RESET (0)
-  */
--static int action = 0;
-+static int action;
- module_param(action, int, 0);
- MODULE_PARM_DESC(action, "after watchdog resets, generate: 0 = RESET(*)  1 = SMI  2 = NMI  3 = SCI");
- 
-@@ -123,10 +125,9 @@ static void zf_ping(unsigned long data);
- static int zf_action = GEN_RESET;
- static unsigned long zf_is_open;
- static char zf_expect_close;
--static DEFINE_SPINLOCK(zf_lock);
- static DEFINE_SPINLOCK(zf_port_lock);
- static DEFINE_TIMER(zf_timer, zf_ping, 0, 0);
--static unsigned long next_heartbeat = 0;
-+static unsigned long next_heartbeat;
+-
++MODULE_PARM_DESC(tmr_margin, "Watchdog tmr_margin in seconds. default="
++		__MODULE_STRING(CONFIG_S3C2410_WATCHDOG_DEFAULT_TIME) ")");
++MODULE_PARM_DESC(tmr_atboot,
++		"Watchdog is started at boot time if set to 1, default="
++			__MODULE_STRING(CONFIG_S3C2410_WATCHDOG_ATBOOT));
++MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started (default="
++			__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
+ MODULE_PARM_DESC(soft_noboot, "Watchdog action, set to 1 to ignore reboots, 0 to reboot (default depends on ONLY_TESTING)");
+-
+ MODULE_PARM_DESC(debug, "Watchdog debug, set to >1 for debug, (default 0)");
  
  
- /* timeout for user land heart beat (10 seconds) */
-@@ -171,13 +172,13 @@ static inline void zf_set_control(unsign
+ typedef enum close_state {
+ 	CLOSE_STATE_NOT,
+-	CLOSE_STATE_ALLOW=0x4021
++	CLOSE_STATE_ALLOW = 0x4021
+ } close_state_t;
  
- static inline void zf_set_timer(unsigned short new, unsigned char n)
+-static DECLARE_MUTEX(open_lock);
+-
++static unsigned long open_lock;
+ static struct device    *wdt_dev;	/* platform device attached to */
+ static struct resource	*wdt_mem;
+ static struct resource	*wdt_irq;
+@@ -99,38 +97,58 @@ static struct clk	*wdt_clock;
+ static void __iomem	*wdt_base;
+ static unsigned int	 wdt_count;
+ static close_state_t	 allow_close;
++static DEFINE_SPINLOCK(wdt_lock);
+ 
+ /* watchdog control routines */
+ 
+ #define DBG(msg...) do { \
+ 	if (debug) \
+ 		printk(KERN_INFO msg); \
+-	} while(0)
++	} while (0)
+ 
+ /* functions */
+ 
+-static int s3c2410wdt_keepalive(void)
++static void s3c2410wdt_keepalive(void)
  {
--	switch(n){
--		case WD1:
--			zf_writew(COUNTER_1, new);
--		case WD2:
--			zf_writeb(COUNTER_2, new > 0xff ? 0xff : new);
--		default:
--			return;
-+	switch (n) {
-+	case WD1:
-+		zf_writew(COUNTER_1, new);
-+	case WD2:
-+		zf_writeb(COUNTER_2, new > 0xff ? 0xff : new);
-+	default:
-+		return;
++	spin_lock(&wdt_lock);
+ 	writel(wdt_count, wdt_base + S3C2410_WTCNT);
+-	return 0;
++	spin_unlock(&wdt_lock);
+ }
+ 
+-static int s3c2410wdt_stop(void)
++static void __s3c2410wdt_stop(void)
+ {
+ 	unsigned long wtcon;
+ 
++	spin_lock(&wdt_lock);
+ 	wtcon = readl(wdt_base + S3C2410_WTCON);
+ 	wtcon &= ~(S3C2410_WTCON_ENABLE | S3C2410_WTCON_RSTEN);
+ 	writel(wtcon, wdt_base + S3C2410_WTCON);
++	spin_unlock(&wdt_lock);
++}
+ 
+-	return 0;
++static void __s3c2410wdt_stop(void)
++{
++	unsigned long wtcon;
++
++	wtcon = readl(wdt_base + S3C2410_WTCON);
++	wtcon &= ~(S3C2410_WTCON_ENABLE | S3C2410_WTCON_RSTEN);
++	writel(wtcon, wdt_base + S3C2410_WTCON);
++}
++
++static void s3c2410wdt_stop(void)
++{
++	spin_lock(&wdt_lock);
++	__s3c2410wdt_stop();
++	spin_unlock(&wdt_lock);
+ }
+ 
+-static int s3c2410wdt_start(void)
++static void s3c2410wdt_start(void)
+ {
+ 	unsigned long wtcon;
+ 
+-	s3c2410wdt_stop();
++	spin_lock(&wdt_lock);
++
++	__s3c2410wdt_stop();
+ 
+ 	wtcon = readl(wdt_base + S3C2410_WTCON);
+ 	wtcon |= S3C2410_WTCON_ENABLE | S3C2410_WTCON_DIV128;
+@@ -149,6 +167,7 @@ static int s3c2410wdt_start(void)
+ 	writel(wdt_count, wdt_base + S3C2410_WTDAT);
+ 	writel(wdt_count, wdt_base + S3C2410_WTCNT);
+ 	writel(wtcon, wdt_base + S3C2410_WTCON);
++	spin_unlock(&wdt_lock);
+ 
+ 	return 0;
+ }
+@@ -211,7 +230,7 @@ static int s3c2410wdt_set_heartbeat(int 
+ 
+ static int s3c2410wdt_open(struct inode *inode, struct file *file)
+ {
+-	if(!down_nowait(&open_lock))
++	if (test_and_set_bit(0, &open_lock))
+ 		return -EBUSY;
+ 
+ 	if (nowayout)
+@@ -231,15 +250,14 @@ static int s3c2410wdt_release(struct ino
+ 	 * 	Lock it in if it's a module and we set nowayout
+ 	 */
+ 
+-	if (allow_close == CLOSE_STATE_ALLOW) {
++	if (allow_close == CLOSE_STATE_ALLOW)
+ 		s3c2410wdt_stop();
+-	} else {
++	else {
+ 		dev_err(wdt_dev, "Unexpected close, not stopping watchdog\n");
+ 		s3c2410wdt_keepalive();
  	}
+-
+ 	allow_close = CLOSE_STATE_NOT;
+-	up(&open_lock);
++	clear_bit(0, &open_lock);
+ 	return 0;
  }
  
-@@ -241,10 +242,8 @@ static void zf_ping(unsigned long data)
- 
- 	zf_writeb(COUNTER_2, 0xff);
- 
--	if(time_before(jiffies, next_heartbeat)){
--
-+	if (time_before(jiffies, next_heartbeat)) {
- 		dprintk("time_before: %ld\n", next_heartbeat - jiffies);
--
- 		/*
- 		 * reset event is activated by transition from 0 to 1 on
- 		 * RESET_WD1 bit and we assume that it is already zero...
-@@ -261,24 +260,21 @@ static void zf_ping(unsigned long data)
- 		spin_unlock_irqrestore(&zf_port_lock, flags);
- 
- 		mod_timer(&zf_timer, jiffies + ZF_HW_TIMEO);
--	}else{
-+	} else
- 		printk(KERN_CRIT PFX ": I will reset your machine\n");
--	}
- }
- 
- static ssize_t zf_write(struct file *file, const char __user *buf, size_t count,
- 								loff_t *ppos)
- {
- 	/* See if we got the magic character */
--	if(count){
--
-+	if (count) {
- 		/*
- 		 * no need to check for close confirmation
- 		 * no way to disable watchdog ;)
- 		 */
+@@ -249,7 +267,7 @@ static ssize_t s3c2410wdt_write(struct f
+ 	/*
+ 	 *	Refresh the timer.
+ 	 */
+-	if(len) {
++	if (len) {
  		if (!nowayout) {
- 			size_t ofs;
--
- 			/*
- 			 * note: just in case someone wrote the magic character
- 			 * five months ago...
-@@ -286,11 +282,11 @@ static ssize_t zf_write(struct file *fil
- 			zf_expect_close = 0;
+ 			size_t i;
  
- 			/* now scan */
--			for (ofs = 0; ofs != count; ofs++){
-+			for (ofs = 0; ofs != count; ofs++) {
- 				char c;
- 				if (get_user(c, buf + ofs))
- 					return -EFAULT;
--				if (c == 'V'){
-+				if (c == 'V') {
- 					zf_expect_close = 42;
- 					dprintk("zf_expect_close = 42\n");
- 				}
-@@ -303,14 +299,11 @@ static ssize_t zf_write(struct file *fil
- 		 */
- 		next_heartbeat = jiffies + ZF_USER_TIMEO;
- 		dprintk("user ping at %ld\n", jiffies);
+@@ -265,7 +283,6 @@ static ssize_t s3c2410wdt_write(struct f
+ 					allow_close = CLOSE_STATE_ALLOW;
+ 			}
+ 		}
 -
+ 		s3c2410wdt_keepalive();
  	}
--
- 	return count;
- }
+ 	return len;
+@@ -273,48 +290,41 @@ static ssize_t s3c2410wdt_write(struct f
  
--static int zf_ioctl(struct inode *inode, struct file *file, unsigned int cmd,
--	unsigned long arg)
-+static long zf_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ #define OPTIONS WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING | WDIOF_MAGICCLOSE
+ 
+-static struct watchdog_info s3c2410_wdt_ident = {
++static const struct watchdog_info s3c2410_wdt_ident = {
+ 	.options          =     OPTIONS,
+ 	.firmware_version =	0,
+ 	.identity         =	"S3C2410 Watchdog",
+ };
+ 
+ 
+-static int s3c2410wdt_ioctl(struct inode *inode, struct file *file,
+-	unsigned int cmd, unsigned long arg)
++static long s3c2410wdt_ioctl(struct file *file,	unsigned int cmd,
++							unsigned long arg)
  {
  	void __user *argp = (void __user *)arg;
  	int __user *p = argp;
-@@ -319,55 +312,38 @@ static int zf_ioctl(struct inode *inode,
- 		if (copy_to_user(argp, &zf_info, sizeof(zf_info)))
- 			return -EFAULT;
- 		break;
+ 	int new_margin;
+ 
+ 	switch (cmd) {
+-		default:
+-			return -ENOTTY;
 -
- 	case WDIOC_GETSTATUS:
- 	case WDIOC_GETBOOTSTATUS:
- 		return put_user(0, p);
+-		case WDIOC_GETSUPPORT:
+-			return copy_to_user(argp, &s3c2410_wdt_ident,
+-				sizeof(s3c2410_wdt_ident)) ? -EFAULT : 0;
 -
- 	case WDIOC_KEEPALIVE:
- 		zf_ping(0);
- 		break;
+-		case WDIOC_GETSTATUS:
+-		case WDIOC_GETBOOTSTATUS:
+-			return put_user(0, p);
 -
- 	default:
- 		return -ENOTTY;
+-		case WDIOC_KEEPALIVE:
+-			s3c2410wdt_keepalive();
+-			return 0;
+-
+-		case WDIOC_SETTIMEOUT:
+-			if (get_user(new_margin, p))
+-				return -EFAULT;
+-
+-			if (s3c2410wdt_set_heartbeat(new_margin))
+-				return -EINVAL;
+-
+-			s3c2410wdt_keepalive();
+-			return put_user(tmr_margin, p);
+-
+-		case WDIOC_GETTIMEOUT:
+-			return put_user(tmr_margin, p);
++	default:
++		return -ENOTTY;
++	case WDIOC_GETSUPPORT:
++		return copy_to_user(argp, &s3c2410_wdt_ident,
++			sizeof(s3c2410_wdt_ident)) ? -EFAULT : 0;
++	case WDIOC_GETSTATUS:
++	case WDIOC_GETBOOTSTATUS:
++		return put_user(0, p);
++	case WDIOC_KEEPALIVE:
++		s3c2410wdt_keepalive();
++		return 0;
++	case WDIOC_SETTIMEOUT:
++		if (get_user(new_margin, p))
++			return -EFAULT;
++		if (s3c2410wdt_set_heartbeat(new_margin))
++			return -EINVAL;
++		s3c2410wdt_keepalive();
++		return put_user(tmr_margin, p);
++	case WDIOC_GETTIMEOUT:
++		return put_user(tmr_margin, p);
  	}
--
- 	return 0;
  }
  
- static int zf_open(struct inode *inode, struct file *file)
- {
--	spin_lock(&zf_lock);
--	if(test_and_set_bit(0, &zf_is_open)) {
--		spin_unlock(&zf_lock);
-+	if (test_and_set_bit(0, &zf_is_open))
- 		return -EBUSY;
--	}
--
- 	if (nowayout)
- 		__module_get(THIS_MODULE);
--
--	spin_unlock(&zf_lock);
--
- 	zf_timer_on();
--
- 	return nonseekable_open(inode, file);
- }
+@@ -324,7 +334,7 @@ static const struct file_operations s3c2
+ 	.owner		= THIS_MODULE,
+ 	.llseek		= no_llseek,
+ 	.write		= s3c2410wdt_write,
+-	.ioctl		= s3c2410wdt_ioctl,
++	.unlocked_ioctl	= s3c2410wdt_ioctl,
+ 	.open		= s3c2410wdt_open,
+ 	.release	= s3c2410wdt_release,
+ };
+@@ -411,14 +421,15 @@ static int s3c2410wdt_probe(struct platf
+ 	 * not, try the default value */
  
- static int zf_close(struct inode *inode, struct file *file)
- {
--	if(zf_expect_close == 42){
-+	if (zf_expect_close == 42)
- 		zf_timer_off();
--	} else {
-+	else {
- 		del_timer(&zf_timer);
- 		printk(KERN_ERR PFX ": device file closed unexpectedly. Will not stop the WDT!\n");
+ 	if (s3c2410wdt_set_heartbeat(tmr_margin)) {
+-		started = s3c2410wdt_set_heartbeat(CONFIG_S3C2410_WATCHDOG_DEFAULT_TIME);
++		started = s3c2410wdt_set_heartbeat(
++					CONFIG_S3C2410_WATCHDOG_DEFAULT_TIME);
+ 
+-		if (started == 0) {
+-			dev_info(dev,"tmr_margin value out of range, default %d used\n",
++		if (started == 0)
++			dev_info(dev,
++			   "tmr_margin value out of range, default %d used\n",
+ 			       CONFIG_S3C2410_WATCHDOG_DEFAULT_TIME);
+-		} else {
++		else
+ 			dev_info(dev, "default timer value is out of range, cannot start\n");
+-		}
  	}
--
--	spin_lock(&zf_lock);
- 	clear_bit(0, &zf_is_open);
--	spin_unlock(&zf_lock);
--
- 	zf_expect_close = 0;
--
- 	return 0;
- }
  
-@@ -378,23 +354,18 @@ static int zf_close(struct inode *inode,
- static int zf_notify_sys(struct notifier_block *this, unsigned long code,
- 								void *unused)
- {
--	if(code == SYS_DOWN || code == SYS_HALT){
-+	if (code == SYS_DOWN || code == SYS_HALT)
- 		zf_timer_off();
--	}
--
- 	return NOTIFY_DONE;
- }
- 
--
--
--
- static const struct file_operations zf_fops = {
--	.owner          = THIS_MODULE,
--	.llseek         = no_llseek,
--	.write          = zf_write,
--	.ioctl          = zf_ioctl,
--	.open           = zf_open,
--	.release        = zf_close,
-+	.owner		= THIS_MODULE,
-+	.llseek		= no_llseek,
-+	.write		= zf_write,
-+	.unlocked_ioctl = zf_ioctl,
-+	.open		= zf_open,
-+	.release	= zf_close,
- };
- 
- static struct miscdevice zf_miscdev = {
-@@ -402,7 +373,7 @@ static struct miscdevice zf_miscdev = {
- 	.name = "watchdog",
- 	.fops = &zf_fops,
- };
-- 
+ 	ret = misc_register(&s3c2410wdt_miscdev);
+@@ -447,7 +458,7 @@ static int s3c2410wdt_probe(struct platf
+ 		 (wtcon & S3C2410_WTCON_ENABLE) ?  "" : "in",
+ 		 (wtcon & S3C2410_WTCON_RSTEN) ? "" : "dis",
+ 		 (wtcon & S3C2410_WTCON_INTEN) ? "" : "en");
+-	
 +
+ 	return 0;
  
- /*
-  * The device needs to learn about soft shutdowns in order to
-@@ -423,22 +394,23 @@ static int __init zf_init(void)
+  err_clk:
+@@ -487,7 +498,7 @@ static int s3c2410wdt_remove(struct plat
+ 
+ static void s3c2410wdt_shutdown(struct platform_device *dev)
  {
- 	int ret;
+-	s3c2410wdt_stop();	
++	s3c2410wdt_stop();
+ }
  
--	printk(KERN_INFO PFX ": MachZ ZF-Logic Watchdog driver initializing.\n");
-+	printk(KERN_INFO PFX
-+		": MachZ ZF-Logic Watchdog driver initializing.\n");
+ #ifdef CONFIG_PM
+@@ -540,7 +551,8 @@ static struct platform_driver s3c2410wdt
+ };
  
- 	ret = zf_get_ZFL_version();
--	if ((!ret) || (ret == 0xffff)) {
-+	if (!ret || ret == 0xffff) {
- 		printk(KERN_WARNING PFX ": no ZF-Logic found\n");
- 		return -ENODEV;
- 	}
  
--	if((action <= 3) && (action >= 0)){
--		zf_action = zf_action>>action;
--	} else
-+	if (action <= 3 && action >= 0)
-+		zf_action = zf_action >> action;
-+	else
- 		action = 0;
+-static char banner[] __initdata = KERN_INFO "S3C2410 Watchdog Timer, (c) 2004 Simtec Electronics\n";
++static char banner[] __initdata =
++	KERN_INFO "S3C2410 Watchdog Timer, (c) 2004 Simtec Electronics\n";
  
- 	zf_show_action(action);
- 
--	if(!request_region(ZF_IOBASE, 3, "MachZ ZFL WDT")){
-+	if (!request_region(ZF_IOBASE, 3, "MachZ ZFL WDT")) {
- 		printk(KERN_ERR "cannot reserve I/O ports at %d\n",
- 							ZF_IOBASE);
- 		ret = -EBUSY;
-@@ -446,14 +418,14 @@ static int __init zf_init(void)
- 	}
- 
- 	ret = register_reboot_notifier(&zf_notifier);
--	if(ret){
-+	if (ret) {
- 		printk(KERN_ERR "can't register reboot notifier (err=%d)\n",
- 									ret);
- 		goto no_reboot;
- 	}
- 
- 	ret = misc_register(&zf_miscdev);
--	if (ret){
-+	if (ret) {
- 		printk(KERN_ERR "can't misc_register on minor=%d\n",
- 							WATCHDOG_MINOR);
- 		goto no_misc;
+ static int __init watchdog_init(void)
+ {
 _
 
 Patches currently in -mm which might be from alan@redhat.com are
