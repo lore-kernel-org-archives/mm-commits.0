@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + watchdog-at91-watchdog-to-unlocked_ioctl.patch added to -mm tree
-Date: Tue, 20 May 2008 01:27:47 -0700
-Message-ID: <200805200827.m4K8RlAB013059@imap1.linux-foundation.org>
+Subject: + watchdog-mpcore-watchdog-unlocked_ioctl-and-bkl-work.patch added to -mm tree
+Date: Tue, 20 May 2008 01:28:18 -0700
+Message-ID: <200805200828.m4K8SISK013146@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42382 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42106 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759643AbYETI2F (ORCPT
+	by vger.kernel.org with ESMTP id S1760874AbYETI2g (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 May 2008 04:28:05 -0400
+	Tue, 20 May 2008 04:28:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@redhat.com
 
 
 The patch titled
-     watchdog: at91: watchdog to unlocked_ioctl
+     watchdog: mpcore watchdog: unlocked_ioctl and BKl work
 has been added to the -mm tree.  Its filename is
-     watchdog-at91-watchdog-to-unlocked_ioctl.patch
+     watchdog-mpcore-watchdog-unlocked_ioctl-and-bkl-work.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,222 +34,184 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: watchdog: at91: watchdog to unlocked_ioctl
+Subject: watchdog: mpcore watchdog: unlocked_ioctl and BKl work
 From: Alan Cox <alan@redhat.com>
 
-Review and switch to unlocked_ioctl
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/at91rm9200_wdt.c |  108 ++++++++++++++--------------
- 1 file changed, 54 insertions(+), 54 deletions(-)
+ drivers/watchdog/mpcore_wdt.c |   53 +++++++++++++++++++-------------
+ 1 file changed, 32 insertions(+), 21 deletions(-)
 
-diff -puN drivers/watchdog/at91rm9200_wdt.c~watchdog-at91-watchdog-to-unlocked_ioctl drivers/watchdog/at91rm9200_wdt.c
---- a/drivers/watchdog/at91rm9200_wdt.c~watchdog-at91-watchdog-to-unlocked_ioctl
-+++ a/drivers/watchdog/at91rm9200_wdt.c
-@@ -20,7 +20,7 @@
+diff -puN drivers/watchdog/mpcore_wdt.c~watchdog-mpcore-watchdog-unlocked_ioctl-and-bkl-work drivers/watchdog/mpcore_wdt.c
+--- a/drivers/watchdog/mpcore_wdt.c~watchdog-mpcore-watchdog-unlocked_ioctl-and-bkl-work
++++ a/drivers/watchdog/mpcore_wdt.c
+@@ -29,9 +29,9 @@
+ #include <linux/init.h>
+ #include <linux/interrupt.h>
  #include <linux/platform_device.h>
- #include <linux/types.h>
- #include <linux/watchdog.h>
--#include <asm/uaccess.h>
 +#include <linux/uaccess.h>
- #include <asm/arch/at91_st.h>
  
+ #include <asm/hardware/arm_twd.h>
+-#include <asm/uaccess.h>
  
-@@ -31,11 +31,14 @@ static int wdt_time = WDT_DEFAULT_TIME;
+ struct mpcore_wdt {
+ 	unsigned long	timer_alive;
+@@ -43,17 +43,20 @@ struct mpcore_wdt {
+ };
+ 
+ static struct platform_device *mpcore_wdt_dev;
+-
+ extern unsigned int mpcore_timer_rate;
+ 
+ #define TIMER_MARGIN	60
+ static int mpcore_margin = TIMER_MARGIN;
+ module_param(mpcore_margin, int, 0);
+-MODULE_PARM_DESC(mpcore_margin, "MPcore timer margin in seconds. (0<mpcore_margin<65536, default=" __MODULE_STRING(TIMER_MARGIN) ")");
++MODULE_PARM_DESC(mpcore_margin,
++	"MPcore timer margin in seconds. (0 < mpcore_margin < 65536, default="
++				__MODULE_STRING(TIMER_MARGIN) ")");
+ 
  static int nowayout = WATCHDOG_NOWAYOUT;
- 
- module_param(wdt_time, int, 0);
--MODULE_PARM_DESC(wdt_time, "Watchdog time in seconds. (default="__MODULE_STRING(WDT_DEFAULT_TIME) ")");
-+MODULE_PARM_DESC(wdt_time, "Watchdog time in seconds. (default="
-+				__MODULE_STRING(WDT_DEFAULT_TIME) ")");
- 
- #ifdef CONFIG_WATCHDOG_NOWAYOUT
  module_param(nowayout, int, 0);
 -MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started (default=" __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
 +MODULE_PARM_DESC(nowayout,
-+		"Watchdog cannot be stopped once started (default="
++	"Watchdog cannot be stopped once started (default="
 +				__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
- #endif
  
+ #define ONLY_TESTING	0
+ static int mpcore_noboot = ONLY_TESTING;
+@@ -70,14 +73,12 @@ static irqreturn_t mpcore_wdt_fire(int i
  
-@@ -46,7 +49,7 @@ static unsigned long at91wdt_busy;
- /*
-  * Disable the watchdog.
-  */
--static void inline at91_wdt_stop(void)
-+static inline void at91_wdt_stop(void)
- {
- 	at91_sys_write(AT91_ST_WDMR, AT91_ST_EXTEN);
- }
-@@ -54,16 +57,17 @@ static void inline at91_wdt_stop(void)
- /*
-  * Enable and reset the watchdog.
-  */
--static void inline at91_wdt_start(void)
-+static inline void at91_wdt_start(void)
- {
--	at91_sys_write(AT91_ST_WDMR, AT91_ST_EXTEN | AT91_ST_RSTEN | (((65536 * wdt_time) >> 8) & AT91_ST_WDV));
-+	at91_sys_write(AT91_ST_WDMR, AT91_ST_EXTEN | AT91_ST_RSTEN |
-+				(((65536 * wdt_time) >> 8) & AT91_ST_WDV));
- 	at91_sys_write(AT91_ST_CR, AT91_ST_WDRST);
- }
- 
- /*
-  * Reload the watchdog timer.  (ie, pat the watchdog)
-  */
--static void inline at91_wdt_reload(void)
-+static inline void at91_wdt_reload(void)
- {
- 	at91_sys_write(AT91_ST_CR, AT91_ST_WDRST);
- }
-@@ -89,8 +93,9 @@ static int at91_wdt_open(struct inode *i
-  */
- static int at91_wdt_close(struct inode *inode, struct file *file)
- {
-+	/* Disable the watchdog when file is closed */
- 	if (!nowayout)
--		at91_wdt_stop();	/* Disable the watchdog when file is closed */
-+		at91_wdt_stop();
- 
- 	clear_bit(0, &at91wdt_busy);
- 	return 0;
-@@ -110,7 +115,8 @@ static int at91_wdt_settimeout(int new_t
- 	if ((new_time <= 0) || (new_time > WDT_MAX_TIME))
- 		return -EINVAL;
- 
--	/* Set new watchdog time. It will be used when at91_wdt_start() is called. */
-+	/* Set new watchdog time. It will be used when
-+	   at91_wdt_start() is called. */
- 	wdt_time = new_time;
- 	return 0;
- }
-@@ -123,60 +129,52 @@ static struct watchdog_info at91_wdt_inf
- /*
-  * Handle commands from user-space.
-  */
--static int at91_wdt_ioctl(struct inode *inode, struct file *file,
--		unsigned int cmd, unsigned long arg)
-+static long at91_wdt_ioct(struct file *file,
-+					unsigned int cmd, unsigned long arg)
- {
- 	void __user *argp = (void __user *)arg;
- 	int __user *p = argp;
- 	int new_value;
- 
--	switch(cmd) {
--		case WDIOC_KEEPALIVE:
--			at91_wdt_reload();	/* pat the watchdog */
--			return 0;
+ 	/* Check it really was our interrupt */
+ 	if (readl(wdt->base + TWD_WDOG_INTSTAT)) {
+-		dev_printk(KERN_CRIT, wdt->dev, "Triggered - Reboot ignored.\n");
 -
--		case WDIOC_GETSUPPORT:
--			return copy_to_user(argp, &at91_wdt_info, sizeof(at91_wdt_info)) ? -EFAULT : 0;
++		dev_printk(KERN_CRIT, wdt->dev,
++					"Triggered - Reboot ignored.\n");
+ 		/* Clear the interrupt on the watchdog */
+ 		writel(1, wdt->base + TWD_WDOG_INTSTAT);
 -
--		case WDIOC_SETTIMEOUT:
--			if (get_user(new_value, p))
--				return -EFAULT;
--
--			if (at91_wdt_settimeout(new_value))
--				return -EINVAL;
--
--			/* Enable new time value */
-+	switch (cmd) {
-+	case WDIOC_KEEPALIVE:
-+		at91_wdt_reload();	/* pat the watchdog */
-+		return 0;
-+	case WDIOC_GETSUPPORT:
-+		return copy_to_user(argp, &at91_wdt_info,
-+				sizeof(at91_wdt_info)) ? -EFAULT : 0;
-+	case WDIOC_SETTIMEOUT:
-+		if (get_user(new_value, p))
-+			return -EFAULT;
-+		if (at91_wdt_settimeout(new_value))
-+			return -EINVAL;
-+		/* Enable new time value */
-+		at91_wdt_start();
-+		/* Return current value */
-+		return put_user(wdt_time, p);
-+	case WDIOC_GETTIMEOUT:
-+		return put_user(wdt_time, p);
-+	case WDIOC_GETSTATUS:
-+	case WDIOC_GETBOOTSTATUS:
-+		return put_user(0, p);
-+	case WDIOC_SETOPTIONS:
-+		if (get_user(new_value, p))
-+			return -EFAULT;
-+		if (new_value & WDIOS_DISABLECARD)
-+			at91_wdt_stop();
-+		if (new_value & WDIOS_ENABLECARD)
- 			at91_wdt_start();
--
--			/* Return current value */
--			return put_user(wdt_time, p);
--
--		case WDIOC_GETTIMEOUT:
--			return put_user(wdt_time, p);
--
--		case WDIOC_GETSTATUS:
--		case WDIOC_GETBOOTSTATUS:
--			return put_user(0, p);
--
--		case WDIOC_SETOPTIONS:
--			if (get_user(new_value, p))
--				return -EFAULT;
--
--			if (new_value & WDIOS_DISABLECARD)
--				at91_wdt_stop();
--			if (new_value & WDIOS_ENABLECARD)
--				at91_wdt_start();
--			return 0;
--
--		default:
--			return -ENOTTY;
-+		return 0;
-+	default:
-+		return -ENOTTY;
+ 		return IRQ_HANDLED;
  	}
+-
+ 	return IRQ_NONE;
  }
  
- /*
-  * Pat the watchdog whenever device is written to.
-  */
--static ssize_t at91_wdt_write(struct file *file, const char *data, size_t len, loff_t *ppos)
-+static ssize_t at91_wdt_write(struct file *file, const char *data,
+@@ -96,22 +97,26 @@ static void mpcore_wdt_keepalive(struct 
+ 	count = (mpcore_timer_rate / 256) * mpcore_margin;
+ 
+ 	/* Reload the counter */
++	spin_lock(&wdt_lock);
+ 	writel(count + wdt->perturb, wdt->base + TWD_WDOG_LOAD);
+-
+ 	wdt->perturb = wdt->perturb ? 0 : 1;
++	spin_unlock(&wdt_lock);
+ }
+ 
+ static void mpcore_wdt_stop(struct mpcore_wdt *wdt)
+ {
++	spin_lock(&wdt_lock);
+ 	writel(0x12345678, wdt->base + TWD_WDOG_DISABLE);
+ 	writel(0x87654321, wdt->base + TWD_WDOG_DISABLE);
+ 	writel(0x0, wdt->base + TWD_WDOG_CONTROL);
++	spin_unlock(&wdt_lock);
+ }
+ 
+ static void mpcore_wdt_start(struct mpcore_wdt *wdt)
+ {
+ 	dev_printk(KERN_INFO, wdt->dev, "enabling watchdog.\n");
+ 
++	spin_lock(&wdt_lock);
+ 	/* This loads the count register but does NOT start the count yet */
+ 	mpcore_wdt_keepalive(wdt);
+ 
+@@ -122,6 +127,7 @@ static void mpcore_wdt_start(struct mpco
+ 		/* Enable watchdog - prescale=256, watchdog mode=1, enable=1 */
+ 		writel(0x0000FF09, wdt->base + TWD_WDOG_CONTROL);
+ 	}
++	spin_unlock(&wdt_lock);
+ }
+ 
+ static int mpcore_wdt_set_heartbeat(int t)
+@@ -164,10 +170,11 @@ static int mpcore_wdt_release(struct ino
+ 	 *	Shut off the timer.
+ 	 * 	Lock it in if it's a module and we set nowayout
+ 	 */
+-	if (wdt->expect_close == 42) {
++	if (wdt->expect_close == 42)
+ 		mpcore_wdt_stop(wdt);
+-	} else {
+-		dev_printk(KERN_CRIT, wdt->dev, "unexpected close, not stopping watchdog!\n");
++	else {
++		dev_printk(KERN_CRIT, wdt->dev,
++				"unexpected close, not stopping watchdog!\n");
+ 		mpcore_wdt_keepalive(wdt);
+ 	}
+ 	clear_bit(0, &wdt->timer_alive);
+@@ -175,7 +182,8 @@ static int mpcore_wdt_release(struct ino
+ 	return 0;
+ }
+ 
+-static ssize_t mpcore_wdt_write(struct file *file, const char *data, size_t len, loff_t *ppos)
++static ssize_t mpcore_wdt_write(struct file *file, const char *data,
 +						size_t len, loff_t *ppos)
  {
- 	at91_wdt_reload();		/* pat the watchdog */
- 	return len;
-@@ -187,7 +185,7 @@ static ssize_t at91_wdt_write(struct fil
- static const struct file_operations at91wdt_fops = {
+ 	struct mpcore_wdt *wdt = file->private_data;
+ 
+@@ -210,8 +218,8 @@ static struct watchdog_info ident = {
+ 	.identity		= "MPcore Watchdog",
+ };
+ 
+-static int mpcore_wdt_ioctl(struct inode *inode, struct file *file,
+-			     unsigned int cmd, unsigned long arg)
++static long mpcore_wdt_ioctl(struct file *file, unsigned int cmd,
++							unsigned long arg)
+ {
+ 	struct mpcore_wdt *wdt = file->private_data;
+ 	int ret;
+@@ -301,7 +309,7 @@ static const struct file_operations mpco
  	.owner		= THIS_MODULE,
  	.llseek		= no_llseek,
--	.ioctl		= at91_wdt_ioctl,
-+	.unlocked_ioctl	= at91_wdt_ioctl,
- 	.open		= at91_wdt_open,
- 	.release	= at91_wdt_close,
- 	.write		= at91_wdt_write,
-@@ -211,7 +209,8 @@ static int __init at91wdt_probe(struct p
- 	if (res)
- 		return res;
+ 	.write		= mpcore_wdt_write,
+-	.ioctl		= mpcore_wdt_ioctl,
++	.unlocked_ioctl	= mpcore_wdt_ioctl,
+ 	.open		= mpcore_wdt_open,
+ 	.release	= mpcore_wdt_release,
+ };
+@@ -349,14 +357,17 @@ static int __devinit mpcore_wdt_probe(st
+ 	mpcore_wdt_miscdev.parent = &dev->dev;
+ 	ret = misc_register(&mpcore_wdt_miscdev);
+ 	if (ret) {
+-		dev_printk(KERN_ERR, _dev, "cannot register miscdev on minor=%d (err=%d)\n",
+-			   WATCHDOG_MINOR, ret);
++		dev_printk(KERN_ERR, _dev,
++			"cannot register miscdev on minor=%d (err=%d)\n",
++							WATCHDOG_MINOR, ret);
+ 		goto err_misc;
+ 	}
  
--	printk("AT91 Watchdog Timer enabled (%d seconds%s)\n", wdt_time, nowayout ? ", nowayout" : "");
-+	printk(KERN_INFO "AT91 Watchdog Timer enabled (%d seconds%s)\n",
-+				wdt_time, nowayout ? ", nowayout" : "");
- 	return 0;
- }
+-	ret = request_irq(wdt->irq, mpcore_wdt_fire, IRQF_DISABLED, "mpcore_wdt", wdt);
++	ret = request_irq(wdt->irq, mpcore_wdt_fire, IRQF_DISABLED,
++							"mpcore_wdt", wdt);
+ 	if (ret) {
+-		dev_printk(KERN_ERR, _dev, "cannot register IRQ%d for watchdog\n", wdt->irq);
++		dev_printk(KERN_ERR, _dev,
++			"cannot register IRQ%d for watchdog\n", wdt->irq);
+ 		goto err_irq;
+ 	}
  
-@@ -265,7 +264,8 @@ static struct platform_driver at91wdt_dr
+@@ -415,7 +426,7 @@ static int __init mpcore_wdt_init(void)
+ 	 */
+ 	if (mpcore_wdt_set_heartbeat(mpcore_margin)) {
+ 		mpcore_wdt_set_heartbeat(TIMER_MARGIN);
+-		printk(KERN_INFO "mpcore_margin value must be 0<mpcore_margin<65536, using %d\n",
++		printk(KERN_INFO "mpcore_margin value must be 0 < mpcore_margin < 65536, using %d\n",
+ 			TIMER_MARGIN);
+ 	}
  
- static int __init at91_wdt_init(void)
- {
--	/* Check that the heartbeat value is within range; if not reset to the default */
-+	/* Check that the heartbeat value is within range;
-+	   if not reset to the default */
- 	if (at91_wdt_settimeout(wdt_time)) {
- 		at91_wdt_settimeout(WDT_DEFAULT_TIME);
- 		pr_info("at91_wdt: wdt_time value must be 1 <= wdt_time <= 256, using %d\n", wdt_time);
 _
 
 Patches currently in -mm which might be from alan@redhat.com are
