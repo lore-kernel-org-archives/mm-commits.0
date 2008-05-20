@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + watchdog-davinci_wdt-unlocked_ioctl-and-check-locking.patch added to -mm tree
-Date: Tue, 20 May 2008 01:27:51 -0700
-Message-ID: <200805200827.m4K8RpVV013067@imap1.linux-foundation.org>
+Subject: + watchdog-mpc-watchdog-clean-up-and-locking.patch added to -mm tree
+Date: Tue, 20 May 2008 01:28:16 -0700
+Message-ID: <200805200828.m4K8SG0P013143@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43605 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45348 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759766AbYETI2J (ORCPT
+	by vger.kernel.org with ESMTP id S1760453AbYETI2f (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 May 2008 04:28:09 -0400
+	Tue, 20 May 2008 04:28:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@redhat.com
 
 
 The patch titled
-     watchdog: davinci_wdt: unlocked_ioctl and check locking
+     watchdog: mpc watchdog: clean up and locking
 has been added to the -mm tree.  Its filename is
-     watchdog-davinci_wdt-unlocked_ioctl-and-check-locking.patch
+     watchdog-mpc-watchdog-clean-up-and-locking.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: watchdog: davinci_wdt: unlocked_ioctl and check locking
+Subject: watchdog: mpc watchdog: clean up and locking
 From: Alan Cox <alan@redhat.com>
 
 
@@ -42,46 +42,271 @@ Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/davinci_wdt.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ drivers/watchdog/mpc5200_wdt.c |   20 ++++++++++------
+ drivers/watchdog/mpc83xx_wdt.c |   19 ++++++++-------
+ drivers/watchdog/mpc8xx_wdt.c  |   37 +++++++++++++++----------------
+ 3 files changed, 41 insertions(+), 35 deletions(-)
 
-diff -puN drivers/watchdog/davinci_wdt.c~watchdog-davinci_wdt-unlocked_ioctl-and-check-locking drivers/watchdog/davinci_wdt.c
---- a/drivers/watchdog/davinci_wdt.c~watchdog-davinci_wdt-unlocked_ioctl-and-check-locking
-+++ a/drivers/watchdog/davinci_wdt.c
-@@ -22,10 +22,10 @@
- #include <linux/bitops.h>
- #include <linux/platform_device.h>
+diff -puN drivers/watchdog/mpc5200_wdt.c~watchdog-mpc-watchdog-clean-up-and-locking drivers/watchdog/mpc5200_wdt.c
+--- a/drivers/watchdog/mpc5200_wdt.c~watchdog-mpc-watchdog-clean-up-and-locking
++++ a/drivers/watchdog/mpc5200_wdt.c
+@@ -4,8 +4,8 @@
+ #include <linux/watchdog.h>
+ #include <linux/io.h>
  #include <linux/spinlock.h>
+-#include <asm/of_platform.h>
+-#include <asm/uaccess.h>
++#include <linux/of_platform.h>
 +#include <linux/uaccess.h>
-+#include <linux/io.h>
+ #include <asm/mpc52xx.h>
  
- #include <asm/hardware.h>
+ 
+@@ -57,7 +57,8 @@ static int mpc5200_wdt_start(struct mpc5
+ 	/* set timeout, with maximum prescaler */
+ 	out_be32(&wdt->regs->count, 0x0 | wdt->count);
+ 	/* enable watchdog */
+-	out_be32(&wdt->regs->mode, GPT_MODE_CE | GPT_MODE_WDT | GPT_MODE_MS_TIMER);
++	out_be32(&wdt->regs->mode, GPT_MODE_CE | GPT_MODE_WDT |
++						GPT_MODE_MS_TIMER);
+ 	spin_unlock(&wdt->io_lock);
+ 
+ 	return 0;
+@@ -66,7 +67,8 @@ static int mpc5200_wdt_ping(struct mpc52
+ {
+ 	spin_lock(&wdt->io_lock);
+ 	/* writing A5 to OCPW resets the watchdog */
+-	out_be32(&wdt->regs->mode, 0xA5000000 | (0xffffff & in_be32(&wdt->regs->mode)));
++	out_be32(&wdt->regs->mode, 0xA5000000 |
++				(0xffffff & in_be32(&wdt->regs->mode)));
+ 	spin_unlock(&wdt->io_lock);
+ 	return 0;
+ }
+@@ -92,8 +94,8 @@ static struct watchdog_info mpc5200_wdt_
+ 	.options	= WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING,
+ 	.identity	= "mpc5200 watchdog on GPT0",
+ };
+-static int mpc5200_wdt_ioctl(struct inode *inode, struct file *file,
+-		unsigned int cmd, unsigned long arg)
++static long mpc5200_wdt_ioctl(struct file *file, unsigned int cmd,
++							unsigned long arg)
+ {
+ 	struct mpc5200_wdt *wdt = file->private_data;
+ 	int __user *data = (int __user *)arg;
+@@ -103,7 +105,7 @@ static int mpc5200_wdt_ioctl(struct inod
+ 	switch (cmd) {
+ 	case WDIOC_GETSUPPORT:
+ 		ret = copy_to_user(data, &mpc5200_wdt_info,
+-			sizeof(mpc5200_wdt_info));
++						sizeof(mpc5200_wdt_info));
+ 		if (ret)
+ 			ret = -EFAULT;
+ 		break;
+@@ -135,6 +137,7 @@ static int mpc5200_wdt_ioctl(struct inod
+ 	}
+ 	return ret;
+ }
++
+ static int mpc5200_wdt_open(struct inode *inode, struct file *file)
+ {
+ 	/* /dev/watchdog can only be opened once */
+@@ -167,7 +170,8 @@ static const struct file_operations mpc5
+ };
+ 
+ /* module operations */
+-static int mpc5200_wdt_probe(struct of_device *op, const struct of_device_id *match)
++static int mpc5200_wdt_probe(struct of_device *op,
++					const struct of_device_id *match)
+ {
+ 	struct mpc5200_wdt *wdt;
+ 	int err;
+diff -puN drivers/watchdog/mpc83xx_wdt.c~watchdog-mpc-watchdog-clean-up-and-locking drivers/watchdog/mpc83xx_wdt.c
+--- a/drivers/watchdog/mpc83xx_wdt.c~watchdog-mpc-watchdog-clean-up-and-locking
++++ a/drivers/watchdog/mpc83xx_wdt.c
+@@ -22,8 +22,8 @@
+ #include <linux/platform_device.h>
+ #include <linux/module.h>
+ #include <linux/watchdog.h>
+-#include <asm/io.h>
+-#include <asm/uaccess.h>
++#include <linux/io.h>
++#include <linux/uaccess.h>
+ 
+ struct mpc83xx_wdt {
+ 	__be32 res0;
+@@ -42,11 +42,13 @@ static struct mpc83xx_wdt __iomem *wd_ba
+ 
+ static u16 timeout = 0xffff;
+ module_param(timeout, ushort, 0);
+-MODULE_PARM_DESC(timeout, "Watchdog timeout in ticks. (0<timeout<65536, default=65535");
++MODULE_PARM_DESC(timeout,
++	"Watchdog timeout in ticks. (0<timeout<65536, default=65535");
+ 
+ static int reset = 1;
+ module_param(reset, bool, 0);
+-MODULE_PARM_DESC(reset, "Watchdog Interrupt/Reset Mode. 0 = interrupt, 1 = reset");
++MODULE_PARM_DESC(reset,
++	"Watchdog Interrupt/Reset Mode. 0 = interrupt, 1 = reset");
+ 
+ /*
+  * We always prescale, but if someone really doesn't want to they can set this
+@@ -105,8 +107,8 @@ static int mpc83xx_wdt_release(struct in
+ 	return 0;
+ }
+ 
+-static int mpc83xx_wdt_ioctl(struct inode *inode, struct file *file,
+-				unsigned int cmd, unsigned long arg)
++static long mpc83xx_wdt_ioctl(struct file *file, unsigned int cmd,
++							unsigned long arg)
+ {
+ 	void __user *argp = (void __user *)arg;
+ 	int __user *p = argp;
+@@ -136,7 +138,7 @@ static const struct file_operations mpc8
+ 	.owner		= THIS_MODULE,
+ 	.llseek		= no_llseek,
+ 	.write		= mpc83xx_wdt_write,
+-	.ioctl		= mpc83xx_wdt_ioctl,
++	.unlocked_ioctl	= mpc83xx_wdt_ioctl,
+ 	.open		= mpc83xx_wdt_open,
+ 	.release	= mpc83xx_wdt_release,
+ };
+@@ -161,8 +163,7 @@ static int __devinit mpc83xx_wdt_probe(s
+ 		goto err_out;
+ 	}
+ 
+-	wd_base = ioremap(r->start, sizeof (struct mpc83xx_wdt));
+-
++	wd_base = ioremap(r->start, sizeof(struct mpc83xx_wdt));
+ 	if (wd_base == NULL) {
+ 		ret = -ENOMEM;
+ 		goto err_out;
+diff -puN drivers/watchdog/mpc8xx_wdt.c~watchdog-mpc-watchdog-clean-up-and-locking drivers/watchdog/mpc8xx_wdt.c
+--- a/drivers/watchdog/mpc8xx_wdt.c~watchdog-mpc-watchdog-clean-up-and-locking
++++ a/drivers/watchdog/mpc8xx_wdt.c
+@@ -16,36 +16,35 @@
+ #include <linux/module.h>
+ #include <linux/watchdog.h>
+ #include <asm/8xx_immap.h>
 -#include <asm/uaccess.h>
 -#include <asm/io.h>
++#include <linux/uaccess.h>
++#include <linux/io.h>
+ #include <syslib/m8xx_wdt.h>
  
- #define MODULE_NAME "DAVINCI-WDT: "
+ static unsigned long wdt_opened;
+ static int wdt_status;
++static spinlock_t wdt_lock;
  
-@@ -143,9 +143,8 @@ static struct watchdog_info ident = {
- 	.identity = "DaVinci Watchdog",
- };
+ static void mpc8xx_wdt_handler_disable(void)
+ {
+ 	volatile uint __iomem *piscr;
+-	piscr = (uint *)&((immap_t*)IMAP_ADDR)->im_sit.sit_piscr;
++	piscr = (uint *)&((immap_t *)IMAP_ADDR)->im_sit.sit_piscr;
  
--static int
--davinci_wdt_ioctl(struct inode *inode, struct file *file, unsigned int cmd,
--		  unsigned long arg)
-+static long davinci_wdt_ioctl(struct file *file,
+ 	if (!m8xx_has_internal_rtc)
+ 		m8xx_wdt_stop_timer();
+ 	else
+ 		out_be32(piscr, in_be32(piscr) & ~(PISCR_PIE | PISCR_PTE));
+-
+ 	printk(KERN_NOTICE "mpc8xx_wdt: keep-alive handler deactivated\n");
+ }
+ 
+ static void mpc8xx_wdt_handler_enable(void)
+ {
+ 	volatile uint __iomem *piscr;
+-	piscr = (uint *)&((immap_t*)IMAP_ADDR)->im_sit.sit_piscr;
++	piscr = (uint *)&((immap_t *)IMAP_ADDR)->im_sit.sit_piscr;
+ 
+ 	if (!m8xx_has_internal_rtc)
+ 		m8xx_wdt_install_timer();
+ 	else
+ 		out_be32(piscr, in_be32(piscr) | PISCR_PIE | PISCR_PTE);
+-
+ 	printk(KERN_NOTICE "mpc8xx_wdt: keep-alive handler activated\n");
+ }
+ 
+@@ -53,37 +52,34 @@ static int mpc8xx_wdt_open(struct inode 
+ {
+ 	if (test_and_set_bit(0, &wdt_opened))
+ 		return -EBUSY;
+-
+ 	m8xx_wdt_reset();
+ 	mpc8xx_wdt_handler_disable();
+-
+ 	return nonseekable_open(inode, file);
+ }
+ 
+ static int mpc8xx_wdt_release(struct inode *inode, struct file *file)
+ {
+ 	m8xx_wdt_reset();
+-
+ #if !defined(CONFIG_WATCHDOG_NOWAYOUT)
+ 	mpc8xx_wdt_handler_enable();
+ #endif
+-
+ 	clear_bit(0, &wdt_opened);
+-
+ 	return 0;
+ }
+ 
+-static ssize_t mpc8xx_wdt_write(struct file *file, const char *data, size_t len,
+-				loff_t * ppos)
++static ssize_t mpc8xx_wdt_write(struct file *file, const char *data,
++						size_t len, loff_t *ppos)
+ {
+-	if (len)
++	if (len) {
++		spin_lock(&wdt_lock);
+ 		m8xx_wdt_reset();
+-
++		spin_unlock(&wdt_lock);
++	}
+ 	return len;
+ }
+ 
+-static int mpc8xx_wdt_ioctl(struct inode *inode, struct file *file,
+-			    unsigned int cmd, unsigned long arg)
++static long mpc8xx_wdt_ioctl(struct file *file,
 +					unsigned int cmd, unsigned long arg)
  {
- 	int ret = -ENOTTY;
+ 	int timeout;
+ 	static struct watchdog_info info = {
+@@ -112,15 +108,19 @@ static int mpc8xx_wdt_ioctl(struct inode
+ 		return -EOPNOTSUPP;
  
-@@ -184,7 +183,7 @@ static const struct file_operations davi
+ 	case WDIOC_KEEPALIVE:
++		spin_lock(&wdt_lock);
+ 		m8xx_wdt_reset();
+ 		wdt_status |= WDIOF_KEEPALIVEPING;
++		spin_unlock(&wdt_lock);
+ 		break;
+ 
+ 	case WDIOC_SETTIMEOUT:
+ 		return -EOPNOTSUPP;
+ 
+ 	case WDIOC_GETTIMEOUT:
++		spin_lock(&wdt_lock);
+ 		timeout = m8xx_wdt_get_timeout();
++		spin_unlock(&wdt_lock);
+ 		if (put_user(timeout, (int *)arg))
+ 			return -EFAULT;
+ 		break;
+@@ -136,7 +136,7 @@ static const struct file_operations mpc8
  	.owner = THIS_MODULE,
  	.llseek = no_llseek,
- 	.write = davinci_wdt_write,
--	.ioctl = davinci_wdt_ioctl,
-+	.unlocked_ioctl = davinci_wdt_ioctl,
- 	.open = davinci_wdt_open,
- 	.release = davinci_wdt_release,
+ 	.write = mpc8xx_wdt_write,
+-	.ioctl = mpc8xx_wdt_ioctl,
++	.unlocked_ioctl = mpc8xx_wdt_ioctl,
+ 	.open = mpc8xx_wdt_open,
+ 	.release = mpc8xx_wdt_release,
  };
+@@ -149,6 +149,7 @@ static struct miscdevice mpc8xx_wdt_misc
+ 
+ static int __init mpc8xx_wdt_init(void)
+ {
++	spin_lock_init(&wdt_lock);
+ 	return misc_register(&mpc8xx_wdt_miscdev);
+ }
+ 
 _
 
 Patches currently in -mm which might be from alan@redhat.com are
