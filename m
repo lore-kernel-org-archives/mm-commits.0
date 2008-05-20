@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + watchdog-mpcore-watchdog-unlocked_ioctl-and-bkl-work.patch added to -mm tree
-Date: Tue, 20 May 2008 01:28:18 -0700
-Message-ID: <200805200828.m4K8SISK013146@imap1.linux-foundation.org>
+Subject: + watchdog-clean-acquirewdt-and-check-for-bkl-dependancies.patch added to -mm tree
+Date: Tue, 20 May 2008 01:27:39 -0700
+Message-ID: <200805200827.m4K8RdRu013038@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42106 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37307 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760874AbYETI2g (ORCPT
+	by vger.kernel.org with ESMTP id S1757795AbYETI2B (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 May 2008 04:28:36 -0400
+	Tue, 20 May 2008 04:28:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@redhat.com
 
 
 The patch titled
-     watchdog: mpcore watchdog: unlocked_ioctl and BKl work
+     watchdog: clean acquirewdt and check for BKL dependancies
 has been added to the -mm tree.  Its filename is
-     watchdog-mpcore-watchdog-unlocked_ioctl-and-bkl-work.patch
+     watchdog-clean-acquirewdt-and-check-for-bkl-dependancies.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,184 +34,281 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: watchdog: mpcore watchdog: unlocked_ioctl and BKl work
+Subject: watchdog: clean acquirewdt and check for BKL dependancies
 From: Alan Cox <alan@redhat.com>
 
+This brings the file into line with coding style.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/mpcore_wdt.c |   53 +++++++++++++++++++-------------
- 1 file changed, 32 insertions(+), 21 deletions(-)
+ drivers/watchdog/acquirewdt.c |  119 +++++++++++++++-----------------
+ 1 file changed, 58 insertions(+), 61 deletions(-)
 
-diff -puN drivers/watchdog/mpcore_wdt.c~watchdog-mpcore-watchdog-unlocked_ioctl-and-bkl-work drivers/watchdog/mpcore_wdt.c
---- a/drivers/watchdog/mpcore_wdt.c~watchdog-mpcore-watchdog-unlocked_ioctl-and-bkl-work
-+++ a/drivers/watchdog/mpcore_wdt.c
-@@ -29,9 +29,9 @@
- #include <linux/init.h>
- #include <linux/interrupt.h>
- #include <linux/platform_device.h>
-+#include <linux/uaccess.h>
+diff -puN drivers/watchdog/acquirewdt.c~watchdog-clean-acquirewdt-and-check-for-bkl-dependancies drivers/watchdog/acquirewdt.c
+--- a/drivers/watchdog/acquirewdt.c~watchdog-clean-acquirewdt-and-check-for-bkl-dependancies
++++ a/drivers/watchdog/acquirewdt.c
+@@ -58,39 +58,46 @@
+ #include <linux/types.h>		/* For standard types (like size_t) */
+ #include <linux/errno.h>		/* For the -ENODEV/... values */
+ #include <linux/kernel.h>		/* For printk/panic/... */
+-#include <linux/miscdevice.h>		/* For MODULE_ALIAS_MISCDEV(WATCHDOG_MINOR) */
++#include <linux/miscdevice.h>		/* For MODULE_ALIAS_MISCDEV
++							(WATCHDOG_MINOR) */
+ #include <linux/watchdog.h>		/* For the watchdog specific items */
+ #include <linux/fs.h>			/* For file operations */
+ #include <linux/ioport.h>		/* For io-port access */
+ #include <linux/platform_device.h>	/* For platform_driver framework */
+ #include <linux/init.h>			/* For __init/__exit/... */
  
- #include <asm/hardware/arm_twd.h>
--#include <asm/uaccess.h>
+-#include <asm/uaccess.h>		/* For copy_to_user/put_user/... */
+-#include <asm/io.h>			/* For inb/outb/... */
++#include <linux/uaccess.h>		/* For copy_to_user/put_user/... */
++#include <linux/io.h>			/* For inb/outb/... */
  
- struct mpcore_wdt {
- 	unsigned long	timer_alive;
-@@ -43,17 +43,20 @@ struct mpcore_wdt {
- };
+ /* Module information */
+ #define DRV_NAME "acquirewdt"
+ #define PFX DRV_NAME ": "
+ #define WATCHDOG_NAME "Acquire WDT"
+-#define WATCHDOG_HEARTBEAT 0	/* There is no way to see what the correct time-out period is */
++/* There is no way to see what the correct time-out period is */
++#define WATCHDOG_HEARTBEAT 0
  
- static struct platform_device *mpcore_wdt_dev;
--
- extern unsigned int mpcore_timer_rate;
+ /* internal variables */
+-static struct platform_device *acq_platform_device;	/* the watchdog platform device */
++/* the watchdog platform device */
++static struct platform_device *acq_platform_device;
+ static unsigned long acq_is_open;
+ static char expect_close;
  
- #define TIMER_MARGIN	60
- static int mpcore_margin = TIMER_MARGIN;
- module_param(mpcore_margin, int, 0);
--MODULE_PARM_DESC(mpcore_margin, "MPcore timer margin in seconds. (0<mpcore_margin<65536, default=" __MODULE_STRING(TIMER_MARGIN) ")");
-+MODULE_PARM_DESC(mpcore_margin,
-+	"MPcore timer margin in seconds. (0 < mpcore_margin < 65536, default="
-+				__MODULE_STRING(TIMER_MARGIN) ")");
+ /* module parameters */
+-static int wdt_stop = 0x43;	/* You must set this - there is no sane way to probe for this board. */
++/* You must set this - there is no sane way to probe for this board. */
++static int wdt_stop = 0x43;
+ module_param(wdt_stop, int, 0);
+ MODULE_PARM_DESC(wdt_stop, "Acquire WDT 'stop' io port (default 0x43)");
+ 
+-static int wdt_start = 0x443;	/* You must set this - there is no sane way to probe for this board. */
++/* You must set this - there is no sane way to probe for this board. */
++static int wdt_start = 0x443;
+ module_param(wdt_start, int, 0);
+ MODULE_PARM_DESC(wdt_start, "Acquire WDT 'start' io port (default 0x443)");
  
  static int nowayout = WATCHDOG_NOWAYOUT;
  module_param(nowayout, int, 0);
 -MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started (default=" __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
 +MODULE_PARM_DESC(nowayout,
 +	"Watchdog cannot be stopped once started (default="
-+				__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
++	__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
  
- #define ONLY_TESTING	0
- static int mpcore_noboot = ONLY_TESTING;
-@@ -70,14 +73,12 @@ static irqreturn_t mpcore_wdt_fire(int i
+ /*
+  *	Watchdog Operations
+@@ -112,18 +119,18 @@ static void acq_stop(void)
+  *	/dev/watchdog handling
+  */
  
- 	/* Check it really was our interrupt */
- 	if (readl(wdt->base + TWD_WDOG_INTSTAT)) {
--		dev_printk(KERN_CRIT, wdt->dev, "Triggered - Reboot ignored.\n");
+-static ssize_t acq_write(struct file *file, const char __user *buf, size_t count, loff_t *ppos)
++static ssize_t acq_write(struct file *file, const char __user *buf,
++						size_t count, loff_t *ppos)
+ {
+ 	/* See if we got the magic character 'V' and reload the timer */
+-	if(count) {
++	if (count) {
+ 		if (!nowayout) {
+ 			size_t i;
 -
-+		dev_printk(KERN_CRIT, wdt->dev,
-+					"Triggered - Reboot ignored.\n");
- 		/* Clear the interrupt on the watchdog */
- 		writel(1, wdt->base + TWD_WDOG_INTSTAT);
+ 			/* note: just in case someone wrote the magic character
+ 			 * five months ago... */
+ 			expect_close = 0;
 -
- 		return IRQ_HANDLED;
+-			/* scan to see whether or not we got the magic character */
++			/* scan to see whether or not we got the
++			   magic character */
+ 			for (i = 0; i != count; i++) {
+ 				char c;
+ 				if (get_user(c, buf + i))
+@@ -132,64 +139,55 @@ static ssize_t acq_write(struct file *fi
+ 					expect_close = 42;
+ 			}
+ 		}
+-
+-		/* Well, anyhow someone wrote to us, we should return that favour */
++		/* Well, anyhow someone wrote to us, we should
++				return that favour */
+ 		acq_keepalive();
+ 	}
+ 	return count;
+ }
+ 
+-static int acq_ioctl(struct inode *inode, struct file *file, unsigned int cmd,
+-	unsigned long arg)
++static long acq_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ {
+ 	int options, retval = -EINVAL;
+ 	void __user *argp = (void __user *)arg;
+ 	int __user *p = argp;
+-	static struct watchdog_info ident =
+-	{
++	static struct watchdog_info ident = {
+ 		.options = WDIOF_KEEPALIVEPING | WDIOF_MAGICCLOSE,
+ 		.firmware_version = 1,
+ 		.identity = WATCHDOG_NAME,
+ 	};
+ 
+-	switch(cmd)
+-	{
++	switch (cmd) {
+ 	case WDIOC_GETSUPPORT:
+-	  return copy_to_user(argp, &ident, sizeof(ident)) ? -EFAULT : 0;
++		return copy_to_user(argp, &ident, sizeof(ident)) ? -EFAULT : 0;
+ 
+ 	case WDIOC_GETSTATUS:
+ 	case WDIOC_GETBOOTSTATUS:
+-	  return put_user(0, p);
++		return put_user(0, p);
+ 
+ 	case WDIOC_KEEPALIVE:
+-	  acq_keepalive();
+-	  return 0;
++		acq_keepalive();
++		return 0;
+ 
+ 	case WDIOC_GETTIMEOUT:
+ 	  return put_user(WATCHDOG_HEARTBEAT, p);
+ 
+ 	case WDIOC_SETOPTIONS:
+ 	{
+-	    if (get_user(options, p))
+-	      return -EFAULT;
+-
+-	    if (options & WDIOS_DISABLECARD)
+-	    {
+-	      acq_stop();
+-	      retval = 0;
+-	    }
+-
+-	    if (options & WDIOS_ENABLECARD)
+-	    {
+-	      acq_keepalive();
+-	      retval = 0;
+-	    }
+-
+-	    return retval;
++		if (get_user(options, p))
++			return -EFAULT;
++		if (options & WDIOS_DISABLECARD) {
++			acq_stop();
++			retval = 0;
++		}
++		if (options & WDIOS_ENABLECARD) {
++			acq_keepalive();
++			retval = 0;
++		}
++		return retval;
  	}
 -
- 	return IRQ_NONE;
- }
- 
-@@ -96,22 +97,26 @@ static void mpcore_wdt_keepalive(struct 
- 	count = (mpcore_timer_rate / 256) * mpcore_margin;
- 
- 	/* Reload the counter */
-+	spin_lock(&wdt_lock);
- 	writel(count + wdt->perturb, wdt->base + TWD_WDOG_LOAD);
--
- 	wdt->perturb = wdt->perturb ? 0 : 1;
-+	spin_unlock(&wdt_lock);
- }
- 
- static void mpcore_wdt_stop(struct mpcore_wdt *wdt)
- {
-+	spin_lock(&wdt_lock);
- 	writel(0x12345678, wdt->base + TWD_WDOG_DISABLE);
- 	writel(0x87654321, wdt->base + TWD_WDOG_DISABLE);
- 	writel(0x0, wdt->base + TWD_WDOG_CONTROL);
-+	spin_unlock(&wdt_lock);
- }
- 
- static void mpcore_wdt_start(struct mpcore_wdt *wdt)
- {
- 	dev_printk(KERN_INFO, wdt->dev, "enabling watchdog.\n");
- 
-+	spin_lock(&wdt_lock);
- 	/* This loads the count register but does NOT start the count yet */
- 	mpcore_wdt_keepalive(wdt);
- 
-@@ -122,6 +127,7 @@ static void mpcore_wdt_start(struct mpco
- 		/* Enable watchdog - prescale=256, watchdog mode=1, enable=1 */
- 		writel(0x0000FF09, wdt->base + TWD_WDOG_CONTROL);
+ 	default:
+-	  return -ENOTTY;
++		return -ENOTTY;
  	}
-+	spin_unlock(&wdt_lock);
  }
  
- static int mpcore_wdt_set_heartbeat(int t)
-@@ -164,10 +170,11 @@ static int mpcore_wdt_release(struct ino
- 	 *	Shut off the timer.
- 	 * 	Lock it in if it's a module and we set nowayout
- 	 */
--	if (wdt->expect_close == 42) {
-+	if (wdt->expect_close == 42)
- 		mpcore_wdt_stop(wdt);
--	} else {
--		dev_printk(KERN_CRIT, wdt->dev, "unexpected close, not stopping watchdog!\n");
-+	else {
-+		dev_printk(KERN_CRIT, wdt->dev,
-+				"unexpected close, not stopping watchdog!\n");
- 		mpcore_wdt_keepalive(wdt);
+@@ -211,7 +209,8 @@ static int acq_close(struct inode *inode
+ 	if (expect_close == 42) {
+ 		acq_stop();
+ 	} else {
+-		printk(KERN_CRIT PFX "Unexpected close, not stopping watchdog!\n");
++		printk(KERN_CRIT PFX
++			"Unexpected close, not stopping watchdog!\n");
+ 		acq_keepalive();
  	}
- 	clear_bit(0, &wdt->timer_alive);
-@@ -175,7 +182,8 @@ static int mpcore_wdt_release(struct ino
- 	return 0;
- }
- 
--static ssize_t mpcore_wdt_write(struct file *file, const char *data, size_t len, loff_t *ppos)
-+static ssize_t mpcore_wdt_write(struct file *file, const char *data,
-+						size_t len, loff_t *ppos)
- {
- 	struct mpcore_wdt *wdt = file->private_data;
- 
-@@ -210,8 +218,8 @@ static struct watchdog_info ident = {
- 	.identity		= "MPcore Watchdog",
- };
- 
--static int mpcore_wdt_ioctl(struct inode *inode, struct file *file,
--			     unsigned int cmd, unsigned long arg)
-+static long mpcore_wdt_ioctl(struct file *file, unsigned int cmd,
-+							unsigned long arg)
- {
- 	struct mpcore_wdt *wdt = file->private_data;
- 	int ret;
-@@ -301,7 +309,7 @@ static const struct file_operations mpco
+ 	clear_bit(0, &acq_is_open);
+@@ -227,7 +226,7 @@ static const struct file_operations acq_
  	.owner		= THIS_MODULE,
  	.llseek		= no_llseek,
- 	.write		= mpcore_wdt_write,
--	.ioctl		= mpcore_wdt_ioctl,
-+	.unlocked_ioctl	= mpcore_wdt_ioctl,
- 	.open		= mpcore_wdt_open,
- 	.release	= mpcore_wdt_release,
+ 	.write		= acq_write,
+-	.ioctl		= acq_ioctl,
++	.unlocked_ioctl	= acq_ioctl,
+ 	.open		= acq_open,
+ 	.release	= acq_close,
  };
-@@ -349,14 +357,17 @@ static int __devinit mpcore_wdt_probe(st
- 	mpcore_wdt_miscdev.parent = &dev->dev;
- 	ret = misc_register(&mpcore_wdt_miscdev);
- 	if (ret) {
--		dev_printk(KERN_ERR, _dev, "cannot register miscdev on minor=%d (err=%d)\n",
--			   WATCHDOG_MINOR, ret);
-+		dev_printk(KERN_ERR, _dev,
+@@ -248,32 +247,29 @@ static int __devinit acq_probe(struct pl
+ 
+ 	if (wdt_stop != wdt_start) {
+ 		if (!request_region(wdt_stop, 1, WATCHDOG_NAME)) {
+-			printk (KERN_ERR PFX "I/O address 0x%04x already in use\n",
+-				wdt_stop);
++			printk(KERN_ERR PFX
++			    "I/O address 0x%04x already in use\n", wdt_stop);
+ 			ret = -EIO;
+ 			goto out;
+ 		}
+ 	}
+ 
+ 	if (!request_region(wdt_start, 1, WATCHDOG_NAME)) {
+-		printk (KERN_ERR PFX "I/O address 0x%04x already in use\n",
++		printk(KERN_ERR PFX "I/O address 0x%04x already in use\n",
+ 			wdt_start);
+ 		ret = -EIO;
+ 		goto unreg_stop;
+ 	}
+-
+ 	ret = misc_register(&acq_miscdev);
+ 	if (ret != 0) {
+-		printk (KERN_ERR PFX "cannot register miscdev on minor=%d (err=%d)\n",
+-			WATCHDOG_MINOR, ret);
++		printk(KERN_ERR PFX
 +			"cannot register miscdev on minor=%d (err=%d)\n",
 +							WATCHDOG_MINOR, ret);
- 		goto err_misc;
+ 		goto unreg_regions;
  	}
+-
+-	printk (KERN_INFO PFX "initialized. (nowayout=%d)\n",
+-		nowayout);
++	printk(KERN_INFO PFX "initialized. (nowayout=%d)\n", nowayout);
  
--	ret = request_irq(wdt->irq, mpcore_wdt_fire, IRQF_DISABLED, "mpcore_wdt", wdt);
-+	ret = request_irq(wdt->irq, mpcore_wdt_fire, IRQF_DISABLED,
-+							"mpcore_wdt", wdt);
- 	if (ret) {
--		dev_printk(KERN_ERR, _dev, "cannot register IRQ%d for watchdog\n", wdt->irq);
-+		dev_printk(KERN_ERR, _dev,
-+			"cannot register IRQ%d for watchdog\n", wdt->irq);
- 		goto err_irq;
+ 	return 0;
+-
+ unreg_regions:
+ 	release_region(wdt_start, 1);
+ unreg_stop:
+@@ -286,9 +282,9 @@ out:
+ static int __devexit acq_remove(struct platform_device *dev)
+ {
+ 	misc_deregister(&acq_miscdev);
+-	release_region(wdt_start,1);
+-	if(wdt_stop != wdt_start)
+-		release_region(wdt_stop,1);
++	release_region(wdt_start, 1);
++	if (wdt_stop != wdt_start)
++		release_region(wdt_stop, 1);
+ 
+ 	return 0;
+ }
+@@ -313,18 +309,19 @@ static int __init acq_init(void)
+ {
+ 	int err;
+ 
+-	printk(KERN_INFO "WDT driver for Acquire single board computer initialising.\n");
++	printk(KERN_INFO
++	      "WDT driver for Acquire single board computer initialising.\n");
+ 
+ 	err = platform_driver_register(&acquirewdt_driver);
+ 	if (err)
+ 		return err;
+ 
+-	acq_platform_device = platform_device_register_simple(DRV_NAME, -1, NULL, 0);
++	acq_platform_device = platform_device_register_simple(DRV_NAME,
++								-1, NULL, 0);
+ 	if (IS_ERR(acq_platform_device)) {
+ 		err = PTR_ERR(acq_platform_device);
+ 		goto unreg_platform_driver;
  	}
+-
+ 	return 0;
  
-@@ -415,7 +426,7 @@ static int __init mpcore_wdt_init(void)
- 	 */
- 	if (mpcore_wdt_set_heartbeat(mpcore_margin)) {
- 		mpcore_wdt_set_heartbeat(TIMER_MARGIN);
--		printk(KERN_INFO "mpcore_margin value must be 0<mpcore_margin<65536, using %d\n",
-+		printk(KERN_INFO "mpcore_margin value must be 0 < mpcore_margin < 65536, using %d\n",
- 			TIMER_MARGIN);
- 	}
- 
+ unreg_platform_driver:
 _
 
 Patches currently in -mm which might be from alan@redhat.com are
