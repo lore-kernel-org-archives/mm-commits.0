@@ -1,164 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: + build-kernel-profileo-only-when-requested-cleanups.patch added to -mm tree
-Date: Tue, 20 May 2008 03:35:39 -0700
-Message-ID: <200805201035.m4KAZdIh018299@imap1.linux-foundation.org>
+Subject: - put_pid-make-sure-we-dont-free-the-live-pid.patch removed from -mm tree
+Date: Tue, 20 May 2008 03:36:06 -0700
+Message-ID: <200805201036.m4KAa708018314@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35374 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43714 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752852AbYETKgJ (ORCPT
+	by vger.kernel.org with ESMTP id S1753570AbYETKmb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 May 2008 06:36:09 -0400
+	Tue, 20 May 2008 06:42:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, bunk@kernel.org, mingo@elte.hu
+To: oleg@tv-sign.ru, alan@lxorguk.ukuu.org.uk, ebiederm@xmission.com, kamalesh@linux.vnet.ibm.com, roland@redhat.com, xemul@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     build-kernel-profileo-only-when-requested-cleanups
-has been added to the -mm tree.  Its filename is
-     build-kernel-profileo-only-when-requested-cleanups.patch
+     put_pid: make sure we don't free the live pid
+has been removed from the -mm tree.  Its filename was
+     put_pid-make-sure-we-dont-free-the-live-pid.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was withdrawn
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: build-kernel-profileo-only-when-requested-cleanups
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: put_pid: make sure we don't free the live pid
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Cc: Adrian Bunk <bunk@kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>
+Add the temporary (for -mm only) debugging code to catch the unbalanced
+put_pid()'s.  At least those which can free the "live" pid.
+
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Valdis.Kletnieks@vt.edu
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/profile.h |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ kernel/pid.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN include/linux/profile.h~build-kernel-profileo-only-when-requested-cleanups include/linux/profile.h
---- a/include/linux/profile.h~build-kernel-profileo-only-when-requested-cleanups
-+++ a/include/linux/profile.h
-@@ -18,9 +18,11 @@ struct pt_regs;
- struct notifier_block;
- 
- #if defined(CONFIG_PROFILING) && defined(CONFIG_PROC_FS)
--void create_prof_cpu_mask(struct proc_dir_entry *);
-+void create_prof_cpu_mask(struct proc_dir_entry *de);
- #else
--#define create_prof_cpu_mask(x)			do { (void)(x); } while (0)
-+static inline void create_prof_cpu_mask(struct proc_dir_entry *de)
-+{
-+}
- #endif
- 
- enum profile_type {
+diff -puN kernel/pid.c~put_pid-make-sure-we-dont-free-the-live-pid kernel/pid.c
+--- a/kernel/pid.c~put_pid-make-sure-we-dont-free-the-live-pid
++++ a/kernel/pid.c
+@@ -210,6 +210,10 @@ void put_pid(struct pid *pid)
+ 	ns = pid->numbers[pid->level].ns;
+ 	if ((atomic_read(&pid->count) == 1) ||
+ 	     atomic_dec_and_test(&pid->count)) {
++		int type = PIDTYPE_MAX;
++		while (--type >= 0)
++			if (WARN_ON(!hlist_empty(&pid->tasks[type])))
++				return;
+ 		kmem_cache_free(ns->pid_cachep, pid);
+ 		put_pid_ns(ns);
+ 	}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
-linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-fix-kobject-fix-kobject_rename-and-config_sysfs.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-video-balcklist-fujitsu-lifebook-s6410.patch
-git-x86-fixup.patch
-arch-x86-mm-patc-use-boot_cpu_has.patch
-x86-setup_force_cpu_cap-dont-do-clear_bitnon-unsigned-long.patch
-lguest-use-cpu-capability-accessors.patch
-x86-set_restore_sigmask-avoid-bitop-on-a-u32.patch
-x86-bitops-take-an-unsigned-long.patch
-arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
-audit_send_reply-fix-error-path-memory-leak.patch
-zoran-use-correct-type-for-cpu-flags.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-drivers-infiniband-hw-mlx4-qpc-fix-uninitialised-var-warning.patch
-git-input.patch
-git-jg-misc-git-rejects.patch
-drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
-fsldma-the-mpc8377mds-board-device-tree-node-for-fsldma-driver.patch
-mmc-sd-host-driver-for-ricoh-bay1controllers.patch
-git-ubifs.patch
-sundance-set-carrier-status-on-link-change-events.patch
-dm9000-use-delayed-work-to-update-mii-phy-state-fix.patch
-pcnet32-fix-warning.patch
-drivers-net-tokenring-3c359c-squish-a-warning.patch
-drivers-net-tokenring-olympicc-fix-warning.patch
-sfc-correct-and-expand-some-comments.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-battery.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-pci-hotplug-introduce-pci_slot.patch
-pci-hotplug-acpi-pci-slot-detection-driver.patch
-drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
-s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-git-logfs-fixup.patch
-drivers-uwb-nehc-processor-flags-have-type-unsigned-long.patch
-drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
-uwb-fix-scscanf-warning.patch
-drivers-uwb-wlp-sysfsc-dead-code.patch
-drivers-uwb-i1480-dfu-macc-fix-min-warning.patch
-drivers-uwb-whcic-needs-dma-mappingh.patch
-git-vfs-cleanups-reject.patch
-git-watchdog.patch
-git-watchdog-git-rejects.patch
-watchdog-fix-booke_wdtc-on-mpc85xx-smp-system.patch
-wireless-airo-waitbusy-wont-delay-checkpatch-fixes.patch
-git-xtensa.patch
-ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware-ia64-warnings.patch
-pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes.patch
-pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-verify-the-page-links-and-memory-model.patch
-mspec-convert-nopfn-to-fault-fix.patch
-page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
-kill-generic_file_direct_io-checkpatch-fixes.patch
-spufs-use-the-new-vm_ops-access-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-split-the-typecheck-macros-out-of-include-linux-kernelh.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
-remove-apparently-unused-fd1772h-header-file.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
-build-kernel-profileo-only-when-requested-cleanups.patch
-rename-warn-to-warning-to-clear-the-namespace-fix.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
-flag-parameters-paccept-fix.patch
-flag-parameters-paccept-sys_ni.patch
-flag-parameters-anon_inode_getfd-extension-fix.patch
-flag-parameters-signalfd-fix.patch
-flag-parameters-eventfd-fix.patch
-flag-parameters-inotify_init-fix.patch
-flag-parameters-check-magic-constants-alpha-hack.patch
-drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
-reiserfs-convert-j_flush_sem-to-mutex-fix.patch
-reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-reiser4.patch
-reiser4-semaphore-fix.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+signals-fix-sigqueue_free-vs-__exit_signal-race.patch
+uml-activate_mm-remove-the-dead-pf_borrowed_mm-check.patch
+posix-timers-timer_delete-remove-the-bogus-it_process-=-null-check.patch
+posix-timers-release_posix_timer-kill-the-bogus-put_task_struct-it_process.patch
+signals-sigqueue_free-dont-free-sigqueue-if-it-is-queued.patch
+signals-introduce-sigqueue_cancelled.patch
+posix-timers-use-sigqueue_cancelled-when-the-timer-is-destroyed.patch
+signals-collect_signal-remove-the-unneeded-sigismember-check.patch
+signals-collect_signal-simplify-the-still_pending-logic.patch
+put_pid-make-sure-we-dont-free-the-live-pid.patch
 
