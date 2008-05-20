@@ -1,68 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - audit_send_reply-fix-error-path-memory-leak.patch removed from -mm tree
-Date: Tue, 20 May 2008 14:14:02 -0700
-Message-ID: <200805202114.m4KLE20w011430@imap1.linux-foundation.org>
+Subject: - arch-x86-mm-patc-use-boot_cpu_has.patch removed from -mm tree
+Date: Tue, 20 May 2008 14:13:51 -0700
+Message-ID: <200805202113.m4KLDpcf011407@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52720 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37451 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760638AbYETVOm (ORCPT
+	by vger.kernel.org with ESMTP id S1760983AbYETVOu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 May 2008 17:14:42 -0400
+	Tue, 20 May 2008 17:14:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, danielm77@spray.se, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, andrea@qumranet.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     audit_send_reply(): fix error-path memory leak
+     arch/x86/mm/pat.c: use boot_cpu_has()
 has been removed from the -mm tree.  Its filename was
-     audit_send_reply-fix-error-path-memory-leak.patch
+     arch-x86-mm-patc-use-boot_cpu_has.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: audit_send_reply(): fix error-path memory leak
+Subject: arch/x86/mm/pat.c: use boot_cpu_has()
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=10663
+arch/x86/mm/pat.c: In function 'phys_mem_access_prot_allowed':
+arch/x86/mm/pat.c:526: warning: passing argument 2 of 'constant_test_bit' from incompatible pointer type
+arch/x86/mm/pat.c:526: warning: passing argument 2 of 'variable_test_bit' from incompatible pointer type
+arch/x86/mm/pat.c:527: warning: passing argument 2 of 'constant_test_bit' from incompatible pointer type
+arch/x86/mm/pat.c:527: warning: passing argument 2 of 'variable_test_bit' from incompatible pointer type
+arch/x86/mm/pat.c:528: warning: passing argument 2 of 'constant_test_bit' from incompatible pointer type
+arch/x86/mm/pat.c:528: warning: passing argument 2 of 'variable_test_bit' from incompatible pointer type
+arch/x86/mm/pat.c:529: warning: passing argument 2 of 'constant_test_bit' from incompatible pointer type
+arch/x86/mm/pat.c:529: warning: passing argument 2 of 'variable_test_bit' from incompatible pointer type
 
-Reporter: Daniel Marjamki <danielm77@spray.se>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Don't open-code test_bit() on a __u32
+
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Andrea Arcangeli <andrea@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/audit.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ arch/x86/mm/pat.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN kernel/audit.c~audit_send_reply-fix-error-path-memory-leak kernel/audit.c
---- a/kernel/audit.c~audit_send_reply-fix-error-path-memory-leak
-+++ a/kernel/audit.c
-@@ -572,16 +572,17 @@ void audit_send_reply(int pid, int seq, 
- 
- 	skb = audit_make_reply(pid, seq, type, done, multi, payload, size);
- 	if (!skb)
--		return;
-+		goto out;
- 
- 	reply->pid = pid;
- 	reply->skb = skb;
- 
- 	tsk = kthread_run(audit_send_reply_thread, reply, "audit_send_reply");
--	if (IS_ERR(tsk)) {
--		kfree(reply);
--		kfree_skb(skb);
--	}
-+	if (!IS_ERR(tsk))
-+		return;
-+	kfree_skb(skb);
-+out:
-+	kfree(reply);
- }
- 
- /*
+diff -puN arch/x86/mm/pat.c~arch-x86-mm-patc-use-boot_cpu_has arch/x86/mm/pat.c
+--- a/arch/x86/mm/pat.c~arch-x86-mm-patc-use-boot_cpu_has
++++ a/arch/x86/mm/pat.c
+@@ -523,10 +523,10 @@ int phys_mem_access_prot_allowed(struct 
+ 	 * we maintain the tradition of paranoia in this code.
+ 	 */
+ 	if (!pat_wc_enabled &&
+-	    ! ( test_bit(X86_FEATURE_MTRR, boot_cpu_data.x86_capability) ||
+-		test_bit(X86_FEATURE_K6_MTRR, boot_cpu_data.x86_capability) ||
+-		test_bit(X86_FEATURE_CYRIX_ARR, boot_cpu_data.x86_capability) ||
+-		test_bit(X86_FEATURE_CENTAUR_MCR, boot_cpu_data.x86_capability)) &&
++	    ! ( boot_cpu_has(X86_FEATURE_MTRR) ||
++		boot_cpu_has(X86_FEATURE_K6_MTRR) ||
++		boot_cpu_has(X86_FEATURE_CYRIX_ARR) ||
++		boot_cpu_has(X86_FEATURE_CENTAUR_MCR)) &&
+ 	   (pfn << PAGE_SHIFT) >= __pa(high_memory)) {
+ 		flags = _PAGE_CACHE_UC;
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
