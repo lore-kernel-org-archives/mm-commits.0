@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + ide-use-the-dma-safe-check-for-req_type_ata_pc.patch added to -mm tree
-Date: Tue, 20 May 2008 02:33:36 -0700
-Message-ID: <200805200933.m4K9XagQ015793@imap1.linux-foundation.org>
+Subject: + block-use-arch_kmalloc_minalign-as-the-default-dma-pad-mask.patch added to -mm tree
+Date: Tue, 20 May 2008 02:34:14 -0700
+Message-ID: <200805200934.m4K9YErC015817@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54384 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48603 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762514AbYETJea (ORCPT
+	by vger.kernel.org with ESMTP id S1761924AbYETJez (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 May 2008 05:34:30 -0400
+	Tue, 20 May 2008 05:34:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: fujita.tomonori@lab.ntt.co.jp, bzolnier@gmail.com, htejun@gmail.com, jens.ax
 
 
 The patch titled
-     ide: use the dma safe check for REQ_TYPE_ATA_PC
+     block: use ARCH_KMALLOC_MINALIGN as the default dma pad mask
 has been added to the -mm tree.  Its filename is
-     ide-use-the-dma-safe-check-for-req_type_ata_pc.patch
+     block-use-arch_kmalloc_minalign-as-the-default-dma-pad-mask.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,14 +34,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ide: use the dma safe check for REQ_TYPE_ATA_PC
+Subject: block: use ARCH_KMALLOC_MINALIGN as the default dma pad mask
 From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 
-This uses the dma safe check for REQ_TYPE_ATA_PC.  The dma safe check is
-used for only sg requests but it should be used for other non fs commands.
+The goal of this patchset is reverting the commit
+22a9189fd073db3d03a4cf8b8c098aa207602de1 (cdrom: use kmalloced buffers
+instead of buffers on stack).
 
-This uses blk_queue_update_dma_pad to make the intention clear though ide
-don't use the blk APIs so it doesn't change anything.
+http://lkml.org/lkml/2008/4/21/634
+
+The commit is using kmalloced buffers for cdrom packet commands to avoid
+stack corruption on non coherent platforms.  But allocating a small buffer
+like this is not nice (unnecessary complicity):
+
++	buffer = kmalloc(8, GFP_KERNEL);
+
+I tried to remove generic_packet() and convert cdrom users to use the
+block queue like pkt_generic_packet (as Jens suggested in the thread if I
+correctly understand), but it turned out that it needs tricky surgery
+(like handling ssleep and retries for packet commands in ide).
+
+Then I found that we can easily handle packet commands on non coherent
+platforms.  The diffstat is pretty small except for the revert.  All this
+patchset does is just setting the dma_pad_mask to ARCH_KMALLOC_MINALIGN.
+
+Only scsi and ide-cd do DMA generic_packet.  In the case of scsi,
+sr_packet uses blk_rq_map_kern (the commit
+68154e90c9d1492d570671ae181d9a8f8530da55) post 2.6.25.  So if we set the
+dma padding on non coherent platforms, sr_packet uses allocated pages
+properly.
+
+In the case of IDE, ide-cd has a mechanism to handle alignment and
+padding for SG_IO. So we can easily exploit it for packet commands.
+
+If some architectures can't do DMA on stack, we also need to a new
+queue_flag like QUEUE_FLAG_NO_DMA_ON_STACK in addtion of this patchset.
+
+
+
+This patch:
+
+This sets the default dma pad mask to ARCH_KMALLOC_MINALIGN in
+blk_queue_make_request().  It affects only non-coherent platforms.
 
 Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 Cc: Tejun Heo <htejun@gmail.com>
@@ -51,50 +85,32 @@ Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ide/ide-cd.c |   17 ++++++++++++-----
- 1 file changed, 12 insertions(+), 5 deletions(-)
+ block/blk-settings.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN drivers/ide/ide-cd.c~ide-use-the-dma-safe-check-for-req_type_ata_pc drivers/ide/ide-cd.c
---- a/drivers/ide/ide-cd.c~ide-use-the-dma-safe-check-for-req_type_ata_pc
-+++ a/drivers/ide/ide-cd.c
-@@ -1191,10 +1191,15 @@ static ide_startstop_t cdrom_do_block_pc
- 	info->dma = 0;
- 
- 	/* sg request */
--	if (rq->bio) {
--		int mask = drive->queue->dma_alignment;
--		unsigned long addr =
--			(unsigned long)page_address(bio_page(rq->bio));
-+	if (rq->bio || ((rq->cmd_type == REQ_TYPE_ATA_PC) && rq->data_len)) {
-+		struct request_queue *q = drive->queue;
-+		unsigned int alignment;
-+		unsigned long addr;
+diff -puN block/blk-settings.c~block-use-arch_kmalloc_minalign-as-the-default-dma-pad-mask block/blk-settings.c
+--- a/block/blk-settings.c~block-use-arch_kmalloc_minalign-as-the-default-dma-pad-mask
++++ a/block/blk-settings.c
+@@ -84,6 +84,11 @@ EXPORT_SYMBOL(blk_queue_softirq_done);
+  **/
+ void blk_queue_make_request(struct request_queue *q, make_request_fn *mfn)
+ {
++#ifndef ARCH_KMALLOC_MINALIGN
++#define ARCH_KMALLOC_MINALIGN 1
++#endif
++	unsigned int min_align = ARCH_KMALLOC_MINALIGN;
 +
-+		if (rq->bio)
-+			addr = (unsigned long)bio_data(rq->bio);
-+		else
-+			addr = (unsigned long)rq->data;
+ 	/*
+ 	 * set defaults
+ 	 */
+@@ -98,6 +103,7 @@ void blk_queue_make_request(struct reque
+ 	blk_queue_max_sectors(q, SAFE_MAX_SECTORS);
+ 	blk_queue_hardsect_size(q, 512);
+ 	blk_queue_dma_alignment(q, 511);
++	blk_queue_dma_pad(q, min_align - 1);
+ 	blk_queue_congestion_threshold(q);
+ 	q->nr_batching = BLK_BATCH_REQ;
  
- 		info->dma = drive->using_dma;
- 
-@@ -1204,7 +1209,8 @@ static ide_startstop_t cdrom_do_block_pc
- 		 * NOTE! The "len" and "addr" checks should possibly have
- 		 * separate masks.
- 		 */
--		if ((rq->data_len & 15) || (addr & mask))
-+		alignment = queue_dma_alignment(q) | q->dma_pad_mask;
-+		if (addr & alignment || rq->data_len & alignment)
- 			info->dma = 0;
- 	}
- 
-@@ -1872,6 +1878,7 @@ static int ide_cdrom_setup(ide_drive_t *
- 
- 	blk_queue_prep_rq(drive->queue, ide_cdrom_prep_fn);
- 	blk_queue_dma_alignment(drive->queue, 31);
-+	blk_queue_update_dma_pad(drive->queue, 15);
- 	drive->queue->unplug_delay = (1 * HZ) / 1000;
- 	if (!drive->queue->unplug_delay)
- 		drive->queue->unplug_delay = 1;
 _
 
 Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
