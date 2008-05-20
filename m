@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + xprtrdma-fix-err_ptre-typo.patch added to -mm tree
-Date: Tue, 20 May 2008 00:34:07 -0700
-Message-ID: <200805200734.m4K7Y7NI011132@imap1.linux-foundation.org>
+Subject: + vfs-fix-err_ptr-abuse-in-generic_readlink.patch added to -mm tree
+Date: Tue, 20 May 2008 00:36:02 -0700
+Message-ID: <200805200736.m4K7a2Ek011228@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35401 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56629 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753207AbYETHea (ORCPT
+	by vger.kernel.org with ESMTP id S1754762AbYETHgX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 May 2008 03:34:30 -0400
+	Tue, 20 May 2008 03:36:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@gmail.com, bfields@fieldses.org, davem@davemloft.net, trond.myklebust@fys.uio.no
+Cc: marcin.slusarz@gmail.com, hch@lst.de, miklos@szeredi.hu, viro@ZenIV.linux.org.uk
 
 
 The patch titled
-     xprtrdma: fix ERR_PTR(E typo
+     vfs: fix ERR_PTR abuse in generic_readlink
 has been added to the -mm tree.  Its filename is
-     xprtrdma-fix-err_ptre-typo.patch
+     vfs-fix-err_ptr-abuse-in-generic_readlink.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +34,58 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: xprtrdma: fix ERR_PTR(E typo
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: vfs: fix ERR_PTR abuse in generic_readlink
+From: Marcin Slusarz <marcin.slusarz@gmail.com>
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+generic_readlink calls ERR_PTR for negative and positive values
+(vfs_readlink returns length of "link"), but it should not
+(not an errno) and does not need to.
+
+Signed-off-by: Marcin Slusarz <marcin.slusarz@gmail.com>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Miklos Szeredi <miklos@szeredi.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/xprtrdma/svc_rdma_transport.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/namei.c |   15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
-diff -puN net/sunrpc/xprtrdma/svc_rdma_transport.c~xprtrdma-fix-err_ptre-typo net/sunrpc/xprtrdma/svc_rdma_transport.c
---- a/net/sunrpc/xprtrdma/svc_rdma_transport.c~xprtrdma-fix-err_ptre-typo
-+++ a/net/sunrpc/xprtrdma/svc_rdma_transport.c
-@@ -661,7 +661,7 @@ static struct svc_xprt *svc_rdma_create(
+diff -puN fs/namei.c~vfs-fix-err_ptr-abuse-in-generic_readlink fs/namei.c
+--- a/fs/namei.c~vfs-fix-err_ptr-abuse-in-generic_readlink
++++ a/fs/namei.c
+@@ -2857,16 +2857,17 @@ int generic_readlink(struct dentry *dent
+ {
+ 	struct nameidata nd;
+ 	void *cookie;
++	int res;
  
- 	cma_xprt = rdma_create_xprt(serv, 1);
- 	if (!cma_xprt)
--		return ERR_PTR(ENOMEM);
-+		return ERR_PTR(-ENOMEM);
- 	xprt = &cma_xprt->sc_xprt;
+ 	nd.depth = 0;
+ 	cookie = dentry->d_inode->i_op->follow_link(dentry, &nd);
+-	if (!IS_ERR(cookie)) {
+-		int res = vfs_readlink(dentry, buffer, buflen, nd_get_link(&nd));
+-		if (dentry->d_inode->i_op->put_link)
+-			dentry->d_inode->i_op->put_link(dentry, &nd, cookie);
+-		cookie = ERR_PTR(res);
+-	}
+-	return PTR_ERR(cookie);
++	if (IS_ERR(cookie))
++		return PTR_ERR(cookie);
++
++	res = vfs_readlink(dentry, buffer, buflen, nd_get_link(&nd));
++	if (dentry->d_inode->i_op->put_link)
++		dentry->d_inode->i_op->put_link(dentry, &nd, cookie);
++	return res;
+ }
  
- 	listen_id = rdma_create_id(rdma_listen_handler, cma_xprt, RDMA_PS_TCP);
+ int vfs_follow_link(struct nameidata *nd, const char *link)
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from marcin.slusarz@gmail.com are
 
 linux-next.patch
-cifs-switch-to-seq_files.patch
-git-kbuild-fixes.patch
-atl1-fix-4g-memory-corruption-bug.patch
-xprtrdma-fix-err_ptre-typo.patch
-mpt-remove-unused-struct-mpt_proc_entry_t.patch
-rndis-switch-to-seq_files.patch
-move-proc_kmsg_operations-to-fs-proc-internalh.patch
-split-listh-and-move-rcu-protected-lists-into-rculisth.patch
-rculisth-use-the-rcu-api.patch
-proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
-likely_prof-changed-to-use-proc_create.patch
-proc-remove-proc_root-from-drivers-likelyprof.patch
+drm-radeon-radeon_enable_vblank-should-return-negative-error.patch
+net-s2io-set_rxd_buffer_pointer-returns-enomem-not-enomem.patch
+vfs-fix-err_ptr-abuse-in-generic_readlink.patch
+ntfs-le_add_cpu-conversion.patch
 
