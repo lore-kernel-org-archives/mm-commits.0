@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + watchdog-indydog-clean-up-and-tidy.patch added to -mm tree
-Date: Tue, 20 May 2008 01:28:02 -0700
-Message-ID: <200805200828.m4K8S2u3013116@imap1.linux-foundation.org>
+Subject: + watchdog-bfin-watchdog-cleanup-and-unlocked_ioctl.patch added to -mm tree
+Date: Tue, 20 May 2008 01:28:06 -0700
+Message-ID: <200805200828.m4K8S6DY013125@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36527 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47185 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760267AbYETI2U (ORCPT
+	by vger.kernel.org with ESMTP id S1760453AbYETI2Y (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 May 2008 04:28:20 -0400
+	Tue, 20 May 2008 04:28:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@redhat.com
 
 
 The patch titled
-     watchdog: indydog: Clean up and tidy
+     watchdog: bfin: watchdog cleanup and unlocked_ioctl
 has been added to the -mm tree.  Its filename is
-     watchdog-indydog-clean-up-and-tidy.patch
+     watchdog-bfin-watchdog-cleanup-and-unlocked_ioctl.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,225 +34,264 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: watchdog: indydog: Clean up and tidy
+Subject: watchdog: bfin: watchdog cleanup and unlocked_ioctl
 From: Alan Cox <alan@redhat.com>
 
-Switch to unlocked_ioctl as well
+Scan, tidy and check for unlocked_ioctl
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/indydog.c |  114 +++++++++++++++++++----------------
- 1 file changed, 62 insertions(+), 52 deletions(-)
+ drivers/watchdog/bfin_wdt.c |  147 ++++++++++++++++------------------
+ 1 file changed, 71 insertions(+), 76 deletions(-)
 
-diff -puN drivers/watchdog/indydog.c~watchdog-indydog-clean-up-and-tidy drivers/watchdog/indydog.c
---- a/drivers/watchdog/indydog.c~watchdog-indydog-clean-up-and-tidy
-+++ a/drivers/watchdog/indydog.c
-@@ -1,7 +1,8 @@
- /*
-  *	IndyDog	0.3	A Hardware Watchdog Device for SGI IP22
-  *
-- *	(c) Copyright 2002 Guido Guenther <agx@sigxcpu.org>, All Rights Reserved.
-+ *	(c) Copyright 2002 Guido Guenther <agx@sigxcpu.org>,
-+ *						All Rights Reserved.
-  *
-  *	This program is free software; you can redistribute it and/or
-  *	modify it under the terms of the GNU General Public License
-@@ -22,32 +23,42 @@
- #include <linux/notifier.h>
- #include <linux/reboot.h>
+diff -puN drivers/watchdog/bfin_wdt.c~watchdog-bfin-watchdog-cleanup-and-unlocked_ioctl drivers/watchdog/bfin_wdt.c
+--- a/drivers/watchdog/bfin_wdt.c~watchdog-bfin-watchdog-cleanup-and-unlocked_ioctl
++++ a/drivers/watchdog/bfin_wdt.c
+@@ -25,7 +25,7 @@
  #include <linux/init.h>
+ #include <linux/interrupt.h>
+ #include <asm/blackfin.h>
 -#include <asm/uaccess.h>
 +#include <linux/uaccess.h>
- #include <asm/sgi/mc.h>
  
- #define PFX "indydog: "
--static int indydog_alive;
-+static unsigned long indydog_alive;
-+static spinlock_t indydog_lock;
+ #define stamp(fmt, args...) pr_debug("%s:%i: " fmt "\n", __func__, __LINE__, ## args)
+ #define stampit() stamp("here i am")
+@@ -148,7 +148,8 @@ static int bfin_wdt_set_timeout(unsigned
+ 		int run = bfin_wdt_running();
+ 		bfin_wdt_stop();
+ 		bfin_write_WDOG_CNT(cnt);
+-		if (run) bfin_wdt_start();
++		if (run)
++			bfin_wdt_start();
+ 	}
+ 	spin_unlock_irqrestore(&bfin_wdt_spinlock, flags);
  
- #define WATCHDOG_TIMEOUT 30		/* 30 sec default timeout */
- 
- static int nowayout = WATCHDOG_NOWAYOUT;
- module_param(nowayout, int, 0);
--MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started (default=" __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
-+MODULE_PARM_DESC(nowayout,
-+		"Watchdog cannot be stopped once started (default="
-+				__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
- 
- static void indydog_start(void)
+@@ -191,16 +192,15 @@ static int bfin_wdt_release(struct inode
  {
--	u32 mc_ctrl0 = sgimc->cpuctrl0;
-+	u32 mc_ctrl0;
+ 	stampit();
  
-+	spin_lock(&indydog_lock);
-+	mc_ctrl0 = sgimc->cpuctrl0;
- 	mc_ctrl0 = sgimc->cpuctrl0 | SGIMC_CCTRL0_WDOG;
- 	sgimc->cpuctrl0 = mc_ctrl0;
-+	spin_unlock(&indydog_lock);
- }
- 
- static void indydog_stop(void)
- {
--	u32 mc_ctrl0 = sgimc->cpuctrl0;
-+	u32 mc_ctrl0;
- 
-+	spin_lock(&indydog_lock);
-+
-+	mc_ctrl0 = sgimc->cpuctrl0;
- 	mc_ctrl0 &= ~SGIMC_CCTRL0_WDOG;
- 	sgimc->cpuctrl0 = mc_ctrl0;
-+	spin_unlock(&indydog_lock);
- 
- 	printk(KERN_INFO PFX "Stopped watchdog timer.\n");
- }
-@@ -62,7 +73,7 @@ static void indydog_ping(void)
-  */
- static int indydog_open(struct inode *inode, struct file *file)
- {
--	if (indydog_alive)
-+	if (test_and_set_bit(0, &indydog_alive))
- 		return -EBUSY;
- 
- 	if (nowayout)
-@@ -84,23 +95,21 @@ static int indydog_release(struct inode 
- 	 * Lock it in if it's a module and we defined ...NOWAYOUT */
- 	if (!nowayout)
- 		indydog_stop();		/* Turn the WDT off */
+-	if (expect_close == 42) {
++	if (expect_close == 42)
+ 		bfin_wdt_stop();
+-	} else {
+-		printk(KERN_CRIT PFX "Unexpected close, not stopping watchdog!\n");
++	else {
++		printk(KERN_CRIT PFX
++			"Unexpected close, not stopping watchdog!\n");
+ 		bfin_wdt_keepalive();
+ 	}
 -
--	indydog_alive = 0;
+ 	expect_close = 0;
+ 	clear_bit(0, &open_check);
 -
-+	clear_bit(0, &indydog_alive);
  	return 0;
  }
  
--static ssize_t indydog_write(struct file *file, const char *data, size_t len, loff_t *ppos)
-+static ssize_t indydog_write(struct file *file, const char *data,
+@@ -214,7 +214,7 @@ static int bfin_wdt_release(struct inode
+  *	Pings the watchdog on write.
+  */
+ static ssize_t bfin_wdt_write(struct file *file, const char __user *data,
+-                              size_t len, loff_t *ppos)
 +						size_t len, loff_t *ppos)
  {
- 	/* Refresh the timer. */
--	if (len) {
-+	if (len)
- 		indydog_ping();
--	}
- 	return len;
- }
+ 	stampit();
  
--static int indydog_ioctl(struct inode *inode, struct file *file,
--	unsigned int cmd, unsigned long arg)
-+static long indydog_ioctl(struct file *file, unsigned int cmd,
-+							unsigned long arg)
+@@ -241,7 +241,6 @@ static ssize_t bfin_wdt_write(struct fil
+ 
+ /**
+  *	bfin_wdt_ioctl - Query Device
+- *	@inode: inode of device
+  *	@file: file handle of device
+  *	@cmd: watchdog command
+  *	@arg: argument
+@@ -249,8 +248,8 @@ static ssize_t bfin_wdt_write(struct fil
+  *	Query basic information from the device or ping it, as outlined by the
+  *	watchdog API.
+  */
+-static int bfin_wdt_ioctl(struct inode *inode, struct file *file,
+-                          unsigned int cmd, unsigned long arg)
++static long bfin_wdt_ioctl(struct file *file,
++				unsigned int cmd, unsigned long arg)
  {
- 	int options, retval = -EINVAL;
- 	static struct watchdog_info ident = {
-@@ -111,42 +120,40 @@ static int indydog_ioctl(struct inode *i
- 	};
+ 	void __user *argp = (void __user *)arg;
+ 	int __user *p = argp;
+@@ -258,59 +257,49 @@ static int bfin_wdt_ioctl(struct inode *
+ 	stampit();
  
  	switch (cmd) {
 -		default:
 -			return -ENOTTY;
+-
 -		case WDIOC_GETSUPPORT:
--			if (copy_to_user((struct watchdog_info *)arg,
--					 &ident, sizeof(ident)))
+-			if (copy_to_user(argp, &bfin_wdt_info, sizeof(bfin_wdt_info)))
 -				return -EFAULT;
--			return 0;
+-			else
+-				return 0;
+-
 -		case WDIOC_GETSTATUS:
 -		case WDIOC_GETBOOTSTATUS:
--			return put_user(0,(int *)arg);
+-			return put_user(!!(_bfin_swrst & SWRST_RESET_WDOG), p);
+-
 -		case WDIOC_KEEPALIVE:
--			indydog_ping();
--			return 0;
--		case WDIOC_GETTIMEOUT:
--			return put_user(WATCHDOG_TIMEOUT,(int *)arg);
--		case WDIOC_SETOPTIONS:
--		{
--			if (get_user(options, (int *)arg))
+-			bfin_wdt_keepalive();
++	case WDIOC_GETSUPPORT:
++		if (copy_to_user(argp, &bfin_wdt_info, sizeof(bfin_wdt_info)))
++			return -EFAULT;
++		else
+ 			return 0;
+-
+-		case WDIOC_SETTIMEOUT: {
+-			int new_timeout;
+-
+-			if (get_user(new_timeout, p))
 -				return -EFAULT;
 -
+-			if (bfin_wdt_set_timeout(new_timeout))
+-				return -EINVAL;
++	case WDIOC_GETSTATUS:
++	case WDIOC_GETBOOTSTATUS:
++		return put_user(!!(_bfin_swrst & SWRST_RESET_WDOG), p);
++	case WDIOC_KEEPALIVE:
++		bfin_wdt_keepalive();
++		return 0;
++	case WDIOC_SETTIMEOUT: {
++		int new_timeout;
++
++		if (get_user(new_timeout, p))
++			return -EFAULT;
++		if (bfin_wdt_set_timeout(new_timeout))
++			return -EINVAL;
++	}
++	/* Fall */
++	case WDIOC_GETTIMEOUT:
++		return put_user(timeout, p);
++	case WDIOC_SETOPTIONS: {
++		unsigned long flags;
++		int options, ret = -EINVAL;
++
++		if (get_user(options, p))
++			return -EFAULT;
++
++		spin_lock_irqsave(&bfin_wdt_spinlock, flags);
++		if (options & WDIOS_DISABLECARD) {
++			bfin_wdt_stop();
++			ret = 0;
+ 		}
+-			/* Fall */
+-		case WDIOC_GETTIMEOUT:
+-			return put_user(timeout, p);
+-
+-		case WDIOC_SETOPTIONS: {
+-			unsigned long flags;
+-			int options, ret = -EINVAL;
+-
+-			if (get_user(options, p))
+-				return -EFAULT;
+-
+-			spin_lock_irqsave(&bfin_wdt_spinlock, flags);
+-
 -			if (options & WDIOS_DISABLECARD) {
--				indydog_stop();
--				retval = 0;
+-				bfin_wdt_stop();
+-				ret = 0;
 -			}
 -
 -			if (options & WDIOS_ENABLECARD) {
--				indydog_start();
--				retval = 0;
+-				bfin_wdt_start();
+-				ret = 0;
 -			}
 -
--			return retval;
-+	case WDIOC_GETSUPPORT:
-+		if (copy_to_user((struct watchdog_info *)arg,
-+				 &ident, sizeof(ident)))
-+			return -EFAULT;
-+		return 0;
-+	case WDIOC_GETSTATUS:
-+	case WDIOC_GETBOOTSTATUS:
-+		return put_user(0, (int *)arg);
-+	case WDIOC_KEEPALIVE:
-+		indydog_ping();
-+		return 0;
-+	case WDIOC_GETTIMEOUT:
-+		return put_user(WATCHDOG_TIMEOUT, (int *)arg);
-+	case WDIOC_SETOPTIONS:
-+	{
-+		if (get_user(options, (int *)arg))
-+			return -EFAULT;
-+		if (options & WDIOS_DISABLECARD) {
-+			indydog_stop();
-+			retval = 0;
-+		}
+-			spin_unlock_irqrestore(&bfin_wdt_spinlock, flags);
+-
+-			return ret;
 +		if (options & WDIOS_ENABLECARD) {
-+			indydog_start();
-+			retval = 0;
++			bfin_wdt_start();
++			ret = 0;
  		}
-+		return retval;
++		spin_unlock_irqrestore(&bfin_wdt_spinlock, flags);
++		return ret;
 +	}
 +	default:
 +		return -ENOTTY;
  	}
  }
  
--static int indydog_notify_sys(struct notifier_block *this, unsigned long code, void *unused)
-+static int indydog_notify_sys(struct notifier_block *this,
+@@ -323,8 +312,8 @@ static int bfin_wdt_ioctl(struct inode *
+  *	Handles specific events, such as turning off the watchdog during a
+  *	shutdown event.
+  */
+-static int bfin_wdt_notify_sys(struct notifier_block *this, unsigned long code,
+-                               void *unused)
++static int bfin_wdt_notify_sys(struct notifier_block *this,
 +					unsigned long code, void *unused)
  {
- 	if (code == SYS_DOWN || code == SYS_HALT)
- 		indydog_stop();		/* Turn the WDT off */
-@@ -158,7 +165,7 @@ static const struct file_operations indy
- 	.owner		= THIS_MODULE,
- 	.llseek		= no_llseek,
- 	.write		= indydog_write,
--	.ioctl		= indydog_ioctl,
-+	.unlocked_ioctl	= indydog_ioctl,
- 	.open		= indydog_open,
- 	.release	= indydog_release,
- };
-@@ -180,17 +187,20 @@ static int __init watchdog_init(void)
- {
- 	int ret;
+ 	stampit();
  
-+	spin_lock_init(&indydog_lock);
-+
- 	ret = register_reboot_notifier(&indydog_notifier);
+@@ -379,12 +368,12 @@ static int bfin_wdt_resume(struct platfo
+ #endif
+ 
+ static const struct file_operations bfin_wdt_fops = {
+-	.owner    = THIS_MODULE,
+-	.llseek   = no_llseek,
+-	.write    = bfin_wdt_write,
+-	.ioctl    = bfin_wdt_ioctl,
+-	.open     = bfin_wdt_open,
+-	.release  = bfin_wdt_release,
++	.owner		= THIS_MODULE,
++	.llseek		= no_llseek,
++	.write    	= bfin_wdt_write,
++	.unlocked_ioctl	= bfin_wdt_ioctl,
++	.open		= bfin_wdt_open,
++	.release	= bfin_wdt_release,
+ };
+ 
+ static struct miscdevice bfin_wdt_miscdev = {
+@@ -396,8 +385,8 @@ static struct miscdevice bfin_wdt_miscde
+ static struct watchdog_info bfin_wdt_info = {
+ 	.identity = "Blackfin Watchdog",
+ 	.options  = WDIOF_SETTIMEOUT |
+-	            WDIOF_KEEPALIVEPING |
+-	            WDIOF_MAGICCLOSE,
++		    WDIOF_KEEPALIVEPING |
++		    WDIOF_MAGICCLOSE,
+ };
+ 
+ static struct notifier_block bfin_wdt_notifier = {
+@@ -416,14 +405,16 @@ static int __devinit bfin_wdt_probe(stru
+ 
+ 	ret = register_reboot_notifier(&bfin_wdt_notifier);
  	if (ret) {
--		printk(KERN_ERR PFX "cannot register reboot notifier (err=%d)\n",
--			ret);
-+		printk(KERN_ERR PFX
+-		pr_devinit(KERN_ERR PFX "cannot register reboot notifier (err=%d)\n", ret);
++		pr_devinit(KERN_ERR PFX
 +			"cannot register reboot notifier (err=%d)\n", ret);
  		return ret;
  	}
  
- 	ret = misc_register(&indydog_miscdev);
+ 	ret = misc_register(&bfin_wdt_miscdev);
  	if (ret) {
--		printk(KERN_ERR PFX "cannot register miscdev on minor=%d (err=%d)\n",
--			WATCHDOG_MINOR, ret);
-+		printk(KERN_ERR PFX
+-		pr_devinit(KERN_ERR PFX "cannot register miscdev on minor=%d (err=%d)\n",
+-		       WATCHDOG_MINOR, ret);
++		pr_devinit(KERN_ERR PFX
 +			"cannot register miscdev on minor=%d (err=%d)\n",
-+							WATCHDOG_MINOR, ret);
- 		unregister_reboot_notifier(&indydog_notifier);
++					WATCHDOG_MINOR, ret);
+ 		unregister_reboot_notifier(&bfin_wdt_notifier);
  		return ret;
  	}
+@@ -516,7 +507,11 @@ MODULE_LICENSE("GPL");
+ MODULE_ALIAS_MISCDEV(WATCHDOG_MINOR);
+ 
+ module_param(timeout, uint, 0);
+-MODULE_PARM_DESC(timeout, "Watchdog timeout in seconds. (1<=timeout<=((2^32)/SCLK), default=" __MODULE_STRING(WATCHDOG_TIMEOUT) ")");
++MODULE_PARM_DESC(timeout,
++	"Watchdog timeout in seconds. (1<=timeout<=((2^32)/SCLK), default="
++		__MODULE_STRING(WATCHDOG_TIMEOUT) ")");
+ 
+ module_param(nowayout, int, 0);
+-MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started (default=" __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
++MODULE_PARM_DESC(nowayout,
++	"Watchdog cannot be stopped once started (default="
++		__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
 _
 
 Patches currently in -mm which might be from alan@redhat.com are
