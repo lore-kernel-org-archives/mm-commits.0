@@ -1,117 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: - nfs-make-nfs4_drop_state_owner-static.patch removed from -mm tree
-Date: Tue, 20 May 2008 14:14:25 -0700
-Message-ID: <200805202114.m4KLEPY7011463@imap1.linux-foundation.org>
+Subject: - update-cell-and-spufs-maintainers-entry.patch removed from -mm tree
+Date: Tue, 20 May 2008 14:14:52 -0700
+Message-ID: <200805202114.m4KLEqYb011502@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46149 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54001 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932431AbYETVPZ (ORCPT
+	by vger.kernel.org with ESMTP id S932495AbYETVPc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 May 2008 17:15:25 -0400
+	Tue, 20 May 2008 17:15:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, mm-commits@vger.kernel.org
+To: arnd@arndb.de, jk@ozlabs.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nfs: make nfs4_drop_state_owner() static
+     Update Cell and spufs MAINTAINERS entry
 has been removed from the -mm tree.  Its filename was
-     nfs-make-nfs4_drop_state_owner-static.patch
+     update-cell-and-spufs-maintainers-entry.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nfs: make nfs4_drop_state_owner() static
-From: Adrian Bunk <bunk@kernel.org>
+Subject: Update Cell and spufs MAINTAINERS entry
+From: Arnd Bergmann <arnd@arndb.de>
 
-nfs4_drop_state_owner() can now become static.
+The MAINTAINERS file entry for the cell platform is outdated, even the
+name of the platform changed since the early days when it was initially
+submitted.  The SPU file system is now maintained by Jeremy Kerr.
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Jeremy Kerr <jk@ozlabs.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/nfs4_fs.h   |    1 -
- fs/nfs/nfs4state.c |    2 +-
- 2 files changed, 1 insertion(+), 2 deletions(-)
+ MAINTAINERS |   23 ++++++++++++++++-------
+ 1 file changed, 16 insertions(+), 7 deletions(-)
 
-diff -puN fs/nfs/nfs4_fs.h~nfs-make-nfs4_drop_state_owner-static fs/nfs/nfs4_fs.h
---- a/fs/nfs/nfs4_fs.h~nfs-make-nfs4_drop_state_owner-static
-+++ a/fs/nfs/nfs4_fs.h
-@@ -206,7 +206,6 @@ struct rpc_cred *nfs4_get_renew_cred(str
+diff -puN MAINTAINERS~update-cell-and-spufs-maintainers-entry MAINTAINERS
+--- a/MAINTAINERS~update-cell-and-spufs-maintainers-entry
++++ a/MAINTAINERS
+@@ -982,13 +982,6 @@ L:	bonding-devel@lists.sourceforge.net
+ W:	http://sourceforge.net/projects/bonding/
+ S:	Supported
  
- extern struct nfs4_state_owner * nfs4_get_state_owner(struct nfs_server *, struct rpc_cred *);
- extern void nfs4_put_state_owner(struct nfs4_state_owner *);
--extern void nfs4_drop_state_owner(struct nfs4_state_owner *);
- extern struct nfs4_state * nfs4_get_open_state(struct inode *, struct nfs4_state_owner *);
- extern void nfs4_put_open_state(struct nfs4_state *);
- extern void nfs4_close_state(struct path *, struct nfs4_state *, mode_t);
-diff -puN fs/nfs/nfs4state.c~nfs-make-nfs4_drop_state_owner-static fs/nfs/nfs4state.c
---- a/fs/nfs/nfs4state.c~nfs-make-nfs4_drop_state_owner-static
-+++ a/fs/nfs/nfs4state.c
-@@ -282,7 +282,7 @@ nfs4_alloc_state_owner(void)
- 	return sp;
- }
+-BROADBAND PROCESSOR ARCHITECTURE
+-P:	Arnd Bergmann
+-M:	arnd@arndb.de
+-L:	linuxppc-dev@ozlabs.org
+-W:	http://www.penguinppc.org/ppc64/
+-S:	Supported
+-
+ BROADCOM B44 10/100 ETHERNET DRIVER
+ P:	Gary Zambrano
+ M:	zambrano@broadcom.com
+@@ -1052,6 +1045,14 @@ L:	linux-kernel@vger.kernel.org
+ L:	discuss@x86-64.org
+ S:	Maintained
  
--void
-+static void
- nfs4_drop_state_owner(struct nfs4_state_owner *sp)
- {
- 	if (!RB_EMPTY_NODE(&sp->so_client_node)) {
++CELL BROADBAND ENGINE ARCHITECTURE
++P:	Arnd Bergmann
++M:	arnd@arndb.de
++L:	linuxppc-dev@ozlabs.org
++L:	cbe-oss-dev@ozlabs.org
++W:	http://www.ibm.com/developerworks/power/cell/
++S:	Supported
++
+ CFAG12864B LCD DRIVER
+ P:	Miguel Ojeda Sandonis
+ M:	maxextreme@gmail.com
+@@ -3774,6 +3775,14 @@ M:	dbrownell@users.sourceforge.net
+ L:	spi-devel-general@lists.sourceforge.net
+ S:	Maintained
+ 
++SPU FILE SYSTEM
++P:	Jeremy Kerr
++M:	jk@ozlabs.org
++L:	linuxppc-dev@ozlabs.org
++L:	cbe-oss-dev@ozlabs.org
++W:	http://www.ibm.com/developerworks/power/cell/
++S:	Supported
++
+ STABLE BRANCH:
+ P:	Greg Kroah-Hartman
+ M:	greg@kroah.com
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from arnd@arndb.de are
 
 origin.patch
-linux-next.patch
-proper-prototype-for-acpi_processor_tstate_has_changed.patch
-remove-drivers-acorn-char-defkeymap-l7200c.patch
-drm-make-drm_minors_cleanup-static.patch
-git-input.patch
-if-0-ses_match_host.patch
-git-sparc64.patch
-git-watchdog.patch
-git-xtensa.patch
-ibmaem-fix-64-bit-division-on-32-bit-platforms-update.patch
-md-proper-extern-for-mdp_major.patch
-mm-migratec-should-include-linux-syscallsh.patch
-mm-vmstatc-proper-externs.patch
-mm-hugetlbc-fix-duplicate-variable.patch
-remove-include-asm-h8300-keyboardh.patch
-remove-the-v850-port.patch
-init-do_mountsc-should-include-linux-initrdh.patch
-proper-spawn_ksoftirqd-prototype.patch
-build-kernel-profileo-only-when-requested.patch
-build-kernel-profileo-only-when-requested-cleanups.patch
-asm-generic-int-ll64h-always-provide-__su64.patch
-remove-the-oss-trident-driver.patch
-serial-8250_gscc-add-module_license.patch
-mfd-sm501c-if-0-unused-functions.patch
-xen-drivers-xen-balloonc-make-a-function-static.patch
-video-sis-remove-compat-code.patch
-minix-remove-no_truncate-code.patch
-remove-is_tty.patch
-proper-extern-for-mwave_s_mdd.patch
-if-0-hpet_unregister.patch
-unexport-proc_clear_tty.patch
-move-proc_kmsg_operations-to-fs-proc-internalh.patch
-proper-pidhashmap_init-prototypes.patch
-unexport-uts_sem.patch
-parport-sharec-proper-externs.patch
-tpm_biosc-make-2-structs-static.patch
-make-cgroup_seqfile_release-static.patch
-make-kprobe_blacklist-static.patch
-make-pnp_add_card_id-static.patch
-make-struct-mpt_proc_root_dir-static.patch
-make-parport_cs_release-static.patch
-make-mm-sparsec-make-a-function-static.patch
-mm-allocpercpuc-make-4-functions-static.patch
-make-mm-memoryc-print_bad_pte-static.patch
-mm-swapfilec-make-code-static.patch
-make-mm-rmapc-anon_vma_cachep-static.patch
-drivers-char-rtcc-make-2-functions-static.patch
-make-init-do_mountsc-root_device_name-static.patch
-reiser4.patch
+access_process_vm-device-memory-infrastructure.patch
+use-generic_access_phys-for-dev-mem-mappings.patch
+use-generic_access_phys-for-pci-mmap-on-x86.patch
+powerpc-ioremap_prot.patch
+spufs-use-the-new-vm_ops-access.patch
+spufs-use-the-new-vm_ops-access-fix.patch
 
