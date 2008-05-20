@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + watchdog-sbc60xxwdt-clean-up-and-switch-to-unlocked_ioctl.patch added to -mm tree
-Date: Tue, 20 May 2008 01:28:32 -0700
-Message-ID: <200805200828.m4K8SWPr013176@imap1.linux-foundation.org>
+Subject: + watchdog-mtx-1_wdt-clean-up-coding-style-unlocked-ioctl.patch added to -mm tree
+Date: Tue, 20 May 2008 01:28:19 -0700
+Message-ID: <200805200828.m4K8SJZ4013149@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32912 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34522 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761055AbYETI27 (ORCPT
+	by vger.kernel.org with ESMTP id S1760952AbYETI2k (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 May 2008 04:28:59 -0400
+	Tue, 20 May 2008 04:28:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@redhat.com
 
 
 The patch titled
-     watchdog: sbc60xxwdt: clean up and switch to unlocked_ioctl
+     watchdog: mtx-1_wdt: clean up, coding style, unlocked ioctl
 has been added to the -mm tree.  Its filename is
-     watchdog-sbc60xxwdt-clean-up-and-switch-to-unlocked_ioctl.patch
+     watchdog-mtx-1_wdt-clean-up-coding-style-unlocked-ioctl.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: watchdog: sbc60xxwdt: clean up and switch to unlocked_ioctl
+Subject: watchdog: mtx-1_wdt: clean up, coding style, unlocked ioctl
 From: Alan Cox <alan@redhat.com>
 
 
@@ -42,396 +42,238 @@ Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/sbc60xxwdt.c |  223 +++++++++++++++-----------------
- 1 file changed, 110 insertions(+), 113 deletions(-)
+ drivers/watchdog/mtx-1_wdt.c |  107 ++++++++++++++++-----------------
+ 1 file changed, 52 insertions(+), 55 deletions(-)
 
-diff -puN drivers/watchdog/sbc60xxwdt.c~watchdog-sbc60xxwdt-clean-up-and-switch-to-unlocked_ioctl drivers/watchdog/sbc60xxwdt.c
---- a/drivers/watchdog/sbc60xxwdt.c~watchdog-sbc60xxwdt-clean-up-and-switch-to-unlocked_ioctl
-+++ a/drivers/watchdog/sbc60xxwdt.c
-@@ -16,19 +16,23 @@
+diff -puN drivers/watchdog/mtx-1_wdt.c~watchdog-mtx-1_wdt-clean-up-coding-style-unlocked-ioctl drivers/watchdog/mtx-1_wdt.c
+--- a/drivers/watchdog/mtx-1_wdt.c~watchdog-mtx-1_wdt-clean-up-coding-style-unlocked-ioctl
++++ a/drivers/watchdog/mtx-1_wdt.c
+@@ -1,7 +1,8 @@
+ /*
+  *      Driver for the MTX-1 Watchdog.
   *
-  *           12/4 - 2000      [Initial revision]
-  *           25/4 - 2000      Added /dev/watchdog support
-- *           09/5 - 2001      [smj@oro.net] fixed fop_write to "return 1" on success
-+ *           09/5 - 2001      [smj@oro.net] fixed fop_write to "return 1"
-+ *					on success
-  *           12/4 - 2002      [rob@osinvestor.com] eliminate fop_read
-  *                            fix possible wdt_is_open race
-  *                            add CONFIG_WATCHDOG_NOWAYOUT support
-  *                            remove lock_kernel/unlock_kernel pairs
-  *                            added KERN_* to printk's
-  *                            got rid of extraneous comments
-- *                            changed watchdog_info to correctly reflect what the driver offers
-- *                            added WDIOC_GETSTATUS, WDIOC_GETBOOTSTATUS, WDIOC_SETTIMEOUT,
-- *                            WDIOC_GETTIMEOUT, and WDIOC_SETOPTIONS ioctls
-+ *                            changed watchdog_info to correctly reflect what
-+ *			      the driver offers
-+ *			      added WDIOC_GETSTATUS, WDIOC_GETBOOTSTATUS,
-+ *			      WDIOC_SETTIMEOUT, WDIOC_GETTIMEOUT, and
-+ *			      WDIOC_SETOPTIONS ioctls
-  *           09/8 - 2003      [wim@iguana.be] cleanup of trailing spaces
-  *                            use module_param
-- *                            made timeout (the emulated heartbeat) a module_param
-+ *                            made timeout (the emulated heartbeat) a
-+ *			      module_param
-  *                            made the keepalive ping an internal subroutine
-  *                            made wdt_stop and wdt_start module params
-  *                            added extra printk's for startup problems
-@@ -56,9 +60,9 @@
- #include <linux/notifier.h>
- #include <linux/reboot.h>
- #include <linux/init.h>
-+#include <linux/io.h>
-+#include <linux/uaccess.h>
- 
+- *      (C) Copyright 2005 4G Systems <info@4g-systems.biz>, All Rights Reserved.
++ *      (C) Copyright 2005 4G Systems <info@4g-systems.biz>,
++ *							All Rights Reserved.
+  *                              http://www.4g-systems.biz
+  *
+  * 	(C) Copyright 2007 OpenWrt.org, Florian Fainelli <florian@openwrt.org>
+@@ -46,12 +47,11 @@
+ #include <linux/jiffies.h>
+ #include <linux/watchdog.h>
+ #include <linux/platform_device.h>
+-
 -#include <asm/io.h>
 -#include <asm/uaccess.h>
- #include <asm/system.h>
++#include <linux/io.h>
++#include <linux/uaccess.h>
++#include <linux/gpio.h>
  
- #define OUR_NAME "sbc60xxwdt"
-@@ -94,13 +98,18 @@ MODULE_PARM_DESC(wdt_start, "SBC60xx WDT
-  */
+ #include <asm/mach-au1x00/au1000.h>
+-#include <asm/gpio.h>
  
- #define WATCHDOG_TIMEOUT 30		/* 30 sec default timeout */
--static int timeout = WATCHDOG_TIMEOUT;	/* in seconds, will be multiplied by HZ to get seconds to wait for a ping */
-+static int timeout = WATCHDOG_TIMEOUT;	/* in seconds, multiplied by HZ to
-+					   get seconds to wait for a ping */
- module_param(timeout, int, 0);
--MODULE_PARM_DESC(timeout, "Watchdog timeout in seconds. (1<=timeout<=3600, default=" __MODULE_STRING(WATCHDOG_TIMEOUT) ")");
-+MODULE_PARM_DESC(timeout,
-+	"Watchdog timeout in seconds. (1<=timeout<=3600, default="
-+				__MODULE_STRING(WATCHDOG_TIMEOUT) ")");
+ #define MTX1_WDT_INTERVAL	(5 * HZ)
  
- static int nowayout = WATCHDOG_NOWAYOUT;
- module_param(nowayout, int, 0);
--MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started (default=" __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
-+MODULE_PARM_DESC(nowayout,
-+	"Watchdog cannot be stopped once started (default="
-+				__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
+@@ -59,6 +59,7 @@ static int ticks = 100 * HZ;
  
- static void wdt_timer_ping(unsigned long);
- static DEFINE_TIMER(timer, wdt_timer_ping, 0, 0);
-@@ -117,15 +126,14 @@ static void wdt_timer_ping(unsigned long
- 	/* If we got a heartbeat pulse within the WDT_US_INTERVAL
- 	 * we agree to ping the WDT
- 	 */
--	if(time_before(jiffies, next_heartbeat))
--	{
-+	if (time_before(jiffies, next_heartbeat)) {
- 		/* Ping the WDT by reading from wdt_start */
- 		inb_p(wdt_start);
- 		/* Re-set the timer interval */
- 		mod_timer(&timer, jiffies + WDT_INTERVAL);
--	} else {
--		printk(KERN_WARNING PFX "Heartbeat lost! Will not ping the watchdog\n");
+ static struct {
+ 	struct completion stop;
++	spinlock_t lock;
+ 	int running;
+ 	struct timer_list timer;
+ 	int queue;
+@@ -71,6 +72,7 @@ static void mtx1_wdt_trigger(unsigned lo
+ {
+ 	u32 tmp;
+ 
++	spin_lock(&mtx1_wdt_device.lock);
+ 	if (mtx1_wdt_device.running)
+ 		ticks--;
+ 	/*
+@@ -79,13 +81,13 @@ static void mtx1_wdt_trigger(unsigned lo
+ 	tmp = au_readl(GPIO2_DIR);
+ 	tmp = (tmp & ~(1 << mtx1_wdt_device.gpio)) |
+ 	      ((~tmp) & (1 << mtx1_wdt_device.gpio));
+-	au_writel (tmp, GPIO2_DIR);
++	au_writel(tmp, GPIO2_DIR);
+ 
+ 	if (mtx1_wdt_device.queue && ticks)
+ 		mod_timer(&mtx1_wdt_device.timer, jiffies + MTX1_WDT_INTERVAL);
+-	else {
++	else
+ 		complete(&mtx1_wdt_device.stop);
 -	}
-+	} else
-+		printk(KERN_WARNING PFX
-+			"Heartbeat lost! Will not ping the watchdog\n");
++	spin_unlock(&mtx1_wdt_device.lock);
  }
  
- /*
-@@ -159,40 +167,40 @@ static void wdt_keepalive(void)
-  * /dev/watchdog handling
-  */
+ static void mtx1_wdt_reset(void)
+@@ -96,23 +98,25 @@ static void mtx1_wdt_reset(void)
  
--static ssize_t fop_write(struct file * file, const char __user * buf, size_t count, loff_t * ppos)
-+static ssize_t fop_write(struct file *file, const char __user *buf,
-+						size_t count, loff_t *ppos)
+ static void mtx1_wdt_start(void)
  {
- 	/* See if we got the magic character 'V' and reload the timer */
--	if(count)
--	{
--		if (!nowayout)
--		{
-+	if (count) {
-+		if (!nowayout) {
- 			size_t ofs;
- 
--			/* note: just in case someone wrote the magic character
--			 * five months ago... */
-+			/* note: just in case someone wrote the
-+			   magic character five months ago... */
- 			wdt_expect_close = 0;
- 
--			/* scan to see whether or not we got the magic character */
--			for(ofs = 0; ofs != count; ofs++)
--			{
-+			/* scan to see whether or not we got the
-+			   magic character */
-+			for (ofs = 0; ofs != count; ofs++) {
- 				char c;
--				if(get_user(c, buf+ofs))
-+				if (get_user(c, buf+ofs))
- 					return -EFAULT;
--				if(c == 'V')
-+				if (c == 'V')
- 					wdt_expect_close = 42;
- 			}
- 		}
- 
--		/* Well, anyhow someone wrote to us, we should return that favour */
-+		/* Well, anyhow someone wrote to us, we should
-+		   return that favour */
- 		wdt_keepalive();
++	spin_lock_irqsave(&mtx1_wdt_device.lock, flags);
+ 	if (!mtx1_wdt_device.queue) {
+ 		mtx1_wdt_device.queue = 1;
+ 		gpio_set_value(mtx1_wdt_device.gpio, 1);
+ 		mod_timer(&mtx1_wdt_device.timer, jiffies + MTX1_WDT_INTERVAL);
  	}
- 	return count;
+ 	mtx1_wdt_device.running++;
++	spin_unlock_irqrestore(&mtx1_wdt_device.lock, flags);
  }
  
--static int fop_open(struct inode * inode, struct file * file)
-+static int fop_open(struct inode *inode, struct file *file)
+ static int mtx1_wdt_stop(void)
  {
- 	/* Just in case we're already talking to someone... */
--	if(test_and_set_bit(0, &wdt_is_open))
-+	if (test_and_set_bit(0, &wdt_is_open))
- 		return -EBUSY;
- 
- 	if (nowayout)
-@@ -203,78 +211,72 @@ static int fop_open(struct inode * inode
- 	return nonseekable_open(inode, file);
- }
- 
--static int fop_close(struct inode * inode, struct file * file)
-+static int fop_close(struct inode *inode, struct file *file)
- {
--	if(wdt_expect_close == 42)
-+	if (wdt_expect_close == 42)
- 		wdt_turnoff();
- 	else {
- 		del_timer(&timer);
--		printk(KERN_CRIT PFX "device file closed unexpectedly. Will not stop the WDT!\n");
-+		printk(KERN_CRIT PFX
-+		  "device file closed unexpectedly. Will not stop the WDT!\n");
++	spin_lock_irqsave(&mtx1_wdt_device.lock, flags);
+ 	if (mtx1_wdt_device.queue) {
+ 		mtx1_wdt_device.queue = 0;
+ 		gpio_set_value(mtx1_wdt_device.gpio, 0);
  	}
- 	clear_bit(0, &wdt_is_open);
- 	wdt_expect_close = 0;
+-
+ 	ticks = mtx1_wdt_device.default_ticks;
+-
++	spin_unlock_irqrestore(&mtx1_wdt_device.lock, flags);
  	return 0;
  }
  
--static int fop_ioctl(struct inode *inode, struct file *file, unsigned int cmd,
--	unsigned long arg)
-+static long fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+@@ -122,7 +126,6 @@ static int mtx1_wdt_open(struct inode *i
+ {
+ 	if (test_and_set_bit(0, &mtx1_wdt_device.inuse))
+ 		return -EBUSY;
+-
+ 	return nonseekable_open(inode, file);
+ }
+ 
+@@ -133,54 +136,51 @@ static int mtx1_wdt_release(struct inode
+ 	return 0;
+ }
+ 
+-static int mtx1_wdt_ioctl(struct inode *inode, struct file *file, unsigned int cmd, unsigned long arg)
++static long mtx1_wdt_ioctl(struct file *file, unsigned int cmd,
++							unsigned long arg)
  {
  	void __user *argp = (void __user *)arg;
- 	int __user *p = argp;
--	static struct watchdog_info ident=
++	int __user *p = (int __user *)argp;
+ 	unsigned int value;
+-	static struct watchdog_info ident =
 -	{
--		.options = WDIOF_KEEPALIVEPING | WDIOF_SETTIMEOUT | WDIOF_MAGICCLOSE,
 +	static const struct watchdog_info ident = {
-+		.options = WDIOF_KEEPALIVEPING | WDIOF_SETTIMEOUT |
-+							WDIOF_MAGICCLOSE,
- 		.firmware_version = 1,
- 		.identity = "SBC60xx",
+ 		.options = WDIOF_CARDRESET,
+ 		.identity = "MTX-1 WDT",
  	};
  
--	switch(cmd)
-+	switch (cmd) {
-+	default:
-+		return -ENOTTY;
-+	case WDIOC_GETSUPPORT:
-+		return copy_to_user(argp, &ident, sizeof(ident))? -EFAULT : 0;
-+	case WDIOC_GETSTATUS:
-+	case WDIOC_GETBOOTSTATUS:
-+		return put_user(0, p);
-+	case WDIOC_KEEPALIVE:
-+		wdt_keepalive();
-+		return 0;
-+	case WDIOC_SETOPTIONS:
- 	{
--		default:
--			return -ENOTTY;
--		case WDIOC_GETSUPPORT:
--			return copy_to_user(argp, &ident, sizeof(ident))?-EFAULT:0;
+-	switch(cmd) {
+-		case WDIOC_KEEPALIVE:
+-			mtx1_wdt_reset();
+-			break;
 -		case WDIOC_GETSTATUS:
 -		case WDIOC_GETBOOTSTATUS:
--			return put_user(0, p);
--		case WDIOC_KEEPALIVE:
--			wdt_keepalive();
--			return 0;
+-			if ( copy_to_user(argp, &value, sizeof(int)) )
+-				return -EFAULT;
+-			break;
+-		case WDIOC_GETSUPPORT:
+-			if ( copy_to_user(argp, &ident, sizeof(ident)) )
+-				return -EFAULT;
+-			break;
 -		case WDIOC_SETOPTIONS:
--		{
--			int new_options, retval = -EINVAL;
--
--			if(get_user(new_options, p))
+-			if ( copy_from_user(&value, argp, sizeof(int)) )
 -				return -EFAULT;
--
--			if(new_options & WDIOS_DISABLECARD) {
--				wdt_turnoff();
--				retval = 0;
+-			switch(value) {
+-				case WDIOS_ENABLECARD:
+-					mtx1_wdt_start();
+-					break;
+-				case WDIOS_DISABLECARD:
+-					return mtx1_wdt_stop();
+-				default:
+-					return -EINVAL;
 -			}
--
--			if(new_options & WDIOS_ENABLECARD) {
--				wdt_startup();
--				retval = 0;
--			}
--
--			return retval;
-+		int new_options, retval = -EINVAL;
-+		if (get_user(new_options, p))
+-			break;
+-		default:
+-			return -ENOTTY;
++	switch (cmd) {
++	case WDIOC_KEEPALIVE:
++		mtx1_wdt_reset();
++		break;
++	case WDIOC_GETSTATUS:
++	case WDIOC_GETBOOTSTATUS:
++		put_user(0, p);
++		break;
++	case WDIOC_GETSUPPORT:
++		if (copy_to_user(argp, &ident, sizeof(ident)))
 +			return -EFAULT;
-+		if (new_options & WDIOS_DISABLECARD) {
-+			wdt_turnoff();
-+			retval = 0;
- 		}
--		case WDIOC_SETTIMEOUT:
--		{
--			int new_timeout;
--
--			if(get_user(new_timeout, p))
--				return -EFAULT;
--
--			if(new_timeout < 1 || new_timeout > 3600) /* arbitrary upper limit */
--				return -EINVAL;
--
--			timeout = new_timeout;
--			wdt_keepalive();
--			/* Fall through */
-+		if (new_options & WDIOS_ENABLECARD) {
-+			wdt_startup();
-+			retval = 0;
- 		}
--		case WDIOC_GETTIMEOUT:
--			return put_user(timeout, p);
-+		return retval;
-+	}
-+	case WDIOC_SETTIMEOUT:
-+	{
-+		int new_timeout;
-+		if (get_user(new_timeout, p))
++		break;
++	case WDIOC_SETOPTIONS:
++		if (get_user(value, p))
 +			return -EFAULT;
-+		/* arbitrary upper limit */
-+		if (new_timeout < 1 || new_timeout > 3600)
++		if (value & WDIOS_ENABLECARD)
++			mtx1_wdt_start();
++		else if (value & WDIOS_DISABLECARD)
++			mtx1_wdt_stop();
++		else
 +			return -EINVAL;
-+
-+		timeout = new_timeout;
-+		wdt_keepalive();
-+		/* Fall through */
-+	}
-+	case WDIOC_GETTIMEOUT:
-+		return put_user(timeout, p);
++		return 0;
++	default:
++		return -ENOTTY;
  	}
+ 	return 0;
  }
  
-@@ -284,7 +286,7 @@ static const struct file_operations wdt_
- 	.write		= fop_write,
- 	.open		= fop_open,
- 	.release	= fop_close,
--	.ioctl		= fop_ioctl,
-+	.unlocked_ioctl	= fop_ioctl,
- };
  
- static struct miscdevice wdt_miscdev = {
-@@ -300,7 +302,7 @@ static struct miscdevice wdt_miscdev = {
- static int wdt_notify_sys(struct notifier_block *this, unsigned long code,
- 	void *unused)
+-static ssize_t mtx1_wdt_write(struct file *file, const char *buf, size_t count, loff_t *ppos)
++static ssize_t mtx1_wdt_write(struct file *file, const char *buf,
++						size_t count, loff_t *ppos)
  {
--	if(code==SYS_DOWN || code==SYS_HALT)
-+	if (code == SYS_DOWN || code == SYS_HALT)
- 		wdt_turnoff();
- 	return NOTIFY_DONE;
- }
-@@ -310,8 +312,7 @@ static int wdt_notify_sys(struct notifie
-  *	turn the timebomb registers off.
-  */
- 
--static struct notifier_block wdt_notifier=
--{
-+static struct notifier_block wdt_notifier = {
- 	.notifier_call = wdt_notify_sys,
- };
- 
-@@ -324,23 +325,22 @@ static void __exit sbc60xxwdt_unload(voi
- 
- 	unregister_reboot_notifier(&wdt_notifier);
- 	if ((wdt_stop != 0x45) && (wdt_stop != wdt_start))
--		release_region(wdt_stop,1);
--	release_region(wdt_start,1);
-+		release_region(wdt_stop, 1);
-+	release_region(wdt_start, 1);
- }
- 
- static int __init sbc60xxwdt_init(void)
- {
- 	int rc = -EBUSY;
- 
--	if(timeout < 1 || timeout > 3600) /* arbitrary upper limit */
--	{
-+	if (timeout < 1 || timeout > 3600) { /* arbitrary upper limit */
- 		timeout = WATCHDOG_TIMEOUT;
--		printk(KERN_INFO PFX "timeout value must be 1<=x<=3600, using %d\n",
--			timeout);
-- 	}
-+		printk(KERN_INFO PFX
-+			"timeout value must be 1 <= x <= 3600, using %d\n",
-+								timeout);
-+	}
- 
--	if (!request_region(wdt_start, 1, "SBC 60XX WDT"))
--	{
-+	if (!request_region(wdt_start, 1, "SBC 60XX WDT")) {
- 		printk(KERN_ERR PFX "I/O address 0x%04x already in use\n",
- 			wdt_start);
- 		rc = -EIO;
-@@ -348,33 +348,30 @@ static int __init sbc60xxwdt_init(void)
- 	}
- 
- 	/* We cannot reserve 0x45 - the kernel already has! */
--	if ((wdt_stop != 0x45) && (wdt_stop != wdt_start))
--	{
--		if (!request_region(wdt_stop, 1, "SBC 60XX WDT"))
--		{
--			printk(KERN_ERR PFX "I/O address 0x%04x already in use\n",
--				wdt_stop);
-+	if (wdt_stop != 0x45 && wdt_stop != wdt_start) {
-+		if (!request_region(wdt_stop, 1, "SBC 60XX WDT")) {
-+			printk(KERN_ERR PFX
-+				"I/O address 0x%04x already in use\n",
-+							wdt_stop);
- 			rc = -EIO;
- 			goto err_out_region1;
- 		}
- 	}
- 
- 	rc = register_reboot_notifier(&wdt_notifier);
--	if (rc)
--	{
--		printk(KERN_ERR PFX "cannot register reboot notifier (err=%d)\n",
--			rc);
-+	if (rc) {
-+		printk(KERN_ERR PFX
-+			"cannot register reboot notifier (err=%d)\n", rc);
- 		goto err_out_region2;
- 	}
- 
- 	rc = misc_register(&wdt_miscdev);
--	if (rc)
--	{
--		printk(KERN_ERR PFX "cannot register miscdev on minor=%d (err=%d)\n",
--			wdt_miscdev.minor, rc);
-+	if (rc) {
-+		printk(KERN_ERR PFX
-+			"cannot register miscdev on minor=%d (err=%d)\n",
-+						wdt_miscdev.minor, rc);
- 		goto err_out_reboot;
- 	}
+ 	if (!count)
+ 		return -EIO;
 -
- 	printk(KERN_INFO PFX "WDT driver for 60XX single board computer initialised. timeout=%d sec (nowayout=%d)\n",
- 		timeout, nowayout);
- 
-@@ -383,10 +380,10 @@ static int __init sbc60xxwdt_init(void)
- err_out_reboot:
- 	unregister_reboot_notifier(&wdt_notifier);
- err_out_region2:
--	if ((wdt_stop != 0x45) && (wdt_stop != wdt_start))
--		release_region(wdt_stop,1);
-+	if (wdt_stop != 0x45 && wdt_stop != wdt_start)
-+		release_region(wdt_stop, 1);
- err_out_region1:
--	release_region(wdt_start,1);
-+	release_region(wdt_start, 1);
- err_out:
- 	return rc;
+ 	mtx1_wdt_reset();
+ 	return count;
  }
+@@ -188,7 +188,7 @@ static ssize_t mtx1_wdt_write(struct fil
+ static const struct file_operations mtx1_wdt_fops = {
+ 	.owner 		= THIS_MODULE,
+ 	.llseek		= no_llseek,
+-	.ioctl		= mtx1_wdt_ioctl,
++	.unlocked_ioctl	= mtx1_wdt_ioctl,
+ 	.open 		= mtx1_wdt_open,
+ 	.write 		= mtx1_wdt_write,
+ 	.release 	= mtx1_wdt_release
+@@ -208,29 +208,26 @@ static int mtx1_wdt_probe(struct platfor
+ 
+ 	mtx1_wdt_device.gpio = pdev->resource[0].start;
+ 
+-	if ((ret = misc_register(&mtx1_wdt_misc)) < 0) {
+-		printk(KERN_ERR " mtx-1_wdt : failed to register\n");
+-		return ret;
+-	}
+-
++	spin_lock_init(&mtx1_wdt_device.lock);
+ 	init_completion(&mtx1_wdt_device.stop);
+ 	mtx1_wdt_device.queue = 0;
+-
+ 	clear_bit(0, &mtx1_wdt_device.inuse);
+-
+ 	setup_timer(&mtx1_wdt_device.timer, mtx1_wdt_trigger, 0L);
+-
+ 	mtx1_wdt_device.default_ticks = ticks;
+ 
++	ret = misc_register(&mtx1_wdt_misc);
++	if (ret < 0) {
++		printk(KERN_ERR " mtx-1_wdt : failed to register\n");
++		return ret;
++	}
+ 	mtx1_wdt_start();
+-
+ 	printk(KERN_INFO "MTX-1 Watchdog driver\n");
+-
+ 	return 0;
+ }
+ 
+ static int mtx1_wdt_remove(struct platform_device *pdev)
+ {
++	/* FIXME: do we need to lock this test ? */
+ 	if (mtx1_wdt_device.queue) {
+ 		mtx1_wdt_device.queue = 0;
+ 		wait_for_completion(&mtx1_wdt_device.stop);
 _
 
 Patches currently in -mm which might be from alan@redhat.com are
