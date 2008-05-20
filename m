@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + asm-generic-int-ll64h-always-provide-__su64.patch added to -mm tree
-Date: Tue, 20 May 2008 02:07:43 -0700
-Message-ID: <200805200907.m4K97hsr014700@imap1.linux-foundation.org>
+Subject: + audit-fix-kernel-doc-parameter-notation.patch added to -mm tree
+Date: Tue, 20 May 2008 02:09:35 -0700
+Message-ID: <200805200909.m4K99Z5e014782@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34610 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44126 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764527AbYETJIf (ORCPT
+	by vger.kernel.org with ESMTP id S1757787AbYETJLG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 May 2008 05:08:35 -0400
+	Tue, 20 May 2008 05:11:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, harvey.harrison@gmail.com, hpa@zytor.com
+Cc: randy.dunlap@oracle.com
 
 
 The patch titled
-     asm-generic/int-ll64.h: always provide __{s,u}64
+     audit: fix kernel-doc parameter notation
 has been added to the -mm tree.  Its filename is
-     asm-generic-int-ll64h-always-provide-__su64.patch
+     audit-fix-kernel-doc-parameter-notation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,90 +34,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: asm-generic/int-ll64.h: always provide __{s,u}64
-From: Adrian Bunk <bunk@kernel.org>
+Subject: audit: fix kernel-doc parameter notation
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Several compilers offer "long long" without claiming to support C99.
+Fix auditfilter kernel-doc misssing parameter description:
 
-Considering how frequent __s64/__u64 are used our userspace headers are
-anyway unusable without __s64/__u64 available.
+Warning(lin2626-rc3//kernel/auditfilter.c:1551): No description found for parameter 'sessionid'
 
-Always offer __s64/__u64 to non-gcc non-C99 compilers - if they provide
-"long long" that makes the headers compiling and if they don't they are
-anyway screwed.
-
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Acked-by: H. Peter Anvin <hpa@zytor.com>
-Cc: Harvey Harrison <harvey.harrison@gmail.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/int-ll64.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/auditfilter.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/asm-generic/int-ll64.h~asm-generic-int-ll64h-always-provide-__su64 include/asm-generic/int-ll64.h
---- a/include/asm-generic/int-ll64.h~asm-generic-int-ll64h-always-provide-__su64
-+++ a/include/asm-generic/int-ll64.h
-@@ -26,7 +26,7 @@ typedef unsigned int __u32;
- #ifdef __GNUC__
- __extension__ typedef __signed__ long long __s64;
- __extension__ typedef unsigned long long __u64;
--#elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
-+#else
- typedef __signed__ long long __s64;
- typedef unsigned long long __u64;
- #endif
+diff -puN kernel/auditfilter.c~audit-fix-kernel-doc-parameter-notation kernel/auditfilter.c
+--- a/kernel/auditfilter.c~audit-fix-kernel-doc-parameter-notation
++++ a/kernel/auditfilter.c
+@@ -1544,6 +1544,7 @@ static void audit_log_rule_change(uid_t 
+  * @data: payload data
+  * @datasz: size of payload data
+  * @loginuid: loginuid of sender
++ * @sessionid: sessionid for netlink audit message
+  * @sid: SE Linux Security ID of sender
+  */
+ int audit_receive_filter(int type, int pid, int uid, int seq, void *data,
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 linux-next.patch
-proper-prototype-for-acpi_processor_tstate_has_changed.patch
-remove-drivers-acorn-char-defkeymap-l7200c.patch
-drm-make-drm_minors_cleanup-static.patch
-git-input.patch
-nfs-make-nfs4_drop_state_owner-static.patch
-show_schedstat-fix-memleak.patch
-if-0-ses_match_host.patch
-git-watchdog.patch
-git-xtensa.patch
-ibmaem-fix-64-bit-division-on-32-bit-platforms-update.patch
-md-proper-extern-for-mdp_major.patch
-mm-migratec-should-include-linux-syscallsh.patch
-mm-vmstatc-proper-externs.patch
-mm-hugetlbc-fix-duplicate-variable.patch
-remove-include-asm-h8300-keyboardh.patch
-remove-the-v850-port.patch
-init-do_mountsc-should-include-linux-initrdh.patch
-proper-spawn_ksoftirqd-prototype.patch
-build-kernel-profileo-only-when-requested.patch
-asm-generic-int-ll64h-always-provide-__su64.patch
-remove-the-oss-trident-driver.patch
-serial-8250_gscc-add-module_license.patch
-mfd-sm501c-if-0-unused-functions.patch
-xen-drivers-xen-balloonc-make-a-function-static.patch
-video-sis-remove-compat-code.patch
-minix-remove-no_truncate-code.patch
-remove-is_tty.patch
-proper-extern-for-mwave_s_mdd.patch
-if-0-hpet_unregister.patch
-unexport-proc_clear_tty.patch
-move-proc_kmsg_operations-to-fs-proc-internalh.patch
-proper-pidhashmap_init-prototypes.patch
-unexport-uts_sem.patch
-parport-sharec-proper-externs.patch
-tpm_biosc-make-2-structs-static.patch
-make-cgroup_seqfile_release-static.patch
-make-kprobe_blacklist-static.patch
-make-pnp_add_card_id-static.patch
-make-struct-mpt_proc_root_dir-static.patch
-make-parport_cs_release-static.patch
-make-mm-sparsec-make-a-function-static.patch
-mm-allocpercpuc-make-4-functions-static.patch
-make-mm-memoryc-print_bad_pte-static.patch
-mm-swapfilec-make-code-static.patch
-make-mm-rmapc-anon_vma_cachep-static.patch
-drivers-char-rtcc-make-2-functions-static.patch
-make-init-do_mountsc-root_device_name-static.patch
-reiser4.patch
+documentation-build-source-files-in-documentation-sub-dir.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
+3c515-fix-using-pnp_get_resource-when-config_isapnp=n.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+git-unionfs.patch
+uwb-fix-kconfig-causing-undefined-references.patch
+uwb-fix-all-printk-format-warnings.patch
+kernel-doc-allow-unnamed-bit-fields.patch
+audit-fix-kernel-doc-parameter-notation.patch
+scsi-do-not-automatically-select-scsi_dh-for-dm-multipath.patch
+flag-parameters-signalfd-fix.patch
+flag-parameters-eventfd-fix.patch
+bsdacct-stir-up-comments-around-acct_process.patch
+profile-likely-unlikely-macros.patch
 
