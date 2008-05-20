@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-remove-refcnt-from-page_cgroup-fix.patch added to -mm tree
-Date: Mon, 19 May 2008 23:47:18 -0700
-Message-ID: <200805200647.m4K6lI7A009494@imap1.linux-foundation.org>
+Subject: + signals-introduce-sigqueue_cancelled.patch added to -mm tree
+Date: Mon, 19 May 2008 23:33:05 -0700
+Message-ID: <200805200633.m4K6X53f008989@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39182 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56423 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752853AbYETGtO (ORCPT
+	by vger.kernel.org with ESMTP id S1756870AbYETGux (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 May 2008 02:49:14 -0400
+	Tue, 20 May 2008 02:50:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, ebiederm@xmission.com, hugh@veritas.com, lizf@cn.fujitsu.com, menage@google.com, rientjes@google.com, xemul@openvz.org, yamamoto@valinux.co.jp
+Cc: oleg@tv-sign.ru, roland@redhat.com
 
 
 The patch titled
-     memcg-remove-refcnt-from-page_cgroup fix
+     signals: introduce SIGQUEUE_CANCELLED
 has been added to the -mm tree.  Its filename is
-     memcg-remove-refcnt-from-page_cgroup-fix.patch
+     signals-introduce-sigqueue_cancelled.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,52 +34,87 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-remove-refcnt-from-page_cgroup fix
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: signals: introduce SIGQUEUE_CANCELLED
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-This rollback should be done at failure.
+Suggested by Linus Torvalds.
 
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
-Cc: Paul Menage <menage@google.com>
-Cc: David Rientjes <rientjes@google.com>
+Introduce SIGQUEUE_CANCELLED flag.  If it is set, the pending signal
+should be ignored and collect_signal() should return 0.
+
+Note that the new flag is completely orthogonal to SIGQUEUE_PREALLOC, and it
+can be set without ->siglock held.
+
+No users of this new flag yet, see the next patch.
+
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/signal.h |    1 +
+ kernel/signal.c        |   13 +++++++------
+ 2 files changed, 8 insertions(+), 6 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-remove-refcnt-from-page_cgroup-fix mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-remove-refcnt-from-page_cgroup-fix
-+++ a/mm/memcontrol.c
-@@ -762,8 +762,8 @@ int mem_cgroup_prepare_migration(struct 
- /* remove redundant charge if migration failed*/
- void mem_cgroup_end_migration(struct page *newpage)
- {
--	/* At success, page->mapping is not NULL */
--	if (newpage->mapping)
-+	/* At success, page->mapping is not NULL and nothing to do. */
-+	if (!newpage->mapping)
- 		__mem_cgroup_uncharge_common(newpage,
- 					 MEM_CGROUP_CHARGE_TYPE_FORCE);
+diff -puN include/linux/signal.h~signals-introduce-sigqueue_cancelled include/linux/signal.h
+--- a/include/linux/signal.h~signals-introduce-sigqueue_cancelled
++++ a/include/linux/signal.h
+@@ -20,6 +20,7 @@ struct sigqueue {
+ 
+ /* flags values. */
+ #define SIGQUEUE_PREALLOC	1
++#define SIGQUEUE_CANCELLED	2
+ 
+ struct sigpending {
+ 	struct list_head list;
+diff -puN kernel/signal.c~signals-introduce-sigqueue_cancelled kernel/signal.c
+--- a/kernel/signal.c~signals-introduce-sigqueue_cancelled
++++ a/kernel/signal.c
+@@ -326,11 +326,13 @@ static int collect_signal(int sig, struc
+ 		}
+ 	}
+ 	if (first) {
+-		list_del_init(&first->list);
+-		copy_siginfo(info, &first->info);
+-		__sigqueue_free(first);
+ 		if (!still_pending)
+ 			sigdelset(&list->signal, sig);
++		if (unlikely(first->flags & SIGQUEUE_CANCELLED))
++			sig = 0;
++		copy_siginfo(info, &first->info);
++		list_del_init(&first->list);
++		__sigqueue_free(first);
+ 	} else {
+ 
+ 		/* Ok, it wasn't in the queue.  This must be
+@@ -344,7 +346,7 @@ static int collect_signal(int sig, struc
+ 		info->si_pid = 0;
+ 		info->si_uid = 0;
+ 	}
+-	return 1;
++	return sig;
  }
+ 
+ static int __dequeue_signal(struct sigpending *pending, sigset_t *mask,
+@@ -362,8 +364,7 @@ static int __dequeue_signal(struct sigpe
+ 			}
+ 		}
+ 
+-		if (!collect_signal(sig, pending, info))
+-			sig = 0;
++		sig = collect_signal(sig, pending, info);
+ 	}
+ 
+ 	return sig;
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
-mark-res_counter_charge_locked-with-__must_check.patch
-memcg-make-global-var-read_mostly.patch
-memcg-avoid-unnecessary-initialization.patch
-memcg-better-migration-handling.patch
-memcg-remove-refcnt-from-page_cgroup.patch
-memcg-remove-refcnt-from-page_cgroup-fix.patch
-memcg-handle-swap-cache.patch
-memcg-helper-function-for-relcaim-from-shmem.patch
-memcg-add-hints-for-branch.patch
-memcg-remove-a-redundant-check.patch
+signals-fix-sigqueue_free-vs-__exit_signal-race.patch
+posix-timers-timer_delete-remove-the-bogus-it_process-=-null-check.patch
+posix-timers-release_posix_timer-kill-the-bogus-put_task_struct-it_process.patch
+signals-sigqueue_free-dont-free-sigqueue-if-it-is-queued.patch
+signals-introduce-sigqueue_cancelled.patch
+posix-timers-use-sigqueue_cancelled-when-the-timer-is-destroyed.patch
+put_pid-make-sure-we-dont-free-the-live-pid.patch
 
