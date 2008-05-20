@@ -1,98 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - mmc-fix-omap-compile-by-replacing-dev_name-with-dma_dev_name.patch removed from -mm tree
-Date: Tue, 20 May 2008 14:14:47 -0700
-Message-ID: <200805202114.m4KLEloQ011496@imap1.linux-foundation.org>
+Subject: - drm-radeon-radeon_enable_vblank-should-return-negative-error.patch removed from -mm tree
+Date: Tue, 20 May 2008 14:14:06 -0700
+Message-ID: <200805202114.m4KLE6rK011436@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57114 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50923 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762161AbYETVYA (ORCPT
+	by vger.kernel.org with ESMTP id S1763308AbYETVYD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 May 2008 17:24:00 -0400
+	Tue, 20 May 2008 17:24:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tony@atomide.com, drzeus-list@drzeus.cx, paul@pwsan.com, mm-commits@vger.kernel.org
+To: marcin.slusarz@gmail.com, airlied@redhat.com, jbarnes@virtuousgeek.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mmc: fix omap compile by replacing dev_name with dma_dev_name
+     drm/radeon: radeon_enable_vblank should return negative error
 has been removed from the -mm tree.  Its filename was
-     mmc-fix-omap-compile-by-replacing-dev_name-with-dma_dev_name.patch
+     drm-radeon-radeon_enable_vblank-should-return-negative-error.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc: fix omap compile by replacing dev_name with dma_dev_name
-From: Tony Lindgren <tony@atomide.com>
+Subject: drm/radeon: radeon_enable_vblank should return negative error
+From: Marcin Slusarz <marcin.slusarz@gmail.com>
 
-Fix the error:
+radeon_enable_vblank <- drm_vblank_get <- drm_wait_vblank and
+drm_wait_vblank returns negative values on error.
 
-drivers/mmc/host/omap.c: In function 'mmc_omap_get_dma_channel':
-drivers/mmc/host/omap.c:1038: error: called object 'dev_name' is not a function
-
-Commit 06916639e2fed9ee475efef2747a1b7429f8fe76 adds a function called
-dev_name.  This will cause a name conflict as dev_dbg calls
-dev_name(((host->mmc)->parent)).
-
-This same issue should not affect other drivers as they don't seem to use
-dev_name with dev_dbg.
-
-Thanks to Paul Walmsley <paul@pwsan.com> for figuring this one out.
-
-Cc: Paul Walmsley <paul@pwsan.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-Cc: Pierre Ossman <drzeus-list@drzeus.cx>
+Signed-off-by: Marcin Slusarz <marcin.slusarz@gmail.com>
+Cc: Dave Airlie <airlied@redhat.com>
+Acked-by: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/omap.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ drivers/char/drm/radeon_irq.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mmc/host/omap.c~mmc-fix-omap-compile-by-replacing-dev_name-with-dma_dev_name drivers/mmc/host/omap.c
---- a/drivers/mmc/host/omap.c~mmc-fix-omap-compile-by-replacing-dev_name-with-dma_dev_name
-+++ a/drivers/mmc/host/omap.c
-@@ -1003,7 +1003,7 @@ static void mmc_omap_dma_cb(int lch, u16
- 
- static int mmc_omap_get_dma_channel(struct mmc_omap_host *host, struct mmc_data *data)
- {
--	const char *dev_name;
-+	const char *dma_dev_name;
- 	int sync_dev, dma_ch, is_read, r;
- 
- 	is_read = !(data->flags & MMC_DATA_WRITE);
-@@ -1018,21 +1018,21 @@ static int mmc_omap_get_dma_channel(stru
- 	if (is_read) {
- 		if (host->id == 1) {
- 			sync_dev = OMAP_DMA_MMC_RX;
--			dev_name = "MMC1 read";
-+			dma_dev_name = "MMC1 read";
- 		} else {
- 			sync_dev = OMAP_DMA_MMC2_RX;
--			dev_name = "MMC2 read";
-+			dma_dev_name = "MMC2 read";
- 		}
- 	} else {
- 		if (host->id == 1) {
- 			sync_dev = OMAP_DMA_MMC_TX;
--			dev_name = "MMC1 write";
-+			dma_dev_name = "MMC1 write";
- 		} else {
- 			sync_dev = OMAP_DMA_MMC2_TX;
--			dev_name = "MMC2 write";
-+			dma_dev_name = "MMC2 write";
- 		}
+diff -puN drivers/char/drm/radeon_irq.c~drm-radeon-radeon_enable_vblank-should-return-negative-error drivers/char/drm/radeon_irq.c
+--- a/drivers/char/drm/radeon_irq.c~drm-radeon-radeon_enable_vblank-should-return-negative-error
++++ a/drivers/char/drm/radeon_irq.c
+@@ -59,7 +59,7 @@ int radeon_enable_vblank(struct drm_devi
+ 	default:
+ 		DRM_ERROR("tried to enable vblank on non-existent crtc %d\n",
+ 			  crtc);
+-		return EINVAL;
++		return -EINVAL;
  	}
--	r = omap_request_dma(sync_dev, dev_name, mmc_omap_dma_cb,
-+	r = omap_request_dma(sync_dev, dma_dev_name, mmc_omap_dma_cb,
- 			     host, &dma_ch);
- 	if (r != 0) {
- 		dev_dbg(mmc_dev(host->mmc), "omap_request_dma() failed with %d\n", r);
+ 
+ 	return 0;
 _
 
-Patches currently in -mm which might be from tony@atomide.com are
+Patches currently in -mm which might be from marcin.slusarz@gmail.com are
 
 origin.patch
-arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
+linux-next.patch
+net-s2io-set_rxd_buffer_pointer-returns-enomem-not-enomem.patch
+vfs-fix-err_ptr-abuse-in-generic_readlink.patch
+ntfs-le_add_cpu-conversion.patch
 
