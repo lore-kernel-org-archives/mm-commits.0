@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-doc-allow-unnamed-bit-fields.patch added to -mm tree
-Date: Mon, 19 May 2008 21:10:59 -0700
-Message-ID: <200805200410.m4K4AxvI004224@imap1.linux-foundation.org>
+Subject: + linux-aouth-is-not-exported-to-userspace.patch added to -mm tree
+Date: Mon, 19 May 2008 21:12:57 -0700
+Message-ID: <200805200412.m4K4CvYR004278@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60347 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57742 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751988AbYETELJ (ORCPT
+	by vger.kernel.org with ESMTP id S1751698AbYETENP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 May 2008 00:11:09 -0400
+	Tue, 20 May 2008 00:13:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com
+Cc: raj.khem@gmail.com, stable@kernel.org
 
 
 The patch titled
-     kernel-doc: allow unnamed bit-fields
+     linux/a.out.h is not exported to userspace
 has been added to the -mm tree.  Its filename is
-     kernel-doc-allow-unnamed-bit-fields.patch
+     linux-aouth-is-not-exported-to-userspace.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,56 +34,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel-doc: allow unnamed bit-fields
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: linux/a.out.h is not exported to userspace
+From: Khem Raj <raj.khem@gmail.com>
 
-Allow for unnamed bit-fields and skip them instead of printing an
-erroneous warning message for them, such as:
+Looking for a compile failure for a package on uclibc system using
+kernel-headers from 2.6.25 I found that linux/a.out.h is no more exported
+to userland anymore.
 
-Warning(include/asm-s390/cio.h:103): No description found for parameter 'u32'
+This commit below has disabled it from being exported.  The commit Do not
+export asm/page.h during make headers_install so I was wondering if it was
+intended to unexport linux/a.out.h or not.
 
-which contains:
+http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git;a=3Dcomm=
+itdiff;h=3Ded7b1889da256977574663689b598d88950bbd23
 
-struct tm_scsw {
-	u32 :1;
+Looking at the patch from lkml post
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+http://linux.derkeiler.com/Mailing-Lists/Kernel/2007-10/msg08913.html
+
+second hunk to include/linux/Kbuild was not applied which caused this
+problem.
+
+Tested-by: Khem Raj <raj.khem@gmail.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kernel-doc |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ include/linux/Kbuild |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN scripts/kernel-doc~kernel-doc-allow-unnamed-bit-fields scripts/kernel-doc
---- a/scripts/kernel-doc~kernel-doc-allow-unnamed-bit-fields
-+++ a/scripts/kernel-doc
-@@ -1556,7 +1556,9 @@ sub create_parameterlist($$$) {
- 		    push_parameter($2, "$type $1", $file);
- 		}
- 		elsif ($param =~ m/(.*?):(\d+)/) {
--		    push_parameter($1, "$type:$2", $file)
-+		    if ($type ne "") { # skip unnamed bit-fields
-+			push_parameter($1, "$type:$2", $file)
-+		    }
- 		}
- 		else {
- 		    push_parameter($param, $type, $file);
+diff -puN include/linux/Kbuild~linux-aouth-is-not-exported-to-userspace include/linux/Kbuild
+--- a/include/linux/Kbuild~linux-aouth-is-not-exported-to-userspace
++++ a/include/linux/Kbuild
+@@ -168,6 +168,7 @@ unifdef-y += acct.h
+ unifdef-y += adb.h
+ unifdef-y += adfs_fs.h
+ unifdef-y += agpgart.h
++unifdef-y += a.out.h
+ unifdef-y += apm_bios.h
+ unifdef-y += atalk.h
+ unifdef-y += atmdev.h
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from raj.khem@gmail.com are
 
-linux-next.patch
-documentation-build-source-files-in-documentation-sub-dir.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
-3c515-fix-using-pnp_get_resource-when-config_isapnp=n.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-git-unionfs.patch
-uwb-fix-kconfig-causing-undefined-references.patch
-uwb-fix-all-printk-format-warnings.patch
-kernel-doc-allow-unnamed-bit-fields.patch
-scsi-do-not-automatically-select-scsi_dh-for-dm-multipath.patch
-flag-parameters-signalfd-fix.patch
-flag-parameters-eventfd-fix.patch
-bsdacct-stir-up-comments-around-acct_process.patch
-profile-likely-unlikely-macros.patch
+linux-aouth-is-not-exported-to-userspace.patch
 
