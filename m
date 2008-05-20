@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + watchdog-hpwdt-couple-of-include-cleanups.patch added to -mm tree
-Date: Tue, 20 May 2008 01:27:55 -0700
-Message-ID: <200805200827.m4K8RtjG013098@imap1.linux-foundation.org>
+Subject: + watchdog-stg7240_wdt-unlocked_ioctl.patch added to -mm tree
+Date: Tue, 20 May 2008 01:28:34 -0700
+Message-ID: <200805200828.m4K8SYgn013179@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53397 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48860 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760147AbYETI2N (ORCPT
+	by vger.kernel.org with ESMTP id S1761426AbYETI3U (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 May 2008 04:28:13 -0400
+	Tue, 20 May 2008 04:29:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@redhat.com
 
 
 The patch titled
-     watchdog: hpwdt: couple of include cleanups
+     watchdog: stg7240_wdt: unlocked_ioctl
 has been added to the -mm tree.  Its filename is
-     watchdog-hpwdt-couple-of-include-cleanups.patch
+     watchdog-stg7240_wdt-unlocked_ioctl.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: watchdog: hpwdt: couple of include cleanups
+Subject: watchdog: stg7240_wdt: unlocked_ioctl
 From: Alan Cox <alan@redhat.com>
 
 
@@ -42,24 +42,61 @@ Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/hpwdt.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/watchdog/sbc7240_wdt.c |   16 +++++++---------
+ 1 file changed, 7 insertions(+), 9 deletions(-)
 
-diff -puN drivers/watchdog/hpwdt.c~watchdog-hpwdt-couple-of-include-cleanups drivers/watchdog/hpwdt.c
---- a/drivers/watchdog/hpwdt.c~watchdog-hpwdt-couple-of-include-cleanups
-+++ a/drivers/watchdog/hpwdt.c
-@@ -39,9 +39,9 @@
- #include <linux/string.h>
- #include <linux/bootmem.h>
- #include <linux/slab.h>
--#include <asm/dmi.h>
-+#include <linux/dmi.h>
- #include <asm/desc.h>
--#include <asm/kdebug.h>
-+#include <linux/kdebug.h>
+diff -puN drivers/watchdog/sbc7240_wdt.c~watchdog-stg7240_wdt-unlocked_ioctl drivers/watchdog/sbc7240_wdt.c
+--- a/drivers/watchdog/sbc7240_wdt.c~watchdog-stg7240_wdt-unlocked_ioctl
++++ a/drivers/watchdog/sbc7240_wdt.c
+@@ -27,10 +27,10 @@
+ #include <linux/reboot.h>
+ #include <linux/types.h>
+ #include <linux/watchdog.h>
++#include <linux/io.h>
++#include <linux/uaccess.h>
+ #include <asm/atomic.h>
+-#include <asm/io.h>
+ #include <asm/system.h>
+-#include <asm/uaccess.h>
  
- #define PCI_BIOS32_SD_VALUE		0x5F32335F	/* "_32_" */
- #define CRU_BIOS_SIGNATURE_VALUE	0x55524324
+ #define SBC7240_PREFIX "sbc7240_wdt: "
+ 
+@@ -159,7 +159,7 @@ static int fop_close(struct inode *inode
+ 	return 0;
+ }
+ 
+-static struct watchdog_info ident = {
++static const struct watchdog_info ident = {
+ 	.options = WDIOF_KEEPALIVEPING|
+ 		   WDIOF_SETTIMEOUT|
+ 		   WDIOF_MAGICCLOSE,
+@@ -168,14 +168,12 @@ static struct watchdog_info ident = {
+ };
+ 
+ 
+-static int fop_ioctl(struct inode *inode, struct file *file, unsigned int cmd,
+-		     unsigned long arg)
++static long fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ {
+ 	switch (cmd) {
+ 	case WDIOC_GETSUPPORT:
+-		return copy_to_user
+-			((void __user *)arg, &ident, sizeof(ident))
+-			 ? -EFAULT : 0;
++		return copy_to_user((void __user *)arg, &ident, sizeof(ident))
++						 ? -EFAULT : 0;
+ 	case WDIOC_GETSTATUS:
+ 	case WDIOC_GETBOOTSTATUS:
+ 		return put_user(0, (int __user *)arg);
+@@ -225,7 +223,7 @@ static const struct file_operations wdt_
+ 	.write = fop_write,
+ 	.open = fop_open,
+ 	.release = fop_close,
+-	.ioctl = fop_ioctl,
++	.unlocked_ioctl = fop_ioctl,
+ };
+ 
+ static struct miscdevice wdt_miscdev = {
 _
 
 Patches currently in -mm which might be from alan@redhat.com are
