@@ -1,59 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch removed from -mm tree
-Date: Tue, 20 May 2008 13:58:26 -0700
-Message-ID: <200805202058.m4KKwQnA010801@imap1.linux-foundation.org>
+Subject: - uwb-fix-scscanf-warning.patch removed from -mm tree
+Date: Tue, 20 May 2008 14:04:12 -0700
+Message-ID: <200805202104.m4KL4Dld011029@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58373 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54559 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759588AbYETU6s (ORCPT
+	by vger.kernel.org with ESMTP id S1760463AbYETVEP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 May 2008 16:58:48 -0400
+	Tue, 20 May 2008 17:04:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bfields@fieldses.org, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/nfs/callback_xdr.c: suppress uninitialiized variable warnings
+     uwb: fix scscanf warning
 has been removed from the -mm tree.  Its filename was
-     fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+     uwb-fix-scscanf-warning.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/nfs/callback_xdr.c: suppress uninitialiized variable warnings
+Subject: uwb: fix scscanf warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-I'm tired of reading this:
+drivers/uwb/wlp/eda.c:426: warning: format '%u' expects type 'unsigned int *', but argument 12 has type 'enum wlp_wss_connect *'
 
-fs/nfs/callback_xdr.c: In function 'nfs4_callback_compound':
-fs/nfs/callback_xdr.c:404: warning: 'hdr_arg.taglen' may be used uninitialized in this function
-fs/nfs/callback_xdr.c:404: warning: 'hdr_arg.tag' may be used uninitialized in this function
-fs/nfs/callback_xdr.c:404: warning: 'hdr_arg.nops' may be used uninitialized in this function
-
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/callback_xdr.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/uwb/wlp/eda.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN fs/nfs/callback_xdr.c~fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings fs/nfs/callback_xdr.c
---- a/fs/nfs/callback_xdr.c~fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings
-+++ a/fs/nfs/callback_xdr.c
-@@ -401,7 +401,7 @@ static __be32 process_op(struct svc_rqst
-  */
- static __be32 nfs4_callback_compound(struct svc_rqst *rqstp, void *argp, void *resp)
- {
--	struct cb_compound_hdr_arg hdr_arg;
-+	struct cb_compound_hdr_arg uninitialized_var(hdr_arg);
- 	struct cb_compound_hdr_res hdr_res;
- 	struct xdr_stream xdr_in, xdr_out;
- 	__be32 *p;
+diff -puN drivers/uwb/wlp/eda.c~uwb-fix-scscanf-warning drivers/uwb/wlp/eda.c
+--- a/drivers/uwb/wlp/eda.c~uwb-fix-scscanf-warning
++++ a/drivers/uwb/wlp/eda.c
+@@ -417,13 +417,15 @@ ssize_t wlp_eda_store(struct wlp *wlp, c
+ 	struct uwb_dev_addr dev_addr;
+ 	u8 tag;
+ 	enum wlp_wss_connect state;
++	unsigned int s;
+ 
+ 	result = sscanf(buf, "%02hhx:%02hhx:%02hhx:%02hhx:%02hhx:%02hhx "
+ 			"%02hhx:%02hhx %02hhx %u\n",
+ 			 &eth_addr[0], &eth_addr[1],
+ 			 &eth_addr[2], &eth_addr[3],
+ 			 &eth_addr[4], &eth_addr[5],
+-			 &dev_addr.data[1], &dev_addr.data[0], &tag, &state);
++			 &dev_addr.data[1], &dev_addr.data[0], &tag, &s);
++	state = s;
+ 	switch (result) {
+ 	case 6: /* no dev addr specified -- remove entry NOT IMPLEMENTED */
+ 		/*result = wlp_eda_rm(eda, eth_addr, &dev_addr);*/
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -84,7 +86,6 @@ drivers-net-tokenring-olympicc-fix-warning.patch
 sfc-correct-and-expand-some-comments.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 git-battery.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
 pci-hotplug-introduce-pci_slot.patch
 pci-hotplug-acpi-pci-slot-detection-driver.patch
 drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
