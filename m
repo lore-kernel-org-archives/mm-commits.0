@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + watchdog-mtx-1_wdt-clean-up-coding-style-unlocked-ioctl.patch added to -mm tree
-Date: Tue, 20 May 2008 01:28:19 -0700
-Message-ID: <200805200828.m4K8SJZ4013149@imap1.linux-foundation.org>
+Subject: + watchdog-ep93xx_wdt-unlocked_ioctl.patch added to -mm tree
+Date: Tue, 20 May 2008 01:27:52 -0700
+Message-ID: <200805200827.m4K8Rq6n013072@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34522 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34145 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760952AbYETI2k (ORCPT
+	by vger.kernel.org with ESMTP id S1759756AbYETI2K (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 May 2008 04:28:40 -0400
+	Tue, 20 May 2008 04:28:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@redhat.com
 
 
 The patch titled
-     watchdog: mtx-1_wdt: clean up, coding style, unlocked ioctl
+     watchdog: ep93xx_wdt: unlocked_ioctl
 has been added to the -mm tree.  Its filename is
-     watchdog-mtx-1_wdt-clean-up-coding-style-unlocked-ioctl.patch
+     watchdog-ep93xx_wdt-unlocked_ioctl.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: watchdog: mtx-1_wdt: clean up, coding style, unlocked ioctl
+Subject: watchdog: ep93xx_wdt: unlocked_ioctl
 From: Alan Cox <alan@redhat.com>
 
 
@@ -42,238 +42,66 @@ Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/mtx-1_wdt.c |  107 ++++++++++++++++-----------------
- 1 file changed, 52 insertions(+), 55 deletions(-)
+ drivers/watchdog/ep93xx_wdt.c |   17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
 
-diff -puN drivers/watchdog/mtx-1_wdt.c~watchdog-mtx-1_wdt-clean-up-coding-style-unlocked-ioctl drivers/watchdog/mtx-1_wdt.c
---- a/drivers/watchdog/mtx-1_wdt.c~watchdog-mtx-1_wdt-clean-up-coding-style-unlocked-ioctl
-+++ a/drivers/watchdog/mtx-1_wdt.c
-@@ -1,7 +1,8 @@
- /*
-  *      Driver for the MTX-1 Watchdog.
-  *
-- *      (C) Copyright 2005 4G Systems <info@4g-systems.biz>, All Rights Reserved.
-+ *      (C) Copyright 2005 4G Systems <info@4g-systems.biz>,
-+ *							All Rights Reserved.
-  *                              http://www.4g-systems.biz
-  *
-  * 	(C) Copyright 2007 OpenWrt.org, Florian Fainelli <florian@openwrt.org>
-@@ -46,12 +47,11 @@
- #include <linux/jiffies.h>
+diff -puN drivers/watchdog/ep93xx_wdt.c~watchdog-ep93xx_wdt-unlocked_ioctl drivers/watchdog/ep93xx_wdt.c
+--- a/drivers/watchdog/ep93xx_wdt.c~watchdog-ep93xx_wdt-unlocked_ioctl
++++ a/drivers/watchdog/ep93xx_wdt.c
+@@ -28,9 +28,9 @@
+ #include <linux/miscdevice.h>
  #include <linux/watchdog.h>
- #include <linux/platform_device.h>
--
--#include <asm/io.h>
--#include <asm/uaccess.h>
-+#include <linux/io.h>
+ #include <linux/timer.h>
 +#include <linux/uaccess.h>
-+#include <linux/gpio.h>
  
- #include <asm/mach-au1x00/au1000.h>
--#include <asm/gpio.h>
+ #include <asm/hardware.h>
+-#include <asm/uaccess.h>
  
- #define MTX1_WDT_INTERVAL	(5 * HZ)
+ #define WDT_VERSION	"0.3"
+ #define PFX		"ep93xx_wdt: "
+@@ -136,9 +136,8 @@ static struct watchdog_info ident = {
+ 	.identity = "EP93xx Watchdog",
+ };
  
-@@ -59,6 +59,7 @@ static int ticks = 100 * HZ;
- 
- static struct {
- 	struct completion stop;
-+	spinlock_t lock;
- 	int running;
- 	struct timer_list timer;
- 	int queue;
-@@ -71,6 +72,7 @@ static void mtx1_wdt_trigger(unsigned lo
+-static int
+-ep93xx_wdt_ioctl(struct inode *inode, struct file *file, unsigned int cmd,
+-		 unsigned long arg)
++static long ep93xx_wdt_ioctl(struct file *file,
++					unsigned int cmd, unsigned long arg)
  {
- 	u32 tmp;
+ 	int ret = -ENOTTY;
  
-+	spin_lock(&mtx1_wdt_device.lock);
- 	if (mtx1_wdt_device.running)
- 		ticks--;
- 	/*
-@@ -79,13 +81,13 @@ static void mtx1_wdt_trigger(unsigned lo
- 	tmp = au_readl(GPIO2_DIR);
- 	tmp = (tmp & ~(1 << mtx1_wdt_device.gpio)) |
- 	      ((~tmp) & (1 << mtx1_wdt_device.gpio));
--	au_writel (tmp, GPIO2_DIR);
-+	au_writel(tmp, GPIO2_DIR);
+@@ -174,8 +173,8 @@ static int ep93xx_wdt_release(struct ino
+ 	if (test_bit(WDT_OK_TO_CLOSE, &wdt_status))
+ 		wdt_shutdown();
+ 	else
+-		printk(KERN_CRIT PFX "Device closed unexpectedly - "
+-			"timer will not stop\n");
++		printk(KERN_CRIT PFX
++			"Device closed unexpectedly - timer will not stop\n");
  
- 	if (mtx1_wdt_device.queue && ticks)
- 		mod_timer(&mtx1_wdt_device.timer, jiffies + MTX1_WDT_INTERVAL);
--	else {
-+	else
- 		complete(&mtx1_wdt_device.stop);
--	}
-+	spin_unlock(&mtx1_wdt_device.lock);
- }
+ 	clear_bit(WDT_IN_USE, &wdt_status);
+ 	clear_bit(WDT_OK_TO_CLOSE, &wdt_status);
+@@ -186,7 +185,7 @@ static int ep93xx_wdt_release(struct ino
+ static const struct file_operations ep93xx_wdt_fops = {
+ 	.owner		= THIS_MODULE,
+ 	.write		= ep93xx_wdt_write,
+-	.ioctl		= ep93xx_wdt_ioctl,
++	.unlocked_ioctl	= ep93xx_wdt_ioctl,
+ 	.open		= ep93xx_wdt_open,
+ 	.release	= ep93xx_wdt_release,
+ };
+@@ -243,7 +242,9 @@ module_param(nowayout, int, 0);
+ MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started");
  
- static void mtx1_wdt_reset(void)
-@@ -96,23 +98,25 @@ static void mtx1_wdt_reset(void)
+ module_param(timeout, int, 0);
+-MODULE_PARM_DESC(timeout, "Watchdog timeout in seconds. (1<=timeout<=3600, default=" __MODULE_STRING(WATCHDOG_TIMEOUT) ")");
++MODULE_PARM_DESC(timeout,
++	"Watchdog timeout in seconds. (1<=timeout<=3600, default="
++				__MODULE_STRING(WATCHDOG_TIMEOUT) ")");
  
- static void mtx1_wdt_start(void)
- {
-+	spin_lock_irqsave(&mtx1_wdt_device.lock, flags);
- 	if (!mtx1_wdt_device.queue) {
- 		mtx1_wdt_device.queue = 1;
- 		gpio_set_value(mtx1_wdt_device.gpio, 1);
- 		mod_timer(&mtx1_wdt_device.timer, jiffies + MTX1_WDT_INTERVAL);
- 	}
- 	mtx1_wdt_device.running++;
-+	spin_unlock_irqrestore(&mtx1_wdt_device.lock, flags);
- }
- 
- static int mtx1_wdt_stop(void)
- {
-+	spin_lock_irqsave(&mtx1_wdt_device.lock, flags);
- 	if (mtx1_wdt_device.queue) {
- 		mtx1_wdt_device.queue = 0;
- 		gpio_set_value(mtx1_wdt_device.gpio, 0);
- 	}
--
- 	ticks = mtx1_wdt_device.default_ticks;
--
-+	spin_unlock_irqrestore(&mtx1_wdt_device.lock, flags);
- 	return 0;
- }
- 
-@@ -122,7 +126,6 @@ static int mtx1_wdt_open(struct inode *i
- {
- 	if (test_and_set_bit(0, &mtx1_wdt_device.inuse))
- 		return -EBUSY;
--
- 	return nonseekable_open(inode, file);
- }
- 
-@@ -133,54 +136,51 @@ static int mtx1_wdt_release(struct inode
- 	return 0;
- }
- 
--static int mtx1_wdt_ioctl(struct inode *inode, struct file *file, unsigned int cmd, unsigned long arg)
-+static long mtx1_wdt_ioctl(struct file *file, unsigned int cmd,
-+							unsigned long arg)
- {
- 	void __user *argp = (void __user *)arg;
-+	int __user *p = (int __user *)argp;
- 	unsigned int value;
--	static struct watchdog_info ident =
--	{
-+	static const struct watchdog_info ident = {
- 		.options = WDIOF_CARDRESET,
- 		.identity = "MTX-1 WDT",
- 	};
- 
--	switch(cmd) {
--		case WDIOC_KEEPALIVE:
--			mtx1_wdt_reset();
--			break;
--		case WDIOC_GETSTATUS:
--		case WDIOC_GETBOOTSTATUS:
--			if ( copy_to_user(argp, &value, sizeof(int)) )
--				return -EFAULT;
--			break;
--		case WDIOC_GETSUPPORT:
--			if ( copy_to_user(argp, &ident, sizeof(ident)) )
--				return -EFAULT;
--			break;
--		case WDIOC_SETOPTIONS:
--			if ( copy_from_user(&value, argp, sizeof(int)) )
--				return -EFAULT;
--			switch(value) {
--				case WDIOS_ENABLECARD:
--					mtx1_wdt_start();
--					break;
--				case WDIOS_DISABLECARD:
--					return mtx1_wdt_stop();
--				default:
--					return -EINVAL;
--			}
--			break;
--		default:
--			return -ENOTTY;
-+	switch (cmd) {
-+	case WDIOC_KEEPALIVE:
-+		mtx1_wdt_reset();
-+		break;
-+	case WDIOC_GETSTATUS:
-+	case WDIOC_GETBOOTSTATUS:
-+		put_user(0, p);
-+		break;
-+	case WDIOC_GETSUPPORT:
-+		if (copy_to_user(argp, &ident, sizeof(ident)))
-+			return -EFAULT;
-+		break;
-+	case WDIOC_SETOPTIONS:
-+		if (get_user(value, p))
-+			return -EFAULT;
-+		if (value & WDIOS_ENABLECARD)
-+			mtx1_wdt_start();
-+		else if (value & WDIOS_DISABLECARD)
-+			mtx1_wdt_stop();
-+		else
-+			return -EINVAL;
-+		return 0;
-+	default:
-+		return -ENOTTY;
- 	}
- 	return 0;
- }
- 
- 
--static ssize_t mtx1_wdt_write(struct file *file, const char *buf, size_t count, loff_t *ppos)
-+static ssize_t mtx1_wdt_write(struct file *file, const char *buf,
-+						size_t count, loff_t *ppos)
- {
- 	if (!count)
- 		return -EIO;
--
- 	mtx1_wdt_reset();
- 	return count;
- }
-@@ -188,7 +188,7 @@ static ssize_t mtx1_wdt_write(struct fil
- static const struct file_operations mtx1_wdt_fops = {
- 	.owner 		= THIS_MODULE,
- 	.llseek		= no_llseek,
--	.ioctl		= mtx1_wdt_ioctl,
-+	.unlocked_ioctl	= mtx1_wdt_ioctl,
- 	.open 		= mtx1_wdt_open,
- 	.write 		= mtx1_wdt_write,
- 	.release 	= mtx1_wdt_release
-@@ -208,29 +208,26 @@ static int mtx1_wdt_probe(struct platfor
- 
- 	mtx1_wdt_device.gpio = pdev->resource[0].start;
- 
--	if ((ret = misc_register(&mtx1_wdt_misc)) < 0) {
--		printk(KERN_ERR " mtx-1_wdt : failed to register\n");
--		return ret;
--	}
--
-+	spin_lock_init(&mtx1_wdt_device.lock);
- 	init_completion(&mtx1_wdt_device.stop);
- 	mtx1_wdt_device.queue = 0;
--
- 	clear_bit(0, &mtx1_wdt_device.inuse);
--
- 	setup_timer(&mtx1_wdt_device.timer, mtx1_wdt_trigger, 0L);
--
- 	mtx1_wdt_device.default_ticks = ticks;
- 
-+	ret = misc_register(&mtx1_wdt_misc);
-+	if (ret < 0) {
-+		printk(KERN_ERR " mtx-1_wdt : failed to register\n");
-+		return ret;
-+	}
- 	mtx1_wdt_start();
--
- 	printk(KERN_INFO "MTX-1 Watchdog driver\n");
--
- 	return 0;
- }
- 
- static int mtx1_wdt_remove(struct platform_device *pdev)
- {
-+	/* FIXME: do we need to lock this test ? */
- 	if (mtx1_wdt_device.queue) {
- 		mtx1_wdt_device.queue = 0;
- 		wait_for_completion(&mtx1_wdt_device.stop);
+ MODULE_AUTHOR("Ray Lehtiniemi <rayl@mail.com>,"
+ 		"Alessandro Zummo <a.zummo@towertech.it>");
 _
 
 Patches currently in -mm which might be from alan@redhat.com are
