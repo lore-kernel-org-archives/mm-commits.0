@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: - x86-setup_force_cpu_cap-dont-do-clear_bitnon-unsigned-long.patch removed from -mm tree
-Date: Tue, 20 May 2008 14:13:54 -0700
-Message-ID: <200805202113.m4KLDsmd011412@imap1.linux-foundation.org>
+Subject: - x86-bitops-take-an-unsigned-long.patch removed from -mm tree
+Date: Tue, 20 May 2008 14:13:58 -0700
+Message-ID: <200805202113.m4KLDwjB011418@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56176 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59818 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761337AbYETVOx (ORCPT
+	by vger.kernel.org with ESMTP id S1761338AbYETVO5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 May 2008 17:14:53 -0400
+	Tue, 20 May 2008 17:14:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, andrea@qumranet.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86: setup_force_cpu_cap(): don't do clear_bit(non-unsigned-long)
+     x86: bitops take an unsigned long *
 has been removed from the -mm tree.  Its filename was
-     x86-setup_force_cpu_cap-dont-do-clear_bitnon-unsigned-long.patch
+     x86-bitops-take-an-unsigned-long.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: setup_force_cpu_cap(): don't do clear_bit(non-unsigned-long)
+Subject: x86: bitops take an unsigned long *
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Another hack to make proper prototyping of x86 bitops viable.
+All (or most) other architectures do this.  So should x86.  Fix.
 
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
@@ -35,26 +35,161 @@ Cc: Andrea Arcangeli <andrea@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-x86/cpufeature.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/asm-x86/bitops.h |   34 +++++++++++++++++-----------------
+ 1 file changed, 17 insertions(+), 17 deletions(-)
 
-diff -puN include/asm-x86/cpufeature.h~x86-setup_force_cpu_cap-dont-do-clear_bitnon-unsigned-long include/asm-x86/cpufeature.h
---- a/include/asm-x86/cpufeature.h~x86-setup_force_cpu_cap-dont-do-clear_bitnon-unsigned-long
-+++ a/include/asm-x86/cpufeature.h
-@@ -142,11 +142,11 @@ extern const char * const x86_power_flag
- #define clear_cpu_cap(c, bit)	clear_bit(bit, (unsigned long *)((c)->x86_capability))
- #define setup_clear_cpu_cap(bit) do { \
- 	clear_cpu_cap(&boot_cpu_data, bit);	\
--	set_bit(bit, cleared_cpu_caps); 	\
-+	set_bit(bit, (unsigned long *)cleared_cpu_caps); \
- } while (0)
- #define setup_force_cpu_cap(bit) do { \
- 	set_cpu_cap(&boot_cpu_data, bit);	\
--	clear_bit(bit, cleared_cpu_caps); 	\
-+	clear_bit(bit, (unsigned long *)cleared_cpu_caps); 	\
- } while (0)
+diff -puN include/asm-x86/bitops.h~x86-bitops-take-an-unsigned-long include/asm-x86/bitops.h
+--- a/include/asm-x86/bitops.h~x86-bitops-take-an-unsigned-long
++++ a/include/asm-x86/bitops.h
+@@ -43,7 +43,7 @@
+  * Note that @nr may be almost arbitrarily large; this function is not
+  * restricted to acting on a single-word quantity.
+  */
+-static inline void set_bit(int nr, volatile void *addr)
++static inline void set_bit(int nr, volatile unsigned long *addr)
+ {
+ 	asm volatile(LOCK_PREFIX "bts %1,%0" : ADDR : "Ir" (nr) : "memory");
+ }
+@@ -57,7 +57,7 @@ static inline void set_bit(int nr, volat
+  * If it's called on the same region of memory simultaneously, the effect
+  * may be that only one operation succeeds.
+  */
+-static inline void __set_bit(int nr, volatile void *addr)
++static inline void __set_bit(int nr, volatile unsigned long *addr)
+ {
+ 	asm volatile("bts %1,%0" : ADDR : "Ir" (nr) : "memory");
+ }
+@@ -72,7 +72,7 @@ static inline void __set_bit(int nr, vol
+  * you should call smp_mb__before_clear_bit() and/or smp_mb__after_clear_bit()
+  * in order to ensure changes are visible on other processors.
+  */
+-static inline void clear_bit(int nr, volatile void *addr)
++static inline void clear_bit(int nr, volatile unsigned long *addr)
+ {
+ 	asm volatile(LOCK_PREFIX "btr %1,%0" : ADDR : "Ir" (nr));
+ }
+@@ -85,13 +85,13 @@ static inline void clear_bit(int nr, vol
+  * clear_bit() is atomic and implies release semantics before the memory
+  * operation. It can be used for an unlock.
+  */
+-static inline void clear_bit_unlock(unsigned nr, volatile void *addr)
++static inline void clear_bit_unlock(unsigned nr, volatile unsigned long *addr)
+ {
+ 	barrier();
+ 	clear_bit(nr, addr);
+ }
  
- #define cpu_has_fpu		boot_cpu_has(X86_FEATURE_FPU)
+-static inline void __clear_bit(int nr, volatile void *addr)
++static inline void __clear_bit(int nr, volatile unsigned long *addr)
+ {
+ 	asm volatile("btr %1,%0" : ADDR : "Ir" (nr));
+ }
+@@ -108,7 +108,7 @@ static inline void __clear_bit(int nr, v
+  * No memory barrier is required here, because x86 cannot reorder stores past
+  * older loads. Same principle as spin_unlock.
+  */
+-static inline void __clear_bit_unlock(unsigned nr, volatile void *addr)
++static inline void __clear_bit_unlock(unsigned nr, volatile unsigned long *addr)
+ {
+ 	barrier();
+ 	__clear_bit(nr, addr);
+@@ -126,7 +126,7 @@ static inline void __clear_bit_unlock(un
+  * If it's called on the same region of memory simultaneously, the effect
+  * may be that only one operation succeeds.
+  */
+-static inline void __change_bit(int nr, volatile void *addr)
++static inline void __change_bit(int nr, volatile unsigned long *addr)
+ {
+ 	asm volatile("btc %1,%0" : ADDR : "Ir" (nr));
+ }
+@@ -140,7 +140,7 @@ static inline void __change_bit(int nr, 
+  * Note that @nr may be almost arbitrarily large; this function is not
+  * restricted to acting on a single-word quantity.
+  */
+-static inline void change_bit(int nr, volatile void *addr)
++static inline void change_bit(int nr, volatile unsigned long *addr)
+ {
+ 	asm volatile(LOCK_PREFIX "btc %1,%0" : ADDR : "Ir" (nr));
+ }
+@@ -153,7 +153,7 @@ static inline void change_bit(int nr, vo
+  * This operation is atomic and cannot be reordered.
+  * It also implies a memory barrier.
+  */
+-static inline int test_and_set_bit(int nr, volatile void *addr)
++static inline int test_and_set_bit(int nr, volatile unsigned long *addr)
+ {
+ 	int oldbit;
+ 
+@@ -170,7 +170,7 @@ static inline int test_and_set_bit(int n
+  *
+  * This is the same as test_and_set_bit on x86.
+  */
+-static inline int test_and_set_bit_lock(int nr, volatile void *addr)
++static inline int test_and_set_bit_lock(int nr, volatile unsigned long *addr)
+ {
+ 	return test_and_set_bit(nr, addr);
+ }
+@@ -184,7 +184,7 @@ static inline int test_and_set_bit_lock(
+  * If two examples of this operation race, one can appear to succeed
+  * but actually fail.  You must protect multiple accesses with a lock.
+  */
+-static inline int __test_and_set_bit(int nr, volatile void *addr)
++static inline int __test_and_set_bit(int nr, volatile unsigned long *addr)
+ {
+ 	int oldbit;
+ 
+@@ -203,7 +203,7 @@ static inline int __test_and_set_bit(int
+  * This operation is atomic and cannot be reordered.
+  * It also implies a memory barrier.
+  */
+-static inline int test_and_clear_bit(int nr, volatile void *addr)
++static inline int test_and_clear_bit(int nr, volatile unsigned long *addr)
+ {
+ 	int oldbit;
+ 
+@@ -223,7 +223,7 @@ static inline int test_and_clear_bit(int
+  * If two examples of this operation race, one can appear to succeed
+  * but actually fail.  You must protect multiple accesses with a lock.
+  */
+-static inline int __test_and_clear_bit(int nr, volatile void *addr)
++static inline int __test_and_clear_bit(int nr, volatile unsigned long *addr)
+ {
+ 	int oldbit;
+ 
+@@ -235,7 +235,7 @@ static inline int __test_and_clear_bit(i
+ }
+ 
+ /* WARNING: non atomic and it can be reordered! */
+-static inline int __test_and_change_bit(int nr, volatile void *addr)
++static inline int __test_and_change_bit(int nr, volatile unsigned long *addr)
+ {
+ 	int oldbit;
+ 
+@@ -255,7 +255,7 @@ static inline int __test_and_change_bit(
+  * This operation is atomic and cannot be reordered.
+  * It also implies a memory barrier.
+  */
+-static inline int test_and_change_bit(int nr, volatile void *addr)
++static inline int test_and_change_bit(int nr, volatile unsigned long *addr)
+ {
+ 	int oldbit;
+ 
+@@ -266,13 +266,13 @@ static inline int test_and_change_bit(in
+ 	return oldbit;
+ }
+ 
+-static inline int constant_test_bit(int nr, const volatile void *addr)
++static inline int constant_test_bit(int nr, const volatile unsigned long *addr)
+ {
+ 	return ((1UL << (nr % BITS_PER_LONG)) &
+ 		(((unsigned long *)addr)[nr / BITS_PER_LONG])) != 0;
+ }
+ 
+-static inline int variable_test_bit(int nr, volatile const void *addr)
++static inline int variable_test_bit(int nr, volatile const unsigned long *addr)
+ {
+ 	int oldbit;
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
