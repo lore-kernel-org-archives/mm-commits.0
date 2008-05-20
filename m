@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + watchdog-mpc-watchdog-clean-up-and-locking.patch added to -mm tree
-Date: Tue, 20 May 2008 01:28:16 -0700
-Message-ID: <200805200828.m4K8SG0P013143@imap1.linux-foundation.org>
+Subject: + watchdog-i6300esb-style-unlocked_ioctl-cleanup.patch added to -mm tree
+Date: Tue, 20 May 2008 01:27:58 -0700
+Message-ID: <200805200827.m4K8RwAH013104@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45348 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56307 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760453AbYETI2f (ORCPT
+	by vger.kernel.org with ESMTP id S1758719AbYETI2T (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 May 2008 04:28:35 -0400
+	Tue, 20 May 2008 04:28:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@redhat.com
 
 
 The patch titled
-     watchdog: mpc watchdog: clean up and locking
+     watchdog: i6300esb: Style, unlocked_ioctl, cleanup
 has been added to the -mm tree.  Its filename is
-     watchdog-mpc-watchdog-clean-up-and-locking.patch
+     watchdog-i6300esb-style-unlocked_ioctl-cleanup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: watchdog: mpc watchdog: clean up and locking
+Subject: watchdog: i6300esb: Style, unlocked_ioctl, cleanup
 From: Alan Cox <alan@redhat.com>
 
 
@@ -42,271 +42,557 @@ Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/mpc5200_wdt.c |   20 ++++++++++------
- drivers/watchdog/mpc83xx_wdt.c |   19 ++++++++-------
- drivers/watchdog/mpc8xx_wdt.c  |   37 +++++++++++++++----------------
- 3 files changed, 41 insertions(+), 35 deletions(-)
+ drivers/watchdog/i6300esb.c |  354 ++++++++++++++++------------------
+ 1 file changed, 173 insertions(+), 181 deletions(-)
 
-diff -puN drivers/watchdog/mpc5200_wdt.c~watchdog-mpc-watchdog-clean-up-and-locking drivers/watchdog/mpc5200_wdt.c
---- a/drivers/watchdog/mpc5200_wdt.c~watchdog-mpc-watchdog-clean-up-and-locking
-+++ a/drivers/watchdog/mpc5200_wdt.c
-@@ -4,8 +4,8 @@
- #include <linux/watchdog.h>
- #include <linux/io.h>
- #include <linux/spinlock.h>
--#include <asm/of_platform.h>
+diff -puN drivers/watchdog/i6300esb.c~watchdog-i6300esb-style-unlocked_ioctl-cleanup drivers/watchdog/i6300esb.c
+--- a/drivers/watchdog/i6300esb.c~watchdog-i6300esb-style-unlocked_ioctl-cleanup
++++ a/drivers/watchdog/i6300esb.c
+@@ -38,9 +38,8 @@
+ #include <linux/init.h>
+ #include <linux/pci.h>
+ #include <linux/ioport.h>
+-
 -#include <asm/uaccess.h>
-+#include <linux/of_platform.h>
-+#include <linux/uaccess.h>
- #include <asm/mpc52xx.h>
- 
- 
-@@ -57,7 +57,8 @@ static int mpc5200_wdt_start(struct mpc5
- 	/* set timeout, with maximum prescaler */
- 	out_be32(&wdt->regs->count, 0x0 | wdt->count);
- 	/* enable watchdog */
--	out_be32(&wdt->regs->mode, GPT_MODE_CE | GPT_MODE_WDT | GPT_MODE_MS_TIMER);
-+	out_be32(&wdt->regs->mode, GPT_MODE_CE | GPT_MODE_WDT |
-+						GPT_MODE_MS_TIMER);
- 	spin_unlock(&wdt->io_lock);
- 
- 	return 0;
-@@ -66,7 +67,8 @@ static int mpc5200_wdt_ping(struct mpc52
- {
- 	spin_lock(&wdt->io_lock);
- 	/* writing A5 to OCPW resets the watchdog */
--	out_be32(&wdt->regs->mode, 0xA5000000 | (0xffffff & in_be32(&wdt->regs->mode)));
-+	out_be32(&wdt->regs->mode, 0xA5000000 |
-+				(0xffffff & in_be32(&wdt->regs->mode)));
- 	spin_unlock(&wdt->io_lock);
- 	return 0;
- }
-@@ -92,8 +94,8 @@ static struct watchdog_info mpc5200_wdt_
- 	.options	= WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING,
- 	.identity	= "mpc5200 watchdog on GPT0",
- };
--static int mpc5200_wdt_ioctl(struct inode *inode, struct file *file,
--		unsigned int cmd, unsigned long arg)
-+static long mpc5200_wdt_ioctl(struct file *file, unsigned int cmd,
-+							unsigned long arg)
- {
- 	struct mpc5200_wdt *wdt = file->private_data;
- 	int __user *data = (int __user *)arg;
-@@ -103,7 +105,7 @@ static int mpc5200_wdt_ioctl(struct inod
- 	switch (cmd) {
- 	case WDIOC_GETSUPPORT:
- 		ret = copy_to_user(data, &mpc5200_wdt_info,
--			sizeof(mpc5200_wdt_info));
-+						sizeof(mpc5200_wdt_info));
- 		if (ret)
- 			ret = -EFAULT;
- 		break;
-@@ -135,6 +137,7 @@ static int mpc5200_wdt_ioctl(struct inod
- 	}
- 	return ret;
- }
-+
- static int mpc5200_wdt_open(struct inode *inode, struct file *file)
- {
- 	/* /dev/watchdog can only be opened once */
-@@ -167,7 +170,8 @@ static const struct file_operations mpc5
- };
- 
- /* module operations */
--static int mpc5200_wdt_probe(struct of_device *op, const struct of_device_id *match)
-+static int mpc5200_wdt_probe(struct of_device *op,
-+					const struct of_device_id *match)
- {
- 	struct mpc5200_wdt *wdt;
- 	int err;
-diff -puN drivers/watchdog/mpc83xx_wdt.c~watchdog-mpc-watchdog-clean-up-and-locking drivers/watchdog/mpc83xx_wdt.c
---- a/drivers/watchdog/mpc83xx_wdt.c~watchdog-mpc-watchdog-clean-up-and-locking
-+++ a/drivers/watchdog/mpc83xx_wdt.c
-@@ -22,8 +22,8 @@
- #include <linux/platform_device.h>
- #include <linux/module.h>
- #include <linux/watchdog.h>
 -#include <asm/io.h>
--#include <asm/uaccess.h>
-+#include <linux/io.h>
 +#include <linux/uaccess.h>
++#include <linux/io.h>
  
- struct mpc83xx_wdt {
- 	__be32 res0;
-@@ -42,11 +42,13 @@ static struct mpc83xx_wdt __iomem *wd_ba
+ /* Module and version information */
+ #define ESB_VERSION "0.03"
+@@ -59,17 +58,17 @@
+ #define ESB_RELOAD_REG  BASEADDR + 0x0c /* Reload register                   */
  
- static u16 timeout = 0xffff;
- module_param(timeout, ushort, 0);
--MODULE_PARM_DESC(timeout, "Watchdog timeout in ticks. (0<timeout<65536, default=65535");
-+MODULE_PARM_DESC(timeout,
-+	"Watchdog timeout in ticks. (0<timeout<65536, default=65535");
+ /* Lock register bits */
+-#define ESB_WDT_FUNC    ( 0x01 << 2 )   /* Watchdog functionality            */
+-#define ESB_WDT_ENABLE  ( 0x01 << 1 )   /* Enable WDT                        */
+-#define ESB_WDT_LOCK    ( 0x01 << 0 )   /* Lock (nowayout)                   */
++#define ESB_WDT_FUNC    (0x01 << 2)   /* Watchdog functionality            */
++#define ESB_WDT_ENABLE  (0x01 << 1)   /* Enable WDT                        */
++#define ESB_WDT_LOCK    (0x01 << 0)   /* Lock (nowayout)                   */
  
- static int reset = 1;
- module_param(reset, bool, 0);
--MODULE_PARM_DESC(reset, "Watchdog Interrupt/Reset Mode. 0 = interrupt, 1 = reset");
-+MODULE_PARM_DESC(reset,
-+	"Watchdog Interrupt/Reset Mode. 0 = interrupt, 1 = reset");
+ /* Config register bits */
+-#define ESB_WDT_REBOOT  ( 0x01 << 5 )   /* Enable reboot on timeout          */
+-#define ESB_WDT_FREQ    ( 0x01 << 2 )   /* Decrement frequency               */
+-#define ESB_WDT_INTTYPE ( 0x11 << 0 )   /* Interrupt type on timer1 timeout  */
++#define ESB_WDT_REBOOT  (0x01 << 5)   /* Enable reboot on timeout          */
++#define ESB_WDT_FREQ    (0x01 << 2)   /* Decrement frequency               */
++#define ESB_WDT_INTTYPE (0x11 << 0)   /* Interrupt type on timer1 timeout  */
+ 
+ /* Reload register bits */
+-#define ESB_WDT_RELOAD ( 0x01 << 8 )    /* prevent timeout                   */
++#define ESB_WDT_RELOAD  (0x01 << 8)    /* prevent timeout                   */
+ 
+ /* Magic constants */
+ #define ESB_UNLOCK1     0x80            /* Step 1 to unlock reset registers  */
+@@ -84,14 +83,20 @@ static unsigned short triggered; /* The 
+ static char esb_expect_close;
+ 
+ /* module parameters */
+-#define WATCHDOG_HEARTBEAT 30   /* 30 sec default heartbeat (1<heartbeat<2*1023) */
++/* 30 sec default heartbeat (1 < heartbeat < 2*1023) */
++#define WATCHDOG_HEARTBEAT 30
+ static int heartbeat = WATCHDOG_HEARTBEAT;  /* in seconds */
++
+ module_param(heartbeat, int, 0);
+-MODULE_PARM_DESC(heartbeat, "Watchdog heartbeat in seconds. (1<heartbeat<2046, default=" __MODULE_STRING(WATCHDOG_HEARTBEAT) ")");
++MODULE_PARM_DESC(heartbeat,
++		"Watchdog heartbeat in seconds. (1<heartbeat<2046, default="
++				__MODULE_STRING(WATCHDOG_HEARTBEAT) ")");
+ 
+ static int nowayout = WATCHDOG_NOWAYOUT;
+ module_param(nowayout, int, 0);
+-MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started (default=" __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
++MODULE_PARM_DESC(nowayout,
++		"Watchdog cannot be stopped once started (default="
++				__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
  
  /*
-  * We always prescale, but if someone really doesn't want to they can set this
-@@ -105,8 +107,8 @@ static int mpc83xx_wdt_release(struct in
+  * Some i6300ESB specific functions
+@@ -104,8 +109,8 @@ MODULE_PARM_DESC(nowayout, "Watchdog can
+  * to once before they need to be unlocked again.
+  */
+ static inline void esb_unlock_registers(void) {
+-        writeb(ESB_UNLOCK1, ESB_RELOAD_REG);
+-        writeb(ESB_UNLOCK2, ESB_RELOAD_REG);
++	writeb(ESB_UNLOCK1, ESB_RELOAD_REG);
++	writeb(ESB_UNLOCK2, ESB_RELOAD_REG);
+ }
+ 
+ static void esb_timer_start(void)
+@@ -114,8 +119,7 @@ static void esb_timer_start(void)
+ 
+ 	/* Enable or Enable + Lock? */
+ 	val = 0x02 | (nowayout ? 0x01 : 0x00);
+-
+-        pci_write_config_byte(esb_pci, ESB_LOCK_REG, val);
++	pci_write_config_byte(esb_pci, ESB_LOCK_REG, val);
+ }
+ 
+ static int esb_timer_stop(void)
+@@ -140,7 +144,7 @@ static void esb_timer_keepalive(void)
+ 	spin_lock(&esb_lock);
+ 	esb_unlock_registers();
+ 	writew(ESB_WDT_RELOAD, ESB_RELOAD_REG);
+-        /* FIXME: Do we need to flush anything here? */
++	/* FIXME: Do we need to flush anything here? */
+ 	spin_unlock(&esb_lock);
+ }
+ 
+@@ -167,7 +171,7 @@ static int esb_timer_set_heartbeat(int t
+ 	esb_unlock_registers();
+         writel(val, ESB_TIMER2_REG);
+ 
+-        /* Reload */
++	/* Reload */
+ 	esb_unlock_registers();
+ 	writew(ESB_WDT_RELOAD, ESB_RELOAD_REG);
+ 
+@@ -179,54 +183,55 @@ static int esb_timer_set_heartbeat(int t
  	return 0;
  }
  
--static int mpc83xx_wdt_ioctl(struct inode *inode, struct file *file,
--				unsigned int cmd, unsigned long arg)
-+static long mpc83xx_wdt_ioctl(struct file *file, unsigned int cmd,
-+							unsigned long arg)
+-static int esb_timer_read (void)
++static int esb_timer_read(void)
  {
- 	void __user *argp = (void __user *)arg;
- 	int __user *p = argp;
-@@ -136,7 +138,7 @@ static const struct file_operations mpc8
- 	.owner		= THIS_MODULE,
- 	.llseek		= no_llseek,
- 	.write		= mpc83xx_wdt_write,
--	.ioctl		= mpc83xx_wdt_ioctl,
-+	.unlocked_ioctl	= mpc83xx_wdt_ioctl,
- 	.open		= mpc83xx_wdt_open,
- 	.release	= mpc83xx_wdt_release,
- };
-@@ -161,8 +163,7 @@ static int __devinit mpc83xx_wdt_probe(s
- 		goto err_out;
- 	}
+-       	u32 count;
++	u32 count;
  
--	wd_base = ioremap(r->start, sizeof (struct mpc83xx_wdt));
--
-+	wd_base = ioremap(r->start, sizeof(struct mpc83xx_wdt));
- 	if (wd_base == NULL) {
- 		ret = -ENOMEM;
- 		goto err_out;
-diff -puN drivers/watchdog/mpc8xx_wdt.c~watchdog-mpc-watchdog-clean-up-and-locking drivers/watchdog/mpc8xx_wdt.c
---- a/drivers/watchdog/mpc8xx_wdt.c~watchdog-mpc-watchdog-clean-up-and-locking
-+++ a/drivers/watchdog/mpc8xx_wdt.c
-@@ -16,36 +16,35 @@
- #include <linux/module.h>
- #include <linux/watchdog.h>
- #include <asm/8xx_immap.h>
--#include <asm/uaccess.h>
--#include <asm/io.h>
-+#include <linux/uaccess.h>
-+#include <linux/io.h>
- #include <syslib/m8xx_wdt.h>
- 
- static unsigned long wdt_opened;
- static int wdt_status;
-+static spinlock_t wdt_lock;
- 
- static void mpc8xx_wdt_handler_disable(void)
- {
- 	volatile uint __iomem *piscr;
--	piscr = (uint *)&((immap_t*)IMAP_ADDR)->im_sit.sit_piscr;
-+	piscr = (uint *)&((immap_t *)IMAP_ADDR)->im_sit.sit_piscr;
- 
- 	if (!m8xx_has_internal_rtc)
- 		m8xx_wdt_stop_timer();
- 	else
- 		out_be32(piscr, in_be32(piscr) & ~(PISCR_PIE | PISCR_PTE));
--
- 	printk(KERN_NOTICE "mpc8xx_wdt: keep-alive handler deactivated\n");
+ 	/* This isn't documented, and doesn't take into
+-         * acount which stage is running, but it looks
+-         * like a 20 bit count down, so we might as well report it.
+-         */
+-        pci_read_config_dword(esb_pci, 0x64, &count);
+-        return (int)count;
++	 * acount which stage is running, but it looks
++	 * like a 20 bit count down, so we might as well report it.
++	 */
++	pci_read_config_dword(esb_pci, 0x64, &count);
++	return (int)count;
  }
  
- static void mpc8xx_wdt_handler_enable(void)
- {
- 	volatile uint __iomem *piscr;
--	piscr = (uint *)&((immap_t*)IMAP_ADDR)->im_sit.sit_piscr;
-+	piscr = (uint *)&((immap_t *)IMAP_ADDR)->im_sit.sit_piscr;
+ /*
+  * 	/dev/watchdog handling
+  */
  
- 	if (!m8xx_has_internal_rtc)
- 		m8xx_wdt_install_timer();
- 	else
- 		out_be32(piscr, in_be32(piscr) | PISCR_PIE | PISCR_PTE);
--
- 	printk(KERN_NOTICE "mpc8xx_wdt: keep-alive handler activated\n");
- }
- 
-@@ -53,37 +52,34 @@ static int mpc8xx_wdt_open(struct inode 
+-static int esb_open (struct inode *inode, struct file *file)
++static int esb_open(struct inode *inode, struct file *file)
  {
- 	if (test_and_set_bit(0, &wdt_opened))
- 		return -EBUSY;
+-        /* /dev/watchdog can only be opened once */
+-        if (test_and_set_bit(0, &timer_alive))
+-                return -EBUSY;
 -
- 	m8xx_wdt_reset();
- 	mpc8xx_wdt_handler_disable();
--
+-        /* Reload and activate timer */
+-        esb_timer_keepalive ();
+-        esb_timer_start ();
++	/* /dev/watchdog can only be opened once */
++	if (test_and_set_bit(0, &timer_alive))
++		return -EBUSY;
++
++	/* Reload and activate timer */
++	esb_timer_keepalive();
++	esb_timer_start();
+ 
  	return nonseekable_open(inode, file);
  }
  
- static int mpc8xx_wdt_release(struct inode *inode, struct file *file)
+-static int esb_release (struct inode *inode, struct file *file)
++static int esb_release(struct inode *inode, struct file *file)
  {
- 	m8xx_wdt_reset();
--
- #if !defined(CONFIG_WATCHDOG_NOWAYOUT)
- 	mpc8xx_wdt_handler_enable();
- #endif
--
- 	clear_bit(0, &wdt_opened);
--
- 	return 0;
+-        /* Shut off the timer. */
+-        if (esb_expect_close == 42) {
+-                esb_timer_stop ();
+-        } else {
+-                printk(KERN_CRIT PFX "Unexpected close, not stopping watchdog!\n");
+-                esb_timer_keepalive ();
+-        }
+-        clear_bit(0, &timer_alive);
+-        esb_expect_close = 0;
+-        return 0;
++	/* Shut off the timer. */
++	if (esb_expect_close == 42)
++		esb_timer_stop();
++	else {
++		printk(KERN_CRIT PFX
++				"Unexpected close, not stopping watchdog!\n");
++		esb_timer_keepalive();
++	}
++	clear_bit(0, &timer_alive);
++	esb_expect_close = 0;
++	return 0;
  }
  
--static ssize_t mpc8xx_wdt_write(struct file *file, const char *data, size_t len,
--				loff_t * ppos)
-+static ssize_t mpc8xx_wdt_write(struct file *file, const char *data,
-+						size_t len, loff_t *ppos)
+-static ssize_t esb_write (struct file *file, const char __user *data,
+-			  size_t len, loff_t * ppos)
++static ssize_t esb_write(struct file *file, const char __user *data,
++			  size_t len, loff_t *ppos)
  {
--	if (len)
+ 	/* See if we got the magic character 'V' and reload the timer */
+-        if (len) {
 +	if (len) {
-+		spin_lock(&wdt_lock);
- 		m8xx_wdt_reset();
--
-+		spin_unlock(&wdt_lock);
-+	}
+ 		if (!nowayout) {
+ 			size_t i;
+ 
+@@ -237,7 +242,7 @@ static ssize_t esb_write (struct file *f
+ 			/* scan to see whether or not we got the magic character */
+ 			for (i = 0; i != len; i++) {
+ 				char c;
+-				if(get_user(c, data+i))
++				if (get_user(c, data+i))
+ 					return -EFAULT;
+ 				if (c == 'V')
+ 					esb_expect_close = 42;
+@@ -245,13 +250,12 @@ static ssize_t esb_write (struct file *f
+ 		}
+ 
+ 		/* someone wrote to us, we should reload the timer */
+-		esb_timer_keepalive ();
++		esb_timer_keepalive();
+ 	}
  	return len;
  }
  
--static int mpc8xx_wdt_ioctl(struct inode *inode, struct file *file,
--			    unsigned int cmd, unsigned long arg)
-+static long mpc8xx_wdt_ioctl(struct file *file,
-+					unsigned int cmd, unsigned long arg)
+-static int esb_ioctl (struct inode *inode, struct file *file,
+-		      unsigned int cmd, unsigned long arg)
++static long esb_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
  {
- 	int timeout;
- 	static struct watchdog_info info = {
-@@ -112,15 +108,19 @@ static int mpc8xx_wdt_ioctl(struct inode
- 		return -EOPNOTSUPP;
+ 	int new_options, retval = -EINVAL;
+ 	int new_heartbeat;
+@@ -266,71 +270,65 @@ static int esb_ioctl (struct inode *inod
+ 	};
  
- 	case WDIOC_KEEPALIVE:
-+		spin_lock(&wdt_lock);
- 		m8xx_wdt_reset();
- 		wdt_status |= WDIOF_KEEPALIVEPING;
-+		spin_unlock(&wdt_lock);
- 		break;
- 
- 	case WDIOC_SETTIMEOUT:
- 		return -EOPNOTSUPP;
- 
- 	case WDIOC_GETTIMEOUT:
-+		spin_lock(&wdt_lock);
- 		timeout = m8xx_wdt_get_timeout();
-+		spin_unlock(&wdt_lock);
- 		if (put_user(timeout, (int *)arg))
- 			return -EFAULT;
- 		break;
-@@ -136,7 +136,7 @@ static const struct file_operations mpc8
- 	.owner = THIS_MODULE,
- 	.llseek = no_llseek,
- 	.write = mpc8xx_wdt_write,
--	.ioctl = mpc8xx_wdt_ioctl,
-+	.unlocked_ioctl = mpc8xx_wdt_ioctl,
- 	.open = mpc8xx_wdt_open,
- 	.release = mpc8xx_wdt_release,
- };
-@@ -149,6 +149,7 @@ static struct miscdevice mpc8xx_wdt_misc
- 
- static int __init mpc8xx_wdt_init(void)
- {
-+	spin_lock_init(&wdt_lock);
- 	return misc_register(&mpc8xx_wdt_miscdev);
+ 	switch (cmd) {
+-		case WDIOC_GETSUPPORT:
+-			return copy_to_user(argp, &ident,
+-					    sizeof (ident)) ? -EFAULT : 0;
+-
+-		case WDIOC_GETSTATUS:
+-			return put_user (esb_timer_read(), p);
+-
+-		case WDIOC_GETBOOTSTATUS:
+-			return put_user (triggered, p);
+-
+-                case WDIOC_KEEPALIVE:
+-                        esb_timer_keepalive ();
+-                        return 0;
+-
+-                case WDIOC_SETOPTIONS:
+-                {
+-                        if (get_user (new_options, p))
+-                                return -EFAULT;
+-
+-                        if (new_options & WDIOS_DISABLECARD) {
+-                                esb_timer_stop ();
+-                                retval = 0;
+-                        }
+-
+-                        if (new_options & WDIOS_ENABLECARD) {
+-                                esb_timer_keepalive ();
+-                                esb_timer_start ();
+-                                retval = 0;
+-                        }
+-
+-                        return retval;
+-                }
+-
+-                case WDIOC_SETTIMEOUT:
+-                {
+-                        if (get_user(new_heartbeat, p))
+-                                return -EFAULT;
+-
+-                        if (esb_timer_set_heartbeat(new_heartbeat))
+-                            return -EINVAL;
+-
+-                        esb_timer_keepalive ();
+-                        /* Fall */
+-                }
+-
+-                case WDIOC_GETTIMEOUT:
+-                        return put_user(heartbeat, p);
+-
+-                default:
+-                        return -ENOTTY;
+-        }
++	case WDIOC_GETSUPPORT:
++		return copy_to_user(argp, &ident,
++					sizeof(ident)) ? -EFAULT : 0;
++
++	case WDIOC_GETSTATUS:
++		return put_user(esb_timer_read(), p);
++
++	case WDIOC_GETBOOTSTATUS:
++		return put_user(triggered, p);
++
++	case WDIOC_KEEPALIVE:
++		esb_timer_keepalive();
++		return 0;
++
++	case WDIOC_SETOPTIONS:
++	{
++		if (get_user(new_options, p))
++			return -EFAULT;
++
++		if (new_options & WDIOS_DISABLECARD) {
++			esb_timer_stop();
++			retval = 0;
++		}
++
++		if (new_options & WDIOS_ENABLECARD) {
++			esb_timer_keepalive();
++			esb_timer_start();
++			retval = 0;
++		}
++		return retval;
++	}
++	case WDIOC_SETTIMEOUT:
++	{
++		if (get_user(new_heartbeat, p))
++			return -EFAULT;
++		if (esb_timer_set_heartbeat(new_heartbeat))
++			return -EINVAL;
++		esb_timer_keepalive();
++		/* Fall */
++	}
++	case WDIOC_GETTIMEOUT:
++		return put_user(heartbeat, p);
++	default:
++		return -ENOTTY;
++	}
  }
  
+ /*
+  *      Notify system
+  */
+ 
+-static int esb_notify_sys (struct notifier_block *this, unsigned long code, void *unused)
++static int esb_notify_sys(struct notifier_block *this,
++					unsigned long code, void *unused)
+ {
+-        if (code==SYS_DOWN || code==SYS_HALT) {
+-                /* Turn the WDT off */
+-                esb_timer_stop ();
+-        }
+-
+-        return NOTIFY_DONE;
++	if (code == SYS_DOWN || code == SYS_HALT) {
++		/* Turn the WDT off */
++		esb_timer_stop();
++	}
++	return NOTIFY_DONE;
+ }
+ 
+ /*
+@@ -338,22 +336,22 @@ static int esb_notify_sys (struct notifi
+  */
+ 
+ static const struct file_operations esb_fops = {
+-        .owner =        THIS_MODULE,
+-        .llseek =       no_llseek,
+-        .write =        esb_write,
+-        .ioctl =        esb_ioctl,
+-        .open =         esb_open,
+-        .release =      esb_release,
++	.owner = THIS_MODULE,
++	.llseek = no_llseek,
++	.write = esb_write,
++	.unlocked_ioctl = esb_ioctl,
++	.open = esb_open,
++	.release = esb_release,
+ };
+ 
+ static struct miscdevice esb_miscdev = {
+-        .minor =        WATCHDOG_MINOR,
+-        .name =         "watchdog",
+-        .fops =         &esb_fops,
++	.minor = WATCHDOG_MINOR,
++	.name = "watchdog",
++	.fops = &esb_fops,
+ };
+ 
+ static struct notifier_block esb_notifier = {
+-        .notifier_call =        esb_notify_sys,
++	.notifier_call = esb_notify_sys,
+ };
+ 
+ /*
+@@ -365,50 +363,44 @@ static struct notifier_block esb_notifie
+  * want to register another driver on the same PCI id.
+  */
+ static struct pci_device_id esb_pci_tbl[] = {
+-        { PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_ESB_9), },
+-        { 0, },                 /* End of list */
++	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_ESB_9), },
++	{ 0, },                 /* End of list */
+ };
+-MODULE_DEVICE_TABLE (pci, esb_pci_tbl);
++MODULE_DEVICE_TABLE(pci, esb_pci_tbl);
+ 
+ /*
+  *      Init & exit routines
+  */
+ 
+-static unsigned char __init esb_getdevice (void)
++static unsigned char __init esb_getdevice(void)
+ {
+ 	u8 val1;
+ 	unsigned short val2;
++	/*
++	 *      Find the PCI device
++	 */
+ 
+-        struct pci_dev *dev = NULL;
+-        /*
+-         *      Find the PCI device
+-         */
+-
+-        for_each_pci_dev(dev) {
+-                if (pci_match_id(esb_pci_tbl, dev)) {
+-                        esb_pci = dev;
+-                        break;
+-                }
+-	}
++	esb_pci = pci_get_device(PCI_VENDOR_ID_INTEL,
++					PCI_DEVICE_ID_INTEL_ESB_9, NULL);
+ 
+-        if (esb_pci) {
+-        	if (pci_enable_device(esb_pci)) {
+-			printk (KERN_ERR PFX "failed to enable device\n");
++	if (esb_pci) {
++		if (pci_enable_device(esb_pci)) {
++			printk(KERN_ERR PFX "failed to enable device\n");
+ 			goto err_devput;
+ 		}
+ 
+ 		if (pci_request_region(esb_pci, 0, ESB_MODULE_NAME)) {
+-			printk (KERN_ERR PFX "failed to request region\n");
++			printk(KERN_ERR PFX "failed to request region\n");
+ 			goto err_disable;
+ 		}
+ 
+ 		BASEADDR = ioremap(pci_resource_start(esb_pci, 0),
+ 				   pci_resource_len(esb_pci, 0));
+ 		if (BASEADDR == NULL) {
+-                	/* Something's wrong here, BASEADDR has to be set */
+-			printk (KERN_ERR PFX "failed to get BASEADDR\n");
+-                        goto err_release;
+-                }
++			/* Something's wrong here, BASEADDR has to be set */
++			printk(KERN_ERR PFX "failed to get BASEADDR\n");
++			goto err_release;
++		}
+ 
+ 		/*
+ 		 * The watchdog has two timers, it can be setup so that the
+@@ -425,7 +417,7 @@ static unsigned char __init esb_getdevic
+ 		/* Check that the WDT isn't already locked */
+ 		pci_read_config_byte(esb_pci, ESB_LOCK_REG, &val1);
+ 		if (val1 & ESB_WDT_LOCK)
+-			printk (KERN_WARNING PFX "nowayout already set\n");
++			printk(KERN_WARNING PFX "nowayout already set\n");
+ 
+ 		/* Set the timer to watchdog mode and disable it for now */
+ 		pci_write_config_byte(esb_pci, ESB_LOCK_REG, 0x00);
+@@ -452,44 +444,44 @@ err_devput:
+ 	return 0;
+ }
+ 
+-static int __init watchdog_init (void)
++static int __init watchdog_init(void)
+ {
+-        int ret;
+-
+-        /* Check whether or not the hardware watchdog is there */
+-        if (!esb_getdevice () || esb_pci == NULL)
+-                return -ENODEV;
+-
+-        /* Check that the heartbeat value is within it's range ; if not reset to the default */
+-        if (esb_timer_set_heartbeat (heartbeat)) {
+-                esb_timer_set_heartbeat (WATCHDOG_HEARTBEAT);
+-                printk(KERN_INFO PFX "heartbeat value must be 1<heartbeat<2046, using %d\n",
+-		       heartbeat);
+-        }
+-
+-        ret = register_reboot_notifier(&esb_notifier);
+-        if (ret != 0) {
+-                printk(KERN_ERR PFX "cannot register reboot notifier (err=%d)\n",
+-                        ret);
+-                goto err_unmap;
+-        }
+-
+-        ret = misc_register(&esb_miscdev);
+-        if (ret != 0) {
+-                printk(KERN_ERR PFX "cannot register miscdev on minor=%d (err=%d)\n",
+-                        WATCHDOG_MINOR, ret);
+-                goto err_notifier;
+-        }
++	int ret;
+ 
+-        esb_timer_stop ();
+-
+-        printk (KERN_INFO PFX "initialized (0x%p). heartbeat=%d sec (nowayout=%d)\n",
+-                BASEADDR, heartbeat, nowayout);
++	/* Check whether or not the hardware watchdog is there */
++	if (!esb_getdevice() || esb_pci == NULL)
++		return -ENODEV;
++
++	/* Check that the heartbeat value is within it's range;
++	   if not reset to the default */
++	if (esb_timer_set_heartbeat(heartbeat)) {
++        	esb_timer_set_heartbeat(WATCHDOG_HEARTBEAT);
++		printk(KERN_INFO PFX
++			"heartbeat value must be 1<heartbeat<2046, using %d\n",
++								heartbeat);
++	}
++	ret = register_reboot_notifier(&esb_notifier);
++	if (ret != 0) {
++		printk(KERN_ERR PFX
++			"cannot register reboot notifier (err=%d)\n", ret);
++		goto err_unmap;
++	}
+ 
+-        return 0;
++	ret = misc_register(&esb_miscdev);
++	if (ret != 0) {
++		printk(KERN_ERR PFX
++			"cannot register miscdev on minor=%d (err=%d)\n",
++							WATCHDOG_MINOR, ret);
++		goto err_notifier;
++	}
++	esb_timer_stop();
++	printk(KERN_INFO PFX
++		"initialized (0x%p). heartbeat=%d sec (nowayout=%d)\n",
++						BASEADDR, heartbeat, nowayout);
++	return 0;
+ 
+ err_notifier:
+-        unregister_reboot_notifier(&esb_notifier);
++	unregister_reboot_notifier(&esb_notifier);
+ err_unmap:
+ 	iounmap(BASEADDR);
+ /* err_release: */
+@@ -498,18 +490,18 @@ err_unmap:
+ 	pci_disable_device(esb_pci);
+ /* err_devput: */
+ 	pci_dev_put(esb_pci);
+-        return ret;
++	return ret;
+ }
+ 
+-static void __exit watchdog_cleanup (void)
++static void __exit watchdog_cleanup(void)
+ {
+ 	/* Stop the timer before we leave */
+ 	if (!nowayout)
+-		esb_timer_stop ();
++		esb_timer_stop();
+ 
+ 	/* Deregister */
+ 	misc_deregister(&esb_miscdev);
+-        unregister_reboot_notifier(&esb_notifier);
++	unregister_reboot_notifier(&esb_notifier);
+ 	iounmap(BASEADDR);
+ 	pci_release_region(esb_pci, 0);
+ 	pci_disable_device(esb_pci);
 _
 
 Patches currently in -mm which might be from alan@redhat.com are
