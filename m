@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + sfc-simplify-efx_rx_calc_buffer_size-using-get_order.patch added to -mm tree
-Date: Mon, 19 May 2008 20:27:30 -0700
-Message-ID: <200805200327.m4K3RU3t002692@imap1.linux-foundation.org>
+Subject: + sfc-add-and-remove-braces-to-comply-with-kernel-style.patch added to -mm tree
+Date: Mon, 19 May 2008 20:27:33 -0700
+Message-ID: <200805200327.m4K3RXZe002698@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54785 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46570 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757140AbYETD1g (ORCPT
+	by vger.kernel.org with ESMTP id S1757220AbYETD1l (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 May 2008 23:27:36 -0400
+	Mon, 19 May 2008 23:27:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: bhutchings@solarflare.com, jeff@garzik.org
 
 
 The patch titled
-     sfc: simplify efx_rx_calc_buffer_size() using get_order()
+     sfc: add and remove braces to comply with kernel style
 has been added to the -mm tree.  Its filename is
-     sfc-simplify-efx_rx_calc_buffer_size-using-get_order.patch
+     sfc-add-and-remove-braces-to-comply-with-kernel-style.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,65 +34,117 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sfc: simplify efx_rx_calc_buffer_size() using get_order()
+Subject: sfc: add and remove braces to comply with kernel style
 From: Ben Hutchings <bhutchings@solarflare.com>
-
-Merged it into its only caller, efx_init_channels().
 
 Signed-off-by: Ben Hutchings <bhutchings@solarflare.com>
 Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/sfc/efx.c |   29 ++++++++---------------------
- 1 file changed, 8 insertions(+), 21 deletions(-)
+ drivers/net/sfc/efx.c    |    6 +++---
+ drivers/net/sfc/falcon.c |    3 ++-
+ drivers/net/sfc/rx.c     |    3 ++-
+ drivers/net/sfc/tx.c     |    9 ++++++---
+ 4 files changed, 13 insertions(+), 8 deletions(-)
 
-diff -puN drivers/net/sfc/efx.c~sfc-simplify-efx_rx_calc_buffer_size-using-get_order drivers/net/sfc/efx.c
---- a/drivers/net/sfc/efx.c~sfc-simplify-efx_rx_calc_buffer_size-using-get_order
+diff -puN drivers/net/sfc/efx.c~sfc-add-and-remove-braces-to-comply-with-kernel-style drivers/net/sfc/efx.c
+--- a/drivers/net/sfc/efx.c~sfc-add-and-remove-braces-to-comply-with-kernel-style
 +++ a/drivers/net/sfc/efx.c
-@@ -317,26 +317,6 @@ static void efx_remove_eventq(struct efx
-  *
-  *************************************************************************/
+@@ -1060,9 +1060,8 @@ static void efx_flush_all(struct efx_nic
+ 	cancel_delayed_work_sync(&efx->monitor_work);
  
--/* Setup per-NIC RX buffer parameters.
-- * Calculate the rx buffer allocation parameters required to support
-- * the current MTU, including padding for header alignment and overruns.
-- */
--static void efx_calc_rx_buffer_params(struct efx_nic *efx)
--{
--	unsigned int order, len;
--
--	len = (max(EFX_PAGE_IP_ALIGN, NET_IP_ALIGN) +
--	       EFX_MAX_FRAME_LEN(efx->net_dev->mtu) +
--	       efx->type->rx_buffer_padding);
--
--	/* Calculate page-order */
--	for (order = 0; ((1u << order) * PAGE_SIZE) < len; ++order)
--		;
--
--	efx->rx_buffer_len = len;
--	efx->rx_buffer_order = order;
--}
--
- static int efx_probe_channel(struct efx_channel *channel)
+ 	/* Ensure that all RX slow refills are complete. */
+-	efx_for_each_rx_queue(rx_queue, efx) {
++	efx_for_each_rx_queue(rx_queue, efx)
+ 		cancel_delayed_work_sync(&rx_queue->work);
+-	}
+ 
+ 	/* Stop scheduled port reconfigurations */
+ 	cancel_work_sync(&efx->reconfigure_work);
+@@ -1088,9 +1087,10 @@ static void efx_stop_all(struct efx_nic 
+ 	falcon_disable_interrupts(efx);
+ 	if (efx->legacy_irq)
+ 		synchronize_irq(efx->legacy_irq);
+-	efx_for_each_channel_with_interrupt(channel, efx)
++	efx_for_each_channel_with_interrupt(channel, efx) {
+ 		if (channel->irq)
+ 			synchronize_irq(channel->irq);
++	}
+ 
+ 	/* Stop all NAPI processing and synchronous rx refills */
+ 	efx_for_each_channel(channel, efx)
+diff -puN drivers/net/sfc/falcon.c~sfc-add-and-remove-braces-to-comply-with-kernel-style drivers/net/sfc/falcon.c
+--- a/drivers/net/sfc/falcon.c~sfc-add-and-remove-braces-to-comply-with-kernel-style
++++ a/drivers/net/sfc/falcon.c
+@@ -1636,9 +1636,10 @@ void falcon_fini_interrupt(struct efx_ni
+ 	efx_oword_t reg;
+ 
+ 	/* Disable MSI/MSI-X interrupts */
+-	efx_for_each_channel_with_interrupt(channel, efx)
++	efx_for_each_channel_with_interrupt(channel, efx) {
+ 		if (channel->irq)
+ 			free_irq(channel->irq, channel);
++	}
+ 
+ 	/* ACK legacy interrupt */
+ 	if (FALCON_REV(efx) >= FALCON_REV_B0)
+diff -puN drivers/net/sfc/rx.c~sfc-add-and-remove-braces-to-comply-with-kernel-style drivers/net/sfc/rx.c
+--- a/drivers/net/sfc/rx.c~sfc-add-and-remove-braces-to-comply-with-kernel-style
++++ a/drivers/net/sfc/rx.c
+@@ -400,9 +400,10 @@ static int __efx_fast_push_rx_descriptor
+ 		return 0;
+ 
+ 	/* Record minimum fill level */
+-	if (unlikely(fill_level < rx_queue->min_fill))
++	if (unlikely(fill_level < rx_queue->min_fill)) {
+ 		if (fill_level)
+ 			rx_queue->min_fill = fill_level;
++	}
+ 
+ 	/* Acquire RX add lock.  If this lock is contended, then a fast
+ 	 * fill must already be in progress (e.g. in the refill
+diff -puN drivers/net/sfc/tx.c~sfc-add-and-remove-braces-to-comply-with-kernel-style drivers/net/sfc/tx.c
+--- a/drivers/net/sfc/tx.c~sfc-add-and-remove-braces-to-comply-with-kernel-style
++++ a/drivers/net/sfc/tx.c
+@@ -639,11 +639,12 @@ static void efx_tsoh_block_free(struct e
+ 	base_dma = tsoh->dma_addr & PAGE_MASK;
+ 
+ 	p = &tx_queue->tso_headers_free;
+-	while (*p != NULL)
++	while (*p != NULL) {
+ 		if (((unsigned long)*p & PAGE_MASK) == base_kva)
+ 			*p = (*p)->next;
+ 		else
+ 			p = &(*p)->next;
++	}
+ 
+ 	pci_free_consistent(pci_dev, PAGE_SIZE, (void *)base_kva, base_dma);
+ }
+@@ -939,9 +940,10 @@ static inline int tso_start_new_packet(s
+ 
+ 	/* Allocate a DMA-mapped header buffer. */
+ 	if (likely(TSOH_SIZE(st->p.header_length) <= TSOH_STD_SIZE)) {
+-		if (tx_queue->tso_headers_free == NULL)
++		if (tx_queue->tso_headers_free == NULL) {
+ 			if (efx_tsoh_block_alloc(tx_queue))
+ 				return -1;
++		}
+ 		EFX_BUG_ON_PARANOID(!tx_queue->tso_headers_free);
+ 		tsoh = tx_queue->tso_headers_free;
+ 		tx_queue->tso_headers_free = tsoh->next;
+@@ -1106,9 +1108,10 @@ static void efx_fini_tso(struct efx_tx_q
  {
- 	struct efx_tx_queue *tx_queue;
-@@ -387,7 +367,14 @@ static int efx_init_channels(struct efx_
- 	struct efx_channel *channel;
- 	int rc = 0;
+ 	unsigned i;
  
--	efx_calc_rx_buffer_params(efx);
-+	/* Calculate the rx buffer allocation parameters required to
-+	 * support the current MTU, including padding for header
-+	 * alignment and overruns.
-+	 */
-+	efx->rx_buffer_len = (max(EFX_PAGE_IP_ALIGN, NET_IP_ALIGN) +
-+			      EFX_MAX_FRAME_LEN(efx->net_dev->mtu) +
-+			      efx->type->rx_buffer_padding);
-+	efx->rx_buffer_order = get_order(efx->rx_buffer_len);
+-	if (tx_queue->buffer)
++	if (tx_queue->buffer) {
+ 		for (i = 0; i <= tx_queue->efx->type->txd_ring_mask; ++i)
+ 			efx_tsoh_free(tx_queue, &tx_queue->buffer[i]);
++	}
  
- 	/* Initialise the channels */
- 	efx_for_each_channel(channel, efx) {
+ 	while (tx_queue->tso_headers_free != NULL)
+ 		efx_tsoh_block_free(tx_queue, tx_queue->tso_headers_free,
 _
 
 Patches currently in -mm which might be from bhutchings@solarflare.com are
