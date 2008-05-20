@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + watchdog-rm9k_wdt-clean-up.patch added to -mm tree
-Date: Tue, 20 May 2008 01:28:28 -0700
-Message-ID: <200805200828.m4K8SSsu013167@imap1.linux-foundation.org>
+Subject: + watchdog-cpu5_wdt-switch-to-unlocked_ioctl.patch added to -mm tree
+Date: Tue, 20 May 2008 01:27:49 -0700
+Message-ID: <200805200827.m4K8RnX4013064@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55650 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35659 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761224AbYETI3B (ORCPT
+	by vger.kernel.org with ESMTP id S1757704AbYETI2H (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 May 2008 04:29:01 -0400
+	Tue, 20 May 2008 04:28:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@redhat.com
 
 
 The patch titled
-     watchdog: rm9k_wdt: clean up
+     watchdog: cpu5_wdt: switch to unlocked_ioctl
 has been added to the -mm tree.  Its filename is
-     watchdog-rm9k_wdt-clean-up.patch
+     watchdog-cpu5_wdt-switch-to-unlocked_ioctl.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: watchdog: rm9k_wdt: clean up
+Subject: watchdog: cpu5_wdt: switch to unlocked_ioctl
 From: Alan Cox <alan@redhat.com>
 
 
@@ -42,79 +42,277 @@ Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/rm9k_wdt.c |   21 ++++++++++++---------
- 1 file changed, 12 insertions(+), 9 deletions(-)
+ drivers/watchdog/cpu5wdt.c |  144 +++++++++++++++++------------------
+ 1 file changed, 70 insertions(+), 74 deletions(-)
 
-diff -puN drivers/watchdog/rm9k_wdt.c~watchdog-rm9k_wdt-clean-up drivers/watchdog/rm9k_wdt.c
---- a/drivers/watchdog/rm9k_wdt.c~watchdog-rm9k_wdt-clean-up
-+++ a/drivers/watchdog/rm9k_wdt.c
-@@ -29,10 +29,10 @@
- #include <linux/notifier.h>
- #include <linux/miscdevice.h>
- #include <linux/watchdog.h>
+diff -puN drivers/watchdog/cpu5wdt.c~watchdog-cpu5_wdt-switch-to-unlocked_ioctl drivers/watchdog/cpu5wdt.c
+--- a/drivers/watchdog/cpu5wdt.c~watchdog-cpu5_wdt-switch-to-unlocked_ioctl
++++ a/drivers/watchdog/cpu5wdt.c
+@@ -30,16 +30,16 @@
+ #include <linux/timer.h>
+ #include <linux/completion.h>
+ #include <linux/jiffies.h>
 -#include <asm/io.h>
+-#include <asm/uaccess.h>
+-
 +#include <linux/io.h>
 +#include <linux/uaccess.h>
- #include <asm/atomic.h>
- #include <asm/processor.h>
--#include <asm/uaccess.h>
- #include <asm/system.h>
- #include <asm/rm9k-ocd.h>
+ #include <linux/watchdog.h>
  
-@@ -53,10 +53,12 @@ static void wdt_gpi_stop(void);
- static void wdt_gpi_set_timeout(unsigned int);
- static int wdt_gpi_open(struct inode *, struct file *);
- static int wdt_gpi_release(struct inode *, struct file *);
--static ssize_t wdt_gpi_write(struct file *, const char __user *, size_t, loff_t *);
-+static ssize_t wdt_gpi_write(struct file *, const char __user *, size_t,
-+								loff_t *);
- static long wdt_gpi_ioctl(struct file *, unsigned int, unsigned long);
- static int wdt_gpi_notify(struct notifier_block *, unsigned long, void *);
--static const struct resource *wdt_gpi_get_resource(struct platform_device *, const char *, unsigned int);
-+static const struct resource *wdt_gpi_get_resource(struct platform_device *,
-+						const char *, unsigned int);
- static int __init wdt_gpi_probe(struct device *);
- static int __exit wdt_gpi_remove(struct device *);
+ /* adjustable parameters */
  
-@@ -68,7 +70,7 @@ static int locked;
+-static int verbose = 0;
++static int verbose;
+ static int port = 0x91;
+ static int ticks = 10000;
++static spinlock_t cpu5wdt_lock;
  
+ #define PFX			"cpu5wdt: "
  
- /* These are set from device resources */
--static void __iomem * wd_regs;
-+static void __iomem *wd_regs;
- static unsigned int wd_irq, wd_ctr;
+@@ -70,12 +70,13 @@ static struct {
  
+ static void cpu5wdt_trigger(unsigned long unused)
+ {
+-	if ( verbose > 2 )
++	if (verbose > 2)
+ 		printk(KERN_DEBUG PFX "trigger at %i ticks\n", ticks);
  
-@@ -216,7 +218,8 @@ static int wdt_gpi_release(struct inode 
- 		if (expect_close) {
- 			wdt_gpi_stop();
- 			free_irq(wd_irq, &miscdev);
--			printk(KERN_INFO "%s: watchdog stopped\n", wdt_gpi_name);
-+			printk(KERN_INFO "%s: watchdog stopped\n",
-+							wdt_gpi_name);
- 		} else {
- 			printk(KERN_CRIT "%s: unexpected close() -"
- 				" watchdog left running\n",
-@@ -241,8 +244,7 @@ wdt_gpi_write(struct file *f, const char
- 	return s ? 1 : 0;
+-	if( cpu5wdt_device.running )
++	if (cpu5wdt_device.running)
+ 		ticks--;
+ 
++	spin_lock(&cpu5wdt_lock);
+ 	/* keep watchdog alive */
+ 	outb(1, port + CPU5WDT_TRIGGER_REG);
+ 
+@@ -86,6 +87,7 @@ static void cpu5wdt_trigger(unsigned lon
+ 		/* ticks doesn't matter anyway */
+ 		complete(&cpu5wdt_device.stop);
+ 	}
++	spin_unlock(&cpu5wdt_lock);
+ 
  }
  
--static long
--wdt_gpi_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
-+static long wdt_gpi_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
+@@ -93,14 +95,17 @@ static void cpu5wdt_reset(void)
  {
- 	long res = -ENOTTY;
- 	const long size = _IOC_SIZE(cmd);
-@@ -271,7 +273,8 @@ wdt_gpi_ioctl(struct file *f, unsigned i
- 	case WDIOC_GETSUPPORT:
- 		wdinfo.options = nowayout ?
- 			WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING :
--			WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING | WDIOF_MAGICCLOSE;
-+			WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING |
-+			WDIOF_MAGICCLOSE;
- 		res = __copy_to_user(argp, &wdinfo, size) ?  -EFAULT : size;
- 		break;
+ 	ticks = cpu5wdt_device.default_ticks;
  
+-	if ( verbose )
++	if (verbose)
+ 		printk(KERN_DEBUG PFX "reset (%i ticks)\n", (int) ticks);
+ 
+ }
+ 
+ static void cpu5wdt_start(void)
+ {
+-	if ( !cpu5wdt_device.queue ) {
++	unsigned long flags;
++
++	spin_lock_irqsave(&cpu5wdt_lock, flags);
++	if (!cpu5wdt_device.queue) {
+ 		cpu5wdt_device.queue = 1;
+ 		outb(0, port + CPU5WDT_TIME_A_REG);
+ 		outb(0, port + CPU5WDT_TIME_B_REG);
+@@ -111,18 +116,20 @@ static void cpu5wdt_start(void)
+ 	}
+ 	/* if process dies, counter is not decremented */
+ 	cpu5wdt_device.running++;
++	spin_unlock_irqrestore(&cpu5wdt_lock, flags);
+ }
+ 
+ static int cpu5wdt_stop(void)
+ {
+-	if ( cpu5wdt_device.running )
+-		cpu5wdt_device.running = 0;
++	unsigned long flags;
+ 
++	spin_lock_irqsave(&cpu5wdt_lock, flags);
++	if (cpu5wdt_device.running)
++		cpu5wdt_device.running = 0;
+ 	ticks = cpu5wdt_device.default_ticks;
+-
+-	if ( verbose )
++	spin_unlock_irqrestore(&cpu5wdt_lock, flags);
++	if (verbose)
+ 		printk(KERN_CRIT PFX "stop not possible\n");
+-
+ 	return -EIO;
+ }
+ 
+@@ -130,9 +137,8 @@ static int cpu5wdt_stop(void)
+ 
+ static int cpu5wdt_open(struct inode *inode, struct file *file)
+ {
+-	if ( test_and_set_bit(0, &cpu5wdt_device.inuse) )
++	if (test_and_set_bit(0, &cpu5wdt_device.inuse))
+ 		return -EBUSY;
+-
+ 	return nonseekable_open(inode, file);
+ }
+ 
+@@ -142,67 +148,58 @@ static int cpu5wdt_release(struct inode 
+ 	return 0;
+ }
+ 
+-static int cpu5wdt_ioctl(struct inode *inode, struct file *file, unsigned int cmd, unsigned long arg)
++static long cpu5wdt_ioctl(struct file *file, unsigned int cmd,
++						unsigned long arg)
+ {
+ 	void __user *argp = (void __user *)arg;
++	int __user *p = argp;
+ 	unsigned int value;
+-	static struct watchdog_info ident =
+-	{
++	static struct watchdog_info ident = {
+ 		.options = WDIOF_CARDRESET,
+ 		.identity = "CPU5 WDT",
+ 	};
+ 
+-	switch(cmd) {
+-		case WDIOC_KEEPALIVE:
+-			cpu5wdt_reset();
+-			break;
+-		case WDIOC_GETSTATUS:
+-			value = inb(port + CPU5WDT_STATUS_REG);
+-			value = (value >> 2) & 1;
+-			if ( copy_to_user(argp, &value, sizeof(int)) )
+-				return -EFAULT;
+-			break;
+-		case WDIOC_GETBOOTSTATUS:
+-			if ( copy_to_user(argp, &value, sizeof(int)) )
+-				return -EFAULT;
+-			break;
+-		case WDIOC_GETSUPPORT:
+-			if ( copy_to_user(argp, &ident, sizeof(ident)) )
+-				return -EFAULT;
+-			break;
+-		case WDIOC_SETOPTIONS:
+-			if ( copy_from_user(&value, argp, sizeof(int)) )
+-				return -EFAULT;
+-			switch(value) {
+-				case WDIOS_ENABLECARD:
+-					cpu5wdt_start();
+-					break;
+-				case WDIOS_DISABLECARD:
+-					return cpu5wdt_stop();
+-				default:
+-					return -EINVAL;
+-			}
+-			break;
+-		default:
+-    			return -ENOTTY;
++	switch (cmd) {
++	case WDIOC_KEEPALIVE:
++		cpu5wdt_reset();
++		break;
++	case WDIOC_GETSTATUS:
++		value = inb(port + CPU5WDT_STATUS_REG);
++		value = (value >> 2) & 1;
++		return put_user(value, p);
++	case WDIOC_GETBOOTSTATUS:
++		return put_user(0, p);
++	case WDIOC_GETSUPPORT:
++		if (copy_to_user(argp, &ident, sizeof(ident)))
++			return -EFAULT;
++		break;
++	case WDIOC_SETOPTIONS:
++		if (get_user(value, p))
++			return -EFAULT;
++		if (value & WDIOS_ENABLECARD)
++			cpu5wdt_start();
++		if (value & WDIOS_DISABLECARD)
++			cpu5wdt_stop();
++		break;
++	default:
++		return -ENOTTY;
+ 	}
+ 	return 0;
+ }
+ 
+-static ssize_t cpu5wdt_write(struct file *file, const char __user *buf, size_t count, loff_t *ppos)
++static ssize_t cpu5wdt_write(struct file *file, const char __user *buf,
++						size_t count, loff_t *ppos)
+ {
+-	if ( !count )
++	if (!count)
+ 		return -EIO;
+-
+ 	cpu5wdt_reset();
+-
+ 	return count;
+ }
+ 
+ static const struct file_operations cpu5wdt_fops = {
+ 	.owner		= THIS_MODULE,
+ 	.llseek		= no_llseek,
+-	.ioctl		= cpu5wdt_ioctl,
++	.unlocked_ioctl	= cpu5wdt_ioctl,
+ 	.open		= cpu5wdt_open,
+ 	.write		= cpu5wdt_write,
+ 	.release	= cpu5wdt_release,
+@@ -221,37 +218,36 @@ static int __devinit cpu5wdt_init(void)
+ 	unsigned int val;
+ 	int err;
+ 
+-	if ( verbose )
+-		printk(KERN_DEBUG PFX "port=0x%x, verbose=%i\n", port, verbose);
++	if (verbose)
++		printk(KERN_DEBUG PFX
++				"port=0x%x, verbose=%i\n", port, verbose);
+ 
+-	if ( !request_region(port, CPU5WDT_EXTENT, PFX) ) {
++	init_completion(&cpu5wdt_device.stop);
++	spin_lock_init(&cpu5wdt_lock);
++	cpu5wdt_device.queue = 0;
++	setup_timer(&cpu5wdt_device.timer, cpu5wdt_trigger, 0);
++	cpu5wdt_device.default_ticks = ticks;
++
++	if (!request_region(port, CPU5WDT_EXTENT, PFX)) {
+ 		printk(KERN_ERR PFX "request_region failed\n");
+ 		err = -EBUSY;
+ 		goto no_port;
+ 	}
+ 
+-	if ( (err = misc_register(&cpu5wdt_misc)) < 0 ) {
+-		printk(KERN_ERR PFX "misc_register failed\n");
+-		goto no_misc;
+-	}
+-
+ 	/* watchdog reboot? */
+ 	val = inb(port + CPU5WDT_STATUS_REG);
+ 	val = (val >> 2) & 1;
+-	if ( !val )
++	if (!val)
+ 		printk(KERN_INFO PFX "sorry, was my fault\n");
+ 
+-	init_completion(&cpu5wdt_device.stop);
+-	cpu5wdt_device.queue = 0;
+-
+-	clear_bit(0, &cpu5wdt_device.inuse);
+-
+-	setup_timer(&cpu5wdt_device.timer, cpu5wdt_trigger, 0);
++	err = misc_register(&cpu5wdt_misc);
++	if (err < 0) {
++		printk(KERN_ERR PFX "misc_register failed\n");
++		goto no_misc;
++	}
+ 
+-	cpu5wdt_device.default_ticks = ticks;
+ 
+ 	printk(KERN_INFO PFX "init success\n");
+-
+ 	return 0;
+ 
+ no_misc:
+@@ -267,7 +263,7 @@ static int __devinit cpu5wdt_init_module
+ 
+ static void __devexit cpu5wdt_exit(void)
+ {
+-	if ( cpu5wdt_device.queue ) {
++	if (cpu5wdt_device.queue) {
+ 		cpu5wdt_device.queue = 0;
+ 		wait_for_completion(&cpu5wdt_device.stop);
+ 	}
 _
 
 Patches currently in -mm which might be from alan@redhat.com are
