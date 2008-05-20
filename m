@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup.patch added to -mm tree
-Date: Mon, 19 May 2008 23:12:17 -0700
-Message-ID: <200805200612.m4K6CHF1008222@imap1.linux-foundation.org>
+Subject: + signals-fix-sigqueue_free-vs-__exit_signal-race.patch added to -mm tree
+Date: Mon, 19 May 2008 23:30:46 -0700
+Message-ID: <200805200630.m4K6UkWX008902@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57332 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57379 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753870AbYETGNA (ORCPT
+	by vger.kernel.org with ESMTP id S1754910AbYETGbt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 May 2008 02:13:00 -0400
+	Tue, 20 May 2008 02:31:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, cooloney@kernel.org, michael.hennerich@analog.com
+Cc: oleg@tv-sign.ru, roland@redhat.com
 
 
 The patch titled
-     pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup
+     signals: fix sigqueue_free() vs __exit_signal() race
 has been added to the -mm tree.  Its filename is
-     pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup.patch
+     signals-fix-sigqueue_free-vs-__exit_signal-race.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,127 +34,77 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: signals: fix sigqueue_free() vs __exit_signal() race
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Cc: Bryan Wu <cooloney@kernel.org>
-Cc: Michael Hennerich <michael.hennerich@analog.com>
+__exit_signal() does flush_sigqueue(tsk->pending) outside of ->siglock. 
+This can race with another thread doing sigqueue_free(), we can free the
+same SIGQUEUE_PREALLOC sigqueue twice or corrupt the pending->list.
+
+Note that even sys_exit_group() can trigger this race, not only
+sys_timer_delete().
+
+Move the callsite of flush_sigqueue(tsk->pending) under ->siglock.
+
+This patch doesn't touch flush_sigqueue(->shared_pending) below, it is
+called when there are no other threads which can play with signals, and
+sigqueue_free() can't be used outside of our thread group.
+
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Acked-by: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pcmcia/bfin_cf_pcmcia.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ kernel/exit.c   |    7 ++++++-
+ kernel/signal.c |    3 ++-
+ 2 files changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN drivers/pcmcia/bfin_cf_pcmcia.c~pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup drivers/pcmcia/bfin_cf_pcmcia.c
---- a/drivers/pcmcia/bfin_cf_pcmcia.c~pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup
-+++ a/drivers/pcmcia/bfin_cf_pcmcia.c
-@@ -228,9 +228,7 @@ static int __init bfin_cf_probe(struct p
+diff -puN kernel/exit.c~signals-fix-sigqueue_free-vs-__exit_signal-race kernel/exit.c
+--- a/kernel/exit.c~signals-fix-sigqueue_free-vs-__exit_signal-race
++++ a/kernel/exit.c
+@@ -126,6 +126,12 @@ static void __exit_signal(struct task_st
  
- 	cf->cd_pfx = cd_pfx;
+ 	__unhash_process(tsk);
  
--	init_timer(&cf->timer);
--	cf->timer.function = bfin_cf_timer;
--	cf->timer.data = (unsigned long)cf;
-+	setup_timer(&cf->timer, bfin_cf_timer, (unsigned long)cf);
++	/*
++	 * Do this under ->siglock, we can race with another thread
++	 * doing sigqueue_free() if we have SIGQUEUE_PREALLOC signals.
++	 */
++	flush_sigqueue(&tsk->pending);
++
+ 	tsk->signal = NULL;
+ 	tsk->sighand = NULL;
+ 	spin_unlock(&sighand->siglock);
+@@ -133,7 +139,6 @@ static void __exit_signal(struct task_st
  
- 	cf->pdev = pdev;
- 	platform_set_drvdata(pdev, cf);
+ 	__cleanup_sighand(sighand);
+ 	clear_tsk_thread_flag(tsk,TIF_SIGPENDING);
+-	flush_sigqueue(&tsk->pending);
+ 	if (sig) {
+ 		flush_sigqueue(&sig->shared_pending);
+ 		taskstats_tgid_free(sig);
+diff -puN kernel/signal.c~signals-fix-sigqueue_free-vs-__exit_signal-race kernel/signal.c
+--- a/kernel/signal.c~signals-fix-sigqueue_free-vs-__exit_signal-race
++++ a/kernel/signal.c
+@@ -1242,7 +1242,8 @@ void sigqueue_free(struct sigqueue *q)
+ 	/*
+ 	 * If the signal is still pending remove it from the
+ 	 * pending queue. We must hold ->siglock while testing
+-	 * q->list to serialize with collect_signal().
++	 * q->list to serialize with collect_signal() or with
++	 * __exit_signal()->flush_sigqueue().
+ 	 */
+ 	spin_lock_irqsave(lock, flags);
+ 	if (!list_empty(&q->list))
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
-linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-fix-kobject-fix-kobject_rename-and-config_sysfs.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-video-balcklist-fujitsu-lifebook-s6410.patch
-git-x86-fixup.patch
-arch-x86-mm-patc-use-boot_cpu_has.patch
-x86-setup_force_cpu_cap-dont-do-clear_bitnon-unsigned-long.patch
-lguest-use-cpu-capability-accessors.patch
-x86-set_restore_sigmask-avoid-bitop-on-a-u32.patch
-x86-bitops-take-an-unsigned-long.patch
-arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
-audit_send_reply-fix-error-path-memory-leak.patch
-zoran-use-correct-type-for-cpu-flags.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-drivers-infiniband-hw-mlx4-qpc-fix-uninitialised-var-warning.patch
-git-input.patch
-git-jg-misc-git-rejects.patch
-drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
-fsldma-the-mpc8377mds-board-device-tree-node-for-fsldma-driver.patch
-mmc-sd-host-driver-for-ricoh-bay1controllers.patch
-git-ubifs.patch
-sundance-set-carrier-status-on-link-change-events.patch
-dm9000-use-delayed-work-to-update-mii-phy-state-fix.patch
-pcnet32-fix-warning.patch
-drivers-net-tokenring-3c359c-squish-a-warning.patch
-drivers-net-tokenring-olympicc-fix-warning.patch
-sfc-correct-and-expand-some-comments.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-battery.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-pci-hotplug-introduce-pci_slot.patch
-pci-hotplug-acpi-pci-slot-detection-driver.patch
-drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
-s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-git-logfs-fixup.patch
-drivers-uwb-nehc-processor-flags-have-type-unsigned-long.patch
-drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
-uwb-fix-scscanf-warning.patch
-drivers-uwb-wlp-sysfsc-dead-code.patch
-drivers-uwb-i1480-dfu-macc-fix-min-warning.patch
-drivers-uwb-whcic-needs-dma-mappingh.patch
-git-vfs-cleanups-reject.patch
-git-watchdog.patch
-git-watchdog-git-rejects.patch
-watchdog-fix-booke_wdtc-on-mpc85xx-smp-system.patch
-wireless-airo-waitbusy-wont-delay-checkpatch-fixes.patch
-git-xtensa.patch
-ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware-ia64-warnings.patch
-pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes.patch
-pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-verify-the-page-links-and-memory-model.patch
-mspec-convert-nopfn-to-fault-fix.patch
-page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
-kill-generic_file_direct_io-checkpatch-fixes.patch
-spufs-use-the-new-vm_ops-access-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-split-the-typecheck-macros-out-of-include-linux-kernelh.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
-remove-apparently-unused-fd1772h-header-file.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
-rename-warn-to-warning-to-clear-the-namespace-fix.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
-flag-parameters-paccept-fix.patch
-flag-parameters-paccept-sys_ni.patch
-flag-parameters-anon_inode_getfd-extension-fix.patch
-flag-parameters-signalfd-fix.patch
-flag-parameters-eventfd-fix.patch
-flag-parameters-inotify_init-fix.patch
-flag-parameters-check-magic-constants-alpha-hack.patch
-drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
-reiserfs-convert-j_flush_sem-to-mutex-fix.patch
-reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-reiser4.patch
-reiser4-semaphore-fix.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+signals-fix-sigqueue_free-vs-__exit_signal-race.patch
+posix-timers-timer_delete-remove-the-bogus-it_process-=-null-check.patch
+posix-timers-release_posix_timer-kill-the-bogus-put_task_struct-it_process.patch
+signals-sigqueue_free-dont-free-sigqueue-if-it-is-queued.patch
+signals-introduce-sigqueue_cancelled.patch
+posix-timers-use-sigqueue_cancelled-when-the-timer-is-destroyed.patch
+put_pid-make-sure-we-dont-free-the-live-pid.patch
 
