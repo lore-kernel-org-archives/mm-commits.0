@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + 3c515-fix-using-pnp_get_resource-when-config_isapnp=n.patch added to -mm tree
-Date: Mon, 19 May 2008 20:23:59 -0700
-Message-ID: <200805200323.m4K3NxtJ002547@imap1.linux-foundation.org>
+Subject: + sfc-remove-casts-to-void.patch added to -mm tree
+Date: Mon, 19 May 2008 20:27:28 -0700
+Message-ID: <200805200327.m4K3RSSs002689@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40718 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41652 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755633AbYETDYZ (ORCPT
+	by vger.kernel.org with ESMTP id S1757140AbYETD1f (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 May 2008 23:24:25 -0400
+	Mon, 19 May 2008 23:27:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, ambx1@neo.rr.com, bjorn.helgaas@hp.com, jeff@garzik.org
+Cc: bhutchings@solarflare.com, jeff@garzik.org
 
 
 The patch titled
-     3c515: fix using pnp_get_resource when CONFIG_ISAPNP=n
+     sfc: remove casts to void
 has been added to the -mm tree.  Its filename is
-     3c515-fix-using-pnp_get_resource-when-config_isapnp=n.patch
+     sfc-remove-casts-to-void.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,60 +34,146 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: 3c515: fix using pnp_get_resource when CONFIG_ISAPNP=n
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: sfc: remove casts to void
+From: Ben Hutchings <bhutchings@solarflare.com>
 
-3c515.c uses pnp_irq(), which calls pnp_get_resource(), which is not
-defined when CONFIG_PNP=n, so in that case, get the IRQ from a hardware
-register.
-
-3c515.c:(.text+0x3adc0): undefined reference to `pnp_get_resource'
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Acked-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Adam Belay <ambx1@neo.rr.com>
+Signed-off-by: Ben Hutchings <bhutchings@solarflare.com>
 Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/3c515.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/net/sfc/efx.c         |    4 ++--
+ drivers/net/sfc/falcon.c      |    2 +-
+ drivers/net/sfc/falcon_xmac.c |    4 ++--
+ drivers/net/sfc/sfe4001.c     |   14 +++++++-------
+ drivers/net/sfc/tenxpress.c   |    2 +-
+ 5 files changed, 13 insertions(+), 13 deletions(-)
 
-diff -puN drivers/net/3c515.c~3c515-fix-using-pnp_get_resource-when-config_isapnp=n drivers/net/3c515.c
---- a/drivers/net/3c515.c~3c515-fix-using-pnp_get_resource-when-config_isapnp=n
-+++ a/drivers/net/3c515.c
-@@ -572,12 +572,16 @@ static int corkscrew_setup(struct net_de
- 	int irq;
- 	DECLARE_MAC_BUF(mac);
+diff -puN drivers/net/sfc/efx.c~sfc-remove-casts-to-void drivers/net/sfc/efx.c
+--- a/drivers/net/sfc/efx.c~sfc-remove-casts-to-void
++++ a/drivers/net/sfc/efx.c
+@@ -265,7 +265,7 @@ void efx_process_channel_now(struct efx_
+ 	napi_disable(&channel->napi_str);
  
-+#ifdef __ISAPNP__
- 	if (idev) {
- 		irq = pnp_irq(idev, 0);
- 		vp->dev = &idev->dev;
- 	} else {
- 		irq = inw(ioaddr + 0x2002) & 15;
+ 	/* Poll the channel */
+-	(void) efx_process_channel(channel, efx->type->evq_size);
++	efx_process_channel(channel, efx->type->evq_size);
+ 
+ 	/* Ack the eventq. This may cause an interrupt to be generated
+ 	 * when they are reenabled */
+@@ -1688,7 +1688,7 @@ static int efx_reset(struct efx_nic *efx
+ 	if (method == RESET_TYPE_DISABLE) {
+ 		/* Reinitialise the device anyway so the driver unload sequence
+ 		 * can talk to the external SRAM */
+-		(void) falcon_init_nic(efx);
++		falcon_init_nic(efx);
+ 		rc = -EIO;
+ 		goto fail4;
  	}
-+#else
-+	irq = inw(ioaddr + 0x2002) & 15;
-+#endif
+diff -puN drivers/net/sfc/falcon.c~sfc-remove-casts-to-void drivers/net/sfc/falcon.c
+--- a/drivers/net/sfc/falcon.c~sfc-remove-casts-to-void
++++ a/drivers/net/sfc/falcon.c
+@@ -2647,7 +2647,7 @@ void falcon_remove_nic(struct efx_nic *e
  
- 	dev->base_addr = ioaddr;
- 	dev->irq = irq;
+ 	falcon_free_buffer(efx, &efx->irq_status);
+ 
+-	(void) falcon_reset_hw(efx, RESET_TYPE_ALL);
++	falcon_reset_hw(efx, RESET_TYPE_ALL);
+ 
+ 	/* Release the second function after the reset */
+ 	if (nic_data->pci_dev2) {
+diff -puN drivers/net/sfc/falcon_xmac.c~sfc-remove-casts-to-void drivers/net/sfc/falcon_xmac.c
+--- a/drivers/net/sfc/falcon_xmac.c~sfc-remove-casts-to-void
++++ a/drivers/net/sfc/falcon_xmac.c
+@@ -454,7 +454,7 @@ static int falcon_check_xaui_link_up(str
+ 
+ 		EFX_LOG(efx, "%s Clobbering XAUI (%d tries left).\n",
+ 			__func__, tries);
+-		(void) falcon_reset_xaui(efx);
++		falcon_reset_xaui(efx);
+ 		udelay(200);
+ 		tries--;
+ 	}
+@@ -572,7 +572,7 @@ int falcon_check_xmac(struct efx_nic *ef
+ 	xaui_link_ok = falcon_xaui_link_ok(efx);
+ 
+ 	if (EFX_WORKAROUND_5147(efx) && !xaui_link_ok)
+-		(void) falcon_reset_xaui(efx);
++		falcon_reset_xaui(efx);
+ 
+ 	/* Call the PHY check_hw routine */
+ 	rc = efx->phy_op->check_hw(efx);
+diff -puN drivers/net/sfc/sfe4001.c~sfc-remove-casts-to-void drivers/net/sfc/sfe4001.c
+--- a/drivers/net/sfc/sfe4001.c~sfc-remove-casts-to-void
++++ a/drivers/net/sfc/sfe4001.c
+@@ -116,18 +116,18 @@ void sfe4001_poweroff(struct efx_nic *ef
+ 
+ 	/* Turn off all power rails */
+ 	out = 0xff;
+-	(void) efx_i2c_write(i2c, PCA9539, P0_OUT, &out, 1);
++	efx_i2c_write(i2c, PCA9539, P0_OUT, &out, 1);
+ 
+ 	/* Disable port 1 outputs on IO expander */
+ 	cfg = 0xff;
+-	(void) efx_i2c_write(i2c, PCA9539, P1_CONFIG, &cfg, 1);
++	efx_i2c_write(i2c, PCA9539, P1_CONFIG, &cfg, 1);
+ 
+ 	/* Disable port 0 outputs on IO expander */
+ 	cfg = 0xff;
+-	(void) efx_i2c_write(i2c, PCA9539, P0_CONFIG, &cfg, 1);
++	efx_i2c_write(i2c, PCA9539, P0_CONFIG, &cfg, 1);
+ 
+ 	/* Clear any over-temperature alert */
+-	(void) efx_i2c_read(i2c, MAX6647, RSL, &in, 1);
++	efx_i2c_read(i2c, MAX6647, RSL, &in, 1);
+ }
+ 
+ /* The P0_EN_3V3X line on SFE4001 boards (from A2 onward) is connected
+@@ -253,14 +253,14 @@ done:
+ fail3:
+ 	/* Turn off all power rails */
+ 	out = 0xff;
+-	(void) efx_i2c_write(i2c, PCA9539, P0_OUT, &out, 1);
++	efx_i2c_write(i2c, PCA9539, P0_OUT, &out, 1);
+ 	/* Disable port 1 outputs on IO expander */
+ 	out = 0xff;
+-	(void) efx_i2c_write(i2c, PCA9539, P1_CONFIG, &out, 1);
++	efx_i2c_write(i2c, PCA9539, P1_CONFIG, &out, 1);
+ fail2:
+ 	/* Disable port 0 outputs on IO expander */
+ 	out = 0xff;
+-	(void) efx_i2c_write(i2c, PCA9539, P0_CONFIG, &out, 1);
++	efx_i2c_write(i2c, PCA9539, P0_CONFIG, &out, 1);
+ fail1:
+ 	return rc;
+ }
+diff -puN drivers/net/sfc/tenxpress.c~sfc-remove-casts-to-void drivers/net/sfc/tenxpress.c
+--- a/drivers/net/sfc/tenxpress.c~sfc-remove-casts-to-void
++++ a/drivers/net/sfc/tenxpress.c
+@@ -376,7 +376,7 @@ static void tenxpress_phy_reconfigure(st
+ 	 * perform a special software reset */
+ 	if ((phy_data->tx_disabled && !efx->tx_disabled) ||
+ 	    loop_change) {
+-		(void) tenxpress_special_reset(efx);
++		tenxpress_special_reset(efx);
+ 		falcon_reset_xaui(efx);
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from bhutchings@solarflare.com are
 
-linux-next.patch
-documentation-build-source-files-in-documentation-sub-dir.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
-3c515-fix-using-pnp_get_resource-when-config_isapnp=n.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-git-unionfs.patch
-uwb-fix-kconfig-causing-undefined-references.patch
-uwb-fix-all-printk-format-warnings.patch
-scsi-do-not-automatically-select-scsi_dh-for-dm-multipath.patch
-flag-parameters-signalfd-fix.patch
-flag-parameters-eventfd-fix.patch
-bsdacct-stir-up-comments-around-acct_process.patch
-profile-likely-unlikely-macros.patch
+sfc-use-mod_timer-to-set-expiry-and-add_timer-together.patch
+sfc-remove-casts-to-void.patch
+sfc-simplify-efx_rx_calc_buffer_size-using-get_order.patch
+sfc-remove-unncesssary-ul-suffixes-on-0-literals.patch
+sfc-add-and-remove-braces-to-comply-with-kernel-style.patch
+sfc-replace-various-macros-with-inline-functions.patch
+sfc-merge-efx_page_offset-into-efx_rx_buf_offset.patch
+sfc-use-resource_size_t-for-pci-bus-address.patch
+sfc-correct-and-expand-some-comments.patch
+sfc-do-not-define-inline-macro.patch
+sfc-remove-redundant-casts-to-and-from-void.patch
+sfc-add-checks-for-heap-allocation-failure.patch
+sfc-remove-sub-minor-component-from-driver-version.patch
 
