@@ -1,65 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: - xprtrdma-fix-err_ptre-typo.patch removed from -mm tree
-Date: Tue, 20 May 2008 14:14:27 -0700
-Message-ID: <200805202114.m4KLERwt011466@imap1.linux-foundation.org>
+Subject: - nfs-path_getput-cleanups.patch removed from -mm tree
+Date: Tue, 20 May 2008 14:14:23 -0700
+Message-ID: <200805202114.m4KLENnk011460@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41565 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60338 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763341AbYETVYD (ORCPT
+	by vger.kernel.org with ESMTP id S1763350AbYETVYD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 20 May 2008 17:24:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, bfields@fieldses.org, davem@davemloft.net, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
+To: jblunck@suse.de, bfields@fieldses.org, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
 
 
 The patch titled
-     xprtrdma: fix ERR_PTR(E typo
+     nfs: path_{get,put}() cleanups
 has been removed from the -mm tree.  Its filename was
-     xprtrdma-fix-err_ptre-typo.patch
+     nfs-path_getput-cleanups.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: xprtrdma: fix ERR_PTR(E typo
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: nfs: path_{get,put}() cleanups
+From: Jan Blunck <jblunck@suse.de>
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: "David S. Miller" <davem@davemloft.net>
+Here are some more places where path_{get,put}() can be used instead of
+dput()/mntput() pair.
+
+Signed-off-by: Jan Blunck <jblunck@suse.de>
 Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/xprtrdma/svc_rdma_transport.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/nfs/inode.c     |    3 +--
+ fs/nfs/namespace.c |    3 +--
+ fs/nfs/nfs4proc.c  |    6 ++----
+ 3 files changed, 4 insertions(+), 8 deletions(-)
 
-diff -puN net/sunrpc/xprtrdma/svc_rdma_transport.c~xprtrdma-fix-err_ptre-typo net/sunrpc/xprtrdma/svc_rdma_transport.c
---- a/net/sunrpc/xprtrdma/svc_rdma_transport.c~xprtrdma-fix-err_ptre-typo
-+++ a/net/sunrpc/xprtrdma/svc_rdma_transport.c
-@@ -661,7 +661,7 @@ static struct svc_xprt *svc_rdma_create(
+diff -puN fs/nfs/inode.c~nfs-path_getput-cleanups fs/nfs/inode.c
+--- a/fs/nfs/inode.c~nfs-path_getput-cleanups
++++ a/fs/nfs/inode.c
+@@ -541,8 +541,7 @@ static void __put_nfs_open_context(struc
+ 	}
+ 	if (ctx->cred != NULL)
+ 		put_rpccred(ctx->cred);
+-	dput(ctx->path.dentry);
+-	mntput(ctx->path.mnt);
++	path_put(&ctx->path);
+ 	kfree(ctx);
+ }
  
- 	cma_xprt = rdma_create_xprt(serv, 1);
- 	if (!cma_xprt)
--		return ERR_PTR(ENOMEM);
-+		return ERR_PTR(-ENOMEM);
- 	xprt = &cma_xprt->sc_xprt;
+diff -puN fs/nfs/namespace.c~nfs-path_getput-cleanups fs/nfs/namespace.c
+--- a/fs/nfs/namespace.c~nfs-path_getput-cleanups
++++ a/fs/nfs/namespace.c
+@@ -137,8 +137,7 @@ static void * nfs_follow_mountpoint(stru
+ 			goto out_follow;
+ 		goto out_err;
+ 	}
+-	mntput(nd->path.mnt);
+-	dput(nd->path.dentry);
++	path_put(&nd->path);
+ 	nd->path.mnt = mnt;
+ 	nd->path.dentry = dget(mnt->mnt_root);
+ 	schedule_delayed_work(&nfs_automount_task, nfs_mountpoint_expiry_timeout);
+diff -puN fs/nfs/nfs4proc.c~nfs-path_getput-cleanups fs/nfs/nfs4proc.c
+--- a/fs/nfs/nfs4proc.c~nfs-path_getput-cleanups
++++ a/fs/nfs/nfs4proc.c
+@@ -306,8 +306,7 @@ static void nfs4_opendata_free(struct kr
+ 		nfs4_put_open_state(p->state);
+ 	nfs4_put_state_owner(p->owner);
+ 	dput(p->dir);
+-	dput(p->path.dentry);
+-	mntput(p->path.mnt);
++	path_put(&p->path);
+ 	kfree(p);
+ }
  
- 	listen_id = rdma_create_id(rdma_listen_handler, cma_xprt, RDMA_PS_TCP);
+@@ -1210,8 +1209,7 @@ static void nfs4_free_closedata(void *da
+ 	nfs4_put_open_state(calldata->state);
+ 	nfs_free_seqid(calldata->arg.seqid);
+ 	nfs4_put_state_owner(sp);
+-	dput(calldata->path.dentry);
+-	mntput(calldata->path.mnt);
++	path_put(&calldata->path);
+ 	kfree(calldata);
+ }
+ 
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from jblunck@suse.de are
 
 origin.patch
-linux-next.patch
-cifs-switch-to-seq_files.patch
-atl1-fix-4g-memory-corruption-bug.patch
-mpt-remove-unused-struct-mpt_proc_entry_t.patch
-move-proc_kmsg_operations-to-fs-proc-internalh.patch
-proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
-likely_prof-changed-to-use-proc_create.patch
-proc-remove-proc_root-from-drivers-likelyprof.patch
+git-unionfs.patch
+vfs-path_getput-cleanups.patch
 
