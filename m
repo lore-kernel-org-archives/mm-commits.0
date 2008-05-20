@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + watchdog-wdrtas-clean-up-coding-style-switch-to-unlocked_ioctl.patch added to -mm tree
-Date: Tue, 20 May 2008 01:28:58 -0700
-Message-ID: <200805200828.m4K8SwhI013224@imap1.linux-foundation.org>
+Subject: + watchdog-smsc37b787_wdt-coding-style-switch-to-unlocked_ioctl.patch added to -mm tree
+Date: Tue, 20 May 2008 01:28:46 -0700
+Message-ID: <200805200828.m4K8SkOU013203@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49815 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57187 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758554AbYETI3e (ORCPT
+	by vger.kernel.org with ESMTP id S1761632AbYETI3W (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 May 2008 04:29:34 -0400
+	Tue, 20 May 2008 04:29:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@redhat.com
 
 
 The patch titled
-     watchdog: wdrtas: clean up, coding style, switch to unlocked_ioctl
+     watchdog: smsc37b787_wdt: coding style, switch to unlocked_ioctl
 has been added to the -mm tree.  Its filename is
-     watchdog-wdrtas-clean-up-coding-style-switch-to-unlocked_ioctl.patch
+     watchdog-smsc37b787_wdt-coding-style-switch-to-unlocked_ioctl.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: watchdog: wdrtas: clean up, coding style, switch to unlocked_ioctl
+Subject: watchdog: smsc37b787_wdt: coding style, switch to unlocked_ioctl
 From: Alan Cox <alan@redhat.com>
 
 
@@ -42,328 +42,730 @@ Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/wdrtas.c |  103 ++++++++++++++----------------------
- 1 file changed, 41 insertions(+), 62 deletions(-)
+ drivers/watchdog/smsc37b787_wdt.c |  442 ++++++++++++++--------------
+ 1 file changed, 222 insertions(+), 220 deletions(-)
 
-diff -puN drivers/watchdog/wdrtas.c~watchdog-wdrtas-clean-up-coding-style-switch-to-unlocked_ioctl drivers/watchdog/wdrtas.c
---- a/drivers/watchdog/wdrtas.c~watchdog-wdrtas-clean-up-coding-style-switch-to-unlocked_ioctl
-+++ a/drivers/watchdog/wdrtas.c
-@@ -35,9 +35,9 @@
+diff -puN drivers/watchdog/smsc37b787_wdt.c~watchdog-smsc37b787_wdt-coding-style-switch-to-unlocked_ioctl drivers/watchdog/smsc37b787_wdt.c
+--- a/drivers/watchdog/smsc37b787_wdt.c~watchdog-smsc37b787_wdt-coding-style-switch-to-unlocked_ioctl
++++ a/drivers/watchdog/smsc37b787_wdt.c
+@@ -18,7 +18,7 @@
+  *  History:
+  *	2003 - Created version 1.0 for Linux 2.4.x.
+  *	2006 - Ported to Linux 2.6, added nowayout and MAGICCLOSE
+- *             features. Released version 1.1
++ *	       features. Released version 1.1
+  *
+  *  Theory of operation:
+  *
+@@ -55,9 +55,9 @@
  #include <linux/reboot.h>
- #include <linux/types.h>
- #include <linux/watchdog.h>
+ #include <linux/init.h>
+ #include <linux/spinlock.h>
++#include <linux/io.h>
 +#include <linux/uaccess.h>
  
- #include <asm/rtas.h>
+-#include <asm/io.h>
 -#include <asm/uaccess.h>
+ #include <asm/system.h>
  
- #define WDRTAS_MAGIC_CHAR		42
- #define WDRTAS_SUPPORTED_MASK		(WDIOF_SETTIMEOUT | \
-@@ -56,7 +56,7 @@ static int wdrtas_nowayout = 0;
- #endif
+ /* enable support for minutes as units? */
+@@ -71,15 +71,15 @@
+ #define UNIT_MINUTE     1
  
- static atomic_t wdrtas_miscdev_open = ATOMIC_INIT(0);
--static char wdrtas_expect_close = 0;
-+static char wdrtas_expect_close;
+ #define MODNAME		"smsc37b787_wdt: "
+-#define VERSION         "1.1"
++#define VERSION		"1.1"
  
- static int wdrtas_interval;
+-#define IOPORT          0x3F0
++#define IOPORT		0x3F0
+ #define IOPORT_SIZE     2
+-#define IODEV_NO        8
++#define IODEV_NO	8
  
-@@ -86,8 +86,8 @@ static char wdrtas_logbuffer[WDRTAS_LOGB
-  * RTAS function set-indicator (surveillance). The unit of interval is
-  * seconds.
-  */
--static int
--wdrtas_set_interval(int interval)
-+
-+static int wdrtas_set_interval(int interval)
+-static int unit = UNIT_SECOND;  /* timer's unit */
+-static int timeout = 60;        /* timeout value: default is 60 "units" */
+-static unsigned long timer_enabled = 0;   /* is the timer enabled? */
++static int unit = UNIT_SECOND;	/* timer's unit */
++static int timeout = 60;	/* timeout value: default is 60 "units" */
++static unsigned long timer_enabled;   /* is the timer enabled? */
+ 
+ static char expect_close;       /* is the close expected? */
+ 
+@@ -93,114 +93,121 @@ static int nowayout = WATCHDOG_NOWAYOUT;
+ 
+ static inline void open_io_config(void)
  {
- 	long result;
- 	static int print_msg = 10;
-@@ -97,7 +97,7 @@ wdrtas_set_interval(int interval)
- 
- 	result = rtas_call(wdrtas_token_set_indicator, 3, 1, NULL,
- 			   WDRTAS_SURVEILLANCE_IND, 0, interval);
--	if ( (result < 0) && (print_msg) ) {
-+	if (result < 0 && print_msg) {
- 		printk(KERN_ERR "wdrtas: setting the watchdog to %i "
- 		       "timeout failed: %li\n", interval, result);
- 		print_msg--;
-@@ -116,16 +116,14 @@ wdrtas_set_interval(int interval)
-  * as reported by the RTAS function ibm,get-system-parameter. The unit
-  * of the return value is seconds.
-  */
--static int
--wdrtas_get_interval(int fallback_value)
-+static int wdrtas_get_interval(int fallback_value)
- {
- 	long result;
- 	char value[4];
- 
- 	result = rtas_call(wdrtas_token_get_sp, 3, 1, NULL,
- 			   WDRTAS_SP_SPI, (void *)__pa(&value), 4);
--	if ( (value[0] != 0) || (value[1] != 2) || (value[3] != 0) ||
--	     (result < 0) ) {
-+	if (value[0] != 0 || value[1] != 2 || value[3] != 0 || result < 0) {
- 		printk(KERN_WARNING "wdrtas: could not get sp_spi watchdog "
- 		       "timeout (%li). Continuing\n", result);
- 		return fallback_value;
-@@ -141,8 +139,7 @@ wdrtas_get_interval(int fallback_value)
-  * wdrtas_timer_start starts the watchdog by calling the RTAS function
-  * set-interval (surveillance)
-  */
--static void
--wdrtas_timer_start(void)
-+static void wdrtas_timer_start(void)
- {
- 	wdrtas_set_interval(wdrtas_interval);
- }
-@@ -153,8 +150,7 @@ wdrtas_timer_start(void)
-  * wdrtas_timer_stop stops the watchdog timer by calling the RTAS function
-  * set-interval (surveillance)
-  */
--static void
--wdrtas_timer_stop(void)
-+static void wdrtas_timer_stop(void)
- {
- 	wdrtas_set_interval(0);
- }
-@@ -165,8 +161,7 @@ wdrtas_timer_stop(void)
-  * wdrtas_log_scanned_event prints a message to the log buffer dumping
-  * the results of the last event-scan call
-  */
--static void
--wdrtas_log_scanned_event(void)
-+static void wdrtas_log_scanned_event(void)
- {
- 	int i;
- 
-@@ -175,13 +170,13 @@ wdrtas_log_scanned_event(void)
- 		       "%02x %02x %02x %02x  %02x %02x %02x %02x   "
- 		       "%02x %02x %02x %02x  %02x %02x %02x %02x\n",
- 		       (i / 16) + 1, (WDRTAS_LOGBUFFER_LEN / 16),
--		       wdrtas_logbuffer[i + 0], wdrtas_logbuffer[i + 1], 
--		       wdrtas_logbuffer[i + 2], wdrtas_logbuffer[i + 3], 
--		       wdrtas_logbuffer[i + 4], wdrtas_logbuffer[i + 5], 
--		       wdrtas_logbuffer[i + 6], wdrtas_logbuffer[i + 7], 
--		       wdrtas_logbuffer[i + 8], wdrtas_logbuffer[i + 9], 
--		       wdrtas_logbuffer[i + 10], wdrtas_logbuffer[i + 11], 
--		       wdrtas_logbuffer[i + 12], wdrtas_logbuffer[i + 13], 
-+		       wdrtas_logbuffer[i + 0], wdrtas_logbuffer[i + 1],
-+		       wdrtas_logbuffer[i + 2], wdrtas_logbuffer[i + 3],
-+		       wdrtas_logbuffer[i + 4], wdrtas_logbuffer[i + 5],
-+		       wdrtas_logbuffer[i + 6], wdrtas_logbuffer[i + 7],
-+		       wdrtas_logbuffer[i + 8], wdrtas_logbuffer[i + 9],
-+		       wdrtas_logbuffer[i + 10], wdrtas_logbuffer[i + 11],
-+		       wdrtas_logbuffer[i + 12], wdrtas_logbuffer[i + 13],
- 		       wdrtas_logbuffer[i + 14], wdrtas_logbuffer[i + 15]);
+-        outb(0x55, IOPORT);
++	outb(0x55, IOPORT);
+ 	mdelay(1);
+-        outb(0x55, IOPORT);
++	outb(0x55, IOPORT);
  }
  
-@@ -192,8 +187,7 @@ wdrtas_log_scanned_event(void)
-  * RTAS function event-scan and repeats these calls as long as there are
-  * events available. All events will be dumped.
-  */
--static void
--wdrtas_timer_keepalive(void)
-+static void wdrtas_timer_keepalive(void)
+ /* lock the IO chip */
+ static inline void close_io_config(void)
  {
- 	long result;
- 
-@@ -218,8 +212,7 @@ wdrtas_timer_keepalive(void)
-  * wdrtas_get_temperature returns the current temperature in Fahrenheit. It
-  * uses the RTAS call get-sensor-state, token 3 to do so
-  */
--static int
--wdrtas_get_temperature(void)
-+static int wdrtas_get_temperature(void)
- {
- 	long result;
- 	int temperature = 0;
-@@ -243,8 +236,7 @@ wdrtas_get_temperature(void)
-  * returns a bitmask of defines WDIOF_... as defined in
-  * include/linux/watchdog.h
-  */
--static int
--wdrtas_get_status(void)
-+static int wdrtas_get_status(void)
- {
- 	return 0; /* TODO */
+-        outb(0xAA, IOPORT);
++	outb(0xAA, IOPORT);
  }
-@@ -255,8 +247,7 @@ wdrtas_get_status(void)
-  * returns a bitmask of defines WDIOF_... as defined in
-  * include/linux/watchdog.h, indicating why the watchdog rebooted the system
-  */
--static int
--wdrtas_get_boot_status(void)
-+static int wdrtas_get_boot_status(void)
+ 
+ /* select the IO device */
+ static inline void select_io_device(unsigned char devno)
  {
- 	return 0; /* TODO */
+-        outb(0x07, IOPORT);
+-        outb(devno, IOPORT+1);
++	outb(0x07, IOPORT);
++	outb(devno, IOPORT+1);
  }
-@@ -276,8 +267,7 @@ wdrtas_get_boot_status(void)
-  * character 'V'. This character allows the watchdog device to be closed
-  * properly.
-  */
--static ssize_t
--wdrtas_write(struct file *file, const char __user *buf,
-+static ssize_t wdrtas_write(struct file *file, const char __user *buf,
- 	     size_t len, loff_t *ppos)
- {
- 	int i;
-@@ -306,7 +296,6 @@ out:
  
- /**
-  * wdrtas_ioctl - ioctl function for the watchdog device
-- * @inode: inode structure
-  * @file: file structure
-  * @cmd: command for ioctl
-  * @arg: argument pointer
-@@ -315,9 +304,9 @@ out:
-  *
-  * wdrtas_ioctl implements the watchdog API ioctls
-  */
--static int
--wdrtas_ioctl(struct inode *inode, struct file *file,
--	     unsigned int cmd, unsigned long arg)
-+
-+static long wdrtas_ioctl(struct file *file, unsigned int cmd,
-+							unsigned long arg)
+ /* write to the control register */
+ static inline void write_io_cr(unsigned char reg, unsigned char data)
  {
- 	int __user *argp = (void __user *)arg;
- 	int i;
-@@ -357,9 +346,9 @@ wdrtas_ioctl(struct inode *inode, struct
- 			wdrtas_timer_keepalive();
- 			wdrtas_timer_start();
- 		}
-+		/* not implemented. Done by H8
- 		if (i & WDIOS_TEMPPANIC) {
--			/* not implemented. Done by H8 */
--		}
-+		} */
- 		return 0;
+-        outb(reg, IOPORT);
+-        outb(data, IOPORT+1);
++	outb(reg, IOPORT);
++	outb(data, IOPORT+1);
+ }
  
- 	case WDIOC_KEEPALIVE:
-@@ -399,8 +388,7 @@ wdrtas_ioctl(struct inode *inode, struct
-  *
-  * function called when watchdog device is opened
-  */
--static int
--wdrtas_open(struct inode *inode, struct file *file)
-+static int wdrtas_open(struct inode *inode, struct file *file)
+ /* read from the control register */
+ static inline char read_io_cr(unsigned char reg)
  {
- 	/* only open once */
- 	if (atomic_inc_return(&wdrtas_miscdev_open) > 1) {
-@@ -423,8 +411,7 @@ wdrtas_open(struct inode *inode, struct 
-  *
-  * close function. Always succeeds
-  */
--static int
--wdrtas_close(struct inode *inode, struct file *file)
-+static int wdrtas_close(struct inode *inode, struct file *file)
+-        outb(reg, IOPORT);
+-        return inb(IOPORT+1);
++	outb(reg, IOPORT);
++	return inb(IOPORT+1);
+ }
+ 
+ /* -- Medium level functions ------------------------------------*/
+ 
+ static inline void gpio_bit12(unsigned char reg)
  {
- 	/* only stop watchdog, if this was announced using 'V' before */
- 	if (wdrtas_expect_close == WDRTAS_MAGIC_CHAR)
-@@ -453,8 +440,7 @@ wdrtas_close(struct inode *inode, struct
-  * wdrtas_temp_read gives the temperature to the users by copying this
-  * value as one byte into the user space buffer. The unit is Fahrenheit...
-  */
--static ssize_t
--wdrtas_temp_read(struct file *file, char __user *buf,
-+static ssize_t wdrtas_temp_read(struct file *file, char __user *buf,
- 		 size_t count, loff_t *ppos)
+-	// -- General Purpose I/O Bit 1.2 --
+-	// Bit 0,   In/Out: 0 = Output, 1 = Input
+-	// Bit 1,   Polarity: 0 = No Invert, 1 = Invert
+-	// Bit 2,   Group Enable Intr.: 0 = Disable, 1 = Enable
+-	// Bit 3/4, Function select: 00 = GPI/O, 01 = WDT, 10 = P17,
+-	//                           11 = Either Edge Triggered Intr. 2
+-        // Bit 5/6  (Reserved)
+-	// Bit 7,   Output Type: 0 = Push Pull Bit, 1 = Open Drain
+-        write_io_cr(0xE2, reg);
++	/* -- General Purpose I/O Bit 1.2 --
++	 * Bit 0,   In/Out: 0 = Output, 1 = Input
++	 * Bit 1,   Polarity: 0 = No Invert, 1 = Invert
++	 * Bit 2,   Group Enable Intr.: 0 = Disable, 1 = Enable
++	 * Bit 3/4, Function select: 00 = GPI/O, 01 = WDT, 10 = P17,
++	 *                           11 = Either Edge Triggered Intr. 2
++	 * Bit 5/6  (Reserved)
++	 * Bit 7,   Output Type: 0 = Push Pull Bit, 1 = Open Drain
++	 */
++	write_io_cr(0xE2, reg);
+ }
+ 
+ static inline void gpio_bit13(unsigned char reg)
  {
- 	int temperature = 0;
-@@ -478,8 +464,7 @@ wdrtas_temp_read(struct file *file, char
-  *
-  * function called when temperature device is opened
-  */
--static int
--wdrtas_temp_open(struct inode *inode, struct file *file)
-+static int wdrtas_temp_open(struct inode *inode, struct file *file)
+-	// -- General Purpose I/O Bit 1.3 --
+-	// Bit 0,  In/Out: 0 = Output, 1 = Input
+-	// Bit 1,  Polarity: 0 = No Invert, 1 = Invert
+-	// Bit 2,  Group Enable Intr.: 0 = Disable, 1 = Enable
+-	// Bit 3,  Function select: 0 = GPI/O, 1 = LED
+-        // Bit 4-6 (Reserved)
+-	// Bit 7,  Output Type: 0 = Push Pull Bit, 1 = Open Drain
+-        write_io_cr(0xE3, reg);
++	/* -- General Purpose I/O Bit 1.3 --
++	 * Bit 0,  In/Out: 0 = Output, 1 = Input
++	 * Bit 1,  Polarity: 0 = No Invert, 1 = Invert
++	 * Bit 2,  Group Enable Intr.: 0 = Disable, 1 = Enable
++	 * Bit 3,  Function select: 0 = GPI/O, 1 = LED
++	 * Bit 4-6 (Reserved)
++	 * Bit 7,  Output Type: 0 = Push Pull Bit, 1 = Open Drain
++	 */
++	write_io_cr(0xE3, reg);
+ }
+ 
+ static inline void wdt_timer_units(unsigned char new_units)
  {
+-	// -- Watchdog timer units --
+-	// Bit 0-6 (Reserved)
+-	// Bit 7,  WDT Time-out Value Units Select
+-	//         (0 = Minutes, 1 = Seconds)
+-        write_io_cr(0xF1, new_units);
++	/* -- Watchdog timer units --
++	 * Bit 0-6 (Reserved)
++	 * Bit 7,  WDT Time-out Value Units Select
++	 *         (0 = Minutes, 1 = Seconds)
++	 */
++	write_io_cr(0xF1, new_units);
+ }
+ 
+ static inline void wdt_timeout_value(unsigned char new_timeout)
+ {
+-	// -- Watchdog Timer Time-out Value --
+-	// Bit 0-7 Binary coded units (0=Disabled, 1..255)
+-        write_io_cr(0xF2, new_timeout);
++	/* -- Watchdog Timer Time-out Value --
++	 * Bit 0-7 Binary coded units (0=Disabled, 1..255)
++	 */
++	write_io_cr(0xF2, new_timeout);
+ }
+ 
+ static inline void wdt_timer_conf(unsigned char conf)
+ {
+-	// -- Watchdog timer configuration --
+-	// Bit 0   Joystick enable: 0* = No Reset, 1 = Reset WDT upon Gameport I/O
+-	// Bit 1   Keyboard enable: 0* = No Reset, 1 = Reset WDT upon KBD Intr.
+-	// Bit 2   Mouse enable: 0* = No Reset, 1 = Reset WDT upon Mouse Intr.
+-        // Bit 3   Reset the timer
+-        //         (Wrong in SMsC documentation? Given as: PowerLED Timout Enabled)
+-	// Bit 4-7 WDT Interrupt Mapping: (0000* = Disabled,
+-	//            0001=IRQ1, 0010=(Invalid), 0011=IRQ3 to 1111=IRQ15)
+-        write_io_cr(0xF3, conf);
++	/* -- Watchdog timer configuration --
++	 * Bit 0   Joystick enable: 0* = No Reset, 1 = Reset WDT upon
++	 *							Gameport I/O
++	 * Bit 1   Keyboard enable: 0* = No Reset, 1 = Reset WDT upon KBD Intr.
++	 * Bit 2   Mouse enable: 0* = No Reset, 1 = Reset WDT upon Mouse Intr
++	 * Bit 3   Reset the timer
++	 *         (Wrong in SMsC documentation? Given as: PowerLED Timout
++	 *							Enabled)
++	 * Bit 4-7 WDT Interrupt Mapping: (0000* = Disabled,
++	 *            0001=IRQ1, 0010=(Invalid), 0011=IRQ3 to 1111=IRQ15)
++	 */
++	write_io_cr(0xF3, conf);
+ }
+ 
+ static inline void wdt_timer_ctrl(unsigned char reg)
+ {
+-	// -- Watchdog timer control --
+-	// Bit 0   Status Bit: 0 = Timer counting, 1 = Timeout occured
+-	// Bit 1   Power LED Toggle: 0 = Disable Toggle, 1 = Toggle at 1 Hz
+-	// Bit 2   Force Timeout: 1 = Forces WD timeout event (self-cleaning)
+-	// Bit 3   P20 Force Timeout enabled:
+-	//          0 = P20 activity does not generate the WD timeout event
+-	//          1 = P20 Allows rising edge of P20, from the keyboard
+-	//              controller, to force the WD timeout event.
+-	// Bit 4   (Reserved)
+-	// -- Soft power management --
+-	// Bit 5   Stop Counter: 1 = Stop software power down counter
+-	//            set via register 0xB8, (self-cleaning)
+-	//            (Upon read: 0 = Counter running, 1 = Counter stopped)
+-	// Bit 6   Restart Counter: 1 = Restart software power down counter
+-	//            set via register 0xB8, (self-cleaning)
+-	// Bit 7   SPOFF: 1 = Force software power down (self-cleaning)
+-
+-        write_io_cr(0xF4, reg);
++	/* -- Watchdog timer control --
++	 * Bit 0   Status Bit: 0 = Timer counting, 1 = Timeout occured
++	 * Bit 1   Power LED Toggle: 0 = Disable Toggle, 1 = Toggle at 1 Hz
++	 * Bit 2   Force Timeout: 1 = Forces WD timeout event (self-cleaning)
++	 * Bit 3   P20 Force Timeout enabled:
++	 *          0 = P20 activity does not generate the WD timeout event
++	 *          1 = P20 Allows rising edge of P20, from the keyboard
++	 *              controller, to force the WD timeout event.
++	 * Bit 4   (Reserved)
++	 * -- Soft power management --
++	 * Bit 5   Stop Counter: 1 = Stop software power down counter
++	 *            set via register 0xB8, (self-cleaning)
++	 *            (Upon read: 0 = Counter running, 1 = Counter stopped)
++	 * Bit 6   Restart Counter: 1 = Restart software power down counter
++	 *            set via register 0xB8, (self-cleaning)
++	 * Bit 7   SPOFF: 1 = Force software power down (self-cleaning)
++	 */
++	write_io_cr(0xF4, reg);
+ }
+ 
+ /* -- Higher level functions ------------------------------------*/
+@@ -209,33 +216,34 @@ static inline void wdt_timer_ctrl(unsign
+ 
+ static void wb_smsc_wdt_initialize(void)
+ {
+-        unsigned char old;
++	unsigned char old;
+ 
+ 	spin_lock(&io_lock);
+-        open_io_config();
+-        select_io_device(IODEV_NO);
+-
+-	// enable the watchdog
+-	gpio_bit13(0x08);  // Select pin 80 = LED not GPIO
+-	gpio_bit12(0x0A);  // Set pin 79 = WDT not GPIO/Output/Polarity=Invert
++	open_io_config();
++	select_io_device(IODEV_NO);
+ 
+-	// disable the timeout
+-        wdt_timeout_value(0);
++	/* enable the watchdog */
++	gpio_bit13(0x08);  /* Select pin 80 = LED not GPIO */
++	gpio_bit12(0x0A);  /* Set pin 79 = WDT not
++			      GPIO/Output/Polarity=Invert */
++	/* disable the timeout */
++	wdt_timeout_value(0);
+ 
+-	// reset control register
+-        wdt_timer_ctrl(0x00);
++	/* reset control register */
++	wdt_timer_ctrl(0x00);
+ 
+-	// reset configuration register
++	/* reset configuration register */
+ 	wdt_timer_conf(0x00);
+ 
+-	// read old (timer units) register
+-        old = read_io_cr(0xF1) & 0x7F;
+-        if (unit == UNIT_SECOND) old |= 0x80; // set to seconds
++	/* read old (timer units) register */
++	old = read_io_cr(0xF1) & 0x7F;
++	if (unit == UNIT_SECOND)
++		old |= 0x80;	/* set to seconds */
+ 
+-	// set the watchdog timer units
+-        wdt_timer_units(old);
++	/* set the watchdog timer units */
++	wdt_timer_units(old);
+ 
+-        close_io_config();
++	close_io_config();
+ 	spin_unlock(&io_lock);
+ }
+ 
+@@ -244,23 +252,23 @@ static void wb_smsc_wdt_initialize(void)
+ static void wb_smsc_wdt_shutdown(void)
+ {
+ 	spin_lock(&io_lock);
+-        open_io_config();
+-        select_io_device(IODEV_NO);
++	open_io_config();
++	select_io_device(IODEV_NO);
+ 
+-	// disable the watchdog
+-        gpio_bit13(0x09);
+-        gpio_bit12(0x09);
++	/* disable the watchdog */
++	gpio_bit13(0x09);
++	gpio_bit12(0x09);
+ 
+-	// reset watchdog config register
++	/* reset watchdog config register */
+ 	wdt_timer_conf(0x00);
+ 
+-	// reset watchdog control register
+-        wdt_timer_ctrl(0x00);
++	/* reset watchdog control register */
++	wdt_timer_ctrl(0x00);
+ 
+-	// disable timeout
+-        wdt_timeout_value(0x00);
++	/* disable timeout */
++	wdt_timeout_value(0x00);
+ 
+-        close_io_config();
++	close_io_config();
+ 	spin_unlock(&io_lock);
+ }
+ 
+@@ -269,16 +277,16 @@ static void wb_smsc_wdt_shutdown(void)
+ static void wb_smsc_wdt_set_timeout(unsigned char new_timeout)
+ {
+ 	spin_lock(&io_lock);
+-        open_io_config();
+-        select_io_device(IODEV_NO);
++	open_io_config();
++	select_io_device(IODEV_NO);
+ 
+-	// set Power LED to blink, if we enable the timeout
+-        wdt_timer_ctrl((new_timeout == 0) ? 0x00 : 0x02);
++	/* set Power LED to blink, if we enable the timeout */
++	wdt_timer_ctrl((new_timeout == 0) ? 0x00 : 0x02);
+ 
+-	// set timeout value
+-        wdt_timeout_value(new_timeout);
++	/* set timeout value */
++	wdt_timeout_value(new_timeout);
+ 
+-        close_io_config();
++	close_io_config();
+ 	spin_unlock(&io_lock);
+ }
+ 
+@@ -286,32 +294,32 @@ static void wb_smsc_wdt_set_timeout(unsi
+ 
+ static unsigned char wb_smsc_wdt_get_timeout(void)
+ {
+-        unsigned char set_timeout;
++	unsigned char set_timeout;
+ 
+ 	spin_lock(&io_lock);
+-        open_io_config();
+-        select_io_device(IODEV_NO);
+-        set_timeout = read_io_cr(0xF2);
+-        close_io_config();
++	open_io_config();
++	select_io_device(IODEV_NO);
++	set_timeout = read_io_cr(0xF2);
++	close_io_config();
+ 	spin_unlock(&io_lock);
+ 
+-        return set_timeout;
++	return set_timeout;
+ }
+ 
+ /* disable watchdog */
+ 
+ static void wb_smsc_wdt_disable(void)
+ {
+-        // set the timeout to 0 to disable the watchdog
+-        wb_smsc_wdt_set_timeout(0);
++	/* set the timeout to 0 to disable the watchdog */
++	wb_smsc_wdt_set_timeout(0);
+ }
+ 
+ /* enable watchdog by setting the current timeout */
+ 
+ static void wb_smsc_wdt_enable(void)
+ {
+-        // set the current timeout...
+-        wb_smsc_wdt_set_timeout(timeout);
++	/* set the current timeout... */
++	wb_smsc_wdt_set_timeout(timeout);
+ }
+ 
+ /* reset the timer */
+@@ -319,14 +327,14 @@ static void wb_smsc_wdt_enable(void)
+ static void wb_smsc_wdt_reset_timer(void)
+ {
+ 	spin_lock(&io_lock);
+-        open_io_config();
+-        select_io_device(IODEV_NO);
++	open_io_config();
++	select_io_device(IODEV_NO);
+ 
+-	// reset the timer
++	/* reset the timer */
+ 	wdt_timeout_value(timeout);
+ 	wdt_timer_conf(0x08);
+ 
+-        close_io_config();
++	close_io_config();
+ 	spin_unlock(&io_lock);
+ }
+ 
+@@ -355,7 +363,9 @@ static int wb_smsc_wdt_open(struct inode
+ 	/* Reload and activate timer */
+ 	wb_smsc_wdt_enable();
+ 
+-	printk(KERN_INFO MODNAME "Watchdog enabled. Timeout set to %d %s.\n", timeout, (unit == UNIT_SECOND) ? "second(s)" : "minute(s)");
++	printk(KERN_INFO MODNAME
++		"Watchdog enabled. Timeout set to %d %s.\n",
++		timeout, (unit == UNIT_SECOND) ? "second(s)" : "minute(s)");
+ 
  	return nonseekable_open(inode, file);
  }
-@@ -493,8 +478,7 @@ wdrtas_temp_open(struct inode *inode, st
-  *
-  * close function. Always succeeds
-  */
--static int
--wdrtas_temp_close(struct inode *inode, struct file *file)
-+static int wdrtas_temp_close(struct inode *inode, struct file *file)
+@@ -367,10 +377,12 @@ static int wb_smsc_wdt_release(struct in
+ 	/* Shut off the timer. */
+ 
+ 	if (expect_close == 42) {
+-	        wb_smsc_wdt_disable();
+-		printk(KERN_INFO MODNAME "Watchdog disabled, sleeping again...\n");
++		wb_smsc_wdt_disable();
++		printk(KERN_INFO MODNAME
++				"Watchdog disabled, sleeping again...\n");
+ 	} else {
+-		printk(KERN_CRIT MODNAME "Unexpected close, not stopping watchdog!\n");
++		printk(KERN_CRIT MODNAME
++				"Unexpected close, not stopping watchdog!\n");
+ 		wb_smsc_wdt_reset_timer();
+ 	}
+ 
+@@ -392,7 +404,8 @@ static ssize_t wb_smsc_wdt_write(struct 
+ 			/* reset expect flag */
+ 			expect_close = 0;
+ 
+-			/* scan to see whether or not we got the magic character */
++			/* scan to see whether or not we got the
++			   magic character */
+ 			for (i = 0; i != len; i++) {
+ 				char c;
+ 				if (get_user(c, data+i))
+@@ -410,8 +423,8 @@ static ssize_t wb_smsc_wdt_write(struct 
+ 
+ /* ioctl => control interface */
+ 
+-static int wb_smsc_wdt_ioctl(struct inode *inode, struct file *file,
+-			     unsigned int cmd, unsigned long arg)
++static long wb_smsc_wdt_ioctl(struct file *file,
++					unsigned int cmd, unsigned long arg)
  {
- 	return 0;
+ 	int new_timeout;
+ 
+@@ -420,9 +433,9 @@ static int wb_smsc_wdt_ioctl(struct inod
+ 		int __user *i;
+ 	} uarg;
+ 
+-	static struct watchdog_info ident = {
++	static const struct watchdog_info ident = {
+ 		.options = 		WDIOF_KEEPALIVEPING |
+-		                        WDIOF_SETTIMEOUT |
++					WDIOF_SETTIMEOUT |
+ 					WDIOF_MAGICCLOSE,
+ 		.firmware_version =	0,
+ 		.identity = 		"SMsC 37B787 Watchdog"
+@@ -431,78 +444,62 @@ static int wb_smsc_wdt_ioctl(struct inod
+ 	uarg.i = (int __user *)arg;
+ 
+ 	switch (cmd) {
+-		default:
+-			return -ENOTTY;
+-
+-		case WDIOC_GETSUPPORT:
+-			return copy_to_user(uarg.ident, &ident,
+-				sizeof(ident)) ? -EFAULT : 0;
+-
+-		case WDIOC_GETSTATUS:
+-			return put_user(wb_smsc_wdt_status(), uarg.i);
+-
+-		case WDIOC_GETBOOTSTATUS:
+-			return put_user(0, uarg.i);
+-
+-		case WDIOC_KEEPALIVE:
+-			wb_smsc_wdt_reset_timer();
+-			return 0;
+-
+-		case WDIOC_SETTIMEOUT:
+-			if (get_user(new_timeout, uarg.i))
+-				return -EFAULT;
+-
+-			// the API states this is given in secs
+-			if (unit == UNIT_MINUTE)
+-			  new_timeout /= 60;
+-
+-			if (new_timeout < 0 || new_timeout > MAX_TIMEOUT)
+-				return -EINVAL;
+-
+-			timeout = new_timeout;
+-			wb_smsc_wdt_set_timeout(timeout);
+-
+-			// fall through and return the new timeout...
+-
+-		case WDIOC_GETTIMEOUT:
+-
+-		        new_timeout = timeout;
+-
+-			if (unit == UNIT_MINUTE)
++	case WDIOC_GETSUPPORT:
++		return copy_to_user(uarg.ident, &ident, sizeof(ident))
++								? -EFAULT : 0;
++	case WDIOC_GETSTATUS:
++		return put_user(wb_smsc_wdt_status(), uarg.i);
++	case WDIOC_GETBOOTSTATUS:
++		return put_user(0, uarg.i);
++	case WDIOC_KEEPALIVE:
++		wb_smsc_wdt_reset_timer();
++		return 0;
++	case WDIOC_SETTIMEOUT:
++		if (get_user(new_timeout, uarg.i))
++			return -EFAULT;
++		/* the API states this is given in secs */
++		if (unit == UNIT_MINUTE)
++			new_timeout /= 60;
++		if (new_timeout < 0 || new_timeout > MAX_TIMEOUT)
++			return -EINVAL;
++		timeout = new_timeout;
++		wb_smsc_wdt_set_timeout(timeout);
++		/* fall through and return the new timeout... */
++	case WDIOC_GETTIMEOUT:
++		new_timeout = timeout;
++		if (unit == UNIT_MINUTE)
+ 			  new_timeout *= 60;
++		return put_user(new_timeout, uarg.i);
++	case WDIOC_SETOPTIONS:
++	{
++		int options, retval = -EINVAL;
+ 
+-			return put_user(new_timeout, uarg.i);
+-
+-		case WDIOC_SETOPTIONS:
+-		{
+-			int options, retval = -EINVAL;
+-
+-			if (get_user(options, uarg.i))
+-				return -EFAULT;
+-
+-			if (options & WDIOS_DISABLECARD) {
+-				wb_smsc_wdt_disable();
+-				retval = 0;
+-			}
+-
+-			if (options & WDIOS_ENABLECARD) {
+-				wb_smsc_wdt_enable();
+-				retval = 0;
+-			}
++		if (get_user(options, uarg.i))
++			return -EFAULT;
+ 
+-			return retval;
++		if (options & WDIOS_DISABLECARD) {
++			wb_smsc_wdt_disable();
++			retval = 0;
+ 		}
++		if (options & WDIOS_ENABLECARD) {
++			wb_smsc_wdt_enable();
++			retval = 0;
++		}
++		return retval;
++	}
++	default:
++		return -ENOTTY;
+ 	}
  }
-@@ -509,10 +493,10 @@ wdrtas_temp_close(struct inode *inode, s
-  *
-  * wdrtas_reboot stops the watchdog in case of a reboot
-  */
--static int
--wdrtas_reboot(struct notifier_block *this, unsigned long code, void *ptr)
-+static int wdrtas_reboot(struct notifier_block *this,
-+					unsigned long code, void *ptr)
- {
--	if ( (code==SYS_DOWN) || (code==SYS_HALT) )
-+	if (code == SYS_DOWN || code == SYS_HALT)
- 		wdrtas_timer_stop();
  
+ /* -- Notifier funtions -----------------------------------------*/
+ 
+-static int wb_smsc_wdt_notify_sys(struct notifier_block *this, unsigned long code, void *unused)
++static int wb_smsc_wdt_notify_sys(struct notifier_block *this,
++					unsigned long code, void *unused)
+ {
+-	if (code == SYS_DOWN || code == SYS_HALT)
+-	{
+-                // set timeout to 0, to avoid possible race-condition
+-	        timeout = 0;
++	if (code == SYS_DOWN || code == SYS_HALT) {
++		/* set timeout to 0, to avoid possible race-condition */
++		timeout = 0;
+ 		wb_smsc_wdt_disable();
+ 	}
  	return NOTIFY_DONE;
-@@ -524,7 +508,7 @@ static const struct file_operations wdrt
- 	.owner		= THIS_MODULE,
- 	.llseek		= no_llseek,
- 	.write		= wdrtas_write,
--	.ioctl		= wdrtas_ioctl,
-+	.unlocked_ioctl	= wdrtas_ioctl,
- 	.open		= wdrtas_open,
- 	.release	= wdrtas_close,
- };
-@@ -562,8 +546,7 @@ static struct notifier_block wdrtas_noti
-  * this watchdog driver. It tolerates, if "get-sensor-state" and
-  * "ibm,get-system-parameter" are not available.
-  */
--static int
--wdrtas_get_tokens(void)
-+static int wdrtas_get_tokens(void)
- {
- 	wdrtas_token_get_sensor_state = rtas_token("get-sensor-state");
- 	if (wdrtas_token_get_sensor_state == RTAS_UNKNOWN_SERVICE) {
-@@ -603,8 +586,7 @@ wdrtas_get_tokens(void)
-  * wdrtas_register_devs unregisters the watchdog and temperature watchdog
-  * misc devs
-  */
--static void
--wdrtas_unregister_devs(void)
-+static void wdrtas_unregister_devs(void)
- {
- 	misc_deregister(&wdrtas_miscdev);
- 	if (wdrtas_token_get_sensor_state != RTAS_UNKNOWN_SERVICE)
-@@ -619,8 +601,7 @@ wdrtas_unregister_devs(void)
-  * wdrtas_register_devs registers the watchdog and temperature watchdog
-  * misc devs
-  */
--static int
--wdrtas_register_devs(void)
-+static int wdrtas_register_devs(void)
- {
- 	int result;
+@@ -510,23 +507,20 @@ static int wb_smsc_wdt_notify_sys(struct
  
-@@ -651,8 +632,7 @@ wdrtas_register_devs(void)
-  *
-  * registers the file handlers and the reboot notifier
-  */
--static int __init
--wdrtas_init(void)
-+static int __init wdrtas_init(void)
+ /* -- Module's structures ---------------------------------------*/
+ 
+-static const struct file_operations wb_smsc_wdt_fops =
+-{
+-	.owner          = THIS_MODULE,
++static const struct file_operations wb_smsc_wdt_fops = {
++	.owner	  = THIS_MODULE,
+ 	.llseek		= no_llseek,
+ 	.write		= wb_smsc_wdt_write,
+-	.ioctl		= wb_smsc_wdt_ioctl,
++	.unlocked_ioctl	= wb_smsc_wdt_ioctl,
+ 	.open		= wb_smsc_wdt_open,
+ 	.release	= wb_smsc_wdt_release,
+ };
+ 
+-static struct notifier_block wb_smsc_wdt_notifier =
+-{
++static struct notifier_block wb_smsc_wdt_notifier = {
+ 	.notifier_call  = wb_smsc_wdt_notify_sys,
+ };
+ 
+-static struct miscdevice wb_smsc_wdt_miscdev =
+-{
++static struct miscdevice wb_smsc_wdt_miscdev = {
+ 	.minor		= WATCHDOG_MINOR,
+ 	.name		= "watchdog",
+ 	.fops		= &wb_smsc_wdt_fops,
+@@ -540,39 +534,44 @@ static int __init wb_smsc_wdt_init(void)
  {
- 	if (wdrtas_get_tokens())
- 		return -ENODEV;
-@@ -680,8 +660,7 @@ wdrtas_init(void)
-  *
-  * unregisters the file handlers and the reboot notifier
-  */
--static void __exit
--wdrtas_exit(void)
-+static void __exit wdrtas_exit(void)
+ 	int ret;
+ 
+-	printk("SMsC 37B787 watchdog component driver " VERSION " initialising...\n");
++	printk(KERN_INFO "SMsC 37B787 watchdog component driver "
++					VERSION " initialising...\n");
+ 
+ 	if (!request_region(IOPORT, IOPORT_SIZE, "SMsC 37B787 watchdog")) {
+-		printk(KERN_ERR MODNAME "Unable to register IO port %#x\n", IOPORT);
++		printk(KERN_ERR MODNAME "Unable to register IO port %#x\n",
++								IOPORT);
+ 		ret = -EBUSY;
+ 		goto out_pnp;
+ 	}
+ 
+-        // set new maximum, if it's too big
+-        if (timeout > MAX_TIMEOUT)
+-               timeout = MAX_TIMEOUT;
++	/* set new maximum, if it's too big */
++	if (timeout > MAX_TIMEOUT)
++		timeout = MAX_TIMEOUT;
+ 
+-        // init the watchdog timer
+-        wb_smsc_wdt_initialize();
++	/* init the watchdog timer */
++	wb_smsc_wdt_initialize();
+ 
+ 	ret = register_reboot_notifier(&wb_smsc_wdt_notifier);
+ 	if (ret) {
+-		printk(KERN_ERR MODNAME "Unable to register reboot notifier err = %d\n", ret);
++		printk(KERN_ERR MODNAME
++			"Unable to register reboot notifier err = %d\n", ret);
+ 		goto out_io;
+ 	}
+ 
+ 	ret = misc_register(&wb_smsc_wdt_miscdev);
+ 	if (ret) {
+-		printk(KERN_ERR MODNAME "Unable to register miscdev on minor %d\n", WATCHDOG_MINOR);
++		printk(KERN_ERR MODNAME
++			"Unable to register miscdev on minor %d\n",
++							WATCHDOG_MINOR);
+ 		goto out_rbt;
+ 	}
+ 
+-	// output info
+-	printk(KERN_INFO MODNAME "Timeout set to %d %s.\n", timeout, (unit == UNIT_SECOND) ? "second(s)" : "minute(s)");
+-	printk(KERN_INFO MODNAME "Watchdog initialized and sleeping (nowayout=%d)...\n", nowayout);
+-
+-	// ret = 0
+-
++	/* output info */
++	printk(KERN_INFO MODNAME "Timeout set to %d %s.\n",
++		timeout, (unit == UNIT_SECOND) ? "second(s)" : "minute(s)");
++	printk(KERN_INFO MODNAME
++		"Watchdog initialized and sleeping (nowayout=%d)...\n",
++								nowayout);
+ out_clean:
+ 	return ret;
+ 
+@@ -591,8 +590,7 @@ out_pnp:
+ static void __exit wb_smsc_wdt_exit(void)
  {
- 	if (!wdrtas_nowayout)
- 		wdrtas_timer_stop();
+ 	/* Stop the timer before we leave */
+-	if (!nowayout)
+-	{
++	if (!nowayout) {
+ 		wb_smsc_wdt_shutdown();
+ 		printk(KERN_INFO MODNAME "Watchdog disabled.\n");
+ 	}
+@@ -601,25 +599,29 @@ static void __exit wb_smsc_wdt_exit(void
+ 	unregister_reboot_notifier(&wb_smsc_wdt_notifier);
+ 	release_region(IOPORT, IOPORT_SIZE);
+ 
+-	printk("SMsC 37B787 watchdog component driver removed.\n");
++	printk(KERN_INFO "SMsC 37B787 watchdog component driver removed.\n");
+ }
+ 
+ module_init(wb_smsc_wdt_init);
+ module_exit(wb_smsc_wdt_exit);
+ 
+ MODULE_AUTHOR("Sven Anders <anders@anduras.de>");
+-MODULE_DESCRIPTION("Driver for SMsC 37B787 watchdog component (Version " VERSION ")");
++MODULE_DESCRIPTION("Driver for SMsC 37B787 watchdog component (Version "
++								VERSION ")");
+ MODULE_LICENSE("GPL");
+ 
+ MODULE_ALIAS_MISCDEV(WATCHDOG_MINOR);
+ 
+ #ifdef SMSC_SUPPORT_MINUTES
+ module_param(unit, int, 0);
+-MODULE_PARM_DESC(unit, "set unit to use, 0=seconds or 1=minutes, default is 0");
++MODULE_PARM_DESC(unit,
++		"set unit to use, 0=seconds or 1=minutes, default is 0");
+ #endif
+ 
+ module_param(timeout, int, 0);
+ MODULE_PARM_DESC(timeout, "range is 1-255 units, default is 60");
+ 
+ module_param(nowayout, int, 0);
+-MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started (default=" __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
++MODULE_PARM_DESC(nowayout,
++		"Watchdog cannot be stopped once started (default="
++				__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
 _
 
 Patches currently in -mm which might be from alan@redhat.com are
