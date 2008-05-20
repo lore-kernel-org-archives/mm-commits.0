@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + sfc-use-mod_timer-to-set-expiry-and-add_timer-together.patch added to -mm tree
-Date: Mon, 19 May 2008 20:27:26 -0700
-Message-ID: <200805200327.m4K3RQYU002686@imap1.linux-foundation.org>
+Subject: + sfc-remove-unncesssary-ul-suffixes-on-0-literals.patch added to -mm tree
+Date: Mon, 19 May 2008 20:27:32 -0700
+Message-ID: <200805200327.m4K3RWD5002695@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34591 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55634 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757061AbYETD1d (ORCPT
+	by vger.kernel.org with ESMTP id S1757253AbYETD1i (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 May 2008 23:27:33 -0400
+	Mon, 19 May 2008 23:27:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: bhutchings@solarflare.com, jeff@garzik.org
 
 
 The patch titled
-     sfc: use mod_timer() to set expiry and add_timer() together
+     sfc: remove unncesssary UL suffixes on 0 literals
 has been added to the -mm tree.  Its filename is
-     sfc-use-mod_timer-to-set-expiry-and-add_timer-together.patch
+     sfc-remove-unncesssary-ul-suffixes-on-0-literals.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sfc: use mod_timer() to set expiry and add_timer() together
+Subject: sfc: remove unncesssary UL suffixes on 0 literals
 From: Ben Hutchings <bhutchings@solarflare.com>
 
 Signed-off-by: Ben Hutchings <bhutchings@solarflare.com>
@@ -42,35 +42,30 @@ Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/sfc/boards.c |    9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ drivers/net/sfc/efx.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/net/sfc/boards.c~sfc-use-mod_timer-to-set-expiry-and-add_timer-together drivers/net/sfc/boards.c
---- a/drivers/net/sfc/boards.c~sfc-use-mod_timer-to-set-expiry-and-add_timer-together
-+++ a/drivers/net/sfc/boards.c
-@@ -27,10 +27,8 @@ static void blink_led_timer(unsigned lon
- 	struct efx_blinker *bl = &efx->board_info.blinker;
- 	efx->board_info.set_fault_led(efx, bl->state);
- 	bl->state = !bl->state;
--	if (bl->resubmit) {
--		bl->timer.expires = jiffies + BLINK_INTERVAL;
--		add_timer(&bl->timer);
--	}
-+	if (bl->resubmit)
-+		mod_timer(&bl->timer, jiffies + BLINK_INTERVAL);
- }
+diff -puN drivers/net/sfc/efx.c~sfc-remove-unncesssary-ul-suffixes-on-0-literals drivers/net/sfc/efx.c
+--- a/drivers/net/sfc/efx.c~sfc-remove-unncesssary-ul-suffixes-on-0-literals
++++ a/drivers/net/sfc/efx.c
+@@ -793,7 +793,7 @@ static int efx_init_io(struct efx_nic *e
+  fail4:
+ 	release_mem_region(efx->membase_phys, efx->type->mem_map_size);
+  fail3:
+-	efx->membase_phys = 0UL;
++	efx->membase_phys = 0;
+  fail2:
+ 	pci_disable_device(efx->pci_dev);
+  fail1:
+@@ -811,7 +811,7 @@ static void efx_fini_io(struct efx_nic *
  
- static void board_blink(struct efx_nic *efx, int blink)
-@@ -44,8 +42,7 @@ static void board_blink(struct efx_nic *
- 		blinker->state = 0;
- 		setup_timer(&blinker->timer, blink_led_timer,
- 			    (unsigned long)efx);
--		blinker->timer.expires = jiffies + BLINK_INTERVAL;
--		add_timer(&blinker->timer);
-+		mod_timer(&blinker->timer, jiffies + BLINK_INTERVAL);
- 	} else {
- 		blinker->resubmit = 0;
- 		if (blinker->timer.function)
+ 	if (efx->membase_phys) {
+ 		pci_release_region(efx->pci_dev, efx->type->mem_bar);
+-		efx->membase_phys = 0UL;
++		efx->membase_phys = 0;
+ 	}
+ 
+ 	pci_disable_device(efx->pci_dev);
 _
 
 Patches currently in -mm which might be from bhutchings@solarflare.com are
