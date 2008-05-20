@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + list-debugging-use-warn_on-instead-of-bug.patch added to -mm tree
-Date: Tue, 20 May 2008 02:13:14 -0700
-Message-ID: <200805200913.m4K9DEww014979@imap1.linux-foundation.org>
+Subject: + block-use-arch_kmalloc_minalign-as-the-default-dma-pad-mask.patch added to -mm tree
+Date: Tue, 20 May 2008 02:33:32 -0700
+Message-ID: <200805200933.m4K9XWlg015786@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51823 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42068 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751908AbYETJUX (ORCPT
+	by vger.kernel.org with ESMTP id S1760765AbYETJdw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 May 2008 05:20:23 -0400
+	Tue, 20 May 2008 05:33:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: davej@redhat.com, arjan@infradead.org, matthew@wil.cx
+Cc: fujita.tomonori@lab.ntt.co.jp, bzolnier@gmail.com, htejun@gmail.com, jens.axboe@oracle.com, tsbogend@alpha.franken.de
 
 
 The patch titled
-     list debugging: use WARN_ON() instead of BUG()
+     block: use ARCH_KMALLOC_MINALIGN as the default dma pad mask
 has been added to the -mm tree.  Its filename is
-     list-debugging-use-warn_on-instead-of-bug.patch
+     block-use-arch_kmalloc_minalign-as-the-default-dma-pad-mask.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,61 +34,55 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: list debugging: use WARN_ON() instead of BUG()
-From: Dave Jones <davej@redhat.com>
+Subject: block: use ARCH_KMALLOC_MINALIGN as the default dma pad mask
+From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 
-Arjan noted that the list_head debugging is BUG'ing when it detects
-corruption.  By causing the box to panic immediately, we're possibly
-losing some bug reports.  Changing this to a WARN_ON should mean we at the
-least start seeing reports collected at kerneloops.org
+This sets the default dma pad mask to ARCH_KMALLOC_MINALIGN in
+blk_queue_make_request().  It affects only non-coherent platforms.
 
-Signed-off-by: Dave Jones <davej@redhat.com>
-Cc: Matthew Wilcox <matthew@wil.cx>
-Cc: Arjan van de Ven <arjan@infradead.org>
+Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: Tejun Heo <htejun@gmail.com>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/list_debug.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ block/blk-settings.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN lib/list_debug.c~list-debugging-use-warn_on-instead-of-bug lib/list_debug.c
---- a/lib/list_debug.c~list-debugging-use-warn_on-instead-of-bug
-+++ a/lib/list_debug.c
-@@ -24,13 +24,13 @@ void __list_add(struct list_head *new,
- 		printk(KERN_ERR "list_add corruption. next->prev should be "
- 			"prev (%p), but was %p. (next=%p).\n",
- 			prev, next->prev, next);
--		BUG();
-+		WARN_ON(1);
- 	}
- 	if (unlikely(prev->next != next)) {
- 		printk(KERN_ERR "list_add corruption. prev->next should be "
- 			"next (%p), but was %p. (prev=%p).\n",
- 			next, prev->next, prev);
--		BUG();
-+		WARN_ON(1);
- 	}
- 	next->prev = new;
- 	new->next = next;
-@@ -50,12 +50,12 @@ void list_del(struct list_head *entry)
- 	if (unlikely(entry->prev->next != entry)) {
- 		printk(KERN_ERR "list_del corruption. prev->next should be %p, "
- 				"but was %p\n", entry, entry->prev->next);
--		BUG();
-+		WARN_ON(1);
- 	}
- 	if (unlikely(entry->next->prev != entry)) {
- 		printk(KERN_ERR "list_del corruption. next->prev should be %p, "
- 				"but was %p\n", entry, entry->next->prev);
--		BUG();
-+		WARN_ON(1);
- 	}
- 	__list_del(entry->prev, entry->next);
- 	entry->next = LIST_POISON1;
+diff -puN block/blk-settings.c~block-use-arch_kmalloc_minalign-as-the-default-dma-pad-mask block/blk-settings.c
+--- a/block/blk-settings.c~block-use-arch_kmalloc_minalign-as-the-default-dma-pad-mask
++++ a/block/blk-settings.c
+@@ -84,6 +84,11 @@ EXPORT_SYMBOL(blk_queue_softirq_done);
+  **/
+ void blk_queue_make_request(struct request_queue *q, make_request_fn *mfn)
+ {
++#ifndef ARCH_KMALLOC_MINALIGN
++#define ARCH_KMALLOC_MINALIGN 1
++#endif
++	unsigned int min_align = ARCH_KMALLOC_MINALIGN;
++
+ 	/*
+ 	 * set defaults
+ 	 */
+@@ -98,6 +103,7 @@ void blk_queue_make_request(struct reque
+ 	blk_queue_max_sectors(q, SAFE_MAX_SECTORS);
+ 	blk_queue_hardsect_size(q, 512);
+ 	blk_queue_dma_alignment(q, 511);
++	blk_queue_dma_pad(q, min_align - 1);
+ 	blk_queue_congestion_threshold(q);
+ 	q->nr_batching = BLK_BATCH_REQ;
+ 
 _
 
-Patches currently in -mm which might be from davej@redhat.com are
+Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
 
 linux-next.patch
-list-debugging-use-warn_on-instead-of-bug.patch
+block-use-arch_kmalloc_minalign-as-the-default-dma-pad-mask.patch
+block-add-blk_queue_update_dma_pad.patch
+ide-use-the-dma-safe-check-for-req_type_ata_pc.patch
+cdrom-revert-commit-22a9189-cdrom-use-kmalloced-buffers-instead-of-buffers-on-stack.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support.patch
 
