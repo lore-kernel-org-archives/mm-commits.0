@@ -1,187 +1,187 @@
 From: akpm@linux-foundation.org
-Subject: - i2c-use-class_for_each_device.patch removed from -mm tree
-Date: Tue, 20 May 2008 13:30:53 -0700
-Message-ID: <200805202030.m4KKUr2j009730@imap1.linux-foundation.org>
+Subject: - linux-next-git-rejects.patch removed from -mm tree
+Date: Tue, 20 May 2008 13:52:44 -0700
+Message-ID: <200805202052.m4KKqiB3010572@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39885 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60417 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760130AbYETUb2 (ORCPT
+	by vger.kernel.org with ESMTP id S1758862AbYETUwr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 May 2008 16:31:28 -0400
+	Tue, 20 May 2008 16:52:47 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m4KKqj4k020296
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 20 May 2008 13:52:46 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hidave.darkstar@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i2c: use class_for_each_device
+     linux-next-git-rejects
 has been removed from the -mm tree.  Its filename was
-     i2c-use-class_for_each_device.patch
+     linux-next-git-rejects.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: i2c: use class_for_each_device
-From: Dave Young <hidave.darkstar@gmail.com>
+Subject: linux-next-git-rejects
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Use class_for_each_device for iteration.
-
-Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/i2c/i2c-core.c |   96 +++++++++++++++++++++------------------
- 1 file changed, 52 insertions(+), 44 deletions(-)
+ fs/ext4/balloc.c |    4 ----
+ init/main.c      |    8 --------
+ 2 files changed, 12 deletions(-)
 
-diff -puN drivers/i2c/i2c-core.c~i2c-use-class_for_each_device drivers/i2c/i2c-core.c
---- a/drivers/i2c/i2c-core.c~i2c-use-class_for_each_device
-+++ a/drivers/i2c/i2c-core.c
-@@ -35,7 +35,6 @@
- #include <linux/completion.h>
- #include <linux/hardirq.h>
- #include <linux/irqflags.h>
--#include <linux/semaphore.h>
- #include <asm/uaccess.h>
- 
- #include "i2c-core.h"
-@@ -657,6 +656,16 @@ EXPORT_SYMBOL(i2c_del_adapter);
- 
- 
- /* ------------------------------------------------------------------------- */
-+static int __attach_adapter(struct device *dev, void *data)
-+{
-+	struct i2c_adapter *adapter;
-+	struct i2c_driver *driver = data;
-+
-+	adapter = container_of(dev, struct i2c_adapter, dev);
-+	driver->attach_adapter(adapter);
-+
-+	return 0;
-+}
- 
- /*
-  * An i2c_driver is used with one or more i2c_client (device) nodes to access
-@@ -698,21 +707,52 @@ int i2c_register_driver(struct module *o
- 	pr_debug("i2c-core: driver [%s] registered\n", driver->driver.name);
- 
- 	/* legacy drivers scan i2c busses directly */
--	if (driver->attach_adapter) {
--		struct i2c_adapter *adapter;
-+	if (driver->attach_adapter)
-+		class_for_each_device(&i2c_adapter_class, driver,
-+					__attach_adapter);
-+
-+	mutex_unlock(&core_lock);
-+	return 0;
-+}
-+EXPORT_SYMBOL(i2c_register_driver);
-+
-+static int __detach_adapter(struct device *dev, void *data)
-+{
-+	struct list_head   *item2, *_n;
-+	struct i2c_client  *client;
-+	struct i2c_adapter *adap;
-+	struct i2c_driver *driver = data;
- 
--		down(&i2c_adapter_class.sem);
--		list_for_each_entry(adapter, &i2c_adapter_class.devices,
--				    dev.node) {
--			driver->attach_adapter(adapter);
-+	/* Have a look at each adapter, if clients of this driver
-+	 * are still attached. If so, detach them to be able to
-+	 * kill the driver afterwards.
-+	 */
-+	adap = container_of(dev, struct i2c_adapter, dev);
-+	if (driver->detach_adapter) {
-+		if (driver->attach_adapter(adap))
-+			dev_err(&adap->dev, "detach_adapter failed "
-+					"for driver [%s]\n",
-+					driver->driver.name);
-+	} else {
-+		list_for_each_safe(item2, _n, &adap->clients) {
-+			client = list_entry(item2, struct i2c_client,
-+					list);
-+			if (client->driver != driver)
-+				continue;
-+			dev_dbg(&adap->dev, "detaching client [%s] "
-+				"at 0x%02x\n", client->name,
-+				client->addr);
-+			if (driver->detach_client(client)) {
-+				dev_err(&adap->dev, "detach_client "
-+					"failed for client [%s] at "
-+					"0x%02x\n", client->name,
-+					client->addr);
-+			}
- 		}
--		up(&i2c_adapter_class.sem);
- 	}
- 
--	mutex_unlock(&core_lock);
- 	return 0;
+diff -puN fs/ext4/balloc.c~linux-next-git-rejects fs/ext4/balloc.c
+--- a/fs/ext4/balloc.c~linux-next-git-rejects
++++ a/fs/ext4/balloc.c
+@@ -290,11 +290,7 @@ read_block_bitmap(struct super_block *sb
+ 	ext4_valid_block_bitmap(sb, desc, block_group, bh);
+ 	/*
+ 	 * file system mounted not to panic on error,
+-<<<<<<< HEAD:fs/ext4/balloc.c
+ 	 * continue with corrupt bitmap
+-=======
+-	 * continue with corrput bitmap
+->>>>>>> FETCH_HEAD:fs/ext4/balloc.c
+ 	 */
+ 	return bh;
  }
--EXPORT_SYMBOL(i2c_register_driver);
- 
- /**
-  * i2c_del_driver - unregister I2C driver
-@@ -721,46 +761,14 @@ EXPORT_SYMBOL(i2c_register_driver);
-  */
- void i2c_del_driver(struct i2c_driver *driver)
- {
--	struct list_head   *item2, *_n;
--	struct i2c_client  *client;
--	struct i2c_adapter *adap;
--
- 	mutex_lock(&core_lock);
- 
- 	/* new-style driver? */
- 	if (is_newstyle_driver(driver))
- 		goto unregister;
- 
--	/* Have a look at each adapter, if clients of this driver are still
--	 * attached. If so, detach them to be able to kill the driver
--	 * afterwards.
--	 */
--	down(&i2c_adapter_class.sem);
--	list_for_each_entry(adap, &i2c_adapter_class.devices, dev.node) {
--		if (driver->detach_adapter) {
--			if (driver->detach_adapter(adap)) {
--				dev_err(&adap->dev, "detach_adapter failed "
--					"for driver [%s]\n",
--					driver->driver.name);
--			}
--		} else {
--			list_for_each_safe(item2, _n, &adap->clients) {
--				client = list_entry(item2, struct i2c_client, list);
--				if (client->driver != driver)
--					continue;
--				dev_dbg(&adap->dev, "detaching client [%s] "
--					"at 0x%02x\n", client->name,
--					client->addr);
--				if (driver->detach_client(client)) {
--					dev_err(&adap->dev, "detach_client "
--						"failed for client [%s] at "
--						"0x%02x\n", client->name,
--						client->addr);
--				}
--			}
--		}
+diff -puN init/main.c~linux-next-git-rejects init/main.c
+--- a/init/main.c~linux-next-git-rejects
++++ a/init/main.c
+@@ -724,19 +724,11 @@ static void __init do_one_initcall(initc
+ 	if (preempt_count() != count) {
+ 		strlcat(msgbuf, "preemption imbalance ", sizeof(msgbuf));
+ 		preempt_count() = count;
+-<<<<<<< HEAD:init/main.c
+ 	}
+ 	if (irqs_disabled()) {
+ 		strlcat(msgbuf, "disabled interrupts ", sizeof(msgbuf));
+ 		local_irq_enable();
+ 	}
+-=======
 -	}
--	up(&i2c_adapter_class.sem);
-+	class_for_each_device(&i2c_adapter_class, driver,
-+				__detach_adapter);
- 
-  unregister:
- 	driver_unregister(&driver->driver);
+-	if (irqs_disabled()) {
+-		strlcat(msgbuf, "disabled interrupts ", sizeof(msgbuf));
+-		local_irq_enable();
+-	}
+->>>>>>> FETCH_HEAD:init/main.c
+ 	if (msgbuf[0]) {
+ 		print_fn_descriptor_symbol(KERN_WARNING "initcall %s", fn);
+ 		printk(" returned with %s\n", msgbuf);
 _
 
-Patches currently in -mm which might be from hidave.darkstar@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-struct-class-sem-to-mutex-converting.patch
-i2c-use-class_for_each_device.patch
-add-time_is_after_jiffies-and-others-which-compare-with-jiffies.patch
-printk-ratelimiting-rewrite.patch
-printk-ratelimiting-rewrite-fix.patch
+origin.patch
+linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+fix-kobject-fix-kobject_rename-and-config_sysfs.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-video-balcklist-fujitsu-lifebook-s6410.patch
+git-x86-fixup.patch
+arch-x86-mm-patc-use-boot_cpu_has.patch
+x86-setup_force_cpu_cap-dont-do-clear_bitnon-unsigned-long.patch
+lguest-use-cpu-capability-accessors.patch
+x86-set_restore_sigmask-avoid-bitop-on-a-u32.patch
+x86-bitops-take-an-unsigned-long.patch
+arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
+audit_send_reply-fix-error-path-memory-leak.patch
+git-cifs.patch
+git-dvb.patch
+zoran-use-correct-type-for-cpu-flags.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+git-hid.patch
+drivers-infiniband-hw-mlx4-qpc-fix-uninitialised-var-warning.patch
+git-input.patch
+git-jg-misc-git-rejects.patch
+drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
+git-kvm.patch
+fsldma-the-mpc8377mds-board-device-tree-node-for-fsldma-driver.patch
+git-mmc.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers.patch
+git-ubifs.patch
+git-net.patch
+git-net-next.patch
+sundance-set-carrier-status-on-link-change-events.patch
+dm9000-use-delayed-work-to-update-mii-phy-state-fix.patch
+pcnet32-fix-warning.patch
+drivers-net-tokenring-3c359c-squish-a-warning.patch
+drivers-net-tokenring-olympicc-fix-warning.patch
+sfc-correct-and-expand-some-comments.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+pci-hotplug-introduce-pci_slot.patch
+pci-hotplug-acpi-pci-slot-detection-driver.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-logfs-fixup.patch
+drivers-uwb-nehc-processor-flags-have-type-unsigned-long.patch
+drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
+uwb-fix-scscanf-warning.patch
+drivers-uwb-wlp-sysfsc-dead-code.patch
+drivers-uwb-i1480-dfu-macc-fix-min-warning.patch
+drivers-uwb-whcic-needs-dma-mappingh.patch
+git-vfs-cleanups-reject.patch
+git-watchdog.patch
+git-watchdog-git-rejects.patch
+watchdog-fix-booke_wdtc-on-mpc85xx-smp-system.patch
+wireless-airo-waitbusy-wont-delay-checkpatch-fixes.patch
+git-xtensa.patch
+ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware-ia64-warnings.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+libata-sff-fix-oops-reported-in-kerneloopsorg-for-pnp-devices-with-no-ctl-fix.patch
+mm-verify-the-page-links-and-memory-model.patch
+mspec-convert-nopfn-to-fault-fix.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+kill-generic_file_direct_io-checkpatch-fixes.patch
+spufs-use-the-new-vm_ops-access-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+rename-warn-to-warning-to-clear-the-namespace-fix.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-paccept-sys_ni.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-signalfd-fix.patch
+flag-parameters-eventfd-fix.patch
+flag-parameters-inotify_init-fix.patch
+flag-parameters-check-magic-constants-alpha-hack.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+reiserfs-convert-j_flush_sem-to-mutex-fix.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+reiser4.patch
+reiser4-semaphore-fix.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
