@@ -1,142 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: - rculisth-use-the-rcu-api.patch removed from -mm tree
-Date: Tue, 20 May 2008 14:14:59 -0700
-Message-ID: <200805202114.m4KLExxB011511@imap1.linux-foundation.org>
+Subject: - bonding-fix-oops-when-arp_interval-is-set-to-a-low-value.patch removed from -mm tree
+Date: Tue, 20 May 2008 14:39:51 -0700
+Message-ID: <200805202139.m4KLdpoL012525@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60593 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48192 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758451AbYETV0I (ORCPT
+	by vger.kernel.org with ESMTP id S1761091AbYETVki (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 May 2008 17:26:08 -0400
+	Tue, 20 May 2008 17:40:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fbuihuu@gmail.com, adobriyan@gmail.com, davem@davemloft.net, josh@kernel.org, paulmck@us.ibm.com, mm-commits@vger.kernel.org
+To: nicolas.2p.debian@free.fr, davem@davemloft.net, fubar@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rculist.h: use the rcu API
+     bonding: fix oops when arp_interval is set to a low value
 has been removed from the -mm tree.  Its filename was
-     rculisth-use-the-rcu-api.patch
+     bonding-fix-oops-when-arp_interval-is-set-to-a-low-value.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because an updated version will be merged
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: rculist.h: use the rcu API
-From: Franck Bui-Huu <fbuihuu@gmail.com>
+Subject: bonding: fix oops when arp_interval is set to a low value
+=46rom: Nicolas de Peslo=FCan <nicolas.2p.debian@free.fr>
 
-This patch makes almost all list mutation primitives use
-rcu_assign_pointer().
+When setting arp_interval parameter to a very low value, delta_in_ticks
+for next arp might become 0, causing an infinite loop.
 
-The main point of this being readability improvement.
+See http://bugzilla.kernel.org/show_bug.cgi?id=3D10680
 
-Signed-off-by: Franck Bui-Huu <fbuihuu@gmail.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
-Cc: Josh Triplett <josh@kernel.org>
+Same problem for miimon parameter already fixed, but fix might be
+enhanced, by using msecs_to_jiffies() function.
+
+Signed-off-by: Nicolas de Peslo=FCan <nicolas.2p.debian@free.fr>
+Cc: Jay Vosburgh <fubar@us.ibm.com>
+Cc "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rculist.h |   23 +++++++++--------------
- 1 file changed, 9 insertions(+), 14 deletions(-)
+ drivers/net/bonding/bond_main.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/rculist.h~rculisth-use-the-rcu-api include/linux/rculist.h
---- a/include/linux/rculist.h~rculisth-use-the-rcu-api
-+++ a/include/linux/rculist.h
-@@ -5,6 +5,7 @@
-  * RCU-protected list version
-  */
- #include <linux/list.h>
-+#include <linux/rcupdate.h>
- 
- /*
-  * Insert a new entry between two known consecutive entries.
-@@ -17,9 +18,8 @@ static inline void __list_add_rcu(struct
- {
- 	new->next = next;
- 	new->prev = prev;
--	smp_wmb();
-+	rcu_assign_pointer(prev->next, new);
- 	next->prev = new;
--	prev->next = new;
+diff -puN drivers/net/bonding/bond_main.c~bonding-fix-oops-when-arp_int=
+erval-is-set-to-a-low-value drivers/net/bonding/bond_main.c
+--- a/drivers/net/bonding/bond_main.c~bonding-fix-oops-when-arp_interva=
+l-is-set-to-a-low-value
++++ a/drivers/net/bonding/bond_main.c
+@@ -2398,7 +2398,7 @@ void bond_mii_monitor(struct work_struct
+ 		read_lock(&bond->lock);
+ 	}
+=20
+-	delay =3D ((bond->params.miimon * HZ) / 1000) ? : 1;
++	delay =3D msecs_to_jiffies(bond->params.miimon);
+ 	read_unlock(&bond->lock);
+ 	queue_delayed_work(bond->wq, &bond->mii_work, delay);
  }
- 
- /**
-@@ -108,9 +108,8 @@ static inline void list_replace_rcu(stru
- {
- 	new->next = old->next;
- 	new->prev = old->prev;
--	smp_wmb();
-+	rcu_assign_pointer(new->prev->next, new);
- 	new->next->prev = new;
--	new->prev->next = new;
- 	old->prev = LIST_POISON2;
- }
- 
-@@ -164,8 +163,7 @@ static inline void list_splice_init_rcu(
- 	 */
- 
- 	last->next = at;
--	smp_wmb();
--	head->next = first;
-+	rcu_assign_pointer(head->next, first);
- 	first->prev = head;
- 	at->prev = last;
- }
-@@ -260,10 +258,9 @@ static inline void hlist_replace_rcu(str
- 
- 	new->next = next;
- 	new->pprev = old->pprev;
--	smp_wmb();
-+	rcu_assign_pointer(*new->pprev, new);
- 	if (next)
- 		new->next->pprev = &new->next;
--	*new->pprev = new;
- 	old->pprev = LIST_POISON2;
- }
- 
-@@ -290,12 +287,12 @@ static inline void hlist_add_head_rcu(st
- 					struct hlist_head *h)
- {
- 	struct hlist_node *first = h->first;
-+
- 	n->next = first;
- 	n->pprev = &h->first;
--	smp_wmb();
-+	rcu_assign_pointer(h->first, n);
- 	if (first)
- 		first->pprev = &n->next;
--	h->first = n;
- }
- 
- /**
-@@ -321,9 +318,8 @@ static inline void hlist_add_before_rcu(
- {
- 	n->pprev = next->pprev;
- 	n->next = next;
--	smp_wmb();
-+	rcu_assign_pointer(*(n->pprev), n);
- 	next->pprev = &n->next;
--	*(n->pprev) = n;
- }
- 
- /**
-@@ -349,8 +345,7 @@ static inline void hlist_add_after_rcu(s
- {
- 	n->next = prev->next;
- 	n->pprev = &prev->next;
--	smp_wmb();
--	prev->next = n;
-+	rcu_assign_pointer(prev->next, n);
- 	if (n->next)
- 		n->next->pprev = &n->next;
- }
+@@ -2708,7 +2708,7 @@ void bond_loadbalance_arp_mon(struct wor
+=20
+ 	read_lock(&bond->lock);
+=20
+-	delta_in_ticks =3D (bond->params.arp_interval * HZ) / 1000;
++	delta_in_ticks =3D msecs_to_jiffies(bond->params.arp_interval);
+=20
+ 	if (bond->kill_timers) {
+ 		goto out;
+@@ -2838,7 +2838,7 @@ void bond_activebackup_arp_mon(struct wo
+=20
+ 	read_lock(&bond->lock);
+=20
+-	delta_in_ticks =3D (bond->params.arp_interval * HZ) / 1000;
++	delta_in_ticks =3D msecs_to_jiffies(bond->params.arp_interval * HZ);
+=20
+ 	if (bond->kill_timers) {
+ 		goto out;
 _
 
-Patches currently in -mm which might be from fbuihuu@gmail.com are
+Patches currently in -mm which might be from nicolas.2p.debian@free.fr =
+are
 
-linux-next.patch
+bonding-fix-oops-when-arp_interval-is-set-to-a-low-value.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
