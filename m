@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + watchdog-iop-watchdog-switch-to-unlocked_ioctl.patch added to -mm tree
-Date: Tue, 20 May 2008 01:28:04 -0700
-Message-ID: <200805200828.m4K8S4QI013119@imap1.linux-foundation.org>
+Subject: + watchdog-davinci_wdt-unlocked_ioctl-and-check-locking.patch added to -mm tree
+Date: Tue, 20 May 2008 01:27:51 -0700
+Message-ID: <200805200827.m4K8RpVV013067@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52408 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43605 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760147AbYETI2W (ORCPT
+	by vger.kernel.org with ESMTP id S1759766AbYETI2J (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 May 2008 04:28:22 -0400
+	Tue, 20 May 2008 04:28:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@redhat.com
 
 
 The patch titled
-     watchdog: iop: watchdog switch to unlocked_ioctl
+     watchdog: davinci_wdt: unlocked_ioctl and check locking
 has been added to the -mm tree.  Its filename is
-     watchdog-iop-watchdog-switch-to-unlocked_ioctl.patch
+     watchdog-davinci_wdt-unlocked_ioctl-and-check-locking.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: watchdog: iop: watchdog switch to unlocked_ioctl
+Subject: watchdog: davinci_wdt: unlocked_ioctl and check locking
 From: Alan Cox <alan@redhat.com>
 
 
@@ -42,162 +42,46 @@ Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/iop_wdt.c |   46 ++++++++++++++++++-----------------
- 1 file changed, 24 insertions(+), 22 deletions(-)
+ drivers/watchdog/davinci_wdt.c |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff -puN drivers/watchdog/iop_wdt.c~watchdog-iop-watchdog-switch-to-unlocked_ioctl drivers/watchdog/iop_wdt.c
---- a/drivers/watchdog/iop_wdt.c~watchdog-iop-watchdog-switch-to-unlocked_ioctl
-+++ a/drivers/watchdog/iop_wdt.c
-@@ -37,6 +37,7 @@
- static int nowayout = WATCHDOG_NOWAYOUT;
- static unsigned long wdt_status;
- static unsigned long boot_status;
-+static spinlock_t wdt_lock;
+diff -puN drivers/watchdog/davinci_wdt.c~watchdog-davinci_wdt-unlocked_ioctl-and-check-locking drivers/watchdog/davinci_wdt.c
+--- a/drivers/watchdog/davinci_wdt.c~watchdog-davinci_wdt-unlocked_ioctl-and-check-locking
++++ a/drivers/watchdog/davinci_wdt.c
+@@ -22,10 +22,10 @@
+ #include <linux/bitops.h>
+ #include <linux/platform_device.h>
+ #include <linux/spinlock.h>
++#include <linux/uaccess.h>
++#include <linux/io.h>
  
- #define WDT_IN_USE		0
- #define WDT_OK_TO_CLOSE		1
-@@ -68,8 +69,10 @@ static void wdt_enable(void)
- 	/* Arm and enable the Timer to starting counting down from 0xFFFF.FFFF
- 	 * Takes approx. 10.7s to timeout
- 	 */
-+	spin_lock(&wdt_lock);
- 	write_wdtcr(IOP_WDTCR_EN_ARM);
- 	write_wdtcr(IOP_WDTCR_EN);
-+	spin_unlock(&wdt_lock);
- }
+ #include <asm/hardware.h>
+-#include <asm/uaccess.h>
+-#include <asm/io.h>
  
- /* returns 0 if the timer was successfully disabled */
-@@ -77,9 +80,11 @@ static int wdt_disable(void)
- {
- 	/* Stop Counting */
- 	if (wdt_supports_disable()) {
-+		spin_lock(&wdt_lock);
- 		write_wdtcr(IOP_WDTCR_DIS_ARM);
- 		write_wdtcr(IOP_WDTCR_DIS);
- 		clear_bit(WDT_ENABLED, &wdt_status);
-+		spin_unlock(&wdt_lock);
- 		printk(KERN_INFO "WATCHDOG: Disabled\n");
- 		return 0;
- 	} else
-@@ -92,16 +97,12 @@ static int iop_wdt_open(struct inode *in
- 		return -EBUSY;
+ #define MODULE_NAME "DAVINCI-WDT: "
  
- 	clear_bit(WDT_OK_TO_CLOSE, &wdt_status);
--
- 	wdt_enable();
--
- 	set_bit(WDT_ENABLED, &wdt_status);
--
- 	return nonseekable_open(inode, file);
- }
- 
--static ssize_t
--iop_wdt_write(struct file *file, const char *data, size_t len,
-+static ssize_t iop_wdt_write(struct file *file, const char *data, size_t len,
- 		  loff_t *ppos)
- {
- 	if (len) {
-@@ -121,41 +122,39 @@ iop_wdt_write(struct file *file, const c
- 		}
- 		wdt_enable();
- 	}
--
- 	return len;
- }
- 
--static struct watchdog_info ident = {
-+static const struct watchdog_info ident = {
- 	.options = WDIOF_CARDRESET | WDIOF_MAGICCLOSE | WDIOF_KEEPALIVEPING,
- 	.identity = "iop watchdog",
+@@ -143,9 +143,8 @@ static struct watchdog_info ident = {
+ 	.identity = "DaVinci Watchdog",
  };
  
 -static int
--iop_wdt_ioctl(struct inode *inode, struct file *file, unsigned int cmd,
+-davinci_wdt_ioctl(struct inode *inode, struct file *file, unsigned int cmd,
 -		  unsigned long arg)
-+static long iop_wdt_ioctl(struct file *file,
-+				unsigned int cmd, unsigned long arg)
++static long davinci_wdt_ioctl(struct file *file,
++					unsigned int cmd, unsigned long arg)
  {
- 	int options;
  	int ret = -ENOTTY;
-+	int __user *argp = (int __user *)arg;
  
- 	switch (cmd) {
- 	case WDIOC_GETSUPPORT:
--		if (copy_to_user
--		    ((struct watchdog_info *)arg, &ident, sizeof ident))
-+		if (copy_to_user(argp, &ident, sizeof ident))
- 			ret = -EFAULT;
- 		else
- 			ret = 0;
- 		break;
- 
- 	case WDIOC_GETSTATUS:
--		ret = put_user(0, (int *)arg);
-+		ret = put_user(0, argp);
- 		break;
- 
- 	case WDIOC_GETBOOTSTATUS:
--		ret = put_user(boot_status, (int *)arg);
-+		ret = put_user(boot_status, argp);
- 		break;
- 
- 	case WDIOC_GETTIMEOUT:
--		ret = put_user(iop_watchdog_timeout(), (int *)arg);
-+		ret = put_user(iop_watchdog_timeout(), argp);
- 		break;
- 
- 	case WDIOC_KEEPALIVE:
-@@ -177,14 +176,12 @@ iop_wdt_ioctl(struct inode *inode, struc
- 			} else
- 				ret = 0;
- 		}
--
- 		if (options & WDIOS_ENABLECARD) {
- 			wdt_enable();
- 			ret = 0;
- 		}
- 		break;
- 	}
--
- 	return ret;
- }
- 
-@@ -214,7 +211,7 @@ static const struct file_operations iop_
+@@ -184,7 +183,7 @@ static const struct file_operations davi
  	.owner = THIS_MODULE,
  	.llseek = no_llseek,
- 	.write = iop_wdt_write,
--	.ioctl = iop_wdt_ioctl,
-+	.unlocked_ioctl = iop_wdt_ioctl,
- 	.open = iop_wdt_open,
- 	.release = iop_wdt_release,
+ 	.write = davinci_wdt_write,
+-	.ioctl = davinci_wdt_ioctl,
++	.unlocked_ioctl = davinci_wdt_ioctl,
+ 	.open = davinci_wdt_open,
+ 	.release = davinci_wdt_release,
  };
-@@ -229,10 +226,8 @@ static int __init iop_wdt_init(void)
- {
- 	int ret;
- 
--	ret = misc_register(&iop_wdt_miscdev);
--	if (ret == 0)
--		printk("iop watchdog timer: timeout %lu sec\n",
--		       iop_watchdog_timeout());
-+	spin_lock_init(&wdt_lock);
-+
- 
- 	/* check if the reset was caused by the watchdog timer */
- 	boot_status = (read_rcsr() & IOP_RCSR_WDT) ? WDIOF_CARDRESET : 0;
-@@ -242,6 +237,13 @@ static int __init iop_wdt_init(void)
- 	 */
- 	write_wdtsr(IOP13XX_WDTCR_IB_RESET);
- 
-+	/* Register after we have the device set up so we cannot race
-+	   with an open */
-+	ret = misc_register(&iop_wdt_miscdev);
-+	if (ret == 0)
-+		printk("iop watchdog timer: timeout %lu sec\n",
-+		       iop_watchdog_timeout());
-+
- 	return ret;
- }
- 
 _
 
 Patches currently in -mm which might be from alan@redhat.com are
