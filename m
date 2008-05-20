@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + restore-multicast-settings-on-resume.patch added to -mm tree
-Date: Tue, 20 May 2008 00:25:43 -0700
-Message-ID: <200805200725.m4K7Ph2t010882@imap1.linux-foundation.org>
+Subject: + ecryptfs-fix-missed-mutex_unlock.patch added to -mm tree
+Date: Tue, 20 May 2008 00:28:37 -0700
+Message-ID: <200805200728.m4K7Sbu3010948@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40124 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60861 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752514AbYETHZw (ORCPT
+	by vger.kernel.org with ESMTP id S1760852AbYETH3G (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 May 2008 03:25:52 -0400
+	Tue, 20 May 2008 03:29:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ranma+kernel@tdiedrich.de, aabdulla@nvidia.com
+Cc: gorcunov@gmail.com, mhalcrow@us.ibm.com
 
 
 The patch titled
-     forcedeth: restore multicast settings on resume
+     ecryptfs: fix missed mutex_unlock
 has been added to the -mm tree.  Its filename is
-     restore-multicast-settings-on-resume.patch
+     ecryptfs-fix-missed-mutex_unlock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,37 +34,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: forcedeth: restore multicast settings on resume
-From: Tobias Diedrich <ranma+kernel@tdiedrich.de>
+Subject: ecryptfs: fix missed mutex_unlock
+From: Cyrill Gorcunov <gorcunov@gmail.com>
 
-nv_open() resets multicast settings, call nv_set_multicast(dev) to restore
-them.  (Maybe this should rather be moved into nv_open())
-
-Signed-off-by: Tobias Diedrich <ranma+kernel@tdiedrich.de>
-Cc: Ayaz Abdulla <aabdulla@nvidia.com>
+Cc: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/forcedeth.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/ecryptfs/crypto.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/forcedeth.c~restore-multicast-settings-on-resume drivers/net/forcedeth.c
---- a/drivers/net/forcedeth.c~restore-multicast-settings-on-resume
-+++ a/drivers/net/forcedeth.c
-@@ -5831,6 +5831,7 @@ static int nv_resume(struct pci_dev *pde
- 	writel(txreg, base + NvRegTransmitPoll);
- 
- 	rc = nv_open(dev);
-+	nv_set_multicast(dev);
+diff -puN fs/ecryptfs/crypto.c~ecryptfs-fix-missed-mutex_unlock fs/ecryptfs/crypto.c
+--- a/fs/ecryptfs/crypto.c~ecryptfs-fix-missed-mutex_unlock
++++ a/fs/ecryptfs/crypto.c
+@@ -1906,9 +1906,9 @@ int ecryptfs_get_tfm_and_mutex_for_ciphe
+ 			goto out;
+ 		}
+ 	}
+-	mutex_unlock(&key_tfm_list_mutex);
+ 	(*tfm) = key_tfm->key_tfm;
+ 	(*tfm_mutex) = &key_tfm->key_tfm_mutex;
  out:
++	mutex_unlock(&key_tfm_list_mutex);
  	return rc;
  }
 _
 
-Patches currently in -mm which might be from ranma+kernel@tdiedrich.de are
+Patches currently in -mm which might be from gorcunov@gmail.com are
 
-restore-multicast-settings-on-resume.patch
-setup-wake-on-lan-before-shutting-down.patch
-save-restore-device-configuration-space.patch
-reorder-suspend-resume-code.patch
+ecryptfs-fix-missed-mutex_unlock.patch
+linux-next.patch
+module-loading-elf-handling-use-selfmag-instead-of-numeric-constant.patch
 
