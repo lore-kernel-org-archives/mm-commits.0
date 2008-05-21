@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86-provide-rtc_cmos-platform-device.patch added to -mm tree
-Date: Wed, 21 May 2008 15:32:28 -0700
-Message-ID: <200805212232.m4LMWS99004100@imap1.linux-foundation.org>
+Subject: + whci-allow-modular-fix-busted-build.patch added to -mm tree
+Date: Wed, 21 May 2008 15:34:39 -0700
+Message-ID: <200805212234.m4LMYdvX004214@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47670 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58302 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761443AbYEUWeO (ORCPT
+	by vger.kernel.org with ESMTP id S1752557AbYEUWfD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 May 2008 18:34:14 -0400
+	Wed, 21 May 2008 18:35:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: stsp@aknet.ru, ambx1@neo.rr.com, bjorn.helgaas@hp.com, david-b@pacbell.net, mingo@elte.hu, stable@kernel.org, tglx@linutronix.de
+Cc: randy.dunlap@oracle.com, david.vrabel@csr.com, greg@kroah.com
 
 
 The patch titled
-     x86: provide rtc_cmos platform device
+     whci: allow modular, fix busted build
 has been added to the -mm tree.  Its filename is
-     x86-provide-rtc_cmos-platform-device.patch
+     whci-allow-modular-fix-busted-build.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,127 +34,155 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: provide rtc_cmos platform device
-From: Stas Sergeev <stsp@aknet.ru>
+Subject: whci: allow modular, fix busted build
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Recently (around 2.6.25) I've noticed that RTC no longer works for me.  It
-turned out this is because I use pnpacpi=off kernel option to work around
-the parport_pc bugs.  I always did so, but RTC used to work fine in the
-past, and now it have regressed.
+wusb components should depend on CONFIG_USB and be allowed to be
+built as modules, not just built-in.
 
-The attached patch fixes the problem by creating the platform device for
-the RTC when PNP is disabled.  This may also help running the PNP-enabled
-kernel on an older PCs.
+drivers/built-in.o: In function `asl_urb_dequeue':
+(.text+0x92d5e): undefined reference to `usb_hcd_check_unlink_urb'
+drivers/built-in.o: In function `asl_urb_enqueue':
+(.text+0x92e70): undefined reference to `usb_hcd_link_urb_to_ep'
+drivers/built-in.o: In function `whc_remove':
+hcd.c:(.text+0x93042): undefined reference to `usb_remove_hcd'
+drivers/built-in.o: In function `whc_probe':
+hcd.c:(.text+0x931b7): undefined reference to `usb_create_hcd'
+hcd.c:(.text+0x932b8): undefined reference to `usb_add_hcd'
+hcd.c:(.text+0x932f6): undefined reference to `usb_remove_hcd'
+hcd.c:(.text+0x9332e): undefined reference to `usb_put_hcd'
+drivers/built-in.o: In function `whc_remove':
+hcd.c:(.text+0x93067): undefined reference to `usb_put_hcd'
+drivers/built-in.o: In function `pzl_urb_dequeue':
+(.text+0x93fc3): undefined reference to `usb_hcd_check_unlink_urb'
+drivers/built-in.o: In function `pzl_urb_enqueue':
+(.text+0x940d5): undefined reference to `usb_hcd_link_urb_to_ep'
+drivers/built-in.o: In function `qset_remove_urb':
+(.text+0x947cc): undefined reference to `usb_hcd_unlink_urb_from_ep'
+drivers/built-in.o: In function `wusb_dev_free':
+devconnect.c:(.text+0x9682a): undefined reference to `usb_free_urb'
+drivers/built-in.o: In function `wusb_usb_ncb':
+(.text+0x96994): undefined reference to `usb_put_dev'
+drivers/built-in.o: In function `wusb_usb_ncb':
+(.text+0x969c7): undefined reference to `usb_get_hcd'
+drivers/built-in.o: In function `wusb_usb_ncb':
+(.text+0x96a34): undefined reference to `usb_get_dev'
+drivers/built-in.o: In function `wusb_usb_ncb':
+(.text+0x96a9c): undefined reference to `usb_get_descriptor'
+drivers/built-in.o: In function `wusb_usb_ncb':
+(.text+0x96af8): undefined reference to `usb_get_descriptor'
+drivers/built-in.o: In function `wusb_usb_ncb':
+(.text+0x96b74): undefined reference to `usb_put_hcd'
+drivers/built-in.o: In function `wusbhc_handle_dn':
+(.text+0x974a2): undefined reference to `usb_alloc_urb'
+drivers/built-in.o: In function `wusb_cdid_show':
+dev-sysfs.c:(.text+0x97921): undefined reference to `usb_get_hcd'
+dev-sysfs.c:(.text+0x97967): undefined reference to `usb_put_hcd'
+drivers/built-in.o: In function `wusb_dev_cc_store':
+dev-sysfs.c:(.text+0x97d08): undefined reference to `usb_get_hcd'
+dev-sysfs.c:(.text+0x97d8b): undefined reference to `usb_put_hcd'
+drivers/built-in.o: In function `wusb_dev_disconnect_store':
+dev-sysfs.c:(.text+0x97ed5): undefined reference to `usb_get_hcd'
+dev-sysfs.c:(.text+0x97f25): undefined reference to `usb_put_hcd'
+drivers/built-in.o: In function `wusbhc_gtk_rekey':
+(.text+0x98e8c): undefined reference to `usb_submit_urb'
+drivers/built-in.o: In function `wusb_dev_set_encryption':
+security.c:(.text+0x991c9): undefined reference to `usb_control_msg'
+drivers/built-in.o: In function `wusb_dev_sec_add':
+(.text+0x99342): undefined reference to `usb_get_descriptor'
+drivers/built-in.o: In function `wusb_dev_sec_add':
+(.text+0x993c1): undefined reference to `usb_get_descriptor'
+drivers/built-in.o: In function `wusb_dev_4way_handshake':
+(.text+0x997e0): undefined reference to `usb_control_msg'
+drivers/built-in.o: In function `wusb_dev_4way_handshake':
+(.text+0x9982f): undefined reference to `usb_control_msg'
+drivers/built-in.o: In function `wusb_dev_4way_handshake':
+(.text+0x9a0f4): undefined reference to `usb_control_msg'
+drivers/built-in.o: In function `wusb_dev_4way_handshake':
+(.text+0x9a25b): undefined reference to `usb_control_msg'
+drivers/built-in.o: In function `wusb_dev_4way_handshake':
+(.text+0x9a32e): undefined reference to `usb_control_msg'
+drivers/built-in.o: In function `wusb_dev_4way_handshake':
+(.text+0x9a359): undefined reference to `usb_ep0_reinit'
+drivers/built-in.o: In function `wusb_dev_4way_handshake':
+(.text+0x9a397): undefined reference to `usb_control_msg'
+drivers/built-in.o: In function `wusb_dev_4way_handshake':
+(.text+0x9a3c3): undefined reference to `usb_ep0_reinit'
+drivers/built-in.o: In function `wusbhc_giveback_urb':
+(.text+0x9a75f): undefined reference to `usb_hcd_giveback_urb'
+drivers/built-in.o: In function `cbaf_disconnect':
+cbaf.c:(.text+0x9ab72): undefined reference to `usb_put_intf'
+drivers/built-in.o: In function `cbaf_wusb_host_info_store':
+cbaf.c:(.text+0x9add5): undefined reference to `usb_control_msg'
+drivers/built-in.o: In function `cbaf_wusb_cdid_show':
+cbaf.c:(.text+0x9af6a): undefined reference to `usb_control_msg'
+drivers/built-in.o: In function `cbaf_wusb_cc_store':
+cbaf.c:(.text+0x9b411): undefined reference to `usb_control_msg'
+drivers/built-in.o: In function `cbaf_probe':
+cbaf.c:(.text+0x9bb17): undefined reference to `usb_get_dev'
+cbaf.c:(.text+0x9bb29): undefined reference to `usb_get_intf'
+cbaf.c:(.text+0x9bb7f): undefined reference to `usb_control_msg'
+drivers/built-in.o: In function `wusbcore_init':
+wusbhc.c:(.init.text+0x58f8): undefined reference to `usb_register_notify'
+drivers/built-in.o: In function `cbaf_driver_init':
+cbaf.c:(.init.text+0x5941): undefined reference to `usb_register_driver'
+drivers/built-in.o: In function `wusbcore_exit':
+wusbhc.c:(.exit.text+0x782): undefined reference to `usb_unregister_notify'
+drivers/built-in.o: In function `cbaf_driver_exit':
+cbaf.c:(.exit.text+0x7a8): undefined reference to `usb_deregister'
+make[1]: *** [vmlinux] Error 1
 
-Signed-off-by: Stas Sergeev <stsp@aknet.ru>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Adam Belay <ambx1@neo.rr.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: <david.vrabel@csr.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/rtc.c  |   31 +++++++++++++++++++++++++++++++
- drivers/rtc/rtc-cmos.c |   26 +++++++++-----------------
- include/asm-x86/rtc.h  |    4 ++++
- 3 files changed, 44 insertions(+), 17 deletions(-)
+ drivers/usb/host/Kconfig  |    2 +-
+ drivers/usb/host/Makefile |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/kernel/rtc.c~x86-provide-rtc_cmos-platform-device arch/x86/kernel/rtc.c
---- a/arch/x86/kernel/rtc.c~x86-provide-rtc_cmos-platform-device
-+++ a/arch/x86/kernel/rtc.c
-@@ -4,9 +4,12 @@
- #include <linux/acpi.h>
- #include <linux/bcd.h>
- #include <linux/mc146818rtc.h>
-+#include <linux/platform_device.h>
-+#include <linux/pnp.h>
+diff -puN drivers/usb/host/Kconfig~whci-allow-modular-fix-busted-build drivers/usb/host/Kconfig
+--- a/drivers/usb/host/Kconfig~whci-allow-modular-fix-busted-build
++++ a/drivers/usb/host/Kconfig
+@@ -308,7 +308,7 @@ config SUPERH_ON_CHIP_R8A66597
  
- #include <asm/time.h>
- #include <asm/vsyscall.h>
-+#include <asm/rtc.h>
+ config USB_WHCI_HCD
+ 	tristate "Wireless USB Host Controller Interface (WHCI) driver"
+-	depends on PCI
++	depends on PCI && USB
+ 	select USB_WUSB
+ 	select UWB_WHCI
+ 	help
+diff -puN drivers/usb/host/Makefile~whci-allow-modular-fix-busted-build drivers/usb/host/Makefile
+--- a/drivers/usb/host/Makefile~whci-allow-modular-fix-busted-build
++++ a/drivers/usb/host/Makefile
+@@ -8,7 +8,7 @@ endif
  
- #ifdef CONFIG_X86_32
- /*
-@@ -197,3 +200,31 @@ unsigned long long native_read_tsc(void)
- }
- EXPORT_SYMBOL(native_read_tsc);
+ isp1760-objs := isp1760-hcd.o isp1760-if.o
  
-+
-+static struct resource rtc_resources[] = {
-+	[0] = {
-+		.start	= RTC_PORT_START,
-+		.end	= RTC_PORT_END,
-+		.flags	= IORESOURCE_IO,
-+	},
-+	[1] = {
-+		.start	= RTC_IRQ,
-+		.end	= RTC_IRQ,
-+		.flags	= IORESOURCE_IRQ,
-+	}
-+};
-+
-+static struct platform_device rtc_device = {
-+	.name		= "rtc_cmos",
-+	.id		= -1,
-+	.resource	= rtc_resources,
-+	.num_resources	= ARRAY_SIZE(rtc_resources),
-+};
-+
-+static __init int add_rtc_cmos(void)
-+{
-+	if (!pnp_platform_devices)
-+		platform_device_register(&rtc_device);
-+	return 0;
-+}
-+device_initcall(add_rtc_cmos);
-diff -puN drivers/rtc/rtc-cmos.c~x86-provide-rtc_cmos-platform-device drivers/rtc/rtc-cmos.c
---- a/drivers/rtc/rtc-cmos.c~x86-provide-rtc_cmos-platform-device
-+++ a/drivers/rtc/rtc-cmos.c
-@@ -905,19 +905,7 @@ static struct pnp_driver cmos_pnp_driver
- 	.resume		= cmos_pnp_resume,
- };
+-obj-y				+= whci/
++obj-$(CONFIG_USB_WHCI_HCD)	+= whci/
  
--static int __init cmos_init(void)
--{
--	return pnp_register_driver(&cmos_pnp_driver);
--}
--module_init(cmos_init);
--
--static void __exit cmos_exit(void)
--{
--	pnp_unregister_driver(&cmos_pnp_driver);
--}
--module_exit(cmos_exit);
--
--#else	/* no PNP */
-+#endif	/* CONFIG_PNP */
+ obj-$(CONFIG_PCI)		+= pci-quirks.o
  
- /*----------------------------------------------------------------*/
- 
-@@ -958,20 +946,24 @@ static struct platform_driver cmos_platf
- 
- static int __init cmos_init(void)
- {
--	return platform_driver_probe(&cmos_platform_driver,
-+	if (pnp_platform_devices)
-+		return pnp_register_driver(&cmos_pnp_driver);
-+	else
-+		return platform_driver_probe(&cmos_platform_driver,
- 			cmos_platform_probe);
- }
- module_init(cmos_init);
- 
- static void __exit cmos_exit(void)
- {
--	platform_driver_unregister(&cmos_platform_driver);
-+	if (pnp_platform_devices)
-+		pnp_unregister_driver(&cmos_pnp_driver);
-+	else
-+		platform_driver_unregister(&cmos_platform_driver);
- }
- module_exit(cmos_exit);
- 
- 
--#endif	/* !PNP */
+_
+
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
+
+origin.patch
+linux-next.patch
+documentation-build-source-files-in-documentation-sub-dir.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
+3c515-fix-using-pnp_get_resource-when-config_isapnp=n.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+git-unionfs.patch
+uwb-fix-kconfig-causing-undefined-references.patch
+whci-allow-modular-fix-busted-build.patch
+audit-fix-kernel-doc-parameter-notation.patch
+scsi-do-not-automatically-select-scsi_dh-for-dm-multipath.patch
+flag-parameters-signalfd-fix.patch
+flag-parameters-eventfd-fix.patch
+bsdacct-stir-up-comments-around-acct_process.patch
+profile-likely-unlikely-macros.patch
+
