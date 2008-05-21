@@ -1,157 +1,150 @@
 From: akpm@linux-foundation.org
-Subject: + pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup-fix.patch added to -mm tree
-Date: Wed, 21 May 2008 16:10:29 -0700
-Message-ID: <200805212310.m4LNATcg005514@imap1.linux-foundation.org>
+Subject: - x86-provide-rtc_cmos-platform-device.patch removed from -mm tree
+Date: Wed, 21 May 2008 16:34:04 -0700
+Message-ID: <200805212334.m4LNY42M006425@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38306 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58427 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752888AbYEUXKr (ORCPT
+	by vger.kernel.org with ESMTP id S1753852AbYEUXfq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 May 2008 19:10:47 -0400
+	Wed, 21 May 2008 19:35:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, cooloney@kernel.org, michael.hennerich@analog.com, vapier.adi@gmail.com
+To: stsp@aknet.ru, ambx1@neo.rr.com, bjorn.helgaas@hp.com, david-b@pacbell.net, mingo@elte.hu, stable@kernel.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup-fix
-has been added to the -mm tree.  Its filename is
-     pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup-fix.patch
+     x86: provide rtc_cmos platform device
+has been removed from the -mm tree.  Its filename was
+     x86-provide-rtc_cmos-platform-device.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: x86: provide rtc_cmos platform device
+From: Stas Sergeev <stsp@aknet.ru>
 
-Cc: Bryan Wu <cooloney@kernel.org>
-Cc: Michael Hennerich <michael.hennerich@analog.com>
-Cc: "Mike Frysinger" <vapier.adi@gmail.com>
+Recently (around 2.6.25) I've noticed that RTC no longer works for me.  It
+turned out this is because I use pnpacpi=off kernel option to work around
+the parport_pc bugs.  I always did so, but RTC used to work fine in the
+past, and now it have regressed.
+
+The attached patch fixes the problem by creating the platform device for
+the RTC when PNP is disabled.  This may also help running the PNP-enabled
+kernel on an older PCs.
+
+Signed-off-by: Stas Sergeev <stsp@aknet.ru>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Adam Belay <ambx1@neo.rr.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/pcmcia/cs_types.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/x86/kernel/rtc.c  |   31 +++++++++++++++++++++++++++++++
+ drivers/rtc/rtc-cmos.c |   26 +++++++++-----------------
+ include/asm-x86/rtc.h  |    4 ++++
+ 3 files changed, 44 insertions(+), 17 deletions(-)
 
-diff -puN include/pcmcia/cs_types.h~pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup-fix include/pcmcia/cs_types.h
---- a/include/pcmcia/cs_types.h~pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup-fix
-+++ a/include/pcmcia/cs_types.h
-@@ -21,7 +21,8 @@
- #include <sys/types.h>
- #endif
+diff -puN arch/x86/kernel/rtc.c~x86-provide-rtc_cmos-platform-device arch/x86/kernel/rtc.c
+--- a/arch/x86/kernel/rtc.c~x86-provide-rtc_cmos-platform-device
++++ a/arch/x86/kernel/rtc.c
+@@ -4,9 +4,12 @@
+ #include <linux/acpi.h>
+ #include <linux/bcd.h>
+ #include <linux/mc146818rtc.h>
++#include <linux/platform_device.h>
++#include <linux/pnp.h>
  
--#if defined(__arm__) || defined(__mips__) || defined(__avr32__) || defined(bfin)
-+#if defined(__arm__) || defined(__mips__) || defined(__avr32__) || \
-+	defined(__bfin__)
- /* This (ioaddr_t) is exposed to userspace & hence cannot be changed. */
- typedef u_int   ioaddr_t;
- #else
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-origin.patch
-semaphore-introduce-down_try-checkpatch-fixes.patch
-ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware-ia64-warnings.patch
-pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes.patch
-pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup.patch
-pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup-fix.patch
-memory-hotplug-fix-early-allocation-handling-checkpatch-fixes.patch
-linux-next.patch
-next-remove-localversion.patch
-fix-kobject-fix-kobject_rename-and-config_sysfs.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-video-balcklist-fujitsu-lifebook-s6410.patch
-git-x86-fixup.patch
-lguest-use-cpu-capability-accessors.patch
-arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
-zoran-use-correct-type-for-cpu-flags.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-drivers-infiniband-hw-mlx4-qpc-fix-uninitialised-var-warning.patch
-git-jg-misc-git-rejects.patch
-drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
-fsldma-the-mpc8377mds-board-device-tree-node-for-fsldma-driver.patch
-mmc-sd-host-driver-for-ricoh-bay1controllers.patch
-git-ubifs.patch
-sundance-set-carrier-status-on-link-change-events.patch
-dm9000-use-delayed-work-to-update-mii-phy-state-fix.patch
-pcnet32-fix-warning.patch
-drivers-net-tokenring-3c359c-squish-a-warning.patch
-drivers-net-tokenring-olympicc-fix-warning.patch
-sfc-correct-and-expand-some-comments.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-battery.patch
-pci-hotplug-introduce-pci_slot.patch
-pci-hotplug-acpi-pci-slot-detection-driver.patch
-drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
-s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-git-logfs-fixup.patch
-drivers-uwb-nehc-processor-flags-have-type-unsigned-long.patch
-drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
-drivers-uwb-wlp-sysfsc-dead-code.patch
-drivers-uwb-whcic-needs-dma-mappingh.patch
-git-vfs-cleanups-reject.patch
-git-watchdog.patch
-git-watchdog-git-rejects.patch
-watchdog-fix-booke_wdtc-on-mpc85xx-smp-system.patch
-wireless-airo-waitbusy-wont-delay-checkpatch-fixes.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-libata-sff-fix-oops-reported-in-kerneloopsorg-for-pnp-devices-with-no-ctl-fix.patch
-ata-acpi-hotplug-handle-bay-devices-in-dock-stations-cleanup.patch
-mm-verify-the-page-links-and-memory-model.patch
-mspec-convert-nopfn-to-fault-fix.patch
-page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
-kill-generic_file_direct_io-checkpatch-fixes.patch
-spufs-use-the-new-vm_ops-access-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-split-the-typecheck-macros-out-of-include-linux-kernelh.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
-remove-apparently-unused-fd1772h-header-file.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
-build-kernel-profileo-only-when-requested-cleanups.patch
-rename-warn-to-warning-to-clear-the-namespace-fix.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
-flag-parameters-paccept-fix.patch
-flag-parameters-paccept-sys_ni.patch
-flag-parameters-anon_inode_getfd-extension-fix.patch
-flag-parameters-signalfd-fix.patch
-flag-parameters-eventfd-fix.patch
-flag-parameters-inotify_init-fix.patch
-flag-parameters-check-magic-constants-alpha-hack.patch
-drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
-reiserfs-convert-j_flush_sem-to-mutex-fix.patch
-reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-reiser4.patch
-reiser4-semaphore-fix.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
-
+ #include <asm/time.h>
+ #include <asm/vsyscall.h>
++#include <asm/rtc.h>
+ 
+ #ifdef CONFIG_X86_32
+ /*
+@@ -197,3 +200,31 @@ unsigned long long native_read_tsc(void)
+ }
+ EXPORT_SYMBOL(native_read_tsc);
+ 
++
++static struct resource rtc_resources[] = {
++	[0] = {
++		.start	= RTC_PORT_START,
++		.end	= RTC_PORT_END,
++		.flags	= IORESOURCE_IO,
++	},
++	[1] = {
++		.start	= RTC_IRQ,
++		.end	= RTC_IRQ,
++		.flags	= IORESOURCE_IRQ,
++	}
++};
++
++static struct platform_device rtc_device = {
++	.name		= "rtc_cmos",
++	.id		= -1,
++	.resource	= rtc_resources,
++	.num_resources	= ARRAY_SIZE(rtc_resources),
++};
++
++static __init int add_rtc_cmos(void)
++{
++	if (!pnp_platform_devices)
++		platform_device_register(&rtc_device);
++	return 0;
++}
++device_initcall(add_rtc_cmos);
+diff -puN drivers/rtc/rtc-cmos.c~x86-provide-rtc_cmos-platform-device drivers/rtc/rtc-cmos.c
+--- a/drivers/rtc/rtc-cmos.c~x86-provide-rtc_cmos-platform-device
++++ a/drivers/rtc/rtc-cmos.c
+@@ -905,19 +905,7 @@ static struct pnp_driver cmos_pnp_driver
+ 	.resume		= cmos_pnp_resume,
+ };
+ 
+-static int __init cmos_init(void)
+-{
+-	return pnp_register_driver(&cmos_pnp_driver);
+-}
+-module_init(cmos_init);
+-
+-static void __exit cmos_exit(void)
+-{
+-	pnp_unregister_driver(&cmos_pnp_driver);
+-}
+-module_exit(cmos_exit);
+-
+-#else	/* no PNP */
++#endif	/* CONFIG_PNP */
+ 
+ /*----------------------------------------------------------------*/
+ 
+@@ -958,20 +946,24 @@ static struct platform_driver cmos_platf
+ 
+ static int __init cmos_init(void)
+ {
+-	return platform_driver_probe(&cmos_platform_driver,
++	if (pnp_platform_devices)
++		return pnp_register_driver(&cmos_pnp_driver);
++	else
++		return platform_driver_probe(&cmos_platform_driver,
+ 			cmos_platform_probe);
+ }
+ module_init(cmos_init);
+ 
+ static void __exit cmos_exit(void)
+ {
+-	platform_driver_unregister(&cmos_platform_driver);
++	if (pnp_platform_devices)
++		pnp_unregister_driver(&cmos_pnp_driver);
++	else
++		platform_driver_unregister(&cmos_platform_driver);
+ }
+ module_exit(cmos_exit);
+ 
+ 
+-#endif	/* !PNP */
