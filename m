@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-add-util-linux-ng-package.patch added to -mm tree
-Date: Wed, 21 May 2008 01:33:50 -0700
-Message-ID: <200805210833.m4L8XogE004255@imap1.linux-foundation.org>
+Subject: + mm-dont-drop-a-partial-page-in-a-zones-memory-map-size.patch added to -mm tree
+Date: Wed, 21 May 2008 13:59:00 -0700
+Message-ID: <200805212059.m4LKx0il000523@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42685 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50087 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760360AbYEUIeU (ORCPT
+	by vger.kernel.org with ESMTP id S1755474AbYEUU7O (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 May 2008 04:34:20 -0400
+	Wed, 21 May 2008 16:59:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kzak@redhat.com
+Cc: hannes@saeurebad.de, kamezawa.hiroyu@jp.fujitsu.com
 
 
 The patch titled
-     MAINTAINERS: add util-linux-ng package
+     mm: don't drop a partial page in a zone's memory map size
 has been added to the -mm tree.  Its filename is
-     maintainers-add-util-linux-ng-package.patch
+     mm-dont-drop-a-partial-page-in-a-zones-memory-map-size.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: add util-linux-ng package
-From: Karel Zak <kzak@redhat.com>
+Subject: mm: don't drop a partial page in a zone's memory map size
+From: Johannes Weiner <hannes@saeurebad.de>
 
-(akmp: we often deal with util-linux and I (at least) can never remember
-where they hang out).
+In a zone's present pages number, account for all pages occupied by the
+memory map, including a partial.
 
-Signed-off-by: Karel Zak <kzak@redhat.com>
+Signed-off-by: Johannes Weiner <hannes@saeurebad.de>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ mm/page_alloc.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-add-util-linux-ng-package MAINTAINERS
---- a/MAINTAINERS~maintainers-add-util-linux-ng-package
-+++ a/MAINTAINERS
-@@ -4359,6 +4359,14 @@ M:	gregkh@suse.de
- L:	linux-kernel@vger.kernel.org
- S:	Maintained
- 
-+UTIL-LINUX-NG PACKAGE
-+P:	Karel Zak
-+M:	kzak@redhat.com
-+L:	util-linux-ng@vger.kernel.org
-+W:	http://kernel.org/~kzak/util-linux-ng/
-+T:	git://git.kernel.org/pub/scm/utils/util-linux-ng/util-linux-ng.git
-+S:	Maintained
-+
- VFAT/FAT/MSDOS FILESYSTEM:
- P:	OGAWA Hirofumi
- M:	hirofumi@mail.parknet.co.jp
+diff -puN mm/page_alloc.c~mm-dont-drop-a-partial-page-in-a-zones-memory-map-size mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-dont-drop-a-partial-page-in-a-zones-memory-map-size
++++ a/mm/page_alloc.c
+@@ -3378,7 +3378,8 @@ static void __paginginit free_area_init_
+ 		 * is used by this zone for memmap. This affects the watermark
+ 		 * and per-cpu initialisations
+ 		 */
+-		memmap_pages = (size * sizeof(struct page)) >> PAGE_SHIFT;
++		memmap_pages =
++			PAGE_ALIGN(size * sizeof(struct page)) >> PAGE_SHIFT;
+ 		if (realsize >= memmap_pages) {
+ 			realsize -= memmap_pages;
+ 			printk(KERN_DEBUG
 _
 
-Patches currently in -mm which might be from kzak@redhat.com are
+Patches currently in -mm which might be from hannes@saeurebad.de are
 
-maintainers-add-util-linux-ng-package.patch
+mm-dont-drop-a-partial-page-in-a-zones-memory-map-size.patch
+git-xtensa.patch
+mm-move-bootmem-descriptors-definition-to-a-single-place.patch
+mm-fix-free_all_bootmem_core-alignment-check.patch
+mm-normalize-internal-argument-passing-of-bootmem-data.patch
+mm-unexport-__alloc_bootmem_core.patch
 
