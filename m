@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ata-acpi-hotplug-handle-bay-devices-in-dock-stations.patch added to -mm tree
-Date: Wed, 21 May 2008 15:26:28 -0700
-Message-ID: <200805212226.m4LMQSG6003858@imap1.linux-foundation.org>
+Subject: + x86-provide-rtc_cmos-platform-device.patch added to -mm tree
+Date: Wed, 21 May 2008 15:32:28 -0700
+Message-ID: <200805212232.m4LMWS99004100@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49894 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47670 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761437AbYEUW1J (ORCPT
+	by vger.kernel.org with ESMTP id S1761443AbYEUWeO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 May 2008 18:27:09 -0400
+	Wed, 21 May 2008 18:34:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hmacht@suse.de, alan@lxorguk.ukuu.org.uk, htejun@gmail.com, jeff@garzik.org, kristen.c.accardi@intel.com, mjg59@srcf.ucam.org, mjg@redhat.com
+Cc: stsp@aknet.ru, ambx1@neo.rr.com, bjorn.helgaas@hp.com, david-b@pacbell.net, mingo@elte.hu, stable@kernel.org, tglx@linutronix.de
 
 
 The patch titled
-     ATA ACPI hotplug: handle bay devices in dock stations
+     x86: provide rtc_cmos platform device
 has been added to the -mm tree.  Its filename is
-     ata-acpi-hotplug-handle-bay-devices-in-dock-stations.patch
+     x86-provide-rtc_cmos-platform-device.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,224 +34,127 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ATA ACPI hotplug: handle bay devices in dock stations
-From: Holger Macht <hmacht@suse.de>
+Subject: x86: provide rtc_cmos platform device
+From: Stas Sergeev <stsp@aknet.ru>
 
-* Differentiate between bay devices in dock stations and others:
+Recently (around 2.6.25) I've noticed that RTC no longer works for me.  It
+turned out this is because I use pnpacpi=off kernel option to work around
+the parport_pc bugs.  I always did so, but RTC used to work fine in the
+past, and now it have regressed.
 
- - When an ACPI_NOTIFY_EJECT_REQUEST appears, just signal uevent to
-   userspace (that is when the optional eject button on a bay device is
-   pressed/pulled) giving the possibility to unmount file systems and to
-   clean up. Also, only send uevent in case we get an EJECT_REQUEST
-   without doing anything else. In other cases, you'll get an add/remove
-   event because libata attaches/detaches the device.
+The attached patch fixes the problem by creating the platform device for
+the RTC when PNP is disabled.  This may also help running the PNP-enabled
+kernel on an older PCs.
 
- - In case of a dock event, which in turn signals an
-   ACPI_NOTIFY_EJECT_REQUEST, immediately detach the device, because it
-   may already have been gone
-
-* In case of an ACPI_NOTIFY_DEVICE/BUS_CHECK, evaluate _STA to check if
-  the device has been plugged or unplugged. If plugged, hotplug it, if
-  unplugged, just signal event to userspace
-  (initial patch by Matthew Garrett <mjg59@srcf.ucam.org>)
-
-Signed-off-by: Holger Macht <hmacht@suse.de>
-Acked-by: Matthew Garrett <mjg@redhat.com>
-Cc: Tejun Heo <htejun@gmail.com>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Stas Sergeev <stsp@aknet.ru>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Adam Belay <ambx1@neo.rr.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-acpi.c |  112 ++++++++++++++++++++++--------------
- 1 file changed, 69 insertions(+), 43 deletions(-)
+ arch/x86/kernel/rtc.c  |   31 +++++++++++++++++++++++++++++++
+ drivers/rtc/rtc-cmos.c |   26 +++++++++-----------------
+ include/asm-x86/rtc.h  |    4 ++++
+ 3 files changed, 44 insertions(+), 17 deletions(-)
 
-diff -puN drivers/ata/libata-acpi.c~ata-acpi-hotplug-handle-bay-devices-in-dock-stations drivers/ata/libata-acpi.c
---- a/drivers/ata/libata-acpi.c~ata-acpi-hotplug-handle-bay-devices-in-dock-stations
-+++ a/drivers/ata/libata-acpi.c
-@@ -118,8 +118,25 @@ static void ata_acpi_associate_ide_port(
- 		ap->pflags |= ATA_PFLAG_INIT_GTM_VALID;
- }
+diff -puN arch/x86/kernel/rtc.c~x86-provide-rtc_cmos-platform-device arch/x86/kernel/rtc.c
+--- a/arch/x86/kernel/rtc.c~x86-provide-rtc_cmos-platform-device
++++ a/arch/x86/kernel/rtc.c
+@@ -4,9 +4,12 @@
+ #include <linux/acpi.h>
+ #include <linux/bcd.h>
+ #include <linux/mc146818rtc.h>
++#include <linux/platform_device.h>
++#include <linux/pnp.h>
  
-+static void ata_acpi_detach_device(struct ata_port *ap, struct ata_device *dev)
-+{
-+	if (dev)
-+		dev->flags |= ATA_DFLAG_DETACH;
-+	else {
-+		struct ata_link *tlink;
-+		struct ata_device *tdev;
+ #include <asm/time.h>
+ #include <asm/vsyscall.h>
++#include <asm/rtc.h>
+ 
+ #ifdef CONFIG_X86_32
+ /*
+@@ -197,3 +200,31 @@ unsigned long long native_read_tsc(void)
+ }
+ EXPORT_SYMBOL(native_read_tsc);
+ 
 +
-+		ata_port_for_each_link(tlink, ap)
-+			ata_link_for_each_dev(tdev, tlink)
-+			tdev->flags |= ATA_DFLAG_DETACH;
++static struct resource rtc_resources[] = {
++	[0] = {
++		.start	= RTC_PORT_START,
++		.end	= RTC_PORT_END,
++		.flags	= IORESOURCE_IO,
++	},
++	[1] = {
++		.start	= RTC_IRQ,
++		.end	= RTC_IRQ,
++		.flags	= IORESOURCE_IRQ,
 +	}
++};
 +
-+	ata_port_freeze(ap);
-+	ata_port_schedule_eh(ap);
-+}
++static struct platform_device rtc_device = {
++	.name		= "rtc_cmos",
++	.id		= -1,
++	.resource	= rtc_resources,
++	.num_resources	= ARRAY_SIZE(rtc_resources),
++};
 +
- static void ata_acpi_handle_hotplug(struct ata_port *ap, struct ata_device
--				    *dev, u32 event)
-+				    *dev, u32 event, int is_dock_event)
- {
- 	char event_string[12];
- 	char *envp[] = { event_string, NULL };
-@@ -135,83 +152,92 @@ static void ata_acpi_handle_hotplug(stru
- 		ap = dev->link->ap;
- 	ehi = &ap->link.eh_info;
- 
--	spin_lock_irqsave(ap->lock, flags);
--
--	if (dev)
-+	if (dev) {
-+		if (dev->sdev)
-+			kobj = &dev->sdev->sdev_gendev.kobj;
- 		handle = dev->acpi_handle;
--	else
-+	} else {
-+		kobj = &ap->dev->kobj;
- 		handle = ap->acpi_handle;
-+	}
- 
- 	status = acpi_get_handle(handle, "_EJ0", &tmphandle);
- 	if (ACPI_FAILURE(status)) {
--		/* This device is not ejectable */
--		spin_unlock_irqrestore(ap->lock, flags);
-+		/* This device does not support hotplug */
- 		return;
- 	}
- 
--	status = acpi_evaluate_integer(handle, "_STA", NULL, &sta);
--	if (ACPI_FAILURE(status)) {
--		printk ("Unable to determine bay status\n");
--		spin_unlock_irqrestore(ap->lock, flags);
--		return;
-+	if (kobj && !is_dock_event) {
-+		sprintf(event_string, "BAY_EVENT=%d", event);
-+		kobject_uevent_env(kobj, KOBJ_CHANGE, envp);
- 	}
- 
-+	spin_lock_irqsave(ap->lock, flags);
-+
- 	switch (event) {
- 	case ACPI_NOTIFY_BUS_CHECK:
- 	case ACPI_NOTIFY_DEVICE_CHECK:
- 		ata_ehi_push_desc(ehi, "ACPI event");
--		if (!sta) {
--                /* Device has been unplugged */
--			if (dev)
--				dev->flags |= ATA_DFLAG_DETACH;
--			else {
--				struct ata_link *tlink;
--				struct ata_device *tdev;
--
--				ata_port_for_each_link(tlink, ap) {
--					ata_link_for_each_dev(tdev, tlink) {
--						tdev->flags |=
--							ATA_DFLAG_DETACH;
--					}
--				}
--			}
--			ata_port_schedule_eh(ap);
--			wait = 1;
--		} else {
-+
-+		status = acpi_evaluate_integer(handle, "_STA", NULL, &sta);
-+		if (ACPI_FAILURE(status)) {
-+			printk(KERN_ERR "Unable to determine bay status\n");
-+			break;
-+		}
-+
-+		if (sta) {
- 			ata_ehi_hotplugged(ehi);
- 			ata_port_freeze(ap);
-+		} else {
-+			/* The device has gone - unplug it */
-+			ata_acpi_detach_device(ap, dev);
-+			wait = 1;
- 		}
-+		break;
-+	case ACPI_NOTIFY_EJECT_REQUEST:
-+		ata_ehi_push_desc(ehi, "ACPI event");
-+
-+		if (!is_dock_event)
-+			break;
-+
-+		/* undock event - immediate unplug */
-+		ata_acpi_detach_device(ap, dev);
-+		wait = 1;
-+		break;
- 	}
- 
- 	spin_unlock_irqrestore(ap->lock, flags);
- 
- 	if (wait)
- 		ata_port_wait_eh(ap);
-+}
- 
--	if (dev) {
--		if (dev->sdev)
--			kobj = &dev->sdev->sdev_gendev.kobj;
--	} else
--		kobj = &ap->dev->kobj;
-+static void ata_acpi_dev_notify_dock(acpi_handle handle, u32 event, void *data)
++static __init int add_rtc_cmos(void)
 +{
-+	struct ata_device *dev = data;
- 
--	if (kobj) {
--		sprintf(event_string, "BAY_EVENT=%d", event);
--		kobject_uevent_env(kobj, KOBJ_CHANGE, envp);
--	}
-+	ata_acpi_handle_hotplug(NULL, dev, event, 1);
++	if (!pnp_platform_devices)
++		platform_device_register(&rtc_device);
++	return 0;
 +}
-+
-+static void ata_acpi_ap_notify_dock(acpi_handle handle, u32 event, void *data)
-+{
-+	struct ata_port *ap = data;
-+
-+	ata_acpi_handle_hotplug(ap, NULL, event, 1);
- }
++device_initcall(add_rtc_cmos);
+diff -puN drivers/rtc/rtc-cmos.c~x86-provide-rtc_cmos-platform-device drivers/rtc/rtc-cmos.c
+--- a/drivers/rtc/rtc-cmos.c~x86-provide-rtc_cmos-platform-device
++++ a/drivers/rtc/rtc-cmos.c
+@@ -905,19 +905,7 @@ static struct pnp_driver cmos_pnp_driver
+ 	.resume		= cmos_pnp_resume,
+ };
  
- static void ata_acpi_dev_notify(acpi_handle handle, u32 event, void *data)
+-static int __init cmos_init(void)
+-{
+-	return pnp_register_driver(&cmos_pnp_driver);
+-}
+-module_init(cmos_init);
+-
+-static void __exit cmos_exit(void)
+-{
+-	pnp_unregister_driver(&cmos_pnp_driver);
+-}
+-module_exit(cmos_exit);
+-
+-#else	/* no PNP */
++#endif	/* CONFIG_PNP */
+ 
+ /*----------------------------------------------------------------*/
+ 
+@@ -958,20 +946,24 @@ static struct platform_driver cmos_platf
+ 
+ static int __init cmos_init(void)
  {
- 	struct ata_device *dev = data;
- 
--	ata_acpi_handle_hotplug(NULL, dev, event);
-+	ata_acpi_handle_hotplug(NULL, dev, event, 0);
+-	return platform_driver_probe(&cmos_platform_driver,
++	if (pnp_platform_devices)
++		return pnp_register_driver(&cmos_pnp_driver);
++	else
++		return platform_driver_probe(&cmos_platform_driver,
+ 			cmos_platform_probe);
  }
+ module_init(cmos_init);
  
- static void ata_acpi_ap_notify(acpi_handle handle, u32 event, void *data)
+ static void __exit cmos_exit(void)
  {
- 	struct ata_port *ap = data;
- 
--	ata_acpi_handle_hotplug(ap, NULL, event);
-+	ata_acpi_handle_hotplug(ap, NULL, event, 0);
+-	platform_driver_unregister(&cmos_platform_driver);
++	if (pnp_platform_devices)
++		pnp_unregister_driver(&cmos_pnp_driver);
++	else
++		platform_driver_unregister(&cmos_platform_driver);
  }
+ module_exit(cmos_exit);
  
- /**
-@@ -252,7 +278,7 @@ void ata_acpi_associate(struct ata_host 
- 						    ata_acpi_ap_notify, ap);
- 			/* we might be on a docking station */
- 			register_hotplug_dock_device(ap->acpi_handle,
--						     ata_acpi_ap_notify, ap);
-+					     ata_acpi_ap_notify_dock, ap);
- 		}
  
- 		for (j = 0; j < ata_link_max_devices(&ap->link); j++) {
-@@ -264,7 +290,7 @@ void ata_acpi_associate(struct ata_host 
- 						ata_acpi_dev_notify, dev);
- 				/* we might be on a docking station */
- 				register_hotplug_dock_device(dev->acpi_handle,
--						ata_acpi_dev_notify, dev);
-+					     ata_acpi_dev_notify_dock, dev);
- 			}
- 		}
- 	}
-_
-
-Patches currently in -mm which might be from hmacht@suse.de are
-
-ata-acpi-hotplug-handle-bay-devices-in-dock-stations.patch
-ata-acpi-hotplug-handle-bay-devices-in-dock-stations-cleanup.patch
-
+-#endif	/* !PNP */
