@@ -1,73 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: + ahci-fix-the-device-ids-of-nvidia-mcp7b-ahci-controller-in-ahcic.patch added to -mm tree
-Date: Wed, 21 May 2008 14:01:33 -0700
-Message-ID: <200805212101.m4LL1XKc000586@imap1.linux-foundation.org>
+Subject: - mutex-debug-check-mutex-magic-before-owner.patch removed from -mm tree
+Date: Wed, 21 May 2008 14:22:02 -0700
+Message-ID: <200805212122.m4LLM2Ue001434@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57533 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50308 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756194AbYEUVCG (ORCPT
+	by vger.kernel.org with ESMTP id S1751988AbYEUVWW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 May 2008 17:02:06 -0400
+	Wed, 21 May 2008 17:22:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: peerchen@gmail.com
+To: jk@ozlabs.org, a.p.zijlstra@chello.nl, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ahci: fix the Device IDs of nvidia MCP7B AHCI controller in ahci.c
-has been added to the -mm tree.  Its filename is
-     ahci-fix-the-device-ids-of-nvidia-mcp7b-ahci-controller-in-ahcic.patch
+     mutex-debug: check mutex magic before owner
+has been removed from the -mm tree.  Its filename was
+     mutex-debug-check-mutex-magic-before-owner.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ahci: fix the Device IDs of nvidia MCP7B AHCI controller in ahci.c
-From: Peer Chen <peerchen@gmail.com>
+Subject: mutex-debug: check mutex magic before owner
+From: Jeremy Kerr <jk@ozlabs.org>
 
-Fix the partial Device IDs of nvidia MCP7B AHCI controller in ahci.c. 
-Incorrect IDs were being used.
+Currently, the mutex debug code checks the lock->owner before lock->magic, so
+a corrupt mutex will most likely result in failing the owner check, rather
+than the magic check.
 
-Signed-off-by: Peer Chen <peerchen@gmail.com>
+This change to debug_mutex_unlock does the magic check first, so
+we have a better idea of what breaks.
+
+Signed-off-by: Jeremy Kerr <jk@ozlabs.org>
+Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/ahci.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ kernel/mutex-debug.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/ata/ahci.c~ahci-fix-the-device-ids-of-nvidia-mcp7b-ahci-controller-in-ahcic drivers/ata/ahci.c
---- a/drivers/ata/ahci.c~ahci-fix-the-device-ids-of-nvidia-mcp7b-ahci-controller-in-ahcic
-+++ a/drivers/ata/ahci.c
-@@ -502,10 +502,10 @@ static const struct pci_device_id ahci_p
- 	{ PCI_VDEVICE(NVIDIA, 0x0bcd), board_ahci },		/* MCP7B */
- 	{ PCI_VDEVICE(NVIDIA, 0x0bce), board_ahci },		/* MCP7B */
- 	{ PCI_VDEVICE(NVIDIA, 0x0bcf), board_ahci },		/* MCP7B */
--	{ PCI_VDEVICE(NVIDIA, 0x0bd0), board_ahci },		/* MCP7B */
--	{ PCI_VDEVICE(NVIDIA, 0x0bd1), board_ahci },		/* MCP7B */
--	{ PCI_VDEVICE(NVIDIA, 0x0bd2), board_ahci },		/* MCP7B */
--	{ PCI_VDEVICE(NVIDIA, 0x0bd3), board_ahci },		/* MCP7B */
-+	{ PCI_VDEVICE(NVIDIA, 0x0bc4), board_ahci },		/* MCP7B */
-+	{ PCI_VDEVICE(NVIDIA, 0x0bc5), board_ahci },		/* MCP7B */
-+	{ PCI_VDEVICE(NVIDIA, 0x0bc6), board_ahci },		/* MCP7B */
-+	{ PCI_VDEVICE(NVIDIA, 0x0bc7), board_ahci },		/* MCP7B */
+diff -puN kernel/mutex-debug.c~mutex-debug-check-mutex-magic-before-owner kernel/mutex-debug.c
+--- a/kernel/mutex-debug.c~mutex-debug-check-mutex-magic-before-owner
++++ a/kernel/mutex-debug.c
+@@ -79,8 +79,8 @@ void debug_mutex_unlock(struct mutex *lo
+ 	if (unlikely(!debug_locks))
+ 		return;
  
- 	/* SiS */
- 	{ PCI_VDEVICE(SI, 0x1184), board_ahci }, /* SiS 966 */
+-	DEBUG_LOCKS_WARN_ON(lock->owner != current_thread_info());
+ 	DEBUG_LOCKS_WARN_ON(lock->magic != lock);
++	DEBUG_LOCKS_WARN_ON(lock->owner != current_thread_info());
+ 	DEBUG_LOCKS_WARN_ON(!lock->wait_list.prev && !lock->wait_list.next);
+ 	DEBUG_LOCKS_WARN_ON(lock->owner != current_thread_info());
+ }
 _
 
-Patches currently in -mm which might be from peerchen@gmail.com are
+Patches currently in -mm which might be from jk@ozlabs.org are
 
-ahci-fix-the-device-ids-of-nvidia-mcp7b-ahci-controller-in-ahcic.patch
+linux-next.patch
+spufs-convert-nopfn-to-fault.patch
 
