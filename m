@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-dont-drop-a-partial-page-in-a-zones-memory-map-size.patch added to -mm tree
-Date: Wed, 21 May 2008 13:59:00 -0700
-Message-ID: <200805212059.m4LKx0il000523@imap1.linux-foundation.org>
+Subject: + ahci-fix-the-device-ids-of-nvidia-mcp7b-ahci-controller-in-ahcic.patch added to -mm tree
+Date: Wed, 21 May 2008 14:01:33 -0700
+Message-ID: <200805212101.m4LL1XKc000586@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50087 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57533 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755474AbYEUU7O (ORCPT
+	by vger.kernel.org with ESMTP id S1756194AbYEUVCG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 May 2008 16:59:14 -0400
+	Wed, 21 May 2008 17:02:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hannes@saeurebad.de, kamezawa.hiroyu@jp.fujitsu.com
+Cc: peerchen@gmail.com
 
 
 The patch titled
-     mm: don't drop a partial page in a zone's memory map size
+     ahci: fix the Device IDs of nvidia MCP7B AHCI controller in ahci.c
 has been added to the -mm tree.  Its filename is
-     mm-dont-drop-a-partial-page-in-a-zones-memory-map-size.patch
+     ahci-fix-the-device-ids-of-nvidia-mcp7b-ahci-controller-in-ahcic.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: don't drop a partial page in a zone's memory map size
-From: Johannes Weiner <hannes@saeurebad.de>
+Subject: ahci: fix the Device IDs of nvidia MCP7B AHCI controller in ahci.c
+From: Peer Chen <peerchen@gmail.com>
 
-In a zone's present pages number, account for all pages occupied by the
-memory map, including a partial.
+Fix the partial Device IDs of nvidia MCP7B AHCI controller in ahci.c. 
+Incorrect IDs were being used.
 
-Signed-off-by: Johannes Weiner <hannes@saeurebad.de>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Peer Chen <peerchen@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/ata/ahci.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-dont-drop-a-partial-page-in-a-zones-memory-map-size mm/page_alloc.c
---- a/mm/page_alloc.c~mm-dont-drop-a-partial-page-in-a-zones-memory-map-size
-+++ a/mm/page_alloc.c
-@@ -3378,7 +3378,8 @@ static void __paginginit free_area_init_
- 		 * is used by this zone for memmap. This affects the watermark
- 		 * and per-cpu initialisations
- 		 */
--		memmap_pages = (size * sizeof(struct page)) >> PAGE_SHIFT;
-+		memmap_pages =
-+			PAGE_ALIGN(size * sizeof(struct page)) >> PAGE_SHIFT;
- 		if (realsize >= memmap_pages) {
- 			realsize -= memmap_pages;
- 			printk(KERN_DEBUG
+diff -puN drivers/ata/ahci.c~ahci-fix-the-device-ids-of-nvidia-mcp7b-ahci-controller-in-ahcic drivers/ata/ahci.c
+--- a/drivers/ata/ahci.c~ahci-fix-the-device-ids-of-nvidia-mcp7b-ahci-controller-in-ahcic
++++ a/drivers/ata/ahci.c
+@@ -502,10 +502,10 @@ static const struct pci_device_id ahci_p
+ 	{ PCI_VDEVICE(NVIDIA, 0x0bcd), board_ahci },		/* MCP7B */
+ 	{ PCI_VDEVICE(NVIDIA, 0x0bce), board_ahci },		/* MCP7B */
+ 	{ PCI_VDEVICE(NVIDIA, 0x0bcf), board_ahci },		/* MCP7B */
+-	{ PCI_VDEVICE(NVIDIA, 0x0bd0), board_ahci },		/* MCP7B */
+-	{ PCI_VDEVICE(NVIDIA, 0x0bd1), board_ahci },		/* MCP7B */
+-	{ PCI_VDEVICE(NVIDIA, 0x0bd2), board_ahci },		/* MCP7B */
+-	{ PCI_VDEVICE(NVIDIA, 0x0bd3), board_ahci },		/* MCP7B */
++	{ PCI_VDEVICE(NVIDIA, 0x0bc4), board_ahci },		/* MCP7B */
++	{ PCI_VDEVICE(NVIDIA, 0x0bc5), board_ahci },		/* MCP7B */
++	{ PCI_VDEVICE(NVIDIA, 0x0bc6), board_ahci },		/* MCP7B */
++	{ PCI_VDEVICE(NVIDIA, 0x0bc7), board_ahci },		/* MCP7B */
+ 
+ 	/* SiS */
+ 	{ PCI_VDEVICE(SI, 0x1184), board_ahci }, /* SiS 966 */
 _
 
-Patches currently in -mm which might be from hannes@saeurebad.de are
+Patches currently in -mm which might be from peerchen@gmail.com are
 
-mm-dont-drop-a-partial-page-in-a-zones-memory-map-size.patch
-git-xtensa.patch
-mm-move-bootmem-descriptors-definition-to-a-single-place.patch
-mm-fix-free_all_bootmem_core-alignment-check.patch
-mm-normalize-internal-argument-passing-of-bootmem-data.patch
-mm-unexport-__alloc_bootmem_core.patch
+ahci-fix-the-device-ids-of-nvidia-mcp7b-ahci-controller-in-ahcic.patch
 
