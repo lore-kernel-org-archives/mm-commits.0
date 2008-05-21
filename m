@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + s3c2410-ensure-that-fb_blank_powerdown-shuts-down-the-controller.patch added to -mm tree
-Date: Wed, 21 May 2008 15:14:03 -0700
-Message-ID: <200805212214.m4LME46g003453@imap1.linux-foundation.org>
+Subject: + ata-acpi-hotplug-handle-bay-devices-in-dock-stations-cleanup.patch added to -mm tree
+Date: Wed, 21 May 2008 15:26:30 -0700
+Message-ID: <200805212226.m4LMQUNj003861@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38266 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42638 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756859AbYEUWOp (ORCPT
+	by vger.kernel.org with ESMTP id S1765304AbYEUW1G (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 May 2008 18:14:45 -0400
+	Wed, 21 May 2008 18:27:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ben-fbdev@fluff.org, arnaud.patard@rtp-net.org, ben-linux@fluff.org, krzysztof.h1@wp.pl
+Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, hmacht@suse.de, htejun@gmail.com, jeff@garzik.org, kristen.c.accardi@intel.com, mjg@redhat.com
 
 
 The patch titled
-     S3C2410: ensure that FB_BLANK_POWERDOWN shuts down the controller
+     ata-acpi-hotplug-handle-bay-devices-in-dock-stations-cleanup
 has been added to the -mm tree.  Its filename is
-     s3c2410-ensure-that-fb_blank_powerdown-shuts-down-the-controller.patch
+     ata-acpi-hotplug-handle-bay-devices-in-dock-stations-cleanup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,123 +34,125 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: S3C2410: ensure that FB_BLANK_POWERDOWN shuts down the controller
-From: Ben Dooks <ben-fbdev@fluff.org>
+Subject: ata-acpi-hotplug-handle-bay-devices-in-dock-stations-cleanup
+From: Andrew Morton <akpm@linux-foundation.org>
 
-When a blank level of FB_BLANK_POWERDOWN is used, we should shut down the
-controller so that it no longer tries to produce any panel signals or
-data, and shuts down the DMA which is not needed.
-
-Signed-off-by: Ben Dooks <ben-linux@fluff.org>
-Cc: Arnaud Patard <arnaud.patard@rtp-net.org>
-Acked-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Holger Macht <hmacht@suse.de>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Cc: Matthew Garrett <mjg@redhat.com>
+Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/s3c2410fb.c |   49 +++++++++++++++++++++---------------
- 1 file changed, 29 insertions(+), 20 deletions(-)
+ drivers/ata/libata-acpi.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/s3c2410fb.c~s3c2410-ensure-that-fb_blank_powerdown-shuts-down-the-controller drivers/video/s3c2410fb.c
---- a/drivers/video/s3c2410fb.c~s3c2410-ensure-that-fb_blank_powerdown-shuts-down-the-controller
-+++ a/drivers/video/s3c2410fb.c
-@@ -580,6 +580,27 @@ static int s3c2410fb_setcolreg(unsigned 
- 	return 0;
- }
+diff -puN drivers/ata/libata-acpi.c~ata-acpi-hotplug-handle-bay-devices-in-dock-stations-cleanup drivers/ata/libata-acpi.c
+--- a/drivers/ata/libata-acpi.c~ata-acpi-hotplug-handle-bay-devices-in-dock-stations-cleanup
++++ a/drivers/ata/libata-acpi.c
+@@ -128,7 +128,7 @@ static void ata_acpi_detach_device(struc
  
-+/* s3c2410fb_lcd_enable
-+ *
-+ * shutdown the lcd controller
-+ */
-+static void s3c2410fb_lcd_enable(struct s3c2410fb_info *fbi, int enable)
-+{
-+	unsigned long flags;
-+
-+	local_irq_save(flags);
-+
-+	if (enable)
-+		fbi->regs.lcdcon1 |= S3C2410_LCDCON1_ENVID;
-+	else
-+		fbi->regs.lcdcon1 &= ~S3C2410_LCDCON1_ENVID;
-+
-+	writel(fbi->regs.lcdcon1, fbi->io + S3C2410_LCDCON1);
-+
-+	local_irq_restore(flags);
-+}
-+
-+
- /*
-  *      s3c2410fb_blank
-  *	@blank_mode: the blank mode we want.
-@@ -589,9 +610,6 @@ static int s3c2410fb_setcolreg(unsigned 
-  *	blanking succeeded, != 0 if un-/blanking failed due to e.g. a
-  *	video mode which doesn't support it. Implements VESA suspend
-  *	and powerdown modes on hardware that supports disabling hsync/vsync:
-- *	blank_mode == 2: suspend vsync
-- *	blank_mode == 3: suspend hsync
-- *	blank_mode == 4: powerdown
-  *
-  *	Returns negative errno on error, or zero on success.
-  *
-@@ -605,6 +623,12 @@ static int s3c2410fb_blank(int blank_mod
+ 		ata_port_for_each_link(tlink, ap)
+ 			ata_link_for_each_dev(tdev, tlink)
+-			tdev->flags |= ATA_DFLAG_DETACH;
++				tdev->flags |= ATA_DFLAG_DETACH;
+ 	}
  
- 	tpal_reg += is_s3c2412(fbi) ? S3C2412_TPAL : S3C2410_TPAL;
- 
-+	if (blank_mode == FB_BLANK_POWERDOWN) {
-+		s3c2410fb_lcd_enable(fbi, 0);
-+	} else {
-+		s3c2410fb_lcd_enable(fbi, 1);
-+	}
-+
- 	if (blank_mode == FB_BLANK_UNBLANK)
- 		writel(0x0, tpal_reg);
- 	else {
-@@ -983,21 +1007,6 @@ static int __init s3c2412fb_probe(struct
- 	return s3c24xxfb_probe(pdev, DRV_S3C2412);
- }
- 
--/* s3c2410fb_stop_lcd
-- *
-- * shutdown the lcd controller
-- */
--static void s3c2410fb_stop_lcd(struct s3c2410fb_info *fbi)
--{
--	unsigned long flags;
--
--	local_irq_save(flags);
--
--	fbi->regs.lcdcon1 &= ~S3C2410_LCDCON1_ENVID;
--	writel(fbi->regs.lcdcon1, fbi->io + S3C2410_LCDCON1);
--
--	local_irq_restore(flags);
--}
- 
- /*
-  *  Cleanup
-@@ -1010,7 +1019,7 @@ static int s3c2410fb_remove(struct platf
- 
- 	unregister_framebuffer(fbinfo);
- 
--	s3c2410fb_stop_lcd(info);
-+	s3c2410fb_lcd_enable(info, 0);
- 	msleep(1);
- 
- 	s3c2410fb_unmap_video_memory(fbinfo);
-@@ -1043,7 +1052,7 @@ static int s3c2410fb_suspend(struct plat
- 	struct fb_info	   *fbinfo = platform_get_drvdata(dev);
- 	struct s3c2410fb_info *info = fbinfo->par;
- 
--	s3c2410fb_stop_lcd(info);
-+	s3c2410fb_lcd_enable(info, 0);
- 
- 	/* sleep before disabling the clock, we need to ensure
- 	 * the LCD DMA engine is not going to get back on the bus
+ 	ata_port_freeze(ap);
 _
 
-Patches currently in -mm which might be from ben-fbdev@fluff.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-sm501-reverse-fpen-vbiasen-flags-behaviour.patch
-s3c2410-ensure-that-fb_blank_powerdown-shuts-down-the-controller.patch
-s3c2410-add-error-print-if-we-cannot-add-attribute.patch
-s3c2410-clean-out-changelog-header-and-tidy.patch
-s3c2410-fix-driver-module_alias.patch
+origin.patch
+semaphore-introduce-down_try-checkpatch-fixes.patch
+ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware-ia64-warnings.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup.patch
+memory-hotplug-fix-early-allocation-handling-checkpatch-fixes.patch
+linux-next.patch
+next-remove-localversion.patch
+fix-kobject-fix-kobject_rename-and-config_sysfs.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-video-balcklist-fujitsu-lifebook-s6410.patch
+git-x86-fixup.patch
+lguest-use-cpu-capability-accessors.patch
+arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
+zoran-use-correct-type-for-cpu-flags.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+drivers-infiniband-hw-mlx4-qpc-fix-uninitialised-var-warning.patch
+git-jg-misc-git-rejects.patch
+drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
+fsldma-the-mpc8377mds-board-device-tree-node-for-fsldma-driver.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers.patch
+git-ubifs.patch
+sundance-set-carrier-status-on-link-change-events.patch
+dm9000-use-delayed-work-to-update-mii-phy-state-fix.patch
+pcnet32-fix-warning.patch
+drivers-net-tokenring-3c359c-squish-a-warning.patch
+drivers-net-tokenring-olympicc-fix-warning.patch
+sfc-correct-and-expand-some-comments.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+pci-hotplug-introduce-pci_slot.patch
+pci-hotplug-acpi-pci-slot-detection-driver.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-logfs-fixup.patch
+drivers-uwb-nehc-processor-flags-have-type-unsigned-long.patch
+drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
+drivers-uwb-wlp-sysfsc-dead-code.patch
+drivers-uwb-whcic-needs-dma-mappingh.patch
+git-vfs-cleanups-reject.patch
+git-watchdog.patch
+git-watchdog-git-rejects.patch
+watchdog-fix-booke_wdtc-on-mpc85xx-smp-system.patch
+wireless-airo-waitbusy-wont-delay-checkpatch-fixes.patch
+git-xtensa.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+libata-sff-fix-oops-reported-in-kerneloopsorg-for-pnp-devices-with-no-ctl-fix.patch
+ata-acpi-hotplug-handle-bay-devices-in-dock-stations-cleanup.patch
+mm-verify-the-page-links-and-memory-model.patch
+mspec-convert-nopfn-to-fault-fix.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+kill-generic_file_direct_io-checkpatch-fixes.patch
+spufs-use-the-new-vm_ops-access-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+rename-warn-to-warning-to-clear-the-namespace-fix.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-paccept-sys_ni.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-signalfd-fix.patch
+flag-parameters-eventfd-fix.patch
+flag-parameters-inotify_init-fix.patch
+flag-parameters-check-magic-constants-alpha-hack.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+reiserfs-convert-j_flush_sem-to-mutex-fix.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+reiser4.patch
+reiser4-semaphore-fix.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
