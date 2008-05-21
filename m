@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + proc-proc_get_inode-should-get-module-only-once.patch added to -mm tree
-Date: Wed, 21 May 2008 14:38:42 -0700
-Message-ID: <200805212138.m4LLcgew002097@imap1.linux-foundation.org>
+Subject: + modules-proper-cleanup-of-kobject-without-config_sysfs.patch added to -mm tree
+Date: Wed, 21 May 2008 14:40:42 -0700
+Message-ID: <200805212140.m4LLegLe002150@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59108 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40962 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755154AbYEUVi6 (ORCPT
+	by vger.kernel.org with ESMTP id S1751908AbYEUVku (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 May 2008 17:38:58 -0400
+	Wed, 21 May 2008 17:40:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: den@openvz.org, davem@davemloft.net, devzero@web.de, ebiederm@xmission.com, kaber@trash.net, robert.olsson@its.uu.se, xemul@openvz.org
+Cc: den@openvz.org, kay.sievers@vrfy.org, rusty@rustcorp.com.au
 
 
 The patch titled
-     proc: proc_get_inode() should get module only once
+     modules: proper cleanup of kobject without CONFIG_SYSFS
 has been added to the -mm tree.  Its filename is
-     proc-proc_get_inode-should-get-module-only-once.patch
+     modules-proper-cleanup-of-kobject-without-config_sysfs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,52 +34,78 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc: proc_get_inode() should get module only once
+Subject: modules: proper cleanup of kobject without CONFIG_SYSFS
 From: "Denis V. Lunev" <den@openvz.org>
 
-Any file under /proc/net opened more than once leaked the refcounter
-on the module it belongs to.
+kobject: '<NULL>' (ffffffffa0104050): is not initialized, yet kobject_put() is being called.
+------------[ cut here ]------------
+WARNING: at /home/den/src/linux-netns26/lib/kobject.c:583 kobject_put+0x53/0x55()
+Modules linked in: ipv6 nfsd lockd nfs_acl auth_rpcgss sunrpc exportfs ide_cd_mod cdrom button [last unloaded: pktgen]
+comm: rmmod Tainted: G        W 2.6.26-rc3 #585
+Call Trace:
+  [<ffffffff802359ab>] warn_on_slowpath+0x58/0x7a
+  [<ffffffff80236aca>] ? printk+0x67/0x69
+  [<ffffffff80236aca>] ? printk+0x67/0x69
+  [<ffffffff80324289>] kobject_put+0x53/0x55
+  [<ffffffff8025e2ee>] free_module+0x87/0xfa
+  [<ffffffff8025fee5>] sys_delete_module+0x178/0x1e1
+  [<ffffffff804b1e70>] ? lockdep_sys_exit_thunk+0x35/0x67
+  [<ffffffff804b1dff>] ? trace_hardirqs_on_thunk+0x35/0x3a
+  [<ffffffff8020c0bb>] system_call_after_swapgs+0x7b/0x80
+---[ end trace 8f5aafa7f6406cf8 ]---
 
-The problem is that module_get is called for each file opening while
-module_put is called only when /proc inode is destroyed. So, lets put
-module counter if we are dealing with already initialised inode.
-
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=10737
+mod->mkobj.kobj is not initialized without CONFIG_SYSFS.  Do not call
+kobject_put in this case.
 
 Signed-off-by: Denis V. Lunev <den@openvz.org>
-Cc: David Miller <davem@davemloft.net>
-Cc: Patrick McHardy <kaber@trash.net>
-Acked-by: Pavel Emelyanov <xemul@openvz.org>
-Acked-by: Robert Olsson <robert.olsson@its.uu.se>
-Acked-by: Eric W. Biederman <ebiederm@xmission.com>
-Reported-by: Roland Kletzing <devzero@web.de>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/inode.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ kernel/module.c |   16 ++++++++++++++--
+ 1 file changed, 14 insertions(+), 2 deletions(-)
 
-diff -puN fs/proc/inode.c~proc-proc_get_inode-should-get-module-only-once fs/proc/inode.c
---- a/fs/proc/inode.c~proc-proc_get_inode-should-get-module-only-once
-+++ a/fs/proc/inode.c
-@@ -425,7 +425,8 @@ struct inode *proc_get_inode(struct supe
- 			}
- 		}
- 		unlock_new_inode(inode);
--	}
-+	} else
-+	       module_put(de->owner);
- 	return inode;
+diff -puN kernel/module.c~modules-proper-cleanup-of-kobject-without-config_sysfs kernel/module.c
+--- a/kernel/module.c~modules-proper-cleanup-of-kobject-without-config_sysfs
++++ a/kernel/module.c
+@@ -1337,7 +1337,19 @@ out_unreg:
+ 	kobject_put(&mod->mkobj.kobj);
+ 	return err;
+ }
+-#endif
++
++static void mod_sysfs_fini(struct module *mod)
++{
++	kobject_put(&mod->mkobj.kobj);
++}
++
++#else /* CONFIG_SYSFS */
++
++static void mod_sysfs_fini(struct module *mod)
++{
++}
++
++#endif /* CONFIG_SYSFS */
  
- out_ino:
+ static void mod_kobject_remove(struct module *mod)
+ {
+@@ -1345,7 +1357,7 @@ static void mod_kobject_remove(struct mo
+ 	module_param_sysfs_remove(mod);
+ 	kobject_put(mod->mkobj.drivers_dir);
+ 	kobject_put(mod->holders_dir);
+-	kobject_put(&mod->mkobj.kobj);
++	mod_sysfs_fini(mod);
+ }
+ 
+ /*
 _
 
 Patches currently in -mm which might be from den@openvz.org are
 
 origin.patch
 proc-proc_get_inode-should-get-module-only-once.patch
-proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
-pktgen-make-sure-that-pktgen_thread_worker-has-been-executed.patch
 modules-proper-cleanup-of-kobject-without-config_sysfs.patch
+proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
 flock-remove-unused-fields-from-file_lock_operations.patch
 
