@@ -1,24 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + whci-allow-modular-fix-busted-build.patch added to -mm tree
-Date: Wed, 21 May 2008 15:34:39 -0700
-Message-ID: <200805212234.m4LMYdvX004214@imap1.linux-foundation.org>
+Subject: + smc-ultra-get-rid-of-eth%d-message.patch added to -mm tree
+Date: Wed, 21 May 2008 16:02:33 -0700
+Message-ID: <200805212302.m4LN2XZ3005194@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58302 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34585 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752557AbYEUWfD (ORCPT
+	by vger.kernel.org with ESMTP id S1758372AbYEUXCo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 May 2008 18:35:03 -0400
+	Wed, 21 May 2008 19:02:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, david.vrabel@csr.com, greg@kroah.com
+Cc: nm127@freemail.hu
 
 
 The patch titled
-     whci: allow modular, fix busted build
+     smc-ultra: get rid of "eth%d" message
 has been added to the -mm tree.  Its filename is
-     whci-allow-modular-fix-busted-build.patch
+     smc-ultra-get-rid-of-eth%d-message.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -26,163 +29,119 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
+find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: whci: allow modular, fix busted build
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: smc-ultra: get rid of "eth%d" message
+=46rom: M=E1rton N=E9meth <nm127@freemail.hu>
 
-wusb components should depend on CONFIG_USB and be allowed to be
-built as modules, not just built-in.
+Print out the dev->name only after register_netdev().  If the dev->name=
+ is
+printk()ed out before calling register_netdev() the result will be "eth=
+%d"
+in the dmesg instead of "eth0".
 
-drivers/built-in.o: In function `asl_urb_dequeue':
-(.text+0x92d5e): undefined reference to `usb_hcd_check_unlink_urb'
-drivers/built-in.o: In function `asl_urb_enqueue':
-(.text+0x92e70): undefined reference to `usb_hcd_link_urb_to_ep'
-drivers/built-in.o: In function `whc_remove':
-hcd.c:(.text+0x93042): undefined reference to `usb_remove_hcd'
-drivers/built-in.o: In function `whc_probe':
-hcd.c:(.text+0x931b7): undefined reference to `usb_create_hcd'
-hcd.c:(.text+0x932b8): undefined reference to `usb_add_hcd'
-hcd.c:(.text+0x932f6): undefined reference to `usb_remove_hcd'
-hcd.c:(.text+0x9332e): undefined reference to `usb_put_hcd'
-drivers/built-in.o: In function `whc_remove':
-hcd.c:(.text+0x93067): undefined reference to `usb_put_hcd'
-drivers/built-in.o: In function `pzl_urb_dequeue':
-(.text+0x93fc3): undefined reference to `usb_hcd_check_unlink_urb'
-drivers/built-in.o: In function `pzl_urb_enqueue':
-(.text+0x940d5): undefined reference to `usb_hcd_link_urb_to_ep'
-drivers/built-in.o: In function `qset_remove_urb':
-(.text+0x947cc): undefined reference to `usb_hcd_unlink_urb_from_ep'
-drivers/built-in.o: In function `wusb_dev_free':
-devconnect.c:(.text+0x9682a): undefined reference to `usb_free_urb'
-drivers/built-in.o: In function `wusb_usb_ncb':
-(.text+0x96994): undefined reference to `usb_put_dev'
-drivers/built-in.o: In function `wusb_usb_ncb':
-(.text+0x969c7): undefined reference to `usb_get_hcd'
-drivers/built-in.o: In function `wusb_usb_ncb':
-(.text+0x96a34): undefined reference to `usb_get_dev'
-drivers/built-in.o: In function `wusb_usb_ncb':
-(.text+0x96a9c): undefined reference to `usb_get_descriptor'
-drivers/built-in.o: In function `wusb_usb_ncb':
-(.text+0x96af8): undefined reference to `usb_get_descriptor'
-drivers/built-in.o: In function `wusb_usb_ncb':
-(.text+0x96b74): undefined reference to `usb_put_hcd'
-drivers/built-in.o: In function `wusbhc_handle_dn':
-(.text+0x974a2): undefined reference to `usb_alloc_urb'
-drivers/built-in.o: In function `wusb_cdid_show':
-dev-sysfs.c:(.text+0x97921): undefined reference to `usb_get_hcd'
-dev-sysfs.c:(.text+0x97967): undefined reference to `usb_put_hcd'
-drivers/built-in.o: In function `wusb_dev_cc_store':
-dev-sysfs.c:(.text+0x97d08): undefined reference to `usb_get_hcd'
-dev-sysfs.c:(.text+0x97d8b): undefined reference to `usb_put_hcd'
-drivers/built-in.o: In function `wusb_dev_disconnect_store':
-dev-sysfs.c:(.text+0x97ed5): undefined reference to `usb_get_hcd'
-dev-sysfs.c:(.text+0x97f25): undefined reference to `usb_put_hcd'
-drivers/built-in.o: In function `wusbhc_gtk_rekey':
-(.text+0x98e8c): undefined reference to `usb_submit_urb'
-drivers/built-in.o: In function `wusb_dev_set_encryption':
-security.c:(.text+0x991c9): undefined reference to `usb_control_msg'
-drivers/built-in.o: In function `wusb_dev_sec_add':
-(.text+0x99342): undefined reference to `usb_get_descriptor'
-drivers/built-in.o: In function `wusb_dev_sec_add':
-(.text+0x993c1): undefined reference to `usb_get_descriptor'
-drivers/built-in.o: In function `wusb_dev_4way_handshake':
-(.text+0x997e0): undefined reference to `usb_control_msg'
-drivers/built-in.o: In function `wusb_dev_4way_handshake':
-(.text+0x9982f): undefined reference to `usb_control_msg'
-drivers/built-in.o: In function `wusb_dev_4way_handshake':
-(.text+0x9a0f4): undefined reference to `usb_control_msg'
-drivers/built-in.o: In function `wusb_dev_4way_handshake':
-(.text+0x9a25b): undefined reference to `usb_control_msg'
-drivers/built-in.o: In function `wusb_dev_4way_handshake':
-(.text+0x9a32e): undefined reference to `usb_control_msg'
-drivers/built-in.o: In function `wusb_dev_4way_handshake':
-(.text+0x9a359): undefined reference to `usb_ep0_reinit'
-drivers/built-in.o: In function `wusb_dev_4way_handshake':
-(.text+0x9a397): undefined reference to `usb_control_msg'
-drivers/built-in.o: In function `wusb_dev_4way_handshake':
-(.text+0x9a3c3): undefined reference to `usb_ep0_reinit'
-drivers/built-in.o: In function `wusbhc_giveback_urb':
-(.text+0x9a75f): undefined reference to `usb_hcd_giveback_urb'
-drivers/built-in.o: In function `cbaf_disconnect':
-cbaf.c:(.text+0x9ab72): undefined reference to `usb_put_intf'
-drivers/built-in.o: In function `cbaf_wusb_host_info_store':
-cbaf.c:(.text+0x9add5): undefined reference to `usb_control_msg'
-drivers/built-in.o: In function `cbaf_wusb_cdid_show':
-cbaf.c:(.text+0x9af6a): undefined reference to `usb_control_msg'
-drivers/built-in.o: In function `cbaf_wusb_cc_store':
-cbaf.c:(.text+0x9b411): undefined reference to `usb_control_msg'
-drivers/built-in.o: In function `cbaf_probe':
-cbaf.c:(.text+0x9bb17): undefined reference to `usb_get_dev'
-cbaf.c:(.text+0x9bb29): undefined reference to `usb_get_intf'
-cbaf.c:(.text+0x9bb7f): undefined reference to `usb_control_msg'
-drivers/built-in.o: In function `wusbcore_init':
-wusbhc.c:(.init.text+0x58f8): undefined reference to `usb_register_notify'
-drivers/built-in.o: In function `cbaf_driver_init':
-cbaf.c:(.init.text+0x5941): undefined reference to `usb_register_driver'
-drivers/built-in.o: In function `wusbcore_exit':
-wusbhc.c:(.exit.text+0x782): undefined reference to `usb_unregister_notify'
-drivers/built-in.o: In function `cbaf_driver_exit':
-cbaf.c:(.exit.text+0x7a8): undefined reference to `usb_deregister'
-make[1]: *** [vmlinux] Error 1
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: <david.vrabel@csr.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: M=E1rton N=E9meth <nm127@freemail.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/host/Kconfig  |    2 +-
- drivers/usb/host/Makefile |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/net/smc-ultra.c |   33 ++++++++++++++++++++++-----------
+ 1 file changed, 22 insertions(+), 11 deletions(-)
 
-diff -puN drivers/usb/host/Kconfig~whci-allow-modular-fix-busted-build drivers/usb/host/Kconfig
---- a/drivers/usb/host/Kconfig~whci-allow-modular-fix-busted-build
-+++ a/drivers/usb/host/Kconfig
-@@ -308,7 +308,7 @@ config SUPERH_ON_CHIP_R8A66597
- 
- config USB_WHCI_HCD
- 	tristate "Wireless USB Host Controller Interface (WHCI) driver"
--	depends on PCI
-+	depends on PCI && USB
- 	select USB_WUSB
- 	select UWB_WHCI
- 	help
-diff -puN drivers/usb/host/Makefile~whci-allow-modular-fix-busted-build drivers/usb/host/Makefile
---- a/drivers/usb/host/Makefile~whci-allow-modular-fix-busted-build
-+++ a/drivers/usb/host/Makefile
-@@ -8,7 +8,7 @@ endif
- 
- isp1760-objs := isp1760-hcd.o isp1760-if.o
- 
--obj-y				+= whci/
-+obj-$(CONFIG_USB_WHCI_HCD)	+= whci/
- 
- obj-$(CONFIG_PCI)		+= pci-quirks.o
- 
+diff -puN drivers/net/smc-ultra.c~smc-ultra-get-rid-of-eth%d-message dr=
+ivers/net/smc-ultra.c
+--- a/drivers/net/smc-ultra.c~smc-ultra-get-rid-of-eth%d-message
++++ a/drivers/net/smc-ultra.c
+@@ -228,9 +228,6 @@ static int __init ultra_probe1(struct ne
+ 	for (i =3D 0; i < 6; i++)
+ 		dev->dev_addr[i] =3D inb(ioaddr + 8 + i);
+=20
+-	printk("%s: %s at %#3x, %s", dev->name, model_name,
+-	       ioaddr, print_mac(mac, dev->dev_addr));
+-
+ 	/* Switch from the station address to the alternate register set and
+ 	   read the useful registers there. */
+ 	outb(0x80 | reg4, ioaddr + 4);
+@@ -253,8 +250,10 @@ static int __init ultra_probe1(struct ne
+ 		irq =3D irqmap[((irqreg & 0x40) >> 4) + ((irqreg & 0x0c) >> 2)];
+=20
+ 		if (irq =3D=3D 0) {
+-			printk(", failed to detect IRQ line.\n");
+-			retval =3D  -EAGAIN;
++			printk(KERN_ERR "%s at %#3x, %s, "
++			       "failed to detect IRQ line.\n", model_name,
++			       ioaddr, print_mac(mac, dev->dev_addr));
++			retval =3D -EAGAIN;
+ 			goto out;
+ 		}
+ 		dev->irq =3D irq;
+@@ -280,22 +279,19 @@ static int __init ultra_probe1(struct ne
+=20
+ 	ei_status.mem =3D ioremap(dev->mem_start, (ei_status.stop_page - STAR=
+T_PG)*256);
+ 	if (!ei_status.mem) {
+-		printk(", failed to ioremap.\n");
+-		retval =3D  -ENOMEM;
++		printk(KERN_ERR "%s at %#3x, %s, failed to ioremap.\n",
++		       model_name, ioaddr, print_mac(mac, dev->dev_addr));
++		retval =3D -ENOMEM;
+ 		goto out;
+ 	}
+=20
+ 	dev->mem_end =3D dev->mem_start + (ei_status.stop_page - START_PG)*25=
+6;
+=20
+ 	if (piomode) {
+-		printk(",%s IRQ %d programmed-I/O mode.\n",
+-			   eeprom_irq ? "EEPROM" : "assigned ", dev->irq);
+ 		ei_status.block_input =3D &ultra_pio_input;
+ 		ei_status.block_output =3D &ultra_pio_output;
+ 		ei_status.get_8390_hdr =3D &ultra_pio_get_hdr;
+ 	} else {
+-		printk(",%s IRQ %d memory %#lx-%#lx.\n", eeprom_irq ? "" : "assigned=
+ ",
+-			   dev->irq, dev->mem_start, dev->mem_end-1);
+ 		ei_status.block_input =3D &ultra_block_input;
+ 		ei_status.block_output =3D &ultra_block_output;
+ 		ei_status.get_8390_hdr =3D &ultra_get_8390_hdr;
+@@ -311,6 +307,21 @@ static int __init ultra_probe1(struct ne
+ 	retval =3D register_netdev(dev);
+ 	if (retval)
+ 		goto out;
++
++	if (piomode) {
++		printk(KERN_INFO "%s: %s at %#3x, %s,"
++			"%s IRQ %d programmed-I/O mode.\n",
++			dev->name, model_name, ioaddr,
++			print_mac(mac, dev->dev_addr),
++			eeprom_irq ? " EEPROM" : " assigned", dev->irq);
++	} else {
++		printk(KERN_INFO "%s: %s at %#3x, %s,"
++			"%s IRQ %d memory %#lx-%#lx.\n",
++			dev->name, model_name, ioaddr,
++			print_mac(mac, dev->dev_addr),
++			eeprom_irq ? "" : " assigned",
++			dev->irq, dev->mem_start, dev->mem_end-1);
++	}
+ 	return 0;
+ out:
+ 	release_region(ioaddr, ULTRA_IO_EXTENT);
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from nm127@freemail.hu are
 
-origin.patch
-linux-next.patch
-documentation-build-source-files-in-documentation-sub-dir.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
-3c515-fix-using-pnp_get_resource-when-config_isapnp=n.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-git-unionfs.patch
-uwb-fix-kconfig-causing-undefined-references.patch
-whci-allow-modular-fix-busted-build.patch
-audit-fix-kernel-doc-parameter-notation.patch
-scsi-do-not-automatically-select-scsi_dh-for-dm-multipath.patch
-flag-parameters-signalfd-fix.patch
-flag-parameters-eventfd-fix.patch
-bsdacct-stir-up-comments-around-acct_process.patch
-profile-likely-unlikely-macros.patch
+smc-ultra-get-rid-of-eth%d-message.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
