@@ -1,27 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + gpio-build-fixes-mostly-potential.patch added to -mm tree
-Date: Wed, 21 May 2008 16:08:38 -0700
-Message-ID: <200805212308.m4LN8cGe005477@imap1.linux-foundation.org>
+Subject: + pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup-fix.patch added to -mm tree
+Date: Wed, 21 May 2008 16:10:29 -0700
+Message-ID: <200805212310.m4LNATcg005514@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37165 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38306 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756552AbYEUXJL (ORCPT
+	by vger.kernel.org with ESMTP id S1752888AbYEUXKr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 May 2008 19:09:11 -0400
+	Wed, 21 May 2008 19:10:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: david-b@pacbell.net, Uwe.Kleine-Koenig@digi.com, arnaud.patard@rtp-net.org, dbrownell@users.sourceforge.net, rmk@arm.linux.org.uk
+Cc: akpm@linux-foundation.org, cooloney@kernel.org, michael.hennerich@analog.com, vapier.adi@gmail.com
 
 
 The patch titled
-     gpio: build fixes (mostly potential)
+     pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup-fix
 has been added to the -mm tree.  Its filename is
-     gpio-build-fixes-mostly-potential.patch
+     pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -29,98 +26,132 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
-find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpio: build fixes (mostly potential)
-=46rom: David Brownell <david-b@pacbell.net>
+Subject: pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This fixes various gpio-related build errors (mostly potential)
-reported in part by Russell King and Uwe Kleine-K=F6nig.
-
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Uwe Kleine-K=F6nig <Uwe.Kleine-Koenig@digi.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Arnaud Patard <arnaud.patard@rtp-net.org>
+Cc: Bryan Wu <cooloney@kernel.org>
+Cc: Michael Hennerich <michael.hennerich@analog.com>
+Cc: "Mike Frysinger" <vapier.adi@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/gpio.h |    6 +++++-
- include/linux/gpio.h       |    3 +++
- 2 files changed, 8 insertions(+), 1 deletion(-)
+ include/pcmcia/cs_types.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/asm-generic/gpio.h~gpio-build-fixes-mostly-potential =
-include/asm-generic/gpio.h
---- a/include/asm-generic/gpio.h~gpio-build-fixes-mostly-potential
-+++ a/include/asm-generic/gpio.h
-@@ -1,8 +1,12 @@
- #ifndef _ASM_GENERIC_GPIO_H
- #define _ASM_GENERIC_GPIO_H
-=20
-+#include <linux/types.h>
-+
- #ifdef CONFIG_HAVE_GPIO_LIB
-=20
-+#include <linux/compiler.h>
-+
- /* Platforms may implement their GPIO interface with library code,
-  * at a small performance cost for non-inlined operations and some
-  * extra memory (for code and for per-GPIO table entries).
-@@ -74,7 +78,7 @@ struct gpio_chip {
-=20
- extern const char *gpiochip_is_requested(struct gpio_chip *chip,
- 			unsigned offset);
--extern int __init __must_check gpiochip_reserve(int start, int ngpio);
-+extern int __must_check gpiochip_reserve(int start, int ngpio);
-=20
- /* add/remove chips */
- extern int gpiochip_add(struct gpio_chip *chip);
-diff -puN include/linux/gpio.h~gpio-build-fixes-mostly-potential includ=
-e/linux/gpio.h
---- a/include/linux/gpio.h~gpio-build-fixes-mostly-potential
-+++ a/include/linux/gpio.h
-@@ -8,6 +8,9 @@
-=20
+diff -puN include/pcmcia/cs_types.h~pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup-fix include/pcmcia/cs_types.h
+--- a/include/pcmcia/cs_types.h~pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup-fix
++++ a/include/pcmcia/cs_types.h
+@@ -21,7 +21,8 @@
+ #include <sys/types.h>
+ #endif
+ 
+-#if defined(__arm__) || defined(__mips__) || defined(__avr32__) || defined(bfin)
++#if defined(__arm__) || defined(__mips__) || defined(__avr32__) || \
++	defined(__bfin__)
+ /* This (ioaddr_t) is exposed to userspace & hence cannot be changed. */
+ typedef u_int   ioaddr_t;
  #else
-=20
-+#include <linux/types.h>
-+#include <linux/errno.h>
-+
- /*
-  * Some platforms don't support the GPIO programming interface.
-  *
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-gpio-pca953x-driver-handles-pca9554-too.patch
-gpio-build-fixes-mostly-potential.patch
+origin.patch
+semaphore-introduce-down_try-checkpatch-fixes.patch
+ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware-ia64-warnings.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup-fix.patch
+memory-hotplug-fix-early-allocation-handling-checkpatch-fixes.patch
 linux-next.patch
-jffs2-summary-allocation-dont-use-vmalloc.patch
-rndis_host-increase-delay-in-command-response-loop.patch
-net-usb-add-support-for-apple-usb-ethernet-adapter.patch
-usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned=
--issues.patch
-x86-provide-rtc_cmos-platform-device.patch
-asic3-gpiolib-support.patch
-asic3-remove-children-platform-data.patch
-asic3-new-gpio-configuration-code.patch
-rtc-rtc-rs5c372-smbus-conversion-support.patch
-rtc-rtc-rs5c732-add-support-for-ricoh-r2025s-d-rtc.patch
-rtc-m41t80-sort-header-inclusions-for-readability.patch
-rtc-m41t80-use-pr_info-as-appropriate.patch
-gpio-sysfs-interface.patch
+next-remove-localversion.patch
+fix-kobject-fix-kobject_rename-and-config_sysfs.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-video-balcklist-fujitsu-lifebook-s6410.patch
+git-x86-fixup.patch
+lguest-use-cpu-capability-accessors.patch
+arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
+zoran-use-correct-type-for-cpu-flags.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+drivers-infiniband-hw-mlx4-qpc-fix-uninitialised-var-warning.patch
+git-jg-misc-git-rejects.patch
+drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
+fsldma-the-mpc8377mds-board-device-tree-node-for-fsldma-driver.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers.patch
+git-ubifs.patch
+sundance-set-carrier-status-on-link-change-events.patch
+dm9000-use-delayed-work-to-update-mii-phy-state-fix.patch
+pcnet32-fix-warning.patch
+drivers-net-tokenring-3c359c-squish-a-warning.patch
+drivers-net-tokenring-olympicc-fix-warning.patch
+sfc-correct-and-expand-some-comments.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+pci-hotplug-introduce-pci_slot.patch
+pci-hotplug-acpi-pci-slot-detection-driver.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-logfs-fixup.patch
+drivers-uwb-nehc-processor-flags-have-type-unsigned-long.patch
+drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
+drivers-uwb-wlp-sysfsc-dead-code.patch
+drivers-uwb-whcic-needs-dma-mappingh.patch
+git-vfs-cleanups-reject.patch
+git-watchdog.patch
+git-watchdog-git-rejects.patch
+watchdog-fix-booke_wdtc-on-mpc85xx-smp-system.patch
+wireless-airo-waitbusy-wont-delay-checkpatch-fixes.patch
+git-xtensa.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+libata-sff-fix-oops-reported-in-kerneloopsorg-for-pnp-devices-with-no-ctl-fix.patch
+ata-acpi-hotplug-handle-bay-devices-in-dock-stations-cleanup.patch
+mm-verify-the-page-links-and-memory-model.patch
+mspec-convert-nopfn-to-fault-fix.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+kill-generic_file_direct_io-checkpatch-fixes.patch
+spufs-use-the-new-vm_ops-access-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+rename-warn-to-warning-to-clear-the-namespace-fix.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-paccept-sys_ni.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-signalfd-fix.patch
+flag-parameters-eventfd-fix.patch
+flag-parameters-inotify_init-fix.patch
+flag-parameters-check-magic-constants-alpha-hack.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+reiserfs-convert-j_flush_sem-to-mutex-fix.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+reiser4.patch
+reiser4-semaphore-fix.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
