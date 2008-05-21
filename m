@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + modules-proper-cleanup-of-kobject-without-config_sysfs.patch added to -mm tree
-Date: Wed, 21 May 2008 14:40:42 -0700
-Message-ID: <200805212140.m4LLegLe002150@imap1.linux-foundation.org>
+Subject: + flock-remove-unused-fields-from-file_lock_operations.patch added to -mm tree
+Date: Wed, 21 May 2008 14:41:37 -0700
+Message-ID: <200805212141.m4LLfb0u002166@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40962 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59256 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751908AbYEUVku (ORCPT
+	by vger.kernel.org with ESMTP id S1755850AbYEUVlu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 May 2008 17:40:50 -0400
+	Wed, 21 May 2008 17:41:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: den@openvz.org, kay.sievers@vrfy.org, rusty@rustcorp.com.au
+Cc: den@openvz.org, bfields@fieldses.org, matthew@wil.cx, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     modules: proper cleanup of kobject without CONFIG_SYSFS
+     flock: remove unused fields from file_lock_operations
 has been added to the -mm tree.  Its filename is
-     modules-proper-cleanup-of-kobject-without-config_sysfs.patch
+     flock-remove-unused-fields-from-file_lock_operations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,78 +34,64 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: modules: proper cleanup of kobject without CONFIG_SYSFS
+Subject: flock: remove unused fields from file_lock_operations
 From: "Denis V. Lunev" <den@openvz.org>
 
-kobject: '<NULL>' (ffffffffa0104050): is not initialized, yet kobject_put() is being called.
-------------[ cut here ]------------
-WARNING: at /home/den/src/linux-netns26/lib/kobject.c:583 kobject_put+0x53/0x55()
-Modules linked in: ipv6 nfsd lockd nfs_acl auth_rpcgss sunrpc exportfs ide_cd_mod cdrom button [last unloaded: pktgen]
-comm: rmmod Tainted: G        W 2.6.26-rc3 #585
-Call Trace:
-  [<ffffffff802359ab>] warn_on_slowpath+0x58/0x7a
-  [<ffffffff80236aca>] ? printk+0x67/0x69
-  [<ffffffff80236aca>] ? printk+0x67/0x69
-  [<ffffffff80324289>] kobject_put+0x53/0x55
-  [<ffffffff8025e2ee>] free_module+0x87/0xfa
-  [<ffffffff8025fee5>] sys_delete_module+0x178/0x1e1
-  [<ffffffff804b1e70>] ? lockdep_sys_exit_thunk+0x35/0x67
-  [<ffffffff804b1dff>] ? trace_hardirqs_on_thunk+0x35/0x3a
-  [<ffffffff8020c0bb>] system_call_after_swapgs+0x7b/0x80
----[ end trace 8f5aafa7f6406cf8 ]---
-
-mod->mkobj.kobj is not initialized without CONFIG_SYSFS.  Do not call
-kobject_put in this case.
+fl_insert and fl_remove are not used right now in the kernel. Remove them.
 
 Signed-off-by: Denis V. Lunev <den@openvz.org>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Matthew Wilcox <matthew@wil.cx>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/module.c |   16 ++++++++++++++--
- 1 file changed, 14 insertions(+), 2 deletions(-)
+ fs/locks.c         |    6 ------
+ include/linux/fs.h |    2 --
+ 2 files changed, 8 deletions(-)
 
-diff -puN kernel/module.c~modules-proper-cleanup-of-kobject-without-config_sysfs kernel/module.c
---- a/kernel/module.c~modules-proper-cleanup-of-kobject-without-config_sysfs
-+++ a/kernel/module.c
-@@ -1337,7 +1337,19 @@ out_unreg:
- 	kobject_put(&mod->mkobj.kobj);
- 	return err;
- }
--#endif
-+
-+static void mod_sysfs_fini(struct module *mod)
-+{
-+	kobject_put(&mod->mkobj.kobj);
-+}
-+
-+#else /* CONFIG_SYSFS */
-+
-+static void mod_sysfs_fini(struct module *mod)
-+{
-+}
-+
-+#endif /* CONFIG_SYSFS */
- 
- static void mod_kobject_remove(struct module *mod)
- {
-@@ -1345,7 +1357,7 @@ static void mod_kobject_remove(struct mo
- 	module_param_sysfs_remove(mod);
- 	kobject_put(mod->mkobj.drivers_dir);
- 	kobject_put(mod->holders_dir);
--	kobject_put(&mod->mkobj.kobj);
-+	mod_sysfs_fini(mod);
+diff -puN fs/locks.c~flock-remove-unused-fields-from-file_lock_operations fs/locks.c
+--- a/fs/locks.c~flock-remove-unused-fields-from-file_lock_operations
++++ a/fs/locks.c
+@@ -561,9 +561,6 @@ static void locks_insert_lock(struct fil
+ 	/* insert into file's list */
+ 	fl->fl_next = *pos;
+ 	*pos = fl;
+-
+-	if (fl->fl_ops && fl->fl_ops->fl_insert)
+-		fl->fl_ops->fl_insert(fl);
  }
  
  /*
+@@ -586,9 +583,6 @@ static void locks_delete_lock(struct fil
+ 		fl->fl_fasync = NULL;
+ 	}
+ 
+-	if (fl->fl_ops && fl->fl_ops->fl_remove)
+-		fl->fl_ops->fl_remove(fl);
+-
+ 	if (fl->fl_nspid) {
+ 		put_pid(fl->fl_nspid);
+ 		fl->fl_nspid = NULL;
+diff -puN include/linux/fs.h~flock-remove-unused-fields-from-file_lock_operations include/linux/fs.h
+--- a/include/linux/fs.h~flock-remove-unused-fields-from-file_lock_operations
++++ a/include/linux/fs.h
+@@ -894,8 +894,6 @@ static inline int file_check_writeable(s
+ typedef struct files_struct *fl_owner_t;
+ 
+ struct file_lock_operations {
+-	void (*fl_insert)(struct file_lock *);	/* lock insertion callback */
+-	void (*fl_remove)(struct file_lock *);	/* lock removal callback */
+ 	void (*fl_copy_lock)(struct file_lock *, struct file_lock *);
+ 	void (*fl_release_private)(struct file_lock *);
+ };
 _
 
 Patches currently in -mm which might be from den@openvz.org are
 
 origin.patch
+flock-remove-unused-fields-from-file_lock_operations.patch
 proc-proc_get_inode-should-get-module-only-once.patch
 modules-proper-cleanup-of-kobject-without-config_sysfs.patch
 proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
-flock-remove-unused-fields-from-file_lock_operations.patch
 
