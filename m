@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ixj-push-bkl-into-driver-and-wrap-ioctls.patch added to -mm tree
-Date: Thu, 22 May 2008 16:16:06 -0700
-Message-ID: <200805222316.m4MNG6tw026582@imap1.linux-foundation.org>
+Subject: + pktcdvd-push-bkl-down-into-driver.patch added to -mm tree
+Date: Thu, 22 May 2008 16:15:54 -0700
+Message-ID: <200805222315.m4MNFs2b026487@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54430 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52070 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758061AbYEVXRD (ORCPT
+	by vger.kernel.org with ESMTP id S1755986AbYEVXRV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 22 May 2008 19:17:03 -0400
+	Thu, 22 May 2008 19:17:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, domen@coderock.org, nacc@us.ibm.com
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jens.axboe@oracle.com, petero2@telia.com
 
 
 The patch titled
-     ixj: push BKL into driver and wrap ioctls
+     pktcdvd: push BKL down into driver
 has been added to the -mm tree.  Its filename is
-     ixj-push-bkl-into-driver-and-wrap-ioctls.patch
+     pktcdvd-push-bkl-down-into-driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,65 +34,121 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ixj: push BKL into driver and wrap ioctls
+Subject: pktcdvd: push BKL down into driver
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
+Push the lock_kernel down into the driver and switch to unlocked_ioctl
+
 Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Nishanth Aravamudan <nacc@us.ibm.com>
-Cc: Domen Puncer <domen@coderock.org>
+Cc: Peter Osterlund <petero2@telia.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/telephony/ixj.c |   17 +++++++++++++----
- 1 file changed, 13 insertions(+), 4 deletions(-)
+ drivers/block/pktcdvd.c |   34 ++++++++++++++++++++++++----------
+ 1 file changed, 24 insertions(+), 10 deletions(-)
 
-diff -puN drivers/telephony/ixj.c~ixj-push-bkl-into-driver-and-wrap-ioctls drivers/telephony/ixj.c
---- a/drivers/telephony/ixj.c~ixj-push-bkl-into-driver-and-wrap-ioctls
-+++ a/drivers/telephony/ixj.c
-@@ -6095,15 +6095,15 @@ static int capabilities_check(IXJ *j, st
- 	return retval;
+diff -puN drivers/block/pktcdvd.c~pktcdvd-push-bkl-down-into-driver drivers/block/pktcdvd.c
+--- a/drivers/block/pktcdvd.c~pktcdvd-push-bkl-down-into-driver
++++ a/drivers/block/pktcdvd.c
+@@ -2798,9 +2798,14 @@ out_mem:
+ 	return ret;
  }
  
--static int ixj_ioctl(struct inode *inode, struct file *file_p, unsigned int cmd, unsigned long arg)
-+static long do_ixj_ioctl(struct file *file_p, unsigned int cmd, unsigned long arg)
+-static int pkt_ioctl(struct inode *inode, struct file *file, unsigned int cmd, unsigned long arg)
++static long pkt_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
  {
- 	IXJ_TONE ti;
- 	IXJ_FILTER jf;
- 	IXJ_FILTER_RAW jfr;
- 	void __user *argp = (void __user *)arg;
--
--	unsigned int raise, mant;
-+	struct inode *inode = file_p->f_path.dentry->d_inode;
- 	unsigned int minor = iminor(inode);
-+	unsigned int raise, mant;
- 	int board = NUM(inode);
- 
- 	IXJ *j = get_ixj(NUM(inode));
-@@ -6661,6 +6661,15 @@ static int ixj_ioctl(struct inode *inode
- 	return retval;
- }
- 
-+static long ixj_ioctl(struct file *file_p, unsigned int cmd, unsigned long arg)
-+{
+-	struct pktcdvd_device *pd = inode->i_bdev->bd_disk->private_data;
++	struct inode *inode = file->f_path.dentry->d_inode;
++	struct pktcdvd_device *pd;
 +	long ret;
++
 +	lock_kernel();
-+	ret = do_ixj_ioctl(file_p, cmd, arg);
++	pd = inode->i_bdev->bd_disk->private_data;
+ 
+ 	VPRINTK("pkt_ioctl: cmd %x, dev %d:%d\n", cmd, imajor(inode), iminor(inode));
+ 
+@@ -2813,7 +2818,8 @@ static int pkt_ioctl(struct inode *inode
+ 	case CDROM_LAST_WRITTEN:
+ 	case CDROM_SEND_PACKET:
+ 	case SCSI_IOCTL_SEND_COMMAND:
+-		return blkdev_ioctl(pd->bdev->bd_inode, file, cmd, arg);
++		ret = blkdev_ioctl(pd->bdev->bd_inode, file, cmd, arg);
++		break;
+ 
+ 	case CDROMEJECT:
+ 		/*
+@@ -2822,14 +2828,15 @@ static int pkt_ioctl(struct inode *inode
+ 		 */
+ 		if (pd->refcnt == 1)
+ 			pkt_lock_door(pd, 0);
+-		return blkdev_ioctl(pd->bdev->bd_inode, file, cmd, arg);
++		ret = blkdev_ioctl(pd->bdev->bd_inode, file, cmd, arg);
++		break;
+ 
+ 	default:
+ 		VPRINTK(DRIVER_NAME": Unknown ioctl for %s (%x)\n", pd->name, cmd);
+-		return -ENOTTY;
++		ret = -ENOTTY;
+ 	}
+-
+-	return 0;
 +	unlock_kernel();
 +	return ret;
-+}
-+
- static int ixj_fasync(int fd, struct file *file_p, int mode)
- {
- 	IXJ *j = get_ixj(NUM(file_p->f_path.dentry->d_inode));
-@@ -6674,7 +6683,7 @@ static const struct file_operations ixj_
-         .read           = ixj_enhanced_read,
-         .write          = ixj_enhanced_write,
-         .poll           = ixj_poll,
--        .ioctl          = ixj_ioctl,
-+        .unlocked_ioctl = ixj_ioctl,
-         .release        = ixj_release,
-         .fasync         = ixj_fasync
+ }
+ 
+ static int pkt_media_changed(struct gendisk *disk)
+@@ -2851,7 +2858,7 @@ static struct block_device_operations pk
+ 	.owner =		THIS_MODULE,
+ 	.open =			pkt_open,
+ 	.release =		pkt_close,
+-	.ioctl =		pkt_ioctl,
++	.unlocked_ioctl =	pkt_ioctl,
+ 	.media_changed =	pkt_media_changed,
  };
+ 
+@@ -3016,7 +3023,8 @@ static void pkt_get_status(struct pkt_ct
+ 	mutex_unlock(&ctl_mutex);
+ }
+ 
+-static int pkt_ctl_ioctl(struct inode *inode, struct file *file, unsigned int cmd, unsigned long arg)
++static long pkt_ctl_ioctl(struct file *file, unsigned int cmd,
++						unsigned long arg)
+ {
+ 	void __user *argp = (void __user *)arg;
+ 	struct pkt_ctrl_command ctrl_cmd;
+@@ -3033,16 +3041,22 @@ static int pkt_ctl_ioctl(struct inode *i
+ 	case PKT_CTRL_CMD_SETUP:
+ 		if (!capable(CAP_SYS_ADMIN))
+ 			return -EPERM;
++		lock_kernel();
+ 		ret = pkt_setup_dev(new_decode_dev(ctrl_cmd.dev), &pkt_dev);
+ 		ctrl_cmd.pkt_dev = new_encode_dev(pkt_dev);
++		unlock_kernel();
+ 		break;
+ 	case PKT_CTRL_CMD_TEARDOWN:
+ 		if (!capable(CAP_SYS_ADMIN))
+ 			return -EPERM;
++		lock_kernel();
+ 		ret = pkt_remove_dev(new_decode_dev(ctrl_cmd.pkt_dev));
++		unlock_kernel();
+ 		break;
+ 	case PKT_CTRL_CMD_STATUS:
++		lock_kernel();
+ 		pkt_get_status(&ctrl_cmd);
++		unlock_kernel();
+ 		break;
+ 	default:
+ 		return -ENOTTY;
+@@ -3055,7 +3069,7 @@ static int pkt_ctl_ioctl(struct inode *i
+ 
+ 
+ static const struct file_operations pkt_ctl_fops = {
+-	.ioctl	 = pkt_ctl_ioctl,
++	.unlocked_ioctl	 = pkt_ctl_ioctl,
+ 	.owner	 = THIS_MODULE,
+ };
+ 
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
