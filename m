@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pcwd-a-couple-of-watchdogs-escaped-conversion.patch added to -mm tree
-Date: Thu, 22 May 2008 16:16:08 -0700
-Message-ID: <200805222316.m4MNG8Ec026586@imap1.linux-foundation.org>
+Subject: + ppdev-wrap-ioctl-handler-in-driver-and-push-lock-down.patch added to -mm tree
+Date: Thu, 22 May 2008 16:16:17 -0700
+Message-ID: <200805222316.m4MNGH4W026597@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33703 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59263 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757969AbYEVXQj (ORCPT
+	by vger.kernel.org with ESMTP id S1758149AbYEVXQl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 22 May 2008 19:16:39 -0400
+	Thu, 22 May 2008 19:16:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, wim@iguana.be
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jirislaby@gmail.com
 
 
 The patch titled
-     pcwd: a couple of watchdogs escaped conversion
+     ppdev: wrap ioctl handler in driver and push lock down
 has been added to the -mm tree.  Its filename is
-     pcwd-a-couple-of-watchdogs-escaped-conversion.patch
+     ppdev-wrap-ioctl-handler-in-driver-and-push-lock-down.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,76 +34,66 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pcwd: a couple of watchdogs escaped conversion
+Subject: ppdev: wrap ioctl handler in driver and push lock down
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Fix them up.  Once we know the long term plan the watchdogs can all get
-shrunk massively anyway
-
 Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Wim Van Sebroeck <wim@iguana.be>
+Cc: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/pcwd_pci.c |    8 +++-----
- drivers/watchdog/pcwd_usb.c |    6 +++---
- 2 files changed, 6 insertions(+), 8 deletions(-)
+ drivers/char/ppdev.c |   18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
 
-diff -puN drivers/watchdog/pcwd_pci.c~pcwd-a-couple-of-watchdogs-escaped-conversion drivers/watchdog/pcwd_pci.c
---- a/drivers/watchdog/pcwd_pci.c~pcwd-a-couple-of-watchdogs-escaped-conversion
-+++ a/drivers/watchdog/pcwd_pci.c
-@@ -455,8 +455,8 @@ static ssize_t pcipcwd_write(struct file
- 	return len;
+diff -puN drivers/char/ppdev.c~ppdev-wrap-ioctl-handler-in-driver-and-push-lock-down drivers/char/ppdev.c
+--- a/drivers/char/ppdev.c~ppdev-wrap-ioctl-handler-in-driver-and-push-lock-down
++++ a/drivers/char/ppdev.c
+@@ -67,7 +67,7 @@
+ #include <linux/major.h>
+ #include <linux/ppdev.h>
+ #include <linux/smp_lock.h>
+-#include <asm/uaccess.h>
++#include <linux/uaccess.h>
+ 
+ #define PP_VERSION "ppdev: user-space parallel port driver"
+ #define CHRDEV "ppdev"
+@@ -328,10 +328,9 @@ static enum ieee1284_phase init_phase (i
+ 	return IEEE1284_PH_FWD_IDLE;
  }
  
--static int pcipcwd_ioctl(struct inode *inode, struct file *file,
--			  unsigned int cmd, unsigned long arg)
-+static long pcipcwd_ioctl(struct file *file, unsigned int cmd,
-+						unsigned long arg)
+-static int pp_ioctl(struct inode *inode, struct file *file,
+-		    unsigned int cmd, unsigned long arg)
++static int pp_do_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
  {
+-	unsigned int minor = iminor(inode);
++	unsigned int minor = iminor(file->f_path.dentry->d_inode);
+ 	struct pp_struct *pp = file->private_data;
+ 	struct parport * port;
  	void __user *argp = (void __user *)arg;
- 	int __user *p = argp;
-@@ -478,9 +478,7 @@ static int pcipcwd_ioctl(struct inode *i
- 		case WDIOC_GETSTATUS:
- 		{
- 			int status;
--
- 			pcipcwd_get_status(&status);
--
- 			return put_user(status, p);
- 		}
- 
-@@ -644,7 +642,7 @@ static const struct file_operations pcip
- 	.owner =	THIS_MODULE,
- 	.llseek =	no_llseek,
- 	.write =	pcipcwd_write,
--	.ioctl =	pcipcwd_ioctl,
-+	.unlocked_ioctl = pcipcwd_ioctl,
- 	.open =		pcipcwd_open,
- 	.release =	pcipcwd_release,
- };
-diff -puN drivers/watchdog/pcwd_usb.c~pcwd-a-couple-of-watchdogs-escaped-conversion drivers/watchdog/pcwd_usb.c
---- a/drivers/watchdog/pcwd_usb.c~pcwd-a-couple-of-watchdogs-escaped-conversion
-+++ a/drivers/watchdog/pcwd_usb.c
-@@ -369,8 +369,8 @@ static ssize_t usb_pcwd_write(struct fil
- 	return len;
+@@ -634,6 +633,15 @@ static int pp_ioctl(struct inode *inode,
+ 	return 0;
  }
  
--static int usb_pcwd_ioctl(struct inode *inode, struct file *file,
--			  unsigned int cmd, unsigned long arg)
-+static long usb_pcwd_ioctl(struct file *file, unsigned int cmd,
-+						unsigned long arg)
++static long pp_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
++{
++	long ret;
++	lock_kernel();
++	ret = pp_do_ioctl(file, cmd, arg);
++	unlock_kernel();
++	return ret;
++}
++
+ static int pp_open (struct inode * inode, struct file * file)
  {
- 	void __user *argp = (void __user *)arg;
- 	int __user *p = argp;
-@@ -535,7 +535,7 @@ static const struct file_operations usb_
- 	.owner =	THIS_MODULE,
- 	.llseek =	no_llseek,
- 	.write =	usb_pcwd_write,
--	.ioctl =	usb_pcwd_ioctl,
-+	.unlocked_ioctl = usb_pcwd_ioctl,
- 	.open =		usb_pcwd_open,
- 	.release =	usb_pcwd_release,
+ 	unsigned int minor = iminor(inode);
+@@ -745,7 +753,7 @@ static const struct file_operations pp_f
+ 	.read		= pp_read,
+ 	.write		= pp_write,
+ 	.poll		= pp_poll,
+-	.ioctl		= pp_ioctl,
++	.unlocked_ioctl	= pp_ioctl,
+ 	.open		= pp_open,
+ 	.release	= pp_release,
  };
 _
 
