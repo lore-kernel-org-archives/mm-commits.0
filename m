@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + efirtc-push-down-the-bkl.patch added to -mm tree
-Date: Thu, 22 May 2008 16:15:56 -0700
-Message-ID: <200805222315.m4MNFuqo026490@imap1.linux-foundation.org>
+Subject: + ixj-push-bkl-into-driver-and-wrap-ioctls.patch added to -mm tree
+Date: Thu, 22 May 2008 16:16:06 -0700
+Message-ID: <200805222316.m4MNG6tw026582@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48330 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54430 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758014AbYEVXRD (ORCPT
+	by vger.kernel.org with ESMTP id S1758061AbYEVXRD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 22 May 2008 19:17:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, joe@perches.com
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, domen@coderock.org, nacc@us.ibm.com
 
 
 The patch titled
-     efirtc: push down the BKL
+     ixj: push BKL into driver and wrap ioctls
 has been added to the -mm tree.  Its filename is
-     efirtc-push-down-the-bkl.patch
+     ixj-push-bkl-into-driver-and-wrap-ioctls.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,160 +34,65 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: efirtc: push down the BKL
+Subject: ixj: push BKL into driver and wrap ioctls
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Push it down as far as the EFI method calls.  Someone who knows EFI can do
-the other bits.  Also fix another wrong unknown ioctl return.
-
 Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Joe Perches <joe@perches.com>
+Cc: Nishanth Aravamudan <nacc@us.ibm.com>
+Cc: Domen Puncer <domen@coderock.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/efirtc.c |   35 +++++++++++++++++++----------------
- 1 file changed, 19 insertions(+), 16 deletions(-)
+ drivers/telephony/ixj.c |   17 +++++++++++++----
+ 1 file changed, 13 insertions(+), 4 deletions(-)
 
-diff -puN drivers/char/efirtc.c~efirtc-push-down-the-bkl drivers/char/efirtc.c
---- a/drivers/char/efirtc.c~efirtc-push-down-the-bkl
-+++ a/drivers/char/efirtc.c
-@@ -37,8 +37,9 @@
- #include <linux/rtc.h>
- #include <linux/proc_fs.h>
- #include <linux/efi.h>
-+#include <linux/smp_lock.h>
-+#include <linux/uaccess.h>
- 
--#include <asm/uaccess.h>
- #include <asm/system.h>
- 
- #define EFI_RTC_VERSION		"0.4"
-@@ -51,8 +52,8 @@
- 
- static DEFINE_SPINLOCK(efi_rtc_lock);
- 
--static int efi_rtc_ioctl(struct inode *inode, struct file *file,
--		     unsigned int cmd, unsigned long arg);
-+static long efi_rtc_ioctl(struct file *file, unsigned int cmd,
-+							unsigned long arg);
- 
- #define is_leap(year) \
-           ((year) % 4 == 0 && ((year) % 100 != 0 || (year) % 400 == 0))
-@@ -146,9 +147,8 @@ convert_from_efi_time(efi_time_t *eft, s
- 	}
+diff -puN drivers/telephony/ixj.c~ixj-push-bkl-into-driver-and-wrap-ioctls drivers/telephony/ixj.c
+--- a/drivers/telephony/ixj.c~ixj-push-bkl-into-driver-and-wrap-ioctls
++++ a/drivers/telephony/ixj.c
+@@ -6095,15 +6095,15 @@ static int capabilities_check(IXJ *j, st
+ 	return retval;
  }
  
--static int
--efi_rtc_ioctl(struct inode *inode, struct file *file, unsigned int cmd,
--		     unsigned long arg)
-+static long efi_rtc_ioctl(struct file *file, unsigned int cmd,
-+							unsigned long arg)
+-static int ixj_ioctl(struct inode *inode, struct file *file_p, unsigned int cmd, unsigned long arg)
++static long do_ixj_ioctl(struct file *file_p, unsigned int cmd, unsigned long arg)
  {
- 
- 	efi_status_t	status;
-@@ -175,13 +175,13 @@ efi_rtc_ioctl(struct inode *inode, struc
- 			return -EINVAL;
- 
- 		case RTC_RD_TIME:
+ 	IXJ_TONE ti;
+ 	IXJ_FILTER jf;
+ 	IXJ_FILTER_RAW jfr;
+ 	void __user *argp = (void __user *)arg;
 -
-+			lock_kernel();
- 			spin_lock_irqsave(&efi_rtc_lock, flags);
+-	unsigned int raise, mant;
++	struct inode *inode = file_p->f_path.dentry->d_inode;
+ 	unsigned int minor = iminor(inode);
++	unsigned int raise, mant;
+ 	int board = NUM(inode);
  
- 			status = efi.get_time(&eft, &cap);
- 
- 			spin_unlock_irqrestore(&efi_rtc_lock,flags);
--
-+			unlock_kernel();
- 			if (status != EFI_SUCCESS) {
- 				/* should never happen */
- 				printk(KERN_ERR "efitime: can't read time\n");
-@@ -203,11 +203,13 @@ efi_rtc_ioctl(struct inode *inode, struc
- 
- 			convert_to_efi_time(&wtime, &eft);
- 
-+			lock_kernel();
- 			spin_lock_irqsave(&efi_rtc_lock, flags);
- 
- 			status = efi.set_time(&eft);
- 
- 			spin_unlock_irqrestore(&efi_rtc_lock,flags);
-+			unlock_kernel();
- 
- 			return status == EFI_SUCCESS ? 0 : -EINVAL;
- 
-@@ -223,6 +225,7 @@ efi_rtc_ioctl(struct inode *inode, struc
- 
- 			convert_to_efi_time(&wtime, &eft);
- 
-+			lock_kernel();
- 			spin_lock_irqsave(&efi_rtc_lock, flags);
- 			/*
- 			 * XXX Fixme:
-@@ -233,16 +236,19 @@ efi_rtc_ioctl(struct inode *inode, struc
- 			status = efi.set_wakeup_time((efi_bool_t)enabled, &eft);
- 
- 			spin_unlock_irqrestore(&efi_rtc_lock,flags);
-+			unlock_kernel();
- 
- 			return status == EFI_SUCCESS ? 0 : -EINVAL;
- 
- 		case RTC_WKALM_RD:
- 
-+			lock_kernel();
- 			spin_lock_irqsave(&efi_rtc_lock, flags);
- 
- 			status = efi.get_wakeup_time((efi_bool_t *)&enabled, (efi_bool_t *)&pending, &eft);
- 
- 			spin_unlock_irqrestore(&efi_rtc_lock,flags);
-+			unlock_kernel();
- 
- 			if (status != EFI_SUCCESS) return -EINVAL;
- 
-@@ -256,7 +262,7 @@ efi_rtc_ioctl(struct inode *inode, struc
- 			return copy_to_user(&ewp->time, &wtime,
- 					    sizeof(struct rtc_time)) ? -EFAULT : 0;
- 	}
--	return -EINVAL;
-+	return -ENOTTY;
+ 	IXJ *j = get_ixj(NUM(inode));
+@@ -6661,6 +6661,15 @@ static int ixj_ioctl(struct inode *inode
+ 	return retval;
  }
  
- /*
-@@ -265,8 +271,7 @@ efi_rtc_ioctl(struct inode *inode, struc
-  *	up things on a close.
-  */
- 
--static int
--efi_rtc_open(struct inode *inode, struct file *file)
-+static int efi_rtc_open(struct inode *inode, struct file *file)
++static long ixj_ioctl(struct file *file_p, unsigned int cmd, unsigned long arg)
++{
++	long ret;
++	lock_kernel();
++	ret = do_ixj_ioctl(file_p, cmd, arg);
++	unlock_kernel();
++	return ret;
++}
++
+ static int ixj_fasync(int fd, struct file *file_p, int mode)
  {
- 	/*
- 	 * nothing special to do here
-@@ -277,8 +282,7 @@ efi_rtc_open(struct inode *inode, struct
- 	return 0;
- }
- 
--static int
--efi_rtc_close(struct inode *inode, struct file *file)
-+static int efi_rtc_close(struct inode *inode, struct file *file)
- {
- 	return 0;
- }
-@@ -289,13 +293,12 @@ efi_rtc_close(struct inode *inode, struc
- 
- static const struct file_operations efi_rtc_fops = {
- 	.owner		= THIS_MODULE,
--	.ioctl		= efi_rtc_ioctl,
-+	.unlocked_ioctl	= efi_rtc_ioctl,
- 	.open		= efi_rtc_open,
- 	.release	= efi_rtc_close,
+ 	IXJ *j = get_ixj(NUM(file_p->f_path.dentry->d_inode));
+@@ -6674,7 +6683,7 @@ static const struct file_operations ixj_
+         .read           = ixj_enhanced_read,
+         .write          = ixj_enhanced_write,
+         .poll           = ixj_poll,
+-        .ioctl          = ixj_ioctl,
++        .unlocked_ioctl = ixj_ioctl,
+         .release        = ixj_release,
+         .fasync         = ixj_fasync
  };
- 
--static struct miscdevice efi_rtc_dev=
--{
-+static struct miscdevice efi_rtc_dev= {
- 	EFI_RTC_MINOR,
- 	"efirtc",
- 	&efi_rtc_fops
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
