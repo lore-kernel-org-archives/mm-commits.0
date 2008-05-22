@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + remove-some-more-tipar-bits.patch added to -mm tree
-Date: Wed, 21 May 2008 23:17:08 -0700
-Message-ID: <200805220617.m4M6H8ZE020585@imap1.linux-foundation.org>
+Subject: + config_sound_wm97xx-remove-stale-makefile-line.patch added to -mm tree
+Date: Wed, 21 May 2008 23:18:04 -0700
+Message-ID: <200805220618.m4M6I47o020704@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36172 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40176 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751711AbYEVGRX (ORCPT
+	by vger.kernel.org with ESMTP id S1751944AbYEVGST (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 22 May 2008 02:17:23 -0400
+	Thu, 22 May 2008 02:18:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org
+Cc: bunk@kernel.org, rpjday@crashcourse.ca
 
 
 The patch titled
-     remove some more tipar bits
+     CONFIG_SOUND_WM97XX: remove stale makefile line
 has been added to the -mm tree.  Its filename is
-     remove-some-more-tipar-bits.patch
+     config_sound_wm97xx-remove-stale-makefile-line.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,60 +34,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: remove some more tipar bits
+Subject: CONFIG_SOUND_WM97XX: remove stale makefile line
 From: Adrian Bunk <bunk@kernel.org>
 
-Some bits were missed when the tipar driver was removed.
+The driver is gone for a long time.
 
+Reported-by: Robert P. J. Day <rpjday@crashcourse.ca>
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/00-INDEX              |    2 --
- Documentation/kernel-parameters.txt |    7 -------
- drivers/char/Makefile               |    1 -
- 3 files changed, 10 deletions(-)
+ sound/oss/Makefile |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN Documentation/00-INDEX~remove-some-more-tipar-bits Documentation/00-INDEX
---- a/Documentation/00-INDEX~remove-some-more-tipar-bits
-+++ a/Documentation/00-INDEX
-@@ -359,8 +359,6 @@ telephony/
- 	- directory with info on telephony (e.g. voice over IP) support.
- time_interpolators.txt
- 	- info on time interpolators.
--tipar.txt
--	- information about Parallel link cable for Texas Instruments handhelds.
- tty.txt
- 	- guide to the locking policies of the tty layer.
- uml/
-diff -puN Documentation/kernel-parameters.txt~remove-some-more-tipar-bits Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~remove-some-more-tipar-bits
-+++ a/Documentation/kernel-parameters.txt
-@@ -2093,13 +2093,6 @@ and is between 256 and 4096 characters. 
- 			<deci-seconds>: poll all this frequency
- 			0: no polling (default)
+diff -puN sound/oss/Makefile~config_sound_wm97xx-remove-stale-makefile-line sound/oss/Makefile
+--- a/sound/oss/Makefile~config_sound_wm97xx-remove-stale-makefile-line
++++ a/sound/oss/Makefile
+@@ -32,8 +32,6 @@ obj-$(CONFIG_SOUND_AU1550_AC97)	+= au155
+ obj-$(CONFIG_SOUND_TRIDENT)	+= trident.o ac97_codec.o
+ obj-$(CONFIG_SOUND_BCM_CS4297A)	+= swarm_cs4297a.o
  
--	tipar.timeout=	[HW,PPT]
--			Set communications timeout in tenths of a second
--			(default 15).
+-obj-$(CONFIG_SOUND_WM97XX)	+= ac97_plugin_wm97xx.o
 -
--	tipar.delay=	[HW,PPT]
--			Set inter-bit delay in microseconds (default 10).
--
- 	tmscsim=	[HW,SCSI]
- 			See comment before function dc390_setup() in
- 			drivers/scsi/tmscsim.c.
-diff -puN drivers/char/Makefile~remove-some-more-tipar-bits drivers/char/Makefile
---- a/drivers/char/Makefile~remove-some-more-tipar-bits
-+++ a/drivers/char/Makefile
-@@ -62,7 +62,6 @@ obj-$(CONFIG_BRIQ_PANEL)	+= briq_panel.o
- obj-$(CONFIG_BFIN_OTP)		+= bfin-otp.o
+ obj-$(CONFIG_DMASOUND)		+= dmasound/
  
- obj-$(CONFIG_PRINTER)		+= lp.o
--obj-$(CONFIG_TIPAR)		+= tipar.o
- 
- obj-$(CONFIG_APM_EMULATION)	+= apm-emulation.o
- 
+ # Declare multi-part drivers.
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
@@ -114,6 +85,7 @@ build-kernel-profileo-only-when-requested-cleanups.patch
 asm-generic-int-ll64h-always-provide-__su64.patch
 remove-some-more-tipar-bits.patch
 remove-the-oss-trident-driver.patch
+config_sound_wm97xx-remove-stale-makefile-line.patch
 serial-8250_gscc-add-module_license.patch
 mfd-sm501c-if-0-unused-functions.patch
 xen-drivers-xen-balloonc-make-a-function-static.patch
@@ -141,6 +113,5 @@ make-mm-rmapc-anon_vma_cachep-static.patch
 drivers-char-rtcc-make-2-functions-static.patch
 make-init-do_mountsc-root_device_name-static.patch
 reiser4.patch
-config_sound_wm97xx-remove-stale-makefile-line.patch
 run-all-userspace-headers-through-unifdef.patch
 
