@@ -1,262 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: + spi-remove-some-spidev-oops-on-rmmod-paths.patch added to -mm tree
-Date: Thu, 22 May 2008 12:43:08 -0700
-Message-ID: <200805221943.m4MJh8am018173@imap1.linux-foundation.org>
+Subject: - signals-introduce-sigqueue_cancelled.patch removed from -mm tree
+Date: Thu, 22 May 2008 15:26:53 -0700
+Message-ID: <200805222226.m4MMQrNm024731@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33426 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40218 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752246AbYEVTn2 (ORCPT
+	by vger.kernel.org with ESMTP id S1757509AbYEVW1M (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 22 May 2008 15:43:28 -0400
+	Thu, 22 May 2008 18:27:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: david-b@pacbell.net, bigeasy@tglx.de, dbrownell@users.sourceforge.net
+To: oleg@tv-sign.ru, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spi: remove some spidev oops-on-rmmod paths
-has been added to the -mm tree.  Its filename is
-     spi-remove-some-spidev-oops-on-rmmod-paths.patch
+     signals: introduce SIGQUEUE_CANCELLED
+has been removed from the -mm tree.  Its filename was
+     signals-introduce-sigqueue_cancelled.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spi: remove some spidev oops-on-rmmod paths
-From: David Brownell <david-b@pacbell.net>
+Subject: signals: introduce SIGQUEUE_CANCELLED
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Somehow the spidev code forgot to include a critical mechanism: when the
-underlying device is removed (e.g.  spi_master rmmod), open file
-descriptors must be prevented from issuing new I/O requests to that
-device.  On penalty of the oopsing reported by Sebastian Siewior
-<bigeasy@tglx.de> ...
+Suggested by Linus Torvalds.
 
-This is a partial fix, adding handshaking between the lower level (SPI
-messaging) and the file operations using the spi_dev.  (It also fixes an
-issue where reads and writes didn't return the number of bytes sent or
-received.)
+Introduce SIGQUEUE_CANCELLED flag.  If it is set, the pending signal
+should be ignored and collect_signal() should return 0.
 
-There's still a refcounting issue to be addressed (separately).
+Note that the new flag is completely orthogonal to SIGQUEUE_PREALLOC, and it
+can be set without ->siglock held.
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Reported-by: Sebastian Siewior <bigeasy@tglx.de>
+No users of this new flag yet, see the next patch.
+
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spidev.c |  102 +++++++++++++++++++++++++++++++++++------
- 1 file changed, 89 insertions(+), 13 deletions(-)
+ include/linux/signal.h |    1 +
+ kernel/signal.c        |   13 +++++++------
+ 2 files changed, 8 insertions(+), 6 deletions(-)
 
-diff -puN drivers/spi/spidev.c~spi-remove-some-spidev-oops-on-rmmod-paths drivers/spi/spidev.c
---- a/drivers/spi/spidev.c~spi-remove-some-spidev-oops-on-rmmod-paths
-+++ a/drivers/spi/spidev.c
-@@ -68,6 +68,7 @@ static unsigned long	minors[N_SPI_MINORS
+diff -puN include/linux/signal.h~signals-introduce-sigqueue_cancelled include/linux/signal.h
+--- a/include/linux/signal.h~signals-introduce-sigqueue_cancelled
++++ a/include/linux/signal.h
+@@ -20,6 +20,7 @@ struct sigqueue {
  
- struct spidev_data {
- 	struct device		dev;
-+	spinlock_t		spi_lock;
- 	struct spi_device	*spi;
- 	struct list_head	device_entry;
+ /* flags values. */
+ #define SIGQUEUE_PREALLOC	1
++#define SIGQUEUE_CANCELLED	2
  
-@@ -85,12 +86,75 @@ MODULE_PARM_DESC(bufsiz, "data bytes in 
- 
- /*-------------------------------------------------------------------------*/
- 
-+/*
-+ * We can't use the standard synchronous wrappers for file I/O; we
-+ * need to protect against async removal of the underlying spi_device.
-+ */
-+static void spidev_complete(void *arg)
-+{
-+	complete(arg);
-+}
-+
-+static ssize_t
-+spidev_sync(struct spidev_data *spidev, struct spi_message *message)
-+{
-+	DECLARE_COMPLETION_ONSTACK(done);
-+	int status;
-+
-+	message->complete = spidev_complete;
-+	message->context = &done;
-+
-+	spin_lock_irq(&spidev->spi_lock);
-+	if (spidev->spi == NULL)
-+		status = -ESHUTDOWN;
-+	else
-+		status = spi_async(spidev->spi, message);
-+	spin_unlock_irq(&spidev->spi_lock);
-+
-+	if (status == 0) {
-+		wait_for_completion(&done);
-+		status = message->status;
-+		if (status == 0)
-+			status = message->actual_length;
-+	}
-+	return status;
-+}
-+
-+static inline ssize_t
-+spidev_sync_write(struct spidev_data *spidev, size_t len)
-+{
-+	struct spi_transfer	t = {
-+			.tx_buf		= spidev->buffer,
-+			.len		= len,
-+		};
-+	struct spi_message	m;
-+
-+	spi_message_init(&m);
-+	spi_message_add_tail(&t, &m);
-+	return spidev_sync(spidev, &m);
-+}
-+
-+static inline ssize_t
-+spidev_sync_read(struct spidev_data *spidev, size_t len)
-+{
-+	struct spi_transfer	t = {
-+			.rx_buf		= spidev->buffer,
-+			.len		= len,
-+		};
-+	struct spi_message	m;
-+
-+	spi_message_init(&m);
-+	spi_message_add_tail(&t, &m);
-+	return spidev_sync(spidev, &m);
-+}
-+
-+/*-------------------------------------------------------------------------*/
-+
- /* Read-only message with current device setup */
- static ssize_t
- spidev_read(struct file *filp, char __user *buf, size_t count, loff_t *f_pos)
- {
- 	struct spidev_data	*spidev;
--	struct spi_device	*spi;
- 	ssize_t			status = 0;
- 
- 	/* chipselect only toggles at start or end of operation */
-@@ -98,10 +162,9 @@ spidev_read(struct file *filp, char __us
- 		return -EMSGSIZE;
- 
- 	spidev = filp->private_data;
--	spi = spidev->spi;
- 
- 	mutex_lock(&spidev->buf_lock);
--	status = spi_read(spi, spidev->buffer, count);
-+	status = spidev_sync_read(spidev, count);
- 	if (status == 0) {
- 		unsigned long	missing;
- 
-@@ -122,7 +185,6 @@ spidev_write(struct file *filp, const ch
- 		size_t count, loff_t *f_pos)
- {
- 	struct spidev_data	*spidev;
--	struct spi_device	*spi;
- 	ssize_t			status = 0;
- 	unsigned long		missing;
- 
-@@ -131,12 +193,11 @@ spidev_write(struct file *filp, const ch
- 		return -EMSGSIZE;
- 
- 	spidev = filp->private_data;
--	spi = spidev->spi;
- 
- 	mutex_lock(&spidev->buf_lock);
- 	missing = copy_from_user(spidev->buffer, buf, count);
- 	if (missing == 0) {
--		status = spi_write(spi, spidev->buffer, count);
-+		status = spidev_sync_write(spidev, count);
- 		if (status == 0)
- 			status = count;
- 	} else
-@@ -153,7 +214,6 @@ static int spidev_message(struct spidev_
- 	struct spi_transfer	*k_xfers;
- 	struct spi_transfer	*k_tmp;
- 	struct spi_ioc_transfer *u_tmp;
--	struct spi_device	*spi = spidev->spi;
- 	unsigned		n, total;
- 	u8			*buf;
- 	int			status = -EFAULT;
-@@ -215,7 +275,7 @@ static int spidev_message(struct spidev_
- 		spi_message_add_tail(k_tmp, &msg);
+ struct sigpending {
+ 	struct list_head list;
+diff -puN kernel/signal.c~signals-introduce-sigqueue_cancelled kernel/signal.c
+--- a/kernel/signal.c~signals-introduce-sigqueue_cancelled
++++ a/kernel/signal.c
+@@ -326,11 +326,13 @@ static int collect_signal(int sig, struc
+ 		}
  	}
+ 	if (first) {
+-		list_del_init(&first->list);
+-		copy_siginfo(info, &first->info);
+-		__sigqueue_free(first);
+ 		if (!still_pending)
+ 			sigdelset(&list->signal, sig);
++		if (unlikely(first->flags & SIGQUEUE_CANCELLED))
++			sig = 0;
++		copy_siginfo(info, &first->info);
++		list_del_init(&first->list);
++		__sigqueue_free(first);
+ 	} else {
  
--	status = spi_sync(spi, &msg);
-+	status = spidev_sync(spidev, &msg);
- 	if (status < 0)
- 		goto done;
- 
-@@ -269,8 +329,16 @@ spidev_ioctl(struct inode *inode, struct
- 	if (err)
- 		return -EFAULT;
- 
-+	/* guard against device removal before, or while,
-+	 * we issue this ioctl.
-+	 */
- 	spidev = filp->private_data;
--	spi = spidev->spi;
-+	spin_lock_irq(&spidev->spi_lock);
-+	spi = spi_dev_get(spidev->spi);
-+	spin_unlock_irq(&spidev->spi_lock);
-+
-+	if (spi == NULL)
-+		return -ESHUTDOWN;
- 
- 	switch (cmd) {
- 	/* read requests */
-@@ -356,8 +424,10 @@ spidev_ioctl(struct inode *inode, struct
- 	default:
- 		/* segmented and/or full-duplex I/O request */
- 		if (_IOC_NR(cmd) != _IOC_NR(SPI_IOC_MESSAGE(0))
--				|| _IOC_DIR(cmd) != _IOC_WRITE)
--			return -ENOTTY;
-+				|| _IOC_DIR(cmd) != _IOC_WRITE) {
-+			retval = -ENOTTY;
-+			break;
-+		}
- 
- 		tmp = _IOC_SIZE(cmd);
- 		if ((tmp % sizeof(struct spi_ioc_transfer)) != 0) {
-@@ -385,6 +455,7 @@ spidev_ioctl(struct inode *inode, struct
- 		kfree(ioc);
- 		break;
+ 		/* Ok, it wasn't in the queue.  This must be
+@@ -344,7 +346,7 @@ static int collect_signal(int sig, struc
+ 		info->si_pid = 0;
+ 		info->si_uid = 0;
  	}
-+	spi_dev_put(spi);
- 	return retval;
+-	return 1;
++	return sig;
  }
  
-@@ -488,6 +559,7 @@ static int spidev_probe(struct spi_devic
+ static int __dequeue_signal(struct sigpending *pending, sigset_t *mask,
+@@ -362,8 +364,7 @@ static int __dequeue_signal(struct sigpe
+ 			}
+ 		}
  
- 	/* Initialize the driver data */
- 	spidev->spi = spi;
-+	spin_lock_init(&spidev->spi_lock);
- 	mutex_init(&spidev->buf_lock);
+-		if (!collect_signal(sig, pending, info))
+-			sig = 0;
++		sig = collect_signal(sig, pending, info);
+ 	}
  
- 	INIT_LIST_HEAD(&spidev->device_entry);
-@@ -526,13 +598,17 @@ static int spidev_remove(struct spi_devi
- {
- 	struct spidev_data	*spidev = dev_get_drvdata(&spi->dev);
- 
--	mutex_lock(&device_list_lock);
-+	/* make sure ops on existing fds can abort cleanly */
-+	spin_lock_irq(&spidev->spi_lock);
-+	spidev->spi = NULL;
-+	spin_unlock_irq(&spidev->spi_lock);
- 
-+	/* prevent new opens */
-+	mutex_lock(&device_list_lock);
- 	list_del(&spidev->device_entry);
- 	dev_set_drvdata(&spi->dev, NULL);
- 	clear_bit(MINOR(spidev->dev.devt), minors);
- 	device_unregister(&spidev->dev);
+ 	return sig;
+_
+
+Patches currently in -mm which might be from oleg@tv-sign.ru are
+
+signals-fix-sigqueue_free-vs-__exit_signal-race.patch
+uml-activate_mm-remove-the-dead-pf_borrowed_mm-check.patch
+posix-timers-timer_delete-remove-the-bogus-it_process-=-null-check.patch
+posix-timers-release_posix_timer-kill-the-bogus-put_task_struct-it_process.patch
+signals-introduce-sigqueue_cancelled.patch
+posix-timers-use-sigqueue_cancelled-when-the-timer-is-destroyed.patch
+signals-collect_signal-remove-the-unneeded-sigismember-check.patch
+signals-collect_signal-simplify-the-still_pending-logic.patch
+
