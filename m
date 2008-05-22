@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + config_sound_wm97xx-remove-stale-makefile-line.patch added to -mm tree
-Date: Wed, 21 May 2008 23:18:04 -0700
-Message-ID: <200805220618.m4M6I47o020704@imap1.linux-foundation.org>
+Subject: + frv-export-empty_zero_page.patch added to -mm tree
+Date: Wed, 21 May 2008 23:24:06 -0700
+Message-ID: <200805220624.m4M6O6ri020898@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40176 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34479 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751944AbYEVGST (ORCPT
+	by vger.kernel.org with ESMTP id S1753656AbYEVGZX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 22 May 2008 02:18:19 -0400
+	Thu, 22 May 2008 02:25:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, rpjday@crashcourse.ca
+Cc: bunk@kernel.org, dhowells@redhat.com
 
 
 The patch titled
-     CONFIG_SOUND_WM97XX: remove stale makefile line
+     frv: export empty_zero_page
 has been added to the -mm tree.  Its filename is
-     config_sound_wm97xx-remove-stale-makefile-line.patch
+     frv-export-empty_zero_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: CONFIG_SOUND_WM97XX: remove stale makefile line
+Subject: frv: export empty_zero_page
 From: Adrian Bunk <bunk@kernel.org>
 
-The driver is gone for a long time.
+Fix the following build error:
 
-Reported-by: Robert P. J. Day <rpjday@crashcourse.ca>
+ERROR: "empty_zero_page" [fs/ext4/ext4dev.ko] undefined!
+
+Reported-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/oss/Makefile |    2 --
- 1 file changed, 2 deletions(-)
+ arch/frv/mm/init.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN sound/oss/Makefile~config_sound_wm97xx-remove-stale-makefile-line sound/oss/Makefile
---- a/sound/oss/Makefile~config_sound_wm97xx-remove-stale-makefile-line
-+++ a/sound/oss/Makefile
-@@ -32,8 +32,6 @@ obj-$(CONFIG_SOUND_AU1550_AC97)	+= au155
- obj-$(CONFIG_SOUND_TRIDENT)	+= trident.o ac97_codec.o
- obj-$(CONFIG_SOUND_BCM_CS4297A)	+= swarm_cs4297a.o
+diff -puN arch/frv/mm/init.c~frv-export-empty_zero_page arch/frv/mm/init.c
+--- a/arch/frv/mm/init.c~frv-export-empty_zero_page
++++ a/arch/frv/mm/init.c
+@@ -26,6 +26,7 @@
+ #include <linux/types.h>
+ #include <linux/bootmem.h>
+ #include <linux/highmem.h>
++#include <linux/module.h>
  
--obj-$(CONFIG_SOUND_WM97XX)	+= ac97_plugin_wm97xx.o
--
- obj-$(CONFIG_DMASOUND)		+= dmasound/
+ #include <asm/setup.h>
+ #include <asm/segment.h>
+@@ -56,7 +57,9 @@ DEFINE_PER_CPU(struct mmu_gather, mmu_ga
+  */
+ static unsigned long empty_bad_page_table;
+ static unsigned long empty_bad_page;
++
+ unsigned long empty_zero_page;
++EXPORT_SYMBOL(empty_zero_page);
  
- # Declare multi-part drivers.
+ /*****************************************************************************/
+ /*
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
@@ -66,6 +78,7 @@ Patches currently in -mm which might be from bunk@kernel.org are
 origin.patch
 ibmaem-fix-64-bit-division-on-32-bit-platforms-update.patch
 md-proper-extern-for-mdp_major.patch
+frv-export-empty_zero_page.patch
 linux-next.patch
 proper-prototype-for-acpi_processor_tstate_has_changed.patch
 remove-drivers-acorn-char-defkeymap-l7200c.patch
@@ -113,5 +126,4 @@ make-mm-rmapc-anon_vma_cachep-static.patch
 drivers-char-rtcc-make-2-functions-static.patch
 make-init-do_mountsc-root_device_name-static.patch
 reiser4.patch
-run-all-userspace-headers-through-unifdef.patch
 
