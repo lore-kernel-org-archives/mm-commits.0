@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-reiserfs-entry-is-out-of-date.patch added to -mm tree
-Date: Thu, 22 May 2008 16:26:58 -0700
-Message-ID: <200805222326.m4MNQwns026984@imap1.linux-foundation.org>
+Subject: + fbcon-make-logo_height-a-local-variable.patch added to -mm tree
+Date: Thu, 22 May 2008 16:49:44 -0700
+Message-ID: <200805222349.m4MNniHL027790@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57920 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43761 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757566AbYEVX2u (ORCPT
+	by vger.kernel.org with ESMTP id S1759443AbYEVXtr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 22 May 2008 19:28:50 -0400
+	Thu, 22 May 2008 19:49:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@redhat.com, chris.mason@oracle.com, edward.shishkin@gmail.com, jack@ucw.cz, jeffm@suse.com
+Cc: krzysztof.h1@wp.pl
 
 
 The patch titled
-     MAINTAINERS: reiserfs entry is out of date
+     fbcon: make logo_height a local variable
 has been added to the -mm tree.  Its filename is
-     maintainers-reiserfs-entry-is-out-of-date.patch
+     fbcon-make-logo_height-a-local-variable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,118 +34,75 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: reiserfs entry is out of date
-From: Alan Cox <alan@redhat.com>
+Subject: fbcon: make logo_height a local variable
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Edward Shishkin <edward.shishkin@gmail.com>
-Cc: Jeff Mahoney <jeffm@suse.com>
-Cc: Chris Mason <chris.mason@oracle.com>
-Cc: Jan Kara <jack@ucw.cz>
+Make logo_height variable local in the only function it is used.
+
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    3 ---
- 1 file changed, 3 deletions(-)
+ drivers/video/console/fbcon.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-reiserfs-entry-is-out-of-date MAINTAINERS
---- a/MAINTAINERS~maintainers-reiserfs-entry-is-out-of-date
-+++ a/MAINTAINERS
-@@ -3430,10 +3430,7 @@ L:	rtc-linux@googlegroups.com
- S:	Maintained
+diff -puN drivers/video/console/fbcon.c~fbcon-make-logo_height-a-local-variable drivers/video/console/fbcon.c
+--- a/drivers/video/console/fbcon.c~fbcon-make-logo_height-a-local-variable
++++ a/drivers/video/console/fbcon.c
+@@ -107,9 +107,7 @@ static struct display fb_display[MAX_NR_
  
- REISERFS FILE SYSTEM
--P:	Hans Reiser
--M:	reiserfs-dev@namesys.com
- L:	reiserfs-devel@vger.kernel.org
--W:	http://www.namesys.com
- S:	Supported
+ static signed char con2fb_map[MAX_NR_CONSOLES];
+ static signed char con2fb_map_boot[MAX_NR_CONSOLES];
+-#ifndef MODULE
+-static int logo_height;
+-#endif
++
+ static int logo_lines;
+ /* logo_shown is an index to vc_cons when >= 0; otherwise follows FBCON_LOGO
+    enums.  */
+@@ -607,6 +605,7 @@ static void fbcon_prepare_logo(struct vc
+ 	struct fbcon_ops *ops = info->fbcon_par;
+ 	int cnt, erase = vc->vc_video_erase_char, step;
+ 	unsigned short *save = NULL, *r, *q;
++	int logo_height;
  
- RFKILL
+ 	if (info->flags & FBINFO_MODULE) {
+ 		logo_shown = FBCON_LOGO_DONTSHOW;
 _
 
-Patches currently in -mm which might be from alan@redhat.com are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
-origin.patch
-mm-fix-atomic_t-overflow-in-vm.patch
-ip2-fix-crashes-on-load-unload.patch
-linux-next.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
-paride-push-ioctl-down-into-driver.patch
-pktcdvd-push-bkl-down-into-driver.patch
-dac960-push-down-bkl.patch
-watchdog-clean-acquirewdt-and-check-for-bkl-dependancies.patch
-watchdog-clean-up-and-check-advantech-watchdog.patch
-watchdog-ali-watchdog-locking-and-style.patch
-watchdog-ar7-watchdog.patch
-watchdog-atp-watchdog.patch
-watchdog-at91-watchdog-to-unlocked_ioctl.patch
-watchdog-cpu5_wdt-switch-to-unlocked_ioctl.patch
-watchdog-davinci_wdt-unlocked_ioctl-and-check-locking.patch
-watchdog-ep93xx_wdt-unlocked_ioctl.patch
-watchdog-eurotechwdt-unlocked_ioctl-code-lock-check-and-tidy.patch
-watchdog-hpwdt-couple-of-include-cleanups.patch
-watchdog-ib700wdt-clean-up-and-switch-to-unlocked_ioctl.patch
-watchdog-i6300esb-style-unlocked_ioctl-cleanup.patch
-watchdog-ibmasr-coding-style-locking-verify.patch
-watchdog-indydog-clean-up-and-tidy.patch
-watchdog-iop-watchdog-switch-to-unlocked_ioctl.patch
-watchdog-it8712f-unlocked_ioctl.patch
-watchdog-bfin-watchdog-cleanup-and-unlocked_ioctl.patch
-watchdog-ixp2000_wdt-clean-up-and-unlocked_ioctl.patch
-watchdog-ixp4xx_wdt-unlocked_ioctl.patch
-watchdog-ks8695_wdt-clean-up-coding-style-unlocked_ioctl.patch
-watchdog-machzwd-clean-up-coding-style-unlocked_ioctl.patch
-watchdog-mixcomwd-coding-style-locking-unlocked_ioctl.patch
-watchdog-mpc-watchdog-clean-up-and-locking.patch
-watchdog-mpcore-watchdog-unlocked_ioctl-and-bkl-work.patch
-watchdog-mtx-1_wdt-clean-up-coding-style-unlocked-ioctl.patch
-watchdog-mv64x60_wdt-clean-up-and-locking-checks.patch
-watchdog-omap_wdt-locking-unlocked_ioctl-tidy.patch
-watchdog-pc87413_wdt-clean-up-coding-style-unlocked_ioctl.patch
-watchdog-pcwd-clean-up-unlocked_ioctl-usage.patch
-watchdog-pnx4008_wdt-unlocked_ioctl-setup.patch
-watchdog-rm9k_wdt-clean-up.patch
-watchdog-s3c2410-watchdog-cleanup-and-switch-to-unlocked_ioctl.patch
-watchdog-sa1100_wdt-switch-to-unlocked_ioctl.patch
-watchdog-sbc60xxwdt-clean-up-and-switch-to-unlocked_ioctl.patch
-watchdog-stg7240_wdt-unlocked_ioctl.patch
-watchdog-sbc8360-clean-up.patch
-watchdog-sbc_epx_c3_wdt-switch-to-unlocked_ioctl.patch
-watchdog-sb_wdog-clean-up-and-switch-to-unlocked_ioctl.patch
-watchdog-sc1200_wdt-clean-up-fix-locking-and-use-unlocked_ioctl.patch
-watchdog-sc520_wdt-clean-up-and-switch-to-unlocked_ioctl.patch
-watchdog-scx200_wdt-clean-up-and-switch-to-unlocked_ioctl.patch
-watchdog-shwdt-coding-style-cleanup-switch-to-unlocked_ioctl.patch
-watchdog-smsc37b787_wdt-coding-style-switch-to-unlocked_ioctl.patch
-watchdog-softdog-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
-watchdog-txx9-fix-locking-switch-to-unlocked_ioctl.patch
-watchdog-w83627hf-coding-style-clean-up-and-switch-to-unlocked_ioctl.patch
-watchdog-w83877f_wdt-clean-up-code-coding-style-switch-to-unlocked_ioctl.patch
-watchdog-w83977f_wdt-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
-watchdog-wafer5823wdt-clean-up-coding-style-switch-to-unlocked_ioctl.patch
-watchdog-wdrtas-clean-up-coding-style-switch-to-unlocked_ioctl.patch
-watchdog-wdt285-switch-to-unlocked_ioctl-and-tidy-up-oddments-of-coding-style.patch
-watchdog-wdt977-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
-watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
-pcwd-a-couple-of-watchdogs-escaped-conversion.patch
-libata-sff-fix-oops-reported-in-kerneloopsorg-for-pnp-devices-with-no-ctl.patch
-cm4000_cs-switch-to-unlocked_ioctl.patch
-snapshot-push-bkl-down-into-ioctl-handlers.patch
-serial-8250_gscc-add-module_license.patch
-rtc-push-the-bkl-down-into-the-driver-ioctl-method.patch
-maintainers-reiserfs-entry-is-out-of-date.patch
-remove-is_tty.patch
-riscom8-remove-redundant-null-pointer-test.patch
-efirtc-push-down-the-bkl.patch
-ip2-push-bkl-down-for-the-firmware-interface.patch
-mwave-ioctl-bkl-pushdown.patch
-rio-push-down-the-bkl-into-the-firmware-ioctl-handler.patch
-sx-push-bkl-down-into-the-firmware-ioctl-handler.patch
-ixj-push-bkl-into-driver-and-wrap-ioctls.patch
-ppdev-wrap-ioctl-handler-in-driver-and-push-lock-down.patch
-ds1302-push-down-the-bkl-into-the-driver-ioctl-code.patch
-dsp56k-bkl-pushdown.patch
-lcd-push-the-bkl-down-into-the-driver-ioctl-handler.patch
-unexport-proc_clear_tty.patch
+sm501-reverse-fpen-vbiasen-flags-behaviour.patch
+s3c2410-ensure-that-fb_blank_powerdown-shuts-down-the-controller.patch
+s3c2410-add-error-print-if-we-cannot-add-attribute.patch
+s3c2410-clean-out-changelog-header-and-tidy.patch
+s3c2410-fix-driver-module_alias.patch
+tridentfb-replace-macros-with-functions.patch
+tridentfb-convert-fb_info-into-allocated-one.patch
+tridentfb-move-global-pseudo-palette-into-structure.patch
+tridentfb-move-global-chip_id-into-structure.patch
+tridentfb-move-global-flat-panel-variable-into-structure.patch
+tridentfb-convert-is_blade-and-is_xp-macros-into-functions.patch
+tridentfb-move-global-acceleration-hooks-into-structure.patch
+tridentfb-make-use-of-functions-and-constants-from-the-vgah.patch
+tridentfb-fix-timing-calculations.patch
+tridentfb-use-mmio-access-for-clock-setting.patch
+tridentfb-fix-clock-settings-for-older-trident-96xx-chips.patch
+tridentfb-improve-probe-function.patch
+tridentfb-improved-register-values-on-tgui-9680.patch
+tridentfb-add-tgui-9440-support.patch
+tridentfb-fix-unitialized-pseudo_palette.patch
+tridentfb-improve-check_var-function.patch
+tridentfb-preserve-memory-type-settings.patch
+tridentfb-fix-hi-color-modes-for-tgui-9440.patch
+tridentfb-add-acceleration-for-tgui-families.patch
+tridentfb-acceleration-code-improvements.patch
+tridentfb-acceleration-bug-fixes.patch
+tridentfb-various-pixclock-and-timing-improvements.patch
+tridentfb-acceleration-constants-change.patch
+tridentfb-source-code-improvements.patch
+tridentfb-fix-console-freeze-when-switching-from-x11.patch
+amifb-test-virtual-screen-range-before-subtraction-on-unsigned.patch
+atafb-test-virtual-screen-range-before-subtraction-on-unsigned.patch
+fbcon-make-logo_height-a-local-variable.patch
 
