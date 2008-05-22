@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + fbcon-make-logo_height-a-local-variable.patch added to -mm tree
-Date: Thu, 22 May 2008 16:49:44 -0700
-Message-ID: <200805222349.m4MNniHL027790@imap1.linux-foundation.org>
+Subject: + tridentfb-fix-224-color-logo-at-8-bpp.patch added to -mm tree
+Date: Thu, 22 May 2008 16:50:27 -0700
+Message-ID: <200805222350.m4MNoR2g027806@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43761 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46524 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759443AbYEVXtr (ORCPT
+	by vger.kernel.org with ESMTP id S1759550AbYEVXu3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 22 May 2008 19:49:47 -0400
+	Thu, 22 May 2008 19:50:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: krzysztof.h1@wp.pl
 
 
 The patch titled
-     fbcon: make logo_height a local variable
+     tridentfb: fix 224 color logo at 8 bpp
 has been added to the -mm tree.  Its filename is
-     fbcon-make-logo_height-a-local-variable.patch
+     tridentfb-fix-224-color-logo-at-8-bpp.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbcon: make logo_height a local variable
+Subject: tridentfb: fix 224 color logo at 8 bpp
 From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Make logo_height variable local in the only function it is used.
+Fix depth setting for 8 bpp mode.  The nice 224 color logo is not
+displayed in 8 bpp depth without this fix.
 
 Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/console/fbcon.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/video/tridentfb.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN drivers/video/console/fbcon.c~fbcon-make-logo_height-a-local-variable drivers/video/console/fbcon.c
---- a/drivers/video/console/fbcon.c~fbcon-make-logo_height-a-local-variable
-+++ a/drivers/video/console/fbcon.c
-@@ -107,9 +107,7 @@ static struct display fb_display[MAX_NR_
- 
- static signed char con2fb_map[MAX_NR_CONSOLES];
- static signed char con2fb_map_boot[MAX_NR_CONSOLES];
--#ifndef MODULE
--static int logo_height;
--#endif
-+
- static int logo_lines;
- /* logo_shown is an index to vc_cons when >= 0; otherwise follows FBCON_LOGO
-    enums.  */
-@@ -607,6 +605,7 @@ static void fbcon_prepare_logo(struct vc
- 	struct fbcon_ops *ops = info->fbcon_par;
- 	int cnt, erase = vc->vc_video_erase_char, step;
- 	unsigned short *save = NULL, *r, *q;
-+	int logo_height;
- 
- 	if (info->flags & FBINFO_MODULE) {
- 		logo_shown = FBCON_LOGO_DONTSHOW;
+diff -puN drivers/video/tridentfb.c~tridentfb-fix-224-color-logo-at-8-bpp drivers/video/tridentfb.c
+--- a/drivers/video/tridentfb.c~tridentfb-fix-224-color-logo-at-8-bpp
++++ a/drivers/video/tridentfb.c
+@@ -878,11 +878,9 @@ static int tridentfb_check_var(struct fb
+ 	switch (bpp) {
+ 	case 8:
+ 		var->red.offset = 0;
+-		var->green.offset = 0;
+-		var->blue.offset = 0;
+-		var->red.length = 6;
+-		var->green.length = 6;
+-		var->blue.length = 6;
++		var->red.length = 8;
++		var->green = var->red;
++		var->blue = var->red;
+ 		break;
+ 	case 16:
+ 		var->red.offset = 11;
 _
 
 Patches currently in -mm which might be from krzysztof.h1@wp.pl are
@@ -102,6 +99,7 @@ tridentfb-various-pixclock-and-timing-improvements.patch
 tridentfb-acceleration-constants-change.patch
 tridentfb-source-code-improvements.patch
 tridentfb-fix-console-freeze-when-switching-from-x11.patch
+tridentfb-fix-224-color-logo-at-8-bpp.patch
 amifb-test-virtual-screen-range-before-subtraction-on-unsigned.patch
 atafb-test-virtual-screen-range-before-subtraction-on-unsigned.patch
 fbcon-make-logo_height-a-local-variable.patch
