@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + dsp56k-bkl-pushdown.patch added to -mm tree
-Date: Thu, 22 May 2008 16:16:24 -0700
-Message-ID: <200805222316.m4MNGOLi026606@imap1.linux-foundation.org>
+Subject: + lcd-push-the-bkl-down-into-the-driver-ioctl-handler.patch added to -mm tree
+Date: Thu, 22 May 2008 16:16:26 -0700
+Message-ID: <200805222316.m4MNGQI8026611@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38114 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45211 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753937AbYEVXQ7 (ORCPT
+	by vger.kernel.org with ESMTP id S1755986AbYEVXRD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 22 May 2008 19:16:59 -0400
+	Thu, 22 May 2008 19:17:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jirislaby@gmail.com
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, ralf@linux-mips.org, yoichi_yuasa@tripeaks.co.jp
 
 
 The patch titled
-     dsp56k: BKL pushdown
+     lcd: push the BKL down into the driver ioctl handler
 has been added to the -mm tree.  Its filename is
-     dsp56k-bkl-pushdown.patch
+     lcd-push-the-bkl-down-into-the-driver-ioctl-handler.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,108 +34,275 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dsp56k: BKL pushdown
+Subject: lcd: push the BKL down into the driver ioctl handler
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Push the BKL down into the driver ioctl methods
-
 Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Jiri Slaby <jirislaby@gmail.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/dsp56k.c |   20 ++++++++++++++------
- 1 file changed, 14 insertions(+), 6 deletions(-)
+ drivers/char/lcd.c |  125 ++++++++++++++++++++++---------------------
+ 1 file changed, 66 insertions(+), 59 deletions(-)
 
-diff -puN drivers/char/dsp56k.c~dsp56k-bkl-pushdown drivers/char/dsp56k.c
---- a/drivers/char/dsp56k.c~dsp56k-bkl-pushdown
-+++ a/drivers/char/dsp56k.c
-@@ -34,10 +34,10 @@
- #include <linux/init.h>
- #include <linux/device.h>
+diff -puN drivers/char/lcd.c~lcd-push-the-bkl-down-into-the-driver-ioctl-handler drivers/char/lcd.c
+--- a/drivers/char/lcd.c~lcd-push-the-bkl-down-into-the-driver-ioctl-handler
++++ a/drivers/char/lcd.c
+@@ -22,15 +22,15 @@
+ #include <linux/sched.h>
  #include <linux/smp_lock.h>
-+#include <linux/uaccess.h>	/* For put_user and get_user */
+ #include <linux/delay.h>
++#include <linux/smp_lock.h>
++#include <linux/io.h>
++#include <linux/uaccess.h>
  
- #include <asm/atarihw.h>
- #include <asm/traps.h>
--#include <asm/uaccess.h>	/* For put_user and get_user */
+-#include <asm/io.h>
+-#include <asm/uaccess.h>
+ #include <asm/system.h>
  
- #include <asm/dsp56k.h>
+ #include "lcd.h"
  
-@@ -322,8 +322,8 @@ static ssize_t dsp56k_write(struct file 
+-static int lcd_ioctl(struct inode *inode, struct file *file,
+-		     unsigned int cmd, unsigned long arg);
++static long lcd_ioctl(struct file *file, unsigned int cmd, unsigned long arg);
+ 
+ static unsigned int lcd_present = 1;
+ 
+@@ -55,11 +55,13 @@ int lcd_register_linkcheck_func(int ifac
+ }
+ #endif
+ 
+-static int lcd_ioctl(struct inode *inode, struct file *file,
+-		     unsigned int cmd, unsigned long arg)
++static long lcd_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ {
+ 	struct lcd_display button_display;
+ 	unsigned long address, a;
++	long ret = 0;
++
++	lock_kernel();
+ 
+ 	switch (cmd) {
+ 	case LCD_On:
+@@ -136,7 +138,7 @@ static int lcd_ioctl(struct inode *inode
+ 			if (copy_to_user
+ 			    ((struct lcd_display *) arg, &display,
+ 			     sizeof(struct lcd_display)))
+-				return -EFAULT;
++				ret = -EFAULT;
+ 
+ 			break;
+ 		}
+@@ -148,14 +150,13 @@ static int lcd_ioctl(struct inode *inode
+ 			if (copy_from_user
+ 			    (&display, (struct lcd_display *) arg,
+ 			     sizeof(struct lcd_display)))
+-				return -EFAULT;
+-
+-			a = (display.cursor_address | kLCD_Addr);
+-
+-			udelay(150);
+-			BusyCheck();
+-			LCDWriteInst(a);
+-
++				ret = -EFAULT;
++			else {
++				a = (display.cursor_address | kLCD_Addr);
++				udelay(150);
++				BusyCheck();
++				LCDWriteInst(a);
++			}
+ 			break;
+ 		}
+ 
+@@ -169,11 +170,12 @@ static int lcd_ioctl(struct inode *inode
+ 			if (copy_to_user
+ 			    ((struct lcd_display *) arg, &display,
+ 			     sizeof(struct lcd_display)))
+-				return -EFAULT;
+-			udelay(150);
+-			BusyCheck();
+-			LCDWriteInst(0x10);
+-
++				ret = -EFAULT;
++			else {
++				udelay(150);
++				BusyCheck();
++				LCDWriteInst(0x10);
++			}
+ 			break;
+ 		}
+ 
+@@ -183,15 +185,15 @@ static int lcd_ioctl(struct inode *inode
+ 			if (copy_from_user
+ 			    (&display, (struct lcd_display *) arg,
+ 			     sizeof(struct lcd_display)))
+-				return -EFAULT;
+-
+-			udelay(150);
+-			BusyCheck();
+-			LCDWriteData(display.character);
+-			udelay(150);
+-			BusyCheck();
+-			LCDWriteInst(0x10);
+-
++				ret = -EFAULT;
++			else {
++				udelay(150);
++				BusyCheck();
++				LCDWriteData(display.character);
++				udelay(150);
++				BusyCheck();
++				LCDWriteInst(0x10);
++			}
+ 			break;
+ 		}
+ 
+@@ -221,8 +223,10 @@ static int lcd_ioctl(struct inode *inode
+ 
+ 			if (copy_from_user
+ 			    (&display, (struct lcd_display *) arg,
+-			     sizeof(struct lcd_display)))
+-				return -EFAULT;
++			     sizeof(struct lcd_display))) {
++				ret = -EFAULT;
++				break;
++			}
+ 
+ 			udelay(150);
+ 			BusyCheck();
+@@ -288,7 +292,7 @@ static int lcd_ioctl(struct inode *inode
+ 			if (copy_to_user
+ 			    ((struct lcd_display *) arg, &display,
+ 			     sizeof(struct lcd_display)))
+-				return -EFAULT;
++				ret = -EFAULT;
+ 			break;
+ 		}
+ 
+@@ -301,10 +305,11 @@ static int lcd_ioctl(struct inode *inode
+ 			if (copy_from_user
+ 			    (&led_display, (struct lcd_display *) arg,
+ 			     sizeof(struct lcd_display)))
+-				return -EFAULT;
+-
+-			led_state = led_display.leds;
+-			LEDSet(led_state);
++				ret = -EFAULT;
++			else {
++				led_state = led_display.leds;
++				LEDSet(led_state);
++			}
+ 
+ 			break;
+ 		}
+@@ -321,14 +326,15 @@ static int lcd_ioctl(struct inode *inode
+ 			if (copy_from_user
+ 			    (&led_display, (struct lcd_display *) arg,
+ 			     sizeof(struct lcd_display)))
+-				return -EFAULT;
++				ret = -EFAULT;
++			else {
++				for (i = 0; i < (int) led_display.leds; i++) {
++					bit = 2 * bit;
++				}
+ 
+-			for (i = 0; i < (int) led_display.leds; i++) {
+-				bit = 2 * bit;
++				led_state = led_state | bit;
++				LEDSet(led_state);
+ 			}
+-
+-			led_state = led_state | bit;
+-			LEDSet(led_state);
+ 			break;
+ 		}
+ 
+@@ -343,14 +349,15 @@ static int lcd_ioctl(struct inode *inode
+ 			if (copy_from_user
+ 			    (&led_display, (struct lcd_display *) arg,
+ 			     sizeof(struct lcd_display)))
+-				return -EFAULT;
++				ret = -EFAULT;
++			else {
++				for (i = 0; i < (int) led_display.leds; i++) {
++					bit = 2 * bit;
++				}
+ 
+-			for (i = 0; i < (int) led_display.leds; i++) {
+-				bit = 2 * bit;
++				led_state = led_state & ~bit;
++				LEDSet(led_state);
+ 			}
+-
+-			led_state = led_state & ~bit;
+-			LEDSet(led_state);
+ 			break;
+ 		}
+ 
+@@ -360,7 +367,7 @@ static int lcd_ioctl(struct inode *inode
+ 			if (copy_to_user
+ 			    ((struct lcd_display *) arg, &button_display,
+ 			     sizeof(struct lcd_display)))
+-				return -EFAULT;
++				ret = -EFAULT;
+ 			break;
+ 		}
+ 
+@@ -370,7 +377,7 @@ static int lcd_ioctl(struct inode *inode
+ 			if (copy_to_user
+ 			    ((struct lcd_display *) arg, &button_display,
+ 			     sizeof(struct lcd_display)))
+-				return -EFAULT;
++				ret = -EFAULT;
+ 			break;
+ 		}
+ 
+@@ -383,8 +390,10 @@ static int lcd_ioctl(struct inode *inode
+ 			 */
+ 			if (copy_from_user
+ 			    (&button_display, (struct lcd_display *) arg,
+-			     sizeof(button_display)))
+-				return -EFAULT;
++			     sizeof(button_display))) {
++				ret = -EFAULT;
++				break;
++			}
+ 			iface_num = button_display.buttons;
+ #if defined(CONFIG_TULIP) && 0
+ 			if (iface_num >= 0 &&
+@@ -400,17 +409,15 @@ static int lcd_ioctl(struct inode *inode
+ 			if (__copy_to_user
+ 			    ((struct lcd_display *) arg, &button_display,
+ 			     sizeof(struct lcd_display)))
+-				return -EFAULT;
++				ret = -EFAULT;
+ 			break;
+ 		}
+ 
+ 	default:
+-		return -EINVAL;
+-
++		ret = -ENOTTY;
  	}
+-
+-	return 0;
+-
++	lock_kernel();
++	return ret;
  }
  
--static int dsp56k_ioctl(struct inode *inode, struct file *file,
--			unsigned int cmd, unsigned long arg)
-+static long dsp56k_ioctl(struct file *file, unsigned int cmd,
-+							unsigned long arg)
- {
- 	int dev = iminor(inode) & 0x0f;
- 	void __user *argp = (void __user *)arg;
-@@ -350,8 +350,9 @@ static int dsp56k_ioctl(struct inode *in
- 			if (len > DSP56K_MAX_BINARY_LENGTH) {
- 				return -EINVAL;
- 			}
--    
-+			lock_kernel();
- 			r = dsp56k_upload(bin, len);
-+			unlock_kernel();
- 			if (r < 0) {
- 				return r;
- 			}
-@@ -361,12 +362,16 @@ static int dsp56k_ioctl(struct inode *in
- 		case DSP56K_SET_TX_WSIZE:
- 			if (arg > 4 || arg < 1)
- 				return -EINVAL;
-+			lock_kernel();
- 			dsp56k.tx_wsize = (int) arg;
-+			unlock_kernel();
- 			break;
- 		case DSP56K_SET_RX_WSIZE:
- 			if (arg > 4 || arg < 1)
- 				return -EINVAL;
-+			lock_kernel();
- 			dsp56k.rx_wsize = (int) arg;
-+			unlock_kernel();
- 			break;
- 		case DSP56K_HOST_FLAGS:
- 		{
-@@ -378,6 +383,7 @@ static int dsp56k_ioctl(struct inode *in
- 			if(get_user(out, &hf->out) < 0)
- 				return -EFAULT;
+ static int lcd_open(struct inode *inode, struct file *file)
+@@ -465,7 +472,7 @@ static ssize_t lcd_read(struct file *fil
  
-+			lock_kernel();
- 			if ((dir & 0x1) && (out & 0x1))
- 				dsp56k_host_interface.icr |= DSP56K_ICR_HF0;
- 			else if (dir & 0x1)
-@@ -392,14 +398,16 @@ static int dsp56k_ioctl(struct inode *in
- 			if (dsp56k_host_interface.icr & DSP56K_ICR_HF1) status |= 0x2;
- 			if (dsp56k_host_interface.isr & DSP56K_ISR_HF2) status |= 0x4;
- 			if (dsp56k_host_interface.isr & DSP56K_ISR_HF3) status |= 0x8;
--
-+			unlock_kernel();
- 			return put_user(status, &hf->status);
- 		}
- 		case DSP56K_HOST_CMD:
- 			if (arg > 31 || arg < 0)
- 				return -EINVAL;
-+			lock_kernel();
- 			dsp56k_host_interface.cvr = (u_char)((arg & DSP56K_CVR_HV_MASK) |
- 							     DSP56K_CVR_HC);
-+			unlock_kernel();
- 			break;
- 		default:
- 			return -EINVAL;
-@@ -491,7 +499,7 @@ static const struct file_operations dsp5
- 	.owner		= THIS_MODULE,
- 	.read		= dsp56k_read,
- 	.write		= dsp56k_write,
--	.ioctl		= dsp56k_ioctl,
-+	.unlocked_ioctl	= dsp56k_ioctl,
- 	.open		= dsp56k_open,
- 	.release	= dsp56k_release,
+ static const struct file_operations lcd_fops = {
+ 	.read = lcd_read,
+-	.ioctl = lcd_ioctl,
++	.unlocked_ioctl = lcd_ioctl,
+ 	.open = lcd_open,
  };
+ 
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
