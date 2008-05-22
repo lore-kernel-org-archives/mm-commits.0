@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + frv-export-empty_zero_page.patch added to -mm tree
-Date: Wed, 21 May 2008 23:24:06 -0700
-Message-ID: <200805220624.m4M6O6ri020898@imap1.linux-foundation.org>
+Subject: + frv-dont-offer-binfmt_flat.patch added to -mm tree
+Date: Wed, 21 May 2008 23:25:47 -0700
+Message-ID: <200805220625.m4M6Plxu020931@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34479 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51301 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753656AbYEVGZX (ORCPT
+	by vger.kernel.org with ESMTP id S1752006AbYEVG0F (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 22 May 2008 02:25:23 -0400
+	Thu, 22 May 2008 02:26:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: bunk@kernel.org, dhowells@redhat.com
 
 
 The patch titled
-     frv: export empty_zero_page
+     frv: don't offer BINFMT_FLAT
 has been added to the -mm tree.  Its filename is
-     frv-export-empty_zero_page.patch
+     frv-dont-offer-binfmt_flat.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,12 +34,26 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: frv: export empty_zero_page
+Subject: frv: don't offer BINFMT_FLAT
 From: Adrian Bunk <bunk@kernel.org>
 
-Fix the following build error:
+Fix the following compile error:
 
-ERROR: "empty_zero_page" [fs/ext4/ext4dev.ko] undefined!
+  CC      fs/binfmt_flat.o
+In file included from
+/home/bunk/linux/kernel-2.6/git/linux-2.6/fs/binfmt_flat.c:36:
+/home/bunk/linux/kernel-2.6/git/linux-2.6/include/linux/flat.h:14:22: error: asm/flat.h: No such file or directory
+/home/bunk/linux/kernel-2.6/git/linux-2.6/fs/binfmt_flat.c: In function 'create_flat_tables':
+/home/bunk/linux/kernel-2.6/git/linux-2.6/fs/binfmt_flat.c:124: error: implicit declaration of function 'flat_stack_align'
+/home/bunk/linux/kernel-2.6/git/linux-2.6/fs/binfmt_flat.c:125: error: implicit declaration of function 'flat_argvp_envp_on_stack'
+/home/bunk/linux/kernel-2.6/git/linux-2.6/fs/binfmt_flat.c: In function 'calc_reloc':
+/home/bunk/linux/kernel-2.6/git/linux-2.6/fs/binfmt_flat.c:347: error: implicit declaration of function 'flat_reloc_valid'
+/home/bunk/linux/kernel-2.6/git/linux-2.6/fs/binfmt_flat.c: In function 'load_flat_file':
+/home/bunk/linux/kernel-2.6/git/linux-2.6/fs/binfmt_flat.c:479: error: implicit declaration of function 'flat_old_ram_flag'
+/home/bunk/linux/kernel-2.6/git/linux-2.6/fs/binfmt_flat.c:755: error: implicit declaration of function 'flat_set_persistent'
+/home/bunk/linux/kernel-2.6/git/linux-2.6/fs/binfmt_flat.c:757: error: implicit declaration of function 'flat_get_relocate_addr'
+/home/bunk/linux/kernel-2.6/git/linux-2.6/fs/binfmt_flat.c:765: error: implicit declaration of function 'flat_get_addr_from_rp'
+/home/bunk/linux/kernel-2.6/git/linux-2.6/fs/binfmt_flat.c:781: error: implicit declaration of function 'flat_put_addr_at_rp'
 
 Reported-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
@@ -47,30 +61,21 @@ Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/mm/init.c |    3 +++
- 1 file changed, 3 insertions(+)
+ fs/Kconfig.binfmt |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/frv/mm/init.c~frv-export-empty_zero_page arch/frv/mm/init.c
---- a/arch/frv/mm/init.c~frv-export-empty_zero_page
-+++ a/arch/frv/mm/init.c
-@@ -26,6 +26,7 @@
- #include <linux/types.h>
- #include <linux/bootmem.h>
- #include <linux/highmem.h>
-+#include <linux/module.h>
+diff -puN fs/Kconfig.binfmt~frv-dont-offer-binfmt_flat fs/Kconfig.binfmt
+--- a/fs/Kconfig.binfmt~frv-dont-offer-binfmt_flat
++++ a/fs/Kconfig.binfmt
+@@ -42,7 +42,7 @@ config BINFMT_ELF_FDPIC
  
- #include <asm/setup.h>
- #include <asm/segment.h>
-@@ -56,7 +57,9 @@ DEFINE_PER_CPU(struct mmu_gather, mmu_ga
-  */
- static unsigned long empty_bad_page_table;
- static unsigned long empty_bad_page;
-+
- unsigned long empty_zero_page;
-+EXPORT_SYMBOL(empty_zero_page);
+ config BINFMT_FLAT
+ 	bool "Kernel support for flat binaries"
+-	depends on !MMU
++	depends on !MMU && (!FRV || BROKEN)
+ 	help
+ 	  Support uClinux FLAT format binaries.
  
- /*****************************************************************************/
- /*
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
@@ -89,6 +94,7 @@ git-xtensa.patch
 mm-migratec-should-include-linux-syscallsh.patch
 mm-vmstatc-proper-externs.patch
 mm-hugetlbc-fix-duplicate-variable.patch
+frv-dont-offer-binfmt_flat.patch
 remove-include-asm-h8300-keyboardh.patch
 remove-the-v850-port.patch
 init-do_mountsc-should-include-linux-initrdh.patch
