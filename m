@@ -1,24 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + spi-remove-some-spidev-oops-on-rmmod-paths.patch added to -mm tree
-Date: Wed, 21 May 2008 20:54:10 -0700
-Message-ID: <200805220354.m4M3sAPr015759@imap1.linux-foundation.org>
+Subject: + memrlimit-setup-the-memrlimit-controller.patch added to -mm tree
+Date: Wed, 21 May 2008 21:29:19 -0700
+Message-ID: <200805220429.m4M4TJVX017022@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57493 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39955 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753904AbYEVDya (ORCPT
+	by vger.kernel.org with ESMTP id S1751398AbYEVEaE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 May 2008 23:54:30 -0400
+	Thu, 22 May 2008 00:30:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: david-b@pacbell.net, bigeasy@tglx.de, dbrownell@users.sourceforge.net
+Cc: balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, rientjes@google.com, skumar@linux.vnet.ibm.com, vgoyal@redhat.com, xemul@openvz.org, yamamoto@valinux.co.jp
 
 
 The patch titled
-     spi: remove some spidev oops-on-rmmod paths
+     memrlimit: setup the memrlimit controller
 has been added to the -mm tree.  Its filename is
-     spi-remove-some-spidev-oops-on-rmmod-paths.patch
+     memrlimit-setup-the-memrlimit-controller.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -26,231 +29,292 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
+find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: spi: remove some spidev oops-on-rmmod paths
-From: David Brownell <david-b@pacbell.net>
+Subject: memrlimit: setup the memrlimit controller
+=46rom: Balbir Singh <balbir@linux.vnet.ibm.com>
 
-Somehow the spidev code forgot to include a critical mechanism: when the
-underlying device is removed (e.g.  spi_master rmmod), open file
-descriptors must be prevented from issuing new I/O requests to that
-device.  On penalty of the oopsing reported by Sebastian Siewior.
+This patch sets up the rlimit cgroup controller. It adds the basic crea=
+te,
+destroy and populate functionality. The user interface provided is very
+similar to the memory resource controller. The rlimit controller can be
+enhanced easily in the future to control mlocked pages.
 
-This is a partial fix, adding handshaking between the lower level (SPI
-messaging) and the file operations using the spi_dev.  There's still a
-refcounting issue to be addressed (separately) with respect to the
-spidev_data itself.
-
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Reported-by: Sebastian Siewior <bigeasy@tglx.de>
+Acked-by: Pavel Emelyanov <xemul@openvz.org>
+Signed-off-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: Sudhir Kumar <skumar@linux.vnet.ibm.com>
+Cc: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
+Cc: Paul Menage <menage@google.com>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spidev.c |   99 +++++++++++++++++++++++++++++++++++------
- 1 file changed, 86 insertions(+), 13 deletions(-)
+ include/linux/cgroup_subsys.h   |    4=20
+ include/linux/memrlimitcgroup.h |   19 +++
+ init/Kconfig                    |   10 ++
+ mm/Makefile                     |    1=20
+ mm/memrlimitcgroup.c            |  144 ++++++++++++++++++++++++++++++
+ 5 files changed, 178 insertions(+)
 
-diff -puN drivers/spi/spidev.c~spi-remove-some-spidev-oops-on-rmmod-paths drivers/spi/spidev.c
---- a/drivers/spi/spidev.c~spi-remove-some-spidev-oops-on-rmmod-paths
-+++ a/drivers/spi/spidev.c
-@@ -68,6 +68,7 @@ static unsigned long	minors[N_SPI_MINORS
- 
- struct spidev_data {
- 	struct device		dev;
-+	spinlock_t		spi_lock;
- 	struct spi_device	*spi;
- 	struct list_head	device_entry;
- 
-@@ -85,12 +86,72 @@ MODULE_PARM_DESC(bufsiz, "data bytes in 
- 
- /*-------------------------------------------------------------------------*/
- 
+diff -puN include/linux/cgroup_subsys.h~memrlimit-setup-the-memrlimit-c=
+ontroller include/linux/cgroup_subsys.h
+--- a/include/linux/cgroup_subsys.h~memrlimit-setup-the-memrlimit-contr=
+oller
++++ a/include/linux/cgroup_subsys.h
+@@ -47,4 +47,8 @@ SUBSYS(mem_cgroup)
+ SUBSYS(devices)
+ #endif
+=20
++#ifdef CONFIG_CGROUP_MEMRLIMIT_CTLR
++SUBSYS(memrlimit_cgroup)
++#endif
++
+ /* */
+diff -puN /dev/null include/linux/memrlimitcgroup.h
+--- /dev/null
++++ a/include/linux/memrlimitcgroup.h
+@@ -0,0 +1,19 @@
 +/*
-+ * We can't use the standard synchronous wrappers for file I/O; we
-+ * need to protect against async removal of the underlying spi_device.
++ * Copyright =C2=A9 International Business Machines  Corp., 2008
++ *
++ * Author: Balbir Singh <balbir@linux.vnet.ibm.com>
++ *
++ * This program is free software; you can redistribute it and/or modif=
+y
++ * it under the terms of the GNU General Public License as published b=
+y
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
 + */
-+static void spidev_complete(void *arg)
++#ifndef LINUX_MEMRLIMITCGROUP_H
++#define LINUX_MEMRLIMITCGROUP_H
++
++#endif /* LINUX_MEMRLIMITCGROUP_H */
+diff -puN init/Kconfig~memrlimit-setup-the-memrlimit-controller init/Kc=
+onfig
+--- a/init/Kconfig~memrlimit-setup-the-memrlimit-controller
++++ a/init/Kconfig
+@@ -407,6 +407,16 @@ config CGROUP_MEM_RES_CTLR
+ 	  This config option also selects MM_OWNER config option, which
+ 	  could in turn add some fork/exit overhead.
+=20
++config CGROUP_MEMRLIMIT_CTLR
++	bool "Memory resource limit controls for cgroups"
++	depends on CGROUPS && RESOURCE_COUNTERS && MMU
++	select MM_OWNER
++	help
++	  Provides resource limits for all the tasks belonging to a
++	  control group. CGROUP_MEM_RES_CTLR provides support for physical
++	  memory RSS and Page Cache control. Virtual address space control
++	  is provided by this controller.
++
+ config SYSFS_DEPRECATED
+ 	bool
+=20
+diff -puN mm/Makefile~memrlimit-setup-the-memrlimit-controller mm/Makef=
+ile
+--- a/mm/Makefile~memrlimit-setup-the-memrlimit-controller
++++ a/mm/Makefile
+@@ -34,4 +34,5 @@ obj-$(CONFIG_MIGRATION) +=3D migrate.o
+ obj-$(CONFIG_SMP) +=3D allocpercpu.o
+ obj-$(CONFIG_QUICKLIST) +=3D quicklist.o
+ obj-$(CONFIG_CGROUP_MEM_RES_CTLR) +=3D memcontrol.o
++obj-$(CONFIG_CGROUP_MEMRLIMIT_CTLR) +=3D memrlimitcgroup.o
+=20
+diff -puN /dev/null mm/memrlimitcgroup.c
+--- /dev/null
++++ a/mm/memrlimitcgroup.c
+@@ -0,0 +1,144 @@
++/*
++ * Copyright =C2=A9 International Business Machines  Corp., 2008
++ *
++ * Author: Balbir Singh <balbir@linux.vnet.ibm.com>
++ *
++ * This program is free software; you can redistribute it and/or modif=
+y
++ * it under the terms of the GNU General Public License as published b=
+y
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * Provide memory resource limits for tasks in a control group. A lot =
+of code is
++ * duplicated from the memory controller (this code is common to almos=
+t
++ * all controllers). TODO: Consider writing a tool that can generate t=
+his
++ * code.
++ */
++#include <linux/cgroup.h>
++#include <linux/mm.h>
++#include <linux/smp.h>
++#include <linux/rcupdate.h>
++#include <linux/slab.h>
++#include <linux/swap.h>
++#include <linux/spinlock.h>
++#include <linux/fs.h>
++#include <linux/res_counter.h>
++#include <linux/memrlimitcgroup.h>
++
++struct cgroup_subsys memrlimit_cgroup_subsys;
++
++struct memrlimit_cgroup {
++	struct cgroup_subsys_state css;
++	struct res_counter as_res;	/* address space counter */
++};
++
++static struct memrlimit_cgroup init_memrlimit_cgroup;
++
++static struct memrlimit_cgroup *memrlimit_cgroup_from_cgrp(struct cgro=
+up *cgrp)
 +{
-+	complete(arg);
++	return container_of(cgroup_subsys_state(cgrp,
++				memrlimit_cgroup_subsys_id),
++				struct memrlimit_cgroup, css);
 +}
 +
-+static int spidev_sync(struct spidev_data *spidev, struct spi_message *message)
++static struct cgroup_subsys_state *
++memrlimit_cgroup_create(struct cgroup_subsys *ss, struct cgroup *cgrp)
 +{
-+	DECLARE_COMPLETION_ONSTACK(done);
-+	int status;
++	struct memrlimit_cgroup *memrcg;
 +
-+	message->complete = spidev_complete;
-+	message->context = &done;
-+
-+	spin_lock_irq(&spidev->spi_lock);
-+	if (spidev->spi == NULL)
-+		status = -ESHUTDOWN;
-+	else
-+		status = spi_async(spidev->spi, message);
-+	spin_unlock_irq(&spidev->spi_lock);
-+
-+	if (status == 0) {
-+		wait_for_completion(&done);
-+		status = message->status;
++	if (unlikely(cgrp->parent =3D=3D NULL))
++		memrcg =3D &init_memrlimit_cgroup;
++	else {
++		memrcg =3D kzalloc(sizeof(*memrcg), GFP_KERNEL);
++		if (!memrcg)
++			return ERR_PTR(-ENOMEM);
 +	}
-+	return status;
++	res_counter_init(&memrcg->as_res);
++	return &memrcg->css;
 +}
 +
-+static inline int
-+spidev_sync_write(struct spidev_data *spidev, size_t len)
++static void memrlimit_cgroup_destroy(struct cgroup_subsys *ss,
++					struct cgroup *cgrp)
 +{
-+	struct spi_transfer	t = {
-+			.tx_buf		= spidev->buffer,
-+			.len		= len,
-+		};
-+	struct spi_message	m;
-+
-+	spi_message_init(&m);
-+	spi_message_add_tail(&t, &m);
-+	return spidev_sync(spidev, &m);
++	kfree(memrlimit_cgroup_from_cgrp(cgrp));
 +}
 +
-+static inline int
-+spidev_sync_read(struct spidev_data *spidev, size_t len)
++static int memrlimit_cgroup_reset(struct cgroup *cgrp, unsigned int ev=
+ent)
 +{
-+	struct spi_transfer	t = {
-+			.rx_buf		= spidev->buffer,
-+			.len		= len,
-+		};
-+	struct spi_message	m;
++	struct memrlimit_cgroup *memrcg;
 +
-+	spi_message_init(&m);
-+	spi_message_add_tail(&t, &m);
-+	return spidev_sync(spidev, &m);
++	memrcg =3D memrlimit_cgroup_from_cgrp(cgrp);
++	switch (event) {
++	case RES_FAILCNT:
++		res_counter_reset_failcnt(&memrcg->as_res);
++		break;
++	}
++	return 0;
 +}
 +
-+/*-------------------------------------------------------------------------*/
++static u64 memrlimit_cgroup_read(struct cgroup *cgrp, struct cftype *c=
+ft)
++{
++	return res_counter_read_u64(&memrlimit_cgroup_from_cgrp(cgrp)->as_res=
+,
++					cft->private);
++}
 +
- /* Read-only message with current device setup */
- static ssize_t
- spidev_read(struct file *filp, char __user *buf, size_t count, loff_t *f_pos)
- {
- 	struct spidev_data	*spidev;
--	struct spi_device	*spi;
- 	ssize_t			status = 0;
- 
- 	/* chipselect only toggles at start or end of operation */
-@@ -98,10 +159,9 @@ spidev_read(struct file *filp, char __us
- 		return -EMSGSIZE;
- 
- 	spidev = filp->private_data;
--	spi = spidev->spi;
- 
- 	mutex_lock(&spidev->buf_lock);
--	status = spi_read(spi, spidev->buffer, count);
-+	status = spidev_sync_read(spidev, count);
- 	if (status == 0) {
- 		unsigned long	missing;
- 
-@@ -122,7 +182,6 @@ spidev_write(struct file *filp, const ch
- 		size_t count, loff_t *f_pos)
- {
- 	struct spidev_data	*spidev;
--	struct spi_device	*spi;
- 	ssize_t			status = 0;
- 	unsigned long		missing;
- 
-@@ -131,12 +190,11 @@ spidev_write(struct file *filp, const ch
- 		return -EMSGSIZE;
- 
- 	spidev = filp->private_data;
--	spi = spidev->spi;
- 
- 	mutex_lock(&spidev->buf_lock);
- 	missing = copy_from_user(spidev->buffer, buf, count);
- 	if (missing == 0) {
--		status = spi_write(spi, spidev->buffer, count);
-+		status = spidev_sync_write(spidev, count);
- 		if (status == 0)
- 			status = count;
- 	} else
-@@ -153,7 +211,6 @@ static int spidev_message(struct spidev_
- 	struct spi_transfer	*k_xfers;
- 	struct spi_transfer	*k_tmp;
- 	struct spi_ioc_transfer *u_tmp;
--	struct spi_device	*spi = spidev->spi;
- 	unsigned		n, total;
- 	u8			*buf;
- 	int			status = -EFAULT;
-@@ -215,7 +272,7 @@ static int spidev_message(struct spidev_
- 		spi_message_add_tail(k_tmp, &msg);
- 	}
- 
--	status = spi_sync(spi, &msg);
-+	status = spidev_sync(spidev, &msg);
- 	if (status < 0)
- 		goto done;
- 
-@@ -269,8 +326,16 @@ spidev_ioctl(struct inode *inode, struct
- 	if (err)
- 		return -EFAULT;
- 
-+	/* guard against device removal before, or while,
-+	 * we issue this ioctl.
-+	 */
- 	spidev = filp->private_data;
--	spi = spidev->spi;
-+	spin_lock_irq(&spidev->spi_lock);
-+	spi = spi_dev_get(spidev->spi);
-+	spin_unlock_irq(&spidev->spi_lock);
++static int memrlimit_cgroup_write_strategy(char *buf, unsigned long lo=
+ng *tmp)
++{
++	*tmp =3D memparse(buf, &buf);
++	if (*buf !=3D '\0')
++		return -EINVAL;
 +
-+	if (spi == NULL)
-+		return ESHUTDOWN;
- 
- 	switch (cmd) {
- 	/* read requests */
-@@ -356,8 +421,10 @@ spidev_ioctl(struct inode *inode, struct
- 	default:
- 		/* segmented and/or full-duplex I/O request */
- 		if (_IOC_NR(cmd) != _IOC_NR(SPI_IOC_MESSAGE(0))
--				|| _IOC_DIR(cmd) != _IOC_WRITE)
--			return -ENOTTY;
-+				|| _IOC_DIR(cmd) != _IOC_WRITE) {
-+			retval = -ENOTTY;
-+			break;
-+		}
- 
- 		tmp = _IOC_SIZE(cmd);
- 		if ((tmp % sizeof(struct spi_ioc_transfer)) != 0) {
-@@ -385,6 +452,7 @@ spidev_ioctl(struct inode *inode, struct
- 		kfree(ioc);
- 		break;
- 	}
-+	spi_dev_put(spi);
- 	return retval;
- }
- 
-@@ -488,6 +556,7 @@ static int spidev_probe(struct spi_devic
- 
- 	/* Initialize the driver data */
- 	spidev->spi = spi;
-+	spin_lock_init(&spidev->spi_lock);
- 	mutex_init(&spidev->buf_lock);
- 
- 	INIT_LIST_HEAD(&spidev->device_entry);
-@@ -526,13 +595,17 @@ static int spidev_remove(struct spi_devi
- {
- 	struct spidev_data	*spidev = dev_get_drvdata(&spi->dev);
- 
--	mutex_lock(&device_list_lock);
-+	/* make sure ops on existing fds can abort cleanly */
-+	spin_lock_irq(&spidev->spi_lock);
-+	spidev->spi = NULL;
-+	spin_unlock_irq(&spidev->spi_lock);
- 
-+	/* prevent new opens */
-+	mutex_lock(&device_list_lock);
- 	list_del(&spidev->device_entry);
- 	dev_set_drvdata(&spi->dev, NULL);
- 	clear_bit(MINOR(spidev->dev.devt), minors);
- 	device_unregister(&spidev->dev);
++	*tmp =3D PAGE_ALIGN(*tmp);
++	return 0;
++}
++
++static ssize_t memrlimit_cgroup_write(struct cgroup *cgrp, struct cfty=
+pe *cft,
++					struct file *file,
++					const char __user *userbuf,
++					size_t nbytes,
++					loff_t *ppos)
++{
++	return res_counter_write(&memrlimit_cgroup_from_cgrp(cgrp)->as_res,
++					cft->private, userbuf, nbytes, ppos,
++					memrlimit_cgroup_write_strategy);
++}
++
++static struct cftype memrlimit_cgroup_files[] =3D {
++	{
++		.name =3D "usage_in_bytes",
++		.private =3D RES_USAGE,
++		.read_u64 =3D memrlimit_cgroup_read,
++	},
++	{
++		.name =3D "limit_in_bytes",
++		.private =3D RES_LIMIT,
++		.write =3D memrlimit_cgroup_write,
++		.read_u64 =3D memrlimit_cgroup_read,
++	},
++	{
++		.name =3D "failcnt",
++		.private =3D RES_FAILCNT,
++		.trigger =3D memrlimit_cgroup_reset,
++		.read_u64 =3D memrlimit_cgroup_read,
++	},
++};
++
++static int memrlimit_cgroup_populate(struct cgroup_subsys *ss,
++					struct cgroup *cgrp)
++{
++	return cgroup_add_files(cgrp, ss, memrlimit_cgroup_files,
++				ARRAY_SIZE(memrlimit_cgroup_files));
++}
++
++struct cgroup_subsys memrlimit_cgroup_subsys =3D {
++	.name =3D "memrlimit",
++	.subsys_id =3D memrlimit_cgroup_subsys_id,
++	.create =3D memrlimit_cgroup_create,
++	.destroy =3D memrlimit_cgroup_destroy,
++	.populate =3D memrlimit_cgroup_populate,
++	.early_init =3D 0,
++};
+_
+
+Patches currently in -mm which might be from balbir@linux.vnet.ibm.com =
+are
+
+linux-next.patch
+cgroup-use-read-lock-to-guard-find_existing_css_set.patch
+mark-res_counter_charge_locked-with-__must_check.patch
+memcg-make-global-var-read_mostly.patch
+memcg-avoid-unnecessary-initialization.patch
+memrlimit-add-memrlimit-controller-documentation.patch
+memrlimit-setup-the-memrlimit-controller.patch
+memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
+memrlimit-add-memrlimit-controller-accounting-and-control.patch
+
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
