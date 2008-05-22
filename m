@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fsldma-fix-incorrect-exit-path-for-initialization.patch added to -mm tree
-Date: Wed, 21 May 2008 17:22:23 -0700
-Message-ID: <200805220022.m4M0MN55008250@imap1.linux-foundation.org>
+Subject: + undeprecate-down_trylock.patch added to -mm tree
+Date: Wed, 21 May 2008 20:24:24 -0700
+Message-ID: <200805220324.m4M3OOpp014683@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54198 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51683 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754556AbYEVAXA (ORCPT
+	by vger.kernel.org with ESMTP id S1756870AbYEVDYa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 21 May 2008 20:23:00 -0400
+	Wed, 21 May 2008 23:24:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: leoli@freescale.com, dan.j.williams@intel.com, zw@zh-kernel.org
+Cc: akpm@linux-foundation.org, rusty@rustcorp.com.au
 
 
 The patch titled
-     fsldma: fix incorrect exit path for initialization
+     undeprecate down_trylock()
 has been added to the -mm tree.  Its filename is
-     fsldma-fix-incorrect-exit-path-for-initialization.patch
+     undeprecate-down_trylock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,132 +34,127 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fsldma: fix incorrect exit path for initialization
-From: Li Yang <leoli@freescale.com>
+Subject: undeprecate down_trylock()
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Signed-off-by: Li Yang <leoli@freescale.com>
-Acked-by: Zhang Wei <zw@zh-kernel.org>
-Cc: "Williams, Dan J" <dan.j.williams@intel.com>
+include/linux/semaphore.h: In function 'down_try':
+include/linux/semaphore.h:66: warning: 'down_trylock' is deprecated (declared at include/linux/semaphore.h:48)
+
+doh.
+
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/fsldma.c |   31 ++++++++++++++++---------------
- 1 file changed, 16 insertions(+), 15 deletions(-)
+ include/linux/semaphore.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/dma/fsldma.c~fsldma-fix-incorrect-exit-path-for-initialization drivers/dma/fsldma.c
---- a/drivers/dma/fsldma.c~fsldma-fix-incorrect-exit-path-for-initialization
-+++ a/drivers/dma/fsldma.c
-@@ -809,8 +809,7 @@ static int fsl_dma_self_test(struct fsl_
- 	if (!src) {
- 		dev_err(fsl_chan->dev,
- 				"selftest: Cannot alloc memory for test!\n");
--		err = -ENOMEM;
--		goto out;
-+		return -ENOMEM;
- 	}
- 
- 	dest = src + test_size;
-@@ -842,7 +841,7 @@ static int fsl_dma_self_test(struct fsl_
- 	if (fsl_dma_is_complete(chan, cookie, NULL, NULL) != DMA_SUCCESS) {
- 		dev_err(fsl_chan->dev, "selftest: Time out!\n");
- 		err = -ENODEV;
--		goto out;
-+		goto free_resources;
- 	}
- 
- 	/* Test free and re-alloc channel resources */
-@@ -927,8 +926,7 @@ static int __devinit of_fsl_dma_chan_pro
- 	if (!new_fsl_chan) {
- 		dev_err(&dev->dev, "No free memory for allocating "
- 				"dma channels!\n");
--		err = -ENOMEM;
--		goto err;
-+		return -ENOMEM;
- 	}
- 
- 	/* get dma channel register base */
-@@ -936,7 +934,7 @@ static int __devinit of_fsl_dma_chan_pro
- 	if (err) {
- 		dev_err(&dev->dev, "Can't get %s property 'reg'\n",
- 				dev->node->full_name);
--		goto err;
-+		goto err_no_reg;
- 	}
- 
- 	new_fsl_chan->feature = *(u32 *)match->data;
-@@ -958,7 +956,7 @@ static int __devinit of_fsl_dma_chan_pro
- 		dev_err(&dev->dev, "There is no %d channel!\n",
- 				new_fsl_chan->id);
- 		err = -EINVAL;
--		goto err;
-+		goto err_no_chan;
- 	}
- 	fdev->chan[new_fsl_chan->id] = new_fsl_chan;
- 	tasklet_init(&new_fsl_chan->tasklet, dma_do_tasklet,
-@@ -997,23 +995,26 @@ static int __devinit of_fsl_dma_chan_pro
- 		if (err) {
- 			dev_err(&dev->dev, "DMA channel %s request_irq error "
- 				"with return %d\n", dev->node->full_name, err);
--			goto err;
-+			goto err_no_irq;
- 		}
- 	}
- 
- 	err = fsl_dma_self_test(new_fsl_chan);
- 	if (err)
--		goto err;
-+		goto err_self_test;
- 
- 	dev_info(&dev->dev, "#%d (%s), irq %d\n", new_fsl_chan->id,
- 				match->compatible, new_fsl_chan->irq);
- 
- 	return 0;
--err:
--	dma_halt(new_fsl_chan);
--	iounmap(new_fsl_chan->reg_base);
-+
-+err_self_test:
- 	free_irq(new_fsl_chan->irq, new_fsl_chan);
-+err_no_irq:
- 	list_del(&new_fsl_chan->common.device_node);
-+err_no_chan:
-+	iounmap(new_fsl_chan->reg_base);
-+err_no_reg:
- 	kfree(new_fsl_chan);
- 	return err;
- }
-@@ -1054,8 +1055,7 @@ static int __devinit of_fsl_dma_probe(st
- 	fdev = kzalloc(sizeof(struct fsl_dma_device), GFP_KERNEL);
- 	if (!fdev) {
- 		dev_err(&dev->dev, "No enough memory for 'priv'\n");
--		err = -ENOMEM;
--		goto err;
-+		return -ENOMEM;
- 	}
- 	fdev->dev = &dev->dev;
- 	INIT_LIST_HEAD(&fdev->common.channels);
-@@ -1065,7 +1065,7 @@ static int __devinit of_fsl_dma_probe(st
- 	if (err) {
- 		dev_err(&dev->dev, "Can't get %s property 'reg'\n",
- 				dev->node->full_name);
--		goto err;
-+		goto err_no_reg;
- 	}
- 
- 	dev_info(&dev->dev, "Probe the Freescale DMA driver for %s "
-@@ -1103,6 +1103,7 @@ static int __devinit of_fsl_dma_probe(st
- 
- err:
- 	iounmap(fdev->reg_base);
-+err_no_reg:
- 	kfree(fdev);
- 	return err;
+diff -puN include/linux/semaphore.h~undeprecate-down_trylock include/linux/semaphore.h
+--- a/include/linux/semaphore.h~undeprecate-down_trylock
++++ a/include/linux/semaphore.h
+@@ -44,7 +44,7 @@ extern int __must_check down_interruptib
+ extern int __must_check down_killable(struct semaphore *sem);
+ extern int __must_check down_nowait(struct semaphore *sem);
+ /* Old down_trylock() returned the opposite of what was expected. */
+-static inline int __deprecated down_trylock(struct semaphore *sem)
++static inline int down_trylock(struct semaphore *sem)
+ {
+ 	return !down_nowait(sem);
  }
 _
 
-Patches currently in -mm which might be from leoli@freescale.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+semaphore-introduce-down_try-checkpatch-fixes.patch
+ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware-ia64-warnings.patch
+memory-hotplug-fix-early-allocation-handling-checkpatch-fixes.patch
+linux-next.patch
+next-remove-localversion.patch
+fix-kobject-fix-kobject_rename-and-config_sysfs.patch
+undeprecate-down_trylock.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-video-balcklist-fujitsu-lifebook-s6410.patch
+git-x86-fixup.patch
+lguest-use-cpu-capability-accessors.patch
+arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
+zoran-use-correct-type-for-cpu-flags.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+drivers-infiniband-hw-mlx4-qpc-fix-uninitialised-var-warning.patch
+git-jg-misc-git-rejects.patch
+drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
 fsldma-the-mpc8377mds-board-device-tree-node-for-fsldma-driver.patch
-fsldma-fix-incorrect-exit-path-for-initialization.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers.patch
+git-ubifs.patch
+sundance-set-carrier-status-on-link-change-events.patch
+dm9000-use-delayed-work-to-update-mii-phy-state-fix.patch
+pcnet32-fix-warning.patch
+drivers-net-tokenring-3c359c-squish-a-warning.patch
+drivers-net-tokenring-olympicc-fix-warning.patch
+sfc-correct-and-expand-some-comments.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+pci-hotplug-introduce-pci_slot.patch
+pci-hotplug-acpi-pci-slot-detection-driver.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-logfs-fixup.patch
+drivers-uwb-nehc-processor-flags-have-type-unsigned-long.patch
+drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
+drivers-uwb-wlp-sysfsc-dead-code.patch
+drivers-uwb-whcic-needs-dma-mappingh.patch
+git-vfs-cleanups-reject.patch
+git-watchdog.patch
+git-watchdog-git-rejects.patch
+watchdog-fix-booke_wdtc-on-mpc85xx-smp-system.patch
+wireless-airo-waitbusy-wont-delay-checkpatch-fixes.patch
+git-xtensa.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+libata-sff-fix-oops-reported-in-kerneloopsorg-for-pnp-devices-with-no-ctl-fix.patch
+ata-acpi-hotplug-handle-bay-devices-in-dock-stations-cleanup.patch
+mm-verify-the-page-links-and-memory-model.patch
+mspec-convert-nopfn-to-fault-fix.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+kill-generic_file_direct_io-checkpatch-fixes.patch
+spufs-use-the-new-vm_ops-access-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup-fix.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+rename-warn-to-warning-to-clear-the-namespace-fix.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-paccept-sys_ni.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-signalfd-fix.patch
+flag-parameters-eventfd-fix.patch
+flag-parameters-inotify_init-fix.patch
+flag-parameters-check-magic-constants-alpha-hack.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+reiserfs-convert-j_flush_sem-to-mutex-fix.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+reiser4.patch
+reiser4-semaphore-fix.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
