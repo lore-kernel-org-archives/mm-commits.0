@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + ip2-push-bkl-down-for-the-firmware-interface.patch added to -mm tree
-Date: Thu, 22 May 2008 16:15:58 -0700
-Message-ID: <200805222315.m4MNFwdq026495@imap1.linux-foundation.org>
+Subject: + rio-push-down-the-bkl-into-the-firmware-ioctl-handler.patch added to -mm tree
+Date: Thu, 22 May 2008 16:16:02 -0700
+Message-ID: <200805222316.m4MNG2D3026574@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33499 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54937 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757142AbYEVXQd (ORCPT
+	by vger.kernel.org with ESMTP id S1756517AbYEVXQd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 22 May 2008 19:16:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jirislaby@gmail.com
 
 
 The patch titled
-     ip2: push BKL down for the firmware interface
+     rio: push down the BKL into the firmware ioctl handler
 has been added to the -mm tree.  Its filename is
-     ip2-push-bkl-down-for-the-firmware-interface.patch
+     rio-push-down-the-bkl-into-the-firmware-ioctl-handler.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,71 +34,57 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ip2: push BKL down for the firmware interface
+Subject: rio: push down the BKL into the firmware ioctl handler
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-(The tty side is already done)
+TTY side is already done.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Cc: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ip2/ip2main.c |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ drivers/char/rio/rio_linux.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN drivers/char/ip2/ip2main.c~ip2-push-bkl-down-for-the-firmware-interface drivers/char/ip2/ip2main.c
---- a/drivers/char/ip2/ip2main.c~ip2-push-bkl-down-for-the-firmware-interface
-+++ a/drivers/char/ip2/ip2main.c
-@@ -203,7 +203,7 @@ static int set_serial_info(i2ChanStrPtr,
+diff -puN drivers/char/rio/rio_linux.c~rio-push-down-the-bkl-into-the-firmware-ioctl-handler drivers/char/rio/rio_linux.c
+--- a/drivers/char/rio/rio_linux.c~rio-push-down-the-bkl-into-the-firmware-ioctl-handler
++++ a/drivers/char/rio/rio_linux.c
+@@ -184,7 +184,7 @@ static int rio_set_real_termios(void *pt
+ static void rio_hungup(void *ptr);
+ static void rio_close(void *ptr);
+ static int rio_chars_in_buffer(void *ptr);
+-static int rio_fw_ioctl(struct inode *inode, struct file *filp, unsigned int cmd, unsigned long arg);
++static long rio_fw_ioctl(struct file *filp, unsigned int cmd, unsigned long arg);
+ static int rio_init_drivers(void);
  
- static ssize_t ip2_ipl_read(struct file *, char __user *, size_t, loff_t *);
- static ssize_t ip2_ipl_write(struct file *, const char __user *, size_t, loff_t *);
--static int ip2_ipl_ioctl(struct inode *, struct file *, UINT, ULONG);
-+static long ip2_ipl_ioctl(struct file *, UINT, ULONG);
- static int ip2_ipl_open(struct inode *, struct file *);
+ static void my_hd(void *addr, int len);
+@@ -245,7 +245,7 @@ static struct real_driver rio_real_drive
  
- static int DumpTraceBuffer(char __user *, int);
-@@ -236,7 +236,7 @@ static const struct file_operations ip2_
- 	.owner		= THIS_MODULE,
- 	.read		= ip2_ipl_read,
- 	.write		= ip2_ipl_write,
--	.ioctl		= ip2_ipl_ioctl,
-+	.unlocked_ioctl	= ip2_ipl_ioctl,
- 	.open		= ip2_ipl_open,
- }; 
+ static const struct file_operations rio_fw_fops = {
+ 	.owner = THIS_MODULE,
+-	.ioctl = rio_fw_ioctl,
++	.unlocked_ioctl = rio_fw_ioctl,
+ };
  
-@@ -2819,10 +2819,10 @@ ip2_ipl_write(struct file *pFile, const 
- /*                                                                            */
- /*                                                                            */
- /******************************************************************************/
--static int
--ip2_ipl_ioctl ( struct inode *pInode, struct file *pFile, UINT cmd, ULONG arg )
-+static long
-+ip2_ipl_ioctl (struct file *pFile, UINT cmd, ULONG arg )
+ static struct miscdevice rio_fw_device = {
+@@ -565,13 +565,15 @@ static void rio_close(void *ptr)
+ 
+ 
+ 
+-static int rio_fw_ioctl(struct inode *inode, struct file *filp, unsigned int cmd, unsigned long arg)
++static long rio_fw_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
  {
--	unsigned int iplminor = iminor(pInode);
-+	unsigned int iplminor = iminor(pFile->f_path.dentry->d_inode);
  	int rc = 0;
- 	void __user *argp = (void __user *)arg;
- 	ULONG __user *pIndex = argp;
-@@ -2833,6 +2833,8 @@ ip2_ipl_ioctl ( struct inode *pInode, st
- 	printk (KERN_DEBUG "IP2IPL: ioctl cmd %d, arg %ld\n", cmd, arg );
- #endif
+ 	func_enter();
  
+ 	/* The "dev" argument isn't used. */
 +	lock_kernel();
-+
- 	switch ( iplminor ) {
- 	case 0:	    // IPL device
- 		rc = -EINVAL;
-@@ -2893,6 +2895,7 @@ ip2_ipl_ioctl ( struct inode *pInode, st
- 		rc = -ENODEV;
- 		break;
- 	}
+ 	rc = riocontrol(p, 0, cmd, arg, capable(CAP_SYS_ADMIN));
 +	unlock_kernel();
- 	return rc;
- }
  
+ 	func_exit();
+ 	return rc;
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
