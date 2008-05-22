@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mips-remove-board_watchpoint_handler.patch added to -mm tree
-Date: Thu, 22 May 2008 16:51:06 -0700
-Message-ID: <200805222351.m4MNp62P027891@imap1.linux-foundation.org>
+Subject: + bay-exit-if-notify-handler-cannot-be-installed.patch added to -mm tree
+Date: Thu, 22 May 2008 16:54:21 -0700
+Message-ID: <200805222354.m4MNsLFf027963@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51150 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34934 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759789AbYEVXvR (ORCPT
+	by vger.kernel.org with ESMTP id S932402AbYEVXyn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 22 May 2008 19:51:17 -0400
+	Thu, 22 May 2008 19:54:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ddaney@avtrex.com
+Cc: hmacht@suse.de, kristen.c.accardi@intel.com, lenb@kernel.org, mjg59@srcf.ucam.org, rui.zhang@intel.com, trenn@suse.de
 
 
 The patch titled
-     mips: remove board_watchpoint_handler
+     bay: exit if notify handler cannot be installed
 has been added to the -mm tree.  Its filename is
-     mips-remove-board_watchpoint_handler.patch
+     bay-exit-if-notify-handler-cannot-be-installed.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,63 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mips: remove board_watchpoint_handler
-From: David Daney <ddaney@avtrex.com>
+Subject: bay: exit if notify handler cannot be installed
+From: Holger Macht <hmacht@suse.de>
 
-It is not used anywhere in tree.
+If acpi_install_notify_handler() for a bay device fails, the bay driver is
+superfluous.  Most likely, another driver (like libata) is already caring
+about this device anyway.  Furthermore,
+register_hotplug_dock_device(acpi_handle) from the dock driver must not be
+called twice with the same handler.  This would result in an endless loop
+consuming 100% of CPU.  So clean up and exit.
 
-Signed-off-by: David Daney <ddaney@avtrex.com>
+Signed-off-by: Holger Macht <hmacht@suse.de>
+Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Cc: Zhang Rui <rui.zhang@intel.com>
+Cc: Thomas Renninger <trenn@suse.de>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/kernel/traps.c |    6 ------
- include/asm-mips/traps.h |    1 -
- 2 files changed, 7 deletions(-)
+ drivers/acpi/bay.c |   16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
 
-diff -puN arch/mips/kernel/traps.c~mips-remove-board_watchpoint_handler arch/mips/kernel/traps.c
---- a/arch/mips/kernel/traps.c~mips-remove-board_watchpoint_handler
-+++ a/arch/mips/kernel/traps.c
-@@ -71,7 +71,6 @@ extern asmlinkage void handle_reserved(v
- extern int fpu_emulator_cop1Handler(struct pt_regs *xcp,
- 	struct mips_fpu_struct *ctx, int has_fpu);
+diff -puN drivers/acpi/bay.c~bay-exit-if-notify-handler-cannot-be-installed drivers/acpi/bay.c
+--- a/drivers/acpi/bay.c~bay-exit-if-notify-handler-cannot-be-installed
++++ a/drivers/acpi/bay.c
+@@ -301,16 +301,20 @@ static int bay_add(acpi_handle handle, i
+ 	 */
+ 	pdev->dev.uevent_suppress = 0;
  
--void (*board_watchpoint_handler)(struct pt_regs *regs);
- void (*board_be_init)(void);
- int (*board_be_handler)(struct pt_regs *regs, int is_fixup);
- void (*board_nmi_handler_setup)(void);
-@@ -890,11 +889,6 @@ asmlinkage void do_mdmx(struct pt_regs *
- 
- asmlinkage void do_watch(struct pt_regs *regs)
- {
--	if (board_watchpoint_handler) {
--		(*board_watchpoint_handler)(regs);
--		return;
+-	if (acpi_bay_add_fs(new_bay)) {
+-		platform_device_unregister(new_bay->pdev);
+-		goto bay_add_err;
 -	}
+-
+ 	/* register for events on this device */
+ 	status = acpi_install_notify_handler(handle, ACPI_SYSTEM_NOTIFY,
+ 			bay_notify, new_bay);
+ 	if (ACPI_FAILURE(status)) {
+-		printk(KERN_ERR PREFIX "Error installing bay notify handler\n");
++		printk(KERN_INFO PREFIX "Error installing bay notify handler\n");
++		platform_device_unregister(new_bay->pdev);
++		goto bay_add_err;
++	}
++
++	if (acpi_bay_add_fs(new_bay)) {
++		acpi_remove_notify_handler(handle, ACPI_SYSTEM_NOTIFY,
++					   bay_notify);
++		platform_device_unregister(new_bay->pdev);
++		goto bay_add_err;
+ 	}
+ 
+ 	/* if we are on a dock station, we should register for dock
+_
+
+Patches currently in -mm which might be from hmacht@suse.de are
+
+bay-exit-if-notify-handler-cannot-be-installed.patch
+ata-acpi-hotplug-handle-bay-devices-in-dock-stations.patch
+ata-acpi-hotplug-handle-bay-devices-in-dock-stations-cleanup.patch
+
