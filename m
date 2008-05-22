@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ds1302-push-down-the-bkl-into-the-driver-ioctl-code.patch added to -mm tree
-Date: Thu, 22 May 2008 16:16:22 -0700
-Message-ID: <200805222316.m4MNGMpS026603@imap1.linux-foundation.org>
+Subject: + dsp56k-bkl-pushdown.patch added to -mm tree
+Date: Thu, 22 May 2008 16:16:24 -0700
+Message-ID: <200805222316.m4MNGOLi026606@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54774 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38114 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753937AbYEVXQw (ORCPT
+	by vger.kernel.org with ESMTP id S1753937AbYEVXQ7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 22 May 2008 19:16:52 -0400
+	Thu, 22 May 2008 19:16:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jkosina@suse.cz
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jirislaby@gmail.com
 
 
 The patch titled
-     ds1302: push down the BKL into the driver ioctl code
+     dsp56k: BKL pushdown
 has been added to the -mm tree.  Its filename is
-     ds1302-push-down-the-bkl-into-the-driver-ioctl-code.patch
+     dsp56k-bkl-pushdown.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,91 +34,108 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ds1302: push down the BKL into the driver ioctl code
+Subject: dsp56k: BKL pushdown
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
+Push the BKL down into the driver ioctl methods
+
 Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ds1302.c |   17 +++++++++++------
- 1 file changed, 11 insertions(+), 6 deletions(-)
+ drivers/char/dsp56k.c |   20 ++++++++++++++------
+ 1 file changed, 14 insertions(+), 6 deletions(-)
 
-diff -puN drivers/char/ds1302.c~ds1302-push-down-the-bkl-into-the-driver-ioctl-code drivers/char/ds1302.c
---- a/drivers/char/ds1302.c~ds1302-push-down-the-bkl-into-the-driver-ioctl-code
-+++ a/drivers/char/ds1302.c
-@@ -20,10 +20,11 @@
- #include <linux/miscdevice.h>
- #include <linux/delay.h>
- #include <linux/bcd.h>
-+#include <linux/smp_lock.h>
-+#include <linux/uaccess.h>
-+#include <linux/io.h>
+diff -puN drivers/char/dsp56k.c~dsp56k-bkl-pushdown drivers/char/dsp56k.c
+--- a/drivers/char/dsp56k.c~dsp56k-bkl-pushdown
++++ a/drivers/char/dsp56k.c
+@@ -34,10 +34,10 @@
+ #include <linux/init.h>
+ #include <linux/device.h>
+ #include <linux/smp_lock.h>
++#include <linux/uaccess.h>	/* For put_user and get_user */
  
--#include <asm/uaccess.h>
- #include <asm/system.h>
--#include <asm/io.h>
- #include <asm/rtc.h>
- #if defined(CONFIG_M32R)
- #include <asm/m32r.h>
-@@ -153,9 +154,7 @@ static unsigned char days_in_mo[] =
+ #include <asm/atarihw.h>
+ #include <asm/traps.h>
+-#include <asm/uaccess.h>	/* For put_user and get_user */
  
- /* ioctl that supports RTC_RD_TIME and RTC_SET_TIME (read and set time/date). */
+ #include <asm/dsp56k.h>
  
--static int
--rtc_ioctl(struct inode *inode, struct file *file, unsigned int cmd,
--	  unsigned long arg)
-+static long rtc_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+@@ -322,8 +322,8 @@ static ssize_t dsp56k_write(struct file 
+ 	}
+ }
+ 
+-static int dsp56k_ioctl(struct inode *inode, struct file *file,
+-			unsigned int cmd, unsigned long arg)
++static long dsp56k_ioctl(struct file *file, unsigned int cmd,
++							unsigned long arg)
  {
- 	unsigned long flags;
- 
-@@ -165,7 +164,9 @@ rtc_ioctl(struct inode *inode, struct fi
- 			struct rtc_time rtc_tm;
- 
- 			memset(&rtc_tm, 0, sizeof (struct rtc_time));
+ 	int dev = iminor(inode) & 0x0f;
+ 	void __user *argp = (void __user *)arg;
+@@ -350,8 +350,9 @@ static int dsp56k_ioctl(struct inode *in
+ 			if (len > DSP56K_MAX_BINARY_LENGTH) {
+ 				return -EINVAL;
+ 			}
+-    
 +			lock_kernel();
- 			get_rtc_time(&rtc_tm);
+ 			r = dsp56k_upload(bin, len);
 +			unlock_kernel();
- 			if (copy_to_user((struct rtc_time*)arg, &rtc_tm, sizeof(struct rtc_time)))
+ 			if (r < 0) {
+ 				return r;
+ 			}
+@@ -361,12 +362,16 @@ static int dsp56k_ioctl(struct inode *in
+ 		case DSP56K_SET_TX_WSIZE:
+ 			if (arg > 4 || arg < 1)
+ 				return -EINVAL;
++			lock_kernel();
+ 			dsp56k.tx_wsize = (int) arg;
++			unlock_kernel();
+ 			break;
+ 		case DSP56K_SET_RX_WSIZE:
+ 			if (arg > 4 || arg < 1)
+ 				return -EINVAL;
++			lock_kernel();
+ 			dsp56k.rx_wsize = (int) arg;
++			unlock_kernel();
+ 			break;
+ 		case DSP56K_HOST_FLAGS:
+ 		{
+@@ -378,6 +383,7 @@ static int dsp56k_ioctl(struct inode *in
+ 			if(get_user(out, &hf->out) < 0)
  				return -EFAULT;
- 			return 0;
-@@ -217,6 +218,7 @@ rtc_ioctl(struct inode *inode, struct fi
- 			BIN_TO_BCD(mon);
- 			BIN_TO_BCD(yrs);
  
 +			lock_kernel();
- 			local_irq_save(flags);
- 			CMOS_WRITE(yrs, RTC_YEAR);
- 			CMOS_WRITE(mon, RTC_MONTH);
-@@ -225,6 +227,7 @@ rtc_ioctl(struct inode *inode, struct fi
- 			CMOS_WRITE(min, RTC_MINUTES);
- 			CMOS_WRITE(sec, RTC_SECONDS);
- 			local_irq_restore(flags);
+ 			if ((dir & 0x1) && (out & 0x1))
+ 				dsp56k_host_interface.icr |= DSP56K_ICR_HF0;
+ 			else if (dir & 0x1)
+@@ -392,14 +398,16 @@ static int dsp56k_ioctl(struct inode *in
+ 			if (dsp56k_host_interface.icr & DSP56K_ICR_HF1) status |= 0x2;
+ 			if (dsp56k_host_interface.isr & DSP56K_ISR_HF2) status |= 0x4;
+ 			if (dsp56k_host_interface.isr & DSP56K_ISR_HF3) status |= 0x8;
+-
 +			unlock_kernel();
- 
- 			/* Notice that at this point, the RTC is updated but
- 			 * the kernel is still running with the old time.
-@@ -244,8 +247,10 @@ rtc_ioctl(struct inode *inode, struct fi
- 			if(copy_from_user(&tcs_val, (int*)arg, sizeof(int)))
- 				return -EFAULT;
- 
-+			lock_kernel();
- 			tcs_val = RTC_TCR_PATTERN | (tcs_val & 0x0F);
- 			ds1302_writereg(RTC_TRICKLECHARGER, tcs_val);
-+			unlock_kernel();
- 			return 0;
+ 			return put_user(status, &hf->status);
  		}
+ 		case DSP56K_HOST_CMD:
+ 			if (arg > 31 || arg < 0)
+ 				return -EINVAL;
++			lock_kernel();
+ 			dsp56k_host_interface.cvr = (u_char)((arg & DSP56K_CVR_HV_MASK) |
+ 							     DSP56K_CVR_HC);
++			unlock_kernel();
+ 			break;
  		default:
-@@ -282,7 +287,7 @@ get_rtc_status(char *buf)
- 
- static const struct file_operations rtc_fops = {
+ 			return -EINVAL;
+@@ -491,7 +499,7 @@ static const struct file_operations dsp5
  	.owner		= THIS_MODULE,
--	.ioctl		= rtc_ioctl,
-+	.unlocked_ioctl	= rtc_ioctl,
+ 	.read		= dsp56k_read,
+ 	.write		= dsp56k_write,
+-	.ioctl		= dsp56k_ioctl,
++	.unlocked_ioctl	= dsp56k_ioctl,
+ 	.open		= dsp56k_open,
+ 	.release	= dsp56k_release,
  };
- 
- /* Probe for the chip by writing something to its RAM and try reading it back. */
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
