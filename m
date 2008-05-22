@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ppdev-wrap-ioctl-handler-in-driver-and-push-lock-down.patch added to -mm tree
-Date: Thu, 22 May 2008 16:16:17 -0700
-Message-ID: <200805222316.m4MNGH4W026597@imap1.linux-foundation.org>
+Subject: + ds1302-push-down-the-bkl-into-the-driver-ioctl-code.patch added to -mm tree
+Date: Thu, 22 May 2008 16:16:22 -0700
+Message-ID: <200805222316.m4MNGMpS026603@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59263 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54774 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758149AbYEVXQl (ORCPT
+	by vger.kernel.org with ESMTP id S1753937AbYEVXQw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 22 May 2008 19:16:41 -0400
+	Thu, 22 May 2008 19:16:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jirislaby@gmail.com
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jkosina@suse.cz
 
 
 The patch titled
-     ppdev: wrap ioctl handler in driver and push lock down
+     ds1302: push down the BKL into the driver ioctl code
 has been added to the -mm tree.  Its filename is
-     ppdev-wrap-ioctl-handler-in-driver-and-push-lock-down.patch
+     ds1302-push-down-the-bkl-into-the-driver-ioctl-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,67 +34,91 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ppdev: wrap ioctl handler in driver and push lock down
+Subject: ds1302: push down the BKL into the driver ioctl code
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Jiri Slaby <jirislaby@gmail.com>
+Cc: Jiri Kosina <jkosina@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ppdev.c |   18 +++++++++++++-----
- 1 file changed, 13 insertions(+), 5 deletions(-)
+ drivers/char/ds1302.c |   17 +++++++++++------
+ 1 file changed, 11 insertions(+), 6 deletions(-)
 
-diff -puN drivers/char/ppdev.c~ppdev-wrap-ioctl-handler-in-driver-and-push-lock-down drivers/char/ppdev.c
---- a/drivers/char/ppdev.c~ppdev-wrap-ioctl-handler-in-driver-and-push-lock-down
-+++ a/drivers/char/ppdev.c
-@@ -67,7 +67,7 @@
- #include <linux/major.h>
- #include <linux/ppdev.h>
- #include <linux/smp_lock.h>
--#include <asm/uaccess.h>
+diff -puN drivers/char/ds1302.c~ds1302-push-down-the-bkl-into-the-driver-ioctl-code drivers/char/ds1302.c
+--- a/drivers/char/ds1302.c~ds1302-push-down-the-bkl-into-the-driver-ioctl-code
++++ a/drivers/char/ds1302.c
+@@ -20,10 +20,11 @@
+ #include <linux/miscdevice.h>
+ #include <linux/delay.h>
+ #include <linux/bcd.h>
++#include <linux/smp_lock.h>
 +#include <linux/uaccess.h>
++#include <linux/io.h>
  
- #define PP_VERSION "ppdev: user-space parallel port driver"
- #define CHRDEV "ppdev"
-@@ -328,10 +328,9 @@ static enum ieee1284_phase init_phase (i
- 	return IEEE1284_PH_FWD_IDLE;
- }
+-#include <asm/uaccess.h>
+ #include <asm/system.h>
+-#include <asm/io.h>
+ #include <asm/rtc.h>
+ #if defined(CONFIG_M32R)
+ #include <asm/m32r.h>
+@@ -153,9 +154,7 @@ static unsigned char days_in_mo[] =
  
--static int pp_ioctl(struct inode *inode, struct file *file,
--		    unsigned int cmd, unsigned long arg)
-+static int pp_do_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ /* ioctl that supports RTC_RD_TIME and RTC_SET_TIME (read and set time/date). */
+ 
+-static int
+-rtc_ioctl(struct inode *inode, struct file *file, unsigned int cmd,
+-	  unsigned long arg)
++static long rtc_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
  {
--	unsigned int minor = iminor(inode);
-+	unsigned int minor = iminor(file->f_path.dentry->d_inode);
- 	struct pp_struct *pp = file->private_data;
- 	struct parport * port;
- 	void __user *argp = (void __user *)arg;
-@@ -634,6 +633,15 @@ static int pp_ioctl(struct inode *inode,
- 	return 0;
- }
+ 	unsigned long flags;
  
-+static long pp_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
-+{
-+	long ret;
-+	lock_kernel();
-+	ret = pp_do_ioctl(file, cmd, arg);
-+	unlock_kernel();
-+	return ret;
-+}
-+
- static int pp_open (struct inode * inode, struct file * file)
- {
- 	unsigned int minor = iminor(inode);
-@@ -745,7 +753,7 @@ static const struct file_operations pp_f
- 	.read		= pp_read,
- 	.write		= pp_write,
- 	.poll		= pp_poll,
--	.ioctl		= pp_ioctl,
-+	.unlocked_ioctl	= pp_ioctl,
- 	.open		= pp_open,
- 	.release	= pp_release,
+@@ -165,7 +164,9 @@ rtc_ioctl(struct inode *inode, struct fi
+ 			struct rtc_time rtc_tm;
+ 
+ 			memset(&rtc_tm, 0, sizeof (struct rtc_time));
++			lock_kernel();
+ 			get_rtc_time(&rtc_tm);
++			unlock_kernel();
+ 			if (copy_to_user((struct rtc_time*)arg, &rtc_tm, sizeof(struct rtc_time)))
+ 				return -EFAULT;
+ 			return 0;
+@@ -217,6 +218,7 @@ rtc_ioctl(struct inode *inode, struct fi
+ 			BIN_TO_BCD(mon);
+ 			BIN_TO_BCD(yrs);
+ 
++			lock_kernel();
+ 			local_irq_save(flags);
+ 			CMOS_WRITE(yrs, RTC_YEAR);
+ 			CMOS_WRITE(mon, RTC_MONTH);
+@@ -225,6 +227,7 @@ rtc_ioctl(struct inode *inode, struct fi
+ 			CMOS_WRITE(min, RTC_MINUTES);
+ 			CMOS_WRITE(sec, RTC_SECONDS);
+ 			local_irq_restore(flags);
++			unlock_kernel();
+ 
+ 			/* Notice that at this point, the RTC is updated but
+ 			 * the kernel is still running with the old time.
+@@ -244,8 +247,10 @@ rtc_ioctl(struct inode *inode, struct fi
+ 			if(copy_from_user(&tcs_val, (int*)arg, sizeof(int)))
+ 				return -EFAULT;
+ 
++			lock_kernel();
+ 			tcs_val = RTC_TCR_PATTERN | (tcs_val & 0x0F);
+ 			ds1302_writereg(RTC_TRICKLECHARGER, tcs_val);
++			unlock_kernel();
+ 			return 0;
+ 		}
+ 		default:
+@@ -282,7 +287,7 @@ get_rtc_status(char *buf)
+ 
+ static const struct file_operations rtc_fops = {
+ 	.owner		= THIS_MODULE,
+-	.ioctl		= rtc_ioctl,
++	.unlocked_ioctl	= rtc_ioctl,
  };
+ 
+ /* Probe for the chip by writing something to its RAM and try reading it back. */
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
