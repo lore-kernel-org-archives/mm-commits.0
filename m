@@ -1,160 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: - mac80211-introduce-struct-michael_mic_ctx-and-static-helpers.patch removed from -mm tree
-Date: Fri, 23 May 2008 11:59:40 -0700
-Message-ID: <200805231859.m4NIxeVm004256@imap1.linux-foundation.org>
+Subject: - mac80211-tkipc-use-struct-tkip_ctx-in-phase-2-key-mixing.patch removed from -mm tree
+Date: Fri, 23 May 2008 11:59:48 -0700
+Message-ID: <200805231859.m4NIxmZ6004270@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41285 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59056 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753981AbYEWTAG (ORCPT
+	by vger.kernel.org with ESMTP id S1754051AbYEWTAl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 23 May 2008 15:00:06 -0400
+	Fri, 23 May 2008 15:00:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: harvey.harrison@gmail.com, linville@tuxdriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mac80211: introduce struct michael_mic_ctx and static helpers
+     mac80211: tkip.c use struct tkip_ctx in phase 2 key mixing
 has been removed from the -mm tree.  Its filename was
-     mac80211-introduce-struct-michael_mic_ctx-and-static-helpers.patch
+     mac80211-tkipc-use-struct-tkip_ctx-in-phase-2-key-mixing.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mac80211: introduce struct michael_mic_ctx and static helpers
+Subject: mac80211: tkip.c use struct tkip_ctx in phase 2 key mixing
 From: Harvey Harrison <harvey.harrison@gmail.com>
-
-Replace the existing macro with a static function, significantly shrinks the
-size of the produced object file.
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/mac80211/michael.c |   75 ++++++++++++++++++++-------------------
- net/mac80211/michael.h |    4 ++
- 2 files changed, 44 insertions(+), 35 deletions(-)
+ net/mac80211/tkip.c |   17 +++++++----------
+ 1 file changed, 7 insertions(+), 10 deletions(-)
 
-diff -puN net/mac80211/michael.c~mac80211-introduce-struct-michael_mic_ctx-and-static-helpers net/mac80211/michael.c
---- a/net/mac80211/michael.c~mac80211-introduce-struct-michael_mic_ctx-and-static-helpers
-+++ a/net/mac80211/michael.c
-@@ -13,46 +13,52 @@
- 
- #include "michael.h"
- 
--#define michael_block(l, r) \
--do { \
--	r ^= rol32(l, 17); \
--	l += r; \
--	r ^= ((l & 0xff00ff00) >> 8) | ((l & 0x00ff00ff) << 8); \
--	l += r; \
--	r ^= rol32(l, 3); \
--	l += r; \
--	r ^= ror32(l, 2); \
--	l += r; \
--} while (0)
-+static void michael_block(struct michael_mic_ctx *mctx, u32 val)
-+{
-+	mctx->l ^= val;
-+	mctx->r ^= rol32(mctx->l, 17);
-+	mctx->l += mctx->r;
-+	mctx->r ^= ((mctx->l & 0xff00ff00) >> 8) |
-+		   ((mctx->l & 0x00ff00ff) << 8);
-+	mctx->l += mctx->r;
-+	mctx->r ^= rol32(mctx->l, 3);
-+	mctx->l += mctx->r;
-+	mctx->r ^= ror32(mctx->l, 2);
-+	mctx->l += mctx->r;
-+}
-+
-+static void michael_mic_hdr(struct michael_mic_ctx *mctx,
-+			    u8 *key, u8 *da, u8 *sa, u8 priority)
-+{
-+	mctx->l = get_unaligned_le32(key);
-+	mctx->r = get_unaligned_le32(key + 4);
-+
-+	/*
-+	 * A pseudo header (DA, SA, Priority, 0, 0, 0) is used in Michael MIC
-+	 * calculation, but it is _not_ transmitted
-+	 */
-+	michael_block(mctx, get_unaligned_le32(da));
-+	michael_block(mctx, get_unaligned_le16(&da[4]) |
-+			    (get_unaligned_le16(sa) << 16));
-+	michael_block(mctx, get_unaligned_le32(&sa[2]));
-+	michael_block(mctx, priority);
-+}
- 
- void michael_mic(u8 *key, u8 *da, u8 *sa, u8 priority,
- 		 u8 *data, size_t data_len, u8 *mic)
- {
--	u32 l, r, val;
-+	u32 val;
- 	size_t block, blocks, left;
-+	struct michael_mic_ctx mctx;
- 
--	l = get_unaligned_le32(key);
--	r = get_unaligned_le32(key + 4);
--
--	/* A pseudo header (DA, SA, Priority, 0, 0, 0) is used in Michael MIC
--	 * calculation, but it is _not_ transmitted */
--	l ^= get_unaligned_le32(da);
--	michael_block(l, r);
--	l ^= get_unaligned_le16(&da[4]) | (get_unaligned_le16(sa) << 16);
--	michael_block(l, r);
--	l ^= get_unaligned_le32(&sa[2]);
--	michael_block(l, r);
--	l ^= priority;
--	michael_block(l, r);
-+	michael_mic_hdr(&mctx, key, da, sa, priority);
- 
- 	/* Real data */
- 	blocks = data_len / 4;
- 	left = data_len % 4;
- 
--	for (block = 0; block < blocks; block++) {
--		l ^= get_unaligned_le32(&data[block * 4]);
--		michael_block(l, r);
--	}
-+	for (block = 0; block < blocks; block++)
-+		michael_block(&mctx, get_unaligned_le32(&data[block * 4]));
- 
- 	/* Partial block of 0..3 bytes and padding: 0x5a + 4..7 zeros to make
- 	 * total length a multiple of 4. */
-@@ -62,11 +68,10 @@ void michael_mic(u8 *key, u8 *da, u8 *sa
- 		left--;
- 		val |= data[blocks * 4 + left];
- 	}
--	l ^= val;
--	michael_block(l, r);
--	/* last block is zero, so l ^ 0 = l */
--	michael_block(l, r);
- 
--	put_unaligned_le32(l, mic);
--	put_unaligned_le32(r, mic + 4);
-+	michael_block(&mctx, val);
-+	michael_block(&mctx, 0);
-+
-+	put_unaligned_le32(mctx.l, mic);
-+	put_unaligned_le32(mctx.r, mic + 4);
+diff -puN net/mac80211/tkip.c~mac80211-tkipc-use-struct-tkip_ctx-in-phase-2-key-mixing net/mac80211/tkip.c
+--- a/net/mac80211/tkip.c~mac80211-tkipc-use-struct-tkip_ctx-in-phase-2-key-mixing
++++ a/net/mac80211/tkip.c
+@@ -95,10 +95,12 @@ static void tkip_mixing_phase1(struct ie
+ 	ctx->initialized = 1;
  }
-diff -puN net/mac80211/michael.h~mac80211-introduce-struct-michael_mic_ctx-and-static-helpers net/mac80211/michael.h
---- a/net/mac80211/michael.h~mac80211-introduce-struct-michael_mic_ctx-and-static-helpers
-+++ a/net/mac80211/michael.h
-@@ -14,6 +14,10 @@
  
- #define MICHAEL_MIC_LEN 8
+-static void tkip_mixing_phase2(const u16 *p1k, const u8 *tk, u16 tsc_IV16,
+-			       u8 *rc4key)
++static void tkip_mixing_phase2(struct ieee80211_key *key, struct tkip_ctx *ctx,
++			       u16 tsc_IV16, u8 *rc4key)
+ {
+ 	u16 ppk[6];
++	const u16 *p1k = ctx->p1k;
++	const u8 *tk = &key->conf.key[ALG_TKIP_TEMP_ENCR_KEY];
+ 	int i;
  
-+struct michael_mic_ctx {
-+	u32 l, r;
-+};
-+
- void michael_mic(u8 *key, u8 *da, u8 *sa, u8 priority,
- 		 u8 *data, size_t data_len, u8 *mic);
+ 	ppk[0] = p1k[0];
+@@ -152,9 +154,7 @@ static void ieee80211_tkip_gen_rc4key(st
+ 	if (key->u.tkip.tx.iv16 == 0 || !key->u.tkip.tx.initialized)
+ 		tkip_mixing_phase1(key, ta, &key->u.tkip.tx, key->u.tkip.tx.iv32);
  
+-	tkip_mixing_phase2(key->u.tkip.tx.p1k,
+-			   &key->conf.key[ALG_TKIP_TEMP_ENCR_KEY],
+-			   key->u.tkip.tx.iv16, rc4key);
++	tkip_mixing_phase2(key, &key->u.tkip.tx, key->u.tkip.tx.iv16, rc4key);
+ }
+ 
+ void ieee80211_get_tkip_key(struct ieee80211_key_conf *keyconf,
+@@ -197,8 +197,7 @@ void ieee80211_get_tkip_key(struct ieee8
+ 		return;
+ 	}
+ 
+-	tkip_mixing_phase2(key->u.tkip.tx.p1k,
+-		&key->conf.key[ALG_TKIP_TEMP_ENCR_KEY],	iv16, outkey);
++	tkip_mixing_phase2(key, &key->u.tkip.tx, iv16, outkey);
+ }
+ EXPORT_SYMBOL(ieee80211_get_tkip_key);
+ 
+@@ -315,9 +314,7 @@ int ieee80211_tkip_decrypt_data(struct c
+ 		}
+ 	}
+ 
+-	tkip_mixing_phase2(key->u.tkip.rx[queue].p1k,
+-			   &key->conf.key[ALG_TKIP_TEMP_ENCR_KEY],
+-			   iv16, rc4key);
++	tkip_mixing_phase2(key, &key->u.tkip.rx[queue], iv16, rc4key);
+ #ifdef CONFIG_TKIP_DEBUG
+ 	{
+ 		int i;
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
