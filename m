@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix.patch added to -mm tree
-Date: Thu, 22 May 2008 20:35:56 -0700
-Message-ID: <200805230347.m4N3lBT1003540@imap1.linux-foundation.org>
+Subject: + sched-delete-dead-stuff-2.patch added to -mm tree
+Date: Thu, 22 May 2008 20:40:52 -0700
+Message-ID: <200805230352.m4N3q78b003703@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41762 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51169 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752614AbYEWDrb (ORCPT
+	by vger.kernel.org with ESMTP id S1751011AbYEWDwT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 22 May 2008 23:47:31 -0400
+	Thu, 22 May 2008 23:52:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@redhat.com
+Cc: akpm@linux-foundation.org, mingo@elte.hu
 
 
 The patch titled
-     watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix
+     sched-delete-dead-stuff-2
 has been added to the -mm tree.  Its filename is
-     watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix.patch
+     sched-delete-dead-stuff-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,28 +34,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix
+Subject: sched-delete-dead-stuff-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Alan Cox <alan@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/pcwd.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/sched_fair.c |   14 --------------
+ 1 file changed, 14 deletions(-)
 
-diff -puN drivers/watchdog/pcwd.c~watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix drivers/watchdog/pcwd.c
---- a/drivers/watchdog/pcwd.c~watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix
-+++ a/drivers/watchdog/pcwd.c
-@@ -168,7 +168,7 @@ static const int heartbeat_tbl [] = {
- static int cards_found;
+diff -puN kernel/sched_fair.c~sched-delete-dead-stuff-2 kernel/sched_fair.c
+--- a/kernel/sched_fair.c~sched-delete-dead-stuff-2
++++ a/kernel/sched_fair.c
+@@ -1137,20 +1137,6 @@ out:
+ }
+ #endif /* CONFIG_SMP */
  
- /* internal variables */
--static atomic_t open_allowed = ATOMIC_INIT(1);
-+static unsigned long open_allowed;
- static char expect_close;
- static int temp_panic;
- 
+-static unsigned long wakeup_gran(struct sched_entity *se)
+-{
+-	unsigned long gran = sysctl_sched_wakeup_granularity;
+-
+-	/*
+-	 * More easily preempt - nice tasks, while not making
+-	 * it harder for + nice tasks.
+-	 */
+-	if (unlikely(se->load.weight > NICE_0_LOAD))
+-		gran = calc_delta_fair(gran, &se->load);
+-
+-	return gran;
+-}
+-
+ /*
+  * Should 'se' preempt 'curr'.
+  *
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -92,6 +104,7 @@ git-battery.patch
 pci-hotplug-introduce-pci_slot.patch
 pci-hotplug-acpi-pci-slot-detection-driver.patch
 sched-delete-dead-stuff.patch
+sched-delete-dead-stuff-2.patch
 drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
 s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
 git-unionfs.patch
@@ -102,7 +115,6 @@ drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
 drivers-uwb-wlp-sysfsc-dead-code.patch
 drivers-uwb-whcic-needs-dma-mappingh.patch
 usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix.patch
-git-vfs-cleanups-reject.patch
 git-watchdog.patch
 git-watchdog-git-rejects.patch
 watchdog-fix-booke_wdtc-on-mpc85xx-smp-system.patch
