@@ -1,59 +1,48 @@
 From: akpm@linux-foundation.org
-Subject: - sfc-remove-sub-minor-component-from-driver-version.patch removed from -mm tree
-Date: Fri, 23 May 2008 11:59:27 -0700
-Message-ID: <200805231859.m4NIxRmr004240@imap1.linux-foundation.org>
+Subject: - drivers-net-ehea-remove-unnecessary-memset-after-kzalloc.patch removed from -mm tree
+Date: Fri, 23 May 2008 11:58:57 -0700
+Message-ID: <200805231858.m4NIwv7Y004188@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48397 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57708 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753510AbYEWS7c (ORCPT
+	by vger.kernel.org with ESMTP id S1754014AbYEWTAd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 23 May 2008 14:59:32 -0400
+	Fri, 23 May 2008 15:00:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bhutchings@solarflare.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: joe@perches.com, christophe.jaillet@wanadoo.fr, raisch@de.ibm.com, themann@de.ibm.com, tklein@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sfc: remove sub-minor component from driver version
+     drivers/net/ehea: remove unnecessary memset after kzalloc
 has been removed from the -mm tree.  Its filename was
-     sfc-remove-sub-minor-component-from-driver-version.patch
+     drivers-net-ehea-remove-unnecessary-memset-after-kzalloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sfc: remove sub-minor component from driver version
-From: Ben Hutchings <bhutchings@solarflare.com>
+Subject: drivers/net/ehea: remove unnecessary memset after kzalloc
+From: Joe Perches <joe@perches.com>
 
-This driver has diverged from the out-of-tree driver to which the version
-number originally applied.  It should be identified primarily by kernel
-version.
-
-Signed-off-by: Ben Hutchings <bhutchings@solarflare.com>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Christoph Raisch <raisch@de.ibm.com>
+Cc: Jan-Bernd Themann <themann@de.ibm.com>
+Cc: Thomas Klein <tklein@de.ibm.com>
+Cc: Christophe Jaillet <christophe.jaillet@wanadoo.fr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/sfc/net_driver.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/ehea/ehea_main.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN drivers/net/sfc/net_driver.h~sfc-remove-sub-minor-component-from-driver-version drivers/net/sfc/net_driver.h
---- a/drivers/net/sfc/net_driver.h~sfc-remove-sub-minor-component-from-driver-version
-+++ a/drivers/net/sfc/net_driver.h
-@@ -42,7 +42,7 @@
- #ifndef EFX_DRIVER_NAME
- #define EFX_DRIVER_NAME	"sfc"
- #endif
--#define EFX_DRIVER_VERSION	"2.2.0136"
-+#define EFX_DRIVER_VERSION	"2.2"
+diff -puN drivers/net/ehea/ehea_main.c~drivers-net-ehea-remove-unnecessary-memset-after-kzalloc drivers/net/ehea/ehea_main.c
+--- a/drivers/net/ehea/ehea_main.c~drivers-net-ehea-remove-unnecessary-memset-after-kzalloc
++++ a/drivers/net/ehea/ehea_main.c
+@@ -2213,8 +2213,6 @@ static void ehea_vlan_rx_register(struct
+ 		goto out;
+ 	}
  
- #ifdef EFX_ENABLE_DEBUG
- #define EFX_BUG_ON_PARANOID(x) BUG_ON(x)
-_
-
-Patches currently in -mm which might be from bhutchings@solarflare.com are
-
-git-net.patch
-
+-	memset(cb1->vlan_filter, 0, sizeof(cb1->vlan_filter));
