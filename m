@@ -1,129 +1,205 @@
 From: akpm@linux-foundation.org
-Subject: - video-fix-integer-as-null-pointer-warnings.patch removed from -mm tree
-Date: Fri, 23 May 2008 11:59:53 -0700
-Message-ID: <200805231859.m4NIxrbI004276@imap1.linux-foundation.org>
+Subject: - wan-protect-cisco-hdlc-state-changes-with-a-spinlock.patch removed from -mm tree
+Date: Fri, 23 May 2008 11:59:36 -0700
+Message-ID: <200805231859.m4NIxaCm004250@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35546 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52463 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753630AbYEWS7z (ORCPT
+	by vger.kernel.org with ESMTP id S1753876AbYEWS7o (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 23 May 2008 14:59:55 -0400
+	Fri, 23 May 2008 14:59:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, mm-commits@vger.kernel.org
+To: khc@pm.waw.pl, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fbdev: fix integer as NULL pointer warnings
+     WAN: protect Cisco HDLC state changes with a spinlock
 has been removed from the -mm tree.  Its filename was
-     video-fix-integer-as-null-pointer-warnings.patch
+     wan-protect-cisco-hdlc-state-changes-with-a-spinlock.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: fbdev: fix integer as NULL pointer warnings
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: WAN: protect Cisco HDLC state changes with a spinlock
+=46rom: Krzysztof Halasa <khc@pm.waw.pl>
 
-drivers/video/aty/atyfb_base.c:3359:26: warning: Using plain integer as NULL pointer
-drivers/video/aty/radeon_base.c:2280:32: warning: Using plain integer as NULL pointer
-drivers/video/matrox/matroxfb_base.h:203:25: warning: Using plain integer as NULL pointer
-drivers/video/matrox/matroxfb_base.h:203:25: warning: Using plain integer as NULL pointer
-
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Signed-off-by: Krzysztof Ha=B3asa <khc@pm.waw.pl>
+Acked-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/aty/atyfb_base.c       |    2 +-
- drivers/video/aty/radeon_base.c      |    2 +-
- drivers/video/matrox/matroxfb_base.h |    2 +-
- drivers/video/sis/sis_main.c         |    2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/net/wan/hdlc_cisco.c |   82 +++++++++++++++++++--------------
+ 1 file changed, 49 insertions(+), 33 deletions(-)
 
-diff -puN drivers/video/aty/atyfb_base.c~video-fix-integer-as-null-pointer-warnings drivers/video/aty/atyfb_base.c
---- a/drivers/video/aty/atyfb_base.c~video-fix-integer-as-null-pointer-warnings
-+++ a/drivers/video/aty/atyfb_base.c
-@@ -3356,7 +3356,7 @@ static int __devinit atyfb_setup_generic
- 
- 	info->fix.mmio_start = raddr;
- 	par->ati_regbase = ioremap(info->fix.mmio_start, 0x1000);
--	if (par->ati_regbase == 0)
-+	if (!par->ati_regbase)
- 		return -ENOMEM;
- 
- 	info->fix.mmio_start += par->aux_start ? 0x400 : 0xc00;
-diff -puN drivers/video/aty/radeon_base.c~video-fix-integer-as-null-pointer-warnings drivers/video/aty/radeon_base.c
---- a/drivers/video/aty/radeon_base.c~video-fix-integer-as-null-pointer-warnings
-+++ a/drivers/video/aty/radeon_base.c
-@@ -2277,7 +2277,7 @@ static int __devinit radeonfb_pci_regist
- 	do {
- 		rinfo->fb_base = ioremap (rinfo->fb_base_phys,
- 					  rinfo->mapped_vram);
--	} while (   rinfo->fb_base == 0 &&
-+	} while (!rinfo->fb_base &&
- 		  ((rinfo->mapped_vram /=2) >= MIN_MAPPED_VRAM) );
- 
- 	if (rinfo->fb_base == NULL) {
-diff -puN drivers/video/matrox/matroxfb_base.h~video-fix-integer-as-null-pointer-warnings drivers/video/matrox/matroxfb_base.h
---- a/drivers/video/matrox/matroxfb_base.h~video-fix-integer-as-null-pointer-warnings
-+++ a/drivers/video/matrox/matroxfb_base.h
-@@ -200,7 +200,7 @@ static inline int mga_ioremap(unsigned l
- 		virt->vaddr = ioremap_nocache(phys, size);
- 	else
- 		virt->vaddr = ioremap(phys, size);
--	return (virt->vaddr == 0); /* 0, !0... 0, error_code in future */
-+	return (virt->vaddr == NULL); /* 0, !0... 0, error_code in future */
- }
- 
- static inline void mga_iounmap(vaddr_t va) {
-diff -puN drivers/video/sis/sis_main.c~video-fix-integer-as-null-pointer-warnings drivers/video/sis/sis_main.c
---- a/drivers/video/sis/sis_main.c~video-fix-integer-as-null-pointer-warnings
-+++ a/drivers/video/sis/sis_main.c
-@@ -5787,7 +5787,7 @@ sisfb_probe(struct pci_dev *pdev, const 
- 	} else {
- 		struct sis_video_info *countvideo = card_list;
- 		ivideo->cardnumber = 1;
--		while((countvideo = countvideo->next) != 0)
-+		while((countvideo = countvideo->next) != NULL)
- 			ivideo->cardnumber++;
+diff -puN drivers/net/wan/hdlc_cisco.c~wan-protect-cisco-hdlc-state-cha=
+nges-with-a-spinlock drivers/net/wan/hdlc_cisco.c
+--- a/drivers/net/wan/hdlc_cisco.c~wan-protect-cisco-hdlc-state-changes=
+-with-a-spinlock
++++ a/drivers/net/wan/hdlc_cisco.c
+@@ -56,6 +56,7 @@ struct cisco_state {
+ 	cisco_proto settings;
+=20
+ 	struct timer_list timer;
++	spinlock_t lock;
+ 	unsigned long last_poll;
+ 	int up;
+ 	int request_sent;
+@@ -158,6 +159,7 @@ static int cisco_rx(struct sk_buff *skb)
+ {
+ 	struct net_device *dev =3D skb->dev;
+ 	hdlc_device *hdlc =3D dev_to_hdlc(dev);
++	struct cisco_state *st =3D state(hdlc);
+ 	struct hdlc_header *data =3D (struct hdlc_header*)skb->data;
+ 	struct cisco_packet *cisco_data;
+ 	struct in_device *in_dev;
+@@ -220,11 +222,12 @@ static int cisco_rx(struct sk_buff *skb)
+ 			goto rx_error;
+=20
+ 		case CISCO_KEEPALIVE_REQ:
+-			state(hdlc)->rxseq =3D ntohl(cisco_data->par1);
+-			if (state(hdlc)->request_sent &&
+-			    ntohl(cisco_data->par2) =3D=3D state(hdlc)->txseq) {
+-				state(hdlc)->last_poll =3D jiffies;
+-				if (!state(hdlc)->up) {
++			spin_lock(&st->lock);
++			st->rxseq =3D ntohl(cisco_data->par1);
++			if (st->request_sent &&
++			    ntohl(cisco_data->par2) =3D=3D st->txseq) {
++				st->last_poll =3D jiffies;
++				if (!st->up) {
+ 					u32 sec, min, hrs, days;
+ 					sec =3D ntohl(cisco_data->time) / 1000;
+ 					min =3D sec / 60; sec -=3D min * 60;
+@@ -232,12 +235,12 @@ static int cisco_rx(struct sk_buff *skb)
+ 					days =3D hrs / 24; hrs -=3D days * 24;
+ 					printk(KERN_INFO "%s: Link up (peer "
+ 					       "uptime %ud%uh%um%us)\n",
+-					       dev->name, days, hrs,
+-					       min, sec);
++					       dev->name, days, hrs, min, sec);
+ 					netif_dormant_off(dev);
+-					state(hdlc)->up =3D 1;
++					st->up =3D 1;
+ 				}
+ 			}
++			spin_unlock(&st->lock);
+=20
+ 			dev_kfree_skb_any(skb);
+ 			return NET_RX_SUCCESS;
+@@ -261,24 +264,25 @@ static void cisco_timer(unsigned long ar
+ {
+ 	struct net_device *dev =3D (struct net_device *)arg;
+ 	hdlc_device *hdlc =3D dev_to_hdlc(dev);
++	struct cisco_state *st =3D state(hdlc);
+=20
+-	if (state(hdlc)->up &&
+-	    time_after(jiffies, state(hdlc)->last_poll +
+-		       state(hdlc)->settings.timeout * HZ)) {
+-		state(hdlc)->up =3D 0;
++	spin_lock(&st->lock);
++	if (st->up &&
++	    time_after(jiffies, st->last_poll + st->settings.timeout * HZ)) {
++		st->up =3D 0;
+ 		printk(KERN_INFO "%s: Link down\n", dev->name);
+ 		netif_dormant_on(dev);
  	}
- 
+=20
+-	cisco_keepalive_send(dev, CISCO_KEEPALIVE_REQ,
+-			     htonl(++state(hdlc)->txseq),
+-			     htonl(state(hdlc)->rxseq));
+-	state(hdlc)->request_sent =3D 1;
+-	state(hdlc)->timer.expires =3D jiffies +
+-		state(hdlc)->settings.interval * HZ;
+-	state(hdlc)->timer.function =3D cisco_timer;
+-	state(hdlc)->timer.data =3D arg;
+-	add_timer(&state(hdlc)->timer);
++	cisco_keepalive_send(dev, CISCO_KEEPALIVE_REQ, htonl(++st->txseq),
++			     htonl(st->rxseq));
++	st->request_sent =3D 1;
++	spin_unlock(&st->lock);
++
++	st->timer.expires =3D jiffies + st->settings.interval * HZ;
++	st->timer.function =3D cisco_timer;
++	st->timer.data =3D arg;
++	add_timer(&st->timer);
+ }
+=20
+=20
+@@ -286,15 +290,20 @@ static void cisco_timer(unsigned long ar
+ static void cisco_start(struct net_device *dev)
+ {
+ 	hdlc_device *hdlc =3D dev_to_hdlc(dev);
+-	state(hdlc)->up =3D 0;
+-	state(hdlc)->request_sent =3D 0;
+-	state(hdlc)->txseq =3D state(hdlc)->rxseq =3D 0;
+-
+-	init_timer(&state(hdlc)->timer);
+-	state(hdlc)->timer.expires =3D jiffies + HZ; /*First poll after 1s*/
+-	state(hdlc)->timer.function =3D cisco_timer;
+-	state(hdlc)->timer.data =3D (unsigned long)dev;
+-	add_timer(&state(hdlc)->timer);
++	struct cisco_state *st =3D state(hdlc);
++	unsigned long flags;
++
++	spin_lock_irqsave(&st->lock, flags);
++	st->up =3D 0;
++	st->request_sent =3D 0;
++	st->txseq =3D st->rxseq =3D 0;
++	spin_unlock_irqrestore(&st->lock, flags);
++
++	init_timer(&st->timer);
++	st->timer.expires =3D jiffies + HZ; /* First poll after 1 s */
++	st->timer.function =3D cisco_timer;
++	st->timer.data =3D (unsigned long)dev;
++	add_timer(&st->timer);
+ }
+=20
+=20
+@@ -302,10 +311,16 @@ static void cisco_start(struct net_devic
+ static void cisco_stop(struct net_device *dev)
+ {
+ 	hdlc_device *hdlc =3D dev_to_hdlc(dev);
+-	del_timer_sync(&state(hdlc)->timer);
++	struct cisco_state *st =3D state(hdlc);
++	unsigned long flags;
++
++	del_timer_sync(&st->timer);
++
++	spin_lock_irqsave(&st->lock, flags);
+ 	netif_dormant_on(dev);
+-	state(hdlc)->up =3D 0;
+-	state(hdlc)->request_sent =3D 0;
++	st->up =3D 0;
++	st->request_sent =3D 0;
++	spin_unlock_irqrestore(&st->lock, flags);
+ }
+=20
+=20
+@@ -367,6 +382,7 @@ static int cisco_ioctl(struct net_device
+ 			return result;
+=20
+ 		memcpy(&state(hdlc)->settings, &new_settings, size);
++		spin_lock_init(&state(hdlc)->lock);
+ 		dev->hard_start_xmit =3D hdlc->xmit;
+ 		dev->header_ops =3D &cisco_header_ops;
+ 		dev->type =3D ARPHRD_CISCO;
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from khc@pm.waw.pl are
 
-origin.patch
-linux-next.patch
-kgdb-use-put_unaligned_be32-helper.patch
-cifs-remove-global_extern-macro.patch
-media-use-get_unaligned_-helpers.patch
-mtd-mtdcharc-silence-sparse-warning.patch
-mtd-mtdcharc-remove-shadowed-variable-warnings.patch
-scsi-replace-remaining-__function__-occurrences.patch
-fusion-replace-remaining-__function__-occurrences.patch
-scsi-replace-__inline-with-inline.patch
-scsi-use-get_unaligned_-helpers.patch
-scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
-scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
-block-use-get_unaligned_-helpers.patch
-usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues.patch
-git-watchdog.patch
-xfs-use-get_unaligned_-helpers.patch
-xtensa-replace-remaining-__function__-occurences.patch
-fs-ldm-use-get_unaligned_-helpers.patch
-include-use-get-put_unaligned_-helpers.patch
-lzo-use-get-put_unaligned_-helpers.patch
-asm-generic-int-ll64h-always-provide-__su64.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-isdn-use-the-common-ascii-hex-helpers.patch
-net-use-the-common-ascii-hex-helpers.patch
-kgdb-use-the-common-ascii-hex-helpers.patch
-cris-use-the-common-ascii-hex-helpers.patch
-frv-use-the-common-ascii-hex-helpers.patch
-mips-use-the-common-ascii-hex-helpers.patch
-ppc-use-the-common-ascii-hex-helpers.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-mn10300-use-the-common-ascii-hex-helpers.patch
+git-net.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
