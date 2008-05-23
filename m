@@ -1,59 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - ubifs-unborkage.patch removed from -mm tree
-Date: Fri, 23 May 2008 11:58:37 -0700
-Message-ID: <200805231858.m4NIwbCm004165@imap1.linux-foundation.org>
+Subject: - drivers-net-tokenring-3c359c-squish-a-warning.patch removed from -mm tree
+Date: Fri, 23 May 2008 11:58:47 -0700
+Message-ID: <200805231858.m4NIwlTL004176@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45965 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58559 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750979AbYEWS6r (ORCPT
+	by vger.kernel.org with ESMTP id S1755202AbYEWS65 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 23 May 2008 14:58:47 -0400
+	Fri, 23 May 2008 14:58:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, Artem.Bityutskiy@nokia.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, greg@kroah.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ubifs unborkage
+     drivers/net/tokenring/3c359.c: squish a warning
 has been removed from the -mm tree.  Its filename was
-     ubifs-unborkage.patch
+     drivers-net-tokenring-3c359c-squish-a-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ubifs unborkage
+Subject: drivers/net/tokenring/3c359.c: squish a warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
+When dev_name() is changed to return `const char *':
+
+drivers/net/tokenring/3c359.c: In function 'xl_probe':
+drivers/net/tokenring/3c359.c:318: warning: assignment discards qualifiers from pointer target type
+
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ubifs/ioctl.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/net/tokenring/3c359.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ubifs/ioctl.c~ubifs-unborkage fs/ubifs/ioctl.c
---- a/fs/ubifs/ioctl.c~ubifs-unborkage
-+++ a/fs/ubifs/ioctl.c
-@@ -190,7 +190,6 @@ long ubifs_ioctl(struct file *file, unsi
- #ifdef CONFIG_COMPAT
- long ubifs_compat_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
- {
--	struct inode *inode = file->f_path.dentry->d_inode;
- 	int err;
+diff -puN drivers/net/tokenring/3c359.h~drivers-net-tokenring-3c359c-squish-a-warning drivers/net/tokenring/3c359.h
+--- a/drivers/net/tokenring/3c359.h~drivers-net-tokenring-3c359c-squish-a-warning
++++ a/drivers/net/tokenring/3c359.h
+@@ -264,7 +264,7 @@ struct xl_private {
+ 	u16 asb;
  
- 	switch (cmd) {
-@@ -205,7 +204,7 @@ long ubifs_compat_ioctl(struct file *fil
- 	}
- 
- 	lock_kernel();
--	err = ubifs_ioctl(inode, file, cmd, (unsigned long)compat_ptr(arg));
-+	err = ubifs_ioctl(file, cmd, (unsigned long)compat_ptr(arg));
- 	unlock_kernel();
- 
- 	return err;
+ 	u8 __iomem *xl_mmio;
+-	char *xl_card_name;
++	const char *xl_card_name;
+ 	struct pci_dev *pdev ; 
+ 	
+ 	spinlock_t xl_lock ; 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
