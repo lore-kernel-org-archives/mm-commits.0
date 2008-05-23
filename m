@@ -1,189 +1,327 @@
 From: akpm@linux-foundation.org
-Subject: + arch-powerpc-platforms-pseries-eeh_driverc-fix-warning-checkpatch-fixes.patch added to -mm tree
-Date: Fri, 23 May 2008 01:04:30 -0700
-Message-ID: <200805230815.m4N8FjYl012735@imap1.linux-foundation.org>
+Subject: - lcd-push-the-bkl-down-into-the-driver-ioctl-handler.patch removed from -mm tree
+Date: Fri, 23 May 2008 09:56:52 -0700
+Message-ID: <200805231656.m4NGuqWI031839@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55950 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57082 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752587AbYEWIPt (ORCPT
+	by vger.kernel.org with ESMTP id S1750871AbYEWQ5c (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 23 May 2008 04:15:49 -0400
+	Fri, 23 May 2008 12:57:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, benh@kernel.crashing.org, paulus@samba.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, ralf@linux-mips.org, yoichi_yuasa@tripeaks.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arch-powerpc-platforms-pseries-eeh_driverc-fix-warning-checkpatch-fixes
-has been added to the -mm tree.  Its filename is
-     arch-powerpc-platforms-pseries-eeh_driverc-fix-warning-checkpatch-fixes.patch
+     lcd: push the BKL down into the driver ioctl handler
+has been removed from the -mm tree.  Its filename was
+     lcd-push-the-bkl-down-into-the-driver-ioctl-handler.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch-powerpc-platforms-pseries-eeh_driverc-fix-warning-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: lcd: push the BKL down into the driver ioctl handler
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-ERROR: space required after that ';' (ctx:VxV)
-#36: FILE: arch/powerpc/platforms/pseries/eeh_driver.c:52:
-+	for (i = 0;i < dent; i++)
- 	          ^
-
-total: 1 errors, 0 warnings, 24 lines checked
-
-./patches/arch-powerpc-platforms-pseries-eeh_driverc-fix-warning.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
+Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/pseries/eeh_driver.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/lcd.c |  125 ++++++++++++++++++++++---------------------
+ 1 file changed, 66 insertions(+), 59 deletions(-)
 
-diff -puN arch/powerpc/platforms/pseries/eeh_driver.c~arch-powerpc-platforms-pseries-eeh_driverc-fix-warning-checkpatch-fixes arch/powerpc/platforms/pseries/eeh_driver.c
---- a/arch/powerpc/platforms/pseries/eeh_driver.c~arch-powerpc-platforms-pseries-eeh_driverc-fix-warning-checkpatch-fixes
-+++ a/arch/powerpc/platforms/pseries/eeh_driver.c
-@@ -49,7 +49,7 @@ static void print_device_node_tree(struc
+diff -puN drivers/char/lcd.c~lcd-push-the-bkl-down-into-the-driver-ioctl-handler drivers/char/lcd.c
+--- a/drivers/char/lcd.c~lcd-push-the-bkl-down-into-the-driver-ioctl-handler
++++ a/drivers/char/lcd.c
+@@ -22,15 +22,15 @@
+ #include <linux/sched.h>
+ #include <linux/smp_lock.h>
+ #include <linux/delay.h>
++#include <linux/smp_lock.h>
++#include <linux/io.h>
++#include <linux/uaccess.h>
  
- 	if (!pdn)
- 		return;
--	for (i = 0;i < dent; i++)
-+	for (i = 0; i < dent; i++)
- 		printk(" ");
- 	printk("dn=%s mode=%x \tcfg_addr=%x pe_addr=%x \tfull=%s\n",
- 		pdn->node->name, pdn->eeh_mode, pdn->eeh_config_addr,
+-#include <asm/io.h>
+-#include <asm/uaccess.h>
+ #include <asm/system.h>
+ 
+ #include "lcd.h"
+ 
+-static int lcd_ioctl(struct inode *inode, struct file *file,
+-		     unsigned int cmd, unsigned long arg);
++static long lcd_ioctl(struct file *file, unsigned int cmd, unsigned long arg);
+ 
+ static unsigned int lcd_present = 1;
+ 
+@@ -55,11 +55,13 @@ int lcd_register_linkcheck_func(int ifac
+ }
+ #endif
+ 
+-static int lcd_ioctl(struct inode *inode, struct file *file,
+-		     unsigned int cmd, unsigned long arg)
++static long lcd_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ {
+ 	struct lcd_display button_display;
+ 	unsigned long address, a;
++	long ret = 0;
++
++	lock_kernel();
+ 
+ 	switch (cmd) {
+ 	case LCD_On:
+@@ -136,7 +138,7 @@ static int lcd_ioctl(struct inode *inode
+ 			if (copy_to_user
+ 			    ((struct lcd_display *) arg, &display,
+ 			     sizeof(struct lcd_display)))
+-				return -EFAULT;
++				ret = -EFAULT;
+ 
+ 			break;
+ 		}
+@@ -148,14 +150,13 @@ static int lcd_ioctl(struct inode *inode
+ 			if (copy_from_user
+ 			    (&display, (struct lcd_display *) arg,
+ 			     sizeof(struct lcd_display)))
+-				return -EFAULT;
+-
+-			a = (display.cursor_address | kLCD_Addr);
+-
+-			udelay(150);
+-			BusyCheck();
+-			LCDWriteInst(a);
+-
++				ret = -EFAULT;
++			else {
++				a = (display.cursor_address | kLCD_Addr);
++				udelay(150);
++				BusyCheck();
++				LCDWriteInst(a);
++			}
+ 			break;
+ 		}
+ 
+@@ -169,11 +170,12 @@ static int lcd_ioctl(struct inode *inode
+ 			if (copy_to_user
+ 			    ((struct lcd_display *) arg, &display,
+ 			     sizeof(struct lcd_display)))
+-				return -EFAULT;
+-			udelay(150);
+-			BusyCheck();
+-			LCDWriteInst(0x10);
+-
++				ret = -EFAULT;
++			else {
++				udelay(150);
++				BusyCheck();
++				LCDWriteInst(0x10);
++			}
+ 			break;
+ 		}
+ 
+@@ -183,15 +185,15 @@ static int lcd_ioctl(struct inode *inode
+ 			if (copy_from_user
+ 			    (&display, (struct lcd_display *) arg,
+ 			     sizeof(struct lcd_display)))
+-				return -EFAULT;
+-
+-			udelay(150);
+-			BusyCheck();
+-			LCDWriteData(display.character);
+-			udelay(150);
+-			BusyCheck();
+-			LCDWriteInst(0x10);
+-
++				ret = -EFAULT;
++			else {
++				udelay(150);
++				BusyCheck();
++				LCDWriteData(display.character);
++				udelay(150);
++				BusyCheck();
++				LCDWriteInst(0x10);
++			}
+ 			break;
+ 		}
+ 
+@@ -221,8 +223,10 @@ static int lcd_ioctl(struct inode *inode
+ 
+ 			if (copy_from_user
+ 			    (&display, (struct lcd_display *) arg,
+-			     sizeof(struct lcd_display)))
+-				return -EFAULT;
++			     sizeof(struct lcd_display))) {
++				ret = -EFAULT;
++				break;
++			}
+ 
+ 			udelay(150);
+ 			BusyCheck();
+@@ -288,7 +292,7 @@ static int lcd_ioctl(struct inode *inode
+ 			if (copy_to_user
+ 			    ((struct lcd_display *) arg, &display,
+ 			     sizeof(struct lcd_display)))
+-				return -EFAULT;
++				ret = -EFAULT;
+ 			break;
+ 		}
+ 
+@@ -301,10 +305,11 @@ static int lcd_ioctl(struct inode *inode
+ 			if (copy_from_user
+ 			    (&led_display, (struct lcd_display *) arg,
+ 			     sizeof(struct lcd_display)))
+-				return -EFAULT;
+-
+-			led_state = led_display.leds;
+-			LEDSet(led_state);
++				ret = -EFAULT;
++			else {
++				led_state = led_display.leds;
++				LEDSet(led_state);
++			}
+ 
+ 			break;
+ 		}
+@@ -321,14 +326,15 @@ static int lcd_ioctl(struct inode *inode
+ 			if (copy_from_user
+ 			    (&led_display, (struct lcd_display *) arg,
+ 			     sizeof(struct lcd_display)))
+-				return -EFAULT;
++				ret = -EFAULT;
++			else {
++				for (i = 0; i < (int) led_display.leds; i++) {
++					bit = 2 * bit;
++				}
+ 
+-			for (i = 0; i < (int) led_display.leds; i++) {
+-				bit = 2 * bit;
++				led_state = led_state | bit;
++				LEDSet(led_state);
+ 			}
+-
+-			led_state = led_state | bit;
+-			LEDSet(led_state);
+ 			break;
+ 		}
+ 
+@@ -343,14 +349,15 @@ static int lcd_ioctl(struct inode *inode
+ 			if (copy_from_user
+ 			    (&led_display, (struct lcd_display *) arg,
+ 			     sizeof(struct lcd_display)))
+-				return -EFAULT;
++				ret = -EFAULT;
++			else {
++				for (i = 0; i < (int) led_display.leds; i++) {
++					bit = 2 * bit;
++				}
+ 
+-			for (i = 0; i < (int) led_display.leds; i++) {
+-				bit = 2 * bit;
++				led_state = led_state & ~bit;
++				LEDSet(led_state);
+ 			}
+-
+-			led_state = led_state & ~bit;
+-			LEDSet(led_state);
+ 			break;
+ 		}
+ 
+@@ -360,7 +367,7 @@ static int lcd_ioctl(struct inode *inode
+ 			if (copy_to_user
+ 			    ((struct lcd_display *) arg, &button_display,
+ 			     sizeof(struct lcd_display)))
+-				return -EFAULT;
++				ret = -EFAULT;
+ 			break;
+ 		}
+ 
+@@ -370,7 +377,7 @@ static int lcd_ioctl(struct inode *inode
+ 			if (copy_to_user
+ 			    ((struct lcd_display *) arg, &button_display,
+ 			     sizeof(struct lcd_display)))
+-				return -EFAULT;
++				ret = -EFAULT;
+ 			break;
+ 		}
+ 
+@@ -383,8 +390,10 @@ static int lcd_ioctl(struct inode *inode
+ 			 */
+ 			if (copy_from_user
+ 			    (&button_display, (struct lcd_display *) arg,
+-			     sizeof(button_display)))
+-				return -EFAULT;
++			     sizeof(button_display))) {
++				ret = -EFAULT;
++				break;
++			}
+ 			iface_num = button_display.buttons;
+ #if defined(CONFIG_TULIP) && 0
+ 			if (iface_num >= 0 &&
+@@ -400,17 +409,15 @@ static int lcd_ioctl(struct inode *inode
+ 			if (__copy_to_user
+ 			    ((struct lcd_display *) arg, &button_display,
+ 			     sizeof(struct lcd_display)))
+-				return -EFAULT;
++				ret = -EFAULT;
+ 			break;
+ 		}
+ 
+ 	default:
+-		return -EINVAL;
+-
++		ret = -ENOTTY;
+ 	}
+-
+-	return 0;
+-
++	lock_kernel();
++	return ret;
+ }
+ 
+ static int lcd_open(struct inode *inode, struct file *file)
+@@ -465,7 +472,7 @@ static ssize_t lcd_read(struct file *fil
+ 
+ static const struct file_operations lcd_fops = {
+ 	.read = lcd_read,
+-	.ioctl = lcd_ioctl,
++	.unlocked_ioctl = lcd_ioctl,
+ 	.open = lcd_open,
+ };
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
-semaphore-introduce-down_try-checkpatch-fixes.patch
-ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware-ia64-warnings.patch
-memory-hotplug-fix-early-allocation-handling-checkpatch-fixes.patch
+serial-fix-enable_irq_wake-disable_irq_wake-imbalance-in-serial_corec.patch
 linux-next.patch
-next-remove-localversion.patch
-fix-kobject-fix-kobject_rename-and-config_sysfs.patch
-undeprecate-down_trylock.patch
-fix-driver-core-add-device_create_vargs-and-device_create_drvdata.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-video-balcklist-fujitsu-lifebook-s6410.patch
-git-x86-fixup.patch
-lguest-use-cpu-capability-accessors.patch
-arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
-arch-powerpc-platforms-pseries-eeh_driverc-fix-warning.patch
-arch-powerpc-platforms-pseries-eeh_driverc-fix-warning-checkpatch-fixes.patch
-zoran-use-correct-type-for-cpu-flags.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-drivers-infiniband-hw-mlx4-qpc-fix-uninitialised-var-warning.patch
-git-jg-misc-git-rejects.patch
-drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
-fsldma-the-mpc8377mds-board-device-tree-node-for-fsldma-driver.patch
-mmc-sd-host-driver-for-ricoh-bay1controllers.patch
-git-ubifs.patch
-ubifs-unborkage.patch
-sundance-set-carrier-status-on-link-change-events.patch
-dm9000-use-delayed-work-to-update-mii-phy-state-fix.patch
-pcnet32-fix-warning.patch
-drivers-net-tokenring-3c359c-squish-a-warning.patch
-drivers-net-tokenring-olympicc-fix-warning.patch
-sfc-correct-and-expand-some-comments.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-battery.patch
-pci-hotplug-introduce-pci_slot.patch
-pci-hotplug-acpi-pci-slot-detection-driver.patch
-sched-delete-dead-stuff.patch
-sched-delete-dead-stuff-2.patch
-drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
-s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
+add-time_is_after_jiffies-and-others-which-compare-with-jiffies.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
+paride-push-ioctl-down-into-driver.patch
+pktcdvd-push-bkl-down-into-driver.patch
 pktcdvd-push-bkl-down-into-driver-fix.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-git-logfs-fixup.patch
-drivers-uwb-nehc-processor-flags-have-type-unsigned-long.patch
-drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
-drivers-uwb-wlp-sysfsc-dead-code.patch
-drivers-uwb-whcic-needs-dma-mappingh.patch
-usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix.patch
-usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix-2.patch
-git-watchdog.patch
-git-watchdog-git-rejects.patch
-watchdog-fix-booke_wdtc-on-mpc85xx-smp-system.patch
-watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix.patch
-watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl-fix.patch
-wireless-airo-waitbusy-wont-delay-checkpatch-fixes.patch
-git-xtensa.patch
-ext4-is-busted-on-m68k.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
+dac960-push-down-bkl.patch
+pcwd-a-couple-of-watchdogs-escaped-conversion.patch
+libata-sff-fix-oops-reported-in-kerneloopsorg-for-pnp-devices-with-no-ctl.patch
 libata-sff-fix-oops-reported-in-kerneloopsorg-for-pnp-devices-with-no-ctl-fix.patch
+ata-acpi-hotplug-handle-bay-devices-in-dock-stations.patch
 ata-acpi-hotplug-handle-bay-devices-in-dock-stations-cleanup.patch
-mm-verify-the-page-links-and-memory-model.patch
-mspec-convert-nopfn-to-fault-fix.patch
-page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
-kill-generic_file_direct_io-checkpatch-fixes.patch
-use-generic_access_phys-for-dev-mem-mappings-fix.patch
-spufs-use-the-new-vm_ops-access-fix.patch
-fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
-pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes.patch
-pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup.patch
-pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup-fix.patch
-split-the-typecheck-macros-out-of-include-linux-kernelh.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
-remove-apparently-unused-fd1772h-header-file.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
-build-kernel-profileo-only-when-requested-cleanups.patch
-rename-warn-to-warning-to-clear-the-namespace-fix.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
-flag-parameters-paccept-fix.patch
-flag-parameters-paccept-sys_ni.patch
-flag-parameters-anon_inode_getfd-extension-fix.patch
-flag-parameters-signalfd-fix.patch
-flag-parameters-eventfd-fix.patch
-flag-parameters-inotify_init-fix.patch
-flag-parameters-check-magic-constants-alpha-hack.patch
-drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
-reiserfs-convert-j_flush_sem-to-mutex-fix.patch
-reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-reiser4.patch
-reiser4-semaphore-fix.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+cm4000_cs-switch-to-unlocked_ioctl.patch
+snapshot-push-bkl-down-into-ioctl-handlers.patch
+rtc-push-the-bkl-down-into-the-driver-ioctl-method.patch
+efirtc-push-down-the-bkl.patch
+ip2-push-bkl-down-for-the-firmware-interface.patch
+mwave-ioctl-bkl-pushdown.patch
+rio-push-down-the-bkl-into-the-firmware-ioctl-handler.patch
+sx-push-bkl-down-into-the-firmware-ioctl-handler.patch
+ixj-push-bkl-into-driver-and-wrap-ioctls.patch
+ppdev-wrap-ioctl-handler-in-driver-and-push-lock-down.patch
+ds1302-push-down-the-bkl-into-the-driver-ioctl-code.patch
+dsp56k-bkl-pushdown.patch
+lcd-push-the-bkl-down-into-the-driver-ioctl-handler.patch
 
