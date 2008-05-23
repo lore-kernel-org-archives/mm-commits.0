@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ubifs-unborkage.patch added to -mm tree
-Date: Thu, 22 May 2008 21:58:59 -0700
-Message-ID: <200805230510.m4N5AEoZ006330@imap1.linux-foundation.org>
+Subject: + fix-kobject-fix-kobject_rename-and-config_sysfs.patch added to -mm tree
+Date: Thu, 22 May 2008 22:11:19 -0700
+Message-ID: <200805230522.m4N5MYjA006786@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59886 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36715 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750891AbYEWFKX (ORCPT
+	by vger.kernel.org with ESMTP id S1750875AbYEWFWo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 23 May 2008 01:10:23 -0400
+	Fri, 23 May 2008 01:22:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, Artem.Bityutskiy@nokia.com
+Cc: akpm@linux-foundation.org, ebiederm@xmission.com, gregkh@suse.de, sfr@canb.auug.org.au
 
 
 The patch titled
-     ubifs unborkage
+     fix "kobject: Fix kobject_rename and !CONFIG_SYSFS"
 has been added to the -mm tree.  Its filename is
-     ubifs-unborkage.patch
+     fix-kobject-fix-kobject_rename-and-config_sysfs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,94 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ubifs unborkage
+Subject: fix "kobject: Fix kobject_rename and !CONFIG_SYSFS"
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
+mips allnoconfig:
+
+In file included from include/linux/kobject.h:21,
+                 from include/linux/slub_def.h:12,
+                 from include/linux/slab.h:123,
+                 from include/linux/percpu.h:5,
+                 from include/linux/rcupdate.h:39,
+                 from include/linux/pid.h:4,
+                 from include/linux/sched.h:74,
+                 from arch/mips/kernel/asm-offsets.c:13:
+include/linux/sysfs.h: In function `sysfs_rename_dir':
+include/linux/sysfs.h:141: error: implicit declaration of function `kobject_set_name'
+In file included from include/linux/slub_def.h:12,
+                 from include/linux/slab.h:123,
+                 from include/linux/percpu.h:5,
+                 from include/linux/rcupdate.h:39,
+                 from include/linux/pid.h:4,
+                 from include/linux/sched.h:74,
+                 from arch/mips/kernel/asm-offsets.c:13:
+include/linux/kobject.h: At top level:
+include/linux/kobject.h:74: error: conflicting types for 'kobject_set_name'
+include/linux/kobject.h:74: note: a parameter list with an ellipsis can't match an empty parameter name list declaration
+include/linux/sysfs.h:141: error: previous implicit declaration of 'kobject_set_name' was here
+make[1]: *** [arch/mips/kernel/asm-offsets.s] Error 1
+make: *** [prepare0] Error 2
+
+We cannot include kobject.h from sysfs.h because kobject.h includes sysfs.h.
+
+Just uninline it (fixes everything, doesn't it?)
+
+lib/kobject.c doesn't seem an appropriate file :(
+
+Please fold this (or similar) into the base patch to avoid breaking bisection.
+
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ubifs/ioctl.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ include/linux/sysfs.h |    6 ++----
+ lib/kobject.c         |    8 ++++++++
+ 2 files changed, 10 insertions(+), 4 deletions(-)
 
-diff -puN fs/ubifs/ioctl.c~ubifs-unborkage fs/ubifs/ioctl.c
---- a/fs/ubifs/ioctl.c~ubifs-unborkage
-+++ a/fs/ubifs/ioctl.c
-@@ -190,7 +190,6 @@ long ubifs_ioctl(struct file *file, unsi
- #ifdef CONFIG_COMPAT
- long ubifs_compat_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+diff -puN include/linux/sysfs.h~fix-kobject-fix-kobject_rename-and-config_sysfs include/linux/sysfs.h
+--- a/include/linux/sysfs.h~fix-kobject-fix-kobject_rename-and-config_sysfs
++++ a/include/linux/sysfs.h
+@@ -136,10 +136,6 @@ static inline void sysfs_remove_dir(stru
  {
--	struct inode *inode = file->f_path.dentry->d_inode;
- 	int err;
+ }
  
- 	switch (cmd) {
-@@ -205,7 +204,7 @@ long ubifs_compat_ioctl(struct file *fil
+-static inline int sysfs_rename_dir(struct kobject *kobj, const char *new_name)
+-{
+-	return kobject_set_name(kobj, "%s", new_name);
+-}
+ 
+ static inline int sysfs_move_dir(struct kobject *kobj,
+ 				 struct kobject *new_parent_kobj)
+@@ -226,6 +222,8 @@ static inline void sysfs_printk_last_fil
+ {
+ }
+ 
++int sysfs_rename_dir(struct kobject *kobj, const char *new_name);
++
+ #endif /* CONFIG_SYSFS */
+ 
+ #endif /* _SYSFS_H_ */
+diff -puN lib/kobject.c~fix-kobject-fix-kobject_rename-and-config_sysfs lib/kobject.c
+--- a/lib/kobject.c~fix-kobject-fix-kobject_rename-and-config_sysfs
++++ a/lib/kobject.c
+@@ -882,6 +882,14 @@ struct kset *kset_create_and_add(const c
  	}
+ 	return kset;
+ }
++
++#ifndef CONFIG_SYSFS
++int sysfs_rename_dir(struct kobject *kobj, const char *new_name)
++{
++	return kobject_set_name(kobj, "%s", new_name);
++}
++#endif
++
+ EXPORT_SYMBOL_GPL(kset_create_and_add);
  
- 	lock_kernel();
--	err = ubifs_ioctl(inode, file, cmd, (unsigned long)compat_ptr(arg));
-+	err = ubifs_ioctl(file, cmd, (unsigned long)compat_ptr(arg));
- 	unlock_kernel();
- 
- 	return err;
+ EXPORT_SYMBOL(kobject_get);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -90,6 +148,7 @@ drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
 fsldma-the-mpc8377mds-board-device-tree-node-for-fsldma-driver.patch
 mmc-sd-host-driver-for-ricoh-bay1controllers.patch
 git-ubifs.patch
+ubifs-unborkage.patch
 sundance-set-carrier-status-on-link-change-events.patch
 dm9000-use-delayed-work-to-update-mii-phy-state-fix.patch
 pcnet32-fix-warning.patch
@@ -172,5 +231,4 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
-ubifs-unborkage.patch
 
