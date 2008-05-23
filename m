@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pktcdvd-push-bkl-down-into-driver-fix.patch added to -mm tree
-Date: Thu, 22 May 2008 21:40:55 -0700
-Message-ID: <200805230452.m4N4qAO4005769@imap1.linux-foundation.org>
+Subject: + fix-driver-core-add-device_create_vargs-and-device_create_drvdata.patch added to -mm tree
+Date: Thu, 22 May 2008 21:47:45 -0700
+Message-ID: <200805230459.m4N4x0vb005971@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50546 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52276 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751773AbYEWExT (ORCPT
+	by vger.kernel.org with ESMTP id S1751900AbYEWE7I (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 23 May 2008 00:53:19 -0400
+	Fri, 23 May 2008 00:59:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, jens.axboe@oracle.com, petero2@telia.com
+Cc: akpm@linux-foundation.org, greg@kroah.com, kay.sievers@vrfy.org, sfr@canb.auug.org.au
 
 
 The patch titled
-     pktcdvd-push-bkl-down-into-driver-fix
+     fix "Driver core: add device_create_vargs and device_create_drvdata"
 has been added to the -mm tree.  Its filename is
-     pktcdvd-push-bkl-down-into-driver-fix.patch
+     fix-driver-core-add-device_create_vargs-and-device_create_drvdata.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pktcdvd-push-bkl-down-into-driver-fix
+Subject: fix "Driver core: add device_create_vargs and device_create_drvdata"
 From: Andrew Morton <akpm@linux-foundation.org>
 
-/usr/src/devel/drivers/block/pktcdvd.c: In function 'pkt_ioctl':
-/usr/src/devel/drivers/block/pktcdvd.c:2807: error: implicit declaration of function 'lock_kernel'
-/usr/src/devel/drivers/block/pktcdvd.c:2838: error: implicit declaration of function 'unlock_kernel'
+/usr/src/devel/drivers/block/paride/pt.c: In function 'pt_init':
+/usr/src/devel/drivers/block/paride/pt.c:987: warning: passing argument 5 of 'device_create_drvdata' makes pointer from integer without a cast
 
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Peter Osterlund <petero2@telia.com>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Greg KH <greg@kroah.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/pktcdvd.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/block/paride/pt.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/block/pktcdvd.c~pktcdvd-push-bkl-down-into-driver-fix drivers/block/pktcdvd.c
---- a/drivers/block/pktcdvd.c~pktcdvd-push-bkl-down-into-driver-fix
-+++ a/drivers/block/pktcdvd.c
-@@ -49,6 +49,7 @@
- #include <linux/types.h>
- #include <linux/kernel.h>
- #include <linux/kthread.h>
-+#include <linux/smp_lock.h>
- #include <linux/errno.h>
- #include <linux/spinlock.h>
- #include <linux/file.h>
+diff -puN drivers/block/paride/pt.c~fix-driver-core-add-device_create_vargs-and-device_create_drvdata drivers/block/paride/pt.c
+--- a/drivers/block/paride/pt.c~fix-driver-core-add-device_create_vargs-and-device_create_drvdata
++++ a/drivers/block/paride/pt.c
+@@ -982,7 +982,7 @@ static int __init pt_init(void)
+ 					      MKDEV(major, unit), NULL,
+ 					      "pt%d", unit);
+ 			device_create_drvdata(pt_class, NULL,
+-					      MKDEV(major, unit + 128),
++					      MKDEV(major, unit + 128), NULL,
+ 					      "pt%dn", unit);
+ 		}
+ 	goto out;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -73,6 +73,7 @@ linux-next.patch
 next-remove-localversion.patch
 fix-kobject-fix-kobject_rename-and-config_sysfs.patch
 undeprecate-down_trylock.patch
+fix-driver-core-add-device_create_vargs-and-device_create_drvdata.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 acpi-video-balcklist-fujitsu-lifebook-s6410.patch
 git-x86-fixup.patch
