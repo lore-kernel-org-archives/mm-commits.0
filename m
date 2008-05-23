@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch added to -mm tree
-Date: Thu, 22 May 2008 20:22:27 -0700
-Message-ID: <200805230333.m4N3XfJp003045@imap1.linux-foundation.org>
+Subject: + usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix.patch added to -mm tree
+Date: Thu, 22 May 2008 20:33:53 -0700
+Message-ID: <200805230345.m4N3j8IO003439@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40141 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45512 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756703AbYEWDeQ (ORCPT
+	by vger.kernel.org with ESMTP id S1751807AbYEWDpg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 22 May 2008 23:34:16 -0400
+	Thu, 22 May 2008 23:45:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, fujita.tomonori@lab.ntt.co.jp
+Cc: akpm@linux-foundation.org, cooloney@kernel.org, david-b@pacbell.net, gregkh@suse.de, jie.zhang@analog.com, stern@rowland.harvard.edu
 
 
 The patch titled
-     dma-mapping-add-the-device-argument-to-dma_mapping_error svc_rdma fix
+     usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix
 has been added to the -mm tree.  Its filename is
-     dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
+     usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,29 +34,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dma-mapping-add-the-device-argument-to-dma_mapping_error svc_rdma fix
+Subject: usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: Alan Stern <stern@rowland.harvard.edu>
+Cc: Bryan Wu <cooloney@kernel.org>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Jie Zhang <jie.zhang@analog.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/xprtrdma/svc_rdma_sendto.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/usb/host/isp116x-hcd.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN net/sunrpc/xprtrdma/svc_rdma_sendto.c~dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix net/sunrpc/xprtrdma/svc_rdma_sendto.c
---- a/net/sunrpc/xprtrdma/svc_rdma_sendto.c~dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix
-+++ a/net/sunrpc/xprtrdma/svc_rdma_sendto.c
-@@ -180,7 +180,8 @@ static int send_write(struct svcxprt_rdm
- 					  (void *)
- 					  xdr_sge[xdr_sge_no].addr + sge_off,
- 					  sge_bytes, DMA_TO_DEVICE);
--		if (dma_mapping_error(sge[sge_no].addr))
-+		if (dma_mapping_error(xprt->sc_cm_id->device->dma_device,
-+					sge[sge_no].addr))
- 			return -EINVAL;
- 		sge_off = 0;
- 		sge_no++;
+diff -puN drivers/usb/host/isp116x-hcd.c~usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix drivers/usb/host/isp116x-hcd.c
+--- a/drivers/usb/host/isp116x-hcd.c~usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix
++++ a/drivers/usb/host/isp116x-hcd.c
+@@ -68,6 +68,7 @@
+ 
+ #include <asm/io.h>
+ #include <asm/irq.h>
++#include <asm/unaligned.h>
+ #include <asm/system.h>
+ #include <asm/byteorder.h>
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -102,6 +104,7 @@ drivers-uwb-nehc-processor-flags-have-type-unsigned-long.patch
 drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
 drivers-uwb-wlp-sysfsc-dead-code.patch
 drivers-uwb-whcic-needs-dma-mappingh.patch
+usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix.patch
 git-vfs-cleanups-reject.patch
 git-watchdog.patch
 git-watchdog-git-rejects.patch
