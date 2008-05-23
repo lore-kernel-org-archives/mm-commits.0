@@ -1,102 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: - wan-protect-hdlc-proto-list-while-insmod-rmmod.patch removed from -mm tree
-Date: Fri, 23 May 2008 11:59:32 -0700
-Message-ID: <200805231859.m4NIxW4N004246@imap1.linux-foundation.org>
+Subject: - sfc-use-resource_size_t-for-pci-bus-address.patch removed from -mm tree
+Date: Fri, 23 May 2008 11:59:17 -0700
+Message-ID: <200805231859.m4NIxHT1004225@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33243 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57676 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753452AbYEWS7m (ORCPT
+	by vger.kernel.org with ESMTP id S1753510AbYEWS7Y (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 23 May 2008 14:59:42 -0400
+	Fri, 23 May 2008 14:59:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khc@pm.waw.pl, davem@davemloft.net, mm-commits@vger.kernel.org
+To: bhutchings@solarflare.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     wan: protect HDLC proto list while insmod/rmmod
+     sfc: use resource_size_t for PCI bus address
 has been removed from the -mm tree.  Its filename was
-     wan-protect-hdlc-proto-list-while-insmod-rmmod.patch
+     sfc-use-resource_size_t-for-pci-bus-address.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: wan: protect HDLC proto list while insmod/rmmod
-=46rom: Krzysztof Halasa <khc@pm.waw.pl>
+Subject: sfc: use resource_size_t for PCI bus address
+From: Ben Hutchings <bhutchings@solarflare.com>
 
-WAN: protect protocol list in hdlc.c with RTNL.
+This should make the driver work on 32-bit systems with 64-bit PCI support.
 
-Signed-off-by: Krzysztof Ha=B3asa <khc@pm.waw.pl>
-Acked-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <bhutchings@solarflare.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wan/hdlc.c |   19 +++++++++++--------
- 1 file changed, 11 insertions(+), 8 deletions(-)
+ drivers/net/sfc/efx.c        |   11 ++++++-----
+ drivers/net/sfc/net_driver.h |    2 +-
+ 2 files changed, 7 insertions(+), 6 deletions(-)
 
-diff -puN drivers/net/wan/hdlc.c~wan-protect-hdlc-proto-list-while-insm=
-od-rmmod drivers/net/wan/hdlc.c
---- a/drivers/net/wan/hdlc.c~wan-protect-hdlc-proto-list-while-insmod-r=
-mmod
-+++ a/drivers/net/wan/hdlc.c
-@@ -43,8 +43,7 @@ static const char* version =3D "HDLC suppo
-=20
- #undef DEBUG_LINK
-=20
--static struct hdlc_proto *first_proto =3D NULL;
--
-+static struct hdlc_proto *first_proto;
-=20
- static int hdlc_change_mtu(struct net_device *dev, int new_mtu)
- {
-@@ -314,21 +313,25 @@ void detach_hdlc_protocol(struct net_dev
-=20
- void register_hdlc_protocol(struct hdlc_proto *proto)
- {
-+	rtnl_lock();
- 	proto->next =3D first_proto;
- 	first_proto =3D proto;
-+	rtnl_unlock();
- }
-=20
-=20
- void unregister_hdlc_protocol(struct hdlc_proto *proto)
- {
--	struct hdlc_proto **p =3D &first_proto;
--	while (*p) {
--		if (*p =3D=3D proto) {
--			*p =3D proto->next;
--			return;
--		}
-+	struct hdlc_proto **p;
-+
-+	rtnl_lock();
-+	p =3D &first_proto;
-+	while (*p !=3D proto) {
-+		BUG_ON(!*p);
- 		p =3D &((*p)->next);
+diff -puN drivers/net/sfc/efx.c~sfc-use-resource_size_t-for-pci-bus-address drivers/net/sfc/efx.c
+--- a/drivers/net/sfc/efx.c~sfc-use-resource_size_t-for-pci-bus-address
++++ a/drivers/net/sfc/efx.c
+@@ -778,15 +778,16 @@ static int efx_init_io(struct efx_nic *e
+ 	efx->membase = ioremap_nocache(efx->membase_phys,
+ 				       efx->type->mem_map_size);
+ 	if (!efx->membase) {
+-		EFX_ERR(efx, "could not map memory BAR %d at %lx+%x\n",
+-			efx->type->mem_bar, efx->membase_phys,
++		EFX_ERR(efx, "could not map memory BAR %d at %llx+%x\n",
++			efx->type->mem_bar,
++			(unsigned long long)efx->membase_phys,
+ 			efx->type->mem_map_size);
+ 		rc = -ENOMEM;
+ 		goto fail4;
  	}
-+	*p =3D proto->next;
-+	rtnl_unlock();
- }
-=20
-=20
+-	EFX_LOG(efx, "memory BAR %u at %lx+%x (virtual %p)\n",
+-		efx->type->mem_bar, efx->membase_phys, efx->type->mem_map_size,
+-		efx->membase);
++	EFX_LOG(efx, "memory BAR %u at %llx+%x (virtual %p)\n",
++		efx->type->mem_bar, (unsigned long long)efx->membase_phys,
++		efx->type->mem_map_size, efx->membase);
+ 
+ 	return 0;
+ 
+diff -puN drivers/net/sfc/net_driver.h~sfc-use-resource_size_t-for-pci-bus-address drivers/net/sfc/net_driver.h
+--- a/drivers/net/sfc/net_driver.h~sfc-use-resource_size_t-for-pci-bus-address
++++ a/drivers/net/sfc/net_driver.h
+@@ -686,7 +686,7 @@ struct efx_nic {
+ 	struct workqueue_struct *workqueue;
+ 	struct work_struct reset_work;
+ 	struct delayed_work monitor_work;
+-	unsigned long membase_phys;
++	resource_size_t membase_phys;
+ 	void __iomem *membase;
+ 	spinlock_t biu_lock;
+ 	enum efx_int_mode interrupt_mode;
 _
 
-Patches currently in -mm which might be from khc@pm.waw.pl are
+Patches currently in -mm which might be from bhutchings@solarflare.com are
 
 git-net.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
