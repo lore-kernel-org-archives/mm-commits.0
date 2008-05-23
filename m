@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch added to -mm tree
-Date: Thu, 22 May 2008 21:02:49 -0700
-Message-ID: <200805230414.m4N4E4NY004412@imap1.linux-foundation.org>
+Subject: + pktcdvd-push-bkl-down-into-driver-fix.patch added to -mm tree
+Date: Thu, 22 May 2008 21:40:55 -0700
+Message-ID: <200805230452.m4N4qAO4005769@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36635 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50546 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750842AbYEWEQZ (ORCPT
+	by vger.kernel.org with ESMTP id S1751773AbYEWExT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 23 May 2008 00:16:25 -0400
+	Fri, 23 May 2008 00:53:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, andi@firstfloor.org, avi@qumranet.com, fujita.tomonori@lab.ntt.co.jp, mingo@elte.hu, muli@il.ibm.com, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, jens.axboe@oracle.com, petero2@telia.com
 
 
 The patch titled
-     dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x
+     pktcdvd-push-bkl-down-into-driver-fix
 has been added to the -mm tree.  Its filename is
-     dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
+     pktcdvd-push-bkl-down-into-driver-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x
+Subject: pktcdvd-push-bkl-down-into-driver-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-this is getting a bit boring.
+/usr/src/devel/drivers/block/pktcdvd.c: In function 'pkt_ioctl':
+/usr/src/devel/drivers/block/pktcdvd.c:2807: error: implicit declaration of function 'lock_kernel'
+/usr/src/devel/drivers/block/pktcdvd.c:2838: error: implicit declaration of function 'unlock_kernel'
 
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Avi Kivity <avi@qumranet.com>
-Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Muli Ben-Yehuda <muli@il.ibm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Peter Osterlund <petero2@telia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/bnx2x.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/block/pktcdvd.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/net/bnx2x.c~dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x drivers/net/bnx2x.c
---- a/drivers/net/bnx2x.c~dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x
-+++ a/drivers/net/bnx2x.c
-@@ -833,7 +833,7 @@ static inline int bnx2x_alloc_rx_skb(str
- 
- 	mapping = pci_map_single(bp->pdev, skb->data, bp->rx_buf_use_size,
- 				 PCI_DMA_FROMDEVICE);
--	if (unlikely(dma_mapping_error(bp->pdev, mapping))) {
-+	if (unlikely(dma_mapping_error(&bp->pdev->dev, mapping))) {
- 
- 		dev_kfree_skb(skb);
- 		return -ENOMEM;
+diff -puN drivers/block/pktcdvd.c~pktcdvd-push-bkl-down-into-driver-fix drivers/block/pktcdvd.c
+--- a/drivers/block/pktcdvd.c~pktcdvd-push-bkl-down-into-driver-fix
++++ a/drivers/block/pktcdvd.c
+@@ -49,6 +49,7 @@
+ #include <linux/types.h>
+ #include <linux/kernel.h>
+ #include <linux/kthread.h>
++#include <linux/smp_lock.h>
+ #include <linux/errno.h>
+ #include <linux/spinlock.h>
+ #include <linux/file.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -102,6 +100,7 @@ sched-delete-dead-stuff.patch
 sched-delete-dead-stuff-2.patch
 drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
 s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
+pktcdvd-push-bkl-down-into-driver-fix.patch
 git-unionfs.patch
 git-unionfs-fixup.patch
 git-logfs-fixup.patch
