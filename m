@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix.patch added to -mm tree
-Date: Thu, 22 May 2008 20:33:53 -0700
-Message-ID: <200805230345.m4N3j8IO003439@imap1.linux-foundation.org>
+Subject: + watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix.patch added to -mm tree
+Date: Thu, 22 May 2008 20:35:56 -0700
+Message-ID: <200805230347.m4N3lBT1003540@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45512 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41762 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751807AbYEWDpg (ORCPT
+	by vger.kernel.org with ESMTP id S1752614AbYEWDrb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 22 May 2008 23:45:36 -0400
+	Thu, 22 May 2008 23:47:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, cooloney@kernel.org, david-b@pacbell.net, gregkh@suse.de, jie.zhang@analog.com, stern@rowland.harvard.edu
+Cc: akpm@linux-foundation.org, alan@redhat.com
 
 
 The patch titled
-     usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix
+     watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix
 has been added to the -mm tree.  Its filename is
-     usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix.patch
+     watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,30 +34,27 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix
+Subject: watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Alan Stern <stern@rowland.harvard.edu>
-Cc: Bryan Wu <cooloney@kernel.org>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Jie Zhang <jie.zhang@analog.com>
+Cc: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/host/isp116x-hcd.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/watchdog/pcwd.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/usb/host/isp116x-hcd.c~usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix drivers/usb/host/isp116x-hcd.c
---- a/drivers/usb/host/isp116x-hcd.c~usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix
-+++ a/drivers/usb/host/isp116x-hcd.c
-@@ -68,6 +68,7 @@
+diff -puN drivers/watchdog/pcwd.c~watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix drivers/watchdog/pcwd.c
+--- a/drivers/watchdog/pcwd.c~watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix
++++ a/drivers/watchdog/pcwd.c
+@@ -168,7 +168,7 @@ static const int heartbeat_tbl [] = {
+ static int cards_found;
  
- #include <asm/io.h>
- #include <asm/irq.h>
-+#include <asm/unaligned.h>
- #include <asm/system.h>
- #include <asm/byteorder.h>
+ /* internal variables */
+-static atomic_t open_allowed = ATOMIC_INIT(1);
++static unsigned long open_allowed;
+ static char expect_close;
+ static int temp_panic;
  
 _
 
@@ -109,6 +106,7 @@ git-vfs-cleanups-reject.patch
 git-watchdog.patch
 git-watchdog-git-rejects.patch
 watchdog-fix-booke_wdtc-on-mpc85xx-smp-system.patch
+watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix.patch
 wireless-airo-waitbusy-wont-delay-checkpatch-fixes.patch
 git-xtensa.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
