@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + flag-parameters-check-magic-constants-alpha-hack.patch added to -mm tree
-Date: Thu, 22 May 2008 22:11:55 -0700
-Message-ID: <200805230523.m4N5NA7C006822@imap1.linux-foundation.org>
+Subject: + watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl-fix.patch added to -mm tree
+Date: Thu, 22 May 2008 22:29:33 -0700
+Message-ID: <200805230540.m4N5emOB007427@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42201 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46240 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751093AbYEWFXb (ORCPT
+	by vger.kernel.org with ESMTP id S1751825AbYEWFlW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 23 May 2008 01:23:31 -0400
+	Fri, 23 May 2008 01:41:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davidel@xmailserver.org, drepper@redhat.com, mtk.manpages@googlemail.com
+Cc: akpm@linux-foundation.org, alan@redhat.com, wim@iguana.be
 
 
 The patch titled
-     flag-parameters-check-magic-constants-alpha-hack
+     watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl-fix
 has been added to the -mm tree.  Its filename is
-     flag-parameters-check-magic-constants-alpha-hack.patch
+     watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,30 +34,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: flag-parameters-check-magic-constants-alpha-hack
+Subject: watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Davide Libenzi <davidel@xmailserver.org>
-Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
-Cc: Ulrich Drepper <drepper@redhat.com>
+alpha:
+
+drivers/watchdog/wdt_pci.c: In function 'wdtpci_ctr_mode':
+drivers/watchdog/wdt_pci.c:120: error: implicit declaration of function 'udelay'
+{standard input}: Assembler messages:
+
+Cc: Alan Cox <alan@redhat.com>
+Cc: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/socket.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/watchdog/wdt_pci.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN net/socket.c~flag-parameters-check-magic-constants-alpha-hack net/socket.c
---- a/net/socket.c~flag-parameters-check-magic-constants-alpha-hack
-+++ a/net/socket.c
-@@ -1223,7 +1223,7 @@ asmlinkage long sys_socket(int family, i
- 
- 	/* Check the SOCK_* constants for consistency.  */
- 	BUILD_BUG_ON(SOCK_CLOEXEC != O_CLOEXEC);
--	BUILD_BUG_ON(SOCK_NONBLOCK != O_NONBLOCK);
-+//	BUILD_BUG_ON(SOCK_NONBLOCK != O_NONBLOCK);
- 	BUILD_BUG_ON((SOCK_MAX | SOCK_TYPE_MASK) != SOCK_TYPE_MASK);
- 	BUILD_BUG_ON(SOCK_CLOEXEC & SOCK_TYPE_MASK);
- 	BUILD_BUG_ON(SOCK_NONBLOCK & SOCK_TYPE_MASK);
+diff -puN drivers/watchdog/wdt_pci.c~watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl-fix drivers/watchdog/wdt_pci.c
+--- a/drivers/watchdog/wdt_pci.c~watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl-fix
++++ a/drivers/watchdog/wdt_pci.c
+@@ -44,6 +44,7 @@
+ #include <linux/miscdevice.h>
+ #include <linux/watchdog.h>
+ #include <linux/ioport.h>
++#include <linux/delay.h>
+ #include <linux/notifier.h>
+ #include <linux/reboot.h>
+ #include <linux/init.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -113,6 +117,7 @@ git-watchdog.patch
 git-watchdog-git-rejects.patch
 watchdog-fix-booke_wdtc-on-mpc85xx-smp-system.patch
 watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix.patch
+watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl-fix.patch
 wireless-airo-waitbusy-wont-delay-checkpatch-fixes.patch
 git-xtensa.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
