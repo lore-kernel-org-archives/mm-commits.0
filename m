@@ -1,63 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - memory-hotplug-fix-early-allocation-handling-checkpatch-fixes.patch removed from -mm tree
-Date: Fri, 23 May 2008 12:24:33 -0700
-Message-ID: <200805231924.m4NJOXhR005241@imap1.linux-foundation.org>
+Subject: + kvm-is-busted-on-ia64.patch added to -mm tree
+Date: Fri, 23 May 2008 15:33:51 -0700
+Message-ID: <200805232245.m4NMj7XX012807@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33730 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37663 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754536AbYEWT0N (ORCPT
+	by vger.kernel.org with ESMTP id S1753684AbYEWWpo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 23 May 2008 15:26:13 -0400
+	Fri, 23 May 2008 18:45:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, heiko.carstens@de.ibm.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, avi@qumranet.com, xiantao.zhang@intel.com
 
 
 The patch titled
-     memory-hotplug-fix-early-allocation-handling-checkpatch-fixes
-has been removed from the -mm tree.  Its filename was
-     memory-hotplug-fix-early-allocation-handling-checkpatch-fixes.patch
+     kvm is busted on ia64
+has been added to the -mm tree.  Its filename is
+     kvm-is-busted-on-ia64.patch
 
-This patch was dropped because it was folded into memory-hotplug-fix-early-allocation-handling.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memory-hotplug-fix-early-allocation-handling-checkpatch-fixes
+Subject: kvm is busted on ia64
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: code indent should use tabs where possible
-#38: FILE: mm/page_alloc.c:2810:
-+ ^Iif (!slab_is_available()) {$
+/usr/src/devel/arch/ia64/kvm/../../../virt/kvm/ioapic.c: In function `ioapic_inj_nmi':
+/usr/src/devel/arch/ia64/kvm/../../../virt/kvm/ioapic.c:151: error: implicit declaration of function `kvm_inject_nmi'
 
-total: 1 errors, 0 warnings, 8 lines checked
-
-./patches/memory-hotplug-fix-early-allocation-handling.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Xiantao Zhang <xiantao.zhang@intel.com>
+Cc: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/ia64/Kconfig |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN mm/page_alloc.c~memory-hotplug-fix-early-allocation-handling-checkpatch-fixes mm/page_alloc.c
---- a/mm/page_alloc.c~memory-hotplug-fix-early-allocation-handling-checkpatch-fixes
-+++ a/mm/page_alloc.c
-@@ -2807,7 +2807,7 @@ int zone_wait_table_init(struct zone *zo
- 	alloc_size = zone->wait_table_hash_nr_entries
- 					* sizeof(wait_queue_head_t);
- 
-- 	if (!slab_is_available()) {
-+	if (!slab_is_available()) {
- 		zone->wait_table = (wait_queue_head_t *)
- 			alloc_bootmem_node(pgdat, alloc_size);
- 	} else {
+diff -puN arch/ia64/Kconfig~kvm-is-busted-on-ia64 arch/ia64/Kconfig
+--- a/arch/ia64/Kconfig~kvm-is-busted-on-ia64
++++ a/arch/ia64/Kconfig
+@@ -20,7 +20,6 @@ config IA64
+ 	select HAVE_KPROBES
+ 	select HAVE_KRETPROBES
+ 	select HAVE_DMA_ATTRS
+-	select HAVE_KVM
+ 	default y
+ 	help
+ 	  The Itanium Processor Family is Intel's 64-bit successor to
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -65,7 +66,6 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware.patch
 memory-hotplug-fix-early-allocation-handling.patch
-memory-hotplug-fix-early-allocation-handling-checkpatch-fixes.patch
 linux-next.patch
 next-fix-rejects.patch
 next-remove-localversion.patch
@@ -169,4 +169,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
+kvm-is-busted-on-ia64.patch
 
