@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + documentation-build-source-files-in-documentation-sub-dir-disable.patch added to -mm tree
-Date: Fri, 23 May 2008 00:55:24 -0700
-Message-ID: <200805230806.m4N86d7A012451@imap1.linux-foundation.org>
+Subject: + arch-powerpc-platforms-pseries-eeh_driverc-fix-warning.patch added to -mm tree
+Date: Fri, 23 May 2008 01:03:58 -0700
+Message-ID: <200805230815.m4N8FDM7012721@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41174 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54982 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752214AbYEWIIN (ORCPT
+	by vger.kernel.org with ESMTP id S1752449AbYEWIPS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 23 May 2008 04:08:13 -0400
+	Fri, 23 May 2008 04:15:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, randy.dunlap@oracle.com, sam@ravnborg.org
+Cc: akpm@linux-foundation.org, benh@kernel.crashing.org, paulus@samba.org
 
 
 The patch titled
-     documentation-build-source-files-in-documentation-sub-dir-disable
+     arch/powerpc/platforms/pseries/eeh_driver.c: fix warning
 has been added to the -mm tree.  Its filename is
-     documentation-build-source-files-in-documentation-sub-dir-disable.patch
+     arch-powerpc-platforms-pseries-eeh_driverc-fix-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,28 +34,53 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: documentation-build-source-files-in-documentation-sub-dir-disable
+Subject: arch/powerpc/platforms/pseries/eeh_driver.c: fix warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+Fix this:
+
+/usr/src/devel/arch/powerpc/platforms/pseries/eeh_driver.c: In function 'print_device_node_tree':
+/usr/src/devel/arch/powerpc/platforms/pseries/eeh_driver.c:55: warning: ISO C90 forbids mixed declarations and code
+
+also make that function look like it's part of Linux.  I mean, wtf are you
+guys up to down there??
+
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug |    1 +
- 1 file changed, 1 insertion(+)
+ arch/powerpc/platforms/pseries/eeh_driver.c |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
-diff -puN lib/Kconfig.debug~documentation-build-source-files-in-documentation-sub-dir-disable lib/Kconfig.debug
---- a/lib/Kconfig.debug~documentation-build-source-files-in-documentation-sub-dir-disable
-+++ a/lib/Kconfig.debug
-@@ -657,6 +657,7 @@ config FIREWIRE_OHCI_REMOTE_DMA
+diff -puN arch/powerpc/platforms/pseries/eeh_driver.c~arch-powerpc-platforms-pseries-eeh_driverc-fix-warning arch/powerpc/platforms/pseries/eeh_driver.c
+--- a/arch/powerpc/platforms/pseries/eeh_driver.c~arch-powerpc-platforms-pseries-eeh_driverc-fix-warning
++++ a/arch/powerpc/platforms/pseries/eeh_driver.c
+@@ -42,17 +42,20 @@ static inline const char * pcid_name (st
+ }
  
- menuconfig BUILD_DOCSRC
- 	bool "Build targets in Documentation/ tree"
-+	depends on BROKEN
- 	help
- 	  This option attempts to build objects from the source files in the
- 	  kernel Documentation/ tree.
+ #ifdef DEBUG
+-static void print_device_node_tree (struct pci_dn *pdn, int dent)
++static void print_device_node_tree(struct pci_dn *pdn, int dent)
+ {
+ 	int i;
+-	if (!pdn) return;
+-	for (i=0;i<dent; i++)
++	struct device_node *pc;
++
++	if (!pdn)
++		return;
++	for (i = 0;i < dent; i++)
+ 		printk(" ");
+ 	printk("dn=%s mode=%x \tcfg_addr=%x pe_addr=%x \tfull=%s\n",
+ 		pdn->node->name, pdn->eeh_mode, pdn->eeh_config_addr,
+ 		pdn->eeh_pe_config_addr, pdn->node->full_name);
+ 	dent += 3;
+-	struct device_node *pc = pdn->node->child;
++	pc = pdn->node->child;
+ 	while (pc) {
+ 		print_device_node_tree(PCI_DN(pc), dent);
+ 		pc = pc->sibling;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -69,6 +94,7 @@ next-remove-localversion.patch
 fix-kobject-fix-kobject_rename-and-config_sysfs.patch
 undeprecate-down_trylock.patch
 fix-driver-core-add-device_create_vargs-and-device_create_drvdata.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 acpi-video-balcklist-fujitsu-lifebook-s6410.patch
 git-x86-fixup.patch
@@ -169,5 +195,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
+arch-powerpc-platforms-pseries-eeh_driverc-fix-warning.patch
 
