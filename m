@@ -1,430 +1,192 @@
 From: akpm@linux-foundation.org
-Subject: - cpmac-bugfixes-and-enhancements.patch removed from -mm tree
-Date: Fri, 23 May 2008 11:59:01 -0700
-Message-ID: <200805231859.m4NIx1om004191@imap1.linux-foundation.org>
+Subject: - sfc-remove-redundant-casts-to-and-from-void.patch removed from -mm tree
+Date: Fri, 23 May 2008 11:59:23 -0700
+Message-ID: <200805231859.m4NIxNtF004234@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47886 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58200 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753449AbYEWS7T (ORCPT
+	by vger.kernel.org with ESMTP id S1751116AbYEWS73 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 23 May 2008 14:59:19 -0400
+	Fri, 23 May 2008 14:59:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matteo@openwrt.org, jeff@garzik.org, nbd@openwrt.org, mm-commits@vger.kernel.org
+To: bhutchings@solarflare.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cpmac: bugfixes and enhancements
+     sfc: remove redundant casts to and from void *
 has been removed from the -mm tree.  Its filename was
-     cpmac-bugfixes-and-enhancements.patch
+     sfc-remove-redundant-casts-to-and-from-void.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpmac: bugfixes and enhancements
-From: Matteo Croce <matteo@openwrt.org>
+Subject: sfc: remove redundant casts to and from void *
+From: Ben Hutchings <bhutchings@solarflare.com>
 
-* Resolve some locking issues using atomic_inc/atomic_dec
-* move status code in cpmac_check_status
-* unmark the BROKEN flag in Kconfig
-* move code which should have been in platform code in arch/mips/ar7/platform.c
-* fixed an IRQ storm which lets the kernel hang
-* fixed a double call to netif_start_queue which causes a kernel panic
-* don't fail to register the PHY, works on many devices now
-
-Signed-off-by: Matteo Croce <matteo@openwrt.org>
-Signed-off-by: Felix Fietkau <nbd@openwrt.org>
+Signed-off-by: Ben Hutchings <bhutchings@solarflare.com>
 Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/cpmac.c |  234 ++++++++++++++++++++++++++++++++----------
- 1 file changed, 179 insertions(+), 55 deletions(-)
+ drivers/net/sfc/efx.c      |    2 +-
+ drivers/net/sfc/falcon.c   |   18 +++++++++---------
+ drivers/net/sfc/rx.c       |    8 ++++----
+ drivers/net/sfc/selftest.c |    4 ++--
+ drivers/net/sfc/xfp_phy.c  |    2 +-
+ 5 files changed, 17 insertions(+), 17 deletions(-)
 
-diff -puN drivers/net/cpmac.c~cpmac-bugfixes-and-enhancements drivers/net/cpmac.c
---- a/drivers/net/cpmac.c~cpmac-bugfixes-and-enhancements
-+++ a/drivers/net/cpmac.c
-@@ -38,6 +38,7 @@
- #include <linux/platform_device.h>
- #include <linux/dma-mapping.h>
- #include <asm/gpio.h>
-+#include <asm/atomic.h>
- 
- MODULE_AUTHOR("Eugene Konev <ejka@imfi.kspu.ru>");
- MODULE_DESCRIPTION("TI AR7 ethernet driver (CPMAC)");
-@@ -187,6 +188,7 @@ struct cpmac_desc {
- #define CPMAC_EOQ			0x1000
- 	struct sk_buff *skb;
- 	struct cpmac_desc *next;
-+	struct cpmac_desc *prev;
- 	dma_addr_t mapping;
- 	dma_addr_t data_mapping;
- };
-@@ -208,6 +210,7 @@ struct cpmac_priv {
- 	struct work_struct reset_work;
- 	struct platform_device *pdev;
- 	struct napi_struct napi;
-+	atomic_t reset_pending;
- };
- 
- static irqreturn_t cpmac_irq(int, void *);
-@@ -241,6 +244,16 @@ static void cpmac_dump_desc(struct net_d
- 	printk("\n");
- }
- 
-+static void cpmac_dump_all_desc(struct net_device *dev)
-+{
-+	struct cpmac_priv *priv = netdev_priv(dev);
-+	struct cpmac_desc *dump = priv->rx_head;
-+	do {
-+		cpmac_dump_desc(dev, dump);
-+		dump = dump->next;
-+	} while (dump != priv->rx_head);
-+}
-+
- static void cpmac_dump_skb(struct net_device *dev, struct sk_buff *skb)
+diff -puN drivers/net/sfc/efx.c~sfc-remove-redundant-casts-to-and-from-void drivers/net/sfc/efx.c
+--- a/drivers/net/sfc/efx.c~sfc-remove-redundant-casts-to-and-from-void
++++ a/drivers/net/sfc/efx.c
+@@ -1490,7 +1490,7 @@ static void efx_set_multicast_list(struc
+ static int efx_netdev_event(struct notifier_block *this,
+ 			    unsigned long event, void *ptr)
  {
- 	int i;
-@@ -412,21 +425,42 @@ static struct sk_buff *cpmac_rx_one(stru
- static int cpmac_poll(struct napi_struct *napi, int budget)
+-	struct net_device *net_dev = (struct net_device *)ptr;
++	struct net_device *net_dev = ptr;
+ 
+ 	if (net_dev->open == efx_net_open && event == NETDEV_CHANGENAME) {
+ 		struct efx_nic *efx = net_dev->priv;
+diff -puN drivers/net/sfc/falcon.c~sfc-remove-redundant-casts-to-and-from-void drivers/net/sfc/falcon.c
+--- a/drivers/net/sfc/falcon.c~sfc-remove-redundant-casts-to-and-from-void
++++ a/drivers/net/sfc/falcon.c
+@@ -1405,7 +1405,7 @@ static inline void falcon_irq_ack_a1(str
+ static irqreturn_t falcon_fatal_interrupt(struct efx_nic *efx)
  {
- 	struct sk_buff *skb;
--	struct cpmac_desc *desc;
--	int received = 0;
-+	struct cpmac_desc *desc, *restart;
- 	struct cpmac_priv *priv = container_of(napi, struct cpmac_priv, napi);
-+	int received = 0, processed = 0;
- 
- 	spin_lock(&priv->rx_lock);
- 	if (unlikely(!priv->rx_head)) {
- 		if (netif_msg_rx_err(priv) && net_ratelimit())
- 			printk(KERN_WARNING "%s: rx: polling, but no queue\n",
- 			       priv->dev->name);
-+		spin_unlock(&priv->rx_lock);
- 		netif_rx_complete(priv->dev, napi);
- 		return 0;
- 	}
- 
- 	desc = priv->rx_head;
-+	restart = NULL;
- 	while (((desc->dataflags & CPMAC_OWN) == 0) && (received < budget)) {
-+		processed++;
-+
-+		if ((desc->dataflags & CPMAC_EOQ) != 0) {
-+			/* The last update to eoq->hw_next didn't happen
-+			* soon enough, and the receiver stopped here.
-+			*Remember this descriptor so we can restart
-+			* the receiver after freeing some space.
-+			*/
-+			if (unlikely(restart)) {
-+				if (netif_msg_rx_err(priv))
-+					printk(KERN_ERR "%s: poll found a"
-+						" duplicate EOQ: %p and %p\n",
-+						priv->dev->name, restart, desc);
-+				goto fatal_error;
-+			}
-+
-+			restart = desc->next;
-+		}
-+
- 		skb = cpmac_rx_one(priv, desc);
- 		if (likely(skb)) {
- 			netif_receive_skb(skb);
-@@ -435,19 +469,90 @@ static int cpmac_poll(struct napi_struct
- 		desc = desc->next;
- 	}
- 
-+	if (desc != priv->rx_head) {
-+		/* We freed some buffers, but not the whole ring,
-+		 * add what we did free to the rx list */
-+		desc->prev->hw_next = (u32)0;
-+		priv->rx_head->prev->hw_next = priv->rx_head->mapping;
-+	}
-+
-+	/* Optimization: If we did not actually process an EOQ (perhaps because
-+	 * of quota limits), check to see if the tail of the queue has EOQ set.
-+	* We should immediately restart in that case so that the receiver can
-+	* restart and run in parallel with more packet processing.
-+	* This lets us handle slightly larger bursts before running
-+	* out of ring space (assuming dev->weight < ring_size) */
-+
-+	if (!restart &&
-+	     (priv->rx_head->prev->dataflags & (CPMAC_OWN|CPMAC_EOQ))
-+		    == CPMAC_EOQ &&
-+	     (priv->rx_head->dataflags & CPMAC_OWN) != 0) {
-+		/* reset EOQ so the poll loop (above) doesn't try to
-+		* restart this when it eventually gets to this descriptor.
-+		*/
-+		priv->rx_head->prev->dataflags &= ~CPMAC_EOQ;
-+		restart = priv->rx_head;
-+	}
-+
-+	if (restart) {
-+		priv->dev->stats.rx_errors++;
-+		priv->dev->stats.rx_fifo_errors++;
-+		if (netif_msg_rx_err(priv) && net_ratelimit())
-+			printk(KERN_WARNING "%s: rx dma ring overrun\n",
-+			       priv->dev->name);
-+
-+		if (unlikely((restart->dataflags & CPMAC_OWN) == 0)) {
-+			if (netif_msg_drv(priv))
-+				printk(KERN_ERR "%s: cpmac_poll is trying to "
-+					"restart rx from a descriptor that's "
-+					"not free: %p\n",
-+					priv->dev->name, restart);
-+				goto fatal_error;
-+		}
-+
-+		cpmac_write(priv->regs, CPMAC_RX_PTR(0), restart->mapping);
-+	}
-+
- 	priv->rx_head = desc;
- 	spin_unlock(&priv->rx_lock);
- 	if (unlikely(netif_msg_rx_status(priv)))
- 		printk(KERN_DEBUG "%s: poll processed %d packets\n",
- 		       priv->dev->name, received);
--	if (desc->dataflags & CPMAC_OWN) {
-+	if (processed == 0) {
-+		/* we ran out of packets to read,
-+		 * revert to interrupt-driven mode */
- 		netif_rx_complete(priv->dev, napi);
--		cpmac_write(priv->regs, CPMAC_RX_PTR(0), (u32)desc->mapping);
- 		cpmac_write(priv->regs, CPMAC_RX_INT_ENABLE, 1);
- 		return 0;
- 	}
- 
- 	return 1;
-+
-+fatal_error:
-+	/* Something went horribly wrong.
-+	 * Reset hardware to try to recover rather than wedging. */
-+
-+	if (netif_msg_drv(priv)) {
-+		printk(KERN_ERR "%s: cpmac_poll is confused. "
-+				"Resetting hardware\n", priv->dev->name);
-+		cpmac_dump_all_desc(priv->dev);
-+		printk(KERN_DEBUG "%s: RX_PTR(0)=0x%08x RX_ACK(0)=0x%08x\n",
-+			priv->dev->name,
-+			cpmac_read(priv->regs, CPMAC_RX_PTR(0)),
-+			cpmac_read(priv->regs, CPMAC_RX_ACK(0)));
-+	}
-+
-+	spin_unlock(&priv->rx_lock);
-+	netif_rx_complete(priv->dev, napi);
-+	netif_stop_queue(priv->dev);
-+	napi_disable(&priv->napi);
-+
-+	atomic_inc(&priv->reset_pending);
-+	cpmac_hw_stop(priv->dev);
-+	if (!schedule_work(&priv->reset_work))
-+		atomic_dec(&priv->reset_pending);
-+	return 0;
-+
- }
- 
- static int cpmac_start_xmit(struct sk_buff *skb, struct net_device *dev)
-@@ -456,6 +561,9 @@ static int cpmac_start_xmit(struct sk_bu
- 	struct cpmac_desc *desc;
- 	struct cpmac_priv *priv = netdev_priv(dev);
- 
-+	if (unlikely(atomic_read(&priv->reset_pending)))
-+		return NETDEV_TX_BUSY;
-+
- 	if (unlikely(skb_padto(skb, ETH_ZLEN)))
- 		return NETDEV_TX_OK;
- 
-@@ -621,8 +729,10 @@ static void cpmac_clear_rx(struct net_de
- 			desc->dataflags = CPMAC_OWN;
- 			dev->stats.rx_dropped++;
- 		}
-+		desc->hw_next = desc->next->mapping;
- 		desc = desc->next;
- 	}
-+	priv->rx_head->prev->hw_next = 0;
- }
- 
- static void cpmac_clear_tx(struct net_device *dev)
-@@ -635,14 +745,14 @@ static void cpmac_clear_tx(struct net_de
- 		priv->desc_ring[i].dataflags = 0;
- 		if (priv->desc_ring[i].skb) {
- 			dev_kfree_skb_any(priv->desc_ring[i].skb);
--			if (netif_subqueue_stopped(dev, i))
--			    netif_wake_subqueue(dev, i);
-+			priv->desc_ring[i].skb = NULL;
- 		}
- 	}
- }
- 
- static void cpmac_hw_error(struct work_struct *work)
+ 	struct falcon_nic_data *nic_data = efx->nic_data;
+-	efx_oword_t *int_ker = (efx_oword_t *) efx->irq_status.addr;
++	efx_oword_t *int_ker = efx->irq_status.addr;
+ 	efx_oword_t fatal_intr;
+ 	int error, mem_perr;
+ 	static int n_int_errors;
+@@ -1451,8 +1451,8 @@ out:
+  */
+ static irqreturn_t falcon_legacy_interrupt_b0(int irq, void *dev_id)
  {
-+	int i;
- 	struct cpmac_priv *priv =
- 		container_of(work, struct cpmac_priv, reset_work);
+-	struct efx_nic *efx = (struct efx_nic *)dev_id;
+-	efx_oword_t *int_ker = (efx_oword_t *) efx->irq_status.addr;
++	struct efx_nic *efx = dev_id;
++	efx_oword_t *int_ker = efx->irq_status.addr;
+ 	struct efx_channel *channel;
+ 	efx_dword_t reg;
+ 	u32 queues;
+@@ -1489,8 +1489,8 @@ static irqreturn_t falcon_legacy_interru
  
-@@ -651,8 +761,48 @@ static void cpmac_hw_error(struct work_s
- 	spin_unlock(&priv->rx_lock);
- 	cpmac_clear_tx(priv->dev);
- 	cpmac_hw_start(priv->dev);
--	napi_enable(&priv->napi);
--	netif_start_queue(priv->dev);
-+	barrier();
-+	atomic_dec(&priv->reset_pending);
-+
-+	for (i = 0; i < CPMAC_QUEUES; i++)
-+		netif_wake_subqueue(priv->dev, i);
-+	netif_wake_queue(priv->dev);
-+	cpmac_write(priv->regs, CPMAC_MAC_INT_ENABLE, 3);
-+}
-+
-+static void cpmac_check_status(struct net_device *dev)
-+{
-+	struct cpmac_priv *priv = netdev_priv(dev);
-+
-+	u32 macstatus = cpmac_read(priv->regs, CPMAC_MAC_STATUS);
-+	int rx_channel = (macstatus >> 8) & 7;
-+	int rx_code = (macstatus >> 12) & 15;
-+	int tx_channel = (macstatus >> 16) & 7;
-+	int tx_code = (macstatus >> 20) & 15;
-+
-+	if (rx_code || tx_code) {
-+		if (netif_msg_drv(priv) && net_ratelimit()) {
-+			/* Can't find any documentation on what these
-+			 *error codes actually are. So just log them and hope..
-+			 */
-+			if (rx_code)
-+				printk(KERN_WARNING "%s: host error %d on rx "
-+				     "channel %d (macstatus %08x), resetting\n",
-+				     dev->name, rx_code, rx_channel, macstatus);
-+			if (tx_code)
-+				printk(KERN_WARNING "%s: host error %d on tx "
-+				     "channel %d (macstatus %08x), resetting\n",
-+				     dev->name, tx_code, tx_channel, macstatus);
-+		}
-+
-+		netif_stop_queue(dev);
-+		cpmac_hw_stop(dev);
-+		if (schedule_work(&priv->reset_work))
-+			atomic_inc(&priv->reset_pending);
-+		if (unlikely(netif_msg_hw(priv)))
-+			cpmac_dump_regs(dev);
-+	}
-+	cpmac_write(priv->regs, CPMAC_MAC_INT_CLEAR, 0xff);
- }
- 
- static irqreturn_t cpmac_irq(int irq, void *dev_id)
-@@ -683,49 +833,32 @@ static irqreturn_t cpmac_irq(int irq, vo
- 
- 	cpmac_write(priv->regs, CPMAC_MAC_EOI_VECTOR, 0);
- 
--	if (unlikely(status & (MAC_INT_HOST | MAC_INT_STATUS))) {
--		if (netif_msg_drv(priv) && net_ratelimit())
--			printk(KERN_ERR "%s: hw error, resetting...\n",
--			       dev->name);
--		netif_stop_queue(dev);
--		napi_disable(&priv->napi);
--		cpmac_hw_stop(dev);
--		schedule_work(&priv->reset_work);
--		if (unlikely(netif_msg_hw(priv)))
--			cpmac_dump_regs(dev);
--	}
-+	if (unlikely(status & (MAC_INT_HOST | MAC_INT_STATUS)))
-+		cpmac_check_status(dev);
- 
- 	return IRQ_HANDLED;
- }
- 
- static void cpmac_tx_timeout(struct net_device *dev)
+ static irqreturn_t falcon_legacy_interrupt_a1(int irq, void *dev_id)
  {
--	struct cpmac_priv *priv = netdev_priv(dev);
- 	int i;
-+	struct cpmac_priv *priv = netdev_priv(dev);
+-	struct efx_nic *efx = (struct efx_nic *)dev_id;
+-	efx_oword_t *int_ker = (efx_oword_t *) efx->irq_status.addr;
++	struct efx_nic *efx = dev_id;
++	efx_oword_t *int_ker = efx->irq_status.addr;
+ 	struct efx_channel *channel;
+ 	int syserr;
+ 	int queues;
+@@ -1542,9 +1542,9 @@ static irqreturn_t falcon_legacy_interru
+  */
+ static irqreturn_t falcon_msi_interrupt(int irq, void *dev_id)
+ {
+-	struct efx_channel *channel = (struct efx_channel *)dev_id;
++	struct efx_channel *channel = dev_id;
+ 	struct efx_nic *efx = channel->efx;
+-	efx_oword_t *int_ker = (efx_oword_t *) efx->irq_status.addr;
++	efx_oword_t *int_ker = efx->irq_status.addr;
+ 	int syserr;
  
- 	spin_lock(&priv->lock);
- 	dev->stats.tx_errors++;
- 	spin_unlock(&priv->lock);
- 	if (netif_msg_tx_err(priv) && net_ratelimit())
- 		printk(KERN_WARNING "%s: transmit timeout\n", dev->name);
--	/*
--	 * FIXME: waking up random queue is not the best thing to
--	 * do... on the other hand why we got here at all?
--	 */
--#ifdef CONFIG_NETDEVICES_MULTIQUEUE
-+
-+	atomic_inc(&priv->reset_pending);
-+	barrier();
-+	cpmac_clear_tx(dev);
-+	barrier();
-+	atomic_dec(&priv->reset_pending);
-+
-+	netif_wake_queue(priv->dev);
- 	for (i = 0; i < CPMAC_QUEUES; i++)
--		if (priv->desc_ring[i].skb) {
--			priv->desc_ring[i].dataflags = 0;
--			dev_kfree_skb_any(priv->desc_ring[i].skb);
--			netif_wake_subqueue(dev, i);
--			break;
--		}
--#else
--	priv->desc_ring[0].dataflags = 0;
--	if (priv->desc_ring[0].skb)
--		dev_kfree_skb_any(priv->desc_ring[0].skb);
--	netif_wake_queue(dev);
--#endif
-+		netif_wake_subqueue(dev, i);
- }
+ 	efx->last_irq_cpu = raw_smp_processor_id();
+@@ -1941,7 +1941,7 @@ static int falcon_gmii_wait(struct efx_n
+ static void falcon_mdio_write(struct net_device *net_dev, int phy_id,
+ 			      int addr, int value)
+ {
+-	struct efx_nic *efx = (struct efx_nic *)net_dev->priv;
++	struct efx_nic *efx = net_dev->priv;
+ 	unsigned int phy_id2 = phy_id & FALCON_PHY_ID_ID_MASK;
+ 	efx_oword_t reg;
  
- static int cpmac_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
-@@ -901,9 +1034,12 @@ static int cpmac_open(struct net_device 
- 		desc->buflen = CPMAC_SKB_SIZE;
- 		desc->dataflags = CPMAC_OWN;
- 		desc->next = &priv->rx_head[(i + 1) % priv->ring_size];
-+		desc->next->prev = desc;
- 		desc->hw_next = (u32)desc->next->mapping;
+@@ -2009,7 +2009,7 @@ static void falcon_mdio_write(struct net
+  * could be read, -1 will be returned. */
+ static int falcon_mdio_read(struct net_device *net_dev, int phy_id, int addr)
+ {
+-	struct efx_nic *efx = (struct efx_nic *)net_dev->priv;
++	struct efx_nic *efx = net_dev->priv;
+ 	unsigned int phy_addr = phy_id & FALCON_PHY_ID_ID_MASK;
+ 	efx_oword_t reg;
+ 	int value = -1;
+diff -puN drivers/net/sfc/rx.c~sfc-remove-redundant-casts-to-and-from-void drivers/net/sfc/rx.c
+--- a/drivers/net/sfc/rx.c~sfc-remove-redundant-casts-to-and-from-void
++++ a/drivers/net/sfc/rx.c
+@@ -109,7 +109,7 @@ static inline unsigned int efx_rx_buf_si
+ static int efx_lro_get_skb_hdr(struct sk_buff *skb, void **ip_hdr,
+ 			       void **tcpudp_hdr, u64 *hdr_flags, void *priv)
+ {
+-	struct efx_channel *channel = (struct efx_channel *)priv;
++	struct efx_channel *channel = priv;
+ 	struct iphdr *iph;
+ 	struct tcphdr *th;
+ 
+@@ -134,12 +134,12 @@ static int efx_get_frag_hdr(struct skb_f
+ 			    void **ip_hdr, void **tcpudp_hdr, u64 *hdr_flags,
+ 			    void *priv)
+ {
+-	struct efx_channel *channel = (struct efx_channel *)priv;
++	struct efx_channel *channel = priv;
+ 	struct ethhdr *eh;
+ 	struct iphdr *iph;
+ 
+ 	/* We support EtherII and VLAN encapsulated IPv4 */
+-	eh = (struct ethhdr *)(page_address(frag->page) + frag->page_offset);
++	eh = page_address(frag->page) + frag->page_offset;
+ 	*mac_hdr = eh;
+ 
+ 	if (eh->h_proto == htons(ETH_P_IP)) {
+@@ -283,7 +283,7 @@ static inline int efx_init_rx_buffer_pag
+ 
+ 		rx_queue->buf_page = rx_buf->page;
+ 		rx_queue->buf_dma_addr = dma_addr;
+-		rx_queue->buf_data = ((char *) page_address(rx_buf->page) +
++		rx_queue->buf_data = (page_address(rx_buf->page) +
+ 				      EFX_PAGE_IP_ALIGN);
  	}
  
-+	priv->rx_head->prev->hw_next = (u32)0;
-+
- 	if ((res = request_irq(dev->irq, cpmac_irq, IRQF_SHARED,
- 			       dev->name, dev))) {
- 		if (netif_msg_drv(priv))
-@@ -912,6 +1048,7 @@ static int cpmac_open(struct net_device 
- 		goto fail_irq;
- 	}
+diff -puN drivers/net/sfc/selftest.c~sfc-remove-redundant-casts-to-and-from-void drivers/net/sfc/selftest.c
+--- a/drivers/net/sfc/selftest.c~sfc-remove-redundant-casts-to-and-from-void
++++ a/drivers/net/sfc/selftest.c
+@@ -290,7 +290,7 @@ void efx_loopback_rx_packet(struct efx_n
  
-+	atomic_set(&priv->reset_pending, 0);
- 	INIT_WORK(&priv->reset_work, cpmac_hw_error);
- 	cpmac_hw_start(dev);
+ 	payload = &state->payload;
+ 	
+-	received = (struct efx_loopback_payload *)(char *) buf_ptr;
++	received = (struct efx_loopback_payload *) buf_ptr;
+ 	received->ip.saddr = payload->ip.saddr;
+ 	received->ip.check = payload->ip.check;
+ 	
+@@ -700,7 +700,7 @@ int efx_offline_test(struct efx_nic *efx
+ 	 * "flushing" so all inflight packets are dropped */
+ 	BUG_ON(efx->loopback_selftest);
+ 	state->flush = 1;
+-	efx->loopback_selftest = (void *)state;
++	efx->loopback_selftest = state;
  
-@@ -1007,21 +1144,10 @@ static int __devinit cpmac_probe(struct 
+ 	rc = efx_test_loopbacks(efx, tests, loopback_modes);
  
- 	if (phy_id == PHY_MAX_ADDR) {
- 		if (external_switch || dumb_switch) {
--			struct fixed_phy_status status = {};
--
--			/*
--			 * FIXME: this should be in the platform code!
--			 * Since there is not platform code at all (that is,
--			 * no mainline users of that driver), place it here
--			 * for now.
--			 */
--			phy_id = 0;
--			status.link = 1;
--			status.duplex = 1;
--			status.speed = 100;
--			fixed_phy_add(PHY_POLL, phy_id, &status);
-+			mdio_bus_id = 0; /* fixed phys bus */
-+			phy_id = pdev->id;
- 		} else {
--			printk(KERN_ERR "cpmac: no PHY present\n");
-+			dev_err(&pdev->dev, "no PHY present\n");
- 			return -ENODEV;
- 		}
- 	}
-@@ -1064,10 +1190,8 @@ static int __devinit cpmac_probe(struct 
- 	priv->msg_enable = netif_msg_init(debug_level, 0xff);
- 	memcpy(dev->dev_addr, pdata->dev_addr, sizeof(dev->dev_addr));
+diff -puN drivers/net/sfc/xfp_phy.c~sfc-remove-redundant-casts-to-and-from-void drivers/net/sfc/xfp_phy.c
+--- a/drivers/net/sfc/xfp_phy.c~sfc-remove-redundant-casts-to-and-from-void
++++ a/drivers/net/sfc/xfp_phy.c
+@@ -85,7 +85,7 @@ static int xfp_phy_init(struct efx_nic *
+ 	int rc;
  
--	snprintf(priv->phy_name, BUS_ID_SIZE, PHY_ID_FMT, mdio_bus_id, phy_id);
+ 	phy_data = kzalloc(sizeof(struct xfp_phy_data), GFP_KERNEL);
+-	efx->phy_data = (void *) phy_data;
++	efx->phy_data = phy_data;
+ 
+ 	EFX_INFO(efx, "XFP: PHY ID reg %x (OUI %x model %x revision"
+ 		 " %x)\n", devid, MDIO_ID_OUI(devid), MDIO_ID_MODEL(devid),
+_
+
+Patches currently in -mm which might be from bhutchings@solarflare.com are
+
+git-net.patch
+
