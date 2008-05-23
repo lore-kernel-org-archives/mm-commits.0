@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch added to -mm tree
-Date: Fri, 23 May 2008 00:37:45 -0700
-Message-ID: <200805230749.m4N7n1r4011851@imap1.linux-foundation.org>
+Subject: + documentation-build-source-files-in-documentation-sub-dir-disable.patch added to -mm tree
+Date: Fri, 23 May 2008 00:55:24 -0700
+Message-ID: <200805230806.m4N86d7A012451@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34545 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41174 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753710AbYEWHvR (ORCPT
+	by vger.kernel.org with ESMTP id S1752214AbYEWIIN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 23 May 2008 03:51:17 -0400
+	Fri, 23 May 2008 04:08:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, andi@firstfloor.org, avi@qumranet.com, fujita.tomonori@lab.ntt.co.jp, mingo@elte.hu, muli@il.ibm.com, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, randy.dunlap@oracle.com, sam@ravnborg.org
 
 
 The patch titled
-     dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32
+     documentation-build-source-files-in-documentation-sub-dir-disable
 has been added to the -mm tree.  Its filename is
-     dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
+     documentation-build-source-files-in-documentation-sub-dir-disable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,28 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32
+Subject: documentation-build-source-files-in-documentation-sub-dir-disable
 From: Andrew Morton <akpm@linux-foundation.org>
 
-In file included from /usr/src/devel/include/linux/pci.h:960,
-                 from /usr/src/devel/include/asm-generic/dma-mapping.h:15,
-                 from /usr/src/devel/include/asm/dma-mapping.h:6,
-                 from /usr/src/devel/include/linux/dma-mapping.h:52,
-                 from /usr/src/devel/include/asm/sbus.h:10,
-                 from /usr/src/devel/include/asm/dma.h:13,
-                 from /usr/src/devel/include/linux/bootmem.h:8,
-                 from /usr/src/devel/init/main.c:27:
-/usr/src/devel/include/asm/pci.h:158: warning: 'struct pci_device' declared inside parameter list
-/usr/src/devel/include/asm/pci.h:158: warning: its scope is only this definition or declaration, which is probably not what you want
-
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Avi Kivity <avi@qumranet.com>
-Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Muli Ben-Yehuda <muli@il.ibm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-sparc/pci.h |    1 +
+ lib/Kconfig.debug |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN include/asm-sparc/pci.h~dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32 include/asm-sparc/pci.h
---- a/include/asm-sparc/pci.h~dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32
-+++ a/include/asm-sparc/pci.h
-@@ -32,6 +32,7 @@ static inline void pcibios_penalize_isa_
- #include <asm/scatterlist.h>
+diff -puN lib/Kconfig.debug~documentation-build-source-files-in-documentation-sub-dir-disable lib/Kconfig.debug
+--- a/lib/Kconfig.debug~documentation-build-source-files-in-documentation-sub-dir-disable
++++ a/lib/Kconfig.debug
+@@ -657,6 +657,7 @@ config FIREWIRE_OHCI_REMOTE_DMA
  
- struct pci_dev;
-+struct pci_device;
- 
- /* Allocate and map kernel buffer using consistent mode DMA for a device.
-  * hwdev should be valid struct pci_dev pointer for PCI devices.
+ menuconfig BUILD_DOCSRC
+ 	bool "Build targets in Documentation/ tree"
++	depends on BROKEN
+ 	help
+ 	  This option attempts to build objects from the source files in the
+ 	  kernel Documentation/ tree.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -184,4 +169,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
 
