@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
 Subject: + dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch added to -mm tree
-Date: Fri, 23 May 2008 00:38:35 -0700
-Message-ID: <200805230749.m4N7nofr011866@imap1.linux-foundation.org>
+Date: Fri, 23 May 2008 00:37:45 -0700
+Message-ID: <200805230749.m4N7n1r4011851@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45085 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34545 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751634AbYEWHvH (ORCPT
+	by vger.kernel.org with ESMTP id S1753710AbYEWHvR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 23 May 2008 03:51:07 -0400
+	Fri, 23 May 2008 03:51:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -57,21 +57,20 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-sparc/pci.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/asm-sparc/pci.h |    1 +
+ 1 file changed, 1 insertion(+)
 
 diff -puN include/asm-sparc/pci.h~dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32 include/asm-sparc/pci.h
 --- a/include/asm-sparc/pci.h~dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32
 +++ a/include/asm-sparc/pci.h
-@@ -154,7 +154,7 @@ static inline void pci_dma_burst_advice(
+@@ -32,6 +32,7 @@ static inline void pcibios_penalize_isa_
+ #include <asm/scatterlist.h>
  
- #define PCI_DMA_ERROR_CODE      (~(dma_addr_t)0x0)
+ struct pci_dev;
++struct pci_device;
  
--static inline int pci_dma_mapping_error(struct pci_device *pdev,
-+static inline int pci_dma_mapping_error(struct pci_dev *pdev,
- 					dma_addr_t dma_addr)
- {
-         return (dma_addr == PCI_DMA_ERROR_CODE);
+ /* Allocate and map kernel buffer using consistent mode DMA for a device.
+  * hwdev should be valid struct pci_dev pointer for PCI devices.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
