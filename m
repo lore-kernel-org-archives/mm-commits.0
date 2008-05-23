@@ -1,55 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: - reiserfs-convert-j_flush_sem-to-mutex-fix.patch removed from -mm tree
-Date: Fri, 23 May 2008 11:57:55 -0700
-Message-ID: <200805231857.m4NIvtRM004059@imap1.linux-foundation.org>
+Subject: + next-fix-rejects.patch added to -mm tree
+Date: Fri, 23 May 2008 12:17:24 -0700
+Message-ID: <200805231917.m4NJHOv0004901@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54858 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57459 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752645AbYEWTDj (ORCPT
+	by vger.kernel.org with ESMTP id S1754139AbYEWTR1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 23 May 2008 15:03:39 -0400
+	Fri, 23 May 2008 15:17:27 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m4NJHOq4028603
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Fri, 23 May 2008 12:17:25 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, chris.mason@oracle.com, edward.shishkin@gmail.com, jeffm@suse.com, kamalesh@linux.vnet.ibm.com, matthew@wil.cx, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     reiserfs-convert-j_flush_sem-to-mutex-fix
-has been removed from the -mm tree.  Its filename was
-     reiserfs-convert-j_flush_sem-to-mutex-fix.patch
+     next-fix-rejects
+has been added to the -mm tree.  Its filename is
+     next-fix-rejects.patch
 
-This patch was dropped because it was folded into reiserfs-convert-j_flush_sem-to-mutex.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: reiserfs-convert-j_flush_sem-to-mutex-fix
+Subject: next-fix-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Chris Mason <chris.mason@oracle.com>
-Cc: Edward Shishkin <edward.shishkin@gmail.com>
-Cc: Jeff Mahoney <jeffm@suse.com>
-Cc: Matthew Wilcox <matthew@wil.cx>
-Cc: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/journal.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/stop_machine.c |   21 ---------------------
+ 1 file changed, 21 deletions(-)
 
-diff -puN fs/reiserfs/journal.c~reiserfs-convert-j_flush_sem-to-mutex-fix fs/reiserfs/journal.c
---- a/fs/reiserfs/journal.c~reiserfs-convert-j_flush_sem-to-mutex-fix
-+++ a/fs/reiserfs/journal.c
-@@ -1412,7 +1412,7 @@ static int flush_journal_list(struct sup
- 	/* if flushall == 0, the lock is already held */
- 	if (flushall) {
- 		mutex_lock(&journal->j_flush_mutex);
--	} else if (!mutex_trylock(&journal->j_flush_mutex)) {
-+	} else if (mutex_trylock(&journal->j_flush_mutex)) {
- 		BUG();
- 	}
+diff -puN kernel/stop_machine.c~next-fix-rejects kernel/stop_machine.c
+--- a/kernel/stop_machine.c~next-fix-rejects
++++ a/kernel/stop_machine.c
+@@ -85,20 +85,7 @@ static int stop_cpu(struct stop_machine_
+ 			}
+ 			ack_state();
+ 		}
+-<<<<<<< HEAD:kernel/stop_machine.c
+-		/* Yield in first stage: migration threads need to
+-		 * help our sisters onto their CPUs. */
+-		if (!prepared && !irqs_disabled)
+-			yield();
+-		cpu_relax();
+-	}
+-
+-	/* Ack: we are exiting. */
+-	smp_mb(); /* Must read state first. */
+-	atomic_inc(&stopmachine_thread_ack);
+-=======
+ 	} while (curstate < STOPMACHINE_EXIT);
+->>>>>>> FETCH_HEAD:kernel/stop_machine.c
  
+ 	local_irq_enable();
+ 	do_exit(0);
+@@ -116,19 +103,11 @@ int __stop_machine_run(int (*fn)(void *)
+ 	struct stop_machine_data active, idle;
+ 	struct task_struct **threads;
+ 
+-<<<<<<< HEAD:kernel/stop_machine.c
+-	/* Wait for them all to come to life. */
+-	while (atomic_read(&stopmachine_thread_ack) != stopmachine_num_threads) {
+-		yield();
+-		cpu_relax();
+-	}
+-=======
+ 	active.fn = fn;
+ 	active.data = data;
+ 	active.fnret = 0;
+ 	idle.fn = chill;
+ 	idle.data = NULL;
+->>>>>>> FETCH_HEAD:kernel/stop_machine.c
+ 
+ 	/* If they don't care which cpu fn runs on, just pick one. */
+ 	if (cpu == NR_CPUS)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -58,6 +99,7 @@ origin.patch
 ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware-ia64-warnings.patch
 memory-hotplug-fix-early-allocation-handling-checkpatch-fixes.patch
 linux-next.patch
+next-fix-rejects.patch
 next-remove-localversion.patch
 fix-kobject-fix-kobject_rename-and-config_sysfs.patch
 fix-driver-core-add-device_create_vargs-and-device_create_drvdata.patch
@@ -138,7 +180,6 @@ flag-parameters-inotify_init-fix.patch
 flag-parameters-check-magic-constants-alpha.patch
 drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
 reiserfs-convert-j_flush_sem-to-mutex.patch
-reiserfs-convert-j_flush_sem-to-mutex-fix.patch
 reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
