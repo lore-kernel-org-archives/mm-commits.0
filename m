@@ -1,615 +1,430 @@
 From: akpm@linux-foundation.org
-Subject: - sfc-replace-various-macros-with-inline-functions.patch removed from -mm tree
-Date: Fri, 23 May 2008 11:59:13 -0700
-Message-ID: <200805231859.m4NIxD9D004216@imap1.linux-foundation.org>
+Subject: - cpmac-bugfixes-and-enhancements.patch removed from -mm tree
+Date: Fri, 23 May 2008 11:59:01 -0700
+Message-ID: <200805231859.m4NIx1om004191@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37824 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47886 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753449AbYEWS7X (ORCPT
+	by vger.kernel.org with ESMTP id S1753449AbYEWS7T (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 23 May 2008 14:59:23 -0400
+	Fri, 23 May 2008 14:59:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bhutchings@solarflare.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: matteo@openwrt.org, jeff@garzik.org, nbd@openwrt.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sfc: replace various macros with inline functions
+     cpmac: bugfixes and enhancements
 has been removed from the -mm tree.  Its filename was
-     sfc-replace-various-macros-with-inline-functions.patch
+     cpmac-bugfixes-and-enhancements.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sfc: replace various macros with inline functions
-From: Ben Hutchings <bhutchings@solarflare.com>
+Subject: cpmac: bugfixes and enhancements
+From: Matteo Croce <matteo@openwrt.org>
 
-Signed-off-by: Ben Hutchings <bhutchings@solarflare.com>
+* Resolve some locking issues using atomic_inc/atomic_dec
+* move status code in cpmac_check_status
+* unmark the BROKEN flag in Kconfig
+* move code which should have been in platform code in arch/mips/ar7/platform.c
+* fixed an IRQ storm which lets the kernel hang
+* fixed a double call to netif_start_queue which causes a kernel panic
+* don't fail to register the PHY, works on many devices now
+
+Signed-off-by: Matteo Croce <matteo@openwrt.org>
+Signed-off-by: Felix Fietkau <nbd@openwrt.org>
 Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/sfc/bitfield.h    |    4 +-
- drivers/net/sfc/efx.c         |    8 ++---
- drivers/net/sfc/falcon.c      |   46 ++++++++++++++++----------------
- drivers/net/sfc/falcon.h      |    5 ++-
- drivers/net/sfc/falcon_io.h   |   29 ++++++++++++++------
- drivers/net/sfc/falcon_xmac.c |    6 ++--
- drivers/net/sfc/net_driver.h  |   31 ++++++++++++---------
- drivers/net/sfc/rx.c          |   39 ++++++++++++++++-----------
- drivers/net/sfc/selftest.c    |    8 ++---
- drivers/net/sfc/tx.c          |    2 -
- drivers/net/sfc/workarounds.h |    2 -
- 11 files changed, 105 insertions(+), 75 deletions(-)
+ drivers/net/cpmac.c |  234 ++++++++++++++++++++++++++++++++----------
+ 1 file changed, 179 insertions(+), 55 deletions(-)
 
-diff -puN drivers/net/sfc/bitfield.h~sfc-replace-various-macros-with-inline-functions drivers/net/sfc/bitfield.h
---- a/drivers/net/sfc/bitfield.h~sfc-replace-various-macros-with-inline-functions
-+++ a/drivers/net/sfc/bitfield.h
-@@ -483,7 +483,7 @@ typedef union efx_oword {
- #endif
+diff -puN drivers/net/cpmac.c~cpmac-bugfixes-and-enhancements drivers/net/cpmac.c
+--- a/drivers/net/cpmac.c~cpmac-bugfixes-and-enhancements
++++ a/drivers/net/cpmac.c
+@@ -38,6 +38,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/dma-mapping.h>
+ #include <asm/gpio.h>
++#include <asm/atomic.h>
  
- #define EFX_SET_OWORD_FIELD_VER(efx, oword, field, value) do { \
--	if (FALCON_REV(efx) >= FALCON_REV_B0) {			   \
-+	if (falcon_rev(efx) >= FALCON_REV_B0) {			   \
- 		EFX_SET_OWORD_FIELD((oword), field##_B0, (value)); \
- 	} else { \
- 		EFX_SET_OWORD_FIELD((oword), field##_A1, (value)); \
-@@ -491,7 +491,7 @@ typedef union efx_oword {
- } while (0)
+ MODULE_AUTHOR("Eugene Konev <ejka@imfi.kspu.ru>");
+ MODULE_DESCRIPTION("TI AR7 ethernet driver (CPMAC)");
+@@ -187,6 +188,7 @@ struct cpmac_desc {
+ #define CPMAC_EOQ			0x1000
+ 	struct sk_buff *skb;
+ 	struct cpmac_desc *next;
++	struct cpmac_desc *prev;
+ 	dma_addr_t mapping;
+ 	dma_addr_t data_mapping;
+ };
+@@ -208,6 +210,7 @@ struct cpmac_priv {
+ 	struct work_struct reset_work;
+ 	struct platform_device *pdev;
+ 	struct napi_struct napi;
++	atomic_t reset_pending;
+ };
  
- #define EFX_QWORD_FIELD_VER(efx, qword, field)	\
--	(FALCON_REV(efx) >= FALCON_REV_B0 ?	\
-+	(falcon_rev(efx) >= FALCON_REV_B0 ?	\
- 	 EFX_QWORD_FIELD((qword), field##_B0) :	\
- 	 EFX_QWORD_FIELD((qword), field##_A1))
- 
-diff -puN drivers/net/sfc/efx.c~sfc-replace-various-macros-with-inline-functions drivers/net/sfc/efx.c
---- a/drivers/net/sfc/efx.c~sfc-replace-various-macros-with-inline-functions
-+++ a/drivers/net/sfc/efx.c
-@@ -691,7 +691,7 @@ static void efx_stop_port(struct efx_nic
- 	mutex_unlock(&efx->mac_lock);
- 
- 	/* Serialise against efx_set_multicast_list() */
--	if (NET_DEV_REGISTERED(efx)) {
-+	if (efx_dev_registered(efx)) {
- 		netif_tx_lock_bh(efx->net_dev);
- 		netif_tx_unlock_bh(efx->net_dev);
- 	}
-@@ -1030,7 +1030,7 @@ static void efx_start_all(struct efx_nic
- 		return;
- 	if ((efx->state != STATE_RUNNING) && (efx->state != STATE_INIT))
- 		return;
--	if (NET_DEV_REGISTERED(efx) && !netif_running(efx->net_dev))
-+	if (efx_dev_registered(efx) && !netif_running(efx->net_dev))
- 		return;
- 
- 	/* Mark the port as enabled so port reconfigurations can start, then
-@@ -1112,7 +1112,7 @@ static void efx_stop_all(struct efx_nic 
- 	/* Stop the kernel transmit interface late, so the watchdog
- 	 * timer isn't ticking over the flush */
- 	efx_stop_queue(efx);
--	if (NET_DEV_REGISTERED(efx)) {
-+	if (efx_dev_registered(efx)) {
- 		netif_tx_lock_bh(efx->net_dev);
- 		netif_tx_unlock_bh(efx->net_dev);
- 	}
-@@ -1550,7 +1550,7 @@ static void efx_unregister_netdev(struct
- 	efx_for_each_tx_queue(tx_queue, efx)
- 		efx_release_tx_buffers(tx_queue);
- 
--	if (NET_DEV_REGISTERED(efx)) {
-+	if (efx_dev_registered(efx)) {
- 		strlcpy(efx->name, pci_name(efx->pci_dev), sizeof(efx->name));
- 		unregister_netdev(efx->net_dev);
- 	}
-diff -puN drivers/net/sfc/falcon.c~sfc-replace-various-macros-with-inline-functions drivers/net/sfc/falcon.c
---- a/drivers/net/sfc/falcon.c~sfc-replace-various-macros-with-inline-functions
-+++ a/drivers/net/sfc/falcon.c
-@@ -145,7 +145,7 @@ MODULE_PARM_DESC(rx_xon_thresh_bytes, "R
- #define PCI_EXP_LNKSTA_LNK_WID_LBN	4
- 
- #define FALCON_IS_DUAL_FUNC(efx)		\
--	(FALCON_REV(efx) < FALCON_REV_B0)
-+	(falcon_rev(efx) < FALCON_REV_B0)
- 
- /**************************************************************************
-  *
-@@ -465,7 +465,7 @@ int falcon_init_tx(struct efx_tx_queue *
- 			      TX_DESCQ_TYPE, 0,
- 			      TX_NON_IP_DROP_DIS_B0, 1);
- 
--	if (FALCON_REV(efx) >= FALCON_REV_B0) {
-+	if (falcon_rev(efx) >= FALCON_REV_B0) {
- 		int csum = !(efx->net_dev->features & NETIF_F_IP_CSUM);
- 		EFX_SET_OWORD_FIELD(tx_desc_ptr, TX_IP_CHKSM_DIS_B0, csum);
- 		EFX_SET_OWORD_FIELD(tx_desc_ptr, TX_TCP_CHKSM_DIS_B0, csum);
-@@ -474,7 +474,7 @@ int falcon_init_tx(struct efx_tx_queue *
- 	falcon_write_table(efx, &tx_desc_ptr, efx->type->txd_ptr_tbl_base,
- 			   tx_queue->queue);
- 
--	if (FALCON_REV(efx) < FALCON_REV_B0) {
-+	if (falcon_rev(efx) < FALCON_REV_B0) {
- 		efx_oword_t reg;
- 
- 		BUG_ON(tx_queue->queue >= 128); /* HW limit */
-@@ -635,7 +635,7 @@ int falcon_init_rx(struct efx_rx_queue *
- 	efx_oword_t rx_desc_ptr;
- 	struct efx_nic *efx = rx_queue->efx;
- 	int rc;
--	int is_b0 = FALCON_REV(efx) >= FALCON_REV_B0;
-+	int is_b0 = falcon_rev(efx) >= FALCON_REV_B0;
- 	int iscsi_digest_en = is_b0;
- 
- 	EFX_LOG(efx, "RX queue %d ring in special buffers %d-%d\n",
-@@ -822,10 +822,10 @@ static inline void falcon_handle_tx_even
- 		tx_ev_q_label = EFX_QWORD_FIELD(*event, TX_EV_Q_LABEL);
- 		tx_queue = &efx->tx_queue[tx_ev_q_label];
- 
--		if (NET_DEV_REGISTERED(efx))
-+		if (efx_dev_registered(efx))
- 			netif_tx_lock(efx->net_dev);
- 		falcon_notify_tx_desc(tx_queue);
--		if (NET_DEV_REGISTERED(efx))
-+		if (efx_dev_registered(efx))
- 			netif_tx_unlock(efx->net_dev);
- 	} else if (EFX_QWORD_FIELD(*event, TX_EV_PKT_ERR) &&
- 		   EFX_WORKAROUND_10727(efx)) {
-@@ -884,7 +884,7 @@ static void falcon_handle_rx_not_ok(stru
- 						   RX_EV_TCP_UDP_CHKSUM_ERR);
- 	rx_ev_eth_crc_err = EFX_QWORD_FIELD(*event, RX_EV_ETH_CRC_ERR);
- 	rx_ev_frm_trunc = EFX_QWORD_FIELD(*event, RX_EV_FRM_TRUNC);
--	rx_ev_drib_nib = ((FALCON_REV(efx) >= FALCON_REV_B0) ?
-+	rx_ev_drib_nib = ((falcon_rev(efx) >= FALCON_REV_B0) ?
- 			  0 : EFX_QWORD_FIELD(*event, RX_EV_DRIB_NIB));
- 	rx_ev_pause_frm = EFX_QWORD_FIELD(*event, RX_EV_PAUSE_FRM_ERR);
- 
-@@ -1065,7 +1065,7 @@ static void falcon_handle_global_event(s
- 	    EFX_QWORD_FIELD(*event, XG_PHY_INTR))
- 		is_phy_event = 1;
- 
--	if ((FALCON_REV(efx) >= FALCON_REV_B0) &&
-+	if ((falcon_rev(efx) >= FALCON_REV_B0) &&
- 	    EFX_OWORD_FIELD(*event, XG_MNT_INTR_B0))
- 		is_phy_event = 1;
- 
-@@ -1572,7 +1572,7 @@ static void falcon_setup_rss_indir_table
- 	unsigned long offset;
- 	efx_dword_t dword;
- 
--	if (FALCON_REV(efx) < FALCON_REV_B0)
-+	if (falcon_rev(efx) < FALCON_REV_B0)
- 		return;
- 
- 	for (offset = RX_RSS_INDIR_TBL_B0;
-@@ -1595,7 +1595,7 @@ int falcon_init_interrupt(struct efx_nic
- 
- 	if (!EFX_INT_MODE_USE_MSI(efx)) {
- 		irq_handler_t handler;
--		if (FALCON_REV(efx) >= FALCON_REV_B0)
-+		if (falcon_rev(efx) >= FALCON_REV_B0)
- 			handler = falcon_legacy_interrupt_b0;
- 		else
- 			handler = falcon_legacy_interrupt_a1;
-@@ -1642,7 +1642,7 @@ void falcon_fini_interrupt(struct efx_ni
- 	}
- 
- 	/* ACK legacy interrupt */
--	if (FALCON_REV(efx) >= FALCON_REV_B0)
-+	if (falcon_rev(efx) >= FALCON_REV_B0)
- 		falcon_read(efx, &reg, INT_ISR0_B0);
- 	else
- 		falcon_irq_ack_a1(efx);
-@@ -1733,7 +1733,7 @@ void falcon_drain_tx_fifo(struct efx_nic
- 	efx_oword_t temp;
- 	int count;
- 
--	if ((FALCON_REV(efx) < FALCON_REV_B0) ||
-+	if ((falcon_rev(efx) < FALCON_REV_B0) ||
- 	    (efx->loopback_mode != LOOPBACK_NONE))
- 		return;
- 
-@@ -1786,7 +1786,7 @@ void falcon_deconfigure_mac_wrapper(stru
- {
- 	efx_oword_t temp;
- 
--	if (FALCON_REV(efx) < FALCON_REV_B0)
-+	if (falcon_rev(efx) < FALCON_REV_B0)
- 		return;
- 
- 	/* Isolate the MAC -> RX */
-@@ -1824,7 +1824,7 @@ void falcon_reconfigure_mac_wrapper(stru
- 			     MAC_SPEED, link_speed);
- 	/* On B0, MAC backpressure can be disabled and packets get
- 	 * discarded. */
--	if (FALCON_REV(efx) >= FALCON_REV_B0) {
-+	if (falcon_rev(efx) >= FALCON_REV_B0) {
- 		EFX_SET_OWORD_FIELD(reg, TXFIFO_DRAIN_EN_B0,
- 				    !efx->link_up);
- 	}
-@@ -1842,7 +1842,7 @@ void falcon_reconfigure_mac_wrapper(stru
- 	EFX_SET_OWORD_FIELD_VER(efx, reg, RX_XOFF_MAC_EN, tx_fc);
- 
- 	/* Unisolate the MAC -> RX */
--	if (FALCON_REV(efx) >= FALCON_REV_B0)
-+	if (falcon_rev(efx) >= FALCON_REV_B0)
- 		EFX_SET_OWORD_FIELD(reg, RX_INGR_EN_B0, 1);
- 	falcon_write(efx, &reg, RX_CFG_REG_KER);
+ static irqreturn_t cpmac_irq(int, void *);
+@@ -241,6 +244,16 @@ static void cpmac_dump_desc(struct net_d
+ 	printk("\n");
  }
-@@ -1857,7 +1857,7 @@ int falcon_dma_stats(struct efx_nic *efx
+ 
++static void cpmac_dump_all_desc(struct net_device *dev)
++{
++	struct cpmac_priv *priv = netdev_priv(dev);
++	struct cpmac_desc *dump = priv->rx_head;
++	do {
++		cpmac_dump_desc(dev, dump);
++		dump = dump->next;
++	} while (dump != priv->rx_head);
++}
++
+ static void cpmac_dump_skb(struct net_device *dev, struct sk_buff *skb)
+ {
+ 	int i;
+@@ -412,21 +425,42 @@ static struct sk_buff *cpmac_rx_one(stru
+ static int cpmac_poll(struct napi_struct *napi, int budget)
+ {
+ 	struct sk_buff *skb;
+-	struct cpmac_desc *desc;
+-	int received = 0;
++	struct cpmac_desc *desc, *restart;
+ 	struct cpmac_priv *priv = container_of(napi, struct cpmac_priv, napi);
++	int received = 0, processed = 0;
+ 
+ 	spin_lock(&priv->rx_lock);
+ 	if (unlikely(!priv->rx_head)) {
+ 		if (netif_msg_rx_err(priv) && net_ratelimit())
+ 			printk(KERN_WARNING "%s: rx: polling, but no queue\n",
+ 			       priv->dev->name);
++		spin_unlock(&priv->rx_lock);
+ 		netif_rx_complete(priv->dev, napi);
  		return 0;
- 
- 	/* Statistics fetch will fail if the MAC is in TX drain */
--	if (FALCON_REV(efx) >= FALCON_REV_B0) {
-+	if (falcon_rev(efx) >= FALCON_REV_B0) {
- 		efx_oword_t temp;
- 		falcon_read(efx, &temp, MAC0_CTRL_REG_KER);
- 		if (EFX_OWORD_FIELD(temp, TXFIFO_DRAIN_EN_B0))
-@@ -2114,7 +2114,7 @@ int falcon_probe_port(struct efx_nic *ef
- 	falcon_init_mdio(&efx->mii);
- 
- 	/* Hardware flow ctrl. FalconA RX FIFO too small for pause generation */
--	if (FALCON_REV(efx) >= FALCON_REV_B0)
-+	if (falcon_rev(efx) >= FALCON_REV_B0)
- 		efx->flow_control = EFX_FC_RX | EFX_FC_TX;
- 	else
- 		efx->flow_control = EFX_FC_RX;
-@@ -2374,7 +2374,7 @@ static int falcon_probe_nic_variant(stru
- 		return -ENODEV;
  	}
  
--	switch (FALCON_REV(efx)) {
-+	switch (falcon_rev(efx)) {
- 	case FALCON_REV_A0:
- 	case 0xff:
- 		EFX_ERR(efx, "Falcon rev A0 not supported\n");
-@@ -2400,7 +2400,7 @@ static int falcon_probe_nic_variant(stru
- 		break;
- 
- 	default:
--		EFX_ERR(efx, "Unknown Falcon rev %d\n", FALCON_REV(efx));
-+		EFX_ERR(efx, "Unknown Falcon rev %d\n", falcon_rev(efx));
- 		return -ENODEV;
- 	}
- 
-@@ -2563,7 +2563,7 @@ int falcon_init_nic(struct efx_nic *efx)
- 
- 	/* Set number of RSS queues for receive path. */
- 	falcon_read(efx, &temp, RX_FILTER_CTL_REG);
--	if (FALCON_REV(efx) >= FALCON_REV_B0)
-+	if (falcon_rev(efx) >= FALCON_REV_B0)
- 		EFX_SET_OWORD_FIELD(temp, NUM_KER, 0);
- 	else
- 		EFX_SET_OWORD_FIELD(temp, NUM_KER, efx->rss_queues - 1);
-@@ -2601,7 +2601,7 @@ int falcon_init_nic(struct efx_nic *efx)
- 	/* Prefetch threshold 2 => fetch when descriptor cache half empty */
- 	EFX_SET_OWORD_FIELD(temp, TX_PREF_THRESHOLD, 2);
- 	/* Squash TX of packets of 16 bytes or less */
--	if (FALCON_REV(efx) >= FALCON_REV_B0 && EFX_WORKAROUND_9141(efx))
-+	if (falcon_rev(efx) >= FALCON_REV_B0 && EFX_WORKAROUND_9141(efx))
- 		EFX_SET_OWORD_FIELD(temp, TX_FLUSH_MIN_LEN_EN_B0, 1);
- 	falcon_write(efx, &temp, TX_CFG2_REG_KER);
- 
-@@ -2618,7 +2618,7 @@ int falcon_init_nic(struct efx_nic *efx)
- 	if (EFX_WORKAROUND_7575(efx))
- 		EFX_SET_OWORD_FIELD_VER(efx, temp, RX_USR_BUF_SIZE,
- 					(3 * 4096) / 32);
--	if (FALCON_REV(efx) >= FALCON_REV_B0)
-+	if (falcon_rev(efx) >= FALCON_REV_B0)
- 		EFX_SET_OWORD_FIELD(temp, RX_INGR_EN_B0, 1);
- 
- 	/* RX FIFO flow control thresholds */
-@@ -2634,7 +2634,7 @@ int falcon_init_nic(struct efx_nic *efx)
- 	falcon_write(efx, &temp, RX_CFG_REG_KER);
- 
- 	/* Set destination of both TX and RX Flush events */
--	if (FALCON_REV(efx) >= FALCON_REV_B0) {
-+	if (falcon_rev(efx) >= FALCON_REV_B0) {
- 		EFX_POPULATE_OWORD_1(temp, FLS_EVQ_ID, 0);
- 		falcon_write(efx, &temp, DP_CTRL_REG);
- 	}
-diff -puN drivers/net/sfc/falcon.h~sfc-replace-various-macros-with-inline-functions drivers/net/sfc/falcon.h
---- a/drivers/net/sfc/falcon.h~sfc-replace-various-macros-with-inline-functions
-+++ a/drivers/net/sfc/falcon.h
-@@ -23,7 +23,10 @@ enum falcon_revision {
- 	FALCON_REV_B0 = 2,
- };
- 
--#define FALCON_REV(efx) ((efx)->pci_dev->revision)
-+static inline int falcon_rev(struct efx_nic *efx)
-+{
-+	return efx->pci_dev->revision;
-+}
- 
- extern struct efx_nic_type falcon_a_nic_type;
- extern struct efx_nic_type falcon_b_nic_type;
-diff -puN drivers/net/sfc/falcon_io.h~sfc-replace-various-macros-with-inline-functions drivers/net/sfc/falcon_io.h
---- a/drivers/net/sfc/falcon_io.h~sfc-replace-various-macros-with-inline-functions
-+++ a/drivers/net/sfc/falcon_io.h
-@@ -56,14 +56,27 @@
- #define FALCON_USE_QWORD_IO 1
- #endif
- 
--#define _falcon_writeq(efx, value, reg) \
--	__raw_writeq((__force u64) (value), (efx)->membase + (reg))
--#define _falcon_writel(efx, value, reg) \
--	__raw_writel((__force u32) (value), (efx)->membase + (reg))
--#define _falcon_readq(efx, reg) \
--	((__force __le64) __raw_readq((efx)->membase + (reg)))
--#define _falcon_readl(efx, reg) \
--	((__force __le32) __raw_readl((efx)->membase + (reg)))
-+#ifdef FALCON_USE_QWORD_IO
-+static inline void _falcon_writeq(struct efx_nic *efx, __le64 value,
-+				  unsigned int reg)
-+{
-+	__raw_writeq((__force u64)value, efx->membase + reg);
-+}
-+static inline __le64 _falcon_readq(struct efx_nic *efx, unsigned int reg)
-+{
-+	return (__force __le64)__raw_readq(efx->membase + reg);
-+}
-+#endif
+ 	desc = priv->rx_head;
++	restart = NULL;
+ 	while (((desc->dataflags & CPMAC_OWN) == 0) && (received < budget)) {
++		processed++;
 +
-+static inline void _falcon_writel(struct efx_nic *efx, __le32 value,
-+				  unsigned int reg)
-+{
-+	__raw_writel((__force u32)value, efx->membase + reg);
-+}
-+static inline __le32 _falcon_readl(struct efx_nic *efx, unsigned int reg)
-+{
-+	return (__force __le32)__raw_readl(efx->membase + reg);
-+}
- 
- /* Writes to a normal 16-byte Falcon register, locking as appropriate. */
- static inline void falcon_write(struct efx_nic *efx, efx_oword_t *value,
-diff -puN drivers/net/sfc/falcon_xmac.c~sfc-replace-various-macros-with-inline-functions drivers/net/sfc/falcon_xmac.c
---- a/drivers/net/sfc/falcon_xmac.c~sfc-replace-various-macros-with-inline-functions
-+++ a/drivers/net/sfc/falcon_xmac.c
-@@ -221,7 +221,7 @@ static int falcon_xgmii_status(struct ef
- {
- 	efx_dword_t reg;
- 
--	if (FALCON_REV(efx) < FALCON_REV_B0)
-+	if (falcon_rev(efx) < FALCON_REV_B0)
- 		return 1;
- 
- 	/* The ISR latches, so clear it and re-read */
-@@ -241,7 +241,7 @@ static void falcon_mask_status_intr(stru
- {
- 	efx_dword_t reg;
- 
--	if ((FALCON_REV(efx) < FALCON_REV_B0) || LOOPBACK_INTERNAL(efx))
-+	if ((falcon_rev(efx) < FALCON_REV_B0) || LOOPBACK_INTERNAL(efx))
- 		return;
- 
- 	/* Flush the ISR */
-@@ -639,7 +639,7 @@ int falcon_xmac_set_pause(struct efx_nic
- 	reset = ((flow_control & EFX_FC_TX) &&
- 		 !(efx->flow_control & EFX_FC_TX));
- 	if (EFX_WORKAROUND_11482(efx) && reset) {
--		if (FALCON_REV(efx) >= FALCON_REV_B0) {
-+		if (falcon_rev(efx) >= FALCON_REV_B0) {
- 			/* Recover by resetting the EM block */
- 			if (efx->link_up)
- 				falcon_drain_tx_fifo(efx);
-diff -puN drivers/net/sfc/net_driver.h~sfc-replace-various-macros-with-inline-functions drivers/net/sfc/net_driver.h
---- a/drivers/net/sfc/net_driver.h~sfc-replace-various-macros-with-inline-functions
-+++ a/drivers/net/sfc/net_driver.h
-@@ -52,28 +52,19 @@
- #define EFX_WARN_ON_PARANOID(x) do {} while (0)
- #endif
- 
--#define NET_DEV_REGISTERED(efx)					\
--	((efx)->net_dev->reg_state == NETREG_REGISTERED)
--
--/* Include net device name in log messages if it has been registered.
-- * Use efx->name not efx->net_dev->name so that races with (un)registration
-- * are harmless.
-- */
--#define NET_DEV_NAME(efx) (NET_DEV_REGISTERED(efx) ? (efx)->name : "")
--
- /* Un-rate-limited logging */
- #define EFX_ERR(efx, fmt, args...) \
--dev_err(&((efx)->pci_dev->dev), "ERR: %s " fmt, NET_DEV_NAME(efx), ##args)
-+dev_err(&((efx)->pci_dev->dev), "ERR: %s " fmt, efx_dev_name(efx), ##args)
- 
- #define EFX_INFO(efx, fmt, args...) \
--dev_info(&((efx)->pci_dev->dev), "INFO: %s " fmt, NET_DEV_NAME(efx), ##args)
-+dev_info(&((efx)->pci_dev->dev), "INFO: %s " fmt, efx_dev_name(efx), ##args)
- 
- #ifdef EFX_ENABLE_DEBUG
- #define EFX_LOG(efx, fmt, args...) \
--dev_info(&((efx)->pci_dev->dev), "DBG: %s " fmt, NET_DEV_NAME(efx), ##args)
-+dev_info(&((efx)->pci_dev->dev), "DBG: %s " fmt, efx_dev_name(efx), ##args)
- #else
- #define EFX_LOG(efx, fmt, args...) \
--dev_dbg(&((efx)->pci_dev->dev), "DBG: %s " fmt, NET_DEV_NAME(efx), ##args)
-+dev_dbg(&((efx)->pci_dev->dev), "DBG: %s " fmt, efx_dev_name(efx), ##args)
- #endif
- 
- #define EFX_TRACE(efx, fmt, args...) do {} while (0)
-@@ -760,6 +751,20 @@ struct efx_nic {
- 	void *loopback_selftest;
- };
- 
-+static inline int efx_dev_registered(struct efx_nic *efx)
-+{
-+	return efx->net_dev->reg_state == NETREG_REGISTERED;
-+}
++		if ((desc->dataflags & CPMAC_EOQ) != 0) {
++			/* The last update to eoq->hw_next didn't happen
++			* soon enough, and the receiver stopped here.
++			*Remember this descriptor so we can restart
++			* the receiver after freeing some space.
++			*/
++			if (unlikely(restart)) {
++				if (netif_msg_rx_err(priv))
++					printk(KERN_ERR "%s: poll found a"
++						" duplicate EOQ: %p and %p\n",
++						priv->dev->name, restart, desc);
++				goto fatal_error;
++			}
 +
-+/* Net device name, for inclusion in log messages if it has been registered.
-+ * Use efx->name not efx->net_dev->name so that races with (un)registration
-+ * are harmless.
-+ */
-+static inline const char *efx_dev_name(struct efx_nic *efx)
-+{
-+	return efx_dev_registered(efx) ? efx->name : "";
-+}
++			restart = desc->next;
++		}
 +
- /**
-  * struct efx_nic_type - Efx device type definition
-  * @mem_bar: Memory BAR number
-diff -puN drivers/net/sfc/rx.c~sfc-replace-various-macros-with-inline-functions drivers/net/sfc/rx.c
---- a/drivers/net/sfc/rx.c~sfc-replace-various-macros-with-inline-functions
-+++ a/drivers/net/sfc/rx.c
-@@ -86,14 +86,21 @@ static unsigned int rx_refill_limit = 95
-  */
- #define EFX_RXD_HEAD_ROOM 2
- 
--/* Macros for zero-order pages (potentially) containing multiple RX buffers */
--#define RX_DATA_OFFSET(_data)				\
--	(((unsigned long) (_data)) & (PAGE_SIZE-1))
--#define RX_BUF_OFFSET(_rx_buf)				\
--	RX_DATA_OFFSET((_rx_buf)->data)
--
--#define RX_PAGE_SIZE(_efx)				\
--	(PAGE_SIZE * (1u << (_efx)->rx_buffer_order))
-+static inline unsigned int efx_page_offset(void *p)
-+{
-+	return (__force unsigned int)p & (PAGE_SIZE - 1);
-+}
-+static inline unsigned int efx_rx_buf_offset(struct efx_rx_buffer *buf)
-+{
-+	/* Offset is always within one page, so we don't need to consider
-+	 * the page order.
-+	 */
-+	return efx_page_offset(buf->data);
-+}
-+static inline unsigned int efx_rx_buf_size(struct efx_nic *efx)
-+{
-+	return PAGE_SIZE << efx->rx_buffer_order;
-+}
- 
- 
- /**************************************************************************
-@@ -269,7 +276,7 @@ static inline int efx_init_rx_buffer_pag
- 			return -ENOMEM;
- 
- 		dma_addr = pci_map_page(efx->pci_dev, rx_buf->page,
--					0, RX_PAGE_SIZE(efx),
-+					0, efx_rx_buf_size(efx),
- 					PCI_DMA_FROMDEVICE);
- 
- 		if (unlikely(pci_dma_mapping_error(dma_addr))) {
-@@ -284,7 +291,7 @@ static inline int efx_init_rx_buffer_pag
- 				      EFX_PAGE_IP_ALIGN);
+ 		skb = cpmac_rx_one(priv, desc);
+ 		if (likely(skb)) {
+ 			netif_receive_skb(skb);
+@@ -435,19 +469,90 @@ static int cpmac_poll(struct napi_struct
+ 		desc = desc->next;
  	}
  
--	offset = RX_DATA_OFFSET(rx_queue->buf_data);
-+	offset = efx_page_offset(rx_queue->buf_data);
- 	rx_buf->len = bytes;
- 	rx_buf->dma_addr = rx_queue->buf_dma_addr + offset;
- 	rx_buf->data = rx_queue->buf_data;
-@@ -295,7 +302,7 @@ static inline int efx_init_rx_buffer_pag
- 		rx_queue->buf_data += ((bytes + 0x1ff) & ~0x1ff);
- 		offset += ((bytes + 0x1ff) & ~0x1ff);
++	if (desc != priv->rx_head) {
++		/* We freed some buffers, but not the whole ring,
++		 * add what we did free to the rx list */
++		desc->prev->hw_next = (u32)0;
++		priv->rx_head->prev->hw_next = priv->rx_head->mapping;
++	}
++
++	/* Optimization: If we did not actually process an EOQ (perhaps because
++	 * of quota limits), check to see if the tail of the queue has EOQ set.
++	* We should immediately restart in that case so that the receiver can
++	* restart and run in parallel with more packet processing.
++	* This lets us handle slightly larger bursts before running
++	* out of ring space (assuming dev->weight < ring_size) */
++
++	if (!restart &&
++	     (priv->rx_head->prev->dataflags & (CPMAC_OWN|CPMAC_EOQ))
++		    == CPMAC_EOQ &&
++	     (priv->rx_head->dataflags & CPMAC_OWN) != 0) {
++		/* reset EOQ so the poll loop (above) doesn't try to
++		* restart this when it eventually gets to this descriptor.
++		*/
++		priv->rx_head->prev->dataflags &= ~CPMAC_EOQ;
++		restart = priv->rx_head;
++	}
++
++	if (restart) {
++		priv->dev->stats.rx_errors++;
++		priv->dev->stats.rx_fifo_errors++;
++		if (netif_msg_rx_err(priv) && net_ratelimit())
++			printk(KERN_WARNING "%s: rx dma ring overrun\n",
++			       priv->dev->name);
++
++		if (unlikely((restart->dataflags & CPMAC_OWN) == 0)) {
++			if (netif_msg_drv(priv))
++				printk(KERN_ERR "%s: cpmac_poll is trying to "
++					"restart rx from a descriptor that's "
++					"not free: %p\n",
++					priv->dev->name, restart);
++				goto fatal_error;
++		}
++
++		cpmac_write(priv->regs, CPMAC_RX_PTR(0), restart->mapping);
++	}
++
+ 	priv->rx_head = desc;
+ 	spin_unlock(&priv->rx_lock);
+ 	if (unlikely(netif_msg_rx_status(priv)))
+ 		printk(KERN_DEBUG "%s: poll processed %d packets\n",
+ 		       priv->dev->name, received);
+-	if (desc->dataflags & CPMAC_OWN) {
++	if (processed == 0) {
++		/* we ran out of packets to read,
++		 * revert to interrupt-driven mode */
+ 		netif_rx_complete(priv->dev, napi);
+-		cpmac_write(priv->regs, CPMAC_RX_PTR(0), (u32)desc->mapping);
+ 		cpmac_write(priv->regs, CPMAC_RX_INT_ENABLE, 1);
+ 		return 0;
+ 	}
  
--		space = RX_PAGE_SIZE(efx) - offset;
-+		space = efx_rx_buf_size(efx) - offset;
- 		if (space >= bytes) {
- 			/* Refs dropped on kernel releasing each skb */
- 			get_page(rx_queue->buf_page);
-@@ -344,7 +351,8 @@ static inline void efx_unmap_rx_buffer(s
- 		EFX_BUG_ON_PARANOID(rx_buf->skb);
- 		if (rx_buf->unmap_addr) {
- 			pci_unmap_page(efx->pci_dev, rx_buf->unmap_addr,
--				       RX_PAGE_SIZE(efx), PCI_DMA_FROMDEVICE);
-+				       efx_rx_buf_size(efx),
-+				       PCI_DMA_FROMDEVICE);
- 			rx_buf->unmap_addr = 0;
+ 	return 1;
++
++fatal_error:
++	/* Something went horribly wrong.
++	 * Reset hardware to try to recover rather than wedging. */
++
++	if (netif_msg_drv(priv)) {
++		printk(KERN_ERR "%s: cpmac_poll is confused. "
++				"Resetting hardware\n", priv->dev->name);
++		cpmac_dump_all_desc(priv->dev);
++		printk(KERN_DEBUG "%s: RX_PTR(0)=0x%08x RX_ACK(0)=0x%08x\n",
++			priv->dev->name,
++			cpmac_read(priv->regs, CPMAC_RX_PTR(0)),
++			cpmac_read(priv->regs, CPMAC_RX_ACK(0)));
++	}
++
++	spin_unlock(&priv->rx_lock);
++	netif_rx_complete(priv->dev, napi);
++	netif_stop_queue(priv->dev);
++	napi_disable(&priv->napi);
++
++	atomic_inc(&priv->reset_pending);
++	cpmac_hw_stop(priv->dev);
++	if (!schedule_work(&priv->reset_work))
++		atomic_dec(&priv->reset_pending);
++	return 0;
++
+ }
+ 
+ static int cpmac_start_xmit(struct sk_buff *skb, struct net_device *dev)
+@@ -456,6 +561,9 @@ static int cpmac_start_xmit(struct sk_bu
+ 	struct cpmac_desc *desc;
+ 	struct cpmac_priv *priv = netdev_priv(dev);
+ 
++	if (unlikely(atomic_read(&priv->reset_pending)))
++		return NETDEV_TX_BUSY;
++
+ 	if (unlikely(skb_padto(skb, ETH_ZLEN)))
+ 		return NETDEV_TX_OK;
+ 
+@@ -621,8 +729,10 @@ static void cpmac_clear_rx(struct net_de
+ 			desc->dataflags = CPMAC_OWN;
+ 			dev->stats.rx_dropped++;
  		}
- 	} else if (likely(rx_buf->skb)) {
-@@ -553,7 +561,7 @@ static inline void efx_rx_packet_lro(str
- 		struct skb_frag_struct frags;
++		desc->hw_next = desc->next->mapping;
+ 		desc = desc->next;
+ 	}
++	priv->rx_head->prev->hw_next = 0;
+ }
  
- 		frags.page = rx_buf->page;
--		frags.page_offset = RX_BUF_OFFSET(rx_buf);
-+		frags.page_offset = efx_rx_buf_offset(rx_buf);
- 		frags.size = rx_buf->len;
+ static void cpmac_clear_tx(struct net_device *dev)
+@@ -635,14 +745,14 @@ static void cpmac_clear_tx(struct net_de
+ 		priv->desc_ring[i].dataflags = 0;
+ 		if (priv->desc_ring[i].skb) {
+ 			dev_kfree_skb_any(priv->desc_ring[i].skb);
+-			if (netif_subqueue_stopped(dev, i))
+-			    netif_wake_subqueue(dev, i);
++			priv->desc_ring[i].skb = NULL;
+ 		}
+ 	}
+ }
  
- 		lro_receive_frags(lro_mgr, &frags, rx_buf->len,
-@@ -598,7 +606,7 @@ static inline struct sk_buff *efx_rx_mk_
- 	if (unlikely(rx_buf->len > hdr_len)) {
- 		struct skb_frag_struct *frag = skb_shinfo(skb)->frags;
- 		frag->page = rx_buf->page;
--		frag->page_offset = RX_BUF_OFFSET(rx_buf) + hdr_len;
-+		frag->page_offset = efx_rx_buf_offset(rx_buf) + hdr_len;
- 		frag->size = skb->len - hdr_len;
- 		skb_shinfo(skb)->nr_frags = 1;
- 		skb->data_len = frag->size;
-@@ -852,7 +860,8 @@ void efx_fini_rx_queue(struct efx_rx_que
- 	/* For a page that is part-way through splitting into RX buffers */
- 	if (rx_queue->buf_page != NULL) {
- 		pci_unmap_page(rx_queue->efx->pci_dev, rx_queue->buf_dma_addr,
--			       RX_PAGE_SIZE(rx_queue->efx), PCI_DMA_FROMDEVICE);
-+			       efx_rx_buf_size(rx_queue->efx),
-+			       PCI_DMA_FROMDEVICE);
- 		__free_pages(rx_queue->buf_page,
- 			     rx_queue->efx->rx_buffer_order);
- 		rx_queue->buf_page = NULL;
-diff -puN drivers/net/sfc/selftest.c~sfc-replace-various-macros-with-inline-functions drivers/net/sfc/selftest.c
---- a/drivers/net/sfc/selftest.c~sfc-replace-various-macros-with-inline-functions
-+++ a/drivers/net/sfc/selftest.c
-@@ -424,10 +424,10 @@ static int efx_tx_loopback(struct efx_tx
- 		 * interrupt handler. */
- 		smp_wmb();
+ static void cpmac_hw_error(struct work_struct *work)
+ {
++	int i;
+ 	struct cpmac_priv *priv =
+ 		container_of(work, struct cpmac_priv, reset_work);
  
--		if (NET_DEV_REGISTERED(efx))
-+		if (efx_dev_registered(efx))
- 			netif_tx_lock_bh(efx->net_dev);
- 		rc = efx_xmit(efx, tx_queue, skb);
--		if (NET_DEV_REGISTERED(efx))
-+		if (efx_dev_registered(efx))
- 			netif_tx_unlock_bh(efx->net_dev);
+@@ -651,8 +761,48 @@ static void cpmac_hw_error(struct work_s
+ 	spin_unlock(&priv->rx_lock);
+ 	cpmac_clear_tx(priv->dev);
+ 	cpmac_hw_start(priv->dev);
+-	napi_enable(&priv->napi);
+-	netif_start_queue(priv->dev);
++	barrier();
++	atomic_dec(&priv->reset_pending);
++
++	for (i = 0; i < CPMAC_QUEUES; i++)
++		netif_wake_subqueue(priv->dev, i);
++	netif_wake_queue(priv->dev);
++	cpmac_write(priv->regs, CPMAC_MAC_INT_ENABLE, 3);
++}
++
++static void cpmac_check_status(struct net_device *dev)
++{
++	struct cpmac_priv *priv = netdev_priv(dev);
++
++	u32 macstatus = cpmac_read(priv->regs, CPMAC_MAC_STATUS);
++	int rx_channel = (macstatus >> 8) & 7;
++	int rx_code = (macstatus >> 12) & 15;
++	int tx_channel = (macstatus >> 16) & 7;
++	int tx_code = (macstatus >> 20) & 15;
++
++	if (rx_code || tx_code) {
++		if (netif_msg_drv(priv) && net_ratelimit()) {
++			/* Can't find any documentation on what these
++			 *error codes actually are. So just log them and hope..
++			 */
++			if (rx_code)
++				printk(KERN_WARNING "%s: host error %d on rx "
++				     "channel %d (macstatus %08x), resetting\n",
++				     dev->name, rx_code, rx_channel, macstatus);
++			if (tx_code)
++				printk(KERN_WARNING "%s: host error %d on tx "
++				     "channel %d (macstatus %08x), resetting\n",
++				     dev->name, tx_code, tx_channel, macstatus);
++		}
++
++		netif_stop_queue(dev);
++		cpmac_hw_stop(dev);
++		if (schedule_work(&priv->reset_work))
++			atomic_inc(&priv->reset_pending);
++		if (unlikely(netif_msg_hw(priv)))
++			cpmac_dump_regs(dev);
++	}
++	cpmac_write(priv->regs, CPMAC_MAC_INT_CLEAR, 0xff);
+ }
  
- 		if (rc != NETDEV_TX_OK) {
-@@ -453,7 +453,7 @@ static int efx_rx_loopback(struct efx_tx
- 	int tx_done = 0, rx_good, rx_bad;
- 	int i, rc = 0;
+ static irqreturn_t cpmac_irq(int irq, void *dev_id)
+@@ -683,49 +833,32 @@ static irqreturn_t cpmac_irq(int irq, vo
  
--	if (NET_DEV_REGISTERED(efx))
-+	if (efx_dev_registered(efx))
- 		netif_tx_lock_bh(efx->net_dev);
+ 	cpmac_write(priv->regs, CPMAC_MAC_EOI_VECTOR, 0);
  
- 	/* Count the number of tx completions, and decrement the refcnt. Any
-@@ -465,7 +465,7 @@ static int efx_rx_loopback(struct efx_tx
- 		dev_kfree_skb_any(skb);
+-	if (unlikely(status & (MAC_INT_HOST | MAC_INT_STATUS))) {
+-		if (netif_msg_drv(priv) && net_ratelimit())
+-			printk(KERN_ERR "%s: hw error, resetting...\n",
+-			       dev->name);
+-		netif_stop_queue(dev);
+-		napi_disable(&priv->napi);
+-		cpmac_hw_stop(dev);
+-		schedule_work(&priv->reset_work);
+-		if (unlikely(netif_msg_hw(priv)))
+-			cpmac_dump_regs(dev);
+-	}
++	if (unlikely(status & (MAC_INT_HOST | MAC_INT_STATUS)))
++		cpmac_check_status(dev);
+ 
+ 	return IRQ_HANDLED;
+ }
+ 
+ static void cpmac_tx_timeout(struct net_device *dev)
+ {
+-	struct cpmac_priv *priv = netdev_priv(dev);
+ 	int i;
++	struct cpmac_priv *priv = netdev_priv(dev);
+ 
+ 	spin_lock(&priv->lock);
+ 	dev->stats.tx_errors++;
+ 	spin_unlock(&priv->lock);
+ 	if (netif_msg_tx_err(priv) && net_ratelimit())
+ 		printk(KERN_WARNING "%s: transmit timeout\n", dev->name);
+-	/*
+-	 * FIXME: waking up random queue is not the best thing to
+-	 * do... on the other hand why we got here at all?
+-	 */
+-#ifdef CONFIG_NETDEVICES_MULTIQUEUE
++
++	atomic_inc(&priv->reset_pending);
++	barrier();
++	cpmac_clear_tx(dev);
++	barrier();
++	atomic_dec(&priv->reset_pending);
++
++	netif_wake_queue(priv->dev);
+ 	for (i = 0; i < CPMAC_QUEUES; i++)
+-		if (priv->desc_ring[i].skb) {
+-			priv->desc_ring[i].dataflags = 0;
+-			dev_kfree_skb_any(priv->desc_ring[i].skb);
+-			netif_wake_subqueue(dev, i);
+-			break;
+-		}
+-#else
+-	priv->desc_ring[0].dataflags = 0;
+-	if (priv->desc_ring[0].skb)
+-		dev_kfree_skb_any(priv->desc_ring[0].skb);
+-	netif_wake_queue(dev);
+-#endif
++		netif_wake_subqueue(dev, i);
+ }
+ 
+ static int cpmac_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
+@@ -901,9 +1034,12 @@ static int cpmac_open(struct net_device 
+ 		desc->buflen = CPMAC_SKB_SIZE;
+ 		desc->dataflags = CPMAC_OWN;
+ 		desc->next = &priv->rx_head[(i + 1) % priv->ring_size];
++		desc->next->prev = desc;
+ 		desc->hw_next = (u32)desc->next->mapping;
  	}
  
--	if (NET_DEV_REGISTERED(efx))
-+	if (efx_dev_registered(efx))
- 		netif_tx_unlock_bh(efx->net_dev);
++	priv->rx_head->prev->hw_next = (u32)0;
++
+ 	if ((res = request_irq(dev->irq, cpmac_irq, IRQF_SHARED,
+ 			       dev->name, dev))) {
+ 		if (netif_msg_drv(priv))
+@@ -912,6 +1048,7 @@ static int cpmac_open(struct net_device 
+ 		goto fail_irq;
+ 	}
  
- 	/* Check TX completion and received packet counts */
-diff -puN drivers/net/sfc/tx.c~sfc-replace-various-macros-with-inline-functions drivers/net/sfc/tx.c
---- a/drivers/net/sfc/tx.c~sfc-replace-various-macros-with-inline-functions
-+++ a/drivers/net/sfc/tx.c
-@@ -387,7 +387,7 @@ void efx_xmit_done(struct efx_tx_queue *
- 	if (unlikely(tx_queue->stopped)) {
- 		fill_level = tx_queue->insert_count - tx_queue->read_count;
- 		if (fill_level < EFX_NETDEV_TX_THRESHOLD(tx_queue)) {
--			EFX_BUG_ON_PARANOID(!NET_DEV_REGISTERED(efx));
-+			EFX_BUG_ON_PARANOID(!efx_dev_registered(efx));
++	atomic_set(&priv->reset_pending, 0);
+ 	INIT_WORK(&priv->reset_work, cpmac_hw_error);
+ 	cpmac_hw_start(dev);
  
- 			/* Do this under netif_tx_lock(), to avoid racing
- 			 * with efx_xmit(). */
-diff -puN drivers/net/sfc/workarounds.h~sfc-replace-various-macros-with-inline-functions drivers/net/sfc/workarounds.h
---- a/drivers/net/sfc/workarounds.h~sfc-replace-various-macros-with-inline-functions
-+++ a/drivers/net/sfc/workarounds.h
-@@ -16,7 +16,7 @@
-  */
+@@ -1007,21 +1144,10 @@ static int __devinit cpmac_probe(struct 
  
- #define EFX_WORKAROUND_ALWAYS(efx) 1
--#define EFX_WORKAROUND_FALCON_A(efx) (FALCON_REV(efx) <= FALCON_REV_A1)
-+#define EFX_WORKAROUND_FALCON_A(efx) (falcon_rev(efx) <= FALCON_REV_A1)
+ 	if (phy_id == PHY_MAX_ADDR) {
+ 		if (external_switch || dumb_switch) {
+-			struct fixed_phy_status status = {};
+-
+-			/*
+-			 * FIXME: this should be in the platform code!
+-			 * Since there is not platform code at all (that is,
+-			 * no mainline users of that driver), place it here
+-			 * for now.
+-			 */
+-			phy_id = 0;
+-			status.link = 1;
+-			status.duplex = 1;
+-			status.speed = 100;
+-			fixed_phy_add(PHY_POLL, phy_id, &status);
++			mdio_bus_id = 0; /* fixed phys bus */
++			phy_id = pdev->id;
+ 		} else {
+-			printk(KERN_ERR "cpmac: no PHY present\n");
++			dev_err(&pdev->dev, "no PHY present\n");
+ 			return -ENODEV;
+ 		}
+ 	}
+@@ -1064,10 +1190,8 @@ static int __devinit cpmac_probe(struct 
+ 	priv->msg_enable = netif_msg_init(debug_level, 0xff);
+ 	memcpy(dev->dev_addr, pdata->dev_addr, sizeof(dev->dev_addr));
  
- /* XAUI resets if link not detected */
- #define EFX_WORKAROUND_5147 EFX_WORKAROUND_ALWAYS
-_
-
-Patches currently in -mm which might be from bhutchings@solarflare.com are
-
-git-net.patch
-
+-	snprintf(priv->phy_name, BUS_ID_SIZE, PHY_ID_FMT, mdio_bus_id, phy_id);
