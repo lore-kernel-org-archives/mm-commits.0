@@ -1,57 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-net-tokenring-3c359c-squish-a-warning.patch removed from -mm tree
-Date: Fri, 23 May 2008 11:58:47 -0700
-Message-ID: <200805231858.m4NIwlTL004176@imap1.linux-foundation.org>
+Subject: - pcnet32-fix-warning.patch removed from -mm tree
+Date: Fri, 23 May 2008 11:58:45 -0700
+Message-ID: <200805231858.m4NIwjZc004173@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58559 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35210 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755202AbYEWS65 (ORCPT
+	by vger.kernel.org with ESMTP id S1754578AbYEWS6y (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 23 May 2008 14:58:57 -0400
+	Fri, 23 May 2008 14:58:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, greg@kroah.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/net/tokenring/3c359.c: squish a warning
+     pcnet32: fix warning
 has been removed from the -mm tree.  Its filename was
-     drivers-net-tokenring-3c359c-squish-a-warning.patch
+     pcnet32-fix-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/net/tokenring/3c359.c: squish a warning
+Subject: pcnet32: fix warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-When dev_name() is changed to return `const char *':
+pci_name() will be changed to return `const char *':
 
-drivers/net/tokenring/3c359.c: In function 'xl_probe':
-drivers/net/tokenring/3c359.c:318: warning: assignment discards qualifiers from pointer target type
+drivers/net/pcnet32.c: In function 'pcnet32_probe1':
+drivers/net/pcnet32.c:1884: warning: passing argument 2 of 'pcnet32_alloc_ring' discards qualifiers from pointer target type
 
 Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/tokenring/3c359.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/pcnet32.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/net/tokenring/3c359.h~drivers-net-tokenring-3c359c-squish-a-warning drivers/net/tokenring/3c359.h
---- a/drivers/net/tokenring/3c359.h~drivers-net-tokenring-3c359c-squish-a-warning
-+++ a/drivers/net/tokenring/3c359.h
-@@ -264,7 +264,7 @@ struct xl_private {
- 	u16 asb;
+diff -puN drivers/net/pcnet32.c~pcnet32-fix-warning drivers/net/pcnet32.c
+--- a/drivers/net/pcnet32.c~pcnet32-fix-warning
++++ a/drivers/net/pcnet32.c
+@@ -325,7 +325,7 @@ static int pcnet32_get_regs_len(struct n
+ static void pcnet32_get_regs(struct net_device *dev, struct ethtool_regs *regs,
+ 			     void *ptr);
+ static void pcnet32_purge_tx_ring(struct net_device *dev);
+-static int pcnet32_alloc_ring(struct net_device *dev, char *name);
++static int pcnet32_alloc_ring(struct net_device *dev, const char *name);
+ static void pcnet32_free_ring(struct net_device *dev);
+ static void pcnet32_check_media(struct net_device *dev, int verbose);
  
- 	u8 __iomem *xl_mmio;
--	char *xl_card_name;
-+	const char *xl_card_name;
- 	struct pci_dev *pdev ; 
- 	
- 	spinlock_t xl_lock ; 
+@@ -1983,7 +1983,7 @@ pcnet32_probe1(unsigned long ioaddr, int
+ }
+ 
+ /* if any allocation fails, caller must also call pcnet32_free_ring */
+-static int pcnet32_alloc_ring(struct net_device *dev, char *name)
++static int pcnet32_alloc_ring(struct net_device *dev, const char *name)
+ {
+ 	struct pcnet32_private *lp = netdev_priv(dev);
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
