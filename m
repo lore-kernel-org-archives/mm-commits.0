@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-kobject-fix-kobject_rename-and-config_sysfs.patch added to -mm tree
-Date: Thu, 22 May 2008 22:11:19 -0700
-Message-ID: <200805230522.m4N5MYjA006786@imap1.linux-foundation.org>
+Subject: + flag-parameters-check-magic-constants-alpha-hack.patch added to -mm tree
+Date: Thu, 22 May 2008 22:11:55 -0700
+Message-ID: <200805230523.m4N5NA7C006822@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36715 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42201 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750875AbYEWFWo (ORCPT
+	by vger.kernel.org with ESMTP id S1751093AbYEWFXb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 23 May 2008 01:22:44 -0400
+	Fri, 23 May 2008 01:23:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ebiederm@xmission.com, gregkh@suse.de, sfr@canb.auug.org.au
+Cc: akpm@linux-foundation.org, davidel@xmailserver.org, drepper@redhat.com, mtk.manpages@googlemail.com
 
 
 The patch titled
-     fix "kobject: Fix kobject_rename and !CONFIG_SYSFS"
+     flag-parameters-check-magic-constants-alpha-hack
 has been added to the -mm tree.  Its filename is
-     fix-kobject-fix-kobject_rename-and-config_sysfs.patch
+     flag-parameters-check-magic-constants-alpha-hack.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,94 +34,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix "kobject: Fix kobject_rename and !CONFIG_SYSFS"
+Subject: flag-parameters-check-magic-constants-alpha-hack
 From: Andrew Morton <akpm@linux-foundation.org>
 
-mips allnoconfig:
-
-In file included from include/linux/kobject.h:21,
-                 from include/linux/slub_def.h:12,
-                 from include/linux/slab.h:123,
-                 from include/linux/percpu.h:5,
-                 from include/linux/rcupdate.h:39,
-                 from include/linux/pid.h:4,
-                 from include/linux/sched.h:74,
-                 from arch/mips/kernel/asm-offsets.c:13:
-include/linux/sysfs.h: In function `sysfs_rename_dir':
-include/linux/sysfs.h:141: error: implicit declaration of function `kobject_set_name'
-In file included from include/linux/slub_def.h:12,
-                 from include/linux/slab.h:123,
-                 from include/linux/percpu.h:5,
-                 from include/linux/rcupdate.h:39,
-                 from include/linux/pid.h:4,
-                 from include/linux/sched.h:74,
-                 from arch/mips/kernel/asm-offsets.c:13:
-include/linux/kobject.h: At top level:
-include/linux/kobject.h:74: error: conflicting types for 'kobject_set_name'
-include/linux/kobject.h:74: note: a parameter list with an ellipsis can't match an empty parameter name list declaration
-include/linux/sysfs.h:141: error: previous implicit declaration of 'kobject_set_name' was here
-make[1]: *** [arch/mips/kernel/asm-offsets.s] Error 1
-make: *** [prepare0] Error 2
-
-We cannot include kobject.h from sysfs.h because kobject.h includes sysfs.h.
-
-Just uninline it (fixes everything, doesn't it?)
-
-lib/kobject.c doesn't seem an appropriate file :(
-
-Please fold this (or similar) into the base patch to avoid breaking bisection.
-
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Davide Libenzi <davidel@xmailserver.org>
+Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
+Cc: Ulrich Drepper <drepper@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sysfs.h |    6 ++----
- lib/kobject.c         |    8 ++++++++
- 2 files changed, 10 insertions(+), 4 deletions(-)
+ net/socket.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/sysfs.h~fix-kobject-fix-kobject_rename-and-config_sysfs include/linux/sysfs.h
---- a/include/linux/sysfs.h~fix-kobject-fix-kobject_rename-and-config_sysfs
-+++ a/include/linux/sysfs.h
-@@ -136,10 +136,6 @@ static inline void sysfs_remove_dir(stru
- {
- }
+diff -puN net/socket.c~flag-parameters-check-magic-constants-alpha-hack net/socket.c
+--- a/net/socket.c~flag-parameters-check-magic-constants-alpha-hack
++++ a/net/socket.c
+@@ -1223,7 +1223,7 @@ asmlinkage long sys_socket(int family, i
  
--static inline int sysfs_rename_dir(struct kobject *kobj, const char *new_name)
--{
--	return kobject_set_name(kobj, "%s", new_name);
--}
- 
- static inline int sysfs_move_dir(struct kobject *kobj,
- 				 struct kobject *new_parent_kobj)
-@@ -226,6 +222,8 @@ static inline void sysfs_printk_last_fil
- {
- }
- 
-+int sysfs_rename_dir(struct kobject *kobj, const char *new_name);
-+
- #endif /* CONFIG_SYSFS */
- 
- #endif /* _SYSFS_H_ */
-diff -puN lib/kobject.c~fix-kobject-fix-kobject_rename-and-config_sysfs lib/kobject.c
---- a/lib/kobject.c~fix-kobject-fix-kobject_rename-and-config_sysfs
-+++ a/lib/kobject.c
-@@ -882,6 +882,14 @@ struct kset *kset_create_and_add(const c
- 	}
- 	return kset;
- }
-+
-+#ifndef CONFIG_SYSFS
-+int sysfs_rename_dir(struct kobject *kobj, const char *new_name)
-+{
-+	return kobject_set_name(kobj, "%s", new_name);
-+}
-+#endif
-+
- EXPORT_SYMBOL_GPL(kset_create_and_add);
- 
- EXPORT_SYMBOL(kobject_get);
+ 	/* Check the SOCK_* constants for consistency.  */
+ 	BUILD_BUG_ON(SOCK_CLOEXEC != O_CLOEXEC);
+-	BUILD_BUG_ON(SOCK_NONBLOCK != O_NONBLOCK);
++//	BUILD_BUG_ON(SOCK_NONBLOCK != O_NONBLOCK);
+ 	BUILD_BUG_ON((SOCK_MAX | SOCK_TYPE_MASK) != SOCK_TYPE_MASK);
+ 	BUILD_BUG_ON(SOCK_CLOEXEC & SOCK_TYPE_MASK);
+ 	BUILD_BUG_ON(SOCK_NONBLOCK & SOCK_TYPE_MASK);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
