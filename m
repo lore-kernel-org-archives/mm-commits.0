@@ -1,43 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: - semaphore-introduce-down_try-checkpatch-fixes.patch removed from -mm tree
-Date: Fri, 23 May 2008 11:56:44 -0700
-Message-ID: <200805231856.m4NIuiTf004036@imap1.linux-foundation.org>
+Subject: - undeprecate-down_trylock.patch removed from -mm tree
+Date: Fri, 23 May 2008 11:56:50 -0700
+Message-ID: <200805231856.m4NIuoWV004039@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58094 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37519 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750846AbYEWS4x (ORCPT
+	by vger.kernel.org with ESMTP id S1751004AbYEWS46 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 23 May 2008 14:56:53 -0400
+	Fri, 23 May 2008 14:56:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     semaphore-introduce-down_try-checkpatch-fixes
+     undeprecate down_trylock()
 has been removed from the -mm tree.  Its filename was
-     semaphore-introduce-down_try-checkpatch-fixes.patch
+     undeprecate-down_trylock.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: semaphore-introduce-down_try-checkpatch-fixes
+Subject: undeprecate down_trylock()
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: code indent should use tabs where possible
-#39: FILE: include/linux/semaphore.h:63:
-+        return !down_trylock(sem);$
+include/linux/semaphore.h: In function 'down_try':
+include/linux/semaphore.h:66: warning: 'down_trylock' is deprecated (declared at include/linux/semaphore.h:48)
 
-total: 1 errors, 0 warnings, 18 lines checked
-
-./patches/semaphore-introduce-down_try.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
+doh.
 
 Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
@@ -46,17 +39,18 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  include/linux/semaphore.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/semaphore.h~semaphore-introduce-down_try-checkpatch-fixes include/linux/semaphore.h
---- a/include/linux/semaphore.h~semaphore-introduce-down_try-checkpatch-fixes
+diff -puN include/linux/semaphore.h~undeprecate-down_trylock include/linux/semaphore.h
+--- a/include/linux/semaphore.h~undeprecate-down_trylock
 +++ a/include/linux/semaphore.h
-@@ -60,6 +60,6 @@ extern void up(struct semaphore *sem);
-  */
- static inline int __must_check down_try(struct semaphore *sem)
+@@ -44,7 +44,7 @@ extern int __must_check down_interruptib
+ extern int __must_check down_killable(struct semaphore *sem);
+ extern int __must_check down_nowait(struct semaphore *sem);
+ /* Old down_trylock() returned the opposite of what was expected. */
+-static inline int __deprecated down_trylock(struct semaphore *sem)
++static inline int down_trylock(struct semaphore *sem)
  {
--        return !down_trylock(sem);
-+	return !down_trylock(sem);
+ 	return !down_nowait(sem);
  }
- #endif /* __LINUX_SEMAPHORE_H */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -111,7 +105,6 @@ watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix.patch
 watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl-fix.patch
 wireless-airo-waitbusy-wont-delay-checkpatch-fixes.patch
 git-xtensa.patch
-semaphore-introduce-down_try-checkpatch-fixes.patch
 undeprecate-down_trylock.patch
 ext4-is-busted-on-m68k.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
