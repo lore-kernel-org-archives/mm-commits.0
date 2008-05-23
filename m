@@ -1,332 +1,163 @@
 From: akpm@linux-foundation.org
-Subject: - mac80211-add-a-struct-to-hold-tkip-context.patch removed from -mm tree
-Date: Fri, 23 May 2008 11:59:44 -0700
-Message-ID: <200805231859.m4NIxibe004264@imap1.linux-foundation.org>
+Subject: - reiserfs-convert-j_flush_sem-to-mutex-fix.patch removed from -mm tree
+Date: Fri, 23 May 2008 11:57:55 -0700
+Message-ID: <200805231857.m4NIvtRM004059@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44296 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54858 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754063AbYEWTAx (ORCPT
+	by vger.kernel.org with ESMTP id S1752645AbYEWTDj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 23 May 2008 15:00:53 -0400
+	Fri, 23 May 2008 15:03:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, linville@tuxdriver.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, chris.mason@oracle.com, edward.shishkin@gmail.com, jeffm@suse.com, kamalesh@linux.vnet.ibm.com, matthew@wil.cx, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mac80211: add a struct to hold tkip context
+     reiserfs-convert-j_flush_sem-to-mutex-fix
 has been removed from the -mm tree.  Its filename was
-     mac80211-add-a-struct-to-hold-tkip-context.patch
+     reiserfs-convert-j_flush_sem-to-mutex-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was folded into reiserfs-convert-j_flush_sem-to-mutex.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mac80211: add a struct to hold tkip context
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: reiserfs-convert-j_flush_sem-to-mutex-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: "John W. Linville" <linville@tuxdriver.com>
+Cc: Chris Mason <chris.mason@oracle.com>
+Cc: Edward Shishkin <edward.shishkin@gmail.com>
+Cc: Jeff Mahoney <jeffm@suse.com>
+Cc: Matthew Wilcox <matthew@wil.cx>
+Cc: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/mac80211/cfg.c         |    4 +-
- net/mac80211/debugfs_key.c |    8 ++---
- net/mac80211/key.h         |   17 +++++------
- net/mac80211/tkip.c        |   54 +++++++++++++++++------------------
- net/mac80211/wpa.c         |   16 +++++-----
- 5 files changed, 50 insertions(+), 49 deletions(-)
+ fs/reiserfs/journal.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN net/mac80211/cfg.c~mac80211-add-a-struct-to-hold-tkip-context net/mac80211/cfg.c
---- a/net/mac80211/cfg.c~mac80211-add-a-struct-to-hold-tkip-context
-+++ a/net/mac80211/cfg.c
-@@ -256,8 +256,8 @@ static int ieee80211_get_key(struct wiph
- 	case ALG_TKIP:
- 		params.cipher = WLAN_CIPHER_SUITE_TKIP;
- 
--		iv32 = key->u.tkip.iv32;
--		iv16 = key->u.tkip.iv16;
-+		iv32 = key->u.tkip.tx.iv32;
-+		iv16 = key->u.tkip.tx.iv16;
- 
- 		if (key->flags & KEY_FLAG_UPLOADED_TO_HARDWARE &&
- 		    sdata->local->ops->get_tkip_seq)
-diff -puN net/mac80211/debugfs_key.c~mac80211-add-a-struct-to-hold-tkip-context net/mac80211/debugfs_key.c
---- a/net/mac80211/debugfs_key.c~mac80211-add-a-struct-to-hold-tkip-context
-+++ a/net/mac80211/debugfs_key.c
-@@ -97,8 +97,8 @@ static ssize_t key_tx_spec_read(struct f
- 		break;
- 	case ALG_TKIP:
- 		len = scnprintf(buf, sizeof(buf), "%08x %04x\n",
--				key->u.tkip.iv32,
--				key->u.tkip.iv16);
-+				key->u.tkip.tx.iv32,
-+				key->u.tkip.tx.iv16);
- 		break;
- 	case ALG_CCMP:
- 		tpn = key->u.ccmp.tx_pn;
-@@ -128,8 +128,8 @@ static ssize_t key_rx_spec_read(struct f
- 		for (i = 0; i < NUM_RX_DATA_QUEUES; i++)
- 			p += scnprintf(p, sizeof(buf)+buf-p,
- 				       "%08x %04x\n",
--				       key->u.tkip.iv32_rx[i],
--				       key->u.tkip.iv16_rx[i]);
-+				       key->u.tkip.rx[i].iv32,
-+				       key->u.tkip.rx[i].iv16);
- 		len = p - buf;
- 		break;
- 	case ALG_CCMP:
-diff -puN net/mac80211/key.h~mac80211-add-a-struct-to-hold-tkip-context net/mac80211/key.h
---- a/net/mac80211/key.h~mac80211-add-a-struct-to-hold-tkip-context
-+++ a/net/mac80211/key.h
-@@ -69,6 +69,13 @@ enum ieee80211_internal_key_flags {
- 	KEY_FLAG_TODO_ADD_DEBUGFS	= BIT(5),
- };
- 
-+struct tkip_ctx {
-+	u32 iv32;
-+	u16 iv16;
-+	u16 p1k[5];
-+	int initialized;
-+};
-+
- struct ieee80211_key {
- 	struct ieee80211_local *local;
- 	struct ieee80211_sub_if_data *sdata;
-@@ -85,16 +92,10 @@ struct ieee80211_key {
- 	union {
- 		struct {
- 			/* last used TSC */
--			u32 iv32;
--			u16 iv16;
--			u16 p1k[5];
--			int tx_initialized;
-+			struct tkip_ctx tx;
- 
- 			/* last received RSC */
--			u32 iv32_rx[NUM_RX_DATA_QUEUES];
--			u16 iv16_rx[NUM_RX_DATA_QUEUES];
--			u16 p1k_rx[NUM_RX_DATA_QUEUES][5];
--			int rx_initialized[NUM_RX_DATA_QUEUES];
-+			struct tkip_ctx rx[NUM_RX_DATA_QUEUES];
- 		} tkip;
- 		struct {
- 			u8 tx_pn[6];
-diff -puN net/mac80211/tkip.c~mac80211-add-a-struct-to-hold-tkip-context net/mac80211/tkip.c
---- a/net/mac80211/tkip.c~mac80211-add-a-struct-to-hold-tkip-context
-+++ a/net/mac80211/tkip.c
-@@ -138,7 +138,7 @@ u8 *ieee80211_tkip_add_iv(u8 *pos, struc
- 	*pos++ = iv1;
- 	*pos++ = iv2;
- 	*pos++ = (key->conf.keyidx << 6) | (1 << 5) /* Ext IV */;
--	put_unaligned_le32(key->u.tkip.iv32, pos);
-+	put_unaligned_le32(key->u.tkip.tx.iv32, pos);
- 	return pos + 4;
- }
- 
-@@ -146,16 +146,16 @@ static void ieee80211_tkip_gen_rc4key(st
- 			       u8 *rc4key)
- {
- 	/* Calculate per-packet key */
--	if (key->u.tkip.iv16 == 0 || !key->u.tkip.tx_initialized) {
-+	if (key->u.tkip.tx.iv16 == 0 || !key->u.tkip.tx.initialized) {
- 		/* IV16 wrapped around - perform TKIP phase 1 */
- 		tkip_mixing_phase1(ta, &key->conf.key[ALG_TKIP_TEMP_ENCR_KEY],
--				   key->u.tkip.iv32, key->u.tkip.p1k);
--		key->u.tkip.tx_initialized = 1;
-+				   key->u.tkip.tx.iv32, key->u.tkip.tx.p1k);
-+		key->u.tkip.tx.initialized = 1;
+diff -puN fs/reiserfs/journal.c~reiserfs-convert-j_flush_sem-to-mutex-fix fs/reiserfs/journal.c
+--- a/fs/reiserfs/journal.c~reiserfs-convert-j_flush_sem-to-mutex-fix
++++ a/fs/reiserfs/journal.c
+@@ -1412,7 +1412,7 @@ static int flush_journal_list(struct sup
+ 	/* if flushall == 0, the lock is already held */
+ 	if (flushall) {
+ 		mutex_lock(&journal->j_flush_mutex);
+-	} else if (!mutex_trylock(&journal->j_flush_mutex)) {
++	} else if (mutex_trylock(&journal->j_flush_mutex)) {
+ 		BUG();
  	}
  
--	tkip_mixing_phase2(key->u.tkip.p1k,
-+	tkip_mixing_phase2(key->u.tkip.tx.p1k,
- 			   &key->conf.key[ALG_TKIP_TEMP_ENCR_KEY],
--			   key->u.tkip.iv16, rc4key);
-+			   key->u.tkip.tx.iv16, rc4key);
- }
- 
- void ieee80211_get_tkip_key(struct ieee80211_key_conf *keyconf,
-@@ -179,9 +179,9 @@ void ieee80211_get_tkip_key(struct ieee8
- 	printk(KERN_DEBUG "TKIP encrypt: iv16 = 0x%04x, iv32 = 0x%08x\n",
- 			iv16, iv32);
- 
--	if (iv32 != key->u.tkip.iv32) {
-+	if (iv32 != key->u.tkip.tx.iv32) {
- 		printk(KERN_DEBUG "skb: iv32 = 0x%08x key: iv32 = 0x%08x\n",
--			iv32, key->u.tkip.iv32);
-+			iv32, key->u.tkip.tx.iv32);
- 		printk(KERN_DEBUG "Wrap around of iv16 in the middle of a "
- 			"fragmented packet\n");
- 	}
-@@ -190,19 +190,19 @@ void ieee80211_get_tkip_key(struct ieee8
- 	/* Update the p1k only when the iv16 in the packet wraps around, this
- 	 * might occur after the wrap around of iv16 in the key in case of
- 	 * fragmented packets. */
--	if (iv16 == 0 || !key->u.tkip.tx_initialized) {
-+	if (iv16 == 0 || !key->u.tkip.tx.initialized) {
- 		/* IV16 wrapped around - perform TKIP phase 1 */
- 		tkip_mixing_phase1(ta, &key->conf.key[ALG_TKIP_TEMP_ENCR_KEY],
--			iv32, key->u.tkip.p1k);
--		key->u.tkip.tx_initialized = 1;
-+			iv32, key->u.tkip.tx.p1k);
-+		key->u.tkip.tx.initialized = 1;
- 	}
- 
- 	if (type == IEEE80211_TKIP_P1_KEY) {
--		memcpy(outkey, key->u.tkip.p1k, sizeof(u16) * 5);
-+		memcpy(outkey, key->u.tkip.tx.p1k, sizeof(u16) * 5);
- 		return;
- 	}
- 
--	tkip_mixing_phase2(key->u.tkip.p1k,
-+	tkip_mixing_phase2(key->u.tkip.tx.p1k,
- 		&key->conf.key[ALG_TKIP_TEMP_ENCR_KEY],	iv16, outkey);
- }
- EXPORT_SYMBOL(ieee80211_get_tkip_key);
-@@ -263,33 +263,33 @@ int ieee80211_tkip_decrypt_data(struct c
- 	if ((keyid >> 6) != key->conf.keyidx)
- 		return TKIP_DECRYPT_INVALID_KEYIDX;
- 
--	if (key->u.tkip.rx_initialized[queue] &&
--	    (iv32 < key->u.tkip.iv32_rx[queue] ||
--	     (iv32 == key->u.tkip.iv32_rx[queue] &&
--	      iv16 <= key->u.tkip.iv16_rx[queue]))) {
-+	if (key->u.tkip.rx[queue].initialized &&
-+	    (iv32 < key->u.tkip.rx[queue].iv32 ||
-+	     (iv32 == key->u.tkip.rx[queue].iv32 &&
-+	      iv16 <= key->u.tkip.rx[queue].iv16))) {
- #ifdef CONFIG_TKIP_DEBUG
- 		DECLARE_MAC_BUF(mac);
- 		printk(KERN_DEBUG "TKIP replay detected for RX frame from "
- 		       "%s (RX IV (%04x,%02x) <= prev. IV (%04x,%02x)\n",
- 		       print_mac(mac, ta),
--		       iv32, iv16, key->u.tkip.iv32_rx[queue],
--		       key->u.tkip.iv16_rx[queue]);
-+		       iv32, iv16, key->u.tkip.rx[queue].iv32,
-+		       key->u.tkip.rx[queue].iv16);
- #endif /* CONFIG_TKIP_DEBUG */
- 		return TKIP_DECRYPT_REPLAY;
- 	}
- 
- 	if (only_iv) {
- 		res = TKIP_DECRYPT_OK;
--		key->u.tkip.rx_initialized[queue] = 1;
-+		key->u.tkip.rx[queue].initialized = 1;
- 		goto done;
- 	}
- 
--	if (!key->u.tkip.rx_initialized[queue] ||
--	    key->u.tkip.iv32_rx[queue] != iv32) {
--		key->u.tkip.rx_initialized[queue] = 1;
-+	if (!key->u.tkip.rx[queue].initialized ||
-+	    key->u.tkip.rx[queue].iv32 != iv32) {
-+		key->u.tkip.rx[queue].initialized = 1;
- 		/* IV16 wrapped around - perform TKIP phase 1 */
- 		tkip_mixing_phase1(ta, &key->conf.key[ALG_TKIP_TEMP_ENCR_KEY],
--				   iv32, key->u.tkip.p1k_rx[queue]);
-+				   iv32, key->u.tkip.rx[queue].p1k);
- #ifdef CONFIG_TKIP_DEBUG
- 		{
- 			int i;
-@@ -303,7 +303,7 @@ int ieee80211_tkip_decrypt_data(struct c
- 			printk("\n");
- 			printk(KERN_DEBUG "TKIP decrypt: P1K=");
- 			for (i = 0; i < 5; i++)
--				printk("%04x ", key->u.tkip.p1k_rx[queue][i]);
-+				printk("%04x ", key->u.tkip.rx[queue].p1k[i]);
- 			printk("\n");
- 		}
- #endif /* CONFIG_TKIP_DEBUG */
-@@ -318,11 +318,11 @@ int ieee80211_tkip_decrypt_data(struct c
- 
- 			key->local->ops->update_tkip_key(
- 				local_to_hw(key->local), &key->conf,
--				sta_addr, iv32, key->u.tkip.p1k_rx[queue]);
-+				sta_addr, iv32, key->u.tkip.rx[queue].p1k);
- 		}
- 	}
- 
--	tkip_mixing_phase2(key->u.tkip.p1k_rx[queue],
-+	tkip_mixing_phase2(key->u.tkip.rx[queue].p1k,
- 			   &key->conf.key[ALG_TKIP_TEMP_ENCR_KEY],
- 			   iv16, rc4key);
- #ifdef CONFIG_TKIP_DEBUG
-diff -puN net/mac80211/wpa.c~mac80211-add-a-struct-to-hold-tkip-context net/mac80211/wpa.c
---- a/net/mac80211/wpa.c~mac80211-add-a-struct-to-hold-tkip-context
-+++ a/net/mac80211/wpa.c
-@@ -176,8 +176,8 @@ ieee80211_rx_h_michael_mic_verify(struct
- 	skb_trim(skb, skb->len - MICHAEL_MIC_LEN);
- 
- 	/* update IV in key information to be able to detect replays */
--	rx->key->u.tkip.iv32_rx[rx->queue] = rx->tkip_iv32;
--	rx->key->u.tkip.iv16_rx[rx->queue] = rx->tkip_iv16;
-+	rx->key->u.tkip.rx[rx->queue].iv32 = rx->tkip_iv32;
-+	rx->key->u.tkip.rx[rx->queue].iv16 = rx->tkip_iv16;
- 
- 	return RX_CONTINUE;
- }
-@@ -214,19 +214,19 @@ static int tkip_encrypt_skb(struct ieee8
- 	pos += hdrlen;
- 
- 	/* Increase IV for the frame */
--	key->u.tkip.iv16++;
--	if (key->u.tkip.iv16 == 0)
--		key->u.tkip.iv32++;
-+	key->u.tkip.tx.iv16++;
-+	if (key->u.tkip.tx.iv16 == 0)
-+		key->u.tkip.tx.iv32++;
- 
- 	if (tx->key->flags & KEY_FLAG_UPLOADED_TO_HARDWARE) {
- 		hdr = (struct ieee80211_hdr *)skb->data;
- 
- 		/* hwaccel - with preallocated room for IV */
- 		ieee80211_tkip_add_iv(pos, key,
--				      (u8) (key->u.tkip.iv16 >> 8),
--				      (u8) (((key->u.tkip.iv16 >> 8) | 0x20) &
-+				      (u8) (key->u.tkip.tx.iv16 >> 8),
-+				      (u8) (((key->u.tkip.tx.iv16 >> 8) | 0x20) &
- 					    0x7f),
--				      (u8) key->u.tkip.iv16);
-+				      (u8) key->u.tkip.tx.iv16);
- 
- 		tx->control->hw_key = &tx->key->conf;
- 		return 0;
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware-ia64-warnings.patch
+memory-hotplug-fix-early-allocation-handling-checkpatch-fixes.patch
 linux-next.patch
-kgdb-use-put_unaligned_be32-helper.patch
-cifs-remove-global_extern-macro.patch
-media-use-get_unaligned_-helpers.patch
-mtd-mtdcharc-silence-sparse-warning.patch
-mtd-mtdcharc-remove-shadowed-variable-warnings.patch
-scsi-replace-remaining-__function__-occurrences.patch
-fusion-replace-remaining-__function__-occurrences.patch
-scsi-replace-__inline-with-inline.patch
-scsi-use-get_unaligned_-helpers.patch
-scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
-scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
-block-use-get_unaligned_-helpers.patch
-usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues.patch
+next-remove-localversion.patch
+fix-kobject-fix-kobject_rename-and-config_sysfs.patch
+fix-driver-core-add-device_create_vargs-and-device_create_drvdata.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-video-balcklist-fujitsu-lifebook-s6410.patch
+git-x86-fixup.patch
+lguest-use-cpu-capability-accessors.patch
+arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
+arch-powerpc-platforms-pseries-eeh_driverc-fix-warning.patch
+arch-powerpc-platforms-pseries-eeh_driverc-fix-warning-checkpatch-fixes.patch
+zoran-use-correct-type-for-cpu-flags.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+drivers-infiniband-hw-mlx4-qpc-fix-uninitialised-var-warning.patch
+git-jg-misc-git-rejects.patch
+drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+fsldma-the-mpc8377mds-board-device-tree-node-for-fsldma-driver.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers.patch
+git-ubifs.patch
+git-net.patch
+sundance-set-carrier-status-on-link-change-events.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+pci-hotplug-introduce-pci_slot.patch
+pci-hotplug-acpi-pci-slot-detection-driver.patch
+sched-delete-dead-stuff.patch
+sched-delete-dead-stuff-2.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
+pktcdvd-push-bkl-down-into-driver-fix.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-logfs-fixup.patch
+drivers-uwb-nehc-processor-flags-have-type-unsigned-long.patch
+drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
+drivers-uwb-wlp-sysfsc-dead-code.patch
+drivers-uwb-whcic-needs-dma-mappingh.patch
+usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix.patch
+usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix-2.patch
 git-watchdog.patch
-xfs-use-get_unaligned_-helpers.patch
-xtensa-replace-remaining-__function__-occurences.patch
-fs-ldm-use-get_unaligned_-helpers.patch
-include-use-get-put_unaligned_-helpers.patch
-lzo-use-get-put_unaligned_-helpers.patch
-asm-generic-int-ll64h-always-provide-__su64.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-isdn-use-the-common-ascii-hex-helpers.patch
-net-use-the-common-ascii-hex-helpers.patch
-kgdb-use-the-common-ascii-hex-helpers.patch
-cris-use-the-common-ascii-hex-helpers.patch
-frv-use-the-common-ascii-hex-helpers.patch
-mips-use-the-common-ascii-hex-helpers.patch
-ppc-use-the-common-ascii-hex-helpers.patch
+git-watchdog-git-rejects.patch
+watchdog-fix-booke_wdtc-on-mpc85xx-smp-system.patch
+watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix.patch
+watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl-fix.patch
+wireless-airo-waitbusy-wont-delay-checkpatch-fixes.patch
+git-xtensa.patch
+ext4-is-busted-on-m68k.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+libata-sff-fix-oops-reported-in-kerneloopsorg-for-pnp-devices-with-no-ctl-fix.patch
+ata-acpi-hotplug-handle-bay-devices-in-dock-stations-cleanup.patch
+mm-verify-the-page-links-and-memory-model.patch
+mspec-convert-nopfn-to-fault-fix.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+kill-generic_file_direct_io-checkpatch-fixes.patch
+use-generic_access_phys-for-dev-mem-mappings-fix.patch
+spufs-use-the-new-vm_ops-access-fix.patch
+fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup-fix.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+rename-warn-to-warning-to-clear-the-namespace-fix.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-paccept-sys_ni.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-signalfd-fix.patch
+flag-parameters-eventfd-fix.patch
+flag-parameters-inotify_init-fix.patch
+flag-parameters-check-magic-constants-alpha.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+reiserfs-convert-j_flush_sem-to-mutex.patch
+reiserfs-convert-j_flush_sem-to-mutex-fix.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
 ppc-use-the-common-ascii-hex-helpers-fix.patch
-mn10300-use-the-common-ascii-hex-helpers.patch
+reiser4.patch
+reiser4-semaphore-fix.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
