@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sched-delete-dead-stuff-2.patch added to -mm tree
-Date: Thu, 22 May 2008 20:40:52 -0700
-Message-ID: <200805230352.m4N3q78b003703@imap1.linux-foundation.org>
+Subject: + usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix-2.patch added to -mm tree
+Date: Thu, 22 May 2008 20:58:52 -0700
+Message-ID: <200805230410.m4N4A7ar004271@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51169 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34463 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751011AbYEWDwT (ORCPT
+	by vger.kernel.org with ESMTP id S1750871AbYEWEK7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 22 May 2008 23:52:19 -0400
+	Fri, 23 May 2008 00:10:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu
+Cc: akpm@linux-foundation.org, cooloney@kernel.org, david-b@pacbell.net, gregkh@suse.de, jie.zhang@analog.com, stern@rowland.harvard.edu
 
 
 The patch titled
-     sched-delete-dead-stuff-2
+     usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix-2
 has been added to the -mm tree.  Its filename is
-     sched-delete-dead-stuff-2.patch
+     usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sched-delete-dead-stuff-2
+Subject: usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Ingo Molnar <mingo@elte.hu>
+In file included from /usr/src/devel/drivers/usb/host/uhci-hcd.c:124:
+/usr/src/devel/drivers/usb/host/uhci-hub.c: In function 'uhci_hub_control':
+/usr/src/devel/drivers/usb/host/uhci-hub.c:256: error: implicit declaration of function 'put_unaligned_le32'
+
+Cc: Alan Stern <stern@rowland.harvard.edu>
+Cc: Bryan Wu <cooloney@kernel.org>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Jie Zhang <jie.zhang@analog.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched_fair.c |   14 --------------
- 1 file changed, 14 deletions(-)
+ drivers/usb/host/uhci-hcd.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN kernel/sched_fair.c~sched-delete-dead-stuff-2 kernel/sched_fair.c
---- a/kernel/sched_fair.c~sched-delete-dead-stuff-2
-+++ a/kernel/sched_fair.c
-@@ -1137,20 +1137,6 @@ out:
- }
- #endif /* CONFIG_SMP */
+diff -puN drivers/usb/host/uhci-hcd.c~usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix-2 drivers/usb/host/uhci-hcd.c
+--- a/drivers/usb/host/uhci-hcd.c~usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix-2
++++ a/drivers/usb/host/uhci-hcd.c
+@@ -42,6 +42,7 @@
+ #include <linux/dmi.h>
  
--static unsigned long wakeup_gran(struct sched_entity *se)
--{
--	unsigned long gran = sysctl_sched_wakeup_granularity;
--
--	/*
--	 * More easily preempt - nice tasks, while not making
--	 * it harder for + nice tasks.
--	 */
--	if (unlikely(se->load.weight > NICE_0_LOAD))
--		gran = calc_delta_fair(gran, &se->load);
--
--	return gran;
--}
--
- /*
-  * Should 'se' preempt 'curr'.
-  *
+ #include <asm/uaccess.h>
++#include <asm/unaligned.h>
+ #include <asm/io.h>
+ #include <asm/irq.h>
+ #include <asm/system.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -115,6 +110,7 @@ drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
 drivers-uwb-wlp-sysfsc-dead-code.patch
 drivers-uwb-whcic-needs-dma-mappingh.patch
 usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix.patch
+usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix-2.patch
 git-watchdog.patch
 git-watchdog-git-rejects.patch
 watchdog-fix-booke_wdtc-on-mpc85xx-smp-system.patch
