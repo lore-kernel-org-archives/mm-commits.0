@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sched-delete-dead-stuff.patch added to -mm tree
-Date: Thu, 22 May 2008 19:51:27 -0700
-Message-ID: <200805230302.m4N32gQJ002010@imap1.linux-foundation.org>
+Subject: + dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch added to -mm tree
+Date: Thu, 22 May 2008 20:02:56 -0700
+Message-ID: <200805230314.m4N3EBOA002380@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34190 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46707 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760470AbYEWDCx (ORCPT
+	by vger.kernel.org with ESMTP id S1753847AbYEWDOR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 22 May 2008 23:02:53 -0400
+	Thu, 22 May 2008 23:14:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu
+Cc: akpm@linux-foundation.org, fujita.tomonori@lab.ntt.co.jp
 
 
 The patch titled
-     sched-delete-dead-stuff
+     dma-mapping-add-the-device-argument-to-dma_mapping_error sge fix
 has been added to the -mm tree.  Its filename is
-     sched-delete-dead-stuff.patch
+     dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,42 +34,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sched-delete-dead-stuff
+Subject: dma-mapping-add-the-device-argument-to-dma_mapping_error sge fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-kernel/sched_fair.c:1170: warning: 'wakeup_preempt_entity' defined but not used
+catch up with netdev patches
 
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched_fair.c |   14 --------------
- 1 file changed, 14 deletions(-)
+ drivers/net/cxgb3/sge.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/sched_fair.c~sched-delete-dead-stuff kernel/sched_fair.c
---- a/kernel/sched_fair.c~sched-delete-dead-stuff
-+++ a/kernel/sched_fair.c
-@@ -1165,20 +1165,6 @@ static unsigned long wakeup_gran(struct 
-  *  w(c, s3) =  1
-  *
-  */
--static int
--wakeup_preempt_entity(struct sched_entity *curr, struct sched_entity *se)
--{
--	s64 gran, vdiff = curr->vruntime - se->vruntime;
--
--	if (vdiff < 0)
--		return -1;
--
--	gran = wakeup_gran(curr);
--	if (vdiff > gran)
--		return 1;
--
--	return 0;
--}
+diff -puN drivers/net/cxgb3/sge.c~dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix drivers/net/cxgb3/sge.c
+--- a/drivers/net/cxgb3/sge.c~dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix
++++ a/drivers/net/cxgb3/sge.c
+@@ -386,7 +386,7 @@ static inline int add_one_rx_buf(void *v
+ 	dma_addr_t mapping;
  
- /* return depth at which a sched entity is present in the hierarchy */
- static inline int depth_se(struct sched_entity *se)
+ 	mapping = pci_map_single(pdev, va, len, PCI_DMA_FROMDEVICE);
+-	if (unlikely(pci_dma_mapping_error(mapping)))
++	if (unlikely(pci_dma_mapping_error(pdev, mapping)))
+ 		return -ENOMEM;
+ 
+ 	pci_unmap_addr_set(sd, dma_addr, mapping);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -154,6 +142,7 @@ flag-parameters-check-magic-constants-alpha-hack.patch
 drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
 reiserfs-convert-j_flush_sem-to-mutex-fix.patch
 reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
 dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
 ppc-use-the-common-ascii-hex-helpers-fix.patch
 reiser4.patch
