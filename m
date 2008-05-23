@@ -1,81 +1,162 @@
 From: akpm@linux-foundation.org
-Subject: - scsi-do-not-automatically-select-scsi_dh-for-dm-multipath.patch removed from -mm tree
-Date: Thu, 22 May 2008 20:14:45 -0700
-Message-ID: <200805230325.m4N3Pxu5002749@imap1.linux-foundation.org>
+Subject: + dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch added to -mm tree
+Date: Thu, 22 May 2008 20:22:27 -0700
+Message-ID: <200805230333.m4N3XfJp003045@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48715 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40141 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763192AbYEWD0q (ORCPT
+	by vger.kernel.org with ESMTP id S1756703AbYEWDeQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 22 May 2008 23:26:46 -0400
+	Thu, 22 May 2008 23:34:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sekharan@us.ibm.com, James.Bottomley@HansenPartnership.com, agk@redhat.com, michaelc@cs.wisc.edu, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, fujita.tomonori@lab.ntt.co.jp
 
 
 The patch titled
-     scsi: do not automatically "select" SCSI_DH for dm-multipath
-has been removed from the -mm tree.  Its filename was
-     scsi-do-not-automatically-select-scsi_dh-for-dm-multipath.patch
+     dma-mapping-add-the-device-argument-to-dma_mapping_error svc_rdma fix
+has been added to the -mm tree.  Its filename is
+     dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
 
-This patch was dropped because it had testing failures
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi: do not automatically "select" SCSI_DH for dm-multipath
-From: Chandra Seetharaman <sekharan@us.ibm.com>
+Subject: dma-mapping-add-the-device-argument-to-dma_mapping_error svc_rdma fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-SCSI_DH has some problems when CONFIG_SCSI=n:
-
-drivers/built-in.o: In function `activate_path':
-dm-mpath.c:(.text+0x18a292): undefined reference to `scsi_dh_activate'
-drivers/built-in.o: In function `multipath_ctr':
-dm-mpath.c:(.text+0x18a6f0): undefined reference to `scsi_dh_handler_exist'
-
-If SCSI_DH doesn't exist, just do not allow hardware handlers to be used.
-
-Signed-off-by: Chandra Seetharaman <sekharan@us.ibm.com>
-Reported-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Alasdair G Kergon <agk@redhat.com>
-Cc: Mike Christie <michaelc@cs.wisc.edu>
+Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/Kconfig     |    1 -
- drivers/md/dm-mpath.c  |    2 ++
- include/scsi/scsi_dh.h |   12 +++++++++++-
- 3 files changed, 13 insertions(+), 2 deletions(-)
+ net/sunrpc/xprtrdma/svc_rdma_sendto.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/md/Kconfig~scsi-do-not-automatically-select-scsi_dh-for-dm-multipath drivers/md/Kconfig
---- a/drivers/md/Kconfig~scsi-do-not-automatically-select-scsi_dh-for-dm-multipath
-+++ a/drivers/md/Kconfig
-@@ -252,7 +252,6 @@ config DM_ZERO
- config DM_MULTIPATH
- 	tristate "Multipath target"
- 	depends on BLK_DEV_DM
--	select SCSI_DH
- 	---help---
- 	  Allow volume managers to support multipath hardware.
- 
-diff -puN drivers/md/dm-mpath.c~scsi-do-not-automatically-select-scsi_dh-for-dm-multipath drivers/md/dm-mpath.c
---- a/drivers/md/dm-mpath.c~scsi-do-not-automatically-select-scsi_dh-for-dm-multipath
-+++ a/drivers/md/dm-mpath.c
-@@ -664,6 +664,8 @@ static int parse_hw_handler(struct arg_s
- 	request_module("scsi_dh_%s", m->hw_handler_name);
- 	if (scsi_dh_handler_exist(m->hw_handler_name) == 0) {
- 		ti->error = "unknown hardware handler type";
-+		kfree(m->hw_handler_name);
-+		m->hw_handler_name = NULL;
- 		return -EINVAL;
- 	}
- 	consume(as, hw_argc - 1);
-diff -puN include/scsi/scsi_dh.h~scsi-do-not-automatically-select-scsi_dh-for-dm-multipath include/scsi/scsi_dh.h
---- a/include/scsi/scsi_dh.h~scsi-do-not-automatically-select-scsi_dh-for-dm-multipath
-+++ a/include/scsi/scsi_dh.h
-@@ -54,6 +54,16 @@ enum {
- 	SCSI_DH_NOSYS,
- 	SCSI_DH_DRIVER_MAX,
- };
+diff -puN net/sunrpc/xprtrdma/svc_rdma_sendto.c~dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix net/sunrpc/xprtrdma/svc_rdma_sendto.c
+--- a/net/sunrpc/xprtrdma/svc_rdma_sendto.c~dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix
++++ a/net/sunrpc/xprtrdma/svc_rdma_sendto.c
+@@ -180,7 +180,8 @@ static int send_write(struct svcxprt_rdm
+ 					  (void *)
+ 					  xdr_sge[xdr_sge_no].addr + sge_off,
+ 					  sge_bytes, DMA_TO_DEVICE);
+-		if (dma_mapping_error(sge[sge_no].addr))
++		if (dma_mapping_error(xprt->sc_cm_id->device->dma_device,
++					sge[sge_no].addr))
+ 			return -EINVAL;
+ 		sge_off = 0;
+ 		sge_no++;
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+origin.patch
+semaphore-introduce-down_try-checkpatch-fixes.patch
+ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware-ia64-warnings.patch
+memory-hotplug-fix-early-allocation-handling-checkpatch-fixes.patch
+linux-next.patch
+next-remove-localversion.patch
+fix-kobject-fix-kobject_rename-and-config_sysfs.patch
+undeprecate-down_trylock.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-video-balcklist-fujitsu-lifebook-s6410.patch
+git-x86-fixup.patch
+lguest-use-cpu-capability-accessors.patch
+arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
+zoran-use-correct-type-for-cpu-flags.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+drivers-infiniband-hw-mlx4-qpc-fix-uninitialised-var-warning.patch
+git-jg-misc-git-rejects.patch
+drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
+fsldma-the-mpc8377mds-board-device-tree-node-for-fsldma-driver.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers.patch
+git-ubifs.patch
+sundance-set-carrier-status-on-link-change-events.patch
+dm9000-use-delayed-work-to-update-mii-phy-state-fix.patch
+pcnet32-fix-warning.patch
+drivers-net-tokenring-3c359c-squish-a-warning.patch
+drivers-net-tokenring-olympicc-fix-warning.patch
+sfc-correct-and-expand-some-comments.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+pci-hotplug-introduce-pci_slot.patch
+pci-hotplug-acpi-pci-slot-detection-driver.patch
+sched-delete-dead-stuff.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-logfs-fixup.patch
+drivers-uwb-nehc-processor-flags-have-type-unsigned-long.patch
+drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
+drivers-uwb-wlp-sysfsc-dead-code.patch
+drivers-uwb-whcic-needs-dma-mappingh.patch
+git-vfs-cleanups-reject.patch
+git-watchdog.patch
+git-watchdog-git-rejects.patch
+watchdog-fix-booke_wdtc-on-mpc85xx-smp-system.patch
+wireless-airo-waitbusy-wont-delay-checkpatch-fixes.patch
+git-xtensa.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+libata-sff-fix-oops-reported-in-kerneloopsorg-for-pnp-devices-with-no-ctl-fix.patch
+ata-acpi-hotplug-handle-bay-devices-in-dock-stations-cleanup.patch
+mm-verify-the-page-links-and-memory-model.patch
+mspec-convert-nopfn-to-fault-fix.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+kill-generic_file_direct_io-checkpatch-fixes.patch
+spufs-use-the-new-vm_ops-access-fix.patch
+fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup-fix.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+rename-warn-to-warning-to-clear-the-namespace-fix.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-paccept-sys_ni.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-signalfd-fix.patch
+flag-parameters-eventfd-fix.patch
+flag-parameters-inotify_init-fix.patch
+flag-parameters-check-magic-constants-alpha-hack.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+reiserfs-convert-j_flush_sem-to-mutex-fix.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+reiser4.patch
+reiser4-semaphore-fix.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
+
