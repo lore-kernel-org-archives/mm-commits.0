@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-driver-core-add-device_create_vargs-and-device_create_drvdata.patch added to -mm tree
-Date: Thu, 22 May 2008 21:47:45 -0700
-Message-ID: <200805230459.m4N4x0vb005971@imap1.linux-foundation.org>
+Subject: + ubifs-unborkage.patch added to -mm tree
+Date: Thu, 22 May 2008 21:58:59 -0700
+Message-ID: <200805230510.m4N5AEoZ006330@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52276 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59886 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751900AbYEWE7I (ORCPT
+	by vger.kernel.org with ESMTP id S1750891AbYEWFKX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 23 May 2008 00:59:08 -0400
+	Fri, 23 May 2008 01:10:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com, kay.sievers@vrfy.org, sfr@canb.auug.org.au
+Cc: akpm@linux-foundation.org, Artem.Bityutskiy@nokia.com
 
 
 The patch titled
-     fix "Driver core: add device_create_vargs and device_create_drvdata"
+     ubifs unborkage
 has been added to the -mm tree.  Its filename is
-     fix-driver-core-add-device_create_vargs-and-device_create_drvdata.patch
+     ubifs-unborkage.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix "Driver core: add device_create_vargs and device_create_drvdata"
+Subject: ubifs unborkage
 From: Andrew Morton <akpm@linux-foundation.org>
 
-/usr/src/devel/drivers/block/paride/pt.c: In function 'pt_init':
-/usr/src/devel/drivers/block/paride/pt.c:987: warning: passing argument 5 of 'device_create_drvdata' makes pointer from integer without a cast
-
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Greg KH <greg@kroah.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/paride/pt.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ubifs/ioctl.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/block/paride/pt.c~fix-driver-core-add-device_create_vargs-and-device_create_drvdata drivers/block/paride/pt.c
---- a/drivers/block/paride/pt.c~fix-driver-core-add-device_create_vargs-and-device_create_drvdata
-+++ a/drivers/block/paride/pt.c
-@@ -982,7 +982,7 @@ static int __init pt_init(void)
- 					      MKDEV(major, unit), NULL,
- 					      "pt%d", unit);
- 			device_create_drvdata(pt_class, NULL,
--					      MKDEV(major, unit + 128),
-+					      MKDEV(major, unit + 128), NULL,
- 					      "pt%dn", unit);
- 		}
- 	goto out;
+diff -puN fs/ubifs/ioctl.c~ubifs-unborkage fs/ubifs/ioctl.c
+--- a/fs/ubifs/ioctl.c~ubifs-unborkage
++++ a/fs/ubifs/ioctl.c
+@@ -190,7 +190,6 @@ long ubifs_ioctl(struct file *file, unsi
+ #ifdef CONFIG_COMPAT
+ long ubifs_compat_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ {
+-	struct inode *inode = file->f_path.dentry->d_inode;
+ 	int err;
+ 
+ 	switch (cmd) {
+@@ -205,7 +204,7 @@ long ubifs_compat_ioctl(struct file *fil
+ 	}
+ 
+ 	lock_kernel();
+-	err = ubifs_ioctl(inode, file, cmd, (unsigned long)compat_ptr(arg));
++	err = ubifs_ioctl(file, cmd, (unsigned long)compat_ptr(arg));
+ 	unlock_kernel();
+ 
+ 	return err;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -169,4 +172,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
+ubifs-unborkage.patch
 
