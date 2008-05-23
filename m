@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch added to -mm tree
-Date: Thu, 22 May 2008 19:48:32 -0700
-Message-ID: <200805230259.m4N2xl4C001871@imap1.linux-foundation.org>
+Subject: + sched-delete-dead-stuff.patch added to -mm tree
+Date: Thu, 22 May 2008 19:51:27 -0700
+Message-ID: <200805230302.m4N32gQJ002010@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38140 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34190 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758078AbYEWDAh (ORCPT
+	by vger.kernel.org with ESMTP id S1760470AbYEWDCx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 22 May 2008 23:00:37 -0400
+	Thu, 22 May 2008 23:02:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, andi@firstfloor.org, avi@qumranet.com, fujita.tomonori@lab.ntt.co.jp, mingo@elte.hu, muli@il.ibm.com, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, mingo@elte.hu
 
 
 The patch titled
-     dma-mapping-x86-per-device-dma_mapping_ops-support-fix
+     sched-delete-dead-stuff
 has been added to the -mm tree.  Its filename is
-     dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
+     sched-delete-dead-stuff.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dma-mapping-x86-per-device-dma_mapping_ops-support-fix
+Subject: sched-delete-dead-stuff
 From: Andrew Morton <akpm@linux-foundation.org>
 
-In file included from include/linux/dma-mapping.h:52,
-                 from include/linux/dmaengine.h:29,
-                 from include/linux/skbuff.h:29,
-                 from include/linux/netlink.h:155,
-                 from include/linux/genetlink.h:4,
-                 from include/net/genetlink.h:4,
-                 from include/linux/taskstats_kern.h:12,
-                 from include/linux/delayacct.h:21,
-                 from fs/proc/array.c:80:
-include/asm/dma-mapping.h: In function 'dma_mapping_error':
-include/asm/dma-mapping.h:78: warning: unused variable 'ops'
+kernel/sched_fair.c:1170: warning: 'wakeup_preempt_entity' defined but not used
 
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Avi Kivity <avi@qumranet.com>
-Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Muli Ben-Yehuda <muli@il.ibm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-x86/dma-mapping.h |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ kernel/sched_fair.c |   14 --------------
+ 1 file changed, 14 deletions(-)
 
-diff -puN include/asm-x86/dma-mapping.h~dma-mapping-x86-per-device-dma_mapping_ops-support-fix include/asm-x86/dma-mapping.h
---- a/include/asm-x86/dma-mapping.h~dma-mapping-x86-per-device-dma_mapping_ops-support-fix
-+++ a/include/asm-x86/dma-mapping.h
-@@ -75,11 +75,10 @@ static inline struct dma_mapping_ops *ge
- /* Make sure we keep the same behaviour */
- static inline int dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
- {
--	struct dma_mapping_ops *ops = get_dma_ops(dev);
+diff -puN kernel/sched_fair.c~sched-delete-dead-stuff kernel/sched_fair.c
+--- a/kernel/sched_fair.c~sched-delete-dead-stuff
++++ a/kernel/sched_fair.c
+@@ -1165,20 +1165,6 @@ static unsigned long wakeup_gran(struct 
+  *  w(c, s3) =  1
+  *
+  */
+-static int
+-wakeup_preempt_entity(struct sched_entity *curr, struct sched_entity *se)
+-{
+-	s64 gran, vdiff = curr->vruntime - se->vruntime;
 -
- #ifdef CONFIG_X86_32
- 	return 0;
- #else
-+	struct dma_mapping_ops *ops = get_dma_ops(dev);
- 	if (ops->mapping_error)
- 		return ops->mapping_error(dev, dma_addr);
+-	if (vdiff < 0)
+-		return -1;
+-
+-	gran = wakeup_gran(curr);
+-	if (vdiff > gran)
+-		return 1;
+-
+-	return 0;
+-}
  
+ /* return depth at which a sched entity is present in the hierarchy */
+ static inline int depth_se(struct sched_entity *se)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -112,6 +105,7 @@ update-smc91x-driver-with-arm-versatile-board-info.patch
 git-battery.patch
 pci-hotplug-introduce-pci_slot.patch
 pci-hotplug-acpi-pci-slot-detection-driver.patch
+sched-delete-dead-stuff.patch
 drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
 s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
 git-unionfs.patch
