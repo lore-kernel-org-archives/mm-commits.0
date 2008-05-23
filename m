@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl-fix.patch added to -mm tree
-Date: Thu, 22 May 2008 22:29:33 -0700
-Message-ID: <200805230540.m4N5emOB007427@imap1.linux-foundation.org>
+Subject: + use-generic_access_phys-for-dev-mem-mappings-fix.patch added to -mm tree
+Date: Thu, 22 May 2008 23:35:08 -0700
+Message-ID: <200805230646.m4N6kNJ7009749@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46240 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38005 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751825AbYEWFlW (ORCPT
+	by vger.kernel.org with ESMTP id S1755611AbYEWGrp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 23 May 2008 01:41:22 -0400
+	Fri, 23 May 2008 02:47:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@redhat.com, wim@iguana.be
+Cc: akpm@linux-foundation.org, airlied@linux.ie, arnd@arndb.de, benh@kernel.crashing.org, hugh@veritas.com, paulus@samba.org, riel@redhat.com
 
 
 The patch titled
-     watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl-fix
+     use-generic_access_phys-for-dev-mem-mappings-fix
 has been added to the -mm tree.  Its filename is
-     watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl-fix.patch
+     use-generic_access_phys-for-dev-mem-mappings-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl-fix
+Subject: use-generic_access_phys-for-dev-mem-mappings-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-alpha:
+Hopefully repair all the architectures which broke.
 
-drivers/watchdog/wdt_pci.c: In function 'wdtpci_ctr_mode':
-drivers/watchdog/wdt_pci.c:120: error: implicit declaration of function 'udelay'
-{standard input}: Assembler messages:
-
-Cc: Alan Cox <alan@redhat.com>
-Cc: Wim Van Sebroeck <wim@iguana.be>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Benjamin Herrensmidt <benh@kernel.crashing.org>
+Cc: Dave Airlie <airlied@linux.ie>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/wdt_pci.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/char/mem.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/watchdog/wdt_pci.c~watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl-fix drivers/watchdog/wdt_pci.c
---- a/drivers/watchdog/wdt_pci.c~watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl-fix
-+++ a/drivers/watchdog/wdt_pci.c
-@@ -44,6 +44,7 @@
- #include <linux/miscdevice.h>
- #include <linux/watchdog.h>
- #include <linux/ioport.h>
-+#include <linux/delay.h>
- #include <linux/notifier.h>
- #include <linux/reboot.h>
- #include <linux/init.h>
+diff -puN drivers/char/mem.c~use-generic_access_phys-for-dev-mem-mappings-fix drivers/char/mem.c
+--- a/drivers/char/mem.c~use-generic_access_phys-for-dev-mem-mappings-fix
++++ a/drivers/char/mem.c
+@@ -328,7 +328,9 @@ static void mmap_mem_close(struct vm_are
+ static struct vm_operations_struct mmap_mem_ops = {
+ 	.open  = mmap_mem_open,
+ 	.close = mmap_mem_close,
++#ifdef CONFIG_HAVE_IOREMAP_PROT
+ 	.access = generic_access_phys
++#endif
+ };
+ 
+ static int mmap_mem(struct file * file, struct vm_area_struct * vma)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -127,6 +129,7 @@ mm-verify-the-page-links-and-memory-model.patch
 mspec-convert-nopfn-to-fault-fix.patch
 page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
 kill-generic_file_direct_io-checkpatch-fixes.patch
+use-generic_access_phys-for-dev-mem-mappings-fix.patch
 spufs-use-the-new-vm_ops-access-fix.patch
 fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
