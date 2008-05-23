@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix-2.patch added to -mm tree
-Date: Thu, 22 May 2008 20:58:52 -0700
-Message-ID: <200805230410.m4N4A7ar004271@imap1.linux-foundation.org>
+Subject: + dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch added to -mm tree
+Date: Thu, 22 May 2008 21:02:49 -0700
+Message-ID: <200805230414.m4N4E4NY004412@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34463 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36635 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750871AbYEWEK7 (ORCPT
+	by vger.kernel.org with ESMTP id S1750842AbYEWEQZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 23 May 2008 00:10:59 -0400
+	Fri, 23 May 2008 00:16:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, cooloney@kernel.org, david-b@pacbell.net, gregkh@suse.de, jie.zhang@analog.com, stern@rowland.harvard.edu
+Cc: akpm@linux-foundation.org, andi@firstfloor.org, avi@qumranet.com, fujita.tomonori@lab.ntt.co.jp, mingo@elte.hu, muli@il.ibm.com, tglx@linutronix.de
 
 
 The patch titled
-     usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix-2
+     dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x
 has been added to the -mm tree.  Its filename is
-     usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix-2.patch
+     dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix-2
+Subject: dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x
 From: Andrew Morton <akpm@linux-foundation.org>
 
-In file included from /usr/src/devel/drivers/usb/host/uhci-hcd.c:124:
-/usr/src/devel/drivers/usb/host/uhci-hub.c: In function 'uhci_hub_control':
-/usr/src/devel/drivers/usb/host/uhci-hub.c:256: error: implicit declaration of function 'put_unaligned_le32'
+this is getting a bit boring.
 
-Cc: Alan Stern <stern@rowland.harvard.edu>
-Cc: Bryan Wu <cooloney@kernel.org>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Jie Zhang <jie.zhang@analog.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Avi Kivity <avi@qumranet.com>
+Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Muli Ben-Yehuda <muli@il.ibm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/host/uhci-hcd.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/net/bnx2x.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/usb/host/uhci-hcd.c~usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix-2 drivers/usb/host/uhci-hcd.c
---- a/drivers/usb/host/uhci-hcd.c~usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix-2
-+++ a/drivers/usb/host/uhci-hcd.c
-@@ -42,6 +42,7 @@
- #include <linux/dmi.h>
+diff -puN drivers/net/bnx2x.c~dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x drivers/net/bnx2x.c
+--- a/drivers/net/bnx2x.c~dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x
++++ a/drivers/net/bnx2x.c
+@@ -833,7 +833,7 @@ static inline int bnx2x_alloc_rx_skb(str
  
- #include <asm/uaccess.h>
-+#include <asm/unaligned.h>
- #include <asm/io.h>
- #include <asm/irq.h>
- #include <asm/system.h>
+ 	mapping = pci_map_single(bp->pdev, skb->data, bp->rx_buf_use_size,
+ 				 PCI_DMA_FROMDEVICE);
+-	if (unlikely(dma_mapping_error(bp->pdev, mapping))) {
++	if (unlikely(dma_mapping_error(&bp->pdev->dev, mapping))) {
+ 
+ 		dev_kfree_skb(skb);
+ 		return -ENOMEM;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -152,6 +152,7 @@ reiserfs-convert-j_flush_sem-to-mutex-fix.patch
 reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
 dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
 ppc-use-the-common-ascii-hex-helpers-fix.patch
 reiser4.patch
