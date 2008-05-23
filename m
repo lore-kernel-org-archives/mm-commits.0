@@ -1,30 +1,40 @@
 From: akpm@linux-foundation.org
-Subject: - flag-parameters-check-magic-constants-alpha-hack.patch removed from -mm tree
-Date: Fri, 23 May 2008 10:32:51 -0700
-Message-ID: <200805231732.m4NHWpxO000690@imap1.linux-foundation.org>
+Subject: + flag-parameters-check-magic-constants-alpha.patch added to -mm tree
+Date: Fri, 23 May 2008 10:33:59 -0700
+Message-ID: <200805231733.m4NHXxwU000808@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42434 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49872 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752598AbYEWRd7 (ORCPT
+	by vger.kernel.org with ESMTP id S1750750AbYEWRew (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 23 May 2008 13:33:59 -0400
+	Fri, 23 May 2008 13:34:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davidel@xmailserver.org, drepper@redhat.com, mtk.manpages@googlemail.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, davidel@xmailserver.org, drepper@redhat.com, mtk.manpages@googlemail.com
 
 
 The patch titled
-     flag-parameters-check-magic-constants-alpha-hack
-has been removed from the -mm tree.  Its filename was
-     flag-parameters-check-magic-constants-alpha-hack.patch
+     flag-parameters-check-magic-constants-alpha
+has been added to the -mm tree.  Its filename is
+     flag-parameters-check-magic-constants-alpha.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: flag-parameters-check-magic-constants-alpha-hack
+Subject: flag-parameters-check-magic-constants-alpha
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Davide Libenzi <davidel@xmailserver.org>
@@ -33,18 +43,17 @@ Cc: Ulrich Drepper <drepper@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/socket.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/socket.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN net/socket.c~flag-parameters-check-magic-constants-alpha-hack net/socket.c
---- a/net/socket.c~flag-parameters-check-magic-constants-alpha-hack
+diff -puN net/socket.c~flag-parameters-check-magic-constants-alpha net/socket.c
+--- a/net/socket.c~flag-parameters-check-magic-constants-alpha
 +++ a/net/socket.c
-@@ -1223,7 +1223,7 @@ asmlinkage long sys_socket(int family, i
+@@ -1223,7 +1223,6 @@ asmlinkage long sys_socket(int family, i
  
  	/* Check the SOCK_* constants for consistency.  */
  	BUILD_BUG_ON(SOCK_CLOEXEC != O_CLOEXEC);
 -	BUILD_BUG_ON(SOCK_NONBLOCK != O_NONBLOCK);
-+//	BUILD_BUG_ON(SOCK_NONBLOCK != O_NONBLOCK);
  	BUILD_BUG_ON((SOCK_MAX | SOCK_TYPE_MASK) != SOCK_TYPE_MASK);
  	BUILD_BUG_ON(SOCK_CLOEXEC & SOCK_TYPE_MASK);
  	BUILD_BUG_ON(SOCK_NONBLOCK & SOCK_TYPE_MASK);
@@ -140,7 +149,7 @@ flag-parameters-anon_inode_getfd-extension-fix.patch
 flag-parameters-signalfd-fix.patch
 flag-parameters-eventfd-fix.patch
 flag-parameters-inotify_init-fix.patch
-flag-parameters-check-magic-constants-alpha-hack.patch
+flag-parameters-check-magic-constants-alpha.patch
 drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
 reiserfs-convert-j_flush_sem-to-mutex-fix.patch
 reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
