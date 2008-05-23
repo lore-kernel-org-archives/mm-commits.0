@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + arch-powerpc-platforms-pseries-eeh_driverc-fix-warning.patch added to -mm tree
-Date: Fri, 23 May 2008 01:03:58 -0700
-Message-ID: <200805230815.m4N8FDM7012721@imap1.linux-foundation.org>
+Subject: + arch-powerpc-platforms-pseries-eeh_driverc-fix-warning-checkpatch-fixes.patch added to -mm tree
+Date: Fri, 23 May 2008 01:04:30 -0700
+Message-ID: <200805230815.m4N8FjYl012735@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54982 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55950 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752449AbYEWIPS (ORCPT
+	by vger.kernel.org with ESMTP id S1752587AbYEWIPt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 23 May 2008 04:15:18 -0400
+	Fri, 23 May 2008 04:15:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, benh@kernel.crashing.org, paulus@samba.org
 
 
 The patch titled
-     arch/powerpc/platforms/pseries/eeh_driver.c: fix warning
+     arch-powerpc-platforms-pseries-eeh_driverc-fix-warning-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     arch-powerpc-platforms-pseries-eeh_driverc-fix-warning.patch
+     arch-powerpc-platforms-pseries-eeh_driverc-fix-warning-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,53 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/powerpc/platforms/pseries/eeh_driver.c: fix warning
+Subject: arch-powerpc-platforms-pseries-eeh_driverc-fix-warning-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix this:
+ERROR: space required after that ';' (ctx:VxV)
+#36: FILE: arch/powerpc/platforms/pseries/eeh_driver.c:52:
++	for (i = 0;i < dent; i++)
+ 	          ^
 
-/usr/src/devel/arch/powerpc/platforms/pseries/eeh_driver.c: In function 'print_device_node_tree':
-/usr/src/devel/arch/powerpc/platforms/pseries/eeh_driver.c:55: warning: ISO C90 forbids mixed declarations and code
+total: 1 errors, 0 warnings, 24 lines checked
 
-also make that function look like it's part of Linux.  I mean, wtf are you
-guys up to down there??
+./patches/arch-powerpc-platforms-pseries-eeh_driverc-fix-warning.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
 
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/pseries/eeh_driver.c |   11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+ arch/powerpc/platforms/pseries/eeh_driver.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/powerpc/platforms/pseries/eeh_driver.c~arch-powerpc-platforms-pseries-eeh_driverc-fix-warning arch/powerpc/platforms/pseries/eeh_driver.c
---- a/arch/powerpc/platforms/pseries/eeh_driver.c~arch-powerpc-platforms-pseries-eeh_driverc-fix-warning
+diff -puN arch/powerpc/platforms/pseries/eeh_driver.c~arch-powerpc-platforms-pseries-eeh_driverc-fix-warning-checkpatch-fixes arch/powerpc/platforms/pseries/eeh_driver.c
+--- a/arch/powerpc/platforms/pseries/eeh_driver.c~arch-powerpc-platforms-pseries-eeh_driverc-fix-warning-checkpatch-fixes
 +++ a/arch/powerpc/platforms/pseries/eeh_driver.c
-@@ -42,17 +42,20 @@ static inline const char * pcid_name (st
- }
+@@ -49,7 +49,7 @@ static void print_device_node_tree(struc
  
- #ifdef DEBUG
--static void print_device_node_tree (struct pci_dn *pdn, int dent)
-+static void print_device_node_tree(struct pci_dn *pdn, int dent)
- {
- 	int i;
--	if (!pdn) return;
--	for (i=0;i<dent; i++)
-+	struct device_node *pc;
-+
-+	if (!pdn)
-+		return;
-+	for (i = 0;i < dent; i++)
+ 	if (!pdn)
+ 		return;
+-	for (i = 0;i < dent; i++)
++	for (i = 0; i < dent; i++)
  		printk(" ");
  	printk("dn=%s mode=%x \tcfg_addr=%x pe_addr=%x \tfull=%s\n",
  		pdn->node->name, pdn->eeh_mode, pdn->eeh_config_addr,
- 		pdn->eeh_pe_config_addr, pdn->node->full_name);
- 	dent += 3;
--	struct device_node *pc = pdn->node->child;
-+	pc = pdn->node->child;
- 	while (pc) {
- 		print_device_node_tree(PCI_DN(pc), dent);
- 		pc = pc->sibling;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -100,6 +89,8 @@ acpi-video-balcklist-fujitsu-lifebook-s6410.patch
 git-x86-fixup.patch
 lguest-use-cpu-capability-accessors.patch
 arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
+arch-powerpc-platforms-pseries-eeh_driverc-fix-warning.patch
+arch-powerpc-platforms-pseries-eeh_driverc-fix-warning-checkpatch-fixes.patch
 zoran-use-correct-type-for-cpu-flags.patch
 i2c-renesas-highlander-fpga-smbus-support.patch
 drivers-infiniband-hw-mlx4-qpc-fix-uninitialised-var-warning.patch
@@ -195,5 +186,4 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
-arch-powerpc-platforms-pseries-eeh_driverc-fix-warning.patch
 
