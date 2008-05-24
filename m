@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kvm-is-busted-on-ia64.patch added to -mm tree
-Date: Fri, 23 May 2008 15:33:51 -0700
-Message-ID: <200805232245.m4NMj7XX012807@imap1.linux-foundation.org>
+Subject: + spi-fix-refcount-related-spidev-oops-on-rmmod.patch added to -mm tree
+Date: Fri, 23 May 2008 17:48:19 -0700
+Message-ID: <200805240048.m4O0mJ6b017277@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37663 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56028 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753684AbYEWWpo (ORCPT
+	by vger.kernel.org with ESMTP id S1751857AbYEXAsn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 23 May 2008 18:45:44 -0400
+	Fri, 23 May 2008 20:48:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, avi@qumranet.com, xiantao.zhang@intel.com
+Cc: dbrownell@users.sourceforge.net, bigeasy@tglx.de
 
 
 The patch titled
-     kvm is busted on ia64
+     spi: fix refcount-related spidev oops-on-rmmod
 has been added to the -mm tree.  Its filename is
-     kvm-is-busted-on-ia64.patch
+     spi-fix-refcount-related-spidev-oops-on-rmmod.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,140 +34,205 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kvm is busted on ia64
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: spi: fix refcount-related spidev oops-on-rmmod
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-/usr/src/devel/arch/ia64/kvm/../../../virt/kvm/ioapic.c: In function `ioapic_inj_nmi':
-/usr/src/devel/arch/ia64/kvm/../../../virt/kvm/ioapic.c:151: error: implicit declaration of function `kvm_inject_nmi'
+This addresses other oopsing paths in "spidev" by changing how it manages
+refcounting.  It decouples the lifecycle of the per-device data from the
+class device (not just the spi device):
 
-Cc: Xiantao Zhang <xiantao.zhang@intel.com>
-Cc: Avi Kivity <avi@qumranet.com>
+  - Use class_{create,destroy} not class_{register,unregister}.
+  - Use device_{create,destroy} not device_{register,unregister}.
+  - Free the per-device data only when TWO conditions are true:
+      * Driver is unbound from underlying SPI device, and
+      * Device is no longer open (new)
+
+Also, spi_{get,set}_drvdata not dev_{get,set}_drvdata for simpler code.
+
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Sebastian Siewior <bigeasy@tglx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/Kconfig |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/spi/spidev.c |   64 +++++++++++++++++++++--------------------
+ 1 file changed, 34 insertions(+), 30 deletions(-)
 
-diff -puN arch/ia64/Kconfig~kvm-is-busted-on-ia64 arch/ia64/Kconfig
---- a/arch/ia64/Kconfig~kvm-is-busted-on-ia64
-+++ a/arch/ia64/Kconfig
-@@ -20,7 +20,6 @@ config IA64
- 	select HAVE_KPROBES
- 	select HAVE_KRETPROBES
- 	select HAVE_DMA_ATTRS
--	select HAVE_KVM
- 	default y
- 	help
- 	  The Itanium Processor Family is Intel's 64-bit successor to
+diff -puN drivers/spi/spidev.c~spi-fix-refcount-related-spidev-oops-on-rmmod drivers/spi/spidev.c
+--- a/drivers/spi/spidev.c~spi-fix-refcount-related-spidev-oops-on-rmmod
++++ a/drivers/spi/spidev.c
+@@ -25,6 +25,7 @@
+ #include <linux/ioctl.h>
+ #include <linux/fs.h>
+ #include <linux/device.h>
++#include <linux/err.h>
+ #include <linux/list.h>
+ #include <linux/errno.h>
+ #include <linux/mutex.h>
+@@ -67,11 +68,12 @@ static unsigned long	minors[N_SPI_MINORS
+ 				| SPI_LSB_FIRST | SPI_3WIRE | SPI_LOOP)
+ 
+ struct spidev_data {
+-	struct device		dev;
++	dev_t			devt;
+ 	spinlock_t		spi_lock;
+ 	struct spi_device	*spi;
+ 	struct list_head	device_entry;
+ 
++	/* buffer is NULL unless this device is open (users > 0) */
+ 	struct mutex		buf_lock;
+ 	unsigned		users;
+ 	u8			*buffer;
+@@ -467,7 +469,7 @@ static int spidev_open(struct inode *ino
+ 	mutex_lock(&device_list_lock);
+ 
+ 	list_for_each_entry(spidev, &device_list, device_entry) {
+-		if (spidev->dev.devt == inode->i_rdev) {
++		if (spidev->devt == inode->i_rdev) {
+ 			status = 0;
+ 			break;
+ 		}
+@@ -500,10 +502,22 @@ static int spidev_release(struct inode *
+ 	mutex_lock(&device_list_lock);
+ 	spidev = filp->private_data;
+ 	filp->private_data = NULL;
++
++	/* last close? */
+ 	spidev->users--;
+ 	if (!spidev->users) {
++		int		dofree;
++
+ 		kfree(spidev->buffer);
+ 		spidev->buffer = NULL;
++
++		/* ... after we unbound from the underlying device? */
++		spin_lock_irq(&spidev->spi_lock);
++		dofree = (spidev->spi == NULL);
++		spin_unlock_irq(&spidev->spi_lock);
++
++		if (dofree)
++			kfree(spidev);
+ 	}
+ 	mutex_unlock(&device_list_lock);
+ 
+@@ -530,19 +544,7 @@ static struct file_operations spidev_fop
+  * It also simplifies memory management.
+  */
+ 
+-static void spidev_classdev_release(struct device *dev)
+-{
+-	struct spidev_data	*spidev;
+-
+-	spidev = container_of(dev, struct spidev_data, dev);
+-	kfree(spidev);
+-}
+-
+-static struct class spidev_class = {
+-	.name		= "spidev",
+-	.owner		= THIS_MODULE,
+-	.dev_release	= spidev_classdev_release,
+-};
++static struct class *spidev_class;
+ 
+ /*-------------------------------------------------------------------------*/
+ 
+@@ -570,20 +572,20 @@ static int spidev_probe(struct spi_devic
+ 	mutex_lock(&device_list_lock);
+ 	minor = find_first_zero_bit(minors, N_SPI_MINORS);
+ 	if (minor < N_SPI_MINORS) {
+-		spidev->dev.parent = &spi->dev;
+-		spidev->dev.class = &spidev_class;
+-		spidev->dev.devt = MKDEV(SPIDEV_MAJOR, minor);
+-		snprintf(spidev->dev.bus_id, sizeof spidev->dev.bus_id,
++		struct device *dev;
++
++		spidev->devt = MKDEV(SPIDEV_MAJOR, minor);
++		dev = device_create(spidev_class, &spi->dev, spidev->devt,
+ 				"spidev%d.%d",
+ 				spi->master->bus_num, spi->chip_select);
+-		status = device_register(&spidev->dev);
++		status = IS_ERR(dev) ? PTR_ERR(dev) : 0;
+ 	} else {
+ 		dev_dbg(&spi->dev, "no minor number available!\n");
+ 		status = -ENODEV;
+ 	}
+ 	if (status == 0) {
+ 		set_bit(minor, minors);
+-		dev_set_drvdata(&spi->dev, spidev);
++		spi_set_drvdata(spi, spidev);
+ 		list_add(&spidev->device_entry, &device_list);
+ 	}
+ 	mutex_unlock(&device_list_lock);
+@@ -596,19 +598,21 @@ static int spidev_probe(struct spi_devic
+ 
+ static int spidev_remove(struct spi_device *spi)
+ {
+-	struct spidev_data	*spidev = dev_get_drvdata(&spi->dev);
++	struct spidev_data	*spidev = spi_get_drvdata(spi);
+ 
+ 	/* make sure ops on existing fds can abort cleanly */
+ 	spin_lock_irq(&spidev->spi_lock);
+ 	spidev->spi = NULL;
++	spi_set_drvdata(spi, NULL);
+ 	spin_unlock_irq(&spidev->spi_lock);
+ 
+ 	/* prevent new opens */
+ 	mutex_lock(&device_list_lock);
+ 	list_del(&spidev->device_entry);
+-	dev_set_drvdata(&spi->dev, NULL);
+-	clear_bit(MINOR(spidev->dev.devt), minors);
+-	device_unregister(&spidev->dev);
++	device_destroy(spidev_class, spidev->devt);
++	clear_bit(MINOR(spidev->devt), minors);
++	if (spidev->users == 0)
++		kfree(spidev);
+ 	mutex_unlock(&device_list_lock);
+ 
+ 	return 0;
+@@ -644,15 +648,15 @@ static int __init spidev_init(void)
+ 	if (status < 0)
+ 		return status;
+ 
+-	status = class_register(&spidev_class);
+-	if (status < 0) {
++	spidev_class = class_create(THIS_MODULE, "spidev");
++	if (IS_ERR(spidev_class)) {
+ 		unregister_chrdev(SPIDEV_MAJOR, spidev_spi.driver.name);
+-		return status;
++		return PTR_ERR(spidev_class);
+ 	}
+ 
+ 	status = spi_register_driver(&spidev_spi);
+ 	if (status < 0) {
+-		class_unregister(&spidev_class);
++		class_destroy(spidev_class);
+ 		unregister_chrdev(SPIDEV_MAJOR, spidev_spi.driver.name);
+ 	}
+ 	return status;
+@@ -662,7 +666,7 @@ module_init(spidev_init);
+ static void __exit spidev_exit(void)
+ {
+ 	spi_unregister_driver(&spidev_spi);
+-	class_unregister(&spidev_class);
++	class_destroy(spidev_class);
+ 	unregister_chrdev(SPIDEV_MAJOR, spidev_spi.driver.name);
+ }
+ module_exit(spidev_exit);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
 
 origin.patch
-ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware.patch
-memory-hotplug-fix-early-allocation-handling.patch
+gpio-pca953x-driver-handles-pca9554-too.patch
+gpio-mcp23s08-debug-fix.patch
+gpiolib-fix-off-by-one-errors.patch
+gpio-build-fixes-mostly-potential.patch
+spi-remove-some-spidev-oops-on-rmmod-paths.patch
+spi-fix-refcount-related-spidev-oops-on-rmmod.patch
 linux-next.patch
-next-fix-rejects.patch
-next-remove-localversion.patch
-fix-kobject-fix-kobject_rename-and-config_sysfs.patch
-fix-driver-core-add-device_create_vargs-and-device_create_drvdata.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-video-balcklist-fujitsu-lifebook-s6410.patch
-git-x86-fixup.patch
-lguest-use-cpu-capability-accessors.patch
-arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
-arch-powerpc-platforms-pseries-eeh_driverc-fix-warning.patch
-arch-powerpc-platforms-pseries-eeh_driverc-fix-warning-checkpatch-fixes.patch
-zoran-use-correct-type-for-cpu-flags.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-drivers-infiniband-hw-mlx4-qpc-fix-uninitialised-var-warning.patch
-git-jg-misc-git-rejects.patch
-drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-fsldma-the-mpc8377mds-board-device-tree-node-for-fsldma-driver.patch
-mmc-sd-host-driver-for-ricoh-bay1controllers.patch
-git-ubifs.patch
-git-net.patch
-sundance-set-carrier-status-on-link-change-events.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-battery.patch
-pci-hotplug-introduce-pci_slot.patch
-pci-hotplug-acpi-pci-slot-detection-driver.patch
-sched-delete-dead-stuff.patch
-sched-delete-dead-stuff-2.patch
-drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
-s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
-pktcdvd-push-bkl-down-into-driver-fix.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-git-logfs-fixup.patch
-drivers-uwb-nehc-processor-flags-have-type-unsigned-long.patch
-drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
-drivers-uwb-wlp-sysfsc-dead-code.patch
-drivers-uwb-whcic-needs-dma-mappingh.patch
-usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix.patch
-usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix-2.patch
-git-watchdog.patch
-git-watchdog-git-rejects.patch
-watchdog-fix-booke_wdtc-on-mpc85xx-smp-system.patch
-watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix.patch
-watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl-fix.patch
-wireless-airo-waitbusy-wont-delay-checkpatch-fixes.patch
-git-xtensa.patch
-ext4-is-busted-on-m68k.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-libata-sff-fix-oops-reported-in-kerneloopsorg-for-pnp-devices-with-no-ctl-fix.patch
-ata-acpi-hotplug-handle-bay-devices-in-dock-stations-cleanup.patch
-mm-verify-the-page-links-and-memory-model.patch
-mspec-convert-nopfn-to-fault-fix.patch
-page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
-kill-generic_file_direct_io-checkpatch-fixes.patch
-use-generic_access_phys-for-dev-mem-mappings-fix.patch
-spufs-use-the-new-vm_ops-access-fix.patch
-fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
-pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes.patch
-pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup.patch
-pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup-fix.patch
-split-the-typecheck-macros-out-of-include-linux-kernelh.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
-remove-apparently-unused-fd1772h-header-file.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
-build-kernel-profileo-only-when-requested-cleanups.patch
-rename-warn-to-warning-to-clear-the-namespace-fix.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
-flag-parameters-paccept-fix.patch
-flag-parameters-paccept-sys_ni.patch
-flag-parameters-anon_inode_getfd-extension-fix.patch
-flag-parameters-signalfd-fix.patch
-flag-parameters-eventfd-fix.patch
-flag-parameters-inotify_init-fix.patch
-flag-parameters-check-magic-constants-alpha.patch
-drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
-reiserfs-convert-j_flush_sem-to-mutex.patch
-reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-reiser4.patch
-reiser4-semaphore-fix.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
-kvm-is-busted-on-ia64.patch
+acpi_pm_device_sleep_state-cleanup.patch
+git-orion.patch
+xilinx_spi-test-below-0-on-unsigned-irq-in-xilinx_spi_probe.patch
+spi-kconfig-simplifications.patch
+spi-make-spi_board_infomodalias-a-char-array.patch
+gpio-sysfs-interface.patch
 
