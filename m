@@ -1,77 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: - cgroups-remove-node_-prefix_from-ns-subsystem.patch removed from -mm tree
-Date: Tue, 27 May 2008 00:28:17 -0700
-Message-ID: <200805270728.m4R7SHW7014931@imap1.linux-foundation.org>
+Subject: - md-notify-userspace-on-write-pending-changes-to-array_state.patch removed from -mm tree
+Date: Tue, 27 May 2008 00:27:16 -0700
+Message-ID: <200805270727.m4R7RGlK014752@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34824 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47345 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756150AbYE0Hax (ORCPT
+	by vger.kernel.org with ESMTP id S1756165AbYE0Hb3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 May 2008 03:30:53 -0400
+	Tue, 27 May 2008 03:31:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clg@fr.ibm.com, menage@google.com, serue@us.ibm.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cgroups: remove node_ prefix_from ns subsystem
+     md: notify userspace on 'write-pending' changes to array_state
 has been removed from the -mm tree.  Its filename was
-     cgroups-remove-node_-prefix_from-ns-subsystem.patch
+     md-notify-userspace-on-write-pending-changes-to-array_state.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: remove node_ prefix_from ns subsystem
-From: Cedric Le Goater <clg@fr.ibm.com>
+Subject: md: notify userspace on 'write-pending' changes to array_state
+From: NeilBrown <neilb@suse.de>
 
-This is a slight change in the namespace cgroup subsystem api.
+When an array enters write pending, 'array_state' changes, so we must be
+sure to sysfs_notify.
 
-The change is that previously when cgroup_clone() was called (currently
-only from the unshare path in ns_proxy cgroup, you'd get a new group named
-"node_$pid" whereas now you'll get a group named after just your pid.)
+Also, when waiting for user-space to acknowledge 'write-pending' by
+marking the metadata as dirty, we don't want to wait for MD_CHANGE_DEVS to
+be cleared as that might not happen.  So explicity test for the bits that
+we are really interested in.
 
-The only users who would notice it are those who are using the ns_proxy
-cgroup subsystem to auto-create cgroups when namespaces are unshared -
-something of an experimental feature, which I think really needs more
-complete container/namespace support in order to be useful.  I suspect the
-only users are Cedric and Serge, or maybe a few others on
-containers@lists.linux-foundation.org.  And in fact it would only be
-noticed by the users who make the assumption about how the name is
-generated, rather than getting it from the /proc/<pid>/cgroups file for
-the process in question.
-
-Whether the change is actually needed or not I'm fairly agnostic on, but I
-guess it is more elegant to just use the pid as the new group name rather
-than adding a fairly arbitrary "node_" prefix on the front.
-
-[menage@google.com: provided changelog]
-Signed-off-by: Cedric Le Goater <clg@fr.ibm.com>
-Cc: "Paul Menage" <menage@google.com>
-Cc: "Serge E. Hallyn" <serue@us.ibm.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/md/md.c |   11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
-diff -puN kernel/cgroup.c~cgroups-remove-node_-prefix_from-ns-subsystem kernel/cgroup.c
---- a/kernel/cgroup.c~cgroups-remove-node_-prefix_from-ns-subsystem
-+++ a/kernel/cgroup.c
-@@ -2903,7 +2903,7 @@ int cgroup_clone(struct task_struct *tsk
- 	cg = tsk->cgroups;
- 	parent = task_cgroup(tsk, subsys->subsys_id);
+diff -puN drivers/md/md.c~md-notify-userspace-on-write-pending-changes-to-array_state drivers/md/md.c
+--- a/drivers/md/md.c~md-notify-userspace-on-write-pending-changes-to-array_state
++++ a/drivers/md/md.c
+@@ -5435,8 +5435,11 @@ void md_write_start(mddev_t *mddev, stru
+ 			md_wakeup_thread(mddev->thread);
+ 		}
+ 		spin_unlock_irq(&mddev->write_lock);
++		sysfs_notify(&mddev->kobj, NULL, "array_state");
+ 	}
+-	wait_event(mddev->sb_wait, mddev->flags==0);
++	wait_event(mddev->sb_wait,
++		   !test_bit(MD_CHANGE_CLEAN, &mddev->flags) &&
++		   !test_bit(MD_CHANGE_PENDING, &mddev->flags));
+ }
  
--	snprintf(nodename, MAX_CGROUP_TYPE_NAMELEN, "node_%d", tsk->pid);
-+	snprintf(nodename, MAX_CGROUP_TYPE_NAMELEN, "%d", tsk->pid);
- 
- 	/* Pin the hierarchy */
- 	atomic_inc(&parent->root->sb->s_active);
+ void md_write_end(mddev_t *mddev)
+@@ -5471,6 +5474,12 @@ void md_allow_write(mddev_t *mddev)
+ 			mddev->safemode = 1;
+ 		spin_unlock_irq(&mddev->write_lock);
+ 		md_update_sb(mddev, 0);
++
++		sysfs_notify(&mddev->kobj, NULL, "array_state");
++		/* wait for the dirty state to be recorded in the metadata */
++		wait_event(mddev->sb_wait,
++			   !test_bit(MD_CHANGE_CLEAN, &mddev->flags) &&
++			   !test_bit(MD_CHANGE_PENDING, &mddev->flags));
+ 	} else
+ 		spin_unlock_irq(&mddev->write_lock);
+ }
 _
 
-Patches currently in -mm which might be from clg@fr.ibm.com are
+Patches currently in -mm which might be from neilb@suse.de are
 
+md-fix-prexor-vs-sync_request-race.patch
+md-fix-uninitialized-use-of-mddev-recovery_wait.patch
+md-do-not-compute-parity-unless-it-is-on-a-failed-drive.patch
+linux-next.patch
+fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries.patch
+fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
 
