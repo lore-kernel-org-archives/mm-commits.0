@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + md-fix-prexor-vs-sync_request-race.patch added to -mm tree
-Date: Mon, 26 May 2008 23:43:50 -0700
-Message-ID: <200805270643.m4R6hodB013278@imap1.linux-foundation.org>
+Subject: + md-do-not-compute-parity-unless-it-is-on-a-failed-drive.patch added to -mm tree
+Date: Mon, 26 May 2008 23:43:54 -0700
+Message-ID: <200805270643.m4R6hsnQ013284@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39007 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39870 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755349AbYE0GoI (ORCPT
+	by vger.kernel.org with ESMTP id S1754638AbYE0GoP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 May 2008 02:44:08 -0400
+	Tue, 27 May 2008 02:44:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: dan.j.williams@intel.com, neilb@suse.de, stable@kernel.org
 
 
 The patch titled
-     md: fix prexor vs sync_request race
+     md: do not compute parity unless it is on a failed drive
 has been added to the -mm tree.  Its filename is
-     md-fix-prexor-vs-sync_request-race.patch
+     md-do-not-compute-parity-unless-it-is-on-a-failed-drive.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,29 +34,18 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: md: fix prexor vs sync_request race
+Subject: md: do not compute parity unless it is on a failed drive
 From: Dan Williams <dan.j.williams@intel.com>
 
-During the initial array synchronization process there is a window between
-when a prexor operation is scheduled to a specific stripe and when it
-completes for a sync_request to be scheduled to the same stripe.  When
-this happens the prexor completes and the stripe is unconditionally marked
-"insync", effectively canceling the sync_request for the stripe.  Prior to
-2.6.23 this was not a problem because the prexor operation was done under
-sh->lock.  The effect in older kernels being that the prexor would still
-erroneously mark the stripe "insync", but sync_request would be held off
-and re-mark the stripe as "!in_sync".
+If a block is computed (rather than read) then a check/repair operation
+may be lead to believe that the data on disk is correct, when infact it
+isn't.  So only compute blocks for failed devices.
 
-Change the write completion logic to not mark the stripe "in_sync" if a
-prexor was performed.  The effect of the change is to sometimes not set
-STRIPE_INSYNC.  The worst this can do is cause the resync to stall waiting
-for STRIPE_INSYNC to be set.  If this were happening, then STRIPE_SYNCING
-would be set and handle_issuing_new_read_requests would cause all
-available blocks to eventually be read, at which point prexor would never
-be used on that stripe any more and STRIPE_INSYNC would eventually be set.
+This issue has been around since at least 2.6.12, but has become harder to
+hit in recent kernels since most reads bypass the cache.
 
-echo repair > /sys/block/mdN/md/sync_action will correct arrays that may
-have lost this race.
+echo repair > /sys/block/mdN/md/sync_action will set the parity blocks to the
+correct state.
 
 Cc: <stable@kernel.org>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
@@ -64,41 +53,31 @@ Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/raid5.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/md/raid5.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/md/raid5.c~md-fix-prexor-vs-sync_request-race drivers/md/raid5.c
---- a/drivers/md/raid5.c~md-fix-prexor-vs-sync_request-race
+diff -puN drivers/md/raid5.c~md-do-not-compute-parity-unless-it-is-on-a-failed-drive drivers/md/raid5.c
+--- a/drivers/md/raid5.c~md-do-not-compute-parity-unless-it-is-on-a-failed-drive
 +++ a/drivers/md/raid5.c
-@@ -2645,6 +2645,7 @@ static void handle_stripe5(struct stripe
- 	struct r5dev *dev;
- 	unsigned long pending = 0;
- 	mdk_rdev_t *blocked_rdev = NULL;
-+	int prexor;
- 
- 	memset(&s, 0, sizeof(s));
- 	pr_debug("handling stripe %llu, state=%#lx cnt=%d, pd_idx=%d "
-@@ -2774,9 +2775,11 @@ static void handle_stripe5(struct stripe
- 	/* leave prexor set until postxor is done, allows us to distinguish
- 	 * a rmw from a rcw during biodrain
- 	 */
-+	prexor = 0;
- 	if (test_bit(STRIPE_OP_PREXOR, &sh->ops.complete) &&
- 		test_bit(STRIPE_OP_POSTXOR, &sh->ops.complete)) {
- 
-+		prexor = 1;
- 		clear_bit(STRIPE_OP_PREXOR, &sh->ops.complete);
- 		clear_bit(STRIPE_OP_PREXOR, &sh->ops.ack);
- 		clear_bit(STRIPE_OP_PREXOR, &sh->ops.pending);
-@@ -2810,6 +2813,8 @@ static void handle_stripe5(struct stripe
- 				if (!test_and_set_bit(
- 				    STRIPE_OP_IO, &sh->ops.pending))
- 					sh->ops.count++;
-+				if (prexor)
-+					continue;
- 				if (!test_bit(R5_Insync, &dev->flags) ||
- 				    (i == sh->pd_idx && s.failed == 0))
- 					set_bit(STRIPE_INSYNC, &sh->state);
+@@ -2002,6 +2002,7 @@ static int __handle_issuing_new_read_req
+ 		 * have quiesced.
+ 		 */
+ 		if ((s->uptodate == disks - 1) &&
++		    (s->failed && disk_idx == s->failed_num) &&
+ 		    !test_bit(STRIPE_OP_CHECK, &sh->ops.pending)) {
+ 			set_bit(STRIPE_OP_COMPUTE_BLK, &sh->ops.pending);
+ 			set_bit(R5_Wantcompute, &dev->flags);
+@@ -2087,7 +2088,9 @@ static void handle_issuing_new_read_requ
+ 			/* we would like to get this block, possibly
+ 			 * by computing it, but we might not be able to
+ 			 */
+-			if (s->uptodate == disks-1) {
++			if ((s->uptodate == disks - 1) &&
++			    (s->failed && (i == r6s->failed_num[0] ||
++					   i == r6s->failed_num[1]))) {
+ 				pr_debug("Computing stripe %llu block %d\n",
+ 				       (unsigned long long)sh->sector, i);
+ 				compute_block_1(sh, i, 0);
 _
 
 Patches currently in -mm which might be from dan.j.williams@intel.com are
