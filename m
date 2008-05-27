@@ -1,78 +1,158 @@
 From: akpm@linux-foundation.org
-Subject: - brd-dont-show-ramdisks-in-proc-partitions.patch removed from -mm tree
-Date: Tue, 27 May 2008 00:27:38 -0700
-Message-ID: <200805270727.m4R7Rc4s014787@imap1.linux-foundation.org>
+Subject: - drivers-infiniband-hw-mlx4-qpc-fix-uninitialised-var-warning.patch removed from -mm tree
+Date: Tue, 27 May 2008 00:28:25 -0700
+Message-ID: <200805270728.m4R7SP2L014940@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42118 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51074 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755985AbYE0H2j (ORCPT
+	by vger.kernel.org with ESMTP id S1756017AbYE0H3C (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 May 2008 03:28:39 -0400
+	Tue, 27 May 2008 03:29:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hawk@pld-linux.org, npiggin@suse.de, stable@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, rolandd@cisco.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     brd: don't show ramdisks in /proc/partitions
+     drivers/infiniband/hw/mlx4/qp.c: fix uninitialised-var warning
 has been removed from the -mm tree.  Its filename was
-     brd-dont-show-ramdisks-in-proc-partitions.patch
+     drivers-infiniband-hw-mlx4-qpc-fix-uninitialised-var-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: brd: don't show ramdisks in /proc/partitions
-From: Marcin Krol <hawk@pld-linux.org>
+Subject: drivers/infiniband/hw/mlx4/qp.c: fix uninitialised-var warning
+From: Andrew Morton <akpm@linux-foundation.org>
 
-In 2.6.25, ramdisk devices show up in /proc/partitions, which is a
-behaviour change from the old rd.c.  Add GENHD_FL_SUPPRESS_PARTITION_INFO,
-which was present in rd.c.
+drivers/infiniband/hw/mlx4/qp.c: In function 'mlx4_ib_post_send':
+drivers/infiniband/hw/mlx4/qp.c:1460: warning: 'seglen' may be used uninitialized in this function
 
-All kernels prior to 2.6.25 weren't displaying ramdisks in
-/proc/partitions.  Since there are many userspace tools using information
-from /proc/partitions some of them may now behave incorrectly (I didn't
-tested any though).  For example before 2.6.25 /proc/partitions was empty
-if no block devices like hard disks and such were detected by kernel.  Now
-all 16 ramdisks are always visible there.  Some software may rely on such
-information (I mean, on empty /proc/partitions).
+This is the dopey gcc-doesn't-know-that-foo(&var)-writes-to-var problem.
 
-There was quite similar situation back in 2004, and ramdisks were excluded
-back from displaying.  Thats why I called this a regression (maybe a bit
-unfortunate).  See this patch for info:
-http://kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.3-rc2/2.6.3-rc2-mm1/broken-out/nbd-proc-partitions-fix.patch
-
-I also think that someone somewhere (long time ago) excluded ramdisks from
-/proc/partitions for good reasons.  It is possible that now such new
-"feature" is harmless, but I think there are more chances that someone
-will say "hey, /proc/partitions has changed, now my software doesn't work"
-then "hey where did my new 2.6.25 feature go".  nbd devices are also
-excluded, maybe for very same (unknown to me) reasons.
-
-Signed-off-by: Marcin Krol <hawk@pld-linux.org>
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: <stable@kernel.org>
+Cc: Roland Dreier <rolandd@cisco.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/brd.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/infiniband/hw/mlx4/qp.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/block/brd.c~brd-dont-show-ramdisks-in-proc-partitions drivers/block/brd.c
---- a/drivers/block/brd.c~brd-dont-show-ramdisks-in-proc-partitions
-+++ a/drivers/block/brd.c
-@@ -447,6 +447,7 @@ static struct brd_device *brd_alloc(int 
- 	disk->fops		= &brd_fops;
- 	disk->private_data	= brd;
- 	disk->queue		= brd->brd_queue;
-+	disk->flags |= GENHD_FL_SUPPRESS_PARTITION_INFO;
- 	sprintf(disk->disk_name, "ram%d", i);
- 	set_capacity(disk, rd_size * 2);
+diff -puN drivers/infiniband/hw/mlx4/qp.c~drivers-infiniband-hw-mlx4-qpc-fix-uninitialised-var-warning drivers/infiniband/hw/mlx4/qp.c
+--- a/drivers/infiniband/hw/mlx4/qp.c~drivers-infiniband-hw-mlx4-qpc-fix-uninitialised-var-warning
++++ a/drivers/infiniband/hw/mlx4/qp.c
+@@ -1457,7 +1457,7 @@ int mlx4_ib_post_send(struct ib_qp *ibqp
+ 	unsigned ind;
+ 	int uninitialized_var(stamp);
+ 	int uninitialized_var(size);
+-	unsigned seglen;
++	unsigned uninitialized_var(seglen);
+ 	int i;
  
+ 	spin_lock_irqsave(&qp->sq.lock, flags);
 _
 
-Patches currently in -mm which might be from hawk@pld-linux.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+linux-next.patch
+next-remove-localversion.patch
+fix-kobject-fix-kobject_rename-and-config_sysfs.patch
+fix-driver-core-add-device_create_vargs-and-device_create_drvdata.patch
+kvm-is-busted-on-ia64.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-video-balcklist-fujitsu-lifebook-s6410.patch
+git-x86-fixup.patch
+lguest-use-cpu-capability-accessors.patch
+arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
+arch-powerpc-platforms-pseries-eeh_driverc-fix-warning.patch
+arch-powerpc-platforms-pseries-eeh_driverc-fix-warning-checkpatch-fixes.patch
+zoran-use-correct-type-for-cpu-flags.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+git-jg-misc-git-rejects.patch
+drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+fsldma-the-mpc8377mds-board-device-tree-node-for-fsldma-driver.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers.patch
+git-ubifs.patch
+sundance-set-carrier-status-on-link-change-events.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+pci-hotplug-introduce-pci_slot.patch
+pci-hotplug-acpi-pci-slot-detection-driver.patch
+sched-delete-dead-stuff.patch
+sched-delete-dead-stuff-2.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
+pktcdvd-push-bkl-down-into-driver-fix.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-logfs-fixup.patch
+drivers-uwb-nehc-processor-flags-have-type-unsigned-long.patch
+drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
+drivers-uwb-wlp-sysfsc-dead-code.patch
+drivers-uwb-whcic-needs-dma-mappingh.patch
+usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix.patch
+usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix-2.patch
+git-watchdog.patch
+git-watchdog-git-rejects.patch
+watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix.patch
+watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl-fix.patch
+wireless-airo-waitbusy-wont-delay-checkpatch-fixes.patch
+git-xtensa.patch
+ext4-is-busted-on-m68k.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+libata-sff-fix-oops-reported-in-kerneloopsorg-for-pnp-devices-with-no-ctl-fix.patch
+ata-acpi-hotplug-handle-bay-devices-in-dock-stations-cleanup.patch
+mm-verify-the-page-links-and-memory-model.patch
+mspec-convert-nopfn-to-fault-fix.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+kill-generic_file_direct_io-checkpatch-fixes.patch
+use-generic_access_phys-for-dev-mem-mappings-fix.patch
+spufs-use-the-new-vm_ops-access-fix.patch
+fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup-fix.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+rename-warn-to-warning-to-clear-the-namespace-fix.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-paccept-sys_ni.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-signalfd-fix.patch
+flag-parameters-eventfd-fix.patch
+flag-parameters-inotify_init-fix.patch
+flag-parameters-check-magic-constants-alpha.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+reiserfs-convert-j_flush_sem-to-mutex.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+reiser4.patch
+reiser4-semaphore-fix.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
