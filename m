@@ -1,96 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - fuse-fix-bdi-naming-conflict.patch removed from -mm tree
-Date: Tue, 27 May 2008 00:26:35 -0700
-Message-ID: <200805270726.m4R7QZ6j014678@imap1.linux-foundation.org>
+Subject: - ntfs-le_add_cpu-conversion.patch removed from -mm tree
+Date: Tue, 27 May 2008 00:26:44 -0700
+Message-ID: <200805270726.m4R7Qinp014695@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58263 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36412 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757080AbYE0H1M (ORCPT
+	by vger.kernel.org with ESMTP id S1755466AbYE0H1U (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 May 2008 03:27:12 -0400
+	Tue, 27 May 2008 03:27:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mszeredi@suse.cz, opslynx@gmail.com, mm-commits@vger.kernel.org
+To: marcin.slusarz@gmail.com, aia21@cantab.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fuse: fix bdi naming conflict
+     ntfs: le*_add_cpu conversion
 has been removed from the -mm tree.  Its filename was
-     fuse-fix-bdi-naming-conflict.patch
+     ntfs-le_add_cpu-conversion.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fuse: fix bdi naming conflict
-From: Miklos Szeredi <mszeredi@suse.cz>
+Subject: ntfs: le*_add_cpu conversion
+From: Marcin Slusarz <marcin.slusarz@gmail.com>
 
-Fuse allocates a separate bdi for each filesystem, and registers them
-in sysfs with "MAJOR:MINOR" of sb->s_dev (st_dev).  This works fine for
-anon devices normally used by fuse, but can conflict with an already
-registered BDI for "fuseblk" filesystems, where sb->s_dev represents a
-real block device.  In particularl this happens if a non-partitioned
-device is being mounted.
+replace all:
+little_endian_variable = cpu_to_leX(leX_to_cpu(little_endian_variable) +
+					expression_in_cpu_byteorder);
+with:
+	leX_add_cpu(&little_endian_variable, expression_in_cpu_byteorder);
+generated with semantic patch
 
-Fix by registering with a different name for "fuseblk" filesystems.
-
-Thanks to Ioan Ionita for the bug report.
-
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Reported-by: Ioan Ionita <opslynx@gmail.com>
-Tested-by: Ioan Ionita <opslynx@gmail.com>
+Signed-off-by: Marcin Slusarz <marcin.slusarz@gmail.com>
+Acked-by: Anton Altaparmakov <aia21@cantab.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-class-bdi |    4 ++++
- fs/fuse/inode.c                           |    7 ++++++-
- 2 files changed, 10 insertions(+), 1 deletion(-)
+ fs/ntfs/upcase.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN Documentation/ABI/testing/sysfs-class-bdi~fuse-fix-bdi-naming-conflict Documentation/ABI/testing/sysfs-class-bdi
---- a/Documentation/ABI/testing/sysfs-class-bdi~fuse-fix-bdi-naming-conflict
-+++ a/Documentation/ABI/testing/sysfs-class-bdi
-@@ -14,6 +14,10 @@ MAJOR:MINOR
- 	non-block filesystems which provide their own BDI, such as NFS
- 	and FUSE.
- 
-+MAJOR:MINOR-fuseblk
-+
-+	Value of st_dev on fuseblk filesystems.
-+
- default
- 
- 	The default backing dev, used for non-block device backed
-diff -puN fs/fuse/inode.c~fuse-fix-bdi-naming-conflict fs/fuse/inode.c
---- a/fs/fuse/inode.c~fuse-fix-bdi-naming-conflict
-+++ a/fs/fuse/inode.c
-@@ -488,7 +488,12 @@ static struct fuse_conn *new_conn(struct
- 		err = bdi_init(&fc->bdi);
- 		if (err)
- 			goto error_kfree;
--		err = bdi_register_dev(&fc->bdi, fc->dev);
-+		if (sb->s_bdev) {
-+			err = bdi_register(&fc->bdi, NULL, "%u:%u-fuseblk",
-+					   MAJOR(fc->dev), MINOR(fc->dev));
-+		} else {
-+			err = bdi_register_dev(&fc->bdi, fc->dev);
-+		}
- 		if (err)
- 			goto error_bdi_destroy;
- 		/*
+diff -puN fs/ntfs/upcase.c~ntfs-le_add_cpu-conversion fs/ntfs/upcase.c
+--- a/fs/ntfs/upcase.c~ntfs-le_add_cpu-conversion
++++ a/fs/ntfs/upcase.c
+@@ -77,11 +77,10 @@ ntfschar *generate_default_upcase(void)
+ 		uc[i] = cpu_to_le16(i);
+ 	for (r = 0; uc_run_table[r][0]; r++)
+ 		for (i = uc_run_table[r][0]; i < uc_run_table[r][1]; i++)
+-			uc[i] = cpu_to_le16(le16_to_cpu(uc[i]) +
+-					uc_run_table[r][2]);
++			le16_add_cpu(&uc[i], uc_run_table[r][2]);
+ 	for (r = 0; uc_dup_table[r][0]; r++)
+ 		for (i = uc_dup_table[r][0]; i < uc_dup_table[r][1]; i += 2)
+-			uc[i + 1] = cpu_to_le16(le16_to_cpu(uc[i + 1]) - 1);
++			le16_add_cpu(&uc[i + 1], -1);
+ 	for (r = 0; uc_word_table[r][0]; r++)
+ 		uc[uc_word_table[r][0]] = cpu_to_le16(uc_word_table[r][1]);
+ 	return uc;
 _
 
-Patches currently in -mm which might be from mszeredi@suse.cz are
+Patches currently in -mm which might be from marcin.slusarz@gmail.com are
 
-git-unprivileged-mounts.patch
-lockd-dont-return-eagain-for-a-permanent-error.patch
-locks-add-special-return-value-for-asynchronous-locks.patch
-locks-cleanup-code-duplication.patch
-locks-allow-lock-to-return-file_lock_deferred.patch
-fuse-prepare-lookup-for-nfs-export.patch
-fuse-add-export-operations.patch
-fuse-add-fuse_lookup_name-helper.patch
-fuse-nfs-export-special-lookups.patch
-fuse-lockd-support.patch
+linux-next.patch
+net-s2io-set_rxd_buffer_pointer-returns-enomem-not-enomem.patch
+vfs-fix-err_ptr-abuse-in-generic_readlink.patch
 
