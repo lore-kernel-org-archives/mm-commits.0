@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + provide-rtc_cmos-platform-device-take-2.patch added to -mm tree
-Date: Tue, 27 May 2008 16:08:33 -0700
-Message-ID: <200805272308.m4RN8XpA017781@imap1.linux-foundation.org>
+Subject: + uvesafb-change-mode-parameter-to-mode_option.patch added to -mm tree
+Date: Tue, 27 May 2008 16:12:32 -0700
+Message-ID: <200805272312.m4RNCWh6017950@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48765 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58749 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759258AbYE0XKG (ORCPT
+	by vger.kernel.org with ESMTP id S1750838AbYE0XMf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 May 2008 19:10:06 -0400
+	Tue, 27 May 2008 19:12:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: stsp@aknet.ru, ambx1@neo.rr.com, bjorn.helgaas@hp.com, david-b@pacbell.net, mingo@elte.hu, tglx@linutronix.de
+Cc: krzysztof.h1@wp.pl
 
 
 The patch titled
-     provide rtc_cmos platform device
+     uvesafb: change mode parameter to mode_option
 has been added to the -mm tree.  Its filename is
-     provide-rtc_cmos-platform-device-take-2.patch
+     uvesafb-change-mode-parameter-to-mode_option.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,136 +34,65 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: provide rtc_cmos platform device
-From: Stas Sergeev <stsp@aknet.ru>
+Subject: uvesafb: change mode parameter to mode_option
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Recently (around 2.6.25) I've noticed that RTC no longer works for me.  It
-turned out this is because I use pnpacpi=off kernel option to work around
-the parport_pc bugs.  I always did so, but RTC used to work fine in the
-past, and now it have regressed.
+Make more drivers use the "mode_option" parameter.  This one is quite new
+so drop the old "mode" parameter before someone starts using it seriously.
 
-The patch fixes the problem by creating the platform device for the RTC
-when PNP is disabled.  This may also help running the PNP-enabled kernel
-on an older PCs.
-
-Signed-off-by: Stas Sergeev <stsp@aknet.ru>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Adam Belay <ambx1@neo.rr.com>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/rtc.c  |   35 +++++++++++++++++++++++++++++++++++
- drivers/rtc/rtc-cmos.c |   31 ++++++++++++++++---------------
- 2 files changed, 51 insertions(+), 15 deletions(-)
+ drivers/video/uvesafb.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/kernel/rtc.c~provide-rtc_cmos-platform-device-take-2 arch/x86/kernel/rtc.c
---- a/arch/x86/kernel/rtc.c~provide-rtc_cmos-platform-device-take-2
-+++ a/arch/x86/kernel/rtc.c
-@@ -4,9 +4,12 @@
- #include <linux/acpi.h>
- #include <linux/bcd.h>
- #include <linux/mc146818rtc.h>
-+#include <linux/platform_device.h>
-+#include <linux/pnp.h>
- 
- #include <asm/time.h>
- #include <asm/vsyscall.h>
-+#include <asm/mc146818rtc.h>
- 
- #ifdef CONFIG_X86_32
- /*
-@@ -197,3 +200,35 @@ unsigned long long native_read_tsc(void)
- }
- EXPORT_SYMBOL(native_read_tsc);
- 
-+
-+static struct resource rtc_resources[] = {
-+	[0] = {
-+		.start	= RTC_PORT(0),
-+		.end	= RTC_PORT(1),
-+		.flags	= IORESOURCE_IO,
-+	},
-+	[1] = {
-+		.start	= RTC_IRQ,
-+		.end	= RTC_IRQ,
-+		.flags	= IORESOURCE_IRQ,
-+	}
-+};
-+
-+static struct platform_device rtc_device = {
-+	.name		= "rtc_cmos",
-+	.id		= -1,
-+	.resource	= rtc_resources,
-+	.num_resources	= ARRAY_SIZE(rtc_resources),
-+};
-+
-+static __init int add_rtc_cmos(void)
-+{
-+#ifdef CONFIG_PNP
-+	if (!pnp_platform_devices)
-+		platform_device_register(&rtc_device);
-+#else
-+	platform_device_register(&rtc_device);
-+#endif /* CONFIG_PNP */
-+	return 0;
-+}
-+device_initcall(add_rtc_cmos);
-diff -puN drivers/rtc/rtc-cmos.c~provide-rtc_cmos-platform-device-take-2 drivers/rtc/rtc-cmos.c
---- a/drivers/rtc/rtc-cmos.c~provide-rtc_cmos-platform-device-take-2
-+++ a/drivers/rtc/rtc-cmos.c
-@@ -905,19 +905,7 @@ static struct pnp_driver cmos_pnp_driver
- 	.resume		= cmos_pnp_resume,
- };
- 
--static int __init cmos_init(void)
--{
--	return pnp_register_driver(&cmos_pnp_driver);
--}
--module_init(cmos_init);
--
--static void __exit cmos_exit(void)
--{
--	pnp_unregister_driver(&cmos_pnp_driver);
--}
--module_exit(cmos_exit);
--
--#else	/* no PNP */
-+#endif	/* CONFIG_PNP */
- 
- /*----------------------------------------------------------------*/
- 
-@@ -958,20 +946,33 @@ static struct platform_driver cmos_platf
- 
- static int __init cmos_init(void)
- {
-+#ifdef	CONFIG_PNP
-+	if (pnp_platform_devices)
-+		return pnp_register_driver(&cmos_pnp_driver);
-+	else
-+		return platform_driver_probe(&cmos_platform_driver,
-+			cmos_platform_probe);
-+#else
- 	return platform_driver_probe(&cmos_platform_driver,
- 			cmos_platform_probe);
-+#endif /* CONFIG_PNP */
- }
- module_init(cmos_init);
- 
- static void __exit cmos_exit(void)
- {
-+#ifdef	CONFIG_PNP
-+	if (pnp_platform_devices)
-+		pnp_unregister_driver(&cmos_pnp_driver);
-+	else
-+		platform_driver_unregister(&cmos_platform_driver);
-+#else
- 	platform_driver_unregister(&cmos_platform_driver);
-+#endif /* CONFIG_PNP */
- }
- module_exit(cmos_exit);
- 
- 
--#endif	/* !PNP */
+diff -puN drivers/video/uvesafb.c~uvesafb-change-mode-parameter-to-mode_option drivers/video/uvesafb.c
+--- a/drivers/video/uvesafb.c~uvesafb-change-mode-parameter-to-mode_option
++++ a/drivers/video/uvesafb.c
+@@ -2054,8 +2054,8 @@ MODULE_PARM_DESC(maxhf,
+ module_param(maxvf, ushort, 0);
+ MODULE_PARM_DESC(maxvf,
+ 	"Maximum vertical frequency [Hz], overrides EDID data");
+-module_param_named(mode, mode_option, charp, 0);
+-MODULE_PARM_DESC(mode,
++module_param(mode_option, charp, 0);
++MODULE_PARM_DESC(mode_option,
+ 	"Specify initial video mode as \"<xres>x<yres>[-<bpp>][@<refresh>]\"");
+ module_param(vbemode, ushort, 0);
+ MODULE_PARM_DESC(vbemode,
+_
+
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+
+tridentfb-replace-macros-with-functions.patch
+tridentfb-convert-fb_info-into-allocated-one.patch
+tridentfb-move-global-pseudo-palette-into-structure.patch
+tridentfb-move-global-chip_id-into-structure.patch
+tridentfb-move-global-flat-panel-variable-into-structure.patch
+tridentfb-convert-is_blade-and-is_xp-macros-into-functions.patch
+tridentfb-move-global-acceleration-hooks-into-structure.patch
+tridentfb-make-use-of-functions-and-constants-from-the-vgah.patch
+tridentfb-fix-timing-calculations.patch
+tridentfb-use-mmio-access-for-clock-setting.patch
+tridentfb-fix-clock-settings-for-older-trident-96xx-chips.patch
+tridentfb-improve-probe-function.patch
+tridentfb-improved-register-values-on-tgui-9680.patch
+tridentfb-add-tgui-9440-support.patch
+tridentfb-fix-unitialized-pseudo_palette.patch
+tridentfb-improve-check_var-function.patch
+tridentfb-preserve-memory-type-settings.patch
+tridentfb-fix-hi-color-modes-for-tgui-9440.patch
+tridentfb-add-acceleration-for-tgui-families.patch
+tridentfb-acceleration-code-improvements.patch
+tridentfb-acceleration-bug-fixes.patch
+tridentfb-various-pixclock-and-timing-improvements.patch
+tridentfb-acceleration-constants-change.patch
+tridentfb-source-code-improvements.patch
+tridentfb-fix-console-freeze-when-switching-from-x11.patch
+tridentfb-fix-224-color-logo-at-8-bpp.patch
+amifb-test-virtual-screen-range-before-subtraction-on-unsigned.patch
+atafb-test-virtual-screen-range-before-subtraction-on-unsigned.patch
+fbcon-make-logo_height-a-local-variable.patch
+uvesafb-change-mode-parameter-to-mode_option.patch
+
