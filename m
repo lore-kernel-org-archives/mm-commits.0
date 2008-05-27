@@ -1,71 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: - proc-proc_get_inode-should-get-module-only-once.patch removed from -mm tree
-Date: Tue, 27 May 2008 00:27:41 -0700
-Message-ID: <200805270727.m4R7Rfu0014790@imap1.linux-foundation.org>
+Subject: - serial-fix-enable_irq_wake-disable_irq_wake-imbalance-in-serial_corec.patch removed from -mm tree
+Date: Tue, 27 May 2008 00:27:45 -0700
+Message-ID: <200805270727.m4R7RjJq014793@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32845 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42125 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755866AbYE0H2Y (ORCPT
+	by vger.kernel.org with ESMTP id S1755788AbYE0H2W (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 May 2008 03:28:24 -0400
+	Tue, 27 May 2008 03:28:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: den@openvz.org, davem@davemloft.net, devzero@web.de, ebiederm@xmission.com, kaber@trash.net, robert.olsson@its.uu.se, xemul@openvz.org, mm-commits@vger.kernel.org
+To: arjan@linux.intel.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     proc: proc_get_inode() should get module only once
+     serial: fix enable_irq_wake/disable_irq_wake imbalance in serial_core.c
 has been removed from the -mm tree.  Its filename was
-     proc-proc_get_inode-should-get-module-only-once.patch
+     serial-fix-enable_irq_wake-disable_irq_wake-imbalance-in-serial_corec.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc: proc_get_inode() should get module only once
-From: "Denis V. Lunev" <den@openvz.org>
+Subject: serial: fix enable_irq_wake/disable_irq_wake imbalance in serial_core.c
+From: Arjan van de Ven <arjan@linux.intel.com>
 
-Any file under /proc/net opened more than once leaked the refcounter
-on the module it belongs to.
+enable_irq_wake() and disable_irq_wake() need to be balanced.  However,
+serial_core.c calls these for different conditions during the suspend and
+resume functions...
 
-The problem is that module_get is called for each file opening while
-module_put is called only when /proc inode is destroyed. So, lets put
-module counter if we are dealing with already initialised inode.
+This is causing a regular WARN_ON() as found at
+http://www.kerneloops.org/search.php?search=set_irq_wake
 
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=10737
+This patch makes the conditions for triggering the _wake enable/disable
+sequence identical.
 
-Signed-off-by: Denis V. Lunev <den@openvz.org>
-Cc: David Miller <davem@davemloft.net>
-Cc: Patrick McHardy <kaber@trash.net>
-Acked-by: Pavel Emelyanov <xemul@openvz.org>
-Acked-by: Robert Olsson <robert.olsson@its.uu.se>
-Acked-by: Eric W. Biederman <ebiederm@xmission.com>
-Reported-by: Roland Kletzing <devzero@web.de>
+Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/inode.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/serial/serial_core.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN fs/proc/inode.c~proc-proc_get_inode-should-get-module-only-once fs/proc/inode.c
---- a/fs/proc/inode.c~proc-proc_get_inode-should-get-module-only-once
-+++ a/fs/proc/inode.c
-@@ -425,7 +425,8 @@ struct inode *proc_get_inode(struct supe
- 			}
- 		}
- 		unlock_new_inode(inode);
--	}
-+	} else
-+	       module_put(de->owner);
- 	return inode;
+diff -puN drivers/serial/serial_core.c~serial-fix-enable_irq_wake-disable_irq_wake-imbalance-in-serial_corec drivers/serial/serial_core.c
+--- a/drivers/serial/serial_core.c~serial-fix-enable_irq_wake-disable_irq_wake-imbalance-in-serial_corec
++++ a/drivers/serial/serial_core.c
+@@ -2054,6 +2054,8 @@ int uart_suspend_port(struct uart_driver
+ int uart_resume_port(struct uart_driver *drv, struct uart_port *port)
+ {
+ 	struct uart_state *state = drv->state + port->line;
++	struct device *tty_dev;
++	struct uart_match match = {port, drv};
  
- out_ino:
+ 	mutex_lock(&state->mutex);
+ 
+@@ -2063,7 +2065,8 @@ int uart_resume_port(struct uart_driver 
+ 		return 0;
+ 	}
+ 
+-	if (!port->suspended) {
++	tty_dev = device_find_child(port->dev, &match, serial_match_port);
++	if (!port->suspended && device_may_wakeup(tty_dev)) {
+ 		disable_irq_wake(port->irq);
+ 		mutex_unlock(&state->mutex);
+ 		return 0;
 _
 
-Patches currently in -mm which might be from den@openvz.org are
+Patches currently in -mm which might be from arjan@linux.intel.com are
 
-flock-remove-unused-fields-from-file_lock_operations.patch
-proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
+linux-next.patch
+rename-warn-to-warning-to-clear-the-namespace.patch
+rename-warn-to-warning-to-clear-the-namespace-fix.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix-2.patch
+kernel-irq-managec-replace-a-printk-warn_on-to-a-warn.patch
+example-use-of-warn.patch
 
