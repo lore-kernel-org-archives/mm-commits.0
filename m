@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + uvesafb-change-mode-parameter-to-mode_option.patch added to -mm tree
-Date: Tue, 27 May 2008 16:12:32 -0700
-Message-ID: <200805272312.m4RNCWh6017950@imap1.linux-foundation.org>
+Subject: + cris-remove-unused-global_flush_tlb.patch added to -mm tree
+Date: Tue, 27 May 2008 16:13:47 -0700
+Message-ID: <200805272313.m4RNDl21018000@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58749 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54506 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750838AbYE0XMf (ORCPT
+	by vger.kernel.org with ESMTP id S1750975AbYE0XN4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 May 2008 19:12:35 -0400
+	Tue, 27 May 2008 19:13:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: krzysztof.h1@wp.pl
+Cc: fernando@intellilink.co.jp, fernando@oss.ntt.co.jp, starvik@axis.com
 
 
 The patch titled
-     uvesafb: change mode parameter to mode_option
+     cris: remove unused global_flush_tlb
 has been added to the -mm tree.  Its filename is
-     uvesafb-change-mode-parameter-to-mode_option.patch
+     cris-remove-unused-global_flush_tlb.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,65 +34,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uvesafb: change mode parameter to mode_option
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: cris: remove unused global_flush_tlb
+From: Fernando Luis Vazquez Cao <fernando@intellilink.co.jp>
 
-Make more drivers use the "mode_option" parameter.  This one is quite new
-so drop the old "mode" parameter before someone starts using it seriously.
+global_flush_tlb is declared but never used.
 
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Signed-off-by: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
+Cc: Mikael Starvik <starvik@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/uvesafb.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/asm-cris/cacheflush.h |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/video/uvesafb.c~uvesafb-change-mode-parameter-to-mode_option drivers/video/uvesafb.c
---- a/drivers/video/uvesafb.c~uvesafb-change-mode-parameter-to-mode_option
-+++ a/drivers/video/uvesafb.c
-@@ -2054,8 +2054,8 @@ MODULE_PARM_DESC(maxhf,
- module_param(maxvf, ushort, 0);
- MODULE_PARM_DESC(maxvf,
- 	"Maximum vertical frequency [Hz], overrides EDID data");
--module_param_named(mode, mode_option, charp, 0);
--MODULE_PARM_DESC(mode,
-+module_param(mode_option, charp, 0);
-+MODULE_PARM_DESC(mode_option,
- 	"Specify initial video mode as \"<xres>x<yres>[-<bpp>][@<refresh>]\"");
- module_param(vbemode, ushort, 0);
- MODULE_PARM_DESC(vbemode,
+diff -puN include/asm-cris/cacheflush.h~cris-remove-unused-global_flush_tlb include/asm-cris/cacheflush.h
+--- a/include/asm-cris/cacheflush.h~cris-remove-unused-global_flush_tlb
++++ a/include/asm-cris/cacheflush.h
+@@ -26,7 +26,6 @@
+ #define copy_from_user_page(vma, page, vaddr, dst, src, len) \
+ 	memcpy(dst, src, len)
+ 
+-void global_flush_tlb(void); 
+ int change_page_attr(struct page *page, int numpages, pgprot_t prot);
+ 
+ #endif /* _CRIS_CACHEFLUSH_H */
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from fernando@intellilink.co.jp are
 
-tridentfb-replace-macros-with-functions.patch
-tridentfb-convert-fb_info-into-allocated-one.patch
-tridentfb-move-global-pseudo-palette-into-structure.patch
-tridentfb-move-global-chip_id-into-structure.patch
-tridentfb-move-global-flat-panel-variable-into-structure.patch
-tridentfb-convert-is_blade-and-is_xp-macros-into-functions.patch
-tridentfb-move-global-acceleration-hooks-into-structure.patch
-tridentfb-make-use-of-functions-and-constants-from-the-vgah.patch
-tridentfb-fix-timing-calculations.patch
-tridentfb-use-mmio-access-for-clock-setting.patch
-tridentfb-fix-clock-settings-for-older-trident-96xx-chips.patch
-tridentfb-improve-probe-function.patch
-tridentfb-improved-register-values-on-tgui-9680.patch
-tridentfb-add-tgui-9440-support.patch
-tridentfb-fix-unitialized-pseudo_palette.patch
-tridentfb-improve-check_var-function.patch
-tridentfb-preserve-memory-type-settings.patch
-tridentfb-fix-hi-color-modes-for-tgui-9440.patch
-tridentfb-add-acceleration-for-tgui-families.patch
-tridentfb-acceleration-code-improvements.patch
-tridentfb-acceleration-bug-fixes.patch
-tridentfb-various-pixclock-and-timing-improvements.patch
-tridentfb-acceleration-constants-change.patch
-tridentfb-source-code-improvements.patch
-tridentfb-fix-console-freeze-when-switching-from-x11.patch
-tridentfb-fix-224-color-logo-at-8-bpp.patch
-amifb-test-virtual-screen-range-before-subtraction-on-unsigned.patch
-atafb-test-virtual-screen-range-before-subtraction-on-unsigned.patch
-fbcon-make-logo_height-a-local-variable.patch
-uvesafb-change-mode-parameter-to-mode_option.patch
+cris-remove-unused-global_flush_tlb.patch
 
