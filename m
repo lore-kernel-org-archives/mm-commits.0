@@ -1,97 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - signals-fix-sigqueue_free-vs-__exit_signal-race.patch removed from -mm tree
-Date: Tue, 27 May 2008 00:27:25 -0700
-Message-ID: <200805270727.m4R7RP0D014767@imap1.linux-foundation.org>
+Subject: - proc-proc_get_inode-should-get-module-only-once.patch removed from -mm tree
+Date: Tue, 27 May 2008 00:27:41 -0700
+Message-ID: <200805270727.m4R7Rfu0014790@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43017 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32845 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755894AbYE0H21 (ORCPT
+	by vger.kernel.org with ESMTP id S1755866AbYE0H2Y (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 May 2008 03:28:27 -0400
+	Tue, 27 May 2008 03:28:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, roland@redhat.com, mm-commits@vger.kernel.org
+To: den@openvz.org, davem@davemloft.net, devzero@web.de, ebiederm@xmission.com, kaber@trash.net, robert.olsson@its.uu.se, xemul@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     signals: fix sigqueue_free() vs __exit_signal() race
+     proc: proc_get_inode() should get module only once
 has been removed from the -mm tree.  Its filename was
-     signals-fix-sigqueue_free-vs-__exit_signal-race.patch
+     proc-proc_get_inode-should-get-module-only-once.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: signals: fix sigqueue_free() vs __exit_signal() race
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: proc: proc_get_inode() should get module only once
+From: "Denis V. Lunev" <den@openvz.org>
 
-__exit_signal() does flush_sigqueue(tsk->pending) outside of ->siglock. 
-This can race with another thread doing sigqueue_free(), we can free the
-same SIGQUEUE_PREALLOC sigqueue twice or corrupt the pending->list.
+Any file under /proc/net opened more than once leaked the refcounter
+on the module it belongs to.
 
-Note that even sys_exit_group() can trigger this race, not only
-sys_timer_delete().
+The problem is that module_get is called for each file opening while
+module_put is called only when /proc inode is destroyed. So, lets put
+module counter if we are dealing with already initialised inode.
 
-Move the callsite of flush_sigqueue(tsk->pending) under ->siglock.
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=10737
 
-This patch doesn't touch flush_sigqueue(->shared_pending) below, it is
-called when there are no other threads which can play with signals, and
-sigqueue_free() can't be used outside of our thread group.
-
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Acked-by: Roland McGrath <roland@redhat.com>
+Signed-off-by: Denis V. Lunev <den@openvz.org>
+Cc: David Miller <davem@davemloft.net>
+Cc: Patrick McHardy <kaber@trash.net>
+Acked-by: Pavel Emelyanov <xemul@openvz.org>
+Acked-by: Robert Olsson <robert.olsson@its.uu.se>
+Acked-by: Eric W. Biederman <ebiederm@xmission.com>
+Reported-by: Roland Kletzing <devzero@web.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c   |    7 ++++++-
- kernel/signal.c |    3 ++-
- 2 files changed, 8 insertions(+), 2 deletions(-)
+ fs/proc/inode.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN kernel/exit.c~signals-fix-sigqueue_free-vs-__exit_signal-race kernel/exit.c
---- a/kernel/exit.c~signals-fix-sigqueue_free-vs-__exit_signal-race
-+++ a/kernel/exit.c
-@@ -126,6 +126,12 @@ static void __exit_signal(struct task_st
+diff -puN fs/proc/inode.c~proc-proc_get_inode-should-get-module-only-once fs/proc/inode.c
+--- a/fs/proc/inode.c~proc-proc_get_inode-should-get-module-only-once
++++ a/fs/proc/inode.c
+@@ -425,7 +425,8 @@ struct inode *proc_get_inode(struct supe
+ 			}
+ 		}
+ 		unlock_new_inode(inode);
+-	}
++	} else
++	       module_put(de->owner);
+ 	return inode;
  
- 	__unhash_process(tsk);
- 
-+	/*
-+	 * Do this under ->siglock, we can race with another thread
-+	 * doing sigqueue_free() if we have SIGQUEUE_PREALLOC signals.
-+	 */
-+	flush_sigqueue(&tsk->pending);
-+
- 	tsk->signal = NULL;
- 	tsk->sighand = NULL;
- 	spin_unlock(&sighand->siglock);
-@@ -133,7 +139,6 @@ static void __exit_signal(struct task_st
- 
- 	__cleanup_sighand(sighand);
- 	clear_tsk_thread_flag(tsk,TIF_SIGPENDING);
--	flush_sigqueue(&tsk->pending);
- 	if (sig) {
- 		flush_sigqueue(&sig->shared_pending);
- 		taskstats_tgid_free(sig);
-diff -puN kernel/signal.c~signals-fix-sigqueue_free-vs-__exit_signal-race kernel/signal.c
---- a/kernel/signal.c~signals-fix-sigqueue_free-vs-__exit_signal-race
-+++ a/kernel/signal.c
-@@ -1242,7 +1242,8 @@ void sigqueue_free(struct sigqueue *q)
- 	/*
- 	 * If the signal is still pending remove it from the
- 	 * pending queue. We must hold ->siglock while testing
--	 * q->list to serialize with collect_signal().
-+	 * q->list to serialize with collect_signal() or with
-+	 * __exit_signal()->flush_sigqueue().
- 	 */
- 	spin_lock_irqsave(lock, flags);
- 	if (!list_empty(&q->list))
+ out_ino:
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from den@openvz.org are
 
-uml-activate_mm-remove-the-dead-pf_borrowed_mm-check.patch
-posix-timers-timer_delete-remove-the-bogus-it_process-=-null-check.patch
-posix-timers-release_posix_timer-kill-the-bogus-put_task_struct-it_process.patch
-signals-collect_signal-remove-the-unneeded-sigismember-check.patch
+flock-remove-unused-fields-from-file_lock_operations.patch
+proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
 
