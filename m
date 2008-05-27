@@ -1,157 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: - i5k_amb-support-intel-5400-chipset.patch removed from -mm tree
-Date: Tue, 27 May 2008 00:26:49 -0700
-Message-ID: <200805270726.m4R7Qn6U014704@imap1.linux-foundation.org>
+Subject: - frv-export-empty_zero_page.patch removed from -mm tree
+Date: Tue, 27 May 2008 00:28:13 -0700
+Message-ID: <200805270728.m4R7SDHi014905@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43643 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39640 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756409AbYE0HgC (ORCPT
+	by vger.kernel.org with ESMTP id S1756389AbYE0HgC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 27 May 2008 03:36:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: djwong@us.ibm.com, mhoffman@lightlink.com, mm-commits@vger.kernel.org
+To: bunk@kernel.org, dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i5k_amb: support Intel 5400 chipset
+     frv: export empty_zero_page
 has been removed from the -mm tree.  Its filename was
-     i5k_amb-support-intel-5400-chipset.patch
+     frv-export-empty_zero_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: i5k_amb: support Intel 5400 chipset
-From: "Darrick J. Wong" <djwong@us.ibm.com>
+Subject: frv: export empty_zero_page
+From: Adrian Bunk <bunk@kernel.org>
 
-Minor rework to support the Intel 5400 chipset.
+Fix the following build error:
 
-Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
-Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>
+ERROR: "empty_zero_page" [fs/ext4/ext4dev.ko] undefined!
+
+Reported-by: Adrian Bunk <bunk@kernel.org>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/i5k_amb.c |   39 +++++++++++++++++++++++++++++++++-----
- include/linux/pci_ids.h |    3 ++
- 2 files changed, 37 insertions(+), 5 deletions(-)
+ arch/frv/mm/init.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN drivers/hwmon/i5k_amb.c~i5k_amb-support-intel-5400-chipset drivers/hwmon/i5k_amb.c
---- a/drivers/hwmon/i5k_amb.c~i5k_amb-support-intel-5400-chipset
-+++ a/drivers/hwmon/i5k_amb.c
-@@ -111,6 +111,7 @@ struct i5k_amb_data {
- 	void __iomem *amb_mmio;
- 	struct i5k_device_attribute *attrs;
- 	unsigned int num_attrs;
-+	unsigned long chipset_id;
- };
+diff -puN arch/frv/mm/init.c~frv-export-empty_zero_page arch/frv/mm/init.c
+--- a/arch/frv/mm/init.c~frv-export-empty_zero_page
++++ a/arch/frv/mm/init.c
+@@ -26,6 +26,7 @@
+ #include <linux/types.h>
+ #include <linux/bootmem.h>
+ #include <linux/highmem.h>
++#include <linux/module.h>
  
- static ssize_t show_name(struct device *dev, struct device_attribute *devattr,
-@@ -382,7 +383,8 @@ err:
- 	return res;
- }
- 
--static int __devinit i5k_find_amb_registers(struct i5k_amb_data *data)
-+static int __devinit i5k_find_amb_registers(struct i5k_amb_data *data,
-+					    unsigned long devid)
- {
- 	struct pci_dev *pcidev;
- 	u32 val32;
-@@ -390,7 +392,7 @@ static int __devinit i5k_find_amb_regist
- 
- 	/* Find AMB register memory space */
- 	pcidev = pci_get_device(PCI_VENDOR_ID_INTEL,
--				PCI_DEVICE_ID_INTEL_5000_ERR,
-+				devid,
- 				NULL);
- 	if (!pcidev)
- 		return -ENODEV;
-@@ -409,6 +411,8 @@ static int __devinit i5k_find_amb_regist
- 		goto out;
- 	}
- 
-+	data->chipset_id = devid;
+ #include <asm/setup.h>
+ #include <asm/segment.h>
+@@ -56,7 +57,9 @@ DEFINE_PER_CPU(struct mmu_gather, mmu_ga
+  */
+ static unsigned long empty_bad_page_table;
+ static unsigned long empty_bad_page;
 +
- 	res = 0;
- out:
- 	pci_dev_put(pcidev);
-@@ -441,10 +445,30 @@ out:
- 	return res;
- }
+ unsigned long empty_zero_page;
++EXPORT_SYMBOL(empty_zero_page);
  
-+static unsigned long i5k_channel_pci_id(struct i5k_amb_data *data,
-+					unsigned long channel)
-+{
-+	switch (data->chipset_id) {
-+	case PCI_DEVICE_ID_INTEL_5000_ERR:
-+		return PCI_DEVICE_ID_INTEL_5000_FBD0 + channel;
-+	case PCI_DEVICE_ID_INTEL_5400_ERR:
-+		return PCI_DEVICE_ID_INTEL_5400_FBD0 + channel;
-+	default:
-+		BUG();
-+	}
-+}
-+
-+static unsigned long chipset_ids[] = {
-+	PCI_DEVICE_ID_INTEL_5000_ERR,
-+	PCI_DEVICE_ID_INTEL_5400_ERR,
-+	0
-+};
-+
- static int __devinit i5k_amb_probe(struct platform_device *pdev)
- {
- 	struct i5k_amb_data *data;
- 	struct resource *reso;
-+	int i;
- 	int res = -ENODEV;
- 
- 	data = kzalloc(sizeof(*data), GFP_KERNEL);
-@@ -452,19 +476,24 @@ static int __devinit i5k_amb_probe(struc
- 		return -ENOMEM;
- 
- 	/* Figure out where the AMB registers live */
--	res = i5k_find_amb_registers(data);
-+	i = 0;
-+	do {
-+		res = i5k_find_amb_registers(data, chipset_ids[i]);
-+		i++;
-+	} while (res && chipset_ids[i]);
-+
- 	if (res)
- 		goto err;
- 
- 	/* Copy the DIMM presence map for the first two channels */
- 	res = i5k_channel_probe(&data->amb_present[0],
--				PCI_DEVICE_ID_INTEL_5000_FBD0);
-+				i5k_channel_pci_id(data, 0));
- 	if (res)
- 		goto err;
- 
- 	/* Copy the DIMM presence map for the optional second two channels */
- 	i5k_channel_probe(&data->amb_present[2],
--			  PCI_DEVICE_ID_INTEL_5000_FBD1);
-+			  i5k_channel_pci_id(data, 1));
- 
- 	/* Set up resource regions */
- 	reso = request_mem_region(data->amb_base, data->amb_len, DRVNAME);
-diff -puN include/linux/pci_ids.h~i5k_amb-support-intel-5400-chipset include/linux/pci_ids.h
---- a/include/linux/pci_ids.h~i5k_amb-support-intel-5400-chipset
-+++ a/include/linux/pci_ids.h
-@@ -2383,6 +2383,9 @@
- #define PCI_DEVICE_ID_INTEL_ICH10_4	0x3a30
- #define PCI_DEVICE_ID_INTEL_ICH10_5	0x3a60
- #define PCI_DEVICE_ID_INTEL_IOAT_SNB	0x402f
-+#define PCI_DEVICE_ID_INTEL_5400_ERR	0x4030
-+#define PCI_DEVICE_ID_INTEL_5400_FBD0	0x4035
-+#define PCI_DEVICE_ID_INTEL_5400_FBD1	0x4036
- #define PCI_DEVICE_ID_INTEL_IOAT_SCNB	0x65ff
- #define PCI_DEVICE_ID_INTEL_TOLAPAI_0	0x5031
- #define PCI_DEVICE_ID_INTEL_TOLAPAI_1	0x5032
+ /*****************************************************************************/
+ /*
 _
 
-Patches currently in -mm which might be from djwong@us.ibm.com are
+Patches currently in -mm which might be from bunk@kernel.org are
 
 linux-next.patch
+proper-prototype-for-acpi_processor_tstate_has_changed.patch
+remove-drivers-acorn-char-defkeymap-l7200c.patch
+drm-make-drm_minors_cleanup-static.patch
+if-0-ses_match_host.patch
+git-watchdog.patch
+git-xtensa.patch
+mm-migratec-should-include-linux-syscallsh.patch
+mm-vmstatc-proper-externs.patch
+mm-hugetlbc-fix-duplicate-variable.patch
+frv-dont-offer-binfmt_flat.patch
+remove-include-asm-h8300-keyboardh.patch
+remove-the-v850-port.patch
+init-do_mountsc-should-include-linux-initrdh.patch
+proper-spawn_ksoftirqd-prototype.patch
+build-kernel-profileo-only-when-requested.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+asm-generic-int-ll64h-always-provide-__su64.patch
+remove-some-more-tipar-bits.patch
+remove-the-oss-trident-driver.patch
+config_sound_wm97xx-remove-stale-makefile-line.patch
+serial-8250_gscc-add-module_license.patch
+mfd-sm501c-if-0-unused-functions.patch
+xen-drivers-xen-balloonc-make-a-function-static.patch
+video-sis-remove-compat-code.patch
+minix-remove-no_truncate-code.patch
+remove-is_tty.patch
+proper-extern-for-mwave_s_mdd.patch
+if-0-hpet_unregister.patch
+unexport-proc_clear_tty.patch
+move-proc_kmsg_operations-to-fs-proc-internalh.patch
+proper-pidhashmap_init-prototypes.patch
+unexport-uts_sem.patch
+parport-sharec-proper-externs.patch
+tpm_biosc-make-2-structs-static.patch
+make-cgroup_seqfile_release-static.patch
+make-kprobe_blacklist-static.patch
+make-pnp_add_card_id-static.patch
+make-struct-mpt_proc_root_dir-static.patch
+make-parport_cs_release-static.patch
+make-mm-sparsec-make-a-function-static.patch
+mm-allocpercpuc-make-4-functions-static.patch
+make-mm-memoryc-print_bad_pte-static.patch
+mm-swapfilec-make-code-static.patch
+make-mm-rmapc-anon_vma_cachep-static.patch
+drivers-char-rtcc-make-2-functions-static.patch
+make-init-do_mountsc-root_device_name-static.patch
+reiser4.patch
 
