@@ -1,94 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - itco_wdt-ich9do-support.patch removed from -mm tree
-Date: Tue, 27 May 2008 00:28:33 -0700
-Message-ID: <200805270728.m4R7SXZX014949@imap1.linux-foundation.org>
+Subject: - brd-dont-show-ramdisks-in-proc-partitions.patch removed from -mm tree
+Date: Tue, 27 May 2008 00:27:38 -0700
+Message-ID: <200805270727.m4R7Rc4s014787@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40523 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42118 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756073AbYE0H3H (ORCPT
+	by vger.kernel.org with ESMTP id S1755985AbYE0H2j (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 May 2008 03:29:07 -0400
+	Tue, 27 May 2008 03:28:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nix.or.die@googlemail.com, wim@iguana.be, mm-commits@vger.kernel.org
+To: hawk@pld-linux.org, npiggin@suse.de, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     iTCO_wdt: ICH9DO support
+     brd: don't show ramdisks in /proc/partitions
 has been removed from the -mm tree.  Its filename was
-     itco_wdt-ich9do-support.patch
+     brd-dont-show-ramdisks-in-proc-partitions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: iTCO_wdt: ICH9DO support
-From: Gabriel C <nix.or.die@googlemail.com>
+Subject: brd: don't show ramdisks in /proc/partitions
+From: Marcin Krol <hawk@pld-linux.org>
 
-Add the Intel ICH9DO controller ID's for the iTCO_wdt kernel driver and bump
-the driver version.
+In 2.6.25, ramdisk devices show up in /proc/partitions, which is a
+behaviour change from the old rd.c.  Add GENHD_FL_SUPPRESS_PARTITION_INFO,
+which was present in rd.c.
 
-Tested on an P5E-VM DO ASUS motherboard.
+All kernels prior to 2.6.25 weren't displaying ramdisks in
+/proc/partitions.  Since there are many userspace tools using information
+from /proc/partitions some of them may now behave incorrectly (I didn't
+tested any though).  For example before 2.6.25 /proc/partitions was empty
+if no block devices like hard disks and such were detected by kernel.  Now
+all 16 ramdisks are always visible there.  Some software may rely on such
+information (I mean, on empty /proc/partitions).
 
-Signed-off-by: Gabriel Craciunescu <nix.or.die@googlemail.com>
-Cc: Wim Van Sebroeck <wim@iguana.be>
+There was quite similar situation back in 2004, and ramdisks were excluded
+back from displaying.  Thats why I called this a regression (maybe a bit
+unfortunate).  See this patch for info:
+http://kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.3-rc2/2.6.3-rc2-mm1/broken-out/nbd-proc-partitions-fix.patch
+
+I also think that someone somewhere (long time ago) excluded ramdisks from
+/proc/partitions for good reasons.  It is possible that now such new
+"feature" is harmless, but I think there are more chances that someone
+will say "hey, /proc/partitions has changed, now my software doesn't work"
+then "hey where did my new 2.6.25 feature go".  nbd devices are also
+excluded, maybe for very same (unknown to me) reasons.
+
+Signed-off-by: Marcin Krol <hawk@pld-linux.org>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/iTCO_wdt.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ drivers/block/brd.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/watchdog/iTCO_wdt.c~itco_wdt-ich9do-support drivers/watchdog/iTCO_wdt.c
---- a/drivers/watchdog/iTCO_wdt.c~itco_wdt-ich9do-support
-+++ a/drivers/watchdog/iTCO_wdt.c
-@@ -44,6 +44,7 @@
-  *	82801IB  (ICH9)      : document number 316972-001, 316973-001,
-  *	82801IR  (ICH9R)     : document number 316972-001, 316973-001,
-  *	82801IH  (ICH9DH)    : document number 316972-001, 316973-001,
-+ *	82801IO  (ICH9DO)    : document number 316972-001, 316973-006,
-  *	6300ESB  (6300ESB)   : document number 300641-003, 300884-010,
-  *	631xESB  (631xESB)   : document number 313082-001, 313075-005,
-  *	632xESB  (632xESB)   : document number 313082-001, 313075-005
-@@ -55,8 +56,8 @@
+diff -puN drivers/block/brd.c~brd-dont-show-ramdisks-in-proc-partitions drivers/block/brd.c
+--- a/drivers/block/brd.c~brd-dont-show-ramdisks-in-proc-partitions
++++ a/drivers/block/brd.c
+@@ -447,6 +447,7 @@ static struct brd_device *brd_alloc(int 
+ 	disk->fops		= &brd_fops;
+ 	disk->private_data	= brd;
+ 	disk->queue		= brd->brd_queue;
++	disk->flags |= GENHD_FL_SUPPRESS_PARTITION_INFO;
+ 	sprintf(disk->disk_name, "ram%d", i);
+ 	set_capacity(disk, rd_size * 2);
  
- /* Module and version information */
- #define DRV_NAME        "iTCO_wdt"
--#define DRV_VERSION     "1.10"
--#define DRV_RELDATE     "17-Aug-2007"
-+#define DRV_VERSION     "1.11"
-+#define DRV_RELDATE     "30-Apr-2008"
- #define PFX		DRV_NAME ": "
- 
- /* Includes */
-@@ -104,6 +105,7 @@ enum iTCO_chipsets {
- 	TCO_ICH9,	/* ICH9 */
- 	TCO_ICH9R,	/* ICH9R */
- 	TCO_ICH9DH,	/* ICH9DH */
-+	TCO_ICH9DO,     /* ICH9DO */
- 	TCO_631XESB,	/* 631xESB/632xESB */
- };
- 
-@@ -136,6 +138,7 @@ static struct {
- 	{"ICH9", 2},
- 	{"ICH9R", 2},
- 	{"ICH9DH", 2},
-+	{"ICH9DO", 2},
- 	{"631xESB/632xESB", 2},
- 	{NULL, 0}
- };
-@@ -181,6 +184,7 @@ static struct pci_device_id iTCO_wdt_pci
- 	{ ITCO_PCI_DEVICE(0x2918,				TCO_ICH9   )},
- 	{ ITCO_PCI_DEVICE(0x2916,				TCO_ICH9R  )},
- 	{ ITCO_PCI_DEVICE(PCI_DEVICE_ID_INTEL_ICH9_2,		TCO_ICH9DH )},
-+	{ ITCO_PCI_DEVICE(PCI_DEVICE_ID_INTEL_ICH9_4,           TCO_ICH9DO )},
- 	{ ITCO_PCI_DEVICE(PCI_DEVICE_ID_INTEL_ESB2_0,		TCO_631XESB)},
- 	{ ITCO_PCI_DEVICE(0x2671,				TCO_631XESB)},
- 	{ ITCO_PCI_DEVICE(0x2672,				TCO_631XESB)},
 _
 
-Patches currently in -mm which might be from nix.or.die@googlemail.com are
+Patches currently in -mm which might be from hawk@pld-linux.org are
 
-linux-next.patch
 
