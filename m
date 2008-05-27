@@ -1,114 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: - md-md-raid5-rate-limit-error-printk.patch removed from -mm tree
-Date: Tue, 27 May 2008 00:27:12 -0700
-Message-ID: <200805270727.m4R7RC5B014746@imap1.linux-foundation.org>
+Subject: - md-proper-extern-for-mdp_major.patch removed from -mm tree
+Date: Tue, 27 May 2008 00:27:08 -0700
+Message-ID: <200805270727.m4R7R8CG014738@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48393 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58283 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755466AbYE0H1r (ORCPT
+	by vger.kernel.org with ESMTP id S1755893AbYE0H16 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 May 2008 03:27:47 -0400
+	Tue, 27 May 2008 03:27:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bernd-schubert@gmx.de, dan.j.williams@intel.com, neilb@suse.de, mm-commits@vger.kernel.org
+To: bunk@kernel.org, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     md: md: raid5 rate limit error printk
+     md: proper extern for mdp_major
 has been removed from the -mm tree.  Its filename was
-     md-md-raid5-rate-limit-error-printk.patch
+     md-proper-extern-for-mdp_major.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: md: md: raid5 rate limit error printk
-From: Bernd Schubert <bernd-schubert@gmx.de>
+Subject: md: proper extern for mdp_major
+From: Adrian Bunk <bunk@kernel.org>
 
-Last night we had scsi problems and a hardware raid unit was offlined
-during heavy i/o.  While this happened we got for about 3 minutes a huge
-number messages like these
+This patch adds a proper extern for mdp_major in include/linux/raid/md.h
 
-Apr 12 03:36:07 pfs1n14 kernel: [197510.696595] raid5:md7: read error not correctable (sector 2993096568 on sdj2).
-
-I guess the high error rate is responsible for not scheduling other events
-- during this time the system was not pingable and in the end also other
-devices run into scsi command timeouts causing problems on these unrelated
-devices as well.
-
-Signed-off-by: Bernd Schubert <bernd-schubert@gmx.de>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/raid5.c |   34 ++++++++++++++++++++++------------
- 1 file changed, 22 insertions(+), 12 deletions(-)
+ include/linux/raid/md.h |    2 ++
+ init/do_mounts_md.c     |    1 -
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/md/raid5.c~md-md-raid5-rate-limit-error-printk drivers/md/raid5.c
---- a/drivers/md/raid5.c~md-md-raid5-rate-limit-error-printk
-+++ a/drivers/md/raid5.c
-@@ -94,6 +94,8 @@
- #define __inline__
- #endif
+diff -puN include/linux/raid/md.h~md-proper-extern-for-mdp_major include/linux/raid/md.h
+--- a/include/linux/raid/md.h~md-proper-extern-for-mdp_major
++++ a/include/linux/raid/md.h
+@@ -72,6 +72,8 @@
+  */
+ #define MD_PATCHLEVEL_VERSION           3
  
-+#define printk_rl(args...) ((void) (printk_ratelimit() && printk(args)))
++extern int mdp_major;
 +
- #if !RAID6_USE_EMPTY_ZERO_PAGE
- /* In .bss so it's zeroed */
- const char raid6_empty_zero_page[PAGE_SIZE] __attribute__((aligned(256)));
-@@ -1143,10 +1145,12 @@ static void raid5_end_read_request(struc
- 		set_bit(R5_UPTODATE, &sh->dev[i].flags);
- 		if (test_bit(R5_ReadError, &sh->dev[i].flags)) {
- 			rdev = conf->disks[i].rdev;
--			printk(KERN_INFO "raid5:%s: read error corrected (%lu sectors at %llu on %s)\n",
--			       mdname(conf->mddev), STRIPE_SECTORS,
--			       (unsigned long long)(sh->sector + rdev->data_offset),
--			       bdevname(rdev->bdev, b));
-+			printk_rl(KERN_INFO "raid5:%s: read error corrected"
-+				  " (%lu sectors at %llu on %s)\n",
-+				  mdname(conf->mddev), STRIPE_SECTORS,
-+				  (unsigned long long)(sh->sector
-+						       + rdev->data_offset),
-+				  bdevname(rdev->bdev, b));
- 			clear_bit(R5_ReadError, &sh->dev[i].flags);
- 			clear_bit(R5_ReWrite, &sh->dev[i].flags);
- 		}
-@@ -1160,16 +1164,22 @@ static void raid5_end_read_request(struc
- 		clear_bit(R5_UPTODATE, &sh->dev[i].flags);
- 		atomic_inc(&rdev->read_errors);
- 		if (conf->mddev->degraded)
--			printk(KERN_WARNING "raid5:%s: read error not correctable (sector %llu on %s).\n",
--			       mdname(conf->mddev),
--			       (unsigned long long)(sh->sector + rdev->data_offset),
--			       bdn);
-+			printk_rl(KERN_WARNING
-+				  "raid5:%s: read error not correctable "
-+				  "(sector %llu on %s).\n",
-+				  mdname(conf->mddev),
-+				  (unsigned long long)(sh->sector
-+						       + rdev->data_offset),
-+				  bdn);
- 		else if (test_bit(R5_ReWrite, &sh->dev[i].flags))
- 			/* Oh, no!!! */
--			printk(KERN_WARNING "raid5:%s: read error NOT corrected!! (sector %llu on %s).\n",
--			       mdname(conf->mddev),
--			       (unsigned long long)(sh->sector + rdev->data_offset),
--			       bdn);
-+			printk_rl(KERN_WARNING
-+				  "raid5:%s: read error NOT corrected!! "
-+				  "(sector %llu on %s).\n",
-+				  mdname(conf->mddev),
-+				  (unsigned long long)(sh->sector
-+						       + rdev->data_offset),
-+				  bdn);
- 		else if (atomic_read(&rdev->read_errors)
- 			 > conf->max_nr_stripes)
- 			printk(KERN_WARNING
+ extern int register_md_personality (struct mdk_personality *p);
+ extern int unregister_md_personality (struct mdk_personality *p);
+ extern mdk_thread_t * md_register_thread (void (*run) (mddev_t *mddev),
+diff -puN init/do_mounts_md.c~md-proper-extern-for-mdp_major init/do_mounts_md.c
+--- a/init/do_mounts_md.c~md-proper-extern-for-mdp_major
++++ a/init/do_mounts_md.c
+@@ -24,7 +24,6 @@ static struct {
+ 
+ static int md_setup_ents __initdata;
+ 
+-extern int mdp_major;
+ /*
+  * Parse the command-line parameters given our kernel, but do not
+  * actually try to invoke the MD device now; that is handled by
 _
 
-Patches currently in -mm which might be from bernd-schubert@gmx.de are
+Patches currently in -mm which might be from bunk@kernel.org are
 
+linux-next.patch
+proper-prototype-for-acpi_processor_tstate_has_changed.patch
+remove-drivers-acorn-char-defkeymap-l7200c.patch
+drm-make-drm_minors_cleanup-static.patch
+if-0-ses_match_host.patch
+git-watchdog.patch
+git-xtensa.patch
+mm-migratec-should-include-linux-syscallsh.patch
+mm-vmstatc-proper-externs.patch
+mm-hugetlbc-fix-duplicate-variable.patch
+frv-dont-offer-binfmt_flat.patch
+remove-include-asm-h8300-keyboardh.patch
+remove-the-v850-port.patch
+init-do_mountsc-should-include-linux-initrdh.patch
+proper-spawn_ksoftirqd-prototype.patch
+build-kernel-profileo-only-when-requested.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+asm-generic-int-ll64h-always-provide-__su64.patch
+remove-some-more-tipar-bits.patch
+remove-the-oss-trident-driver.patch
+config_sound_wm97xx-remove-stale-makefile-line.patch
+serial-8250_gscc-add-module_license.patch
+mfd-sm501c-if-0-unused-functions.patch
+xen-drivers-xen-balloonc-make-a-function-static.patch
+video-sis-remove-compat-code.patch
+minix-remove-no_truncate-code.patch
+remove-is_tty.patch
+proper-extern-for-mwave_s_mdd.patch
+if-0-hpet_unregister.patch
+unexport-proc_clear_tty.patch
+move-proc_kmsg_operations-to-fs-proc-internalh.patch
+proper-pidhashmap_init-prototypes.patch
+unexport-uts_sem.patch
+parport-sharec-proper-externs.patch
+tpm_biosc-make-2-structs-static.patch
+make-cgroup_seqfile_release-static.patch
+make-kprobe_blacklist-static.patch
+make-pnp_add_card_id-static.patch
+make-struct-mpt_proc_root_dir-static.patch
+make-parport_cs_release-static.patch
+make-mm-sparsec-make-a-function-static.patch
+mm-allocpercpuc-make-4-functions-static.patch
+make-mm-memoryc-print_bad_pte-static.patch
+mm-swapfilec-make-code-static.patch
+make-mm-rmapc-anon_vma_cachep-static.patch
+drivers-char-rtcc-make-2-functions-static.patch
+make-init-do_mountsc-root_device_name-static.patch
+reiser4.patch
 
