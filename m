@@ -1,123 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: - zonelists-handle-a-node-zonelist-with-no-applicable-entries.patch removed from -mm tree
-Date: Tue, 27 May 2008 00:27:47 -0700
-Message-ID: <200805270727.m4R7RlVa014796@imap1.linux-foundation.org>
+Subject: - md-kill-file_path-wrapper.patch removed from -mm tree
+Date: Tue, 27 May 2008 00:27:10 -0700
+Message-ID: <200805270727.m4R7RAUD014741@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42747 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32906 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755893AbYE0H2e (ORCPT
+	by vger.kernel.org with ESMTP id S1755858AbYE0H1v (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 May 2008 03:28:34 -0400
+	Tue, 27 May 2008 03:27:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: apw@shadowen.org, mel@csn.ul.ie, mm-commits@vger.kernel.org
+To: hch@lst.de, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     zonelists: handle a node zonelist with no applicable entries
+     md: kill file_path wrapper
 has been removed from the -mm tree.  Its filename was
-     zonelists-handle-a-node-zonelist-with-no-applicable-entries.patch
+     md-kill-file_path-wrapper.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: zonelists: handle a node zonelist with no applicable entries
-From: Andy Whitcroft <apw@shadowen.org>
+Subject: md: kill file_path wrapper
+From: Christoph Hellwig <hch@lst.de>
 
-When booting 2.6.26-rc3 on a multi-node x86_32 numa system we are seeing
-panics when trying node local allocations:
+Kill the trivial and rather pointless file_path wrapper around d_path.
 
- BUG: unable to handle kernel NULL pointer dereference at 0000034c
- IP: [<c1042507>] get_page_from_freelist+0x4a/0x18e
- *pdpt = 00000000013a7001 *pde = 0000000000000000
- Oops: 0000 [#1] SMP
- Modules linked in:
-
- Pid: 0, comm: swapper Not tainted (2.6.26-rc3-00003-g5abc28d #82)
- EIP: 0060:[<c1042507>] EFLAGS: 00010282 CPU: 0
- EIP is at get_page_from_freelist+0x4a/0x18e
- EAX: c1371ed8 EBX: 00000000 ECX: 00000000 EDX: 00000000
- ESI: f7801180 EDI: 00000000 EBP: 00000000 ESP: c1371ec0
-  DS: 007b ES: 007b FS: 00d8 GS: 0000 SS: 0068
- Process swapper (pid: 0, ti=c1370000 task=c12f5b40 task.ti=c1370000)
- Stack: 00000000 00000000 00000000 00000000 000612d0 000412d0 00000000 000412d0
-        f7801180 f7c0101c f7c01018 c10426e4 f7c01018 00000001 00000044 00000000
-        00000001 c12f5b40 00000001 00000010 00000000 000412d0 00000286 000412d0
- Call Trace:
-  [<c10426e4>] __alloc_pages_internal+0x99/0x378
-  [<c10429ca>] __alloc_pages+0x7/0x9
-  [<c105e0e8>] kmem_getpages+0x66/0xef
-  [<c105ec55>] cache_grow+0x8f/0x123
-  [<c105f117>] ____cache_alloc_node+0xb9/0xe4
-  [<c105f427>] kmem_cache_alloc_node+0x92/0xd2
-  [<c122118c>] setup_cpu_cache+0xaf/0x177
-  [<c105e6ca>] kmem_cache_create+0x2c8/0x353
-  [<c13853af>] kmem_cache_init+0x1ce/0x3ad
-  [<c13755c5>] start_kernel+0x178/0x1ee
-
-This occurs when we are scanning the zonelists looking for a ZONE_NORMAL
-page.  In this system there is only ZONE_DMA and ZONE_NORMAL memory on
-node 0, all other nodes are mapped above 4GB physical.  Here is a dump
-of the zonelists from this system:
-
-    zonelists pgdat=c1400000
-     0: c14006c0:2 f7c006c0:2 f7e006c0:2 c1400360:1 c1400000:0
-     1: c14006c0:2 c1400360:1 c1400000:0
-    zonelists pgdat=f7c00000
-     0: f7c006c0:2 f7e006c0:2 c14006c0:2 c1400360:1 c1400000:0
-     1: f7c006c0:2
-    zonelists pgdat=f7e00000
-     0: f7e006c0:2 c14006c0:2 f7c006c0:2 c1400360:1 c1400000:0
-     1: f7e006c0:2
-
-When performing a node local allocation we call get_page_from_freelist()
-looking for a page.  It in turn calls first_zones_zonelist() which returns
-a preferred_zone.  Where there are no applicable zones this will be NULL.
-However we use this unconditionally, leading to this panic.
-
-Where there are no applicable zones there is no possibility of a successful
-allocation, so simply fail the allocation.
-
-Signed-off-by: Andy Whitcroft <apw@shadowen.org>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/md/bitmap.c         |   17 ++++-------------
+ drivers/md/md.c             |    4 ++--
+ include/linux/raid/bitmap.h |    1 -
+ 3 files changed, 6 insertions(+), 16 deletions(-)
 
-diff -puN mm/page_alloc.c~zonelists-handle-a-node-zonelist-with-no-applicable-entries mm/page_alloc.c
---- a/mm/page_alloc.c~zonelists-handle-a-node-zonelist-with-no-applicable-entries
-+++ a/mm/page_alloc.c
-@@ -1396,6 +1396,9 @@ get_page_from_freelist(gfp_t gfp_mask, n
+diff -puN drivers/md/bitmap.c~md-kill-file_path-wrapper drivers/md/bitmap.c
+--- a/drivers/md/bitmap.c~md-kill-file_path-wrapper
++++ a/drivers/md/bitmap.c
+@@ -203,17 +203,6 @@ static void bitmap_checkfree(struct bitm
+  * bitmap file handling - read and write the bitmap file and its superblock
+  */
  
- 	(void)first_zones_zonelist(zonelist, high_zoneidx, nodemask,
- 							&preferred_zone);
-+	if (!preferred_zone)
-+		return NULL;
+-/* copy the pathname of a file to a buffer */
+-char *file_path(struct file *file, char *buf, int count)
+-{
+-	if (!buf)
+-		return NULL;
+-
+-	buf = d_path(&file->f_path, buf, count);
+-
+-	return IS_ERR(buf) ? NULL : buf;
+-}
+-
+ /*
+  * basic page I/O operations
+  */
+@@ -721,11 +710,13 @@ static void bitmap_file_kick(struct bitm
+ 		if (bitmap->file) {
+ 			path = kmalloc(PAGE_SIZE, GFP_KERNEL);
+ 			if (path)
+-				ptr = file_path(bitmap->file, path, PAGE_SIZE);
++				ptr = d_path(&bitmap->file->f_path, path,
++					     PAGE_SIZE);
 +
- 	classzone_idx = zone_idx(preferred_zone);
  
- zonelist_scan:
+ 			printk(KERN_ALERT
+ 			      "%s: kicking failed bitmap file %s from array!\n",
+-			      bmname(bitmap), ptr ? ptr : "");
++			      bmname(bitmap), IS_ERR(ptr) ? "" : ptr);
+ 
+ 			kfree(path);
+ 		} else
+diff -puN drivers/md/md.c~md-kill-file_path-wrapper drivers/md/md.c
+--- a/drivers/md/md.c~md-kill-file_path-wrapper
++++ a/drivers/md/md.c
+@@ -3987,8 +3987,8 @@ static int get_bitmap_file(mddev_t * mdd
+ 	if (!buf)
+ 		goto out;
+ 
+-	ptr = file_path(mddev->bitmap->file, buf, sizeof(file->pathname));
+-	if (!ptr)
++	ptr = d_path(&mddev->bitmap->file->f_path, buf, sizeof(file->pathname));
++	if (IS_ERR(ptr))
+ 		goto out;
+ 
+ 	strcpy(file->pathname, ptr);
+diff -puN include/linux/raid/bitmap.h~md-kill-file_path-wrapper include/linux/raid/bitmap.h
+--- a/include/linux/raid/bitmap.h~md-kill-file_path-wrapper
++++ a/include/linux/raid/bitmap.h
+@@ -262,7 +262,6 @@ int  bitmap_create(mddev_t *mddev);
+ void bitmap_flush(mddev_t *mddev);
+ void bitmap_destroy(mddev_t *mddev);
+ 
+-char *file_path(struct file *file, char *buf, int count);
+ void bitmap_print_sb(struct bitmap *bitmap);
+ void bitmap_update_sb(struct bitmap *bitmap);
+ 
 _
 
-Patches currently in -mm which might be from apw@shadowen.org are
+Patches currently in -mm which might be from hch@lst.de are
 
 linux-next.patch
-mm-add-a-basic-debugging-framework-for-memory-initialisation.patch
-mm-add-a-basic-debugging-framework-for-memory-initialisation-fix.patch
-mm-verify-the-page-links-and-memory-model.patch
-mm-make-defensive-checks-around-pfn-values-registered-for-memory-usage.patch
-mm-print-out-the-zonelists-on-request-for-manual-verification.patch
-mm-move-bootmem-descriptors-definition-to-a-single-place.patch
-mm-fix-free_all_bootmem_core-alignment-check.patch
-mm-normalize-internal-argument-passing-of-bootmem-data.patch
-mm-unexport-__alloc_bootmem_core.patch
-buddy-clarify-comments-describing-buddy-merge.patch
-update-checkpatchpl-to-version-019.patch
-update-checkpatchpl-to-version-019-fix.patch
-page-owner-tracking-leak-detector.patch
+git-unionfs.patch
+vfs-fix-err_ptr-abuse-in-generic_readlink.patch
+kill-generic_file_direct_io.patch
+kill-generic_file_direct_io-checkpatch-fixes.patch
+lockd-dont-return-eagain-for-a-permanent-error.patch
+locks-add-special-return-value-for-asynchronous-locks.patch
+locks-cleanup-code-duplication.patch
+locks-allow-lock-to-return-file_lock_deferred.patch
+fuse-prepare-lookup-for-nfs-export.patch
+fuse-add-export-operations.patch
+fuse-add-fuse_lookup_name-helper.patch
+fuse-nfs-export-special-lookups.patch
+fuse-lockd-support.patch
 
