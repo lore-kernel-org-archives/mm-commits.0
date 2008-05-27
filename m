@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + md-do-not-compute-parity-unless-it-is-on-a-failed-drive.patch added to -mm tree
-Date: Mon, 26 May 2008 23:43:54 -0700
-Message-ID: <200805270643.m4R6hsnQ013284@imap1.linux-foundation.org>
+Subject: + md-fix-uninitialized-use-of-mddev-recovery_wait.patch added to -mm tree
+Date: Mon, 26 May 2008 23:43:52 -0700
+Message-ID: <200805270643.m4R6hqgL013281@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39870 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50339 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754638AbYE0GoP (ORCPT
+	by vger.kernel.org with ESMTP id S1755610AbYE0GoJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 May 2008 02:44:15 -0400
+	Tue, 27 May 2008 02:44:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: dan.j.williams@intel.com, neilb@suse.de, stable@kernel.org
 
 
 The patch titled
-     md: do not compute parity unless it is on a failed drive
+     md: fix uninitialized use of mddev->recovery_wait
 has been added to the -mm tree.  Its filename is
-     md-do-not-compute-parity-unless-it-is-on-a-failed-drive.patch
+     md-fix-uninitialized-use-of-mddev-recovery_wait.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,18 +34,13 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: md: do not compute parity unless it is on a failed drive
+Subject: md: fix uninitialized use of mddev->recovery_wait
 From: Dan Williams <dan.j.williams@intel.com>
 
-If a block is computed (rather than read) then a check/repair operation
-may be lead to believe that the data on disk is correct, when infact it
-isn't.  So only compute blocks for failed devices.
+If an array was created with --assume-clean we will oops when trying to
+set ->resync_max.
 
-This issue has been around since at least 2.6.12, but has become harder to
-hit in recent kernels since most reads bypass the cache.
-
-echo repair > /sys/block/mdN/md/sync_action will set the parity blocks to the
-correct state.
+Fix this by initializing ->recovery_wait in mddev_find.
 
 Cc: <stable@kernel.org>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
@@ -53,31 +48,28 @@ Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/raid5.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/md/md.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/md/raid5.c~md-do-not-compute-parity-unless-it-is-on-a-failed-drive drivers/md/raid5.c
---- a/drivers/md/raid5.c~md-do-not-compute-parity-unless-it-is-on-a-failed-drive
-+++ a/drivers/md/raid5.c
-@@ -2002,6 +2002,7 @@ static int __handle_issuing_new_read_req
- 		 * have quiesced.
- 		 */
- 		if ((s->uptodate == disks - 1) &&
-+		    (s->failed && disk_idx == s->failed_num) &&
- 		    !test_bit(STRIPE_OP_CHECK, &sh->ops.pending)) {
- 			set_bit(STRIPE_OP_COMPUTE_BLK, &sh->ops.pending);
- 			set_bit(R5_Wantcompute, &dev->flags);
-@@ -2087,7 +2088,9 @@ static void handle_issuing_new_read_requ
- 			/* we would like to get this block, possibly
- 			 * by computing it, but we might not be able to
- 			 */
--			if (s->uptodate == disks-1) {
-+			if ((s->uptodate == disks - 1) &&
-+			    (s->failed && (i == r6s->failed_num[0] ||
-+					   i == r6s->failed_num[1]))) {
- 				pr_debug("Computing stripe %llu block %d\n",
- 				       (unsigned long long)sh->sector, i);
- 				compute_block_1(sh, i, 0);
+diff -puN drivers/md/md.c~md-fix-uninitialized-use-of-mddev-recovery_wait drivers/md/md.c
+--- a/drivers/md/md.c~md-fix-uninitialized-use-of-mddev-recovery_wait
++++ a/drivers/md/md.c
+@@ -276,6 +276,7 @@ static mddev_t * mddev_find(dev_t unit)
+ 	atomic_set(&new->active, 1);
+ 	spin_lock_init(&new->write_lock);
+ 	init_waitqueue_head(&new->sb_wait);
++	init_waitqueue_head(&new->recovery_wait);
+ 	new->reshape_position = MaxSector;
+ 	new->resync_max = MaxSector;
+ 	new->level = LEVEL_NONE;
+@@ -5665,7 +5666,6 @@ void md_do_sync(mddev_t *mddev)
+ 		window/2,(unsigned long long) max_sectors/2);
+ 
+ 	atomic_set(&mddev->recovery_active, 0);
+-	init_waitqueue_head(&mddev->recovery_wait);
+ 	last_check = 0;
+ 
+ 	if (j>2) {
 _
 
 Patches currently in -mm which might be from dan.j.williams@intel.com are
