@@ -1,116 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - frv-export-empty_zero_page.patch removed from -mm tree
-Date: Tue, 27 May 2008 00:28:13 -0700
-Message-ID: <200805270728.m4R7SDHi014905@imap1.linux-foundation.org>
+Subject: - sys_prctl-fix-return-of-uninitialized-value.patch removed from -mm tree
+Date: Tue, 27 May 2008 00:28:11 -0700
+Message-ID: <200805270728.m4R7SBhi014898@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39640 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58285 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756389AbYE0HgC (ORCPT
+	by vger.kernel.org with ESMTP id S1756474AbYE0Hg1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 May 2008 03:36:02 -0400
+	Tue, 27 May 2008 03:36:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, dhowells@redhat.com, mm-commits@vger.kernel.org
+To: shiwh@cn.fujitsu.com, morgan@kernel.org, serue@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     frv: export empty_zero_page
+     sys_prctl(): fix return of uninitialized value
 has been removed from the -mm tree.  Its filename was
-     frv-export-empty_zero_page.patch
+     sys_prctl-fix-return-of-uninitialized-value.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: frv: export empty_zero_page
-From: Adrian Bunk <bunk@kernel.org>
+Subject: sys_prctl(): fix return of uninitialized value
+From: Shi Weihua <shiwh@cn.fujitsu.com>
 
-Fix the following build error:
+If none of the switch cases match, the PR_SET_PDEATHSIG and
+PR_SET_DUMPABLE cases of the switch statement will never write to local
+variable `error'.
 
-ERROR: "empty_zero_page" [fs/ext4/ext4dev.ko] undefined!
-
-Reported-by: Adrian Bunk <bunk@kernel.org>
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: David Howells <dhowells@redhat.com>
+Signed-off-by: Shi Weihua <shiwh@cn.fujitsu.com> 
+Cc: Andrew G. Morgan <morgan@kernel.org>
+Acked-by: "Serge E. Hallyn" <serue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/mm/init.c |    3 +++
- 1 file changed, 3 insertions(+)
+ kernel/sys.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN arch/frv/mm/init.c~frv-export-empty_zero_page arch/frv/mm/init.c
---- a/arch/frv/mm/init.c~frv-export-empty_zero_page
-+++ a/arch/frv/mm/init.c
-@@ -26,6 +26,7 @@
- #include <linux/types.h>
- #include <linux/bootmem.h>
- #include <linux/highmem.h>
-+#include <linux/module.h>
+diff -puN kernel/sys.c~sys_prctl-fix-return-of-uninitialized-value kernel/sys.c
+--- a/kernel/sys.c~sys_prctl-fix-return-of-uninitialized-value
++++ a/kernel/sys.c
+@@ -1652,7 +1652,7 @@ asmlinkage long sys_umask(int mask)
+ asmlinkage long sys_prctl(int option, unsigned long arg2, unsigned long arg3,
+ 			  unsigned long arg4, unsigned long arg5)
+ {
+-	long uninitialized_var(error);
++	long error = 0;
  
- #include <asm/setup.h>
- #include <asm/segment.h>
-@@ -56,7 +57,9 @@ DEFINE_PER_CPU(struct mmu_gather, mmu_ga
-  */
- static unsigned long empty_bad_page_table;
- static unsigned long empty_bad_page;
-+
- unsigned long empty_zero_page;
-+EXPORT_SYMBOL(empty_zero_page);
+ 	if (security_task_prctl(option, arg2, arg3, arg4, arg5, &error))
+ 		return error;
+@@ -1701,9 +1701,7 @@ asmlinkage long sys_prctl(int option, un
+ 			error = PR_TIMING_STATISTICAL;
+ 			break;
+ 		case PR_SET_TIMING:
+-			if (arg2 == PR_TIMING_STATISTICAL)
+-				error = 0;
+-			else
++			if (arg2 != PR_TIMING_STATISTICAL)
+ 				error = -EINVAL;
+ 			break;
  
- /*****************************************************************************/
- /*
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from shiwh@cn.fujitsu.com are
 
-linux-next.patch
-proper-prototype-for-acpi_processor_tstate_has_changed.patch
-remove-drivers-acorn-char-defkeymap-l7200c.patch
-drm-make-drm_minors_cleanup-static.patch
-if-0-ses_match_host.patch
-git-watchdog.patch
-git-xtensa.patch
-mm-migratec-should-include-linux-syscallsh.patch
-mm-vmstatc-proper-externs.patch
-mm-hugetlbc-fix-duplicate-variable.patch
-frv-dont-offer-binfmt_flat.patch
-remove-include-asm-h8300-keyboardh.patch
-remove-the-v850-port.patch
-init-do_mountsc-should-include-linux-initrdh.patch
-proper-spawn_ksoftirqd-prototype.patch
-build-kernel-profileo-only-when-requested.patch
-build-kernel-profileo-only-when-requested-cleanups.patch
-asm-generic-int-ll64h-always-provide-__su64.patch
-remove-some-more-tipar-bits.patch
-remove-the-oss-trident-driver.patch
-config_sound_wm97xx-remove-stale-makefile-line.patch
-serial-8250_gscc-add-module_license.patch
-mfd-sm501c-if-0-unused-functions.patch
-xen-drivers-xen-balloonc-make-a-function-static.patch
-video-sis-remove-compat-code.patch
-minix-remove-no_truncate-code.patch
-remove-is_tty.patch
-proper-extern-for-mwave_s_mdd.patch
-if-0-hpet_unregister.patch
-unexport-proc_clear_tty.patch
-move-proc_kmsg_operations-to-fs-proc-internalh.patch
-proper-pidhashmap_init-prototypes.patch
-unexport-uts_sem.patch
-parport-sharec-proper-externs.patch
-tpm_biosc-make-2-structs-static.patch
-make-cgroup_seqfile_release-static.patch
-make-kprobe_blacklist-static.patch
-make-pnp_add_card_id-static.patch
-make-struct-mpt_proc_root_dir-static.patch
-make-parport_cs_release-static.patch
-make-mm-sparsec-make-a-function-static.patch
-mm-allocpercpuc-make-4-functions-static.patch
-make-mm-memoryc-print_bad_pte-static.patch
-mm-swapfilec-make-code-static.patch
-make-mm-rmapc-anon_vma_cachep-static.patch
-drivers-char-rtcc-make-2-functions-static.patch
-make-init-do_mountsc-root_device_name-static.patch
-reiser4.patch
 
