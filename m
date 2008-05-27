@@ -1,84 +1,224 @@
 From: akpm@linux-foundation.org
-Subject: - md-notify-userspace-on-write-pending-changes-to-array_state.patch removed from -mm tree
-Date: Tue, 27 May 2008 00:27:16 -0700
-Message-ID: <200805270727.m4R7RGlK014752@imap1.linux-foundation.org>
+Subject: - mm-fix-atomic_t-overflow-in-vm.patch removed from -mm tree
+Date: Tue, 27 May 2008 00:27:04 -0700
+Message-ID: <200805270727.m4R7R46G014729@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47345 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39579 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756165AbYE0Hb3 (ORCPT
+	by vger.kernel.org with ESMTP id S1756184AbYE0HcN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 May 2008 03:31:29 -0400
+	Tue, 27 May 2008 03:32:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: neilb@suse.de, mm-commits@vger.kernel.org
+To: alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     md: notify userspace on 'write-pending' changes to array_state
+     mm: fix atomic_t overflow in vm
 has been removed from the -mm tree.  Its filename was
-     md-notify-userspace-on-write-pending-changes-to-array_state.patch
+     mm-fix-atomic_t-overflow-in-vm.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: md: notify userspace on 'write-pending' changes to array_state
-From: NeilBrown <neilb@suse.de>
+Subject: mm: fix atomic_t overflow in vm
+From: Alan Cox <alan@redhat.com>
 
-When an array enters write pending, 'array_state' changes, so we must be
-sure to sysfs_notify.
+The atomic_t type is 32bit but a 64bit system can have more than 2^32
+pages of virtual address space available.  Without this we overflow on
+ludicrously large mappings
 
-Also, when waiting for user-space to acknowledge 'write-pending' by
-marking the metadata as dirty, we don't want to wait for MD_CHANGE_DEVS to
-be cleared as that might not happen.  So explicity test for the bits that
-we are really interested in.
-
-Signed-off-by: Neil Brown <neilb@suse.de>
+Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/md.c |   11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ fs/proc/proc_misc.c  |    2 +-
+ include/linux/mman.h |    4 ++--
+ mm/mmap.c            |    4 ++--
+ mm/nommu.c           |    4 ++--
+ mm/swap.c            |    4 ++--
+ 5 files changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN drivers/md/md.c~md-notify-userspace-on-write-pending-changes-to-array_state drivers/md/md.c
---- a/drivers/md/md.c~md-notify-userspace-on-write-pending-changes-to-array_state
-+++ a/drivers/md/md.c
-@@ -5435,8 +5435,11 @@ void md_write_start(mddev_t *mddev, stru
- 			md_wakeup_thread(mddev->thread);
- 		}
- 		spin_unlock_irq(&mddev->write_lock);
-+		sysfs_notify(&mddev->kobj, NULL, "array_state");
- 	}
--	wait_event(mddev->sb_wait, mddev->flags==0);
-+	wait_event(mddev->sb_wait,
-+		   !test_bit(MD_CHANGE_CLEAN, &mddev->flags) &&
-+		   !test_bit(MD_CHANGE_PENDING, &mddev->flags));
- }
+diff -puN fs/proc/proc_misc.c~mm-fix-atomic_t-overflow-in-vm fs/proc/proc_misc.c
+--- a/fs/proc/proc_misc.c~mm-fix-atomic_t-overflow-in-vm
++++ a/fs/proc/proc_misc.c
+@@ -139,7 +139,7 @@ static int meminfo_read_proc(char *page,
+ #define K(x) ((x) << (PAGE_SHIFT - 10))
+ 	si_meminfo(&i);
+ 	si_swapinfo(&i);
+-	committed = atomic_read(&vm_committed_space);
++	committed = atomic_long_read(&vm_committed_space);
+ 	allowed = ((totalram_pages - hugetlb_total_pages())
+ 		* sysctl_overcommit_ratio / 100) + total_swap_pages;
  
- void md_write_end(mddev_t *mddev)
-@@ -5471,6 +5474,12 @@ void md_allow_write(mddev_t *mddev)
- 			mddev->safemode = 1;
- 		spin_unlock_irq(&mddev->write_lock);
- 		md_update_sb(mddev, 0);
-+
-+		sysfs_notify(&mddev->kobj, NULL, "array_state");
-+		/* wait for the dirty state to be recorded in the metadata */
-+		wait_event(mddev->sb_wait,
-+			   !test_bit(MD_CHANGE_CLEAN, &mddev->flags) &&
-+			   !test_bit(MD_CHANGE_PENDING, &mddev->flags));
- 	} else
- 		spin_unlock_irq(&mddev->write_lock);
+diff -puN include/linux/mman.h~mm-fix-atomic_t-overflow-in-vm include/linux/mman.h
+--- a/include/linux/mman.h~mm-fix-atomic_t-overflow-in-vm
++++ a/include/linux/mman.h
+@@ -17,14 +17,14 @@
+ 
+ extern int sysctl_overcommit_memory;
+ extern int sysctl_overcommit_ratio;
+-extern atomic_t vm_committed_space;
++extern atomic_long_t vm_committed_space;
+ 
+ #ifdef CONFIG_SMP
+ extern void vm_acct_memory(long pages);
+ #else
+ static inline void vm_acct_memory(long pages)
+ {
+-	atomic_add(pages, &vm_committed_space);
++	atomic_long_add(pages, &vm_committed_space);
  }
+ #endif
+ 
+diff -puN mm/mmap.c~mm-fix-atomic_t-overflow-in-vm mm/mmap.c
+--- a/mm/mmap.c~mm-fix-atomic_t-overflow-in-vm
++++ a/mm/mmap.c
+@@ -80,7 +80,7 @@ EXPORT_SYMBOL(vm_get_page_prot);
+ int sysctl_overcommit_memory = OVERCOMMIT_GUESS;  /* heuristic overcommit */
+ int sysctl_overcommit_ratio = 50;	/* default is 50% */
+ int sysctl_max_map_count __read_mostly = DEFAULT_MAX_MAP_COUNT;
+-atomic_t vm_committed_space = ATOMIC_INIT(0);
++atomic_long_t vm_committed_space = ATOMIC_LONG_INIT(0);
+ 
+ /*
+  * Check that a process has enough memory to allocate a new virtual
+@@ -177,7 +177,7 @@ int __vm_enough_memory(struct mm_struct 
+ 	 * cast `allowed' as a signed long because vm_committed_space
+ 	 * sometimes has a negative value
+ 	 */
+-	if (atomic_read(&vm_committed_space) < (long)allowed)
++	if (atomic_long_read(&vm_committed_space) < (long)allowed)
+ 		return 0;
+ error:
+ 	vm_unacct_memory(pages);
+diff -puN mm/nommu.c~mm-fix-atomic_t-overflow-in-vm mm/nommu.c
+--- a/mm/nommu.c~mm-fix-atomic_t-overflow-in-vm
++++ a/mm/nommu.c
+@@ -39,7 +39,7 @@ struct page *mem_map;
+ unsigned long max_mapnr;
+ unsigned long num_physpages;
+ unsigned long askedalloc, realalloc;
+-atomic_t vm_committed_space = ATOMIC_INIT(0);
++atomic_long_t vm_committed_space = ATOMIC_LONG_INIT(0);
+ int sysctl_overcommit_memory = OVERCOMMIT_GUESS; /* heuristic overcommit */
+ int sysctl_overcommit_ratio = 50; /* default is 50% */
+ int sysctl_max_map_count = DEFAULT_MAX_MAP_COUNT;
+@@ -1410,7 +1410,7 @@ int __vm_enough_memory(struct mm_struct 
+ 	 * cast `allowed' as a signed long because vm_committed_space
+ 	 * sometimes has a negative value
+ 	 */
+-	if (atomic_read(&vm_committed_space) < (long)allowed)
++	if (atomic_long_read(&vm_committed_space) < (long)allowed)
+ 		return 0;
+ error:
+ 	vm_unacct_memory(pages);
+diff -puN mm/swap.c~mm-fix-atomic_t-overflow-in-vm mm/swap.c
+--- a/mm/swap.c~mm-fix-atomic_t-overflow-in-vm
++++ a/mm/swap.c
+@@ -503,7 +503,7 @@ void vm_acct_memory(long pages)
+ 	local = &__get_cpu_var(committed_space);
+ 	*local += pages;
+ 	if (*local > ACCT_THRESHOLD || *local < -ACCT_THRESHOLD) {
+-		atomic_add(*local, &vm_committed_space);
++		atomic_long_add(*local, &vm_committed_space);
+ 		*local = 0;
+ 	}
+ 	preempt_enable();
+@@ -520,7 +520,7 @@ static int cpu_swap_callback(struct noti
+ 
+ 	committed = &per_cpu(committed_space, (long)hcpu);
+ 	if (action == CPU_DEAD || action == CPU_DEAD_FROZEN) {
+-		atomic_add(*committed, &vm_committed_space);
++		atomic_long_add(*committed, &vm_committed_space);
+ 		*committed = 0;
+ 		drain_cpu_pagevecs((long)hcpu);
+ 	}
 _
 
-Patches currently in -mm which might be from neilb@suse.de are
+Patches currently in -mm which might be from alan@redhat.com are
 
-md-fix-prexor-vs-sync_request-race.patch
-md-fix-uninitialized-use-of-mddev-recovery_wait.patch
-md-do-not-compute-parity-unless-it-is-on-a-failed-drive.patch
 linux-next.patch
-fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries.patch
-fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
+paride-push-ioctl-down-into-driver.patch
+pktcdvd-push-bkl-down-into-driver.patch
+dac960-push-down-bkl.patch
+watchdog-clean-acquirewdt-and-check-for-bkl-dependancies.patch
+watchdog-clean-up-and-check-advantech-watchdog.patch
+watchdog-ali-watchdog-locking-and-style.patch
+watchdog-ar7-watchdog.patch
+watchdog-atp-watchdog.patch
+watchdog-at91-watchdog-to-unlocked_ioctl.patch
+watchdog-cpu5_wdt-switch-to-unlocked_ioctl.patch
+watchdog-davinci_wdt-unlocked_ioctl-and-check-locking.patch
+watchdog-ep93xx_wdt-unlocked_ioctl.patch
+watchdog-eurotechwdt-unlocked_ioctl-code-lock-check-and-tidy.patch
+watchdog-hpwdt-couple-of-include-cleanups.patch
+watchdog-ib700wdt-clean-up-and-switch-to-unlocked_ioctl.patch
+watchdog-i6300esb-style-unlocked_ioctl-cleanup.patch
+watchdog-ibmasr-coding-style-locking-verify.patch
+watchdog-indydog-clean-up-and-tidy.patch
+watchdog-iop-watchdog-switch-to-unlocked_ioctl.patch
+watchdog-it8712f-unlocked_ioctl.patch
+watchdog-bfin-watchdog-cleanup-and-unlocked_ioctl.patch
+watchdog-ixp2000_wdt-clean-up-and-unlocked_ioctl.patch
+watchdog-ixp4xx_wdt-unlocked_ioctl.patch
+watchdog-ks8695_wdt-clean-up-coding-style-unlocked_ioctl.patch
+watchdog-machzwd-clean-up-coding-style-unlocked_ioctl.patch
+watchdog-mixcomwd-coding-style-locking-unlocked_ioctl.patch
+watchdog-mpc-watchdog-clean-up-and-locking.patch
+watchdog-mpcore-watchdog-unlocked_ioctl-and-bkl-work.patch
+watchdog-mtx-1_wdt-clean-up-coding-style-unlocked-ioctl.patch
+watchdog-mv64x60_wdt-clean-up-and-locking-checks.patch
+watchdog-omap_wdt-locking-unlocked_ioctl-tidy.patch
+watchdog-pc87413_wdt-clean-up-coding-style-unlocked_ioctl.patch
+watchdog-pcwd-clean-up-unlocked_ioctl-usage.patch
+watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix.patch
+watchdog-pnx4008_wdt-unlocked_ioctl-setup.patch
+watchdog-rm9k_wdt-clean-up.patch
+watchdog-s3c2410-watchdog-cleanup-and-switch-to-unlocked_ioctl.patch
+watchdog-sa1100_wdt-switch-to-unlocked_ioctl.patch
+watchdog-sbc60xxwdt-clean-up-and-switch-to-unlocked_ioctl.patch
+watchdog-stg7240_wdt-unlocked_ioctl.patch
+watchdog-sbc8360-clean-up.patch
+watchdog-sbc_epx_c3_wdt-switch-to-unlocked_ioctl.patch
+watchdog-sb_wdog-clean-up-and-switch-to-unlocked_ioctl.patch
+watchdog-sc1200_wdt-clean-up-fix-locking-and-use-unlocked_ioctl.patch
+watchdog-sc520_wdt-clean-up-and-switch-to-unlocked_ioctl.patch
+watchdog-scx200_wdt-clean-up-and-switch-to-unlocked_ioctl.patch
+watchdog-shwdt-coding-style-cleanup-switch-to-unlocked_ioctl.patch
+watchdog-smsc37b787_wdt-coding-style-switch-to-unlocked_ioctl.patch
+watchdog-softdog-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
+watchdog-txx9-fix-locking-switch-to-unlocked_ioctl.patch
+watchdog-w83627hf-coding-style-clean-up-and-switch-to-unlocked_ioctl.patch
+watchdog-w83877f_wdt-clean-up-code-coding-style-switch-to-unlocked_ioctl.patch
+watchdog-w83977f_wdt-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
+watchdog-wafer5823wdt-clean-up-coding-style-switch-to-unlocked_ioctl.patch
+watchdog-wdrtas-clean-up-coding-style-switch-to-unlocked_ioctl.patch
+watchdog-wdt285-switch-to-unlocked_ioctl-and-tidy-up-oddments-of-coding-style.patch
+watchdog-wdt977-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
+watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
+watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl-fix.patch
+pcwd-a-couple-of-watchdogs-escaped-conversion.patch
+libata-sff-fix-oops-reported-in-kerneloopsorg-for-pnp-devices-with-no-ctl.patch
+cm4000_cs-switch-to-unlocked_ioctl.patch
+snapshot-push-bkl-down-into-ioctl-handlers.patch
+serial-8250_gscc-add-module_license.patch
+rtc-push-the-bkl-down-into-the-driver-ioctl-method.patch
+maintainers-reiserfs-entry-is-out-of-date.patch
+remove-is_tty.patch
+riscom8-remove-redundant-null-pointer-test.patch
+efirtc-push-down-the-bkl.patch
+ip2-push-bkl-down-for-the-firmware-interface.patch
+mwave-ioctl-bkl-pushdown.patch
+rio-push-down-the-bkl-into-the-firmware-ioctl-handler.patch
+sx-push-bkl-down-into-the-firmware-ioctl-handler.patch
+ixj-push-bkl-into-driver-and-wrap-ioctls.patch
+ppdev-wrap-ioctl-handler-in-driver-and-push-lock-down.patch
+ds1302-push-down-the-bkl-into-the-driver-ioctl-code.patch
+dsp56k-bkl-pushdown.patch
+unexport-proc_clear_tty.patch
 
