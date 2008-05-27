@@ -1,88 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - serial-support-for-instashield-is-400-four-port-rs-232-pci-card.patch removed from -mm tree
-Date: Tue, 27 May 2008 00:26:58 -0700
-Message-ID: <200805270726.m4R7QwH0014716@imap1.linux-foundation.org>
+Subject: - cgroups-remove-node_-prefix_from-ns-subsystem.patch removed from -mm tree
+Date: Tue, 27 May 2008 00:28:17 -0700
+Message-ID: <200805270728.m4R7SHW7014931@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55179 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34824 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756164AbYE0HbA (ORCPT
+	by vger.kernel.org with ESMTP id S1756150AbYE0Hax (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 May 2008 03:31:00 -0400
+	Tue, 27 May 2008 03:30:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iggarpe@t2i.com, mm-commits@vger.kernel.org
+To: clg@fr.ibm.com, menage@google.com, serue@us.ibm.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     serial: support for InstaShield IS-400 four port RS-232 PCI card
+     cgroups: remove node_ prefix_from ns subsystem
 has been removed from the -mm tree.  Its filename was
-     serial-support-for-instashield-is-400-four-port-rs-232-pci-card.pa=
-tch
+     cgroups-remove-node_-prefix_from-ns-subsystem.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: serial: support for InstaShield IS-400 four port RS-232 PCI ca=
-rd
-=46rom: Ignacio Garc=EDa P=E9rez <iggarpe@t2i.com>
+Subject: cgroups: remove node_ prefix_from ns subsystem
+From: Cedric Le Goater <clg@fr.ibm.com>
 
-Add support for the InstaShield IS-400 four port RS-232 PCI card.
+This is a slight change in the namespace cgroup subsystem api.
 
-Signed-off-by: Ignacio Garc=EDa P=E9rez <iggarpe@t2i.com>
+The change is that previously when cgroup_clone() was called (currently
+only from the unshare path in ns_proxy cgroup, you'd get a new group named
+"node_$pid" whereas now you'll get a group named after just your pid.)
+
+The only users who would notice it are those who are using the ns_proxy
+cgroup subsystem to auto-create cgroups when namespaces are unshared -
+something of an experimental feature, which I think really needs more
+complete container/namespace support in order to be useful.  I suspect the
+only users are Cedric and Serge, or maybe a few others on
+containers@lists.linux-foundation.org.  And in fact it would only be
+noticed by the users who make the assumption about how the name is
+generated, rather than getting it from the /proc/<pid>/cgroups file for
+the process in question.
+
+Whether the change is actually needed or not I'm fairly agnostic on, but I
+guess it is more elegant to just use the pid as the new group name rather
+than adding a fairly arbitrary "node_" prefix on the front.
+
+[menage@google.com: provided changelog]
+Signed-off-by: Cedric Le Goater <clg@fr.ibm.com>
+Cc: "Paul Menage" <menage@google.com>
+Cc: "Serge E. Hallyn" <serue@us.ibm.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250_pci.c |    7 ++++++-
- include/linux/pci_ids.h   |    1 +
- 2 files changed, 7 insertions(+), 1 deletion(-)
+ kernel/cgroup.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/serial/8250_pci.c~serial-support-for-instashield-is-4=
-00-four-port-rs-232-pci-card drivers/serial/8250_pci.c
---- a/drivers/serial/8250_pci.c~serial-support-for-instashield-is-400-f=
-our-port-rs-232-pci-card
-+++ a/drivers/serial/8250_pci.c
-@@ -2602,7 +2602,12 @@ static struct pci_device_id serial_pci_t
- 	{	PCI_VENDOR_ID_INTASHIELD, PCI_DEVICE_ID_INTASHIELD_IS200,
- 		PCI_ANY_ID, PCI_ANY_ID, 0, 0,	/* 135a.0811 */
- 		pbn_b2_2_115200 },
--
-+	/*
-+	 * IntaShield IS-400
-+	 */
-+	{	PCI_VENDOR_ID_INTASHIELD, PCI_DEVICE_ID_INTASHIELD_IS400,
-+		PCI_ANY_ID, PCI_ANY_ID, 0, 0,    /* 135a.0dc0 */
-+		pbn_b2_4_115200 },
- 	/*
- 	 * Perle PCI-RAS cards
- 	 */
-diff -puN include/linux/pci_ids.h~serial-support-for-instashield-is-400=
--four-port-rs-232-pci-card include/linux/pci_ids.h
---- a/include/linux/pci_ids.h~serial-support-for-instashield-is-400-fou=
-r-port-rs-232-pci-card
-+++ a/include/linux/pci_ids.h
-@@ -1761,6 +1761,7 @@
-=20
- #define PCI_VENDOR_ID_INTASHIELD	0x135a
- #define PCI_DEVICE_ID_INTASHIELD_IS200	0x0d80
-+#define PCI_DEVICE_ID_INTASHIELD_IS400	0x0dc0
-=20
- #define PCI_VENDOR_ID_QUATECH		0x135C
- #define PCI_DEVICE_ID_QUATECH_QSC100	0x0010
+diff -puN kernel/cgroup.c~cgroups-remove-node_-prefix_from-ns-subsystem kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroups-remove-node_-prefix_from-ns-subsystem
++++ a/kernel/cgroup.c
+@@ -2903,7 +2903,7 @@ int cgroup_clone(struct task_struct *tsk
+ 	cg = tsk->cgroups;
+ 	parent = task_cgroup(tsk, subsys->subsys_id);
+ 
+-	snprintf(nodename, MAX_CGROUP_TYPE_NAMELEN, "node_%d", tsk->pid);
++	snprintf(nodename, MAX_CGROUP_TYPE_NAMELEN, "%d", tsk->pid);
+ 
+ 	/* Pin the hierarchy */
+ 	atomic_inc(&parent->root->sb->s_active);
 _
 
-Patches currently in -mm which might be from iggarpe@t2i.com are
+Patches currently in -mm which might be from clg@fr.ibm.com are
 
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
