@@ -1,75 +1,179 @@
 From: akpm@linux-foundation.org
-Subject: - x86-use-explicit-copy-in-vdso_gettimeofday.patch removed from -mm tree
-Date: Tue, 27 May 2008 00:28:22 -0700
-Message-ID: <200805270728.m4R7SMkP014937@imap1.linux-foundation.org>
+Subject: - ip2-fix-crashes-on-load-unload.patch removed from -mm tree
+Date: Tue, 27 May 2008 00:27:36 -0700
+Message-ID: <200805270727.m4R7Ra6W014784@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44279 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49849 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756596AbYE0Hgp (ORCPT
+	by vger.kernel.org with ESMTP id S1756523AbYE0Hgf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 May 2008 03:36:45 -0400
+	Tue, 27 May 2008 03:36:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andi@firstfloor.org, ak@linux.intel.com, jeremy@goop.org, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: alan@redhat.com, jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86: use explicit copy in vdso_gettimeofday()
+     ip2: fix crashes on load/unload
 has been removed from the -mm tree.  Its filename was
-     x86-use-explicit-copy-in-vdso_gettimeofday.patch
+     ip2-fix-crashes-on-load-unload.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: use explicit copy in vdso_gettimeofday()
-From: Andi Kleen <andi@firstfloor.org>
+Subject: ip2: fix crashes on load/unload
+From: Alan Cox <alan@redhat.com>
 
-Jeremy's gcc 3.4 seems to be unable to inline a 8 byte memcpy.  But the
-vdso doesn't support external references.  Copy the structure members
-of struct timezone explicitely instead.
+This doesn't need to be two modules, and making it one cleans up the
+problem
 
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/vdso/vclock_gettime.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/char/ip2/Makefile  |    4 ++--
+ drivers/char/ip2/ip2main.c |   23 -----------------------
+ 2 files changed, 2 insertions(+), 25 deletions(-)
 
-diff -puN arch/x86/vdso/vclock_gettime.c~x86-use-explicit-copy-in-vdso_gettimeofday arch/x86/vdso/vclock_gettime.c
---- a/arch/x86/vdso/vclock_gettime.c~x86-use-explicit-copy-in-vdso_gettimeofday
-+++ a/arch/x86/vdso/vclock_gettime.c
-@@ -106,9 +106,9 @@ int __vdso_gettimeofday(struct timeval *
- 		do_realtime((struct timespec *)tv);
- 		tv->tv_usec /= 1000;
- 		if (unlikely(tz != NULL)) {
--			/* This relies on gcc inlining the memcpy. We'll notice
--			   if it ever fails to do so. */
--			memcpy(tz, &gtod->sys_tz, sizeof(struct timezone));
-+			/* Avoid memcpy. Some old compilers fail to inline it */
-+			tz->tz_minuteswest = gtod->sys_tz.tz_minuteswest;
-+			tz->tz_dsttime = gtod->sys_tz.tz_dsttime;
- 		}
- 		return 0;
- 	}
+diff -puN drivers/char/ip2/Makefile~ip2-fix-crashes-on-load-unload drivers/char/ip2/Makefile
+--- a/drivers/char/ip2/Makefile~ip2-fix-crashes-on-load-unload
++++ a/drivers/char/ip2/Makefile
+@@ -2,7 +2,7 @@
+ # Makefile for the Computone IntelliPort Plus Driver
+ #
+ 
+-obj-$(CONFIG_COMPUTONE)         += ip2.o ip2main.o
++obj-$(CONFIG_COMPUTONE)         += ip2.o
+ 
+-ip2-objs			:= ip2base.o
++ip2-objs			:= ip2base.o ip2main.o
+ 
+diff -puN drivers/char/ip2/ip2main.c~ip2-fix-crashes-on-load-unload drivers/char/ip2/ip2main.c
+--- a/drivers/char/ip2/ip2main.c~ip2-fix-crashes-on-load-unload
++++ a/drivers/char/ip2/ip2main.c
+@@ -346,27 +346,6 @@ have_requested_irq( char irq )
+ }
+ 
+ /******************************************************************************/
+-/* Function:   init_module()                                                  */
+-/* Parameters: None                                                           */
+-/* Returns:    Success (0)                                                    */
+-/*                                                                            */
+-/* Description:                                                               */
+-/* This is a required entry point for an installable module. It simply calls  */
+-/* the driver initialisation function and returns what it returns.            */
+-/******************************************************************************/
+-#ifdef MODULE
+-static int __init
+-ip2_init_module(void)
+-{
+-#ifdef IP2DEBUG_INIT
+-	printk (KERN_DEBUG "Loading module ...\n" );
+-#endif
+-    return 0;
+-}
+-module_init(ip2_init_module);
+-#endif /* MODULE */
+-
+-/******************************************************************************/
+ /* Function:   cleanup_module()                                               */
+ /* Parameters: None                                                           */
+ /* Returns:    Nothing                                                        */
+@@ -779,8 +758,6 @@ out:
+ 	return err;
+ }
+ 
+-EXPORT_SYMBOL(ip2_loadmain);
+-
+ /******************************************************************************/
+ /* Function:   ip2_init_board()                                               */
+ /* Parameters: Index of board in configuration structure                      */
 _
 
-Patches currently in -mm which might be from andi@firstfloor.org are
+Patches currently in -mm which might be from alan@redhat.com are
 
 linux-next.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
-common-implementation-of-iterative-div-mod.patch
-add-an-inlined-version-of-iter_div_u64_rem.patch
-always_inline-timespec_add_ns.patch
-gcov-architecture-specific-compile-flag-adjustments.patch
-profile-likely-unlikely-macros.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
+paride-push-ioctl-down-into-driver.patch
+pktcdvd-push-bkl-down-into-driver.patch
+dac960-push-down-bkl.patch
+watchdog-clean-acquirewdt-and-check-for-bkl-dependancies.patch
+watchdog-clean-up-and-check-advantech-watchdog.patch
+watchdog-ali-watchdog-locking-and-style.patch
+watchdog-ar7-watchdog.patch
+watchdog-atp-watchdog.patch
+watchdog-at91-watchdog-to-unlocked_ioctl.patch
+watchdog-cpu5_wdt-switch-to-unlocked_ioctl.patch
+watchdog-davinci_wdt-unlocked_ioctl-and-check-locking.patch
+watchdog-ep93xx_wdt-unlocked_ioctl.patch
+watchdog-eurotechwdt-unlocked_ioctl-code-lock-check-and-tidy.patch
+watchdog-hpwdt-couple-of-include-cleanups.patch
+watchdog-ib700wdt-clean-up-and-switch-to-unlocked_ioctl.patch
+watchdog-i6300esb-style-unlocked_ioctl-cleanup.patch
+watchdog-ibmasr-coding-style-locking-verify.patch
+watchdog-indydog-clean-up-and-tidy.patch
+watchdog-iop-watchdog-switch-to-unlocked_ioctl.patch
+watchdog-it8712f-unlocked_ioctl.patch
+watchdog-bfin-watchdog-cleanup-and-unlocked_ioctl.patch
+watchdog-ixp2000_wdt-clean-up-and-unlocked_ioctl.patch
+watchdog-ixp4xx_wdt-unlocked_ioctl.patch
+watchdog-ks8695_wdt-clean-up-coding-style-unlocked_ioctl.patch
+watchdog-machzwd-clean-up-coding-style-unlocked_ioctl.patch
+watchdog-mixcomwd-coding-style-locking-unlocked_ioctl.patch
+watchdog-mpc-watchdog-clean-up-and-locking.patch
+watchdog-mpcore-watchdog-unlocked_ioctl-and-bkl-work.patch
+watchdog-mtx-1_wdt-clean-up-coding-style-unlocked-ioctl.patch
+watchdog-mv64x60_wdt-clean-up-and-locking-checks.patch
+watchdog-omap_wdt-locking-unlocked_ioctl-tidy.patch
+watchdog-pc87413_wdt-clean-up-coding-style-unlocked_ioctl.patch
+watchdog-pcwd-clean-up-unlocked_ioctl-usage.patch
+watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix.patch
+watchdog-pnx4008_wdt-unlocked_ioctl-setup.patch
+watchdog-rm9k_wdt-clean-up.patch
+watchdog-s3c2410-watchdog-cleanup-and-switch-to-unlocked_ioctl.patch
+watchdog-sa1100_wdt-switch-to-unlocked_ioctl.patch
+watchdog-sbc60xxwdt-clean-up-and-switch-to-unlocked_ioctl.patch
+watchdog-stg7240_wdt-unlocked_ioctl.patch
+watchdog-sbc8360-clean-up.patch
+watchdog-sbc_epx_c3_wdt-switch-to-unlocked_ioctl.patch
+watchdog-sb_wdog-clean-up-and-switch-to-unlocked_ioctl.patch
+watchdog-sc1200_wdt-clean-up-fix-locking-and-use-unlocked_ioctl.patch
+watchdog-sc520_wdt-clean-up-and-switch-to-unlocked_ioctl.patch
+watchdog-scx200_wdt-clean-up-and-switch-to-unlocked_ioctl.patch
+watchdog-shwdt-coding-style-cleanup-switch-to-unlocked_ioctl.patch
+watchdog-smsc37b787_wdt-coding-style-switch-to-unlocked_ioctl.patch
+watchdog-softdog-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
+watchdog-txx9-fix-locking-switch-to-unlocked_ioctl.patch
+watchdog-w83627hf-coding-style-clean-up-and-switch-to-unlocked_ioctl.patch
+watchdog-w83877f_wdt-clean-up-code-coding-style-switch-to-unlocked_ioctl.patch
+watchdog-w83977f_wdt-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
+watchdog-wafer5823wdt-clean-up-coding-style-switch-to-unlocked_ioctl.patch
+watchdog-wdrtas-clean-up-coding-style-switch-to-unlocked_ioctl.patch
+watchdog-wdt285-switch-to-unlocked_ioctl-and-tidy-up-oddments-of-coding-style.patch
+watchdog-wdt977-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
+watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
+watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl-fix.patch
+pcwd-a-couple-of-watchdogs-escaped-conversion.patch
+libata-sff-fix-oops-reported-in-kerneloopsorg-for-pnp-devices-with-no-ctl.patch
+cm4000_cs-switch-to-unlocked_ioctl.patch
+snapshot-push-bkl-down-into-ioctl-handlers.patch
+serial-8250_gscc-add-module_license.patch
+rtc-push-the-bkl-down-into-the-driver-ioctl-method.patch
+maintainers-reiserfs-entry-is-out-of-date.patch
+remove-is_tty.patch
+riscom8-remove-redundant-null-pointer-test.patch
+efirtc-push-down-the-bkl.patch
+ip2-push-bkl-down-for-the-firmware-interface.patch
+mwave-ioctl-bkl-pushdown.patch
+rio-push-down-the-bkl-into-the-firmware-ioctl-handler.patch
+sx-push-bkl-down-into-the-firmware-ioctl-handler.patch
+ixj-push-bkl-into-driver-and-wrap-ioctls.patch
+ppdev-wrap-ioctl-handler-in-driver-and-push-lock-down.patch
+ds1302-push-down-the-bkl-into-the-driver-ioctl-code.patch
+dsp56k-bkl-pushdown.patch
+unexport-proc_clear_tty.patch
 
