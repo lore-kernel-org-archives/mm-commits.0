@@ -1,69 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - ntfs-le_add_cpu-conversion.patch removed from -mm tree
-Date: Tue, 27 May 2008 00:26:44 -0700
-Message-ID: <200805270726.m4R7Qinp014695@imap1.linux-foundation.org>
+Subject: - hdaps-invert-the-axes-for-hdaps-on-lenovo-r61i-thinkpads.patch removed from -mm tree
+Date: Tue, 27 May 2008 00:26:46 -0700
+Message-ID: <200805270726.m4R7QkIg014698@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36412 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43922 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755466AbYE0H1U (ORCPT
+	by vger.kernel.org with ESMTP id S1755826AbYE0H1h (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 May 2008 03:27:20 -0400
+	Tue, 27 May 2008 03:27:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: marcin.slusarz@gmail.com, aia21@cantab.net, mm-commits@vger.kernel.org
+To: czigola@gmail.com, dtor@mail.ru, jikos@jikos.cz, mhoffman@lightlink.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ntfs: le*_add_cpu conversion
+     hdaps: invert the axes for HDAPS on Lenovo R61i ThinkPads
 has been removed from the -mm tree.  Its filename was
-     ntfs-le_add_cpu-conversion.patch
+     hdaps-invert-the-axes-for-hdaps-on-lenovo-r61i-thinkpads.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ntfs: le*_add_cpu conversion
-From: Marcin Slusarz <marcin.slusarz@gmail.com>
+Subject: hdaps: invert the axes for HDAPS on Lenovo R61i ThinkPads
+From: "Gabor Czigola" <czigola@gmail.com>
 
-replace all:
-little_endian_variable = cpu_to_leX(leX_to_cpu(little_endian_variable) +
-					expression_in_cpu_byteorder);
-with:
-	leX_add_cpu(&little_endian_variable, expression_in_cpu_byteorder);
-generated with semantic patch
-
-Signed-off-by: Marcin Slusarz <marcin.slusarz@gmail.com>
-Acked-by: Anton Altaparmakov <aia21@cantab.net>
+Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Jiri Kosina <jikos@jikos.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ntfs/upcase.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/hwmon/hdaps.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/ntfs/upcase.c~ntfs-le_add_cpu-conversion fs/ntfs/upcase.c
---- a/fs/ntfs/upcase.c~ntfs-le_add_cpu-conversion
-+++ a/fs/ntfs/upcase.c
-@@ -77,11 +77,10 @@ ntfschar *generate_default_upcase(void)
- 		uc[i] = cpu_to_le16(i);
- 	for (r = 0; uc_run_table[r][0]; r++)
- 		for (i = uc_run_table[r][0]; i < uc_run_table[r][1]; i++)
--			uc[i] = cpu_to_le16(le16_to_cpu(uc[i]) +
--					uc_run_table[r][2]);
-+			le16_add_cpu(&uc[i], uc_run_table[r][2]);
- 	for (r = 0; uc_dup_table[r][0]; r++)
- 		for (i = uc_dup_table[r][0]; i < uc_dup_table[r][1]; i += 2)
--			uc[i + 1] = cpu_to_le16(le16_to_cpu(uc[i + 1]) - 1);
-+			le16_add_cpu(&uc[i + 1], -1);
- 	for (r = 0; uc_word_table[r][0]; r++)
- 		uc[uc_word_table[r][0]] = cpu_to_le16(uc_word_table[r][1]);
- 	return uc;
+diff -puN drivers/hwmon/hdaps.c~hdaps-invert-the-axes-for-hdaps-on-lenovo-r61i-thinkpads drivers/hwmon/hdaps.c
+--- a/drivers/hwmon/hdaps.c~hdaps-invert-the-axes-for-hdaps-on-lenovo-r61i-thinkpads
++++ a/drivers/hwmon/hdaps.c
+@@ -515,6 +515,7 @@ static struct dmi_system_id __initdata h
+ 	HDAPS_DMI_MATCH_NORMAL("IBM", "ThinkPad R50"),
+ 	HDAPS_DMI_MATCH_NORMAL("IBM", "ThinkPad R51"),
+ 	HDAPS_DMI_MATCH_NORMAL("IBM", "ThinkPad R52"),
++	HDAPS_DMI_MATCH_INVERT("LENOVO", "ThinkPad R61i"),
+ 	HDAPS_DMI_MATCH_INVERT("IBM", "ThinkPad T41p"),
+ 	HDAPS_DMI_MATCH_NORMAL("IBM", "ThinkPad T41"),
+ 	HDAPS_DMI_MATCH_INVERT("IBM", "ThinkPad T42p"),
 _
 
-Patches currently in -mm which might be from marcin.slusarz@gmail.com are
+Patches currently in -mm which might be from czigola@gmail.com are
 
-linux-next.patch
-net-s2io-set_rxd_buffer_pointer-returns-enomem-not-enomem.patch
-vfs-fix-err_ptr-abuse-in-generic_readlink.patch
 
