@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + spidev-bkl-removal.patch added to -mm tree
-Date: Tue, 27 May 2008 16:07:08 -0700
-Message-ID: <200805272307.m4RN78Nv017727@imap1.linux-foundation.org>
+Subject: + provide-rtc_cmos-platform-device-take-2.patch added to -mm tree
+Date: Tue, 27 May 2008 16:08:33 -0700
+Message-ID: <200805272308.m4RN8XpA017781@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60401 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48765 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750919AbYE0XHm (ORCPT
+	by vger.kernel.org with ESMTP id S1759258AbYE0XKG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 May 2008 19:07:42 -0400
+	Tue, 27 May 2008 19:10:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, dbrownell@users.sourceforge.net
+Cc: stsp@aknet.ru, ambx1@neo.rr.com, bjorn.helgaas@hp.com, david-b@pacbell.net, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     spidev: BKL removal
+     provide rtc_cmos platform device
 has been added to the -mm tree.  Its filename is
-     spidev-bkl-removal.patch
+     provide-rtc_cmos-platform-device-take-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,108 +34,136 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spidev: BKL removal
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: provide rtc_cmos platform device
+From: Stas Sergeev <stsp@aknet.ru>
 
-Another step to removing ->ioctl and to removing the BKL
+Recently (around 2.6.25) I've noticed that RTC no longer works for me.  It
+turned out this is because I use pnpacpi=off kernel option to work around
+the parport_pc bugs.  I always did so, but RTC used to work fine in the
+past, and now it have regressed.
 
-[dbrownell@users.sourceforge.net: take final step; BKL not needed]
-Signed-off-by: Alan Cox <alan@redhat.com>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+The patch fixes the problem by creating the platform device for the RTC
+when PNP is disabled.  This may also help running the PNP-enabled kernel
+on an older PCs.
+
+Signed-off-by: Stas Sergeev <stsp@aknet.ru>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Adam Belay <ambx1@neo.rr.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spidev.c |   19 +++++++++++++------
- 1 file changed, 13 insertions(+), 6 deletions(-)
+ arch/x86/kernel/rtc.c  |   35 +++++++++++++++++++++++++++++++++++
+ drivers/rtc/rtc-cmos.c |   31 ++++++++++++++++---------------
+ 2 files changed, 51 insertions(+), 15 deletions(-)
 
-diff -puN drivers/spi/spidev.c~spidev-bkl-removal drivers/spi/spidev.c
---- a/drivers/spi/spidev.c~spidev-bkl-removal
-+++ a/drivers/spi/spidev.c
-@@ -230,7 +230,6 @@ static int spidev_message(struct spidev_
- 	 * We walk the array of user-provided transfers, using each one
- 	 * to initialize a kernel version of the same transfer.
- 	 */
--	mutex_lock(&spidev->buf_lock);
- 	buf = spidev->buffer;
- 	total = 0;
- 	for (n = n_xfers, k_tmp = k_xfers, u_tmp = u_xfers;
-@@ -298,14 +297,12 @@ static int spidev_message(struct spidev_
- 	status = total;
+diff -puN arch/x86/kernel/rtc.c~provide-rtc_cmos-platform-device-take-2 arch/x86/kernel/rtc.c
+--- a/arch/x86/kernel/rtc.c~provide-rtc_cmos-platform-device-take-2
++++ a/arch/x86/kernel/rtc.c
+@@ -4,9 +4,12 @@
+ #include <linux/acpi.h>
+ #include <linux/bcd.h>
+ #include <linux/mc146818rtc.h>
++#include <linux/platform_device.h>
++#include <linux/pnp.h>
  
- done:
--	mutex_unlock(&spidev->buf_lock);
- 	kfree(k_xfers);
- 	return status;
+ #include <asm/time.h>
+ #include <asm/vsyscall.h>
++#include <asm/mc146818rtc.h>
+ 
+ #ifdef CONFIG_X86_32
+ /*
+@@ -197,3 +200,35 @@ unsigned long long native_read_tsc(void)
  }
+ EXPORT_SYMBOL(native_read_tsc);
  
--static int
--spidev_ioctl(struct inode *inode, struct file *filp,
--		unsigned int cmd, unsigned long arg)
-+static long
-+spidev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
- {
- 	int			err = 0;
- 	int			retval = 0;
-@@ -343,6 +340,14 @@ spidev_ioctl(struct inode *inode, struct
- 	if (spi == NULL)
- 		return -ESHUTDOWN;
- 
-+	/* use the buffer lock here for triple duty:
-+	 *  - prevent I/O (from us) so calling spi_setup() is safe;
-+	 *  - prevent concurrent SPI_IOC_WR_* from morphing
-+	 *    data fields while SPI_IOC_RD_* reads them;
-+	 *  - SPI_IOC_MESSAGE needs the buffer locked "normally".
-+	 */
-+	mutex_lock(&spidev->buf_lock);
 +
- 	switch (cmd) {
- 	/* read requests */
- 	case SPI_IOC_RD_MODE:
-@@ -458,6 +463,8 @@ spidev_ioctl(struct inode *inode, struct
- 		kfree(ioc);
- 		break;
- 	}
++static struct resource rtc_resources[] = {
++	[0] = {
++		.start	= RTC_PORT(0),
++		.end	= RTC_PORT(1),
++		.flags	= IORESOURCE_IO,
++	},
++	[1] = {
++		.start	= RTC_IRQ,
++		.end	= RTC_IRQ,
++		.flags	= IORESOURCE_IRQ,
++	}
++};
 +
-+	mutex_unlock(&spidev->buf_lock);
- 	spi_dev_put(spi);
- 	return retval;
- }
-@@ -535,7 +542,7 @@ static struct file_operations spidev_fop
- 	 */
- 	.write =	spidev_write,
- 	.read =		spidev_read,
--	.ioctl =	spidev_ioctl,
-+	.unlocked_ioctl = spidev_ioctl,
- 	.open =		spidev_open,
- 	.release =	spidev_release,
++static struct platform_device rtc_device = {
++	.name		= "rtc_cmos",
++	.id		= -1,
++	.resource	= rtc_resources,
++	.num_resources	= ARRAY_SIZE(rtc_resources),
++};
++
++static __init int add_rtc_cmos(void)
++{
++#ifdef CONFIG_PNP
++	if (!pnp_platform_devices)
++		platform_device_register(&rtc_device);
++#else
++	platform_device_register(&rtc_device);
++#endif /* CONFIG_PNP */
++	return 0;
++}
++device_initcall(add_rtc_cmos);
+diff -puN drivers/rtc/rtc-cmos.c~provide-rtc_cmos-platform-device-take-2 drivers/rtc/rtc-cmos.c
+--- a/drivers/rtc/rtc-cmos.c~provide-rtc_cmos-platform-device-take-2
++++ a/drivers/rtc/rtc-cmos.c
+@@ -905,19 +905,7 @@ static struct pnp_driver cmos_pnp_driver
+ 	.resume		= cmos_pnp_resume,
  };
-_
-
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
-
-linux-next.patch
-add-time_is_after_jiffies-and-others-which-compare-with-jiffies.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
-paride-push-ioctl-down-into-driver.patch
-pktcdvd-push-bkl-down-into-driver.patch
-pktcdvd-push-bkl-down-into-driver-fix.patch
-dac960-push-down-bkl.patch
-pcwd-a-couple-of-watchdogs-escaped-conversion.patch
-libata-sff-fix-oops-reported-in-kerneloopsorg-for-pnp-devices-with-no-ctl.patch
-libata-sff-fix-oops-reported-in-kerneloopsorg-for-pnp-devices-with-no-ctl-fix.patch
-ata-acpi-hotplug-handle-bay-devices-in-dock-stations.patch
-ata-acpi-hotplug-handle-bay-devices-in-dock-stations-cleanup.patch
-cm4000_cs-switch-to-unlocked_ioctl.patch
-snapshot-push-bkl-down-into-ioctl-handlers.patch
-spidev-bkl-removal.patch
-rtc-push-the-bkl-down-into-the-driver-ioctl-method.patch
-efirtc-push-down-the-bkl.patch
-ip2-push-bkl-down-for-the-firmware-interface.patch
-mwave-ioctl-bkl-pushdown.patch
-rio-push-down-the-bkl-into-the-firmware-ioctl-handler.patch
-sx-push-bkl-down-into-the-firmware-ioctl-handler.patch
-ixj-push-bkl-into-driver-and-wrap-ioctls.patch
-ppdev-wrap-ioctl-handler-in-driver-and-push-lock-down.patch
-ds1302-push-down-the-bkl-into-the-driver-ioctl-code.patch
-dsp56k-bkl-pushdown.patch
-
+ 
+-static int __init cmos_init(void)
+-{
+-	return pnp_register_driver(&cmos_pnp_driver);
+-}
+-module_init(cmos_init);
+-
+-static void __exit cmos_exit(void)
+-{
+-	pnp_unregister_driver(&cmos_pnp_driver);
+-}
+-module_exit(cmos_exit);
+-
+-#else	/* no PNP */
++#endif	/* CONFIG_PNP */
+ 
+ /*----------------------------------------------------------------*/
+ 
+@@ -958,20 +946,33 @@ static struct platform_driver cmos_platf
+ 
+ static int __init cmos_init(void)
+ {
++#ifdef	CONFIG_PNP
++	if (pnp_platform_devices)
++		return pnp_register_driver(&cmos_pnp_driver);
++	else
++		return platform_driver_probe(&cmos_platform_driver,
++			cmos_platform_probe);
++#else
+ 	return platform_driver_probe(&cmos_platform_driver,
+ 			cmos_platform_probe);
++#endif /* CONFIG_PNP */
+ }
+ module_init(cmos_init);
+ 
+ static void __exit cmos_exit(void)
+ {
++#ifdef	CONFIG_PNP
++	if (pnp_platform_devices)
++		pnp_unregister_driver(&cmos_pnp_driver);
++	else
++		platform_driver_unregister(&cmos_platform_driver);
++#else
+ 	platform_driver_unregister(&cmos_platform_driver);
++#endif /* CONFIG_PNP */
+ }
+ module_exit(cmos_exit);
+ 
+ 
+-#endif	/* !PNP */
