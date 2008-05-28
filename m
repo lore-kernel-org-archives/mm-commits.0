@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-only-output-msgmni-value-at-boot-time.patch added to -mm tree
-Date: Wed, 28 May 2008 16:15:56 -0700
-Message-ID: <200805282315.m4SNFuEu005338@imap1.linux-foundation.org>
+Subject: + distinct-tgid-tid-i-o-statistics.patch added to -mm tree
+Date: Wed, 28 May 2008 16:30:23 -0700
+Message-ID: <200805282330.m4SNUNL7005886@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58229 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57116 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754494AbYE1X1B (ORCPT
+	by vger.kernel.org with ESMTP id S1753477AbYE1Xgj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 May 2008 19:27:01 -0400
+	Wed, 28 May 2008 19:36:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Nadia.Derbey@bull.net, manfred@colorfullife.com, peifferp@gmail.com, serue@us.ibm.com, tony.luck@intel.com
+Cc: righi.andrea@gmail.com, balbir@linux.vnet.ibm.com, matt@hostmonster.com, nagar@watson.ibm.com, oleg@tv-sign.ru
 
 
 The patch titled
-     ipc: only output msgmni value at boot time
+     task IO accounting: provide distinct tgid/tid I/O statistics
 has been added to the -mm tree.  Its filename is
-     ipc-only-output-msgmni-value-at-boot-time.patch
+     distinct-tgid-tid-i-o-statistics.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,84 +34,227 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ipc: only output msgmni value at boot time
-From: Nadia Derbey <Nadia.Derbey@bull.net>
+Subject: task IO accounting: provide distinct tgid/tid I/O statistics
+From: Andrea Righi <righi.andrea@gmail.com>
 
-When posting:
-[PATCH 1/8] Scaling msgmni to the amount of lowmem
-(see http://lkml.org/lkml/2008/2/11/171), I have added a KERN_INFO message
-that is output each time msgmni is recomputed.
+Report per-thread I/O statistics in /proc/pid/task/tid/io and aggregate
+parent I/O statistics in /proc/pid/io.  This approach follows the same
+model used to account per-process and per-thread CPU times.
 
-In http://lkml.org/lkml/2008/4/29/575 Tony Luck complained that this
-message references an ipc namespace address that is useless.
+As a practial application, this allows for example to quickly find the top
+I/O consumer when a process spawns many child threads that perform the
+actual I/O work, because the aggregated I/O statistics can always be found
+in /proc/pid/io.
 
-I first thought of using an audit_log instead of a printk, as suggested by
-Serge Hallyn.  But unfortunately, we do not have any other information
-than the namespace address to provide here too.  So I chose to move the
-message and output it only at boot time, removing the reference to the
-namespace.
-
-Signed-off-by: Nadia Derbey <Nadia.Derbey@bull.net>
-Cc: Pierre Peiffer <peifferp@gmail.com>
-Cc: Manfred Spraul <manfred@colorfullife.com>
-Acked-by: Tony Luck <tony.luck@intel.com>
-Cc: "Serge E. Hallyn" <serue@us.ibm.com>
+Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Signed-off-by: Andrea Righi <righi.andrea@gmail.com>
+Cc: Matt Heaton <matt@hostmonster.com>
+Cc: Shailabh Nagar <nagar@watson.ibm.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/msg.c |   13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
+ fs/proc/base.c        |   84 +++++++++++++++++++++++++++++++++-------
+ include/linux/sched.h |    4 +
+ kernel/exit.c         |   27 ++++++++++++
+ kernel/fork.c         |    6 ++
+ 4 files changed, 107 insertions(+), 14 deletions(-)
 
-diff -puN ipc/msg.c~ipc-only-output-msgmni-value-at-boot-time ipc/msg.c
---- a/ipc/msg.c~ipc-only-output-msgmni-value-at-boot-time
-+++ a/ipc/msg.c
-@@ -98,20 +98,15 @@ void recompute_msgmni(struct ipc_namespa
- 
- 	if (allowed < MSGMNI) {
- 		ns->msg_ctlmni = MSGMNI;
--		goto out_callback;
-+		return;
- 	}
- 
- 	if (allowed > IPCMNI / nb_ns) {
- 		ns->msg_ctlmni = IPCMNI / nb_ns;
--		goto out_callback;
-+		return;
- 	}
- 
- 	ns->msg_ctlmni = allowed;
--
--out_callback:
--
--	printk(KERN_INFO "msgmni has been set to %d for ipc namespace %p\n",
--		ns->msg_ctlmni, ns);
+diff -puN fs/proc/base.c~distinct-tgid-tid-i-o-statistics fs/proc/base.c
+--- a/fs/proc/base.c~distinct-tgid-tid-i-o-statistics
++++ a/fs/proc/base.c
+@@ -2357,29 +2357,82 @@ static int proc_base_fill_cache(struct f
  }
  
- void msg_init_ns(struct ipc_namespace *ns)
-@@ -136,6 +131,10 @@ void msg_exit_ns(struct ipc_namespace *n
- void __init msg_init(void)
+ #ifdef CONFIG_TASK_IO_ACCOUNTING
+-static int proc_pid_io_accounting(struct task_struct *task, char *buffer)
++static int do_io_accounting(struct task_struct *task, char *buffer, int whole)
  {
- 	msg_init_ns(&init_ipc_ns);
++	u64 rchar, wchar, syscr, syscw;
++	struct task_io_accounting ioac;
 +
-+	printk(KERN_INFO "msgmni has been set to %d\n",
-+		init_ipc_ns.msg_ctlmni);
++	if (!whole) {
++		rchar = task->rchar;
++		wchar = task->wchar;
++		syscr = task->syscr;
++		syscw = task->syscw;
++		memcpy(&ioac, &task->ioac, sizeof(ioac));
++	} else {
++		unsigned long flags;
++		struct task_struct *t = task;
++		rchar = wchar = syscr = syscw = 0;
++		memset(&ioac, 0, sizeof(ioac));
 +
- 	ipc_init_proc_interface("sysvipc/msg",
- 				"       key      msqid perms      cbytes       qnum lspid lrpid   uid   gid  cuid  cgid      stime      rtime      ctime\n",
- 				IPC_MSG_IDS, sysvipc_msg_proc_show);
++		rcu_read_lock();
++		do {
++			rchar += t->rchar;
++			wchar += t->wchar;
++			syscr += t->syscr;
++			syscw += t->syscw;
++
++			ioac.read_bytes += t->ioac.read_bytes;
++			ioac.write_bytes += t->ioac.write_bytes;
++			ioac.cancelled_write_bytes +=
++					t->ioac.cancelled_write_bytes;
++			t = next_thread(t);
++		} while (t != task);
++		rcu_read_unlock();
++
++		if (lock_task_sighand(task, &flags)) {
++			struct signal_struct *sig = task->signal;
++
++			rchar += sig->rchar;
++			wchar += sig->wchar;
++			syscr += sig->syscr;
++			syscw += sig->syscw;
++
++			ioac.read_bytes += sig->ioac.read_bytes;
++			ioac.write_bytes += sig->ioac.write_bytes;
++			ioac.cancelled_write_bytes +=
++					sig->ioac.cancelled_write_bytes;
++
++			unlock_task_sighand(task, &flags);
++		}
++	}
++
+ 	return sprintf(buffer,
+-#ifdef CONFIG_TASK_XACCT
+ 			"rchar: %llu\n"
+ 			"wchar: %llu\n"
+ 			"syscr: %llu\n"
+ 			"syscw: %llu\n"
+-#endif
+ 			"read_bytes: %llu\n"
+ 			"write_bytes: %llu\n"
+ 			"cancelled_write_bytes: %llu\n",
+-#ifdef CONFIG_TASK_XACCT
+-			(unsigned long long)task->rchar,
+-			(unsigned long long)task->wchar,
+-			(unsigned long long)task->syscr,
+-			(unsigned long long)task->syscw,
+-#endif
+-			(unsigned long long)task->ioac.read_bytes,
+-			(unsigned long long)task->ioac.write_bytes,
+-			(unsigned long long)task->ioac.cancelled_write_bytes);
++			(unsigned long long)rchar,
++			(unsigned long long)wchar,
++			(unsigned long long)syscr,
++			(unsigned long long)syscw,
++			(unsigned long long)ioac.read_bytes,
++			(unsigned long long)ioac.write_bytes,
++			(unsigned long long)ioac.cancelled_write_bytes);
++}
++
++static int proc_tid_io_accounting(struct task_struct *task, char *buffer)
++{
++	return do_io_accounting(task, buffer, 0);
+ }
+-#endif
++
++static int proc_tgid_io_accounting(struct task_struct *task, char *buffer)
++{
++	return do_io_accounting(task, buffer, 1);
++}
++#endif /* CONFIG_TASK_IO_ACCOUNTING */
+ 
+ /*
+  * Thread groups
+@@ -2451,7 +2504,7 @@ static const struct pid_entry tgid_base_
+ 	REG("coredump_filter", S_IRUGO|S_IWUSR, coredump_filter),
+ #endif
+ #ifdef CONFIG_TASK_IO_ACCOUNTING
+-	INF("io",	S_IRUGO, pid_io_accounting),
++	INF("io",	S_IRUGO, tgid_io_accounting),
+ #endif
+ };
+ 
+@@ -2779,6 +2832,9 @@ static const struct pid_entry tid_base_s
+ #ifdef CONFIG_FAULT_INJECTION
+ 	REG("make-it-fail", S_IRUGO|S_IWUSR, fault_inject),
+ #endif
++#ifdef CONFIG_TASK_IO_ACCOUNTING
++	INF("io",	S_IRUGO, tid_io_accounting),
++#endif
+ };
+ 
+ static int proc_tid_base_readdir(struct file * filp,
+diff -puN include/linux/sched.h~distinct-tgid-tid-i-o-statistics include/linux/sched.h
+--- a/include/linux/sched.h~distinct-tgid-tid-i-o-statistics
++++ a/include/linux/sched.h
+@@ -504,6 +504,10 @@ struct signal_struct {
+ 	unsigned long nvcsw, nivcsw, cnvcsw, cnivcsw;
+ 	unsigned long min_flt, maj_flt, cmin_flt, cmaj_flt;
+ 	unsigned long inblock, oublock, cinblock, coublock;
++#ifdef CONFIG_TASK_XACCT
++	u64 rchar, wchar, syscr, syscw;
++#endif
++	struct task_io_accounting ioac;
+ 
+ 	/*
+ 	 * Cumulative ns of scheduled CPU time for dead threads in the
+diff -puN kernel/exit.c~distinct-tgid-tid-i-o-statistics kernel/exit.c
+--- a/kernel/exit.c~distinct-tgid-tid-i-o-statistics
++++ a/kernel/exit.c
+@@ -120,6 +120,18 @@ static void __exit_signal(struct task_st
+ 		sig->nivcsw += tsk->nivcsw;
+ 		sig->inblock += task_io_get_inblock(tsk);
+ 		sig->oublock += task_io_get_oublock(tsk);
++#ifdef CONFIG_TASK_XACCT
++		sig->rchar += tsk->rchar;
++		sig->wchar += tsk->wchar;
++		sig->syscr += tsk->syscr;
++		sig->syscw += tsk->syscw;
++#endif /* CONFIG_TASK_XACCT */
++#ifdef CONFIG_TASK_IO_ACCOUNTING
++		sig->ioac.read_bytes += tsk->ioac.read_bytes;
++		sig->ioac.write_bytes += tsk->ioac.write_bytes;
++		sig->ioac.cancelled_write_bytes +=
++					tsk->ioac.cancelled_write_bytes;
++#endif /* CONFIG_TASK_IO_ACCOUNTING */
+ 		sig->sum_sched_runtime += tsk->se.sum_exec_runtime;
+ 		sig = NULL; /* Marker for below. */
+ 	}
+@@ -1326,6 +1338,21 @@ static int wait_task_zombie(struct task_
+ 		psig->coublock +=
+ 			task_io_get_oublock(p) +
+ 			sig->oublock + sig->coublock;
++#ifdef CONFIG_TASK_XACCT
++		psig->rchar += p->rchar + sig->rchar;
++		psig->wchar += p->wchar + sig->wchar;
++		psig->syscr += p->syscr + sig->syscr;
++		psig->syscw += p->syscw + sig->syscw;
++#endif /* CONFIG_TASK_XACCT */
++#ifdef CONFIG_TASK_IO_ACCOUNTING
++		psig->ioac.read_bytes +=
++			p->ioac.read_bytes + sig->ioac.read_bytes;
++		psig->ioac.write_bytes +=
++			p->ioac.write_bytes + sig->ioac.write_bytes;
++		psig->ioac.cancelled_write_bytes +=
++				p->ioac.cancelled_write_bytes +
++				sig->ioac.cancelled_write_bytes;
++#endif /* CONFIG_TASK_IO_ACCOUNTING */
+ 		spin_unlock_irq(&p->parent->sighand->siglock);
+ 	}
+ 
+diff -puN kernel/fork.c~distinct-tgid-tid-i-o-statistics kernel/fork.c
+--- a/kernel/fork.c~distinct-tgid-tid-i-o-statistics
++++ a/kernel/fork.c
+@@ -798,6 +798,12 @@ static int copy_signal(unsigned long clo
+ 	sig->nvcsw = sig->nivcsw = sig->cnvcsw = sig->cnivcsw = 0;
+ 	sig->min_flt = sig->maj_flt = sig->cmin_flt = sig->cmaj_flt = 0;
+ 	sig->inblock = sig->oublock = sig->cinblock = sig->coublock = 0;
++#ifdef CONFIG_TASK_XACCT
++	sig->rchar = sig->wchar = sig->syscr = sig->syscw = 0;
++#endif
++#ifdef CONFIG_TASK_IO_ACCOUNTING
++	memset(&sig->ioac, 0, sizeof(sig->ioac));
++#endif
+ 	sig->sum_sched_runtime = 0;
+ 	INIT_LIST_HEAD(&sig->cpu_timers[0]);
+ 	INIT_LIST_HEAD(&sig->cpu_timers[1]);
 _
 
-Patches currently in -mm which might be from Nadia.Derbey@bull.net are
+Patches currently in -mm which might be from righi.andrea@gmail.com are
 
-ipc-restore-msgpool-original-value.patch
-ipc-only-output-msgmni-value-at-boot-time.patch
-idr-change-the-idr-structure.patch
-idr-rename-some-of-the-idr-apis-internal-routines.patch
-idr-fix-a-printk-call.patch
-idr-error-checking-factorization.patch
-idr-make-idr_get_new-rcu-safe.patch
-idr-make-idr_find-rcu-safe.patch
-idr-make-idr_remove-rcu-safe.patch
-ipc-call-idr_find-without-locking-in-ipc_lock.patch
-ipc-get-rid-of-ipc_lock_down.patch
+distinct-tgid-tid-i-o-statistics.patch
 
