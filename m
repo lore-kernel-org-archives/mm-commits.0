@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ext4-error-processing-and-coding-enhancement-for-mballoc.patch added to -mm tree
-Date: Wed, 28 May 2008 16:18:51 -0700
-Message-ID: <200805282318.m4SNIpsZ005408@imap1.linux-foundation.org>
+Subject: + gcov-architecture-specific-compile-flag-adjustments-fix.patch added to -mm tree
+Date: Wed, 28 May 2008 16:17:52 -0700
+Message-ID: <200805282317.m4SNHqT2005367@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59607 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47949 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753587AbYE1XTG (ORCPT
+	by vger.kernel.org with ESMTP id S1754324AbYE1XUD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 May 2008 19:19:06 -0400
+	Wed, 28 May 2008 19:20:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shen@cn.fujitsu.com, aneesh.kumar@linux.vnet.ibm.com, cmm@us.ibm.com
+Cc: peter.oberparleiter@de.ibm.com, andi@firstfloor.org, benh@kernel.crashing.org, mingo@elte.hu, paulus@samba.org, rmk@arm.linux.org.uk, sam@ravnborg.org, tglx@linutronix.de
 
 
 The patch titled
-     ext4: error processing and coding enhancement for mballoc
+     gcov: architecture specific compile flag adjustments fix
 has been added to the -mm tree.  Its filename is
-     ext4-error-processing-and-coding-enhancement-for-mballoc.patch
+     gcov-architecture-specific-compile-flag-adjustments-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,87 +34,61 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext4: error processing and coding enhancement for mballoc
-From: Shen Feng <shen@cn.fujitsu.com>
+Subject: gcov: architecture specific compile flag adjustments fix
+From: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
 
-*ext4_mb_seq_history_open: check if sbi->s_mb_history is NULL
-*ext4_mb_history_init: replace kmalloc and memset with kzalloc
-*ext4_mb_init_backend: remove memset since kzalloc is used
-*ext4_mb_init: the return value of ext4_mb_init_backend is int,
- but i is unsigned, replace it with a new int variable.
+Exclude code from profiling which is not linked to the main kernel or
+which is running in a context not compatible with the assumptions made by
+gcc's profiling code.
 
-Signed-off-by: Shen Feng <shen@cn.fujitsu.com>
-Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Mingming Cao <cmm@us.ibm.com>
+Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/mballoc.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ arch/powerpc/kernel/vdso32/Makefile |    1 +
+ arch/powerpc/kernel/vdso64/Makefile |    1 +
+ 2 files changed, 2 insertions(+)
 
-diff -puN fs/ext4/mballoc.c~ext4-error-processing-and-coding-enhancement-for-mballoc fs/ext4/mballoc.c
---- a/fs/ext4/mballoc.c~ext4-error-processing-and-coding-enhancement-for-mballoc
-+++ a/fs/ext4/mballoc.c
-@@ -1969,6 +1969,8 @@ static int ext4_mb_seq_history_open(stru
- 	int rc;
- 	int size;
+diff -puN arch/powerpc/kernel/vdso32/Makefile~gcov-architecture-specific-compile-flag-adjustments-fix arch/powerpc/kernel/vdso32/Makefile
+--- a/arch/powerpc/kernel/vdso32/Makefile~gcov-architecture-specific-compile-flag-adjustments-fix
++++ a/arch/powerpc/kernel/vdso32/Makefile
+@@ -17,6 +17,7 @@ EXTRA_CFLAGS := -shared -fno-common -fno
+ EXTRA_CFLAGS += -nostdlib -Wl,-soname=linux-vdso32.so.1 \
+ 		$(call ld-option, -Wl$(comma)--hash-style=sysv)
+ EXTRA_AFLAGS := -D__VDSO32__ -s
++GCOV := n
  
-+	if (unlikely(sbi->s_mb_history == NULL))
-+		return -ENOMEM;
- 	s = kmalloc(sizeof(*s), GFP_KERNEL);
- 	if (s == NULL)
- 		return -ENOMEM;
-@@ -2171,9 +2173,7 @@ static void ext4_mb_history_init(struct 
- 	sbi->s_mb_history_cur = 0;
- 	spin_lock_init(&sbi->s_mb_history_lock);
- 	i = sbi->s_mb_history_max * sizeof(struct ext4_mb_history);
--	sbi->s_mb_history = kmalloc(i, GFP_KERNEL);
--	if (likely(sbi->s_mb_history != NULL))
--		memset(sbi->s_mb_history, 0, i);
-+	sbi->s_mb_history = kzalloc(i, GFP_KERNEL);
- 	/* if we can't allocate history, then we simple won't use it */
- }
+ obj-y += vdso32_wrapper.o
+ extra-y += vdso32.lds
+diff -puN arch/powerpc/kernel/vdso64/Makefile~gcov-architecture-specific-compile-flag-adjustments-fix arch/powerpc/kernel/vdso64/Makefile
+--- a/arch/powerpc/kernel/vdso64/Makefile~gcov-architecture-specific-compile-flag-adjustments-fix
++++ a/arch/powerpc/kernel/vdso64/Makefile
+@@ -11,6 +11,7 @@ EXTRA_CFLAGS := -shared -fno-common -fno
+ EXTRA_CFLAGS += -nostdlib -Wl,-soname=linux-vdso64.so.1 \
+ 		$(call ld-option, -Wl$(comma)--hash-style=sysv)
+ EXTRA_AFLAGS := -D__VDSO64__ -s
++GCOV := n
  
-@@ -2287,7 +2287,6 @@ static int ext4_mb_init_backend(struct s
- 			i++;
- 			goto err_freebuddy;
- 		}
--		memset(meta_group_info[j], 0, len);
- 		set_bit(EXT4_GROUP_INFO_NEED_INIT_BIT,
- 			&(meta_group_info[j]->bb_state));
- 
-@@ -2342,6 +2341,7 @@ int ext4_mb_init(struct super_block *sb,
- 	unsigned i;
- 	unsigned offset;
- 	unsigned max;
-+	int ret;
- 
- 	if (!test_opt(sb, MBALLOC))
- 		return 0;
-@@ -2376,12 +2376,12 @@ int ext4_mb_init(struct super_block *sb,
- 	} while (i <= sb->s_blocksize_bits + 1);
- 
- 	/* init file for buddy data */
--	i = ext4_mb_init_backend(sb);
--	if (i) {
-+	ret = ext4_mb_init_backend(sb);
-+	if (ret != 0) {
- 		clear_opt(sbi->s_mount_opt, MBALLOC);
- 		kfree(sbi->s_mb_offsets);
- 		kfree(sbi->s_mb_maxs);
--		return i;
-+		return ret;
- 	}
- 
- 	spin_lock_init(&sbi->s_md_lock);
+ obj-y += vdso64_wrapper.o
+ extra-y += vdso64.lds
 _
 
-Patches currently in -mm which might be from shen@cn.fujitsu.com are
+Patches currently in -mm which might be from peter.oberparleiter@de.ibm.com are
 
 linux-next.patch
-ext3-improve-some-code-in-rb-tree-part-of-dirc.patch
-ext4-error-proc-entry-creation-when-the-fs-ext4-is-not-correctly-created.patch
-ext4-improve-some-code-in-rb-tree-part-of-dirc.patch
-ext4-remove-double-definitions-of-xattr-macros.patch
-ext4-error-processing-and-coding-enhancement-for-mballoc.patch
+kernel-call-constructors.patch
+kernel-introduce-gcc_version_lower-macro.patch
+kbuild-delay-object-file-renaming-during-module-versioning.patch
+seq_file-add-function-to-write-binary-data.patch
+gcov-add-gcov-profiling-infrastructure.patch
+kbuild-make-source-and-include-paths-absolute.patch
+gcov-architecture-specific-compile-flag-adjustments.patch
+gcov-architecture-specific-compile-flag-adjustments-fix.patch
 
