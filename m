@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vt-fix-vc_resize-locking.patch added to -mm tree
-Date: Wed, 28 May 2008 16:06:33 -0700
-Message-ID: <200805282306.m4SN6XUE004989@imap1.linux-foundation.org>
+Subject: + scsi-libiscsic-return-errno-rather-than-errno.patch added to -mm tree
+Date: Wed, 28 May 2008 16:12:38 -0700
+Message-ID: <200805282312.m4SNCc3Q005176@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60868 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46808 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754134AbYE1XHi (ORCPT
+	by vger.kernel.org with ESMTP id S1754202AbYE1XMp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 May 2008 19:07:38 -0400
+	Wed, 28 May 2008 19:12:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de, alan@redhat.com, ebiederm@xmission.com, oleg@tv-sign.ru
+Cc: lizf@cn.fujitsu.com
 
 
 The patch titled
-     vt: fix vc_resize locking
+     scsi/libiscsi.c: return -errno rather than errno
 has been added to the -mm tree.  Its filename is
-     vt-fix-vc_resize-locking.patch
+     scsi-libiscsic-return-errno-rather-than-errno.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,63 +34,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vt: fix vc_resize locking
-From: Nick Piggin <npiggin@suse.de>
+Subject: scsi/libiscsi.c: return -errno rather than errno
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-Lockdep says we can't take tasklist lock or sighand lock inside ctrl_lock.
+iscsi_prep_scsi_cmd_pdu() returns EIO in a failing path, but returns
+-errno in other paths.
 
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Acked-by: Alan Cox <alan@redhat.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/vt.c |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ drivers/scsi/libiscsi.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/vt.c~vt-fix-vc_resize-locking drivers/char/vt.c
---- a/drivers/char/vt.c~vt-fix-vc_resize-locking
-+++ a/drivers/char/vt.c
-@@ -909,7 +909,7 @@ int vc_resize(struct vc_data *vc, unsign
+diff -puN drivers/scsi/libiscsi.c~scsi-libiscsic-return-errno-rather-than-errno drivers/scsi/libiscsi.c
+--- a/drivers/scsi/libiscsi.c~scsi-libiscsic-return-errno-rather-than-errno
++++ a/drivers/scsi/libiscsi.c
+@@ -307,7 +307,7 @@ static int iscsi_prep_scsi_cmd_pdu(struc
+ 	hdr->hlength = hdrlength & 0xFF;
  
- 	if (vc->vc_tty) {
- 		struct winsize ws, *cws = &vc->vc_tty->winsize;
--		unsigned long flags;
-+		struct pid *pgrp = NULL;
+ 	if (conn->session->tt->init_cmd_task(conn->ctask))
+-		return EIO;
++		return -EIO;
  
- 		memset(&ws, 0, sizeof(ws));
- 		ws.ws_row = vc->vc_rows;
-@@ -917,11 +917,14 @@ int vc_resize(struct vc_data *vc, unsign
- 		ws.ws_ypixel = vc->vc_scan_lines;
- 
- 		mutex_lock(&vc->vc_tty->termios_mutex);
--		spin_lock_irqsave(&vc->vc_tty->ctrl_lock, flags);
--		if ((ws.ws_row != cws->ws_row || ws.ws_col != cws->ws_col) &&
--		    vc->vc_tty->pgrp)
-+		spin_lock_irq(&vc->vc_tty->ctrl_lock);
-+		if ((ws.ws_row != cws->ws_row || ws.ws_col != cws->ws_col))
-+			pgrp = get_pid(vc->vc_tty->pgrp);
-+		spin_unlock_irq(&vc->vc_tty->ctrl_lock);
-+		if (pgrp) {
- 			kill_pgrp(vc->vc_tty->pgrp, SIGWINCH, 1);
--		spin_unlock_irqrestore(&vc->vc_tty->ctrl_lock, flags);
-+			put_pid(pgrp);
-+		}
- 		*cws = ws;
- 		mutex_unlock(&vc->vc_tty->termios_mutex);
- 	}
+ 	conn->scsicmd_pdus_cnt++;
+ 	debug_scsi("iscsi prep [%s cid %d sc %p cdb 0x%x itt 0x%x "
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
-linux-next.patch
-spufs-convert-nopfn-to-fault.patch
-vt-fix-vc_resize-locking.patch
-mspec-convert-nopfn-to-fault.patch
-mspec-convert-nopfn-to-fault-fix.patch
-mm-remove-nopfn.patch
-mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co.patch
-reiser4.patch
-likeliness-accounting-change-and-cleanup.patch
+leds-fix-unsigned-value-overflow-in-for-loop.patch
+scsi-libiscsic-return-errno-rather-than-errno.patch
+cgroup-use-read-lock-to-guard-find_existing_css_set.patch
+memcg-avoid-unnecessary-initialization.patch
+memcg-better-migration-handling.patch
+memcg-remove-refcnt-from-page_cgroup.patch
+memcg-remove-refcnt-from-page_cgroup-fix.patch
+memcg-handle-swap-cache.patch
+memcg-helper-function-for-relcaim-from-shmem.patch
+memcg-add-hints-for-branch.patch
+memcg-remove-a-redundant-check.patch
+memrlimit-add-memrlimit-controller-documentation.patch
+memrlimit-setup-the-memrlimit-controller.patch
+memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
+memrlimit-add-memrlimit-controller-accounting-and-control.patch
 
