@@ -1,170 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: - wireless-airo-waitbusy-wont-delay-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 28 May 2008 12:41:00 -0700
-Message-ID: <200805281941.m4SJf0b3029262@imap1.linux-foundation.org>
+Subject: + modedb-fix-incorrect-sync-and-vmode-flags-for-cvt-modes.patch added to -mm tree
+Date: Wed, 28 May 2008 13:56:38 -0700
+Message-ID: <200805282056.m4SKucdv032195@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43942 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44439 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752718AbYE1TmO (ORCPT
+	by vger.kernel.org with ESMTP id S1752738AbYE1U5A (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 May 2008 15:42:14 -0400
+	Wed, 28 May 2008 16:57:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dcbw@redhat.com, roel.kluin@gmail.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: krzysztof.h1@wp.pl
 
 
 The patch titled
-     wireless-airo-waitbusy-wont-delay-checkpatch-fixes
-has been removed from the -mm tree.  Its filename was
-     wireless-airo-waitbusy-wont-delay-checkpatch-fixes.patch
+     modedb: fix incorrect sync and vmode flags for CVT modes
+has been added to the -mm tree.  Its filename is
+     modedb-fix-incorrect-sync-and-vmode-flags-for-cvt-modes.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: wireless-airo-waitbusy-wont-delay-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: modedb: fix incorrect sync and vmode flags for CVT modes
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-WARNING: space prohibited between function name and open parenthesis '('
-#22: FILE: drivers/net/wireless/airo.c:2907:
-+	while ((IN4500 (ai, COMMAND) & COMMAND_BUSY) && (delay < 10000)) {
+The temporary structure for calculated CVT mode is not initialized.  Few
+fields have only bits or-ed or and-ed so they may be left in incorrect
+(random) state.
 
-total: 0 errors, 1 warnings, 8 lines checked
+Testing of the tridentfb seems like a good exercise for the fbdev layer.
 
-./patches/wireless-airo-waitbusy-wont-delay.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Dan Williams <dcbw@redhat.com>
-Cc: Roel Kluin <roel.kluin@gmail.com>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/airo.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/modedb.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/net/wireless/airo.c~wireless-airo-waitbusy-wont-delay-checkpatch-fixes drivers/net/wireless/airo.c
---- a/drivers/net/wireless/airo.c~wireless-airo-waitbusy-wont-delay-checkpatch-fixes
-+++ a/drivers/net/wireless/airo.c
-@@ -2906,7 +2906,7 @@ EXPORT_SYMBOL(init_airo_card);
+diff -puN drivers/video/modedb.c~modedb-fix-incorrect-sync-and-vmode-flags-for-cvt-modes drivers/video/modedb.c
+--- a/drivers/video/modedb.c~modedb-fix-incorrect-sync-and-vmode-flags-for-cvt-modes
++++ a/drivers/video/modedb.c
+@@ -590,6 +590,7 @@ done:
+ 		    "", (margins) ? " with margins" : "", (interlace) ?
+ 		    " interlaced" : "");
  
- static int waitbusy (struct airo_info *ai) {
- 	int delay = 0;
--	while ((IN4500 (ai, COMMAND) & COMMAND_BUSY) && (delay < 10000)) {
-+	while ((IN4500(ai, COMMAND) & COMMAND_BUSY) && (delay < 10000)) {
- 		udelay (10);
- 		if ((++delay % 20) == 0)
- 			OUT4500(ai, EVACK, EV_CLEARCOMMANDBUSY);
++	    memset(&cvt_mode, 0, sizeof(struct fb_videomode));
+ 	    cvt_mode.xres = xres;
+ 	    cvt_mode.yres = yres;
+ 	    cvt_mode.refresh = (refresh) ? refresh : 60;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
-linux-next.patch
-next-remove-localversion.patch
-fix-kobject-fix-kobject_rename-and-config_sysfs.patch
-fix-driver-core-add-device_create_vargs-and-device_create_drvdata.patch
-kvm-is-busted-on-ia64.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-video-balcklist-fujitsu-lifebook-s6410.patch
-git-x86-fixup.patch
-lguest-use-cpu-capability-accessors.patch
-arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
-arch-powerpc-platforms-pseries-eeh_driverc-fix-warning.patch
-arch-powerpc-platforms-pseries-eeh_driverc-fix-warning-checkpatch-fixes.patch
-zoran-use-correct-type-for-cpu-flags.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-git-jg-misc-git-rejects.patch
-drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-fsldma-the-mpc8377mds-board-device-tree-node-for-fsldma-driver.patch
-mmc-sd-host-driver-for-ricoh-bay1controllers.patch
-git-ubifs.patch
-sundance-set-carrier-status-on-link-change-events.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-battery.patch
-svcrdma-fix-compile-warning-on-32-bit-platforms-checkpatch-fixes.patch
-pci-hotplug-introduce-pci_slot.patch
-pci-hotplug-acpi-pci-slot-detection-driver.patch
-sched-delete-dead-stuff.patch
-sched-delete-dead-stuff-2.patch
-git-scsi-misc-fix-scsi_dh-build-errors.patch
-drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
-s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
-pktcdvd-push-bkl-down-into-driver-fix.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-git-logfs-fixup.patch
-drivers-uwb-nehc-processor-flags-have-type-unsigned-long.patch
-drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
-drivers-uwb-wlp-sysfsc-dead-code.patch
-drivers-uwb-whcic-needs-dma-mappingh.patch
-usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix.patch
-usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix-2.patch
-git-watchdog.patch
-git-watchdog-git-rejects.patch
-watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix.patch
-watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl-fix.patch
-wireless-airo-waitbusy-wont-delay-checkpatch-fixes.patch
-git-xtensa.patch
-ext4-is-busted-on-m68k.patch
-capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-libata-sff-fix-oops-reported-in-kerneloopsorg-for-pnp-devices-with-no-ctl-fix.patch
-ata-acpi-hotplug-handle-bay-devices-in-dock-stations-cleanup.patch
-mm-verify-the-page-links-and-memory-model.patch
-mspec-convert-nopfn-to-fault-fix.patch
-page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
-kill-generic_file_direct_io-checkpatch-fixes.patch
-use-generic_access_phys-for-dev-mem-mappings-fix.patch
-spufs-use-the-new-vm_ops-access-fix.patch
-fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
-mapping_set_error-add-unlikely.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
-pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes.patch
-pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup.patch
-pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup-fix.patch
-split-the-typecheck-macros-out-of-include-linux-kernelh.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
-remove-apparently-unused-fd1772h-header-file.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
-build-kernel-profileo-only-when-requested-cleanups.patch
-rename-warn-to-warning-to-clear-the-namespace-fix.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
-flag-parameters-paccept-fix.patch
-flag-parameters-paccept-sys_ni.patch
-flag-parameters-anon_inode_getfd-extension-fix.patch
-flag-parameters-signalfd-fix.patch
-flag-parameters-eventfd-fix.patch
-flag-parameters-inotify_init-fix.patch
-flag-parameters-check-magic-constants-alpha.patch
-drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
-reiserfs-convert-j_flush_sem-to-mutex.patch
-reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-reiser4.patch
-reiser4-semaphore-fix.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+modedb-fix-incorrect-sync-and-vmode-flags-for-cvt-modes.patch
+fbcon-fix-wrong-vmode-bits-copied-on-console-switch.patch
+tridentfb-replace-macros-with-functions.patch
+tridentfb-convert-fb_info-into-allocated-one.patch
+tridentfb-move-global-pseudo-palette-into-structure.patch
+tridentfb-move-global-chip_id-into-structure.patch
+tridentfb-move-global-flat-panel-variable-into-structure.patch
+tridentfb-convert-is_blade-and-is_xp-macros-into-functions.patch
+tridentfb-move-global-acceleration-hooks-into-structure.patch
+tridentfb-make-use-of-functions-and-constants-from-the-vgah.patch
+tridentfb-fix-timing-calculations.patch
+tridentfb-use-mmio-access-for-clock-setting.patch
+tridentfb-fix-clock-settings-for-older-trident-96xx-chips.patch
+tridentfb-improve-probe-function.patch
+tridentfb-improved-register-values-on-tgui-9680.patch
+tridentfb-add-tgui-9440-support.patch
+tridentfb-fix-unitialized-pseudo_palette.patch
+tridentfb-improve-check_var-function.patch
+tridentfb-preserve-memory-type-settings.patch
+tridentfb-fix-hi-color-modes-for-tgui-9440.patch
+tridentfb-add-acceleration-for-tgui-families.patch
+tridentfb-acceleration-code-improvements.patch
+tridentfb-acceleration-bug-fixes.patch
+tridentfb-various-pixclock-and-timing-improvements.patch
+tridentfb-acceleration-constants-change.patch
+tridentfb-source-code-improvements.patch
+tridentfb-fix-console-freeze-when-switching-from-x11.patch
+tridentfb-fix-224-color-logo-at-8-bpp.patch
+amifb-test-virtual-screen-range-before-subtraction-on-unsigned.patch
+atafb-test-virtual-screen-range-before-subtraction-on-unsigned.patch
+fbcon-make-logo_height-a-local-variable.patch
+uvesafb-change-mode-parameter-to-mode_option.patch
+tridentfb-documentation-update.patch
+tdfxfb-add-mode_option-module-parameter.patch
+vga16fb-source-code-improvement.patch
 
