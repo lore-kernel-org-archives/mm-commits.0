@@ -1,219 +1,160 @@
 From: akpm@linux-foundation.org
-Subject: - fs-writeback-handle-errors-in-sync_sb_inodes.patch removed from -mm tree
-Date: Wed, 28 May 2008 01:45:27 -0700
-Message-ID: <200805280845.m4S8jRUn005199@imap1.linux-foundation.org>
+Subject: - fs-writeback-handle-errors-in-sync_sb_inodes-fix.patch removed from -mm tree
+Date: Wed, 28 May 2008 01:45:29 -0700
+Message-ID: <200805280845.m4S8jTCF005204@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54098 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54871 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751206AbYE1Ipa (ORCPT
+	by vger.kernel.org with ESMTP id S1751368AbYE1Ipd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 May 2008 04:45:30 -0400
+	Wed, 28 May 2008 04:45:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: guichaz@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dgc@sgi.com, guichaz@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs-writeback: handle errors in sync_sb_inodes()
+     fs-writeback-handle-errors-in-sync_sb_inodes-fix
 has been removed from the -mm tree.  Its filename was
-     fs-writeback-handle-errors-in-sync_sb_inodes.patch
+     fs-writeback-handle-errors-in-sync_sb_inodes-fix.patch
 
 This patch was dropped because xfs sux
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs-writeback: handle errors in sync_sb_inodes()
-From: Guillaume Chazarain <guichaz@gmail.com>
+Subject: fs-writeback-handle-errors-in-sync_sb_inodes-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Currently it is possible for some errors to be detected at write-back
-time but not reported to the program as shown by the following script
-using the included make_file.c. Undetected ENOSPC or EIO can obviously lead to
-data corruption.
-
-================
-#!/bin/bash
-
-# We binary search the size of a file in a 40M filesystem that can cause
-# the missed error.
-MIN=5000000
-MAX=50000000
-
-rm fs.40M
-dd if=/dev/zero of=fs.40M bs=40M count=0 seek=1 status=noxfer
-#mkfs.ext2 -F fs.40M
-mkfs.ext3 -F fs.40M
-#mkfs.jfs -q fs.40M
-#mkfs.reiserfs -fq fs.40M
-#mkfs.xfs fs.40M # SIGBUS in memset() with patch
-# XFS => OK for ENOSPC, but not for EIO
-
-attempt()
-{
-	SIZE=$1
-	RES=0
-
-	mount fs.40M /mnt -o loop
-	if ! ./make_file /mnt/not_enough_space $SIZE; then
-		# We could not create the file as the requested size
-		# was clearly too big
-		echo "/mnt/not_enough_space: not enough space for $SIZE bytes"
-		RES=1
-	fi
-	umount /mnt
-
-	if [ $RES -eq 0 ]; then
-		# We think we could create the file, let's see if that's true
-		mount fs.40M /mnt -o loop
-		cmp <(tr '\000' '\377' < /dev/zero | head -c$SIZE) \
-		    /mnt/not_enough_space
-		RES=$?
-		umount /mnt
-
-		if [ $RES -eq 0 ]; then
-			# The file was small enough to fit in the filesystem
-			RES=-1
-		else
-			echo "Undetected ENOSPC with SIZE=$SIZE"
-			exit
-		fi
-	fi
-
-	return $RES
-}
-
-while [ $((MAX - MIN)) -gt 1 ]; do
-	SIZE=$(((MIN + MAX) / 2))
-	attempt $SIZE
-	RES=$?
-	if [ $RES -eq 1 ]; then
-		MAX=$SIZE
-	else
-		MIN=$SIZE
-	fi
-done
-
-echo "Could not reproduce the problem"
-==================
-/* make_file.c */
-#include <unistd.h>
-#include <sys/fcntl.h>
-#include <sys/mman.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-
-int main(int argc, char **argv)
-{
-	int size, fd;
-	char *mapping;
-	if (argc != 3) {
-		fprintf(stderr, "Usage: %s FILE SIZE\n", argv[0]);
-		return 1;
-	}
-	size = atoi(argv[2]);
-
-	fd = open(argv[1], O_RDWR | O_CREAT, 0600);
-	if (fd < 0) {
-		perror(argv[1]);
-		return 1;
-	}
-	if (ftruncate(fd, size) < 0) {
-		perror("ftruncate");
-		return 1;
-	}
-	mapping = mmap(NULL, size, PROT_WRITE, MAP_SHARED, fd, 0);
-	if (mapping == MAP_FAILED) {
-		perror("mmap");
-		return 1;
-	}
-	memset(mapping, 0xFF, size);
-
-	/* Force a write-back */
-	sync();
-
-	if (msync(mapping, size, MS_SYNC) < 0) {
-		perror("msync");
-		return 1;
-	}
-	if (close(fd) < 0) {
-		perror("close");
-		return 1;
-	}
-	printf("%s: successfully written %d bytes\n", argv[1], size);
-	return 0;
-}
-==================
-
-make_file.c mmaps a hole, performs some writeback (memset + sync) and then
-expects to find some error code in msync().  The script mounts a 40M
-loopback filesystem and does a binary search to find the size of a file
-big enough to provoke a ENOSPC, but small enough to show the error not
-being detected at msync() time.
-
-The error window is large enough for such a size to be quickly found, but
-with this patch, no such file size can be found.
-
-All mmap capable filesystems I tested are affected (ext2, ext3, jfs,
-reiserfs, xfs).  XFS is special in that it survives the test thanks to the
-page_mkwrite() work, i.e.  it SIGBUS during memset.  Anyway, this XFS
-behaviour solves ENOSPC but does nothing for EIO.
-
-The offending code is in fs/fs-writeback.c:
-
-sync_sb_inodes(...)
-{
-	...
-	__writeback_single_inode(inode, wbc);
-	...
-}
-
-__writeback_single_inode() gets the error from mapping->flags, clears it
-and returns it.  But sync_sb_inodes() ignores this return value. 
-sync_sb_inodes() should leave the error in each mapping instead of
-propagating it through the call stack for the following reasons:
-
-- the propagated error would combine the errors in all the synced
-  inodes, so it would just tell that some inode in a specific fs got an
-  error,
-
-- nobody in the call stack would be interested by this error: certainly
-  not pdflush, or 'void sync(2)'.
-
-Signed-off-by: Guillaume Chazarain <guichaz@gmail.com>
+Cc: Guillaume Chazarain <guichaz@gmail.com>
+Cc: David Chinner <dgc@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ fs/fs-writeback.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/fs-writeback.c~fs-writeback-handle-errors-in-sync_sb_inodes fs/fs-writeback.c
---- a/fs/fs-writeback.c~fs-writeback-handle-errors-in-sync_sb_inodes
+diff -puN fs/fs-writeback.c~fs-writeback-handle-errors-in-sync_sb_inodes-fix fs/fs-writeback.c
+--- a/fs/fs-writeback.c~fs-writeback-handle-errors-in-sync_sb_inodes-fix
 +++ a/fs/fs-writeback.c
-@@ -454,6 +454,7 @@ void generic_sync_sb_inodes(struct super
- 		struct address_space *mapping = inode->i_mapping;
- 		struct backing_dev_info *bdi = mapping->backing_dev_info;
- 		long pages_skipped;
-+		int err;
- 
- 		if (!bdi_cap_writeback_dirty(bdi)) {
- 			redirty_tail(inode);
-@@ -498,7 +499,8 @@ void generic_sync_sb_inodes(struct super
- 		BUG_ON(inode->i_state & I_FREEING);
+@@ -500,7 +500,8 @@ void generic_sync_sb_inodes(struct super
  		__iget(inode);
  		pages_skipped = wbc->pages_skipped;
--		__writeback_single_inode(inode, wbc);
-+		err = __writeback_single_inode(inode, wbc);
-+		mapping_set_error(mapping, err);
+ 		err = __writeback_single_inode(inode, wbc);
+-		mapping_set_error(mapping, err);
++		if (err == -EIO || err == -ENOSPC) /* xfs can return -EAGAIN */
++			mapping_set_error(mapping, err);
  		if (wbc->sync_mode == WB_SYNC_HOLD) {
  			inode->dirtied_when = jiffies;
  			list_move(&inode->i_list, &sb->s_dirty);
 _
 
-Patches currently in -mm which might be from guichaz@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-fs-writeback-handle-errors-in-sync_sb_inodes.patch
+linux-next.patch
+next-remove-localversion.patch
+fix-kobject-fix-kobject_rename-and-config_sysfs.patch
+fix-driver-core-add-device_create_vargs-and-device_create_drvdata.patch
+kvm-is-busted-on-ia64.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-video-balcklist-fujitsu-lifebook-s6410.patch
+git-x86-fixup.patch
+lguest-use-cpu-capability-accessors.patch
+arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
+arch-powerpc-platforms-pseries-eeh_driverc-fix-warning.patch
+arch-powerpc-platforms-pseries-eeh_driverc-fix-warning-checkpatch-fixes.patch
+zoran-use-correct-type-for-cpu-flags.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+git-jg-misc-git-rejects.patch
+drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+fsldma-the-mpc8377mds-board-device-tree-node-for-fsldma-driver.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers.patch
+git-ubifs.patch
+sundance-set-carrier-status-on-link-change-events.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+svcrdma-fix-compile-warning-on-32-bit-platforms-checkpatch-fixes.patch
+pci-hotplug-introduce-pci_slot.patch
+pci-hotplug-acpi-pci-slot-detection-driver.patch
+sched-delete-dead-stuff.patch
+sched-delete-dead-stuff-2.patch
+git-scsi-misc-fix-scsi_dh-build-errors.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
+pktcdvd-push-bkl-down-into-driver-fix.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-logfs-fixup.patch
+drivers-uwb-nehc-processor-flags-have-type-unsigned-long.patch
+drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
+drivers-uwb-wlp-sysfsc-dead-code.patch
+drivers-uwb-whcic-needs-dma-mappingh.patch
+usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix.patch
+usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix-2.patch
+git-watchdog.patch
+git-watchdog-git-rejects.patch
+watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix.patch
+watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl-fix.patch
+wireless-airo-waitbusy-wont-delay-checkpatch-fixes.patch
+git-xtensa.patch
+ext4-is-busted-on-m68k.patch
+capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+libata-sff-fix-oops-reported-in-kerneloopsorg-for-pnp-devices-with-no-ctl-fix.patch
+ata-acpi-hotplug-handle-bay-devices-in-dock-stations-cleanup.patch
+mm-verify-the-page-links-and-memory-model.patch
+mspec-convert-nopfn-to-fault-fix.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+kill-generic_file_direct_io-checkpatch-fixes.patch
+use-generic_access_phys-for-dev-mem-mappings-fix.patch
+spufs-use-the-new-vm_ops-access-fix.patch
+fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
 fs-writeback-handle-errors-in-sync_sb_inodes-fix.patch
 mapping_set_error-add-unlikely.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup-fix.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+rename-warn-to-warning-to-clear-the-namespace-fix.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-paccept-sys_ni.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-signalfd-fix.patch
+flag-parameters-eventfd-fix.patch
+flag-parameters-inotify_init-fix.patch
+flag-parameters-check-magic-constants-alpha.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+reiserfs-convert-j_flush_sem-to-mutex.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+reiser4.patch
+reiser4-semaphore-fix.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
