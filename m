@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + tdfxfb-remove-ypan-checks-done-by-a-higher-layer.patch added to -mm tree
-Date: Wed, 28 May 2008 14:06:01 -0700
-Message-ID: <200805282106.m4SL611Y032565@imap1.linux-foundation.org>
+Subject: + x86-fix-broken-math-emu-with-lazy-allocation-of-fpu-area.patch added to -mm tree
+Date: Wed, 28 May 2008 14:18:30 -0700
+Message-ID: <200805282118.m4SLIUSK000512@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33979 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46434 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752862AbYE1VGD (ORCPT
+	by vger.kernel.org with ESMTP id S1753234AbYE1VSd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 May 2008 17:06:03 -0400
+	Wed, 28 May 2008 17:18:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: krzysztof.h1@wp.pl
+Cc: suresh.b.siddha@intel.com
 
 
 The patch titled
-     tdfxfb: remove ypan checks done by a higher layer
+     x86: fix broken math-emu with lazy allocation of fpu area
 has been added to the -mm tree.  Its filename is
-     tdfxfb-remove-ypan-checks-done-by-a-higher-layer.patch
+     x86-fix-broken-math-emu-with-lazy-allocation-of-fpu-area.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,78 +34,158 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tdfxfb: remove ypan checks done by a higher layer
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: x86: fix broken math-emu with lazy allocation of fpu area
+From: Suresh Siddha <suresh.b.siddha@intel.com>
 
-These checks and assignments are done by a higher layer so remove them
-from the driver.
+Fix the math emulation that got broken with the recent lazy allocation of
+FPU area.  init_fpu() need to be added for the math-emulation path aswell
+for the FPU area allocation.
 
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+math emulation enabled kernel booted fine with this, in the presence of
+"no387 nofxsr" boot param.
+
+Signed-off-by: Suresh Siddha <suresh.b.siddha@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/tdfxfb.c |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ arch/x86/kernel/i387.c        |   44 +++++++++++++++++++++-----------
+ arch/x86/math-emu/fpu_entry.c |   13 +++++----
+ include/asm-x86/i387.h        |    2 +
+ 3 files changed, 39 insertions(+), 20 deletions(-)
 
-diff -puN drivers/video/tdfxfb.c~tdfxfb-remove-ypan-checks-done-by-a-higher-layer drivers/video/tdfxfb.c
---- a/drivers/video/tdfxfb.c~tdfxfb-remove-ypan-checks-done-by-a-higher-layer
-+++ a/drivers/video/tdfxfb.c
-@@ -836,16 +836,12 @@ static int tdfxfb_pan_display(struct fb_
- 	struct tdfx_par *par = info->par;
- 	u32 addr = var->yoffset * info->fix.line_length;
+diff -puN arch/x86/kernel/i387.c~x86-fix-broken-math-emu-with-lazy-allocation-of-fpu-area arch/x86/kernel/i387.c
+--- a/arch/x86/kernel/i387.c~x86-fix-broken-math-emu-with-lazy-allocation-of-fpu-area
++++ a/arch/x86/kernel/i387.c
+@@ -56,6 +56,11 @@ void __cpuinit mxcsr_feature_mask_init(v
  
--	if (nopan || var->xoffset || (var->yoffset > var->yres_virtual))
--		return -EINVAL;
--	if ((var->yoffset + var->yres > var->yres_virtual && nowrap))
-+	if (nopan || var->xoffset)
- 		return -EINVAL;
+ void __init init_thread_xstate(void)
+ {
++	if (!HAVE_HWFP) {
++		xstate_size = sizeof(struct i387_soft_struct);
++		return;
++	}
++
+ 	if (cpu_has_fxsr)
+ 		xstate_size = sizeof(struct i387_fxsave_struct);
+ #ifdef CONFIG_X86_32
+@@ -94,7 +99,7 @@ void __cpuinit fpu_init(void)
+ int init_fpu(struct task_struct *tsk)
+ {
+ 	if (tsk_used_math(tsk)) {
+-		if (tsk == current)
++		if (HAVE_HWFP && tsk == current)
+ 			unlazy_fpu(tsk);
+ 		return 0;
+ 	}
+@@ -109,6 +114,15 @@ int init_fpu(struct task_struct *tsk)
+ 			return -ENOMEM;
+ 	}
  
- 	banshee_make_room(par, 1);
- 	tdfx_outl(par, VIDDESKSTART, addr);
++#ifdef CONFIG_X86_32
++	if (!HAVE_HWFP) {
++		memset(tsk->thread.xstate, 0, xstate_size);
++		finit();
++		set_stopped_child_used_math(tsk);
++		return 0;
++	}
++#endif
++
+ 	if (cpu_has_fxsr) {
+ 		struct i387_fxsave_struct *fx = &tsk->thread.xstate->fxsave;
  
--	info->var.xoffset = var->xoffset;
--	info->var.yoffset = var->yoffset;
- 	return 0;
- }
+@@ -330,13 +344,13 @@ int fpregs_get(struct task_struct *targe
+ 	struct user_i387_ia32_struct env;
+ 	int ret;
  
-_
-
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
-
-modedb-fix-incorrect-sync-and-vmode-flags-for-cvt-modes.patch
-fbcon-fix-wrong-vmode-bits-copied-on-console-switch.patch
-tridentfb-replace-macros-with-functions.patch
-tridentfb-convert-fb_info-into-allocated-one.patch
-tridentfb-move-global-pseudo-palette-into-structure.patch
-tridentfb-move-global-chip_id-into-structure.patch
-tridentfb-move-global-flat-panel-variable-into-structure.patch
-tridentfb-convert-is_blade-and-is_xp-macros-into-functions.patch
-tridentfb-move-global-acceleration-hooks-into-structure.patch
-tridentfb-make-use-of-functions-and-constants-from-the-vgah.patch
-tridentfb-fix-timing-calculations.patch
-tridentfb-use-mmio-access-for-clock-setting.patch
-tridentfb-fix-clock-settings-for-older-trident-96xx-chips.patch
-tridentfb-improve-probe-function.patch
-tridentfb-improved-register-values-on-tgui-9680.patch
-tridentfb-add-tgui-9440-support.patch
-tridentfb-fix-unitialized-pseudo_palette.patch
-tridentfb-improve-check_var-function.patch
-tridentfb-preserve-memory-type-settings.patch
-tridentfb-fix-hi-color-modes-for-tgui-9440.patch
-tridentfb-add-acceleration-for-tgui-families.patch
-tridentfb-acceleration-code-improvements.patch
-tridentfb-acceleration-bug-fixes.patch
-tridentfb-various-pixclock-and-timing-improvements.patch
-tridentfb-acceleration-constants-change.patch
-tridentfb-source-code-improvements.patch
-tridentfb-fix-console-freeze-when-switching-from-x11.patch
-tridentfb-fix-224-color-logo-at-8-bpp.patch
-amifb-test-virtual-screen-range-before-subtraction-on-unsigned.patch
-atafb-test-virtual-screen-range-before-subtraction-on-unsigned.patch
-fbcon-make-logo_height-a-local-variable.patch
-uvesafb-change-mode-parameter-to-mode_option.patch
-tridentfb-documentation-update.patch
-tdfxfb-add-mode_option-module-parameter.patch
-vga16fb-source-code-improvement.patch
-tdfxfb-remove-ypan-checks-done-by-a-higher-layer.patch
-
+-	if (!HAVE_HWFP)
+-		return fpregs_soft_get(target, regset, pos, count, kbuf, ubuf);
+-
+ 	ret = init_fpu(target);
+ 	if (ret)
+ 		return ret;
+ 
++	if (!HAVE_HWFP)
++		return fpregs_soft_get(target, regset, pos, count, kbuf, ubuf);
++
+ 	if (!cpu_has_fxsr) {
+ 		return user_regset_copyout(&pos, &count, &kbuf, &ubuf,
+ 					   &target->thread.xstate->fsave, 0,
+@@ -360,15 +374,15 @@ int fpregs_set(struct task_struct *targe
+ 	struct user_i387_ia32_struct env;
+ 	int ret;
+ 
+-	if (!HAVE_HWFP)
+-		return fpregs_soft_set(target, regset, pos, count, kbuf, ubuf);
+-
+ 	ret = init_fpu(target);
+ 	if (ret)
+ 		return ret;
+ 
+ 	set_stopped_child_used_math(target);
+ 
++	if (!HAVE_HWFP)
++		return fpregs_soft_set(target, regset, pos, count, kbuf, ubuf);
++
+ 	if (!cpu_has_fxsr) {
+ 		return user_regset_copyin(&pos, &count, &kbuf, &ubuf,
+ 					  &target->thread.xstate->fsave, 0, -1);
+@@ -474,18 +488,18 @@ static int restore_i387_fxsave(struct _f
+ int restore_i387_ia32(struct _fpstate_ia32 __user *buf)
+ {
+ 	int err;
++	struct task_struct *tsk = current;
+ 
+-	if (HAVE_HWFP) {
+-		struct task_struct *tsk = current;
+-
++	if (HAVE_HWFP)
+ 		clear_fpu(tsk);
+ 
+-		if (!used_math()) {
+-			err = init_fpu(tsk);
+-			if (err)
+-				return err;
+-		}
++	if (!used_math()) {
++		err = init_fpu(tsk);
++		if (err)
++			return err;
++	}
+ 
++	if (HAVE_HWFP) {
+ 		if (cpu_has_fxsr)
+ 			err = restore_i387_fxsave(buf);
+ 		else
+diff -puN arch/x86/math-emu/fpu_entry.c~x86-fix-broken-math-emu-with-lazy-allocation-of-fpu-area arch/x86/math-emu/fpu_entry.c
+--- a/arch/x86/math-emu/fpu_entry.c~x86-fix-broken-math-emu-with-lazy-allocation-of-fpu-area
++++ a/arch/x86/math-emu/fpu_entry.c
+@@ -30,6 +30,7 @@
+ #include <asm/uaccess.h>
+ #include <asm/desc.h>
+ #include <asm/user.h>
++#include <asm/i387.h>
+ 
+ #include "fpu_system.h"
+ #include "fpu_emu.h"
+@@ -146,6 +147,13 @@ asmlinkage void math_emulate(long arg)
+ 	unsigned long code_limit = 0;	/* Initialized to stop compiler warnings */
+ 	struct desc_struct code_descriptor;
+ 
++	if (!used_math()) {
++		if (init_fpu(current)) {
++			do_group_exit(SIGKILL);
++			return;
++		}
++	}
++
+ #ifdef RE_ENTRANT_CHECKING
+ 	if (emulating) {
+ 		printk("ERROR: wm-FPU-emu is not RE-ENTRANT!\n");
+@@ -153,11 +161,6 @@ asmlinkage void math_emulate(long arg)
+ 	RE_ENTRANT_CHECK_ON;
+ #endif /* RE_ENTRANT_CHECKING */
+ 
+-	if (!used_math()) {
+-		finit();
+-		set_used_math();
+-	}
