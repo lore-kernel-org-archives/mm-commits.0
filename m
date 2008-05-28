@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-restore-msgpool-original-value.patch added to -mm tree
-Date: Wed, 28 May 2008 15:46:23 -0700
-Message-ID: <200805282246.m4SMkNnM004184@imap1.linux-foundation.org>
+Subject: + vt-hold-console_sem-across-sysfs-operations.patch added to -mm tree
+Date: Wed, 28 May 2008 15:57:31 -0700
+Message-ID: <200805282257.m4SMvV3q004576@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60572 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36931 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753580AbYE1Wr1 (ORCPT
+	by vger.kernel.org with ESMTP id S1755682AbYE1W5m (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 May 2008 18:47:27 -0400
+	Wed, 28 May 2008 18:57:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Nadia.Derbey@bull.net, manfred@colorfullife.com, mtk.manpages@googlemail.com, peifferp@gmail.com
+Cc: jirislaby@gmail.com, alan@lxorguk.ukuu.org.uk, aris@ruivo.org
 
 
 The patch titled
-     ipc: restore MSGPOOL original value
+     vt: hold console_sem across sysfs operations
 has been added to the -mm tree.  Its filename is
-     ipc-restore-msgpool-original-value.patch
+     vt-hold-console_sem-across-sysfs-operations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,60 +34,57 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ipc: restore MSGPOOL original value
-From: Nadia.Derbey@bull.net
+Subject: vt: hold console_sem across sysfs operations
+From: Jiri Slaby <jirislaby@gmail.com>
 
-When posting:
+Hold console sem while creating/destroying sysfs files.  Serialisation is
+so far done by BKL held in tty release_dev and chrdev_open, but no other
+locks are held in open path.
 
-	[PATCH 1/8] Scaling msgmni to the amount of lowmem
-
-(see http://article.gmane.org/gmane.linux.kernel/637849/) I changed the
-MSGPOOL value to make it fit what is said in the man pages (i.e.  a size
-in bytes).
-
-But Michael Kerrisk rightly complained that this change could affect the
-ABI.  So I'm posting this patch to make MSGPOOL expressed back in Kbytes. 
-Michael, on his side, has fixed the man page.
-
-Signed-off-by: Nadia Derbey <Nadia.Derbey@bull.net>
-Cc: Pierre Peiffer <peifferp@gmail.com>
-Cc: Manfred Spraul <manfred@colorfullife.com>
-Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Aristeu Rozanski <aris@ruivo.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/msg.h |    4 ++--
+ drivers/char/vt.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/msg.h~restore-msgpool-original-value include/linux/msg.h
---- a/include/linux/msg.h~restore-msgpool-original-value
-+++ a/include/linux/msg.h
-@@ -64,11 +64,11 @@ struct msginfo {
- #define MSGMNB 16384   /* <= INT_MAX */   /* default max size of a message queue */
- 
- /* unused */
--#define MSGPOOL (MSGMNI * MSGMNB) /* size in bytes of message pool */
-+#define MSGPOOL (MSGMNI * MSGMNB / 1024) /* size in kbytes of message pool */
- #define MSGTQL  MSGMNB            /* number of system message headers */
- #define MSGMAP  MSGMNB            /* number of entries in message map */
- #define MSGSSZ  16                /* message segment size */
--#define __MSGSEG (MSGPOOL / MSGSSZ) /* max no. of segments */
-+#define __MSGSEG ((MSGPOOL * 1024) / MSGSSZ) /* max no. of segments */
- #define MSGSEG (__MSGSEG <= 0xffff ? __MSGSEG : 0xffff)
- 
- #ifdef __KERNEL__
+diff -puN drivers/char/vt.c~vt-hold-console_sem-across-sysfs-operations drivers/char/vt.c
+--- a/drivers/char/vt.c~vt-hold-console_sem-across-sysfs-operations
++++ a/drivers/char/vt.c
+@@ -2746,8 +2746,8 @@ static int con_open(struct tty_struct *t
+ 				tty->termios->c_iflag |= IUTF8;
+ 			else
+ 				tty->termios->c_iflag &= ~IUTF8;
+-			release_console_sem();
+ 			vcs_make_sysfs(tty);
++			release_console_sem();
+ 			return ret;
+ 		}
+ 	}
+@@ -2772,8 +2772,8 @@ static void con_close(struct tty_struct 
+ 		if (vc)
+ 			vc->vc_tty = NULL;
+ 		tty->driver_data = NULL;
+-		release_console_sem();
+ 		vcs_remove_sysfs(tty);
++		release_console_sem();
+ 		mutex_unlock(&tty_mutex);
+ 		/*
+ 		 * tty_mutex is released, but we still hold BKL, so there is
 _
 
-Patches currently in -mm which might be from Nadia.Derbey@bull.net are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
-ipc-restore-msgpool-original-value.patch
-idr-change-the-idr-structure.patch
-idr-rename-some-of-the-idr-apis-internal-routines.patch
-idr-fix-a-printk-call.patch
-idr-error-checking-factorization.patch
-idr-make-idr_get_new-rcu-safe.patch
-idr-make-idr_find-rcu-safe.patch
-idr-make-idr_remove-rcu-safe.patch
-ipc-call-idr_find-without-locking-in-ipc_lock.patch
-ipc-get-rid-of-ipc_lock_down.patch
+linux-next.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+vt-hold-console_sem-across-sysfs-operations.patch
+ip2-push-bkl-down-for-the-firmware-interface.patch
+rio-push-down-the-bkl-into-the-firmware-ioctl-handler.patch
+sx-push-bkl-down-into-the-firmware-ioctl-handler.patch
+ppdev-wrap-ioctl-handler-in-driver-and-push-lock-down.patch
+dsp56k-bkl-pushdown.patch
+reiser4.patch
+shrink_slab-handle-bad-shrinkers.patch
 
