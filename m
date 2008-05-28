@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ext4-remove-double-definitions-of-xattr-macros.patch added to -mm tree
-Date: Tue, 27 May 2008 20:49:38 -0700
-Message-ID: <200805280349.m4S3ncCg027539@imap1.linux-foundation.org>
+Subject: + svcrdma-fix-compile-warning-on-32-bit-platforms.patch added to -mm tree
+Date: Tue, 27 May 2008 20:51:25 -0700
+Message-ID: <200805280351.m4S3pP6F027631@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51353 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55844 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751477AbYE1Dtp (ORCPT
+	by vger.kernel.org with ESMTP id S1752200AbYE1Dvn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 May 2008 23:49:45 -0400
+	Tue, 27 May 2008 23:51:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shen@cn.fujitsu.com
+Cc: tom@opengridcomputing.com, bfields@fieldses.org
 
 
 The patch titled
-     ext4: remove double definitions of xattr macros
+     svcrdma: fix compile warning on 32 bit platforms
 has been added to the -mm tree.  Its filename is
-     ext4-remove-double-definitions-of-xattr-macros.patch
+     svcrdma-fix-compile-warning-on-32-bit-platforms.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,48 +34,62 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext4: remove double definitions of xattr macros
-From: Shen Feng <shen@cn.fujitsu.com>
+Subject: svcrdma: fix compile warning on 32 bit platforms
+From: Tom Tucker <tom@opengridcomputing.com>
 
-remove the definitions of macros:
+The ib_sge is used to store both dma_addr_t and virtual addresses.  This
+causes a warning on 32b platforms when casting ptrs to the u64 addr field
+of the ib_sge.  There is work underway to reduce the memory footprint of
+the WR context in 2.6.27 the time frame that will remove the overloading
+of the ib_sge.addr field.
 
-XATTR_TRUSTED_PREFIX
-
-XATTR_USER_PREFIX
-
-since they are defined in linux/xattr.h
-
-Signed-off-by: Shen Feng <shen@cn.fujitsu.com>
+Signed-off-by: Tom Tucker <tom@opengridcomputing.com>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/xattr_trusted.c |    4 +---
- fs/ext4/xattr_user.c    |    4 +---
- 2 files changed, 2 insertions(+), 6 deletions(-)
+ net/sunrpc/xprtrdma/svc_rdma_recvfrom.c |    3 ++-
+ net/sunrpc/xprtrdma/svc_rdma_sendto.c   |    4 ++--
+ 2 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN fs/ext4/xattr_trusted.c~ext4-remove-double-definitions-of-xattr-macros fs/ext4/xattr_trusted.c
---- a/fs/ext4/xattr_trusted.c~ext4-remove-double-definitions-of-xattr-macros
-+++ a/fs/ext4/xattr_trusted.c
-@@ -13,13 +13,11 @@
- #include "ext4.h"
- #include "xattr.h"
- 
--#define XATTR_TRUSTED_PREFIX "trusted."
--
- static size_t
- ext4_xattr_trusted_list(struct inode *inode, char *list, size_t list_size,
- 			const char *name, size_t name_len)
- {
--	const size_t prefix_len = sizeof(XATTR_TRUSTED_PREFIX)-1;
-+	const size_t prefix_len = XATTR_TRUSTED_PREFIX_LEN;
- 	const size_t total_len = prefix_len + name_len + 1;
- 
- 	if (!capable(CAP_SYS_ADMIN))
-diff -puN fs/ext4/xattr_user.c~ext4-remove-double-definitions-of-xattr-macros fs/ext4/xattr_user.c
---- a/fs/ext4/xattr_user.c~ext4-remove-double-definitions-of-xattr-macros
-+++ a/fs/ext4/xattr_user.c
-@@ -12,13 +12,11 @@
- #include "ext4.h"
- #include "xattr.h"
- 
--#define XATTR_USER_PREFIX "user."
+diff -puN net/sunrpc/xprtrdma/svc_rdma_recvfrom.c~svcrdma-fix-compile-warning-on-32-bit-platforms net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
+--- a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c~svcrdma-fix-compile-warning-on-32-bit-platforms
++++ a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
+@@ -231,7 +231,8 @@ static void rdma_set_ctxt_sge(struct svc
+ 		atomic_inc(&xprt->sc_dma_used);
+ 		ctxt->sge[i].addr = (unsigned long)
+ 			ib_dma_map_single(xprt->sc_cm_id->device,
+-					  (void*)sge[i].addr, sge[i].length,
++					  (void*)(unsigned long)
++					  sge[i].addr, sge[i].length,
+ 					  DMA_FROM_DEVICE);
+ 		ctxt->sge[i].length = sge[i].length;
+ 		ctxt->sge[i].lkey = sge[i].lkey;
+diff -puN net/sunrpc/xprtrdma/svc_rdma_sendto.c~svcrdma-fix-compile-warning-on-32-bit-platforms net/sunrpc/xprtrdma/svc_rdma_sendto.c
+--- a/net/sunrpc/xprtrdma/svc_rdma_sendto.c~svcrdma-fix-compile-warning-on-32-bit-platforms
++++ a/net/sunrpc/xprtrdma/svc_rdma_sendto.c
+@@ -177,7 +177,7 @@ static int send_write(struct svcxprt_rdm
+ 		atomic_inc(&xprt->sc_dma_used);
+ 		sge[sge_no].addr =
+ 			ib_dma_map_single(xprt->sc_cm_id->device,
+-					  (void *)
++					  (void *)(unsigned long)
+ 					  xdr_sge[xdr_sge_no].addr + sge_off,
+ 					  sge_bytes, DMA_TO_DEVICE);
+ 		if (dma_mapping_error(sge[sge_no].addr))
+@@ -416,7 +416,7 @@ static int send_reply(struct svcxprt_rdm
+ 		atomic_inc(&rdma->sc_dma_used);
+ 		ctxt->sge[sge_no].addr =
+ 			ib_dma_map_single(rdma->sc_cm_id->device,
+-					  (void *)
++					  (void *)(unsigned long)
+ 					  ctxt->sge[sge_no].addr,
+ 					  sge_bytes, DMA_TO_DEVICE);
+ 	}
+_
+
+Patches currently in -mm which might be from tom@opengridcomputing.com are
+
+linux-next.patch
+svcrdma-fix-compile-warning-on-32-bit-platforms.patch
+
