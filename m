@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ecryptfs-privileged-kthread-for-lower-file-opens.patch added to -mm tree
-Date: Wed, 28 May 2008 16:00:46 -0700
-Message-ID: <200805282300.m4SN0kLL004765@imap1.linux-foundation.org>
+Subject: + wm97xx-core-fix-race-on-phy-init.patch added to -mm tree
+Date: Wed, 28 May 2008 16:03:47 -0700
+Message-ID: <200805282303.m4SN3lh8004855@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60928 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53907 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753801AbYE1XBq (ORCPT
+	by vger.kernel.org with ESMTP id S1753821AbYE1XFR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 May 2008 19:01:46 -0400
+	Wed, 28 May 2008 19:05:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mhalcrow@us.ibm.com, sandeen@redhat.com, serue@us.ibm.com, shaggy@austin.ibm.com
+Cc: broonie@opensource.wolfsonmicro.com, dtor@mail.ru, giometti@enneenne.com
 
 
 The patch titled
-     eCryptfs: Privileged kthread for lower file opens
+     wm97xx-core: fix race on PHY init
 has been added to the -mm tree.  Its filename is
-     ecryptfs-privileged-kthread-for-lower-file-opens.patch
+     wm97xx-core-fix-race-on-phy-init.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,394 +34,58 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: eCryptfs: Privileged kthread for lower file opens
-From: Michael Halcrow <mhalcrow@us.ibm.com>
+Subject: wm97xx-core: fix race on PHY init
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
 
-eCryptfs would really like to have read-write access to all files in the
-lower filesystem.  Right now, the persistent lower file may be opened
-read-only if the attempt to open it read-write fails.  One way to keep
-from having to do that is to have a privileged kthread that can open the
-lower persistent file on behalf of the user opening the eCryptfs file;
-this patch implements this functionality.
+The chip phy_init() function must be called before the dig_enable()
+function but dig_enable() is called when the device is opened and we only
+call phy_init() after having reigstered the device, meaning the two can
+race.  Fix this by doing the phy_init() before we register the input
+device.
 
-This patch will properly allow a less-privileged user to open the eCryptfs
-file, followed by a more-privileged user opening the eCryptfs file, with
-the first user only being able to read and the second user being able to
-both read and write.  eCryptfs currently does this wrong; it will wind up
-calling vfs_write() on a file that was opened read-only.  This is fixed in
-this patch.
+Thanks to Rodolfo Giometti for the report.
 
-Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
-Cc: Dave Kleikamp <shaggy@austin.ibm.com>
-Cc: Serge Hallyn <serue@us.ibm.com>
-Cc: Eric Sandeen <sandeen@redhat.com>
+Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Reported-by: Rodolfo Giometti <giometti@enneenne.com>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/Makefile          |    2 
- fs/ecryptfs/ecryptfs_kernel.h |   19 ++
- fs/ecryptfs/file.c            |    7 +
- fs/ecryptfs/kthread.c         |  203 ++++++++++++++++++++++++++++++++
- fs/ecryptfs/main.c            |   42 +++---
- 5 files changed, 251 insertions(+), 22 deletions(-)
+ drivers/input/touchscreen/wm97xx-core.c |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN fs/ecryptfs/Makefile~ecryptfs-privileged-kthread-for-lower-file-opens fs/ecryptfs/Makefile
---- a/fs/ecryptfs/Makefile~ecryptfs-privileged-kthread-for-lower-file-opens
-+++ a/fs/ecryptfs/Makefile
-@@ -4,4 +4,4 @@
- 
- obj-$(CONFIG_ECRYPT_FS) += ecryptfs.o
- 
--ecryptfs-objs := dentry.o file.o inode.o main.o super.o mmap.o read_write.o crypto.o keystore.o messaging.o netlink.o miscdev.o debug.o
-+ecryptfs-objs := dentry.o file.o inode.o main.o super.o mmap.o read_write.o crypto.o keystore.o messaging.o netlink.o miscdev.o kthread.o debug.o
-diff -puN fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-privileged-kthread-for-lower-file-opens fs/ecryptfs/ecryptfs_kernel.h
---- a/fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-privileged-kthread-for-lower-file-opens
-+++ a/fs/ecryptfs/ecryptfs_kernel.h
-@@ -559,6 +559,20 @@ extern struct kmem_cache *ecryptfs_key_r
- extern struct kmem_cache *ecryptfs_key_sig_cache;
- extern struct kmem_cache *ecryptfs_global_auth_tok_cache;
- extern struct kmem_cache *ecryptfs_key_tfm_cache;
-+extern struct kmem_cache *ecryptfs_open_req_cache;
-+
-+struct ecryptfs_open_req {
-+#define ECRYPTFS_REQ_PROCESSED 0x00000001
-+#define ECRYPTFS_REQ_DROPPED   0x00000002
-+#define ECRYPTFS_REQ_ZOMBIE    0x00000004
-+	u32 flags;
-+	struct file **lower_file;
-+	struct dentry *lower_dentry;
-+	struct vfsmount *lower_mnt;
-+	wait_queue_head_t wait;
-+	struct mutex mux;
-+	struct list_head kthread_ctl_list;
-+};
- 
- int ecryptfs_interpose(struct dentry *hidden_dentry,
- 		       struct dentry *this_dentry, struct super_block *sb,
-@@ -692,5 +706,10 @@ void ecryptfs_msg_ctx_alloc_to_free(stru
- int
- ecryptfs_spawn_daemon(struct ecryptfs_daemon **daemon, uid_t euid,
- 		      struct user_namespace *user_ns, struct pid *pid);
-+int ecryptfs_init_kthread(void);
-+void ecryptfs_destroy_kthread(void);
-+int ecryptfs_privileged_open(struct file **lower_file,
-+			     struct dentry *lower_dentry,
-+			     struct vfsmount *lower_mnt);
- 
- #endif /* #ifndef ECRYPTFS_KERNEL_H */
-diff -puN fs/ecryptfs/file.c~ecryptfs-privileged-kthread-for-lower-file-opens fs/ecryptfs/file.c
---- a/fs/ecryptfs/file.c~ecryptfs-privileged-kthread-for-lower-file-opens
-+++ a/fs/ecryptfs/file.c
-@@ -191,6 +191,13 @@ static int ecryptfs_open(struct inode *i
- 				      | ECRYPTFS_ENCRYPTED);
+diff -puN drivers/input/touchscreen/wm97xx-core.c~wm97xx-core-fix-race-on-phy-init drivers/input/touchscreen/wm97xx-core.c
+--- a/drivers/input/touchscreen/wm97xx-core.c~wm97xx-core-fix-race-on-phy-init
++++ a/drivers/input/touchscreen/wm97xx-core.c
+@@ -608,6 +608,17 @@ static int wm97xx_probe(struct device *d
+ 		goto alloc_err;
  	}
- 	mutex_unlock(&crypt_stat->cs_mutex);
-+	if ((ecryptfs_inode_to_private(inode)->lower_file->f_flags & O_RDONLY)
-+	    && !(file->f_flags & O_RDONLY)) {
-+		rc = -EPERM;
-+		printk(KERN_WARNING "%s: Lower persistent file is RO; eCryptfs "
-+		       "file must hence be opened RO\n", __func__);
-+		goto out;
-+	}
- 	ecryptfs_set_file_lower(
- 		file, ecryptfs_inode_to_private(inode)->lower_file);
- 	if (S_ISDIR(ecryptfs_dentry->d_inode->i_mode)) {
-diff -puN /dev/null fs/ecryptfs/kthread.c
---- /dev/null
-+++ a/fs/ecryptfs/kthread.c
-@@ -0,0 +1,203 @@
-+/**
-+ * eCryptfs: Linux filesystem encryption layer
-+ *
-+ * Copyright (C) 2008 International Business Machines Corp.
-+ *   Author(s): Michael A. Halcrow <mahalcro@us.ibm.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License as
-+ * published by the Free Software Foundation; either version 2 of the
-+ * License, or (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
-+ * 02111-1307, USA.
-+ */
-+
-+#include <linux/kthread.h>
-+#include <linux/freezer.h>
-+#include <linux/wait.h>
-+#include <linux/mount.h>
-+#include "ecryptfs_kernel.h"
-+
-+struct kmem_cache *ecryptfs_open_req_cache;
-+
-+static struct ecryptfs_kthread_ctl {
-+#define ECRYPTFS_KTHREAD_ZOMBIE 0x00000001
-+	u32 flags;
-+	struct mutex mux;
-+	struct list_head req_list;
-+	wait_queue_head_t wait;
-+} ecryptfs_kthread_ctl;
-+
-+static struct task_struct *ecryptfs_kthread;
-+
-+/**
-+ * ecryptfs_threadfn
-+ * @ignored: ignored
-+ *
-+ * The eCryptfs kernel thread that has the responsibility of getting
-+ * the lower persistent file with RW permissions.
-+ *
-+ * Returns zero on success; non-zero otherwise
-+ */
-+static int ecryptfs_threadfn(void *ignored)
-+{
-+	set_freezable();
-+	while (1)  {
-+		struct ecryptfs_open_req *req;
-+
-+		wait_event_freezable(
-+			ecryptfs_kthread_ctl.wait,
-+			(!list_empty(&ecryptfs_kthread_ctl.req_list)
-+			 || kthread_should_stop()));
-+		mutex_lock(&ecryptfs_kthread_ctl.mux);
-+		if (ecryptfs_kthread_ctl.flags & ECRYPTFS_KTHREAD_ZOMBIE) {
-+			mutex_unlock(&ecryptfs_kthread_ctl.mux);
-+			goto out;
-+		}
-+		while (!list_empty(&ecryptfs_kthread_ctl.req_list)) {
-+			req = list_first_entry(&ecryptfs_kthread_ctl.req_list,
-+					       struct ecryptfs_open_req,
-+					       kthread_ctl_list);
-+			mutex_lock(&req->mux);
-+			list_del(&req->kthread_ctl_list);
-+			if (!(req->flags & ECRYPTFS_REQ_ZOMBIE)) {
-+				dget(req->lower_dentry);
-+				mntget(req->lower_mnt);
-+				(*req->lower_file) = dentry_open(
-+					req->lower_dentry, req->lower_mnt,
-+					(O_RDWR | O_LARGEFILE));
-+				req->flags |= ECRYPTFS_REQ_PROCESSED;
-+			}
-+			wake_up(&req->wait);
-+			mutex_unlock(&req->mux);
-+		}
-+		mutex_unlock(&ecryptfs_kthread_ctl.mux);
-+	}
-+out:
-+	return 0;
-+}
-+
-+int ecryptfs_init_kthread(void)
-+{
-+	int rc = 0;
-+
-+	mutex_init(&ecryptfs_kthread_ctl.mux);
-+	init_waitqueue_head(&ecryptfs_kthread_ctl.wait);
-+	INIT_LIST_HEAD(&ecryptfs_kthread_ctl.req_list);
-+	ecryptfs_kthread = kthread_run(&ecryptfs_threadfn, NULL,
-+				       "ecryptfs-kthread");
-+	if (IS_ERR(ecryptfs_kthread)) {
-+		rc = PTR_ERR(ecryptfs_kthread);
-+		printk(KERN_ERR "%s: Failed to create kernel thread; rc = [%d]"
-+		       "\n", __func__, rc);
-+	}
-+	return rc;
-+}
-+
-+void ecryptfs_destroy_kthread(void)
-+{
-+	struct ecryptfs_open_req *req;
-+
-+	mutex_lock(&ecryptfs_kthread_ctl.mux);
-+	ecryptfs_kthread_ctl.flags |= ECRYPTFS_KTHREAD_ZOMBIE;
-+	list_for_each_entry(req, &ecryptfs_kthread_ctl.req_list,
-+			    kthread_ctl_list) {
-+		mutex_lock(&req->mux);
-+		req->flags |= ECRYPTFS_REQ_ZOMBIE;
-+		wake_up(&req->wait);
-+		mutex_unlock(&req->mux);
-+	}
-+	mutex_unlock(&ecryptfs_kthread_ctl.mux);
-+	kthread_stop(ecryptfs_kthread);
-+	wake_up(&ecryptfs_kthread_ctl.wait);
-+}
-+
-+/**
-+ * ecryptfs_privileged_open
-+ * @lower_file: Result of dentry_open by root on lower dentry
-+ * @lower_dentry: Lower dentry for file to open
-+ * @lower_mnt: Lower vfsmount for file to open
-+ *
-+ * This function gets a r/w file opened againt the lower dentry.
-+ *
-+ * Returns zero on success; non-zero otherwise
-+ */
-+int ecryptfs_privileged_open(struct file **lower_file,
-+			     struct dentry *lower_dentry,
-+			     struct vfsmount *lower_mnt)
-+{
-+	struct ecryptfs_open_req *req;
-+	int rc = 0;
-+
-+	/* Corresponding dput() and mntput() are done when the
-+	 * persistent file is fput() when the eCryptfs inode is
-+	 * destroyed. */
-+	dget(lower_dentry);
-+	mntget(lower_mnt);
-+	(*lower_file) = dentry_open(lower_dentry, lower_mnt,
-+				    (O_RDWR | O_LARGEFILE));
-+	if (!IS_ERR(*lower_file))
-+		goto out;
-+	req = kmem_cache_alloc(ecryptfs_open_req_cache, GFP_KERNEL);
-+	if (!req) {
-+		rc = -ENOMEM;
-+		goto out;
-+	}
-+	mutex_init(&req->mux);
-+	req->lower_file = lower_file;
-+	req->lower_dentry = lower_dentry;
-+	req->lower_mnt = lower_mnt;
-+	init_waitqueue_head(&req->wait);
-+	req->flags = 0;
-+	mutex_lock(&ecryptfs_kthread_ctl.mux);
-+	if (ecryptfs_kthread_ctl.flags & ECRYPTFS_KTHREAD_ZOMBIE) {
-+		rc = -EIO;
-+		mutex_unlock(&ecryptfs_kthread_ctl.mux);
-+		printk(KERN_ERR "%s: We are in the middle of shutting down; "
-+		       "aborting privileged request to open lower file\n",
-+			__func__);
-+		goto out_free;
-+	}
-+	list_add_tail(&req->kthread_ctl_list, &ecryptfs_kthread_ctl.req_list);
-+	mutex_unlock(&ecryptfs_kthread_ctl.mux);
-+	wake_up(&ecryptfs_kthread_ctl.wait);
-+	wait_event(req->wait, (req->flags != 0));
-+	mutex_lock(&req->mux);
-+	BUG_ON(req->flags == 0);
-+	if (req->flags & ECRYPTFS_REQ_DROPPED
-+	    || req->flags & ECRYPTFS_REQ_ZOMBIE) {
-+		rc = -EIO;
-+		printk(KERN_WARNING "%s: Privileged open request dropped\n",
-+		       __func__);
-+		goto out_unlock;
-+	}
-+	if (IS_ERR(*req->lower_file)) {
-+		rc = PTR_ERR(*req->lower_file);
-+		dget(lower_dentry);
-+		mntget(lower_mnt);
-+		(*lower_file) = dentry_open(lower_dentry, lower_mnt,
-+					    (O_RDONLY | O_LARGEFILE));
-+		if (IS_ERR(*lower_file)) {
-+			rc = PTR_ERR(*req->lower_file);
-+			(*lower_file) = NULL;
-+			printk(KERN_WARNING "%s: Error attempting privileged "
-+			       "open of lower file with either RW or RO "
-+			       "perms; rc = [%d]. Giving up.\n",
-+			       __func__, rc);
-+		}
-+	}
-+out_unlock:
-+	mutex_unlock(&req->mux);
-+out_free:
-+	kmem_cache_free(ecryptfs_open_req_cache, req);
-+out:
-+	return rc;
-+}
-diff -puN fs/ecryptfs/main.c~ecryptfs-privileged-kthread-for-lower-file-opens fs/ecryptfs/main.c
---- a/fs/ecryptfs/main.c~ecryptfs-privileged-kthread-for-lower-file-opens
-+++ a/fs/ecryptfs/main.c
-@@ -130,26 +130,12 @@ static int ecryptfs_init_persistent_file
- 			ecryptfs_dentry_to_lower_mnt(ecryptfs_dentry);
  
- 		lower_dentry = ecryptfs_dentry_to_lower(ecryptfs_dentry);
--		/* Corresponding dput() and mntput() are done when the
--		 * persistent file is fput() when the eCryptfs inode
--		 * is destroyed. */
--		dget(lower_dentry);
--		mntget(lower_mnt);
--		inode_info->lower_file = dentry_open(lower_dentry,
--						     lower_mnt,
--						     (O_RDWR | O_LARGEFILE));
--		if (IS_ERR(inode_info->lower_file)) {
--			dget(lower_dentry);
--			mntget(lower_mnt);
--			inode_info->lower_file = dentry_open(lower_dentry,
--							     lower_mnt,
--							     (O_RDONLY
--							      | O_LARGEFILE));
--		}
--		if (IS_ERR(inode_info->lower_file)) {
-+		rc = ecryptfs_privileged_open(&inode_info->lower_file,
-+						     lower_dentry, lower_mnt);
-+		if (rc || IS_ERR(inode_info->lower_file)) {
- 			printk(KERN_ERR "Error opening lower persistent file "
--			       "for lower_dentry [0x%p] and lower_mnt [0x%p]\n",
--			       lower_dentry, lower_mnt);
-+			       "for lower_dentry [0x%p] and lower_mnt [0x%p]; "
-+			       "rc = [%d]\n", lower_dentry, lower_mnt, rc);
- 			rc = PTR_ERR(inode_info->lower_file);
- 			inode_info->lower_file = NULL;
- 		}
-@@ -679,6 +665,11 @@ static struct ecryptfs_cache_info {
- 		.name = "ecryptfs_key_tfm_cache",
- 		.size = sizeof(struct ecryptfs_key_tfm),
- 	},
-+	{
-+		.cache = &ecryptfs_open_req_cache,
-+		.name = "ecryptfs_open_req_cache",
-+		.size = sizeof(struct ecryptfs_open_req),
-+	},
- };
++	/* set up physical characteristics */
++	wm->codec->phy_init(wm);
++
++	/* load gpio cache */
++	wm->gpio[0] = wm97xx_reg_read(wm, AC97_GPIO_CFG);
++	wm->gpio[1] = wm97xx_reg_read(wm, AC97_GPIO_POLARITY);
++	wm->gpio[2] = wm97xx_reg_read(wm, AC97_GPIO_STICKY);
++	wm->gpio[3] = wm97xx_reg_read(wm, AC97_GPIO_WAKEUP);
++	wm->gpio[4] = wm97xx_reg_read(wm, AC97_GPIO_STATUS);
++	wm->gpio[5] = wm97xx_reg_read(wm, AC97_MISC_AFE);
++
+ 	wm->input_dev = input_allocate_device();
+ 	if (wm->input_dev == NULL) {
+ 		ret = -ENOMEM;
+@@ -635,17 +646,6 @@ static int wm97xx_probe(struct device *d
+ 	if (ret < 0)
+ 		goto dev_alloc_err;
  
- static void ecryptfs_free_kmem_caches(void)
-@@ -795,11 +786,17 @@ static int __init ecryptfs_init(void)
- 		printk(KERN_ERR "sysfs registration failed\n");
- 		goto out_unregister_filesystem;
- 	}
-+	rc = ecryptfs_init_kthread();
-+	if (rc) {
-+		printk(KERN_ERR "%s: kthread initialization failed; "
-+		       "rc = [%d]\n", __func__, rc);
-+		goto out_do_sysfs_unregistration;
-+	}
- 	rc = ecryptfs_init_messaging(ecryptfs_transport);
- 	if (rc) {
--		ecryptfs_printk(KERN_ERR, "Failure occured while attempting to "
-+		printk(KERN_ERR "Failure occured while attempting to "
- 				"initialize the eCryptfs netlink socket\n");
--		goto out_do_sysfs_unregistration;
-+		goto out_destroy_kthread;
- 	}
- 	rc = ecryptfs_init_crypto();
- 	if (rc) {
-@@ -814,6 +811,8 @@ static int __init ecryptfs_init(void)
- 	goto out;
- out_release_messaging:
- 	ecryptfs_release_messaging(ecryptfs_transport);
-+out_destroy_kthread:
-+	ecryptfs_destroy_kthread();
- out_do_sysfs_unregistration:
- 	do_sysfs_unregistration();
- out_unregister_filesystem:
-@@ -833,6 +832,7 @@ static void __exit ecryptfs_exit(void)
- 		printk(KERN_ERR "Failure whilst attempting to destroy crypto; "
- 		       "rc = [%d]\n", rc);
- 	ecryptfs_release_messaging(ecryptfs_transport);
-+	ecryptfs_destroy_kthread();
- 	do_sysfs_unregistration();
- 	unregister_filesystem(&ecryptfs_fs_type);
- 	ecryptfs_free_kmem_caches();
-_
-
-Patches currently in -mm which might be from mhalcrow@us.ibm.com are
-
-git-unionfs.patch
-ecryptfs-privileged-kthread-for-lower-file-opens.patch
-notify_change-callers-must-hold-i_mutex.patch
-
+-	/* set up physical characteristics */
+-	wm->codec->phy_init(wm);
+-
+-	/* load gpio cache */
+-	wm->gpio[0] = wm97xx_reg_read(wm, AC97_GPIO_CFG);
+-	wm->gpio[1] = wm97xx_reg_read(wm, AC97_GPIO_POLARITY);
+-	wm->gpio[2] = wm97xx_reg_read(wm, AC97_GPIO_STICKY);
+-	wm->gpio[3] = wm97xx_reg_read(wm, AC97_GPIO_WAKEUP);
+-	wm->gpio[4] = wm97xx_reg_read(wm, AC97_GPIO_STATUS);
+-	wm->gpio[5] = wm97xx_reg_read(wm, AC97_MISC_AFE);
