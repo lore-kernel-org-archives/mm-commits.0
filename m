@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 27 May 2008 20:34:48 -0700
-Message-ID: <200805280334.m4S3YmHH027041@imap1.linux-foundation.org>
+Subject: + capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support-fix-fix.patch added to -mm tree
+Date: Tue, 27 May 2008 20:33:55 -0700
+Message-ID: <200805280333.m4S3XtZ2027032@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43618 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56096 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751477AbYE1DfT (ORCPT
+	by vger.kernel.org with ESMTP id S1754684AbYE1Dei (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 May 2008 23:35:19 -0400
+	Tue, 27 May 2008 23:34:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, chrisw@sous-sol.org, morgan@kernel.org, serue@us.
 
 
 The patch titled
-     capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support-checkpatch-fixes
+     capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support-fix-fix
 has been added to the -mm tree.  Its filename is
-     capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support-checkpatch-fixes.patch
+     capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,20 +34,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support-checkpatch-fixes
+Subject: capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: do not initialise statics to 0 or NULL
-#152: FILE: kernel/capability.c:73:
-+	static int warned = 0;
-
-total: 1 errors, 0 warnings, 227 lines checked
-
-./patches/capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
+Be robust about the size of the thing which we put to userspace.
 
 Cc: Andrew G. Morgan <morgan@kernel.org>
 Cc: Chris Wright <chrisw@sous-sol.org>
@@ -55,22 +45,21 @@ Cc: Serge E. Hallyn <serue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/capability.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ kernel/capability.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/capability.c~capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support-checkpatch-fixes kernel/capability.c
---- a/kernel/capability.c~capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support-checkpatch-fixes
+diff -puN kernel/capability.c~capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support-fix-fix kernel/capability.c
+--- a/kernel/capability.c~capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support-fix-fix
 +++ a/kernel/capability.c
-@@ -70,7 +70,8 @@ static void warn_legacy_capability_use(v
- 
- static void warn_deprecated_v2(void)
- {
--	static int warned = 0;
-+	static int warned;
-+
- 	if (!warned) {
- 		char name[sizeof(current->comm)];
- 
+@@ -106,7 +106,7 @@ static int cap_validate_magic(cap_user_h
+ 		*tocopy = _LINUX_CAPABILITY_U32S_3;
+ 		break;
+ 	default:
+-		if (put_user(_KERNEL_CAPABILITY_VERSION, &header->version))
++		if (put_user((u32)_KERNEL_CAPABILITY_VERSION, &header->version))
+ 			return -EFAULT;
+ 		return -EINVAL;
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -123,7 +112,6 @@ git-xtensa.patch
 ext4-is-busted-on-m68k.patch
 capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support-fix.patch
 capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support-fix-fix.patch
-capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support-checkpatch-fixes.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
 libata-sff-fix-oops-reported-in-kerneloopsorg-for-pnp-devices-with-no-ctl-fix.patch
 ata-acpi-hotplug-handle-bay-devices-in-dock-stations-cleanup.patch
