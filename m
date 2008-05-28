@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mapping_set_error-add-unlikely.patch added to -mm tree
-Date: Tue, 27 May 2008 22:41:18 -0700
-Message-ID: <200805280541.m4S5fIYx031360@imap1.linux-foundation.org>
+Subject: + pnpacpi-use-_crs-irq-descriptor-length-for-_srs-v2.patch added to -mm tree
+Date: Tue, 27 May 2008 22:43:52 -0700
+Message-ID: <200805280543.m4S5hqeT031424@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41229 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53759 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752153AbYE1FlV (ORCPT
+	by vger.kernel.org with ESMTP id S1752613AbYE1FoS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 May 2008 01:41:21 -0400
+	Wed, 28 May 2008 01:44:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, guichaz@gmail.com
+Cc: bjorn.helgaas@hp.com, Robert.Moore@intel.com, ThJaeger@gmail.com, ambx1@neo.rr.com, castet.matthieu@free.fr, lenb@kernel.org, shaohua.li@intel.com
 
 
 The patch titled
-     mapping_set_error: add unlikely()
+     PNPACPI: use _CRS IRQ descriptor length for _SRS
 has been added to the -mm tree.  Its filename is
-     mapping_set_error-add-unlikely.patch
+     pnpacpi-use-_crs-irq-descriptor-length-for-_srs-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,137 +34,100 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mapping_set_error: add unlikely()
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: PNPACPI: use _CRS IRQ descriptor length for _SRS
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-This is called on a per-page basis and in the vast majority of cases
-`error' is zero.
+When configuring the resources of an ACPI device, we first evaluate _CRS
+to get a template of resource descriptors, then fill in the specific
+resource values we want, and finally evaluate _SRS to actually configure
+the device.
 
-Cc: Guillaume Chazarain <guichaz@gmail.com>
+Some resources have optional fields, so the size of encoded descriptors
+varies depending on the specific values.  For example, IRQ descriptors can
+be either two or three bytes long.  The third byte contains triggering
+information and can be omitted if the IRQ is edge-triggered and active
+high.
+
+The BIOS often assumes that IRQ descriptors in the _SRS buffer use the
+same format as those in the _CRS buffer, so this patch enforces that
+constraint.
+
+The "Start Dependent Function" descriptor also has an optional byte, but
+we don't currently encode those descriptors, so I didn't do anything for
+those.
+
+I have tested this patch on a Toshiba Portege 4000.  Without the patch,
+parport_pc claims the parallel port only if I use "pnpacpi=off".  This
+patch makes it work with PNPACPI.
+
+This is an extension of a patch by Tom Jaeger:
+    http://bugzilla.kernel.org/show_bug.cgi?id=9487#c42
+
+References:
+    http://bugzilla.kernel.org/show_bug.cgi?id=5832 Enabling ACPI Plug and Play in kernels >2.6.9 kills Parallel support
+    http://bugzilla.kernel.org/show_bug.cgi?id=9487 buggy firmware expects four-byte IRQ resource descriptor (was: Serial port disappears after Suspend on Toshiba R25)
+    http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=1d5b285da1893b90507b081664ac27f1a8a3dc5b related ACPICA fix
+
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Adam Belay <ambx1@neo.rr.com>
+Cc: Matthieu Castet <castet.matthieu@free.fr>
+Cc: Li Shaohua <shaohua.li@intel.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Tom Jaeger <ThJaeger@gmail.com>
+Cc: Robert Moore <Robert.Moore@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/pnp/pnpacpi/rsparser.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/pagemap.h~mapping_set_error-add-unlikely include/linux/pagemap.h
---- a/include/linux/pagemap.h~mapping_set_error-add-unlikely
-+++ a/include/linux/pagemap.h
-@@ -22,7 +22,7 @@
+diff -puN drivers/pnp/pnpacpi/rsparser.c~pnpacpi-use-_crs-irq-descriptor-length-for-_srs-v2 drivers/pnp/pnpacpi/rsparser.c
+--- a/drivers/pnp/pnpacpi/rsparser.c~pnpacpi-use-_crs-irq-descriptor-length-for-_srs-v2
++++ a/drivers/pnp/pnpacpi/rsparser.c
+@@ -755,6 +755,9 @@ static acpi_status pnpacpi_type_resource
+ 	if (pnpacpi_supported_resource(res)) {
+ 		(*resource)->type = res->type;
+ 		(*resource)->length = sizeof(struct acpi_resource);
++		if (res->type == ACPI_RESOURCE_TYPE_IRQ)
++			(*resource)->data.irq.descriptor_length =
++					res->data.irq.descriptor_length;
+ 		(*resource)++;
+ 	}
  
- static inline void mapping_set_error(struct address_space *mapping, int error)
- {
--	if (error) {
-+	if (unlikely(error)) {
- 		if (error == -ENOSPC)
- 			set_bit(AS_ENOSPC, &mapping->flags);
- 		else
+@@ -810,10 +813,12 @@ static void pnpacpi_encode_irq(struct pn
+ 	irq->interrupt_count = 1;
+ 	irq->interrupts[0] = p->start;
+ 
+-	dev_dbg(&dev->dev, "  encode irq %d %s %s %s\n", (int) p->start,
++	dev_dbg(&dev->dev, "  encode irq %d %s %s %s (%d-byte descriptor)\n",
++		(int) p->start,
+ 		triggering == ACPI_LEVEL_SENSITIVE ? "level" : "edge",
+ 		polarity == ACPI_ACTIVE_LOW ? "low" : "high",
+-		irq->sharable == ACPI_SHARED ? "shared" : "exclusive");
++		irq->sharable == ACPI_SHARED ? "shared" : "exclusive",
++		irq->descriptor_length);
+ }
+ 
+ static void pnpacpi_encode_ext_irq(struct pnp_dev *dev,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from bjorn.helgaas@hp.com are
 
-linux-next.patch
-next-remove-localversion.patch
-fix-kobject-fix-kobject_rename-and-config_sysfs.patch
-fix-driver-core-add-device_create_vargs-and-device_create_drvdata.patch
-kvm-is-busted-on-ia64.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-video-balcklist-fujitsu-lifebook-s6410.patch
-git-x86-fixup.patch
-lguest-use-cpu-capability-accessors.patch
-arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
-arch-powerpc-platforms-pseries-eeh_driverc-fix-warning.patch
-arch-powerpc-platforms-pseries-eeh_driverc-fix-warning-checkpatch-fixes.patch
-zoran-use-correct-type-for-cpu-flags.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-git-jg-misc-git-rejects.patch
-drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-fsldma-the-mpc8377mds-board-device-tree-node-for-fsldma-driver.patch
-mmc-sd-host-driver-for-ricoh-bay1controllers.patch
-git-ubifs.patch
-sundance-set-carrier-status-on-link-change-events.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-battery.patch
-svcrdma-fix-compile-warning-on-32-bit-platforms-checkpatch-fixes.patch
-pci-hotplug-introduce-pci_slot.patch
-pci-hotplug-acpi-pci-slot-detection-driver.patch
-sched-delete-dead-stuff.patch
-sched-delete-dead-stuff-2.patch
-git-scsi-misc-fix-scsi_dh-build-errors.patch
-drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
-s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
-pktcdvd-push-bkl-down-into-driver-fix.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-git-logfs-fixup.patch
-drivers-uwb-nehc-processor-flags-have-type-unsigned-long.patch
-drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
-drivers-uwb-wlp-sysfsc-dead-code.patch
-drivers-uwb-whcic-needs-dma-mappingh.patch
-usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix.patch
-usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix-2.patch
-git-watchdog.patch
-git-watchdog-git-rejects.patch
-watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix.patch
-watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl-fix.patch
-wireless-airo-waitbusy-wont-delay-checkpatch-fixes.patch
-git-xtensa.patch
-ext4-is-busted-on-m68k.patch
-capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-libata-sff-fix-oops-reported-in-kerneloopsorg-for-pnp-devices-with-no-ctl-fix.patch
-ata-acpi-hotplug-handle-bay-devices-in-dock-stations-cleanup.patch
-mm-verify-the-page-links-and-memory-model.patch
-mspec-convert-nopfn-to-fault-fix.patch
-page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
-kill-generic_file_direct_io-checkpatch-fixes.patch
-use-generic_access_phys-for-dev-mem-mappings-fix.patch
-spufs-use-the-new-vm_ops-access-fix.patch
-fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
-mapping_set_error-add-unlikely.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
-pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes.patch
-pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup.patch
-pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup-fix.patch
-split-the-typecheck-macros-out-of-include-linux-kernelh.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
-remove-apparently-unused-fd1772h-header-file.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
-build-kernel-profileo-only-when-requested-cleanups.patch
-rename-warn-to-warning-to-clear-the-namespace-fix.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
-flag-parameters-paccept-fix.patch
-flag-parameters-paccept-sys_ni.patch
-flag-parameters-anon_inode_getfd-extension-fix.patch
-flag-parameters-signalfd-fix.patch
-flag-parameters-eventfd-fix.patch
-flag-parameters-inotify_init-fix.patch
-flag-parameters-check-magic-constants-alpha.patch
-drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
-reiserfs-convert-j_flush_sem-to-mutex.patch
-reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-reiser4.patch
-reiser4-semaphore-fix.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+acpi_pm_device_sleep_state-cleanup.patch
+acpi-fix-drivers-acpi-gluec-build-error.patch
+mm-only-enforce-acpi-resource-conflict-checks.patch
+3c515-fix-using-pnp_get_resource-when-config_isapnp=n.patch
+provide-rtc_cmos-platform-device-take-2.patch
+pnpacpi-fix-irq-flag-decoding.patch
+pnpacpi-fix-shareable-irq-encode-decode.patch
+pnpacpi-use-_crs-irq-descriptor-length-for-_srs-v2.patch
+pnp-add-detail-to-debug-resource-dump.patch
+pnp-remove-pnp_resourceindex.patch
+pnp-add-pnp_resource_type-internal-interface.patch
+pnp-add-pnp_resource_type_name-helper-function.patch
+pnp-make-pnp_portmemetc_start-et-al-work-for-invalid-resources.patch
+pnp-replace-pnp_resource_table-with-dynamically-allocated-resources.patch
+pnp-remove-ratelimit-on-add-resource-failures.patch
+pnp-dont-sort-by-type-in-sys-resources.patch
+make-pnp_add_card_id-static.patch
 
