@@ -1,22 +1,22 @@
 From: akpm@linux-foundation.org
 Subject: + mn10300-fix-typo-in-header-guard.patch added to -mm tree
-Date: Wed, 28 May 2008 11:58:03 -0700
-Message-ID: <200805281858.m4SIw3M4027570@imap1.linux-foundation.org>
+Date: Wed, 28 May 2008 11:58:19 -0700
+Message-ID: <200805281858.m4SIwJ2W027602@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58609 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51602 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752138AbYE1S7I (ORCPT
+	by vger.kernel.org with ESMTP id S1752263AbYE1S7W (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 May 2008 14:59:08 -0400
+	Wed, 28 May 2008 14:59:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com, vegard.nossum@gmail.com
+Cc: vegard.nossum@gmail.com, dhowells@redhat.com
 
 
 The patch titled
-     From: David Howells <dhowells@redhat.com>
+     mn10300: fix typo in header guard
 has been added to the -mm tree.  Its filename is
      mn10300-fix-typo-in-header-guard.patch
 
@@ -34,17 +34,13 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: From: David Howells <dhowells@redhat.com>
+Subject: mn10300: fix typo in header guard
 From: Vegard Nossum <vegard.nossum@gmail.com>
-
 
 Fix a typo in the header guard of asm/ipc.h.
 
 Signed-off-by: Vegard Nossum <vegard.nossum@gmail.com>
 Signed-off-by: David Howells <dhowells@redhat.com>
----
-
-index efbbef8..f6f63d4 100644
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
@@ -62,14 +58,8 @@ diff -puN include/asm-mn10300/ipcbuf.h~mn10300-fix-typo-in-header-guard include/
  /*
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from vegard.nossum@gmail.com are
 
 mn10300-fix-typo-in-header-guard.patch
-linux-next.patch
-git-unionfs.patch
-security-keys-remove-unused-key_alloc_sem.patch
-frv-dont-offer-binfmt_flat.patch
-frv-use-the-common-ascii-hex-helpers.patch
-mn10300-use-the-common-ascii-hex-helpers.patch
-mutex-subsystem-synchro-test-module.patch
+kallsyms-fix-potential-overflow-in-binary-search.patch
 
