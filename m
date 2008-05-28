@@ -1,43 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: - capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 27 May 2008 22:04:07 -0700
-Message-ID: <200805280504.m4S547tw030053@imap1.linux-foundation.org>
+Subject: - capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support-fix.patch removed from -mm tree
+Date: Tue, 27 May 2008 22:03:59 -0700
+Message-ID: <200805280503.m4S53x7i030038@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58427 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51697 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752129AbYE1FEn (ORCPT
+	by vger.kernel.org with ESMTP id S1752045AbYE1FEe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 May 2008 01:04:43 -0400
+	Wed, 28 May 2008 01:04:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, chrisw@sous-sol.org, morgan@kernel.org, serue@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support-checkpatch-fixes
+     capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support-fix
 has been removed from the -mm tree.  Its filename was
-     capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support-checkpatch-fixes.patch
+     capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support-fix.patch
 
 This patch was dropped because it was folded into capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support-checkpatch-fixes
+Subject: capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: do not initialise statics to 0 or NULL
-#152: FILE: kernel/capability.c:73:
-+	static int warned = 0;
-
-total: 1 errors, 0 warnings, 227 lines checked
-
-./patches/capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
+spel stuf rite.
 
 Cc: Andrew G. Morgan <morgan@kernel.org>
 Cc: Chris Wright <chrisw@sous-sol.org>
@@ -45,22 +35,50 @@ Cc: Serge E. Hallyn <serue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/capability.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/capability.h |    2 +-
+ kernel/capability.c        |    6 +++---
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN kernel/capability.c~capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support-checkpatch-fixes kernel/capability.c
---- a/kernel/capability.c~capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support-checkpatch-fixes
-+++ a/kernel/capability.c
-@@ -70,7 +70,8 @@ static void warn_legacy_capability_use(v
+diff -puN include/linux/capability.h~capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support-fix include/linux/capability.h
+--- a/include/linux/capability.h~capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support-fix
++++ a/include/linux/capability.h
+@@ -31,7 +31,7 @@ struct task_struct;
+ #define _LINUX_CAPABILITY_VERSION_1  0x19980330
+ #define _LINUX_CAPABILITY_U32S_1     1
  
- static void warn_deprecated_v2(void)
+-#define _LINUX_CAPABILITY_VERSION_2  0x20071026  /* depreciated - use v3 */
++#define _LINUX_CAPABILITY_VERSION_2  0x20071026  /* deprecated - use v3 */
+ #define _LINUX_CAPABILITY_U32S_2     2
+ 
+ #define _LINUX_CAPABILITY_VERSION_3  0x20080522
+diff -puN kernel/capability.c~capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support-fix kernel/capability.c
+--- a/kernel/capability.c~capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support-fix
++++ a/kernel/capability.c
+@@ -68,13 +68,13 @@ static void warn_legacy_capability_use(v
+  * away.
+  */
+ 
+-static void warn_depreciated_v2(void)
++static void warn_deprecated_v2(void)
  {
--	static int warned = 0;
-+	static int warned;
-+
+ 	static int warned = 0;
  	if (!warned) {
  		char name[sizeof(current->comm)];
  
+-		printk(KERN_INFO "warning: `%s' uses depreciated v2"
++		printk(KERN_INFO "warning: `%s' uses deprecated v2"
+ 		       " capabilities in a way that may be insecure.\n",
+ 		       get_task_comm(name, current));
+ 		warned = 1;
+@@ -98,7 +98,7 @@ static int cap_validate_magic(cap_user_h
+ 		*tocopy = _LINUX_CAPABILITY_U32S_1;
+ 		break;
+ 	case _LINUX_CAPABILITY_VERSION_2:
+-		warn_depreciated_v2();
++		warn_deprecated_v2();
+ 		/*
+ 		 * fall through - v3 is otherwise equivalent to v2.
+ 		 */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -113,6 +131,8 @@ wireless-airo-waitbusy-wont-delay-checkpatch-fixes.patch
 git-xtensa.patch
 ext4-is-busted-on-m68k.patch
 capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support.patch
+capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support-fix.patch
+capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support-fix-fix.patch
 capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support-checkpatch-fixes.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
 libata-sff-fix-oops-reported-in-kerneloopsorg-for-pnp-devices-with-no-ctl-fix.patch
