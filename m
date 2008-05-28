@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + i2o-handle-sysfs_create_link-failures.patch added to -mm tree
-Date: Wed, 28 May 2008 15:44:20 -0700
-Message-ID: <200805282244.m4SMiKeq004077@imap1.linux-foundation.org>
+Subject: + ipc-restore-msgpool-original-value.patch added to -mm tree
+Date: Wed, 28 May 2008 15:46:23 -0700
+Message-ID: <200805282246.m4SMkNnM004184@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47317 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60572 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753628AbYE1WpN (ORCPT
+	by vger.kernel.org with ESMTP id S1753580AbYE1Wr1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 May 2008 18:45:13 -0400
+	Wed, 28 May 2008 18:47:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: wangchen@cn.fujitsu.com, Markus.Lidel@shadowconnect.com, jens.axboe@oracle.com
+Cc: Nadia.Derbey@bull.net, manfred@colorfullife.com, mtk.manpages@googlemail.com, peifferp@gmail.com
 
 
 The patch titled
-     I2O: handle sysfs_create_link() failures
+     ipc: restore MSGPOOL original value
 has been added to the -mm tree.  Its filename is
-     i2o-handle-sysfs_create_link-failures.patch
+     ipc-restore-msgpool-original-value.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,113 +34,60 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: I2O: handle sysfs_create_link() failures
-From: Wang Chen <wangchen@cn.fujitsu.com>
+Subject: ipc: restore MSGPOOL original value
+From: Nadia.Derbey@bull.net
 
-Compile warning:
-ignoring return value of `sysfs_create_link', declared with attribute warn_unused_result.
+When posting:
 
-If sysfs_create_link failed, take care of the return value and do some
-error handle after the failure.
+	[PATCH 1/8] Scaling msgmni to the amount of lowmem
 
-Since sysfs_remove_link() will check whether a link exists, when removing the
-link in error path, we don't need to care whether a link was created.
+(see http://article.gmane.org/gmane.linux.kernel/637849/) I changed the
+MSGPOOL value to make it fit what is said in the man pages (i.e.  a size
+in bytes).
 
-Signed-off-by: Wang Chen <wangchen@cn.fujitsu.com>
-Cc: Markus Lidel <Markus.Lidel@shadowconnect.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+But Michael Kerrisk rightly complained that this change could affect the
+ABI.  So I'm posting this patch to make MSGPOOL expressed back in Kbytes. 
+Michael, on his side, has fixed the man page.
+
+Signed-off-by: Nadia Derbey <Nadia.Derbey@bull.net>
+Cc: Pierre Peiffer <peifferp@gmail.com>
+Cc: Manfred Spraul <manfred@colorfullife.com>
+Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/message/i2o/device.c |   54 +++++++++++++++++++++++++--------
- 1 file changed, 42 insertions(+), 12 deletions(-)
+ include/linux/msg.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/message/i2o/device.c~i2o-handle-sysfs_create_link-failures drivers/message/i2o/device.c
---- a/drivers/message/i2o/device.c~i2o-handle-sysfs_create_link-failures
-+++ a/drivers/message/i2o/device.c
-@@ -243,29 +243,41 @@ static int i2o_device_add(struct i2o_con
+diff -puN include/linux/msg.h~restore-msgpool-original-value include/linux/msg.h
+--- a/include/linux/msg.h~restore-msgpool-original-value
++++ a/include/linux/msg.h
+@@ -64,11 +64,11 @@ struct msginfo {
+ #define MSGMNB 16384   /* <= INT_MAX */   /* default max size of a message queue */
  
- 	/* create user entries for this device */
- 	tmp = i2o_iop_find_device(i2o_dev->iop, i2o_dev->lct_data.user_tid);
--	if (tmp && (tmp != i2o_dev))
--		sysfs_create_link(&i2o_dev->device.kobj, &tmp->device.kobj,
--				  "user");
-+	if (tmp && (tmp != i2o_dev)) {
-+		rc = sysfs_create_link(&i2o_dev->device.kobj,
-+				       &tmp->device.kobj, "user");
-+		if (rc)
-+			goto unreg_dev;
-+	}
+ /* unused */
+-#define MSGPOOL (MSGMNI * MSGMNB) /* size in bytes of message pool */
++#define MSGPOOL (MSGMNI * MSGMNB / 1024) /* size in kbytes of message pool */
+ #define MSGTQL  MSGMNB            /* number of system message headers */
+ #define MSGMAP  MSGMNB            /* number of entries in message map */
+ #define MSGSSZ  16                /* message segment size */
+-#define __MSGSEG (MSGPOOL / MSGSSZ) /* max no. of segments */
++#define __MSGSEG ((MSGPOOL * 1024) / MSGSSZ) /* max no. of segments */
+ #define MSGSEG (__MSGSEG <= 0xffff ? __MSGSEG : 0xffff)
  
- 	/* create user entries refering to this device */
- 	list_for_each_entry(tmp, &c->devices, list)
- 	    if ((tmp->lct_data.user_tid == i2o_dev->lct_data.tid)
--		&& (tmp != i2o_dev))
--		sysfs_create_link(&tmp->device.kobj,
--				  &i2o_dev->device.kobj, "user");
-+		&& (tmp != i2o_dev)) {
-+		rc = sysfs_create_link(&tmp->device.kobj,
-+				       &i2o_dev->device.kobj, "user");
-+		if (rc)
-+			goto rmlink1;
-+	}
- 
- 	/* create parent entries for this device */
- 	tmp = i2o_iop_find_device(i2o_dev->iop, i2o_dev->lct_data.parent_tid);
--	if (tmp && (tmp != i2o_dev))
--		sysfs_create_link(&i2o_dev->device.kobj, &tmp->device.kobj,
--				  "parent");
-+	if (tmp && (tmp != i2o_dev)) {
-+		rc = sysfs_create_link(&i2o_dev->device.kobj,
-+				       &tmp->device.kobj, "parent");
-+		if (rc)
-+			goto rmlink1;
-+	}
- 
- 	/* create parent entries refering to this device */
- 	list_for_each_entry(tmp, &c->devices, list)
- 	    if ((tmp->lct_data.parent_tid == i2o_dev->lct_data.tid)
--		&& (tmp != i2o_dev))
--		sysfs_create_link(&tmp->device.kobj,
--				  &i2o_dev->device.kobj, "parent");
-+		&& (tmp != i2o_dev)) {
-+		rc = sysfs_create_link(&tmp->device.kobj,
-+				       &i2o_dev->device.kobj, "parent");
-+		if (rc)
-+			goto rmlink2;
-+	}
- 
- 	i2o_driver_notify_device_add_all(i2o_dev);
- 
-@@ -273,6 +285,24 @@ static int i2o_device_add(struct i2o_con
- 
- 	return 0;
- 
-+rmlink2:
-+	/* If link creating failed halfway, we loop whole list to cleanup.
-+	 * And we don't care wrong removing of link, because sysfs_remove_link
-+	 * will take care of it.
-+	 */
-+	list_for_each_entry(tmp, &c->devices, list) {
-+		if (tmp->lct_data.parent_tid == i2o_dev->lct_data.tid)
-+			sysfs_remove_link(&tmp->device.kobj, "parent");
-+	}
-+	sysfs_remove_link(&i2o_dev->device.kobj, "parent");
-+rmlink1:
-+	list_for_each_entry(tmp, &c->devices, list)
-+		if (tmp->lct_data.user_tid == i2o_dev->lct_data.tid)
-+			sysfs_remove_link(&tmp->device.kobj, "user");
-+	sysfs_remove_link(&i2o_dev->device.kobj, "user");
-+unreg_dev:
-+	list_del(&i2o_dev->list);
-+	device_unregister(&i2o_dev->device);
- err:
- 	kfree(i2o_dev);
- 	return rc;
+ #ifdef __KERNEL__
 _
 
-Patches currently in -mm which might be from wangchen@cn.fujitsu.com are
+Patches currently in -mm which might be from Nadia.Derbey@bull.net are
 
-linux-next.patch
-i2o-handle-sysfs_create_link-failures.patch
+ipc-restore-msgpool-original-value.patch
+idr-change-the-idr-structure.patch
+idr-rename-some-of-the-idr-apis-internal-routines.patch
+idr-fix-a-printk-call.patch
+idr-error-checking-factorization.patch
+idr-make-idr_get_new-rcu-safe.patch
+idr-make-idr_find-rcu-safe.patch
+idr-make-idr_remove-rcu-safe.patch
+ipc-call-idr_find-without-locking-in-ipc_lock.patch
+ipc-get-rid-of-ipc_lock_down.patch
 
