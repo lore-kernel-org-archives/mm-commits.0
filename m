@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + wm9713-support-five-wire-panels.patch added to -mm tree
-Date: Wed, 28 May 2008 16:03:49 -0700
-Message-ID: <200805282303.m4SN3nGb004858@imap1.linux-foundation.org>
+Subject: + wm97xx-core-report-a-phys-for-wm97xx-touchscreens.patch added to -mm tree
+Date: Wed, 28 May 2008 16:04:40 -0700
+Message-ID: <200805282304.m4SN4eCk004868@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36270 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56049 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754002AbYE1XFI (ORCPT
+	by vger.kernel.org with ESMTP id S1753698AbYE1XFx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 May 2008 19:05:08 -0400
+	Wed, 28 May 2008 19:05:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: broonie@opensource.wolfsonmicro.com, dtor@mail.ru, giometti@enneenne.com
 
 
 The patch titled
-     wm9713: support five wire panels
+     wm97xx-core: report a phys for WM97xx touchscreens
 has been added to the -mm tree.  Its filename is
-     wm9713-support-five-wire-panels.patch
+     wm97xx-core-report-a-phys-for-wm97xx-touchscreens.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,8 +34,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: wm9713: support five wire panels
+Subject: wm97xx-core: report a phys for WM97xx touchscreens
 From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+
+phys is displayed in diagnostic output like that from evbug so ensure
+that it is set to something.
 
 Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
 Cc: Rodolfo Giometti <giometti@enneenne.com>
@@ -43,60 +46,20 @@ Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/touchscreen/wm9713.c |   22 ++++++++++++++++++++++
- include/linux/wm97xx.h             |    1 +
- 2 files changed, 23 insertions(+)
+ drivers/input/touchscreen/wm97xx-core.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/input/touchscreen/wm9713.c~wm9713-support-five-wire-panels drivers/input/touchscreen/wm9713.c
---- a/drivers/input/touchscreen/wm9713.c~wm9713-support-five-wire-panels
-+++ a/drivers/input/touchscreen/wm9713.c
-@@ -85,6 +85,15 @@ module_param(delay, int, 0);
- MODULE_PARM_DESC(delay, "Set adc sample delay.");
+diff -puN drivers/input/touchscreen/wm97xx-core.c~wm97xx-core-report-a-phys-for-wm97xx-touchscreens drivers/input/touchscreen/wm97xx-core.c
+--- a/drivers/input/touchscreen/wm97xx-core.c~wm97xx-core-report-a-phys-for-wm97xx-touchscreens
++++ a/drivers/input/touchscreen/wm97xx-core.c
+@@ -616,6 +616,7 @@ static int wm97xx_probe(struct device *d
  
- /*
-+ * Set five_wire = 1 to use a 5 wire touchscreen.
-+ *
-+ * NOTE: Five wire mode does not allow for readback of pressure.
-+ */
-+static int five_wire;
-+module_param(five_wire, int, 0);
-+MODULE_PARM_DESC(five_wire, "Set to '1' to use 5-wire touchscreen.");
-+
-+/*
-  * Set adc mask function.
-  *
-  * Sources of glitch noise, such as signals driving an LCD display, may feed
-@@ -162,6 +171,19 @@ static void wm9713_phy_init(struct wm97x
- 			 64000 / rpu);
- 	}
- 
-+	/* Five wire panel? */
-+	if (five_wire) {
-+		dig3 |= WM9713_45W;
-+		dev_info(wm->dev, "setting 5-wire touchscreen mode.");
-+
-+		if (pil) {
-+			dev_warn(wm->dev,
-+				 "Pressure measurement not supported in 5 "
-+				 "wire mode, disabling\n");
-+			pil = 0;
-+		}
-+	}
-+
- 	/* touchpanel pressure */
- 	if (pil == 2) {
- 		dig3 |= WM9712_PIL;
-diff -puN include/linux/wm97xx.h~wm9713-support-five-wire-panels include/linux/wm97xx.h
---- a/include/linux/wm97xx.h~wm9713-support-five-wire-panels
-+++ a/include/linux/wm97xx.h
-@@ -100,6 +100,7 @@
- #define WM9713_ADCSEL_Y		0x0004	/* Y measurement */
- #define WM9713_ADCSEL_PRES	0x0008	/* Pressure measurement */
- #define WM9713_COO		0x0001	/* enable coordinate mode */
-+#define WM9713_45W		0x1000  /* set for 5 wire panel */
- #define WM9713_PDEN		0x0800	/* measure only when pen down */
- #define WM9713_ADCSEL_MASK	0x00fe	/* ADC selection mask */
- #define WM9713_WAIT		0x0200	/* coordinate wait */
+ 	/* set up touch configuration */
+ 	wm->input_dev->name = "wm97xx touchscreen";
++	wm->input_dev->phys = "wm97xx";
+ 	wm->input_dev->open = wm97xx_ts_input_open;
+ 	wm->input_dev->close = wm97xx_ts_input_close;
+ 	set_bit(EV_ABS, wm->input_dev->evbit);
 _
 
 Patches currently in -mm which might be from broonie@opensource.wolfsonmicro.com are
