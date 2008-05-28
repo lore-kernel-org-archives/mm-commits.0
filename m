@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + tdfxfb-add-mode_option-module-parameter.patch added to -mm tree
-Date: Tue, 27 May 2008 20:46:51 -0700
-Message-ID: <200805280346.m4S3kpjC027478@imap1.linux-foundation.org>
+Subject: + fbcon-fix-wrong-vmode-bits-copied-on-console-switch.patch added to -mm tree
+Date: Tue, 27 May 2008 20:46:47 -0700
+Message-ID: <200805280346.m4S3kll4027475@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59856 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41872 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752132AbYE1Dqx (ORCPT
+	by vger.kernel.org with ESMTP id S1752128AbYE1Dqv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 May 2008 23:46:53 -0400
+	Tue, 27 May 2008 23:46:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: krzysztof.h1@wp.pl
 
 
 The patch titled
-     tdfxfb: add mode_option module parameter
+     fbcon: fix wrong vmode bits copied on console switch
 has been added to the -mm tree.  Its filename is
-     tdfxfb-add-mode_option-module-parameter.patch
+     fbcon-fix-wrong-vmode-bits-copied-on-console-switch.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tdfxfb: add mode_option module parameter
+Subject: fbcon: fix wrong vmode bits copied on console switch
 From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Small step toward unification of mode setting parameter.  This is required
-to fix the Bugzilla's bug 9847
+The interlaced and double line mode bits should not be copied to new
+console when the console is switched.  Otherwise, the new console may be
+set to incorrect refresh rate.
+
+Also, the x and y offsets does not need to be copied.
 
 Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/tdfxfb.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/video/console/fbcon.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/video/tdfxfb.c~tdfxfb-add-mode_option-module-parameter drivers/video/tdfxfb.c
---- a/drivers/video/tdfxfb.c~tdfxfb-add-mode_option-module-parameter
-+++ a/drivers/video/tdfxfb.c
-@@ -1426,6 +1426,8 @@ MODULE_LICENSE("GPL");
- module_param(hwcursor, int, 0644);
- MODULE_PARM_DESC(hwcursor, "Enable hardware cursor "
- 			"(1=enable, 0=disable, default=1)");
-+module_param(mode_option, charp, 0);
-+MODULE_PARM_DESC(mode_option, "Initial video mode e.g. '648x480-8@60'");
- #ifdef CONFIG_MTRR
- module_param(nomtrr, bool, 0);
- MODULE_PARM_DESC(nomtrr, "Disable MTRR support (default: enabled)");
+diff -puN drivers/video/console/fbcon.c~fbcon-fix-wrong-vmode-bits-copied-on-console-switch drivers/video/console/fbcon.c
+--- a/drivers/video/console/fbcon.c~fbcon-fix-wrong-vmode-bits-copied-on-console-switch
++++ a/drivers/video/console/fbcon.c
+@@ -2274,9 +2274,7 @@ static int fbcon_switch(struct vc_data *
+ 	 * in fb_set_var()
+ 	 */
+ 	info->var.activate = var.activate;
+-	var.yoffset = info->var.yoffset;
+-	var.xoffset = info->var.xoffset;
+-	var.vmode = info->var.vmode;
++	var.vmode |= info->var.vmode & ~FB_VMODE_MASK;
+ 	fb_set_var(info, &var);
+ 	ops->var = info->var;
+ 
 _
 
 Patches currently in -mm which might be from krzysztof.h1@wp.pl are
