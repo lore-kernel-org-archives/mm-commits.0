@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support.patch added to -mm tree
-Date: Tue, 27 May 2008 20:33:51 -0700
-Message-ID: <200805280333.m4S3XpQL027026@imap1.linux-foundation.org>
+Subject: + capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support-fix.patch added to -mm tree
+Date: Tue, 27 May 2008 20:33:53 -0700
+Message-ID: <200805280333.m4S3XrPK027029@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35534 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48558 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753977AbYE1DeW (ORCPT
+	by vger.kernel.org with ESMTP id S1754019AbYE1DeW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 27 May 2008 23:34:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: morgan@kernel.org, chrisw@sous-sol.org, serue@us.ibm.com
+Cc: akpm@linux-foundation.org, chrisw@sous-sol.org, morgan@kernel.org, serue@us.ibm.com
 
 
 The patch titled
-     capabilities: remain source compatible with 32-bit raw legacy capability support.
+     capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support-fix
 has been added to the -mm tree.  Its filename is
-     capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support.patch
+     capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,306 +34,165 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: capabilities: remain source compatible with 32-bit raw legacy capability support.
-From: Andrew G. Morgan <morgan@kernel.org>
+Subject: capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Source code out there hard-codes a notion of what the
-_LINUX_CAPABILITY_VERSION #define means in terms of the semantics of the
-raw capability system calls capget() and capset().  Its unfortunate, but
-true.
+spel stuf rite.
 
-Since the confusing header file has been in a released kernel, there is
-software that is erroneously using 64-bit capabilities with the semantics
-of 32-bit compatibilities.  These recently compiled programs may suffer
-corruption of their memory when sys_getcap() overwrites more memory than
-they are coded to expect, and the raising of added capabilities when using
-sys_capset().
-
-As such, this patch does a number of things to clean up the situation
-for all. It
-
-  1. forces the _LINUX_CAPABILITY_VERSION define to always retain its
-     legacy value.
-
-  2. adopts a new #define strategy for the kernel's internal
-     implementation of the preferred magic.
-
-  3. depreciates v2 capability magic in favor of a new (v3) magic
-     number. The functionality of v3 is entirely equivalent to v2,
-     the only difference being that the v2 magic causes the kernel
-     to log a "depreciated" warning so the admin can find applications
-     that may be using v2 inappropriately.
-
-[User space code continues to be encouraged to use the libcap API which
-protects the application from details like this.  libcap-2.10 is the first
-to support v3 capabilities.]
-
-Signed-off-by: Andrew G. Morgan <morgan@kernel.org>
+Cc: Andrew G. Morgan <morgan@kernel.org>
 Cc: Chris Wright <chrisw@sous-sol.org>
 Cc: Serge E. Hallyn <serue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/array.c            |    2 
- include/linux/capability.h |   29 ++++++---
- kernel/capability.c        |  110 ++++++++++++++++++++++-------------
- 3 files changed, 94 insertions(+), 47 deletions(-)
+ include/linux/capability.h |    2 +-
+ kernel/capability.c        |    6 +++---
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/proc/array.c~capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support fs/proc/array.c
---- a/fs/proc/array.c~capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support
-+++ a/fs/proc/array.c
-@@ -288,7 +288,7 @@ static void render_cap_t(struct seq_file
- 	seq_printf(m, "%s", header);
- 	CAP_FOR_EACH_U32(__capi) {
- 		seq_printf(m, "%08x",
--			   a->cap[(_LINUX_CAPABILITY_U32S-1) - __capi]);
-+			   a->cap[(_KERNEL_CAPABILITY_U32S-1) - __capi]);
- 	}
- 	seq_printf(m, "\n");
- }
-diff -puN include/linux/capability.h~capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support include/linux/capability.h
---- a/include/linux/capability.h~capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support
+diff -puN include/linux/capability.h~capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support-fix include/linux/capability.h
+--- a/include/linux/capability.h~capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support-fix
 +++ a/include/linux/capability.h
-@@ -31,11 +31,11 @@ struct task_struct;
+@@ -31,7 +31,7 @@ struct task_struct;
  #define _LINUX_CAPABILITY_VERSION_1  0x19980330
  #define _LINUX_CAPABILITY_U32S_1     1
  
--#define _LINUX_CAPABILITY_VERSION_2  0x20071026
-+#define _LINUX_CAPABILITY_VERSION_2  0x20071026  /* depreciated - use v3 */
+-#define _LINUX_CAPABILITY_VERSION_2  0x20071026  /* depreciated - use v3 */
++#define _LINUX_CAPABILITY_VERSION_2  0x20071026  /* deprecated - use v3 */
  #define _LINUX_CAPABILITY_U32S_2     2
  
--#define _LINUX_CAPABILITY_VERSION    _LINUX_CAPABILITY_VERSION_2
--#define _LINUX_CAPABILITY_U32S       _LINUX_CAPABILITY_U32S_2
-+#define _LINUX_CAPABILITY_VERSION_3  0x20080522
-+#define _LINUX_CAPABILITY_U32S_3     2
- 
- typedef struct __user_cap_header_struct {
- 	__u32 version;
-@@ -77,10 +77,23 @@ struct vfs_cap_data {
- 	} data[VFS_CAP_U32];
- };
- 
--#ifdef __KERNEL__
-+#ifndef __KERNEL__
-+
-+/*
-+ * Backwardly compatible definition for source code - trapped in a
-+ * 32-bit world. If you find you need this, please consider using
-+ * libcap to untrap yourself...
-+ */
-+#define _LINUX_CAPABILITY_VERSION  _LINUX_CAPABILITY_VERSION_1
-+#define _LINUX_CAPABILITY_U32S     _LINUX_CAPABILITY_U32S_1
-+
-+#else
-+
-+#define _KERNEL_CAPABILITY_VERSION _LINUX_CAPABILITY_VERSION_3
-+#define _KERNEL_CAPABILITY_U32S    _LINUX_CAPABILITY_U32S_3
- 
- typedef struct kernel_cap_struct {
--	__u32 cap[_LINUX_CAPABILITY_U32S];
-+	__u32 cap[_KERNEL_CAPABILITY_U32S];
- } kernel_cap_t;
- 
- #define _USER_CAP_HEADER_SIZE  (sizeof(struct __user_cap_header_struct))
-@@ -351,7 +364,7 @@ typedef struct kernel_cap_struct {
-  */
- 
- #define CAP_FOR_EACH_U32(__capi)  \
--	for (__capi = 0; __capi < _LINUX_CAPABILITY_U32S; ++__capi)
-+	for (__capi = 0; __capi < _KERNEL_CAPABILITY_U32S; ++__capi)
- 
- # define CAP_FS_MASK_B0     (CAP_TO_MASK(CAP_CHOWN)		\
- 			    | CAP_TO_MASK(CAP_DAC_OVERRIDE)	\
-@@ -361,7 +374,7 @@ typedef struct kernel_cap_struct {
- 
- # define CAP_FS_MASK_B1     (CAP_TO_MASK(CAP_MAC_OVERRIDE))
- 
--#if _LINUX_CAPABILITY_U32S != 2
-+#if _KERNEL_CAPABILITY_U32S != 2
- # error Fix up hand-coded capability macro initializers
- #else /* HAND-CODED capability initializers */
- 
-@@ -372,7 +385,7 @@ typedef struct kernel_cap_struct {
- # define CAP_NFSD_SET     ((kernel_cap_t){{ CAP_FS_MASK_B0|CAP_TO_MASK(CAP_SYS_RESOURCE), \
- 					CAP_FS_MASK_B1 } })
- 
--#endif /* _LINUX_CAPABILITY_U32S != 2 */
-+#endif /* _KERNEL_CAPABILITY_U32S != 2 */
- 
- #define CAP_INIT_INH_SET    CAP_EMPTY_SET
- 
-diff -puN kernel/capability.c~capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support kernel/capability.c
---- a/kernel/capability.c~capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support
+ #define _LINUX_CAPABILITY_VERSION_3  0x20080522
+diff -puN kernel/capability.c~capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support-fix kernel/capability.c
+--- a/kernel/capability.c~capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support-fix
 +++ a/kernel/capability.c
-@@ -53,6 +53,68 @@ static void warn_legacy_capability_use(v
- }
- 
- /*
-+ * Version 2 capabilities worked fine, but the linux/capability.h file
-+ * that accompanied their introduction encouraged their use without
-+ * the necessary user-space source code changes. As such, we have
-+ * created a version 3 with equivalent functionality to version 2, but
-+ * with a header change to protect legacy source code from using
-+ * version 2 when it wanted to use version 1. If your system has code
-+ * that trips the following warning, it is using version 2 specific
-+ * capabilities and may be doing so insecurely.
-+ *
-+ * The remedy is to either upgrade your version of libcap (to 2.10+,
-+ * if the application is linked against it), or recompile your
-+ * application with modern kernel headers and this warning will go
-+ * away.
-+ */
-+
-+static void warn_depreciated_v2(void)
-+{
-+	static int warned = 0;
-+	if (!warned) {
-+		char name[sizeof(current->comm)];
-+
-+		printk(KERN_INFO "warning: `%s' uses depreciated v2"
-+		       " capabilities in a way that may be insecure.\n",
-+		       get_task_comm(name, current));
-+		warned = 1;
-+	}
-+}
-+
-+/*
-+ * Version check. Return the number of u32s in each capability flag
-+ * array, or a negative value on error.
-+ */
-+static int cap_validate_magic(cap_user_header_t header, unsigned *tocopy)
-+{
-+	__u32 version;
-+
-+	if (get_user(version, &header->version))
-+		return -EFAULT;
-+
-+	switch (version) {
-+	case _LINUX_CAPABILITY_VERSION_1:
-+		warn_legacy_capability_use();
-+		*tocopy = _LINUX_CAPABILITY_U32S_1;
-+		break;
-+	case _LINUX_CAPABILITY_VERSION_2:
-+		warn_depreciated_v2();
-+		/*
-+		 * fall through - v3 is otherwise equivalent to v2.
-+		 */
-+	case _LINUX_CAPABILITY_VERSION_3:
-+		*tocopy = _LINUX_CAPABILITY_U32S_3;
-+		break;
-+	default:
-+		if (put_user(_KERNEL_CAPABILITY_VERSION, &header->version))
-+			return -EFAULT;
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+/*
-  * For sys_getproccap() and sys_setproccap(), any of the three
-  * capability set pointers may be NULL -- indicating that that set is
-  * uninteresting and/or not to be changed.
-@@ -71,27 +133,13 @@ asmlinkage long sys_capget(cap_user_head
- {
- 	int ret = 0;
- 	pid_t pid;
--	__u32 version;
- 	struct task_struct *target;
- 	unsigned tocopy;
- 	kernel_cap_t pE, pI, pP;
- 
--	if (get_user(version, &header->version))
--		return -EFAULT;
--
--	switch (version) {
--	case _LINUX_CAPABILITY_VERSION_1:
--		warn_legacy_capability_use();
--		tocopy = _LINUX_CAPABILITY_U32S_1;
--		break;
--	case _LINUX_CAPABILITY_VERSION_2:
--		tocopy = _LINUX_CAPABILITY_U32S_2;
--		break;
--	default:
--		if (put_user(_LINUX_CAPABILITY_VERSION, &header->version))
--			return -EFAULT;
--		return -EINVAL;
--	}
-+	ret = cap_validate_magic(header, &tocopy);
-+	if (ret != 0)
-+		return ret;
- 
- 	if (get_user(pid, &header->pid))
- 		return -EFAULT;
-@@ -118,7 +166,7 @@ out:
- 	spin_unlock(&task_capability_lock);
- 
- 	if (!ret) {
--		struct __user_cap_data_struct kdata[_LINUX_CAPABILITY_U32S];
-+		struct __user_cap_data_struct kdata[_KERNEL_CAPABILITY_U32S];
- 		unsigned i;
- 
- 		for (i = 0; i < tocopy; i++) {
-@@ -128,7 +176,7 @@ out:
- 		}
- 
- 		/*
--		 * Note, in the case, tocopy < _LINUX_CAPABILITY_U32S,
-+		 * Note, in the case, tocopy < _KERNEL_CAPABILITY_U32S,
- 		 * we silently drop the upper capabilities here. This
- 		 * has the effect of making older libcap
- 		 * implementations implicitly drop upper capability
-@@ -240,30 +288,16 @@ static inline int cap_set_all(kernel_cap
+@@ -68,13 +68,13 @@ static void warn_legacy_capability_use(v
+  * away.
   */
- asmlinkage long sys_capset(cap_user_header_t header, const cap_user_data_t data)
+ 
+-static void warn_depreciated_v2(void)
++static void warn_deprecated_v2(void)
  {
--	struct __user_cap_data_struct kdata[_LINUX_CAPABILITY_U32S];
-+	struct __user_cap_data_struct kdata[_KERNEL_CAPABILITY_U32S];
- 	unsigned i, tocopy;
- 	kernel_cap_t inheritable, permitted, effective;
--	__u32 version;
- 	struct task_struct *target;
- 	int ret;
- 	pid_t pid;
+ 	static int warned = 0;
+ 	if (!warned) {
+ 		char name[sizeof(current->comm)];
  
--	if (get_user(version, &header->version))
--		return -EFAULT;
--
--	switch (version) {
--	case _LINUX_CAPABILITY_VERSION_1:
--		warn_legacy_capability_use();
--		tocopy = _LINUX_CAPABILITY_U32S_1;
--		break;
--	case _LINUX_CAPABILITY_VERSION_2:
--		tocopy = _LINUX_CAPABILITY_U32S_2;
--		break;
--	default:
--		if (put_user(_LINUX_CAPABILITY_VERSION, &header->version))
--			return -EFAULT;
--		return -EINVAL;
--	}
-+	ret = cap_validate_magic(header, &tocopy);
-+	if (ret != 0)
-+		return ret;
- 
- 	if (get_user(pid, &header->pid))
- 		return -EFAULT;
-@@ -281,7 +315,7 @@ asmlinkage long sys_capset(cap_user_head
- 		permitted.cap[i] = kdata[i].permitted;
- 		inheritable.cap[i] = kdata[i].inheritable;
- 	}
--	while (i < _LINUX_CAPABILITY_U32S) {
-+	while (i < _KERNEL_CAPABILITY_U32S) {
- 		effective.cap[i] = 0;
- 		permitted.cap[i] = 0;
- 		inheritable.cap[i] = 0;
+-		printk(KERN_INFO "warning: `%s' uses depreciated v2"
++		printk(KERN_INFO "warning: `%s' uses deprecated v2"
+ 		       " capabilities in a way that may be insecure.\n",
+ 		       get_task_comm(name, current));
+ 		warned = 1;
+@@ -98,7 +98,7 @@ static int cap_validate_magic(cap_user_h
+ 		*tocopy = _LINUX_CAPABILITY_U32S_1;
+ 		break;
+ 	case _LINUX_CAPABILITY_VERSION_2:
+-		warn_depreciated_v2();
++		warn_deprecated_v2();
+ 		/*
+ 		 * fall through - v3 is otherwise equivalent to v2.
+ 		 */
 _
 
-Patches currently in -mm which might be from morgan@kernel.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support.patch
+linux-next.patch
+next-remove-localversion.patch
+fix-kobject-fix-kobject_rename-and-config_sysfs.patch
+fix-driver-core-add-device_create_vargs-and-device_create_drvdata.patch
+kvm-is-busted-on-ia64.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-video-balcklist-fujitsu-lifebook-s6410.patch
+git-x86-fixup.patch
+lguest-use-cpu-capability-accessors.patch
+arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
+arch-powerpc-platforms-pseries-eeh_driverc-fix-warning.patch
+arch-powerpc-platforms-pseries-eeh_driverc-fix-warning-checkpatch-fixes.patch
+zoran-use-correct-type-for-cpu-flags.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+git-jg-misc-git-rejects.patch
+drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+fsldma-the-mpc8377mds-board-device-tree-node-for-fsldma-driver.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers.patch
+git-ubifs.patch
+sundance-set-carrier-status-on-link-change-events.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+pci-hotplug-introduce-pci_slot.patch
+pci-hotplug-acpi-pci-slot-detection-driver.patch
+sched-delete-dead-stuff.patch
+sched-delete-dead-stuff-2.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
+pktcdvd-push-bkl-down-into-driver-fix.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-logfs-fixup.patch
+drivers-uwb-nehc-processor-flags-have-type-unsigned-long.patch
+drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
+drivers-uwb-wlp-sysfsc-dead-code.patch
+drivers-uwb-whcic-needs-dma-mappingh.patch
+usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix.patch
+usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix-2.patch
+git-watchdog.patch
+git-watchdog-git-rejects.patch
+watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix.patch
+watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl-fix.patch
+wireless-airo-waitbusy-wont-delay-checkpatch-fixes.patch
+git-xtensa.patch
+ext4-is-busted-on-m68k.patch
 capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support-fix.patch
 capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support-fix-fix.patch
-security-protect-legacy-apps-from-insufficient-privilege.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+libata-sff-fix-oops-reported-in-kerneloopsorg-for-pnp-devices-with-no-ctl-fix.patch
+ata-acpi-hotplug-handle-bay-devices-in-dock-stations-cleanup.patch
+mm-verify-the-page-links-and-memory-model.patch
+mspec-convert-nopfn-to-fault-fix.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+kill-generic_file_direct_io-checkpatch-fixes.patch
+use-generic_access_phys-for-dev-mem-mappings-fix.patch
+spufs-use-the-new-vm_ops-access-fix.patch
+fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
 security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup-fix.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+rename-warn-to-warning-to-clear-the-namespace-fix.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-paccept-sys_ni.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-signalfd-fix.patch
+flag-parameters-eventfd-fix.patch
+flag-parameters-inotify_init-fix.patch
+flag-parameters-check-magic-constants-alpha.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+reiserfs-convert-j_flush_sem-to-mutex.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+reiser4.patch
+reiser4-semaphore-fix.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
