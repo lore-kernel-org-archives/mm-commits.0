@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + jbd2-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch added to -mm tree
-Date: Wed, 28 May 2008 21:22:21 -0700
-Message-ID: <200805290422.m4T4MLNq016069@imap1.linux-foundation.org>
+Subject: + jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch added to -mm tree
+Date: Wed, 28 May 2008 21:23:18 -0700
+Message-ID: <200805290423.m4T4NIA8016087@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46581 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36588 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750882AbYE2EWk (ORCPT
+	by vger.kernel.org with ESMTP id S1750985AbYE2EXm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 May 2008 00:22:40 -0400
+	Thu, 29 May 2008 00:23:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, cmm@us.ibm.com, jack@suse.cz
 
 
 The patch titled
-     jbd2-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes
+     jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fix
 has been added to the -mm tree.  Its filename is
-     jbd2-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
+     jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,71 +34,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: jbd2-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes
+Subject: jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fix
 From: Andrew Morton <akpm@linux-foundation.org>
-
-WARNING: line over 80 characters
-#34: FILE: fs/jbd2/transaction.c:1660:
-+ * jbd2_journal_try_to_free_buffers() could race with jbd2_journal_commit_transaction()
-
-ERROR: code indent should use tabs where possible
-#93: FILE: fs/jbd2/transaction.c:1759:
-+ ^I/*$
-
-ERROR: code indent should use tabs where possible
-#108: FILE: fs/jbd2/transaction.c:1774:
-+        ^Ispin_lock(&journal->j_state_lock);$
-
-total: 2 errors, 1 warnings, 85 lines checked
-
-./patches/jbd2-fix-race-between-free-buffer-and-commit-trasanction.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
 
 Cc: Jan Kara <jack@suse.cz>
 Cc: Mingming Cao <cmm@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jbd2/transaction.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ fs/jbd/transaction.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/jbd2/transaction.c~jbd2-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes fs/jbd2/transaction.c
---- a/fs/jbd2/transaction.c~jbd2-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes
-+++ a/fs/jbd2/transaction.c
-@@ -1657,9 +1657,9 @@ out:
- }
+diff -puN fs/jbd/transaction.c~jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix fs/jbd/transaction.c
+--- a/fs/jbd/transaction.c~jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix
++++ a/fs/jbd/transaction.c
+@@ -1650,14 +1650,14 @@ out:
  
  /*
-- * jbd2_journal_try_to_free_buffers() could race with jbd2_journal_commit_transaction()
+  * journal_try_to_free_buffers() could race with journal_commit_transaction()
 - * The later might still hold the reference count to the buffers when inspecting
-- * them on t_syncdata_list or t_locked_list.
-+ * jbd2_journal_try_to_free_buffers() could race with
-+ * jbd2_journal_commit_transaction().  The latter might still hold a reference
-+ * on the buffers when inspecting them on t_syncdata_list or t_locked_list.
++ * The latter might still hold the a count on buffers when inspecting
+  * them on t_syncdata_list or t_locked_list.
   *
-  * jbd2_journal_try_to_free_buffers() will call this function to
+- * Journal_try_to_free_buffers() will call this function to
++ * journal_try_to_free_buffers() will call this function to
   * wait for the current transaction to finish syncing data buffers, before
-@@ -1756,7 +1756,7 @@ int jbd2_journal_try_to_free_buffers(jou
- 
- 	ret = try_to_free_buffers(page);
- 
-- 	/*
-+	/*
- 	 * There are a number of places where jbd2_journal_try_to_free_buffers()
- 	 * could race with jbd2_journal_commit_transaction(), the later still
- 	 * holds the reference to the buffers to free while processing them.
-@@ -1771,7 +1771,7 @@ int jbd2_journal_try_to_free_buffers(jou
- 	 * with the journal locked.
- 	 */
- 	if (ret == 0 && (gfp_mask & __GFP_WAIT) && (gfp_mask & __GFP_FS)) {
--        	spin_lock(&journal->j_state_lock);
-+		spin_lock(&journal->j_state_lock);
- 		jbd2_journal_wait_for_transaction_sync_data(journal);
- 		ret = try_to_free_buffers(page);
- 		spin_unlock(&journal->j_state_lock);
+- * try to free that buffer.
++ * tryinf to free that buffer.
+  *
+- * Called with journal->j_state_lock hold.
++ * Called with journal->j_state_lock held.
+  */
+ static void journal_wait_for_transaction_sync_data(journal_t *journal)
+ {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -207,5 +175,6 @@ profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
 jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
 jbd2-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
 
