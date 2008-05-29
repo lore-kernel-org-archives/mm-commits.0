@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pci-hotplug-introduce-pci_slot-rpaphp-correctly-call-pci_hp_register-for-empty-pci-slots.patch added to -mm tree
-Date: Wed, 28 May 2008 17:17:16 -0700
-Message-ID: <200805290017.m4T0HGHf007532@imap1.linux-foundation.org>
+Subject: + atmel_serial-filter-out-fp-during-baud-rate-detection.patch added to -mm tree
+Date: Wed, 28 May 2008 17:28:03 -0700
+Message-ID: <200805290028.m4T0S3Ud007941@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34440 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35555 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752716AbYE2ASB (ORCPT
+	by vger.kernel.org with ESMTP id S1753847AbYE2A2O (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 May 2008 20:18:01 -0400
+	Wed, 28 May 2008 20:28:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: achiang@hp.com, greg@kroah.com, jbarnes@virtuousgeek.org, kaneshige.kenji@jp.fujitsu.com, kristen.c.accardi@intel.com, lenb@kernel.org, matthew@wil.cx, pbadari@us.ibm.com
+Cc: haavard.skinnemoen@atmel.com, linux@maxim.org.za
 
 
 The patch titled
-     rpaphp: correctly call pci_hp_register for empty PCI slots
+     atmel_serial: filter out FP during baud rate detection
 has been added to the -mm tree.  Its filename is
-     pci-hotplug-introduce-pci_slot-rpaphp-correctly-call-pci_hp_register-for-empty-pci-slots.patch
+     atmel_serial-filter-out-fp-during-baud-rate-detection.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,61 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rpaphp: correctly call pci_hp_register for empty PCI slots
-From: Alex Chiang <achiang@hp.com>
+Subject: atmel_serial: filter out FP during baud rate detection
+From: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
 
-Unpopulated device_node slots do not have children, and attempting to
-dereference them will result in a panic.
+I made a change to u-boot that used the FP (Fractional Part) field of BRGR
+to achieve more accurate baud rate generation.  Unfortunately, the
+atmel_serial driver looks at the whole BRGR register when trying to detect
+the baud rate that the port is currently running at, so setting FP to a
+nonzero value breaks the baud rate detection.
 
-Instead, attempt to derive the PCI slot number from the bus itself, and
-failing that, default to 0.
+I'll sit on the u-boot patch for a while longer, but this is clearly a
+bug in the atmel_serial driver which should be fixed.
 
-Signed-off-by: Alex Chiang <achiang@hp.com>
-Cc: Matthew Wilcox <matthew@wil.cx>
-Cc: Greg KH <greg@kroah.com>
-Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Tested-by: Badari Pulavarty <pbadari@us.ibm.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Signed-off-by: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
+Acked-by: Andrew Victor <linux@maxim.org.za>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/hotplug/rpaphp_slot.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ drivers/serial/atmel_serial.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/pci/hotplug/rpaphp_slot.c~pci-hotplug-introduce-pci_slot-rpaphp-correctly-call-pci_hp_register-for-empty-pci-slots drivers/pci/hotplug/rpaphp_slot.c
---- a/drivers/pci/hotplug/rpaphp_slot.c~pci-hotplug-introduce-pci_slot-rpaphp-correctly-call-pci_hp_register-for-empty-pci-slots
-+++ a/drivers/pci/hotplug/rpaphp_slot.c
-@@ -121,6 +121,7 @@ int rpaphp_register_slot(struct slot *sl
- {
- 	struct hotplug_slot *php_slot = slot->hotplug_slot;
- 	int retval;
-+	int slot_nr;
+diff -puN drivers/serial/atmel_serial.c~atmel_serial-filter-out-fp-during-baud-rate-detection drivers/serial/atmel_serial.c
+--- a/drivers/serial/atmel_serial.c~atmel_serial-filter-out-fp-during-baud-rate-detection
++++ a/drivers/serial/atmel_serial.c
+@@ -1318,7 +1318,7 @@ static void __init atmel_console_get_opt
+ 	 * If the baud rate generator isn't running, the port wasn't
+ 	 * initialized by the boot loader.
+ 	 */
+-	quot = UART_GET_BRGR(port);
++	quot = UART_GET_BRGR(port) & ATMEL_US_CD;
+ 	if (!quot)
+ 		return;
  
- 	dbg("%s registering slot:path[%s] index[%x], name[%s] pdomain[%x] type[%d]\n", 
- 		__func__, slot->dn->full_name, slot->index, slot->name,
-@@ -132,8 +133,11 @@ int rpaphp_register_slot(struct slot *sl
- 		return -EAGAIN;
- 	}	
- 
--	retval = pci_hp_register(php_slot, slot->bus,
--				 PCI_SLOT(PCI_DN(slot->dn->child)->devfn));
-+	if (slot->bus->self)
-+		slot_nr = PCI_SLOT(slot->bus->self->devfn);
-+	else
-+		slot_nr = 0;
-+	retval = pci_hp_register(php_slot, slot->bus, slot_nr);
- 	if (retval) {
- 		err("pci_hp_register failed with error %d\n", retval);
- 		return retval;
 _
 
-Patches currently in -mm which might be from achiang@hp.com are
+Patches currently in -mm which might be from haavard.skinnemoen@atmel.com are
 
-pci-hotplug-construct-one-fakephp-slot-per-pci-slot.patch
-pci-hotplug-export-kobject_rename-for-pci_hotplug_core.patch
-pci-hotplug-introduce-pci_slot.patch
-pci-hotplug-introduce-pci_slot-rpaphp-correctly-call-pci_hp_register-for-empty-pci-slots.patch
-pci-hotplug-acpi-pci-slot-detection-driver.patch
+linux-next.patch
+atmel_serial-filter-out-fp-during-baud-rate-detection.patch
 
