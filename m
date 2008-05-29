@@ -1,110 +1,249 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlb-fix-lockdep-error.patch added to -mm tree
-Date: Wed, 28 May 2008 20:36:22 -0700
-Message-ID: <200805290336.m4T3aM91014497@imap1.linux-foundation.org>
+Subject: - ata-acpi-hotplug-handle-bay-devices-in-dock-stations.patch removed from -mm tree
+Date: Wed, 28 May 2008 20:46:55 -0700
+Message-ID: <200805290346.m4T3ktJj014850@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39601 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50559 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753007AbYE2Dgz (ORCPT
+	by vger.kernel.org with ESMTP id S1752587AbYE2Drk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 May 2008 23:36:55 -0400
+	Wed, 28 May 2008 23:47:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de, agl@us.ibm.com, kosaki.motohiro@jp.fujitsu.com, nacc@us.ibm.com
+To: hmacht@suse.de, alan@lxorguk.ukuu.org.uk, htejun@gmail.com, jeff@garzik.org, kristen.c.accardi@intel.com, mjg59@srcf.ucam.org, mjg@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hugetlb: fix lockdep error
-has been added to the -mm tree.  Its filename is
-     hugetlb-fix-lockdep-error.patch
+     ATA ACPI hotplug: handle bay devices in dock stations
+has been removed from the -mm tree.  Its filename was
+     ata-acpi-hotplug-handle-bay-devices-in-dock-stations.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlb: fix lockdep error
-From: Nick Piggin <npiggin@suse.de>
+Subject: ATA ACPI hotplug: handle bay devices in dock stations
+From: Holger Macht <hmacht@suse.de>
 
-=============================================
-[ INFO: possible recursive locking detected ]
-2.6.26-rc4 #30
----------------------------------------------
-heap-overflow/2250 is trying to acquire lock:
- (&mm->page_table_lock){--..}, at: [<c0000000000cf2e8>] .copy_hugetlb_page_range+0x108/0x280
+* Differentiate between bay devices in dock stations and others:
 
-but task is already holding lock:
- (&mm->page_table_lock){--..}, at: [<c0000000000cf2dc>] .copy_hugetlb_page_range+0xfc/0x280
+ - When an ACPI_NOTIFY_EJECT_REQUEST appears, just signal uevent to
+   userspace (that is when the optional eject button on a bay device is
+   pressed/pulled) giving the possibility to unmount file systems and to
+   clean up. Also, only send uevent in case we get an EJECT_REQUEST
+   without doing anything else. In other cases, you'll get an add/remove
+   event because libata attaches/detaches the device.
 
-other info that might help us debug this:
-3 locks held by heap-overflow/2250:
- #0:  (&mm->mmap_sem){----}, at: [<c000000000050e44>] .dup_mm+0x134/0x410
- #1:  (&mm->mmap_sem/1){--..}, at: [<c000000000050e54>] .dup_mm+0x144/0x410
- #2:  (&mm->page_table_lock){--..}, at: [<c0000000000cf2dc>] .copy_hugetlb_page_range+0xfc/0x280
+ - In case of a dock event, which in turn signals an
+   ACPI_NOTIFY_EJECT_REQUEST, immediately detach the device, because it
+   may already have been gone
 
-stack backtrace:
-Call Trace:
-[c00000003b2774e0] [c000000000010ce4] .show_stack+0x74/0x1f0 (unreliable)
-[c00000003b2775a0] [c0000000003f10e0] .dump_stack+0x20/0x34
-[c00000003b277620] [c0000000000889bc] .__lock_acquire+0xaac/0x1080
-[c00000003b277740] [c000000000089000] .lock_acquire+0x70/0xb0
-[c00000003b2777d0] [c0000000003ee15c] ._spin_lock+0x4c/0x80
-[c00000003b277870] [c0000000000cf2e8] .copy_hugetlb_page_range+0x108/0x280
-[c00000003b277950] [c0000000000bcaa8] .copy_page_range+0x558/0x790
-[c00000003b277ac0] [c000000000050fe0] .dup_mm+0x2d0/0x410
-[c00000003b277ba0] [c000000000051d24] .copy_process+0xb94/0x1020
-[c00000003b277ca0] [c000000000052244] .do_fork+0x94/0x310
-[c00000003b277db0] [c000000000011240] .sys_clone+0x60/0x80
-[c00000003b277e30] [c0000000000078c4] .ppc_clone+0x8/0xc
+* In case of an ACPI_NOTIFY_DEVICE/BUS_CHECK, evaluate _STA to check if
+  the device has been plugged or unplugged. If plugged, hotplug it, if
+  unplugged, just signal event to userspace
+  (initial patch by Matthew Garrett <mjg59@srcf.ucam.org>)
 
-Fix is the same way that mm/memory.c copy_page_range does the
-lockdep annotation.
-
-Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Acked-by: Adam Litke <agl@us.ibm.com>
-Acked-by: Nishanth Aravamudan <nacc@us.ibm.com>
-Signed-off-by: Nick Piggin <npiggin@suse.de>
+Signed-off-by: Holger Macht <hmacht@suse.de>
+Acked-by: Matthew Garrett <mjg@redhat.com>
+Cc: Tejun Heo <htejun@gmail.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/ata/libata-acpi.c |  112 ++++++++++++++++++++++--------------
+ 1 file changed, 69 insertions(+), 43 deletions(-)
 
-diff -puN mm/hugetlb.c~hugetlb-fix-lockdep-error mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-fix-lockdep-error
-+++ a/mm/hugetlb.c
-@@ -785,7 +785,7 @@ int copy_hugetlb_page_range(struct mm_st
- 			continue;
+diff -puN drivers/ata/libata-acpi.c~ata-acpi-hotplug-handle-bay-devices-in-dock-stations drivers/ata/libata-acpi.c
+--- a/drivers/ata/libata-acpi.c~ata-acpi-hotplug-handle-bay-devices-in-dock-stations
++++ a/drivers/ata/libata-acpi.c
+@@ -118,8 +118,25 @@ static void ata_acpi_associate_ide_port(
+ 		ap->pflags |= ATA_PFLAG_INIT_GTM_VALID;
+ }
  
- 		spin_lock(&dst->page_table_lock);
--		spin_lock(&src->page_table_lock);
-+		spin_lock_nested(&src->page_table_lock, SINGLE_DEPTH_NESTING);
- 		if (!huge_pte_none(huge_ptep_get(src_pte))) {
- 			if (cow)
- 				huge_ptep_set_wrprotect(src, addr, src_pte);
++static void ata_acpi_detach_device(struct ata_port *ap, struct ata_device *dev)
++{
++	if (dev)
++		dev->flags |= ATA_DFLAG_DETACH;
++	else {
++		struct ata_link *tlink;
++		struct ata_device *tdev;
++
++		ata_port_for_each_link(tlink, ap)
++			ata_link_for_each_dev(tdev, tlink)
++			tdev->flags |= ATA_DFLAG_DETACH;
++	}
++
++	ata_port_freeze(ap);
++	ata_port_schedule_eh(ap);
++}
++
+ static void ata_acpi_handle_hotplug(struct ata_port *ap, struct ata_device
+-				    *dev, u32 event)
++				    *dev, u32 event, int is_dock_event)
+ {
+ 	char event_string[12];
+ 	char *envp[] = { event_string, NULL };
+@@ -135,83 +152,92 @@ static void ata_acpi_handle_hotplug(stru
+ 		ap = dev->link->ap;
+ 	ehi = &ap->link.eh_info;
+ 
+-	spin_lock_irqsave(ap->lock, flags);
+-
+-	if (dev)
++	if (dev) {
++		if (dev->sdev)
++			kobj = &dev->sdev->sdev_gendev.kobj;
+ 		handle = dev->acpi_handle;
+-	else
++	} else {
++		kobj = &ap->dev->kobj;
+ 		handle = ap->acpi_handle;
++	}
+ 
+ 	status = acpi_get_handle(handle, "_EJ0", &tmphandle);
+ 	if (ACPI_FAILURE(status)) {
+-		/* This device is not ejectable */
+-		spin_unlock_irqrestore(ap->lock, flags);
++		/* This device does not support hotplug */
+ 		return;
+ 	}
+ 
+-	status = acpi_evaluate_integer(handle, "_STA", NULL, &sta);
+-	if (ACPI_FAILURE(status)) {
+-		printk ("Unable to determine bay status\n");
+-		spin_unlock_irqrestore(ap->lock, flags);
+-		return;
++	if (kobj && !is_dock_event) {
++		sprintf(event_string, "BAY_EVENT=%d", event);
++		kobject_uevent_env(kobj, KOBJ_CHANGE, envp);
+ 	}
+ 
++	spin_lock_irqsave(ap->lock, flags);
++
+ 	switch (event) {
+ 	case ACPI_NOTIFY_BUS_CHECK:
+ 	case ACPI_NOTIFY_DEVICE_CHECK:
+ 		ata_ehi_push_desc(ehi, "ACPI event");
+-		if (!sta) {
+-                /* Device has been unplugged */
+-			if (dev)
+-				dev->flags |= ATA_DFLAG_DETACH;
+-			else {
+-				struct ata_link *tlink;
+-				struct ata_device *tdev;
+-
+-				ata_port_for_each_link(tlink, ap) {
+-					ata_link_for_each_dev(tdev, tlink) {
+-						tdev->flags |=
+-							ATA_DFLAG_DETACH;
+-					}
+-				}
+-			}
+-			ata_port_schedule_eh(ap);
+-			wait = 1;
+-		} else {
++
++		status = acpi_evaluate_integer(handle, "_STA", NULL, &sta);
++		if (ACPI_FAILURE(status)) {
++			printk(KERN_ERR "Unable to determine bay status\n");
++			break;
++		}
++
++		if (sta) {
+ 			ata_ehi_hotplugged(ehi);
+ 			ata_port_freeze(ap);
++		} else {
++			/* The device has gone - unplug it */
++			ata_acpi_detach_device(ap, dev);
++			wait = 1;
+ 		}
++		break;
++	case ACPI_NOTIFY_EJECT_REQUEST:
++		ata_ehi_push_desc(ehi, "ACPI event");
++
++		if (!is_dock_event)
++			break;
++
++		/* undock event - immediate unplug */
++		ata_acpi_detach_device(ap, dev);
++		wait = 1;
++		break;
+ 	}
+ 
+ 	spin_unlock_irqrestore(ap->lock, flags);
+ 
+ 	if (wait)
+ 		ata_port_wait_eh(ap);
++}
+ 
+-	if (dev) {
+-		if (dev->sdev)
+-			kobj = &dev->sdev->sdev_gendev.kobj;
+-	} else
+-		kobj = &ap->dev->kobj;
++static void ata_acpi_dev_notify_dock(acpi_handle handle, u32 event, void *data)
++{
++	struct ata_device *dev = data;
+ 
+-	if (kobj) {
+-		sprintf(event_string, "BAY_EVENT=%d", event);
+-		kobject_uevent_env(kobj, KOBJ_CHANGE, envp);
+-	}
++	ata_acpi_handle_hotplug(NULL, dev, event, 1);
++}
++
++static void ata_acpi_ap_notify_dock(acpi_handle handle, u32 event, void *data)
++{
++	struct ata_port *ap = data;
++
++	ata_acpi_handle_hotplug(ap, NULL, event, 1);
+ }
+ 
+ static void ata_acpi_dev_notify(acpi_handle handle, u32 event, void *data)
+ {
+ 	struct ata_device *dev = data;
+ 
+-	ata_acpi_handle_hotplug(NULL, dev, event);
++	ata_acpi_handle_hotplug(NULL, dev, event, 0);
+ }
+ 
+ static void ata_acpi_ap_notify(acpi_handle handle, u32 event, void *data)
+ {
+ 	struct ata_port *ap = data;
+ 
+-	ata_acpi_handle_hotplug(ap, NULL, event);
++	ata_acpi_handle_hotplug(ap, NULL, event, 0);
+ }
+ 
+ /**
+@@ -252,7 +278,7 @@ void ata_acpi_associate(struct ata_host 
+ 						    ata_acpi_ap_notify, ap);
+ 			/* we might be on a docking station */
+ 			register_hotplug_dock_device(ap->acpi_handle,
+-						     ata_acpi_ap_notify, ap);
++					     ata_acpi_ap_notify_dock, ap);
+ 		}
+ 
+ 		for (j = 0; j < ata_link_max_devices(&ap->link); j++) {
+@@ -264,7 +290,7 @@ void ata_acpi_associate(struct ata_host 
+ 						ata_acpi_dev_notify, dev);
+ 				/* we might be on a docking station */
+ 				register_hotplug_dock_device(dev->acpi_handle,
+-						ata_acpi_dev_notify, dev);
++					     ata_acpi_dev_notify_dock, dev);
+ 			}
+ 		}
+ 	}
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from hmacht@suse.de are
 
-hugetlb-fix-lockdep-error.patch
-linux-next.patch
-spufs-convert-nopfn-to-fault.patch
-vt-fix-vc_resize-locking.patch
-mspec-convert-nopfn-to-fault.patch
-mspec-convert-nopfn-to-fault-fix.patch
-mm-remove-nopfn.patch
-mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co.patch
-reiser4.patch
-likeliness-accounting-change-and-cleanup.patch
+bay-exit-if-notify-handler-cannot-be-installed.patch
+ata-acpi-hotplug-handle-bay-devices-in-dock-stations.patch
+ata-acpi-hotplug-handle-bay-devices-in-dock-stations-cleanup.patch
+libata-handle-bay-devices-in-dock-stations.patch
 
