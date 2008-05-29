@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ntp-let-update_persistent_clock-sleep.patch added to -mm tree
-Date: Wed, 28 May 2008 20:16:20 -0700
-Message-ID: <200805290316.m4T3GKsG013775@imap1.linux-foundation.org>
+Subject: + hugetlb-fix-lockdep-error.patch added to -mm tree
+Date: Wed, 28 May 2008 20:36:22 -0700
+Message-ID: <200805290336.m4T3aM91014497@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48266 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39601 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753210AbYE2DSF (ORCPT
+	by vger.kernel.org with ESMTP id S1753007AbYE2Dgz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 May 2008 23:18:05 -0400
+	Wed, 28 May 2008 23:36:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: macro@linux-mips.org, a.zummo@towertech.it, david-b@pacbell.net, riel@redhat.com, tglx@linutronix.de, zippel@linux-m68k.org
+Cc: npiggin@suse.de, agl@us.ibm.com, kosaki.motohiro@jp.fujitsu.com, nacc@us.ibm.com
 
 
 The patch titled
-     ntp: let update_persistent_clock() sleep
+     hugetlb: fix lockdep error
 has been added to the -mm tree.  Its filename is
-     ntp-let-update_persistent_clock-sleep.patch
+     hugetlb-fix-lockdep-error.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,82 +34,77 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ntp: let update_persistent_clock() sleep
-From: "Maciej W. Rozycki" <macro@linux-mips.org>
+Subject: hugetlb: fix lockdep error
+From: Nick Piggin <npiggin@suse.de>
 
-This is a change that makes the 11-minute RTC update be run in the process
-context.  This is so that update_persistent_clock() can sleep, which may
-be required for certain types of RTC hardware -- most notably I2C devices.
+=============================================
+[ INFO: possible recursive locking detected ]
+2.6.26-rc4 #30
+---------------------------------------------
+heap-overflow/2250 is trying to acquire lock:
+ (&mm->page_table_lock){--..}, at: [<c0000000000cf2e8>] .copy_hugetlb_page_range+0x108/0x280
 
-Signed-off-by: Maciej W. Rozycki <macro@linux-mips.org>
-Acked-by: Rik van Riel <riel@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Roman Zippel <zippel@linux-m68k.org>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: David Brownell <david-b@pacbell.net>
+but task is already holding lock:
+ (&mm->page_table_lock){--..}, at: [<c0000000000cf2dc>] .copy_hugetlb_page_range+0xfc/0x280
+
+other info that might help us debug this:
+3 locks held by heap-overflow/2250:
+ #0:  (&mm->mmap_sem){----}, at: [<c000000000050e44>] .dup_mm+0x134/0x410
+ #1:  (&mm->mmap_sem/1){--..}, at: [<c000000000050e54>] .dup_mm+0x144/0x410
+ #2:  (&mm->page_table_lock){--..}, at: [<c0000000000cf2dc>] .copy_hugetlb_page_range+0xfc/0x280
+
+stack backtrace:
+Call Trace:
+[c00000003b2774e0] [c000000000010ce4] .show_stack+0x74/0x1f0 (unreliable)
+[c00000003b2775a0] [c0000000003f10e0] .dump_stack+0x20/0x34
+[c00000003b277620] [c0000000000889bc] .__lock_acquire+0xaac/0x1080
+[c00000003b277740] [c000000000089000] .lock_acquire+0x70/0xb0
+[c00000003b2777d0] [c0000000003ee15c] ._spin_lock+0x4c/0x80
+[c00000003b277870] [c0000000000cf2e8] .copy_hugetlb_page_range+0x108/0x280
+[c00000003b277950] [c0000000000bcaa8] .copy_page_range+0x558/0x790
+[c00000003b277ac0] [c000000000050fe0] .dup_mm+0x2d0/0x410
+[c00000003b277ba0] [c000000000051d24] .copy_process+0xb94/0x1020
+[c00000003b277ca0] [c000000000052244] .do_fork+0x94/0x310
+[c00000003b277db0] [c000000000011240] .sys_clone+0x60/0x80
+[c00000003b277e30] [c0000000000078c4] .ppc_clone+0x8/0xc
+
+Fix is the same way that mm/memory.c copy_page_range does the
+lockdep annotation.
+
+Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Acked-by: Adam Litke <agl@us.ibm.com>
+Acked-by: Nishanth Aravamudan <nacc@us.ibm.com>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/ntp.c |   15 +++++++++++++--
- 1 file changed, 13 insertions(+), 2 deletions(-)
+ mm/hugetlb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/time/ntp.c~ntp-let-update_persistent_clock-sleep kernel/time/ntp.c
---- a/kernel/time/ntp.c~ntp-let-update_persistent_clock-sleep
-+++ a/kernel/time/ntp.c
-@@ -3,6 +3,8 @@
-  *
-  * NTP state machine interfaces and logic.
-  *
-+ * Copyright (c) 2008  Maciej W. Rozycki
-+ *
-  * This code was mainly moved from kernel/timer.c and kernel/time.c
-  * Please see those files for relevant copyright info and historical
-  * changelogs.
-@@ -17,6 +19,7 @@
- #include <linux/capability.h>
- #include <linux/math64.h>
- #include <linux/clocksource.h>
-+#include <linux/workqueue.h>
- #include <asm/timex.h>
+diff -puN mm/hugetlb.c~hugetlb-fix-lockdep-error mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-fix-lockdep-error
++++ a/mm/hugetlb.c
+@@ -785,7 +785,7 @@ int copy_hugetlb_page_range(struct mm_st
+ 			continue;
  
- /*
-@@ -218,11 +221,13 @@ void second_overflow(void)
- /* Disable the cmos update - used by virtualization and embedded */
- int no_sync_cmos_clock  __read_mostly;
- 
--static void sync_cmos_clock(unsigned long dummy);
-+static void sync_cmos_clock(unsigned long data);
-+static void do_sync_cmos_clock(struct work_struct *work);
- 
- static DEFINE_TIMER(sync_cmos_timer, sync_cmos_clock, 0, 0);
-+static DECLARE_WORK(sync_cmos_work, do_sync_cmos_clock);
- 
--static void sync_cmos_clock(unsigned long dummy)
-+static void do_sync_cmos_clock(struct work_struct *work)
- {
- 	struct timespec now, next;
- 	int fail = 1;
-@@ -261,6 +266,12 @@ static void sync_cmos_clock(unsigned lon
- 	mod_timer(&sync_cmos_timer, jiffies + timespec_to_jiffies(&next));
- }
- 
-+static void sync_cmos_clock(unsigned long data)
-+{
-+	/* Some implementations of update_persistent_clock() may sleep.  */
-+	schedule_work(&sync_cmos_work);
-+}
-+
- static void notify_cmos_timer(void)
- {
- 	if (!no_sync_cmos_clock)
+ 		spin_lock(&dst->page_table_lock);
+-		spin_lock(&src->page_table_lock);
++		spin_lock_nested(&src->page_table_lock, SINGLE_DEPTH_NESTING);
+ 		if (!huge_pte_none(huge_ptep_get(src_pte))) {
+ 			if (cow)
+ 				huge_ptep_set_wrprotect(src, addr, src_pte);
 _
 
-Patches currently in -mm which might be from macro@linux-mips.org are
+Patches currently in -mm which might be from npiggin@suse.de are
 
+hugetlb-fix-lockdep-error.patch
 linux-next.patch
-ntp-let-update_persistent_clock-sleep.patch
-ntp-make-the-rtc-sync-mode-11-minute-again.patch
-ntp-fix-calculation-of-the-next-jiffie-to-trigger-rtc-sync.patch
-rtc-m41t80-sort-header-inclusions-for-readability.patch
-rtc-m41t80-use-pr_info-as-appropriate.patch
+spufs-convert-nopfn-to-fault.patch
+vt-fix-vc_resize-locking.patch
+mspec-convert-nopfn-to-fault.patch
+mspec-convert-nopfn-to-fault-fix.patch
+mm-remove-nopfn.patch
+mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co.patch
+reiser4.patch
+likeliness-accounting-change-and-cleanup.patch
 
