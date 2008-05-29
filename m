@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed-fix.patch added to -mm tree
-Date: Wed, 28 May 2008 18:43:35 -0700
-Message-ID: <200805290143.m4T1hZ8N010532@imap1.linux-foundation.org>
+Subject: + hugetlb-move-hugetlb_acct_memory.patch added to -mm tree
+Date: Wed, 28 May 2008 18:43:26 -0700
+Message-ID: <200805290143.m4T1hQge010520@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52035 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34832 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753702AbYE2Bo7 (ORCPT
+	by vger.kernel.org with ESMTP id S1753666AbYE2BqE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 May 2008 21:44:59 -0400
+	Wed, 28 May 2008 21:46:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mel@csn.ul.ie, agl@us.ibm.com, apw@shadowen.org, hannes@saeurebad.de, hugh@veritas.com, wli@holomorphy.com
+Cc: mel@csn.ul.ie, agl@us.ibm.com, apw@shadowen.org, hugh@veritas.com, wli@holomorphy.com
 
 
 The patch titled
-     hugetlb: fix prio tree lookup
+     hugetlb: move hugetlb_acct_memory()
 has been added to the -mm tree.  Its filename is
-     hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed-fix.patch
+     hugetlb-move-hugetlb_acct_memory.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,60 +34,166 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlb: fix prio tree lookup
+Subject: hugetlb: move hugetlb_acct_memory()
 From: Mel Gorman <mel@csn.ul.ie>
 
-I spoke too soon. This is a fix to patch 3/3.
+This is a patchset to give reliable behaviour to a process that
+successfully calls mmap(MAP_PRIVATE) on a hugetlbfs file.  Currently, it
+is possible for the process to be killed due to a small hugepage pool size
+even if it calls mlock().
 
-If a child unmaps the start of the VMA, the start address is different and
-that is perfectly legimite making the BUG_ON check bogus and should be
-removed.  While page cache lookups are in HPAGE_SIZE, the vma->vm_pgoff is
-in PAGE_SIZE units, not HPAGE_SIZE.  The offset calculation needs to be in
-PAGE_SIZE units to find other VMAs that are mapping the same range of
-pages.  This patch fixes the offset calculation and adds an explanation
-comment as to why it is different from a page cache lookup.
+MAP_SHARED mappings on hugetlbfs reserve huge pages at mmap() time.  This
+guarantees all future faults against the mapping will succeed.  This
+allows local allocations at first use improving NUMA locality whilst
+retaining reliability.
 
-Credit goes to Johannes Weiner for spotting the bogus BUG_ON on IRC which
-led to the discovery of the faulty offset calculation.
+MAP_PRIVATE mappings do not reserve pages.  This can result in an
+application being SIGKILLed later if a huge page is not available at fault
+time.  This makes huge pages usage very ill-advised in some cases as the
+unexpected application failure cannot be detected and handled as it is
+immediately fatal.  Although an application may force instantiation of the
+pages using mlock(), this may lead to poor memory placement and the
+process may still be killed when performing COW.
+
+This patchset introduces a reliability guarantee for the process which
+creates a private mapping, i.e.  the process that calls mmap() on a
+hugetlbfs file successfully.  The first patch of the set is purely
+mechanical code move to make later diffs easier to read.  The second patch
+will guarantee faults up until the process calls fork().  After patch two,
+as long as the child keeps the mappings, the parent is no longer
+guaranteed to be reliable.  Patch 3 guarantees that the parent will always
+successfully COW by unmapping the pages from the child in the event there
+are insufficient pages in the hugepage pool in allocate a new page, be it
+via a static or dynamic pool.
+
+Existing hugepage-aware applications are unlikely to be affected by this
+change.  For much of hugetlbfs's history, pages were pre-faulted at mmap()
+time or mmap() failed which acts in a reserve-like manner.  If the pool is
+sized correctly already so that parent and child can fault reliably, the
+application will not even notice the reserves.  It's only when the pool is
+too small for the application to function perfectly reliably that the
+reserves come into play.
+
+Credit goes to Andy Whitcroft for cleaning up a number of mistakes during
+review before the patches were released.
+
+
+This patch:
+
+A later patch in this set needs to call hugetlb_acct_memory() before it is
+defined.  This patch moves the function without modification.  This makes
+later diffs easier to read.
 
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
 Acked-by: Adam Litke <agl@us.ibm.com>
-Cc: Johannes Weiner <hannes@saeurebad.de>
 Cc: Andy Whitcroft <apw@shadowen.org>
 Cc: William Lee Irwin III <wli@holomorphy.com>
 Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ mm/hugetlb.c |   82 ++++++++++++++++++++++++-------------------------
+ 1 file changed, 41 insertions(+), 41 deletions(-)
 
-diff -puN mm/hugetlb.c~hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed-fix mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed-fix
+diff -puN mm/hugetlb.c~hugetlb-move-hugetlb_acct_memory mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-move-hugetlb_acct_memory
 +++ a/mm/hugetlb.c
-@@ -1035,14 +1035,18 @@ int unmap_ref_private(struct mm_struct *
- {
- 	struct vm_area_struct *iter_vma;
- 	struct address_space *mapping;
--	pgoff_t pgoff = ((address - vma->vm_start) >> HPAGE_SHIFT)
--		+ (vma->vm_pgoff >> (HPAGE_SHIFT - PAGE_SHIFT));
- 	struct prio_tree_iter iter;
-+	pgoff_t pgoff;
+@@ -716,6 +716,47 @@ unsigned long hugetlb_total_pages(void)
+ 	return nr_huge_pages * (HPAGE_SIZE / PAGE_SIZE);
+ }
  
++static int hugetlb_acct_memory(long delta)
++{
++	int ret = -ENOMEM;
++
++	spin_lock(&hugetlb_lock);
 +	/*
-+	 * vm_pgoff is in PAGE_SIZE units, hence the different calculation
-+	 * from page cache lookup which is in HPAGE_SIZE units.
++	 * When cpuset is configured, it breaks the strict hugetlb page
++	 * reservation as the accounting is done on a global variable. Such
++	 * reservation is completely rubbish in the presence of cpuset because
++	 * the reservation is not checked against page availability for the
++	 * current cpuset. Application can still potentially OOM'ed by kernel
++	 * with lack of free htlb page in cpuset that the task is in.
++	 * Attempt to enforce strict accounting with cpuset is almost
++	 * impossible (or too ugly) because cpuset is too fluid that
++	 * task or memory node can be dynamically moved between cpusets.
++	 *
++	 * The change of semantics for shared hugetlb mapping with cpuset is
++	 * undesirable. However, in order to preserve some of the semantics,
++	 * we fall back to check against current free page availability as
++	 * a best attempt and hopefully to minimize the impact of changing
++	 * semantics that cpuset has.
 +	 */
-+	pgoff = ((address - vma->vm_start) >> PAGE_SHIFT)
-+		+ (vma->vm_pgoff >> PAGE_SHIFT);
- 	mapping = (struct address_space *)page_private(page);
--	vma_prio_tree_foreach(iter_vma, &iter, &mapping->i_mmap, pgoff, pgoff) {
--		BUG_ON(vma->vm_start != iter_vma->vm_start);
++	if (delta > 0) {
++		if (gather_surplus_pages(delta) < 0)
++			goto out;
++
++		if (delta > cpuset_mems_nr(free_huge_pages_node)) {
++			return_unused_surplus_pages(delta);
++			goto out;
++		}
++	}
++
++	ret = 0;
++	if (delta < 0)
++		return_unused_surplus_pages((unsigned long) -delta);
++
++out:
++	spin_unlock(&hugetlb_lock);
++	return ret;
++}
++
+ /*
+  * We cannot handle pagefaults against hugetlb pages at all.  They cause
+  * handle_mm_fault() to try to instantiate regular-sized pages in the
+@@ -1248,47 +1289,6 @@ static long region_truncate(struct list_
+ 	return chg;
+ }
  
-+	vma_prio_tree_foreach(iter_vma, &iter, &mapping->i_mmap, pgoff, pgoff) {
- 		/* Do not unmap the current VMA */
- 		if (iter_vma == vma)
- 			continue;
+-static int hugetlb_acct_memory(long delta)
+-{
+-	int ret = -ENOMEM;
+-
+-	spin_lock(&hugetlb_lock);
+-	/*
+-	 * When cpuset is configured, it breaks the strict hugetlb page
+-	 * reservation as the accounting is done on a global variable. Such
+-	 * reservation is completely rubbish in the presence of cpuset because
+-	 * the reservation is not checked against page availability for the
+-	 * current cpuset. Application can still potentially OOM'ed by kernel
+-	 * with lack of free htlb page in cpuset that the task is in.
+-	 * Attempt to enforce strict accounting with cpuset is almost
+-	 * impossible (or too ugly) because cpuset is too fluid that
+-	 * task or memory node can be dynamically moved between cpusets.
+-	 *
+-	 * The change of semantics for shared hugetlb mapping with cpuset is
+-	 * undesirable. However, in order to preserve some of the semantics,
+-	 * we fall back to check against current free page availability as
+-	 * a best attempt and hopefully to minimize the impact of changing
+-	 * semantics that cpuset has.
+-	 */
+-	if (delta > 0) {
+-		if (gather_surplus_pages(delta) < 0)
+-			goto out;
+-
+-		if (delta > cpuset_mems_nr(free_huge_pages_node)) {
+-			return_unused_surplus_pages(delta);
+-			goto out;
+-		}
+-	}
+-
+-	ret = 0;
+-	if (delta < 0)
+-		return_unused_surplus_pages((unsigned long) -delta);
+-
+-out:
+-	spin_unlock(&hugetlb_lock);
+-	return ret;
+-}
+-
+ int hugetlb_reserve_pages(struct inode *inode, long from, long to)
+ {
+ 	long ret, chg;
 _
 
 Patches currently in -mm which might be from mel@csn.ul.ie are
