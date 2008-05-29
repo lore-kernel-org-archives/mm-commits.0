@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + tmpfs-support-aio.patch added to -mm tree
-Date: Wed, 28 May 2008 16:58:25 -0700
-Message-ID: <200805282358.m4SNwPpm006806@imap1.linux-foundation.org>
+Subject: + call_usermodehelper-increase-reliability.patch added to -mm tree
+Date: Wed, 28 May 2008 17:04:23 -0700
+Message-ID: <200805290004.m4T04NAB007061@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37970 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58804 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751581AbYE1X7S (ORCPT
+	by vger.kernel.org with ESMTP id S1751435AbYE2AFO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 May 2008 19:59:18 -0400
+	Wed, 28 May 2008 20:05:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hugh@veritas.com, hans-christoph.rohland@sap.com, leg@google.com, pbadari@us.ibm.com, zach.brown@oracle.com
+Cc: kosaki.motohiro@jp.fujitsu.com, andi@firstfloor.org, jeremy@xensource.com, lizf@cn.fujitsu.com, menage@google.com, rusty@rustcorp.com.au
 
 
 The patch titled
-     tmpfs: support aio
+     call_usermodehelper(): increase reliability
 has been added to the -mm tree.  Its filename is
-     tmpfs-support-aio.patch
+     call_usermodehelper-increase-reliability.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,126 +34,141 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tmpfs: support aio
-From: Hugh Dickins <hugh@veritas.com>
+Subject: call_usermodehelper(): increase reliability
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-We have a request for tmpfs to support the AIO interface: easily done, no
-more than replacing the old shmem_file_read by shmem_file_aio_read,
-cribbed from generic_file_aio_read.  (In 2.6.25 its write side was already
-changed to use generic_file_aio_write.)
+Presently call_usermodehelper_setup() uses GFP_ATOMIC.  but it can return
+NULL _very_ easily.
 
-Tests out fine with LTP's ltp-aiodio.sh, given hacks (not included) to
-support O_DIRECT.  tmpfs cannot honestly support O_DIRECT: its
-cache-avoiding-IO nature is at odds with direct IO-avoiding-cache.
+GFP_ATOMIC is needed only when we can't sleep.  and, GFP_KERNEL is robust
+and better.
 
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Tested-by: Lawrence Greenfield <leg@google.com>
-Cc: Christoph Rohland <hans-christoph.rohland@sap.com>
-Cc: Badari Pulavarty <pbadari@us.ibm.com>
-Cc: Zach Brown <zach.brown@oracle.com>
+thus, I add gfp_mask argument to call_usermodehelper_setup().
+
+So, its callers pass the gfp_t as below:
+
+call_usermodehelper() and call_usermodehelper_keys():
+	depend on 'wait' argument.
+call_usermodehelper_pipe():
+	always GFP_KERNEL because always run under process context.
+orderly_poweroff():
+	pass to GFP_ATOMIC because may run under interrupt context.
+
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: "Paul Menage" <menage@google.com>
+Reviewed-by: Li Zefan <lizf@cn.fujitsu.com>
+Acked-by: Jeremy Fitzhardinge <jeremy@xensource.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Andi Kleen <andi@firstfloor.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   57 +++++++++++++++++++++++++++++++++------------------
- 1 file changed, 37 insertions(+), 20 deletions(-)
+ include/linux/kmod.h |   11 +++++++----
+ kernel/kmod.c        |    9 +++++----
+ kernel/sys.c         |    2 +-
+ 3 files changed, 13 insertions(+), 9 deletions(-)
 
-diff -puN mm/shmem.c~tmpfs-support-aio mm/shmem.c
---- a/mm/shmem.c~tmpfs-support-aio
-+++ a/mm/shmem.c
-@@ -1690,26 +1690,42 @@ static void do_shmem_file_read(struct fi
- 	file_accessed(filp);
- }
+diff -puN include/linux/kmod.h~call_usermodehelper-increase-reliability include/linux/kmod.h
+--- a/include/linux/kmod.h~call_usermodehelper-increase-reliability
++++ a/include/linux/kmod.h
+@@ -19,6 +19,7 @@
+  *      Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
  
--static ssize_t shmem_file_read(struct file *filp, char __user *buf, size_t count, loff_t *ppos)
-+static ssize_t shmem_file_aio_read(struct kiocb *iocb,
-+		const struct iovec *iov, unsigned long nr_segs, loff_t pos)
++#include <linux/gfp.h>
+ #include <linux/stddef.h>
+ #include <linux/errno.h>
+ #include <linux/compiler.h>
+@@ -40,8 +41,8 @@ struct file;
+ struct subprocess_info;
+ 
+ /* Allocate a subprocess_info structure */
+-struct subprocess_info *call_usermodehelper_setup(char *path,
+-						  char **argv, char **envp);
++struct subprocess_info *call_usermodehelper_setup(char *path, char **argv,
++						  char **envp, gfp_t gfp_mask);
+ 
+ /* Set various pieces of state into the subprocess_info structure */
+ void call_usermodehelper_setkeys(struct subprocess_info *info,
+@@ -68,8 +69,9 @@ static inline int
+ call_usermodehelper(char *path, char **argv, char **envp, enum umh_wait wait)
  {
--	read_descriptor_t desc;
--
--	if ((ssize_t) count < 0)
--		return -EINVAL;
--	if (!access_ok(VERIFY_WRITE, buf, count))
--		return -EFAULT;
--	if (!count)
--		return 0;
--
--	desc.written = 0;
--	desc.count = count;
--	desc.arg.buf = buf;
--	desc.error = 0;
--
--	do_shmem_file_read(filp, ppos, &desc, file_read_actor);
--	if (desc.written)
--		return desc.written;
--	return desc.error;
-+	struct file *filp = iocb->ki_filp;
-+	ssize_t retval;
-+	unsigned long seg;
-+	size_t count;
-+	loff_t *ppos = &iocb->ki_pos;
-+
-+	count = 0;
-+	retval = generic_segment_checks(iov, &nr_segs, &count, VERIFY_WRITE);
-+	if (retval)
-+		return retval;
-+
-+	retval = 0;
-+	if (count) {
-+		for (seg = 0; seg < nr_segs; seg++) {
-+			read_descriptor_t desc;
-+
-+			desc.written = 0;
-+			desc.arg.buf = iov[seg].iov_base;
-+			desc.count = iov[seg].iov_len;
-+			if (desc.count == 0)
-+				continue;
-+			desc.error = 0;
-+			do_shmem_file_read(filp, ppos, &desc, file_read_actor);
-+			retval += desc.written;
-+			if (desc.error) {
-+				retval = retval ?: desc.error;
-+				break;
-+			}
-+			if (desc.count > 0)
-+				break;
-+		}
-+	}
-+	return retval;
- }
+ 	struct subprocess_info *info;
++	gfp_t gfp_mask = (wait == UMH_NO_WAIT) ? GFP_ATOMIC : GFP_KERNEL;
  
- static int shmem_statfs(struct dentry *dentry, struct kstatfs *buf)
-@@ -2369,8 +2385,9 @@ static const struct file_operations shme
- 	.mmap		= shmem_mmap,
- #ifdef CONFIG_TMPFS
- 	.llseek		= generic_file_llseek,
--	.read		= shmem_file_read,
-+	.read		= do_sync_read,
- 	.write		= do_sync_write,
-+	.aio_read	= shmem_file_aio_read,
- 	.aio_write	= generic_file_aio_write,
- 	.fsync		= simple_sync_file,
- 	.splice_read	= generic_file_splice_read,
+-	info = call_usermodehelper_setup(path, argv, envp);
++	info = call_usermodehelper_setup(path, argv, envp, gfp_mask);
+ 	if (info == NULL)
+ 		return -ENOMEM;
+ 	return call_usermodehelper_exec(info, wait);
+@@ -80,8 +82,9 @@ call_usermodehelper_keys(char *path, cha
+ 			 struct key *session_keyring, enum umh_wait wait)
+ {
+ 	struct subprocess_info *info;
++	gfp_t gfp_mask = (wait == UMH_NO_WAIT) ? GFP_ATOMIC : GFP_KERNEL;
+ 
+-	info = call_usermodehelper_setup(path, argv, envp);
++	info = call_usermodehelper_setup(path, argv, envp, gfp_mask);
+ 	if (info == NULL)
+ 		return -ENOMEM;
+ 
+diff -puN kernel/kmod.c~call_usermodehelper-increase-reliability kernel/kmod.c
+--- a/kernel/kmod.c~call_usermodehelper-increase-reliability
++++ a/kernel/kmod.c
+@@ -352,16 +352,17 @@ static inline void register_pm_notifier_
+  * @path: path to usermode executable
+  * @argv: arg vector for process
+  * @envp: environment for process
++ * @gfp_mask: gfp mask for memory allocation
+  *
+  * Returns either %NULL on allocation failure, or a subprocess_info
+  * structure.  This should be passed to call_usermodehelper_exec to
+  * exec the process and free the structure.
+  */
+-struct subprocess_info *call_usermodehelper_setup(char *path,
+-						  char **argv, char **envp)
++struct subprocess_info *call_usermodehelper_setup(char *path, char **argv,
++						  char **envp, gfp_t gfp_mask)
+ {
+ 	struct subprocess_info *sub_info;
+-	sub_info = kzalloc(sizeof(struct subprocess_info),  GFP_ATOMIC);
++	sub_info = kzalloc(sizeof(struct subprocess_info), gfp_mask);
+ 	if (!sub_info)
+ 		goto out;
+ 
+@@ -494,7 +495,7 @@ int call_usermodehelper_pipe(char *path,
+ 	struct subprocess_info *sub_info;
+ 	int ret;
+ 
+-	sub_info = call_usermodehelper_setup(path, argv, envp);
++	sub_info = call_usermodehelper_setup(path, argv, envp, GFP_KERNEL);
+ 	if (sub_info == NULL)
+ 		return -ENOMEM;
+ 
+diff -puN kernel/sys.c~call_usermodehelper-increase-reliability kernel/sys.c
+--- a/kernel/sys.c~call_usermodehelper-increase-reliability
++++ a/kernel/sys.c
+@@ -1795,7 +1795,7 @@ int orderly_poweroff(bool force)
+ 		goto out;
+ 	}
+ 
+-	info = call_usermodehelper_setup(argv[0], argv, envp);
++	info = call_usermodehelper_setup(argv[0], argv, envp, GFP_ATOMIC);
+ 	if (info == NULL) {
+ 		argv_free(argv);
+ 		goto out;
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
-git-unionfs.patch
-access_process_vm-device-memory-infrastructure.patch
-use-generic_access_phys-for-dev-mem-mappings.patch
-use-generic_access_phys-for-dev-mem-mappings-fix.patch
-use-generic_access_phys-for-pci-mmap-on-x86.patch
-powerpc-ioremap_prot.patch
-spufs-use-the-new-vm_ops-access.patch
-spufs-use-the-new-vm_ops-access-fix.patch
-mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co.patch
-tmpfs-support-aio.patch
-tmpfs-support-aio-cleanup.patch
-memcg-better-migration-handling.patch
-memcg-remove-refcnt-from-page_cgroup.patch
-memcg-remove-refcnt-from-page_cgroup-fix.patch
-memcg-handle-swap-cache.patch
-memcg-helper-function-for-relcaim-from-shmem.patch
-memcg-add-hints-for-branch.patch
-memcg-remove-a-redundant-check.patch
-prio_tree-debugging-patch.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+mm-hugetlbc-fix-duplicate-variable.patch
+page-flags-record-page-flag-overlays-explicitly.patch
+slub-record-page-flag-overlays-explicitly.patch
+slob-record-page-flag-overlays-explicitly.patch
+call_usermodehelper-increase-reliability.patch
+make-mm-memoryc-print_bad_pte-static.patch
+mm-swapfilec-make-code-static.patch
+make-mm-rmapc-anon_vma_cachep-static.patch
 
