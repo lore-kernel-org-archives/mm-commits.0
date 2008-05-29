@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlb-move-reservation-region-support-earlier.patch added to -mm tree
-Date: Wed, 28 May 2008 18:51:35 -0700
-Message-ID: <200805290151.m4T1pZoD010850@imap1.linux-foundation.org>
+Subject: + libata-handle-bay-devices-in-dock-stations.patch added to -mm tree
+Date: Wed, 28 May 2008 20:02:35 -0700
+Message-ID: <200805290302.m4T32ZgM013257@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50799 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45785 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753653AbYE2B5H (ORCPT
+	by vger.kernel.org with ESMTP id S1753758AbYE2DDS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 May 2008 21:57:07 -0400
+	Wed, 28 May 2008 23:03:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: apw@shadowen.org, agl@us.ibm.com, hannes@saeurebad.de, hugh@veritas.com, mel@csn.ul.ie, mtk.manpages@googlemail.com, wli@holomorphy.com
+Cc: hmacht@suse.de, htejun@gmail.com, jeff@garzik.org, mjg59@srcf.ucam.org
 
 
 The patch titled
-     hugetlb: move reservation region support earlier
+     libata: handle bay devices in dock stations
 has been added to the -mm tree.  Its filename is
-     hugetlb-move-reservation-region-support-earlier.patch
+     libata-handle-bay-devices-in-dock-stations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,311 +34,251 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlb: move reservation region support earlier
-From: Andy Whitcroft <apw@shadowen.org>
+Subject: libata: handle bay devices in dock stations
+From: Holger Macht <hmacht@suse.de>
 
-The following patch will require use of the reservation regions support. 
-Move this earlier in the file.  No changes have been made to this code.
+* Differentiate between bay devices in dock stations and others:
 
-Signed-off-by: Andy Whitcroft <apw@shadowen.org>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Acked-by: Adam Litke <agl@us.ibm.com>
-Cc: Johannes Weiner <hannes@saeurebad.de>
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: William Lee Irwin III <wli@holomorphy.com>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
+ - When an ACPI_NOTIFY_EJECT_REQUEST appears, just signal uevent to
+   userspace (that is when the optional eject button on a bay device is
+   pressed/pulled) giving the possibility to unmount file systems and to
+   clean up. Also, only send uevent in case we get an EJECT_REQUEST
+   without doing anything else. In other cases, you'll get an add/remove
+   event because libata attaches/detaches the device.
+
+ - In case of a dock event, which in turn signals an
+   ACPI_NOTIFY_EJECT_REQUEST, immediately detach the device, because it
+   may already have been gone
+
+* In case of an ACPI_NOTIFY_DEVICE/BUS_CHECK, evaluate _STA to check if
+  the device has been plugged or unplugged. If plugged, hotplug it, if
+  unplugged, just signal event to userspace
+  (initial patch by Matthew Garrett <mjg59@srcf.ucam.org>)
+
+* Call ACPI _EJ0 for detached devices
+
+Signed-off-by: Holger Macht <hmacht@suse.de>
+Acked-by: Tejun Heo <htejun@gmail.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |  242 ++++++++++++++++++++++++-------------------------
- 1 file changed, 121 insertions(+), 121 deletions(-)
+ drivers/ata/libata-acpi.c |  141 ++++++++++++++++++++++++------------
+ 1 file changed, 94 insertions(+), 47 deletions(-)
 
-diff -puN mm/hugetlb.c~hugetlb-move-reservation-region-support-earlier mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-move-reservation-region-support-earlier
-+++ a/mm/hugetlb.c
-@@ -561,6 +561,127 @@ static void return_unused_surplus_pages(
- 	}
+diff -puN drivers/ata/libata-acpi.c~libata-handle-bay-devices-in-dock-stations drivers/ata/libata-acpi.c
+--- a/drivers/ata/libata-acpi.c~libata-handle-bay-devices-in-dock-stations
++++ a/drivers/ata/libata-acpi.c
+@@ -118,8 +118,40 @@ static void ata_acpi_associate_ide_port(
+ 		ap->pflags |= ATA_PFLAG_INIT_GTM_VALID;
  }
  
-+struct file_region {
-+	struct list_head link;
-+	long from;
-+	long to;
-+};
-+
-+static long region_add(struct list_head *head, long f, long t)
++static void ata_acpi_eject_device(acpi_handle handle)
 +{
-+	struct file_region *rg, *nrg, *trg;
++	struct acpi_object_list arg_list;
++	union acpi_object arg;
 +
-+	/* Locate the region we are either in or before. */
-+	list_for_each_entry(rg, head, link)
-+		if (f <= rg->to)
-+			break;
++	arg_list.count = 1;
++	arg_list.pointer = &arg;
++	arg.type = ACPI_TYPE_INTEGER;
++	arg.integer.value = 1;
 +
-+	/* Round our left edge to the current segment if it encloses us. */
-+	if (f > rg->from)
-+		f = rg->from;
-+
-+	/* Check for and consume any regions we now overlap with. */
-+	nrg = rg;
-+	list_for_each_entry_safe(rg, trg, rg->link.prev, link) {
-+		if (&rg->link == head)
-+			break;
-+		if (rg->from > t)
-+			break;
-+
-+		/* If this area reaches higher then extend our area to
-+		 * include it completely.  If this is not the first area
-+		 * which we intend to reuse, free it. */
-+		if (rg->to > t)
-+			t = rg->to;
-+		if (rg != nrg) {
-+			list_del(&rg->link);
-+			kfree(rg);
-+		}
-+	}
-+	nrg->from = f;
-+	nrg->to = t;
-+	return 0;
++	if (ACPI_FAILURE(acpi_evaluate_object(handle, "_EJ0",
++					      &arg_list, NULL)))
++		printk(KERN_ERR "Failed to evaluate _EJ0!\n");
 +}
 +
-+static long region_chg(struct list_head *head, long f, long t)
++static void ata_acpi_detach_device(struct ata_port *ap, struct ata_device *dev)
 +{
-+	struct file_region *rg, *nrg;
-+	long chg = 0;
++	if (dev)
++		dev->flags |= ATA_DFLAG_DETACH;
++	else {
++		struct ata_link *tlink;
++		struct ata_device *tdev;
 +
-+	/* Locate the region we are before or in. */
-+	list_for_each_entry(rg, head, link)
-+		if (f <= rg->to)
-+			break;
-+
-+	/* If we are below the current region then a new region is required.
-+	 * Subtle, allocate a new region at the position but make it zero
-+	 * size such that we can guarantee to record the reservation. */
-+	if (&rg->link == head || t < rg->from) {
-+		nrg = kmalloc(sizeof(*nrg), GFP_KERNEL);
-+		if (!nrg)
-+			return -ENOMEM;
-+		nrg->from = f;
-+		nrg->to   = f;
-+		INIT_LIST_HEAD(&nrg->link);
-+		list_add(&nrg->link, rg->link.prev);
-+
-+		return t - f;
++		ata_port_for_each_link(tlink, ap)
++			ata_link_for_each_dev(tdev, tlink)
++				tdev->flags |= ATA_DFLAG_DETACH;
 +	}
 +
-+	/* Round our left edge to the current segment if it encloses us. */
-+	if (f > rg->from)
-+		f = rg->from;
-+	chg = t - f;
-+
-+	/* Check for and consume any regions we now overlap with. */
-+	list_for_each_entry(rg, rg->link.prev, link) {
-+		if (&rg->link == head)
-+			break;
-+		if (rg->from > t)
-+			return chg;
-+
-+		/* We overlap with this area, if it extends futher than
-+		 * us then we must extend ourselves.  Account for its
-+		 * existing reservation. */
-+		if (rg->to > t) {
-+			chg += rg->to - t;
-+			t = rg->to;
-+		}
-+		chg -= rg->to - rg->from;
-+	}
-+	return chg;
++	ata_port_freeze(ap);
++	ata_port_schedule_eh(ap);
 +}
 +
-+static long region_truncate(struct list_head *head, long end)
-+{
-+	struct file_region *rg, *trg;
-+	long chg = 0;
-+
-+	/* Locate the region we are either in or before. */
-+	list_for_each_entry(rg, head, link)
-+		if (end <= rg->to)
-+			break;
-+	if (&rg->link == head)
-+		return 0;
-+
-+	/* If we are in the middle of a region then adjust it. */
-+	if (end > rg->from) {
-+		chg = rg->to - end;
-+		rg->to = end;
-+		rg = list_entry(rg->link.next, typeof(*rg), link);
-+	}
-+
-+	/* Drop any remaining regions. */
-+	list_for_each_entry_safe(rg, trg, rg->link.prev, link) {
-+		if (&rg->link == head)
-+			break;
-+		chg += rg->to - rg->from;
-+		list_del(&rg->link);
-+		kfree(rg);
-+	}
-+	return chg;
-+}
-+
- static struct page *alloc_huge_page(struct vm_area_struct *vma,
- 				    unsigned long addr, int avoid_reserve)
+ static void ata_acpi_handle_hotplug(struct ata_port *ap, struct ata_device
+-				    *dev, u32 event)
++				    *dev, u32 event, int is_dock_event)
  {
-@@ -1396,127 +1517,6 @@ void hugetlb_change_protection(struct vm
- 	flush_tlb_range(vma, start, end);
+ 	char event_string[12];
+ 	char *envp[] = { event_string, NULL };
+@@ -135,83 +167,98 @@ static void ata_acpi_handle_hotplug(stru
+ 		ap = dev->link->ap;
+ 	ehi = &ap->link.eh_info;
+ 
+-	spin_lock_irqsave(ap->lock, flags);
+-
+-	if (dev)
++	if (dev) {
++		if (dev->sdev)
++			kobj = &dev->sdev->sdev_gendev.kobj;
+ 		handle = dev->acpi_handle;
+-	else
++	} else {
++		kobj = &ap->dev->kobj;
+ 		handle = ap->acpi_handle;
++	}
+ 
+ 	status = acpi_get_handle(handle, "_EJ0", &tmphandle);
+-	if (ACPI_FAILURE(status)) {
+-		/* This device is not ejectable */
+-		spin_unlock_irqrestore(ap->lock, flags);
++	if (ACPI_FAILURE(status))
++		/* This device does not support hotplug */
+ 		return;
+-	}
+ 
+-	status = acpi_evaluate_integer(handle, "_STA", NULL, &sta);
+-	if (ACPI_FAILURE(status)) {
+-		printk ("Unable to determine bay status\n");
+-		spin_unlock_irqrestore(ap->lock, flags);
+-		return;
+-	}
++	spin_lock_irqsave(ap->lock, flags);
+ 
+ 	switch (event) {
+ 	case ACPI_NOTIFY_BUS_CHECK:
+ 	case ACPI_NOTIFY_DEVICE_CHECK:
+ 		ata_ehi_push_desc(ehi, "ACPI event");
+-		if (!sta) {
+-                /* Device has been unplugged */
+-			if (dev)
+-				dev->flags |= ATA_DFLAG_DETACH;
+-			else {
+-				struct ata_link *tlink;
+-				struct ata_device *tdev;
+-
+-				ata_port_for_each_link(tlink, ap) {
+-					ata_link_for_each_dev(tdev, tlink) {
+-						tdev->flags |=
+-							ATA_DFLAG_DETACH;
+-					}
+-				}
+-			}
+-			ata_port_schedule_eh(ap);
+-			wait = 1;
+-		} else {
++
++		status = acpi_evaluate_integer(handle, "_STA", NULL, &sta);
++		if (ACPI_FAILURE(status)) {
++			printk(KERN_ERR "Unable to determine bay status\n");
++			break;
++		}
++
++		if (sta) {
+ 			ata_ehi_hotplugged(ehi);
+ 			ata_port_freeze(ap);
++		} else {
++			/* The device has gone - unplug it */
++			ata_acpi_detach_device(ap, dev);
++			wait = 1;
+ 		}
+-	}
++		break;
++	case ACPI_NOTIFY_EJECT_REQUEST:
++		ata_ehi_push_desc(ehi, "ACPI event");
+ 
+-	spin_unlock_irqrestore(ap->lock, flags);
++		if (!is_dock_event)
++			break;
+ 
+-	if (wait)
+-		ata_port_wait_eh(ap);
++		/* undock event - immediate unplug */
++		ata_acpi_detach_device(ap, dev);
++		wait = 1;
++		break;
++	}
+ 
+-	if (dev) {
+-		if (dev->sdev)
+-			kobj = &dev->sdev->sdev_gendev.kobj;
+-	} else
+-		kobj = &ap->dev->kobj;
++	/* make sure kobj doesn't go away while ap->lock is released */
++	kobject_get(kobj);
++
++	spin_unlock_irqrestore(ap->lock, flags);
+ 
+-	if (kobj) {
++	if (kobj && !is_dock_event) {
+ 		sprintf(event_string, "BAY_EVENT=%d", event);
+ 		kobject_uevent_env(kobj, KOBJ_CHANGE, envp);
+ 	}
++
++	kobject_put(kobj);
++
++	if (wait) {
++		ata_port_wait_eh(ap);
++		ata_acpi_eject_device(handle);
++	}
++}
++
++static void ata_acpi_dev_notify_dock(acpi_handle handle, u32 event, void *data)
++{
++	struct ata_device *dev = data;
++
++	ata_acpi_handle_hotplug(NULL, dev, event, 1);
++}
++
++static void ata_acpi_ap_notify_dock(acpi_handle handle, u32 event, void *data)
++{
++	struct ata_port *ap = data;
++
++	ata_acpi_handle_hotplug(ap, NULL, event, 1);
  }
  
--struct file_region {
--	struct list_head link;
--	long from;
--	long to;
--};
--
--static long region_add(struct list_head *head, long f, long t)
--{
--	struct file_region *rg, *nrg, *trg;
--
--	/* Locate the region we are either in or before. */
--	list_for_each_entry(rg, head, link)
--		if (f <= rg->to)
--			break;
--
--	/* Round our left edge to the current segment if it encloses us. */
--	if (f > rg->from)
--		f = rg->from;
--
--	/* Check for and consume any regions we now overlap with. */
--	nrg = rg;
--	list_for_each_entry_safe(rg, trg, rg->link.prev, link) {
--		if (&rg->link == head)
--			break;
--		if (rg->from > t)
--			break;
--
--		/* If this area reaches higher then extend our area to
--		 * include it completely.  If this is not the first area
--		 * which we intend to reuse, free it. */
--		if (rg->to > t)
--			t = rg->to;
--		if (rg != nrg) {
--			list_del(&rg->link);
--			kfree(rg);
--		}
--	}
--	nrg->from = f;
--	nrg->to = t;
--	return 0;
--}
--
--static long region_chg(struct list_head *head, long f, long t)
--{
--	struct file_region *rg, *nrg;
--	long chg = 0;
--
--	/* Locate the region we are before or in. */
--	list_for_each_entry(rg, head, link)
--		if (f <= rg->to)
--			break;
--
--	/* If we are below the current region then a new region is required.
--	 * Subtle, allocate a new region at the position but make it zero
--	 * size such that we can guarantee to record the reservation. */
--	if (&rg->link == head || t < rg->from) {
--		nrg = kmalloc(sizeof(*nrg), GFP_KERNEL);
--		if (!nrg)
--			return -ENOMEM;
--		nrg->from = f;
--		nrg->to   = f;
--		INIT_LIST_HEAD(&nrg->link);
--		list_add(&nrg->link, rg->link.prev);
--
--		return t - f;
--	}
--
--	/* Round our left edge to the current segment if it encloses us. */
--	if (f > rg->from)
--		f = rg->from;
--	chg = t - f;
--
--	/* Check for and consume any regions we now overlap with. */
--	list_for_each_entry(rg, rg->link.prev, link) {
--		if (&rg->link == head)
--			break;
--		if (rg->from > t)
--			return chg;
--
--		/* We overlap with this area, if it extends futher than
--		 * us then we must extend ourselves.  Account for its
--		 * existing reservation. */
--		if (rg->to > t) {
--			chg += rg->to - t;
--			t = rg->to;
--		}
--		chg -= rg->to - rg->from;
--	}
--	return chg;
--}
--
--static long region_truncate(struct list_head *head, long end)
--{
--	struct file_region *rg, *trg;
--	long chg = 0;
--
--	/* Locate the region we are either in or before. */
--	list_for_each_entry(rg, head, link)
--		if (end <= rg->to)
--			break;
--	if (&rg->link == head)
--		return 0;
--
--	/* If we are in the middle of a region then adjust it. */
--	if (end > rg->from) {
--		chg = rg->to - end;
--		rg->to = end;
--		rg = list_entry(rg->link.next, typeof(*rg), link);
--	}
--
--	/* Drop any remaining regions. */
--	list_for_each_entry_safe(rg, trg, rg->link.prev, link) {
--		if (&rg->link == head)
--			break;
--		chg += rg->to - rg->from;
--		list_del(&rg->link);
--		kfree(rg);
--	}
--	return chg;
--}
--
- int hugetlb_reserve_pages(struct inode *inode,
- 					long from, long to,
- 					struct vm_area_struct *vma)
+ static void ata_acpi_dev_notify(acpi_handle handle, u32 event, void *data)
+ {
+ 	struct ata_device *dev = data;
+ 
+-	ata_acpi_handle_hotplug(NULL, dev, event);
++	ata_acpi_handle_hotplug(NULL, dev, event, 0);
+ }
+ 
+ static void ata_acpi_ap_notify(acpi_handle handle, u32 event, void *data)
+ {
+ 	struct ata_port *ap = data;
+ 
+-	ata_acpi_handle_hotplug(ap, NULL, event);
++	ata_acpi_handle_hotplug(ap, NULL, event, 0);
+ }
+ 
+ /**
+@@ -252,7 +299,7 @@ void ata_acpi_associate(struct ata_host 
+ 						    ata_acpi_ap_notify, ap);
+ 			/* we might be on a docking station */
+ 			register_hotplug_dock_device(ap->acpi_handle,
+-						     ata_acpi_ap_notify, ap);
++					     ata_acpi_ap_notify_dock, ap);
+ 		}
+ 
+ 		for (j = 0; j < ata_link_max_devices(&ap->link); j++) {
+@@ -264,7 +311,7 @@ void ata_acpi_associate(struct ata_host 
+ 						ata_acpi_dev_notify, dev);
+ 				/* we might be on a docking station */
+ 				register_hotplug_dock_device(dev->acpi_handle,
+-						ata_acpi_dev_notify, dev);
++					     ata_acpi_dev_notify_dock, dev);
+ 			}
+ 		}
+ 	}
 _
 
-Patches currently in -mm which might be from apw@shadowen.org are
+Patches currently in -mm which might be from hmacht@suse.de are
 
-linux-next.patch
-mm-add-a-basic-debugging-framework-for-memory-initialisation.patch
-mm-add-a-basic-debugging-framework-for-memory-initialisation-fix.patch
-mm-verify-the-page-links-and-memory-model.patch
-mm-make-defensive-checks-around-pfn-values-registered-for-memory-usage.patch
-mm-print-out-the-zonelists-on-request-for-manual-verification.patch
-mm-move-bootmem-descriptors-definition-to-a-single-place.patch
-mm-fix-free_all_bootmem_core-alignment-check.patch
-mm-normalize-internal-argument-passing-of-bootmem-data.patch
-mm-unexport-__alloc_bootmem_core.patch
-buddy-clarify-comments-describing-buddy-merge.patch
-page-flags-record-page-flag-overlays-explicitly.patch
-slub-record-page-flag-overlays-explicitly.patch
-slob-record-page-flag-overlays-explicitly.patch
-hugetlb-move-hugetlb_acct_memory.patch
-hugetlb-reserve-huge-pages-for-reliable-map_private-hugetlbfs-mappings-until-fork.patch
-hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed.patch
-hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed-fix.patch
-mm-record-map_noreserve-status-on-vmas-and-fix-small-page-mprotect-reservations.patch
-hugetlb-move-reservation-region-support-earlier.patch
-hugetlb-allow-huge-page-mappings-to-be-created-without-reservations.patch
-update-checkpatchpl-to-version-019.patch
-update-checkpatchpl-to-version-019-fix.patch
-page-owner-tracking-leak-detector.patch
+bay-exit-if-notify-handler-cannot-be-installed.patch
+libata-handle-bay-devices-in-dock-stations.patch
+ata-acpi-hotplug-handle-bay-devices-in-dock-stations.patch
+ata-acpi-hotplug-handle-bay-devices-in-dock-stations-cleanup.patch
 
