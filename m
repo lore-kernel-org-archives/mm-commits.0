@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + serial-fix-driver_name-conflicts.patch added to -mm tree
-Date: Thu, 29 May 2008 00:13:55 -0700
-Message-ID: <200805290713.m4T7DtMu021959@imap1.linux-foundation.org>
+Subject: + suspend-vs-iommu-prevent-suspend-if-we-could-not-resume.patch added to -mm tree
+Date: Thu, 29 May 2008 00:30:21 -0700
+Message-ID: <200805290730.m4T7ULO0022592@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51595 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55203 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750780AbYE2HTv (ORCPT
+	by vger.kernel.org with ESMTP id S1751290AbYE2Had (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 May 2008 03:19:51 -0400
+	Thu, 29 May 2008 03:30:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: avorontsov@ru.mvista.com, alan@redhat.com, macro@linux-mips.org, timur@freescale.com
+Cc: pavel@suse.cz, ragamuffin@datacomm.ch
 
 
 The patch titled
-     serial: fix driver_name conflicts
+     suspend vs. iommu: prevent suspend if we could not resume
 has been added to the -mm tree.  Its filename is
-     serial-fix-driver_name-conflicts.patch
+     suspend-vs-iommu-prevent-suspend-if-we-could-not-resume.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,72 +34,89 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: serial: fix driver_name conflicts
-From: Anton Vorontsov <avorontsov@ru.mvista.com>
+Subject: suspend vs. iommu: prevent suspend if we could not resume
+From: Pavel Machek <pavel@suse.cz>
 
-Some drivers are using too generic "serial" name for driver_name, this
-might cause issues, like this:
+iommu/gart support misses suspend/resume code, which can do bad stuff,
+including memory corruption on resume.  Prevent system suspend in case we
+would be unable to resume.
 
-Freescale QUICC Engine UART device driver
-proc_dir_entry 'serial' already registered
-Call Trace:
-[cf82de50] [c0007f7c] show_stack+0x4c/0x1ac (unreliable)
-[cf82de90] [c00b03fc] proc_register+0xfc/0x1ac
-[cf82dec0] [c00b05c8] create_proc_entry+0x60/0xac
-[cf82dee0] [c00b23dc] proc_tty_register_driver+0x60/0x98
-[cf82def0] [c016dbd8] tty_register_driver+0x1b4/0x228
-[cf82df20] [c0184d70] uart_register_driver+0x144/0x194
-[cf82df40] [c030a378] ucc_uart_init+0x2c/0x94
-[cf82df50] [c02f21a0] kernel_init+0x98/0x27c
-[cf82dff0] [c000fa74] kernel_thread+0x44/0x60
-
-^^ The board is using ucc_uart.c and 8250.c, both registered as
-   "serial".
-
-This patch fixes two drivers that are using "serial" for driver_name and
-not "ttyS" for dev_name.  Drivers that are using "ttyS" for dev_name, will
-conflict anyway, so we don't bother with these.
-
-Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
-Acked-by: Alan Cox <alan@redhat.com>
-Acked-By: Timur Tabi <timur@freescale.com>
-Acked-by: Maciej W. Rozycki <macro@linux-mips.org>
+Signed-off-by: Pavel Machek <pavel@suse.cz>
+Tested-by: Patrick <ragamuffin@datacomm.ch>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/sb1250-duart.c |    2 +-
- drivers/serial/ucc_uart.c     |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ arch/x86/kernel/pci-gart_64.c |   31 ++++++++++++++++++++++++++++++-
+ 1 file changed, 30 insertions(+), 1 deletion(-)
 
-diff -puN drivers/serial/sb1250-duart.c~serial-fix-driver_name-conflicts drivers/serial/sb1250-duart.c
---- a/drivers/serial/sb1250-duart.c~serial-fix-driver_name-conflicts
-+++ a/drivers/serial/sb1250-duart.c
-@@ -924,7 +924,7 @@ console_initcall(sbd_serial_console_init
+diff -puN arch/x86/kernel/pci-gart_64.c~suspend-vs-iommu-prevent-suspend-if-we-could-not-resume arch/x86/kernel/pci-gart_64.c
+--- a/arch/x86/kernel/pci-gart_64.c~suspend-vs-iommu-prevent-suspend-if-we-could-not-resume
++++ a/arch/x86/kernel/pci-gart_64.c
+@@ -26,6 +26,7 @@
+ #include <linux/kdebug.h>
+ #include <linux/scatterlist.h>
+ #include <linux/iommu-helper.h>
++#include <linux/sysdev.h>
+ #include <asm/atomic.h>
+ #include <asm/io.h>
+ #include <asm/mtrr.h>
+@@ -546,6 +547,28 @@ static __init unsigned read_aperture(str
+ 	return aper_base;
+ }
  
- static struct uart_driver sbd_reg = {
- 	.owner		= THIS_MODULE,
--	.driver_name	= "serial",
-+	.driver_name	= "sb1250_duart",
- 	.dev_name	= "duart",
- 	.major		= TTY_MAJOR,
- 	.minor		= SB1250_DUART_MINOR_BASE,
-diff -puN drivers/serial/ucc_uart.c~serial-fix-driver_name-conflicts drivers/serial/ucc_uart.c
---- a/drivers/serial/ucc_uart.c~serial-fix-driver_name-conflicts
-+++ a/drivers/serial/ucc_uart.c
-@@ -195,7 +195,7 @@ struct uart_qe_port {
++static int gart_resume(struct sys_device *dev)
++{
++	return 0;
++}
++
++static int gart_suspend(struct sys_device *dev, pm_message_t state)
++{
++	return -EINVAL;
++}
++
++static struct sysdev_class gart_sysdev_class = {
++	.name = "gart",
++	.suspend = gart_suspend,
++	.resume = gart_resume,
++
++};
++
++static struct sys_device device_gart = {
++	.id	= 0,
++	.cls	= &gart_sysdev_class,
++};
++
+ /*
+  * Private Northbridge GATT initialization in case we cannot use the
+  * AGP driver for some reason.
+@@ -556,7 +579,7 @@ static __init int init_k8_gatt(struct ag
+ 	unsigned aper_base, new_aper_base;
+ 	struct pci_dev *dev;
+ 	void *gatt;
+-	int i;
++	int i, error;
  
- static struct uart_driver ucc_uart_driver = {
- 	.owner  	= THIS_MODULE,
--	.driver_name    = "serial",
-+	.driver_name    = "ucc_uart",
- 	.dev_name       = "ttyQE",
- 	.major  	= SERIAL_QE_MAJOR,
- 	.minor  	= SERIAL_QE_MINOR,
+ 	printk(KERN_INFO "PCI-DMA: Disabling AGP.\n");
+ 	aper_size = aper_base = info->aper_size = 0;
+@@ -593,6 +616,12 @@ static __init int init_k8_gatt(struct ag
+ 		dev = k8_northbridges[i];
+ 		enable_gart_translation(dev, __pa(gatt));
+ 	}
++
++	error = sysdev_class_register(&gart_sysdev_class);
++	if (!error)
++		error = sysdev_register(&device_gart);
++	if (error)
++		panic("Could not register gart_sysdev -- would corrupt data on next suspend");
+ 	flush_gart();
+ 
+ 	printk(KERN_INFO "PCI-DMA: aperture base @ %x size %u KB\n",
 _
 
-Patches currently in -mm which might be from avorontsov@ru.mvista.com are
+Patches currently in -mm which might be from pavel@suse.cz are
 
-mmc_spih-should-include-linux-interruptsh.patch
 linux-next.patch
-serial-fix-driver_name-conflicts.patch
+suspend-vs-iommu-prevent-suspend-if-we-could-not-resume.patch
+swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option.patch
+swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
 
