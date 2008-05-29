@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ext4-fix-error-processing-in-mb_free_blocks.patch added to -mm tree
-Date: Wed, 28 May 2008 21:30:32 -0700
-Message-ID: <200805290430.m4T4UWSv016377@imap1.linux-foundation.org>
+Subject: + bluetooth-fix-locking-bug-in-the-rfcomm-socket-cleanup-handling.patch added to -mm tree
+Date: Wed, 28 May 2008 21:53:15 -0700
+Message-ID: <200805290453.m4T4rFZr017095@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53455 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36282 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751237AbYE2EbW (ORCPT
+	by vger.kernel.org with ESMTP id S1750714AbYE2ExZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 May 2008 00:31:22 -0400
+	Thu, 29 May 2008 00:53:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shen@cn.fujitsu.com, cmm@us.ibm.com, tytso@mit.edu
+Cc: arjan@linux.intel.com, davem@davemloft.net, hidave.darkstar@gmail.com, marcel@holtmann.org
 
 
 The patch titled
-     ext4: fix error processing in mb_free_blocks
+     bluetooth: fix locking bug in the rfcomm socket cleanup handling
 has been added to the -mm tree.  Its filename is
-     ext4-fix-error-processing-in-mb_free_blocks.patch
+     bluetooth-fix-locking-bug-in-the-rfcomm-socket-cleanup-handling.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,96 +34,72 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext4: fix error processing in mb_free_blocks
-From: Shen Feng <shen@cn.fujitsu.com>
+Subject: bluetooth: fix locking bug in the rfcomm socket cleanup handling
+From: Arjan van de Ven <arjan@linux.intel.com>
 
-The error processing of the return value of mb_free_blocks is meanless
-because it only returns 0.  This fix includes
+in net/bluetooth/rfcomm/sock.c, rfcomm_sk_state_change() does the
+following operation:
 
-- make mb_free_blocks return void
+        if (parent && sock_flag(sk, SOCK_ZAPPED)) {
+                /* We have to drop DLC lock here, otherwise
+                 * rfcomm_sock_destruct() will dead lock. */
+                rfcomm_dlc_unlock(d);
+                rfcomm_sock_kill(sk);
+                rfcomm_dlc_lock(d);
+        }
+}
 
-- remove the error processing part in callers
+which is fine, since rfcomm_sock_kill() will call sk_free() which will
+call rfcomm_sock_destruct() which takes the rfcomm_dlc_lock()...  so far
+so good.
 
-- unlock group before calling ext4_error in mb_free_blocks
+HOWEVER, this assumes that the rfcomm_sk_state_change() function always
+gets called with the rfcomm_dlc_lock() taken.  This is the case for all
+but one case, and in that case where we don't have the lock, we do a
+double unlock followed by an attempt to take the lock, which due to
+underflow isn't going anywhere fast.
 
-Signed-off-by: Shen Feng <shen@cn.fujitsu.com>
-Cc: Mingming Cao <cmm@us.ibm.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
+This patch fixes this by moving the straggling case inside the lock, like
+the other usages of the same call are doing in this code.
+
+This was found with the help of the www.kerneloops.org project, where this
+deadlock was observed 51 times at this point in time:
+http://www.kerneloops.org/search.php?search=rfcomm_sock_destruct
+
+Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Marcel Holtmann <marcel@holtmann.org>
+Cc: Dave Young <hidave.darkstar@gmail.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/mballoc.c |   13 +++++--------
- 1 file changed, 5 insertions(+), 8 deletions(-)
+ net/bluetooth/rfcomm/core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ext4/mballoc.c~ext4-fix-error-processing-in-mb_free_blocks fs/ext4/mballoc.c
---- a/fs/ext4/mballoc.c~ext4-fix-error-processing-in-mb_free_blocks
-+++ a/fs/ext4/mballoc.c
-@@ -1031,7 +1031,7 @@ static void mb_set_bits(spinlock_t *lock
- 	}
- }
+diff -puN net/bluetooth/rfcomm/core.c~bluetooth-fix-locking-bug-in-the-rfcomm-socket-cleanup-handling net/bluetooth/rfcomm/core.c
+--- a/net/bluetooth/rfcomm/core.c~bluetooth-fix-locking-bug-in-the-rfcomm-socket-cleanup-handling
++++ a/net/bluetooth/rfcomm/core.c
+@@ -423,8 +423,8 @@ static int __rfcomm_dlc_close(struct rfc
  
--static int mb_free_blocks(struct inode *inode, struct ext4_buddy *e4b,
-+static void mb_free_blocks(struct inode *inode, struct ext4_buddy *e4b,
- 			  int first, int count)
- {
- 	int block = 0;
-@@ -1071,11 +1071,12 @@ static int mb_free_blocks(struct inode *
- 			blocknr += block;
- 			blocknr +=
- 			    le32_to_cpu(EXT4_SB(sb)->s_es->s_first_data_block);
--
-+			ext4_unlock_group(sb, e4b->bd_group);
- 			ext4_error(sb, __func__, "double-free of inode"
- 				   " %lu's block %llu(bit %u in group %lu)\n",
- 				   inode ? inode->i_ino : 0, blocknr, block,
- 				   e4b->bd_group);
-+			ext4_lock_group(sb, e4b->bd_group);
- 		}
- 		mb_clear_bit(block, EXT4_MB_BITMAP(e4b));
- 		e4b->bd_info->bb_counters[order]++;
-@@ -1113,8 +1114,6 @@ static int mb_free_blocks(struct inode *
- 		} while (1);
- 	}
- 	mb_check_buddy(e4b);
--
--	return 0;
- }
+ 		rfcomm_dlc_lock(d);
+ 		d->state = BT_CLOSED;
+-		rfcomm_dlc_unlock(d);
+ 		d->state_change(d, err);
++		rfcomm_dlc_unlock(d);
  
- static int mb_find_extent(struct ext4_buddy *e4b, int order, int block,
-@@ -2554,8 +2553,7 @@ ext4_mb_free_committed_blocks(struct sup
- 		ext4_lock_group(sb, md->group);
- 		for (i = 0; i < md->num; i++) {
- 			mb_debug(" %u", md->blocks[i]);
--			err = mb_free_blocks(NULL, &e4b, md->blocks[i], 1);
--			BUG_ON(err != 0);
-+			mb_free_blocks(NULL, &e4b, md->blocks[i], 1);
- 		}
- 		mb_debug("\n");
- 		ext4_unlock_group(sb, md->group);
-@@ -4327,10 +4325,9 @@ do_more:
- 		ext4_mb_free_metadata(handle, &e4b, block_group, bit, count);
- 	} else {
- 		ext4_lock_group(sb, block_group);
--		err = mb_free_blocks(inode, &e4b, bit, count);
-+		mb_free_blocks(inode, &e4b, bit, count);
- 		ext4_mb_return_to_preallocation(inode, &e4b, block, count);
- 		ext4_unlock_group(sb, block_group);
--		BUG_ON(err != 0);
- 	}
- 
- 	spin_lock(sb_bgl_lock(sbi, block_group));
+ 		skb_queue_purge(&d->tx_queue);
+ 		rfcomm_dlc_unlink(d);
 _
 
-Patches currently in -mm which might be from shen@cn.fujitsu.com are
+Patches currently in -mm which might be from arjan@linux.intel.com are
 
 linux-next.patch
-ext2-remove-double-definitions-of-xattr-macros.patch
-ext3-improve-some-code-in-rb-tree-part-of-dirc.patch
-ext3-remove-double-definitions-of-xattr-macros.patch
-reiserfs-remove-double-definitions-of-xattr-macros.patch
-ext4-error-proc-entry-creation-when-the-fs-ext4-is-not-correctly-created.patch
-ext4-improve-some-code-in-rb-tree-part-of-dirc.patch
-ext4-remove-double-definitions-of-xattr-macros.patch
-ext4-error-processing-and-coding-enhancement-for-mballoc.patch
-ext4-fix-error-processing-in-mb_free_blocks.patch
+bluetooth-fix-locking-bug-in-the-rfcomm-socket-cleanup-handling.patch
+rename-warn-to-warning-to-clear-the-namespace.patch
+rename-warn-to-warning-to-clear-the-namespace-fix.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix-2.patch
+kernel-irq-managec-replace-a-printk-warn_on-to-a-warn.patch
+example-use-of-warn.patch
 
