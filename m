@@ -1,25 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: - tmpfs-support-aio.patch removed from -mm tree
-Date: Thu, 29 May 2008 14:06:30 -0700
-Message-ID: <200805292106.m4TL6Uch022588@imap1.linux-foundation.org>
+Subject: + tmpfs-support-aio.patch added to -mm tree
+Date: Thu, 29 May 2008 14:08:35 -0700
+Message-ID: <200805292108.m4TL8Ztq022634@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49959 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43857 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751956AbYE2VIV (ORCPT
+	by vger.kernel.org with ESMTP id S1756119AbYE2VJS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 May 2008 17:08:21 -0400
+	Thu, 29 May 2008 17:09:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh@veritas.com, hans-christoph.rohland@sap.com, leg@google.com, pbadari@us.ibm.com, zach.brown@oracle.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: hugh@veritas.com, hans-christoph.rohland@sap.com, leg@google.com, pbadari@us.ibm.com, zach.brown@oracle.com
 
 
 The patch titled
      tmpfs: support aio
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      tmpfs-support-aio.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -31,6 +41,8 @@ We have a request for tmpfs to support the AIO interface: easily done, no
 more than replacing the old shmem_file_read by shmem_file_aio_read,
 cribbed from generic_file_aio_read.  (In 2.6.25 its write side was already
 changed to use generic_file_aio_write.)
+
+Incorporate cleanups from Andrew Morton and Harvey Harrison.
 
 Tests out fine with LTP's ltp-aiodio.sh, given hacks (not included) to
 support O_DIRECT.  tmpfs cannot honestly support O_DIRECT: its
@@ -44,13 +56,13 @@ Cc: Zach Brown <zach.brown@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   57 +++++++++++++++++++++++++++++++++------------------
- 1 file changed, 37 insertions(+), 20 deletions(-)
+ mm/shmem.c |   53 +++++++++++++++++++++++++++++++--------------------
+ 1 file changed, 33 insertions(+), 20 deletions(-)
 
 diff -puN mm/shmem.c~tmpfs-support-aio mm/shmem.c
 --- a/mm/shmem.c~tmpfs-support-aio
 +++ a/mm/shmem.c
-@@ -1690,26 +1690,42 @@ static void do_shmem_file_read(struct fi
+@@ -1690,26 +1690,38 @@ static void do_shmem_file_read(struct fi
  	file_accessed(filp);
  }
  
@@ -82,37 +94,33 @@ diff -puN mm/shmem.c~tmpfs-support-aio mm/shmem.c
 +	size_t count;
 +	loff_t *ppos = &iocb->ki_pos;
 +
-+	count = 0;
 +	retval = generic_segment_checks(iov, &nr_segs, &count, VERIFY_WRITE);
 +	if (retval)
 +		return retval;
 +
-+	retval = 0;
-+	if (count) {
-+		for (seg = 0; seg < nr_segs; seg++) {
-+			read_descriptor_t desc;
++	for (seg = 0; seg < nr_segs; seg++) {
++		read_descriptor_t desc;
 +
-+			desc.written = 0;
-+			desc.arg.buf = iov[seg].iov_base;
-+			desc.count = iov[seg].iov_len;
-+			if (desc.count == 0)
-+				continue;
-+			desc.error = 0;
-+			do_shmem_file_read(filp, ppos, &desc, file_read_actor);
-+			retval += desc.written;
-+			if (desc.error) {
-+				retval = retval ?: desc.error;
-+				break;
-+			}
-+			if (desc.count > 0)
-+				break;
++		desc.written = 0;
++		desc.arg.buf = iov[seg].iov_base;
++		desc.count = iov[seg].iov_len;
++		if (desc.count == 0)
++			continue;
++		desc.error = 0;
++		do_shmem_file_read(filp, ppos, &desc, file_read_actor);
++		retval += desc.written;
++		if (desc.error) {
++			retval = retval ?: desc.error;
++			break;
 +		}
++		if (desc.count > 0)
++			break;
 +	}
 +	return retval;
  }
  
  static int shmem_statfs(struct dentry *dentry, struct kstatfs *buf)
-@@ -2369,8 +2385,9 @@ static const struct file_operations shme
+@@ -2369,8 +2381,9 @@ static const struct file_operations shme
  	.mmap		= shmem_mmap,
  #ifdef CONFIG_TMPFS
  	.llseek		= generic_file_llseek,
@@ -136,7 +144,6 @@ powerpc-ioremap_prot.patch
 spufs-use-the-new-vm_ops-access.patch
 spufs-use-the-new-vm_ops-access-fix.patch
 mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co.patch
-tmpfs-support-aio.patch
 hugetlb-move-hugetlb_acct_memory.patch
 hugetlb-reserve-huge-pages-for-reliable-map_private-hugetlbfs-mappings-until-fork.patch
 hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed.patch
@@ -144,6 +151,8 @@ hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-h
 mm-record-map_noreserve-status-on-vmas-and-fix-small-page-mprotect-reservations.patch
 hugetlb-move-reservation-region-support-earlier.patch
 hugetlb-allow-huge-page-mappings-to-be-created-without-reservations.patch
+generic_file_aio_read-cleanups.patch
+tmpfs-support-aio.patch
 memcg-better-migration-handling.patch
 memcg-remove-refcnt-from-page_cgroup.patch
 memcg-remove-refcnt-from-page_cgroup-fix.patch
@@ -152,5 +161,4 @@ memcg-helper-function-for-relcaim-from-shmem.patch
 memcg-add-hints-for-branch.patch
 memcg-remove-a-redundant-check.patch
 prio_tree-debugging-patch.patch
-generic_file_aio_read-cleanups.patch
 
