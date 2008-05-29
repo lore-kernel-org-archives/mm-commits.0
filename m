@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + suspend-vs-iommu-prevent-suspend-if-we-could-not-resume.patch added to -mm tree
-Date: Thu, 29 May 2008 00:30:21 -0700
-Message-ID: <200805290730.m4T7ULO0022592@imap1.linux-foundation.org>
+Subject: + suspend-vs-iommu-prevent-suspend-if-we-could-not-resume-cleanup.patch added to -mm tree
+Date: Thu, 29 May 2008 00:30:56 -0700
+Message-ID: <200805290730.m4T7Uukk022602@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55203 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35952 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751290AbYE2Had (ORCPT
+	by vger.kernel.org with ESMTP id S1751337AbYE2HbA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 May 2008 03:30:33 -0400
+	Thu, 29 May 2008 03:31:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: pavel@suse.cz, ragamuffin@datacomm.ch
+Cc: akpm@linux-foundation.org, pavel@suse.cz
 
 
 The patch titled
-     suspend vs. iommu: prevent suspend if we could not resume
+     suspend-vs-iommu-prevent-suspend-if-we-could-not-resume-cleanup
 has been added to the -mm tree.  Its filename is
-     suspend-vs-iommu-prevent-suspend-if-we-could-not-resume.patch
+     suspend-vs-iommu-prevent-suspend-if-we-could-not-resume-cleanup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,89 +34,137 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: suspend vs. iommu: prevent suspend if we could not resume
-From: Pavel Machek <pavel@suse.cz>
+Subject: suspend-vs-iommu-prevent-suspend-if-we-could-not-resume-cleanup
+From: Andrew Morton <akpm@linux-foundation.org>
 
-iommu/gart support misses suspend/resume code, which can do bad stuff,
-including memory corruption on resume.  Prevent system suspend in case we
-would be unable to resume.
-
-Signed-off-by: Pavel Machek <pavel@suse.cz>
-Tested-by: Patrick <ragamuffin@datacomm.ch>
+Cc: Pavel Machek <pavel@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/pci-gart_64.c |   31 ++++++++++++++++++++++++++++++-
- 1 file changed, 30 insertions(+), 1 deletion(-)
+ arch/x86/kernel/pci-gart_64.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN arch/x86/kernel/pci-gart_64.c~suspend-vs-iommu-prevent-suspend-if-we-could-not-resume arch/x86/kernel/pci-gart_64.c
---- a/arch/x86/kernel/pci-gart_64.c~suspend-vs-iommu-prevent-suspend-if-we-could-not-resume
+diff -puN arch/x86/kernel/pci-gart_64.c~suspend-vs-iommu-prevent-suspend-if-we-could-not-resume-cleanup arch/x86/kernel/pci-gart_64.c
+--- a/arch/x86/kernel/pci-gart_64.c~suspend-vs-iommu-prevent-suspend-if-we-could-not-resume-cleanup
 +++ a/arch/x86/kernel/pci-gart_64.c
-@@ -26,6 +26,7 @@
- #include <linux/kdebug.h>
- #include <linux/scatterlist.h>
- #include <linux/iommu-helper.h>
-+#include <linux/sysdev.h>
- #include <asm/atomic.h>
- #include <asm/io.h>
- #include <asm/mtrr.h>
-@@ -546,6 +547,28 @@ static __init unsigned read_aperture(str
- 	return aper_base;
- }
+@@ -561,7 +561,6 @@ static struct sysdev_class gart_sysdev_c
+ 	.name = "gart",
+ 	.suspend = gart_suspend,
+ 	.resume = gart_resume,
+-
+ };
  
-+static int gart_resume(struct sys_device *dev)
-+{
-+	return 0;
-+}
-+
-+static int gart_suspend(struct sys_device *dev, pm_message_t state)
-+{
-+	return -EINVAL;
-+}
-+
-+static struct sysdev_class gart_sysdev_class = {
-+	.name = "gart",
-+	.suspend = gart_suspend,
-+	.resume = gart_resume,
-+
-+};
-+
-+static struct sys_device device_gart = {
-+	.id	= 0,
-+	.cls	= &gart_sysdev_class,
-+};
-+
- /*
-  * Private Northbridge GATT initialization in case we cannot use the
-  * AGP driver for some reason.
-@@ -556,7 +579,7 @@ static __init int init_k8_gatt(struct ag
- 	unsigned aper_base, new_aper_base;
- 	struct pci_dev *dev;
- 	void *gatt;
--	int i;
-+	int i, error;
- 
- 	printk(KERN_INFO "PCI-DMA: Disabling AGP.\n");
- 	aper_size = aper_base = info->aper_size = 0;
-@@ -593,6 +616,12 @@ static __init int init_k8_gatt(struct ag
- 		dev = k8_northbridges[i];
- 		enable_gart_translation(dev, __pa(gatt));
- 	}
-+
-+	error = sysdev_class_register(&gart_sysdev_class);
-+	if (!error)
-+		error = sysdev_register(&device_gart);
-+	if (error)
-+		panic("Could not register gart_sysdev -- would corrupt data on next suspend");
- 	flush_gart();
- 
- 	printk(KERN_INFO "PCI-DMA: aperture base @ %x size %u KB\n",
+ static struct sys_device device_gart = {
 _
 
-Patches currently in -mm which might be from pavel@suse.cz are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-suspend-vs-iommu-prevent-suspend-if-we-could-not-resume.patch
-swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option.patch
+next-remove-localversion.patch
+fix-kobject-fix-kobject_rename-and-config_sysfs.patch
+fix-driver-core-add-device_create_vargs-and-device_create_drvdata.patch
+kvm-is-busted-on-ia64.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-video-balcklist-fujitsu-lifebook-s6410.patch
+git-x86-fixup.patch
+lguest-use-cpu-capability-accessors.patch
+arch-x86-mm-patc-nopat-should-be-__init.patch
+suspend-vs-iommu-prevent-suspend-if-we-could-not-resume-cleanup.patch
+arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
+arch-powerpc-platforms-pseries-eeh_driverc-fix-warning.patch
+arch-powerpc-platforms-pseries-eeh_driverc-fix-warning-checkpatch-fixes.patch
+zoran-use-correct-type-for-cpu-flags.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+git-jg-misc-git-rejects.patch
+drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+fsldma-the-mpc8377mds-board-device-tree-node-for-fsldma-driver.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers.patch
+git-ubifs.patch
+sundance-set-carrier-status-on-link-change-events.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+svcrdma-fix-compile-warning-on-32-bit-platforms-checkpatch-fixes.patch
+pci-hotplug-introduce-pci_slot.patch
+pci-hotplug-acpi-pci-slot-detection-driver.patch
+sched-delete-dead-stuff.patch
+sched-delete-dead-stuff-2.patch
+git-scsi-misc-fix-scsi_dh-build-errors.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
+pktcdvd-push-bkl-down-into-driver-fix.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-logfs-fixup.patch
+drivers-uwb-nehc-processor-flags-have-type-unsigned-long.patch
+drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
+drivers-uwb-wlp-sysfsc-dead-code.patch
+drivers-uwb-whcic-needs-dma-mappingh.patch
+usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix.patch
+usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix-2.patch
+git-watchdog.patch
+git-watchdog-git-rejects.patch
+watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix.patch
+watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl-fix.patch
+git-xtensa.patch
+ext4-is-busted-on-m68k.patch
+capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+libata-sff-fix-oops-reported-in-kerneloopsorg-for-pnp-devices-with-no-ctl-fix.patch
+mm-verify-the-page-links-and-memory-model.patch
+mspec-convert-nopfn-to-fault-fix.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+kill-generic_file_direct_io-checkpatch-fixes.patch
+use-generic_access_phys-for-dev-mem-mappings-fix.patch
+spufs-use-the-new-vm_ops-access-fix.patch
+fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
+mapping_set_error-add-unlikely.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup-fix.patch
 swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+rename-warn-to-warning-to-clear-the-namespace-fix.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-paccept-sys_ni.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-signalfd-fix.patch
+flag-parameters-eventfd-fix.patch
+flag-parameters-inotify_init-fix.patch
+flag-parameters-check-magic-constants-alpha.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
+reiserfs-convert-j_flush_sem-to-mutex.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+jbd2-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+reiser4.patch
+reiser4-semaphore-fix.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
