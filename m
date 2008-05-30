@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + usb-cp2101c-fix-sparse-signedness-mismatch-warnings.patch added to -mm tree
-Date: Fri, 30 May 2008 13:38:24 -0700
-Message-ID: <200805302038.m4UKcOHl010382@imap1.linux-foundation.org>
+Subject: + usb-speedtchc-fix-sparse-shadowed-variable-warning.patch added to -mm tree
+Date: Fri, 30 May 2008 13:40:08 -0700
+Message-ID: <200805302040.m4UKe8FE010454@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37552 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41213 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752727AbYE3Ui1 (ORCPT
+	by vger.kernel.org with ESMTP id S1752855AbYE3UkM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 May 2008 16:38:27 -0400
+	Fri, 30 May 2008 16:40:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, greg@kroah.com
+Cc: harvey.harrison@gmail.com, baldrick@free.fr, greg@kroah.com
 
 
 The patch titled
-     usb: cp2101.c fix sparse signedness mismatch warnings
+     usb: speedtch.c fix sparse shadowed variable warning
 has been added to the -mm tree.  Its filename is
-     usb-cp2101c-fix-sparse-signedness-mismatch-warnings.patch
+     usb-speedtchc-fix-sparse-shadowed-variable-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,130 +34,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb: cp2101.c fix sparse signedness mismatch warnings
+Subject: usb: speedtch.c fix sparse shadowed variable warning
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
-The get/set 2101_config helpers take an unsigned int rather than an int. 
-It is safe to change these in each case and may even produce better code
-as it will be an unsigned divide rather than a signed divide in places. 
-All other manipulation was setting/masking bits which will not be affected
-by the sign change.
-
-Fixes the following sparse warnings:
-drivers/usb/serial/cp2101.c:378:44: warning: incorrect type in argument 3 (different signedness)
-drivers/usb/serial/cp2101.c:378:44:    expected unsigned int *data
-drivers/usb/serial/cp2101.c:378:44:    got int *<noident>
-drivers/usb/serial/cp2101.c:388:40: warning: incorrect type in argument 3 (different signedness)
-drivers/usb/serial/cp2101.c:388:40:    expected unsigned int *data
-drivers/usb/serial/cp2101.c:388:40:    got int *<noident>
-drivers/usb/serial/cp2101.c:413:42: warning: incorrect type in argument 3 (different signedness)
-drivers/usb/serial/cp2101.c:413:42:    expected unsigned int *data
-drivers/usb/serial/cp2101.c:413:42:    got int *<noident>
-drivers/usb/serial/cp2101.c:421:42: warning: incorrect type in argument 3 (different signedness)
-drivers/usb/serial/cp2101.c:421:42:    expected unsigned int *data
-drivers/usb/serial/cp2101.c:421:42:    got int *<noident>
-drivers/usb/serial/cp2101.c:444:42: warning: incorrect type in argument 3 (different signedness)
-drivers/usb/serial/cp2101.c:444:42:    expected unsigned int *data
-drivers/usb/serial/cp2101.c:444:42:    got int *<noident>
-drivers/usb/serial/cp2101.c:451:42: warning: incorrect type in argument 3 (different signedness)
-drivers/usb/serial/cp2101.c:451:42:    expected unsigned int *data
-drivers/usb/serial/cp2101.c:451:42:    got int *<noident>
-drivers/usb/serial/cp2101.c:458:42: warning: incorrect type in argument 3 (different signedness)
-drivers/usb/serial/cp2101.c:458:42:    expected unsigned int *data
-drivers/usb/serial/cp2101.c:458:42:    got int *<noident>
-drivers/usb/serial/cp2101.c:471:42: warning: incorrect type in argument 3 (different signedness)
-drivers/usb/serial/cp2101.c:471:42:    expected unsigned int *data
-drivers/usb/serial/cp2101.c:471:42:    got int *<noident>
-drivers/usb/serial/cp2101.c:481:42: warning: incorrect type in argument 3 (different signedness)
-drivers/usb/serial/cp2101.c:481:42:    expected unsigned int *data
-drivers/usb/serial/cp2101.c:481:42:    got int *<noident>
-drivers/usb/serial/cp2101.c:561:41: warning: incorrect type in argument 3 (different signedness)
-drivers/usb/serial/cp2101.c:561:41:    expected unsigned int *data
-drivers/usb/serial/cp2101.c:561:41:    got int *<noident>
-drivers/usb/serial/cp2101.c:591:45: warning: incorrect type in argument 3 (different signedness)
-drivers/usb/serial/cp2101.c:591:45:    expected unsigned int *data
-drivers/usb/serial/cp2101.c:591:45:    got int *<noident>
-drivers/usb/serial/cp2101.c:597:41: warning: incorrect type in argument 3 (different signedness)
-drivers/usb/serial/cp2101.c:597:41:    expected unsigned int *data
-drivers/usb/serial/cp2101.c:597:41:    got int *<noident>
-drivers/usb/serial/cp2101.c:608:45: warning: incorrect type in argument 3 (different signedness)
-drivers/usb/serial/cp2101.c:608:45:    expected unsigned int *data
-drivers/usb/serial/cp2101.c:608:45:    got int *<noident>
-drivers/usb/serial/cp2101.c:614:41: warning: incorrect type in argument 3 (different signedness)
-drivers/usb/serial/cp2101.c:614:41:    expected unsigned int *data
-drivers/usb/serial/cp2101.c:614:41:    got int *<noident>
-drivers/usb/serial/cp2101.c:623:45: warning: incorrect type in argument 3 (different signedness)
-drivers/usb/serial/cp2101.c:623:45:    expected unsigned int *data
-drivers/usb/serial/cp2101.c:623:45:    got int *<noident>
-drivers/usb/serial/cp2101.c:680:50: warning: incorrect type in argument 3 (different signedness)
-drivers/usb/serial/cp2101.c:680:50:    expected unsigned int *data
-drivers/usb/serial/cp2101.c:680:50:    got int *<noident>
-drivers/usb/serial/cp2101.c:690:43: warning: incorrect type in argument 3 (different signedness)
-drivers/usb/serial/cp2101.c:690:43:    expected unsigned int *data
-drivers/usb/serial/cp2101.c:690:43:    got int *<noident>
-drivers/usb/serial/cp2101.c:715:41: warning: incorrect type in argument 3 (different signedness)
-drivers/usb/serial/cp2101.c:715:41:    expected unsigned int *data
-drivers/usb/serial/cp2101.c:715:41:    got int *<noident>
+i is used only as a for-loop index no need to declare another.
+drivers/usb/atm/speedtch.c:832:7: warning: symbol 'i' shadows an earlier one
+drivers/usb/atm/speedtch.c:766:6: originally declared here
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Cc: Greg KH <greg@kroah.com>
+Cc: Duncan Sands <baldrick@free.fr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/cp2101.c |   13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ drivers/usb/atm/speedtch.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/usb/serial/cp2101.c~usb-cp2101c-fix-sparse-signedness-mismatch-warnings drivers/usb/serial/cp2101.c
---- a/drivers/usb/serial/cp2101.c~usb-cp2101c-fix-sparse-signedness-mismatch-warnings
-+++ a/drivers/usb/serial/cp2101.c
-@@ -365,8 +365,8 @@ static void cp2101_close (struct usb_ser
- static void cp2101_get_termios (struct usb_serial_port *port)
- {
- 	unsigned int cflag, modem_ctl[4];
--	int baud;
--	int bits;
-+	unsigned int baud;
-+	unsigned int bits;
+diff -puN drivers/usb/atm/speedtch.c~usb-speedtchc-fix-sparse-shadowed-variable-warning drivers/usb/atm/speedtch.c
+--- a/drivers/usb/atm/speedtch.c~usb-speedtchc-fix-sparse-shadowed-variable-warning
++++ a/drivers/usb/atm/speedtch.c
+@@ -829,7 +829,6 @@ static int speedtch_bind(struct usbatm_d
+ 	if (use_isoc) {
+ 		const struct usb_host_interface *desc = data_intf->cur_altsetting;
+ 		const __u8 target_address = USB_DIR_IN | usbatm->driver->isoc_in;
+-		int i;
  
- 	dbg("%s - port %d", __func__, port->number);
+ 		use_isoc = 0; /* fall back to bulk if endpoint not found */
  
-@@ -498,7 +498,7 @@ static void cp2101_set_termios (struct u
- 		struct ktermios *old_termios)
- {
- 	unsigned int cflag, old_cflag;
--	int baud=0, bits;
-+	unsigned int baud = 0, bits;
- 	unsigned int modem_ctl[4];
- 
- 	dbg("%s - port %d", __func__, port->number);
-@@ -654,7 +654,7 @@ static void cp2101_set_termios (struct u
- static int cp2101_tiocmset (struct usb_serial_port *port, struct file *file,
- 		unsigned int set, unsigned int clear)
- {
--	int control = 0;
-+	unsigned int control = 0;
- 
- 	dbg("%s - port %d", __func__, port->number);
- 
-@@ -683,7 +683,8 @@ static int cp2101_tiocmset (struct usb_s
- 
- static int cp2101_tiocmget (struct usb_serial_port *port, struct file *file)
- {
--	int control, result;
-+	unsigned int control;
-+	int result;
- 
- 	dbg("%s - port %d", __func__, port->number);
- 
-@@ -703,7 +704,7 @@ static int cp2101_tiocmget (struct usb_s
- 
- static void cp2101_break_ctl (struct usb_serial_port *port, int break_state)
- {
--	int state;
-+	unsigned int state;
- 
- 	dbg("%s - port %d", __func__, port->number);
- 	if (break_state == 0)
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
