@@ -1,94 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - git-watchdog-git-rejects.patch removed from -mm tree
-Date: Fri, 30 May 2008 15:19:31 -0700
-Message-ID: <200805302219.m4UMJV4W014138@imap1.linux-foundation.org>
+Subject: + page-flags-record-page-flag-overlays-explicitly-xen.patch added to -mm tree
+Date: Fri, 30 May 2008 15:30:05 -0700
+Message-ID: <200805302230.m4UMU5U8014509@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36668 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60442 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752367AbYE3WTd (ORCPT
+	by vger.kernel.org with ESMTP id S1752708AbYE3WbS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 May 2008 18:19:33 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m4UMJVYc025585
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 30 May 2008 15:19:32 -0700
+	Fri, 30 May 2008 18:31:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, apw@shadowen.org, clameter@sgi.com, jeremy@goop.org, kamezawa.hiroyu@jp.fujitsu.com, mpm@selenic.com, nickpiggin@yahoo.com.au, penberg@cs.helsinki.fi, riel@redhat.com
 
 
 The patch titled
-     git-watchdog-git-rejects
-has been removed from the -mm tree.  Its filename was
-     git-watchdog-git-rejects.patch
+     page-flags-record-page-flag-overlays-explicitly-xen
+has been added to the -mm tree.  Its filename is
+     page-flags-record-page-flag-overlays-explicitly-xen.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-watchdog-git-rejects
+Subject: page-flags-record-page-flag-overlays-explicitly-xen
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/iTCO_wdt.c    |    5 -----
- drivers/watchdog/it8712f_wdt.c |   11 -----------
- 2 files changed, 16 deletions(-)
+ include/linux/page-flags.h |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/watchdog/it8712f_wdt.c~git-watchdog-git-rejects drivers/watchdog/it8712f_wdt.c
---- a/drivers/watchdog/it8712f_wdt.c~git-watchdog-git-rejects
-+++ a/drivers/watchdog/it8712f_wdt.c
-@@ -170,14 +170,9 @@ it8712f_wdt_update_margin(void)
- 	superio_outb(config, WDT_CONFIG);
+diff -puN include/linux/page-flags.h~page-flags-record-page-flag-overlays-explicitly-xen include/linux/page-flags.h
+--- a/include/linux/page-flags.h~page-flags-record-page-flag-overlays-explicitly-xen
++++ a/include/linux/page-flags.h
+@@ -103,6 +103,7 @@ enum pageflags {
  
- 	if (revision >= 0x08)
--<<<<<<< HEAD:drivers/watchdog/it8712f_wdt.c
--		superio_outb(units >> 8, WDT_TIMEOUT + 1);
--	superio_outb(units, WDT_TIMEOUT);
--=======
- 		superio_outw(units, WDT_TIMEOUT);
- 	else
- 		superio_outb(units, WDT_TIMEOUT);
-->>>>>>> FETCH_HEAD:drivers/watchdog/it8712f_wdt.c
- }
+ 	/* XEN */
+ 	PG_pinned = PG_owner_priv_1,
++	PG_savepinned = PG_dirty,
+ };
  
- static int
-@@ -298,15 +293,9 @@ it8712f_wdt_ioctl(struct inode *inode, s
- 		if (get_user(value, p))
- 			return -EFAULT;
- 		if (value < 1)
--<<<<<<< HEAD:drivers/watchdog/it8712f_wdt.c
- 			return -EINVAL;
- 		if (value > (max_units * 60))
- 			return -EINVAL;
--=======
--			return -EINVAL;
--		if (value > (max_units * 60))
--			return -EINVAL;
-->>>>>>> FETCH_HEAD:drivers/watchdog/it8712f_wdt.c
- 		margin = value;
- 		superio_enter();
- 		superio_select(LDN_GPIO);
-diff -puN drivers/watchdog/iTCO_wdt.c~git-watchdog-git-rejects drivers/watchdog/iTCO_wdt.c
---- a/drivers/watchdog/iTCO_wdt.c~git-watchdog-git-rejects
-+++ a/drivers/watchdog/iTCO_wdt.c
-@@ -56,13 +56,8 @@
- 
- /* Module and version information */
- #define DRV_NAME        "iTCO_wdt"
--<<<<<<< HEAD:drivers/watchdog/iTCO_wdt.c
--#define DRV_VERSION     "1.03"
--#define DRV_RELDATE     "30-Apr-2008"
--=======
- #define DRV_VERSION     "1.10"
- #define DRV_RELDATE     "17-Aug-2007"
-->>>>>>> FETCH_HEAD:drivers/watchdog/iTCO_wdt.c
- #define PFX		DRV_NAME ": "
- 
- /* Includes */
+ #ifndef __GENERATING_BOUNDS_H
+@@ -162,8 +163,8 @@ PAGEFLAG(LRU, lru) __CLEARPAGEFLAG(LRU, 
+ PAGEFLAG(Active, active) __CLEARPAGEFLAG(Active, active)
+ __PAGEFLAG(Slab, slab)
+ PAGEFLAG(Checked, checked)		/* Used by some filesystems */
+-PAGEFLAG(Pinned, pinned) TESTSCFLAG(Pinned, pinned) /* Xen */
+-PAGEFLAG(SavePinned, dirty);					/* Xen */
++PAGEFLAG(Pinned, pinned) TESTSCFLAG(Pinned, pinned)	/* Xen */
++PAGEFLAG(SavePinned, savepinned);			/* Xen */
+ PAGEFLAG(Reserved, reserved) __CLEARPAGEFLAG(Reserved, reserved)
+ PAGEFLAG(Private, private) __CLEARPAGEFLAG(Private, private)
+ 	__SETPAGEFLAG(Private, private)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -131,7 +115,6 @@ drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
 drivers-uwb-wlp-sysfsc-dead-code.patch
 usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix.patch
 usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix-2.patch
-git-watchdog-git-rejects.patch
 watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix.patch
 watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl-fix.patch
 git-xtensa.patch
@@ -146,6 +129,7 @@ kill-generic_file_direct_io-checkpatch-fixes.patch
 use-generic_access_phys-for-dev-mem-mappings-fix.patch
 spufs-use-the-new-vm_ops-access-fix.patch
 fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
+page-flags-record-page-flag-overlays-explicitly-xen.patch
 mapping_set_error-add-unlikely.patch
 huge-page-private-reservation-review-cleanups-fix.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
