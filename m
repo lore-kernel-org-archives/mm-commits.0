@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + huge-page-private-reservation-review-cleanups.patch added to -mm tree
-Date: Fri, 30 May 2008 13:29:15 -0700
-Message-ID: <200805302029.m4UKTFhR009999@imap1.linux-foundation.org>
+Subject: + huge-page-private-reservation-review-cleanups-fix.patch added to -mm tree
+Date: Fri, 30 May 2008 13:30:06 -0700
+Message-ID: <200805302030.m4UKU6rX010023@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35648 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35755 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753014AbYE3Uab (ORCPT
+	by vger.kernel.org with ESMTP id S1753620AbYE3Ubc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 May 2008 16:30:31 -0400
+	Fri, 30 May 2008 16:31:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: apw@shadowen.org, agl@us.ibm.com, hannes@saeurebad.de, hugh@veritas.com, mel@csn.ul.ie, mtk.manpages@googlemail.com, wli@holomorphy.com
+Cc: akpm@linux-foundation.org, agl@us.ibm.com, apw@shadowen.org, hannes@saeurebad.de, hugh@veritas.com, mel@csn.ul.ie, mtk.manpages@googlemail.com, wli@holomorphy.com
 
 
 The patch titled
-     huge page private reservation review cleanups
+     huge-page-private-reservation-review-cleanups-fix
 has been added to the -mm tree.  Its filename is
-     huge-page-private-reservation-review-cleanups.patch
+     huge-page-private-reservation-review-cleanups-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,174 +34,157 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: huge page private reservation review cleanups
-From: Andy Whitcroft <apw@shadowen.org>
+Subject: huge-page-private-reservation-review-cleanups-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Create some new accessors for vma private data to cut down on and contain
-the casts.  Encapsulates the huge and small page offset calculations. 
-Also adds a couple of VM_BUG_ONs for consistency.
+Make things static.
 
-Signed-off-by: Andy Whitcroft <apw@shadowen.org>
-Cc: Mel Gorman <mel@csn.ul.ie>
 Cc: Adam Litke <agl@us.ibm.com>
-Cc: Johannes Weiner <hannes@saeurebad.de>
 Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: William Lee Irwin III <wli@holomorphy.com>
 Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Johannes Weiner <hannes@saeurebad.de>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
+Cc: William Lee Irwin III <wli@holomorphy.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   56 +++++++++++++++++++++++++++++++++++++------------
- 1 file changed, 43 insertions(+), 13 deletions(-)
+ mm/hugetlb.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN mm/hugetlb.c~huge-page-private-reservation-review-cleanups mm/hugetlb.c
---- a/mm/hugetlb.c~huge-page-private-reservation-review-cleanups
+diff -puN mm/hugetlb.c~huge-page-private-reservation-review-cleanups-fix mm/hugetlb.c
+--- a/mm/hugetlb.c~huge-page-private-reservation-review-cleanups-fix
 +++ a/mm/hugetlb.c
-@@ -40,6 +40,26 @@ static int hugetlb_next_nid;
+@@ -44,7 +44,8 @@ static DEFINE_SPINLOCK(hugetlb_lock);
+  * Convert the address within this vma to the page offset within
+  * the mapping, in base page units.
   */
- static DEFINE_SPINLOCK(hugetlb_lock);
- 
-+/*
-+ * Convert the address within this vma to the page offset within
-+ * the mapping, in base page units.
-+ */
-+pgoff_t vma_page_offset(struct vm_area_struct *vma, unsigned long address)
-+{
-+	return ((address - vma->vm_start) >> PAGE_SHIFT) +
-+					(vma->vm_pgoff >> PAGE_SHIFT);
-+}
-+
-+/*
-+ * Convert the address within this vma to the page offset within
-+ * the mapping, in pagecache page units; huge pages here.
-+ */
-+pgoff_t vma_pagecache_offset(struct vm_area_struct *vma, unsigned long address)
-+{
-+	return ((address - vma->vm_start) >> HPAGE_SHIFT) +
-+			(vma->vm_pgoff >> (HPAGE_SHIFT - PAGE_SHIFT));
-+}
-+
- #define HPAGE_RESV_OWNER    (1UL << (BITS_PER_LONG - 1))
- #define HPAGE_RESV_UNMAPPED (1UL << (BITS_PER_LONG - 2))
- #define HPAGE_RESV_MASK (HPAGE_RESV_OWNER | HPAGE_RESV_UNMAPPED)
-@@ -53,36 +73,48 @@ static DEFINE_SPINLOCK(hugetlb_lock);
-  * to reset the VMA at fork() time as it is not in use yet and there is no
-  * chance of the global counters getting corrupted as a result of the values.
+-pgoff_t vma_page_offset(struct vm_area_struct *vma, unsigned long address)
++static pgoff_t vma_page_offset(struct vm_area_struct *vma,
++				unsigned long address)
+ {
+ 	return ((address - vma->vm_start) >> PAGE_SHIFT) +
+ 					(vma->vm_pgoff >> PAGE_SHIFT);
+@@ -54,7 +55,8 @@ pgoff_t vma_page_offset(struct vm_area_s
+  * Convert the address within this vma to the page offset within
+  * the mapping, in pagecache page units; huge pages here.
   */
-+static unsigned long get_vma_private_data(struct vm_area_struct *vma)
-+{
-+	return (unsigned long)vma->vm_private_data;
-+}
-+
-+static void set_vma_private_data(struct vm_area_struct *vma,
-+							unsigned long value)
-+{
-+	vma->vm_private_data = (void *)value;
-+}
-+
- static unsigned long vma_resv_huge_pages(struct vm_area_struct *vma)
+-pgoff_t vma_pagecache_offset(struct vm_area_struct *vma, unsigned long address)
++static pgoff_t vma_pagecache_offset(struct vm_area_struct *vma,
++					unsigned long address)
  {
- 	VM_BUG_ON(!is_vm_hugetlb_page(vma));
- 	if (!(vma->vm_flags & VM_SHARED))
--		return (unsigned long)vma->vm_private_data & ~HPAGE_RESV_MASK;
-+		return get_vma_private_data(vma) & ~HPAGE_RESV_MASK;
- 	return 0;
- }
- 
- static void set_vma_resv_huge_pages(struct vm_area_struct *vma,
- 							unsigned long reserve)
- {
--	unsigned long flags;
- 	VM_BUG_ON(!is_vm_hugetlb_page(vma));
- 	VM_BUG_ON(vma->vm_flags & VM_SHARED);
- 
--	flags = (unsigned long)vma->vm_private_data & HPAGE_RESV_MASK;
--	vma->vm_private_data = (void *)(reserve | flags);
-+	set_vma_private_data(vma,
-+		(get_vma_private_data(vma) & HPAGE_RESV_MASK) | reserve);
- }
- 
- static void set_vma_resv_flags(struct vm_area_struct *vma, unsigned long flags)
- {
--	unsigned long reserveflags = (unsigned long)vma->vm_private_data;
- 	VM_BUG_ON(!is_vm_hugetlb_page(vma));
--	vma->vm_private_data = (void *)(reserveflags | flags);
-+	VM_BUG_ON(vma->vm_flags & VM_SHARED);
-+
-+	set_vma_private_data(vma, get_vma_private_data(vma) | flags);
- }
- 
- static int is_vma_resv_set(struct vm_area_struct *vma, unsigned long flag)
- {
- 	VM_BUG_ON(!is_vm_hugetlb_page(vma));
--	return ((unsigned long)vma->vm_private_data & flag) != 0;
-+
-+	return (get_vma_private_data(vma) & flag) != 0;
- }
- 
- /* Decrement the reserved pages in the hugepage pool by one */
-@@ -1150,11 +1182,10 @@ static struct page *hugetlbfs_pagecache_
- 			unsigned long address)
- {
- 	struct address_space *mapping;
--	unsigned long idx;
-+	pgoff_t idx;
- 
- 	mapping = vma->vm_file->f_mapping;
--	idx = ((address - vma->vm_start) >> HPAGE_SHIFT)
--		+ (vma->vm_pgoff >> (HPAGE_SHIFT - PAGE_SHIFT));
-+	idx = vma_pagecache_offset(vma, address);
- 
- 	return find_lock_page(mapping, idx);
- }
-@@ -1163,7 +1194,7 @@ static int hugetlb_no_page(struct mm_str
- 			unsigned long address, pte_t *ptep, int write_access)
- {
- 	int ret = VM_FAULT_SIGBUS;
--	unsigned long idx;
-+	pgoff_t idx;
- 	unsigned long size;
- 	struct page *page;
- 	struct address_space *mapping;
-@@ -1182,8 +1213,7 @@ static int hugetlb_no_page(struct mm_str
- 	}
- 
- 	mapping = vma->vm_file->f_mapping;
--	idx = ((address - vma->vm_start) >> HPAGE_SHIFT)
--		+ (vma->vm_pgoff >> (HPAGE_SHIFT - PAGE_SHIFT));
-+	idx = vma_pagecache_offset(vma, address);
- 
- 	/*
- 	 * Use page lock to guard against racing truncation
+ 	return ((address - vma->vm_start) >> HPAGE_SHIFT) +
+ 			(vma->vm_pgoff >> (HPAGE_SHIFT - PAGE_SHIFT));
 _
 
-Patches currently in -mm which might be from apw@shadowen.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-update-checkpatchpl-to-version-019.patch
-update-checkpatchpl-to-version-019-fix.patch
 linux-next.patch
-mm-add-a-basic-debugging-framework-for-memory-initialisation.patch
-mm-add-a-basic-debugging-framework-for-memory-initialisation-fix.patch
+next-remove-localversion.patch
+fix-kobject-fix-kobject_rename-and-config_sysfs.patch
+fix-driver-core-add-device_create_vargs-and-device_create_drvdata.patch
+kvm-is-busted-on-ia64.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-video-balcklist-fujitsu-lifebook-s6410.patch
+git-x86-fixup.patch
+lguest-use-cpu-capability-accessors.patch
+arch-x86-mm-patc-nopat-should-be-__init.patch
+arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
+arch-powerpc-platforms-pseries-eeh_driverc-fix-warning.patch
+arch-powerpc-platforms-pseries-eeh_driverc-fix-warning-checkpatch-fixes.patch
+zoran-use-correct-type-for-cpu-flags.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+git-jg-misc-git-rejects.patch
+drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+fsldma-the-mpc8377mds-board-device-tree-node-for-fsldma-driver.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers.patch
+git-ubifs.patch
+sundance-set-carrier-status-on-link-change-events.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+svcrdma-fix-compile-warning-on-32-bit-platforms-checkpatch-fixes.patch
+pci-hotplug-introduce-pci_slot.patch
+pci-hotplug-acpi-pci-slot-detection-driver.patch
+sched-delete-dead-stuff.patch
+sched-delete-dead-stuff-2.patch
+git-scsi-misc-fix-scsi_dh-build-errors.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
+pktcdvd-push-bkl-down-into-driver-fix.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-logfs-fixup.patch
+drivers-uwb-nehc-processor-flags-have-type-unsigned-long.patch
+drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
+drivers-uwb-wlp-sysfsc-dead-code.patch
+drivers-uwb-whcic-needs-dma-mappingh.patch
+usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix.patch
+usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix-2.patch
+git-watchdog.patch
+git-watchdog-git-rejects.patch
+watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix.patch
+watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl-fix.patch
+git-xtensa.patch
+ext4-is-busted-on-m68k.patch
+capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+libata-sff-fix-oops-reported-in-kerneloopsorg-for-pnp-devices-with-no-ctl-fix.patch
 mm-verify-the-page-links-and-memory-model.patch
-mm-make-defensive-checks-around-pfn-values-registered-for-memory-usage.patch
-mm-print-out-the-zonelists-on-request-for-manual-verification.patch
-mm-move-bootmem-descriptors-definition-to-a-single-place.patch
-mm-fix-free_all_bootmem_core-alignment-check.patch
-mm-normalize-internal-argument-passing-of-bootmem-data.patch
-mm-unexport-__alloc_bootmem_core.patch
-buddy-clarify-comments-describing-buddy-merge.patch
-page-flags-record-page-flag-overlays-explicitly.patch
-slub-record-page-flag-overlays-explicitly.patch
-slob-record-page-flag-overlays-explicitly.patch
-hugetlb-move-hugetlb_acct_memory.patch
-hugetlb-reserve-huge-pages-for-reliable-map_private-hugetlbfs-mappings-until-fork.patch
-hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed.patch
-hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed-fix.patch
-huge-page-private-reservation-review-cleanups.patch
-mm-record-map_noreserve-status-on-vmas-and-fix-small-page-mprotect-reservations.patch
-hugetlb-move-reservation-region-support-earlier.patch
-hugetlb-allow-huge-page-mappings-to-be-created-without-reservations.patch
-huge-page-map_noreserve-review-cleanups.patch
+mspec-convert-nopfn-to-fault-fix.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+kill-generic_file_direct_io-checkpatch-fixes.patch
+use-generic_access_phys-for-dev-mem-mappings-fix.patch
+spufs-use-the-new-vm_ops-access-fix.patch
+fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
+mapping_set_error-add-unlikely.patch
+huge-page-private-reservation-review-cleanups-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup-fix.patch
+swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+rename-warn-to-warning-to-clear-the-namespace-fix.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-paccept-sys_ni.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-signalfd-fix.patch
+flag-parameters-eventfd-fix.patch
+flag-parameters-inotify_init-fix.patch
+flag-parameters-check-magic-constants-alpha.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
+reiserfs-convert-j_flush_sem-to-mutex.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+reiser4.patch
+reiser4-semaphore-fix.patch
 page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
