@@ -1,196 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - pci-hotplug-construct-one-fakephp-slot-per-pci-slot.patch removed from -mm tree
-Date: Fri, 30 May 2008 15:16:53 -0700
-Message-ID: <200805302216.m4UMGr5F013981@imap1.linux-foundation.org>
+Subject: - pci-hotplug-export-kobject_rename-for-pci_hotplug_core.patch removed from -mm tree
+Date: Fri, 30 May 2008 15:16:55 -0700
+Message-ID: <200805302216.m4UMGtbB013984@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38704 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45557 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751340AbYE3WRm (ORCPT
+	by vger.kernel.org with ESMTP id S1751346AbYE3WRq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 May 2008 18:17:42 -0400
+	Fri, 30 May 2008 18:17:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: achiang@hp.com, greg@kroah.com, kaneshige.kenji@jp.fujitsu.com, kristen.c.accardi@intel.com, lenb@kernel.org, matthew@wil.cx, mm-commits@vger.kernel.org
+To: kaneshige.kenji@jp.fujitsu.com, achiang@hp.com, greg@kroah.com, kristen.c.accardi@intel.com, lenb@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pci hotplug: construct one fakephp slot per pci slot
+     pci hotplug: export kobject_rename for pci_hotplug_core
 has been removed from the -mm tree.  Its filename was
-     pci-hotplug-construct-one-fakephp-slot-per-pci-slot.patch
+     pci-hotplug-export-kobject_rename-for-pci_hotplug_core.patch
 
 This patch was dropped because yup, these got wrecked
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pci hotplug: construct one fakephp slot per pci slot
-From: Alex Chiang <achiang@hp.com>
+Subject: pci hotplug: export kobject_rename for pci_hotplug_core
+From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
 
-Register one slot per slot, rather than one slot per function.  Change the
-name of the slot to fake%d instead of the pci address.
+Export kobject_rename() to fix the following link error.  This happens when
+pci_hotplug_core driver is compiled as a kernel module.
 
-Signed-off-by: Alex Chiang <achiang@hp.com>
-Signed-off-by: Matthew Wilcox <matthew@wil.cx>
+ERROR: "kobject_rename" [drivers/pci/hotplug/pci_hotplug.ko] undefined!
+make[1]: *** [__modpost] Error 1
+make: *** [modules] Error 2
+make: *** Waiting for unfinished jobs....
+
+Signed-off-by: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Acked-by: Alex Chiang <achiang@hp.com>
 Cc: Greg KH <greg@kroah.com>
 Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 Cc: Len Brown <lenb@kernel.org>
-Cc: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Signed-off-by: Alex Chiang <achiang@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/hotplug/fakephp.c |   84 +++++++++++---------------------
- 1 file changed, 29 insertions(+), 55 deletions(-)
+ lib/kobject.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/pci/hotplug/fakephp.c~pci-hotplug-construct-one-fakephp-slot-per-pci-slot drivers/pci/hotplug/fakephp.c
---- a/drivers/pci/hotplug/fakephp.c~pci-hotplug-construct-one-fakephp-slot-per-pci-slot
-+++ a/drivers/pci/hotplug/fakephp.c
-@@ -66,6 +66,7 @@ struct dummy_slot {
- 	struct pci_dev *dev;
- 	struct work_struct remove_work;
- 	unsigned long removed;
-+	char name[8];
- };
+diff -puN lib/kobject.c~pci-hotplug-export-kobject_rename-for-pci_hotplug_core lib/kobject.c
+--- a/lib/kobject.c~pci-hotplug-export-kobject_rename-for-pci_hotplug_core
++++ a/lib/kobject.c
+@@ -489,6 +489,7 @@ out:
  
- static int debug;
-@@ -100,6 +101,7 @@ static int add_slot(struct pci_dev *dev)
- 	struct dummy_slot *dslot;
- 	struct hotplug_slot *slot;
- 	int retval = -ENOMEM;
-+	static int count = 1;
- 
- 	slot = kzalloc(sizeof(struct hotplug_slot), GFP_KERNEL);
- 	if (!slot)
-@@ -113,13 +115,13 @@ static int add_slot(struct pci_dev *dev)
- 	slot->info->max_bus_speed = PCI_SPEED_UNKNOWN;
- 	slot->info->cur_bus_speed = PCI_SPEED_UNKNOWN;
- 
--	slot->name = &dev->dev.bus_id[0];
--	dbg("slot->name = %s\n", slot->name);
--
- 	dslot = kzalloc(sizeof(struct dummy_slot), GFP_KERNEL);
- 	if (!dslot)
- 		goto error_info;
- 
-+	slot->name = dslot->name;
-+	snprintf(slot->name, sizeof(dslot->name), "fake%d", count++);
-+	dbg("slot->name = %s\n", slot->name);
- 	slot->ops = &dummy_hotplug_slot_ops;
- 	slot->release = &dummy_release;
- 	slot->private = dslot;
-@@ -148,17 +150,17 @@ error:
- static int __init pci_scan_buses(void)
- {
- 	struct pci_dev *dev = NULL;
--	int retval = 0;
-+	int lastslot = 0;
- 
- 	while ((dev = pci_get_device(PCI_ANY_ID, PCI_ANY_ID, dev)) != NULL) {
--		retval = add_slot(dev);
--		if (retval) {
--			pci_dev_put(dev);
--			break;
--		}
-+		if (PCI_FUNC(dev->devfn) > 0 &&
-+				lastslot == PCI_SLOT(dev->devfn))
-+			continue;
-+		lastslot = PCI_SLOT(dev->devfn);
-+		add_slot(dev);
- 	}
- 
--	return retval;
-+	return 0;
+ 	return error;
  }
++EXPORT_SYMBOL_GPL(kobject_rename);
  
- static void remove_slot(struct dummy_slot *dslot)
-@@ -296,23 +298,9 @@ static int enable_slot(struct hotplug_sl
- 	return 0;
- }
- 
--/* find the hotplug_slot for the pci_dev */
--static struct hotplug_slot *get_slot_from_dev(struct pci_dev *dev)
--{
--	struct dummy_slot *dslot;
--
--	list_for_each_entry(dslot, &slot_list, node) {
--		if (dslot->dev == dev)
--			return dslot->slot;
--	}
--	return NULL;
--}
--
--
- static int disable_slot(struct hotplug_slot *slot)
- {
- 	struct dummy_slot *dslot;
--	struct hotplug_slot *hslot;
- 	struct pci_dev *dev;
- 	int func;
- 
-@@ -322,41 +310,27 @@ static int disable_slot(struct hotplug_s
- 
- 	dbg("%s - physical_slot = %s\n", __func__, slot->name);
- 
--	/* don't disable bridged devices just yet, we can't handle them easily... */
--	if (dslot->dev->subordinate) {
--		err("Can't remove PCI devices with other PCI devices behind it yet.\n");
--		return -ENODEV;
--	}
--	if (test_and_set_bit(0, &dslot->removed)) {
--		dbg("Slot already scheduled for removal\n");
--		return -ENODEV;
--	}
--	/* search for subfunctions and disable them first */
--	if (!(dslot->dev->devfn & 7)) {
--		for (func = 1; func < 8; func++) {
--			dev = pci_get_slot(dslot->dev->bus,
--					dslot->dev->devfn + func);
--			if (dev) {
--				hslot = get_slot_from_dev(dev);
--				if (hslot)
--					disable_slot(hslot);
--				else {
--					err("Hotplug slot not found for subfunction of PCI device\n");
--					return -ENODEV;
--				}
--				pci_dev_put(dev);
--			} else
--				dbg("No device in slot found\n");
-+	for (func = 7; func >= 0; func--) {
-+		dev = pci_get_slot(dslot->dev->bus, dslot->dev->devfn + func);
-+		if (!dev)
-+			continue;
-+
-+		if (test_and_set_bit(0, &dslot->removed)) {
-+			dbg("Slot already scheduled for removal\n");
-+			return -ENODEV;
- 		}
--	}
- 
--	/* remove the device from the pci core */
--	pci_remove_bus_device(dslot->dev);
-+		/* queue work item to blow away this sysfs entry and other
-+		 * parts.
-+		 */
-+		INIT_WORK(&dslot->remove_work, remove_slot_worker);
-+		queue_work(dummyphp_wq, &dslot->remove_work);
- 
--	/* queue work item to blow away this sysfs entry and other parts. */
--	INIT_WORK(&dslot->remove_work, remove_slot_worker);
--	queue_work(dummyphp_wq, &dslot->remove_work);
-+		/* blow away this sysfs entry and other parts. */
-+		remove_slot(dslot);
- 
-+		pci_dev_put(dev);
-+	}
- 	return 0;
- }
- 
+ /**
+  * kobject_move - move object to another parent
 _
 
-Patches currently in -mm which might be from achiang@hp.com are
+Patches currently in -mm which might be from kaneshige.kenji@jp.fujitsu.com are
 
-pci-hotplug-construct-one-fakephp-slot-per-pci-slot.patch
+origin.patch
+linux-next.patch
 pci-hotplug-export-kobject_rename-for-pci_hotplug_core.patch
 pci-hotplug-introduce-pci_slot.patch
 pci-hotplug-introduce-pci_slot-rpaphp-correctly-call-pci_hp_register-for-empty-pci-slots.patch
