@@ -1,189 +1,217 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-fixup.patch added to -mm tree
-Date: Fri, 30 May 2008 15:02:46 -0700
-Message-ID: <200805302202.m4UM2kKL013421@imap1.linux-foundation.org>
+Subject: - struct-class-sem-to-mutex-converting.patch removed from -mm tree
+Date: Fri, 30 May 2008 15:04:20 -0700
+Message-ID: <200805302204.m4UM4Ks9013540@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37974 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40510 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751081AbYE3WCy (ORCPT
+	by vger.kernel.org with ESMTP id S1750892AbYE3WEY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 May 2008 18:02:54 -0400
+	Fri, 30 May 2008 18:04:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, david-b@pacbell.net, sfr@canb.auug.org.au
+To: hidave.darkstar@gmail.com, greg@kroah.com, kay.sievers@vrfy.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next-fixup
-has been added to the -mm tree.  Its filename is
-     linux-next-fixup.patch
+     driver core: struct class sem to mutex conversion
+has been removed from the -mm tree.  Its filename was
+     struct-class-sem-to-mutex-converting.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because Greg changed everything
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-fixup
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: driver core: struct class sem to mutex conversion
+From: Dave Young <hidave.darkstar@gmail.com>
 
-Attempt to repair spi-fix-refcount-related-spidev-oops-on-rmmod versus
-linux-next smashup.
+The class_device is already removed, so do the class->sem to mutex conversion.
 
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spidev.c |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ drivers/base/class.c   |   22 +++++++++++-----------
+ drivers/base/core.c    |    9 ++++-----
+ include/linux/device.h |    3 ++-
+ 3 files changed, 17 insertions(+), 17 deletions(-)
 
-diff -puN drivers/spi/spidev.c~linux-next-fixup drivers/spi/spidev.c
---- a/drivers/spi/spidev.c~linux-next-fixup
-+++ a/drivers/spi/spidev.c
-@@ -575,13 +575,9 @@ static int spidev_probe(struct spi_devic
- 	mutex_lock(&device_list_lock);
- 	minor = find_first_zero_bit(minors, N_SPI_MINORS);
- 	if (minor < N_SPI_MINORS) {
--		struct device *dev;
--
- 		spidev->devt = MKDEV(SPIDEV_MAJOR, minor);
--		dev = device_create(spidev_class, &spi->dev, spidev->devt,
--				"spidev%d.%d",
-+		status = dev_set_name(&spidev->spi->dev, "spidev%d.%d",
- 				spi->master->bus_num, spi->chip_select);
--		status = IS_ERR(dev) ? PTR_ERR(dev) : 0;
- 	} else {
- 		dev_dbg(&spi->dev, "no minor number available!\n");
- 		status = -ENODEV;
+diff -puN drivers/base/class.c~struct-class-sem-to-mutex-converting drivers/base/class.c
+--- a/drivers/base/class.c~struct-class-sem-to-mutex-converting
++++ a/drivers/base/class.c
+@@ -143,7 +143,7 @@ int class_register(struct class *cls)
+ 	INIT_LIST_HEAD(&cls->devices);
+ 	INIT_LIST_HEAD(&cls->interfaces);
+ 	kset_init(&cls->class_dirs);
+-	init_MUTEX(&cls->sem);
++	mutex_init(&cls->mutex);
+ 	error = kobject_set_name(&cls->subsys.kobj, "%s", cls->name);
+ 	if (error)
+ 		return error;
+@@ -268,7 +268,7 @@ char *make_class_name(const char *name, 
+  * We check the return of @fn each time. If it returns anything
+  * other than 0, we break out and return that value.
+  *
+- * Note, we hold class->sem in this function, so it can not be
++ * Note, we hold class->mutex in this function, so it can not be
+  * re-acquired in @fn, otherwise it will self-deadlocking. For
+  * example, calls to add or remove class members would be verboten.
+  */
+@@ -280,7 +280,7 @@ int class_for_each_device(struct class *
+ 
+ 	if (!class)
+ 		return -EINVAL;
+-	down(&class->sem);
++	mutex_lock(&class->mutex);
+ 	list_for_each_entry(dev, &class->devices, node) {
+ 		if (start) {
+ 			if (start == dev)
+@@ -293,7 +293,7 @@ int class_for_each_device(struct class *
+ 		if (error)
+ 			break;
+ 	}
+-	up(&class->sem);
++	mutex_unlock(&class->mutex);
+ 
+ 	return error;
+ }
+@@ -316,7 +316,7 @@ EXPORT_SYMBOL_GPL(class_for_each_device)
+  *
+  * Note, you will need to drop the reference with put_device() after use.
+  *
+- * We hold class->sem in this function, so it can not be
++ * We hold class->mutex in this function, so it can not be
+  * re-acquired in @match, otherwise it will self-deadlocking. For
+  * example, calls to add or remove class members would be verboten.
+  */
+@@ -330,7 +330,7 @@ struct device *class_find_device(struct 
+ 	if (!class)
+ 		return NULL;
+ 
+-	down(&class->sem);
++	mutex_lock(&class->mutex);
+ 	list_for_each_entry(dev, &class->devices, node) {
+ 		if (start) {
+ 			if (start == dev)
+@@ -344,7 +344,7 @@ struct device *class_find_device(struct 
+ 		} else
+ 			put_device(dev);
+ 	}
+-	up(&class->sem);
++	mutex_unlock(&class->mutex);
+ 
+ 	return found ? dev : NULL;
+ }
+@@ -362,13 +362,13 @@ int class_interface_register(struct clas
+ 	if (!parent)
+ 		return -EINVAL;
+ 
+-	down(&parent->sem);
++	mutex_lock(&parent->mutex);
+ 	list_add_tail(&class_intf->node, &parent->interfaces);
+ 	if (class_intf->add_dev) {
+ 		list_for_each_entry(dev, &parent->devices, node)
+ 			class_intf->add_dev(dev, class_intf);
+ 	}
+-	up(&parent->sem);
++	mutex_unlock(&parent->mutex);
+ 
+ 	return 0;
+ }
+@@ -381,13 +381,13 @@ void class_interface_unregister(struct c
+ 	if (!parent)
+ 		return;
+ 
+-	down(&parent->sem);
++	mutex_lock(&parent->mutex);
+ 	list_del_init(&class_intf->node);
+ 	if (class_intf->remove_dev) {
+ 		list_for_each_entry(dev, &parent->devices, node)
+ 			class_intf->remove_dev(dev, class_intf);
+ 	}
+-	up(&parent->sem);
++	mutex_unlock(&parent->mutex);
+ 
+ 	class_put(parent);
+ }
+diff -puN drivers/base/core.c~struct-class-sem-to-mutex-converting drivers/base/core.c
+--- a/drivers/base/core.c~struct-class-sem-to-mutex-converting
++++ a/drivers/base/core.c
+@@ -20,7 +20,6 @@
+ #include <linux/notifier.h>
+ #include <linux/genhd.h>
+ #include <linux/kallsyms.h>
+-#include <linux/semaphore.h>
+ 
+ #include "base.h"
+ #include "power/power.h"
+@@ -889,7 +888,7 @@ int device_add(struct device *dev)
+ 		klist_add_tail(&dev->knode_parent, &parent->klist_children);
+ 
+ 	if (dev->class) {
+-		down(&dev->class->sem);
++		mutex_lock(&dev->class->mutex);
+ 		/* tie the class to the device */
+ 		list_add_tail(&dev->node, &dev->class->devices);
+ 
+@@ -897,7 +896,7 @@ int device_add(struct device *dev)
+ 		list_for_each_entry(class_intf, &dev->class->interfaces, node)
+ 			if (class_intf->add_dev)
+ 				class_intf->add_dev(dev, class_intf);
+-		up(&dev->class->sem);
++		mutex_unlock(&dev->class->mutex);
+ 	}
+  Done:
+ 	put_device(dev);
+@@ -998,14 +997,14 @@ void device_del(struct device *dev)
+ 	if (dev->class) {
+ 		device_remove_class_symlinks(dev);
+ 
+-		down(&dev->class->sem);
++		mutex_lock(&dev->class->mutex);
+ 		/* notify any interfaces that the device is now gone */
+ 		list_for_each_entry(class_intf, &dev->class->interfaces, node)
+ 			if (class_intf->remove_dev)
+ 				class_intf->remove_dev(dev, class_intf);
+ 		/* remove the device from the class list */
+ 		list_del_init(&dev->node);
+-		up(&dev->class->sem);
++		mutex_unlock(&dev->class->mutex);
+ 	}
+ 	device_remove_file(dev, &uevent_attr);
+ 	device_remove_attrs(dev);
+diff -puN include/linux/device.h~struct-class-sem-to-mutex-converting include/linux/device.h
+--- a/include/linux/device.h~struct-class-sem-to-mutex-converting
++++ a/include/linux/device.h
+@@ -20,6 +20,7 @@
+ #include <linux/types.h>
+ #include <linux/module.h>
+ #include <linux/pm.h>
++#include <linux/mutex.h>
+ #include <linux/semaphore.h>
+ #include <asm/atomic.h>
+ #include <asm/device.h>
+@@ -185,7 +186,7 @@ struct class {
+ 	struct list_head	devices;
+ 	struct list_head	interfaces;
+ 	struct kset		class_dirs;
+-	struct semaphore	sem; /* locks children, devices, interfaces */
++	struct mutex		mutex; /* locks devices, interfaces */
+ 	struct class_attribute		*class_attrs;
+ 	struct device_attribute		*dev_attrs;
+ 	struct kobject			*dev_kobj;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hidave.darkstar@gmail.com are
 
-origin.patch
 linux-next.patch
-next-remove-localversion.patch
-next-fix-rejects.patch
-linux-next-fixup.patch
-fix-kobject-fix-kobject_rename-and-config_sysfs.patch
-fix-driver-core-add-device_create_vargs-and-device_create_drvdata.patch
-kvm-is-busted-on-ia64.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-video-balcklist-fujitsu-lifebook-s6410.patch
-git-x86-fixup.patch
-lguest-use-cpu-capability-accessors.patch
-arch-x86-mm-patc-nopat-should-be-__init.patch
-arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
-arch-powerpc-platforms-pseries-eeh_driverc-fix-warning.patch
-arch-powerpc-platforms-pseries-eeh_driverc-fix-warning-checkpatch-fixes.patch
-git-dvb.patch
-zoran-use-correct-type-for-cpu-flags.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-git-hid.patch
-git-input.patch
-git-jg-misc-git-rejects.patch
-drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-git-kvm.patch
-fsldma-the-mpc8377mds-board-device-tree-node-for-fsldma-driver.patch
-git-mmc.patch
-mmc-sd-host-driver-for-ricoh-bay1controllers.patch
-git-ubifs.patch
-git-net-next.patch
-sundance-set-carrier-status-on-link-change-events.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-battery.patch
-svcrdma-fix-compile-warning-on-32-bit-platforms-checkpatch-fixes.patch
-pci-hotplug-introduce-pci_slot.patch
-pci-hotplug-acpi-pci-slot-detection-driver.patch
-sched-delete-dead-stuff.patch
-sched-delete-dead-stuff-2.patch
-git-scsi-misc-fix-scsi_dh-build-errors.patch
-drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
-s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
-pktcdvd-push-bkl-down-into-driver-fix.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-git-logfs-fixup.patch
-drivers-uwb-nehc-processor-flags-have-type-unsigned-long.patch
-drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
-drivers-uwb-wlp-sysfsc-dead-code.patch
-drivers-uwb-whcic-needs-dma-mappingh.patch
-usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix.patch
-usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix-2.patch
-git-watchdog-git-rejects.patch
-watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix.patch
-watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl-fix.patch
-git-xtensa.patch
-ext4-is-busted-on-m68k.patch
-capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-libata-sff-fix-oops-reported-in-kerneloopsorg-for-pnp-devices-with-no-ctl-fix.patch
-mm-verify-the-page-links-and-memory-model.patch
-mspec-convert-nopfn-to-fault-fix.patch
-page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
-kill-generic_file_direct_io-checkpatch-fixes.patch
-use-generic_access_phys-for-dev-mem-mappings-fix.patch
-spufs-use-the-new-vm_ops-access-fix.patch
-fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
-mapping_set_error-add-unlikely.patch
-huge-page-private-reservation-review-cleanups-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
-pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes.patch
-pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup.patch
-pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup-fix.patch
-swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
-split-the-typecheck-macros-out-of-include-linux-kernelh.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
-remove-apparently-unused-fd1772h-header-file.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
-build-kernel-profileo-only-when-requested-cleanups.patch
-rename-warn-to-warning-to-clear-the-namespace-fix.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
-flag-parameters-paccept-fix.patch
-flag-parameters-paccept-sys_ni.patch
-flag-parameters-anon_inode_getfd-extension-fix.patch
-flag-parameters-signalfd-fix.patch
-flag-parameters-eventfd-fix.patch
-flag-parameters-inotify_init-fix.patch
-flag-parameters-check-magic-constants-alpha.patch
-drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
-reiserfs-convert-j_flush_sem-to-mutex.patch
-reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
-jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-reiser4.patch
-reiser4-semaphore-fix.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+struct-class-sem-to-mutex-converting.patch
+add-time_is_after_jiffies-and-others-which-compare-with-jiffies.patch
+bluetooth-fix-locking-bug-in-the-rfcomm-socket-cleanup-handling.patch
+printk-ratelimiting-rewrite.patch
+printk-ratelimiting-rewrite-fix.patch
 
