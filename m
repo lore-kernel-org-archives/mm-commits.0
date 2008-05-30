@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + video-superh-mobile-lcdc-driver-update.patch added to -mm tree
-Date: Fri, 30 May 2008 13:50:23 -0700
-Message-ID: <200805302050.m4UKoNhA010821@imap1.linux-foundation.org>
+Subject: + next-fix-rejects.patch added to -mm tree
+Date: Fri, 30 May 2008 14:58:10 -0700
+Message-ID: <200805302158.m4ULwAjc013298@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37583 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47623 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753113AbYE3Uui (ORCPT
+	by vger.kernel.org with ESMTP id S1752436AbYE3V6N (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 May 2008 16:50:38 -0400
+	Fri, 30 May 2008 17:58:13 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m4ULwApn024199
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Fri, 30 May 2008 14:58:11 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: magnus.damm@gmail.com, damm@igel.co.jp, krzysztof.h1@poczta.fm, lethal@linux-sh.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     video-superh-mobile-lcdc-driver update
+     next-fix-rejects
 has been added to the -mm tree.  Its filename is
-     video-superh-mobile-lcdc-driver-update.patch
+     next-fix-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,310 +38,226 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: video-superh-mobile-lcdc-driver update
-From: Magnus Damm <magnus.damm@gmail.com>
+Subject: next-fix-rejects
+From: Andrew Morton <akpm@linux-foundation.org>
 
-  - updated license header
-  - improved polling code to use cpu_relax()
-  - introduced lcdc_wait_bit()
-  - added lcdc_chan_is_sublcd() function
-  - broke out start and stop code
-
-Signed-off-by: Magnus Damm <damm@igel.co.jp>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Reviewed-by: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/sh_mobile_lcdcfb.c |  147 ++++++++++++-----------------
- 1 file changed, 65 insertions(+), 82 deletions(-)
+ arch/s390/mm/init.c                |    3 ---
+ drivers/usb/misc/Kconfig           |    3 ---
+ drivers/usb/misc/isight_firmware.c |    4 ----
+ include/linux/device.h             |    4 ----
+ kernel/sched_fair.c                |    5 -----
+ 5 files changed, 19 deletions(-)
 
-diff -puN drivers/video/sh_mobile_lcdcfb.c~video-superh-mobile-lcdc-driver-update drivers/video/sh_mobile_lcdcfb.c
---- a/drivers/video/sh_mobile_lcdcfb.c~video-superh-mobile-lcdc-driver-update
-+++ a/drivers/video/sh_mobile_lcdcfb.c
-@@ -3,18 +3,9 @@
-  *
-  * Copyright (c) 2008 Magnus Damm
-  *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License as published by
-- * the Free Software Foundation; either version 2 of the License
-- *
-- * This program is distributed in the hope that it will be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ * This file is subject to the terms and conditions of the GNU General Public
-+ * License.  See the file "COPYING" in the main directory of this archive
-+ * for more details.
-  */
- 
- #include <linux/kernel.h>
-@@ -49,7 +40,6 @@ struct sh_mobile_lcdc_priv {
- };
- 
- /* shared registers */
--
- #define _LDDCKR 0x410
- #define _LDDCKSTPR 0x414
- #define _LDINTR 0x468
-@@ -63,7 +53,6 @@ struct sh_mobile_lcdc_priv {
- #define _LDDRAR 0x904
- 
- /* per-channel registers */
--
- enum { LDDCKPAT1R, LDDCKPAT2R, LDMT1R, LDMT2R, LDMT3R, LDDFR, LDSM1R,
-        LDSA1R, LDMLSR, LDHCNR, LDHSYNR, LDVLNR, LDVSYNR, LDPMR };
- 
-@@ -119,7 +108,7 @@ static unsigned long lcdc_read_chan(stru
+diff -puN arch/s390/mm/init.c~next-fix-rejects arch/s390/mm/init.c
+--- a/arch/s390/mm/init.c~next-fix-rejects
++++ a/arch/s390/mm/init.c
+@@ -72,8 +72,6 @@ void show_mem(void)
+ 	printk("%ld reserved pages\n", reserved);
+ 	printk("%ld pages shared\n", shared);
+ 	printk("%ld pages swap cached\n", cached);
+-<<<<<<< HEAD:arch/s390/mm/init.c
+-=======
+ 	printk("%lu pages dirty\n", global_page_state(NR_FILE_DIRTY));
+ 	printk("%lu pages writeback\n", global_page_state(NR_WRITEBACK));
+ 	printk("%lu pages mapped\n", global_page_state(NR_FILE_MAPPED));
+@@ -81,7 +79,6 @@ void show_mem(void)
+ 	       global_page_state(NR_SLAB_RECLAIMABLE) +
+ 	       global_page_state(NR_SLAB_UNRECLAIMABLE));
+ 	printk("%lu pages pagetables\n", global_page_state(NR_PAGETABLE));
+->>>>>>> FETCH_HEAD:arch/s390/mm/init.c
  }
  
- static void lcdc_write(struct sh_mobile_lcdc_priv *priv,
--		       int reg_offs, unsigned long data)
-+		       unsigned long reg_offs, unsigned long data)
- {
- 	iowrite32(data, priv->base + reg_offs);
- }
-@@ -130,19 +119,26 @@ static unsigned long lcdc_read(struct sh
- 	return ioread32(priv->base + reg_offs);
- }
+ /*
+diff -puN drivers/usb/misc/Kconfig~next-fix-rejects drivers/usb/misc/Kconfig
+--- a/drivers/usb/misc/Kconfig~next-fix-rejects
++++ a/drivers/usb/misc/Kconfig
+@@ -280,8 +280,6 @@ config USB_ISIGHTFW
+ 	  The firmware for this driver must be extracted from the MacOS
+ 	  driver beforehand. Tools for doing so are available at
+ 	  http://bersace03.free.fr
+-<<<<<<< HEAD:drivers/usb/misc/Kconfig
+-=======
  
-+static void lcdc_wait_bit(struct sh_mobile_lcdc_priv *priv,
-+			  unsigned long reg_offs,
-+			  unsigned long mask, unsigned long until)
-+{
-+	while ((lcdc_read(priv, reg_offs) & mask) != until)
-+		cpu_relax();
-+}
-+
-+static int lcdc_chan_is_sublcd(struct sh_mobile_lcdc_chan *chan)
-+{
-+	return chan->cfg.chan == LCDC_CHAN_SUBLCD;
-+}
-+
- static void lcdc_sys_write_index(void *handle, unsigned long data)
- {
- 	struct sh_mobile_lcdc_chan *ch = handle;
+ config USB_GOTEMP
+ 	tristate "GoTemp USB thermometer driver support"
+@@ -292,4 +290,3 @@ config USB_GOTEMP
  
- 	lcdc_write(ch->lcdc, _LDDWD0R, data | 0x10000000);
--
--	while (lcdc_read(ch->lcdc, _LDSR) & 2)
--	  ;
--
--	if (ch->cfg.chan == LCDC_CHAN_SUBLCD)
--		lcdc_write(ch->lcdc, _LDDWAR, 3);
--	else
--		lcdc_write(ch->lcdc, _LDDWAR, 1);
-+	lcdc_wait_bit(ch->lcdc, _LDSR, 2, 0);
-+	lcdc_write(ch->lcdc, _LDDWAR, 1 | (lcdc_chan_is_sublcd(ch) ? 2 : 0));
- }
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called gotemp.
+->>>>>>> FETCH_HEAD:drivers/usb/misc/Kconfig
+diff -puN drivers/usb/misc/isight_firmware.c~next-fix-rejects drivers/usb/misc/isight_firmware.c
+--- a/drivers/usb/misc/isight_firmware.c~next-fix-rejects
++++ a/drivers/usb/misc/isight_firmware.c
+@@ -41,11 +41,7 @@ static int isight_firmware_load(struct u
+ 	const struct firmware *firmware;
+ 	unsigned char *buf;
+ 	unsigned char data[4];
+-<<<<<<< HEAD:drivers/usb/misc/isight_firmware.c
+-	char *ptr;
+-=======
+ 	const u8 *ptr;
+->>>>>>> FETCH_HEAD:drivers/usb/misc/isight_firmware.c
  
- static void lcdc_sys_write_data(void *handle, unsigned long data)
-@@ -150,14 +146,8 @@ static void lcdc_sys_write_data(void *ha
- 	struct sh_mobile_lcdc_chan *ch = handle;
- 
- 	lcdc_write(ch->lcdc, _LDDWD0R, data | 0x11000000);
--
--	while (lcdc_read(ch->lcdc, _LDSR) & 2)
--	  ;
--
--	if (ch->cfg.chan == LCDC_CHAN_SUBLCD)
--		lcdc_write(ch->lcdc, _LDDWAR, 3);
--	else
--		lcdc_write(ch->lcdc, _LDDWAR, 1);
-+	lcdc_wait_bit(ch->lcdc, _LDSR, 2, 0);
-+	lcdc_write(ch->lcdc, _LDDWAR, 1 | (lcdc_chan_is_sublcd(ch) ? 2 : 0));
+ 	if (request_firmware(&firmware, "isight.fw", &dev->dev) != 0) {
+ 		printk(KERN_ERR "Unable to load isight firmware\n");
+diff -puN include/linux/device.h~next-fix-rejects include/linux/device.h
+--- a/include/linux/device.h~next-fix-rejects
++++ a/include/linux/device.h
+@@ -420,11 +420,7 @@ static inline const char *dev_name(struc
  }
  
- static unsigned long lcdc_sys_read_data(void *handle)
-@@ -165,15 +155,8 @@ static unsigned long lcdc_sys_read_data(
- 	struct sh_mobile_lcdc_chan *ch = handle;
+ extern int dev_set_name(struct device *dev, const char *name, ...)
+-<<<<<<< HEAD:include/linux/device.h
+-			__attribute__((format(printf, 2, 3)));
+-=======
+ 			    __attribute__((format(printf, 2, 3)));
+->>>>>>> FETCH_HEAD:include/linux/device.h
  
- 	lcdc_write(ch->lcdc, _LDDRDR, 0x01000000);
--
--	while (lcdc_read(ch->lcdc, _LDSR) & 2)
--	  ;
--
--	if (ch->cfg.chan == LCDC_CHAN_SUBLCD)
--		lcdc_write(ch->lcdc, _LDDRAR, 3);
--	else
--		lcdc_write(ch->lcdc, _LDDRAR, 1);
--
-+	lcdc_wait_bit(ch->lcdc, _LDSR, 2, 0);
-+	lcdc_write(ch->lcdc, _LDDRAR, 1 | (lcdc_chan_is_sublcd(ch) ? 2 : 0));
- 	udelay(1);
+ #ifdef CONFIG_NUMA
+ static inline int dev_to_node(struct device *dev)
+diff -puN kernel/sched_fair.c~next-fix-rejects kernel/sched_fair.c
+--- a/kernel/sched_fair.c~next-fix-rejects
++++ a/kernel/sched_fair.c
+@@ -609,10 +609,6 @@ place_entity(struct cfs_rq *cfs_rq, stru
  
- 	return lcdc_read(ch->lcdc, _LDDRDR) & 0xffff;
-@@ -185,7 +168,35 @@ struct sh_mobile_lcdc_sys_bus_ops sh_mob
- 	lcdc_sys_read_data,
- };
+ 	if (!initial) {
+ 		/* sleeps upto a single latency don't count. */
+-<<<<<<< HEAD:kernel/sched_fair.c
+-		if (sched_feat(NEW_FAIR_SLEEPERS))
+-			vruntime -= sysctl_sched_latency;
+-=======
+ 		if (sched_feat(NEW_FAIR_SLEEPERS)) {
+ 			unsigned long thresh = sysctl_sched_latency;
  
--static int sh_mobile_lcdc_start_hw(struct sh_mobile_lcdc_priv *priv)
-+static void sh_mobile_lcdc_start_stop(struct sh_mobile_lcdc_priv *priv,
-+				      int start)
-+{
-+	unsigned long tmp = lcdc_read(priv, _LDCNT2R);
-+	int k;
-+
-+	/* start or stop the lcdc */
-+	if (start)
-+		lcdc_write(priv, _LDCNT2R, tmp | START_LCDC);
-+	else
-+		lcdc_write(priv, _LDCNT2R, tmp & ~START_LCDC);
-+
-+	/* wait until power is applied/stopped on all channels */
-+	for (k = 0; k < ARRAY_SIZE(priv->ch); k++)
-+		if (lcdc_read(priv, _LDCNT2R) & priv->ch[k].enabled)
-+			while (1) {
-+				tmp = lcdc_read_chan(&priv->ch[k], LDPMR) & 3;
-+				if (start && tmp == 3)
-+					break;
-+				if (!start && tmp == 0)
-+					break;
-+				cpu_relax();
-+			}
-+
-+	if (!start)
-+		lcdc_write(priv, _LDDCKSTPR, 1); /* stop dotclock */
-+}
-+
-+static int sh_mobile_lcdc_start(struct sh_mobile_lcdc_priv *priv)
- {
- 	struct sh_mobile_lcdc_chan *ch;
- 	struct fb_videomode *lcd_cfg;
-@@ -196,8 +207,7 @@ static int sh_mobile_lcdc_start_hw(struc
+@@ -624,7 +620,6 @@ place_entity(struct cfs_rq *cfs_rq, stru
  
- 	/* reset */
- 	lcdc_write(priv, _LDCNT2R, lcdc_read(priv, _LDCNT2R) | LCDC_RESET);
--	while (lcdc_read(priv, _LDCNT2R) & LCDC_RESET)
--		;
-+	lcdc_wait_bit(priv, _LDCNT2R, LCDC_RESET, 0);
+ 			vruntime -= thresh;
+ 		}
+->>>>>>> FETCH_HEAD:kernel/sched_fair.c
  
- 	/* enable LCDC channels */
- 	tmp = lcdc_read(priv, _LDCNT2R);
-@@ -208,17 +218,8 @@ static int sh_mobile_lcdc_start_hw(struc
- 	/* read data from external memory, avoid using the BEU for now */
- 	lcdc_write(priv, _LDCNT2R, lcdc_read(priv, _LDCNT2R) & ~DISPLAY_BEU);
- 
--	/* stops the lcdc operation */
--	lcdc_write(priv, _LDCNT2R, lcdc_read(priv, _LDCNT2R) & ~START_LCDC);
--
--	/* wait until power is stopped on all channels */
--	for (k = 0; k < ARRAY_SIZE(priv->ch); k++)
--		if (lcdc_read(priv, _LDCNT2R) & priv->ch[k].enabled)
--			while (lcdc_read_chan(&priv->ch[k], LDPMR) & 3)
--				;
--
--	/* stop dotclock */
--	lcdc_write(priv, _LDDCKSTPR, 1);
-+	/* stop the lcdc first */
-+	sh_mobile_lcdc_start_stop(priv, 0);
- 
- 	/* configure clocks */
- 	tmp = priv->lddckr;
-@@ -234,7 +235,7 @@ static int sh_mobile_lcdc_start_hw(struc
- 
- 		if (m == 1)
- 			m = 1 << 6;
--		tmp |= m << ((ch->cfg.chan == LCDC_CHAN_SUBLCD) ? 8 : 0);
-+		tmp |= m << (lcdc_chan_is_sublcd(ch) ? 8 : 0);
- 
- 		lcdc_write_chan(ch, LDDCKPAT1R, 0x00000000);
- 		lcdc_write_chan(ch, LDDCKPAT2R, (1 << (m/2)) - 1);
-@@ -244,9 +245,7 @@ static int sh_mobile_lcdc_start_hw(struc
- 
- 	/* start dotclock again */
- 	lcdc_write(priv, _LDDCKSTPR, 0);
--
--	while (lcdc_read(priv, _LDDCKSTPR))
--		;
-+	lcdc_wait_bit(priv, _LDDCKSTPR, ~0, 0);
- 
- 	/* interrupts are disabled */
- 	lcdc_write(priv, _LDINTR, 0);
-@@ -335,14 +334,8 @@ static int sh_mobile_lcdc_start_hw(struc
- 	/* display output */
- 	lcdc_write(priv, _LDCNT1R, LCDC_ENABLE);
- 
--	/* start the lcdc operation */
--	lcdc_write(priv, _LDCNT2R, lcdc_read(priv, _LDCNT2R) | START_LCDC);
--
--	/* wait until power is applied to all channels */
--	for (k = 0; k < ARRAY_SIZE(priv->ch); k++)
--		if (lcdc_read(priv, _LDCNT2R) & priv->ch[k].enabled)
--			while (!(lcdc_read_chan(&priv->ch[k], LDPMR) & 3))
--				;
-+	/* start the lcdc */
-+	sh_mobile_lcdc_start_stop(priv, 1);
- 
- 	/* tell the board code to enable the panel */
- 	for (k = 0; k < ARRAY_SIZE(priv->ch); k++) {
-@@ -355,7 +348,7 @@ static int sh_mobile_lcdc_start_hw(struc
- 	return 0;
- }
- 
--static void sh_mobile_lcdc_stop_hw(struct sh_mobile_lcdc_priv *priv)
-+static void sh_mobile_lcdc_stop(struct sh_mobile_lcdc_priv *priv)
- {
- 	struct sh_mobile_lcdc_chan *ch;
- 	struct sh_mobile_lcdc_board_cfg	*board_cfg;
-@@ -369,18 +362,8 @@ static void sh_mobile_lcdc_stop_hw(struc
- 			board_cfg->display_off(board_cfg->board_data);
- 	}
- 
--	/* stops the lcdc operation */
--	lcdc_write(priv, _LDCNT2R, lcdc_read(priv, _LDCNT2R) & ~START_LCDC);
--
--	/* wait until power is stopped on all channels */
--	for (k = 0; k < ARRAY_SIZE(priv->ch); k++)
--		if (lcdc_read(priv, _LDCNT2R) & priv->ch[k].enabled)
--			while (lcdc_read_chan(&priv->ch[k], LDPMR) & 3)
--				;
--
--	/* stop dotclock */
--	lcdc_write(priv, _LDDCKSTPR, 1);
--
-+	/* stop the lcdc */
-+	sh_mobile_lcdc_start_stop(priv, 0);
- }
- 
- static int sh_mobile_lcdc_check_interface(struct sh_mobile_lcdc_chan *ch)
-@@ -410,7 +393,7 @@ static int sh_mobile_lcdc_check_interfac
- 	}
- 
- 	/* SUBLCD only supports SYS interface */
--	if (ch->cfg.chan == LCDC_CHAN_SUBLCD) {
-+	if (lcdc_chan_is_sublcd(ch)) {
- 		if (ifm == 0)
- 			goto bad;
- 		else
-@@ -649,7 +632,7 @@ static int __init sh_mobile_lcdc_probe(s
- 	if (error)
- 		goto err1;
- 
--	error = sh_mobile_lcdc_start_hw(priv);
-+	error = sh_mobile_lcdc_start(priv);
- 	if (error) {
- 		dev_err(&pdev->dev, "unable to start hardware\n");
- 		goto err1;
-@@ -690,7 +673,7 @@ static int sh_mobile_lcdc_remove(struct 
- 		if (priv->ch[i].info.dev)
- 			unregister_framebuffer(&priv->ch[i].info);
- 
--	sh_mobile_lcdc_stop_hw(priv);
-+	sh_mobile_lcdc_stop(priv);
- 
- 	for (i = 0; i < ARRAY_SIZE(priv->ch); i++) {
- 		info = &priv->ch[i].info;
+ 		/* ensure we never gain time by being placed backwards. */
+ 		vruntime = max_vruntime(se->vruntime, vruntime);
 _
 
-Patches currently in -mm which might be from magnus.damm@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 linux-next.patch
-video-superh-mobile-lcdc-driver.patch
-video-superh-mobile-lcdc-driver-update.patch
+next-remove-localversion.patch
+next-fix-rejects.patch
+fix-kobject-fix-kobject_rename-and-config_sysfs.patch
+fix-driver-core-add-device_create_vargs-and-device_create_drvdata.patch
+kvm-is-busted-on-ia64.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-video-balcklist-fujitsu-lifebook-s6410.patch
+git-x86-fixup.patch
+lguest-use-cpu-capability-accessors.patch
+arch-x86-mm-patc-nopat-should-be-__init.patch
+arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
+arch-powerpc-platforms-pseries-eeh_driverc-fix-warning.patch
+arch-powerpc-platforms-pseries-eeh_driverc-fix-warning-checkpatch-fixes.patch
+git-dvb.patch
+zoran-use-correct-type-for-cpu-flags.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+git-hid.patch
+git-input.patch
+git-jg-misc-git-rejects.patch
+drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+git-kvm.patch
+fsldma-the-mpc8377mds-board-device-tree-node-for-fsldma-driver.patch
+git-mmc.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers.patch
+git-ubifs.patch
+git-net-next.patch
+sundance-set-carrier-status-on-link-change-events.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+svcrdma-fix-compile-warning-on-32-bit-platforms-checkpatch-fixes.patch
+pci-hotplug-introduce-pci_slot.patch
+pci-hotplug-acpi-pci-slot-detection-driver.patch
+sched-delete-dead-stuff.patch
+sched-delete-dead-stuff-2.patch
+git-scsi-misc-fix-scsi_dh-build-errors.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
+pktcdvd-push-bkl-down-into-driver-fix.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-logfs-fixup.patch
+drivers-uwb-nehc-processor-flags-have-type-unsigned-long.patch
+drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
+drivers-uwb-wlp-sysfsc-dead-code.patch
+drivers-uwb-whcic-needs-dma-mappingh.patch
+usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix.patch
+usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix-2.patch
+git-watchdog-git-rejects.patch
+watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix.patch
+watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl-fix.patch
+git-xtensa.patch
+ext4-is-busted-on-m68k.patch
+capabilities-remain-source-compatible-with-32-bit-raw-legacy-capability-support.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+libata-sff-fix-oops-reported-in-kerneloopsorg-for-pnp-devices-with-no-ctl-fix.patch
+mm-verify-the-page-links-and-memory-model.patch
+mspec-convert-nopfn-to-fault-fix.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+kill-generic_file_direct_io-checkpatch-fixes.patch
+use-generic_access_phys-for-dev-mem-mappings-fix.patch
+spufs-use-the-new-vm_ops-access-fix.patch
+fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
+mapping_set_error-add-unlikely.patch
+huge-page-private-reservation-review-cleanups-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup-fix.patch
+swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+rename-warn-to-warning-to-clear-the-namespace-fix.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-paccept-sys_ni.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-signalfd-fix.patch
+flag-parameters-eventfd-fix.patch
+flag-parameters-inotify_init-fix.patch
+flag-parameters-check-magic-constants-alpha.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
+reiserfs-convert-j_flush_sem-to-mutex.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+reiser4.patch
+reiser4-semaphore-fix.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
+linux-next-fixup.patch
 
