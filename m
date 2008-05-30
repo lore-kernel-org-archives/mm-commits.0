@@ -1,352 +1,230 @@
 From: akpm@linux-foundation.org
-Subject: - regulator-consumer-device-interface.patch removed from -mm tree
-Date: Fri, 30 May 2008 16:07:51 -0700
-Message-ID: <200805302307.m4UN7paj016119@imap1.linux-foundation.org>
+Subject: - regulator-documentation-consumer-interface.patch removed from -mm tree
+Date: Fri, 30 May 2008 16:07:58 -0700
+Message-ID: <200805302307.m4UN7w9Q016130@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40065 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55699 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753313AbYE3XH7 (ORCPT
+	by vger.kernel.org with ESMTP id S1753000AbYE3XIJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 May 2008 19:07:59 -0400
+	Fri, 30 May 2008 19:08:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: lg@opensource.wolfsonmicro.com, broonie@opensource.wolfsonmicro.com, david-b@pacbell.net, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     regulator: consumer device interface
+     regulator: documentation - consumer interface
 has been removed from the -mm tree.  Its filename was
-     regulator-consumer-device-interface.patch
+     regulator-documentation-consumer-interface.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: regulator: consumer device interface
+Subject: regulator: documentation - consumer interface
 From: Liam Girdwood <lg@opensource.wolfsonmicro.com>
 
-The regulator framework is designed to provide a standard kernel interface to
-control voltage and current regulators on SoC based systems.
-
-The intention is to allow systems to dynamically control regulator power
-output in order to save power and prolong battery life.  This applies to both
-voltage regulators (where voltage output is controllable) and current sinks
-(where current limit is controllable).
-
-
-
-This patch:
-
-Adds support to allow consumer device drivers to control their regulator power
-supply.
-
-This uses a similar API to the kernel clock interface in that consumer drivers
-can get and put a regulator (like they can with clocks atm) and get/set
-voltage, current limit, mode, enable and disable.  This should allow consumers
-complete control over their supply voltage and current limit.  This also
-compiles out if not in use so drivers can be reused in systems with no
-regulator based power control.
+This adds documentation describing the consumer device interface.
 
 Signed-off-by: Liam Girdwood <lg@opensource.wolfsonmicro.com>
-Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
 Cc: Greg KH <greg@kroah.com>
 Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/regulator/consumer.h |  284 +++++++++++++++++++++++++++
- 1 file changed, 284 insertions(+)
+ Documentation/power/regulator/consumer.txt |  182 +++++++++++++++++++
+ 1 file changed, 182 insertions(+)
 
-diff -puN /dev/null include/linux/regulator/consumer.h
+diff -puN /dev/null Documentation/power/regulator/consumer.txt
 --- /dev/null
-+++ a/include/linux/regulator/consumer.h
-@@ -0,0 +1,284 @@
-+/*
-+ * consumer.h -- SoC Regulator consumer support.
-+ *
-+ * Copyright (C) 2007, 2008 Wolfson Microelectronics PLC.
-+ *
-+ * Author: Liam Girdwood <lg@opensource.wolfsonmicro.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * Regulator Consumer Interface.
-+ *
-+ * A Power Management Regulator framework for SoC based devices.
-+ * Features:-
-+ *   o Voltage and current level control.
-+ *   o Operating mode control.
-+ *   o Regulator status.
-+ *   o sysfs entries for showing client devices and status
-+ *
-+ * EXPERIMENTAL FEATURES:
-+ *   Dynamic Regulator operating Mode Switching (DRMS) - allows regulators
-+ *   to use most efficient operating mode depending upon voltage and load and
-+ *   is transparent to client drivers.
-+ *
-+ *   e.g. Devices x,y,z share regulator r. Device x and y draw 20mA each during
-+ *   IO and 1mA at idle. Device z draws 100mA when under load and 5mA when
-+ *   idling. Regulator r has > 90% efficiency in NORMAL mode at loads > 100mA
-+ *   but this drops rapidly to 60% when below 100mA. Regulator r has > 90%
-+ *   efficiency in IDLE mode at loads < 10mA. Thus regulator r will operate
-+ *   in normal mode for loads > 10mA and in IDLE mode for load <= 10mA.
-+ *
-+ */
++++ a/Documentation/power/regulator/consumer.txt
+@@ -0,0 +1,182 @@
++Regulator Consumer Driver Interface
++===================================
 +
-+#ifndef __LINUX_REGULATOR_CONSUMER_H_
-+#define __LINUX_REGULATOR_CONSUMER_H_
++This text describes the regulator interface for consumer device drivers.
++Please see overview.txt for a description of the terms used in this text.
 +
-+/*
-+ * Regulator operating modes.
-+ *
-+ * Regulators can run in a variety of different operating modes depending on
-+ * output load. This allows further system power savings by selecting the
-+ * best (and most efficient) regulator mode for a desired load.
-+ *
-+ * Most drivers will only care about NORMAL. The modes below are generic and
-+ * will probably not match the naming convention of your regulator data sheet
-+ * but should match the use cases in the datasheet.
-+ *
-+ * In order of power efficiency (least efficient at top).
-+ *
-+ *  Mode       Description
-+ *  FAST       Regulator can handle fast changes in it's load.
-+ *             e.g. useful in CPU voltage & frequency scaling where
-+ *             load can quickly increase with CPU frequency increases.
-+ *
-+ *  NORMAL     Normal regulator power supply mode. Most drivers will
-+ *             use this mode.
-+ *
-+ *  IDLE       Regulator runs in a more efficient mode for light
-+ *             loads. Can be used for devices that have a low power
-+ *             requirement during periods of inactivity. This mode
-+ *             may be more noisy than NORMAL and may not be able
-+ *             to handle fast load switching.
-+ *
-+ *  STANDBY    Regulator runs in the most efficient mode for very
-+ *             light loads. Can be used by devices when they are
-+ *             in a sleep/standby state. This mode is likely to be
-+ *             the most noisy and may not be able to handle fast load
-+ *             switching.
-+ *
-+ * NOTE: Most regulators will only support a subset of these modes. Some
-+ * will only just support NORMAL.
-+ *
-+ * These modes can be OR'ed together to make up a mask of valid register modes.
-+ */
 +
-+#define REGULATOR_MODE_FAST			0x1
-+#define REGULATOR_MODE_NORMAL			0x2
-+#define REGULATOR_MODE_IDLE			0x4
-+#define REGULATOR_MODE_STANDBY			0x8
++1. Consumer Regulator Access (static & dynamic drivers)
++=======================================================
 +
-+/*
-+ * Regulator notifier events.
-+ *
-+ * UNDER_VOLTAGE  Regulator output is under voltage.
-+ * OVER_CURRENT   Regulator output current is too high.
-+ * REGULATION_OUT Regulator output is out of regulation.
-+ * FAIL           Regulator output has failed.
-+ * OVER_TEMP      Regulator over temp.
-+ * FORCE_DISABLE  Regulator shut down by software.
-+ *
-+ * NOTE: These events can be OR'ed together when passed into handler.
-+ */
++A consumer driver can get access to it's supply regulator by calling :-
 +
-+#define REGULATOR_EVENT_UNDER_VOLTAGE		0x01
-+#define REGULATOR_EVENT_OVER_CURRENT		0x02
-+#define REGULATOR_EVENT_REGULATION_OUT		0x04
-+#define REGULATOR_EVENT_FAIL			0x08
-+#define REGULATOR_EVENT_OVER_TEMP		0x10
-+#define REGULATOR_EVENT_FORCE_DISABLE		0x20
++regulator = regulator_get(dev, "Vcc");
 +
-+struct regulator;
++The consumer passes in it's struct device pointer and power supply ID. The core
++then finds the correct regulator by consulting a machine specific lookup table.
++If the lookup is successful then this call will return a pointer to the struct
++regulator that supplies this consumer.
 +
-+/**
-+ * struct regulator_bulk_data - Data used for bulk regulator operations.
-+ *
-+ * @supply   The name of the supply.  Initialised by the user before
-+ *           using the bulk regulator APIs.
-+ * @consumer The regulator consumer for the supply.  This will be managed
-+ *           by the bulk API.
-+ *
-+ * The regulator APIs provide a series of regulator_bulk_() API calls as
-+ * a convenience to consumers which require multiple supplies.  This
-+ * structure is used to manage data for these calls.
-+ */
-+struct regulator_bulk_data {
-+	const char *supply;
-+	struct regulator *consumer;
-+};
++To release the regulator the consumer driver should call :-
 +
-+#if defined(CONFIG_REGULATOR)
++regulator_put(regulator);
 +
-+/* regulator get and put */
-+struct regulator *__must_check regulator_get(struct device *dev,
-+					     const char *id);
-+void regulator_put(struct regulator *regulator);
++Consumers can be supplied by more than one regulator e.g. codec consumer with
++analog and digital supplies :-
 +
-+/* regulator output control and status */
-+int regulator_enable(struct regulator *regulator);
-+int regulator_disable(struct regulator *regulator);
-+int regulator_force_disable(struct regulator *regulator);
-+int regulator_is_enabled(struct regulator *regulator);
++digital = regulator_get(dev, "Vcc");  /* digital core */
++analog = regulator_get(dev, "Avdd");  /* analog */
 +
-+int regulator_bulk_get(struct device *dev, int num_consumers,
-+		       struct regulator_bulk_data *consumers);
-+int regulator_bulk_enable(int num_consumers,
-+			  struct regulator_bulk_data *consumers);
-+int regulator_bulk_disable(int num_consumers,
-+			   struct regulator_bulk_data *consumers);
-+void regulator_bulk_free(int num_consumers,
-+			 struct regulator_bulk_data *consumers);
++The regulator access functions regulator_get() and regulator_put() will
++usually be called in your device drivers probe() and remove() respectively.
 +
-+int regulator_set_voltage(struct regulator *regulator, int min_uV, int max_uV);
-+int regulator_get_voltage(struct regulator *regulator);
-+int regulator_set_current_limit(struct regulator *regulator,
-+			       int min_uA, int max_uA);
-+int regulator_get_current_limit(struct regulator *regulator);
++
++2. Regulator Output Enable & Disable (static & dynamic drivers)
++====================================================================
++
++A consumer can enable it's power supply by calling:-
++
++int regulator_enable(regulator);
++
++NOTE: The supply may already be enabled before regulator_enabled() is called.
++This may happen if the consumer shares the regulator or the regulator has been
++previously enabled by bootloader or kernel board initialisation code.
++
++A consumer can determine if a regulator is enabled by calling :-
++
++int regulator_is_enabled(regulator);
++
++This will return > zero when the regulator is enabled.
++
++
++A consumer can disable it's supply when no longer needed by calling :-
++
++int regulator_disable(regulator);
++
++NOTE: This may not disable the supply if it's shared with other consumers. The
++regulator will only be disabled when the enabled reference count is zero.
++
++Finally, a regulator can be forcefully disabled in the case of an emergency :-
++
++int regulator_force_disable(regulator);
++
++NOTE: this will immediately and forcefully shutdown the regulator output. All
++consumers will be powered off.
++
++
++3. Regulator Voltage Control & Status (dynamic drivers)
++======================================================
++
++Some consumer drivers need to be able to dynamically change their supply
++voltage to match system operating points. e.g. CPUfreq drivers can scale
++voltage along with frequency to save power, SD drivers may need to select the
++correct card voltage, etc.
++
++Consumers can control their supply voltage by calling :-
++
++int regulator_set_voltage(regulator, min_uV, max_uV);
++
++Where min_uV and max_uV are the minimum and maximum acceptable voltages in
++microvolts.
++
++NOTE: this can be called when the regulator is enabled or disabled. If called
++when enabled, then the voltage changes instantly, otherwise the voltage
++configuration changes and the voltage is physically set when the regulator is
++next enabled.
++
++The regulators configured voltage output can be found by calling :-
++
++int regulator_get_voltage(regulator);
++
++NOTE: get_voltage() will return the configured output voltage whether the
++regulator is enabled or disabled and should NOT be used to determine regulator
++output state. However this can be used in conjunction with is_enabled() to
++determind the regulator physical output voltage.
++
++
++4. Regulator Current Limit Control & Status (dynamic drivers)
++===========================================================
++
++Some consumer drivers need to be able to dynamically change their supply
++current limit to match system operating points. e.g. LCD backlight driver can
++change the current limit to vary the backlight brightness, USB drivers may want
++to set the limit to 500mA when supplying power.
++
++Consumers can control their supply current limit by calling :-
++
++int regulator_set_current_limit(regulator, min_uV, max_uV);
++
++Where min_uA and max_uA are the minimum and maximum acceptable current limit in
++microamps.
++
++NOTE: this can be called when the regulator is enabled or disabled. If called
++when enabled, then the current limit changes instantly, otherwise the current
++limit configuration changes and the current limit is physically set when the
++regulator is next enabled.
++
++A regulators current limit can be found by calling :-
++
++int regulator_get_current_limit(regulator);
++
++NOTE: get_current_limit() will return the current limit whether the regulator
++is enabled or disabled and should not be used to determine regulator current
++load.
++
++
++5. Regulator Operating Mode Control & Status (dynamic drivers)
++=============================================================
++
++Some consumers can further save system power by changing the operating mode of
++their supply regulator to be more efficient when the consumers operating state
++changes. e.g. consumer driver is idle and subsequently draws less current
++
++Regulator operating mode can be changed indirectly or directly.
++
++Indirect operating mode control.
++--------------------------------
++Consumer drivers can request a change in their supply regulator operating mode
++by calling :-
++
++int regulator_set_optimum_mode(struct regulator *regulator, int load_uA);
++
++This will cause the core to recalculate the total load on the regulator (based
++on all it's consumers) and change operating mode (if necessary and permitted)
++to best match the current operating load.
++
++The load_uA value can be determined from the consumers datasheet. e.g.most
++datasheets have tables showing the max current consumed in certain situations.
++
++Most consumers will use indirect operating mode control since they have no
++knowledge of the regulator or whether the regulator is shared with other
++consumers.
++
++Direct operating mode control.
++------------------------------
++Bespoke or tightly coupled drivers may want to directly control regulator
++operating mode depending on their operating point. This can be achieved by
++calling :-
 +
 +int regulator_set_mode(struct regulator *regulator, unsigned int mode);
 +unsigned int regulator_get_mode(struct regulator *regulator);
-+int regulator_set_optimum_mode(struct regulator *regulator, int load_uA);
 +
-+/* regulator notifier block */
++Direct mode will only be used by consumers that *know* about the regulator and
++are not sharing the regulator with other consumers.
++
++
++6. Regulator Events
++===================
++Regulators can notify consumers of external events. Events could be received by
++consumers under regulator stress or failure conditions.
++
++Consumers can register interest in regulator events by calling :-
++
 +int regulator_register_notifier(struct regulator *regulator,
 +			      struct notifier_block *nb);
++
++Consumers can uregister interest by calling :-
++
 +int regulator_unregister_notifier(struct regulator *regulator,
 +				struct notifier_block *nb);
 +
-+/* driver data - core doesn't touch */
-+void *regulator_get_drvdata(struct regulator *regulator);
-+void regulator_set_drvdata(struct regulator *regulator, void *data);
-+
-+#else
-+
-+/*
-+ * Make sure client drivers will still build on systems with no software
-+ * controllable voltage or current regulators.
-+ */
-+static inline struct regulator *__must_check regulator_get(struct device *dev,
-+	const char *id)
-+{
-+	/* Nothing except the stubbed out regulator API should be
-+	 * looking at the value except to check if it is an error
-+	 * value so the actual return value doesn't matter.
-+	 */
-+	return (struct regulator *)id;
-+}
-+static inline void regulator_put(struct regulator *regulator)
-+{
-+}
-+
-+static inline int regulator_enable(struct regulator *regulator)
-+{
-+	return 0;
-+}
-+
-+static inline int regulator_disable(struct regulator *regulator)
-+{
-+	return 0;
-+}
-+
-+static inline int regulator_is_enabled(struct regulator *regulator)
-+{
-+	return 1;
-+}
-+
-+static inline int regulator_bulk_get(struct device *dev,
-+				     int num_consumers,
-+				     struct regulator_bulk_data *consumers)
-+{
-+	return 0;
-+}
-+
-+static inline int regulator_bulk_enable(int num_consumers,
-+					struct regulator_bulk_data *consumers)
-+{
-+	return 0;
-+}
-+
-+static inline int regulator_bulk_disable(int num_consumers,
-+					 struct regulator_bulk_data *consumers)
-+{
-+	return 0;
-+}
-+
-+static inline void regulator_bulk_free(int num_consumers,
-+				       struct regulator_bulk_data *consumers)
-+{
-+}
-+
-+static inline int regulator_set_voltage(struct regulator *regulator,
-+					int min_uV, int max_uV)
-+{
-+	return 0;
-+}
-+
-+static inline int regulator_get_voltage(struct regulator *regulator)
-+{
-+	return 0;
-+}
-+
-+static inline int regulator_set_current_limit(struct regulator *regulator,
-+					     int min_uA, int max_uA)
-+{
-+	return 0;
-+}
-+
-+static inline int regulator_get_current_limit(struct regulator *regulator)
-+{
-+	return 0;
-+}
-+
-+static inline int regulator_set_mode(struct regulator *regulator,
-+	unsigned int mode)
-+{
-+	return 0;
-+}
-+
-+static inline unsigned int regulator_get_mode(struct regulator *regulator)
-+{
-+	return REGULATOR_MODE_NORMAL;
-+}
-+
-+static inline int regulator_set_optimum_mode(struct regulator *regulator,
-+					int load_uA)
-+{
-+	return REGULATOR_MODE_NORMAL;
-+}
-+
-+static inline int regulator_register_notifier(struct regulator *regulator,
-+			      struct notifier_block *nb)
-+{
-+	return 0;
-+}
-+
-+static inline int regulator_unregister_notifier(struct regulator *regulator,
-+				struct notifier_block *nb)
-+{
-+	return 0;
-+}
-+
-+static inline void *regulator_get_drvdata(struct regulator *regulator)
-+{
-+	return NULL;
-+}
-+
-+static inline void regulator_set_drvdata(struct regulator *regulator,
-+	void *data)
-+{
-+}
-+
-+#endif
-+
-+#endif
++Regulators use the kernel notifier framework to send event to thier interested
++consumers.
 _
 
 Patches currently in -mm which might be from lg@opensource.wolfsonmicro.com are
