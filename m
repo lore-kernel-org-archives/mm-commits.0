@@ -1,137 +1,236 @@
 From: akpm@linux-foundation.org
-Subject: - regulator-machine-driver-interface.patch removed from -mm tree
-Date: Fri, 30 May 2008 16:08:11 -0700
-Message-ID: <200805302308.m4UN8BcY016217@imap1.linux-foundation.org>
+Subject: - regulator-documentation-abi.patch removed from -mm tree
+Date: Fri, 30 May 2008 16:07:56 -0700
+Message-ID: <200805302307.m4UN7uHO016127@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35481 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40536 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753456AbYE3XIS (ORCPT
+	by vger.kernel.org with ESMTP id S1753398AbYE3XII (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 May 2008 19:08:18 -0400
+	Fri, 30 May 2008 19:08:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: lg@opensource.wolfsonmicro.com, broonie@opensource.wolfsonmicro.com, david-b@pacbell.net, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     regulator: machine driver interface
+     regulator: documentation - ABI
 has been removed from the -mm tree.  Its filename was
-     regulator-machine-driver-interface.patch
+     regulator-documentation-abi.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: regulator: machine driver interface
+Subject: regulator: documentation - ABI
 From: Liam Girdwood <lg@opensource.wolfsonmicro.com>
 
-This interface is for machine specific code and allows the creation of
-voltage/current domains (with constraints) for each regulator.  It can provide
-regulator constraints that will prevent device damage through over voltage or
-over current caused by buggy client drivers.  It also allows the creation of a
-regulator tree whereby some regulators are supplied by others (similar to a
-clock tree).
+This adds documentation describing the sysfs ABI used by the regulator
+framework.
 
 Signed-off-by: Liam Girdwood <lg@opensource.wolfsonmicro.com>
-Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
 Cc: Greg KH <greg@kroah.com>
 Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/regulator/machine.h |   84 ++++++++++++++++++++++++++++
- 1 file changed, 84 insertions(+)
+ Documentation/ABI/testing/sysfs-class-regulator |  187 ++++++++++++++
+ 1 file changed, 187 insertions(+)
 
-diff -puN /dev/null include/linux/regulator/machine.h
+diff -puN /dev/null Documentation/ABI/testing/sysfs-class-regulator
 --- /dev/null
-+++ a/include/linux/regulator/machine.h
-@@ -0,0 +1,84 @@
-+/*
-+ * machine.h -- SoC Regulator support, machine/board driver API.
-+ *
-+ * Copyright (C) 2007, 2008 Wolfson Microelectronics PLC.
-+ *
-+ * Author: Liam Girdwood <lg@opensource.wolfsonmicro.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * Regulator Machine/Board Interface.
-+ */
++++ a/Documentation/ABI/testing/sysfs-class-regulator
+@@ -0,0 +1,187 @@
++What:		/sys/class/regulator/.../state
++Date:		April 2008
++KernelVersion:	2.6.26
++Contact:	Liam Girdwood <lg@opensource.wolfsonmicro.com>
++Description:
++		Each regulator directory will contain a field called
++		state. This holds the regulator output state.
 +
-+#ifndef __LINUX_REGULATOR_MACHINE_H_
-+#define __LINUX_REGULATOR_MACHINE_H_
++		This will be one of the following strings:
 +
-+#include <linux/regulator/consumer.h>
++		'enabled'
++		'disabled'
++		'unknown'
 +
-+struct regulator;
++		'enabled' means the regulator output is ON and is supplying
++		power to the system.
 +
-+/*
-+ * Regulator operation constraint flags. These flags are used to enable
-+ * certain regulator operations and can be OR'ed together.
-+ *
-+ * VOLTAGE:  Regulator output voltage can be changed by software on this
-+ *           board/machine.
-+ * CURRENT:  Regulator output current can be changed by software on this
-+ *           board machine.
-+ * MODE:     Regulator operating mode can be changed by software on this
-+ *           board machine.
-+ * STATUS:   Regulator can be enabled and disabled.
-+ * DRMS:     Dynamic Regulator Mode Switching is enabled for this regulator.
-+ */
++		'disabled' means the regulator output is OFF and is not
++		supplying power to the system..
 +
-+#define REGULATOR_CHANGE_VOLTAGE	0x1
-+#define REGULATOR_CHANGE_CURRENT	0x2
-+#define REGULATOR_CHANGE_MODE		0x4
-+#define REGULATOR_CHANGE_STATUS		0x8
-+#define REGULATOR_CHANGE_DRMS		0x10
++		'unknown' means software cannot determine the state.
 +
-+/**
-+ * struct regulation_constraints - regulator operating constraints.
-+ *
-+ * This struct describes regulator and board/machine specific constraints.
-+ */
-+struct regulation_constraints {
++		NOTE: this field can be used in conjunction with microvolts
++		and microamps to determine regulator output levels.
 +
-+	char *name;
 +
-+	/* voltage output range (inclusive) - for voltage control */
-+	int min_uV;
-+	int max_uV;
++What:		/sys/class/regulator/.../type
++Date:		April 2008
++KernelVersion:	2.6.26
++Contact:	Liam Girdwood <lg@opensource.wolfsonmicro.com>
++Description:
++		Each regulator directory will contain a field called
++		type. This holds the regulator type.
 +
-+	/* current output range (inclusive) - for current control */
-+	int min_uA;
-+	int max_uA;
++		This will be one of the following strings:
 +
-+	/* valid regulator operating modes for this machine */
-+	unsigned int valid_modes_mask;
++		'voltage'
++		'current'
++		'unknown'
 +
-+	/* valid operations for regulator on this machine */
-+	unsigned int valid_ops_mask;
++		'voltage' means the regulator output voltage can be controlled
++		by software.
 +
-+	/* regulator input voltage - only if supply is another regulator */
-+	int input_uV;
++		'current' means the regulator output current limit can be
++		controlled by software.
 +
-+	/* constriant flags */
-+	u32 always_on:1;	/* regulator never off when system is on */
-+	u32 boot_on:1;		/* bootloader/firmware enabled regulator */
-+	u32 apply_uV:1;		/* apply uV constraint iff min == max */
-+};
++		'unknown' means software cannot control either voltage or
++		current limit.
 +
-+int regulator_set_supply(const char *regulator, const char *regulator_supply);
 +
-+const char *regulator_get_supply(const char *regulator);
++What:		/sys/class/regulator/.../microvolts
++Date:		April 2008
++KernelVersion:	2.6.26
++Contact:	Liam Girdwood <lg@opensource.wolfsonmicro.com>
++Description:
++		Each regulator directory will contain a field called
++		microvolts. This holds the regulator output voltage setting
++		measured in microvolts (i.e. E-6 Volts).
 +
-+int regulator_set_machine_constraints(const char *regulator,
-+	struct regulation_constraints *constraints);
++		NOTE: This value should not be used to determine the regulator
++		output voltage level as this value is the same regardless of
++		whether the regulator is enabled or disabled.
 +
-+int regulator_set_device_supply(const char *regulator, struct device *dev,
-+				const char *supply);
 +
-+#endif
++What:		/sys/class/regulator/.../microamps
++Date:		April 2008
++KernelVersion:	2.6.26
++Contact:	Liam Girdwood <lg@opensource.wolfsonmicro.com>
++Description:
++		Each regulator directory will contain a field called
++		microamps. This holds the regulator output current limit
++		setting measured in microamps (i.e. E-6 Amps).
++
++		NOTE: This value should not be used to determine the regulator
++		output current level as this value is the same regardless of
++		whether the regulator is enabled or disabled.
++
++
++What:		/sys/class/regulator/.../opmode
++Date:		April 2008
++KernelVersion:	2.6.26
++Contact:	Liam Girdwood <lg@opensource.wolfsonmicro.com>
++Description:
++		Each regulator directory will contain a field called
++		opmode. This holds the regulator operating mode setting.
++
++		The opmode value can be one of the following strings:
++
++		'fast'
++		'normal'
++		'idle'
++		'standby'
++		'unknown'
++
++		The modes are described in include/linux/regulator/regulator.h
++
++		NOTE: This value should not be used to determine the regulator
++		output operating mode as this value is the same regardless of
++		whether the regulator is enabled or disabled.
++
++
++What:		/sys/class/regulator/.../min_microvolts
++Date:		April 2008
++KernelVersion:	2.6.26
++Contact:	Liam Girdwood <lg@opensource.wolfsonmicro.com>
++Description:
++		Each regulator directory will contain a field called
++		min_microvolts. This holds the minimum safe working regulator
++		output voltage setting for this domain measured in microvolts.
++
++		NOTE: this will return the string 'constraint not defined' if
++		the power domain has no min microvolts constraint defined by
++		platform code.
++
++
++What:		/sys/class/regulator/.../max_microvolts
++Date:		April 2008
++KernelVersion:	2.6.26
++Contact:	Liam Girdwood <lg@opensource.wolfsonmicro.com>
++Description:
++		Each regulator directory will contain a field called
++		max_microvolts. This holds the maximum safe working regulator
++		output voltage setting for this domain measured in microvolts.
++
++		NOTE: this will return the string 'constraint not defined' if
++		the power domain has no max microvolts constraint defined by
++		platform code.
++
++
++What:		/sys/class/regulator/.../min_microamps
++Date:		April 2008
++KernelVersion:	2.6.26
++Contact:	Liam Girdwood <lg@opensource.wolfsonmicro.com>
++Description:
++		Each regulator directory will contain a field called
++		min_microamps. This holds the minimum safe working regulator
++		output current limit setting for this domain measured in
++		microamps.
++
++		NOTE: this will return the string 'constraint not defined' if
++		the power domain has no min microamps constraint defined by
++		platform code.
++
++
++What:		/sys/class/regulator/.../max_microamps
++Date:		April 2008
++KernelVersion:	2.6.26
++Contact:	Liam Girdwood <lg@opensource.wolfsonmicro.com>
++Description:
++		Each regulator directory will contain a field called
++		max_microamps. This holds the maximum safe working regulator
++		output current limit setting for this domain measured in
++		microamps.
++
++		NOTE: this will return the string 'constraint not defined' if
++		the power domain has no max microamps constraint defined by
++		platform code.
++
++
++What:		/sys/class/regulator/.../num_users
++Date:		April 2008
++KernelVersion:	2.6.26
++Contact:	Liam Girdwood <lg@opensource.wolfsonmicro.com>
++Description:
++		Each regulator directory will contain a field called
++		num_users. This holds the number of consumer devices that
++		have called regulator_enable() on this regulator.
++
++
++What:		/sys/class/regulator/.../requested_microamps
++Date:		April 2008
++KernelVersion:	2.6.26
++Contact:	Liam Girdwood <lg@opensource.wolfsonmicro.com>
++Description:
++		Each regulator directory will contain a field called
++		requested_microamps. This holds the total requested load
++		current in microamps for this regulator from all its consumer
++		devices.
++
++
++What:		/sys/class/regulator/.../parent
++Date:		April 2008
++KernelVersion:	2.6.26
++Contact:	Liam Girdwood <lg@opensource.wolfsonmicro.com>
++Description:
++		Some regulator directories will contain a link called parent.
++		This points to the parent or supply regulator if one exists.
 _
 
 Patches currently in -mm which might be from lg@opensource.wolfsonmicro.com are
