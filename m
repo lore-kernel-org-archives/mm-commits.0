@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlb-allow-huge-page-mappings-to-be-created-without-reservations-cleanups.patch added to -mm tree
-Date: Fri, 30 May 2008 13:31:20 -0700
-Message-ID: <200805302031.m4UKVK3e010052@imap1.linux-foundation.org>
+Subject: + tridentfb-blade3d-clock-fixes.patch added to -mm tree
+Date: Fri, 30 May 2008 13:48:04 -0700
+Message-ID: <200805302048.m4UKm4ej010752@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34765 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38310 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752276AbYE3Umi (ORCPT
+	by vger.kernel.org with ESMTP id S1753226AbYE3UsH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 May 2008 16:42:38 -0400
+	Fri, 30 May 2008 16:48:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: apw@shadowen.org, agl@us.ibm.com, hannes@saeurebad.de, hugh@veritas.com, mel@csn.ul.ie, mtk.manpages@googlemail.com, wli@holomorphy.com
+Cc: krzysztof.h1@wp.pl
 
 
 The patch titled
-     huge page MAP_NORESERVE review cleanups
+     tridentfb: Blade3D clock fixes
 has been added to the -mm tree.  Its filename is
-     hugetlb-allow-huge-page-mappings-to-be-created-without-reservations-cleanups.patch
+     tridentfb-blade3d-clock-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,77 +34,91 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: huge page MAP_NORESERVE review cleanups
-From: Andy Whitcroft <apw@shadowen.org>
+Subject: tridentfb: Blade3D clock fixes
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Use the new encapsulated huge page offset helper.
+This patch fixes following problems:
+- does not allow the m parameter to reach 0 as
+  it locks the graphics core (power cycle needed)
+- for the newer chips (with new clock registers)
+  does not allow of n / m ratio below 4 as it gives
+  unstable image on the Blade3D core
+- extend shift parameter (k) range  to 2 for the newer
+  chips to cope with the n /m >= 4 limit at low resolution
+  (bandwidth) modes
+- prefer modes with higher n / m ratio (higher k values)
 
-Signed-off-by: Andy Whitcroft <apw@shadowen.org>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Adam Litke <agl@us.ibm.com>
-Cc: Johannes Weiner <hannes@saeurebad.de>
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: William Lee Irwin III <wli@holomorphy.com>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ drivers/video/tridentfb.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN mm/hugetlb.c~hugetlb-allow-huge-page-mappings-to-be-created-without-reservations-cleanups mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-allow-huge-page-mappings-to-be-created-without-reservations-cleanups
-+++ a/mm/hugetlb.c
-@@ -734,8 +734,7 @@ static int vma_needs_reservation(struct 
- 	struct inode *inode = mapping->host;
+diff -puN drivers/video/tridentfb.c~tridentfb-blade3d-clock-fixes drivers/video/tridentfb.c
+--- a/drivers/video/tridentfb.c~tridentfb-blade3d-clock-fixes
++++ a/drivers/video/tridentfb.c
+@@ -672,15 +672,16 @@ static void set_vclk(struct tridentfb_pa
+ 	unsigned long fi, d, di;
+ 	unsigned char best_m = 0, best_n = 0, best_k = 0;
+ 	unsigned char hi, lo;
++	unsigned char shift = !is_oldclock(par->chip_id) ? 2 : 1;
  
- 	if (vma->vm_flags & VM_SHARED) {
--		unsigned long idx = ((addr - vma->vm_start) >> HPAGE_SHIFT) +
--				(vma->vm_pgoff >> (HPAGE_SHIFT - PAGE_SHIFT));
-+		pgoff_t idx = vma_pagecache_offset(vma, addr);
- 		return region_chg(&inode->i_mapping->private_list,
- 							idx, idx + 1);
- 
-@@ -753,8 +752,7 @@ static void vma_commit_reservation(struc
- 	struct inode *inode = mapping->host;
- 
- 	if (vma->vm_flags & VM_SHARED) {
--		unsigned long idx = ((addr - vma->vm_start) >> HPAGE_SHIFT) +
--				(vma->vm_pgoff >> (HPAGE_SHIFT - PAGE_SHIFT));
-+		pgoff_t idx = vma_pagecache_offset(vma, addr);
- 		region_add(&inode->i_mapping->private_list, idx, idx + 1);
- 	}
- }
+ 	d = 20000;
+-	for (k = 1; k >= 0; k--)
+-		for (m = 0; m < 32; m++) {
+-			n = 2 * (m + 2) - 8;
++	for (k = shift; k >= 0; k--)
++		for (m = 1; m < 32; m++) {
++			n = ((m + 2) << shift) - 8;
+ 			for (n = (n < 0 ? 0 : n); n < 122; n++) {
+ 				fi = ((14318l * (n + 8)) / (m + 2)) >> k;
+ 				di = abs(fi - freq);
+-				if (di <= d) {
++				if (di < d || (di == d && k == best_k)) {
+ 					d = di;
+ 					best_n = n;
+ 					best_m = m;
 _
 
-Patches currently in -mm which might be from apw@shadowen.org are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
-update-checkpatchpl-to-version-019.patch
-update-checkpatchpl-to-version-019-fix.patch
-linux-next.patch
-mm-add-a-basic-debugging-framework-for-memory-initialisation.patch
-mm-add-a-basic-debugging-framework-for-memory-initialisation-fix.patch
-mm-verify-the-page-links-and-memory-model.patch
-mm-make-defensive-checks-around-pfn-values-registered-for-memory-usage.patch
-mm-print-out-the-zonelists-on-request-for-manual-verification.patch
-mm-move-bootmem-descriptors-definition-to-a-single-place.patch
-mm-fix-free_all_bootmem_core-alignment-check.patch
-mm-normalize-internal-argument-passing-of-bootmem-data.patch
-mm-unexport-__alloc_bootmem_core.patch
-buddy-clarify-comments-describing-buddy-merge.patch
-page-flags-record-page-flag-overlays-explicitly.patch
-slub-record-page-flag-overlays-explicitly.patch
-slob-record-page-flag-overlays-explicitly.patch
-hugetlb-move-hugetlb_acct_memory.patch
-hugetlb-reserve-huge-pages-for-reliable-map_private-hugetlbfs-mappings-until-fork.patch
-hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed.patch
-hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed-fix.patch
-huge-page-private-reservation-review-cleanups.patch
-huge-page-private-reservation-review-cleanups-fix.patch
-mm-record-map_noreserve-status-on-vmas-and-fix-small-page-mprotect-reservations.patch
-hugetlb-move-reservation-region-support-earlier.patch
-hugetlb-allow-huge-page-mappings-to-be-created-without-reservations.patch
-hugetlb-allow-huge-page-mappings-to-be-created-without-reservations-cleanups.patch
-page-owner-tracking-leak-detector.patch
+modedb-fix-incorrect-sync-and-vmode-flags-for-cvt-modes.patch
+fbcon-fix-wrong-vmode-bits-copied-on-console-switch.patch
+tridentfb-replace-macros-with-functions.patch
+tridentfb-convert-fb_info-into-allocated-one.patch
+tridentfb-move-global-pseudo-palette-into-structure.patch
+tridentfb-move-global-chip_id-into-structure.patch
+tridentfb-move-global-flat-panel-variable-into-structure.patch
+tridentfb-convert-is_blade-and-is_xp-macros-into-functions.patch
+tridentfb-move-global-acceleration-hooks-into-structure.patch
+tridentfb-make-use-of-functions-and-constants-from-the-vgah.patch
+tridentfb-fix-timing-calculations.patch
+tridentfb-use-mmio-access-for-clock-setting.patch
+tridentfb-fix-clock-settings-for-older-trident-96xx-chips.patch
+tridentfb-improve-probe-function.patch
+tridentfb-improved-register-values-on-tgui-9680.patch
+tridentfb-add-tgui-9440-support.patch
+tridentfb-fix-unitialized-pseudo_palette.patch
+tridentfb-improve-check_var-function.patch
+tridentfb-preserve-memory-type-settings.patch
+tridentfb-fix-hi-color-modes-for-tgui-9440.patch
+tridentfb-add-acceleration-for-tgui-families.patch
+tridentfb-acceleration-code-improvements.patch
+tridentfb-acceleration-bug-fixes.patch
+tridentfb-various-pixclock-and-timing-improvements.patch
+tridentfb-acceleration-constants-change.patch
+tridentfb-source-code-improvements.patch
+tridentfb-fix-console-freeze-when-switching-from-x11.patch
+tridentfb-fix-224-color-logo-at-8-bpp.patch
+tridentfb-y-panning-fixes.patch
+tridentfb-blade3d-clock-fixes.patch
+amifb-test-virtual-screen-range-before-subtraction-on-unsigned.patch
+atafb-test-virtual-screen-range-before-subtraction-on-unsigned.patch
+fbcon-make-logo_height-a-local-variable.patch
+uvesafb-change-mode-parameter-to-mode_option.patch
+tridentfb-documentation-update.patch
+tdfxfb-add-mode_option-module-parameter.patch
+vga16fb-source-code-improvement.patch
+tdfxfb-remove-ypan-checks-done-by-a-higher-layer.patch
 
