@@ -1,105 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: - input-i8042-move-dritek-quirk-so-it-also-gets-applied-on-resume.patch removed from -mm tree
-Date: Fri, 30 May 2008 15:39:07 -0700
-Message-ID: <200805302239.m4UMd703014886@imap1.linux-foundation.org>
+Subject: - 3c515-fix-using-pnp_get_resource-when-config_isapnp=n.patch removed from -mm tree
+Date: Fri, 30 May 2008 15:39:22 -0700
+Message-ID: <200805302239.m4UMdMOo014904@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50134 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33852 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752716AbYE3WkI (ORCPT
+	by vger.kernel.org with ESMTP id S1752724AbYE3WkP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 May 2008 18:40:08 -0400
+	Fri, 30 May 2008 18:40:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bonbons@linux-vserver.org, dtor@mail.ru, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, ambx1@neo.rr.com, bjorn.helgaas@hp.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     input: i8042: move Dritek quirk so it also gets applied on resume
+     3c515: fix using pnp_get_resource when CONFIG_ISAPNP=n
 has been removed from the -mm tree.  Its filename was
-     input-i8042-move-dritek-quirk-so-it-also-gets-applied-on-resume.pa=
-tch
+     3c515-fix-using-pnp_get_resource-when-config_isapnp=n.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: input: i8042: move Dritek quirk so it also gets applied on res=
-ume
-=46rom: Bruno Pr=E9mont <bonbons@linux-vserver.org>
+Subject: 3c515: fix using pnp_get_resource when CONFIG_ISAPNP=n
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Move the quirk from from i8042_probe() to i8042_enable_kbd_port() which=
- is
-also called during resume.
+3c515.c uses pnp_irq(), which calls pnp_get_resource(), which is not
+defined when CONFIG_PNP=n, so in that case, get the IRQ from a hardware
+register.
 
-I think it is safe to ignore failure to enable dritek.  I would also
-prefer not to fail complete keyboard initialisation if the extension
-fails.
+3c515.c:(.text+0x3adc0): undefined reference to `pnp_get_resource'
 
-The Dritek quirk is also required on resume from S2RAM, doing it only a=
-t
-probe time is not sufficient.
-
-Signed-off-by: Bruno Pr=E9mont <bonbons@linux-vserver.org>
-Cc: Dmitry Torokhov <dtor@mail.ru>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Acked-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Adam Belay <ambx1@neo.rr.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/serio/i8042.c |   17 +++++++++--------
- 1 file changed, 9 insertions(+), 8 deletions(-)
+ drivers/net/3c515.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN drivers/input/serio/i8042.c~input-i8042-move-dritek-quirk-so-=
-it-also-gets-applied-on-resume drivers/input/serio/i8042.c
---- a/drivers/input/serio/i8042.c~input-i8042-move-dritek-quirk-so-it-a=
-lso-gets-applied-on-resume
-+++ a/drivers/input/serio/i8042.c
-@@ -404,6 +404,15 @@ static int i8042_enable_kbd_port(void)
- 		printk(KERN_ERR "i8042.c: Failed to enable KBD port.\n");
- 		return -EIO;
+diff -puN drivers/net/3c515.c~3c515-fix-using-pnp_get_resource-when-config_isapnp=n drivers/net/3c515.c
+--- a/drivers/net/3c515.c~3c515-fix-using-pnp_get_resource-when-config_isapnp=n
++++ a/drivers/net/3c515.c
+@@ -572,12 +572,16 @@ static int corkscrew_setup(struct net_de
+ 	int irq;
+ 	DECLARE_MAC_BUF(mac);
+ 
++#ifdef __ISAPNP__
+ 	if (idev) {
+ 		irq = pnp_irq(idev, 0);
+ 		vp->dev = &idev->dev;
+ 	} else {
+ 		irq = inw(ioaddr + 0x2002) & 15;
  	}
-+#ifdef CONFIG_X86
-+	if (i8042_dritek) {
-+		char param =3D 0x90;
-+		int error =3D i8042_command(&param, 0x1059);
-+		if (error)
-+			printk(KERN_WARNING "Failed to enable DRITEK "
-+			       "extension: %d\n", error);
-+	}
++#else
++	irq = inw(ioaddr + 0x2002) & 15;
 +#endif
-=20
- 	return 0;
- }
-@@ -1171,14 +1180,6 @@ static int __devinit i8042_probe(struct=20
- 		if (error)
- 			goto out_fail;
- 	}
--#ifdef CONFIG_X86
--	if (i8042_dritek) {
--		char param =3D 0x90;
--		error =3D i8042_command(&param, 0x1059);
--		if (error)
--			goto out_fail;
--	}
--#endif
- /*
-  * Ok, everything is ready, let's register all serio ports
-  */
+ 
+ 	dev->base_addr = ioaddr;
+ 	dev->irq = irq;
 _
 
-Patches currently in -mm which might be from bonbons@linux-vserver.org =
-are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 linux-next.patch
-input-i8042-add-dritek-quirk-for-acer-travelmate-660.patch
+documentation-build-source-files-in-documentation-sub-dir.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+netfilter-conntrack_helper-needs-to-include-rculisth.patch
+git-scsi-misc-fix-scsi_dh-build-errors.patch
+git-unionfs.patch
+uwb-fix-kconfig-causing-undefined-references.patch
+audit-fix-kernel-doc-parameter-notation.patch
+cxgb3-fix-build-error-when-inet=n.patch
+flag-parameters-signalfd-fix.patch
+flag-parameters-eventfd-fix.patch
+bsdacct-stir-up-comments-around-acct_process.patch
+profile-likely-unlikely-macros.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
