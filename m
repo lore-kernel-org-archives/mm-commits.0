@@ -1,96 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - bluetooth-fix-locking-bug-in-the-rfcomm-socket-cleanup-handling.patch removed from -mm tree
-Date: Fri, 30 May 2008 15:39:34 -0700
-Message-ID: <200805302239.m4UMdYCq014922@imap1.linux-foundation.org>
+Subject: - zorro-replace-deprecated-__initcall-with-equivalent-device_initcall.patch removed from -mm tree
+Date: Fri, 30 May 2008 15:39:41 -0700
+Message-ID: <200805302239.m4UMdfaU014929@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54251 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41032 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752785AbYE3Wka (ORCPT
+	by vger.kernel.org with ESMTP id S1752762AbYE3Wk1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 May 2008 18:40:30 -0400
+	Fri, 30 May 2008 18:40:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arjan@linux.intel.com, davem@davemloft.net, hidave.darkstar@gmail.com, marcel@holtmann.org, stable@kernel.org, mm-commits@vger.kernel.org
+To: rpjday@crashcourse.ca, geert@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bluetooth: fix locking bug in the rfcomm socket cleanup handling
+     zorro: replace deprecated __initcall with equivalent device_initcall
 has been removed from the -mm tree.  Its filename was
-     bluetooth-fix-locking-bug-in-the-rfcomm-socket-cleanup-handling.patch
+     zorro-replace-deprecated-__initcall-with-equivalent-device_initcall.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bluetooth: fix locking bug in the rfcomm socket cleanup handling
-From: Arjan van de Ven <arjan@linux.intel.com>
+Subject: zorro: replace deprecated __initcall with equivalent device_initcall
+From: "Robert P. J. Day" <rpjday@crashcourse.ca>
 
-in net/bluetooth/rfcomm/sock.c, rfcomm_sk_state_change() does the
-following operation:
-
-        if (parent && sock_flag(sk, SOCK_ZAPPED)) {
-                /* We have to drop DLC lock here, otherwise
-                 * rfcomm_sock_destruct() will dead lock. */
-                rfcomm_dlc_unlock(d);
-                rfcomm_sock_kill(sk);
-                rfcomm_dlc_lock(d);
-        }
-}
-
-which is fine, since rfcomm_sock_kill() will call sk_free() which will
-call rfcomm_sock_destruct() which takes the rfcomm_dlc_lock()...  so far
-so good.
-
-HOWEVER, this assumes that the rfcomm_sk_state_change() function always
-gets called with the rfcomm_dlc_lock() taken.  This is the case for all
-but one case, and in that case where we don't have the lock, we do a
-double unlock followed by an attempt to take the lock, which due to
-underflow isn't going anywhere fast.
-
-This patch fixes this by moving the straggling case inside the lock, like
-the other usages of the same call are doing in this code.
-
-This was found with the help of the www.kerneloops.org project, where this
-deadlock was observed 51 times at this point in time:
-http://www.kerneloops.org/search.php?search=rfcomm_sock_destruct
-
-Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
-Acked-by: Marcel Holtmann <marcel@holtmann.org>
-Cc: Dave Young <hidave.darkstar@gmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: <stable@kernel.org>
+Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/bluetooth/rfcomm/core.c |    2 +-
+ drivers/zorro/proc.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN net/bluetooth/rfcomm/core.c~bluetooth-fix-locking-bug-in-the-rfcomm-socket-cleanup-handling net/bluetooth/rfcomm/core.c
---- a/net/bluetooth/rfcomm/core.c~bluetooth-fix-locking-bug-in-the-rfcomm-socket-cleanup-handling
-+++ a/net/bluetooth/rfcomm/core.c
-@@ -423,8 +423,8 @@ static int __rfcomm_dlc_close(struct rfc
+diff -puN drivers/zorro/proc.c~zorro-replace-deprecated-__initcall-with-equivalent-device_initcall drivers/zorro/proc.c
+--- a/drivers/zorro/proc.c~zorro-replace-deprecated-__initcall-with-equivalent-device_initcall
++++ a/drivers/zorro/proc.c
+@@ -160,4 +160,4 @@ static int __init zorro_proc_init(void)
+ 	return 0;
+ }
  
- 		rfcomm_dlc_lock(d);
- 		d->state = BT_CLOSED;
--		rfcomm_dlc_unlock(d);
- 		d->state_change(d, err);
-+		rfcomm_dlc_unlock(d);
- 
- 		skb_queue_purge(&d->tx_queue);
- 		rfcomm_dlc_unlink(d);
+-__initcall(zorro_proc_init);
++device_initcall(zorro_proc_init);
 _
 
-Patches currently in -mm which might be from arjan@linux.intel.com are
+Patches currently in -mm which might be from rpjday@crashcourse.ca are
 
-origin.patch
 linux-next.patch
-rename-warn-to-warning-to-clear-the-namespace.patch
-rename-warn-to-warning-to-clear-the-namespace-fix.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments-fix-2.patch
-kernel-irq-managec-replace-a-printk-warn_on-to-a-warn.patch
-example-use-of-warn.patch
+kbuild-remove-final-references-to-deprecated-unreferenced-topdir.patch
+kbuild-move-non-__kernel__-checking-headers-to-header-y.patch
+xtensa-warn-about-including-asm-rwsemh-directly.patch
+xtensa-use-newer-__spin_lock_unlocked-macro.patch
+remove-apparently-unused-fd1772h-header-file.patch
+init-delete-hard-coded-setting-and-testing-of-build_cramdisk.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+lists-remove-a-redundant-conditional-definition-of-list_add.patch
+config_sound_wm97xx-remove-stale-makefile-line.patch
+spi-kconfig-simplifications.patch
 
