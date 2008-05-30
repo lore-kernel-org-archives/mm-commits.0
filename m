@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + next-fix-rejects.patch added to -mm tree
-Date: Fri, 30 May 2008 14:58:10 -0700
-Message-ID: <200805302158.m4ULwAjc013298@imap1.linux-foundation.org>
+Subject: + linux-next-fixup.patch added to -mm tree
+Date: Fri, 30 May 2008 15:02:46 -0700
+Message-ID: <200805302202.m4UM2kKL013421@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47623 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37974 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752436AbYE3V6N (ORCPT
+	by vger.kernel.org with ESMTP id S1751081AbYE3WCy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 May 2008 17:58:13 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m4ULwApn024199
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 30 May 2008 14:58:11 -0700
+	Fri, 30 May 2008 18:02:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, david-b@pacbell.net, sfr@canb.auug.org.au
 
 
 The patch titled
-     next-fix-rejects
+     linux-next-fixup
 has been added to the -mm tree.  Its filename is
-     next-fix-rejects.patch
+     linux-next-fixup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,108 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: next-fix-rejects
+Subject: linux-next-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Attempt to repair spi-fix-refcount-related-spidev-oops-on-rmmod versus
+linux-next smashup.
+
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/mm/init.c                |    3 ---
- drivers/usb/misc/Kconfig           |    3 ---
- drivers/usb/misc/isight_firmware.c |    4 ----
- include/linux/device.h             |    4 ----
- kernel/sched_fair.c                |    5 -----
- 5 files changed, 19 deletions(-)
+ drivers/spi/spidev.c |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN arch/s390/mm/init.c~next-fix-rejects arch/s390/mm/init.c
---- a/arch/s390/mm/init.c~next-fix-rejects
-+++ a/arch/s390/mm/init.c
-@@ -72,8 +72,6 @@ void show_mem(void)
- 	printk("%ld reserved pages\n", reserved);
- 	printk("%ld pages shared\n", shared);
- 	printk("%ld pages swap cached\n", cached);
--<<<<<<< HEAD:arch/s390/mm/init.c
--=======
- 	printk("%lu pages dirty\n", global_page_state(NR_FILE_DIRTY));
- 	printk("%lu pages writeback\n", global_page_state(NR_WRITEBACK));
- 	printk("%lu pages mapped\n", global_page_state(NR_FILE_MAPPED));
-@@ -81,7 +79,6 @@ void show_mem(void)
- 	       global_page_state(NR_SLAB_RECLAIMABLE) +
- 	       global_page_state(NR_SLAB_UNRECLAIMABLE));
- 	printk("%lu pages pagetables\n", global_page_state(NR_PAGETABLE));
-->>>>>>> FETCH_HEAD:arch/s390/mm/init.c
- }
- 
- /*
-diff -puN drivers/usb/misc/Kconfig~next-fix-rejects drivers/usb/misc/Kconfig
---- a/drivers/usb/misc/Kconfig~next-fix-rejects
-+++ a/drivers/usb/misc/Kconfig
-@@ -280,8 +280,6 @@ config USB_ISIGHTFW
- 	  The firmware for this driver must be extracted from the MacOS
- 	  driver beforehand. Tools for doing so are available at
- 	  http://bersace03.free.fr
--<<<<<<< HEAD:drivers/usb/misc/Kconfig
--=======
- 
- config USB_GOTEMP
- 	tristate "GoTemp USB thermometer driver support"
-@@ -292,4 +290,3 @@ config USB_GOTEMP
- 
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called gotemp.
-->>>>>>> FETCH_HEAD:drivers/usb/misc/Kconfig
-diff -puN drivers/usb/misc/isight_firmware.c~next-fix-rejects drivers/usb/misc/isight_firmware.c
---- a/drivers/usb/misc/isight_firmware.c~next-fix-rejects
-+++ a/drivers/usb/misc/isight_firmware.c
-@@ -41,11 +41,7 @@ static int isight_firmware_load(struct u
- 	const struct firmware *firmware;
- 	unsigned char *buf;
- 	unsigned char data[4];
--<<<<<<< HEAD:drivers/usb/misc/isight_firmware.c
--	char *ptr;
--=======
- 	const u8 *ptr;
-->>>>>>> FETCH_HEAD:drivers/usb/misc/isight_firmware.c
- 
- 	if (request_firmware(&firmware, "isight.fw", &dev->dev) != 0) {
- 		printk(KERN_ERR "Unable to load isight firmware\n");
-diff -puN include/linux/device.h~next-fix-rejects include/linux/device.h
---- a/include/linux/device.h~next-fix-rejects
-+++ a/include/linux/device.h
-@@ -420,11 +420,7 @@ static inline const char *dev_name(struc
- }
- 
- extern int dev_set_name(struct device *dev, const char *name, ...)
--<<<<<<< HEAD:include/linux/device.h
--			__attribute__((format(printf, 2, 3)));
--=======
- 			    __attribute__((format(printf, 2, 3)));
-->>>>>>> FETCH_HEAD:include/linux/device.h
- 
- #ifdef CONFIG_NUMA
- static inline int dev_to_node(struct device *dev)
-diff -puN kernel/sched_fair.c~next-fix-rejects kernel/sched_fair.c
---- a/kernel/sched_fair.c~next-fix-rejects
-+++ a/kernel/sched_fair.c
-@@ -609,10 +609,6 @@ place_entity(struct cfs_rq *cfs_rq, stru
- 
- 	if (!initial) {
- 		/* sleeps upto a single latency don't count. */
--<<<<<<< HEAD:kernel/sched_fair.c
--		if (sched_feat(NEW_FAIR_SLEEPERS))
--			vruntime -= sysctl_sched_latency;
--=======
- 		if (sched_feat(NEW_FAIR_SLEEPERS)) {
- 			unsigned long thresh = sysctl_sched_latency;
- 
-@@ -624,7 +620,6 @@ place_entity(struct cfs_rq *cfs_rq, stru
- 
- 			vruntime -= thresh;
- 		}
-->>>>>>> FETCH_HEAD:kernel/sched_fair.c
- 
- 		/* ensure we never gain time by being placed backwards. */
- 		vruntime = max_vruntime(se->vruntime, vruntime);
+diff -puN drivers/spi/spidev.c~linux-next-fixup drivers/spi/spidev.c
+--- a/drivers/spi/spidev.c~linux-next-fixup
++++ a/drivers/spi/spidev.c
+@@ -575,13 +575,9 @@ static int spidev_probe(struct spi_devic
+ 	mutex_lock(&device_list_lock);
+ 	minor = find_first_zero_bit(minors, N_SPI_MINORS);
+ 	if (minor < N_SPI_MINORS) {
+-		struct device *dev;
+-
+ 		spidev->devt = MKDEV(SPIDEV_MAJOR, minor);
+-		dev = device_create(spidev_class, &spi->dev, spidev->devt,
+-				"spidev%d.%d",
++		status = dev_set_name(&spidev->spi->dev, "spidev%d.%d",
+ 				spi->master->bus_num, spi->chip_select);
+-		status = IS_ERR(dev) ? PTR_ERR(dev) : 0;
+ 	} else {
+ 		dev_dbg(&spi->dev, "no minor number available!\n");
+ 		status = -ENODEV;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -148,6 +74,7 @@ origin.patch
 linux-next.patch
 next-remove-localversion.patch
 next-fix-rejects.patch
+linux-next-fixup.patch
 fix-kobject-fix-kobject_rename-and-config_sysfs.patch
 fix-driver-core-add-device_create_vargs-and-device_create_drvdata.patch
 kvm-is-busted-on-ia64.patch
@@ -259,5 +186,4 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
-linux-next-fixup.patch
 
