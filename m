@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cxgb3-fix-build-error-when-inet=n.patch added to -mm tree
-Date: Fri, 30 May 2008 13:37:19 -0700
-Message-ID: <200805302037.m4UKbJDp010279@imap1.linux-foundation.org>
+Subject: + usb-cp2101c-fix-sparse-signedness-mismatch-warnings.patch added to -mm tree
+Date: Fri, 30 May 2008 13:38:24 -0700
+Message-ID: <200805302038.m4UKcOHl010382@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42437 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37552 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752653AbYE3Uht (ORCPT
+	by vger.kernel.org with ESMTP id S1752727AbYE3Ui1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 May 2008 16:37:49 -0400
+	Fri, 30 May 2008 16:38:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, divy@chelsio.com, jeff@garzik.org, sfr@canb.auug.org.au
+Cc: harvey.harrison@gmail.com, greg@kroah.com
 
 
 The patch titled
-     cxgb3: fix build error when INET=n
+     usb: cp2101.c fix sparse signedness mismatch warnings
 has been added to the -mm tree.  Its filename is
-     cxgb3-fix-build-error-when-inet=n.patch
+     usb-cp2101c-fix-sparse-signedness-mismatch-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,59 +34,165 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cxgb3: fix build error when INET=n
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: usb: cp2101.c fix sparse signedness mismatch warnings
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-cxgb3 uses lro_* functions and selects INET_LRO, but this doesn't help unless
-INET is already enabled, so make the driver depend on INET also.
+The get/set 2101_config helpers take an unsigned int rather than an int. 
+It is safe to change these in each case and may even produce better code
+as it will be an unsigned divide rather than a signed divide in places. 
+All other manipulation was setting/masking bits which will not be affected
+by the sign change.
 
-sge.c:(.text+0x9f09a): undefined reference to `lro_flush_all'
-sge.c:(.text+0x9f62f): undefined reference to `lro_receive_skb'
-sge.c:(.text+0x9f8a3): undefined reference to `lro_receive_frags'
-sge.c:(.text+0x9fbe0): undefined reference to `lro_vlan_hwaccel_receive_skb'
-sge.c:(.text+0x9ffcd): undefined reference to `lro_vlan_hwaccel_receive_frags'
+Fixes the following sparse warnings:
+drivers/usb/serial/cp2101.c:378:44: warning: incorrect type in argument 3 (different signedness)
+drivers/usb/serial/cp2101.c:378:44:    expected unsigned int *data
+drivers/usb/serial/cp2101.c:378:44:    got int *<noident>
+drivers/usb/serial/cp2101.c:388:40: warning: incorrect type in argument 3 (different signedness)
+drivers/usb/serial/cp2101.c:388:40:    expected unsigned int *data
+drivers/usb/serial/cp2101.c:388:40:    got int *<noident>
+drivers/usb/serial/cp2101.c:413:42: warning: incorrect type in argument 3 (different signedness)
+drivers/usb/serial/cp2101.c:413:42:    expected unsigned int *data
+drivers/usb/serial/cp2101.c:413:42:    got int *<noident>
+drivers/usb/serial/cp2101.c:421:42: warning: incorrect type in argument 3 (different signedness)
+drivers/usb/serial/cp2101.c:421:42:    expected unsigned int *data
+drivers/usb/serial/cp2101.c:421:42:    got int *<noident>
+drivers/usb/serial/cp2101.c:444:42: warning: incorrect type in argument 3 (different signedness)
+drivers/usb/serial/cp2101.c:444:42:    expected unsigned int *data
+drivers/usb/serial/cp2101.c:444:42:    got int *<noident>
+drivers/usb/serial/cp2101.c:451:42: warning: incorrect type in argument 3 (different signedness)
+drivers/usb/serial/cp2101.c:451:42:    expected unsigned int *data
+drivers/usb/serial/cp2101.c:451:42:    got int *<noident>
+drivers/usb/serial/cp2101.c:458:42: warning: incorrect type in argument 3 (different signedness)
+drivers/usb/serial/cp2101.c:458:42:    expected unsigned int *data
+drivers/usb/serial/cp2101.c:458:42:    got int *<noident>
+drivers/usb/serial/cp2101.c:471:42: warning: incorrect type in argument 3 (different signedness)
+drivers/usb/serial/cp2101.c:471:42:    expected unsigned int *data
+drivers/usb/serial/cp2101.c:471:42:    got int *<noident>
+drivers/usb/serial/cp2101.c:481:42: warning: incorrect type in argument 3 (different signedness)
+drivers/usb/serial/cp2101.c:481:42:    expected unsigned int *data
+drivers/usb/serial/cp2101.c:481:42:    got int *<noident>
+drivers/usb/serial/cp2101.c:561:41: warning: incorrect type in argument 3 (different signedness)
+drivers/usb/serial/cp2101.c:561:41:    expected unsigned int *data
+drivers/usb/serial/cp2101.c:561:41:    got int *<noident>
+drivers/usb/serial/cp2101.c:591:45: warning: incorrect type in argument 3 (different signedness)
+drivers/usb/serial/cp2101.c:591:45:    expected unsigned int *data
+drivers/usb/serial/cp2101.c:591:45:    got int *<noident>
+drivers/usb/serial/cp2101.c:597:41: warning: incorrect type in argument 3 (different signedness)
+drivers/usb/serial/cp2101.c:597:41:    expected unsigned int *data
+drivers/usb/serial/cp2101.c:597:41:    got int *<noident>
+drivers/usb/serial/cp2101.c:608:45: warning: incorrect type in argument 3 (different signedness)
+drivers/usb/serial/cp2101.c:608:45:    expected unsigned int *data
+drivers/usb/serial/cp2101.c:608:45:    got int *<noident>
+drivers/usb/serial/cp2101.c:614:41: warning: incorrect type in argument 3 (different signedness)
+drivers/usb/serial/cp2101.c:614:41:    expected unsigned int *data
+drivers/usb/serial/cp2101.c:614:41:    got int *<noident>
+drivers/usb/serial/cp2101.c:623:45: warning: incorrect type in argument 3 (different signedness)
+drivers/usb/serial/cp2101.c:623:45:    expected unsigned int *data
+drivers/usb/serial/cp2101.c:623:45:    got int *<noident>
+drivers/usb/serial/cp2101.c:680:50: warning: incorrect type in argument 3 (different signedness)
+drivers/usb/serial/cp2101.c:680:50:    expected unsigned int *data
+drivers/usb/serial/cp2101.c:680:50:    got int *<noident>
+drivers/usb/serial/cp2101.c:690:43: warning: incorrect type in argument 3 (different signedness)
+drivers/usb/serial/cp2101.c:690:43:    expected unsigned int *data
+drivers/usb/serial/cp2101.c:690:43:    got int *<noident>
+drivers/usb/serial/cp2101.c:715:41: warning: incorrect type in argument 3 (different signedness)
+drivers/usb/serial/cp2101.c:715:41:    expected unsigned int *data
+drivers/usb/serial/cp2101.c:715:41:    got int *<noident>
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Divy Le Ray <divy@chelsio.com>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/usb/serial/cp2101.c |   13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
-diff -puN drivers/net/Kconfig~cxgb3-fix-build-error-when-inet=n drivers/net/Kconfig
---- a/drivers/net/Kconfig~cxgb3-fix-build-error-when-inet=n
-+++ a/drivers/net/Kconfig
-@@ -2407,7 +2407,7 @@ config CHELSIO_T1_NAPI
+diff -puN drivers/usb/serial/cp2101.c~usb-cp2101c-fix-sparse-signedness-mismatch-warnings drivers/usb/serial/cp2101.c
+--- a/drivers/usb/serial/cp2101.c~usb-cp2101c-fix-sparse-signedness-mismatch-warnings
++++ a/drivers/usb/serial/cp2101.c
+@@ -365,8 +365,8 @@ static void cp2101_close (struct usb_ser
+ static void cp2101_get_termios (struct usb_serial_port *port)
+ {
+ 	unsigned int cflag, modem_ctl[4];
+-	int baud;
+-	int bits;
++	unsigned int baud;
++	unsigned int bits;
  
- config CHELSIO_T3
- 	tristate "Chelsio Communications T3 10Gb Ethernet support"
--	depends on PCI
-+	depends on PCI && INET
- 	select FW_LOADER
- 	select INET_LRO
- 	help
+ 	dbg("%s - port %d", __func__, port->number);
+ 
+@@ -498,7 +498,7 @@ static void cp2101_set_termios (struct u
+ 		struct ktermios *old_termios)
+ {
+ 	unsigned int cflag, old_cflag;
+-	int baud=0, bits;
++	unsigned int baud = 0, bits;
+ 	unsigned int modem_ctl[4];
+ 
+ 	dbg("%s - port %d", __func__, port->number);
+@@ -654,7 +654,7 @@ static void cp2101_set_termios (struct u
+ static int cp2101_tiocmset (struct usb_serial_port *port, struct file *file,
+ 		unsigned int set, unsigned int clear)
+ {
+-	int control = 0;
++	unsigned int control = 0;
+ 
+ 	dbg("%s - port %d", __func__, port->number);
+ 
+@@ -683,7 +683,8 @@ static int cp2101_tiocmset (struct usb_s
+ 
+ static int cp2101_tiocmget (struct usb_serial_port *port, struct file *file)
+ {
+-	int control, result;
++	unsigned int control;
++	int result;
+ 
+ 	dbg("%s - port %d", __func__, port->number);
+ 
+@@ -703,7 +704,7 @@ static int cp2101_tiocmget (struct usb_s
+ 
+ static void cp2101_break_ctl (struct usb_serial_port *port, int break_state)
+ {
+-	int state;
++	unsigned int state;
+ 
+ 	dbg("%s - port %d", __func__, port->number);
+ 	if (break_state == 0)
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
 linux-next.patch
-fix-gregkh-driver-block-make-proc-files-seq_start-use-the-class_find_device.patch
-documentation-build-source-files-in-documentation-sub-dir.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
-3c515-fix-using-pnp_get_resource-when-config_isapnp=n.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-netfilter-conntrack_helper-needs-to-include-rculisth.patch
-git-scsi-misc-fix-scsi_dh-build-errors.patch
-git-unionfs.patch
-uwb-fix-kconfig-causing-undefined-references.patch
-audit-fix-kernel-doc-parameter-notation.patch
-cxgb3-fix-build-error-when-inet=n.patch
-flag-parameters-signalfd-fix.patch
-flag-parameters-eventfd-fix.patch
-bsdacct-stir-up-comments-around-acct_process.patch
-profile-likely-unlikely-macros.patch
+kgdb-use-put_unaligned_be32-helper.patch
+cifs-remove-global_extern-macro.patch
+media-use-get_unaligned_-helpers.patch
+mtd-mtdcharc-silence-sparse-warning.patch
+mtd-mtdcharc-remove-shadowed-variable-warnings.patch
+scsi-replace-remaining-__function__-occurrences.patch
+fusion-replace-remaining-__function__-occurrences.patch
+scsi-replace-__inline-with-inline.patch
+scsi-use-get_unaligned_-helpers.patch
+scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
+scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
+block-use-get_unaligned_-helpers.patch
+usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues.patch
+usb-cp2101c-fix-sparse-signedness-mismatch-warnings.patch
+usb-speedtchc-fix-sparse-shadowed-variable-warning.patch
+git-watchdog.patch
+xfs-use-get_unaligned_-helpers.patch
+xtensa-replace-remaining-__function__-occurences.patch
+fs-ldm-use-get_unaligned_-helpers.patch
+include-use-get-put_unaligned_-helpers.patch
+lzo-use-get-put_unaligned_-helpers.patch
+asm-generic-int-ll64h-always-provide-__su64.patch
+scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
+isdn-use-the-common-ascii-hex-helpers.patch
+net-use-the-common-ascii-hex-helpers.patch
+kgdb-use-the-common-ascii-hex-helpers.patch
+cris-use-the-common-ascii-hex-helpers.patch
+frv-use-the-common-ascii-hex-helpers.patch
+mips-use-the-common-ascii-hex-helpers.patch
+ppc-use-the-common-ascii-hex-helpers.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+mn10300-use-the-common-ascii-hex-helpers.patch
 
