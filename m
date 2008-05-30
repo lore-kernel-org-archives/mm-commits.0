@@ -1,33 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: - regulator-documentation-machine.patch removed from -mm tree
-Date: Fri, 30 May 2008 16:08:00 -0700
-Message-ID: <200805302308.m4UN80Bg016133@imap1.linux-foundation.org>
+Subject: - regulator-documentation-overview.patch removed from -mm tree
+Date: Fri, 30 May 2008 16:08:02 -0700
+Message-ID: <200805302308.m4UN82Uq016208@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34759 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56357 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752916AbYE3XIH (ORCPT
+	by vger.kernel.org with ESMTP id S1753418AbYE3XIL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 May 2008 19:08:07 -0400
+	Fri, 30 May 2008 19:08:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: lg@opensource.wolfsonmicro.com, broonie@opensource.wolfsonmicro.com, david-b@pacbell.net, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     regulator: documentation - machine
+     regulator: documentation - overview
 has been removed from the -mm tree.  Its filename was
-     regulator-documentation-machine.patch
+     regulator-documentation-overview.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: regulator: documentation - machine
+Subject: regulator: documentation - overview
 From: Liam Girdwood <lg@opensource.wolfsonmicro.com>
 
-This adds documentation describing the regulator machine interface.
+This adds overview documentation describing the regulator framework and
+nomenclature used in the interface specific documentation and code.
 
 Signed-off-by: Liam Girdwood <lg@opensource.wolfsonmicro.com>
 Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
@@ -36,114 +37,184 @@ Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/power/regulator/machine.txt |  101 ++++++++++++++++++++
- 1 file changed, 101 insertions(+)
+ Documentation/power/regulator/overview.txt |  171 +++++++++++++++++++
+ 1 file changed, 171 insertions(+)
 
-diff -puN /dev/null Documentation/power/regulator/machine.txt
+diff -puN /dev/null Documentation/power/regulator/overview.txt
 --- /dev/null
-+++ a/Documentation/power/regulator/machine.txt
-@@ -0,0 +1,101 @@
-+Regulator Machine Driver Interface
-+===================================
++++ a/Documentation/power/regulator/overview.txt
+@@ -0,0 +1,171 @@
++Linux voltage and current regulator framework
++=============================================
 +
-+The regulator machine driver interface is intended for board/machine specific
-+initialisation code to configure the regulator subsystem. Typical things that
-+machine drivers would do are :-
++About
++=====
 +
-+ 1. Regulator -> Device mapping.
-+ 2. Regulator supply configuration.
-+ 3. Power Domain constraint setting.
++This framework is designed to provide a standard kernel interface to control
++voltage and current regulators.
 +
++The intention is to allow systems to dynamically control regulator power output
++in order to save power and prolong battery life. This applies to both voltage
++regulators (where voltage output is controllable) and current sinks (where
++current limit is controllable).
 +
-+
-+1. Regulator -> device mapping
-+==============================
-+Consider the following machine :-
-+
-+  Regulator-1 -+-> Regulator-2 --> [Consumer A @ 1.8 - 2.0V]
-+               |
-+               +-> [Consumer B @ 3.3V]
-+
-+The drivers for consumers A & B must be mapped to the correct regulator in
-+order to control their power supply. This mapping can be achieved in machine
-+initialisation code by calling :-
-+
-+int regulator_set_device_supply(const char *regulator, struct device *dev,
-+				const char *supply);
-+
-+and is shown with the following code :-
-+
-+regulator_set_device_supply("Regulator-1", devB, "Vcc");
-+regulator_set_device_supply("Regulator-2", devA, "Vcc");
-+
-+This maps Regulator-1 to the 'Vcc' supply for Consumer B and maps Regulator-2
-+to the 'Vcc' supply for Consumer A.
++(C) 2008  Wolfson Microelectronics PLC.
++Author: Liam Girdwood <lg@opensource.wolfsonmicro.com>
 +
 +
-+2. Regulator supply configuration.
-+==================================
-+Consider the following machine (again) :-
++Nomenclature
++============
 +
-+  Regulator-1 -+-> Regulator-2 --> [Consumer A @ 1.8 - 2.0V]
-+               |
-+               +-> [Consumer B @ 3.3V]
++Some terms used in this document:-
 +
-+Regulator-1 supplies power to Regulator-2. This relationship must be registered
-+with the core so that Regulator-1 is also enabled when Consumer A enables it's
-+supply (Regulator-2).
++  o Regulator    - Electronic device that supplies power to other devices.
++                   Most regulators can enable and disable their output whilst
++                   some can control their output voltage and or current.
 +
-+This relationship can be register with the core via :-
-+
-+int regulator_set_supply(const char *regulator, const char *regulator_supply);
-+
-+In this example we would use the following code :-
-+
-+regulator_set_supply("Regulator-2", "Regulator-1");
-+
-+Relationships can be queried by calling :-
-+
-+const char *regulator_get_supply(const char *regulator);
++                   Input Voltage -> Regulator -> Output Voltage
 +
 +
-+3. Power Domain constraint setting.
-+===================================
-+Each power domain within a system has physical constraints on voltage and
-+current. This must be defined in software so that the power domain is always
-+operated within specifications.
++  o PMIC         - Power Management IC. An IC that contains numerous regulators
++                   and often contains other susbsystems.
 +
-+Consider the following machine (again) :-
 +
-+  Regulator-1 -+-> Regulator-2 --> [Consumer A @ 1.8 - 2.0V]
-+               |
-+               +-> [Consumer B @ 3.3V]
++  o Consumer     - Electronic device that is supplied power by a regulator.
++                   Consumers can be classified into two types:-
 +
-+This gives us two regulators and two power domains:
++                   Static: consumer does not change it's supply voltage or
++                   current limit. It only needs to enable or disable it's
++                   power supply. It's supply voltage is set by the hardware,
++                   bootloader, firmware or kernel board initialisation code.
++
++                   Dynamic: consumer needs to change it's supply voltage or
++                   current limit to meet operation demands.
++
++
++  o Power Domain - Electronic circuit that is supplied it's input power by the
++                   output power of a regulator, switch or by another power
++                   domain.
++
++                   The supply regulator may be behind a switch(s). i.e.
++
++                   Regulator -+-> Switch-1 -+-> Switch-2 --> [Consumer A]
++                              |             |
++                              |             +-> [Consumer B], [Consumer C]
++                              |
++                              +-> [Consumer D], [Consumer E]
++
++                   That is one regulator and three power domains:
++
++                   Domain 1: Switch-1, Consumers D & E.
++                   Domain 2: Switch-2, Consumers B & C.
++                   Domain 3: Consumer A.
++
++                   and this represents a "supplies" relationship:
++
++                   Domain-1 --> Domain-2 --> Domain-3.
++
++                   A power domain may have regulators that are supplied power
++                   by other regulators. i.e.
++
++                   Regulator-1 -+-> Regulator-2 -+-> [Consumer A]
++                                |
++                                +-> [Consumer B]
++
++                   This gives us two regulators and two power domains:
 +
 +                   Domain 1: Regulator-2, Consumer B.
 +                   Domain 2: Consumer A.
 +
-+Constraints can be registered by calling :-
++                   and a "supplies" relationship:
 +
-+int regulator_set_platform_constraints(const char *regulator,
-+	struct regulation_constraints *constraints);
++                   Domain-1 --> Domain-2
 +
-+The example is defined as follows :-
 +
-+struct regulation_constraints domain_1 = {
-+	.min_uV = 3300000,
-+	.max_uV = 3300000,
-+	.valid_modes_mask = REGULATOR_MODE_NORMAL,
-+};
++  o Constraints  - Constraints are used to define power levels for performance
++                   and hardware protection. Constraints exist at three levels:
 +
-+struct regulation_constraints domain_2 = {
-+	.min_uV = 1800000,
-+	.max_uV = 2000000,
-+	.valid_ops_mask = REGULATOR_CHANGE_VOLTAGE,
-+	.valid_modes_mask = REGULATOR_MODE_NORMAL,
-+};
++                   Regulator Level: This is defined by the regulator hardware
++                   operating parameters and is specified in the regulator
++                   datasheet. i.e.
 +
-+regulator_set_platform_constraints("Regulator-1", &domain_1);
-+regulator_set_platform_constraints("Regulator-2", &domain_2);
++                     - voltage output is in the range 800mV -> 3500mV.
++                     - regulator current output limit is 20mA @ 5V but is
++                       10mA @ 10V.
++
++                   Power Domain Level: This is defined in software by kernel
++                   level board initialisation code. It is used to constrain a
++                   power domain to a particular power range. i.e.
++
++                     - Domain-1 voltage is 3300mV
++                     - Domain-2 voltage is 1400mV -> 1600mV
++                     - Domain-3 current limit is 0mA -> 20mA.
++
++                   Consumer Level: This is defined by consumer drivers
++                   dynamically setting voltage or current limit levels.
++
++                   e.g. a consumer backlight driver asks for a current increase
++                   from 5mA to 10mA to increase LCD illumination. This passes
++                   to through the levels as follows :-
++
++                   Consumer: need to increase LCD brightness. Lookup and
++                   request next current mA value in brightness table (the
++                   consumer driver could be used on several different
++                   personalities based upon the same reference device).
++
++                   Power Domain: is the new current limit within the domain
++                   operating limits for this domain and system state (e.g.
++                   battery power, USB power)
++
++                   Regulator Domains: is the new current limit within the
++                   regulator operating parameters for input/ouput voltage.
++
++                   If the regulator request passes all the constraint tests
++                   then the new regulator value is applied.
++
++
++Design
++======
++
++The framework is designed and targeted at SoC based devices but may also be
++relevant to non SoC devices and is split into the following four interfaces:-
++
++
++   1. Consumer driver interface.
++
++      This uses a similar API to the kernel clock interface in that consumer
++      drivers can get and put a regulator (like they can with clocks atm) and
++      get/set voltage, current limit, mode, enable and disable. This should
++      allow consumers complete control over their supply voltage and current
++      limit. This also compiles out if not in use so drivers can be reused in
++      systems with no regulator based power control.
++
++        See Documentation/power/regulator/consumer.txt
++
++   2. Regulator driver interface.
++
++      This allows regulator drivers to register their regulators and provide
++      operations to the core. It also has a notifier call chain for propagating
++      regulator events to clients.
++
++        See Documentation/power/regulator/regulator.txt
++
++   3. Machine interface.
++
++      This interface is for machine specific code and allows the creation of
++      voltage/current domains (with constraints) for each regulator. It can
++      provide regulator constraints that will prevent device damage through
++      overvoltage or over current caused by buggy client drivers. It also
++      allows the creation of a regulator tree whereby some regulators are
++      supplied by others (similar to a clock tree).
++
++        See Documentation/power/regulator/machine.txt
++
++   4. Userspace ABI.
++
++      The framework also exports a lot of useful voltage/current/opmode data to
++      userspace via sysfs. This could be used to help monitor device power
++      consumption and status.
++
++        See Documentation/ABI/testing/regulator-sysfs.txt
 _
 
 Patches currently in -mm which might be from lg@opensource.wolfsonmicro.com are
