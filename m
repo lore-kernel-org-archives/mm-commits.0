@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hpfs-dont-call-permission.patch added to -mm tree
-Date: Fri, 30 May 2008 17:13:16 -0700
-Message-ID: <200805310013.m4V0DGZY018610@imap1.linux-foundation.org>
+Subject: + vfs-fix-sys_getcwd-for-detached-mounts.patch added to -mm tree
+Date: Fri, 30 May 2008 17:13:35 -0700
+Message-ID: <200805310013.m4V0DZOn018646@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45506 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57821 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753381AbYEaANa (ORCPT
+	by vger.kernel.org with ESMTP id S1756578AbYEaANu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 May 2008 20:13:30 -0400
+	Fri, 30 May 2008 20:13:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mszeredi@suse.cz, hch@lst.de, mikulas@artax.karlin.mff.cuni.cz, viro@zeniv.linux.org.uk
+Cc: mszeredi@suse.cz, hch@lst.de, jjohansen@suse.de, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     hpfs: dont call permission()
+     vfs: fix sys_getcwd for detached mounts
 has been added to the -mm tree.  Its filename is
-     hpfs-dont-call-permission.patch
+     vfs-fix-sys_getcwd-for-detached-mounts.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,45 +34,62 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hpfs: dont call permission()
+Subject: vfs: fix sys_getcwd for detached mounts
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-hpfs_unlink() calls permission() prior to truncating the file.  HPFS
-doesn't define a .permission method, so replace with explicit call to
-generic_permission().
+Currently getcwd(2) on a detached mount will give a garbled result:
 
-This is equivalent, except that devcgroup_inode_permission() and
-security_inode_permission() are not called.
+   > mkdir /mnt/foo
+   > mount --bind /etc /mnt/foo
+   > cd /mnt/foo/skel
+   > /bin/pwd
+   /mnt/foo/skel
+   > umount -l /mnt/foo
+   > /bin/pwd
+   etcskel
 
-The truncation is just an implementation detail of the unlink, so
-these security checks are unnecessary.
+After the patch it will give a much saner "/skel" result.
 
-I suspect that even calling generic_permission() is unnecessary, since
-we shouldn't mind if the file isn't writable.  But I leave that to the
-maintainer to decide.
+Thanks to John Johansen for pointing out this bug.
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Cc: Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>
+Reported-by: John Johansen <jjohansen@suse.de>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hpfs/namei.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/dcache.c |   18 ++++++++++++++----
+ 1 file changed, 14 insertions(+), 4 deletions(-)
 
-diff -puN fs/hpfs/namei.c~hpfs-dont-call-permission fs/hpfs/namei.c
---- a/fs/hpfs/namei.c~hpfs-dont-call-permission
-+++ a/fs/hpfs/namei.c
-@@ -415,7 +415,7 @@ again:
- 		d_drop(dentry);
- 		spin_lock(&dentry->d_lock);
- 		if (atomic_read(&dentry->d_count) > 1 ||
--		    permission(inode, MAY_WRITE, NULL) ||
-+		    generic_permission(inode, MAY_WRITE, NULL) ||
- 		    !S_ISREG(inode->i_mode) ||
- 		    get_write_access(inode)) {
- 			spin_unlock(&dentry->d_lock);
+diff -puN fs/dcache.c~vfs-fix-sys_getcwd-for-detached-mounts fs/dcache.c
+--- a/fs/dcache.c~vfs-fix-sys_getcwd-for-detached-mounts
++++ a/fs/dcache.c
+@@ -1952,10 +1952,20 @@ char *__d_path(const struct path *path, 
+ 	return retval;
+ 
+ global_root:
+-	retval += 1;	/* hit the slash */
+-	name = &dentry->d_name;
+-	if (prepend(&retval, &buflen, name->name, name->len) != 0)
+-		goto Elong;
++	/*
++	 * If this is a root dentry, then overwrite the slash.  This
++	 * will also DTRT with pseudo filesystems which have root
++	 * dentries named "foo:".
++	 *
++	 * Otherwise this is the root of a detached mount, so don't do
++	 * anything.
++	 */
++	if (IS_ROOT(dentry)) {
++		retval += 1;
++		name = &dentry->d_name;
++		if (prepend(&retval, &buflen, name->name, name->len) != 0)
++			goto Elong;
++	}
+ 	root->mnt = vfsmnt;
+ 	root->dentry = dentry;
+ 	return retval;
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
