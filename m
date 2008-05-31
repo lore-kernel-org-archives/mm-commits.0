@@ -1,40 +1,39 @@
 From: akpm@linux-foundation.org
-Subject: - cgroup-files-convert-res_counter_write-to-be-a-cgroups-write_string-handler.patch removed from -mm tree
-Date: Fri, 30 May 2008 17:14:08 -0700
-Message-ID: <200805310014.m4V0E8lI018709@imap1.linux-foundation.org>
+Subject: - cgroup-files-add-a-cgroup-write_string-control-file-method.patch removed from -mm tree
+Date: Fri, 30 May 2008 17:13:50 -0700
+Message-ID: <200805310013.m4V0Do4u018685@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55370 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35530 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751868AbYEaAVs (ORCPT
+	by vger.kernel.org with ESMTP id S1754593AbYEaAZQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 May 2008 20:21:48 -0400
+	Fri, 30 May 2008 20:25:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: menage@google.com, balbir@in.ibm.com, lizf@cn.fujitsu.com, pj@sgi.com, rientjes@google.com, serue@us.ibm.com, xemul@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cgroup files: convert res_counter_write() to be a cgroups write_string() handler
+     cgroup files: add a cgroup write_string control file method
 has been removed from the -mm tree.  Its filename was
-     cgroup-files-convert-res_counter_write-to-be-a-cgroups-write_string-handler.patch
+     cgroup-files-add-a-cgroup-write_string-control-file-method.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroup files: convert res_counter_write() to be a cgroups write_string() handler
+Subject: cgroup files: add a cgroup write_string control file method
 From: Paul Menage <menage@google.com>
 
-Currently read_counter_write() is a raw file handler even though it's
-ultimately taking a number, since in some cases it wants to pre-process
-the string when converting it to a number.
-
-This patch converts res_counter_write() from a raw file handler to a
-write_string() handler; this allows some of the boilerplate
-copying/locking/checking to be removed, and simplies the cleanup path,
-since these functions are now performed by the cgroups framework.
+This patch adds a write_string() method for cgroups control files.  The
+semantics are that a buffer is copied from userspace to kernelspace and
+the handler function invoked on that buffer.  Any control group locking is
+done after the copy from userspace has occurred.  The buffer is guaranteed
+to be nul-terminated, and no longer than max_write_len (defaulting to 64
+bytes if unspecified).  Later patches will convert existing raw file write
+handlers in control group subsystems to use this method.
 
 Signed-off-by: Paul Menage <menage@google.com>
 Cc: Paul Jackson <pj@sgi.com>
@@ -46,112 +45,66 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/res_counter.h |    4 +--
- kernel/res_counter.c        |   36 ++++++++--------------------------
- mm/memcontrol.c             |   11 ++++------
- 3 files changed, 16 insertions(+), 35 deletions(-)
+ include/linux/cgroup.h |   10 ++++++++++
+ kernel/cgroup.c        |    5 ++++-
+ 2 files changed, 14 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/res_counter.h~cgroup-files-convert-res_counter_write-to-be-a-cgroups-write_string-handler include/linux/res_counter.h
---- a/include/linux/res_counter.h~cgroup-files-convert-res_counter_write-to-be-a-cgroups-write_string-handler
-+++ a/include/linux/res_counter.h
-@@ -63,8 +63,8 @@ u64 res_counter_read_u64(struct res_coun
- ssize_t res_counter_read(struct res_counter *counter, int member,
- 		const char __user *buf, size_t nbytes, loff_t *pos,
- 		int (*read_strategy)(unsigned long long val, char *s));
--ssize_t res_counter_write(struct res_counter *counter, int member,
--		const char __user *buf, size_t nbytes, loff_t *pos,
-+int res_counter_write(struct res_counter *counter, int member,
-+		char *buffer,
- 		int (*write_strategy)(char *buf, unsigned long long *val));
+diff -puN include/linux/cgroup.h~cgroup-files-add-a-cgroup-write_string-control-file-method include/linux/cgroup.h
+--- a/include/linux/cgroup.h~cgroup-files-add-a-cgroup-write_string-control-file-method
++++ a/include/linux/cgroup.h
+@@ -281,6 +281,10 @@ struct cftype {
+ 	 */
+ 	int lockmode;
  
- /*
-diff -puN kernel/res_counter.c~cgroup-files-convert-res_counter_write-to-be-a-cgroups-write_string-handler kernel/res_counter.c
---- a/kernel/res_counter.c~cgroup-files-convert-res_counter_write-to-be-a-cgroups-write_string-handler
-+++ a/kernel/res_counter.c
-@@ -102,44 +102,26 @@ u64 res_counter_read_u64(struct res_coun
- 	return *res_counter_member(counter, member);
- }
++	/* If non-zero, defines the maximum length of string that can
++	 * be passed to write_string; defaults to 64 */
++	int max_write_len;
++
+ 	int (*open) (struct inode *inode, struct file *file);
+ 	ssize_t (*read) (struct cgroup *cgrp, struct cftype *cft,
+ 			 struct file *file,
+@@ -323,6 +327,12 @@ struct cftype {
+ 	 * write_s64() is a signed version of write_u64()
+ 	 */
+ 	int (*write_s64) (struct cgroup *cgrp, struct cftype *cft, s64 val);
++	/*
++	 * write_string() is passed a nul-terminated kernelspace
++	 * buffer of maximum length determined by max_write_len
++	 */
++	int (*write_string) (struct cgroup *cgrp, struct cftype *cft,
++			     char *buffer);
  
--ssize_t res_counter_write(struct res_counter *counter, int member,
--		const char __user *userbuf, size_t nbytes, loff_t *pos,
--		int (*write_strategy)(char *st_buf, unsigned long long *val))
-+int res_counter_write(
-+	struct res_counter *counter, int member,
-+	char *buf,
-+	int (*write_strategy)(char *st_buf, unsigned long long *val))
- {
--	int ret;
--	char *buf, *end;
-+	char *end;
- 	unsigned long flags;
- 	unsigned long long tmp, *val;
+ 	/*
+ 	 * trigger() callback can be used to get some kick from the
+diff -puN kernel/cgroup.c~cgroup-files-add-a-cgroup-write_string-control-file-method kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroup-files-add-a-cgroup-write_string-control-file-method
++++ a/kernel/cgroup.c
+@@ -1461,7 +1461,7 @@ static ssize_t cgroup_file_write(struct 
+ 	ssize_t retval;
+ 	char static_buffer[64];
+ 	char *buffer = static_buffer;
+-	ssize_t max_bytes = sizeof(static_buffer) - 1;
++	ssize_t max_bytes =  cft->max_write_len ?: sizeof(static_buffer) - 1;
+ 	if (!cft->write && !cft->trigger) {
+ 		if (!nbytes)
+ 			return -EINVAL;
+@@ -1489,6 +1489,8 @@ static ssize_t cgroup_file_write(struct 
+ 		retval = cft->write(cgrp, cft, file, userbuf, nbytes, ppos);
+ 	else if (cft->write_u64 || cft->write_s64)
+ 		retval = cgroup_write_X64(cgrp, cft, buffer);
++	else if (cft->write_string)
++		retval = cft->write_string(cgrp, cft, buffer);
+ 	else if (cft->trigger)
+ 		retval = cft->trigger(cgrp, (unsigned int)cft->private);
+ 	else
+@@ -1651,6 +1653,7 @@ static struct file_operations cgroup_seq
+ 	.read = seq_read,
+ 	.llseek = seq_lseek,
+ 	.release = cgroup_seqfile_release,
++	.write = cgroup_file_write,
+ };
  
--	buf = kmalloc(nbytes + 1, GFP_KERNEL);
--	ret = -ENOMEM;
--	if (buf == NULL)
--		goto out;
--
--	buf[nbytes] = '\0';
--	ret = -EFAULT;
--	if (copy_from_user(buf, userbuf, nbytes))
--		goto out_free;
--
--	ret = -EINVAL;
--
--	strstrip(buf);
- 	if (write_strategy) {
--		if (write_strategy(buf, &tmp)) {
--			goto out_free;
--		}
-+		if (write_strategy(buf, &tmp))
-+			return -EINVAL;
- 	} else {
- 		tmp = simple_strtoull(buf, &end, 10);
- 		if (*end != '\0')
--			goto out_free;
-+			return -EINVAL;
- 	}
- 	spin_lock_irqsave(&counter->lock, flags);
- 	val = res_counter_member(counter, member);
- 	*val = tmp;
- 	spin_unlock_irqrestore(&counter->lock, flags);
--	ret = nbytes;
--out_free:
--	kfree(buf);
--out:
--	return ret;
-+	return 0;
- }
-diff -puN mm/memcontrol.c~cgroup-files-convert-res_counter_write-to-be-a-cgroups-write_string-handler mm/memcontrol.c
---- a/mm/memcontrol.c~cgroup-files-convert-res_counter_write-to-be-a-cgroups-write_string-handler
-+++ a/mm/memcontrol.c
-@@ -857,13 +857,12 @@ static u64 mem_cgroup_read(struct cgroup
- 				    cft->private);
- }
- 
--static ssize_t mem_cgroup_write(struct cgroup *cont, struct cftype *cft,
--				struct file *file, const char __user *userbuf,
--				size_t nbytes, loff_t *ppos)
-+static int mem_cgroup_write(struct cgroup *cont, struct cftype *cft,
-+			    char *buffer)
- {
- 	return res_counter_write(&mem_cgroup_from_cont(cont)->res,
--				cft->private, userbuf, nbytes, ppos,
--				mem_cgroup_write_strategy);
-+				 cft->private, buffer,
-+				 mem_cgroup_write_strategy);
- }
- 
- static int mem_cgroup_reset(struct cgroup *cont, unsigned int event)
-@@ -940,7 +939,7 @@ static struct cftype mem_cgroup_files[] 
- 	{
- 		.name = "limit_in_bytes",
- 		.private = RES_LIMIT,
--		.write = mem_cgroup_write,
-+		.write_string = mem_cgroup_write,
- 		.read_u64 = mem_cgroup_read,
- 	},
- 	{
+ static int cgroup_file_open(struct inode *inode, struct file *file)
 _
 
 Patches currently in -mm which might be from menage@google.com are
