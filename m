@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cgroup-dont-call-vfs_mkdir.patch added to -mm tree
-Date: Fri, 30 May 2008 17:13:03 -0700
-Message-ID: <200805310013.m4V0D41Q018526@imap1.linux-foundation.org>
+Subject: + sysfs-dont-call-notify_change.patch added to -mm tree
+Date: Fri, 30 May 2008 17:13:09 -0700
+Message-ID: <200805310013.m4V0D9os018601@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44993 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58890 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751303AbYEaANY (ORCPT
+	by vger.kernel.org with ESMTP id S1753477AbYEaANZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 May 2008 20:13:24 -0400
+	Fri, 30 May 2008 20:13:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mszeredi@suse.cz, balbir@in.ibm.com, hch@lst.de, menage@google.com, viro@zeniv.linux.org.uk
+Cc: mszeredi@suse.cz, gregkh@suse.de, hch@lst.de, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     cgroup: dont call vfs_mkdir
+     sysfs: dont call notify_change
 has been added to the -mm tree.  Its filename is
-     cgroup-dont-call-vfs_mkdir.patch
+     sysfs-dont-call-notify_change.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,60 +34,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroup: dont call vfs_mkdir
+Subject: sysfs: dont call notify_change
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-cgroup_clone() calls vfs_mkdir() to create a directory in the cgroup
-filesystem.  Replace with explicit call to cgroup_mkdir() and
-fsnotify_mkdir().
+sysfs_chmod_file() calls notify_change() to change the permission bits
+on a sysfs file.  Replace with explicit call to sysfs_setattr() and
+fsnotify_change().
 
-This is equivalent, except that the following functions are not called
-before cgroup_mkdir():
-
- - may_create()
- - security_inode_mkdir()
- - DQUOT_INIT()
-
-Permission to clone the cgroup has already been checked in
-copy_namespaces() (requiring CAP_SYS_ADMIN).  Additional file system
-related capability checks are inappropriate and confusing.
-
-The quota check is unnecessary, as quotas don't make any sense for
-this filesystem.
+This is equivalent, except that security_inode_setattr() is not
+called.  This function is called by drivers, so the security checks do
+not make any sense.
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Cc: Paul Menage <menage@google.com>
+Acked-by: Greg Kroah-Hartman <gregkh@suse.de>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Christoph Hellwig <hch@lst.de>
-Cc: Balbir Singh <balbir@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |    5 ++++-
+ fs/sysfs/file.c |    5 ++++-
  1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN kernel/cgroup.c~cgroup-dont-call-vfs_mkdir kernel/cgroup.c
---- a/kernel/cgroup.c~cgroup-dont-call-vfs_mkdir
-+++ a/kernel/cgroup.c
-@@ -25,6 +25,7 @@
- #include <linux/cgroup.h>
- #include <linux/errno.h>
- #include <linux/fs.h>
+diff -puN fs/sysfs/file.c~sysfs-dont-call-notify_change fs/sysfs/file.c
+--- a/fs/sysfs/file.c~sysfs-dont-call-notify_change
++++ a/fs/sysfs/file.c
+@@ -14,6 +14,7 @@
+ #include <linux/kobject.h>
+ #include <linux/kallsyms.h>
+ #include <linux/slab.h>
 +#include <linux/fsnotify.h>
- #include <linux/kernel.h>
+ #include <linux/namei.h>
+ #include <linux/poll.h>
  #include <linux/list.h>
- #include <linux/mm.h>
-@@ -2930,7 +2931,9 @@ int cgroup_clone(struct task_struct *tsk
- 	}
+@@ -598,9 +599,11 @@ int sysfs_chmod_file(struct kobject *kob
  
- 	/* Create the cgroup directory, which also creates the cgroup */
--	ret = vfs_mkdir(inode, dentry, S_IFDIR | 0755);
-+	ret = cgroup_mkdir(inode, dentry, S_IFDIR);
-+	if (!ret)
-+		fsnotify_mkdir(inode, dentry);
- 	child = __d_cgrp(dentry);
- 	dput(dentry);
- 	if (ret) {
+ 	newattrs.ia_mode = (mode & S_IALLUGO) | (inode->i_mode & ~S_IALLUGO);
+ 	newattrs.ia_valid = ATTR_MODE | ATTR_CTIME;
+-	rc = notify_change(victim, &newattrs);
++	newattrs.ia_ctime = current_fs_time(inode->i_sb);
++	rc = sysfs_setattr(victim, &newattrs);
+ 
+ 	if (rc == 0) {
++		fsnotify_change(victim, newattrs.ia_valid);
+ 		mutex_lock(&sysfs_mutex);
+ 		victim_sd->s_mode = newattrs.ia_mode;
+ 		mutex_unlock(&sysfs_mutex);
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
