@@ -1,303 +1,424 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-utimes-cleanup.patch added to -mm tree
-Date: Fri, 30 May 2008 17:13:30 -0700
-Message-ID: <200805310013.m4V0DU6N018640@imap1.linux-foundation.org>
+Subject: - cgroup-files-add-locking-mode-to-cgroups-control-files.patch removed from -mm tree
+Date: Fri, 30 May 2008 17:13:47 -0700
+Message-ID: <200805310013.m4V0Dlph018682@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49333 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56643 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756602AbYEaAOC (ORCPT
+	by vger.kernel.org with ESMTP id S1756781AbYEaAOx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 May 2008 20:14:02 -0400
+	Fri, 30 May 2008 20:14:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: mszeredi@suse.cz, drepper@redhat.com, hch@lst.de, viro@zeniv.linux.org.uk
+To: menage@google.com, balbir@in.ibm.com, lizf@cn.fujitsu.com, pj@sgi.com, rientjes@google.com, serue@us.ibm.com, xemul@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vfs: utimes cleanup
-has been added to the -mm tree.  Its filename is
-     vfs-utimes-cleanup.patch
+     cgroup files: add locking mode to cgroups control files
+has been removed from the -mm tree.  Its filename was
+     cgroup-files-add-locking-mode-to-cgroups-control-files.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: utimes cleanup
-From: Miklos Szeredi <mszeredi@suse.cz>
+Subject: cgroup files: add locking mode to cgroups control files
+From: Paul Menage <menage@google.com>
 
-Untange the mess that is do_utimes()
+Different cgroup files have different stability requirements of the
+cgroups framework while the handler is running; currently most subsystems
+that don't have their own internal synchronization just call
+cgroup_lock()/cgroup_unlock(), which takes the global cgroup_mutex.
 
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Cc: Ulrich Drepper <drepper@redhat.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
+This patch introduces a range of locking modes that can be requested by a
+control file; currently these are all implemented internally by taking
+cgroup_mutex, but expressing the intention will make it simpler to move to
+a finer-grained locking scheme in the future.
+
+Signed-off-by: Paul Menage <menage@google.com>
+Cc: Paul Jackson <pj@sgi.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Serge Hallyn <serue@us.ibm.com>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/utimes.c          |  179 ++++++++++++++++++++++++-----------------
- include/linux/time.h |    3 
- 2 files changed, 108 insertions(+), 74 deletions(-)
+ include/linux/cgroup.h |   76 +++++++++++++++
+ kernel/cgroup.c        |  192 +++++++++++++++++++++++++++------------
+ 2 files changed, 212 insertions(+), 56 deletions(-)
 
-diff -puN fs/utimes.c~vfs-utimes-cleanup fs/utimes.c
---- a/fs/utimes.c~vfs-utimes-cleanup
-+++ a/fs/utimes.c
-@@ -53,54 +53,10 @@ static bool nsec_valid(long nsec)
- 	return nsec >= 0 && nsec <= 999999999;
- }
+diff -puN include/linux/cgroup.h~cgroup-files-add-locking-mode-to-cgroups-control-files include/linux/cgroup.h
+--- a/include/linux/cgroup.h~cgroup-files-add-locking-mode-to-cgroups-control-files
++++ a/include/linux/cgroup.h
+@@ -200,11 +200,87 @@ struct cgroup_map_cb {
+  */
  
--/* If times==NULL, set access and modification to current time,
-- * must be owner or have write permission.
-- * Else, update from *times, must be owner or super user.
-- */
--long do_utimes(int dfd, char __user *filename, struct timespec *times, int flags)
-+static int utimes_common(struct path *path, struct timespec *times)
+ #define MAX_CFTYPE_NAME 64
++
++/* locking modes for control files.
++ *
++ * These determine what level of guarantee the file handler wishes
++ * cgroups to provide about the stability of control group entities
++ * for the duration of the handler callback.
++ *
++ * The minimum guarantee is that the subsystem state for this
++ * subsystem will not be freed (via a call to the subsystem's
++ * destroy() callback) until after the control file handler
++ * returns. This guarantee is provided by the fact that the open
++ * dentry for the control file keeps its parent (cgroup) dentry alive,
++ * which in turn keeps the cgroup object from being actually freed
++ * (although it can be moved into the removed state in the
++ * meantime). This is suitable for subsystems that completely control
++ * their own synchronization.
++ *
++ * Other possible guarantees are given below.
++ *
++ * XXX_READ bits are used for a read operation on the control file,
++ * XXX_WRITE bits are used for a write operation on the control file
++ */
++
++/*
++ * CFT_LOCK_ATTACH_(READ|WRITE): This operation will not run
++ * concurrently with a task movement into or out of this cgroup.
++ */
++#define CFT_LOCK_ATTACH_READ 1
++#define CFT_LOCK_ATTACH_WRITE 2
++#define CFT_LOCK_ATTACH (CFT_LOCK_ATTACH_READ | CFT_LOCK_ATTACH_WRITE)
++
++/*
++ * CFT_LOCK_RMDIR_(READ|WRITE): This operation will not run
++ * concurrently with the removal of the affected cgroup.
++ */
++#define CFT_LOCK_RMDIR_READ 4
++#define CFT_LOCK_RMDIR_WRITE 8
++#define CFT_LOCK_RMDIR (CFT_LOCK_RMDIR_READ | CFT_LOCK_RMDIR_WRITE)
++
++/*
++ * CFT_LOCK_HIERARCHY_(READ|WRITE): This operation will not run
++ * concurrently with a cgroup creation or removal in this hierarchy,
++ * or a bind/move/unbind for this subsystem.
++ */
++#define CFT_LOCK_HIERARCHY_READ 16
++#define CFT_LOCK_HIERARCHY_WRITE 32
++#define CFT_LOCK_HIERARCHY (CFT_LOCK_HIERARCHY_READ | CFT_LOCK_HIERARCHY_WRITE)
++
++/*
++ * CFT_LOCK_CGL_(READ|WRITE): This operation is called with
++ * cgroup_lock() held; it will not run concurrently with any of the
++ * above operations in any cgroup/hierarchy. This should be considered
++ * to be the BKL of cgroups - it should be avoided if you can use
++ * finer-grained locking
++ */
++#define CFT_LOCK_CGL_READ 64
++#define CFT_LOCK_CGL_WRITE 128
++#define CFT_LOCK_CGL (CFT_LOCK_CGL_READ | CFT_LOCK_CGL_WRITE)
++
++#define CFT_LOCK_FOR_READ (CFT_LOCK_ATTACH_READ |		\
++			   CFT_LOCK_RMDIR_READ |		\
++			   CFT_LOCK_HIERARCHY_READ |		\
++			   CFT_LOCK_CGL_READ)
++
++#define CFT_LOCK_FOR_WRITE (CFT_LOCK_ATTACH_WRITE |	\
++			    CFT_LOCK_RMDIR_WRITE |	\
++			    CFT_LOCK_HIERARCHY_WRITE |	\
++			    CFT_LOCK_CGL_WRITE)
++
+ struct cftype {
+ 	/* By convention, the name should begin with the name of the
+ 	 * subsystem, followed by a period */
+ 	char name[MAX_CFTYPE_NAME];
+ 	int private;
++
++	/*
++	 * Determine what locks (if any) are held across calls to
++	 * read_X/write_X callback. See lockmode definitions above
++	 */
++	int lockmode;
++
+ 	int (*open) (struct inode *inode, struct file *file);
+ 	ssize_t (*read) (struct cgroup *cgrp, struct cftype *cft,
+ 			 struct file *file,
+diff -puN kernel/cgroup.c~cgroup-files-add-locking-mode-to-cgroups-control-files kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroup-files-add-locking-mode-to-cgroups-control-files
++++ a/kernel/cgroup.c
+@@ -1327,38 +1327,65 @@ enum cgroup_filetype {
+ 	FILE_RELEASE_AGENT,
+ };
+ 
+-static ssize_t cgroup_write_X64(struct cgroup *cgrp, struct cftype *cft,
+-				struct file *file,
+-				const char __user *userbuf,
+-				size_t nbytes, loff_t *unused_ppos)
++
++
++/**
++ * cgroup_file_lock(). Helper for cgroup read/write methods.
++ * @cgrp:  the cgroup being acted on
++ * @cft:   the control file being written to or read from
++ * *write: true if the access is a write access.
++ *
++ * Takes any necessary locks as requested by the control file's
++ * 'lockmode' field; checks (after locking if necessary) that the
++ * control group is not in the process of being destroyed.
++ *
++ * Currently all the locking options are implemented in the same way,
++ * by taking cgroup_mutex. Future patches will add finer-grained
++ * locking.
++ *
++ * Calls to cgroup_file_lock() should always be paired with calls to
++ * cgroup_file_unlock(), even if cgroup_file_lock() returns an error.
++ */
++
++static int cgroup_file_lock(struct cgroup *cgrp, struct cftype *cft, int write)
  {
- 	int error;
--	struct nameidata nd;
--	struct dentry *dentry;
--	struct inode *inode;
- 	struct iattr newattrs;
--	struct file *f = NULL;
--	struct vfsmount *mnt;
--
--	error = -EINVAL;
--	if (times && (!nsec_valid(times[0].tv_nsec) ||
--		      !nsec_valid(times[1].tv_nsec))) {
--		goto out;
--	}
--
--	if (flags & ~AT_SYMLINK_NOFOLLOW)
--		goto out;
--
--	if (filename == NULL && dfd != AT_FDCWD) {
--		error = -EINVAL;
--		if (flags & AT_SYMLINK_NOFOLLOW)
--			goto out;
--
--		error = -EBADF;
--		f = fget(dfd);
--		if (!f)
--			goto out;
--		dentry = f->f_path.dentry;
--		mnt = f->f_path.mnt;
--	} else {
--		error = __user_walk_fd(dfd, filename, (flags & AT_SYMLINK_NOFOLLOW) ? 0 : LOOKUP_FOLLOW, &nd);
--		if (error)
--			goto out;
--
--		dentry = nd.path.dentry;
--		mnt = nd.path.mnt;
--	}
--
--	inode = dentry->d_inode;
--
--	error = mnt_want_write(mnt);
--	if (error)
--		goto dput_and_out;
+-	char buffer[64];
+-	int retval = 0;
+-	char *end;
++	int mask = write ? CFT_LOCK_FOR_WRITE : CFT_LOCK_FOR_READ;
++	BUILD_BUG_ON(CFT_LOCK_FOR_READ != (CFT_LOCK_FOR_WRITE >> 1));
  
- 	/* Don't worry, the checks are done in inode_change_ok() */
- 	newattrs.ia_valid = ATTR_CTIME | ATTR_MTIME | ATTR_ATIME;
-@@ -121,41 +77,118 @@ long do_utimes(int dfd, char __user *fil
- 			newattrs.ia_valid |= ATTR_MTIME_SET;
- 		}
- 	}
-+	mutex_lock(&path->dentry->d_inode->i_mutex);
-+	error = mnt_want_write(path->mnt);
-+	if (!error) {
-+		error = notify_change(path->dentry, &newattrs);
-+		mnt_drop_write(path->mnt);
-+	}
-+	mutex_unlock(&path->dentry->d_inode->i_mutex);
-+
-+	return error;
+-	if (!nbytes)
+-		return -EINVAL;
+-	if (nbytes >= sizeof(buffer))
+-		return -E2BIG;
+-	if (copy_from_user(buffer, userbuf, nbytes))
+-		return -EFAULT;
++	if (cft->lockmode & mask)
++		mutex_lock(&cgroup_mutex);
++	if (cgroup_is_removed(cgrp))
++		return -ENODEV;
++	return 0;
 +}
 +
-+/*
-+ * If times is NULL or both times are either UTIME_OMIT or UTIME_NOW, then
-+ * need to check permissions, because inode_change_ok() won't do it.
++/**
++ * cgroup_file_unlock(): undoes the effect of cgroup_file_lock()
 + */
-+static bool utimes_need_permission(struct timespec *times)
++
++static void cgroup_file_unlock(struct cgroup *cgrp, struct cftype *cft,
++			      int write)
 +{
-+	return !times || (nsec_special(times[0].tv_nsec) &&
-+			  nsec_special(times[1].tv_nsec));
++	int mask = write ? CFT_LOCK_FOR_WRITE : CFT_LOCK_FOR_READ;
++	if (cft->lockmode & mask)
++		mutex_unlock(&cgroup_mutex);
 +}
-+
-+static int do_futimes(int fd, struct timespec *times)
-+{
-+	int error;
-+	struct file *file = fget(fd);
-+
-+	if (!file)
-+		return -EBADF;
-+
-+	if (utimes_need_permission(times)) {
-+		struct inode *inode = file->f_path.dentry->d_inode;
-+
-+		error = -EACCES;
-+		if (!is_owner_or_cap(inode) && !(file->f_mode & FMODE_WRITE))
-+			goto out_fput;
-+	}
-+	error = utimes_common(&file->f_path, times);
-+
-+ out_fput:
-+	fput(file);
-+
-+	return error;
-+}
-+
-+static int do_utimes_name(int dfd, char __user *filename,
-+			  struct timespec *times, int flags)
-+{
-+	int error;
-+	struct nameidata nd;
-+	int lookup_flags;
-+
-+	if (flags & ~AT_SYMLINK_NOFOLLOW)
-+		return -EINVAL;
-+
-+	lookup_flags = (flags & AT_SYMLINK_NOFOLLOW) ? 0 : LOOKUP_FOLLOW;
-+	error = __user_walk_fd(dfd, filename, lookup_flags, &nd);
-+	if (error)
-+		return error;
-+
-+
-+	if (utimes_need_permission(times)) {
-+		struct inode *inode = nd.path.dentry->d_inode;
  
--	/*
--	 * If times is NULL or both times are either UTIME_OMIT or
--	 * UTIME_NOW, then need to check permissions, because
--	 * inode_change_ok() won't do it.
--	 */
--	if (!times || (nsec_special(times[0].tv_nsec) &&
--		       nsec_special(times[1].tv_nsec))) {
- 		error = -EACCES;
--		if (!f && IS_IMMUTABLE(inode))
--			goto mnt_drop_write_and_out;
-+		if (IS_IMMUTABLE(inode))
-+			goto out_path_put;
- 
- 		if (!is_owner_or_cap(inode)) {
--			if (f) {
--				if (!(f->f_mode & FMODE_WRITE))
--					goto mnt_drop_write_and_out;
--			} else {
--				error = vfs_permission(&nd, MAY_WRITE);
--				if (error)
--					goto mnt_drop_write_and_out;
--			}
-+			error = vfs_permission(&nd, MAY_WRITE);
-+			if (error)
-+				goto out_path_put;
- 		}
+-	buffer[nbytes] = 0;     /* nul-terminate */
+-	strstrip(buffer);
++static ssize_t cgroup_write_X64(struct cgroup *cgrp, struct cftype *cft,
++				const char *buffer)
++{
++	char *end;
+ 	if (cft->write_u64) {
+ 		u64 val = simple_strtoull(buffer, &end, 0);
+ 		if (*end)
+ 			return -EINVAL;
+-		retval = cft->write_u64(cgrp, cft, val);
++		return cft->write_u64(cgrp, cft, val);
+ 	} else {
+ 		s64 val = simple_strtoll(buffer, &end, 0);
+ 		if (*end)
+ 			return -EINVAL;
+-		retval = cft->write_s64(cgrp, cft, val);
++		return cft->write_s64(cgrp, cft, val);
  	}
--	mutex_lock(&inode->i_mutex);
--	error = notify_change(dentry, &newattrs);
--	mutex_unlock(&inode->i_mutex);
--mnt_drop_write_and_out:
--	mnt_drop_write(mnt);
--dput_and_out:
--	if (f)
--		fput(f);
--	else
--		path_put(&nd.path);
--out:
-+	error = utimes_common(&nd.path, times);
-+
-+ out_path_put:
-+	path_put(&nd.path);
-+
- 	return error;
-+
-+}
-+
-+/*
-+ * do_utimes - change times on filename or file descriptor
-+ * @dfd: open file descriptor, -1 or AT_FDCWD
-+ * @filename: path name or NULL
-+ * @times: new times or NULL
-+ * @flags: zero or more flags (only AT_SYMLINK_NOFOLLOW for the moment)
-+ *
-+ * If filename is NULL and dfd refers to an open file, then operate on
-+ * the file.  Otherwise look up filename, possibly using dfd as a
-+ * starting point.
-+ *
-+ * If times==NULL, set access and modification to current time,
-+ * must be owner or have write permission.
-+ * Else, update from *times, must be owner or super user.
-+ */
-+int do_utimes(int dfd, char __user *filename, struct timespec *times, int flags)
-+{
-+	if (times && (!nsec_valid(times[0].tv_nsec) ||
-+		      !nsec_valid(times[1].tv_nsec))) {
-+		return -EINVAL;
-+	}
-+
-+	if (filename == NULL && dfd != AT_FDCWD) {
-+		if (flags)
-+			return -EINVAL;
-+
-+		return do_futimes(dfd, times);
-+	} else {
-+		return do_utimes_name(dfd, filename, times, flags);
-+	}
+-	if (!retval)
+-		retval = nbytes;
+-	return retval;
  }
  
- asmlinkage long sys_utimensat(int dfd, char __user *filename, struct timespec __user *utimes, int flags)
-diff -puN include/linux/time.h~vfs-utimes-cleanup include/linux/time.h
---- a/include/linux/time.h~vfs-utimes-cleanup
-+++ a/include/linux/time.h
-@@ -110,7 +110,8 @@ extern void do_gettimeofday(struct timev
- extern int do_settimeofday(struct timespec *tv);
- extern int do_sys_settimeofday(struct timespec *tv, struct timezone *tz);
- #define do_posix_clock_monotonic_gettime(ts) ktime_get_ts(ts)
--extern long do_utimes(int dfd, char __user *filename, struct timespec *times, int flags);
-+extern int do_utimes(int dfd, char __user *filename, struct timespec *times,
-+		     int flags);
- struct itimerval;
- extern int do_setitimer(int which, struct itimerval *value,
- 			struct itimerval *ovalue);
+ static ssize_t cgroup_common_file_write(struct cgroup *cgrp,
+@@ -1426,47 +1453,82 @@ out1:
+ 	return retval;
+ }
+ 
+-static ssize_t cgroup_file_write(struct file *file, const char __user *buf,
++static ssize_t cgroup_file_write(struct file *file, const char __user *userbuf,
+ 						size_t nbytes, loff_t *ppos)
+ {
+ 	struct cftype *cft = __d_cft(file->f_dentry);
+ 	struct cgroup *cgrp = __d_cgrp(file->f_dentry->d_parent);
+-
+-	if (!cft || cgroup_is_removed(cgrp))
+-		return -ENODEV;
+-	if (cft->write)
+-		return cft->write(cgrp, cft, file, buf, nbytes, ppos);
+-	if (cft->write_u64 || cft->write_s64)
+-		return cgroup_write_X64(cgrp, cft, file, buf, nbytes, ppos);
+-	if (cft->trigger) {
+-		int ret = cft->trigger(cgrp, (unsigned int)cft->private);
+-		return ret ? ret : nbytes;
++	ssize_t retval;
++	char static_buffer[64];
++	char *buffer = static_buffer;
++	ssize_t max_bytes = sizeof(static_buffer) - 1;
++	if (!cft->write && !cft->trigger) {
++		if (!nbytes)
++			return -EINVAL;
++		if (nbytes >= max_bytes)
++			return -E2BIG;
++		if (nbytes >= sizeof(static_buffer)) {
++			/* +1 for nul-terminator */
++			buffer = kmalloc(nbytes + 1, GFP_KERNEL);
++			if (buffer == NULL)
++				return -ENOMEM;
++		}
++		if (copy_from_user(buffer, userbuf, nbytes)) {
++			retval = -EFAULT;
++			goto out_free;
++		}
++		buffer[nbytes] = 0;	/* nul-terminate */
++		strstrip(buffer);	/* strip -just- trailing whitespace */
+ 	}
+-	return -EINVAL;
+-}
+ 
+-static ssize_t cgroup_read_u64(struct cgroup *cgrp, struct cftype *cft,
+-			       struct file *file,
+-			       char __user *buf, size_t nbytes,
+-			       loff_t *ppos)
+-{
+-	char tmp[64];
+-	u64 val = cft->read_u64(cgrp, cft);
+-	int len = sprintf(tmp, "%llu\n", (unsigned long long) val);
++	retval = cgroup_file_lock(cgrp, cft, 1);
++	if (retval)
++		goto out_unlock;
+ 
+-	return simple_read_from_buffer(buf, nbytes, ppos, tmp, len);
++	if (cft->write)
++		retval = cft->write(cgrp, cft, file, userbuf, nbytes, ppos);
++	else if (cft->write_u64 || cft->write_s64)
++		retval = cgroup_write_X64(cgrp, cft, buffer);
++	else if (cft->trigger)
++		retval = cft->trigger(cgrp, (unsigned int)cft->private);
++	else
++		retval = -EINVAL;
++	if (retval == 0)
++		retval = nbytes;
++ out_unlock:
++	cgroup_file_unlock(cgrp, cft, 1);
++ out_free:
++	if (buffer != static_buffer)
++		kfree(buffer);
++	return retval;
+ }
+ 
+-static ssize_t cgroup_read_s64(struct cgroup *cgrp, struct cftype *cft,
++static ssize_t cgroup_read_X64(struct cgroup *cgrp, struct cftype *cft,
+ 			       struct file *file,
+ 			       char __user *buf, size_t nbytes,
+ 			       loff_t *ppos)
+ {
+ 	char tmp[64];
+-	s64 val = cft->read_s64(cgrp, cft);
+-	int len = sprintf(tmp, "%lld\n", (long long) val);
++	ssize_t retval = 0;
++	int len = 0;
++
++	retval = cgroup_file_lock(cgrp, cft, 0);
++	if (retval)
++		goto out_unlock;
++
++	if (cft->read_u64) {
++		u64 val = cft->read_u64(cgrp, cft);
++		len = sprintf(tmp, "%llu\n", (unsigned long long) val);
++	} else {
++		s64 val = cft->read_s64(cgrp, cft);
++		len = sprintf(tmp, "%lld\n", (long long) val);
++	}
+ 
+-	return simple_read_from_buffer(buf, nbytes, ppos, tmp, len);
++ out_unlock:
++	cgroup_file_unlock(cgrp, cft, 0);
++	if (!retval)
++		retval = simple_read_from_buffer(buf, nbytes, ppos, tmp, len);
++	return retval;
+ }
+ 
+ static ssize_t cgroup_common_file_read(struct cgroup *cgrp,
+@@ -1518,16 +1580,21 @@ static ssize_t cgroup_file_read(struct f
+ 	struct cftype *cft = __d_cft(file->f_dentry);
+ 	struct cgroup *cgrp = __d_cgrp(file->f_dentry->d_parent);
+ 
+-	if (!cft || cgroup_is_removed(cgrp))
++	if (cgroup_is_removed(cgrp))
+ 		return -ENODEV;
+ 
+-	if (cft->read)
+-		return cft->read(cgrp, cft, file, buf, nbytes, ppos);
+-	if (cft->read_u64)
+-		return cgroup_read_u64(cgrp, cft, file, buf, nbytes, ppos);
+-	if (cft->read_s64)
+-		return cgroup_read_s64(cgrp, cft, file, buf, nbytes, ppos);
+-	return -EINVAL;
++	if (cft->read) {
++		/* Raw read function - no extra processing by cgroups */
++		ssize_t retval = cgroup_file_lock(cgrp, cft, 0);
++		if (!retval)
++			retval = cft->read(cgrp, cft, file, buf, nbytes, ppos);
++		cgroup_file_unlock(cgrp, cft, 0);
++		return retval;
++	}
++	if (cft->read_u64 || cft->read_s64)
++		return cgroup_read_X64(cgrp, cft, file, buf, nbytes, ppos);
++	else
++		return -EINVAL;
+ }
+ 
+ /*
+@@ -1549,15 +1616,28 @@ static int cgroup_map_add(struct cgroup_
+ static int cgroup_seqfile_show(struct seq_file *m, void *arg)
+ {
+ 	struct cgroup_seqfile_state *state = m->private;
++	struct cgroup *cgrp = state->cgroup;
+ 	struct cftype *cft = state->cft;
++	int retval;
++
++	retval = cgroup_file_lock(cgrp, cft, 0);
++	if (retval)
++		goto out_unlock;
++
+ 	if (cft->read_map) {
+ 		struct cgroup_map_cb cb = {
+ 			.fill = cgroup_map_add,
+ 			.state = m,
+ 		};
+-		return cft->read_map(state->cgroup, cft, &cb);
++		retval = cft->read_map(cgrp, cft, &cb);
++	} else if (cft->read_seq_string) {
++		retval = cft->read_seq_string(cgrp, cft, m);
++	} else {
++		retval = -EINVAL;
+ 	}
+-	return cft->read_seq_string(state->cgroup, cft, m);
++ out_unlock:
++	cgroup_file_unlock(cgrp, cft, 0);
++	return retval;
+ }
+ 
+ int cgroup_seqfile_release(struct inode *inode, struct file *file)
 _
 
-Patches currently in -mm which might be from mszeredi@suse.cz are
+Patches currently in -mm which might be from menage@google.com are
 
-git-unprivileged-mounts.patch
-lockd-dont-return-eagain-for-a-permanent-error.patch
-locks-add-special-return-value-for-asynchronous-locks.patch
-locks-cleanup-code-duplication.patch
-locks-allow-lock-to-return-file_lock_deferred.patch
-fuse-prepare-lookup-for-nfs-export.patch
-fuse-add-export-operations.patch
-fuse-add-fuse_lookup_name-helper.patch
-fuse-nfs-export-special-lookups.patch
-fuse-lockd-support.patch
-nfsd-clean-up-mnt_want_write-calls.patch
+call_usermodehelper-increase-reliability.patch
+cgroup-use-read-lock-to-guard-find_existing_css_set.patch
+mark-res_counter_charge_locked-with-__must_check.patch
 cgroup-dont-call-vfs_mkdir.patch
-reiserfs-dont-call-vfs_rmdir.patch
-reiserfs-dont-call-notify_change.patch
-sysfs-dont-call-notify_change.patch
-hpfs-dont-call-notify_change.patch
-fat-dont-call-notify_change.patch
-hpfs-dont-call-permission.patch
-hppfs-remove-hppfs_permission.patch
-gfs2-dont-call-permission.patch
-vfs-immutable-inode-checking-cleanup.patch
-vfs-truncate-dont-check-immutable-twice.patch
-vfs-create-file_truncate-helper.patch
-vfs-utimes-immutable-fix.patch
-vfs-utimes-cleanup.patch
-vfs-dcache-cleanups.patch
-vfs-fix-sys_getcwd-for-detached-mounts.patch
+memcg-remove-refcnt-from-page_cgroup.patch
+memcg-remove-refcnt-from-page_cgroup-fix.patch
+memcg-handle-swap-cache.patch
+memcg-helper-function-for-relcaim-from-shmem.patch
+memcg-add-hints-for-branch.patch
+memcg-remove-a-redundant-check.patch
+memrlimit-add-memrlimit-controller-documentation.patch
+memrlimit-setup-the-memrlimit-controller.patch
+memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
+memrlimit-add-memrlimit-controller-accounting-and-control.patch
+make-cgroup_seqfile_release-static.patch
+add-a-refcount-check-in-dput.patch
 
