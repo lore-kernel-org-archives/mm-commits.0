@@ -1,72 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: - hpfs-dont-call-notify_change.patch removed from -mm tree
-Date: Sat, 31 May 2008 00:42:31 -0700
-Message-ID: <200805310742.m4V7gViN000916@imap1.linux-foundation.org>
+Subject: - nfsd-clean-up-mnt_want_write-calls.patch removed from -mm tree
+Date: Sat, 31 May 2008 00:42:17 -0700
+Message-ID: <200805310742.m4V7gHpO000899@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55293 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54399 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751135AbYEaHnQ (ORCPT
+	by vger.kernel.org with ESMTP id S1751251AbYEaHnQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Sat, 31 May 2008 03:43:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mszeredi@suse.cz, hch@lst.de, mikulas@artax.karlin.mff.cuni.cz, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: mszeredi@suse.cz, bfields@fieldses.org, hch@lst.de, neilb@suse.de, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hpfs: dont call notify_change
+     nfsd: clean up mnt_want_write calls
 has been removed from the -mm tree.  Its filename was
-     hpfs-dont-call-notify_change.patch
+     nfsd-clean-up-mnt_want_write-calls.patch
 
 This patch was dropped because it's more controversial than was first thought, and it was sent off-list
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hpfs: dont call notify_change
+Subject: nfsd: clean up mnt_want_write calls
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-hpfs_unlink() calls notify_change() to truncate the file before
-deleting.  Replace with explicit call to hpfs_notify_change().
-
-This is equivalent, except that:
- - security_inode_setattr() is not called before hpfs_notify_change()
- - fsnotify_change() is not called after hpfs_notify_change()
-
-The truncation is just an implementation detail, so both the security
-check and the notification are unnecessary.
-
-Possibly even the ctime modification is wrong?
+Multiple mnt_want_write() calls in the switch statement looks really
+ugly.
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Cc: Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Christoph Hellwig <hch@lst.de>
+Cc: Neil Brown <neilb@suse.de>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hpfs/namei.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/nfsd/vfs.c |   25 +++++++++++--------------
+ 1 file changed, 11 insertions(+), 14 deletions(-)
 
-diff -puN fs/hpfs/namei.c~hpfs-dont-call-notify_change fs/hpfs/namei.c
---- a/fs/hpfs/namei.c~hpfs-dont-call-notify_change
-+++ a/fs/hpfs/namei.c
-@@ -426,7 +426,8 @@ again:
- 			/*printk("HPFS: truncating file before delete.\n");*/
- 			newattrs.ia_size = 0;
- 			newattrs.ia_valid = ATTR_SIZE | ATTR_CTIME;
--			err = notify_change(dentry, &newattrs);
-+			newattrs.ia_ctime = current_fs_time(inode->i_sb);
-+			err = hpfs_notify_change(dentry, &newattrs);
- 			put_write_access(inode);
- 			if (!err)
- 				goto again;
+diff -puN fs/nfsd/vfs.c~nfsd-clean-up-mnt_want_write-calls fs/nfsd/vfs.c
+--- a/fs/nfsd/vfs.c~nfsd-clean-up-mnt_want_write-calls
++++ a/fs/nfsd/vfs.c
+@@ -1248,36 +1248,34 @@ nfsd_create(struct svc_rqst *rqstp, stru
+ 		iap->ia_mode = 0;
+ 	iap->ia_mode = (iap->ia_mode & S_IALLUGO) | type;
+ 
++	err = nfserr_inval;
++	if (!S_ISREG(type) && !S_ISDIR(type) && !special_file(type)) {
++		printk(KERN_WARNING "nfsd: bad file type %o in nfsd_create\n",
++		       type);
++		goto out;
++	}
++
++	host_err = mnt_want_write(fhp->fh_export->ex_path.mnt);
++	if (host_err)
++		goto out_nfserr;
++
+ 	/*
+ 	 * Get the dir op function pointer.
+ 	 */
+ 	err = 0;
+ 	switch (type) {
+ 	case S_IFREG:
+-		host_err = mnt_want_write(fhp->fh_export->ex_path.mnt);
+-		if (host_err)
+-			goto out_nfserr;
+ 		host_err = vfs_create(dirp, dchild, iap->ia_mode, NULL);
+ 		break;
+ 	case S_IFDIR:
+-		host_err = mnt_want_write(fhp->fh_export->ex_path.mnt);
+-		if (host_err)
+-			goto out_nfserr;
+ 		host_err = vfs_mkdir(dirp, dchild, iap->ia_mode);
+ 		break;
+ 	case S_IFCHR:
+ 	case S_IFBLK:
+ 	case S_IFIFO:
+ 	case S_IFSOCK:
+-		host_err = mnt_want_write(fhp->fh_export->ex_path.mnt);
+-		if (host_err)
+-			goto out_nfserr;
+ 		host_err = vfs_mknod(dirp, dchild, iap->ia_mode, rdev);
+ 		break;
+-	default:
+-	        printk("nfsd: bad file type %o in nfsd_create\n", type);
+-		host_err = -EINVAL;
+-		goto out_nfserr;
+ 	}
+ 	if (host_err < 0) {
+ 		mnt_drop_write(fhp->fh_export->ex_path.mnt);
+@@ -1289,7 +1287,6 @@ nfsd_create(struct svc_rqst *rqstp, stru
+ 		write_inode_now(dchild->d_inode, 1);
+ 	}
+ 
+-
+ 	err2 = nfsd_create_setattr(rqstp, resfhp, iap);
+ 	if (err2)
+ 		err = err2;
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
 
+sysfs-dont-call-notify_change.patch
 gfs2-dont-call-permission.patch
+nfsd-clean-up-mnt_want_write-calls.patch
 vfs-immutable-inode-checking-cleanup.patch
 vfs-truncate-dont-check-immutable-twice.patch
 vfs-create-file_truncate-helper.patch
@@ -75,10 +115,13 @@ vfs-utimes-cleanup.patch
 vfs-dcache-cleanups.patch
 vfs-fix-sys_getcwd-for-detached-mounts.patch
 git-unprivileged-mounts.patch
+reiserfs-dont-call-vfs_rmdir.patch
+reiserfs-dont-call-notify_change.patch
 hpfs-dont-call-notify_change.patch
 hpfs-dont-call-permission.patch
 hppfs-remove-hppfs_permission.patch
 fat-dont-call-notify_change.patch
+cgroup-dont-call-vfs_mkdir.patch
 lockd-dont-return-eagain-for-a-permanent-error.patch
 locks-add-special-return-value-for-asynchronous-locks.patch
 locks-cleanup-code-duplication.patch
