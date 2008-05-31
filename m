@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hpfs-dont-call-notify_change.patch added to -mm tree
-Date: Fri, 30 May 2008 17:13:11 -0700
-Message-ID: <200805310013.m4V0DCBN018604@imap1.linux-foundation.org>
+Subject: + cgroup-dont-call-vfs_mkdir.patch added to -mm tree
+Date: Fri, 30 May 2008 17:13:03 -0700
+Message-ID: <200805310013.m4V0D41Q018526@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54071 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44993 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753535AbYEaAN0 (ORCPT
+	by vger.kernel.org with ESMTP id S1751303AbYEaANY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 May 2008 20:13:26 -0400
+	Fri, 30 May 2008 20:13:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mszeredi@suse.cz, hch@lst.de, mikulas@artax.karlin.mff.cuni.cz, viro@zeniv.linux.org.uk
+Cc: mszeredi@suse.cz, balbir@in.ibm.com, hch@lst.de, menage@google.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     hpfs: dont call notify_change
+     cgroup: dont call vfs_mkdir
 has been added to the -mm tree.  Its filename is
-     hpfs-dont-call-notify_change.patch
+     cgroup-dont-call-vfs_mkdir.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,44 +34,60 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hpfs: dont call notify_change
+Subject: cgroup: dont call vfs_mkdir
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-hpfs_unlink() calls notify_change() to truncate the file before
-deleting.  Replace with explicit call to hpfs_notify_change().
+cgroup_clone() calls vfs_mkdir() to create a directory in the cgroup
+filesystem.  Replace with explicit call to cgroup_mkdir() and
+fsnotify_mkdir().
 
-This is equivalent, except that:
- - security_inode_setattr() is not called before hpfs_notify_change()
- - fsnotify_change() is not called after hpfs_notify_change()
+This is equivalent, except that the following functions are not called
+before cgroup_mkdir():
 
-The truncation is just an implementation detail, so both the security
-check and the notification are unnecessary.
+ - may_create()
+ - security_inode_mkdir()
+ - DQUOT_INIT()
 
-Possibly even the ctime modification is wrong?
+Permission to clone the cgroup has already been checked in
+copy_namespaces() (requiring CAP_SYS_ADMIN).  Additional file system
+related capability checks are inappropriate and confusing.
+
+The quota check is unnecessary, as quotas don't make any sense for
+this filesystem.
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Cc: Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>
+Cc: Paul Menage <menage@google.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Christoph Hellwig <hch@lst.de>
+Cc: Balbir Singh <balbir@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hpfs/namei.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ kernel/cgroup.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN fs/hpfs/namei.c~hpfs-dont-call-notify_change fs/hpfs/namei.c
---- a/fs/hpfs/namei.c~hpfs-dont-call-notify_change
-+++ a/fs/hpfs/namei.c
-@@ -426,7 +426,8 @@ again:
- 			/*printk("HPFS: truncating file before delete.\n");*/
- 			newattrs.ia_size = 0;
- 			newattrs.ia_valid = ATTR_SIZE | ATTR_CTIME;
--			err = notify_change(dentry, &newattrs);
-+			newattrs.ia_ctime = current_fs_time(inode->i_sb);
-+			err = hpfs_notify_change(dentry, &newattrs);
- 			put_write_access(inode);
- 			if (!err)
- 				goto again;
+diff -puN kernel/cgroup.c~cgroup-dont-call-vfs_mkdir kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroup-dont-call-vfs_mkdir
++++ a/kernel/cgroup.c
+@@ -25,6 +25,7 @@
+ #include <linux/cgroup.h>
+ #include <linux/errno.h>
+ #include <linux/fs.h>
++#include <linux/fsnotify.h>
+ #include <linux/kernel.h>
+ #include <linux/list.h>
+ #include <linux/mm.h>
+@@ -2930,7 +2931,9 @@ int cgroup_clone(struct task_struct *tsk
+ 	}
+ 
+ 	/* Create the cgroup directory, which also creates the cgroup */
+-	ret = vfs_mkdir(inode, dentry, S_IFDIR | 0755);
++	ret = cgroup_mkdir(inode, dentry, S_IFDIR);
++	if (!ret)
++		fsnotify_mkdir(inode, dentry);
+ 	child = __d_cgrp(dentry);
+ 	dput(dentry);
+ 	if (ret) {
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
