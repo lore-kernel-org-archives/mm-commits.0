@@ -1,223 +1,184 @@
 From: akpm@linux-foundation.org
-Subject: - cgroup-files-convert-devcgroup_access_write-into-a-cgroup-write_string-handler.patch removed from -mm tree
-Date: Fri, 30 May 2008 17:14:05 -0700
-Message-ID: <200805310014.m4V0E5bX018706@imap1.linux-foundation.org>
+Subject: + doc-document-the-kernel-doc-conventions-for-kernel-hackers.patch added to -mm tree
+Date: Fri, 30 May 2008 17:16:38 -0700
+Message-ID: <200805310016.m4V0Gc9b018764@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36765 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56317 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753796AbYEaAQP (ORCPT
+	by vger.kernel.org with ESMTP id S1753517AbYEaARP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 May 2008 20:16:15 -0400
+	Fri, 30 May 2008 20:17:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: menage@google.com, balbir@in.ibm.com, lizf@cn.fujitsu.com, pj@sgi.com, rientjes@google.com, serue@us.ibm.com, xemul@openvz.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: pj@sgi.com, alan@lxorguk.ukuu.org.uk, rdunlap@xenotime.net
 
 
 The patch titled
-     cgroup files: convert devcgroup_access_write() into a cgroup write_string() handler
-has been removed from the -mm tree.  Its filename was
-     cgroup-files-convert-devcgroup_access_write-into-a-cgroup-write_string-handler.patch
+     doc: document the kernel-doc conventions for kernel hackers
+has been added to the -mm tree.  Its filename is
+     doc-document-the-kernel-doc-conventions-for-kernel-hackers.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroup files: convert devcgroup_access_write() into a cgroup write_string() handler
-From: Paul Menage <menage@google.com>
+Subject: doc: document the kernel-doc conventions for kernel hackers
+From: Paul Jackson <pj@sgi.com>
 
-This patch converts devcgroup_access_write() from a raw file handler into
-a handler for the cgroup write_string() method.  This allows some
-boilerplate copying/locking/checking to be removed and simplifies the
-cleanup path, since these functions are performed by the cgroups framework
-before calling the handler.
+Provide documentation of the kernel-doc documentation conventions oriented
+to kernel hackers.
 
-Signed-off-by: Paul Menage <menage@google.com>
-Cc: Paul Jackson <pj@sgi.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Serge Hallyn <serue@us.ibm.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: David Rientjes <rientjes@google.com>
+Since I figure that there will be more people reading this
+kernel-doc-nano-HOWTO.txt file who are kernel developers focused on the
+rest of the kernel, than there will be readers of this file who are
+documentation developers extracting that embedded kernel-doc
+documentation, I have taken the liberty of making the new section added
+here:
+
+  How to format kernel-doc comments
+
+the first section of the kernel-doc-nano-HOWTO.txt file.
+
+This first section is intended to introduce, motivate and provide basic
+usage of the kernel-doc mechanism for kernel hackers developing other
+portions of the kernel.
+
+Signed-off-by: Paul Jackson <pj@sgi.com>
+Acked-by: Randy Dunlap <rdunlap@xenotime.net>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/device_cgroup.c |   79 ++++++++++---------------------------
- 1 file changed, 22 insertions(+), 57 deletions(-)
+ Documentation/kernel-doc-nano-HOWTO.txt |   99 ++++++++++++++++++++++
+ 1 file changed, 99 insertions(+)
 
-diff -puN security/device_cgroup.c~cgroup-files-convert-devcgroup_access_write-into-a-cgroup-write_string-handler security/device_cgroup.c
---- a/security/device_cgroup.c~cgroup-files-convert-devcgroup_access_write-into-a-cgroup-write_string-handler
-+++ a/security/device_cgroup.c
-@@ -323,14 +323,14 @@ static int parent_has_perm(struct cgroup
-  * new access is only allowed if you're in the top-level cgroup, or your
-  * parent cgroup has the access you're asking for.
-  */
--static ssize_t devcgroup_access_write(struct cgroup *cgroup, struct cftype *cft,
--				struct file *file, const char __user *userbuf,
--				size_t nbytes, loff_t *ppos)
-+static int devcgroup_access_write(struct cgroup *cgroup,
-+				  struct cftype *cft,
-+				  char *buffer)
- {
- 	struct cgroup *cur_cgroup;
- 	struct dev_cgroup *devcgroup, *cur_devcgroup;
- 	int filetype = cft->private;
--	char *buffer, *b;
-+	char *b;
- 	int retval = 0, count;
- 	struct dev_whitelist_item wh;
+diff -puN Documentation/kernel-doc-nano-HOWTO.txt~doc-document-the-kernel-doc-conventions-for-kernel-hackers Documentation/kernel-doc-nano-HOWTO.txt
+--- a/Documentation/kernel-doc-nano-HOWTO.txt~doc-document-the-kernel-doc-conventions-for-kernel-hackers
++++ a/Documentation/kernel-doc-nano-HOWTO.txt
+@@ -1,6 +1,105 @@
+ kernel-doc nano-HOWTO
+ =====================
  
-@@ -341,22 +341,6 @@ static ssize_t devcgroup_access_write(st
- 	cur_cgroup = task_cgroup(current, devices_subsys.subsys_id);
- 	cur_devcgroup = cgroup_to_devcgroup(cur_cgroup);
- 
--	buffer = kmalloc(nbytes+1, GFP_KERNEL);
--	if (!buffer)
--		return -ENOMEM;
--
--	if (copy_from_user(buffer, userbuf, nbytes)) {
--		retval = -EFAULT;
--		goto out1;
--	}
--	buffer[nbytes] = 0;	/* nul-terminate */
--
--	cgroup_lock();
--	if (cgroup_is_removed(cgroup)) {
--		retval = -ENODEV;
--		goto out2;
--	}
--
- 	memset(&wh, 0, sizeof(wh));
- 	b = buffer;
- 
-@@ -372,14 +356,11 @@ static ssize_t devcgroup_access_write(st
- 		wh.type = DEV_CHAR;
- 		break;
- 	default:
--		retval = -EINVAL;
--		goto out2;
-+		return -EINVAL;
- 	}
- 	b++;
--	if (!isspace(*b)) {
--		retval = -EINVAL;
--		goto out2;
--	}
-+	if (!isspace(*b))
-+		return -EINVAL;
- 	b++;
- 	if (*b == '*') {
- 		wh.major = ~0;
-@@ -391,13 +372,10 @@ static ssize_t devcgroup_access_write(st
- 			b++;
- 		}
- 	} else {
--		retval = -EINVAL;
--		goto out2;
--	}
--	if (*b != ':') {
--		retval = -EINVAL;
--		goto out2;
-+		return -EINVAL;
- 	}
-+	if (*b != ':')
-+		return -EINVAL;
- 	b++;
- 
- 	/* read minor */
-@@ -411,13 +389,10 @@ static ssize_t devcgroup_access_write(st
- 			b++;
- 		}
- 	} else {
--		retval = -EINVAL;
--		goto out2;
--	}
--	if (!isspace(*b)) {
--		retval = -EINVAL;
--		goto out2;
-+		return -EINVAL;
- 	}
-+	if (!isspace(*b))
-+		return -EINVAL;
- 	for (b++, count = 0; count < 3; count++, b++) {
- 		switch (*b) {
- 		case 'r':
-@@ -434,8 +409,7 @@ static ssize_t devcgroup_access_write(st
- 			count = 3;
- 			break;
- 		default:
--			retval = -EINVAL;
--			goto out2;
-+			return -EINVAL;
- 		}
- 	}
- 
-@@ -444,38 +418,29 @@ handle:
- 	switch (filetype) {
- 	case DEVCG_ALLOW:
- 		if (!parent_has_perm(cgroup, &wh))
--			retval = -EPERM;
--		else
--			retval = dev_whitelist_add(devcgroup, &wh);
--		break;
-+			return -EPERM;
-+		return dev_whitelist_add(devcgroup, &wh);
- 	case DEVCG_DENY:
- 		dev_whitelist_rm(devcgroup, &wh);
- 		break;
- 	default:
--		retval = -EINVAL;
--		goto out2;
-+		return -EINVAL;
- 	}
--
--	if (retval == 0)
--		retval = nbytes;
--
--out2:
--	cgroup_unlock();
--out1:
--	kfree(buffer);
--	return retval;
-+	return 0;
- }
- 
- static struct cftype dev_cgroup_files[] = {
- 	{
- 		.name = "allow",
--		.write  = devcgroup_access_write,
-+		.write_string  = devcgroup_access_write,
- 		.private = DEVCG_ALLOW,
-+		.lockmode = CFT_LOCK_CGL_WRITE,
- 	},
- 	{
- 		.name = "deny",
--		.write = devcgroup_access_write,
-+		.write_string = devcgroup_access_write,
- 		.private = DEVCG_DENY,
-+		.lockmode = CFT_LOCK_CGL_WRITE,
- 	},
- 	{
- 		.name = "list",
++How to format kernel-doc comments
++---------------------------------
++
++In order to provide an embedded, 'C' friendly, easy to maintain,
++but consistent and extractable documentation of the functions and
++data structures in the Linux kernel, the Linux kernel has adopted
++a consistent style for documenting functions and their parameters,
++and structures and their members.
++
++The format for this documentation is called the kernel-doc format.
++It as documented in this Documentation/kernel-doc-nano-HOWTO.txt file.
++
++This style embeds the documentation within the source files, using
++a few simple conventions.  The scripts/kernel-doc perl script, some
++SGML templates in Documentation/DocBook, and other tools understand
++these conventions, and are used to extract this embedded documentation
++into various documents.
++
++In order to provide good documentation of kernel functions and data
++structures, please use the following conventions to format your
++kernel-doc comments in Linux kernel source.
++
++We definitely need kernel-doc formatted documentation for functions
++that are exported to loadable modules using EXPORT_SYMBOL.
++
++We also look to provide kernel-doc formatted documentation for
++functions externally visible to other kernel files (not marked
++"static").
++
++We also recommend providing kernel-doc formatted documentation
++for private (file "static") routines, for consistency of kernel
++source code layout.  But this is lower priority and at the
++discretion of the MAINTAINER of that kernel source file.
++
++Data structures visible in kernel include files should also be
++documented using kernel-doc formatted comments.
++
++The opening comment mark "/**" is reserved for kernel-doc comments.
++Only comments so marked will be considered by the kernel-doc scripts,
++and any comment so marked must be in kernel-doc format.  Do not use
++"/**" to be begin a comment block unless the comment block contains
++kernel-doc formatted comments.  The closing comment marker for
++kernel-doc comments can be either "*/" or "**/".
++
++Kernel-doc comments should be placed just before the function
++or data structure being described.
++
++Example kernel-doc function comment:
++
++/**
++ * foobar() - short function description of foobar
++ * @arg1:	Describe the first argument to foobar.
++ * @arg2:	Describe the second argument to foobar.
++ *		One can provide multiple line descriptions
++ *		for arguments.
++ *
++ * A longer description, with more discussion of the function foobar()
++ * that might be useful to those using or modifying it.  Begins with
++ * empty comment line, and may include additional embedded empty
++ * comment lines.
++ *
++ * The longer description can have multiple paragraphs.
++ **/
++
++The first line, with the short description, must be on a single line.
++
++The @argument descriptions must begin on the very next line following
++this opening short function description line, with no intervening
++empty comment lines.
++
++Example kernel-doc data structure comment.
++
++/**
++ * struct blah - the basic blah structure
++ * @mem1:	describe the first member of struct blah
++ * @mem2:	describe the second member of struct blah,
++ *		perhaps with more lines and words.
++ *
++ * Longer description of this structure.
++ **/
++
++The kernel-doc function comments describe each parameter to the
++function, in order, with the @name lines.
++
++The kernel-doc data structure comments describe each structure member
++in the data structure, with the @name lines.
++
++The longer description formatting is "reflowed", losing your line
++breaks.  So presenting carefully formatted lists within these
++descriptions won't work so well; derived documentation will lose
++the formatting.
++
++See the section below "How to add extractable documentation to your
++source files" for more details and notes on how to format kernel-doc
++comments.
++
++Components of the kernel-doc system
++-----------------------------------
++
+ Many places in the source tree have extractable documentation in the
+ form of block comments above functions.  The components of this system
+ are:
 _
 
-Patches currently in -mm which might be from menage@google.com are
+Patches currently in -mm which might be from pj@sgi.com are
 
-call_usermodehelper-increase-reliability.patch
-cgroup-use-read-lock-to-guard-find_existing_css_set.patch
-mark-res_counter_charge_locked-with-__must_check.patch
-cgroup-dont-call-vfs_mkdir.patch
-memcg-remove-refcnt-from-page_cgroup.patch
-memcg-remove-refcnt-from-page_cgroup-fix.patch
-memcg-handle-swap-cache.patch
-memcg-helper-function-for-relcaim-from-shmem.patch
-memcg-add-hints-for-branch.patch
-memcg-remove-a-redundant-check.patch
-memrlimit-add-memrlimit-controller-documentation.patch
-memrlimit-setup-the-memrlimit-controller.patch
-memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
-memrlimit-add-memrlimit-controller-accounting-and-control.patch
-make-cgroup_seqfile_release-static.patch
-add-a-refcount-check-in-dput.patch
+cpusets-fix-and-update-documentation.patch
+linux-next.patch
+cpusets-fix-bug-when-adding-nonexistent-cpu-or-mem.patch
+doc-document-the-kernel-doc-conventions-for-kernel-hackers.patch
 
