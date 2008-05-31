@@ -1,184 +1,203 @@
 From: akpm@linux-foundation.org
-Subject: + doc-document-the-kernel-doc-conventions-for-kernel-hackers.patch added to -mm tree
-Date: Fri, 30 May 2008 17:16:38 -0700
-Message-ID: <200805310016.m4V0Gc9b018764@imap1.linux-foundation.org>
+Subject: - cgroup-files-remove-cpuset_common_file_write.patch removed from -mm tree
+Date: Fri, 30 May 2008 17:14:02 -0700
+Message-ID: <200805310014.m4V0E2Wk018703@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56317 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60942 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753517AbYEaARP (ORCPT
+	by vger.kernel.org with ESMTP id S1754344AbYEaARg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 May 2008 20:17:15 -0400
+	Fri, 30 May 2008 20:17:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: pj@sgi.com, alan@lxorguk.ukuu.org.uk, rdunlap@xenotime.net
+To: menage@google.com, balbir@in.ibm.com, lizf@cn.fujitsu.com, pj@sgi.com, rientjes@google.com, serue@us.ibm.com, xemul@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     doc: document the kernel-doc conventions for kernel hackers
-has been added to the -mm tree.  Its filename is
-     doc-document-the-kernel-doc-conventions-for-kernel-hackers.patch
+     cgroup files: remove cpuset_common_file_write()
+has been removed from the -mm tree.  Its filename was
+     cgroup-files-remove-cpuset_common_file_write.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: doc: document the kernel-doc conventions for kernel hackers
-From: Paul Jackson <pj@sgi.com>
+Subject: cgroup files: remove cpuset_common_file_write()
+From: Paul Menage <menage@google.com>
 
-Provide documentation of the kernel-doc documentation conventions oriented
-to kernel hackers.
+This patch tweaks the signatures of the update_cpumask() and
+update_nodemask() functions so that they can be called directly as
+handlers for the new cgroups write_string() method.
 
-Since I figure that there will be more people reading this
-kernel-doc-nano-HOWTO.txt file who are kernel developers focused on the
-rest of the kernel, than there will be readers of this file who are
-documentation developers extracting that embedded kernel-doc
-documentation, I have taken the liberty of making the new section added
-here:
+This allows cpuset_common_file_write() to be removed.
 
-  How to format kernel-doc comments
-
-the first section of the kernel-doc-nano-HOWTO.txt file.
-
-This first section is intended to introduce, motivate and provide basic
-usage of the kernel-doc mechanism for kernel hackers developing other
-portions of the kernel.
-
-Signed-off-by: Paul Jackson <pj@sgi.com>
-Acked-by: Randy Dunlap <rdunlap@xenotime.net>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Paul Menage <menage@google.com>
+Cc: Paul Jackson <pj@sgi.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Serge Hallyn <serue@us.ibm.com>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-doc-nano-HOWTO.txt |   99 ++++++++++++++++++++++
- 1 file changed, 99 insertions(+)
+ kernel/cpuset.c |   74 ++++++----------------------------------------
+ 1 file changed, 10 insertions(+), 64 deletions(-)
 
-diff -puN Documentation/kernel-doc-nano-HOWTO.txt~doc-document-the-kernel-doc-conventions-for-kernel-hackers Documentation/kernel-doc-nano-HOWTO.txt
---- a/Documentation/kernel-doc-nano-HOWTO.txt~doc-document-the-kernel-doc-conventions-for-kernel-hackers
-+++ a/Documentation/kernel-doc-nano-HOWTO.txt
-@@ -1,6 +1,105 @@
- kernel-doc nano-HOWTO
- =====================
+diff -puN kernel/cpuset.c~cgroup-files-remove-cpuset_common_file_write kernel/cpuset.c
+--- a/kernel/cpuset.c~cgroup-files-remove-cpuset_common_file_write
++++ a/kernel/cpuset.c
+@@ -227,10 +227,6 @@ static struct cpuset top_cpuset = {
+  * The task_struct fields mems_allowed and mems_generation may only
+  * be accessed in the context of that task, so require no locks.
+  *
+- * The cpuset_common_file_write handler for operations that modify
+- * the cpuset hierarchy holds cgroup_mutex across the entire operation,
+- * single threading all such cpuset modifications across the system.
+- *
+  * The cpuset_common_file_read() handlers only hold callback_mutex across
+  * small pieces of code, such as when reading out possibly multi-word
+  * cpumasks and nodemasks.
+@@ -770,8 +766,9 @@ static void cpuset_change_cpumask(struct
+  * @cs: the cpuset to consider
+  * @buf: buffer of cpu numbers written to this cpuset
+  */
+-static int update_cpumask(struct cpuset *cs, char *buf)
++static int update_cpumask(struct cgroup *cgrp, struct cftype *cft, char *buf)
+ {
++	struct cpuset *cs = cgroup_cs(cgrp);
+ 	struct cpuset trialcs;
+ 	struct cgroup_scanner scan;
+ 	struct ptr_heap heap;
+@@ -790,7 +787,6 @@ static int update_cpumask(struct cpuset 
+ 	 * that parsing.  The validate_change() call ensures that cpusets
+ 	 * with tasks have cpus.
+ 	 */
+-	buf = strstrip(buf);
+ 	if (!*buf) {
+ 		cpus_clear(trialcs.cpus_allowed);
+ 	} else {
+@@ -898,8 +894,9 @@ static void cpuset_migrate_mm(struct mm_
  
-+How to format kernel-doc comments
-+---------------------------------
-+
-+In order to provide an embedded, 'C' friendly, easy to maintain,
-+but consistent and extractable documentation of the functions and
-+data structures in the Linux kernel, the Linux kernel has adopted
-+a consistent style for documenting functions and their parameters,
-+and structures and their members.
-+
-+The format for this documentation is called the kernel-doc format.
-+It as documented in this Documentation/kernel-doc-nano-HOWTO.txt file.
-+
-+This style embeds the documentation within the source files, using
-+a few simple conventions.  The scripts/kernel-doc perl script, some
-+SGML templates in Documentation/DocBook, and other tools understand
-+these conventions, and are used to extract this embedded documentation
-+into various documents.
-+
-+In order to provide good documentation of kernel functions and data
-+structures, please use the following conventions to format your
-+kernel-doc comments in Linux kernel source.
-+
-+We definitely need kernel-doc formatted documentation for functions
-+that are exported to loadable modules using EXPORT_SYMBOL.
-+
-+We also look to provide kernel-doc formatted documentation for
-+functions externally visible to other kernel files (not marked
-+"static").
-+
-+We also recommend providing kernel-doc formatted documentation
-+for private (file "static") routines, for consistency of kernel
-+source code layout.  But this is lower priority and at the
-+discretion of the MAINTAINER of that kernel source file.
-+
-+Data structures visible in kernel include files should also be
-+documented using kernel-doc formatted comments.
-+
-+The opening comment mark "/**" is reserved for kernel-doc comments.
-+Only comments so marked will be considered by the kernel-doc scripts,
-+and any comment so marked must be in kernel-doc format.  Do not use
-+"/**" to be begin a comment block unless the comment block contains
-+kernel-doc formatted comments.  The closing comment marker for
-+kernel-doc comments can be either "*/" or "**/".
-+
-+Kernel-doc comments should be placed just before the function
-+or data structure being described.
-+
-+Example kernel-doc function comment:
-+
-+/**
-+ * foobar() - short function description of foobar
-+ * @arg1:	Describe the first argument to foobar.
-+ * @arg2:	Describe the second argument to foobar.
-+ *		One can provide multiple line descriptions
-+ *		for arguments.
-+ *
-+ * A longer description, with more discussion of the function foobar()
-+ * that might be useful to those using or modifying it.  Begins with
-+ * empty comment line, and may include additional embedded empty
-+ * comment lines.
-+ *
-+ * The longer description can have multiple paragraphs.
-+ **/
-+
-+The first line, with the short description, must be on a single line.
-+
-+The @argument descriptions must begin on the very next line following
-+this opening short function description line, with no intervening
-+empty comment lines.
-+
-+Example kernel-doc data structure comment.
-+
-+/**
-+ * struct blah - the basic blah structure
-+ * @mem1:	describe the first member of struct blah
-+ * @mem2:	describe the second member of struct blah,
-+ *		perhaps with more lines and words.
-+ *
-+ * Longer description of this structure.
-+ **/
-+
-+The kernel-doc function comments describe each parameter to the
-+function, in order, with the @name lines.
-+
-+The kernel-doc data structure comments describe each structure member
-+in the data structure, with the @name lines.
-+
-+The longer description formatting is "reflowed", losing your line
-+breaks.  So presenting carefully formatted lists within these
-+descriptions won't work so well; derived documentation will lose
-+the formatting.
-+
-+See the section below "How to add extractable documentation to your
-+source files" for more details and notes on how to format kernel-doc
-+comments.
-+
-+Components of the kernel-doc system
-+-----------------------------------
-+
- Many places in the source tree have extractable documentation in the
- form of block comments above functions.  The components of this system
- are:
+ static void *cpuset_being_rebound;
+ 
+-static int update_nodemask(struct cpuset *cs, char *buf)
++static int update_nodemask(struct cgroup *cgrp, struct cftype *cft, char *buf)
+ {
++	struct cpuset *cs = cgroup_cs(cgrp);
+ 	struct cpuset trialcs;
+ 	nodemask_t oldmem;
+ 	struct task_struct *p;
+@@ -925,7 +922,6 @@ static int update_nodemask(struct cpuset
+ 	 * that parsing.  The validate_change() call ensures that cpusets
+ 	 * with tasks have memory.
+ 	 */
+-	buf = strstrip(buf);
+ 	if (!*buf) {
+ 		nodes_clear(trialcs.mems_allowed);
+ 	} else {
+@@ -1238,60 +1234,6 @@ typedef enum {
+ 	FILE_SPREAD_SLAB,
+ } cpuset_filetype_t;
+ 
+-static ssize_t cpuset_common_file_write(struct cgroup *cont,
+-					struct cftype *cft,
+-					struct file *file,
+-					const char __user *userbuf,
+-					size_t nbytes, loff_t *unused_ppos)
+-{
+-	struct cpuset *cs = cgroup_cs(cont);
+-	cpuset_filetype_t type = cft->private;
+-	char *buffer;
+-	int retval = 0;
+-
+-	/* Crude upper limit on largest legitimate cpulist user might write. */
+-	if (nbytes > 100U + 6 * max(NR_CPUS, MAX_NUMNODES))
+-		return -E2BIG;
+-
+-	/* +1 for nul-terminator */
+-	buffer = kmalloc(nbytes + 1, GFP_KERNEL);
+-	if (!buffer)
+-		return -ENOMEM;
+-
+-	if (copy_from_user(buffer, userbuf, nbytes)) {
+-		retval = -EFAULT;
+-		goto out1;
+-	}
+-	buffer[nbytes] = 0;	/* nul-terminate */
+-
+-	cgroup_lock();
+-
+-	if (cgroup_is_removed(cont)) {
+-		retval = -ENODEV;
+-		goto out2;
+-	}
+-
+-	switch (type) {
+-	case FILE_CPULIST:
+-		retval = update_cpumask(cs, buffer);
+-		break;
+-	case FILE_MEMLIST:
+-		retval = update_nodemask(cs, buffer);
+-		break;
+-	default:
+-		retval = -EINVAL;
+-		goto out2;
+-	}
+-
+-	if (retval == 0)
+-		retval = nbytes;
+-out2:
+-	cgroup_unlock();
+-out1:
+-	kfree(buffer);
+-	return retval;
+-}
+-
+ static int cpuset_write_u64(struct cgroup *cgrp, struct cftype *cft, u64 val)
+ {
+ 	int retval = 0;
+@@ -1486,14 +1428,18 @@ static struct cftype files[] = {
+ 	{
+ 		.name = "cpus",
+ 		.read = cpuset_common_file_read,
+-		.write = cpuset_common_file_write,
++		.write_string = update_cpumask,
++		.max_write_len = (100U + 6 * NR_CPUS),
++		.lockmode = CFT_LOCK_CGL_WRITE,
+ 		.private = FILE_CPULIST,
+ 	},
+ 
+ 	{
+ 		.name = "mems",
+ 		.read = cpuset_common_file_read,
+-		.write = cpuset_common_file_write,
++		.write_string = update_nodemask,
++		.max_write_len = (100U + 6 * MAX_NUMNODES),
++		.lockmode = CFT_LOCK_CGL_WRITE,
+ 		.private = FILE_MEMLIST,
+ 	},
+ 
 _
 
-Patches currently in -mm which might be from pj@sgi.com are
+Patches currently in -mm which might be from menage@google.com are
 
-cpusets-fix-and-update-documentation.patch
-linux-next.patch
-cpusets-fix-bug-when-adding-nonexistent-cpu-or-mem.patch
-doc-document-the-kernel-doc-conventions-for-kernel-hackers.patch
+call_usermodehelper-increase-reliability.patch
+cgroup-use-read-lock-to-guard-find_existing_css_set.patch
+mark-res_counter_charge_locked-with-__must_check.patch
+cgroup-dont-call-vfs_mkdir.patch
+memcg-remove-refcnt-from-page_cgroup.patch
+memcg-remove-refcnt-from-page_cgroup-fix.patch
+memcg-handle-swap-cache.patch
+memcg-helper-function-for-relcaim-from-shmem.patch
+memcg-add-hints-for-branch.patch
+memcg-remove-a-redundant-check.patch
+memrlimit-add-memrlimit-controller-documentation.patch
+memrlimit-setup-the-memrlimit-controller.patch
+memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
+memrlimit-add-memrlimit-controller-accounting-and-control.patch
+make-cgroup_seqfile_release-static.patch
+add-a-refcount-check-in-dput.patch
 
