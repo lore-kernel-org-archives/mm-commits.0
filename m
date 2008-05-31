@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + reiserfs-dont-call-vfs_rmdir.patch added to -mm tree
-Date: Fri, 30 May 2008 17:13:05 -0700
-Message-ID: <200805310013.m4V0D678018550@imap1.linux-foundation.org>
+Subject: + nfsd-clean-up-mnt_want_write-calls.patch added to -mm tree
+Date: Fri, 30 May 2008 17:13:01 -0700
+Message-ID: <200805310013.m4V0D1Z1018523@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55377 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51028 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753434AbYEaANZ (ORCPT
+	by vger.kernel.org with ESMTP id S1753525AbYEaAN0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 May 2008 20:13:25 -0400
+	Fri, 30 May 2008 20:13:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mszeredi@suse.cz, hch@lst.de, jeffm@suse.de, viro@zeniv.linux.org.uk
+Cc: mszeredi@suse.cz, bfields@fieldses.org, hch@lst.de, neilb@suse.de, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     reiserfs: dont call vfs_rmdir
+     nfsd: clean up mnt_want_write calls
 has been added to the -mm tree.  Its filename is
-     reiserfs-dont-call-vfs_rmdir.patch
+     nfsd-clean-up-mnt_want_write-calls.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,103 +34,82 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: reiserfs: dont call vfs_rmdir
+Subject: nfsd: clean up mnt_want_write calls
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-reiserfs_delete_xattrs() calls vfs_rmdir() to remove the private
-directory associated with the extended attributes for an inode.
-Replace with explicit call to reiserfs_rmdir().
-
-The extended attribute files reside in a private directory, completely
-inaccessible from userspace.  This means, that checking against mounts
-on the dentry is not necessary.
-
-The calls to may_delete() and security_inode_rmdir(), as performed by
-vfs_rmdir() are also unecessary for this case.
-
-Based on patch by Jeff Mahoney.
+Multiple mnt_want_write() calls in the switch statement looks really
+ugly.
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Acked-by: Jeff Mahoney <jeffm@suse.de>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Christoph Hellwig <hch@lst.de>
+Cc: Neil Brown <neilb@suse.de>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/namei.c         |    2 +-
- fs/reiserfs/xattr.c         |   22 +++++++++++++++++++++-
- include/linux/reiserfs_fs.h |    1 +
- 3 files changed, 23 insertions(+), 2 deletions(-)
+ fs/nfsd/vfs.c |   25 +++++++++++--------------
+ 1 file changed, 11 insertions(+), 14 deletions(-)
 
-diff -puN fs/reiserfs/namei.c~reiserfs-dont-call-vfs_rmdir fs/reiserfs/namei.c
---- a/fs/reiserfs/namei.c~reiserfs-dont-call-vfs_rmdir
-+++ a/fs/reiserfs/namei.c
-@@ -850,7 +850,7 @@ static inline int reiserfs_empty_dir(str
- 	return 1;
- }
+diff -puN fs/nfsd/vfs.c~nfsd-clean-up-mnt_want_write-calls fs/nfsd/vfs.c
+--- a/fs/nfsd/vfs.c~nfsd-clean-up-mnt_want_write-calls
++++ a/fs/nfsd/vfs.c
+@@ -1248,36 +1248,34 @@ nfsd_create(struct svc_rqst *rqstp, stru
+ 		iap->ia_mode = 0;
+ 	iap->ia_mode = (iap->ia_mode & S_IALLUGO) | type;
  
--static int reiserfs_rmdir(struct inode *dir, struct dentry *dentry)
-+int reiserfs_rmdir(struct inode *dir, struct dentry *dentry)
- {
- 	int retval, err;
- 	struct inode *inode;
-diff -puN fs/reiserfs/xattr.c~reiserfs-dont-call-vfs_rmdir fs/reiserfs/xattr.c
---- a/fs/reiserfs/xattr.c~reiserfs-dont-call-vfs_rmdir
-+++ a/fs/reiserfs/xattr.c
-@@ -35,6 +35,7 @@
- #include <linux/namei.h>
- #include <linux/errno.h>
- #include <linux/fs.h>
-+#include <linux/quotaops.h>
- #include <linux/file.h>
- #include <linux/pagemap.h>
- #include <linux/xattr.h>
-@@ -712,6 +713,25 @@ reiserfs_delete_xattrs_filler(void *buf,
++	err = nfserr_inval;
++	if (!S_ISREG(type) && !S_ISDIR(type) && !special_file(type)) {
++		printk(KERN_WARNING "nfsd: bad file type %o in nfsd_create\n",
++		       type);
++		goto out;
++	}
++
++	host_err = mnt_want_write(fhp->fh_export->ex_path.mnt);
++	if (host_err)
++		goto out_nfserr;
++
+ 	/*
+ 	 * Get the dir op function pointer.
+ 	 */
+ 	err = 0;
+ 	switch (type) {
+ 	case S_IFREG:
+-		host_err = mnt_want_write(fhp->fh_export->ex_path.mnt);
+-		if (host_err)
+-			goto out_nfserr;
+ 		host_err = vfs_create(dirp, dchild, iap->ia_mode, NULL);
+ 		break;
+ 	case S_IFDIR:
+-		host_err = mnt_want_write(fhp->fh_export->ex_path.mnt);
+-		if (host_err)
+-			goto out_nfserr;
+ 		host_err = vfs_mkdir(dirp, dchild, iap->ia_mode);
+ 		break;
+ 	case S_IFCHR:
+ 	case S_IFBLK:
+ 	case S_IFIFO:
+ 	case S_IFSOCK:
+-		host_err = mnt_want_write(fhp->fh_export->ex_path.mnt);
+-		if (host_err)
+-			goto out_nfserr;
+ 		host_err = vfs_mknod(dirp, dchild, iap->ia_mode, rdev);
+ 		break;
+-	default:
+-	        printk("nfsd: bad file type %o in nfsd_create\n", type);
+-		host_err = -EINVAL;
+-		goto out_nfserr;
+ 	}
+ 	if (host_err < 0) {
+ 		mnt_drop_write(fhp->fh_export->ex_path.mnt);
+@@ -1289,7 +1287,6 @@ nfsd_create(struct svc_rqst *rqstp, stru
+ 		write_inode_now(dchild->d_inode, 1);
+ 	}
  
- }
- 
-+static int xattr_rmdir(struct inode *dir, struct dentry *dentry)
-+{
-+	int error;
-+
-+	DQUOT_INIT(dir);
-+
-+	mutex_lock_nested(&dentry->d_inode->i_mutex, I_MUTEX_CHILD);
-+	dentry_unhash(dentry);
-+	error = reiserfs_rmdir(dir, dentry);
-+	if (!error)
-+		dentry->d_inode->i_flags |= S_DEAD;
-+	mutex_unlock(&dentry->d_inode->i_mutex);
-+	if (!error)
-+		d_delete(dentry);
-+	dput(dentry);
-+
-+	return error;
-+}
-+
- /* This is called w/ inode->i_mutex downed */
- int reiserfs_delete_xattrs(struct inode *inode)
- {
-@@ -746,7 +766,7 @@ int reiserfs_delete_xattrs(struct inode 
- 	if (dir->d_inode->i_nlink <= 2) {
- 		root = get_xa_root(inode->i_sb, XATTR_REPLACE);
- 		reiserfs_write_lock_xattrs(inode->i_sb);
--		err = vfs_rmdir(root->d_inode, dir);
-+		err = xattr_rmdir(root->d_inode, dir);
- 		reiserfs_write_unlock_xattrs(inode->i_sb);
- 		dput(root);
- 	} else {
-diff -puN include/linux/reiserfs_fs.h~reiserfs-dont-call-vfs_rmdir include/linux/reiserfs_fs.h
---- a/include/linux/reiserfs_fs.h~reiserfs-dont-call-vfs_rmdir
-+++ a/include/linux/reiserfs_fs.h
-@@ -1911,6 +1911,7 @@ static inline void reiserfs_update_sd(st
- void sd_attrs_to_i_attrs(__u16 sd_attrs, struct inode *inode);
- void i_attrs_to_sd_attrs(struct inode *inode, __u16 * sd_attrs);
- int reiserfs_setattr(struct dentry *dentry, struct iattr *attr);
-+int reiserfs_rmdir(struct inode *dir, struct dentry *dentry);
- 
- /* namei.c */
- void set_de_name_and_namelen(struct reiserfs_dir_entry *de);
+-
+ 	err2 = nfsd_create_setattr(rqstp, resfhp, iap);
+ 	if (err2)
+ 		err = err2;
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
