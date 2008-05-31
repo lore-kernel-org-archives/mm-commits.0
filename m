@@ -1,82 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: - hppfs-remove-hppfs_permission.patch removed from -mm tree
-Date: Sat, 31 May 2008 00:42:39 -0700
-Message-ID: <200805310742.m4V7gdYX000925@imap1.linux-foundation.org>
+Subject: - vfs-fix-sys_getcwd-for-detached-mounts.patch removed from -mm tree
+Date: Sat, 31 May 2008 00:42:57 -0700
+Message-ID: <200805310742.m4V7gvhP000952@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57764 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42150 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751237AbYEaHnX (ORCPT
+	by vger.kernel.org with ESMTP id S1751294AbYEaHnk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 31 May 2008 03:43:23 -0400
+	Sat, 31 May 2008 03:43:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mszeredi@suse.cz, hch@lst.de, jdike@linux.intel.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: mszeredi@suse.cz, hch@lst.de, jjohansen@suse.de, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hppfs: remove hppfs_permission
+     vfs: fix sys_getcwd for detached mounts
 has been removed from the -mm tree.  Its filename was
-     hppfs-remove-hppfs_permission.patch
+     vfs-fix-sys_getcwd-for-detached-mounts.patch
 
 This patch was dropped because it's more controversial than was first thought, and it was sent off-list
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hppfs: remove hppfs_permission
+Subject: vfs: fix sys_getcwd for detached mounts
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-hppfs_permission() is equivalent to the '.permission == NULL' case.
+Currently getcwd(2) on a detached mount will give a garbled result:
+
+   > mkdir /mnt/foo
+   > mount --bind /etc /mnt/foo
+   > cd /mnt/foo/skel
+   > /bin/pwd
+   /mnt/foo/skel
+   > umount -l /mnt/foo
+   > /bin/pwd
+   etcskel
+
+After the patch it will give a much saner "/skel" result.
+
+Thanks to John Johansen for pointing out this bug.
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Cc: Jeff Dike <jdike@linux.intel.com>
+Reported-by: John Johansen <jjohansen@suse.de>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hppfs/hppfs.c |    7 -------
- 1 file changed, 7 deletions(-)
+ fs/dcache.c |   18 ++++++++++++++----
+ 1 file changed, 14 insertions(+), 4 deletions(-)
 
-diff -puN fs/hppfs/hppfs.c~hppfs-remove-hppfs_permission fs/hppfs/hppfs.c
---- a/fs/hppfs/hppfs.c~hppfs-remove-hppfs_permission
-+++ a/fs/hppfs/hppfs.c
-@@ -655,20 +655,13 @@ static void *hppfs_follow_link(struct de
- 	return proc_dentry->d_inode->i_op->follow_link(proc_dentry, nd);
- }
+diff -puN fs/dcache.c~vfs-fix-sys_getcwd-for-detached-mounts fs/dcache.c
+--- a/fs/dcache.c~vfs-fix-sys_getcwd-for-detached-mounts
++++ a/fs/dcache.c
+@@ -1952,10 +1952,20 @@ char *__d_path(const struct path *path, 
+ 	return retval;
  
--int hppfs_permission(struct inode *inode, int mask, struct nameidata *nd)
--{
--	return generic_permission(inode, mask, NULL);
--}
--
- static const struct inode_operations hppfs_dir_iops = {
- 	.lookup		= hppfs_lookup,
--	.permission	= hppfs_permission,
- };
- 
- static const struct inode_operations hppfs_link_iops = {
- 	.readlink	= hppfs_readlink,
- 	.follow_link	= hppfs_follow_link,
--	.permission	= hppfs_permission,
- };
- 
- static struct inode *get_inode(struct super_block *sb, struct dentry *dentry)
+ global_root:
+-	retval += 1;	/* hit the slash */
+-	name = &dentry->d_name;
+-	if (prepend(&retval, &buflen, name->name, name->len) != 0)
+-		goto Elong;
++	/*
++	 * If this is a root dentry, then overwrite the slash.  This
++	 * will also DTRT with pseudo filesystems which have root
++	 * dentries named "foo:".
++	 *
++	 * Otherwise this is the root of a detached mount, so don't do
++	 * anything.
++	 */
++	if (IS_ROOT(dentry)) {
++		retval += 1;
++		name = &dentry->d_name;
++		if (prepend(&retval, &buflen, name->name, name->len) != 0)
++			goto Elong;
++	}
+ 	root->mnt = vfsmnt;
+ 	root->dentry = dentry;
+ 	return retval;
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
 
-gfs2-dont-call-permission.patch
-vfs-immutable-inode-checking-cleanup.patch
-vfs-truncate-dont-check-immutable-twice.patch
-vfs-create-file_truncate-helper.patch
-vfs-utimes-immutable-fix.patch
-vfs-utimes-cleanup.patch
-vfs-dcache-cleanups.patch
 vfs-fix-sys_getcwd-for-detached-mounts.patch
 git-unprivileged-mounts.patch
-hppfs-remove-hppfs_permission.patch
 lockd-dont-return-eagain-for-a-permanent-error.patch
 locks-add-special-return-value-for-asynchronous-locks.patch
 locks-cleanup-code-duplication.patch
