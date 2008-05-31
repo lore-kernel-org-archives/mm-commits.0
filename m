@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sysfs-dont-call-notify_change.patch added to -mm tree
-Date: Fri, 30 May 2008 17:13:09 -0700
-Message-ID: <200805310013.m4V0D9os018601@imap1.linux-foundation.org>
+Subject: + reiserfs-dont-call-notify_change.patch added to -mm tree
+Date: Fri, 30 May 2008 17:13:07 -0700
+Message-ID: <200805310013.m4V0D81I018598@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58890 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35061 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753477AbYEaANZ (ORCPT
+	by vger.kernel.org with ESMTP id S1750830AbYEaANX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 May 2008 20:13:25 -0400
+	Fri, 30 May 2008 20:13:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mszeredi@suse.cz, gregkh@suse.de, hch@lst.de, viro@zeniv.linux.org.uk
+Cc: mszeredi@suse.cz, hch@lst.de, jeffm@suse.de, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     sysfs: dont call notify_change
+     reiserfs: dont call notify_change
 has been added to the -mm tree.  Its filename is
-     sysfs-dont-call-notify_change.patch
+     reiserfs-dont-call-notify_change.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,51 +34,79 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysfs: dont call notify_change
+Subject: reiserfs: dont call notify_change
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-sysfs_chmod_file() calls notify_change() to change the permission bits
-on a sysfs file.  Replace with explicit call to sysfs_setattr() and
-fsnotify_change().
+Reiserfs calls notify_change() on it's private extended attribute
+files to resize and change ownership of these files.  Replace with
+reiserfs_setattr().
 
-This is equivalent, except that security_inode_setattr() is not
-called.  This function is called by drivers, so the security checks do
-not make any sense.
+This is equivalent, except that:
+
+ - i_alloc_sem locking is not performed around reiserfs_setattr() when
+   the size is changed
+ - security_inode_setattr() is not called before reiserfs_setattr()
+ - fsnotify_change() is not called after reiserfs_setattr()
+
+None of the above is necessary, since the files are private to
+reiserfs and inaccessible from userspace.
+
+Also remove setting of ctime on the xattr files.
+
+Based on patch by Jeff Mahoney.
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Acked-by: Greg Kroah-Hartman <gregkh@suse.de>
+Acked-by: Jeff Mahoney <jeffm@suse.de>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/sysfs/file.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ fs/reiserfs/xattr.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN fs/sysfs/file.c~sysfs-dont-call-notify_change fs/sysfs/file.c
---- a/fs/sysfs/file.c~sysfs-dont-call-notify_change
-+++ a/fs/sysfs/file.c
-@@ -14,6 +14,7 @@
- #include <linux/kobject.h>
- #include <linux/kallsyms.h>
- #include <linux/slab.h>
-+#include <linux/fsnotify.h>
- #include <linux/namei.h>
- #include <linux/poll.h>
- #include <linux/list.h>
-@@ -598,9 +599,11 @@ int sysfs_chmod_file(struct kobject *kob
+diff -puN fs/reiserfs/xattr.c~reiserfs-dont-call-notify_change fs/reiserfs/xattr.c
+--- a/fs/reiserfs/xattr.c~reiserfs-dont-call-notify_change
++++ a/fs/reiserfs/xattr.c
+@@ -458,9 +458,9 @@ reiserfs_xattr_set(struct inode *inode, 
  
- 	newattrs.ia_mode = (mode & S_IALLUGO) | (inode->i_mode & ~S_IALLUGO);
- 	newattrs.ia_valid = ATTR_MODE | ATTR_CTIME;
--	rc = notify_change(victim, &newattrs);
-+	newattrs.ia_ctime = current_fs_time(inode->i_sb);
-+	rc = sysfs_setattr(victim, &newattrs);
+ 	/* Resize it so we're ok to write there */
+ 	newattrs.ia_size = buffer_size;
+-	newattrs.ia_valid = ATTR_SIZE | ATTR_CTIME;
++	newattrs.ia_valid = ATTR_SIZE;
+ 	mutex_lock_nested(&xinode->i_mutex, I_MUTEX_XATTR);
+-	err = notify_change(dentry, &newattrs);
++	err = reiserfs_setattr(dentry, &newattrs);
+ 	if (err)
+ 		goto out_filp;
  
- 	if (rc == 0) {
-+		fsnotify_change(victim, newattrs.ia_valid);
- 		mutex_lock(&sysfs_mutex);
- 		victim_sd->s_mode = newattrs.ia_mode;
- 		mutex_unlock(&sysfs_mutex);
+@@ -810,7 +810,7 @@ reiserfs_chown_xattrs_filler(void *buf, 
+ 	}
+ 
+ 	if (!S_ISDIR(xafile->d_inode->i_mode))
+-		err = notify_change(xafile, attrs);
++		err = reiserfs_setattr(xafile, attrs);
+ 	dput(xafile);
+ 
+ 	return err;
+@@ -843,7 +843,7 @@ int reiserfs_chown_xattrs(struct inode *
+ 
+ 	lock_kernel();
+ 
+-	attrs->ia_valid &= (ATTR_UID | ATTR_GID | ATTR_CTIME);
++	attrs->ia_valid &= (ATTR_UID | ATTR_GID);
+ 	buf.xadir = dir;
+ 	buf.attrs = attrs;
+ 	buf.inode = inode;
+@@ -854,7 +854,7 @@ int reiserfs_chown_xattrs(struct inode *
+ 		goto out_dir;
+ 	}
+ 
+-	err = notify_change(dir, attrs);
++	err = reiserfs_setattr(dir, attrs);
+ 	unlock_kernel();
+ 
+       out_dir:
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
