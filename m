@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + gfs2-dont-call-permission.patch added to -mm tree
-Date: Fri, 30 May 2008 17:13:20 -0700
-Message-ID: <200805310013.m4V0DLFm018616@imap1.linux-foundation.org>
+Subject: + vfs-utimes-cleanup.patch added to -mm tree
+Date: Fri, 30 May 2008 17:13:30 -0700
+Message-ID: <200805310013.m4V0DU6N018640@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46293 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49333 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756583AbYEaANw (ORCPT
+	by vger.kernel.org with ESMTP id S1756602AbYEaAOC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 May 2008 20:13:52 -0400
+	Fri, 30 May 2008 20:14:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mszeredi@suse.cz, hch@lst.de, swhiteho@redhat.com, viro@zeniv.linux.org.uk
+Cc: mszeredi@suse.cz, drepper@redhat.com, hch@lst.de, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     gfs2: dont call permission()
+     vfs: utimes cleanup
 has been added to the -mm tree.  Its filename is
-     gfs2-dont-call-permission.patch
+     vfs-utimes-cleanup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,196 +34,241 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gfs2: dont call permission()
+Subject: vfs: utimes cleanup
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-GFS2 calls permission() to verify permissions after locks on the files
-have been taken.
-
-For this it's sufficient to call gfs2_permission() instead.  This
-results in the following changes:
-
-  - IS_RDONLY() check is not performed
-  - IS_IMMUTABLE() check is not performed
-  - devcgroup_inode_permission() is not called
-  - security_inode_permission() is not called
-
-IS_RDONLY() should be unnecessary anyway, as the per-mount read-only
-flag should provide protection against read-only remounts during
-operations.  do_gfs2_set_flags() has been fixed to perform
-mnt_want_write()/mnt_drop_write() to protect against remounting
-read-only.
-
-IS_IMMUTABLE has beed added to gfs2_do_permission()
-
-Repeating the security checks seems to be pointless, as they don't
-normally change, and if they do, it's independent of the filesystem
-state.
-
-I also suspect the conditional locking in gfs2_do_permission() could
-be cleaned up, due to the removal of the implicit recursion.
+Untange the mess that is do_utimes()
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Cc: Steven Whitehouse <swhiteho@redhat.com>
+Cc: Ulrich Drepper <drepper@redhat.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/gfs2/inode.c     |    6 +++---
- fs/gfs2/inode.h     |    1 +
- fs/gfs2/ops_file.c  |   11 +++++++++--
- fs/gfs2/ops_inode.c |   18 +++++++++++++-----
- 4 files changed, 26 insertions(+), 10 deletions(-)
+ fs/utimes.c          |  179 ++++++++++++++++++++++++-----------------
+ include/linux/time.h |    3 
+ 2 files changed, 108 insertions(+), 74 deletions(-)
 
-diff -puN fs/gfs2/inode.c~gfs2-dont-call-permission fs/gfs2/inode.c
---- a/fs/gfs2/inode.c~gfs2-dont-call-permission
-+++ a/fs/gfs2/inode.c
-@@ -504,7 +504,7 @@ struct inode *gfs2_lookupi(struct inode 
- 	}
- 
- 	if (!is_root) {
--		error = permission(dir, MAY_EXEC, NULL);
-+		error = gfs2_do_permission(dir, MAY_EXEC);
- 		if (error)
- 			goto out;
- 	}
-@@ -667,7 +667,7 @@ static int create_ok(struct gfs2_inode *
- {
- 	int error;
- 
--	error = permission(&dip->i_inode, MAY_WRITE | MAY_EXEC, NULL);
-+	error = gfs2_do_permission(&dip->i_inode, MAY_WRITE | MAY_EXEC);
- 	if (error)
- 		return error;
- 
-@@ -1134,7 +1134,7 @@ int gfs2_unlink_ok(struct gfs2_inode *di
- 	if (IS_APPEND(&dip->i_inode))
- 		return -EPERM;
- 
--	error = permission(&dip->i_inode, MAY_WRITE | MAY_EXEC, NULL);
-+	error = gfs2_do_permission(&dip->i_inode, MAY_WRITE | MAY_EXEC);
- 	if (error)
- 		return error;
- 
-diff -puN fs/gfs2/inode.h~gfs2-dont-call-permission fs/gfs2/inode.h
---- a/fs/gfs2/inode.h~gfs2-dont-call-permission
-+++ a/fs/gfs2/inode.h
-@@ -91,6 +91,7 @@ int gfs2_rmdiri(struct gfs2_inode *dip, 
- 		struct gfs2_inode *ip);
- int gfs2_unlink_ok(struct gfs2_inode *dip, const struct qstr *name,
- 		   const struct gfs2_inode *ip);
-+int gfs2_do_permission(struct inode *inode, int mask);
- int gfs2_ok_to_move(struct gfs2_inode *this, struct gfs2_inode *to);
- int gfs2_readlinki(struct gfs2_inode *ip, char **buf, unsigned int *len);
- int gfs2_glock_nq_atime(struct gfs2_holder *gh);
-diff -puN fs/gfs2/ops_file.c~gfs2-dont-call-permission fs/gfs2/ops_file.c
---- a/fs/gfs2/ops_file.c~gfs2-dont-call-permission
-+++ a/fs/gfs2/ops_file.c
-@@ -15,6 +15,7 @@
- #include <linux/uio.h>
- #include <linux/blkdev.h>
- #include <linux/mm.h>
-+#include <linux/mount.h>
- #include <linux/fs.h>
- #include <linux/gfs2_ondisk.h>
- #include <linux/ext2_fs.h>
-@@ -220,10 +221,14 @@ static int do_gfs2_set_flags(struct file
- 	int error;
- 	u32 new_flags, flags;
- 
--	error = gfs2_glock_nq_init(ip->i_gl, LM_ST_EXCLUSIVE, 0, &gh);
-+	error = mnt_want_write(filp->f_path.mnt);
- 	if (error)
- 		return error;
- 
-+	error = gfs2_glock_nq_init(ip->i_gl, LM_ST_EXCLUSIVE, 0, &gh);
-+	if (error)
-+		goto out_drop_write;
-+
- 	flags = ip->i_di.di_flags;
- 	new_flags = (flags & ~mask) | (reqflags & mask);
- 	if ((new_flags ^ flags) == 0)
-@@ -242,7 +247,7 @@ static int do_gfs2_set_flags(struct file
- 	    !capable(CAP_LINUX_IMMUTABLE))
- 		goto out;
- 	if (!IS_IMMUTABLE(inode)) {
--		error = permission(inode, MAY_WRITE, NULL);
-+		error = gfs2_do_permission(inode, MAY_WRITE);
- 		if (error)
- 			goto out;
- 	}
-@@ -272,6 +277,8 @@ out_trans_end:
- 	gfs2_trans_end(sdp);
- out:
- 	gfs2_glock_dq_uninit(&gh);
-+out_drop_write:
-+	mnt_drop_write(filp->f_path.mnt);
- 	return error;
+diff -puN fs/utimes.c~vfs-utimes-cleanup fs/utimes.c
+--- a/fs/utimes.c~vfs-utimes-cleanup
++++ a/fs/utimes.c
+@@ -53,54 +53,10 @@ static bool nsec_valid(long nsec)
+ 	return nsec >= 0 && nsec <= 999999999;
  }
  
-diff -puN fs/gfs2/ops_inode.c~gfs2-dont-call-permission fs/gfs2/ops_inode.c
---- a/fs/gfs2/ops_inode.c~gfs2-dont-call-permission
-+++ a/fs/gfs2/ops_inode.c
-@@ -163,7 +163,7 @@ static int gfs2_link(struct dentry *old_
- 	if (error)
- 		goto out;
+-/* If times==NULL, set access and modification to current time,
+- * must be owner or have write permission.
+- * Else, update from *times, must be owner or super user.
+- */
+-long do_utimes(int dfd, char __user *filename, struct timespec *times, int flags)
++static int utimes_common(struct path *path, struct timespec *times)
+ {
+ 	int error;
+-	struct nameidata nd;
+-	struct dentry *dentry;
+-	struct inode *inode;
+ 	struct iattr newattrs;
+-	struct file *f = NULL;
+-	struct vfsmount *mnt;
+-
+-	error = -EINVAL;
+-	if (times && (!nsec_valid(times[0].tv_nsec) ||
+-		      !nsec_valid(times[1].tv_nsec))) {
+-		goto out;
+-	}
+-
+-	if (flags & ~AT_SYMLINK_NOFOLLOW)
+-		goto out;
+-
+-	if (filename == NULL && dfd != AT_FDCWD) {
+-		error = -EINVAL;
+-		if (flags & AT_SYMLINK_NOFOLLOW)
+-			goto out;
+-
+-		error = -EBADF;
+-		f = fget(dfd);
+-		if (!f)
+-			goto out;
+-		dentry = f->f_path.dentry;
+-		mnt = f->f_path.mnt;
+-	} else {
+-		error = __user_walk_fd(dfd, filename, (flags & AT_SYMLINK_NOFOLLOW) ? 0 : LOOKUP_FOLLOW, &nd);
+-		if (error)
+-			goto out;
+-
+-		dentry = nd.path.dentry;
+-		mnt = nd.path.mnt;
+-	}
+-
+-	inode = dentry->d_inode;
+-
+-	error = mnt_want_write(mnt);
+-	if (error)
+-		goto dput_and_out;
  
--	error = permission(dir, MAY_WRITE | MAY_EXEC, NULL);
-+	error = gfs2_do_permission(dir, MAY_WRITE | MAY_EXEC);
- 	if (error)
- 		goto out_gunlock;
- 
-@@ -669,7 +669,7 @@ static int gfs2_rename(struct inode *odi
- 			}
+ 	/* Don't worry, the checks are done in inode_change_ok() */
+ 	newattrs.ia_valid = ATTR_CTIME | ATTR_MTIME | ATTR_ATIME;
+@@ -121,41 +77,118 @@ long do_utimes(int dfd, char __user *fil
+ 			newattrs.ia_valid |= ATTR_MTIME_SET;
  		}
- 	} else {
--		error = permission(ndir, MAY_WRITE | MAY_EXEC, NULL);
-+		error = gfs2_do_permission(ndir, MAY_WRITE | MAY_EXEC);
- 		if (error)
- 			goto out_gunlock;
- 
-@@ -704,7 +704,7 @@ static int gfs2_rename(struct inode *odi
- 	/* Check out the dir to be renamed */
- 
- 	if (dir_rename) {
--		error = permission(odentry->d_inode, MAY_WRITE, NULL);
-+		error = gfs2_do_permission(odentry->d_inode, MAY_WRITE);
- 		if (error)
- 			goto out_gunlock;
  	}
-@@ -891,7 +891,7 @@ static void *gfs2_follow_link(struct den
-  * Returns: errno
-  */
- 
--static int gfs2_permission(struct inode *inode, int mask, struct nameidata *nd)
-+int gfs2_do_permission(struct inode *inode, int mask)
- {
- 	struct gfs2_inode *ip = GFS2_I(inode);
- 	struct gfs2_holder i_gh;
-@@ -905,13 +905,21 @@ static int gfs2_permission(struct inode 
- 		unlock = 1;
- 	}
- 
--	error = generic_permission(inode, mask, gfs2_check_acl);
-+	if ((mask & MAY_WRITE) && IS_IMMUTABLE(inode))
-+		error = -EACCES;
-+	else
-+		error = generic_permission(inode, mask, gfs2_check_acl);
- 	if (unlock)
- 		gfs2_glock_dq_uninit(&i_gh);
- 
- 	return error;
- }
- 
-+static int gfs2_permission(struct inode *inode, int mask, struct nameidata *nd)
-+{
-+	return gfs2_do_permission(inode, mask);
++	mutex_lock(&path->dentry->d_inode->i_mutex);
++	error = mnt_want_write(path->mnt);
++	if (!error) {
++		error = notify_change(path->dentry, &newattrs);
++		mnt_drop_write(path->mnt);
++	}
++	mutex_unlock(&path->dentry->d_inode->i_mutex);
++
++	return error;
 +}
 +
- static int setattr_size(struct inode *inode, struct iattr *attr)
- {
- 	struct gfs2_inode *ip = GFS2_I(inode);
++/*
++ * If times is NULL or both times are either UTIME_OMIT or UTIME_NOW, then
++ * need to check permissions, because inode_change_ok() won't do it.
++ */
++static bool utimes_need_permission(struct timespec *times)
++{
++	return !times || (nsec_special(times[0].tv_nsec) &&
++			  nsec_special(times[1].tv_nsec));
++}
++
++static int do_futimes(int fd, struct timespec *times)
++{
++	int error;
++	struct file *file = fget(fd);
++
++	if (!file)
++		return -EBADF;
++
++	if (utimes_need_permission(times)) {
++		struct inode *inode = file->f_path.dentry->d_inode;
++
++		error = -EACCES;
++		if (!is_owner_or_cap(inode) && !(file->f_mode & FMODE_WRITE))
++			goto out_fput;
++	}
++	error = utimes_common(&file->f_path, times);
++
++ out_fput:
++	fput(file);
++
++	return error;
++}
++
++static int do_utimes_name(int dfd, char __user *filename,
++			  struct timespec *times, int flags)
++{
++	int error;
++	struct nameidata nd;
++	int lookup_flags;
++
++	if (flags & ~AT_SYMLINK_NOFOLLOW)
++		return -EINVAL;
++
++	lookup_flags = (flags & AT_SYMLINK_NOFOLLOW) ? 0 : LOOKUP_FOLLOW;
++	error = __user_walk_fd(dfd, filename, lookup_flags, &nd);
++	if (error)
++		return error;
++
++
++	if (utimes_need_permission(times)) {
++		struct inode *inode = nd.path.dentry->d_inode;
+ 
+-	/*
+-	 * If times is NULL or both times are either UTIME_OMIT or
+-	 * UTIME_NOW, then need to check permissions, because
+-	 * inode_change_ok() won't do it.
+-	 */
+-	if (!times || (nsec_special(times[0].tv_nsec) &&
+-		       nsec_special(times[1].tv_nsec))) {
+ 		error = -EACCES;
+-		if (!f && IS_IMMUTABLE(inode))
+-			goto mnt_drop_write_and_out;
++		if (IS_IMMUTABLE(inode))
++			goto out_path_put;
+ 
+ 		if (!is_owner_or_cap(inode)) {
+-			if (f) {
+-				if (!(f->f_mode & FMODE_WRITE))
+-					goto mnt_drop_write_and_out;
+-			} else {
+-				error = vfs_permission(&nd, MAY_WRITE);
+-				if (error)
+-					goto mnt_drop_write_and_out;
+-			}
++			error = vfs_permission(&nd, MAY_WRITE);
++			if (error)
++				goto out_path_put;
+ 		}
+ 	}
+-	mutex_lock(&inode->i_mutex);
+-	error = notify_change(dentry, &newattrs);
+-	mutex_unlock(&inode->i_mutex);
+-mnt_drop_write_and_out:
+-	mnt_drop_write(mnt);
+-dput_and_out:
+-	if (f)
+-		fput(f);
+-	else
+-		path_put(&nd.path);
+-out:
++	error = utimes_common(&nd.path, times);
++
++ out_path_put:
++	path_put(&nd.path);
++
+ 	return error;
++
++}
++
++/*
++ * do_utimes - change times on filename or file descriptor
++ * @dfd: open file descriptor, -1 or AT_FDCWD
++ * @filename: path name or NULL
++ * @times: new times or NULL
++ * @flags: zero or more flags (only AT_SYMLINK_NOFOLLOW for the moment)
++ *
++ * If filename is NULL and dfd refers to an open file, then operate on
++ * the file.  Otherwise look up filename, possibly using dfd as a
++ * starting point.
++ *
++ * If times==NULL, set access and modification to current time,
++ * must be owner or have write permission.
++ * Else, update from *times, must be owner or super user.
++ */
++int do_utimes(int dfd, char __user *filename, struct timespec *times, int flags)
++{
++	if (times && (!nsec_valid(times[0].tv_nsec) ||
++		      !nsec_valid(times[1].tv_nsec))) {
++		return -EINVAL;
++	}
++
++	if (filename == NULL && dfd != AT_FDCWD) {
++		if (flags)
++			return -EINVAL;
++
++		return do_futimes(dfd, times);
++	} else {
++		return do_utimes_name(dfd, filename, times, flags);
++	}
+ }
+ 
+ asmlinkage long sys_utimensat(int dfd, char __user *filename, struct timespec __user *utimes, int flags)
+diff -puN include/linux/time.h~vfs-utimes-cleanup include/linux/time.h
+--- a/include/linux/time.h~vfs-utimes-cleanup
++++ a/include/linux/time.h
+@@ -110,7 +110,8 @@ extern void do_gettimeofday(struct timev
+ extern int do_settimeofday(struct timespec *tv);
+ extern int do_sys_settimeofday(struct timespec *tv, struct timezone *tz);
+ #define do_posix_clock_monotonic_gettime(ts) ktime_get_ts(ts)
+-extern long do_utimes(int dfd, char __user *filename, struct timespec *times, int flags);
++extern int do_utimes(int dfd, char __user *filename, struct timespec *times,
++		     int flags);
+ struct itimerval;
+ extern int do_setitimer(int which, struct itimerval *value,
+ 			struct itimerval *ovalue);
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
