@@ -1,107 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: - reiserfs-dont-call-notify_change.patch removed from -mm tree
-Date: Sat, 31 May 2008 00:42:23 -0700
-Message-ID: <200805310742.m4V7gNfG000907@imap1.linux-foundation.org>
+Subject: - hppfs-remove-hppfs_permission.patch removed from -mm tree
+Date: Sat, 31 May 2008 00:42:39 -0700
+Message-ID: <200805310742.m4V7gdYX000925@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34370 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57764 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751227AbYEaHnP (ORCPT
+	by vger.kernel.org with ESMTP id S1751237AbYEaHnX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 31 May 2008 03:43:15 -0400
+	Sat, 31 May 2008 03:43:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mszeredi@suse.cz, hch@lst.de, jeffm@suse.de, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: mszeredi@suse.cz, hch@lst.de, jdike@linux.intel.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     reiserfs: dont call notify_change
+     hppfs: remove hppfs_permission
 has been removed from the -mm tree.  Its filename was
-     reiserfs-dont-call-notify_change.patch
+     hppfs-remove-hppfs_permission.patch
 
 This patch was dropped because it's more controversial than was first thought, and it was sent off-list
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: reiserfs: dont call notify_change
+Subject: hppfs: remove hppfs_permission
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-Reiserfs calls notify_change() on it's private extended attribute
-files to resize and change ownership of these files.  Replace with
-reiserfs_setattr().
-
-This is equivalent, except that:
-
- - i_alloc_sem locking is not performed around reiserfs_setattr() when
-   the size is changed
- - security_inode_setattr() is not called before reiserfs_setattr()
- - fsnotify_change() is not called after reiserfs_setattr()
-
-None of the above is necessary, since the files are private to
-reiserfs and inaccessible from userspace.
-
-Also remove setting of ctime on the xattr files.
-
-Based on patch by Jeff Mahoney.
+hppfs_permission() is equivalent to the '.permission == NULL' case.
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Acked-by: Jeff Mahoney <jeffm@suse.de>
+Cc: Jeff Dike <jdike@linux.intel.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/xattr.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ fs/hppfs/hppfs.c |    7 -------
+ 1 file changed, 7 deletions(-)
 
-diff -puN fs/reiserfs/xattr.c~reiserfs-dont-call-notify_change fs/reiserfs/xattr.c
---- a/fs/reiserfs/xattr.c~reiserfs-dont-call-notify_change
-+++ a/fs/reiserfs/xattr.c
-@@ -458,9 +458,9 @@ reiserfs_xattr_set(struct inode *inode, 
+diff -puN fs/hppfs/hppfs.c~hppfs-remove-hppfs_permission fs/hppfs/hppfs.c
+--- a/fs/hppfs/hppfs.c~hppfs-remove-hppfs_permission
++++ a/fs/hppfs/hppfs.c
+@@ -655,20 +655,13 @@ static void *hppfs_follow_link(struct de
+ 	return proc_dentry->d_inode->i_op->follow_link(proc_dentry, nd);
+ }
  
- 	/* Resize it so we're ok to write there */
- 	newattrs.ia_size = buffer_size;
--	newattrs.ia_valid = ATTR_SIZE | ATTR_CTIME;
-+	newattrs.ia_valid = ATTR_SIZE;
- 	mutex_lock_nested(&xinode->i_mutex, I_MUTEX_XATTR);
--	err = notify_change(dentry, &newattrs);
-+	err = reiserfs_setattr(dentry, &newattrs);
- 	if (err)
- 		goto out_filp;
+-int hppfs_permission(struct inode *inode, int mask, struct nameidata *nd)
+-{
+-	return generic_permission(inode, mask, NULL);
+-}
+-
+ static const struct inode_operations hppfs_dir_iops = {
+ 	.lookup		= hppfs_lookup,
+-	.permission	= hppfs_permission,
+ };
  
-@@ -810,7 +810,7 @@ reiserfs_chown_xattrs_filler(void *buf, 
- 	}
+ static const struct inode_operations hppfs_link_iops = {
+ 	.readlink	= hppfs_readlink,
+ 	.follow_link	= hppfs_follow_link,
+-	.permission	= hppfs_permission,
+ };
  
- 	if (!S_ISDIR(xafile->d_inode->i_mode))
--		err = notify_change(xafile, attrs);
-+		err = reiserfs_setattr(xafile, attrs);
- 	dput(xafile);
- 
- 	return err;
-@@ -843,7 +843,7 @@ int reiserfs_chown_xattrs(struct inode *
- 
- 	lock_kernel();
- 
--	attrs->ia_valid &= (ATTR_UID | ATTR_GID | ATTR_CTIME);
-+	attrs->ia_valid &= (ATTR_UID | ATTR_GID);
- 	buf.xadir = dir;
- 	buf.attrs = attrs;
- 	buf.inode = inode;
-@@ -854,7 +854,7 @@ int reiserfs_chown_xattrs(struct inode *
- 		goto out_dir;
- 	}
- 
--	err = notify_change(dir, attrs);
-+	err = reiserfs_setattr(dir, attrs);
- 	unlock_kernel();
- 
-       out_dir:
+ static struct inode *get_inode(struct super_block *sb, struct dentry *dentry)
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
 
-sysfs-dont-call-notify_change.patch
 gfs2-dont-call-permission.patch
 vfs-immutable-inode-checking-cleanup.patch
 vfs-truncate-dont-check-immutable-twice.patch
@@ -111,12 +76,7 @@ vfs-utimes-cleanup.patch
 vfs-dcache-cleanups.patch
 vfs-fix-sys_getcwd-for-detached-mounts.patch
 git-unprivileged-mounts.patch
-reiserfs-dont-call-vfs_rmdir.patch
-reiserfs-dont-call-notify_change.patch
-hpfs-dont-call-notify_change.patch
-hpfs-dont-call-permission.patch
 hppfs-remove-hppfs_permission.patch
-fat-dont-call-notify_change.patch
 lockd-dont-return-eagain-for-a-permanent-error.patch
 locks-add-special-return-value-for-asynchronous-locks.patch
 locks-cleanup-code-duplication.patch
