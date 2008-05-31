@@ -1,83 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: - cgroup-dont-call-vfs_mkdir.patch removed from -mm tree
-Date: Sat, 31 May 2008 00:42:20 -0700
-Message-ID: <200805310742.m4V7gKiH000902@imap1.linux-foundation.org>
+Subject: - reiserfs-dont-call-vfs_rmdir.patch removed from -mm tree
+Date: Sat, 31 May 2008 00:42:25 -0700
+Message-ID: <200805310742.m4V7gPuY000910@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60187 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39038 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751034AbYEaHnO (ORCPT
+	by vger.kernel.org with ESMTP id S1751147AbYEaHnP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 31 May 2008 03:43:14 -0400
+	Sat, 31 May 2008 03:43:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mszeredi@suse.cz, balbir@in.ibm.com, hch@lst.de, menage@google.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: mszeredi@suse.cz, hch@lst.de, jeffm@suse.de, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cgroup: dont call vfs_mkdir
+     reiserfs: dont call vfs_rmdir
 has been removed from the -mm tree.  Its filename was
-     cgroup-dont-call-vfs_mkdir.patch
+     reiserfs-dont-call-vfs_rmdir.patch
 
 This patch was dropped because it's more controversial than was first thought, and it was sent off-list
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroup: dont call vfs_mkdir
+Subject: reiserfs: dont call vfs_rmdir
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-cgroup_clone() calls vfs_mkdir() to create a directory in the cgroup
-filesystem.  Replace with explicit call to cgroup_mkdir() and
-fsnotify_mkdir().
+reiserfs_delete_xattrs() calls vfs_rmdir() to remove the private
+directory associated with the extended attributes for an inode.
+Replace with explicit call to reiserfs_rmdir().
 
-This is equivalent, except that the following functions are not called
-before cgroup_mkdir():
+The extended attribute files reside in a private directory, completely
+inaccessible from userspace.  This means, that checking against mounts
+on the dentry is not necessary.
 
- - may_create()
- - security_inode_mkdir()
- - DQUOT_INIT()
+The calls to may_delete() and security_inode_rmdir(), as performed by
+vfs_rmdir() are also unecessary for this case.
 
-Permission to clone the cgroup has already been checked in
-copy_namespaces() (requiring CAP_SYS_ADMIN).  Additional file system
-related capability checks are inappropriate and confusing.
-
-The quota check is unnecessary, as quotas don't make any sense for
-this filesystem.
+Based on patch by Jeff Mahoney.
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Cc: Paul Menage <menage@google.com>
+Acked-by: Jeff Mahoney <jeffm@suse.de>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Christoph Hellwig <hch@lst.de>
-Cc: Balbir Singh <balbir@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ fs/reiserfs/namei.c         |    2 +-
+ fs/reiserfs/xattr.c         |   22 +++++++++++++++++++++-
+ include/linux/reiserfs_fs.h |    1 +
+ 3 files changed, 23 insertions(+), 2 deletions(-)
 
-diff -puN kernel/cgroup.c~cgroup-dont-call-vfs_mkdir kernel/cgroup.c
---- a/kernel/cgroup.c~cgroup-dont-call-vfs_mkdir
-+++ a/kernel/cgroup.c
-@@ -25,6 +25,7 @@
- #include <linux/cgroup.h>
+diff -puN fs/reiserfs/namei.c~reiserfs-dont-call-vfs_rmdir fs/reiserfs/namei.c
+--- a/fs/reiserfs/namei.c~reiserfs-dont-call-vfs_rmdir
++++ a/fs/reiserfs/namei.c
+@@ -850,7 +850,7 @@ static inline int reiserfs_empty_dir(str
+ 	return 1;
+ }
+ 
+-static int reiserfs_rmdir(struct inode *dir, struct dentry *dentry)
++int reiserfs_rmdir(struct inode *dir, struct dentry *dentry)
+ {
+ 	int retval, err;
+ 	struct inode *inode;
+diff -puN fs/reiserfs/xattr.c~reiserfs-dont-call-vfs_rmdir fs/reiserfs/xattr.c
+--- a/fs/reiserfs/xattr.c~reiserfs-dont-call-vfs_rmdir
++++ a/fs/reiserfs/xattr.c
+@@ -35,6 +35,7 @@
+ #include <linux/namei.h>
  #include <linux/errno.h>
  #include <linux/fs.h>
-+#include <linux/fsnotify.h>
- #include <linux/kernel.h>
- #include <linux/list.h>
- #include <linux/mm.h>
-@@ -2930,7 +2931,9 @@ int cgroup_clone(struct task_struct *tsk
- 	}
++#include <linux/quotaops.h>
+ #include <linux/file.h>
+ #include <linux/pagemap.h>
+ #include <linux/xattr.h>
+@@ -712,6 +713,25 @@ reiserfs_delete_xattrs_filler(void *buf,
  
- 	/* Create the cgroup directory, which also creates the cgroup */
--	ret = vfs_mkdir(inode, dentry, S_IFDIR | 0755);
-+	ret = cgroup_mkdir(inode, dentry, S_IFDIR);
-+	if (!ret)
-+		fsnotify_mkdir(inode, dentry);
- 	child = __d_cgrp(dentry);
- 	dput(dentry);
- 	if (ret) {
+ }
+ 
++static int xattr_rmdir(struct inode *dir, struct dentry *dentry)
++{
++	int error;
++
++	DQUOT_INIT(dir);
++
++	mutex_lock_nested(&dentry->d_inode->i_mutex, I_MUTEX_CHILD);
++	dentry_unhash(dentry);
++	error = reiserfs_rmdir(dir, dentry);
++	if (!error)
++		dentry->d_inode->i_flags |= S_DEAD;
++	mutex_unlock(&dentry->d_inode->i_mutex);
++	if (!error)
++		d_delete(dentry);
++	dput(dentry);
++
++	return error;
++}
++
+ /* This is called w/ inode->i_mutex downed */
+ int reiserfs_delete_xattrs(struct inode *inode)
+ {
+@@ -746,7 +766,7 @@ int reiserfs_delete_xattrs(struct inode 
+ 	if (dir->d_inode->i_nlink <= 2) {
+ 		root = get_xa_root(inode->i_sb, XATTR_REPLACE);
+ 		reiserfs_write_lock_xattrs(inode->i_sb);
+-		err = vfs_rmdir(root->d_inode, dir);
++		err = xattr_rmdir(root->d_inode, dir);
+ 		reiserfs_write_unlock_xattrs(inode->i_sb);
+ 		dput(root);
+ 	} else {
+diff -puN include/linux/reiserfs_fs.h~reiserfs-dont-call-vfs_rmdir include/linux/reiserfs_fs.h
+--- a/include/linux/reiserfs_fs.h~reiserfs-dont-call-vfs_rmdir
++++ a/include/linux/reiserfs_fs.h
+@@ -1911,6 +1911,7 @@ static inline void reiserfs_update_sd(st
+ void sd_attrs_to_i_attrs(__u16 sd_attrs, struct inode *inode);
+ void i_attrs_to_sd_attrs(struct inode *inode, __u16 * sd_attrs);
+ int reiserfs_setattr(struct dentry *dentry, struct iattr *attr);
++int reiserfs_rmdir(struct inode *dir, struct dentry *dentry);
+ 
+ /* namei.c */
+ void set_de_name_and_namelen(struct reiserfs_dir_entry *de);
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
@@ -93,12 +136,10 @@ vfs-dcache-cleanups.patch
 vfs-fix-sys_getcwd-for-detached-mounts.patch
 git-unprivileged-mounts.patch
 reiserfs-dont-call-vfs_rmdir.patch
-reiserfs-dont-call-notify_change.patch
 hpfs-dont-call-notify_change.patch
 hpfs-dont-call-permission.patch
 hppfs-remove-hppfs_permission.patch
 fat-dont-call-notify_change.patch
-cgroup-dont-call-vfs_mkdir.patch
 lockd-dont-return-eagain-for-a-permanent-error.patch
 locks-add-special-return-value-for-asynchronous-locks.patch
 locks-cleanup-code-duplication.patch
