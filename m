@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-char-ip2-fix-kconfig-after-ip2-ip2main-merge.patch added to -mm tree
-Date: Fri, 30 May 2008 17:55:32 -0700
-Message-ID: <200805310055.m4V0tW3F020173@imap1.linux-foundation.org>
+Subject: + doc-document-the-kernel-doc-conventions-for-kernel-hackers-grammar-fixes.patch added to -mm tree
+Date: Fri, 30 May 2008 18:04:11 -0700
+Message-ID: <200805310104.m4V14BXJ020506@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43316 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53003 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751446AbYEaA4X (ORCPT
+	by vger.kernel.org with ESMTP id S1751484AbYEaBEV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 May 2008 20:56:23 -0400
+	Fri, 30 May 2008 21:04:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: devzero@web.de, alan@redhat.com, jirislaby@gmail.com
+Cc: pj@sgi.com, alan@lxorguk.ukuu.org.uk, rdunlap@xenotime.net
 
 
 The patch titled
-     drivers/char/ip2: fix Kconfig after ip2/ip2main merge
+     doc: document the kernel-doc conventions for kernel hackers grammar fixes
 has been added to the -mm tree.  Its filename is
-     drivers-char-ip2-fix-kconfig-after-ip2-ip2main-merge.patch
+     doc-document-the-kernel-doc-conventions-for-kernel-hackers-grammar-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/char/ip2: fix Kconfig after ip2/ip2main merge
-From: devzero@web.de
+Subject: doc: document the kernel-doc conventions for kernel hackers grammar fixes
+From: Paul Jackson <pj@sgi.com>
 
-As commit 6089093e588ee3f6aed99d08b1cf5ea37c52cf97 is fixing ip2 crashes
-on load/unload and making ip2/ip2main one module (ip2), Kconfig shouldn't
-mention a non existing module.
-
-Signed-off-by: Roland.Kletzing <devzero@web.de>
-Cc: Alan Cox <alan@redhat.com>
-Cc: Jiri Slaby <jirislaby@gmail.com>
+Acked-by: Randy Dunlap <rdunlap@xenotime.net>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/Kconfig |    4 ++--
+ Documentation/kernel-doc-nano-HOWTO.txt |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/Kconfig~drivers-char-ip2-fix-kconfig-after-ip2-ip2main-merge drivers/char/Kconfig
---- a/drivers/char/Kconfig~drivers-char-ip2-fix-kconfig-after-ip2-ip2main-merge
-+++ a/drivers/char/Kconfig
-@@ -118,8 +118,8 @@ config COMPUTONE
- 	  order to become a dial-in server. If you have a card like that, say
- 	  Y here and read <file:Documentation/computone.txt>.
+diff -puN Documentation/kernel-doc-nano-HOWTO.txt~doc-document-the-kernel-doc-conventions-for-kernel-hackers-grammar-fixes Documentation/kernel-doc-nano-HOWTO.txt
+--- a/Documentation/kernel-doc-nano-HOWTO.txt~doc-document-the-kernel-doc-conventions-for-kernel-hackers-grammar-fixes
++++ a/Documentation/kernel-doc-nano-HOWTO.txt
+@@ -4,14 +4,14 @@ kernel-doc nano-HOWTO
+ How to format kernel-doc comments
+ ---------------------------------
  
--	  To compile this driver as modules, choose M here: the
--	  modules will be called ip2 and ip2main.
-+         To compile this driver as module, choose M here: the
-+         module will be called ip2.
+-In order to provide an embedded, 'C' friendly, easy to maintain,
++In order to provide embedded, 'C' friendly, easy to maintain,
+ but consistent and extractable documentation of the functions and
+ data structures in the Linux kernel, the Linux kernel has adopted
+ a consistent style for documenting functions and their parameters,
+ and structures and their members.
  
- config ROCKETPORT
- 	tristate "Comtrol RocketPort support"
+ The format for this documentation is called the kernel-doc format.
+-It as documented in this Documentation/kernel-doc-nano-HOWTO.txt file.
++It is documented in this Documentation/kernel-doc-nano-HOWTO.txt file.
+ 
+ This style embeds the documentation within the source files, using
+ a few simple conventions.  The scripts/kernel-doc perl script, some
 _
 
-Patches currently in -mm which might be from devzero@web.de are
+Patches currently in -mm which might be from pj@sgi.com are
 
-drivers-char-ip2-fix-kconfig-after-ip2-ip2main-merge.patch
-mdacon-messing-up-default-vcs-set-default-to-vc13-16-again.patch
+cpusets-fix-and-update-documentation.patch
+linux-next.patch
+cpusets-fix-bug-when-adding-nonexistent-cpu-or-mem.patch
+doc-document-the-kernel-doc-conventions-for-kernel-hackers.patch
+doc-document-the-kernel-doc-conventions-for-kernel-hackers-grammar-fixes.patch
 
