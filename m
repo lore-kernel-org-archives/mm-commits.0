@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fat-dont-call-notify_change.patch added to -mm tree
-Date: Fri, 30 May 2008 17:13:13 -0700
-Message-ID: <200805310013.m4V0DE07018607@imap1.linux-foundation.org>
+Subject: + hpfs-dont-call-permission.patch added to -mm tree
+Date: Fri, 30 May 2008 17:13:16 -0700
+Message-ID: <200805310013.m4V0DGZY018610@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47128 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45506 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753540AbYEaAN1 (ORCPT
+	by vger.kernel.org with ESMTP id S1753381AbYEaANa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 May 2008 20:13:27 -0400
+	Fri, 30 May 2008 20:13:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mszeredi@suse.cz, hch@lst.de, hirofumi@mail.parknet.co.jp, viro@zeniv.linux.org.uk
+Cc: mszeredi@suse.cz, hch@lst.de, mikulas@artax.karlin.mff.cuni.cz, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     fat: dont call notify_change
+     hpfs: dont call permission()
 has been added to the -mm tree.  Its filename is
-     fat-dont-call-notify_change.patch
+     hpfs-dont-call-permission.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,84 +34,45 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fat: dont call notify_change
+Subject: hpfs: dont call permission()
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-The FAT_IOCTL_SET_ATTRIBUTES ioctl() calls notify_change() to change
-the file mode before changing the inode attributes.  Replace with
-explicit calls to security_inode_setattr(), fat_setattr() and
-fsnotify_change().
+hpfs_unlink() calls permission() prior to truncating the file.  HPFS
+doesn't define a .permission method, so replace with explicit call to
+generic_permission().
 
-This is equivalent to the original.  The reason it is needed, is that
-later in the series we move the immutable check into notify_change().
-That would break the FAT_IOCTL_SET_ATTRIBUTES ioctl, as it needs to
-perform the mode change regardless of the immutability of the file.
+This is equivalent, except that devcgroup_inode_permission() and
+security_inode_permission() are not called.
+
+The truncation is just an implementation detail of the unlink, so
+these security checks are unnecessary.
+
+I suspect that even calling generic_permission() is unnecessary, since
+we shouldn't mind if the file isn't writable.  But I leave that to the
+maintainer to decide.
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/file.c       |   15 ++++++++++++++-
- security/security.c |    1 +
- 2 files changed, 15 insertions(+), 1 deletion(-)
+ fs/hpfs/namei.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/fat/file.c~fat-dont-call-notify_change fs/fat/file.c
---- a/fs/fat/file.c~fat-dont-call-notify_change
-+++ a/fs/fat/file.c
-@@ -15,6 +15,8 @@
- #include <linux/writeback.h>
- #include <linux/backing-dev.h>
- #include <linux/blkdev.h>
-+#include <linux/fsnotify.h>
-+#include <linux/security.h>
- 
- int fat_generic_ioctl(struct inode *inode, struct file *filp,
- 		      unsigned int cmd, unsigned long arg)
-@@ -64,6 +66,7 @@ int fat_generic_ioctl(struct inode *inod
- 
- 		/* Equivalent to a chmod() */
- 		ia.ia_valid = ATTR_MODE | ATTR_CTIME;
-+		ia.ia_ctime = current_fs_time(inode->i_sb);
- 		if (is_dir) {
- 			ia.ia_mode = MSDOS_MKMODE(attr,
- 				S_IRWXUGO & ~sbi->options.fs_dmask)
-@@ -90,11 +93,21 @@ int fat_generic_ioctl(struct inode *inod
- 			}
- 		}
- 
-+		/*
-+		 * The security check is questionable...  We single
-+		 * out the RO attribute for checking by the security
-+		 * module, just because it maps to a file mode.
-+		 */
-+		err = security_inode_setattr(filp->f_path.dentry, &ia);
-+		if (err)
-+			goto up;
-+
- 		/* This MUST be done before doing anything irreversible... */
--		err = notify_change(filp->f_path.dentry, &ia);
-+		err = fat_setattr(filp->f_path.dentry, &ia);
- 		if (err)
- 			goto up;
- 
-+		fsnotify_change(filp->f_path.dentry, ia.ia_valid);
- 		if (sbi->options.sys_immutable) {
- 			if (attr & ATTR_SYS)
- 				inode->i_flags |= S_IMMUTABLE;
-diff -puN security/security.c~fat-dont-call-notify_change security/security.c
---- a/security/security.c~fat-dont-call-notify_change
-+++ a/security/security.c
-@@ -477,6 +477,7 @@ int security_inode_setattr(struct dentry
- 		return 0;
- 	return security_ops->inode_setattr(dentry, attr);
- }
-+EXPORT_SYMBOL_GPL(security_inode_setattr);
- 
- int security_inode_getattr(struct vfsmount *mnt, struct dentry *dentry)
- {
+diff -puN fs/hpfs/namei.c~hpfs-dont-call-permission fs/hpfs/namei.c
+--- a/fs/hpfs/namei.c~hpfs-dont-call-permission
++++ a/fs/hpfs/namei.c
+@@ -415,7 +415,7 @@ again:
+ 		d_drop(dentry);
+ 		spin_lock(&dentry->d_lock);
+ 		if (atomic_read(&dentry->d_count) > 1 ||
+-		    permission(inode, MAY_WRITE, NULL) ||
++		    generic_permission(inode, MAY_WRITE, NULL) ||
+ 		    !S_ISREG(inode->i_mode) ||
+ 		    get_write_access(inode)) {
+ 			spin_unlock(&dentry->d_lock);
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
