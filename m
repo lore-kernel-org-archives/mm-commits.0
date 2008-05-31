@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-fix-sys_getcwd-for-detached-mounts.patch added to -mm tree
-Date: Fri, 30 May 2008 17:13:35 -0700
-Message-ID: <200805310013.m4V0DZOn018646@imap1.linux-foundation.org>
+Subject: + vfs-utimes-immutable-fix.patch added to -mm tree
+Date: Fri, 30 May 2008 17:13:28 -0700
+Message-ID: <200805310013.m4V0DS6P018634@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57821 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33710 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756578AbYEaANu (ORCPT
+	by vger.kernel.org with ESMTP id S1756601AbYEaAN7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 May 2008 20:13:50 -0400
+	Fri, 30 May 2008 20:13:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mszeredi@suse.cz, hch@lst.de, jjohansen@suse.de, viro@zeniv.linux.org.uk
+Cc: mszeredi@suse.cz, drepper@redhat.com, hch@lst.de, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     vfs: fix sys_getcwd for detached mounts
+     vfs: utimes immutable fix
 has been added to the -mm tree.  Its filename is
-     vfs-fix-sys_getcwd-for-detached-mounts.patch
+     vfs-utimes-immutable-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,62 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: fix sys_getcwd for detached mounts
+Subject: vfs: utimes immutable fix
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-Currently getcwd(2) on a detached mount will give a garbled result:
-
-   > mkdir /mnt/foo
-   > mount --bind /etc /mnt/foo
-   > cd /mnt/foo/skel
-   > /bin/pwd
-   /mnt/foo/skel
-   > umount -l /mnt/foo
-   > /bin/pwd
-   etcskel
-
-After the patch it will give a much saner "/skel" result.
-
-Thanks to John Johansen for pointing out this bug.
+If updating file times to the current time and using a file
+descriptor, then don't check for immutable inode, only if the file is
+opened for write.  In this case immutability has been checked at open
+time.  This is the same as how write() and ftruncate() are handled.
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Reported-by: John Johansen <jjohansen@suse.de>
+Cc: Ulrich Drepper <drepper@redhat.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dcache.c |   18 ++++++++++++++----
- 1 file changed, 14 insertions(+), 4 deletions(-)
+ fs/utimes.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/dcache.c~vfs-fix-sys_getcwd-for-detached-mounts fs/dcache.c
---- a/fs/dcache.c~vfs-fix-sys_getcwd-for-detached-mounts
-+++ a/fs/dcache.c
-@@ -1952,10 +1952,20 @@ char *__d_path(const struct path *path, 
- 	return retval;
+diff -puN fs/utimes.c~vfs-utimes-immutable-fix fs/utimes.c
+--- a/fs/utimes.c~vfs-utimes-immutable-fix
++++ a/fs/utimes.c
+@@ -130,7 +130,7 @@ long do_utimes(int dfd, char __user *fil
+ 	if (!times || (nsec_special(times[0].tv_nsec) &&
+ 		       nsec_special(times[1].tv_nsec))) {
+ 		error = -EACCES;
+-                if (IS_IMMUTABLE(inode))
++		if (!f && IS_IMMUTABLE(inode))
+ 			goto mnt_drop_write_and_out;
  
- global_root:
--	retval += 1;	/* hit the slash */
--	name = &dentry->d_name;
--	if (prepend(&retval, &buflen, name->name, name->len) != 0)
--		goto Elong;
-+	/*
-+	 * If this is a root dentry, then overwrite the slash.  This
-+	 * will also DTRT with pseudo filesystems which have root
-+	 * dentries named "foo:".
-+	 *
-+	 * Otherwise this is the root of a detached mount, so don't do
-+	 * anything.
-+	 */
-+	if (IS_ROOT(dentry)) {
-+		retval += 1;
-+		name = &dentry->d_name;
-+		if (prepend(&retval, &buflen, name->name, name->len) != 0)
-+			goto Elong;
-+	}
- 	root->mnt = vfsmnt;
- 	root->dentry = dentry;
- 	return retval;
+ 		if (!is_owner_or_cap(inode)) {
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
