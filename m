@@ -1,122 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: - make-struct-mpt_proc_root_dir-static.patch removed from -mm tree
-Date: Mon, 02 Jun 2008 13:01:01 -0700
-Message-ID: <200806022001.m52K11QV030120@imap1.linux-foundation.org>
+Subject: - leds-add-pca9532-platform-data-for-thecus-n2100.patch removed from -mm tree
+Date: Mon, 02 Jun 2008 13:00:53 -0700
+Message-ID: <200806022000.m52K0rWj030111@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33211 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35087 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754226AbYFBUBv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Jun 2008 16:01:51 -0400
+	by vger.kernel.org with ESMTP id S1752078AbYFBUBt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Jun 2008 16:01:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, Eric.Moore@lsil.com, James.Bottomley@HansenPartnership.com, Sathya.Prakash@lsi.com, mm-commits@vger.kernel.org
+To: riku.voipio@iki.fi, buytenh@wantstofly.org, rmk@arm.linux.org.uk, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     make struct mpt_proc_root_dir static
+     leds: add pca9532 platform data for Thecus N2100
 has been removed from the -mm tree.  Its filename was
-     make-struct-mpt_proc_root_dir-static.patch
+     leds-add-pca9532-platform-data-for-thecus-n2100.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: make struct mpt_proc_root_dir static
-From: Adrian Bunk <bunk@kernel.org>
+Subject: leds: add pca9532 platform data for Thecus N2100
+From: Riku Voipio <riku.voipio@iki.fi>
 
-This patch makes the needlessly global struct mpt_proc_root_dir static.
+Thecus N2100 has leds and a buzzer attached to a pca9532 controller.  Attach
+the driver to the i2c bus and define the pca9532 pin coniguration for this
+platform in n2100_leds.
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: "Moore, Eric Dean" <Eric.Moore@lsil.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+With this patch, support for N2100 should be complete in mainline Linux.
+
+Signed-off-by: Riku Voipio <riku.voipio@iki.fi>
+Acked-by: Richard Purdie <rpurdie@rpsys.net>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Acked-by: Lennert Buytenhek <buytenh@wantstofly.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/message/fusion/mptbase.c |    3 +--
- drivers/message/fusion/mptbase.h |    1 -
- 2 files changed, 1 insertion(+), 3 deletions(-)
+ arch/arm/mach-iop32x/n2100.c |   52 +++++++++++++++++++++++++++++++++
+ 1 file changed, 52 insertions(+)
 
-diff -puN drivers/message/fusion/mptbase.c~make-struct-mpt_proc_root_dir-static drivers/message/fusion/mptbase.c
---- a/drivers/message/fusion/mptbase.c~make-struct-mpt_proc_root_dir-static
-+++ a/drivers/message/fusion/mptbase.c
-@@ -103,7 +103,7 @@ static int mfcounter = 0;
-  *  Public data...
-  */
+diff -puN arch/arm/mach-iop32x/n2100.c~leds-add-pca9532-platform-data-for-thecus-n2100 arch/arm/mach-iop32x/n2100.c
+--- a/arch/arm/mach-iop32x/n2100.c~leds-add-pca9532-platform-data-for-thecus-n2100
++++ a/arch/arm/mach-iop32x/n2100.c
+@@ -17,6 +17,7 @@
+ #include <linux/mm.h>
+ #include <linux/init.h>
+ #include <linux/f75375s.h>
++#include <linux/leds-pca9532.h>
+ #include <linux/delay.h>
+ #include <linux/kernel.h>
+ #include <linux/pci.h>
+@@ -206,6 +207,53 @@ static struct f75375s_platform_data n210
+ 	.pwm_enable = { 0, 0 },
+ };
  
--struct proc_dir_entry *mpt_proc_root_dir;
-+static struct proc_dir_entry *mpt_proc_root_dir;
++static struct pca9532_platform_data n2100_leds = {
++	.leds = {
++	{	.name = "n2100:red:satafail0",
++		.state = PCA9532_OFF,
++		.type = PCA9532_TYPE_LED,
++	},
++	{	.name = "n2100:red:satafail1",
++		.state = PCA9532_OFF,
++		.type = PCA9532_TYPE_LED,
++	},
++	{	.name = "n2100:blue:usb",
++		.state = PCA9532_OFF,
++		.type = PCA9532_TYPE_LED,
++	},
++	{ 	.type = PCA9532_TYPE_NONE },
++
++	{ 	.type = PCA9532_TYPE_NONE },
++	{ 	.type = PCA9532_TYPE_NONE },
++	{ 	.type = PCA9532_TYPE_NONE },
++	{	.name = "n2100:red:usb",
++		.state = PCA9532_OFF,
++		.type = PCA9532_TYPE_LED,
++	},
++
++	{	.type = PCA9532_TYPE_NONE }, /* power OFF gpio */
++	{	.type = PCA9532_TYPE_NONE }, /* reset gpio */
++	{	.type = PCA9532_TYPE_NONE },
++	{	.type = PCA9532_TYPE_NONE },
++
++	{	.type = PCA9532_TYPE_NONE },
++	{	.name = "n2100:orange:system",
++		.state = PCA9532_OFF,
++		.type = PCA9532_TYPE_LED,
++	},
++	{	.name = "n2100:red:system",
++		.state = PCA9532_OFF,
++		.type = PCA9532_TYPE_LED,
++	},
++	{	.name = "N2100 beeper"  ,
++		.state =  PCA9532_OFF,
++		.type = PCA9532_TYPE_N2100_BEEP,
++	},
++	},
++	.psc = { 0, 0 },
++	.pwm = { 0, 0 },
++};
++
+ static struct i2c_board_info __initdata n2100_i2c_devices[] = {
+ 	{
+ 		I2C_BOARD_INFO("rs5c372b", 0x32),
+@@ -214,6 +262,10 @@ static struct i2c_board_info __initdata 
+ 		I2C_BOARD_INFO("f75375", 0x2e),
+ 		.platform_data = &n2100_f75375s,
+ 	},
++	{
++		I2C_BOARD_INFO("pca9532", 0x60),
++		.platform_data = &n2100_leds,
++	},
+ };
  
- #define WHOINIT_UNKNOWN		0xAA
- 
-@@ -7451,7 +7451,6 @@ EXPORT_SYMBOL(mpt_resume);
- EXPORT_SYMBOL(mpt_suspend);
- #endif
- EXPORT_SYMBOL(ioc_list);
--EXPORT_SYMBOL(mpt_proc_root_dir);
- EXPORT_SYMBOL(mpt_register);
- EXPORT_SYMBOL(mpt_deregister);
- EXPORT_SYMBOL(mpt_event_register);
-diff -puN drivers/message/fusion/mptbase.h~make-struct-mpt_proc_root_dir-static drivers/message/fusion/mptbase.h
---- a/drivers/message/fusion/mptbase.h~make-struct-mpt_proc_root_dir-static
-+++ a/drivers/message/fusion/mptbase.h
-@@ -908,7 +908,6 @@ extern int	 mpt_raid_phys_disk_pg0(MPT_A
-  *  Public data decl's...
-  */
- extern struct list_head	  ioc_list;
--extern struct proc_dir_entry	*mpt_proc_root_dir;
- 
- /*=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
- #endif		/* } __KERNEL__ */
+ /*
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from riku.voipio@iki.fi are
 
-origin.patch
-frv-dont-offer-binfmt_flat.patch
-linux-next.patch
-proper-prototype-for-acpi_processor_tstate_has_changed.patch
-remove-drivers-acorn-char-defkeymap-l7200c.patch
-drm-make-drm_minors_cleanup-static.patch
-if-0-ses_match_host.patch
-git-xtensa.patch
-mm-migratec-should-include-linux-syscallsh.patch
-mm-vmstatc-proper-externs.patch
-mm-hugetlbc-fix-duplicate-variable.patch
-remove-include-asm-h8300-keyboardh.patch
-remove-the-v850-port.patch
-init-do_mountsc-should-include-linux-initrdh.patch
-proper-spawn_ksoftirqd-prototype.patch
-build-kernel-profileo-only-when-requested.patch
-build-kernel-profileo-only-when-requested-cleanups.patch
-asm-generic-int-ll64h-always-provide-__su64.patch
-remove-some-more-tipar-bits.patch
-remove-the-oss-trident-driver.patch
-config_sound_wm97xx-remove-stale-makefile-line.patch
-serial-8250_gscc-add-module_license.patch
-mfd-sm501c-if-0-unused-functions.patch
-video-sis-remove-compat-code.patch
-minix-remove-no_truncate-code.patch
-remove-is_tty.patch
-proper-extern-for-mwave_s_mdd.patch
-if-0-hpet_unregister.patch
-unexport-proc_clear_tty.patch
-move-proc_kmsg_operations-to-fs-proc-internalh.patch
-proper-pidhashmap_init-prototypes.patch
-unexport-uts_sem.patch
-parport-sharec-proper-externs.patch
-tpm_biosc-make-2-structs-static.patch
-make-cgroup_seqfile_release-static.patch
-make-kprobe_blacklist-static.patch
-make-pnp_add_card_id-static.patch
-make-parport_cs_release-static.patch
-make-mm-sparsec-make-a-function-static.patch
-mm-allocpercpuc-make-4-functions-static.patch
-make-mm-memoryc-print_bad_pte-static.patch
-mm-swapfilec-make-code-static.patch
-make-mm-rmapc-anon_vma_cachep-static.patch
-drivers-char-rtcc-make-2-functions-static.patch
-make-init-do_mountsc-root_device_name-static.patch
-reiser4.patch
+git-leds.patch
 
