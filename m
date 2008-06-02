@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + splice-use-get_user_pages_fast.patch added to -mm tree
-Date: Mon, 02 Jun 2008 16:57:48 -0700
-Message-ID: <200806022357.m52NvmMm006443@imap1.linux-foundation.org>
+Subject: + x86-lockless-get_user_pages_fast-checkpatch-fixes.patch added to -mm tree
+Date: Mon, 02 Jun 2008 16:57:36 -0700
+Message-ID: <200806022357.m52NvbtM006428@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38694 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34871 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754561AbYFBX7M (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Jun 2008 19:59:12 -0400
+	by vger.kernel.org with ESMTP id S1754841AbYFBX7S (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Jun 2008 19:59:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de, andi@firstfloor.org, apw@shadowen.org, jens.axboe@oracle.com, mingo@elte.hu, pbadari@us.ibm.com, shaggy@austin.ibm.com, tglx@linutronix.de, zach.brown@oracle.com
+Cc: akpm@linux-foundation.org, andi@firstfloor.org, apw@shadowen.org, jens.axboe@oracle.com, mingo@elte.hu, npiggin@suse.de, pbadari@us.ibm.com, shaggy@austin.ibm.com, tglx@linutronix.de, zach.brown@oracle.com
 
 
 The patch titled
-     splice: use get_user_pages_fast
+     x86-lockless-get_user_pages_fast-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     splice-use-get_user_pages_fast.patch
+     x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,131 +33,176 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: splice: use get_user_pages_fast
-From: Nick Piggin <npiggin@suse.de>
+Subject: x86-lockless-get_user_pages_fast-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Use get_user_pages_fast in splice.  This reverts some mmap_sem batching
-there, however the biggest problem with mmap_sem tends to be hold times
-blocking out other threads rather than cacheline bouncing.  Further: on
-architectures that implement get_user_pages_fast without locks, mmap_sem
-can be avoided completely anyway.
+WARNING: line over 80 characters
+#240: FILE: arch/x86/mm/gup.c:163:
++static int gup_pud_range(pgd_t pgd, unsigned long addr, unsigned long end, int write, struct page **pages, int *nr)
 
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: Dave Kleikamp <shaggy@austin.ibm.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+WARNING: line over 80 characters
+#259: FILE: arch/x86/mm/gup.c:182:
++int get_user_pages_fast(unsigned long start, int nr_pages, int write, struct page **pages)
+
+total: 0 errors, 2 warnings, 266 lines checked
+
+./patches/x86-lockless-get_user_pages_fast.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
 Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Dave Kleikamp <shaggy@austin.ibm.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
 Cc: Badari Pulavarty <pbadari@us.ibm.com>
-Cc: Zach Brown <zach.brown@oracle.com>
+Cc: Dave Kleikamp <shaggy@austin.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Nick Piggin <npiggin@suse.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Zach Brown <zach.brown@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/splice.c |   41 +++--------------------------------------
- 1 file changed, 3 insertions(+), 38 deletions(-)
+ arch/x86/mm/gup.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN fs/splice.c~splice-use-get_user_pages_fast fs/splice.c
---- a/fs/splice.c~splice-use-get_user_pages_fast
-+++ a/fs/splice.c
-@@ -1154,36 +1154,6 @@ static long do_splice(struct file *in, l
+diff -puN arch/x86/mm/gup.c~x86-lockless-get_user_pages_fast-checkpatch-fixes arch/x86/mm/gup.c
+--- a/arch/x86/mm/gup.c~x86-lockless-get_user_pages_fast-checkpatch-fixes
++++ a/arch/x86/mm/gup.c
+@@ -160,7 +160,8 @@ static int gup_pmd_range(pud_t pud, unsi
+ 	return 1;
  }
  
- /*
-- * Do a copy-from-user while holding the mmap_semaphore for reading, in a
-- * manner safe from deadlocking with simultaneous mmap() (grabbing mmap_sem
-- * for writing) and page faulting on the user memory pointed to by src.
-- * This assumes that we will very rarely hit the partial != 0 path, or this
-- * will not be a win.
-- */
--static int copy_from_user_mmap_sem(void *dst, const void __user *src, size_t n)
--{
--	int partial;
--
--	if (!access_ok(VERIFY_READ, src, n))
--		return -EFAULT;
--
--	pagefault_disable();
--	partial = __copy_from_user_inatomic(dst, src, n);
--	pagefault_enable();
--
--	/*
--	 * Didn't copy everything, drop the mmap_sem and do a faulting copy
--	 */
--	if (unlikely(partial)) {
--		up_read(&current->mm->mmap_sem);
--		partial = copy_from_user(dst, src, n);
--		down_read(&current->mm->mmap_sem);
--	}
--
--	return partial;
--}
--
--/*
-  * Map an iov into an array of pages and offset/length tupples. With the
-  * partial_page structure, we can map several non-contiguous ranges into
-  * our ones pages[] map instead of splitting that operation into pieces.
-@@ -1196,8 +1166,6 @@ static int get_iovec_page_array(const st
+-static int gup_pud_range(pgd_t pgd, unsigned long addr, unsigned long end, int write, struct page **pages, int *nr)
++static int gup_pud_range(pgd_t pgd, unsigned long addr, unsigned long end,
++			int write, struct page **pages, int *nr)
  {
- 	int buffers = 0, error = 0;
+ 	unsigned long next;
+ 	pud_t *pudp;
+@@ -179,7 +180,8 @@ static int gup_pud_range(pgd_t pgd, unsi
+ 	return 1;
+ }
  
--	down_read(&current->mm->mmap_sem);
--
- 	while (nr_vecs) {
- 		unsigned long off, npages;
- 		struct iovec entry;
-@@ -1206,7 +1174,7 @@ static int get_iovec_page_array(const st
- 		int i;
- 
- 		error = -EFAULT;
--		if (copy_from_user_mmap_sem(&entry, iov, sizeof(entry)))
-+		if (copy_from_user(&entry, iov, sizeof(entry)))
- 			break;
- 
- 		base = entry.iov_base;
-@@ -1240,9 +1208,8 @@ static int get_iovec_page_array(const st
- 		if (npages > PIPE_BUFFERS - buffers)
- 			npages = PIPE_BUFFERS - buffers;
- 
--		error = get_user_pages(current, current->mm,
--				       (unsigned long) base, npages, 0, 0,
--				       &pages[buffers], NULL);
-+		error = get_user_pages_fast((unsigned long)base, npages,
-+					0, &pages[buffers]);
- 
- 		if (unlikely(error <= 0))
- 			break;
-@@ -1281,8 +1248,6 @@ static int get_iovec_page_array(const st
- 		iov++;
- 	}
- 
--	up_read(&current->mm->mmap_sem);
--
- 	if (buffers)
- 		return buffers;
- 
+-int get_user_pages_fast(unsigned long start, int nr_pages, int write, struct page **pages)
++int get_user_pages_fast(unsigned long start, int nr_pages, int write,
++			struct page **pages)
+ {
+ 	struct mm_struct *mm = current->mm;
+ 	unsigned long end = start + (nr_pages << PAGE_SHIFT);
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-hugetlb-fix-lockdep-error.patch
+origin.patch
 linux-next.patch
-spufs-convert-nopfn-to-fault.patch
-vt-fix-vc_resize-locking.patch
-mspec-convert-nopfn-to-fault.patch
+next-remove-localversion.patch
+linux-next-fixup.patch
+fix-kobject-fix-kobject_rename-and-config_sysfs.patch
+kvm-is-busted-on-ia64.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-video-balcklist-fujitsu-lifebook-s6410.patch
+git-x86-fixup.patch
+lguest-use-cpu-capability-accessors.patch
+arch-x86-mm-patc-nopat-should-be-__init.patch
+arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
+arch-powerpc-platforms-pseries-eeh_driverc-fix-warning.patch
+arch-powerpc-platforms-pseries-eeh_driverc-fix-warning-checkpatch-fixes.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+git-jg-misc-git-rejects.patch
+drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+git-leds.patch
+fsldma-the-mpc8377mds-board-device-tree-node-for-fsldma-driver.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers.patch
+sundance-set-carrier-status-on-link-change-events.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+svcrdma-fix-compile-warning-on-32-bit-platforms-checkpatch-fixes.patch
+sched-delete-dead-stuff.patch
+sched-delete-dead-stuff-2.patch
+git-scsi-misc-fix-scsi_dh-build-errors.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
+pktcdvd-push-bkl-down-into-driver-fix.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-logfs-fixup.patch
+drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
+drivers-uwb-wlp-sysfsc-dead-code.patch
+usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix.patch
+usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix-2.patch
+watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix.patch
+watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl-fix.patch
+git-xtensa.patch
+ext4-is-busted-on-m68k.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+libata-sff-fix-oops-reported-in-kerneloopsorg-for-pnp-devices-with-no-ctl-fix.patch
+mm-verify-the-page-links-and-memory-model.patch
 mspec-convert-nopfn-to-fault-fix.patch
-mm-remove-nopfn.patch
-mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co.patch
-x86-implement-pte_special.patch
-mm-introduce-get_user_pages_fast.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+kill-generic_file_direct_io-checkpatch-fixes.patch
+use-generic_access_phys-for-dev-mem-mappings-fix.patch
+spufs-use-the-new-vm_ops-access-fix.patch
+fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
+page-flags-record-page-flag-overlays-explicitly-xen.patch
+mapping_set_error-add-unlikely.patch
+huge-page-private-reservation-review-cleanups-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup-fix.patch
+swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
+block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
+rename-warn-to-warning-to-clear-the-namespace-fix.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-paccept-sys_ni.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-signalfd-fix.patch
+flag-parameters-eventfd-fix.patch
+flag-parameters-inotify_init-fix.patch
+flag-parameters-check-magic-constants-alpha.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
+reiserfs-convert-j_flush_sem-to-mutex.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup.patch
+ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
 mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast.patch
 x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
 x86-lockless-get_user_pages_fast-fix.patch
 x86-lockless-get_user_pages_fast-fix-warning.patch
-dio-use-get_user_pages_fast.patch
-splice-use-get_user_pages_fast.patch
 reiser4.patch
-likeliness-accounting-change-and-cleanup.patch
+reiser4-semaphore-fix.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
