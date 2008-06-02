@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + nommu-fix-ksize-abuse.patch added to -mm tree
-Date: Mon, 02 Jun 2008 16:11:50 -0700
-Message-ID: <200806022311.m52NBoA8004654@imap1.linux-foundation.org>
+Subject: + acpi-send-switch-event-on-dock-events.patch added to -mm tree
+Date: Mon, 02 Jun 2008 16:21:37 -0700
+Message-ID: <200806022321.m52NLb52005050@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55536 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50208 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755754AbYFBXMs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Jun 2008 19:12:48 -0400
+	by vger.kernel.org with ESMTP id S1754564AbYFBXWW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Jun 2008 19:22:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: penberg@cs.helsinki.fi, clameter@sgi.com, dhowells@redhat.com, gerg@snapgear.com, lethal@linux-sh.org, mpm@selenic.com
+Cc: mjg59@srcf.ucam.org, dtor@mail.ru, kristen.c.accardi@intel.com, lenb@kernel.org, mjg@redhat.com
 
 
 The patch titled
-     nommu: fix ksize() abuse
+     acpi: send switch event on dock events
 has been added to the -mm tree.  Its filename is
-     nommu-fix-ksize-abuse.patch
+     acpi-send-switch-event-on-dock-events.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,89 +33,106 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nommu: fix ksize() abuse
-From: Pekka Enberg <penberg@cs.helsinki.fi>
+Subject: acpi: send switch event on dock events
+From: Matthew Garrett <mjg59@srcf.ucam.org>
 
-The nommu binfmt code uses ksize() for pointers returned from do_mmap()
-which is wrong.  This converts the call-sites to use the nommu specific
-kobjsize() function which works as expected.
+Send a switch event on docking for consistency with docks that don't
+present as a separate device.
 
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Matt Mackall <mpm@selenic.com>
-Acked-by: Paul Mundt <lethal@linux-sh.org>
-Acked-by: David Howells <dhowells@redhat.com>
-Signed-off-by: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: Greg Ungerer <gerg@snapgear.com>
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
+Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf_fdpic.c |    2 +-
- fs/binfmt_flat.c      |    8 ++++----
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ drivers/acpi/Kconfig |    1 +
+ drivers/acpi/dock.c  |   24 ++++++++++++++++++++++--
+ 2 files changed, 23 insertions(+), 2 deletions(-)
 
-diff -puN fs/binfmt_elf_fdpic.c~nommu-fix-ksize-abuse fs/binfmt_elf_fdpic.c
---- a/fs/binfmt_elf_fdpic.c~nommu-fix-ksize-abuse
-+++ a/fs/binfmt_elf_fdpic.c
-@@ -390,7 +390,7 @@ static int load_elf_fdpic_binary(struct 
+diff -puN drivers/acpi/Kconfig~acpi-send-switch-event-on-dock-events drivers/acpi/Kconfig
+--- a/drivers/acpi/Kconfig~acpi-send-switch-event-on-dock-events
++++ a/drivers/acpi/Kconfig
+@@ -160,6 +160,7 @@ config ACPI_FAN
+ 
+ config ACPI_DOCK
+ 	tristate "Dock"
++	depends on INPUT
+ 	depends on EXPERIMENTAL
+ 	help
+ 	  This driver adds support for ACPI controlled docking stations
+diff -puN drivers/acpi/dock.c~acpi-send-switch-event-on-dock-events drivers/acpi/dock.c
+--- a/drivers/acpi/dock.c~acpi-send-switch-event-on-dock-events
++++ a/drivers/acpi/dock.c
+@@ -25,6 +25,7 @@
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/init.h>
++#include <linux/input.h>
+ #include <linux/types.h>
+ #include <linux/notifier.h>
+ #include <linux/platform_device.h>
+@@ -65,6 +66,7 @@ struct dock_station {
+ 	struct mutex hp_lock;
+ 	struct list_head dependent_devices;
+ 	struct list_head hotplug_devices;
++	struct input_dev *dock_input;
+ };
+ 
+ struct dock_dependent_device {
+@@ -345,10 +347,13 @@ static void dock_event(struct dock_stati
+ 	char event_string[13];
+ 	char *envp[] = { event_string, NULL };
+ 
+-	if (num == UNDOCK_EVENT)
++	if (num == UNDOCK_EVENT) {
++		input_report_switch(dock_station->dock_input, SW_DOCK, 0);
+ 		sprintf(event_string, "EVENT=undock");
+-	else
++	} else {
++		input_report_switch(dock_station->dock_input, SW_DOCK, 1);
+ 		sprintf(event_string, "EVENT=dock");
++	}
+ 
+ 	/*
+ 	 * Indicate that the status of the dock station has
+@@ -834,6 +839,19 @@ static int dock_add(acpi_handle handle)
+ 		goto dock_add_err;
  	}
  
- 	/* expand the stack mapping to use up the entire allocation granule */
--	fullsize = ksize((char *) current->mm->start_brk);
-+	fullsize = kobjsize((char *) current->mm->start_brk);
- 	if (!IS_ERR_VALUE(do_mremap(current->mm->start_brk, stack_size,
- 				    fullsize, 0, 0)))
- 		stack_size = fullsize;
-diff -puN fs/binfmt_flat.c~nommu-fix-ksize-abuse fs/binfmt_flat.c
---- a/fs/binfmt_flat.c~nommu-fix-ksize-abuse
-+++ a/fs/binfmt_flat.c
-@@ -548,7 +548,7 @@ static int load_flat_file(struct linux_b
- 			PROT_READ|PROT_WRITE|PROT_EXEC, MAP_PRIVATE, 0);
- 		/* Remap to use all availabe slack region space */
- 		if (realdatastart && (realdatastart < (unsigned long)-4096)) {
--			reallen = ksize((void *)realdatastart);
-+			reallen = kobjsize((void *)realdatastart);
- 			if (reallen > len) {
- 				realdatastart = do_mremap(realdatastart, len,
- 					reallen, MREMAP_FIXED, realdatastart);
-@@ -600,7 +600,7 @@ static int load_flat_file(struct linux_b
- 			PROT_READ | PROT_EXEC | PROT_WRITE, MAP_PRIVATE, 0);
- 		/* Remap to use all availabe slack region space */
- 		if (textpos && (textpos < (unsigned long) -4096)) {
--			reallen = ksize((void *)textpos);
-+			reallen = kobjsize((void *)textpos);
- 			if (reallen > len) {
- 				textpos = do_mremap(textpos, len, reallen,
- 					MREMAP_FIXED, textpos);
-@@ -683,7 +683,7 @@ static int load_flat_file(struct linux_b
- 		 */
- 		current->mm->start_brk = datapos + data_len + bss_len;
- 		current->mm->brk = (current->mm->start_brk + 3) & ~3;
--		current->mm->context.end_brk = memp + ksize((void *) memp) - stack_len;
-+		current->mm->context.end_brk = memp + kobjsize((void *) memp) - stack_len;
- 	}
++	/* Set up input device */
++	dock_station->dock_input = input_allocate_device();
++	dock_station->dock_input->name = "ACPI dock";
++	dock_station->dock_input->phys = "dock/input0";
++	dock_station->dock_input->id.bustype = BUS_HOST;
++	dock_station->dock_input->dev.parent = &dock_device->dev;
++	set_bit(EV_SW, dock_station->dock_input->evbit);
++	set_bit(SW_DOCK, dock_station->dock_input->swbit);
++	ret = input_register_device(dock_station->dock_input);
++
++	if (ret)
++		input_free_device(dock_station->dock_input);
++
+ 	printk(KERN_INFO PREFIX "%s\n", ACPI_DOCK_DRIVER_DESCRIPTION);
  
- 	if (flags & FLAT_FLAG_KTRACE)
-@@ -790,7 +790,7 @@ static int load_flat_file(struct linux_b
+ 	return 0;
+@@ -881,6 +899,8 @@ static int dock_remove(void)
+ 	device_remove_file(&dock_device->dev, &dev_attr_flags);
+ 	platform_device_unregister(dock_device);
  
- 	/* zero the BSS,  BRK and stack areas */
- 	memset((void*)(datapos + data_len), 0, bss_len + 
--			(memp + ksize((void *) memp) - stack_len -	/* end brk */
-+			(memp + kobjsize((void *) memp) - stack_len -	/* end brk */
- 			libinfo->lib_list[id].start_brk) +		/* start brk */
- 			stack_len);
- 
++	input_unregister_device(dock_station->dock_input);
++
+ 	/* free dock station memory */
+ 	kfree(dock_station);
+ 	dock_station = NULL;
 _
 
-Patches currently in -mm which might be from penberg@cs.helsinki.fi are
+Patches currently in -mm which might be from mjg59@srcf.ucam.org are
 
-nommu-fix-kobjsize-for-slob-and-slub-v2.patch
-linux-next.patch
-git-unionfs.patch
-git-pekka.patch
-nommu-fix-ksize-abuse.patch
-page-flags-record-page-flag-overlays-explicitly.patch
-page-flags-record-page-flag-overlays-explicitly-xen.patch
-slub-record-page-flag-overlays-explicitly.patch
-slob-record-page-flag-overlays-explicitly.patch
-slab-leaks3-default-y.patch
+origin.patch
+acpi-video-balcklist-fujitsu-lifebook-s6410.patch
+bay-exit-if-notify-handler-cannot-be-installed.patch
+input-add-switch-for-dock-events.patch
+acpi-send-switch-event-on-dock-events.patch
+resend-misc-add-hp-wmi-laptop-extras-driver.patch
 
