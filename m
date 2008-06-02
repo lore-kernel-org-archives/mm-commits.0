@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + pnp-mark-resources-that-conflict-with-pci-devices-disabled.patch added to -mm tree
-Date: Mon, 02 Jun 2008 15:55:23 -0700
-Message-ID: <200806022255.m52MtOse004085@imap1.linux-foundation.org>
+Subject: + nommu-fix-ksize-abuse.patch added to -mm tree
+Date: Mon, 02 Jun 2008 16:11:50 -0700
+Message-ID: <200806022311.m52NBoA8004654@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58281 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55536 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752564AbYFBW4k (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Jun 2008 18:56:40 -0400
+	by vger.kernel.org with ESMTP id S1755754AbYFBXMs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Jun 2008 19:12:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bjorn.helgaas@hp.com, avuton@gmail.com, lenb@kernel.org, rene.herman@keyaccess.nl, rjw@sisk.pl
+Cc: penberg@cs.helsinki.fi, clameter@sgi.com, dhowells@redhat.com, gerg@snapgear.com, lethal@linux-sh.org, mpm@selenic.com
 
 
 The patch titled
-     PNP: mark resources that conflict with PCI devices "disabled"
+     nommu: fix ksize() abuse
 has been added to the -mm tree.  Its filename is
-     pnp-mark-resources-that-conflict-with-pci-devices-disabled.patch
+     nommu-fix-ksize-abuse.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,76 +33,89 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: PNP: mark resources that conflict with PCI devices "disabled"
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: nommu: fix ksize() abuse
+From: Pekka Enberg <penberg@cs.helsinki.fi>
 
-Both the PNP/PCI conflict detection quirk and the PNP system driver
-must use the same mechanism to mark resources as disabled.
+The nommu binfmt code uses ksize() for pointers returned from do_mmap()
+which is wrong.  This converts the call-sites to use the nommu specific
+kobjsize() function which works as expected.
 
-I think it's best to keep the resource and to keep the type bit
-(IORESOURCE_MEM, etc), so that we match the list from firmware as
-closely as possible.
-
-Fixes this regression from 2.6.25: http://lkml.org/lkml/2008/6/1/82
-
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Tested-by: Avuton Olrich <avuton@gmail.com>
-Cc: Rene Herman <rene.herman@keyaccess.nl>
-Cc: Len Brown <lenb@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Matt Mackall <mpm@selenic.com>
+Acked-by: Paul Mundt <lethal@linux-sh.org>
+Acked-by: David Howells <dhowells@redhat.com>
+Signed-off-by: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: Greg Ungerer <gerg@snapgear.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/quirks.c |    2 +-
- drivers/pnp/system.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ fs/binfmt_elf_fdpic.c |    2 +-
+ fs/binfmt_flat.c      |    8 ++++----
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/pnp/quirks.c~pnp-mark-resources-that-conflict-with-pci-devices-disabled drivers/pnp/quirks.c
---- a/drivers/pnp/quirks.c~pnp-mark-resources-that-conflict-with-pci-devices-disabled
-+++ a/drivers/pnp/quirks.c
-@@ -286,7 +286,7 @@ static void quirk_system_pci_resources(s
- 					pci_name(pdev), i,
- 					(unsigned long long) pci_start,
- 					(unsigned long long) pci_end);
--				res->flags = 0;
-+				res->flags |= IORESOURCE_DISABLED;
- 			}
- 		}
- 	}
-diff -puN drivers/pnp/system.c~pnp-mark-resources-that-conflict-with-pci-devices-disabled drivers/pnp/system.c
---- a/drivers/pnp/system.c~pnp-mark-resources-that-conflict-with-pci-devices-disabled
-+++ a/drivers/pnp/system.c
-@@ -81,7 +81,7 @@ static void reserve_resources_of_dev(str
+diff -puN fs/binfmt_elf_fdpic.c~nommu-fix-ksize-abuse fs/binfmt_elf_fdpic.c
+--- a/fs/binfmt_elf_fdpic.c~nommu-fix-ksize-abuse
++++ a/fs/binfmt_elf_fdpic.c
+@@ -390,7 +390,7 @@ static int load_elf_fdpic_binary(struct 
  	}
  
- 	for (i = 0; (res = pnp_get_resource(dev, IORESOURCE_MEM, i)); i++) {
--		if (res->flags & IORESOURCE_UNSET)
-+		if (res->flags & IORESOURCE_DISABLED)
- 			continue;
+ 	/* expand the stack mapping to use up the entire allocation granule */
+-	fullsize = ksize((char *) current->mm->start_brk);
++	fullsize = kobjsize((char *) current->mm->start_brk);
+ 	if (!IS_ERR_VALUE(do_mremap(current->mm->start_brk, stack_size,
+ 				    fullsize, 0, 0)))
+ 		stack_size = fullsize;
+diff -puN fs/binfmt_flat.c~nommu-fix-ksize-abuse fs/binfmt_flat.c
+--- a/fs/binfmt_flat.c~nommu-fix-ksize-abuse
++++ a/fs/binfmt_flat.c
+@@ -548,7 +548,7 @@ static int load_flat_file(struct linux_b
+ 			PROT_READ|PROT_WRITE|PROT_EXEC, MAP_PRIVATE, 0);
+ 		/* Remap to use all availabe slack region space */
+ 		if (realdatastart && (realdatastart < (unsigned long)-4096)) {
+-			reallen = ksize((void *)realdatastart);
++			reallen = kobjsize((void *)realdatastart);
+ 			if (reallen > len) {
+ 				realdatastart = do_mremap(realdatastart, len,
+ 					reallen, MREMAP_FIXED, realdatastart);
+@@ -600,7 +600,7 @@ static int load_flat_file(struct linux_b
+ 			PROT_READ | PROT_EXEC | PROT_WRITE, MAP_PRIVATE, 0);
+ 		/* Remap to use all availabe slack region space */
+ 		if (textpos && (textpos < (unsigned long) -4096)) {
+-			reallen = ksize((void *)textpos);
++			reallen = kobjsize((void *)textpos);
+ 			if (reallen > len) {
+ 				textpos = do_mremap(textpos, len, reallen,
+ 					MREMAP_FIXED, textpos);
+@@ -683,7 +683,7 @@ static int load_flat_file(struct linux_b
+ 		 */
+ 		current->mm->start_brk = datapos + data_len + bss_len;
+ 		current->mm->brk = (current->mm->start_brk + 3) & ~3;
+-		current->mm->context.end_brk = memp + ksize((void *) memp) - stack_len;
++		current->mm->context.end_brk = memp + kobjsize((void *) memp) - stack_len;
+ 	}
  
- 		reserve_range(dev, res->start, res->end, 0);
+ 	if (flags & FLAT_FLAG_KTRACE)
+@@ -790,7 +790,7 @@ static int load_flat_file(struct linux_b
+ 
+ 	/* zero the BSS,  BRK and stack areas */
+ 	memset((void*)(datapos + data_len), 0, bss_len + 
+-			(memp + ksize((void *) memp) - stack_len -	/* end brk */
++			(memp + kobjsize((void *) memp) - stack_len -	/* end brk */
+ 			libinfo->lib_list[id].start_brk) +		/* start brk */
+ 			stack_len);
+ 
 _
 
-Patches currently in -mm which might be from bjorn.helgaas@hp.com are
+Patches currently in -mm which might be from penberg@cs.helsinki.fi are
 
-pnp-mark-resources-that-conflict-with-pci-devices-disabled.patch
-acpi_pm_device_sleep_state-cleanup.patch
-acpi-fix-drivers-acpi-gluec-build-error.patch
-mm-only-enforce-acpi-resource-conflict-checks.patch
-provide-rtc_cmos-platform-device-take-2.patch
-pnpacpi-fix-irq-flag-decoding.patch
-pnpacpi-fix-irq-flag-decoding-comment-fix.patch
-pnpacpi-fix-shareable-irq-encode-decode.patch
-pnpacpi-use-_crs-irq-descriptor-length-for-_srs-v2.patch
-pnp-add-detail-to-debug-resource-dump.patch
-pnp-remove-pnp_resourceindex.patch
-pnp-add-pnp_resource_type-internal-interface.patch
-pnp-add-pnp_resource_type_name-helper-function.patch
-pnp-make-pnp_portmemetc_start-et-al-work-for-invalid-resources.patch
-pnp-replace-pnp_resource_table-with-dynamically-allocated-resources.patch
-pnp-remove-ratelimit-on-add-resource-failures.patch
-pnp-dont-sort-by-type-in-sys-resources.patch
-pnp-set-the-pnp_card-dma_mask-for-use-by-isapnp-cards.patch
-isa-set-24-bit-dma_mask-for-isa-devices.patch
-make-pnp_add_card_id-static.patch
+nommu-fix-kobjsize-for-slob-and-slub-v2.patch
+linux-next.patch
+git-unionfs.patch
+git-pekka.patch
+nommu-fix-ksize-abuse.patch
+page-flags-record-page-flag-overlays-explicitly.patch
+page-flags-record-page-flag-overlays-explicitly-xen.patch
+slub-record-page-flag-overlays-explicitly.patch
+slob-record-page-flag-overlays-explicitly.patch
+slab-leaks3-default-y.patch
 
