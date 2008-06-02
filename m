@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + misc-add-hp-wmi-laptop-extras-driver.patch added to -mm tree
-Date: Mon, 02 Jun 2008 16:28:14 -0700
-Message-ID: <200806022328.m52NSECw005307@imap1.linux-foundation.org>
+Subject: + mm-introduce-get_user_pages_fast.patch added to -mm tree
+Date: Mon, 02 Jun 2008 16:56:32 -0700
+Message-ID: <200806022356.m52NuWeF006335@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42918 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58388 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753878AbYFBX2j (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Jun 2008 19:28:39 -0400
+	by vger.kernel.org with ESMTP id S1752566AbYFBX6F (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Jun 2008 19:58:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mjg59@srcf.ucam.org, mjg@redhat.com
+Cc: npiggin@suse.de, andi@firstfloor.org, apw@shadowen.org, jens.axboe@oracle.com, mingo@elte.hu, pbadari@us.ibm.com, shaggy@austin.ibm.com, tglx@linutronix.de, zach.brown@oracle.com
 
 
 The patch titled
-     misc: add HP WMI laptop extras driver
+     mm: introduce get_user_pages_fast
 has been added to the -mm tree.  Its filename is
-     misc-add-hp-wmi-laptop-extras-driver.patch
+     mm-introduce-get_user_pages_fast.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,565 +33,115 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: misc: add HP WMI laptop extras driver
-From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: mm: introduce get_user_pages_fast
+From: Nick Piggin <npiggin@suse.de>
 
-This driver adds support for reading and configuring certain information
-on modern HP laptops with WMI BIOS interfaces.  It supports enabling and
-disabling the ambient light sensor, querying attached displays and hard
-drive temperature, sending events on docking and querying the state of the
-dock and toggling the state of the wifi, bluetooth and wwan hardware via
-rfkill.  It also makes the little "(i)" button work on machines that send
-that via WMI rather than via the keyboard controller.
+Introduce a new get_user_pages_fast mm API, which is basically a
+get_user_pages with a less general API (but still tends to be suited to
+the common case):
 
-Signed-off-by: Matthew Garrett <mjg@redhat.com>
+- task and mm are always current and current->mm
+- force is always 0
+- pages is always non-NULL
+- don't pass back vmas
+
+This restricted API can be implemented in a much more scalable way on many
+architectures when the ptes are present, by walking the page tables
+locklessly (no mmap_sem or page table locks).  When the ptes are not
+populated, get_user_pages_fast() could be slower.
+
+This is implemented locklessly on x86, and used in some key direct IO call
+sites, in later patches, which provides nearly 10% performance improvement
+on a threaded database workload.
+
+Lots of other code could use this too, depending on use cases (eg.  grep
+drivers/).  And it might inspire some new and clever ways to use it.
+
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Cc: Dave Kleikamp <shaggy@austin.ibm.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Dave Kleikamp <shaggy@austin.ibm.com>
+Cc: Badari Pulavarty <pbadari@us.ibm.com>
+Cc: Zach Brown <zach.brown@oracle.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/Kconfig  |   12 
- drivers/misc/Makefile |    1 
- drivers/misc/hp-wmi.c |  494 ++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 507 insertions(+)
+ include/linux/mm.h |   33 +++++++++++++++++++++++++++++++++
+ 1 file changed, 33 insertions(+)
 
-diff -puN drivers/misc/Kconfig~misc-add-hp-wmi-laptop-extras-driver drivers/misc/Kconfig
---- a/drivers/misc/Kconfig~misc-add-hp-wmi-laptop-extras-driver
-+++ a/drivers/misc/Kconfig
-@@ -200,6 +200,18 @@ config TC1100_WMI
- 	  This is a driver for the WMI extensions (wireless and bluetooth power
- 	  control) of the HP Compaq TC1100 tablet.
+diff -puN include/linux/mm.h~mm-introduce-get_user_pages_fast include/linux/mm.h
+--- a/include/linux/mm.h~mm-introduce-get_user_pages_fast
++++ a/include/linux/mm.h
+@@ -12,6 +12,7 @@
+ #include <linux/prio_tree.h>
+ #include <linux/debug_locks.h>
+ #include <linux/mm_types.h>
++#include <linux/uaccess.h> /* for __HAVE_ARCH_GET_USER_PAGES_FAST */
  
-+config HP_WMI
-+       tristate "HP WMI extras"
-+       depends on ACPI_WMI
-+       depends on INPUT
-+       depends on RFKILL
-+       help
-+         Say Y here if you want to support WMI-based hotkeys on HP laptops and
-+	 to read data from WMI such as docking or ambient light sensor state.
-+
-+         To compile this driver as a module, choose M here: the module will
-+         be called hp-wmi.
-+
- config MSI_LAPTOP
-         tristate "MSI Laptop Extras"
-         depends on X86
-diff -puN drivers/misc/Makefile~misc-add-hp-wmi-laptop-extras-driver drivers/misc/Makefile
---- a/drivers/misc/Makefile~misc-add-hp-wmi-laptop-extras-driver
-+++ a/drivers/misc/Makefile
-@@ -14,6 +14,7 @@ obj-$(CONFIG_ATMEL_PWM)		+= atmel_pwm.o
- obj-$(CONFIG_ATMEL_SSC)		+= atmel-ssc.o
- obj-$(CONFIG_ATMEL_TCLIB)	+= atmel_tclib.o
- obj-$(CONFIG_TC1100_WMI)	+= tc1100-wmi.o
-+obj-$(CONFIG_HP_WMI)		+= hp-wmi.o
- obj-$(CONFIG_TIFM_CORE)       	+= tifm_core.o
- obj-$(CONFIG_TIFM_7XX1)       	+= tifm_7xx1.o
- obj-$(CONFIG_PHANTOM)		+= phantom.o
-diff -puN /dev/null drivers/misc/hp-wmi.c
---- /dev/null
-+++ a/drivers/misc/hp-wmi.c
-@@ -0,0 +1,494 @@
+ struct mempolicy;
+ struct anon_vma;
+@@ -828,6 +829,38 @@ extern int mprotect_fixup(struct vm_area
+ 			  struct vm_area_struct **pprev, unsigned long start,
+ 			  unsigned long end, unsigned long newflags);
+ 
++#ifdef __HAVE_ARCH_GET_USER_PAGES_FAST
 +/*
-+ * HP WMI hotkeys
++ * get_user_pages_fast provides equivalent functionality to get_user_pages,
++ * operating on current and current->mm (force=0 and doesn't return any vmas).
 + *
-+ * Copyright (C) 2008 Red Hat <mjg@redhat.com>
-+ *
-+ * Portions based on wistron_btns.c:
-+ * Copyright (C) 2005 Miloslav Trmac <mitr@volny.cz>
-+ * Copyright (C) 2005 Bernhard Rosenkraenzer <bero@arklinux.org>
-+ * Copyright (C) 2005 Dmitry Torokhov <dtor@mail.ru>
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation; either version 2 of the License, or
-+ *  (at your option) any later version.
-+ *
-+ *  This program is distributed in the hope that it will be useful,
-+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *  GNU General Public License for more details.
-+ *
-+ *  You should have received a copy of the GNU General Public License
-+ *  along with this program; if not, write to the Free Software
-+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ * get_user_pages_fast may take mmap_sem and page tables, so no assumptions
++ * can be made about locking. get_user_pages_fast is to be implemented in a
++ * way that is advantageous (vs get_user_pages()) when the user memory area is
++ * already faulted in and present in ptes. However if the pages have to be
++ * faulted in, it may turn out to be slightly slower).
 + */
-+
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/types.h>
-+#include <linux/input.h>
-+#include <acpi/acpi_drivers.h>
-+#include <linux/platform_device.h>
-+#include <linux/acpi.h>
-+#include <linux/rfkill.h>
-+#include <linux/string.h>
-+
-+MODULE_AUTHOR("Matthew Garrett <mjg59@srcf.ucam.org>");
-+MODULE_DESCRIPTION("HP laptop WMI hotkeys driver");
-+MODULE_LICENSE("GPL");
-+
-+MODULE_ALIAS("wmi:95F24279-4D7B-4334-9387-ACCDC67EF61C");
-+MODULE_ALIAS("wmi:5FB7F034-2C63-45e9-BE91-3D44E2C707E4");
-+
-+#define HPWMI_EVENT_GUID "95F24279-4D7B-4334-9387-ACCDC67EF61C"
-+#define HPWMI_BIOS_GUID "5FB7F034-2C63-45e9-BE91-3D44E2C707E4"
-+
-+#define HPWMI_DISPLAY_QUERY 0x1
-+#define HPWMI_HDDTEMP_QUERY 0x2
-+#define HPWMI_ALS_QUERY 0x3
-+#define HPWMI_DOCK_QUERY 0x4
-+#define HPWMI_WIRELESS_QUERY 0x5
-+
-+static int __init hp_wmi_bios_setup(struct platform_device *device);
-+static int __exit hp_wmi_bios_remove(struct platform_device *device);
-+
-+struct bios_args {
-+	u32 signature;
-+	u32 command;
-+	u32 commandtype;
-+	u32 datasize;
-+	u32 data;
-+};
-+
-+struct bios_return {
-+	u32 sigpass;
-+	u32 return_code;
-+	u32 value;
-+};
-+
-+struct key_entry {
-+	char type;		/* See KE_* below */
-+	u8 code;
-+	u16 keycode;
-+};
-+
-+enum { KE_KEY, KE_SW, KE_END };
-+
-+static struct key_entry hp_wmi_keymap[] = {
-+	{KE_SW, 0x01, SW_DOCK},
-+	{KE_KEY, 0x02, KEY_BRIGHTNESSUP},
-+	{KE_KEY, 0x03, KEY_BRIGHTNESSDOWN},
-+	{KE_KEY, 0x04, KEY_HELP},
-+	{KE_END, 0}
-+};
-+
-+static struct input_dev *hp_wmi_input_dev;
-+static struct platform_device *hp_wmi_platform_dev;
-+
-+static struct rfkill *wifi_rfkill;
-+static struct rfkill *bluetooth_rfkill;
-+static struct rfkill *wwan_rfkill;
-+
-+static struct platform_driver hp_wmi_driver = {
-+	.driver = {
-+		   .name = "hp-wmi",
-+		   .owner = THIS_MODULE,
-+	},
-+	.probe = hp_wmi_bios_setup,
-+	.remove = hp_wmi_bios_remove,
-+};
-+
-+static int hp_wmi_perform_query(int query, int write, int value)
-+{
-+	struct bios_return bios_return;
-+	acpi_status status;
-+	union acpi_object *obj;
-+	struct bios_args args = {
-+		.signature = 0x55434553,
-+		.command = write ? 0x2 : 0x1,
-+		.commandtype = query,
-+		.datasize = write ? 0x4 : 0,
-+		.data = value,
-+	};
-+	struct acpi_buffer input = { sizeof(struct bios_args), &args };
-+	struct acpi_buffer output = { ACPI_ALLOCATE_BUFFER, NULL };
-+
-+	status = wmi_evaluate_method(HPWMI_BIOS_GUID, 0, 0x3, &input, &output);
-+
-+	obj = output.pointer;
-+
-+	if (!obj || obj->type != ACPI_TYPE_BUFFER)
-+		return -EINVAL;
-+
-+	bios_return = *((struct bios_return *)obj->buffer.pointer);
-+	if (bios_return.return_code > 0)
-+		return bios_return.return_code * -1;
-+	else
-+		return bios_return.value;
-+}
-+
-+static int hp_wmi_display_state(void)
-+{
-+	return hp_wmi_perform_query(HPWMI_DISPLAY_QUERY, 0, 0);
-+}
-+
-+static int hp_wmi_hddtemp_state(void)
-+{
-+	return hp_wmi_perform_query(HPWMI_HDDTEMP_QUERY, 0, 0);
-+}
-+
-+static int hp_wmi_als_state(void)
-+{
-+	return hp_wmi_perform_query(HPWMI_ALS_QUERY, 0, 0);
-+}
-+
-+static int hp_wmi_dock_state(void)
-+{
-+	return hp_wmi_perform_query(HPWMI_DOCK_QUERY, 0, 0);
-+}
-+
-+static int hp_wmi_wifi_set(void *data, enum rfkill_state state)
-+{
-+	if (state)
-+		return hp_wmi_perform_query(HPWMI_WIRELESS_QUERY, 1, 0x101);
-+	else
-+		return hp_wmi_perform_query(HPWMI_WIRELESS_QUERY, 1, 0x100);
-+}
-+
-+static int hp_wmi_bluetooth_set(void *data, enum rfkill_state state)
-+{
-+	if (state)
-+		return hp_wmi_perform_query(HPWMI_WIRELESS_QUERY, 1, 0x202);
-+	else
-+		return hp_wmi_perform_query(HPWMI_WIRELESS_QUERY, 1, 0x200);
-+}
-+
-+static int hp_wmi_wwan_set(void *data, enum rfkill_state state)
-+{
-+	if (state)
-+		return hp_wmi_perform_query(HPWMI_WIRELESS_QUERY, 1, 0x404);
-+	else
-+		return hp_wmi_perform_query(HPWMI_WIRELESS_QUERY, 1, 0x400);
-+}
-+
-+static int hp_wmi_wifi_state(void)
-+{
-+	int wireless = hp_wmi_perform_query(HPWMI_WIRELESS_QUERY, 0, 0);
-+
-+	if (wireless & 0x100)
-+		return 1;
-+	else
-+		return 0;
-+}
-+
-+static int hp_wmi_bluetooth_state(void)
-+{
-+	int wireless = hp_wmi_perform_query(HPWMI_WIRELESS_QUERY, 0, 0);
-+
-+	if (wireless & 0x10000)
-+		return 1;
-+	else
-+		return 0;
-+}
-+
-+static int hp_wmi_wwan_state(void)
-+{
-+	int wireless = hp_wmi_perform_query(HPWMI_WIRELESS_QUERY, 0, 0);
-+
-+	if (wireless & 0x1000000)
-+		return 1;
-+	else
-+		return 0;
-+}
-+
-+static ssize_t show_display(struct device *dev, struct device_attribute *attr,
-+			    char *buf)
-+{
-+	int value = hp_wmi_display_state();
-+	if (value < 0)
-+		return -EINVAL;
-+	return sprintf(buf, "%d\n", value);
-+}
-+
-+static ssize_t show_hddtemp(struct device *dev, struct device_attribute *attr,
-+			    char *buf)
-+{
-+	int value = hp_wmi_hddtemp_state();
-+	if (value < 0)
-+		return -EINVAL;
-+	return sprintf(buf, "%d\n", value);
-+}
-+
-+static ssize_t show_als(struct device *dev, struct device_attribute *attr,
-+			char *buf)
-+{
-+	int value = hp_wmi_als_state();
-+	if (value < 0)
-+		return -EINVAL;
-+	return sprintf(buf, "%d\n", value);
-+}
-+
-+static ssize_t show_dock(struct device *dev, struct device_attribute *attr,
-+			 char *buf)
-+{
-+	int value = hp_wmi_dock_state();
-+	if (value < 0)
-+		return -EINVAL;
-+	return sprintf(buf, "%d\n", value);
-+}
-+
-+static ssize_t set_als(struct device *dev, struct device_attribute *attr,
-+		       const char *buf, size_t count)
-+{
-+	u32 tmp = simple_strtoul(buf, NULL, 10);
-+	hp_wmi_perform_query(HPWMI_ALS_QUERY, 1, tmp);
-+	return count;
-+}
-+
-+static DEVICE_ATTR(display, S_IRUGO, show_display, NULL);
-+static DEVICE_ATTR(hddtemp, S_IRUGO, show_hddtemp, NULL);
-+static DEVICE_ATTR(als, S_IRUGO | S_IWUSR, show_als, set_als);
-+static DEVICE_ATTR(dock, S_IRUGO, show_dock, NULL);
-+
-+static struct key_entry *hp_wmi_get_entry_by_scancode(int code)
-+{
-+	struct key_entry *key;
-+
-+	for (key = hp_wmi_keymap; key->type != KE_END; key++)
-+		if (code == key->code)
-+			return key;
-+
-+	return NULL;
-+}
-+
-+static struct key_entry *hp_wmi_get_entry_by_keycode(int keycode)
-+{
-+	struct key_entry *key;
-+
-+	for (key = hp_wmi_keymap; key->type != KE_END; key++)
-+		if (key->type == KE_KEY && keycode == key->keycode)
-+			return key;
-+
-+	return NULL;
-+}
-+
-+static int hp_wmi_getkeycode(struct input_dev *dev, int scancode, int *keycode)
-+{
-+	struct key_entry *key = hp_wmi_get_entry_by_scancode(scancode);
-+
-+	if (key && key->type == KE_KEY) {
-+		*keycode = key->keycode;
-+		return 0;
-+	}
-+
-+	return -EINVAL;
-+}
-+
-+static int hp_wmi_setkeycode(struct input_dev *dev, int scancode, int keycode)
-+{
-+	struct key_entry *key;
-+	int old_keycode;
-+
-+	if (keycode < 0 || keycode > KEY_MAX)
-+		return -EINVAL;
-+
-+	key = hp_wmi_get_entry_by_scancode(scancode);
-+	if (key && key->type == KE_KEY) {
-+		old_keycode = key->keycode;
-+		key->keycode = keycode;
-+		set_bit(keycode, dev->keybit);
-+		if (!hp_wmi_get_entry_by_keycode(old_keycode))
-+			clear_bit(old_keycode, dev->keybit);
-+		return 0;
-+	}
-+
-+	return -EINVAL;
-+}
-+
-+void hp_wmi_notify(u32 value, void *context)
-+{
-+	struct acpi_buffer response = { ACPI_ALLOCATE_BUFFER, NULL };
-+	static struct key_entry *key;
-+	union acpi_object *obj;
-+
-+	wmi_get_event_data(value, &response);
-+
-+	obj = (union acpi_object *)response.pointer;
-+
-+	if (obj && obj->type == ACPI_TYPE_BUFFER && obj->buffer.length == 8) {
-+		int eventcode = *((u8 *) obj->buffer.pointer);
-+		key = hp_wmi_get_entry_by_scancode(eventcode);
-+		if (key) {
-+			switch (key->type) {
-+			case KE_KEY:
-+				input_report_key(hp_wmi_input_dev,
-+						 key->keycode, 1);
-+				input_sync(hp_wmi_input_dev);
-+				input_report_key(hp_wmi_input_dev,
-+						 key->keycode, 0);
-+				input_sync(hp_wmi_input_dev);
-+				break;
-+			case KE_SW:
-+				input_report_switch(hp_wmi_input_dev,
-+						    key->keycode,
-+						    hp_wmi_dock_state());
-+				input_sync(hp_wmi_input_dev);
-+				break;
-+			}
-+		} else if (eventcode == 0x5) {
-+			if (wifi_rfkill)
-+				wifi_rfkill->state = hp_wmi_wifi_state();
-+			if (bluetooth_rfkill)
-+				bluetooth_rfkill->state =
-+				    hp_wmi_bluetooth_state();
-+			if (wwan_rfkill)
-+				wwan_rfkill->state = hp_wmi_wwan_state();
-+		} else
-+			printk(KERN_INFO "HP WMI: Unknown key pressed - %x\n",
-+			       eventcode);
-+	} else
-+		printk(KERN_INFO "HP WMI: Unknown response received\n");
-+}
-+
-+static int __init hp_wmi_input_setup(void)
-+{
-+	struct key_entry *key;
-+	int err;
-+
-+	hp_wmi_input_dev = input_allocate_device();
-+
-+	hp_wmi_input_dev->name = "HP WMI hotkeys";
-+	hp_wmi_input_dev->phys = "wmi/input0";
-+	hp_wmi_input_dev->id.bustype = BUS_HOST;
-+	hp_wmi_input_dev->getkeycode = hp_wmi_getkeycode;
-+	hp_wmi_input_dev->setkeycode = hp_wmi_setkeycode;
-+
-+	for (key = hp_wmi_keymap; key->type != KE_END; key++) {
-+		switch (key->type) {
-+		case KE_KEY:
-+			set_bit(EV_KEY, hp_wmi_input_dev->evbit);
-+			set_bit(key->keycode, hp_wmi_input_dev->keybit);
-+			break;
-+		case KE_SW:
-+			set_bit(EV_SW, hp_wmi_input_dev->evbit);
-+			set_bit(key->keycode, hp_wmi_input_dev->swbit);
-+			break;
-+		}
-+	}
-+
-+	err = input_register_device(hp_wmi_input_dev);
-+
-+	if (err) {
-+		input_free_device(hp_wmi_input_dev);
-+		return err;
-+	}
-+
-+	return 0;
-+}
-+
-+static void cleanup_sysfs(struct platform_device *device)
-+{
-+	device_remove_file(&device->dev, &dev_attr_display);
-+	device_remove_file(&device->dev, &dev_attr_hddtemp);
-+	device_remove_file(&device->dev, &dev_attr_als);
-+	device_remove_file(&device->dev, &dev_attr_dock);
-+}
-+
-+static int __init hp_wmi_bios_setup(struct platform_device *device)
-+{
-+	int err;
-+
-+	err = device_create_file(&device->dev, &dev_attr_display);
-+	if (err)
-+		goto add_sysfs_error;
-+	err = device_create_file(&device->dev, &dev_attr_hddtemp);
-+	if (err)
-+		goto add_sysfs_error;
-+	err = device_create_file(&device->dev, &dev_attr_als);
-+	if (err)
-+		goto add_sysfs_error;
-+	err = device_create_file(&device->dev, &dev_attr_dock);
-+	if (err)
-+		goto add_sysfs_error;
-+
-+	wifi_rfkill = rfkill_allocate(&device->dev, RFKILL_TYPE_WLAN);
-+	wifi_rfkill->name = "hp-wifi";
-+	wifi_rfkill->state = hp_wmi_wifi_state();
-+	wifi_rfkill->toggle_radio = hp_wmi_wifi_set;
-+	wifi_rfkill->user_claim_unsupported = 1;
-+
-+	bluetooth_rfkill = rfkill_allocate(&device->dev,
-+					   RFKILL_TYPE_BLUETOOTH);
-+	bluetooth_rfkill->name = "hp-bluetooth";
-+	bluetooth_rfkill->state = hp_wmi_bluetooth_state();
-+	bluetooth_rfkill->toggle_radio = hp_wmi_bluetooth_set;
-+	bluetooth_rfkill->user_claim_unsupported = 1;
-+
-+	wwan_rfkill = rfkill_allocate(&device->dev, RFKILL_TYPE_WIMAX);
-+	wwan_rfkill->name = "hp-wwan";
-+	wwan_rfkill->state = hp_wmi_wwan_state();
-+	wwan_rfkill->toggle_radio = hp_wmi_wwan_set;
-+	wwan_rfkill->user_claim_unsupported = 1;
-+
-+	rfkill_register(wifi_rfkill);
-+	rfkill_register(bluetooth_rfkill);
-+	rfkill_register(wwan_rfkill);
-+
-+	return 0;
-+add_sysfs_error:
-+	cleanup_sysfs(device);
-+	return err;
-+}
-+
-+static int __exit hp_wmi_bios_remove(struct platform_device *device)
-+{
-+	cleanup_sysfs(device);
-+
-+	rfkill_unregister(wifi_rfkill);
-+	rfkill_unregister(bluetooth_rfkill);
-+	rfkill_unregister(wwan_rfkill);
-+
-+	return 0;
-+}
-+
-+static int __init hp_wmi_init(void)
-+{
-+	int err;
-+
-+	if (wmi_has_guid(HPWMI_EVENT_GUID)) {
-+		err = wmi_install_notify_handler(HPWMI_EVENT_GUID,
-+						 hp_wmi_notify, NULL);
-+		if (!err)
-+			hp_wmi_input_setup();
-+	}
-+
-+	if (wmi_has_guid(HPWMI_BIOS_GUID)) {
-+		err = platform_driver_register(&hp_wmi_driver);
-+		if (err)
-+			return 0;
-+		hp_wmi_platform_dev = platform_device_alloc("hp-wmi", -1);
-+		if (!hp_wmi_platform_dev) {
-+			platform_driver_unregister(&hp_wmi_driver);
-+			return 0;
-+		}
-+		platform_device_add(hp_wmi_platform_dev);
-+	}
-+
-+	return 0;
-+}
-+
-+static void __exit hp_wmi_exit(void)
-+{
-+	if (wmi_has_guid(HPWMI_EVENT_GUID)) {
-+		wmi_remove_notify_handler(HPWMI_EVENT_GUID);
-+		input_unregister_device(hp_wmi_input_dev);
-+	}
-+	if (hp_wmi_platform_dev) {
-+		platform_device_del(hp_wmi_platform_dev);
-+		platform_driver_unregister(&hp_wmi_driver);
-+	}
-+}
-+
-+module_init(hp_wmi_init);
-+module_exit(hp_wmi_exit);
++int get_user_pages_fast(unsigned long start, int nr_pages, int write, struct page **pages);
++
++#else
++/*
++ * Should probably be moved to asm-generic, and architectures can include it if
++ * they don't implement their own get_user_pages_fast.
++ */
++#define get_user_pages_fast(start, nr_pages, write, pages)	\
++({								\
++	struct mm_struct *mm = current->mm;			\
++	int ret;						\
++								\
++	down_read(&mm->mmap_sem);				\
++	ret = get_user_pages(current, mm, start, nr_pages,	\
++					write, 0, pages, NULL);	\
++	up_read(&mm->mmap_sem);					\
++								\
++	ret;							\
++})
++#endif
++
+ /*
+  * A callback you can register to apply pressure to ageable caches.
+  *
 _
 
-Patches currently in -mm which might be from mjg59@srcf.ucam.org are
+Patches currently in -mm which might be from npiggin@suse.de are
 
-origin.patch
-acpi-video-balcklist-fujitsu-lifebook-s6410.patch
-bay-exit-if-notify-handler-cannot-be-installed.patch
-input-add-switch-for-dock-events.patch
-acpi-send-switch-event-on-dock-events.patch
-misc-add-hp-wmi-laptop-extras-driver.patch
+hugetlb-fix-lockdep-error.patch
+linux-next.patch
+spufs-convert-nopfn-to-fault.patch
+vt-fix-vc_resize-locking.patch
+mspec-convert-nopfn-to-fault.patch
+mspec-convert-nopfn-to-fault-fix.patch
+mm-remove-nopfn.patch
+mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co.patch
+x86-implement-pte_special.patch
+mm-introduce-get_user_pages_fast.patch
+x86-lockless-get_user_pages_fast.patch
+x86-lockless-get_user_pages_fast-fix.patch
+x86-lockless-get_user_pages_fast-fix-warning.patch
+dio-use-get_user_pages_fast.patch
+splice-use-get_user_pages_fast.patch
+reiser4.patch
+likeliness-accounting-change-and-cleanup.patch
 
