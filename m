@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + x86-lockless-get_user_pages_fast-checkpatch-fixes.patch added to -mm tree
-Date: Mon, 02 Jun 2008 16:57:36 -0700
-Message-ID: <200806022357.m52NvbtM006428@imap1.linux-foundation.org>
+Subject: + mm-introduce-get_user_pages_fast-checkpatch-fixes.patch added to -mm tree
+Date: Mon, 02 Jun 2008 16:56:59 -0700
+Message-ID: <200806022357.m52Nuxsx006349@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34871 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59082 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754841AbYFBX7S (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Jun 2008 19:59:18 -0400
+	by vger.kernel.org with ESMTP id S1753291AbYFBX76 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Jun 2008 19:59:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, andi@firstfloor.org, apw@shadowen.org, jens.axboe
 
 
 The patch titled
-     x86-lockless-get_user_pages_fast-checkpatch-fixes
+     mm-introduce-get_user_pages_fast-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
+     mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,20 +33,16 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86-lockless-get_user_pages_fast-checkpatch-fixes
+Subject: mm-introduce-get_user_pages_fast-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
 WARNING: line over 80 characters
-#240: FILE: arch/x86/mm/gup.c:163:
-+static int gup_pud_range(pgd_t pgd, unsigned long addr, unsigned long end, int write, struct page **pages, int *nr)
+#66: FILE: include/linux/mm.h:843:
++int get_user_pages_fast(unsigned long start, int nr_pages, int write, struct page **pages);
 
-WARNING: line over 80 characters
-#259: FILE: arch/x86/mm/gup.c:182:
-+int get_user_pages_fast(unsigned long start, int nr_pages, int write, struct page **pages)
+total: 0 errors, 1 warnings, 45 lines checked
 
-total: 0 errors, 2 warnings, 266 lines checked
-
-./patches/x86-lockless-get_user_pages_fast.patch has style problems, please review.  If any of these errors
+./patches/mm-introduce-get_user_pages_fast.patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
@@ -64,32 +60,22 @@ Cc: Zach Brown <zach.brown@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/gup.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ include/linux/mm.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86/mm/gup.c~x86-lockless-get_user_pages_fast-checkpatch-fixes arch/x86/mm/gup.c
---- a/arch/x86/mm/gup.c~x86-lockless-get_user_pages_fast-checkpatch-fixes
-+++ a/arch/x86/mm/gup.c
-@@ -160,7 +160,8 @@ static int gup_pmd_range(pud_t pud, unsi
- 	return 1;
- }
- 
--static int gup_pud_range(pgd_t pgd, unsigned long addr, unsigned long end, int write, struct page **pages, int *nr)
-+static int gup_pud_range(pgd_t pgd, unsigned long addr, unsigned long end,
-+			int write, struct page **pages, int *nr)
- {
- 	unsigned long next;
- 	pud_t *pudp;
-@@ -179,7 +180,8 @@ static int gup_pud_range(pgd_t pgd, unsi
- 	return 1;
- }
- 
--int get_user_pages_fast(unsigned long start, int nr_pages, int write, struct page **pages)
+diff -puN include/linux/mm.h~mm-introduce-get_user_pages_fast-checkpatch-fixes include/linux/mm.h
+--- a/include/linux/mm.h~mm-introduce-get_user_pages_fast-checkpatch-fixes
++++ a/include/linux/mm.h
+@@ -840,7 +840,8 @@ extern int mprotect_fixup(struct vm_area
+  * already faulted in and present in ptes. However if the pages have to be
+  * faulted in, it may turn out to be slightly slower).
+  */
+-int get_user_pages_fast(unsigned long start, int nr_pages, int write, struct page **pages);
 +int get_user_pages_fast(unsigned long start, int nr_pages, int write,
-+			struct page **pages)
- {
- 	struct mm_struct *mm = current->mm;
- 	unsigned long end = start + (nr_pages << PAGE_SHIFT);
++			struct page **pages);
+ 
+ #else
+ /*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -188,7 +174,6 @@ dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
 dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
 ppc-use-the-common-ascii-hex-helpers-fix.patch
 mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
 x86-lockless-get_user_pages_fast-fix.patch
 x86-lockless-get_user_pages_fast-fix-warning.patch
 reiser4.patch
