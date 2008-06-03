@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + smc911x-remove-unused-8-bit-i-o-operations.patch added to -mm tree
-Date: Tue, 03 Jun 2008 15:46:49 -0700
-Message-ID: <200806032246.m53MknAE023811@imap1.linux-foundation.org>
+Subject: + smc911x-superh-architecture-support.patch added to -mm tree
+Date: Tue, 03 Jun 2008 15:46:59 -0700
+Message-ID: <200806032246.m53MkxNJ023826@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38531 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53436 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751756AbYFCWrI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jun 2008 18:47:08 -0400
+	by vger.kernel.org with ESMTP id S1752801AbYFCWrL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jun 2008 18:47:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: magnus.damm@gmail.com, damm@igel.co.jp, jeff@garzik.org, lethal@linux-sh.org
 
 
 The patch titled
-     smc911x: remove unused 8-bit I/O operations
+     smc911x: SuperH architecture support
 has been added to the -mm tree.  Its filename is
-     smc911x-remove-unused-8-bit-i-o-operations.patch
+     smc911x-superh-architecture-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,10 +33,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: smc911x: remove unused 8-bit I/O operations
+Subject: smc911x: SuperH architecture support
 From: Magnus Damm <magnus.damm@gmail.com>
 
-Remove unused SMC_inb() and SMC_outb() functions.
+Enable the smc911x driver for the SuperH architecture.  While at it remove
+the unused SMC_USE_SH_DMA definition.
 
 Signed-off-by: Magnus Damm <damm@igel.co.jp>
 Cc: Jeff Garzik <jeff@garzik.org>
@@ -44,34 +45,33 @@ Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/smc911x.h |    4 ----
- 1 file changed, 4 deletions(-)
+ drivers/net/Kconfig   |    2 +-
+ drivers/net/smc911x.h |    1 -
+ 2 files changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/net/smc911x.h~smc911x-remove-unused-8-bit-i-o-operations drivers/net/smc911x.h
---- a/drivers/net/smc911x.h~smc911x-remove-unused-8-bit-i-o-operations
+diff -puN drivers/net/Kconfig~smc911x-superh-architecture-support drivers/net/Kconfig
+--- a/drivers/net/Kconfig~smc911x-superh-architecture-support
++++ a/drivers/net/Kconfig
+@@ -955,7 +955,7 @@ config SMC911X
+ 	tristate "SMSC LAN911[5678] support"
+ 	select CRC32
+ 	select MII
+-	depends on ARCH_PXA || SH_MAGIC_PANEL_R2
++	depends on ARCH_PXA || SUPERH
+ 	help
+ 	  This is a driver for SMSC's LAN911x series of Ethernet chipsets
+ 	  including the new LAN9115, LAN9116, LAN9117, and LAN9118.
+diff -puN drivers/net/smc911x.h~smc911x-superh-architecture-support drivers/net/smc911x.h
+--- a/drivers/net/smc911x.h~smc911x-superh-architecture-support
 +++ a/drivers/net/smc911x.h
-@@ -50,10 +50,8 @@
-  */
- 
- #if	SMC_USE_16BIT
--#define SMC_inb(a, r)			 readb((a) + (r))
- #define SMC_inw(a, r)			 readw((a) + (r))
- #define SMC_inl(a, r)			 ((SMC_inw(a, r) & 0xFFFF)+(SMC_inw(a+2, r)<<16))
--#define SMC_outb(v, a, r)		 writeb(v, (a) + (r))
- #define SMC_outw(v, a, r)		 writew(v, (a) + (r))
- #define SMC_outl(v, a, r) 			 \
- 	do{					 \
-@@ -64,10 +62,8 @@
- #define SMC_outsl(a, r, p, l)	 writesw((short*)((a) + (r)), p, l*2)
- 
- #elif	SMC_USE_32BIT
--#define SMC_inb(a, r)		 readb((a) + (r))
- #define SMC_inw(a, r)		 readw((a) + (r))
- #define SMC_inl(a, r)		 readl((a) + (r))
--#define SMC_outb(v, a, r)	 writeb(v, (a) + (r))
- #define SMC_outl(v, a, r)	 writel(v, (a) + (r))
- #define SMC_insl(a, r, p, l)	 readsl((int*)((a) + (r)), p, l)
- #define SMC_outsl(a, r, p, l)	 writesl((int*)((a) + (r)), p, l)
+@@ -39,7 +39,6 @@
+   #define SMC_USE_32BIT		1
+   #define SMC_IRQ_SENSE		IRQF_TRIGGER_FALLING
+ #elif defined(CONFIG_SH_MAGIC_PANEL_R2)
+-  #define SMC_USE_SH_DMA	0
+   #define SMC_USE_16BIT		0
+   #define SMC_USE_32BIT		1
+   #define SMC_IRQ_SENSE		IRQF_TRIGGER_LOW
 _
 
 Patches currently in -mm which might be from magnus.damm@gmail.com are
