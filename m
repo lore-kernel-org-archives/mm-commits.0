@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + jbd-abort-when-failed-to-log-metadata-buffers.patch added to -mm tree
-Date: Tue, 03 Jun 2008 15:40:12 -0700
-Message-ID: <200806032240.m53MeCD5023575__37735.975549049$1212532885$gmane$org@imap1.linux-foundation.org>
+Subject: + ext3-abort-ext3-if-the-journal-has-aborted.patch added to -mm tree
+Date: Tue, 03 Jun 2008 15:41:19 -0700
+Message-ID: <200806032241.m53MfJ3A023611@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33543 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56171 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751824AbYFCWkR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jun 2008 18:40:17 -0400
+	by vger.kernel.org with ESMTP id S1752372AbYFCWlZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jun 2008 18:41:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: hidehiro.kawai.ez@hitachi.com, jack@suse.cz, linux-ext4@vger.kernel.org
 
 
 The patch titled
-     jbd: abort when failed to log metadata buffers
+     ext3: abort ext3 if the journal has aborted
 has been added to the -mm tree.  Its filename is
-     jbd-abort-when-failed-to-log-metadata-buffers.patch
+     ext3-abort-ext3-if-the-journal-has-aborted.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,15 +33,13 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: jbd: abort when failed to log metadata buffers
+Subject: ext3: abort ext3 if the journal has aborted
 From: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
 
-If we failed to write metadata buffers to the journal space and succeeded
-to write the commit record, stale data can be written back to the
-filesystem as metadata in the recovery phase.
-
-To avoid this, when we failed to write out metadata buffers, abort the
-journal before writing the commit record.
+If the journal has aborted due to a checkpointing failure, we have to keep
+the contents of the journal space.  ext3_put_super() detects the journal
+abort, then it invokes ext3_abort() to make the filesystem read only and
+keep needs_recovery flag.
 
 Signed-off-by: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
 Acked-by: Jan Kara <jack@suse.cz>
@@ -49,22 +47,84 @@ Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jbd/commit.c |    3 +++
- 1 file changed, 3 insertions(+)
+ fs/ext3/ioctl.c |   12 ++++++------
+ fs/ext3/super.c |   11 +++++++++--
+ 2 files changed, 15 insertions(+), 8 deletions(-)
 
-diff -puN fs/jbd/commit.c~jbd-abort-when-failed-to-log-metadata-buffers fs/jbd/commit.c
---- a/fs/jbd/commit.c~jbd-abort-when-failed-to-log-metadata-buffers
-+++ a/fs/jbd/commit.c
-@@ -734,6 +734,9 @@ wait_for_iobuf:
- 		/* AKPM: bforget here */
+diff -puN fs/ext3/ioctl.c~ext3-abort-ext3-if-the-journal-has-aborted fs/ext3/ioctl.c
+--- a/fs/ext3/ioctl.c~ext3-abort-ext3-if-the-journal-has-aborted
++++ a/fs/ext3/ioctl.c
+@@ -239,7 +239,7 @@ setrsvsz_out:
+ 	case EXT3_IOC_GROUP_EXTEND: {
+ 		ext3_fsblk_t n_blocks_count;
+ 		struct super_block *sb = inode->i_sb;
+-		int err;
++		int err, err2;
+ 
+ 		if (!capable(CAP_SYS_RESOURCE))
+ 			return -EPERM;
+@@ -254,16 +254,16 @@ setrsvsz_out:
+ 		}
+ 		err = ext3_group_extend(sb, EXT3_SB(sb)->s_es, n_blocks_count);
+ 		journal_lock_updates(EXT3_SB(sb)->s_journal);
+-		journal_flush(EXT3_SB(sb)->s_journal);
++		err2 = journal_flush(EXT3_SB(sb)->s_journal);
+ 		journal_unlock_updates(EXT3_SB(sb)->s_journal);
+ group_extend_out:
+ 		mnt_drop_write(filp->f_path.mnt);
+-		return err;
++		return (err) ? err : err2;
+ 	}
+ 	case EXT3_IOC_GROUP_ADD: {
+ 		struct ext3_new_group_data input;
+ 		struct super_block *sb = inode->i_sb;
+-		int err;
++		int err, err2;
+ 
+ 		if (!capable(CAP_SYS_RESOURCE))
+ 			return -EPERM;
+@@ -280,11 +280,11 @@ group_extend_out:
+ 
+ 		err = ext3_group_add(sb, &input);
+ 		journal_lock_updates(EXT3_SB(sb)->s_journal);
+-		journal_flush(EXT3_SB(sb)->s_journal);
++		err2 = journal_flush(EXT3_SB(sb)->s_journal);
+ 		journal_unlock_updates(EXT3_SB(sb)->s_journal);
+ group_add_out:
+ 		mnt_drop_write(filp->f_path.mnt);
+-		return err;
++		return (err) ? err : err2;
  	}
  
-+	if (err)
-+		journal_abort(journal, err);
-+
- 	jbd_debug(3, "JBD: commit phase 6\n");
  
- 	if (journal_write_commit_record(journal, commit_transaction))
+diff -puN fs/ext3/super.c~ext3-abort-ext3-if-the-journal-has-aborted fs/ext3/super.c
+--- a/fs/ext3/super.c~ext3-abort-ext3-if-the-journal-has-aborted
++++ a/fs/ext3/super.c
+@@ -393,7 +393,8 @@ static void ext3_put_super (struct super
+ 	int i;
+ 
+ 	ext3_xattr_put_super(sb);
+-	journal_destroy(sbi->s_journal);
++	if (journal_destroy(sbi->s_journal) < 0)
++		ext3_abort(sb, __func__, "Couldn't clean up the journal");
+ 	if (!(sb->s_flags & MS_RDONLY)) {
+ 		EXT3_CLEAR_INCOMPAT_FEATURE(sb, EXT3_FEATURE_INCOMPAT_RECOVER);
+ 		es->s_state = cpu_to_le16(sbi->s_mount_state);
+@@ -2388,7 +2389,13 @@ static void ext3_write_super_lockfs(stru
+ 
+ 		/* Now we set up the journal barrier. */
+ 		journal_lock_updates(journal);
+-		journal_flush(journal);
++
++		/*
++		 * We don't want to clear needs_recovery flag when we failed
++		 * to flush the journal.
++		 */
++		if (journal_flush(journal) < 0)
++			return;
+ 
+ 		/* Journal blocked and flushed, clear needs_recovery flag. */
+ 		EXT3_CLEAR_INCOMPAT_FEATURE(sb, EXT3_FEATURE_INCOMPAT_RECOVER);
 _
 
 Patches currently in -mm which might be from hidehiro.kawai.ez@hitachi.com are
