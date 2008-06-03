@@ -1,115 +1,175 @@
 From: akpm@linux-foundation.org
-Subject: + x86-add-workaround-for-bug-in-asus-a7v600-bios-rev-1005.patch added to -mm tree
-Date: Tue, 03 Jun 2008 11:27:15 -0700
-Message-ID: <200806031827.m53IRGn0013452@imap1.linux-foundation.org>
+Subject: - svcrdma-fix-compile-warning-on-32-bit-platforms-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 03 Jun 2008 11:59:19 -0700
+Message-ID: <200806031859.m53IxJ6r014731@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43906 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37472 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753483AbYFCS2J (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jun 2008 14:28:09 -0400
+	by vger.kernel.org with ESMTP id S1752796AbYFCTAA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jun 2008 15:00:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: int-e@gmx.de, alan@redhat.com, jbarnes@virtuousgeek.org
+To: akpm@linux-foundation.org, bfields@fieldses.org, tom@opengridcomputing.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86: add workaround for bug in ASUS A7V600 BIOS (rev 1005)
-has been added to the -mm tree.  Its filename is
-     x86-add-workaround-for-bug-in-asus-a7v600-bios-rev-1005.patch
+     svcrdma-fix-compile-warning-on-32-bit-platforms-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     svcrdma-fix-compile-warning-on-32-bit-platforms-checkpatch-fixes.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: add workaround for bug in ASUS A7V600 BIOS (rev 1005)
-From: Bertram Felgenhauer <int-e@gmx.de>
+Subject: svcrdma-fix-compile-warning-on-32-bit-platforms-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This BIOS claims the VIA 8237 south bridge to be compatible with VIA 586,
-which it is not.
+ERROR: "(foo*)" should be "(foo *)"
+#26: FILE: net/sunrpc/xprtrdma/svc_rdma_recvfrom.c:234:
++					  (void*)(unsigned long)
 
-Without this patch, I get the following warning while booting,
-among others,
+total: 1 errors, 0 warnings, 25 lines checked
 
-| PCI: Using IRQ router VIA [1106/3227] at 0000:00:11.0
-| ------------[ cut here ]------------
-| WARNING: at arch/x86/pci/irq.c:265 pirq_via586_get+0x4a/0x60()
-| Modules linked in:
-| Pid: 1, comm: swapper Not tainted 2.6.26-rc4-00015-g1ec7d99 #1
-|  [<c0119fd4>] warn_on_slowpath+0x54/0x70
-|  [<c02246e0>] ? vt_console_print+0x210/0x2b0
-|  [<c02244d0>] ? vt_console_print+0x0/0x2b0
-|  [<c011a413>] ? __call_console_drivers+0x43/0x60
-|  [<c011a482>] ? _call_console_drivers+0x52/0x80
-|  [<c011aa89>] ? release_console_sem+0x1c9/0x200
-|  [<c0291d21>] ? raw_pci_read+0x41/0x70
-|  [<c0291e8f>] ? pci_read+0x2f/0x40
-|  [<c029151a>] pirq_via586_get+0x4a/0x60
-|  [<c02914d0>] ? pirq_via586_get+0x0/0x60
-|  [<c029178d>] pcibios_lookup_irq+0x15d/0x430
-|  [<c03b895a>] pcibios_irq_init+0x17a/0x3e0
-|  [<c03a66f0>] ? kernel_init+0x0/0x250
-|  [<c03a6763>] kernel_init+0x73/0x250
-|  [<c03b87e0>] ? pcibios_irq_init+0x0/0x3e0
-|  [<c0114d00>] ? schedule_tail+0x10/0x40
-|  [<c0102dee>] ? ret_from_fork+0x6/0x1c
-|  [<c03a66f0>] ? kernel_init+0x0/0x250
-|  [<c03a66f0>] ? kernel_init+0x0/0x250
-|  [<c010324b>] kernel_thread_helper+0x7/0x1c
-|  =======================
-| ---[ end trace 4eaa2a86a8e2da22 ]---
+./patches/svcrdma-fix-compile-warning-on-32-bit-platforms.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
 
-and IRQ trouble later,
+Please run checkpatch prior to sending patches
 
-| irq 10: nobody cared (try booting with the "irqpoll" option)
-
-Now that's an VIA 8237 chip, so pirq_via586_get shouldn't be called
-at all; adding this workaround to via_router_probe() fixes the
-problem for me.
-
-Amazingly I have a 2.6.23.8 kernel that somehow works fine ... I'll
-never understand why.
-
-Signed-off-by: Bertram Felgenhauer <int-e@gmx.de>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
-Acked-by: Alan Cox <alan@redhat.com>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: Tom Tucker <tom@opengridcomputing.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/pci/irq.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ net/sunrpc/xprtrdma/svc_rdma_recvfrom.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/pci/irq.c~x86-add-workaround-for-bug-in-asus-a7v600-bios-rev-1005 arch/x86/pci/irq.c
---- a/arch/x86/pci/irq.c~x86-add-workaround-for-bug-in-asus-a7v600-bios-rev-1005
-+++ a/arch/x86/pci/irq.c
-@@ -646,6 +646,13 @@ static __init int via_router_probe(struc
- 			 */
- 			device = PCI_DEVICE_ID_VIA_8235;
- 			break;
-+		case PCI_DEVICE_ID_VIA_8237:
-+			/**
-+			 * Asus a7v600 bios wrongly reports 8237
-+			 * as 586-compatible
-+			 */
-+			device = PCI_DEVICE_ID_VIA_8237;
-+			break;
- 		}
- 	}
- 
+diff -puN net/sunrpc/xprtrdma/svc_rdma_recvfrom.c~svcrdma-fix-compile-warning-on-32-bit-platforms-checkpatch-fixes net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
+--- a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c~svcrdma-fix-compile-warning-on-32-bit-platforms-checkpatch-fixes
++++ a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
+@@ -231,7 +231,7 @@ static void rdma_set_ctxt_sge(struct svc
+ 		atomic_inc(&xprt->sc_dma_used);
+ 		ctxt->sge[i].addr = (unsigned long)
+ 			ib_dma_map_single(xprt->sc_cm_id->device,
+-					  (void*)(unsigned long)
++					  (void *)(unsigned long)
+ 					  sge[i].addr, sge[i].length,
+ 					  DMA_FROM_DEVICE);
+ 		ctxt->sge[i].length = sge[i].length;
 _
 
-Patches currently in -mm which might be from int-e@gmx.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-x86-add-workaround-for-bug-in-asus-a7v600-bios-rev-1005.patch
+origin.patch
+linux-next.patch
+next-remove-localversion.patch
+linux-next-fixup.patch
+fix-kobject-fix-kobject_rename-and-config_sysfs.patch
+kvm-is-busted-on-ia64.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-video-balcklist-fujitsu-lifebook-s6410.patch
+git-x86-fixup.patch
+lguest-use-cpu-capability-accessors.patch
+arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
+arch-powerpc-platforms-pseries-eeh_driverc-fix-warning.patch
+arch-powerpc-platforms-pseries-eeh_driverc-fix-warning-checkpatch-fixes.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+git-jg-misc-git-rejects.patch
+drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+git-leds.patch
+fsldma-the-mpc8377mds-board-device-tree-node-for-fsldma-driver.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers.patch
+sundance-set-carrier-status-on-link-change-events.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+svcrdma-fix-compile-warning-on-32-bit-platforms-checkpatch-fixes.patch
+sched-delete-dead-stuff.patch
+sched-delete-dead-stuff-2.patch
+git-scsi-misc-fix-scsi_dh-build-errors.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
+pktcdvd-push-bkl-down-into-driver-fix.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-logfs-fixup.patch
+drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
+drivers-uwb-wlp-sysfsc-dead-code.patch
+usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix.patch
+usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix-2.patch
+watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix.patch
+watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl-fix.patch
+git-xtensa.patch
+ext4-is-busted-on-m68k.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+libata-sff-fix-oops-reported-in-kerneloopsorg-for-pnp-devices-with-no-ctl-fix.patch
+mm-verify-the-page-links-and-memory-model.patch
+mspec-convert-nopfn-to-fault-fix.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+kill-generic_file_direct_io-checkpatch-fixes.patch
+use-generic_access_phys-for-dev-mem-mappings-fix.patch
+spufs-use-the-new-vm_ops-access-fix.patch
+fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
+page-flags-record-page-flag-overlays-explicitly-xen.patch
+mapping_set_error-add-unlikely.patch
+huge-page-private-reservation-review-cleanups-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup-fix.patch
+swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
+block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
+rename-warn-to-warning-to-clear-the-namespace-fix.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-paccept-sys_ni.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-signalfd-fix.patch
+flag-parameters-eventfd-fix.patch
+flag-parameters-inotify_init-fix.patch
+flag-parameters-check-magic-constants-alpha.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
+reiserfs-convert-j_flush_sem-to-mutex.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup.patch
+ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-fix.patch
+x86-lockless-get_user_pages_fast-fix-warning.patch
+reiser4.patch
+reiser4-semaphore-fix.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
