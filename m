@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + quota-cleanup-loop-in-sync_dquots.patch added to -mm tree
-Date: Tue, 03 Jun 2008 16:18:42 -0700
-Message-ID: <200806032318.m53NIg8N025101@imap1.linux-foundation.org>
+Subject: + ext4-add-explicit-include-of-linux-quotah-into-ext4_jbd2h.patch added to -mm tree
+Date: Tue, 03 Jun 2008 16:18:44 -0700
+Message-ID: <200806032318.m53NIiDD025104@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35177 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41437 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753289AbYFCXSr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jun 2008 19:18:47 -0400
+	by vger.kernel.org with ESMTP id S1753813AbYFCXSs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jun 2008 19:18:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jack@suse.cz, vegard.nossum@gmail.com
+Cc: jack@suse.cz
 
 
 The patch titled
-     quota: cleanup loop in sync_dquots()
+     ext4: add explicit include of <linux/quota.h> into ext4_jbd2.h
 has been added to the -mm tree.  Its filename is
-     quota-cleanup-loop-in-sync_dquots.patch
+     ext4-add-explicit-include-of-linux-quotah-into-ext4_jbd2h.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,69 +33,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: quota: cleanup loop in sync_dquots()
+Subject: ext4: add explicit include of <linux/quota.h> into ext4_jbd2.h
 From: Jan Kara <jack@suse.cz>
 
-Make loop in sync_dquots() checking whether there's something to write
-more readable, remove useless variable and macro info_any_dirty() which
-is used only in this place.
+We need definitions from quota.h.  So far we depended on fs.h on including
+this file for us and this is going to change.
 
 Signed-off-by: Jan Kara <jack@suse.cz>
-Cc: "Vegard Nossum" <vegard.nossum@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/quota.c            |   18 ++++++++++++------
- include/linux/quota.h |    2 --
- 2 files changed, 12 insertions(+), 8 deletions(-)
+ fs/ext4/ext4_jbd2.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/quota.c~quota-cleanup-loop-in-sync_dquots fs/quota.c
---- a/fs/quota.c~quota-cleanup-loop-in-sync_dquots
-+++ a/fs/quota.c
-@@ -186,7 +186,7 @@ static void quota_sync_sb(struct super_b
+diff -puN fs/ext4/ext4_jbd2.h~ext4-add-explicit-include-of-linux-quotah-into-ext4_jbd2h fs/ext4/ext4_jbd2.h
+--- a/fs/ext4/ext4_jbd2.h~ext4-add-explicit-include-of-linux-quotah-into-ext4_jbd2h
++++ a/fs/ext4/ext4_jbd2.h
+@@ -17,6 +17,7 @@
  
- void sync_dquots(struct super_block *sb, int type)
- {
--	int cnt, dirty;
-+	int cnt;
+ #include <linux/fs.h>
+ #include <linux/jbd2.h>
++#include <linux/quota.h>
+ #include "ext4.h"
  
- 	if (sb) {
- 		if (sb->s_qcop->quota_sync)
-@@ -198,11 +198,17 @@ void sync_dquots(struct super_block *sb,
- restart:
- 	list_for_each_entry(sb, &super_blocks, s_list) {
- 		/* This test just improves performance so it needn't be reliable... */
--		for (cnt = 0, dirty = 0; cnt < MAXQUOTAS; cnt++)
--			if ((type == cnt || type == -1) && sb_has_quota_enabled(sb, cnt)
--			    && info_any_dirty(&sb_dqopt(sb)->info[cnt]))
--				dirty = 1;
--		if (!dirty)
-+		for (cnt = 0; cnt < MAXQUOTAS; cnt++) {
-+			if (type != -1 && type != cnt)
-+				continue;
-+			if (!sb_has_quota_enabled(sb, cnt))
-+				continue;
-+			if (!info_dirty(&sb_dqopt(sb)->info[cnt]) &&
-+			    list_empty(&sb_dqopt(sb)->info[cnt].dqi_dirty_list))
-+				continue;
-+			break;
-+		}
-+		if (cnt == MAXQUOTAS)
- 			continue;
- 		sb->s_count++;
- 		spin_unlock(&sb_lock);
-diff -puN include/linux/quota.h~quota-cleanup-loop-in-sync_dquots include/linux/quota.h
---- a/include/linux/quota.h~quota-cleanup-loop-in-sync_dquots
-+++ a/include/linux/quota.h
-@@ -224,8 +224,6 @@ struct super_block;
- 
- extern void mark_info_dirty(struct super_block *sb, int type);
- #define info_dirty(info) test_bit(DQF_INFO_DIRTY_B, &(info)->dqi_flags)
--#define info_any_dquot_dirty(info) (!list_empty(&(info)->dqi_dirty_list))
--#define info_any_dirty(info) (info_dirty(info) || info_any_dquot_dirty(info))
- 
- #define sb_dqopt(sb) (&(sb)->s_dquot)
- #define sb_dqinfo(sb, type) (sb_dqopt(sb)->info+(type))
+ #define EXT4_JOURNAL(inode)	(EXT4_SB((inode)->i_sb)->s_journal)
 _
 
 Patches currently in -mm which might be from jack@suse.cz are
