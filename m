@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + gcov-create-links-to-gcda-files-in-build-directory.patch added to -mm tree
-Date: Tue, 03 Jun 2008 16:02:32 -0700
-Message-ID: <200806032302.m53N2W1O024460@imap1.linux-foundation.org>
+Subject: + gcov-architecture-specific-compile-flag-adjustments.patch added to -mm tree
+Date: Tue, 03 Jun 2008 16:02:36 -0700
+Message-ID: <200806032302.m53N2ajI024465@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60207 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43612 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752225AbYFCXEk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jun 2008 19:04:40 -0400
+	by vger.kernel.org with ESMTP id S1756829AbYFCXEW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jun 2008 19:04:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: peter.oberparleiter@de.ibm.com, rusty@rustcorp.com.au, sam@ravnborg.org
 
 
 The patch titled
-     gcov: create links to .gcda files in build directory
+     gcov: architecture specific compile flag adjustments
 has been added to the -mm tree.  Its filename is
-     gcov-create-links-to-gcda-files-in-build-directory.patch
+     gcov-architecture-specific-compile-flag-adjustments.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,14 +33,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gcov: create links to .gcda files in build directory
+Subject: gcov: architecture specific compile flag adjustments
 From: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
 
-Modify kbuild to create symbolic links in the build directory which refer
-to the .gcda files in sysfs.
-
-Required by the gcov profiling infrastructure: the gcov tool requires all
-data files (x.gcda, x.gcno) to be found in the same directory.
+Exclude code from profiling which is not linked to the main kernel or
+which is running in a context not compatible with the assumptions made by
+gcc's profiling code.
 
 Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
 Cc: Sam Ravnborg <sam@ravnborg.org>
@@ -48,78 +46,116 @@ Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile               |   11 ++++++-----
- scripts/Makefile.build |    9 ++++++++-
- 2 files changed, 14 insertions(+), 6 deletions(-)
+ arch/arm/boot/compressed/Makefile      |    1 +
+ arch/powerpc/kernel/vdso32/Makefile    |    1 +
+ arch/powerpc/kernel/vdso64/Makefile    |    1 +
+ arch/ppc/boot/Makefile                 |    1 +
+ arch/ppc/boot/common/Makefile          |    1 +
+ arch/ppc/boot/simple/Makefile          |    1 +
+ arch/x86/boot/Makefile                 |    1 +
+ arch/x86/boot/compressed/Makefile      |    1 +
+ arch/x86/kernel/acpi/realmode/Makefile |    1 +
+ 9 files changed, 9 insertions(+)
 
-diff -puN Makefile~gcov-create-links-to-gcda-files-in-build-directory Makefile
---- a/Makefile~gcov-create-links-to-gcda-files-in-build-directory
-+++ a/Makefile
-@@ -319,7 +319,7 @@ LDFLAGS_MODULE  =
- CFLAGS_KERNEL	=
- AFLAGS_KERNEL	=
- CFLAGS_GCOV	= -fprofile-arcs -ftest-coverage
--
-+GCOV_DATA_DIR	= /sys/kernel/debug/gcov
+diff -puN arch/arm/boot/compressed/Makefile~gcov-architecture-specific-compile-flag-adjustments arch/arm/boot/compressed/Makefile
+--- a/arch/arm/boot/compressed/Makefile~gcov-architecture-specific-compile-flag-adjustments
++++ a/arch/arm/boot/compressed/Makefile
+@@ -7,6 +7,7 @@
+ HEAD	= head.o
+ OBJS	= misc.o
+ FONTC	= $(srctree)/drivers/video/console/font_acorn_8x8.c
++GCOV	:= n
  
- # Use LINUXINCLUDE when you must reference the include/ directory.
- # Needed to be compatible with the O= option
-@@ -341,7 +341,7 @@ KERNELVERSION = $(VERSION).$(PATCHLEVEL)
- export VERSION PATCHLEVEL SUBLEVEL KERNELRELEASE KERNELVERSION
- export ARCH SRCARCH CONFIG_SHELL HOSTCC HOSTCFLAGS CROSS_COMPILE AS LD CC
- export CPP AR NM STRIP OBJCOPY OBJDUMP MAKE AWK GENKSYMS PERL UTS_MACHINE
--export HOSTCXX HOSTCXXFLAGS LDFLAGS_MODULE CHECK CHECKFLAGS
-+export HOSTCXX HOSTCXXFLAGS LDFLAGS_MODULE CHECK CHECKFLAGS GCOV_DATA_DIR
- 
- export KBUILD_CPPFLAGS NOSTDINC_FLAGS LINUXINCLUDE OBJCOPYFLAGS LDFLAGS
- export KBUILD_CFLAGS CFLAGS_KERNEL CFLAGS_MODULE CFLAGS_GCOV
-@@ -1141,8 +1141,8 @@ clean: archclean $(clean-dirs)
- 		\( -name '*.[oas]' -o -name '*.ko' -o -name '.*.cmd' \
- 		-o -name '.*.d' -o -name '.*.tmp' -o -name '*.mod.c' \
- 		-o -name '*.symtypes' -o -name 'modules.order' \
--		-o -name '*.gcno' \) \
--		-type f -print | xargs rm -f
-+		-o -name '*.gcno' -o -name '*.gcda' \) \
-+		\( -type f -o -type l \) -print | xargs rm -f
- 
- # mrproper - Delete all generated files, including .config
  #
-@@ -1346,7 +1346,8 @@ clean: $(clean-dirs)
- 	@find $(KBUILD_EXTMOD) $(RCS_FIND_IGNORE) \
- 		\( -name '*.[oas]' -o -name '*.ko' -o -name '.*.cmd' \
- 		-o -name '.*.d' -o -name '.*.tmp' -o -name '*.mod.c' \
--		-o -name '*.gcno' \) -type f -print | xargs rm -f
-+		-o -name '*.gcno' -o -name '*.gcda' \) \
-+		\( -type f -o -type l \) -print | xargs rm -f
+ # Architecture dependencies
+diff -puN arch/powerpc/kernel/vdso32/Makefile~gcov-architecture-specific-compile-flag-adjustments arch/powerpc/kernel/vdso32/Makefile
+--- a/arch/powerpc/kernel/vdso32/Makefile~gcov-architecture-specific-compile-flag-adjustments
++++ a/arch/powerpc/kernel/vdso32/Makefile
+@@ -17,6 +17,7 @@ EXTRA_CFLAGS := -shared -fno-common -fno
+ EXTRA_CFLAGS += -nostdlib -Wl,-soname=linux-vdso32.so.1 \
+ 		$(call ld-option, -Wl$(comma)--hash-style=sysv)
+ EXTRA_AFLAGS := -D__VDSO32__ -s
++GCOV := n
  
- help:
- 	@echo  '  Building external modules.'
-diff -puN scripts/Makefile.build~gcov-create-links-to-gcda-files-in-build-directory scripts/Makefile.build
---- a/scripts/Makefile.build~gcov-create-links-to-gcda-files-in-build-directory
-+++ a/scripts/Makefile.build
-@@ -198,6 +198,12 @@ cmd_modversions =							\
- 	fi;
- endif
+ obj-y += vdso32_wrapper.o
+ extra-y += vdso32.lds
+diff -puN arch/powerpc/kernel/vdso64/Makefile~gcov-architecture-specific-compile-flag-adjustments arch/powerpc/kernel/vdso64/Makefile
+--- a/arch/powerpc/kernel/vdso64/Makefile~gcov-architecture-specific-compile-flag-adjustments
++++ a/arch/powerpc/kernel/vdso64/Makefile
+@@ -11,6 +11,7 @@ EXTRA_CFLAGS := -shared -fno-common -fno
+ EXTRA_CFLAGS += -nostdlib -Wl,-soname=linux-vdso64.so.1 \
+ 		$(call ld-option, -Wl$(comma)--hash-style=sysv)
+ EXTRA_AFLAGS := -D__VDSO64__ -s
++GCOV := n
  
-+ifdef CONFIG_GCOV_PROFILE
-+# Create a link to the gcov data file in /sys
-+cmd_gcov = ln -s -f $(GCOV_DATA_DIR)$(if \
-+	$(filter-out /%,$(@D)),$(objtree)/$(@D),$(@D))/$(@F:.o=.gcda) $(@D)
-+endif
-+
- define rule_cc_o_c
- 	$(call echo-cmd,checksrc) $(cmd_checksrc)			  \
- 	$(call echo-cmd,cc_o_c) $(cmd_cc_o_c);				  \
-@@ -205,7 +211,8 @@ define rule_cc_o_c
- 	scripts/basic/fixdep $(depfile) $@ '$(call make-cmd,cc_o_c)' >    \
- 	                                              $(dot-target).tmp;  \
- 	rm -f $(depfile);						  \
--	mv -f $(dot-target).tmp $(dot-target).cmd
-+	mv -f $(dot-target).tmp $(dot-target).cmd;			  \
-+	$(cmd_gcov)
- endef
+ obj-y += vdso64_wrapper.o
+ extra-y += vdso64.lds
+diff -puN arch/ppc/boot/Makefile~gcov-architecture-specific-compile-flag-adjustments arch/ppc/boot/Makefile
+--- a/arch/ppc/boot/Makefile~gcov-architecture-specific-compile-flag-adjustments
++++ a/arch/ppc/boot/Makefile
+@@ -16,6 +16,7 @@
+ # KBUILD_CFLAGS used when building rest of boot (takes effect recursively)
+ KBUILD_CFLAGS 	+= -fno-builtin -D__BOOTER__ -Iarch/$(ARCH)/boot/include
+ HOSTCFLAGS	+= -Iarch/$(ARCH)/boot/include
++GCOV		:= n
  
- # Built-in and composite module parts
+ BOOT_TARGETS	= zImage zImage.initrd znetboot znetboot.initrd
+ 
+diff -puN arch/ppc/boot/common/Makefile~gcov-architecture-specific-compile-flag-adjustments arch/ppc/boot/common/Makefile
+--- a/arch/ppc/boot/common/Makefile~gcov-architecture-specific-compile-flag-adjustments
++++ a/arch/ppc/boot/common/Makefile
+@@ -5,6 +5,7 @@
+ # Tom Rini	January 2001
+ #
+ 
++GCOV := n
+ lib-y					:= string.o util.o misc-common.o \
+ 						serial_stub.o bootinfo.o
+ lib-$(CONFIG_SERIAL_8250_CONSOLE)	+= ns16550.o
+diff -puN arch/ppc/boot/simple/Makefile~gcov-architecture-specific-compile-flag-adjustments arch/ppc/boot/simple/Makefile
+--- a/arch/ppc/boot/simple/Makefile~gcov-architecture-specific-compile-flag-adjustments
++++ a/arch/ppc/boot/simple/Makefile
+@@ -21,6 +21,7 @@
+ # XXX_memory.o file for this to work, as well as editing the
+ # misc-$(CONFIG_MACHINE) variable.
+ 
++GCOV				:= n
+ boot				:= arch/ppc/boot
+ common				:= $(boot)/common
+ utils				:= $(boot)/utils
+diff -puN arch/x86/boot/Makefile~gcov-architecture-specific-compile-flag-adjustments arch/x86/boot/Makefile
+--- a/arch/x86/boot/Makefile~gcov-architecture-specific-compile-flag-adjustments
++++ a/arch/x86/boot/Makefile
+@@ -71,6 +71,7 @@ KBUILD_CFLAGS	:= $(LINUXINCLUDE) -g -Os 
+ 		   $(call cc-option, -mpreferred-stack-boundary=2)
+ KBUILD_CFLAGS +=   $(call cc-option,-m32)
+ KBUILD_AFLAGS	:= $(KBUILD_CFLAGS) -D__ASSEMBLY__
++GCOV		:= n
+ 
+ $(obj)/zImage:  IMAGE_OFFSET := 0x1000
+ $(obj)/zImage:  asflags-y := $(SVGA_MODE) $(RAMDISK)
+diff -puN arch/x86/boot/compressed/Makefile~gcov-architecture-specific-compile-flag-adjustments arch/x86/boot/compressed/Makefile
+--- a/arch/x86/boot/compressed/Makefile~gcov-architecture-specific-compile-flag-adjustments
++++ a/arch/x86/boot/compressed/Makefile
+@@ -12,6 +12,7 @@ cflags-$(CONFIG_X86_64) := -mcmodel=smal
+ KBUILD_CFLAGS += $(cflags-y)
+ KBUILD_CFLAGS += $(call cc-option,-ffreestanding)
+ KBUILD_CFLAGS += $(call cc-option,-fno-stack-protector)
++GCOV := n
+ 
+ KBUILD_AFLAGS  := $(KBUILD_CFLAGS) -D__ASSEMBLY__
+ 
+diff -puN arch/x86/kernel/acpi/realmode/Makefile~gcov-architecture-specific-compile-flag-adjustments arch/x86/kernel/acpi/realmode/Makefile
+--- a/arch/x86/kernel/acpi/realmode/Makefile~gcov-architecture-specific-compile-flag-adjustments
++++ a/arch/x86/kernel/acpi/realmode/Makefile
+@@ -42,6 +42,7 @@ KBUILD_CFLAGS	:= $(LINUXINCLUDE) -g -Os 
+ 		   $(call cc-option, -mpreferred-stack-boundary=2)
+ KBUILD_CFLAGS	+= $(call cc-option, -m32)
+ KBUILD_AFLAGS	:= $(KBUILD_CFLAGS) -D__ASSEMBLY__
++GCOV		:= n
+ 
+ WAKEUP_OBJS = $(addprefix $(obj)/,$(wakeup-y))
+ 
 _
 
 Patches currently in -mm which might be from peter.oberparleiter@de.ibm.com are
