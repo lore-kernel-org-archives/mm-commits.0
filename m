@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ext3-fix-online-resize-bug.patch added to -mm tree
-Date: Mon, 02 Jun 2008 17:17:22 -0700
-Message-ID: <200806030017.m530HMTB007165@imap1.linux-foundation.org>
+Subject: + ext4-fix-online-resize-bug.patch added to -mm tree
+Date: Mon, 02 Jun 2008 17:20:09 -0700
+Message-ID: <200806030020.m530K9Bx007256@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53049 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38049 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751386AbYFCASP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Jun 2008 20:18:15 -0400
+	by vger.kernel.org with ESMTP id S1753050AbYFCAVd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Jun 2008 20:21:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jbacik@redhat.com, adilger@sun.com, linux-ext4@vger.kernel.org
+Cc: jbacik@redhat.com, adilger@sun.com, cmm@us.ibm.com, linux-ext4@vger.kernel.org, tytso@mit.edu
 
 
 The patch titled
-     ext3: fix online resize bug
+     ext4: fix online resize bug
 has been added to the -mm tree.  Its filename is
-     ext3-fix-online-resize-bug.patch
+     ext4-fix-online-resize-bug.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,50 +33,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext3: fix online resize bug
+Subject: ext4: fix online resize bug
 From: Josef Bacik <jbacik@redhat.com>
 
 There is a bug when we are trying to verify that the reserve inode's
 double indirect blocks point back to the primary gdt blocks.  The fix is
-obvious, we need to mod the gdb count by the addr's per block.  You can
-verify this with the following test case
-
-dd if=/dev/zero of=disk1 seek=1024 count=1 bs=100M
-losetup /dev/loop1 disk1
-pvcreate /dev/loop1
-vgcreate loopvg1 /dev/loop1
-lvcreate -l 100%VG loopvg1 -n looplv1
-mkfs.ext3 -J size=64 -b 1024 /dev/loopvg1/looplv1
-mount /dev/loopvg1/looplv1 /mnt/loop
-dd if=/dev/zero of=disk2 seek=1024 count=1 bs=50M
-losetup /dev/loop2 disk2
-pvcreate /dev/loop2
-vgextend loopvg1 /dev/loop2
-lvextend -l 100%VG /dev/loopvg1/looplv1
-resize2fs /dev/loopvg1/looplv1
-
-without this patch the resize2fs fails, with it the resize2fs succeeds.
+obvious, we need to mod the gdb count by the addr's per block.  This was
+verified using the same testcase as with the ext3 equivalent of this
+patch.
 
 Signed-off-by: Josef Bacik <jbacik@redhat.com>
-Cc: Andreas Dilger <adilger@sun.com>
 Cc: <linux-ext4@vger.kernel.org>
+Cc: Andreas Dilger <adilger@sun.com>
+Cc: Mingming Cao <cmm@us.ibm.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/resize.c |    3 ++-
+ fs/ext4/resize.c |    3 ++-
  1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/ext3/resize.c~ext3-fix-online-resize-bug fs/ext3/resize.c
---- a/fs/ext3/resize.c~ext3-fix-online-resize-bug
-+++ a/fs/ext3/resize.c
-@@ -580,7 +580,8 @@ static int reserve_backup_gdb(handle_t *
+diff -puN fs/ext4/resize.c~ext4-fix-online-resize-bug fs/ext4/resize.c
+--- a/fs/ext4/resize.c~ext4-fix-online-resize-bug
++++ a/fs/ext4/resize.c
+@@ -563,7 +563,8 @@ static int reserve_backup_gdb(handle_t *
  	}
  
- 	blk = EXT3_SB(sb)->s_sbh->b_blocknr + 1 + EXT3_SB(sb)->s_gdb_count;
--	data = (__le32 *)dind->b_data + EXT3_SB(sb)->s_gdb_count;
-+	data = (__le32 *)dind->b_data + (EXT3_SB(sb)->s_gdb_count %
-+					 EXT3_ADDR_PER_BLOCK(sb));
- 	end = (__le32 *)dind->b_data + EXT3_ADDR_PER_BLOCK(sb);
+ 	blk = EXT4_SB(sb)->s_sbh->b_blocknr + 1 + EXT4_SB(sb)->s_gdb_count;
+-	data = (__le32 *)dind->b_data + EXT4_SB(sb)->s_gdb_count;
++	data = (__le32 *)dind->b_data + (EXT4_SB(sb)->s_gdb_count %
++					 EXT4_ADDR_PER_BLOCK(sb));
+ 	end = (__le32 *)dind->b_data + EXT4_ADDR_PER_BLOCK(sb);
  
  	/* Get each reserved primary GDT block and verify it holds backups */
 _
@@ -84,4 +71,5 @@ _
 Patches currently in -mm which might be from jbacik@redhat.com are
 
 ext3-fix-online-resize-bug.patch
+ext4-fix-online-resize-bug.patch
 
