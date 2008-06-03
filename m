@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + hgafb-fix-module-removal.patch added to -mm tree
-Date: Tue, 03 Jun 2008 16:10:30 -0700
-Message-ID: <200806032310.m53NAULD024790@imap1.linux-foundation.org>
+Subject: + quota-cleanup-loop-in-sync_dquots.patch added to -mm tree
+Date: Tue, 03 Jun 2008 16:18:42 -0700
+Message-ID: <200806032318.m53NIg8N025101@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56694 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35177 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753718AbYFCXOb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jun 2008 19:14:31 -0400
+	by vger.kernel.org with ESMTP id S1753289AbYFCXSr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jun 2008 19:18:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: avorontsov@ru.mvista.com, adaplas@pol.net, devzero@web.de, greg@kroah.com, kay.sievers@vrfy.org, krzysztof.h1@poczta.fm
+Cc: jack@suse.cz, vegard.nossum@gmail.com
 
 
 The patch titled
-     hgafb: fix module removal
+     quota: cleanup loop in sync_dquots()
 has been added to the -mm tree.  Its filename is
-     hgafb-fix-module-removal.patch
+     quota-cleanup-loop-in-sync_dquots.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,118 +33,92 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hgafb: fix module removal
-From: Anton Vorontsov <avorontsov@ru.mvista.com>
+Subject: quota: cleanup loop in sync_dquots()
+From: Jan Kara <jack@suse.cz>
 
-We should allocate platform device dynamically, otherwise it can't be removed.
+Make loop in sync_dquots() checking whether there's something to write
+more readable, remove useless variable and macro info_any_dirty() which
+is used only in this place.
 
-Also, back in time it was acceptable to mix devices and platform_devices,
-today this might cause all sort of bugs. Fix that too.
-
-Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
-Cc: <devzero@web.de>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
-Cc: Greg KH <greg@kroah.com>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
+Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: "Vegard Nossum" <vegard.nossum@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/hgafb.c |   41 ++++++++++++++++++++--------------------
- 1 file changed, 21 insertions(+), 20 deletions(-)
+ fs/quota.c            |   18 ++++++++++++------
+ include/linux/quota.h |    2 --
+ 2 files changed, 12 insertions(+), 8 deletions(-)
 
-diff -puN drivers/video/hgafb.c~hgafb-fix-module-removal drivers/video/hgafb.c
---- a/drivers/video/hgafb.c~hgafb-fix-module-removal
-+++ a/drivers/video/hgafb.c
-@@ -547,7 +547,7 @@ static struct fb_ops hgafb_ops = {
- 	 *  Initialization
- 	 */
+diff -puN fs/quota.c~quota-cleanup-loop-in-sync_dquots fs/quota.c
+--- a/fs/quota.c~quota-cleanup-loop-in-sync_dquots
++++ a/fs/quota.c
+@@ -186,7 +186,7 @@ static void quota_sync_sb(struct super_b
  
--static int __init hgafb_probe(struct device *device)
-+static int __init hgafb_probe(struct platform_device *pdev)
+ void sync_dquots(struct super_block *sb, int type)
  {
- 	struct fb_info *info;
+-	int cnt, dirty;
++	int cnt;
  
-@@ -589,13 +589,13 @@ static int __init hgafb_probe(struct dev
+ 	if (sb) {
+ 		if (sb->s_qcop->quota_sync)
+@@ -198,11 +198,17 @@ void sync_dquots(struct super_block *sb,
+ restart:
+ 	list_for_each_entry(sb, &super_blocks, s_list) {
+ 		/* This test just improves performance so it needn't be reliable... */
+-		for (cnt = 0, dirty = 0; cnt < MAXQUOTAS; cnt++)
+-			if ((type == cnt || type == -1) && sb_has_quota_enabled(sb, cnt)
+-			    && info_any_dirty(&sb_dqopt(sb)->info[cnt]))
+-				dirty = 1;
+-		if (!dirty)
++		for (cnt = 0; cnt < MAXQUOTAS; cnt++) {
++			if (type != -1 && type != cnt)
++				continue;
++			if (!sb_has_quota_enabled(sb, cnt))
++				continue;
++			if (!info_dirty(&sb_dqopt(sb)->info[cnt]) &&
++			    list_empty(&sb_dqopt(sb)->info[cnt].dqi_dirty_list))
++				continue;
++			break;
++		}
++		if (cnt == MAXQUOTAS)
+ 			continue;
+ 		sb->s_count++;
+ 		spin_unlock(&sb_lock);
+diff -puN include/linux/quota.h~quota-cleanup-loop-in-sync_dquots include/linux/quota.h
+--- a/include/linux/quota.h~quota-cleanup-loop-in-sync_dquots
++++ a/include/linux/quota.h
+@@ -224,8 +224,6 @@ struct super_block;
  
-         printk(KERN_INFO "fb%d: %s frame buffer device\n",
-                info->node, info->fix.id);
--	dev_set_drvdata(device, info);
-+	platform_set_drvdata(pdev, info);
- 	return 0;
- }
+ extern void mark_info_dirty(struct super_block *sb, int type);
+ #define info_dirty(info) test_bit(DQF_INFO_DIRTY_B, &(info)->dqi_flags)
+-#define info_any_dquot_dirty(info) (!list_empty(&(info)->dqi_dirty_list))
+-#define info_any_dirty(info) (info_dirty(info) || info_any_dquot_dirty(info))
  
--static int hgafb_remove(struct device *device)
-+static int __devexit hgafb_remove(struct platform_device *pdev)
- {
--	struct fb_info *info = dev_get_drvdata(device);
-+	struct fb_info *info = platform_get_drvdata(pdev);
- 
- 	hga_txt_mode();
- 	hga_clear_screen();
-@@ -616,16 +616,15 @@ static int hgafb_remove(struct device *d
- 	return 0;
- }
- 
--static struct device_driver hgafb_driver = {
--	.name = "hgafb",
--	.bus  = &platform_bus_type,
-+static struct platform_driver hgafb_driver = {
-+	.driver = {
-+		.name = "hgafb",
-+	},
- 	.probe = hgafb_probe,
--	.remove = hgafb_remove,
-+	.remove = __devexit_p(hgafb_remove),
- };
- 
--static struct platform_device hgafb_device = {
--	.name = "hgafb",
--};
-+static struct platform_device *hgafb_device;
- 
- static int __init hgafb_init(void)
- {
-@@ -634,21 +633,23 @@ static int __init hgafb_init(void)
- 	if (fb_get_options("hgafb", NULL))
- 		return -ENODEV;
- 
--	ret = driver_register(&hgafb_driver);
--
--	if (!ret) {
--		ret = platform_device_register(&hgafb_device);
--		if (ret)
--			driver_unregister(&hgafb_driver);
-+	ret = platform_driver_register(&hgafb_driver);
-+	if (ret)
-+		return ret;
-+
-+	hgafb_device = platform_device_register_simple("hgafb", -1, NULL, 0);
-+	if (!hgafb_device) {
-+		platform_driver_unregister(&hgafb_driver);
-+		return -ENOMEM;
- 	}
- 
--	return ret;
-+	return 0;
- }
- 
- static void __exit hgafb_exit(void)
- {
--	platform_device_unregister(&hgafb_device);
--	driver_unregister(&hgafb_driver);
-+	platform_device_unregister(hgafb_device);
-+	platform_driver_unregister(&hgafb_driver);
- }
- 
- /* -------------------------------------------------------------------------
+ #define sb_dqopt(sb) (&(sb)->s_dquot)
+ #define sb_dqinfo(sb, type) (sb_dqopt(sb)->info+(type))
 _
 
-Patches currently in -mm which might be from avorontsov@ru.mvista.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
-origin.patch
-serial-fix-driver_name-conflicts.patch
 linux-next.patch
-git-leds.patch
-hgafb-fix-module-removal.patch
+ext3-fix-synchronization-of-quota-files-in-journal=data-mode.patch
+ext3-fix-typos-in-messages-and-comments-journalled-journaled.patch
+ext3-correct-mount-option-parsing-to-detect-when-quota-options-can-be-changed.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
+jbd-strictly-check-for-write-errors-on-data-buffers.patch
+jbd-ordered-data-integrity-fix.patch
+jbd-abort-when-failed-to-log-metadata-buffers.patch
+jbd-fix-error-handling-for-checkpoint-io.patch
+ext3-abort-ext3-if-the-journal-has-aborted.patch
+reiserfs-fix-synchronization-of-quota-files-in-journal=data-mode.patch
+reiserfs-fix-typos-in-messages-and-comments-journalled-journaled.patch
+reiserfs-correct-mount-option-parsing-to-detect-when-quota-options-can-be-changed.patch
+quota-rename-quota-functions-from-upper-case-make-bigger-ones-non-inline.patch
+quota-cleanup-loop-in-sync_dquots.patch
+ext4-add-explicit-include-of-linux-quotah-into-ext4_jbd2h.patch
+ext2-add-explicit-include-of-linux-quotah-into-superc.patch
+quota-split-out-quota_structh-out-of-quotah.patch
+quota-convert-macros-to-inline-functions.patch
 
