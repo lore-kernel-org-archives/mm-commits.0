@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + scsi-sr-avoids-useless-buffer-allocation.patch added to -mm tree
-Date: Tue, 03 Jun 2008 14:55:24 -0700
-Message-ID: <200806032155.m53LtOPL021687@imap1.linux-foundation.org>
+Subject: + cpusets-update-tasks-cpus_allowed-and-mems_allowed-after-cpu-node-offline-online.patch added to -mm tree
+Date: Tue, 03 Jun 2008 15:04:05 -0700
+Message-ID: <200806032204.m53M45si022124@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55800 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60516 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753124AbYFCV4y (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jun 2008 17:56:54 -0400
+	by vger.kernel.org with ESMTP id S1759274AbYFCWEK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jun 2008 18:04:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fujita.tomonori@lab.ntt.co.jp, James.Bottomley@HansenPartnership.com, bzolnier@gmail.com, htejun@gmail.com, jens.axboe@oracle.com, tsbogend@alpha.franken.de
+Cc: miaox@cn.fujitsu.com, pj@sgi.com
 
 
 The patch titled
-     scsi: sr avoids useless buffer allocation
+     cpusets: update task's cpus_allowed and mems_allowed after CPU/NODE offline/online
 has been added to the -mm tree.  Its filename is
-     scsi-sr-avoids-useless-buffer-allocation.patch
+     cpusets-update-tasks-cpus_allowed-and-mems_allowed-after-cpu-node-offline-online.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,89 +33,92 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi: sr avoids useless buffer allocation
-From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Subject: cpusets: update task's cpus_allowed and mems_allowed after CPU/NODE offline/online
+From: Miao Xie <miaox@cn.fujitsu.com>
 
-blk_rq_map_kern can handle the stack buffers correctly (avoid DMA
-from/to the stack buffers by using the bounce buffer) so we don't need
-to complicate the code by allocating just 8 bytes.
+The bug is, a task may run on the cpu/node which is not in its cpuset.cpus/
+cpuset.mems.
 
-Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Tejun Heo <htejun@gmail.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+It can be reproduced by the following commands:
+===================================
+# mkdir /dev/cpuset
+# mount -t cpuset xxx /dev/cpuset
+# mkdir /dev/cpuset/0
+# echo 0-1 > /dev/cpuset/0/cpus
+# echo 0 > /dev/cpuset/0/mems
+# echo $$ > /dev/cpuset/0/tasks
+# echo 0 > /sys/devices/system/cpu/cpu1/online
+# echo 1 > /sys/devices/system/cpu/cpu1/online
+===================================
+
+There is only CPU0 in cpuset.cpus, but the task in this cpuset runs on
+both CPU0 and CPU1.
+
+It is because the task's cpu_allowed didn't get updated after we did CPU
+offline/online manipulation.  Similar for mem_allowed.
+
+This patch fixes this bug expect for root cpuset.  Because there is a
+problem about root cpuset, in that whether it is necessary to update all
+the tasks in root cpuset or not after cpu/node offline/online.
+
+If updating, some kernel threads which is bound into a specified cpu will
+be unbound.
+
+If not updating, there is a bug in root cpuset.  This bug is also caused
+by offline/online manipulation.  For example, there is a dual-cpu machine.
+ we create a sub cpuset in root cpuset and assign 1 to its cpus.  And then
+we attach some tasks into this sub cpuset.  After this, we offline CPU1. 
+Now, the tasks in this new cpuset are moved into root cpuset automatically
+because there is no cpu in sub cpuset.  Then we online CPU1, we find all
+the tasks which doesn't belong to root cpuset originally just run on CPU0.
+
+Maybe we need to add a flag in the task_struct to mark which task can't be
+unbound?
+
+Signed-off-by: Miao Xie <miaox@cn.fujitsu.com>
+Acked-by: Paul Jackson <pj@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/sr.c |   20 +++++---------------
- 1 file changed, 5 insertions(+), 15 deletions(-)
+ kernel/cpuset.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN drivers/scsi/sr.c~scsi-sr-avoids-useless-buffer-allocation drivers/scsi/sr.c
---- a/drivers/scsi/sr.c~scsi-sr-avoids-useless-buffer-allocation
-+++ a/drivers/scsi/sr.c
-@@ -670,24 +670,20 @@ fail:
- static void get_sectorsize(struct scsi_cd *cd)
- {
- 	unsigned char cmd[10];
--	unsigned char *buffer;
-+	unsigned char buffer[8];
- 	int the_result, retries = 3;
- 	int sector_size;
- 	struct request_queue *queue;
+diff -puN kernel/cpuset.c~cpusets-update-tasks-cpus_allowed-and-mems_allowed-after-cpu-node-offline-online kernel/cpuset.c
+--- a/kernel/cpuset.c~cpusets-update-tasks-cpus_allowed-and-mems_allowed-after-cpu-node-offline-online
++++ a/kernel/cpuset.c
+@@ -1874,6 +1874,7 @@ static void scan_for_empty_cpusets(const
+ 	struct cpuset *child;	/* scans child cpusets of cp */
+ 	struct list_head queue;
+ 	struct cgroup *cont;
++	nodemask_t oldmems;
  
--	buffer = kmalloc(512, GFP_KERNEL | GFP_DMA);
--	if (!buffer)
--		goto Enomem;
--
- 	do {
- 		cmd[0] = READ_CAPACITY;
- 		memset((void *) &cmd[1], 0, 9);
--		memset(buffer, 0, 8);
-+		memset(buffer, 0, sizeof(buffer));
+ 	INIT_LIST_HEAD(&queue);
  
- 		/* Do the command and wait.. */
- 		the_result = scsi_execute_req(cd->device, cmd, DMA_FROM_DEVICE,
--					      buffer, 8, NULL, SR_TIMEOUT,
--					      MAX_RETRIES);
-+					      buffer, sizeof(buffer), NULL,
-+					      SR_TIMEOUT, MAX_RETRIES);
+@@ -1893,6 +1894,8 @@ static void scan_for_empty_cpusets(const
+ 		    nodes_subset(cp->mems_allowed, node_states[N_HIGH_MEMORY]))
+ 			continue;
  
- 		retries--;
- 
-@@ -742,14 +738,8 @@ static void get_sectorsize(struct scsi_c
- 
- 	queue = cd->device->request_queue;
- 	blk_queue_hardsect_size(queue, sector_size);
--out:
--	kfree(buffer);
--	return;
- 
--Enomem:
--	cd->capacity = 0x1fffff;
--	cd->device->sector_size = 2048;	/* A guess, just in case */
--	goto out;
-+	return;
++		oldmems = cp->mems_allowed;
++
+ 		/* Remove offline cpus and mems from this cpuset. */
+ 		mutex_lock(&callback_mutex);
+ 		cpus_and(cp->cpus_allowed, cp->cpus_allowed, cpu_online_map);
+@@ -1904,6 +1907,10 @@ static void scan_for_empty_cpusets(const
+ 		if (cpus_empty(cp->cpus_allowed) ||
+ 		     nodes_empty(cp->mems_allowed))
+ 			remove_tasks_in_empty_cpuset(cp);
++		else {
++			update_tasks_cpumask(cp);
++			update_tasks_nodemask(cp, &oldmems);
++		}
+ 	}
  }
  
- static void get_capabilities(struct scsi_cd *cd)
 _
 
-Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
+Patches currently in -mm which might be from miaox@cn.fujitsu.com are
 
-linux-next.patch
-block-add-blk_queue_update_dma_pad.patch
-ide-use-the-dma-safe-check-for-req_type_ata_pc.patch
-block-blk_rq_map_kern-uses-the-bounce-buffers-for-stack-buffers.patch
-ide-avoid-dma-on-the-stack-for-req_type_ata_pc.patch
-scsi-sr-avoids-useless-buffer-allocation.patch
-cdrom-revert-commit-22a9189-cdrom-use-kmalloced-buffers-instead-of-buffers-on-stack.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
+cpusets-fix-and-update-documentation.patch
+cpusets-restructure-the-function-update_cpumask-and-update_nodemask.patch
+cpusets-update-tasks-cpus_allowed-and-mems_allowed-after-cpu-node-offline-online.patch
 
