@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + tty-remove-unused-var-real_tty-in-n_tty_ioctl.patch added to -mm tree
-Date: Mon, 02 Jun 2008 17:06:14 -0700
-Message-ID: <200806030006.m5306EJs006750@imap1.linux-foundation.org>
+Subject: + ext3-fix-online-resize-bug.patch added to -mm tree
+Date: Mon, 02 Jun 2008 17:17:22 -0700
+Message-ID: <200806030017.m530HMTB007165@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38787 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53049 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752596AbYFCAGm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Jun 2008 20:06:42 -0400
+	by vger.kernel.org with ESMTP id S1751386AbYFCASP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Jun 2008 20:18:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: gustavo@las.ic.unicamp.br, alan@redhat.com
+Cc: jbacik@redhat.com, adilger@sun.com, linux-ext4@vger.kernel.org
 
 
 The patch titled
-     tty: remove unused var real_tty in n_tty_ioctl()
+     ext3: fix online resize bug
 has been added to the -mm tree.  Its filename is
-     tty-remove-unused-var-real_tty-in-n_tty_ioctl.patch
+     ext3-fix-online-resize-bug.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,32 +33,55 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tty: remove unused var real_tty in n_tty_ioctl()
-From: Gustavo Fernando Padovan <gustavo@las.ic.unicamp.br>
+Subject: ext3: fix online resize bug
+From: Josef Bacik <jbacik@redhat.com>
 
-'struct tty_struct *real_tty' is not used in this function, so remove it.
+There is a bug when we are trying to verify that the reserve inode's
+double indirect blocks point back to the primary gdt blocks.  The fix is
+obvious, we need to mod the gdb count by the addr's per block.  You can
+verify this with the following test case
 
-Signed-off-by: Gustavo Fernando Padovan <gustavo@las.ic.unicamp.br>
-Signed-off-by: Alan Cox <alan@redhat.com>
+dd if=/dev/zero of=disk1 seek=1024 count=1 bs=100M
+losetup /dev/loop1 disk1
+pvcreate /dev/loop1
+vgcreate loopvg1 /dev/loop1
+lvcreate -l 100%VG loopvg1 -n looplv1
+mkfs.ext3 -J size=64 -b 1024 /dev/loopvg1/looplv1
+mount /dev/loopvg1/looplv1 /mnt/loop
+dd if=/dev/zero of=disk2 seek=1024 count=1 bs=50M
+losetup /dev/loop2 disk2
+pvcreate /dev/loop2
+vgextend loopvg1 /dev/loop2
+lvextend -l 100%VG /dev/loopvg1/looplv1
+resize2fs /dev/loopvg1/looplv1
+
+without this patch the resize2fs fails, with it the resize2fs succeeds.
+
+Signed-off-by: Josef Bacik <jbacik@redhat.com>
+Cc: Andreas Dilger <adilger@sun.com>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tty_ioctl.c |    7 -------
- 1 file changed, 7 deletions(-)
+ fs/ext3/resize.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/char/tty_ioctl.c~tty-remove-unused-var-real_tty-in-n_tty_ioctl drivers/char/tty_ioctl.c
---- a/drivers/char/tty_ioctl.c~tty-remove-unused-var-real_tty-in-n_tty_ioctl
-+++ a/drivers/char/tty_ioctl.c
-@@ -981,16 +981,9 @@ EXPORT_SYMBOL_GPL(tty_perform_flush);
- int n_tty_ioctl(struct tty_struct *tty, struct file *file,
- 		       unsigned int cmd, unsigned long arg)
- {
--	struct tty_struct *real_tty;
- 	unsigned long flags;
- 	int retval;
+diff -puN fs/ext3/resize.c~ext3-fix-online-resize-bug fs/ext3/resize.c
+--- a/fs/ext3/resize.c~ext3-fix-online-resize-bug
++++ a/fs/ext3/resize.c
+@@ -580,7 +580,8 @@ static int reserve_backup_gdb(handle_t *
+ 	}
  
--	if (tty->driver->type == TTY_DRIVER_TYPE_PTY &&
--	    tty->driver->subtype == PTY_TYPE_MASTER)
--		real_tty = tty->link;
--	else
--		real_tty = tty;
+ 	blk = EXT3_SB(sb)->s_sbh->b_blocknr + 1 + EXT3_SB(sb)->s_gdb_count;
+-	data = (__le32 *)dind->b_data + EXT3_SB(sb)->s_gdb_count;
++	data = (__le32 *)dind->b_data + (EXT3_SB(sb)->s_gdb_count %
++					 EXT3_ADDR_PER_BLOCK(sb));
+ 	end = (__le32 *)dind->b_data + EXT3_ADDR_PER_BLOCK(sb);
+ 
+ 	/* Get each reserved primary GDT block and verify it holds backups */
+_
+
+Patches currently in -mm which might be from jbacik@redhat.com are
+
+ext3-fix-online-resize-bug.patch
+
