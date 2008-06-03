@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + uml-path_max-needs-limitsh.patch added to -mm tree
-Date: Tue, 03 Jun 2008 12:31:20 -0700
-Message-ID: <200806031931.m53JVKAh015913@imap1.linux-foundation.org>
+Subject: + pnp-replace-pnp_resource_table-with-dynamically-allocated-resources-merge-fix.patch added to -mm tree
+Date: Tue, 03 Jun 2008 12:42:57 -0700
+Message-ID: <200806031942.m53Jgv16016302@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38425 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43952 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753912AbYFCTbb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jun 2008 15:31:31 -0400
+	by vger.kernel.org with ESMTP id S1754362AbYFCTnd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jun 2008 15:43:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mingo@elte.hu, jdike@linux.intel.com
+Cc: bjorn.helgaas@hp.com
 
 
 The patch titled
-     uml: PATH_MAX needs limits.h
+     pnp-replace-pnp_resource_table-with-dynamically-allocated-resources fix
 has been added to the -mm tree.  Its filename is
-     uml-path_max-needs-limitsh.patch
+     pnp-replace-pnp_resource_table-with-dynamically-allocated-resources-merge-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,90 +33,65 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: PATH_MAX needs limits.h
-From: Ingo Molnar <mingo@elte.hu>
+Subject: pnp-replace-pnp_resource_table-with-dynamically-allocated-resources fix
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Include limits.h to get a definition of PATH_MAX.
+Not quite.  We need this instead:
 
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+        for (i = 0; (res = pnp_get_resource(dev, IORESOURCE_MEM, i)); i++) {
+                if (res->flags & IORESOURCE_DISABLED)
+                        continue;
+
+                reserve_range(dev, res->start, res->end, 0);
+        }
+
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/os-Linux/helper.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/pnp/system.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN arch/um/os-Linux/helper.c~uml-path_max-needs-limitsh arch/um/os-Linux/helper.c
---- a/arch/um/os-Linux/helper.c~uml-path_max-needs-limitsh
-+++ a/arch/um/os-Linux/helper.c
-@@ -7,6 +7,7 @@
- #include <unistd.h>
- #include <errno.h>
- #include <sched.h>
-+#include <linux/limits.h>
- #include <sys/socket.h>
- #include <sys/wait.h>
- #include "kern_constants.h"
+diff -puN drivers/pnp/system.c~pnp-replace-pnp_resource_table-with-dynamically-allocated-resources-merge-fix drivers/pnp/system.c
+--- a/drivers/pnp/system.c~pnp-replace-pnp_resource_table-with-dynamically-allocated-resources-merge-fix
++++ a/drivers/pnp/system.c
+@@ -78,8 +78,12 @@ static void reserve_resources_of_dev(str
+ 		reserve_range(dev, res->start, res->end, 1);
+ 	}
+ 
+-	for (i = 0; (res = pnp_get_resource(dev, IORESOURCE_MEM, i)); i++)
++	for (i = 0; (res = pnp_get_resource(dev, IORESOURCE_MEM, i)); i++) {
++		if (res->flags & IORESOURCE_DISABLED)
++			continue;
++
+ 		reserve_range(dev, res->start, res->end, 0);
++	}
+ }
+ 
+ static int system_pnp_probe(struct pnp_dev *dev,
 _
 
-Patches currently in -mm which might be from mingo@elte.hu are
+Patches currently in -mm which might be from bjorn.helgaas@hp.com are
 
-origin.patch
-uml-path_max-needs-limitsh.patch
-linux-next.patch
-git-x86-fixup.patch
-kgdb-use-put_unaligned_be32-helper.patch
-lguest-use-cpu-capability-accessors.patch
-sched-delete-dead-stuff.patch
-sched-delete-dead-stuff-2.patch
-netfilter-conntrack_helper-needs-to-include-rculisth.patch
-aes-x86_64-asm-implementation-optimization.patch
+pnp-mark-resources-that-conflict-with-pci-devices-disabled.patch
+acpi_pm_device_sleep_state-cleanup.patch
+mm-only-enforce-acpi-resource-conflict-checks.patch
 provide-rtc_cmos-platform-device-take-2.patch
 acpi-fix-drivers-acpi-gluec-build-error.patch
-aperture_64c-corner-case-wrong.patch
-mm-add-a-basic-debugging-framework-for-memory-initialisation.patch
-mm-add-a-basic-debugging-framework-for-memory-initialisation-fix.patch
-mm-verify-the-page-links-and-memory-model.patch
-mm-make-defensive-checks-around-pfn-values-registered-for-memory-usage.patch
-mm-print-out-the-zonelists-on-request-for-manual-verification.patch
-mm-move-bootmem-descriptors-definition-to-a-single-place.patch
-mm-fix-free_all_bootmem_core-alignment-check.patch
-mm-normalize-internal-argument-passing-of-bootmem-data.patch
-mm-unexport-__alloc_bootmem_core.patch
-pm-boot-time-suspend-selftest.patch
-split-the-typecheck-macros-out-of-include-linux-kernelh.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
-introduce-have_efficient_unaligned_access-kconfig-symbol.patch
-percpu-introduce-define_per_cpu_page_aligned.patch
-remove-argument-from-open_softirq-which-is-always-null.patch
-build-kernel-profileo-only-when-requested.patch
-build-kernel-profileo-only-when-requested-cleanups.patch
-kernel-irq-managec-replace-a-printk-warn_on-to-a-warn.patch
-rtc-remove-and-clarify-unneeded-externs.patch
-markers-use-rcu_barrier_sched-and-call_rcu_sched.patch
-accounting-account-for-user-time-when-updating-memory-integrals.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
-kgdb-use-the-common-ascii-hex-helpers.patch
-common-implementation-of-iterative-div-mod.patch
-add-an-inlined-version-of-iter_div_u64_rem.patch
-always_inline-timespec_add_ns.patch
-gcov-architecture-specific-compile-flag-adjustments.patch
-gcov-architecture-specific-compile-flag-adjustments-fix.patch
-x86-implement-pte_special.patch
-mm-introduce-get_user_pages_fast.patch
-mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast.patch
-x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-fix.patch
-x86-lockless-get_user_pages_fast-fix-warning.patch
-dio-use-get_user_pages_fast.patch
-splice-use-get_user_pages_fast.patch
-detect-atomic-counter-underflows.patch
-make-frame_pointer-default=y.patch
-mutex-subsystem-synchro-test-module.patch
+pnpacpi-fix-irq-flag-decoding.patch
+pnpacpi-fix-irq-flag-decoding-comment-fix.patch
+pnpacpi-fix-shareable-irq-encode-decode.patch
+pnpacpi-use-_crs-irq-descriptor-length-for-_srs-v2.patch
+pnp-add-detail-to-debug-resource-dump.patch
+pnp-remove-pnp_resourceindex.patch
+pnp-add-pnp_resource_type-internal-interface.patch
+pnp-add-pnp_resource_type_name-helper-function.patch
+pnp-make-pnp_portmemetc_start-et-al-work-for-invalid-resources.patch
+pnp-replace-pnp_resource_table-with-dynamically-allocated-resources.patch
+pnp-replace-pnp_resource_table-with-dynamically-allocated-resources-merge-fix.patch
+pnp-remove-ratelimit-on-add-resource-failures.patch
+pnp-dont-sort-by-type-in-sys-resources.patch
+pnp-set-the-pnp_card-dma_mask-for-use-by-isapnp-cards.patch
+isa-set-24-bit-dma_mask-for-isa-devices.patch
+make-pnp_add_card_id-static.patch
 
