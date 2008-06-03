@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + asm-m32r-uaccessh-must-include-asm-setuph.patch added to -mm tree
-Date: Tue, 03 Jun 2008 11:24:19 -0700
-Message-ID: <200806031824.m53IOJo5013391@imap1.linux-foundation.org>
+Subject: + x86-add-workaround-for-bug-in-asus-a7v600-bios-rev-1005.patch added to -mm tree
+Date: Tue, 03 Jun 2008 11:27:15 -0700
+Message-ID: <200806031827.m53IRGn0013452@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55990 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43906 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753161AbYFCSZN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jun 2008 14:25:13 -0400
+	by vger.kernel.org with ESMTP id S1753483AbYFCS2J (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jun 2008 14:28:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adrian.bunk@movial.fi, Michael.Hennerich@analog.com, takata@linux-m32r.org
+Cc: int-e@gmx.de, alan@redhat.com, jbarnes@virtuousgeek.org
 
 
 The patch titled
-     asm-m32r/uaccess.h must #include <asm/setup.h>
+     x86: add workaround for bug in ASUS A7V600 BIOS (rev 1005)
 has been added to the -mm tree.  Its filename is
-     asm-m32r-uaccessh-must-include-asm-setuph.patch
+     x86-add-workaround-for-bug-in-asus-a7v600-bios-rev-1005.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,53 +33,83 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: asm-m32r/uaccess.h must #include <asm/setup.h>
-From: Adrian Bunk <adrian.bunk@movial.fi>
+Subject: x86: add workaround for bug in ASUS A7V600 BIOS (rev 1005)
+From: Bertram Felgenhauer <int-e@gmx.de>
 
-This patch fixes the following compile error caused by
-commit 4016a1390d07f15b267eecb20e76a48fd5c524ef
-(mm/nommu.c: return 0 from kobjsize with invalid objects):
+This BIOS claims the VIA 8237 south bridge to be compatible with VIA 586,
+which it is not.
 
-/home/bunk/linux/kernel-2.6/git/linux-2.6/mm/nommu.c: In function 'kobjsize':
-/home/bunk/linux/kernel-2.6/git/linux-2.6/mm/nommu.c:112: error: 'memory_end' undeclared (first use in this function)
-/home/bunk/linux/kernel-2.6/git/linux-2.6/mm/nommu.c:112: error: (Each undeclared identifier is reported only once
-/home/bunk/linux/kernel-2.6/git/linux-2.6/mm/nommu.c:112: error: for each function it appears in.)
+Without this patch, I get the following warning while booting,
+among others,
 
-The patch also removes now no longer required memory_{start,end}
-declarations inside access_ok().
+| PCI: Using IRQ router VIA [1106/3227] at 0000:00:11.0
+| ------------[ cut here ]------------
+| WARNING: at arch/x86/pci/irq.c:265 pirq_via586_get+0x4a/0x60()
+| Modules linked in:
+| Pid: 1, comm: swapper Not tainted 2.6.26-rc4-00015-g1ec7d99 #1
+|  [<c0119fd4>] warn_on_slowpath+0x54/0x70
+|  [<c02246e0>] ? vt_console_print+0x210/0x2b0
+|  [<c02244d0>] ? vt_console_print+0x0/0x2b0
+|  [<c011a413>] ? __call_console_drivers+0x43/0x60
+|  [<c011a482>] ? _call_console_drivers+0x52/0x80
+|  [<c011aa89>] ? release_console_sem+0x1c9/0x200
+|  [<c0291d21>] ? raw_pci_read+0x41/0x70
+|  [<c0291e8f>] ? pci_read+0x2f/0x40
+|  [<c029151a>] pirq_via586_get+0x4a/0x60
+|  [<c02914d0>] ? pirq_via586_get+0x0/0x60
+|  [<c029178d>] pcibios_lookup_irq+0x15d/0x430
+|  [<c03b895a>] pcibios_irq_init+0x17a/0x3e0
+|  [<c03a66f0>] ? kernel_init+0x0/0x250
+|  [<c03a6763>] kernel_init+0x73/0x250
+|  [<c03b87e0>] ? pcibios_irq_init+0x0/0x3e0
+|  [<c0114d00>] ? schedule_tail+0x10/0x40
+|  [<c0102dee>] ? ret_from_fork+0x6/0x1c
+|  [<c03a66f0>] ? kernel_init+0x0/0x250
+|  [<c03a66f0>] ? kernel_init+0x0/0x250
+|  [<c010324b>] kernel_thread_helper+0x7/0x1c
+|  =======================
+| ---[ end trace 4eaa2a86a8e2da22 ]---
 
-Reviewed-by: Adrian Bunk <adrian.bunk@movial.fi>
-Signed-off-by: Adrian Bunk <adrian.bunk@movial.fi>
-Cc: Hirokazu Takata <takata@linux-m32r.org>
-Cc: Michael Hennerich <Michael.Hennerich@analog.com>
+and IRQ trouble later,
+
+| irq 10: nobody cared (try booting with the "irqpoll" option)
+
+Now that's an VIA 8237 chip, so pirq_via586_get shouldn't be called
+at all; adding this workaround to via_router_probe() fixes the
+problem for me.
+
+Amazingly I have a 2.6.23.8 kernel that somehow works fine ... I'll
+never understand why.
+
+Signed-off-by: Bertram Felgenhauer <int-e@gmx.de>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Acked-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-m32r/uaccess.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/pci/irq.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN include/asm-m32r/uaccess.h~asm-m32r-uaccessh-must-include-asm-setuph include/asm-m32r/uaccess.h
---- a/include/asm-m32r/uaccess.h~asm-m32r-uaccessh-must-include-asm-setuph
-+++ a/include/asm-m32r/uaccess.h
-@@ -14,6 +14,7 @@
- #include <linux/errno.h>
- #include <linux/thread_info.h>
- #include <asm/page.h>
-+#include <asm/setup.h>
+diff -puN arch/x86/pci/irq.c~x86-add-workaround-for-bug-in-asus-a7v600-bios-rev-1005 arch/x86/pci/irq.c
+--- a/arch/x86/pci/irq.c~x86-add-workaround-for-bug-in-asus-a7v600-bios-rev-1005
++++ a/arch/x86/pci/irq.c
+@@ -646,6 +646,13 @@ static __init int via_router_probe(struc
+ 			 */
+ 			device = PCI_DEVICE_ID_VIA_8235;
+ 			break;
++		case PCI_DEVICE_ID_VIA_8237:
++			/**
++			 * Asus a7v600 bios wrongly reports 8237
++			 * as 586-compatible
++			 */
++			device = PCI_DEVICE_ID_VIA_8237;
++			break;
+ 		}
+ 	}
  
- #define VERIFY_READ 0
- #define VERIFY_WRITE 1
-@@ -106,7 +107,6 @@ static inline void set_fs(mm_segment_t s
- #else
- static inline int access_ok(int type, const void *addr, unsigned long size)
- {
--	extern unsigned long memory_start, memory_end;
- 	unsigned long val = (unsigned long)addr;
- 
- 	return ((val >= memory_start) && ((val + size) < memory_end));
 _
 
-Patches currently in -mm which might be from adrian.bunk@movial.fi are
+Patches currently in -mm which might be from int-e@gmx.de are
 
-asm-m32r-uaccessh-must-include-asm-setuph.patch
+x86-add-workaround-for-bug-in-asus-a7v600-bios-rev-1005.patch
 
