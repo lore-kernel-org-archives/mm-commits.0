@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + doc-update-to-url-and-status-of-kernel-docstxt-entry.patch added to -mm tree
-Date: Mon, 02 Jun 2008 23:07:23 -0700
-Message-ID: <200806030607.m5367NZ9019097@imap1.linux-foundation.org>
+Subject: + asm-m32r-uaccessh-must-include-asm-setuph.patch added to -mm tree
+Date: Tue, 03 Jun 2008 11:24:19 -0700
+Message-ID: <200806031824.m53IOJo5013391@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38531 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55990 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752558AbYFCGH1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jun 2008 02:07:27 -0400
+	by vger.kernel.org with ESMTP id S1753161AbYFCSZN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jun 2008 14:25:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: pj@sgi.com
+Cc: adrian.bunk@movial.fi, Michael.Hennerich@analog.com, takata@linux-m32r.org
 
 
 The patch titled
-     doc: update to URL and status of kernel-docs.txt entry
+     asm-m32r/uaccess.h must #include <asm/setup.h>
 has been added to the -mm tree.  Its filename is
-     doc-update-to-url-and-status-of-kernel-docstxt-entry.patch
+     asm-m32r-uaccessh-must-include-asm-setuph.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,48 +33,53 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: doc: update to URL and status of kernel-docs.txt entry
-From: Paul Jackson <pj@sgi.com>
+Subject: asm-m32r/uaccess.h must #include <asm/setup.h>
+From: Adrian Bunk <adrian.bunk@movial.fi>
 
-Update status and URL for the "Gary's Encyclopedia" entry.
+This patch fixes the following compile error caused by
+commit 4016a1390d07f15b267eecb20e76a48fd5c524ef
+(mm/nommu.c: return 0 from kobjsize with invalid objects):
 
-Signed-off-by: Paul Jackson <pj@sgi.com>
+/home/bunk/linux/kernel-2.6/git/linux-2.6/mm/nommu.c: In function 'kobjsize':
+/home/bunk/linux/kernel-2.6/git/linux-2.6/mm/nommu.c:112: error: 'memory_end' undeclared (first use in this function)
+/home/bunk/linux/kernel-2.6/git/linux-2.6/mm/nommu.c:112: error: (Each undeclared identifier is reported only once
+/home/bunk/linux/kernel-2.6/git/linux-2.6/mm/nommu.c:112: error: for each function it appears in.)
+
+The patch also removes now no longer required memory_{start,end}
+declarations inside access_ok().
+
+Reviewed-by: Adrian Bunk <adrian.bunk@movial.fi>
+Signed-off-by: Adrian Bunk <adrian.bunk@movial.fi>
+Cc: Hirokazu Takata <takata@linux-m32r.org>
+Cc: Michael Hennerich <Michael.Hennerich@analog.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-docs.txt |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ include/asm-m32r/uaccess.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/kernel-docs.txt~doc-update-to-url-and-status-of-kernel-docstxt-entry Documentation/kernel-docs.txt
---- a/Documentation/kernel-docs.txt~doc-update-to-url-and-status-of-kernel-docstxt-entry
-+++ a/Documentation/kernel-docs.txt
-@@ -715,14 +715,14 @@
+diff -puN include/asm-m32r/uaccess.h~asm-m32r-uaccessh-must-include-asm-setuph include/asm-m32r/uaccess.h
+--- a/include/asm-m32r/uaccess.h~asm-m32r-uaccessh-must-include-asm-setuph
++++ a/include/asm-m32r/uaccess.h
+@@ -14,6 +14,7 @@
+ #include <linux/errno.h>
+ #include <linux/thread_info.h>
+ #include <asm/page.h>
++#include <asm/setup.h>
  
-      * Name: "Gary's Encyclopedia - The Linux Kernel"
-        Author: Gary (I suppose...).
--       URL: http://www.lisoleg.net/cgi-bin/lisoleg.pl?view=kernel.htm
--       Keywords: links, not found here?.
-+       URL: http://slencyclopedia.berlios.de/index.html
-+       Keywords: linux, community, everything!
-        Description: Gary's Encyclopedia exists to allow the rapid finding
-        of documentation and other information of interest to GNU/Linux
-        users. It has about 4000 links to external pages in 150 major
-        categories. This link is for kernel-specific links, documents,
--       sites... Look there if you could not find here what you were
--       looking for.
-+       sites...  This list is now hosted by developer.Berlios.de,
-+       but seems not to have been updated since sometime in 1999.
+ #define VERIFY_READ 0
+ #define VERIFY_WRITE 1
+@@ -106,7 +107,6 @@ static inline void set_fs(mm_segment_t s
+ #else
+ static inline int access_ok(int type, const void *addr, unsigned long size)
+ {
+-	extern unsigned long memory_start, memory_end;
+ 	unsigned long val = (unsigned long)addr;
  
-      * Name: "The home page of Linux-MM"
-        Author: The Linux-MM team.
+ 	return ((val >= memory_start) && ((val + size) < memory_end));
 _
 
-Patches currently in -mm which might be from pj@sgi.com are
+Patches currently in -mm which might be from adrian.bunk@movial.fi are
 
-cpusets-fix-and-update-documentation.patch
-doc-update-to-url-and-status-of-kernel-docstxt-entry.patch
-linux-next.patch
-cpusets-fix-bug-when-adding-nonexistent-cpu-or-mem.patch
-doc-document-the-kernel-doc-conventions-for-kernel-hackers.patch
-doc-document-the-kernel-doc-conventions-for-kernel-hackers-grammar-fixes.patch
+asm-m32r-uaccessh-must-include-asm-setuph.patch
 
