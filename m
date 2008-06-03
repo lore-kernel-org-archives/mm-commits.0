@@ -1,125 +1,173 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-watchdog-geodewdtc-build-fix.patch removed from -mm tree
-Date: Tue, 03 Jun 2008 12:02:47 -0700
-Message-ID: <200806031902.m53J2l7i014821@imap1.linux-foundation.org>
+Subject: - arch-x86-mm-patc-nopat-should-be-__init.patch removed from -mm tree
+Date: Tue, 03 Jun 2008 12:02:34 -0700
+Message-ID: <200806031902.m53J2Y1b014809@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54674 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56607 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755004AbYFCTEE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jun 2008 15:04:04 -0400
+	by vger.kernel.org with ESMTP id S1753944AbYFCTEC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jun 2008 15:04:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mingo@elte.hu, brigad@rpi.edu, jordan.crouse@amd.com, sfr@canb.auug.org.au, wim@iguana.be, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, fabio.comolli@gmail.com, mingo@elte.hu, sam@ravnborg.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/watchdog/geodewdt.c: build fix
+     arch/x86/mm/pat.c:nopat() should be __init
 has been removed from the -mm tree.  Its filename was
-     drivers-watchdog-geodewdtc-build-fix.patch
+     arch-x86-mm-patc-nopat-should-be-__init.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/watchdog/geodewdt.c: build fix
-From: Ingo Molnar <mingo@elte.hu>
+Subject: arch/x86/mm/pat.c:nopat() should be __init
+From: Andrew Morton <akpm@linux-foundation.org>
 
--tip testing found the following build failure on latest -git:
+Fix this:
 
-  drivers/watchdog/geodewdt.c: In function 'geodewdt_probe':
-  drivers/watchdog/geodewdt.c:225: error: too many arguments to function 'geode_mfgpt_alloc_timer'
-  make[1]: *** [drivers/watchdog/geodewdt.o] Error 1
-  make: *** [drivers/watchdog/geodewdt.o] Error 2
+WARNING: vmlinux.o(.text+0x114bb): Section mismatch in reference from
+the function nopat() to the function .cpuinit.text:pat_disable()
+The function nopat() references
+the function __cpuinit pat_disable().
+This is often because nopat lacks a __cpuinit
+annotation or the annotation of pat_disable is wrong.
 
-with this config:
-
-  http://redhat.com/~mingo/misc/config-Fri_May_30_15_19_52_CEST_2008.bad
-
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Acked-by: Jordan Crouse <jordan.crouse@amd.com>
-Cc: David Brigada <brigad@rpi.edu>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Wim Van Sebroeck <wim@iguana.be>
+Reported-by: "Fabio Comolli" <fabio.comolli@gmail.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/geodewdt.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ arch/x86/mm/pat.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/watchdog/geodewdt.c~drivers-watchdog-geodewdtc-build-fix drivers/watchdog/geodewdt.c
---- a/drivers/watchdog/geodewdt.c~drivers-watchdog-geodewdtc-build-fix
-+++ a/drivers/watchdog/geodewdt.c
-@@ -221,8 +221,7 @@ geodewdt_probe(struct platform_device *d
+diff -puN arch/x86/mm/pat.c~arch-x86-mm-patc-nopat-should-be-__init arch/x86/mm/pat.c
+--- a/arch/x86/mm/pat.c~arch-x86-mm-patc-nopat-should-be-__init
++++ a/arch/x86/mm/pat.c
+@@ -34,7 +34,7 @@ void __cpuinit pat_disable(char *reason)
+ 	printk(KERN_INFO "%s\n", reason);
+ }
+ 
+-static int nopat(char *str)
++static int __init nopat(char *str)
  {
- 	int ret, timer;
- 
--	timer = geode_mfgpt_alloc_timer(MFGPT_TIMER_ANY,
--					MFGPT_DOMAIN_WORKING, THIS_MODULE);
-+	timer = geode_mfgpt_alloc_timer(MFGPT_TIMER_ANY, MFGPT_DOMAIN_WORKING);
- 
- 	if (timer == -1) {
- 		printk(KERN_ERR "geodewdt:  No timers were available\n");
+ 	pat_disable("PAT support disabled.");
+ 	return 0;
 _
 
-Patches currently in -mm which might be from mingo@elte.hu are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
+next-remove-localversion.patch
+linux-next-fixup.patch
+fix-kobject-fix-kobject_rename-and-config_sysfs.patch
+kvm-is-busted-on-ia64.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-video-balcklist-fujitsu-lifebook-s6410.patch
 git-x86-fixup.patch
-kgdb-use-put_unaligned_be32-helper.patch
 lguest-use-cpu-capability-accessors.patch
+arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
+arch-powerpc-platforms-pseries-eeh_driverc-fix-warning.patch
+arch-powerpc-platforms-pseries-eeh_driverc-fix-warning-checkpatch-fixes.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+git-jg-misc-git-rejects.patch
+drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+git-leds.patch
+fsldma-the-mpc8377mds-board-device-tree-node-for-fsldma-driver.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers.patch
+sundance-set-carrier-status-on-link-change-events.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
 sched-delete-dead-stuff.patch
 sched-delete-dead-stuff-2.patch
-netfilter-conntrack_helper-needs-to-include-rculisth.patch
-aes-x86_64-asm-implementation-optimization.patch
-provide-rtc_cmos-platform-device-take-2.patch
-acpi-fix-drivers-acpi-gluec-build-error.patch
-aperture_64c-corner-case-wrong.patch
-mm-add-a-basic-debugging-framework-for-memory-initialisation.patch
-mm-add-a-basic-debugging-framework-for-memory-initialisation-fix.patch
+git-scsi-misc-fix-scsi_dh-build-errors.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
+pktcdvd-push-bkl-down-into-driver-fix.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-logfs-fixup.patch
+drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
+drivers-uwb-wlp-sysfsc-dead-code.patch
+usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix.patch
+usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix-2.patch
+watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix.patch
+watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl-fix.patch
+git-xtensa.patch
+ext4-is-busted-on-m68k.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+libata-sff-fix-oops-reported-in-kerneloopsorg-for-pnp-devices-with-no-ctl-fix.patch
 mm-verify-the-page-links-and-memory-model.patch
-mm-make-defensive-checks-around-pfn-values-registered-for-memory-usage.patch
-mm-print-out-the-zonelists-on-request-for-manual-verification.patch
-mm-move-bootmem-descriptors-definition-to-a-single-place.patch
-mm-fix-free_all_bootmem_core-alignment-check.patch
-mm-normalize-internal-argument-passing-of-bootmem-data.patch
-mm-unexport-__alloc_bootmem_core.patch
-pm-boot-time-suspend-selftest.patch
+mspec-convert-nopfn-to-fault-fix.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+kill-generic_file_direct_io-checkpatch-fixes.patch
+use-generic_access_phys-for-dev-mem-mappings-fix.patch
+spufs-use-the-new-vm_ops-access-fix.patch
+fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
+page-flags-record-page-flag-overlays-explicitly-xen.patch
+mapping_set_error-add-unlikely.patch
+huge-page-private-reservation-review-cleanups-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup-fix.patch
+swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
 split-the-typecheck-macros-out-of-include-linux-kernelh.patch
 locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
 locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
-introduce-have_efficient_unaligned_access-kconfig-symbol.patch
-percpu-introduce-define_per_cpu_page_aligned.patch
-remove-argument-from-open_softirq-which-is-always-null.patch
-build-kernel-profileo-only-when-requested.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
 build-kernel-profileo-only-when-requested-cleanups.patch
-kernel-irq-managec-replace-a-printk-warn_on-to-a-warn.patch
-rtc-remove-and-clarify-unneeded-externs.patch
-markers-use-rcu_barrier_sched-and-call_rcu_sched.patch
-accounting-account-for-user-time-when-updating-memory-integrals.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error.patch
+fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
+block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
+rename-warn-to-warning-to-clear-the-namespace-fix.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-paccept-sys_ni.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-signalfd-fix.patch
+flag-parameters-eventfd-fix.patch
+flag-parameters-inotify_init-fix.patch
+flag-parameters-check-magic-constants-alpha.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
+reiserfs-convert-j_flush_sem-to-mutex.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup.patch
+ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support.patch
 dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
-kgdb-use-the-common-ascii-hex-helpers.patch
-common-implementation-of-iterative-div-mod.patch
-add-an-inlined-version-of-iter_div_u64_rem.patch
-always_inline-timespec_add_ns.patch
-gcov-architecture-specific-compile-flag-adjustments.patch
-gcov-architecture-specific-compile-flag-adjustments-fix.patch
-x86-implement-pte_special.patch
-mm-introduce-get_user_pages_fast.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
 mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast.patch
 x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
 x86-lockless-get_user_pages_fast-fix.patch
 x86-lockless-get_user_pages_fast-fix-warning.patch
-dio-use-get_user_pages_fast.patch
-splice-use-get_user_pages_fast.patch
-detect-atomic-counter-underflows.patch
-make-frame_pointer-default=y.patch
-mutex-subsystem-synchro-test-module.patch
+reiser4.patch
+reiser4-semaphore-fix.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
