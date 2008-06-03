@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + uml-deal-with-host-time-going-backwards.patch added to -mm tree
-Date: Tue, 03 Jun 2008 12:31:10 -0700
-Message-ID: <200806031931.m53JVAgg015894@imap1.linux-foundation.org>
+Subject: + uml-path_max-needs-limitsh.patch added to -mm tree
+Date: Tue, 03 Jun 2008 12:31:20 -0700
+Message-ID: <200806031931.m53JVKAh015913@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48924 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38425 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753868AbYFCTbc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jun 2008 15:31:32 -0400
+	by vger.kernel.org with ESMTP id S1753912AbYFCTbb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jun 2008 15:31:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jdike@addtoit.com, jdike@linux.intel.com, nix@esperi.org.uk
+Cc: mingo@elte.hu, jdike@linux.intel.com
 
 
 The patch titled
-     uml: deal with host time going backwards
+     uml: PATH_MAX needs limits.h
 has been added to the -mm tree.  Its filename is
-     uml-deal-with-host-time-going-backwards.patch
+     uml-path_max-needs-limitsh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,56 +33,90 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: deal with host time going backwards
-From: Jeff Dike <jdike@addtoit.com>
+Subject: uml: PATH_MAX needs limits.h
+From: Ingo Molnar <mingo@elte.hu>
 
-Protection against the host's time going backwards - keep track of the
-time at the last tick and if it's greater than the current time, keep time
-stopped until the host catches up.
+Include limits.h to get a definition of PATH_MAX.
 
-Cc: Nix <nix@esperi.org.uk>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/os-Linux/time.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ arch/um/os-Linux/helper.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/um/os-Linux/time.c~uml-deal-with-host-time-going-backwards arch/um/os-Linux/time.c
---- a/arch/um/os-Linux/time.c~uml-deal-with-host-time-going-backwards
-+++ a/arch/um/os-Linux/time.c
-@@ -106,6 +106,10 @@ static void deliver_alarm(void)
- 	unsigned long long this_tick = os_nsecs();
- 	int one_tick = UM_NSEC_PER_SEC / UM_HZ;
- 
-+	/* Protection against the host's time going backwards */
-+	if ((last_tick != 0) && (this_tick < last_tick))
-+		this_tick = last_tick;
-+
- 	if (last_tick == 0)
- 		last_tick = this_tick - one_tick;
- 
-@@ -148,6 +152,9 @@ static int after_sleep_interval(struct t
- 		start_usecs = usec;
- 
- 	start_usecs -= skew / UM_NSEC_PER_USEC;
-+	if (start_usecs < 0)
-+		start_usecs = 0;
-+
- 	tv = ((struct timeval) { .tv_sec  = start_usecs / UM_USEC_PER_SEC,
- 				 .tv_usec = start_usecs % UM_USEC_PER_SEC });
- 	interval = ((struct itimerval) { { 0, usec }, tv });
+diff -puN arch/um/os-Linux/helper.c~uml-path_max-needs-limitsh arch/um/os-Linux/helper.c
+--- a/arch/um/os-Linux/helper.c~uml-path_max-needs-limitsh
++++ a/arch/um/os-Linux/helper.c
+@@ -7,6 +7,7 @@
+ #include <unistd.h>
+ #include <errno.h>
+ #include <sched.h>
++#include <linux/limits.h>
+ #include <sys/socket.h>
+ #include <sys/wait.h>
+ #include "kern_constants.h"
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from mingo@elte.hu are
 
-uml-deal-with-host-time-going-backwards.patch
-uml-deal-with-inaccessible-address-space-start.patch
-uml-memcpy-export-needs-to-follow-host-declaration.patch
-uml-stub-needs-to-tolerate-sigwinch.patch
+origin.patch
+uml-path_max-needs-limitsh.patch
 linux-next.patch
-arch-um-kernel-irqc-clean-up-some-functions.patch
-arch-um-kernel-memc-remove-arch_validate.patch
-uml-make-several-more-things-static.patch
-uml-activate_mm-remove-the-dead-pf_borrowed_mm-check.patch
+git-x86-fixup.patch
+kgdb-use-put_unaligned_be32-helper.patch
+lguest-use-cpu-capability-accessors.patch
+sched-delete-dead-stuff.patch
+sched-delete-dead-stuff-2.patch
+netfilter-conntrack_helper-needs-to-include-rculisth.patch
+aes-x86_64-asm-implementation-optimization.patch
+provide-rtc_cmos-platform-device-take-2.patch
+acpi-fix-drivers-acpi-gluec-build-error.patch
+aperture_64c-corner-case-wrong.patch
+mm-add-a-basic-debugging-framework-for-memory-initialisation.patch
+mm-add-a-basic-debugging-framework-for-memory-initialisation-fix.patch
+mm-verify-the-page-links-and-memory-model.patch
+mm-make-defensive-checks-around-pfn-values-registered-for-memory-usage.patch
+mm-print-out-the-zonelists-on-request-for-manual-verification.patch
+mm-move-bootmem-descriptors-definition-to-a-single-place.patch
+mm-fix-free_all_bootmem_core-alignment-check.patch
+mm-normalize-internal-argument-passing-of-bootmem-data.patch
+mm-unexport-__alloc_bootmem_core.patch
+pm-boot-time-suspend-selftest.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+introduce-have_efficient_unaligned_access-kconfig-symbol.patch
+percpu-introduce-define_per_cpu_page_aligned.patch
+remove-argument-from-open_softirq-which-is-always-null.patch
+build-kernel-profileo-only-when-requested.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+kernel-irq-managec-replace-a-printk-warn_on-to-a-warn.patch
+rtc-remove-and-clarify-unneeded-externs.patch
+markers-use-rcu_barrier_sched-and-call_rcu_sched.patch
+accounting-account-for-user-time-when-updating-memory-integrals.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
+kgdb-use-the-common-ascii-hex-helpers.patch
+common-implementation-of-iterative-div-mod.patch
+add-an-inlined-version-of-iter_div_u64_rem.patch
+always_inline-timespec_add_ns.patch
+gcov-architecture-specific-compile-flag-adjustments.patch
+gcov-architecture-specific-compile-flag-adjustments-fix.patch
+x86-implement-pte_special.patch
+mm-introduce-get_user_pages_fast.patch
+mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast.patch
+x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-fix.patch
+x86-lockless-get_user_pages_fast-fix-warning.patch
+dio-use-get_user_pages_fast.patch
+splice-use-get_user_pages_fast.patch
+detect-atomic-counter-underflows.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
 
