@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + proc-calculate-the-correct-proc-pid-link-count.patch added to -mm tree
-Date: Wed, 04 Jun 2008 01:41:20 -0700
-Message-ID: <200806040841.m548fKI9012765@imap1.linux-foundation.org>
+Subject: + proc-calculate-the-correct-proc-pid-link-count-cleanup.patch added to -mm tree
+Date: Wed, 04 Jun 2008 01:41:22 -0700
+Message-ID: <200806040841.m548fM5C012768@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51717 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36494 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758663AbYFDIll (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jun 2008 04:41:41 -0400
+	by vger.kernel.org with ESMTP id S1754535AbYFDIlo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jun 2008 04:41:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vegard.nossum@gmail.com, adobriyan@gmail.com, davem@davemloft.net, ebiederm@xmission.com, xemul@openvz.org
+Cc: akpm@linux-foundation.org, adobriyan@gmail.com, davem@davemloft.net, ebiederm@xmission.com, vegard.nossum@gmail.com, xemul@openvz.org
 
 
 The patch titled
-     proc: calculate the correct /proc/<pid> link count
+     proc-calculate-the-correct-proc-pid-link-count-cleanup
 has been added to the -mm tree.  Its filename is
-     proc-calculate-the-correct-proc-pid-link-count.patch
+     proc-calculate-the-correct-proc-pid-link-count-cleanup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,103 +33,150 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc: calculate the correct /proc/<pid> link count
-From: Vegard Nossum <vegard.nossum@gmail.com>
+Subject: proc-calculate-the-correct-proc-pid-link-count-cleanup
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This patch:
-
-  commit e9720acd728a46cb40daa52c99a979f7c4ff195c
-  Author: Pavel Emelyanov <xemul@openvz.org>
-  Date:   Fri Mar 7 11:08:40 2008 -0800
-
-    [NET]: Make /proc/net a symlink on /proc/self/net (v3)
-
-introduced a /proc/self/net directory without bumping the corresponding
-link count for /proc/self.
-
-This patch replaces the static link count initializations with a call that
-counts the number of directory entries in the given pid_entry table
-whenever it is instantiated, and thus relieves the burden of manually
-keeping the two in sync.
-
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Signed-off-by: Vegard Nossum <vegard.nossum@gmail.com>
 Cc: "David S. Miller" <davem@davemloft.net>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: Vegard Nossum <vegard.nossum@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |   31 +++++++++++++++++++++++--------
- 1 file changed, 23 insertions(+), 8 deletions(-)
+ fs/proc/base.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN fs/proc/base.c~proc-calculate-the-correct-proc-pid-link-count fs/proc/base.c
---- a/fs/proc/base.c~proc-calculate-the-correct-proc-pid-link-count
+diff -puN fs/proc/base.c~proc-calculate-the-correct-proc-pid-link-count-cleanup fs/proc/base.c
+--- a/fs/proc/base.c~proc-calculate-the-correct-proc-pid-link-count-cleanup
 +++ a/fs/proc/base.c
-@@ -127,6 +127,23 @@ struct pid_entry {
+@@ -127,8 +127,10 @@ struct pid_entry {
  		NULL, &proc_single_file_operations,	\
  		{ .proc_show = &proc_##OTYPE } )
  
-+/* Count the number of hardlinks for the pid_entry table, excluding the .
-+ * and .. links. */
-+static unsigned int pid_entry_count_dirs(const struct pid_entry *entries,
-+	unsigned int n)
-+{
-+	unsigned int i;
-+	unsigned int count;
-+
-+	count = 0;
-+	for (i = 0; i < n; ++i) {
-+		if (S_ISDIR(entries[i].mode))
-+			++count;
-+	}
-+
-+	return count;
-+}
-+
- int maps_protect;
- EXPORT_SYMBOL(maps_protect);
- 
-@@ -2586,10 +2603,9 @@ static struct dentry *proc_pid_instantia
- 	inode->i_op = &proc_tgid_base_inode_operations;
- 	inode->i_fop = &proc_tgid_base_operations;
- 	inode->i_flags|=S_IMMUTABLE;
--	inode->i_nlink = 5;
--#ifdef CONFIG_SECURITY
--	inode->i_nlink += 1;
--#endif
-+
-+	inode->i_nlink = 2 + pid_entry_count_dirs(tgid_base_stuff,
-+		ARRAY_SIZE(tgid_base_stuff));
- 
- 	dentry->d_op = &pid_dentry_operations;
- 
-@@ -2817,10 +2833,9 @@ static struct dentry *proc_task_instanti
- 	inode->i_op = &proc_tid_base_inode_operations;
- 	inode->i_fop = &proc_tid_base_operations;
- 	inode->i_flags|=S_IMMUTABLE;
--	inode->i_nlink = 4;
--#ifdef CONFIG_SECURITY
--	inode->i_nlink += 1;
--#endif
-+
-+	inode->i_nlink = 2 + pid_entry_count_dirs(tid_base_stuff,
-+		ARRAY_SIZE(tid_base_stuff));
- 
- 	dentry->d_op = &pid_dentry_operations;
- 
+-/* Count the number of hardlinks for the pid_entry table, excluding the .
+- * and .. links. */
++/*
++ * Count the number of hardlinks for the pid_entry table, excluding the .
++ * and .. links.
++ */
+ static unsigned int pid_entry_count_dirs(const struct pid_entry *entries,
+ 	unsigned int n)
+ {
 _
 
-Patches currently in -mm which might be from vegard.nossum@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-arm-fix-header-guards.patch
-parisc-fix-incomplete-header-guard.patch
-h8300-fix-typo-in-header-guard.patch
-v850-fix-typo-in-header-guard.patch
-proc-calculate-the-correct-proc-pid-link-count.patch
+next-remove-localversion.patch
+linux-next-fixup.patch
+fix-kobject-fix-kobject_rename-and-config_sysfs.patch
+kvm-is-busted-on-ia64.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-video-balcklist-fujitsu-lifebook-s6410.patch
+git-x86-fixup.patch
+lguest-use-cpu-capability-accessors.patch
+arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
+arch-powerpc-platforms-pseries-eeh_driverc-fix-warning.patch
+arch-powerpc-platforms-pseries-eeh_driverc-fix-warning-checkpatch-fixes.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+git-jg-misc-git-rejects.patch
+drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+git-leds.patch
+fsldma-the-mpc8377mds-board-device-tree-node-for-fsldma-driver.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers.patch
+sundance-set-carrier-status-on-link-change-events.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+sched-delete-dead-stuff.patch
+sched-delete-dead-stuff-2.patch
+git-scsi-misc-fix-scsi_dh-build-errors.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
+pktcdvd-push-bkl-down-into-driver-fix.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-logfs-fixup.patch
+drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
+drivers-uwb-wlp-sysfsc-dead-code.patch
+usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix.patch
+usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix-2.patch
+watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix.patch
+watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl-fix.patch
+git-xtensa.patch
+ext4-is-busted-on-m68k.patch
+rtc-class-driver-for-ppc_md-rtc-functions-fix.patch
 proc-calculate-the-correct-proc-pid-link-count-cleanup.patch
-kallsyms-fix-potential-overflow-in-binary-search.patch
-quota-cleanup-loop-in-sync_dquots.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+libata-sff-fix-oops-reported-in-kerneloopsorg-for-pnp-devices-with-no-ctl-fix.patch
+mm-verify-the-page-links-and-memory-model.patch
+mspec-convert-nopfn-to-fault-fix.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+kill-generic_file_direct_io-checkpatch-fixes.patch
+use-generic_access_phys-for-dev-mem-mappings-fix.patch
+spufs-use-the-new-vm_ops-access-fix.patch
+fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
+page-flags-record-page-flag-overlays-explicitly-xen.patch
+mapping_set_error-add-unlikely.patch
+huge-page-private-reservation-review-cleanups-fix.patch
+sync_file_range_write-may-and-will-block-document-that-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup-fix.patch
+swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
+block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
+rename-warn-to-warning-to-clear-the-namespace-fix.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-paccept-sys_ni.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-signalfd-fix.patch
+flag-parameters-eventfd-fix.patch
+flag-parameters-inotify_init-fix.patch
+flag-parameters-check-magic-constants-alpha.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
+reiserfs-convert-j_flush_sem-to-mutex.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup.patch
+ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-fix.patch
+x86-lockless-get_user_pages_fast-fix-warning.patch
+reiser4.patch
+reiser4-semaphore-fix.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
