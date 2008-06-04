@@ -1,187 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: + hgafb-convert-to-new-platform-driver-api-bugzilla-9689.patch added to -mm tree
-Date: Tue, 03 Jun 2008 17:07:16 -0700
-Message-ID: <200806040007.m5407GCM026838@imap1.linux-foundation.org>
+Subject: - cpusets-update-tasks-cpus_allowed-and-mems_allowed-after-cpu-node-offline-online.patch removed from -mm tree
+Date: Tue, 03 Jun 2008 21:01:13 -0700
+Message-ID: <200806040401.m5441D55002770@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41573 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55152 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751936AbYFDAJR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jun 2008 20:09:17 -0400
+	by vger.kernel.org with ESMTP id S1751047AbYFDEBT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jun 2008 00:01:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: krzysztof.h1@wp.pl, adaplas@pol.net, avorontsov@ru.mvista.com
+To: miaox@cn.fujitsu.com, pj@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hgafb: convert to new platform driver API
-has been added to the -mm tree.  Its filename is
-     hgafb-convert-to-new-platform-driver-api-bugzilla-9689.patch
+     cpusets: update task's cpus_allowed and mems_allowed after CPU/NODE offline/online
+has been removed from the -mm tree.  Its filename was
+     cpusets-update-tasks-cpus_allowed-and-mems_allowed-after-cpu-node-offline-online.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hgafb: convert to new platform driver API
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: cpusets: update task's cpus_allowed and mems_allowed after CPU/NODE offline/online
+From: Miao Xie <miaox@cn.fujitsu.com>
 
-Convert the hgafb driver to use new platform driver API.
+The bug is, a task may run on the cpu/node which is not in its cpuset.cpus/
+cpuset.mems.
 
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=9689
+It can be reproduced by the following commands:
+===================================
+# mkdir /dev/cpuset
+# mount -t cpuset xxx /dev/cpuset
+# mkdir /dev/cpuset/0
+# echo 0-1 > /dev/cpuset/0/cpus
+# echo 0 > /dev/cpuset/0/mems
+# echo $$ > /dev/cpuset/0/tasks
+# echo 0 > /sys/devices/system/cpu/cpu1/online
+# echo 1 > /sys/devices/system/cpu/cpu1/online
+===================================
 
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
-Cc: Anton Vorontsov <avorontsov@ru.mvista.com>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+There is only CPU0 in cpuset.cpus, but the task in this cpuset runs on
+both CPU0 and CPU1.
+
+It is because the task's cpu_allowed didn't get updated after we did CPU
+offline/online manipulation.  Similar for mem_allowed.
+
+This patch fixes this bug expect for root cpuset.  Because there is a
+problem about root cpuset, in that whether it is necessary to update all
+the tasks in root cpuset or not after cpu/node offline/online.
+
+If updating, some kernel threads which is bound into a specified cpu will
+be unbound.
+
+If not updating, there is a bug in root cpuset.  This bug is also caused
+by offline/online manipulation.  For example, there is a dual-cpu machine.
+ we create a sub cpuset in root cpuset and assign 1 to its cpus.  And then
+we attach some tasks into this sub cpuset.  After this, we offline CPU1. 
+Now, the tasks in this new cpuset are moved into root cpuset automatically
+because there is no cpu in sub cpuset.  Then we online CPU1, we find all
+the tasks which doesn't belong to root cpuset originally just run on CPU0.
+
+Maybe we need to add a flag in the task_struct to mark which task can't be
+unbound?
+
+Signed-off-by: Miao Xie <miaox@cn.fujitsu.com>
+Acked-by: Paul Jackson <pj@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/hgafb.c |   36 +++++++++++++++++++-----------------
- 1 file changed, 19 insertions(+), 17 deletions(-)
+ kernel/cpuset.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN drivers/video/hgafb.c~hgafb-convert-to-new-platform-driver-api-bugzilla-9689 drivers/video/hgafb.c
---- a/drivers/video/hgafb.c~hgafb-convert-to-new-platform-driver-api-bugzilla-9689
-+++ a/drivers/video/hgafb.c
-@@ -547,7 +547,7 @@ static struct fb_ops hgafb_ops = {
- 	 *  Initialization
- 	 */
+diff -puN kernel/cpuset.c~cpusets-update-tasks-cpus_allowed-and-mems_allowed-after-cpu-node-offline-online kernel/cpuset.c
+--- a/kernel/cpuset.c~cpusets-update-tasks-cpus_allowed-and-mems_allowed-after-cpu-node-offline-online
++++ a/kernel/cpuset.c
+@@ -1874,6 +1874,7 @@ static void scan_for_empty_cpusets(const
+ 	struct cpuset *child;	/* scans child cpusets of cp */
+ 	struct list_head queue;
+ 	struct cgroup *cont;
++	nodemask_t oldmems;
  
--static int __init hgafb_probe(struct device *device)
-+static int __init hgafb_probe(struct platform_device *pdev)
- {
- 	struct fb_info *info;
+ 	INIT_LIST_HEAD(&queue);
  
-@@ -561,7 +561,7 @@ static int __init hgafb_probe(struct dev
- 	printk(KERN_INFO "hgafb: %s with %ldK of memory detected.\n",
- 		hga_type_name, hga_vram_len/1024);
+@@ -1893,6 +1894,8 @@ static void scan_for_empty_cpusets(const
+ 		    nodes_subset(cp->mems_allowed, node_states[N_HIGH_MEMORY]))
+ 			continue;
  
--	info = framebuffer_alloc(0, NULL);
-+	info = framebuffer_alloc(0, &pdev->dev);
- 	if (!info) {
- 		iounmap(hga_vram);
- 		return -ENOMEM;
-@@ -589,13 +589,13 @@ static int __init hgafb_probe(struct dev
- 
-         printk(KERN_INFO "fb%d: %s frame buffer device\n",
-                info->node, info->fix.id);
--	dev_set_drvdata(device, info);
-+	platform_set_drvdata(pdev, info);
- 	return 0;
- }
- 
--static int hgafb_remove(struct device *device)
-+static int hgafb_remove(struct platform_device *pdev)
- {
--	struct fb_info *info = dev_get_drvdata(device);
-+	struct fb_info *info = platform_get_drvdata(pdev);
- 
- 	hga_txt_mode();
- 	hga_clear_screen();
-@@ -616,16 +616,15 @@ static int hgafb_remove(struct device *d
- 	return 0;
- }
- 
--static struct device_driver hgafb_driver = {
--	.name = "hgafb",
--	.bus  = &platform_bus_type,
-+static struct platform_driver hgafb_driver = {
- 	.probe = hgafb_probe,
- 	.remove = hgafb_remove,
-+	.driver = {
-+		.name = "hgafb",
-+	},
- };
- 
--static struct platform_device hgafb_device = {
--	.name = "hgafb",
--};
-+static struct platform_device *hgafb_device;
- 
- static int __init hgafb_init(void)
- {
-@@ -634,12 +633,15 @@ static int __init hgafb_init(void)
- 	if (fb_get_options("hgafb", NULL))
- 		return -ENODEV;
- 
--	ret = driver_register(&hgafb_driver);
-+	ret = platform_driver_register(&hgafb_driver);
- 
- 	if (!ret) {
--		ret = platform_device_register(&hgafb_device);
--		if (ret)
--			driver_unregister(&hgafb_driver);
-+		hgafb_device = platform_device_register_simple("hgafb", 0, NULL, 0);
++		oldmems = cp->mems_allowed;
 +
-+		if (IS_ERR(hgafb_device)) {
-+			platform_driver_unregister(&hgafb_driver);
-+			ret = PTR_ERR(hgafb_device);
+ 		/* Remove offline cpus and mems from this cpuset. */
+ 		mutex_lock(&callback_mutex);
+ 		cpus_and(cp->cpus_allowed, cp->cpus_allowed, cpu_online_map);
+@@ -1904,6 +1907,10 @@ static void scan_for_empty_cpusets(const
+ 		if (cpus_empty(cp->cpus_allowed) ||
+ 		     nodes_empty(cp->mems_allowed))
+ 			remove_tasks_in_empty_cpuset(cp);
++		else {
++			update_tasks_cpumask(cp);
++			update_tasks_nodemask(cp, &oldmems);
 +		}
  	}
- 
- 	return ret;
-@@ -647,8 +649,8 @@ static int __init hgafb_init(void)
- 
- static void __exit hgafb_exit(void)
- {
--	platform_device_unregister(&hgafb_device);
--	driver_unregister(&hgafb_driver);
-+	platform_device_unregister(hgafb_device);
-+	platform_driver_unregister(&hgafb_driver);
  }
  
- /* -------------------------------------------------------------------------
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from miaox@cn.fujitsu.com are
 
-modedb-fix-incorrect-sync-and-vmode-flags-for-cvt-modes.patch
-fbcon-fix-wrong-vmode-bits-copied-on-console-switch.patch
-tridentfb-replace-macros-with-functions.patch
-tridentfb-convert-fb_info-into-allocated-one.patch
-tridentfb-move-global-pseudo-palette-into-structure.patch
-tridentfb-move-global-chip_id-into-structure.patch
-tridentfb-move-global-flat-panel-variable-into-structure.patch
-tridentfb-convert-is_blade-and-is_xp-macros-into-functions.patch
-tridentfb-move-global-acceleration-hooks-into-structure.patch
-tridentfb-make-use-of-functions-and-constants-from-the-vgah.patch
-tridentfb-fix-timing-calculations.patch
-tridentfb-use-mmio-access-for-clock-setting.patch
-tridentfb-fix-clock-settings-for-older-trident-96xx-chips.patch
-tridentfb-improve-probe-function.patch
-tridentfb-improved-register-values-on-tgui-9680.patch
-tridentfb-add-tgui-9440-support.patch
-tridentfb-fix-unitialized-pseudo_palette.patch
-tridentfb-improve-check_var-function.patch
-tridentfb-preserve-memory-type-settings.patch
-tridentfb-fix-hi-color-modes-for-tgui-9440.patch
-tridentfb-add-acceleration-for-tgui-families.patch
-tridentfb-acceleration-code-improvements.patch
-tridentfb-acceleration-bug-fixes.patch
-tridentfb-various-pixclock-and-timing-improvements.patch
-tridentfb-acceleration-constants-change.patch
-tridentfb-source-code-improvements.patch
-tridentfb-fix-console-freeze-when-switching-from-x11.patch
-tridentfb-fix-224-color-logo-at-8-bpp.patch
-tridentfb-y-panning-fixes.patch
-tridentfb-blade3d-clock-fixes.patch
-amifb-test-virtual-screen-range-before-subtraction-on-unsigned.patch
-atafb-test-virtual-screen-range-before-subtraction-on-unsigned.patch
-fbcon-make-logo_height-a-local-variable.patch
-uvesafb-change-mode-parameter-to-mode_option.patch
-tridentfb-documentation-update.patch
-tdfxfb-add-mode_option-module-parameter.patch
-vga16fb-source-code-improvement.patch
-tdfxfb-remove-ypan-checks-done-by-a-higher-layer.patch
-vfb-only-enable-if-explicitly-requested-when-compiled-in.patch
-hgafb-convert-to-new-platform-driver-api-bugzilla-9689.patch
+cpusets-fix-and-update-documentation.patch
+cpusets-update-tasks-cpus_allowed-and-mems_allowed-after-cpu-node-offline-online.patch
 
