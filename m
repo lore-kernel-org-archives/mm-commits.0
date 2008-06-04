@@ -1,179 +1,147 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-class-driver-for-ppc_md-rtc-functions-fix.patch added to -mm tree
-Date: Tue, 03 Jun 2008 16:58:16 -0700
-Message-ID: <200806032358.m53NwGQG026522@imap1.linux-foundation.org>
+Subject: - hgafb-fix-module-removal.patch removed from -mm tree
+Date: Tue, 03 Jun 2008 17:05:49 -0700
+Message-ID: <200806040005.m5405nYM026799@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45731 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57264 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753369AbYFCX6e (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jun 2008 19:58:34 -0400
+	by vger.kernel.org with ESMTP id S1751386AbYFDAHU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jun 2008 20:07:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.zummo@towertech.it, benh@kernel.crashing.org, david-b@pacbell.net, dwmw2@infradead.org, paulus@samba.org
+To: avorontsov@ru.mvista.com, adaplas@pol.net, devzero@web.de, greg@kroah.com, kay.sievers@vrfy.org, krzysztof.h1@poczta.fm, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc-class-driver-for-ppc_md-rtc-functions-fix
-has been added to the -mm tree.  Its filename is
-     rtc-class-driver-for-ppc_md-rtc-functions-fix.patch
+     hgafb: fix module removal
+has been removed from the -mm tree.  Its filename was
+     hgafb-fix-module-removal.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was withdrawn
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-class-driver-for-ppc_md-rtc-functions-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: hgafb: fix module removal
+From: Anton Vorontsov <avorontsov@ru.mvista.com>
 
-Fix Kconfig indenting
+We should allocate platform device dynamically, otherwise it can't be removed.
 
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Paul Mackerras <paulus@samba.org>
+Also, back in time it was acceptable to mix devices and platform_devices,
+today this might cause all sort of bugs. Fix that too.
+
+Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
+Cc: <devzero@web.de>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: Greg KH <greg@kroah.com>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/hgafb.c |   41 ++++++++++++++++++++--------------------
+ 1 file changed, 21 insertions(+), 20 deletions(-)
 
-diff -puN drivers/rtc/Kconfig~rtc-class-driver-for-ppc_md-rtc-functions-fix drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-class-driver-for-ppc_md-rtc-functions-fix
-+++ a/drivers/rtc/Kconfig
-@@ -549,7 +549,7 @@ config RTC_DRV_PPC
-        tristate "PowerPC machine dependent RTC support"
-        depends on PPC_MERGE
-        help
--         The PowerPC kernel has machine-specific functions for accessing
-+	 The PowerPC kernel has machine-specific functions for accessing
- 	 the RTC. This exposes that functionality through the generic RTC
- 	 class.
+diff -puN drivers/video/hgafb.c~hgafb-fix-module-removal drivers/video/hgafb.c
+--- a/drivers/video/hgafb.c~hgafb-fix-module-removal
++++ a/drivers/video/hgafb.c
+@@ -547,7 +547,7 @@ static struct fb_ops hgafb_ops = {
+ 	 *  Initialization
+ 	 */
  
+-static int __init hgafb_probe(struct device *device)
++static int __init hgafb_probe(struct platform_device *pdev)
+ {
+ 	struct fb_info *info;
+ 
+@@ -589,13 +589,13 @@ static int __init hgafb_probe(struct dev
+ 
+         printk(KERN_INFO "fb%d: %s frame buffer device\n",
+                info->node, info->fix.id);
+-	dev_set_drvdata(device, info);
++	platform_set_drvdata(pdev, info);
+ 	return 0;
+ }
+ 
+-static int hgafb_remove(struct device *device)
++static int __devexit hgafb_remove(struct platform_device *pdev)
+ {
+-	struct fb_info *info = dev_get_drvdata(device);
++	struct fb_info *info = platform_get_drvdata(pdev);
+ 
+ 	hga_txt_mode();
+ 	hga_clear_screen();
+@@ -616,16 +616,15 @@ static int hgafb_remove(struct device *d
+ 	return 0;
+ }
+ 
+-static struct device_driver hgafb_driver = {
+-	.name = "hgafb",
+-	.bus  = &platform_bus_type,
++static struct platform_driver hgafb_driver = {
++	.driver = {
++		.name = "hgafb",
++	},
+ 	.probe = hgafb_probe,
+-	.remove = hgafb_remove,
++	.remove = __devexit_p(hgafb_remove),
+ };
+ 
+-static struct platform_device hgafb_device = {
+-	.name = "hgafb",
+-};
++static struct platform_device *hgafb_device;
+ 
+ static int __init hgafb_init(void)
+ {
+@@ -634,21 +633,23 @@ static int __init hgafb_init(void)
+ 	if (fb_get_options("hgafb", NULL))
+ 		return -ENODEV;
+ 
+-	ret = driver_register(&hgafb_driver);
+-
+-	if (!ret) {
+-		ret = platform_device_register(&hgafb_device);
+-		if (ret)
+-			driver_unregister(&hgafb_driver);
++	ret = platform_driver_register(&hgafb_driver);
++	if (ret)
++		return ret;
++
++	hgafb_device = platform_device_register_simple("hgafb", -1, NULL, 0);
++	if (!hgafb_device) {
++		platform_driver_unregister(&hgafb_driver);
++		return -ENOMEM;
+ 	}
+ 
+-	return ret;
++	return 0;
+ }
+ 
+ static void __exit hgafb_exit(void)
+ {
+-	platform_device_unregister(&hgafb_device);
+-	driver_unregister(&hgafb_driver);
++	platform_device_unregister(hgafb_device);
++	platform_driver_unregister(&hgafb_driver);
+ }
+ 
+ /* -------------------------------------------------------------------------
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from avorontsov@ru.mvista.com are
 
 origin.patch
+serial-fix-driver_name-conflicts.patch
 linux-next.patch
-next-remove-localversion.patch
-linux-next-fixup.patch
-fix-kobject-fix-kobject_rename-and-config_sysfs.patch
-kvm-is-busted-on-ia64.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-video-balcklist-fujitsu-lifebook-s6410.patch
-git-x86-fixup.patch
-lguest-use-cpu-capability-accessors.patch
-arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
-arch-powerpc-platforms-pseries-eeh_driverc-fix-warning.patch
-arch-powerpc-platforms-pseries-eeh_driverc-fix-warning-checkpatch-fixes.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-git-jg-misc-git-rejects.patch
-drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
 git-leds.patch
-fsldma-the-mpc8377mds-board-device-tree-node-for-fsldma-driver.patch
-mmc-sd-host-driver-for-ricoh-bay1controllers.patch
-sundance-set-carrier-status-on-link-change-events.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-battery.patch
-sched-delete-dead-stuff.patch
-sched-delete-dead-stuff-2.patch
-git-scsi-misc-fix-scsi_dh-build-errors.patch
-drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
-s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
-pktcdvd-push-bkl-down-into-driver-fix.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-git-logfs-fixup.patch
-drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
-drivers-uwb-wlp-sysfsc-dead-code.patch
-usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix.patch
-usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix-2.patch
-watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix.patch
-watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl-fix.patch
-git-xtensa.patch
-ext4-is-busted-on-m68k.patch
-rtc-class-driver-for-ppc_md-rtc-functions-fix.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-libata-sff-fix-oops-reported-in-kerneloopsorg-for-pnp-devices-with-no-ctl-fix.patch
-mm-verify-the-page-links-and-memory-model.patch
-mspec-convert-nopfn-to-fault-fix.patch
-page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
-kill-generic_file_direct_io-checkpatch-fixes.patch
-use-generic_access_phys-for-dev-mem-mappings-fix.patch
-spufs-use-the-new-vm_ops-access-fix.patch
-fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
-page-flags-record-page-flag-overlays-explicitly-xen.patch
-mapping_set_error-add-unlikely.patch
-huge-page-private-reservation-review-cleanups-fix.patch
-sync_file_range_write-may-and-will-block-document-that-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
-pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes.patch
-pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup.patch
-pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup-fix.patch
-swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
-split-the-typecheck-macros-out-of-include-linux-kernelh.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
-remove-apparently-unused-fd1772h-header-file.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
-build-kernel-profileo-only-when-requested-cleanups.patch
-fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
-block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
-rename-warn-to-warning-to-clear-the-namespace-fix.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
-flag-parameters-paccept-fix.patch
-flag-parameters-paccept-sys_ni.patch
-flag-parameters-anon_inode_getfd-extension-fix.patch
-flag-parameters-signalfd-fix.patch
-flag-parameters-eventfd-fix.patch
-flag-parameters-inotify_init-fix.patch
-flag-parameters-check-magic-constants-alpha.patch
-drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
-reiserfs-convert-j_flush_sem-to-mutex.patch
-reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
-jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup.patch
-ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-fix.patch
-x86-lockless-get_user_pages_fast-fix-warning.patch
-reiser4.patch
-reiser4-semaphore-fix.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+mpc83xx_wdt-convert-to-the-of-platform-driver.patch
+mpc83xx_wdt-add-support-for-mpc86xx-cpus.patch
+mpc83xx_wdt-rename-to-mpc8xxx_wdt.patch
+mpc8xxx_wdt-various-renames-mostly-s-mpc83xx-mpc8xxx-g.patch
+mpc8xxx_wdt-add-support-for-mpc8xx-watchdogs.patch
+powerpc-fsl_soc-remove-mpc83xx_wdt-code.patch
+powerpc-86xx-mpc8610_hpcd-add-watchdog-node.patch
+hgafb-fix-module-removal.patch
 
