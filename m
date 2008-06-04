@@ -1,104 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: + idr-make-idr_get_new-rcu-safe-fix.patch added to -mm tree
-Date: Wed, 04 Jun 2008 01:08:25 -0700
-Message-ID: <200806040808.m5488PfW011615@imap1.linux-foundation.org>
+Subject: - net-make-proc-net-a-symlink-on-proc-self-net.patch removed from -mm tree
+Date: Wed, 04 Jun 2008 01:30:43 -0700
+Message-ID: <200806040830.m548Uhuj012365@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37775 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59388 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751539AbYFDILU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jun 2008 04:11:20 -0400
+	by vger.kernel.org with ESMTP id S1752087AbYFDIbV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jun 2008 04:31:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: Nadia.Derbey@bull.net, jim.houston@comcast.net, manfred@colorfullife.com, paulmck@linux.vnet.ibm.com, peifferp@gmail.com, riel@redhat.com
+To: vegard.nossum@gmail.com, davem@davemloft.net, ebiederm@xmission.com, xemul@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Remove useless calls to INIT_RCU_HEAD in the idr code
-has been added to the -mm tree.  Its filename is
-     idr-make-idr_get_new-rcu-safe-fix.patch
+     net: make /proc/net a symlink on /proc/self/net
+has been removed from the -mm tree.  Its filename was
+     net-make-proc-net-a-symlink-on-proc-self-net.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Remove useless calls to INIT_RCU_HEAD in the idr code
-From: Nadia Derbey <Nadia.Derbey@bull.net>
+Subject: net: make /proc/net a symlink on /proc/self/net
+From: Vegard Nossum <vegard.nossum@gmail.com>
 
-This is a trivial patch that removes unneeded calls to INIT_RCU_HEAD() in the
-idr api code.
+This patch:
 
-Signed-off-by: Nadia Derbey <Nadia.Derbey@bull.net>
-Acked-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Cc: Manfred Spraul <manfred@colorfullife.com>
-Cc: Jim Houston <jim.houston@comcast.net>
-Cc: Pierre Peiffer <peifferp@gmail.com>
-Cc: Rik van Riel <riel@redhat.com>
+  commit e9720acd728a46cb40daa52c99a979f7c4ff195c
+  Author: Pavel Emelyanov <xemul@openvz.org>
+  Date:   Fri Mar 7 11:08:40 2008 -0800
+
+    [NET]: Make /proc/net a symlink on /proc/self/net (v3)
+
+Introduced /proc/net without bumping the link count on /proc/self.
+
+Signed-off-by: Vegard Nossum <vegard.nossum@gmail.com>
+Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/idr.c |    3 ---
- 1 file changed, 3 deletions(-)
+ fs/proc/base.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN lib/idr.c~idr-make-idr_get_new-rcu-safe-fix lib/idr.c
---- a/lib/idr.c~idr-make-idr_get_new-rcu-safe-fix
-+++ a/lib/idr.c
-@@ -172,7 +172,6 @@ static int sub_alloc(struct idr *idp, in
- 			new = get_from_free_list(idp);
- 			if (!new)
- 				return -1;
--			INIT_RCU_HEAD(&new->rcu_head);
- 			rcu_assign_pointer(p->ary[m], new);
- 			p->count++;
- 		}
-@@ -198,7 +197,6 @@ build_up:
- 	if (unlikely(!p)) {
- 		if (!(p = get_from_free_list(idp)))
- 			return -1;
--		INIT_RCU_HEAD(&p->rcu_head);
- 		layers = 1;
- 	}
- 	/*
-@@ -226,7 +224,6 @@ build_up:
- 		}
- 		new->ary[0] = p;
- 		new->count = 1;
--		INIT_RCU_HEAD(&new->rcu_head);
- 		if (p->bitmap == IDR_FULL)
- 			__set_bit(0, &new->bitmap);
- 		p = new;
+diff -puN fs/proc/base.c~net-make-proc-net-a-symlink-on-proc-self-net fs/proc/base.c
+--- a/fs/proc/base.c~net-make-proc-net-a-symlink-on-proc-self-net
++++ a/fs/proc/base.c
+@@ -2590,6 +2590,9 @@ static struct dentry *proc_pid_instantia
+ #ifdef CONFIG_SECURITY
+ 	inode->i_nlink += 1;
+ #endif
++#ifdef CONFIG_NET
++	inode->i_nlink += 1;
++#endif
+ 
+ 	dentry->d_op = &pid_dentry_operations;
+ 
 _
 
-Patches currently in -mm which might be from Nadia.Derbey@bull.net are
+Patches currently in -mm which might be from vegard.nossum@gmail.com are
 
-ipc-restore-msgpool-original-value.patch
-ipc-only-output-msgmni-value-at-boot-time.patch
-idr-change-the-idr-structure.patch
-idr-rename-some-of-the-idr-apis-internal-routines.patch
-idr-fix-a-printk-call.patch
-idr-error-checking-factorization.patch
-idr-make-idr_get_new-rcu-safe.patch
-idr-make-idr_get_new-rcu-safe-fix.patch
-idr-make-idr_find-rcu-safe.patch
-idr-make-idr_remove-rcu-safe.patch
-ipc-call-idr_find-without-locking-in-ipc_lock.patch
-ipc-get-rid-of-ipc_lock_down.patch
-ipc-semc-convert-undo-structures-to-struct-list_head.patch
-ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-remove-unused-entries-from-struct-sem_queue.patch
-ipc-semc-convert-sem_arraysem_pending-to-struct-list_head.patch
-ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-rewrite-undo-list-locking.patch
-ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
+origin.patch
+linux-next.patch
+arm-fix-header-guards.patch
+parisc-fix-incomplete-header-guard.patch
+h8300-fix-typo-in-header-guard.patch
+v850-fix-typo-in-header-guard.patch
+net-make-proc-net-a-symlink-on-proc-self-net.patch
+kallsyms-fix-potential-overflow-in-binary-search.patch
+quota-cleanup-loop-in-sync_dquots.patch
 
