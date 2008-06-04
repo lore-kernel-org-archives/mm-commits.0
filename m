@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + bluetooth-hci_bcspc-small-cleanups-api-users.patch added to -mm tree
-Date: Wed, 04 Jun 2008 14:22:58 -0700
-Message-ID: <200806042122.m54LMwoC009595@imap1.linux-foundation.org>
+Subject: + bluetooth-hci_bcspc-small-cleanups-api-users-fix.patch added to -mm tree
+Date: Wed, 04 Jun 2008 14:23:55 -0700
+Message-ID: <200806042123.m54LNt4K009691@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59924 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35526 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751279AbYFDVXc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jun 2008 17:23:32 -0400
+	by vger.kernel.org with ESMTP id S1751542AbYFDVYa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jun 2008 17:24:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, akinobu.mita@gmail.com, hidave.darkstar@gmail.com, marcel@holtmann.org
+Cc: akpm@linux-foundation.org, akinobu.mita@gmail.com, harvey.harrison@gmail.com, hidave.darkstar@gmail.com, marcel@holtmann.org
 
 
 The patch titled
-     bluetooth: hci_bcsp.c small cleanups/api users
+     bluetooth-hci_bcspc-small-cleanups-api-users-fix
 has been added to the -mm tree.  Its filename is
-     bluetooth-hci_bcspc-small-cleanups-api-users.patch
+     bluetooth-hci_bcspc-small-cleanups-api-users-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,156 +33,149 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bluetooth: hci_bcsp.c small cleanups/api users
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: bluetooth-hci_bcspc-small-cleanups-api-users-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Use bitrev16 from lib/bitrev.c.
+select CONFIG_BITREVERSE, noted by akinobu.mita@gmail.com
 
-Use the get_unaligned_be16 to get the crc from the packet, create a
-small helper function for this.
-
-Fix a shadowed variable sparse warning:
-drivers/bluetooth/hci_bcsp.c:218:26: warning: symbol 'hdr' shadows an earlier one
-drivers/bluetooth/hci_bcsp.c:187:5: originally declared here
-
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Cc: Akinobu Mita <akinobu.mita@gmail.com>
-Acked-by: Marcel Holtmann <marcel@holtmann.org>
 Cc: Dave Young <hidave.darkstar@gmail.com>
+Cc: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Marcel Holtmann <marcel@holtmann.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/bluetooth/hci_bcsp.c |   44 +++++++++------------------------
- 1 file changed, 13 insertions(+), 31 deletions(-)
+ drivers/bluetooth/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/bluetooth/hci_bcsp.c~bluetooth-hci_bcspc-small-cleanups-api-users drivers/bluetooth/hci_bcsp.c
---- a/drivers/bluetooth/hci_bcsp.c~bluetooth-hci_bcspc-small-cleanups-api-users
-+++ a/drivers/bluetooth/hci_bcsp.c
-@@ -39,6 +39,8 @@
- #include <linux/signal.h>
- #include <linux/ioctl.h>
- #include <linux/skbuff.h>
-+#include <linux/bitrev.h>
-+#include <asm/unaligned.h>
- 
- #include <net/bluetooth/bluetooth.h>
- #include <net/bluetooth/hci_core.h>
-@@ -124,27 +126,6 @@ static void bcsp_crc_update(u16 *crc, u8
- 	*crc = reg;
- }
- 
--/*
--   Get reverse of generated crc
--
--   Implementation note
--        The crc generator (bcsp_crc_init() and bcsp_crc_update())
--        creates a reversed crc, so it needs to be swapped back before
--        being passed on.
--*/
--static u16 bcsp_crc_reverse(u16 crc)
--{
--	u16 b, rev;
--
--	for (b = 0, rev = 0; b < 16; b++) {
--		rev = rev << 1;
--		rev |= (crc & 1);
--		crc = crc >> 1;
--	}
--
--	return (rev);
--}
--
- /* ---- BCSP core ---- */
- 
- static void bcsp_slip_msgdelim(struct sk_buff *skb)
-@@ -235,10 +216,10 @@ static struct sk_buff *bcsp_prepare_pkt(
- 	}
- 
- 	if (hciextn && chan == 5) {
--		struct hci_command_hdr *hdr = (struct hci_command_hdr *) data;
-+		__le16 opcode = ((struct hci_command_hdr *)data)->opcode;
- 
- 		/* Vendor specific commands */
--		if (hci_opcode_ogf(__le16_to_cpu(hdr->opcode)) == 0x3f) {
-+		if (hci_opcode_ogf(__le16_to_cpu(opcode)) == 0x3f) {
- 			u8 desc = *(data + HCI_COMMAND_HDR_SIZE);
- 			if ((desc & 0xf0) == 0xc0) {
- 				data += HCI_COMMAND_HDR_SIZE + 1;
-@@ -296,7 +277,7 @@ static struct sk_buff *bcsp_prepare_pkt(
- 
- 	/* Put CRC */
- 	if (bcsp->use_crc) {
--		bcsp_txmsg_crc = bcsp_crc_reverse(bcsp_txmsg_crc);
-+		bcsp_txmsg_crc = bitrev16(bcsp_txmsg_crc);
- 		bcsp_slip_one_byte(nskb, (u8) ((bcsp_txmsg_crc >> 8) & 0x00ff));
- 		bcsp_slip_one_byte(nskb, (u8) (bcsp_txmsg_crc & 0x00ff));
- 	}
-@@ -566,6 +547,11 @@ static void bcsp_complete_rx_pkt(struct 
- 	bcsp->rx_skb = NULL;
- }
- 
-+static u16 bscp_get_crc(struct bcsp_struct *bcsp)
-+{
-+	return get_unaligned_be16(&bcsp->rx_skb->data[bcsp->rx_skb->len - 2]);
-+}
-+
- /* Recv data */
- static int bcsp_recv(struct hci_uart *hu, void *data, int count)
- {
-@@ -624,14 +610,10 @@ static int bcsp_recv(struct hci_uart *hu
- 			continue;
- 
- 		case BCSP_W4_CRC:
--			if (bcsp_crc_reverse(bcsp->message_crc) !=
--					(bcsp->rx_skb->data[bcsp->rx_skb->len - 2] << 8) +
--					bcsp->rx_skb->data[bcsp->rx_skb->len - 1]) {
--
-+			if (bitrev16(bcsp->message_crc) != bscp_get_crc(bcsp)) {
- 				BT_ERR ("Checksum failed: computed %04x received %04x",
--					bcsp_crc_reverse(bcsp->message_crc),
--					(bcsp->rx_skb-> data[bcsp->rx_skb->len - 2] << 8) +
--					bcsp->rx_skb->data[bcsp->rx_skb->len - 1]);
-+					bitrev16(bcsp->message_crc),
-+					bscp_get_crc(bcsp));
- 
- 				kfree_skb(bcsp->rx_skb);
- 				bcsp->rx_state = BCSP_W4_PKT_DELIMITER;
+diff -puN drivers/bluetooth/Kconfig~bluetooth-hci_bcspc-small-cleanups-api-users-fix drivers/bluetooth/Kconfig
+--- a/drivers/bluetooth/Kconfig~bluetooth-hci_bcspc-small-cleanups-api-users-fix
++++ a/drivers/bluetooth/Kconfig
+@@ -71,6 +71,7 @@ config BT_HCIUART_H4
+ config BT_HCIUART_BCSP
+ 	bool "BCSP protocol support"
+ 	depends on BT_HCIUART
++	select CONFIG_BITREVERSE
+ 	help
+ 	  BCSP (BlueCore Serial Protocol) is serial protocol for communication 
+ 	  between Bluetooth device and host. This protocol is required for non
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-lib-export-bitrev16.patch
 linux-next.patch
-kgdb-use-put_unaligned_be32-helper.patch
-cifs-remove-global_extern-macro.patch
-mtd-mtdcharc-silence-sparse-warning.patch
-mtd-mtdcharc-remove-shadowed-variable-warnings.patch
-bluetooth-hci_bcspc-small-cleanups-api-users.patch
-scsi-replace-remaining-__function__-occurrences.patch
-fusion-replace-remaining-__function__-occurrences.patch
-scsi-replace-__inline-with-inline.patch
-scsi-use-get_unaligned_-helpers.patch
-scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
-scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
-block-use-get_unaligned_-helpers.patch
-usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues.patch
-usb-cp2101c-fix-sparse-signedness-mismatch-warnings.patch
-usb-speedtchc-fix-sparse-shadowed-variable-warning.patch
-xfs-use-get_unaligned_-helpers.patch
-xtensa-replace-remaining-__function__-occurences.patch
-fs-ldm-use-get_unaligned_-helpers.patch
-include-use-get-put_unaligned_-helpers.patch
-lzo-use-get-put_unaligned_-helpers.patch
-asm-generic-int-ll64h-always-provide-__su64.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-isdn-use-the-common-ascii-hex-helpers.patch
-net-use-the-common-ascii-hex-helpers.patch
-kgdb-use-the-common-ascii-hex-helpers.patch
-cris-use-the-common-ascii-hex-helpers.patch
-frv-use-the-common-ascii-hex-helpers.patch
-mips-use-the-common-ascii-hex-helpers.patch
-ppc-use-the-common-ascii-hex-helpers.patch
+next-remove-localversion.patch
+linux-next-fixup.patch
+linux-next-rtc-fix.patch
+fix-kobject-fix-kobject_rename-and-config_sysfs.patch
+kvm-is-busted-on-ia64.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-video-balcklist-fujitsu-lifebook-s6410.patch
+lguest-use-cpu-capability-accessors.patch
+arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
+arch-powerpc-platforms-pseries-eeh_driverc-fix-warning.patch
+arch-powerpc-platforms-pseries-eeh_driverc-fix-warning-checkpatch-fixes.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+git-jg-misc-git-rejects.patch
+drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+git-leds.patch
+fsldma-the-mpc8377mds-board-device-tree-node-for-fsldma-driver.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers.patch
+bluetooth-hci_bcspc-small-cleanups-api-users-fix.patch
+sundance-set-carrier-status-on-link-change-events.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+sched-delete-dead-stuff.patch
+sched-delete-dead-stuff-2.patch
+git-scsi-misc-fix-scsi_dh-build-errors.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
+pktcdvd-push-bkl-down-into-driver-fix.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-logfs-fixup.patch
+drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
+drivers-uwb-wlp-sysfsc-dead-code.patch
+usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix.patch
+usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix-2.patch
+watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix.patch
+watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl-fix.patch
+git-xtensa.patch
+ext4-is-busted-on-m68k.patch
+rtc-class-driver-for-ppc_md-rtc-functions-fix.patch
+proc-calculate-the-correct-proc-pid-link-count-cleanup.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+libata-sff-fix-oops-reported-in-kerneloopsorg-for-pnp-devices-with-no-ctl-fix.patch
+mm-verify-the-page-links-and-memory-model.patch
+mspec-convert-nopfn-to-fault-fix.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+kill-generic_file_direct_io-checkpatch-fixes.patch
+use-generic_access_phys-for-dev-mem-mappings-fix.patch
+spufs-use-the-new-vm_ops-access-fix.patch
+fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
+page-flags-record-page-flag-overlays-explicitly-xen.patch
+mapping_set_error-add-unlikely.patch
+huge-page-private-reservation-review-cleanups-fix.patch
+sync_file_range_write-may-and-will-block-document-that-fix.patch
+vmallocinfo-add-numa-information-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup-fix.patch
+swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
+block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
+rename-warn-to-warning-to-clear-the-namespace-fix.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-paccept-sys_ni.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-signalfd-fix.patch
+flag-parameters-eventfd-fix.patch
+flag-parameters-inotify_init-fix.patch
+flag-parameters-check-magic-constants-alpha.patch
+oprofile-multiplexing-checkpatch-fixes.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
+reiserfs-convert-j_flush_sem-to-mutex.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup.patch
+ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
 ppc-use-the-common-ascii-hex-helpers-fix.patch
-mn10300-use-the-common-ascii-hex-helpers.patch
+mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-fix.patch
+x86-lockless-get_user_pages_fast-fix-warning.patch
+reiser4.patch
+reiser4-semaphore-fix.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
