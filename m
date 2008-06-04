@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + vmallocinfo-add-numa-information-fix.patch added to -mm tree
-Date: Wed, 04 Jun 2008 12:15:49 -0700
-Message-ID: <200806041915.m54JFn3W004575@imap1.linux-foundation.org>
+Subject: + doc-add-suggestions-about-good-practices-for-maintainers.patch added to -mm tree
+Date: Wed, 04 Jun 2008 13:55:09 -0700
+Message-ID: <200806042055.m54KtAFm008622@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42329 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56707 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753300AbYFDTQL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jun 2008 15:16:11 -0400
+	by vger.kernel.org with ESMTP id S1753618AbYFDUz4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jun 2008 16:55:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, clameter@sgi.com, dada1@cosmosbay.com, randy.dunlap@oracle.com
+Cc: w@1wt.eu, randy.dunlap@oracle.com
 
 
 The patch titled
-     vmallocinfo-add-numa-information-fix
+     doc: add suggestions about good practices for maintainers
 has been added to the -mm tree.  Its filename is
-     vmallocinfo-add-numa-information-fix.patch
+     doc-add-suggestions-about-good-practices-for-maintainers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,146 +33,79 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmallocinfo-add-numa-information-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: doc: add suggestions about good practices for maintainers
+From: Willy Tarreau <w@1wt.eu>
 
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Eric Dumazet <dada1@cosmosbay.com>
+Suggest how to deal with patch modifications caused by merging or
+back-porting when you're a maintainer.
+
+Signed-off-by: Willy Tarreau <w@1wt.eu>
 Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/SubmittingPatches |   46 ++++++++++++++++++++++++++++++
+ 1 file changed, 46 insertions(+)
 
-diff -puN Documentation/filesystems/proc.txt~vmallocinfo-add-numa-information-fix Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~vmallocinfo-add-numa-information-fix
-+++ a/Documentation/filesystems/proc.txt
-@@ -558,7 +558,7 @@ vmallocinfo:
+diff -puN Documentation/SubmittingPatches~doc-add-suggestions-about-good-practices-for-maintainers Documentation/SubmittingPatches
+--- a/Documentation/SubmittingPatches~doc-add-suggestions-about-good-practices-for-maintainers
++++ a/Documentation/SubmittingPatches
+@@ -327,6 +327,52 @@ Some people also put extra tags at the e
+ now, but you can do this to mark internal company procedures or just
+ point out some special detail about the sign-off. 
  
- Provides information about vmalloced/vmaped areas. One line per area,
- containing the virtual address range of the area, size in bytes,
--caller information of the creator, and optional informations depending
-+caller information of the creator, and optional information depending
- on the kind of area :
++If you are a subsystem or branch maintainer, sometimes you need to slightly
++modify patches you receive in order to merge them, because the code is not
++exactly the same in your tree and the submitters'. If you stick strictly to
++rule (c), you should ask the submitter to rediff, but this is a totally
++counter-productive waste of time and energy. Rule (b) allows you to adjust
++the code, but then it is very impolite to change one submitter's code and
++make him endorse your bugs. To solve this problem, it is recommended that
++you add a line between the last Signed-off-by header and yours, indicating
++the nature of your changes. While there is nothing mandatory about this, it
++seems like prepending the description with your mail and/or name, all
++enclosed in square brackets, is noticeable enough to make it obvious that
++you are responsible for last-minute changes. Example :
++
++	Signed-off-by: Random J Developer <random@developer.example.org>
++	[lucky@maintainer.example.org: struct foo moved from foo.c to foo.h]
++	Signed-off-by: Lucky K Maintainer <lucky@maintainer.example.org>
++
++This practise is particularly helpful if you maintain a stable branch and
++want at the same time to credit the author, track changes, merge the fix,
++and protect the submitter from complaints. Note that under no circumstances
++can you change the author's identity (the From header), as it is the one
++which appears in the changelog.
++
++Special note to back-porters: It seems to be a common and useful practise
++to insert an indication of the origin of a patch at the top of the commit
++message (just after the subject line) to facilitate tracking. For instance,
++here's what we see in 2.6-stable :
++
++    Date:   Tue May 13 19:10:30 2008 +0000
++
++        SCSI: libiscsi regression in 2.6.25: fix nop timer handling
++
++        commit 4cf1043593db6a337f10e006c23c69e5fc93e722 upstream
++
++And here's what appears in 2.4 :
++
++    Date:   Tue May 13 22:12:27 2008 +0200
++
++        wireless, airo: waitbusy() won't delay
++
++        [backport of 2.6 commit b7acbdfbd1f277c1eb23f344f899cfa4cd0bf36a]
++
++Whatever the format, this information provides a valuable help to people
++tracking your trees, and to people trying to trouble-shoot bugs in your
++tree.
++
  
-  pages=nr    number of pages
+ 13) When to use Acked-by: and Cc:
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from w@1wt.eu are
 
-origin.patch
-linux-next.patch
-next-remove-localversion.patch
-linux-next-fixup.patch
-linux-next-rtc-fix.patch
-fix-kobject-fix-kobject_rename-and-config_sysfs.patch
-kvm-is-busted-on-ia64.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-video-balcklist-fujitsu-lifebook-s6410.patch
-lguest-use-cpu-capability-accessors.patch
-arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
-arch-powerpc-platforms-pseries-eeh_driverc-fix-warning.patch
-arch-powerpc-platforms-pseries-eeh_driverc-fix-warning-checkpatch-fixes.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-git-jg-misc-git-rejects.patch
-drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-git-leds.patch
-fsldma-the-mpc8377mds-board-device-tree-node-for-fsldma-driver.patch
-mmc-sd-host-driver-for-ricoh-bay1controllers.patch
-sundance-set-carrier-status-on-link-change-events.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-battery.patch
-sched-delete-dead-stuff.patch
-sched-delete-dead-stuff-2.patch
-git-scsi-misc-fix-scsi_dh-build-errors.patch
-drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
-s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
-pktcdvd-push-bkl-down-into-driver-fix.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-git-logfs-fixup.patch
-drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
-drivers-uwb-wlp-sysfsc-dead-code.patch
-usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix.patch
-usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix-2.patch
-watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix.patch
-watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl-fix.patch
-git-xtensa.patch
-ext4-is-busted-on-m68k.patch
-rtc-class-driver-for-ppc_md-rtc-functions-fix.patch
-proc-calculate-the-correct-proc-pid-link-count-cleanup.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-libata-sff-fix-oops-reported-in-kerneloopsorg-for-pnp-devices-with-no-ctl-fix.patch
-mm-verify-the-page-links-and-memory-model.patch
-mspec-convert-nopfn-to-fault-fix.patch
-page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
-kill-generic_file_direct_io-checkpatch-fixes.patch
-use-generic_access_phys-for-dev-mem-mappings-fix.patch
-spufs-use-the-new-vm_ops-access-fix.patch
-fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
-page-flags-record-page-flag-overlays-explicitly-xen.patch
-mapping_set_error-add-unlikely.patch
-huge-page-private-reservation-review-cleanups-fix.patch
-sync_file_range_write-may-and-will-block-document-that-fix.patch
-vmallocinfo-add-numa-information-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
-pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes.patch
-pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup.patch
-pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup-fix.patch
-swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
-split-the-typecheck-macros-out-of-include-linux-kernelh.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
-remove-apparently-unused-fd1772h-header-file.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
-build-kernel-profileo-only-when-requested-cleanups.patch
-fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
-block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
-rename-warn-to-warning-to-clear-the-namespace-fix.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
-flag-parameters-paccept-fix.patch
-flag-parameters-paccept-sys_ni.patch
-flag-parameters-anon_inode_getfd-extension-fix.patch
-flag-parameters-signalfd-fix.patch
-flag-parameters-eventfd-fix.patch
-flag-parameters-inotify_init-fix.patch
-flag-parameters-check-magic-constants-alpha.patch
-oprofile-multiplexing-checkpatch-fixes.patch
-drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
-reiserfs-convert-j_flush_sem-to-mutex.patch
-reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
-jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup.patch
-ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-fix.patch
-x86-lockless-get_user_pages_fast-fix-warning.patch
-reiser4.patch
-reiser4-semaphore-fix.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+doc-add-suggestions-about-good-practices-for-maintainers.patch
 
