@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + pnp-remove-redundant-pnp_can_configure-check.patch added to -mm tree
-Date: Wed, 04 Jun 2008 22:57:25 -0700
-Message-ID: <200806050557.m555vP1p028366@imap1.linux-foundation.org>
+Subject: + pnpacpi-ignore-_prs-interrupt-numbers-larger-than-pnp_irq_nr.patch added to -mm tree
+Date: Wed, 04 Jun 2008 22:57:29 -0700
+Message-ID: <200806050557.m555vTOB028372@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50314 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39384 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751529AbYFEGGs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 02:06:48 -0400
+	by vger.kernel.org with ESMTP id S1752868AbYFEGHS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 02:07:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: bjorn.helgaas@hp.com, abelay@mit.edu, castet.matthieu@free.fr, lenb@kernel.o
 
 
 The patch titled
-     pnp: remove redundant pnp_can_configure() check
+     pnpacpi: ignore _PRS interrupt numbers larger than PNP_IRQ_NR
 has been added to the -mm tree.  Its filename is
-     pnp-remove-redundant-pnp_can_configure-check.patch
+     pnpacpi-ignore-_prs-interrupt-numbers-larger-than-pnp_irq_nr.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,11 +33,22 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pnp: remove redundant pnp_can_configure() check
+Subject: pnpacpi: ignore _PRS interrupt numbers larger than PNP_IRQ_NR
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-pnp_assign_resources() is static and the only caller checks
-pnp_can_configure() before calling it, so no need to do it again.
+ACPI Extended Interrupt Descriptors can encode 32-bit interrupt numbers,
+so an interrupt number may exceed the size of the bitmap we use to track
+possible IRQ settings.
+
+To avoid corrupting memory, complain and ignore too-large interrupt
+numbers.
+
+There's similar code in pnpacpi_parse_irq_option(), but I didn't change
+that because the small IRQ descriptor can only encode IRQs 0-15, which do
+not exceed bitmap size.
+
+In the future, we could handle IRQ numbers greater than PNP_IRQ_NR by
+replacing the bitmap with a table or list.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Acked-by: Rene Herman <rene.herman@gmail.com>
@@ -51,22 +62,32 @@ Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/manager.c |    3 ---
- 1 file changed, 3 deletions(-)
+ drivers/pnp/pnpacpi/rsparser.c |   13 ++++++++++---
+ 1 file changed, 10 insertions(+), 3 deletions(-)
 
-diff -puN drivers/pnp/manager.c~pnp-remove-redundant-pnp_can_configure-check drivers/pnp/manager.c
---- a/drivers/pnp/manager.c~pnp-remove-redundant-pnp_can_configure-check
-+++ a/drivers/pnp/manager.c
-@@ -231,9 +231,6 @@ static int pnp_assign_resources(struct p
- 	struct pnp_dma *dma;
- 	int nport = 0, nmem = 0, nirq = 0, ndma = 0;
+diff -puN drivers/pnp/pnpacpi/rsparser.c~pnpacpi-ignore-_prs-interrupt-numbers-larger-than-pnp_irq_nr drivers/pnp/pnpacpi/rsparser.c
+--- a/drivers/pnp/pnpacpi/rsparser.c~pnpacpi-ignore-_prs-interrupt-numbers-larger-than-pnp_irq_nr
++++ a/drivers/pnp/pnpacpi/rsparser.c
+@@ -421,9 +421,16 @@ static __init void pnpacpi_parse_ext_irq
+ 		return;
  
--	if (!pnp_can_configure(dev))
--		return -ENODEV;
--
- 	dbg_pnp_show_resources(dev, "before pnp_assign_resources");
- 	mutex_lock(&pnp_res_mutex);
- 	pnp_clean_resource_table(dev);
+ 	bitmap_zero(map.bits, PNP_IRQ_NR);
+-	for (i = 0; i < p->interrupt_count; i++)
+-		if (p->interrupts[i])
+-			__set_bit(p->interrupts[i], map.bits);
++	for (i = 0; i < p->interrupt_count; i++) {
++		if (p->interrupts[i]) {
++			if (p->interrupts[i] < PNP_IRQ_NR)
++				__set_bit(p->interrupts[i], map.bits);
++			else
++				dev_err(&dev->dev, "ignoring IRQ %d option "
++					"(too large for %d entry bitmap)\n",
++					p->interrupts[i], PNP_IRQ_NR);
++		}
++	}
+ 
+ 	flags = irq_flags(p->triggering, p->polarity, p->sharable);
+ 	pnp_register_irq_resource(dev, option, &map, flags);
 _
 
 Patches currently in -mm which might be from bjorn.helgaas@hp.com are
