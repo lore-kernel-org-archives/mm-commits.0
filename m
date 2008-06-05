@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-utimensat-fix-error-checking-for-utime_nowutime_omit-case.patch added to -mm tree
-Date: Wed, 04 Jun 2008 21:42:08 -0700
-Message-ID: <200806050442.m554g8u5025745@imap1.linux-foundation.org>
+Subject: + cputopology-always-define-cpu-topology-information.patch added to -mm tree
+Date: Wed, 04 Jun 2008 21:47:29 -0700
+Message-ID: <200806050447.m554lTiq025933@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45530 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34207 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751861AbYFEEmq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 00:42:46 -0400
+	by vger.kernel.org with ESMTP id S1751308AbYFEEs0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 00:48:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mtk.manpages@googlemail.com, drepper@redhat.com, miklos@szeredi.hu, mtk.manpages@gmail.com, viro@zeniv.linux.org.uk
+Cc: bhutchings@solarflare.com, clameter@sgi.com, hawkes@sgi.com, mingo@elte.hu, nickpiggin@yahoo.com.au, sekharan@us.ibm.com, suresh.b.siddha@intel.com, travis@sgi.com, vegard.nossum@gmail.com, yanmin.zhang@intel.com
 
 
 The patch titled
-     vfs: utimensat(): fix error checking for {UTIME_NOW,UTIME_OMIT} case
+     cpu topology: always define CPU topology information
 has been added to the -mm tree.  Its filename is
-     vfs-utimensat-fix-error-checking-for-utime_nowutime_omit-case.patch
+     cputopology-always-define-cpu-topology-information.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,155 +33,183 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: utimensat(): fix error checking for {UTIME_NOW,UTIME_OMIT} case
-From: Michael Kerrisk <mtk.manpages@googlemail.com>
+Subject: cpu topology: always define CPU topology information
+From: Ben Hutchings <bhutchings@solarflare.com>
 
-The POSIX.1 draft spec for utimensat() says:
+Not all architectures and configurations define CPU topology information.
+This can result in an empty topology directory in sysfs, and requires
+in-kernel users to protect all uses with #ifdef - see
+<http://marc.info/?l=linux-netdev&m=120639033904472&w=2>.
 
-    Only a process with the effective user ID equal to the
-    user ID of the file or with appropriate privileges may use
-    futimens() or utimensat() with a non-null times argument
-    that does not have both tv_nsec fields set to UTIME_NOW
-    and does not have both tv_nsec fields set to UTIME_OMIT.
-
-If this condition is violated, then the error EPERM should result.
-However, the current implementation does not generate EPERM if
-one tv_nsec field is UTIME_NOW while the other is UTIME_OMIT.
-It should give this error for that case.
+The documentation of CPU topology specifies what the defaults should be if
+only partial information is available from the hardware.  So we can
+provide these defaults as a fallback.
 
 This patch:
 
-a) Repairs that problem.
-b) Removes the now unneeded nsec_special() helper function.
-c) Adds some comments to explain the checks that are being
-   performed.
+- Adds default definitions of the 4 topology macros to <linux/topology.h>
+- Changes drivers/base/topology.c to use the topology macros unconditionally
+  and to cope with definitions that aren't lvalues
+- Updates documentation accordingly
 
-Thanks to Miklos, who provided comments on the previous iteration
-of this patch.  As a result, this version is a little simpler and
-and its logic is better structured.
-
-Miklos suggested an alternative idea, migrating the
-is_owner_or_cap() checks into fs/attr.c:inode_change_ok() via
-the use of an ATTR_OWNER_CHECK flag.  Maybe we could do that
-later, but for now I've gone with this version, which is
-IMO simpler, and can be more easily read as being correct.
-
-Acked-by: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Ulrich Drepper <drepper@redhat.com>
-Signed-off-by: Michael Kerrisk <mtk.manpages@gmail.com>
+Signed-off-by: Ben Hutchings <bhutchings@solarflare.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Vegard Nossum <vegard.nossum@gmail.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Chandra Seetharaman <sekharan@us.ibm.com>
+Cc: Suresh Siddha <suresh.b.siddha@intel.com>
+Cc: Mike Travis <travis@sgi.com>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: John Hawkes <hawkes@sgi.com>
+Cc: Zhang, Yanmin <yanmin.zhang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/utimes.c |   36 +++++++++++++++++++++---------------
- 1 file changed, 21 insertions(+), 15 deletions(-)
+ Documentation/cputopology.txt |   26 +++++++--------------
+ drivers/base/topology.c       |   38 ++++++++------------------------
+ include/linux/topology.h      |   13 ++++++++++
+ 3 files changed, 32 insertions(+), 45 deletions(-)
 
-diff -puN fs/utimes.c~vfs-utimensat-fix-error-checking-for-utime_nowutime_omit-case fs/utimes.c
---- a/fs/utimes.c~vfs-utimensat-fix-error-checking-for-utime_nowutime_omit-case
-+++ a/fs/utimes.c
-@@ -40,14 +40,9 @@ asmlinkage long sys_utime(char __user *f
+diff -puN Documentation/cputopology.txt~cputopology-always-define-cpu-topology-information Documentation/cputopology.txt
+--- a/Documentation/cputopology.txt~cputopology-always-define-cpu-topology-information
++++ a/Documentation/cputopology.txt
+@@ -14,9 +14,8 @@ represent the thread siblings to cpu X i
+ To implement it in an architecture-neutral way, a new source file,
+ drivers/base/topology.c, is to export the 4 attributes.
  
- #endif
+-If one architecture wants to support this feature, it just needs to
+-implement 4 defines, typically in file include/asm-XXX/topology.h.
+-The 4 defines are:
++For an architecture to support this feature, it must define some of
++these macros in include/asm-XXX/topology.h:
+ #define topology_physical_package_id(cpu)
+ #define topology_core_id(cpu)
+ #define topology_thread_siblings(cpu)
+@@ -25,17 +24,10 @@ The 4 defines are:
+ The type of **_id is int.
+ The type of siblings is cpumask_t.
  
--static bool nsec_special(long nsec)
--{
--	return nsec == UTIME_OMIT || nsec == UTIME_NOW;
--}
+-To be consistent on all architectures, the 4 attributes should have
+-default values if their values are unavailable. Below is the rule.
+-1) physical_package_id: If cpu has no physical package id, -1 is the
+-default value.
+-2) core_id: If cpu doesn't support multi-core, its core id is 0.
+-3) thread_siblings: Just include itself, if the cpu doesn't support
+-HT/multi-thread.
+-4) core_siblings: Just include itself, if the cpu doesn't support
+-multi-core and HT/Multi-thread.
 -
- static bool nsec_valid(long nsec)
- {
--	if (nsec_special(nsec))
-+	if (nsec == UTIME_OMIT || nsec == UTIME_NOW)
- 		return true;
+-So be careful when declaring the 4 defines in include/asm-XXX/topology.h.
+-
+-If an attribute isn't defined on an architecture, it won't be exported.
+-
++To be consistent on all architectures, include/linux/topology.h
++provides default definitions for any of the above macros that are
++not defined by include/asm-XXX/topology.h:
++1) physical_package_id: -1
++2) core_id: 0
++3) thread_siblings: just the given CPU
++4) core_siblings: just the given CPU
+diff -puN drivers/base/topology.c~cputopology-always-define-cpu-topology-information drivers/base/topology.c
+--- a/drivers/base/topology.c~cputopology-always-define-cpu-topology-information
++++ a/drivers/base/topology.c
+@@ -62,14 +62,16 @@ static ssize_t show_cpumap(int type, cpu
+ static ssize_t show_##name(struct sys_device *dev, char *buf)	\
+ {									\
+ 	unsigned int cpu = dev->id;					\
+-	return show_cpumap(0, &(topology_##name(cpu)), buf);		\
++	cpumask_t siblings = topology_##name(cpu);			\
++	return show_cpumap(0, &siblings, buf);				\
+ }
  
- 	return nsec >= 0 && nsec <= 999999999;
-@@ -106,7 +101,7 @@ long do_utimes(int dfd, char __user *fil
- 		     times[1].tv_nsec == UTIME_NOW)
- 		times = NULL;
+ #define define_siblings_show_list(name)					\
+ static ssize_t show_##name##_list(struct sys_device *dev, char *buf) \
+ {									\
+ 	unsigned int cpu = dev->id;					\
+-	return show_cpumap(1, &(topology_##name(cpu)), buf);		\
++	cpumask_t siblings = topology_##name(cpu);			\
++	return show_cpumap(1, &siblings, buf);				\
+ }
  
--	/* Don't worry, the checks are done in inode_change_ok() */
-+	/* In most cases, the checks are done in inode_change_ok() */
- 	newattrs.ia_valid = ATTR_CTIME | ATTR_MTIME | ATTR_ATIME;
- 	if (times) {
- 		error = -EPERM;
-@@ -128,15 +123,26 @@ long do_utimes(int dfd, char __user *fil
- 			newattrs.ia_mtime.tv_nsec = times[1].tv_nsec;
- 			newattrs.ia_valid |= ATTR_MTIME_SET;
- 		}
--	}
+ #else
+@@ -93,47 +95,27 @@ static ssize_t show_##name##_list(struct
+ #define define_siblings_show_func(name)		\
+ 	define_siblings_show_map(name); define_siblings_show_list(name)
  
--	/*
--	 * If times is NULL or both times are either UTIME_OMIT or
--	 * UTIME_NOW, then need to check permissions, because
--	 * inode_change_ok() won't do it.
--	 */
--	if (!times || (nsec_special(times[0].tv_nsec) &&
--		       nsec_special(times[1].tv_nsec))) {
-+		/*
-+		 * For the UTIME_OMIT/UTIME_NOW and UTIME_NOW/UTIME_OMIT
-+		 * cases, we need to make an extra check that is not done by
-+		 * inode_change_ok().
-+		 */
-+		if (((times[0].tv_nsec == UTIME_NOW &&
-+			    times[1].tv_nsec == UTIME_OMIT)
-+			  ||
-+			   (times[0].tv_nsec == UTIME_OMIT &&
-+			    times[1].tv_nsec == UTIME_NOW))
-+		     && !is_owner_or_cap(inode))
-+				goto mnt_drop_write_and_out;
-+	} else {
+-#ifdef	topology_physical_package_id
+ define_id_show_func(physical_package_id);
+ define_one_ro(physical_package_id);
+-#define ref_physical_package_id_attr	&attr_physical_package_id.attr,
+-#else
+-#define ref_physical_package_id_attr
+-#endif
+ 
+-#ifdef topology_core_id
+ define_id_show_func(core_id);
+ define_one_ro(core_id);
+-#define ref_core_id_attr		&attr_core_id.attr,
+-#else
+-#define ref_core_id_attr
+-#endif
+ 
+-#ifdef topology_thread_siblings
+ define_siblings_show_func(thread_siblings);
+ define_one_ro(thread_siblings);
+ define_one_ro(thread_siblings_list);
+-#define ref_thread_siblings_attr	\
+-		&attr_thread_siblings.attr, &attr_thread_siblings_list.attr,
+-#else
+-#define ref_thread_siblings_attr
+-#endif
+ 
+-#ifdef topology_core_siblings
+ define_siblings_show_func(core_siblings);
+ define_one_ro(core_siblings);
+ define_one_ro(core_siblings_list);
+-#define ref_core_siblings_attr		\
+-		&attr_core_siblings.attr, &attr_core_siblings_list.attr,
+-#else
+-#define ref_core_siblings_attr
+-#endif
+ 
+ static struct attribute *default_attrs[] = {
+-	ref_physical_package_id_attr
+-	ref_core_id_attr
+-	ref_thread_siblings_attr
+-	ref_core_siblings_attr
++	&attr_physical_package_id.attr,
++	&attr_core_id.attr,
++	&attr_thread_siblings.attr,
++	&attr_thread_siblings_list.attr,
++	&attr_core_siblings.attr,
++	&attr_core_siblings_list.attr,
+ 	NULL
+ };
+ 
+diff -puN include/linux/topology.h~cputopology-always-define-cpu-topology-information include/linux/topology.h
+--- a/include/linux/topology.h~cputopology-always-define-cpu-topology-information
++++ a/include/linux/topology.h
+@@ -179,4 +179,17 @@ void arch_update_cpu_topology(void);
+ #endif
+ #endif /* CONFIG_NUMA */
+ 
++#ifndef topology_physical_package_id
++#define topology_physical_package_id(cpu)	((void)(cpu), -1)
++#endif
++#ifndef topology_core_id
++#define topology_core_id(cpu)			((void)(cpu), 0)
++#endif
++#ifndef topology_thread_siblings
++#define topology_thread_siblings(cpu)		cpumask_of_cpu(cpu)
++#endif
++#ifndef topology_core_siblings
++#define topology_core_siblings(cpu)		cpumask_of_cpu(cpu)
++#endif
 +
-+		/*
-+		 * If times is NULL (or both times are UTIME_NOW),
-+		 * then we need to check permissions, because
-+		 * inode_change_ok() won't do it.
-+		 */
- 		error = -EACCES;
-                 if (IS_IMMUTABLE(inode))
- 			goto mnt_drop_write_and_out;
+ #endif /* _LINUX_TOPOLOGY_H */
 _
 
-Patches currently in -mm which might be from mtk.manpages@googlemail.com are
+Patches currently in -mm which might be from bhutchings@solarflare.com are
 
-ipc-restore-msgpool-original-value.patch
-huge-page-private-reservation-review-cleanups.patch
-huge-page-private-reservation-review-cleanups-fix.patch
-mm-record-map_noreserve-status-on-vmas-and-fix-small-page-mprotect-reservations.patch
-hugetlb-move-reservation-region-support-earlier.patch
-hugetlb-allow-huge-page-mappings-to-be-created-without-reservations.patch
-hugetlb-allow-huge-page-mappings-to-be-created-without-reservations-cleanups.patch
-flag-parameters-socket-and-socketpair.patch
-flag-parameters-socket-and-socketpair-mips-fix.patch
-flag-parameters-paccept.patch
-flag-parameters-paccept-fix.patch
-flag-parameters-paccept-fix-flag-parameters-arch-specific-sock_nonblock.patch
-flag-parameters-paccept-flag-parameters-paccept-w-out-set_restore_sigmask.patch
-flag-parameters-paccept-sys_ni.patch
-flag-parameters-anon_inode_getfd-extension.patch
-flag-parameters-anon_inode_getfd-extension-fix.patch
-flag-parameters-signalfd.patch
-flag-parameters-signalfd-fix.patch
-flag-parameters-eventfd.patch
-flag-parameters-eventfd-fix.patch
-flag-parameters-timerfd_create.patch
-flag-parameters-epoll_create.patch
-flag-parameters-dup2.patch
-flag-parameters-pipe.patch
-flag-parameters-inotify_init.patch
-flag-parameters-inotify_init-fix.patch
-flag-parametersi-nonblock-in-anon_inode_getfd.patch
-flag-parameters-nonblock-in-socket-and-socketpair.patch
-flag-parameters-nonblock-in-signalfd.patch
-flag-parameters-nonblock-in-eventfd.patch
-flag-parameters-nonblock-in-timerfd_create.patch
-flag-parameters-nonblock-in-pipe.patch
-flag-parameters-nonblock-in-inotify_init.patch
-flag-parameters-check-magic-constants.patch
-flag-parameters-check-magic-constants-alpha.patch
-flag-parameters-add-on-remove-epoll_create-size-param.patch
-vfs-utimensat-ignore-tv_sec-if-tv_nsec-==-utime_omit-or-utime_now.patch
-vfs-utimensat-be-consistent-with-utime-for-immutable-and-append-only-files.patch
-vfs-utimensat-fix-error-checking-for-utime_nowutime_omit-case.patch
-vfs-utimensat-fix-error-checking-for-utime_nowutime_omit-case-cleanup.patch
-vfs-utimensat-fix-write-access-check-for-futimens.patch
+cputopology-always-define-cpu-topology-information.patch
 
