@@ -1,190 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: + fbdev-convert-sticorec-to-pci-rom-api.patch added to -mm tree
-Date: Thu, 05 Jun 2008 15:10:05 -0700
-Message-ID: <200806052210.m55MA5bc032220@imap1.linux-foundation.org>
+Subject: - pnp-replace-pnp_resource_table-with-dynamically-allocated-resources-merge-fix.patch removed from -mm tree
+Date: Thu, 05 Jun 2008 15:12:56 -0700
+Message-ID: <200806052212.m55MCuNj032337@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37161 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55688 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751127AbYFEWLA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 18:11:00 -0400
+	by vger.kernel.org with ESMTP id S1750987AbYFEWNg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 18:13:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: krzysztof.h1@wp.pl, deller@gmx.de, grundler@parisc-linux.org, jonsmirl@yahoo.com, matthew@wil.cx, mrmacman_g4@mac.com
+To: bjorn.helgaas@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fbdev: convert sticore.c to PCI ROM API
-has been added to the -mm tree.  Its filename is
-     fbdev-convert-sticorec-to-pci-rom-api.patch
+     pnp-replace-pnp_resource_table-with-dynamically-allocated-resources fix
+has been removed from the -mm tree.  Its filename was
+     pnp-replace-pnp_resource_table-with-dynamically-allocated-resources-merge-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into pnp-replace-pnp_resource_table-with-dynamically-allocated-resources.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbdev: convert sticore.c to PCI ROM API
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: pnp-replace-pnp_resource_table-with-dynamically-allocated-resources fix
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Convert console/sticore.c file to use PCI ROM API.
+Not quite.  We need this instead:
 
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=9425
+        for (i = 0; (res = pnp_get_resource(dev, IORESOURCE_MEM, i)); i++) {
+                if (res->flags & IORESOURCE_DISABLED)
+                        continue;
 
-This patch was fixed and tested by Helge Deller on his PARISC machine.
+                reserve_range(dev, res->start, res->end, 0);
+        }
 
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
-Signed-off-by: Helge Deller <deller@gmx.de>
-Cc: Jon Smirl <jonsmirl@yahoo.com>
-Cc: Kyle Moffett <mrmacman_g4@mac.com>
-Cc: Grant Grundler <grundler@parisc-linux.org>
-Cc: Matthew Wilcox <matthew@wil.cx>
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/console/sticore.c |   35 +++++++++++++-----------------
- 1 file changed, 16 insertions(+), 19 deletions(-)
+ drivers/pnp/system.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN drivers/video/console/sticore.c~fbdev-convert-sticorec-to-pci-rom-api drivers/video/console/sticore.c
---- a/drivers/video/console/sticore.c~fbdev-convert-sticorec-to-pci-rom-api
-+++ a/drivers/video/console/sticore.c
-@@ -780,11 +780,13 @@ out_err:
- }
- 
- static struct sti_struct * __devinit
--sti_try_rom_generic(unsigned long address, unsigned long hpa, struct pci_dev *pd)
-+sti_try_rom_generic(unsigned long address, unsigned long hpa,
-+		    struct pci_dev *pd)
- {
-+	char __iomem *rom_base = (char __iomem *) address;
- 	struct sti_struct *sti;
- 	int ok;
--	u32 sig;
-+	__le32 sig;
- 
- 	if (num_sti_roms >= MAX_STI_ROMS) {
- 		printk(KERN_WARNING "maximum number of STI ROMS reached !\n");
-@@ -808,7 +810,7 @@ test_rom:
- 	sig = gsc_readl(address);
- 
- 	/* check for a PCI ROM structure */
--	if ((le32_to_cpu(sig)==0xaa55)) {
-+	if (sig == cpu_to_le32(0xaa55)) {
- 		unsigned int i, rm_offset;
- 		u32 *rm;
- 		i = gsc_readl(address+0x04);
-@@ -868,10 +870,8 @@ test_rom:
- 	/* disable STI PCI ROM. ROM and card RAM overlap and
- 	 * leaving it enabled would force HPMCs
- 	 */
--	if (sti->pd) {
--		unsigned long rom_base;
--		rom_base = pci_resource_start(sti->pd, PCI_ROM_RESOURCE);	
--		pci_write_config_dword(sti->pd, PCI_ROM_ADDRESS, rom_base & ~PCI_ROM_ADDRESS_ENABLE);
-+	if (sti->pd && rom_base) {
-+		pci_unmap_rom(sti->pd, rom_base);
- 		DPRINTK((KERN_DEBUG "STI PCI ROM disabled\n"));
+diff -puN drivers/pnp/system.c~pnp-replace-pnp_resource_table-with-dynamically-allocated-resources-merge-fix drivers/pnp/system.c
+--- a/drivers/pnp/system.c~pnp-replace-pnp_resource_table-with-dynamically-allocated-resources-merge-fix
++++ a/drivers/pnp/system.c
+@@ -78,8 +78,12 @@ static void reserve_resources_of_dev(str
+ 		reserve_range(dev, res->start, res->end, 1);
  	}
  
-@@ -930,28 +930,25 @@ static int __devinit sticore_pci_init(st
- 		const struct pci_device_id *ent)
- {
- #ifdef CONFIG_PCI
--	unsigned long fb_base, rom_base;
--	unsigned int fb_len, rom_len;
-+	unsigned long fb_base;
-+	unsigned int fb_len;
-+	char __iomem *rom_base;
-+	size_t rom_len;
- 	struct sti_struct *sti;
- 	
- 	pci_enable_device(pd);
- 
- 	fb_base = pci_resource_start(pd, 0);
- 	fb_len = pci_resource_len(pd, 0);
--	rom_base = pci_resource_start(pd, PCI_ROM_RESOURCE);
--	rom_len = pci_resource_len(pd, PCI_ROM_RESOURCE);
--	if (rom_base) {
--		pci_write_config_dword(pd, PCI_ROM_ADDRESS, rom_base | PCI_ROM_ADDRESS_ENABLE);
--		DPRINTK((KERN_DEBUG "STI PCI ROM enabled at 0x%08lx\n", rom_base));
--	}
-+	rom_base = pci_map_rom(pd, &rom_len);
- 
--	printk(KERN_INFO "STI PCI graphic ROM found at %08lx (%u kB), fb at %08lx (%u MB)\n",
-+	printk(KERN_INFO "STI PCI graphic ROM found at %p (%u kB), fb at %08lx (%u MB)\n",
- 		rom_base, rom_len/1024, fb_base, fb_len/1024/1024);
- 
--	DPRINTK((KERN_DEBUG "Trying PCI STI ROM at %08lx, PCI hpa at %08lx\n",
-+	DPRINTK((KERN_DEBUG "Trying PCI STI ROM at %p, PCI hpa at %08lx\n",
- 		    rom_base, fb_base));
- 
--	sti = sti_try_rom_generic(rom_base, fb_base, pd);
-+	sti = sti_try_rom_generic((unsigned long)rom_base, fb_base, pd);
- 	if (sti) {
- 		char pa_path[30];
- 		print_pci_hwpath(pd, pa_path);
-@@ -975,7 +972,7 @@ static void __devexit sticore_pci_remove
+-	for (i = 0; (res = pnp_get_resource(dev, IORESOURCE_MEM, i)); i++)
++	for (i = 0; (res = pnp_get_resource(dev, IORESOURCE_MEM, i)); i++) {
++		if (res->flags & IORESOURCE_DISABLED)
++			continue;
++
+ 		reserve_range(dev, res->start, res->end, 0);
++	}
  }
  
- 
--static struct pci_device_id sti_pci_tbl[] = {
-+DEFINE_PCI_DEVICE_TABLE(sti_pci_tbl) = {
- 	{ PCI_DEVICE(PCI_VENDOR_ID_HP, PCI_DEVICE_ID_HP_VISUALIZE_EG) },
- 	{ PCI_DEVICE(PCI_VENDOR_ID_HP, PCI_DEVICE_ID_HP_VISUALIZE_FX6) },
- 	{ PCI_DEVICE(PCI_VENDOR_ID_HP, PCI_DEVICE_ID_HP_VISUALIZE_FX4) },
+ static int system_pnp_probe(struct pnp_dev *dev,
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from bjorn.helgaas@hp.com are
 
-modedb-fix-incorrect-sync-and-vmode-flags-for-cvt-modes.patch
-fbcon-fix-wrong-vmode-bits-copied-on-console-switch.patch
-tridentfb-replace-macros-with-functions.patch
-tridentfb-convert-fb_info-into-allocated-one.patch
-tridentfb-move-global-pseudo-palette-into-structure.patch
-tridentfb-move-global-chip_id-into-structure.patch
-tridentfb-move-global-flat-panel-variable-into-structure.patch
-tridentfb-convert-is_blade-and-is_xp-macros-into-functions.patch
-tridentfb-move-global-acceleration-hooks-into-structure.patch
-tridentfb-make-use-of-functions-and-constants-from-the-vgah.patch
-tridentfb-fix-timing-calculations.patch
-tridentfb-use-mmio-access-for-clock-setting.patch
-tridentfb-fix-clock-settings-for-older-trident-96xx-chips.patch
-tridentfb-improve-probe-function.patch
-tridentfb-improved-register-values-on-tgui-9680.patch
-tridentfb-add-tgui-9440-support.patch
-tridentfb-fix-unitialized-pseudo_palette.patch
-tridentfb-improve-check_var-function.patch
-tridentfb-preserve-memory-type-settings.patch
-tridentfb-fix-hi-color-modes-for-tgui-9440.patch
-tridentfb-add-acceleration-for-tgui-families.patch
-tridentfb-acceleration-code-improvements.patch
-tridentfb-acceleration-bug-fixes.patch
-tridentfb-various-pixclock-and-timing-improvements.patch
-tridentfb-acceleration-constants-change.patch
-tridentfb-source-code-improvements.patch
-tridentfb-fix-console-freeze-when-switching-from-x11.patch
-tridentfb-fix-224-color-logo-at-8-bpp.patch
-tridentfb-y-panning-fixes.patch
-tridentfb-blade3d-clock-fixes.patch
-amifb-test-virtual-screen-range-before-subtraction-on-unsigned.patch
-atafb-test-virtual-screen-range-before-subtraction-on-unsigned.patch
-fbcon-make-logo_height-a-local-variable.patch
-uvesafb-change-mode-parameter-to-mode_option.patch
-tridentfb-documentation-update.patch
-tdfxfb-add-mode_option-module-parameter.patch
-vga16fb-source-code-improvement.patch
-tdfxfb-remove-ypan-checks-done-by-a-higher-layer.patch
-vfb-only-enable-if-explicitly-requested-when-compiled-in.patch
-hgafb-convert-to-new-platform-driver-api-bugzilla-9689.patch
-skeletonfb-update-to-correct-platform-driver-usage.patch
-fbdev-convert-sticorec-to-pci-rom-api.patch
+pnp-skip-unset-mem-resources-as-well-as-disabled-ones.patch
+acpi_pm_device_sleep_state-cleanup.patch
+mm-only-enforce-acpi-resource-conflict-checks.patch
+provide-rtc_cmos-platform-device-take-2.patch
+acpi-fix-drivers-acpi-gluec-build-error.patch
+pnpacpi-fix-irq-flag-decoding.patch
+pnpacpi-fix-irq-flag-decoding-comment-fix.patch
+pnpacpi-fix-shareable-irq-encode-decode.patch
+pnpacpi-use-_crs-irq-descriptor-length-for-_srs-v2.patch
+pnp-add-detail-to-debug-resource-dump.patch
+pnp-remove-pnp_resourceindex.patch
+pnp-add-pnp_resource_type-internal-interface.patch
+pnp-add-pnp_resource_type_name-helper-function.patch
+pnp-make-pnp_portmemetc_start-et-al-work-for-invalid-resources.patch
+pnp-replace-pnp_resource_table-with-dynamically-allocated-resources.patch
+pnp-replace-pnp_resource_table-with-dynamically-allocated-resources-merge-fix.patch
+pnp-replace-pnp_resource_table-with-dynamically-allocated-resources-fix.patch
+pnp-remove-ratelimit-on-add-resource-failures.patch
+pnp-dont-sort-by-type-in-sys-resources.patch
+pnp-set-the-pnp_card-dma_mask-for-use-by-isapnp-cards.patch
+isa-set-24-bit-dma_mask-for-isa-devices.patch
+pnp-add-pnp_possible_config-can-a-device-could-be-configured-this-way.patch
+pnp-whitespace-coding-style-fixes.patch
+pnp-define-pnp-specific-ioresource_io_-flags-alongside-irq-dma-mem.patch
+pnp-make-resource-option-structures-private-to-pnp-subsystem.patch
+pnp-introduce-pnp_irq_mask_t-typedef.patch
+pnp-increase-i-o-port-memory-option-address-sizes.patch
+pnp-improve-resource-assignment-debug.patch
+pnp-in-debug-resource-dump-make-empty-list-obvious.patch
+pnp-make-resource-assignment-functions-return-0-success-or-ebusy-failure.patch
+pnp-remove-redundant-pnp_can_configure-check.patch
+pnp-centralize-resource-option-allocations.patch
+pnpacpi-ignore-_prs-interrupt-numbers-larger-than-pnp_irq_nr.patch
+pnp-rename-pnp_register__resource-local-variables.patch
+pnp-support-optional-irq-resources.patch
+pnp-remove-extra-0x100-bit-from-option-priority.patch
+isapnp-handle-independent-options-following-dependent-ones.patch
+pnp-convert-resource-options-to-single-linked-list.patch
+pnp-convert-resource-options-to-single-linked-list-checkpatch-fixes.patch
+make-pnp_add_card_id-static.patch
 
