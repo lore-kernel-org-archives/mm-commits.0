@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + pnp-whitespace-coding-style-fixes.patch added to -mm tree
-Date: Wed, 04 Jun 2008 22:57:08 -0700
-Message-ID: <200806050557.m555v8hM028339@imap1.linux-foundation.org>
+Subject: + pnp-make-resource-option-structures-private-to-pnp-subsystem.patch added to -mm tree
+Date: Wed, 04 Jun 2008 22:57:12 -0700
+Message-ID: <200806050557.m555vCN6028345@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39136 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44569 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752086AbYFEF6c (ORCPT
+	by vger.kernel.org with ESMTP id S1752137AbYFEF6c (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 01:58:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bjorn.helgaas@hp.com, abelay@mit.edu, castet.matthieu@free.fr, lenb@kernel.org, perex@perex.cz, rene.herman@gmail.com, shaohua.li@intel.com, tiwai@suse.de, trenn@suse.de
+Cc: bjorn.helgaas@hp.com, abelay@mit.edu, castet.matthieu@free.fr, lenb@kernel.org, perex@perex.cz, rene.herman@keyaccess.nl, shaohua.li@intel.com, tiwai@suse.de, trenn@suse.de
 
 
 The patch titled
-     pnp: whitespace/coding style fixes
+     pnp: make resource option structures private to PNP subsystem
 has been added to the -mm tree.  Its filename is
-     pnp-whitespace-coding-style-fixes.patch
+     pnp-make-resource-option-structures-private-to-pnp-subsystem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,14 +33,15 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pnp: whitespace/coding style fixes
+Subject: pnp: make resource option structures private to PNP subsystem
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-No functional change; just make a couple declarations consistent with the
-rest of the file.
+Nothing outside the PNP subsystem should need access to a device's
+resource options, so this patch moves the option structure declarations to
+a private header file.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Acked-by: Rene Herman <rene.herman@gmail.com>
+Cc: Rene Herman <rene.herman@keyaccess.nl>
 Cc: Len Brown <lenb@kernel.org>
 Cc: Adam M Belay <abelay@mit.edu>
 Cc: Li Shaohua <shaohua.li@intel.com>
@@ -51,61 +52,126 @@ Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/interface.c |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ drivers/pnp/base.h  |   48 ++++++++++++++++++++++++++++++++++++++++++
+ include/linux/pnp.h |   48 ------------------------------------------
+ 2 files changed, 48 insertions(+), 48 deletions(-)
 
-diff -puN drivers/pnp/interface.c~pnp-whitespace-coding-style-fixes drivers/pnp/interface.c
---- a/drivers/pnp/interface.c~pnp-whitespace-coding-style-fixes
-+++ a/drivers/pnp/interface.c
-@@ -216,12 +216,12 @@ static ssize_t pnp_show_options(struct d
- 				struct device_attribute *attr, char *buf)
- {
- 	struct pnp_dev *dev = to_pnp_dev(dmdev);
-+	pnp_info_buffer_t *buffer;
- 	struct pnp_option *independent = dev->independent;
- 	struct pnp_option *dependent = dev->dependent;
- 	int ret, dep = 1;
+diff -puN drivers/pnp/base.h~pnp-make-resource-option-structures-private-to-pnp-subsystem drivers/pnp/base.h
+--- a/drivers/pnp/base.h~pnp-make-resource-option-structures-private-to-pnp-subsystem
++++ a/drivers/pnp/base.h
+@@ -19,6 +19,54 @@ void pnp_remove_card(struct pnp_card *ca
+ int pnp_add_card_device(struct pnp_card *card, struct pnp_dev *dev);
+ void pnp_remove_card_device(struct pnp_dev *dev);
  
--	pnp_info_buffer_t *buffer = (pnp_info_buffer_t *)
--	    pnp_alloc(sizeof(pnp_info_buffer_t));
-+	buffer = pnp_alloc(sizeof(pnp_info_buffer_t));
- 	if (!buffer)
- 		return -ENOMEM;
- 
-@@ -248,17 +248,18 @@ static ssize_t pnp_show_current_resource
- 					  char *buf)
- {
- 	struct pnp_dev *dev = to_pnp_dev(dmdev);
-+	pnp_info_buffer_t *buffer;
- 	struct pnp_resource *pnp_res;
- 	struct resource *res;
- 	int ret;
--	pnp_info_buffer_t *buffer;
- 
- 	if (!dev)
- 		return -EINVAL;
- 
--	buffer = (pnp_info_buffer_t *) pnp_alloc(sizeof(pnp_info_buffer_t));
-+	buffer = pnp_alloc(sizeof(pnp_info_buffer_t));
- 	if (!buffer)
- 		return -ENOMEM;
++struct pnp_port {
++	unsigned short min;	/* min base number */
++	unsigned short max;	/* max base number */
++	unsigned char align;	/* align boundary */
++	unsigned char size;	/* size of range */
++	unsigned char flags;	/* port flags */
++	unsigned char pad;	/* pad */
++	struct pnp_port *next;	/* next port */
++};
 +
- 	buffer->len = PAGE_SIZE;
- 	buffer->buffer = buf;
- 	buffer->curr = buffer->buffer;
-@@ -295,9 +296,9 @@ static ssize_t pnp_show_current_resource
- 	return ret;
++#define PNP_IRQ_NR 256
++struct pnp_irq {
++	DECLARE_BITMAP(map, PNP_IRQ_NR);	/* bitmask for IRQ lines */
++	unsigned char flags;	/* IRQ flags */
++	unsigned char pad;	/* pad */
++	struct pnp_irq *next;	/* next IRQ */
++};
++
++struct pnp_dma {
++	unsigned char map;	/* bitmask for DMA channels */
++	unsigned char flags;	/* DMA flags */
++	struct pnp_dma *next;	/* next port */
++};
++
++struct pnp_mem {
++	unsigned int min;	/* min base number */
++	unsigned int max;	/* max base number */
++	unsigned int align;	/* align boundary */
++	unsigned int size;	/* size of range */
++	unsigned char flags;	/* memory flags */
++	unsigned char pad;	/* pad */
++	struct pnp_mem *next;	/* next memory resource */
++};
++
++#define PNP_RES_PRIORITY_PREFERRED	0
++#define PNP_RES_PRIORITY_ACCEPTABLE	1
++#define PNP_RES_PRIORITY_FUNCTIONAL	2
++#define PNP_RES_PRIORITY_INVALID	65535
++
++struct pnp_option {
++	unsigned short priority;	/* priority */
++	struct pnp_port *port;		/* first port */
++	struct pnp_irq *irq;		/* first IRQ */
++	struct pnp_dma *dma;		/* first DMA */
++	struct pnp_mem *mem;		/* first memory resource */
++	struct pnp_option *next;	/* used to chain dependent resources */
++};
++
+ struct pnp_option *pnp_build_option(int priority);
+ struct pnp_option *pnp_register_independent_option(struct pnp_dev *dev);
+ struct pnp_option *pnp_register_dependent_option(struct pnp_dev *dev,
+diff -puN include/linux/pnp.h~pnp-make-resource-option-structures-private-to-pnp-subsystem include/linux/pnp.h
+--- a/include/linux/pnp.h~pnp-make-resource-option-structures-private-to-pnp-subsystem
++++ a/include/linux/pnp.h
+@@ -175,54 +175,6 @@ static inline int pnp_dma_valid(struct p
  }
  
--static ssize_t
--pnp_set_current_resources(struct device *dmdev, struct device_attribute *attr,
--			  const char *ubuf, size_t count)
-+static ssize_t pnp_set_current_resources(struct device *dmdev,
-+					 struct device_attribute *attr,
-+					 const char *ubuf, size_t count)
- {
- 	struct pnp_dev *dev = to_pnp_dev(dmdev);
- 	char *buf = (void *)ubuf;
+ 
+-struct pnp_port {
+-	unsigned short min;	/* min base number */
+-	unsigned short max;	/* max base number */
+-	unsigned char align;	/* align boundary */
+-	unsigned char size;	/* size of range */
+-	unsigned char flags;	/* port flags */
+-	unsigned char pad;	/* pad */
+-	struct pnp_port *next;	/* next port */
+-};
+-
+-#define PNP_IRQ_NR 256
+-struct pnp_irq {
+-	DECLARE_BITMAP(map, PNP_IRQ_NR);	/* bitmask for IRQ lines */
+-	unsigned char flags;	/* IRQ flags */
+-	unsigned char pad;	/* pad */
+-	struct pnp_irq *next;	/* next IRQ */
+-};
+-
+-struct pnp_dma {
+-	unsigned char map;	/* bitmask for DMA channels */
+-	unsigned char flags;	/* DMA flags */
+-	struct pnp_dma *next;	/* next port */
+-};
+-
+-struct pnp_mem {
+-	unsigned int min;	/* min base number */
+-	unsigned int max;	/* max base number */
+-	unsigned int align;	/* align boundary */
+-	unsigned int size;	/* size of range */
+-	unsigned char flags;	/* memory flags */
+-	unsigned char pad;	/* pad */
+-	struct pnp_mem *next;	/* next memory resource */
+-};
+-
+-#define PNP_RES_PRIORITY_PREFERRED	0
+-#define PNP_RES_PRIORITY_ACCEPTABLE	1
+-#define PNP_RES_PRIORITY_FUNCTIONAL	2
+-#define PNP_RES_PRIORITY_INVALID	65535
+-
+-struct pnp_option {
+-	unsigned short priority;	/* priority */
+-	struct pnp_port *port;		/* first port */
+-	struct pnp_irq *irq;		/* first IRQ */
+-	struct pnp_dma *dma;		/* first DMA */
+-	struct pnp_mem *mem;		/* first memory resource */
+-	struct pnp_option *next;	/* used to chain dependent resources */
+-};
+-
+ /*
+  * Device Management
+  */
 _
 
 Patches currently in -mm which might be from bjorn.helgaas@hp.com are
