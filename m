@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + airo-use-simple_read_from_buffer.patch added to -mm tree
-Date: Wed, 04 Jun 2008 17:29:51 -0700
-Message-ID: <200806050029.m550Tptd016948@imap1.linux-foundation.org>
+Subject: + ttusb-use-simple_read_from_buffer.patch added to -mm tree
+Date: Wed, 04 Jun 2008 17:29:47 -0700
+Message-ID: <200806050029.m550Tl01016945@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38873 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46588 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756438AbYFEAae (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jun 2008 20:30:34 -0400
+	by vger.kernel.org with ESMTP id S1756597AbYFEAau (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jun 2008 20:30:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, dcbw@redhat.com, linville@tuxdriver.com, mschmidt@redhat.com
+Cc: akinobu.mita@gmail.com, adq_dvb@lidskialf.net, js@linuxtv.org, mchehab@infradead.org
 
 
 The patch titled
-     airo: use simple_read_from_buffer()
+     ttusb: use simple_read_from_buffer()()
 has been added to the -mm tree.  Its filename is
-     airo-use-simple_read_from_buffer.patch
+     ttusb-use-simple_read_from_buffer.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,48 +33,55 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: airo: use simple_read_from_buffer()
+Subject: ttusb: use simple_read_from_buffer()()
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: John W. Linville <linville@tuxdriver.com>
-Cc: Dan Williams <dcbw@redhat.com>
-Cc: Michal Schmidt <mschmidt@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Andrew de Quincey <adq_dvb@lidskialf.net>
+Cc: Johannes Stezenbach <js@linuxtv.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/airo.c |   15 +++------------
- 1 file changed, 3 insertions(+), 12 deletions(-)
+ drivers/media/dvb/ttusb-budget/dvb-ttusb-budget.c |   18 ++----------
+ 1 file changed, 3 insertions(+), 15 deletions(-)
 
-diff -puN drivers/net/wireless/airo.c~airo-use-simple_read_from_buffer drivers/net/wireless/airo.c
---- a/drivers/net/wireless/airo.c~airo-use-simple_read_from_buffer
-+++ a/drivers/net/wireless/airo.c
-@@ -4561,22 +4561,13 @@ static ssize_t proc_read( struct file *f
- 			  size_t len,
- 			  loff_t *offset )
- {
--	loff_t pos = *offset;
--	struct proc_data *priv = (struct proc_data*)file->private_data;
-+	struct proc_data *priv = file->private_data;
+diff -puN drivers/media/dvb/ttusb-budget/dvb-ttusb-budget.c~ttusb-use-simple_read_from_buffer drivers/media/dvb/ttusb-budget/dvb-ttusb-budget.c
+--- a/drivers/media/dvb/ttusb-budget/dvb-ttusb-budget.c~ttusb-use-simple_read_from_buffer
++++ a/drivers/media/dvb/ttusb-budget/dvb-ttusb-budget.c
+@@ -19,6 +19,7 @@
+ #include <linux/errno.h>
+ #include <linux/jiffies.h>
+ #include <linux/mutex.h>
++#include <linux/fs.h>
  
- 	if (!priv->rbuffer)
- 		return -EINVAL;
- 
--	if (pos < 0)
--		return -EINVAL;
--	if (pos >= priv->readlen)
--		return 0;
--	if (len > priv->readlen - pos)
--		len = priv->readlen - pos;
--	if (copy_to_user(buffer, priv->rbuffer + pos, len))
--		return -EFAULT;
--	*offset = pos + len;
--	return len;
-+	return simple_read_from_buffer(buffer, len, offset, priv->rbuffer,
-+					priv->readlen);
+ #include "dvb_frontend.h"
+ #include "dmxdev.h"
+@@ -983,22 +984,9 @@ static int stc_open(struct inode *inode,
  }
  
- /*
+ static ssize_t stc_read(struct file *file, char *buf, size_t count,
+-		 loff_t * offset)
++		 loff_t *offset)
+ {
+-	int tc = count;
+-
+-	if ((tc + *offset) > 8192)
+-		tc = 8192 - *offset;
+-
+-	if (tc < 0)
+-		return 0;
+-
+-	if (copy_to_user(buf, stc_firmware + *offset, tc))
+-		return -EFAULT;
+-
+-	*offset += tc;
+-
+-	return tc;
++	return simple_read_from_buffer(buf, count, offset, stc_firmware, 8192);
+ }
+ 
+ static int stc_release(struct inode *inode, struct file *file)
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
