@@ -1,52 +1,154 @@
 From: akpm@linux-foundation.org
-Subject: - ext4-add-explicit-include-of-linux-quotah-into-ext4_jbd2h.patch removed from -mm tree
-Date: Thu, 05 Jun 2008 11:48:41 -0700
-Message-ID: <200806051848.m55Imfmj024383@imap1.linux-foundation.org>
+Subject: + quota-convert-macros-to-inline-functions.patch added to -mm tree
+Date: Thu, 05 Jun 2008 11:50:31 -0700
+Message-ID: <200806051850.m55IoVht024477@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37380 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49031 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750744AbYFESsp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 14:48:45 -0400
+	by vger.kernel.org with ESMTP id S1756676AbYFESuf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 14:50:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: jack@suse.cz
 
 
 The patch titled
-     ext4: add explicit include of <linux/quota.h> into ext4_jbd2.h
-has been removed from the -mm tree.  Its filename was
-     ext4-add-explicit-include-of-linux-quotah-into-ext4_jbd2h.patch
+     quota: convert macros to inline functions
+has been added to the -mm tree.  Its filename is
+     quota-convert-macros-to-inline-functions.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext4: add explicit include of <linux/quota.h> into ext4_jbd2.h
+Subject: quota: convert macros to inline functions
 From: Jan Kara <jack@suse.cz>
-
-We need definitions from quota.h.  So far we depended on fs.h on including
-this file for us and this is going to change.
 
 Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/ext4_jbd2.h |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/quota.h    |    5 ++
+ include/linux/quotaops.h |   65 ++++++++++++++++++++++++++++---------
+ 2 files changed, 54 insertions(+), 16 deletions(-)
 
-diff -puN fs/ext4/ext4_jbd2.h~ext4-add-explicit-include-of-linux-quotah-into-ext4_jbd2h fs/ext4/ext4_jbd2.h
---- a/fs/ext4/ext4_jbd2.h~ext4-add-explicit-include-of-linux-quotah-into-ext4_jbd2h
-+++ a/fs/ext4/ext4_jbd2.h
-@@ -17,6 +17,7 @@
+diff -puN include/linux/quota.h~quota-convert-macros-to-inline-functions include/linux/quota.h
+--- a/include/linux/quota.h~quota-convert-macros-to-inline-functions
++++ a/include/linux/quota.h
+@@ -223,7 +223,10 @@ struct super_block;
+ #define DQF_INFO_DIRTY (1 << DQF_INFO_DIRTY_B)	/* Is info dirty? */
  
- #include <linux/fs.h>
- #include <linux/jbd2.h>
-+#include <linux/quota.h>
- #include "ext4.h"
+ extern void mark_info_dirty(struct super_block *sb, int type);
+-#define info_dirty(info) test_bit(DQF_INFO_DIRTY_B, &(info)->dqi_flags)
++static inline int info_dirty(struct mem_dqinfo *info)
++{
++	return test_bit(DQF_INFO_DIRTY_B, &info->dqi_flags);
++}
  
- #define EXT4_JOURNAL(inode)	(EXT4_SB((inode)->i_sb)->s_journal)
+ struct dqstats {
+ 	int lookups;
+diff -puN include/linux/quotaops.h~quota-convert-macros-to-inline-functions include/linux/quotaops.h
+--- a/include/linux/quotaops.h~quota-convert-macros-to-inline-functions
++++ a/include/linux/quotaops.h
+@@ -52,25 +52,45 @@ void vfs_dq_drop(struct inode *inode);
+ int vfs_dq_transfer(struct inode *inode, struct iattr *iattr);
+ int vfs_dq_quota_on_remount(struct super_block *sb);
+ 
+-#define sb_dqopt(sb) (&(sb)->s_dquot)
+-#define sb_dqinfo(sb, type) (sb_dqopt(sb)->info+(type))
++static inline struct quota_info *sb_dqopt(struct super_block *sb)
++{
++	return &sb->s_dquot;
++}
++
++static inline struct mem_dqinfo *sb_dqinfo(struct super_block *sb, int type)
++{
++	return sb_dqopt(sb)->info + type;
++}
+ 
+ /*
+  * Functions for checking status of quota
+  */
+ 
+-#define sb_has_quota_enabled(sb, type) ((type)==USRQUOTA ? \
+-	(sb_dqopt(sb)->flags & DQUOT_USR_ENABLED) : (sb_dqopt(sb)->flags & DQUOT_GRP_ENABLED))
++static inline int sb_has_quota_enabled(struct super_block *sb, int type)
++{
++	if (type == USRQUOTA)
++		return sb_dqopt(sb)->flags & DQUOT_USR_ENABLED;
++	return sb_dqopt(sb)->flags & DQUOT_GRP_ENABLED;
++}
+ 
+-#define sb_any_quota_enabled(sb) (sb_has_quota_enabled(sb, USRQUOTA) | \
+-				  sb_has_quota_enabled(sb, GRPQUOTA))
++static inline int sb_any_quota_enabled(struct super_block *sb)
++{
++	return sb_has_quota_enabled(sb, USRQUOTA) ||
++		sb_has_quota_enabled(sb, GRPQUOTA);
++}
+ 
+-#define sb_has_quota_suspended(sb, type) \
+-	((type) == USRQUOTA ? (sb_dqopt(sb)->flags & DQUOT_USR_SUSPENDED) : \
+-			      (sb_dqopt(sb)->flags & DQUOT_GRP_SUSPENDED))
++static inline int sb_has_quota_suspended(struct super_block *sb, int type)
++{
++	if (type == USRQUOTA)
++		return sb_dqopt(sb)->flags & DQUOT_USR_SUSPENDED;
++	return sb_dqopt(sb)->flags & DQUOT_GRP_SUSPENDED;
++}
+ 
+-#define sb_any_quota_suspended(sb) (sb_has_quota_suspended(sb, USRQUOTA) | \
+-				  sb_has_quota_suspended(sb, GRPQUOTA))
++static inline int sb_any_quota_suspended(struct super_block *sb)
++{
++	return sb_has_quota_suspended(sb, USRQUOTA) ||
++		sb_has_quota_suspended(sb, GRPQUOTA);
++}
+ 
+ /*
+  * Operations supported for diskquotas.
+@@ -179,10 +199,25 @@ static inline int vfs_dq_off(struct supe
+ 
+ #else
+ 
+-#define sb_has_quota_enabled(sb, type) 0
+-#define sb_any_quota_enabled(sb) 0
+-#define sb_has_quota_suspended(sb, type) 0
+-#define sb_any_quota_suspended(sb) 0
++static inline int sb_has_quota_enabled(struct super_block *sb, int type)
++{
++	return 0;
++}
++
++static inline int sb_any_quota_enabled(struct super_block *sb)
++{
++	return 0;
++}
++
++static inline int sb_has_quota_suspended(struct super_block *sb, int type)
++{
++	return 0;
++}
++
++static inline int sb_any_quota_suspended(struct super_block *sb)
++{
++	return 0;
++}
+ 
+ /*
+  * NO-OP when quota not configured.
 _
 
 Patches currently in -mm which might be from jack@suse.cz are
@@ -68,8 +170,6 @@ reiserfs-fix-typos-in-messages-and-comments-journalled-journaled.patch
 reiserfs-correct-mount-option-parsing-to-detect-when-quota-options-can-be-changed.patch
 quota-rename-quota-functions-from-upper-case-make-bigger-ones-non-inline.patch
 quota-cleanup-loop-in-sync_dquots.patch
-ext4-add-explicit-include-of-linux-quotah-into-ext4_jbd2h.patch
-ext2-add-explicit-include-of-linux-quotah-into-superc.patch
-quota-split-out-quota_structh-out-of-quotah.patch
+quota-move-function-macros-from-quotah-to-quotaopsh.patch
 quota-convert-macros-to-inline-functions.patch
 
