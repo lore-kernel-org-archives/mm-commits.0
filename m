@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + pnp-convert-resource-options-to-single-linked-list-checkpatch-fixes.patch added to -mm tree
-Date: Wed, 04 Jun 2008 22:58:47 -0700
-Message-ID: <200806050558.m555wlMq028398@imap1.linux-foundation.org>
+Subject: + pnp-remove-extra-0x100-bit-from-option-priority.patch added to -mm tree
+Date: Wed, 04 Jun 2008 22:57:36 -0700
+Message-ID: <200806050557.m555va9G028381@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34091 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33413 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752672AbYFEF6v (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 01:58:51 -0400
+	by vger.kernel.org with ESMTP id S1752443AbYFEF7B (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 01:59:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, bjorn.helgaas@hp.com
+Cc: bjorn.helgaas@hp.com, abelay@mit.edu, castet.matthieu@free.fr, lenb@kernel.org, perex@perex.cz, rene.herman@gmail.com, rene.herman@keyaccess.nl, shaohua.li@intel.com, tiwai@suse.de, trenn@suse.de
 
 
 The patch titled
-     pnp-convert-resource-options-to-single-linked-list-checkpatch-fixes
+     pnp: remove extra 0x100 bit from option priority
 has been added to the -mm tree.  Its filename is
-     pnp-convert-resource-options-to-single-linked-list-checkpatch-fixes.patch
+     pnp-remove-extra-0x100-bit-from-option-priority.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,166 +33,150 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pnp-convert-resource-options-to-single-linked-list-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: pnp: remove extra 0x100 bit from option priority
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-ERROR: spaces required around that '=' (ctx:WxV)
-#367: FILE: drivers/pnp/interface.c:236:
-+			indent ="";
- 			       ^
+When building resource options, ISAPNP and PNPBIOS set the priority to
+something like "0x100 | PNP_RES_PRIORITY_ACCEPTABLE", but we immediately
+mask off the 0x100 again in pnp_build_option(), so that bit looks
+superfluous.
 
-WARNING: printk() should include KERN_ facility level
-#2069: FILE: drivers/pnp/support.c:148:
-+		printk("io  min %#llx max %#llx align %lld size %lld flags %#x",
+Thanks to Rene Herman <rene.herman@gmail.com> for pointing this out.
 
-total: 1 errors, 1 warnings, 1952 lines checked
-
-./patches/pnp-convert-resource-options-to-single-linked-list.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Rene Herman <rene.herman@keyaccess.nl>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Adam M Belay <abelay@mit.edu>
+Cc: Li Shaohua <shaohua.li@intel.com>
+Cc: Matthieu Castet <castet.matthieu@free.fr>
+Cc: Thomas Renninger <trenn@suse.de>
+Cc: Jaroslav Kysela <perex@perex.cz>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/interface.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/pnp/isapnp/core.c      |    8 +++-----
+ drivers/pnp/pnpacpi/rsparser.c |    2 +-
+ drivers/pnp/pnpbios/rsparser.c |    6 +++---
+ 3 files changed, 7 insertions(+), 9 deletions(-)
 
-diff -puN drivers/pnp/interface.c~pnp-convert-resource-options-to-single-linked-list-checkpatch-fixes drivers/pnp/interface.c
---- a/drivers/pnp/interface.c~pnp-convert-resource-options-to-single-linked-list-checkpatch-fixes
-+++ a/drivers/pnp/interface.c
-@@ -233,7 +233,7 @@ static ssize_t pnp_show_options(struct d
+diff -puN drivers/pnp/isapnp/core.c~pnp-remove-extra-0x100-bit-from-option-priority drivers/pnp/isapnp/core.c
+--- a/drivers/pnp/isapnp/core.c~pnp-remove-extra-0x100-bit-from-option-priority
++++ a/drivers/pnp/isapnp/core.c
+@@ -582,7 +582,7 @@ isapnp_parse_name(char *name, unsigned i
+ static int __init isapnp_create_device(struct pnp_card *card,
+ 				       unsigned short size)
+ {
+-	int number = 0, skip = 0, priority = 0, compat = 0;
++	int number = 0, skip = 0, priority, compat = 0;
+ 	unsigned char type, tmp[17];
+ 	struct pnp_option *option;
+ 	struct pnp_dev *dev;
+@@ -621,7 +621,6 @@ static int __init isapnp_create_device(s
+ 			} else {
+ 				skip = 1;
  			}
- 		} else {
- 			dep = 0;
--			indent ="";
-+			indent = "";
- 		}
- 		pnp_print_option(buffer, indent, option);
- 	}
+-			priority = 0;
+ 			compat = 0;
+ 			break;
+ 		case _STAG_COMPATDEVID:
+@@ -650,10 +649,10 @@ static int __init isapnp_create_device(s
+ 		case _STAG_STARTDEP:
+ 			if (size > 1)
+ 				goto __skip;
+-			priority = 0x100 | PNP_RES_PRIORITY_ACCEPTABLE;
++			priority = PNP_RES_PRIORITY_ACCEPTABLE;
+ 			if (size > 0) {
+ 				isapnp_peek(tmp, size);
+-				priority = 0x100 | tmp[0];
++				priority = tmp[0];
+ 				size = 0;
+ 			}
+ 			option = pnp_register_dependent_option(dev, priority);
+@@ -663,7 +662,6 @@ static int __init isapnp_create_device(s
+ 		case _STAG_ENDDEP:
+ 			if (size != 0)
+ 				goto __skip;
+-			priority = 0;
+ 			dev_dbg(&dev->dev, "end dependent options\n");
+ 			break;
+ 		case _STAG_IOPORT:
+diff -puN drivers/pnp/pnpacpi/rsparser.c~pnp-remove-extra-0x100-bit-from-option-priority drivers/pnp/pnpacpi/rsparser.c
+--- a/drivers/pnp/pnpacpi/rsparser.c~pnp-remove-extra-0x100-bit-from-option-priority
++++ a/drivers/pnp/pnpacpi/rsparser.c
+@@ -545,7 +545,7 @@ struct acpipnp_parse_option_s {
+ static __init acpi_status pnpacpi_option_resource(struct acpi_resource *res,
+ 						  void *data)
+ {
+-	int priority = 0;
++	int priority;
+ 	struct acpipnp_parse_option_s *parse_data = data;
+ 	struct pnp_dev *dev = parse_data->dev;
+ 	struct pnp_option *option = parse_data->option;
+diff -puN drivers/pnp/pnpbios/rsparser.c~pnp-remove-extra-0x100-bit-from-option-priority drivers/pnp/pnpbios/rsparser.c
+--- a/drivers/pnp/pnpbios/rsparser.c~pnp-remove-extra-0x100-bit-from-option-priority
++++ a/drivers/pnp/pnpbios/rsparser.c
+@@ -315,7 +315,7 @@ pnpbios_parse_resource_option_data(unsig
+ 					struct pnp_dev *dev)
+ {
+ 	unsigned int len, tag;
+-	int priority = 0;
++	int priority;
+ 	struct pnp_option *option, *option_independent;
+ 
+ 	if (!p)
+@@ -389,9 +389,9 @@ pnpbios_parse_resource_option_data(unsig
+ 		case SMALL_TAG_STARTDEP:
+ 			if (len > 1)
+ 				goto len_err;
+-			priority = 0x100 | PNP_RES_PRIORITY_ACCEPTABLE;
++			priority = PNP_RES_PRIORITY_ACCEPTABLE;
+ 			if (len > 0)
+-				priority = 0x100 | p[1];
++				priority = p[1];
+ 			option = pnp_register_dependent_option(dev, priority);
+ 			if (!option)
+ 				return NULL;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from bjorn.helgaas@hp.com are
 
-origin.patch
-linux-next.patch
-next-remove-localversion.patch
-linux-next-fixup.patch
-linux-next-rtc-fix.patch
-fix-kobject-fix-kobject_rename-and-config_sysfs.patch
-kvm-is-busted-on-ia64.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-video-balcklist-fujitsu-lifebook-s6410.patch
-lguest-use-cpu-capability-accessors.patch
-arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
-arch-powerpc-platforms-pseries-eeh_driverc-fix-warning.patch
-arch-powerpc-platforms-pseries-eeh_driverc-fix-warning-checkpatch-fixes.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-git-jg-misc-git-rejects.patch
-drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-git-leds.patch
-fsldma-the-mpc8377mds-board-device-tree-node-for-fsldma-driver.patch
-mmc-sd-host-driver-for-ricoh-bay1controllers.patch
-bluetooth-hci_bcspc-small-cleanups-api-users-fix.patch
-sundance-set-carrier-status-on-link-change-events.patch
-net-sh_eth-add-support-for-renesas-superh-ethernet-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-battery.patch
-pci-introduce-pci_slot.patch
-acpi-pci-slot-detection-driver.patch
-git-scsi-misc-fix-scsi_dh-build-errors.patch
-drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
-s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
-pktcdvd-push-bkl-down-into-driver-fix.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-git-logfs-fixup.patch
-drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
-drivers-uwb-wlp-sysfsc-dead-code.patch
-usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix.patch
-usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix-2.patch
-watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix.patch
-watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl-fix.patch
-git-xtensa.patch
-ext4-is-busted-on-m68k.patch
-rtc-class-driver-for-ppc_md-rtc-functions-fix.patch
-proc-calculate-the-correct-proc-pid-link-count-cleanup.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-libata-sff-fix-oops-reported-in-kerneloopsorg-for-pnp-devices-with-no-ctl-fix.patch
-forcedeth-msi-interrupts-uninlining.patch
-mm-verify-the-page-links-and-memory-model.patch
-mspec-convert-nopfn-to-fault-fix.patch
-page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
-kill-generic_file_direct_io-checkpatch-fixes.patch
-use-generic_access_phys-for-dev-mem-mappings-fix.patch
-spufs-use-the-new-vm_ops-access-fix.patch
-fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
-page-flags-record-page-flag-overlays-explicitly-xen.patch
-mapping_set_error-add-unlikely.patch
-huge-page-private-reservation-review-cleanups-fix.patch
-sync_file_range_write-may-and-will-block-document-that-fix.patch
-vmallocinfo-add-numa-information-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
-pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes.patch
-pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup.patch
-pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup-fix.patch
-swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
-split-the-typecheck-macros-out-of-include-linux-kernelh.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
-remove-apparently-unused-fd1772h-header-file.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
-build-kernel-profileo-only-when-requested-cleanups.patch
-fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
-block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
-rename-warn-to-warning-to-clear-the-namespace-fix.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
-flag-parameters-paccept-fix.patch
-flag-parameters-paccept-sys_ni.patch
-flag-parameters-anon_inode_getfd-extension-fix.patch
-flag-parameters-signalfd-fix.patch
-flag-parameters-eventfd-fix.patch
-flag-parameters-inotify_init-fix.patch
-flag-parameters-check-magic-constants-alpha.patch
-cputopology-always-define-cpu-topology-information-cleanup.patch
-oprofile-multiplexing-checkpatch-fixes.patch
-drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
-pnp-convert-resource-options-to-single-linked-list-checkpatch-fixes.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
-reiserfs-convert-j_flush_sem-to-mutex.patch
-reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
-jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup.patch
-ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-fix.patch
-x86-lockless-get_user_pages_fast-fix-warning.patch
-reiser4.patch
-reiser4-semaphore-fix.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+pnp-mark-resources-that-conflict-with-pci-devices-disabled.patch
+acpi_pm_device_sleep_state-cleanup.patch
+mm-only-enforce-acpi-resource-conflict-checks.patch
+provide-rtc_cmos-platform-device-take-2.patch
+acpi-fix-drivers-acpi-gluec-build-error.patch
+pnpacpi-fix-irq-flag-decoding.patch
+pnpacpi-fix-irq-flag-decoding-comment-fix.patch
+pnpacpi-fix-shareable-irq-encode-decode.patch
+pnpacpi-use-_crs-irq-descriptor-length-for-_srs-v2.patch
+pnp-add-detail-to-debug-resource-dump.patch
+pnp-remove-pnp_resourceindex.patch
+pnp-add-pnp_resource_type-internal-interface.patch
+pnp-add-pnp_resource_type_name-helper-function.patch
+pnp-make-pnp_portmemetc_start-et-al-work-for-invalid-resources.patch
+pnp-replace-pnp_resource_table-with-dynamically-allocated-resources.patch
+pnp-replace-pnp_resource_table-with-dynamically-allocated-resources-merge-fix.patch
+pnp-remove-ratelimit-on-add-resource-failures.patch
+pnp-dont-sort-by-type-in-sys-resources.patch
+pnp-set-the-pnp_card-dma_mask-for-use-by-isapnp-cards.patch
+isa-set-24-bit-dma_mask-for-isa-devices.patch
+pnp-add-pnp_possible_config-can-a-device-could-be-configured-this-way.patch
+pnp-whitespace-coding-style-fixes.patch
+pnp-define-pnp-specific-ioresource_io_-flags-alongside-irq-dma-mem.patch
+pnp-make-resource-option-structures-private-to-pnp-subsystem.patch
+pnp-introduce-pnp_irq_mask_t-typedef.patch
+pnp-increase-i-o-port-memory-option-address-sizes.patch
+pnp-improve-resource-assignment-debug.patch
+pnp-in-debug-resource-dump-make-empty-list-obvious.patch
+pnp-make-resource-assignment-functions-return-0-success-or-ebusy-failure.patch
+pnp-remove-redundant-pnp_can_configure-check.patch
+pnp-centralize-resource-option-allocations.patch
+pnpacpi-ignore-_prs-interrupt-numbers-larger-than-pnp_irq_nr.patch
+pnp-rename-pnp_register__resource-local-variables.patch
+pnp-support-optional-irq-resources.patch
+pnp-remove-extra-0x100-bit-from-option-priority.patch
+isapnp-handle-independent-options-following-dependent-ones.patch
+pnp-convert-resource-options-to-single-linked-list.patch
+make-pnp_add_card_id-static.patch
 
