@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + olpc-pci-fix-up-pci-stuff-so-that-pci_goany-supports-olpc.patch added to -mm tree
-Date: Thu, 05 Jun 2008 12:42:19 -0700
-Message-ID: <200806051942.m55JgJKw026509@imap1.linux-foundation.org>
+Subject: + getdelaysc-add-a-usr1-signal-handler.patch added to -mm tree
+Date: Thu, 05 Jun 2008 12:46:06 -0700
+Message-ID: <200806051946.m55Jk6XM026682@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41386 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54667 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762604AbYFETnS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 15:43:18 -0400
+	by vger.kernel.org with ESMTP id S1753063AbYFETqs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 15:46:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dilinger@queued.net, dilinger@debian.org, jbarnes@virtuousgeek.org, mingo@elte.hu, tglx@linutronix.de
+Cc: scott@perlcode.org, balbir@in.ibm.com, matt@bluehost.com
 
 
 The patch titled
-     OLPC: pci: fix up PCI stuff so that PCI_GOANY supports OLPC
+     getdelays.c: add a USR1 signal handler
 has been added to the -mm tree.  Its filename is
-     olpc-pci-fix-up-pci-stuff-so-that-pci_goany-supports-olpc.patch
+     getdelaysc-add-a-usr1-signal-handler.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,116 +33,119 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: OLPC: pci: fix up PCI stuff so that PCI_GOANY supports OLPC
-From: Andres Salomon <dilinger@queued.net>
+Subject: getdelays.c: add a USR1 signal handler
+From: Scott Wiersdorf <scott@perlcode.org>
 
-Previously, one would have to specifically choose CONFIG_OLPC and
-CONFIG_PCI_GOOLPC in order to enable PCI_OLPC.  That doesn't really work
-for distro kernels, so this patch allows one to choose CONFIG_OLPC and
-CONFIG_PCI_GOANY in order to build in OLPC support in a generic kernel (as
-requested by Robert Millan).
+Add a USR1 signal handler to getdelays.c, which causes getdelays to close
+its logfile and reopen it (if '-w logfile' is specified).  This is useful
+in situations when getdelays is running for a long time (i.e, the log file
+growing) and you need to rotate the logs but don't want to lose any log
+data.
 
-This also moves GOOLPC before GOANY in the menuconfig list.
+Sample usage:
 
-Finally, make pci_access_init return early if we detect OLPC hardware. 
-There's no need to continue probing stuff, and pci_pcbios_init
-specifically trashes our settings (we didn't run into that before because
-PCI_GOANY wasn't supported).
+1  # ./getdelays -m0,1,2,3 -l -w getdelays.log &
+   (time passes)
+2  # mv getdelays.log getdelays.log.1
+3  # kill -USR1 <getdelays pid>
 
-Signed-off-by: Andres Salomon <dilinger@debian.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+line 1: starts the program
+line 2: renames the logfile. The log descriptor is still open and data
+        being written to the log (assuming we didn't cross mountpoints)
+line 3: getdelays closes the old descriptor and reopens getdelays.log
+
+Note on 'volatile' usage:
+
+I know this is generally frowned on, but I think it's needed here to avoid
+the compiler optimizing away the variable (it will appear as if it's never
+called, since its value only changes in the signal handler).
+
+Cc: Matt Heaton <matt@bluehost.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig    |   11 +++++------
- arch/x86/pci/init.c |    3 ++-
- arch/x86/pci/olpc.c |    5 +++--
- arch/x86/pci/pci.h  |    2 +-
- 4 files changed, 11 insertions(+), 10 deletions(-)
+ Documentation/accounting/getdelays.c |   37 ++++++++++++++++++++-----
+ 1 file changed, 31 insertions(+), 6 deletions(-)
 
-diff -puN arch/x86/Kconfig~olpc-pci-fix-up-pci-stuff-so-that-pci_goany-supports-olpc arch/x86/Kconfig
---- a/arch/x86/Kconfig~olpc-pci-fix-up-pci-stuff-so-that-pci_goany-supports-olpc
-+++ a/arch/x86/Kconfig
-@@ -1556,13 +1556,13 @@ config PCI_GOMMCONFIG
- config PCI_GODIRECT
- 	bool "Direct"
+diff -puN Documentation/accounting/getdelays.c~getdelaysc-add-a-usr1-signal-handler Documentation/accounting/getdelays.c
+--- a/Documentation/accounting/getdelays.c~getdelaysc-add-a-usr1-signal-handler
++++ a/Documentation/accounting/getdelays.c
+@@ -50,6 +50,7 @@ int dbg;
+ int print_delays;
+ int print_io_accounting;
+ int print_task_context_switch_counts;
++volatile sig_atomic_t reopen_log = 0;
+ __u64 stime, utime;
  
--config PCI_GOANY
--	bool "Any"
--
- config PCI_GOOLPC
- 	bool "OLPC"
- 	depends on OLPC
- 
-+config PCI_GOANY
-+	bool "Any"
-+
- endchoice
- 
- config PCI_BIOS
-@@ -1579,9 +1579,8 @@ config PCI_MMCONFIG
- 	depends on X86_32 && PCI && ACPI && (PCI_GOMMCONFIG || PCI_GOANY)
- 
- config PCI_OLPC
--	bool
--	depends on PCI && PCI_GOOLPC
--	default y
-+	def_bool y
-+	depends on PCI && OLPC && (PCI_GOOLPC || PCI_GOANY)
- 
- config PCI_DOMAINS
- 	def_bool y
-diff -puN arch/x86/pci/init.c~olpc-pci-fix-up-pci-stuff-so-that-pci_goany-supports-olpc arch/x86/pci/init.c
---- a/arch/x86/pci/init.c~olpc-pci-fix-up-pci-stuff-so-that-pci_goany-supports-olpc
-+++ a/arch/x86/pci/init.c
-@@ -15,7 +15,8 @@ static __init int pci_access_init(void)
- 	pci_mmcfg_early_init();
- 
- #ifdef CONFIG_PCI_OLPC
--	pci_olpc_init();
-+	if (!pci_olpc_init())
-+		return 0;	/* skip additional checks if it's an XO */
- #endif
- #ifdef CONFIG_PCI_BIOS
- 	pci_pcbios_init();
-diff -puN arch/x86/pci/olpc.c~olpc-pci-fix-up-pci-stuff-so-that-pci_goany-supports-olpc arch/x86/pci/olpc.c
---- a/arch/x86/pci/olpc.c~olpc-pci-fix-up-pci-stuff-so-that-pci_goany-supports-olpc
-+++ a/arch/x86/pci/olpc.c
-@@ -302,12 +302,13 @@ static struct pci_raw_ops pci_olpc_conf 
- 	.write = pci_olpc_write,
- };
- 
--void __init pci_olpc_init(void)
-+int __init pci_olpc_init(void)
- {
- 	if (!machine_is_olpc() || olpc_has_vsa())
--		return;
-+		return -ENODEV;
- 
- 	printk(KERN_INFO "PCI: Using configuration type OLPC\n");
- 	raw_pci_ops = &pci_olpc_conf;
- 	is_lx = is_geode_lx();
-+	return 0;
+ #define PRINTF(fmt, arg...) {			\
+@@ -80,6 +81,7 @@ static void usage(void)
+ 	fprintf(stderr, "  -l: listen forever\n");
+ 	fprintf(stderr, "  -v: debug on\n");
+ 	fprintf(stderr, "  -C: container path\n");
++	fprintf(stderr, "\nSend USR1 to reopen the logfile if -w is used.\n");
  }
-diff -puN arch/x86/pci/pci.h~olpc-pci-fix-up-pci-stuff-so-that-pci_goany-supports-olpc arch/x86/pci/pci.h
---- a/arch/x86/pci/pci.h~olpc-pci-fix-up-pci-stuff-so-that-pci_goany-supports-olpc
-+++ a/arch/x86/pci/pci.h
-@@ -102,7 +102,7 @@ extern struct pci_raw_ops pci_direct_con
- extern int pci_direct_probe(void);
- extern void pci_direct_init(int type);
- extern void pci_pcbios_init(void);
--extern void pci_olpc_init(void);
-+extern int pci_olpc_init(void);
  
- /* pci-mmconfig.c */
+ /*
+@@ -231,6 +233,30 @@ void print_ioacct(struct taskstats *t)
+ 		(unsigned long long)t->cancelled_write_bytes);
+ }
  
++void catch_usr1(int sig)
++{
++	reopen_log = 1;
++	signal(sig, catch_usr1);
++}
++
++int reopen_logfile(int fd, char *logfile)
++{
++	if (fd) {
++		PRINTF("USR1 received. Closing logfile.\n");
++		close(fd);
++	}
++	fd = open(logfile, O_WRONLY | O_CREAT | O_TRUNC,
++		  S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
++	if (fd == -1) {
++		perror("Cannot open output file\n");
++		exit(1);
++	}
++
++	reopen_log = 0;
++
++	return fd;
++}
++
+ int main(int argc, char *argv[])
+ {
+ 	int c, rc, rep_len, aggr_len, len2, cmd_type;
+@@ -320,12 +346,8 @@ int main(int argc, char *argv[])
+ 	}
+ 
+ 	if (write_file) {
+-		fd = open(logfile, O_WRONLY | O_CREAT | O_TRUNC,
+-			  S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+-		if (fd == -1) {
+-			perror("Cannot open output file\n");
+-			exit(1);
+-		}
++		fd = reopen_logfile(fd, logfile);
++		signal(SIGUSR1, catch_usr1); /* only set when write_file is set */
+ 	}
+ 
+ 	if ((nl_sd = create_nl_socket(NETLINK_GENERIC)) < 0)
+@@ -444,6 +466,9 @@ int main(int argc, char *argv[])
+ 								err(1,"write error\n");
+ 							}
+ 						}
++						if (reopen_log) {
++							fd = reopen_logfile(fd, logfile);
++						}
+ 						if (!loop)
+ 							goto done;
+ 						break;
 _
 
-Patches currently in -mm which might be from dilinger@queued.net are
+Patches currently in -mm which might be from scott@perlcode.org are
 
-linux-next.patch
-git-battery.patch
-olpc-pci-fix-up-pci-stuff-so-that-pci_goany-supports-olpc.patch
+getdelaysc-add-a-usr1-signal-handler.patch
 
