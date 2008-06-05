@@ -1,116 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: - pnp-mark-resources-that-conflict-with-pci-devices-disabled.patch removed from -mm tree
-Date: Thu, 05 Jun 2008 11:21:17 -0700
-Message-ID: <200806051821.m55ILHJu023219@imap1.linux-foundation.org>
+Subject: - kgdb-use-the-common-ascii-hex-helpers.patch removed from -mm tree
+Date: Thu, 05 Jun 2008 11:21:51 -0700
+Message-ID: <200806051821.m55ILpI6023258@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34927 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42906 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761105AbYFESWE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 14:22:04 -0400
+	by vger.kernel.org with ESMTP id S1761083AbYFESWB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 14:22:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bjorn.helgaas@hp.com, avuton@gmail.com, lenb@kernel.org, rene.herman@keyaccess.nl, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, jason.wessel@windriver.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     PNP: mark resources that conflict with PCI devices "disabled"
+     kgdb: use the common ascii hex helpers
 has been removed from the -mm tree.  Its filename was
-     pnp-mark-resources-that-conflict-with-pci-devices-disabled.patch
+     kgdb-use-the-common-ascii-hex-helpers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: PNP: mark resources that conflict with PCI devices "disabled"
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: kgdb: use the common ascii hex helpers
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Both the PNP/PCI conflict detection quirk and the PNP system driver
-must use the same mechanism to mark resources as disabled.
-
-I think it's best to keep the resource and to keep the type bit
-(IORESOURCE_MEM, etc), so that we match the list from firmware as
-closely as possible.
-
-Fixes this regression from 2.6.25: http://lkml.org/lkml/2008/6/1/82
-
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Tested-by: Avuton Olrich <avuton@gmail.com>
-Cc: Rene Herman <rene.herman@keyaccess.nl>
-Cc: Len Brown <lenb@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Jason Wessel <jason.wessel@windriver.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/quirks.c |    2 +-
- drivers/pnp/system.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/misc/kgdbts.c |    5 ++---
+ kernel/kgdb.c         |   10 ++++------
+ 2 files changed, 6 insertions(+), 9 deletions(-)
 
-diff -puN drivers/pnp/quirks.c~pnp-mark-resources-that-conflict-with-pci-devices-disabled drivers/pnp/quirks.c
---- a/drivers/pnp/quirks.c~pnp-mark-resources-that-conflict-with-pci-devices-disabled
-+++ a/drivers/pnp/quirks.c
-@@ -286,7 +286,7 @@ static void quirk_system_pci_resources(s
- 					pci_name(pdev), i,
- 					(unsigned long long) pci_start,
- 					(unsigned long long) pci_end);
--				res->flags = 0;
-+				res->flags |= IORESOURCE_DISABLED;
- 			}
+diff -puN drivers/misc/kgdbts.c~kgdb-use-the-common-ascii-hex-helpers drivers/misc/kgdbts.c
+--- a/drivers/misc/kgdbts.c~kgdb-use-the-common-ascii-hex-helpers
++++ a/drivers/misc/kgdbts.c
+@@ -119,7 +119,6 @@
+ 	} while (0)
+ #define MAX_CONFIG_LEN		40
+ 
+-static const char hexchars[] = "0123456789abcdef";
+ static struct kgdb_io kgdbts_io_ops;
+ static char get_buf[BUFMAX];
+ static int get_buf_cnt;
+@@ -619,8 +618,8 @@ static void fill_get_buf(char *buf)
+ 		count++;
+ 	}
+ 	strcat(get_buf, "#");
+-	get_buf[count + 2] = hexchars[checksum >> 4];
+-	get_buf[count + 3] = hexchars[checksum & 0xf];
++	get_buf[count + 2] = hex_asc_hi(checksum);
++	get_buf[count + 3] = hex_asc_lo(checksum);
+ 	get_buf[count + 4] = '\0';
+ 	v2printk("get%i: %s\n", ts.idx, get_buf);
+ }
+diff -puN kernel/kgdb.c~kgdb-use-the-common-ascii-hex-helpers kernel/kgdb.c
+--- a/kernel/kgdb.c~kgdb-use-the-common-ascii-hex-helpers
++++ a/kernel/kgdb.c
+@@ -228,8 +228,6 @@ void __weak kgdb_disable_hw_debug(struct
+  * GDB remote protocol parser:
+  */
+ 
+-static const char	hexchars[] = "0123456789abcdef";
+-
+ static int hex(char ch)
+ {
+ 	if ((ch >= 'a') && (ch <= 'f'))
+@@ -317,8 +315,8 @@ static void put_packet(char *buffer)
  		}
- 	}
-diff -puN drivers/pnp/system.c~pnp-mark-resources-that-conflict-with-pci-devices-disabled drivers/pnp/system.c
---- a/drivers/pnp/system.c~pnp-mark-resources-that-conflict-with-pci-devices-disabled
-+++ a/drivers/pnp/system.c
-@@ -81,7 +81,7 @@ static void reserve_resources_of_dev(str
- 	}
  
- 	for (i = 0; (res = pnp_get_resource(dev, IORESOURCE_MEM, i)); i++) {
--		if (res->flags & IORESOURCE_UNSET)
-+		if (res->flags & IORESOURCE_DISABLED)
- 			continue;
+ 		kgdb_io_ops->write_char('#');
+-		kgdb_io_ops->write_char(hexchars[checksum >> 4]);
+-		kgdb_io_ops->write_char(hexchars[checksum & 0xf]);
++		kgdb_io_ops->write_char(hex_asc_hi(checksum));
++		kgdb_io_ops->write_char(hex_asc_lo(checksum));
+ 		if (kgdb_io_ops->flush)
+ 			kgdb_io_ops->flush();
  
- 		reserve_range(dev, res->start, res->end, 0);
+@@ -479,8 +477,8 @@ static void error_packet(char *pkt, int 
+ {
+ 	error = -error;
+ 	pkt[0] = 'E';
+-	pkt[1] = hexchars[(error / 10)];
+-	pkt[2] = hexchars[(error % 10)];
++	pkt[1] = hex_asc[(error / 10)];
++	pkt[2] = hex_asc[(error % 10)];
+ 	pkt[3] = '\0';
+ }
+ 
 _
 
-Patches currently in -mm which might be from bjorn.helgaas@hp.com are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
-acpi_pm_device_sleep_state-cleanup.patch
-mm-only-enforce-acpi-resource-conflict-checks.patch
-provide-rtc_cmos-platform-device-take-2.patch
-acpi-fix-drivers-acpi-gluec-build-error.patch
-pnpacpi-fix-irq-flag-decoding.patch
-pnpacpi-fix-irq-flag-decoding-comment-fix.patch
-pnpacpi-fix-shareable-irq-encode-decode.patch
-pnpacpi-use-_crs-irq-descriptor-length-for-_srs-v2.patch
-pnp-add-detail-to-debug-resource-dump.patch
-pnp-remove-pnp_resourceindex.patch
-pnp-add-pnp_resource_type-internal-interface.patch
-pnp-add-pnp_resource_type_name-helper-function.patch
-pnp-make-pnp_portmemetc_start-et-al-work-for-invalid-resources.patch
-pnp-replace-pnp_resource_table-with-dynamically-allocated-resources.patch
-pnp-replace-pnp_resource_table-with-dynamically-allocated-resources-merge-fix.patch
-pnp-remove-ratelimit-on-add-resource-failures.patch
-pnp-dont-sort-by-type-in-sys-resources.patch
-pnp-set-the-pnp_card-dma_mask-for-use-by-isapnp-cards.patch
-isa-set-24-bit-dma_mask-for-isa-devices.patch
-pnp-add-pnp_possible_config-can-a-device-could-be-configured-this-way.patch
-pnp-whitespace-coding-style-fixes.patch
-pnp-define-pnp-specific-ioresource_io_-flags-alongside-irq-dma-mem.patch
-pnp-make-resource-option-structures-private-to-pnp-subsystem.patch
-pnp-introduce-pnp_irq_mask_t-typedef.patch
-pnp-increase-i-o-port-memory-option-address-sizes.patch
-pnp-improve-resource-assignment-debug.patch
-pnp-in-debug-resource-dump-make-empty-list-obvious.patch
-pnp-make-resource-assignment-functions-return-0-success-or-ebusy-failure.patch
-pnp-remove-redundant-pnp_can_configure-check.patch
-pnp-centralize-resource-option-allocations.patch
-pnpacpi-ignore-_prs-interrupt-numbers-larger-than-pnp_irq_nr.patch
-pnp-rename-pnp_register__resource-local-variables.patch
-pnp-support-optional-irq-resources.patch
-pnp-remove-extra-0x100-bit-from-option-priority.patch
-isapnp-handle-independent-options-following-dependent-ones.patch
-pnp-convert-resource-options-to-single-linked-list.patch
-pnp-convert-resource-options-to-single-linked-list-checkpatch-fixes.patch
-make-pnp_add_card_id-static.patch
+lib-export-bitrev16.patch
+linux-next.patch
+cifs-remove-global_extern-macro.patch
+mtd-mtdcharc-silence-sparse-warning.patch
+mtd-mtdcharc-remove-shadowed-variable-warnings.patch
+bluetooth-hci_bcspc-small-cleanups-api-users.patch
+bluetooth-hci_bcspc-small-cleanups-api-users-fix.patch
+scsi-replace-remaining-__function__-occurrences.patch
+fusion-replace-remaining-__function__-occurrences.patch
+scsi-replace-__inline-with-inline.patch
+scsi-use-get_unaligned_-helpers.patch
+scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
+scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
+block-use-get_unaligned_-helpers.patch
+usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues.patch
+usb-cp2101c-fix-sparse-signedness-mismatch-warnings.patch
+usb-speedtchc-fix-sparse-shadowed-variable-warning.patch
+xfs-use-get_unaligned_-helpers.patch
+xtensa-replace-remaining-__function__-occurences.patch
+fs-ldm-use-get_unaligned_-helpers.patch
+include-use-get-put_unaligned_-helpers.patch
+lzo-use-get-put_unaligned_-helpers.patch
+asm-generic-int-ll64h-always-provide-__su64.patch
+scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
+isdn-use-the-common-ascii-hex-helpers.patch
+net-use-the-common-ascii-hex-helpers.patch
+cris-use-the-common-ascii-hex-helpers.patch
+frv-use-the-common-ascii-hex-helpers.patch
+mips-use-the-common-ascii-hex-helpers.patch
+ppc-use-the-common-ascii-hex-helpers.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+mn10300-use-the-common-ascii-hex-helpers.patch
 
