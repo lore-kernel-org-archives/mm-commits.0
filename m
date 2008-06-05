@@ -1,112 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: - save-restore-device-configuration-space.patch removed from -mm tree
-Date: Thu, 05 Jun 2008 11:21:35 -0700
-Message-ID: <200806051821.m55ILZag023237@imap1.linux-foundation.org>
+Subject: - kgdb-use-put_unaligned_be32-helper.patch removed from -mm tree
+Date: Thu, 05 Jun 2008 11:21:21 -0700
+Message-ID: <200806051821.m55ILLkN023222@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37366 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42419 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753293AbYFESVo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 14:21:44 -0400
+	by vger.kernel.org with ESMTP id S1753876AbYFESVt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 14:21:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ranma+kernel@tdiedrich.de, aabdulla@nvidia.com, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, jason.wessel@windriver.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     forcedeth: save/restore device configuration space
+     kgdb: use put_unaligned_be32 helper
 has been removed from the -mm tree.  Its filename was
-     save-restore-device-configuration-space.patch
+     kgdb-use-put_unaligned_be32-helper.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: forcedeth: save/restore device configuration space
-From: Tobias Diedrich <ranma+kernel@tdiedrich.de>
+Subject: kgdb: use put_unaligned_be32 helper
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-The memory mapped device configuration space is lost during hibernate. 
-Save and restore it (fixes 'swapped mac' problem).
-
-Signed-off-by: TTobias Diedrich <ranma+kernel@tdiedrich.de>
-Cc: Ayaz Abdulla <aabdulla@nvidia.com>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Jason Wessel <jason.wessel@windriver.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/forcedeth.c |   21 +++++++++++++++------
- 1 file changed, 15 insertions(+), 6 deletions(-)
+ kernel/kgdb.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN drivers/net/forcedeth.c~save-restore-device-configuration-space drivers/net/forcedeth.c
---- a/drivers/net/forcedeth.c~save-restore-device-configuration-space
-+++ a/drivers/net/forcedeth.c
-@@ -426,6 +426,7 @@ union ring_type {
- #define NV_PCI_REGSZ_VER1      	0x270
- #define NV_PCI_REGSZ_VER2      	0x2d4
- #define NV_PCI_REGSZ_VER3      	0x604
-+#define NV_PCI_REGSZ_MAX       	0x604
+diff -puN kernel/kgdb.c~kgdb-use-put_unaligned_be32-helper kernel/kgdb.c
+--- a/kernel/kgdb.c~kgdb-use-put_unaligned_be32-helper
++++ a/kernel/kgdb.c
+@@ -52,6 +52,7 @@
+ #include <asm/byteorder.h>
+ #include <asm/atomic.h>
+ #include <asm/system.h>
++#include <asm/unaligned.h>
  
- /* various timeout delays: all in usec */
- #define NV_TXRX_RESET_DELAY	4
-@@ -784,6 +785,9 @@ struct fe_priv {
+ static int kgdb_break_asap;
  
- 	/* flow control */
- 	u32 pause_flags;
-+
-+	/* power saved state */
-+	u32 saved_config_space[NV_PCI_REGSZ_MAX/4];
- };
+@@ -510,10 +511,7 @@ static void int_to_threadref(unsigned ch
+ 	scan = (unsigned char *)id;
+ 	while (i--)
+ 		*scan++ = 0;
+-	*scan++ = (value >> 24) & 0xff;
+-	*scan++ = (value >> 16) & 0xff;
+-	*scan++ = (value >> 8) & 0xff;
+-	*scan++ = (value & 0xff);
++	put_unaligned_be32(value, scan);
+ }
  
- /*
-@@ -5793,6 +5797,8 @@ static int nv_suspend(struct pci_dev *pd
- {
- 	struct net_device *dev = pci_get_drvdata(pdev);
- 	struct fe_priv *np = netdev_priv(dev);
-+	u8 __iomem *base = get_hwbase(dev);
-+	int i;
- 
- 	if (!netif_running(dev))
- 		goto out;
-@@ -5802,6 +5808,10 @@ static int nv_suspend(struct pci_dev *pd
- 	// Gross.
- 	nv_close(dev);
- 
-+	/* save non-pci configuration space */
-+	for (i = 0;i <= np->register_size/sizeof(u32); i++)
-+		np->saved_config_space[i] = readl(base + i*sizeof(u32));
-+
- 	pci_save_state(pdev);
- 	pci_enable_wake(pdev, pci_choose_state(pdev, state), np->wolenabled);
- 	pci_set_power_state(pdev, pci_choose_state(pdev, state));
-@@ -5812,9 +5822,9 @@ out:
- static int nv_resume(struct pci_dev *pdev)
- {
- 	struct net_device *dev = pci_get_drvdata(pdev);
-+	struct fe_priv *np = netdev_priv(dev);
- 	u8 __iomem *base = get_hwbase(dev);
--	int rc = 0;
--	u32 txreg;
-+	int i, rc = 0;
- 
- 	if (!netif_running(dev))
- 		goto out;
-@@ -5825,10 +5835,9 @@ static int nv_resume(struct pci_dev *pde
- 	pci_restore_state(pdev);
- 	pci_enable_wake(pdev, PCI_D0, 0);
- 
--	/* restore mac address reverse flag */
--	txreg = readl(base + NvRegTransmitPoll);
--	txreg |= NVREG_TRANSMITPOLL_MAC_ADDR_REV;
--	writel(txreg, base + NvRegTransmitPoll);
-+	/* restore non-pci configuration space */
-+	for (i = 0;i <= np->register_size/sizeof(u32); i++)
-+		writel(np->saved_config_space[i], base+i*sizeof(u32));
- 
- 	rc = nv_open(dev);
- 	nv_set_multicast(dev);
+ static struct task_struct *getthread(struct pt_regs *regs, int tid)
 _
 
-Patches currently in -mm which might be from ranma+kernel@tdiedrich.de are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
+lib-export-bitrev16.patch
 linux-next.patch
+cifs-remove-global_extern-macro.patch
+mtd-mtdcharc-silence-sparse-warning.patch
+mtd-mtdcharc-remove-shadowed-variable-warnings.patch
+bluetooth-hci_bcspc-small-cleanups-api-users.patch
+bluetooth-hci_bcspc-small-cleanups-api-users-fix.patch
+scsi-replace-remaining-__function__-occurrences.patch
+fusion-replace-remaining-__function__-occurrences.patch
+scsi-replace-__inline-with-inline.patch
+scsi-use-get_unaligned_-helpers.patch
+scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
+scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
+block-use-get_unaligned_-helpers.patch
+usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues.patch
+usb-cp2101c-fix-sparse-signedness-mismatch-warnings.patch
+usb-speedtchc-fix-sparse-shadowed-variable-warning.patch
+xfs-use-get_unaligned_-helpers.patch
+xtensa-replace-remaining-__function__-occurences.patch
+fs-ldm-use-get_unaligned_-helpers.patch
+include-use-get-put_unaligned_-helpers.patch
+lzo-use-get-put_unaligned_-helpers.patch
+asm-generic-int-ll64h-always-provide-__su64.patch
+scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
+isdn-use-the-common-ascii-hex-helpers.patch
+net-use-the-common-ascii-hex-helpers.patch
+cris-use-the-common-ascii-hex-helpers.patch
+frv-use-the-common-ascii-hex-helpers.patch
+mips-use-the-common-ascii-hex-helpers.patch
+ppc-use-the-common-ascii-hex-helpers.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+mn10300-use-the-common-ascii-hex-helpers.patch
 
