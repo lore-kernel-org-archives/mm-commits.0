@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cgroup-anotate-two-variables-with-__read_mostly.patch added to -mm tree
-Date: Wed, 04 Jun 2008 23:30:46 -0700
-Message-ID: <200806050630.m556Ukjt029553@imap1.linux-foundation.org>
+Subject: + acpi-pci-slot-detection-driver-fix.patch added to -mm tree
+Date: Wed, 04 Jun 2008 23:34:15 -0700
+Message-ID: <200806050634.m556YFEQ029706@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49731 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50991 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751250AbYFEGb1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 02:31:27 -0400
+	by vger.kernel.org with ESMTP id S1752166AbYFEGfb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 02:35:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lizf@cn.fujitsu.com, menage@google.com
+Cc: kaneshige.kenji@jp.fujitsu.com, achiang@hp.com, greg@kroah.com, kristen.c.accardi@intel.com, lenb@kernel.org
 
 
 The patch titled
-     cgroup: anotate two variables with __read_mostly
+     kobject: Export kobject_rename for pci_hotplug_core
 has been added to the -mm tree.  Its filename is
-     cgroup-anotate-two-variables-with-__read_mostly.patch
+     acpi-pci-slot-detection-driver-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,66 +33,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroup: anotate two variables with __read_mostly
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: kobject: Export kobject_rename for pci_hotplug_core
+From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
 
-- need_forkexit_callback will be read only after system boot.
-- use_task_css_set_links will be read only after it's set.
+Export kobject_rename() to fix the following link error.  This happens
+when pci_hotplug_core driver is compiled as a kernel module.
 
-And these 2 variables are checked when a new process is forked.
+ERROR: "kobject_rename" [drivers/pci/hotplug/pci_hotplug.ko] undefined!
+make[1]: *** [__modpost] Error 1
+make: *** [modules] Error 2
+make: *** Waiting for unfinished jobs....
 
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Paul Menage <menage@google.com>
+Signed-off-by: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Acked-by: Greg KH <greg@kroah.com>
+Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Alex Chiang <achiang@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/kobject.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN kernel/cgroup.c~cgroup-anotate-two-variables-with-__read_mostly kernel/cgroup.c
---- a/kernel/cgroup.c~cgroup-anotate-two-variables-with-__read_mostly
-+++ a/kernel/cgroup.c
-@@ -118,7 +118,7 @@ static int root_count;
-  * extra work in the fork/exit path if none of the subsystems need to
-  * be called.
-  */
--static int need_forkexit_callback;
-+static int need_forkexit_callback __read_mostly;
- static int need_mm_owner_callback __read_mostly;
+diff -puN lib/kobject.c~acpi-pci-slot-detection-driver-fix lib/kobject.c
+--- a/lib/kobject.c~acpi-pci-slot-detection-driver-fix
++++ a/lib/kobject.c
+@@ -489,6 +489,7 @@ out:
  
- /* convenient tests for these bits */
-@@ -220,7 +220,7 @@ static struct hlist_head *css_set_hash(s
-  * task until after the first call to cgroup_iter_start(). This
-  * reduces the fork()/exit() overhead for people who have cgroups
-  * compiled into their kernel but not actually in use */
--static int use_task_css_set_links;
-+static int use_task_css_set_links __read_mostly;
+ 	return error;
+ }
++EXPORT_SYMBOL_GPL(kobject_rename);
  
- /* When we create or destroy a css_set, the operation simply
-  * takes/releases a reference count on all the cgroups referenced
+ /**
+  * kobject_move - move object to another parent
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from kaneshige.kenji@jp.fujitsu.com are
 
+origin.patch
 linux-next.patch
-git-leds.patch
-scsi-libiscsic-return-errno-rather-than-errno.patch
-call_usermodehelper-increase-reliability.patch
-rtc-push-the-bkl-down-into-the-driver-ioctl-method-fix.patch
-cgroup-use-read-lock-to-guard-find_existing_css_set.patch
-cgroup-list_for_each-cleanup-v2.patch
-cgroup-anotate-two-variables-with-__read_mostly.patch
-memcg-avoid-unnecessary-initialization.patch
-memcg-better-migration-handling.patch
-memcg-remove-refcnt-from-page_cgroup.patch
-memcg-remove-refcnt-from-page_cgroup-fix.patch
-memcg-handle-swap-cache.patch
-memcg-helper-function-for-relcaim-from-shmem.patch
-memcg-add-hints-for-branch.patch
-memcg-remove-a-redundant-check.patch
-memrlimit-add-memrlimit-controller-documentation.patch
-memrlimit-setup-the-memrlimit-controller.patch
-memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
-memrlimit-add-memrlimit-controller-accounting-and-control.patch
-cpusets-update-tasks-cpus_allowed-and-mems_allowed-after-cpu-node-offline-online.patch
+fakephp-construct-one-fakephp-slot-per-pci-slot.patch
+pci-introduce-pci_slot.patch
+acpi-pci-slot-detection-driver.patch
+acpi-pci-slot-detection-driver-fix.patch
 
