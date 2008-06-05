@@ -1,216 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: - pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes.patch removed from -mm tree
-Date: Thu, 05 Jun 2008 11:53:37 -0700
-Message-ID: <200806051853.m55Irb3X024619@imap1.linux-foundation.org>
+Subject: + devscgroup-check-for-device-permissions-at-mount-time.patch added to -mm tree
+Date: Thu, 05 Jun 2008 11:47:49 -0700
+Message-ID: <200806051847.m55IlnQH024365@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58025 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59942 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750776AbYFESzn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 14:55:43 -0400
+	by vger.kernel.org with ESMTP id S1754622AbYFES6N (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 14:58:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cooloney@kernel.org, michael.hennerich@analog.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: xemul@openvz.org, serue@us.ibm.com
 
 
 The patch titled
-     pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes
-has been removed from the -mm tree.  Its filename was
-     pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes.patch
+     devscgroup: check for device permissions at mount time
+has been added to the -mm tree.  Its filename is
+     devscgroup-check-for-device-permissions-at-mount-time.patch
 
-This patch was dropped because it was folded into pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: devscgroup: check for device permissions at mount time
+From: Pavel Emelyanov <xemul@openvz.org>
 
-WARNING: Use #include <linux/io.h> instead of <asm/io.h>
-#86: FILE: drivers/pcmcia/bfin_cf_pcmcia.c:41:
-+#include <asm/io.h>
+Currently even if a task sits in an all-denied cgroup it can still mount
+any block device in any mode it wants.
 
-WARNING: Use #include <linux/gpio.h> instead of <asm/gpio.h>
-#87: FILE: drivers/pcmcia/bfin_cf_pcmcia.c:42:
-+#include <asm/gpio.h>
+Put a proper check in do_open for block device to prevent this.
 
-ERROR: "foo * bar" should be "foo *bar"
-#150: FILE: drivers/pcmcia/bfin_cf_pcmcia.c:105:
-+static int bfin_cf_get_status(struct pcmcia_socket *s, u_int * sp)
-
-WARNING: __func__ should be used instead of gcc specific __FUNCTION__
-#200: FILE: drivers/pcmcia/bfin_cf_pcmcia.c:155:
-+	pr_debug("%s: %s\n", driver_name, __FUNCTION__);
-
-total: 1 errors, 3 warnings, 369 lines checked
-
-./patches/pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Bryan Wu <cooloney@kernel.org>
-Cc: Michael Hennerich <michael.hennerich@analog.com>
+Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
+Acked-by: Serge Hallyn <serue@us.ibm.com>
+Tested-by: Serge Hallyn <serue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pcmcia/bfin_cf_pcmcia.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/block_dev.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN drivers/pcmcia/bfin_cf_pcmcia.c~pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes drivers/pcmcia/bfin_cf_pcmcia.c
---- a/drivers/pcmcia/bfin_cf_pcmcia.c~pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes
-+++ a/drivers/pcmcia/bfin_cf_pcmcia.c
-@@ -35,10 +35,10 @@
- #include <linux/delay.h>
- #include <linux/interrupt.h>
- #include <linux/irq.h>
-+#include <linux/io.h>
- 
- #include <pcmcia/ss.h>
- #include <pcmcia/cisreg.h>
--#include <asm/io.h>
- #include <asm/gpio.h>
- 
- #define	SZ_1K	0x00000400
-@@ -102,7 +102,7 @@ static void bfin_cf_timer(unsigned long 
- 		mod_timer(&cf->timer, jiffies + POLL_INTERVAL);
- }
- 
--static int bfin_cf_get_status(struct pcmcia_socket *s, u_int * sp)
-+static int bfin_cf_get_status(struct pcmcia_socket *s, u_int *sp)
+diff -puN fs/block_dev.c~devscgroup-check-for-device-permissions-at-mount-time fs/block_dev.c
+--- a/fs/block_dev.c~devscgroup-check-for-device-permissions-at-mount-time
++++ a/fs/block_dev.c
+@@ -12,6 +12,7 @@
+ #include <linux/kmod.h>
+ #include <linux/major.h>
+ #include <linux/smp_lock.h>
++#include <linux/device_cgroup.h>
+ #include <linux/highmem.h>
+ #include <linux/blkdev.h>
+ #include <linux/module.h>
+@@ -928,9 +929,14 @@ static int do_open(struct block_device *
  {
- 	struct bfin_cf_socket *cf;
+ 	struct module *owner = NULL;
+ 	struct gendisk *disk;
+-	int ret = -ENXIO;
++	int ret;
+ 	int part;
  
-@@ -152,7 +152,7 @@ bfin_cf_set_socket(struct pcmcia_socket 
- 
- static int bfin_cf_ss_suspend(struct pcmcia_socket *s)
- {
--	pr_debug("%s: %s\n", driver_name, __FUNCTION__);
-+	pr_debug("%s: %s\n", driver_name, __func__);
- 	return bfin_cf_set_socket(s, &dead_socket);
- }
- 
++	ret = devcgroup_inode_permission(bdev->bd_inode, file->f_mode);
++	if (ret != 0)
++		return ret;
++
++	ret = -ENXIO;
+ 	file->f_mapping = bdev->bd_inode->i_mapping;
+ 	lock_kernel();
+ 	disk = get_gendisk(bdev->bd_dev, &part);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from xemul@openvz.org are
 
+devcgroup-make-a-helper-to-convert-cgroup_subsys_state-to-devs_cgroup.patch
+devscgroup-relax-task-to-dev_cgroup-conversion.patch
+devscgroup-check-for-device-permissions-at-mount-time.patch
+devscgroup-make-white-list-more-compact-in-some-cases.patch
 linux-next.patch
-next-remove-localversion.patch
-linux-next-fixup.patch
-linux-next-rtc-fix.patch
-fix-kobject-fix-kobject_rename-and-config_sysfs.patch
-kvm-is-busted-on-ia64.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-video-balcklist-fujitsu-lifebook-s6410.patch
-lguest-use-cpu-capability-accessors.patch
-arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
-pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2.patch
-pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes.patch
-pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup.patch
-pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup-fix.patch
-arch-powerpc-platforms-pseries-eeh_driverc-fix-warning.patch
-arch-powerpc-platforms-pseries-eeh_driverc-fix-warning-checkpatch-fixes.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-git-jg-misc-git-rejects.patch
-drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-git-leds.patch
-fsldma-the-mpc8377mds-board-device-tree-node-for-fsldma-driver.patch
-mmc-sd-host-driver-for-ricoh-bay1controllers.patch
-bluetooth-hci_bcspc-small-cleanups-api-users-fix.patch
-sundance-set-carrier-status-on-link-change-events.patch
-net-sh_eth-add-support-for-renesas-superh-ethernet-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-battery.patch
-pci-introduce-pci_slot.patch
-acpi-pci-slot-detection-driver.patch
-git-scsi-misc-fix-scsi_dh-build-errors.patch
-drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
-s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
-pktcdvd-push-bkl-down-into-driver-fix.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-git-logfs-fixup.patch
-drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
-drivers-uwb-wlp-sysfsc-dead-code.patch
-usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix.patch
-usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix-2.patch
-watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix.patch
-watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl-fix.patch
-git-xtensa.patch
-ext4-is-busted-on-m68k.patch
-rtc-class-driver-for-ppc_md-rtc-functions-fix.patch
+proc-calculate-the-correct-proc-pid-link-count.patch
 proc-calculate-the-correct-proc-pid-link-count-cleanup.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-forcedeth-msi-interrupts-uninlining.patch
-mm-verify-the-page-links-and-memory-model.patch
-mspec-convert-nopfn-to-fault-fix.patch
-page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
-kill-generic_file_direct_io-checkpatch-fixes.patch
-use-generic_access_phys-for-dev-mem-mappings-fix.patch
-spufs-use-the-new-vm_ops-access-fix.patch
-fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
-page-flags-record-page-flag-overlays-explicitly-xen.patch
-mapping_set_error-add-unlikely.patch
-huge-page-private-reservation-review-cleanups-fix.patch
-sync_file_range_write-may-and-will-block-document-that-fix.patch
-vmallocinfo-add-numa-information-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
-swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
-split-the-typecheck-macros-out-of-include-linux-kernelh.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
-remove-apparently-unused-fd1772h-header-file.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
-build-kernel-profileo-only-when-requested-cleanups.patch
-fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
-block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
-rename-warn-to-warning-to-clear-the-namespace-fix.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
-flag-parameters-paccept-fix.patch
-flag-parameters-paccept-sys_ni.patch
-flag-parameters-anon_inode_getfd-extension-fix.patch
-flag-parameters-signalfd-fix.patch
-flag-parameters-eventfd-fix.patch
-flag-parameters-inotify_init-fix.patch
-flag-parameters-check-magic-constants-alpha.patch
-cputopology-always-define-cpu-topology-information-cleanup.patch
-oprofile-multiplexing-checkpatch-fixes.patch
-drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
-pnp-convert-resource-options-to-single-linked-list-checkpatch-fixes.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
-reiserfs-convert-j_flush_sem-to-mutex.patch
-reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
-jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup.patch
-ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-fix.patch
-x86-lockless-get_user_pages_fast-fix-warning.patch
+mark-res_counter_charge_locked-with-__must_check.patch
+memcg-make-global-var-read_mostly.patch
+memcg-avoid-unnecessary-initialization.patch
+memcg-better-migration-handling.patch
+memcg-remove-refcnt-from-page_cgroup.patch
+memcg-remove-refcnt-from-page_cgroup-fix.patch
+memcg-handle-swap-cache.patch
+memcg-helper-function-for-relcaim-from-shmem.patch
+memcg-add-hints-for-branch.patch
+memcg-remove-a-redundant-check.patch
+memrlimit-add-memrlimit-controller-documentation.patch
+memrlimit-setup-the-memrlimit-controller.patch
+memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
+memrlimit-add-memrlimit-controller-accounting-and-control.patch
+sysctl-allow-override-of-proc-sys-net-with-cap_net_admin.patch
+bsdacct-rename-acct_blbls-to-bsd_acct_struct.patch
+pidns-use-kzalloc-when-allocating-new-pid_namespace-struct.patch
+pidns-add-the-struct-bsd_acct_struct-pointer-on-pid_namespace-struct.patch
+bsdacct-truthify-a-comment-near-acct_process.patch
+bsdacct-make-check-timer-accept-a-bsd_acct_struct-argument.patch
+bsdacct-turn-the-acct_lock-from-on-the-struct-to-global.patch
+bsdacct-make-internal-code-work-with-passed-bsd_acct_struct-not-global.patch
+bsdacct-switch-from-global-bsd_acct_struct-instance-to-per-pidns-one.patch
+bsdacct-turn-acct-off-for-all-pidns-s-on-umount-time.patch
+bsdacct-account-dying-tasks-in-all-relevant-namespaces.patch
+bsdacct-stir-up-comments-around-acct_process.patch
 reiser4.patch
-reiser4-semaphore-fix.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
 
