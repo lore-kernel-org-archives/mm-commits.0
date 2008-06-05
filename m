@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + dev_set_name-fix-missing-kernel-doc.patch added to -mm tree
-Date: Wed, 04 Jun 2008 22:59:41 -0700
-Message-ID: <200806050559.m555xfJO028506@imap1.linux-foundation.org>
+Subject: + pnp-remove-redundant-pnp_can_configure-check.patch added to -mm tree
+Date: Wed, 04 Jun 2008 22:57:25 -0700
+Message-ID: <200806050557.m555vP1p028366@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48486 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50314 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752082AbYFEF7w (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 01:59:52 -0400
+	by vger.kernel.org with ESMTP id S1751529AbYFEGGs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 02:06:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com
+Cc: bjorn.helgaas@hp.com, abelay@mit.edu, castet.matthieu@free.fr, lenb@kernel.org, perex@perex.cz, rene.herman@gmail.com, shaohua.li@intel.com, tiwai@suse.de, trenn@suse.de
 
 
 The patch titled
-     dev_set_name: fix missing kernel-doc
+     pnp: remove redundant pnp_can_configure() check
 has been added to the -mm tree.  Its filename is
-     dev_set_name-fix-missing-kernel-doc.patch
+     pnp-remove-redundant-pnp_can_configure-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,53 +33,80 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dev_set_name: fix missing kernel-doc
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: pnp: remove redundant pnp_can_configure() check
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Fix kernel-doc for new dev_set_name() function:
+pnp_assign_resources() is static and the only caller checks
+pnp_can_configure() before calling it, so no need to do it again.
 
-Warning(lin2626-rc5//drivers/base/core.c:767): No description found for parameter 'fmt'
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Acked-by: Rene Herman <rene.herman@gmail.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Adam M Belay <abelay@mit.edu>
+Cc: Li Shaohua <shaohua.li@intel.com>
+Cc: Matthieu Castet <castet.matthieu@free.fr>
+Cc: Thomas Renninger <trenn@suse.de>
+Cc: Jaroslav Kysela <perex@perex.cz>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/core.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/pnp/manager.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN drivers/base/core.c~dev_set_name-fix-missing-kernel-doc drivers/base/core.c
---- a/drivers/base/core.c~dev_set_name-fix-missing-kernel-doc
-+++ a/drivers/base/core.c
-@@ -769,6 +769,7 @@ static void device_remove_class_symlinks
- /**
-  * dev_set_name - set a device name
-  * @dev: device
-+ * @fmt: format string for the device's name
-  */
- int dev_set_name(struct device *dev, const char *fmt, ...)
- {
+diff -puN drivers/pnp/manager.c~pnp-remove-redundant-pnp_can_configure-check drivers/pnp/manager.c
+--- a/drivers/pnp/manager.c~pnp-remove-redundant-pnp_can_configure-check
++++ a/drivers/pnp/manager.c
+@@ -231,9 +231,6 @@ static int pnp_assign_resources(struct p
+ 	struct pnp_dma *dma;
+ 	int nport = 0, nmem = 0, nirq = 0, ndma = 0;
+ 
+-	if (!pnp_can_configure(dev))
+-		return -ENODEV;
+-
+ 	dbg_pnp_show_resources(dev, "before pnp_assign_resources");
+ 	mutex_lock(&pnp_res_mutex);
+ 	pnp_clean_resource_table(dev);
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from bjorn.helgaas@hp.com are
 
-origin.patch
-linux-next.patch
-dev_set_name-fix-missing-kernel-doc.patch
-documentation-build-source-files-in-documentation-sub-dir.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-netfilter-conntrack_helper-needs-to-include-rculisth.patch
-git-scsi-misc-fix-scsi_dh-build-errors.patch
-git-unionfs.patch
-uwb-fix-kconfig-causing-undefined-references.patch
-doc-add-suggestions-about-good-practices-for-maintainers.patch
-audit-fix-kernel-doc-parameter-notation.patch
-cxgb3-fix-build-error-when-inet=n.patch
-vmallocinfo-add-numa-information.patch
-vmallocinfo-add-numa-information-fix.patch
-flag-parameters-signalfd-fix.patch
-flag-parameters-eventfd-fix.patch
-bsdacct-stir-up-comments-around-acct_process.patch
-profile-likely-unlikely-macros.patch
+pnp-mark-resources-that-conflict-with-pci-devices-disabled.patch
+acpi_pm_device_sleep_state-cleanup.patch
+mm-only-enforce-acpi-resource-conflict-checks.patch
+provide-rtc_cmos-platform-device-take-2.patch
+acpi-fix-drivers-acpi-gluec-build-error.patch
+pnpacpi-fix-irq-flag-decoding.patch
+pnpacpi-fix-irq-flag-decoding-comment-fix.patch
+pnpacpi-fix-shareable-irq-encode-decode.patch
+pnpacpi-use-_crs-irq-descriptor-length-for-_srs-v2.patch
+pnp-add-detail-to-debug-resource-dump.patch
+pnp-remove-pnp_resourceindex.patch
+pnp-add-pnp_resource_type-internal-interface.patch
+pnp-add-pnp_resource_type_name-helper-function.patch
+pnp-make-pnp_portmemetc_start-et-al-work-for-invalid-resources.patch
+pnp-replace-pnp_resource_table-with-dynamically-allocated-resources.patch
+pnp-replace-pnp_resource_table-with-dynamically-allocated-resources-merge-fix.patch
+pnp-remove-ratelimit-on-add-resource-failures.patch
+pnp-dont-sort-by-type-in-sys-resources.patch
+pnp-set-the-pnp_card-dma_mask-for-use-by-isapnp-cards.patch
+isa-set-24-bit-dma_mask-for-isa-devices.patch
+pnp-add-pnp_possible_config-can-a-device-could-be-configured-this-way.patch
+pnp-whitespace-coding-style-fixes.patch
+pnp-define-pnp-specific-ioresource_io_-flags-alongside-irq-dma-mem.patch
+pnp-make-resource-option-structures-private-to-pnp-subsystem.patch
+pnp-introduce-pnp_irq_mask_t-typedef.patch
+pnp-increase-i-o-port-memory-option-address-sizes.patch
+pnp-improve-resource-assignment-debug.patch
+pnp-in-debug-resource-dump-make-empty-list-obvious.patch
+pnp-make-resource-assignment-functions-return-0-success-or-ebusy-failure.patch
+pnp-remove-redundant-pnp_can_configure-check.patch
+pnp-centralize-resource-option-allocations.patch
+pnpacpi-ignore-_prs-interrupt-numbers-larger-than-pnp_irq_nr.patch
+pnp-rename-pnp_register__resource-local-variables.patch
+pnp-support-optional-irq-resources.patch
+pnp-remove-extra-0x100-bit-from-option-priority.patch
+isapnp-handle-independent-options-following-dependent-ones.patch
+pnp-convert-resource-options-to-single-linked-list.patch
+make-pnp_add_card_id-static.patch
 
