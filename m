@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + remove-include-linux-pm_legacyh.patch added to -mm tree
-Date: Thu, 05 Jun 2008 12:32:28 -0700
-Message-ID: <200806051932.m55JWSQN026146@imap1.linux-foundation.org>
+Subject: + olpc-pci-fix-up-pci-stuff-so-that-pci_goany-supports-olpc.patch added to -mm tree
+Date: Thu, 05 Jun 2008 12:42:19 -0700
+Message-ID: <200806051942.m55JgJKw026509@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52844 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41386 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751308AbYFETdy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 15:33:54 -0400
+	by vger.kernel.org with ESMTP id S1762604AbYFETnS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 15:43:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, pavel@suse.cz, rjw@sisk.pl, rpjday@crashcourse.ca
+Cc: dilinger@queued.net, dilinger@debian.org, jbarnes@virtuousgeek.org, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     remove include/linux/pm_legacy.h
+     OLPC: pci: fix up PCI stuff so that PCI_GOANY supports OLPC
 has been added to the -mm tree.  Its filename is
-     remove-include-linux-pm_legacyh.patch
+     olpc-pci-fix-up-pci-stuff-so-that-pci_goany-supports-olpc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,144 +33,116 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: remove include/linux/pm_legacy.h
-From: Adrian Bunk <bunk@kernel.org>
+Subject: OLPC: pci: fix up PCI stuff so that PCI_GOANY supports OLPC
+From: Andres Salomon <dilinger@queued.net>
 
-Remove the obsolete and no longer used include/linux/pm_legacy.h
+Previously, one would have to specifically choose CONFIG_OLPC and
+CONFIG_PCI_GOOLPC in order to enable PCI_OLPC.  That doesn't really work
+for distro kernels, so this patch allows one to choose CONFIG_OLPC and
+CONFIG_PCI_GOANY in order to build in OLPC support in a generic kernel (as
+requested by Robert Millan).
 
-Reviewed-by: Robert P. J. Day <rpjday@crashcourse.ca>
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Pavel Machek <pavel@suse.cz>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+This also moves GOOLPC before GOANY in the menuconfig list.
+
+Finally, make pci_access_init return early if we detect OLPC hardware. 
+There's no need to continue probing stuff, and pci_pcbios_init
+specifically trashes our settings (we didn't run into that before because
+PCI_GOANY wasn't supported).
+
+Signed-off-by: Andres Salomon <dilinger@debian.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/kernel/pm.c            |    1 
- arch/mips/au1000/common/power.c |    1 
- arch/x86/kernel/apm_32.c        |    1 
- include/linux/pm_legacy.h       |   35 ------------------------------
- 4 files changed, 38 deletions(-)
+ arch/x86/Kconfig    |   11 +++++------
+ arch/x86/pci/init.c |    3 ++-
+ arch/x86/pci/olpc.c |    5 +++--
+ arch/x86/pci/pci.h  |    2 +-
+ 4 files changed, 11 insertions(+), 10 deletions(-)
 
-diff -puN arch/frv/kernel/pm.c~remove-include-linux-pm_legacyh arch/frv/kernel/pm.c
---- a/arch/frv/kernel/pm.c~remove-include-linux-pm_legacyh
-+++ a/arch/frv/kernel/pm.c
-@@ -14,7 +14,6 @@
- #include <linux/init.h>
- #include <linux/module.h>
- #include <linux/pm.h>
--#include <linux/pm_legacy.h>
- #include <linux/sched.h>
- #include <linux/interrupt.h>
- #include <linux/sysctl.h>
-diff -puN arch/mips/au1000/common/power.c~remove-include-linux-pm_legacyh arch/mips/au1000/common/power.c
---- a/arch/mips/au1000/common/power.c~remove-include-linux-pm_legacyh
-+++ a/arch/mips/au1000/common/power.c
-@@ -31,7 +31,6 @@
+diff -puN arch/x86/Kconfig~olpc-pci-fix-up-pci-stuff-so-that-pci_goany-supports-olpc arch/x86/Kconfig
+--- a/arch/x86/Kconfig~olpc-pci-fix-up-pci-stuff-so-that-pci_goany-supports-olpc
++++ a/arch/x86/Kconfig
+@@ -1556,13 +1556,13 @@ config PCI_GOMMCONFIG
+ config PCI_GODIRECT
+ 	bool "Direct"
  
- #include <linux/init.h>
- #include <linux/pm.h>
--#include <linux/pm_legacy.h>
- #include <linux/sysctl.h>
- #include <linux/jiffies.h>
+-config PCI_GOANY
+-	bool "Any"
+-
+ config PCI_GOOLPC
+ 	bool "OLPC"
+ 	depends on OLPC
  
-diff -puN arch/x86/kernel/apm_32.c~remove-include-linux-pm_legacyh arch/x86/kernel/apm_32.c
---- a/arch/x86/kernel/apm_32.c~remove-include-linux-pm_legacyh
-+++ a/arch/x86/kernel/apm_32.c
-@@ -219,7 +219,6 @@
- #include <linux/time.h>
- #include <linux/sched.h>
- #include <linux/pm.h>
--#include <linux/pm_legacy.h>
- #include <linux/capability.h>
- #include <linux/device.h>
- #include <linux/kernel.h>
-diff -puN include/linux/pm_legacy.h~remove-include-linux-pm_legacyh /dev/null
---- a/include/linux/pm_legacy.h
-+++ /dev/null
-@@ -1,35 +0,0 @@
--#ifndef __LINUX_PM_LEGACY_H__
--#define __LINUX_PM_LEGACY_H__
--
--
--#ifdef CONFIG_PM_LEGACY
--
--/*
-- * Register a device with power management
-- */
--struct pm_dev __deprecated *
--pm_register(pm_dev_t type, unsigned long id, pm_callback callback);
--
--/*
-- * Send a request to all devices
-- */
--int __deprecated pm_send_all(pm_request_t rqst, void *data);
--
--#else /* CONFIG_PM_LEGACY */
--
--static inline struct pm_dev *pm_register(pm_dev_t type,
--					 unsigned long id,
--					 pm_callback callback)
--{
--	return NULL;
--}
--
--static inline int pm_send_all(pm_request_t rqst, void *data)
--{
--	return 0;
--}
--
--#endif /* CONFIG_PM_LEGACY */
--
--#endif /* __LINUX_PM_LEGACY_H__ */
--
++config PCI_GOANY
++	bool "Any"
++
+ endchoice
+ 
+ config PCI_BIOS
+@@ -1579,9 +1579,8 @@ config PCI_MMCONFIG
+ 	depends on X86_32 && PCI && ACPI && (PCI_GOMMCONFIG || PCI_GOANY)
+ 
+ config PCI_OLPC
+-	bool
+-	depends on PCI && PCI_GOOLPC
+-	default y
++	def_bool y
++	depends on PCI && OLPC && (PCI_GOOLPC || PCI_GOANY)
+ 
+ config PCI_DOMAINS
+ 	def_bool y
+diff -puN arch/x86/pci/init.c~olpc-pci-fix-up-pci-stuff-so-that-pci_goany-supports-olpc arch/x86/pci/init.c
+--- a/arch/x86/pci/init.c~olpc-pci-fix-up-pci-stuff-so-that-pci_goany-supports-olpc
++++ a/arch/x86/pci/init.c
+@@ -15,7 +15,8 @@ static __init int pci_access_init(void)
+ 	pci_mmcfg_early_init();
+ 
+ #ifdef CONFIG_PCI_OLPC
+-	pci_olpc_init();
++	if (!pci_olpc_init())
++		return 0;	/* skip additional checks if it's an XO */
+ #endif
+ #ifdef CONFIG_PCI_BIOS
+ 	pci_pcbios_init();
+diff -puN arch/x86/pci/olpc.c~olpc-pci-fix-up-pci-stuff-so-that-pci_goany-supports-olpc arch/x86/pci/olpc.c
+--- a/arch/x86/pci/olpc.c~olpc-pci-fix-up-pci-stuff-so-that-pci_goany-supports-olpc
++++ a/arch/x86/pci/olpc.c
+@@ -302,12 +302,13 @@ static struct pci_raw_ops pci_olpc_conf 
+ 	.write = pci_olpc_write,
+ };
+ 
+-void __init pci_olpc_init(void)
++int __init pci_olpc_init(void)
+ {
+ 	if (!machine_is_olpc() || olpc_has_vsa())
+-		return;
++		return -ENODEV;
+ 
+ 	printk(KERN_INFO "PCI: Using configuration type OLPC\n");
+ 	raw_pci_ops = &pci_olpc_conf;
+ 	is_lx = is_geode_lx();
++	return 0;
+ }
+diff -puN arch/x86/pci/pci.h~olpc-pci-fix-up-pci-stuff-so-that-pci_goany-supports-olpc arch/x86/pci/pci.h
+--- a/arch/x86/pci/pci.h~olpc-pci-fix-up-pci-stuff-so-that-pci_goany-supports-olpc
++++ a/arch/x86/pci/pci.h
+@@ -102,7 +102,7 @@ extern struct pci_raw_ops pci_direct_con
+ extern int pci_direct_probe(void);
+ extern void pci_direct_init(int type);
+ extern void pci_pcbios_init(void);
+-extern void pci_olpc_init(void);
++extern int pci_olpc_init(void);
+ 
+ /* pci-mmconfig.c */
+ 
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from dilinger@queued.net are
 
-frv-dont-offer-binfmt_flat.patch
 linux-next.patch
-proper-prototype-for-acpi_processor_tstate_has_changed.patch
-remove-drivers-acorn-char-defkeymap-l7200c.patch
-drm-make-drm_minors_cleanup-static.patch
-if-0-ses_match_host.patch
-git-xtensa.patch
-mm-migratec-should-include-linux-syscallsh.patch
-mm-vmstatc-proper-externs.patch
-mm-hugetlbc-fix-duplicate-variable.patch
-remove-include-asm-h8300-keyboardh.patch
-remove-include-linux-pm_legacyh.patch
-remove-the-v850-port.patch
-init-do_mountsc-should-include-linux-initrdh.patch
-proper-spawn_ksoftirqd-prototype.patch
-build-kernel-profileo-only-when-requested.patch
-build-kernel-profileo-only-when-requested-cleanups.patch
-asm-generic-int-ll64h-always-provide-__su64.patch
-remove-some-more-tipar-bits.patch
-remove-the-oss-trident-driver.patch
-config_sound_wm97xx-remove-stale-makefile-line.patch
-serial-8250_gscc-add-module_license.patch
-mfd-sm501c-if-0-unused-functions.patch
-video-sis-remove-compat-code.patch
-minix-remove-no_truncate-code.patch
-remove-is_tty.patch
-proper-extern-for-mwave_s_mdd.patch
-if-0-hpet_unregister.patch
-unexport-proc_clear_tty.patch
-move-proc_kmsg_operations-to-fs-proc-internalh.patch
-proper-pidhashmap_init-prototypes.patch
-unexport-uts_sem.patch
-parport-sharec-proper-externs.patch
-tpm_biosc-make-2-structs-static.patch
-make-cgroup_seqfile_release-static.patch
-make-kprobe_blacklist-static.patch
-make-pnp_add_card_id-static.patch
-make-parport_cs_release-static.patch
-make-mm-sparsec-make-a-function-static.patch
-mm-allocpercpuc-make-4-functions-static.patch
-make-mm-memoryc-print_bad_pte-static.patch
-mm-swapfilec-make-code-static.patch
-make-mm-rmapc-anon_vma_cachep-static.patch
-drivers-char-rtcc-make-2-functions-static.patch
-make-init-do_mountsc-root_device_name-static.patch
-reiser4.patch
+git-battery.patch
+olpc-pci-fix-up-pci-stuff-so-that-pci_goany-supports-olpc.patch
 
