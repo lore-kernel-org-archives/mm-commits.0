@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-utimensat-be-consistent-with-utime-for-immutable-and-append-only-files.patch added to -mm tree
-Date: Wed, 04 Jun 2008 21:42:06 -0700
-Message-ID: <200806050442.m554g64m025742@imap1.linux-foundation.org>
+Subject: + vfs-utimensat-fix-write-access-check-for-futimens.patch added to -mm tree
+Date: Wed, 04 Jun 2008 21:42:12 -0700
+Message-ID: <200806050442.m554gCNZ025751@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60648 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57083 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751854AbYFEEmq (ORCPT
+	by vger.kernel.org with ESMTP id S1751915AbYFEEmq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 00:42:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: mtk.manpages@googlemail.com, drepper@redhat.com, miklos@szeredi.hu, mtk.manp
 
 
 The patch titled
-     vfs: utimensat(): be consistent with utime() for immutable and append-only files
+     vfs: utimensat(): fix write access check for futimens()
 has been added to the -mm tree.  Its filename is
-     vfs-utimensat-be-consistent-with-utime-for-immutable-and-append-only-files.patch
+     vfs-utimensat-fix-write-access-check-for-futimens.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,37 +33,45 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: utimensat(): be consistent with utime() for immutable and append-only files
+Subject: vfs: utimensat(): fix write access check for futimens()
 From: Michael Kerrisk <mtk.manpages@googlemail.com>
 
-This patch fixes utimensat() to make its behavior consistent
-with that of utime()/utimes() when dealing with files marked
-immutable and append-only.
+The POSIX.1 draft spec for futimens()/utimensat() says:
 
-The current utimensat() implementation also returns EPERM if
-'times' is non-NULL and the tv_nsec fields are both UTIME_NOW.
-For consistency, the
+        Only a process with the effective user ID equal to the
+        user ID of the file, *or with write access to the file*,
+        or with appropriate privileges may use futimens() or
+        utimensat() with a null pointer as the times argument
+        or with both tv_nsec fields set to the special value
+        UTIME_NOW.
 
-(times != NULL && times[0].tv_nsec == UTIME_NOW &&
-                  times[1].tv_nsec == UTIME_NOW)
+The important piece here is "with write access to the file", and
+this matters for futimens(), which deals with an argument that
+is a file descriptor referring to the file whose timestamps are
+being updated,  The standard is saying that the "writability"
+check is based on the file permissions, not the access mode with
+which the file is opened.  (This behavior is consistent with the
+semantics of FreeBSD's futimes().)  However, Linux is currently
+doing the latter -- futimens(fd, times) is a library
+function implemented as
 
-case should be treated like the traditional utimes() case where
-'times' is NULL.  That is, the call should succeed for a file
-marked append-only and should give the error EACCES if the file
-is marked as immutable.
+       utimensat(fd, NULL, times, 0)
 
-The simple way to do this is to set 'times' to NULL
-if (times[0].tv_nsec == UTIME_NOW && times[1].tv_nsec == UTIME_NOW).
+and within the utimensat() implementation we have the code:
 
-This is also the natural approach, since POSIX.1 semantics consider the
-times == {{x, UTIME_NOW}, {y, UTIME_NOW}}
-to be exactly equivalent to the case for
-times == NULL.
+                f = fget(dfd);  // dfd is 'fd'
+                ...
+                if (f) {
+                        if (!(f->f_mode & FMODE_WRITE))
+                                goto mnt_drop_write_and_out;
 
-(Thanks to Miklos for pointing this out.)
+The check should instead be based on the file permissions.
 
-Patch 3 in this series relies on the simplification provided
-by this patch.
+Thanks to Miklos for pointing out how to do this check.
+Miklos also pointed out a simplification that could be
+made to my first version of this patch, since the checks
+for the pathname and file descriptor cases can now be
+conflated.
 
 Acked-by: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
@@ -72,23 +80,30 @@ Signed-off-by: Michael Kerrisk <mtk.manpages@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/utimes.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ fs/utimes.c |   11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
 
-diff -puN fs/utimes.c~vfs-utimensat-be-consistent-with-utime-for-immutable-and-append-only-files fs/utimes.c
---- a/fs/utimes.c~vfs-utimensat-be-consistent-with-utime-for-immutable-and-append-only-files
+diff -puN fs/utimes.c~vfs-utimensat-fix-write-access-check-for-futimens fs/utimes.c
+--- a/fs/utimes.c~vfs-utimensat-fix-write-access-check-for-futimens
 +++ a/fs/utimes.c
-@@ -102,6 +102,10 @@ long do_utimes(int dfd, char __user *fil
- 	if (error)
- 		goto dput_and_out;
+@@ -148,14 +148,9 @@ long do_utimes(int dfd, char __user *fil
+ 			goto mnt_drop_write_and_out;
  
-+	if (times && times[0].tv_nsec == UTIME_NOW &&
-+		     times[1].tv_nsec == UTIME_NOW)
-+		times = NULL;
-+
- 	/* Don't worry, the checks are done in inode_change_ok() */
- 	newattrs.ia_valid = ATTR_CTIME | ATTR_MTIME | ATTR_ATIME;
- 	if (times) {
+ 		if (!is_owner_or_cap(inode)) {
+-			if (f) {
+-				if (!(f->f_mode & FMODE_WRITE))
+-					goto mnt_drop_write_and_out;
+-			} else {
+-				error = vfs_permission(&nd, MAY_WRITE);
+-				if (error)
+-					goto mnt_drop_write_and_out;
+-			}
++			error = permission(inode, MAY_WRITE, NULL);
++			if (error)
++				goto mnt_drop_write_and_out;
+ 		}
+ 	}
+ 	mutex_lock(&inode->i_mutex);
 _
 
 Patches currently in -mm which might be from mtk.manpages@googlemail.com are
