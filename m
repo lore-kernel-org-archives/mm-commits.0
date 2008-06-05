@@ -1,24 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: - pnp-replace-pnp_resource_table-with-dynamically-allocated-resources-merge-fix.patch removed from -mm tree
-Date: Thu, 05 Jun 2008 15:12:56 -0700
-Message-ID: <200806052212.m55MCuNj032337@imap1.linux-foundation.org>
+Subject: + pnp-replace-pnp_resource_table-with-dynamically-allocated-resources-fix.patch added to -mm tree
+Date: Thu, 05 Jun 2008 15:13:40 -0700
+Message-ID: <200806052213.m55MDeJq032360@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55688 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60879 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750987AbYFEWNg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 18:13:36 -0400
+	by vger.kernel.org with ESMTP id S1751882AbYFEWOQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 18:14:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bjorn.helgaas@hp.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: bjorn.helgaas@hp.com
 
 
 The patch titled
      pnp-replace-pnp_resource_table-with-dynamically-allocated-resources fix
-has been removed from the -mm tree.  Its filename was
-     pnp-replace-pnp_resource_table-with-dynamically-allocated-resources-merge-fix.patch
+has been added to the -mm tree.  Its filename is
+     pnp-replace-pnp_resource_table-with-dynamically-allocated-resources-fix.patch
 
-This patch was dropped because it was folded into pnp-replace-pnp_resource_table-with-dynamically-allocated-resources.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -26,39 +36,30 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 Subject: pnp-replace-pnp_resource_table-with-dynamically-allocated-resources fix
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Not quite.  We need this instead:
-
-        for (i = 0; (res = pnp_get_resource(dev, IORESOURCE_MEM, i)); i++) {
-                if (res->flags & IORESOURCE_DISABLED)
-                        continue;
-
-                reserve_range(dev, res->start, res->end, 0);
-        }
+We still need the IORESOURCE_DISABLED check for MEM resources there,
+and I think it's missing from the version of
+pnp-replace-pnp_resource_table-with-dynamically-allocated-resources.patch
+that you just added to -mm.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/system.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ drivers/pnp/system.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/pnp/system.c~pnp-replace-pnp_resource_table-with-dynamically-allocated-resources-merge-fix drivers/pnp/system.c
---- a/drivers/pnp/system.c~pnp-replace-pnp_resource_table-with-dynamically-allocated-resources-merge-fix
+diff -puN drivers/pnp/system.c~pnp-replace-pnp_resource_table-with-dynamically-allocated-resources-fix drivers/pnp/system.c
+--- a/drivers/pnp/system.c~pnp-replace-pnp_resource_table-with-dynamically-allocated-resources-fix
 +++ a/drivers/pnp/system.c
-@@ -78,8 +78,12 @@ static void reserve_resources_of_dev(str
- 		reserve_range(dev, res->start, res->end, 1);
- 	}
+@@ -60,6 +60,8 @@ static void reserve_resources_of_dev(str
+ 	int i;
  
--	for (i = 0; (res = pnp_get_resource(dev, IORESOURCE_MEM, i)); i++)
-+	for (i = 0; (res = pnp_get_resource(dev, IORESOURCE_MEM, i)); i++) {
+ 	for (i = 0; (res = pnp_get_resource(dev, IORESOURCE_IO, i)); i++) {
 +		if (res->flags & IORESOURCE_DISABLED)
 +			continue;
-+
- 		reserve_range(dev, res->start, res->end, 0);
-+	}
- }
- 
- static int system_pnp_probe(struct pnp_dev *dev,
+ 		if (res->start == 0)
+ 			continue;	/* disabled */
+ 		if (res->start < 0x100)
 _
 
 Patches currently in -mm which might be from bjorn.helgaas@hp.com are
@@ -78,7 +79,6 @@ pnp-add-pnp_resource_type-internal-interface.patch
 pnp-add-pnp_resource_type_name-helper-function.patch
 pnp-make-pnp_portmemetc_start-et-al-work-for-invalid-resources.patch
 pnp-replace-pnp_resource_table-with-dynamically-allocated-resources.patch
-pnp-replace-pnp_resource_table-with-dynamically-allocated-resources-merge-fix.patch
 pnp-replace-pnp_resource_table-with-dynamically-allocated-resources-fix.patch
 pnp-remove-ratelimit-on-add-resource-failures.patch
 pnp-dont-sort-by-type-in-sys-resources.patch
