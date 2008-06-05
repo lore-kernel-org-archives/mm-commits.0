@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + pnp-in-debug-resource-dump-make-empty-list-obvious.patch added to -mm tree
-Date: Wed, 04 Jun 2008 22:57:21 -0700
-Message-ID: <200806050557.m555vLkm028360@imap1.linux-foundation.org>
+Subject: + pnp-increase-i-o-port-memory-option-address-sizes.patch added to -mm tree
+Date: Wed, 04 Jun 2008 22:57:17 -0700
+Message-ID: <200806050557.m555vHYO028351@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38519 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38667 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752630AbYFEF6l (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 01:58:41 -0400
+	by vger.kernel.org with ESMTP id S1752450AbYFEF6h (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 01:58:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: bjorn.helgaas@hp.com, abelay@mit.edu, castet.matthieu@free.fr, lenb@kernel.o
 
 
 The patch titled
-     pnp: in debug resource dump, make empty list obvious
+     pnp: increase I/O port & memory option address sizes
 has been added to the -mm tree.  Its filename is
-     pnp-in-debug-resource-dump-make-empty-list-obvious.patch
+     pnp-increase-i-o-port-memory-option-address-sizes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,13 +33,13 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pnp: in debug resource dump, make empty list obvious
+Subject: pnp: increase I/O port & memory option address sizes
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-If the resource list is empty, say that explicitly.  Previously, it was
-confusing because often the heading was followed by zero resource lines,
-then some "add resource" lines from auto-assignment, so the "add" lines
-looked like current resources.
+ACPI Address Space Descriptors can be up to 64 bits wide.  We should keep
+track of the whole thing when parsing resource options, so this patch
+changes PNP port and mem option fields from "unsigned short" and "unsigned
+int" to "resource_size_t".
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Acked-by: Rene Herman <rene.herman@gmail.com>
@@ -53,25 +53,108 @@ Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/support.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ drivers/pnp/base.h      |   16 ++++++++--------
+ drivers/pnp/interface.c |   17 +++++++++++------
+ drivers/pnp/resource.c  |   14 ++++++++++----
+ 3 files changed, 29 insertions(+), 18 deletions(-)
 
-diff -puN drivers/pnp/support.c~pnp-in-debug-resource-dump-make-empty-list-obvious drivers/pnp/support.c
---- a/drivers/pnp/support.c~pnp-in-debug-resource-dump-make-empty-list-obvious
-+++ a/drivers/pnp/support.c
-@@ -77,7 +77,12 @@ void dbg_pnp_show_resources(struct pnp_d
- 	struct pnp_resource *pnp_res;
- 	struct resource *res;
+diff -puN drivers/pnp/base.h~pnp-increase-i-o-port-memory-option-address-sizes drivers/pnp/base.h
+--- a/drivers/pnp/base.h~pnp-increase-i-o-port-memory-option-address-sizes
++++ a/drivers/pnp/base.h
+@@ -20,10 +20,10 @@ int pnp_add_card_device(struct pnp_card 
+ void pnp_remove_card_device(struct pnp_dev *dev);
  
--	dev_dbg(&dev->dev, "current resources: %s\n", desc);
-+	if (list_empty(&dev->resources)) {
-+		dev_dbg(&dev->dev, "%s: no current resources\n", desc);
-+		return;
-+	}
-+
-+	dev_dbg(&dev->dev, "%s: current resources:\n", desc);
- 	list_for_each_entry(pnp_res, &dev->resources, list) {
- 		res = &pnp_res->res;
+ struct pnp_port {
+-	unsigned short min;	/* min base number */
+-	unsigned short max;	/* max base number */
+-	unsigned char align;	/* align boundary */
+-	unsigned char size;	/* size of range */
++	resource_size_t min;	/* min base number */
++	resource_size_t max;	/* max base number */
++	resource_size_t align;	/* align boundary */
++	resource_size_t size;	/* size of range */
+ 	unsigned char flags;	/* port flags */
+ 	unsigned char pad;	/* pad */
+ 	struct pnp_port *next;	/* next port */
+@@ -46,10 +46,10 @@ struct pnp_dma {
+ };
+ 
+ struct pnp_mem {
+-	unsigned int min;	/* min base number */
+-	unsigned int max;	/* max base number */
+-	unsigned int align;	/* align boundary */
+-	unsigned int size;	/* size of range */
++	resource_size_t min;	/* min base number */
++	resource_size_t max;	/* max base number */
++	resource_size_t align;	/* align boundary */
++	resource_size_t size;	/* size of range */
+ 	unsigned char flags;	/* memory flags */
+ 	unsigned char pad;	/* pad */
+ 	struct pnp_mem *next;	/* next memory resource */
+diff -puN drivers/pnp/interface.c~pnp-increase-i-o-port-memory-option-address-sizes drivers/pnp/interface.c
+--- a/drivers/pnp/interface.c~pnp-increase-i-o-port-memory-option-address-sizes
++++ a/drivers/pnp/interface.c
+@@ -53,10 +53,12 @@ static int pnp_printf(pnp_info_buffer_t 
+ static void pnp_print_port(pnp_info_buffer_t * buffer, char *space,
+ 			   struct pnp_port *port)
+ {
+-	pnp_printf(buffer,
+-		   "%sport 0x%x-0x%x, align 0x%x, size 0x%x, %i-bit address decoding\n",
+-		   space, port->min, port->max,
+-		   port->align ? (port->align - 1) : 0, port->size,
++	pnp_printf(buffer, "%sport %#llx-%#llx, align %#llx, size %#llx, "
++		   "%i-bit address decoding\n", space,
++		   (unsigned long long) port->min,
++		   (unsigned long long) port->max,
++		   port->align ? ((unsigned long long) port->align - 1) : 0,
++		   (unsigned long long) port->size,
+ 		   port->flags & IORESOURCE_IO_16BIT_ADDR ? 16 : 10);
+ }
+ 
+@@ -148,8 +150,11 @@ static void pnp_print_mem(pnp_info_buffe
+ {
+ 	char *s;
+ 
+-	pnp_printf(buffer, "%sMemory 0x%x-0x%x, align 0x%x, size 0x%x",
+-		   space, mem->min, mem->max, mem->align, mem->size);
++	pnp_printf(buffer, "%sMemory %#llx-%#llx, align %#llx, size %#llx",
++		   space, (unsigned long long) mem->min,
++		   (unsigned long long) mem->max,
++		   (unsigned long long) mem->align,
++		   (unsigned long long) mem->size);
+ 	if (mem->flags & IORESOURCE_MEM_WRITEABLE)
+ 		pnp_printf(buffer, ", writeable");
+ 	if (mem->flags & IORESOURCE_MEM_CACHEABLE)
+diff -puN drivers/pnp/resource.c~pnp-increase-i-o-port-memory-option-address-sizes drivers/pnp/resource.c
+--- a/drivers/pnp/resource.c~pnp-increase-i-o-port-memory-option-address-sizes
++++ a/drivers/pnp/resource.c
+@@ -143,8 +143,11 @@ int pnp_register_port_resource(struct pn
+ 		option->port = data;
+ 
+ 	dev_dbg(&dev->dev, "  io  "
+-		"min %#x max %#x align %d size %d flags %#x\n",
+-		data->min, data->max, data->align, data->size, data->flags);
++		"min %#llx max %#llx align %lld size %lld flags %#x\n",
++		(unsigned long long) data->min,
++		(unsigned long long) data->max,
++		(unsigned long long) data->align,
++		(unsigned long long) data->size, data->flags);
+ 	return 0;
+ }
+ 
+@@ -162,8 +165,11 @@ int pnp_register_mem_resource(struct pnp
+ 		option->mem = data;
+ 
+ 	dev_dbg(&dev->dev, "  mem "
+-		"min %#x max %#x align %d size %d flags %#x\n",
+-		data->min, data->max, data->align, data->size, data->flags);
++		"min %#llx max %#llx align %lld size %lld flags %#x\n",
++		(unsigned long long) data->min,
++		(unsigned long long) data->max,
++		(unsigned long long) data->align,
++		(unsigned long long) data->size, data->flags);
+ 	return 0;
+ }
  
 _
 
