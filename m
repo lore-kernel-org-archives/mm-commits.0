@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + radix-tree-add-gang_lookup_slot-gang_lookup_slot_tag.patch added to -mm tree
-Date: Thu, 05 Jun 2008 13:35:02 -0700
-Message-ID: <200806052035.m55KZ22E028500@imap1.linux-foundation.org>
+Subject: + mm-spinlock-tree_lock.patch added to -mm tree
+Date: Thu, 05 Jun 2008 13:35:09 -0700
+Message-ID: <200806052035.m55KZ9mp028516@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57717 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52127 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752137AbYFEUf4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 16:35:56 -0400
+	by vger.kernel.org with ESMTP id S1752741AbYFEUgG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 16:36:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: npiggin@suse.de, benh@kernel.crashing.org, hugh@veritas.com, paulmck@us.ibm.
 
 
 The patch titled
-     radix-tree: add gang_lookup_slot, gang_lookup_slot_tag
+     mm: spinlock tree_lock
 has been added to the -mm tree.  Its filename is
-     radix-tree-add-gang_lookup_slot-gang_lookup_slot_tag.patch
+     mm-spinlock-tree_lock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,11 +33,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: radix-tree: add gang_lookup_slot, gang_lookup_slot_tag
+Subject: mm: spinlock tree_lock
 From: Nick Piggin <npiggin@suse.de>
 
-Introduce gang_lookup_slot() and gang_lookup_slot_tag() functions, which
-are used by lockless pagecache.
+mapping->tree_lock has no read lockers.  convert the lock from an rwlock
+to a spinlock.
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
@@ -47,326 +47,349 @@ Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/radix-tree.h |   12 ++
- lib/radix-tree.c           |  178 ++++++++++++++++++++++++++++++-----
- 2 files changed, 166 insertions(+), 24 deletions(-)
+ fs/buffer.c                     |    4 ++--
+ fs/inode.c                      |    2 +-
+ include/asm-arm/cacheflush.h    |    4 ++--
+ include/asm-parisc/cacheflush.h |    4 ++--
+ include/linux/fs.h              |    2 +-
+ mm/filemap.c                    |   10 +++++-----
+ mm/migrate.c                    |    8 ++++----
+ mm/page-writeback.c             |   12 ++++++------
+ mm/swap_state.c                 |   10 +++++-----
+ mm/swapfile.c                   |    4 ++--
+ mm/truncate.c                   |    6 +++---
+ mm/vmscan.c                     |    8 ++++----
+ 12 files changed, 37 insertions(+), 37 deletions(-)
 
-diff -puN include/linux/radix-tree.h~radix-tree-add-gang_lookup_slot-gang_lookup_slot_tag include/linux/radix-tree.h
---- a/include/linux/radix-tree.h~radix-tree-add-gang_lookup_slot-gang_lookup_slot_tag
-+++ a/include/linux/radix-tree.h
-@@ -99,12 +99,15 @@ do {									\
-  *
-  * The notable exceptions to this rule are the following functions:
-  * radix_tree_lookup
-+ * radix_tree_lookup_slot
-  * radix_tree_tag_get
-  * radix_tree_gang_lookup
-+ * radix_tree_gang_lookup_slot
-  * radix_tree_gang_lookup_tag
-+ * radix_tree_gang_lookup_tag_slot
-  * radix_tree_tagged
-  *
-- * The first 4 functions are able to be called locklessly, using RCU. The
-+ * The first 7 functions are able to be called locklessly, using RCU. The
-  * caller must ensure calls to these functions are made within rcu_read_lock()
-  * regions. Other readers (lock-free or otherwise) and modifications may be
-  * running concurrently.
-@@ -159,6 +162,9 @@ void *radix_tree_delete(struct radix_tre
- unsigned int
- radix_tree_gang_lookup(struct radix_tree_root *root, void **results,
- 			unsigned long first_index, unsigned int max_items);
-+unsigned int
-+radix_tree_gang_lookup_slot(struct radix_tree_root *root, void ***results,
-+			unsigned long first_index, unsigned int max_items);
- unsigned long radix_tree_next_hole(struct radix_tree_root *root,
- 				unsigned long index, unsigned long max_scan);
- int radix_tree_preload(gfp_t gfp_mask);
-@@ -173,6 +179,10 @@ unsigned int
- radix_tree_gang_lookup_tag(struct radix_tree_root *root, void **results,
- 		unsigned long first_index, unsigned int max_items,
- 		unsigned int tag);
-+unsigned int
-+radix_tree_gang_lookup_tag_slot(struct radix_tree_root *root, void ***results,
-+		unsigned long first_index, unsigned int max_items,
-+		unsigned int tag);
- int radix_tree_tagged(struct radix_tree_root *root, unsigned int tag);
+diff -puN fs/buffer.c~mm-spinlock-tree_lock fs/buffer.c
+--- a/fs/buffer.c~mm-spinlock-tree_lock
++++ a/fs/buffer.c
+@@ -706,7 +706,7 @@ static int __set_page_dirty(struct page 
+ 	if (TestSetPageDirty(page))
+ 		return 0;
  
- static inline void radix_tree_preload_end(void)
-diff -puN lib/radix-tree.c~radix-tree-add-gang_lookup_slot-gang_lookup_slot_tag lib/radix-tree.c
---- a/lib/radix-tree.c~radix-tree-add-gang_lookup_slot-gang_lookup_slot_tag
-+++ a/lib/radix-tree.c
-@@ -350,18 +350,17 @@ EXPORT_SYMBOL(radix_tree_insert);
-  *	Returns:  the slot corresponding to the position @index in the
-  *	radix tree @root. This is useful for update-if-exists operations.
-  *
-- *	This function cannot be called under rcu_read_lock, it must be
-- *	excluded from writers, as must the returned slot for subsequent
-- *	use by radix_tree_deref_slot() and radix_tree_replace slot.
-- *	Caller must hold tree write locked across slot lookup and
-- *	replace.
-+ *	This function can be called under rcu_read_lock iff the slot is not
-+ *	modified by radix_tree_replace_slot, otherwise it must be called
-+ *	exclusive from other writers. Any dereference of the slot must be done
-+ *	using radix_tree_deref_slot.
-  */
- void **radix_tree_lookup_slot(struct radix_tree_root *root, unsigned long index)
- {
- 	unsigned int height, shift;
- 	struct radix_tree_node *node, **slot;
+-	write_lock_irq(&mapping->tree_lock);
++	spin_lock_irq(&mapping->tree_lock);
+ 	if (page->mapping) {	/* Race with truncate? */
+ 		WARN_ON_ONCE(warn && !PageUptodate(page));
  
--	node = root->rnode;
-+	node = rcu_dereference(root->rnode);
- 	if (node == NULL)
- 		return NULL;
+@@ -719,7 +719,7 @@ static int __set_page_dirty(struct page 
+ 		radix_tree_tag_set(&mapping->page_tree,
+ 				page_index(page), PAGECACHE_TAG_DIRTY);
+ 	}
+-	write_unlock_irq(&mapping->tree_lock);
++	spin_unlock_irq(&mapping->tree_lock);
+ 	__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
  
-@@ -381,7 +380,7 @@ void **radix_tree_lookup_slot(struct rad
- 	do {
- 		slot = (struct radix_tree_node **)
- 			(node->slots + ((index>>shift) & RADIX_TREE_MAP_MASK));
--		node = *slot;
-+		node = rcu_dereference(*slot);
- 		if (node == NULL)
- 			return NULL;
- 
-@@ -658,7 +657,7 @@ unsigned long radix_tree_next_hole(struc
- EXPORT_SYMBOL(radix_tree_next_hole);
- 
- static unsigned int
--__lookup(struct radix_tree_node *slot, void **results, unsigned long index,
-+__lookup(struct radix_tree_node *slot, void ***results, unsigned long index,
- 	unsigned int max_items, unsigned long *next_index)
- {
- 	unsigned int nr_found = 0;
-@@ -692,11 +691,9 @@ __lookup(struct radix_tree_node *slot, v
- 
- 	/* Bottom level: grab some items */
- 	for (i = index & RADIX_TREE_MAP_MASK; i < RADIX_TREE_MAP_SIZE; i++) {
--		struct radix_tree_node *node;
- 		index++;
--		node = slot->slots[i];
--		if (node) {
--			results[nr_found++] = rcu_dereference(node);
-+		if (slot->slots[i]) {
-+			results[nr_found++] = &(slot->slots[i]);
- 			if (nr_found == max_items)
- 				goto out;
- 		}
-@@ -750,13 +747,22 @@ radix_tree_gang_lookup(struct radix_tree
- 
- 	ret = 0;
- 	while (ret < max_items) {
--		unsigned int nr_found;
-+		unsigned int nr_found, slots_found, i;
- 		unsigned long next_index;	/* Index of next search */
- 
- 		if (cur_index > max_index)
- 			break;
--		nr_found = __lookup(node, results + ret, cur_index,
-+		slots_found = __lookup(node, (void ***)results + ret, cur_index,
- 					max_items - ret, &next_index);
-+		nr_found = 0;
-+		for (i = 0; i < slots_found; i++) {
-+			struct radix_tree_node *slot;
-+			slot = *(((void ***)results)[ret + i]);
-+			if (!slot)
-+				continue;
-+			results[ret + nr_found] = rcu_dereference(slot);
-+			nr_found++;
-+		}
- 		ret += nr_found;
- 		if (next_index == 0)
- 			break;
-@@ -767,12 +773,71 @@ radix_tree_gang_lookup(struct radix_tree
+ 	return 1;
+diff -puN fs/inode.c~mm-spinlock-tree_lock fs/inode.c
+--- a/fs/inode.c~mm-spinlock-tree_lock
++++ a/fs/inode.c
+@@ -209,7 +209,7 @@ void inode_init_once(struct inode *inode
+ 	INIT_LIST_HEAD(&inode->i_dentry);
+ 	INIT_LIST_HEAD(&inode->i_devices);
+ 	INIT_RADIX_TREE(&inode->i_data.page_tree, GFP_ATOMIC);
+-	rwlock_init(&inode->i_data.tree_lock);
++	spin_lock_init(&inode->i_data.tree_lock);
+ 	spin_lock_init(&inode->i_data.i_mmap_lock);
+ 	INIT_LIST_HEAD(&inode->i_data.private_list);
+ 	spin_lock_init(&inode->i_data.private_lock);
+diff -puN include/asm-arm/cacheflush.h~mm-spinlock-tree_lock include/asm-arm/cacheflush.h
+--- a/include/asm-arm/cacheflush.h~mm-spinlock-tree_lock
++++ a/include/asm-arm/cacheflush.h
+@@ -417,9 +417,9 @@ static inline void flush_anon_page(struc
  }
- EXPORT_SYMBOL(radix_tree_gang_lookup);
  
-+/**
-+ *	radix_tree_gang_lookup_slot - perform multiple slot lookup on radix tree
-+ *	@root:		radix tree root
-+ *	@results:	where the results of the lookup are placed
-+ *	@first_index:	start the lookup from this key
-+ *	@max_items:	place up to this many items at *results
-+ *
-+ *	Performs an index-ascending scan of the tree for present items.  Places
-+ *	their slots at *@results and returns the number of items which were
-+ *	placed at *@results.
-+ *
-+ *	The implementation is naive.
-+ *
-+ *	Like radix_tree_gang_lookup as far as RCU and locking goes. Slots must
-+ *	be dereferenced with radix_tree_deref_slot, and if using only RCU
-+ *	protection, radix_tree_deref_slot may fail requiring a retry.
-+ */
-+unsigned int
-+radix_tree_gang_lookup_slot(struct radix_tree_root *root, void ***results,
-+			unsigned long first_index, unsigned int max_items)
-+{
-+	unsigned long max_index;
-+	struct radix_tree_node *node;
-+	unsigned long cur_index = first_index;
-+	unsigned int ret;
-+
-+	node = rcu_dereference(root->rnode);
-+	if (!node)
-+		return 0;
-+
-+	if (!radix_tree_is_indirect_ptr(node)) {
-+		if (first_index > 0)
-+			return 0;
-+		results[0] = (void **)&root->rnode;
-+		return 1;
-+	}
-+	node = radix_tree_indirect_to_ptr(node);
-+
-+	max_index = radix_tree_maxindex(node->height);
-+
-+	ret = 0;
-+	while (ret < max_items) {
-+		unsigned int slots_found;
-+		unsigned long next_index;	/* Index of next search */
-+
-+		if (cur_index > max_index)
-+			break;
-+		slots_found = __lookup(node, results + ret, cur_index,
-+					max_items - ret, &next_index);
-+		ret += slots_found;
-+		if (next_index == 0)
-+			break;
-+		cur_index = next_index;
-+	}
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL(radix_tree_gang_lookup_slot);
-+
+ #define flush_dcache_mmap_lock(mapping) \
+-	write_lock_irq(&(mapping)->tree_lock)
++	spin_lock_irq(&(mapping)->tree_lock)
+ #define flush_dcache_mmap_unlock(mapping) \
+-	write_unlock_irq(&(mapping)->tree_lock)
++	spin_unlock_irq(&(mapping)->tree_lock)
+ 
+ #define flush_icache_user_range(vma,page,addr,len) \
+ 	flush_dcache_page(page)
+diff -puN include/asm-parisc/cacheflush.h~mm-spinlock-tree_lock include/asm-parisc/cacheflush.h
+--- a/include/asm-parisc/cacheflush.h~mm-spinlock-tree_lock
++++ a/include/asm-parisc/cacheflush.h
+@@ -45,9 +45,9 @@ void flush_cache_mm(struct mm_struct *mm
+ extern void flush_dcache_page(struct page *page);
+ 
+ #define flush_dcache_mmap_lock(mapping) \
+-	write_lock_irq(&(mapping)->tree_lock)
++	spin_lock_irq(&(mapping)->tree_lock)
+ #define flush_dcache_mmap_unlock(mapping) \
+-	write_unlock_irq(&(mapping)->tree_lock)
++	spin_unlock_irq(&(mapping)->tree_lock)
+ 
+ #define flush_icache_page(vma,page)	do { 		\
+ 	flush_kernel_dcache_page(page);			\
+diff -puN include/linux/fs.h~mm-spinlock-tree_lock include/linux/fs.h
+--- a/include/linux/fs.h~mm-spinlock-tree_lock
++++ a/include/linux/fs.h
+@@ -528,7 +528,7 @@ struct backing_dev_info;
+ struct address_space {
+ 	struct inode		*host;		/* owner: inode, block_device */
+ 	struct radix_tree_root	page_tree;	/* radix tree of all pages */
+-	rwlock_t		tree_lock;	/* and rwlock protecting it */
++	spinlock_t		tree_lock;	/* and lock protecting it */
+ 	unsigned int		i_mmap_writable;/* count VM_SHARED mappings */
+ 	struct prio_tree_root	i_mmap;		/* tree of private and shared mappings */
+ 	struct list_head	i_mmap_nonlinear;/*list VM_NONLINEAR mappings */
+diff -puN mm/filemap.c~mm-spinlock-tree_lock mm/filemap.c
+--- a/mm/filemap.c~mm-spinlock-tree_lock
++++ a/mm/filemap.c
+@@ -109,7 +109,7 @@
  /*
-  * FIXME: the two tag_get()s here should use find_next_bit() instead of
-  * open-coding the search.
+  * Remove a page from the page cache and free it. Caller has to make
+  * sure the page is locked and that nobody else uses it - or that usage
+- * is safe.  The caller must hold a write_lock on the mapping's tree_lock.
++ * is safe.  The caller must hold the mapping's tree_lock.
   */
- static unsigned int
--__lookup_tag(struct radix_tree_node *slot, void **results, unsigned long index,
-+__lookup_tag(struct radix_tree_node *slot, void ***results, unsigned long index,
- 	unsigned int max_items, unsigned long *next_index, unsigned int tag)
+ void __remove_from_page_cache(struct page *page)
  {
- 	unsigned int nr_found = 0;
-@@ -802,11 +867,9 @@ __lookup_tag(struct radix_tree_node *slo
- 			unsigned long j = index & RADIX_TREE_MAP_MASK;
+@@ -141,9 +141,9 @@ void remove_from_page_cache(struct page 
  
- 			for ( ; j < RADIX_TREE_MAP_SIZE; j++) {
--				struct radix_tree_node *node;
- 				index++;
- 				if (!tag_get(slot, tag, j))
- 					continue;
--				node = slot->slots[j];
- 				/*
- 				 * Even though the tag was found set, we need to
- 				 * recheck that we have a non-NULL node, because
-@@ -817,9 +880,8 @@ __lookup_tag(struct radix_tree_node *slo
- 				 * lookup ->slots[x] without a lock (ie. can't
- 				 * rely on its value remaining the same).
- 				 */
--				if (node) {
--					node = rcu_dereference(node);
--					results[nr_found++] = node;
-+				if (slot->slots[j]) {
-+					results[nr_found++] = &(slot->slots[j]);
- 					if (nr_found == max_items)
- 						goto out;
- 				}
-@@ -878,13 +940,22 @@ radix_tree_gang_lookup_tag(struct radix_
+ 	BUG_ON(!PageLocked(page));
  
- 	ret = 0;
- 	while (ret < max_items) {
--		unsigned int nr_found;
-+		unsigned int nr_found, slots_found, i;
- 		unsigned long next_index;	/* Index of next search */
+-	write_lock_irq(&mapping->tree_lock);
++	spin_lock_irq(&mapping->tree_lock);
+ 	__remove_from_page_cache(page);
+-	write_unlock_irq(&mapping->tree_lock);
++	spin_unlock_irq(&mapping->tree_lock);
+ }
  
- 		if (cur_index > max_index)
- 			break;
--		nr_found = __lookup_tag(node, results + ret, cur_index,
--					max_items - ret, &next_index, tag);
-+		slots_found = __lookup_tag(node, (void ***)results + ret,
-+				cur_index, max_items - ret, &next_index, tag);
-+		nr_found = 0;
-+		for (i = 0; i < slots_found; i++) {
-+			struct radix_tree_node *slot;
-+			slot = *(((void ***)results)[ret + i]);
-+			if (!slot)
-+				continue;
-+			results[ret + nr_found] = rcu_dereference(slot);
-+			nr_found++;
-+		}
- 		ret += nr_found;
- 		if (next_index == 0)
- 			break;
-@@ -896,6 +967,67 @@ radix_tree_gang_lookup_tag(struct radix_
- EXPORT_SYMBOL(radix_tree_gang_lookup_tag);
+ static int sync_page(void *word)
+@@ -468,7 +468,7 @@ int add_to_page_cache(struct page *page,
+ 		page->mapping = mapping;
+ 		page->index = offset;
  
- /**
-+ *	radix_tree_gang_lookup_tag_slot - perform multiple slot lookup on a
-+ *					  radix tree based on a tag
-+ *	@root:		radix tree root
-+ *	@results:	where the results of the lookup are placed
-+ *	@first_index:	start the lookup from this key
-+ *	@max_items:	place up to this many items at *results
-+ *	@tag:		the tag index (< RADIX_TREE_MAX_TAGS)
-+ *
-+ *	Performs an index-ascending scan of the tree for present items which
-+ *	have the tag indexed by @tag set.  Places the slots at *@results and
-+ *	returns the number of slots which were placed at *@results.
-+ */
-+unsigned int
-+radix_tree_gang_lookup_tag_slot(struct radix_tree_root *root, void ***results,
-+		unsigned long first_index, unsigned int max_items,
-+		unsigned int tag)
-+{
-+	struct radix_tree_node *node;
-+	unsigned long max_index;
-+	unsigned long cur_index = first_index;
-+	unsigned int ret;
-+
-+	/* check the root's tag bit */
-+	if (!root_tag_get(root, tag))
-+		return 0;
-+
-+	node = rcu_dereference(root->rnode);
-+	if (!node)
-+		return 0;
-+
-+	if (!radix_tree_is_indirect_ptr(node)) {
-+		if (first_index > 0)
-+			return 0;
-+		results[0] = (void **)&root->rnode;
-+		return 1;
-+	}
-+	node = radix_tree_indirect_to_ptr(node);
-+
-+	max_index = radix_tree_maxindex(node->height);
-+
-+	ret = 0;
-+	while (ret < max_items) {
-+		unsigned int slots_found;
-+		unsigned long next_index;	/* Index of next search */
-+
-+		if (cur_index > max_index)
-+			break;
-+		slots_found = __lookup_tag(node, results + ret,
-+				cur_index, max_items - ret, &next_index, tag);
-+		ret += slots_found;
-+		if (next_index == 0)
-+			break;
-+		cur_index = next_index;
-+	}
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL(radix_tree_gang_lookup_tag_slot);
-+
-+
-+/**
-  *	radix_tree_shrink    -    shrink height of a radix tree to minimal
-  *	@root		radix tree root
-  */
+-		write_lock_irq(&mapping->tree_lock);
++		spin_lock_irq(&mapping->tree_lock);
+ 		error = radix_tree_insert(&mapping->page_tree, offset, page);
+ 		if (likely(!error)) {
+ 			mapping->nrpages++;
+@@ -480,7 +480,7 @@ int add_to_page_cache(struct page *page,
+ 			page_cache_release(page);
+ 		}
+ 
+-		write_unlock_irq(&mapping->tree_lock);
++		spin_unlock_irq(&mapping->tree_lock);
+ 		radix_tree_preload_end();
+ 	} else
+ 		mem_cgroup_uncharge_cache_page(page);
+diff -puN mm/migrate.c~mm-spinlock-tree_lock mm/migrate.c
+--- a/mm/migrate.c~mm-spinlock-tree_lock
++++ a/mm/migrate.c
+@@ -315,7 +315,7 @@ static int migrate_page_move_mapping(str
+ 		return 0;
+ 	}
+ 
+-	write_lock_irq(&mapping->tree_lock);
++	spin_lock_irq(&mapping->tree_lock);
+ 
+ 	pslot = radix_tree_lookup_slot(&mapping->page_tree,
+  					page_index(page));
+@@ -323,12 +323,12 @@ static int migrate_page_move_mapping(str
+ 	expected_count = 2 + !!PagePrivate(page);
+ 	if (page_count(page) != expected_count ||
+ 			(struct page *)radix_tree_deref_slot(pslot) != page) {
+-		write_unlock_irq(&mapping->tree_lock);
++		spin_unlock_irq(&mapping->tree_lock);
+ 		return -EAGAIN;
+ 	}
+ 
+ 	if (!page_freeze_refs(page, expected_count)) {
+-		write_unlock_irq(&mapping->tree_lock);
++		spin_unlock_irq(&mapping->tree_lock);
+ 		return -EAGAIN;
+ 	}
+ 
+@@ -365,7 +365,7 @@ static int migrate_page_move_mapping(str
+ 	__dec_zone_page_state(page, NR_FILE_PAGES);
+ 	__inc_zone_page_state(newpage, NR_FILE_PAGES);
+ 
+-	write_unlock_irq(&mapping->tree_lock);
++	spin_unlock_irq(&mapping->tree_lock);
+ 	if (!PageSwapCache(newpage)) {
+ 		mem_cgroup_uncharge_cache_page(page);
+ 	} else
+diff -puN mm/page-writeback.c~mm-spinlock-tree_lock mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-spinlock-tree_lock
++++ a/mm/page-writeback.c
+@@ -1085,7 +1085,7 @@ int __set_page_dirty_nobuffers(struct pa
+ 		if (!mapping)
+ 			return 1;
+ 
+-		write_lock_irq(&mapping->tree_lock);
++		spin_lock_irq(&mapping->tree_lock);
+ 		mapping2 = page_mapping(page);
+ 		if (mapping2) { /* Race with truncate? */
+ 			BUG_ON(mapping2 != mapping);
+@@ -1099,7 +1099,7 @@ int __set_page_dirty_nobuffers(struct pa
+ 			radix_tree_tag_set(&mapping->page_tree,
+ 				page_index(page), PAGECACHE_TAG_DIRTY);
+ 		}
+-		write_unlock_irq(&mapping->tree_lock);
++		spin_unlock_irq(&mapping->tree_lock);
+ 		if (mapping->host) {
+ 			/* !PageAnon && !swapper_space */
+ 			__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
+@@ -1255,7 +1255,7 @@ int test_clear_page_writeback(struct pag
+ 		struct backing_dev_info *bdi = mapping->backing_dev_info;
+ 		unsigned long flags;
+ 
+-		write_lock_irqsave(&mapping->tree_lock, flags);
++		spin_lock_irqsave(&mapping->tree_lock, flags);
+ 		ret = TestClearPageWriteback(page);
+ 		if (ret) {
+ 			radix_tree_tag_clear(&mapping->page_tree,
+@@ -1266,7 +1266,7 @@ int test_clear_page_writeback(struct pag
+ 				__bdi_writeout_inc(bdi);
+ 			}
+ 		}
+-		write_unlock_irqrestore(&mapping->tree_lock, flags);
++		spin_unlock_irqrestore(&mapping->tree_lock, flags);
+ 	} else {
+ 		ret = TestClearPageWriteback(page);
+ 	}
+@@ -1284,7 +1284,7 @@ int test_set_page_writeback(struct page 
+ 		struct backing_dev_info *bdi = mapping->backing_dev_info;
+ 		unsigned long flags;
+ 
+-		write_lock_irqsave(&mapping->tree_lock, flags);
++		spin_lock_irqsave(&mapping->tree_lock, flags);
+ 		ret = TestSetPageWriteback(page);
+ 		if (!ret) {
+ 			radix_tree_tag_set(&mapping->page_tree,
+@@ -1297,7 +1297,7 @@ int test_set_page_writeback(struct page 
+ 			radix_tree_tag_clear(&mapping->page_tree,
+ 						page_index(page),
+ 						PAGECACHE_TAG_DIRTY);
+-		write_unlock_irqrestore(&mapping->tree_lock, flags);
++		spin_unlock_irqrestore(&mapping->tree_lock, flags);
+ 	} else {
+ 		ret = TestSetPageWriteback(page);
+ 	}
+diff -puN mm/swap_state.c~mm-spinlock-tree_lock mm/swap_state.c
+--- a/mm/swap_state.c~mm-spinlock-tree_lock
++++ a/mm/swap_state.c
+@@ -39,7 +39,7 @@ static struct backing_dev_info swap_back
+ 
+ struct address_space swapper_space = {
+ 	.page_tree	= RADIX_TREE_INIT(GFP_ATOMIC|__GFP_NOWARN),
+-	.tree_lock	= __RW_LOCK_UNLOCKED(swapper_space.tree_lock),
++	.tree_lock	= __SPIN_LOCK_UNLOCKED(swapper_space.tree_lock),
+ 	.a_ops		= &swap_aops,
+ 	.i_mmap_nonlinear = LIST_HEAD_INIT(swapper_space.i_mmap_nonlinear),
+ 	.backing_dev_info = &swap_backing_dev_info,
+@@ -80,7 +80,7 @@ int add_to_swap_cache(struct page *page,
+ 		SetPageSwapCache(page);
+ 		set_page_private(page, entry.val);
+ 
+-		write_lock_irq(&swapper_space.tree_lock);
++		spin_lock_irq(&swapper_space.tree_lock);
+ 		error = radix_tree_insert(&swapper_space.page_tree,
+ 						entry.val, page);
+ 		if (likely(!error)) {
+@@ -88,7 +88,7 @@ int add_to_swap_cache(struct page *page,
+ 			__inc_zone_page_state(page, NR_FILE_PAGES);
+ 			INC_CACHE_INFO(add_total);
+ 		}
+-		write_unlock_irq(&swapper_space.tree_lock);
++		spin_unlock_irq(&swapper_space.tree_lock);
+ 		radix_tree_preload_end();
+ 
+ 		if (unlikely(error)) {
+@@ -183,9 +183,9 @@ void delete_from_swap_cache(struct page 
+ 
+ 	entry.val = page_private(page);
+ 
+-	write_lock_irq(&swapper_space.tree_lock);
++	spin_lock_irq(&swapper_space.tree_lock);
+ 	__delete_from_swap_cache(page);
+-	write_unlock_irq(&swapper_space.tree_lock);
++	spin_unlock_irq(&swapper_space.tree_lock);
+ 
+ 	swap_free(entry);
+ 	page_cache_release(page);
+diff -puN mm/swapfile.c~mm-spinlock-tree_lock mm/swapfile.c
+--- a/mm/swapfile.c~mm-spinlock-tree_lock
++++ a/mm/swapfile.c
+@@ -368,13 +368,13 @@ int remove_exclusive_swap_page(struct pa
+ 	retval = 0;
+ 	if (p->swap_map[swp_offset(entry)] == 1) {
+ 		/* Recheck the page count with the swapcache lock held.. */
+-		write_lock_irq(&swapper_space.tree_lock);
++		spin_lock_irq(&swapper_space.tree_lock);
+ 		if ((page_count(page) == 2) && !PageWriteback(page)) {
+ 			__delete_from_swap_cache(page);
+ 			SetPageDirty(page);
+ 			retval = 1;
+ 		}
+-		write_unlock_irq(&swapper_space.tree_lock);
++		spin_unlock_irq(&swapper_space.tree_lock);
+ 	}
+ 	spin_unlock(&swap_lock);
+ 
+diff -puN mm/truncate.c~mm-spinlock-tree_lock mm/truncate.c
+--- a/mm/truncate.c~mm-spinlock-tree_lock
++++ a/mm/truncate.c
+@@ -349,18 +349,18 @@ invalidate_complete_page2(struct address
+ 	if (PagePrivate(page) && !try_to_release_page(page, GFP_KERNEL))
+ 		return 0;
+ 
+-	write_lock_irq(&mapping->tree_lock);
++	spin_lock_irq(&mapping->tree_lock);
+ 	if (PageDirty(page))
+ 		goto failed;
+ 
+ 	BUG_ON(PagePrivate(page));
+ 	__remove_from_page_cache(page);
+-	write_unlock_irq(&mapping->tree_lock);
++	spin_unlock_irq(&mapping->tree_lock);
+ 	ClearPageUptodate(page);
+ 	page_cache_release(page);	/* pagecache ref */
+ 	return 1;
+ failed:
+-	write_unlock_irq(&mapping->tree_lock);
++	spin_unlock_irq(&mapping->tree_lock);
+ 	return 0;
+ }
+ 
+diff -puN mm/vmscan.c~mm-spinlock-tree_lock mm/vmscan.c
+--- a/mm/vmscan.c~mm-spinlock-tree_lock
++++ a/mm/vmscan.c
+@@ -398,7 +398,7 @@ static int __remove_mapping(struct addre
+ 	BUG_ON(!PageLocked(page));
+ 	BUG_ON(mapping != page_mapping(page));
+ 
+-	write_lock_irq(&mapping->tree_lock);
++	spin_lock_irq(&mapping->tree_lock);
+ 	/*
+ 	 * The non racy check for a busy page.
+ 	 *
+@@ -433,17 +433,17 @@ static int __remove_mapping(struct addre
+ 	if (PageSwapCache(page)) {
+ 		swp_entry_t swap = { .val = page_private(page) };
+ 		__delete_from_swap_cache(page);
+-		write_unlock_irq(&mapping->tree_lock);
++		spin_unlock_irq(&mapping->tree_lock);
+ 		swap_free(swap);
+ 	} else {
+ 		__remove_from_page_cache(page);
+-		write_unlock_irq(&mapping->tree_lock);
++		spin_unlock_irq(&mapping->tree_lock);
+ 	}
+ 
+ 	return 1;
+ 
+ cannot_free:
+-	write_unlock_irq(&mapping->tree_lock);
++	spin_unlock_irq(&mapping->tree_lock);
+ 	return 0;
+ }
+ 
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
