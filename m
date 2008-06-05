@@ -1,92 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - ext3-dont-inherit-inappropriate-inode-flags-from-parent.patch removed from -mm tree
-Date: Wed, 04 Jun 2008 22:36:41 -0700
-Message-ID: <200806050536.m555afoJ027636__17733.408106915$1212644269$gmane$org@imap1.linux-foundation.org>
+Subject: + kobject-export-kobject_rename-for-pci_hotplug_core.patch added to -mm tree
+Date: Wed, 04 Jun 2008 22:49:06 -0700
+Message-ID: <200806050549.m555n6Ri028117@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41430 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35924 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751757AbYFEFgp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 01:36:45 -0400
+	by vger.kernel.org with ESMTP id S1751733AbYFEFuI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 01:50:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: duaneg@dghda.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: kaneshige.kenji@jp.fujitsu.com, achiang@hp.com, greg@kroah.com, kristen.c.accardi@intel.com, lenb@kernel.org
 
 
 The patch titled
-     ext3: don't inherit inappropriate inode flags from parent
-has been removed from the -mm tree.  Its filename was
-     ext3-dont-inherit-inappropriate-inode-flags-from-parent.patch
+     kobject: Export kobject_rename for pci_hotplug_core
+has been added to the -mm tree.  Its filename is
+     kobject-export-kobject_rename-for-pci_hotplug_core.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext3: don't inherit inappropriate inode flags from parent
-From: "Duane Griffin" <duaneg@dghda.com>
+Subject: kobject: Export kobject_rename for pci_hotplug_core
+From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
 
-Fix the TOPDIR flag inheritance bug reported at
-http://bugzilla.kernel.org/show_bug.cgi?id=9866.
+Export kobject_rename() to fix the following link error.  This happens
+when pci_hotplug_core driver is compiled as a kernel module.
 
-  Some file attributes have sticky behaviour in ext2/3 whereas I believe
-  it should not.  Namely, a directory marked with chattr +T serves "to be
-  the top of directory hierarchies for the purposes of the Orlov block
-  allocator", as the manpage says.
+ERROR: "kobject_rename" [drivers/pci/hotplug/pci_hotplug.ko] undefined!
+make[1]: *** [__modpost] Error 1
+make: *** [modules] Error 2
+make: *** Waiting for unfinished jobs....
 
-  It seems wrong that subdirectories stickily inherit the +T flag: they
-  are obviously not top-level!  Even files get the T attribute this way,
-  even though the chattr manpages only documents it for directories.
-
-Also prevent inheritance of other flags that Andreas Dilger identified as
-inappropriate to inherit
-
-At present INDEX is the only flag that new ext3 inodes do NOT inherit from
-their parent. In addition prevent the flags DIRTY, ECOMPR, IMAGIC and
-TOPDIR from being inherited.
-
-Signed-off-by: Duane Griffin <duaneg@dghda.com>
-Cc: <linux-ext4@vger.kernel.org>
+Signed-off-by: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Acked-by: Greg KH <greg@kroah.com>
+Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Alex Chiang <achiang@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/ialloc.c        |    2 +-
- include/linux/ext3_fs.h |    4 ++++
- 2 files changed, 5 insertions(+), 1 deletion(-)
+ lib/kobject.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/ext3/ialloc.c~ext3-dont-inherit-inappropriate-inode-flags-from-parent fs/ext3/ialloc.c
---- a/fs/ext3/ialloc.c~ext3-dont-inherit-inappropriate-inode-flags-from-parent
-+++ a/fs/ext3/ialloc.c
-@@ -559,7 +559,7 @@ got:
- 	ei->i_dir_start_lookup = 0;
- 	ei->i_disksize = 0;
+diff -puN lib/kobject.c~kobject-export-kobject_rename-for-pci_hotplug_core lib/kobject.c
+--- a/lib/kobject.c~kobject-export-kobject_rename-for-pci_hotplug_core
++++ a/lib/kobject.c
+@@ -489,6 +489,7 @@ out:
  
--	ei->i_flags = EXT3_I(dir)->i_flags & ~EXT3_INDEX_FL;
-+	ei->i_flags = EXT3_I(dir)->i_flags & EXT3_FL_INHERITED;
- 	if (S_ISLNK(mode))
- 		ei->i_flags &= ~(EXT3_IMMUTABLE_FL|EXT3_APPEND_FL);
- 	/* dirsync only applies to directories */
-diff -puN include/linux/ext3_fs.h~ext3-dont-inherit-inappropriate-inode-flags-from-parent include/linux/ext3_fs.h
---- a/include/linux/ext3_fs.h~ext3-dont-inherit-inappropriate-inode-flags-from-parent
-+++ a/include/linux/ext3_fs.h
-@@ -178,6 +178,10 @@ struct ext3_group_desc
- #define EXT3_FL_USER_VISIBLE		0x0003DFFF /* User visible flags */
- #define EXT3_FL_USER_MODIFIABLE		0x000380FF /* User modifiable flags */
+ 	return error;
+ }
++EXPORT_SYMBOL_GPL(kobject_rename);
  
-+/* Flags that should be inherited by new inodes from their parent. */
-+#define EXT3_FL_INHERITED ~(EXT3_DIRTY_FL | EXT3_ECOMPR_FL | EXT3_INDEX_FL |\
-+			    EXT3_IMAGIC_FL | EXT3_TOPDIR_FL)
-+
- /*
-  * Inode dynamic state flags
-  */
+ /**
+  * kobject_move - move object to another parent
 _
 
-Patches currently in -mm which might be from duaneg@dghda.com are
+Patches currently in -mm which might be from kaneshige.kenji@jp.fujitsu.com are
 
-jbd-replace-potentially-false-assertion-with-if-block.patch
-jbd-eliminate-duplicated-code-in-revocation-table-init-destroy-functions.patch
-jbd-tidy-up-revoke-cache-initialisation-and-destruction.patch
-ext3-dont-inherit-inappropriate-inode-flags-from-parent.patch
-ext4-dont-inherit-inappropriate-inode-flags-from-parent.patch
+origin.patch
+linux-next.patch
+fakephp-construct-one-fakephp-slot-per-pci-slot.patch
+kobject-export-kobject_rename-for-pci_hotplug_core.patch
+pci-introduce-pci_slot.patch
+acpi-pci-slot-detection-driver.patch
 
