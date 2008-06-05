@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + zorro-use-memory_read_from_buffer.patch added to -mm tree
-Date: Wed, 04 Jun 2008 17:30:09 -0700
-Message-ID: <200806050030.m550U91H016978@imap1.linux-foundation.org>
+Subject: + usbmon-use-simple_read_from_buffer.patch added to -mm tree
+Date: Wed, 04 Jun 2008 17:29:45 -0700
+Message-ID: <200806050029.m550Tj4S016942@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56729 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42424 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756230AbYFEAaY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jun 2008 20:30:24 -0400
+	by vger.kernel.org with ESMTP id S1755099AbYFEAaR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jun 2008 20:30:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, geert@linux-m68k.org
+Cc: akinobu.mita@gmail.com, greg@kroah.com, zaitcev@redhat.com
 
 
 The patch titled
-     zorro: use memory_read_from_buffer()
+     usbmon: use simple_read_from_buffer()
 has been added to the -mm tree.  Its filename is
-     zorro-use-memory_read_from_buffer.patch
+     usbmon-use-simple_read_from_buffer.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,51 +33,50 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: zorro: use memory_read_from_buffer()
+Subject: usbmon: use simple_read_from_buffer()
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Greg Kroah-Hartman <greg@kroah.com>
+Cc: Pete Zaitcev <zaitcev@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/zorro/zorro-sysfs.c |   10 ++--------
- 1 file changed, 2 insertions(+), 8 deletions(-)
+ drivers/usb/mon/mon_stat.c |   14 ++------------
+ 1 file changed, 2 insertions(+), 12 deletions(-)
 
-diff -puN drivers/zorro/zorro-sysfs.c~zorro-use-memory_read_from_buffer drivers/zorro/zorro-sysfs.c
---- a/drivers/zorro/zorro-sysfs.c~zorro-use-memory_read_from_buffer
-+++ a/drivers/zorro/zorro-sysfs.c
-@@ -15,6 +15,7 @@
- #include <linux/zorro.h>
- #include <linux/stat.h>
- #include <linux/string.h>
+diff -puN drivers/usb/mon/mon_stat.c~usbmon-use-simple_read_from_buffer drivers/usb/mon/mon_stat.c
+--- a/drivers/usb/mon/mon_stat.c~usbmon-use-simple_read_from_buffer
++++ a/drivers/usb/mon/mon_stat.c
+@@ -9,6 +9,7 @@
+ 
+ #include <linux/kernel.h>
+ #include <linux/usb.h>
 +#include <linux/fs.h>
+ #include <asm/uaccess.h>
  
- #include "zorro.h"
+ #include "usb_mon.h"
+@@ -42,19 +43,8 @@ static ssize_t mon_stat_read(struct file
+ 				size_t nbytes, loff_t *ppos)
+ {
+ 	struct snap *sp = file->private_data;
+-	loff_t pos = *ppos;
+-	int cnt;
  
-@@ -56,12 +57,6 @@ static ssize_t zorro_read_config(struct 
- 	struct zorro_dev *z = to_zorro_dev(container_of(kobj, struct device,
- 					   kobj));
- 	struct ConfigDev cd;
--	unsigned int size = sizeof(cd);
--
--	if (off > size)
+-	if (pos < 0 || pos >= sp->slen)
 -		return 0;
--	if (off+count > size)
--		count = size-off;
- 
- 	/* Construct a ConfigDev */
- 	memset(&cd, 0, sizeof(cd));
-@@ -71,8 +66,7 @@ static ssize_t zorro_read_config(struct 
- 	cd.cd_BoardAddr = (void *)zorro_resource_start(z);
- 	cd.cd_BoardSize = zorro_resource_len(z);
- 
--	memcpy(buf, (void *)&cd+off, count);
--	return count;
-+	return memory_read_from_buffer(buf, count, &off, &cd, sizeof(cd));
+-	if (nbytes == 0)
+-		return 0;
+-	if ((cnt = sp->slen - pos) > nbytes)
+-		cnt = nbytes;
+-	if (copy_to_user(buf, sp->str + pos, cnt))
+-		return -EFAULT;
+-	*ppos = pos + cnt;
+-	return cnt;
++	return simple_read_from_buffer(buf, nbytes, ppos, sp->str, sp->slen);
  }
  
- static struct bin_attribute zorro_config_attr = {
+ static int mon_stat_release(struct inode *inode, struct file *file)
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
