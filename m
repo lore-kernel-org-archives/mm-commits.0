@@ -1,69 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: + mtd-m25p80c-missed-mutex_unlock-on-error-path.patch added to -mm tree
-Date: Thu, 05 Jun 2008 09:11:23 -0700
-Message-ID: <200806051611.m55GBNmH018356@imap1.linux-foundation.org>
+Subject: - kbuild-simplify-module-versioning-procedure.patch removed from -mm tree
+Date: Thu, 05 Jun 2008 09:30:50 -0700
+Message-ID: <200806051630.m55GUoee019087@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40636 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58040 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751871AbYFEQMI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 12:12:08 -0400
+	by vger.kernel.org with ESMTP id S1757569AbYFEQch (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 12:32:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: g.chen@freescale.com, dwmw2@infradead.org
+To: peter.oberparleiter@de.ibm.com, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mtd: m25p80.c: missed mutex_unlock on error path
-has been added to the -mm tree.  Its filename is
-     mtd-m25p80c-missed-mutex_unlock-on-error-path.patch
+     kbuild: simplify module versioning procedure
+has been removed from the -mm tree.  Its filename was
+     kbuild-simplify-module-versioning-procedure.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was nacked
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd: m25p80.c: missed mutex_unlock on error path
-From: Chen Gong <g.chen@freescale.com>
+Subject: kbuild: simplify module versioning procedure
+From: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
 
-Fix a mutex release bug in function m25p80_write().
+Simplify module version generation to remove duplicate definition of
+cmd_cc_o_c build rule.
 
-Signed-off-by: Chen Gong <g.chen@freescale.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/devices/m25p80.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ scripts/Makefile.build |   25 ++++++++++---------------
+ 1 file changed, 10 insertions(+), 15 deletions(-)
 
-diff -puN drivers/mtd/devices/m25p80.c~mtd-m25p80c-missed-mutex_unlock-on-error-path drivers/mtd/devices/m25p80.c
---- a/drivers/mtd/devices/m25p80.c~mtd-m25p80c-missed-mutex_unlock-on-error-path
-+++ a/drivers/mtd/devices/m25p80.c
-@@ -358,8 +358,10 @@ static int m25p80_write(struct mtd_info 
- 	mutex_lock(&flash->lock);
+diff -puN scripts/Makefile.build~kbuild-simplify-module-versioning-procedure scripts/Makefile.build
+--- a/scripts/Makefile.build~kbuild-simplify-module-versioning-procedure
++++ a/scripts/Makefile.build
+@@ -165,26 +165,23 @@ $(obj)/%.symtypes : $(src)/%.c FORCE
+ # (See cmd_cc_o_c + relevant part of rule_cc_o_c)
  
- 	/* Wait until finished previous write command. */
--	if (wait_till_ready(flash))
-+	if (wait_till_ready(flash)) {
-+		mutex_unlock(&flash->lock);
- 		return 1;
-+	}
+ quiet_cmd_cc_o_c = CC $(quiet_modtag)  $@
+-
+-ifndef CONFIG_MODVERSIONS
+ cmd_cc_o_c = $(CC) $(c_flags) -c -o $@ $<
  
- 	write_enable(flash);
+-else
+-# When module versioning is enabled the following steps are executed:
+-# o compile a .tmp_<file>.o from <file>.c
+-# o if .tmp_<file>.o doesn't contain a __ksymtab version, i.e. does
+-#   not export symbols, we just rename .tmp_<file>.o to <file>.o and
+-#   are done.
+-# o otherwise, we calculate symbol versions using the good old
+-#   genksyms on the preprocessed source and postprocess them in a way
+-#   that they are usable as a linker script
++ifdef CONFIG_MODVERSIONS
++# When module versioning is enabled the following steps are executed
++# in addition to compiling:
++# o if <file>.o doesn't contain a __ksymtab version, i.e. does
++#   not export symbols, we are done
++# o otherwise, we rename <file>.o into .tmp_<file.o> and calculate symbol
++#   versions using the good old genksyms on the preprocessed source and
++#   postprocess them in a way that they are usable as a linker script
+ # o generate <file>.o from .tmp_<file>.o using the linker to
+ #   replace the unresolved symbols __crc_exported_symbol with
+ #   the actual value of the checksum generated by genksyms
+ 
+-cmd_cc_o_c = $(CC) $(c_flags) -c -o $(@D)/.tmp_$(@F) $<
+ cmd_modversions =							\
+-	if $(OBJDUMP) -h $(@D)/.tmp_$(@F) | grep -q __ksymtab; then	\
++	if $(OBJDUMP) -h $@ | grep -q __ksymtab; then			\
++		mv -f $@ $(@D)/.tmp_$(@F);				\
+ 		$(CPP) -D__GENKSYMS__ $(c_flags) $<			\
+ 		| $(GENKSYMS) $(if $(KBUILD_SYMTYPES),			\
+ 			      -T $(@D)/$(@F:.o=.symtypes)) -a $(ARCH)	\
+@@ -193,8 +190,6 @@ cmd_modversions =							\
+ 		$(LD) $(LDFLAGS) -r -o $@ $(@D)/.tmp_$(@F) 		\
+ 			-T $(@D)/.tmp_$(@F:.o=.ver);			\
+ 		rm -f $(@D)/.tmp_$(@F) $(@D)/.tmp_$(@F:.o=.ver);	\
+-	else								\
+-		mv -f $(@D)/.tmp_$(@F) $@;				\
+ 	fi;
+ endif
  
 _
 
-Patches currently in -mm which might be from g.chen@freescale.com are
+Patches currently in -mm which might be from peter.oberparleiter@de.ibm.com are
 
-mtd-m25p80c-missed-mutex_unlock-on-error-path.patch
+origin.patch
+introduce-memory_read_from_buffer.patch
+linux-next.patch
+kbuild-simplify-module-versioning-procedure.patch
+s390-cio-use-memory_read_from_buffer.patch
+kernel-call-constructors.patch
+kernel-introduce-gcc_version_lower-macro.patch
+seq_file-add-function-to-write-binary-data.patch
+gcov-add-gcov-profiling-infrastructure.patch
+gcov-create-links-to-gcda-files-in-build-directory.patch
+gcov-architecture-specific-compile-flag-adjustments.patch
 
