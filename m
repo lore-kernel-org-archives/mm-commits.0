@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-utimensat-ignore-tv_sec-if-tv_nsec-==-utime_omit-or-utime_now.patch added to -mm tree
-Date: Wed, 04 Jun 2008 21:42:03 -0700
-Message-ID: <200806050442.m554g3LP025739@imap1.linux-foundation.org>
+Subject: + vfs-utimensat-fix-error-checking-for-utime_nowutime_omit-case-cleanup.patch added to -mm tree
+Date: Wed, 04 Jun 2008 21:42:10 -0700
+Message-ID: <200806050442.m554gA3p025748@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32932 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55143 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751890AbYFEEmq (ORCPT
+	by vger.kernel.org with ESMTP id S1751880AbYFEEmq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 00:42:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mtk.manpages@googlemail.com, drepper@redhat.com, miklos@szeredi.hu, mtk.manpages@gmail.com, viro@zeniv.linux.org.uk
+Cc: mtk.manpages@googlemail.com, drepper@redhat.com, miklos@szeredi.hu, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     vfs: utimensat(): ignore tv_sec if tv_nsec == UTIME_OMIT or UTIME_NOW
+     vfs-utimensat-fix-error-checking-for-utime_nowutime_omit-case-cleanup
 has been added to the -mm tree.  Its filename is
-     vfs-utimensat-ignore-tv_sec-if-tv_nsec-==-utime_omit-or-utime_now.patch
+     vfs-utimensat-fix-error-checking-for-utime_nowutime_omit-case-cleanup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,54 +33,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: utimensat(): ignore tv_sec if tv_nsec == UTIME_OMIT or UTIME_NOW
+Subject: vfs-utimensat-fix-error-checking-for-utime_nowutime_omit-case-cleanup
 From: Michael Kerrisk <mtk.manpages@googlemail.com>
 
-The POSIX.1 draft spec for utimensat() says that if a times[n].tv_nsec
-field is UTIME_OMIT or UTIME_NOW, then the value in the corresponding
-tv_sec field is ignored.  See the last sentence of this para, from
-the spec:
+This patch improves the indentation of the previous patch.
+(No other changes).
 
-    If the tv_nsec field of a timespec structure has
-    the special value UTIME_NOW, the file's relevant
-    timestamp shall be set to the greatest value
-    supported by the file system that is not greater than
-    the current time. If the tv_nsec field has the
-    special value UTIME_OMIT, the file's relevant
-    timestamp shall not be changed. In either case,
-    the tv_sec field shall be ignored.
-
-However the current Linux implementation requires the tv_sec value to be
-zero (or the EINVAL error results). This requirement should be removed.
-
-Acked-by: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Ulrich Drepper <drepper@redhat.com>
-Signed-off-by: Michael Kerrisk <mtk.manpages@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/utimes.c |    8 --------
- 1 file changed, 8 deletions(-)
+ fs/utimes.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/utimes.c~vfs-utimensat-ignore-tv_sec-if-tv_nsec-==-utime_omit-or-utime_now fs/utimes.c
---- a/fs/utimes.c~vfs-utimensat-ignore-tv_sec-if-tv_nsec-==-utime_omit-or-utime_now
+diff -puN fs/utimes.c~vfs-utimensat-fix-error-checking-for-utime_nowutime_omit-case-cleanup fs/utimes.c
+--- a/fs/utimes.c~vfs-utimensat-fix-error-checking-for-utime_nowutime_omit-case-cleanup
 +++ a/fs/utimes.c
-@@ -169,14 +169,6 @@ asmlinkage long sys_utimensat(int dfd, c
- 	if (utimes) {
- 		if (copy_from_user(&tstimes, utimes, sizeof(tstimes)))
- 			return -EFAULT;
--		if ((tstimes[0].tv_nsec == UTIME_OMIT ||
--		     tstimes[0].tv_nsec == UTIME_NOW) &&
--		    tstimes[0].tv_sec != 0)
--			return -EINVAL;
--		if ((tstimes[1].tv_nsec == UTIME_OMIT ||
--		     tstimes[1].tv_nsec == UTIME_NOW) &&
--		    tstimes[1].tv_sec != 0)
--			return -EINVAL;
+@@ -131,11 +131,11 @@ long do_utimes(int dfd, char __user *fil
+ 		 */
+ 		if (((times[0].tv_nsec == UTIME_NOW &&
+ 			    times[1].tv_nsec == UTIME_OMIT)
+-			  ||
+-			   (times[0].tv_nsec == UTIME_OMIT &&
++		     ||
++		     (times[0].tv_nsec == UTIME_OMIT &&
+ 			    times[1].tv_nsec == UTIME_NOW))
+-		     && !is_owner_or_cap(inode))
+-				goto mnt_drop_write_and_out;
++		    && !is_owner_or_cap(inode))
++			goto mnt_drop_write_and_out;
+ 	} else {
  
- 		/* Nothing to do, we must not even check the path.  */
- 		if (tstimes[0].tv_nsec == UTIME_OMIT &&
+ 		/*
 _
 
 Patches currently in -mm which might be from mtk.manpages@googlemail.com are
