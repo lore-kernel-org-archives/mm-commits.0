@@ -1,53 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup-fix.patch removed from -mm tree
-Date: Thu, 05 Jun 2008 11:53:41 -0700
-Message-ID: <200806051853.m55IrgYa024626@imap1.linux-foundation.org>
+Subject: - pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup.patch removed from -mm tree
+Date: Thu, 05 Jun 2008 11:53:39 -0700
+Message-ID: <200806051853.m55IrdtR024623@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41367 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37471 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750884AbYFESzn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 14:55:43 -0400
+	by vger.kernel.org with ESMTP id S1750776AbYFESzl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 14:55:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cooloney@kernel.org, michael.hennerich@analog.com, vapier.adi@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, cooloney@kernel.org, michael.hennerich@analog.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup-fix
+     pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup
 has been removed from the -mm tree.  Its filename was
-     pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup-fix.patch
+     pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup.patch
 
 This patch was dropped because it was folded into pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup-fix
+Subject: pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Bryan Wu <cooloney@kernel.org>
 Cc: Michael Hennerich <michael.hennerich@analog.com>
-Cc: "Mike Frysinger" <vapier.adi@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/pcmcia/cs_types.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/pcmcia/bfin_cf_pcmcia.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN include/pcmcia/cs_types.h~pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup-fix include/pcmcia/cs_types.h
---- a/include/pcmcia/cs_types.h~pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup-fix
-+++ a/include/pcmcia/cs_types.h
-@@ -21,7 +21,8 @@
- #include <sys/types.h>
- #endif
+diff -puN drivers/pcmcia/bfin_cf_pcmcia.c~pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup drivers/pcmcia/bfin_cf_pcmcia.c
+--- a/drivers/pcmcia/bfin_cf_pcmcia.c~pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup
++++ a/drivers/pcmcia/bfin_cf_pcmcia.c
+@@ -228,9 +228,7 @@ static int __init bfin_cf_probe(struct p
  
--#if defined(__arm__) || defined(__mips__) || defined(__avr32__) || defined(bfin)
-+#if defined(__arm__) || defined(__mips__) || defined(__avr32__) || \
-+	defined(__bfin__)
- /* This (ioaddr_t) is exposed to userspace & hence cannot be changed. */
- typedef u_int   ioaddr_t;
- #else
+ 	cf->cd_pfx = cd_pfx;
+ 
+-	init_timer(&cf->timer);
+-	cf->timer.function = bfin_cf_timer;
+-	cf->timer.data = (unsigned long)cf;
++	setup_timer(&cf->timer, bfin_cf_timer, (unsigned long)cf);
+ 
+ 	cf->pdev = pdev;
+ 	platform_set_drvdata(pdev, cf);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -63,6 +63,7 @@ acpi-video-balcklist-fujitsu-lifebook-s6410.patch
 lguest-use-cpu-capability-accessors.patch
 arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
 pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup.patch
 pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2-checkpatch-fixes-cleanup-fix.patch
 arch-powerpc-platforms-pseries-eeh_driverc-fix-warning.patch
 arch-powerpc-platforms-pseries-eeh_driverc-fix-warning-checkpatch-fixes.patch
