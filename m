@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ext4-dont-inherit-inappropriate-inode-flags-from-parent.patch added to -mm tree
-Date: Wed, 04 Jun 2008 21:37:56 -0700
-Message-ID: <200806050437.m554buOx025552@imap1.linux-foundation.org>
+Subject: + vfs-utimensat-be-consistent-with-utime-for-immutable-and-append-only-files.patch added to -mm tree
+Date: Wed, 04 Jun 2008 21:42:06 -0700
+Message-ID: <200806050442.m554g64m025742@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56388 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60648 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751315AbYFEEiC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 00:38:02 -0400
+	by vger.kernel.org with ESMTP id S1751854AbYFEEmq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 00:42:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: duaneg@dghda.com, linux-ext4@vger.kernel.org
+Cc: mtk.manpages@googlemail.com, drepper@redhat.com, miklos@szeredi.hu, mtk.manpages@gmail.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     ext4: don't inherit inappropriate inode flags from parent
+     vfs: utimensat(): be consistent with utime() for immutable and append-only files
 has been added to the -mm tree.  Its filename is
-     ext4-dont-inherit-inappropriate-inode-flags-from-parent.patch
+     vfs-utimensat-be-consistent-with-utime-for-immutable-and-append-only-files.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,72 +33,105 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext4: don't inherit inappropriate inode flags from parent
-From: "Duane Griffin" <duaneg@dghda.com>
+Subject: vfs: utimensat(): be consistent with utime() for immutable and append-only files
+From: Michael Kerrisk <mtk.manpages@googlemail.com>
 
-Fix the TOPDIR flag inheritance bug reported at
-http://bugzilla.kernel.org/show_bug.cgi?id=9866.
+This patch fixes utimensat() to make its behavior consistent
+with that of utime()/utimes() when dealing with files marked
+immutable and append-only.
 
-  Some file attributes have sticky behaviour in ext2/3 whereas I believe
-  it should not.  Namely, a directory marked with chattr +T serves "to be
-  the top of directory hierarchies for the purposes of the Orlov block
-  allocator", as the manpage says.
+The current utimensat() implementation also returns EPERM if
+'times' is non-NULL and the tv_nsec fields are both UTIME_NOW.
+For consistency, the
 
-  It seems wrong that subdirectories stickily inherit the +T flag: they
-  are obviously not top-level!  Even files get the T attribute this way,
-  even though the chattr manpages only documents it for directories.
+(times != NULL && times[0].tv_nsec == UTIME_NOW &&
+                  times[1].tv_nsec == UTIME_NOW)
 
-Also prevent inheritance of other flags that Andreas Dilger identified as
-inappropriate to inherit
+case should be treated like the traditional utimes() case where
+'times' is NULL.  That is, the call should succeed for a file
+marked append-only and should give the error EACCES if the file
+is marked as immutable.
 
-At present INDEX and EXTENTS are the only flagis that new ext4 inodes do
-NOT inherit from their parent. In addition prevent the flags DIRTY, ECOMPR,
-IMAGIC, TOPDIR and HUGE_FILE from being inherited.
+The simple way to do this is to set 'times' to NULL
+if (times[0].tv_nsec == UTIME_NOW && times[1].tv_nsec == UTIME_NOW).
 
-Signed-off-by: Duane Griffin <duaneg@dghda.com>
-Cc: <linux-ext4@vger.kernel.org>
+This is also the natural approach, since POSIX.1 semantics consider the
+times == {{x, UTIME_NOW}, {y, UTIME_NOW}}
+to be exactly equivalent to the case for
+times == NULL.
+
+(Thanks to Miklos for pointing this out.)
+
+Patch 3 in this series relies on the simplification provided
+by this patch.
+
+Acked-by: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Ulrich Drepper <drepper@redhat.com>
+Signed-off-by: Michael Kerrisk <mtk.manpages@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/ext4.h   |    5 +++++
- fs/ext4/ialloc.c |    2 +-
- 2 files changed, 6 insertions(+), 1 deletion(-)
+ fs/utimes.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN fs/ext4/ext4.h~ext4-dont-inherit-inappropriate-inode-flags-from-parent fs/ext4/ext4.h
---- a/fs/ext4/ext4.h~ext4-dont-inherit-inappropriate-inode-flags-from-parent
-+++ a/fs/ext4/ext4.h
-@@ -249,6 +249,11 @@ struct flex_groups {
- #define EXT4_FL_USER_VISIBLE		0x000BDFFF /* User visible flags */
- #define EXT4_FL_USER_MODIFIABLE		0x000380FF /* User modifiable flags */
+diff -puN fs/utimes.c~vfs-utimensat-be-consistent-with-utime-for-immutable-and-append-only-files fs/utimes.c
+--- a/fs/utimes.c~vfs-utimensat-be-consistent-with-utime-for-immutable-and-append-only-files
++++ a/fs/utimes.c
+@@ -102,6 +102,10 @@ long do_utimes(int dfd, char __user *fil
+ 	if (error)
+ 		goto dput_and_out;
  
-+/* Flags that should be inherited by new inodes from their parent. */
-+#define EXT4_FL_INHERITED ~(EXT4_DIRTY_FL | EXT4_ECOMPR_FL | EXT4_INDEX_FL |\
-+			    EXT4_IMAGIC_FL | EXT4_TOPDIR_FL |\
-+			    EXT4_HUGE_FILE_FL | EXT4_EXTENTS_FL)
++	if (times && times[0].tv_nsec == UTIME_NOW &&
++		     times[1].tv_nsec == UTIME_NOW)
++		times = NULL;
 +
- /*
-  * Inode dynamic state flags
-  */
-diff -puN fs/ext4/ialloc.c~ext4-dont-inherit-inappropriate-inode-flags-from-parent fs/ext4/ialloc.c
---- a/fs/ext4/ialloc.c~ext4-dont-inherit-inappropriate-inode-flags-from-parent
-+++ a/fs/ext4/ialloc.c
-@@ -798,7 +798,7 @@ got:
- 	 * newly created directory and file only if -o extent mount option is
- 	 * specified
- 	 */
--	ei->i_flags = EXT4_I(dir)->i_flags & ~(EXT4_INDEX_FL|EXT4_EXTENTS_FL);
-+	ei->i_flags = EXT4_I(dir)->i_flags & EXT4_FL_INHERITED;
- 	if (S_ISLNK(mode))
- 		ei->i_flags &= ~(EXT4_IMMUTABLE_FL|EXT4_APPEND_FL);
- 	/* dirsync only applies to directories */
+ 	/* Don't worry, the checks are done in inode_change_ok() */
+ 	newattrs.ia_valid = ATTR_CTIME | ATTR_MTIME | ATTR_ATIME;
+ 	if (times) {
 _
 
-Patches currently in -mm which might be from duaneg@dghda.com are
+Patches currently in -mm which might be from mtk.manpages@googlemail.com are
 
-jbd-replace-potentially-false-assertion-with-if-block.patch
-jbd-eliminate-duplicated-code-in-revocation-table-init-destroy-functions.patch
-jbd-tidy-up-revoke-cache-initialisation-and-destruction.patch
-ext2-dont-inherit-inappropriate-inode-flags-from-parent.patch
-ext3-dont-inherit-inappropriate-inode-flags-from-parent.patch
-ext4-dont-inherit-inappropriate-inode-flags-from-parent.patch
+ipc-restore-msgpool-original-value.patch
+huge-page-private-reservation-review-cleanups.patch
+huge-page-private-reservation-review-cleanups-fix.patch
+mm-record-map_noreserve-status-on-vmas-and-fix-small-page-mprotect-reservations.patch
+hugetlb-move-reservation-region-support-earlier.patch
+hugetlb-allow-huge-page-mappings-to-be-created-without-reservations.patch
+hugetlb-allow-huge-page-mappings-to-be-created-without-reservations-cleanups.patch
+flag-parameters-socket-and-socketpair.patch
+flag-parameters-socket-and-socketpair-mips-fix.patch
+flag-parameters-paccept.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-paccept-fix-flag-parameters-arch-specific-sock_nonblock.patch
+flag-parameters-paccept-flag-parameters-paccept-w-out-set_restore_sigmask.patch
+flag-parameters-paccept-sys_ni.patch
+flag-parameters-anon_inode_getfd-extension.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-signalfd.patch
+flag-parameters-signalfd-fix.patch
+flag-parameters-eventfd.patch
+flag-parameters-eventfd-fix.patch
+flag-parameters-timerfd_create.patch
+flag-parameters-epoll_create.patch
+flag-parameters-dup2.patch
+flag-parameters-pipe.patch
+flag-parameters-inotify_init.patch
+flag-parameters-inotify_init-fix.patch
+flag-parametersi-nonblock-in-anon_inode_getfd.patch
+flag-parameters-nonblock-in-socket-and-socketpair.patch
+flag-parameters-nonblock-in-signalfd.patch
+flag-parameters-nonblock-in-eventfd.patch
+flag-parameters-nonblock-in-timerfd_create.patch
+flag-parameters-nonblock-in-pipe.patch
+flag-parameters-nonblock-in-inotify_init.patch
+flag-parameters-check-magic-constants.patch
+flag-parameters-check-magic-constants-alpha.patch
+flag-parameters-add-on-remove-epoll_create-size-param.patch
+vfs-utimensat-ignore-tv_sec-if-tv_nsec-==-utime_omit-or-utime_now.patch
+vfs-utimensat-be-consistent-with-utime-for-immutable-and-append-only-files.patch
+vfs-utimensat-fix-error-checking-for-utime_nowutime_omit-case.patch
+vfs-utimensat-fix-error-checking-for-utime_nowutime_omit-case-cleanup.patch
+vfs-utimensat-fix-write-access-check-for-futimens.patch
 
