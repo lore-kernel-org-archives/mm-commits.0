@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-implement-pte_special.patch added to -mm tree
-Date: Thu, 05 Jun 2008 13:35:11 -0700
-Message-ID: <200806052035.m55KZBIO028519@imap1.linux-foundation.org>
+Subject: + skeletonfb-update-to-correct-platform-driver-usage.patch added to -mm tree
+Date: Thu, 05 Jun 2008 15:06:43 -0700
+Message-ID: <200806052206.m55M6hZh032060@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59875 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38599 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754483AbYFEUgp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 16:36:45 -0400
+	by vger.kernel.org with ESMTP id S1751909AbYFEWHQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 18:07:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de, benh@kernel.crashing.org, hugh@veritas.com, paulmck@us.ibm.com, paulus@samba.org
+Cc: krzysztof.h1@wp.pl
 
 
 The patch titled
-     powerpc: implement pte_special
+     skeletonfb: update to correct platform driver usage
 has been added to the -mm tree.  Its filename is
-     powerpc-implement-pte_special.patch
+     skeletonfb-update-to-correct-platform-driver-usage.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,99 +33,159 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: powerpc: implement pte_special
-From: Nick Piggin <npiggin@suse.de>
+Subject: skeletonfb: update to correct platform driver usage
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Implement PTE_SPECIAL for powerpc.  At the moment I only have a spare bit
-for the 4k pages config, but Ben has freed up another one for 64k pages
-that I can use, so this patch should include that before it goes upstream.
+It updates skeletonfb to new platform driver API.  The skeletonfb is
+templates for creating new drivers.
 
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-powerpc/pgtable-4k.h    |    2 ++
- include/asm-powerpc/pgtable-64k.h   |    1 +
- include/asm-powerpc/pgtable-ppc64.h |    4 ++--
- 3 files changed, 5 insertions(+), 2 deletions(-)
+ drivers/video/skeletonfb.c |   37 ++++++++++++++++++-----------------
+ 1 file changed, 20 insertions(+), 17 deletions(-)
 
-diff -puN include/asm-powerpc/pgtable-4k.h~powerpc-implement-pte_special include/asm-powerpc/pgtable-4k.h
---- a/include/asm-powerpc/pgtable-4k.h~powerpc-implement-pte_special
-+++ a/include/asm-powerpc/pgtable-4k.h
-@@ -45,6 +45,8 @@
- #define _PAGE_GROUP_IX  0x7000 /* software: HPTE index within group */
- #define _PAGE_F_SECOND  _PAGE_SECONDARY
- #define _PAGE_F_GIX     _PAGE_GROUP_IX
-+#define _PAGE_SPECIAL	0x10000 /* software: special page */
-+#define __HAVE_ARCH_PTE_SPECIAL
+diff -puN drivers/video/skeletonfb.c~skeletonfb-update-to-correct-platform-driver-usage drivers/video/skeletonfb.c
+--- a/drivers/video/skeletonfb.c~skeletonfb-update-to-correct-platform-driver-usage
++++ a/drivers/video/skeletonfb.c
+@@ -675,13 +675,13 @@ static struct fb_ops xxxfb_ops = {
+      *  Initialization
+      */
  
- /* PTE flags to conserve for HPTE identification */
- #define _PAGE_HPTEFLAGS (_PAGE_BUSY | _PAGE_HASHPTE | \
-diff -puN include/asm-powerpc/pgtable-64k.h~powerpc-implement-pte_special include/asm-powerpc/pgtable-64k.h
---- a/include/asm-powerpc/pgtable-64k.h~powerpc-implement-pte_special
-+++ a/include/asm-powerpc/pgtable-64k.h
-@@ -74,6 +74,7 @@ static inline struct subpage_prot_table 
- #define _PAGE_HPTE_SUB0	0x08000000 /* combo only: first sub page */
- #define _PAGE_COMBO	0x10000000 /* this is a combo 4k page */
- #define _PAGE_4K_PFN	0x20000000 /* PFN is for a single 4k page */
-+#define _PAGE_SPECIAL	0x0	   /* don't have enough room for this yet */
- 
- /* Note the full page bits must be in the same location as for normal
-  * 4k pages as the same asssembly will be used to insert 64K pages
-diff -puN include/asm-powerpc/pgtable-ppc64.h~powerpc-implement-pte_special include/asm-powerpc/pgtable-ppc64.h
---- a/include/asm-powerpc/pgtable-ppc64.h~powerpc-implement-pte_special
-+++ a/include/asm-powerpc/pgtable-ppc64.h
-@@ -243,7 +243,7 @@ static inline int pte_write(pte_t pte) {
- static inline int pte_dirty(pte_t pte) { return pte_val(pte) & _PAGE_DIRTY;}
- static inline int pte_young(pte_t pte) { return pte_val(pte) & _PAGE_ACCESSED;}
- static inline int pte_file(pte_t pte) { return pte_val(pte) & _PAGE_FILE;}
--static inline int pte_special(pte_t pte) { return 0; }
-+static inline int pte_special(pte_t pte) { return pte_val(pte) & _PAGE_SPECIAL; }
- 
- static inline void pte_uncache(pte_t pte) { pte_val(pte) |= _PAGE_NO_CACHE; }
- static inline void pte_cache(pte_t pte)   { pte_val(pte) &= ~_PAGE_NO_CACHE; }
-@@ -263,7 +263,7 @@ static inline pte_t pte_mkyoung(pte_t pt
- static inline pte_t pte_mkhuge(pte_t pte) {
- 	return pte; }
- static inline pte_t pte_mkspecial(pte_t pte) {
--	return pte; }
-+	pte_val(pte) |= _PAGE_SPECIAL; return pte; }
- static inline unsigned long pte_pgprot(pte_t pte)
+-/* static int __init xxfb_probe (struct device *device) -- for platform devs */
++/* static int __init xxfb_probe (struct platform_device *pdev) -- for platform devs */
+ static int __devinit xxxfb_probe(struct pci_dev *dev,
+ 			      const struct pci_device_id *ent)
  {
- 	return __pgprot(pte_val(pte)) & PAGE_PROT_BITS;
+     struct fb_info *info;
+     struct xxx_par *par;
+-    struct device* device = &dev->dev; /* for pci drivers */
++    struct device *device = &dev->dev; /* or &pdev->dev */
+     int cmap_len, retval;	
+    
+     /*
+@@ -824,18 +824,18 @@ static int __devinit xxxfb_probe(struct 
+ 	return -EINVAL;
+     printk(KERN_INFO "fb%d: %s frame buffer device\n", info->node,
+ 	   info->fix.id);
+-    pci_set_drvdata(dev, info); /* or dev_set_drvdata(device, info) */
++    pci_set_drvdata(dev, info); /* or platform_set_drvdata(pdev, info) */
+     return 0;
+ }
+ 
+     /*
+      *  Cleanup
+      */
+-/* static void __devexit xxxfb_remove(struct device *device) */
++/* static void __devexit xxxfb_remove(struct platform_device *pdev) */
+ static void __devexit xxxfb_remove(struct pci_dev *dev)
+ {
+ 	struct fb_info *info = pci_get_drvdata(dev);
+-	/* or dev_get_drvdata(device); */
++	/* or platform_get_drvdata(pdev); */
+ 
+ 	if (info) {
+ 		unregister_framebuffer(info);
+@@ -961,18 +961,17 @@ static int xxxfb_resume(struct platform_
+ #define xxxfb_resume NULL
+ #endif /* CONFIG_PM */
+ 
+-static struct device_driver xxxfb_driver = {
+-	.name = "xxxfb",
+-	.bus  = &platform_bus_type,
++static struct platform_device_driver xxxfb_driver = {
+ 	.probe = xxxfb_probe,
+ 	.remove = xxxfb_remove,
+ 	.suspend = xxxfb_suspend, /* optional but recommended */
+ 	.resume = xxxfb_resume,   /* optional but recommended */
++	.driver = {
++		.name = "xxxfb",
++	},
+ };
+ 
+-static struct platform_device xxxfb_device = {
+-	.name = "xxxfb",
+-};
++static struct platform_device *xxxfb_device;
+ 
+ #ifndef MODULE
+     /*
+@@ -1002,12 +1001,16 @@ static int __init xxxfb_init(void)
+ 		return -ENODEV;
+ 	xxxfb_setup(option);
+ #endif
+-	ret = driver_register(&xxxfb_driver);
++	ret = platform_driver_register(&xxxfb_driver);
+ 
+ 	if (!ret) {
+-		ret = platform_device_register(&xxxfb_device);
+-		if (ret)
+-			driver_unregister(&xxxfb_driver);
++		xxxfb_device = platform_device_register_simple("xxxfb", 0,
++								NULL, 0);
++
++		if (IS_ERR(xxxfb_device)) {
++			platform_driver_unregister(&xxxfb_driver);
++			ret = PTR_ERR(xxxfb_device);
++		}
+ 	}
+ 
+ 	return ret;
+@@ -1015,8 +1018,8 @@ static int __init xxxfb_init(void)
+ 
+ static void __exit xxxfb_exit(void)
+ {
+-	platform_device_unregister(&xxxfb_device);
+-	driver_unregister(&xxxfb_driver);
++	platform_device_unregister(xxxfb_device);
++	platform_driver_unregister(&xxxfb_driver);
+ }
+ #endif /* CONFIG_PCI */
+ 
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
-hugetlb-fix-lockdep-error.patch
-linux-next.patch
-spufs-convert-nopfn-to-fault.patch
-vt-fix-vc_resize-locking.patch
-mspec-convert-nopfn-to-fault.patch
-mspec-convert-nopfn-to-fault-fix.patch
-mm-remove-nopfn.patch
-mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co.patch
-hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed-build-fix.patch
-x86-implement-pte_special.patch
-mm-introduce-get_user_pages_fast.patch
-mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast.patch
-x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-fix.patch
-x86-lockless-get_user_pages_fast-fix-warning.patch
-dio-use-get_user_pages_fast.patch
-splice-use-get_user_pages_fast.patch
-mm-readahead-scan-lockless.patch
-radix-tree-add-gang_lookup_slot-gang_lookup_slot_tag.patch
-mm-speculative-page-references.patch
-mm-lockless-pagecache.patch
-mm-spinlock-tree_lock.patch
-powerpc-implement-pte_special.patch
-powerpc-lockless-get_user_pages_fast.patch
-reiser4.patch
-likeliness-accounting-change-and-cleanup.patch
+modedb-fix-incorrect-sync-and-vmode-flags-for-cvt-modes.patch
+fbcon-fix-wrong-vmode-bits-copied-on-console-switch.patch
+tridentfb-replace-macros-with-functions.patch
+tridentfb-convert-fb_info-into-allocated-one.patch
+tridentfb-move-global-pseudo-palette-into-structure.patch
+tridentfb-move-global-chip_id-into-structure.patch
+tridentfb-move-global-flat-panel-variable-into-structure.patch
+tridentfb-convert-is_blade-and-is_xp-macros-into-functions.patch
+tridentfb-move-global-acceleration-hooks-into-structure.patch
+tridentfb-make-use-of-functions-and-constants-from-the-vgah.patch
+tridentfb-fix-timing-calculations.patch
+tridentfb-use-mmio-access-for-clock-setting.patch
+tridentfb-fix-clock-settings-for-older-trident-96xx-chips.patch
+tridentfb-improve-probe-function.patch
+tridentfb-improved-register-values-on-tgui-9680.patch
+tridentfb-add-tgui-9440-support.patch
+tridentfb-fix-unitialized-pseudo_palette.patch
+tridentfb-improve-check_var-function.patch
+tridentfb-preserve-memory-type-settings.patch
+tridentfb-fix-hi-color-modes-for-tgui-9440.patch
+tridentfb-add-acceleration-for-tgui-families.patch
+tridentfb-acceleration-code-improvements.patch
+tridentfb-acceleration-bug-fixes.patch
+tridentfb-various-pixclock-and-timing-improvements.patch
+tridentfb-acceleration-constants-change.patch
+tridentfb-source-code-improvements.patch
+tridentfb-fix-console-freeze-when-switching-from-x11.patch
+tridentfb-fix-224-color-logo-at-8-bpp.patch
+tridentfb-y-panning-fixes.patch
+tridentfb-blade3d-clock-fixes.patch
+amifb-test-virtual-screen-range-before-subtraction-on-unsigned.patch
+atafb-test-virtual-screen-range-before-subtraction-on-unsigned.patch
+fbcon-make-logo_height-a-local-variable.patch
+uvesafb-change-mode-parameter-to-mode_option.patch
+tridentfb-documentation-update.patch
+tdfxfb-add-mode_option-module-parameter.patch
+vga16fb-source-code-improvement.patch
+tdfxfb-remove-ypan-checks-done-by-a-higher-layer.patch
+vfb-only-enable-if-explicitly-requested-when-compiled-in.patch
+hgafb-convert-to-new-platform-driver-api-bugzilla-9689.patch
+skeletonfb-update-to-correct-platform-driver-usage.patch
 
