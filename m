@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + s390-use-simple_read_from_buffer.patch added to -mm tree
-Date: Wed, 04 Jun 2008 17:29:40 -0700
-Message-ID: <200806050029.m550Tel1016936@imap1.linux-foundation.org>
+Subject: + acpi-use-memory_read_from_buffer.patch added to -mm tree
+Date: Wed, 04 Jun 2008 17:30:05 -0700
+Message-ID: <200806050030.m550U5iA016972@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46450 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38945 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756108AbYFEAac (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jun 2008 20:30:32 -0400
+	by vger.kernel.org with ESMTP id S1752121AbYFEAad (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jun 2008 20:30:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com
+Cc: akinobu.mita@gmail.com, lenb@kernel.org, robert.moore@intel.com, rui.zhang@intel.com, trenn@suse.de
 
 
 The patch titled
-     s390: use simple_read_from_buffer()
+     acpi: use memory_read_from_buffer()
 has been added to the -mm tree.  Its filename is
-     s390-use-simple_read_from_buffer.patch
+     acpi-use-memory_read_from_buffer.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,65 +33,52 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: s390: use simple_read_from_buffer()
+Subject: acpi: use memory_read_from_buffer()
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Zhang Rui <rui.zhang@intel.com>
+Cc: Bob Moore <robert.moore@intel.com>
+Cc: Thomas Renninger <trenn@suse.de>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/hypfs/inode.c |   29 ++++++++++-------------------
- 1 file changed, 10 insertions(+), 19 deletions(-)
+ drivers/acpi/system.c |   15 ++-------------
+ 1 file changed, 2 insertions(+), 13 deletions(-)
 
-diff -puN arch/s390/hypfs/inode.c~s390-use-simple_read_from_buffer arch/s390/hypfs/inode.c
---- a/arch/s390/hypfs/inode.c~s390-use-simple_read_from_buffer
-+++ a/arch/s390/hypfs/inode.c
-@@ -150,33 +150,24 @@ static ssize_t hypfs_aio_read(struct kio
- 			      unsigned long nr_segs, loff_t offset)
- {
- 	char *data;
--	size_t len;
-+	ssize_t ret;
- 	struct file *filp = iocb->ki_filp;
- 	/* XXX: temporary */
- 	char __user *buf = iov[0].iov_base;
- 	size_t count = iov[0].iov_len;
+diff -puN drivers/acpi/system.c~acpi-use-memory_read_from_buffer drivers/acpi/system.c
+--- a/drivers/acpi/system.c~acpi-use-memory_read_from_buffer
++++ a/drivers/acpi/system.c
+@@ -77,7 +77,6 @@ static ssize_t acpi_table_show(struct ko
+ 	    container_of(bin_attr, struct acpi_table_attr, attr);
+ 	struct acpi_table_header *table_header = NULL;
+ 	acpi_status status;
+-	ssize_t ret_count = count;
  
--	if (nr_segs != 1) {
--		count = -EINVAL;
--		goto out;
--	}
-+	if (nr_segs != 1)
-+		return -EINVAL;
+ 	status =
+ 	    acpi_get_table(table_attr->name, table_attr->instance,
+@@ -85,18 +84,8 @@ static ssize_t acpi_table_show(struct ko
+ 	if (ACPI_FAILURE(status))
+ 		return -ENODEV;
  
- 	data = filp->private_data;
--	len = strlen(data);
--	if (offset > len) {
--		count = 0;
--		goto out;
+-	if (offset >= table_header->length) {
+-		ret_count = 0;
+-		goto end;
 -	}
--	if (count > len - offset)
--		count = len - offset;
--	if (copy_to_user(buf, data + offset, count)) {
--		count = -EFAULT;
--		goto out;
--	}
--	iocb->ki_pos += count;
-+	ret = simple_read_from_buffer(buf, count, &offset, data, strlen(data));
-+	if (ret <= 0)
-+		return ret;
-+
-+	iocb->ki_pos += ret;
- 	file_accessed(filp);
--out:
--	return count;
-+
-+	return ret;
+-
+-	if (offset + ret_count > table_header->length)
+-		ret_count = table_header->length - offset;
+-
+-	memcpy(buf, ((char *)table_header) + offset, ret_count);
+-
+-      end:
+-	return ret_count;
++	return memory_read_from_buffer(buf, count, &offset,
++					table_header, table_header->length);
  }
- static ssize_t hypfs_aio_write(struct kiocb *iocb, const struct iovec *iov,
- 			      unsigned long nr_segs, loff_t offset)
+ 
+ static void acpi_table_attr_init(struct acpi_table_attr *table_attr,
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
