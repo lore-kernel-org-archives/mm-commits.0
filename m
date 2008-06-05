@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + pnp-skip-unset-mem-resources-as-well-as-disabled-ones.patch added to -mm tree
-Date: Thu, 05 Jun 2008 12:05:17 -0700
-Message-ID: <200806051905.m55J5HSA025102@imap1.linux-foundation.org>
+Subject: + remove-include-linux-pm_legacyh.patch added to -mm tree
+Date: Thu, 05 Jun 2008 12:32:28 -0700
+Message-ID: <200806051932.m55JWSQN026146@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57705 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52844 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752016AbYFETF6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 15:05:58 -0400
+	by vger.kernel.org with ESMTP id S1751308AbYFETdy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 15:33:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bjorn.helgaas@hp.com, rene.herman@keyaccess.nl
+Cc: bunk@kernel.org, pavel@suse.cz, rjw@sisk.pl, rpjday@crashcourse.ca
 
 
 The patch titled
-     PNP: skip UNSET MEM resources as well as DISABLED ones
+     remove include/linux/pm_legacy.h
 has been added to the -mm tree.  Its filename is
-     pnp-skip-unset-mem-resources-as-well-as-disabled-ones.patch
+     remove-include-linux-pm_legacyh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,78 +33,144 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: PNP: skip UNSET MEM resources as well as DISABLED ones
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: remove include/linux/pm_legacy.h
+From: Adrian Bunk <bunk@kernel.org>
 
-We don't need to reserve "unset" resources.  Trying to reserve them
-results in messages like this, which are ugly but harmless:
+Remove the obsolete and no longer used include/linux/pm_legacy.h
 
-    system 00:08: iomem range 0x0-0x0 could not be reserved
-
-Future PNP patches will remove use of IORESOURCE_UNSET, but we still
-need it for now.
-
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Rene Herman <rene.herman@keyaccess.nl>
+Reviewed-by: Robert P. J. Day <rpjday@crashcourse.ca>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: Pavel Machek <pavel@suse.cz>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/system.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/frv/kernel/pm.c            |    1 
+ arch/mips/au1000/common/power.c |    1 
+ arch/x86/kernel/apm_32.c        |    1 
+ include/linux/pm_legacy.h       |   35 ------------------------------
+ 4 files changed, 38 deletions(-)
 
-diff -puN drivers/pnp/system.c~pnp-skip-unset-mem-resources-as-well-as-disabled-ones drivers/pnp/system.c
---- a/drivers/pnp/system.c~pnp-skip-unset-mem-resources-as-well-as-disabled-ones
-+++ a/drivers/pnp/system.c
-@@ -81,7 +81,7 @@ static void reserve_resources_of_dev(str
- 	}
+diff -puN arch/frv/kernel/pm.c~remove-include-linux-pm_legacyh arch/frv/kernel/pm.c
+--- a/arch/frv/kernel/pm.c~remove-include-linux-pm_legacyh
++++ a/arch/frv/kernel/pm.c
+@@ -14,7 +14,6 @@
+ #include <linux/init.h>
+ #include <linux/module.h>
+ #include <linux/pm.h>
+-#include <linux/pm_legacy.h>
+ #include <linux/sched.h>
+ #include <linux/interrupt.h>
+ #include <linux/sysctl.h>
+diff -puN arch/mips/au1000/common/power.c~remove-include-linux-pm_legacyh arch/mips/au1000/common/power.c
+--- a/arch/mips/au1000/common/power.c~remove-include-linux-pm_legacyh
++++ a/arch/mips/au1000/common/power.c
+@@ -31,7 +31,6 @@
  
- 	for (i = 0; (res = pnp_get_resource(dev, IORESOURCE_MEM, i)); i++) {
--		if (res->flags & IORESOURCE_DISABLED)
-+		if (res->flags & (IORESOURCE_UNSET | IORESOURCE_DISABLED))
- 			continue;
+ #include <linux/init.h>
+ #include <linux/pm.h>
+-#include <linux/pm_legacy.h>
+ #include <linux/sysctl.h>
+ #include <linux/jiffies.h>
  
- 		reserve_range(dev, res->start, res->end, 0);
+diff -puN arch/x86/kernel/apm_32.c~remove-include-linux-pm_legacyh arch/x86/kernel/apm_32.c
+--- a/arch/x86/kernel/apm_32.c~remove-include-linux-pm_legacyh
++++ a/arch/x86/kernel/apm_32.c
+@@ -219,7 +219,6 @@
+ #include <linux/time.h>
+ #include <linux/sched.h>
+ #include <linux/pm.h>
+-#include <linux/pm_legacy.h>
+ #include <linux/capability.h>
+ #include <linux/device.h>
+ #include <linux/kernel.h>
+diff -puN include/linux/pm_legacy.h~remove-include-linux-pm_legacyh /dev/null
+--- a/include/linux/pm_legacy.h
++++ /dev/null
+@@ -1,35 +0,0 @@
+-#ifndef __LINUX_PM_LEGACY_H__
+-#define __LINUX_PM_LEGACY_H__
+-
+-
+-#ifdef CONFIG_PM_LEGACY
+-
+-/*
+- * Register a device with power management
+- */
+-struct pm_dev __deprecated *
+-pm_register(pm_dev_t type, unsigned long id, pm_callback callback);
+-
+-/*
+- * Send a request to all devices
+- */
+-int __deprecated pm_send_all(pm_request_t rqst, void *data);
+-
+-#else /* CONFIG_PM_LEGACY */
+-
+-static inline struct pm_dev *pm_register(pm_dev_t type,
+-					 unsigned long id,
+-					 pm_callback callback)
+-{
+-	return NULL;
+-}
+-
+-static inline int pm_send_all(pm_request_t rqst, void *data)
+-{
+-	return 0;
+-}
+-
+-#endif /* CONFIG_PM_LEGACY */
+-
+-#endif /* __LINUX_PM_LEGACY_H__ */
+-
 _
 
-Patches currently in -mm which might be from bjorn.helgaas@hp.com are
+Patches currently in -mm which might be from bunk@kernel.org are
 
-pnp-skip-unset-mem-resources-as-well-as-disabled-ones.patch
-acpi_pm_device_sleep_state-cleanup.patch
-mm-only-enforce-acpi-resource-conflict-checks.patch
-provide-rtc_cmos-platform-device-take-2.patch
-acpi-fix-drivers-acpi-gluec-build-error.patch
-pnpacpi-fix-irq-flag-decoding.patch
-pnpacpi-fix-irq-flag-decoding-comment-fix.patch
-pnpacpi-fix-shareable-irq-encode-decode.patch
-pnpacpi-use-_crs-irq-descriptor-length-for-_srs-v2.patch
-pnp-add-detail-to-debug-resource-dump.patch
-pnp-remove-pnp_resourceindex.patch
-pnp-add-pnp_resource_type-internal-interface.patch
-pnp-add-pnp_resource_type_name-helper-function.patch
-pnp-make-pnp_portmemetc_start-et-al-work-for-invalid-resources.patch
-pnp-replace-pnp_resource_table-with-dynamically-allocated-resources.patch
-pnp-replace-pnp_resource_table-with-dynamically-allocated-resources-merge-fix.patch
-pnp-remove-ratelimit-on-add-resource-failures.patch
-pnp-dont-sort-by-type-in-sys-resources.patch
-pnp-set-the-pnp_card-dma_mask-for-use-by-isapnp-cards.patch
-isa-set-24-bit-dma_mask-for-isa-devices.patch
-pnp-add-pnp_possible_config-can-a-device-could-be-configured-this-way.patch
-pnp-whitespace-coding-style-fixes.patch
-pnp-define-pnp-specific-ioresource_io_-flags-alongside-irq-dma-mem.patch
-pnp-make-resource-option-structures-private-to-pnp-subsystem.patch
-pnp-introduce-pnp_irq_mask_t-typedef.patch
-pnp-increase-i-o-port-memory-option-address-sizes.patch
-pnp-improve-resource-assignment-debug.patch
-pnp-in-debug-resource-dump-make-empty-list-obvious.patch
-pnp-make-resource-assignment-functions-return-0-success-or-ebusy-failure.patch
-pnp-remove-redundant-pnp_can_configure-check.patch
-pnp-centralize-resource-option-allocations.patch
-pnpacpi-ignore-_prs-interrupt-numbers-larger-than-pnp_irq_nr.patch
-pnp-rename-pnp_register__resource-local-variables.patch
-pnp-support-optional-irq-resources.patch
-pnp-remove-extra-0x100-bit-from-option-priority.patch
-isapnp-handle-independent-options-following-dependent-ones.patch
-pnp-convert-resource-options-to-single-linked-list.patch
-pnp-convert-resource-options-to-single-linked-list-checkpatch-fixes.patch
+frv-dont-offer-binfmt_flat.patch
+linux-next.patch
+proper-prototype-for-acpi_processor_tstate_has_changed.patch
+remove-drivers-acorn-char-defkeymap-l7200c.patch
+drm-make-drm_minors_cleanup-static.patch
+if-0-ses_match_host.patch
+git-xtensa.patch
+mm-migratec-should-include-linux-syscallsh.patch
+mm-vmstatc-proper-externs.patch
+mm-hugetlbc-fix-duplicate-variable.patch
+remove-include-asm-h8300-keyboardh.patch
+remove-include-linux-pm_legacyh.patch
+remove-the-v850-port.patch
+init-do_mountsc-should-include-linux-initrdh.patch
+proper-spawn_ksoftirqd-prototype.patch
+build-kernel-profileo-only-when-requested.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+asm-generic-int-ll64h-always-provide-__su64.patch
+remove-some-more-tipar-bits.patch
+remove-the-oss-trident-driver.patch
+config_sound_wm97xx-remove-stale-makefile-line.patch
+serial-8250_gscc-add-module_license.patch
+mfd-sm501c-if-0-unused-functions.patch
+video-sis-remove-compat-code.patch
+minix-remove-no_truncate-code.patch
+remove-is_tty.patch
+proper-extern-for-mwave_s_mdd.patch
+if-0-hpet_unregister.patch
+unexport-proc_clear_tty.patch
+move-proc_kmsg_operations-to-fs-proc-internalh.patch
+proper-pidhashmap_init-prototypes.patch
+unexport-uts_sem.patch
+parport-sharec-proper-externs.patch
+tpm_biosc-make-2-structs-static.patch
+make-cgroup_seqfile_release-static.patch
+make-kprobe_blacklist-static.patch
 make-pnp_add_card_id-static.patch
+make-parport_cs_release-static.patch
+make-mm-sparsec-make-a-function-static.patch
+mm-allocpercpuc-make-4-functions-static.patch
+make-mm-memoryc-print_bad_pte-static.patch
+mm-swapfilec-make-code-static.patch
+make-mm-rmapc-anon_vma_cachep-static.patch
+drivers-char-rtcc-make-2-functions-static.patch
+make-init-do_mountsc-root_device_name-static.patch
+reiser4.patch
 
