@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + dell_rbu-use-memory_read_from_buffer.patch added to -mm tree
-Date: Wed, 04 Jun 2008 17:30:01 -0700
-Message-ID: <200806050030.m550U2Wh016966@imap1.linux-foundation.org>
+Subject: + ipc-use-simple_read_from_buffer.patch added to -mm tree
+Date: Wed, 04 Jun 2008 17:29:33 -0700
+Message-ID: <200806050029.m550TXxu016924@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53942 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60351 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754720AbYFEAaF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jun 2008 20:30:05 -0400
+	by vger.kernel.org with ESMTP id S1755099AbYFEAaP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jun 2008 20:30:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, Abhay_Salunke@dell.com, Matt_Domsch@dell.com, rui.zhang@intel.com
+Cc: akinobu.mita@gmail.com, Nadia.Derbey@bull.net, manfred@colorfullife.com, peifferp@gmail.com
 
 
 The patch titled
-     dell_rbu: use memory_read_from_buffer()
+     ipc: use simple_read_from_buffer()
 has been added to the -mm tree.  Its filename is
-     dell_rbu-use-memory_read_from_buffer.patch
+     ipc-use-simple_read_from_buffer.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,74 +33,69 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dell_rbu: use memory_read_from_buffer()
+Subject: ipc: use simple_read_from_buffer()
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
+Also this patch kills unneccesary trailing NULL character.
+
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Abhay Salunke <Abhay_Salunke@dell.com>
-Cc: Zhang Rui <rui.zhang@intel.com>
-Cc: Matt Domsch <Matt_Domsch@dell.com>
+Cc: Nadia Derbey <Nadia.Derbey@bull.net>
+Cc: Manfred Spraul <manfred@colorfullife.com>
+Cc: Pierre Peiffer <peifferp@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firmware/dell_rbu.c |   29 ++++-------------------------
- 1 file changed, 4 insertions(+), 25 deletions(-)
+ ipc/mqueue.c |   25 +++++++------------------
+ 1 file changed, 7 insertions(+), 18 deletions(-)
 
-diff -puN drivers/firmware/dell_rbu.c~dell_rbu-use-memory_read_from_buffer drivers/firmware/dell_rbu.c
---- a/drivers/firmware/dell_rbu.c~dell_rbu-use-memory_read_from_buffer
-+++ a/drivers/firmware/dell_rbu.c
-@@ -44,6 +44,7 @@
- #include <linux/moduleparam.h>
- #include <linux/firmware.h>
- #include <linux/dma-mapping.h>
-+#include <linux/fs.h>
- 
- MODULE_AUTHOR("Abhay Salunke <abhay_salunke@dell.com>");
- MODULE_DESCRIPTION("Driver for updating BIOS image on DELL systems");
-@@ -507,11 +508,6 @@ static ssize_t read_packet_data(char *bu
- 
- static ssize_t read_rbu_mono_data(char *buffer, loff_t pos, size_t count)
+diff -puN ipc/mqueue.c~ipc-use-simple_read_from_buffer ipc/mqueue.c
+--- a/ipc/mqueue.c~ipc-use-simple_read_from_buffer
++++ a/ipc/mqueue.c
+@@ -314,15 +314,11 @@ static int mqueue_unlink(struct inode *d
+ *	through std routines)
+ */
+ static ssize_t mqueue_read_file(struct file *filp, char __user *u_data,
+-				size_t count, loff_t * off)
++				size_t count, loff_t *off)
  {
--	unsigned char *ptemp = NULL;
--	size_t bytes_left = 0;
--	size_t data_length = 0;
--	ssize_t ret_count = 0;
+ 	struct mqueue_inode_info *info = MQUEUE_I(filp->f_path.dentry->d_inode);
+ 	char buffer[FILENT_SIZE];
+-	size_t slen;
+-	loff_t o;
 -
- 	/* check to see if we have something to return */
- 	if ((rbu_data.image_update_buffer == NULL) ||
- 		(rbu_data.bios_image_size == 0)) {
-@@ -519,28 +515,11 @@ static ssize_t read_rbu_mono_data(char *
- 			"bios_image_size %lu\n",
- 			rbu_data.image_update_buffer,
- 			rbu_data.bios_image_size);
--		ret_count = -ENOMEM;
--		goto read_rbu_data_exit;
--	}
--
--	if (pos > rbu_data.bios_image_size) {
--		ret_count = 0;
--		goto read_rbu_data_exit;
-+		return -ENOMEM;
- 	}
+-	if (!count)
+-		return 0;
++	ssize_t ret;
  
--	bytes_left = rbu_data.bios_image_size - pos;
--	data_length = min(bytes_left, count);
+ 	spin_lock(&info->lock);
+ 	snprintf(buffer, sizeof(buffer),
+@@ -335,21 +331,14 @@ static ssize_t mqueue_read_file(struct f
+ 			pid_vnr(info->notify_owner));
+ 	spin_unlock(&info->lock);
+ 	buffer[sizeof(buffer)-1] = '\0';
+-	slen = strlen(buffer)+1;
 -
--	ptemp = rbu_data.image_update_buffer;
--	memcpy(buffer, (ptemp + pos), data_length);
+-	o = *off;
+-	if (o > slen)
+-		return 0;
 -
--	if ((pos + count) > rbu_data.bios_image_size)
--		/* this was the last copy */
--		ret_count = bytes_left;
--	else
--		ret_count = count;
--      read_rbu_data_exit:
--	return ret_count;
-+	return memory_read_from_buffer(buffer, count, &pos,
-+			rbu_data.image_update_buffer, rbu_data.bios_image_size);
+-	if (o + count > slen)
+-		count = slen - o;
+ 
+-	if (copy_to_user(u_data, buffer + o, count))
+-		return -EFAULT;
++	ret = simple_read_from_buffer(u_data, count, off, buffer,
++				strlen(buffer));
++	if (ret <= 0)
++		return ret;
+ 
+-	*off = o + count;
+ 	filp->f_path.dentry->d_inode->i_atime = filp->f_path.dentry->d_inode->i_ctime = CURRENT_TIME;
+-	return count;
++	return ret;
  }
  
- static ssize_t read_rbu_data(struct kobject *kobj,
+ static int mqueue_flush_file(struct file *filp, fl_owner_t id)
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
