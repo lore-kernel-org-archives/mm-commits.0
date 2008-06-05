@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-use-simple_read_from_buffer.patch added to -mm tree
-Date: Wed, 04 Jun 2008 17:29:31 -0700
-Message-ID: <200806050029.m550TV86016921@imap1.linux-foundation.org>
+Subject: + nwflash-use-simple_read_from_buffer.patch added to -mm tree
+Date: Wed, 04 Jun 2008 17:29:42 -0700
+Message-ID: <200806050029.m550TglS016939@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34072 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33950 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754003AbYFEA3q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jun 2008 20:29:46 -0400
+	by vger.kernel.org with ESMTP id S1754012AbYFEAaC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jun 2008 20:30:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, joel.becker@oracle.com, mfasheh@suse.com
+Cc: akinobu.mita@gmail.com, linux@arm.linux.org.uk, tim@physik3.uni-rostock.de
 
 
 The patch titled
-     ocfs2: use simple_read_from_buffer()
+     nwflash: use simple_read_from_buffer()
 has been added to the -mm tree.  Its filename is
-     ocfs2-use-simple_read_from_buffer.patch
+     nwflash-use-simple_read_from_buffer.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,53 +33,65 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ocfs2: use simple_read_from_buffer()
+Subject: nwflash: use simple_read_from_buffer()
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <joel.becker@oracle.com>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Tim Schmielau <tim@physik3.uni-rostock.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/stack_user.c |   19 +++++--------------
- 1 file changed, 5 insertions(+), 14 deletions(-)
+ drivers/char/nwflash.c |   31 ++++++++-----------------------
+ 1 file changed, 8 insertions(+), 23 deletions(-)
 
-diff -puN fs/ocfs2/stack_user.c~ocfs2-use-simple_read_from_buffer fs/ocfs2/stack_user.c
---- a/fs/ocfs2/stack_user.c~ocfs2-use-simple_read_from_buffer
-+++ a/fs/ocfs2/stack_user.c
-@@ -550,26 +550,17 @@ static ssize_t ocfs2_control_read(struct
- 				  size_t count,
- 				  loff_t *ppos)
+diff -puN drivers/char/nwflash.c~nwflash-use-simple_read_from_buffer drivers/char/nwflash.c
+--- a/drivers/char/nwflash.c~nwflash-use-simple_read_from_buffer
++++ a/drivers/char/nwflash.c
+@@ -122,35 +122,20 @@ static int flash_ioctl(struct inode *ino
+ static ssize_t flash_read(struct file *file, char __user *buf, size_t size,
+ 			  loff_t *ppos)
  {
--	char *proto_string = OCFS2_CONTROL_PROTO;
--	size_t to_write = 0;
+-	unsigned long p = *ppos;
+-	unsigned int count = size;
+-	int ret = 0;
 +	ssize_t ret;
  
--	if (*ppos >= OCFS2_CONTROL_PROTO_LEN)
--		return 0;
--
--	to_write = OCFS2_CONTROL_PROTO_LEN - *ppos;
--	if (to_write > count)
--		to_write = count;
--	if (copy_to_user(buf, proto_string + *ppos, to_write))
--		return -EFAULT;
--
--	*ppos += to_write;
-+	ret = simple_read_from_buffer(buf, count, ppos,
-+			OCFS2_CONTROL_PROTO, OCFS2_CONTROL_PROTO_LEN);
+ 	if (flashdebug)
+ 		printk(KERN_DEBUG "flash_read: flash_read: offset=0x%lX, "
+ 		       "buffer=%p, count=0x%X.\n", p, buf, count);
++	/*
++	 * We now lock against reads and writes. --rmk
++	 */
++	if (mutex_lock_interruptible(&nwflash_mutex))
++		return -ERESTARTSYS;
  
- 	/* Have we read the whole protocol list? */
--	if (*ppos >= OCFS2_CONTROL_PROTO_LEN)
-+	if (ret > 0 && *ppos >= OCFS2_CONTROL_PROTO_LEN)
- 		ocfs2_control_set_handshake_state(file,
- 						  OCFS2_CONTROL_HANDSHAKE_READ);
+-	if (count)
+-		ret = -ENXIO;
++	ret = simple_read_from_buffer(buf, size, ppos, FLASH_BASE, gbFlashSize);
++	mutex_unlock(&nwflash_mutex);
  
--	return to_write;
-+	return ret;
+-	if (p < gbFlashSize) {
+-		if (count > gbFlashSize - p)
+-			count = gbFlashSize - p;
+-
+-		/*
+-		 * We now lock against reads and writes. --rmk
+-		 */
+-		if (mutex_lock_interruptible(&nwflash_mutex))
+-			return -ERESTARTSYS;
+-
+-		ret = copy_to_user(buf, (void *)(FLASH_BASE + p), count);
+-		if (ret == 0) {
+-			ret = count;
+-			*ppos += count;
+-		} else
+-			ret = -EFAULT;
+-		mutex_unlock(&nwflash_mutex);
+-	}
+ 	return ret;
  }
  
- static int ocfs2_control_release(struct inode *inode, struct file *file)
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
