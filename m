@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch added to -mm tree
-Date: Thu, 05 Jun 2008 16:11:26 -0700
-Message-ID: <200806052322.m55NMxo7002517@imap1.linux-foundation.org>
+Subject: + drivers-mtd-nand-nandsimc-needs-div64h.patch added to -mm tree
+Date: Thu, 05 Jun 2008 16:48:43 -0700
+Message-ID: <200806060000.m5600GvV004118@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39373 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34481 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752936AbYFEXXe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 19:23:34 -0400
+	by vger.kernel.org with ESMTP id S1752519AbYFFAAc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 20:00:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jack@suse.cz
+Cc: akpm@linux-foundation.org, dwmw2@infradead.org, sfr@canb.auug.org.au
 
 
 The patch titled
-     quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix
+     drivers/mtd/nand/nandsim.c needs div64.h
 has been added to the -mm tree.  Its filename is
-     quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
+     drivers-mtd-nand-nandsimc-needs-div64h.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,39 +33,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix
+Subject: drivers/mtd/nand/nandsim.c needs div64.h
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Jan Kara <jack@suse.cz>
+drivers/mtd/nand/nandsim.c: In function 'divide':
+drivers/mtd/nand/nandsim.c:462: error: implicit declaration of function 'do_div'
+
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/super.c |    1 +
- fs/ufs/super.c      |    1 +
- 2 files changed, 2 insertions(+)
+ drivers/mtd/nand/nandsim.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/reiserfs/super.c~quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix fs/reiserfs/super.c
---- a/fs/reiserfs/super.c~quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix
-+++ a/fs/reiserfs/super.c
-@@ -22,6 +22,7 @@
- #include <linux/blkdev.h>
- #include <linux/buffer_head.h>
- #include <linux/exportfs.h>
-+#include <linux/quotaops.h>
- #include <linux/vfs.h>
- #include <linux/mnt_namespace.h>
- #include <linux/mount.h>
-diff -puN fs/ufs/super.c~quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix fs/ufs/super.c
---- a/fs/ufs/super.c~quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix
-+++ a/fs/ufs/super.c
-@@ -76,6 +76,7 @@
- 
- #include <linux/errno.h>
- #include <linux/fs.h>
-+#include <linux/quotaops.h>
+diff -puN drivers/mtd/nand/nandsim.c~drivers-mtd-nand-nandsimc-needs-div64h drivers/mtd/nand/nandsim.c
+--- a/drivers/mtd/nand/nandsim.c~drivers-mtd-nand-nandsimc-needs-div64h
++++ a/drivers/mtd/nand/nandsim.c
+@@ -28,6 +28,7 @@
+ #include <linux/module.h>
+ #include <linux/moduleparam.h>
+ #include <linux/vmalloc.h>
++#include <asm/div64.h>
  #include <linux/slab.h>
- #include <linux/time.h>
- #include <linux/stat.h>
+ #include <linux/errno.h>
+ #include <linux/string.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -190,4 +182,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
+drivers-mtd-nand-nandsimc-needs-div64h.patch
 
