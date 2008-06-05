@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-pci-slot-detection-driver-fix.patch added to -mm tree
-Date: Wed, 04 Jun 2008 23:34:15 -0700
-Message-ID: <200806050634.m556YFEQ029706@imap1.linux-foundation.org>
+Subject: + mtd-m25p80c-missed-mutex_unlock-on-error-path.patch added to -mm tree
+Date: Thu, 05 Jun 2008 09:11:23 -0700
+Message-ID: <200806051611.m55GBNmH018356@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50991 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40636 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752166AbYFEGfb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 02:35:31 -0400
+	by vger.kernel.org with ESMTP id S1751871AbYFEQMI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 12:12:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kaneshige.kenji@jp.fujitsu.com, achiang@hp.com, greg@kroah.com, kristen.c.accardi@intel.com, lenb@kernel.org
+Cc: g.chen@freescale.com, dwmw2@infradead.org
 
 
 The patch titled
-     kobject: Export kobject_rename for pci_hotplug_core
+     mtd: m25p80.c: missed mutex_unlock on error path
 has been added to the -mm tree.  Its filename is
-     acpi-pci-slot-detection-driver-fix.patch
+     mtd-m25p80c-missed-mutex_unlock-on-error-path.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,47 +33,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kobject: Export kobject_rename for pci_hotplug_core
-From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Subject: mtd: m25p80.c: missed mutex_unlock on error path
+From: Chen Gong <g.chen@freescale.com>
 
-Export kobject_rename() to fix the following link error.  This happens
-when pci_hotplug_core driver is compiled as a kernel module.
+Fix a mutex release bug in function m25p80_write().
 
-ERROR: "kobject_rename" [drivers/pci/hotplug/pci_hotplug.ko] undefined!
-make[1]: *** [__modpost] Error 1
-make: *** [modules] Error 2
-make: *** Waiting for unfinished jobs....
-
-Signed-off-by: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Acked-by: Greg KH <greg@kroah.com>
-Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Cc: Len Brown <lenb@kernel.org>
-Signed-off-by: Alex Chiang <achiang@hp.com>
+Signed-off-by: Chen Gong <g.chen@freescale.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/kobject.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/mtd/devices/m25p80.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN lib/kobject.c~acpi-pci-slot-detection-driver-fix lib/kobject.c
---- a/lib/kobject.c~acpi-pci-slot-detection-driver-fix
-+++ a/lib/kobject.c
-@@ -489,6 +489,7 @@ out:
+diff -puN drivers/mtd/devices/m25p80.c~mtd-m25p80c-missed-mutex_unlock-on-error-path drivers/mtd/devices/m25p80.c
+--- a/drivers/mtd/devices/m25p80.c~mtd-m25p80c-missed-mutex_unlock-on-error-path
++++ a/drivers/mtd/devices/m25p80.c
+@@ -358,8 +358,10 @@ static int m25p80_write(struct mtd_info 
+ 	mutex_lock(&flash->lock);
  
- 	return error;
- }
-+EXPORT_SYMBOL_GPL(kobject_rename);
+ 	/* Wait until finished previous write command. */
+-	if (wait_till_ready(flash))
++	if (wait_till_ready(flash)) {
++		mutex_unlock(&flash->lock);
+ 		return 1;
++	}
  
- /**
-  * kobject_move - move object to another parent
+ 	write_enable(flash);
+ 
 _
 
-Patches currently in -mm which might be from kaneshige.kenji@jp.fujitsu.com are
+Patches currently in -mm which might be from g.chen@freescale.com are
 
-origin.patch
-linux-next.patch
-fakephp-construct-one-fakephp-slot-per-pci-slot.patch
-pci-introduce-pci_slot.patch
-acpi-pci-slot-detection-driver.patch
-acpi-pci-slot-detection-driver-fix.patch
+mtd-m25p80c-missed-mutex_unlock-on-error-path.patch
 
