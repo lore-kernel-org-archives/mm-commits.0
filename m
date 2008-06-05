@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch added to -mm tree
-Date: Thu, 05 Jun 2008 15:58:54 -0700
-Message-ID: <200806052310.m55NAREd001970@imap1.linux-foundation.org>
+Subject: + drivers-net-usb-kawethc-fix-printk-warning.patch added to -mm tree
+Date: Thu, 05 Jun 2008 16:07:42 -0700
+Message-ID: <200806052319.m55NJExj002377@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36465 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40104 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764047AbYFEXLE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 19:11:04 -0400
+	by vger.kernel.org with ESMTP id S1763103AbYFEXTV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 19:19:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jack@suse.cz
+Cc: akpm@linux-foundation.org, dwmw2@infradead.org
 
 
 The patch titled
-     quota-move-function-macros-from-quotah-to-quotaopsh jfs fix
+     drivers/net/usb/kaweth.c: fix printk warning
 has been added to the -mm tree.  Its filename is
-     quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
+     drivers-net-usb-kawethc-fix-printk-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,33 +33,28 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: quota-move-function-macros-from-quotah-to-quotaopsh jfs fix
+Subject: drivers/net/usb/kaweth.c: fix printk warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/jfs/super.c: In function 'jfs_quota_read':
-fs/jfs/super.c:631: error: implicit declaration of function 'sb_dqopt'
-fs/jfs/super.c:631: error: invalid type argument of '->'
-fs/jfs/super.c: In function 'jfs_quota_write':
-fs/jfs/super.c:676: error: invalid type argument of '->'
-
-Cc: Jan Kara <jack@suse.cz>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jfs/super.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/net/usb/kaweth.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/jfs/super.c~quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix fs/jfs/super.c
---- a/fs/jfs/super.c~quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix
-+++ a/fs/jfs/super.c
-@@ -22,6 +22,7 @@
- #include <linux/parser.h>
- #include <linux/completion.h>
- #include <linux/vfs.h>
-+#include <linux/quotaops.h>
- #include <linux/mount.h>
- #include <linux/moduleparam.h>
- #include <linux/kthread.h>
+diff -puN drivers/net/usb/kaweth.c~drivers-net-usb-kawethc-fix-printk-warning drivers/net/usb/kaweth.c
+--- a/drivers/net/usb/kaweth.c~drivers-net-usb-kawethc-fix-printk-warning
++++ a/drivers/net/usb/kaweth.c
+@@ -403,7 +403,7 @@ static int kaweth_download_firmware(stru
+ 	}
+ 
+ 	if (fw->size > KAWETH_FIRMWARE_BUF_SIZE)	{
+-		err("Firmware too big: %d", fw->size);
++		err("Firmware too big: %zu", fw->size);
+ 		return -ENOSPC;
+ 	}
+ 	data_len = fw->size;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -182,4 +177,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
+drivers-net-usb-kawethc-fix-printk-warning.patch
 
