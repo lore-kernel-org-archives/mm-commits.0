@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + pnp-remove-extra-0x100-bit-from-option-priority.patch added to -mm tree
-Date: Wed, 04 Jun 2008 22:57:36 -0700
-Message-ID: <200806050557.m555va9G028381@imap1.linux-foundation.org>
+Subject: + isapnp-handle-independent-options-following-dependent-ones.patch added to -mm tree
+Date: Wed, 04 Jun 2008 22:57:38 -0700
+Message-ID: <200806050557.m555vcS0028384@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33413 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57870 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752443AbYFEF7B (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 01:59:01 -0400
+	by vger.kernel.org with ESMTP id S1752741AbYFEF7C (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 01:59:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bjorn.helgaas@hp.com, abelay@mit.edu, castet.matthieu@free.fr, lenb@kernel.org, perex@perex.cz, rene.herman@gmail.com, rene.herman@keyaccess.nl, shaohua.li@intel.com, tiwai@suse.de, trenn@suse.de
+Cc: bjorn.helgaas@hp.com, abelay@mit.edu, castet.matthieu@free.fr, lenb@kernel.org, perex@perex.cz, rene.herman@keyaccess.nl, shaohua.li@intel.com, tiwai@suse.de, trenn@suse.de
 
 
 The patch titled
-     pnp: remove extra 0x100 bit from option priority
+     isapnp: handle independent options following dependent ones
 has been added to the -mm tree.  Its filename is
-     pnp-remove-extra-0x100-bit-from-option-priority.patch
+     isapnp-handle-independent-options-following-dependent-ones.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,15 +33,17 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pnp: remove extra 0x100 bit from option priority
+Subject: isapnp: handle independent options following dependent ones
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-When building resource options, ISAPNP and PNPBIOS set the priority to
-something like "0x100 | PNP_RES_PRIORITY_ACCEPTABLE", but we immediately
-mask off the 0x100 again in pnp_build_option(), so that bit looks
-superfluous.
+The ISAPNP spec recommends that independent options precede dependent
+ones, but this is not actually required.  The current ISAPNP code
+incorrectly puts such trailing independent options at the end of the last
+dependent option list.
 
-Thanks to Rene Herman <rene.herman@gmail.com> for pointing this out.
+This patch fixes that bug by resetting the current option list to the
+independent list when we see an "End Dependent Functions" tag.  PNPBIOS
+and PNPACPI handle this the same way.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Cc: Rene Herman <rene.herman@keyaccess.nl>
@@ -55,88 +57,48 @@ Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/isapnp/core.c      |    8 +++-----
- drivers/pnp/pnpacpi/rsparser.c |    2 +-
- drivers/pnp/pnpbios/rsparser.c |    6 +++---
- 3 files changed, 7 insertions(+), 9 deletions(-)
+ drivers/pnp/isapnp/core.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN drivers/pnp/isapnp/core.c~pnp-remove-extra-0x100-bit-from-option-priority drivers/pnp/isapnp/core.c
---- a/drivers/pnp/isapnp/core.c~pnp-remove-extra-0x100-bit-from-option-priority
+diff -puN drivers/pnp/isapnp/core.c~isapnp-handle-independent-options-following-dependent-ones drivers/pnp/isapnp/core.c
+--- a/drivers/pnp/isapnp/core.c~isapnp-handle-independent-options-following-dependent-ones
 +++ a/drivers/pnp/isapnp/core.c
-@@ -582,7 +582,7 @@ isapnp_parse_name(char *name, unsigned i
- static int __init isapnp_create_device(struct pnp_card *card,
- 				       unsigned short size)
+@@ -584,14 +584,14 @@ static int __init isapnp_create_device(s
  {
--	int number = 0, skip = 0, priority = 0, compat = 0;
-+	int number = 0, skip = 0, priority, compat = 0;
+ 	int number = 0, skip = 0, priority, compat = 0;
  	unsigned char type, tmp[17];
- 	struct pnp_option *option;
+-	struct pnp_option *option;
++	struct pnp_option *option, *option_independent;
  	struct pnp_dev *dev;
-@@ -621,7 +621,6 @@ static int __init isapnp_create_device(s
- 			} else {
- 				skip = 1;
- 			}
--			priority = 0;
- 			compat = 0;
- 			break;
- 		case _STAG_COMPATDEVID:
-@@ -650,10 +649,10 @@ static int __init isapnp_create_device(s
- 		case _STAG_STARTDEP:
- 			if (size > 1)
- 				goto __skip;
--			priority = 0x100 | PNP_RES_PRIORITY_ACCEPTABLE;
-+			priority = PNP_RES_PRIORITY_ACCEPTABLE;
- 			if (size > 0) {
- 				isapnp_peek(tmp, size);
--				priority = 0x100 | tmp[0];
-+				priority = tmp[0];
+ 	u32 eisa_id;
+ 	char id[8];
+ 
+ 	if ((dev = isapnp_parse_device(card, size, number++)) == NULL)
+ 		return 1;
+-	option = pnp_register_independent_option(dev);
++	option_independent = option = pnp_register_independent_option(dev);
+ 	if (!option) {
+ 		kfree(dev);
+ 		return 1;
+@@ -613,6 +613,7 @@ static int __init isapnp_create_device(s
  				size = 0;
- 			}
- 			option = pnp_register_dependent_option(dev, priority);
-@@ -663,7 +662,6 @@ static int __init isapnp_create_device(s
+ 				skip = 0;
+ 				option = pnp_register_independent_option(dev);
++				option_independent = option;
+ 				if (!option) {
+ 					kfree(dev);
+ 					return 1;
+@@ -662,6 +663,10 @@ static int __init isapnp_create_device(s
  		case _STAG_ENDDEP:
  			if (size != 0)
  				goto __skip;
--			priority = 0;
++			if (option_independent == option)
++				dev_warn(&dev->dev, "missing "
++					 "_STAG_STARTDEP tag\n");
++			option = option_independent;
  			dev_dbg(&dev->dev, "end dependent options\n");
  			break;
  		case _STAG_IOPORT:
-diff -puN drivers/pnp/pnpacpi/rsparser.c~pnp-remove-extra-0x100-bit-from-option-priority drivers/pnp/pnpacpi/rsparser.c
---- a/drivers/pnp/pnpacpi/rsparser.c~pnp-remove-extra-0x100-bit-from-option-priority
-+++ a/drivers/pnp/pnpacpi/rsparser.c
-@@ -545,7 +545,7 @@ struct acpipnp_parse_option_s {
- static __init acpi_status pnpacpi_option_resource(struct acpi_resource *res,
- 						  void *data)
- {
--	int priority = 0;
-+	int priority;
- 	struct acpipnp_parse_option_s *parse_data = data;
- 	struct pnp_dev *dev = parse_data->dev;
- 	struct pnp_option *option = parse_data->option;
-diff -puN drivers/pnp/pnpbios/rsparser.c~pnp-remove-extra-0x100-bit-from-option-priority drivers/pnp/pnpbios/rsparser.c
---- a/drivers/pnp/pnpbios/rsparser.c~pnp-remove-extra-0x100-bit-from-option-priority
-+++ a/drivers/pnp/pnpbios/rsparser.c
-@@ -315,7 +315,7 @@ pnpbios_parse_resource_option_data(unsig
- 					struct pnp_dev *dev)
- {
- 	unsigned int len, tag;
--	int priority = 0;
-+	int priority;
- 	struct pnp_option *option, *option_independent;
- 
- 	if (!p)
-@@ -389,9 +389,9 @@ pnpbios_parse_resource_option_data(unsig
- 		case SMALL_TAG_STARTDEP:
- 			if (len > 1)
- 				goto len_err;
--			priority = 0x100 | PNP_RES_PRIORITY_ACCEPTABLE;
-+			priority = PNP_RES_PRIORITY_ACCEPTABLE;
- 			if (len > 0)
--				priority = 0x100 | p[1];
-+				priority = p[1];
- 			option = pnp_register_dependent_option(dev, priority);
- 			if (!option)
- 				return NULL;
 _
 
 Patches currently in -mm which might be from bjorn.helgaas@hp.com are
