@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: - sched-delete-dead-stuff.patch removed from -mm tree
-Date: Wed, 04 Jun 2008 19:49:23 -0700
-Message-ID: <200806050249.m552nNhD021961@imap1.linux-foundation.org>
+Subject: - sched-delete-dead-stuff-2.patch removed from -mm tree
+Date: Wed, 04 Jun 2008 19:50:43 -0700
+Message-ID: <200806050250.m552oiGS021973@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40107 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54190 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752238AbYFECti (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jun 2008 22:49:38 -0400
+	by vger.kernel.org with ESMTP id S1750826AbYFECv3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jun 2008 22:51:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sched-delete-dead-stuff
+     sched-delete-dead-stuff-2
 has been removed from the -mm tree.  Its filename was
-     sched-delete-dead-stuff.patch
+     sched-delete-dead-stuff-2.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sched-delete-dead-stuff
+Subject: sched-delete-dead-stuff-2
 From: Andrew Morton <akpm@linux-foundation.org>
-
-kernel/sched_fair.c:1170: warning: 'wakeup_preempt_entity' defined but not used
 
 Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
@@ -35,30 +33,30 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  kernel/sched_fair.c |   14 --------------
  1 file changed, 14 deletions(-)
 
-diff -puN kernel/sched_fair.c~sched-delete-dead-stuff kernel/sched_fair.c
---- a/kernel/sched_fair.c~sched-delete-dead-stuff
+diff -puN kernel/sched_fair.c~sched-delete-dead-stuff-2 kernel/sched_fair.c
+--- a/kernel/sched_fair.c~sched-delete-dead-stuff-2
 +++ a/kernel/sched_fair.c
-@@ -1165,20 +1165,6 @@ static unsigned long wakeup_gran(struct 
-  *  w(c, s3) =  1
-  *
-  */
--static int
--wakeup_preempt_entity(struct sched_entity *curr, struct sched_entity *se)
--{
--	s64 gran, vdiff = curr->vruntime - se->vruntime;
--
--	if (vdiff < 0)
--		return -1;
--
--	gran = wakeup_gran(curr);
--	if (vdiff > gran)
--		return 1;
--
--	return 0;
--}
+@@ -1137,20 +1137,6 @@ out:
+ }
+ #endif /* CONFIG_SMP */
  
- /* return depth at which a sched entity is present in the hierarchy */
- static inline int depth_se(struct sched_entity *se)
+-static unsigned long wakeup_gran(struct sched_entity *se)
+-{
+-	unsigned long gran = sysctl_sched_wakeup_granularity;
+-
+-	/*
+-	 * More easily preempt - nice tasks, while not making
+-	 * it harder for + nice tasks.
+-	 */
+-	if (unlikely(se->load.weight > NICE_0_LOAD))
+-		gran = calc_delta_fair(gran, &se->load);
+-
+-	return gran;
+-}
+-
+ /*
+  * Should 'se' preempt 'curr'.
+  *
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -88,7 +86,6 @@ sundance-set-carrier-status-on-link-change-events.patch
 net-sh_eth-add-support-for-renesas-superh-ethernet-checkpatch-fixes.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 git-battery.patch
-sched-delete-dead-stuff.patch
 sched-delete-dead-stuff-2.patch
 git-scsi-misc-fix-scsi_dh-build-errors.patch
 drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
