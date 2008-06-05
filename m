@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + aty-use-memory_read_from_buffer.patch added to -mm tree
-Date: Wed, 04 Jun 2008 17:30:07 -0700
-Message-ID: <200806050030.m550U7AZ016975@imap1.linux-foundation.org>
+Subject: + zorro-use-memory_read_from_buffer.patch added to -mm tree
+Date: Wed, 04 Jun 2008 17:30:09 -0700
+Message-ID: <200806050030.m550U91H016978@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54735 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56729 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755248AbYFEAaR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jun 2008 20:30:17 -0400
+	by vger.kernel.org with ESMTP id S1756230AbYFEAaY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jun 2008 20:30:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, adaplas@pol.net, benh@kernel.crashing.org, krzysztof.h1@poczta.fm
+Cc: akinobu.mita@gmail.com, geert@linux-m68k.org
 
 
 The patch titled
-     aty: use memory_read_from_buffer()
+     zorro: use memory_read_from_buffer()
 has been added to the -mm tree.  Its filename is
-     aty-use-memory_read_from_buffer.patch
+     zorro-use-memory_read_from_buffer.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,47 +33,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: aty: use memory_read_from_buffer()
+Subject: zorro: use memory_read_from_buffer()
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/aty/radeon_base.c |   11 ++---------
- 1 file changed, 2 insertions(+), 9 deletions(-)
+ drivers/zorro/zorro-sysfs.c |   10 ++--------
+ 1 file changed, 2 insertions(+), 8 deletions(-)
 
-diff -puN drivers/video/aty/radeon_base.c~aty-use-memory_read_from_buffer drivers/video/aty/radeon_base.c
---- a/drivers/video/aty/radeon_base.c~aty-use-memory_read_from_buffer
-+++ a/drivers/video/aty/radeon_base.c
-@@ -70,6 +70,7 @@
- #include <linux/pci.h>
- #include <linux/vmalloc.h>
- #include <linux/device.h>
+diff -puN drivers/zorro/zorro-sysfs.c~zorro-use-memory_read_from_buffer drivers/zorro/zorro-sysfs.c
+--- a/drivers/zorro/zorro-sysfs.c~zorro-use-memory_read_from_buffer
++++ a/drivers/zorro/zorro-sysfs.c
+@@ -15,6 +15,7 @@
+ #include <linux/zorro.h>
+ #include <linux/stat.h>
+ #include <linux/string.h>
 +#include <linux/fs.h>
  
- #include <asm/io.h>
- #include <linux/uaccess.h>
-@@ -2098,15 +2099,7 @@ static void radeon_identify_vram(struct 
+ #include "zorro.h"
  
- static ssize_t radeon_show_one_edid(char *buf, loff_t off, size_t count, const u8 *edid)
- {
--	if (off > EDID_LENGTH)
+@@ -56,12 +57,6 @@ static ssize_t zorro_read_config(struct 
+ 	struct zorro_dev *z = to_zorro_dev(container_of(kobj, struct device,
+ 					   kobj));
+ 	struct ConfigDev cd;
+-	unsigned int size = sizeof(cd);
+-
+-	if (off > size)
 -		return 0;
--
--	if (off + count > EDID_LENGTH)
--		count = EDID_LENGTH - off;
--
--	memcpy(buf, edid + off, count);
--
+-	if (off+count > size)
+-		count = size-off;
+ 
+ 	/* Construct a ConfigDev */
+ 	memset(&cd, 0, sizeof(cd));
+@@ -71,8 +66,7 @@ static ssize_t zorro_read_config(struct 
+ 	cd.cd_BoardAddr = (void *)zorro_resource_start(z);
+ 	cd.cd_BoardSize = zorro_resource_len(z);
+ 
+-	memcpy(buf, (void *)&cd+off, count);
 -	return count;
-+	return memory_read_from_buffer(buf, count, &off, edid, EDID_LENGTH);
++	return memory_read_from_buffer(buf, count, &off, &cd, sizeof(cd));
  }
  
- 
+ static struct bin_attribute zorro_config_attr = {
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
