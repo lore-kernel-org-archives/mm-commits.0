@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + pnp-add-pnp_possible_config-can-a-device-could-be-configured-this-way.patch added to -mm tree
-Date: Wed, 04 Jun 2008 22:57:05 -0700
-Message-ID: <200806050557.m555v5qw028336@imap1.linux-foundation.org>
+Subject: + pnp-define-pnp-specific-ioresource_io_-flags-alongside-irq-dma-mem.patch added to -mm tree
+Date: Wed, 04 Jun 2008 22:57:10 -0700
+Message-ID: <200806050557.m555vAdv028342@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54279 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54920 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752251AbYFEF6O (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 01:58:14 -0400
+	by vger.kernel.org with ESMTP id S1752160AbYFEF60 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 01:58:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bjorn.helgaas@hp.com, abelay@mit.edu, castet.matthieu@free.fr, lenb@kernel.org, perex@perex.cz, rene.herman@keyaccess.nl, shaohua.li@intel.com, tiwai@suse.de, trenn@suse.de
+Cc: bjorn.helgaas@hp.com, abelay@mit.edu, castet.matthieu@free.fr, lenb@kernel.org, perex@perex.cz, rene.herman@gmail.com, shaohua.li@intel.com, tiwai@suse.de, trenn@suse.de
 
 
 The patch titled
-     pnp: add pnp_possible_config() -- can a device could be configured this way?
+     pnp: define PNP-specific IORESOURCE_IO_* flags alongside IRQ, DMA, MEM
 has been added to the -mm tree.  Its filename is
-     pnp-add-pnp_possible_config-can-a-device-could-be-configured-this-way.patch
+     pnp-define-pnp-specific-ioresource_io_-flags-alongside-irq-dma-mem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,169 +33,163 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pnp: add pnp_possible_config() -- can a device could be configured this way?
+Subject: pnp: define PNP-specific IORESOURCE_IO_* flags alongside IRQ, DMA, MEM
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-As part of a heuristic to identify modem devices, 8250_pnp.c checks to see
-whether a device can be configured at any of the legacy COM port
-addresses.
-
-This patch moves the code that traverses the PNP "possible resource
-options" from 8250_pnp.c to the PNP subsystem.  This encapsulation is
-important because a future patch will change the implementation of those
-resource options.
+PNP previously defined PNP_PORT_FLAG_16BITADDR and PNP_PORT_FLAG_FIXED in
+a private header file, but put those flags in struct resource.flags
+fields.  Better to make them IORESOURCE_IO_* flags like the existing IRQ,
+DMA, and MEM flags.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Acked-by: Rene Herman <rene.herman@gmail.com>
 Cc: Len Brown <lenb@kernel.org>
 Cc: Adam M Belay <abelay@mit.edu>
 Cc: Li Shaohua <shaohua.li@intel.com>
 Cc: Matthieu Castet <castet.matthieu@free.fr>
 Cc: Thomas Renninger <trenn@suse.de>
-Cc: Rene Herman <rene.herman@keyaccess.nl>
 Cc: Jaroslav Kysela <perex@perex.cz>
 Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/resource.c    |   61 ++++++++++++++++++++++++++++++++++++
- drivers/serial/8250_pnp.c |   24 ++++----------
- include/linux/pnp.h       |    3 +
- 3 files changed, 71 insertions(+), 17 deletions(-)
+ drivers/pnp/interface.c        |    2 +-
+ drivers/pnp/isapnp/core.c      |    4 ++--
+ drivers/pnp/pnpacpi/rsparser.c |   10 +++++-----
+ drivers/pnp/pnpbios/rsparser.c |    4 ++--
+ include/linux/ioport.h         |    4 ++++
+ include/linux/pnp.h            |    3 ---
+ 6 files changed, 14 insertions(+), 13 deletions(-)
 
-diff -puN drivers/pnp/resource.c~pnp-add-pnp_possible_config-can-a-device-could-be-configured-this-way drivers/pnp/resource.c
---- a/drivers/pnp/resource.c~pnp-add-pnp_possible_config-can-a-device-could-be-configured-this-way
-+++ a/drivers/pnp/resource.c
-@@ -624,6 +624,67 @@ struct pnp_resource *pnp_add_mem_resourc
- 	return pnp_res;
+diff -puN drivers/pnp/interface.c~pnp-define-pnp-specific-ioresource_io_-flags-alongside-irq-dma-mem drivers/pnp/interface.c
+--- a/drivers/pnp/interface.c~pnp-define-pnp-specific-ioresource_io_-flags-alongside-irq-dma-mem
++++ a/drivers/pnp/interface.c
+@@ -57,7 +57,7 @@ static void pnp_print_port(pnp_info_buff
+ 		   "%sport 0x%x-0x%x, align 0x%x, size 0x%x, %i-bit address decoding\n",
+ 		   space, port->min, port->max,
+ 		   port->align ? (port->align - 1) : 0, port->size,
+-		   port->flags & PNP_PORT_FLAG_16BITADDR ? 16 : 10);
++		   port->flags & IORESOURCE_IO_16BIT_ADDR ? 16 : 10);
  }
  
-+static int pnp_possible_option(struct pnp_option *option, int type,
-+			       resource_size_t start, resource_size_t size)
-+{
-+	struct pnp_option *tmp;
-+	struct pnp_port *port;
-+	struct pnp_mem *mem;
-+	struct pnp_irq *irq;
-+	struct pnp_dma *dma;
-+
-+	if (!option)
-+		return 0;
-+
-+	for (tmp = option; tmp; tmp = tmp->next) {
-+		switch (type) {
-+		case IORESOURCE_IO:
-+			for (port = tmp->port; port; port = port->next) {
-+				if (port->min == start && port->size == size)
-+					return 1;
-+			}
-+			break;
-+		case IORESOURCE_MEM:
-+			for (mem = tmp->mem; mem; mem = mem->next) {
-+				if (mem->min == start && mem->size == size)
-+					return 1;
-+			}
-+			break;
-+		case IORESOURCE_IRQ:
-+			for (irq = tmp->irq; irq; irq = irq->next) {
-+				if (start < PNP_IRQ_NR &&
-+				    test_bit(start, irq->map))
-+					return 1;
-+			}
-+			break;
-+		case IORESOURCE_DMA:
-+			for (dma = tmp->dma; dma; dma = dma->next) {
-+				if (dma->map & (1 << start))
-+					return 1;
-+			}
-+			break;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+/*
-+ * Determine whether the specified resource is a possible configuration
-+ * for this device.
-+ */
-+int pnp_possible_config(struct pnp_dev *dev, int type, resource_size_t start,
-+			resource_size_t size)
-+{
-+	if (pnp_possible_option(dev->independent, type, start, size))
-+		return 1;
-+
-+	if (pnp_possible_option(dev->dependent, type, start, size))
-+		return 1;
-+
-+	return 0;
-+}
-+
- /* format is: pnp_reserve_irq=irq1[,irq2] .... */
- static int __init pnp_setup_reserve_irq(char *str)
- {
-diff -puN drivers/serial/8250_pnp.c~pnp-add-pnp_possible_config-can-a-device-could-be-configured-this-way drivers/serial/8250_pnp.c
---- a/drivers/serial/8250_pnp.c~pnp-add-pnp_possible_config-can-a-device-could-be-configured-this-way
-+++ a/drivers/serial/8250_pnp.c
-@@ -383,21 +383,14 @@ static int __devinit check_name(char *na
- 	return 0;
+ static void pnp_print_irq(pnp_info_buffer_t * buffer, char *space,
+diff -puN drivers/pnp/isapnp/core.c~pnp-define-pnp-specific-ioresource_io_-flags-alongside-irq-dma-mem drivers/pnp/isapnp/core.c
+--- a/drivers/pnp/isapnp/core.c~pnp-define-pnp-specific-ioresource_io_-flags-alongside-irq-dma-mem
++++ a/drivers/pnp/isapnp/core.c
+@@ -486,7 +486,7 @@ static void __init isapnp_parse_port_res
+ 	port->max = (tmp[4] << 8) | tmp[3];
+ 	port->align = tmp[5];
+ 	port->size = tmp[6];
+-	port->flags = tmp[0] ? PNP_PORT_FLAG_16BITADDR : 0;
++	port->flags = tmp[0] ? IORESOURCE_IO_16BIT_ADDR : 0;
+ 	pnp_register_port_resource(dev, option, port);
  }
  
--static int __devinit check_resources(struct pnp_option *option)
-+static int __devinit check_resources(struct pnp_dev *dev)
- {
--	struct pnp_option *tmp;
--	if (!option)
--		return 0;
-+	resource_size_t base[] = {0x2f8, 0x3f8, 0x2e8, 0x3e8};
-+	int i;
+@@ -507,7 +507,7 @@ static void __init isapnp_parse_fixed_po
+ 	port->min = port->max = (tmp[1] << 8) | tmp[0];
+ 	port->size = tmp[2];
+ 	port->align = 0;
+-	port->flags = PNP_PORT_FLAG_FIXED;
++	port->flags = IORESOURCE_IO_FIXED;
+ 	pnp_register_port_resource(dev, option, port);
+ }
  
--	for (tmp = option; tmp; tmp = tmp->next) {
--		struct pnp_port *port;
--		for (port = tmp->port; port; port = port->next)
--			if ((port->size == 8) &&
--			    ((port->min == 0x2f8) ||
--			     (port->min == 0x3f8) ||
--			     (port->min == 0x2e8) ||
--			     (port->min == 0x3e8)))
--				return 1;
-+	for (i = 0; i < ARRAY_SIZE(base); i++) {
-+		if (pnp_possible_config(dev, IORESOURCE_IO, base[i], 8))
-+			return 1;
+diff -puN drivers/pnp/pnpacpi/rsparser.c~pnp-define-pnp-specific-ioresource_io_-flags-alongside-irq-dma-mem drivers/pnp/pnpacpi/rsparser.c
+--- a/drivers/pnp/pnpacpi/rsparser.c~pnp-define-pnp-specific-ioresource_io_-flags-alongside-irq-dma-mem
++++ a/drivers/pnp/pnpacpi/rsparser.c
+@@ -178,7 +178,7 @@ static void pnpacpi_parse_allocated_iore
+ 	u64 end = start + len - 1;
+ 
+ 	if (io_decode == ACPI_DECODE_16)
+-		flags |= PNP_PORT_FLAG_16BITADDR;
++		flags |= IORESOURCE_IO_16BIT_ADDR;
+ 	if (len == 0 || end >= 0x10003)
+ 		flags |= IORESOURCE_DISABLED;
+ 
+@@ -451,7 +451,7 @@ static __init void pnpacpi_parse_port_op
+ 	port->align = io->alignment;
+ 	port->size = io->address_length;
+ 	port->flags = ACPI_DECODE_16 == io->io_decode ?
+-	    PNP_PORT_FLAG_16BITADDR : 0;
++	    IORESOURCE_IO_16BIT_ADDR : 0;
+ 	pnp_register_port_resource(dev, option, port);
+ }
+ 
+@@ -469,7 +469,7 @@ static __init void pnpacpi_parse_fixed_p
+ 	port->min = port->max = io->address;
+ 	port->size = io->address_length;
+ 	port->align = 0;
+-	port->flags = PNP_PORT_FLAG_FIXED;
++	port->flags = IORESOURCE_IO_FIXED;
+ 	pnp_register_port_resource(dev, option, port);
+ }
+ 
+@@ -575,7 +575,7 @@ static __init void pnpacpi_parse_address
+ 		port->min = port->max = p->minimum;
+ 		port->size = p->address_length;
+ 		port->align = 0;
+-		port->flags = PNP_PORT_FLAG_FIXED;
++		port->flags = IORESOURCE_IO_FIXED;
+ 		pnp_register_port_resource(dev, option, port);
  	}
+ }
+@@ -890,7 +890,7 @@ static void pnpacpi_encode_io(struct pnp
+ 	struct acpi_resource_io *io = &resource->data.io;
  
- 	return 0;
-@@ -420,10 +413,7 @@ static int __devinit serial_pnp_guess_bo
- 		(dev->card && check_name(dev->card->name))))
- 			return -ENODEV;
+ 	/* Note: pnp_assign_port will copy pnp_port->flags into p->flags */
+-	io->io_decode = (p->flags & PNP_PORT_FLAG_16BITADDR) ?
++	io->io_decode = (p->flags & IORESOURCE_IO_16BIT_ADDR) ?
+ 	    ACPI_DECODE_16 : ACPI_DECODE_10;
+ 	io->minimum = p->start;
+ 	io->maximum = p->end;
+diff -puN drivers/pnp/pnpbios/rsparser.c~pnp-define-pnp-specific-ioresource_io_-flags-alongside-irq-dma-mem drivers/pnp/pnpbios/rsparser.c
+--- a/drivers/pnp/pnpbios/rsparser.c~pnp-define-pnp-specific-ioresource_io_-flags-alongside-irq-dma-mem
++++ a/drivers/pnp/pnpbios/rsparser.c
+@@ -310,7 +310,7 @@ static __init void pnpbios_parse_port_op
+ 	port->max = (p[5] << 8) | p[4];
+ 	port->align = p[6];
+ 	port->size = p[7];
+-	port->flags = p[1] ? PNP_PORT_FLAG_16BITADDR : 0;
++	port->flags = p[1] ? IORESOURCE_IO_16BIT_ADDR : 0;
+ 	pnp_register_port_resource(dev, option, port);
+ }
  
--	if (check_resources(dev->independent))
--		return 0;
--
--	if (check_resources(dev->dependent))
-+	if (check_resources(dev))
- 		return 0;
+@@ -326,7 +326,7 @@ static __init void pnpbios_parse_fixed_p
+ 	port->min = port->max = (p[2] << 8) | p[1];
+ 	port->size = p[3];
+ 	port->align = 0;
+-	port->flags = PNP_PORT_FLAG_FIXED;
++	port->flags = IORESOURCE_IO_FIXED;
+ 	pnp_register_port_resource(dev, option, port);
+ }
  
- 	return -ENODEV;
-diff -puN include/linux/pnp.h~pnp-add-pnp_possible_config-can-a-device-could-be-configured-this-way include/linux/pnp.h
---- a/include/linux/pnp.h~pnp-add-pnp_possible_config-can-a-device-could-be-configured-this-way
+diff -puN include/linux/ioport.h~pnp-define-pnp-specific-ioresource_io_-flags-alongside-irq-dma-mem include/linux/ioport.h
+--- a/include/linux/ioport.h~pnp-define-pnp-specific-ioresource_io_-flags-alongside-irq-dma-mem
++++ a/include/linux/ioport.h
+@@ -88,6 +88,10 @@ struct resource_list {
+ #define IORESOURCE_MEM_SHADOWABLE	(1<<5)	/* dup: IORESOURCE_SHADOWABLE */
+ #define IORESOURCE_MEM_EXPANSIONROM	(1<<6)
+ 
++/* PnP I/O specific bits (IORESOURCE_BITS) */
++#define IORESOURCE_IO_16BIT_ADDR	(1<<0)
++#define IORESOURCE_IO_FIXED		(1<<1)
++
+ /* PCI ROM control bits (IORESOURCE_BITS) */
+ #define IORESOURCE_ROM_ENABLE		(1<<0)	/* ROM is enabled, same as PCI_ROM_ADDRESS_ENABLE */
+ #define IORESOURCE_ROM_SHADOW		(1<<1)	/* ROM is copy at C000:0 */
+diff -puN include/linux/pnp.h~pnp-define-pnp-specific-ioresource_io_-flags-alongside-irq-dma-mem include/linux/pnp.h
+--- a/include/linux/pnp.h~pnp-define-pnp-specific-ioresource_io_-flags-alongside-irq-dma-mem
 +++ a/include/linux/pnp.h
-@@ -472,6 +472,8 @@ void pnp_unregister_card_driver(struct p
- extern struct list_head pnp_cards;
+@@ -175,9 +175,6 @@ static inline int pnp_dma_valid(struct p
+ }
  
- /* resource management */
-+int pnp_possible_config(struct pnp_dev *dev, int type, resource_size_t base,
-+			resource_size_t size);
- int pnp_auto_config_dev(struct pnp_dev *dev);
- int pnp_start_dev(struct pnp_dev *dev);
- int pnp_stop_dev(struct pnp_dev *dev);
-@@ -499,6 +501,7 @@ static inline int pnp_register_card_driv
- static inline void pnp_unregister_card_driver(struct pnp_card_driver *drv) { }
  
- /* resource management */
-+static inline int pnp_possible_config(struct pnp_dev *dev, int type, resource_size_t base, resource_size_t size) { return 0; }
- static inline int pnp_auto_config_dev(struct pnp_dev *dev) { return -ENODEV; }
- static inline int pnp_start_dev(struct pnp_dev *dev) { return -ENODEV; }
- static inline int pnp_stop_dev(struct pnp_dev *dev) { return -ENODEV; }
+-#define PNP_PORT_FLAG_16BITADDR	(1<<0)
+-#define PNP_PORT_FLAG_FIXED	(1<<1)
+-
+ struct pnp_port {
+ 	unsigned short min;	/* min base number */
+ 	unsigned short max;	/* max base number */
 _
 
 Patches currently in -mm which might be from bjorn.helgaas@hp.com are
