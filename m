@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-net-usb-kawethc-fix-printk-warning.patch added to -mm tree
-Date: Thu, 05 Jun 2008 16:07:42 -0700
-Message-ID: <200806052319.m55NJExj002377@imap1.linux-foundation.org>
+Subject: + quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch added to -mm tree
+Date: Thu, 05 Jun 2008 16:11:26 -0700
+Message-ID: <200806052322.m55NMxo7002517@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40104 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39373 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763103AbYFEXTV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 19:19:21 -0400
+	by vger.kernel.org with ESMTP id S1752936AbYFEXXe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 19:23:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dwmw2@infradead.org
+Cc: akpm@linux-foundation.org, jack@suse.cz
 
 
 The patch titled
-     drivers/net/usb/kaweth.c: fix printk warning
+     quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix
 has been added to the -mm tree.  Its filename is
-     drivers-net-usb-kawethc-fix-printk-warning.patch
+     quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,28 +33,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/net/usb/kaweth.c: fix printk warning
+Subject: quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/usb/kaweth.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/reiserfs/super.c |    1 +
+ fs/ufs/super.c      |    1 +
+ 2 files changed, 2 insertions(+)
 
-diff -puN drivers/net/usb/kaweth.c~drivers-net-usb-kawethc-fix-printk-warning drivers/net/usb/kaweth.c
---- a/drivers/net/usb/kaweth.c~drivers-net-usb-kawethc-fix-printk-warning
-+++ a/drivers/net/usb/kaweth.c
-@@ -403,7 +403,7 @@ static int kaweth_download_firmware(stru
- 	}
+diff -puN fs/reiserfs/super.c~quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix fs/reiserfs/super.c
+--- a/fs/reiserfs/super.c~quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix
++++ a/fs/reiserfs/super.c
+@@ -22,6 +22,7 @@
+ #include <linux/blkdev.h>
+ #include <linux/buffer_head.h>
+ #include <linux/exportfs.h>
++#include <linux/quotaops.h>
+ #include <linux/vfs.h>
+ #include <linux/mnt_namespace.h>
+ #include <linux/mount.h>
+diff -puN fs/ufs/super.c~quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix fs/ufs/super.c
+--- a/fs/ufs/super.c~quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix
++++ a/fs/ufs/super.c
+@@ -76,6 +76,7 @@
  
- 	if (fw->size > KAWETH_FIRMWARE_BUF_SIZE)	{
--		err("Firmware too big: %d", fw->size);
-+		err("Firmware too big: %zu", fw->size);
- 		return -ENOSPC;
- 	}
- 	data_len = fw->size;
+ #include <linux/errno.h>
+ #include <linux/fs.h>
++#include <linux/quotaops.h>
+ #include <linux/slab.h>
+ #include <linux/time.h>
+ #include <linux/stat.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -66,6 +77,7 @@ linux-next-fixup.patch
 linux-next-rtc-fix.patch
 fix-kobject-fix-kobject_rename-and-config_sysfs.patch
 kvm-is-busted-on-ia64.patch
+drivers-net-usb-kawethc-fix-printk-warning.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 acpi-video-balcklist-fujitsu-lifebook-s6410.patch
 lguest-use-cpu-capability-accessors.patch
@@ -148,6 +160,7 @@ jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.pat
 reiserfs-convert-j_flush_sem-to-mutex.patch
 reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
 quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
 jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup.patch
 ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
 ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
@@ -177,5 +190,4 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
-drivers-net-usb-kawethc-fix-printk-warning.patch
 
