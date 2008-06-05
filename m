@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-utimensat-fix-write-access-check-for-futimens.patch added to -mm tree
-Date: Wed, 04 Jun 2008 21:42:12 -0700
-Message-ID: <200806050442.m554gCNZ025751@imap1.linux-foundation.org>
+Subject: + vfs-utimensat-ignore-tv_sec-if-tv_nsec-==-utime_omit-or-utime_now.patch added to -mm tree
+Date: Wed, 04 Jun 2008 21:42:03 -0700
+Message-ID: <200806050442.m554g3LP025739@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57083 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32932 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751915AbYFEEmq (ORCPT
+	by vger.kernel.org with ESMTP id S1751890AbYFEEmq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 00:42:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: mtk.manpages@googlemail.com, drepper@redhat.com, miklos@szeredi.hu, mtk.manp
 
 
 The patch titled
-     vfs: utimensat(): fix write access check for futimens()
+     vfs: utimensat(): ignore tv_sec if tv_nsec == UTIME_OMIT or UTIME_NOW
 has been added to the -mm tree.  Its filename is
-     vfs-utimensat-fix-write-access-check-for-futimens.patch
+     vfs-utimensat-ignore-tv_sec-if-tv_nsec-==-utime_omit-or-utime_now.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,45 +33,25 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: utimensat(): fix write access check for futimens()
+Subject: vfs: utimensat(): ignore tv_sec if tv_nsec == UTIME_OMIT or UTIME_NOW
 From: Michael Kerrisk <mtk.manpages@googlemail.com>
 
-The POSIX.1 draft spec for futimens()/utimensat() says:
+The POSIX.1 draft spec for utimensat() says that if a times[n].tv_nsec
+field is UTIME_OMIT or UTIME_NOW, then the value in the corresponding
+tv_sec field is ignored.  See the last sentence of this para, from
+the spec:
 
-        Only a process with the effective user ID equal to the
-        user ID of the file, *or with write access to the file*,
-        or with appropriate privileges may use futimens() or
-        utimensat() with a null pointer as the times argument
-        or with both tv_nsec fields set to the special value
-        UTIME_NOW.
+    If the tv_nsec field of a timespec structure has
+    the special value UTIME_NOW, the file's relevant
+    timestamp shall be set to the greatest value
+    supported by the file system that is not greater than
+    the current time. If the tv_nsec field has the
+    special value UTIME_OMIT, the file's relevant
+    timestamp shall not be changed. In either case,
+    the tv_sec field shall be ignored.
 
-The important piece here is "with write access to the file", and
-this matters for futimens(), which deals with an argument that
-is a file descriptor referring to the file whose timestamps are
-being updated,  The standard is saying that the "writability"
-check is based on the file permissions, not the access mode with
-which the file is opened.  (This behavior is consistent with the
-semantics of FreeBSD's futimes().)  However, Linux is currently
-doing the latter -- futimens(fd, times) is a library
-function implemented as
-
-       utimensat(fd, NULL, times, 0)
-
-and within the utimensat() implementation we have the code:
-
-                f = fget(dfd);  // dfd is 'fd'
-                ...
-                if (f) {
-                        if (!(f->f_mode & FMODE_WRITE))
-                                goto mnt_drop_write_and_out;
-
-The check should instead be based on the file permissions.
-
-Thanks to Miklos for pointing out how to do this check.
-Miklos also pointed out a simplification that could be
-made to my first version of this patch, since the checks
-for the pathname and file descriptor cases can now be
-conflated.
+However the current Linux implementation requires the tv_sec value to be
+zero (or the EINVAL error results). This requirement should be removed.
 
 Acked-by: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
@@ -80,30 +60,27 @@ Signed-off-by: Michael Kerrisk <mtk.manpages@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/utimes.c |   11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+ fs/utimes.c |    8 --------
+ 1 file changed, 8 deletions(-)
 
-diff -puN fs/utimes.c~vfs-utimensat-fix-write-access-check-for-futimens fs/utimes.c
---- a/fs/utimes.c~vfs-utimensat-fix-write-access-check-for-futimens
+diff -puN fs/utimes.c~vfs-utimensat-ignore-tv_sec-if-tv_nsec-==-utime_omit-or-utime_now fs/utimes.c
+--- a/fs/utimes.c~vfs-utimensat-ignore-tv_sec-if-tv_nsec-==-utime_omit-or-utime_now
 +++ a/fs/utimes.c
-@@ -148,14 +148,9 @@ long do_utimes(int dfd, char __user *fil
- 			goto mnt_drop_write_and_out;
+@@ -169,14 +169,6 @@ asmlinkage long sys_utimensat(int dfd, c
+ 	if (utimes) {
+ 		if (copy_from_user(&tstimes, utimes, sizeof(tstimes)))
+ 			return -EFAULT;
+-		if ((tstimes[0].tv_nsec == UTIME_OMIT ||
+-		     tstimes[0].tv_nsec == UTIME_NOW) &&
+-		    tstimes[0].tv_sec != 0)
+-			return -EINVAL;
+-		if ((tstimes[1].tv_nsec == UTIME_OMIT ||
+-		     tstimes[1].tv_nsec == UTIME_NOW) &&
+-		    tstimes[1].tv_sec != 0)
+-			return -EINVAL;
  
- 		if (!is_owner_or_cap(inode)) {
--			if (f) {
--				if (!(f->f_mode & FMODE_WRITE))
--					goto mnt_drop_write_and_out;
--			} else {
--				error = vfs_permission(&nd, MAY_WRITE);
--				if (error)
--					goto mnt_drop_write_and_out;
--			}
-+			error = permission(inode, MAY_WRITE, NULL);
-+			if (error)
-+				goto mnt_drop_write_and_out;
- 		}
- 	}
- 	mutex_lock(&inode->i_mutex);
+ 		/* Nothing to do, we must not even check the path.  */
+ 		if (tstimes[0].tv_nsec == UTIME_OMIT &&
 _
 
 Patches currently in -mm which might be from mtk.manpages@googlemail.com are
