@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-pci-slot-detection-driver.patch added to -mm tree
-Date: Wed, 04 Jun 2008 22:49:11 -0700
-Message-ID: <200806050549.m555nBKw028124@imap1.linux-foundation.org>
+Subject: + fakephp-construct-one-fakephp-slot-per-pci-slot.patch added to -mm tree
+Date: Wed, 04 Jun 2008 22:49:04 -0700
+Message-ID: <200806050549.m555n4Cd028111@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37799 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53167 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751631AbYFEFuM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 01:50:12 -0400
+	by vger.kernel.org with ESMTP id S1751541AbYFEFuc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 01:50:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: achiang@hp.com, greg@kroah.com, kaneshige.kenji@jp.fujitsu.com, kristen.c.accardi@intel.com, lenb@kernel.org
+Cc: achiang@hp.com, akpm@linux-foundation.org, greg@kroah.com, kaneshige.kenji@jp.fujitsu.com, kristen.c.accardi@intel.com, lenb@kernel.org, matthew@wil.cx
 
 
 The patch titled
-     ACPI: PCI slot detection driver
+     fakephp: Construct one fakephp slot per PCI slot
 has been added to the -mm tree.  Its filename is
-     acpi-pci-slot-detection-driver.patch
+     fakephp-construct-one-fakephp-slot-per-pci-slot.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,482 +33,181 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ACPI: PCI slot detection driver
+Subject: fakephp: Construct one fakephp slot per PCI slot
 From: Alex Chiang <achiang@hp.com>
 
-Detect all physical PCI slots as described by ACPI, and create entries in
-/sys/bus/pci/slots/.
+Register one slot per slot, rather than one slot per function.  Change the
+name of the slot to fake%d instead of the pci address.
 
-Not all physical slots are hotpluggable, and the acpiphp module does not
-detect them.  Now we know the physical PCI geography of our system, without
-caring about hotplug.
-
-[akpm@linux-foundation.org: build fix]
-[akpm@linux-foundation.org: fix build with CONFIG_DMI=n]
 Signed-off-by: Alex Chiang <achiang@hp.com>
+Signed-off-by: Matthew Wilcox <matthew@wil.cx>
 Cc: Greg KH <greg@kroah.com>
 Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 Cc: Len Brown <lenb@kernel.org>
-Acked-by: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Cc: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/Kconfig                   |    9 
- drivers/acpi/Makefile                  |    1 
- drivers/acpi/pci_slot.c                |  370 +++++++++++++++++++++++
- drivers/pci/hotplug/pci_hotplug_core.c |   16 
- drivers/pci/hotplug/sgi_hotplug.c      |    2 
- 5 files changed, 397 insertions(+), 1 deletion(-)
+ drivers/pci/hotplug/fakephp.c |   90 ++++++++++----------------------
+ 1 file changed, 30 insertions(+), 60 deletions(-)
 
-diff -puN drivers/acpi/Kconfig~acpi-pci-slot-detection-driver drivers/acpi/Kconfig
---- a/drivers/acpi/Kconfig~acpi-pci-slot-detection-driver
-+++ a/drivers/acpi/Kconfig
-@@ -339,6 +339,15 @@ config ACPI_EC
- 	  the battery and thermal drivers.  If you are compiling for a 
- 	  mobile system, say Y.
+diff -puN drivers/pci/hotplug/fakephp.c~fakephp-construct-one-fakephp-slot-per-pci-slot drivers/pci/hotplug/fakephp.c
+--- a/drivers/pci/hotplug/fakephp.c~fakephp-construct-one-fakephp-slot-per-pci-slot
++++ a/drivers/pci/hotplug/fakephp.c
+@@ -66,6 +66,7 @@ struct dummy_slot {
+ 	struct pci_dev *dev;
+ 	struct work_struct remove_work;
+ 	unsigned long removed;
++	char name[8];
+ };
  
-+config ACPI_PCI_SLOT
-+	tristate "PCI slot detection driver"
-+	default n
-+	help
-+	  This driver will attempt to discover all PCI slots in your system,
-+	  and creates entries in /sys/bus/pci/slots/. This feature can
-+	  help you correlate PCI bus addresses with the physical geography
-+	  of your slots. If you are unsure, say N.
-+
- config ACPI_POWER
- 	bool
- 	default y
-diff -puN drivers/acpi/Makefile~acpi-pci-slot-detection-driver drivers/acpi/Makefile
---- a/drivers/acpi/Makefile~acpi-pci-slot-detection-driver
-+++ a/drivers/acpi/Makefile
-@@ -48,6 +48,7 @@ obj-$(CONFIG_ACPI_DOCK)		+= dock.o
- obj-$(CONFIG_ACPI_BAY)		+= bay.o
- obj-$(CONFIG_ACPI_VIDEO)	+= video.o
- obj-y				+= pci_root.o pci_link.o pci_irq.o pci_bind.o
-+obj-$(CONFIG_ACPI_PCI_SLOT)	+= pci_slot.o
- obj-$(CONFIG_ACPI_POWER)	+= power.o
- obj-$(CONFIG_ACPI_PROCESSOR)	+= processor.o
- obj-$(CONFIG_ACPI_CONTAINER)	+= container.o
-diff -puN /dev/null drivers/acpi/pci_slot.c
---- /dev/null
-+++ a/drivers/acpi/pci_slot.c
-@@ -0,0 +1,370 @@
-+/*
-+ *  pci_slot.c - ACPI PCI Slot Driver
-+ *
-+ *  The code here is heavily leveraged from the acpiphp module.
-+ *  Thanks to Matthew Wilcox <matthew@wil.cx> for much guidance.
-+ *  Thanks to Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com> for code
-+ *  review and fixes.
-+ *
-+ *  Copyright (C) 2007,2008 Hewlett-Packard Development Company, L.P.
-+ *  	Alex Chiang <achiang@hp.com>
-+ *
-+ *  This program is free software; you can redistribute it and/or modify it
-+ *  under the terms and conditions of the GNU General Public License,
-+ *  version 2, as published by the Free Software Foundation.
-+ *
-+ *  This program is distributed in the hope that it will be useful, but
-+ *  WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ *  General Public License for more details.
-+ *
-+ *  You should have received a copy of the GNU General Public License along
-+ *  with this program; if not, write to the Free Software Foundation, Inc.,
-+ *  51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/types.h>
-+#include <linux/pci.h>
-+#include <linux/acpi.h>
-+#include <acpi/acpi_bus.h>
-+#include <acpi/acpi_drivers.h>
-+
-+static int debug;
-+static int check_sta_before_sun;
-+
-+#define DRIVER_VERSION 	"0.1"
-+#define DRIVER_AUTHOR	"Alex Chiang <achiang@hp.com>"
-+#define DRIVER_DESC	"ACPI PCI Slot Detection Driver"
-+MODULE_AUTHOR(DRIVER_AUTHOR);
-+MODULE_DESCRIPTION(DRIVER_DESC);
-+MODULE_LICENSE("GPL");
-+MODULE_PARM_DESC(debug, "Debugging mode enabled or not");
-+module_param(debug, bool, 0644);
-+
-+#define _COMPONENT		ACPI_PCI_COMPONENT
-+ACPI_MODULE_NAME("pci_slot");
-+
-+#define MY_NAME "pci_slot"
-+#define err(format, arg...) printk(KERN_ERR "%s: " format , MY_NAME , ## arg)
-+#define info(format, arg...) printk(KERN_INFO "%s: " format , MY_NAME , ## arg)
-+#define dbg(format, arg...)					\
-+	do {							\
-+		if (debug)					\
-+			printk(KERN_DEBUG "%s: " format,	\
-+				MY_NAME , ## arg);		\
-+	} while (0)
-+
-+#define SLOT_NAME_SIZE 20		/* Inspired by #define in acpiphp.h */
-+
-+struct acpi_pci_slot {
-+	acpi_handle root_handle;	/* handle of the root bridge */
-+	struct pci_slot *pci_slot;	/* corresponding pci_slot */
-+	struct list_head list;		/* node in the list of slots */
-+};
-+
-+static int acpi_pci_slot_add(acpi_handle handle);
-+static void acpi_pci_slot_remove(acpi_handle handle);
-+
-+static LIST_HEAD(slot_list);
-+static DEFINE_MUTEX(slot_list_lock);
-+static struct acpi_pci_driver acpi_pci_slot_driver = {
-+	.add = acpi_pci_slot_add,
-+	.remove = acpi_pci_slot_remove,
-+};
-+
-+static int
-+check_slot(acpi_handle handle, int *device, unsigned long *sun)
-+{
-+	int retval = 0;
-+	unsigned long adr, sta;
-+	acpi_status status;
-+	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
-+
-+	acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
-+	dbg("Checking slot on path: %s\n", (char *)buffer.pointer);
-+
-+	if (check_sta_before_sun) {
-+		/* If SxFy doesn't have _STA, we just assume it's there */
-+		status = acpi_evaluate_integer(handle, "_STA", NULL, &sta);
-+		if (ACPI_SUCCESS(status) && !(sta & ACPI_STA_DEVICE_PRESENT)) {
-+			retval = -1;
-+			goto out;
-+		}
-+	}
-+
-+	status = acpi_evaluate_integer(handle, "_ADR", NULL, &adr);
-+	if (ACPI_FAILURE(status)) {
-+		dbg("_ADR returned %d on %s\n", status, (char *)buffer.pointer);
-+		retval = -1;
-+		goto out;
-+	}
-+
-+	*device = (adr >> 16) & 0xffff;
-+
-+	/* No _SUN == not a slot == bail */
-+	status = acpi_evaluate_integer(handle, "_SUN", NULL, sun);
-+	if (ACPI_FAILURE(status)) {
-+		dbg("_SUN returned %d on %s\n", status, (char *)buffer.pointer);
-+		retval = -1;
-+		goto out;
-+	}
-+
-+out:
-+	kfree(buffer.pointer);
-+	return retval;
-+}
-+
-+struct callback_args {
-+	acpi_walk_callback	user_function;	/* only for walk_p2p_bridge */
-+	struct pci_bus		*pci_bus;
-+	acpi_handle		root_handle;
-+};
-+
-+/*
-+ * register_slot
-+ *
-+ * Called once for each SxFy object in the namespace. Don't worry about
-+ * calling pci_create_slot multiple times for the same pci_bus:device,
-+ * since each subsequent call simply bumps the refcount on the pci_slot.
-+ *
-+ * The number of calls to pci_destroy_slot from unregister_slot is
-+ * symmetrical.
-+ */
-+static acpi_status
-+register_slot(acpi_handle handle, u32 lvl, void *context, void **rv)
-+{
-+	int device;
-+	unsigned long sun;
-+	char name[SLOT_NAME_SIZE];
-+	struct acpi_pci_slot *slot;
-+	struct pci_slot *pci_slot;
-+	struct callback_args *parent_context = context;
-+	struct pci_bus *pci_bus = parent_context->pci_bus;
-+
-+	if (check_slot(handle, &device, &sun))
-+		return AE_OK;
-+
-+	slot = kmalloc(sizeof(*slot), GFP_KERNEL);
-+	if (!slot) {
-+		err("%s: cannot allocate memory\n", __func__);
-+		return AE_OK;
-+	}
-+
-+	snprintf(name, sizeof(name), "%u", (u32)sun);
-+	pci_slot = pci_create_slot(pci_bus, device, name);
-+	if (IS_ERR(pci_slot)) {
-+		err("pci_create_slot returned %ld\n", PTR_ERR(pci_slot));
-+		kfree(slot);
-+	}
-+
-+	slot->root_handle = parent_context->root_handle;
-+	slot->pci_slot = pci_slot;
-+	INIT_LIST_HEAD(&slot->list);
-+	mutex_lock(&slot_list_lock);
-+	list_add(&slot->list, &slot_list);
-+	mutex_unlock(&slot_list_lock);
-+
-+	dbg("pci_slot: %p, pci_bus: %x, device: %d, name: %s\n",
-+		pci_slot, pci_bus->number, device, name);
-+
-+	return AE_OK;
-+}
-+
-+/*
-+ * walk_p2p_bridge - discover and walk p2p bridges
-+ * @handle: points to an acpi_pci_root
-+ * @context: p2p_bridge_context pointer
-+ *
-+ * Note that when we call ourselves recursively, we pass a different
-+ * value of pci_bus in the child_context.
-+ */
-+static acpi_status
-+walk_p2p_bridge(acpi_handle handle, u32 lvl, void *context, void **rv)
-+{
-+	int device, function;
-+	unsigned long adr;
-+	acpi_status status;
-+	acpi_handle dummy_handle;
-+	acpi_walk_callback user_function;
-+
-+	struct pci_dev *dev;
-+	struct pci_bus *pci_bus;
-+	struct callback_args child_context;
-+	struct callback_args *parent_context = context;
-+
-+	pci_bus = parent_context->pci_bus;
-+	user_function = parent_context->user_function;
-+
-+	status = acpi_get_handle(handle, "_ADR", &dummy_handle);
-+	if (ACPI_FAILURE(status))
-+		return AE_OK;
-+
-+	status = acpi_evaluate_integer(handle, "_ADR", NULL, &adr);
-+	if (ACPI_FAILURE(status))
-+		return AE_OK;
-+
-+	device = (adr >> 16) & 0xffff;
-+	function = adr & 0xffff;
-+
-+	dev = pci_get_slot(pci_bus, PCI_DEVFN(device, function));
-+	if (!dev || !dev->subordinate)
-+		goto out;
-+
-+	child_context.pci_bus = dev->subordinate;
-+	child_context.user_function = user_function;
-+	child_context.root_handle = parent_context->root_handle;
-+
-+	dbg("p2p bridge walk, pci_bus = %x\n", dev->subordinate->number);
-+	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, handle, (u32)1,
-+				     user_function, &child_context, NULL);
-+	if (ACPI_FAILURE(status))
-+		goto out;
-+
-+	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, handle, (u32)1,
-+				     walk_p2p_bridge, &child_context, NULL);
-+out:
-+	pci_dev_put(dev);
-+	return AE_OK;
-+}
-+
-+#define ACPI_STA_FUNCTIONING            (0x00000008)
-+
-+/*
-+ * walk_root_bridge - generic root bridge walker
-+ * @handle: points to an acpi_pci_root
-+ * @user_function: user callback for slot objects
-+ *
-+ * Call user_function for all objects underneath this root bridge.
-+ * Walk p2p bridges underneath us and call user_function on those too.
-+ */
-+static int
-+walk_root_bridge(acpi_handle handle, acpi_walk_callback user_function)
-+{
-+	int seg, bus;
-+	unsigned long tmp;
-+	acpi_status status;
-+	acpi_handle dummy_handle;
-+	struct pci_bus *pci_bus;
-+	struct callback_args context;
-+
-+	/* If the bridge doesn't have _STA, we assume it is always there */
-+	status = acpi_get_handle(handle, "_STA", &dummy_handle);
-+	if (ACPI_SUCCESS(status)) {
-+		status = acpi_evaluate_integer(handle, "_STA", NULL, &tmp);
-+		if (ACPI_FAILURE(status)) {
-+			info("%s: _STA evaluation failure\n", __func__);
-+			return 0;
-+		}
-+		if ((tmp & ACPI_STA_FUNCTIONING) == 0)
-+			/* don't register this object */
-+			return 0;
-+	}
-+
-+	status = acpi_evaluate_integer(handle, "_SEG", NULL, &tmp);
-+	seg = ACPI_SUCCESS(status) ? tmp : 0;
-+
-+	status = acpi_evaluate_integer(handle, "_BBN", NULL, &tmp);
-+	bus = ACPI_SUCCESS(status) ? tmp : 0;
-+
-+	pci_bus = pci_find_bus(seg, bus);
-+	if (!pci_bus)
-+		return 0;
-+
-+	context.pci_bus = pci_bus;
-+	context.user_function = user_function;
-+	context.root_handle = handle;
-+
-+	dbg("root bridge walk, pci_bus = %x\n", pci_bus->number);
-+	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, handle, (u32)1,
-+				     user_function, &context, NULL);
-+	if (ACPI_FAILURE(status))
-+		return status;
-+
-+	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, handle, (u32)1,
-+				     walk_p2p_bridge, &context, NULL);
-+	if (ACPI_FAILURE(status))
-+		err("%s: walk_p2p_bridge failure - %d\n", __func__, status);
-+
-+	return status;
-+}
-+
-+/*
-+ * acpi_pci_slot_add
-+ * @handle: points to an acpi_pci_root
-+ */
-+static int
-+acpi_pci_slot_add(acpi_handle handle)
-+{
-+	acpi_status status;
-+
-+	status = walk_root_bridge(handle, register_slot);
-+	if (ACPI_FAILURE(status))
-+		err("%s: register_slot failure - %d\n", __func__, status);
-+
-+	return status;
-+}
-+
-+/*
-+ * acpi_pci_slot_remove
-+ * @handle: points to an acpi_pci_root
-+ */
-+static void
-+acpi_pci_slot_remove(acpi_handle handle)
-+{
-+	struct acpi_pci_slot *slot, *tmp;
-+
-+	mutex_lock(&slot_list_lock);
-+	list_for_each_entry_safe(slot, tmp, &slot_list, list) {
-+		if (slot->root_handle == handle) {
-+			list_del(&slot->list);
-+			pci_destroy_slot(slot->pci_slot);
-+			kfree(slot);
-+		}
-+	}
-+	mutex_unlock(&slot_list_lock);
-+}
-+
-+static int do_sta_before_sun(const struct dmi_system_id *d)
-+{
-+	info("%s detected: will evaluate _STA before calling _SUN\n", d->ident);
-+	check_sta_before_sun = 1;
-+	return 0;
-+}
-+
-+static struct dmi_system_id acpi_pci_slot_dmi_table[] __initdata = {
-+	/*
-+	 * Fujitsu Primequest machines will return 1023 to indicate an
-+	 * error if the _SUN method is evaluated on SxFy objects that
-+	 * are not present (as indicated by _STA), so for those machines,
-+	 * we want to check _STA before evaluating _SUN.
-+	 */
-+	{
-+	 .callback = do_sta_before_sun,
-+	 .ident = "Fujitsu PRIMEQUEST",
-+	 .matches = {
-+		DMI_MATCH(DMI_BIOS_VENDOR, "FUJITSU LIMITED"),
-+		DMI_MATCH(DMI_BIOS_VERSION, "PRIMEQUEST"),
-+		},
-+	},
-+	{}
-+};
-+
-+static int __init
-+acpi_pci_slot_init(void)
-+{
-+	dmi_check_system(acpi_pci_slot_dmi_table);
-+	acpi_pci_register_driver(&acpi_pci_slot_driver);
-+	return 0;
-+}
-+
-+static void __exit
-+acpi_pci_slot_exit(void)
-+{
-+	acpi_pci_unregister_driver(&acpi_pci_slot_driver);
-+}
-+
-+module_init(acpi_pci_slot_init);
-+module_exit(acpi_pci_slot_exit);
-diff -puN drivers/pci/hotplug/pci_hotplug_core.c~acpi-pci-slot-detection-driver drivers/pci/hotplug/pci_hotplug_core.c
---- a/drivers/pci/hotplug/pci_hotplug_core.c~acpi-pci-slot-detection-driver
-+++ a/drivers/pci/hotplug/pci_hotplug_core.c
-@@ -566,6 +566,11 @@ int pci_hp_register(struct hotplug_slot 
- 		return -EINVAL;
+ static int debug;
+@@ -101,6 +102,7 @@ static int add_slot(struct pci_dev *dev)
+ 	struct dummy_slot *dslot;
+ 	struct hotplug_slot *slot;
+ 	int retval = -ENOMEM;
++	static int count = 1;
+ 
+ 	slot = kzalloc(sizeof(struct hotplug_slot), GFP_KERNEL);
+ 	if (!slot)
+@@ -114,15 +116,13 @@ static int add_slot(struct pci_dev *dev)
+ 	slot->info->max_bus_speed = PCI_SPEED_UNKNOWN;
+ 	slot->info->cur_bus_speed = PCI_SPEED_UNKNOWN;
+ 
+-	slot->name = kstrdup(dev_name(&dev->dev), GFP_KERNEL);
+-	if (!slot->name)
+-		goto error_info;
+-	dbg("slot->name = %s\n", slot->name);
+-
+ 	dslot = kzalloc(sizeof(struct dummy_slot), GFP_KERNEL);
+ 	if (!dslot)
+-		goto error_name;
++		goto error_info;
+ 
++	slot->name = dslot->name;
++	snprintf(slot->name, sizeof(dslot->name), "fake%d", count++);
++	dbg("slot->name = %s\n", slot->name);
+ 	slot->ops = &dummy_hotplug_slot_ops;
+ 	slot->release = &dummy_release;
+ 	slot->private = dslot;
+@@ -140,8 +140,6 @@ static int add_slot(struct pci_dev *dev)
+ 
+ error_dslot:
+ 	kfree(dslot);
+-error_name:
+-	kfree(slot->name);
+ error_info:
+ 	kfree(slot->info);
+ error_slot:
+@@ -153,17 +151,17 @@ error:
+ static int __init pci_scan_buses(void)
+ {
+ 	struct pci_dev *dev = NULL;
+-	int retval = 0;
++	int lastslot = 0;
+ 
+ 	while ((dev = pci_get_device(PCI_ANY_ID, PCI_ANY_ID, dev)) != NULL) {
+-		retval = add_slot(dev);
+-		if (retval) {
+-			pci_dev_put(dev);
+-			break;
+-		}
++		if (PCI_FUNC(dev->devfn) > 0 &&
++				lastslot == PCI_SLOT(dev->devfn))
++			continue;
++		lastslot = PCI_SLOT(dev->devfn);
++		add_slot(dev);
  	}
  
-+	/*
-+	 * No problems if we call this interface from both ACPI_PCI_SLOT
-+	 * driver and call it here again. If we've already created the
-+	 * pci_slot, the interface will simply bump the refcount.
-+	 */
- 	pci_slot = pci_create_slot(bus, slot_nr, slot->name);
- 	if (IS_ERR(pci_slot))
- 		return PTR_ERR(pci_slot);
-@@ -579,6 +584,17 @@ int pci_hp_register(struct hotplug_slot 
- 	slot->pci_slot = pci_slot;
- 	pci_slot->hotplug = slot;
+-	return retval;
++	return 0;
+ }
  
-+	/*
-+	 * Allow pcihp drivers to override the ACPI_PCI_SLOT name.
-+	 */
-+	if (strcmp(kobject_name(&pci_slot->kobj), slot->name)) {
-+		result = kobject_rename(&pci_slot->kobj, slot->name);
-+		if (result) {
-+			pci_destroy_slot(pci_slot);
-+			return result;
-+		}
-+	}
+ static void remove_slot(struct dummy_slot *dslot)
+@@ -301,23 +299,9 @@ static int enable_slot(struct hotplug_sl
+ 	return 0;
+ }
+ 
+-/* find the hotplug_slot for the pci_dev */
+-static struct hotplug_slot *get_slot_from_dev(struct pci_dev *dev)
+-{
+-	struct dummy_slot *dslot;
+-
+-	list_for_each_entry(dslot, &slot_list, node) {
+-		if (dslot->dev == dev)
+-			return dslot->slot;
+-	}
+-	return NULL;
+-}
+-
+-
+ static int disable_slot(struct hotplug_slot *slot)
+ {
+ 	struct dummy_slot *dslot;
+-	struct hotplug_slot *hslot;
+ 	struct pci_dev *dev;
+ 	int func;
+ 
+@@ -327,41 +311,27 @@ static int disable_slot(struct hotplug_s
+ 
+ 	dbg("%s - physical_slot = %s\n", __func__, slot->name);
+ 
+-	/* don't disable bridged devices just yet, we can't handle them easily... */
+-	if (dslot->dev->subordinate) {
+-		err("Can't remove PCI devices with other PCI devices behind it yet.\n");
+-		return -ENODEV;
+-	}
+-	if (test_and_set_bit(0, &dslot->removed)) {
+-		dbg("Slot already scheduled for removal\n");
+-		return -ENODEV;
+-	}
+-	/* search for subfunctions and disable them first */
+-	if (!(dslot->dev->devfn & 7)) {
+-		for (func = 1; func < 8; func++) {
+-			dev = pci_get_slot(dslot->dev->bus,
+-					dslot->dev->devfn + func);
+-			if (dev) {
+-				hslot = get_slot_from_dev(dev);
+-				if (hslot)
+-					disable_slot(hslot);
+-				else {
+-					err("Hotplug slot not found for subfunction of PCI device\n");
+-					return -ENODEV;
+-				}
+-				pci_dev_put(dev);
+-			} else
+-				dbg("No device in slot found\n");
++	for (func = 7; func >= 0; func--) {
++		dev = pci_get_slot(dslot->dev->bus, dslot->dev->devfn + func);
++		if (!dev)
++			continue;
 +
- 	spin_lock(&pci_hotplug_slot_list_lock);
- 	list_add(&slot->slot_list, &pci_hotplug_slot_list);
- 	spin_unlock(&pci_hotplug_slot_list_lock);
-diff -puN drivers/pci/hotplug/sgi_hotplug.c~acpi-pci-slot-detection-driver drivers/pci/hotplug/sgi_hotplug.c
---- a/drivers/pci/hotplug/sgi_hotplug.c~acpi-pci-slot-detection-driver
-+++ a/drivers/pci/hotplug/sgi_hotplug.c
-@@ -668,7 +668,7 @@ static int sn_hotplug_slot_register(stru
++		if (test_and_set_bit(0, &dslot->removed)) {
++			dbg("Slot already scheduled for removal\n");
++			return -ENODEV;
+ 		}
+-	}
  
- register_err:
- 	dev_dbg(&pci_bus->self->dev, "bus failed to register with err = %d\n",
--	        rc);
-+		rc);
+-	/* remove the device from the pci core */
+-	pci_remove_bus_device(dslot->dev);
++		/* queue work item to blow away this sysfs entry and other
++		 * parts.
++		 */
++		INIT_WORK(&dslot->remove_work, remove_slot_worker);
++		queue_work(dummyphp_wq, &dslot->remove_work);
  
- alloc_err:
- 	if (rc == -ENOMEM)
+-	/* queue work item to blow away this sysfs entry and other parts. */
+-	INIT_WORK(&dslot->remove_work, remove_slot_worker);
+-	queue_work(dummyphp_wq, &dslot->remove_work);
++		/* blow away this sysfs entry and other parts. */
++		remove_slot(dslot);
+ 
++		pci_dev_put(dev);
++	}
+ 	return 0;
+ }
+ 
 _
 
 Patches currently in -mm which might be from achiang@hp.com are
