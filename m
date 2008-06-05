@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + usbmon-use-simple_read_from_buffer.patch added to -mm tree
-Date: Wed, 04 Jun 2008 17:29:45 -0700
-Message-ID: <200806050029.m550Tj4S016942@imap1.linux-foundation.org>
+Subject: + ipr-use-memory_read_from_buffer.patch added to -mm tree
+Date: Wed, 04 Jun 2008 17:30:15 -0700
+Message-ID: <200806050030.m550UFHK016987@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42424 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43710 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755099AbYFEAaR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jun 2008 20:30:17 -0400
+	by vger.kernel.org with ESMTP id S1755871AbYFEAaY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jun 2008 20:30:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, greg@kroah.com, zaitcev@redhat.com
+Cc: akinobu.mita@gmail.com, James.Bottomley@HansenPartnership.com, brking@us.ibm.com
 
 
 The patch titled
-     usbmon: use simple_read_from_buffer()
+     ipr: use memory_read_from_buffer()
 has been added to the -mm tree.  Its filename is
-     usbmon-use-simple_read_from_buffer.patch
+     ipr-use-memory_read_from_buffer.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,50 +33,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usbmon: use simple_read_from_buffer()
+Subject: ipr: use memory_read_from_buffer()
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Greg Kroah-Hartman <greg@kroah.com>
-Cc: Pete Zaitcev <zaitcev@redhat.com>
+Cc: Brian King <brking@us.ibm.com>
+Cc: James E.J. Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/mon/mon_stat.c |   14 ++------------
- 1 file changed, 2 insertions(+), 12 deletions(-)
+ drivers/scsi/ipr.c |   16 +++++-----------
+ 1 file changed, 5 insertions(+), 11 deletions(-)
 
-diff -puN drivers/usb/mon/mon_stat.c~usbmon-use-simple_read_from_buffer drivers/usb/mon/mon_stat.c
---- a/drivers/usb/mon/mon_stat.c~usbmon-use-simple_read_from_buffer
-+++ a/drivers/usb/mon/mon_stat.c
-@@ -9,6 +9,7 @@
- 
- #include <linux/kernel.h>
- #include <linux/usb.h>
-+#include <linux/fs.h>
- #include <asm/uaccess.h>
- 
- #include "usb_mon.h"
-@@ -42,19 +43,8 @@ static ssize_t mon_stat_read(struct file
- 				size_t nbytes, loff_t *ppos)
- {
- 	struct snap *sp = file->private_data;
--	loff_t pos = *ppos;
--	int cnt;
- 
--	if (pos < 0 || pos >= sp->slen)
+diff -puN drivers/scsi/ipr.c~ipr-use-memory_read_from_buffer drivers/scsi/ipr.c
+--- a/drivers/scsi/ipr.c~ipr-use-memory_read_from_buffer
++++ a/drivers/scsi/ipr.c
+@@ -2455,20 +2455,14 @@ static ssize_t ipr_read_trace(struct kob
+ 	struct Scsi_Host *shost = class_to_shost(dev);
+ 	struct ipr_ioa_cfg *ioa_cfg = (struct ipr_ioa_cfg *)shost->hostdata;
+ 	unsigned long lock_flags = 0;
+-	int size = IPR_TRACE_SIZE;
+-	char *src = (char *)ioa_cfg->trace;
+-
+-	if (off > size)
 -		return 0;
--	if (nbytes == 0)
--		return 0;
--	if ((cnt = sp->slen - pos) > nbytes)
--		cnt = nbytes;
--	if (copy_to_user(buf, sp->str + pos, cnt))
--		return -EFAULT;
--	*ppos = pos + cnt;
--	return cnt;
-+	return simple_read_from_buffer(buf, nbytes, ppos, sp->str, sp->slen);
+-	if (off + count > size) {
+-		size -= off;
+-		count = size;
+-	}
++	ssize_t ret;
+ 
+ 	spin_lock_irqsave(ioa_cfg->host->host_lock, lock_flags);
+-	memcpy(buf, &src[off], count);
++	ret = memory_read_from_buffer(buf, count, &off, ioa_cfg->trace,
++				IPR_TRACE_SIZE);
+ 	spin_unlock_irqrestore(ioa_cfg->host->host_lock, lock_flags);
+-	return count;
++
++	return ret;
  }
  
- static int mon_stat_release(struct inode *inode, struct file *file)
+ static struct bin_attribute ipr_trace_attr = {
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
