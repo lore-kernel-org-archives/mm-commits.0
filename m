@@ -1,65 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: + provide-rtc_cmos-platform-device-take-2-fix.patch added to -mm tree
-Date: Thu, 05 Jun 2008 22:50:25 -0700
-Message-ID: <200806060550.m565oPd3016209@imap1.linux-foundation.org>
+Subject: - doc-add-suggestions-about-good-practices-for-maintainers.patch removed from -mm tree
+Date: Thu, 05 Jun 2008 23:18:29 -0700
+Message-ID: <200806060618.m566ITB9017199@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47765 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39940 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752439AbYFFFvb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jun 2008 01:51:31 -0400
+	by vger.kernel.org with ESMTP id S1764736AbYFFGSn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jun 2008 02:18:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: stsp@aknet.ru
+To: w@1wt.eu, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     provide-rtc_cmos-platform-device-take-2 fix
-has been added to the -mm tree.  Its filename is
-     provide-rtc_cmos-platform-device-take-2-fix.patch
+     doc: add suggestions about good practices for maintainers
+has been removed from the -mm tree.  Its filename was
+     doc-add-suggestions-about-good-practices-for-maintainers.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: provide-rtc_cmos-platform-device-take-2 fix
-From: Stas Sergeev <stsp@aknet.ru>
+Subject: doc: add suggestions about good practices for maintainers
+From: Willy Tarreau <w@1wt.eu>
 
-Fix include problem reported by checkpatch.pl
+Suggest how to deal with patch modifications caused by merging or
+back-porting when you're a maintainer.
 
-Signed-off-by: Stas Sergeev <stsp@aknet.ru>
+Signed-off-by: Willy Tarreau <w@1wt.eu>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/rtc.c |    1 -
- 1 file changed, 1 deletion(-)
+ Documentation/SubmittingPatches |   46 ++++++++++++++++++++++++++++++
+ 1 file changed, 46 insertions(+)
 
-diff -puN arch/x86/kernel/rtc.c~provide-rtc_cmos-platform-device-take-2-fix arch/x86/kernel/rtc.c
---- a/arch/x86/kernel/rtc.c~provide-rtc_cmos-platform-device-take-2-fix
-+++ a/arch/x86/kernel/rtc.c
-@@ -9,7 +9,6 @@
+diff -puN Documentation/SubmittingPatches~doc-add-suggestions-about-good-practices-for-maintainers Documentation/SubmittingPatches
+--- a/Documentation/SubmittingPatches~doc-add-suggestions-about-good-practices-for-maintainers
++++ a/Documentation/SubmittingPatches
+@@ -327,6 +327,52 @@ Some people also put extra tags at the e
+ now, but you can do this to mark internal company procedures or just
+ point out some special detail about the sign-off. 
  
- #include <asm/time.h>
- #include <asm/vsyscall.h>
--#include <asm/mc146818rtc.h>
++If you are a subsystem or branch maintainer, sometimes you need to slightly
++modify patches you receive in order to merge them, because the code is not
++exactly the same in your tree and the submitters'. If you stick strictly to
++rule (c), you should ask the submitter to rediff, but this is a totally
++counter-productive waste of time and energy. Rule (b) allows you to adjust
++the code, but then it is very impolite to change one submitter's code and
++make him endorse your bugs. To solve this problem, it is recommended that
++you add a line between the last Signed-off-by header and yours, indicating
++the nature of your changes. While there is nothing mandatory about this, it
++seems like prepending the description with your mail and/or name, all
++enclosed in square brackets, is noticeable enough to make it obvious that
++you are responsible for last-minute changes. Example :
++
++	Signed-off-by: Random J Developer <random@developer.example.org>
++	[lucky@maintainer.example.org: struct foo moved from foo.c to foo.h]
++	Signed-off-by: Lucky K Maintainer <lucky@maintainer.example.org>
++
++This practise is particularly helpful if you maintain a stable branch and
++want at the same time to credit the author, track changes, merge the fix,
++and protect the submitter from complaints. Note that under no circumstances
++can you change the author's identity (the From header), as it is the one
++which appears in the changelog.
++
++Special note to back-porters: It seems to be a common and useful practise
++to insert an indication of the origin of a patch at the top of the commit
++message (just after the subject line) to facilitate tracking. For instance,
++here's what we see in 2.6-stable :
++
++    Date:   Tue May 13 19:10:30 2008 +0000
++
++        SCSI: libiscsi regression in 2.6.25: fix nop timer handling
++
++        commit 4cf1043593db6a337f10e006c23c69e5fc93e722 upstream
++
++And here's what appears in 2.4 :
++
++    Date:   Tue May 13 22:12:27 2008 +0200
++
++        wireless, airo: waitbusy() won't delay
++
++        [backport of 2.6 commit b7acbdfbd1f277c1eb23f344f899cfa4cd0bf36a]
++
++Whatever the format, this information provides a valuable help to people
++tracking your trees, and to people trying to trouble-shoot bugs in your
++tree.
++
  
- #ifdef CONFIG_X86_32
- /*
+ 13) When to use Acked-by: and Cc:
+ 
 _
 
-Patches currently in -mm which might be from stsp@aknet.ru are
+Patches currently in -mm which might be from w@1wt.eu are
 
-provide-rtc_cmos-platform-device-take-2.patch
-provide-rtc_cmos-platform-device-take-2-fix.patch
+doc-add-suggestions-about-good-practices-for-maintainers.patch
 
