@@ -1,59 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: - update-checkpatchpl-to-version-019-fix.patch removed from -mm tree
-Date: Thu, 05 Jun 2008 20:59:11 -0700
-Message-ID: <200806060359.m563xCEf012208@imap1.linux-foundation.org>
+Subject: - doc-document-the-kernel-doc-conventions-for-kernel-hackers-grammar-fixes.patch removed from -mm tree
+Date: Thu, 05 Jun 2008 21:00:29 -0700
+Message-ID: <200806060400.m5640TYu012238@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53261 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46942 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754643AbYFFD7W (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 23:59:22 -0400
+	by vger.kernel.org with ESMTP id S1750702AbYFFEAl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jun 2008 00:00:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: apw@shadowen.org, mm-commits@vger.kernel.org
+To: pj@sgi.com, alan@lxorguk.ukuu.org.uk, rdunlap@xenotime.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     update-checkpatchpl-to-version-019 fix
+     doc: document the kernel-doc conventions for kernel hackers grammar fixes
 has been removed from the -mm tree.  Its filename was
-     update-checkpatchpl-to-version-019-fix.patch
+     doc-document-the-kernel-doc-conventions-for-kernel-hackers-grammar-fixes.patch
 
-This patch was dropped because it was folded into update-checkpatchpl-to-version-019.patch
+This patch was dropped because it was folded into doc-document-the-kernel-doc-conventions-for-kernel-hackers.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: update-checkpatchpl-to-version-019 fix
-From: Andy Whitcroft <apw@shadowen.org>
+Subject: doc: document the kernel-doc conventions for kernel hackers grammar fixes
+From: Paul Jackson <pj@sgi.com>
 
-return is not a function -- tighten test
-
-Tighten the return is not a function test so that we only report it on
-the line it occurs.
-
-Signed-off-by: Andy Whitcroft <apw@shadowen.org>
+Acked-by: Randy Dunlap <rdunlap@xenotime.net>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/kernel-doc-nano-HOWTO.txt |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN scripts/checkpatch.pl~update-checkpatchpl-to-version-019-fix scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~update-checkpatchpl-to-version-019-fix
-+++ a/scripts/checkpatch.pl
-@@ -1665,7 +1665,7 @@ sub process {
- 		}
+diff -puN Documentation/kernel-doc-nano-HOWTO.txt~doc-document-the-kernel-doc-conventions-for-kernel-hackers-grammar-fixes Documentation/kernel-doc-nano-HOWTO.txt
+--- a/Documentation/kernel-doc-nano-HOWTO.txt~doc-document-the-kernel-doc-conventions-for-kernel-hackers-grammar-fixes
++++ a/Documentation/kernel-doc-nano-HOWTO.txt
+@@ -4,14 +4,14 @@ kernel-doc nano-HOWTO
+ How to format kernel-doc comments
+ ---------------------------------
  
- # Return is not a function.
--		if (defined($stat) && $stat =~ /\breturn(\s*)(\(.*);/s) {
-+		if (defined($stat) && $stat =~ /^.\s*return(\s*)(\(.*);/s) {
- 			my $spacing = $1;
- 			my $value = $2;
+-In order to provide an embedded, 'C' friendly, easy to maintain,
++In order to provide embedded, 'C' friendly, easy to maintain,
+ but consistent and extractable documentation of the functions and
+ data structures in the Linux kernel, the Linux kernel has adopted
+ a consistent style for documenting functions and their parameters,
+ and structures and their members.
  
+ The format for this documentation is called the kernel-doc format.
+-It as documented in this Documentation/kernel-doc-nano-HOWTO.txt file.
++It is documented in this Documentation/kernel-doc-nano-HOWTO.txt file.
+ 
+ This style embeds the documentation within the source files, using
+ a few simple conventions.  The scripts/kernel-doc perl script, some
 _
 
-Patches currently in -mm which might be from apw@shadowen.org are
+Patches currently in -mm which might be from pj@sgi.com are
 
-update-checkpatchpl-to-version-019.patch
-update-checkpatchpl-to-version-019-fix.patch
+cpusets-fix-and-update-documentation.patch
+doc-update-to-url-and-status-of-kernel-docstxt-entry.patch
+cpusets-fix-bug-when-adding-nonexistent-cpu-or-mem.patch
+doc-document-the-kernel-doc-conventions-for-kernel-hackers.patch
+doc-document-the-kernel-doc-conventions-for-kernel-hackers-grammar-fixes.patch
 
