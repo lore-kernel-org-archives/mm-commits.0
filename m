@@ -1,96 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - pagemap-fix-bug-in-add_to_pagemap-require-aligned-length-reads-of-proc-pid-pagemap-v2-of-series-checkpatch-fixes.patch removed from -mm tree
-Date: Thu, 05 Jun 2008 22:44:43 -0700
-Message-ID: <200806060544.m565ihat015779@imap1.linux-foundation.org>
+Subject: + provide-rtc_cmos-platform-device-take-2-fix.patch added to -mm tree
+Date: Thu, 05 Jun 2008 22:50:25 -0700
+Message-ID: <200806060550.m565oPd3016209@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53024 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47765 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752739AbYFFFpt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jun 2008 01:45:49 -0400
+	by vger.kernel.org with ESMTP id S1752439AbYFFFvb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jun 2008 01:51:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mpm@selenic.com, stable@kernel.org, ttuttle@google.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: stsp@aknet.ru
 
 
 The patch titled
-     pagemap-fix-bug-in-add_to_pagemap-require-aligned-length-reads-of-proc-pid-pagemap-v2-of-series-checkpatch-fixes
-has been removed from the -mm tree.  Its filename was
-     pagemap-fix-bug-in-add_to_pagemap-require-aligned-length-reads-of-proc-pid-pagemap-v2-of-series-checkpatch-fixes.patch
+     provide-rtc_cmos-platform-device-take-2 fix
+has been added to the -mm tree.  Its filename is
+     provide-rtc_cmos-platform-device-take-2-fix.patch
 
-This patch was dropped because it was folded into pagemap-fix-bug-in-add_to_pagemap-require-aligned-length-reads-of-proc-pid-pagemap-v2-of-series.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pagemap-fix-bug-in-add_to_pagemap-require-aligned-length-reads-of-proc-pid-pagemap-v2-of-series-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: provide-rtc_cmos-platform-device-take-2 fix
+From: Stas Sergeev <stsp@aknet.ru>
 
-ERROR: "(foo*)" should be "(foo *)"
-#70: FILE: fs/proc/task_mmu.c:657:
-+	pm.out = (u64*)buf;
+Fix include problem reported by checkpatch.pl
 
-ERROR: "(foo*)" should be "(foo *)"
-#71: FILE: fs/proc/task_mmu.c:658:
-+	pm.end = (u64*)(buf + count);
-
-ERROR: "(foo*)" should be "(foo *)"
-#80: FILE: fs/proc/task_mmu.c:683:
-+		*ppos += (char*)pm.out - buf;
-
-ERROR: "(foo*)" should be "(foo *)"
-#83: FILE: fs/proc/task_mmu.c:685:
-+			ret = (char*)pm.out - buf;
-
-total: 4 errors, 0 warnings, 61 lines checked
-
-./patches/pagemap-fix-bug-in-add_to_pagemap-require-aligned-length-reads-of-proc-pid-pagemap-v2-of-series.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Matt Mackall <mpm@selenic.com>
-Cc: Thomas Tuttle <ttuttle@google.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Stas Sergeev <stsp@aknet.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ arch/x86/kernel/rtc.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN fs/proc/task_mmu.c~pagemap-fix-bug-in-add_to_pagemap-require-aligned-length-reads-of-proc-pid-pagemap-v2-of-series-checkpatch-fixes fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~pagemap-fix-bug-in-add_to_pagemap-require-aligned-length-reads-of-proc-pid-pagemap-v2-of-series-checkpatch-fixes
-+++ a/fs/proc/task_mmu.c
-@@ -654,8 +654,8 @@ static ssize_t pagemap_read(struct file 
- 		goto out_pages;
- 	}
+diff -puN arch/x86/kernel/rtc.c~provide-rtc_cmos-platform-device-take-2-fix arch/x86/kernel/rtc.c
+--- a/arch/x86/kernel/rtc.c~provide-rtc_cmos-platform-device-take-2-fix
++++ a/arch/x86/kernel/rtc.c
+@@ -9,7 +9,6 @@
  
--	pm.out = (u64*)buf;
--	pm.end = (u64*)(buf + count);
-+	pm.out = (u64 *)buf;
-+	pm.end = (u64 *)(buf + count);
+ #include <asm/time.h>
+ #include <asm/vsyscall.h>
+-#include <asm/mc146818rtc.h>
  
- 	if (!ptrace_may_attach(task)) {
- 		ret = -EIO;
-@@ -680,9 +680,9 @@ static ssize_t pagemap_read(struct file 
- 		if (ret == PM_END_OF_BUFFER)
- 			ret = 0;
- 		/* don't need mmap_sem for these, but this looks cleaner */
--		*ppos += (char*)pm.out - buf;
-+		*ppos += (char *)pm.out - buf;
- 		if (!ret)
--			ret = (char*)pm.out - buf;
-+			ret = (char *)pm.out - buf;
- 	}
- 
- out_pages:
+ #ifdef CONFIG_X86_32
+ /*
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from stsp@aknet.ru are
 
-pagemap-fix-bug-in-add_to_pagemap-require-aligned-length-reads-of-proc-pid-pagemap-v2-of-series.patch
-pagemap-fix-bug-in-add_to_pagemap-require-aligned-length-reads-of-proc-pid-pagemap-v2-of-series-checkpatch-fixes.patch
-rtc-class-driver-for-ppc_md-rtc-functions.patch
-proc-calculate-the-correct-proc-pid-link-count.patch
+provide-rtc_cmos-platform-device-take-2.patch
+provide-rtc_cmos-platform-device-take-2-fix.patch
 
