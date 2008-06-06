@@ -1,72 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: - smack-fuse-mount-hang-fix.patch removed from -mm tree
-Date: Fri, 06 Jun 2008 11:59:38 -0700
-Message-ID: <200806061859.m56Ixc2j013865@imap1.linux-foundation.org>
+Subject: + isight_firmware-avoid-crash-on-loading-invalid-firmware.patch added to -mm tree
+Date: Fri, 06 Jun 2008 12:35:15 -0700
+Message-ID: <200806061935.m56JZFDr015264@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45044 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42561 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755968AbYFFTAA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jun 2008 15:00:00 -0400
+	by vger.kernel.org with ESMTP id S1755585AbYFFTgS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jun 2008 15:36:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: casey@schaufler-ca.com, darwish.07@gmail.com, lcapitulino@mandriva.com.br, miklos@szeredi.hu, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: mjg59@srcf.ucam.org, greg@kroah.com, justinmattock@gmail.com, mjg@redhat.com
 
 
 The patch titled
-     smack: fix fuse mount hang
-has been removed from the -mm tree.  Its filename was
-     smack-fuse-mount-hang-fix.patch
+     isight_firmware: Avoid crash on loading invalid firmware
+has been added to the -mm tree.  Its filename is
+     isight_firmware-avoid-crash-on-loading-invalid-firmware.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: smack: fix fuse mount hang
-From: Casey Schaufler <casey@schaufler-ca.com>
+Subject: isight_firmware: Avoid crash on loading invalid firmware
+From: Matthew Garrett <mjg59@srcf.ucam.org>
 
-The d_instantiate hook for Smack can hang on the root inode of a
-filesystem if the file system code has not really done all the set-up. 
-Fuse is known to encounter this problem.  This change detects an attempt
-to instantiate a root inode and addresses it early in the processing,
-before any attempt is made to do something that might hang.
+Different tools generate slightly different formats of the isight
+firmware. Ensure that the firmware buffer is not overrun, while still
+ensuring that the correct amount of data is written if trailing data is
+present.
 
-Signed-off-by: Casey Schaufler <casey@schaufler-ca.com>
-Tested-by: Luiz Fernando N. Capitulino <lcapitulino@mandriva.com.br>
-Cc: "Ahmed S. Darwish" <darwish.07@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
+Report-by: Justin Mattock <justinmattock@gmail.com>
+Tested-by: Justin Mattock <justinmattock@gmail.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/smack/smack_lsm.c |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ drivers/usb/misc/isight_firmware.c |   23 ++++++++++++++++-------
+ 1 file changed, 16 insertions(+), 7 deletions(-)
 
-diff -puN security/smack/smack_lsm.c~smack-fuse-mount-hang-fix security/smack/smack_lsm.c
---- a/security/smack/smack_lsm.c~smack-fuse-mount-hang-fix
-+++ a/security/smack/smack_lsm.c
-@@ -1893,6 +1893,18 @@ static void smack_d_instantiate(struct d
+diff -puN drivers/usb/misc/isight_firmware.c~isight_firmware-avoid-crash-on-loading-invalid-firmware drivers/usb/misc/isight_firmware.c
+--- a/drivers/usb/misc/isight_firmware.c~isight_firmware-avoid-crash-on-loading-invalid-firmware
++++ a/drivers/usb/misc/isight_firmware.c
+@@ -39,9 +39,12 @@ static int isight_firmware_load(struct u
+ 	struct usb_device *dev = interface_to_usbdev(intf);
+ 	int llen, len, req, ret = 0;
+ 	const struct firmware *firmware;
+-	unsigned char *buf;
++	unsigned char *buf = kmalloc(50, GFP_KERNEL);
+ 	unsigned char data[4];
+-	char *ptr;
++	u8 *ptr;
++
++	if (!buf)
++		return -ENOMEM;
+ 
+ 	if (request_firmware(&firmware, "isight.fw", &dev->dev) != 0) {
+ 		printk(KERN_ERR "Unable to load isight firmware\n");
+@@ -59,7 +62,7 @@ static int isight_firmware_load(struct u
+ 		goto out;
  	}
  
- 	/*
-+	 * If this is the root inode the superblock
-+	 * may be in the process of initialization.
-+	 * If that is the case use the root value out
-+	 * of the superblock.
-+	 */
-+	if (opt_dentry->d_parent == opt_dentry) {
-+		isp->smk_inode = sbsp->smk_root;
-+		isp->smk_flags |= SMK_INODE_INSTANT;
-+		goto unlockandout;
-+	}
+-	while (1) {
++	while (ptr+4 <= firmware->data+firmware->size) {
+ 		memcpy(data, ptr, 4);
+ 		len = (data[0] << 8 | data[1]);
+ 		req = (data[2] << 8 | data[3]);
+@@ -71,10 +74,14 @@ static int isight_firmware_load(struct u
+ 			continue;
+ 
+ 		for (; len > 0; req += 50) {
+-			llen = len > 50 ? 50 : len;
++			llen = min(len, 50);
+ 			len -= llen;
+-
+-			buf = kmalloc(llen, GFP_KERNEL);
++			if (ptr+llen > firmware->data+firmware->size) {
++				printk(KERN_ERR
++				       "Malformed isight firmware");
++				ret = -ENODEV;
++				goto out;
++			}
+ 			memcpy(buf, ptr, llen);
+ 
+ 			ptr += llen;
+@@ -89,16 +96,18 @@ static int isight_firmware_load(struct u
+ 				goto out;
+ 			}
+ 
+-			kfree(buf);
+ 		}
+ 	}
 +
-+	/*
- 	 * This is pretty hackish.
- 	 * Casey says that we shouldn't have to do
- 	 * file system specific code, but it does help
+ 	if (usb_control_msg
+ 	    (dev, usb_sndctrlpipe(dev, 0), 0xa0, 0x40, 0xe600, 0, "\0", 1,
+ 	     300) != 1) {
+ 		printk(KERN_ERR "isight firmware loading completion failed\n");
+ 		ret = -ENODEV;
+ 	}
++
+ out:
++	kfree(buf);
+ 	release_firmware(firmware);
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from casey@schaufler-ca.com are
+Patches currently in -mm which might be from mjg59@srcf.ucam.org are
 
-smack-fuse-mount-hang-fix.patch
+acpi-video-balcklist-fujitsu-lifebook-s6410.patch
+bay-exit-if-notify-handler-cannot-be-installed.patch
+input-add-switch-for-dock-events.patch
+acpi-send-switch-event-on-dock-events.patch
+isight_firmware-avoid-crash-on-loading-invalid-firmware.patch
+misc-add-hp-wmi-laptop-extras-driver.patch
 
