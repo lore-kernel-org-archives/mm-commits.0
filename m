@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
 Subject: + vm-add-kzalloc_node-inline.patch added to -mm tree
-Date: Thu, 05 Jun 2008 22:32:07 -0700
-Message-ID: <200806060532.m565W7Gn015298@imap1.linux-foundation.org>
+Date: Thu, 05 Jun 2008 22:33:05 -0700
+Message-ID: <200806060533.m565X5oW015381@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48972 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60263 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751388AbYFFFc3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jun 2008 01:32:29 -0400
+	by vger.kernel.org with ESMTP id S1752573AbYFFFd4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jun 2008 01:33:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jlayton@redhat.com
+Cc: jlayton@redhat.com, clameter@sgi.com, penberg@cs.helsinki.fi
 
 
 The patch titled
@@ -40,6 +40,8 @@ To get zeroed out memory from a particular NUMA node.  To be used by
 sunrpc.
 
 Signed-off-by: Jeff Layton <jlayton@redhat.com>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
