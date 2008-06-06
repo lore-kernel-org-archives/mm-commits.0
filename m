@@ -1,64 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: - proc-calculate-the-correct-proc-pid-link-count-cleanup.patch removed from -mm tree
-Date: Thu, 05 Jun 2008 21:01:27 -0700
-Message-ID: <200806060401.m5641RBp012256@imap1.linux-foundation.org>
+Subject: + vm-add-kzalloc_node-inline.patch added to -mm tree
+Date: Thu, 05 Jun 2008 22:32:07 -0700
+Message-ID: <200806060532.m565W7Gn015298@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46693 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48972 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750758AbYFFEBd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jun 2008 00:01:33 -0400
+	by vger.kernel.org with ESMTP id S1751388AbYFFFc3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jun 2008 01:32:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, adobriyan@gmail.com, davem@davemloft.net, ebiederm@xmission.com, vegard.nossum@gmail.com, xemul@openvz.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: jlayton@redhat.com
 
 
 The patch titled
-     proc-calculate-the-correct-proc-pid-link-count-cleanup
-has been removed from the -mm tree.  Its filename was
-     proc-calculate-the-correct-proc-pid-link-count-cleanup.patch
+     VM: add kzalloc_node inline
+has been added to the -mm tree.  Its filename is
+     vm-add-kzalloc_node-inline.patch
 
-This patch was dropped because it was folded into proc-calculate-the-correct-proc-pid-link-count.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc-calculate-the-correct-proc-pid-link-count-cleanup
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: VM: add kzalloc_node inline
+From: Jeff Layton <jlayton@redhat.com>
 
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: Vegard Nossum <vegard.nossum@gmail.com>
+To get zeroed out memory from a particular NUMA node.  To be used by
+sunrpc.
+
+Signed-off-by: Jeff Layton <jlayton@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ include/linux/slab.h |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff -puN fs/proc/base.c~proc-calculate-the-correct-proc-pid-link-count-cleanup fs/proc/base.c
---- a/fs/proc/base.c~proc-calculate-the-correct-proc-pid-link-count-cleanup
-+++ a/fs/proc/base.c
-@@ -127,8 +127,10 @@ struct pid_entry {
- 		NULL, &proc_single_file_operations,	\
- 		{ .proc_show = &proc_##OTYPE } )
+diff -puN include/linux/slab.h~vm-add-kzalloc_node-inline include/linux/slab.h
+--- a/include/linux/slab.h~vm-add-kzalloc_node-inline
++++ a/include/linux/slab.h
+@@ -276,6 +276,17 @@ static inline void *kzalloc(size_t size,
+ 	return kmalloc(size, flags | __GFP_ZERO);
+ }
  
--/* Count the number of hardlinks for the pid_entry table, excluding the .
-- * and .. links. */
-+/*
-+ * Count the number of hardlinks for the pid_entry table, excluding the .
-+ * and .. links.
++/**
++ * kzalloc_node - allocate zeroed memory from a particular memory node.
++ * @size: how many bytes of memory are required.
++ * @flags: the type of memory to allocate (see kmalloc).
++ * @node: memory node from which to allocate
 + */
- static unsigned int pid_entry_count_dirs(const struct pid_entry *entries,
- 	unsigned int n)
- {
++static inline void *kzalloc_node(size_t size, gfp_t flags, int node)
++{
++	return kmalloc_node(size, flags | __GFP_ZERO, node);
++}
++
+ #ifdef CONFIG_SLABINFO
+ extern const struct seq_operations slabinfo_op;
+ ssize_t slabinfo_write(struct file *, const char __user *, size_t, loff_t *);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jlayton@redhat.com are
 
-pagemap-fix-bug-in-add_to_pagemap-require-aligned-length-reads-of-proc-pid-pagemap-v2-of-series-checkpatch-fixes.patch
-rtc-class-driver-for-ppc_md-rtc-functions.patch
-proc-calculate-the-correct-proc-pid-link-count.patch
-proc-calculate-the-correct-proc-pid-link-count-cleanup.patch
+vm-add-kzalloc_node-inline.patch
 
