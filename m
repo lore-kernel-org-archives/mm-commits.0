@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + 8250-fix-break-handling-for-intel-82571.patch added to -mm tree
-Date: Fri, 06 Jun 2008 13:27:52 -0700
-Message-ID: <200806062027.m56KRq7A017607@imap1.linux-foundation.org>
+Subject: + sched-cpu-hotplug-events-must-not-destroy-scheduler-domains-created-by-the-cpusets.patch added to -mm tree
+Date: Fri, 06 Jun 2008 13:31:02 -0700
+Message-ID: <200806062031.m56KV2gk017818@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42815 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47442 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753136AbYFFU2u (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jun 2008 16:28:50 -0400
+	by vger.kernel.org with ESMTP id S1759785AbYFFUcK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jun 2008 16:32:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: arozansk@redhat.com, alan@lxorguk.ukuu.org.uk
+Cc: maxk@qualcomm.com, mingo@elte.hu, pj@sgi.com, stable@kernel.org
 
 
 The patch titled
-     8250: fix break handling for Intel 82571
+     sched: CPU hotplug events must not destroy scheduler domains created by the cpusets
 has been added to the -mm tree.  Its filename is
-     8250-fix-break-handling-for-intel-82571.patch
+     sched-cpu-hotplug-events-must-not-destroy-scheduler-domains-created-by-the-cpusets.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,66 +33,70 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: 8250: fix break handling for Intel 82571
-From: Aristeu Rozanski <arozansk@redhat.com>
+Subject: sched: CPU hotplug events must not destroy scheduler domains created by the cpusets
+From: Max Krasnyansky <maxk@qualcomm.com>
 
-Intel 82571 has a "Serial Over LAN" feature that doesn't properly
-implements the receiving of break characters.  When a break is received,
-it doesn't set UART_LSR_DR and unless another character is received, the
-break won't be received by the application.
+Currently sched domains created by the cpusets are completely destroyed
+during CPU hotplug event handling.  For each CPU hotplug event scheduler
+attaches all CPUs to the NULL domain and then puts them all into a single
+domain thereby destroying domains created by the cpusets.
 
-Signed-off-by: Aristeu Rozanski <arozansk@redhat.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+The solution is simple, when cpusets are enabled scheduler should not
+create the default domain and instead let cpusets rebuild the domains
+based on the current settings.  Which is exactly what the patch does.
+
+Signed-off-by: Max Krasnyansky <maxk@qualcomm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Paul Jackson <pj@sgi.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250.c |   17 ++++++++++++++---
- 1 file changed, 14 insertions(+), 3 deletions(-)
+ kernel/cpuset.c |    6 ++++++
+ kernel/sched.c  |    8 ++++++++
+ 2 files changed, 14 insertions(+)
 
-diff -puN drivers/serial/8250.c~8250-fix-break-handling-for-intel-82571 drivers/serial/8250.c
---- a/drivers/serial/8250.c~8250-fix-break-handling-for-intel-82571
-+++ a/drivers/serial/8250.c
-@@ -1295,7 +1295,18 @@ receive_chars(struct uart_8250_port *up,
- 	char flag;
+diff -puN kernel/cpuset.c~sched-cpu-hotplug-events-must-not-destroy-scheduler-domains-created-by-the-cpusets kernel/cpuset.c
+--- a/kernel/cpuset.c~sched-cpu-hotplug-events-must-not-destroy-scheduler-domains-created-by-the-cpusets
++++ a/kernel/cpuset.c
+@@ -1890,6 +1890,12 @@ static void common_cpu_mem_hotplug_unplu
+ 	top_cpuset.mems_allowed = node_states[N_HIGH_MEMORY];
+ 	scan_for_empty_cpusets(&top_cpuset);
  
- 	do {
--		ch = serial_inp(up, UART_RX);
-+		if (likely(lsr & UART_LSR_DR))
-+			ch = serial_inp(up, UART_RX);
-+		else
-+			/*
-+			 * Intel 82571 has a Serial Over Lan device that will
-+			 * set UART_LSR_BI without setting UART_LSR_DR when
-+			 * it receives a break. To avoid reading from the
-+			 * receive buffer without UART_LSR_DR bit set, we
-+			 * just force the read character to be 0
-+			 */
-+			ch = 0;
++	/*
++	 * Scheduler destroys domains on hotplug events.
++	 * Rebuild them based on the current settings.
++	 */
++	rebuild_sched_domains();
 +
- 		flag = TTY_NORMAL;
- 		up->port.icount.rx++;
+ 	cgroup_unlock();
+ }
  
-@@ -1344,7 +1355,7 @@ receive_chars(struct uart_8250_port *up,
+diff -puN kernel/sched.c~sched-cpu-hotplug-events-must-not-destroy-scheduler-domains-created-by-the-cpusets kernel/sched.c
+--- a/kernel/sched.c~sched-cpu-hotplug-events-must-not-destroy-scheduler-domains-created-by-the-cpusets
++++ a/kernel/sched.c
+@@ -7537,8 +7537,16 @@ static int update_sched_domains(struct n
+ 		return NOTIFY_DONE;
+ 	}
  
- ignore_char:
- 		lsr = serial_inp(up, UART_LSR);
--	} while ((lsr & UART_LSR_DR) && (max_count-- > 0));
-+	} while ((lsr & (UART_LSR_DR | UART_LSR_BI)) && (max_count-- > 0));
- 	spin_unlock(&up->port.lock);
- 	tty_flip_buffer_push(tty);
- 	spin_lock(&up->port.lock);
-@@ -1427,7 +1438,7 @@ serial8250_handle_port(struct uart_8250_
++#ifndef CONFIG_CPUSETS
++	/*
++	 * Create default domain partitioning if cpusets are disabled.
++	 * Otherwise we let cpusets rebuild the domains based on the
++	 * current setup.
++	 */
++
+ 	/* The hotplug lock is already held by cpu_up/cpu_down */
+ 	arch_init_sched_domains(&cpu_online_map);
++#endif
  
- 	DEBUG_INTR("status = %x...", status);
- 
--	if (status & UART_LSR_DR)
-+	if (status & (UART_LSR_DR | UART_LSR_BI))
- 		receive_chars(up, &status);
- 	check_modem_status(up);
- 	if (status & UART_LSR_THRE)
+ 	return NOTIFY_OK;
+ }
 _
 
-Patches currently in -mm which might be from arozansk@redhat.com are
+Patches currently in -mm which might be from maxk@qualcomm.com are
 
-8250-fix-break-handling-for-intel-82571.patch
+linux-next.patch
+sched-fix-memory-leak-in-the-cpu-hotplug-handing-logic.patch
+sched-cpu-hotplug-events-must-not-destroy-scheduler-domains-created-by-the-cpusets.patch
 
