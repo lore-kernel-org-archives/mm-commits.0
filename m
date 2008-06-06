@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-mtd-nand-nandsimc-needs-div64h.patch added to -mm tree
-Date: Thu, 05 Jun 2008 16:48:43 -0700
-Message-ID: <200806060000.m5600GvV004118@imap1.linux-foundation.org>
+Subject: + drivers-mtd-devices-block2mtdc-suppress-warning.patch added to -mm tree
+Date: Thu, 05 Jun 2008 18:39:45 -0700
+Message-ID: <200806060139.m561djk7007581@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34481 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39972 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752519AbYFFAAc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 20:00:32 -0400
+	by vger.kernel.org with ESMTP id S1752904AbYFFBjx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jun 2008 21:39:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dwmw2@infradead.org, sfr@canb.auug.org.au
+Cc: akpm@linux-foundation.org, dwmw2@infradead.org
 
 
 The patch titled
-     drivers/mtd/nand/nandsim.c needs div64.h
+     drivers/mtd/devices/block2mtd.c: suppress warning
 has been added to the -mm tree.  Its filename is
-     drivers-mtd-nand-nandsimc-needs-div64h.patch
+     drivers-mtd-devices-block2mtdc-suppress-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,31 +33,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/mtd/nand/nandsim.c needs div64.h
+Subject: drivers/mtd/devices/block2mtd.c: suppress warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/mtd/nand/nandsim.c: In function 'divide':
-drivers/mtd/nand/nandsim.c:462: error: implicit declaration of function 'do_div'
+drivers/mtd/devices/block2mtd.c: In function 'add_device':
+drivers/mtd/devices/block2mtd.c:282: warning: passing argument 1 of 'sprintf' discards qualifiers from pointer target type
+
+(ugh?)
 
 Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/nand/nandsim.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/mtd/devices/block2mtd.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mtd/nand/nandsim.c~drivers-mtd-nand-nandsimc-needs-div64h drivers/mtd/nand/nandsim.c
---- a/drivers/mtd/nand/nandsim.c~drivers-mtd-nand-nandsimc-needs-div64h
-+++ a/drivers/mtd/nand/nandsim.c
-@@ -28,6 +28,7 @@
- #include <linux/module.h>
- #include <linux/moduleparam.h>
- #include <linux/vmalloc.h>
-+#include <asm/div64.h>
- #include <linux/slab.h>
- #include <linux/errno.h>
- #include <linux/string.h>
+diff -puN drivers/mtd/devices/block2mtd.c~drivers-mtd-devices-block2mtdc-suppress-warning drivers/mtd/devices/block2mtd.c
+--- a/drivers/mtd/devices/block2mtd.c~drivers-mtd-devices-block2mtdc-suppress-warning
++++ a/drivers/mtd/devices/block2mtd.c
+@@ -279,7 +279,7 @@ static struct block2mtd_dev *add_device(
+ 	if (!dev->mtd.name)
+ 		goto devinit_err;
+ 
+-	sprintf(dev->mtd.name, "block2mtd: %s", devname);
++	sprintf((char *)dev->mtd.name, "block2mtd: %s", devname);
+ 
+ 	dev->mtd.size = dev->blkdev->bd_inode->i_size & PAGE_MASK;
+ 	dev->mtd.erasesize = erase_size;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -182,5 +184,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
-drivers-mtd-nand-nandsimc-needs-div64h.patch
+drivers-mtd-devices-block2mtdc-suppress-warning.patch
 
