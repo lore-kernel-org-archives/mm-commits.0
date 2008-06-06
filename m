@@ -1,118 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: + intel-agp-rewrite-gtt-on-resume-checkpatch-fixes.patch added to -mm tree
-Date: Fri, 06 Jun 2008 13:49:23 -0700
-Message-ID: <200806062049.m56KnO1x018722@imap1.linux-foundation.org>
+Subject: - forcedeth-msi-interrupts-uninlining.patch removed from -mm tree
+Date: Fri, 06 Jun 2008 14:12:30 -0700
+Message-ID: <200806062112.m56LCUQZ019707@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47312 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60312 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751748AbYFFUtx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jun 2008 16:49:53 -0400
+	by vger.kernel.org with ESMTP id S1750878AbYFFVMk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jun 2008 17:12:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, airlied@linux.ie, andi@firstfloor.org, davej@codemonkey.org.uk, keithp@keithp.com
+To: akpm@linux-foundation.org, aabdulla@nvidia.com, jeff@garzik.org, manfred@colorfullife.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     intel-agp-rewrite-gtt-on-resume-checkpatch-fixes
-has been added to the -mm tree.  Its filename is
-     intel-agp-rewrite-gtt-on-resume-checkpatch-fixes.patch
+     forcedeth-msi-interrupts-uninlining
+has been removed from the -mm tree.  Its filename was
+     forcedeth-msi-interrupts-uninlining.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: intel-agp-rewrite-gtt-on-resume-checkpatch-fixes
+Subject: forcedeth-msi-interrupts-uninlining
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: space prohibited between function name and open parenthesis '('
-#63: FILE: drivers/char/agp/generic.c:429:
-+	list_add (&curr->mapped_list, &agp_bridge->mapped_list);
+micro-optimise a few things.
 
-WARNING: space prohibited between function name and open parenthesis '('
-#72: FILE: drivers/char/agp/generic.c:463:
-+	list_del (&curr->mapped_list);
-
-WARNING: space prohibited between function name and open parenthesis '('
-#80: FILE: drivers/char/agp/generic.c:471:
-+int agp_rebind_memory (void)
-
-WARNING: space prohibited between function name and open parenthesis '('
-#146: FILE: include/linux/agp_backend.h:111:
-+extern int agp_rebind_memory (void);
-
-total: 0 errors, 4 warnings, 93 lines checked
-
-./patches/intel-agp-rewrite-gtt-on-resume.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Dave Airlie <airlied@linux.ie>
-Cc: Dave Jones <davej@codemonkey.org.uk>
-Cc: Keith Packard <keithp@keithp.com>
+Cc: Ayaz Abdulla <aabdulla@nvidia.com>
+Cc: Manfred Spraul <manfred@colorfullife.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/agp/generic.c  |    6 +++---
- include/linux/agp_backend.h |    2 +-
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/net/forcedeth.c |   13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
-diff -puN drivers/char/agp/generic.c~intel-agp-rewrite-gtt-on-resume-checkpatch-fixes drivers/char/agp/generic.c
---- a/drivers/char/agp/generic.c~intel-agp-rewrite-gtt-on-resume-checkpatch-fixes
-+++ a/drivers/char/agp/generic.c
-@@ -426,7 +426,7 @@ int agp_bind_memory(struct agp_memory *c
- 
- 	curr->is_bound = TRUE;
- 	curr->pg_start = pg_start;
--	list_add (&curr->mapped_list, &agp_bridge->mapped_list);
-+	list_add(&curr->mapped_list, &agp_bridge->mapped_list);
- 
- 	return 0;
+diff -puN drivers/net/forcedeth.c~forcedeth-msi-interrupts-uninlining drivers/net/forcedeth.c
+--- a/drivers/net/forcedeth.c~forcedeth-msi-interrupts-uninlining
++++ a/drivers/net/forcedeth.c
+@@ -3277,15 +3277,14 @@ static void nv_link_irq(struct net_devic
+ 	dprintk(KERN_DEBUG "%s: link change notification done.\n", dev->name);
  }
-@@ -460,7 +460,7 @@ int agp_unbind_memory(struct agp_memory 
  
- 	curr->is_bound = FALSE;
- 	curr->pg_start = 0;
--	list_del (&curr->mapped_list);
-+	list_del(&curr->mapped_list);
- 	return 0;
- }
- EXPORT_SYMBOL(agp_unbind_memory);
-@@ -468,7 +468,7 @@ EXPORT_SYMBOL(agp_unbind_memory);
- /**
-  *	agp_rebind_emmory  -  Rewrite the entire GATT, useful on resume
-  */
--int agp_rebind_memory (void)
-+int agp_rebind_memory(void)
+-static inline void nv_msi_workaround(struct net_device *dev)
++static void nv_msi_workaround(struct fe_priv *np)
  {
- 	struct agp_memory *curr;
- 	int ret_val;
-diff -puN include/linux/agp_backend.h~intel-agp-rewrite-gtt-on-resume-checkpatch-fixes include/linux/agp_backend.h
---- a/include/linux/agp_backend.h~intel-agp-rewrite-gtt-on-resume-checkpatch-fixes
-+++ a/include/linux/agp_backend.h
-@@ -108,7 +108,7 @@ extern struct agp_memory *agp_allocate_m
- extern int agp_copy_info(struct agp_bridge_data *, struct agp_kern_info *);
- extern int agp_bind_memory(struct agp_memory *, off_t);
- extern int agp_unbind_memory(struct agp_memory *);
--extern int agp_rebind_memory (void);
-+extern int agp_rebind_memory(void);
- extern void agp_enable(struct agp_bridge_data *, u32);
- extern struct agp_bridge_data *agp_backend_acquire(struct pci_dev *);
- extern void agp_backend_release(struct agp_bridge_data *);
+-	struct fe_priv *np = netdev_priv(dev);
+-	u8 __iomem *base = get_hwbase(dev);
+-
+ 	/* Need to toggle the msi irq mask within the ethernet device,
+ 	 * otherwise, future interrupts will not be detected.
+ 	 */
+ 	if (np->msi_flags & NV_MSI_ENABLED) {
++		u8 __iomem *base = np->base;
++
+ 		writel(0, base + NvRegMSIIrqMask);
+ 		writel(NVREG_MSI_VECTOR_0_ENABLED, base + NvRegMSIIrqMask);
+ 	}
+@@ -3313,7 +3312,7 @@ static irqreturn_t nv_nic_irq(int foo, v
+ 		if (!(events & np->irqmask))
+ 			break;
+ 
+-		nv_msi_workaround(dev);
++		nv_msi_workaround(np);
+ 
+ 		spin_lock(&np->lock);
+ 		nv_tx_done(dev);
+@@ -3430,7 +3429,7 @@ static irqreturn_t nv_nic_irq_optimized(
+ 		if (!(events & np->irqmask))
+ 			break;
+ 
+-		nv_msi_workaround(dev);
++		nv_msi_workaround(np);
+ 
+ 		spin_lock(&np->lock);
+ 		nv_tx_done_optimized(dev, TX_WORK_PER_LOOP);
+@@ -3772,7 +3771,7 @@ static irqreturn_t nv_nic_irq_test(int f
+ 	if (!(events & NVREG_IRQ_TIMER))
+ 		return IRQ_RETVAL(0);
+ 
+-	nv_msi_workaround(dev);
++	nv_msi_workaround(np);
+ 
+ 	spin_lock(&np->lock);
+ 	np->intr_test = 1;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
