@@ -1,115 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: - ecryptfs-remove-unnecessary-page-decrypt-call.patch removed from -mm tree
-Date: Sun, 08 Jun 2008 12:47:18 -0700
-Message-ID: <200806081947.m58JlIfr017408@imap1.linux-foundation.org>
+Subject: - devscgroup-check-for-device-permissions-at-mount-time.patch removed from -mm tree
+Date: Sun, 08 Jun 2008 12:48:12 -0700
+Message-ID: <200806081948.m58JmCg0017484@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46830 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53307 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753902AbYFHTsW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 15:48:22 -0400
+	by vger.kernel.org with ESMTP id S1753745AbYFHTsT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 15:48:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhalcrow@us.ibm.com, sandeen@redhat.com, shaggy@austin.ibm.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: xemul@openvz.org, serue@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     eCryptfs: remove unnecessary page decrypt call
+     devscgroup: check for device permissions at mount time
 has been removed from the -mm tree.  Its filename was
-     ecryptfs-remove-unnecessary-page-decrypt-call.patch
+     devscgroup-check-for-device-permissions-at-mount-time.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: eCryptfs: remove unnecessary page decrypt call
-From: Michael Halcrow <mhalcrow@us.ibm.com>
+Subject: devscgroup: check for device permissions at mount time
+From: Pavel Emelyanov <xemul@openvz.org>
 
-The page decrypt calls in ecryptfs_write() are both pointless and buggy. 
-Pointless because ecryptfs_get_locked_page() has already brought the page
-up to date, and buggy because prior mmap writes will just be blown away by
-the decrypt call.
+Currently even if a task sits in an all-denied cgroup it can still mount
+any block device in any mode it wants.
 
-This patch also removes the declaration of a now-nonexistent function
-ecryptfs_write_zeros().
+Put a proper check in do_open for block device to prevent this.
 
-Thanks to Eric Sandeen and David Kleikamp for helping to track this
-down.
-
-Eric said:
-
-   fsx w/ mmap dies quickly ( < 100 ops) without this, and survives
-   nicely (to millions of ops+) with it in place.
-
-Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
-Cc: Eric Sandeen <sandeen@redhat.com>
-Cc: Dave Kleikamp <shaggy@austin.ibm.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
+Acked-by: Serge Hallyn <serue@us.ibm.com>
+Tested-by: Serge Hallyn <serue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/ecryptfs_kernel.h |    2 --
- fs/ecryptfs/read_write.c      |   22 ----------------------
- 2 files changed, 24 deletions(-)
+ fs/block_dev.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-remove-unnecessary-page-decrypt-call fs/ecryptfs/ecryptfs_kernel.h
---- a/fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-remove-unnecessary-page-decrypt-call
-+++ a/fs/ecryptfs/ecryptfs_kernel.h
-@@ -660,8 +660,6 @@ int ecryptfs_get_tfm_and_mutex_for_ciphe
- int ecryptfs_keyring_auth_tok_for_sig(struct key **auth_tok_key,
- 				      struct ecryptfs_auth_tok **auth_tok,
- 				      char *sig);
--int ecryptfs_write_zeros(struct file *file, pgoff_t index, int start,
--			 int num_zeros);
- int ecryptfs_write_lower(struct inode *ecryptfs_inode, char *data,
- 			 loff_t offset, size_t size);
- int ecryptfs_write_lower_page_segment(struct inode *ecryptfs_inode,
-diff -puN fs/ecryptfs/read_write.c~ecryptfs-remove-unnecessary-page-decrypt-call fs/ecryptfs/read_write.c
---- a/fs/ecryptfs/read_write.c~ecryptfs-remove-unnecessary-page-decrypt-call
-+++ a/fs/ecryptfs/read_write.c
-@@ -157,20 +157,6 @@ int ecryptfs_write(struct file *ecryptfs
- 			       ecryptfs_page_idx, rc);
- 			goto out;
- 		}
--		if (start_offset_in_page) {
--			/* Read in the page from the lower
--			 * into the eCryptfs inode page cache,
--			 * decrypting */
--			rc = ecryptfs_decrypt_page(ecryptfs_page);
--			if (rc) {
--				printk(KERN_ERR "%s: Error decrypting "
--				       "page; rc = [%d]\n",
--				       __func__, rc);
--				ClearPageUptodate(ecryptfs_page);
--				page_cache_release(ecryptfs_page);
--				goto out;
--			}
--		}
- 		ecryptfs_page_virt = kmap_atomic(ecryptfs_page, KM_USER0);
+diff -puN fs/block_dev.c~devscgroup-check-for-device-permissions-at-mount-time fs/block_dev.c
+--- a/fs/block_dev.c~devscgroup-check-for-device-permissions-at-mount-time
++++ a/fs/block_dev.c
+@@ -12,6 +12,7 @@
+ #include <linux/kmod.h>
+ #include <linux/major.h>
+ #include <linux/smp_lock.h>
++#include <linux/device_cgroup.h>
+ #include <linux/highmem.h>
+ #include <linux/blkdev.h>
+ #include <linux/module.h>
+@@ -928,9 +929,14 @@ static int do_open(struct block_device *
+ {
+ 	struct module *owner = NULL;
+ 	struct gendisk *disk;
+-	int ret = -ENXIO;
++	int ret;
+ 	int part;
  
- 		/*
-@@ -349,14 +335,6 @@ int ecryptfs_read(char *data, loff_t off
- 			       ecryptfs_page_idx, rc);
- 			goto out;
- 		}
--		rc = ecryptfs_decrypt_page(ecryptfs_page);
--		if (rc) {
--			printk(KERN_ERR "%s: Error decrypting "
--			       "page; rc = [%d]\n", __func__, rc);
--			ClearPageUptodate(ecryptfs_page);
--			page_cache_release(ecryptfs_page);
--			goto out;
--		}
- 		ecryptfs_page_virt = kmap_atomic(ecryptfs_page, KM_USER0);
- 		memcpy((data + data_offset),
- 		       ((char *)ecryptfs_page_virt + start_offset_in_page),
++	ret = devcgroup_inode_permission(bdev->bd_inode, file->f_mode);
++	if (ret != 0)
++		return ret;
++
++	ret = -ENXIO;
+ 	file->f_mapping = bdev->bd_inode->i_mapping;
+ 	lock_kernel();
+ 	disk = get_gendisk(bdev->bd_dev, &part);
 _
 
-Patches currently in -mm which might be from mhalcrow@us.ibm.com are
+Patches currently in -mm which might be from xemul@openvz.org are
 
 origin.patch
-git-unionfs.patch
-ecryptfs-privileged-kthread-for-lower-file-opens.patch
-notify_change-callers-must-hold-i_mutex.patch
+linux-next.patch
+mark-res_counter_charge_locked-with-__must_check.patch
+memcg-make-global-var-read_mostly.patch
+memcg-avoid-unnecessary-initialization.patch
+memcg-better-migration-handling.patch
+memcg-remove-refcnt-from-page_cgroup.patch
+memcg-remove-refcnt-from-page_cgroup-fix.patch
+memcg-handle-swap-cache.patch
+memcg-helper-function-for-relcaim-from-shmem.patch
+memcg-add-hints-for-branch.patch
+memcg-remove-a-redundant-check.patch
+memrlimit-add-memrlimit-controller-documentation.patch
+memrlimit-setup-the-memrlimit-controller.patch
+memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
+memrlimit-add-memrlimit-controller-accounting-and-control.patch
+sysctl-allow-override-of-proc-sys-net-with-cap_net_admin.patch
+bsdacct-rename-acct_blbls-to-bsd_acct_struct.patch
+pidns-use-kzalloc-when-allocating-new-pid_namespace-struct.patch
+pidns-add-the-struct-bsd_acct_struct-pointer-on-pid_namespace-struct.patch
+bsdacct-truthify-a-comment-near-acct_process.patch
+bsdacct-make-check-timer-accept-a-bsd_acct_struct-argument.patch
+bsdacct-turn-the-acct_lock-from-on-the-struct-to-global.patch
+bsdacct-make-internal-code-work-with-passed-bsd_acct_struct-not-global.patch
+bsdacct-switch-from-global-bsd_acct_struct-instance-to-per-pidns-one.patch
+bsdacct-turn-acct-off-for-all-pidns-s-on-umount-time.patch
+bsdacct-account-dying-tasks-in-all-relevant-namespaces.patch
+bsdacct-stir-up-comments-around-acct_process.patch
+reiser4.patch
 
