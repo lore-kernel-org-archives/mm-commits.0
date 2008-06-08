@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlb-support-boot-allocate-different-sizes.patch added to -mm tree
-Date: Sun, 08 Jun 2008 12:11:50 -0700
-Message-ID: <200806081911.m58JBoQq016164@imap1.linux-foundation.org>
+Subject: + hugetlb-allow-arch-overried-hugepage-allocation.patch added to -mm tree
+Date: Sun, 08 Jun 2008 12:12:07 -0700
+Message-ID: <200806081912.m58JC7CL016198@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46543 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44196 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754489AbYFHTMX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 15:12:23 -0400
+	by vger.kernel.org with ESMTP id S1754511AbYFHTMn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 15:12:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de, abh@cray.com, agl@us.ibm.com, ak@suse.de, nacc@us.ibm.com
+Cc: npiggin@suse.de, agl@us.ibm.com, kniht@linux.vnet.ibm.com
 
 
 The patch titled
-     hugetlb: support boot allocate different sizes
+     hugetlb: allow arch overried hugepage allocation
 has been added to the -mm tree.  Its filename is
-     hugetlb-support-boot-allocate-different-sizes.patch
+     hugetlb-allow-arch-overried-hugepage-allocation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,127 +33,88 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlb: support boot allocate different sizes
+Subject: hugetlb: allow arch overried hugepage allocation
 From: Nick Piggin <npiggin@suse.de>
 
-Make some infrastructure changes to allow boot-time allocation of
-different hugepage page sizes.
+Allow alloc_bootmem_huge_page() to be overridden by architectures that
+can't always use bootmem.  This requires huge_boot_pages to be available
+for use by this function.
 
-- move all basic hstate initialisation into hugetlb_add_hstate
-- create a new function hugetlb_hstate_alloc_pages() to do the
-  actual initial page allocations. Call this function early in
-  order to allocate giant pages from bootmem.
-- Check for multiple hugepages= parameters
+This is required for powerpc 16G pages, which have to be reserved prior to
+boot-time.  The location of these pages are indicated in the device tree.
 
 Acked-by: Adam Litke <agl@us.ibm.com>
-Acked-by: Nishanth Aravamudan <nacc@us.ibm.com>
-Acked-by: Andrew Hastings <abh@cray.com>
-Signed-off-by: Andi Kleen <ak@suse.de>
+Signed-off-by: Jon Tollefson <kniht@linux.vnet.ibm.com>
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   39 ++++++++++++++++++++++++++++++---------
- 1 file changed, 30 insertions(+), 9 deletions(-)
+ include/linux/hugetlb.h |   10 ++++++++++
+ mm/hugetlb.c            |   11 +++--------
+ 2 files changed, 13 insertions(+), 8 deletions(-)
 
-diff -puN mm/hugetlb.c~hugetlb-support-boot-allocate-different-sizes mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-support-boot-allocate-different-sizes
+diff -puN include/linux/hugetlb.h~hugetlb-allow-arch-overried-hugepage-allocation include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~hugetlb-allow-arch-overried-hugepage-allocation
++++ a/include/linux/hugetlb.h
+@@ -39,6 +39,7 @@ void hugetlb_unreserve_pages(struct inod
+ extern unsigned long hugepages_treat_as_movable;
+ extern const unsigned long hugetlb_zero, hugetlb_infinity;
+ extern int sysctl_hugetlb_shm_group;
++extern struct list_head huge_boot_pages;
+ 
+ /* arch callbacks */
+ 
+@@ -188,6 +189,14 @@ struct hstate {
+ 	char name[HSTATE_NAME_LEN];
+ };
+ 
++struct huge_bootmem_page {
++	struct list_head list;
++	struct hstate *hstate;
++};
++
++/* arch callback */
++int __init alloc_bootmem_huge_page(struct hstate *h);
++
+ void __init hugetlb_add_hstate(unsigned order);
+ struct hstate *size_to_hstate(unsigned long size);
+ 
+@@ -256,6 +265,7 @@ static inline struct hstate *page_hstate
+ 
+ #else
+ struct hstate {};
++#define alloc_bootmem_huge_page(h) NULL
+ #define hstate_file(f) NULL
+ #define hstate_vma(v) NULL
+ #define hstate_inode(i) NULL
+diff -puN mm/hugetlb.c~hugetlb-allow-arch-overried-hugepage-allocation mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-allow-arch-overried-hugepage-allocation
 +++ a/mm/hugetlb.c
-@@ -906,15 +906,10 @@ static void __init gather_bootmem_preall
- 	}
+@@ -31,6 +31,8 @@ static int max_hstate;
+ unsigned int default_hstate_idx;
+ struct hstate hstates[HUGE_MAX_HSTATE];
+ 
++__initdata LIST_HEAD(huge_boot_pages);
++
+ /* for command line parsing */
+ static struct hstate * __initdata parsed_hstate;
+ static unsigned long __initdata default_hstate_max_huge_pages;
+@@ -849,14 +851,7 @@ static struct page *alloc_huge_page(stru
+ 	return page;
  }
  
--static void __init hugetlb_init_one_hstate(struct hstate *h)
-+static void __init hugetlb_hstate_alloc_pages(struct hstate *h)
- {
- 	unsigned long i;
- 
--	for (i = 0; i < MAX_NUMNODES; ++i)
--		INIT_LIST_HEAD(&h->hugepage_freelists[i]);
+-static __initdata LIST_HEAD(huge_boot_pages);
 -
--	h->hugetlb_next_nid = first_node(node_online_map);
+-struct huge_bootmem_page {
+-	struct list_head list;
+-	struct hstate *hstate;
+-};
 -
- 	for (i = 0; i < h->max_huge_pages; ++i) {
- 		if (h->order >= MAX_ORDER) {
- 			if (!alloc_bootmem_huge_page(h))
-@@ -922,7 +917,7 @@ static void __init hugetlb_init_one_hsta
- 		} else if (!alloc_fresh_huge_page(h))
- 			break;
- 	}
--	h->max_huge_pages = h->free_huge_pages = h->nr_huge_pages = i;
-+	h->max_huge_pages = i;
- }
- 
- static void __init hugetlb_init_hstates(void)
-@@ -930,7 +925,9 @@ static void __init hugetlb_init_hstates(
- 	struct hstate *h;
- 
- 	for_each_hstate(h) {
--		hugetlb_init_one_hstate(h);
-+		/* oversize hugepages were init'ed in early boot */
-+		if (h->order < MAX_ORDER)
-+			hugetlb_hstate_alloc_pages(h);
- 	}
- }
- 
-@@ -1232,6 +1229,8 @@ module_exit(hugetlb_exit);
- void __init hugetlb_add_hstate(unsigned order)
+-static int __init alloc_bootmem_huge_page(struct hstate *h)
++__attribute__((weak)) int alloc_bootmem_huge_page(struct hstate *h)
  {
- 	struct hstate *h;
-+	unsigned long i;
-+
- 	if (size_to_hstate(PAGE_SIZE << order)) {
- 		printk(KERN_WARNING "hugepagesz= specified twice, ignoring\n");
- 		return;
-@@ -1241,15 +1240,21 @@ void __init hugetlb_add_hstate(unsigned 
- 	h = &hstates[max_hstate++];
- 	h->order = order;
- 	h->mask = ~((1ULL << (order + PAGE_SHIFT)) - 1);
-+	h->nr_huge_pages = 0;
-+	h->free_huge_pages = 0;
-+	for (i = 0; i < MAX_NUMNODES; ++i)
-+		INIT_LIST_HEAD(&h->hugepage_freelists[i]);
-+	h->hugetlb_next_nid = first_node(node_online_map);
- 	snprintf(h->name, HSTATE_NAME_LEN, "hugepages-%lukB",
- 					huge_page_size(h)/1024);
--	hugetlb_init_one_hstate(h);
-+
- 	parsed_hstate = h;
- }
- 
- static int __init hugetlb_setup(char *s)
- {
- 	unsigned long *mhp;
-+	static unsigned long *last_mhp;
- 
- 	/*
- 	 * !max_hstate means we haven't parsed a hugepagesz= parameter yet,
-@@ -1260,9 +1265,25 @@ static int __init hugetlb_setup(char *s)
- 	else
- 		mhp = &parsed_hstate->max_huge_pages;
- 
-+	if (mhp == last_mhp) {
-+		printk(KERN_WARNING "hugepages= specified twice without "
-+			"interleaving hugepagesz=, ignoring\n");
-+		return 1;
-+	}
-+
- 	if (sscanf(s, "%lu", mhp) <= 0)
- 		*mhp = 0;
- 
-+	/*
-+	 * Global state is always initialized later in hugetlb_init.
-+	 * But we need to allocate >= MAX_ORDER hstates here early to still
-+	 * use the bootmem allocator.
-+	 */
-+	if (max_hstate && parsed_hstate->order >= MAX_ORDER)
-+		hugetlb_hstate_alloc_pages(parsed_hstate);
-+
-+	last_mhp = mhp;
-+
- 	return 1;
- }
- __setup("hugepages=", hugetlb_setup);
+ 	struct huge_bootmem_page *m;
+ 	int nr_nodes = nodes_weight(node_online_map);
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
