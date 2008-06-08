@@ -1,135 +1,183 @@
 From: akpm@linux-foundation.org
-Subject: + mm-export-prep_compound_page-to-mm.patch added to -mm tree
-Date: Sun, 08 Jun 2008 12:11:45 -0700
-Message-ID: <200806081911.m58JBj4Z016155@imap1.linux-foundation.org>
+Subject: - linux-next-rtc-fix.patch removed from -mm tree
+Date: Sun, 08 Jun 2008 12:35:52 -0700
+Message-ID: <200806081935.m58JZq7v017029@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44658 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37567 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752784AbYFHT1U (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 15:27:20 -0400
+	by vger.kernel.org with ESMTP id S1753676AbYFHTfy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 15:35:54 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m58JZrWt029710
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Sun, 8 Jun 2008 12:35:54 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de, agl@us.ibm.com, ak@suse.de
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: export prep_compound_page to mm
-has been added to the -mm tree.  Its filename is
-     mm-export-prep_compound_page-to-mm.patch
+     linux-next-rtc-fix
+has been removed from the -mm tree.  Its filename was
+     linux-next-rtc-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: export prep_compound_page to mm
-From: Nick Piggin <npiggin@suse.de>
+Subject: linux-next-rtc-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-hugetlb will need to get compound pages from bootmem to handle the case of
-them being greater than or equal to MAX_ORDER.  Export the constructor
-function needed for this.
-
-Acked-by: Adam Litke <agl@us.ibm.com>
-Signed-off-by: Andi Kleen <ak@suse.de>
-Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h   |    2 ++
- mm/page_alloc.c |    2 +-
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ arch/powerpc/sysdev/fsl_soc.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/internal.h~mm-export-prep_compound_page-to-mm mm/internal.h
---- a/mm/internal.h~mm-export-prep_compound_page-to-mm
-+++ a/mm/internal.h
-@@ -16,6 +16,8 @@
- void free_pgtables(struct mmu_gather *tlb, struct vm_area_struct *start_vma,
- 		unsigned long floor, unsigned long ceiling);
+diff -puN arch/powerpc/sysdev/fsl_soc.c~linux-next-rtc-fix arch/powerpc/sysdev/fsl_soc.c
+--- a/arch/powerpc/sysdev/fsl_soc.c~linux-next-rtc-fix
++++ a/arch/powerpc/sysdev/fsl_soc.c
+@@ -433,6 +433,7 @@ static struct i2c_driver_device i2c_devi
+ 	{"dallas,ds1340",  "ds1340"},
+ 	{"stm,m41t00",     "m41t00"},
+ 	{"dallas,ds1374",  "ds1374"},
++	{"cirrus,cs4270",  "cs4270"},
+ };
  
-+extern void prep_compound_page(struct page *page, unsigned long order);
-+
- static inline void set_page_count(struct page *page, int v)
- {
- 	atomic_set(&page->_count, v);
-diff -puN mm/page_alloc.c~mm-export-prep_compound_page-to-mm mm/page_alloc.c
---- a/mm/page_alloc.c~mm-export-prep_compound_page-to-mm
-+++ a/mm/page_alloc.c
-@@ -273,7 +273,7 @@ static void free_compound_page(struct pa
- 	__free_pages_ok(page, compound_order(page));
- }
- 
--static void prep_compound_page(struct page *page, unsigned long order)
-+void prep_compound_page(struct page *page, unsigned long order)
- {
- 	int i;
- 	int nr_pages = 1 << order;
+ static int __init of_find_i2c_driver(struct device_node *node,
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-hugetlb-fix-lockdep-error.patch
-vt-fix-vc_resize-locking.patch
+origin.patch
 linux-next.patch
-spufs-convert-nopfn-to-fault.patch
-mspec-convert-nopfn-to-fault.patch
+next-remove-localversion.patch
+linux-next-rtc-fix.patch
+fix-kobject-fix-kobject_rename-and-config_sysfs.patch
+kvm-is-busted-on-ia64.patch
+drivers-net-usb-kawethc-fix-printk-warning.patch
+mtd-unbork.patch
+revert-x86-remove-the-static-256k-node_to_cpumask_map.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-video-balcklist-fujitsu-lifebook-s6410.patch
+lguest-use-cpu-capability-accessors.patch
+intel-agp-rewrite-gtt-on-resume-checkpatch-fixes.patch
+arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2.patch
+arch-powerpc-platforms-pseries-eeh_driverc-fix-warning.patch
+arch-powerpc-platforms-pseries-eeh_driverc-fix-warning-checkpatch-fixes.patch
+git-dvb.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+git-hid.patch
+git-input.patch
+git-jg-misc-git-rejects.patch
+drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+git-kvm.patch
+git-leds.patch
+fsldma-the-mpc8377mds-board-device-tree-node-for-fsldma-driver.patch
+git-mmc.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers.patch
+drivers-mtd-devices-block2mtdc-suppress-warning.patch
+git-ubifs.patch
+git-net-next.patch
+bluetooth-hci_bcspc-small-cleanups-api-users-fix.patch
+sundance-set-carrier-status-on-link-change-events.patch
+net-sh_eth-add-support-for-renesas-superh-ethernet-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+pci-introduce-pci_slot.patch
+acpi-pci-slot-detection-driver.patch
+git-scsi-misc-fix-scsi_dh-build-errors.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
+pktcdvd-push-bkl-down-into-driver-fix.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-logfs-fixup.patch
+drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
+drivers-uwb-wlp-sysfsc-dead-code.patch
+usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix.patch
+usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix-2.patch
+watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix.patch
+watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl-fix.patch
+git-xtensa.patch
+ext4-is-busted-on-m68k.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-verify-the-page-links-and-memory-model.patch
 mspec-convert-nopfn-to-fault-fix.patch
-mm-remove-nopfn.patch
-mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co.patch
-hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed-build-fix.patch
-hugetlb-factor-out-prep_new_huge_page.patch
-hugetlb-modular-state-for-hugetlb-page-size.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+kill-generic_file_direct_io-checkpatch-fixes.patch
+use-generic_access_phys-for-dev-mem-mappings-fix.patch
+spufs-use-the-new-vm_ops-access-fix.patch
+fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
+page-flags-record-page-flag-overlays-explicitly-xen.patch
+mapping_set_error-add-unlikely.patch
+huge-page-private-reservation-review-cleanups-fix.patch
+sync_file_range_write-may-and-will-block-document-that-fix.patch
+vmallocinfo-add-numa-information-fix.patch
 hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
-hugetlb-multiple-hstates-for-multiple-page-sizes.patch
 hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
-hugetlbfs-per-mount-huge-page-sizes.patch
-hugetlb-new-sysfs-interface.patch
-hugetlb-abstract-numa-round-robin-selection.patch
-mm-introduce-non-panic-alloc_bootmem.patch
-mm-export-prep_compound_page-to-mm.patch
-hugetlb-support-larger-than-max_order.patch
-hugetlb-support-boot-allocate-different-sizes.patch
-hugetlb-printk-cleanup.patch
-hugetlb-introduce-pud_huge.patch
-x86-support-gb-hugepages-on-64-bit.patch
-x86-add-hugepagesz-option-on-64-bit.patch
-hugetlb-override-default-huge-page-size.patch
-hugetlb-allow-arch-overried-hugepage-allocation.patch
-powerpc-function-to-allocate-gigantic-hugepages.patch
-powerpc-scan-device-tree-for-gigantic-pages.patch
-powerpc-define-support-for-16g-hugepages.patch
-fs-check-for-statfs-overflow.patch
-powerpc-support-multiple-hugepage-sizes.patch
-x86-implement-pte_special.patch
-mm-introduce-get_user_pages_fast.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
+swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
+block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
+rename-warn-to-warning-to-clear-the-namespace-fix.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-paccept-sys_ni.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-signalfd-fix.patch
+flag-parameters-eventfd-fix.patch
+flag-parameters-inotify_init-fix.patch
+flag-parameters-check-magic-constants-alpha.patch
+cputopology-always-define-cpu-topology-information-cleanup.patch
+oprofile-multiplexing-checkpatch-fixes.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+pnp-convert-resource-options-to-single-linked-list-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
+reiserfs-convert-j_flush_sem-to-mutex.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
+jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup.patch
+ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
+getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
 mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast.patch
 x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
 x86-lockless-get_user_pages_fast-fix.patch
 x86-lockless-get_user_pages_fast-fix-warning.patch
-dio-use-get_user_pages_fast.patch
-splice-use-get_user_pages_fast.patch
-mm-readahead-scan-lockless.patch
-radix-tree-add-gang_lookup_slot-gang_lookup_slot_tag.patch
-mm-speculative-page-references.patch
-mm-lockless-pagecache.patch
-mm-spinlock-tree_lock.patch
-powerpc-implement-pte_special.patch
-powerpc-lockless-get_user_pages_fast.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-vmscan-mlocked-pages-are-non-reclaimable.patch
-vmscan-handle-mlocked-pages-during-map-remap-unmap.patch
-vmscan-mlocked-pages-statistics.patch
 reiser4.patch
-likeliness-accounting-change-and-cleanup.patch
+reiser4-semaphore-fix.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
