@@ -1,174 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: - doc-document-the-kernel-doc-conventions-for-kernel-hackers.patch removed from -mm tree
-Date: Sun, 08 Jun 2008 12:48:58 -0700
-Message-ID: <200806081948.m58Jmwm4017546@imap1.linux-foundation.org>
+Subject: - ipc-only-output-msgmni-value-at-boot-time.patch removed from -mm tree
+Date: Sun, 08 Jun 2008 12:48:40 -0700
+Message-ID: <200806081948.m58JmenF017525@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34604 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44486 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754489AbYFHTt2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 15:49:28 -0400
+	by vger.kernel.org with ESMTP id S1754488AbYFHTtT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 15:49:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pj@sgi.com, alan@lxorguk.ukuu.org.uk, rdunlap@xenotime.net, mm-commits@vger.kernel.org
+To: Nadia.Derbey@bull.net, manfred@colorfullife.com, peifferp@gmail.com, serue@us.ibm.com, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     doc: document the kernel-doc conventions for kernel hackers
+     ipc: only output msgmni value at boot time
 has been removed from the -mm tree.  Its filename was
-     doc-document-the-kernel-doc-conventions-for-kernel-hackers.patch
+     ipc-only-output-msgmni-value-at-boot-time.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: doc: document the kernel-doc conventions for kernel hackers
-From: Paul Jackson <pj@sgi.com>
+Subject: ipc: only output msgmni value at boot time
+From: Nadia Derbey <Nadia.Derbey@bull.net>
 
-Provide documentation of the kernel-doc documentation conventions oriented
-to kernel hackers.
+When posting:
+[PATCH 1/8] Scaling msgmni to the amount of lowmem
+(see http://lkml.org/lkml/2008/2/11/171), I have added a KERN_INFO message
+that is output each time msgmni is recomputed.
 
-Since I figure that there will be more people reading this
-kernel-doc-nano-HOWTO.txt file who are kernel developers focused on the
-rest of the kernel, than there will be readers of this file who are
-documentation developers extracting that embedded kernel-doc
-documentation, I have taken the liberty of making the new section added
-here:
+In http://lkml.org/lkml/2008/4/29/575 Tony Luck complained that this
+message references an ipc namespace address that is useless.
 
-  How to format kernel-doc comments
+I first thought of using an audit_log instead of a printk, as suggested by
+Serge Hallyn.  But unfortunately, we do not have any other information
+than the namespace address to provide here too.  So I chose to move the
+message and output it only at boot time, removing the reference to the
+namespace.
 
-the first section of the kernel-doc-nano-HOWTO.txt file.
-
-This first section is intended to introduce, motivate and provide basic
-usage of the kernel-doc mechanism for kernel hackers developing other
-portions of the kernel.
-
-Signed-off-by: Paul Jackson <pj@sgi.com>
-Acked-by: Randy Dunlap <rdunlap@xenotime.net>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Nadia Derbey <Nadia.Derbey@bull.net>
+Cc: Pierre Peiffer <peifferp@gmail.com>
+Cc: Manfred Spraul <manfred@colorfullife.com>
+Acked-by: Tony Luck <tony.luck@intel.com>
+Cc: "Serge E. Hallyn" <serue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-doc-nano-HOWTO.txt |   99 ++++++++++++++++++++++
- 1 file changed, 99 insertions(+)
+ ipc/msg.c |   13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
-diff -puN Documentation/kernel-doc-nano-HOWTO.txt~doc-document-the-kernel-doc-conventions-for-kernel-hackers Documentation/kernel-doc-nano-HOWTO.txt
---- a/Documentation/kernel-doc-nano-HOWTO.txt~doc-document-the-kernel-doc-conventions-for-kernel-hackers
-+++ a/Documentation/kernel-doc-nano-HOWTO.txt
-@@ -1,6 +1,105 @@
- kernel-doc nano-HOWTO
- =====================
+diff -puN ipc/msg.c~ipc-only-output-msgmni-value-at-boot-time ipc/msg.c
+--- a/ipc/msg.c~ipc-only-output-msgmni-value-at-boot-time
++++ a/ipc/msg.c
+@@ -98,20 +98,15 @@ void recompute_msgmni(struct ipc_namespa
  
-+How to format kernel-doc comments
-+---------------------------------
+ 	if (allowed < MSGMNI) {
+ 		ns->msg_ctlmni = MSGMNI;
+-		goto out_callback;
++		return;
+ 	}
+ 
+ 	if (allowed > IPCMNI / nb_ns) {
+ 		ns->msg_ctlmni = IPCMNI / nb_ns;
+-		goto out_callback;
++		return;
+ 	}
+ 
+ 	ns->msg_ctlmni = allowed;
+-
+-out_callback:
+-
+-	printk(KERN_INFO "msgmni has been set to %d for ipc namespace %p\n",
+-		ns->msg_ctlmni, ns);
+ }
+ 
+ void msg_init_ns(struct ipc_namespace *ns)
+@@ -136,6 +131,10 @@ void msg_exit_ns(struct ipc_namespace *n
+ void __init msg_init(void)
+ {
+ 	msg_init_ns(&init_ipc_ns);
 +
-+In order to provide embedded, 'C' friendly, easy to maintain,
-+but consistent and extractable documentation of the functions and
-+data structures in the Linux kernel, the Linux kernel has adopted
-+a consistent style for documenting functions and their parameters,
-+and structures and their members.
++	printk(KERN_INFO "msgmni has been set to %d\n",
++		init_ipc_ns.msg_ctlmni);
 +
-+The format for this documentation is called the kernel-doc format.
-+It is documented in this Documentation/kernel-doc-nano-HOWTO.txt file.
-+
-+This style embeds the documentation within the source files, using
-+a few simple conventions.  The scripts/kernel-doc perl script, some
-+SGML templates in Documentation/DocBook, and other tools understand
-+these conventions, and are used to extract this embedded documentation
-+into various documents.
-+
-+In order to provide good documentation of kernel functions and data
-+structures, please use the following conventions to format your
-+kernel-doc comments in Linux kernel source.
-+
-+We definitely need kernel-doc formatted documentation for functions
-+that are exported to loadable modules using EXPORT_SYMBOL.
-+
-+We also look to provide kernel-doc formatted documentation for
-+functions externally visible to other kernel files (not marked
-+"static").
-+
-+We also recommend providing kernel-doc formatted documentation
-+for private (file "static") routines, for consistency of kernel
-+source code layout.  But this is lower priority and at the
-+discretion of the MAINTAINER of that kernel source file.
-+
-+Data structures visible in kernel include files should also be
-+documented using kernel-doc formatted comments.
-+
-+The opening comment mark "/**" is reserved for kernel-doc comments.
-+Only comments so marked will be considered by the kernel-doc scripts,
-+and any comment so marked must be in kernel-doc format.  Do not use
-+"/**" to be begin a comment block unless the comment block contains
-+kernel-doc formatted comments.  The closing comment marker for
-+kernel-doc comments can be either "*/" or "**/".
-+
-+Kernel-doc comments should be placed just before the function
-+or data structure being described.
-+
-+Example kernel-doc function comment:
-+
-+/**
-+ * foobar() - short function description of foobar
-+ * @arg1:	Describe the first argument to foobar.
-+ * @arg2:	Describe the second argument to foobar.
-+ *		One can provide multiple line descriptions
-+ *		for arguments.
-+ *
-+ * A longer description, with more discussion of the function foobar()
-+ * that might be useful to those using or modifying it.  Begins with
-+ * empty comment line, and may include additional embedded empty
-+ * comment lines.
-+ *
-+ * The longer description can have multiple paragraphs.
-+ **/
-+
-+The first line, with the short description, must be on a single line.
-+
-+The @argument descriptions must begin on the very next line following
-+this opening short function description line, with no intervening
-+empty comment lines.
-+
-+Example kernel-doc data structure comment.
-+
-+/**
-+ * struct blah - the basic blah structure
-+ * @mem1:	describe the first member of struct blah
-+ * @mem2:	describe the second member of struct blah,
-+ *		perhaps with more lines and words.
-+ *
-+ * Longer description of this structure.
-+ **/
-+
-+The kernel-doc function comments describe each parameter to the
-+function, in order, with the @name lines.
-+
-+The kernel-doc data structure comments describe each structure member
-+in the data structure, with the @name lines.
-+
-+The longer description formatting is "reflowed", losing your line
-+breaks.  So presenting carefully formatted lists within these
-+descriptions won't work so well; derived documentation will lose
-+the formatting.
-+
-+See the section below "How to add extractable documentation to your
-+source files" for more details and notes on how to format kernel-doc
-+comments.
-+
-+Components of the kernel-doc system
-+-----------------------------------
-+
- Many places in the source tree have extractable documentation in the
- form of block comments above functions.  The components of this system
- are:
+ 	ipc_init_proc_interface("sysvipc/msg",
+ 				"       key      msqid perms      cbytes       qnum lspid lrpid   uid   gid  cuid  cgid      stime      rtime      ctime\n",
+ 				IPC_MSG_IDS, sysvipc_msg_proc_show);
 _
 
-Patches currently in -mm which might be from pj@sgi.com are
+Patches currently in -mm which might be from Nadia.Derbey@bull.net are
 
 origin.patch
-linux-next.patch
-sched-cpu-hotplug-events-must-not-destroy-scheduler-domains-created-by-the-cpusets.patch
-cpusets-restructure-the-function-update_cpumask-and-update_nodemask.patch
-cpusets-update-tasks-cpus_allowed-and-mems_allowed-after-cpu-node-offline-online.patch
+idr-change-the-idr-structure.patch
+idr-rename-some-of-the-idr-apis-internal-routines.patch
+idr-fix-a-printk-call.patch
+idr-error-checking-factorization.patch
+idr-make-idr_get_new-rcu-safe.patch
+idr-make-idr_get_new-rcu-safe-fix.patch
+idr-make-idr_find-rcu-safe.patch
+idr-make-idr_remove-rcu-safe.patch
+ipc-call-idr_find-without-locking-in-ipc_lock.patch
+ipc-get-rid-of-ipc_lock_down.patch
+ipc-semc-convert-undo-structures-to-struct-list_head.patch
+ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-remove-unused-entries-from-struct-sem_queue.patch
+ipc-semc-convert-sem_arraysem_pending-to-struct-list_head.patch
+ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-rewrite-undo-list-locking.patch
+ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
+ipc-use-simple_read_from_buffer.patch
 
