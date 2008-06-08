@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + x86-support-gb-hugepages-on-64-bit.patch added to -mm tree
-Date: Sun, 08 Jun 2008 12:12:01 -0700
-Message-ID: <200806081912.m58JC1UX016181@imap1.linux-foundation.org>
+Subject: + hugetlb-printk-cleanup.patch added to -mm tree
+Date: Sun, 08 Jun 2008 12:11:53 -0700
+Message-ID: <200806081911.m58JBrlN016170@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52270 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48155 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754508AbYFHTMM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 15:12:12 -0400
+	by vger.kernel.org with ESMTP id S1754504AbYFHTMd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 15:12:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de, agl@us.ibm.com, ak@suse.de
+Cc: npiggin@suse.de, agl@us.ibm.com, ak@suse.de, nacc@us.ibm.com
 
 
 The patch titled
-     x86: support GB hugepages on 64-bit
+     hugetlb: printk cleanup
 has been added to the -mm tree.  Its filename is
-     x86-support-gb-hugepages-on-64-bit.patch
+     hugetlb-printk-cleanup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,135 +33,58 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: support GB hugepages on 64-bit
+Subject: hugetlb: printk cleanup
 From: Nick Piggin <npiggin@suse.de>
 
+- Reword sentence to clarify meaning with multiple options
+- Add support for using GB prefixes for the page size
+- Add extra printk to delayed > MAX_ORDER allocation code
+
 Acked-by: Adam Litke <agl@us.ibm.com>
+Acked-by: Nishanth Aravamudan <nacc@us.ibm.com>
 Signed-off-by: Andi Kleen <ak@suse.de>
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/hugetlbpage.c |   33 ++++++++++++++++++++++-----------
- 1 file changed, 22 insertions(+), 11 deletions(-)
+ mm/hugetlb.c |   20 ++++++++++++++++----
+ 1 file changed, 16 insertions(+), 4 deletions(-)
 
-diff -puN arch/x86/mm/hugetlbpage.c~x86-support-gb-hugepages-on-64-bit arch/x86/mm/hugetlbpage.c
---- a/arch/x86/mm/hugetlbpage.c~x86-support-gb-hugepages-on-64-bit
-+++ a/arch/x86/mm/hugetlbpage.c
-@@ -134,9 +134,14 @@ pte_t *huge_pte_alloc(struct mm_struct *
- 	pgd = pgd_offset(mm, addr);
- 	pud = pud_alloc(mm, pgd, addr);
- 	if (pud) {
--		if (pud_none(*pud))
--			huge_pmd_share(mm, addr, pud);
--		pte = (pte_t *) pmd_alloc(mm, pud, addr);
-+		if (sz == PUD_SIZE) {
-+			pte = (pte_t *)pud;
-+		} else {
-+			BUG_ON(sz != PMD_SIZE);
-+			if (pud_none(*pud))
-+				huge_pmd_share(mm, addr, pud);
-+			pte = (pte_t *) pmd_alloc(mm, pud, addr);
-+		}
- 	}
- 	BUG_ON(pte && !pte_none(*pte) && !pte_huge(*pte));
- 
-@@ -152,8 +157,11 @@ pte_t *huge_pte_offset(struct mm_struct 
- 	pgd = pgd_offset(mm, addr);
- 	if (pgd_present(*pgd)) {
- 		pud = pud_offset(pgd, addr);
--		if (pud_present(*pud))
-+		if (pud_present(*pud)) {
-+			if (pud_large(*pud))
-+				return (pte_t *)pud;
- 			pmd = pmd_offset(pud, addr);
-+		}
- 	}
- 	return (pte_t *) pmd;
- }
-@@ -216,7 +224,7 @@ int pmd_huge(pmd_t pmd)
- 
- int pud_huge(pud_t pud)
- {
--	return 0;
-+	return !!(pud_val(pud) & _PAGE_PSE);
- }
- 
- struct page *
-@@ -252,6 +260,7 @@ static unsigned long hugetlb_get_unmappe
- 		unsigned long addr, unsigned long len,
- 		unsigned long pgoff, unsigned long flags)
- {
-+	struct hstate *h = hstate_file(file);
- 	struct mm_struct *mm = current->mm;
- 	struct vm_area_struct *vma;
- 	unsigned long start_addr;
-@@ -264,7 +273,7 @@ static unsigned long hugetlb_get_unmappe
- 	}
- 
- full_search:
--	addr = ALIGN(start_addr, HPAGE_SIZE);
-+	addr = ALIGN(start_addr, huge_page_size(h));
- 
- 	for (vma = find_vma(mm, addr); ; vma = vma->vm_next) {
- 		/* At this point:  (!vma || addr < vma->vm_end). */
-@@ -286,7 +295,7 @@ full_search:
- 		}
- 		if (addr + mm->cached_hole_size < vma->vm_start)
- 		        mm->cached_hole_size = vma->vm_start - addr;
--		addr = ALIGN(vma->vm_end, HPAGE_SIZE);
-+		addr = ALIGN(vma->vm_end, huge_page_size(h));
+diff -puN mm/hugetlb.c~hugetlb-printk-cleanup mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-printk-cleanup
++++ a/mm/hugetlb.c
+@@ -931,15 +931,27 @@ static void __init hugetlb_init_hstates(
  	}
  }
  
-@@ -294,6 +303,7 @@ static unsigned long hugetlb_get_unmappe
- 		unsigned long addr0, unsigned long len,
- 		unsigned long pgoff, unsigned long flags)
++static char * __init memfmt(char *buf, unsigned long n)
++{
++	if (n >= (1UL << 30))
++		sprintf(buf, "%lu GB", n >> 30);
++	else if (n >= (1UL << 20))
++		sprintf(buf, "%lu MB", n >> 20);
++	else
++		sprintf(buf, "%lu KB", n >> 10);
++	return buf;
++}
++
+ static void __init report_hugepages(void)
  {
-+	struct hstate *h = hstate_file(file);
- 	struct mm_struct *mm = current->mm;
- 	struct vm_area_struct *vma, *prev_vma;
- 	unsigned long base = mm->mmap_base, addr = addr0;
-@@ -314,7 +324,7 @@ try_again:
- 		goto fail;
+ 	struct hstate *h;
  
- 	/* either no address requested or cant fit in requested address hole */
--	addr = (mm->free_area_cache - len) & HPAGE_MASK;
-+	addr = (mm->free_area_cache - len) & huge_page_mask(h);
- 	do {
- 		/*
- 		 * Lookup failure means no vma is above this address,
-@@ -345,7 +355,7 @@ try_again:
- 		        largest_hole = vma->vm_start - addr;
- 
- 		/* try just below the current vma->vm_start */
--		addr = (vma->vm_start - len) & HPAGE_MASK;
-+		addr = (vma->vm_start - len) & huge_page_mask(h);
- 	} while (len <= vma->vm_start);
- 
- fail:
-@@ -383,10 +393,11 @@ unsigned long
- hugetlb_get_unmapped_area(struct file *file, unsigned long addr,
- 		unsigned long len, unsigned long pgoff, unsigned long flags)
- {
-+	struct hstate *h = hstate_file(file);
- 	struct mm_struct *mm = current->mm;
- 	struct vm_area_struct *vma;
- 
--	if (len & ~HPAGE_MASK)
-+	if (len & ~huge_page_mask(h))
- 		return -EINVAL;
- 	if (len > TASK_SIZE)
- 		return -ENOMEM;
-@@ -398,7 +409,7 @@ hugetlb_get_unmapped_area(struct file *f
+ 	for_each_hstate(h) {
+-		printk(KERN_INFO "Total HugeTLB memory allocated, "
+-				"%ld %dMB pages\n",
+-				h->free_huge_pages,
+-				1 << (h->order + PAGE_SHIFT - 20));
++		char buf[32];
++		printk(KERN_INFO "HugeTLB registered %s page size, "
++				 "pre-allocated %ld pages\n",
++			memfmt(buf, huge_page_size(h)),
++			h->free_huge_pages);
  	}
+ }
  
- 	if (addr) {
--		addr = ALIGN(addr, HPAGE_SIZE);
-+		addr = ALIGN(addr, huge_page_size(h));
- 		vma = find_vma(mm, addr);
- 		if (TASK_SIZE - len >= addr &&
- 		    (!vma || addr + len <= vma->vm_start))
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
