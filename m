@@ -1,179 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: - fix-various-old-email-addresses-for-dwmw2.patch removed from -mm tree
-Date: Sun, 08 Jun 2008 12:47:51 -0700
-Message-ID: <200806081947.m58Jlpbs017451@imap1.linux-foundation.org>
+Subject: - frv-dont-offer-binfmt_flat.patch removed from -mm tree
+Date: Sun, 08 Jun 2008 12:47:04 -0700
+Message-ID: <200806081947.m58Jl47o017393@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33369 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50506 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753949AbYFHTr7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 15:47:59 -0400
+	by vger.kernel.org with ESMTP id S1754192AbYFHTsY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 15:48:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dwmw2@infradead.org, mm-commits@vger.kernel.org
+To: bunk@kernel.org, dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix various old email addresses for dwmw2
+     frv: don't offer BINFMT_FLAT
 has been removed from the -mm tree.  Its filename was
-     fix-various-old-email-addresses-for-dwmw2.patch
+     frv-dont-offer-binfmt_flat.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Fix various old email addresses for dwmw2
-From: David Woodhouse <dwmw2@infradead.org>
+Subject: frv: don't offer BINFMT_FLAT
+From: Adrian Bunk <bunk@kernel.org>
 
-Although if people have questions about ARCnet, perhaps it's _better_
-for them to be mailing dwmw2@cam.ac.uk about it...
+Fix the following compile error:
 
-Signed-off-by: David Woodhouse <dwmw2@infradead.org>
+  CC      fs/binfmt_flat.o
+In file included from
+/home/bunk/linux/kernel-2.6/git/linux-2.6/fs/binfmt_flat.c:36:
+/home/bunk/linux/kernel-2.6/git/linux-2.6/include/linux/flat.h:14:22: error: asm/flat.h: No such file or directory
+/home/bunk/linux/kernel-2.6/git/linux-2.6/fs/binfmt_flat.c: In function 'create_flat_tables':
+/home/bunk/linux/kernel-2.6/git/linux-2.6/fs/binfmt_flat.c:124: error: implicit declaration of function 'flat_stack_align'
+/home/bunk/linux/kernel-2.6/git/linux-2.6/fs/binfmt_flat.c:125: error: implicit declaration of function 'flat_argvp_envp_on_stack'
+/home/bunk/linux/kernel-2.6/git/linux-2.6/fs/binfmt_flat.c: In function 'calc_reloc':
+/home/bunk/linux/kernel-2.6/git/linux-2.6/fs/binfmt_flat.c:347: error: implicit declaration of function 'flat_reloc_valid'
+/home/bunk/linux/kernel-2.6/git/linux-2.6/fs/binfmt_flat.c: In function 'load_flat_file':
+/home/bunk/linux/kernel-2.6/git/linux-2.6/fs/binfmt_flat.c:479: error: implicit declaration of function 'flat_old_ram_flag'
+/home/bunk/linux/kernel-2.6/git/linux-2.6/fs/binfmt_flat.c:755: error: implicit declaration of function 'flat_set_persistent'
+/home/bunk/linux/kernel-2.6/git/linux-2.6/fs/binfmt_flat.c:757: error: implicit declaration of function 'flat_get_relocate_addr'
+/home/bunk/linux/kernel-2.6/git/linux-2.6/fs/binfmt_flat.c:765: error: implicit declaration of function 'flat_get_addr_from_rp'
+/home/bunk/linux/kernel-2.6/git/linux-2.6/fs/binfmt_flat.c:781: error: implicit declaration of function 'flat_put_addr_at_rp'
+
+Reported-by: Adrian Bunk <bunk@kernel.org>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Tested-by: David Howells <dhowells@redhat.com>
+Acked-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/networking/arcnet.txt   |    2 +-
- arch/frv/kernel/cmode.S               |    2 +-
- arch/frv/kernel/sleep.S               |    2 +-
- arch/frv/mb93090-mb00/pci-dma-nommu.c |    2 +-
- drivers/mtd/redboot.c                 |    2 +-
- fs/afs/callback.c                     |    2 +-
- fs/afs/inode.c                        |    2 +-
- fs/afs/super.c                        |    2 +-
- include/linux/mtd/nand.h              |    2 +-
- include/linux/tty.h                   |    2 +-
- 10 files changed, 10 insertions(+), 10 deletions(-)
+ fs/Kconfig.binfmt |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/networking/arcnet.txt~fix-various-old-email-addresses-for-dwmw2 Documentation/networking/arcnet.txt
---- a/Documentation/networking/arcnet.txt~fix-various-old-email-addresses-for-dwmw2
-+++ a/Documentation/networking/arcnet.txt
-@@ -46,7 +46,7 @@ These are the ARCnet drivers for Linux.
+diff -puN fs/Kconfig.binfmt~frv-dont-offer-binfmt_flat fs/Kconfig.binfmt
+--- a/fs/Kconfig.binfmt~frv-dont-offer-binfmt_flat
++++ a/fs/Kconfig.binfmt
+@@ -42,7 +42,7 @@ config BINFMT_ELF_FDPIC
  
+ config BINFMT_FLAT
+ 	bool "Kernel support for flat binaries"
+-	depends on !MMU
++	depends on !MMU && (!FRV || BROKEN)
+ 	help
+ 	  Support uClinux FLAT format binaries.
  
- This new release (2.91) has been put together by David Woodhouse 
--<dwmw2@cam.ac.uk>, in an attempt to tidy up the driver after adding support 
-+<dwmw2@infradead.org>, in an attempt to tidy up the driver after adding support
- for yet another chipset. Now the generic support has been separated from the
- individual chipset drivers, and the source files aren't quite so packed with
- #ifdefs! I've changed this file a bit, but kept it in the first person from
-diff -puN arch/frv/kernel/cmode.S~fix-various-old-email-addresses-for-dwmw2 arch/frv/kernel/cmode.S
---- a/arch/frv/kernel/cmode.S~fix-various-old-email-addresses-for-dwmw2
-+++ a/arch/frv/kernel/cmode.S
-@@ -1,7 +1,7 @@
- /* cmode.S: clock mode management
-  *
-  * Copyright (C) 2004 Red Hat, Inc. All Rights Reserved.
-- * Written by David Woodhouse (dwmw2@redhat.com)
-+ * Written by David Woodhouse (dwmw2@infradead.org)
-  *
-  * This program is free software; you can redistribute it and/or
-  * modify it under the terms of the GNU General Public License
-diff -puN arch/frv/kernel/sleep.S~fix-various-old-email-addresses-for-dwmw2 arch/frv/kernel/sleep.S
---- a/arch/frv/kernel/sleep.S~fix-various-old-email-addresses-for-dwmw2
-+++ a/arch/frv/kernel/sleep.S
-@@ -1,7 +1,7 @@
- /* sleep.S: power saving mode entry
-  *
-  * Copyright (C) 2004 Red Hat, Inc. All Rights Reserved.
-- * Written by David Woodhouse (dwmw2@redhat.com)
-+ * Written by David Woodhouse (dwmw2@infradead.org)
-  *
-  * This program is free software; you can redistribute it and/or
-  * modify it under the terms of the GNU General Public License
-diff -puN arch/frv/mb93090-mb00/pci-dma-nommu.c~fix-various-old-email-addresses-for-dwmw2 arch/frv/mb93090-mb00/pci-dma-nommu.c
---- a/arch/frv/mb93090-mb00/pci-dma-nommu.c~fix-various-old-email-addresses-for-dwmw2
-+++ a/arch/frv/mb93090-mb00/pci-dma-nommu.c
-@@ -1,7 +1,7 @@
- /* pci-dma-nommu.c: Dynamic DMA mapping support for the FRV
-  *
-  * Copyright (C) 2004 Red Hat, Inc. All Rights Reserved.
-- * Written by David Woodhouse (dwmw2@redhat.com)
-+ * Written by David Woodhouse (dwmw2@infradead.org)
-  *
-  * This program is free software; you can redistribute it and/or
-  * modify it under the terms of the GNU General Public License
-diff -puN drivers/mtd/redboot.c~fix-various-old-email-addresses-for-dwmw2 drivers/mtd/redboot.c
---- a/drivers/mtd/redboot.c~fix-various-old-email-addresses-for-dwmw2
-+++ a/drivers/mtd/redboot.c
-@@ -295,5 +295,5 @@ module_init(redboot_parser_init);
- module_exit(redboot_parser_exit);
- 
- MODULE_LICENSE("GPL");
--MODULE_AUTHOR("Red Hat, Inc. - David Woodhouse <dwmw2@cambridge.redhat.com>");
-+MODULE_AUTHOR("David Woodhouse <dwmw2@infradead.org>");
- MODULE_DESCRIPTION("Parsing code for RedBoot Flash Image System (FIS) tables");
-diff -puN fs/afs/callback.c~fix-various-old-email-addresses-for-dwmw2 fs/afs/callback.c
---- a/fs/afs/callback.c~fix-various-old-email-addresses-for-dwmw2
-+++ a/fs/afs/callback.c
-@@ -8,7 +8,7 @@
-  * along with this program; if not, write to the Free Software
-  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-  *
-- * Authors: David Woodhouse <dwmw2@cambridge.redhat.com>
-+ * Authors: David Woodhouse <dwmw2@infradead.org>
-  *          David Howells <dhowells@redhat.com>
-  *
-  */
-diff -puN fs/afs/inode.c~fix-various-old-email-addresses-for-dwmw2 fs/afs/inode.c
---- a/fs/afs/inode.c~fix-various-old-email-addresses-for-dwmw2
-+++ a/fs/afs/inode.c
-@@ -8,7 +8,7 @@
-  * along with this program; if not, write to the Free Software
-  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-  *
-- * Authors: David Woodhouse <dwmw2@cambridge.redhat.com>
-+ * Authors: David Woodhouse <dwmw2@infradead.org>
-  *          David Howells <dhowells@redhat.com>
-  *
-  */
-diff -puN fs/afs/super.c~fix-various-old-email-addresses-for-dwmw2 fs/afs/super.c
---- a/fs/afs/super.c~fix-various-old-email-addresses-for-dwmw2
-+++ a/fs/afs/super.c
-@@ -10,7 +10,7 @@
-  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-  *
-  * Authors: David Howells <dhowells@redhat.com>
-- *          David Woodhouse <dwmw2@redhat.com>
-+ *          David Woodhouse <dwmw2@infradead.org>
-  *
-  */
- 
-diff -puN include/linux/mtd/nand.h~fix-various-old-email-addresses-for-dwmw2 include/linux/mtd/nand.h
---- a/include/linux/mtd/nand.h~fix-various-old-email-addresses-for-dwmw2
-+++ a/include/linux/mtd/nand.h
-@@ -1,7 +1,7 @@
- /*
-  *  linux/include/linux/mtd/nand.h
-  *
-- *  Copyright (c) 2000 David Woodhouse <dwmw2@mvhi.com>
-+ *  Copyright (c) 2000 David Woodhouse <dwmw2@infradead.org>
-  *                     Steven J. Hill <sjhill@realitydiluted.com>
-  *		       Thomas Gleixner <tglx@linutronix.de>
-  *
-diff -puN include/linux/tty.h~fix-various-old-email-addresses-for-dwmw2 include/linux/tty.h
---- a/include/linux/tty.h~fix-various-old-email-addresses-for-dwmw2
-+++ a/include/linux/tty.h
-@@ -36,7 +36,7 @@
- #define N_6PACK		7
- #define N_MASC		8	/* Reserved for Mobitex module <kaz@cafe.net> */
- #define N_R3964		9	/* Reserved for Simatic R3964 module */
--#define N_PROFIBUS_FDL	10	/* Reserved for Profibus <Dave@mvhi.com> */
-+#define N_PROFIBUS_FDL	10	/* Reserved for Profibus */
- #define N_IRDA		11	/* Linux IrDa - http://irda.sourceforge.net/ */
- #define N_SMSBLOCK	12	/* SMS block mode - for talking to GSM data */
- 				/* cards about SMS messages */
 _
 
-Patches currently in -mm which might be from dwmw2@infradead.org are
+Patches currently in -mm which might be from bunk@kernel.org are
 
 origin.patch
 linux-next.patch
-mtd-mtdcharc-silence-sparse-warning.patch
-mtd-mtdcharc-remove-shadowed-variable-warnings.patch
-jffs2-summary-allocation-dont-use-vmalloc.patch
-drivers-mtd-devices-block2mtdc-suppress-warning.patch
-git-battery.patch
-mtd-m25p80-fix-bug-atmel-spi-flash-fails-to-be-copied-to.patch
-mtd-m25p80-fix-bug-atmel-spi-flash-fails-to-be-copied-to-fix-up.patch
+proper-prototype-for-acpi_processor_tstate_has_changed.patch
+remove-drivers-acorn-char-defkeymap-l7200c.patch
+drm-make-drm_minors_cleanup-static.patch
+if-0-ses_match_host.patch
+git-xtensa.patch
+mm-migratec-should-include-linux-syscallsh.patch
+mm-vmstatc-proper-externs.patch
+mm-hugetlbc-fix-duplicate-variable.patch
+remove-include-asm-h8300-keyboardh.patch
+remove-include-linux-pm_legacyh.patch
+remove-the-v850-port.patch
+init-do_mountsc-should-include-linux-initrdh.patch
+proper-spawn_ksoftirqd-prototype.patch
+build-kernel-profileo-only-when-requested.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+asm-generic-int-ll64h-always-provide-__su64.patch
+remove-some-more-tipar-bits.patch
+remove-the-oss-trident-driver.patch
+config_sound_wm97xx-remove-stale-makefile-line.patch
+serial-8250_gscc-add-module_license.patch
+mfd-sm501c-if-0-unused-functions.patch
+video-sis-remove-compat-code.patch
+minix-remove-no_truncate-code.patch
+remove-is_tty.patch
+proper-extern-for-mwave_s_mdd.patch
+if-0-hpet_unregister.patch
+unexport-proc_clear_tty.patch
+move-proc_kmsg_operations-to-fs-proc-internalh.patch
+proper-pidhashmap_init-prototypes.patch
+unexport-uts_sem.patch
+parport-sharec-proper-externs.patch
+tpm_biosc-make-2-structs-static.patch
+make-cgroup_seqfile_release-static.patch
+make-kprobe_blacklist-static.patch
+make-pnp_add_card_id-static.patch
+make-parport_cs_release-static.patch
+make-mm-sparsec-make-a-function-static.patch
+mm-allocpercpuc-make-4-functions-static.patch
+make-mm-memoryc-print_bad_pte-static.patch
+mm-swapfilec-make-code-static.patch
+make-mm-rmapc-anon_vma_cachep-static.patch
+drivers-char-rtcc-make-2-functions-static.patch
+make-init-do_mountsc-root_device_name-static.patch
+reiser4.patch
 
