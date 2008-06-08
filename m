@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlb-override-default-huge-page-size.patch added to -mm tree
-Date: Sun, 08 Jun 2008 12:12:05 -0700
-Message-ID: <200806081912.m58JC5wv016195@imap1.linux-foundation.org>
+Subject: + hugetlb-abstract-numa-round-robin-selection.patch added to -mm tree
+Date: Sun, 08 Jun 2008 12:11:40 -0700
+Message-ID: <200806081911.m58JBe31016146@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44506 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57339 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754484AbYFHTMK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 15:12:10 -0400
+	by vger.kernel.org with ESMTP id S1754490AbYFHTML (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 15:12:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de
+Cc: npiggin@suse.de, agl@us.ibm.com, ak@suse.de, nacc@us.ibm.com
 
 
 The patch titled
-     hugetlb: override default huge page size
+     hugetlb: abstract numa round robin selection
 has been added to the -mm tree.  Its filename is
-     hugetlb-override-default-huge-page-size.patch
+     hugetlb-abstract-numa-round-robin-selection.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,90 +33,77 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlb: override default huge page size
+Subject: hugetlb: abstract numa round robin selection
 From: Nick Piggin <npiggin@suse.de>
 
-Allow configurations with the default huge page size which is different to
-the traditional HPAGE_SIZE size.  The default huge page size is the one
-represented in the legacy /proc ABIs, SHM, and which is defaulted to when
-mounting hugetlbfs filesystems.
+Need this as a separate function for a future patch.
 
-This is implemented with a new kernel option default_hugepagesz=, which
-defaults to HPAGE_SIZE if not specified.
+No behaviour change.
 
+Acked-by: Adam Litke <agl@us.ibm.com>
+Acked-by: Nishanth Aravamudan <nacc@us.ibm.com>
+Signed-off-by: Andi Kleen <ak@suse.de>
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |    7 +++++++
- mm/hugetlb.c                        |   24 +++++++++++++++++-------
- 2 files changed, 24 insertions(+), 7 deletions(-)
+ mm/hugetlb.c |   37 ++++++++++++++++++++++---------------
+ 1 file changed, 22 insertions(+), 15 deletions(-)
 
-diff -puN Documentation/kernel-parameters.txt~hugetlb-override-default-huge-page-size Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~hugetlb-override-default-huge-page-size
-+++ a/Documentation/kernel-parameters.txt
-@@ -766,6 +766,13 @@ and is between 256 and 4096 characters. 
- 			CPU supports the "pdpe1gb" cpuinfo flag)
- 			Note that 1GB pages can only be allocated at boot time
- 			using hugepages= and not freed afterwards.
-+	default_hugepagesz=
-+			[same as hugepagesz=] The size of the default
-+			HugeTLB page size. This is the size represented by
-+			the legacy /proc/ hugepages APIs, used for SHM, and
-+			default size when mounting hugetlbfs filesystems.
-+			Defaults to the default architecture's huge page size
-+			if not specified.
- 
- 	i8042.direct	[HW] Put keyboard port into non-translated mode
- 	i8042.dumbkbd	[HW] Pretend that controller can only read data from
-diff -puN mm/hugetlb.c~hugetlb-override-default-huge-page-size mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-override-default-huge-page-size
+diff -puN mm/hugetlb.c~hugetlb-abstract-numa-round-robin-selection mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-abstract-numa-round-robin-selection
 +++ a/mm/hugetlb.c
-@@ -1207,11 +1207,14 @@ static int __init hugetlb_init(void)
- {
- 	BUILD_BUG_ON(HPAGE_SHIFT == 0);
- 
--	if (!size_to_hstate(HPAGE_SIZE)) {
--		hugetlb_add_hstate(HUGETLB_PAGE_ORDER);
--		parsed_hstate->max_huge_pages = default_hstate_max_huge_pages;
--	}
--	default_hstate_idx = size_to_hstate(HPAGE_SIZE) - hstates;
-+	if (!size_to_hstate(default_hstate_size)) {
-+		default_hstate_size = HPAGE_SIZE;
-+		if (!size_to_hstate(default_hstate_size))
-+			hugetlb_add_hstate(HUGETLB_PAGE_ORDER);
-+	}
-+	default_hstate_idx = size_to_hstate(default_hstate_size) - hstates;
-+	if (default_hstate_max_huge_pages)
-+		default_hstate.max_huge_pages = default_hstate_max_huge_pages;
- 
- 	hugetlb_init_hstates();
- 
-@@ -1263,7 +1266,7 @@ void __init hugetlb_add_hstate(unsigned 
- 	parsed_hstate = h;
+@@ -383,6 +383,27 @@ static struct page *alloc_fresh_huge_pag
+ 	return page;
  }
  
--static int __init hugetlb_setup(char *s)
-+static int __init hugetlb_nrpages_setup(char *s)
- {
- 	unsigned long *mhp;
- 	static unsigned long *last_mhp;
-@@ -1298,7 +1301,14 @@ static int __init hugetlb_setup(char *s)
- 
- 	return 1;
- }
--__setup("hugepages=", hugetlb_setup);
-+__setup("hugepages=", hugetlb_nrpages_setup);
-+
-+static int __init hugetlb_default_setup(char *s)
++/*
++ * Use a helper variable to find the next node and then
++ * copy it back to hugetlb_next_nid afterwards:
++ * otherwise there's a window in which a racer might
++ * pass invalid nid MAX_NUMNODES to alloc_pages_node.
++ * But we don't need to use a spin_lock here: it really
++ * doesn't matter if occasionally a racer chooses the
++ * same nid as we do.  Move nid forward in the mask even
++ * if we just successfully allocated a hugepage so that
++ * the next caller gets hugepages on the next node.
++ */
++static int hstate_next_node(struct hstate *h)
 +{
-+	default_hstate_size = memparse(s, &s);
-+	return 1;
++	int next_nid;
++	next_nid = next_node(h->hugetlb_next_nid, node_online_map);
++	if (next_nid == MAX_NUMNODES)
++		next_nid = first_node(node_online_map);
++	h->hugetlb_next_nid = next_nid;
++	return next_nid;
 +}
-+__setup("default_hugepagesz=", hugetlb_default_setup);
- 
- static unsigned int cpuset_mems_nr(unsigned int *array)
++
+ static int alloc_fresh_huge_page(struct hstate *h)
  {
+ 	struct page *page;
+@@ -396,21 +417,7 @@ static int alloc_fresh_huge_page(struct 
+ 		page = alloc_fresh_huge_page_node(h, h->hugetlb_next_nid);
+ 		if (page)
+ 			ret = 1;
+-		/*
+-		 * Use a helper variable to find the next node and then
+-		 * copy it back to hugetlb_next_nid afterwards:
+-		 * otherwise there's a window in which a racer might
+-		 * pass invalid nid MAX_NUMNODES to alloc_pages_node.
+-		 * But we don't need to use a spin_lock here: it really
+-		 * doesn't matter if occasionally a racer chooses the
+-		 * same nid as we do.  Move nid forward in the mask even
+-		 * if we just successfully allocated a hugepage so that
+-		 * the next caller gets hugepages on the next node.
+-		 */
+-		next_nid = next_node(h->hugetlb_next_nid, node_online_map);
+-		if (next_nid == MAX_NUMNODES)
+-			next_nid = first_node(node_online_map);
+-		h->hugetlb_next_nid = next_nid;
++		next_nid = hstate_next_node(h);
+ 	} while (!page && h->hugetlb_next_nid != start_nid);
+ 
+ 	if (ret)
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
