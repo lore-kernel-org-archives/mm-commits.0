@@ -1,82 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: - brk-check-lower-bound-properly.patch removed from -mm tree
-Date: Sun, 08 Jun 2008 12:47:25 -0700
-Message-ID: <200806081947.m58JlP57017417@imap1.linux-foundation.org>
+Subject: - ecryptfs-remove-unnecessary-page-decrypt-call.patch removed from -mm tree
+Date: Sun, 08 Jun 2008 12:47:18 -0700
+Message-ID: <200806081947.m58JlIfr017408@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51229 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46830 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753982AbYFHTsJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 15:48:09 -0400
+	by vger.kernel.org with ESMTP id S1753902AbYFHTsW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 15:48:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jkosina@suse.cz, geert@linux-m68k.org, stable@kernel.org, mm-commits@vger.kernel.org
+To: mhalcrow@us.ibm.com, sandeen@redhat.com, shaggy@austin.ibm.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     brk: make sys_brk() honor COMPAT_BRK when computing lower bound
+     eCryptfs: remove unnecessary page decrypt call
 has been removed from the -mm tree.  Its filename was
-     brk-check-lower-bound-properly.patch
+     ecryptfs-remove-unnecessary-page-decrypt-call.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: brk: make sys_brk() honor COMPAT_BRK when computing lower bound
-From: Jiri Kosina <jkosina@suse.cz>
+Subject: eCryptfs: remove unnecessary page decrypt call
+From: Michael Halcrow <mhalcrow@us.ibm.com>
 
-Fix a regression introduced by
+The page decrypt calls in ecryptfs_write() are both pointless and buggy. 
+Pointless because ecryptfs_get_locked_page() has already brought the page
+up to date, and buggy because prior mmap writes will just be blown away by
+the decrypt call.
 
-commit 4cc6028d4040f95cdb590a87db478b42b8be0508
-Author: Jiri Kosina <jkosina@suse.cz>
-Date:   Wed Feb 6 22:39:44 2008 +0100
+This patch also removes the declaration of a now-nonexistent function
+ecryptfs_write_zeros().
 
-    brk: check the lower bound properly
+Thanks to Eric Sandeen and David Kleikamp for helping to track this
+down.
 
-The check in sys_brk() on minimum value the brk might have must take
-CONFIG_COMPAT_BRK setting into account.  When this option is turned on
-(i.e.  we support ancient legacy binaries, e.g.  libc5-linked stuff), the
-lower bound on brk value is mm->end_code, otherwise the brk start is
-allowed to be arbitrarily shifted.
+Eric said:
 
-Signed-off-by: Jiri Kosina <jkosina@suse.cz>
-Tested-by: Geert Uytterhoeven <geert@linux-m68k.org>
+   fsx w/ mmap dies quickly ( < 100 ops) without this, and survives
+   nicely (to millions of ops+) with it in place.
+
+Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
+Cc: Eric Sandeen <sandeen@redhat.com>
+Cc: Dave Kleikamp <shaggy@austin.ibm.com>
 Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ fs/ecryptfs/ecryptfs_kernel.h |    2 --
+ fs/ecryptfs/read_write.c      |   22 ----------------------
+ 2 files changed, 24 deletions(-)
 
-diff -puN mm/mmap.c~brk-check-lower-bound-properly mm/mmap.c
---- a/mm/mmap.c~brk-check-lower-bound-properly
-+++ a/mm/mmap.c
-@@ -245,10 +245,16 @@ asmlinkage unsigned long sys_brk(unsigne
- 	unsigned long rlim, retval;
- 	unsigned long newbrk, oldbrk;
- 	struct mm_struct *mm = current->mm;
-+	unsigned long min_brk;
+diff -puN fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-remove-unnecessary-page-decrypt-call fs/ecryptfs/ecryptfs_kernel.h
+--- a/fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-remove-unnecessary-page-decrypt-call
++++ a/fs/ecryptfs/ecryptfs_kernel.h
+@@ -660,8 +660,6 @@ int ecryptfs_get_tfm_and_mutex_for_ciphe
+ int ecryptfs_keyring_auth_tok_for_sig(struct key **auth_tok_key,
+ 				      struct ecryptfs_auth_tok **auth_tok,
+ 				      char *sig);
+-int ecryptfs_write_zeros(struct file *file, pgoff_t index, int start,
+-			 int num_zeros);
+ int ecryptfs_write_lower(struct inode *ecryptfs_inode, char *data,
+ 			 loff_t offset, size_t size);
+ int ecryptfs_write_lower_page_segment(struct inode *ecryptfs_inode,
+diff -puN fs/ecryptfs/read_write.c~ecryptfs-remove-unnecessary-page-decrypt-call fs/ecryptfs/read_write.c
+--- a/fs/ecryptfs/read_write.c~ecryptfs-remove-unnecessary-page-decrypt-call
++++ a/fs/ecryptfs/read_write.c
+@@ -157,20 +157,6 @@ int ecryptfs_write(struct file *ecryptfs
+ 			       ecryptfs_page_idx, rc);
+ 			goto out;
+ 		}
+-		if (start_offset_in_page) {
+-			/* Read in the page from the lower
+-			 * into the eCryptfs inode page cache,
+-			 * decrypting */
+-			rc = ecryptfs_decrypt_page(ecryptfs_page);
+-			if (rc) {
+-				printk(KERN_ERR "%s: Error decrypting "
+-				       "page; rc = [%d]\n",
+-				       __func__, rc);
+-				ClearPageUptodate(ecryptfs_page);
+-				page_cache_release(ecryptfs_page);
+-				goto out;
+-			}
+-		}
+ 		ecryptfs_page_virt = kmap_atomic(ecryptfs_page, KM_USER0);
  
- 	down_write(&mm->mmap_sem);
- 
--	if (brk < mm->start_brk)
-+#ifdef CONFIG_COMPAT_BRK
-+	min_brk = mm->end_code;
-+#else
-+	min_brk = mm->start_brk;
-+#endif
-+	if (brk < min_brk)
- 		goto out;
- 
- 	/*
+ 		/*
+@@ -349,14 +335,6 @@ int ecryptfs_read(char *data, loff_t off
+ 			       ecryptfs_page_idx, rc);
+ 			goto out;
+ 		}
+-		rc = ecryptfs_decrypt_page(ecryptfs_page);
+-		if (rc) {
+-			printk(KERN_ERR "%s: Error decrypting "
+-			       "page; rc = [%d]\n", __func__, rc);
+-			ClearPageUptodate(ecryptfs_page);
+-			page_cache_release(ecryptfs_page);
+-			goto out;
+-		}
+ 		ecryptfs_page_virt = kmap_atomic(ecryptfs_page, KM_USER0);
+ 		memcpy((data + data_offset),
+ 		       ((char *)ecryptfs_page_virt + start_offset_in_page),
 _
 
-Patches currently in -mm which might be from jkosina@suse.cz are
+Patches currently in -mm which might be from mhalcrow@us.ibm.com are
 
 origin.patch
-linux-next.patch
-elantech-touchpad-driver.patch
-input-touchscreen-driver-add-support-ad7877-touchscreen-driver.patch
-ds1302-push-down-the-bkl-into-the-driver-ioctl-code.patch
+git-unionfs.patch
+ecryptfs-privileged-kthread-for-lower-file-opens.patch
+notify_change-callers-must-hold-i_mutex.patch
 
