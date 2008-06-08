@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + gigaset-fix-module-reference-counting.patch added to -mm tree
-Date: Fri, 06 Jun 2008 22:59:14 -0700
-Message-ID: <200806070559.m575xEnM006183@imap1.linux-foundation.org>
+Subject: + hugetlb-factor-out-prep_new_huge_page.patch added to -mm tree
+Date: Sun, 08 Jun 2008 12:10:09 -0700
+Message-ID: <200806081910.m58JA9x7016106@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50551 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40755 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754549AbYFGF72 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 7 Jun 2008 01:59:28 -0400
+	by vger.kernel.org with ESMTP id S1753019AbYFHTK3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 15:10:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: aherrman@arcor.de, hjlipp@web.de, kkeil@suse.de, tilman@imap.cc
+Cc: npiggin@suse.de, agl@us.ibm.com, ak@suse.de, nacc@us.ibm.com
 
 
 The patch titled
-     gigaset: fix module reference counting
+     hugetlb: factor out prep_new_huge_page
 has been added to the -mm tree.  Its filename is
-     gigaset-fix-module-reference-counting.patch
+     hugetlb-factor-out-prep_new_huge_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,71 +33,109 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gigaset: fix module reference counting
-From: Andreas Herrmann <aherrman@arcor.de>
+Subject: hugetlb: factor out prep_new_huge_page
+From: Nick Piggin <npiggin@suse.de>
 
-bas_gigaset can't be unloaded due to wrong module reference counting.
-Ensure that module_put is called whenever a channel is freed.
+Needed to avoid code duplication in follow up patches.
 
-Signed-off-by: Andreas Herrmann <aherrman@arcor.de>
-Cc: Tilmann Schmidt <tilman@imap.cc>
-Cc: Hansjoerg Lipp <hjlipp@web.de>
-Cc: Karsten Keil <kkeil@suse.de>
+Acked-by: Adam Litke <agl@us.ibm.com>
+Acked-by: Nishanth Aravamudan <nacc@us.ibm.com>
+Signed-off-by: Andi Kleen <ak@suse.de>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/gigaset/common.c  |    5 +----
- drivers/isdn/gigaset/gigaset.h |    1 -
- 2 files changed, 1 insertion(+), 5 deletions(-)
+ mm/hugetlb.c |   17 +++++++++++------
+ 1 file changed, 11 insertions(+), 6 deletions(-)
 
-diff -puN drivers/isdn/gigaset/common.c~gigaset-fix-module-reference-counting drivers/isdn/gigaset/common.c
---- a/drivers/isdn/gigaset/common.c~gigaset-fix-module-reference-counting
-+++ a/drivers/isdn/gigaset/common.c
-@@ -184,7 +184,6 @@ int gigaset_get_channel(struct bc_state 
- 		return 0;
+diff -puN mm/hugetlb.c~hugetlb-factor-out-prep_new_huge_page mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-factor-out-prep_new_huge_page
++++ a/mm/hugetlb.c
+@@ -331,6 +331,16 @@ static int adjust_pool_surplus(int delta
+ 	return ret;
+ }
+ 
++static void prep_new_huge_page(struct page *page, int nid)
++{
++	set_compound_page_dtor(page, free_huge_page);
++	spin_lock(&hugetlb_lock);
++	nr_huge_pages++;
++	nr_huge_pages_node[nid]++;
++	spin_unlock(&hugetlb_lock);
++	put_page(page); /* free it into the hugepage allocator */
++}
++
+ static struct page *alloc_fresh_huge_page_node(int nid)
+ {
+ 	struct page *page;
+@@ -344,12 +354,7 @@ static struct page *alloc_fresh_huge_pag
+ 			__free_pages(page, HUGETLB_PAGE_ORDER);
+ 			return NULL;
+ 		}
+-		set_compound_page_dtor(page, free_huge_page);
+-		spin_lock(&hugetlb_lock);
+-		nr_huge_pages++;
+-		nr_huge_pages_node[nid]++;
+-		spin_unlock(&hugetlb_lock);
+-		put_page(page); /* free it into the hugepage allocator */
++		prep_new_huge_page(page, nid);
  	}
- 	++bcs->use_count;
--	bcs->busy = 1;
- 	gig_dbg(DEBUG_ANY, "allocated channel %d", bcs->channel);
- 	spin_unlock_irqrestore(&bcs->cs->lock, flags);
- 	return 1;
-@@ -195,13 +194,12 @@ void gigaset_free_channel(struct bc_stat
- 	unsigned long flags;
  
- 	spin_lock_irqsave(&bcs->cs->lock, flags);
--	if (!bcs->busy) {
-+	if (!bcs->use_count) {
- 		gig_dbg(DEBUG_ANY, "could not free channel %d", bcs->channel);
- 		spin_unlock_irqrestore(&bcs->cs->lock, flags);
- 		return;
- 	}
- 	--bcs->use_count;
--	bcs->busy = 0;
- 	module_put(bcs->cs->driver->owner);
- 	gig_dbg(DEBUG_ANY, "freed channel %d", bcs->channel);
- 	spin_unlock_irqrestore(&bcs->cs->lock, flags);
-@@ -589,7 +587,6 @@ static struct bc_state *gigaset_initbcs(
- 
- 	bcs->chstate = 0;
- 	bcs->use_count = 1;
--	bcs->busy = 0;
- 	bcs->ignore = cs->ignoreframes;
- 
- 	for (i = 0; i < AT_NUM; ++i)
-diff -puN drivers/isdn/gigaset/gigaset.h~gigaset-fix-module-reference-counting drivers/isdn/gigaset/gigaset.h
---- a/drivers/isdn/gigaset/gigaset.h~gigaset-fix-module-reference-counting
-+++ a/drivers/isdn/gigaset/gigaset.h
-@@ -419,7 +419,6 @@ struct bc_state {
- #ifdef CONFIG_GIGASET_DEBUG
- 	int emptycount;
- #endif
--	int busy;
- 	int use_count;
- 
- 	/* private data of hardware drivers */
+ 	return page;
 _
 
-Patches currently in -mm which might be from aherrman@arcor.de are
+Patches currently in -mm which might be from npiggin@suse.de are
 
-gigaset-fix-module-reference-counting.patch
+hugetlb-fix-lockdep-error.patch
+vt-fix-vc_resize-locking.patch
+linux-next.patch
+spufs-convert-nopfn-to-fault.patch
+mspec-convert-nopfn-to-fault.patch
+mspec-convert-nopfn-to-fault-fix.patch
+mm-remove-nopfn.patch
+mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co.patch
+hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed-build-fix.patch
+hugetlb-factor-out-prep_new_huge_page.patch
+hugetlb-modular-state-for-hugetlb-page-size.patch
+hugetlb-multiple-hstates-for-multiple-page-sizes.patch
+hugetlbfs-per-mount-huge-page-sizes.patch
+hugetlb-new-sysfs-interface.patch
+hugetlb-abstract-numa-round-robin-selection.patch
+mm-introduce-non-panic-alloc_bootmem.patch
+mm-export-prep_compound_page-to-mm.patch
+hugetlb-support-larger-than-max_order.patch
+hugetlb-support-boot-allocate-different-sizes.patch
+hugetlb-printk-cleanup.patch
+hugetlb-introduce-pud_huge.patch
+x86-support-gb-hugepages-on-64-bit.patch
+x86-add-hugepagesz-option-on-64-bit.patch
+hugetlb-override-default-huge-page-size.patch
+hugetlb-allow-arch-overried-hugepage-allocation.patch
+powerpc-function-to-allocate-gigantic-hugepages.patch
+powerpc-scan-device-tree-for-gigantic-pages.patch
+powerpc-define-support-for-16g-hugepages.patch
+fs-check-for-statfs-overflow.patch
+powerpc-support-multiple-hugepage-sizes.patch
+x86-implement-pte_special.patch
+mm-introduce-get_user_pages_fast.patch
+mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast.patch
+x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-fix.patch
+x86-lockless-get_user_pages_fast-fix-warning.patch
+dio-use-get_user_pages_fast.patch
+splice-use-get_user_pages_fast.patch
+mm-readahead-scan-lockless.patch
+radix-tree-add-gang_lookup_slot-gang_lookup_slot_tag.patch
+mm-speculative-page-references.patch
+mm-lockless-pagecache.patch
+mm-spinlock-tree_lock.patch
+powerpc-implement-pte_special.patch
+powerpc-lockless-get_user_pages_fast.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+vmscan-mlocked-pages-are-non-reclaimable.patch
+vmscan-handle-mlocked-pages-during-map-remap-unmap.patch
+vmscan-mlocked-pages-statistics.patch
+reiser4.patch
+likeliness-accounting-change-and-cleanup.patch
 
