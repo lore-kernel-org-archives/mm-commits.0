@@ -1,146 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - introduce-memory_read_from_buffer.patch removed from -mm tree
-Date: Sun, 08 Jun 2008 12:48:00 -0700
-Message-ID: <200806081948.m58Jm0tj017464@imap1.linux-foundation.org>
+Subject: - pagemap-return-map-count-not-reference-count-in-proc-kpagecount-v2-of-series.patch removed from -mm tree
+Date: Sun, 08 Jun 2008 12:49:19 -0700
+Message-ID: <200806081949.m58JnJC7017671@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44105 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48374 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754597AbYFHTuD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 15:50:03 -0400
+	by vger.kernel.org with ESMTP id S1754584AbYFHTt6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 15:49:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, Abhay_Salunke@dell.com, Douglas_Warzecha@dell.com, James.Bottomley@HansenPartnership.com, Matt_Domsch@dell.com, adaplas@pol.net, benh@kernel.crashing.org, brki
+To: ttuttle@google.com, mpm@selenic.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     introduce memory_read_from_buffer()
+     pagemap: return map count, not reference count, in /proc/kpagecount
 has been removed from the -mm tree.  Its filename was
-     introduce-memory_read_from_buffer.patch
+     pagemap-return-map-count-not-reference-count-in-proc-kpagecount-v2-of-series.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: introduce memory_read_from_buffer()
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: pagemap: return map count, not reference count, in /proc/kpagecount
+From: "Thomas Tuttle" <ttuttle@google.com>
 
-This patch introduces memory_read_from_buffer().
+Since pagemap is all about examining pages mapped into processes' memory
+spaces, it makes sense for kpagecount to return the map counts, not the
+reference counts.
 
-The only difference between memory_read_from_buffer() and
-simple_read_from_buffer() is which address space the function copies to.
-
-simple_read_from_buffer copies to user space memory.
-memory_read_from_buffer copies to normal memory.
-
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Doug Warzecha <Douglas_Warzecha@dell.com>
-Cc: Zhang Rui <rui.zhang@intel.com>
-Cc: Matt Domsch <Matt_Domsch@dell.com>
-Cc: Abhay Salunke <Abhay_Salunke@dell.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Markus Rechberger <markus.rechberger@amd.com>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Bob Moore <robert.moore@intel.com>
-Cc: Thomas Renninger <trenn@suse.de>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
-Cc: Michael Holzheu <holzheu@de.ibm.com>
-Cc: Brian King <brking@us.ibm.com>
-Cc: James E.J. Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Andrew Vasquez <linux-driver@qlogic.com>
-Cc: Seokmann Ju <seokmann.ju@qlogic.com>
+Signed-off-by: Thomas Tuttle <ttuttle@google.com>
+Cc: Matt Mackall <mpm@selenic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/libfs.c         |   18 ++++++++++++++++++
- include/linux/fs.h |    5 ++++-
- 2 files changed, 22 insertions(+), 1 deletion(-)
+ fs/proc/proc_misc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/libfs.c~introduce-memory_read_from_buffer fs/libfs.c
---- a/fs/libfs.c~introduce-memory_read_from_buffer
-+++ a/fs/libfs.c
-@@ -528,6 +528,23 @@ ssize_t simple_read_from_buffer(void __u
- 	return count;
- }
+diff -puN fs/proc/proc_misc.c~pagemap-return-map-count-not-reference-count-in-proc-kpagecount-v2-of-series fs/proc/proc_misc.c
+--- a/fs/proc/proc_misc.c~pagemap-return-map-count-not-reference-count-in-proc-kpagecount-v2-of-series
++++ a/fs/proc/proc_misc.c
+@@ -726,7 +726,7 @@ static ssize_t kpagecount_read(struct fi
+ 		if (!ppage)
+ 			pcount = 0;
+ 		else
+-			pcount = atomic_read(&ppage->_count);
++			pcount = page_mapcount(ppage);
  
-+ssize_t memory_read_from_buffer(void *to, size_t count, loff_t *ppos,
-+				const void *from, size_t available)
-+{
-+	loff_t pos = *ppos;
-+
-+	if (pos < 0)
-+		return -EINVAL;
-+	if (pos >= available)
-+		return 0;
-+	if (count > available - pos)
-+		count = available - pos;
-+	memcpy(to, from + pos, count);
-+	*ppos = pos + count;
-+
-+	return count;
-+}
-+
- /*
-  * Transaction based IO.
-  * The file expects a single write which triggers the transaction, and then
-@@ -800,6 +817,7 @@ EXPORT_SYMBOL(simple_statfs);
- EXPORT_SYMBOL(simple_sync_file);
- EXPORT_SYMBOL(simple_unlink);
- EXPORT_SYMBOL(simple_read_from_buffer);
-+EXPORT_SYMBOL(memory_read_from_buffer);
- EXPORT_SYMBOL(simple_transaction_get);
- EXPORT_SYMBOL(simple_transaction_read);
- EXPORT_SYMBOL(simple_transaction_release);
-diff -puN include/linux/fs.h~introduce-memory_read_from_buffer include/linux/fs.h
---- a/include/linux/fs.h~introduce-memory_read_from_buffer
-+++ a/include/linux/fs.h
-@@ -2000,7 +2000,10 @@ extern int simple_fill_super(struct supe
- extern int simple_pin_fs(struct file_system_type *, struct vfsmount **mount, int *count);
- extern void simple_release_fs(struct vfsmount **mount, int *count);
- 
--extern ssize_t simple_read_from_buffer(void __user *, size_t, loff_t *, const void *, size_t);
-+extern ssize_t simple_read_from_buffer(void __user *to, size_t count,
-+			loff_t *ppos, const void *from, size_t available);
-+extern ssize_t memory_read_from_buffer(void *to, size_t count, loff_t *ppos,
-+			const void *from, size_t available);
- 
- #ifdef CONFIG_MIGRATION
- extern int buffer_migrate_page(struct address_space *,
+ 		if (put_user(pcount, out++)) {
+ 			ret = -EFAULT;
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from ttuttle@google.com are
 
 origin.patch
-acpi-use-memory_read_from_buffer.patch
-ttusb-use-simple_read_from_buffer.patch
-bluetooth-hci_bcspc-small-cleanups-api-users.patch
-bluetooth-hci_bcspc-small-cleanups-api-users-fix.patch
-isdn-use-simple_read_from_buffer.patch
-ocfs2-use-simple_read_from_buffer.patch
-s390-vmcp-use-simple_read_from_buffer.patch
-s390-use-simple_read_from_buffer.patch
-s390-cio-use-memory_read_from_buffer.patch
-s390-use-memory_read_from_buffer.patch
-ipr-use-memory_read_from_buffer.patch
-qla2xxx-use-memory_read_from_buffer.patch
-usbmon-use-simple_read_from_buffer.patch
-airo-use-simple_read_from_buffer.patch
-cris-use-simple_read_from_buffer.patch
-binfmt_misc-use-simple_read_from_buffer.patch
-aty-use-memory_read_from_buffer.patch
-ipc-use-simple_read_from_buffer.patch
-zorro-use-memory_read_from_buffer.patch
-nwflash-use-simple_read_from_buffer.patch
-firmware-use-memory_read_from_buffer.patch
-dcdbas-use-memory_read_from_buffer.patch
-dell_rbu-use-memory_read_from_buffer.patch
 
