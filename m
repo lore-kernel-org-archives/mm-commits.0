@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlbfs-per-mount-huge-page-sizes.patch added to -mm tree
-Date: Sun, 08 Jun 2008 12:11:33 -0700
-Message-ID: <200806081911.m58JBXoj016139@imap1.linux-foundation.org>
+Subject: + x86-add-hugepagesz-option-on-64-bit.patch added to -mm tree
+Date: Sun, 08 Jun 2008 12:12:03 -0700
+Message-ID: <200806081912.m58JC32m016190@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52107 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48375 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754261AbYFHTMD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 15:12:03 -0400
+	by vger.kernel.org with ESMTP id S1754384AbYFHTMI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 15:12:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de, agl@us.ibm.com, ak@suse.de, nacc@us.ibm.com
+Cc: npiggin@suse.de, ak@suse.de
 
 
 The patch titled
-     hugetlbfs: per mount huge page sizes
+     x86: add hugepagesz option on 64-bit
 has been added to the -mm tree.  Its filename is
-     hugetlbfs-per-mount-huge-page-sizes.patch
+     x86-add-hugepagesz-option-on-64-bit.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,250 +33,81 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlbfs: per mount huge page sizes
+Subject: x86: add hugepagesz option on 64-bit
 From: Nick Piggin <npiggin@suse.de>
 
-Add the ability to configure the hugetlb hstate used on a per mount basis.
+Add an hugepagesz=...  option similar to IA64, PPC etc.  to x86-64.
 
-- Add a new pagesize= option to the hugetlbfs mount that allows setting
-  the page size
-- This option causes the mount code to find the hstate corresponding to the
-  specified size, and sets up a pointer to the hstate in the mount's
-  superblock.
-- Change the hstate accessors to use this information rather than the
-  global_hstate they were using (requires a slight change in mm/memory.c
-  so we don't NULL deref in the error-unmap path -- see comments).
+This finally allows to select GB pages for hugetlbfs in x86 now that all
+the infrastructure is in place.
 
-[np: take hstate out of hugetlbfs inode and vma->vm_private_data]
-
-Acked-by: Adam Litke <agl@us.ibm.com>
-Acked-by: Nishanth Aravamudan <nacc@us.ibm.com>
 Signed-off-by: Andi Kleen <ak@suse.de>
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c    |   45 ++++++++++++++++++++++++++++++--------
- include/linux/hugetlb.h |   14 +++++++----
- mm/hugetlb.c            |   16 ++-----------
- mm/memory.c             |   18 +++++++++++++--
- 4 files changed, 64 insertions(+), 29 deletions(-)
+ Documentation/kernel-parameters.txt |   11 +++++++++--
+ arch/x86/mm/hugetlbpage.c           |   17 +++++++++++++++++
+ include/asm-x86/page.h              |    2 ++
+ 3 files changed, 28 insertions(+), 2 deletions(-)
 
-diff -puN fs/hugetlbfs/inode.c~hugetlbfs-per-mount-huge-page-sizes fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~hugetlbfs-per-mount-huge-page-sizes
-+++ a/fs/hugetlbfs/inode.c
-@@ -53,6 +53,7 @@ int sysctl_hugetlb_shm_group;
- enum {
- 	Opt_size, Opt_nr_inodes,
- 	Opt_mode, Opt_uid, Opt_gid,
-+	Opt_pagesize,
- 	Opt_err,
- };
+diff -puN Documentation/kernel-parameters.txt~x86-add-hugepagesz-option-on-64-bit Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~x86-add-hugepagesz-option-on-64-bit
++++ a/Documentation/kernel-parameters.txt
+@@ -757,8 +757,15 @@ and is between 256 and 4096 characters. 
+ 	hisax=		[HW,ISDN]
+ 			See Documentation/isdn/README.HiSax.
  
-@@ -62,6 +63,7 @@ static match_table_t tokens = {
- 	{Opt_mode,	"mode=%o"},
- 	{Opt_uid,	"uid=%u"},
- 	{Opt_gid,	"gid=%u"},
-+	{Opt_pagesize,	"pagesize=%s"},
- 	{Opt_err,	NULL},
- };
+-	hugepages=	[HW,X86-32,IA-64] Maximal number of HugeTLB pages.
+-	hugepagesz=	[HW,IA-64,PPC] The size of the HugeTLB pages.
++	hugepages=	[HW,X86-32,IA-64] HugeTLB pages to allocate at boot.
++	hugepagesz=	[HW,IA-64,PPC,X86-64] The size of the HugeTLB pages.
++			On x86 this option can be specified multiple times
++			interleaved with hugepages= to reserve huge pages
++			of different sizes. Valid pages sizes on x86-64
++			are 2M (when the CPU supports "pse") and 1G (when the
++			CPU supports the "pdpe1gb" cpuinfo flag)
++			Note that 1GB pages can only be allocated at boot time
++			using hugepages= and not freed afterwards.
  
-@@ -750,6 +752,8 @@ hugetlbfs_parse_options(char *options, s
- 	char *p, *rest;
- 	substring_t args[MAX_OPT_ARGS];
- 	int option;
-+	unsigned long long size = 0;
-+	enum { NO_SIZE, SIZE_STD, SIZE_PERCENT } setsize = NO_SIZE;
+ 	i8042.direct	[HW] Put keyboard port into non-translated mode
+ 	i8042.dumbkbd	[HW] Pretend that controller can only read data from
+diff -puN arch/x86/mm/hugetlbpage.c~x86-add-hugepagesz-option-on-64-bit arch/x86/mm/hugetlbpage.c
+--- a/arch/x86/mm/hugetlbpage.c~x86-add-hugepagesz-option-on-64-bit
++++ a/arch/x86/mm/hugetlbpage.c
+@@ -425,3 +425,20 @@ hugetlb_get_unmapped_area(struct file *f
  
- 	if (!options)
- 		return 0;
-@@ -780,17 +784,13 @@ hugetlbfs_parse_options(char *options, s
- 			break;
+ #endif /*HAVE_ARCH_HUGETLB_UNMAPPED_AREA*/
  
- 		case Opt_size: {
-- 			unsigned long long size;
- 			/* memparse() will accept a K/M/G without a digit */
- 			if (!isdigit(*args[0].from))
- 				goto bad_val;
- 			size = memparse(args[0].from, &rest);
--			if (*rest == '%') {
--				size <<= HPAGE_SHIFT;
--				size *= max_huge_pages;
--				do_div(size, 100);
--			}
--			pconfig->nr_blocks = (size >> HPAGE_SHIFT);
-+			setsize = SIZE_STD;
-+			if (*rest == '%')
-+				setsize = SIZE_PERCENT;
- 			break;
- 		}
- 
-@@ -801,6 +801,19 @@ hugetlbfs_parse_options(char *options, s
- 			pconfig->nr_inodes = memparse(args[0].from, &rest);
- 			break;
- 
-+		case Opt_pagesize: {
-+			unsigned long ps;
-+			ps = memparse(args[0].from, &rest);
-+			pconfig->hstate = size_to_hstate(ps);
-+			if (!pconfig->hstate) {
-+				printk(KERN_ERR
-+				"hugetlbfs: Unsupported page size %lu MB\n",
-+					ps >> 20);
-+				return -EINVAL;
-+			}
-+			break;
-+		}
-+
- 		default:
- 			printk(KERN_ERR "hugetlbfs: Bad mount option: \"%s\"\n",
- 				 p);
-@@ -808,6 +821,18 @@ hugetlbfs_parse_options(char *options, s
- 			break;
- 		}
- 	}
-+
-+	/* Do size after hstate is set up */
-+	if (setsize > NO_SIZE) {
-+		struct hstate *h = pconfig->hstate;
-+		if (setsize == SIZE_PERCENT) {
-+			size <<= huge_page_shift(h);
-+			size *= h->max_huge_pages;
-+			do_div(size, 100);
-+		}
-+		pconfig->nr_blocks = (size >> huge_page_shift(h));
++#ifdef CONFIG_X86_64
++static __init int setup_hugepagesz(char *opt)
++{
++	unsigned long ps = memparse(opt, &opt);
++	if (ps == PMD_SIZE) {
++		hugetlb_add_hstate(PMD_SHIFT - PAGE_SHIFT);
++	} else if (ps == PUD_SIZE && cpu_has_gbpages) {
++		hugetlb_add_hstate(PUD_SHIFT - PAGE_SHIFT);
++	} else {
++		printk(KERN_ERR "hugepagesz: Unsupported page size %lu M\n",
++			ps >> 20);
++		return 0;
 +	}
++	return 1;
++}
++__setup("hugepagesz=", setup_hugepagesz);
++#endif
+diff -puN include/asm-x86/page.h~x86-add-hugepagesz-option-on-64-bit include/asm-x86/page.h
+--- a/include/asm-x86/page.h~x86-add-hugepagesz-option-on-64-bit
++++ a/include/asm-x86/page.h
+@@ -29,6 +29,8 @@
+ #define HPAGE_MASK		(~(HPAGE_SIZE - 1))
+ #define HUGETLB_PAGE_ORDER	(HPAGE_SHIFT - PAGE_SHIFT)
+ 
++#define HUGE_MAX_HSTATE 2
 +
- 	return 0;
+ /* to align the pointer to the (next) page boundary */
+ #define PAGE_ALIGN(addr)	(((addr)+PAGE_SIZE-1)&PAGE_MASK)
  
- bad_val:
-@@ -832,6 +857,7 @@ hugetlbfs_fill_super(struct super_block 
- 	config.uid = current->fsuid;
- 	config.gid = current->fsgid;
- 	config.mode = 0755;
-+	config.hstate = &default_hstate;
- 	ret = hugetlbfs_parse_options(data, &config);
- 	if (ret)
- 		return ret;
-@@ -840,14 +866,15 @@ hugetlbfs_fill_super(struct super_block 
- 	if (!sbinfo)
- 		return -ENOMEM;
- 	sb->s_fs_info = sbinfo;
-+	sbinfo->hstate = config.hstate;
- 	spin_lock_init(&sbinfo->stat_lock);
- 	sbinfo->max_blocks = config.nr_blocks;
- 	sbinfo->free_blocks = config.nr_blocks;
- 	sbinfo->max_inodes = config.nr_inodes;
- 	sbinfo->free_inodes = config.nr_inodes;
- 	sb->s_maxbytes = MAX_LFS_FILESIZE;
--	sb->s_blocksize = HPAGE_SIZE;
--	sb->s_blocksize_bits = HPAGE_SHIFT;
-+	sb->s_blocksize = huge_page_size(config.hstate);
-+	sb->s_blocksize_bits = huge_page_shift(config.hstate);
- 	sb->s_magic = HUGETLBFS_MAGIC;
- 	sb->s_op = &hugetlbfs_ops;
- 	sb->s_time_gran = 1;
-diff -puN include/linux/hugetlb.h~hugetlbfs-per-mount-huge-page-sizes include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~hugetlbfs-per-mount-huge-page-sizes
-+++ a/include/linux/hugetlb.h
-@@ -100,6 +100,7 @@ struct hugetlbfs_config {
- 	umode_t mode;
- 	long	nr_blocks;
- 	long	nr_inodes;
-+	struct hstate *hstate;
- };
- 
- struct hugetlbfs_sb_info {
-@@ -108,6 +109,7 @@ struct hugetlbfs_sb_info {
- 	long	max_inodes;   /* inodes allowed */
- 	long	free_inodes;  /* inodes free */
- 	spinlock_t	stat_lock;
-+	struct hstate *hstate;
- };
- 
- 
-@@ -191,19 +193,21 @@ extern unsigned int default_hstate_idx;
- 
- #define default_hstate (hstates[default_hstate_idx])
- 
--static inline struct hstate *hstate_vma(struct vm_area_struct *vma)
-+static inline struct hstate *hstate_inode(struct inode *i)
- {
--	return &default_hstate;
-+	struct hugetlbfs_sb_info *hsb;
-+	hsb = HUGETLBFS_SB(i->i_sb);
-+	return hsb->hstate;
- }
- 
- static inline struct hstate *hstate_file(struct file *f)
- {
--	return &default_hstate;
-+	return hstate_inode(f->f_dentry->d_inode);
- }
- 
--static inline struct hstate *hstate_inode(struct inode *i)
-+static inline struct hstate *hstate_vma(struct vm_area_struct *vma)
- {
--	return &default_hstate;
-+	return hstate_file(vma->vm_file);
- }
- 
- static inline unsigned long huge_page_size(struct hstate *h)
-diff -puN mm/hugetlb.c~hugetlbfs-per-mount-huge-page-sizes mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlbfs-per-mount-huge-page-sizes
-+++ a/mm/hugetlb.c
-@@ -1334,19 +1334,9 @@ void __unmap_hugepage_range(struct vm_ar
- void unmap_hugepage_range(struct vm_area_struct *vma, unsigned long start,
- 			  unsigned long end, struct page *ref_page)
- {
--	/*
--	 * It is undesirable to test vma->vm_file as it should be non-null
--	 * for valid hugetlb area. However, vm_file will be NULL in the error
--	 * cleanup path of do_mmap_pgoff. When hugetlbfs ->mmap method fails,
--	 * do_mmap_pgoff() nullifies vma->vm_file before calling this function
--	 * to clean up. Since no pte has actually been setup, it is safe to
--	 * do nothing in this case.
--	 */
--	if (vma->vm_file) {
--		spin_lock(&vma->vm_file->f_mapping->i_mmap_lock);
--		__unmap_hugepage_range(vma, start, end, ref_page);
--		spin_unlock(&vma->vm_file->f_mapping->i_mmap_lock);
--	}
-+	spin_lock(&vma->vm_file->f_mapping->i_mmap_lock);
-+	__unmap_hugepage_range(vma, start, end, ref_page);
-+	spin_unlock(&vma->vm_file->f_mapping->i_mmap_lock);
- }
- 
- /*
-diff -puN mm/memory.c~hugetlbfs-per-mount-huge-page-sizes mm/memory.c
---- a/mm/memory.c~hugetlbfs-per-mount-huge-page-sizes
-+++ a/mm/memory.c
-@@ -901,9 +901,23 @@ unsigned long unmap_vmas(struct mmu_gath
- 			}
- 
- 			if (unlikely(is_vm_hugetlb_page(vma))) {
--				unmap_hugepage_range(vma, start, end, NULL);
--				zap_work -= (end - start) /
-+				/*
-+				 * It is undesirable to test vma->vm_file as it
-+				 * should be non-null for valid hugetlb area.
-+				 * However, vm_file will be NULL in the error
-+				 * cleanup path of do_mmap_pgoff. When
-+				 * hugetlbfs ->mmap method fails,
-+				 * do_mmap_pgoff() nullifies vma->vm_file
-+				 * before calling this function to clean up.
-+				 * Since no pte has actually been setup, it is
-+				 * safe to do nothing in this case.
-+				 */
-+				if (vma->vm_file) {
-+					unmap_hugepage_range(vma, start, end, NULL);
-+					zap_work -= (end - start) /
- 					pages_per_huge_page(hstate_vma(vma));
-+				}
-+
- 				start = end;
- 			} else
- 				start = unmap_page_range(*tlbp, vma,
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
