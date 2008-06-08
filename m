@@ -1,138 +1,160 @@
 From: akpm@linux-foundation.org
-Subject: - hugetlb-fix-lockdep-error.patch removed from -mm tree
-Date: Sun, 08 Jun 2008 12:47:09 -0700
-Message-ID: <200806081947.m58Jl997017399@imap1.linux-foundation.org>
+Subject: - uml-deal-with-inaccessible-address-space-start.patch removed from -mm tree
+Date: Sun, 08 Jun 2008 12:47:43 -0700
+Message-ID: <200806081947.m58JlhUn017439@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41585 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53976 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754484AbYFHTry (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 15:47:54 -0400
+	by vger.kernel.org with ESMTP id S1755277AbYFHTrp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 15:47:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, agl@us.ibm.com, kosaki.motohiro@jp.fujitsu.com, nacc@us.ibm.com, mm-commits@vger.kernel.org
+To: tspink@gmail.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hugetlb: fix lockdep error
+     uml: deal with inaccessible address space start
 has been removed from the -mm tree.  Its filename was
-     hugetlb-fix-lockdep-error.patch
+     uml-deal-with-inaccessible-address-space-start.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlb: fix lockdep error
-From: Nick Piggin <npiggin@suse.de>
+Subject: uml: deal with inaccessible address space start
+From: Tom Spink <tspink@gmail.com>
 
-=============================================
-[ INFO: possible recursive locking detected ]
-2.6.26-rc4 #30
----------------------------------------------
-heap-overflow/2250 is trying to acquire lock:
- (&mm->page_table_lock){--..}, at: [<c0000000000cf2e8>] .copy_hugetlb_page_range+0x108/0x280
+This patch makes os_get_task_size locate the bottom of the address space,
+as well as the top.  This is for systems which put a lower limit on mmap
+addresses.  It works by manually scanning pages from zero onwards until a
+valid page is found.
 
-but task is already holding lock:
- (&mm->page_table_lock){--..}, at: [<c0000000000cf2dc>] .copy_hugetlb_page_range+0xfc/0x280
+Because the bottom of the address space may not be zero, it's not
+sufficient to assume the top of the address space is the size of the
+address space.  The size is the difference between the top address and
+bottom address.
 
-other info that might help us debug this:
-3 locks held by heap-overflow/2250:
- #0:  (&mm->mmap_sem){----}, at: [<c000000000050e44>] .dup_mm+0x134/0x410
- #1:  (&mm->mmap_sem/1){--..}, at: [<c000000000050e54>] .dup_mm+0x144/0x410
- #2:  (&mm->page_table_lock){--..}, at: [<c0000000000cf2dc>] .copy_hugetlb_page_range+0xfc/0x280
-
-stack backtrace:
-Call Trace:
-[c00000003b2774e0] [c000000000010ce4] .show_stack+0x74/0x1f0 (unreliable)
-[c00000003b2775a0] [c0000000003f10e0] .dump_stack+0x20/0x34
-[c00000003b277620] [c0000000000889bc] .__lock_acquire+0xaac/0x1080
-[c00000003b277740] [c000000000089000] .lock_acquire+0x70/0xb0
-[c00000003b2777d0] [c0000000003ee15c] ._spin_lock+0x4c/0x80
-[c00000003b277870] [c0000000000cf2e8] .copy_hugetlb_page_range+0x108/0x280
-[c00000003b277950] [c0000000000bcaa8] .copy_page_range+0x558/0x790
-[c00000003b277ac0] [c000000000050fe0] .dup_mm+0x2d0/0x410
-[c00000003b277ba0] [c000000000051d24] .copy_process+0xb94/0x1020
-[c00000003b277ca0] [c000000000052244] .do_fork+0x94/0x310
-[c00000003b277db0] [c000000000011240] .sys_clone+0x60/0x80
-[c00000003b277e30] [c0000000000078c4] .ppc_clone+0x8/0xc
-
-Fix is the same way that mm/memory.c copy_page_range does the
-lockdep annotation.
-
-Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Acked-by: Adam Litke <agl@us.ibm.com>
-Acked-by: Nishanth Aravamudan <nacc@us.ibm.com>
-Signed-off-by: Nick Piggin <npiggin@suse.de>
+[jdike@addtoit.com: changed the name to reflect that this function is
+supposed to return the top of the process address space, not its size and
+changed the return value to reflect that.  Also some minor formatting
+changes]
+Signed-off-by: Tom Spink <tspink@gmail.com>
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/um/include/os.h                    |    2 -
+ arch/um/kernel/um_arch.c                |    2 -
+ arch/um/os-Linux/sys-i386/task_size.c   |   31 ++++++++++++++++------
+ arch/um/os-Linux/sys-x86_64/task_size.c |    2 -
+ 4 files changed, 26 insertions(+), 11 deletions(-)
 
-diff -puN mm/hugetlb.c~hugetlb-fix-lockdep-error mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-fix-lockdep-error
-+++ a/mm/hugetlb.c
-@@ -785,7 +785,7 @@ int copy_hugetlb_page_range(struct mm_st
- 			continue;
+diff -puN arch/um/include/os.h~uml-deal-with-inaccessible-address-space-start arch/um/include/os.h
+--- a/arch/um/include/os.h~uml-deal-with-inaccessible-address-space-start
++++ a/arch/um/include/os.h
+@@ -299,6 +299,6 @@ extern int os_arch_prctl(int pid, int co
+ extern int get_pty(void);
  
- 		spin_lock(&dst->page_table_lock);
--		spin_lock(&src->page_table_lock);
-+		spin_lock_nested(&src->page_table_lock, SINGLE_DEPTH_NESTING);
- 		if (!huge_pte_none(huge_ptep_get(src_pte))) {
- 			if (cow)
- 				huge_ptep_set_wrprotect(src, addr, src_pte);
+ /* sys-$ARCH/task_size.c */
+-extern unsigned long os_get_task_size(void);
++extern unsigned long os_get_top_address(void);
+ 
+ #endif
+diff -puN arch/um/kernel/um_arch.c~uml-deal-with-inaccessible-address-space-start arch/um/kernel/um_arch.c
+--- a/arch/um/kernel/um_arch.c~uml-deal-with-inaccessible-address-space-start
++++ a/arch/um/kernel/um_arch.c
+@@ -274,7 +274,7 @@ int __init linux_main(int argc, char **a
+ 	if (have_root == 0)
+ 		add_arg(DEFAULT_COMMAND_LINE);
+ 
+-	host_task_size = os_get_task_size();
++	host_task_size = os_get_top_address();
+ 	/*
+ 	 * TASK_SIZE needs to be PGDIR_SIZE aligned or else exit_mmap craps
+ 	 * out
+diff -puN arch/um/os-Linux/sys-i386/task_size.c~uml-deal-with-inaccessible-address-space-start arch/um/os-Linux/sys-i386/task_size.c
+--- a/arch/um/os-Linux/sys-i386/task_size.c~uml-deal-with-inaccessible-address-space-start
++++ a/arch/um/os-Linux/sys-i386/task_size.c
+@@ -63,7 +63,7 @@ static int page_ok(unsigned long page)
+ 	return ok;
+ }
+ 
+-unsigned long os_get_task_size(void)
++unsigned long os_get_top_address(void)
+ {
+ 	struct sigaction sa, old;
+ 	unsigned long bottom = 0;
+@@ -76,9 +76,9 @@ unsigned long os_get_task_size(void)
+ 	 * hosts, but shouldn't hurt otherwise.
+ 	 */
+ 	unsigned long top = 0xffffd000 >> UM_KERN_PAGE_SHIFT;
+-	unsigned long test;
++	unsigned long test, original;
+ 
+-	printf("Locating the top of the address space ... ");
++	printf("Locating the bottom of the address space ... ");
+ 	fflush(stdout);
+ 
+ 	/*
+@@ -89,16 +89,31 @@ unsigned long os_get_task_size(void)
+ 	sigemptyset(&sa.sa_mask);
+ 	sa.sa_flags = SA_NODEFER;
+ 	if (sigaction(SIGSEGV, &sa, &old)) {
+-		perror("os_get_task_size");
++		perror("os_get_top_address");
+ 		exit(1);
+ 	}
+ 
+-	if (!page_ok(bottom)) {
+-		fprintf(stderr, "Address 0x%x no good?\n",
+-			bottom << UM_KERN_PAGE_SHIFT);
++	/* Manually scan the address space, bottom-up, until we find
++	 * the first valid page (or run out of them).
++	 */
++	for (bottom = 0; bottom < top; bottom++) {
++		if (page_ok(bottom))
++			break;
++	}
++
++	/* If we've got this far, we ran out of pages. */
++	if (bottom == top) {
++		fprintf(stderr, "Unable to determine bottom of address "
++			"space.\n");
+ 		exit(1);
+ 	}
+ 
++	printf("0x%x\n", bottom << UM_KERN_PAGE_SHIFT);
++	printf("Locating the top of the address space ... ");
++	fflush(stdout);
++
++	original = bottom;
++
+ 	/* This could happen with a 4G/4G split */
+ 	if (page_ok(top))
+ 		goto out;
+@@ -114,7 +129,7 @@ unsigned long os_get_task_size(void)
+ out:
+ 	/* Restore the old SIGSEGV handling */
+ 	if (sigaction(SIGSEGV, &old, NULL)) {
+-		perror("os_get_task_size");
++		perror("os_get_top_address");
+ 		exit(1);
+ 	}
+ 	top <<= UM_KERN_PAGE_SHIFT;
+diff -puN arch/um/os-Linux/sys-x86_64/task_size.c~uml-deal-with-inaccessible-address-space-start arch/um/os-Linux/sys-x86_64/task_size.c
+--- a/arch/um/os-Linux/sys-x86_64/task_size.c~uml-deal-with-inaccessible-address-space-start
++++ a/arch/um/os-Linux/sys-x86_64/task_size.c
+@@ -1,4 +1,4 @@
+-unsigned long os_get_task_size(unsigned long shift)
++unsigned long os_get_top_address(unsigned long shift)
+ {
+ 	/* The old value of CONFIG_TOP_ADDR */
+ 	return 0x7fc0000000;
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from tspink@gmail.com are
 
 origin.patch
-linux-next.patch
-spufs-convert-nopfn-to-fault.patch
-mspec-convert-nopfn-to-fault.patch
-mspec-convert-nopfn-to-fault-fix.patch
-mm-remove-nopfn.patch
-mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co.patch
-hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed-build-fix.patch
-hugetlb-factor-out-prep_new_huge_page.patch
-hugetlb-modular-state-for-hugetlb-page-size.patch
-hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
-hugetlb-multiple-hstates-for-multiple-page-sizes.patch
-hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
-hugetlbfs-per-mount-huge-page-sizes.patch
-hugetlb-new-sysfs-interface.patch
-hugetlb-abstract-numa-round-robin-selection.patch
-mm-introduce-non-panic-alloc_bootmem.patch
-mm-export-prep_compound_page-to-mm.patch
-hugetlb-support-larger-than-max_order.patch
-hugetlb-support-boot-allocate-different-sizes.patch
-hugetlb-printk-cleanup.patch
-hugetlb-introduce-pud_huge.patch
-x86-support-gb-hugepages-on-64-bit.patch
-x86-add-hugepagesz-option-on-64-bit.patch
-hugetlb-override-default-huge-page-size.patch
-hugetlb-allow-arch-overried-hugepage-allocation.patch
-powerpc-function-to-allocate-gigantic-hugepages.patch
-powerpc-scan-device-tree-for-gigantic-pages.patch
-powerpc-define-support-for-16g-hugepages.patch
-fs-check-for-statfs-overflow.patch
-powerpc-support-multiple-hugepage-sizes.patch
-x86-implement-pte_special.patch
-mm-introduce-get_user_pages_fast.patch
-mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast.patch
-x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-fix.patch
-x86-lockless-get_user_pages_fast-fix-warning.patch
-dio-use-get_user_pages_fast.patch
-splice-use-get_user_pages_fast.patch
-mm-readahead-scan-lockless.patch
-radix-tree-add-gang_lookup_slot-gang_lookup_slot_tag.patch
-mm-speculative-page-references.patch
-mm-lockless-pagecache.patch
-mm-spinlock-tree_lock.patch
-powerpc-implement-pte_special.patch
-powerpc-lockless-get_user_pages_fast.patch
-reiser4.patch
-likeliness-accounting-change-and-cleanup.patch
 
