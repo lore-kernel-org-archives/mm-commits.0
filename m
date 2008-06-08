@@ -1,106 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Sun, 08 Jun 2008 12:40:57 -0700
-Message-ID: <200806081940.m58JevHF017196@imap1.linux-foundation.org>
+Subject: - mtd-unbork.patch removed from -mm tree
+Date: Sun, 08 Jun 2008 12:41:15 -0700
+Message-ID: <200806081941.m58JfFKJ017205@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49919 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32946 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752784AbYFHTlg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 15:41:36 -0400
+	by vger.kernel.org with ESMTP id S1752784AbYFHTlr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 15:41:47 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m58JfFSs029952
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Sun, 8 Jun 2008 12:41:16 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, david-b@pacbell.net, sfr@canb.auug.org.au
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     mtd-unbork
+has been removed from the -mm tree.  Its filename was
+     mtd-unbork.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
+Subject: mtd-unbork
 From: Andrew Morton <akpm@linux-foundation.org>
 
-can't be bothered unpicking this one.
-
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/sysdev/fsl_soc.c |    4 ----
- drivers/spi/spidev.c          |   28 ++++++++++++++--------------
- 2 files changed, 14 insertions(+), 18 deletions(-)
+ drivers/mtd/nand/nandsim.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN arch/powerpc/sysdev/fsl_soc.c~linux-next-git-rejects arch/powerpc/sysdev/fsl_soc.c
---- a/arch/powerpc/sysdev/fsl_soc.c~linux-next-git-rejects
-+++ a/arch/powerpc/sysdev/fsl_soc.c
-@@ -432,12 +432,8 @@ static struct i2c_driver_device i2c_devi
- 	{"dallas,ds1339",  "ds1339"},
- 	{"dallas,ds1340",  "ds1340"},
- 	{"stm,m41t00",     "m41t00"},
--<<<<<<< HEAD:arch/powerpc/sysdev/fsl_soc.c
--	{"dallas,ds1374",  "ds1374"},
--=======
- 	{"dallas,ds1374",  "rtc-ds1374"},
- 	{"cirrus,cs4270",  "cs4270"},
-->>>>>>> FETCH_HEAD:arch/powerpc/sysdev/fsl_soc.c
- };
+diff -puN drivers/mtd/nand/nandsim.c~mtd-unbork drivers/mtd/nand/nandsim.c
+--- a/drivers/mtd/nand/nandsim.c~mtd-unbork
++++ a/drivers/mtd/nand/nandsim.c
+@@ -38,6 +38,8 @@
+ #include <linux/list.h>
+ #include <linux/random.h>
  
- static int __init of_find_i2c_driver(struct device_node *node,
-diff -puN drivers/spi/spidev.c~linux-next-git-rejects drivers/spi/spidev.c
---- a/drivers/spi/spidev.c~linux-next-git-rejects
-+++ a/drivers/spi/spidev.c
-@@ -575,20 +575,20 @@ static int spidev_probe(struct spi_devic
- 	mutex_lock(&device_list_lock);
- 	minor = find_first_zero_bit(minors, N_SPI_MINORS);
- 	if (minor < N_SPI_MINORS) {
--<<<<<<< HEAD:drivers/spi/spidev.c
--		struct device *dev;
--
--		spidev->devt = MKDEV(SPIDEV_MAJOR, minor);
--		dev = device_create(spidev_class, &spi->dev, spidev->devt,
--				"spidev%d.%d",
--=======
--		spidev->dev.parent = &spi->dev;
--		spidev->dev.class = &spidev_class;
--		spidev->dev.devt = MKDEV(SPIDEV_MAJOR, minor);
--		dev_set_name(&spidev->dev, "spidev%d.%d",
-->>>>>>> FETCH_HEAD:drivers/spi/spidev.c
--				spi->master->bus_num, spi->chip_select);
--		status = IS_ERR(dev) ? PTR_ERR(dev) : 0;
-+//<<<<<<< HEAD:drivers/spi/spidev.c
-+//		struct device *dev;
-+//
-+//		spidev->devt = MKDEV(SPIDEV_MAJOR, minor);
-+//		dev = device_create(spidev_class, &spi->dev, spidev->devt,
-+//				"spidev%d.%d",
-+//=======
-+//		spi->dev.parent = &spi->dev;
-+//		spi->dev.class = &spidev_class;
-+//		spi->dev.devt = MKDEV(SPIDEV_MAJOR, minor);
-+//		dev_set_name(&spi->dev, "spidev%d.%d",
-+//>>>>>>> FETCH_HEAD:drivers/spi/spidev.c
-+//				spi->master->bus_num, spi->chip_select);
-+//		status = IS_ERR(dev) ? PTR_ERR(dev) : 0;
- 	} else {
- 		dev_dbg(&spi->dev, "no minor number available!\n");
- 		status = -ENODEV;
++#include <asm/div64.h>
++
+ /* Default simulator parameters values */
+ #if !defined(CONFIG_NANDSIM_FIRST_ID_BYTE)  || \
+     !defined(CONFIG_NANDSIM_SECOND_ID_BYTE) || \
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -111,7 +58,6 @@ next-remove-localversion.patch
 linux-next-git-rejects.patch
 fix-kobject-fix-kobject_rename-and-config_sysfs.patch
 kvm-is-busted-on-ia64.patch
-drivers-net-usb-kawethc-fix-printk-warning.patch
 mtd-unbork.patch
 revert-x86-remove-the-static-256k-node_to_cpumask_map.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
