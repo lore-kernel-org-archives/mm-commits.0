@@ -1,75 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: + m68k-add-ext2_find_firstnext_bit-for-ext4-checkpatch-fixes.patch added to -mm tree
-Date: Sun, 08 Jun 2008 13:51:48 -0700
-Message-ID: <200806082051.m58Kpm4w019908@imap1.linux-foundation.org>
+Subject: - ext4-is-busted-on-m68k.patch removed from -mm tree
+Date: Sun, 08 Jun 2008 13:51:59 -0700
+Message-ID: <200806082052.m58Kpxmj019912__48207.7846689664$1212958386$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49624 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35916 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754604AbYFHUwF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 16:52:05 -0400
+	by vger.kernel.org with ESMTP id S1754591AbYFHUwC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 16:52:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com, geert@linux-m68k.org
+To: akpm@linux-foundation.org, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     m68k-add-ext2_find_firstnext_bit-for-ext4-checkpatch-fixes
-has been added to the -mm tree.  Its filename is
-     m68k-add-ext2_find_firstnext_bit-for-ext4-checkpatch-fixes.patch
+     ext4 is busted on m68k
+has been removed from the -mm tree.  Its filename was
+     ext4-is-busted-on-m68k.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: m68k-add-ext2_find_firstnext_bit-for-ext4-checkpatch-fixes
+Subject: ext4 is busted on m68k
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: that open brace { should be on the previous line
-#37: FILE: include/asm-m68k/bitops.h:423:
-+	while (*p++ == 0UL)
-+	{
+And there appears to be little prospect of it getting fixed.
 
-total: 1 errors, 0 warnings, 52 lines checked
-
-./patches/m68k-add-ext2_find_firstnext_bit-for-ext4.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-m68k/bitops.h |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ fs/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/asm-m68k/bitops.h~m68k-add-ext2_find_firstnext_bit-for-ext4-checkpatch-fixes include/asm-m68k/bitops.h
---- a/include/asm-m68k/bitops.h~m68k-add-ext2_find_firstnext_bit-for-ext4-checkpatch-fixes
-+++ a/include/asm-m68k/bitops.h
-@@ -420,8 +420,7 @@ static inline int ext2_find_first_bit(co
- 		return 0;
- 
- 	size = (size >> 5) + ((size & 31) > 0);
--	while (*p++ == 0UL)
--	{
-+	while (*p++ == 0UL) {
- 		if (--size == 0)
- 			return (p - addr) << 5;
- 	}
+diff -puN fs/Kconfig~ext4-is-busted-on-m68k fs/Kconfig
+--- a/fs/Kconfig~ext4-is-busted-on-m68k
++++ a/fs/Kconfig
+@@ -139,6 +139,7 @@ config EXT3_FS_SECURITY
+ config EXT4DEV_FS
+ 	tristate "Ext4dev/ext4 extended fs support development (EXPERIMENTAL)"
+ 	depends on EXPERIMENTAL
++	depends on !M68K
+ 	select JBD2
+ 	select CRC16
+ 	help
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
