@@ -1,76 +1,138 @@
 From: akpm@linux-foundation.org
-Subject: - uml-activate_mm-remove-the-dead-pf_borrowed_mm-check.patch removed from -mm tree
-Date: Sun, 08 Jun 2008 12:49:58 -0700
-Message-ID: <200806081949.m58JnwWS017722@imap1.linux-foundation.org>
+Subject: - olpc-pci-fix-up-pci-stuff-so-that-pci_goany-supports-olpc.patch removed from -mm tree
+Date: Sun, 08 Jun 2008 12:49:46 -0700
+Message-ID: <200806081949.m58JnkRc017708@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42382 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34098 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754680AbYFHTua (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 15:50:30 -0400
+	by vger.kernel.org with ESMTP id S1754694AbYFHTue (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 15:50:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, jdike@addtoit.com, mm-commits@vger.kernel.org
+To: dilinger@queued.net, dilinger@debian.org, jbarnes@virtuousgeek.org, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: activate_mm: remove the dead PF_BORROWED_MM check
+     OLPC: pci: fix up PCI stuff so that PCI_GOANY supports OLPC
 has been removed from the -mm tree.  Its filename was
-     uml-activate_mm-remove-the-dead-pf_borrowed_mm-check.patch
+     olpc-pci-fix-up-pci-stuff-so-that-pci_goany-supports-olpc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: activate_mm: remove the dead PF_BORROWED_MM check
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: OLPC: pci: fix up PCI stuff so that PCI_GOANY supports OLPC
+From: Andres Salomon <dilinger@queued.net>
 
-use_mm() was changed to use switch_mm() instead of activate_mm(), since
-then nobody calls (and nobody should call) activate_mm() with
-PF_BORROWED_MM bit set.
+Previously, one would have to specifically choose CONFIG_OLPC and
+CONFIG_PCI_GOOLPC in order to enable PCI_OLPC.  That doesn't really work
+for distro kernels, so this patch allows one to choose CONFIG_OLPC and
+CONFIG_PCI_GOANY in order to build in OLPC support in a generic kernel (as
+requested by Robert Millan).
 
-As Jeff Dike pointed out, we can also remove the "old != new" check, it is
-always true.
+This also moves GOOLPC before GOANY in the menuconfig list.
 
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Jeff Dike <jdike@addtoit.com>
+Finally, make pci_access_init return early if we detect OLPC hardware. 
+There's no need to continue probing stuff, and pci_pcbios_init
+specifically trashes our settings (we didn't run into that before because
+PCI_GOANY wasn't supported).
+
+Signed-off-by: Andres Salomon <dilinger@debian.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c                     |    4 ----
- include/asm-um/mmu_context.h |   12 +++---------
- 2 files changed, 3 insertions(+), 13 deletions(-)
+ arch/x86/Kconfig    |   11 +++++------
+ arch/x86/pci/init.c |    3 ++-
+ arch/x86/pci/olpc.c |    5 +++--
+ arch/x86/pci/pci.h  |    2 +-
+ 4 files changed, 11 insertions(+), 10 deletions(-)
 
-diff -puN fs/aio.c~uml-activate_mm-remove-the-dead-pf_borrowed_mm-check fs/aio.c
---- a/fs/aio.c~uml-activate_mm-remove-the-dead-pf_borrowed_mm-check
-+++ a/fs/aio.c
-@@ -591,10 +591,6 @@ static void use_mm(struct mm_struct *mm)
- 	atomic_inc(&mm->mm_count);
- 	tsk->mm = mm;
- 	tsk->active_mm = mm;
--	/*
--	 * Note that on UML this *requires* PF_BORROWED_MM to be set, otherwise
--	 * it won't work. Update it accordingly if you change it here
--	 */
- 	switch_mm(active_mm, mm, tsk);
- 	task_unlock(tsk);
+diff -puN arch/x86/Kconfig~olpc-pci-fix-up-pci-stuff-so-that-pci_goany-supports-olpc arch/x86/Kconfig
+--- a/arch/x86/Kconfig~olpc-pci-fix-up-pci-stuff-so-that-pci_goany-supports-olpc
++++ a/arch/x86/Kconfig
+@@ -1556,13 +1556,13 @@ config PCI_GOMMCONFIG
+ config PCI_GODIRECT
+ 	bool "Direct"
  
-diff -puN include/asm-um/mmu_context.h~uml-activate_mm-remove-the-dead-pf_borrowed_mm-check include/asm-um/mmu_context.h
---- a/include/asm-um/mmu_context.h~uml-activate_mm-remove-the-dead-pf_borrowed_mm-check
-+++ a/include/asm-um/mmu_context.h
-@@ -22,16 +22,10 @@ extern void force_flush_all(void);
- static inline void activate_mm(struct mm_struct *old, struct mm_struct *new)
+-config PCI_GOANY
+-	bool "Any"
+-
+ config PCI_GOOLPC
+ 	bool "OLPC"
+ 	depends on OLPC
+ 
++config PCI_GOANY
++	bool "Any"
++
+ endchoice
+ 
+ config PCI_BIOS
+@@ -1579,9 +1579,8 @@ config PCI_MMCONFIG
+ 	depends on X86_32 && PCI && ACPI && (PCI_GOMMCONFIG || PCI_GOANY)
+ 
+ config PCI_OLPC
+-	bool
+-	depends on PCI && PCI_GOOLPC
+-	default y
++	def_bool y
++	depends on PCI && OLPC && (PCI_GOOLPC || PCI_GOANY)
+ 
+ config PCI_DOMAINS
+ 	def_bool y
+diff -puN arch/x86/pci/init.c~olpc-pci-fix-up-pci-stuff-so-that-pci_goany-supports-olpc arch/x86/pci/init.c
+--- a/arch/x86/pci/init.c~olpc-pci-fix-up-pci-stuff-so-that-pci_goany-supports-olpc
++++ a/arch/x86/pci/init.c
+@@ -15,7 +15,8 @@ static __init int pci_access_init(void)
+ 	pci_mmcfg_early_init();
+ 
+ #ifdef CONFIG_PCI_OLPC
+-	pci_olpc_init();
++	if (!pci_olpc_init())
++		return 0;	/* skip additional checks if it's an XO */
+ #endif
+ #ifdef CONFIG_PCI_BIOS
+ 	pci_pcbios_init();
+diff -puN arch/x86/pci/olpc.c~olpc-pci-fix-up-pci-stuff-so-that-pci_goany-supports-olpc arch/x86/pci/olpc.c
+--- a/arch/x86/pci/olpc.c~olpc-pci-fix-up-pci-stuff-so-that-pci_goany-supports-olpc
++++ a/arch/x86/pci/olpc.c
+@@ -302,12 +302,13 @@ static struct pci_raw_ops pci_olpc_conf 
+ 	.write = pci_olpc_write,
+ };
+ 
+-void __init pci_olpc_init(void)
++int __init pci_olpc_init(void)
  {
- 	/*
--	 * This is called by fs/exec.c and fs/aio.c. In the first case, for an
--	 * exec, we don't need to do anything as we're called from userspace
--	 * and thus going to use a new host PID. In the second, we're called
--	 * from a kernel thread, and thus need to go doing the mmap's on the
--	 * host. Since they're very expensive, we want to avoid that as far as
--	 * possible.
-+	 * This is called by fs/exec.c and sys_unshare()
-+	 * when the new ->mm is used for the first time.
- 	 */
--	if (old != new && (current->flags & PF_BORROWED_MM))
--		__switch_mm(&new->context.id);
+ 	if (!machine_is_olpc() || olpc_has_vsa())
+-		return;
++		return -ENODEV;
+ 
+ 	printk(KERN_INFO "PCI: Using configuration type OLPC\n");
+ 	raw_pci_ops = &pci_olpc_conf;
+ 	is_lx = is_geode_lx();
++	return 0;
+ }
+diff -puN arch/x86/pci/pci.h~olpc-pci-fix-up-pci-stuff-so-that-pci_goany-supports-olpc arch/x86/pci/pci.h
+--- a/arch/x86/pci/pci.h~olpc-pci-fix-up-pci-stuff-so-that-pci_goany-supports-olpc
++++ a/arch/x86/pci/pci.h
+@@ -102,7 +102,7 @@ extern struct pci_raw_ops pci_direct_con
+ extern int pci_direct_probe(void);
+ extern void pci_direct_init(int type);
+ extern void pci_pcbios_init(void);
+-extern void pci_olpc_init(void);
++extern int pci_olpc_init(void);
+ 
+ /* pci-mmconfig.c */
+ 
+_
+
+Patches currently in -mm which might be from dilinger@queued.net are
+
+origin.patch
+linux-next.patch
+git-battery.patch
+
