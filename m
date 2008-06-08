@@ -1,99 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: - md-fix-prexor-vs-sync_request-race.patch removed from -mm tree
-Date: Sun, 08 Jun 2008 12:46:55 -0700
-Message-ID: <200806081946.m58Jkt0N017375@imap1.linux-foundation.org>
+Subject: - cpusets-fix-and-update-documentation.patch removed from -mm tree
+Date: Sun, 08 Jun 2008 12:47:02 -0700
+Message-ID: <200806081947.m58Jl2dN017390@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35541 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53866 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755209AbYFHTrd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 15:47:33 -0400
+	by vger.kernel.org with ESMTP id S1755253AbYFHTrp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 15:47:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.j.williams@intel.com, neilb@suse.de, stable@kernel.org, mm-commits@vger.kernel.org
+To: miaox@cn.fujitsu.com, pj@sgi.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     md: fix prexor vs sync_request race
+     cpusets: fix and update Documentation
 has been removed from the -mm tree.  Its filename was
-     md-fix-prexor-vs-sync_request-race.patch
+     cpusets-fix-and-update-documentation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: md: fix prexor vs sync_request race
-From: Dan Williams <dan.j.williams@intel.com>
+Subject: cpusets: fix and update Documentation
+From: Miao Xie <miaox@cn.fujitsu.com>
 
-During the initial array synchronization process there is a window between
-when a prexor operation is scheduled to a specific stripe and when it
-completes for a sync_request to be scheduled to the same stripe.  When
-this happens the prexor completes and the stripe is unconditionally marked
-"insync", effectively canceling the sync_request for the stripe.  Prior to
-2.6.23 this was not a problem because the prexor operation was done under
-sh->lock.  The effect in older kernels being that the prexor would still
-erroneously mark the stripe "insync", but sync_request would be held off
-and re-mark the stripe as "!in_sync".
+Make the doc consistent with current cpusets implementation.
 
-Change the write completion logic to not mark the stripe "in_sync" if a
-prexor was performed.  The effect of the change is to sometimes not set
-STRIPE_INSYNC.  The worst this can do is cause the resync to stall waiting
-for STRIPE_INSYNC to be set.  If this were happening, then STRIPE_SYNCING
-would be set and handle_issuing_new_read_requests would cause all
-available blocks to eventually be read, at which point prexor would never
-be used on that stripe any more and STRIPE_INSYNC would eventually be set.
-
-echo repair > /sys/block/mdN/md/sync_action will correct arrays that may
-have lost this race.
-
-Cc: <stable@kernel.org>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Neil Brown <neilb@suse.de>
+Signed-off-by: Miao Xie <miaox@cn.fujitsu.com>
+Acked-by: Paul Jackson <pj@sgi.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/raid5.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ Documentation/cpusets.txt |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN drivers/md/raid5.c~md-fix-prexor-vs-sync_request-race drivers/md/raid5.c
---- a/drivers/md/raid5.c~md-fix-prexor-vs-sync_request-race
-+++ a/drivers/md/raid5.c
-@@ -2645,6 +2645,7 @@ static void handle_stripe5(struct stripe
- 	struct r5dev *dev;
- 	unsigned long pending = 0;
- 	mdk_rdev_t *blocked_rdev = NULL;
-+	int prexor;
+diff -puN Documentation/cpusets.txt~cpusets-fix-and-update-documentation Documentation/cpusets.txt
+--- a/Documentation/cpusets.txt~cpusets-fix-and-update-documentation
++++ a/Documentation/cpusets.txt
+@@ -199,7 +199,7 @@ using the sched_setaffinity, mbind and s
+ The following rules apply to each cpuset:
  
- 	memset(&s, 0, sizeof(s));
- 	pr_debug("handling stripe %llu, state=%#lx cnt=%d, pd_idx=%d "
-@@ -2774,9 +2775,11 @@ static void handle_stripe5(struct stripe
- 	/* leave prexor set until postxor is done, allows us to distinguish
- 	 * a rmw from a rcw during biodrain
- 	 */
-+	prexor = 0;
- 	if (test_bit(STRIPE_OP_PREXOR, &sh->ops.complete) &&
- 		test_bit(STRIPE_OP_POSTXOR, &sh->ops.complete)) {
+  - Its CPUs and Memory Nodes must be a subset of its parents.
+- - It can only be marked exclusive if its parent is.
++ - It can't be marked exclusive unless its parent is.
+  - If its cpu or memory is exclusive, they may not overlap any sibling.
  
-+		prexor = 1;
- 		clear_bit(STRIPE_OP_PREXOR, &sh->ops.complete);
- 		clear_bit(STRIPE_OP_PREXOR, &sh->ops.ack);
- 		clear_bit(STRIPE_OP_PREXOR, &sh->ops.pending);
-@@ -2810,6 +2813,8 @@ static void handle_stripe5(struct stripe
- 				if (!test_and_set_bit(
- 				    STRIPE_OP_IO, &sh->ops.pending))
- 					sh->ops.count++;
-+				if (prexor)
-+					continue;
- 				if (!test_bit(R5_Insync, &dev->flags) ||
- 				    (i == sh->pd_idx && s.failed == 0))
- 					set_bit(STRIPE_INSYNC, &sh->state);
+ These rules, and the natural hierarchy of cpusets, enable efficient
+@@ -345,7 +345,7 @@ is modified to perform an inline check f
+ flag, and if set, a call to a new routine cpuset_mem_spread_node()
+ returns the node to prefer for the allocation.
+ 
+-Similarly, setting 'memory_spread_cache' turns on the flag
++Similarly, setting 'memory_spread_slab' turns on the flag
+ PF_SPREAD_SLAB, and appropriately marked slab caches will allocate
+ pages from the node returned by cpuset_mem_spread_node().
+ 
+@@ -709,7 +709,10 @@ Now you want to do something with this c
+ 
+ In this directory you can find several files:
+ # ls
+-cpus  cpu_exclusive  mems  mem_exclusive mem_hardwall  tasks
++cpu_exclusive  memory_migrate      mems                      tasks
++cpus           memory_pressure     notify_on_release
++mem_exclusive  memory_spread_page  sched_load_balance
++mem_hardwall   memory_spread_slab  sched_relax_domain_level
+ 
+ Reading them will give you information about the state of this cpuset:
+ the CPUs and Memory Nodes it can use, the processes that are using
 _
 
-Patches currently in -mm which might be from dan.j.williams@intel.com are
+Patches currently in -mm which might be from miaox@cn.fujitsu.com are
 
 origin.patch
-linux-next.patch
-arm-fix-header-guards.patch
-fsldma-the-mpc8377mds-board-device-tree-node-for-fsldma-driver.patch
+cpusets-restructure-the-function-update_cpumask-and-update_nodemask.patch
+cpusets-update-tasks-cpus_allowed-and-mems_allowed-after-cpu-node-offline-online.patch
 
