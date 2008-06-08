@@ -1,105 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: - x86-add-workaround-for-bug-in-asus-a7v600-bios-rev-1005.patch removed from -mm tree
-Date: Sun, 08 Jun 2008 12:49:43 -0700
-Message-ID: <200806081949.m58JnhqM017705@imap1.linux-foundation.org>
+Subject: - nommu-fix-ksize-abuse.patch removed from -mm tree
+Date: Sun, 08 Jun 2008 12:49:01 -0700
+Message-ID: <200806081949.m58Jn1Ck017616@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46274 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35572 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754684AbYFHTuU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 15:50:20 -0400
+	by vger.kernel.org with ESMTP id S1754667AbYFHTuR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 15:50:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: int-e@gmx.de, alan@redhat.com, jbarnes@virtuousgeek.org, mm-commits@vger.kernel.org
+To: penberg@cs.helsinki.fi, clameter@sgi.com, dhowells@redhat.com, gerg@snapgear.com, lethal@linux-sh.org, mpm@selenic.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86: add workaround for bug in ASUS A7V600 BIOS (rev 1005)
+     nommu: fix ksize() abuse
 has been removed from the -mm tree.  Its filename was
-     x86-add-workaround-for-bug-in-asus-a7v600-bios-rev-1005.patch
+     nommu-fix-ksize-abuse.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: add workaround for bug in ASUS A7V600 BIOS (rev 1005)
-From: Bertram Felgenhauer <int-e@gmx.de>
+Subject: nommu: fix ksize() abuse
+From: Pekka Enberg <penberg@cs.helsinki.fi>
 
-This BIOS claims the VIA 8237 south bridge to be compatible with VIA 586,
-which it is not.
+The nommu binfmt code uses ksize() for pointers returned from do_mmap()
+which is wrong.  This converts the call-sites to use the nommu specific
+kobjsize() function which works as expected.
 
-Without this patch, I get the following warning while booting,
-among others,
-
-| PCI: Using IRQ router VIA [1106/3227] at 0000:00:11.0
-| ------------[ cut here ]------------
-| WARNING: at arch/x86/pci/irq.c:265 pirq_via586_get+0x4a/0x60()
-| Modules linked in:
-| Pid: 1, comm: swapper Not tainted 2.6.26-rc4-00015-g1ec7d99 #1
-|  [<c0119fd4>] warn_on_slowpath+0x54/0x70
-|  [<c02246e0>] ? vt_console_print+0x210/0x2b0
-|  [<c02244d0>] ? vt_console_print+0x0/0x2b0
-|  [<c011a413>] ? __call_console_drivers+0x43/0x60
-|  [<c011a482>] ? _call_console_drivers+0x52/0x80
-|  [<c011aa89>] ? release_console_sem+0x1c9/0x200
-|  [<c0291d21>] ? raw_pci_read+0x41/0x70
-|  [<c0291e8f>] ? pci_read+0x2f/0x40
-|  [<c029151a>] pirq_via586_get+0x4a/0x60
-|  [<c02914d0>] ? pirq_via586_get+0x0/0x60
-|  [<c029178d>] pcibios_lookup_irq+0x15d/0x430
-|  [<c03b895a>] pcibios_irq_init+0x17a/0x3e0
-|  [<c03a66f0>] ? kernel_init+0x0/0x250
-|  [<c03a6763>] kernel_init+0x73/0x250
-|  [<c03b87e0>] ? pcibios_irq_init+0x0/0x3e0
-|  [<c0114d00>] ? schedule_tail+0x10/0x40
-|  [<c0102dee>] ? ret_from_fork+0x6/0x1c
-|  [<c03a66f0>] ? kernel_init+0x0/0x250
-|  [<c03a66f0>] ? kernel_init+0x0/0x250
-|  [<c010324b>] kernel_thread_helper+0x7/0x1c
-|  =======================
-| ---[ end trace 4eaa2a86a8e2da22 ]---
-
-and IRQ trouble later,
-
-| irq 10: nobody cared (try booting with the "irqpoll" option)
-
-Now that's an VIA 8237 chip, so pirq_via586_get shouldn't be called
-at all; adding this workaround to via_router_probe() fixes the
-problem for me.
-
-Amazingly I have a 2.6.23.8 kernel that somehow works fine ... I'll
-never understand why.
-
-Signed-off-by: Bertram Felgenhauer <int-e@gmx.de>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
-Acked-by: Alan Cox <alan@redhat.com>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Matt Mackall <mpm@selenic.com>
+Acked-by: Paul Mundt <lethal@linux-sh.org>
+Acked-by: David Howells <dhowells@redhat.com>
+Signed-off-by: Pekka Enberg <penberg@cs.helsinki.fi>
+Acked-by: Greg Ungerer <gerg@snapgear.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/pci/irq.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ fs/binfmt_elf_fdpic.c |    2 +-
+ fs/binfmt_flat.c      |    8 ++++----
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN arch/x86/pci/irq.c~x86-add-workaround-for-bug-in-asus-a7v600-bios-rev-1005 arch/x86/pci/irq.c
---- a/arch/x86/pci/irq.c~x86-add-workaround-for-bug-in-asus-a7v600-bios-rev-1005
-+++ a/arch/x86/pci/irq.c
-@@ -646,6 +646,13 @@ static __init int via_router_probe(struc
- 			 */
- 			device = PCI_DEVICE_ID_VIA_8235;
- 			break;
-+		case PCI_DEVICE_ID_VIA_8237:
-+			/**
-+			 * Asus a7v600 bios wrongly reports 8237
-+			 * as 586-compatible
-+			 */
-+			device = PCI_DEVICE_ID_VIA_8237;
-+			break;
- 		}
+diff -puN fs/binfmt_elf_fdpic.c~nommu-fix-ksize-abuse fs/binfmt_elf_fdpic.c
+--- a/fs/binfmt_elf_fdpic.c~nommu-fix-ksize-abuse
++++ a/fs/binfmt_elf_fdpic.c
+@@ -390,7 +390,7 @@ static int load_elf_fdpic_binary(struct 
  	}
+ 
+ 	/* expand the stack mapping to use up the entire allocation granule */
+-	fullsize = ksize((char *) current->mm->start_brk);
++	fullsize = kobjsize((char *) current->mm->start_brk);
+ 	if (!IS_ERR_VALUE(do_mremap(current->mm->start_brk, stack_size,
+ 				    fullsize, 0, 0)))
+ 		stack_size = fullsize;
+diff -puN fs/binfmt_flat.c~nommu-fix-ksize-abuse fs/binfmt_flat.c
+--- a/fs/binfmt_flat.c~nommu-fix-ksize-abuse
++++ a/fs/binfmt_flat.c
+@@ -548,7 +548,7 @@ static int load_flat_file(struct linux_b
+ 			PROT_READ|PROT_WRITE|PROT_EXEC, MAP_PRIVATE, 0);
+ 		/* Remap to use all availabe slack region space */
+ 		if (realdatastart && (realdatastart < (unsigned long)-4096)) {
+-			reallen = ksize((void *)realdatastart);
++			reallen = kobjsize((void *)realdatastart);
+ 			if (reallen > len) {
+ 				realdatastart = do_mremap(realdatastart, len,
+ 					reallen, MREMAP_FIXED, realdatastart);
+@@ -600,7 +600,7 @@ static int load_flat_file(struct linux_b
+ 			PROT_READ | PROT_EXEC | PROT_WRITE, MAP_PRIVATE, 0);
+ 		/* Remap to use all availabe slack region space */
+ 		if (textpos && (textpos < (unsigned long) -4096)) {
+-			reallen = ksize((void *)textpos);
++			reallen = kobjsize((void *)textpos);
+ 			if (reallen > len) {
+ 				textpos = do_mremap(textpos, len, reallen,
+ 					MREMAP_FIXED, textpos);
+@@ -683,7 +683,7 @@ static int load_flat_file(struct linux_b
+ 		 */
+ 		current->mm->start_brk = datapos + data_len + bss_len;
+ 		current->mm->brk = (current->mm->start_brk + 3) & ~3;
+-		current->mm->context.end_brk = memp + ksize((void *) memp) - stack_len;
++		current->mm->context.end_brk = memp + kobjsize((void *) memp) - stack_len;
+ 	}
+ 
+ 	if (flags & FLAT_FLAG_KTRACE)
+@@ -790,7 +790,7 @@ static int load_flat_file(struct linux_b
+ 
+ 	/* zero the BSS,  BRK and stack areas */
+ 	memset((void*)(datapos + data_len), 0, bss_len + 
+-			(memp + ksize((void *) memp) - stack_len -	/* end brk */
++			(memp + kobjsize((void *) memp) - stack_len -	/* end brk */
+ 			libinfo->lib_list[id].start_brk) +		/* start brk */
+ 			stack_len);
  
 _
 
-Patches currently in -mm which might be from int-e@gmx.de are
+Patches currently in -mm which might be from penberg@cs.helsinki.fi are
 
 origin.patch
+linux-next.patch
+git-unionfs.patch
+git-pekka.patch
+page-flags-record-page-flag-overlays-explicitly.patch
+page-flags-record-page-flag-overlays-explicitly-xen.patch
+slub-record-page-flag-overlays-explicitly.patch
+slob-record-page-flag-overlays-explicitly.patch
+clean-up-duplicated-alloc-free_thread_info.patch
+slab-leaks3-default-y.patch
 
