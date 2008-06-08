@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlb-allow-arch-overried-hugepage-allocation.patch added to -mm tree
-Date: Sun, 08 Jun 2008 12:12:07 -0700
-Message-ID: <200806081912.m58JC7CL016198@imap1.linux-foundation.org>
+Subject: + powerpc-function-to-allocate-gigantic-hugepages.patch added to -mm tree
+Date: Sun, 08 Jun 2008 12:14:54 -0700
+Message-ID: <200806081914.m58JEsME016347@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44196 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50288 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754511AbYFHTMn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 15:12:43 -0400
+	by vger.kernel.org with ESMTP id S1754514AbYFHTPB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 15:15:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: npiggin@suse.de, agl@us.ibm.com, kniht@linux.vnet.ibm.com
 
 
 The patch titled
-     hugetlb: allow arch overried hugepage allocation
+     powerpc: function to allocate gigantic hugepages
 has been added to the -mm tree.  Its filename is
-     hugetlb-allow-arch-overried-hugepage-allocation.patch
+     powerpc-function-to-allocate-gigantic-hugepages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,15 +33,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlb: allow arch overried hugepage allocation
+Subject: powerpc: function to allocate gigantic hugepages
 From: Nick Piggin <npiggin@suse.de>
 
-Allow alloc_bootmem_huge_page() to be overridden by architectures that
-can't always use bootmem.  This requires huge_boot_pages to be available
-for use by this function.
-
-This is required for powerpc 16G pages, which have to be reserved prior to
-boot-time.  The location of these pages are indicated in the device tree.
+The 16G page locations have been saved during early boot in an array.  The
+alloc_bootmem_huge_page() function adds a page from here to the
+huge_boot_pages list.
 
 Acked-by: Adam Litke <agl@us.ibm.com>
 Signed-off-by: Jon Tollefson <kniht@linux.vnet.ibm.com>
@@ -49,72 +46,47 @@ Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |   10 ++++++++++
- mm/hugetlb.c            |   11 +++--------
- 2 files changed, 13 insertions(+), 8 deletions(-)
+ arch/powerpc/mm/hugetlbpage.c |   21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
 
-diff -puN include/linux/hugetlb.h~hugetlb-allow-arch-overried-hugepage-allocation include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~hugetlb-allow-arch-overried-hugepage-allocation
-+++ a/include/linux/hugetlb.h
-@@ -39,6 +39,7 @@ void hugetlb_unreserve_pages(struct inod
- extern unsigned long hugepages_treat_as_movable;
- extern const unsigned long hugetlb_zero, hugetlb_infinity;
- extern int sysctl_hugetlb_shm_group;
-+extern struct list_head huge_boot_pages;
+diff -puN arch/powerpc/mm/hugetlbpage.c~powerpc-function-to-allocate-gigantic-hugepages arch/powerpc/mm/hugetlbpage.c
+--- a/arch/powerpc/mm/hugetlbpage.c~powerpc-function-to-allocate-gigantic-hugepages
++++ a/arch/powerpc/mm/hugetlbpage.c
+@@ -29,6 +29,12 @@
  
- /* arch callbacks */
- 
-@@ -188,6 +189,14 @@ struct hstate {
- 	char name[HSTATE_NAME_LEN];
- };
- 
-+struct huge_bootmem_page {
-+	struct list_head list;
-+	struct hstate *hstate;
-+};
+ #define NUM_LOW_AREAS	(0x100000000UL >> SID_SHIFT)
+ #define NUM_HIGH_AREAS	(PGTABLE_RANGE >> HTLB_AREA_SHIFT)
++#define MAX_NUMBER_GPAGES	1024
 +
-+/* arch callback */
-+int __init alloc_bootmem_huge_page(struct hstate *h);
-+
- void __init hugetlb_add_hstate(unsigned order);
- struct hstate *size_to_hstate(unsigned long size);
++/* Tracks the 16G pages after the device tree is scanned and before the
++ * huge_boot_pages list is ready.  */
++static unsigned long gpage_freearray[MAX_NUMBER_GPAGES];
++static unsigned nr_gpages;
  
-@@ -256,6 +265,7 @@ static inline struct hstate *page_hstate
- 
- #else
- struct hstate {};
-+#define alloc_bootmem_huge_page(h) NULL
- #define hstate_file(f) NULL
- #define hstate_vma(v) NULL
- #define hstate_inode(i) NULL
-diff -puN mm/hugetlb.c~hugetlb-allow-arch-overried-hugepage-allocation mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-allow-arch-overried-hugepage-allocation
-+++ a/mm/hugetlb.c
-@@ -31,6 +31,8 @@ static int max_hstate;
- unsigned int default_hstate_idx;
- struct hstate hstates[HUGE_MAX_HSTATE];
- 
-+__initdata LIST_HEAD(huge_boot_pages);
-+
- /* for command line parsing */
- static struct hstate * __initdata parsed_hstate;
- static unsigned long __initdata default_hstate_max_huge_pages;
-@@ -849,14 +851,7 @@ static struct page *alloc_huge_page(stru
- 	return page;
+ unsigned int hugepte_shift;
+ #define PTRS_PER_HUGEPTE	(1 << hugepte_shift)
+@@ -104,6 +110,21 @@ pmd_t *hpmd_alloc(struct mm_struct *mm, 
  }
+ #endif
  
--static __initdata LIST_HEAD(huge_boot_pages);
--
--struct huge_bootmem_page {
--	struct list_head list;
--	struct hstate *hstate;
--};
--
--static int __init alloc_bootmem_huge_page(struct hstate *h)
-+__attribute__((weak)) int alloc_bootmem_huge_page(struct hstate *h)
++/* Moves the gigantic page addresses from the temporary list to the
++ * huge_boot_pages list.  */
++int alloc_bootmem_huge_page(struct hstate *h)
++{
++	struct huge_bootmem_page *m;
++	if (nr_gpages == 0)
++		return 0;
++	m = phys_to_virt(gpage_freearray[--nr_gpages]);
++	gpage_freearray[nr_gpages] = 0;
++	list_add(&m->list, &huge_boot_pages);
++	m->hstate = h;
++	return 1;
++}
++
++
+ /* Modelled after find_linux_pte() */
+ pte_t *huge_pte_offset(struct mm_struct *mm, unsigned long addr)
  {
- 	struct huge_bootmem_page *m;
- 	int nr_nodes = nodes_weight(node_online_map);
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
