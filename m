@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-clean-up-checking-of-the-disabled-flag.patch added to -mm tree
-Date: Sun, 08 Jun 2008 13:50:25 -0700
-Message-ID: <200806082050.m58KoPeO019890@imap1.linux-foundation.org>
+Subject: + m68k-add-ext2_find_firstnext_bit-for-ext4.patch added to -mm tree
+Date: Sun, 08 Jun 2008 13:51:22 -0700
+Message-ID: <200806082051.m58KpMBs019899@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54027 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60009 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754562AbYFHUvO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 16:51:14 -0400
+	by vger.kernel.org with ESMTP id S1754584AbYFHUvr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 16:51:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lizf@cn.fujitsu.com, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com
+Cc: aneesh.kumar@linux.vnet.ibm.com, geert@linux-m68k.org
 
 
 The patch titled
-     memcg: clean up checking of  the disabled flag
+     m68k: Add ext2_find_{first,next}_bit() for ext4
 has been added to the -mm tree.  Its filename is
-     memcg-clean-up-checking-of-the-disabled-flag.patch
+     m68k-add-ext2_find_firstnext_bit-for-ext4.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,80 +33,85 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: clean up checking of  the disabled flag
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: m68k: Add ext2_find_{first,next}_bit() for ext4
+From: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
 
-Those checks are unnecessary, because when the subsystem is disabled
-it can't be mounted, so those functions won't get called.
+Add ext2_find_{first,next}_bit(), which are needed for ext4.  They're
+derived out of the ext2_find_next_zero_bit found in the same file. 
+Compile tested with crosstools
 
-The check is needed in functions which will be called in other places
-except cgroup.
+[Reworked to preserve all symmetry with ext2_find_{first,next}_zero_bit()]
 
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+This fixes http://bugzilla.kernel.org/show_bug.cgi?id=10393
+
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    8 --------
- 1 file changed, 8 deletions(-)
+ include/asm-m68k/bitops.h |   46 ++++++++++++++++++++++++++++++++++--
+ 1 file changed, 44 insertions(+), 2 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-clean-up-checking-of-the-disabled-flag mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-clean-up-checking-of-the-disabled-flag
-+++ a/mm/memcontrol.c
-@@ -845,9 +845,6 @@ static int mem_cgroup_force_empty(struct
- 	int ret = -EBUSY;
- 	int node, zid;
- 
--	if (mem_cgroup_subsys.disabled)
--		return 0;
--
- 	css_get(&mem->css);
- 	/*
- 	 * page reclaim code (kswapd etc..) will move pages between
-@@ -1105,8 +1102,6 @@ static void mem_cgroup_destroy(struct cg
- static int mem_cgroup_populate(struct cgroup_subsys *ss,
- 				struct cgroup *cont)
- {
--	if (mem_cgroup_subsys.disabled)
--		return 0;
- 	return cgroup_add_files(cont, ss, mem_cgroup_files,
- 					ARRAY_SIZE(mem_cgroup_files));
+diff -puN include/asm-m68k/bitops.h~m68k-add-ext2_find_firstnext_bit-for-ext4 include/asm-m68k/bitops.h
+--- a/include/asm-m68k/bitops.h~m68k-add-ext2_find_firstnext_bit-for-ext4
++++ a/include/asm-m68k/bitops.h
+@@ -410,8 +410,50 @@ static inline int ext2_find_next_zero_bi
+ 	res = ext2_find_first_zero_bit (p, size - 32 * (p - addr));
+ 	return (p - addr) * 32 + res;
  }
-@@ -1119,9 +1114,6 @@ static void mem_cgroup_move_task(struct 
- 	struct mm_struct *mm;
- 	struct mem_cgroup *mem, *old_mem;
+-#define ext2_find_next_bit(addr, size, off) \
+-	generic_find_next_le_bit((unsigned long *)(addr), (size), (off))
++
++static inline int ext2_find_first_bit(const void *vaddr, unsigned size)
++{
++	const unsigned long *p = vaddr, *addr = vaddr;
++	int res;
++
++	if (!size)
++		return 0;
++
++	size = (size >> 5) + ((size & 31) > 0);
++	while (*p++ == 0UL)
++	{
++		if (--size == 0)
++			return (p - addr) << 5;
++	}
++
++	--p;
++	for (res = 0; res < 32; res++)
++		if (ext2_test_bit(res, p))
++			break;
++	return (p - addr) * 32 + res;
++}
++
++static inline int ext2_find_next_bit(const void *vaddr, unsigned size,
++				     unsigned offset)
++{
++	const unsigned long *addr = vaddr;
++	const unsigned long *p = addr + (offset >> 5);
++	int bit = offset & 31UL, res;
++
++	if (offset >= size)
++		return size;
++
++	if (bit) {
++		/* Look for one in first longword */
++		for (res = bit; res < 32; res++)
++			if (ext2_test_bit(res, p))
++				return (p - addr) * 32 + res;
++		p++;
++	}
++	/* No set bit yet, search remaining full bytes for a set bit */
++	res = ext2_find_first_bit(p, size - 32 * (p - addr));
++	return (p - addr) * 32 + res;
++}
  
--	if (mem_cgroup_subsys.disabled)
--		return;
--
- 	mm = get_task_mm(p);
- 	if (mm == NULL)
- 		return;
+ #endif /* __KERNEL__ */
+ 
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
 
+m68k-add-ext2_find_firstnext_bit-for-ext4.patch
 linux-next.patch
-git-leds.patch
-call_usermodehelper-increase-reliability.patch
-rtc-push-the-bkl-down-into-the-driver-ioctl-method-fix.patch
-cgroup-use-read-lock-to-guard-find_existing_css_set.patch
-cgroup-list_for_each-cleanup-v2.patch
-cgroup-anotate-two-variables-with-__read_mostly.patch
-memcg-avoid-unnecessary-initialization.patch
-memcg-better-migration-handling.patch
-memcg-remove-refcnt-from-page_cgroup.patch
-memcg-remove-refcnt-from-page_cgroup-fix.patch
-memcg-handle-swap-cache.patch
-memcg-helper-function-for-relcaim-from-shmem.patch
-memcg-add-hints-for-branch.patch
-memcg-remove-a-redundant-check.patch
-memcg-clean-up-checking-of-the-disabled-flag.patch
-memrlimit-add-memrlimit-controller-documentation.patch
-memrlimit-setup-the-memrlimit-controller.patch
-memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
-memrlimit-add-memrlimit-controller-accounting-and-control.patch
-cpusets-update-tasks-cpus_allowed-and-mems_allowed-after-cpu-node-offline-online.patch
+ext4-error-processing-and-coding-enhancement-for-mballoc.patch
 
