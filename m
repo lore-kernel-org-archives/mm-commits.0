@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + bootmem-clean-up-free_all_bootmem_core.patch added to -mm tree
-Date: Sun, 08 Jun 2008 16:35:25 -0700
-Message-ID: <200806082335.m58NZPfE025610@imap1.linux-foundation.org>
+Subject: + bootmem-free-reserve-helpers.patch added to -mm tree
+Date: Sun, 08 Jun 2008 16:35:34 -0700
+Message-ID: <200806082335.m58NZYdr025616@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60163 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36301 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754384AbYFHXgm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 19:36:42 -0400
+	by vger.kernel.org with ESMTP id S1757092AbYFHXg4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 19:36:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: hannes@saeurebad.de, andi@firstfloor.org, mingo@elte.hu, yhlu.kernel@gmail.c
 
 
 The patch titled
-     bootmem: clean up free_all_bootmem_core
+     bootmem: free/reserve helpers
 has been added to the -mm tree.  Its filename is
-     bootmem-clean-up-free_all_bootmem_core.patch
+     bootmem-free-reserve-helpers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,10 +33,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bootmem: clean up free_all_bootmem_core
+Subject: bootmem: free/reserve helpers
 From: Johannes Weiner <hannes@saeurebad.de>
 
-Rewrite the code in a more concise way using less variables.
+Factor out the common operation of marking a range on the bitmap.
 
 Signed-off-by: Johannes Weiner <hannes@saeurebad.de>
 Cc: Ingo Molnar <mingo@elte.hu>
@@ -45,117 +45,105 @@ Cc: Andi Kleen <andi@firstfloor.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/bootmem.c |   83 ++++++++++++++++++++++---------------------------
- 1 file changed, 38 insertions(+), 45 deletions(-)
+ mm/bootmem.c |   65 ++++++++++++++++++++++++++++++++-----------------
+ 1 file changed, 43 insertions(+), 22 deletions(-)
 
-diff -puN mm/bootmem.c~bootmem-clean-up-free_all_bootmem_core mm/bootmem.c
---- a/mm/bootmem.c~bootmem-clean-up-free_all_bootmem_core
+diff -puN mm/bootmem.c~bootmem-free-reserve-helpers mm/bootmem.c
+--- a/mm/bootmem.c~bootmem-free-reserve-helpers
 +++ a/mm/bootmem.c
-@@ -144,66 +144,59 @@ unsigned long __init init_bootmem(unsign
+@@ -225,6 +225,44 @@ unsigned long __init free_all_bootmem(vo
+ 	return free_all_bootmem_core(NODE_DATA(0)->bdata);
+ }
  
- static unsigned long __init free_all_bootmem_core(bootmem_data_t *bdata)
++static void __init __free(bootmem_data_t *bdata,
++			unsigned long sidx, unsigned long eidx)
++{
++	unsigned long idx;
++
++	bdebug("nid=%d start=%lx end=%lx\n", bdata - bootmem_node_data,
++		sidx + PFN_DOWN(bdata->node_boot_start),
++		eidx + PFN_DOWN(bdata->node_boot_start));
++
++	for (idx = sidx; idx < eidx; idx++)
++		if (!test_and_clear_bit(idx, bdata->node_bootmem_map))
++			BUG();
++}
++
++static int __init __reserve(bootmem_data_t *bdata, unsigned long sidx,
++			unsigned long eidx, int flags)
++{
++	unsigned long idx;
++	int exclusive = flags & BOOTMEM_EXCLUSIVE;
++
++	bdebug("nid=%d start=%lx end=%lx flags=%x\n",
++		bdata - bootmem_node_data,
++		sidx + PFN_DOWN(bdata->node_boot_start),
++		eidx + PFN_DOWN(bdata->node_boot_start),
++		flags);
++
++	for (idx = sidx; idx < eidx; idx++)
++		if (test_and_set_bit(idx, bdata->node_bootmem_map)) {
++			if (exclusive) {
++				__free(bdata, sidx, idx);
++				return -EBUSY;
++			}
++			bdebug("silent double reserve of PFN %lx\n",
++				idx + PFN_DOWN(bdata->node_boot_start));
++		}
++	return 0;
++}
++
+ static void __init free_bootmem_core(bootmem_data_t *bdata, unsigned long addr,
+ 				     unsigned long size)
  {
-+	int aligned;
- 	struct page *page;
--	unsigned long pfn;
--	unsigned long i, count;
--	unsigned long idx, pages;
--	unsigned long *map;
--	int gofast = 0;
+@@ -258,14 +296,7 @@ static void __init free_bootmem_core(boo
+ 	if (eidx > bdata->node_low_pfn - PFN_DOWN(bdata->node_boot_start))
+ 		eidx = bdata->node_low_pfn - PFN_DOWN(bdata->node_boot_start);
+ 
+-	bdebug("nid=%d start=%lx end=%lx\n", bdata - bootmem_node_data,
+-		sidx + PFN_DOWN(bdata->node_boot_start),
+-		eidx + PFN_DOWN(bdata->node_boot_start));
 -
--	BUG_ON(!bdata->node_bootmem_map);
+-	for (i = sidx; i < eidx; i++) {
+-		if (unlikely(!test_and_clear_bit(i, bdata->node_bootmem_map)))
+-			BUG();
+-	}
++	__free(bdata, sidx, eidx);
+ }
+ 
+ /**
+@@ -367,16 +398,7 @@ static void __init reserve_bootmem_core(
+ 	if (eidx > bdata->node_low_pfn - PFN_DOWN(bdata->node_boot_start))
+ 		eidx = bdata->node_low_pfn - PFN_DOWN(bdata->node_boot_start);
+ 
+-	bdebug("nid=%d start=%lx end=%lx flags=%x\n",
+-		bdata - bootmem_node_data,
+-		sidx + PFN_DOWN(bdata->node_boot_start),
+-		eidx + PFN_DOWN(bdata->node_boot_start),
+-		flags);
 -
--	count = 0;
--	/* first extant page of the node */
--	pfn = PFN_DOWN(bdata->node_boot_start);
--	idx = bdata->node_low_pfn - pfn;
--	map = bdata->node_bootmem_map;
-+	unsigned long start, end, pages, count = 0;
-+
-+	if (!bdata->node_bootmem_map)
-+		return 0;
-+
-+	start = PFN_DOWN(bdata->node_boot_start);
-+	end = bdata->node_low_pfn;
-+
- 	/*
--	 * Check if we are aligned to BITS_PER_LONG pages.  If so, we might
--	 * be able to free page orders of that size at once.
-+	 * If the start is aligned to the machines wordsize, we might
-+	 * be able to free pages in bulks of that order.
- 	 */
--	if (!(pfn & (BITS_PER_LONG-1)))
--		gofast = 1;
-+	aligned = !(start & (BITS_PER_LONG - 1));
-+
-+	bdebug("nid=%d start=%lx end=%lx aligned=%d\n",
-+		bdata - bootmem_node_data, start, end, aligned);
-+
-+	while (start < end) {
-+		unsigned long *map, idx, vec;
+-	for (i = sidx; i < eidx; i++)
+-		if (test_and_set_bit(i, bdata->node_bootmem_map))
+-			bdebug("hm, page %lx reserved twice.\n",
+-				PFN_DOWN(bdata->node_boot_start) + i);
++	return __reserve(bdata, sidx, eidx, flags);
+ }
  
--	for (i = 0; i < idx; ) {
--		unsigned long v = ~map[i / BITS_PER_LONG];
-+		map = bdata->node_bootmem_map;
-+		idx = start - PFN_DOWN(bdata->node_boot_start);
-+		vec = ~map[idx / BITS_PER_LONG];
+ /**
+@@ -510,10 +532,9 @@ find_block:
+ 		/*
+ 		 * Reserve the area now:
+ 		 */
+-		for (i = PFN_DOWN(start_off) + merge;
+-				i < PFN_UP(end_off); i++)
+-			if (test_and_set_bit(i, bdata->node_bootmem_map))
+-				BUG();
++		if (__reserve(bdata, PFN_DOWN(start_off) + merge,
++				PFN_UP(end_off), BOOTMEM_EXCLUSIVE))
++			BUG();
  
--		if (gofast && v == ~0UL) {
--			int order;
-+		if (aligned && vec == ~0UL && start + BITS_PER_LONG < end) {
-+			int order = ilog2(BITS_PER_LONG);
- 
--			page = pfn_to_page(pfn);
-+			__free_pages_bootmem(pfn_to_page(start), order);
- 			count += BITS_PER_LONG;
--			order = ffs(BITS_PER_LONG) - 1;
--			__free_pages_bootmem(page, order);
--			i += BITS_PER_LONG;
--			page += BITS_PER_LONG;
--		} else if (v) {
--			unsigned long m;
--
--			page = pfn_to_page(pfn);
--			for (m = 1; m && i < idx; m<<=1, page++, i++) {
--				if (v & m) {
--					count++;
-+		} else {
-+			unsigned long off = 0;
-+
-+			while (vec && off < BITS_PER_LONG) {
-+				if (vec & 1) {
-+					page = pfn_to_page(start + off);
- 					__free_pages_bootmem(page, 0);
-+					count++;
- 				}
-+				vec >>= 1;
-+				off++;
- 			}
--		} else {
--			i += BITS_PER_LONG;
- 		}
--		pfn += BITS_PER_LONG;
-+		start += BITS_PER_LONG;
- 	}
- 
--	/*
--	 * Now free the allocator bitmap itself, it's not
--	 * needed anymore:
--	 */
- 	page = virt_to_page(bdata->node_bootmem_map);
- 	pages = bdata->node_low_pfn - PFN_DOWN(bdata->node_boot_start);
--	idx = bootmem_bootmap_pages(pages);
--	for (i = 0; i < idx; i++, page++)
--		__free_pages_bootmem(page, 0);
--	count += i;
--	bdata->node_bootmem_map = NULL;
-+	pages = bootmem_bootmap_pages(pages);
-+	count += pages;
-+	while (pages--)
-+		__free_pages_bootmem(page++, 0);
- 
- 	bdebug("nid=%d released=%lx\n", bdata - bootmem_node_data, count);
- 
+ 		region = phys_to_virt(bdata->node_boot_start + start_off);
+ 		memset(region, 0, size);
 _
 
 Patches currently in -mm which might be from hannes@saeurebad.de are
