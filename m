@@ -1,75 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: - scsi-libiscsic-return-errno-rather-than-errno.patch removed from -mm tree
-Date: Sun, 08 Jun 2008 12:49:50 -0700
-Message-ID: <200806081949.m58JnohC017713@imap1.linux-foundation.org>
+Subject: - x86-add-workaround-for-bug-in-asus-a7v600-bios-rev-1005.patch removed from -mm tree
+Date: Sun, 08 Jun 2008 12:49:43 -0700
+Message-ID: <200806081949.m58JnhqM017705@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34658 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46274 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754637AbYFHTuO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 15:50:14 -0400
+	by vger.kernel.org with ESMTP id S1754684AbYFHTuU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 15:50:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lizf@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: int-e@gmx.de, alan@redhat.com, jbarnes@virtuousgeek.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scsi/libiscsi.c: return -errno rather than errno
+     x86: add workaround for bug in ASUS A7V600 BIOS (rev 1005)
 has been removed from the -mm tree.  Its filename was
-     scsi-libiscsic-return-errno-rather-than-errno.patch
+     x86-add-workaround-for-bug-in-asus-a7v600-bios-rev-1005.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi/libiscsi.c: return -errno rather than errno
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: x86: add workaround for bug in ASUS A7V600 BIOS (rev 1005)
+From: Bertram Felgenhauer <int-e@gmx.de>
 
-iscsi_prep_scsi_cmd_pdu() returns EIO in a failing path, but returns
--errno in other paths.
+This BIOS claims the VIA 8237 south bridge to be compatible with VIA 586,
+which it is not.
 
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Without this patch, I get the following warning while booting,
+among others,
+
+| PCI: Using IRQ router VIA [1106/3227] at 0000:00:11.0
+| ------------[ cut here ]------------
+| WARNING: at arch/x86/pci/irq.c:265 pirq_via586_get+0x4a/0x60()
+| Modules linked in:
+| Pid: 1, comm: swapper Not tainted 2.6.26-rc4-00015-g1ec7d99 #1
+|  [<c0119fd4>] warn_on_slowpath+0x54/0x70
+|  [<c02246e0>] ? vt_console_print+0x210/0x2b0
+|  [<c02244d0>] ? vt_console_print+0x0/0x2b0
+|  [<c011a413>] ? __call_console_drivers+0x43/0x60
+|  [<c011a482>] ? _call_console_drivers+0x52/0x80
+|  [<c011aa89>] ? release_console_sem+0x1c9/0x200
+|  [<c0291d21>] ? raw_pci_read+0x41/0x70
+|  [<c0291e8f>] ? pci_read+0x2f/0x40
+|  [<c029151a>] pirq_via586_get+0x4a/0x60
+|  [<c02914d0>] ? pirq_via586_get+0x0/0x60
+|  [<c029178d>] pcibios_lookup_irq+0x15d/0x430
+|  [<c03b895a>] pcibios_irq_init+0x17a/0x3e0
+|  [<c03a66f0>] ? kernel_init+0x0/0x250
+|  [<c03a6763>] kernel_init+0x73/0x250
+|  [<c03b87e0>] ? pcibios_irq_init+0x0/0x3e0
+|  [<c0114d00>] ? schedule_tail+0x10/0x40
+|  [<c0102dee>] ? ret_from_fork+0x6/0x1c
+|  [<c03a66f0>] ? kernel_init+0x0/0x250
+|  [<c03a66f0>] ? kernel_init+0x0/0x250
+|  [<c010324b>] kernel_thread_helper+0x7/0x1c
+|  =======================
+| ---[ end trace 4eaa2a86a8e2da22 ]---
+
+and IRQ trouble later,
+
+| irq 10: nobody cared (try booting with the "irqpoll" option)
+
+Now that's an VIA 8237 chip, so pirq_via586_get shouldn't be called
+at all; adding this workaround to via_router_probe() fixes the
+problem for me.
+
+Amazingly I have a 2.6.23.8 kernel that somehow works fine ... I'll
+never understand why.
+
+Signed-off-by: Bertram Felgenhauer <int-e@gmx.de>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Acked-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/libiscsi.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/pci/irq.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN drivers/scsi/libiscsi.c~scsi-libiscsic-return-errno-rather-than-errno drivers/scsi/libiscsi.c
---- a/drivers/scsi/libiscsi.c~scsi-libiscsic-return-errno-rather-than-errno
-+++ a/drivers/scsi/libiscsi.c
-@@ -307,7 +307,7 @@ static int iscsi_prep_scsi_cmd_pdu(struc
- 	hdr->hlength = hdrlength & 0xFF;
+diff -puN arch/x86/pci/irq.c~x86-add-workaround-for-bug-in-asus-a7v600-bios-rev-1005 arch/x86/pci/irq.c
+--- a/arch/x86/pci/irq.c~x86-add-workaround-for-bug-in-asus-a7v600-bios-rev-1005
++++ a/arch/x86/pci/irq.c
+@@ -646,6 +646,13 @@ static __init int via_router_probe(struc
+ 			 */
+ 			device = PCI_DEVICE_ID_VIA_8235;
+ 			break;
++		case PCI_DEVICE_ID_VIA_8237:
++			/**
++			 * Asus a7v600 bios wrongly reports 8237
++			 * as 586-compatible
++			 */
++			device = PCI_DEVICE_ID_VIA_8237;
++			break;
+ 		}
+ 	}
  
- 	if (conn->session->tt->init_cmd_task(conn->ctask))
--		return EIO;
-+		return -EIO;
- 
- 	conn->scsicmd_pdus_cnt++;
- 	debug_scsi("iscsi prep [%s cid %d sc %p cdb 0x%x itt 0x%x "
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from int-e@gmx.de are
 
-linux-next.patch
-git-leds.patch
-call_usermodehelper-increase-reliability.patch
-rtc-push-the-bkl-down-into-the-driver-ioctl-method-fix.patch
-cgroup-use-read-lock-to-guard-find_existing_css_set.patch
-cgroup-list_for_each-cleanup-v2.patch
-cgroup-anotate-two-variables-with-__read_mostly.patch
-memcg-avoid-unnecessary-initialization.patch
-memcg-better-migration-handling.patch
-memcg-remove-refcnt-from-page_cgroup.patch
-memcg-remove-refcnt-from-page_cgroup-fix.patch
-memcg-handle-swap-cache.patch
-memcg-helper-function-for-relcaim-from-shmem.patch
-memcg-add-hints-for-branch.patch
-memcg-remove-a-redundant-check.patch
-memrlimit-add-memrlimit-controller-documentation.patch
-memrlimit-setup-the-memrlimit-controller.patch
-memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
-memrlimit-add-memrlimit-controller-accounting-and-control.patch
-cpusets-update-tasks-cpus_allowed-and-mems_allowed-after-cpu-node-offline-online.patch
+origin.patch
 
