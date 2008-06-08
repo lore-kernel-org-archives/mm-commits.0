@@ -1,91 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-ds1374-rename-device-to-just-ds1374.patch removed from -mm tree
-Date: Sun, 08 Jun 2008 12:47:53 -0700
-Message-ID: <200806081947.m58Jlriv017455@imap1.linux-foundation.org>
+Subject: - md-fix-uninitialized-use-of-mddev-recovery_wait.patch removed from -mm tree
+Date: Sun, 08 Jun 2008 12:46:58 -0700
+Message-ID: <200806081946.m58Jkwpx017378@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49703 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40605 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754019AbYFHTsW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 15:48:22 -0400
+	by vger.kernel.org with ESMTP id S1753902AbYFHTsB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 15:48:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khali@linux-fr.org, a.zummo@towertech.it, benh@kernel.crashing.org, david-b@pacbell.net, galak@kernel.crashing.org, paulus@samba.org, mm-commits@vger.kernel.org
+To: dan.j.williams@intel.com, neilb@suse.de, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc-ds1374: rename device to just "ds1374"
+     md: fix uninitialized use of mddev->recovery_wait
 has been removed from the -mm tree.  Its filename was
-     rtc-ds1374-rename-device-to-just-ds1374.patch
+     md-fix-uninitialized-use-of-mddev-recovery_wait.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-ds1374: rename device to just "ds1374"
-From: Jean Delvare <khali@linux-fr.org>
+Subject: md: fix uninitialized use of mddev->recovery_wait
+From: Dan Williams <dan.j.williams@intel.com>
 
-Change the name of the device from "rtc-ds1374" to just "ds1374", to match
-what all other RTC drivers do.  I seem to remember that this name was
-chosen to avoid possible confusion with an older ds1374 driver, but that
-driver was removed 3 months ago.
+If an array was created with --assume-clean we will oops when trying to
+set ->resync_max.
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
-Acked-by: Kumar Gala <galak@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: David Brownell <david-b@pacbell.net>
+Fix this by initializing ->recovery_wait in mddev_find.
+
+Cc: <stable@kernel.org>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/sysdev/fsl_soc.c |    2 +-
- drivers/of/of_i2c.c           |    1 -
- drivers/rtc/rtc-ds1374.c      |    2 +-
- 3 files changed, 2 insertions(+), 3 deletions(-)
+ drivers/md/md.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/powerpc/sysdev/fsl_soc.c~rtc-ds1374-rename-device-to-just-ds1374 arch/powerpc/sysdev/fsl_soc.c
---- a/arch/powerpc/sysdev/fsl_soc.c~rtc-ds1374-rename-device-to-just-ds1374
-+++ a/arch/powerpc/sysdev/fsl_soc.c
-@@ -432,7 +432,7 @@ static struct i2c_driver_device i2c_devi
- 	{"dallas,ds1339",  "ds1339"},
- 	{"dallas,ds1340",  "ds1340"},
- 	{"stm,m41t00",     "m41t00"},
--	{"dallas,ds1374",  "rtc-ds1374"},
-+	{"dallas,ds1374",  "ds1374"},
- };
+diff -puN drivers/md/md.c~md-fix-uninitialized-use-of-mddev-recovery_wait drivers/md/md.c
+--- a/drivers/md/md.c~md-fix-uninitialized-use-of-mddev-recovery_wait
++++ a/drivers/md/md.c
+@@ -276,6 +276,7 @@ static mddev_t * mddev_find(dev_t unit)
+ 	atomic_set(&new->active, 1);
+ 	spin_lock_init(&new->write_lock);
+ 	init_waitqueue_head(&new->sb_wait);
++	init_waitqueue_head(&new->recovery_wait);
+ 	new->reshape_position = MaxSector;
+ 	new->resync_max = MaxSector;
+ 	new->level = LEVEL_NONE;
+@@ -5665,7 +5666,6 @@ void md_do_sync(mddev_t *mddev)
+ 		window/2,(unsigned long long) max_sectors/2);
  
- static int __init of_find_i2c_driver(struct device_node *node,
-diff -puN drivers/of/of_i2c.c~rtc-ds1374-rename-device-to-just-ds1374 drivers/of/of_i2c.c
---- a/drivers/of/of_i2c.c~rtc-ds1374-rename-device-to-just-ds1374
-+++ a/drivers/of/of_i2c.c
-@@ -21,7 +21,6 @@ struct i2c_driver_device {
- };
+ 	atomic_set(&mddev->recovery_active, 0);
+-	init_waitqueue_head(&mddev->recovery_wait);
+ 	last_check = 0;
  
- static struct i2c_driver_device i2c_devices[] = {
--	{ "dallas,ds1374", "rtc-ds1374" },
- };
- 
- static int of_find_i2c_driver(struct device_node *node,
-diff -puN drivers/rtc/rtc-ds1374.c~rtc-ds1374-rename-device-to-just-ds1374 drivers/rtc/rtc-ds1374.c
---- a/drivers/rtc/rtc-ds1374.c~rtc-ds1374-rename-device-to-just-ds1374
-+++ a/drivers/rtc/rtc-ds1374.c
-@@ -42,7 +42,7 @@
- #define DS1374_REG_TCR		0x09 /* Trickle Charge */
- 
- static const struct i2c_device_id ds1374_id[] = {
--	{ "rtc-ds1374", 0 },
-+	{ "ds1374", 0 },
- 	{ }
- };
- MODULE_DEVICE_TABLE(i2c, ds1374_id);
+ 	if (j>2) {
 _
 
-Patches currently in -mm which might be from khali@linux-fr.org are
+Patches currently in -mm which might be from dan.j.williams@intel.com are
 
 origin.patch
 linux-next.patch
-mm-only-enforce-acpi-resource-conflict-checks.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
+arm-fix-header-guards.patch
+fsldma-the-mpc8377mds-board-device-tree-node-for-fsldma-driver.patch
 
