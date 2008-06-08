@@ -1,65 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - x86-add-another-pci-id-for-ich6-force-hpet.patch removed from -mm tree
-Date: Sun, 08 Jun 2008 12:49:55 -0700
-Message-ID: <200806081949.m58JntJG017719@imap1.linux-foundation.org>
+Subject: - security-keys-remove-unused-key_alloc_sem.patch removed from -mm tree
+Date: Sun, 08 Jun 2008 12:48:26 -0700
+Message-ID: <200806081948.m58JmQe0017507@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44053 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51360 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754704AbYFHTux (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 15:50:53 -0400
+	by vger.kernel.org with ESMTP id S1754763AbYFHTyR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 15:54:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ole@ans.pl, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: dwalker@mvista.com, dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86: add another PCI ID for ICH6 force hpet
+     keys: remove unused key_alloc_sem
 has been removed from the -mm tree.  Its filename was
-     x86-add-another-pci-id-for-ich6-force-hpet.patch
+     security-keys-remove-unused-key_alloc_sem.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: add another PCI ID for ICH6 force hpet
-From: Krzysztof Piotr Oledzki <ole@ans.pl>
+Subject: keys: remove unused key_alloc_sem
+From: Daniel Walker <dwalker@mvista.com>
 
-Tested on Asus P5GDC-V
+This semaphore doesn't appear to be used, so remove it.
 
-$ lspci -n -n |grep ISA
-00:1f.0 ISA bridge [0601]: Intel Corporation 82801FB/FR (ICH6/ICH6R) LPC Interface Bridge [8086:2640] (rev 03)
-
-Force enabled HPET at base address 0xfed00000
-hpet clockevent registered
-hpet0: at MMIO 0xfed00000, IRQs 2, 8, 0
-hpet0: 3 64-bit timers, 14318180 Hz
-
-Signed-off-by: Krzysztof Piotr Oledzki <ole@ans.pl>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Daniel Walker <dwalker@mvista.com>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/quirks.c |    2 ++
- 1 file changed, 2 insertions(+)
+ security/keys/internal.h |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN arch/x86/kernel/quirks.c~x86-add-another-pci-id-for-ich6-force-hpet arch/x86/kernel/quirks.c
---- a/arch/x86/kernel/quirks.c~x86-add-another-pci-id-for-ich6-force-hpet
-+++ a/arch/x86/kernel/quirks.c
-@@ -159,6 +159,8 @@ static void ich_force_enable_hpet(struct
+diff -puN security/keys/internal.h~security-keys-remove-unused-key_alloc_sem security/keys/internal.h
+--- a/security/keys/internal.h~security-keys-remove-unused-key_alloc_sem
++++ a/security/keys/internal.h
+@@ -78,7 +78,6 @@ extern unsigned key_quota_maxbytes;
  
- DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_ESB2_0,
- 			 ich_force_enable_hpet);
-+DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_ICH6_0,
-+			 ich_force_enable_hpet);
- DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_ICH6_1,
- 			 ich_force_enable_hpet);
- DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_ICH7_0,
+ extern struct rb_root key_serial_tree;
+ extern spinlock_t key_serial_lock;
+-extern struct semaphore key_alloc_sem;
+ extern struct mutex key_construction_mutex;
+ extern wait_queue_head_t request_key_conswq;
+ 
 _
 
-Patches currently in -mm which might be from ole@ans.pl are
+Patches currently in -mm which might be from dwalker@mvista.com are
 
+origin.patch
 linux-next.patch
+macintosh-therm_windtunnel-semaphore-to-mutex.patch
+macintosh-media-bay-semaphore-to-mutex.patch
+profile-likely-unlikely-macros.patch
+likely_prof-changed-to-use-proc_create.patch
+likeliness-accounting-change-and-cleanup.patch
 
