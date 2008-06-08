@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + memstick-allow-set_param-method-to-return-an-error-code.patch added to -mm tree
-Date: Sun, 08 Jun 2008 14:30:08 -0700
-Message-ID: <200806082130.m58LU8Ou021324@imap1.linux-foundation.org>
+Subject: + memstick-add-start-and-stop-methods-to-memstick-device.patch added to -mm tree
+Date: Sun, 08 Jun 2008 14:30:11 -0700
+Message-ID: <200806082130.m58LUBWG021327@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40855 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54234 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755507AbYFHVaM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 17:30:12 -0400
+	by vger.kernel.org with ESMTP id S1755604AbYFHVaN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 17:30:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: oakad@yahoo.com
 
 
 The patch titled
-     memstick: allow "set_param" method to return an error code
+     memstick: add "start" and "stop" methods to memstick device
 has been added to the -mm tree.  Its filename is
-     memstick-allow-set_param-method-to-return-an-error-code.patch
+     memstick-add-start-and-stop-methods-to-memstick-device.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,246 +33,121 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memstick: allow "set_param" method to return an error code
+Subject: memstick: add "start" and "stop" methods to memstick device
 From: Alex Dubov <oakad@yahoo.com>
 
-Some controllers (Jmicron, for instance) can report temporal failure
-condition during power-on.  It is desirable to account for this using a
-return value of "set_param" device method.  The return value can also be
-handy to distinguish between supported and unsupported device parameters
-in run time.
+In some cases it may be desirable to ensure that associated driver is not
+going to access the media in some period of time.  "start" and "stop"
+methods are provided therefore to allow it.
 
 Signed-off-by: Alex Dubov <oakad@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/memstick/core/memstick.c  |   18 +++++--
- drivers/memstick/host/jmb38x_ms.c |   69 ++++++++++++++++++++--------
- drivers/memstick/host/tifm_ms.c   |   17 +++---
- include/linux/memstick.h          |    2 
- 4 files changed, 72 insertions(+), 34 deletions(-)
+ drivers/memstick/core/memstick.c    |   11 ++++++--
+ drivers/memstick/core/mspro_block.c |   33 ++++++++++++++++++++++++++
+ include/linux/memstick.h            |    4 +++
+ 3 files changed, 45 insertions(+), 3 deletions(-)
 
-diff -puN drivers/memstick/core/memstick.c~memstick-allow-set_param-method-to-return-an-error-code drivers/memstick/core/memstick.c
---- a/drivers/memstick/core/memstick.c~memstick-allow-set_param-method-to-return-an-error-code
+diff -puN drivers/memstick/core/memstick.c~memstick-add-start-and-stop-methods-to-memstick-device drivers/memstick/core/memstick.c
+--- a/drivers/memstick/core/memstick.c~memstick-add-start-and-stop-methods-to-memstick-device
 +++ a/drivers/memstick/core/memstick.c
-@@ -414,10 +414,14 @@ err_out:
- 	return NULL;
- }
+@@ -432,8 +432,11 @@ static void memstick_check(struct work_s
  
--static void memstick_power_on(struct memstick_host *host)
-+static int memstick_power_on(struct memstick_host *host)
- {
--	host->set_param(host, MEMSTICK_POWER, MEMSTICK_POWER_ON);
--	host->set_param(host, MEMSTICK_INTERFACE, MEMSTICK_SERIAL);
-+	int rc = host->set_param(host, MEMSTICK_POWER, MEMSTICK_POWER_ON);
-+
-+	if (!rc)
-+		rc = host->set_param(host, MEMSTICK_INTERFACE, MEMSTICK_SERIAL);
-+
-+	return rc;
- }
- 
- static void memstick_check(struct work_struct *work)
-@@ -571,11 +575,15 @@ EXPORT_SYMBOL(memstick_suspend_host);
-  */
- void memstick_resume_host(struct memstick_host *host)
- {
-+	int rc = 0;
-+
+ 	dev_dbg(&host->dev, "memstick_check started\n");
  	mutex_lock(&host->lock);
- 	if (host->card)
+-	if (!host->card)
 -		memstick_power_on(host);
-+		rc = memstick_power_on(host);
- 	mutex_unlock(&host->lock);
--	memstick_detect_change(host);
-+
-+	if (!rc)
-+		memstick_detect_change(host);
- }
- EXPORT_SYMBOL(memstick_resume_host);
++	if (!host->card) {
++		if (memstick_power_on(host))
++			goto out_power_off;
++	} else
++		host->card->stop(host->card);
  
-diff -puN drivers/memstick/host/jmb38x_ms.c~memstick-allow-set_param-method-to-return-an-error-code drivers/memstick/host/jmb38x_ms.c
---- a/drivers/memstick/host/jmb38x_ms.c~memstick-allow-set_param-method-to-return-an-error-code
-+++ a/drivers/memstick/host/jmb38x_ms.c
-@@ -609,36 +609,68 @@ static void jmb38x_ms_request(struct mem
- 	spin_unlock_irqrestore(&host->lock, flags);
- }
+ 	card = memstick_alloc_card(host);
  
--static void jmb38x_ms_reset(struct jmb38x_ms_host *host)
-+static int jmb38x_ms_reset(struct jmb38x_ms_host *host)
- {
--	unsigned int host_ctl = readl(host->addr + HOST_CONTROL);
-+	int cnt;
-+
-+	writel(HOST_CONTROL_RESET_REQ | HOST_CONTROL_CLOCK_EN
-+	       | readl(host->addr + HOST_CONTROL),
-+	       host->addr + HOST_CONTROL);
-+	mmiowb();
-+
-+	for (cnt = 0; cnt < 20; ++cnt) {
-+		if (!(HOST_CONTROL_RESET_REQ
-+		      & readl(host->addr + HOST_CONTROL)))
-+			goto reset_next;
-+
-+		ndelay(20);
-+	}
-+	dev_dbg(&host->chip->pdev->dev, "reset_req timeout\n");
-+	return -EIO;
-+
-+reset_next:
-+	writel(HOST_CONTROL_RESET | HOST_CONTROL_CLOCK_EN
-+	       | readl(host->addr + HOST_CONTROL),
-+	       host->addr + HOST_CONTROL);
-+	mmiowb();
+@@ -451,7 +454,8 @@ static void memstick_check(struct work_s
+ 			    || !(host->card->check(host->card))) {
+ 				device_unregister(&host->card->dev);
+ 				host->card = NULL;
+-			}
++			} else
++				host->card->start(host->card);
+ 		}
  
--	writel(HOST_CONTROL_RESET_REQ, host->addr + HOST_CONTROL);
-+	for (cnt = 0; cnt < 20; ++cnt) {
-+		if (!(HOST_CONTROL_RESET
-+		      & readl(host->addr + HOST_CONTROL)))
-+			goto reset_ok;
- 
--	while (HOST_CONTROL_RESET_REQ
--	       & (host_ctl = readl(host->addr + HOST_CONTROL))) {
- 		ndelay(20);
--		dev_dbg(&host->chip->pdev->dev, "reset %08x\n", host_ctl);
+ 		if (!host->card) {
+@@ -464,6 +468,7 @@ static void memstick_check(struct work_s
+ 			kfree(card);
  	}
-+	dev_dbg(&host->chip->pdev->dev, "reset timeout\n");
-+	return -EIO;
  
--	writel(HOST_CONTROL_RESET, host->addr + HOST_CONTROL);
-+reset_ok:
- 	mmiowb();
- 	writel(INT_STATUS_ALL, host->addr + INT_SIGNAL_ENABLE);
- 	writel(INT_STATUS_ALL, host->addr + INT_STATUS_ENABLE);
-+	return 0;
++out_power_off:
+ 	if (!host->card)
+ 		host->set_param(host, MEMSTICK_POWER, MEMSTICK_POWER_OFF);
+ 
+diff -puN drivers/memstick/core/mspro_block.c~memstick-add-start-and-stop-methods-to-memstick-device drivers/memstick/core/mspro_block.c
+--- a/drivers/memstick/core/mspro_block.c~memstick-add-start-and-stop-methods-to-memstick-device
++++ a/drivers/memstick/core/mspro_block.c
+@@ -752,6 +752,37 @@ static int mspro_block_has_request(struc
+ 	return rc;
  }
  
--static void jmb38x_ms_set_param(struct memstick_host *msh,
--				enum memstick_param param,
--				int value)
-+static int jmb38x_ms_set_param(struct memstick_host *msh,
-+			       enum memstick_param param,
-+			       int value)
- {
- 	struct jmb38x_ms_host *host = memstick_priv(msh);
- 	unsigned int host_ctl = readl(host->addr + HOST_CONTROL);
- 	unsigned int clock_ctl = CLOCK_CONTROL_40MHZ, clock_delay = 0;
++static void mspro_block_stop(struct memstick_dev *card)
++{
++	struct mspro_block_data *msb = memstick_get_drvdata(card);
 +	int rc = 0;
- 
--	switch (param) {
-+	switch(param) {
- 	case MEMSTICK_POWER:
- 		if (value == MEMSTICK_POWER_ON) {
--			jmb38x_ms_reset(host);
-+			rc = jmb38x_ms_reset(host);
-+			if (rc)
-+				return rc;
++	unsigned long flags;
 +
-+			host_ctl = 7;
-+			host_ctl |= HOST_CONTROL_POWER_EN
-+				 | HOST_CONTROL_CLOCK_EN;
-+			writel(host_ctl, host->addr + HOST_CONTROL);
- 
- 			writel(host->id ? PAD_PU_PD_ON_MS_SOCK1
- 					: PAD_PU_PD_ON_MS_SOCK0,
-@@ -647,11 +679,7 @@ static void jmb38x_ms_set_param(struct m
- 			writel(PAD_OUTPUT_ENABLE_MS,
- 			       host->addr + PAD_OUTPUT_ENABLE);
- 
--			host_ctl = 7;
--			host_ctl |= HOST_CONTROL_POWER_EN
--				 | HOST_CONTROL_CLOCK_EN;
--			writel(host_ctl, host->addr + HOST_CONTROL);
--
-+			msleep(10);
- 			dev_dbg(&host->chip->pdev->dev, "power on\n");
- 		} else if (value == MEMSTICK_POWER_OFF) {
- 			host_ctl &= ~(HOST_CONTROL_POWER_EN
-@@ -660,7 +688,8 @@ static void jmb38x_ms_set_param(struct m
- 			writel(0, host->addr + PAD_OUTPUT_ENABLE);
- 			writel(PAD_PU_PD_OFF, host->addr + PAD_PU_PD);
- 			dev_dbg(&host->chip->pdev->dev, "power off\n");
--		}
-+		} else
-+			return -EINVAL;
- 		break;
- 	case MEMSTICK_INTERFACE:
- 		host_ctl &= ~(3 << HOST_CONTROL_IF_SHIFT);
-@@ -686,12 +715,14 @@ static void jmb38x_ms_set_param(struct m
- 			host_ctl &= ~HOST_CONTROL_REI;
- 			clock_ctl = CLOCK_CONTROL_60MHZ;
- 			clock_delay = 0;
--		}
-+		} else
-+			return -EINVAL;
- 		writel(host_ctl, host->addr + HOST_CONTROL);
- 		writel(clock_ctl, host->addr + CLOCK_CONTROL);
- 		writel(clock_delay, host->addr + CLOCK_DELAY);
- 		break;
- 	};
-+	return 0;
- }
- 
- #ifdef CONFIG_PM
-diff -puN drivers/memstick/host/tifm_ms.c~memstick-allow-set_param-method-to-return-an-error-code drivers/memstick/host/tifm_ms.c
---- a/drivers/memstick/host/tifm_ms.c~memstick-allow-set_param-method-to-return-an-error-code
-+++ a/drivers/memstick/host/tifm_ms.c
-@@ -489,15 +489,12 @@ static void tifm_ms_request(struct memst
- 	return;
- }
- 
--static void tifm_ms_set_param(struct memstick_host *msh,
--			      enum memstick_param param,
--			      int value)
-+static int tifm_ms_set_param(struct memstick_host *msh,
-+			     enum memstick_param param,
-+			     int value)
++	while (1) {
++		spin_lock_irqsave(&msb->q_lock, flags);
++		if (!msb->has_request) {
++			blk_stop_queue(msb->queue);
++			rc = 1;
++		}
++		spin_unlock_irqrestore(&msb->q_lock, flags);
++
++		if (rc)
++			break;
++
++		wait_for_completion(&card->mrq_complete);
++	}
++}
++
++static void mspro_block_start(struct memstick_dev *card)
++{
++	struct mspro_block_data *msb = memstick_get_drvdata(card);
++	unsigned long flags;
++
++	spin_lock_irqsave(&msb->q_lock, flags);
++	blk_start_queue(msb->queue);
++	spin_unlock_irqrestore(&msb->q_lock, flags);
++}
++
+ static int mspro_block_queue_thread(void *data)
  {
- 	struct tifm_ms *host = memstick_priv(msh);
- 	struct tifm_dev *sock = host->dev;
--	unsigned long flags;
--
--	spin_lock_irqsave(&sock->lock, flags);
+ 	struct memstick_dev *card = data;
+@@ -1272,6 +1303,8 @@ static int mspro_block_probe(struct mems
+ 	rc = mspro_block_init_disk(card);
+ 	if (!rc) {
+ 		card->check = mspro_block_check_card;
++		card->stop = mspro_block_stop;
++		card->start = mspro_block_start;
+ 		return 0;
+ 	}
  
- 	switch (param) {
- 	case MEMSTICK_POWER:
-@@ -512,7 +509,8 @@ static void tifm_ms_set_param(struct mem
- 			writel(TIFM_MS_SYS_FCLR | TIFM_MS_SYS_INTCLR,
- 			       sock->addr + SOCK_MS_SYSTEM);
- 			writel(0xffffffff, sock->addr + SOCK_MS_STATUS);
--		}
-+		} else
-+			return -EINVAL;
- 		break;
- 	case MEMSTICK_INTERFACE:
- 		if (value == MEMSTICK_SERIAL) {
-@@ -525,11 +523,12 @@ static void tifm_ms_set_param(struct mem
- 			writel(TIFM_CTRL_FAST_CLK
- 			       | readl(sock->addr + SOCK_CONTROL),
- 			       sock->addr + SOCK_CONTROL);
--		}
-+		} else
-+			return -EINVAL;
- 		break;
- 	};
- 
--	spin_unlock_irqrestore(&sock->lock, flags);
-+	return 0;
- }
- 
- static void tifm_ms_abort(unsigned long data)
-diff -puN include/linux/memstick.h~memstick-allow-set_param-method-to-return-an-error-code include/linux/memstick.h
---- a/include/linux/memstick.h~memstick-allow-set_param-method-to-return-an-error-code
+diff -puN include/linux/memstick.h~memstick-add-start-and-stop-methods-to-memstick-device include/linux/memstick.h
+--- a/include/linux/memstick.h~memstick-add-start-and-stop-methods-to-memstick-device
 +++ a/include/linux/memstick.h
-@@ -284,7 +284,7 @@ struct memstick_host {
- 	/* Notify the host that some requests are pending. */
- 	void                (*request)(struct memstick_host *host);
- 	/* Set host IO parameters (power, clock, etc).     */
--	void                (*set_param)(struct memstick_host *host,
-+	int                 (*set_param)(struct memstick_host *host,
- 					 enum memstick_param param,
- 					 int value);
- 	unsigned long       private[0] ____cacheline_aligned;
+@@ -263,6 +263,10 @@ struct memstick_dev {
+ 	/* Get next request from the media driver.                         */
+ 	int                      (*next_request)(struct memstick_dev *card,
+ 						 struct memstick_request **mrq);
++	/* Tell the media driver to stop doing things                      */
++	void                     (*stop)(struct memstick_dev *card);
++	/* Allow the media driver to continue                              */
++	void                     (*start)(struct memstick_dev *card);
+ 
+ 	struct device            dev;
+ };
 _
 
 Patches currently in -mm which might be from oakad@yahoo.com are
