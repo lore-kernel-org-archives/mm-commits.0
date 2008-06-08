@@ -1,97 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: - libata-fix-g5-sata-broken-on-rc5.patch removed from -mm tree
-Date: Sun, 08 Jun 2008 12:49:38 -0700
-Message-ID: <200806081949.m58JncCM017698@imap1.linux-foundation.org>
+Subject: - pagemap-add-documentation-for-pagemap.patch removed from -mm tree
+Date: Sun, 08 Jun 2008 12:49:23 -0700
+Message-ID: <200806081949.m58JnNdH017677@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54410 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41824 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754597AbYFHTuL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 15:50:11 -0400
+	by vger.kernel.org with ESMTP id S1754591AbYFHTuD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 15:50:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh@veritas.com, alan@lxorguk.ukuu.org.uk, olaf@aepfle.de, mm-commits@vger.kernel.org
+To: ttuttle@google.com, mpm@selenic.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     libata: fix G5 SATA broken on -rc5
+     pagemap: add documentation for pagemap
 has been removed from the -mm tree.  Its filename was
-     libata-fix-g5-sata-broken-on-rc5.patch
+     pagemap-add-documentation-for-pagemap.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: libata: fix G5 SATA broken on -rc5
-From: Hugh Dickins <hugh@veritas.com>
+Subject: pagemap: add documentation for pagemap
+From: "Thomas Tuttle" <ttuttle@google.com>
 
-Fix G5 SATA irq 18: nobody cared, reported on -rc5 by Olaf Hering: fixlet
-to a57c1bade5a0ee5cd8b74502db9cbebb7f5780b2 libata-sff: Fix oops reported
-in kerneloops.org for pnp devices with no ctl
+Just a quick explanation of the pagemap interface from a userspace point
+of view, and an example of how to use it (in English, not code).
 
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Acked-by: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Tested-by: Olaf Hering <olaf@aepfle.de>
+Signed-off-by: Thomas  Tuttle <ttuttle@google.com>
+Cc: Matt Mackall <mpm@selenic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-sff.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/vm/pagemap.txt |   77 +++++++++++++++++++++++++++++++++
+ 1 file changed, 77 insertions(+)
 
-diff -puN drivers/ata/libata-sff.c~libata-fix-g5-sata-broken-on-rc5 drivers/ata/libata-sff.c
---- a/drivers/ata/libata-sff.c~libata-fix-g5-sata-broken-on-rc5
-+++ a/drivers/ata/libata-sff.c
-@@ -278,7 +278,7 @@ static u8 ata_sff_irq_status(struct ata_
- 		    	return status;
- 	}
- 	/* Clear INTRQ latch */
--	status = ata_sff_check_status(ap);
-+	status = ap->ops->sff_check_status(ap);
- 	return status;
- }
- 
+diff -puN /dev/null Documentation/vm/pagemap.txt
+--- /dev/null
++++ a/Documentation/vm/pagemap.txt
+@@ -0,0 +1,77 @@
++pagemap, from the userspace perspective
++---------------------------------------
++
++pagemap is a new (as of 2.6.25) set of interfaces in the kernel that allow
++userspace programs to examine the page tables and related information by
++reading files in /proc.
++
++There are three components to pagemap:
++
++ * /proc/pid/pagemap.  This file lets a userspace process find out which
++   physical frame each virtual page is mapped to.  It contains one 64-bit
++   value for each virtual page, containing the following data (from
++   fs/proc/task_mmu.c, above pagemap_read):
++
++    * Bits 0-55  page frame number (PFN) if present
++    * Bits 0-4   swap type if swapped
++    * Bits 5-55  swap offset if swapped
++    * Bits 55-60 page shift (page size = 1<<page shift)
++    * Bit  61    reserved for future use
++    * Bit  62    page swapped
++    * Bit  63    page present
++
++   If the page is not present but in swap, then the PFN contains an
++   encoding of the swap file number and the page's offset into the
++   swap. Unmapped pages return a null PFN. This allows determining
++   precisely which pages are mapped (or in swap) and comparing mapped
++   pages between processes.
++
++   Efficient users of this interface will use /proc/pid/maps to
++   determine which areas of memory are actually mapped and llseek to
++   skip over unmapped regions.
++
++ * /proc/kpagecount.  This file contains a 64-bit count of the number of
++   times each page is mapped, indexed by PFN.
++
++ * /proc/kpageflags.  This file contains a 64-bit set of flags for each
++   page, indexed by PFN.
++
++   The flags are (from fs/proc/proc_misc, above kpageflags_read):
++
++     0. LOCKED
++     1. ERROR
++     2. REFERENCED
++     3. UPTODATE
++     4. DIRTY
++     5. LRU
++     6. ACTIVE
++     7. SLAB
++     8. WRITEBACK
++     9. RECLAIM
++    10. BUDDY
++
++Using pagemap to do something useful:
++
++The general procedure for using pagemap to find out about a process' memory
++usage goes like this:
++
++ 1. Read /proc/pid/maps to determine which parts of the memory space are
++    mapped to what.
++ 2. Select the maps you are interested in -- all of them, or a particular
++    library, or the stack or the heap, etc.
++ 3. Open /proc/pid/pagemap and seek to the pages you would like to examine.
++ 4. Read a u64 for each page from pagemap.
++ 5. Open /proc/kpagecount and/or /proc/kpageflags.  For each PFN you just
++    read, seek to that entry in the file, and read the data you want.
++
++For example, to find the "unique set size" (USS), which is the amount of
++memory that a process is using that is not shared with any other process,
++you can go through every map in the process, find the PFNs, look those up
++in kpagecount, and tally up the number of pages that are only referenced
++once.
++
++Other notes:
++
++Reading from any of the files will return -EINVAL if you are not starting
++the read on an 8-byte boundary (e.g., if you seeked an odd number of bytes
++into the file), or if the size of the read is not a multiple of 8 bytes.
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from ttuttle@google.com are
 
 origin.patch
-linux-next.patch
-git-unionfs.patch
-access_process_vm-device-memory-infrastructure.patch
-use-generic_access_phys-for-dev-mem-mappings.patch
-use-generic_access_phys-for-dev-mem-mappings-fix.patch
-use-generic_access_phys-for-pci-mmap-on-x86.patch
-powerpc-ioremap_prot.patch
-spufs-use-the-new-vm_ops-access.patch
-spufs-use-the-new-vm_ops-access-fix.patch
-mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co.patch
-hugetlb-move-hugetlb_acct_memory.patch
-hugetlb-reserve-huge-pages-for-reliable-map_private-hugetlbfs-mappings-until-fork.patch
-hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed.patch
-hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed-fix.patch
-hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed-build-fix.patch
-huge-page-private-reservation-review-cleanups.patch
-huge-page-private-reservation-review-cleanups-fix.patch
-mm-record-map_noreserve-status-on-vmas-and-fix-small-page-mprotect-reservations.patch
-hugetlb-move-reservation-region-support-earlier.patch
-hugetlb-allow-huge-page-mappings-to-be-created-without-reservations.patch
-hugetlb-allow-huge-page-mappings-to-be-created-without-reservations-cleanups.patch
-generic_file_aio_read-cleanups.patch
-tmpfs-support-aio.patch
-memcg-better-migration-handling.patch
-memcg-remove-refcnt-from-page_cgroup.patch
-memcg-remove-refcnt-from-page_cgroup-fix.patch
-memcg-handle-swap-cache.patch
-memcg-helper-function-for-relcaim-from-shmem.patch
-memcg-add-hints-for-branch.patch
-memcg-remove-a-redundant-check.patch
-mm-readahead-scan-lockless.patch
-radix-tree-add-gang_lookup_slot-gang_lookup_slot_tag.patch
-mm-speculative-page-references.patch
-mm-lockless-pagecache.patch
-mm-spinlock-tree_lock.patch
-powerpc-implement-pte_special.patch
-powerpc-lockless-get_user_pages_fast.patch
-prio_tree-debugging-patch.patch
 
