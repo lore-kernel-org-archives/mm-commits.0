@@ -1,79 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: - cpufreq-fix-null-object-access-on-transmeta-cpu.patch removed from -mm tree
-Date: Sun, 08 Jun 2008 12:48:30 -0700
-Message-ID: <200806081948.m58JmUwG017513@imap1.linux-foundation.org>
+Subject: - proc-calculate-the-correct-proc-pid-link-count.patch removed from -mm tree
+Date: Sun, 08 Jun 2008 12:49:11 -0700
+Message-ID: <200806081949.m58JnBuH017633@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33458 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56606 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754490AbYFHTtV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 15:49:21 -0400
+	by vger.kernel.org with ESMTP id S1754504AbYFHTto (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 15:49:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: masaki.chikama@gmail.com, cebbert@redhat.com, davej@codemonkey.org.uk, linux@dominikbrodowski.net, stable@kernel.org, mm-commits@vger.kernel.org
+To: vegard.nossum@gmail.com, adobriyan@gmail.com, davem@davemloft.net, ebiederm@xmission.com, stable@kernel.org, xemul@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cpufreq: fix null object access on Transmeta CPU
+     proc: calculate the correct /proc/<pid> link count
 has been removed from the -mm tree.  Its filename was
-     cpufreq-fix-null-object-access-on-transmeta-cpu.patch
+     proc-calculate-the-correct-proc-pid-link-count.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpufreq: fix null object access on Transmeta CPU
-From: CHIKAMA masaki <masaki.chikama@gmail.com>
+Subject: proc: calculate the correct /proc/<pid> link count
+From: Vegard Nossum <vegard.nossum@gmail.com>
 
-If cpu specific cpufreq driver(i.e.  longrun) has "setpolicy" function,
-governor object isn't set into cpufreq_policy object at "__cpufreq_set_policy"
-function in driver/cpufreq/cpufreq.c .
+This patch:
 
-This causes a null object access at "store_scaling_setspeed" and
-"show_scaling_setspeed" function in driver/cpufreq/cpufreq.c when reading or
-writing through /sys interface (ex.  cat
-/sys/devices/system/cpu/cpu0/cpufreq/scaling_setspeed)
+  commit e9720acd728a46cb40daa52c99a979f7c4ff195c
+  Author: Pavel Emelyanov <xemul@openvz.org>
+  Date:   Fri Mar 7 11:08:40 2008 -0800
 
-Addresses:
-	http://bugzilla.kernel.org/show_bug.cgi?id=10654
-	https://bugzilla.redhat.com/show_bug.cgi?id=443354
+    [NET]: Make /proc/net a symlink on /proc/self/net (v3)
 
-Signed-off-by: CHIKAMA Masaki <masaki.chikama@gmail.com>
-Cc: Dave Jones <davej@codemonkey.org.uk>
-Cc: Chuck Ebbert <cebbert@redhat.com>
-Acked-by: Dominik Brodowski <linux@dominikbrodowski.net>
+introduced a /proc/self/net directory without bumping the corresponding
+link count for /proc/self.
+
+This patch replaces the static link count initializations with a call that
+counts the number of directory entries in the given pid_entry table
+whenever it is instantiated, and thus relieves the burden of manually
+keeping the two in sync.
+
+[akpm@linux-foundation.org: cleanup]
+Acked-by: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
+Signed-off-by: Vegard Nossum <vegard.nossum@gmail.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cpufreq/cpufreq.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/proc/base.c |   33 +++++++++++++++++++++++++--------
+ 1 file changed, 25 insertions(+), 8 deletions(-)
 
-diff -puN drivers/cpufreq/cpufreq.c~cpufreq-fix-null-object-access-on-transmeta-cpu drivers/cpufreq/cpufreq.c
---- a/drivers/cpufreq/cpufreq.c~cpufreq-fix-null-object-access-on-transmeta-cpu
-+++ a/drivers/cpufreq/cpufreq.c
-@@ -625,7 +625,7 @@ static ssize_t store_scaling_setspeed(st
- 	unsigned int freq = 0;
- 	unsigned int ret;
+diff -puN fs/proc/base.c~proc-calculate-the-correct-proc-pid-link-count fs/proc/base.c
+--- a/fs/proc/base.c~proc-calculate-the-correct-proc-pid-link-count
++++ a/fs/proc/base.c
+@@ -127,6 +127,25 @@ struct pid_entry {
+ 		NULL, &proc_single_file_operations,	\
+ 		{ .proc_show = &proc_##OTYPE } )
  
--	if (!policy->governor->store_setspeed)
-+	if (!policy->governor || !policy->governor->store_setspeed)
- 		return -EINVAL;
++/*
++ * Count the number of hardlinks for the pid_entry table, excluding the .
++ * and .. links.
++ */
++static unsigned int pid_entry_count_dirs(const struct pid_entry *entries,
++	unsigned int n)
++{
++	unsigned int i;
++	unsigned int count;
++
++	count = 0;
++	for (i = 0; i < n; ++i) {
++		if (S_ISDIR(entries[i].mode))
++			++count;
++	}
++
++	return count;
++}
++
+ int maps_protect;
+ EXPORT_SYMBOL(maps_protect);
  
- 	ret = sscanf(buf, "%u", &freq);
-@@ -639,7 +639,7 @@ static ssize_t store_scaling_setspeed(st
+@@ -2585,10 +2604,9 @@ static struct dentry *proc_pid_instantia
+ 	inode->i_op = &proc_tgid_base_inode_operations;
+ 	inode->i_fop = &proc_tgid_base_operations;
+ 	inode->i_flags|=S_IMMUTABLE;
+-	inode->i_nlink = 5;
+-#ifdef CONFIG_SECURITY
+-	inode->i_nlink += 1;
+-#endif
++
++	inode->i_nlink = 2 + pid_entry_count_dirs(tgid_base_stuff,
++		ARRAY_SIZE(tgid_base_stuff));
  
- static ssize_t show_scaling_setspeed(struct cpufreq_policy *policy, char *buf)
- {
--	if (!policy->governor->show_setspeed)
-+	if (!policy->governor || !policy->governor->show_setspeed)
- 		return sprintf(buf, "<unsupported>\n");
+ 	dentry->d_op = &pid_dentry_operations;
  
- 	return policy->governor->show_setspeed(policy, buf);
+@@ -2816,10 +2834,9 @@ static struct dentry *proc_task_instanti
+ 	inode->i_op = &proc_tid_base_inode_operations;
+ 	inode->i_fop = &proc_tid_base_operations;
+ 	inode->i_flags|=S_IMMUTABLE;
+-	inode->i_nlink = 4;
+-#ifdef CONFIG_SECURITY
+-	inode->i_nlink += 1;
+-#endif
++
++	inode->i_nlink = 2 + pid_entry_count_dirs(tid_base_stuff,
++		ARRAY_SIZE(tid_base_stuff));
+ 
+ 	dentry->d_op = &pid_dentry_operations;
+ 
 _
 
-Patches currently in -mm which might be from masaki.chikama@gmail.com are
+Patches currently in -mm which might be from vegard.nossum@gmail.com are
 
 origin.patch
+linux-next.patch
+arm-fix-header-guards.patch
+parisc-fix-incomplete-header-guard.patch
+kallsyms-fix-potential-overflow-in-binary-search.patch
+cputopology-always-define-cpu-topology-information.patch
+cputopology-always-define-cpu-topology-information-cleanup.patch
+quota-cleanup-loop-in-sync_dquots.patch
 
