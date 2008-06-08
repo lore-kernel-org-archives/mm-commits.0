@@ -1,21 +1,21 @@
 From: akpm@linux-foundation.org
 Subject: + rtc-ramtron-fm3130-rtc-support.patch added to -mm tree
-Date: Sun, 08 Jun 2008 16:42:41 -0700
-Message-ID: <200806082342.m58NgfZi025859@imap1.linux-foundation.org>
+Date: Sun, 08 Jun 2008 16:42:58 -0700
+Message-ID: <200806082342.m58Ngwth025862@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37759 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38082 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753758AbYFHXnT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 19:43:19 -0400
+	by vger.kernel.org with ESMTP id S1753902AbYFHXnf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 19:43:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alessandro.zummo@towertech.it, a.zummo@towertech.it, slapin@ossfans.org
+Cc: slapin@ossfans.org, a.zummo@towertech.it
 
 
 The patch titled
-     From: Alessandro Zummo <alessandro.zummo@towertech.it>
+     rtc: ramtron FM3130 RTC support
 has been added to the -mm tree.  Its filename is
      rtc-ramtron-fm3130-rtc-support.patch
 
@@ -33,25 +33,19 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: From: Alessandro Zummo <alessandro.zummo@towertech.it>
+Subject: rtc: ramtron FM3130 RTC support
 From: Sergey Lapin <slapin@ossfans.org>
 
-
-Ramtron FM3130 is a chip with two separate devices inside,
-RTC clock and FRAM. This driver provides only RTC functionality.
+Ramtron FM3130 is a chip with two separate devices inside, RTC clock and
+FRAM.  This driver provides only RTC functionality.
 
 This chip is met in lots of custom boards with AT91SAMXXXX CPU I work
 with, is cheap and in no way better or worse than any other RTC on market.
-While it is mostly met on much smaller devices, I think it is great to
+ While it is mostly met on much smaller devices, I think it is great to
 have it supported in Linux.
 
 Signed-off-by: Sergey Lapin <slapin@ossfans.org>
 Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
-
----
- create mode 100644 drivers/rtc/rtc-fm3130.c
-
-index 6cc2c03..5af28f9 100644
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
@@ -611,7 +605,7 @@ diff -puN /dev/null drivers/rtc/rtc-fm3130.c
 +
 _
 
-Patches currently in -mm which might be from alessandro.zummo@towertech.it are
+Patches currently in -mm which might be from slapin@ossfans.org are
 
 rtc-ramtron-fm3130-rtc-support.patch
 
