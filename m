@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-ramtron-fm3130-rtc-support.patch added to -mm tree
-Date: Sun, 08 Jun 2008 16:42:58 -0700
-Message-ID: <200806082342.m58Ngwth025862@imap1.linux-foundation.org>
+Subject: + gpio-gpio-driver-for-max7301-spi-gpio-expander.patch added to -mm tree
+Date: Sun, 08 Jun 2008 16:57:52 -0700
+Message-ID: <200806082357.m58NvqjJ026349@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38082 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40697 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753902AbYFHXnf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 19:43:35 -0400
+	by vger.kernel.org with ESMTP id S1753758AbYFHX6L (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 19:58:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: slapin@ossfans.org, a.zummo@towertech.it
+Cc: j.beisert@pengutronix.de, david-b@pacbell.net, g.liakhovetski@pengutronix.de
 
 
 The patch titled
-     rtc: ramtron FM3130 RTC support
+     gpio: gpio driver for max7301 SPI GPIO expander
 has been added to the -mm tree.  Its filename is
-     rtc-ramtron-fm3130-rtc-support.patch
+     gpio-gpio-driver-for-max7301-spi-gpio-expander.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,579 +33,404 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: ramtron FM3130 RTC support
-From: Sergey Lapin <slapin@ossfans.org>
+Subject: gpio: gpio driver for max7301 SPI GPIO expander
+From: Juergen Beisert <j.beisert@pengutronix.de>
 
-Ramtron FM3130 is a chip with two separate devices inside, RTC clock and
-FRAM.  This driver provides only RTC functionality.
+Maxim's MAX7301 is an SPI GPIO expander with 28 GPIOs. Note: MAX7301's interrupt
+feature is not supported yet.
 
-This chip is met in lots of custom boards with AT91SAMXXXX CPU I work
-with, is cheap and in no way better or worse than any other RTC on market.
- While it is mostly met on much smaller devices, I think it is great to
-have it supported in Linux.
-
-Signed-off-by: Sergey Lapin <slapin@ossfans.org>
-Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: Juergen Beisert <j.beisert@pengutronix.de>
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig      |    9 
- drivers/rtc/Makefile     |    3 
- drivers/rtc/rtc-fm3130.c |  501 +++++++++++++++++++++++++++++++++++++
- 3 files changed, 512 insertions(+), 1 deletion(-)
+ drivers/gpio/Kconfig        |    6 
+ drivers/gpio/Makefile       |    1 
+ drivers/gpio/max7301.c      |  333 ++++++++++++++++++++++++++++++++++
+ include/linux/spi/max7301.h |    9 
+ 4 files changed, 349 insertions(+)
 
-diff -puN drivers/rtc/Kconfig~rtc-ramtron-fm3130-rtc-support drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-ramtron-fm3130-rtc-support
-+++ a/drivers/rtc/Kconfig
-@@ -255,7 +255,16 @@ config RTC_DRV_S35390A
+diff -puN drivers/gpio/Kconfig~gpio-gpio-driver-for-max7301-spi-gpio-expander drivers/gpio/Kconfig
+--- a/drivers/gpio/Kconfig~gpio-gpio-driver-for-max7301-spi-gpio-expander
++++ a/drivers/gpio/Kconfig
+@@ -63,6 +63,12 @@ config GPIO_PCF857X
  
- 	  This driver can also be built as a module. If so the module
- 	  will be called rtc-s35390a.
-+config RTC_DRV_FM3130
-+	tristate "Ramtron FM3130"
+ comment "SPI GPIO expanders:"
+ 
++config GPIO_MAX7301
++	tristate "Maxim MAX7301 GPIO expander"
++	depends on SPI_MASTER
 +	help
-+	  If you say Y here you will get support for the
-+	  Ramtron FM3130 RTC chips.
-+	  Ramtron FM3130 is a chip with two separate devices inside,
-+	  RTC clock and FRAM. This driver provides only RTC functionality.
++	  gpio driver for Maxim MAX7301 SPI GPIO expander.
++
+ config GPIO_MCP23S08
+ 	tristate "Microchip MCP23S08 I/O expander"
+ 	depends on SPI_MASTER
+diff -puN drivers/gpio/Makefile~gpio-gpio-driver-for-max7301-spi-gpio-expander drivers/gpio/Makefile
+--- a/drivers/gpio/Makefile~gpio-gpio-driver-for-max7301-spi-gpio-expander
++++ a/drivers/gpio/Makefile
+@@ -4,6 +4,7 @@ ccflags-$(CONFIG_DEBUG_GPIO)	+= -DDEBUG
  
-+	  This driver can also be built as a module. If so the module
-+	  will be called rtc-fm3130.
- endif # I2C
+ obj-$(CONFIG_HAVE_GPIO_LIB)	+= gpiolib.o
  
- comment "SPI RTC drivers"
-diff -puN drivers/rtc/Makefile~rtc-ramtron-fm3130-rtc-support drivers/rtc/Makefile
---- a/drivers/rtc/Makefile~rtc-ramtron-fm3130-rtc-support
-+++ a/drivers/rtc/Makefile
-@@ -31,6 +31,7 @@ obj-$(CONFIG_RTC_DRV_DS1553)	+= rtc-ds15
- obj-$(CONFIG_RTC_DRV_DS1672)	+= rtc-ds1672.o
- obj-$(CONFIG_RTC_DRV_DS1742)	+= rtc-ds1742.o
- obj-$(CONFIG_RTC_DRV_EP93XX)	+= rtc-ep93xx.o
-+obj-$(CONFIG_RTC_DRV_FM3130)	+= rtc-fm3130.o
- obj-$(CONFIG_RTC_DRV_ISL1208)	+= rtc-isl1208.o
- obj-$(CONFIG_RTC_DRV_M41T80)	+= rtc-m41t80.o
- obj-$(CONFIG_RTC_DRV_M48T59)	+= rtc-m48t59.o
-@@ -42,6 +43,7 @@ obj-$(CONFIG_RTC_DRV_PCF8563)	+= rtc-pcf
- obj-$(CONFIG_RTC_DRV_PCF8583)	+= rtc-pcf8583.o
- obj-$(CONFIG_RTC_DRV_PL030)	+= rtc-pl030.o
- obj-$(CONFIG_RTC_DRV_PL031)	+= rtc-pl031.o
-+obj-$(CONFIG_RTC_DRV_PPC)	+= rtc-ppc.o
- obj-$(CONFIG_RTC_DRV_R9701)	+= rtc-r9701.o
- obj-$(CONFIG_RTC_DRV_RS5C313)	+= rtc-rs5c313.o
- obj-$(CONFIG_RTC_DRV_RS5C348)	+= rtc-rs5c348.o
-@@ -55,4 +57,3 @@ obj-$(CONFIG_RTC_DRV_TEST)	+= rtc-test.o
- obj-$(CONFIG_RTC_DRV_V3020)	+= rtc-v3020.o
- obj-$(CONFIG_RTC_DRV_VR41XX)	+= rtc-vr41xx.o
- obj-$(CONFIG_RTC_DRV_X1205)	+= rtc-x1205.o
--obj-$(CONFIG_RTC_DRV_PPC)	+= rtc-ppc.o
-diff -puN /dev/null drivers/rtc/rtc-fm3130.c
++obj-$(CONFIG_GPIO_MAX7301)	+= max7301.o
+ obj-$(CONFIG_GPIO_MCP23S08)	+= mcp23s08.o
+ obj-$(CONFIG_GPIO_PCA953X)	+= pca953x.o
+ obj-$(CONFIG_GPIO_PCF857X)	+= pcf857x.o
+diff -puN /dev/null drivers/gpio/max7301.c
 --- /dev/null
-+++ a/drivers/rtc/rtc-fm3130.c
-@@ -0,0 +1,501 @@
-+/*
-+ * rtc-fm3130.c - RTC driver for Ramtron FM3130 I2C chip.
++++ a/drivers/gpio/max7301.c
+@@ -0,0 +1,333 @@
++/**
++ * drivers/gpio/max7301.c
 + *
-+ *  Copyright (C) 2008 Sergey Lapin
-+ *  Based on ds1307 driver by James Chapman and David Brownell
++ * Copyright (C) 2006 Juergen Beisert, Pengutronix
++ * Copyright (C) 2008 Guennadi Liakhovetski, Pengutronix
 + *
 + * This program is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License version 2 as
 + * published by the Free Software Foundation.
++ *
++ * The Maxim's MAX7301 device is an SPI driven GPIO expander. There are
++ * 28 GPIOs. 8 of them can trigger an interrupt. See datasheet for more
++ * details
++ * Note:
++ * - DIN must be stable at the rising edge of clock.
++ * - when writing:
++ *   - always clock in 16 clocks at once
++ *   - at DIN: D15 first, D0 last
++ *   - D0..D7 = databyte, D8..D14 = commandbyte
++ *   - D15 = low -> write command
++ * - when reading
++ *   - always clock in 16 clocks at once
++ *   - at DIN: D15 first, D0 last
++ *   - D0..D7 = dummy, D8..D14 = register address
++ *   - D15 = high -> read command
++ *   - raise CS and assert it again
++ *   - always clock in 16 clocks at once
++ *   - at DOUT: D15 first, D0 last
++ *   - D0..D7 contains the data from the first cycle
++ *
++ * The driver exports a standard gpiochip interface
 + */
 +
-+#include <linux/module.h>
-+#include <linux/i2c.h>
-+#include <linux/rtc.h>
-+#include <linux/bcd.h>
++#include <linux/init.h>
++#include <linux/platform_device.h>
++#include <linux/mutex.h>
++#include <linux/spi/spi.h>
++#include <linux/spi/max7301.h>
++#include <linux/gpio.h>
 +
-+#define FM3130_RTC_CONTROL	(0x0)
-+#define FM3130_CAL_CONTROL	(0x1)
-+#define FM3130_RTC_SECONDS	(0x2)
-+#define FM3130_RTC_MINUTES	(0x3)
-+#define FM3130_RTC_HOURS	(0x4)
-+#define FM3130_RTC_DAY		(0x5)
-+#define FM3130_RTC_DATE		(0x6)
-+#define FM3130_RTC_MONTHS	(0x7)
-+#define FM3130_RTC_YEARS	(0x8)
++#define DRIVER_NAME "max7301"
 +
-+#define FM3130_ALARM_SECONDS	(0x9)
-+#define FM3130_ALARM_MINUTES	(0xa)
-+#define FM3130_ALARM_HOURS	(0xb)
-+#define FM3130_ALARM_DATE	(0xc)
-+#define FM3130_ALARM_MONTHS	(0xd)
-+#define FM3130_ALARM_WP_CONTROL	(0xe)
++/*
++ * Pin configurations, see MAX7301 datasheet page 6
++ */
++#define PIN_CONFIG_MASK 0x03
++#define PIN_CONFIG_IN_PULLUP 0x03
++#define PIN_CONFIG_IN_WO_PULLUP 0x02
++#define PIN_CONFIG_OUT 0x01
 +
-+#define FM3130_CAL_CONTROL_BIT_nOSCEN (1 << 7) /* Osciallator enabled */
-+#define FM3130_RTC_CONTROL_BIT_LB (1 << 7) /* Low battery */
-+#define FM3130_RTC_CONTROL_BIT_AF (1 << 6) /* Alarm flag */
-+#define FM3130_RTC_CONTROL_BIT_CF (1 << 5) /* Century overflow */
-+#define FM3130_RTC_CONTROL_BIT_POR (1 << 4) /* Power on reset */
-+#define FM3130_RTC_CONTROL_BIT_AEN (1 << 3) /* Alarm enable */
-+#define FM3130_RTC_CONTROL_BIT_CAL (1 << 2) /* Calibration mode */
-+#define FM3130_RTC_CONTROL_BIT_WRITE (1 << 1) /* W=1 -> write mode W=0 normal */
-+#define FM3130_RTC_CONTROL_BIT_READ (1 << 0) /* R=1 -> read mode R=0 normal */
++#define PIN_NUMBER 28
 +
-+#define FM3130_CLOCK_REGS 7
-+#define FM3130_ALARM_REGS 5
 +
-+struct fm3130 {
-+	u8			reg_addr_time;
-+	u8 			reg_addr_alarm;
-+	u8			regs[15];
-+	struct i2c_msg		msg[4];
-+	struct i2c_client	*client;
-+	struct rtc_device	*rtc;
-+	int			data_valid;
-+	int			alarm;
++/*
++ * Some registers must be read back to modify.
++ * To save time we cache them here in memory
++ */
++struct max7301 {
++	struct mutex	lock;
++	u8		port_config[8];	/* field 0 is unused */
++	u32		out_level;	/* cached output levels */
++	struct gpio_chip chip;
++	struct spi_device *spi;
 +};
-+static const struct i2c_device_id fm3130_id[] = {
-+	{ "fm3130-rtc", 0 },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(i2c, fm3130_id);
 +
-+#define FM3130_MODE_NORMAL		0
-+#define FM3130_MODE_WRITE		1
-+#define FM3130_MODE_READ		2
-+
-+static void fm3130_rtc_mode(struct device *dev, int mode)
++/**
++ * max7301_write - Write a new register content
++ * @spi: The SPI device
++ * @reg: Register offset
++ * @val: Value to write
++ *
++ * A write to the MAX7301 means one message with one transfer
++ *
++ * Returns 0 if successfull or a negative value on error
++ */
++static int max7301_write(struct spi_device *spi, unsigned int reg, unsigned int val)
 +{
-+	struct fm3130 *fm3130 = dev_get_drvdata(dev);
-+
-+	fm3130->regs[FM3130_RTC_CONTROL] =
-+		i2c_smbus_read_byte_data(fm3130->client, FM3130_RTC_CONTROL);
-+	switch (mode) {
-+	case FM3130_MODE_NORMAL:
-+		fm3130->regs[FM3130_RTC_CONTROL] &=
-+			~(FM3130_RTC_CONTROL_BIT_WRITE |
-+			FM3130_RTC_CONTROL_BIT_READ);
-+		break;
-+	case FM3130_MODE_WRITE:
-+		fm3130->regs[FM3130_RTC_CONTROL] |= FM3130_RTC_CONTROL_BIT_WRITE;
-+		break;
-+	case FM3130_MODE_READ:
-+		fm3130->regs[FM3130_RTC_CONTROL] |= FM3130_RTC_CONTROL_BIT_READ;
-+		break;
-+	default:
-+		dev_dbg(dev, "invalid mode %d\n", mode);
-+		break;
-+	}
-+	/* Checking for alarm */
-+	if (fm3130->regs[FM3130_RTC_CONTROL] & FM3130_RTC_CONTROL_BIT_AF) {
-+		fm3130->alarm = 1;
-+		fm3130->regs[FM3130_RTC_CONTROL] &= ~FM3130_RTC_CONTROL_BIT_AF;
-+	}
-+	i2c_smbus_write_byte_data(fm3130->client,
-+		 FM3130_RTC_CONTROL, fm3130->regs[FM3130_RTC_CONTROL]);
++	u16 word = ((reg & 0x7F) << 8) | (val & 0xFF);
++	return spi_write(spi, (const u8*)&word, sizeof(word));
 +}
 +
-+static int fm3130_get_time(struct device *dev, struct rtc_time *t)
++/**
++ * max7301_read - Read back register content
++ * @spi: The SPI device
++ * @reg: Register offset
++ *
++ * A read from the MAX7301 means one message with two transfers
++ *
++ * Returns positive 8 bit value from device if successfull or a
++ * negative value on error
++ */
++static int max7301_read(struct spi_device *spi, unsigned int reg)
 +{
-+	struct fm3130 *fm3130 = dev_get_drvdata(dev);
-+	int		tmp;
++	int ret;
++	u16 word;
 +
-+	if (!fm3130->data_valid) {
-+		/* We have invalid data in RTC, probably due
-+		to battery faults or other problems. Return EIO
-+		for now, it will allow us to set data later insted
-+		of error during probing which disables device */
-+		return -EIO;
-+	}
-+	fm3130_rtc_mode(dev, FM3130_MODE_READ);
-+
-+	/* read the RTC date and time registers all at once */
-+	tmp = i2c_transfer(to_i2c_adapter(fm3130->client->dev.parent),
-+			fm3130->msg, 2);
-+	if (tmp != 2) {
-+		dev_err(dev, "%s error %d\n", "read", tmp);
-+		return -EIO;
-+	}
-+
-+	fm3130_rtc_mode(dev, FM3130_MODE_NORMAL);
-+
-+	dev_dbg(dev, "%s: %02x %02x %02x %02x %02x %02x %02x %02x"
-+			"%02x %02x %02x %02x %02x %02x %02x\n",
-+			"read",
-+			fm3130->regs[0], fm3130->regs[1],
-+			fm3130->regs[2], fm3130->regs[3],
-+			fm3130->regs[4], fm3130->regs[5],
-+			fm3130->regs[6], fm3130->regs[7],
-+			fm3130->regs[8], fm3130->regs[9],
-+			fm3130->regs[0xa], fm3130->regs[0xb],
-+			fm3130->regs[0xc], fm3130->regs[0xd],
-+			fm3130->regs[0xe]);
-+
-+	t->tm_sec = BCD2BIN(fm3130->regs[FM3130_RTC_SECONDS] & 0x7f);
-+	t->tm_min = BCD2BIN(fm3130->regs[FM3130_RTC_MINUTES] & 0x7f);
-+	tmp = fm3130->regs[FM3130_RTC_HOURS] & 0x3f;
-+	t->tm_hour = BCD2BIN(tmp);
-+	t->tm_wday = BCD2BIN(fm3130->regs[FM3130_RTC_DAY] & 0x07) - 1;
-+	t->tm_mday = BCD2BIN(fm3130->regs[FM3130_RTC_DATE] & 0x3f);
-+	tmp = fm3130->regs[FM3130_RTC_MONTHS] & 0x1f;
-+	t->tm_mon = BCD2BIN(tmp) - 1;
-+
-+	/* assume 20YY not 19YY, and ignore CF bit */
-+	t->tm_year = BCD2BIN(fm3130->regs[FM3130_RTC_YEARS]) + 100;
-+
-+	dev_dbg(dev, "%s secs=%d, mins=%d, "
-+		"hours=%d, mday=%d, mon=%d, year=%d, wday=%d\n",
-+		"read", t->tm_sec, t->tm_min,
-+		t->tm_hour, t->tm_mday,
-+		t->tm_mon, t->tm_year, t->tm_wday);
-+
-+	/* initial clock setting can be undefined */
-+	return rtc_valid_tm(t);
++	word = 0x8000 | (reg << 8);
++	if ((ret = spi_write(spi, (const u8*)&word, sizeof(word))) != 0)
++		return ret;
++	/*
++	 * FIXME: This read should write 0x0000 (=NOOP at MAX7301 side)
++	 */
++	if ((ret = spi_read(spi, (u8*)&word, sizeof(word))))
++		return ret;
++	return word;
 +}
 +
-+
-+static int fm3130_set_time(struct device *dev, struct rtc_time *t)
++static int max7301_direction_input(struct gpio_chip *chip, unsigned offset)
 +{
-+	struct fm3130 *fm3130 = dev_get_drvdata(dev);
-+	int		tmp, i;
-+	u8		*buf = fm3130->regs;
++	struct max7301 *ts = container_of(chip, struct max7301, chip);
++	u8 *config;
++	int ret;
 +
-+	dev_dbg(dev, "%s secs=%d, mins=%d, "
-+		"hours=%d, mday=%d, mon=%d, year=%d, wday=%d\n",
-+		"write", t->tm_sec, t->tm_min,
-+		t->tm_hour, t->tm_mday,
-+		t->tm_mon, t->tm_year, t->tm_wday);
++	/* First 4 pins are unused in the controller */
++	offset += 4;
 +
-+	/* first register addr */
-+	buf[FM3130_RTC_SECONDS] = BIN2BCD(t->tm_sec);
-+	buf[FM3130_RTC_MINUTES] = BIN2BCD(t->tm_min);
-+	buf[FM3130_RTC_HOURS] = BIN2BCD(t->tm_hour);
-+	buf[FM3130_RTC_DAY] = BIN2BCD(t->tm_wday + 1);
-+	buf[FM3130_RTC_DATE] = BIN2BCD(t->tm_mday);
-+	buf[FM3130_RTC_MONTHS] = BIN2BCD(t->tm_mon + 1);
++	config = &ts->port_config[offset >> 2];
 +
-+	/* assume 20YY not 19YY */
-+	tmp = t->tm_year - 100;
-+	buf[FM3130_RTC_YEARS] = BIN2BCD(tmp);
++	mutex_lock(&ts->lock);
 +
-+	dev_dbg(dev, "%s: %02x %02x %02x %02x %02x %02x %02x"
-+		"%02x %02x %02x %02x %02x %02x %02x %02x\n",
-+		"write", buf[0], buf[1], buf[2], buf[3],
-+		buf[4], buf[5], buf[6], buf[7],
-+		buf[8], buf[9], buf[0xa], buf[0xb],
-+		buf[0xc], buf[0xd], buf[0xe]);
++	/* Standard GPIO API doesn't support pull-ups, has to be extended.
++	 * Hard-coding no pollup for now. */
++	*config = (*config & ~(3 << (offset & 3))) | (1 << (offset & 3));
 +
-+	fm3130_rtc_mode(dev, FM3130_MODE_WRITE);
++	ret = max7301_write(ts->spi, 0x08 + (offset >> 2), *config);
 +
-+	/* Writing time registers, we don't support multibyte transfers */
-+	for (i = 0; i < FM3130_CLOCK_REGS; i++) {
-+		i2c_smbus_write_byte_data(fm3130->client,
-+					FM3130_RTC_SECONDS + i,
-+					fm3130->regs[FM3130_RTC_SECONDS + i]);
-+	}
++	mutex_unlock(&ts->lock);
 +
-+	fm3130_rtc_mode(dev, FM3130_MODE_NORMAL);
-+
-+	/* We assume here that data are valid once written */
-+	if (!fm3130->data_valid)
-+		fm3130->data_valid = 1;
-+	return 0;
++	return ret;
 +}
 +
-+static int fm3130_read_alarm(struct device *dev, struct rtc_wkalrm *alrm)
++static int __max7301_set(struct max7301 *ts, unsigned offset, int value)
 +{
-+	struct fm3130 *fm3130 = dev_get_drvdata(dev);
-+	int tmp;
-+	struct rtc_time *tm = &alrm->time;
-+	/* read the RTC alarm registers all at once */
-+	tmp = i2c_transfer(to_i2c_adapter(fm3130->client->dev.parent),
-+			&fm3130->msg[2], 2);
-+	if (tmp != 2) {
-+		dev_err(dev, "%s error %d\n", "read", tmp);
-+		return -EIO;
-+	}
-+	dev_dbg(dev, "alarm read %02x %02x %02x %02x %02x\n",
-+			fm3130->regs[FM3130_ALARM_SECONDS],
-+			fm3130->regs[FM3130_ALARM_MINUTES],
-+			fm3130->regs[FM3130_ALARM_HOURS],
-+			fm3130->regs[FM3130_ALARM_DATE],
-+			fm3130->regs[FM3130_ALARM_MONTHS]);
-+
-+
-+	tm->tm_sec	= BCD2BIN(fm3130->regs[FM3130_ALARM_SECONDS] & 0x7F);
-+	tm->tm_min	= BCD2BIN(fm3130->regs[FM3130_ALARM_MINUTES] & 0x7F);
-+	tm->tm_hour	= BCD2BIN(fm3130->regs[FM3130_ALARM_HOURS] & 0x3F);
-+	tm->tm_mday	= BCD2BIN(fm3130->regs[FM3130_ALARM_DATE] & 0x3F);
-+	tm->tm_mon	= BCD2BIN(fm3130->regs[FM3130_ALARM_MONTHS] & 0x1F);
-+	if (tm->tm_mon > 0)
-+		tm->tm_mon -= 1; /* RTC is 1-12, tm_mon is 0-11 */
-+	dev_dbg(dev, "%s secs=%d, mins=%d, "
-+		"hours=%d, mday=%d, mon=%d, year=%d, wday=%d\n",
-+		"read alarm", tm->tm_sec, tm->tm_min,
-+		tm->tm_hour, tm->tm_mday,
-+		tm->tm_mon, tm->tm_year, tm->tm_wday);
-+
-+	return 0;
-+}
-+
-+static int fm3130_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
-+{
-+	struct fm3130 *fm3130 = dev_get_drvdata(dev);
-+	struct rtc_time *tm = &alrm->time;
-+	int i;
-+
-+	dev_dbg(dev, "%s secs=%d, mins=%d, "
-+		"hours=%d, mday=%d, mon=%d, year=%d, wday=%d\n",
-+		"write alarm", tm->tm_sec, tm->tm_min,
-+		tm->tm_hour, tm->tm_mday,
-+		tm->tm_mon, tm->tm_year, tm->tm_wday);
-+
-+	if (tm->tm_sec != -1)
-+		fm3130->regs[FM3130_ALARM_SECONDS] =
-+			BIN2BCD(tm->tm_sec) | 0x80;
-+
-+	if (tm->tm_min != -1)
-+		fm3130->regs[FM3130_ALARM_MINUTES] =
-+			BIN2BCD(tm->tm_min) | 0x80;
-+
-+	if (tm->tm_hour != -1)
-+		fm3130->regs[FM3130_ALARM_HOURS] =
-+			BIN2BCD(tm->tm_hour) | 0x80;
-+
-+	if (tm->tm_mday != -1)
-+		fm3130->regs[FM3130_ALARM_DATE] =
-+			BIN2BCD(tm->tm_mday) | 0x80;
-+
-+	if (tm->tm_mon != -1)
-+		fm3130->regs[FM3130_ALARM_MONTHS] =
-+			BIN2BCD(tm->tm_mon + 1) | 0x80;
-+
-+	dev_dbg(dev, "alarm write %02x %02x %02x %02x %02x\n",
-+			fm3130->regs[FM3130_ALARM_SECONDS],
-+			fm3130->regs[FM3130_ALARM_MINUTES],
-+			fm3130->regs[FM3130_ALARM_HOURS],
-+			fm3130->regs[FM3130_ALARM_DATE],
-+			fm3130->regs[FM3130_ALARM_MONTHS]);
-+	/* Writing time registers, we don't support multibyte transfers */
-+	for (i = 0; i < FM3130_ALARM_REGS; i++) {
-+		i2c_smbus_write_byte_data(fm3130->client,
-+					FM3130_ALARM_SECONDS + i,
-+					fm3130->regs[FM3130_ALARM_SECONDS + i]);
-+	}
-+	fm3130->regs[FM3130_RTC_CONTROL] =
-+		i2c_smbus_read_byte_data(fm3130->client, FM3130_RTC_CONTROL);
-+	/* Checking for alarm */
-+	if (fm3130->regs[FM3130_RTC_CONTROL] & FM3130_RTC_CONTROL_BIT_AF) {
-+		fm3130->alarm = 1;
-+		fm3130->regs[FM3130_RTC_CONTROL] &= ~FM3130_RTC_CONTROL_BIT_AF;
-+	}
-+	if (alrm->enabled) {
-+		i2c_smbus_write_byte_data(fm3130->client, FM3130_RTC_CONTROL,
-+			(fm3130->regs[FM3130_RTC_CONTROL] &
-+				~(FM3130_RTC_CONTROL_BIT_CAL)) |
-+					FM3130_RTC_CONTROL_BIT_AEN);
++	if (value) {
++		ts->out_level |= 1 << offset;
++		return max7301_write(ts->spi, 0x20 + offset, 0x01);
 +	} else {
-+		i2c_smbus_write_byte_data(fm3130->client, FM3130_RTC_CONTROL,
-+			fm3130->regs[FM3130_RTC_CONTROL] &
-+				~(FM3130_RTC_CONTROL_BIT_AEN));
++		ts->out_level &= ~(1 << offset);
++		return max7301_write(ts->spi, 0x20 + offset, 0x00);
 +	}
-+	return 0;
 +}
 +
-+static const struct rtc_class_ops fm3130_rtc_ops = {
-+	.read_time	= fm3130_get_time,
-+	.set_time	= fm3130_set_time,
-+	.read_alarm	= fm3130_read_alarm,
-+	.set_alarm	= fm3130_set_alarm,
-+};
-+
-+static struct i2c_driver fm3130_driver;
-+
-+static int __devinit fm3130_probe(struct i2c_client *client,
-+				  const struct i2c_device_id *id)
++static int max7301_direction_output(struct gpio_chip *chip, unsigned offset,
++				    int value)
 +{
-+	struct fm3130		*fm3130;
-+	int			err = -ENODEV;
-+	int			tmp;
-+	struct i2c_adapter	*adapter = to_i2c_adapter(client->dev.parent);
++	struct max7301 *ts = container_of(chip, struct max7301, chip);
++	u8 *config;
++	int ret;
 +
-+	if (!i2c_check_functionality(adapter,
-+			I2C_FUNC_I2C | I2C_FUNC_SMBUS_WRITE_BYTE_DATA))
-+		return -EIO;
++	/* First 4 pins are unused in the controller */
++	offset += 4;
 +
-+	fm3130 = kzalloc(sizeof(struct fm3130), GFP_KERNEL);
++	config = &ts->port_config[offset >> 2];
 +
-+	if (!fm3130)
++	mutex_lock(&ts->lock);
++
++	*config = (*config & ~(3 << (offset & 3))) | (1 << (offset & 3));
++
++	ret = __max7301_set(ts, offset, value);
++
++	if (!ret)
++		ret = max7301_write(ts->spi, 0x08 + (offset >> 2), *config);
++
++	mutex_unlock(&ts->lock);
++
++	return ret;
++}
++
++static int max7301_get(struct gpio_chip *chip, unsigned offset)
++{
++	struct max7301 *ts = container_of(chip, struct max7301, chip);
++	int config, level = -EINVAL;
++
++	/* First 4 pins are unused in the controller */
++	offset += 4;
++
++	mutex_lock(&ts->lock);
++
++	config = (ts->port_config[offset >> 2] >> ((offset & 3) * 2)) & 3;
++
++	switch (config) {
++	case 1:
++		/* Output: return cached level */
++		level =  !!(ts->out_level & (1 << offset));
++		break;
++	case 2:
++	case 3:
++		/* Input: read out */
++		level = max7301_read(ts->spi, 0x20 + offset) & 0x01;
++	}
++	mutex_unlock(&ts->lock);
++
++	return level;
++}
++
++static void max7301_set(struct gpio_chip *chip, unsigned offset, int value)
++{
++	struct max7301 *ts = container_of(chip, struct max7301, chip);
++
++	/* First 4 pins are unused in the controller */
++	offset += 4;
++
++	mutex_lock(&ts->lock);
++
++	__max7301_set(ts, offset, value);
++
++	mutex_unlock(&ts->lock);
++}
++
++static int __devinit max7301_probe(struct spi_device *spi)
++{
++	struct max7301 *ts;
++	struct max7301_platform_data *pdata;
++	int i, ret;
++
++	pdata = spi->dev.platform_data;
++	if (!pdata || !pdata->base)
++		return -ENODEV;
++
++	/*
++	 * bits_per_word cannot be configured in platform data
++	 */
++	spi->bits_per_word = 16;
++
++	spi->master->setup(spi);
++
++	ts = kzalloc(sizeof(struct max7301), GFP_KERNEL);
++	if (!ts)
 +		return -ENOMEM;
 +
-+	fm3130->client = client;
-+	i2c_set_clientdata(client, fm3130);
-+	fm3130->reg_addr_time = FM3130_RTC_SECONDS;
-+	fm3130->reg_addr_alarm = FM3130_ALARM_SECONDS;
++	mutex_init(&ts->lock);
 +
-+	/* Messages to read time */
-+	fm3130->msg[0].addr = client->addr;
-+	fm3130->msg[0].flags = 0;
-+	fm3130->msg[0].len = 1;
-+	fm3130->msg[0].buf = &fm3130->reg_addr_time;
++	dev_set_drvdata(&spi->dev, ts);
 +
-+	fm3130->msg[1].addr = client->addr;
-+	fm3130->msg[1].flags = I2C_M_RD;
-+	fm3130->msg[1].len = FM3130_CLOCK_REGS;
-+	fm3130->msg[1].buf = &fm3130->regs[FM3130_RTC_SECONDS];
++	/* Power up the chip and disable IRQ output */
++	max7301_write(spi, 0x04, 0x01);
 +
-+	/* Messages to read alarm */
-+	fm3130->msg[2].addr = client->addr;
-+	fm3130->msg[2].flags = 0;
-+	fm3130->msg[2].len = 1;
-+	fm3130->msg[2].buf = &fm3130->reg_addr_alarm;
++	ts->spi = spi;
 +
-+	fm3130->msg[3].addr = client->addr;
-+	fm3130->msg[3].flags = I2C_M_RD;
-+	fm3130->msg[3].len = FM3130_ALARM_REGS;
-+	fm3130->msg[3].buf = &fm3130->regs[FM3130_ALARM_SECONDS];
++	ts->chip.label = DRIVER_NAME,
 +
-+	fm3130->data_valid = 0;
++	ts->chip.direction_input = max7301_direction_input;
++	ts->chip.get = max7301_get;
++	ts->chip.direction_output = max7301_direction_output;
++	ts->chip.set = max7301_set;
 +
-+	tmp = i2c_transfer(adapter, fm3130->msg, 4);
-+	if (tmp != 4) {
-+		pr_debug("read error %d\n", tmp);
-+		err = -EIO;
-+		goto exit_free;
++	ts->chip.base = pdata->base;
++	ts->chip.ngpio = PIN_NUMBER;
++	ts->chip.can_sleep = 1;
++	ts->chip.dev = &spi->dev;
++	ts->chip.owner = THIS_MODULE;
++
++	ret = gpiochip_add(&ts->chip);
++	if (ret)
++		goto exit_destroy;
++
++	/*
++	 * tristate all pins in hardware and cache the
++	 * register values for later use.
++	 */
++	for (i = 1; i < 8; i++) {
++		int j;
++		/* 0xAA means input with internal pullup disabled */
++		max7301_write(spi, 0x08 + i, 0xAA);
++		ts->port_config[i] = 0xAA;
++		for (j = 0; j < 4; j++) {
++			int idx = ts->chip.base + (i - 1) * 4 + j;
++			ret = gpio_direction_input(idx);
++			if (ret)
++				goto exit_remove;
++			gpio_free(idx);
++		}
 +	}
++	return ret;
 +
-+	fm3130->regs[FM3130_RTC_CONTROL] =
-+		i2c_smbus_read_byte_data(client, FM3130_RTC_CONTROL);
-+	fm3130->regs[FM3130_CAL_CONTROL] =
-+		i2c_smbus_read_byte_data(client, FM3130_CAL_CONTROL);
-+
-+	/* Checking for alarm */
-+	if (fm3130->regs[FM3130_RTC_CONTROL] & FM3130_RTC_CONTROL_BIT_AF) {
-+		fm3130->alarm = 1;
-+		fm3130->regs[FM3130_RTC_CONTROL] &= ~FM3130_RTC_CONTROL_BIT_AF;
-+	}
-+
-+	/* Disabling calibration mode */
-+	if (fm3130->regs[FM3130_RTC_CONTROL] & FM3130_RTC_CONTROL_BIT_CAL)
-+		i2c_smbus_write_byte_data(client, FM3130_RTC_CONTROL,
-+			fm3130->regs[FM3130_RTC_CONTROL] &
-+				~(FM3130_RTC_CONTROL_BIT_CAL));
-+		dev_warn(&client->dev, "Disabling calibration mode!\n");
-+
-+	/* Disabling read and write modes */
-+	if (fm3130->regs[FM3130_RTC_CONTROL] & FM3130_RTC_CONTROL_BIT_WRITE ||
-+	    fm3130->regs[FM3130_RTC_CONTROL] & FM3130_RTC_CONTROL_BIT_READ)
-+		i2c_smbus_write_byte_data(client, FM3130_RTC_CONTROL,
-+			fm3130->regs[FM3130_RTC_CONTROL] &
-+				~(FM3130_RTC_CONTROL_BIT_READ |
-+					FM3130_RTC_CONTROL_BIT_WRITE));
-+		dev_warn(&client->dev, "Disabling READ or WRITE mode!\n");
-+
-+	/* oscillator off?  turn it on, so clock can tick. */
-+	if (fm3130->regs[FM3130_CAL_CONTROL] & FM3130_CAL_CONTROL_BIT_nOSCEN)
-+		i2c_smbus_write_byte_data(client, FM3130_CAL_CONTROL,
-+			fm3130->regs[FM3130_CAL_CONTROL] &
-+				~(FM3130_CAL_CONTROL_BIT_nOSCEN));
-+
-+	/* oscillator fault?  clear flag, and warn */
-+	if (fm3130->regs[FM3130_RTC_CONTROL] & FM3130_RTC_CONTROL_BIT_LB)
-+		dev_warn(&client->dev, "Low battery!\n");
-+
-+	/* oscillator fault?  clear flag, and warn */
-+	if (fm3130->regs[FM3130_RTC_CONTROL] & FM3130_RTC_CONTROL_BIT_POR) {
-+		i2c_smbus_write_byte_data(client, FM3130_RTC_CONTROL,
-+			fm3130->regs[FM3130_RTC_CONTROL] &
-+				~FM3130_RTC_CONTROL_BIT_POR);
-+		dev_warn(&client->dev, "SET TIME!\n");
-+	}
-+	/* ACS is controlled by alarm */
-+	i2c_smbus_write_byte_data(client, FM3130_ALARM_WP_CONTROL, 0x80);
-+
-+	/* TODO */
-+	/* TODO need to sanity check alarm */
-+	tmp = fm3130->regs[FM3130_RTC_SECONDS];
-+	tmp = BCD2BIN(tmp & 0x7f);
-+	if (tmp > 60)
-+		goto exit_bad;
-+	tmp = BCD2BIN(fm3130->regs[FM3130_RTC_MINUTES] & 0x7f);
-+	if (tmp > 60)
-+		goto exit_bad;
-+
-+	tmp = BCD2BIN(fm3130->regs[FM3130_RTC_DATE] & 0x3f);
-+	if (tmp == 0 || tmp > 31)
-+		goto exit_bad;
-+
-+	tmp = BCD2BIN(fm3130->regs[FM3130_RTC_MONTHS] & 0x1f);
-+	if (tmp == 0 || tmp > 12)
-+		goto exit_bad;
-+
-+	tmp = fm3130->regs[FM3130_RTC_HOURS];
-+
-+	fm3130->data_valid = 1;
-+
-+exit_bad:
-+	if (!fm3130->data_valid)
-+		dev_dbg(&client->dev,
-+				"%s: %02x %02x %02x %02x %02x %02x %02x %02x"
-+				"%02x %02x %02x %02x %02x %02x %02x\n",
-+			"bogus registers",
-+			fm3130->regs[0], fm3130->regs[1],
-+			fm3130->regs[2], fm3130->regs[3],
-+			fm3130->regs[4], fm3130->regs[5],
-+			fm3130->regs[6], fm3130->regs[7],
-+			fm3130->regs[8], fm3130->regs[9],
-+			fm3130->regs[0xa], fm3130->regs[0xb],
-+			fm3130->regs[0xc], fm3130->regs[0xd],
-+			fm3130->regs[0xe]);
-+
-+	/* We won't bail out here because we just got invalid data.
-+	   Time setting from u-boot doesn't work anyway */
-+	fm3130->rtc = rtc_device_register(client->name, &client->dev,
-+				&fm3130_rtc_ops, THIS_MODULE);
-+	if (IS_ERR(fm3130->rtc)) {
-+		err = PTR_ERR(fm3130->rtc);
-+		dev_err(&client->dev,
-+			"unable to register the class device\n");
-+		goto exit_free;
-+	}
-+	return 0;
-+exit_free:
-+	kfree(fm3130);
-+	return err;
++exit_remove:
++	gpiochip_remove(&ts->chip);
++exit_destroy:
++	dev_set_drvdata(&spi->dev, NULL);
++	mutex_destroy(&ts->lock);
++	kfree(ts);
++	return ret;
 +}
 +
-+static int __devexit fm3130_remove(struct i2c_client *client)
++static int max7301_remove(struct spi_device *spi)
 +{
-+	struct fm3130 *fm3130 = i2c_get_clientdata(client);
++	struct max7301 *ts;
++	int ret;
 +
-+	rtc_device_unregister(fm3130->rtc);
-+	kfree(fm3130);
-+	return 0;
++	ts = dev_get_drvdata(&spi->dev);
++	if (ts == NULL)
++		return -ENODEV;
++
++	dev_set_drvdata(&spi->dev, NULL);
++
++	/* Power down the chip and disable IRQ output */
++	max7301_write(spi, 0x04, 0x00);
++
++	ret = gpiochip_remove(&ts->chip);
++	if (!ret) {
++		mutex_destroy(&ts->lock);
++		kfree(ts);
++	} else
++		dev_err(&spi->dev, "Failed to remove the GPIO controller: %d\n", ret);
++
++	return ret;
 +}
 +
-+static struct i2c_driver fm3130_driver = {
++static struct spi_driver max7301_driver = {
 +	.driver = {
-+		.name	= "rtc-fm3130",
-+		.owner	= THIS_MODULE,
++		.name		= DRIVER_NAME,
++		.owner		= THIS_MODULE,
 +	},
-+	.probe		= fm3130_probe,
-+	.remove		= __devexit_p(fm3130_remove),
-+	.id_table	= fm3130_id,
++	.probe		= max7301_probe,
++	.remove		= __devexit_p(max7301_remove),
 +};
 +
-+static int __init fm3130_init(void)
++static int __init max7301_init(void)
 +{
-+	return i2c_add_driver(&fm3130_driver);
++	return spi_register_driver(&max7301_driver);
 +}
-+module_init(fm3130_init);
 +
-+static void __exit fm3130_exit(void)
++static void __exit max7301_exit(void)
 +{
-+	i2c_del_driver(&fm3130_driver);
++	spi_unregister_driver(&max7301_driver);
 +}
-+module_exit(fm3130_exit);
 +
-+MODULE_DESCRIPTION("RTC driver for FM3130");
-+MODULE_AUTHOR("Sergey Lapin <slapin@ossfans.org>");
-+MODULE_LICENSE("GPL");
++module_init(max7301_init);
++module_exit(max7301_exit);
 +
++MODULE_AUTHOR("Juergen Beisert");
++MODULE_LICENSE("GPL v2");
++MODULE_DESCRIPTION("MAX7301 SPI based GPIO-Expander");
+diff -puN /dev/null include/linux/spi/max7301.h
+--- /dev/null
++++ a/include/linux/spi/max7301.h
+@@ -0,0 +1,9 @@
++#ifndef LINUX_SPI_MAX7301_H
++#define LINUX_SPI_MAX7301_H
++
++struct max7301_platform_data {
++	/* number assigned to the first GPIO */
++	unsigned	base;
++};
++
++#endif
 _
 
-Patches currently in -mm which might be from slapin@ossfans.org are
+Patches currently in -mm which might be from j.beisert@pengutronix.de are
 
-rtc-ramtron-fm3130-rtc-support.patch
+gpio-gpio-driver-for-max7301-spi-gpio-expander.patch
 
