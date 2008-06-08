@@ -1,175 +1,139 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-class-driver-for-ppc_md-rtc-functions.patch removed from -mm tree
-Date: Sun, 08 Jun 2008 12:49:10 -0700
-Message-ID: <200806081949.m58JnAaW017630@imap1.linux-foundation.org>
+Subject: - maintainers-reiserfs-entry-is-out-of-date.patch removed from -mm tree
+Date: Sun, 08 Jun 2008 12:48:52 -0700
+Message-ID: <200806081948.m58Jmq9G017540@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43119 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39316 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754514AbYFHTtq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 15:49:46 -0400
+	by vger.kernel.org with ESMTP id S1754541AbYFHTtt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 15:49:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dwmw2@infradead.org, a.zummo@towertech.it, benh@kernel.crashing.org, david-b@pacbell.net, paulus@samba.org, mm-commits@vger.kernel.org
+To: alan@redhat.com, chris.mason@oracle.com, edward.shishkin@gmail.com, jack@ucw.cz, jeffm@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc: class driver for ppc_md RTC functions
+     MAINTAINERS: reiserfs entry is out of date
 has been removed from the -mm tree.  Its filename was
-     rtc-class-driver-for-ppc_md-rtc-functions.patch
+     maintainers-reiserfs-entry-is-out-of-date.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: class driver for ppc_md RTC functions
-=46rom: David Woodhouse <dwmw2@infradead.org>
+Subject: MAINTAINERS: reiserfs entry is out of date
+From: Alan Cox <alan@redhat.com>
 
-This hooks up the platform-specific [gs]et_rtc_time functions so that
-kernels using CONFIG_RTC_CLASS have RTC support on most PowerPC platfor=
-ms.
-
-A new driver, and one which we've been shipping in Fedora for a while
-already, since otherwise RTC support breaks.
-
-[akpm@linux-foundation.org: fix Kconfig indenting]
-Signed-off-by: David Woodhouse <dwmw2@infradead.org>
-Signed-off-by: Paul Mackerras <paulus@samba.org>
-Acked-by: Alessandro Zummo <a.zummo@towertech.it>
-Acked-by: David Brownell <david-b@pacbell.net>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Edward Shishkin <edward.shishkin@gmail.com>
+Cc: Jeff Mahoney <jeffm@suse.com>
+Cc: Chris Mason <chris.mason@oracle.com>
+Cc: Jan Kara <jack@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig   |    8 ++++
- drivers/rtc/Makefile  |    1=20
- drivers/rtc/rtc-ppc.c |   69 ++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 78 insertions(+)
+ MAINTAINERS |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN drivers/rtc/Kconfig~rtc-class-driver-for-ppc_md-rtc-functions=
- drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-class-driver-for-ppc_md-rtc-functions
-+++ a/drivers/rtc/Kconfig
-@@ -534,4 +534,12 @@ config RTC_DRV_RS5C313
- 	help
- 	  If you say yes here you get support for the Ricoh RS5C313 RTC chips=
-=2E
-=20
-+config RTC_DRV_PPC
-+       tristate "PowerPC machine dependent RTC support"
-+       depends on PPC_MERGE
-+       help
-+	 The PowerPC kernel has machine-specific functions for accessing
-+	 the RTC. This exposes that functionality through the generic RTC
-+	 class.
-+
- endif # RTC_CLASS
-diff -puN drivers/rtc/Makefile~rtc-class-driver-for-ppc_md-rtc-function=
-s drivers/rtc/Makefile
---- a/drivers/rtc/Makefile~rtc-class-driver-for-ppc_md-rtc-functions
-+++ a/drivers/rtc/Makefile
-@@ -54,3 +54,4 @@ obj-$(CONFIG_RTC_DRV_TEST)	+=3D rtc-test.o
- obj-$(CONFIG_RTC_DRV_V3020)	+=3D rtc-v3020.o
- obj-$(CONFIG_RTC_DRV_VR41XX)	+=3D rtc-vr41xx.o
- obj-$(CONFIG_RTC_DRV_X1205)	+=3D rtc-x1205.o
-+obj-$(CONFIG_RTC_DRV_PPC)	+=3D rtc-ppc.o
-diff -puN /dev/null drivers/rtc/rtc-ppc.c
---- /dev/null
-+++ a/drivers/rtc/rtc-ppc.c
-@@ -0,0 +1,69 @@
-+/*
-+ * RTC driver for ppc_md RTC functions
-+ *
-+ * =C2=A9 2007 Red Hat, Inc.
-+ *
-+ * Author: David Woodhouse <dwmw2@infradead.org>
-+ *
-+ * This program is free software; you can redistribute it and/or modif=
-y
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+
-+#include <linux/module.h>
-+#include <linux/err.h>
-+#include <linux/rtc.h>
-+#include <linux/platform_device.h>
-+#include <asm/machdep.h>
-+
-+static int ppc_rtc_read_time(struct device *dev, struct rtc_time *tm)
-+{
-+	ppc_md.get_rtc_time(tm);
-+	return 0;
-+}
-+
-+static int ppc_rtc_set_time(struct device *dev, struct rtc_time *tm)
-+{
-+	return ppc_md.set_rtc_time(tm);
-+}
-+
-+static const struct rtc_class_ops ppc_rtc_ops =3D {
-+	.set_time =3D ppc_rtc_set_time,
-+	.read_time =3D ppc_rtc_read_time,
-+};
-+
-+static struct rtc_device *rtc;
-+static struct platform_device *ppc_rtc_pdev;
-+
-+static int __init ppc_rtc_init(void)
-+{
-+	if (!ppc_md.get_rtc_time || !ppc_md.set_rtc_time)
-+		return -ENODEV;
-+
-+	ppc_rtc_pdev =3D platform_device_register_simple("ppc-rtc", 0, NULL, =
-0);
-+	if (IS_ERR(ppc_rtc_pdev))
-+		return PTR_ERR(ppc_rtc_pdev);
-+
-+	rtc =3D rtc_device_register("ppc_md", &ppc_rtc_pdev->dev,
-+				  &ppc_rtc_ops, THIS_MODULE);
-+	if (IS_ERR(rtc)) {
-+		platform_device_unregister(ppc_rtc_pdev);
-+		return PTR_ERR(rtc);
-+	}
-+
-+	return 0;
-+}
-+
-+static void __exit ppc_rtc_exit(void)
-+{
-+	rtc_device_unregister(rtc);
-+	platform_device_unregister(ppc_rtc_pdev);
-+}
-+
-+module_init(ppc_rtc_init);
-+module_exit(ppc_rtc_exit);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("David Woodhouse <dwmw2@infradead.org>");
-+MODULE_DESCRIPTION("Generic RTC class driver for PowerPC");
+diff -puN MAINTAINERS~maintainers-reiserfs-entry-is-out-of-date MAINTAINERS
+--- a/MAINTAINERS~maintainers-reiserfs-entry-is-out-of-date
++++ a/MAINTAINERS
+@@ -3439,10 +3439,7 @@ L:	rtc-linux@googlegroups.com
+ S:	Maintained
+ 
+ REISERFS FILE SYSTEM
+-P:	Hans Reiser
+-M:	reiserfs-dev@namesys.com
+ L:	reiserfs-devel@vger.kernel.org
+-W:	http://www.namesys.com
+ S:	Supported
+ 
+ RFKILL
 _
 
-Patches currently in -mm which might be from dwmw2@infradead.org are
+Patches currently in -mm which might be from alan@redhat.com are
 
 origin.patch
 linux-next.patch
-mtd-mtdcharc-silence-sparse-warning.patch
-mtd-mtdcharc-remove-shadowed-variable-warnings.patch
-jffs2-summary-allocation-dont-use-vmalloc.patch
-drivers-mtd-devices-block2mtdc-suppress-warning.patch
-git-battery.patch
-mtd-m25p80-fix-bug-atmel-spi-flash-fails-to-be-copied-to.patch
-mtd-m25p80-fix-bug-atmel-spi-flash-fails-to-be-copied-to-fix-up.patch
+cm4000_cs-switch-to-unlocked_ioctl.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
+paride-push-ioctl-down-into-driver.patch
+pktcdvd-push-bkl-down-into-driver.patch
+dac960-push-down-bkl.patch
+watchdog-clean-acquirewdt-and-check-for-bkl-dependancies.patch
+watchdog-clean-up-and-check-advantech-watchdog.patch
+watchdog-ali-watchdog-locking-and-style.patch
+watchdog-ar7-watchdog.patch
+watchdog-atp-watchdog.patch
+watchdog-at91-watchdog-to-unlocked_ioctl.patch
+watchdog-cpu5_wdt-switch-to-unlocked_ioctl.patch
+watchdog-davinci_wdt-unlocked_ioctl-and-check-locking.patch
+watchdog-ep93xx_wdt-unlocked_ioctl.patch
+watchdog-eurotechwdt-unlocked_ioctl-code-lock-check-and-tidy.patch
+watchdog-hpwdt-couple-of-include-cleanups.patch
+watchdog-ib700wdt-clean-up-and-switch-to-unlocked_ioctl.patch
+watchdog-i6300esb-style-unlocked_ioctl-cleanup.patch
+watchdog-ibmasr-coding-style-locking-verify.patch
+watchdog-indydog-clean-up-and-tidy.patch
+watchdog-iop-watchdog-switch-to-unlocked_ioctl.patch
+watchdog-it8712f-unlocked_ioctl.patch
+watchdog-bfin-watchdog-cleanup-and-unlocked_ioctl.patch
+watchdog-ixp2000_wdt-clean-up-and-unlocked_ioctl.patch
+watchdog-ixp4xx_wdt-unlocked_ioctl.patch
+watchdog-ks8695_wdt-clean-up-coding-style-unlocked_ioctl.patch
+watchdog-machzwd-clean-up-coding-style-unlocked_ioctl.patch
+watchdog-mixcomwd-coding-style-locking-unlocked_ioctl.patch
+watchdog-mpc-watchdog-clean-up-and-locking.patch
+watchdog-mpcore-watchdog-unlocked_ioctl-and-bkl-work.patch
+watchdog-mtx-1_wdt-clean-up-coding-style-unlocked-ioctl.patch
+watchdog-mv64x60_wdt-clean-up-and-locking-checks.patch
+watchdog-omap_wdt-locking-unlocked_ioctl-tidy.patch
+watchdog-pc87413_wdt-clean-up-coding-style-unlocked_ioctl.patch
+watchdog-pcwd-clean-up-unlocked_ioctl-usage.patch
+watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix.patch
+watchdog-pnx4008_wdt-unlocked_ioctl-setup.patch
+watchdog-rm9k_wdt-clean-up.patch
+watchdog-s3c2410-watchdog-cleanup-and-switch-to-unlocked_ioctl.patch
+watchdog-sa1100_wdt-switch-to-unlocked_ioctl.patch
+watchdog-sbc60xxwdt-clean-up-and-switch-to-unlocked_ioctl.patch
+watchdog-stg7240_wdt-unlocked_ioctl.patch
+watchdog-sbc8360-clean-up.patch
+watchdog-sbc_epx_c3_wdt-switch-to-unlocked_ioctl.patch
+watchdog-sb_wdog-clean-up-and-switch-to-unlocked_ioctl.patch
+watchdog-sc1200_wdt-clean-up-fix-locking-and-use-unlocked_ioctl.patch
+watchdog-sc520_wdt-clean-up-and-switch-to-unlocked_ioctl.patch
+watchdog-scx200_wdt-clean-up-and-switch-to-unlocked_ioctl.patch
+watchdog-shwdt-coding-style-cleanup-switch-to-unlocked_ioctl.patch
+watchdog-smsc37b787_wdt-coding-style-switch-to-unlocked_ioctl.patch
+watchdog-softdog-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
+watchdog-txx9-fix-locking-switch-to-unlocked_ioctl.patch
+watchdog-w83627hf-coding-style-clean-up-and-switch-to-unlocked_ioctl.patch
+watchdog-w83877f_wdt-clean-up-code-coding-style-switch-to-unlocked_ioctl.patch
+watchdog-w83977f_wdt-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
+watchdog-wafer5823wdt-clean-up-coding-style-switch-to-unlocked_ioctl.patch
+watchdog-wdrtas-clean-up-coding-style-switch-to-unlocked_ioctl.patch
+watchdog-wdt285-switch-to-unlocked_ioctl-and-tidy-up-oddments-of-coding-style.patch
+watchdog-wdt977-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
+watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
+watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl-fix.patch
+pcwd-a-couple-of-watchdogs-escaped-conversion.patch
+snapshot-push-bkl-down-into-ioctl-handlers.patch
+serial-8250_gscc-add-module_license.patch
+spidev-bkl-removal.patch
+rtc-push-the-bkl-down-into-the-driver-ioctl-method.patch
+remove-is_tty.patch
+tty-remove-unused-var-real_tty-in-n_tty_ioctl.patch
+riscom8-remove-redundant-null-pointer-test.patch
+efirtc-push-down-the-bkl.patch
+ip2-push-bkl-down-for-the-firmware-interface.patch
+mwave-ioctl-bkl-pushdown.patch
+rio-push-down-the-bkl-into-the-firmware-ioctl-handler.patch
+sx-push-bkl-down-into-the-firmware-ioctl-handler.patch
+ixj-push-bkl-into-driver-and-wrap-ioctls.patch
+ppdev-wrap-ioctl-handler-in-driver-and-push-lock-down.patch
+ds1302-push-down-the-bkl-into-the-driver-ioctl-code.patch
+dsp56k-bkl-pushdown.patch
+unexport-proc_clear_tty.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
