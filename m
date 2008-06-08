@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + bootmem-revisit-alloc_bootmem_section.patch added to -mm tree
-Date: Sun, 08 Jun 2008 16:35:43 -0700
-Message-ID: <200806082335.m58NZhl5025631@imap1.linux-foundation.org>
+Subject: + bootmem-make-__alloc_bootmem_low_node-fall-back-to-other-nodes.patch added to -mm tree
+Date: Sun, 08 Jun 2008 16:35:41 -0700
+Message-ID: <200806082335.m58NZfsi025628@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49556 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44880 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754562AbYFHXiO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 19:38:14 -0400
+	by vger.kernel.org with ESMTP id S1754610AbYFHXjZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 19:39:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hannes@saeurebad.de, y-goto@jp.fujitsu.com
+Cc: hannes@saeurebad.de, andi@firstfloor.org, mingo@elte.hu, yhlu.kernel@gmail.com
 
 
 The patch titled
-     bootmem: revisit alloc_bootmem_section
+     bootmem: Make __alloc_bootmem_low_node fall back to other nodes
 has been added to the -mm tree.  Its filename is
-     bootmem-revisit-alloc_bootmem_section.patch
+     bootmem-make-__alloc_bootmem_low_node-fall-back-to-other-nodes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,64 +33,68 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bootmem: revisit alloc_bootmem_section
+Subject: bootmem: Make __alloc_bootmem_low_node fall back to other nodes
 From: Johannes Weiner <hannes@saeurebad.de>
 
-Since alloc_bootmem_core does no goal-fallback anymore and just returns
-NULL if the allocation fails, we might now use it in alloc_bootmem_section
-without all the fixup code for a misplaced allocation.
-
-Also, the limit can be the first PFN of the next section as the semantics
-is that the limit is _above_ the allocated region, not within.
+__alloc_bootmem_node already does this, make the interface consistent.
 
 Signed-off-by: Johannes Weiner <hannes@saeurebad.de>
-Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Yinghai Lu <yhlu.kernel@gmail.com>
+Cc: Andi Kleen <andi@firstfloor.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/bootmem.c |   27 ++++++---------------------
- 1 file changed, 6 insertions(+), 21 deletions(-)
+ mm/bootmem.c |   25 ++++++++++++++++---------
+ 1 file changed, 16 insertions(+), 9 deletions(-)
 
-diff -puN mm/bootmem.c~bootmem-revisit-alloc_bootmem_section mm/bootmem.c
---- a/mm/bootmem.c~bootmem-revisit-alloc_bootmem_section
+diff -puN mm/bootmem.c~bootmem-make-__alloc_bootmem_low_node-fall-back-to-other-nodes mm/bootmem.c
+--- a/mm/bootmem.c~bootmem-make-__alloc_bootmem_low_node-fall-back-to-other-nodes
 +++ a/mm/bootmem.c
-@@ -632,30 +632,15 @@ void * __init __alloc_bootmem_node(pg_da
- void * __init alloc_bootmem_section(unsigned long size,
- 				    unsigned long section_nr)
+@@ -587,6 +587,19 @@ void * __init __alloc_bootmem(unsigned l
+ 	return ___alloc_bootmem(size, align, goal, 0);
+ }
+ 
++static void * __init ___alloc_bootmem_node(bootmem_data_t *bdata,
++				unsigned long size, unsigned long align,
++				unsigned long goal, unsigned long limit)
++{
++	void *ptr;
++
++	ptr = alloc_bootmem_core(bdata, size, align, goal, limit);
++	if (ptr)
++		return ptr;
++
++	return ___alloc_bootmem(size, align, goal, limit);
++}
++
+ /**
+  * __alloc_bootmem_node - allocate boot memory from a specific node
+  * @pgdat: node to allocate from
+@@ -605,13 +618,7 @@ void * __init __alloc_bootmem(unsigned l
+ void * __init __alloc_bootmem_node(pg_data_t *pgdat, unsigned long size,
+ 				   unsigned long align, unsigned long goal)
  {
 -	void *ptr;
--	unsigned long limit, goal, start_nr, end_nr, pfn;
--	struct pglist_data *pgdat;
-+	bootmem_data_t *bdata;
-+	unsigned long pfn, goal, limit;
- 
- 	pfn = section_nr_to_pfn(section_nr);
--	goal = PFN_PHYS(pfn);
--	limit = PFN_PHYS(section_nr_to_pfn(section_nr + 1)) - 1;
--	pgdat = NODE_DATA(early_pfn_to_nid(pfn));
--	ptr = alloc_bootmem_core(pgdat->bdata, size, SMP_CACHE_BYTES, goal,
--				limit);
 -
--	if (!ptr)
--		return NULL;
+-	ptr = alloc_bootmem_core(pgdat->bdata, size, align, goal, 0);
+-	if (ptr)
+-		return ptr;
 -
--	start_nr = pfn_to_section_nr(PFN_DOWN(__pa(ptr)));
--	end_nr = pfn_to_section_nr(PFN_DOWN(__pa(ptr) + size));
--	if (start_nr != section_nr || end_nr != section_nr) {
--		printk(KERN_WARNING "alloc_bootmem failed on section %ld.\n",
--		       section_nr);
--		free_bootmem_node(pgdat, __pa(ptr), size);
--		ptr = NULL;
--	}
-+	goal = pfn << PAGE_SHIFT;
-+	limit = section_nr_to_pfn(section_nr + 1) << PAGE_SHIFT;
-+	bdata = &bootmem_node_data[early_pfn_to_nid(pfn)];
- 
--	return ptr;
-+	return alloc_bootmem_core(bdata, size, SMP_CACHE_BYTES, goal, limit);
+-	return __alloc_bootmem(size, align, goal);
++	return ___alloc_bootmem_node(pgdat->bdata, size, align, goal, 0);
  }
- #endif
  
+ #ifdef CONFIG_SPARSEMEM
+@@ -705,6 +712,6 @@ void * __init __alloc_bootmem_low(unsign
+ void * __init __alloc_bootmem_low_node(pg_data_t *pgdat, unsigned long size,
+ 				       unsigned long align, unsigned long goal)
+ {
+-	return alloc_bootmem_core(pgdat->bdata, size, align, goal,
+-				ARCH_LOW_ADDRESS_LIMIT);
++	return ___alloc_bootmem_node(pgdat->bdata, size, align,
++				goal, ARCH_LOW_ADDRESS_LIMIT);
+ }
 _
 
 Patches currently in -mm which might be from hannes@saeurebad.de are
