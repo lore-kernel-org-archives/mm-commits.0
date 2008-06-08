@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-define-support-for-16g-hugepages.patch added to -mm tree
-Date: Sun, 08 Jun 2008 12:15:00 -0700
-Message-ID: <200806081915.m58JF0Tx016353@imap1.linux-foundation.org>
+Subject: + powerpc-scan-device-tree-for-gigantic-pages.patch added to -mm tree
+Date: Sun, 08 Jun 2008 12:14:57 -0700
+Message-ID: <200806081914.m58JEvr7016350@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45877 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42112 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754541AbYFHTPV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 15:15:21 -0400
+	by vger.kernel.org with ESMTP id S1754584AbYFHTPe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 15:15:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de, kniht@linux.vnet.ibm.com
+Cc: npiggin@suse.de, agl@us.ibm.com, kniht@linux.vnet.ibm.com
 
 
 The patch titled
-     powerpc: define support for 16G hugepages
+     powerpc: scan device tree for gigantic pages
 has been added to the -mm tree.  Its filename is
-     powerpc-define-support-for-16g-hugepages.patch
+     powerpc-scan-device-tree-for-gigantic-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,158 +33,131 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: powerpc: define support for 16G hugepages
+Subject: powerpc: scan device tree for gigantic pages
 From: Nick Piggin <npiggin@suse.de>
 
-The huge page size is defined for 16G pages.  If a hugepagesz of 16G is
-specified at boot-time then it becomes the huge page size instead of the
-default 16M.
+The 16G huge pages have to be reserved in the HMC prior to boot.  The
+location of the pages are placed in the device tree.  This patch adds code
+to scan the device tree during very early boot and save these page
+locations until hugetlbfs is ready for them.
 
-The change in pgtable-64K.h is to the macro pte_iterate_hashed_subpages to
-make the increment to va (the 1 being shifted) be a long so that it is not
-shifted to 0.  Otherwise it would create an infinite loop when the shift
-value is for a 16G page (when base page size is 64K).
-
+Acked-by: Adam Litke <agl@us.ibm.com>
 Signed-off-by: Jon Tollefson <kniht@linux.vnet.ibm.com>
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/hugetlbpage.c     |   62 +++++++++++++++++++---------
- include/asm-powerpc/pgtable-64k.h |    2 
- 2 files changed, 45 insertions(+), 19 deletions(-)
+ arch/powerpc/mm/hash_utils_64.c  |   44 ++++++++++++++++++++++++++++-
+ arch/powerpc/mm/hugetlbpage.c    |   16 ++++++++++
+ include/asm-powerpc/mmu-hash64.h |    2 +
+ 3 files changed, 61 insertions(+), 1 deletion(-)
 
-diff -puN arch/powerpc/mm/hugetlbpage.c~powerpc-define-support-for-16g-hugepages arch/powerpc/mm/hugetlbpage.c
---- a/arch/powerpc/mm/hugetlbpage.c~powerpc-define-support-for-16g-hugepages
-+++ a/arch/powerpc/mm/hugetlbpage.c
-@@ -24,8 +24,9 @@
- #include <asm/cputable.h>
- #include <asm/spu.h>
+diff -puN arch/powerpc/mm/hash_utils_64.c~powerpc-scan-device-tree-for-gigantic-pages arch/powerpc/mm/hash_utils_64.c
+--- a/arch/powerpc/mm/hash_utils_64.c~powerpc-scan-device-tree-for-gigantic-pages
++++ a/arch/powerpc/mm/hash_utils_64.c
+@@ -68,6 +68,7 @@
  
--#define HPAGE_SHIFT_64K	16
--#define HPAGE_SHIFT_16M	24
-+#define PAGE_SHIFT_64K	16
-+#define PAGE_SHIFT_16M	24
-+#define PAGE_SHIFT_16G	34
+ #define KB (1024)
+ #define MB (1024*KB)
++#define GB (1024L*MB)
  
- #define NUM_LOW_AREAS	(0x100000000UL >> SID_SHIFT)
- #define NUM_HIGH_AREAS	(PGTABLE_RANGE >> HTLB_AREA_SHIFT)
-@@ -95,7 +96,7 @@ static int __hugepte_alloc(struct mm_str
- static inline
- pmd_t *hpmd_offset(pud_t *pud, unsigned long addr)
- {
--	if (HPAGE_SHIFT == HPAGE_SHIFT_64K)
-+	if (HPAGE_SHIFT == PAGE_SHIFT_64K)
- 		return pmd_offset(pud, addr);
- 	else
- 		return (pmd_t *) pud;
-@@ -103,7 +104,7 @@ pmd_t *hpmd_offset(pud_t *pud, unsigned 
- static inline
- pmd_t *hpmd_alloc(struct mm_struct *mm, pud_t *pud, unsigned long addr)
- {
--	if (HPAGE_SHIFT == HPAGE_SHIFT_64K)
-+	if (HPAGE_SHIFT == PAGE_SHIFT_64K)
- 		return pmd_alloc(mm, pud, addr);
- 	else
- 		return (pmd_t *) pud;
-@@ -260,7 +261,7 @@ static void hugetlb_free_pud_range(struc
- 			continue;
- 		hugetlb_free_pmd_range(tlb, pud, addr, next, floor, ceiling);
- #else
--		if (HPAGE_SHIFT == HPAGE_SHIFT_64K) {
-+		if (HPAGE_SHIFT == PAGE_SHIFT_64K) {
- 			if (pud_none_or_clear_bad(pud))
- 				continue;
- 			hugetlb_free_pmd_range(tlb, pud, addr, next, floor, ceiling);
-@@ -591,20 +592,40 @@ void set_huge_psize(int psize)
- {
- 	/* Check that it is a page size supported by the hardware and
- 	 * that it fits within pagetable limits. */
--	if (mmu_psize_defs[psize].shift && mmu_psize_defs[psize].shift < SID_SHIFT &&
-+	if (mmu_psize_defs[psize].shift &&
-+		mmu_psize_defs[psize].shift < SID_SHIFT_1T &&
- 		(mmu_psize_defs[psize].shift > MIN_HUGEPTE_SHIFT ||
--			mmu_psize_defs[psize].shift == HPAGE_SHIFT_64K)) {
-+		 mmu_psize_defs[psize].shift == PAGE_SHIFT_64K ||
-+		 mmu_psize_defs[psize].shift == PAGE_SHIFT_16G)) {
-+		/* Return if huge page size is the same as the
-+		 * base page size. */
-+		if (mmu_psize_defs[psize].shift == PAGE_SHIFT)
-+			return;
-+
- 		HPAGE_SHIFT = mmu_psize_defs[psize].shift;
- 		mmu_huge_psize = psize;
--#ifdef CONFIG_PPC_64K_PAGES
--		hugepte_shift = (PMD_SHIFT-HPAGE_SHIFT);
--#else
--		if (HPAGE_SHIFT == HPAGE_SHIFT_64K)
--			hugepte_shift = (PMD_SHIFT-HPAGE_SHIFT);
--		else
--			hugepte_shift = (PUD_SHIFT-HPAGE_SHIFT);
--#endif
- 
-+		switch (HPAGE_SHIFT) {
-+		case PAGE_SHIFT_64K:
-+		    /* We only allow 64k hpages with 4k base page,
-+		     * which was checked above, and always put them
-+		     * at the PMD */
-+		    hugepte_shift = PMD_SHIFT;
-+		    break;
-+		case PAGE_SHIFT_16M:
-+		    /* 16M pages can be at two different levels
-+		     * of pagestables based on base page size */
-+		    if (PAGE_SHIFT == PAGE_SHIFT_64K)
-+			    hugepte_shift = PMD_SHIFT;
-+		    else /* 4k base page */
-+			    hugepte_shift = PUD_SHIFT;
-+		    break;
-+		case PAGE_SHIFT_16G:
-+		    /* 16G pages are always at PGD level */
-+		    hugepte_shift = PGDIR_SHIFT;
-+		    break;
-+		}
-+		hugepte_shift -= HPAGE_SHIFT;
- 	} else
- 		HPAGE_SHIFT = 0;
+ /*
+  * Note:  pte   --> Linux PTE
+@@ -329,6 +330,44 @@ static int __init htab_dt_scan_page_size
+ 	return 0;
  }
-@@ -620,17 +641,22 @@ static int __init hugepage_setup_sz(char
- 	shift = __ffs(size);
- 	switch (shift) {
- #ifndef CONFIG_PPC_64K_PAGES
--	case HPAGE_SHIFT_64K:
-+	case PAGE_SHIFT_64K:
- 		mmu_psize = MMU_PAGE_64K;
- 		break;
+ 
++/* Scan for 16G memory blocks that have been set aside for huge pages
++ * and reserve those blocks for 16G huge pages.
++ */
++static int __init htab_dt_scan_hugepage_blocks(unsigned long node,
++					const char *uname, int depth,
++					void *data) {
++	char *type = of_get_flat_dt_prop(node, "device_type", NULL);
++	unsigned long *addr_prop;
++	u32 *page_count_prop;
++	unsigned int expected_pages;
++	long unsigned int phys_addr;
++	long unsigned int block_size;
++
++	/* We are scanning "memory" nodes only */
++	if (type == NULL || strcmp(type, "memory") != 0)
++		return 0;
++
++	/* This property is the log base 2 of the number of virtual pages that
++	 * will represent this memory block. */
++	page_count_prop = of_get_flat_dt_prop(node, "ibm,expected#pages", NULL);
++	if (page_count_prop == NULL)
++		return 0;
++	expected_pages = (1 << page_count_prop[0]);
++	addr_prop = of_get_flat_dt_prop(node, "reg", NULL);
++	if (addr_prop == NULL)
++		return 0;
++	phys_addr = addr_prop[0];
++	block_size = addr_prop[1];
++	if (block_size != (16 * GB))
++		return 0;
++	printk(KERN_INFO "Huge page(16GB) memory: "
++			"addr = 0x%lX size = 0x%lX pages = %d\n",
++			phys_addr, block_size, expected_pages);
++	lmb_reserve(phys_addr, block_size * expected_pages);
++	add_gpage(phys_addr, block_size, expected_pages);
++	return 0;
++}
++
+ static void __init htab_init_page_sizes(void)
+ {
+ 	int rc;
+@@ -418,7 +457,10 @@ static void __init htab_init_page_sizes(
+ 	       );
+ 
+ #ifdef CONFIG_HUGETLB_PAGE
+-	/* Init large page size. Currently, we pick 16M or 1M depending
++	/* Reserve 16G huge page memory sections for huge pages */
++	of_scan_flat_dt(htab_dt_scan_hugepage_blocks, NULL);
++
++/* Init large page size. Currently, we pick 16M or 1M depending
+ 	 * on what is available
+ 	 */
+ 	if (mmu_psize_defs[MMU_PAGE_16M].shift)
+diff -puN arch/powerpc/mm/hugetlbpage.c~powerpc-scan-device-tree-for-gigantic-pages arch/powerpc/mm/hugetlbpage.c
+--- a/arch/powerpc/mm/hugetlbpage.c~powerpc-scan-device-tree-for-gigantic-pages
++++ a/arch/powerpc/mm/hugetlbpage.c
+@@ -110,6 +110,22 @@ pmd_t *hpmd_alloc(struct mm_struct *mm, 
+ }
  #endif
--	case HPAGE_SHIFT_16M:
-+	case PAGE_SHIFT_16M:
- 		mmu_psize = MMU_PAGE_16M;
- 		break;
-+	case PAGE_SHIFT_16G:
-+		mmu_psize = MMU_PAGE_16G;
-+		break;
- 	}
  
--	if (mmu_psize >=0 && mmu_psize_defs[mmu_psize].shift)
-+	if (mmu_psize >= 0 && mmu_psize_defs[mmu_psize].shift) {
- 		set_huge_psize(mmu_psize);
-+		hugetlb_add_hstate(shift - PAGE_SHIFT);
++/* Build list of addresses of gigantic pages.  This function is used in early
++ * boot before the buddy or bootmem allocator is setup.
++ */
++void add_gpage(unsigned long addr, unsigned long page_size,
++	unsigned long number_of_pages)
++{
++	if (!addr)
++		return;
++	while (number_of_pages > 0) {
++		gpage_freearray[nr_gpages] = addr;
++		nr_gpages++;
++		number_of_pages--;
++		addr += page_size;
 +	}
- 	else
- 		printk(KERN_WARNING "Invalid huge page size specified(%llu)\n", size);
++}
++
+ /* Moves the gigantic page addresses from the temporary list to the
+  * huge_boot_pages list.  */
+ int alloc_bootmem_huge_page(struct hstate *h)
+diff -puN include/asm-powerpc/mmu-hash64.h~powerpc-scan-device-tree-for-gigantic-pages include/asm-powerpc/mmu-hash64.h
+--- a/include/asm-powerpc/mmu-hash64.h~powerpc-scan-device-tree-for-gigantic-pages
++++ a/include/asm-powerpc/mmu-hash64.h
+@@ -281,6 +281,8 @@ extern int htab_bolt_mapping(unsigned lo
+ 			     unsigned long pstart, unsigned long mode,
+ 			     int psize, int ssize);
+ extern void set_huge_psize(int psize);
++extern void add_gpage(unsigned long addr, unsigned long page_size,
++			  unsigned long number_of_pages);
+ extern void demote_segment_4k(struct mm_struct *mm, unsigned long addr);
  
-diff -puN include/asm-powerpc/pgtable-64k.h~powerpc-define-support-for-16g-hugepages include/asm-powerpc/pgtable-64k.h
---- a/include/asm-powerpc/pgtable-64k.h~powerpc-define-support-for-16g-hugepages
-+++ a/include/asm-powerpc/pgtable-64k.h
-@@ -125,7 +125,7 @@ static inline struct subpage_prot_table 
-                 unsigned __split = (psize == MMU_PAGE_4K ||                 \
- 				    psize == MMU_PAGE_64K_AP);              \
-                 shift = mmu_psize_defs[psize].shift;                        \
--	        for (index = 0; va < __end; index++, va += (1 << shift)) {  \
-+		for (index = 0; va < __end; index++, va += (1L << shift)) { \
- 		        if (!__split || __rpte_sub_valid(rpte, index)) do { \
- 
- #define pte_iterate_hashed_end() } while(0); } } while(0)
+ extern void htab_initialize(void);
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
