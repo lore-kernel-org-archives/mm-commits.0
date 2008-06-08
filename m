@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + per-task-delay-accounting-add-memory-reclaim-delay.patch added to -mm tree
-Date: Sun, 08 Jun 2008 13:45:42 -0700
-Message-ID: <200806082045.m58KjgcN019718@imap1.linux-foundation.org>
+Subject: + fat-relax-the-permission-check-of-fat_setattr.patch added to -mm tree
+Date: Sun, 08 Jun 2008 13:47:57 -0700
+Message-ID: <200806082047.m58KlvJ0019757@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57454 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44102 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754401AbYFHUqE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 16:46:04 -0400
+	by vger.kernel.org with ESMTP id S1754490AbYFHUsA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 16:48:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kobayashi.kk@ncos.nec.co.jp, balbir@linux.vnet.ibm.com, kosaki.motohiro@jp.fujistu.com
+Cc: hirofumi@mail.parknet.co.jp
 
 
 The patch titled
-     per-task-delay-accounting: add memory reclaim delay
+     fat: relax the permission check of fat_setattr()
 has been added to the -mm tree.  Its filename is
-     per-task-delay-accounting-add-memory-reclaim-delay.patch
+     fat-relax-the-permission-check-of-fat_setattr.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,208 +33,127 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: per-task-delay-accounting: add memory reclaim delay
-From: Keika Kobayashi <kobayashi.kk@ncos.nec.co.jp>
+Subject: fat: relax the permission check of fat_setattr()
+From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 
-Sometimes, application responses become bad under heavy memory load. 
-Applications take a bit time to reclaim memory.  The statistics, how long
-memory reclaim takes, will be useful to measure memory usage.
+New chmod() allows only acceptable permission, and if not acceptable, it
+returns -EPERM.  Old one allows even if it can't store permission to on
+disk inode.  But it seems too strict for users.
 
-This patch adds accounting memory reclaim to per-task-delay-accounting for
-accounting the time of do_try_to_free_pages().
+E.g.  https://bugzilla.redhat.com/show_bug.cgi?id=449080: With new one,
+rsync couldn't create the temporary file.
 
-<i.e>
+So, this patch allows like old one, but now it doesn't change the
+permission if it can't store, and it returns 0.
 
-- When System is under low memory load,
-  memory reclaim may not occur.
+Also, this patch fixes missing check.
 
-$ free
-             total       used       free     shared    buffers     cached
-Mem:       8197800    1577300    6620500          0       4808    1516724
--/+ buffers/cache:      55768    8142032
-Swap:     16386292          0   16386292
-
-$ vmstat 1
-procs -----------memory---------- ---swap-- -----io---- -system-- ----cpu----
- r  b   swpd   free   buff  cache   si   so    bi    bo   in   cs us sy id wa
- 0  0      0 5069748  10612 3014060    0    0     0     0    3   26  0  0 100  0
- 0  0      0 5069748  10612 3014060    0    0     0     0    4   22  0  0 100  0
- 0  0      0 5069748  10612 3014060    0    0     0     0    3   18  0  0 100  0
-
-Measure the time of tar command.
-
-$ ls -s test.dat
-1501472 test.dat
-
-$ time tar cvf test.tar test.dat
-real    0m13.388s
-user    0m0.116s
-sys     0m5.304s
-
-$ ./delayget -d -p <pid>
-CPU             count     real total  virtual total    delay total
-                  428     5528345500     5477116080       62749891
-IO              count    delay total
-                  338     8078977189
-SWAP            count    delay total
-                    0              0
-RECLAIM         count    delay total
-                    0              0
-
-- When system is under heavy memory load
-  memory reclaim may occur.
-
-$ vmstat 1
-procs -----------memory---------- ---swap-- -----io---- -system-- ----cpu----
- r  b   swpd   free   buff  cache   si   so    bi    bo   in   cs us sy id wa
- 0  0 7159032  49724   1812   3012    0    0     0     0    3   24  0  0 100  0
- 0  0 7159032  49724   1812   3012    0    0     0     0    4   24  0  0 100  0
- 0  0 7159032  49848   1812   3012    0    0     0     0    3   22  0  0 100  0
-
-In this case, one process uses more 8G memory
-by execution of malloc() and memset().
-
-$ time tar cvf test.tar test.dat
-real    1m38.563s        <-  increased by 85 sec
-user    0m0.140s
-sys     0m7.060s
-
-$ ./delayget -d -p <pid>
-CPU             count     real total  virtual total    delay total
-                 9021     7140446250     7315277975      923201824
-IO              count    delay total
-                 8965    90466349669
-SWAP            count    delay total
-                    3       21036367
-RECLAIM         count    delay total
-                  740    61011951153
-
-In the later case, the value of RECLAIM is increasing.
-So, taskstats can show how much memory reclaim influences TAT.
-
-Signed-off-by: Keika Kobayashi <kobayashi.kk@ncos.nec.co.jp>
-Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujistu.com>
+Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/delayacct.h |   19 +++++++++++++++++++
- include/linux/sched.h     |    4 ++++
- kernel/delayacct.c        |   13 +++++++++++++
- mm/vmscan.c               |    5 +++++
- 4 files changed, 41 insertions(+)
+ fs/fat/file.c |   44 +++++++++++++++++++++++++++-----------------
+ 1 file changed, 27 insertions(+), 17 deletions(-)
 
-diff -puN include/linux/delayacct.h~per-task-delay-accounting-add-memory-reclaim-delay include/linux/delayacct.h
---- a/include/linux/delayacct.h~per-task-delay-accounting-add-memory-reclaim-delay
-+++ a/include/linux/delayacct.h
-@@ -39,6 +39,8 @@ extern void __delayacct_blkio_start(void
- extern void __delayacct_blkio_end(void);
- extern int __delayacct_add_tsk(struct taskstats *, struct task_struct *);
- extern __u64 __delayacct_blkio_ticks(struct task_struct *);
-+extern void __delayacct_freepages_start(void);
-+extern void __delayacct_freepages_end(void);
+diff -puN fs/fat/file.c~fat-relax-the-permission-check-of-fat_setattr fs/fat/file.c
+--- a/fs/fat/file.c~fat-relax-the-permission-check-of-fat_setattr
++++ a/fs/fat/file.c
+@@ -257,26 +257,34 @@ int fat_getattr(struct vfsmount *mnt, st
+ }
+ EXPORT_SYMBOL_GPL(fat_getattr);
  
- static inline int delayacct_is_task_waiting_on_io(struct task_struct *p)
+-static int fat_check_mode(const struct msdos_sb_info *sbi, struct inode *inode,
+-			  mode_t mode)
++static int fat_sanitize_mode(const struct msdos_sb_info *sbi,
++			     struct inode *inode, umode_t *mode_ptr)
  {
-@@ -107,6 +109,18 @@ static inline __u64 delayacct_blkio_tick
+-	mode_t mask, req = mode & ~S_IFMT;
++	mode_t mask, perm;
+ 
+-	if (S_ISREG(mode))
++	/*
++	 * Note, the basic check is already done by a caller of
++	 * (attr->ia_mode & ~MSDOS_VALID_MODE)
++	 */
++
++	if (S_ISREG(inode->i_mode))
+ 		mask = sbi->options.fs_fmask;
+ 	else
+ 		mask = sbi->options.fs_dmask;
+ 
++	perm = *mode_ptr & ~(S_IFMT | mask);
++
+ 	/*
+ 	 * Of the r and x bits, all (subject to umask) must be present. Of the
+ 	 * w bits, either all (subject to umask) or none must be present.
+ 	 */
+-	req &= ~mask;
+-	if ((req & (S_IRUGO | S_IXUGO)) != (inode->i_mode & (S_IRUGO|S_IXUGO)))
++	if ((perm & (S_IRUGO | S_IXUGO)) != (inode->i_mode & (S_IRUGO|S_IXUGO)))
+ 		return -EPERM;
+-	if ((req & S_IWUGO) && ((req & S_IWUGO) != (S_IWUGO & ~mask)))
++	if ((perm & S_IWUGO) && ((perm & S_IWUGO) != (S_IWUGO & ~mask)))
+ 		return -EPERM;
+ 
++	*mode_ptr &= S_IFMT | perm;
++
  	return 0;
  }
  
-+static inline void delayacct_freepages_start(void)
-+{
-+	if (current->delays)
-+		__delayacct_freepages_start();
-+}
-+
-+static inline void delayacct_freepages_end(void)
-+{
-+	if (current->delays)
-+		__delayacct_freepages_end();
-+}
-+
- #else
- static inline void delayacct_set_flag(int flag)
- {}
-@@ -129,6 +143,11 @@ static inline __u64 delayacct_blkio_tick
- { return 0; }
- static inline int delayacct_is_task_waiting_on_io(struct task_struct *p)
- { return 0; }
-+static inline void delayacct_freepages_start(void)
-+{}
-+static inline void delayacct_freepages_end(void)
-+{}
-+
- #endif /* CONFIG_TASK_DELAY_ACCT */
+@@ -299,7 +307,7 @@ int fat_setattr(struct dentry *dentry, s
+ {
+ 	struct msdos_sb_info *sbi = MSDOS_SB(dentry->d_sb);
+ 	struct inode *inode = dentry->d_inode;
+-	int mask, error = 0;
++	int error = 0;
+ 	unsigned int ia_valid;
  
- #endif
-diff -puN include/linux/sched.h~per-task-delay-accounting-add-memory-reclaim-delay include/linux/sched.h
---- a/include/linux/sched.h~per-task-delay-accounting-add-memory-reclaim-delay
-+++ a/include/linux/sched.h
-@@ -672,6 +672,10 @@ struct task_delay_info {
- 				/* io operations performed */
- 	u32 swapin_count;	/* total count of the number of swapin block */
- 				/* io operations performed */
+ 	lock_kernel();
+@@ -332,12 +340,13 @@ int fat_setattr(struct dentry *dentry, s
+ 			error = 0;
+ 		goto out;
+ 	}
 +
-+	struct timespec freepages_start, freepages_end;
-+	u64 freepages_delay;	/* wait for memory reclaim */
-+	u32 freepages_count;	/* total count of memory reclaim */
- };
- #endif	/* CONFIG_TASK_DELAY_ACCT */
+ 	if (((attr->ia_valid & ATTR_UID) &&
+ 	     (attr->ia_uid != sbi->options.fs_uid)) ||
+ 	    ((attr->ia_valid & ATTR_GID) &&
+ 	     (attr->ia_gid != sbi->options.fs_gid)) ||
+ 	    ((attr->ia_valid & ATTR_MODE) &&
+-	     fat_check_mode(sbi, inode, attr->ia_mode) < 0))
++	     (attr->ia_mode & ~MSDOS_VALID_MODE)))
+ 		error = -EPERM;
  
-diff -puN kernel/delayacct.c~per-task-delay-accounting-add-memory-reclaim-delay kernel/delayacct.c
---- a/kernel/delayacct.c~per-task-delay-accounting-add-memory-reclaim-delay
-+++ a/kernel/delayacct.c
-@@ -165,3 +165,16 @@ __u64 __delayacct_blkio_ticks(struct tas
- 	return ret;
- }
+ 	if (error) {
+@@ -346,15 +355,16 @@ int fat_setattr(struct dentry *dentry, s
+ 		goto out;
+ 	}
  
-+void __delayacct_freepages_start(void)
-+{
-+	delayacct_start(&current->delays->freepages_start);
-+}
-+
-+void __delayacct_freepages_end(void)
-+{
-+	delayacct_end(&current->delays->freepages_start,
-+			&current->delays->freepages_end,
-+			&current->delays->freepages_delay,
-+			&current->delays->freepages_count);
-+}
-+
-diff -puN mm/vmscan.c~per-task-delay-accounting-add-memory-reclaim-delay mm/vmscan.c
---- a/mm/vmscan.c~per-task-delay-accounting-add-memory-reclaim-delay
-+++ a/mm/vmscan.c
-@@ -38,6 +38,7 @@
- #include <linux/kthread.h>
- #include <linux/freezer.h>
- #include <linux/memcontrol.h>
-+#include <linux/delayacct.h>
+-	error = inode_setattr(inode, attr);
+-	if (error)
+-		goto out;
++	/*
++	 * We don't return -EPERM here. Yes, strange, but this is too
++	 * old behavior.
++	 */
++	if (attr->ia_valid & ATTR_MODE) {
++		if (fat_sanitize_mode(sbi, inode, &attr->ia_mode) < 0)
++			attr->ia_valid &= ~ATTR_MODE;
++	}
  
- #include <asm/tlbflush.h>
- #include <asm/div64.h>
-@@ -1319,6 +1320,8 @@ static unsigned long do_try_to_free_page
- 	struct zone *zone;
- 	enum zone_type high_zoneidx = gfp_zone(sc->gfp_mask);
- 
-+	delayacct_freepages_start();
-+
- 	if (scan_global_lru(sc))
- 		count_vm_event(ALLOCSTALL);
- 	/*
-@@ -1399,6 +1402,8 @@ out:
- 	} else
- 		mem_cgroup_record_reclaim_priority(sc->mem_cgroup, priority);
- 
-+	delayacct_freepages_end();
-+
- 	return ret;
- }
- 
+-	if (S_ISDIR(inode->i_mode))
+-		mask = sbi->options.fs_dmask;
+-	else
+-		mask = sbi->options.fs_fmask;
+-	inode->i_mode &= S_IFMT | (S_IRWXUGO & ~mask);
++	error = inode_setattr(inode, attr);
+ out:
+ 	unlock_kernel();
+ 	return error;
 _
 
-Patches currently in -mm which might be from kobayashi.kk@ncos.nec.co.jp are
+Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
 
-per-task-delay-accounting-add-memory-reclaim-delay.patch
-per-task-delay-accounting-update-taskstats-for-memory-reclaim-delay.patch
-per-task-delay-accounting-update-document-and-getdelaysc-for-memory-reclaim.patch
+fat-relax-the-permission-check-of-fat_setattr.patch
+linux-next.patch
+msdos-fs-remove-unsettable-atari-option.patch
 
