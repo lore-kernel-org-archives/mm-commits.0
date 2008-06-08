@@ -1,63 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: - vt-fix-background-color-on-line-feed-dec-invert.patch removed from -mm tree
-Date: Sun, 08 Jun 2008 12:48:34 -0700
-Message-ID: <200806081948.m58JmYtn017516@imap1.linux-foundation.org>
+Subject: - fbcon-fix-wrong-vmode-bits-copied-on-console-switch.patch removed from -mm tree
+Date: Sun, 08 Jun 2008 12:48:28 -0700
+Message-ID: <200806081948.m58JmSlo017510@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32981 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47059 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754243AbYFHTsj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 15:48:39 -0400
+	by vger.kernel.org with ESMTP id S1753781AbYFHTsa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 15:48:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jengelh@medozas.de, thunder7@xs4all.nl, mm-commits@vger.kernel.org
+To: krzysztof.h1@wp.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vt: fix background color on line feed, DEC invert
+     fbcon: fix wrong vmode bits copied on console switch
 has been removed from the -mm tree.  Its filename was
-     vt-fix-background-color-on-line-feed-dec-invert.patch
+     fbcon-fix-wrong-vmode-bits-copied-on-console-switch.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vt: fix background color on line feed, DEC invert
-From: Jan Engelhardt <jengelh@medozas.de>
+Subject: fbcon: fix wrong vmode bits copied on console switch
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Original report: """I used to force my console to black-on-white by the
-command `setterm -inversescreen on`.  In 2.6.26-rc4, I get lots of black
-background characters."""
+The interlaced and double line mode bits should not be copied to new
+console when the console is switched.  Otherwise, the new console may be
+set to incorrect refresh rate.
 
-Another addendum to commit c9e587ab.  This was previously missed out since
-I was not aware of what vc_decscnm was for.
+Also, the x and y offsets does not need to be copied.
 
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
-Reported-by: <thunder7@xs4all.nl>
-Tested-by: <thunder7@xs4all.nl>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/vt.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/console/fbcon.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/char/vt.c~vt-fix-background-color-on-line-feed-dec-invert drivers/char/vt.c
---- a/drivers/char/vt.c~vt-fix-background-color-on-line-feed-dec-invert
-+++ a/drivers/char/vt.c
-@@ -434,7 +434,7 @@ static void update_attr(struct vc_data *
- 	              vc->vc_blink, vc->vc_underline,
- 	              vc->vc_reverse ^ vc->vc_decscnm, vc->vc_italic);
- 	vc->vc_video_erase_char = (build_attr(vc, vc->vc_color, 1, vc->vc_blink, 0, vc->vc_decscnm, 0) << 8) | ' ';
--	vc->vc_scrl_erase_char = (build_attr(vc, vc->vc_def_color, 1, false, false, false, false) << 8) | ' ';
-+	vc->vc_scrl_erase_char = (build_attr(vc, vc->vc_def_color, 1, false, false, vc->vc_decscnm, false) << 8) | ' ';
- }
+diff -puN drivers/video/console/fbcon.c~fbcon-fix-wrong-vmode-bits-copied-on-console-switch drivers/video/console/fbcon.c
+--- a/drivers/video/console/fbcon.c~fbcon-fix-wrong-vmode-bits-copied-on-console-switch
++++ a/drivers/video/console/fbcon.c
+@@ -2275,9 +2275,7 @@ static int fbcon_switch(struct vc_data *
+ 	 * in fb_set_var()
+ 	 */
+ 	info->var.activate = var.activate;
+-	var.yoffset = info->var.yoffset;
+-	var.xoffset = info->var.xoffset;
+-	var.vmode = info->var.vmode;
++	var.vmode |= info->var.vmode & ~FB_VMODE_MASK;
+ 	fb_set_var(info, &var);
+ 	ops->var = info->var;
  
- /* Note: inverting the screen twice should revert to the original state */
 _
 
-Patches currently in -mm which might be from jengelh@medozas.de are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
 origin.patch
-fs-make-struct-file-arg-to-d_path-const.patch
+tridentfb-replace-macros-with-functions.patch
+tridentfb-convert-fb_info-into-allocated-one.patch
+tridentfb-move-global-pseudo-palette-into-structure.patch
+tridentfb-move-global-chip_id-into-structure.patch
+tridentfb-move-global-flat-panel-variable-into-structure.patch
+tridentfb-convert-is_blade-and-is_xp-macros-into-functions.patch
+tridentfb-move-global-acceleration-hooks-into-structure.patch
+tridentfb-make-use-of-functions-and-constants-from-the-vgah.patch
+tridentfb-fix-timing-calculations.patch
+tridentfb-use-mmio-access-for-clock-setting.patch
+tridentfb-fix-clock-settings-for-older-trident-96xx-chips.patch
+tridentfb-improve-probe-function.patch
+tridentfb-improved-register-values-on-tgui-9680.patch
+tridentfb-add-tgui-9440-support.patch
+tridentfb-fix-unitialized-pseudo_palette.patch
+tridentfb-improve-check_var-function.patch
+tridentfb-preserve-memory-type-settings.patch
+tridentfb-fix-hi-color-modes-for-tgui-9440.patch
+tridentfb-add-acceleration-for-tgui-families.patch
+tridentfb-acceleration-code-improvements.patch
+tridentfb-acceleration-bug-fixes.patch
+tridentfb-various-pixclock-and-timing-improvements.patch
+tridentfb-acceleration-constants-change.patch
+tridentfb-source-code-improvements.patch
+tridentfb-fix-console-freeze-when-switching-from-x11.patch
+tridentfb-fix-224-color-logo-at-8-bpp.patch
+tridentfb-y-panning-fixes.patch
+tridentfb-blade3d-clock-fixes.patch
+amifb-test-virtual-screen-range-before-subtraction-on-unsigned.patch
+atafb-test-virtual-screen-range-before-subtraction-on-unsigned.patch
+fbcon-make-logo_height-a-local-variable.patch
+uvesafb-change-mode-parameter-to-mode_option.patch
+tridentfb-documentation-update.patch
+tdfxfb-add-mode_option-module-parameter.patch
+vga16fb-source-code-improvement.patch
+tdfxfb-remove-ypan-checks-done-by-a-higher-layer.patch
+vfb-only-enable-if-explicitly-requested-when-compiled-in.patch
+hgafb-convert-to-new-platform-driver-api-bugzilla-9689.patch
+skeletonfb-update-to-correct-platform-driver-usage.patch
 
