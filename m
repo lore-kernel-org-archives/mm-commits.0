@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + bootmem-revisit-bitmap-size-calculations.patch added to -mm tree
-Date: Sun, 08 Jun 2008 16:35:21 -0700
-Message-ID: <200806082335.m58NZLRL025602@imap1.linux-foundation.org>
+Subject: + bootmem-revisit-bootmem-descriptor-list-handling.patch added to -mm tree
+Date: Sun, 08 Jun 2008 16:35:23 -0700
+Message-ID: <200806082335.m58NZN8T025607@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49424 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35549 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754214AbYFHXgY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 19:36:24 -0400
+	by vger.kernel.org with ESMTP id S1754321AbYFHXg0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 19:36:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: hannes@saeurebad.de
 
 
 The patch titled
-     bootmem: revisit bitmap size calculations
+     bootmem: revisit bootmem descriptor list handling
 has been added to the -mm tree.  Its filename is
-     bootmem-revisit-bitmap-size-calculations.patch
+     bootmem-revisit-bootmem-descriptor-list-handling.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,90 +33,72 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bootmem: revisit bitmap size calculations
+Subject: bootmem: revisit bootmem descriptor list handling
 From: Johannes Weiner <hannes@saeurebad.de>
 
-Reincarnate get_mapsize as bootmap_bytes and implement
-bootmem_bootmap_pages on top of it.
+link_bootmem handles an insertion of a new descriptor into the sorted list
+in more or less three explicit branches; empty list, insert in between and
+append.  These cases can be expressed implicite.
 
-Adjust users of these helpers and make free_all_bootmem_core use
-bootmem_bootmap_pages instead of open-coding it.
+Also mark the sorted list as initdata as it can be thrown away after boot
+as well.
 
 Signed-off-by: Johannes Weiner <hannes@saeurebad.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/bootmem.c |   27 +++++++++------------------
- 1 file changed, 9 insertions(+), 18 deletions(-)
+ mm/bootmem.c |   23 ++++++++++-------------
+ 1 file changed, 10 insertions(+), 13 deletions(-)
 
-diff -puN mm/bootmem.c~bootmem-revisit-bitmap-size-calculations mm/bootmem.c
---- a/mm/bootmem.c~bootmem-revisit-bitmap-size-calculations
+diff -puN mm/bootmem.c~bootmem-revisit-bootmem-descriptor-list-handling mm/bootmem.c
+--- a/mm/bootmem.c~bootmem-revisit-bootmem-descriptor-list-handling
 +++ a/mm/bootmem.c
-@@ -50,17 +50,11 @@ early_param("bootmem_debug", bootmem_deb
- 			__FUNCTION__, ## args);		\
- })
+@@ -23,7 +23,6 @@ unsigned long max_low_pfn;
+ unsigned long min_low_pfn;
+ unsigned long max_pfn;
  
--/*
-- * Given an initialised bdata, it returns the size of the boot bitmap
-- */
--static unsigned long __init get_mapsize(bootmem_data_t *bdata)
-+static unsigned long __init bootmap_bytes(unsigned long pages)
- {
--	unsigned long mapsize;
--	unsigned long start = PFN_DOWN(bdata->node_boot_start);
--	unsigned long end = bdata->node_low_pfn;
-+	unsigned long bytes = (pages + 7) / 8;
+-static LIST_HEAD(bdata_list);
+ #ifdef CONFIG_CRASH_DUMP
+ /*
+  * If we have booted due to a crash, max_pfn will be a very low value. We need
+@@ -34,6 +33,8 @@ unsigned long saved_max_pfn;
  
--	mapsize = ((end - start) + 7) / 8;
--	return ALIGN(mapsize, sizeof(long));
-+	return ALIGN(bytes, sizeof(long));
- }
+ bootmem_data_t bootmem_node_data[MAX_NUMNODES] __initdata;
  
- /**
-@@ -69,13 +63,9 @@ static unsigned long __init get_mapsize(
++static struct list_head bdata_list __initdata = LIST_HEAD_INIT(bdata_list);
++
+ static int bootmem_debug;
+ 
+ static int __init bootmem_debug_setup(char *buf)
+@@ -73,20 +74,16 @@ unsigned long __init bootmem_bootmap_pag
   */
- unsigned long __init bootmem_bootmap_pages(unsigned long pages)
+ static void __init link_bootmem(bootmem_data_t *bdata)
  {
--	unsigned long mapsize;
--
--	mapsize = (pages+7)/8;
--	mapsize = (mapsize + ~PAGE_MASK) & PAGE_MASK;
--	mapsize >>= PAGE_SHIFT;
-+	unsigned long bytes = bootmap_bytes(pages);
+-	bootmem_data_t *ent;
++	struct list_head *iter;
  
--	return mapsize;
-+	return PAGE_ALIGN(bytes) >> PAGE_SHIFT;
+-	if (list_empty(&bdata_list)) {
+-		list_add(&bdata->list, &bdata_list);
+-		return;
+-	}
+-	/* insert in order */
+-	list_for_each_entry(ent, &bdata_list, list) {
+-		if (bdata->node_boot_start < ent->node_boot_start) {
+-			list_add_tail(&bdata->list, &ent->list);
+-			return;
+-		}
++	list_for_each(iter, &bdata_list) {
++		bootmem_data_t *ent;
++
++		ent = list_entry(iter, bootmem_data_t, list);
++		if (bdata->node_boot_start < ent->node_boot_start)
++			break;
+ 	}
+-	list_add_tail(&bdata->list, &bdata_list);
++	list_add_tail(&bdata->list, iter);
  }
  
  /*
-@@ -117,7 +107,7 @@ static unsigned long __init init_bootmem
- 	 * Initially all pages are reserved - setup_arch() has to
- 	 * register free RAM areas explicitly.
- 	 */
--	mapsize = get_mapsize(bdata);
-+	mapsize = bootmap_bytes(end - start);
- 	memset(bdata->node_bootmem_map, 0xff, mapsize);
- 
- 	bdebug("nid=%d start=%lx map=%lx end=%lx mapsize=%lx\n",
-@@ -160,7 +150,7 @@ static unsigned long __init free_all_boo
- 	struct page *page;
- 	unsigned long pfn;
- 	unsigned long i, count;
--	unsigned long idx;
-+	unsigned long idx, pages;
- 	unsigned long *map;
- 	int gofast = 0;
- 
-@@ -211,7 +201,8 @@ static unsigned long __init free_all_boo
- 	 * needed anymore:
- 	 */
- 	page = virt_to_page(bdata->node_bootmem_map);
--	idx = (get_mapsize(bdata) + PAGE_SIZE-1) >> PAGE_SHIFT;
-+	pages = bdata->node_low_pfn - PFN_DOWN(bdata->node_boot_start);
-+	idx = bootmem_bootmap_pages(pages);
- 	for (i = 0; i < idx; i++, page++)
- 		__free_pages_bootmem(page, 0);
- 	count += i;
 _
 
 Patches currently in -mm which might be from hannes@saeurebad.de are
