@@ -1,52 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - linux-next-rtc-fix.patch removed from -mm tree
-Date: Sun, 08 Jun 2008 12:35:52 -0700
-Message-ID: <200806081935.m58JZq7v017029@imap1.linux-foundation.org>
+Subject: - linux-next-fixup.patch removed from -mm tree
+Date: Sun, 08 Jun 2008 12:35:37 -0700
+Message-ID: <200806081935.m58JZbWQ017026@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37567 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46956 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753676AbYFHTfy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 15:35:54 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m58JZrWt029710
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Sun, 8 Jun 2008 12:35:54 -0700
+	by vger.kernel.org with ESMTP id S1752831AbYFHTfs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 15:35:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, david-b@pacbell.net, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next-rtc-fix
+     linux-next-fixup
 has been removed from the -mm tree.  Its filename was
-     linux-next-rtc-fix.patch
+     linux-next-fixup.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-rtc-fix
+Subject: linux-next-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Attempt to repair spi-fix-refcount-related-spidev-oops-on-rmmod versus
+linux-next smashup.
+
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/sysdev/fsl_soc.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/spi/spidev.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/powerpc/sysdev/fsl_soc.c~linux-next-rtc-fix arch/powerpc/sysdev/fsl_soc.c
---- a/arch/powerpc/sysdev/fsl_soc.c~linux-next-rtc-fix
-+++ a/arch/powerpc/sysdev/fsl_soc.c
-@@ -433,6 +433,7 @@ static struct i2c_driver_device i2c_devi
- 	{"dallas,ds1340",  "ds1340"},
- 	{"stm,m41t00",     "m41t00"},
- 	{"dallas,ds1374",  "ds1374"},
-+	{"cirrus,cs4270",  "cs4270"},
- };
+diff -puN drivers/spi/spidev.c~linux-next-fixup drivers/spi/spidev.c
+--- a/drivers/spi/spidev.c~linux-next-fixup
++++ a/drivers/spi/spidev.c
+@@ -578,9 +578,10 @@ static int spidev_probe(struct spi_devic
+ 		struct device *dev;
  
- static int __init of_find_i2c_driver(struct device_node *node,
+ 		spidev->devt = MKDEV(SPIDEV_MAJOR, minor);
+-		dev = device_create(spidev_class, &spi->dev, spidev->devt,
+-				"spidev%d.%d",
+-				spi->master->bus_num, spi->chip_select);
++		dev = device_create_drvdata(spidev_class, &spi->dev,
++					spidev->devt, spidev,
++					"spidev%d.%d",
++					spi->master->bus_num, spi->chip_select);
+ 		status = IS_ERR(dev) ? PTR_ERR(dev) : 0;
+ 	} else {
+ 		dev_dbg(&spi->dev, "no minor number available!\n");
+@@ -588,7 +589,6 @@ static int spidev_probe(struct spi_devic
+ 	}
+ 	if (status == 0) {
+ 		set_bit(minor, minors);
+-		spi_set_drvdata(spi, spidev);
+ 		list_add(&spidev->device_entry, &device_list);
+ 	}
+ 	mutex_unlock(&device_list_lock);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -54,6 +69,7 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 linux-next.patch
 next-remove-localversion.patch
+linux-next-fixup.patch
 linux-next-rtc-fix.patch
 fix-kobject-fix-kobject_rename-and-config_sysfs.patch
 kvm-is-busted-on-ia64.patch
