@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + revert-linux-next-changes-to-make-memstick-use-fully-asynchronous-request-processing-apply.patch added to -mm tree
-Date: Sun, 08 Jun 2008 14:30:13 -0700
-Message-ID: <200806082130.m58LUDeu021330@imap1.linux-foundation.org>
+Subject: + revert-revert-linux-next-changes-to-make-memstick-use-fully-asynchronous-request-processing-apply.patch added to -mm tree
+Date: Sun, 08 Jun 2008 14:30:17 -0700
+Message-ID: <200806082130.m58LUH0J021336@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58509 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45651 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755710AbYFHVaQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 17:30:16 -0400
+	by vger.kernel.org with ESMTP id S1755758AbYFHVaT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 17:30:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, oakad@yahoo.com
 
 
 The patch titled
-     revert linux-next changes to make "memstick: use fully asynchronous request processing" apply
+     revert-revert-linux-next-changes-to-make-memstick-use-fully-asynchronous-request-processing-apply
 has been added to the -mm tree.  Its filename is
-     revert-linux-next-changes-to-make-memstick-use-fully-asynchronous-request-processing-apply.patch
+     revert-revert-linux-next-changes-to-make-memstick-use-fully-asynchronous-request-processing-apply.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,43 +33,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert linux-next changes to make "memstick: use fully asynchronous request processing" apply
+Subject: revert-revert-linux-next-changes-to-make-memstick-use-fully-asynchronous-request-processing-apply
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Alex Dubov <oakad@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/memstick/host/tifm_ms.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/memstick/host/tifm_ms.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/memstick/host/tifm_ms.c~revert-linux-next-changes-to-make-memstick-use-fully-asynchronous-request-processing-apply drivers/memstick/host/tifm_ms.c
---- a/drivers/memstick/host/tifm_ms.c~revert-linux-next-changes-to-make-memstick-use-fully-asynchronous-request-processing-apply
+diff -puN drivers/memstick/host/tifm_ms.c~revert-revert-linux-next-changes-to-make-memstick-use-fully-asynchronous-request-processing-apply drivers/memstick/host/tifm_ms.c
+--- a/drivers/memstick/host/tifm_ms.c~revert-revert-linux-next-changes-to-make-memstick-use-fully-asynchronous-request-processing-apply
 +++ a/drivers/memstick/host/tifm_ms.c
-@@ -465,7 +465,7 @@ static void tifm_ms_request(struct memst
- 	spin_lock_irqsave(&sock->lock, flags);
- 	if (host->req) {
- 		printk(KERN_ERR "%s : unfinished request detected\n",
--		       dev_name(&sock->dev));
-+		       sock->dev.bus_id);
- 		spin_unlock_irqrestore(&sock->lock, flags);
- 		tifm_eject(host->dev);
- 		return;
-@@ -540,7 +540,7 @@ static void tifm_ms_abort(unsigned long 
+@@ -546,7 +546,7 @@ static void tifm_ms_abort(unsigned long 
  	printk(KERN_ERR
  	       "%s : card failed to respond for a long period of time "
  	       "(%x, %x)\n",
--	       dev_name(&host->dev->dev), host->req ? host->req->tpc : 0,
-+	       host->dev->dev.bus_id, host->req ? host->req->tpc : 0,
+-	       host->dev->dev.bus_id, host->req ? host->req->tpc : 0,
++	       dev_name(&host->dev->dev), host->req ? host->req->tpc : 0,
  	       host->cmd_flags);
  
  	tifm_eject(host->dev);
-@@ -555,7 +555,7 @@ static int tifm_ms_probe(struct tifm_dev
+@@ -561,7 +561,7 @@ static int tifm_ms_probe(struct tifm_dev
  	if (!(TIFM_SOCK_STATE_OCCUPIED
  	      & readl(sock->addr + SOCK_PRESENT_STATE))) {
  		printk(KERN_WARNING "%s : card gone, unexpectedly\n",
--		       dev_name(&sock->dev));
-+		       sock->dev.bus_id);
+-		       sock->dev.bus_id);
++		       dev_name(&sock->dev));
  		return rc;
  	}
  
