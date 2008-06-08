@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + memstick-add-start-and-stop-methods-to-memstick-device.patch added to -mm tree
-Date: Sun, 08 Jun 2008 14:30:11 -0700
-Message-ID: <200806082130.m58LUBWG021327@imap1.linux-foundation.org>
+Subject: + revert-linux-next-changes-to-make-memstick-use-fully-asynchronous-request-processing-apply.patch added to -mm tree
+Date: Sun, 08 Jun 2008 14:30:13 -0700
+Message-ID: <200806082130.m58LUDeu021330@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54234 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58509 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755604AbYFHVaN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 17:30:13 -0400
+	by vger.kernel.org with ESMTP id S1755710AbYFHVaQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 17:30:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oakad@yahoo.com
+Cc: akpm@linux-foundation.org, oakad@yahoo.com
 
 
 The patch titled
-     memstick: add "start" and "stop" methods to memstick device
+     revert linux-next changes to make "memstick: use fully asynchronous request processing" apply
 has been added to the -mm tree.  Its filename is
-     memstick-add-start-and-stop-methods-to-memstick-device.patch
+     revert-linux-next-changes-to-make-memstick-use-fully-asynchronous-request-processing-apply.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,128 +33,170 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memstick: add "start" and "stop" methods to memstick device
-From: Alex Dubov <oakad@yahoo.com>
+Subject: revert linux-next changes to make "memstick: use fully asynchronous request processing" apply
+From: Andrew Morton <akpm@linux-foundation.org>
 
-In some cases it may be desirable to ensure that associated driver is not
-going to access the media in some period of time.  "start" and "stop"
-methods are provided therefore to allow it.
-
-Signed-off-by: Alex Dubov <oakad@yahoo.com>
+Cc: Alex Dubov <oakad@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/memstick/core/memstick.c    |   11 ++++++--
- drivers/memstick/core/mspro_block.c |   33 ++++++++++++++++++++++++++
- include/linux/memstick.h            |    4 +++
- 3 files changed, 45 insertions(+), 3 deletions(-)
+ drivers/memstick/host/tifm_ms.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/memstick/core/memstick.c~memstick-add-start-and-stop-methods-to-memstick-device drivers/memstick/core/memstick.c
---- a/drivers/memstick/core/memstick.c~memstick-add-start-and-stop-methods-to-memstick-device
-+++ a/drivers/memstick/core/memstick.c
-@@ -432,8 +432,11 @@ static void memstick_check(struct work_s
+diff -puN drivers/memstick/host/tifm_ms.c~revert-linux-next-changes-to-make-memstick-use-fully-asynchronous-request-processing-apply drivers/memstick/host/tifm_ms.c
+--- a/drivers/memstick/host/tifm_ms.c~revert-linux-next-changes-to-make-memstick-use-fully-asynchronous-request-processing-apply
++++ a/drivers/memstick/host/tifm_ms.c
+@@ -465,7 +465,7 @@ static void tifm_ms_request(struct memst
+ 	spin_lock_irqsave(&sock->lock, flags);
+ 	if (host->req) {
+ 		printk(KERN_ERR "%s : unfinished request detected\n",
+-		       dev_name(&sock->dev));
++		       sock->dev.bus_id);
+ 		spin_unlock_irqrestore(&sock->lock, flags);
+ 		tifm_eject(host->dev);
+ 		return;
+@@ -540,7 +540,7 @@ static void tifm_ms_abort(unsigned long 
+ 	printk(KERN_ERR
+ 	       "%s : card failed to respond for a long period of time "
+ 	       "(%x, %x)\n",
+-	       dev_name(&host->dev->dev), host->req ? host->req->tpc : 0,
++	       host->dev->dev.bus_id, host->req ? host->req->tpc : 0,
+ 	       host->cmd_flags);
  
- 	dev_dbg(&host->dev, "memstick_check started\n");
- 	mutex_lock(&host->lock);
--	if (!host->card)
--		memstick_power_on(host);
-+	if (!host->card) {
-+		if (memstick_power_on(host))
-+			goto out_power_off;
-+	} else
-+		host->card->stop(host->card);
- 
- 	card = memstick_alloc_card(host);
- 
-@@ -451,7 +454,8 @@ static void memstick_check(struct work_s
- 			    || !(host->card->check(host->card))) {
- 				device_unregister(&host->card->dev);
- 				host->card = NULL;
--			}
-+			} else
-+				host->card->start(host->card);
- 		}
- 
- 		if (!host->card) {
-@@ -464,6 +468,7 @@ static void memstick_check(struct work_s
- 			kfree(card);
+ 	tifm_eject(host->dev);
+@@ -555,7 +555,7 @@ static int tifm_ms_probe(struct tifm_dev
+ 	if (!(TIFM_SOCK_STATE_OCCUPIED
+ 	      & readl(sock->addr + SOCK_PRESENT_STATE))) {
+ 		printk(KERN_WARNING "%s : card gone, unexpectedly\n",
+-		       dev_name(&sock->dev));
++		       sock->dev.bus_id);
+ 		return rc;
  	}
  
-+out_power_off:
- 	if (!host->card)
- 		host->set_param(host, MEMSTICK_POWER, MEMSTICK_POWER_OFF);
- 
-diff -puN drivers/memstick/core/mspro_block.c~memstick-add-start-and-stop-methods-to-memstick-device drivers/memstick/core/mspro_block.c
---- a/drivers/memstick/core/mspro_block.c~memstick-add-start-and-stop-methods-to-memstick-device
-+++ a/drivers/memstick/core/mspro_block.c
-@@ -752,6 +752,37 @@ static int mspro_block_has_request(struc
- 	return rc;
- }
- 
-+static void mspro_block_stop(struct memstick_dev *card)
-+{
-+	struct mspro_block_data *msb = memstick_get_drvdata(card);
-+	int rc = 0;
-+	unsigned long flags;
-+
-+	while (1) {
-+		spin_lock_irqsave(&msb->q_lock, flags);
-+		if (!msb->has_request) {
-+			blk_stop_queue(msb->queue);
-+			rc = 1;
-+		}
-+		spin_unlock_irqrestore(&msb->q_lock, flags);
-+
-+		if (rc)
-+			break;
-+
-+		wait_for_completion(&card->mrq_complete);
-+	}
-+}
-+
-+static void mspro_block_start(struct memstick_dev *card)
-+{
-+	struct mspro_block_data *msb = memstick_get_drvdata(card);
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&msb->q_lock, flags);
-+	blk_start_queue(msb->queue);
-+	spin_unlock_irqrestore(&msb->q_lock, flags);
-+}
-+
- static int mspro_block_queue_thread(void *data)
- {
- 	struct memstick_dev *card = data;
-@@ -1272,6 +1303,8 @@ static int mspro_block_probe(struct mems
- 	rc = mspro_block_init_disk(card);
- 	if (!rc) {
- 		card->check = mspro_block_check_card;
-+		card->stop = mspro_block_stop;
-+		card->start = mspro_block_start;
- 		return 0;
- 	}
- 
-diff -puN include/linux/memstick.h~memstick-add-start-and-stop-methods-to-memstick-device include/linux/memstick.h
---- a/include/linux/memstick.h~memstick-add-start-and-stop-methods-to-memstick-device
-+++ a/include/linux/memstick.h
-@@ -263,6 +263,10 @@ struct memstick_dev {
- 	/* Get next request from the media driver.                         */
- 	int                      (*next_request)(struct memstick_dev *card,
- 						 struct memstick_request **mrq);
-+	/* Tell the media driver to stop doing things                      */
-+	void                     (*stop)(struct memstick_dev *card);
-+	/* Allow the media driver to continue                              */
-+	void                     (*start)(struct memstick_dev *card);
- 
- 	struct device            dev;
- };
 _
 
-Patches currently in -mm which might be from oakad@yahoo.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-memstick-allow-set_param-method-to-return-an-error-code.patch
-memstick-add-start-and-stop-methods-to-memstick-device.patch
+origin.patch
+m68k-add-ext2_find_firstnext_bit-for-ext4-checkpatch-fixes.patch
+linux-next.patch
+next-remove-localversion.patch
+linux-next-git-rejects.patch
+fix-kobject-fix-kobject_rename-and-config_sysfs.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-video-balcklist-fujitsu-lifebook-s6410.patch
+lguest-use-cpu-capability-accessors.patch
+intel-agp-rewrite-gtt-on-resume-checkpatch-fixes.patch
+arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2.patch
+arch-powerpc-platforms-pseries-eeh_driverc-fix-warning.patch
+arch-powerpc-platforms-pseries-eeh_driverc-fix-warning-checkpatch-fixes.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+git-jg-misc-git-rejects.patch
+drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+git-leds.patch
+fsldma-the-mpc8377mds-board-device-tree-node-for-fsldma-driver.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers.patch
+drivers-mtd-devices-block2mtdc-suppress-warning.patch
+bluetooth-hci_bcspc-small-cleanups-api-users-fix.patch
+sundance-set-carrier-status-on-link-change-events.patch
+net-sh_eth-add-support-for-renesas-superh-ethernet-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+pci-introduce-pci_slot.patch
+acpi-pci-slot-detection-driver.patch
+git-scsi-misc-fix-scsi_dh-build-errors.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
+pktcdvd-push-bkl-down-into-driver-fix.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-logfs-fixup.patch
+drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
+drivers-uwb-wlp-sysfsc-dead-code.patch
+usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix.patch
+usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix-2.patch
+watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix.patch
+watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl-fix.patch
+git-xtensa.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-verify-the-page-links-and-memory-model.patch
+mspec-convert-nopfn-to-fault-fix.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+kill-generic_file_direct_io-checkpatch-fixes.patch
+use-generic_access_phys-for-dev-mem-mappings-fix.patch
+spufs-use-the-new-vm_ops-access-fix.patch
+fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
+page-flags-record-page-flag-overlays-explicitly-xen.patch
+mapping_set_error-add-unlikely.patch
+huge-page-private-reservation-review-cleanups-fix.patch
+sync_file_range_write-may-and-will-block-document-that-fix.patch
+vmallocinfo-add-numa-information-fix.patch
+hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
+hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
+swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
+block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
+rename-warn-to-warning-to-clear-the-namespace-fix.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-paccept-sys_ni.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-signalfd-fix.patch
+flag-parameters-eventfd-fix.patch
+flag-parameters-inotify_init-fix.patch
+flag-parameters-check-magic-constants-alpha.patch
+cputopology-always-define-cpu-topology-information-cleanup.patch
+oprofile-multiplexing-checkpatch-fixes.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
+pnp-convert-resource-options-to-single-linked-list-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
+reiserfs-convert-j_flush_sem-to-mutex.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
+jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup.patch
+ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
+getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
+tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
 revert-linux-next-changes-to-make-memstick-use-fully-asynchronous-request-processing-apply.patch
-memstick-use-fully-asynchronous-request-processing.patch
 revert-revert-linux-next-changes-to-make-memstick-use-fully-asynchronous-request-processing-apply.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-fix.patch
+x86-lockless-get_user_pages_fast-fix-warning.patch
+reiser4.patch
+reiser4-semaphore-fix.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
