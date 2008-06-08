@@ -1,138 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: - olpc-pci-fix-up-pci-stuff-so-that-pci_goany-supports-olpc.patch removed from -mm tree
-Date: Sun, 08 Jun 2008 12:49:46 -0700
-Message-ID: <200806081949.m58JnkRc017708@imap1.linux-foundation.org>
+Subject: - aperture_64c-corner-case-wrong.patch removed from -mm tree
+Date: Sun, 08 Jun 2008 12:49:52 -0700
+Message-ID: <200806081949.m58JnqY4017716@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34098 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33875 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754694AbYFHTue (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 15:50:34 -0400
+	by vger.kernel.org with ESMTP id S1753676AbYFHTus (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 15:50:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dilinger@queued.net, dilinger@debian.org, jbarnes@virtuousgeek.org, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: pavel@suse.cz, andi@firstfloor.org, davej@codemonkey.org.uk, mingo@elte.hu, tglx@linutronix.de, yhlu.kernel@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     OLPC: pci: fix up PCI stuff so that PCI_GOANY supports OLPC
+     aperture_64.c: corner case wrong
 has been removed from the -mm tree.  Its filename was
-     olpc-pci-fix-up-pci-stuff-so-that-pci_goany-supports-olpc.patch
+     aperture_64c-corner-case-wrong.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: OLPC: pci: fix up PCI stuff so that PCI_GOANY supports OLPC
-From: Andres Salomon <dilinger@queued.net>
+Subject: aperture_64.c: corner case wrong
+From: Pavel Machek <pavel@suse.cz>
 
-Previously, one would have to specifically choose CONFIG_OLPC and
-CONFIG_PCI_GOOLPC in order to enable PCI_OLPC.  That doesn't really work
-for distro kernels, so this patch allows one to choose CONFIG_OLPC and
-CONFIG_PCI_GOANY in order to build in OLPC support in a generic kernel (as
-requested by Robert Millan).
+If
 
-This also moves GOOLPC before GOANY in the menuconfig list.
+fix == 0, aper_enabled == 1, gart_fix_e820 == 0
 
-Finally, make pci_access_init return early if we detect OLPC hardware. 
-There's no need to continue probing stuff, and pci_pcbios_init
-specifically trashes our settings (we didn't run into that before because
-PCI_GOANY wasn't supported).
+	if (!fix && !aper_enabled)
+		return;
 
-Signed-off-by: Andres Salomon <dilinger@debian.org>
-Cc: Ingo Molnar <mingo@elte.hu>
+	if (gart_fix_e820 && !fix && aper_enabled) {
+		if (e820_any_mapped(aper_base, aper_base + aper_size,
+				    E820_RAM)) {
+			/* reserve it, so we can reuse it in second kernel */
+			printk(KERN_INFO "update e820 for GART\n");
+			add_memory_region(aper_base, aper_size, E820_RESERVED);
+			update_e820();
+		}
+		return;
+	}
+
+	/* different nodes have different setting, disable them all atfirst*/
+
+we'll fall back here and disable all the settings, even when they were all
+consistent.
+
+Signed-off-by: Pavel Machek <pavel@suse.cz>
+Acked-by: Yinghai Lu <yhlu.kernel@gmail.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Dave Jones <davej@codemonkey.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig    |   11 +++++------
- arch/x86/pci/init.c |    3 ++-
- arch/x86/pci/olpc.c |    5 +++--
- arch/x86/pci/pci.h  |    2 +-
- 4 files changed, 11 insertions(+), 10 deletions(-)
+ arch/x86/kernel/aperture_64.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86/Kconfig~olpc-pci-fix-up-pci-stuff-so-that-pci_goany-supports-olpc arch/x86/Kconfig
---- a/arch/x86/Kconfig~olpc-pci-fix-up-pci-stuff-so-that-pci_goany-supports-olpc
-+++ a/arch/x86/Kconfig
-@@ -1556,13 +1556,13 @@ config PCI_GOMMCONFIG
- config PCI_GODIRECT
- 	bool "Direct"
- 
--config PCI_GOANY
--	bool "Any"
--
- config PCI_GOOLPC
- 	bool "OLPC"
- 	depends on OLPC
- 
-+config PCI_GOANY
-+	bool "Any"
-+
- endchoice
- 
- config PCI_BIOS
-@@ -1579,9 +1579,8 @@ config PCI_MMCONFIG
- 	depends on X86_32 && PCI && ACPI && (PCI_GOMMCONFIG || PCI_GOANY)
- 
- config PCI_OLPC
--	bool
--	depends on PCI && PCI_GOOLPC
--	default y
-+	def_bool y
-+	depends on PCI && OLPC && (PCI_GOOLPC || PCI_GOANY)
- 
- config PCI_DOMAINS
- 	def_bool y
-diff -puN arch/x86/pci/init.c~olpc-pci-fix-up-pci-stuff-so-that-pci_goany-supports-olpc arch/x86/pci/init.c
---- a/arch/x86/pci/init.c~olpc-pci-fix-up-pci-stuff-so-that-pci_goany-supports-olpc
-+++ a/arch/x86/pci/init.c
-@@ -15,7 +15,8 @@ static __init int pci_access_init(void)
- 	pci_mmcfg_early_init();
- 
- #ifdef CONFIG_PCI_OLPC
--	pci_olpc_init();
-+	if (!pci_olpc_init())
-+		return 0;	/* skip additional checks if it's an XO */
- #endif
- #ifdef CONFIG_PCI_BIOS
- 	pci_pcbios_init();
-diff -puN arch/x86/pci/olpc.c~olpc-pci-fix-up-pci-stuff-so-that-pci_goany-supports-olpc arch/x86/pci/olpc.c
---- a/arch/x86/pci/olpc.c~olpc-pci-fix-up-pci-stuff-so-that-pci_goany-supports-olpc
-+++ a/arch/x86/pci/olpc.c
-@@ -302,12 +302,13 @@ static struct pci_raw_ops pci_olpc_conf 
- 	.write = pci_olpc_write,
- };
- 
--void __init pci_olpc_init(void)
-+int __init pci_olpc_init(void)
- {
- 	if (!machine_is_olpc() || olpc_has_vsa())
+diff -puN arch/x86/kernel/aperture_64.c~aperture_64c-corner-case-wrong arch/x86/kernel/aperture_64.c
+--- a/arch/x86/kernel/aperture_64.c~aperture_64c-corner-case-wrong
++++ a/arch/x86/kernel/aperture_64.c
+@@ -328,9 +328,11 @@ out:
+ 			add_memory_region(aper_base, aper_size, E820_RESERVED);
+ 			update_e820();
+ 		}
 -		return;
-+		return -ENODEV;
+ 	}
  
- 	printk(KERN_INFO "PCI: Using configuration type OLPC\n");
- 	raw_pci_ops = &pci_olpc_conf;
- 	is_lx = is_geode_lx();
-+	return 0;
- }
-diff -puN arch/x86/pci/pci.h~olpc-pci-fix-up-pci-stuff-so-that-pci_goany-supports-olpc arch/x86/pci/pci.h
---- a/arch/x86/pci/pci.h~olpc-pci-fix-up-pci-stuff-so-that-pci_goany-supports-olpc
-+++ a/arch/x86/pci/pci.h
-@@ -102,7 +102,7 @@ extern struct pci_raw_ops pci_direct_con
- extern int pci_direct_probe(void);
- extern void pci_direct_init(int type);
- extern void pci_pcbios_init(void);
--extern void pci_olpc_init(void);
-+extern int pci_olpc_init(void);
- 
- /* pci-mmconfig.c */
- 
++	if (!fix)
++		return;
++
+ 	/* different nodes have different setting, disable them all at first*/
+ 	for (i = 0; i < ARRAY_SIZE(bus_dev_ranges); i++) {
+ 		int bus;
 _
 
-Patches currently in -mm which might be from dilinger@queued.net are
+Patches currently in -mm which might be from pavel@suse.cz are
 
-origin.patch
 linux-next.patch
-git-battery.patch
+sync_file_range_write-may-and-will-block-document-that.patch
+sync_file_range_write-may-and-will-block-document-that-fix.patch
+swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option.patch
+swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
+pm-boot-time-suspend-selftest.patch
+remove-include-linux-pm_legacyh.patch
 
