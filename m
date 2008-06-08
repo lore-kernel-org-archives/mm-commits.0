@@ -1,75 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - uml-deal-with-host-time-going-backwards.patch removed from -mm tree
-Date: Sun, 08 Jun 2008 12:47:38 -0700
-Message-ID: <200806081947.m58JlckH017433@imap1.linux-foundation.org>
+Subject: - drivers-char-ip2-fix-kconfig-after-ip2-ip2main-merge.patch removed from -mm tree
+Date: Sun, 08 Jun 2008 12:47:23 -0700
+Message-ID: <200806081947.m58JlNHu017414@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55496 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51246 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753902AbYFHTsE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 15:48:04 -0400
+	by vger.kernel.org with ESMTP id S1755226AbYFHTrn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 15:47:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, jdike@linux.intel.com, nix@esperi.org.uk, mm-commits@vger.kernel.org
+To: devzero@web.de, alan@redhat.com, jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: deal with host time going backwards
+     drivers/char/ip2: fix Kconfig after ip2/ip2main merge
 has been removed from the -mm tree.  Its filename was
-     uml-deal-with-host-time-going-backwards.patch
+     drivers-char-ip2-fix-kconfig-after-ip2-ip2main-merge.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: deal with host time going backwards
-From: Jeff Dike <jdike@addtoit.com>
+Subject: drivers/char/ip2: fix Kconfig after ip2/ip2main merge
+From: Roland.Kletzing <devzero@web.de>
 
-Protection against the host's time going backwards (eg, ntp activity on
-the host) by keeping track of the time at the last tick and if it's
-greater than the current time, keep time stopped until the host catches
-up.
+As commit 6089093e588ee3f6aed99d08b1cf5ea37c52cf97 is fixing ip2 crashes
+on load/unload and making ip2/ip2main one module (ip2), Kconfig shouldn't
+mention a non existing module.
 
-Cc: Nix <nix@esperi.org.uk>
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Signed-off-by: Roland.Kletzing <devzero@web.de>
+Acked-by: Alan Cox <alan@redhat.com>
+Cc: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/os-Linux/time.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/char/Kconfig |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/um/os-Linux/time.c~uml-deal-with-host-time-going-backwards arch/um/os-Linux/time.c
---- a/arch/um/os-Linux/time.c~uml-deal-with-host-time-going-backwards
-+++ a/arch/um/os-Linux/time.c
-@@ -106,6 +106,10 @@ static void deliver_alarm(void)
- 	unsigned long long this_tick = os_nsecs();
- 	int one_tick = UM_NSEC_PER_SEC / UM_HZ;
+diff -puN drivers/char/Kconfig~drivers-char-ip2-fix-kconfig-after-ip2-ip2main-merge drivers/char/Kconfig
+--- a/drivers/char/Kconfig~drivers-char-ip2-fix-kconfig-after-ip2-ip2main-merge
++++ a/drivers/char/Kconfig
+@@ -118,8 +118,8 @@ config COMPUTONE
+ 	  order to become a dial-in server. If you have a card like that, say
+ 	  Y here and read <file:Documentation/computone.txt>.
  
-+	/* Protection against the host's time going backwards */
-+	if ((last_tick != 0) && (this_tick < last_tick))
-+		this_tick = last_tick;
-+
- 	if (last_tick == 0)
- 		last_tick = this_tick - one_tick;
+-	  To compile this driver as modules, choose M here: the
+-	  modules will be called ip2 and ip2main.
++	  To compile this driver as module, choose M here: the
++	  module will be called ip2.
  
-@@ -148,6 +152,9 @@ static int after_sleep_interval(struct t
- 		start_usecs = usec;
- 
- 	start_usecs -= skew / UM_NSEC_PER_USEC;
-+	if (start_usecs < 0)
-+		start_usecs = 0;
-+
- 	tv = ((struct timeval) { .tv_sec  = start_usecs / UM_USEC_PER_SEC,
- 				 .tv_usec = start_usecs % UM_USEC_PER_SEC });
- 	interval = ((struct itimerval) { { 0, usec }, tv });
+ config ROCKETPORT
+ 	tristate "Comtrol RocketPort support"
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from devzero@web.de are
 
 origin.patch
 linux-next.patch
-arch-um-kernel-irqc-clean-up-some-functions.patch
-arch-um-kernel-memc-remove-arch_validate.patch
-uml-make-several-more-things-static.patch
+mdacon-messing-up-default-vcs-set-default-to-vc13-16-again.patch
 
