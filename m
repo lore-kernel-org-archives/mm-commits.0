@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + sgi-xp-move-xpc_allocate-into-xpc_send-xpc_send_notify.patch added to -mm tree
-Date: Sun, 08 Jun 2008 17:18:12 -0700
-Message-ID: <200806090018.m590ICYm027089@imap1.linux-foundation.org>
+Subject: + sgi-xp-isolate-activate-irqs-hardware-specific-components.patch added to -mm tree
+Date: Sun, 08 Jun 2008 17:18:14 -0700
+Message-ID: <200806090018.m590IEWR027092@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58738 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51557 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756329AbYFIASQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 20:18:16 -0400
+	by vger.kernel.org with ESMTP id S1756345AbYFIASS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 20:18:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: dcn@sgi.com
 
 
 The patch titled
-     sgi-xp: move xpc_allocate() into xpc_send()/xpc_send_notify()
+     sgi-xp: isolate activate IRQ's hardware specific components
 has been added to the -mm tree.  Its filename is
-     sgi-xp-move-xpc_allocate-into-xpc_send-xpc_send_notify.patch
+     sgi-xp-isolate-activate-irqs-hardware-specific-components.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,573 +33,765 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sgi-xp: move xpc_allocate() into xpc_send()/xpc_send_notify()
+Subject: sgi-xp: isolate activate IRQ's hardware specific components
 From: Dean Nelson <dcn@sgi.com>
 
-Move xpc_allocate() functionality into xpc_send()/xpc_send_notify() so
-xpc_allocate() no longer needs to be called by XPNET.
+Isolate architecture specific code related to XPC's activate IRQ.
 
 Signed-off-by: Dean Nelson <dcn@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-xp/xp.h          |   44 ++++-------
- drivers/misc/sgi-xp/xp_main.c     |   23 ++---
- drivers/misc/sgi-xp/xpc.h         |    9 --
- drivers/misc/sgi-xp/xpc_channel.c |  112 +++++++++-------------------
- drivers/misc/sgi-xp/xpc_main.c    |   14 +--
- drivers/misc/sgi-xp/xpc_sn2.c     |   64 +++++++---------
- drivers/misc/sgi-xp/xpnet.c       |   11 +-
- 7 files changed, 106 insertions(+), 171 deletions(-)
+ drivers/misc/sgi-xp/xpc.h           |   14 -
+ drivers/misc/sgi-xp/xpc_main.c      |   96 +++--------
+ drivers/misc/sgi-xp/xpc_partition.c |  121 --------------
+ drivers/misc/sgi-xp/xpc_sn2.c       |  217 ++++++++++++++++++++++----
+ 4 files changed, 229 insertions(+), 219 deletions(-)
 
-diff -puN drivers/misc/sgi-xp/xp.h~sgi-xp-move-xpc_allocate-into-xpc_send-xpc_send_notify drivers/misc/sgi-xp/xp.h
---- a/drivers/misc/sgi-xp/xp.h~sgi-xp-move-xpc_allocate-into-xpc_send-xpc_send_notify
-+++ a/drivers/misc/sgi-xp/xp.h
-@@ -116,12 +116,6 @@
-  * The size of the payload is defined by the user via xpc_connect(). A user-
-  * defined message resides in the payload area.
-  *
-- * The user should have no dealings with the message header, but only the
-- * message's payload. When a message entry is allocated (via xpc_allocate())
-- * a pointer to the payload area is returned and not the actual beginning of
-- * the XPC message. The user then constructs a message in the payload area
-- * and passes that pointer as an argument on xpc_send() or xpc_send_notify().
-- *
-  * The size of a message entry (within a message queue) must be a cacheline
-  * sized multiple in order to facilitate the BTE transfer of messages from one
-  * message queue to another. A macro, XPC_MSG_SIZE(), is provided for the user
-@@ -221,9 +215,10 @@ enum xp_retval {
- 	xpBteCopyError,		/* 52: bte_copy() returned error */
- 	xpSalError,		/* 53: sn SAL error */
- 	xpRsvdPageNotSet,	/* 54: the reserved page is not set up */
-+	xpPayloadTooBig,	/* 55: payload too large for message slot */
- 
--	xpUnsupported,		/* 55: unsupported functionality or resource */
--	xpUnknownReason		/* 56: unknown reason - must be last in enum */
-+	xpUnsupported,		/* 56: unsupported functionality or resource */
-+	xpUnknownReason		/* 57: unknown reason - must be last in enum */
- };
- 
- /*
-@@ -304,16 +299,15 @@ struct xpc_registration {
- 
- #define XPC_CHANNEL_REGISTERED(_c)	(xpc_registrations[_c].func != NULL)
- 
--/* the following are valid xpc_allocate() flags */
-+/* the following are valid xpc_send() or xpc_send_notify() flags */
- #define XPC_WAIT	0	/* wait flag */
- #define XPC_NOWAIT	1	/* no wait flag */
- 
- struct xpc_interface {
- 	void (*connect) (int);
- 	void (*disconnect) (int);
--	enum xp_retval (*allocate) (short, int, u32, void **);
--	enum xp_retval (*send) (short, int, void *);
--	enum xp_retval (*send_notify) (short, int, void *,
-+	enum xp_retval (*send) (short, int, u32, void *, u16);
-+	enum xp_retval (*send_notify) (short, int, u32, void *, u16,
- 					xpc_notify_func, void *);
- 	void (*received) (short, int, void *);
- 	enum xp_retval (*partid_to_nasids) (short, void *);
-@@ -323,10 +317,9 @@ extern struct xpc_interface xpc_interfac
- 
- extern void xpc_set_interface(void (*)(int),
- 			      void (*)(int),
--			      enum xp_retval (*)(short, int, u32, void **),
--			      enum xp_retval (*)(short, int, void *),
--			      enum xp_retval (*)(short, int, void *,
--						  xpc_notify_func, void *),
-+			      enum xp_retval (*)(short, int, u32, void *, u16),
-+			      enum xp_retval (*)(short, int, u32, void *, u16,
-+						 xpc_notify_func, void *),
- 			      void (*)(short, int, void *),
- 			      enum xp_retval (*)(short, void *));
- extern void xpc_clear_interface(void);
-@@ -336,22 +329,19 @@ extern enum xp_retval xpc_connect(int, x
- extern void xpc_disconnect(int);
- 
- static inline enum xp_retval
--xpc_allocate(short partid, int ch_number, u32 flags, void **payload)
--{
--	return xpc_interface.allocate(partid, ch_number, flags, payload);
--}
--
--static inline enum xp_retval
--xpc_send(short partid, int ch_number, void *payload)
-+xpc_send(short partid, int ch_number, u32 flags, void *payload,
-+	 u16 payload_size)
- {
--	return xpc_interface.send(partid, ch_number, payload);
-+	return xpc_interface.send(partid, ch_number, flags, payload,
-+				  payload_size);
- }
- 
- static inline enum xp_retval
--xpc_send_notify(short partid, int ch_number, void *payload,
--		xpc_notify_func func, void *key)
-+xpc_send_notify(short partid, int ch_number, u32 flags, void *payload,
-+		u16 payload_size, xpc_notify_func func, void *key)
- {
--	return xpc_interface.send_notify(partid, ch_number, payload, func, key);
-+	return xpc_interface.send_notify(partid, ch_number, flags, payload,
-+					 payload_size, func, key);
- }
- 
- static inline void
-diff -puN drivers/misc/sgi-xp/xp_main.c~sgi-xp-move-xpc_allocate-into-xpc_send-xpc_send_notify drivers/misc/sgi-xp/xp_main.c
---- a/drivers/misc/sgi-xp/xp_main.c~sgi-xp-move-xpc_allocate-into-xpc_send-xpc_send_notify
-+++ a/drivers/misc/sgi-xp/xp_main.c
-@@ -58,10 +58,9 @@ xpc_notloaded(void)
- struct xpc_interface xpc_interface = {
- 	(void (*)(int))xpc_notloaded,
- 	(void (*)(int))xpc_notloaded,
--	(enum xp_retval(*)(short, int, u32, void **))xpc_notloaded,
--	(enum xp_retval(*)(short, int, void *))xpc_notloaded,
--	(enum xp_retval(*)(short, int, void *, xpc_notify_func, void *))
--	    xpc_notloaded,
-+	(enum xp_retval(*)(short, int, u32, void *, u16))xpc_notloaded,
-+	(enum xp_retval(*)(short, int, u32, void *, u16, xpc_notify_func,
-+			   void *))xpc_notloaded,
- 	(void (*)(short, int, void *))xpc_notloaded,
- 	(enum xp_retval(*)(short, void *))xpc_notloaded
- };
-@@ -73,16 +72,14 @@ EXPORT_SYMBOL_GPL(xpc_interface);
- void
- xpc_set_interface(void (*connect) (int),
- 		  void (*disconnect) (int),
--		  enum xp_retval (*allocate) (short, int, u32, void **),
--		  enum xp_retval (*send) (short, int, void *),
--		  enum xp_retval (*send_notify) (short, int, void *,
-+		  enum xp_retval (*send) (short, int, u32, void *, u16),
-+		  enum xp_retval (*send_notify) (short, int, u32, void *, u16,
- 						  xpc_notify_func, void *),
- 		  void (*received) (short, int, void *),
- 		  enum xp_retval (*partid_to_nasids) (short, void *))
- {
- 	xpc_interface.connect = connect;
- 	xpc_interface.disconnect = disconnect;
--	xpc_interface.allocate = allocate;
- 	xpc_interface.send = send;
- 	xpc_interface.send_notify = send_notify;
- 	xpc_interface.received = received;
-@@ -98,13 +95,11 @@ xpc_clear_interface(void)
- {
- 	xpc_interface.connect = (void (*)(int))xpc_notloaded;
- 	xpc_interface.disconnect = (void (*)(int))xpc_notloaded;
--	xpc_interface.allocate = (enum xp_retval(*)(short, int, u32,
--						     void **))xpc_notloaded;
--	xpc_interface.send = (enum xp_retval(*)(short, int, void *))
-+	xpc_interface.send = (enum xp_retval(*)(short, int, u32, void *, u16))
- 	    xpc_notloaded;
--	xpc_interface.send_notify = (enum xp_retval(*)(short, int, void *,
--							xpc_notify_func,
--							void *))xpc_notloaded;
-+	xpc_interface.send_notify = (enum xp_retval(*)(short, int, u32, void *,
-+						       u16, xpc_notify_func,
-+						       void *))xpc_notloaded;
- 	xpc_interface.received = (void (*)(short, int, void *))
- 	    xpc_notloaded;
- 	xpc_interface.partid_to_nasids = (enum xp_retval(*)(short, void *))
-diff -puN drivers/misc/sgi-xp/xpc.h~sgi-xp-move-xpc_allocate-into-xpc_send-xpc_send_notify drivers/misc/sgi-xp/xpc.h
---- a/drivers/misc/sgi-xp/xpc.h~sgi-xp-move-xpc_allocate-into-xpc_send-xpc_send_notify
+diff -puN drivers/misc/sgi-xp/xpc.h~sgi-xp-isolate-activate-irqs-hardware-specific-components drivers/misc/sgi-xp/xpc.h
+--- a/drivers/misc/sgi-xp/xpc.h~sgi-xp-isolate-activate-irqs-hardware-specific-components
 +++ a/drivers/misc/sgi-xp/xpc.h
-@@ -624,9 +624,7 @@ extern void (*xpc_IPI_send_closereply) (
- extern void (*xpc_IPI_send_openrequest) (struct xpc_channel *, unsigned long *);
- extern void (*xpc_IPI_send_openreply) (struct xpc_channel *, unsigned long *);
- 
--extern enum xp_retval (*xpc_allocate_msg) (struct xpc_channel *, u32,
--					   struct xpc_msg **);
--extern enum xp_retval (*xpc_send_msg) (struct xpc_channel *, struct xpc_msg *,
-+extern enum xp_retval (*xpc_send_msg) (struct xpc_channel *, u32, void *, u16,
- 				       u8, xpc_notify_func, void *);
+@@ -480,7 +480,7 @@ struct xpc_partition {
+ 	u64 remote_amos_page_pa;	/* phys addr of partition's amos page */
+ 	int remote_act_nasid;	/* active part's act/deact nasid */
+ 	int remote_act_phys_cpuid;	/* active part's act/deact phys cpuid */
+-	u32 act_IRQ_rcvd;	/* IRQs since activation */
++	u32 activate_IRQ_rcvd;	/* IRQs since activation */
+ 	spinlock_t act_lock;	/* protect updating of act_state */
+ 	u8 act_state;		/* from XPC HB viewpoint */
+ 	u8 remote_vars_version;	/* version# of partition's vars */
+@@ -580,8 +580,8 @@ extern struct device *xpc_part;
+ extern struct device *xpc_chan;
+ extern int xpc_disengage_request_timelimit;
+ extern int xpc_disengage_request_timedout;
+-extern atomic_t xpc_act_IRQ_rcvd;
+-extern wait_queue_head_t xpc_act_IRQ_wq;
++extern atomic_t xpc_activate_IRQ_rcvd;
++extern wait_queue_head_t xpc_activate_IRQ_wq;
+ extern void *xpc_heartbeating_to_mask;
+ extern irqreturn_t xpc_notify_IRQ_handler(int, void *);
+ extern void xpc_dropped_IPI_check(struct xpc_partition *);
+@@ -601,7 +601,7 @@ extern u64 (*xpc_get_IPI_flags) (struct 
+ extern struct xpc_msg *(*xpc_get_deliverable_msg) (struct xpc_channel *);
+ extern void (*xpc_initiate_partition_activation) (struct xpc_rsvd_page *, u64,
+ 						  int);
+-extern void (*xpc_process_act_IRQ_rcvd) (int);
++extern void (*xpc_process_activate_IRQ_rcvd) (int);
+ extern enum xp_retval (*xpc_setup_infrastructure) (struct xpc_partition *);
+ extern void (*xpc_teardown_infrastructure) (struct xpc_partition *);
+ extern void (*xpc_mark_partition_engaged) (struct xpc_partition *);
+@@ -629,10 +629,12 @@ extern enum xp_retval (*xpc_send_msg) (s
  extern void (*xpc_received_msg) (struct xpc_channel *, struct xpc_msg *);
  
-@@ -664,9 +662,8 @@ extern void *xpc_kzalloc_cacheline_align
- extern void xpc_initiate_connect(int);
- extern void xpc_initiate_disconnect(int);
- extern enum xp_retval xpc_allocate_msg_wait(struct xpc_channel *);
--extern enum xp_retval xpc_initiate_allocate(short, int, u32, void **);
--extern enum xp_retval xpc_initiate_send(short, int, void *);
--extern enum xp_retval xpc_initiate_send_notify(short, int, void *,
-+extern enum xp_retval xpc_initiate_send(short, int, u32, void *, u16);
-+extern enum xp_retval xpc_initiate_send_notify(short, int, u32, void *, u16,
- 					       xpc_notify_func, void *);
- extern void xpc_initiate_received(short, int, void *);
- extern void xpc_process_channel_activity(struct xpc_partition *);
-diff -puN drivers/misc/sgi-xp/xpc_channel.c~sgi-xp-move-xpc_allocate-into-xpc_send-xpc_send_notify drivers/misc/sgi-xp/xpc_channel.c
---- a/drivers/misc/sgi-xp/xpc_channel.c~sgi-xp-move-xpc_allocate-into-xpc_send-xpc_send_notify
-+++ a/drivers/misc/sgi-xp/xpc_channel.c
-@@ -1192,87 +1192,54 @@ xpc_allocate_msg_wait(struct xpc_channel
+ /* found in xpc_sn2.c */
+-extern void xpc_init_sn2(void);
++extern int xpc_init_sn2(void);
++extern void xpc_exit_sn2(void);
+ 
+ /* found in xpc_uv.c */
+ extern void xpc_init_uv(void);
++extern void xpc_exit_uv(void);
+ 
+ /* found in xpc_partition.c */
+ extern int xpc_exiting;
+@@ -646,7 +648,7 @@ extern void *xpc_kmalloc_cacheline_align
+ extern struct xpc_rsvd_page *xpc_setup_rsvd_page(void);
+ extern void xpc_allow_IPI_ops(void);
+ extern void xpc_restrict_IPI_ops(void);
+-extern int xpc_identify_act_IRQ_sender(void);
++extern int xpc_identify_activate_IRQ_sender(void);
+ extern int xpc_partition_disengaged(struct xpc_partition *);
+ extern enum xp_retval xpc_mark_partition_active(struct xpc_partition *);
+ extern void xpc_mark_partition_inactive(struct xpc_partition *);
+diff -puN drivers/misc/sgi-xp/xpc_main.c~sgi-xp-isolate-activate-irqs-hardware-specific-components drivers/misc/sgi-xp/xpc_main.c
+--- a/drivers/misc/sgi-xp/xpc_main.c~sgi-xp-isolate-activate-irqs-hardware-specific-components
++++ a/drivers/misc/sgi-xp/xpc_main.c
+@@ -147,11 +147,11 @@ static struct ctl_table_header *xpc_sysc
+ /* non-zero if any remote partition disengage request was timed out */
+ int xpc_disengage_request_timedout;
+ 
+-/* #of IRQs received */
+-atomic_t xpc_act_IRQ_rcvd;
++/* #of activate IRQs received */
++atomic_t xpc_activate_IRQ_rcvd = ATOMIC_INIT(0);
+ 
+ /* IRQ handler notifies this wait queue on receipt of an IRQ */
+-DECLARE_WAIT_QUEUE_HEAD(xpc_act_IRQ_wq);
++DECLARE_WAIT_QUEUE_HEAD(xpc_activate_IRQ_wq);
+ 
+ static unsigned long xpc_hb_check_timeout;
+ static struct timer_list xpc_hb_timer;
+@@ -190,7 +190,7 @@ struct xpc_msg *(*xpc_get_deliverable_ms
+ void (*xpc_initiate_partition_activation) (struct xpc_rsvd_page *remote_rp,
+ 					   u64 remote_rp_pa, int nasid);
+ 
+-void (*xpc_process_act_IRQ_rcvd) (int n_IRQs_expected);
++void (*xpc_process_activate_IRQ_rcvd) (int n_IRQs_expected);
+ enum xp_retval (*xpc_setup_infrastructure) (struct xpc_partition *part);
+ void (*xpc_teardown_infrastructure) (struct xpc_partition *part);
+ 
+@@ -239,17 +239,6 @@ xpc_timeout_partition_disengage_request(
  }
  
  /*
-- * Allocate an entry for a message from the message queue associated with the
-- * specified channel. NOTE that this routine can sleep waiting for a message
-- * entry to become available. To not sleep, pass in the XPC_NOWAIT flag.
-+ * Send a message that contains the user's payload on the specified channel
-+ * connected to the specified partition.
-  *
-- * Arguments:
-+ * NOTE that this routine can sleep waiting for a message entry to become
-+ * available. To not sleep, pass in the XPC_NOWAIT flag.
-  *
-- *	partid - ID of partition to which the channel is connected.
-- *	ch_number - channel #.
-- *	flags - see xpc.h for valid flags.
-- *	payload - address of the allocated payload area pointer (filled in on
-- * 	          return) in which the user-defined message is constructed.
+- * Notify the heartbeat check thread that an IRQ has been received.
 - */
--enum xp_retval
--xpc_initiate_allocate(short partid, int ch_number, u32 flags, void **payload)
+-static irqreturn_t
+-xpc_act_IRQ_handler(int irq, void *dev_id)
 -{
--	struct xpc_partition *part = &xpc_partitions[partid];
--	enum xp_retval ret = xpUnknownReason;
--	struct xpc_msg *msg = NULL;
--
--	DBUG_ON(partid < 0 || partid >= xp_max_npartitions);
--	DBUG_ON(ch_number < 0 || ch_number >= part->nchannels);
--
--	*payload = NULL;
--
--	if (xpc_part_ref(part)) {
--		ret = xpc_allocate_msg(&part->channels[ch_number], flags, &msg);
--		xpc_part_deref(part);
--
--		if (msg != NULL)
--			*payload = &msg->payload;
--	}
--
--	return ret;
+-	atomic_inc(&xpc_act_IRQ_rcvd);
+-	wake_up_interruptible(&xpc_act_IRQ_wq);
+-	return IRQ_HANDLED;
 -}
 -
 -/*
-- * Send a message previously allocated using xpc_initiate_allocate() on the
-- * specified channel connected to the specified partition.
-- *
-- * This routine will not wait for the message to be received, nor will
-- * notification be given when it does happen. Once this routine has returned
-- * the message entry allocated via xpc_initiate_allocate() is no longer
-- * accessable to the caller.
-- *
-- * This routine, although called by users, does not call xpc_part_ref() to
-- * ensure that the partition infrastructure is in place. It relies on the
-- * fact that we called xpc_msgqueue_ref() in xpc_allocate_msg().
-+ * Once sent, this routine will not wait for the message to be received, nor
-+ * will notification be given when it does happen.
-  *
-  * Arguments:
-  *
-  *	partid - ID of partition to which the channel is connected.
-  *	ch_number - channel # to send message on.
-- *	payload - pointer to the payload area allocated via
-- *			xpc_initiate_allocate().
-+ *	flags - see xp.h for valid flags.
-+ *	payload - pointer to the payload which is to be sent.
-+ *	payload_size - size of the payload in bytes.
-  */
- enum xp_retval
--xpc_initiate_send(short partid, int ch_number, void *payload)
-+xpc_initiate_send(short partid, int ch_number, u32 flags, void *payload,
-+		  u16 payload_size)
- {
- 	struct xpc_partition *part = &xpc_partitions[partid];
--	struct xpc_msg *msg = XPC_MSG_ADDRESS(payload);
--	enum xp_retval ret;
-+	enum xp_retval ret = xpUnknownReason;
+  * Timer to produce the heartbeat.  The timer structures function is
+  * already set when this is initially called.  A tunable is used to
+  * specify when the next timeout should occur.
+@@ -260,7 +249,7 @@ xpc_hb_beater(unsigned long dummy)
+ 	xpc_increment_heartbeat();
  
--	dev_dbg(xpc_chan, "msg=0x%p, partid=%d, channel=%d\n", (void *)msg,
-+	dev_dbg(xpc_chan, "payload=0x%p, partid=%d, channel=%d\n", payload,
- 		partid, ch_number);
+ 	if (time_is_before_eq_jiffies(xpc_hb_check_timeout))
+-		wake_up_interruptible(&xpc_act_IRQ_wq);
++		wake_up_interruptible(&xpc_activate_IRQ_wq);
  
- 	DBUG_ON(partid < 0 || partid >= xp_max_npartitions);
- 	DBUG_ON(ch_number < 0 || ch_number >= part->nchannels);
--	DBUG_ON(msg == NULL);
-+	DBUG_ON(payload == NULL);
+ 	xpc_hb_timer.expires = jiffies + (xpc_hb_interval * HZ);
+ 	add_timer(&xpc_hb_timer);
+@@ -306,7 +295,7 @@ xpc_hb_checker(void *ignore)
+ 		dev_dbg(xpc_part, "woke up with %d ticks rem; %d IRQs have "
+ 			"been received\n",
+ 			(int)(xpc_hb_check_timeout - jiffies),
+-			atomic_read(&xpc_act_IRQ_rcvd) - last_IRQ_count);
++			atomic_read(&xpc_activate_IRQ_rcvd) - last_IRQ_count);
  
--	ret = xpc_send_msg(&part->channels[ch_number], msg, 0, NULL, NULL);
-+	if (xpc_part_ref(part)) {
-+		ret = xpc_send_msg(&part->channels[ch_number], flags, payload,
-+				   payload_size, 0, NULL, NULL);
-+		xpc_part_deref(part);
-+	}
+ 		/* checking of remote heartbeats is skewed by IRQ handling */
+ 		if (time_is_before_eq_jiffies(xpc_hb_check_timeout)) {
+@@ -322,15 +311,15 @@ xpc_hb_checker(void *ignore)
+ 		}
  
- 	return ret;
+ 		/* check for outstanding IRQs */
+-		new_IRQ_count = atomic_read(&xpc_act_IRQ_rcvd);
++		new_IRQ_count = atomic_read(&xpc_activate_IRQ_rcvd);
+ 		if (last_IRQ_count < new_IRQ_count || force_IRQ != 0) {
+ 			force_IRQ = 0;
+ 
+ 			dev_dbg(xpc_part, "found an IRQ to process; will be "
+ 				"resetting xpc_hb_check_timeout\n");
+ 
+-			xpc_process_act_IRQ_rcvd(new_IRQ_count -
+-						 last_IRQ_count);
++			xpc_process_activate_IRQ_rcvd(new_IRQ_count -
++						      last_IRQ_count);
+ 			last_IRQ_count = new_IRQ_count;
+ 
+ 			xpc_hb_check_timeout = jiffies +
+@@ -338,9 +327,9 @@ xpc_hb_checker(void *ignore)
+ 		}
+ 
+ 		/* wait for IRQ or timeout */
+-		(void)wait_event_interruptible(xpc_act_IRQ_wq,
+-					       (last_IRQ_count <
+-						atomic_read(&xpc_act_IRQ_rcvd)
++		(void)wait_event_interruptible(xpc_activate_IRQ_wq,
++					       (last_IRQ_count < atomic_read(
++						&xpc_activate_IRQ_rcvd)
+ 						|| time_is_before_eq_jiffies(
+ 						xpc_hb_check_timeout) ||
+ 						xpc_exiting));
+@@ -884,10 +873,7 @@ xpc_do_exit(enum xp_retval reason)
+ 	 * the heartbeat checker thread in case it's sleeping.
+ 	 */
+ 	xpc_exiting = 1;
+-	wake_up_interruptible(&xpc_act_IRQ_wq);
+-
+-	/* ignore all incoming interrupts */
+-	free_irq(SGI_XPC_ACTIVATE, NULL);
++	wake_up_interruptible(&xpc_activate_IRQ_wq);
+ 
+ 	/* wait for the discovery thread to exit */
+ 	wait_for_completion(&xpc_discovery_exited);
+@@ -968,9 +954,6 @@ xpc_do_exit(enum xp_retval reason)
+ 		(void)unregister_reboot_notifier(&xpc_reboot_notifier);
+ 	}
+ 
+-	/* close down protections for IPI operations */
+-	xpc_restrict_IPI_ops();
+-
+ 	/* clear the interface to XPC's functions */
+ 	xpc_clear_interface();
+ 
+@@ -979,6 +962,11 @@ xpc_do_exit(enum xp_retval reason)
+ 
+ 	kfree(xpc_partitions);
+ 	kfree(xpc_remote_copy_buffer_base);
++
++	if (is_shub())
++		xpc_exit_sn2();
++	else
++		xpc_exit_uv();
  }
  
  /*
-- * Send a message previously allocated using xpc_initiate_allocate on the
-- * specified channel connected to the specified partition.
-+ * Send a message that contains the user's payload on the specified channel
-+ * connected to the specified partition.
-  *
-- * This routine will not wait for the message to be sent. Once this routine
-- * has returned the message entry allocated via xpc_initiate_allocate() is no
-- * longer accessable to the caller.
-+ * NOTE that this routine can sleep waiting for a message entry to become
-+ * available. To not sleep, pass in the XPC_NOWAIT flag.
-+ *
-+ * This routine will not wait for the message to be sent or received.
-  *
-  * Once the remote end of the channel has received the message, the function
-  * passed as an argument to xpc_initiate_send_notify() will be called. This
-@@ -1282,38 +1249,37 @@ xpc_initiate_send(short partid, int ch_n
-  *
-  * If this routine returns an error, the caller's function will NOT be called.
-  *
-- * This routine, although called by users, does not call xpc_part_ref() to
-- * ensure that the partition infrastructure is in place. It relies on the
-- * fact that we called xpc_msgqueue_ref() in xpc_allocate_msg().
-- *
-  * Arguments:
-  *
-  *	partid - ID of partition to which the channel is connected.
-  *	ch_number - channel # to send message on.
-- *	payload - pointer to the payload area allocated via
-- *			xpc_initiate_allocate().
-+ *	flags - see xp.h for valid flags.
-+ *	payload - pointer to the payload which is to be sent.
-+ *	payload_size - size of the payload in bytes.
-  *	func - function to call with asynchronous notification of message
-  *		  receipt. THIS FUNCTION MUST BE NON-BLOCKING.
-  *	key - user-defined key to be passed to the function when it's called.
-  */
- enum xp_retval
--xpc_initiate_send_notify(short partid, int ch_number, void *payload,
--			 xpc_notify_func func, void *key)
-+xpc_initiate_send_notify(short partid, int ch_number, u32 flags, void *payload,
-+			 u16 payload_size, xpc_notify_func func, void *key)
- {
- 	struct xpc_partition *part = &xpc_partitions[partid];
--	struct xpc_msg *msg = XPC_MSG_ADDRESS(payload);
--	enum xp_retval ret;
-+	enum xp_retval ret = xpUnknownReason;
+@@ -1144,7 +1132,9 @@ xpc_init(void)
+ 		if (xp_max_npartitions != 64)
+ 			return -EINVAL;
  
--	dev_dbg(xpc_chan, "msg=0x%p, partid=%d, channel=%d\n", (void *)msg,
-+	dev_dbg(xpc_chan, "payload=0x%p, partid=%d, channel=%d\n", payload,
- 		partid, ch_number);
+-		xpc_init_sn2();
++		ret = xpc_init_sn2();
++		if (ret != 0)
++			return ret;
  
- 	DBUG_ON(partid < 0 || partid >= xp_max_npartitions);
- 	DBUG_ON(ch_number < 0 || ch_number >= part->nchannels);
--	DBUG_ON(msg == NULL);
-+	DBUG_ON(payload == NULL);
- 	DBUG_ON(func == NULL);
+ 	} else if (is_uv()) {
+ 		xpc_init_uv();
+@@ -1163,7 +1153,8 @@ xpc_init(void)
+ 						  &xpc_remote_copy_buffer_base);
+ 	if (xpc_remote_copy_buffer == NULL) {
+ 		dev_err(xpc_part, "can't get memory for remote copy buffer\n");
+-		return -ENOMEM;
++		ret = -ENOMEM;
++		goto out_1;
+ 	}
  
--	ret = xpc_send_msg(&part->channels[ch_number], msg, XPC_N_CALL,
--			   func, key);
-+	if (xpc_part_ref(part)) {
-+		ret = xpc_send_msg(&part->channels[ch_number], flags, payload,
-+				   payload_size, XPC_N_CALL, func, key);
-+		xpc_part_deref(part);
-+	}
- 	return ret;
- }
+ 	xpc_partitions = kzalloc(sizeof(struct xpc_partition) *
+@@ -1171,7 +1162,7 @@ xpc_init(void)
+ 	if (xpc_partitions == NULL) {
+ 		dev_err(xpc_part, "can't get memory for partition structure\n");
+ 		ret = -ENOMEM;
+-		goto out_1;
++		goto out_2;
+ 	}
  
-@@ -1372,7 +1338,7 @@ xpc_deliver_msg(struct xpc_channel *ch)
-  *	partid - ID of partition to which the channel is connected.
-  *	ch_number - channel # message received on.
-  *	payload - pointer to the payload area allocated via
-- *			xpc_initiate_allocate().
-+ *			xpc_initiate_send() or xpc_initiate_send_notify().
-  */
- void
- xpc_initiate_received(short partid, int ch_number, void *payload)
-diff -puN drivers/misc/sgi-xp/xpc_main.c~sgi-xp-move-xpc_allocate-into-xpc_send-xpc_send_notify drivers/misc/sgi-xp/xpc_main.c
---- a/drivers/misc/sgi-xp/xpc_main.c~sgi-xp-move-xpc_allocate-into-xpc_send-xpc_send_notify
-+++ a/drivers/misc/sgi-xp/xpc_main.c
-@@ -217,12 +217,9 @@ void (*xpc_IPI_send_openrequest) (struct
- void (*xpc_IPI_send_openreply) (struct xpc_channel *ch,
- 				unsigned long *irq_flags);
- 
--enum xp_retval (*xpc_allocate_msg) (struct xpc_channel *ch, u32 flags,
--				    struct xpc_msg **address_of_msg);
--
--enum xp_retval (*xpc_send_msg) (struct xpc_channel *ch, struct xpc_msg *msg,
--				u8 notify_type, xpc_notify_func func,
--				void *key);
-+enum xp_retval (*xpc_send_msg) (struct xpc_channel *ch, u32 flags,
-+				void *payload, u16 payload_size, u8 notify_type,
-+				xpc_notify_func func, void *key);
- void (*xpc_received_msg) (struct xpc_channel *ch, struct xpc_msg *msg);
- 
- /*
-@@ -1286,9 +1283,8 @@ xpc_init(void)
- 
- 	/* set the interface to point at XPC's functions */
- 	xpc_set_interface(xpc_initiate_connect, xpc_initiate_disconnect,
--			  xpc_initiate_allocate, xpc_initiate_send,
--			  xpc_initiate_send_notify, xpc_initiate_received,
--			  xpc_initiate_partid_to_nasids);
-+			  xpc_initiate_send, xpc_initiate_send_notify,
-+			  xpc_initiate_received, xpc_initiate_partid_to_nasids);
- 
- 	return 0;
- 
-diff -puN drivers/misc/sgi-xp/xpc_sn2.c~sgi-xp-move-xpc_allocate-into-xpc_send-xpc_send_notify drivers/misc/sgi-xp/xpc_sn2.c
---- a/drivers/misc/sgi-xp/xpc_sn2.c~sgi-xp-move-xpc_allocate-into-xpc_send-xpc_send_notify
-+++ a/drivers/misc/sgi-xp/xpc_sn2.c
-@@ -1532,18 +1532,6 @@ xpc_allocate_msg_sn2(struct xpc_channel 
- 	enum xp_retval ret;
- 	s64 put;
- 
--	/* this reference will be dropped in xpc_send_msg_sn2() */
--	xpc_msgqueue_ref(ch);
--
--	if (ch->flags & XPC_C_DISCONNECTING) {
--		xpc_msgqueue_deref(ch);
--		return ch->reason;
--	}
--	if (!(ch->flags & XPC_C_CONNECTED)) {
--		xpc_msgqueue_deref(ch);
--		return xpNotConnected;
--	}
--
  	/*
- 	 * Get the next available message entry from the local message queue.
- 	 * If none are available, we'll make sure that we grab the latest
-@@ -1582,16 +1570,12 @@ xpc_allocate_msg_sn2(struct xpc_channel 
- 		if (ret == xpTimeout)
- 			xpc_IPI_send_local_msgrequest_sn2(ch);
+@@ -1187,7 +1178,7 @@ xpc_init(void)
  
--		if (flags & XPC_NOWAIT) {
--			xpc_msgqueue_deref(ch);
-+		if (flags & XPC_NOWAIT)
- 			return xpNoWait;
--		}
+ 		DBUG_ON((u64)part != L1_CACHE_ALIGN((u64)part));
  
- 		ret = xpc_allocate_msg_wait(ch);
--		if (ret != xpInterrupted && ret != xpTimeout) {
--			xpc_msgqueue_deref(ch);
-+		if (ret != xpInterrupted && ret != xpTimeout)
- 			return ret;
--		}
- 	}
+-		part->act_IRQ_rcvd = 0;
++		part->activate_IRQ_rcvd = 0;
+ 		spin_lock_init(&part->act_lock);
+ 		part->act_state = XPC_P_INACTIVE;
+ 		XPC_SET_REASON(part, 0, 0);
+@@ -1205,33 +1196,6 @@ xpc_init(void)
+ 	xpc_sysctl = register_sysctl_table(xpc_sys_dir);
  
- 	/* get the message's address and initialize it */
-@@ -1606,7 +1590,6 @@ xpc_allocate_msg_sn2(struct xpc_channel 
- 		(void *)msg, msg->number, ch->partid, ch->number);
- 
- 	*address_of_msg = msg;
+ 	/*
+-	 * Open up protections for IPI operations (and AMO operations on
+-	 * Shub 1.1 systems).
+-	 */
+-	xpc_allow_IPI_ops();
 -
- 	return xpSuccess;
+-	/*
+-	 * Interrupts being processed will increment this atomic variable and
+-	 * awaken the heartbeat thread which will process the interrupts.
+-	 */
+-	atomic_set(&xpc_act_IRQ_rcvd, 0);
+-
+-	/*
+-	 * This is safe to do before the xpc_hb_checker thread has started
+-	 * because the handler releases a wait queue.  If an interrupt is
+-	 * received before the thread is waiting, it will not go to sleep,
+-	 * but rather immediately process the interrupt.
+-	 */
+-	ret = request_irq(SGI_XPC_ACTIVATE, xpc_act_IRQ_handler, 0,
+-			  "xpc hb", NULL);
+-	if (ret != 0) {
+-		dev_err(xpc_part, "can't register ACTIVATE IRQ handler, "
+-			"errno=%d\n", -ret);
+-		ret = -EBUSY;
+-		goto out_2;
+-	}
+-
+-	/*
+ 	 * Fill the partition reserved page with the information needed by
+ 	 * other partitions to discover we are alive and establish initial
+ 	 * communications.
+@@ -1296,14 +1260,16 @@ out_4:
+ 	(void)unregister_die_notifier(&xpc_die_notifier);
+ 	(void)unregister_reboot_notifier(&xpc_reboot_notifier);
+ out_3:
+-	free_irq(SGI_XPC_ACTIVATE, NULL);
+-out_2:
+-	xpc_restrict_IPI_ops();
+ 	if (xpc_sysctl)
+ 		unregister_sysctl_table(xpc_sysctl);
+ 	kfree(xpc_partitions);
+-out_1:
++out_2:
+ 	kfree(xpc_remote_copy_buffer_base);
++out_1:
++	if (is_shub())
++		xpc_exit_sn2();
++	else
++		xpc_exit_uv();
+ 	return ret;
  }
  
-@@ -1616,23 +1599,37 @@ xpc_allocate_msg_sn2(struct xpc_channel 
-  * message is being sent to.
-  */
- static enum xp_retval
--xpc_send_msg_sn2(struct xpc_channel *ch, struct xpc_msg *msg, u8 notify_type,
--		 xpc_notify_func func, void *key)
-+xpc_send_msg_sn2(struct xpc_channel *ch, u32 flags, void *payload,
-+		 u16 payload_size, u8 notify_type, xpc_notify_func func,
-+		 void *key)
- {
- 	enum xp_retval ret = xpSuccess;
-+	struct xpc_msg *msg = msg;
- 	struct xpc_notify *notify = notify;
--	s64 put, msg_number = msg->number;
-+	s64 msg_number;
-+	s64 put;
+diff -puN drivers/misc/sgi-xp/xpc_partition.c~sgi-xp-isolate-activate-irqs-hardware-specific-components drivers/misc/sgi-xp/xpc_partition.c
+--- a/drivers/misc/sgi-xp/xpc_partition.c~sgi-xp-isolate-activate-irqs-hardware-specific-components
++++ a/drivers/misc/sgi-xp/xpc_partition.c
+@@ -29,16 +29,6 @@
+ /* XPC is exiting flag */
+ int xpc_exiting;
  
- 	DBUG_ON(notify_type == XPC_N_CALL && func == NULL);
--	DBUG_ON((((u64)msg - (u64)ch->local_msgqueue) / ch->msg_size) !=
--		msg_number % ch->local_nentries);
--	DBUG_ON(msg->flags & XPC_M_READY);
-+
-+	if (XPC_MSG_SIZE(payload_size) > ch->msg_size)
-+		return xpPayloadTooBig;
-+
-+	xpc_msgqueue_ref(ch);
- 
- 	if (ch->flags & XPC_C_DISCONNECTING) {
--		/* drop the reference grabbed in xpc_allocate_msg_sn2() */
--		xpc_msgqueue_deref(ch);
--		return ch->reason;
-+		ret = ch->reason;
-+		goto out_1;
- 	}
-+	if (!(ch->flags & XPC_C_CONNECTED)) {
-+		ret = xpNotConnected;
-+		goto out_1;
-+	}
-+
-+	ret = xpc_allocate_msg_sn2(ch, flags, &msg);
-+	if (ret != xpSuccess)
-+		goto out_1;
-+
-+	msg_number = msg->number;
- 
- 	if (notify_type != 0) {
- 		/*
-@@ -1663,13 +1660,12 @@ xpc_send_msg_sn2(struct xpc_channel *ch,
- 				atomic_dec(&ch->n_to_notify);
- 				ret = ch->reason;
- 			}
+-/* SH_IPI_ACCESS shub register value on startup */
+-static u64 xpc_sh1_IPI_access;
+-static u64 xpc_sh2_IPI_access0;
+-static u64 xpc_sh2_IPI_access1;
+-static u64 xpc_sh2_IPI_access2;
+-static u64 xpc_sh2_IPI_access3;
 -
--			/* drop reference grabbed in xpc_allocate_msg_sn2() */
--			xpc_msgqueue_deref(ch);
--			return ret;
-+			goto out_1;
+-/* original protection values for each node */
+-u64 xpc_prot_vec[MAX_NUMNODES];
+-
+ /* this partition's reserved page pointers */
+ struct xpc_rsvd_page *xpc_rsvd_page;
+ static u64 *xpc_part_nasids;
+@@ -211,117 +201,6 @@ xpc_setup_rsvd_page(void)
+ }
+ 
+ /*
+- * Change protections to allow IPI operations (and AMO operations on
+- * Shub 1.1 systems).
+- */
+-void
+-xpc_allow_IPI_ops(void)
+-{
+-	int node;
+-	int nasid;
+-
+-	/* >>> Change SH_IPI_ACCESS code to use SAL call once it is available */
+-
+-	if (is_shub2()) {
+-		xpc_sh2_IPI_access0 =
+-		    (u64)HUB_L((u64 *)LOCAL_MMR_ADDR(SH2_IPI_ACCESS0));
+-		xpc_sh2_IPI_access1 =
+-		    (u64)HUB_L((u64 *)LOCAL_MMR_ADDR(SH2_IPI_ACCESS1));
+-		xpc_sh2_IPI_access2 =
+-		    (u64)HUB_L((u64 *)LOCAL_MMR_ADDR(SH2_IPI_ACCESS2));
+-		xpc_sh2_IPI_access3 =
+-		    (u64)HUB_L((u64 *)LOCAL_MMR_ADDR(SH2_IPI_ACCESS3));
+-
+-		for_each_online_node(node) {
+-			nasid = cnodeid_to_nasid(node);
+-			HUB_S((u64 *)GLOBAL_MMR_ADDR(nasid, SH2_IPI_ACCESS0),
+-			      -1UL);
+-			HUB_S((u64 *)GLOBAL_MMR_ADDR(nasid, SH2_IPI_ACCESS1),
+-			      -1UL);
+-			HUB_S((u64 *)GLOBAL_MMR_ADDR(nasid, SH2_IPI_ACCESS2),
+-			      -1UL);
+-			HUB_S((u64 *)GLOBAL_MMR_ADDR(nasid, SH2_IPI_ACCESS3),
+-			      -1UL);
+-		}
+-
+-	} else {
+-		xpc_sh1_IPI_access =
+-		    (u64)HUB_L((u64 *)LOCAL_MMR_ADDR(SH1_IPI_ACCESS));
+-
+-		for_each_online_node(node) {
+-			nasid = cnodeid_to_nasid(node);
+-			HUB_S((u64 *)GLOBAL_MMR_ADDR(nasid, SH1_IPI_ACCESS),
+-			      -1UL);
+-
+-			/*
+-			 * Since the BIST collides with memory operations on
+-			 * SHUB 1.1 sn_change_memprotect() cannot be used.
+-			 */
+-			if (enable_shub_wars_1_1()) {
+-				/* open up everything */
+-				xpc_prot_vec[node] = (u64)HUB_L((u64 *)
+-								GLOBAL_MMR_ADDR
+-								(nasid,
+-						  SH1_MD_DQLP_MMR_DIR_PRIVEC0));
+-				HUB_S((u64 *)
+-				      GLOBAL_MMR_ADDR(nasid,
+-						   SH1_MD_DQLP_MMR_DIR_PRIVEC0),
+-				      -1UL);
+-				HUB_S((u64 *)
+-				      GLOBAL_MMR_ADDR(nasid,
+-						   SH1_MD_DQRP_MMR_DIR_PRIVEC0),
+-				      -1UL);
+-			}
+-		}
+-	}
+-}
+-
+-/*
+- * Restrict protections to disallow IPI operations (and AMO operations on
+- * Shub 1.1 systems).
+- */
+-void
+-xpc_restrict_IPI_ops(void)
+-{
+-	int node;
+-	int nasid;
+-
+-	/* >>> Change SH_IPI_ACCESS code to use SAL call once it is available */
+-
+-	if (is_shub2()) {
+-
+-		for_each_online_node(node) {
+-			nasid = cnodeid_to_nasid(node);
+-			HUB_S((u64 *)GLOBAL_MMR_ADDR(nasid, SH2_IPI_ACCESS0),
+-			      xpc_sh2_IPI_access0);
+-			HUB_S((u64 *)GLOBAL_MMR_ADDR(nasid, SH2_IPI_ACCESS1),
+-			      xpc_sh2_IPI_access1);
+-			HUB_S((u64 *)GLOBAL_MMR_ADDR(nasid, SH2_IPI_ACCESS2),
+-			      xpc_sh2_IPI_access2);
+-			HUB_S((u64 *)GLOBAL_MMR_ADDR(nasid, SH2_IPI_ACCESS3),
+-			      xpc_sh2_IPI_access3);
+-		}
+-
+-	} else {
+-
+-		for_each_online_node(node) {
+-			nasid = cnodeid_to_nasid(node);
+-			HUB_S((u64 *)GLOBAL_MMR_ADDR(nasid, SH1_IPI_ACCESS),
+-			      xpc_sh1_IPI_access);
+-
+-			if (enable_shub_wars_1_1()) {
+-				HUB_S((u64 *)GLOBAL_MMR_ADDR(nasid,
+-						   SH1_MD_DQLP_MMR_DIR_PRIVEC0),
+-				      xpc_prot_vec[node]);
+-				HUB_S((u64 *)GLOBAL_MMR_ADDR(nasid,
+-						   SH1_MD_DQRP_MMR_DIR_PRIVEC0),
+-				      xpc_prot_vec[node]);
+-			}
+-		}
+-	}
+-}
+-
+-/*
+  * Get a copy of a portion of the remote partition's rsvd page.
+  *
+  * remote_rp points to a buffer that is cacheline aligned for BTE copies and
+diff -puN drivers/misc/sgi-xp/xpc_sn2.c~sgi-xp-isolate-activate-irqs-hardware-specific-components drivers/misc/sgi-xp/xpc_sn2.c
+--- a/drivers/misc/sgi-xp/xpc_sn2.c~sgi-xp-isolate-activate-irqs-hardware-specific-components
++++ a/drivers/misc/sgi-xp/xpc_sn2.c
+@@ -22,6 +22,87 @@
+ static struct xpc_vars_sn2 *xpc_vars;	/* >>> Add _sn2 suffix? */
+ static struct xpc_vars_part_sn2 *xpc_vars_part; /* >>> Add _sn2 suffix? */
+ 
++/* SH_IPI_ACCESS shub register value on startup */
++static u64 xpc_sh1_IPI_access;
++static u64 xpc_sh2_IPI_access0;
++static u64 xpc_sh2_IPI_access1;
++static u64 xpc_sh2_IPI_access2;
++static u64 xpc_sh2_IPI_access3;
++
++/*
++ * Change protections to allow IPI operations.
++ */
++static void
++xpc_allow_IPI_ops_sn2(void)
++{
++	int node;
++	int nasid;
++
++	/* >>> The following should get moved into SAL. */
++	if (is_shub2()) {
++		xpc_sh2_IPI_access0 =
++		    (u64)HUB_L((u64 *)LOCAL_MMR_ADDR(SH2_IPI_ACCESS0));
++		xpc_sh2_IPI_access1 =
++		    (u64)HUB_L((u64 *)LOCAL_MMR_ADDR(SH2_IPI_ACCESS1));
++		xpc_sh2_IPI_access2 =
++		    (u64)HUB_L((u64 *)LOCAL_MMR_ADDR(SH2_IPI_ACCESS2));
++		xpc_sh2_IPI_access3 =
++		    (u64)HUB_L((u64 *)LOCAL_MMR_ADDR(SH2_IPI_ACCESS3));
++
++		for_each_online_node(node) {
++			nasid = cnodeid_to_nasid(node);
++			HUB_S((u64 *)GLOBAL_MMR_ADDR(nasid, SH2_IPI_ACCESS0),
++			      -1UL);
++			HUB_S((u64 *)GLOBAL_MMR_ADDR(nasid, SH2_IPI_ACCESS1),
++			      -1UL);
++			HUB_S((u64 *)GLOBAL_MMR_ADDR(nasid, SH2_IPI_ACCESS2),
++			      -1UL);
++			HUB_S((u64 *)GLOBAL_MMR_ADDR(nasid, SH2_IPI_ACCESS3),
++			      -1UL);
++		}
++	} else {
++		xpc_sh1_IPI_access =
++		    (u64)HUB_L((u64 *)LOCAL_MMR_ADDR(SH1_IPI_ACCESS));
++
++		for_each_online_node(node) {
++			nasid = cnodeid_to_nasid(node);
++			HUB_S((u64 *)GLOBAL_MMR_ADDR(nasid, SH1_IPI_ACCESS),
++			      -1UL);
++		}
++	}
++}
++
++/*
++ * Restrict protections to disallow IPI operations.
++ */
++static void
++xpc_disallow_IPI_ops_sn2(void)
++{
++	int node;
++	int nasid;
++
++	/* >>> The following should get moved into SAL. */
++	if (is_shub2()) {
++		for_each_online_node(node) {
++			nasid = cnodeid_to_nasid(node);
++			HUB_S((u64 *)GLOBAL_MMR_ADDR(nasid, SH2_IPI_ACCESS0),
++			      xpc_sh2_IPI_access0);
++			HUB_S((u64 *)GLOBAL_MMR_ADDR(nasid, SH2_IPI_ACCESS1),
++			      xpc_sh2_IPI_access1);
++			HUB_S((u64 *)GLOBAL_MMR_ADDR(nasid, SH2_IPI_ACCESS2),
++			      xpc_sh2_IPI_access2);
++			HUB_S((u64 *)GLOBAL_MMR_ADDR(nasid, SH2_IPI_ACCESS3),
++			      xpc_sh2_IPI_access3);
++		}
++	} else {
++		for_each_online_node(node) {
++			nasid = cnodeid_to_nasid(node);
++			HUB_S((u64 *)GLOBAL_MMR_ADDR(nasid, SH1_IPI_ACCESS),
++			      xpc_sh1_IPI_access);
++		}
++	}
++}
++
+ /*
+  * The following set of macros and functions are used for the sending and
+  * receiving of IPIs (also known as IRQs). There are two flavors of IPIs,
+@@ -74,6 +155,17 @@ xpc_IPI_init_sn2(int index)
+  */
+ 
+ /*
++ * Notify the heartbeat check thread that an activate IRQ has been received.
++ */
++static irqreturn_t
++xpc_handle_activate_IRQ_sn2(int irq, void *dev_id)
++{
++	atomic_inc(&xpc_activate_IRQ_rcvd);
++	wake_up_interruptible(&xpc_activate_IRQ_wq);
++	return IRQ_HANDLED;
++}
++
++/*
+  * Flag the appropriate AMO variable and send an IPI to the specified node.
+  */
+ static void
+@@ -100,8 +192,8 @@ xpc_activate_IRQ_send_local_sn2(int from
+ 	/* fake the sending and receipt of an activate IRQ from remote nasid */
+ 	FETCHOP_STORE_OP(TO_AMO((u64)&amos[w_index].variable), FETCHOP_OR,
+ 			 (1UL << b_index));
+-	atomic_inc(&xpc_act_IRQ_rcvd);
+-	wake_up_interruptible(&xpc_act_IRQ_wq);
++	atomic_inc(&xpc_activate_IRQ_rcvd);
++	wake_up_interruptible(&xpc_activate_IRQ_wq);
+ }
+ 
+ static void
+@@ -383,11 +475,65 @@ xpc_clear_partition_disengage_request_sn
+ 			 ~partid_mask);
+ }
+ 
++/* original protection values for each node */
++static u64 xpc_prot_vec_sn2[MAX_NUMNODES];
++
++/*
++ * Change protections to allow AMO operations on non-Shub 1.1 systems.
++ */
++static enum xp_retval
++xpc_allow_AMO_ops_sn2(AMO_t *amos_page)
++{
++	u64 nasid_array = 0;
++	int ret;
++
++	/*
++	 * On SHUB 1.1, we cannot call sn_change_memprotect() since the BIST
++	 * collides with memory operations. On those systems we call
++	 * xpc_allow_AMO_ops_shub_wars_1_1_sn2() instead.
++	 */
++	if (!enable_shub_wars_1_1()) {
++		ret = sn_change_memprotect(ia64_tpa((u64)amos_page), PAGE_SIZE,
++					   SN_MEMPROT_ACCESS_CLASS_1,
++					   &nasid_array);
++		if (ret != 0)
++			return xpSalError;
++	}
++	return xpSuccess;
++}
++
++/*
++ * Change protections to allow AMO operations on Shub 1.1 systems.
++ */
++static void
++xpc_allow_AMO_ops_shub_wars_1_1_sn2(void)
++{
++	int node;
++	int nasid;
++
++	if (!enable_shub_wars_1_1())
++		return;
++
++	for_each_online_node(node) {
++		nasid = cnodeid_to_nasid(node);
++		/* save current protection values */
++		xpc_prot_vec_sn2[node] =
++		    (u64)HUB_L((u64 *)GLOBAL_MMR_ADDR(nasid,
++						  SH1_MD_DQLP_MMR_DIR_PRIVEC0));
++		/* open up everything */
++		HUB_S((u64 *)GLOBAL_MMR_ADDR(nasid,
++					     SH1_MD_DQLP_MMR_DIR_PRIVEC0),
++		      -1UL);
++		HUB_S((u64 *)GLOBAL_MMR_ADDR(nasid,
++					     SH1_MD_DQRP_MMR_DIR_PRIVEC0),
++		      -1UL);
++	}
++}
++
+ static enum xp_retval
+ xpc_rsvd_page_init_sn2(struct xpc_rsvd_page *rp)
+ {
+ 	AMO_t *amos_page;
+-	u64 nasid_array = 0;
+ 	int i;
+ 	int ret;
+ 
+@@ -421,21 +567,15 @@ xpc_rsvd_page_init_sn2(struct xpc_rsvd_p
+ 		}
+ 
+ 		/*
+-		 * Open up AMO-R/W to cpu.  This is done for Shub 1.1 systems
+-		 * when xpc_allow_IPI_ops() is called via xpc_hb_init().
++		 * Open up AMO-R/W to cpu.  This is done on Shub 1.1 systems
++		 * when xpc_allow_AMO_ops_shub_wars_1_1_sn2() is called.
+ 		 */
+-		if (!enable_shub_wars_1_1()) {
+-			ret = sn_change_memprotect(ia64_tpa((u64)amos_page),
+-						   PAGE_SIZE,
+-						   SN_MEMPROT_ACCESS_CLASS_1,
+-						   &nasid_array);
+-			if (ret != 0) {
+-				dev_err(xpc_part, "can't change memory "
+-					"protections\n");
+-				uncached_free_page(__IA64_UNCACHED_OFFSET |
+-						   TO_PHYS((u64)amos_page), 1);
+-				return xpSalError;
+-			}
++		ret = xpc_allow_AMO_ops_sn2(amos_page);
++		if (ret != xpSuccess) {
++			dev_err(xpc_part, "can't allow AMO operations\n");
++			uncached_free_page(__IA64_UNCACHED_OFFSET |
++					   TO_PHYS((u64)amos_page), 1);
++			return ret;
  		}
  	}
  
-+	memcpy(&msg->payload, payload, payload_size);
-+
- 	msg->flags |= XPC_M_READY;
+@@ -656,7 +796,7 @@ xpc_update_partition_info_sn2(struct xpc
+  * initialized reserved page.
+  */
+ static void
+-xpc_identify_act_IRQ_req_sn2(int nasid)
++xpc_identify_activate_IRQ_req_sn2(int nasid)
+ {
+ 	struct xpc_rsvd_page *remote_rp;
+ 	struct xpc_vars_sn2 *remote_vars;
+@@ -702,10 +842,10 @@ xpc_identify_act_IRQ_req_sn2(int nasid)
+ 		return;
+ 	}
  
- 	/*
-@@ -1684,7 +1680,7 @@ xpc_send_msg_sn2(struct xpc_channel *ch,
- 	if (put == msg_number)
- 		xpc_send_msgs_sn2(ch, put);
+-	part->act_IRQ_rcvd++;
++	part->activate_IRQ_rcvd++;
  
--	/* drop the reference grabbed in xpc_allocate_msg_sn2() */
-+out_1:
- 	xpc_msgqueue_deref(ch);
- 	return ret;
+ 	dev_dbg(xpc_part, "partid for nasid %d is %d; IRQs = %d; HB = "
+-		"%ld:0x%lx\n", (int)nasid, (int)partid, part->act_IRQ_rcvd,
++		"%ld:0x%lx\n", (int)nasid, (int)partid, part->activate_IRQ_rcvd,
+ 		remote_vars->heartbeat, remote_vars->heartbeating_to_mask[0]);
+ 
+ 	if (xpc_partition_disengaged(part) &&
+@@ -831,7 +971,7 @@ xpc_identify_act_IRQ_req_sn2(int nasid)
+  * Return #of IRQs detected.
+  */
+ int
+-xpc_identify_act_IRQ_sender_sn2(void)
++xpc_identify_activate_IRQ_sender_sn2(void)
+ {
+ 	int word, bit;
+ 	u64 nasid_mask;
+@@ -872,7 +1012,7 @@ xpc_identify_act_IRQ_sender_sn2(void)
+ 				nasid = XPC_NASID_FROM_W_B(word, bit);
+ 				dev_dbg(xpc_part, "interrupt from nasid %ld\n",
+ 					nasid);
+-				xpc_identify_act_IRQ_req_sn2(nasid);
++				xpc_identify_activate_IRQ_req_sn2(nasid);
+ 			}
+ 		}
+ 	}
+@@ -880,14 +1020,14 @@ xpc_identify_act_IRQ_sender_sn2(void)
  }
-@@ -1821,8 +1817,6 @@ xpc_init_sn2(void)
- 	xpc_IPI_send_openrequest = xpc_IPI_send_openrequest_sn2;
- 	xpc_IPI_send_openreply = xpc_IPI_send_openreply_sn2;
  
--	xpc_allocate_msg = xpc_allocate_msg_sn2;
--
+ static void
+-xpc_process_act_IRQ_rcvd_sn2(int n_IRQs_expected)
++xpc_process_activate_IRQ_rcvd_sn2(int n_IRQs_expected)
+ {
+ 	int n_IRQs_detected;
+ 
+-	n_IRQs_detected = xpc_identify_act_IRQ_sender_sn2();
++	n_IRQs_detected = xpc_identify_activate_IRQ_sender_sn2();
+ 	if (n_IRQs_detected < n_IRQs_expected) {
+ 		/* retry once to help avoid missing AMO */
+-		(void)xpc_identify_act_IRQ_sender_sn2();
++		(void)xpc_identify_activate_IRQ_sender_sn2();
+ 	}
+ }
+ 
+@@ -1775,9 +1915,11 @@ xpc_received_msg_sn2(struct xpc_channel 
+ 		xpc_acknowledge_msgs_sn2(ch, get, msg->flags);
+ }
+ 
+-void
++int
+ xpc_init_sn2(void)
+ {
++	int ret;
++
+ 	xpc_rsvd_page_init = xpc_rsvd_page_init_sn2;
+ 	xpc_increment_heartbeat = xpc_increment_heartbeat_sn2;
+ 	xpc_offline_heartbeat = xpc_offline_heartbeat_sn2;
+@@ -1788,7 +1930,7 @@ xpc_init_sn2(void)
+ 
+ 	xpc_initiate_partition_activation =
+ 	    xpc_initiate_partition_activation_sn2;
+-	xpc_process_act_IRQ_rcvd = xpc_process_act_IRQ_rcvd_sn2;
++	xpc_process_activate_IRQ_rcvd = xpc_process_activate_IRQ_rcvd_sn2;
+ 	xpc_setup_infrastructure = xpc_setup_infrastructure_sn2;
+ 	xpc_teardown_infrastructure = xpc_teardown_infrastructure_sn2;
+ 	xpc_make_first_contact = xpc_make_first_contact_sn2;
+@@ -1819,9 +1961,30 @@ xpc_init_sn2(void)
+ 
  	xpc_send_msg = xpc_send_msg_sn2;
  	xpc_received_msg = xpc_received_msg_sn2;
++
++	/* open up protections for IPI and [potentially] AMO operations */
++	xpc_allow_IPI_ops_sn2();
++	xpc_allow_AMO_ops_shub_wars_1_1_sn2();
++
++	/*
++	 * This is safe to do before the xpc_hb_checker thread has started
++	 * because the handler releases a wait queue.  If an interrupt is
++	 * received before the thread is waiting, it will not go to sleep,
++	 * but rather immediately process the interrupt.
++	 */
++	ret = request_irq(SGI_XPC_ACTIVATE, xpc_handle_activate_IRQ_sn2, 0,
++			  "xpc hb", NULL);
++	if (ret != 0) {
++		dev_err(xpc_part, "can't register ACTIVATE IRQ handler, "
++			"errno=%d\n", -ret);
++		xpc_disallow_IPI_ops_sn2();
++	}
++	return ret;
  }
-diff -puN drivers/misc/sgi-xp/xpnet.c~sgi-xp-move-xpc_allocate-into-xpc_send-xpc_send_notify drivers/misc/sgi-xp/xpnet.c
---- a/drivers/misc/sgi-xp/xpnet.c~sgi-xp-move-xpc_allocate-into-xpc_send-xpc_send_notify
-+++ a/drivers/misc/sgi-xp/xpnet.c
-@@ -438,7 +438,8 @@ xpnet_dev_hard_start_xmit(struct sk_buff
+ 
+ void
+ xpc_exit_sn2(void)
  {
- 	struct xpnet_pending_msg *queued_msg;
- 	enum xp_retval ret;
--	struct xpnet_message *msg;
-+	u8 msg_buffer[XPNET_MSG_SIZE];
-+	struct xpnet_message *msg = (struct xpnet_message *)&msg_buffer[0];
- 	u64 start_addr, end_addr;
- 	long dp;
- 	u8 second_mac_octet;
-@@ -524,11 +525,6 @@ xpnet_dev_hard_start_xmit(struct sk_buff
- 
- 		/* found a partition to send to */
- 
--		ret = xpc_allocate(dest_partid, XPC_NET_CHANNEL,
--				   XPC_NOWAIT, (void **)&msg);
--		if (unlikely(ret != xpSuccess))
--			continue;
--
- 		msg->embedded_bytes = embedded_bytes;
- 		if (unlikely(embedded_bytes != 0)) {
- 			msg->version = XPNET_VERSION_EMBED;
-@@ -553,7 +549,8 @@ xpnet_dev_hard_start_xmit(struct sk_buff
- 
- 		atomic_inc(&queued_msg->use_count);
- 
--		ret = xpc_send_notify(dest_partid, XPC_NET_CHANNEL, msg,
-+		ret = xpc_send_notify(dest_partid, XPC_NET_CHANNEL, XPC_NOWAIT,
-+				      &msg, sizeof(msg) + embedded_bytes - 1,
- 				      xpnet_send_completed, queued_msg);
- 		if (unlikely(ret != xpSuccess)) {
- 			atomic_dec(&queued_msg->use_count);
++	free_irq(SGI_XPC_ACTIVATE, NULL);
++	xpc_disallow_IPI_ops_sn2();
+ }
 _
 
 Patches currently in -mm which might be from dcn@sgi.com are
