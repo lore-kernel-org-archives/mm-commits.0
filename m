@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + vmscan-downgrade-mmap-sem-while-populating-mlocked-regions.patch added to -mm tree
-Date: Sun, 08 Jun 2008 23:18:44 -0700
-Message-ID: <200806090618.m596Ii2k006643@imap1.linux-foundation.org>
+Subject: + vmscan-noreclaim-and-mlocked-pages-vm-events.patch added to -mm tree
+Date: Sun, 08 Jun 2008 23:18:47 -0700
+Message-ID: <200806090618.m596Ilvx006655@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32950 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45091 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755364AbYFIGTY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2008 02:19:24 -0400
+	by vger.kernel.org with ESMTP id S1755526AbYFIGTP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2008 02:19:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lee.schermerhorn@hp.com, riel@redhat.com
+Cc: lee.schermerhorn@hp.com, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com
 
 
 The patch titled
-     vmscan: downgrade mmap sem while populating mlocked regions
+     vmscan: noreclaim and mlocked pages vm events
 has been added to the -mm tree.  Its filename is
-     vmscan-downgrade-mmap-sem-while-populating-mlocked-regions.patch
+     vmscan-noreclaim-and-mlocked-pages-vm-events.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,182 +33,238 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: downgrade mmap sem while populating mlocked regions
-From: Rik van Riel <riel@redhat.com>
-Return-Path: <riel@redhat.com>
-X-Spam-Checker-Version: SpamAssassin 3.2.4 (2008-01-01) on y.localdomain
-X-Spam-Level: 
-X-Spam-Status: No, score=0.0 required=5.0 tests=none autolearn=ham
-	version=3.2.4
-Received: from y.localdomain (y.localdomain [127.0.0.1])
-	by y.localdomain (8.14.2/8.14.2) with ESMTP id m56KY9S9006291
-	for <akpm@localhost>; Fri, 6 Jun 2008 13:34:24 -0700
-Received: from imap1.linux-foundation.org [140.211.169.55]
-	by y.localdomain with IMAP (fetchmail-6.3.8)
-	for <akpm@localhost> (single-drop); Fri, 06 Jun 2008 13:34:24 -0700 (PDT)
-Received: from smtp2.linux-foundation.org (smtp2.linux-foundation.org [140.211.169.14])
-	by imap1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m56KV41g017810
-	for <akpm@imap1.linux-foundation.org>; Fri, 6 Jun 2008 13:31:04 -0700
-Received: from mx1.redhat.com (mx1.redhat.com [66.187.233.31])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m56KUTS2007978
-	for <akpm@linux-foundation.org>; Fri, 6 Jun 2008 13:30:31 -0700
-Received: from int-mx1.corp.redhat.com (int-mx1.corp.redhat.com [172.16.52.254])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id m56KTtCZ004026;
-	Fri, 6 Jun 2008 16:29:55 -0400
-Received: from mail.boston.redhat.com (mail.boston.redhat.com [10.16.255.12])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m56KTsji031780;
-	Fri, 6 Jun 2008 16:29:55 -0400
-Received: from cuia.bos.redhat.com (cuia.bos.redhat.com [10.16.16.26])
-	by mail.boston.redhat.com (8.13.1/8.13.1) with ESMTP id m56KTs4j007532;
-	Fri, 6 Jun 2008 16:29:54 -0400
-Received: from cuia.bos.redhat.com (localhost.localdomain [127.0.0.1])
-	by cuia.bos.redhat.com (8.14.2/8.13.6) with ESMTP id m56KTsnn030649;
-	Fri, 6 Jun 2008 16:29:54 -0400
-Received: (from riel@localhost)
-	by cuia.bos.redhat.com (8.14.2/8.14.2/Submit) id m56KTsFL030648;
-	Fri, 6 Jun 2008 16:29:54 -0400
-X-Authentication-Warning: cuia.bos.redhat.com: riel set sender to riel@redhat.com using -f
-Message-Id: <20080606202859.587467653@redhat.com>
-References: <20080606202838.390050172@redhat.com>
-User-Agent: quilt/0.46-1
-Date: Fri, 06 Jun 2008 16:28:56 -0400
-To: linux-kernel@vger.kernel.org
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-        Lee Schermerhorn <lee.schermerhorn@hp.com>,
-        Kosaki Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Subject: [PATCH -mm 18/25] Downgrade mmap sem while populating mlocked regions
-Content-Disposition: inline; filename=rvr-18-lts-noreclaim-mlocked-page-statistics.patch
-X-Scanned-By: MIMEDefang 2.53 on 140.211.169.14
-Received-SPF: pass (domain of riel@redhat.com designates 66.187.233.31 as permitted sender)
-X-MIMEDefang-Filter: lf$Revision: 1.188 $
+Subject: vmscan: noreclaim and mlocked pages vm events
+From: Lee Schermerhorn <lee.schermerhorn@hp.com>
 
 
 Against:  2.6.26-rc2-mm1
 
-We need to hold the mmap_sem for write to initiatate mlock()/munlock()
-because we may need to merge/split vmas.  However, this can lead to
-very long lock hold times attempting to fault in a large memory region
-to mlock it into memory.   This can hold off other faults against the
-mm [multithreaded tasks] and other scans of the mm, such as via /proc.
-To alleviate this, downgrade the mmap_sem to read mode during the 
-population of the region for locking.  This is especially the case 
-if we need to reclaim memory to lock down the region.  We [probably?]
-don't need to do this for unlocking as all of the pages should be
-resident--they're already mlocked.
+Add some event counters to vmstats for testing noreclaim/mlock.
+Some of these might be interesting enough to keep around.
 
-Now, the caller's of the mlock functions [mlock_fixup() and 
-mlock_vma_pages_range()] expect the mmap_sem to be returned in write
-mode.  Changing all callers appears to be way too much effort at this
-point.  So, restore write mode before returning.  Note that this opens
-a window where the mmap list could change in a multithreaded process.
-So, at least for mlock_fixup(), where we could be called in a loop over
-multiple vmas, we check that a vma still exists at the start address
-and that vma still covers the page range [start,end).  If not, we return
-an error, -EAGAIN, and let the caller deal with it.
-
-Return -EAGAIN from mlock_vma_pages_range() function and mlock_fixup()
-if the vma at 'start' disappears or changes so that the page range
-[start,end) is no longer contained in the vma.  Again, let the caller
-deal with it.  Looks like only sys_remap_file_pages() [via mmap_region()]
-should actually care.
-
-With this patch, I no longer see processes like ps(1) blocked for seconds
-or minutes at a time waiting for a large [multiple gigabyte] region to be
-locked down.  However, I occassionally see delays while unlocking or
-unmapping a large mlocked region.  Should we also downgrade the mmap_sem
-for the unlock path?
-
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Signed-off-by: Rik van Riel <riel@redhat.com>
 
---- 
-V2 -> V3:
-+ rebase to 23-mm1 atop RvR's split lru series [no change]
-+ fix function return types [void -> int] to fix build when
-  not configured.
+---
 
-New in V2.
-
- mm/mlock.c |   43 +++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 41 insertions(+), 2 deletions(-)
-
-Index: linux-2.6.26-rc2-mm1/mm/mlock.c
+Index: linux-2.6.26-rc2-mm1/include/linux/vmstat.h
 ===================================================================
---- linux-2.6.26-rc2-mm1.orig/mm/mlock.c	2008-06-06 16:06:28.000000000 -0400
-+++ linux-2.6.26-rc2-mm1/mm/mlock.c	2008-06-06 16:06:32.000000000 -0400
-@@ -309,6 +309,7 @@ static void __munlock_vma_pages_range(st
- int mlock_vma_pages_range(struct vm_area_struct *vma,
- 			unsigned long start, unsigned long end)
- {
-+	struct mm_struct *mm = vma->vm_mm;
- 	int nr_pages = (end - start) / PAGE_SIZE;
- 	BUG_ON(!(vma->vm_flags & VM_LOCKED));
- 
-@@ -323,7 +324,17 @@ int mlock_vma_pages_range(struct vm_area
- 			vma == get_gate_vma(current))
- 		goto make_present;
- 
--	return __mlock_vma_pages_range(vma, start, end);
-+	downgrade_write(&mm->mmap_sem);
-+	nr_pages = __mlock_vma_pages_range(vma, start, end);
-+
-+	up_read(&mm->mmap_sem);
-+	/* vma can change or disappear */
-+	down_write(&mm->mmap_sem);
-+	vma = find_vma(mm, start);
-+	/* non-NULL vma must contain @start, but need to check @end */
-+	if (!vma ||  end > vma->vm_end)
-+		return -EAGAIN;
-+	return nr_pages;
- 
- make_present:
- 	/*
-@@ -418,13 +429,41 @@ success:
- 	vma->vm_flags = newflags;
- 
- 	if (lock) {
-+		/*
-+		 * mmap_sem is currently held for write.  Downgrade the write
-+		 * lock to a read lock so that other faults, mmap scans, ...
-+		 * while we fault in all pages.
-+		 */
-+		downgrade_write(&mm->mmap_sem);
-+
- 		ret = __mlock_vma_pages_range(vma, start, end);
- 		if (ret > 0) {
- 			mm->locked_vm -= ret;
- 			ret = 0;
- 		}
--	} else
-+		/*
-+		 * Need to reacquire mmap sem in write mode, as our callers
-+		 * expect this.  We have no support for atomically upgrading
-+		 * a sem to write, so we need to check for ranges while sem
-+		 * is unlocked.
-+		 */
-+		up_read(&mm->mmap_sem);
-+		/* vma can change or disappear */
-+		down_write(&mm->mmap_sem);
-+		*prev = find_vma(mm, start);
-+		/* non-NULL *prev must contain @start, but need to check @end */
-+		if (!(*prev) || end > (*prev)->vm_end)
-+			ret = -EAGAIN;
-+	} else {
-+		/*
-+		 * TODO:  for unlocking, pages will already be resident, so
-+		 * we don't need to wait for allocations/reclaim/pagein, ...
-+		 * However, unlocking a very large region can still take a
-+		 * while.  Should we downgrade the semaphore for both lock
-+		 * AND unlock ?
-+		 */
- 		__munlock_vma_pages_range(vma, start, end);
-+	}
- 
- out:
- 	*prev = vma;
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
--- 
-All Rights Reversed
+ include/linux/vmstat.h |   11 +++++++++++
+ mm/internal.h          |    4 +++-
+ mm/mlock.c             |   33 +++++++++++++++++++++++++--------
+ mm/vmscan.c            |   16 +++++++++++++++-
+ mm/vmstat.c            |   12 ++++++++++++
+ 5 files changed, 66 insertions(+), 10 deletions(-)
+
+diff -puN include/linux/vmstat.h~noreclaim-and-mlocked-pages-vm-events include/linux/vmstat.h
+--- a/include/linux/vmstat.h~noreclaim-and-mlocked-pages-vm-events
++++ a/include/linux/vmstat.h
+@@ -41,6 +41,17 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
+ #ifdef CONFIG_HUGETLB_PAGE
+ 		HTLB_BUDDY_PGALLOC, HTLB_BUDDY_PGALLOC_FAIL,
+ #endif
++#ifdef CONFIG_NORECLAIM_LRU
++		NORECL_PGCULLED,	/* culled to noreclaim list */
++		NORECL_PGSCANNED,	/* scanned for reclaimability */
++		NORECL_PGRESCUED,	/* rescued from noreclaim list */
++#ifdef CONFIG_NORECLAIM_MLOCK
++		NORECL_PGMLOCKED,
++		NORECL_PGMUNLOCKED,
++		NORECL_PGCLEARED,
++		NORECL_PGSTRANDED,	/* unable to isolate on unlock */
++#endif
++#endif
+ 		NR_VM_EVENT_ITEMS
+ };
+ 
+diff -puN mm/internal.h~noreclaim-and-mlocked-pages-vm-events mm/internal.h
+--- a/mm/internal.h~noreclaim-and-mlocked-pages-vm-events
++++ a/mm/internal.h
+@@ -110,8 +110,10 @@ static inline int is_mlocked_vma(struct 
+ 	if (likely((vma->vm_flags & (VM_LOCKED | VM_SPECIAL)) != VM_LOCKED))
+ 		return 0;
+ 
+-	if (!TestSetPageMlocked(page))
++	if (!TestSetPageMlocked(page)) {
+ 		inc_zone_page_state(page, NR_MLOCK);
++		count_vm_event(NORECL_PGMLOCKED);
++	}
+ 	return 1;
+ }
+ 
+diff -puN mm/mlock.c~noreclaim-and-mlocked-pages-vm-events mm/mlock.c
+--- a/mm/mlock.c~noreclaim-and-mlocked-pages-vm-events
++++ a/mm/mlock.c
+@@ -18,6 +18,7 @@
+ #include <linux/rmap.h>
+ #include <linux/mmzone.h>
+ #include <linux/hugetlb.h>
++#include <linux/vmstat.h>
+ 
+ #include "internal.h"
+ 
+@@ -57,6 +58,7 @@ void __clear_page_mlock(struct page *pag
+ 	VM_BUG_ON(!PageLocked(page));	/* for LRU islolate/putback */
+ 
+ 	dec_zone_page_state(page, NR_MLOCK);
++	count_vm_event(NORECL_PGCLEARED);
+ 	if (!isolate_lru_page(page)) {
+ 		putback_lru_page(page);
+ 	} else {
+@@ -66,6 +68,8 @@ void __clear_page_mlock(struct page *pag
+ 		lru_add_drain_all();
+ 		if (!isolate_lru_page(page))
+ 			putback_lru_page(page);
++		else if (PageNoreclaim(page))
++			count_vm_event(NORECL_PGSTRANDED);
+ 	}
+ }
+ 
+@@ -79,6 +83,7 @@ void mlock_vma_page(struct page *page)
+ 
+ 	if (!TestSetPageMlocked(page)) {
+ 		inc_zone_page_state(page, NR_MLOCK);
++		count_vm_event(NORECL_PGMLOCKED);
+ 		if (!isolate_lru_page(page))
+ 			putback_lru_page(page);
+ 	}
+@@ -109,16 +114,28 @@ static void munlock_vma_page(struct page
+ 	if (TestClearPageMlocked(page)) {
+ 		dec_zone_page_state(page, NR_MLOCK);
+ 		if (!isolate_lru_page(page)) {
+-			try_to_unlock(page);	/* maybe relock the page */
++			int ret = try_to_unlock(page);
++			/*
++			 * did try_to_unlock() succeed or punt?
++			 */
++			if (ret == SWAP_SUCCESS || ret == SWAP_AGAIN)
++				count_vm_event(NORECL_PGMUNLOCKED);
++
+ 			putback_lru_page(page);
++		} else {
++			/*
++			 * We lost the race.  let try_to_unmap() deal
++			 * with it.  At least we get the page state and
++			 * mlock stats right.  However, page is still on
++			 * the noreclaim list.  We'll fix that up when
++			 * the page is eventually freed or we scan the
++			 * noreclaim list.
++			 */
++			if (PageNoreclaim(page))
++				count_vm_event(NORECL_PGSTRANDED);
++			else
++				count_vm_event(NORECL_PGMUNLOCKED);
+ 		}
+-		/*
+-		 * Else we lost the race.  let try_to_unmap() deal with it.
+-		 * At least we get the page state and mlock stats right.
+-		 * However, page is still on the noreclaim list.  We'll fix
+-		 * that up when the page is eventually freed or we scan the
+-		 * noreclaim list.
+-		 */
+ 	}
+ }
+ 
+diff -puN mm/vmscan.c~noreclaim-and-mlocked-pages-vm-events mm/vmscan.c
+--- a/mm/vmscan.c~noreclaim-and-mlocked-pages-vm-events
++++ a/mm/vmscan.c
+@@ -462,12 +462,13 @@ int putback_lru_page(struct page *page)
+ {
+ 	int lru;
+ 	int ret = 1;
++	int was_nonreclaimable;
+ 
+ 	VM_BUG_ON(!PageLocked(page));
+ 	VM_BUG_ON(PageLRU(page));
+ 
+ 	lru = !!TestClearPageActive(page);
+-	ClearPageNoreclaim(page);	/* for page_reclaimable() */
++	was_nonreclaimable = TestClearPageNoreclaim(page);
+ 
+ 	if (unlikely(!page->mapping)) {
+ 		/*
+@@ -487,6 +488,10 @@ int putback_lru_page(struct page *page)
+ 		lru += page_file_cache(page);
+ 		lru_cache_add_lru(page, lru);
+ 		mem_cgroup_move_lists(page, lru);
++#ifdef CONFIG_NORECLAIM_LRU
++		if (was_nonreclaimable)
++			count_vm_event(NORECL_PGRESCUED);
++#endif
+ 	} else {
+ 		/*
+ 		 * Put non-reclaimable pages directly on zone's noreclaim
+@@ -494,6 +499,10 @@ int putback_lru_page(struct page *page)
+ 		 */
+ 		add_page_to_noreclaim_list(page);
+ 		mem_cgroup_move_lists(page, LRU_NORECLAIM);
++#ifdef CONFIG_NORECLAIM_LRU
++		if (!was_nonreclaimable)
++			count_vm_event(NORECL_PGCULLED);
++#endif
+ 	}
+ 
+ 	put_page(page);		/* drop ref from isolate */
+@@ -2384,6 +2393,7 @@ static void check_move_noreclaim_page(st
+ 		__dec_zone_state(zone, NR_NORECLAIM);
+ 		list_move(&page->lru, &zone->list[l]);
+ 		__inc_zone_state(zone, NR_INACTIVE_ANON + l);
++		__count_vm_event(NORECL_PGRESCUED);
+ 	} else {
+ 		/*
+ 		 * rotate noreclaim list
+@@ -2415,6 +2425,7 @@ void scan_mapping_noreclaim_pages(struct
+ 	while (next < end &&
+ 		pagevec_lookup(&pvec, mapping, next, PAGEVEC_SIZE)) {
+ 		int i;
++		int pg_scanned = 0;
+ 
+ 		zone = NULL;
+ 
+@@ -2423,6 +2434,7 @@ void scan_mapping_noreclaim_pages(struct
+ 			pgoff_t page_index = page->index;
+ 			struct zone *pagezone = page_zone(page);
+ 
++			pg_scanned++;
+ 			if (page_index > next)
+ 				next = page_index;
+ 			next++;
+@@ -2453,6 +2465,8 @@ void scan_mapping_noreclaim_pages(struct
+ 		if (zone)
+ 			spin_unlock_irq(&zone->lru_lock);
+ 		pagevec_release(&pvec);
++
++		count_vm_events(NORECL_PGSCANNED, pg_scanned);
+ 	}
+ 
+ }
+diff -puN mm/vmstat.c~noreclaim-and-mlocked-pages-vm-events mm/vmstat.c
+--- a/mm/vmstat.c~noreclaim-and-mlocked-pages-vm-events
++++ a/mm/vmstat.c
+@@ -666,6 +666,18 @@ static const char * const vmstat_text[] 
+ 	"htlb_buddy_alloc_success",
+ 	"htlb_buddy_alloc_fail",
+ #endif
++
++#ifdef CONFIG_NORECLAIM_LRU
++	"noreclaim_pgs_culled",
++	"noreclaim_pgs_scanned",
++	"noreclaim_pgs_rescued",
++#ifdef CONFIG_NORECLAIM_MLOCK
++	"noreclaim_pgs_mlocked",
++	"noreclaim_pgs_munlocked",
++	"noreclaim_pgs_cleared",
++	"noreclaim_pgs_stranded",
++#endif
++#endif
+ #endif
+ };
+ 
+_
 
 Patches currently in -mm which might be from lee.schermerhorn@hp.com are
 
