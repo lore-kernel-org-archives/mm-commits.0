@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + sgi-xp-replace-amo_t-typedef-by-struct-amo.patch added to -mm tree
-Date: Sun, 08 Jun 2008 17:18:21 -0700
-Message-ID: <200806090018.m590ILgN027103@imap1.linux-foundation.org>
+Subject: + sgi-xp-isolate-allocation-of-xpcs-msgqueues-to-sn2-only.patch added to -mm tree
+Date: Sun, 08 Jun 2008 17:18:23 -0700
+Message-ID: <200806090018.m590INiG027106@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43243 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44960 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756376AbYFIASZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 20:18:25 -0400
+	by vger.kernel.org with ESMTP id S1756454AbYFIAS0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 20:18:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: dcn@sgi.com
 
 
 The patch titled
-     sgi-xp: replace AMO_t typedef by struct amo
+     sgi-xp: isolate allocation of XPC's msgqueues to sn2 only
 has been added to the -mm tree.  Its filename is
-     sgi-xp-replace-amo_t-typedef-by-struct-amo.patch
+     sgi-xp-isolate-allocation-of-xpcs-msgqueues-to-sn2-only.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,618 +33,541 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sgi-xp: replace AMO_t typedef by struct amo
+Subject: sgi-xp: isolate allocation of XPC's msgqueues to sn2 only
 From: Dean Nelson <dcn@sgi.com>
 
-Replace the AMO_t typedef by a direct reference to 'struct amo'.
+Move the allocation of XPC's msgqueues to xpc_sn2.c.
 
 Signed-off-by: Dean Nelson <dcn@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-xp/xp_sn2.c   |    2 
- drivers/misc/sgi-xp/xpc.h      |   24 ++---
- drivers/misc/sgi-xp/xpc_main.c |   16 +--
- drivers/misc/sgi-xp/xpc_sn2.c  |  139 ++++++++++++++++---------------
- include/asm-ia64/sn/mspec.h    |   16 +--
- 5 files changed, 101 insertions(+), 96 deletions(-)
+ drivers/misc/sgi-xp/xpc.h         |    3 
+ drivers/misc/sgi-xp/xpc_channel.c |  197 --------------------------
+ drivers/misc/sgi-xp/xpc_main.c    |    2 
+ drivers/misc/sgi-xp/xpc_sn2.c     |  205 ++++++++++++++++++++++++++--
+ 4 files changed, 204 insertions(+), 203 deletions(-)
 
-diff -puN drivers/misc/sgi-xp/xp_sn2.c~sgi-xp-replace-amo_t-typedef-by-struct-amo drivers/misc/sgi-xp/xp_sn2.c
---- a/drivers/misc/sgi-xp/xp_sn2.c~sgi-xp-replace-amo_t-typedef-by-struct-amo
-+++ a/drivers/misc/sgi-xp/xp_sn2.c
-@@ -32,7 +32,7 @@ EXPORT_SYMBOL_GPL(xp_nofault_PIOR_target
-  * If the PIO read times out, the MCA handler will consume the error and
-  * return to a kernel-provided instruction to indicate an error. This PIO read
-  * exists because it is guaranteed to timeout if the destination is down
-- * (AMO operations do not timeout on at least some CPUs on Shubs <= v1.2,
-+ * (amo operations do not timeout on at least some CPUs on Shubs <= v1.2,
-  * which unfortunately we have to work around).
-  */
- static enum xp_retval
-diff -puN drivers/misc/sgi-xp/xpc.h~sgi-xp-replace-amo_t-typedef-by-struct-amo drivers/misc/sgi-xp/xpc.h
---- a/drivers/misc/sgi-xp/xpc.h~sgi-xp-replace-amo_t-typedef-by-struct-amo
+diff -puN drivers/misc/sgi-xp/xpc.h~sgi-xp-isolate-allocation-of-xpcs-msgqueues-to-sn2-only drivers/misc/sgi-xp/xpc.h
+--- a/drivers/misc/sgi-xp/xpc.h~sgi-xp-isolate-allocation-of-xpcs-msgqueues-to-sn2-only
 +++ a/drivers/misc/sgi-xp/xpc.h
-@@ -38,8 +38,8 @@
+@@ -666,6 +666,8 @@ extern void (*xpc_online_heartbeat) (voi
+ extern void (*xpc_check_remote_hb) (void);
+ extern enum xp_retval (*xpc_make_first_contact) (struct xpc_partition *);
+ extern u64 (*xpc_get_chctl_all_flags) (struct xpc_partition *);
++extern enum xp_retval (*xpc_allocate_msgqueues) (struct xpc_channel *);
++extern void (*xpc_free_msgqueues) (struct xpc_channel *);
+ extern void (*xpc_notify_senders_of_disconnect) (struct xpc_channel *);
+ extern void (*xpc_process_msg_chctl_flags) (struct xpc_partition *, int);
+ extern int (*xpc_n_of_deliverable_msgs) (struct xpc_channel *);
+@@ -728,7 +730,6 @@ extern void xpc_deactivate_partition(con
+ extern enum xp_retval xpc_initiate_partid_to_nasids(short, void *);
+ 
+ /* found in xpc_channel.c */
+-extern void *xpc_kzalloc_cacheline_aligned(size_t, gfp_t, void **);
+ extern void xpc_initiate_connect(int);
+ extern void xpc_initiate_disconnect(int);
+ extern enum xp_retval xpc_allocate_msg_wait(struct xpc_channel *);
+diff -puN drivers/misc/sgi-xp/xpc_channel.c~sgi-xp-isolate-allocation-of-xpcs-msgqueues-to-sn2-only drivers/misc/sgi-xp/xpc_channel.c
+--- a/drivers/misc/sgi-xp/xpc_channel.c~sgi-xp-isolate-allocation-of-xpcs-msgqueues-to-sn2-only
++++ a/drivers/misc/sgi-xp/xpc_channel.c
+@@ -25,145 +25,6 @@
+ #include "xpc.h"
+ 
  /*
-  * The next macros define word or bit representations for given
-  * C-brick nasid in either the SAL provided bit array representing
-- * nasids in the partition/machine or the AMO_t array used for
-- * inter-partition initiation communications.
-+ * nasids in the partition/machine or the array of amo structures used
-+ * for inter-partition initiation communications.
+- * Guarantee that the kzalloc'd memory is cacheline aligned.
+- */
+-void *
+-xpc_kzalloc_cacheline_aligned(size_t size, gfp_t flags, void **base)
+-{
+-	/* see if kzalloc will give us cachline aligned memory by default */
+-	*base = kzalloc(size, flags);
+-	if (*base == NULL)
+-		return NULL;
+-
+-	if ((u64)*base == L1_CACHE_ALIGN((u64)*base))
+-		return *base;
+-
+-	kfree(*base);
+-
+-	/* nope, we'll have to do it ourselves */
+-	*base = kzalloc(size + L1_CACHE_BYTES, flags);
+-	if (*base == NULL)
+-		return NULL;
+-
+-	return (void *)L1_CACHE_ALIGN((u64)*base);
+-}
+-
+-/*
+- * Allocate the local message queue and the notify queue.
+- */
+-static enum xp_retval
+-xpc_allocate_local_msgqueue(struct xpc_channel *ch)
+-{
+-	unsigned long irq_flags;
+-	int nentries;
+-	size_t nbytes;
+-
+-	for (nentries = ch->local_nentries; nentries > 0; nentries--) {
+-
+-		nbytes = nentries * ch->msg_size;
+-		ch->local_msgqueue = xpc_kzalloc_cacheline_aligned(nbytes,
+-								   GFP_KERNEL,
+-						      &ch->local_msgqueue_base);
+-		if (ch->local_msgqueue == NULL)
+-			continue;
+-
+-		nbytes = nentries * sizeof(struct xpc_notify);
+-		ch->notify_queue = kzalloc(nbytes, GFP_KERNEL);
+-		if (ch->notify_queue == NULL) {
+-			kfree(ch->local_msgqueue_base);
+-			ch->local_msgqueue = NULL;
+-			continue;
+-		}
+-
+-		spin_lock_irqsave(&ch->lock, irq_flags);
+-		if (nentries < ch->local_nentries) {
+-			dev_dbg(xpc_chan, "nentries=%d local_nentries=%d, "
+-				"partid=%d, channel=%d\n", nentries,
+-				ch->local_nentries, ch->partid, ch->number);
+-
+-			ch->local_nentries = nentries;
+-		}
+-		spin_unlock_irqrestore(&ch->lock, irq_flags);
+-		return xpSuccess;
+-	}
+-
+-	dev_dbg(xpc_chan, "can't get memory for local message queue and notify "
+-		"queue, partid=%d, channel=%d\n", ch->partid, ch->number);
+-	return xpNoMemory;
+-}
+-
+-/*
+- * Allocate the cached remote message queue.
+- */
+-static enum xp_retval
+-xpc_allocate_remote_msgqueue(struct xpc_channel *ch)
+-{
+-	unsigned long irq_flags;
+-	int nentries;
+-	size_t nbytes;
+-
+-	DBUG_ON(ch->remote_nentries <= 0);
+-
+-	for (nentries = ch->remote_nentries; nentries > 0; nentries--) {
+-
+-		nbytes = nentries * ch->msg_size;
+-		ch->remote_msgqueue = xpc_kzalloc_cacheline_aligned(nbytes,
+-								    GFP_KERNEL,
+-						     &ch->remote_msgqueue_base);
+-		if (ch->remote_msgqueue == NULL)
+-			continue;
+-
+-		spin_lock_irqsave(&ch->lock, irq_flags);
+-		if (nentries < ch->remote_nentries) {
+-			dev_dbg(xpc_chan, "nentries=%d remote_nentries=%d, "
+-				"partid=%d, channel=%d\n", nentries,
+-				ch->remote_nentries, ch->partid, ch->number);
+-
+-			ch->remote_nentries = nentries;
+-		}
+-		spin_unlock_irqrestore(&ch->lock, irq_flags);
+-		return xpSuccess;
+-	}
+-
+-	dev_dbg(xpc_chan, "can't get memory for cached remote message queue, "
+-		"partid=%d, channel=%d\n", ch->partid, ch->number);
+-	return xpNoMemory;
+-}
+-
+-/*
+- * Allocate message queues and other stuff associated with a channel.
+- *
+- * Note: Assumes all of the channel sizes are filled in.
+- */
+-static enum xp_retval
+-xpc_allocate_msgqueues(struct xpc_channel *ch)
+-{
+-	unsigned long irq_flags;
+-	enum xp_retval ret;
+-
+-	DBUG_ON(ch->flags & XPC_C_SETUP);
+-
+-	ret = xpc_allocate_local_msgqueue(ch);
+-	if (ret != xpSuccess)
+-		return ret;
+-
+-	ret = xpc_allocate_remote_msgqueue(ch);
+-	if (ret != xpSuccess) {
+-		kfree(ch->local_msgqueue_base);
+-		ch->local_msgqueue = NULL;
+-		kfree(ch->notify_queue);
+-		ch->notify_queue = NULL;
+-		return ret;
+-	}
+-
+-	spin_lock_irqsave(&ch->lock, irq_flags);
+-	ch->flags |= XPC_C_SETUP;
+-	spin_unlock_irqrestore(&ch->lock, irq_flags);
+-
+-	return xpSuccess;
+-}
+-
+-/*
+  * Process a connect message from a remote partition.
   *
-  * For SN2 machines, C-Bricks are alway even numbered NASIDs.  As
-  * such, some space will be saved by insisting that nasid information
-@@ -144,8 +144,8 @@ struct xpc_vars_sn2 {
- 	int activate_IRQ_nasid;
- 	int activate_IRQ_phys_cpuid;
- 	u64 vars_part_pa;
--	u64 amos_page_pa;	/* paddr of page of AMOs from MSPEC driver */
--	AMO_t *amos_page;	/* vaddr of page of AMOs from MSPEC driver */
-+	u64 amos_page_pa;	/* paddr of page of amos from MSPEC driver */
-+	struct amo *amos_page;	/* vaddr of page of amos from MSPEC driver */
- };
+  * Note: xpc_process_connect() is expecting to be called with the
+@@ -191,10 +52,11 @@ xpc_process_connect(struct xpc_channel *
+ 		if (ret != xpSuccess)
+ 			XPC_DISCONNECT_CHANNEL(ch, ret, irq_flags);
  
- #define XPC_V_VERSION _XPC_VERSION(3, 1)    /* version 3.1 of the cross vars */
-@@ -153,17 +153,17 @@ struct xpc_vars_sn2 {
- /*
-  * The following pertains to ia64-sn2 only.
-  *
-- * Memory for XPC's AMO variables is allocated by the MSPEC driver. These
-+ * Memory for XPC's amo variables is allocated by the MSPEC driver. These
-  * pages are located in the lowest granule. The lowest granule uses 4k pages
-  * for cached references and an alternate TLB handler to never provide a
-  * cacheable mapping for the entire region. This will prevent speculative
-  * reading of cached copies of our lines from being issued which will cause
-  * a PI FSB Protocol error to be generated by the SHUB. For XPC, we need 64
-- * AMO variables (based on XP_MAX_NPARTITIONS_SN2) to identify the senders of
-- * NOTIFY IRQs, 128 AMO variables (based on XP_NASID_MASK_WORDS) to identify
-- * the senders of ACTIVATE IRQs, 1 AMO variable to identify which remote
-+ * amo variables (based on XP_MAX_NPARTITIONS_SN2) to identify the senders of
-+ * NOTIFY IRQs, 128 amo variables (based on XP_NASID_MASK_WORDS) to identify
-+ * the senders of ACTIVATE IRQs, 1 amo variable to identify which remote
-  * partitions (i.e., XPCs) consider themselves currently engaged with the
-- * local XPC and 1 AMO variable to request partition deactivation.
-+ * local XPC and 1 amo variable to request partition deactivation.
-  */
- #define XPC_NOTIFY_IRQ_AMOS	0
- #define XPC_ACTIVATE_IRQ_AMOS	(XPC_NOTIFY_IRQ_AMOS + XP_MAX_NPARTITIONS_SN2)
-@@ -186,7 +186,7 @@ struct xpc_vars_part_sn2 {
- 	u64 openclose_args_pa;	/* physical address of open and close args */
- 	u64 GPs_pa;		/* physical address of Get/Put values */
++		ch->flags |= XPC_C_SETUP;
++
+ 		if (ch->flags & (XPC_C_CONNECTED | XPC_C_DISCONNECTING))
+ 			return;
  
--	u64 chctl_amo_pa;	/* physical address of chctl flags' AMO_t */
-+	u64 chctl_amo_pa;	/* physical address of chctl flags' amo */
- 
- 	int notify_IRQ_nasid;	/* nasid of where to send notify IRQs */
- 	int notify_IRQ_phys_cpuid;	/* CPUID of where to send notify IRQs */
-@@ -547,8 +547,8 @@ struct xpc_partition_sn2 {
- 	int notify_IRQ_phys_cpuid;	/* CPUID of where to send notify IRQs */
- 	char notify_IRQ_owner[8];	/* notify IRQ's owner's name */
- 
--	AMO_t *remote_chctl_amo_va; /* address of remote chctl flags' AMO_t */
--	AMO_t *local_chctl_amo_va;	/* address of chctl flags' AMO_t */
-+	struct amo *remote_chctl_amo_va; /* addr of remote chctl flags' amo */
-+	struct amo *local_chctl_amo_va;	/* address of chctl flags' amo */
- 
- 	struct timer_list dropped_notify_IRQ_timer;	/* dropped IRQ timer */
- };
-diff -puN drivers/misc/sgi-xp/xpc_main.c~sgi-xp-replace-amo_t-typedef-by-struct-amo drivers/misc/sgi-xp/xpc_main.c
---- a/drivers/misc/sgi-xp/xpc_main.c~sgi-xp-replace-amo_t-typedef-by-struct-amo
-+++ a/drivers/misc/sgi-xp/xpc_main.c
-@@ -26,16 +26,16 @@
-  *	Caveats:
-  *
-  *	  . Currently on sn2, we have no way to determine which nasid an IRQ
-- *	    came from. Thus, xpc_send_IRQ_sn2() does a remote AMO write
-- *	    followed by an IPI. The AMO indicates where data is to be pulled
-- *	    from, so after the IPI arrives, the remote partition checks the AMO
-- *	    word. The IPI can actually arrive before the AMO however, so other
-- *	    code must periodically check for this case. Also, remote AMO
-+ *	    came from. Thus, xpc_send_IRQ_sn2() does a remote amo write
-+ *	    followed by an IPI. The amo indicates where data is to be pulled
-+ *	    from, so after the IPI arrives, the remote partition checks the amo
-+ *	    word. The IPI can actually arrive before the amo however, so other
-+ *	    code must periodically check for this case. Also, remote amo
-  *	    operations do not reliably time out. Thus we do a remote PIO read
-  *	    solely to know whether the remote partition is down and whether we
-  *	    should stop sending IPIs to it. This remote PIO read operation is
-  *	    set up in a special nofault region so SAL knows to ignore (and
-- *	    cleanup) any errors due to the remote AMO write, PIO read, and/or
-+ *	    cleanup) any errors due to the remote amo write, PIO read, and/or
-  *	    PIO write operations.
-  *
-  *	    If/when new hardware solves this IPI problem, we should abandon
-@@ -302,7 +302,7 @@ xpc_hb_checker(void *ignore)
- 
- 			/*
- 			 * We need to periodically recheck to ensure no
--			 * IRQ/AMO pairs have been missed.  That check
-+			 * IRQ/amo pairs have been missed.  That check
- 			 * must always reset xpc_hb_check_timeout.
- 			 */
- 			force_IRQ = 1;
-@@ -1034,7 +1034,7 @@ xpc_init(void)
- 	if (is_shub()) {
- 		/*
- 		 * The ia64-sn2 architecture supports at most 64 partitions.
--		 * And the inability to unregister remote AMOs restricts us
-+		 * And the inability to unregister remote amos restricts us
- 		 * further to only support exactly 64 partitions on this
- 		 * architecture, no less.
- 		 */
-diff -puN drivers/misc/sgi-xp/xpc_sn2.c~sgi-xp-replace-amo_t-typedef-by-struct-amo drivers/misc/sgi-xp/xpc_sn2.c
---- a/drivers/misc/sgi-xp/xpc_sn2.c~sgi-xp-replace-amo_t-typedef-by-struct-amo
-+++ a/drivers/misc/sgi-xp/xpc_sn2.c
-@@ -111,13 +111,14 @@ xpc_disallow_IPI_ops_sn2(void)
-  */
- 
- static u64
--xpc_receive_IRQ_amo_sn2(AMO_t *amo)
-+xpc_receive_IRQ_amo_sn2(struct amo *amo)
- {
- 	return FETCHOP_LOAD_OP(TO_AMO((u64)&amo->variable), FETCHOP_CLEAR);
- }
- 
- static enum xp_retval
--xpc_send_IRQ_sn2(AMO_t *amo, u64 flag, int nasid, int phys_cpuid, int vector)
-+xpc_send_IRQ_sn2(struct amo *amo, u64 flag, int nasid, int phys_cpuid,
-+		 int vector)
- {
- 	int ret = 0;
- 	unsigned long irq_flags;
-@@ -131,7 +132,7 @@ xpc_send_IRQ_sn2(AMO_t *amo, u64 flag, i
- 	 * We must always use the nofault function regardless of whether we
- 	 * are on a Shub 1.1 system or a Shub 1.2 slice 0xc processor. If we
- 	 * didn't, we'd never know that the other partition is down and would
--	 * keep sending IRQs and AMOs to it until the heartbeat times out.
-+	 * keep sending IRQs and amos to it until the heartbeat times out.
- 	 */
- 	ret = xp_nofault_PIOR((u64 *)GLOBAL_MMR_ADDR(NASID_GET(&amo->variable),
- 						     xp_nofault_PIOR_target));
-@@ -141,12 +142,12 @@ xpc_send_IRQ_sn2(AMO_t *amo, u64 flag, i
- 	return ((ret == 0) ? xpSuccess : xpPioReadError);
- }
- 
--static AMO_t *
-+static struct amo *
- xpc_init_IRQ_amo_sn2(int index)
- {
--	AMO_t *amo = xpc_vars->amos_page + index;
-+	struct amo *amo = xpc_vars->amos_page + index;
- 
--	(void)xpc_receive_IRQ_amo_sn2(amo);	/* clear AMO variable */
-+	(void)xpc_receive_IRQ_amo_sn2(amo);	/* clear amo variable */
- 	return amo;
- }
- 
-@@ -166,7 +167,7 @@ xpc_handle_activate_IRQ_sn2(int irq, voi
- }
- 
- /*
-- * Flag the appropriate AMO variable and send an IRQ to the specified node.
-+ * Flag the appropriate amo variable and send an IRQ to the specified node.
-  */
- static void
- xpc_send_activate_IRQ_sn2(u64 amos_page_pa, int from_nasid, int to_nasid,
-@@ -174,8 +175,9 @@ xpc_send_activate_IRQ_sn2(u64 amos_page_
- {
- 	int w_index = XPC_NASID_W_INDEX(from_nasid);
- 	int b_index = XPC_NASID_B_INDEX(from_nasid);
--	AMO_t *amos = (AMO_t *)__va(amos_page_pa +
--				    (XPC_ACTIVATE_IRQ_AMOS * sizeof(AMO_t)));
-+	struct amo *amos = (struct amo *)__va(amos_page_pa +
-+					      (XPC_ACTIVATE_IRQ_AMOS *
-+					      sizeof(struct amo)));
- 
- 	(void)xpc_send_IRQ_sn2(&amos[w_index], (1UL << b_index), to_nasid,
- 			       to_phys_cpuid, SGI_XPC_ACTIVATE);
-@@ -186,8 +188,9 @@ xpc_send_local_activate_IRQ_sn2(int from
- {
- 	int w_index = XPC_NASID_W_INDEX(from_nasid);
- 	int b_index = XPC_NASID_B_INDEX(from_nasid);
--	AMO_t *amos = (AMO_t *)__va(xpc_vars->amos_page_pa +
--				    (XPC_ACTIVATE_IRQ_AMOS * sizeof(AMO_t)));
-+	struct amo *amos = (struct amo *)__va(xpc_vars->amos_page_pa +
-+					      (XPC_ACTIVATE_IRQ_AMOS *
-+					      sizeof(struct amo)));
- 
- 	/* fake the sending and receipt of an activate IRQ from remote nasid */
- 	FETCHOP_STORE_OP(TO_AMO((u64)&amos[w_index].variable), FETCHOP_OR,
-@@ -227,7 +230,7 @@ xpc_check_for_sent_chctl_flags_sn2(struc
- /*
-  * Handle the receipt of a SGI_XPC_NOTIFY IRQ by seeing whether the specified
-  * partition actually sent it. Since SGI_XPC_NOTIFY IRQs may be shared by more
-- * than one partition, we use an AMO_t structure per partition to indicate
-+ * than one partition, we use an amo structure per partition to indicate
-  * whether a partition has sent an IRQ or not.  If it has, then wake up the
-  * associated kthread to handle it.
-  *
-@@ -391,20 +394,20 @@ static void
- xpc_indicate_partition_engaged_sn2(struct xpc_partition *part)
- {
- 	unsigned long irq_flags;
--	AMO_t *amo = (AMO_t *)__va(part->sn.sn2.remote_amos_page_pa +
--				   (XPC_ENGAGED_PARTITIONS_AMO *
--				    sizeof(AMO_t)));
-+	struct amo *amo = (struct amo *)__va(part->sn.sn2.remote_amos_page_pa +
-+					     (XPC_ENGAGED_PARTITIONS_AMO *
-+					     sizeof(struct amo)));
- 
- 	local_irq_save(irq_flags);
- 
--	/* set bit corresponding to our partid in remote partition's AMO */
-+	/* set bit corresponding to our partid in remote partition's amo */
- 	FETCHOP_STORE_OP(TO_AMO((u64)&amo->variable), FETCHOP_OR,
- 			 (1UL << sn_partition_id));
- 	/*
- 	 * We must always use the nofault function regardless of whether we
- 	 * are on a Shub 1.1 system or a Shub 1.2 slice 0xc processor. If we
- 	 * didn't, we'd never know that the other partition is down and would
--	 * keep sending IRQs and AMOs to it until the heartbeat times out.
-+	 * keep sending IRQs and amos to it until the heartbeat times out.
- 	 */
- 	(void)xp_nofault_PIOR((u64 *)GLOBAL_MMR_ADDR(NASID_GET(&amo->
- 							       variable),
-@@ -418,20 +421,20 @@ xpc_indicate_partition_disengaged_sn2(st
- {
- 	struct xpc_partition_sn2 *part_sn2 = &part->sn.sn2;
- 	unsigned long irq_flags;
--	AMO_t *amo = (AMO_t *)__va(part_sn2->remote_amos_page_pa +
--				   (XPC_ENGAGED_PARTITIONS_AMO *
--				    sizeof(AMO_t)));
-+	struct amo *amo = (struct amo *)__va(part_sn2->remote_amos_page_pa +
-+					     (XPC_ENGAGED_PARTITIONS_AMO *
-+					     sizeof(struct amo)));
- 
- 	local_irq_save(irq_flags);
- 
--	/* clear bit corresponding to our partid in remote partition's AMO */
-+	/* clear bit corresponding to our partid in remote partition's amo */
- 	FETCHOP_STORE_OP(TO_AMO((u64)&amo->variable), FETCHOP_AND,
- 			 ~(1UL << sn_partition_id));
- 	/*
- 	 * We must always use the nofault function regardless of whether we
- 	 * are on a Shub 1.1 system or a Shub 1.2 slice 0xc processor. If we
- 	 * didn't, we'd never know that the other partition is down and would
--	 * keep sending IRQs and AMOs to it until the heartbeat times out.
-+	 * keep sending IRQs and amos to it until the heartbeat times out.
- 	 */
- 	(void)xp_nofault_PIOR((u64 *)GLOBAL_MMR_ADDR(NASID_GET(&amo->
- 							       variable),
-@@ -441,7 +444,7 @@ xpc_indicate_partition_disengaged_sn2(st
- 
- 	/*
- 	 * Send activate IRQ to get other side to see that we've cleared our
--	 * bit in their engaged partitions AMO.
-+	 * bit in their engaged partitions amo.
- 	 */
- 	xpc_send_activate_IRQ_sn2(part_sn2->remote_amos_page_pa,
- 				  cnodeid_to_nasid(0),
-@@ -452,9 +455,9 @@ xpc_indicate_partition_disengaged_sn2(st
- static int
- xpc_partition_engaged_sn2(short partid)
- {
--	AMO_t *amo = xpc_vars->amos_page + XPC_ENGAGED_PARTITIONS_AMO;
-+	struct amo *amo = xpc_vars->amos_page + XPC_ENGAGED_PARTITIONS_AMO;
- 
--	/* our partition's AMO variable ANDed with partid mask */
-+	/* our partition's amo variable ANDed with partid mask */
- 	return (FETCHOP_LOAD_OP(TO_AMO((u64)&amo->variable), FETCHOP_LOAD) &
- 		(1UL << partid)) != 0;
- }
-@@ -462,18 +465,18 @@ xpc_partition_engaged_sn2(short partid)
- static int
- xpc_any_partition_engaged_sn2(void)
- {
--	AMO_t *amo = xpc_vars->amos_page + XPC_ENGAGED_PARTITIONS_AMO;
-+	struct amo *amo = xpc_vars->amos_page + XPC_ENGAGED_PARTITIONS_AMO;
- 
--	/* our partition's AMO variable */
-+	/* our partition's amo variable */
- 	return FETCHOP_LOAD_OP(TO_AMO((u64)&amo->variable), FETCHOP_LOAD) != 0;
- }
- 
- static void
- xpc_assume_partition_disengaged_sn2(short partid)
- {
--	AMO_t *amo = xpc_vars->amos_page + XPC_ENGAGED_PARTITIONS_AMO;
-+	struct amo *amo = xpc_vars->amos_page + XPC_ENGAGED_PARTITIONS_AMO;
- 
--	/* clear bit(s) based on partid mask in our partition's AMO */
-+	/* clear bit(s) based on partid mask in our partition's amo */
- 	FETCHOP_STORE_OP(TO_AMO((u64)&amo->variable), FETCHOP_AND,
- 			 ~(1UL << partid));
- }
-@@ -482,10 +485,10 @@ xpc_assume_partition_disengaged_sn2(shor
- static u64 xpc_prot_vec_sn2[MAX_NUMNODES];
- 
- /*
-- * Change protections to allow AMO operations on non-Shub 1.1 systems.
-+ * Change protections to allow amo operations on non-Shub 1.1 systems.
-  */
- static enum xp_retval
--xpc_allow_AMO_ops_sn2(AMO_t *amos_page)
-+xpc_allow_amo_ops_sn2(struct amo *amos_page)
- {
- 	u64 nasid_array = 0;
- 	int ret;
-@@ -493,7 +496,7 @@ xpc_allow_AMO_ops_sn2(AMO_t *amos_page)
- 	/*
- 	 * On SHUB 1.1, we cannot call sn_change_memprotect() since the BIST
- 	 * collides with memory operations. On those systems we call
--	 * xpc_allow_AMO_ops_shub_wars_1_1_sn2() instead.
-+	 * xpc_allow_amo_ops_shub_wars_1_1_sn2() instead.
- 	 */
- 	if (!enable_shub_wars_1_1()) {
- 		ret = sn_change_memprotect(ia64_tpa((u64)amos_page), PAGE_SIZE,
-@@ -506,10 +509,10 @@ xpc_allow_AMO_ops_sn2(AMO_t *amos_page)
- }
- 
- /*
-- * Change protections to allow AMO operations on Shub 1.1 systems.
-+ * Change protections to allow amo operations on Shub 1.1 systems.
-  */
- static void
--xpc_allow_AMO_ops_shub_wars_1_1_sn2(void)
-+xpc_allow_amo_ops_shub_wars_1_1_sn2(void)
- {
- 	int node;
- 	int nasid;
-@@ -536,7 +539,7 @@ xpc_allow_AMO_ops_shub_wars_1_1_sn2(void
- static enum xp_retval
- xpc_rsvd_page_init_sn2(struct xpc_rsvd_page *rp)
- {
--	AMO_t *amos_page;
-+	struct amo *amos_page;
- 	int i;
- 	int ret;
- 
-@@ -549,32 +552,32 @@ xpc_rsvd_page_init_sn2(struct xpc_rsvd_p
- 						     XPC_RP_VARS_SIZE);
- 
- 	/*
--	 * Before clearing xpc_vars, see if a page of AMOs had been previously
-+	 * Before clearing xpc_vars, see if a page of amos had been previously
- 	 * allocated. If not we'll need to allocate one and set permissions
--	 * so that cross-partition AMOs are allowed.
-+	 * so that cross-partition amos are allowed.
- 	 *
--	 * The allocated AMO page needs MCA reporting to remain disabled after
-+	 * The allocated amo page needs MCA reporting to remain disabled after
- 	 * XPC has unloaded.  To make this work, we keep a copy of the pointer
- 	 * to this page (i.e., amos_page) in the struct xpc_vars structure,
- 	 * which is pointed to by the reserved page, and re-use that saved copy
--	 * on subsequent loads of XPC. This AMO page is never freed, and its
-+	 * on subsequent loads of XPC. This amo page is never freed, and its
- 	 * memory protections are never restricted.
- 	 */
- 	amos_page = xpc_vars->amos_page;
- 	if (amos_page == NULL) {
--		amos_page = (AMO_t *)TO_AMO(uncached_alloc_page(0, 1));
-+		amos_page = (struct amo *)TO_AMO(uncached_alloc_page(0, 1));
- 		if (amos_page == NULL) {
--			dev_err(xpc_part, "can't allocate page of AMOs\n");
-+			dev_err(xpc_part, "can't allocate page of amos\n");
- 			return xpNoMemory;
- 		}
- 
- 		/*
--		 * Open up AMO-R/W to cpu.  This is done on Shub 1.1 systems
--		 * when xpc_allow_AMO_ops_shub_wars_1_1_sn2() is called.
-+		 * Open up amo-R/W to cpu.  This is done on Shub 1.1 systems
-+		 * when xpc_allow_amo_ops_shub_wars_1_1_sn2() is called.
- 		 */
--		ret = xpc_allow_AMO_ops_sn2(amos_page);
-+		ret = xpc_allow_amo_ops_sn2(amos_page);
- 		if (ret != xpSuccess) {
--			dev_err(xpc_part, "can't allow AMO operations\n");
-+			dev_err(xpc_part, "can't allow amo operations\n");
- 			uncached_free_page(__IA64_UNCACHED_OFFSET |
- 					   TO_PHYS((u64)amos_page), 1);
- 			return ret;
-@@ -595,11 +598,11 @@ xpc_rsvd_page_init_sn2(struct xpc_rsvd_p
- 	memset((u64 *)xpc_vars_part, 0, sizeof(struct xpc_vars_part_sn2) *
- 	       xp_max_npartitions);
- 
--	/* initialize the activate IRQ related AMO variables */
-+	/* initialize the activate IRQ related amo variables */
- 	for (i = 0; i < xp_nasid_mask_words; i++)
- 		(void)xpc_init_IRQ_amo_sn2(XPC_ACTIVATE_IRQ_AMOS + i);
- 
--	/* initialize the engaged remote partitions related AMO variables */
-+	/* initialize the engaged remote partitions related amo variables */
- 	(void)xpc_init_IRQ_amo_sn2(XPC_ENGAGED_PARTITIONS_AMO);
- 	(void)xpc_init_IRQ_amo_sn2(XPC_DEACTIVATE_REQUEST_AMO);
- 
-@@ -745,19 +748,20 @@ xpc_request_partition_deactivation_sn2(s
- {
- 	struct xpc_partition_sn2 *part_sn2 = &part->sn.sn2;
- 	unsigned long irq_flags;
--	AMO_t *amo = (AMO_t *)__va(part_sn2->remote_amos_page_pa +
--				  (XPC_DEACTIVATE_REQUEST_AMO * sizeof(AMO_t)));
-+	struct amo *amo = (struct amo *)__va(part_sn2->remote_amos_page_pa +
-+					     (XPC_DEACTIVATE_REQUEST_AMO *
-+					     sizeof(struct amo)));
- 
- 	local_irq_save(irq_flags);
- 
--	/* set bit corresponding to our partid in remote partition's AMO */
-+	/* set bit corresponding to our partid in remote partition's amo */
- 	FETCHOP_STORE_OP(TO_AMO((u64)&amo->variable), FETCHOP_OR,
- 			 (1UL << sn_partition_id));
- 	/*
- 	 * We must always use the nofault function regardless of whether we
- 	 * are on a Shub 1.1 system or a Shub 1.2 slice 0xc processor. If we
- 	 * didn't, we'd never know that the other partition is down and would
--	 * keep sending IRQs and AMOs to it until the heartbeat times out.
-+	 * keep sending IRQs and amos to it until the heartbeat times out.
- 	 */
- 	(void)xp_nofault_PIOR((u64 *)GLOBAL_MMR_ADDR(NASID_GET(&amo->
- 							       variable),
-@@ -767,7 +771,7 @@ xpc_request_partition_deactivation_sn2(s
- 
- 	/*
- 	 * Send activate IRQ to get other side to see that we've set our
--	 * bit in their deactivate request AMO.
-+	 * bit in their deactivate request amo.
- 	 */
- 	xpc_send_activate_IRQ_sn2(part_sn2->remote_amos_page_pa,
- 				  cnodeid_to_nasid(0),
-@@ -779,19 +783,20 @@ static void
- xpc_cancel_partition_deactivation_request_sn2(struct xpc_partition *part)
- {
- 	unsigned long irq_flags;
--	AMO_t *amo = (AMO_t *)__va(part->sn.sn2.remote_amos_page_pa +
--				  (XPC_DEACTIVATE_REQUEST_AMO * sizeof(AMO_t)));
-+	struct amo *amo = (struct amo *)__va(part->sn.sn2.remote_amos_page_pa +
-+					     (XPC_DEACTIVATE_REQUEST_AMO *
-+					     sizeof(struct amo)));
- 
- 	local_irq_save(irq_flags);
- 
--	/* clear bit corresponding to our partid in remote partition's AMO */
-+	/* clear bit corresponding to our partid in remote partition's amo */
- 	FETCHOP_STORE_OP(TO_AMO((u64)&amo->variable), FETCHOP_AND,
- 			 ~(1UL << sn_partition_id));
- 	/*
- 	 * We must always use the nofault function regardless of whether we
- 	 * are on a Shub 1.1 system or a Shub 1.2 slice 0xc processor. If we
- 	 * didn't, we'd never know that the other partition is down and would
--	 * keep sending IRQs and AMOs to it until the heartbeat times out.
-+	 * keep sending IRQs and amos to it until the heartbeat times out.
- 	 */
- 	(void)xp_nofault_PIOR((u64 *)GLOBAL_MMR_ADDR(NASID_GET(&amo->
- 							       variable),
-@@ -803,9 +808,9 @@ xpc_cancel_partition_deactivation_reques
- static int
- xpc_partition_deactivation_requested_sn2(short partid)
- {
--	AMO_t *amo = xpc_vars->amos_page + XPC_DEACTIVATE_REQUEST_AMO;
-+	struct amo *amo = xpc_vars->amos_page + XPC_DEACTIVATE_REQUEST_AMO;
- 
--	/* our partition's AMO variable ANDed with partid mask */
-+	/* our partition's amo variable ANDed with partid mask */
- 	return (FETCHOP_LOAD_OP(TO_AMO((u64)&amo->variable), FETCHOP_LOAD) &
- 		(1UL << partid)) != 0;
- }
-@@ -976,7 +981,7 @@ xpc_identify_activate_IRQ_req_sn2(int na
- }
- 
- /*
-- * Loop through the activation AMO variables and process any bits
-+ * Loop through the activation amo variables and process any bits
-  * which are set.  Each bit indicates a nasid sending a partition
-  * activation or deactivation request.
-  *
-@@ -989,11 +994,11 @@ xpc_identify_activate_IRQ_sender_sn2(voi
- 	u64 nasid_mask;
- 	u64 nasid;		/* remote nasid */
- 	int n_IRQs_detected = 0;
--	AMO_t *act_amos;
-+	struct amo *act_amos;
- 
- 	act_amos = xpc_vars->amos_page + XPC_ACTIVATE_IRQ_AMOS;
- 
--	/* scan through act AMO variable looking for non-zero entries */
-+	/* scan through act amo variable looking for non-zero entries */
- 	for (word = 0; word < xp_nasid_mask_words; word++) {
- 
- 		if (xpc_exiting)
-@@ -1005,7 +1010,7 @@ xpc_identify_activate_IRQ_sender_sn2(voi
- 			continue;
- 		}
- 
--		dev_dbg(xpc_part, "AMO[%d] gave back 0x%lx\n", word,
-+		dev_dbg(xpc_part, "amo[%d] gave back 0x%lx\n", word,
- 			nasid_mask);
- 
- 		/*
-@@ -1038,7 +1043,7 @@ xpc_process_activate_IRQ_rcvd_sn2(int n_
- 
- 	n_IRQs_detected = xpc_identify_activate_IRQ_sender_sn2();
- 	if (n_IRQs_detected < n_IRQs_expected) {
--		/* retry once to help avoid missing AMO */
-+		/* retry once to help avoid missing amo */
- 		(void)xpc_identify_activate_IRQ_sender_sn2();
+-		DBUG_ON(!(ch->flags & XPC_C_SETUP));
+ 		DBUG_ON(ch->local_msgqueue == NULL);
+ 		DBUG_ON(ch->remote_msgqueue == NULL);
  	}
+@@ -220,55 +82,6 @@ xpc_process_connect(struct xpc_channel *
  }
-@@ -1386,7 +1391,7 @@ xpc_pull_remote_vars_part_sn2(struct xpc
- 		part_sn2->remote_openclose_args_pa =
- 		    pulled_entry->openclose_args_pa;
- 		part_sn2->remote_chctl_amo_va =
--		    (AMO_t *)__va(pulled_entry->chctl_amo_pa);
-+		    (struct amo *)__va(pulled_entry->chctl_amo_pa);
- 		part_sn2->notify_IRQ_nasid = pulled_entry->notify_IRQ_nasid;
- 		part_sn2->notify_IRQ_phys_cpuid =
- 		    pulled_entry->notify_IRQ_phys_cpuid;
-@@ -1417,7 +1422,7 @@ xpc_make_first_contact_sn2(struct xpc_pa
- 	enum xp_retval ret;
- 
- 	/*
--	 * Register the remote partition's AMOs with SAL so it can handle
-+	 * Register the remote partition's amos with SAL so it can handle
- 	 * and cleanup errors within that address range should the remote
- 	 * partition go down. We don't unregister this range because it is
- 	 * difficult to tell when outstanding writes to the remote partition
-@@ -2192,9 +2197,9 @@ xpc_init_sn2(void)
- 	xpc_send_msg = xpc_send_msg_sn2;
- 	xpc_received_msg = xpc_received_msg_sn2;
- 
--	/* open up protections for IPI and [potentially] AMO operations */
-+	/* open up protections for IPI and [potentially] amo operations */
- 	xpc_allow_IPI_ops_sn2();
--	xpc_allow_AMO_ops_shub_wars_1_1_sn2();
-+	xpc_allow_amo_ops_shub_wars_1_1_sn2();
- 
- 	/*
- 	 * This is safe to do before the xpc_hb_checker thread has started
-diff -puN include/asm-ia64/sn/mspec.h~sgi-xp-replace-amo_t-typedef-by-struct-amo include/asm-ia64/sn/mspec.h
---- a/include/asm-ia64/sn/mspec.h~sgi-xp-replace-amo_t-typedef-by-struct-amo
-+++ a/include/asm-ia64/sn/mspec.h
-@@ -4,7 +4,7 @@
-  * License.  See the file "COPYING" in the main directory of this archive
-  * for more details.
-  *
-- * Copyright (c) 2001-2004 Silicon Graphics, Inc.  All rights reserved.
-+ * Copyright (c) 2001-2008 Silicon Graphics, Inc.  All rights reserved.
-  */
- 
- #ifndef _ASM_IA64_SN_MSPEC_H
-@@ -32,26 +32,26 @@
- #ifdef __KERNEL__
  
  /*
-- * Each Atomic Memory Operation (AMO formerly known as fetchop)
-+ * Each Atomic Memory Operation (amo, formerly known as fetchop)
-  * variable is 64 bytes long.  The first 8 bytes are used.  The
-  * remaining 56 bytes are unaddressable due to the operation taking
-  * that portion of the address.
-  *
-- * NOTE: The AMO_t _MUST_ be placed in either the first or second half
-- * of the cache line.  The cache line _MUST NOT_ be used for anything
-- * other than additional AMO_t entries.  This is because there are two
-+ * NOTE: The amo structure _MUST_ be placed in either the first or second
-+ * half of the cache line.  The cache line _MUST NOT_ be used for anything
-+ * other than additional amo entries.  This is because there are two
-  * addresses which reference the same physical cache line.  One will
-  * be a cached entry with the memory type bits all set.  This address
-- * may be loaded into processor cache.  The AMO_t will be referenced
-+ * may be loaded into processor cache.  The amo will be referenced
-  * uncached via the memory special memory type.  If any portion of the
-  * cached cache-line is modified, when that line is flushed, it will
-  * overwrite the uncached value in physical memory and lead to
-  * inconsistency.
+- * Free up message queues and other stuff that were allocated for the specified
+- * channel.
+- *
+- * Note: ch->reason and ch->reason_line are left set for debugging purposes,
+- * they're cleared when XPC_C_DISCONNECTED is cleared.
+- */
+-static void
+-xpc_free_msgqueues(struct xpc_channel *ch)
+-{
+-	struct xpc_channel_sn2 *ch_sn2 = &ch->sn.sn2;
+-
+-	DBUG_ON(!spin_is_locked(&ch->lock));
+-	DBUG_ON(atomic_read(&ch->n_to_notify) != 0);
+-
+-	ch->remote_msgqueue_pa = 0;
+-	ch->func = NULL;
+-	ch->key = NULL;
+-	ch->msg_size = 0;
+-	ch->local_nentries = 0;
+-	ch->remote_nentries = 0;
+-	ch->kthreads_assigned_limit = 0;
+-	ch->kthreads_idle_limit = 0;
+-
+-	ch_sn2->local_GP->get = 0;
+-	ch_sn2->local_GP->put = 0;
+-	ch_sn2->remote_GP.get = 0;
+-	ch_sn2->remote_GP.put = 0;
+-	ch_sn2->w_local_GP.get = 0;
+-	ch_sn2->w_local_GP.put = 0;
+-	ch_sn2->w_remote_GP.get = 0;
+-	ch_sn2->w_remote_GP.put = 0;
+-	ch_sn2->next_msg_to_pull = 0;
+-
+-	if (ch->flags & XPC_C_SETUP) {
+-		ch->flags &= ~XPC_C_SETUP;
+-
+-		dev_dbg(xpc_chan, "ch->flags=0x%x, partid=%d, channel=%d\n",
+-			ch->flags, ch->partid, ch->number);
+-
+-		kfree(ch->local_msgqueue_base);
+-		ch->local_msgqueue = NULL;
+-		kfree(ch->remote_msgqueue_base);
+-		ch->remote_msgqueue = NULL;
+-		kfree(ch->notify_queue);
+-		ch->notify_queue = NULL;
+-	}
+-}
+-
+-/*
+  * spin_lock_irqsave() is expected to be held on entry.
   */
--typedef struct {
-+struct amo {
-         u64 variable;
-         u64 unused[7];
--} AMO_t;
-+};
+ static void
+@@ -331,7 +144,11 @@ xpc_process_disconnect(struct xpc_channe
+ 	/* it's now safe to free the channel's message queues */
+ 	xpc_free_msgqueues(ch);
  
+-	/* mark disconnected, clear all other flags except XPC_C_WDISCONNECT */
++	/*
++	 * Mark the channel disconnected and clear all other flags, including
++	 * XPC_C_SETUP (because of call to xpc_free_msgqueues()) but not
++	 * including XPC_C_WDISCONNECT (if it was set).
++	 */
+ 	ch->flags = (XPC_C_DISCONNECTED | (ch->flags & XPC_C_WDISCONNECT));
  
- #endif /* __KERNEL__ */
+ 	atomic_dec(&part->nchannels_active);
+diff -puN drivers/misc/sgi-xp/xpc_main.c~sgi-xp-isolate-allocation-of-xpcs-msgqueues-to-sn2-only drivers/misc/sgi-xp/xpc_main.c
+--- a/drivers/misc/sgi-xp/xpc_main.c~sgi-xp-isolate-allocation-of-xpcs-msgqueues-to-sn2-only
++++ a/drivers/misc/sgi-xp/xpc_main.c
+@@ -186,6 +186,8 @@ void (*xpc_check_remote_hb) (void);
+ enum xp_retval (*xpc_make_first_contact) (struct xpc_partition *part);
+ void (*xpc_notify_senders_of_disconnect) (struct xpc_channel *ch);
+ u64 (*xpc_get_chctl_all_flags) (struct xpc_partition *part);
++enum xp_retval (*xpc_allocate_msgqueues) (struct xpc_channel *ch);
++void (*xpc_free_msgqueues) (struct xpc_channel *ch);
+ void (*xpc_process_msg_chctl_flags) (struct xpc_partition *part, int ch_number);
+ int (*xpc_n_of_deliverable_msgs) (struct xpc_channel *ch);
+ struct xpc_msg *(*xpc_get_deliverable_msg) (struct xpc_channel *ch);
+diff -puN drivers/misc/sgi-xp/xpc_sn2.c~sgi-xp-isolate-allocation-of-xpcs-msgqueues-to-sn2-only drivers/misc/sgi-xp/xpc_sn2.c
+--- a/drivers/misc/sgi-xp/xpc_sn2.c~sgi-xp-isolate-allocation-of-xpcs-msgqueues-to-sn2-only
++++ a/drivers/misc/sgi-xp/xpc_sn2.c
+@@ -1049,6 +1049,30 @@ xpc_process_activate_IRQ_rcvd_sn2(int n_
+ }
+ 
+ /*
++ * Guarantee that the kzalloc'd memory is cacheline aligned.
++ */
++static void *
++xpc_kzalloc_cacheline_aligned_sn2(size_t size, gfp_t flags, void **base)
++{
++	/* see if kzalloc will give us cachline aligned memory by default */
++	*base = kzalloc(size, flags);
++	if (*base == NULL)
++		return NULL;
++
++	if ((u64)*base == L1_CACHE_ALIGN((u64)*base))
++		return *base;
++
++	kfree(*base);
++
++	/* nope, we'll have to do it ourselves */
++	*base = kzalloc(size + L1_CACHE_BYTES, flags);
++	if (*base == NULL)
++		return NULL;
++
++	return (void *)L1_CACHE_ALIGN((u64)*base);
++}
++
++/*
+  * Setup the infrastructure necessary to support XPartition Communication
+  * between the specified remote partition and the local one.
+  */
+@@ -1078,10 +1102,9 @@ xpc_setup_infrastructure_sn2(struct xpc_
+ 
+ 	/* allocate all the required GET/PUT values */
+ 
+-	part_sn2->local_GPs = xpc_kzalloc_cacheline_aligned(XPC_GP_SIZE,
+-							    GFP_KERNEL,
+-							    &part_sn2->
+-							    local_GPs_base);
++	part_sn2->local_GPs =
++	    xpc_kzalloc_cacheline_aligned_sn2(XPC_GP_SIZE, GFP_KERNEL,
++					      &part_sn2->local_GPs_base);
+ 	if (part_sn2->local_GPs == NULL) {
+ 		dev_err(xpc_chan, "can't get memory for local get/put "
+ 			"values\n");
+@@ -1089,10 +1112,9 @@ xpc_setup_infrastructure_sn2(struct xpc_
+ 		goto out_1;
+ 	}
+ 
+-	part_sn2->remote_GPs = xpc_kzalloc_cacheline_aligned(XPC_GP_SIZE,
+-							     GFP_KERNEL,
+-							     &part_sn2->
+-							     remote_GPs_base);
++	part_sn2->remote_GPs =
++	    xpc_kzalloc_cacheline_aligned_sn2(XPC_GP_SIZE, GFP_KERNEL,
++					      &part_sn2->remote_GPs_base);
+ 	if (part_sn2->remote_GPs == NULL) {
+ 		dev_err(xpc_chan, "can't get memory for remote get/put "
+ 			"values\n");
+@@ -1105,8 +1127,9 @@ xpc_setup_infrastructure_sn2(struct xpc_
+ 	/* allocate all the required open and close args */
+ 
+ 	part->local_openclose_args =
+-	    xpc_kzalloc_cacheline_aligned(XPC_OPENCLOSE_ARGS_SIZE, GFP_KERNEL,
+-					  &part->local_openclose_args_base);
++	    xpc_kzalloc_cacheline_aligned_sn2(XPC_OPENCLOSE_ARGS_SIZE,
++					      GFP_KERNEL,
++					      &part->local_openclose_args_base);
+ 	if (part->local_openclose_args == NULL) {
+ 		dev_err(xpc_chan, "can't get memory for local connect args\n");
+ 		retval = xpNoMemory;
+@@ -1114,8 +1137,9 @@ xpc_setup_infrastructure_sn2(struct xpc_
+ 	}
+ 
+ 	part->remote_openclose_args =
+-	    xpc_kzalloc_cacheline_aligned(XPC_OPENCLOSE_ARGS_SIZE, GFP_KERNEL,
+-					  &part->remote_openclose_args_base);
++	    xpc_kzalloc_cacheline_aligned_sn2(XPC_OPENCLOSE_ARGS_SIZE,
++					      GFP_KERNEL,
++					     &part->remote_openclose_args_base);
+ 	if (part->remote_openclose_args == NULL) {
+ 		dev_err(xpc_chan, "can't get memory for remote connect args\n");
+ 		retval = xpNoMemory;
+@@ -1528,6 +1552,161 @@ xpc_get_chctl_all_flags_sn2(struct xpc_p
+ }
+ 
+ /*
++ * Allocate the local message queue and the notify queue.
++ */
++static enum xp_retval
++xpc_allocate_local_msgqueue_sn2(struct xpc_channel *ch)
++{
++	unsigned long irq_flags;
++	int nentries;
++	size_t nbytes;
++
++	for (nentries = ch->local_nentries; nentries > 0; nentries--) {
++
++		nbytes = nentries * ch->msg_size;
++		ch->local_msgqueue =
++		    xpc_kzalloc_cacheline_aligned_sn2(nbytes, GFP_KERNEL,
++						      &ch->local_msgqueue_base);
++		if (ch->local_msgqueue == NULL)
++			continue;
++
++		nbytes = nentries * sizeof(struct xpc_notify);
++		ch->notify_queue = kzalloc(nbytes, GFP_KERNEL);
++		if (ch->notify_queue == NULL) {
++			kfree(ch->local_msgqueue_base);
++			ch->local_msgqueue = NULL;
++			continue;
++		}
++
++		spin_lock_irqsave(&ch->lock, irq_flags);
++		if (nentries < ch->local_nentries) {
++			dev_dbg(xpc_chan, "nentries=%d local_nentries=%d, "
++				"partid=%d, channel=%d\n", nentries,
++				ch->local_nentries, ch->partid, ch->number);
++
++			ch->local_nentries = nentries;
++		}
++		spin_unlock_irqrestore(&ch->lock, irq_flags);
++		return xpSuccess;
++	}
++
++	dev_dbg(xpc_chan, "can't get memory for local message queue and notify "
++		"queue, partid=%d, channel=%d\n", ch->partid, ch->number);
++	return xpNoMemory;
++}
++
++/*
++ * Allocate the cached remote message queue.
++ */
++static enum xp_retval
++xpc_allocate_remote_msgqueue_sn2(struct xpc_channel *ch)
++{
++	unsigned long irq_flags;
++	int nentries;
++	size_t nbytes;
++
++	DBUG_ON(ch->remote_nentries <= 0);
++
++	for (nentries = ch->remote_nentries; nentries > 0; nentries--) {
++
++		nbytes = nentries * ch->msg_size;
++		ch->remote_msgqueue =
++		    xpc_kzalloc_cacheline_aligned_sn2(nbytes, GFP_KERNEL,
++						     &ch->remote_msgqueue_base);
++		if (ch->remote_msgqueue == NULL)
++			continue;
++
++		spin_lock_irqsave(&ch->lock, irq_flags);
++		if (nentries < ch->remote_nentries) {
++			dev_dbg(xpc_chan, "nentries=%d remote_nentries=%d, "
++				"partid=%d, channel=%d\n", nentries,
++				ch->remote_nentries, ch->partid, ch->number);
++
++			ch->remote_nentries = nentries;
++		}
++		spin_unlock_irqrestore(&ch->lock, irq_flags);
++		return xpSuccess;
++	}
++
++	dev_dbg(xpc_chan, "can't get memory for cached remote message queue, "
++		"partid=%d, channel=%d\n", ch->partid, ch->number);
++	return xpNoMemory;
++}
++
++/*
++ * Allocate message queues and other stuff associated with a channel.
++ *
++ * Note: Assumes all of the channel sizes are filled in.
++ */
++static enum xp_retval
++xpc_allocate_msgqueues_sn2(struct xpc_channel *ch)
++{
++	enum xp_retval ret;
++
++	DBUG_ON(ch->flags & XPC_C_SETUP);
++
++	ret = xpc_allocate_local_msgqueue_sn2(ch);
++	if (ret == xpSuccess) {
++
++		ret = xpc_allocate_remote_msgqueue_sn2(ch);
++		if (ret != xpSuccess) {
++			kfree(ch->local_msgqueue_base);
++			ch->local_msgqueue = NULL;
++			kfree(ch->notify_queue);
++			ch->notify_queue = NULL;
++		}
++	}
++	return ret;
++}
++
++/*
++ * Free up message queues and other stuff that were allocated for the specified
++ * channel.
++ *
++ * Note: ch->reason and ch->reason_line are left set for debugging purposes,
++ * they're cleared when XPC_C_DISCONNECTED is cleared.
++ */
++static void
++xpc_free_msgqueues_sn2(struct xpc_channel *ch)
++{
++	struct xpc_channel_sn2 *ch_sn2 = &ch->sn.sn2;
++
++	DBUG_ON(!spin_is_locked(&ch->lock));
++	DBUG_ON(atomic_read(&ch->n_to_notify) != 0);
++
++	ch->remote_msgqueue_pa = 0;
++	ch->func = NULL;
++	ch->key = NULL;
++	ch->msg_size = 0;
++	ch->local_nentries = 0;
++	ch->remote_nentries = 0;
++	ch->kthreads_assigned_limit = 0;
++	ch->kthreads_idle_limit = 0;
++
++	ch_sn2->local_GP->get = 0;
++	ch_sn2->local_GP->put = 0;
++	ch_sn2->remote_GP.get = 0;
++	ch_sn2->remote_GP.put = 0;
++	ch_sn2->w_local_GP.get = 0;
++	ch_sn2->w_local_GP.put = 0;
++	ch_sn2->w_remote_GP.get = 0;
++	ch_sn2->w_remote_GP.put = 0;
++	ch_sn2->next_msg_to_pull = 0;
++
++	if (ch->flags & XPC_C_SETUP) {
++		dev_dbg(xpc_chan, "ch->flags=0x%x, partid=%d, channel=%d\n",
++			ch->flags, ch->partid, ch->number);
++
++		kfree(ch->local_msgqueue_base);
++		ch->local_msgqueue = NULL;
++		kfree(ch->remote_msgqueue_base);
++		ch->remote_msgqueue = NULL;
++		kfree(ch->notify_queue);
++		ch->notify_queue = NULL;
++	}
++}
++
++/*
+  * Notify those who wanted to be notified upon delivery of their message.
+  */
+ static void
+@@ -2177,6 +2356,8 @@ xpc_init_sn2(void)
+ 	xpc_teardown_infrastructure = xpc_teardown_infrastructure_sn2;
+ 	xpc_make_first_contact = xpc_make_first_contact_sn2;
+ 	xpc_get_chctl_all_flags = xpc_get_chctl_all_flags_sn2;
++	xpc_allocate_msgqueues = xpc_allocate_msgqueues_sn2;
++	xpc_free_msgqueues = xpc_free_msgqueues_sn2;
+ 	xpc_notify_senders_of_disconnect = xpc_notify_senders_of_disconnect_sn2;
+ 	xpc_process_msg_chctl_flags = xpc_process_msg_chctl_flags_sn2;
+ 	xpc_n_of_deliverable_msgs = xpc_n_of_deliverable_msgs_sn2;
 _
 
 Patches currently in -mm which might be from dcn@sgi.com are
