@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-lockless-get_user_pages_fast-fix.patch added to -mm tree
-Date: Sun, 08 Jun 2008 17:05:48 -0700
-Message-ID: <200806090005.m5905mQU026683@imap1.linux-foundation.org>
+Subject: + sgi-xp-define-is_shub-and-is_uv-macros.patch added to -mm tree
+Date: Sun, 08 Jun 2008 17:17:52 -0700
+Message-ID: <200806090017.m590Hqxe027056@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51462 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41590 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754694AbYFIAFx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 20:05:53 -0400
+	by vger.kernel.org with ESMTP id S1752669AbYFIARz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 20:17:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de
+Cc: dcn@sgi.com
 
 
 The patch titled
-     powerpc-lockless-get_user_pages_fast-fix
+     sgi-xp: define is_shub() and is_uv() macros
 has been added to the -mm tree.  Its filename is
-     powerpc-lockless-get_user_pages_fast-fix.patch
+     sgi-xp-define-is_shub-and-is_uv-macros.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,82 +33,64 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: powerpc-lockless-get_user_pages_fast-fix
-From: Nick Piggin <npiggin@suse.de>
+Subject: sgi-xp: define is_shub() and is_uv() macros
+From: Dean Nelson <dcn@sgi.com>
 
+Define the is_shub()/is_uv() macros if they've not already been defined.
 
-
+Signed-off-by: Dean Nelson <dcn@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/misc/sgi-xp/xp.h |   16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-diff -puN include/linux/pagemap.h~powerpc-lockless-get_user_pages_fast-fix include/linux/pagemap.h
---- a/include/linux/pagemap.h~powerpc-lockless-get_user_pages_fast-fix
-+++ a/include/linux/pagemap.h
-@@ -149,7 +149,7 @@ static inline int page_cache_add_specula
- {
- 	VM_BUG_ON(in_interrupt());
+diff -puN drivers/misc/sgi-xp/xp.h~sgi-xp-define-is_shub-and-is_uv-macros drivers/misc/sgi-xp/xp.h
+--- a/drivers/misc/sgi-xp/xp.h~sgi-xp-define-is_shub-and-is_uv-macros
++++ a/drivers/misc/sgi-xp/xp.h
+@@ -25,6 +25,22 @@
+ #define DBUG_ON(condition)
+ #endif
  
--#ifndef CONFIG_SMP
-+#if !defined(CONFIG_SMP) && defined(CONFIG_CLASSIC_RCU)
- # ifdef CONFIG_PREEMPT
- 	VM_BUG_ON(!in_atomic());
- # endif
++#ifndef is_shub1
++#define is_shub1()	0
++#endif
++
++#ifndef is_shub2
++#define is_shub2()	0
++#endif
++
++#ifndef is_shub
++#define is_shub()	(is_shub1() || is_shub2())
++#endif
++
++#ifndef is_uv
++#define is_uv()		0
++#endif
++
+ /*
+  * Define the maximum number of logically defined partitions the system
+  * can support. It is constrained by the maximum number of hardware
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from dcn@sgi.com are
 
-origin.patch
-linux-next.patch
-spufs-convert-nopfn-to-fault.patch
-mspec-convert-nopfn-to-fault.patch
-mspec-convert-nopfn-to-fault-fix.patch
-mm-remove-nopfn.patch
-mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co.patch
-hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed-build-fix.patch
-hugetlb-factor-out-prep_new_huge_page.patch
-hugetlb-modular-state-for-hugetlb-page-size.patch
-hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
-hugetlb-multiple-hstates-for-multiple-page-sizes.patch
-hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
-hugetlbfs-per-mount-huge-page-sizes.patch
-hugetlb-new-sysfs-interface.patch
-hugetlb-abstract-numa-round-robin-selection.patch
-mm-introduce-non-panic-alloc_bootmem.patch
-mm-export-prep_compound_page-to-mm.patch
-hugetlb-support-larger-than-max_order.patch
-hugetlb-support-boot-allocate-different-sizes.patch
-hugetlb-printk-cleanup.patch
-hugetlb-introduce-pud_huge.patch
-x86-support-gb-hugepages-on-64-bit.patch
-x86-add-hugepagesz-option-on-64-bit.patch
-hugetlb-override-default-huge-page-size.patch
-hugetlb-allow-arch-overried-hugepage-allocation.patch
-powerpc-function-to-allocate-gigantic-hugepages.patch
-powerpc-scan-device-tree-for-gigantic-pages.patch
-powerpc-define-support-for-16g-hugepages.patch
-fs-check-for-statfs-overflow.patch
-powerpc-support-multiple-hugepage-sizes.patch
-x86-implement-pte_special.patch
-mm-introduce-get_user_pages_fast.patch
-mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast.patch
-x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-fix.patch
-x86-lockless-get_user_pages_fast-fix-warning.patch
-dio-use-get_user_pages_fast.patch
-splice-use-get_user_pages_fast.patch
-mm-readahead-scan-lockless.patch
-radix-tree-add-gang_lookup_slot-gang_lookup_slot_tag.patch
-mm-speculative-page-references.patch
-mm-speculative-page-references-fix.patch
-mm-lockless-pagecache.patch
-mm-spinlock-tree_lock.patch
-powerpc-implement-pte_special.patch
-powerpc-lockless-get_user_pages_fast.patch
-powerpc-lockless-get_user_pages_fast-fix.patch
-reiser4.patch
-likeliness-accounting-change-and-cleanup.patch
+sgi-xp-define-is_shub-and-is_uv-macros.patch
+sgi-xp-define-xpsalerror-reason-code.patch
+sgi-xp-define-bytes_per_word.patch
+sgi-xp-support-runtime-selection-of-xp_max_npartitions.patch
+sgi-xp-create-a-common-xp_remote_memcpy-function.patch
+sgi-xp-prepare-xpc_rsvd_page-to-work-on-either-sn2-or-uv-hardware.patch
+sgi-xp-isolate-xpc_vars_part-structure-to-sn2-only.patch
+sgi-xp-isolate-xpc_vars-structure-to-sn2-only.patch
+sgi-xp-base-xpc_rsvd_pages-timestamp-on-jiffies.patch
+sgi-xp-move-xpc_allocate-into-xpc_send-xpc_send_notify.patch
+sgi-xp-isolate-activate-irqs-hardware-specific-components.patch
+sgi-xp-isolate-additional-sn2-specific-code.patch
+sgi-xp-separate-chctl_flags-from-xpcs-notify-irq.patch
+sgi-xp-replace-amo_t-typedef-by-struct-amo.patch
+sgi-xp-isolate-allocation-of-xpcs-msgqueues-to-sn2-only.patch
+sgi-xp-enable-xpnet-to-handle-more-than-64-partitions.patch
+sgi-xp-isolate-remote-copy-buffer-to-sn2-only.patch
+sgi-xp-add-_sn2-suffix-to-a-few-variables.patch
 
