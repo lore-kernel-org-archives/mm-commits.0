@@ -1,75 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch removed from -mm tree
-Date: Mon, 09 Jun 2008 16:26:35 -0700
-Message-ID: <200806092326.m59NQZVn014243@imap1.linux-foundation.org>
+Subject: - bluetooth-hci_bcspc-small-cleanups-api-users-fix.patch removed from -mm tree
+Date: Mon, 09 Jun 2008 16:31:16 -0700
+Message-ID: <200806092331.m59NVGlr014541@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53107 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43896 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753317AbYFIX1I (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2008 19:27:08 -0400
+	by vger.kernel.org with ESMTP id S1754296AbYFIXbZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2008 19:31:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dan.j.williams@intel.com, greg@kroah.com, kay.sievers@vrfy.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, akinobu.mita@gmail.com, harvey.harrison@gmail.com, hidave.darkstar@gmail.com, marcel@holtmann.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysfs: provide a clue about the effects of CONFIG_USB_DEVICE_CLASS=y
+     bluetooth-hci_bcspc-small-cleanups-api-users-fix
 has been removed from the -mm tree.  Its filename was
-     sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
+     bluetooth-hci_bcspc-small-cleanups-api-users-fix.patch
 
-This patch was dropped because it was withdrawn
+This patch was dropped because it was folded into bluetooth-hci_bcspc-small-cleanups-api-users.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysfs: provide a clue about the effects of CONFIG_USB_DEVICE_CLASS=y
+Subject: bluetooth-hci_bcspc-small-cleanups-api-users-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-With CONFIG_USB_DEVICE_CLASS=y we get lots of warnings like
+select CONFIG_BITREVERSE, noted by akinobu.mita@gmail.com
 
-	sysfs: duplicate filename '189:0' can not be created
-
-According to Kay "They have the same dev_t as usb_device and would be a reason
-for the duplicates".
-
-So let's emit a helpful message explaining that.
-
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Greg KH <greg@kroah.com>
+Cc: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Dave Young <hidave.darkstar@gmail.com>
+Cc: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Marcel Holtmann <marcel@holtmann.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/sysfs/dir.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ drivers/bluetooth/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/sysfs/dir.c~sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y fs/sysfs/dir.c
---- a/fs/sysfs/dir.c~sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y
-+++ a/fs/sysfs/dir.c
-@@ -17,6 +17,8 @@
- #include <linux/module.h>
- #include <linux/kobject.h>
- #include <linux/namei.h>
-+#include <linux/ctype.h>
-+#include <linux/string.h>
- #include <linux/idr.h>
- #include <linux/completion.h>
- #include <linux/mutex.h>
-@@ -423,6 +425,13 @@ int sysfs_add_one(struct sysfs_addrm_cxt
- 		printk(KERN_WARNING "sysfs: duplicate filename '%s' "
- 		       "can not be created\n", sd->s_name);
- 		WARN_ON(1);
-+#ifdef CONFIG_USB_DEVICE_CLASS
-+		if (isdigit(sd->s_name[0]) && strchr(sd->s_name, ':')) {
-+			/* Looks like "189:0" or similar */
-+			printk(KERN_WARNING "disabling CONFIG_USB_DEVICE_CLASS"
-+					" might fix this\n");
-+		}
-+#endif
- 		return -EEXIST;
- 	}
- 
+diff -puN drivers/bluetooth/Kconfig~bluetooth-hci_bcspc-small-cleanups-api-users-fix drivers/bluetooth/Kconfig
+--- a/drivers/bluetooth/Kconfig~bluetooth-hci_bcspc-small-cleanups-api-users-fix
++++ a/drivers/bluetooth/Kconfig
+@@ -71,6 +71,7 @@ config BT_HCIUART_H4
+ config BT_HCIUART_BCSP
+ 	bool "BCSP protocol support"
+ 	depends on BT_HCIUART
++	select CONFIG_BITREVERSE
+ 	help
+ 	  BCSP (BlueCore Serial Protocol) is serial protocol for communication 
+ 	  between Bluetooth device and host. This protocol is required for non
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -98,6 +77,7 @@ git-leds.patch
 fsldma-the-mpc8377mds-board-device-tree-node-for-fsldma-driver.patch
 mmc-sd-host-driver-for-ricoh-bay1controllers.patch
 drivers-mtd-devices-block2mtdc-suppress-warning.patch
+bluetooth-hci_bcspc-small-cleanups-api-users.patch
 bluetooth-hci_bcspc-small-cleanups-api-users-fix.patch
 sundance-set-carrier-status-on-link-change-events.patch
 net-sh_eth-add-support-for-renesas-superh-ethernet-checkpatch-fixes.patch
