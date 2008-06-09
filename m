@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + sched-fix-task_wakekill-vs-sigkill-race.patch added to -mm tree
-Date: Sun, 08 Jun 2008 17:34:37 -0700
-Message-ID: <200806090034.m590YbUE027727@imap1.linux-foundation.org>
+Subject: + do_generic_file_read-s-eintr-eio-if-lock_page_killable-fails.patch added to -mm tree
+Date: Sun, 08 Jun 2008 17:34:43 -0700
+Message-ID: <200806090034.m590Yhld027733@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35982 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50085 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756242AbYFIAfY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 20:35:24 -0400
+	by vger.kernel.org with ESMTP id S1756339AbYFIAfi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 20:35:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: oleg@tv-sign.ru, a.p.zijlstra@chello.nl, dmitry.adamushko@gmail.com, matthew
 
 
 The patch titled
-     sched: fix TASK_WAKEKILL vs SIGKILL race
+     do_generic_file_read: s/EINTR/EIO/ if lock_page_killable() fails
 has been added to the -mm tree.  Its filename is
-     sched-fix-task_wakekill-vs-sigkill-race.patch
+     do_generic_file_read-s-eintr-eio-if-lock_page_killable-fails.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,39 +33,25 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sched: fix TASK_WAKEKILL vs SIGKILL race
+Subject: do_generic_file_read: s/EINTR/EIO/ if lock_page_killable() fails
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-schedule() has the special "TASK_INTERRUPTIBLE && signal_pending()" case,
-this allows us to do
+If lock_page_killable() fails because the task was killed by SIGKILL or
+any other fatal signal, do_generic_file_read() returns -EIO.
 
-	current->state = TASK_INTERRUPTIBLE;
-	schedule();
+This seems to be OK, because in fact the userspace won't see this error,
+the task will dequeue SIGKILL and exit.
 
-without fear to sleep with pending signal.
+However, /sbin/init is different, it will dequeue SIGKILL, ignore it, and
+return to the user-space with the bogus -EIO.
 
-However, the code like
+Change the code to return the error code from lock_page_killable(), -EINTR.
+This doesn't fix the bug, but perhaps makes sense anyway. Imho, with this
+change the code looks a bit more logical, and the "good" init should handle
+the spurious EINTR or short read.
 
-	current->state = TASK_KILLABLE;
-	schedule();
-
-is not right, schedule() doesn't take TASK_WAKEKILL into account. This means
-that mutex_lock_killable(), wait_for_completion_killable(), down_killable(),
-schedule_timeout_killable() can miss SIGKILL (and btw the second SIGKILL has
-no effect).
-
-Introduce the new helper, signal_pending_state(), and change schedule() to
-use it. Hopefully it will have more users, that is why the task's state is
-passed separately.
-
-Note this "__TASK_STOPPED | __TASK_TRACED" check in signal_pending_state().
-This is needed to preserve the current behaviour (ptrace_notify). I hope
-this check will be removed soon, but this (afaics good) change needs the
-separate discussion.
-
-The fast path is "(state & (INTERRUPTIBLE | WAKEKILL)) + signal_pending(p)",
-basically the same that schedule() does now. However, this patch of course
-bloats schedule().
+Afaics we can also change lock_page_killable() to return -ERESTARTNOINTR,
+but this can't prevent the short reads.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Ingo Molnar <mingo@elte.hu>
@@ -76,51 +62,54 @@ Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |   13 +++++++++++++
- kernel/sched.c        |    6 ++----
- 2 files changed, 15 insertions(+), 4 deletions(-)
+ mm/filemap.c |   15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/sched.h~sched-fix-task_wakekill-vs-sigkill-race include/linux/sched.h
---- a/include/linux/sched.h~sched-fix-task_wakekill-vs-sigkill-race
-+++ a/include/linux/sched.h
-@@ -2040,6 +2040,19 @@ static inline int fatal_signal_pending(s
- 	return signal_pending(p) && __fatal_signal_pending(p);
- }
+diff -puN mm/filemap.c~do_generic_file_read-s-eintr-eio-if-lock_page_killable-fails mm/filemap.c
+--- a/mm/filemap.c~do_generic_file_read-s-eintr-eio-if-lock_page_killable-fails
++++ a/mm/filemap.c
+@@ -1000,8 +1000,9 @@ page_ok:
  
-+static inline int signal_pending_state(long state, struct task_struct *p)
-+{
-+	if (!(state & (TASK_INTERRUPTIBLE | TASK_WAKEKILL)))
-+		return 0;
-+	if (!signal_pending(p))
-+		return 0;
-+
-+	if (state & (__TASK_STOPPED | __TASK_TRACED))
-+		return 0;
-+
-+	return (state & TASK_INTERRUPTIBLE) || __fatal_signal_pending(p);
-+}
-+
- static inline int need_resched(void)
- {
- 	return unlikely(test_thread_flag(TIF_NEED_RESCHED));
-diff -puN kernel/sched.c~sched-fix-task_wakekill-vs-sigkill-race kernel/sched.c
---- a/kernel/sched.c~sched-fix-task_wakekill-vs-sigkill-race
-+++ a/kernel/sched.c
-@@ -4207,12 +4207,10 @@ need_resched_nonpreemptible:
- 	clear_tsk_need_resched(prev);
+ page_not_up_to_date:
+ 		/* Get exclusive access to the page ... */
+-		if (lock_page_killable(page))
+-			goto readpage_eio;
++		error = lock_page_killable(page);
++		if (unlikely(error))
++			goto readpage_error;
  
- 	if (prev->state && !(preempt_count() & PREEMPT_ACTIVE)) {
--		if (unlikely((prev->state & TASK_INTERRUPTIBLE) &&
--				signal_pending(prev))) {
-+		if (unlikely(signal_pending_state(prev->state, prev)))
- 			prev->state = TASK_RUNNING;
--		} else {
-+		else
- 			deactivate_task(rq, prev, 1);
--		}
- 		switch_count = &prev->nvcsw;
- 	}
+ 		/* Did it get truncated before we got the lock? */
+ 		if (!page->mapping) {
+@@ -1029,8 +1030,9 @@ readpage:
+ 		}
  
+ 		if (!PageUptodate(page)) {
+-			if (lock_page_killable(page))
+-				goto readpage_eio;
++			error = lock_page_killable(page);
++			if (unlikely(error))
++				goto readpage_error;
+ 			if (!PageUptodate(page)) {
+ 				if (page->mapping == NULL) {
+ 					/*
+@@ -1042,15 +1044,14 @@ readpage:
+ 				}
+ 				unlock_page(page);
+ 				shrink_readahead_size_eio(filp, ra);
+-				goto readpage_eio;
++				error = -EIO;
++				goto readpage_error;
+ 			}
+ 			unlock_page(page);
+ 		}
+ 
+ 		goto page_ok;
+ 
+-readpage_eio:
+-		error = -EIO;
+ readpage_error:
+ 		/* UHHUH! A synchronous read error occurred. Report it */
+ 		desc->error = error;
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
