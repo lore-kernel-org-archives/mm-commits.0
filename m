@@ -1,414 +1,212 @@
 From: akpm@linux-foundation.org
-Subject: - powerpc-lockless-get_user_pages_fast.patch removed from -mm tree
-Date: Sun, 08 Jun 2008 20:31:44 -0600
-Message-ID: <200806090832.m598WeYm011206@imap1.linux-foundation.org>
+Subject: + ext3-abort-ext3-if-the-journal-has-aborted-warning-fix.patch added to -mm tree
+Date: Sun, 08 Jun 2008 20:40:25 -0600
+Message-ID: <200806090841.m598fKlV011559@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47187 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35847 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754129AbYFIIdk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2008 04:33:40 -0400
+	by vger.kernel.org with ESMTP id S1755241AbYFIIl1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2008 04:41:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, benh@kernel.crashing.org, hugh@veritas.com, paulmck@us.ibm.com, paulus@samba.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, hidehiro.kawai.ez@hitachi.com, jack@suse.cz
 
 
 The patch titled
-     powerpc: lockless get_user_pages_fast
-has been removed from the -mm tree.  Its filename was
-     powerpc-lockless-get_user_pages_fast.patch
+     ext3-abort-ext3-if-the-journal-has-aborted-warning-fix
+has been added to the -mm tree.  Its filename is
+     ext3-abort-ext3-if-the-journal-has-aborted-warning-fix.patch
 
-This patch was dropped because it had testing failures
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: powerpc: lockless get_user_pages_fast
-From: Nick Piggin <npiggin@suse.de>
+Subject: ext3-abort-ext3-if-the-journal-has-aborted-warning-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Implement lockless get_user_pages_fast for powerpc.  Page table existence
-is guaranteed with RCU, and speculative page references are used to take a
-reference to the pages without having a prior existence guarantee on them.
-
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
+Acked-by: Jan Kara <jack@suse.cz>
+Cc: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/Makefile      |    2 
- arch/powerpc/mm/gup.c         |  230 ++++++++++++++++++++++++++++++++
- include/asm-powerpc/uaccess.h |    6 
- include/linux/mm.h            |    2 
- include/linux/pagemap.h       |   23 +++
- 5 files changed, 261 insertions(+), 2 deletions(-)
+ fs/ext3/ioctl.c |    8 ++++++--
+ 1 files changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN arch/powerpc/mm/Makefile~powerpc-lockless-get_user_pages_fast arch/powerpc/mm/Makefile
---- a/arch/powerpc/mm/Makefile~powerpc-lockless-get_user_pages_fast
-+++ a/arch/powerpc/mm/Makefile
-@@ -6,7 +6,7 @@ ifeq ($(CONFIG_PPC64),y)
- EXTRA_CFLAGS	+= -mno-minimal-toc
- endif
+diff -puN fs/ext3/ioctl.c~ext3-abort-ext3-if-the-journal-has-aborted-warning-fix fs/ext3/ioctl.c
+--- a/fs/ext3/ioctl.c~ext3-abort-ext3-if-the-journal-has-aborted-warning-fix
++++ a/fs/ext3/ioctl.c
+@@ -256,9 +256,11 @@ setrsvsz_out:
+ 		journal_lock_updates(EXT3_SB(sb)->s_journal);
+ 		err2 = journal_flush(EXT3_SB(sb)->s_journal);
+ 		journal_unlock_updates(EXT3_SB(sb)->s_journal);
++		if (err == 0)
++			err = err2;
+ group_extend_out:
+ 		mnt_drop_write(filp->f_path.mnt);
+-		return (err) ? err : err2;
++		return err;
+ 	}
+ 	case EXT3_IOC_GROUP_ADD: {
+ 		struct ext3_new_group_data input;
+@@ -282,9 +284,11 @@ group_extend_out:
+ 		journal_lock_updates(EXT3_SB(sb)->s_journal);
+ 		err2 = journal_flush(EXT3_SB(sb)->s_journal);
+ 		journal_unlock_updates(EXT3_SB(sb)->s_journal);
++		if (err == 0)
++			err = err2;
+ group_add_out:
+ 		mnt_drop_write(filp->f_path.mnt);
+-		return (err) ? err : err2;
++		return err;
+ 	}
  
--obj-y				:= fault.o mem.o \
-+obj-y				:= fault.o mem.o gup.o \
- 				   init_$(CONFIG_WORD_SIZE).o \
- 				   pgtable_$(CONFIG_WORD_SIZE).o \
- 				   mmu_context_$(CONFIG_WORD_SIZE).o
-diff -puN /dev/null arch/powerpc/mm/gup.c
---- /dev/null
-+++ a/arch/powerpc/mm/gup.c
-@@ -0,0 +1,230 @@
-+/*
-+ * Lockless get_user_pages_fast for powerpc
-+ *
-+ * Copyright (C) 2008 Nick Piggin
-+ * Copyright (C) 2008 Novell Inc.
-+ */
-+#include <linux/sched.h>
-+#include <linux/mm.h>
-+#include <linux/vmstat.h>
-+#include <linux/pagemap.h>
-+#include <linux/rwsem.h>
-+#include <asm/pgtable.h>
-+
-+/*
-+ * The performance critical leaf functions are made noinline otherwise gcc
-+ * inlines everything into a single function which results in too much
-+ * register pressure.
-+ */
-+static noinline int gup_pte_range(pmd_t pmd, unsigned long addr,
-+		unsigned long end, int write, struct page **pages, int *nr)
-+{
-+	unsigned long mask, result;
-+	pte_t *ptep;
-+
-+	result = _PAGE_PRESENT|_PAGE_USER;
-+	if (write)
-+		result |= _PAGE_RW;
-+	mask = result | _PAGE_SPECIAL;
-+
-+	ptep = pte_offset_kernel(&pmd, addr);
-+	do {
-+		pte_t pte = *ptep;
-+		struct page *page;
-+
-+		if ((pte_val(pte) & mask) != result)
-+			return 0;
-+		VM_BUG_ON(!pfn_valid(pte_pfn(pte)));
-+		page = pte_page(pte);
-+		if (!page_cache_get_speculative(page))
-+			return 0;
-+		if (unlikely(pte != *ptep)) {
-+			put_page(page);
-+			return 0;
-+		}
-+		pages[*nr] = page;
-+		(*nr)++;
-+
-+	} while (ptep++, addr += PAGE_SIZE, addr != end);
-+
-+	return 1;
-+}
-+
-+static noinline int gup_huge_pte(pte_t *ptep, unsigned long *addr,
-+		unsigned long end, int write, struct page **pages, int *nr)
-+{
-+	unsigned long mask;
-+	unsigned long pte_end;
-+	struct page *head, *page;
-+	pte_t pte;
-+	int refs;
-+
-+	pte_end = (*addr + HPAGE_SIZE) & HPAGE_MASK;
-+	if (pte_end < end)
-+		end = pte_end;
-+
-+	pte = *ptep;
-+	mask = _PAGE_PRESENT|_PAGE_USER;
-+	if (write)
-+		mask |= _PAGE_RW;
-+	if ((pte_val(pte) & mask) != mask)
-+		return 0;
-+	/* hugepages are never "special" */
-+	VM_BUG_ON(!pfn_valid(pte_pfn(pte)));
-+
-+	refs = 0;
-+	head = pte_page(pte);
-+	page = head + ((*addr & ~HPAGE_MASK) >> PAGE_SHIFT);
-+	do {
-+		VM_BUG_ON(compound_head(page) != head);
-+		pages[*nr] = page;
-+		(*nr)++;
-+		page++;
-+		refs++;
-+	} while (*addr += PAGE_SIZE, *addr != end);
-+
-+	if (!page_cache_add_speculative(head, refs)) {
-+		*nr -= refs;
-+		return 0;
-+	}
-+	if (unlikely(pte != *ptep)) {
-+		/* Could be optimized better */
-+		while (*nr) {
-+			put_page(page);
-+			(*nr)--;
-+		}
-+	}
-+
-+	return 1;
-+}
-+
-+static int gup_pmd_range(pud_t pud, unsigned long addr, unsigned long end,
-+		int write, struct page **pages, int *nr)
-+{
-+	unsigned long next;
-+	pmd_t *pmdp;
-+
-+	pmdp = pmd_offset(&pud, addr);
-+	do {
-+		pmd_t pmd = *pmdp;
-+
-+		next = pmd_addr_end(addr, end);
-+		if (pmd_none(pmd))
-+			return 0;
-+		if (!gup_pte_range(pmd, addr, next, write, pages, nr))
-+			return 0;
-+	} while (pmdp++, addr = next, addr != end);
-+
-+	return 1;
-+}
-+
-+static int gup_pud_range(pgd_t pgd, unsigned long addr, unsigned long end,
-+		int write, struct page **pages, int *nr)
-+{
-+	unsigned long next;
-+	pud_t *pudp;
-+
-+	pudp = pud_offset(&pgd, addr);
-+	do {
-+		pud_t pud = *pudp;
-+
-+		next = pud_addr_end(addr, end);
-+		if (pud_none(pud))
-+			return 0;
-+		if (!gup_pmd_range(pud, addr, next, write, pages, nr))
-+			return 0;
-+	} while (pudp++, addr = next, addr != end);
-+
-+	return 1;
-+}
-+
-+int get_user_pages_fast(unsigned long start, int nr_pages, int write, struct page **pages)
-+{
-+	struct mm_struct *mm = current->mm;
-+	unsigned long end = start + (nr_pages << PAGE_SHIFT);
-+	unsigned long addr = start;
-+	unsigned long next;
-+	pgd_t *pgdp;
-+	int nr = 0;
-+
-+
-+	if (unlikely(!access_ok(write ? VERIFY_WRITE : VERIFY_READ,
-+					start, nr_pages*PAGE_SIZE)))
-+		goto slow_irqon;
-+
-+	/* Cross a slice boundary? */
-+	if (unlikely(addr < SLICE_LOW_TOP && end >= SLICE_LOW_TOP))
-+		goto slow_irqon;
-+
-+	/*
-+	 * XXX: batch / limit 'nr', to avoid large irq off latency
-+	 * needs some instrumenting to determine the common sizes used by
-+	 * important workloads (eg. DB2), and whether limiting the batch size
-+	 * will decrease performance.
-+	 *
-+	 * It seems like we're in the clear for the moment. Direct-IO is
-+	 * the main guy that batches up lots of get_user_pages, and even
-+	 * they are limited to 64-at-a-time which is not so many.
-+	 */
-+	/*
-+	 * This doesn't prevent pagetable teardown, but does prevent
-+	 * the pagetables from being freed on powerpc.
-+	 *
-+	 * So long as we atomically load page table pointers versus teardown,
-+	 * we can follow the address down to the the page and take a ref on it.
-+	 */
-+	local_irq_disable();
-+
-+	if (get_slice_psize(mm, addr) == mmu_huge_psize) {
-+		pte_t *ptep;
-+		unsigned long a = addr;
-+
-+		ptep = huge_pte_offset(mm, a);
-+		do {
-+			if (!gup_huge_pte(ptep, &a, end, write, pages, &nr))
-+				goto slow;
-+			ptep++;
-+		} while (a != end);
-+	} else {
-+		pgdp = pgd_offset(mm, addr);
-+		do {
-+			pgd_t pgd = *pgdp;
-+
-+			next = pgd_addr_end(addr, end);
-+			if (pgd_none(pgd))
-+				goto slow;
-+			if (!gup_pud_range(pgd, addr, next, write, pages, &nr))
-+				goto slow;
-+		} while (pgdp++, addr = next, addr != end);
-+	}
-+	local_irq_enable();
-+
-+	VM_BUG_ON(nr != (end - start) >> PAGE_SHIFT);
-+	return nr;
-+
-+	{
-+		int ret;
-+
-+slow:
-+		local_irq_enable();
-+slow_irqon:
-+		/* Try to get the remaining pages with get_user_pages */
-+		start += nr << PAGE_SHIFT;
-+		pages += nr;
-+
-+		down_read(&mm->mmap_sem);
-+		ret = get_user_pages(current, mm, start,
-+			(end - start) >> PAGE_SHIFT, write, 0, pages, NULL);
-+		up_read(&mm->mmap_sem);
-+
-+		/* Have to be a bit careful with return values */
-+		if (nr > 0) {
-+			if (ret < 0)
-+				ret = nr;
-+			else
-+				ret += nr;
-+		}
-+
-+		return ret;
-+	}
-+}
-diff -puN include/asm-powerpc/uaccess.h~powerpc-lockless-get_user_pages_fast include/asm-powerpc/uaccess.h
---- a/include/asm-powerpc/uaccess.h~powerpc-lockless-get_user_pages_fast
-+++ a/include/asm-powerpc/uaccess.h
-@@ -493,6 +493,12 @@ static inline int strnlen_user(const cha
  
- #define strlen_user(str)	strnlen_user((str), 0x7ffffffe)
- 
-+#ifdef __powerpc64__
-+#define __HAVE_ARCH_GET_USER_PAGES_FAST
-+struct page;
-+int get_user_pages_fast(unsigned long start, int nr_pages, int write, struct page **pages);
-+#endif
-+
- #endif  /* __ASSEMBLY__ */
- #endif /* __KERNEL__ */
- 
-diff -puN include/linux/mm.h~powerpc-lockless-get_user_pages_fast include/linux/mm.h
---- a/include/linux/mm.h~powerpc-lockless-get_user_pages_fast
-+++ a/include/linux/mm.h
-@@ -250,7 +250,7 @@ static inline int put_page_testzero(stru
-  */
- static inline int get_page_unless_zero(struct page *page)
- {
--	VM_BUG_ON(PageTail(page));
-+	VM_BUG_ON(PageCompound(page));
- 	return atomic_inc_not_zero(&page->_count);
- }
- 
-diff -puN include/linux/pagemap.h~powerpc-lockless-get_user_pages_fast include/linux/pagemap.h
---- a/include/linux/pagemap.h~powerpc-lockless-get_user_pages_fast
-+++ a/include/linux/pagemap.h
-@@ -142,6 +142,29 @@ static inline int page_cache_get_specula
- 	return 1;
- }
- 
-+/*
-+ * Same as above, but add instead of inc (could just be merged)
-+ */
-+static inline int page_cache_add_speculative(struct page *page, int count)
-+{
-+	VM_BUG_ON(in_interrupt());
-+
-+#ifndef CONFIG_SMP
-+# ifdef CONFIG_PREEMPT
-+	VM_BUG_ON(!in_atomic());
-+# endif
-+	VM_BUG_ON(page_count(page) == 0);
-+	atomic_add(count, &page->_count);
-+
-+#else
-+	if (unlikely(!atomic_add_unless(&page->_count, count, 0)))
-+		return 0;
-+#endif
-+	VM_BUG_ON(PageCompound(page) && page != compound_head(page));
-+
-+	return 1;
-+}
-+
- static inline int page_freeze_refs(struct page *page, int count)
- {
- 	return likely(atomic_cmpxchg(&page->_count, count, 0) == count);
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+m68k-add-ext2_find_firstnext_bit-for-ext4-checkpatch-fixes.patch
 linux-next.patch
-spufs-convert-nopfn-to-fault.patch
-mspec-convert-nopfn-to-fault.patch
+next-remove-localversion.patch
+linux-next-git-rejects.patch
+fix-kobject-fix-kobject_rename-and-config_sysfs.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-video-balcklist-fujitsu-lifebook-s6410.patch
+lguest-use-cpu-capability-accessors.patch
+intel-agp-rewrite-gtt-on-resume.patch
+intel-agp-rewrite-gtt-on-resume-update-checkpatch-fixes.patch
+arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2.patch
+arch-powerpc-platforms-pseries-eeh_driverc-fix-warning.patch
+arch-powerpc-platforms-pseries-eeh_driverc-fix-warning-checkpatch-fixes.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+git-jg-misc-git-rejects.patch
+drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+git-leds.patch
+fsldma-the-mpc8377mds-board-device-tree-node-for-fsldma-driver.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers.patch
+drivers-mtd-devices-block2mtdc-suppress-warning.patch
+bluetooth-hci_bcspc-small-cleanups-api-users-fix.patch
+sundance-set-carrier-status-on-link-change-events.patch
+net-sh_eth-add-support-for-renesas-superh-ethernet-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+pci-introduce-pci_slot.patch
+acpi-pci-slot-detection-driver.patch
+git-scsi-misc-fix-scsi_dh-build-errors.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
+pktcdvd-push-bkl-down-into-driver-fix.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-logfs-fixup.patch
+drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
+drivers-uwb-wlp-sysfsc-dead-code.patch
+usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix.patch
+usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix-2.patch
+watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix.patch
+watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl-fix.patch
+git-xtensa.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-verify-the-page-links-and-memory-model.patch
 mspec-convert-nopfn-to-fault-fix.patch
-mm-remove-nopfn.patch
-mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co.patch
-hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed-build-fix.patch
-hugetlb-factor-out-prep_new_huge_page.patch
-hugetlb-modular-state-for-hugetlb-page-size.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+kill-generic_file_direct_io-checkpatch-fixes.patch
+use-generic_access_phys-for-dev-mem-mappings-fix.patch
+spufs-use-the-new-vm_ops-access-fix.patch
+fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
+page-flags-record-page-flag-overlays-explicitly-xen.patch
+mapping_set_error-add-unlikely.patch
+huge-page-private-reservation-review-cleanups-fix.patch
+sync_file_range_write-may-and-will-block-document-that-fix.patch
+vmallocinfo-add-numa-information-fix.patch
 hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
-hugetlb-multiple-hstates-for-multiple-page-sizes.patch
 hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
-hugetlbfs-per-mount-huge-page-sizes.patch
-hugetlb-new-sysfs-interface.patch
-hugetlb-abstract-numa-round-robin-selection.patch
-mm-introduce-non-panic-alloc_bootmem.patch
-mm-export-prep_compound_page-to-mm.patch
-hugetlb-support-larger-than-max_order.patch
-hugetlb-support-boot-allocate-different-sizes.patch
-hugetlb-printk-cleanup.patch
-hugetlb-introduce-pud_huge.patch
-x86-support-gb-hugepages-on-64-bit.patch
-x86-add-hugepagesz-option-on-64-bit.patch
-hugetlb-override-default-huge-page-size.patch
-hugetlb-allow-arch-overried-hugepage-allocation.patch
-powerpc-function-to-allocate-gigantic-hugepages.patch
-powerpc-scan-device-tree-for-gigantic-pages.patch
-powerpc-define-support-for-16g-hugepages.patch
-fs-check-for-statfs-overflow.patch
-powerpc-support-multiple-hugepage-sizes.patch
-x86-implement-pte_special.patch
-mm-introduce-get_user_pages_fast.patch
+bootmem-add-debugging-framework-fix.patch
+bootmem-clean-up-free_all_bootmem_core-fix.patch
+bootmem-free-reserve-helpers-fix.patch
+bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
+swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
+block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
+rename-warn-to-warning-to-clear-the-namespace-fix.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-paccept-sys_ni.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-signalfd-fix.patch
+flag-parameters-eventfd-fix.patch
+flag-parameters-inotify_init-fix.patch
+flag-parameters-check-magic-constants-alpha.patch
+cputopology-always-define-cpu-topology-information-cleanup.patch
+oprofile-multiplexing-checkpatch-fixes.patch
+gpio-gpio-driver-for-max7301-spi-gpio-expander-checkpatch-fixes.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
+pnp-add-pnp_possible_config-can-a-device-could-be-configured-this-way-fix.patch
+pnp-convert-resource-options-to-single-linked-list-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
+ext3-abort-ext3-if-the-journal-has-aborted-warning-fix.patch
+reiserfs-convert-j_flush_sem-to-mutex.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
+jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup.patch
+ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
+getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
+tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
+memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
+revert-linux-next-changes-to-make-memstick-use-fully-asynchronous-request-processing-apply.patch
+revert-revert-linux-next-changes-to-make-memstick-use-fully-asynchronous-request-processing-apply.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
 mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast.patch
 x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
 x86-lockless-get_user_pages_fast-fix.patch
 x86-lockless-get_user_pages_fast-fix-warning.patch
-dio-use-get_user_pages_fast.patch
-splice-use-get_user_pages_fast.patch
-mm-readahead-scan-lockless.patch
-radix-tree-add-gang_lookup_slot-gang_lookup_slot_tag.patch
-mm-speculative-page-references.patch
-mm-speculative-page-references-fix.patch
-mm-lockless-pagecache.patch
-mm-spinlock-tree_lock.patch
-powerpc-implement-pte_special.patch
-powerpc-lockless-get_user_pages_fast.patch
-powerpc-lockless-get_user_pages_fast-fix.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-vmscan-mlocked-pages-are-non-reclaimable.patch
-vmscan-handle-mlocked-pages-during-map-remap-unmap.patch
-vmscan-mlocked-pages-statistics.patch
 reiser4.patch
-likeliness-accounting-change-and-cleanup.patch
+reiser4-tree_lock-fixes.patch
+reiser4-semaphore-fix.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
