@@ -1,195 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - bluetooth-hci_bcspc-small-cleanups-api-users-fix.patch removed from -mm tree
-Date: Mon, 09 Jun 2008 16:31:16 -0700
-Message-ID: <200806092331.m59NVGlr014541@imap1.linux-foundation.org>
+Subject: - smc911x-pass-along-private-data-and-use-iomem-fix.patch removed from -mm tree
+Date: Mon, 09 Jun 2008 16:32:25 -0700
+Message-ID: <200806092332.m59NWPSg014571@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43896 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39246 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754296AbYFIXbZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2008 19:31:25 -0400
+	by vger.kernel.org with ESMTP id S1753941AbYFIXcf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2008 19:32:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, akinobu.mita@gmail.com, harvey.harrison@gmail.com, hidave.darkstar@gmail.com, marcel@holtmann.org, mm-commits@vger.kernel.org
+To: m.kozlowski@tuxland.pl, damm@igel.co.jp, jeff@garzik.org, lethal@linux-sh.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bluetooth-hci_bcspc-small-cleanups-api-users-fix
+     smc911x-pass-along-private-data-and-use-iomem fix
 has been removed from the -mm tree.  Its filename was
-     bluetooth-hci_bcspc-small-cleanups-api-users-fix.patch
+     smc911x-pass-along-private-data-and-use-iomem-fix.patch
 
-This patch was dropped because it was folded into bluetooth-hci_bcspc-small-cleanups-api-users.patch
+This patch was dropped because it was folded into smc911x-pass-along-private-data-and-use-iomem.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bluetooth-hci_bcspc-small-cleanups-api-users-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: smc911x-pass-along-private-data-and-use-iomem fix
+From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
-select CONFIG_BITREVERSE, noted by akinobu.mita@gmail.com
+Parenthesis fix in drivers/net/smc911x.h
 
-Cc: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Dave Young <hidave.darkstar@gmail.com>
-Cc: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Marcel Holtmann <marcel@holtmann.org>
+Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Cc: Magnus Damm <damm@igel.co.jp>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/bluetooth/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/net/smc911x.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/bluetooth/Kconfig~bluetooth-hci_bcspc-small-cleanups-api-users-fix drivers/bluetooth/Kconfig
---- a/drivers/bluetooth/Kconfig~bluetooth-hci_bcspc-small-cleanups-api-users-fix
-+++ a/drivers/bluetooth/Kconfig
-@@ -71,6 +71,7 @@ config BT_HCIUART_H4
- config BT_HCIUART_BCSP
- 	bool "BCSP protocol support"
- 	depends on BT_HCIUART
-+	select CONFIG_BITREVERSE
- 	help
- 	  BCSP (BlueCore Serial Protocol) is serial protocol for communication 
- 	  between Bluetooth device and host. This protocol is required for non
+diff -puN drivers/net/smc911x.h~smc911x-pass-along-private-data-and-use-iomem-fix drivers/net/smc911x.h
+--- a/drivers/net/smc911x.h~smc911x-pass-along-private-data-and-use-iomem-fix
++++ a/drivers/net/smc911x.h
+@@ -99,7 +99,7 @@ struct smc911x_local {
+  */
+ 
+ #if	SMC_USE_16BIT
+-#define SMC_inl(lp, r)		 (readw((lp)->base + (r)) & 0xFFFF) + (readw((lp)->base + (r) + 2) << 16))
++#define SMC_inl(lp, r)		 ((readw((lp)->base + (r)) & 0xFFFF) + (readw((lp)->base + (r) + 2) << 16))
+ #define SMC_outl(v, lp, r) 			 \
+ 	do{					 \
+ 		 writew(v & 0xFFFF, (lp)->base + (r));	 \
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
 
-origin.patch
-m68k-add-ext2_find_firstnext_bit-for-ext4-checkpatch-fixes.patch
 linux-next.patch
-next-remove-localversion.patch
-linux-next-git-rejects.patch
-fix-kobject-fix-kobject_rename-and-config_sysfs.patch
-kvm-unbork.patch
-kvm-is-busted-on-ia64.patch
-drivers-mtd-nand-nandsimc-needs-div64h.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-video-balcklist-fujitsu-lifebook-s6410.patch
-lguest-use-cpu-capability-accessors.patch
-intel-agp-rewrite-gtt-on-resume.patch
-arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
-pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2.patch
-arch-powerpc-platforms-pseries-eeh_driverc-fix-warning.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-git-jg-misc-git-rejects.patch
-drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-git-leds.patch
-fsldma-the-mpc8377mds-board-device-tree-node-for-fsldma-driver.patch
-mmc-sd-host-driver-for-ricoh-bay1controllers.patch
-drivers-mtd-devices-block2mtdc-suppress-warning.patch
-bluetooth-hci_bcspc-small-cleanups-api-users.patch
-bluetooth-hci_bcspc-small-cleanups-api-users-fix.patch
-sundance-set-carrier-status-on-link-change-events.patch
-net-sh_eth-add-support-for-renesas-superh-ethernet-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-battery.patch
-pci-introduce-pci_slot.patch
-acpi-pci-slot-detection-driver.patch
-git-scsi-misc-fix-scsi_dh-build-errors.patch
-drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
-s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
-pktcdvd-push-bkl-down-into-driver-fix.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-git-logfs-fixup.patch
-drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
-drivers-uwb-wlp-sysfsc-dead-code.patch
-usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix.patch
-usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix-2.patch
-watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix.patch
-watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl-fix.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-verify-the-page-links-and-memory-model.patch
-mspec-convert-nopfn-to-fault-fix.patch
-page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
-kill-generic_file_direct_io-checkpatch-fixes.patch
-use-generic_access_phys-for-dev-mem-mappings-fix.patch
-spufs-use-the-new-vm_ops-access-fix.patch
-fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
-page-flags-record-page-flag-overlays-explicitly-xen.patch
-mapping_set_error-add-unlikely.patch
-huge-page-private-reservation-review-cleanups-fix.patch
-sync_file_range_write-may-and-will-block-document-that-fix.patch
-vmallocinfo-add-numa-information-fix.patch
-hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
-hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
-hugetlb-override-default-huge-page-size-ia64-build.patch
-bootmem-add-debugging-framework-fix.patch
-bootmem-clean-up-free_all_bootmem_core-fix.patch
-bootmem-free-reserve-helpers-fix.patch
-bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
-swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
-split-the-typecheck-macros-out-of-include-linux-kernelh.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
-remove-apparently-unused-fd1772h-header-file.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
-build-kernel-profileo-only-when-requested-cleanups.patch
-fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
-block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
-rename-warn-to-warning-to-clear-the-namespace-fix.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
-flag-parameters-paccept-fix.patch
-flag-parameters-paccept-sys_ni.patch
-flag-parameters-anon_inode_getfd-extension-fix.patch
-flag-parameters-signalfd-fix.patch
-flag-parameters-eventfd-fix.patch
-flag-parameters-inotify_init-fix.patch
-flag-parameters-check-magic-constants-alpha.patch
-cputopology-always-define-cpu-topology-information-cleanup.patch
-oprofile-multiplexing-checkpatch-fixes.patch
-gpio-gpio-driver-for-max7301-spi-gpio-expander-checkpatch-fixes.patch
-drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
-atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
-pnp-add-pnp_possible_config-can-a-device-could-be-configured-this-way-fix.patch
-pnp-convert-resource-options-to-single-linked-list-checkpatch-fixes.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
-reiserfs-convert-j_flush_sem-to-mutex.patch
-reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
-jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup.patch
-ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
-getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
-tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
-memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
-revert-linux-next-changes-to-make-memstick-use-fully-asynchronous-request-processing-apply.patch
-memstick-use-fully-asynchronous-request-processing-fix.patch
-revert-revert-linux-next-changes-to-make-memstick-use-fully-asynchronous-request-processing-apply.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-mm-introduce-get_user_pages_fast-fix.patch
-mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-fix.patch
-x86-lockless-get_user_pages_fast-fix-2.patch
-x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
-x86-lockless-get_user_pages_fast-fix-warning.patch
+smc911x-pass-along-private-data-and-use-iomem.patch
+smc911x-pass-along-private-data-and-use-iomem-fix.patch
 reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
 
