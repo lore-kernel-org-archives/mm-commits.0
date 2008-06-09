@@ -1,575 +1,235 @@
 From: akpm@linux-foundation.org
-Subject: + sgi-xp-isolate-remote-copy-buffer-to-sn2-only.patch added to -mm tree
-Date: Sun, 08 Jun 2008 17:18:27 -0700
-Message-ID: <200806090018.m590IRYS027112@imap1.linux-foundation.org>
+Subject: - intel-agp-rewrite-gtt-on-resume-checkpatch-fixes.patch removed from -mm tree
+Date: Sun, 08 Jun 2008 17:19:27 -0700
+Message-ID: <200806090019.m590JRGf027225@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47022 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43069 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756579AbYFIASa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 20:18:30 -0400
+	by vger.kernel.org with ESMTP id S1756549AbYFIAUb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 20:20:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: dcn@sgi.com
+To: akpm@linux-foundation.org, airlied@linux.ie, andi@firstfloor.org, davej@codemonkey.org.uk, keithp@keithp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sgi-xp: isolate remote copy buffer to sn2 only
-has been added to the -mm tree.  Its filename is
-     sgi-xp-isolate-remote-copy-buffer-to-sn2-only.patch
+     intel-agp-rewrite-gtt-on-resume-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     intel-agp-rewrite-gtt-on-resume-checkpatch-fixes.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into intel-agp-rewrite-gtt-on-resume.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sgi-xp: isolate remote copy buffer to sn2 only
-From: Dean Nelson <dcn@sgi.com>
+Subject: intel-agp-rewrite-gtt-on-resume-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Make the remote copy buffer an sn2 only item.
+WARNING: space prohibited between function name and open parenthesis '('
+#63: FILE: drivers/char/agp/generic.c:429:
++	list_add (&curr->mapped_list, &agp_bridge->mapped_list);
 
-Signed-off-by: Dean Nelson <dcn@sgi.com>
+WARNING: space prohibited between function name and open parenthesis '('
+#72: FILE: drivers/char/agp/generic.c:463:
++	list_del (&curr->mapped_list);
+
+WARNING: space prohibited between function name and open parenthesis '('
+#80: FILE: drivers/char/agp/generic.c:471:
++int agp_rebind_memory (void)
+
+WARNING: space prohibited between function name and open parenthesis '('
+#146: FILE: include/linux/agp_backend.h:111:
++extern int agp_rebind_memory (void);
+
+total: 0 errors, 4 warnings, 93 lines checked
+
+./patches/intel-agp-rewrite-gtt-on-resume.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Dave Airlie <airlied@linux.ie>
+Cc: Dave Jones <davej@codemonkey.org.uk>
+Cc: Keith Packard <keithp@keithp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-xp/xp.h            |   10 --
- drivers/misc/sgi-xp/xpc.h           |   39 ++---------
- drivers/misc/sgi-xp/xpc_main.c      |   31 ++-------
- drivers/misc/sgi-xp/xpc_partition.c |   31 +++------
- drivers/misc/sgi-xp/xpc_sn2.c       |   88 ++++++++++++++++++++------
- 5 files changed, 97 insertions(+), 102 deletions(-)
+ drivers/char/agp/generic.c  |    6 +++---
+ include/linux/agp_backend.h |    2 +-
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/misc/sgi-xp/xp.h~sgi-xp-isolate-remote-copy-buffer-to-sn2-only drivers/misc/sgi-xp/xp.h
---- a/drivers/misc/sgi-xp/xp.h~sgi-xp-isolate-remote-copy-buffer-to-sn2-only
-+++ a/drivers/misc/sgi-xp/xp.h
-@@ -61,16 +61,6 @@
- #define XP_MAX_NPARTITIONS_UV	256
+diff -puN drivers/char/agp/generic.c~intel-agp-rewrite-gtt-on-resume-checkpatch-fixes drivers/char/agp/generic.c
+--- a/drivers/char/agp/generic.c~intel-agp-rewrite-gtt-on-resume-checkpatch-fixes
++++ a/drivers/char/agp/generic.c
+@@ -426,7 +426,7 @@ int agp_bind_memory(struct agp_memory *c
  
- /*
-- * Define the number of u64s required to represent all the C-brick nasids
-- * as a bitmap.  The cross-partition kernel modules deal only with
-- * C-brick nasids, thus the need for bitmaps which don't account for
-- * odd-numbered (non C-brick) nasids.
-- */
--#define XP_MAX_PHYSNODE_ID	(MAX_NUMALINK_NODES / 2)
--#define XP_NASID_MASK_BYTES	((XP_MAX_PHYSNODE_ID + 7) / 8)
--#define XP_NASID_MASK_WORDS	((XP_MAX_PHYSNODE_ID + 63) / 64)
--
--/*
-  * XPC establishes channel connections between the local partition and any
-  * other partition that is currently up. Over these channels, kernel-level
-  * `users' can communicate with their counterparts on the other partitions.
-diff -puN drivers/misc/sgi-xp/xpc.h~sgi-xp-isolate-remote-copy-buffer-to-sn2-only drivers/misc/sgi-xp/xpc.h
---- a/drivers/misc/sgi-xp/xpc.h~sgi-xp-isolate-remote-copy-buffer-to-sn2-only
-+++ a/drivers/misc/sgi-xp/xpc.h
-@@ -151,26 +151,6 @@ struct xpc_vars_sn2 {
- #define XPC_V_VERSION _XPC_VERSION(3, 1)    /* version 3.1 of the cross vars */
+ 	curr->is_bound = TRUE;
+ 	curr->pg_start = pg_start;
+-	list_add (&curr->mapped_list, &agp_bridge->mapped_list);
++	list_add(&curr->mapped_list, &agp_bridge->mapped_list);
  
- /*
-- * The following pertains to ia64-sn2 only.
-- *
-- * Memory for XPC's amo variables is allocated by the MSPEC driver. These
-- * pages are located in the lowest granule. The lowest granule uses 4k pages
-- * for cached references and an alternate TLB handler to never provide a
-- * cacheable mapping for the entire region. This will prevent speculative
-- * reading of cached copies of our lines from being issued which will cause
-- * a PI FSB Protocol error to be generated by the SHUB. For XPC, we need 64
-- * amo variables (based on XP_MAX_NPARTITIONS_SN2) to identify the senders of
-- * NOTIFY IRQs, 128 amo variables (based on XP_NASID_MASK_WORDS) to identify
-- * the senders of ACTIVATE IRQs, 1 amo variable to identify which remote
-- * partitions (i.e., XPCs) consider themselves currently engaged with the
-- * local XPC and 1 amo variable to request partition deactivation.
-- */
--#define XPC_NOTIFY_IRQ_AMOS	0
--#define XPC_ACTIVATE_IRQ_AMOS	(XPC_NOTIFY_IRQ_AMOS + XP_MAX_NPARTITIONS_SN2)
--#define XPC_ENGAGED_PARTITIONS_AMO (XPC_ACTIVATE_IRQ_AMOS + XP_NASID_MASK_WORDS)
--#define XPC_DEACTIVATE_REQUEST_AMO  (XPC_ENGAGED_PARTITIONS_AMO + 1)
--
--/*
-  * The following structure describes the per partition specific variables.
-  *
-  * An array of these structures, one per partition, will be defined. As a
-@@ -214,9 +194,10 @@ struct xpc_vars_part_sn2 {
- #define XPC_RP_VARS_SIZE	L1_CACHE_ALIGN(sizeof(struct xpc_vars_sn2))
- 
- #define XPC_RP_PART_NASIDS(_rp) ((u64 *)((u8 *)(_rp) + XPC_RP_HEADER_SIZE))
--#define XPC_RP_MACH_NASIDS(_rp) (XPC_RP_PART_NASIDS(_rp) + xp_nasid_mask_words)
--#define XPC_RP_VARS(_rp)	((struct xpc_vars_sn2 *)(XPC_RP_MACH_NASIDS(_rp) + \
--				    xp_nasid_mask_words))
-+#define XPC_RP_MACH_NASIDS(_rp) (XPC_RP_PART_NASIDS(_rp) + xpc_nasid_mask_words)
-+#define XPC_RP_VARS(_rp)	((struct xpc_vars_sn2 *) \
-+				 (XPC_RP_MACH_NASIDS(_rp) + \
-+				  xpc_nasid_mask_words))
- 
- /*
-  * Functions registered by add_timer() or called by kernel_thread() only
-@@ -225,11 +206,11 @@ struct xpc_vars_part_sn2 {
-  * the passed argument.
-  */
- #define XPC_PACK_ARGS(_arg1, _arg2) \
--			((((u64) _arg1) & 0xffffffff) | \
--			((((u64) _arg2) & 0xffffffff) << 32))
-+			((((u64)_arg1) & 0xffffffff) | \
-+			((((u64)_arg2) & 0xffffffff) << 32))
- 
--#define XPC_UNPACK_ARG1(_args)	(((u64) _args) & 0xffffffff)
--#define XPC_UNPACK_ARG2(_args)	((((u64) _args) >> 32) & 0xffffffff)
-+#define XPC_UNPACK_ARG1(_args)	(((u64)_args) & 0xffffffff)
-+#define XPC_UNPACK_ARG2(_args)	((((u64)_args) >> 32) & 0xffffffff)
- 
- /*
-  * Define a Get/Put value pair (pointers) used with a message queue.
-@@ -710,12 +691,10 @@ extern void xpc_exit_uv(void);
- 
- /* found in xpc_partition.c */
- extern int xpc_exiting;
--extern int xp_nasid_mask_words;
-+extern int xpc_nasid_mask_words;
- extern struct xpc_rsvd_page *xpc_rsvd_page;
- extern u64 *xpc_mach_nasids;
- extern struct xpc_partition *xpc_partitions;
--extern char *xpc_remote_copy_buffer;
--extern void *xpc_remote_copy_buffer_base;
- extern void *xpc_kmalloc_cacheline_aligned(size_t, gfp_t, void **);
- extern struct xpc_rsvd_page *xpc_setup_rsvd_page(void);
- extern int xpc_identify_activate_IRQ_sender(void);
-diff -puN drivers/misc/sgi-xp/xpc_main.c~sgi-xp-isolate-remote-copy-buffer-to-sn2-only drivers/misc/sgi-xp/xpc_main.c
---- a/drivers/misc/sgi-xp/xpc_main.c~sgi-xp-isolate-remote-copy-buffer-to-sn2-only
-+++ a/drivers/misc/sgi-xp/xpc_main.c
-@@ -877,7 +877,6 @@ xpc_do_exit(enum xp_retval reason)
- 		unregister_sysctl_table(xpc_sysctl);
- 
- 	kfree(xpc_partitions);
--	kfree(xpc_remote_copy_buffer_base);
- 
- 	if (is_shub())
- 		xpc_exit_sn2();
-@@ -1031,7 +1030,9 @@ xpc_init(void)
- 	short partid;
- 	struct xpc_partition *part;
- 	struct task_struct *kthread;
--	size_t buf_size;
-+
-+	snprintf(xpc_part->bus_id, BUS_ID_SIZE, "part");
-+	snprintf(xpc_chan->bus_id, BUS_ID_SIZE, "chan");
- 
- 	if (is_shub()) {
- 		/*
-@@ -1054,26 +1055,12 @@ xpc_init(void)
- 		return -ENODEV;
- 	}
- 
--	snprintf(xpc_part->bus_id, BUS_ID_SIZE, "part");
--	snprintf(xpc_chan->bus_id, BUS_ID_SIZE, "chan");
--
--	buf_size = max(XPC_RP_VARS_SIZE,
--		       XPC_RP_HEADER_SIZE + XP_NASID_MASK_BYTES);
--	xpc_remote_copy_buffer = xpc_kmalloc_cacheline_aligned(buf_size,
--							       GFP_KERNEL,
--						  &xpc_remote_copy_buffer_base);
--	if (xpc_remote_copy_buffer == NULL) {
--		dev_err(xpc_part, "can't get memory for remote copy buffer\n");
--		ret = -ENOMEM;
--		goto out_1;
--	}
--
- 	xpc_partitions = kzalloc(sizeof(struct xpc_partition) *
- 				 xp_max_npartitions, GFP_KERNEL);
- 	if (xpc_partitions == NULL) {
- 		dev_err(xpc_part, "can't get memory for partition structure\n");
- 		ret = -ENOMEM;
--		goto out_2;
-+		goto out_1;
- 	}
- 
- 	/*
-@@ -1115,7 +1102,7 @@ xpc_init(void)
- 	if (xpc_rsvd_page == NULL) {
- 		dev_err(xpc_part, "can't setup our reserved page\n");
- 		ret = -EBUSY;
--		goto out_3;
-+		goto out_2;
- 	}
- 
- 	/* add ourselves to the reboot_notifier_list */
-@@ -1136,7 +1123,7 @@ xpc_init(void)
- 	if (IS_ERR(kthread)) {
- 		dev_err(xpc_part, "failed while forking hb check thread\n");
- 		ret = -EBUSY;
--		goto out_4;
-+		goto out_3;
- 	}
- 
- 	/*
-@@ -1164,18 +1151,16 @@ xpc_init(void)
  	return 0;
+ }
+@@ -460,7 +460,7 @@ int agp_unbind_memory(struct agp_memory 
  
- 	/* initialization was not successful */
--out_4:
-+out_3:
- 	/* indicate to others that our reserved page is uninitialized */
- 	xpc_rsvd_page->stamp = 0;
- 
- 	(void)unregister_die_notifier(&xpc_die_notifier);
- 	(void)unregister_reboot_notifier(&xpc_reboot_notifier);
--out_3:
-+out_2:
- 	if (xpc_sysctl)
- 		unregister_sysctl_table(xpc_sysctl);
- 	kfree(xpc_partitions);
--out_2:
--	kfree(xpc_remote_copy_buffer_base);
- out_1:
- 	if (is_shub())
- 		xpc_exit_sn2();
-diff -puN drivers/misc/sgi-xp/xpc_partition.c~sgi-xp-isolate-remote-copy-buffer-to-sn2-only drivers/misc/sgi-xp/xpc_partition.c
---- a/drivers/misc/sgi-xp/xpc_partition.c~sgi-xp-isolate-remote-copy-buffer-to-sn2-only
-+++ a/drivers/misc/sgi-xp/xpc_partition.c
-@@ -34,21 +34,12 @@ struct xpc_rsvd_page *xpc_rsvd_page;
- static u64 *xpc_part_nasids;
- u64 *xpc_mach_nasids;
- 
--/* >>> next two variables should be 'xpc_' if they remain here */
--static int xp_sizeof_nasid_mask;	/* actual size in bytes of nasid mask */
--int xp_nasid_mask_words;	/* actual size in words of nasid mask */
-+static int xpc_sizeof_nasid_mask;	/* actual size in bytes of nasid mask */
-+int xpc_nasid_mask_words;	/* actual size in words of nasid mask */
- 
- struct xpc_partition *xpc_partitions;
- 
- /*
-- * Generic buffer used to store a local copy of portions of a remote
-- * partition's reserved page (either its header and part_nasids mask,
-- * or its vars).
-- */
--char *xpc_remote_copy_buffer;
--void *xpc_remote_copy_buffer_base;
--
--/*
-  * Guarantee that the kmalloc'd memory is cacheline aligned.
+ 	curr->is_bound = FALSE;
+ 	curr->pg_start = 0;
+-	list_del (&curr->mapped_list);
++	list_del(&curr->mapped_list);
+ 	return 0;
+ }
+ EXPORT_SYMBOL(agp_unbind_memory);
+@@ -468,7 +468,7 @@ EXPORT_SYMBOL(agp_unbind_memory);
+ /**
+  *	agp_rebind_emmory  -  Rewrite the entire GATT, useful on resume
   */
- void *
-@@ -176,9 +167,9 @@ xpc_setup_rsvd_page(void)
- 		/* SAL_version 1 didn't set the nasids_size field */
- 		rp->SAL_nasids_size = 128;
- 	}
--	xp_sizeof_nasid_mask = rp->SAL_nasids_size;
--	xp_nasid_mask_words = DIV_ROUND_UP(xp_sizeof_nasid_mask,
--					   BYTES_PER_WORD);
-+	xpc_sizeof_nasid_mask = rp->SAL_nasids_size;
-+	xpc_nasid_mask_words = DIV_ROUND_UP(xpc_sizeof_nasid_mask,
-+					    BYTES_PER_WORD);
- 
- 	/* setup the pointers to the various items in the reserved page */
- 	xpc_part_nasids = XPC_RP_PART_NASIDS(rp);
-@@ -222,14 +213,14 @@ xpc_get_remote_rp(int nasid, u64 *discov
- 
- 	/* pull over the reserved page header and part_nasids mask */
- 	ret = xp_remote_memcpy(remote_rp, (void *)*remote_rp_pa,
--			       XPC_RP_HEADER_SIZE + xp_sizeof_nasid_mask);
-+			       XPC_RP_HEADER_SIZE + xpc_sizeof_nasid_mask);
- 	if (ret != xpSuccess)
- 		return ret;
- 
- 	if (discovered_nasids != NULL) {
- 		u64 *remote_part_nasids = XPC_RP_PART_NASIDS(remote_rp);
- 
--		for (i = 0; i < xp_nasid_mask_words; i++)
-+		for (i = 0; i < xpc_nasid_mask_words; i++)
- 			discovered_nasids[i] |= remote_part_nasids[i];
- 	}
- 
-@@ -414,12 +405,12 @@ xpc_discovery(void)
- 	enum xp_retval ret;
- 
- 	remote_rp = xpc_kmalloc_cacheline_aligned(XPC_RP_HEADER_SIZE +
--						  xp_sizeof_nasid_mask,
-+						  xpc_sizeof_nasid_mask,
- 						  GFP_KERNEL, &remote_rp_base);
- 	if (remote_rp == NULL)
- 		return;
- 
--	discovered_nasids = kzalloc(sizeof(u64) * xp_nasid_mask_words,
-+	discovered_nasids = kzalloc(sizeof(u64) * xpc_nasid_mask_words,
- 				    GFP_KERNEL);
- 	if (discovered_nasids == NULL) {
- 		kfree(remote_rp_base);
-@@ -521,10 +512,10 @@ xpc_initiate_partid_to_nasids(short part
- 	if (part->remote_rp_pa == 0)
- 		return xpPartitionDown;
- 
--	memset(nasid_mask, 0, XP_NASID_MASK_BYTES);
-+	memset(nasid_mask, 0, xpc_sizeof_nasid_mask);
- 
- 	part_nasid_pa = (u64)XPC_RP_PART_NASIDS(part->remote_rp_pa);
- 
- 	return xp_remote_memcpy(nasid_mask, (void *)part_nasid_pa,
--				xp_sizeof_nasid_mask);
-+				xpc_sizeof_nasid_mask);
- }
-diff -puN drivers/misc/sgi-xp/xpc_sn2.c~sgi-xp-isolate-remote-copy-buffer-to-sn2-only drivers/misc/sgi-xp/xpc_sn2.c
---- a/drivers/misc/sgi-xp/xpc_sn2.c~sgi-xp-isolate-remote-copy-buffer-to-sn2-only
-+++ a/drivers/misc/sgi-xp/xpc_sn2.c
-@@ -19,6 +19,43 @@
- #include <asm/sn/sn_sal.h>
- #include "xpc.h"
- 
-+/*
-+ * Define the number of u64s required to represent all the C-brick nasids
-+ * as a bitmap.  The cross-partition kernel modules deal only with
-+ * C-brick nasids, thus the need for bitmaps which don't account for
-+ * odd-numbered (non C-brick) nasids.
-+ */
-+#define XPC_MAX_PHYSNODES_SN2	(MAX_NUMALINK_NODES / 2)
-+#define XP_NASID_MASK_BYTES_SN2	((XPC_MAX_PHYSNODES_SN2 + 7) / 8)
-+#define XP_NASID_MASK_WORDS_SN2	((XPC_MAX_PHYSNODES_SN2 + 63) / 64)
-+
-+/*
-+ * Memory for XPC's amo variables is allocated by the MSPEC driver. These
-+ * pages are located in the lowest granule. The lowest granule uses 4k pages
-+ * for cached references and an alternate TLB handler to never provide a
-+ * cacheable mapping for the entire region. This will prevent speculative
-+ * reading of cached copies of our lines from being issued which will cause
-+ * a PI FSB Protocol error to be generated by the SHUB. For XPC, we need 64
-+ * amo variables (based on XP_MAX_NPARTITIONS_SN2) to identify the senders of
-+ * NOTIFY IRQs, 128 amo variables (based on XP_NASID_MASK_WORDS_SN2) to identify
-+ * the senders of ACTIVATE IRQs, 1 amo variable to identify which remote
-+ * partitions (i.e., XPCs) consider themselves currently engaged with the
-+ * local XPC and 1 amo variable to request partition deactivation.
-+ */
-+#define XPC_NOTIFY_IRQ_AMOS_SN2		0
-+#define XPC_ACTIVATE_IRQ_AMOS_SN2	(XPC_NOTIFY_IRQ_AMOS_SN2 + \
-+					 XP_MAX_NPARTITIONS_SN2)
-+#define XPC_ENGAGED_PARTITIONS_AMO_SN2	(XPC_ACTIVATE_IRQ_AMOS_SN2 + \
-+					 XP_NASID_MASK_WORDS_SN2)
-+#define XPC_DEACTIVATE_REQUEST_AMO_SN2	(XPC_ENGAGED_PARTITIONS_AMO_SN2 + 1)
-+
-+/*
-+ * Buffer used to store a local copy of portions of a remote partition's
-+ * reserved page (either its header and part_nasids mask, or its vars).
-+ */
-+static char *xpc_remote_copy_buffer_sn2;
-+static void *xpc_remote_copy_buffer_base_sn2;
-+
- static struct xpc_vars_sn2 *xpc_vars;	/* >>> Add _sn2 suffix? */
- static struct xpc_vars_part_sn2 *xpc_vars_part; /* >>> Add _sn2 suffix? */
- 
-@@ -176,7 +213,7 @@ xpc_send_activate_IRQ_sn2(u64 amos_page_
- 	int w_index = XPC_NASID_W_INDEX(from_nasid);
- 	int b_index = XPC_NASID_B_INDEX(from_nasid);
- 	struct amo *amos = (struct amo *)__va(amos_page_pa +
--					      (XPC_ACTIVATE_IRQ_AMOS *
-+					      (XPC_ACTIVATE_IRQ_AMOS_SN2 *
- 					      sizeof(struct amo)));
- 
- 	(void)xpc_send_IRQ_sn2(&amos[w_index], (1UL << b_index), to_nasid,
-@@ -189,7 +226,7 @@ xpc_send_local_activate_IRQ_sn2(int from
- 	int w_index = XPC_NASID_W_INDEX(from_nasid);
- 	int b_index = XPC_NASID_B_INDEX(from_nasid);
- 	struct amo *amos = (struct amo *)__va(xpc_vars->amos_page_pa +
--					      (XPC_ACTIVATE_IRQ_AMOS *
-+					      (XPC_ACTIVATE_IRQ_AMOS_SN2 *
- 					      sizeof(struct amo)));
- 
- 	/* fake the sending and receipt of an activate IRQ from remote nasid */
-@@ -395,7 +432,7 @@ xpc_indicate_partition_engaged_sn2(struc
+-int agp_rebind_memory (void)
++int agp_rebind_memory(void)
  {
- 	unsigned long irq_flags;
- 	struct amo *amo = (struct amo *)__va(part->sn.sn2.remote_amos_page_pa +
--					     (XPC_ENGAGED_PARTITIONS_AMO *
-+					     (XPC_ENGAGED_PARTITIONS_AMO_SN2 *
- 					     sizeof(struct amo)));
- 
- 	local_irq_save(irq_flags);
-@@ -422,7 +459,7 @@ xpc_indicate_partition_disengaged_sn2(st
- 	struct xpc_partition_sn2 *part_sn2 = &part->sn.sn2;
- 	unsigned long irq_flags;
- 	struct amo *amo = (struct amo *)__va(part_sn2->remote_amos_page_pa +
--					     (XPC_ENGAGED_PARTITIONS_AMO *
-+					     (XPC_ENGAGED_PARTITIONS_AMO_SN2 *
- 					     sizeof(struct amo)));
- 
- 	local_irq_save(irq_flags);
-@@ -455,7 +492,7 @@ xpc_indicate_partition_disengaged_sn2(st
- static int
- xpc_partition_engaged_sn2(short partid)
- {
--	struct amo *amo = xpc_vars->amos_page + XPC_ENGAGED_PARTITIONS_AMO;
-+	struct amo *amo = xpc_vars->amos_page + XPC_ENGAGED_PARTITIONS_AMO_SN2;
- 
- 	/* our partition's amo variable ANDed with partid mask */
- 	return (FETCHOP_LOAD_OP(TO_AMO((u64)&amo->variable), FETCHOP_LOAD) &
-@@ -465,7 +502,7 @@ xpc_partition_engaged_sn2(short partid)
- static int
- xpc_any_partition_engaged_sn2(void)
- {
--	struct amo *amo = xpc_vars->amos_page + XPC_ENGAGED_PARTITIONS_AMO;
-+	struct amo *amo = xpc_vars->amos_page + XPC_ENGAGED_PARTITIONS_AMO_SN2;
- 
- 	/* our partition's amo variable */
- 	return FETCHOP_LOAD_OP(TO_AMO((u64)&amo->variable), FETCHOP_LOAD) != 0;
-@@ -474,7 +511,7 @@ xpc_any_partition_engaged_sn2(void)
- static void
- xpc_assume_partition_disengaged_sn2(short partid)
- {
--	struct amo *amo = xpc_vars->amos_page + XPC_ENGAGED_PARTITIONS_AMO;
-+	struct amo *amo = xpc_vars->amos_page + XPC_ENGAGED_PARTITIONS_AMO_SN2;
- 
- 	/* clear bit(s) based on partid mask in our partition's amo */
- 	FETCHOP_STORE_OP(TO_AMO((u64)&amo->variable), FETCHOP_AND,
-@@ -599,12 +636,12 @@ xpc_rsvd_page_init_sn2(struct xpc_rsvd_p
- 	       xp_max_npartitions);
- 
- 	/* initialize the activate IRQ related amo variables */
--	for (i = 0; i < xp_nasid_mask_words; i++)
--		(void)xpc_init_IRQ_amo_sn2(XPC_ACTIVATE_IRQ_AMOS + i);
-+	for (i = 0; i < xpc_nasid_mask_words; i++)
-+		(void)xpc_init_IRQ_amo_sn2(XPC_ACTIVATE_IRQ_AMOS_SN2 + i);
- 
- 	/* initialize the engaged remote partitions related amo variables */
--	(void)xpc_init_IRQ_amo_sn2(XPC_ENGAGED_PARTITIONS_AMO);
--	(void)xpc_init_IRQ_amo_sn2(XPC_DEACTIVATE_REQUEST_AMO);
-+	(void)xpc_init_IRQ_amo_sn2(XPC_ENGAGED_PARTITIONS_AMO_SN2);
-+	(void)xpc_init_IRQ_amo_sn2(XPC_DEACTIVATE_REQUEST_AMO_SN2);
- 
- 	return xpSuccess;
- }
-@@ -657,7 +694,7 @@ xpc_check_remote_hb_sn2(void)
- 	short partid;
- 	enum xp_retval ret;
- 
--	remote_vars = (struct xpc_vars_sn2 *)xpc_remote_copy_buffer;
-+	remote_vars = (struct xpc_vars_sn2 *)xpc_remote_copy_buffer_sn2;
- 
- 	for (partid = 0; partid < xp_max_npartitions; partid++) {
- 
-@@ -749,7 +786,7 @@ xpc_request_partition_deactivation_sn2(s
- 	struct xpc_partition_sn2 *part_sn2 = &part->sn.sn2;
- 	unsigned long irq_flags;
- 	struct amo *amo = (struct amo *)__va(part_sn2->remote_amos_page_pa +
--					     (XPC_DEACTIVATE_REQUEST_AMO *
-+					     (XPC_DEACTIVATE_REQUEST_AMO_SN2 *
- 					     sizeof(struct amo)));
- 
- 	local_irq_save(irq_flags);
-@@ -784,7 +821,7 @@ xpc_cancel_partition_deactivation_reques
- {
- 	unsigned long irq_flags;
- 	struct amo *amo = (struct amo *)__va(part->sn.sn2.remote_amos_page_pa +
--					     (XPC_DEACTIVATE_REQUEST_AMO *
-+					     (XPC_DEACTIVATE_REQUEST_AMO_SN2 *
- 					     sizeof(struct amo)));
- 
- 	local_irq_save(irq_flags);
-@@ -808,7 +845,7 @@ xpc_cancel_partition_deactivation_reques
- static int
- xpc_partition_deactivation_requested_sn2(short partid)
- {
--	struct amo *amo = xpc_vars->amos_page + XPC_DEACTIVATE_REQUEST_AMO;
-+	struct amo *amo = xpc_vars->amos_page + XPC_DEACTIVATE_REQUEST_AMO_SN2;
- 
- 	/* our partition's amo variable ANDed with partid mask */
- 	return (FETCHOP_LOAD_OP(TO_AMO((u64)&amo->variable), FETCHOP_LOAD) &
-@@ -898,7 +935,7 @@ xpc_identify_activate_IRQ_req_sn2(int na
- 
- 	/* pull over the reserved page structure */
- 
--	remote_rp = (struct xpc_rsvd_page *)xpc_remote_copy_buffer;
-+	remote_rp = (struct xpc_rsvd_page *)xpc_remote_copy_buffer_sn2;
- 
- 	ret = xpc_get_remote_rp(nasid, NULL, remote_rp, &remote_rp_pa);
- 	if (ret != xpSuccess) {
-@@ -917,7 +954,7 @@ xpc_identify_activate_IRQ_req_sn2(int na
- 
- 	/* pull over the cross partition variables */
- 
--	remote_vars = (struct xpc_vars_sn2 *)xpc_remote_copy_buffer;
-+	remote_vars = (struct xpc_vars_sn2 *)xpc_remote_copy_buffer_sn2;
- 
- 	ret = xpc_get_remote_vars_sn2(remote_vars_pa, remote_vars);
- 	if (ret != xpSuccess) {
-@@ -996,10 +1033,10 @@ xpc_identify_activate_IRQ_sender_sn2(voi
- 	int n_IRQs_detected = 0;
- 	struct amo *act_amos;
- 
--	act_amos = xpc_vars->amos_page + XPC_ACTIVATE_IRQ_AMOS;
-+	act_amos = xpc_vars->amos_page + XPC_ACTIVATE_IRQ_AMOS_SN2;
- 
- 	/* scan through act amo variable looking for non-zero entries */
--	for (word = 0; word < xp_nasid_mask_words; word++) {
-+	for (word = 0; word < xpc_nasid_mask_words; word++) {
- 
- 		if (xpc_exiting)
- 			break;
-@@ -2334,6 +2371,7 @@ int
- xpc_init_sn2(void)
- {
- 	int ret;
-+	size_t buf_size;
- 
- 	xpc_rsvd_page_init = xpc_rsvd_page_init_sn2;
- 	xpc_increment_heartbeat = xpc_increment_heartbeat_sn2;
-@@ -2378,6 +2416,16 @@ xpc_init_sn2(void)
- 	xpc_send_msg = xpc_send_msg_sn2;
- 	xpc_received_msg = xpc_received_msg_sn2;
- 
-+	buf_size = max(XPC_RP_VARS_SIZE,
-+		       XPC_RP_HEADER_SIZE + XP_NASID_MASK_BYTES_SN2);
-+	xpc_remote_copy_buffer_sn2 = xpc_kmalloc_cacheline_aligned(buf_size,
-+								   GFP_KERNEL,
-+					      &xpc_remote_copy_buffer_base_sn2);
-+	if (xpc_remote_copy_buffer_sn2 == NULL) {
-+		dev_err(xpc_part, "can't get memory for remote copy buffer\n");
-+		return -ENOMEM;
-+	}
-+
- 	/* open up protections for IPI and [potentially] amo operations */
- 	xpc_allow_IPI_ops_sn2();
- 	xpc_allow_amo_ops_shub_wars_1_1_sn2();
-@@ -2394,6 +2442,7 @@ xpc_init_sn2(void)
- 		dev_err(xpc_part, "can't register ACTIVATE IRQ handler, "
- 			"errno=%d\n", -ret);
- 		xpc_disallow_IPI_ops_sn2();
-+		kfree(xpc_remote_copy_buffer_base_sn2);
- 	}
- 	return ret;
- }
-@@ -2403,4 +2452,5 @@ xpc_exit_sn2(void)
- {
- 	free_irq(SGI_XPC_ACTIVATE, NULL);
- 	xpc_disallow_IPI_ops_sn2();
-+	kfree(xpc_remote_copy_buffer_base_sn2);
- }
+ 	struct agp_memory *curr;
+ 	int ret_val;
+diff -puN include/linux/agp_backend.h~intel-agp-rewrite-gtt-on-resume-checkpatch-fixes include/linux/agp_backend.h
+--- a/include/linux/agp_backend.h~intel-agp-rewrite-gtt-on-resume-checkpatch-fixes
++++ a/include/linux/agp_backend.h
+@@ -108,7 +108,7 @@ extern struct agp_memory *agp_allocate_m
+ extern int agp_copy_info(struct agp_bridge_data *, struct agp_kern_info *);
+ extern int agp_bind_memory(struct agp_memory *, off_t);
+ extern int agp_unbind_memory(struct agp_memory *);
+-extern int agp_rebind_memory (void);
++extern int agp_rebind_memory(void);
+ extern void agp_enable(struct agp_bridge_data *, u32);
+ extern struct agp_bridge_data *agp_backend_acquire(struct pci_dev *);
+ extern void agp_backend_release(struct agp_bridge_data *);
 _
 
-Patches currently in -mm which might be from dcn@sgi.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-sgi-xp-define-is_shub-and-is_uv-macros.patch
-sgi-xp-define-xpsalerror-reason-code.patch
-sgi-xp-define-bytes_per_word.patch
-sgi-xp-support-runtime-selection-of-xp_max_npartitions.patch
-sgi-xp-create-a-common-xp_remote_memcpy-function.patch
-sgi-xp-prepare-xpc_rsvd_page-to-work-on-either-sn2-or-uv-hardware.patch
-sgi-xp-isolate-xpc_vars_part-structure-to-sn2-only.patch
-sgi-xp-isolate-xpc_vars-structure-to-sn2-only.patch
-sgi-xp-base-xpc_rsvd_pages-timestamp-on-jiffies.patch
-sgi-xp-move-xpc_allocate-into-xpc_send-xpc_send_notify.patch
-sgi-xp-isolate-activate-irqs-hardware-specific-components.patch
-sgi-xp-isolate-additional-sn2-specific-code.patch
-sgi-xp-separate-chctl_flags-from-xpcs-notify-irq.patch
-sgi-xp-replace-amo_t-typedef-by-struct-amo.patch
-sgi-xp-isolate-allocation-of-xpcs-msgqueues-to-sn2-only.patch
-sgi-xp-enable-xpnet-to-handle-more-than-64-partitions.patch
-sgi-xp-isolate-remote-copy-buffer-to-sn2-only.patch
-sgi-xp-add-_sn2-suffix-to-a-few-variables.patch
+origin.patch
+m68k-add-ext2_find_firstnext_bit-for-ext4-checkpatch-fixes.patch
+linux-next.patch
+next-remove-localversion.patch
+linux-next-git-rejects.patch
+fix-kobject-fix-kobject_rename-and-config_sysfs.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-video-balcklist-fujitsu-lifebook-s6410.patch
+lguest-use-cpu-capability-accessors.patch
+intel-agp-rewrite-gtt-on-resume.patch
+intel-agp-rewrite-gtt-on-resume-checkpatch-fixes.patch
+arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2.patch
+arch-powerpc-platforms-pseries-eeh_driverc-fix-warning.patch
+arch-powerpc-platforms-pseries-eeh_driverc-fix-warning-checkpatch-fixes.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+git-jg-misc-git-rejects.patch
+drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+git-leds.patch
+fsldma-the-mpc8377mds-board-device-tree-node-for-fsldma-driver.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers.patch
+drivers-mtd-devices-block2mtdc-suppress-warning.patch
+bluetooth-hci_bcspc-small-cleanups-api-users-fix.patch
+sundance-set-carrier-status-on-link-change-events.patch
+net-sh_eth-add-support-for-renesas-superh-ethernet-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+pci-introduce-pci_slot.patch
+acpi-pci-slot-detection-driver.patch
+git-scsi-misc-fix-scsi_dh-build-errors.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
+pktcdvd-push-bkl-down-into-driver-fix.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-logfs-fixup.patch
+drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
+drivers-uwb-wlp-sysfsc-dead-code.patch
+usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix.patch
+usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix-2.patch
+watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix.patch
+watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl-fix.patch
+git-xtensa.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-verify-the-page-links-and-memory-model.patch
+mspec-convert-nopfn-to-fault-fix.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+kill-generic_file_direct_io-checkpatch-fixes.patch
+use-generic_access_phys-for-dev-mem-mappings-fix.patch
+spufs-use-the-new-vm_ops-access-fix.patch
+fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
+page-flags-record-page-flag-overlays-explicitly-xen.patch
+mapping_set_error-add-unlikely.patch
+huge-page-private-reservation-review-cleanups-fix.patch
+sync_file_range_write-may-and-will-block-document-that-fix.patch
+vmallocinfo-add-numa-information-fix.patch
+hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
+hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
+swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
+block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
+rename-warn-to-warning-to-clear-the-namespace-fix.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-paccept-sys_ni.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-signalfd-fix.patch
+flag-parameters-eventfd-fix.patch
+flag-parameters-inotify_init-fix.patch
+flag-parameters-check-magic-constants-alpha.patch
+cputopology-always-define-cpu-topology-information-cleanup.patch
+oprofile-multiplexing-checkpatch-fixes.patch
+gpio-gpio-driver-for-max7301-spi-gpio-expander-checkpatch-fixes.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
+pnp-convert-resource-options-to-single-linked-list-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
+reiserfs-convert-j_flush_sem-to-mutex.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
+jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup.patch
+ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
+getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
+tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
+memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
+revert-linux-next-changes-to-make-memstick-use-fully-asynchronous-request-processing-apply.patch
+revert-revert-linux-next-changes-to-make-memstick-use-fully-asynchronous-request-processing-apply.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-fix.patch
+x86-lockless-get_user_pages_fast-fix-warning.patch
+reiser4.patch
+reiser4-semaphore-fix.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
