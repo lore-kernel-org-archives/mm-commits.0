@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-introduce-get_user_pages_fast-fix.patch added to -mm tree
-Date: Mon, 09 Jun 2008 03:29:43 -0700
-Message-ID: <200806091029.m59AThJ5015459@imap1.linux-foundation.org>
+Subject: + hugetlb-override-default-huge-page-size-ia64-build.patch added to -mm tree
+Date: Mon, 09 Jun 2008 03:41:40 -0700
+Message-ID: <200806091041.m59AfeUN015933@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43341 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40427 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759243AbYFIKgq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2008 06:36:46 -0400
+	by vger.kernel.org with ESMTP id S1753001AbYFIKmP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2008 06:42:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, andi@firstfloor.org, apw@shadowen.org, jens.axboe@oracle.com, mingo@elte.hu, npiggin@suse.de, pbadari@us.ibm.com, shaggy@austin.ibm.com, tglx@linutronix.de, zach.brown@oracle.com
+Cc: akpm@linux-foundation.org, npiggin@suse.de
 
 
 The patch titled
-     mm-introduce-get_user_pages_fast-fix
+     hugetlb-override-default-huge-page-size-ia64-build
 has been added to the -mm tree.  Its filename is
-     mm-introduce-get_user_pages_fast-fix.patch
+     hugetlb-override-default-huge-page-size-ia64-build.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,44 +33,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-introduce-get_user_pages_fast-fix
+Subject: hugetlb-override-default-huge-page-size-ia64-build
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: Badari Pulavarty <pbadari@us.ibm.com>
-Cc: Dave Kleikamp <shaggy@austin.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Jens Axboe <jens.axboe@oracle.com>
 Cc: Nick Piggin <npiggin@suse.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Zach Brown <zach.brown@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/hugetlb.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/mm.h~mm-introduce-get_user_pages_fast-fix include/linux/mm.h
---- a/include/linux/mm.h~mm-introduce-get_user_pages_fast-fix
-+++ a/include/linux/mm.h
-@@ -12,7 +12,6 @@
- #include <linux/prio_tree.h>
- #include <linux/debug_locks.h>
- #include <linux/mm_types.h>
--#include <linux/uaccess.h> /* for __HAVE_ARCH_GET_USER_PAGES_FAST */
+diff -puN mm/hugetlb.c~hugetlb-override-default-huge-page-size-ia64-build mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-override-default-huge-page-size-ia64-build
++++ a/mm/hugetlb.c
+@@ -34,7 +34,7 @@ struct hstate hstates[HUGE_MAX_HSTATE];
+ /* for command line parsing */
+ static struct hstate * __initdata parsed_hstate;
+ static unsigned long __initdata default_hstate_max_huge_pages;
+-static unsigned long __initdata default_hstate_size = HPAGE_SIZE;
++static unsigned long __initdata default_hstate_size;
  
- struct mempolicy;
- struct anon_vma;
-@@ -829,7 +828,7 @@ extern int mprotect_fixup(struct vm_area
- 			  struct vm_area_struct **pprev, unsigned long start,
- 			  unsigned long end, unsigned long newflags);
+ #define for_each_hstate(h) \
+ 	for ((h) = hstates; (h) < &hstates[max_hstate]; (h)++)
+@@ -1208,6 +1208,8 @@ static int __init hugetlb_init(void)
+ {
+ 	BUILD_BUG_ON(HPAGE_SHIFT == 0);
  
--#ifdef __HAVE_ARCH_GET_USER_PAGES_FAST
-+#ifdef CONFIG_HAVE_GET_USER_PAGES_FAST
- /*
-  * get_user_pages_fast provides equivalent functionality to get_user_pages,
-  * operating on current and current->mm (force=0 and doesn't return any vmas).
++	default_hstate_size = HPAGE_SIZE;
++
+ 	if (!size_to_hstate(default_hstate_size)) {
+ 		default_hstate_size = HPAGE_SIZE;
+ 		if (!size_to_hstate(default_hstate_size))
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -135,6 +128,7 @@ sync_file_range_write-may-and-will-block-document-that-fix.patch
 vmallocinfo-add-numa-information-fix.patch
 hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
 hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
+hugetlb-override-default-huge-page-size-ia64-build.patch
 bootmem-add-debugging-framework-fix.patch
 bootmem-clean-up-free_all_bootmem_core-fix.patch
 bootmem-free-reserve-helpers-fix.patch
@@ -193,6 +187,7 @@ mm-introduce-get_user_pages_fast-fix.patch
 mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
 x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
 x86-lockless-get_user_pages_fast-fix.patch
+x86-lockless-get_user_pages_fast-fix-2.patch
 x86-lockless-get_user_pages_fast-fix-warning.patch
 reiser4.patch
 reiser4-tree_lock-fixes.patch
