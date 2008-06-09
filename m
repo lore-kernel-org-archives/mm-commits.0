@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + memstick-use-fully-asynchronous-request-processing-fix.patch added to -mm tree
-Date: Mon, 09 Jun 2008 14:05:05 -0700
-Message-ID: <200806092116.m59LGhGM008671@imap1.linux-foundation.org>
+Subject: + reiser4-tree_lock-fixes-fix.patch added to -mm tree
+Date: Mon, 09 Jun 2008 14:08:21 -0700
+Message-ID: <200806092119.m59LJwTh008831@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47637 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33584 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752469AbYFIVRd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2008 17:17:33 -0400
+	by vger.kernel.org with ESMTP id S1753353AbYFIVUt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2008 17:20:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, oakad@yahoo.com
+Cc: akpm@linux-foundation.org, nickpiggin@yahoo.com.au
 
 
 The patch titled
-     memstick-use-fully-asynchronous-request-processing-fix
+     reiser4-tree_lock-fixes-fix
 has been added to the -mm tree.  Its filename is
-     memstick-use-fully-asynchronous-request-processing-fix.patch
+     reiser4-tree_lock-fixes-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,32 +33,144 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memstick-use-fully-asynchronous-request-processing-fix
+Subject: reiser4-tree_lock-fixes-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/memstick/core/mspro_block.c: In function 'mspro_block_complete_req':
-drivers/memstick/core/mspro_block.c:727: warning: comparison of distinct pointer types lacks a cast
-drivers/memstick/core/mspro_block.c:771: warning: comparison of distinct pointer types lacks a cast
-
-Cc: Alex Dubov <oakad@yahoo.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/memstick/core/mspro_block.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/reiser4/plugin/file/cryptcompress.c |    8 +++----
+ fs/reiser4/plugin/file/file.c          |   24 +++++++++++------------
+ 2 files changed, 16 insertions(+), 16 deletions(-)
 
-diff -puN drivers/memstick/core/mspro_block.c~memstick-use-fully-asynchronous-request-processing-fix drivers/memstick/core/mspro_block.c
---- a/drivers/memstick/core/mspro_block.c~memstick-use-fully-asynchronous-request-processing-fix
-+++ a/drivers/memstick/core/mspro_block.c
-@@ -722,7 +722,7 @@ static int mspro_block_complete_req(stru
- 	struct mspro_block_data *msb = memstick_get_drvdata(card);
- 	int chunk, cnt;
- 	unsigned int t_len = 0;
--	unsigned int flags;
-+	unsigned long flags;
+diff -puN fs/reiser4/plugin/file/cryptcompress.c~reiser4-tree_lock-fixes-fix fs/reiser4/plugin/file/cryptcompress.c
+--- a/fs/reiser4/plugin/file/cryptcompress.c~reiser4-tree_lock-fixes-fix
++++ a/fs/reiser4/plugin/file/cryptcompress.c
+@@ -3435,7 +3435,7 @@ static int find_anon_page_cluster(struct
+ {
+ 	int i = 0;
+ 	int found;
+-	write_lock_irq(&mapping->tree_lock);
++	spin_lock_irq(&mapping->tree_lock);
+ 	do {
+ 		/* looking for one page */
+ 		found = radix_tree_gang_lookup_tag(&mapping->page_tree,
+@@ -3457,7 +3457,7 @@ static int find_anon_page_cluster(struct
+ 		if (last_page_in_cluster(pages[i++]))
+ 			break;
+ 	} while (1);
+-	write_unlock_irq(&mapping->tree_lock);
++	spin_unlock_irq(&mapping->tree_lock);
+ 	return i;
+ }
  
- 	spin_lock_irqsave(&msb->q_lock, flags);
- 	dev_dbg(&card->dev, "complete %d, %d\n", msb->has_request ? 1 : 0,
+@@ -3532,10 +3532,10 @@ static int capture_anon_pages(struct add
+ static int cryptcompress_inode_has_anon_pages(struct inode *inode)
+ {
+ 	int result;
+-	read_lock_irq(&inode->i_mapping->tree_lock);
++	spin_lock_irq(&inode->i_mapping->tree_lock);
+ 	result = radix_tree_tagged(&inode->i_mapping->page_tree,
+ 				   PAGECACHE_TAG_REISER4_MOVED);
+-	read_unlock_irq(&inode->i_mapping->tree_lock);
++	spin_unlock_irq(&inode->i_mapping->tree_lock);
+ 	return result;
+ }
+ 
+diff -puN fs/reiser4/plugin/file/file.c~reiser4-tree_lock-fixes-fix fs/reiser4/plugin/file/file.c
+--- a/fs/reiser4/plugin/file/file.c~reiser4-tree_lock-fixes-fix
++++ a/fs/reiser4/plugin/file/file.c
+@@ -848,9 +848,9 @@ static int has_anonymous_pages(struct in
+ {
+ 	int result;
+ 
+-	read_lock_irq(&inode->i_mapping->tree_lock);
++	spin_lock_irq(&inode->i_mapping->tree_lock);
+ 	result = radix_tree_tagged(&inode->i_mapping->page_tree, PAGECACHE_TAG_REISER4_MOVED);
+-	read_unlock_irq(&inode->i_mapping->tree_lock);
++	spin_unlock_irq(&inode->i_mapping->tree_lock);
+ 	return result;
+ }
+ 
+@@ -994,7 +994,7 @@ capture_anonymous_pages(struct address_s
+ 	nr = 0;
+ 
+ 	/* find pages tagged MOVED */
+-	write_lock_irq(&mapping->tree_lock);
++	spin_lock_irq(&mapping->tree_lock);
+ 	pvec.nr = radix_tree_gang_lookup_tag(&mapping->page_tree,
+ 					     (void **)pvec.pages, *index, count,
+ 					     PAGECACHE_TAG_REISER4_MOVED);
+@@ -1014,7 +1014,7 @@ capture_anonymous_pages(struct address_s
+ 		radix_tree_tag_clear(&mapping->page_tree, pvec.pages[i]->index,
+ 				     PAGECACHE_TAG_REISER4_MOVED);
+ 	}
+-	write_unlock_irq(&mapping->tree_lock);
++	spin_unlock_irq(&mapping->tree_lock);
+ 
+ 
+ 	*index = pvec.pages[i - 1]->index + 1;
+@@ -1039,13 +1039,13 @@ capture_anonymous_pages(struct address_s
+ 				 * set MOVED tag to all pages which left not
+ 				 * captured
+ 				 */
+-				write_lock_irq(&mapping->tree_lock);
++				spin_lock_irq(&mapping->tree_lock);
+ 				for (; i < pagevec_count(&pvec); i ++) {
+ 					radix_tree_tag_set(&mapping->page_tree,
+ 							   pvec.pages[i]->index,
+ 							   PAGECACHE_TAG_REISER4_MOVED);
+ 				}
+-				write_unlock_irq(&mapping->tree_lock);
++				spin_unlock_irq(&mapping->tree_lock);
+ 
+ 				pagevec_release(&pvec);
+ 				return result;
+@@ -1055,11 +1055,11 @@ capture_anonymous_pages(struct address_s
+ 				 * 0 for Writeback-ed page. Set MOVED tag on
+ 				 * that page
+ 				 */
+-				write_lock_irq(&mapping->tree_lock);
++				spin_lock_irq(&mapping->tree_lock);
+ 				radix_tree_tag_set(&mapping->page_tree,
+ 						   pvec.pages[i]->index,
+ 						   PAGECACHE_TAG_REISER4_MOVED);
+-				write_unlock_irq(&mapping->tree_lock);
++				spin_unlock_irq(&mapping->tree_lock);
+ 				if (i == 0)
+ 					*index = pvec.pages[0]->index;
+ 				else
+@@ -1135,7 +1135,7 @@ static int sync_page_list(struct inode *
+ 	mapping = inode->i_mapping;
+ 	from = 0;
+ 	result = 0;
+-	read_lock_irq(&mapping->tree_lock);
++	spin_lock_irq(&mapping->tree_lock);
+ 	while (result == 0) {
+ 		struct page *page;
+ 
+@@ -1150,17 +1150,17 @@ static int sync_page_list(struct inode *
+ 		 * truncating by inode->i_mutex locked by sys_fsync
+ 		 */
+ 		page_cache_get(page);
+-		read_unlock_irq(&mapping->tree_lock);
++		spin_unlock_irq(&mapping->tree_lock);
+ 
+ 		from = page->index + 1;
+ 
+ 		result = sync_page(page);
+ 
+ 		page_cache_release(page);
+-		read_lock_irq(&mapping->tree_lock);
++		spin_lock_irq(&mapping->tree_lock);
+ 	}
+ 
+-	read_unlock_irq(&mapping->tree_lock);
++	spin_unlock_irq(&mapping->tree_lock);
+ 	return result;
+ }
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -191,6 +303,7 @@ x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
 x86-lockless-get_user_pages_fast-fix-warning.patch
 reiser4.patch
 reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
 reiser4-semaphore-fix.patch
 page-owner-tracking-leak-detector.patch
 nr_blockdev_pages-in_interrupt-warning.patch
