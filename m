@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + vmscan-use-an-array-for-the-lru-pagevecs.patch added to -mm tree
-Date: Sun, 08 Jun 2008 23:18:31 -0700
-Message-ID: <200806090618.m596IV7e006598@imap1.linux-foundation.org>
+Subject: + vmscan-define-page_file_cache-function.patch added to -mm tree
+Date: Sun, 08 Jun 2008 23:18:32 -0700
+Message-ID: <200806090618.m596IWp7006604@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50337 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53878 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753975AbYFIGS5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2008 02:18:57 -0400
+	by vger.kernel.org with ESMTP id S1754331AbYFIGTA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2008 02:19:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, riel@redhat.com
+Cc: riel@redhat.com, lee.schermerhorn@hp.com, minchan.kim@gmail.com
 
 
 The patch titled
-     vmscan: use an array for the LRU pagevecs
+     vmscan: define page_file_cache() function
 has been added to the -mm tree.  Its filename is
-     vmscan-use-an-array-for-the-lru-pagevecs.patch
+     vmscan-define-page_file_cache-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,379 +33,257 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: use an array for the LRU pagevecs
+Subject: vmscan: define page_file_cache() function
 From: Rik van Riel <riel@redhat.com>
-Return-Path: <riel@redhat.com>
-X-Spam-Checker-Version: SpamAssassin 3.2.4 (2008-01-01) on y.localdomain
-X-Spam-Level: 
-X-Spam-Status: No, score=0.0 required=5.0 tests=none autolearn=ham
-	version=3.2.4
-Received: from y.localdomain (y.localdomain [127.0.0.1])
-	by y.localdomain (8.14.2/8.14.2) with ESMTP id m56KY9Rs006291
-	for <akpm@localhost>; Fri, 6 Jun 2008 13:34:10 -0700
-Received: from imap1.linux-foundation.org [140.211.169.55]
-	by y.localdomain with IMAP (fetchmail-6.3.8)
-	for <akpm@localhost> (single-drop); Fri, 06 Jun 2008 13:34:10 -0700 (PDT)
-Received: from smtp1.linux-foundation.org (smtp1.linux-foundation.org [140.211.169.13])
-	by imap1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m56KUWjf017759
-	for <akpm@imap1.linux-foundation.org>; Fri, 6 Jun 2008 13:30:32 -0700
-Received: from mx1.redhat.com (mx1.redhat.com [66.187.233.31])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m56KTu7F025262
-	for <akpm@linux-foundation.org>; Fri, 6 Jun 2008 13:29:57 -0700
-Received: from int-mx1.corp.redhat.com (int-mx1.corp.redhat.com [172.16.52.254])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id m56KTmDV003939;
-	Fri, 6 Jun 2008 16:29:48 -0400
-Received: from mail.boston.redhat.com (mail.boston.redhat.com [10.16.255.12])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m56KTliL031629;
-	Fri, 6 Jun 2008 16:29:47 -0400
-Received: from cuia.bos.redhat.com (cuia.bos.redhat.com [10.16.16.26])
-	by mail.boston.redhat.com (8.13.1/8.13.1) with ESMTP id m56KTlNh007476;
-	Fri, 6 Jun 2008 16:29:47 -0400
-Received: from cuia.bos.redhat.com (localhost.localdomain [127.0.0.1])
-	by cuia.bos.redhat.com (8.14.2/8.13.6) with ESMTP id m56KTkUG030589;
-	Fri, 6 Jun 2008 16:29:46 -0400
-Received: (from riel@localhost)
-	by cuia.bos.redhat.com (8.14.2/8.14.2/Submit) id m56KTkQ8030588;
-	Fri, 6 Jun 2008 16:29:46 -0400
-X-Authentication-Warning: cuia.bos.redhat.com: riel set sender to riel@redhat.com using -f
-Message-Id: <20080606202858.513563073@redhat.com>
-References: <20080606202838.390050172@redhat.com>
-User-Agent: quilt/0.46-1
-Date: Fri, 06 Jun 2008 16:28:41 -0400
-To: linux-kernel@vger.kernel.org
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-        Lee Schermerhorn <lee.schermerhorn@hp.com>,
-        Kosaki Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Subject: [PATCH -mm 03/25] use an array for the LRU pagevecs
-Content-Disposition: inline; filename=pagevec-array.patch
-X-Scanned-By: MIMEDefang 2.63 on 140.211.169.13
-Received-SPF: pass (domain of riel@redhat.com designates 66.187.233.31 as permitted sender)
-X-MIMEDefang-Filter: lf$Revision: 1.188 $
 
 
-Turn the pagevecs into an array just like the LRUs.  This significantly
-cleans up the source code and reduces the size of the kernel by about
-13kB after all the LRU lists have been created further down in the split
-VM patch series.
+Define page_file_cache() function to answer the question:
+	is page backed by a file?
+
+Originally part of Rik van Riel's split-lru patch.  Extracted
+to make available for other, independent reclaim patches.
+
+Moved inline function to linux/mm_inline.h where it will
+be needed by subsequent "split LRU" and "noreclaim" patches.
+
+Unfortunately this needs to use a page flag, since the
+PG_swapbacked state needs to be preserved all the way
+to the point where the page is last removed from the
+LRU.  Trying to derive the status from other info in
+the page resulted in wrong VM statistics in earlier
+split VM patchsets.
 
 Signed-off-by: Rik van Riel <riel@redhat.com>
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Signed-off-by: MinChan Kim <minchan.kim@gmail.com>
 
 ---
- include/linux/mmzone.h  |   13 +++++-
- include/linux/pagevec.h |   13 +++++-
- include/linux/swap.h    |   18 ++++++++-
- mm/migrate.c            |   11 -----
- mm/swap.c               |   96 ++++++++++++++++++++++--------------------------
- 5 files changed, 83 insertions(+), 68 deletions(-)
 
-Index: linux-2.6.26-rc2-mm1/include/linux/mmzone.h
+Index: linux-2.6.26-rc2-mm1/include/linux/mm_inline.h
 ===================================================================
---- linux-2.6.26-rc2-mm1.orig/include/linux/mmzone.h	2008-05-23 14:21:33.000000000 -0400
-+++ linux-2.6.26-rc2-mm1/include/linux/mmzone.h	2008-05-23 14:21:33.000000000 -0400
-@@ -107,13 +107,22 @@ enum zone_stat_item {
- #endif
- 	NR_VM_ZONE_STAT_ITEMS };
- 
-+#define LRU_BASE 0
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ include/linux/mm_inline.h  |   24 ++++++++++++++++++++++++
+ include/linux/page-flags.h |    2 ++
+ mm/memory.c                |    3 +++
+ mm/migrate.c               |    2 ++
+ mm/page_alloc.c            |    4 ++++
+ mm/shmem.c                 |    1 +
+ mm/swap_state.c            |    3 +++
+ 7 files changed, 39 insertions(+)
+
+diff -puN include/linux/mm_inline.h~define-page_file_cache-function include/linux/mm_inline.h
+--- a/include/linux/mm_inline.h~define-page_file_cache-function
++++ a/include/linux/mm_inline.h
+@@ -1,3 +1,26 @@
++#ifndef LINUX_MM_INLINE_H
++#define LINUX_MM_INLINE_H
 +
- enum lru_list {
--	LRU_INACTIVE,	/* must match order of NR_[IN]ACTIVE */
--	LRU_ACTIVE,	/*  "     "     "   "       "        */
-+	LRU_INACTIVE = LRU_BASE,	/* must match order of NR_[IN]ACTIVE */
-+	LRU_ACTIVE,			/*  "     "     "   "       "        */
- 	NR_LRU_LISTS };
- 
- #define for_each_lru(l) for (l = 0; l < NR_LRU_LISTS; l++)
- 
-+static inline int is_active_lru(enum lru_list l)
-+{
-+	return (l == LRU_ACTIVE);
-+}
-+
-+enum lru_list page_lru(struct page *page);
-+
- struct per_cpu_pages {
- 	int count;		/* number of pages in the list */
- 	int high;		/* high watermark, emptying needed */
-Index: linux-2.6.26-rc2-mm1/mm/swap.c
-===================================================================
---- linux-2.6.26-rc2-mm1.orig/mm/swap.c	2008-05-23 14:21:33.000000000 -0400
-+++ linux-2.6.26-rc2-mm1/mm/swap.c	2008-05-23 14:21:33.000000000 -0400
-@@ -34,8 +34,7 @@
- /* How many pages do we try to swap or page in/out together? */
- int page_cluster;
- 
--static DEFINE_PER_CPU(struct pagevec, lru_add_pvecs) = { 0, };
--static DEFINE_PER_CPU(struct pagevec, lru_add_active_pvecs) = { 0, };
-+static DEFINE_PER_CPU(struct pagevec[NR_LRU_LISTS], lru_add_pvecs) = { {0,}, };
- static DEFINE_PER_CPU(struct pagevec, lru_rotate_pvecs) = { 0, };
- 
- /*
-@@ -96,6 +95,23 @@ void put_pages_list(struct list_head *pa
- }
- EXPORT_SYMBOL(put_pages_list);
- 
 +/**
-+ * page_lru - which LRU list should a page be on?
++ * page_file_cache - should the page be on a file LRU or anon LRU?
 + * @page: the page to test
 + *
-+ * Returns the LRU list a page should be on, as an index
-+ * into the array of LRU lists.
++ * Returns !0 if @page is page cache page backed by a regular filesystem,
++ * or 0 if @page is anonymous, tmpfs or otherwise ram or swap backed.
++ *
++ * We would like to get this info without a page flag, but the state
++ * needs to survive until the page is last deleted from the LRU, which
++ * could be as far down as __page_cache_release.
 + */
-+enum lru_list page_lru(struct page *page)
++static inline int page_file_cache(struct page *page)
 +{
-+	enum lru_list lru = LRU_BASE;
++	if (PageSwapBacked(page))
++		return 0;
 +
-+	if (PageActive(page))
-+		lru += LRU_ACTIVE;
-+
-+	return lru;
++	/* The page is page cache backed by a normal filesystem. */
++	return 2;
 +}
 +
- /*
-  * pagevec_move_tail() must be called with IRQ disabled.
-  * Otherwise this may cause nasty races.
-@@ -186,28 +202,29 @@ void mark_page_accessed(struct page *pag
- 
- EXPORT_SYMBOL(mark_page_accessed);
- 
--/**
-- * lru_cache_add: add a page to the page lists
-- * @page: the page to add
-- */
--void lru_cache_add(struct page *page)
-+void __lru_cache_add(struct page *page, enum lru_list lru)
+ static inline void
+ add_page_to_lru_list(struct zone *zone, struct page *page, enum lru_list l)
  {
--	struct pagevec *pvec = &get_cpu_var(lru_add_pvecs);
-+	struct pagevec *pvec = &get_cpu_var(lru_add_pvecs)[lru];
- 
- 	page_cache_get(page);
- 	if (!pagevec_add(pvec, page))
--		__pagevec_lru_add(pvec);
-+		____pagevec_lru_add(pvec, lru);
- 	put_cpu_var(lru_add_pvecs);
+@@ -49,3 +72,4 @@ del_page_from_lru(struct zone *zone, str
+ 	__dec_zone_state(zone, NR_INACTIVE + l);
  }
  
--void lru_cache_add_active(struct page *page)
-+/**
-+ * lru_cache_add_lru - add a page to a page list
-+ * @page: the page to be added to the LRU.
-+ * @lru: the LRU list to which the page is added.
-+ */
-+void lru_cache_add_lru(struct page *page, enum lru_list lru)
- {
--	struct pagevec *pvec = &get_cpu_var(lru_add_active_pvecs);
-+	if (PageActive(page)) {
-+		ClearPageActive(page);
-+	}
++#endif
+diff -puN include/linux/page-flags.h~define-page_file_cache-function include/linux/page-flags.h
+--- a/include/linux/page-flags.h~define-page_file_cache-function
++++ a/include/linux/page-flags.h
+@@ -93,6 +93,7 @@ enum pageflags {
+ 	PG_mappedtodisk,	/* Has blocks allocated on-disk */
+ 	PG_reclaim,		/* To be reclaimed asap */
+ 	PG_buddy,		/* Page is free, on buddy lists */
++	PG_swapbacked,		/* Page is backed by RAM/swap */
+ #ifdef CONFIG_IA64_UNCACHED_ALLOCATOR
+ 	PG_uncached,		/* Page has been mapped as uncached */
+ #endif
+@@ -176,6 +177,7 @@ PAGEFLAG(SavePinned, savepinned);			/* X
+ PAGEFLAG(Reserved, reserved) __CLEARPAGEFLAG(Reserved, reserved)
+ PAGEFLAG(Private, private) __CLEARPAGEFLAG(Private, private)
+ 	__SETPAGEFLAG(Private, private)
++PAGEFLAG(SwapBacked, swapbacked) __CLEARPAGEFLAG(SwapBacked, swapbacked)
  
--	page_cache_get(page);
--	if (!pagevec_add(pvec, page))
--		__pagevec_lru_add_active(pvec);
--	put_cpu_var(lru_add_active_pvecs);
-+	VM_BUG_ON(PageLRU(page) || PageActive(page));
-+	__lru_cache_add(page, lru);
- }
+ __PAGEFLAG(SlobPage, slob_page)
+ __PAGEFLAG(SlobFree, slob_free)
+diff -puN mm/memory.c~define-page_file_cache-function mm/memory.c
+--- a/mm/memory.c~define-page_file_cache-function
++++ a/mm/memory.c
+@@ -1783,6 +1783,7 @@ gotten:
+ 		ptep_clear_flush(vma, address, page_table);
+ 		set_pte_at(mm, address, page_table, entry);
+ 		update_mmu_cache(vma, address, entry);
++		SetPageSwapBacked(new_page);
+ 		lru_cache_add_active(new_page);
+ 		page_add_new_anon_rmap(new_page, vma, address);
  
- /*
-@@ -217,15 +234,15 @@ void lru_cache_add_active(struct page *p
-  */
- static void drain_cpu_pagevecs(int cpu)
- {
-+	struct pagevec *pvecs = per_cpu(lru_add_pvecs, cpu);
- 	struct pagevec *pvec;
-+	int lru;
+@@ -2251,6 +2252,7 @@ static int do_anonymous_page(struct mm_s
+ 	if (!pte_none(*page_table))
+ 		goto release;
+ 	inc_mm_counter(mm, anon_rss);
++	SetPageSwapBacked(page);
+ 	lru_cache_add_active(page);
+ 	page_add_new_anon_rmap(page, vma, address);
+ 	set_pte_at(mm, address, page_table, entry);
+@@ -2392,6 +2394,7 @@ static int __do_fault(struct mm_struct *
+ 		set_pte_at(mm, address, page_table, entry);
+ 		if (anon) {
+                         inc_mm_counter(mm, anon_rss);
++			SetPageSwapBacked(page);
+                         lru_cache_add_active(page);
+                         page_add_new_anon_rmap(page, vma, address);
+ 		} else {
+diff -puN mm/migrate.c~define-page_file_cache-function mm/migrate.c
+--- a/mm/migrate.c~define-page_file_cache-function
++++ a/mm/migrate.c
+@@ -566,6 +566,8 @@ static int move_to_new_page(struct page 
+ 	/* Prepare mapping for the new page.*/
+ 	newpage->index = page->index;
+ 	newpage->mapping = page->mapping;
++	if (PageSwapBacked(page))
++		SetPageSwapBacked(newpage);
  
--	pvec = &per_cpu(lru_add_pvecs, cpu);
--	if (pagevec_count(pvec))
--		__pagevec_lru_add(pvec);
--
--	pvec = &per_cpu(lru_add_active_pvecs, cpu);
--	if (pagevec_count(pvec))
--		__pagevec_lru_add_active(pvec);
-+	for_each_lru(lru) {
-+		pvec = &pvecs[lru - LRU_BASE];
-+		if (pagevec_count(pvec))
-+			____pagevec_lru_add(pvec, lru);
-+	}
+ 	mapping = page_mapping(page);
+ 	if (!mapping)
+diff -puN mm/page_alloc.c~define-page_file_cache-function mm/page_alloc.c
+--- a/mm/page_alloc.c~define-page_file_cache-function
++++ a/mm/page_alloc.c
+@@ -246,6 +246,7 @@ static void bad_page(struct page *page)
+ 			1 << PG_slab    |
+ 			1 << PG_swapcache |
+ 			1 << PG_writeback |
++			1 << PG_swapbacked |
+ 			1 << PG_buddy );
+ 	set_page_count(page, 0);
+ 	reset_page_mapcount(page);
+@@ -477,6 +478,8 @@ static inline int free_pages_check(struc
+ 		bad_page(page);
+ 	if (PageDirty(page))
+ 		__ClearPageDirty(page);
++	if (PageSwapBacked(page))
++		__ClearPageSwapBacked(page);
+ 	/*
+ 	 * For now, we report if PG_reserved was found set, but do not
+ 	 * clear it, and do not free the page.  But we shall soon need
+@@ -627,6 +630,7 @@ static int prep_new_page(struct page *pa
+ 			1 << PG_swapcache |
+ 			1 << PG_writeback |
+ 			1 << PG_reserved |
++			1 << PG_swapbacked |
+ 			1 << PG_buddy ))))
+ 		bad_page(page);
  
- 	pvec = &per_cpu(lru_rotate_pvecs, cpu);
- 	if (pagevec_count(pvec)) {
-@@ -379,7 +396,7 @@ void __pagevec_release_nonlru(struct pag
-  * Add the passed pages to the LRU, then drop the caller's refcount
-  * on them.  Reinitialises the caller's pagevec.
-  */
--void __pagevec_lru_add(struct pagevec *pvec)
-+void ____pagevec_lru_add(struct pagevec *pvec, enum lru_list lru)
- {
- 	int i;
- 	struct zone *zone = NULL;
-@@ -396,7 +413,9 @@ void __pagevec_lru_add(struct pagevec *p
+diff -puN mm/shmem.c~define-page_file_cache-function mm/shmem.c
+--- a/mm/shmem.c~define-page_file_cache-function
++++ a/mm/shmem.c
+@@ -1387,6 +1387,7 @@ repeat:
+ 				goto failed;
+ 			}
+ 
++			SetPageSwapBacked(filepage);
+ 			spin_lock(&info->lock);
+ 			entry = shmem_swp_alloc(info, idx, sgp);
+ 			if (IS_ERR(entry))
+diff -puN mm/swap_state.c~define-page_file_cache-function mm/swap_state.c
+--- a/mm/swap_state.c~define-page_file_cache-function
++++ a/mm/swap_state.c
+@@ -74,6 +74,7 @@ int add_to_swap_cache(struct page *page,
+ 	BUG_ON(!PageLocked(page));
+ 	BUG_ON(PageSwapCache(page));
+ 	BUG_ON(PagePrivate(page));
++	BUG_ON(!PageSwapBacked(page));
+ 	error = radix_tree_preload(gfp_mask);
+ 	if (!error) {
+ 		page_cache_get(page);
+@@ -303,6 +304,7 @@ struct page *read_swap_cache_async(swp_e
+ 		 * May fail (-ENOMEM) if radix-tree node allocation failed.
+ 		 */
+ 		SetPageLocked(new_page);
++		SetPageSwapBacked(new_page);
+ 		err = add_to_swap_cache(new_page, entry, gfp_mask & GFP_KERNEL);
+ 		if (!err) {
+ 			/*
+@@ -312,6 +314,7 @@ struct page *read_swap_cache_async(swp_e
+ 			swap_readpage(NULL, new_page);
+ 			return new_page;
  		}
- 		VM_BUG_ON(PageLRU(page));
- 		SetPageLRU(page);
--		add_page_to_inactive_list(zone, page);
-+		if (is_active_lru(lru))
-+			SetPageActive(page);
-+		add_page_to_lru_list(zone, page, lru);
- 	}
- 	if (zone)
- 		spin_unlock_irq(&zone->lru_lock);
-@@ -404,34 +423,7 @@ void __pagevec_lru_add(struct pagevec *p
- 	pagevec_reinit(pvec);
- }
- 
--EXPORT_SYMBOL(__pagevec_lru_add);
--
--void __pagevec_lru_add_active(struct pagevec *pvec)
--{
--	int i;
--	struct zone *zone = NULL;
--
--	for (i = 0; i < pagevec_count(pvec); i++) {
--		struct page *page = pvec->pages[i];
--		struct zone *pagezone = page_zone(page);
--
--		if (pagezone != zone) {
--			if (zone)
--				spin_unlock_irq(&zone->lru_lock);
--			zone = pagezone;
--			spin_lock_irq(&zone->lru_lock);
--		}
--		VM_BUG_ON(PageLRU(page));
--		SetPageLRU(page);
--		VM_BUG_ON(PageActive(page));
--		SetPageActive(page);
--		add_page_to_active_list(zone, page);
--	}
--	if (zone)
--		spin_unlock_irq(&zone->lru_lock);
--	release_pages(pvec->pages, pvec->nr, pvec->cold);
--	pagevec_reinit(pvec);
--}
-+EXPORT_SYMBOL(____pagevec_lru_add);
- 
- /*
-  * Try to drop buffers from the pages in a pagevec
-Index: linux-2.6.26-rc2-mm1/include/linux/pagevec.h
-===================================================================
---- linux-2.6.26-rc2-mm1.orig/include/linux/pagevec.h	2008-05-23 14:21:21.000000000 -0400
-+++ linux-2.6.26-rc2-mm1/include/linux/pagevec.h	2008-05-23 14:21:33.000000000 -0400
-@@ -23,8 +23,7 @@ struct pagevec {
- void __pagevec_release(struct pagevec *pvec);
- void __pagevec_release_nonlru(struct pagevec *pvec);
- void __pagevec_free(struct pagevec *pvec);
--void __pagevec_lru_add(struct pagevec *pvec);
--void __pagevec_lru_add_active(struct pagevec *pvec);
-+void ____pagevec_lru_add(struct pagevec *pvec, enum lru_list lru);
- void pagevec_strip(struct pagevec *pvec);
- unsigned pagevec_lookup(struct pagevec *pvec, struct address_space *mapping,
- 		pgoff_t start, unsigned nr_pages);
-@@ -81,6 +80,16 @@ static inline void pagevec_free(struct p
- 		__pagevec_free(pvec);
- }
- 
-+static inline void __pagevec_lru_add(struct pagevec *pvec)
-+{
-+	____pagevec_lru_add(pvec, LRU_INACTIVE);
-+}
-+
-+static inline void __pagevec_lru_add_active(struct pagevec *pvec)
-+{
-+	____pagevec_lru_add(pvec, LRU_ACTIVE);
-+}
-+
- static inline void pagevec_lru_add(struct pagevec *pvec)
- {
- 	if (pagevec_count(pvec))
-Index: linux-2.6.26-rc2-mm1/include/linux/swap.h
-===================================================================
---- linux-2.6.26-rc2-mm1.orig/include/linux/swap.h	2008-05-23 14:21:21.000000000 -0400
-+++ linux-2.6.26-rc2-mm1/include/linux/swap.h	2008-05-23 14:21:33.000000000 -0400
-@@ -171,8 +171,8 @@ extern unsigned int nr_free_pagecache_pa
- 
- 
- /* linux/mm/swap.c */
--extern void lru_cache_add(struct page *);
--extern void lru_cache_add_active(struct page *);
-+extern void __lru_cache_add(struct page *, enum lru_list lru);
-+extern void lru_cache_add_lru(struct page *, enum lru_list lru);
- extern void activate_page(struct page *);
- extern void mark_page_accessed(struct page *);
- extern void lru_add_drain(void);
-@@ -180,6 +180,20 @@ extern int lru_add_drain_all(void);
- extern void rotate_reclaimable_page(struct page *page);
- extern void swap_setup(void);
- 
-+/**
-+ * lru_cache_add: add a page to the page lists
-+ * @page: the page to add
-+ */
-+static inline void lru_cache_add(struct page *page)
-+{
-+	__lru_cache_add(page, LRU_INACTIVE);
-+}
-+
-+static inline void lru_cache_add_active(struct page *page)
-+{
-+	__lru_cache_add(page, LRU_ACTIVE);
-+}
-+
- /* linux/mm/vmscan.c */
- extern unsigned long try_to_free_pages(struct zonelist *zonelist, int order,
- 					gfp_t gfp_mask);
-Index: linux-2.6.26-rc2-mm1/mm/migrate.c
-===================================================================
---- linux-2.6.26-rc2-mm1.orig/mm/migrate.c	2008-05-23 14:21:32.000000000 -0400
-+++ linux-2.6.26-rc2-mm1/mm/migrate.c	2008-05-23 14:21:33.000000000 -0400
-@@ -55,16 +55,7 @@ int migrate_prep(void)
- 
- static inline void move_to_lru(struct page *page)
- {
--	if (PageActive(page)) {
--		/*
--		 * lru_cache_add_active checks that
--		 * the PG_active bit is off.
--		 */
--		ClearPageActive(page);
--		lru_cache_add_active(page);
--	} else {
--		lru_cache_add(page);
--	}
-+	lru_cache_add_lru(page, page_lru(page));
- 	put_page(page);
- }
- 
++		ClearPageSwapBacked(new_page);
+ 		ClearPageLocked(new_page);
+ 		swap_free(entry);
+ 	} while (err != -ENOMEM);
+_
 
--- 
-All Rights Reversed
+Patches currently in -mm which might be from riel@redhat.com are
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
-
-origin.patch
-mm-fix-incorrect-variable-type-in-do_try_to_free_pages.patch
-page-allocator-inlnie-some-__alloc_pages-wrappers.patch
-page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
-mm-hugetlbc-fix-duplicate-variable.patch
+ntp-let-update_persistent_clock-sleep.patch
+access_process_vm-device-memory-infrastructure.patch
+access_process_vm-device-memory-infrastructure-fix.patch
+use-generic_access_phys-for-dev-mem-mappings.patch
+use-generic_access_phys-for-dev-mem-mappings-fix.patch
+use-generic_access_phys-for-pci-mmap-on-x86.patch
+powerpc-ioremap_prot.patch
+spufs-use-the-new-vm_ops-access.patch
+spufs-use-the-new-vm_ops-access-fix.patch
 page-flags-record-page-flag-overlays-explicitly.patch
+page-flags-record-page-flag-overlays-explicitly-xen.patch
 slub-record-page-flag-overlays-explicitly.patch
 slob-record-page-flag-overlays-explicitly.patch
-call_usermodehelper-increase-reliability.patch
-cgroup-list_for_each-cleanup-v2.patch
-memcg-clean-up-checking-of-the-disabled-flag.patch
-per-task-delay-accounting-update-document-and-getdelaysc-for-memory-reclaim.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+idr-change-the-idr-structure.patch
+idr-rename-some-of-the-idr-apis-internal-routines.patch
+idr-fix-a-printk-call.patch
+idr-error-checking-factorization.patch
+idr-make-idr_get_new-rcu-safe.patch
+idr-make-idr_get_new-rcu-safe-fix.patch
+idr-make-idr_find-rcu-safe.patch
+idr-make-idr_remove-rcu-safe.patch
+ipc-call-idr_find-without-locking-in-ipc_lock.patch
+ipc-get-rid-of-ipc_lock_down.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+vmscan-use-an-indexed-array-for-lru-variables.patch
 vmscan-use-an-array-for-the-lru-pagevecs.patch
+vmscan-free-swap-space-on-swap-in-activation.patch
+vmscan-define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
 vmscan-second-chance-replacement-for-anonymous-pages.patch
+vmscan-add-some-sanity-checks-to-get_scan_ratio.patch
+vmscan-fix-pagecache-reclaim-referenced-bit-check.patch
+vmscan-add-newly-swapped-in-pages-to-the-inactive-list.patch
+vmscan-more-aggressively-use-lumpy-reclaim.patch
+vmscan-pageflag-helpers-for-configed-out-flags.patch
 vmscan-noreclaim-lru-infrastructure.patch
 vmscan-noreclaim-lru-page-statistics.patch
+vmscan-ramfs-and-ram-disk-pages-are-non-reclaimable.patch
 vmscan-shm_locked-pages-are-non-reclaimable.patch
 vmscan-mlocked-pages-are-non-reclaimable.patch
+vmscan-downgrade-mmap-sem-while-populating-mlocked-regions.patch
 vmscan-handle-mlocked-pages-during-map-remap-unmap.patch
 vmscan-mlocked-pages-statistics.patch
+vmscan-cull-non-reclaimable-pages-in-fault-path.patch
 vmscan-noreclaim-and-mlocked-pages-vm-events.patch
 mm-only-vmscan-noreclaim-lru-scan-sysctl.patch
-make-mm-memoryc-print_bad_pte-static.patch
-mm-swapfilec-make-code-static.patch
+vmscan-mlocked-pages-count-attempts-to-free-mlocked-page.patch
+vmscan-noreclaim-lru-and-mlocked-pages-documentation.patch
 make-mm-rmapc-anon_vma_cachep-static.patch
 
