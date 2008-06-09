@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mmc-wbsd-initialize-tasklets-before-requesting-interrupt.patch added to -mm tree
-Date: Sun, 08 Jun 2008 17:28:36 -0700
-Message-ID: <200806090028.m590SaiC027448@imap1.linux-foundation.org>
+Subject: + cifs-fix-oops-on-mount-when-config_cifs_dfs_upcall-is-enabled.patch added to -mm tree
+Date: Sun, 08 Jun 2008 17:30:41 -0700
+Message-ID: <200806090030.m590UfRC027573@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55109 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34097 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752669AbYFIA3D (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 20:29:03 -0400
+	by vger.kernel.org with ESMTP id S1755671AbYFIAa6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 20:30:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cebbert@redhat.com, drzeus@drzeus.cx
+Cc: marcin.slusarz@gmail.com, sfrench@samba.org, stable@kernel.org
 
 
 The patch titled
-     mmc: wbsd: initialize tasklets before requesting interrupt
+     cifs: fix oops on mount when CONFIG_CIFS_DFS_UPCALL is enabled
 has been added to the -mm tree.  Its filename is
-     mmc-wbsd-initialize-tasklets-before-requesting-interrupt.patch
+     cifs-fix-oops-on-mount-when-config_cifs_dfs_upcall-is-enabled.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,67 +33,66 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc: wbsd: initialize tasklets before requesting interrupt
-From: Chuck Ebbert <cebbert@redhat.com>
+Subject: cifs: fix oops on mount when CONFIG_CIFS_DFS_UPCALL is enabled
+From: Marcin Slusarz <marcin.slusarz@gmail.com>
 
-With CONFIG_DEBUG_SHIRQ set we will get an interrupt as soon as we
-allocate one.  Tasklets may be scheduled in the interrupt handler but they
-will be initialized after the handler returns, causing a BUG() in
-kernel/softirq.c when they run.
+simple "mount -t cifs //xxx /mnt" oopsed on strlen of options
+http://kerneloops.org/guilty.php?guilty=cifs_get_sb&version=2.6.25-release&start=1671168&end=1703935&class=oops
 
-Should fix this Fedora bug report:
-https://bugzilla.redhat.com/show_bug.cgi?id=449817
-
-Signed-off-by: Chuck Ebbert <cebbert@redhat.com>
-Cc: Pierre Ossman <drzeus@drzeus.cx>
+Signed-off-by: Marcin Slusarz <marcin.slusarz@gmail.com>
+Cc: Steve French <sfrench@samba.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/wbsd.c |   21 ++++++++++-----------
+ fs/cifs/cifsfs.c |   21 ++++++++++-----------
  1 file changed, 10 insertions(+), 11 deletions(-)
 
-diff -puN drivers/mmc/host/wbsd.c~mmc-wbsd-initialize-tasklets-before-requesting-interrupt drivers/mmc/host/wbsd.c
---- a/drivers/mmc/host/wbsd.c~mmc-wbsd-initialize-tasklets-before-requesting-interrupt
-+++ a/drivers/mmc/host/wbsd.c
-@@ -1457,17 +1457,7 @@ static int __devinit wbsd_request_irq(st
- 	int ret;
+diff -puN fs/cifs/cifsfs.c~cifs-fix-oops-on-mount-when-config_cifs_dfs_upcall-is-enabled fs/cifs/cifsfs.c
+--- a/fs/cifs/cifsfs.c~cifs-fix-oops-on-mount-when-config_cifs_dfs_upcall-is-enabled
++++ a/fs/cifs/cifsfs.c
+@@ -124,9 +124,6 @@ cifs_read_super(struct super_block *sb, 
+ {
+ 	struct inode *inode;
+ 	struct cifs_sb_info *cifs_sb;
+-#ifdef CONFIG_CIFS_DFS_UPCALL
+-	int len;
+-#endif
+ 	int rc = 0;
  
- 	/*
--	 * Allocate interrupt.
--	 */
--
--	ret = request_irq(irq, wbsd_irq, IRQF_SHARED, DRIVER_NAME, host);
--	if (ret)
--		return ret;
--
--	host->irq = irq;
--
--	/*
--	 * Set up tasklets.
-+	 * Set up tasklets. Must be done before requesting interrupt.
- 	 */
- 	tasklet_init(&host->card_tasklet, wbsd_tasklet_card,
- 			(unsigned long)host);
-@@ -1480,6 +1470,15 @@ static int __devinit wbsd_request_irq(st
- 	tasklet_init(&host->finish_tasklet, wbsd_tasklet_finish,
- 			(unsigned long)host);
+ 	/* BB should we make this contingent on mount parm? */
+@@ -144,15 +141,17 @@ cifs_read_super(struct super_block *sb, 
+ 	 * complex operation (mount), and in case of fail
+ 	 * just exit instead of doing mount and attempting
+ 	 * undo it if this copy fails?*/
+-	len = strlen(data);
+-	cifs_sb->mountdata = kzalloc(len + 1, GFP_KERNEL);
+-	if (cifs_sb->mountdata == NULL) {
+-		kfree(sb->s_fs_info);
+-		sb->s_fs_info = NULL;
+-		return -ENOMEM;
++	if (data) {
++		int len = strlen(data);
++		cifs_sb->mountdata = kzalloc(len + 1, GFP_KERNEL);
++		if (cifs_sb->mountdata == NULL) {
++			kfree(sb->s_fs_info);
++			sb->s_fs_info = NULL;
++			return -ENOMEM;
++		}
++		strncpy(cifs_sb->mountdata, data, len + 1);
++		cifs_sb->mountdata[len] = '\0';
+ 	}
+-	strncpy(cifs_sb->mountdata, data, len + 1);
+-	cifs_sb->mountdata[len] = '\0';
+ #endif
  
-+	/*
-+	 * Allocate interrupt.
-+	 */
-+	ret = request_irq(irq, wbsd_irq, IRQF_SHARED, DRIVER_NAME, host);
-+	if (ret)
-+		return ret;
-+
-+	host->irq = irq;
-+
- 	return 0;
- }
- 
+ 	rc = cifs_mount(sb, cifs_sb, data, devname);
 _
 
-Patches currently in -mm which might be from cebbert@redhat.com are
+Patches currently in -mm which might be from marcin.slusarz@gmail.com are
 
 origin.patch
-mmc-wbsd-initialize-tasklets-before-requesting-interrupt.patch
+linux-next.patch
+vfs-fix-err_ptr-abuse-in-generic_readlink.patch
+cifs-fix-oops-on-mount-when-config_cifs_dfs_upcall-is-enabled.patch
 
