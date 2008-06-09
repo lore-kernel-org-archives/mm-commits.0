@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch added to -mm tree
-Date: Sun, 08 Jun 2008 23:45:47 -0700
-Message-ID: <200806090645.m596jlKw007681@imap1.linux-foundation.org>
+Subject: + bootmem-free-reserve-helpers-fix.patch added to -mm tree
+Date: Sun, 08 Jun 2008 23:45:45 -0700
+Message-ID: <200806090645.m596jjFN007678@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48811 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55068 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753696AbYFIGqL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2008 02:46:11 -0400
+	by vger.kernel.org with ESMTP id S1754565AbYFIGqO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2008 02:46:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, andi@firstfloor.org, hannes@saeurebad.de, mingo@e
 
 
 The patch titled
-     bootmem-factor-out-the-marking-of-a-pfn-range-fix
+     bootmem-free-reserve-helpers-fix
 has been added to the -mm tree.  Its filename is
-     bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
+     bootmem-free-reserve-helpers-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,8 +33,18 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bootmem-factor-out-the-marking-of-a-pfn-range-fix
+Subject: bootmem-free-reserve-helpers-fix
 From: Andrew Morton <akpm@linux-foundation.org>
+
+mm/bootmem.c: In function '__free':
+mm/bootmem.c:233: warning: format '%d' expects type 'int', but argument 3 has type 'long int'
+mm/bootmem.c: In function '__reserve':
+mm/bootmem.c:248: warning: format '%d' expects type 'int', but argument 3 has type 'long int'
+mm/bootmem.c: In function 'free_bootmem_core':
+mm/bootmem.c:270: warning: unused variable 'i'
+mm/bootmem.c: In function 'reserve_bootmem_core':
+mm/bootmem.c:401: warning: 'return' with a value, in function returning void
+mm/bootmem.c:380: warning: unused variable 'i'
 
 Cc: Andi Kleen <andi@firstfloor.org>
 Cc: Ingo Molnar <mingo@elte.hu>
@@ -43,21 +53,30 @@ Cc: Yinghai Lu <yhlu.kernel@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/bootmem.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/bootmem.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/bootmem.c~bootmem-factor-out-the-marking-of-a-pfn-range-fix mm/bootmem.c
---- a/mm/bootmem.c~bootmem-factor-out-the-marking-of-a-pfn-range-fix
+diff -puN mm/bootmem.c~bootmem-free-reserve-helpers-fix mm/bootmem.c
+--- a/mm/bootmem.c~bootmem-free-reserve-helpers-fix
 +++ a/mm/bootmem.c
-@@ -272,7 +272,7 @@ static int __init mark_bootmem_node(boot
+@@ -230,7 +230,7 @@ static void __init __free(bootmem_data_t
  {
- 	unsigned long sidx, eidx;
+ 	unsigned long idx;
  
--	bdebug("nid=%d start=%lx end=%lx reserve=%d flags=%x\n",
-+	bdebug("nid=%td start=%lx end=%lx reserve=%d flags=%x\n",
- 		bdata - bootmem_node_data, start, end, reserve, flags);
+-	bdebug("nid=%d start=%lx end=%lx\n", bdata - bootmem_node_data,
++	bdebug("nid=%td start=%lx end=%lx\n", bdata - bootmem_node_data,
+ 		sidx + PFN_DOWN(bdata->node_boot_start),
+ 		eidx + PFN_DOWN(bdata->node_boot_start));
  
- 	BUG_ON(start < PFN_DOWN(bdata->node_boot_start));
+@@ -245,7 +245,7 @@ static int __init __reserve(bootmem_data
+ 	unsigned long idx;
+ 	int exclusive = flags & BOOTMEM_EXCLUSIVE;
+ 
+-	bdebug("nid=%d start=%lx end=%lx flags=%x\n",
++	bdebug("nid=%td start=%lx end=%lx flags=%x\n",
+ 		bdata - bootmem_node_data,
+ 		sidx + PFN_DOWN(bdata->node_boot_start),
+ 		eidx + PFN_DOWN(bdata->node_boot_start),
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
