@@ -1,64 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: - arch-powerpc-platforms-pseries-eeh_driverc-fix-warning-checkpatch-fixes.patch removed from -mm tree
-Date: Mon, 09 Jun 2008 16:25:30 -0700
-Message-ID: <200806092325.m59NPUf3014197@imap1.linux-foundation.org>
+Subject: - sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch removed from -mm tree
+Date: Mon, 09 Jun 2008 16:26:35 -0700
+Message-ID: <200806092326.m59NQZVn014243@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33316 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53107 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753744AbYFIX0F (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2008 19:26:05 -0400
+	by vger.kernel.org with ESMTP id S1753317AbYFIX1I (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2008 19:27:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, benh@kernel.crashing.org, paulus@samba.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dan.j.williams@intel.com, greg@kroah.com, kay.sievers@vrfy.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arch-powerpc-platforms-pseries-eeh_driverc-fix-warning-checkpatch-fixes
+     sysfs: provide a clue about the effects of CONFIG_USB_DEVICE_CLASS=y
 has been removed from the -mm tree.  Its filename was
-     arch-powerpc-platforms-pseries-eeh_driverc-fix-warning-checkpatch-fixes.patch
+     sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
 
-This patch was dropped because it was folded into arch-powerpc-platforms-pseries-eeh_driverc-fix-warning.patch
+This patch was dropped because it was withdrawn
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch-powerpc-platforms-pseries-eeh_driverc-fix-warning-checkpatch-fixes
+Subject: sysfs: provide a clue about the effects of CONFIG_USB_DEVICE_CLASS=y
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: space required after that ';' (ctx:VxV)
-#36: FILE: arch/powerpc/platforms/pseries/eeh_driver.c:52:
-+	for (i = 0;i < dent; i++)
- 	          ^
+With CONFIG_USB_DEVICE_CLASS=y we get lots of warnings like
 
-total: 1 errors, 0 warnings, 24 lines checked
+	sysfs: duplicate filename '189:0' can not be created
 
-./patches/arch-powerpc-platforms-pseries-eeh_driverc-fix-warning.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
+According to Kay "They have the same dev_t as usb_device and would be a reason
+for the duplicates".
 
-Please run checkpatch prior to sending patches
+So let's emit a helpful message explaining that.
 
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/pseries/eeh_driver.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/sysfs/dir.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN arch/powerpc/platforms/pseries/eeh_driver.c~arch-powerpc-platforms-pseries-eeh_driverc-fix-warning-checkpatch-fixes arch/powerpc/platforms/pseries/eeh_driver.c
---- a/arch/powerpc/platforms/pseries/eeh_driver.c~arch-powerpc-platforms-pseries-eeh_driverc-fix-warning-checkpatch-fixes
-+++ a/arch/powerpc/platforms/pseries/eeh_driver.c
-@@ -49,7 +49,7 @@ static void print_device_node_tree(struc
+diff -puN fs/sysfs/dir.c~sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y fs/sysfs/dir.c
+--- a/fs/sysfs/dir.c~sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y
++++ a/fs/sysfs/dir.c
+@@ -17,6 +17,8 @@
+ #include <linux/module.h>
+ #include <linux/kobject.h>
+ #include <linux/namei.h>
++#include <linux/ctype.h>
++#include <linux/string.h>
+ #include <linux/idr.h>
+ #include <linux/completion.h>
+ #include <linux/mutex.h>
+@@ -423,6 +425,13 @@ int sysfs_add_one(struct sysfs_addrm_cxt
+ 		printk(KERN_WARNING "sysfs: duplicate filename '%s' "
+ 		       "can not be created\n", sd->s_name);
+ 		WARN_ON(1);
++#ifdef CONFIG_USB_DEVICE_CLASS
++		if (isdigit(sd->s_name[0]) && strchr(sd->s_name, ':')) {
++			/* Looks like "189:0" or similar */
++			printk(KERN_WARNING "disabling CONFIG_USB_DEVICE_CLASS"
++					" might fix this\n");
++		}
++#endif
+ 		return -EEXIST;
+ 	}
  
- 	if (!pdn)
- 		return;
--	for (i = 0;i < dent; i++)
-+	for (i = 0; i < dent; i++)
- 		printk(" ");
- 	printk("dn=%s mode=%x \tcfg_addr=%x pe_addr=%x \tfull=%s\n",
- 		pdn->node->name, pdn->eeh_mode, pdn->eeh_config_addr,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -79,7 +90,6 @@ intel-agp-rewrite-gtt-on-resume.patch
 arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
 pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2.patch
 arch-powerpc-platforms-pseries-eeh_driverc-fix-warning.patch
-arch-powerpc-platforms-pseries-eeh_driverc-fix-warning-checkpatch-fixes.patch
 i2c-renesas-highlander-fpga-smbus-support.patch
 git-jg-misc-git-rejects.patch
 drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
