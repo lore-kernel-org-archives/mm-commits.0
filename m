@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlb-override-default-huge-page-size-ia64-build.patch added to -mm tree
-Date: Mon, 09 Jun 2008 03:41:40 -0700
-Message-ID: <200806091041.m59AfeUN015933@imap1.linux-foundation.org>
+Subject: + kvm-unbork.patch added to -mm tree
+Date: Mon, 09 Jun 2008 04:01:11 -0700
+Message-ID: <200806091101.m59B1BAd016657@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40427 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53366 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753001AbYFIKmP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2008 06:42:15 -0400
+	by vger.kernel.org with ESMTP id S1758428AbYFILBO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2008 07:01:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, npiggin@suse.de
+Cc: akpm@linux-foundation.org, avi@qumranet.com, xiantao.zhang@intel.com
 
 
 The patch titled
-     hugetlb-override-default-huge-page-size-ia64-build
+     kvm-unbork
 has been added to the -mm tree.  Its filename is
-     hugetlb-override-default-huge-page-size-ia64-build.patch
+     kvm-unbork.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,37 +33,29 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlb-override-default-huge-page-size-ia64-build
+Subject: kvm-unbork
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Nick Piggin <npiggin@suse.de>
+Cc: "Zhang, Xiantao" <xiantao.zhang@intel.com>
+Cc: "Avi Kivity" <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ arch/ia64/kvm/kvm-ia64.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/hugetlb.c~hugetlb-override-default-huge-page-size-ia64-build mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-override-default-huge-page-size-ia64-build
-+++ a/mm/hugetlb.c
-@@ -34,7 +34,7 @@ struct hstate hstates[HUGE_MAX_HSTATE];
- /* for command line parsing */
- static struct hstate * __initdata parsed_hstate;
- static unsigned long __initdata default_hstate_max_huge_pages;
--static unsigned long __initdata default_hstate_size = HPAGE_SIZE;
-+static unsigned long __initdata default_hstate_size;
+diff -puN arch/ia64/kvm/kvm-ia64.c~kvm-unbork arch/ia64/kvm/kvm-ia64.c
+--- a/arch/ia64/kvm/kvm-ia64.c~kvm-unbork
++++ a/arch/ia64/kvm/kvm-ia64.c
+@@ -187,7 +187,7 @@ int kvm_dev_ioctl_check_extension(long e
  
- #define for_each_hstate(h) \
- 	for ((h) = hstates; (h) < &hstates[max_hstate]; (h)++)
-@@ -1208,6 +1208,8 @@ static int __init hugetlb_init(void)
- {
- 	BUILD_BUG_ON(HPAGE_SHIFT == 0);
- 
-+	default_hstate_size = HPAGE_SIZE;
-+
- 	if (!size_to_hstate(default_hstate_size)) {
- 		default_hstate_size = HPAGE_SIZE;
- 		if (!size_to_hstate(default_hstate_size))
+ 		r = 1;
+ 		break;
+-	case KVM_CAP_COALESCED_MMIO::
++	case KVM_CAP_COALESCED_MMIO:
+ 		r = KVM_COALESCED_MMIO_PAGE_OFFSET;
+ 		break;
+ 	default:
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -204,4 +196,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
+kvm-unbork.patch
 
