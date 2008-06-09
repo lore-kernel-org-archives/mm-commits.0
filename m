@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + sgi-xp-add-_sn2-suffix-to-a-few-variables.patch added to -mm tree
-Date: Sun, 08 Jun 2008 17:18:29 -0700
-Message-ID: <200806090018.m590IT3t027115@imap1.linux-foundation.org>
+Subject: + sgi-xp-isolate-remote-copy-buffer-to-sn2-only.patch added to -mm tree
+Date: Sun, 08 Jun 2008 17:18:27 -0700
+Message-ID: <200806090018.m590IRYS027112@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51576 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47022 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756417AbYFIASc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 20:18:32 -0400
+	by vger.kernel.org with ESMTP id S1756579AbYFIASa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 20:18:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: dcn@sgi.com
 
 
 The patch titled
-     sgi-xp: add _sn2 suffix to a few variables
+     sgi-xp: isolate remote copy buffer to sn2 only
 has been added to the -mm tree.  Its filename is
-     sgi-xp-add-_sn2-suffix-to-a-few-variables.patch
+     sgi-xp-isolate-remote-copy-buffer-to-sn2-only.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,318 +33,523 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sgi-xp: add _sn2 suffix to a few variables
+Subject: sgi-xp: isolate remote copy buffer to sn2 only
 From: Dean Nelson <dcn@sgi.com>
 
-Add an '_sn2' suffix to some variables found in xpc_sn2.c.
+Make the remote copy buffer an sn2 only item.
 
 Signed-off-by: Dean Nelson <dcn@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-xp/xpc_sn2.c |  124 ++++++++++++++++----------------
- 1 file changed, 65 insertions(+), 59 deletions(-)
+ drivers/misc/sgi-xp/xp.h            |   10 --
+ drivers/misc/sgi-xp/xpc.h           |   39 ++---------
+ drivers/misc/sgi-xp/xpc_main.c      |   31 ++-------
+ drivers/misc/sgi-xp/xpc_partition.c |   31 +++------
+ drivers/misc/sgi-xp/xpc_sn2.c       |   88 ++++++++++++++++++++------
+ 5 files changed, 97 insertions(+), 102 deletions(-)
 
-diff -puN drivers/misc/sgi-xp/xpc_sn2.c~sgi-xp-add-_sn2-suffix-to-a-few-variables drivers/misc/sgi-xp/xpc_sn2.c
---- a/drivers/misc/sgi-xp/xpc_sn2.c~sgi-xp-add-_sn2-suffix-to-a-few-variables
-+++ a/drivers/misc/sgi-xp/xpc_sn2.c
-@@ -56,15 +56,15 @@
- static char *xpc_remote_copy_buffer_sn2;
- static void *xpc_remote_copy_buffer_base_sn2;
- 
--static struct xpc_vars_sn2 *xpc_vars;	/* >>> Add _sn2 suffix? */
--static struct xpc_vars_part_sn2 *xpc_vars_part; /* >>> Add _sn2 suffix? */
-+static struct xpc_vars_sn2 *xpc_vars_sn2;
-+static struct xpc_vars_part_sn2 *xpc_vars_part_sn2;
- 
- /* SH_IPI_ACCESS shub register value on startup */
--static u64 xpc_sh1_IPI_access;
--static u64 xpc_sh2_IPI_access0;
--static u64 xpc_sh2_IPI_access1;
--static u64 xpc_sh2_IPI_access2;
--static u64 xpc_sh2_IPI_access3;
-+static u64 xpc_sh1_IPI_access_sn2;
-+static u64 xpc_sh2_IPI_access0_sn2;
-+static u64 xpc_sh2_IPI_access1_sn2;
-+static u64 xpc_sh2_IPI_access2_sn2;
-+static u64 xpc_sh2_IPI_access3_sn2;
+diff -puN drivers/misc/sgi-xp/xp.h~sgi-xp-isolate-remote-copy-buffer-to-sn2-only drivers/misc/sgi-xp/xp.h
+--- a/drivers/misc/sgi-xp/xp.h~sgi-xp-isolate-remote-copy-buffer-to-sn2-only
++++ a/drivers/misc/sgi-xp/xp.h
+@@ -61,16 +61,6 @@
+ #define XP_MAX_NPARTITIONS_UV	256
  
  /*
-  * Change protections to allow IPI operations.
-@@ -77,13 +77,13 @@ xpc_allow_IPI_ops_sn2(void)
+- * Define the number of u64s required to represent all the C-brick nasids
+- * as a bitmap.  The cross-partition kernel modules deal only with
+- * C-brick nasids, thus the need for bitmaps which don't account for
+- * odd-numbered (non C-brick) nasids.
+- */
+-#define XP_MAX_PHYSNODE_ID	(MAX_NUMALINK_NODES / 2)
+-#define XP_NASID_MASK_BYTES	((XP_MAX_PHYSNODE_ID + 7) / 8)
+-#define XP_NASID_MASK_WORDS	((XP_MAX_PHYSNODE_ID + 63) / 64)
+-
+-/*
+  * XPC establishes channel connections between the local partition and any
+  * other partition that is currently up. Over these channels, kernel-level
+  * `users' can communicate with their counterparts on the other partitions.
+diff -puN drivers/misc/sgi-xp/xpc.h~sgi-xp-isolate-remote-copy-buffer-to-sn2-only drivers/misc/sgi-xp/xpc.h
+--- a/drivers/misc/sgi-xp/xpc.h~sgi-xp-isolate-remote-copy-buffer-to-sn2-only
++++ a/drivers/misc/sgi-xp/xpc.h
+@@ -151,26 +151,6 @@ struct xpc_vars_sn2 {
+ #define XPC_V_VERSION _XPC_VERSION(3, 1)    /* version 3.1 of the cross vars */
  
- 	/* >>> The following should get moved into SAL. */
- 	if (is_shub2()) {
--		xpc_sh2_IPI_access0 =
-+		xpc_sh2_IPI_access0_sn2 =
- 		    (u64)HUB_L((u64 *)LOCAL_MMR_ADDR(SH2_IPI_ACCESS0));
--		xpc_sh2_IPI_access1 =
-+		xpc_sh2_IPI_access1_sn2 =
- 		    (u64)HUB_L((u64 *)LOCAL_MMR_ADDR(SH2_IPI_ACCESS1));
--		xpc_sh2_IPI_access2 =
-+		xpc_sh2_IPI_access2_sn2 =
- 		    (u64)HUB_L((u64 *)LOCAL_MMR_ADDR(SH2_IPI_ACCESS2));
--		xpc_sh2_IPI_access3 =
-+		xpc_sh2_IPI_access3_sn2 =
- 		    (u64)HUB_L((u64 *)LOCAL_MMR_ADDR(SH2_IPI_ACCESS3));
+ /*
+- * The following pertains to ia64-sn2 only.
+- *
+- * Memory for XPC's amo variables is allocated by the MSPEC driver. These
+- * pages are located in the lowest granule. The lowest granule uses 4k pages
+- * for cached references and an alternate TLB handler to never provide a
+- * cacheable mapping for the entire region. This will prevent speculative
+- * reading of cached copies of our lines from being issued which will cause
+- * a PI FSB Protocol error to be generated by the SHUB. For XPC, we need 64
+- * amo variables (based on XP_MAX_NPARTITIONS_SN2) to identify the senders of
+- * NOTIFY IRQs, 128 amo variables (based on XP_NASID_MASK_WORDS) to identify
+- * the senders of ACTIVATE IRQs, 1 amo variable to identify which remote
+- * partitions (i.e., XPCs) consider themselves currently engaged with the
+- * local XPC and 1 amo variable to request partition deactivation.
+- */
+-#define XPC_NOTIFY_IRQ_AMOS	0
+-#define XPC_ACTIVATE_IRQ_AMOS	(XPC_NOTIFY_IRQ_AMOS + XP_MAX_NPARTITIONS_SN2)
+-#define XPC_ENGAGED_PARTITIONS_AMO (XPC_ACTIVATE_IRQ_AMOS + XP_NASID_MASK_WORDS)
+-#define XPC_DEACTIVATE_REQUEST_AMO  (XPC_ENGAGED_PARTITIONS_AMO + 1)
+-
+-/*
+  * The following structure describes the per partition specific variables.
+  *
+  * An array of these structures, one per partition, will be defined. As a
+@@ -214,9 +194,10 @@ struct xpc_vars_part_sn2 {
+ #define XPC_RP_VARS_SIZE	L1_CACHE_ALIGN(sizeof(struct xpc_vars_sn2))
  
- 		for_each_online_node(node) {
-@@ -98,7 +98,7 @@ xpc_allow_IPI_ops_sn2(void)
- 			      -1UL);
- 		}
- 	} else {
--		xpc_sh1_IPI_access =
-+		xpc_sh1_IPI_access_sn2 =
- 		    (u64)HUB_L((u64 *)LOCAL_MMR_ADDR(SH1_IPI_ACCESS));
+ #define XPC_RP_PART_NASIDS(_rp) ((u64 *)((u8 *)(_rp) + XPC_RP_HEADER_SIZE))
+-#define XPC_RP_MACH_NASIDS(_rp) (XPC_RP_PART_NASIDS(_rp) + xp_nasid_mask_words)
+-#define XPC_RP_VARS(_rp)	((struct xpc_vars_sn2 *)(XPC_RP_MACH_NASIDS(_rp) + \
+-				    xp_nasid_mask_words))
++#define XPC_RP_MACH_NASIDS(_rp) (XPC_RP_PART_NASIDS(_rp) + xpc_nasid_mask_words)
++#define XPC_RP_VARS(_rp)	((struct xpc_vars_sn2 *) \
++				 (XPC_RP_MACH_NASIDS(_rp) + \
++				  xpc_nasid_mask_words))
  
- 		for_each_online_node(node) {
-@@ -123,19 +123,19 @@ xpc_disallow_IPI_ops_sn2(void)
- 		for_each_online_node(node) {
- 			nasid = cnodeid_to_nasid(node);
- 			HUB_S((u64 *)GLOBAL_MMR_ADDR(nasid, SH2_IPI_ACCESS0),
--			      xpc_sh2_IPI_access0);
-+			      xpc_sh2_IPI_access0_sn2);
- 			HUB_S((u64 *)GLOBAL_MMR_ADDR(nasid, SH2_IPI_ACCESS1),
--			      xpc_sh2_IPI_access1);
-+			      xpc_sh2_IPI_access1_sn2);
- 			HUB_S((u64 *)GLOBAL_MMR_ADDR(nasid, SH2_IPI_ACCESS2),
--			      xpc_sh2_IPI_access2);
-+			      xpc_sh2_IPI_access2_sn2);
- 			HUB_S((u64 *)GLOBAL_MMR_ADDR(nasid, SH2_IPI_ACCESS3),
--			      xpc_sh2_IPI_access3);
-+			      xpc_sh2_IPI_access3_sn2);
- 		}
- 	} else {
- 		for_each_online_node(node) {
- 			nasid = cnodeid_to_nasid(node);
- 			HUB_S((u64 *)GLOBAL_MMR_ADDR(nasid, SH1_IPI_ACCESS),
--			      xpc_sh1_IPI_access);
-+			      xpc_sh1_IPI_access_sn2);
- 		}
+ /*
+  * Functions registered by add_timer() or called by kernel_thread() only
+@@ -225,11 +206,11 @@ struct xpc_vars_part_sn2 {
+  * the passed argument.
+  */
+ #define XPC_PACK_ARGS(_arg1, _arg2) \
+-			((((u64) _arg1) & 0xffffffff) | \
+-			((((u64) _arg2) & 0xffffffff) << 32))
++			((((u64)_arg1) & 0xffffffff) | \
++			((((u64)_arg2) & 0xffffffff) << 32))
+ 
+-#define XPC_UNPACK_ARG1(_args)	(((u64) _args) & 0xffffffff)
+-#define XPC_UNPACK_ARG2(_args)	((((u64) _args) >> 32) & 0xffffffff)
++#define XPC_UNPACK_ARG1(_args)	(((u64)_args) & 0xffffffff)
++#define XPC_UNPACK_ARG2(_args)	((((u64)_args) >> 32) & 0xffffffff)
+ 
+ /*
+  * Define a Get/Put value pair (pointers) used with a message queue.
+@@ -710,12 +691,10 @@ extern void xpc_exit_uv(void);
+ 
+ /* found in xpc_partition.c */
+ extern int xpc_exiting;
+-extern int xp_nasid_mask_words;
++extern int xpc_nasid_mask_words;
+ extern struct xpc_rsvd_page *xpc_rsvd_page;
+ extern u64 *xpc_mach_nasids;
+ extern struct xpc_partition *xpc_partitions;
+-extern char *xpc_remote_copy_buffer;
+-extern void *xpc_remote_copy_buffer_base;
+ extern void *xpc_kmalloc_cacheline_aligned(size_t, gfp_t, void **);
+ extern struct xpc_rsvd_page *xpc_setup_rsvd_page(void);
+ extern int xpc_identify_activate_IRQ_sender(void);
+diff -puN drivers/misc/sgi-xp/xpc_main.c~sgi-xp-isolate-remote-copy-buffer-to-sn2-only drivers/misc/sgi-xp/xpc_main.c
+--- a/drivers/misc/sgi-xp/xpc_main.c~sgi-xp-isolate-remote-copy-buffer-to-sn2-only
++++ a/drivers/misc/sgi-xp/xpc_main.c
+@@ -877,7 +877,6 @@ xpc_do_exit(enum xp_retval reason)
+ 		unregister_sysctl_table(xpc_sysctl);
+ 
+ 	kfree(xpc_partitions);
+-	kfree(xpc_remote_copy_buffer_base);
+ 
+ 	if (is_shub())
+ 		xpc_exit_sn2();
+@@ -1031,7 +1030,9 @@ xpc_init(void)
+ 	short partid;
+ 	struct xpc_partition *part;
+ 	struct task_struct *kthread;
+-	size_t buf_size;
++
++	snprintf(xpc_part->bus_id, BUS_ID_SIZE, "part");
++	snprintf(xpc_chan->bus_id, BUS_ID_SIZE, "chan");
+ 
+ 	if (is_shub()) {
+ 		/*
+@@ -1054,26 +1055,12 @@ xpc_init(void)
+ 		return -ENODEV;
  	}
- }
-@@ -182,7 +182,7 @@ xpc_send_IRQ_sn2(struct amo *amo, u64 fl
- static struct amo *
- xpc_init_IRQ_amo_sn2(int index)
- {
--	struct amo *amo = xpc_vars->amos_page + index;
-+	struct amo *amo = xpc_vars_sn2->amos_page + index;
  
- 	(void)xpc_receive_IRQ_amo_sn2(amo);	/* clear amo variable */
- 	return amo;
-@@ -225,7 +225,7 @@ xpc_send_local_activate_IRQ_sn2(int from
- {
+-	snprintf(xpc_part->bus_id, BUS_ID_SIZE, "part");
+-	snprintf(xpc_chan->bus_id, BUS_ID_SIZE, "chan");
+-
+-	buf_size = max(XPC_RP_VARS_SIZE,
+-		       XPC_RP_HEADER_SIZE + XP_NASID_MASK_BYTES);
+-	xpc_remote_copy_buffer = xpc_kmalloc_cacheline_aligned(buf_size,
+-							       GFP_KERNEL,
+-						  &xpc_remote_copy_buffer_base);
+-	if (xpc_remote_copy_buffer == NULL) {
+-		dev_err(xpc_part, "can't get memory for remote copy buffer\n");
+-		ret = -ENOMEM;
+-		goto out_1;
+-	}
+-
+ 	xpc_partitions = kzalloc(sizeof(struct xpc_partition) *
+ 				 xp_max_npartitions, GFP_KERNEL);
+ 	if (xpc_partitions == NULL) {
+ 		dev_err(xpc_part, "can't get memory for partition structure\n");
+ 		ret = -ENOMEM;
+-		goto out_2;
++		goto out_1;
+ 	}
+ 
+ 	/*
+@@ -1115,7 +1102,7 @@ xpc_init(void)
+ 	if (xpc_rsvd_page == NULL) {
+ 		dev_err(xpc_part, "can't setup our reserved page\n");
+ 		ret = -EBUSY;
+-		goto out_3;
++		goto out_2;
+ 	}
+ 
+ 	/* add ourselves to the reboot_notifier_list */
+@@ -1136,7 +1123,7 @@ xpc_init(void)
+ 	if (IS_ERR(kthread)) {
+ 		dev_err(xpc_part, "failed while forking hb check thread\n");
+ 		ret = -EBUSY;
+-		goto out_4;
++		goto out_3;
+ 	}
+ 
+ 	/*
+@@ -1164,18 +1151,16 @@ xpc_init(void)
+ 	return 0;
+ 
+ 	/* initialization was not successful */
+-out_4:
++out_3:
+ 	/* indicate to others that our reserved page is uninitialized */
+ 	xpc_rsvd_page->stamp = 0;
+ 
+ 	(void)unregister_die_notifier(&xpc_die_notifier);
+ 	(void)unregister_reboot_notifier(&xpc_reboot_notifier);
+-out_3:
++out_2:
+ 	if (xpc_sysctl)
+ 		unregister_sysctl_table(xpc_sysctl);
+ 	kfree(xpc_partitions);
+-out_2:
+-	kfree(xpc_remote_copy_buffer_base);
+ out_1:
+ 	if (is_shub())
+ 		xpc_exit_sn2();
+diff -puN drivers/misc/sgi-xp/xpc_partition.c~sgi-xp-isolate-remote-copy-buffer-to-sn2-only drivers/misc/sgi-xp/xpc_partition.c
+--- a/drivers/misc/sgi-xp/xpc_partition.c~sgi-xp-isolate-remote-copy-buffer-to-sn2-only
++++ a/drivers/misc/sgi-xp/xpc_partition.c
+@@ -34,21 +34,12 @@ struct xpc_rsvd_page *xpc_rsvd_page;
+ static u64 *xpc_part_nasids;
+ u64 *xpc_mach_nasids;
+ 
+-/* >>> next two variables should be 'xpc_' if they remain here */
+-static int xp_sizeof_nasid_mask;	/* actual size in bytes of nasid mask */
+-int xp_nasid_mask_words;	/* actual size in words of nasid mask */
++static int xpc_sizeof_nasid_mask;	/* actual size in bytes of nasid mask */
++int xpc_nasid_mask_words;	/* actual size in words of nasid mask */
+ 
+ struct xpc_partition *xpc_partitions;
+ 
+ /*
+- * Generic buffer used to store a local copy of portions of a remote
+- * partition's reserved page (either its header and part_nasids mask,
+- * or its vars).
+- */
+-char *xpc_remote_copy_buffer;
+-void *xpc_remote_copy_buffer_base;
+-
+-/*
+  * Guarantee that the kmalloc'd memory is cacheline aligned.
+  */
+ void *
+@@ -176,9 +167,9 @@ xpc_setup_rsvd_page(void)
+ 		/* SAL_version 1 didn't set the nasids_size field */
+ 		rp->SAL_nasids_size = 128;
+ 	}
+-	xp_sizeof_nasid_mask = rp->SAL_nasids_size;
+-	xp_nasid_mask_words = DIV_ROUND_UP(xp_sizeof_nasid_mask,
+-					   BYTES_PER_WORD);
++	xpc_sizeof_nasid_mask = rp->SAL_nasids_size;
++	xpc_nasid_mask_words = DIV_ROUND_UP(xpc_sizeof_nasid_mask,
++					    BYTES_PER_WORD);
+ 
+ 	/* setup the pointers to the various items in the reserved page */
+ 	xpc_part_nasids = XPC_RP_PART_NASIDS(rp);
+@@ -222,14 +213,14 @@ xpc_get_remote_rp(int nasid, u64 *discov
+ 
+ 	/* pull over the reserved page header and part_nasids mask */
+ 	ret = xp_remote_memcpy(remote_rp, (void *)*remote_rp_pa,
+-			       XPC_RP_HEADER_SIZE + xp_sizeof_nasid_mask);
++			       XPC_RP_HEADER_SIZE + xpc_sizeof_nasid_mask);
+ 	if (ret != xpSuccess)
+ 		return ret;
+ 
+ 	if (discovered_nasids != NULL) {
+ 		u64 *remote_part_nasids = XPC_RP_PART_NASIDS(remote_rp);
+ 
+-		for (i = 0; i < xp_nasid_mask_words; i++)
++		for (i = 0; i < xpc_nasid_mask_words; i++)
+ 			discovered_nasids[i] |= remote_part_nasids[i];
+ 	}
+ 
+@@ -414,12 +405,12 @@ xpc_discovery(void)
+ 	enum xp_retval ret;
+ 
+ 	remote_rp = xpc_kmalloc_cacheline_aligned(XPC_RP_HEADER_SIZE +
+-						  xp_sizeof_nasid_mask,
++						  xpc_sizeof_nasid_mask,
+ 						  GFP_KERNEL, &remote_rp_base);
+ 	if (remote_rp == NULL)
+ 		return;
+ 
+-	discovered_nasids = kzalloc(sizeof(u64) * xp_nasid_mask_words,
++	discovered_nasids = kzalloc(sizeof(u64) * xpc_nasid_mask_words,
+ 				    GFP_KERNEL);
+ 	if (discovered_nasids == NULL) {
+ 		kfree(remote_rp_base);
+@@ -521,10 +512,10 @@ xpc_initiate_partid_to_nasids(short part
+ 	if (part->remote_rp_pa == 0)
+ 		return xpPartitionDown;
+ 
+-	memset(nasid_mask, 0, XP_NASID_MASK_BYTES);
++	memset(nasid_mask, 0, xpc_sizeof_nasid_mask);
+ 
+ 	part_nasid_pa = (u64)XPC_RP_PART_NASIDS(part->remote_rp_pa);
+ 
+ 	return xp_remote_memcpy(nasid_mask, (void *)part_nasid_pa,
+-				xp_sizeof_nasid_mask);
++				xpc_sizeof_nasid_mask);
+ }
+diff -puN drivers/misc/sgi-xp/xpc_sn2.c~sgi-xp-isolate-remote-copy-buffer-to-sn2-only drivers/misc/sgi-xp/xpc_sn2.c
+--- a/drivers/misc/sgi-xp/xpc_sn2.c~sgi-xp-isolate-remote-copy-buffer-to-sn2-only
++++ a/drivers/misc/sgi-xp/xpc_sn2.c
+@@ -19,6 +19,43 @@
+ #include <asm/sn/sn_sal.h>
+ #include "xpc.h"
+ 
++/*
++ * Define the number of u64s required to represent all the C-brick nasids
++ * as a bitmap.  The cross-partition kernel modules deal only with
++ * C-brick nasids, thus the need for bitmaps which don't account for
++ * odd-numbered (non C-brick) nasids.
++ */
++#define XPC_MAX_PHYSNODES_SN2	(MAX_NUMALINK_NODES / 2)
++#define XP_NASID_MASK_BYTES_SN2	((XPC_MAX_PHYSNODES_SN2 + 7) / 8)
++#define XP_NASID_MASK_WORDS_SN2	((XPC_MAX_PHYSNODES_SN2 + 63) / 64)
++
++/*
++ * Memory for XPC's amo variables is allocated by the MSPEC driver. These
++ * pages are located in the lowest granule. The lowest granule uses 4k pages
++ * for cached references and an alternate TLB handler to never provide a
++ * cacheable mapping for the entire region. This will prevent speculative
++ * reading of cached copies of our lines from being issued which will cause
++ * a PI FSB Protocol error to be generated by the SHUB. For XPC, we need 64
++ * amo variables (based on XP_MAX_NPARTITIONS_SN2) to identify the senders of
++ * NOTIFY IRQs, 128 amo variables (based on XP_NASID_MASK_WORDS_SN2) to identify
++ * the senders of ACTIVATE IRQs, 1 amo variable to identify which remote
++ * partitions (i.e., XPCs) consider themselves currently engaged with the
++ * local XPC and 1 amo variable to request partition deactivation.
++ */
++#define XPC_NOTIFY_IRQ_AMOS_SN2		0
++#define XPC_ACTIVATE_IRQ_AMOS_SN2	(XPC_NOTIFY_IRQ_AMOS_SN2 + \
++					 XP_MAX_NPARTITIONS_SN2)
++#define XPC_ENGAGED_PARTITIONS_AMO_SN2	(XPC_ACTIVATE_IRQ_AMOS_SN2 + \
++					 XP_NASID_MASK_WORDS_SN2)
++#define XPC_DEACTIVATE_REQUEST_AMO_SN2	(XPC_ENGAGED_PARTITIONS_AMO_SN2 + 1)
++
++/*
++ * Buffer used to store a local copy of portions of a remote partition's
++ * reserved page (either its header and part_nasids mask, or its vars).
++ */
++static char *xpc_remote_copy_buffer_sn2;
++static void *xpc_remote_copy_buffer_base_sn2;
++
+ static struct xpc_vars_sn2 *xpc_vars;	/* >>> Add _sn2 suffix? */
+ static struct xpc_vars_part_sn2 *xpc_vars_part; /* >>> Add _sn2 suffix? */
+ 
+@@ -176,7 +213,7 @@ xpc_send_activate_IRQ_sn2(u64 amos_page_
  	int w_index = XPC_NASID_W_INDEX(from_nasid);
  	int b_index = XPC_NASID_B_INDEX(from_nasid);
--	struct amo *amos = (struct amo *)__va(xpc_vars->amos_page_pa +
-+	struct amo *amos = (struct amo *)__va(xpc_vars_sn2->amos_page_pa +
- 					      (XPC_ACTIVATE_IRQ_AMOS_SN2 *
+ 	struct amo *amos = (struct amo *)__va(amos_page_pa +
+-					      (XPC_ACTIVATE_IRQ_AMOS *
++					      (XPC_ACTIVATE_IRQ_AMOS_SN2 *
  					      sizeof(struct amo)));
  
-@@ -492,7 +492,8 @@ xpc_indicate_partition_disengaged_sn2(st
+ 	(void)xpc_send_IRQ_sn2(&amos[w_index], (1UL << b_index), to_nasid,
+@@ -189,7 +226,7 @@ xpc_send_local_activate_IRQ_sn2(int from
+ 	int w_index = XPC_NASID_W_INDEX(from_nasid);
+ 	int b_index = XPC_NASID_B_INDEX(from_nasid);
+ 	struct amo *amos = (struct amo *)__va(xpc_vars->amos_page_pa +
+-					      (XPC_ACTIVATE_IRQ_AMOS *
++					      (XPC_ACTIVATE_IRQ_AMOS_SN2 *
+ 					      sizeof(struct amo)));
+ 
+ 	/* fake the sending and receipt of an activate IRQ from remote nasid */
+@@ -395,7 +432,7 @@ xpc_indicate_partition_engaged_sn2(struc
+ {
+ 	unsigned long irq_flags;
+ 	struct amo *amo = (struct amo *)__va(part->sn.sn2.remote_amos_page_pa +
+-					     (XPC_ENGAGED_PARTITIONS_AMO *
++					     (XPC_ENGAGED_PARTITIONS_AMO_SN2 *
+ 					     sizeof(struct amo)));
+ 
+ 	local_irq_save(irq_flags);
+@@ -422,7 +459,7 @@ xpc_indicate_partition_disengaged_sn2(st
+ 	struct xpc_partition_sn2 *part_sn2 = &part->sn.sn2;
+ 	unsigned long irq_flags;
+ 	struct amo *amo = (struct amo *)__va(part_sn2->remote_amos_page_pa +
+-					     (XPC_ENGAGED_PARTITIONS_AMO *
++					     (XPC_ENGAGED_PARTITIONS_AMO_SN2 *
+ 					     sizeof(struct amo)));
+ 
+ 	local_irq_save(irq_flags);
+@@ -455,7 +492,7 @@ xpc_indicate_partition_disengaged_sn2(st
  static int
  xpc_partition_engaged_sn2(short partid)
  {
--	struct amo *amo = xpc_vars->amos_page + XPC_ENGAGED_PARTITIONS_AMO_SN2;
-+	struct amo *amo = xpc_vars_sn2->amos_page +
-+			  XPC_ENGAGED_PARTITIONS_AMO_SN2;
+-	struct amo *amo = xpc_vars->amos_page + XPC_ENGAGED_PARTITIONS_AMO;
++	struct amo *amo = xpc_vars->amos_page + XPC_ENGAGED_PARTITIONS_AMO_SN2;
  
  	/* our partition's amo variable ANDed with partid mask */
  	return (FETCHOP_LOAD_OP(TO_AMO((u64)&amo->variable), FETCHOP_LOAD) &
-@@ -502,7 +503,8 @@ xpc_partition_engaged_sn2(short partid)
+@@ -465,7 +502,7 @@ xpc_partition_engaged_sn2(short partid)
  static int
  xpc_any_partition_engaged_sn2(void)
  {
--	struct amo *amo = xpc_vars->amos_page + XPC_ENGAGED_PARTITIONS_AMO_SN2;
-+	struct amo *amo = xpc_vars_sn2->amos_page +
-+			  XPC_ENGAGED_PARTITIONS_AMO_SN2;
+-	struct amo *amo = xpc_vars->amos_page + XPC_ENGAGED_PARTITIONS_AMO;
++	struct amo *amo = xpc_vars->amos_page + XPC_ENGAGED_PARTITIONS_AMO_SN2;
  
  	/* our partition's amo variable */
  	return FETCHOP_LOAD_OP(TO_AMO((u64)&amo->variable), FETCHOP_LOAD) != 0;
-@@ -511,7 +513,8 @@ xpc_any_partition_engaged_sn2(void)
+@@ -474,7 +511,7 @@ xpc_any_partition_engaged_sn2(void)
  static void
  xpc_assume_partition_disengaged_sn2(short partid)
  {
--	struct amo *amo = xpc_vars->amos_page + XPC_ENGAGED_PARTITIONS_AMO_SN2;
-+	struct amo *amo = xpc_vars_sn2->amos_page +
-+			  XPC_ENGAGED_PARTITIONS_AMO_SN2;
+-	struct amo *amo = xpc_vars->amos_page + XPC_ENGAGED_PARTITIONS_AMO;
++	struct amo *amo = xpc_vars->amos_page + XPC_ENGAGED_PARTITIONS_AMO_SN2;
  
  	/* clear bit(s) based on partid mask in our partition's amo */
  	FETCHOP_STORE_OP(TO_AMO((u64)&amo->variable), FETCHOP_AND,
-@@ -580,27 +583,27 @@ xpc_rsvd_page_init_sn2(struct xpc_rsvd_p
- 	int i;
- 	int ret;
- 
--	xpc_vars = XPC_RP_VARS(rp);
-+	xpc_vars_sn2 = XPC_RP_VARS(rp);
- 
--	rp->sn.vars_pa = __pa(xpc_vars);
-+	rp->sn.vars_pa = __pa(xpc_vars_sn2);
- 
- 	/* vars_part array follows immediately after vars */
--	xpc_vars_part = (struct xpc_vars_part_sn2 *)((u8 *)XPC_RP_VARS(rp) +
--						     XPC_RP_VARS_SIZE);
-+	xpc_vars_part_sn2 = (struct xpc_vars_part_sn2 *)((u8 *)XPC_RP_VARS(rp) +
-+							 XPC_RP_VARS_SIZE);
- 
- 	/*
--	 * Before clearing xpc_vars, see if a page of amos had been previously
--	 * allocated. If not we'll need to allocate one and set permissions
--	 * so that cross-partition amos are allowed.
-+	 * Before clearing xpc_vars_sn2, see if a page of amos had been
-+	 * previously allocated. If not we'll need to allocate one and set
-+	 * permissions so that cross-partition amos are allowed.
- 	 *
- 	 * The allocated amo page needs MCA reporting to remain disabled after
- 	 * XPC has unloaded.  To make this work, we keep a copy of the pointer
--	 * to this page (i.e., amos_page) in the struct xpc_vars structure,
-+	 * to this page (i.e., amos_page) in the struct xpc_vars_sn2 structure,
- 	 * which is pointed to by the reserved page, and re-use that saved copy
- 	 * on subsequent loads of XPC. This amo page is never freed, and its
- 	 * memory protections are never restricted.
- 	 */
--	amos_page = xpc_vars->amos_page;
-+	amos_page = xpc_vars_sn2->amos_page;
- 	if (amos_page == NULL) {
- 		amos_page = (struct amo *)TO_AMO(uncached_alloc_page(0, 1));
- 		if (amos_page == NULL) {
-@@ -621,18 +624,18 @@ xpc_rsvd_page_init_sn2(struct xpc_rsvd_p
- 		}
- 	}
- 
--	/* clear xpc_vars */
--	memset(xpc_vars, 0, sizeof(struct xpc_vars_sn2));
-+	/* clear xpc_vars_sn2 */
-+	memset(xpc_vars_sn2, 0, sizeof(struct xpc_vars_sn2));
- 
--	xpc_vars->version = XPC_V_VERSION;
--	xpc_vars->activate_IRQ_nasid = cpuid_to_nasid(0);
--	xpc_vars->activate_IRQ_phys_cpuid = cpu_physical_id(0);
--	xpc_vars->vars_part_pa = __pa(xpc_vars_part);
--	xpc_vars->amos_page_pa = ia64_tpa((u64)amos_page);
--	xpc_vars->amos_page = amos_page;	/* save for next load of XPC */
-+	xpc_vars_sn2->version = XPC_V_VERSION;
-+	xpc_vars_sn2->activate_IRQ_nasid = cpuid_to_nasid(0);
-+	xpc_vars_sn2->activate_IRQ_phys_cpuid = cpu_physical_id(0);
-+	xpc_vars_sn2->vars_part_pa = __pa(xpc_vars_part_sn2);
-+	xpc_vars_sn2->amos_page_pa = ia64_tpa((u64)amos_page);
-+	xpc_vars_sn2->amos_page = amos_page;	/* save for next load of XPC */
- 
--	/* clear xpc_vars_part */
--	memset((u64 *)xpc_vars_part, 0, sizeof(struct xpc_vars_part_sn2) *
-+	/* clear xpc_vars_part_sn2 */
-+	memset((u64 *)xpc_vars_part_sn2, 0, sizeof(struct xpc_vars_part_sn2) *
+@@ -599,12 +636,12 @@ xpc_rsvd_page_init_sn2(struct xpc_rsvd_p
  	       xp_max_npartitions);
  
  	/* initialize the activate IRQ related amo variables */
-@@ -649,30 +652,30 @@ xpc_rsvd_page_init_sn2(struct xpc_rsvd_p
- static void
- xpc_increment_heartbeat_sn2(void)
- {
--	xpc_vars->heartbeat++;
-+	xpc_vars_sn2->heartbeat++;
+-	for (i = 0; i < xp_nasid_mask_words; i++)
+-		(void)xpc_init_IRQ_amo_sn2(XPC_ACTIVATE_IRQ_AMOS + i);
++	for (i = 0; i < xpc_nasid_mask_words; i++)
++		(void)xpc_init_IRQ_amo_sn2(XPC_ACTIVATE_IRQ_AMOS_SN2 + i);
+ 
+ 	/* initialize the engaged remote partitions related amo variables */
+-	(void)xpc_init_IRQ_amo_sn2(XPC_ENGAGED_PARTITIONS_AMO);
+-	(void)xpc_init_IRQ_amo_sn2(XPC_DEACTIVATE_REQUEST_AMO);
++	(void)xpc_init_IRQ_amo_sn2(XPC_ENGAGED_PARTITIONS_AMO_SN2);
++	(void)xpc_init_IRQ_amo_sn2(XPC_DEACTIVATE_REQUEST_AMO_SN2);
+ 
+ 	return xpSuccess;
  }
+@@ -657,7 +694,7 @@ xpc_check_remote_hb_sn2(void)
+ 	short partid;
+ 	enum xp_retval ret;
  
- static void
- xpc_offline_heartbeat_sn2(void)
+-	remote_vars = (struct xpc_vars_sn2 *)xpc_remote_copy_buffer;
++	remote_vars = (struct xpc_vars_sn2 *)xpc_remote_copy_buffer_sn2;
+ 
+ 	for (partid = 0; partid < xp_max_npartitions; partid++) {
+ 
+@@ -749,7 +786,7 @@ xpc_request_partition_deactivation_sn2(s
+ 	struct xpc_partition_sn2 *part_sn2 = &part->sn.sn2;
+ 	unsigned long irq_flags;
+ 	struct amo *amo = (struct amo *)__va(part_sn2->remote_amos_page_pa +
+-					     (XPC_DEACTIVATE_REQUEST_AMO *
++					     (XPC_DEACTIVATE_REQUEST_AMO_SN2 *
+ 					     sizeof(struct amo)));
+ 
+ 	local_irq_save(irq_flags);
+@@ -784,7 +821,7 @@ xpc_cancel_partition_deactivation_reques
  {
- 	xpc_increment_heartbeat_sn2();
--	xpc_vars->heartbeat_offline = 1;
-+	xpc_vars_sn2->heartbeat_offline = 1;
- }
+ 	unsigned long irq_flags;
+ 	struct amo *amo = (struct amo *)__va(part->sn.sn2.remote_amos_page_pa +
+-					     (XPC_DEACTIVATE_REQUEST_AMO *
++					     (XPC_DEACTIVATE_REQUEST_AMO_SN2 *
+ 					     sizeof(struct amo)));
  
- static void
- xpc_online_heartbeat_sn2(void)
- {
- 	xpc_increment_heartbeat_sn2();
--	xpc_vars->heartbeat_offline = 0;
-+	xpc_vars_sn2->heartbeat_offline = 0;
- }
- 
- static void
- xpc_heartbeat_init_sn2(void)
- {
--	DBUG_ON(xpc_vars == NULL);
-+	DBUG_ON(xpc_vars_sn2 == NULL);
- 
--	bitmap_zero(xpc_vars->heartbeating_to_mask, XP_MAX_NPARTITIONS_SN2);
--	xpc_heartbeating_to_mask = &xpc_vars->heartbeating_to_mask[0];
-+	bitmap_zero(xpc_vars_sn2->heartbeating_to_mask, XP_MAX_NPARTITIONS_SN2);
-+	xpc_heartbeating_to_mask = &xpc_vars_sn2->heartbeating_to_mask[0];
- 	xpc_online_heartbeat_sn2();
- }
- 
-@@ -845,7 +848,8 @@ xpc_cancel_partition_deactivation_reques
+ 	local_irq_save(irq_flags);
+@@ -808,7 +845,7 @@ xpc_cancel_partition_deactivation_reques
  static int
  xpc_partition_deactivation_requested_sn2(short partid)
  {
--	struct amo *amo = xpc_vars->amos_page + XPC_DEACTIVATE_REQUEST_AMO_SN2;
-+	struct amo *amo = xpc_vars_sn2->amos_page +
-+			  XPC_DEACTIVATE_REQUEST_AMO_SN2;
+-	struct amo *amo = xpc_vars->amos_page + XPC_DEACTIVATE_REQUEST_AMO;
++	struct amo *amo = xpc_vars->amos_page + XPC_DEACTIVATE_REQUEST_AMO_SN2;
  
  	/* our partition's amo variable ANDed with partid mask */
  	return (FETCHOP_LOAD_OP(TO_AMO((u64)&amo->variable), FETCHOP_LOAD) &
-@@ -1033,7 +1037,7 @@ xpc_identify_activate_IRQ_sender_sn2(voi
+@@ -898,7 +935,7 @@ xpc_identify_activate_IRQ_req_sn2(int na
+ 
+ 	/* pull over the reserved page structure */
+ 
+-	remote_rp = (struct xpc_rsvd_page *)xpc_remote_copy_buffer;
++	remote_rp = (struct xpc_rsvd_page *)xpc_remote_copy_buffer_sn2;
+ 
+ 	ret = xpc_get_remote_rp(nasid, NULL, remote_rp, &remote_rp_pa);
+ 	if (ret != xpSuccess) {
+@@ -917,7 +954,7 @@ xpc_identify_activate_IRQ_req_sn2(int na
+ 
+ 	/* pull over the cross partition variables */
+ 
+-	remote_vars = (struct xpc_vars_sn2 *)xpc_remote_copy_buffer;
++	remote_vars = (struct xpc_vars_sn2 *)xpc_remote_copy_buffer_sn2;
+ 
+ 	ret = xpc_get_remote_vars_sn2(remote_vars_pa, remote_vars);
+ 	if (ret != xpSuccess) {
+@@ -996,10 +1033,10 @@ xpc_identify_activate_IRQ_sender_sn2(voi
  	int n_IRQs_detected = 0;
  	struct amo *act_amos;
  
--	act_amos = xpc_vars->amos_page + XPC_ACTIVATE_IRQ_AMOS_SN2;
-+	act_amos = xpc_vars_sn2->amos_page + XPC_ACTIVATE_IRQ_AMOS_SN2;
+-	act_amos = xpc_vars->amos_page + XPC_ACTIVATE_IRQ_AMOS;
++	act_amos = xpc_vars->amos_page + XPC_ACTIVATE_IRQ_AMOS_SN2;
  
  	/* scan through act amo variable looking for non-zero entries */
- 	for (word = 0; word < xpc_nasid_mask_words; word++) {
-@@ -1261,15 +1265,17 @@ xpc_setup_infrastructure_sn2(struct xpc_
- 	 * The setting of the magic # indicates that these per partition
- 	 * specific variables are ready to be used.
- 	 */
--	xpc_vars_part[partid].GPs_pa = __pa(part_sn2->local_GPs);
--	xpc_vars_part[partid].openclose_args_pa =
-+	xpc_vars_part_sn2[partid].GPs_pa = __pa(part_sn2->local_GPs);
-+	xpc_vars_part_sn2[partid].openclose_args_pa =
- 	    __pa(part->local_openclose_args);
--	xpc_vars_part[partid].chctl_amo_pa = __pa(part_sn2->local_chctl_amo_va);
-+	xpc_vars_part_sn2[partid].chctl_amo_pa =
-+	    __pa(part_sn2->local_chctl_amo_va);
- 	cpuid = raw_smp_processor_id();	/* any CPU in this partition will do */
--	xpc_vars_part[partid].notify_IRQ_nasid = cpuid_to_nasid(cpuid);
--	xpc_vars_part[partid].notify_IRQ_phys_cpuid = cpu_physical_id(cpuid);
--	xpc_vars_part[partid].nchannels = part->nchannels;
--	xpc_vars_part[partid].magic = XPC_VP_MAGIC1;
-+	xpc_vars_part_sn2[partid].notify_IRQ_nasid = cpuid_to_nasid(cpuid);
-+	xpc_vars_part_sn2[partid].notify_IRQ_phys_cpuid =
-+	    cpu_physical_id(cpuid);
-+	xpc_vars_part_sn2[partid].nchannels = part->nchannels;
-+	xpc_vars_part_sn2[partid].magic = XPC_VP_MAGIC1;
+-	for (word = 0; word < xp_nasid_mask_words; word++) {
++	for (word = 0; word < xpc_nasid_mask_words; word++) {
  
- 	return xpSuccess;
+ 		if (xpc_exiting)
+ 			break;
+@@ -2334,6 +2371,7 @@ int
+ xpc_init_sn2(void)
+ {
+ 	int ret;
++	size_t buf_size;
  
-@@ -1316,7 +1322,7 @@ xpc_teardown_infrastructure_sn2(struct x
- 	DBUG_ON(part->setup_state != XPC_P_SETUP);
- 	part->setup_state = XPC_P_WTEARDOWN;
+ 	xpc_rsvd_page_init = xpc_rsvd_page_init_sn2;
+ 	xpc_increment_heartbeat = xpc_increment_heartbeat_sn2;
+@@ -2378,6 +2416,16 @@ xpc_init_sn2(void)
+ 	xpc_send_msg = xpc_send_msg_sn2;
+ 	xpc_received_msg = xpc_received_msg_sn2;
  
--	xpc_vars_part[partid].magic = 0;
-+	xpc_vars_part_sn2[partid].magic = 0;
- 
- 	free_irq(SGI_XPC_NOTIFY, (void *)(u64)partid);
- 
-@@ -1432,7 +1438,7 @@ xpc_pull_remote_vars_part_sn2(struct xpc
- 		return xpRetry;
++	buf_size = max(XPC_RP_VARS_SIZE,
++		       XPC_RP_HEADER_SIZE + XP_NASID_MASK_BYTES_SN2);
++	xpc_remote_copy_buffer_sn2 = xpc_kmalloc_cacheline_aligned(buf_size,
++								   GFP_KERNEL,
++					      &xpc_remote_copy_buffer_base_sn2);
++	if (xpc_remote_copy_buffer_sn2 == NULL) {
++		dev_err(xpc_part, "can't get memory for remote copy buffer\n");
++		return -ENOMEM;
++	}
++
+ 	/* open up protections for IPI and [potentially] amo operations */
+ 	xpc_allow_IPI_ops_sn2();
+ 	xpc_allow_amo_ops_shub_wars_1_1_sn2();
+@@ -2394,6 +2442,7 @@ xpc_init_sn2(void)
+ 		dev_err(xpc_part, "can't register ACTIVATE IRQ handler, "
+ 			"errno=%d\n", -ret);
+ 		xpc_disallow_IPI_ops_sn2();
++		kfree(xpc_remote_copy_buffer_base_sn2);
  	}
- 
--	if (xpc_vars_part[partid].magic == XPC_VP_MAGIC1) {
-+	if (xpc_vars_part_sn2[partid].magic == XPC_VP_MAGIC1) {
- 
- 		/* validate the variables */
- 
-@@ -1462,7 +1468,7 @@ xpc_pull_remote_vars_part_sn2(struct xpc
- 
- 		/* let the other side know that we've pulled their variables */
- 
--		xpc_vars_part[partid].magic = XPC_VP_MAGIC2;
-+		xpc_vars_part_sn2[partid].magic = XPC_VP_MAGIC2;
- 	}
- 
- 	if (pulled_entry->magic == XPC_VP_MAGIC1)
+ 	return ret;
+ }
+@@ -2403,4 +2452,5 @@ xpc_exit_sn2(void)
+ {
+ 	free_irq(SGI_XPC_ACTIVATE, NULL);
+ 	xpc_disallow_IPI_ops_sn2();
++	kfree(xpc_remote_copy_buffer_base_sn2);
+ }
 _
 
 Patches currently in -mm which might be from dcn@sgi.com are
