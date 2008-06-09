@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + sgi-xp-define-is_shub-and-is_uv-macros.patch added to -mm tree
-Date: Sun, 08 Jun 2008 17:17:52 -0700
-Message-ID: <200806090017.m590Hqxe027056@imap1.linux-foundation.org>
+Subject: + sgi-xp-define-xpsalerror-reason-code.patch added to -mm tree
+Date: Sun, 08 Jun 2008 17:17:54 -0700
+Message-ID: <200806090017.m590Hsj8027059@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41590 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51242 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752669AbYFIARz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 20:17:55 -0400
+	by vger.kernel.org with ESMTP id S1755671AbYFIAR5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 20:17:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: dcn@sgi.com
 
 
 The patch titled
-     sgi-xp: define is_shub() and is_uv() macros
+     sgi-xp: define xpSalError reason code
 has been added to the -mm tree.  Its filename is
-     sgi-xp-define-is_shub-and-is_uv-macros.patch
+     sgi-xp-define-xpsalerror-reason-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,44 +33,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sgi-xp: define is_shub() and is_uv() macros
+Subject: sgi-xp: define xpSalError reason code
 From: Dean Nelson <dcn@sgi.com>
 
-Define the is_shub()/is_uv() macros if they've not already been defined.
+Define xpSalError reason code.
 
 Signed-off-by: Dean Nelson <dcn@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-xp/xp.h |   16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ drivers/misc/sgi-xp/xp.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/misc/sgi-xp/xp.h~sgi-xp-define-is_shub-and-is_uv-macros drivers/misc/sgi-xp/xp.h
---- a/drivers/misc/sgi-xp/xp.h~sgi-xp-define-is_shub-and-is_uv-macros
+diff -puN drivers/misc/sgi-xp/xp.h~sgi-xp-define-xpsalerror-reason-code drivers/misc/sgi-xp/xp.h
+--- a/drivers/misc/sgi-xp/xp.h~sgi-xp-define-xpsalerror-reason-code
 +++ a/drivers/misc/sgi-xp/xp.h
-@@ -25,6 +25,22 @@
- #define DBUG_ON(condition)
- #endif
+@@ -249,8 +249,9 @@ enum xp_retval {
+ 	xpDisconnected,		/* 51: channel disconnected (closed) */
  
-+#ifndef is_shub1
-+#define is_shub1()	0
-+#endif
-+
-+#ifndef is_shub2
-+#define is_shub2()	0
-+#endif
-+
-+#ifndef is_shub
-+#define is_shub()	(is_shub1() || is_shub2())
-+#endif
-+
-+#ifndef is_uv
-+#define is_uv()		0
-+#endif
-+
+ 	xpBteCopyError,		/* 52: bte_copy() returned error */
++	xpSalError,		/* 53: sn SAL error */
+ 
+-	xpUnknownReason		/* 53: unknown reason - must be last in enum */
++	xpUnknownReason		/* 54: unknown reason - must be last in enum */
+ };
+ 
  /*
-  * Define the maximum number of logically defined partitions the system
-  * can support. It is constrained by the maximum number of hardware
 _
 
 Patches currently in -mm which might be from dcn@sgi.com are
