@@ -1,127 +1,128 @@
 From: akpm@linux-foundation.org
-Subject: + fix-x86_64-splat.patch added to -mm tree
-Date: Mon, 09 Jun 2008 02:18:37 -0700
-Message-ID: <200806090918.m599Ib0G012837@imap1.linux-foundation.org>
+Subject: - acpi-send-switch-event-on-dock-events.patch removed from -mm tree
+Date: Mon, 09 Jun 2008 02:48:31 -0700
+Message-ID: <200806090948.m599mVob013925@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44539 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51310 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758155AbYFIJTD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2008 05:19:03 -0400
+	by vger.kernel.org with ESMTP id S1758380AbYFIJtT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2008 05:49:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: vegard.nossum@gmail.com, mingo@elte.hu, travis@sgi.com
+To: mjg59@srcf.ucam.org, dtor@mail.ru, kristen.c.accardi@intel.com, lenb@kernel.org, mjg@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix x86_64 splat
-has been added to the -mm tree.  Its filename is
-     fix-x86_64-splat.patch
+     acpi: send switch event on dock events
+has been removed from the -mm tree.  Its filename was
+     acpi-send-switch-event-on-dock-events.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it had testing failures
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix x86_64 splat
-From: "Vegard Nossum" <vegard.nossum@gmail.com>
+Subject: acpi: send switch event on dock events
+From: Matthew Garrett <mjg59@srcf.ucam.org>
 
-I have attached two patches. The sched one fixes Andrew's boot
-problem. The x86 one is untested, but I believe it is better to BUG
-than silently corrupt some arbitrary memory. (Then the callers can be
-found easily and fixed at least.)
+Send a switch event on docking for consistency with docks that don't
+present as a separate device.
 
-Cc: Mike Travis <travis@sgi.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
+Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/setup.c |    2 ++
- kernel/sched.c          |   10 +++++-----
- 2 files changed, 7 insertions(+), 5 deletions(-)
+ drivers/acpi/Kconfig |    1 +
+ drivers/acpi/dock.c  |   24 ++++++++++++++++++++++--
+ 2 files changed, 23 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/kernel/setup.c~fix-x86_64-splat arch/x86/kernel/setup.c
---- a/arch/x86/kernel/setup.c~fix-x86_64-splat
-+++ a/arch/x86/kernel/setup.c
-@@ -385,6 +385,7 @@ cpumask_t *_node_to_cpumask_ptr(int node
- 		dump_stack();
- 		return &cpu_online_map;
+diff -puN drivers/acpi/Kconfig~acpi-send-switch-event-on-dock-events drivers/acpi/Kconfig
+--- a/drivers/acpi/Kconfig~acpi-send-switch-event-on-dock-events
++++ a/drivers/acpi/Kconfig
+@@ -160,6 +160,7 @@ config ACPI_FAN
+ 
+ config ACPI_DOCK
+ 	tristate "Dock"
++	depends on INPUT
+ 	depends on EXPERIMENTAL
+ 	help
+ 	  This driver adds support for ACPI controlled docking stations
+diff -puN drivers/acpi/dock.c~acpi-send-switch-event-on-dock-events drivers/acpi/dock.c
+--- a/drivers/acpi/dock.c~acpi-send-switch-event-on-dock-events
++++ a/drivers/acpi/dock.c
+@@ -25,6 +25,7 @@
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/init.h>
++#include <linux/input.h>
+ #include <linux/types.h>
+ #include <linux/notifier.h>
+ #include <linux/platform_device.h>
+@@ -65,6 +66,7 @@ struct dock_station {
+ 	struct mutex hp_lock;
+ 	struct list_head dependent_devices;
+ 	struct list_head hotplug_devices;
++	struct input_dev *dock_input;
+ };
+ 
+ struct dock_dependent_device {
+@@ -345,10 +347,13 @@ static void dock_event(struct dock_stati
+ 	char event_string[13];
+ 	char *envp[] = { event_string, NULL };
+ 
+-	if (num == UNDOCK_EVENT)
++	if (num == UNDOCK_EVENT) {
++		input_report_switch(dock_station->dock_input, SW_DOCK, 0);
+ 		sprintf(event_string, "EVENT=undock");
+-	else
++	} else {
++		input_report_switch(dock_station->dock_input, SW_DOCK, 1);
+ 		sprintf(event_string, "EVENT=dock");
++	}
+ 
+ 	/*
+ 	 * Indicate that the status of the dock station has
+@@ -834,6 +839,19 @@ static int dock_add(acpi_handle handle)
+ 		goto dock_add_err;
  	}
-+	BUG_ON(node >= nr_node_ids);
- 	return &node_to_cpumask_map[node];
- }
- EXPORT_SYMBOL(_node_to_cpumask_ptr);
-@@ -400,6 +401,7 @@ cpumask_t node_to_cpumask(int node)
- 		dump_stack();
- 		return cpu_online_map;
- 	}
-+	BUG_ON(node >= nr_node_ids);
- 	return node_to_cpumask_map[node];
- }
- EXPORT_SYMBOL(node_to_cpumask);
-diff -puN kernel/sched.c~fix-x86_64-splat kernel/sched.c
---- a/kernel/sched.c~fix-x86_64-splat
-+++ a/kernel/sched.c
-@@ -6770,7 +6770,7 @@ static void free_sched_groups(const cpum
- 		if (!sched_group_nodes)
- 			continue;
  
--		for (i = 0; i < MAX_NUMNODES; i++) {
-+		for (i = 0; i < nr_node_ids; i++) {
- 			struct sched_group *oldsg, *sg = sched_group_nodes[i];
++	/* Set up input device */
++	dock_station->dock_input = input_allocate_device();
++	dock_station->dock_input->name = "ACPI dock";
++	dock_station->dock_input->phys = "dock/input0";
++	dock_station->dock_input->id.bustype = BUS_HOST;
++	dock_station->dock_input->dev.parent = &dock_device->dev;
++	set_bit(EV_SW, dock_station->dock_input->evbit);
++	set_bit(SW_DOCK, dock_station->dock_input->swbit);
++	ret = input_register_device(dock_station->dock_input);
++
++	if (ret)
++		input_free_device(dock_station->dock_input);
++
+ 	printk(KERN_INFO PREFIX "%s\n", ACPI_DOCK_DRIVER_DESCRIPTION);
  
- 			*nodemask = node_to_cpumask(i);
-@@ -7097,7 +7097,7 @@ static int __build_sched_domains(const c
- #endif
+ 	return 0;
+@@ -881,6 +899,8 @@ static int dock_remove(void)
+ 	device_remove_file(&dock_device->dev, &dev_attr_flags);
+ 	platform_device_unregister(dock_device);
  
- 	/* Set up physical groups */
--	for (i = 0; i < MAX_NUMNODES; i++) {
-+	for (i = 0; i < nr_node_ids; i++) {
- 		SCHED_CPUMASK_VAR(nodemask, allmasks);
- 		SCHED_CPUMASK_VAR(send_covered, allmasks);
- 
-@@ -7121,7 +7121,7 @@ static int __build_sched_domains(const c
- 					send_covered, tmpmask);
- 	}
- 
--	for (i = 0; i < MAX_NUMNODES; i++) {
-+	for (i = 0; i < nr_node_ids; i++) {
- 		/* Set up node groups */
- 		struct sched_group *sg, *prev;
- 		SCHED_CPUMASK_VAR(nodemask, allmasks);
-@@ -7160,9 +7160,9 @@ static int __build_sched_domains(const c
- 		cpus_or(*covered, *covered, *nodemask);
- 		prev = sg;
- 
--		for (j = 0; j < MAX_NUMNODES; j++) {
-+		for (j = 0; j < nr_node_ids; j++) {
- 			SCHED_CPUMASK_VAR(notcovered, allmasks);
--			int n = (i + j) % MAX_NUMNODES;
-+			int n = (i + j) % nr_node_ids;
- 			node_to_cpumask_ptr(pnodemask, n);
- 
- 			cpus_complement(*notcovered, *covered);
++	input_unregister_device(dock_station->dock_input);
++
+ 	/* free dock station memory */
+ 	kfree(dock_station);
+ 	dock_station = NULL;
 _
 
-Patches currently in -mm which might be from vegard.nossum@gmail.com are
+Patches currently in -mm which might be from mjg59@srcf.ucam.org are
 
-origin.patch
-linux-next.patch
-fix-x86_64-splat.patch
-arm-fix-header-guards.patch
-parisc-fix-incomplete-header-guard.patch
-kallsyms-fix-potential-overflow-in-binary-search.patch
-cputopology-always-define-cpu-topology-information.patch
-cputopology-always-define-cpu-topology-information-cleanup.patch
-quota-cleanup-loop-in-sync_dquots.patch
+isight_firmware-avoid-crash-on-loading-invalid-firmware.patch
+acpi-video-balcklist-fujitsu-lifebook-s6410.patch
+bay-exit-if-notify-handler-cannot-be-installed.patch
+input-add-switch-for-dock-events.patch
+acpi-send-switch-event-on-dock-events.patch
+misc-add-hp-wmi-laptop-extras-driver.patch
 
