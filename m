@@ -1,90 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - net-sh_eth-add-support-for-renesas-superh-ethernet-checkpatch-fixes.patch removed from -mm tree
-Date: Mon, 09 Jun 2008 16:32:55 -0700
-Message-ID: <200806092332.m59NWtf5014583@imap1.linux-foundation.org>
+Subject: - usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix-2.patch removed from -mm tree
+Date: Mon, 09 Jun 2008 16:37:58 -0700
+Message-ID: <200806092337.m59Nbw3Z014871@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52825 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33041 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756492AbYFIXdG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2008 19:33:06 -0400
+	by vger.kernel.org with ESMTP id S1757759AbYFIXiV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2008 19:38:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, iwamatsu.nobuhiro@renesas.com, jeff@garzik.org, lethal@linux-sh.org, shimoda.yoshihiro@renesas.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, cooloney@kernel.org, david-b@pacbell.net, gregkh@suse.de, jie.zhang@analog.com, stern@rowland.harvard.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     net-sh_eth-add-support-for-renesas-superh-ethernet-checkpatch-fixes
+     usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix-2
 has been removed from the -mm tree.  Its filename was
-     net-sh_eth-add-support-for-renesas-superh-ethernet-checkpatch-fixes.patch
+     usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix-2.patch
 
-This patch was dropped because it was folded into net-sh_eth-add-support-for-renesas-superh-ethernet.patch
+This patch was dropped because it was folded into usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: net-sh_eth-add-support-for-renesas-superh-ethernet-checkpatch-fixes
+Subject: usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: Use #include <linux/cache.h> instead of <asm/cache.h>
-#87: FILE: drivers/net/sh_eth.c:32:
-+#include <asm/cache.h>
+In file included from /usr/src/devel/drivers/usb/host/uhci-hcd.c:124:
+/usr/src/devel/drivers/usb/host/uhci-hub.c: In function 'uhci_hub_control':
+/usr/src/devel/drivers/usb/host/uhci-hub.c:256: error: implicit declaration of function 'put_unaligned_le32'
 
-WARNING: Use #include <linux/io.h> instead of <asm/io.h>
-#88: FILE: drivers/net/sh_eth.c:33:
-+#include <asm/io.h>
-
-ERROR: space prohibited after that open parenthesis '('
-#674: FILE: drivers/net/sh_eth.c:619:
-+	mod_timer( &mdp->timer, jiffies + (10 * HZ));
-
-total: 1 errors, 2 warnings, 1663 lines checked
-
-./patches/net-sh_eth-add-support-for-renesas-superh-ethernet.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-
-(akpm: also remove unused next_tick)
-
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Nobuhiro Iwamatsu <iwamatsu.nobuhiro@renesas.com>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Yoshihiro Shimoda <shimoda.yoshihiro@renesas.com>
+Cc: Alan Stern <stern@rowland.harvard.edu>
+Cc: Bryan Wu <cooloney@kernel.org>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Jie Zhang <jie.zhang@analog.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/sh_eth.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/usb/host/uhci-hcd.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/net/sh_eth.c~net-sh_eth-add-support-for-renesas-superh-ethernet-checkpatch-fixes drivers/net/sh_eth.c
---- a/drivers/net/sh_eth.c~net-sh_eth-add-support-for-renesas-superh-ethernet-checkpatch-fixes
-+++ a/drivers/net/sh_eth.c
-@@ -29,8 +29,9 @@
- #include <linux/mdio-bitbang.h>
- #include <linux/netdevice.h>
- #include <linux/phy.h>
--#include <asm/cache.h>
--#include <asm/io.h>
-+#include <linux/cache.h>
-+#include <linux/io.h>
-+
- #include "sh_eth.h"
+diff -puN drivers/usb/host/uhci-hcd.c~usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix-2 drivers/usb/host/uhci-hcd.c
+--- a/drivers/usb/host/uhci-hcd.c~usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix-2
++++ a/drivers/usb/host/uhci-hcd.c
+@@ -42,6 +42,7 @@
+ #include <linux/dmi.h>
  
- /*
-@@ -614,9 +615,8 @@ static void sh_eth_timer(unsigned long d
- {
- 	struct net_device *ndev = (struct net_device *)data;
- 	struct sh_eth_private *mdp = netdev_priv(ndev);
--	int next_tick = 10 * HZ;
- 
--	mod_timer( &mdp->timer, jiffies + (10 * HZ));
-+	mod_timer(&mdp->timer, jiffies + (10 * HZ));
- }
- 
- /* PHY state control function */
+ #include <asm/uaccess.h>
++#include <asm/unaligned.h>
+ #include <asm/io.h>
+ #include <asm/irq.h>
+ #include <asm/system.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -116,7 +83,6 @@ drivers-mtd-devices-block2mtdc-suppress-warning.patch
 bluetooth-hci_bcspc-small-cleanups-api-users.patch
 sundance-set-carrier-status-on-link-change-events.patch
 net-sh_eth-add-support-for-renesas-superh-ethernet.patch
-net-sh_eth-add-support-for-renesas-superh-ethernet-checkpatch-fixes.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 git-battery.patch
 pci-introduce-pci_slot.patch
@@ -130,7 +96,7 @@ git-unionfs-fixup.patch
 git-logfs-fixup.patch
 drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
 drivers-uwb-wlp-sysfsc-dead-code.patch
-usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix.patch
+usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues.patch
 usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix-2.patch
 watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix.patch
 watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl-fix.patch
