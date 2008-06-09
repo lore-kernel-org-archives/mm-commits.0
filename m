@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + do_generic_file_read-s-eintr-eio-if-lock_page_killable-fails.patch added to -mm tree
-Date: Sun, 08 Jun 2008 17:34:43 -0700
-Message-ID: <200806090034.m590Yhld027733@imap1.linux-foundation.org>
+Subject: + fat_valid_media-isnt-for-userspace.patch added to -mm tree
+Date: Sun, 08 Jun 2008 17:37:01 -0700
+Message-ID: <200806090037.m590b1Sp027775@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50085 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55080 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756339AbYFIAfi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 20:35:38 -0400
+	by vger.kernel.org with ESMTP id S1756345AbYFIAhn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 20:37:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, a.p.zijlstra@chello.nl, dmitry.adamushko@gmail.com, matthew@wil.cx, mingo@elte.hu, roland@redhat.com
+Cc: bunk@kernel.org, caglar@pardus.org.tr, hirofumi@mail.parknet.co.jp, onur@pardus.org.tr
 
 
 The patch titled
-     do_generic_file_read: s/EINTR/EIO/ if lock_page_killable() fails
+     fat_valid_media() isn't for userspace
 has been added to the -mm tree.  Its filename is
-     do_generic_file_read-s-eintr-eio-if-lock_page_killable-fails.patch
+     fat_valid_media-isnt-for-userspace.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,102 +33,106 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: do_generic_file_read: s/EINTR/EIO/ if lock_page_killable() fails
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: fat_valid_media() isn't for userspace
+From: Adrian Bunk <bunk@kernel.org>
 
-If lock_page_killable() fails because the task was killed by SIGKILL or
-any other fatal signal, do_generic_file_read() returns -EIO.
+Commit 73f20e58b1d586e9f6d3ddc3aad872829aca7743
+(FAT_VALID_MEDIA(): remove pointless test)
 
-This seems to be OK, because in fact the userspace won't see this error,
-the task will dequeue SIGKILL and exit.
+wrongly added the new fat_valid_media() function to the userspace-visible
+part of include/linux/msdos_fs.h
 
-However, /sbin/init is different, it will dequeue SIGKILL, ignore it, and
-return to the user-space with the bogus -EIO.
+Move it to the part of include/linux/msdos_fs.h that is not exported to
+userspace.
 
-Change the code to return the error code from lock_page_killable(), -EINTR.
-This doesn't fix the bug, but perhaps makes sense anyway. Imho, with this
-change the code looks a bit more logical, and the "good" init should handle
-the spurious EINTR or short read.
-
-Afaics we can also change lock_page_killable() to return -ERESTARTNOINTR,
-but this can't prevent the short reads.
-
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Matthew Wilcox <matthew@wil.cx>
-Cc: Dmitry Adamushko <dmitry.adamushko@gmail.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Roland McGrath <roland@redhat.com>
+Reported-by: Onur Kucuk <onur@pardus.org.tr>
+Reported-by: S.Caglar Onur <caglar@pardus.org.tr>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ include/linux/msdos_fs.h |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN mm/filemap.c~do_generic_file_read-s-eintr-eio-if-lock_page_killable-fails mm/filemap.c
---- a/mm/filemap.c~do_generic_file_read-s-eintr-eio-if-lock_page_killable-fails
-+++ a/mm/filemap.c
-@@ -1000,8 +1000,9 @@ page_ok:
+diff -puN include/linux/msdos_fs.h~fat_valid_media-isnt-for-userspace include/linux/msdos_fs.h
+--- a/include/linux/msdos_fs.h~fat_valid_media-isnt-for-userspace
++++ a/include/linux/msdos_fs.h
+@@ -57,12 +57,6 @@
+ #define MSDOS_DOT	".          "	/* ".", padded to MSDOS_NAME chars */
+ #define MSDOS_DOTDOT	"..         "	/* "..", padded to MSDOS_NAME chars */
  
- page_not_up_to_date:
- 		/* Get exclusive access to the page ... */
--		if (lock_page_killable(page))
--			goto readpage_eio;
-+		error = lock_page_killable(page);
-+		if (unlikely(error))
-+			goto readpage_error;
+-/* media of boot sector */
+-static inline int fat_valid_media(u8 media)
+-{
+-	return 0xf8 <= media || media == 0xf0;
+-}
+-
+ #define FAT_FIRST_ENT(s, x)	((MSDOS_SB(s)->fat_bits == 32 ? 0x0FFFFF00 : \
+ 	MSDOS_SB(s)->fat_bits == 16 ? 0xFF00 : 0xF00) | (x))
  
- 		/* Did it get truncated before we got the lock? */
- 		if (!page->mapping) {
-@@ -1029,8 +1030,9 @@ readpage:
- 		}
+@@ -334,6 +328,12 @@ static inline void fatwchar_to16(__u8 *d
+ #endif
+ }
  
- 		if (!PageUptodate(page)) {
--			if (lock_page_killable(page))
--				goto readpage_eio;
-+			error = lock_page_killable(page);
-+			if (unlikely(error))
-+				goto readpage_error;
- 			if (!PageUptodate(page)) {
- 				if (page->mapping == NULL) {
- 					/*
-@@ -1042,15 +1044,14 @@ readpage:
- 				}
- 				unlock_page(page);
- 				shrink_readahead_size_eio(filp, ra);
--				goto readpage_eio;
-+				error = -EIO;
-+				goto readpage_error;
- 			}
- 			unlock_page(page);
- 		}
- 
- 		goto page_ok;
- 
--readpage_eio:
--		error = -EIO;
- readpage_error:
- 		/* UHHUH! A synchronous read error occurred. Report it */
- 		desc->error = error;
++/* media of boot sector */
++static inline int fat_valid_media(u8 media)
++{
++	return 0xf8 <= media || media == 0xf0;
++}
++
+ /* fat/cache.c */
+ extern void fat_cache_inval_inode(struct inode *inode);
+ extern int fat_get_cluster(struct inode *inode, int cluster,
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from bunk@kernel.org are
 
 origin.patch
-sched-fix-task_wakekill-vs-sigkill-race.patch
-__mutex_lock_common-use-signal_pending_state.patch
-do_generic_file_read-s-eintr-eio-if-lock_page_killable-fails.patch
-introduce-pf_kthread-flag.patch
-kill-pf_borrowed_mm-in-favour-of-pf_kthread.patch
-coredump-zap_threads-must-skip-kernel-threads.patch
-posix-timers-timer_delete-remove-the-bogus-it_process-=-null-check.patch
-posix-timers-release_posix_timer-kill-the-bogus-put_task_struct-it_process.patch
-signals-collect_signal-remove-the-unneeded-sigismember-check.patch
-signals-collect_signal-simplify-the-still_pending-logic.patch
-signals-change-collect_signal-to-return-void.patch
-__exit_signal-dont-take-rcu-lock.patch
-signals-dequeue_signal-dont-check-signal_group_exit-when-setting-signal_stop_dequeued.patch
-signals-do_signal_stop-kill-the-signal_unkillable-check.patch
-coredump-zap_threads-comments-use-while_each_thread.patch
-distinct-tgid-tid-i-o-statistics.patch
+linux-next.patch
+proper-prototype-for-acpi_processor_tstate_has_changed.patch
+remove-drivers-acorn-char-defkeymap-l7200c.patch
+drm-make-drm_minors_cleanup-static.patch
+if-0-ses_match_host.patch
+git-xtensa.patch
+fat_valid_media-isnt-for-userspace.patch
+mm-migratec-should-include-linux-syscallsh.patch
+mm-vmstatc-proper-externs.patch
+mm-hugetlbc-fix-duplicate-variable.patch
+remove-include-asm-h8300-keyboardh.patch
+remove-include-linux-pm_legacyh.patch
+remove-the-v850-port.patch
+init-do_mountsc-should-include-linux-initrdh.patch
+proper-spawn_ksoftirqd-prototype.patch
+build-kernel-profileo-only-when-requested.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+asm-generic-int-ll64h-always-provide-__su64.patch
+remove-some-more-tipar-bits.patch
+remove-the-oss-trident-driver.patch
+config_sound_wm97xx-remove-stale-makefile-line.patch
+serial-8250_gscc-add-module_license.patch
+mfd-sm501c-if-0-unused-functions.patch
+video-sis-remove-compat-code.patch
+minix-remove-no_truncate-code.patch
+remove-is_tty.patch
+proper-extern-for-mwave_s_mdd.patch
+if-0-hpet_unregister.patch
+unexport-proc_clear_tty.patch
+move-proc_kmsg_operations-to-fs-proc-internalh.patch
+proper-pidhashmap_init-prototypes.patch
+unexport-uts_sem.patch
+parport-sharec-proper-externs.patch
+tpm_biosc-make-2-structs-static.patch
+make-cgroup_seqfile_release-static.patch
+make-kprobe_blacklist-static.patch
+make-pnp_add_card_id-static.patch
+make-parport_cs_release-static.patch
+make-mm-sparsec-make-a-function-static.patch
+mm-allocpercpuc-make-4-functions-static.patch
+make-mm-memoryc-print_bad_pte-static.patch
+mm-swapfilec-make-code-static.patch
+make-mm-rmapc-anon_vma_cachep-static.patch
+drivers-char-rtcc-make-2-functions-static.patch
+make-init-do_mountsc-root_device_name-static.patch
+reiser4.patch
 
