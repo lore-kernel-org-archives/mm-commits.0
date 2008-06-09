@@ -1,70 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: + smc911x-pass-along-private-data-and-use-iomem-fix.patch added to -mm tree
-Date: Mon, 09 Jun 2008 15:05:14 -0700
-Message-ID: <200806092205.m59M5EeB010571@imap1.linux-foundation.org>
+Subject: - jbd-ordered-data-integrity-fix.patch removed from -mm tree
+Date: Mon, 09 Jun 2008 15:12:08 -0700
+Message-ID: <200806092212.m59MC8VO010893__33993.617600254$1213049607$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60140 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34188 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752885AbYFIWFi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2008 18:05:38 -0400
+	by vger.kernel.org with ESMTP id S1752709AbYFIWMN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2008 18:12:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: m.kozlowski@tuxland.pl, damm@igel.co.jp, jeff@garzik.org, lethal@linux-sh.org
+To: hidehiro.kawai.ez@hitachi.com, jack@suse.cz, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     smc911x-pass-along-private-data-and-use-iomem fix
-has been added to the -mm tree.  Its filename is
-     smc911x-pass-along-private-data-and-use-iomem-fix.patch
+     jbd: ordered data integrity fix
+has been removed from the -mm tree.  Its filename was
+     jbd-ordered-data-integrity-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because I don't think we want to go read-only on file data write errors
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: smc911x-pass-along-private-data-and-use-iomem fix
-From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Subject: jbd: ordered data integrity fix
+From: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
 
-Parenthesis fix in drivers/net/smc911x.h
+In ordered mode, if a file data buffer being dirtied exists in the
+committing transaction, we write the buffer to the disk, move it from the
+committing transaction to the running transaction, then dirty it.  But we
+don't have to remove the buffer from the committing transaction when the
+buffer couldn't be written out, otherwise it would miss the error and the
+committing transaction would not abort.
 
-Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-Cc: Magnus Damm <damm@igel.co.jp>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Paul Mundt <lethal@linux-sh.org>
+This patch adds an error check before removing the buffer from the
+committing transaction.
+
+Signed-off-by: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
+Acked-by: Jan Kara <jack@suse.cz>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/smc911x.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/jbd/transaction.c |   16 +++++++++++++---
+ 1 file changed, 13 insertions(+), 3 deletions(-)
 
-diff -puN drivers/net/smc911x.h~smc911x-pass-along-private-data-and-use-iomem-fix drivers/net/smc911x.h
---- a/drivers/net/smc911x.h~smc911x-pass-along-private-data-and-use-iomem-fix
-+++ a/drivers/net/smc911x.h
-@@ -99,7 +99,7 @@ struct smc911x_local {
-  */
+diff -puN fs/jbd/transaction.c~jbd-ordered-data-integrity-fix fs/jbd/transaction.c
+--- a/fs/jbd/transaction.c~jbd-ordered-data-integrity-fix
++++ a/fs/jbd/transaction.c
+@@ -954,9 +954,10 @@ int journal_dirty_data(handle_t *handle,
+ 	journal_t *journal = handle->h_transaction->t_journal;
+ 	int need_brelse = 0;
+ 	struct journal_head *jh;
++	int ret = 0;
  
- #if	SMC_USE_16BIT
--#define SMC_inl(lp, r)		 (readw((lp)->base + (r)) & 0xFFFF) + (readw((lp)->base + (r) + 2) << 16))
-+#define SMC_inl(lp, r)		 ((readw((lp)->base + (r)) & 0xFFFF) + (readw((lp)->base + (r) + 2) << 16))
- #define SMC_outl(v, lp, r) 			 \
- 	do{					 \
- 		 writew(v & 0xFFFF, (lp)->base + (r));	 \
+ 	if (is_handle_aborted(handle))
+-		return 0;
++		return ret;
+ 
+ 	jh = journal_add_journal_head(bh);
+ 	JBUFFER_TRACE(jh, "entry");
+@@ -1067,7 +1068,16 @@ int journal_dirty_data(handle_t *handle,
+ 				   time if it is redirtied */
+ 			}
+ 
+-			/* journal_clean_data_list() may have got there first */
++			/*
++			 * We cannot remove the buffer with io error from the
++			 * committing transaction, because otherwise it would
++			 * miss the error and the commit would not abort.
++			 */
++			if (unlikely(!buffer_uptodate(bh))) {
++				ret = -EIO;
++				goto no_journal;
++			}
++
+ 			if (jh->b_transaction != NULL) {
+ 				JBUFFER_TRACE(jh, "unfile from commit");
+ 				__journal_temp_unlink_buffer(jh);
+@@ -1108,7 +1118,7 @@ no_journal:
+ 	}
+ 	JBUFFER_TRACE(jh, "exit");
+ 	journal_put_journal_head(jh);
+-	return 0;
++	return ret;
+ }
+ 
+ /**
 _
 
-Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
+Patches currently in -mm which might be from hidehiro.kawai.ez@hitachi.com are
 
-linux-next.patch
-smc911x-pass-along-private-data-and-use-iomem-fix.patch
-reiser4.patch
+jbd-ordered-data-integrity-fix.patch
+jbd-abort-when-failed-to-log-metadata-buffers.patch
+jbd-fix-error-handling-for-checkpoint-io.patch
+ext3-abort-ext3-if-the-journal-has-aborted.patch
+ext3-abort-ext3-if-the-journal-has-aborted-warning-fix.patch
 
