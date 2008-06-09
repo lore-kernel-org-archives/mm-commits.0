@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + sgi-xp-isolate-allocation-of-xpcs-msgqueues-to-sn2-only.patch added to -mm tree
-Date: Sun, 08 Jun 2008 17:18:23 -0700
-Message-ID: <200806090018.m590INiG027106@imap1.linux-foundation.org>
+Subject: + sgi-xp-enable-xpnet-to-handle-more-than-64-partitions.patch added to -mm tree
+Date: Sun, 08 Jun 2008 17:18:25 -0700
+Message-ID: <200806090018.m590IP9O027109@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44960 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40300 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756454AbYFIAS0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 20:18:26 -0400
+	by vger.kernel.org with ESMTP id S1756545AbYFIAS2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 20:18:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: dcn@sgi.com
 
 
 The patch titled
-     sgi-xp: isolate allocation of XPC's msgqueues to sn2 only
+     sgi-xp: enable XPNET to handle more than 64 partitions
 has been added to the -mm tree.  Its filename is
-     sgi-xp-isolate-allocation-of-xpcs-msgqueues-to-sn2-only.patch
+     sgi-xp-enable-xpnet-to-handle-more-than-64-partitions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,541 +33,403 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sgi-xp: isolate allocation of XPC's msgqueues to sn2 only
+Subject: sgi-xp: enable XPNET to handle more than 64 partitions
 From: Dean Nelson <dcn@sgi.com>
 
-Move the allocation of XPC's msgqueues to xpc_sn2.c.
+Enable XPNET to support more than 64 partitions.
 
 Signed-off-by: Dean Nelson <dcn@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-xp/xpc.h         |    3 
- drivers/misc/sgi-xp/xpc_channel.c |  197 --------------------------
- drivers/misc/sgi-xp/xpc_main.c    |    2 
- drivers/misc/sgi-xp/xpc_sn2.c     |  205 ++++++++++++++++++++++++++--
- 4 files changed, 204 insertions(+), 203 deletions(-)
+ drivers/misc/sgi-xp/xpnet.c |  213 +++++++++++++++-------------------
+ 1 file changed, 94 insertions(+), 119 deletions(-)
 
-diff -puN drivers/misc/sgi-xp/xpc.h~sgi-xp-isolate-allocation-of-xpcs-msgqueues-to-sn2-only drivers/misc/sgi-xp/xpc.h
---- a/drivers/misc/sgi-xp/xpc.h~sgi-xp-isolate-allocation-of-xpcs-msgqueues-to-sn2-only
-+++ a/drivers/misc/sgi-xp/xpc.h
-@@ -666,6 +666,8 @@ extern void (*xpc_online_heartbeat) (voi
- extern void (*xpc_check_remote_hb) (void);
- extern enum xp_retval (*xpc_make_first_contact) (struct xpc_partition *);
- extern u64 (*xpc_get_chctl_all_flags) (struct xpc_partition *);
-+extern enum xp_retval (*xpc_allocate_msgqueues) (struct xpc_channel *);
-+extern void (*xpc_free_msgqueues) (struct xpc_channel *);
- extern void (*xpc_notify_senders_of_disconnect) (struct xpc_channel *);
- extern void (*xpc_process_msg_chctl_flags) (struct xpc_partition *, int);
- extern int (*xpc_n_of_deliverable_msgs) (struct xpc_channel *);
-@@ -728,7 +730,6 @@ extern void xpc_deactivate_partition(con
- extern enum xp_retval xpc_initiate_partid_to_nasids(short, void *);
- 
- /* found in xpc_channel.c */
--extern void *xpc_kzalloc_cacheline_aligned(size_t, gfp_t, void **);
- extern void xpc_initiate_connect(int);
- extern void xpc_initiate_disconnect(int);
- extern enum xp_retval xpc_allocate_msg_wait(struct xpc_channel *);
-diff -puN drivers/misc/sgi-xp/xpc_channel.c~sgi-xp-isolate-allocation-of-xpcs-msgqueues-to-sn2-only drivers/misc/sgi-xp/xpc_channel.c
---- a/drivers/misc/sgi-xp/xpc_channel.c~sgi-xp-isolate-allocation-of-xpcs-msgqueues-to-sn2-only
-+++ a/drivers/misc/sgi-xp/xpc_channel.c
-@@ -25,145 +25,6 @@
- #include "xpc.h"
- 
- /*
-- * Guarantee that the kzalloc'd memory is cacheline aligned.
-- */
--void *
--xpc_kzalloc_cacheline_aligned(size_t size, gfp_t flags, void **base)
--{
--	/* see if kzalloc will give us cachline aligned memory by default */
--	*base = kzalloc(size, flags);
--	if (*base == NULL)
--		return NULL;
--
--	if ((u64)*base == L1_CACHE_ALIGN((u64)*base))
--		return *base;
--
--	kfree(*base);
--
--	/* nope, we'll have to do it ourselves */
--	*base = kzalloc(size + L1_CACHE_BYTES, flags);
--	if (*base == NULL)
--		return NULL;
--
--	return (void *)L1_CACHE_ALIGN((u64)*base);
--}
--
--/*
-- * Allocate the local message queue and the notify queue.
-- */
--static enum xp_retval
--xpc_allocate_local_msgqueue(struct xpc_channel *ch)
--{
--	unsigned long irq_flags;
--	int nentries;
--	size_t nbytes;
--
--	for (nentries = ch->local_nentries; nentries > 0; nentries--) {
--
--		nbytes = nentries * ch->msg_size;
--		ch->local_msgqueue = xpc_kzalloc_cacheline_aligned(nbytes,
--								   GFP_KERNEL,
--						      &ch->local_msgqueue_base);
--		if (ch->local_msgqueue == NULL)
--			continue;
--
--		nbytes = nentries * sizeof(struct xpc_notify);
--		ch->notify_queue = kzalloc(nbytes, GFP_KERNEL);
--		if (ch->notify_queue == NULL) {
--			kfree(ch->local_msgqueue_base);
--			ch->local_msgqueue = NULL;
--			continue;
--		}
--
--		spin_lock_irqsave(&ch->lock, irq_flags);
--		if (nentries < ch->local_nentries) {
--			dev_dbg(xpc_chan, "nentries=%d local_nentries=%d, "
--				"partid=%d, channel=%d\n", nentries,
--				ch->local_nentries, ch->partid, ch->number);
--
--			ch->local_nentries = nentries;
--		}
--		spin_unlock_irqrestore(&ch->lock, irq_flags);
--		return xpSuccess;
--	}
--
--	dev_dbg(xpc_chan, "can't get memory for local message queue and notify "
--		"queue, partid=%d, channel=%d\n", ch->partid, ch->number);
--	return xpNoMemory;
--}
--
--/*
-- * Allocate the cached remote message queue.
-- */
--static enum xp_retval
--xpc_allocate_remote_msgqueue(struct xpc_channel *ch)
--{
--	unsigned long irq_flags;
--	int nentries;
--	size_t nbytes;
--
--	DBUG_ON(ch->remote_nentries <= 0);
--
--	for (nentries = ch->remote_nentries; nentries > 0; nentries--) {
--
--		nbytes = nentries * ch->msg_size;
--		ch->remote_msgqueue = xpc_kzalloc_cacheline_aligned(nbytes,
--								    GFP_KERNEL,
--						     &ch->remote_msgqueue_base);
--		if (ch->remote_msgqueue == NULL)
--			continue;
--
--		spin_lock_irqsave(&ch->lock, irq_flags);
--		if (nentries < ch->remote_nentries) {
--			dev_dbg(xpc_chan, "nentries=%d remote_nentries=%d, "
--				"partid=%d, channel=%d\n", nentries,
--				ch->remote_nentries, ch->partid, ch->number);
--
--			ch->remote_nentries = nentries;
--		}
--		spin_unlock_irqrestore(&ch->lock, irq_flags);
--		return xpSuccess;
--	}
--
--	dev_dbg(xpc_chan, "can't get memory for cached remote message queue, "
--		"partid=%d, channel=%d\n", ch->partid, ch->number);
--	return xpNoMemory;
--}
--
--/*
-- * Allocate message queues and other stuff associated with a channel.
-- *
-- * Note: Assumes all of the channel sizes are filled in.
-- */
--static enum xp_retval
--xpc_allocate_msgqueues(struct xpc_channel *ch)
--{
--	unsigned long irq_flags;
--	enum xp_retval ret;
--
--	DBUG_ON(ch->flags & XPC_C_SETUP);
--
--	ret = xpc_allocate_local_msgqueue(ch);
--	if (ret != xpSuccess)
--		return ret;
--
--	ret = xpc_allocate_remote_msgqueue(ch);
--	if (ret != xpSuccess) {
--		kfree(ch->local_msgqueue_base);
--		ch->local_msgqueue = NULL;
--		kfree(ch->notify_queue);
--		ch->notify_queue = NULL;
--		return ret;
--	}
--
--	spin_lock_irqsave(&ch->lock, irq_flags);
--	ch->flags |= XPC_C_SETUP;
--	spin_unlock_irqrestore(&ch->lock, irq_flags);
--
--	return xpSuccess;
--}
--
--/*
-  * Process a connect message from a remote partition.
-  *
-  * Note: xpc_process_connect() is expecting to be called with the
-@@ -191,10 +52,11 @@ xpc_process_connect(struct xpc_channel *
- 		if (ret != xpSuccess)
- 			XPC_DISCONNECT_CHANNEL(ch, ret, irq_flags);
- 
-+		ch->flags |= XPC_C_SETUP;
-+
- 		if (ch->flags & (XPC_C_CONNECTED | XPC_C_DISCONNECTING))
- 			return;
- 
--		DBUG_ON(!(ch->flags & XPC_C_SETUP));
- 		DBUG_ON(ch->local_msgqueue == NULL);
- 		DBUG_ON(ch->remote_msgqueue == NULL);
- 	}
-@@ -220,55 +82,6 @@ xpc_process_connect(struct xpc_channel *
- }
- 
- /*
-- * Free up message queues and other stuff that were allocated for the specified
-- * channel.
-- *
-- * Note: ch->reason and ch->reason_line are left set for debugging purposes,
-- * they're cleared when XPC_C_DISCONNECTED is cleared.
-- */
--static void
--xpc_free_msgqueues(struct xpc_channel *ch)
--{
--	struct xpc_channel_sn2 *ch_sn2 = &ch->sn.sn2;
--
--	DBUG_ON(!spin_is_locked(&ch->lock));
--	DBUG_ON(atomic_read(&ch->n_to_notify) != 0);
--
--	ch->remote_msgqueue_pa = 0;
--	ch->func = NULL;
--	ch->key = NULL;
--	ch->msg_size = 0;
--	ch->local_nentries = 0;
--	ch->remote_nentries = 0;
--	ch->kthreads_assigned_limit = 0;
--	ch->kthreads_idle_limit = 0;
--
--	ch_sn2->local_GP->get = 0;
--	ch_sn2->local_GP->put = 0;
--	ch_sn2->remote_GP.get = 0;
--	ch_sn2->remote_GP.put = 0;
--	ch_sn2->w_local_GP.get = 0;
--	ch_sn2->w_local_GP.put = 0;
--	ch_sn2->w_remote_GP.get = 0;
--	ch_sn2->w_remote_GP.put = 0;
--	ch_sn2->next_msg_to_pull = 0;
--
--	if (ch->flags & XPC_C_SETUP) {
--		ch->flags &= ~XPC_C_SETUP;
--
--		dev_dbg(xpc_chan, "ch->flags=0x%x, partid=%d, channel=%d\n",
--			ch->flags, ch->partid, ch->number);
--
--		kfree(ch->local_msgqueue_base);
--		ch->local_msgqueue = NULL;
--		kfree(ch->remote_msgqueue_base);
--		ch->remote_msgqueue = NULL;
--		kfree(ch->notify_queue);
--		ch->notify_queue = NULL;
--	}
--}
--
--/*
-  * spin_lock_irqsave() is expected to be held on entry.
+diff -puN drivers/misc/sgi-xp/xpnet.c~sgi-xp-enable-xpnet-to-handle-more-than-64-partitions drivers/misc/sgi-xp/xpnet.c
+--- a/drivers/misc/sgi-xp/xpnet.c~sgi-xp-enable-xpnet-to-handle-more-than-64-partitions
++++ a/drivers/misc/sgi-xp/xpnet.c
+@@ -21,7 +21,6 @@
   */
- static void
-@@ -331,7 +144,11 @@ xpc_process_disconnect(struct xpc_channe
- 	/* it's now safe to free the channel's message queues */
- 	xpc_free_msgqueues(ch);
  
--	/* mark disconnected, clear all other flags except XPC_C_WDISCONNECT */
-+	/*
-+	 * Mark the channel disconnected and clear all other flags, including
-+	 * XPC_C_SETUP (because of call to xpc_free_msgqueues()) but not
-+	 * including XPC_C_WDISCONNECT (if it was set).
-+	 */
- 	ch->flags = (XPC_C_DISCONNECTED | (ch->flags & XPC_C_WDISCONNECT));
+ #include <linux/module.h>
+-#include <linux/types.h>
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+ #include <linux/ioport.h>
+@@ -32,8 +31,6 @@
+ #include <linux/mii.h>
+ #include <linux/smp.h>
+ #include <linux/string.h>
+-#include <asm/sn/io.h>
+-#include <asm/sn/sn_sal.h>
+ #include <asm/atomic.h>
+ #include "xp.h"
  
- 	atomic_dec(&part->nchannels_active);
-diff -puN drivers/misc/sgi-xp/xpc_main.c~sgi-xp-isolate-allocation-of-xpcs-msgqueues-to-sn2-only drivers/misc/sgi-xp/xpc_main.c
---- a/drivers/misc/sgi-xp/xpc_main.c~sgi-xp-isolate-allocation-of-xpcs-msgqueues-to-sn2-only
-+++ a/drivers/misc/sgi-xp/xpc_main.c
-@@ -186,6 +186,8 @@ void (*xpc_check_remote_hb) (void);
- enum xp_retval (*xpc_make_first_contact) (struct xpc_partition *part);
- void (*xpc_notify_senders_of_disconnect) (struct xpc_channel *ch);
- u64 (*xpc_get_chctl_all_flags) (struct xpc_partition *part);
-+enum xp_retval (*xpc_allocate_msgqueues) (struct xpc_channel *ch);
-+void (*xpc_free_msgqueues) (struct xpc_channel *ch);
- void (*xpc_process_msg_chctl_flags) (struct xpc_partition *part, int ch_number);
- int (*xpc_n_of_deliverable_msgs) (struct xpc_channel *ch);
- struct xpc_msg *(*xpc_get_deliverable_msg) (struct xpc_channel *ch);
-diff -puN drivers/misc/sgi-xp/xpc_sn2.c~sgi-xp-isolate-allocation-of-xpcs-msgqueues-to-sn2-only drivers/misc/sgi-xp/xpc_sn2.c
---- a/drivers/misc/sgi-xp/xpc_sn2.c~sgi-xp-isolate-allocation-of-xpcs-msgqueues-to-sn2-only
-+++ a/drivers/misc/sgi-xp/xpc_sn2.c
-@@ -1049,6 +1049,30 @@ xpc_process_activate_IRQ_rcvd_sn2(int n_
- }
- 
- /*
-+ * Guarantee that the kzalloc'd memory is cacheline aligned.
-+ */
-+static void *
-+xpc_kzalloc_cacheline_aligned_sn2(size_t size, gfp_t flags, void **base)
-+{
-+	/* see if kzalloc will give us cachline aligned memory by default */
-+	*base = kzalloc(size, flags);
-+	if (*base == NULL)
-+		return NULL;
-+
-+	if ((u64)*base == L1_CACHE_ALIGN((u64)*base))
-+		return *base;
-+
-+	kfree(*base);
-+
-+	/* nope, we'll have to do it ourselves */
-+	*base = kzalloc(size + L1_CACHE_BYTES, flags);
-+	if (*base == NULL)
-+		return NULL;
-+
-+	return (void *)L1_CACHE_ALIGN((u64)*base);
-+}
-+
-+/*
-  * Setup the infrastructure necessary to support XPartition Communication
-  * between the specified remote partition and the local one.
+@@ -104,7 +101,6 @@ struct xpnet_message {
+  * then be released.
   */
-@@ -1078,10 +1102,9 @@ xpc_setup_infrastructure_sn2(struct xpc_
+ struct xpnet_pending_msg {
+-	struct list_head free_list;
+ 	struct sk_buff *skb;
+ 	atomic_t use_count;
+ };
+@@ -120,7 +116,7 @@ struct net_device *xpnet_device;
+  * When we are notified of other partitions activating, we add them to
+  * our bitmask of partitions to which we broadcast.
+  */
+-static u64 xpnet_broadcast_partitions;
++static unsigned long *xpnet_broadcast_partitions;
+ /* protect above */
+ static DEFINE_SPINLOCK(xpnet_broadcast_lock);
  
- 	/* allocate all the required GET/PUT values */
- 
--	part_sn2->local_GPs = xpc_kzalloc_cacheline_aligned(XPC_GP_SIZE,
--							    GFP_KERNEL,
--							    &part_sn2->
--							    local_GPs_base);
-+	part_sn2->local_GPs =
-+	    xpc_kzalloc_cacheline_aligned_sn2(XPC_GP_SIZE, GFP_KERNEL,
-+					      &part_sn2->local_GPs_base);
- 	if (part_sn2->local_GPs == NULL) {
- 		dev_err(xpc_chan, "can't get memory for local get/put "
- 			"values\n");
-@@ -1089,10 +1112,9 @@ xpc_setup_infrastructure_sn2(struct xpc_
- 		goto out_1;
- 	}
- 
--	part_sn2->remote_GPs = xpc_kzalloc_cacheline_aligned(XPC_GP_SIZE,
--							     GFP_KERNEL,
--							     &part_sn2->
--							     remote_GPs_base);
-+	part_sn2->remote_GPs =
-+	    xpc_kzalloc_cacheline_aligned_sn2(XPC_GP_SIZE, GFP_KERNEL,
-+					      &part_sn2->remote_GPs_base);
- 	if (part_sn2->remote_GPs == NULL) {
- 		dev_err(xpc_chan, "can't get memory for remote get/put "
- 			"values\n");
-@@ -1105,8 +1127,9 @@ xpc_setup_infrastructure_sn2(struct xpc_
- 	/* allocate all the required open and close args */
- 
- 	part->local_openclose_args =
--	    xpc_kzalloc_cacheline_aligned(XPC_OPENCLOSE_ARGS_SIZE, GFP_KERNEL,
--					  &part->local_openclose_args_base);
-+	    xpc_kzalloc_cacheline_aligned_sn2(XPC_OPENCLOSE_ARGS_SIZE,
-+					      GFP_KERNEL,
-+					      &part->local_openclose_args_base);
- 	if (part->local_openclose_args == NULL) {
- 		dev_err(xpc_chan, "can't get memory for local connect args\n");
- 		retval = xpNoMemory;
-@@ -1114,8 +1137,9 @@ xpc_setup_infrastructure_sn2(struct xpc_
- 	}
- 
- 	part->remote_openclose_args =
--	    xpc_kzalloc_cacheline_aligned(XPC_OPENCLOSE_ARGS_SIZE, GFP_KERNEL,
--					  &part->remote_openclose_args_base);
-+	    xpc_kzalloc_cacheline_aligned_sn2(XPC_OPENCLOSE_ARGS_SIZE,
-+					      GFP_KERNEL,
-+					     &part->remote_openclose_args_base);
- 	if (part->remote_openclose_args == NULL) {
- 		dev_err(xpc_chan, "can't get memory for remote connect args\n");
- 		retval = xpNoMemory;
-@@ -1528,6 +1552,161 @@ xpc_get_chctl_all_flags_sn2(struct xpc_p
- }
+@@ -140,16 +136,13 @@ static DEFINE_SPINLOCK(xpnet_broadcast_l
+ #define XPNET_DEF_MTU (0x8000UL)
  
  /*
-+ * Allocate the local message queue and the notify queue.
-+ */
-+static enum xp_retval
-+xpc_allocate_local_msgqueue_sn2(struct xpc_channel *ch)
-+{
-+	unsigned long irq_flags;
-+	int nentries;
-+	size_t nbytes;
+- * The partition id is encapsulated in the MAC address.  The following
+- * define locates the octet the partid is in.
++ * The partid is encapsulated in the MAC address beginning in the following
++ * octet and it consists of two octets.
+  */
+-#define XPNET_PARTID_OCTET	1
+-#define XPNET_LICENSE_OCTET	2
++#define XPNET_PARTID_OCTET	2
 +
-+	for (nentries = ch->local_nentries; nentries > 0; nentries--) {
-+
-+		nbytes = nentries * ch->msg_size;
-+		ch->local_msgqueue =
-+		    xpc_kzalloc_cacheline_aligned_sn2(nbytes, GFP_KERNEL,
-+						      &ch->local_msgqueue_base);
-+		if (ch->local_msgqueue == NULL)
-+			continue;
-+
-+		nbytes = nentries * sizeof(struct xpc_notify);
-+		ch->notify_queue = kzalloc(nbytes, GFP_KERNEL);
-+		if (ch->notify_queue == NULL) {
-+			kfree(ch->local_msgqueue_base);
-+			ch->local_msgqueue = NULL;
-+			continue;
++/* Define the XPNET debug device structures to be used with dev_dbg() et al */
+ 
+-/*
+- * Define the XPNET debug device structure that is to be used with dev_dbg(),
+- * dev_err(), dev_warn(), and dev_info().
+- */
+ struct device_driver xpnet_dbg_name = {
+ 	.name = "xpnet"
+ };
+@@ -231,7 +224,7 @@ xpnet_receive(short partid, int channel,
+ 					  (void *)msg->buf_pa, msg->size);
+ 
+ 		ret = xp_remote_memcpy((void *)((u64)skb->data &
+-				                ~(L1_CACHE_BYTES - 1)),
++						~(L1_CACHE_BYTES - 1)),
+ 				       (void *)msg->buf_pa, msg->size);
+ 
+ 		if (ret != xpSuccess) {
+@@ -283,8 +276,6 @@ static void
+ xpnet_connection_activity(enum xp_retval reason, short partid, int channel,
+ 			  void *data, void *key)
+ {
+-	long bp;
+-
+ 	DBUG_ON(partid < 0 || partid >= xp_max_npartitions);
+ 	DBUG_ON(channel != XPC_NET_CHANNEL);
+ 
+@@ -297,31 +288,28 @@ xpnet_connection_activity(enum xp_retval
+ 
+ 	case xpConnected:	/* connection completed to a partition */
+ 		spin_lock_bh(&xpnet_broadcast_lock);
+-		xpnet_broadcast_partitions |= 1UL << (partid - 1);
+-		bp = xpnet_broadcast_partitions;
++		__set_bit(partid, xpnet_broadcast_partitions);
+ 		spin_unlock_bh(&xpnet_broadcast_lock);
+ 
+ 		netif_carrier_on(xpnet_device);
+ 
+-		dev_dbg(xpnet, "%s connection created to partition %d; "
+-			"xpnet_broadcast_partitions=0x%lx\n",
+-			xpnet_device->name, partid, bp);
++		dev_dbg(xpnet, "%s connected to partition %d\n",
++			xpnet_device->name, partid);
+ 		break;
+ 
+ 	default:
+ 		spin_lock_bh(&xpnet_broadcast_lock);
+-		xpnet_broadcast_partitions &= ~(1UL << (partid - 1));
+-		bp = xpnet_broadcast_partitions;
++		__clear_bit(partid, xpnet_broadcast_partitions);
+ 		spin_unlock_bh(&xpnet_broadcast_lock);
+ 
+-		if (bp == 0)
++		if (bitmap_empty((unsigned long *)xpnet_broadcast_partitions,
++				 xp_max_npartitions)) {
+ 			netif_carrier_off(xpnet_device);
 +		}
-+
-+		spin_lock_irqsave(&ch->lock, irq_flags);
-+		if (nentries < ch->local_nentries) {
-+			dev_dbg(xpc_chan, "nentries=%d local_nentries=%d, "
-+				"partid=%d, channel=%d\n", nentries,
-+				ch->local_nentries, ch->partid, ch->number);
-+
-+			ch->local_nentries = nentries;
-+		}
-+		spin_unlock_irqrestore(&ch->lock, irq_flags);
-+		return xpSuccess;
-+	}
-+
-+	dev_dbg(xpc_chan, "can't get memory for local message queue and notify "
-+		"queue, partid=%d, channel=%d\n", ch->partid, ch->number);
-+	return xpNoMemory;
-+}
-+
-+/*
-+ * Allocate the cached remote message queue.
-+ */
-+static enum xp_retval
-+xpc_allocate_remote_msgqueue_sn2(struct xpc_channel *ch)
+ 
+-		dev_dbg(xpnet, "%s disconnected from partition %d; "
+-			"xpnet_broadcast_partitions=0x%lx\n",
+-			xpnet_device->name, partid, bp);
++		dev_dbg(xpnet, "%s disconnected from partition %d\n",
++			xpnet_device->name, partid);
+ 		break;
+-
+ 	}
+ }
+ 
+@@ -424,36 +412,72 @@ xpnet_send_completed(enum xp_retval reas
+ 	}
+ }
+ 
++static void
++xpnet_send(struct sk_buff *skb, struct xpnet_pending_msg *queued_msg,
++	   u64 start_addr, u64 end_addr, u16 embedded_bytes, int dest_partid)
 +{
-+	unsigned long irq_flags;
-+	int nentries;
-+	size_t nbytes;
-+
-+	DBUG_ON(ch->remote_nentries <= 0);
-+
-+	for (nentries = ch->remote_nentries; nentries > 0; nentries--) {
-+
-+		nbytes = nentries * ch->msg_size;
-+		ch->remote_msgqueue =
-+		    xpc_kzalloc_cacheline_aligned_sn2(nbytes, GFP_KERNEL,
-+						     &ch->remote_msgqueue_base);
-+		if (ch->remote_msgqueue == NULL)
-+			continue;
-+
-+		spin_lock_irqsave(&ch->lock, irq_flags);
-+		if (nentries < ch->remote_nentries) {
-+			dev_dbg(xpc_chan, "nentries=%d remote_nentries=%d, "
-+				"partid=%d, channel=%d\n", nentries,
-+				ch->remote_nentries, ch->partid, ch->number);
-+
-+			ch->remote_nentries = nentries;
-+		}
-+		spin_unlock_irqrestore(&ch->lock, irq_flags);
-+		return xpSuccess;
-+	}
-+
-+	dev_dbg(xpc_chan, "can't get memory for cached remote message queue, "
-+		"partid=%d, channel=%d\n", ch->partid, ch->number);
-+	return xpNoMemory;
-+}
-+
-+/*
-+ * Allocate message queues and other stuff associated with a channel.
-+ *
-+ * Note: Assumes all of the channel sizes are filled in.
-+ */
-+static enum xp_retval
-+xpc_allocate_msgqueues_sn2(struct xpc_channel *ch)
-+{
++	u8 msg_buffer[XPNET_MSG_SIZE];
++	struct xpnet_message *msg = (struct xpnet_message *)&msg_buffer;
 +	enum xp_retval ret;
 +
-+	DBUG_ON(ch->flags & XPC_C_SETUP);
-+
-+	ret = xpc_allocate_local_msgqueue_sn2(ch);
-+	if (ret == xpSuccess) {
-+
-+		ret = xpc_allocate_remote_msgqueue_sn2(ch);
-+		if (ret != xpSuccess) {
-+			kfree(ch->local_msgqueue_base);
-+			ch->local_msgqueue = NULL;
-+			kfree(ch->notify_queue);
-+			ch->notify_queue = NULL;
-+		}
++	msg->embedded_bytes = embedded_bytes;
++	if (unlikely(embedded_bytes != 0)) {
++		msg->version = XPNET_VERSION_EMBED;
++		dev_dbg(xpnet, "calling memcpy(0x%p, 0x%p, 0x%lx)\n",
++			&msg->data, skb->data, (size_t)embedded_bytes);
++		skb_copy_from_linear_data(skb, &msg->data,
++					  (size_t)embedded_bytes);
++	} else {
++		msg->version = XPNET_VERSION;
 +	}
-+	return ret;
++	msg->magic = XPNET_MAGIC;
++	msg->size = end_addr - start_addr;
++	msg->leadin_ignore = (u64)skb->data - start_addr;
++	msg->tailout_ignore = end_addr - (u64)skb_tail_pointer(skb);
++	msg->buf_pa = __pa(start_addr);
++
++	dev_dbg(xpnet, "sending XPC message to %d:%d\n"
++		KERN_DEBUG "msg->buf_pa=0x%lx, msg->size=%u, "
++		"msg->leadin_ignore=%u, msg->tailout_ignore=%u\n",
++		dest_partid, XPC_NET_CHANNEL, msg->buf_pa, msg->size,
++		msg->leadin_ignore, msg->tailout_ignore);
++
++	atomic_inc(&queued_msg->use_count);
++
++	ret = xpc_send_notify(dest_partid, XPC_NET_CHANNEL, XPC_NOWAIT, msg,
++			      XPNET_MSG_SIZE, xpnet_send_completed, queued_msg);
++	if (unlikely(ret != xpSuccess))
++		atomic_dec(&queued_msg->use_count);
 +}
 +
-+/*
-+ * Free up message queues and other stuff that were allocated for the specified
-+ * channel.
-+ *
-+ * Note: ch->reason and ch->reason_line are left set for debugging purposes,
-+ * they're cleared when XPC_C_DISCONNECTED is cleared.
-+ */
-+static void
-+xpc_free_msgqueues_sn2(struct xpc_channel *ch)
-+{
-+	struct xpc_channel_sn2 *ch_sn2 = &ch->sn.sn2;
-+
-+	DBUG_ON(!spin_is_locked(&ch->lock));
-+	DBUG_ON(atomic_read(&ch->n_to_notify) != 0);
-+
-+	ch->remote_msgqueue_pa = 0;
-+	ch->func = NULL;
-+	ch->key = NULL;
-+	ch->msg_size = 0;
-+	ch->local_nentries = 0;
-+	ch->remote_nentries = 0;
-+	ch->kthreads_assigned_limit = 0;
-+	ch->kthreads_idle_limit = 0;
-+
-+	ch_sn2->local_GP->get = 0;
-+	ch_sn2->local_GP->put = 0;
-+	ch_sn2->remote_GP.get = 0;
-+	ch_sn2->remote_GP.put = 0;
-+	ch_sn2->w_local_GP.get = 0;
-+	ch_sn2->w_local_GP.put = 0;
-+	ch_sn2->w_remote_GP.get = 0;
-+	ch_sn2->w_remote_GP.put = 0;
-+	ch_sn2->next_msg_to_pull = 0;
-+
-+	if (ch->flags & XPC_C_SETUP) {
-+		dev_dbg(xpc_chan, "ch->flags=0x%x, partid=%d, channel=%d\n",
-+			ch->flags, ch->partid, ch->number);
-+
-+		kfree(ch->local_msgqueue_base);
-+		ch->local_msgqueue = NULL;
-+		kfree(ch->remote_msgqueue_base);
-+		ch->remote_msgqueue = NULL;
-+		kfree(ch->notify_queue);
-+		ch->notify_queue = NULL;
-+	}
-+}
-+
-+/*
-  * Notify those who wanted to be notified upon delivery of their message.
+ /*
+  * Network layer has formatted a packet (skb) and is ready to place it
+  * "on the wire".  Prepare and send an xpnet_message to all partitions
+  * which have connected with us and are targets of this packet.
+  *
+  * MAC-NOTE:  For the XPNET driver, the MAC address contains the
+- * destination partition_id.  If the destination partition id word
+- * is 0xff, this packet is to broadcast to all partitions.
++ * destination partid.  If the destination partid octets are 0xffff,
++ * this packet is to be broadcast to all connected partitions.
   */
- static void
-@@ -2177,6 +2356,8 @@ xpc_init_sn2(void)
- 	xpc_teardown_infrastructure = xpc_teardown_infrastructure_sn2;
- 	xpc_make_first_contact = xpc_make_first_contact_sn2;
- 	xpc_get_chctl_all_flags = xpc_get_chctl_all_flags_sn2;
-+	xpc_allocate_msgqueues = xpc_allocate_msgqueues_sn2;
-+	xpc_free_msgqueues = xpc_free_msgqueues_sn2;
- 	xpc_notify_senders_of_disconnect = xpc_notify_senders_of_disconnect_sn2;
- 	xpc_process_msg_chctl_flags = xpc_process_msg_chctl_flags_sn2;
- 	xpc_n_of_deliverable_msgs = xpc_n_of_deliverable_msgs_sn2;
+ static int
+ xpnet_dev_hard_start_xmit(struct sk_buff *skb, struct net_device *dev)
+ {
+ 	struct xpnet_pending_msg *queued_msg;
+-	enum xp_retval ret;
+-	u8 msg_buffer[XPNET_MSG_SIZE];
+-	struct xpnet_message *msg = (struct xpnet_message *)&msg_buffer[0];
+ 	u64 start_addr, end_addr;
+-	long dp;
+-	u8 second_mac_octet;
+ 	short dest_partid;
+-	struct xpnet_dev_private *priv;
+-	u16 embedded_bytes;
+-
+-	priv = (struct xpnet_dev_private *)dev->priv;
++	struct xpnet_dev_private *priv = (struct xpnet_dev_private *)dev->priv;
++	u16 embedded_bytes = 0;
+ 
+ 	dev_dbg(xpnet, ">skb->head=0x%p skb->data=0x%p skb->tail=0x%p "
+ 		"skb->end=0x%p skb->len=%d\n", (void *)skb->head,
+ 		(void *)skb->data, skb_tail_pointer(skb), skb_end_pointer(skb),
+ 		skb->len);
+ 
++	if (skb->data[0] == 0x33) {
++		dev_kfree_skb(skb);
++		return 0;	/* nothing needed to be done */
++	}
++
+ 	/*
+ 	 * The xpnet_pending_msg tracks how many outstanding
+ 	 * xpc_send_notifies are relying on this skb.  When none
+@@ -465,7 +489,6 @@ xpnet_dev_hard_start_xmit(struct sk_buff
+ 			 "packet\n", sizeof(struct xpnet_pending_msg));
+ 
+ 		priv->stats.tx_errors++;
+-
+ 		return -ENOMEM;
+ 	}
+ 
+@@ -474,7 +497,6 @@ xpnet_dev_hard_start_xmit(struct sk_buff
+ 	end_addr = L1_CACHE_ALIGN((u64)skb_tail_pointer(skb));
+ 
+ 	/* calculate how many bytes to embed in the XPC message */
+-	embedded_bytes = 0;
+ 	if (unlikely(skb->len <= XPNET_MSG_DATA_MAX)) {
+ 		/* skb->data does fit so embed */
+ 		embedded_bytes = skb->len;
+@@ -490,78 +512,28 @@ xpnet_dev_hard_start_xmit(struct sk_buff
+ 	atomic_set(&queued_msg->use_count, 1);
+ 	queued_msg->skb = skb;
+ 
+-	second_mac_octet = skb->data[XPNET_PARTID_OCTET];
+-	if (second_mac_octet == 0xff) {
++	if (skb->data[0] == 0xff) {
+ 		/* we are being asked to broadcast to all partitions */
+-		dp = xpnet_broadcast_partitions;
+-	} else if (second_mac_octet != 0) {
+-		dp = xpnet_broadcast_partitions &
+-		    (1UL << (second_mac_octet - 1));
+-	} else {
+-		/* 0 is an invalid partid.  Ignore */
+-		dp = 0;
+-	}
+-	dev_dbg(xpnet, "destination Partitions mask (dp) = 0x%lx\n", dp);
+-
+-	/*
+-	 * If we wanted to allow promiscuous mode to work like an
+-	 * unswitched network, this would be a good point to OR in a
+-	 * mask of partitions which should be receiving all packets.
+-	 */
+-
+-	/*
+-	 * Main send loop.
+-	 */
+-	for (dest_partid = 0; dp && dest_partid < xp_max_npartitions;
+-	     dest_partid++) {
++		for_each_bit(dest_partid, xpnet_broadcast_partitions,
++			     xp_max_npartitions) {
+ 
+-		if (!(dp & (1UL << (dest_partid - 1)))) {
+-			/* not destined for this partition */
+-			continue;
++			xpnet_send(skb, queued_msg, start_addr, end_addr,
++				   embedded_bytes, dest_partid);
+ 		}
++	} else {
++		dest_partid = (short)skb->data[XPNET_PARTID_OCTET + 1];
++		dest_partid |= (short)skb->data[XPNET_PARTID_OCTET + 0] << 8;
+ 
+-		/* remove this partition from the destinations mask */
+-		dp &= ~(1UL << (dest_partid - 1));
+-
+-		/* found a partition to send to */
++		if (dest_partid >= 0 &&
++		    dest_partid < xp_max_npartitions &&
++		    test_bit(dest_partid, xpnet_broadcast_partitions) != 0) {
+ 
+-		msg->embedded_bytes = embedded_bytes;
+-		if (unlikely(embedded_bytes != 0)) {
+-			msg->version = XPNET_VERSION_EMBED;
+-			dev_dbg(xpnet, "calling memcpy(0x%p, 0x%p, 0x%lx)\n",
+-				&msg->data, skb->data, (size_t)embedded_bytes);
+-			skb_copy_from_linear_data(skb, &msg->data,
+-						  (size_t)embedded_bytes);
+-		} else {
+-			msg->version = XPNET_VERSION;
+-		}
+-		msg->magic = XPNET_MAGIC;
+-		msg->size = end_addr - start_addr;
+-		msg->leadin_ignore = (u64)skb->data - start_addr;
+-		msg->tailout_ignore = end_addr - (u64)skb_tail_pointer(skb);
+-		msg->buf_pa = __pa(start_addr);
+-
+-		dev_dbg(xpnet, "sending XPC message to %d:%d\n"
+-			KERN_DEBUG "msg->buf_pa=0x%lx, msg->size=%u, "
+-			"msg->leadin_ignore=%u, msg->tailout_ignore=%u\n",
+-			dest_partid, XPC_NET_CHANNEL, msg->buf_pa, msg->size,
+-			msg->leadin_ignore, msg->tailout_ignore);
+-
+-		atomic_inc(&queued_msg->use_count);
+-
+-		ret = xpc_send_notify(dest_partid, XPC_NET_CHANNEL, XPC_NOWAIT,
+-				      &msg, sizeof(msg) + embedded_bytes - 1,
+-				      xpnet_send_completed, queued_msg);
+-		if (unlikely(ret != xpSuccess)) {
+-			atomic_dec(&queued_msg->use_count);
+-			continue;
++			xpnet_send(skb, queued_msg, start_addr, end_addr,
++				   embedded_bytes, dest_partid);
+ 		}
+ 	}
+ 
+ 	if (atomic_dec_return(&queued_msg->use_count) == 0) {
+-		dev_dbg(xpnet, "no partitions to receive packet destined for "
+-			"%d\n", dest_partid);
+-
+ 		dev_kfree_skb(skb);
+ 		kfree(queued_msg);
+ 	}
+@@ -589,23 +561,28 @@ xpnet_dev_tx_timeout(struct net_device *
+ static int __init
+ xpnet_init(void)
+ {
+-	int i;
+-	u32 license_num;
+-	int result = -ENOMEM;
++	int result;
+ 
+-	if (!ia64_platform_is("sn2"))
++	if (!is_shub() && !is_uv())
+ 		return -ENODEV;
+ 
+ 	dev_info(xpnet, "registering network device %s\n", XPNET_DEVICE_NAME);
+ 
++	xpnet_broadcast_partitions = kzalloc(BITS_TO_LONGS(xp_max_npartitions) *
++					     sizeof(long), GFP_KERNEL);
++	if (xpnet_broadcast_partitions == NULL)
++		return -ENOMEM;
++
+ 	/*
+ 	 * use ether_setup() to init the majority of our device
+ 	 * structure and then override the necessary pieces.
+ 	 */
+ 	xpnet_device = alloc_netdev(sizeof(struct xpnet_dev_private),
+ 				    XPNET_DEVICE_NAME, ether_setup);
+-	if (xpnet_device == NULL)
++	if (xpnet_device == NULL) {
++		kfree(xpnet_broadcast_partitions);
+ 		return -ENOMEM;
++	}
+ 
+ 	netif_carrier_off(xpnet_device);
+ 
+@@ -623,14 +600,10 @@ xpnet_init(void)
+ 	 * MAC addresses.  We chose the first octet of the MAC to be unlikely
+ 	 * to collide with any vendor's officially issued MAC.
+ 	 */
+-	xpnet_device->dev_addr[0] = 0xfe;
+-	xpnet_device->dev_addr[XPNET_PARTID_OCTET] = sn_partition_id;
+-	license_num = sn_partition_serial_number_val();
+-	for (i = 3; i >= 0; i--) {
+-		xpnet_device->dev_addr[XPNET_LICENSE_OCTET + i] =
+-		    license_num & 0xff;
+-		license_num = license_num >> 8;
+-	}
++	xpnet_device->dev_addr[0] = 0x02;     /* locally administered, no OUI */
++
++	xpnet_device->dev_addr[XPNET_PARTID_OCTET + 1] = sn_partition_id;
++	xpnet_device->dev_addr[XPNET_PARTID_OCTET + 0] = (sn_partition_id >> 8);
+ 
+ 	/*
+ 	 * ether_setup() sets this to a multicast device.  We are
+@@ -646,8 +619,10 @@ xpnet_init(void)
+ 	xpnet_device->features = NETIF_F_NO_CSUM;
+ 
+ 	result = register_netdev(xpnet_device);
+-	if (result != 0)
++	if (result != 0) {
+ 		free_netdev(xpnet_device);
++		kfree(xpnet_broadcast_partitions);
++	}
+ 
+ 	return result;
+ }
+@@ -661,8 +636,8 @@ xpnet_exit(void)
+ 		 xpnet_device[0].name);
+ 
+ 	unregister_netdev(xpnet_device);
+-
+ 	free_netdev(xpnet_device);
++	kfree(xpnet_broadcast_partitions);
+ }
+ 
+ module_exit(xpnet_exit);
 _
 
 Patches currently in -mm which might be from dcn@sgi.com are
