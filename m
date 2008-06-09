@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + sgi-xp-define-xpsalerror-reason-code.patch added to -mm tree
-Date: Sun, 08 Jun 2008 17:17:54 -0700
-Message-ID: <200806090017.m590Hsj8027059@imap1.linux-foundation.org>
+Subject: + sgi-xp-define-bytes_per_word.patch added to -mm tree
+Date: Sun, 08 Jun 2008 17:17:56 -0700
+Message-ID: <200806090017.m590Hu95027062@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51242 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58709 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755671AbYFIAR5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 20:17:57 -0400
+	by vger.kernel.org with ESMTP id S1755723AbYFIAR7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jun 2008 20:17:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: dcn@sgi.com
 
 
 The patch titled
-     sgi-xp: define xpSalError reason code
+     sgi-xp: define BYTES_PER_WORD
 has been added to the -mm tree.  Its filename is
-     sgi-xp-define-xpsalerror-reason-code.patch
+     sgi-xp-define-bytes_per_word.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,32 +33,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sgi-xp: define xpSalError reason code
+Subject: sgi-xp: define BYTES_PER_WORD
 From: Dean Nelson <dcn@sgi.com>
 
-Define xpSalError reason code.
+Add a BYTES_PER_WORD #define.
 
 Signed-off-by: Dean Nelson <dcn@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-xp/xp.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/misc/sgi-xp/xp.h |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN drivers/misc/sgi-xp/xp.h~sgi-xp-define-xpsalerror-reason-code drivers/misc/sgi-xp/xp.h
---- a/drivers/misc/sgi-xp/xp.h~sgi-xp-define-xpsalerror-reason-code
+diff -puN drivers/misc/sgi-xp/xp.h~sgi-xp-define-bytes_per_word drivers/misc/sgi-xp/xp.h
+--- a/drivers/misc/sgi-xp/xp.h~sgi-xp-define-bytes_per_word
 +++ a/drivers/misc/sgi-xp/xp.h
-@@ -249,8 +249,9 @@ enum xp_retval {
- 	xpDisconnected,		/* 51: channel disconnected (closed) */
+@@ -19,6 +19,9 @@
+ #include <asm/sn/types.h>
+ #include <asm/sn/bte.h>
  
- 	xpBteCopyError,		/* 52: bte_copy() returned error */
-+	xpSalError,		/* 53: sn SAL error */
- 
--	xpUnknownReason		/* 53: unknown reason - must be last in enum */
-+	xpUnknownReason		/* 54: unknown reason - must be last in enum */
- };
- 
- /*
++/* >>> Add this #define to some linux header file some day. */
++#define BYTES_PER_WORD	sizeof(void *)
++
+ #ifdef USE_DBUG_ON
+ #define DBUG_ON(condition)	BUG_ON(condition)
+ #else
 _
 
 Patches currently in -mm which might be from dcn@sgi.com are
