@@ -1,52 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: - usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix.patch removed from -mm tree
-Date: Mon, 09 Jun 2008 16:37:54 -0700
-Message-ID: <200806092337.m59Nbtxj014868@imap1.linux-foundation.org>
+Subject: - watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix.patch removed from -mm tree
+Date: Mon, 09 Jun 2008 16:41:14 -0700
+Message-ID: <200806092341.m59NfFTM015106@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53506 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57310 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757165AbYFIXiT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2008 19:38:19 -0400
+	by vger.kernel.org with ESMTP id S1759595AbYFIXmF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2008 19:42:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cooloney@kernel.org, david-b@pacbell.net, gregkh@suse.de, jie.zhang@analog.com, stern@rowland.harvard.edu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix
+     watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix
 has been removed from the -mm tree.  Its filename was
-     usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix.patch
+     watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix.patch
 
-This patch was dropped because it was folded into usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues.patch
+This patch was dropped because it was folded into watchdog-pcwd-clean-up-unlocked_ioctl-usage.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix
+Subject: watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Alan Stern <stern@rowland.harvard.edu>
-Cc: Bryan Wu <cooloney@kernel.org>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Jie Zhang <jie.zhang@analog.com>
+Cc: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/host/isp116x-hcd.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/watchdog/pcwd.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/usb/host/isp116x-hcd.c~usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix drivers/usb/host/isp116x-hcd.c
---- a/drivers/usb/host/isp116x-hcd.c~usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix
-+++ a/drivers/usb/host/isp116x-hcd.c
-@@ -68,6 +68,7 @@
+diff -puN drivers/watchdog/pcwd.c~watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix drivers/watchdog/pcwd.c
+--- a/drivers/watchdog/pcwd.c~watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix
++++ a/drivers/watchdog/pcwd.c
+@@ -168,7 +168,7 @@ static const int heartbeat_tbl [] = {
+ static int cards_found;
  
- #include <asm/io.h>
- #include <asm/irq.h>
-+#include <asm/unaligned.h>
- #include <asm/system.h>
- #include <asm/byteorder.h>
+ /* internal variables */
+-static atomic_t open_allowed = ATOMIC_INIT(1);
++static unsigned long open_allowed;
+ static char expect_close;
+ static int temp_panic;
  
 _
 
@@ -93,8 +90,7 @@ git-logfs-fixup.patch
 drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
 drivers-uwb-wlp-sysfsc-dead-code.patch
 usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues.patch
-usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix.patch
-usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix-2.patch
+watchdog-pcwd-clean-up-unlocked_ioctl-usage.patch
 watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix.patch
 watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl-fix.patch
 git-xtensa.patch
