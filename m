@@ -1,50 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: - watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix.patch removed from -mm tree
-Date: Mon, 09 Jun 2008 16:41:14 -0700
-Message-ID: <200806092341.m59NfFTM015106@imap1.linux-foundation.org>
+Subject: - watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl-fix.patch removed from -mm tree
+Date: Mon, 09 Jun 2008 16:41:57 -0700
+Message-ID: <200806092341.m59NfwJk015122@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57310 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59604 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759595AbYFIXmF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2008 19:42:05 -0400
+	by vger.kernel.org with ESMTP id S1761411AbYFIXmZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2008 19:42:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alan@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alan@redhat.com, wim@iguana.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix
+     watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl-fix
 has been removed from the -mm tree.  Its filename was
-     watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix.patch
+     watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl-fix.patch
 
-This patch was dropped because it was folded into watchdog-pcwd-clean-up-unlocked_ioctl-usage.patch
+This patch was dropped because it was folded into watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix
+Subject: watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
+alpha:
+
+drivers/watchdog/wdt_pci.c: In function 'wdtpci_ctr_mode':
+drivers/watchdog/wdt_pci.c:120: error: implicit declaration of function 'udelay'
+{standard input}: Assembler messages:
+
 Cc: Alan Cox <alan@redhat.com>
+Cc: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/pcwd.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/watchdog/wdt_pci.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/watchdog/pcwd.c~watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix drivers/watchdog/pcwd.c
---- a/drivers/watchdog/pcwd.c~watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix
-+++ a/drivers/watchdog/pcwd.c
-@@ -168,7 +168,7 @@ static const int heartbeat_tbl [] = {
- static int cards_found;
- 
- /* internal variables */
--static atomic_t open_allowed = ATOMIC_INIT(1);
-+static unsigned long open_allowed;
- static char expect_close;
- static int temp_panic;
- 
+diff -puN drivers/watchdog/wdt_pci.c~watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl-fix drivers/watchdog/wdt_pci.c
+--- a/drivers/watchdog/wdt_pci.c~watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl-fix
++++ a/drivers/watchdog/wdt_pci.c
+@@ -44,6 +44,7 @@
+ #include <linux/miscdevice.h>
+ #include <linux/watchdog.h>
+ #include <linux/ioport.h>
++#include <linux/delay.h>
+ #include <linux/notifier.h>
+ #include <linux/reboot.h>
+ #include <linux/init.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -90,8 +96,7 @@ git-logfs-fixup.patch
 drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
 drivers-uwb-wlp-sysfsc-dead-code.patch
 usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues.patch
-watchdog-pcwd-clean-up-unlocked_ioctl-usage.patch
-watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix.patch
+watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
 watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl-fix.patch
 git-xtensa.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
