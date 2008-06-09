@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + bootmem-add-debugging-framework-fix.patch added to -mm tree
-Date: Sun, 08 Jun 2008 23:45:39 -0700
-Message-ID: <200806090645.m596jdFa007672@imap1.linux-foundation.org>
+Subject: + bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch added to -mm tree
+Date: Sun, 08 Jun 2008 23:45:47 -0700
+Message-ID: <200806090645.m596jlKw007681@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55491 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48811 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751945AbYFIGpq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2008 02:45:46 -0400
+	by vger.kernel.org with ESMTP id S1753696AbYFIGqL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2008 02:46:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hannes@saeurebad.de
+Cc: akpm@linux-foundation.org, andi@firstfloor.org, hannes@saeurebad.de, mingo@elte.hu, yhlu.kernel@gmail.com
 
 
 The patch titled
-     bootmem-add-debugging-framework-fix
+     bootmem-factor-out-the-marking-of-a-pfn-range-fix
 has been added to the -mm tree.  Its filename is
-     bootmem-add-debugging-framework-fix.patch
+     bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,85 +33,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bootmem-add-debugging-framework-fix
+Subject: bootmem-factor-out-the-marking-of-a-pfn-range-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-mm/bootmem.c: In function 'init_bootmem_core':
-mm/bootmem.c:123: warning: format '%d' expects type 'int', but argument 3 has type 'long int'
-mm/bootmem.c: In function 'free_all_bootmem_core':
-mm/bootmem.c:220: warning: format '%d' expects type 'int', but argument 3 has type 'long int'
-mm/bootmem.c: In function 'free_bootmem_core':
-mm/bootmem.c:279: warning: format '%d' expects type 'int', but argument 3 has type 'long int'
-mm/bootmem.c: In function 'reserve_bootmem_core':
-mm/bootmem.c:388: warning: format '%d' expects type 'int', but argument 3 has type 'long int'
-mm/bootmem.c: In function 'alloc_bootmem_core':
-mm/bootmem.c:485: warning: format '%d' expects type 'int', but argument 3 has type 'long int'
-mm/bootmem.c:596: warning: format '%d' expects type 'int', but argument 3 has type 'long int'
-
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Johannes Weiner <hannes@saeurebad.de>
+Cc: Yinghai Lu <yhlu.kernel@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/bootmem.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ mm/bootmem.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/bootmem.c~bootmem-add-debugging-framework-fix mm/bootmem.c
---- a/mm/bootmem.c~bootmem-add-debugging-framework-fix
+diff -puN mm/bootmem.c~bootmem-factor-out-the-marking-of-a-pfn-range-fix mm/bootmem.c
+--- a/mm/bootmem.c~bootmem-factor-out-the-marking-of-a-pfn-range-fix
 +++ a/mm/bootmem.c
-@@ -120,7 +120,7 @@ static unsigned long __init init_bootmem
- 	mapsize = get_mapsize(bdata);
- 	memset(bdata->node_bootmem_map, 0xff, mapsize);
+@@ -272,7 +272,7 @@ static int __init mark_bootmem_node(boot
+ {
+ 	unsigned long sidx, eidx;
  
--	bdebug("nid=%d start=%lx map=%lx end=%lx mapsize=%lx\n",
-+	bdebug("nid=%td start=%lx map=%lx end=%lx mapsize=%lx\n",
- 		bdata - bootmem_node_data, start, mapstart, end, mapsize);
+-	bdebug("nid=%d start=%lx end=%lx reserve=%d flags=%x\n",
++	bdebug("nid=%td start=%lx end=%lx reserve=%d flags=%x\n",
+ 		bdata - bootmem_node_data, start, end, reserve, flags);
  
- 	return mapsize;
-@@ -217,7 +217,7 @@ static unsigned long __init free_all_boo
- 	count += i;
- 	bdata->node_bootmem_map = NULL;
- 
--	bdebug("nid=%d released=%lx\n", bdata - bootmem_node_data, count);
-+	bdebug("nid=%td released=%lx\n", bdata - bootmem_node_data, count);
- 
- 	return count;
- }
-@@ -276,7 +276,7 @@ static void __init free_bootmem_core(boo
- 	if (eidx > bdata->node_low_pfn - PFN_DOWN(bdata->node_boot_start))
- 		eidx = bdata->node_low_pfn - PFN_DOWN(bdata->node_boot_start);
- 
--	bdebug("nid=%d start=%lx end=%lx\n", bdata - bootmem_node_data,
-+	bdebug("nid=%td start=%lx end=%lx\n", bdata - bootmem_node_data,
- 		sidx + PFN_DOWN(bdata->node_boot_start),
- 		eidx + PFN_DOWN(bdata->node_boot_start));
- 
-@@ -385,7 +385,7 @@ static void __init reserve_bootmem_core(
- 	if (eidx > bdata->node_low_pfn - PFN_DOWN(bdata->node_boot_start))
- 		eidx = bdata->node_low_pfn - PFN_DOWN(bdata->node_boot_start);
- 
--	bdebug("nid=%d start=%lx end=%lx flags=%x\n",
-+	bdebug("nid=%td start=%lx end=%lx flags=%x\n",
- 		bdata - bootmem_node_data,
- 		sidx + PFN_DOWN(bdata->node_boot_start),
- 		eidx + PFN_DOWN(bdata->node_boot_start),
-@@ -482,7 +482,7 @@ alloc_bootmem_core(struct bootmem_data *
- 	if (!bdata->node_bootmem_map)
- 		return NULL;
- 
--	bdebug("nid=%d size=%lx [%lu pages] align=%lx goal=%lx limit=%lx\n",
-+	bdebug("nid=%td size=%lx [%lu pages] align=%lx goal=%lx limit=%lx\n",
- 		bdata - bootmem_node_data, size, PAGE_ALIGN(size) >> PAGE_SHIFT,
- 		align, goal, limit);
- 
-@@ -593,7 +593,7 @@ found:
- 		ret = phys_to_virt(start * PAGE_SIZE + node_boot_start);
- 	}
- 
--	bdebug("nid=%d start=%lx end=%lx\n",
-+	bdebug("nid=%td start=%lx end=%lx\n",
- 		bdata - bootmem_node_data,
- 		start + PFN_DOWN(bdata->node_boot_start),
- 		start + areasize + PFN_DOWN(bdata->node_boot_start));
+ 	BUG_ON(start < PFN_DOWN(bdata->node_boot_start));
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
