@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + x86-lockless-get_user_pages_fast-fix-2.patch added to -mm tree
-Date: Mon, 09 Jun 2008 03:31:06 -0700
-Message-ID: <200806091031.m59AV6J4015546@imap1.linux-foundation.org>
+Subject: + mm-introduce-get_user_pages_fast-fix.patch added to -mm tree
+Date: Mon, 09 Jun 2008 03:29:43 -0700
+Message-ID: <200806091029.m59AThJ5015459@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52490 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43341 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759053AbYFIKcy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2008 06:32:54 -0400
+	by vger.kernel.org with ESMTP id S1759243AbYFIKgq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2008 06:36:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, andi@firstfloor.org, apw@shadowen.org, jens.axboe
 
 
 The patch titled
-     x86-lockless-get_user_pages_fast-fix-2
+     mm-introduce-get_user_pages_fast-fix
 has been added to the -mm tree.  Its filename is
-     x86-lockless-get_user_pages_fast-fix-2.patch
+     mm-introduce-get_user_pages_fast-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,7 +33,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86-lockless-get_user_pages_fast-fix-2
+Subject: mm-introduce-get_user_pages_fast-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Andi Kleen <andi@firstfloor.org>
@@ -48,30 +48,29 @@ Cc: Zach Brown <zach.brown@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig          |    1 +
- include/asm-x86/uaccess.h |    2 --
- 2 files changed, 1 insertion(+), 2 deletions(-)
+ include/linux/mm.h |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN arch/x86/Kconfig~x86-lockless-get_user_pages_fast-fix-2 arch/x86/Kconfig
---- a/arch/x86/Kconfig~x86-lockless-get_user_pages_fast-fix-2
-+++ a/arch/x86/Kconfig
-@@ -22,6 +22,7 @@ config X86
- 	select HAVE_IDE
- 	select HAVE_OPROFILE
- 	select HAVE_IOREMAP_PROT
-+	select HAVE_GET_USER_PAGES_FAST
- 	select HAVE_KPROBES
- 	select HAVE_KRETPROBES
- 	select HAVE_DYNAMIC_FTRACE
-diff -puN include/asm-x86/uaccess.h~x86-lockless-get_user_pages_fast-fix-2 include/asm-x86/uaccess.h
---- a/include/asm-x86/uaccess.h~x86-lockless-get_user_pages_fast-fix-2
-+++ a/include/asm-x86/uaccess.h
-@@ -4,5 +4,3 @@
- # include "uaccess_64.h"
- #endif
+diff -puN include/linux/mm.h~mm-introduce-get_user_pages_fast-fix include/linux/mm.h
+--- a/include/linux/mm.h~mm-introduce-get_user_pages_fast-fix
++++ a/include/linux/mm.h
+@@ -12,7 +12,6 @@
+ #include <linux/prio_tree.h>
+ #include <linux/debug_locks.h>
+ #include <linux/mm_types.h>
+-#include <linux/uaccess.h> /* for __HAVE_ARCH_GET_USER_PAGES_FAST */
  
--#define __HAVE_ARCH_GET_USER_PAGES_FAST
--
+ struct mempolicy;
+ struct anon_vma;
+@@ -829,7 +828,7 @@ extern int mprotect_fixup(struct vm_area
+ 			  struct vm_area_struct **pprev, unsigned long start,
+ 			  unsigned long end, unsigned long newflags);
+ 
+-#ifdef __HAVE_ARCH_GET_USER_PAGES_FAST
++#ifdef CONFIG_HAVE_GET_USER_PAGES_FAST
+ /*
+  * get_user_pages_fast provides equivalent functionality to get_user_pages,
+  * operating on current and current->mm (force=0 and doesn't return any vmas).
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -194,7 +193,6 @@ mm-introduce-get_user_pages_fast-fix.patch
 mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
 x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
 x86-lockless-get_user_pages_fast-fix.patch
-x86-lockless-get_user_pages_fast-fix-2.patch
 x86-lockless-get_user_pages_fast-fix-warning.patch
 reiser4.patch
 reiser4-tree_lock-fixes.patch
