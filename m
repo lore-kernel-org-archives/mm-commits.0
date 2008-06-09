@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch added to -mm tree
-Date: Mon, 09 Jun 2008 04:28:08 -0700
-Message-ID: <200806091128.m59BS8qs017544@imap1.linux-foundation.org>
+Subject: + memstick-use-fully-asynchronous-request-processing-fix.patch added to -mm tree
+Date: Mon, 09 Jun 2008 14:05:05 -0700
+Message-ID: <200806092116.m59LGhGM008671@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37791 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47637 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759147AbYFILgN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2008 07:36:13 -0400
+	by vger.kernel.org with ESMTP id S1752469AbYFIVRd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2008 17:17:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, andi@firstfloor.org, apw@shadowen.org, jens.axboe@oracle.com, mingo@elte.hu, npiggin@suse.de, pbadari@us.ibm.com, shaggy@austin.ibm.com, tglx@linutronix.de, zach.brown@oracle.com
+Cc: akpm@linux-foundation.org, oakad@yahoo.com
 
 
 The patch titled
-     x86-lockless-get_user_pages_fast-fix-2-fix-fix
+     memstick-use-fully-asynchronous-request-processing-fix
 has been added to the -mm tree.  Its filename is
-     x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
+     memstick-use-fully-asynchronous-request-processing-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,38 +33,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86-lockless-get_user_pages_fast-fix-2-fix-fix
+Subject: memstick-use-fully-asynchronous-request-processing-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Not strictly necessary, but it seems logical.
+drivers/memstick/core/mspro_block.c: In function 'mspro_block_complete_req':
+drivers/memstick/core/mspro_block.c:727: warning: comparison of distinct pointer types lacks a cast
+drivers/memstick/core/mspro_block.c:771: warning: comparison of distinct pointer types lacks a cast
 
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: Badari Pulavarty <pbadari@us.ibm.com>
-Cc: Dave Kleikamp <shaggy@austin.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Nick Piggin <npiggin@suse.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Zach Brown <zach.brown@oracle.com>
+Cc: Alex Dubov <oakad@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/Makefile |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/memstick/core/mspro_block.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/mm/Makefile~x86-lockless-get_user_pages_fast-fix-2-fix-fix arch/x86/mm/Makefile
---- a/arch/x86/mm/Makefile~x86-lockless-get_user_pages_fast-fix-2-fix-fix
-+++ a/arch/x86/mm/Makefile
-@@ -1,6 +1,7 @@
- obj-y	:=  init_$(BITS).o fault.o ioremap.o extable.o pageattr.o mmap.o \
--	    pat.o pgtable.o gup.o
-+	    pat.o pgtable.o
+diff -puN drivers/memstick/core/mspro_block.c~memstick-use-fully-asynchronous-request-processing-fix drivers/memstick/core/mspro_block.c
+--- a/drivers/memstick/core/mspro_block.c~memstick-use-fully-asynchronous-request-processing-fix
++++ a/drivers/memstick/core/mspro_block.c
+@@ -722,7 +722,7 @@ static int mspro_block_complete_req(stru
+ 	struct mspro_block_data *msb = memstick_get_drvdata(card);
+ 	int chunk, cnt;
+ 	unsigned int t_len = 0;
+-	unsigned int flags;
++	unsigned long flags;
  
-+obj-$(CONFIG_HAVE_GET_USER_PAGES_FAST) += gup.o
- obj-$(CONFIG_X86_32)		+= pgtable_32.o
- 
- obj-$(CONFIG_HUGETLB_PAGE)	+= hugetlbpage.o
+ 	spin_lock_irqsave(&msb->q_lock, flags);
+ 	dev_dbg(&card->dev, "complete %d, %d\n", msb->has_request ? 1 : 0,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -78,6 +72,7 @@ fix-kobject-fix-kobject_rename-and-config_sysfs.patch
 drivers-net-wireless-iwlwifi-iwl-4965-rsc-config_iwl4965_ht=n-hack.patch
 kvm-unbork.patch
 kvm-is-busted-on-ia64.patch
+drivers-mtd-nand-nandsimc-needs-div64h.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 acpi-video-balcklist-fujitsu-lifebook-s6410.patch
 lguest-use-cpu-capability-accessors.patch
@@ -184,6 +179,7 @@ dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
 tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
 memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
 revert-linux-next-changes-to-make-memstick-use-fully-asynchronous-request-processing-apply.patch
+memstick-use-fully-asynchronous-request-processing-fix.patch
 revert-revert-linux-next-changes-to-make-memstick-use-fully-asynchronous-request-processing-apply.patch
 ppc-use-the-common-ascii-hex-helpers-fix.patch
 mm-introduce-get_user_pages_fast-fix.patch
@@ -191,7 +187,6 @@ mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
 x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
 x86-lockless-get_user_pages_fast-fix.patch
 x86-lockless-get_user_pages_fast-fix-2.patch
-x86-lockless-get_user_pages_fast-fix-2-fix.patch
 x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
 x86-lockless-get_user_pages_fast-fix-warning.patch
 reiser4.patch
