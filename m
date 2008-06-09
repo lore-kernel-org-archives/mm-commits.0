@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + kvm-unbork.patch added to -mm tree
-Date: Mon, 09 Jun 2008 04:01:11 -0700
-Message-ID: <200806091101.m59B1BAd016657@imap1.linux-foundation.org>
+Subject: + x86-lockless-get_user_pages_fast-fix-2-fix.patch added to -mm tree
+Date: Mon, 09 Jun 2008 04:27:03 -0700
+Message-ID: <200806091127.m59BR3bL017534@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53366 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41431 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758428AbYFILBO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2008 07:01:14 -0400
+	by vger.kernel.org with ESMTP id S1751263AbYFIL2n (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2008 07:28:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, avi@qumranet.com, xiantao.zhang@intel.com
+Cc: akpm@linux-foundation.org, andi@firstfloor.org, apw@shadowen.org, jens.axboe@oracle.com, mingo@elte.hu, npiggin@suse.de, pbadari@us.ibm.com, shaggy@austin.ibm.com, tglx@linutronix.de, zach.brown@oracle.com
 
 
 The patch titled
-     kvm-unbork
+     x86-lockless-get_user_pages_fast-fix-2-fix
 has been added to the -mm tree.  Its filename is
-     kvm-unbork.patch
+     x86-lockless-get_user_pages_fast-fix-2-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,29 +33,26 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kvm-unbork
+Subject: x86-lockless-get_user_pages_fast-fix-2-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: "Zhang, Xiantao" <xiantao.zhang@intel.com>
-Cc: "Avi Kivity" <avi@qumranet.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: Badari Pulavarty <pbadari@us.ibm.com>
+Cc: Dave Kleikamp <shaggy@austin.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Nick Piggin <npiggin@suse.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Zach Brown <zach.brown@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kvm/kvm-ia64.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ 0 files changed
 
-diff -puN arch/ia64/kvm/kvm-ia64.c~kvm-unbork arch/ia64/kvm/kvm-ia64.c
---- a/arch/ia64/kvm/kvm-ia64.c~kvm-unbork
-+++ a/arch/ia64/kvm/kvm-ia64.c
-@@ -187,7 +187,7 @@ int kvm_dev_ioctl_check_extension(long e
- 
- 		r = 1;
- 		break;
--	case KVM_CAP_COALESCED_MMIO::
-+	case KVM_CAP_COALESCED_MMIO:
- 		r = KVM_COALESCED_MMIO_PAGE_OFFSET;
- 		break;
- 	default:
+diff -puN arch/x86/Kconfig~x86-lockless-get_user_pages_fast-fix-2-fix arch/x86/Kconfig
+diff -puN include/asm-x86/uaccess.h~x86-lockless-get_user_pages_fast-fix-2-fix include/asm-x86/uaccess.h
+diff -puN init/Kconfig~x86-lockless-get_user_pages_fast-fix-2-fix init/Kconfig
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -67,6 +64,8 @@ next-remove-localversion.patch
 linux-next-git-rejects.patch
 fix-kobject-fix-kobject_rename-and-config_sysfs.patch
 drivers-net-wireless-iwlwifi-iwl-4965-rsc-config_iwl4965_ht=n-hack.patch
+kvm-unbork.patch
+kvm-is-busted-on-ia64.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 acpi-video-balcklist-fujitsu-lifebook-s6410.patch
 lguest-use-cpu-capability-accessors.patch
@@ -180,6 +179,7 @@ mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
 x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
 x86-lockless-get_user_pages_fast-fix.patch
 x86-lockless-get_user_pages_fast-fix-2.patch
+x86-lockless-get_user_pages_fast-fix-2-fix.patch
 x86-lockless-get_user_pages_fast-fix-warning.patch
 reiser4.patch
 reiser4-tree_lock-fixes.patch
@@ -196,5 +196,4 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
-kvm-unbork.patch
 
