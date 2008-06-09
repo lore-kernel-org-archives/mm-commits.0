@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + x86-lockless-get_user_pages_fast-fix-2-fix.patch added to -mm tree
-Date: Mon, 09 Jun 2008 04:27:03 -0700
-Message-ID: <200806091127.m59BR3bL017534@imap1.linux-foundation.org>
+Subject: + x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch added to -mm tree
+Date: Mon, 09 Jun 2008 04:28:08 -0700
+Message-ID: <200806091128.m59BS8qs017544@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41431 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37791 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751263AbYFIL2n (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2008 07:28:43 -0400
+	by vger.kernel.org with ESMTP id S1759147AbYFILgN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2008 07:36:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, andi@firstfloor.org, apw@shadowen.org, jens.axboe
 
 
 The patch titled
-     x86-lockless-get_user_pages_fast-fix-2-fix
+     x86-lockless-get_user_pages_fast-fix-2-fix-fix
 has been added to the -mm tree.  Its filename is
-     x86-lockless-get_user_pages_fast-fix-2-fix.patch
+     x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,8 +33,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86-lockless-get_user_pages_fast-fix-2-fix
+Subject: x86-lockless-get_user_pages_fast-fix-2-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
+
+Not strictly necessary, but it seems logical.
 
 Cc: Andi Kleen <andi@firstfloor.org>
 Cc: Andy Whitcroft <apw@shadowen.org>
@@ -48,11 +50,21 @@ Cc: Zach Brown <zach.brown@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- 0 files changed
+ arch/x86/mm/Makefile |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86/Kconfig~x86-lockless-get_user_pages_fast-fix-2-fix arch/x86/Kconfig
-diff -puN include/asm-x86/uaccess.h~x86-lockless-get_user_pages_fast-fix-2-fix include/asm-x86/uaccess.h
-diff -puN init/Kconfig~x86-lockless-get_user_pages_fast-fix-2-fix init/Kconfig
+diff -puN arch/x86/mm/Makefile~x86-lockless-get_user_pages_fast-fix-2-fix-fix arch/x86/mm/Makefile
+--- a/arch/x86/mm/Makefile~x86-lockless-get_user_pages_fast-fix-2-fix-fix
++++ a/arch/x86/mm/Makefile
+@@ -1,6 +1,7 @@
+ obj-y	:=  init_$(BITS).o fault.o ioremap.o extable.o pageattr.o mmap.o \
+-	    pat.o pgtable.o gup.o
++	    pat.o pgtable.o
+ 
++obj-$(CONFIG_HAVE_GET_USER_PAGES_FAST) += gup.o
+ obj-$(CONFIG_X86_32)		+= pgtable_32.o
+ 
+ obj-$(CONFIG_HUGETLB_PAGE)	+= hugetlbpage.o
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -180,6 +192,7 @@ x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
 x86-lockless-get_user_pages_fast-fix.patch
 x86-lockless-get_user_pages_fast-fix-2.patch
 x86-lockless-get_user_pages_fast-fix-2-fix.patch
+x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
 x86-lockless-get_user_pages_fast-fix-warning.patch
 reiser4.patch
 reiser4-tree_lock-fixes.patch
