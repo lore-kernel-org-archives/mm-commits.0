@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ext3-abort-ext3-if-the-journal-has-aborted-warning-fix.patch added to -mm tree
-Date: Sun, 08 Jun 2008 20:40:25 -0600
-Message-ID: <200806090841.m598fKlV011559@imap1.linux-foundation.org>
+Subject: + sched-sched_clock-lockdep-fix.patch added to -mm tree
+Date: Mon, 09 Jun 2008 01:45:29 -0700
+Message-ID: <200806090845.m598jTXZ011664@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35847 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38980 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755241AbYFIIl1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2008 04:41:27 -0400
+	by vger.kernel.org with ESMTP id S1751323AbYFIIpm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2008 04:45:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hidehiro.kawai.ez@hitachi.com, jack@suse.cz
+Cc: mingo@elte.hu, sitsofe@yahoo.com
 
 
 The patch titled
-     ext3-abort-ext3-if-the-journal-has-aborted-warning-fix
+     sched: sched_clock() lockdep fix
 has been added to the -mm tree.  Its filename is
-     ext3-abort-ext3-if-the-journal-has-aborted-warning-fix.patch
+     sched-sched_clock-lockdep-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,180 +33,122 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext3-abort-ext3-if-the-journal-has-aborted-warning-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: sched: sched_clock() lockdep fix
+From: Ingo Molnar <mingo@elte.hu>
 
-Acked-by: Jan Kara <jack@suse.cz>
-Cc: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
+Sitsofe Wheeler reported a lockdep warning and bisected it down to:
+
+> commit c6531cce6e6e4b99bcda46b6268d6f2d9e30aea4
+> Author: Ingo Molnar <mingo@elte.hu>
+> Date:   Mon May 12 21:21:14 2008 +0200
+>
+>     sched: do not trace sched_clock
+
+do not use raw irq flags in cpu_clock() as it causes lockdep to lose
+track of the true state of the IRQ flag.
+
+Reported-and-bisected-by: Sitsofe Wheeler <sitsofe@yahoo.com>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/ioctl.c |    8 ++++++--
- 1 files changed, 6 insertions(+), 2 deletions(-)
+ kernel/sched.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/ext3/ioctl.c~ext3-abort-ext3-if-the-journal-has-aborted-warning-fix fs/ext3/ioctl.c
---- a/fs/ext3/ioctl.c~ext3-abort-ext3-if-the-journal-has-aborted-warning-fix
-+++ a/fs/ext3/ioctl.c
-@@ -256,9 +256,11 @@ setrsvsz_out:
- 		journal_lock_updates(EXT3_SB(sb)->s_journal);
- 		err2 = journal_flush(EXT3_SB(sb)->s_journal);
- 		journal_unlock_updates(EXT3_SB(sb)->s_journal);
-+		if (err == 0)
-+			err = err2;
- group_extend_out:
- 		mnt_drop_write(filp->f_path.mnt);
--		return (err) ? err : err2;
-+		return err;
- 	}
- 	case EXT3_IOC_GROUP_ADD: {
- 		struct ext3_new_group_data input;
-@@ -282,9 +284,11 @@ group_extend_out:
- 		journal_lock_updates(EXT3_SB(sb)->s_journal);
- 		err2 = journal_flush(EXT3_SB(sb)->s_journal);
- 		journal_unlock_updates(EXT3_SB(sb)->s_journal);
-+		if (err == 0)
-+			err = err2;
- group_add_out:
- 		mnt_drop_write(filp->f_path.mnt);
--		return (err) ? err : err2;
-+		return err;
- 	}
+diff -puN kernel/sched.c~sched-sched_clock-lockdep-fix kernel/sched.c
+--- a/kernel/sched.c~sched-sched_clock-lockdep-fix
++++ a/kernel/sched.c
+@@ -854,7 +854,7 @@ unsigned long long notrace cpu_clock(int
+ 	unsigned long long prev_cpu_time, time, delta_time;
+ 	unsigned long flags;
  
+-	raw_local_irq_save(flags);
++	local_irq_save(flags);
+ 	prev_cpu_time = per_cpu(prev_cpu_time, cpu);
+ 	time = __cpu_clock(cpu) + per_cpu(time_offset, cpu);
+ 	delta_time = time-prev_cpu_time;
+@@ -863,7 +863,7 @@ unsigned long long notrace cpu_clock(int
+ 		time = __sync_cpu_clock(time, cpu);
+ 		per_cpu(prev_cpu_time, cpu) = time;
+ 	}
+-	raw_local_irq_restore(flags);
++	local_irq_restore(flags);
  
+ 	return time;
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mingo@elte.hu are
 
 origin.patch
-m68k-add-ext2_find_firstnext_bit-for-ext4-checkpatch-fixes.patch
 linux-next.patch
-next-remove-localversion.patch
-linux-next-git-rejects.patch
-fix-kobject-fix-kobject_rename-and-config_sysfs.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-video-balcklist-fujitsu-lifebook-s6410.patch
 lguest-use-cpu-capability-accessors.patch
-intel-agp-rewrite-gtt-on-resume.patch
-intel-agp-rewrite-gtt-on-resume-update-checkpatch-fixes.patch
-arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
-pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2.patch
-arch-powerpc-platforms-pseries-eeh_driverc-fix-warning.patch
-arch-powerpc-platforms-pseries-eeh_driverc-fix-warning-checkpatch-fixes.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-git-jg-misc-git-rejects.patch
-drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-git-leds.patch
-fsldma-the-mpc8377mds-board-device-tree-node-for-fsldma-driver.patch
-mmc-sd-host-driver-for-ricoh-bay1controllers.patch
-drivers-mtd-devices-block2mtdc-suppress-warning.patch
-bluetooth-hci_bcspc-small-cleanups-api-users-fix.patch
-sundance-set-carrier-status-on-link-change-events.patch
-net-sh_eth-add-support-for-renesas-superh-ethernet-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-battery.patch
-pci-introduce-pci_slot.patch
-acpi-pci-slot-detection-driver.patch
-git-scsi-misc-fix-scsi_dh-build-errors.patch
-drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
-s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
-pktcdvd-push-bkl-down-into-driver-fix.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-git-logfs-fixup.patch
-drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
-drivers-uwb-wlp-sysfsc-dead-code.patch
-usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix.patch
-usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix-2.patch
-watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix.patch
-watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl-fix.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
+x86-remove-unused-variable-loops-in-arch-x86-boot-a20c.patch
+x86-fix-longstanding-setupc-printk-format-warning.patch
+sched-sched_clock-lockdep-fix.patch
+netfilter-conntrack_helper-needs-to-include-rculisth.patch
+aes-x86_64-asm-implementation-optimization.patch
+provide-rtc_cmos-platform-device-take-2.patch
+acpi-fix-drivers-acpi-gluec-build-error.patch
+sched-fix-memory-leak-in-the-cpu-hotplug-handing-logic.patch
+sched-cpu-hotplug-events-must-not-destroy-scheduler-domains-created-by-the-cpusets.patch
+sched-fix-task_wakekill-vs-sigkill-race.patch
+__mutex_lock_common-use-signal_pending_state.patch
+do_generic_file_read-s-eintr-eio-if-lock_page_killable-fails.patch
+x86-fix-lockdep-warning-during-suspend-to-ram.patch
+mm-add-a-basic-debugging-framework-for-memory-initialisation.patch
+mm-add-a-basic-debugging-framework-for-memory-initialisation-fix.patch
 mm-verify-the-page-links-and-memory-model.patch
-mspec-convert-nopfn-to-fault-fix.patch
-page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
-kill-generic_file_direct_io-checkpatch-fixes.patch
-use-generic_access_phys-for-dev-mem-mappings-fix.patch
-spufs-use-the-new-vm_ops-access-fix.patch
-fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
-page-flags-record-page-flag-overlays-explicitly-xen.patch
-mapping_set_error-add-unlikely.patch
-huge-page-private-reservation-review-cleanups-fix.patch
-sync_file_range_write-may-and-will-block-document-that-fix.patch
-vmallocinfo-add-numa-information-fix.patch
-hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
-hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
-bootmem-add-debugging-framework-fix.patch
+mm-make-defensive-checks-around-pfn-values-registered-for-memory-usage.patch
+mm-print-out-the-zonelists-on-request-for-manual-verification.patch
+mm-move-bootmem-descriptors-definition-to-a-single-place.patch
+mm-fix-free_all_bootmem_core-alignment-check.patch
+mm-normalize-internal-argument-passing-of-bootmem-data.patch
+mm-unexport-__alloc_bootmem_core.patch
+bootmem-clean-up-bootmemc-file-header.patch
+bootmem-clean-up-free_all_bootmem_core.patch
 bootmem-clean-up-free_all_bootmem_core-fix.patch
+bootmem-free-reserve-helpers.patch
 bootmem-free-reserve-helpers-fix.patch
+bootmem-factor-out-the-marking-of-a-pfn-range.patch
 bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
-swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
+bootmem-respect-goal-more-likely.patch
+bootmem-make-__alloc_bootmem_low_node-fall-back-to-other-nodes.patch
+pm-boot-time-suspend-selftest.patch
 split-the-typecheck-macros-out-of-include-linux-kernelh.patch
 locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
 locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
-remove-apparently-unused-fd1772h-header-file.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+introduce-have_efficient_unaligned_access-kconfig-symbol.patch
+percpu-introduce-define_per_cpu_page_aligned.patch
+remove-argument-from-open_softirq-which-is-always-null.patch
+build-kernel-profileo-only-when-requested.patch
 build-kernel-profileo-only-when-requested-cleanups.patch
-fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
-block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
-rename-warn-to-warning-to-clear-the-namespace-fix.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
-flag-parameters-paccept-fix.patch
-flag-parameters-paccept-sys_ni.patch
-flag-parameters-anon_inode_getfd-extension-fix.patch
-flag-parameters-signalfd-fix.patch
-flag-parameters-eventfd-fix.patch
-flag-parameters-inotify_init-fix.patch
-flag-parameters-check-magic-constants-alpha.patch
+kernel-irq-managec-replace-a-printk-warn_on-to-a-warn.patch
+cputopology-always-define-cpu-topology-information.patch
 cputopology-always-define-cpu-topology-information-cleanup.patch
+oprofile-multiplexing.patch
 oprofile-multiplexing-checkpatch-fixes.patch
-gpio-gpio-driver-for-max7301-spi-gpio-expander-checkpatch-fixes.patch
-drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
-atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
-pnp-add-pnp_possible_config-can-a-device-could-be-configured-this-way-fix.patch
-pnp-convert-resource-options-to-single-linked-list-checkpatch-fixes.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
-ext3-abort-ext3-if-the-journal-has-aborted-warning-fix.patch
-reiserfs-convert-j_flush_sem-to-mutex.patch
-reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
-jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup.patch
-ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
-getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
+rtc-remove-and-clarify-unneeded-externs.patch
+markers-use-rcu_barrier_sched-and-call_rcu_sched.patch
+accounting-account-for-user-time-when-updating-memory-integrals.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support.patch
 dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
-tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
-memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
-revert-linux-next-changes-to-make-memstick-use-fully-asynchronous-request-processing-apply.patch
-revert-revert-linux-next-changes-to-make-memstick-use-fully-asynchronous-request-processing-apply.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
+common-implementation-of-iterative-div-mod.patch
+add-an-inlined-version-of-iter_div_u64_rem.patch
+always_inline-timespec_add_ns.patch
+x86-implement-pte_special.patch
+mm-introduce-get_user_pages_fast.patch
 mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast.patch
 x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
 x86-lockless-get_user_pages_fast-fix.patch
 x86-lockless-get_user_pages_fast-fix-warning.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-semaphore-fix.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+dio-use-get_user_pages_fast.patch
+splice-use-get_user_pages_fast.patch
+detect-atomic-counter-underflows.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
 
