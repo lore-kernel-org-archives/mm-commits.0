@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + reiser4-tree_lock-fixes.patch added to -mm tree
-Date: Mon, 09 Jun 2008 00:04:34 -0700
-Message-ID: <200806090704.m5974YVx008251@imap1.linux-foundation.org>
+Subject: + pnp-add-pnp_possible_config-can-a-device-could-be-configured-this-way-fix.patch added to -mm tree
+Date: Mon, 09 Jun 2008 00:27:08 -0700
+Message-ID: <200806090727.m597R8PX008998@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47943 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42965 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755969AbYFIHFD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2008 03:05:03 -0400
+	by vger.kernel.org with ESMTP id S1754933AbYFIH2M (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2008 03:28:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, nickpiggin@yahoo.com.au
+Cc: akpm@linux-foundation.org, abelay@mit.edu, bjorn.helgaas@hp.com, castet.matthieu@free.fr, lenb@kernel.org, perex@perex.cz, rene.herman@keyaccess.nl, shaohua.li@intel.com, tiwai@suse.de, trenn@suse.de
 
 
 The patch titled
-     reiser4-tree_lock-fixes
+     pnp-add-pnp_possible_config-can-a-device-could-be-configured-this-way-fix
 has been added to the -mm tree.  Its filename is
-     reiser4-tree_lock-fixes.patch
+     pnp-add-pnp_possible_config-can-a-device-could-be-configured-this-way-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,65 +33,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: reiser4-tree_lock-fixes
+Subject: pnp-add-pnp_possible_config-can-a-device-could-be-configured-this-way-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+i386 allmodconfig:
+
+ERROR: "pnp_possible_config" [drivers/serial/8250_pnp.ko] undefined!
+
+Cc: Adam M Belay <abelay@mit.edu>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Jaroslav Kysela <perex@perex.cz>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Li Shaohua <shaohua.li@intel.com>
+Cc: Matthieu Castet <castet.matthieu@free.fr>
+Cc: Rene Herman <rene.herman@keyaccess.nl>
+Cc: Takashi Iwai <tiwai@suse.de>
+Cc: Thomas Renninger <trenn@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiser4/as_ops.c |    4 ++--
- fs/reiser4/jnode.c  |    8 ++++----
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ drivers/pnp/resource.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/reiser4/as_ops.c~reiser4-tree_lock-fixes fs/reiser4/as_ops.c
---- a/fs/reiser4/as_ops.c~reiser4-tree_lock-fixes
-+++ a/fs/reiser4/as_ops.c
-@@ -77,7 +77,7 @@ int reiser4_set_page_dirty(struct page *
- 		struct address_space *mapping = page->mapping;
+diff -puN drivers/pnp/resource.c~pnp-add-pnp_possible_config-can-a-device-could-be-configured-this-way-fix drivers/pnp/resource.c
+--- a/drivers/pnp/resource.c~pnp-add-pnp_possible_config-can-a-device-could-be-configured-this-way-fix
++++ a/drivers/pnp/resource.c
+@@ -684,6 +684,7 @@ int pnp_possible_config(struct pnp_dev *
  
- 		if (mapping) {
--			write_lock_irq(&mapping->tree_lock);
-+			spin_lock_irq(&mapping->tree_lock);
- 
- 			/* check for race with truncate */
- 			if (page->mapping) {
-@@ -89,7 +89,7 @@ int reiser4_set_page_dirty(struct page *
- 						   page->index,
- 						   PAGECACHE_TAG_REISER4_MOVED);
- 			}
--			write_unlock_irq(&mapping->tree_lock);
-+			spin_unlock_irq(&mapping->tree_lock);
- 			__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
- 		}
- 	}
-diff -puN fs/reiser4/jnode.c~reiser4-tree_lock-fixes fs/reiser4/jnode.c
---- a/fs/reiser4/jnode.c~reiser4-tree_lock-fixes
-+++ a/fs/reiser4/jnode.c
-@@ -434,9 +434,9 @@ static void inode_attach_jnode(jnode * n
- 	if (rtree->rnode == NULL) {
- 		/* prevent inode from being pruned when it has jnodes attached
- 		   to it */
--		write_lock_irq(&inode->i_data.tree_lock);
-+		spin_lock_irq(&inode->i_data.tree_lock);
- 		inode->i_data.nrpages++;
--		write_unlock_irq(&inode->i_data.tree_lock);
-+		spin_unlock_irq(&inode->i_data.tree_lock);
- 	}
- 	assert("zam-1049", equi(rtree->rnode != NULL, info->nr_jnodes != 0));
- 	check_me("zam-1045",
-@@ -464,9 +464,9 @@ static void inode_detach_jnode(jnode * n
- 	check_me("zam-1046", radix_tree_delete(rtree, node->key.j.index));
- 	if (rtree->rnode == NULL) {
- 		/* inode can be pruned now */
--		write_lock_irq(&inode->i_data.tree_lock);
-+		spin_lock_irq(&inode->i_data.tree_lock);
- 		inode->i_data.nrpages--;
--		write_unlock_irq(&inode->i_data.tree_lock);
-+		spin_unlock_irq(&inode->i_data.tree_lock);
- 	}
+ 	return 0;
  }
++EXPORT_SYMBOL(pnp_possible_config);
  
+ /* format is: pnp_reserve_irq=irq1[,irq2] .... */
+ static int __init pnp_setup_reserve_irq(char *str)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -185,6 +159,7 @@ oprofile-multiplexing-checkpatch-fixes.patch
 gpio-gpio-driver-for-max7301-spi-gpio-expander-checkpatch-fixes.patch
 drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
 atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
+pnp-add-pnp_possible_config-can-a-device-could-be-configured-this-way-fix.patch
 pnp-convert-resource-options-to-single-linked-list-checkpatch-fixes.patch
 jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
 jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
