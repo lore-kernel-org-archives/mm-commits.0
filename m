@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + bootmem-clean-up-free_all_bootmem_core-fix.patch added to -mm tree
-Date: Sun, 08 Jun 2008 23:45:42 -0700
-Message-ID: <200806090645.m596jgA3007675@imap1.linux-foundation.org>
+Subject: + reiser4-tree_lock-fixes.patch added to -mm tree
+Date: Mon, 09 Jun 2008 00:04:34 -0700
+Message-ID: <200806090704.m5974YVx008251@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40131 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47943 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754407AbYFIGqM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2008 02:46:12 -0400
+	by vger.kernel.org with ESMTP id S1755969AbYFIHFD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2008 03:05:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, andi@firstfloor.org, hannes@saeurebad.de, mingo@elte.hu, yhlu.kernel@gmail.com
+Cc: akpm@linux-foundation.org, nickpiggin@yahoo.com.au
 
 
 The patch titled
-     bootmem-clean-up-free_all_bootmem_core-fix
+     reiser4-tree_lock-fixes
 has been added to the -mm tree.  Its filename is
-     bootmem-clean-up-free_all_bootmem_core-fix.patch
+     reiser4-tree_lock-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,34 +33,65 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bootmem-clean-up-free_all_bootmem_core-fix
+Subject: reiser4-tree_lock-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-mm/bootmem.c: In function 'free_all_bootmem_core':
-mm/bootmem.c:163: warning: format '%d' expects type 'int', but argument 3 has type 'long int'
-
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Johannes Weiner <hannes@saeurebad.de>
-Cc: Yinghai Lu <yhlu.kernel@gmail.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/bootmem.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/reiser4/as_ops.c |    4 ++--
+ fs/reiser4/jnode.c  |    8 ++++----
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN mm/bootmem.c~bootmem-clean-up-free_all_bootmem_core-fix mm/bootmem.c
---- a/mm/bootmem.c~bootmem-clean-up-free_all_bootmem_core-fix
-+++ a/mm/bootmem.c
-@@ -160,7 +160,7 @@ static unsigned long __init free_all_boo
- 	 */
- 	aligned = !(start & (BITS_PER_LONG - 1));
+diff -puN fs/reiser4/as_ops.c~reiser4-tree_lock-fixes fs/reiser4/as_ops.c
+--- a/fs/reiser4/as_ops.c~reiser4-tree_lock-fixes
++++ a/fs/reiser4/as_ops.c
+@@ -77,7 +77,7 @@ int reiser4_set_page_dirty(struct page *
+ 		struct address_space *mapping = page->mapping;
  
--	bdebug("nid=%d start=%lx end=%lx aligned=%d\n",
-+	bdebug("nid=%td start=%lx end=%lx aligned=%d\n",
- 		bdata - bootmem_node_data, start, end, aligned);
+ 		if (mapping) {
+-			write_lock_irq(&mapping->tree_lock);
++			spin_lock_irq(&mapping->tree_lock);
  
- 	while (start < end) {
+ 			/* check for race with truncate */
+ 			if (page->mapping) {
+@@ -89,7 +89,7 @@ int reiser4_set_page_dirty(struct page *
+ 						   page->index,
+ 						   PAGECACHE_TAG_REISER4_MOVED);
+ 			}
+-			write_unlock_irq(&mapping->tree_lock);
++			spin_unlock_irq(&mapping->tree_lock);
+ 			__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
+ 		}
+ 	}
+diff -puN fs/reiser4/jnode.c~reiser4-tree_lock-fixes fs/reiser4/jnode.c
+--- a/fs/reiser4/jnode.c~reiser4-tree_lock-fixes
++++ a/fs/reiser4/jnode.c
+@@ -434,9 +434,9 @@ static void inode_attach_jnode(jnode * n
+ 	if (rtree->rnode == NULL) {
+ 		/* prevent inode from being pruned when it has jnodes attached
+ 		   to it */
+-		write_lock_irq(&inode->i_data.tree_lock);
++		spin_lock_irq(&inode->i_data.tree_lock);
+ 		inode->i_data.nrpages++;
+-		write_unlock_irq(&inode->i_data.tree_lock);
++		spin_unlock_irq(&inode->i_data.tree_lock);
+ 	}
+ 	assert("zam-1049", equi(rtree->rnode != NULL, info->nr_jnodes != 0));
+ 	check_me("zam-1045",
+@@ -464,9 +464,9 @@ static void inode_detach_jnode(jnode * n
+ 	check_me("zam-1046", radix_tree_delete(rtree, node->key.j.index));
+ 	if (rtree->rnode == NULL) {
+ 		/* inode can be pruned now */
+-		write_lock_irq(&inode->i_data.tree_lock);
++		spin_lock_irq(&inode->i_data.tree_lock);
+ 		inode->i_data.nrpages--;
+-		write_unlock_irq(&inode->i_data.tree_lock);
++		spin_unlock_irq(&inode->i_data.tree_lock);
+ 	}
+ }
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -181,6 +212,7 @@ x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
 x86-lockless-get_user_pages_fast-fix.patch
 x86-lockless-get_user_pages_fast-fix-warning.patch
 reiser4.patch
+reiser4-tree_lock-fixes.patch
 reiser4-semaphore-fix.patch
 page-owner-tracking-leak-detector.patch
 nr_blockdev_pages-in_interrupt-warning.patch
