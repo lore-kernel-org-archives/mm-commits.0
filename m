@@ -1,124 +1,217 @@
 From: akpm@linux-foundation.org
-Subject: - ext3-abort-ext3-if-the-journal-has-aborted.patch removed from -mm tree
-Date: Mon, 09 Jun 2008 15:12:16 -0700
-Message-ID: <200806092212.m59MCGvR010904__18329.7726711773$1213049618$gmane$org@imap1.linux-foundation.org>
+Subject: - drivers-net-wireless-iwlwifi-iwl-4965-rsc-config_iwl4965_ht=n-hack.patch removed from -mm tree
+Date: Mon, 09 Jun 2008 15:13:02 -0700
+Message-ID: <200806092213.m59MD2S3010941@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36773 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36187 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758152AbYFIWMY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2008 18:12:24 -0400
+	by vger.kernel.org with ESMTP id S1753160AbYFIWNU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jun 2008 18:13:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hidehiro.kawai.ez@hitachi.com, jack@suse.cz, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, linville@tuxdriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext3: abort ext3 if the journal has aborted
+     drivers/net/wireless/iwlwifi/iwl-4965-rs.c: CONFIG_IWL4965_HT=n hack
 has been removed from the -mm tree.  Its filename was
-     ext3-abort-ext3-if-the-journal-has-aborted.patch
+     drivers-net-wireless-iwlwifi-iwl-4965-rsc-config_iwl4965_ht=n-hack.patch
 
-This patch was dropped because I don't think we want to go read-only on file data write errors
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext3: abort ext3 if the journal has aborted
-From: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
+Subject: drivers/net/wireless/iwlwifi/iwl-4965-rs.c: CONFIG_IWL4965_HT=n hack
+From: Andrew Morton <akpm@linux-foundation.org>
 
-If the journal has aborted due to a checkpointing failure, we have to keep
-the contents of the journal space.  ext3_put_super() detects the journal
-abort, then it invokes ext3_abort() to make the filesystem read only and
-keep needs_recovery flag.
-
-Signed-off-by: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
-Acked-by: Jan Kara <jack@suse.cz>
-Cc: <linux-ext4@vger.kernel.org>
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/ioctl.c |   12 ++++++------
- fs/ext3/super.c |   11 +++++++++--
- 2 files changed, 15 insertions(+), 8 deletions(-)
+ drivers/net/wireless/iwlwifi/iwl-4965-rs.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN fs/ext3/ioctl.c~ext3-abort-ext3-if-the-journal-has-aborted fs/ext3/ioctl.c
---- a/fs/ext3/ioctl.c~ext3-abort-ext3-if-the-journal-has-aborted
-+++ a/fs/ext3/ioctl.c
-@@ -239,7 +239,7 @@ setrsvsz_out:
- 	case EXT3_IOC_GROUP_EXTEND: {
- 		ext3_fsblk_t n_blocks_count;
- 		struct super_block *sb = inode->i_sb;
--		int err;
-+		int err, err2;
+diff -puN drivers/net/wireless/iwlwifi/iwl-4965-rs.c~drivers-net-wireless-iwlwifi-iwl-4965-rsc-config_iwl4965_ht=n-hack drivers/net/wireless/iwlwifi/iwl-4965-rs.c
+--- a/drivers/net/wireless/iwlwifi/iwl-4965-rs.c~drivers-net-wireless-iwlwifi-iwl-4965-rsc-config_iwl4965_ht=n-hack
++++ a/drivers/net/wireless/iwlwifi/iwl-4965-rs.c
+@@ -1435,6 +1435,7 @@ static int rs_move_siso_to_other(struct 
+ 			}
+ 			break;
+ 		case IWL_SISO_SWITCH_GI:
++#ifdef CONFIG_IWL4965_HT
+ 			if (!tbl->is_fat &&
+ 				!(priv->current_ht_config.sgf &
+ 						HT_SHORT_GI_20MHZ))
+@@ -1443,7 +1444,7 @@ static int rs_move_siso_to_other(struct 
+ 				!(priv->current_ht_config.sgf &
+ 						HT_SHORT_GI_40MHZ))
+ 				break;
+-
++#endif
+ 			IWL_DEBUG_RATE("LQ: SISO toggle SGI/NGI\n");
  
- 		if (!capable(CAP_SYS_RESOURCE))
- 			return -EPERM;
-@@ -254,16 +254,16 @@ setrsvsz_out:
- 		}
- 		err = ext3_group_extend(sb, EXT3_SB(sb)->s_es, n_blocks_count);
- 		journal_lock_updates(EXT3_SB(sb)->s_journal);
--		journal_flush(EXT3_SB(sb)->s_journal);
-+		err2 = journal_flush(EXT3_SB(sb)->s_journal);
- 		journal_unlock_updates(EXT3_SB(sb)->s_journal);
- group_extend_out:
- 		mnt_drop_write(filp->f_path.mnt);
--		return err;
-+		return (err) ? err : err2;
- 	}
- 	case EXT3_IOC_GROUP_ADD: {
- 		struct ext3_new_group_data input;
- 		struct super_block *sb = inode->i_sb;
--		int err;
-+		int err, err2;
+ 			memcpy(search_tbl, tbl, sz);
+@@ -1526,6 +1527,7 @@ static int rs_move_mimo_to_other(struct 
+ 			break;
  
- 		if (!capable(CAP_SYS_RESOURCE))
- 			return -EPERM;
-@@ -280,11 +280,11 @@ group_extend_out:
+ 		case IWL_MIMO_SWITCH_GI:
++#ifdef CONFIG_IWL4965_HT
+ 			if (!tbl->is_fat &&
+ 				!(priv->current_ht_config.sgf &
+ 						HT_SHORT_GI_20MHZ))
+@@ -1533,6 +1535,7 @@ static int rs_move_mimo_to_other(struct 
+ 			if (tbl->is_fat &&
+ 				!(priv->current_ht_config.sgf &
+ 						HT_SHORT_GI_40MHZ))
++#endif
+ 				break;
  
- 		err = ext3_group_add(sb, &input);
- 		journal_lock_updates(EXT3_SB(sb)->s_journal);
--		journal_flush(EXT3_SB(sb)->s_journal);
-+		err2 = journal_flush(EXT3_SB(sb)->s_journal);
- 		journal_unlock_updates(EXT3_SB(sb)->s_journal);
- group_add_out:
- 		mnt_drop_write(filp->f_path.mnt);
--		return err;
-+		return (err) ? err : err2;
- 	}
- 
- 
-diff -puN fs/ext3/super.c~ext3-abort-ext3-if-the-journal-has-aborted fs/ext3/super.c
---- a/fs/ext3/super.c~ext3-abort-ext3-if-the-journal-has-aborted
-+++ a/fs/ext3/super.c
-@@ -393,7 +393,8 @@ static void ext3_put_super (struct super
- 	int i;
- 
- 	ext3_xattr_put_super(sb);
--	journal_destroy(sbi->s_journal);
-+	if (journal_destroy(sbi->s_journal) < 0)
-+		ext3_abort(sb, __func__, "Couldn't clean up the journal");
- 	if (!(sb->s_flags & MS_RDONLY)) {
- 		EXT3_CLEAR_INCOMPAT_FEATURE(sb, EXT3_FEATURE_INCOMPAT_RECOVER);
- 		es->s_state = cpu_to_le16(sbi->s_mount_state);
-@@ -2388,7 +2389,13 @@ static void ext3_write_super_lockfs(stru
- 
- 		/* Now we set up the journal barrier. */
- 		journal_lock_updates(journal);
--		journal_flush(journal);
-+
-+		/*
-+		 * We don't want to clear needs_recovery flag when we failed
-+		 * to flush the journal.
-+		 */
-+		if (journal_flush(journal) < 0)
-+			return;
- 
- 		/* Journal blocked and flushed, clear needs_recovery flag. */
- 		EXT3_CLEAR_INCOMPAT_FEATURE(sb, EXT3_FEATURE_INCOMPAT_RECOVER);
+ 			IWL_DEBUG_RATE("LQ: MIMO toggle SGI/NGI\n");
 _
 
-Patches currently in -mm which might be from hidehiro.kawai.ez@hitachi.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-ext3-abort-ext3-if-the-journal-has-aborted.patch
-ext3-abort-ext3-if-the-journal-has-aborted-warning-fix.patch
+origin.patch
+m68k-add-ext2_find_firstnext_bit-for-ext4-checkpatch-fixes.patch
+linux-next.patch
+next-remove-localversion.patch
+linux-next-git-rejects.patch
+fix-kobject-fix-kobject_rename-and-config_sysfs.patch
+drivers-net-wireless-iwlwifi-iwl-4965-rsc-config_iwl4965_ht=n-hack.patch
+kvm-unbork.patch
+kvm-is-busted-on-ia64.patch
+drivers-mtd-nand-nandsimc-needs-div64h.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-video-balcklist-fujitsu-lifebook-s6410.patch
+lguest-use-cpu-capability-accessors.patch
+intel-agp-rewrite-gtt-on-resume.patch
+intel-agp-rewrite-gtt-on-resume-update-checkpatch-fixes.patch
+arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2.patch
+arch-powerpc-platforms-pseries-eeh_driverc-fix-warning.patch
+arch-powerpc-platforms-pseries-eeh_driverc-fix-warning-checkpatch-fixes.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+git-jg-misc-git-rejects.patch
+drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+git-leds.patch
+fsldma-the-mpc8377mds-board-device-tree-node-for-fsldma-driver.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers.patch
+drivers-mtd-devices-block2mtdc-suppress-warning.patch
+bluetooth-hci_bcspc-small-cleanups-api-users-fix.patch
+sundance-set-carrier-status-on-link-change-events.patch
+net-sh_eth-add-support-for-renesas-superh-ethernet-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+pci-introduce-pci_slot.patch
+acpi-pci-slot-detection-driver.patch
+git-scsi-misc-fix-scsi_dh-build-errors.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
+pktcdvd-push-bkl-down-into-driver-fix.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-logfs-fixup.patch
+drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
+drivers-uwb-wlp-sysfsc-dead-code.patch
+usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix.patch
+usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues-fix-2.patch
+watchdog-pcwd-clean-up-unlocked_ioctl-usage-fix.patch
+watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl-fix.patch
+git-xtensa.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-verify-the-page-links-and-memory-model.patch
+mspec-convert-nopfn-to-fault-fix.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+kill-generic_file_direct_io-checkpatch-fixes.patch
+use-generic_access_phys-for-dev-mem-mappings-fix.patch
+spufs-use-the-new-vm_ops-access-fix.patch
+fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
+page-flags-record-page-flag-overlays-explicitly-xen.patch
+mapping_set_error-add-unlikely.patch
+huge-page-private-reservation-review-cleanups-fix.patch
+sync_file_range_write-may-and-will-block-document-that-fix.patch
+vmallocinfo-add-numa-information-fix.patch
+hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
+hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
+hugetlb-override-default-huge-page-size-ia64-build.patch
+bootmem-add-debugging-framework-fix.patch
+bootmem-clean-up-free_all_bootmem_core-fix.patch
+bootmem-free-reserve-helpers-fix.patch
+bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
+swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
+block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
+rename-warn-to-warning-to-clear-the-namespace-fix.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-paccept-sys_ni.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-signalfd-fix.patch
+flag-parameters-eventfd-fix.patch
+flag-parameters-inotify_init-fix.patch
+flag-parameters-check-magic-constants-alpha.patch
+cputopology-always-define-cpu-topology-information-cleanup.patch
+oprofile-multiplexing-checkpatch-fixes.patch
+gpio-gpio-driver-for-max7301-spi-gpio-expander-checkpatch-fixes.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
+pnp-add-pnp_possible_config-can-a-device-could-be-configured-this-way-fix.patch
+pnp-convert-resource-options-to-single-linked-list-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
+reiserfs-convert-j_flush_sem-to-mutex.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
+jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup.patch
+ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
+getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
+tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
+memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
+revert-linux-next-changes-to-make-memstick-use-fully-asynchronous-request-processing-apply.patch
+memstick-use-fully-asynchronous-request-processing-fix.patch
+revert-revert-linux-next-changes-to-make-memstick-use-fully-asynchronous-request-processing-apply.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+mm-introduce-get_user_pages_fast-fix.patch
+mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-fix.patch
+x86-lockless-get_user_pages_fast-fix-2.patch
+x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
+x86-lockless-get_user_pages_fast-fix-warning.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
