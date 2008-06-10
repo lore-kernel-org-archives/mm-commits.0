@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + intel-agp-rewrite-gtt-on-resume-fix.patch added to -mm tree
-Date: Mon, 09 Jun 2008 21:32:21 -0700
-Message-ID: <200806100432.m5A4WL6A025348@imap1.linux-foundation.org>
+Subject: + intel-agp-rewrite-gtt-on-resume-fix-fix.patch added to -mm tree
+Date: Mon, 09 Jun 2008 21:46:57 -0700
+Message-ID: <200806100446.m5A4kvxr025855@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47316 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51990 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756706AbYFJEdT (ORCPT
+	by vger.kernel.org with ESMTP id S1751011AbYFJErO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Jun 2008 00:33:19 -0400
+	Tue, 10 Jun 2008 00:47:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, airlied@linux.ie, andi@firstfloor.org, davej@code
 
 
 The patch titled
-     intel-agp-rewrite-gtt-on-resume-fix
+     intel-agp-rewrite-gtt-on-resume-fix-fix
 has been added to the -mm tree.  Its filename is
-     intel-agp-rewrite-gtt-on-resume-fix.patch
+     intel-agp-rewrite-gtt-on-resume-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,8 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: intel-agp-rewrite-gtt-on-resume-fix
+Subject: intel-agp-rewrite-gtt-on-resume-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
-
-fix locking, noted by Andi.
 
 Cc: Andi Kleen <andi@firstfloor.org>
 Cc: Dave Airlie <airlied@linux.ie>
@@ -46,25 +44,21 @@ Cc: Keith Packard <keithp@keithp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/agp/generic.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/char/agp/generic.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/agp/generic.c~intel-agp-rewrite-gtt-on-resume-fix drivers/char/agp/generic.c
---- a/drivers/char/agp/generic.c~intel-agp-rewrite-gtt-on-resume-fix
+diff -puN drivers/char/agp/generic.c~intel-agp-rewrite-gtt-on-resume-fix-fix drivers/char/agp/generic.c
+--- a/drivers/char/agp/generic.c~intel-agp-rewrite-gtt-on-resume-fix-fix
 +++ a/drivers/char/agp/generic.c
-@@ -483,10 +483,10 @@ int agp_rebind_memory(void)
- 							      curr->pg_start,
- 							      curr->type);
- 		if (ret_val != 0)
--			return ret_val;
-+			break;
- 	}
- 	spin_unlock(&agp_bridge->mapped_lock);
--	return 0;
-+	return ret_val;
- }
- EXPORT_SYMBOL(agp_rebind_memory);
+@@ -475,7 +475,7 @@ EXPORT_SYMBOL(agp_unbind_memory);
+ int agp_rebind_memory(void)
+ {
+ 	struct agp_memory *curr;
+-	int ret_val;
++	int ret_val = 0;
  
+ 	spin_lock(&agp_bridge->mapped_lock);
+ 	list_for_each_entry(curr, &agp_bridge->mapped_list, mapped_list) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -83,6 +77,7 @@ acpi-video-balcklist-fujitsu-lifebook-s6410.patch
 lguest-use-cpu-capability-accessors.patch
 intel-agp-rewrite-gtt-on-resume.patch
 intel-agp-rewrite-gtt-on-resume-fix.patch
+intel-agp-rewrite-gtt-on-resume-fix-fix.patch
 arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
 pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2.patch
 arch-powerpc-platforms-pseries-eeh_driverc-fix-warning.patch
