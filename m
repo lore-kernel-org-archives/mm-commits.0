@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kprobes-fix-error-checking-of-batch-registration.patch added to -mm tree
-Date: Tue, 10 Jun 2008 15:48:37 -0700
-Message-ID: <200806102248.m5AMmbSr001107@imap1.linux-foundation.org>
+Subject: + m68knommu-init-coldfire-timer-trr-with-n-1-not-n.patch added to -mm tree
+Date: Tue, 10 Jun 2008 16:29:34 -0700
+Message-ID: <200806102329.m5ANTYvu002611@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57055 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41911 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753240AbYFJWzL (ORCPT
+	by vger.kernel.org with ESMTP id S1753149AbYFJX3t (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Jun 2008 18:55:11 -0400
+	Tue, 10 Jun 2008 19:29:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mhiramat@redhat.com, ananth@in.ibm.com, anil.s.keshavamurthy@intel.com, davem@davemloft.net, jkenisto@us.ibm.com
+Cc: phdm@macqel.be, gerg@snapgear.com
 
 
 The patch titled
-     kprobes: fix error checking of batch registration
+     m68knommu: init coldfire timer TRR with n - 1, not n
 has been added to the -mm tree.  Its filename is
-     kprobes-fix-error-checking-of-batch-registration.patch
+     m68knommu-init-coldfire-timer-trr-with-n-1-not-n.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,70 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kprobes: fix error checking of batch registration
-From: Masami Hiramatsu <mhiramat@redhat.com>
+Subject: m68knommu: init coldfire timer TRR with n - 1, not n
+From: Philippe De Muyter <phdm@macqel.be>
 
-Fix error checking routine to catch an error which occurs in first
-__register_*probe().
+The coldfire timer must be initialised to n - 1 if we want it to count n
+cycles between each tick interrupt.  This was already fixed, but has been
+lost with the conversion to GENERIC_TIMER.
 
-Signed-off-by: Masami Hiramatsu <mhiramat@redhat.com>
-Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
-Cc: Jim Keniston <jkenisto@us.ibm.com>
-Cc: David Miller <davem@davemloft.net>
-Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+Signed-off-by: Philippe De Muyter <phdm@macqel.be>
+Cc: Greg Ungerer <gerg@snapgear.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kprobes.c |   15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+ arch/m68knommu/platform/coldfire/timers.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN kernel/kprobes.c~kprobes-fix-error-checking-of-batch-registration kernel/kprobes.c
---- a/kernel/kprobes.c~kprobes-fix-error-checking-of-batch-registration
-+++ a/kernel/kprobes.c
-@@ -699,8 +699,9 @@ static int __register_kprobes(struct kpr
- 		return -EINVAL;
- 	for (i = 0; i < num; i++) {
- 		ret = __register_kprobe(kps[i], called_from);
--		if (ret < 0 && i > 0) {
--			unregister_kprobes(kps, i);
-+		if (ret < 0) {
-+			if (i > 0)
-+				unregister_kprobes(kps, i);
- 			break;
- 		}
- 	}
-@@ -776,8 +777,9 @@ static int __register_jprobes(struct jpr
- 			jp->kp.break_handler = longjmp_break_handler;
- 			ret = __register_kprobe(&jp->kp, called_from);
- 		}
--		if (ret < 0 && i > 0) {
--			unregister_jprobes(jps, i);
-+		if (ret < 0) {
-+			if (i > 0)
-+				unregister_jprobes(jps, i);
- 			break;
- 		}
- 	}
-@@ -920,8 +922,9 @@ static int __register_kretprobes(struct 
- 		return -EINVAL;
- 	for (i = 0; i < num; i++) {
- 		ret = __register_kretprobe(rps[i], called_from);
--		if (ret < 0 && i > 0) {
--			unregister_kretprobes(rps, i);
-+		if (ret < 0) {
-+			if (i > 0)
-+				unregister_kretprobes(rps, i);
- 			break;
- 		}
- 	}
+diff -puN arch/m68knommu/platform/coldfire/timers.c~m68knommu-init-coldfire-timer-trr-with-n-1-not-n arch/m68knommu/platform/coldfire/timers.c
+--- a/arch/m68knommu/platform/coldfire/timers.c~m68knommu-init-coldfire-timer-trr-with-n-1-not-n
++++ a/arch/m68knommu/platform/coldfire/timers.c
+@@ -111,7 +111,13 @@ void hw_timer_init(void)
+ 
+ 	__raw_writew(MCFTIMER_TMR_DISABLE, TA(MCFTIMER_TMR));
+ 	mcftmr_cycles_per_jiffy = FREQ / HZ;
+-	__raw_writetrr(mcftmr_cycles_per_jiffy, TA(MCFTIMER_TRR));
++	/*
++	 *	The coldfire timer runs from 0 to TRR included, then 0
++	 *	again and so on.  It counts thus actually TRR + 1 steps
++	 *	for 1 tick, not TRR.  So if you want n cycles,
++	 *	initialize TRR with n - 1.
++	 */
++	__raw_writetrr(mcftmr_cycles_per_jiffy - 1, TA(MCFTIMER_TRR));
+ 	__raw_writew(MCFTIMER_TMR_ENORI | MCFTIMER_TMR_CLK16 |
+ 		MCFTIMER_TMR_RESTART | MCFTIMER_TMR_ENABLE, TA(MCFTIMER_TMR));
+ 
 _
 
-Patches currently in -mm which might be from mhiramat@redhat.com are
+Patches currently in -mm which might be from phdm@macqel.be are
 
-kprobes-fix-error-checking-of-batch-registration.patch
-kprobes-improve-kretprobe-scalability-with-hashed-locking.patch
-kprobes-remove-redundant-config-check.patch
-kprobes-indirectly-call-kprobe_target.patch
-kprobes-add-tests-for-register_kprobes.patch
-make-kprobe_blacklist-static.patch
+m68knommu-init-coldfire-timer-trr-with-n-1-not-n.patch
 
