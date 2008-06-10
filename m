@@ -1,77 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - acpi-video-balcklist-fujitsu-lifebook-s6410.patch removed from -mm tree
-Date: Tue, 10 Jun 2008 10:37:34 -0700
-Message-ID: <200806101737.m5AHbYsg021302@imap1.linux-foundation.org>
+Subject: + dma-mapping-add-the-device-argument-to-dma_mapping_error-b34-fix.patch added to -mm tree
+Date: Tue, 10 Jun 2008 10:43:32 -0700
+Message-ID: <200806101743.m5AHhWkk021540@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37634 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46301 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750904AbYFJRid (ORCPT
+	by vger.kernel.org with ESMTP id S1752709AbYFJRns (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Jun 2008 13:38:33 -0400
+	Tue, 10 Jun 2008 13:43:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nokos@gmx.net, lenb@kernel.org, mjg59@srcf.ucam.org, robert.moore@intel.com, trenn@suse.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: mb@bu3sch.de, fujita.tomonori@lab.ntt.co.jp, miles.lane@gmail.com, vegard.nossum@gmail.com
 
 
 The patch titled
-     acpi video: blacklist Fujitsu Lifebook S6410
-has been removed from the -mm tree.  Its filename was
-     acpi-video-balcklist-fujitsu-lifebook-s6410.patch
+     dma-mapping-add-the-device-argument-to-dma_mapping_error: b43 fix
+has been added to the -mm tree.  Its filename is
+     dma-mapping-add-the-device-argument-to-dma_mapping_error-b34-fix.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi video: blacklist Fujitsu Lifebook S6410
-From: Peter Gruber <nokos@gmx.net>
+Subject: dma-mapping-add-the-device-argument-to-dma_mapping_error: b43 fix
+From: Michael Buesch <mb@bu3sch.de>
 
-Taken from http://bugzilla.kernel.org/show_bug.cgi?id=10454
+Also make sure to check b43legacy. I _guess_ you might have added
+the same bug there.
 
-On Thu, 1 May 2008 12:59:46 +0100 Matthew Garrett <mjg59@srcf.ucam.org> wrote:
-
-> On Thu, May 01, 2008 at 02:52:04AM -0700, akpm@linux-foundation.org wrote:
-> 
-> > Taken from http://bugzilla.kernel.org/show_bug.cgi?id=10454
-> 
-> Checking the bug, it seems like discussion is ongoing and a better 
-> solution is possible - this seems to be a case of us differing in 
-> behaviour from Vista, so we probably want to fix it up properly.
-> 
-> -- 
-> Matthew Garrett | mjg59@srcf.ucam.org
-
-Cc: Len Brown <lenb@kernel.org>
-Cc: "Moore, Robert" <robert.moore@intel.com>
-Cc: Thomas Renninger <trenn@suse.de>
+Cc: "Vegard Nossum" <vegard.nossum@gmail.com>
+Reported-by: "Miles Lane" <miles.lane@gmail.com>
+Cc: "Michael Buesch" <mb@bu3sch.de>
+Cc: "FUJITA Tomonori" <fujita.tomonori@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/blacklist.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/net/wireless/b43/dma.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/acpi/blacklist.c~acpi-video-balcklist-fujitsu-lifebook-s6410 drivers/acpi/blacklist.c
---- a/drivers/acpi/blacklist.c~acpi-video-balcklist-fujitsu-lifebook-s6410
-+++ a/drivers/acpi/blacklist.c
-@@ -448,6 +448,14 @@ static struct dmi_system_id acpi_osi_dmi
- 	 	     DMI_MATCH(DMI_PRODUCT_NAME, "ESPRIMO Mobile V5505"),
- 		},
- 	},
-+	{
-+	.callback = dmi_disable_osi_vista,
-+	.ident = "Fujitsu Siemens",
-+	.matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "FUJITSU SIEMENS"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "LIFEBOOK S6410"),
-+		},
-+	},
- 	/*
- 	 * Disable OSI(Linux) warnings on all "Hewlett-Packard"
- 	 *
+diff -puN drivers/net/wireless/b43/dma.c~dma-mapping-add-the-device-argument-to-dma_mapping_error-b34-fix drivers/net/wireless/b43/dma.c
+--- a/drivers/net/wireless/b43/dma.c~dma-mapping-add-the-device-argument-to-dma_mapping_error-b34-fix
++++ a/drivers/net/wireless/b43/dma.c
+@@ -802,6 +802,7 @@ struct b43_dmaring *b43_setup_dmaring(st
+ 	if (!ring)
+ 		goto out;
+ 	ring->type = type;
++	ring->dev = dev;
+ 
+ 	nr_slots = B43_RXRING_SLOTS;
+ 	if (for_tx)
+@@ -853,7 +854,6 @@ struct b43_dmaring *b43_setup_dmaring(st
+ 				 DMA_TO_DEVICE);
+ 	}
+ 
+-	ring->dev = dev;
+ 	ring->nr_slots = nr_slots;
+ 	ring->mmio_base = b43_dmacontroller_base(type, controller_index);
+ 	ring->index = controller_index;
 _
 
-Patches currently in -mm which might be from nokos@gmx.net are
+Patches currently in -mm which might be from mb@bu3sch.de are
 
-acpi-video-balcklist-fujitsu-lifebook-s6410.patch
+linux-next.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-b34-fix.patch
 
