@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cciss-bump-version-to-20-to-reflect-new-hw-support.patch added to -mm tree
-Date: Tue, 10 Jun 2008 14:26:33 -0700
-Message-ID: <200806102126.m5ALQXUL030243@imap1.linux-foundation.org>
+Subject: + intel_rng-make-device-not-found-a-warning.patch added to -mm tree
+Date: Tue, 10 Jun 2008 14:50:07 -0700
+Message-ID: <200806102150.m5ALo78g031218@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60769 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50446 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755775AbYFJV2y (ORCPT
+	by vger.kernel.org with ESMTP id S1754172AbYFJVuU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Jun 2008 17:28:54 -0400
+	Tue, 10 Jun 2008 17:50:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mike.miller@hp.com, jens.axboe@oracle.com, stable@kernel.org
+Cc: shemminger@vyatta.com, jbeulich@novell.com, mb@bu3sch.de
 
 
 The patch titled
-     cciss: bump version to .20 to reflect new HW support
+     intel_rng: make device not found a warning
 has been added to the -mm tree.  Its filename is
-     cciss-bump-version-to-20-to-reflect-new-hw-support.patch
+     intel_rng-make-device-not-found-a-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,50 +34,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cciss: bump version to .20 to reflect new HW support
-From: Mike Miller <mike.miller@hp.com>
+Subject: intel_rng: make device not found a warning
+From: Stephen Hemminger <shemminger@vyatta.com>
 
-Bump the driver version to 3.6.20 to reflect the new hardware support from
-patch 1 of this set.
+Since many distros load this driver by default (throw it against the wall
+and see what sticks method).  Change the error message severity level to
+avoid alarming users.  Isn't it annoying when users actually read the
+error logs...
 
-Signed-off-by: Mike Miller <mike.miller@hp.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
+Cc: Michael Buesch <mb@bu3sch.de>
+Cc: Jan Beulich <jbeulich@novell.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/cciss.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/char/hw_random/intel-rng.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/block/cciss.c~cciss-bump-version-to-20-to-reflect-new-hw-support drivers/block/cciss.c
---- a/drivers/block/cciss.c~cciss-bump-version-to-20-to-reflect-new-hw-support
-+++ a/drivers/block/cciss.c
-@@ -53,16 +53,16 @@
- #include <linux/scatterlist.h>
+diff -puN drivers/char/hw_random/intel-rng.c~intel_rng-make-device-not-found-a-warning drivers/char/hw_random/intel-rng.c
+--- a/drivers/char/hw_random/intel-rng.c~intel_rng-make-device-not-found-a-warning
++++ a/drivers/char/hw_random/intel-rng.c
+@@ -273,7 +273,7 @@ static int __init intel_rng_hw_init(void
+ 	if (mfc != INTEL_FWH_MANUFACTURER_CODE ||
+ 	    (dvc != INTEL_FWH_DEVICE_CODE_8M &&
+ 	     dvc != INTEL_FWH_DEVICE_CODE_4M)) {
+-		printk(KERN_ERR PFX "FWH not detected\n");
++		printk(KERN_NOTICE PFX "FWH not detected\n");
+ 		return -ENODEV;
+ 	}
  
- #define CCISS_DRIVER_VERSION(maj,min,submin) ((maj<<16)|(min<<8)|(submin))
--#define DRIVER_NAME "HP CISS Driver (v 3.6.14)"
--#define DRIVER_VERSION CCISS_DRIVER_VERSION(3,6,14)
-+#define DRIVER_NAME "HP CISS Driver (v 3.6.20)"
-+#define DRIVER_VERSION CCISS_DRIVER_VERSION(3, 6, 20)
- 
- /* Embedded module documentation macros - see modules.h */
- MODULE_AUTHOR("Hewlett-Packard Company");
--MODULE_DESCRIPTION("Driver for HP Controller SA5xxx SA6xxx version 3.6.14");
-+MODULE_DESCRIPTION("Driver for HP Smart Array Controllers");
- MODULE_SUPPORTED_DEVICE("HP SA5i SA5i+ SA532 SA5300 SA5312 SA641 SA642 SA6400"
- 			" SA6i P600 P800 P400 P400i E200 E200i E500 P700m"
- 			" Smart Array G2 Series SAS/SATA Controllers");
--MODULE_VERSION("3.6.14");
-+MODULE_VERSION("3.6.20");
- MODULE_LICENSE("GPL");
- 
- #include "cciss_cmd.h"
 _
 
-Patches currently in -mm which might be from mike.miller@hp.com are
+Patches currently in -mm which might be from shemminger@vyatta.com are
 
-cciss-add-new-hardware-support.patch
-cciss-add-new-hardware-support-fix.patch
-cciss-bump-version-to-20-to-reflect-new-hw-support.patch
+linux-next.patch
+intel_rng-make-device-not-found-a-warning.patch
+sysctl-allow-override-of-proc-sys-net-with-cap_net_admin.patch
 
