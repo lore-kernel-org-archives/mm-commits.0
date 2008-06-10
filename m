@@ -1,121 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: - kbuild-move-non-__kernel__-checking-headers-to-header-y.patch removed from -mm tree
-Date: Tue, 10 Jun 2008 14:28:00 -0700
-Message-ID: <200806102128.m5ALS0Ca030272@imap1.linux-foundation.org>
+Subject: + cciss-bump-version-to-20-to-reflect-new-hw-support.patch added to -mm tree
+Date: Tue, 10 Jun 2008 14:26:33 -0700
+Message-ID: <200806102126.m5ALQXUL030243@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58153 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60769 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755007AbYFJV2e (ORCPT
+	by vger.kernel.org with ESMTP id S1755775AbYFJV2y (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Jun 2008 17:28:34 -0400
+	Tue, 10 Jun 2008 17:28:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@crashcourse.ca, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: mike.miller@hp.com, jens.axboe@oracle.com, stable@kernel.org
 
 
 The patch titled
-     kbuild: move non-__KERNEL__-checking headers to header-y
-has been removed from the -mm tree.  Its filename was
-     kbuild-move-non-__kernel__-checking-headers-to-header-y.patch
+     cciss: bump version to .20 to reflect new HW support
+has been added to the -mm tree.  Its filename is
+     cciss-bump-version-to-20-to-reflect-new-hw-support.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kbuild: move non-__KERNEL__-checking headers to header-y
-From: "Robert P. J. Day" <rpjday@crashcourse.ca>
+Subject: cciss: bump version to .20 to reflect new HW support
+From: Mike Miller <mike.miller@hp.com>
 
-Move exported header files under include/linux that don't check the
-__KERNEL__ preprocessor from unifdef-y to header-y.
+Bump the driver version to 3.6.20 to reflect the new hardware support from
+patch 1 of this set.
 
-Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
+Signed-off-by: Mike Miller <mike.miller@hp.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/Kbuild |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ drivers/block/cciss.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/Kbuild~kbuild-move-non-__kernel__-checking-headers-to-header-y include/linux/Kbuild
---- a/include/linux/Kbuild~kbuild-move-non-__kernel__-checking-headers-to-header-y
-+++ a/include/linux/Kbuild
-@@ -103,6 +103,7 @@ header-y += iso_fs.h
- header-y += ixjuser.h
- header-y += jffs2.h
- header-y += keyctl.h
-+header-y += kvm.h
- header-y += limits.h
- header-y += magic.h
- header-y += major.h
-@@ -155,11 +156,18 @@ header-y += toshiba.h
- header-y += udf_fs_i.h
- header-y += ultrasound.h
- header-y += un.h
-+header-y += unistd.h
- header-y += utime.h
- header-y += veth.h
- header-y += video_decoder.h
- header-y += video_encoder.h
- header-y += videotext.h
-+header-y += virtio_blk.h
-+header-y += virtio_net.h
-+header-y += virtio_9p.h
-+header-y += virtio_balloon.h
-+header-y += virtio_pci.h
-+header-y += wireless.h
- header-y += x25.h
+diff -puN drivers/block/cciss.c~cciss-bump-version-to-20-to-reflect-new-hw-support drivers/block/cciss.c
+--- a/drivers/block/cciss.c~cciss-bump-version-to-20-to-reflect-new-hw-support
++++ a/drivers/block/cciss.c
+@@ -53,16 +53,16 @@
+ #include <linux/scatterlist.h>
  
- unifdef-y += acct.h
-@@ -253,7 +261,6 @@ unifdef-y += kd.h
- unifdef-y += kernelcapi.h
- unifdef-y += kernel.h
- unifdef-y += keyboard.h
--unifdef-y += kvm.h
- unifdef-y += llc.h
- unifdef-y += loop.h
- unifdef-y += lp.h
-@@ -338,24 +345,17 @@ unifdef-y += types.h
- unifdef-y += udp.h
- unifdef-y += uinput.h
- unifdef-y += uio.h
--unifdef-y += unistd.h
- unifdef-y += usbdevice_fs.h
- unifdef-y += utsname.h
- unifdef-y += videodev2.h
- unifdef-y += videodev.h
- unifdef-y += virtio_config.h
--unifdef-y += virtio_blk.h
--unifdef-y += virtio_net.h
--unifdef-y += virtio_9p.h
--unifdef-y += virtio_balloon.h
- unifdef-y += virtio_console.h
--unifdef-y += virtio_pci.h
- unifdef-y += virtio_ring.h
- unifdef-y += vt.h
- unifdef-y += wait.h
- unifdef-y += wanrouter.h
- unifdef-y += watchdog.h
--unifdef-y += wireless.h
- unifdef-y += xattr.h
- unifdef-y += xfrm.h
+ #define CCISS_DRIVER_VERSION(maj,min,submin) ((maj<<16)|(min<<8)|(submin))
+-#define DRIVER_NAME "HP CISS Driver (v 3.6.14)"
+-#define DRIVER_VERSION CCISS_DRIVER_VERSION(3,6,14)
++#define DRIVER_NAME "HP CISS Driver (v 3.6.20)"
++#define DRIVER_VERSION CCISS_DRIVER_VERSION(3, 6, 20)
  
+ /* Embedded module documentation macros - see modules.h */
+ MODULE_AUTHOR("Hewlett-Packard Company");
+-MODULE_DESCRIPTION("Driver for HP Controller SA5xxx SA6xxx version 3.6.14");
++MODULE_DESCRIPTION("Driver for HP Smart Array Controllers");
+ MODULE_SUPPORTED_DEVICE("HP SA5i SA5i+ SA532 SA5300 SA5312 SA641 SA642 SA6400"
+ 			" SA6i P600 P800 P400 P400i E200 E200i E500 P700m"
+ 			" Smart Array G2 Series SAS/SATA Controllers");
+-MODULE_VERSION("3.6.14");
++MODULE_VERSION("3.6.20");
+ MODULE_LICENSE("GPL");
+ 
+ #include "cciss_cmd.h"
 _
 
-Patches currently in -mm which might be from rpjday@crashcourse.ca are
+Patches currently in -mm which might be from mike.miller@hp.com are
 
-origin.patch
-linux-next.patch
-kbuild-remove-final-references-to-deprecated-unreferenced-topdir.patch
-kbuild-move-non-__kernel__-checking-headers-to-header-y.patch
-xtensa-warn-about-including-asm-rwsemh-directly.patch
-xtensa-use-newer-__spin_lock_unlocked-macro.patch
-remove-include-linux-pm_legacyh.patch
-remove-apparently-unused-fd1772h-header-file.patch
-init-delete-hard-coded-setting-and-testing-of-build_cramdisk.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
-lists-remove-a-redundant-conditional-definition-of-list_add.patch
-config_sound_wm97xx-remove-stale-makefile-line.patch
-spi-kconfig-simplifications.patch
+cciss-add-new-hardware-support.patch
+cciss-add-new-hardware-support-fix.patch
+cciss-bump-version-to-20-to-reflect-new-hw-support.patch
 
