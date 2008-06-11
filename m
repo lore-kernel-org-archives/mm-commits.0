@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + unevictable-lru-page-statistics.patch added to -mm tree
-Date: Wed, 11 Jun 2008 12:59:49 -0700
-Message-ID: <200806111959.m5BJxn8v015208@imap1.linux-foundation.org>
+Subject: + vmscan-add-newly-swapped-in-pages-to-the-inactive-list.patch added to -mm tree
+Date: Wed, 11 Jun 2008 12:59:39 -0700
+Message-ID: <200806111959.m5BJxeuE015191@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59112 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46387 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754658AbYFKUAO (ORCPT
+	by vger.kernel.org with ESMTP id S1754981AbYFKUAA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Jun 2008 16:00:14 -0400
+	Wed, 11 Jun 2008 16:00:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Lee.Schermerhorn@hp.com, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, riel@redhat.com
+Cc: riel@redhat.com
 
 
 The patch titled
-     Unevictable LRU Page Statistics
+     vmscan: add newly swapped in pages to the inactive list
 has been added to the -mm tree.  Its filename is
-     unevictable-lru-page-statistics.patch
+     vmscan-add-newly-swapped-in-pages-to-the-inactive-list.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,167 +34,87 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Unevictable LRU Page Statistics
-From: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Subject: vmscan: add newly swapped in pages to the inactive list
+From: Rik van Riel <riel@redhat.com>
 
-Report unevictable pages per zone and system wide.
+Swapin_readahead can read in a lot of data that the processes in memory
+never need.  Adding swap cache pages to the inactive list prevents them
+from putting too much pressure on the working set.
 
-Kosaki Motohiro added support for memory controller unevictable
-statistics.
+This has the potential to help the programs that are already in memory,
+but it could also be a disadvantage to processes that are trying to get
+swapped in.
 
-Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Signed-off-by: Rik van Riel <riel@redhat.com>
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/node.c |    6 ++++++
- fs/proc/proc_misc.c |    6 ++++++
- mm/memcontrol.c     |    6 ++++++
- mm/page_alloc.c     |   16 +++++++++++++++-
- mm/vmstat.c         |    3 +++
- 5 files changed, 36 insertions(+), 1 deletion(-)
+ mm/swap_state.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/base/node.c~unevictable-lru-page-statistics drivers/base/node.c
---- a/drivers/base/node.c~unevictable-lru-page-statistics
-+++ a/drivers/base/node.c
-@@ -67,6 +67,9 @@ static ssize_t node_read_meminfo(struct 
- 		       "Node %d Inactive(anon): %8lu kB\n"
- 		       "Node %d Active(file):   %8lu kB\n"
- 		       "Node %d Inactive(file): %8lu kB\n"
-+#ifdef CONFIG_UNEVICTABLE_LRU
-+		       "Node %d Noreclaim:      %8lu kB\n"
-+#endif
- #ifdef CONFIG_HIGHMEM
- 		       "Node %d HighTotal:      %8lu kB\n"
- 		       "Node %d HighFree:       %8lu kB\n"
-@@ -96,6 +99,9 @@ static ssize_t node_read_meminfo(struct 
- 		       nid, node_page_state(nid, NR_INACTIVE_ANON),
- 		       nid, node_page_state(nid, NR_ACTIVE_FILE),
- 		       nid, node_page_state(nid, NR_INACTIVE_FILE),
-+#ifdef CONFIG_UNEVICTABLE_LRU
-+		       nid, node_page_state(nid, NR_UNEVICTABLE),
-+#endif
- #ifdef CONFIG_HIGHMEM
- 		       nid, K(i.totalhigh),
- 		       nid, K(i.freehigh),
-diff -puN fs/proc/proc_misc.c~unevictable-lru-page-statistics fs/proc/proc_misc.c
---- a/fs/proc/proc_misc.c~unevictable-lru-page-statistics
-+++ a/fs/proc/proc_misc.c
-@@ -175,6 +175,9 @@ static int meminfo_read_proc(char *page,
- 		"Inactive(anon): %8lu kB\n"
- 		"Active(file):   %8lu kB\n"
- 		"Inactive(file): %8lu kB\n"
-+#ifdef CONFIG_UNEVICTABLE_LRU
-+		"Unevictable:    %8lu kB\n"
-+#endif
- #ifdef CONFIG_HIGHMEM
- 		"HighTotal:      %8lu kB\n"
- 		"HighFree:       %8lu kB\n"
-@@ -210,6 +213,9 @@ static int meminfo_read_proc(char *page,
- 		K(pages[LRU_INACTIVE_ANON]),
- 		K(pages[LRU_ACTIVE_FILE]),
- 		K(pages[LRU_INACTIVE_FILE]),
-+#ifdef CONFIG_UNEVICTABLE_LRU
-+		K(pages[LRU_UNEVICTABLE]),
-+#endif
- #ifdef CONFIG_HIGHMEM
- 		K(i.totalhigh),
- 		K(i.freehigh),
-diff -puN mm/memcontrol.c~unevictable-lru-page-statistics mm/memcontrol.c
---- a/mm/memcontrol.c~unevictable-lru-page-statistics
-+++ a/mm/memcontrol.c
-@@ -930,6 +930,7 @@ static int mem_control_stat_show(struct 
- 	{
- 		unsigned long active_anon, inactive_anon;
- 		unsigned long active_file, inactive_file;
-+		unsigned long unevictable;
- 
- 		inactive_anon = mem_cgroup_get_all_zonestat(mem_cont,
- 						LRU_INACTIVE_ANON);
-@@ -939,10 +940,15 @@ static int mem_control_stat_show(struct 
- 						LRU_INACTIVE_FILE);
- 		active_file = mem_cgroup_get_all_zonestat(mem_cont,
- 						LRU_ACTIVE_FILE);
-+		unevictable = mem_cgroup_get_all_zonestat(mem_cont,
-+							LRU_UNEVICTABLE);
-+
- 		cb->fill(cb, "active_anon", (active_anon) * PAGE_SIZE);
- 		cb->fill(cb, "inactive_anon", (inactive_anon) * PAGE_SIZE);
- 		cb->fill(cb, "active_file", (active_file) * PAGE_SIZE);
- 		cb->fill(cb, "inactive_file", (inactive_file) * PAGE_SIZE);
-+		cb->fill(cb, "unevictable", unevictable * PAGE_SIZE);
-+
- 	}
- 	return 0;
- }
-diff -puN mm/page_alloc.c~unevictable-lru-page-statistics mm/page_alloc.c
---- a/mm/page_alloc.c~unevictable-lru-page-statistics
-+++ a/mm/page_alloc.c
-@@ -1844,12 +1844,20 @@ void show_free_areas(void)
- 	}
- 
- 	printk("Active_anon:%lu active_file:%lu inactive_anon%lu\n"
--		" inactive_file:%lu dirty:%lu writeback:%lu unstable:%lu\n"
-+		" inactive_file:%lu"
-+//TODO:  check/adjust line lengths
-+#ifdef CONFIG_UNEVICTABLE_LRU
-+		" unevictable:%lu"
-+#endif
-+		" dirty:%lu writeback:%lu unstable:%lu\n"
- 		" free:%lu slab:%lu mapped:%lu pagetables:%lu bounce:%lu\n",
- 		global_page_state(NR_ACTIVE_ANON),
- 		global_page_state(NR_ACTIVE_FILE),
- 		global_page_state(NR_INACTIVE_ANON),
- 		global_page_state(NR_INACTIVE_FILE),
-+#ifdef CONFIG_UNEVICTABLE_LRU
-+		global_page_state(NR_UNEVICTABLE),
-+#endif
- 		global_page_state(NR_FILE_DIRTY),
- 		global_page_state(NR_WRITEBACK),
- 		global_page_state(NR_UNSTABLE_NFS),
-@@ -1876,6 +1884,9 @@ void show_free_areas(void)
- 			" inactive_anon:%lukB"
- 			" active_file:%lukB"
- 			" inactive_file:%lukB"
-+#ifdef CONFIG_UNEVICTABLE_LRU
-+			" unevictable:%lukB"
-+#endif
- 			" present:%lukB"
- 			" pages_scanned:%lu"
- 			" all_unreclaimable? %s"
-@@ -1889,6 +1900,9 @@ void show_free_areas(void)
- 			K(zone_page_state(zone, NR_INACTIVE_ANON)),
- 			K(zone_page_state(zone, NR_ACTIVE_FILE)),
- 			K(zone_page_state(zone, NR_INACTIVE_FILE)),
-+#ifdef CONFIG_UNEVICTABLE_LRU
-+			K(zone_page_state(zone, NR_UNEVICTABLE)),
-+#endif
- 			K(zone->present_pages),
- 			zone->pages_scanned,
- 			(zone_is_all_unreclaimable(zone) ? "yes" : "no")
-diff -puN mm/vmstat.c~unevictable-lru-page-statistics mm/vmstat.c
---- a/mm/vmstat.c~unevictable-lru-page-statistics
-+++ a/mm/vmstat.c
-@@ -606,6 +606,9 @@ static const char * const vmstat_text[] 
- 	"nr_active_anon",
- 	"nr_inactive_file",
- 	"nr_active_file",
-+#ifdef CONFIG_UNEVICTABLE_LRU
-+	"nr_unevictable",
-+#endif
- 	"nr_anon_pages",
- 	"nr_mapped",
- 	"nr_file_pages",
+diff -puN mm/swap_state.c~vmscan-add-newly-swapped-in-pages-to-the-inactive-list mm/swap_state.c
+--- a/mm/swap_state.c~vmscan-add-newly-swapped-in-pages-to-the-inactive-list
++++ a/mm/swap_state.c
+@@ -310,7 +310,7 @@ struct page *read_swap_cache_async(swp_e
+ 			/*
+ 			 * Initiate read into locked page and return.
+ 			 */
+-			lru_cache_add_active_anon(new_page);
++			lru_cache_add_anon(new_page);
+ 			swap_readpage(NULL, new_page);
+ 			return new_page;
+ 		}
 _
 
-Patches currently in -mm which might be from Lee.Schermerhorn@hp.com are
+Patches currently in -mm which might be from riel@redhat.com are
 
+ntp-let-update_persistent_clock-sleep.patch
+access_process_vm-device-memory-infrastructure.patch
+access_process_vm-device-memory-infrastructure-fix.patch
+use-generic_access_phys-for-dev-mem-mappings.patch
+use-generic_access_phys-for-dev-mem-mappings-fix.patch
+use-generic_access_phys-for-pci-mmap-on-x86.patch
+powerpc-ioremap_prot.patch
+spufs-use-the-new-vm_ops-access.patch
+spufs-use-the-new-vm_ops-access-fix.patch
+page-flags-record-page-flag-overlays-explicitly.patch
+page-flags-record-page-flag-overlays-explicitly-xen.patch
+slub-record-page-flag-overlays-explicitly.patch
+slob-record-page-flag-overlays-explicitly.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+idr-change-the-idr-structure.patch
+idr-rename-some-of-the-idr-apis-internal-routines.patch
+idr-fix-a-printk-call.patch
+idr-error-checking-factorization.patch
+idr-make-idr_get_new-rcu-safe.patch
+idr-make-idr_get_new-rcu-safe-fix.patch
+idr-make-idr_find-rcu-safe.patch
+idr-make-idr_remove-rcu-safe.patch
+ipc-call-idr_find-without-locking-in-ipc_lock.patch
+ipc-get-rid-of-ipc_lock_down.patch
 vmscan-move-isolate_lru_page-to-vmscanc.patch
+vmscan-use-an-indexed-array-for-lru-variables.patch
+swap-use-an-array-for-the-lru-pagevecs.patch
 vmscan-free-swap-space-on-swap-in-activation.patch
+define-page_file_cache-function.patch
 vmscan-split-lru-lists-into-anon-file-sets.patch
+vmscan-second-chance-replacement-for-anonymous-pages.patch
+vmscan-fix-pagecache-reclaim-referenced-bit-check.patch
+vmscan-add-newly-swapped-in-pages-to-the-inactive-list.patch
+more-aggressively-use-lumpy-reclaim.patch
+pageflag-helpers-for-configed-out-flags.patch
 unevictable-lru-infrastructure.patch
 unevictable-lru-page-statistics.patch
 ramfs-and-ram-disk-pages-are-unevictable.patch
 shm_locked-pages-are-unevictable.patch
+mlock-mlocked-pages-are-unevictable.patch
+mlock-downgrade-mmap-sem-while-populating-mlocked-regions.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+vmstat-mlocked-pages-statistics.patch
+swap-cull-unevictable-pages-in-fault-path.patch
+vmstat-unevictable-and-mlocked-pages-vm-events.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+mlock-count-attempts-to-free-mlocked-page.patch
+doc-unevictable-lru-and-mlocked-pages-documentation.patch
+make-mm-rmapc-anon_vma_cachep-static.patch
 
