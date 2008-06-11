@@ -1,1068 +1,285 @@
 From: akpm@linux-foundation.org
-Subject: - vmscan-noreclaim-lru-infrastructure.patch removed from -mm tree
-Date: Wed, 11 Jun 2008 12:46:21 -0700
-Message-ID: <200806111946.m5BJkLS7014577@imap1.linux-foundation.org>
+Subject: - vmscan-mlocked-pages-statistics.patch removed from -mm tree
+Date: Wed, 11 Jun 2008 12:46:40 -0700
+Message-ID: <200806111946.m5BJkerU014607@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39465 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60305 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752671AbYFKTqp (ORCPT
+	by vger.kernel.org with ESMTP id S1752252AbYFKTrM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Jun 2008 15:46:45 -0400
+	Wed, 11 Jun 2008 15:47:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Lee.Schermerhorn@hp.com, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: npiggin@suse.de, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vmscan: Noreclaim LRU Infrastructure
+     vmscan: mlocked pages statistics
 has been removed from the -mm tree.  Its filename was
-     vmscan-noreclaim-lru-infrastructure.patch
+     vmscan-mlocked-pages-statistics.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: Noreclaim LRU Infrastructure
-From: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Subject: vmscan: mlocked pages statistics
+From: Nick Piggin <npiggin@suse.de>
 
-Infrastructure to manage pages excluded from reclaim--i.e., hidden from
-vmscan.  Based on a patch by Larry Woodman of Red Hat.  Reworked to
-maintain "nonreclaimable" pages on a separate per-zone LRU list, to "hide"
-them from vmscan.
+Add NR_MLOCK zone page state, which provides a (conservative) count of
+mlocked pages (actually, the number of mlocked pages moved off the LRU).
 
-Kosaki Motohiro added the support for the memory controller noreclaim lru
-list.
+Reworked by lts to fit in with the modified mlock page support in the
+Reclaim Scalability series.
 
-Pages on the noreclaim list have both PG_noreclaim and PG_lru set.  Thus,
-PG_noreclaim is analogous to and mutually exclusive with PG_active--it
-specifies which LRU list the page is on.
-
-The noreclaim infrastructure is enabled by a new mm Kconfig option
-[CONFIG_]NORECLAIM_LRU.
-
-A new function 'page_reclaimable(page, vma)' in vmscan.c tests whether or
-not a page is reclaimable.  Subsequent patches will add the various
-!reclaimable tests.  We'll want to keep these tests light-weight for use
-in shrink_active_list() and, possibly, the fault path.
-
-To avoid races between tasks putting pages [back] onto an LRU list and
-tasks that might be moving the page from nonreclaimable to reclaimable
-state, one should test reclaimability under page lock and place
-nonreclaimable pages directly on the noreclaim list before dropping the
-lock.  Otherwise, we risk "stranding" reclaimable pages on the noreclaim
-list.  It's OK to use the pagevec caches for reclaimable pages.  The new
-function 'putback_lru_page()'--inverse to 'isolate_lru_page()'--handles
-this transition, including potential page truncation while the page is
-unlocked.
-
+Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Signed-off-by: Rik van Riel <riel@redhat.com>
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    2 
- include/linux/mm_inline.h  |   13 +-
- include/linux/mmzone.h     |   24 ++++-
- include/linux/page-flags.h |   13 ++
- include/linux/pagevec.h    |    1 
- include/linux/swap.h       |   12 ++
- mm/Kconfig                 |   10 ++
- mm/internal.h              |   26 +++++
- mm/memcontrol.c            |   73 +++++++++------
- mm/mempolicy.c             |    2 
- mm/migrate.c               |   68 +++++++++-----
- mm/page_alloc.c            |    9 +
- mm/swap.c                  |   52 +++++++++--
- mm/vmscan.c                |  164 ++++++++++++++++++++++++++++++-----
- 14 files changed, 382 insertions(+), 87 deletions(-)
+ drivers/base/node.c    |   24 +++++++++++++++---------
+ fs/proc/proc_misc.c    |    6 ++++++
+ include/linux/mmzone.h |    5 +++++
+ mm/internal.h          |   14 +++++++++++---
+ mm/mlock.c             |   22 ++++++++++++++++++----
+ mm/vmstat.c            |    3 +++
+ 6 files changed, 58 insertions(+), 16 deletions(-)
 
-diff -puN include/linux/memcontrol.h~vmscan-noreclaim-lru-infrastructure include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~vmscan-noreclaim-lru-infrastructure
-+++ a/include/linux/memcontrol.h
-@@ -36,7 +36,7 @@ extern int mem_cgroup_cache_charge(struc
- 					gfp_t gfp_mask);
- extern void mem_cgroup_uncharge_page(struct page *page);
- extern void mem_cgroup_uncharge_cache_page(struct page *page);
--extern void mem_cgroup_move_lists(struct page *page, bool active);
-+extern void mem_cgroup_move_lists(struct page *page, enum lru_list lru);
- extern int mem_cgroup_shrink_usage(struct mm_struct *mm, gfp_t gfp_mask);
- 
- extern unsigned long mem_cgroup_isolate_pages(unsigned long nr_to_scan,
-diff -puN include/linux/mm_inline.h~vmscan-noreclaim-lru-infrastructure include/linux/mm_inline.h
---- a/include/linux/mm_inline.h~vmscan-noreclaim-lru-infrastructure
-+++ a/include/linux/mm_inline.h
-@@ -89,11 +89,16 @@ del_page_from_lru(struct zone *zone, str
- 	enum lru_list l = LRU_INACTIVE_ANON;
- 
- 	list_del(&page->lru);
--	if (PageActive(page)) {
--		__ClearPageActive(page);
--		l += LRU_ACTIVE;
-+	if (PageNoreclaim(page)) {
-+		__ClearPageNoreclaim(page);
-+		l = LRU_NORECLAIM;
-+	} else {
-+		 if (PageActive(page)) {
-+			__ClearPageActive(page);
-+			l += LRU_ACTIVE;
-+		}
-+		l += page_file_cache(page);
- 	}
--	l += page_file_cache(page);
- 	__dec_zone_state(zone, NR_INACTIVE_ANON + l);
- }
- 
-diff -puN include/linux/mmzone.h~vmscan-noreclaim-lru-infrastructure include/linux/mmzone.h
---- a/include/linux/mmzone.h~vmscan-noreclaim-lru-infrastructure
+diff -puN drivers/base/node.c~vmscan-mlocked-pages-statistics drivers/base/node.c
+--- a/drivers/base/node.c~vmscan-mlocked-pages-statistics
++++ a/drivers/base/node.c
+@@ -69,6 +69,9 @@ static ssize_t node_read_meminfo(struct 
+ 		       "Node %d Inactive(file): %8lu kB\n"
+ #ifdef CONFIG_NORECLAIM_LRU
+ 		       "Node %d Noreclaim:      %8lu kB\n"
++#ifdef CONFIG_NORECLAIM_MLOCK
++		       "Node %d Mlocked:        %8lu kB\n"
++#endif
+ #endif
+ #ifdef CONFIG_HIGHMEM
+ 		       "Node %d HighTotal:      %8lu kB\n"
+@@ -91,16 +94,19 @@ static ssize_t node_read_meminfo(struct 
+ 		       nid, K(i.totalram),
+ 		       nid, K(i.freeram),
+ 		       nid, K(i.totalram - i.freeram),
+-		       nid, node_page_state(nid, NR_ACTIVE_ANON) +
+-				node_page_state(nid, NR_ACTIVE_FILE),
+-		       nid, node_page_state(nid, NR_INACTIVE_ANON) +
+-				node_page_state(nid, NR_INACTIVE_FILE),
+-		       nid, node_page_state(nid, NR_ACTIVE_ANON),
+-		       nid, node_page_state(nid, NR_INACTIVE_ANON),
+-		       nid, node_page_state(nid, NR_ACTIVE_FILE),
+-		       nid, node_page_state(nid, NR_INACTIVE_FILE),
++		       nid, K(node_page_state(nid, NR_ACTIVE_ANON) +
++				node_page_state(nid, NR_ACTIVE_FILE)),
++		       nid, K(node_page_state(nid, NR_INACTIVE_ANON) +
++				node_page_state(nid, NR_INACTIVE_FILE)),
++		       nid, K(node_page_state(nid, NR_ACTIVE_ANON)),
++		       nid, K(node_page_state(nid, NR_INACTIVE_ANON)),
++		       nid, K(node_page_state(nid, NR_ACTIVE_FILE)),
++		       nid, K(node_page_state(nid, NR_INACTIVE_FILE)),
+ #ifdef CONFIG_NORECLAIM_LRU
+-		       nid, node_page_state(nid, NR_NORECLAIM),
++		       nid, K(node_page_state(nid, NR_NORECLAIM)),
++#ifdef CONFIG_NORECLAIM_MLOCK
++		       nid, K(node_page_state(nid, NR_MLOCK)),
++#endif
+ #endif
+ #ifdef CONFIG_HIGHMEM
+ 		       nid, K(i.totalhigh),
+diff -puN fs/proc/proc_misc.c~vmscan-mlocked-pages-statistics fs/proc/proc_misc.c
+--- a/fs/proc/proc_misc.c~vmscan-mlocked-pages-statistics
++++ a/fs/proc/proc_misc.c
+@@ -181,6 +181,9 @@ static int meminfo_read_proc(char *page,
+ 		"Inactive(file): %8lu kB\n"
+ #ifdef CONFIG_NORECLAIM_LRU
+ 		"Noreclaim:      %8lu kB\n"
++#ifdef CONFIG_NORECLAIM_MLOCK
++		"Mlocked:        %8lu kB\n"
++#endif
+ #endif
+ #ifdef CONFIG_HIGHMEM
+ 		"HighTotal:      %8lu kB\n"
+@@ -219,6 +222,9 @@ static int meminfo_read_proc(char *page,
+ 		K(inactive_file),
+ #ifdef CONFIG_NORECLAIM_LRU
+ 		K(global_page_state(NR_NORECLAIM)),
++#ifdef CONFIG_NORECLAIM_MLOCK
++		K(global_page_state(NR_MLOCK)),
++#endif
+ #endif
+ #ifdef CONFIG_HIGHMEM
+ 		K(i.totalhigh),
+diff -puN include/linux/mmzone.h~vmscan-mlocked-pages-statistics include/linux/mmzone.h
+--- a/include/linux/mmzone.h~vmscan-mlocked-pages-statistics
 +++ a/include/linux/mmzone.h
-@@ -85,6 +85,11 @@ enum zone_stat_item {
- 	NR_ACTIVE_ANON,		/*  "     "     "   "       "           */
- 	NR_INACTIVE_FILE,	/*  "     "     "   "       "           */
- 	NR_ACTIVE_FILE,		/*  "     "     "   "       "           */
-+#ifdef CONFIG_NORECLAIM_LRU
-+	NR_NORECLAIM,	/*  "     "     "   "       "         */
+@@ -90,6 +90,11 @@ enum zone_stat_item {
+ #else
+ 	NR_NORECLAIM = NR_ACTIVE_FILE, /* avoid compiler errors in dead code */
+ #endif
++#ifdef CONFIG_NORECLAIM_MLOCK
++	NR_MLOCK,		/* mlock()ed pages found and moved off LRU */
 +#else
-+	NR_NORECLAIM = NR_ACTIVE_FILE, /* avoid compiler errors in dead code */
++	NR_MLOCK = NR_ACTIVE_FILE,	/* avoid compier errors... */
 +#endif
  	NR_ANON_PAGES,	/* Mapped anonymous pages */
  	NR_FILE_MAPPED,	/* pagecache pages mapped into pagetables.
  			   only modified from process context */
-@@ -124,10 +129,18 @@ enum lru_list {
- 	LRU_ACTIVE_ANON = LRU_BASE + LRU_ACTIVE,
- 	LRU_INACTIVE_FILE = LRU_BASE + LRU_FILE,
- 	LRU_ACTIVE_FILE = LRU_BASE + LRU_FILE + LRU_ACTIVE,
--	NR_LRU_LISTS };
-+#ifdef CONFIG_NORECLAIM_LRU
-+	LRU_NORECLAIM,
-+#else
-+	LRU_NORECLAIM = LRU_ACTIVE_FILE, /* avoid compiler errors in dead code */
-+#endif
-+	NR_LRU_LISTS
-+};
- 
- #define for_each_lru(l) for (l = 0; l < NR_LRU_LISTS; l++)
- 
-+#define for_each_reclaimable_lru(l) for (l = 0; l <= LRU_ACTIVE_FILE; l++)
-+
- static inline int is_file_lru(enum lru_list l)
- {
- 	return (l == LRU_INACTIVE_FILE || l == LRU_ACTIVE_FILE);
-@@ -138,6 +151,15 @@ static inline int is_active_lru(enum lru
- 	return (l == LRU_ACTIVE_ANON || l == LRU_ACTIVE_FILE);
- }
- 
-+static inline int is_noreclaim_lru(enum lru_list l)
-+{
-+#ifdef CONFIG_NORECLAIM_LRU
-+	return l == LRU_NORECLAIM;
-+#else
-+	return 0;
-+#endif
-+}
-+
- enum lru_list page_lru(struct page *page);
- 
- struct per_cpu_pages {
-diff -puN include/linux/page-flags.h~vmscan-noreclaim-lru-infrastructure include/linux/page-flags.h
---- a/include/linux/page-flags.h~vmscan-noreclaim-lru-infrastructure
-+++ a/include/linux/page-flags.h
-@@ -94,6 +94,9 @@ enum pageflags {
- 	PG_reclaim,		/* To be reclaimed asap */
- 	PG_buddy,		/* Page is free, on buddy lists */
- 	PG_swapbacked,		/* Page is backed by RAM/swap */
-+#ifdef CONFIG_NORECLAIM_LRU
-+	PG_noreclaim,		/* Page is "non-reclaimable"  */
-+#endif
- #ifdef CONFIG_IA64_UNCACHED_ALLOCATOR
- 	PG_uncached,		/* Page has been mapped as uncached */
- #endif
-@@ -182,6 +185,7 @@ PAGEFLAG(Referenced, referenced) TESTCLE
- PAGEFLAG(Dirty, dirty) TESTSCFLAG(Dirty, dirty) __CLEARPAGEFLAG(Dirty, dirty)
- PAGEFLAG(LRU, lru) __CLEARPAGEFLAG(LRU, lru)
- PAGEFLAG(Active, active) __CLEARPAGEFLAG(Active, active)
-+	TESTCLEARFLAG(Active, active)
- __PAGEFLAG(Slab, slab)
- PAGEFLAG(Checked, checked)		/* Used by some filesystems */
- PAGEFLAG(Pinned, pinned) TESTSCFLAG(Pinned, pinned)	/* Xen */
-@@ -225,6 +229,15 @@ PAGEFLAG(SwapCache, swapcache)
- PAGEFLAG_FALSE(SwapCache)
- #endif
- 
-+#ifdef CONFIG_NORECLAIM_LRU
-+PAGEFLAG(Noreclaim, noreclaim) __CLEARPAGEFLAG(Noreclaim, noreclaim)
-+	TESTCLEARFLAG(Noreclaim, noreclaim)
-+#else
-+PAGEFLAG_FALSE(Noreclaim) TESTCLEARFLAG_FALSE(Noreclaim)
-+	SETPAGEFLAG_NOOP(Noreclaim) CLEARPAGEFLAG_NOOP(Noreclaim)
-+	__CLEARPAGEFLAG_NOOP(Noreclaim)
-+#endif
-+
- #ifdef CONFIG_IA64_UNCACHED_ALLOCATOR
- PAGEFLAG(Uncached, uncached)
- #else
-diff -puN include/linux/pagevec.h~vmscan-noreclaim-lru-infrastructure include/linux/pagevec.h
---- a/include/linux/pagevec.h~vmscan-noreclaim-lru-infrastructure
-+++ a/include/linux/pagevec.h
-@@ -101,7 +101,6 @@ static inline void __pagevec_lru_add_act
- 	____pagevec_lru_add(pvec, LRU_ACTIVE_FILE);
- }
- 
--
- static inline void pagevec_lru_add_file(struct pagevec *pvec)
- {
- 	if (pagevec_count(pvec))
-diff -puN include/linux/swap.h~vmscan-noreclaim-lru-infrastructure include/linux/swap.h
---- a/include/linux/swap.h~vmscan-noreclaim-lru-infrastructure
-+++ a/include/linux/swap.h
-@@ -180,6 +180,8 @@ extern int lru_add_drain_all(void);
- extern void rotate_reclaimable_page(struct page *page);
- extern void swap_setup(void);
- 
-+extern void add_page_to_noreclaim_list(struct page *page);
-+
- /**
-  * lru_cache_add: add a page to the page lists
-  * @page: the page to add
-@@ -228,6 +230,16 @@ static inline int zone_reclaim(struct zo
- }
- #endif
- 
-+#ifdef CONFIG_NORECLAIM_LRU
-+extern int page_reclaimable(struct page *page, struct vm_area_struct *vma);
-+#else
-+static inline int page_reclaimable(struct page *page,
-+						struct vm_area_struct *vma)
-+{
-+	return 1;
-+}
-+#endif
-+
- extern int kswapd_run(int nid);
- 
- #ifdef CONFIG_MMU
-diff -puN mm/Kconfig~vmscan-noreclaim-lru-infrastructure mm/Kconfig
---- a/mm/Kconfig~vmscan-noreclaim-lru-infrastructure
-+++ a/mm/Kconfig
-@@ -208,3 +208,13 @@ config NR_QUICK
- config VIRT_TO_BUS
- 	def_bool y
- 	depends on !ARCH_NO_VIRT_TO_BUS
-+
-+config NORECLAIM_LRU
-+	bool "Add LRU list to track non-reclaimable pages (EXPERIMENTAL, 64BIT only)"
-+	depends on EXPERIMENTAL && 64BIT
-+	help
-+	  Supports tracking of non-reclaimable pages off the [in]active lists
-+	  to avoid excessive reclaim overhead on large memory systems.  Pages
-+	  may be non-reclaimable because:  they are locked into memory, they
-+	  are anonymous pages for which no swap space exists, or they are anon
-+	  pages that are expensive to unmap [long anon_vma "related vma" list.]
-diff -puN mm/internal.h~vmscan-noreclaim-lru-infrastructure mm/internal.h
---- a/mm/internal.h~vmscan-noreclaim-lru-infrastructure
+diff -puN mm/internal.h~vmscan-mlocked-pages-statistics mm/internal.h
+--- a/mm/internal.h~vmscan-mlocked-pages-statistics
 +++ a/mm/internal.h
-@@ -39,8 +39,15 @@ static inline void __put_page(struct pag
- 	atomic_dec(&page->_count);
+@@ -112,7 +112,8 @@ static inline int is_mlocked_vma(struct 
+ 	if (likely((vma->vm_flags & (VM_LOCKED | VM_SPECIAL)) != VM_LOCKED))
+ 		return 0;
+ 
+-	SetPageMlocked(page);
++	if (!TestSetPageMlocked(page))
++		inc_zone_page_state(page, NR_MLOCK);
+ 	return 1;
  }
  
-+/*
-+ * in mm/vmscan.c:
-+ */
- extern int isolate_lru_page(struct page *page);
-+extern int putback_lru_page(struct page *page);
- 
-+/*
-+ * in mm/page_alloc.c
-+ */
- extern void __free_pages_bootmem(struct page *page, unsigned int order);
+@@ -139,12 +140,19 @@ static inline void clear_page_mlock(stru
  
  /*
-@@ -54,6 +61,25 @@ static inline unsigned long page_order(s
- 	return page_private(page);
- }
- 
-+#ifdef CONFIG_NORECLAIM_LRU
-+/*
-+ * noreclaim_migrate_page() called only from migrate_page_copy() to
-+ * migrate noreclaim flag to new page.
-+ * Note that the old page has been isolated from the LRU lists at this
-+ * point so we don't need to worry about LRU statistics.
-+ */
-+static inline void noreclaim_migrate_page(struct page *new, struct page *old)
-+{
-+	if (TestClearPageNoreclaim(old))
-+		SetPageNoreclaim(new);
-+}
-+#else
-+static inline void noreclaim_migrate_page(struct page *new, struct page *old)
-+{
-+}
-+#endif
-+
-+
- /*
-  * FLATMEM and DISCONTIGMEM configurations use alloc_bootmem_node,
-  * so all functions starting at paging_init should be marked __init
-diff -puN mm/memcontrol.c~vmscan-noreclaim-lru-infrastructure mm/memcontrol.c
---- a/mm/memcontrol.c~vmscan-noreclaim-lru-infrastructure
-+++ a/mm/memcontrol.c
-@@ -160,9 +160,10 @@ struct page_cgroup {
- 	struct mem_cgroup *mem_cgroup;
- 	int flags;
- };
--#define PAGE_CGROUP_FLAG_CACHE	(0x1)	/* charged as cache */
--#define PAGE_CGROUP_FLAG_ACTIVE (0x2)	/* page is active in this cgroup */
--#define PAGE_CGROUP_FLAG_FILE	(0x4)	/* page is file system backed */
-+#define PAGE_CGROUP_FLAG_CACHE	   (0x1)	/* charged as cache */
-+#define PAGE_CGROUP_FLAG_ACTIVE    (0x2)	/* page is active in this cgroup */
-+#define PAGE_CGROUP_FLAG_FILE	   (0x4)	/* page is file system backed */
-+#define PAGE_CGROUP_FLAG_NORECLAIM (0x8)	/* page is noreclaimable page */
- 
- static int page_cgroup_nid(struct page_cgroup *pc)
- {
-@@ -283,10 +284,14 @@ static void __mem_cgroup_remove_list(str
- {
- 	int lru = LRU_BASE;
- 
--	if (pc->flags & PAGE_CGROUP_FLAG_ACTIVE)
--		lru += LRU_ACTIVE;
--	if (pc->flags & PAGE_CGROUP_FLAG_FILE)
--		lru += LRU_FILE;
-+	if (pc->flags & PAGE_CGROUP_FLAG_NORECLAIM)
-+		lru = LRU_NORECLAIM;
-+	else {
-+		if (pc->flags & PAGE_CGROUP_FLAG_ACTIVE)
-+			lru += LRU_ACTIVE;
-+		if (pc->flags & PAGE_CGROUP_FLAG_FILE)
-+			lru += LRU_FILE;
-+	}
- 
- 	MEM_CGROUP_ZSTAT(mz, lru) -= 1;
- 
-@@ -299,10 +304,14 @@ static void __mem_cgroup_add_list(struct
- {
- 	int lru = LRU_BASE;
- 
--	if (pc->flags & PAGE_CGROUP_FLAG_ACTIVE)
--		lru += LRU_ACTIVE;
--	if (pc->flags & PAGE_CGROUP_FLAG_FILE)
--		lru += LRU_FILE;
-+	if (pc->flags & PAGE_CGROUP_FLAG_NORECLAIM)
-+		lru = LRU_NORECLAIM;
-+	else {
-+		if (pc->flags & PAGE_CGROUP_FLAG_ACTIVE)
-+			lru += LRU_ACTIVE;
-+		if (pc->flags & PAGE_CGROUP_FLAG_FILE)
-+			lru += LRU_FILE;
-+	}
- 
- 	MEM_CGROUP_ZSTAT(mz, lru) += 1;
- 	list_add(&pc->lru, &mz->lists[lru]);
-@@ -310,21 +319,31 @@ static void __mem_cgroup_add_list(struct
- 	mem_cgroup_charge_statistics(pc->mem_cgroup, pc->flags, true);
- }
- 
--static void __mem_cgroup_move_lists(struct page_cgroup *pc, bool active)
-+static void __mem_cgroup_move_lists(struct page_cgroup *pc, enum lru_list lru)
- {
- 	struct mem_cgroup_per_zone *mz = page_cgroup_zoneinfo(pc);
--	int from = pc->flags & PAGE_CGROUP_FLAG_ACTIVE;
--	int file = pc->flags & PAGE_CGROUP_FLAG_FILE;
--	int lru = LRU_FILE * !!file + !!from;
-+	int active    = pc->flags & PAGE_CGROUP_FLAG_ACTIVE;
-+	int file      = pc->flags & PAGE_CGROUP_FLAG_FILE;
-+	int noreclaim = pc->flags & PAGE_CGROUP_FLAG_NORECLAIM;
-+	enum lru_list from = noreclaim ? LRU_NORECLAIM :
-+				(LRU_FILE * !!file + !!active);
- 
--	MEM_CGROUP_ZSTAT(mz, lru) -= 1;
-+	if (lru == from)
-+		return;
- 
--	if (active)
--		pc->flags |= PAGE_CGROUP_FLAG_ACTIVE;
--	else
-+	MEM_CGROUP_ZSTAT(mz, from) -= 1;
-+
-+	if (is_noreclaim_lru(lru)) {
- 		pc->flags &= ~PAGE_CGROUP_FLAG_ACTIVE;
-+		pc->flags |= PAGE_CGROUP_FLAG_NORECLAIM;
-+	} else {
-+		if (is_active_lru(lru))
-+			pc->flags |= PAGE_CGROUP_FLAG_ACTIVE;
-+		else
-+			pc->flags &= ~PAGE_CGROUP_FLAG_ACTIVE;
-+		pc->flags &= ~PAGE_CGROUP_FLAG_NORECLAIM;
-+	}
- 
--	lru = LRU_FILE * !!file + !!active;
- 	MEM_CGROUP_ZSTAT(mz, lru) += 1;
- 	list_move(&pc->lru, &mz->lists[lru]);
- }
-@@ -342,7 +361,7 @@ int task_in_mem_cgroup(struct task_struc
- /*
-  * This routine assumes that the appropriate zone's lru lock is already held
+  * mlock_migrate_page - called only from migrate_page_copy() to
+- * migrate the Mlocked page flag
++ * migrate the Mlocked page flag; update statistics.
   */
--void mem_cgroup_move_lists(struct page *page, bool active)
-+void mem_cgroup_move_lists(struct page *page, enum lru_list lru)
+ static inline void mlock_migrate_page(struct page *newpage, struct page *page)
  {
- 	struct page_cgroup *pc;
- 	struct mem_cgroup_per_zone *mz;
-@@ -362,7 +381,7 @@ void mem_cgroup_move_lists(struct page *
- 	if (pc) {
- 		mz = page_cgroup_zoneinfo(pc);
- 		spin_lock_irqsave(&mz->lru_lock, flags);
--		__mem_cgroup_move_lists(pc, active);
-+		__mem_cgroup_move_lists(pc, lru);
- 		spin_unlock_irqrestore(&mz->lru_lock, flags);
- 	}
- 	unlock_page_cgroup(page);
-@@ -460,12 +479,10 @@ unsigned long mem_cgroup_isolate_pages(u
- 		/*
- 		 * TODO: play better with lumpy reclaim, grabbing anything.
- 		 */
--		if (PageActive(page) && !active) {
--			__mem_cgroup_move_lists(pc, true);
--			continue;
--		}
--		if (!PageActive(page) && active) {
--			__mem_cgroup_move_lists(pc, false);
-+		if (PageNoreclaim(page) ||
-+		    (PageActive(page) && !active) ||
-+		    (!PageActive(page) && active)) {
-+			__mem_cgroup_move_lists(pc, page_lru(page));
- 			continue;
- 		}
- 
-diff -puN mm/mempolicy.c~vmscan-noreclaim-lru-infrastructure mm/mempolicy.c
---- a/mm/mempolicy.c~vmscan-noreclaim-lru-infrastructure
-+++ a/mm/mempolicy.c
-@@ -2199,7 +2199,7 @@ static void gather_stats(struct page *pa
- 	if (PageSwapCache(page))
- 		md->swapcache++;
- 
--	if (PageActive(page))
-+	if (PageActive(page) || PageNoreclaim(page))
- 		md->active++;
- 
- 	if (PageWriteback(page))
-diff -puN mm/migrate.c~vmscan-noreclaim-lru-infrastructure mm/migrate.c
---- a/mm/migrate.c~vmscan-noreclaim-lru-infrastructure
-+++ a/mm/migrate.c
-@@ -53,14 +53,9 @@ int migrate_prep(void)
- 	return 0;
- }
- 
--static inline void move_to_lru(struct page *page)
--{
--	lru_cache_add_lru(page, page_lru(page));
--	put_page(page);
--}
--
- /*
-- * Add isolated pages on the list back to the LRU.
-+ * Add isolated pages on the list back to the LRU under page lock
-+ * to avoid leaking reclaimable pages back onto noreclaim list.
-  *
-  * returns the number of pages put back.
-  */
-@@ -72,7 +67,9 @@ int putback_lru_pages(struct list_head *
- 
- 	list_for_each_entry_safe(page, page2, l, lru) {
- 		list_del(&page->lru);
--		move_to_lru(page);
-+		lock_page(page);
-+		if (putback_lru_page(page))
-+			unlock_page(page);
- 		count++;
- 	}
- 	return count;
-@@ -346,8 +343,11 @@ static void migrate_page_copy(struct pag
- 		SetPageReferenced(newpage);
- 	if (PageUptodate(page))
- 		SetPageUptodate(newpage);
--	if (PageActive(page))
-+	if (TestClearPageActive(page)) {
-+		VM_BUG_ON(PageNoreclaim(page));
- 		SetPageActive(newpage);
-+	} else
-+		noreclaim_migrate_page(newpage, page);
- 	if (PageChecked(page))
- 		SetPageChecked(newpage);
- 	if (PageMappedToDisk(page))
-@@ -376,7 +376,6 @@ static void migrate_page_copy(struct pag
- 		mem_cgroup_uncharge_page(page);
- 	}
- #endif
--	ClearPageActive(page);
- 	ClearPagePrivate(page);
- 	set_page_private(page, 0);
- 	page->mapping = NULL;
-@@ -555,10 +554,15 @@ static int fallback_migrate_page(struct 
-  *
-  * The new page will have replaced the old page if this function
-  * is successful.
-+ *
-+ * Return value:
-+ *   < 0 - error code
-+ *  == 0 - success
-  */
- static int move_to_new_page(struct page *newpage, struct page *page)
- {
- 	struct address_space *mapping;
-+	int unlock = 1;
- 	int rc;
- 
- 	/*
-@@ -593,10 +597,16 @@ static int move_to_new_page(struct page 
- 
- 	if (!rc) {
- 		remove_migration_ptes(page, newpage);
-+		/*
-+		 * Put back on LRU while holding page locked to
-+		 * handle potential race with, e.g., munlock()
-+		 */
-+		unlock = putback_lru_page(newpage);
- 	} else
- 		newpage->mapping = NULL;
- 
--	unlock_page(newpage);
-+	if (unlock)
-+		unlock_page(newpage);
- 
- 	return rc;
- }
-@@ -613,18 +623,19 @@ static int unmap_and_move(new_page_t get
- 	struct page *newpage = get_new_page(page, private, &result);
- 	int rcu_locked = 0;
- 	int charge = 0;
-+	int unlock = 1;
- 
- 	if (!newpage)
- 		return -ENOMEM;
- 
- 	if (page_count(page) == 1)
- 		/* page was freed from under us. So we are done. */
--		goto move_newpage;
-+		goto end_migration;
- 
- 	charge = mem_cgroup_prepare_migration(page, newpage);
- 	if (charge == -ENOMEM) {
- 		rc = -ENOMEM;
--		goto move_newpage;
-+		goto end_migration;
- 	}
- 	/* prepare cgroup just returns 0 or -ENOMEM */
- 	BUG_ON(charge);
-@@ -632,7 +643,7 @@ static int unmap_and_move(new_page_t get
- 	rc = -EAGAIN;
- 	if (TestSetPageLocked(page)) {
- 		if (!force)
--			goto move_newpage;
-+			goto end_migration;
- 		lock_page(page);
- 	}
- 
-@@ -694,8 +705,6 @@ rcu_unlock:
- 
- unlock:
- 
--	unlock_page(page);
--
- 	if (rc != -EAGAIN) {
-  		/*
-  		 * A page that has been migrated has all references
-@@ -704,17 +713,30 @@ unlock:
-  		 * restored.
-  		 */
-  		list_del(&page->lru);
-- 		move_to_lru(page);
-+		if (!page->mapping) {
-+			VM_BUG_ON(page_count(page) != 1);
-+			unlock_page(page);
-+			put_page(page);		/* just free the old page */
-+			goto end_migration;
-+		} else
-+			unlock = putback_lru_page(page);
- 	}
- 
--move_newpage:
-+	if (unlock)
-+		unlock_page(page);
+-	if (TestClearPageMlocked(page))
++	if (TestClearPageMlocked(page)) {
++		unsigned long flags;
 +
-+end_migration:
- 	if (!charge)
- 		mem_cgroup_end_migration(newpage);
--	/*
--	 * Move the new page to the LRU. If migration was not successful
--	 * then this will free the page.
--	 */
--	move_to_lru(newpage);
-+
-+	if (!newpage->mapping) {
-+		/*
-+		 * Migration failed or was never attempted.
-+		 * Free the newpage.
-+		 */
-+		VM_BUG_ON(page_count(newpage) != 1);
-+		put_page(newpage);
++		local_irq_save(flags);
++		__dec_zone_page_state(page, NR_MLOCK);
+ 		SetPageMlocked(newpage);
++		__inc_zone_page_state(newpage, NR_MLOCK);
++		local_irq_restore(flags);
 +	}
- 	if (result) {
- 		if (rc)
- 			*result = rc;
-diff -puN mm/page_alloc.c~vmscan-noreclaim-lru-infrastructure mm/page_alloc.c
---- a/mm/page_alloc.c~vmscan-noreclaim-lru-infrastructure
-+++ a/mm/page_alloc.c
-@@ -241,6 +241,9 @@ static void bad_page(struct page *page)
- 			1 << PG_private |
- 			1 << PG_locked	|
- 			1 << PG_active	|
-+#ifdef CONFIG_NORECLAIM_LRU
-+			1 << PG_noreclaim	|
-+#endif
- 			1 << PG_dirty	|
- 			1 << PG_reclaim |
- 			1 << PG_slab    |
-@@ -474,6 +477,9 @@ static inline int free_pages_check(struc
- 			1 << PG_swapcache |
- 			1 << PG_writeback |
- 			1 << PG_reserved |
-+#ifdef CONFIG_NORECLAIM_LRU
-+			1 << PG_noreclaim |
-+#endif
- 			1 << PG_buddy ))))
- 		bad_page(page);
- 	if (PageDirty(page))
-@@ -625,6 +631,9 @@ static int prep_new_page(struct page *pa
- 			1 << PG_private	|
- 			1 << PG_locked	|
- 			1 << PG_active	|
-+#ifdef CONFIG_NORECLAIM_LRU
-+			1 << PG_noreclaim	|
-+#endif
- 			1 << PG_dirty	|
- 			1 << PG_slab    |
- 			1 << PG_swapcache |
-diff -puN mm/swap.c~vmscan-noreclaim-lru-infrastructure mm/swap.c
---- a/mm/swap.c~vmscan-noreclaim-lru-infrastructure
-+++ a/mm/swap.c
-@@ -106,9 +106,13 @@ enum lru_list page_lru(struct page *page
- {
- 	enum lru_list lru = LRU_BASE;
+ }
  
--	if (PageActive(page))
--		lru += LRU_ACTIVE;
--	lru += page_file_cache(page);
-+	if (PageNoreclaim(page))
-+		lru = LRU_NORECLAIM;
-+	else {
-+		if (PageActive(page))
-+			lru += LRU_ACTIVE;
-+		lru += page_file_cache(page);
+ 
+diff -puN mm/mlock.c~vmscan-mlocked-pages-statistics mm/mlock.c
+--- a/mm/mlock.c~vmscan-mlocked-pages-statistics
++++ a/mm/mlock.c
+@@ -56,6 +56,7 @@ void __clear_page_mlock(struct page *pag
+ {
+ 	VM_BUG_ON(!PageLocked(page));	/* for LRU islolate/putback */
+ 
++	dec_zone_page_state(page, NR_MLOCK);
+ 	if (!isolate_lru_page(page)) {
+ 		putback_lru_page(page);
+ 	} else {
+@@ -76,8 +77,11 @@ void mlock_vma_page(struct page *page)
+ {
+ 	BUG_ON(!PageLocked(page));
+ 
+-	if (!TestSetPageMlocked(page) && !isolate_lru_page(page))
++	if (!TestSetPageMlocked(page)) {
++		inc_zone_page_state(page, NR_MLOCK);
++		if (!isolate_lru_page(page))
+ 			putback_lru_page(page);
 +	}
- 
- 	return lru;
- }
-@@ -133,7 +137,8 @@ static void pagevec_move_tail(struct pag
- 			zone = pagezone;
- 			spin_lock(&zone->lru_lock);
- 		}
--		if (PageLRU(page) && !PageActive(page)) {
-+		if (PageLRU(page) && !PageActive(page) &&
-+					!PageNoreclaim(page)) {
- 			int lru = page_file_cache(page);
- 			list_move_tail(&page->lru, &zone->list[lru]);
- 			pgmoved++;
-@@ -154,7 +159,7 @@ static void pagevec_move_tail(struct pag
- void  rotate_reclaimable_page(struct page *page)
- {
- 	if (!PageLocked(page) && !PageDirty(page) && !PageActive(page) &&
--	    PageLRU(page)) {
-+	    !PageNoreclaim(page) && PageLRU(page)) {
- 		struct pagevec *pvec;
- 		unsigned long flags;
- 
-@@ -175,7 +180,7 @@ void activate_page(struct page *page)
- 	struct zone *zone = page_zone(page);
- 
- 	spin_lock_irq(&zone->lru_lock);
--	if (PageLRU(page) && !PageActive(page)) {
-+	if (PageLRU(page) && !PageActive(page) && !PageNoreclaim(page)) {
- 		int file = page_file_cache(page);
- 		int lru = LRU_BASE + file;
- 		del_page_from_lru_list(zone, page, lru);
-@@ -184,7 +189,7 @@ void activate_page(struct page *page)
- 		lru += LRU_ACTIVE;
- 		add_page_to_lru_list(zone, page, lru);
- 		__count_vm_event(PGACTIVATE);
--		mem_cgroup_move_lists(page, true);
-+		mem_cgroup_move_lists(page, lru);
- 
- 		if (file) {
- 			zone->recent_scanned_file++;
-@@ -207,7 +212,8 @@ void activate_page(struct page *page)
-  */
- void mark_page_accessed(struct page *page)
- {
--	if (!PageActive(page) && PageReferenced(page) && PageLRU(page)) {
-+	if (!PageActive(page) && !PageNoreclaim(page) &&
-+			PageReferenced(page) && PageLRU(page)) {
- 		activate_page(page);
- 		ClearPageReferenced(page);
- 	} else if (!PageReferenced(page)) {
-@@ -235,13 +241,38 @@ void __lru_cache_add(struct page *page, 
- void lru_cache_add_lru(struct page *page, enum lru_list lru)
- {
- 	if (PageActive(page)) {
-+		VM_BUG_ON(PageNoreclaim(page));
- 		ClearPageActive(page);
-+	} else if (PageNoreclaim(page)) {
-+		VM_BUG_ON(PageActive(page));
-+		ClearPageNoreclaim(page);
- 	}
- 
--	VM_BUG_ON(PageLRU(page) || PageActive(page));
-+	VM_BUG_ON(PageLRU(page) || PageActive(page) || PageNoreclaim(page));
- 	__lru_cache_add(page, lru);
  }
  
-+/**
-+ * add_page_to_noreclaim_list
-+ * @page:  the page to be added to the noreclaim list
-+ *
-+ * Add page directly to its zone's noreclaim list.  To avoid races with
-+ * tasks that might be making the page reclaimble while it's not on the
-+ * lru, we want to add the page while it's locked or otherwise "invisible"
-+ * to other tasks.  This is difficult to do when using the pagevec cache,
-+ * so bypass that.
-+ */
-+void add_page_to_noreclaim_list(struct page *page)
-+{
-+	struct zone *zone = page_zone(page);
-+
-+	spin_lock_irq(&zone->lru_lock);
-+	SetPageNoreclaim(page);
-+	SetPageLRU(page);
-+	add_page_to_lru_list(zone, page, LRU_NORECLAIM);
-+	spin_unlock_irq(&zone->lru_lock);
-+}
-+
  /*
-  * Drain pages out of the cpu's pagevecs.
-  * Either "cpu" is the current CPU, and preemption has already been
-@@ -339,6 +370,7 @@ void release_pages(struct page **pages, 
- 
- 		if (PageLRU(page)) {
- 			struct zone *pagezone = page_zone(page);
-+
- 			if (pagezone != zone) {
- 				if (zone)
- 					spin_unlock_irqrestore(&zone->lru_lock,
-@@ -415,6 +447,7 @@ void ____pagevec_lru_add(struct pagevec 
+@@ -102,9 +106,19 @@ static void munlock_vma_page(struct page
  {
- 	int i;
- 	struct zone *zone = NULL;
-+	VM_BUG_ON(is_noreclaim_lru(lru));
+ 	BUG_ON(!PageLocked(page));
  
- 	for (i = 0; i < pagevec_count(pvec); i++) {
- 		struct page *page = pvec->pages[i];
-@@ -426,6 +459,7 @@ void ____pagevec_lru_add(struct pagevec 
- 			zone = pagezone;
- 			spin_lock_irq(&zone->lru_lock);
- 		}
-+		VM_BUG_ON(PageActive(page) || PageNoreclaim(page));
- 		VM_BUG_ON(PageLRU(page));
- 		SetPageLRU(page);
- 		if (is_active_lru(lru))
-diff -puN mm/vmscan.c~vmscan-noreclaim-lru-infrastructure mm/vmscan.c
---- a/mm/vmscan.c~vmscan-noreclaim-lru-infrastructure
-+++ a/mm/vmscan.c
-@@ -447,6 +447,73 @@ int remove_mapping(struct address_space 
- 	return 0;
- }
- 
-+/**
-+ * putback_lru_page
-+ * @page to be put back to appropriate lru list
-+ *
-+ * Add previously isolated @page to appropriate LRU list.
-+ * Page may still be non-reclaimable for other reasons.
-+ *
-+ * lru_lock must not be held, interrupts must be enabled.
-+ * Must be called with page locked.
-+ *
-+ * return 1 if page still locked [not truncated], else 0
-+ */
-+int putback_lru_page(struct page *page)
-+{
-+	int lru;
-+	int ret = 1;
-+
-+	VM_BUG_ON(!PageLocked(page));
-+	VM_BUG_ON(PageLRU(page));
-+
-+	lru = !!TestClearPageActive(page);
-+	ClearPageNoreclaim(page);	/* for page_reclaimable() */
-+
-+	if (unlikely(!page->mapping)) {
-+		/*
-+		 * page truncated.  drop lock as put_page() will
-+		 * free the page.
-+		 */
-+		VM_BUG_ON(page_count(page) != 1);
-+		unlock_page(page);
-+		ret = 0;
-+	} else if (page_reclaimable(page, NULL)) {
-+		/*
-+		 * For reclaimable pages, we can use the cache.
-+		 * In event of a race, worst case is we end up with a
-+		 * non-reclaimable page on [in]active list.
-+		 * We know how to handle that.
-+		 */
-+		lru += page_file_cache(page);
-+		lru_cache_add_lru(page, lru);
-+		mem_cgroup_move_lists(page, lru);
-+	} else {
-+		/*
-+		 * Put non-reclaimable pages directly on zone's noreclaim
-+		 * list.
-+		 */
-+		add_page_to_noreclaim_list(page);
-+		mem_cgroup_move_lists(page, LRU_NORECLAIM);
-+	}
-+
-+	put_page(page);		/* drop ref from isolate */
-+	return ret;		/* ret => "page still locked" */
-+}
-+
-+/*
-+ * Cull page that shrink_*_list() has detected to be non-reclaimable
-+ * under page lock to close races with other tasks that might be making
-+ * the page reclaimable.  Avoid stranding a reclaimable page on the
-+ * noreclaim list.
-+ */
-+static inline void cull_nonreclaimable_page(struct page *page)
-+{
-+	lock_page(page);
-+	if (putback_lru_page(page))
-+		unlock_page(page);
-+}
-+
- /*
-  * shrink_page_list() returns the number of reclaimed pages
-  */
-@@ -480,6 +547,12 @@ static unsigned long shrink_page_list(st
- 
- 		sc->nr_scanned++;
- 
-+		if (unlikely(!page_reclaimable(page, NULL))) {
-+			if (putback_lru_page(page))
-+				unlock_page(page);
-+			continue;
+-	if (TestClearPageMlocked(page) && !isolate_lru_page(page)) {
+-		try_to_unlock(page);
+-		putback_lru_page(page);
++	if (TestClearPageMlocked(page)) {
++		dec_zone_page_state(page, NR_MLOCK);
++		if (!isolate_lru_page(page)) {
++			try_to_unlock(page);	/* maybe relock the page */
++			putback_lru_page(page);
 +		}
-+
- 		if (!sc->may_swap && page_mapped(page))
- 			goto keep_locked;
- 
-@@ -576,7 +649,7 @@ static unsigned long shrink_page_list(st
- 		 * possible for a page to have PageDirty set, but it is actually
- 		 * clean (all its buffers are clean).  This happens if the
- 		 * buffers were written out directly, with submit_bh(). ext3
--		 * will do this, as well as the blockdev mapping. 
-+		 * will do this, as well as the blockdev mapping.
- 		 * try_to_release_page() will discover that cleanness and will
- 		 * drop the buffers and mark the page clean - it can be freed.
- 		 *
-@@ -624,6 +697,7 @@ activate_locked:
- 		/* Not a candidate for swapping, so reclaim swap space. */
- 		if (PageSwapCache(page) && vm_swap_full())
- 			remove_exclusive_swap_page_ref(page);
-+		VM_BUG_ON(PageActive(page));
- 		SetPageActive(page);
- 		pgactivate++;
- keep_locked:
-@@ -673,6 +747,14 @@ int __isolate_lru_page(struct page *page
- 	if (mode != ISOLATE_BOTH && (!page_file_cache(page) != !file))
- 		return ret;
- 
-+	/*
-+	 * Non-reclaimable pages shouldn't make it onto either the active
-+	 * nor the inactive list. However, when doing lumpy reclaim of
-+	 * higher order pages we can still run into them.
-+	 */
-+	if (PageNoreclaim(page))
-+		return ret;
-+
- 	ret = -EBUSY;
- 	if (likely(get_page_unless_zero(page))) {
- 		/*
-@@ -784,7 +866,7 @@ static unsigned long isolate_lru_pages(u
- 				/* else it is being freed elsewhere */
- 				list_move(&cursor_page->lru, src);
- 			default:
--				break;
-+				break;	/* ! on LRU or wrong list */
- 			}
- 		}
++		/*
++		 * Else we lost the race.  let try_to_unmap() deal with it.
++		 * At least we get the page state and mlock stats right.
++		 * However, page is still on the noreclaim list.  We'll fix
++		 * that up when the page is eventually freed or we scan the
++		 * noreclaim list.
++		 */
  	}
-@@ -844,8 +926,9 @@ static unsigned long clear_active_flags(
-  * Returns -EBUSY if the page was not on an LRU list.
-  *
-  * The returned page will have PageLRU() cleared.  If it was found on
-- * the active list, it will have PageActive set.  That flag may need
-- * to be cleared by the caller before letting the page go.
-+ * the active list, it will have PageActive set.  If it was found on
-+ * the noreclaim list, it will have the PageNoreclaim bit set. That flag
-+ * may need to be cleared by the caller before letting the page go.
-  *
-  * The vmstat statistic corresponding to the list on which the page was
-  * found will be decremented.
-@@ -870,7 +953,13 @@ int isolate_lru_page(struct page *page)
- 			ret = 0;
- 			ClearPageLRU(page);
- 
-+			/* Calculate the LRU list for normal pages ... */
- 			lru += page_file_cache(page) + !!PageActive(page);
-+
-+			/* ... except NoReclaim, which has its own list. */
-+			if (PageNoreclaim(page))
-+				lru = LRU_NORECLAIM;
-+
- 			del_page_from_lru_list(zone, page, lru);
- 		}
- 		spin_unlock_irq(&zone->lru_lock);
-@@ -985,19 +1074,27 @@ static unsigned long shrink_inactive_lis
- 			int lru = LRU_BASE;
- 			page = lru_to_page(&page_list);
- 			VM_BUG_ON(PageLRU(page));
--			SetPageLRU(page);
- 			list_del(&page->lru);
--			if (page_file_cache(page))
--				lru += LRU_FILE;
--			if (scan_global_lru(sc)) {
-+			if (unlikely(!page_reclaimable(page, NULL))) {
-+				spin_unlock_irq(&zone->lru_lock);
-+				cull_nonreclaimable_page(page);
-+				spin_lock_irq(&zone->lru_lock);
-+				continue;
-+			} else {
- 				if (page_file_cache(page))
--					zone->recent_rotated_file++;
--				else
--					zone->recent_rotated_anon++;
-+					lru += LRU_FILE;
-+				if (scan_global_lru(sc)) {
-+					if (page_file_cache(page))
-+						zone->recent_rotated_file++;
-+					else
-+						zone->recent_rotated_anon++;
-+				}
-+				if (PageActive(page))
-+					lru += LRU_ACTIVE;
- 			}
--			if (PageActive(page))
--				lru += LRU_ACTIVE;
-+			SetPageLRU(page);
- 			add_page_to_lru_list(zone, page, lru);
-+			mem_cgroup_move_lists(page, lru);
- 			if (!pagevec_add(&pvec, page)) {
- 				spin_unlock_irq(&zone->lru_lock);
- 				__pagevec_release(&pvec);
-@@ -1091,6 +1188,12 @@ static void shrink_active_list(unsigned 
- 		cond_resched();
- 		page = lru_to_page(&l_hold);
- 		list_del(&page->lru);
-+
-+		if (unlikely(!page_reclaimable(page, NULL))) {
-+			cull_nonreclaimable_page(page);
-+			continue;
-+		}
-+
- 		if (page_referenced(page, 0, sc->mem_cgroup)) {
- 			if (file) {
- 				/* Referenced file pages stay active. */
-@@ -1133,7 +1236,7 @@ static void shrink_active_list(unsigned 
- 		ClearPageActive(page);
- 
- 		list_move(&page->lru, &zone->list[lru]);
--		mem_cgroup_move_lists(page, false);
-+		mem_cgroup_move_lists(page, lru);
- 		pgmoved++;
- 		if (!pagevec_add(&pvec, page)) {
- 			__mod_zone_page_state(zone, NR_INACTIVE_ANON + lru,
-@@ -1165,7 +1268,7 @@ static void shrink_active_list(unsigned 
- 		VM_BUG_ON(!PageActive(page));
- 
- 		list_move(&page->lru, &zone->list[lru]);
--		mem_cgroup_move_lists(page, true);
-+		mem_cgroup_move_lists(page, lru);
- 		pgmoved++;
- 		if (!pagevec_add(&pvec, page)) {
- 			__mod_zone_page_state(zone, NR_INACTIVE_ANON + lru,
-@@ -1303,7 +1406,7 @@ static unsigned long shrink_zone(int pri
- 
- 	get_scan_ratio(zone, sc, percent);
- 
--	for_each_lru(l) {
-+	for_each_reclaimable_lru(l) {
- 		if (scan_global_lru(sc)) {
- 			int file = is_file_lru(l);
- 			int scan;
-@@ -1334,7 +1437,7 @@ static unsigned long shrink_zone(int pri
- 
- 	while (nr[LRU_INACTIVE_ANON] || nr[LRU_ACTIVE_FILE] ||
- 					nr[LRU_INACTIVE_FILE]) {
--		for_each_lru(l) {
-+		for_each_reclaimable_lru(l) {
- 			if (nr[l]) {
- 				nr_to_scan = min(nr[l],
- 					(unsigned long)sc->swap_cluster_max);
-@@ -1889,8 +1992,8 @@ static unsigned long shrink_all_zones(un
- 		if (zone_is_all_unreclaimable(zone) && prio != DEF_PRIORITY)
- 			continue;
- 
--		for_each_lru(l) {
--			/* For pass = 0 we don't shrink the active list */
-+		for_each_reclaimable_lru(l) {
-+			/* For pass = 0, we don't shrink the active list */
- 			if (pass == 0 &&
- 				(l == LRU_ACTIVE_ANON || l == LRU_ACTIVE_FILE))
- 				continue;
-@@ -2227,3 +2330,26 @@ int zone_reclaim(struct zone *zone, gfp_
- 	return ret;
  }
+ 
+diff -puN mm/vmstat.c~vmscan-mlocked-pages-statistics mm/vmstat.c
+--- a/mm/vmstat.c~vmscan-mlocked-pages-statistics
++++ a/mm/vmstat.c
+@@ -609,6 +609,9 @@ static const char * const vmstat_text[] 
+ #ifdef CONFIG_NORECLAIM_LRU
+ 	"nr_noreclaim",
  #endif
-+
-+#ifdef CONFIG_NORECLAIM_LRU
-+/*
-+ * page_reclaimable - test whether a page is reclaimable
-+ * @page: the page to test
-+ * @vma: the VMA in which the page is or will be mapped, may be NULL
-+ *
-+ * Test whether page is reclaimable--i.e., should be placed on active/inactive
-+ * lists vs noreclaim list.
-+ *
-+ * Reasons page might not be reclaimable:
-+ * TODO - later patches
-+ */
-+int page_reclaimable(struct page *page, struct vm_area_struct *vma)
-+{
-+
-+	VM_BUG_ON(PageNoreclaim(page));
-+
-+	/* TODO:  test page [!]reclaimable conditions */
-+
-+	return 1;
-+}
++#ifdef CONFIG_NORECLAIM_MLOCK
++	"nr_mlock",
 +#endif
+ 	"nr_anon_pages",
+ 	"nr_mapped",
+ 	"nr_file_pages",
 _
 
-Patches currently in -mm which might be from Lee.Schermerhorn@hp.com are
+Patches currently in -mm which might be from npiggin@suse.de are
 
-vmscan-noreclaim-lru-infrastructure.patch
-vmscan-noreclaim-lru-page-statistics.patch
-vmscan-ramfs-and-ram-disk-pages-are-non-reclaimable.patch
-vmscan-shm_locked-pages-are-non-reclaimable.patch
+origin.patch
+linux-next.patch
+spufs-convert-nopfn-to-fault.patch
+mspec-convert-nopfn-to-fault.patch
+mspec-convert-nopfn-to-fault-fix.patch
+mm-remove-nopfn.patch
+mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co.patch
+hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed-build-fix.patch
+hugetlb-factor-out-prep_new_huge_page.patch
+hugetlb-modular-state-for-hugetlb-page-size.patch
+hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
+hugetlb-multiple-hstates-for-multiple-page-sizes.patch
+hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
+hugetlbfs-per-mount-huge-page-sizes.patch
+hugetlb-new-sysfs-interface.patch
+hugetlb-abstract-numa-round-robin-selection.patch
+mm-introduce-non-panic-alloc_bootmem.patch
+mm-export-prep_compound_page-to-mm.patch
+hugetlb-support-larger-than-max_order.patch
+hugetlb-support-boot-allocate-different-sizes.patch
+hugetlb-printk-cleanup.patch
+hugetlb-introduce-pud_huge.patch
+x86-support-gb-hugepages-on-64-bit.patch
+x86-add-hugepagesz-option-on-64-bit.patch
+hugetlb-override-default-huge-page-size.patch
+hugetlb-override-default-huge-page-size-ia64-build.patch
+hugetlb-allow-arch-overried-hugepage-allocation.patch
+powerpc-function-to-allocate-gigantic-hugepages.patch
+powerpc-scan-device-tree-for-gigantic-pages.patch
+powerpc-define-support-for-16g-hugepages.patch
+fs-check-for-statfs-overflow.patch
+powerpc-support-multiple-hugepage-sizes.patch
+x86-implement-pte_special.patch
+mm-introduce-get_user_pages_fast.patch
+mm-introduce-get_user_pages_fast-fix.patch
+mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast.patch
+x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-fix.patch
+x86-lockless-get_user_pages_fast-fix-2.patch
+x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
+x86-lockless-get_user_pages_fast-fix-warning.patch
+dio-use-get_user_pages_fast.patch
+splice-use-get_user_pages_fast.patch
+x86-support-1gb-hugepages-with-get_user_pages_lockless.patch
+mm-readahead-scan-lockless.patch
+radix-tree-add-gang_lookup_slot-gang_lookup_slot_tag.patch
+mm-speculative-page-references.patch
+mm-speculative-page-references-fix.patch
+mm-lockless-pagecache.patch
+mm-spinlock-tree_lock.patch
+powerpc-implement-pte_special.patch
+vmscan-mlocked-pages-statistics.patch
+reiser4.patch
+likeliness-accounting-change-and-cleanup.patch
 
