@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vmstat-mlocked-pages-statistics.patch added to -mm tree
-Date: Wed, 11 Jun 2008 13:00:05 -0700
-Message-ID: <200806112000.m5BK05lq015253@imap1.linux-foundation.org>
+Subject: + not-for-merging-pnp-changes-suspend-oops.patch added to -mm tree
+Date: Wed, 11 Jun 2008 13:07:28 -0700
+Message-ID: <200806112007.m5BK7Td1015517@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53785 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39768 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757448AbYFKUAc (ORCPT
+	by vger.kernel.org with ESMTP id S1751355AbYFKUII (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Jun 2008 16:00:32 -0400
+	Wed, 11 Jun 2008 16:08:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, riel@redhat.com
+Cc: bjorn.helgaas@hp.com
 
 
 The patch titled
-     vmstat: mlocked pages statistics
+     (not for merging) pnp changes -> suspend oops [Was: 2.6.26-rc5-mm2]
 has been added to the -mm tree.  Its filename is
-     vmstat-mlocked-pages-statistics.patch
+     not-for-merging-pnp-changes-suspend-oops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,257 +34,183 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmstat: mlocked pages statistics
-From: Nick Piggin <npiggin@suse.de>
+Subject: (not for merging) pnp changes -> suspend oops [Was: 2.6.26-rc5-mm2]
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Add NR_MLOCK zone page state, which provides a (conservative) count of
-mlocked pages (actually, the number of mlocked pages moved off the LRU).
+On Wednesday 11 June 2008 12:08:53 pm Jiri Slaby wrote:
+> On 06/10/2008 07:31 AM, Andrew Morton wrote:
+> > ftp://ftp.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.26-rc5/2.6.26-rc5-mm2/
+>
+> I face problems after some of the pnp changes. If this is not known, I may
+> bisect it, it's 100% reproducible. I have no real logs, It panics prior to
+> network is woken up to see something on netconsole, I just captured a function
+> name and an offset of place where it oopses.
+>
+> pnpacpi_encode_resources, ACPI_RESOURCE_TYPE_DMA case, pnp_get_resource(dev,
+> IORESOURCE_DMA, dma) returns NULL, which is dereferenced at pnpacpi_encode_dma
+> at p->flags.
+>
+> It happens on resume after mem > /sys/power/state.
 
-Reworked by lts to fit in with the modified mlock page support in the
-Reclaim Scalability series.
+Thanks for the report, I hadn't heard about this.
 
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Signed-off-by: Rik van Riel <riel@redhat.com>
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+We used to always have a resource from the static table to encode
+(assuming the table was big enough), even if that resource was
+disabled or unassigned.  But now we don't keep those around, so
+we can end up with null pointers like you're seeing.
+
+Before you go to all the trouble of bisecting it, can you turn on
+CONFIG_PNP_DEBUG and try the following debug patch?  I think this
+will prevent the oops, but it's just papering over the real problem,
+so please capture the complete dmesg log.
+
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/node.c    |   22 ++++++++++++----------
- fs/proc/proc_misc.c    |    2 ++
- include/linux/mmzone.h |    2 ++
- mm/internal.h          |   14 +++++++++++---
- mm/mlock.c             |   24 +++++++++++++++++++-----
- mm/vmstat.c            |    1 +
- 6 files changed, 47 insertions(+), 18 deletions(-)
+ drivers/pnp/pnpacpi/rsparser.c |   40 +++++++++++++++++++++++++++++++
+ 1 file changed, 40 insertions(+)
 
-diff -puN drivers/base/node.c~vmstat-mlocked-pages-statistics drivers/base/node.c
---- a/drivers/base/node.c~vmstat-mlocked-pages-statistics
-+++ a/drivers/base/node.c
-@@ -68,7 +68,8 @@ static ssize_t node_read_meminfo(struct 
- 		       "Node %d Active(file):   %8lu kB\n"
- 		       "Node %d Inactive(file): %8lu kB\n"
- #ifdef CONFIG_UNEVICTABLE_LRU
--		       "Node %d Noreclaim:      %8lu kB\n"
-+		       "Node %d Unevictable:    %8lu kB\n"
-+		       "Node %d Mlocked:        %8lu kB\n"
- #endif
- #ifdef CONFIG_HIGHMEM
- 		       "Node %d HighTotal:      %8lu kB\n"
-@@ -91,16 +92,17 @@ static ssize_t node_read_meminfo(struct 
- 		       nid, K(i.totalram),
- 		       nid, K(i.freeram),
- 		       nid, K(i.totalram - i.freeram),
--		       nid, node_page_state(nid, NR_ACTIVE_ANON) +
--				node_page_state(nid, NR_ACTIVE_FILE),
--		       nid, node_page_state(nid, NR_INACTIVE_ANON) +
--				node_page_state(nid, NR_INACTIVE_FILE),
--		       nid, node_page_state(nid, NR_ACTIVE_ANON),
--		       nid, node_page_state(nid, NR_INACTIVE_ANON),
--		       nid, node_page_state(nid, NR_ACTIVE_FILE),
--		       nid, node_page_state(nid, NR_INACTIVE_FILE),
-+		       nid, K(node_page_state(nid, NR_ACTIVE_ANON) +
-+				node_page_state(nid, NR_ACTIVE_FILE)),
-+		       nid, K(node_page_state(nid, NR_INACTIVE_ANON) +
-+				node_page_state(nid, NR_INACTIVE_FILE)),
-+		       nid, K(node_page_state(nid, NR_ACTIVE_ANON)),
-+		       nid, K(node_page_state(nid, NR_INACTIVE_ANON)),
-+		       nid, K(node_page_state(nid, NR_ACTIVE_FILE)),
-+		       nid, K(node_page_state(nid, NR_INACTIVE_FILE)),
- #ifdef CONFIG_UNEVICTABLE_LRU
--		       nid, node_page_state(nid, NR_UNEVICTABLE),
-+		       nid, K(node_page_state(nid, NR_UNEVICTABLE)),
-+		       nid, K(node_page_state(nid, NR_MLOCK)),
- #endif
- #ifdef CONFIG_HIGHMEM
- 		       nid, K(i.totalhigh),
-diff -puN fs/proc/proc_misc.c~vmstat-mlocked-pages-statistics fs/proc/proc_misc.c
---- a/fs/proc/proc_misc.c~vmstat-mlocked-pages-statistics
-+++ a/fs/proc/proc_misc.c
-@@ -177,6 +177,7 @@ static int meminfo_read_proc(char *page,
- 		"Inactive(file): %8lu kB\n"
- #ifdef CONFIG_UNEVICTABLE_LRU
- 		"Unevictable:    %8lu kB\n"
-+		"Mlocked:        %8lu kB\n"
- #endif
- #ifdef CONFIG_HIGHMEM
- 		"HighTotal:      %8lu kB\n"
-@@ -215,6 +216,7 @@ static int meminfo_read_proc(char *page,
- 		K(pages[LRU_INACTIVE_FILE]),
- #ifdef CONFIG_UNEVICTABLE_LRU
- 		K(pages[LRU_UNEVICTABLE]),
-+		K(pages[NR_MLOCK]),
- #endif
- #ifdef CONFIG_HIGHMEM
- 		K(i.totalhigh),
-diff -puN include/linux/mmzone.h~vmstat-mlocked-pages-statistics include/linux/mmzone.h
---- a/include/linux/mmzone.h~vmstat-mlocked-pages-statistics
-+++ a/include/linux/mmzone.h
-@@ -88,8 +88,10 @@ enum zone_stat_item {
- 	NR_ACTIVE_FILE,		/*  "     "     "   "       "         */
- #ifdef CONFIG_UNEVICTABLE_LRU
- 	NR_UNEVICTABLE,		/*  "     "     "   "       "         */
-+	NR_MLOCK,		/* mlock()ed pages found and moved off LRU */
- #else
- 	NR_UNEVICTABLE = NR_ACTIVE_FILE, /* avoid compiler errors in dead code */
-+	NR_MLOCK = NR_ACTIVE_FILE,
- #endif
- 	NR_ANON_PAGES,	/* Mapped anonymous pages */
- 	NR_FILE_MAPPED,	/* pagecache pages mapped into pagetables.
-diff -puN mm/internal.h~vmstat-mlocked-pages-statistics mm/internal.h
---- a/mm/internal.h~vmstat-mlocked-pages-statistics
-+++ a/mm/internal.h
-@@ -101,7 +101,8 @@ static inline int is_mlocked_vma(struct 
- 	if (likely((vma->vm_flags & (VM_LOCKED | VM_SPECIAL)) != VM_LOCKED))
- 		return 0;
+diff -puN drivers/pnp/pnpacpi/rsparser.c~not-for-merging-pnp-changes-suspend-oops drivers/pnp/pnpacpi/rsparser.c
+--- a/drivers/pnp/pnpacpi/rsparser.c~not-for-merging-pnp-changes-suspend-oops
++++ a/drivers/pnp/pnpacpi/rsparser.c
+@@ -749,6 +749,11 @@ static void pnpacpi_encode_irq(struct pn
+ 	struct acpi_resource_irq *irq = &resource->data.irq;
+ 	int triggering, polarity, shareable;
  
--	SetPageMlocked(page);
-+	if (!TestSetPageMlocked(page))
-+		inc_zone_page_state(page, NR_MLOCK);
- 	return 1;
- }
- 
-@@ -128,12 +129,19 @@ static inline void clear_page_mlock(stru
- 
- /*
-  * mlock_migrate_page - called only from migrate_page_copy() to
-- * migrate the Mlocked page flag
-+ * migrate the Mlocked page flag; update statistics.
-  */
- static inline void mlock_migrate_page(struct page *newpage, struct page *page)
- {
--	if (TestClearPageMlocked(page))
-+	if (TestClearPageMlocked(page)) {
-+		unsigned long flags;
++	if (!p) {
++		dev_err(&dev->dev, "  no irq resource to encode!\n");
++		return;
++	}
 +
-+		local_irq_save(flags);
-+		__dec_zone_page_state(page, NR_MLOCK);
- 		SetPageMlocked(newpage);
-+		__inc_zone_page_state(newpage, NR_MLOCK);
-+		local_irq_restore(flags);
+ 	decode_irq_flags(dev, p->flags, &triggering, &polarity, &shareable);
+ 	irq->triggering = triggering;
+ 	irq->polarity = polarity;
+@@ -771,6 +776,11 @@ static void pnpacpi_encode_ext_irq(struc
+ 	struct acpi_resource_extended_irq *extended_irq = &resource->data.extended_irq;
+ 	int triggering, polarity, shareable;
+ 
++	if (!p) {
++		dev_err(&dev->dev, "  no extended irq resource to encode!\n");
++		return;
 +	}
- }
- 
- 
-diff -puN mm/mlock.c~vmstat-mlocked-pages-statistics mm/mlock.c
---- a/mm/mlock.c~vmstat-mlocked-pages-statistics
-+++ a/mm/mlock.c
-@@ -56,6 +56,7 @@ void __clear_page_mlock(struct page *pag
++
+ 	decode_irq_flags(dev, p->flags, &triggering, &polarity, &shareable);
+ 	extended_irq->producer_consumer = ACPI_CONSUMER;
+ 	extended_irq->triggering = triggering;
+@@ -791,6 +801,11 @@ static void pnpacpi_encode_dma(struct pn
  {
- 	VM_BUG_ON(!PageLocked(page));	/* for LRU isolate/putback */
+ 	struct acpi_resource_dma *dma = &resource->data.dma;
  
-+	dec_zone_page_state(page, NR_MLOCK);
- 	if (!isolate_lru_page(page)) {
- 		putback_lru_page(page);
- 	} else {
-@@ -76,8 +77,11 @@ void mlock_vma_page(struct page *page)
- {
- 	BUG_ON(!PageLocked(page));
- 
--	if (!TestSetPageMlocked(page) && !isolate_lru_page(page))
--		putback_lru_page(page);
-+	if (!TestSetPageMlocked(page)) {
-+		inc_zone_page_state(page, NR_MLOCK);
-+		if (!isolate_lru_page(page))
-+			putback_lru_page(page);
++	if (!p) {
++		dev_err(&dev->dev, "  no dma resource to encode!\n");
++		return;
 +	}
- }
- 
- /*
-@@ -102,9 +106,19 @@ static void munlock_vma_page(struct page
++
+ 	/* Note: pnp_assign_dma will copy pnp_dma->flags into p->flags */
+ 	switch (p->flags & IORESOURCE_DMA_SPEED_MASK) {
+ 	case IORESOURCE_DMA_TYPEA:
+@@ -832,6 +847,11 @@ static void pnpacpi_encode_io(struct pnp
  {
- 	BUG_ON(!PageLocked(page));
+ 	struct acpi_resource_io *io = &resource->data.io;
  
--	if (TestClearPageMlocked(page) && !isolate_lru_page(page)) {
--		try_to_munlock(page);
--		putback_lru_page(page);
-+	if (TestClearPageMlocked(page)) {
-+		dec_zone_page_state(page, NR_MLOCK);
-+		if (!isolate_lru_page(page)) {
-+			try_to_munlock(page);	/* maybe relock the page */
-+			putback_lru_page(page);
-+		}
-+		/*
-+		 * Else we lost the race.  let try_to_unmap() deal with it.
-+		 * At least we get the page state and mlock stats right.
-+		 * However, page is still on the noreclaim list.  We'll fix
-+		 * that up when the page is eventually freed or we scan the
-+		 * noreclaim list.
-+		 */
- 	}
- }
++	if (!p) {
++		dev_err(&dev->dev, "  no io resource to encode!\n");
++		return;
++	}
++
+ 	/* Note: pnp_assign_port will copy pnp_port->flags into p->flags */
+ 	io->io_decode = (p->flags & IORESOURCE_IO_16BIT_ADDR) ?
+ 	    ACPI_DECODE_16 : ACPI_DECODE_10;
+@@ -851,6 +871,11 @@ static void pnpacpi_encode_fixed_io(stru
+ {
+ 	struct acpi_resource_fixed_io *fixed_io = &resource->data.fixed_io;
  
-diff -puN mm/vmstat.c~vmstat-mlocked-pages-statistics mm/vmstat.c
---- a/mm/vmstat.c~vmstat-mlocked-pages-statistics
-+++ a/mm/vmstat.c
-@@ -608,6 +608,7 @@ static const char * const vmstat_text[] 
- 	"nr_active_file",
- #ifdef CONFIG_UNEVICTABLE_LRU
- 	"nr_unevictable",
-+	"nr_mlock",
- #endif
- 	"nr_anon_pages",
- 	"nr_mapped",
++	if (!p) {
++		dev_err(&dev->dev, "  no fixed io resource to encode!\n");
++		return;
++	}
++
+ 	fixed_io->address = p->start;
+ 	fixed_io->address_length = p->end - p->start + 1;
+ 
+@@ -864,6 +889,11 @@ static void pnpacpi_encode_mem24(struct 
+ {
+ 	struct acpi_resource_memory24 *memory24 = &resource->data.memory24;
+ 
++	if (!p) {
++		dev_err(&dev->dev, "  no mem24 resource to encode!\n");
++		return;
++	}
++
+ 	/* Note: pnp_assign_mem will copy pnp_mem->flags into p->flags */
+ 	memory24->write_protect =
+ 	    (p->flags & IORESOURCE_MEM_WRITEABLE) ?
+@@ -884,6 +914,11 @@ static void pnpacpi_encode_mem32(struct 
+ {
+ 	struct acpi_resource_memory32 *memory32 = &resource->data.memory32;
+ 
++	if (!p) {
++		dev_err(&dev->dev, "  no mem32 resource to encode!\n");
++		return;
++	}
++
+ 	memory32->write_protect =
+ 	    (p->flags & IORESOURCE_MEM_WRITEABLE) ?
+ 	    ACPI_READ_WRITE_MEMORY : ACPI_READ_ONLY_MEMORY;
+@@ -903,6 +938,11 @@ static void pnpacpi_encode_fixed_mem32(s
+ {
+ 	struct acpi_resource_fixed_memory32 *fixed_memory32 = &resource->data.fixed_memory32;
+ 
++	if (!p) {
++		dev_err(&dev->dev, "  no fixed_mem32 resource to encode!\n");
++		return;
++	}
++
+ 	fixed_memory32->write_protect =
+ 	    (p->flags & IORESOURCE_MEM_WRITEABLE) ?
+ 	    ACPI_READ_WRITE_MEMORY : ACPI_READ_ONLY_MEMORY;
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from bjorn.helgaas@hp.com are
 
 origin.patch
-linux-next.patch
-spufs-convert-nopfn-to-fault.patch
-mspec-convert-nopfn-to-fault.patch
-mspec-convert-nopfn-to-fault-fix.patch
-mm-remove-nopfn.patch
-mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co.patch
-hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed-build-fix.patch
-hugetlb-factor-out-prep_new_huge_page.patch
-hugetlb-modular-state-for-hugetlb-page-size.patch
-hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
-hugetlb-multiple-hstates-for-multiple-page-sizes.patch
-hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
-hugetlbfs-per-mount-huge-page-sizes.patch
-hugetlb-new-sysfs-interface.patch
-hugetlb-abstract-numa-round-robin-selection.patch
-mm-introduce-non-panic-alloc_bootmem.patch
-mm-export-prep_compound_page-to-mm.patch
-hugetlb-support-larger-than-max_order.patch
-hugetlb-support-boot-allocate-different-sizes.patch
-hugetlb-printk-cleanup.patch
-hugetlb-introduce-pud_huge.patch
-x86-support-gb-hugepages-on-64-bit.patch
-x86-add-hugepagesz-option-on-64-bit.patch
-hugetlb-override-default-huge-page-size.patch
-hugetlb-override-default-huge-page-size-ia64-build.patch
-hugetlb-allow-arch-overried-hugepage-allocation.patch
-powerpc-function-to-allocate-gigantic-hugepages.patch
-powerpc-scan-device-tree-for-gigantic-pages.patch
-powerpc-define-support-for-16g-hugepages.patch
-fs-check-for-statfs-overflow.patch
-powerpc-support-multiple-hugepage-sizes.patch
-x86-implement-pte_special.patch
-mm-introduce-get_user_pages_fast.patch
-mm-introduce-get_user_pages_fast-fix.patch
-mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast.patch
-x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-fix.patch
-x86-lockless-get_user_pages_fast-fix-2.patch
-x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
-x86-lockless-get_user_pages_fast-fix-warning.patch
-dio-use-get_user_pages_fast.patch
-splice-use-get_user_pages_fast.patch
-x86-support-1gb-hugepages-with-get_user_pages_lockless.patch
-mm-readahead-scan-lockless.patch
-radix-tree-add-gang_lookup_slot-gang_lookup_slot_tag.patch
-mm-speculative-page-references.patch
-mm-speculative-page-references-fix.patch
-mm-lockless-pagecache.patch
-mm-spinlock-tree_lock.patch
-powerpc-implement-pte_special.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-mlock-mlocked-pages-are-unevictable.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-vmstat-mlocked-pages-statistics.patch
-reiser4.patch
-likeliness-accounting-change-and-cleanup.patch
+mm-only-enforce-acpi-resource-conflict-checks.patch
+provide-rtc_cmos-platform-device-take-2.patch
+acpi-fix-drivers-acpi-gluec-build-error.patch
+pnpacpi-fix-irq-flag-decoding.patch
+pnpacpi-fix-shareable-irq-encode-decode.patch
+pnpacpi-use-_crs-irq-descriptor-length-for-_srs-v2.patch
+pnp-add-detail-to-debug-resource-dump.patch
+pnp-remove-pnp_resourceindex.patch
+pnp-add-pnp_resource_type-internal-interface.patch
+pnp-add-pnp_resource_type_name-helper-function.patch
+pnp-make-pnp_portmemetc_start-et-al-work-for-invalid-resources.patch
+pnp-replace-pnp_resource_table-with-dynamically-allocated-resources.patch
+pnp-replace-pnp_resource_table-with-dynamically-allocated-resources-fix.patch
+pnp-remove-ratelimit-on-add-resource-failures.patch
+pnp-dont-sort-by-type-in-sys-resources.patch
+pnp-set-the-pnp_card-dma_mask-for-use-by-isapnp-cards.patch
+isa-set-24-bit-dma_mask-for-isa-devices.patch
+pnp-add-pnp_possible_config-can-a-device-could-be-configured-this-way.patch
+pnp-add-pnp_possible_config-can-a-device-could-be-configured-this-way-fix.patch
+pnp-whitespace-coding-style-fixes.patch
+pnp-define-pnp-specific-ioresource_io_-flags-alongside-irq-dma-mem.patch
+pnp-make-resource-option-structures-private-to-pnp-subsystem.patch
+pnp-introduce-pnp_irq_mask_t-typedef.patch
+pnp-increase-i-o-port-memory-option-address-sizes.patch
+pnp-improve-resource-assignment-debug.patch
+pnp-in-debug-resource-dump-make-empty-list-obvious.patch
+pnp-make-resource-assignment-functions-return-0-success-or-ebusy-failure.patch
+pnp-remove-redundant-pnp_can_configure-check.patch
+pnp-centralize-resource-option-allocations.patch
+pnpacpi-ignore-_prs-interrupt-numbers-larger-than-pnp_irq_nr.patch
+pnp-rename-pnp_register__resource-local-variables.patch
+pnp-support-optional-irq-resources.patch
+pnp-remove-extra-0x100-bit-from-option-priority.patch
+isapnp-handle-independent-options-following-dependent-ones.patch
+pnp-convert-resource-options-to-single-linked-list.patch
+pnp-convert-resource-options-to-single-linked-list-checkpatch-fixes.patch
+not-for-merging-pnp-changes-suspend-oops.patch
+make-pnp_add_card_id-static.patch
 
