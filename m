@@ -1,339 +1,350 @@
 From: akpm@linux-foundation.org
-Subject: - vmscan-add-some-sanity-checks-to-get_scan_ratio.patch removed from -mm tree
-Date: Wed, 11 Jun 2008 12:46:11 -0700
-Message-ID: <200806111946.m5BJkB83014559@imap1.linux-foundation.org>
+Subject: - vmscan-use-an-array-for-the-lru-pagevecs.patch removed from -mm tree
+Date: Wed, 11 Jun 2008 12:45:56 -0700
+Message-ID: <200806111945.m5BJjui5014533@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54529 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55000 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751557AbYFKTqZ (ORCPT
+	by vger.kernel.org with ESMTP id S1750832AbYFKTqR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Jun 2008 15:46:25 -0400
+	Wed, 11 Jun 2008 15:46:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: riel@redhat.com, mm-commits@vger.kernel.org
+To: kosaki.motohiro@jp.fujitsu.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vmscan: add some sanity checks to get_scan_ratio
+     vmscan: use an array for the LRU pagevecs
 has been removed from the -mm tree.  Its filename was
-     vmscan-add-some-sanity-checks-to-get_scan_ratio.patch
+     vmscan-use-an-array-for-the-lru-pagevecs.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: add some sanity checks to get_scan_ratio
-From: Rik van Riel <riel@redhat.com>
+Subject: vmscan: use an array for the LRU pagevecs
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-The access ratio based scan rate determination in get_scan_ratio
-works ok in most situations, but needs to be corrected in some
-corner cases:
-
-- if we run out of swap space, do not bother scanning the anon LRUs
-
-- if we have already freed all of the page cache, we need to scan the
-  anon LRUs
-
-- restore the *actual* access ratio based scan rate algorithm, the
-  previous versions of this patch series had the wrong version
-
-- scale the number of pages added to zone->nr_scan[l]
+Turn the pagevecs into an array just like the LRUs.  This significantly
+cleans up the source code and reduces the size of the kernel by about 13kB
+after all the LRU lists have been created further down in the split VM
+patch series.
 
 Signed-off-by: Rik van Riel <riel@redhat.com>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    2 
- mm/page_alloc.c        |    3 -
- mm/swap.c              |   13 ++++
- mm/vmscan.c            |  104 ++++++++++++++++++++++++++-------------
- 4 files changed, 85 insertions(+), 37 deletions(-)
+ include/linux/mmzone.h  |   13 ++++-
+ include/linux/pagevec.h |   13 ++++-
+ include/linux/swap.h    |   18 ++++++-
+ mm/migrate.c            |   11 ----
+ mm/swap.c               |   96 +++++++++++++++++---------------------
+ 5 files changed, 83 insertions(+), 68 deletions(-)
 
-diff -puN include/linux/mmzone.h~vmscan-add-some-sanity-checks-to-get_scan_ratio include/linux/mmzone.h
---- a/include/linux/mmzone.h~vmscan-add-some-sanity-checks-to-get_scan_ratio
+diff -puN include/linux/mmzone.h~vmscan-use-an-array-for-the-lru-pagevecs include/linux/mmzone.h
+--- a/include/linux/mmzone.h~vmscan-use-an-array-for-the-lru-pagevecs
 +++ a/include/linux/mmzone.h
-@@ -289,6 +289,8 @@ struct zone {
+@@ -107,13 +107,22 @@ enum zone_stat_item {
+ #endif
+ 	NR_VM_ZONE_STAT_ITEMS };
  
- 	unsigned long		recent_rotated_anon;
- 	unsigned long		recent_rotated_file;
-+	unsigned long		recent_scanned_anon;
-+	unsigned long		recent_scanned_file;
- 
- 	unsigned long		pages_scanned;	   /* since last reclaim */
- 	unsigned long		flags;		   /* zone flags, see below */
-diff -puN mm/page_alloc.c~vmscan-add-some-sanity-checks-to-get_scan_ratio mm/page_alloc.c
---- a/mm/page_alloc.c~vmscan-add-some-sanity-checks-to-get_scan_ratio
-+++ a/mm/page_alloc.c
-@@ -3436,7 +3436,8 @@ static void __paginginit free_area_init_
- 		}
- 		zone->recent_rotated_anon = 0;
- 		zone->recent_rotated_file = 0;
--//TODO recent_scanned_* ???
-+		zone->recent_scanned_anon = 0;
-+		zone->recent_scanned_file = 0;
- 		zap_zone_vm_stats(zone);
- 		zone->flags = 0;
- 		if (!size)
-diff -puN mm/swap.c~vmscan-add-some-sanity-checks-to-get_scan_ratio mm/swap.c
---- a/mm/swap.c~vmscan-add-some-sanity-checks-to-get_scan_ratio
-+++ a/mm/swap.c
-@@ -176,8 +176,8 @@ void activate_page(struct page *page)
- 
- 	spin_lock_irq(&zone->lru_lock);
- 	if (PageLRU(page) && !PageActive(page)) {
--		int lru = LRU_BASE;
--		lru += page_file_cache(page);
-+		int file = page_file_cache(page);
-+		int lru = LRU_BASE + file;
- 		del_page_from_lru_list(zone, page, lru);
- 
- 		SetPageActive(page);
-@@ -185,6 +185,15 @@ void activate_page(struct page *page)
- 		add_page_to_lru_list(zone, page, lru);
- 		__count_vm_event(PGACTIVATE);
- 		mem_cgroup_move_lists(page, true);
++#define LRU_BASE 0
 +
-+		if (file) {
-+			zone->recent_scanned_file++;
-+			zone->recent_rotated_file++;
-+		} else {
-+			/* Can this happen?  Maybe through tmpfs... */
-+			zone->recent_scanned_anon++;
-+			zone->recent_rotated_anon++;
-+		}
- 	}
- 	spin_unlock_irq(&zone->lru_lock);
+ enum lru_list {
+-	LRU_INACTIVE,	/* must match order of NR_[IN]ACTIVE */
+-	LRU_ACTIVE,	/*  "     "     "   "       "        */
++	LRU_INACTIVE = LRU_BASE,	/* must match order of NR_[IN]ACTIVE */
++	LRU_ACTIVE,			/*  "     "     "   "       "        */
+ 	NR_LRU_LISTS };
+ 
+ #define for_each_lru(l) for (l = 0; l < NR_LRU_LISTS; l++)
+ 
++static inline int is_active_lru(enum lru_list l)
++{
++	return (l == LRU_ACTIVE);
++}
++
++enum lru_list page_lru(struct page *page);
++
+ struct per_cpu_pages {
+ 	int count;		/* number of pages in the list */
+ 	int high;		/* high watermark, emptying needed */
+diff -puN include/linux/pagevec.h~vmscan-use-an-array-for-the-lru-pagevecs include/linux/pagevec.h
+--- a/include/linux/pagevec.h~vmscan-use-an-array-for-the-lru-pagevecs
++++ a/include/linux/pagevec.h
+@@ -23,8 +23,7 @@ struct pagevec {
+ void __pagevec_release(struct pagevec *pvec);
+ void __pagevec_release_nonlru(struct pagevec *pvec);
+ void __pagevec_free(struct pagevec *pvec);
+-void __pagevec_lru_add(struct pagevec *pvec);
+-void __pagevec_lru_add_active(struct pagevec *pvec);
++void ____pagevec_lru_add(struct pagevec *pvec, enum lru_list lru);
+ void pagevec_strip(struct pagevec *pvec);
+ unsigned pagevec_lookup(struct pagevec *pvec, struct address_space *mapping,
+ 		pgoff_t start, unsigned nr_pages);
+@@ -81,6 +80,16 @@ static inline void pagevec_free(struct p
+ 		__pagevec_free(pvec);
  }
-diff -puN mm/vmscan.c~vmscan-add-some-sanity-checks-to-get_scan_ratio mm/vmscan.c
---- a/mm/vmscan.c~vmscan-add-some-sanity-checks-to-get_scan_ratio
-+++ a/mm/vmscan.c
-@@ -919,8 +919,13 @@ static unsigned long shrink_inactive_lis
- 		__mod_zone_page_state(zone, NR_INACTIVE_ANON,
- 						-count[LRU_INACTIVE_ANON]);
  
--		if (scan_global_lru(sc))
-+		if (scan_global_lru(sc)) {
- 			zone->pages_scanned += nr_scan;
-+			zone->recent_scanned_anon += count[LRU_ACTIVE_ANON] +
-+						     count[LRU_INACTIVE_ANON];
-+			zone->recent_scanned_file += count[LRU_ACTIVE_FILE] +
-+						     count[LRU_INACTIVE_FILE];
-+		}
- 		spin_unlock_irq(&zone->lru_lock);
- 
- 		nr_scanned += nr_scan;
-@@ -970,11 +975,13 @@ static unsigned long shrink_inactive_lis
- 			VM_BUG_ON(PageLRU(page));
- 			SetPageLRU(page);
- 			list_del(&page->lru);
--			if (page_file_cache(page)) {
-+			if (page_file_cache(page))
- 				lru += LRU_FILE;
--				zone->recent_rotated_file++;
--			} else {
--				zone->recent_rotated_anon++;
-+			if (scan_global_lru(sc)) {
-+				if (page_file_cache(page))
-+					zone->recent_rotated_file++;
-+				else
-+					zone->recent_rotated_anon++;
- 			}
- 			if (PageActive(page))
- 				lru += LRU_ACTIVE;
-@@ -1053,8 +1060,13 @@ static void shrink_active_list(unsigned 
- 	 * zone->pages_scanned is used for detect zone's oom
- 	 * mem_cgroup remembers nr_scan by itself.
- 	 */
--	if (scan_global_lru(sc))
-+	if (scan_global_lru(sc)) {
- 		zone->pages_scanned += pgscanned;
-+		if (file)
-+			zone->recent_scanned_file += pgscanned;
-+		else
-+			zone->recent_scanned_anon += pgscanned;
-+	}
- 
- 	if (file)
- 		__mod_zone_page_state(zone, NR_ACTIVE_FILE, -pgmoved);
-@@ -1196,9 +1208,8 @@ static unsigned long shrink_list(enum lr
- static void get_scan_ratio(struct zone *zone, struct scan_control * sc,
- 					unsigned long *percent)
++static inline void __pagevec_lru_add(struct pagevec *pvec)
++{
++	____pagevec_lru_add(pvec, LRU_INACTIVE);
++}
++
++static inline void __pagevec_lru_add_active(struct pagevec *pvec)
++{
++	____pagevec_lru_add(pvec, LRU_ACTIVE);
++}
++
+ static inline void pagevec_lru_add(struct pagevec *pvec)
  {
--	unsigned long anon, file;
-+	unsigned long anon, file, free;
- 	unsigned long anon_prio, file_prio;
--	unsigned long rotate_sum;
- 	unsigned long ap, fp;
+ 	if (pagevec_count(pvec))
+diff -puN include/linux/swap.h~vmscan-use-an-array-for-the-lru-pagevecs include/linux/swap.h
+--- a/include/linux/swap.h~vmscan-use-an-array-for-the-lru-pagevecs
++++ a/include/linux/swap.h
+@@ -171,8 +171,8 @@ extern unsigned int nr_free_pagecache_pa
  
- 	anon  = zone_page_state(zone, NR_ACTIVE_ANON) +
-@@ -1206,15 +1217,19 @@ static void get_scan_ratio(struct zone *
- 	file  = zone_page_state(zone, NR_ACTIVE_FILE) +
- 		zone_page_state(zone, NR_INACTIVE_FILE);
  
--	rotate_sum = zone->recent_rotated_file + zone->recent_rotated_anon;
--
- 	/* Keep a floating average of RECENT references. */
--	if (unlikely(rotate_sum > min(anon, file))) {
-+	if (unlikely(zone->recent_scanned_anon > anon / zone->inactive_ratio)) {
- 		spin_lock_irq(&zone->lru_lock);
--		zone->recent_rotated_file /= 2;
-+		zone->recent_scanned_anon /= 2;
- 		zone->recent_rotated_anon /= 2;
- 		spin_unlock_irq(&zone->lru_lock);
--		rotate_sum /= 2;
-+	}
-+
-+	if (unlikely(zone->recent_scanned_file > file / 4)) {
-+		spin_lock_irq(&zone->lru_lock);
-+		zone->recent_scanned_file /= 2;
-+		zone->recent_rotated_file /= 2;
-+		spin_unlock_irq(&zone->lru_lock);
- 	}
+ /* linux/mm/swap.c */
+-extern void lru_cache_add(struct page *);
+-extern void lru_cache_add_active(struct page *);
++extern void __lru_cache_add(struct page *, enum lru_list lru);
++extern void lru_cache_add_lru(struct page *, enum lru_list lru);
+ extern void activate_page(struct page *);
+ extern void mark_page_accessed(struct page *);
+ extern void lru_add_drain(void);
+@@ -180,6 +180,20 @@ extern int lru_add_drain_all(void);
+ extern void rotate_reclaimable_page(struct page *page);
+ extern void swap_setup(void);
  
- 	/*
-@@ -1227,23 +1242,33 @@ static void get_scan_ratio(struct zone *
- 	/*
- 	 *                  anon       recent_rotated_anon
- 	 * %anon = 100 * ----------- / ------------------- * IO cost
--	 *               anon + file       rotate_sum
-+	 *               anon + file   recent_scanned_anon
- 	 */
--	ap = (anon_prio * anon) / (anon + file + 1);
--	ap *= rotate_sum / (zone->recent_rotated_anon + 1);
--	if (ap == 0)
--		ap = 1;
--	else if (ap > 100)
--		ap = 100;
--	percent[0] = ap;
--
--	fp = (file_prio * file) / (anon + file + 1);
--	fp *= rotate_sum / (zone->recent_rotated_file + 1);
--	if (fp == 0)
--		fp = 1;
--	else if (fp > 100)
--		fp = 100;
--	percent[1] = fp;
-+	ap = (anon_prio + 1) * (zone->recent_scanned_anon + 1);
-+	ap /= zone->recent_rotated_anon + 1;
++/**
++ * lru_cache_add: add a page to the page lists
++ * @page: the page to add
++ */
++static inline void lru_cache_add(struct page *page)
++{
++	__lru_cache_add(page, LRU_INACTIVE);
++}
 +
-+	fp = (file_prio + 1) * (zone->recent_scanned_file + 1);
-+	fp /= zone->recent_rotated_file + 1;
++static inline void lru_cache_add_active(struct page *page)
++{
++	__lru_cache_add(page, LRU_ACTIVE);
++}
 +
-+	/* Normalize to percentages */
-+	percent[0] = 100 * ap / (ap + fp + 1);
-+	percent[1] = 100 - percent[0];
-+
-+	free = zone_page_state(zone, NR_FREE_PAGES);
-+
-+	/*
-+	 * If we have no swap space, do not bother scanning anon pages.
-+	 */
-+	if (nr_swap_pages <= 0) {
-+		percent[0] = 0;
-+		percent[1] = 100;
-+	}
-+	/*
-+	 * If we already freed most file pages, scan the anon pages
-+	 * regardless of the page access ratios or swappiness setting.
-+	 */
-+	else if (file + free <= zone->pages_high)
-+		percent[0] = 100;
+ /* linux/mm/vmscan.c */
+ extern unsigned long try_to_free_pages(struct zonelist *zonelist, int order,
+ 					gfp_t gfp_mask);
+diff -puN mm/migrate.c~vmscan-use-an-array-for-the-lru-pagevecs mm/migrate.c
+--- a/mm/migrate.c~vmscan-use-an-array-for-the-lru-pagevecs
++++ a/mm/migrate.c
+@@ -55,16 +55,7 @@ int migrate_prep(void)
+ 
+ static inline void move_to_lru(struct page *page)
+ {
+-	if (PageActive(page)) {
+-		/*
+-		 * lru_cache_add_active checks that
+-		 * the PG_active bit is off.
+-		 */
+-		ClearPageActive(page);
+-		lru_cache_add_active(page);
+-	} else {
+-		lru_cache_add(page);
+-	}
++	lru_cache_add_lru(page, page_lru(page));
+ 	put_page(page);
  }
  
+diff -puN mm/swap.c~vmscan-use-an-array-for-the-lru-pagevecs mm/swap.c
+--- a/mm/swap.c~vmscan-use-an-array-for-the-lru-pagevecs
++++ a/mm/swap.c
+@@ -34,8 +34,7 @@
+ /* How many pages do we try to swap or page in/out together? */
+ int page_cluster;
  
-@@ -1264,13 +1289,17 @@ static unsigned long shrink_zone(int pri
- 	for_each_lru(l) {
- 		if (scan_global_lru(sc)) {
- 			int file = is_file_lru(l);
-+			int scan;
- 			/*
- 			 * Add one to nr_to_scan just to make sure that the
--			 * kernel will slowly sift through the active list.
-+			 * kernel will slowly sift through each list.
- 			 */
--			zone->nr_scan[l] += (zone_page_state(zone,
--				NR_INACTIVE_ANON + l) >> priority) + 1;
--			nr[l] = zone->nr_scan[l] * percent[file] / 100;
-+			scan = zone_page_state(zone, NR_INACTIVE_ANON + l);
-+			scan >>= priority;
-+			scan = (scan * percent[file]) / 100;
+-static DEFINE_PER_CPU(struct pagevec, lru_add_pvecs) = { 0, };
+-static DEFINE_PER_CPU(struct pagevec, lru_add_active_pvecs) = { 0, };
++static DEFINE_PER_CPU(struct pagevec[NR_LRU_LISTS], lru_add_pvecs) = { {0,}, };
+ static DEFINE_PER_CPU(struct pagevec, lru_rotate_pvecs) = { 0, };
+ 
+ /*
+@@ -96,6 +95,23 @@ void put_pages_list(struct list_head *pa
+ }
+ EXPORT_SYMBOL(put_pages_list);
+ 
++/**
++ * page_lru - which LRU list should a page be on?
++ * @page: the page to test
++ *
++ * Returns the LRU list a page should be on, as an index
++ * into the array of LRU lists.
++ */
++enum lru_list page_lru(struct page *page)
++{
++	enum lru_list lru = LRU_BASE;
 +
-+			zone->nr_scan[l] += scan + 1;
-+			nr[l] = zone->nr_scan[l];
- 			if (nr[l] >= sc->swap_cluster_max)
- 				zone->nr_scan[l] = 0;
- 			else
-@@ -1287,7 +1316,7 @@ static unsigned long shrink_zone(int pri
- 	}
++	if (PageActive(page))
++		lru += LRU_ACTIVE;
++
++	return lru;
++}
++
+ /*
+  * pagevec_move_tail() must be called with IRQ disabled.
+  * Otherwise this may cause nasty races.
+@@ -186,28 +202,29 @@ void mark_page_accessed(struct page *pag
  
- 	while (nr[LRU_INACTIVE_ANON] || nr[LRU_ACTIVE_FILE] ||
--						 nr[LRU_INACTIVE_FILE]) {
-+					nr[LRU_INACTIVE_FILE]) {
- 		for_each_lru(l) {
- 			if (nr[l]) {
- 				nr_to_scan = min(nr[l],
-@@ -1300,6 +1329,13 @@ static unsigned long shrink_zone(int pri
+ EXPORT_SYMBOL(mark_page_accessed);
+ 
+-/**
+- * lru_cache_add: add a page to the page lists
+- * @page: the page to add
+- */
+-void lru_cache_add(struct page *page)
++void __lru_cache_add(struct page *page, enum lru_list lru)
+ {
+-	struct pagevec *pvec = &get_cpu_var(lru_add_pvecs);
++	struct pagevec *pvec = &get_cpu_var(lru_add_pvecs)[lru];
+ 
+ 	page_cache_get(page);
+ 	if (!pagevec_add(pvec, page))
+-		__pagevec_lru_add(pvec);
++		____pagevec_lru_add(pvec, lru);
+ 	put_cpu_var(lru_add_pvecs);
+ }
+ 
+-void lru_cache_add_active(struct page *page)
++/**
++ * lru_cache_add_lru - add a page to a page list
++ * @page: the page to be added to the LRU.
++ * @lru: the LRU list to which the page is added.
++ */
++void lru_cache_add_lru(struct page *page, enum lru_list lru)
+ {
+-	struct pagevec *pvec = &get_cpu_var(lru_add_active_pvecs);
++	if (PageActive(page)) {
++		ClearPageActive(page);
++	}
+ 
+-	page_cache_get(page);
+-	if (!pagevec_add(pvec, page))
+-		__pagevec_lru_add_active(pvec);
+-	put_cpu_var(lru_add_active_pvecs);
++	VM_BUG_ON(PageLRU(page) || PageActive(page));
++	__lru_cache_add(page, lru);
+ }
+ 
+ /*
+@@ -217,15 +234,15 @@ void lru_cache_add_active(struct page *p
+  */
+ static void drain_cpu_pagevecs(int cpu)
+ {
++	struct pagevec *pvecs = per_cpu(lru_add_pvecs, cpu);
+ 	struct pagevec *pvec;
++	int lru;
+ 
+-	pvec = &per_cpu(lru_add_pvecs, cpu);
+-	if (pagevec_count(pvec))
+-		__pagevec_lru_add(pvec);
+-
+-	pvec = &per_cpu(lru_add_active_pvecs, cpu);
+-	if (pagevec_count(pvec))
+-		__pagevec_lru_add_active(pvec);
++	for_each_lru(lru) {
++		pvec = &pvecs[lru - LRU_BASE];
++		if (pagevec_count(pvec))
++			____pagevec_lru_add(pvec, lru);
++	}
+ 
+ 	pvec = &per_cpu(lru_rotate_pvecs, cpu);
+ 	if (pagevec_count(pvec)) {
+@@ -379,7 +396,7 @@ void __pagevec_release_nonlru(struct pag
+  * Add the passed pages to the LRU, then drop the caller's refcount
+  * on them.  Reinitialises the caller's pagevec.
+  */
+-void __pagevec_lru_add(struct pagevec *pvec)
++void ____pagevec_lru_add(struct pagevec *pvec, enum lru_list lru)
+ {
+ 	int i;
+ 	struct zone *zone = NULL;
+@@ -396,7 +413,9 @@ void __pagevec_lru_add(struct pagevec *p
  		}
+ 		VM_BUG_ON(PageLRU(page));
+ 		SetPageLRU(page);
+-		add_page_to_inactive_list(zone, page);
++		if (is_active_lru(lru))
++			SetPageActive(page);
++		add_page_to_lru_list(zone, page, lru);
  	}
- 
-+	/*
-+	 * Even if we did not try to evict anon pages at all, we want to
-+	 * rebalance the anon lru active/inactive ratio.
-+	 */
-+	if (scan_global_lru(sc) && inactive_anon_low(zone))
-+		shrink_active_list(SWAP_CLUSTER_MAX, zone, sc, priority, 0);
-+
- 	throttle_vm_writeout(sc->gfp_mask);
- 	return nr_reclaimed;
+ 	if (zone)
+ 		spin_unlock_irq(&zone->lru_lock);
+@@ -404,34 +423,7 @@ void __pagevec_lru_add(struct pagevec *p
+ 	pagevec_reinit(pvec);
  }
+ 
+-EXPORT_SYMBOL(__pagevec_lru_add);
+-
+-void __pagevec_lru_add_active(struct pagevec *pvec)
+-{
+-	int i;
+-	struct zone *zone = NULL;
+-
+-	for (i = 0; i < pagevec_count(pvec); i++) {
+-		struct page *page = pvec->pages[i];
+-		struct zone *pagezone = page_zone(page);
+-
+-		if (pagezone != zone) {
+-			if (zone)
+-				spin_unlock_irq(&zone->lru_lock);
+-			zone = pagezone;
+-			spin_lock_irq(&zone->lru_lock);
+-		}
+-		VM_BUG_ON(PageLRU(page));
+-		SetPageLRU(page);
+-		VM_BUG_ON(PageActive(page));
+-		SetPageActive(page);
+-		add_page_to_active_list(zone, page);
+-	}
+-	if (zone)
+-		spin_unlock_irq(&zone->lru_lock);
+-	release_pages(pvec->pages, pvec->nr, pvec->cold);
+-	pagevec_reinit(pvec);
+-}
++EXPORT_SYMBOL(____pagevec_lru_add);
+ 
+ /*
+  * Try to drop buffers from the pages in a pagevec
 _
 
-Patches currently in -mm which might be from riel@redhat.com are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
-ntp-let-update_persistent_clock-sleep.patch
-access_process_vm-device-memory-infrastructure.patch
-access_process_vm-device-memory-infrastructure-fix.patch
-use-generic_access_phys-for-dev-mem-mappings.patch
-use-generic_access_phys-for-dev-mem-mappings-fix.patch
-use-generic_access_phys-for-pci-mmap-on-x86.patch
-powerpc-ioremap_prot.patch
-spufs-use-the-new-vm_ops-access.patch
-spufs-use-the-new-vm_ops-access-fix.patch
+origin.patch
+mm-fix-incorrect-variable-type-in-do_try_to_free_pages.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+mm-hugetlbc-fix-duplicate-variable.patch
 page-flags-record-page-flag-overlays-explicitly.patch
-page-flags-record-page-flag-overlays-explicitly-xen.patch
 slub-record-page-flag-overlays-explicitly.patch
 slob-record-page-flag-overlays-explicitly.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-idr-change-the-idr-structure.patch
-idr-rename-some-of-the-idr-apis-internal-routines.patch
-idr-fix-a-printk-call.patch
-idr-error-checking-factorization.patch
-idr-make-idr_get_new-rcu-safe.patch
-idr-make-idr_get_new-rcu-safe-fix.patch
-idr-make-idr_find-rcu-safe.patch
-idr-make-idr_remove-rcu-safe.patch
-ipc-call-idr_find-without-locking-in-ipc_lock.patch
-ipc-get-rid-of-ipc_lock_down.patch
-vmscan-add-some-sanity-checks-to-get_scan_ratio.patch
-vmscan-fix-pagecache-reclaim-referenced-bit-check.patch
-vmscan-add-newly-swapped-in-pages-to-the-inactive-list.patch
-vmscan-more-aggressively-use-lumpy-reclaim.patch
-vmscan-pageflag-helpers-for-configed-out-flags.patch
+call_usermodehelper-increase-reliability.patch
+cgroup-list_for_each-cleanup-v2.patch
+memcg-clean-up-checking-of-the-disabled-flag.patch
+per-task-delay-accounting-update-document-and-getdelaysc-for-memory-reclaim.patch
+vmscan-use-an-array-for-the-lru-pagevecs.patch
+vmscan-second-chance-replacement-for-anonymous-pages.patch
 vmscan-noreclaim-lru-infrastructure.patch
 vmscan-noreclaim-lru-page-statistics.patch
-vmscan-ramfs-and-ram-disk-pages-are-non-reclaimable.patch
 vmscan-shm_locked-pages-are-non-reclaimable.patch
 vmscan-mlocked-pages-are-non-reclaimable.patch
-vmscan-downgrade-mmap-sem-while-populating-mlocked-regions.patch
 vmscan-handle-mlocked-pages-during-map-remap-unmap.patch
 vmscan-mlocked-pages-statistics.patch
-vmscan-cull-non-reclaimable-pages-in-fault-path.patch
 vmscan-noreclaim-and-mlocked-pages-vm-events.patch
 mm-only-vmscan-noreclaim-lru-scan-sysctl.patch
 mm-only-vmscan-noreclaim-lru-scan-sysctl-fix.patch
-vmscan-mlocked-pages-count-attempts-to-free-mlocked-page.patch
-vmscan-noreclaim-lru-and-mlocked-pages-documentation.patch
+make-mm-memoryc-print_bad_pte-static.patch
+mm-swapfilec-make-code-static.patch
 make-mm-rmapc-anon_vma_cachep-static.patch
 
