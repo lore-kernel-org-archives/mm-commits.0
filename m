@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vmscan-split-lru-lists-into-anon-file-sets-fix.patch added to -mm tree
-Date: Wed, 11 Jun 2008 11:18:24 -0700
-Message-ID: <200806111818.m5BIIOIW010832@imap1.linux-foundation.org>
+Subject: + rtc-at32ap700x-fix-bug-in-at32_rtc_readalarm.patch added to -mm tree
+Date: Wed, 11 Jun 2008 12:10:06 -0700
+Message-ID: <200806111910.m5BJA6wK013166@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53808 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43807 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751149AbYFKSSq (ORCPT
+	by vger.kernel.org with ESMTP id S1751505AbYFKTKr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Jun 2008 14:18:46 -0400
+	Wed, 11 Jun 2008 15:10:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: riel@redhat.com
+Cc: haavard.skinnemoen@atmel.com, a.zummo@towertech.it, david-b@pacbell.net, hans-christian.egtvedt@atmel.com
 
 
 The patch titled
-     vmscan-split-lru-lists-into-anon-file-sets fix
+     rtc-at32ap700x: fix bug in at32_rtc_readalarm()
 has been added to the -mm tree.  Its filename is
-     vmscan-split-lru-lists-into-anon-file-sets-fix.patch
+     rtc-at32ap700x-fix-bug-in-at32_rtc_readalarm.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,87 +34,55 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan-split-lru-lists-into-anon-file-sets fix
-From: Rik van Riel <riel@redhat.com>
+Subject: rtc-at32ap700x: fix bug in at32_rtc_readalarm()
+From: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
 
-Fix typo in del_page_from_active_file_list().  This typo resulted not
-only in wrong statistics, but also in messed up pageout balancing and
-wasted CPU time in pageout scanning.
+alarm->pending indicates whether there's an alarm that has actually been
+triggered, not whether we're waiting for it.  alarm->enabled indicates
+that.
 
-Signed-off-by: Rik van Riel <riel@redhat.com>
+Also add missing locking around reading the RTC registers.
+
+Signed-off-by: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
+Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Hans-Christian Egtvedt <hans-christian.egtvedt@atmel.com>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_inline.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/rtc-at32ap700x.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/mm_inline.h~vmscan-split-lru-lists-into-anon-file-sets-fix include/linux/mm_inline.h
---- a/include/linux/mm_inline.h~vmscan-split-lru-lists-into-anon-file-sets-fix
-+++ a/include/linux/mm_inline.h
-@@ -80,7 +80,7 @@ del_page_from_inactive_file_list(struct 
- static inline void
- del_page_from_active_file_list(struct zone *zone, struct page *page)
+diff -puN drivers/rtc/rtc-at32ap700x.c~rtc-at32ap700x-fix-bug-in-at32_rtc_readalarm drivers/rtc/rtc-at32ap700x.c
+--- a/drivers/rtc/rtc-at32ap700x.c~rtc-at32ap700x-fix-bug-in-at32_rtc_readalarm
++++ a/drivers/rtc/rtc-at32ap700x.c
+@@ -94,8 +94,11 @@ static int at32_rtc_readalarm(struct dev
  {
--	del_page_from_lru_list(zone, page, LRU_INACTIVE_FILE);
-+	del_page_from_lru_list(zone, page, LRU_ACTIVE_FILE);
- }
+ 	struct rtc_at32ap700x *rtc = dev_get_drvdata(dev);
  
- static inline void
++	spin_lock_irq(&rtc->lock);
+ 	rtc_time_to_tm(rtc->alarm_time, &alrm->time);
+-	alrm->pending = rtc_readl(rtc, IMR) & RTC_BIT(IMR_TOPI) ? 1 : 0;
++	alrm->enabled = rtc_readl(rtc, IMR) & RTC_BIT(IMR_TOPI) ? 1 : 0;
++	alrm->pending = rtc_readl(rtc, ISR) & RTC_BIT(ISR_TOPI) ? 1 : 0;
++	spin_unlock_irq(&rtc->lock);
+ 
+ 	return 0;
+ }
+@@ -119,7 +122,7 @@ static int at32_rtc_setalarm(struct devi
+ 	spin_lock_irq(&rtc->lock);
+ 	rtc->alarm_time = alarm_unix_time;
+ 	rtc_writel(rtc, TOP, rtc->alarm_time);
+-	if (alrm->pending)
++	if (alrm->enabled)
+ 		rtc_writel(rtc, CTRL, rtc_readl(rtc, CTRL)
+ 				| RTC_BIT(CTRL_TOPEN));
+ 	else
 _
 
-Patches currently in -mm which might be from riel@redhat.com are
+Patches currently in -mm which might be from haavard.skinnemoen@atmel.com are
 
-ntp-let-update_persistent_clock-sleep.patch
-access_process_vm-device-memory-infrastructure.patch
-access_process_vm-device-memory-infrastructure-fix.patch
-use-generic_access_phys-for-dev-mem-mappings.patch
-use-generic_access_phys-for-dev-mem-mappings-fix.patch
-use-generic_access_phys-for-pci-mmap-on-x86.patch
-powerpc-ioremap_prot.patch
-spufs-use-the-new-vm_ops-access.patch
-spufs-use-the-new-vm_ops-access-fix.patch
-page-flags-record-page-flag-overlays-explicitly.patch
-page-flags-record-page-flag-overlays-explicitly-xen.patch
-slub-record-page-flag-overlays-explicitly.patch
-slob-record-page-flag-overlays-explicitly.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-idr-change-the-idr-structure.patch
-idr-rename-some-of-the-idr-apis-internal-routines.patch
-idr-fix-a-printk-call.patch
-idr-error-checking-factorization.patch
-idr-make-idr_get_new-rcu-safe.patch
-idr-make-idr_get_new-rcu-safe-fix.patch
-idr-make-idr_find-rcu-safe.patch
-idr-make-idr_remove-rcu-safe.patch
-ipc-call-idr_find-without-locking-in-ipc_lock.patch
-ipc-get-rid-of-ipc_lock_down.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
-vmscan-use-an-indexed-array-for-lru-variables.patch
-vmscan-use-an-array-for-the-lru-pagevecs.patch
-vmscan-free-swap-space-on-swap-in-activation.patch
-vmscan-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-vmscan-split-lru-lists-into-anon-file-sets-fix.patch
-vmscan-second-chance-replacement-for-anonymous-pages.patch
-vmscan-add-some-sanity-checks-to-get_scan_ratio.patch
-vmscan-fix-pagecache-reclaim-referenced-bit-check.patch
-vmscan-add-newly-swapped-in-pages-to-the-inactive-list.patch
-vmscan-more-aggressively-use-lumpy-reclaim.patch
-vmscan-pageflag-helpers-for-configed-out-flags.patch
-vmscan-noreclaim-lru-infrastructure.patch
-vmscan-noreclaim-lru-page-statistics.patch
-vmscan-ramfs-and-ram-disk-pages-are-non-reclaimable.patch
-vmscan-shm_locked-pages-are-non-reclaimable.patch
-vmscan-mlocked-pages-are-non-reclaimable.patch
-vmscan-downgrade-mmap-sem-while-populating-mlocked-regions.patch
-vmscan-handle-mlocked-pages-during-map-remap-unmap.patch
-vmscan-mlocked-pages-statistics.patch
-vmscan-cull-non-reclaimable-pages-in-fault-path.patch
-vmscan-noreclaim-and-mlocked-pages-vm-events.patch
-mm-only-vmscan-noreclaim-lru-scan-sysctl.patch
-mm-only-vmscan-noreclaim-lru-scan-sysctl-fix.patch
-vmscan-mlocked-pages-count-attempts-to-free-mlocked-page.patch
-vmscan-noreclaim-lru-and-mlocked-pages-documentation.patch
-make-mm-rmapc-anon_vma_cachep-static.patch
+origin.patch
+rtc-at32ap700x-fix-bug-in-at32_rtc_readalarm.patch
+linux-next.patch
 
