@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch added to -mm tree
-Date: Wed, 11 Jun 2008 14:17:33 -0700
-Message-ID: <200806112117.m5BLHXJr018336@imap1.linux-foundation.org>
+Subject: + mlock-mlocked-pages-are-unevictable-fix-2.patch added to -mm tree
+Date: Wed, 11 Jun 2008 14:58:50 -0700
+Message-ID: <200806112210.m5BMAV8r020436@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55603 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41194 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752018AbYFKVSE (ORCPT
+	by vger.kernel.org with ESMTP id S1750904AbYFKWMF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Jun 2008 17:18:04 -0400
+	Wed, 11 Jun 2008 18:12:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@
 
 
 The patch titled
-     mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup
+     mlock-mlocked-pages-are-unevictable-fix-2
 has been added to the -mm tree.  Its filename is
-     mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
+     mlock-mlocked-pages-are-unevictable-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup
+Subject: mlock-mlocked-pages-are-unevictable-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Use the local
-
-Cc: Nick Piggin <npiggin@suse.de>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Rik van Riel <riel@redhat.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Nick Piggin <npiggin@suse.de>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_alloc.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/mlock.c~mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup mm/mlock.c
---- a/mm/mlock.c~mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup
-+++ a/mm/mlock.c
-@@ -273,7 +273,7 @@ static void __munlock_vma_pages_range(st
- 	};
- 
- 	VM_BUG_ON(start & ~PAGE_MASK || end & ~PAGE_MASK);
--	VM_BUG_ON((!rwsem_is_locked(&vma->vm_mm->mmap_sem)) &&
-+	VM_BUG_ON((!rwsem_is_locked(&mm->mmap_sem)) &&
- 		  (atomic_read(&mm->mm_users) != 0));
- 	VM_BUG_ON(start < vma->vm_start);
- 	VM_BUG_ON(end > vma->vm_end);
+diff -puN mm/page_alloc.c~mlock-mlocked-pages-are-unevictable-fix-2 mm/page_alloc.c
+--- a/mm/page_alloc.c~mlock-mlocked-pages-are-unevictable-fix-2
++++ a/mm/page_alloc.c
+@@ -481,7 +481,9 @@ static inline int free_pages_check(struc
+ #ifdef CONFIG_UNEVICTABLE_LRU
+ 			1 << PG_unevictable |
+ #endif
++#ifdef CONFIG_UNEVICTABLE_LRU
+ 			1 << PG_mlocked |
++#endif
+ 			1 << PG_buddy ))))
+ 		bad_page(page);
+ 	if (PageDirty(page))
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -187,6 +186,7 @@ x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
 x86-lockless-get_user_pages_fast-fix-warning.patch
 mlock-mlocked-pages-are-unevictable-fix.patch
 mlock-mlocked-pages-are-unevictable-fix-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-2.patch
 mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
 reiser4.patch
 reiser4-tree_lock-fixes.patch
