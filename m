@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mlock-mlocked-pages-are-unevictable-fix-2.patch added to -mm tree
-Date: Wed, 11 Jun 2008 14:58:50 -0700
-Message-ID: <200806112210.m5BMAV8r020436@imap1.linux-foundation.org>
+Subject: + vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch added to -mm tree
+Date: Wed, 11 Jun 2008 16:18:48 -0700
+Message-ID: <200806112330.m5BNUTkS023345@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41194 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53168 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750904AbYFKWMF (ORCPT
+	by vger.kernel.org with ESMTP id S1751236AbYFKXbB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Jun 2008 18:12:05 -0400
+	Wed, 11 Jun 2008 19:31:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, npiggin@suse.de, riel@redhat.com
+Cc: akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, riel@redhat.com
 
 
 The patch titled
-     mlock-mlocked-pages-are-unevictable-fix-2
+     vmscan-unevictable-lru-scan-sysctl-nommu-fix
 has been added to the -mm tree.  Its filename is
-     mlock-mlocked-pages-are-unevictable-fix-2.patch
+     vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mlock-mlocked-pages-are-unevictable-fix-2
+Subject: vmscan-unevictable-lru-scan-sysctl-nommu-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Fix one CONFIG_MMU=n build error.
+
+More remain:
+
+mm/built-in.o(.text+0x1bb28): In function `truncate_complete_page':
+: undefined reference to `__clear_page_mlock'
+mm/built-in.o(.text+0x1ca40): In function `__invalidate_mapping_pages':
+: undefined reference to `__clear_page_mlock'
+mm/built-in.o(.text+0x1d24c): In function `invalidate_inode_pages2_range':
+: undefined reference to `__clear_page_mlock'
+
 Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Nick Piggin <npiggin@suse.de>
 Cc: Rik van Riel <riel@redhat.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/vmscan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mlock-mlocked-pages-are-unevictable-fix-2 mm/page_alloc.c
---- a/mm/page_alloc.c~mlock-mlocked-pages-are-unevictable-fix-2
-+++ a/mm/page_alloc.c
-@@ -481,7 +481,9 @@ static inline int free_pages_check(struc
- #ifdef CONFIG_UNEVICTABLE_LRU
- 			1 << PG_unevictable |
- #endif
-+#ifdef CONFIG_UNEVICTABLE_LRU
- 			1 << PG_mlocked |
-+#endif
- 			1 << PG_buddy ))))
- 		bad_page(page);
- 	if (PageDirty(page))
+diff -puN mm/vmscan.c~vmscan-unevictable-lru-scan-sysctl-nommu-fix mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-unevictable-lru-scan-sysctl-nommu-fix
++++ a/mm/vmscan.c
+@@ -2411,7 +2411,7 @@ static void show_page_path(struct page *
+ 		       dentry_path(dentry, buf, 256), pgoff);
+ 		spin_unlock(&mapping->i_mmap_lock);
+ 	} else {
+-#ifdef CONFIG_MM_OWNER
++#if defined(CONFIG_MM_OWNER) && defined(CONFIG_MMU)
+ 		struct anon_vma *anon_vma;
+ 		struct vm_area_struct *vma;
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -188,6 +197,7 @@ mlock-mlocked-pages-are-unevictable-fix.patch
 mlock-mlocked-pages-are-unevictable-fix-fix.patch
 mlock-mlocked-pages-are-unevictable-fix-2.patch
 mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
+vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
 reiser4.patch
 reiser4-tree_lock-fixes.patch
 reiser4-tree_lock-fixes-fix.patch
