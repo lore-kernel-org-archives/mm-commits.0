@@ -1,138 +1,185 @@
 From: akpm@linux-foundation.org
-Subject: - vmscan-more-aggressively-use-lumpy-reclaim.patch removed from -mm tree
-Date: Wed, 11 Jun 2008 12:46:17 -0700
-Message-ID: <200806111946.m5BJkHQu014571@imap1.linux-foundation.org>
+Subject: - vmscan-noreclaim-lru-page-statistics.patch removed from -mm tree
+Date: Wed, 11 Jun 2008 12:46:24 -0700
+Message-ID: <200806111946.m5BJkOi6014580@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48430 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60651 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752077AbYFKTqg (ORCPT
+	by vger.kernel.org with ESMTP id S1753358AbYFKTqz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Jun 2008 15:46:36 -0400
+	Wed, 11 Jun 2008 15:46:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: riel@redhat.com, mm-commits@vger.kernel.org
+To: Lee.Schermerhorn@hp.com, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vmscan: more aggressively use lumpy reclaim
+     vmscan: Noreclaim LRU Page Statistics
 has been removed from the -mm tree.  Its filename was
-     vmscan-more-aggressively-use-lumpy-reclaim.patch
+     vmscan-noreclaim-lru-page-statistics.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: more aggressively use lumpy reclaim
-From: Rik van Riel <riel@redhat.com>
+Subject: vmscan: Noreclaim LRU Page Statistics
+From: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
 
-During an AIM7 run on a 16GB system, fork started failing around 32000
-threads, despite the system having plenty of free swap and 15GB of
-pageable memory.
+Report non-reclaimable pages per zone and system wide.
 
-If normal pageout does not result in contiguous free pages for kernel
-stacks, fall back to lumpy reclaim instead of failing fork or doing
-excessive pageout IO.
+Kosaki Motohiro added support for memory controller noreclaim statistics.
 
-I do not know whether this change is needed due to the extreme stress test
-or because the inactive list is a smaller fraction of system memory on
-huge systems.
-
+Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Signed-off-by: Rik van Riel <riel@redhat.com>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   20 ++++++++++++++++----
- 1 file changed, 16 insertions(+), 4 deletions(-)
+ drivers/base/node.c |    6 ++++++
+ fs/proc/proc_misc.c |    6 ++++++
+ mm/memcontrol.c     |    6 ++++++
+ mm/page_alloc.c     |   16 +++++++++++++++-
+ mm/vmstat.c         |    3 +++
+ 5 files changed, 36 insertions(+), 1 deletion(-)
 
-diff -puN mm/vmscan.c~vmscan-more-aggressively-use-lumpy-reclaim mm/vmscan.c
---- a/mm/vmscan.c~vmscan-more-aggressively-use-lumpy-reclaim
-+++ a/mm/vmscan.c
-@@ -883,7 +883,8 @@ int isolate_lru_page(struct page *page)
-  * of reclaimed pages
-  */
- static unsigned long shrink_inactive_list(unsigned long max_scan,
--			struct zone *zone, struct scan_control *sc, int file)
-+			struct zone *zone, struct scan_control *sc,
-+			int priority, int file)
- {
- 	LIST_HEAD(page_list);
- 	struct pagevec pvec;
-@@ -901,8 +902,19 @@ static unsigned long shrink_inactive_lis
- 		unsigned long nr_freed;
- 		unsigned long nr_active;
- 		unsigned int count[NR_LRU_LISTS] = { 0, };
--		int mode = (sc->order > PAGE_ALLOC_COSTLY_ORDER) ?
--					ISOLATE_BOTH : ISOLATE_INACTIVE;
-+		int mode = ISOLATE_INACTIVE;
+diff -puN drivers/base/node.c~vmscan-noreclaim-lru-page-statistics drivers/base/node.c
+--- a/drivers/base/node.c~vmscan-noreclaim-lru-page-statistics
++++ a/drivers/base/node.c
+@@ -67,6 +67,9 @@ static ssize_t node_read_meminfo(struct 
+ 		       "Node %d Inactive(anon): %8lu kB\n"
+ 		       "Node %d Active(file):   %8lu kB\n"
+ 		       "Node %d Inactive(file): %8lu kB\n"
++#ifdef CONFIG_NORECLAIM_LRU
++		       "Node %d Noreclaim:      %8lu kB\n"
++#endif
+ #ifdef CONFIG_HIGHMEM
+ 		       "Node %d HighTotal:      %8lu kB\n"
+ 		       "Node %d HighFree:       %8lu kB\n"
+@@ -96,6 +99,9 @@ static ssize_t node_read_meminfo(struct 
+ 		       nid, node_page_state(nid, NR_INACTIVE_ANON),
+ 		       nid, node_page_state(nid, NR_ACTIVE_FILE),
+ 		       nid, node_page_state(nid, NR_INACTIVE_FILE),
++#ifdef CONFIG_NORECLAIM_LRU
++		       nid, node_page_state(nid, NR_NORECLAIM),
++#endif
+ #ifdef CONFIG_HIGHMEM
+ 		       nid, K(i.totalhigh),
+ 		       nid, K(i.freehigh),
+diff -puN fs/proc/proc_misc.c~vmscan-noreclaim-lru-page-statistics fs/proc/proc_misc.c
+--- a/fs/proc/proc_misc.c~vmscan-noreclaim-lru-page-statistics
++++ a/fs/proc/proc_misc.c
+@@ -179,6 +179,9 @@ static int meminfo_read_proc(char *page,
+ 		"Inactive(anon): %8lu kB\n"
+ 		"Active(file):   %8lu kB\n"
+ 		"Inactive(file): %8lu kB\n"
++#ifdef CONFIG_NORECLAIM_LRU
++		"Noreclaim:      %8lu kB\n"
++#endif
+ #ifdef CONFIG_HIGHMEM
+ 		"HighTotal:      %8lu kB\n"
+ 		"HighFree:       %8lu kB\n"
+@@ -214,6 +217,9 @@ static int meminfo_read_proc(char *page,
+ 		K(inactive_anon),
+ 		K(active_file),
+ 		K(inactive_file),
++#ifdef CONFIG_NORECLAIM_LRU
++		K(global_page_state(NR_NORECLAIM)),
++#endif
+ #ifdef CONFIG_HIGHMEM
+ 		K(i.totalhigh),
+ 		K(i.freehigh),
+diff -puN mm/memcontrol.c~vmscan-noreclaim-lru-page-statistics mm/memcontrol.c
+--- a/mm/memcontrol.c~vmscan-noreclaim-lru-page-statistics
++++ a/mm/memcontrol.c
+@@ -930,6 +930,7 @@ static int mem_control_stat_show(struct 
+ 	{
+ 		unsigned long active_anon, inactive_anon;
+ 		unsigned long active_file, inactive_file;
++		unsigned long noreclaim;
+ 
+ 		inactive_anon = mem_cgroup_get_all_zonestat(mem_cont,
+ 						LRU_INACTIVE_ANON);
+@@ -939,10 +940,15 @@ static int mem_control_stat_show(struct 
+ 						LRU_INACTIVE_FILE);
+ 		active_file = mem_cgroup_get_all_zonestat(mem_cont,
+ 						LRU_ACTIVE_FILE);
++		noreclaim = mem_cgroup_get_all_zonestat(mem_cont,
++							LRU_NORECLAIM);
 +
-+		/*
-+		 * If we need a large contiguous chunk of memory, or have
-+		 * trouble getting a small set of contiguous pages, we
-+		 * will reclaim both active and inactive pages.
-+		 *
-+		 * We use the same threshold as pageout congestion_wait below.
-+		 */
-+		if (sc->order > PAGE_ALLOC_COSTLY_ORDER)
-+			mode = ISOLATE_BOTH;
-+		else if (sc->order && priority < DEF_PRIORITY - 2)
-+			mode = ISOLATE_BOTH;
- 
- 		nr_taken = sc->isolate_pages(sc->swap_cluster_max,
- 			     &page_list, &nr_scan, sc->order, mode,
-@@ -1197,7 +1209,7 @@ static unsigned long shrink_list(enum lr
- 		shrink_active_list(nr_to_scan, zone, sc, priority, file);
- 		return 0;
+ 		cb->fill(cb, "active_anon", (active_anon) * PAGE_SIZE);
+ 		cb->fill(cb, "inactive_anon", (inactive_anon) * PAGE_SIZE);
+ 		cb->fill(cb, "active_file", (active_file) * PAGE_SIZE);
+ 		cb->fill(cb, "inactive_file", (inactive_file) * PAGE_SIZE);
++		cb->fill(cb, "noreclaim", noreclaim * PAGE_SIZE);
++
  	}
--	return shrink_inactive_list(nr_to_scan, zone, sc, file);
-+	return shrink_inactive_list(nr_to_scan, zone, sc, priority, file);
+ 	return 0;
  }
+diff -puN mm/page_alloc.c~vmscan-noreclaim-lru-page-statistics mm/page_alloc.c
+--- a/mm/page_alloc.c~vmscan-noreclaim-lru-page-statistics
++++ a/mm/page_alloc.c
+@@ -1844,12 +1844,20 @@ void show_free_areas(void)
+ 	}
  
- /*
+ 	printk("Active_anon:%lu active_file:%lu inactive_anon%lu\n"
+-		" inactive_file:%lu dirty:%lu writeback:%lu unstable:%lu\n"
++		" inactive_file:%lu"
++//TODO:  check/adjust line lengths
++#ifdef CONFIG_NORECLAIM_LRU
++		" noreclaim:%lu"
++#endif
++		" dirty:%lu writeback:%lu unstable:%lu\n"
+ 		" free:%lu slab:%lu mapped:%lu pagetables:%lu bounce:%lu\n",
+ 		global_page_state(NR_ACTIVE_ANON),
+ 		global_page_state(NR_ACTIVE_FILE),
+ 		global_page_state(NR_INACTIVE_ANON),
+ 		global_page_state(NR_INACTIVE_FILE),
++#ifdef CONFIG_NORECLAIM_LRU
++		global_page_state(NR_NORECLAIM),
++#endif
+ 		global_page_state(NR_FILE_DIRTY),
+ 		global_page_state(NR_WRITEBACK),
+ 		global_page_state(NR_UNSTABLE_NFS),
+@@ -1876,6 +1884,9 @@ void show_free_areas(void)
+ 			" inactive_anon:%lukB"
+ 			" active_file:%lukB"
+ 			" inactive_file:%lukB"
++#ifdef CONFIG_NORECLAIM_LRU
++			" noreclaim:%lukB"
++#endif
+ 			" present:%lukB"
+ 			" pages_scanned:%lu"
+ 			" all_unreclaimable? %s"
+@@ -1889,6 +1900,9 @@ void show_free_areas(void)
+ 			K(zone_page_state(zone, NR_INACTIVE_ANON)),
+ 			K(zone_page_state(zone, NR_ACTIVE_FILE)),
+ 			K(zone_page_state(zone, NR_INACTIVE_FILE)),
++#ifdef CONFIG_NORECLAIM_LRU
++			K(zone_page_state(zone, NR_NORECLAIM)),
++#endif
+ 			K(zone->present_pages),
+ 			zone->pages_scanned,
+ 			(zone_is_all_unreclaimable(zone) ? "yes" : "no")
+diff -puN mm/vmstat.c~vmscan-noreclaim-lru-page-statistics mm/vmstat.c
+--- a/mm/vmstat.c~vmscan-noreclaim-lru-page-statistics
++++ a/mm/vmstat.c
+@@ -606,6 +606,9 @@ static const char * const vmstat_text[] 
+ 	"nr_active_anon",
+ 	"nr_inactive_file",
+ 	"nr_active_file",
++#ifdef CONFIG_NORECLAIM_LRU
++	"nr_noreclaim",
++#endif
+ 	"nr_anon_pages",
+ 	"nr_mapped",
+ 	"nr_file_pages",
 _
 
-Patches currently in -mm which might be from riel@redhat.com are
+Patches currently in -mm which might be from Lee.Schermerhorn@hp.com are
 
-ntp-let-update_persistent_clock-sleep.patch
-access_process_vm-device-memory-infrastructure.patch
-access_process_vm-device-memory-infrastructure-fix.patch
-use-generic_access_phys-for-dev-mem-mappings.patch
-use-generic_access_phys-for-dev-mem-mappings-fix.patch
-use-generic_access_phys-for-pci-mmap-on-x86.patch
-powerpc-ioremap_prot.patch
-spufs-use-the-new-vm_ops-access.patch
-spufs-use-the-new-vm_ops-access-fix.patch
-page-flags-record-page-flag-overlays-explicitly.patch
-page-flags-record-page-flag-overlays-explicitly-xen.patch
-slub-record-page-flag-overlays-explicitly.patch
-slob-record-page-flag-overlays-explicitly.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-idr-change-the-idr-structure.patch
-idr-rename-some-of-the-idr-apis-internal-routines.patch
-idr-fix-a-printk-call.patch
-idr-error-checking-factorization.patch
-idr-make-idr_get_new-rcu-safe.patch
-idr-make-idr_get_new-rcu-safe-fix.patch
-idr-make-idr_find-rcu-safe.patch
-idr-make-idr_remove-rcu-safe.patch
-ipc-call-idr_find-without-locking-in-ipc_lock.patch
-ipc-get-rid-of-ipc_lock_down.patch
-vmscan-more-aggressively-use-lumpy-reclaim.patch
-vmscan-pageflag-helpers-for-configed-out-flags.patch
-vmscan-noreclaim-lru-infrastructure.patch
 vmscan-noreclaim-lru-page-statistics.patch
 vmscan-ramfs-and-ram-disk-pages-are-non-reclaimable.patch
 vmscan-shm_locked-pages-are-non-reclaimable.patch
-vmscan-mlocked-pages-are-non-reclaimable.patch
-vmscan-downgrade-mmap-sem-while-populating-mlocked-regions.patch
-vmscan-handle-mlocked-pages-during-map-remap-unmap.patch
-vmscan-mlocked-pages-statistics.patch
-vmscan-cull-non-reclaimable-pages-in-fault-path.patch
-vmscan-noreclaim-and-mlocked-pages-vm-events.patch
-mm-only-vmscan-noreclaim-lru-scan-sysctl.patch
-mm-only-vmscan-noreclaim-lru-scan-sysctl-fix.patch
-vmscan-mlocked-pages-count-attempts-to-free-mlocked-page.patch
-vmscan-noreclaim-lru-and-mlocked-pages-documentation.patch
-make-mm-rmapc-anon_vma_cachep-static.patch
 
