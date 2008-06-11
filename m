@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mlock-mlocked-pages-are-unevictable-fix-fix.patch added to -mm tree
-Date: Wed, 11 Jun 2008 14:15:23 -0700
-Message-ID: <200806112115.m5BLFNdo018298@imap1.linux-foundation.org>
+Subject: + mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch added to -mm tree
+Date: Wed, 11 Jun 2008 14:17:33 -0700
+Message-ID: <200806112117.m5BLHXJr018336@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53423 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55603 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751854AbYFKVRT (ORCPT
+	by vger.kernel.org with ESMTP id S1752018AbYFKVSE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Jun 2008 17:17:19 -0400
+	Wed, 11 Jun 2008 17:18:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dave@linux.vnet.ibm.com, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, mpm@selenic.com, npiggin@suse.de, riel@redhat.com
+Cc: akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, npiggin@suse.de, riel@redhat.com
 
 
 The patch titled
-     mlock-mlocked-pages-are-unevictable-fix-fix
+     mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup
 has been added to the -mm tree.  Its filename is
-     mlock-mlocked-pages-are-unevictable-fix-fix.patch
+     mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mlock-mlocked-pages-are-unevictable-fix-fix
+Subject: mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-put this back - we'll use it later.
+Use the local
 
-Cc: Dave Hansen <dave@linux.vnet.ibm.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Matt Mackall <mpm@selenic.com>
 Cc: Nick Piggin <npiggin@suse.de>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Cc: Rik van Riel <riel@redhat.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/mlock.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/mlock.c~mlock-mlocked-pages-are-unevictable-fix-fix mm/mlock.c
---- a/mm/mlock.c~mlock-mlocked-pages-are-unevictable-fix-fix
+diff -puN mm/mlock.c~mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup mm/mlock.c
+--- a/mm/mlock.c~mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup
 +++ a/mm/mlock.c
-@@ -262,6 +262,7 @@ static int __munlock_pmd_handler(pmd_t *
- static void __munlock_vma_pages_range(struct vm_area_struct *vma,
- 			      unsigned long start, unsigned long end)
- {
-+	struct mm_struct *mm = vma->vm_mm;
- 	struct munlock_page_walk mpw = {
- 		.vma = vma,
+@@ -273,7 +273,7 @@ static void __munlock_vma_pages_range(st
  	};
+ 
+ 	VM_BUG_ON(start & ~PAGE_MASK || end & ~PAGE_MASK);
+-	VM_BUG_ON((!rwsem_is_locked(&vma->vm_mm->mmap_sem)) &&
++	VM_BUG_ON((!rwsem_is_locked(&mm->mmap_sem)) &&
+ 		  (atomic_read(&mm->mm_users) != 0));
+ 	VM_BUG_ON(start < vma->vm_start);
+ 	VM_BUG_ON(end > vma->vm_end);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -188,6 +187,7 @@ x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
 x86-lockless-get_user_pages_fast-fix-warning.patch
 mlock-mlocked-pages-are-unevictable-fix.patch
 mlock-mlocked-pages-are-unevictable-fix-fix.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
 reiser4.patch
 reiser4-tree_lock-fixes.patch
 reiser4-tree_lock-fixes-fix.patch
