@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + driver-char-generic_nvram-fix-banner.patch added to -mm tree
-Date: Tue, 10 Jun 2008 16:34:59 -0700
-Message-ID: <200806102334.m5ANYxO2002778@imap1.linux-foundation.org>
+Subject: + add-a-helper-function-to-test-if-an-object-is-on-the-stack.patch added to -mm tree
+Date: Tue, 10 Jun 2008 22:51:51 -0700
+Message-ID: <200806110551.m5B5pp7E015691@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44874 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60226 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753201AbYFJXfI (ORCPT
+	by vger.kernel.org with ESMTP id S1752019AbYFKFwZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Jun 2008 19:35:08 -0400
+	Wed, 11 Jun 2008 01:52:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: phdm@macqel.be, arjan@linux.intel.com, benh@kernel.crashing.org, paulus@samba.org
+Cc: fujita.tomonori@lab.ntt.co.jp, apw@shadowen.org, clameter@sgi.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     driver/char/generic_nvram: fix banner
+     add a helper function to test if an object is on the stack
 has been added to the -mm tree.  Its filename is
-     driver-char-generic_nvram-fix-banner.patch
+     add-a-helper-function-to-test-if-an-object-is-on-the-stack.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,85 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: driver/char/generic_nvram: fix banner
-From: Philippe De Muyter <phdm@macqel.be>
+Subject: add a helper function to test if an object is on the stack
+From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 
-The generic nvram driver announces itself as
-	'Macintosh non-volatile memory driver'
-instead of 'Generic non-volatile memory driver'.  Fix that.
+lib/debugobjects.c has a function to test if an object is on the stack. 
+The block layer and ide needs it (they need to avoid DMA from/to stack
+buffers).  This patch moves the function to include/linux/sched.h so that
+everyone can use it.
 
-Signed-off-by: Philippe De Muyter <phdm@macqel.be>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Arjan van de Ven <arjan@linux.intel.com>
-Cc: Paul Mackerras <paulus@samba.org>
+lib/debugobjects.c uses current->stack but this patch uses a
+task_stack_page() accessor, which is a preferable way to access the stack.
+
+Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/generic_nvram.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/sched.h |    7 +++++++
+ lib/debugobjects.c    |    4 +---
+ 2 files changed, 8 insertions(+), 3 deletions(-)
 
-diff -puN drivers/char/generic_nvram.c~driver-char-generic_nvram-fix-banner drivers/char/generic_nvram.c
---- a/drivers/char/generic_nvram.c~driver-char-generic_nvram-fix-banner
-+++ a/drivers/char/generic_nvram.c
-@@ -133,7 +133,7 @@ static struct miscdevice nvram_dev = {
+diff -puN include/linux/sched.h~add-a-helper-function-to-test-if-an-object-is-on-the-stack include/linux/sched.h
+--- a/include/linux/sched.h~add-a-helper-function-to-test-if-an-object-is-on-the-stack
++++ a/include/linux/sched.h
+@@ -1970,6 +1970,13 @@ static inline unsigned long *end_of_stac
  
- int __init nvram_init(void)
+ #endif
+ 
++static inline int object_is_on_stack(void *obj)
++{
++	void *stack = task_stack_page(current);
++
++	return (obj >= stack) && (obj < (stack + THREAD_SIZE));
++}
++
+ extern void thread_info_cache_init(void);
+ 
+ #ifdef CONFIG_DEBUG_STACK_USAGE
+diff -puN lib/debugobjects.c~add-a-helper-function-to-test-if-an-object-is-on-the-stack lib/debugobjects.c
+--- a/lib/debugobjects.c~add-a-helper-function-to-test-if-an-object-is-on-the-stack
++++ a/lib/debugobjects.c
+@@ -231,15 +231,13 @@ debug_object_fixup(int (*fixup)(void *ad
+ 
+ static void debug_object_is_on_stack(void *addr, int onstack)
  {
--	printk(KERN_INFO "Macintosh non-volatile memory driver v%s\n",
-+	printk(KERN_INFO "Generic non-volatile memory driver v%s\n",
- 		NVRAM_VERSION);
- 	return misc_register(&nvram_dev);
- }
+-	void *stack = current->stack;
+ 	int is_on_stack;
+ 	static int limit;
+ 
+ 	if (limit > 4)
+ 		return;
+ 
+-	is_on_stack = (addr >= stack && addr < (stack + THREAD_SIZE));
+-
++	is_on_stack = object_is_on_stack(addr);
+ 	if (is_on_stack == onstack)
+ 		return;
+ 
 _
 
-Patches currently in -mm which might be from phdm@macqel.be are
+Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
 
-driver-video-cirrusfb-fix-ram-address-printk.patch
-driver-video-cirrusfb-fix-ram-address-printk-fix.patch
-m68knommu-init-coldfire-timer-trr-with-n-1-not-n.patch
-driver-char-generic_nvram-fix-banner.patch
+linux-next.patch
+block-add-blk_queue_update_dma_pad.patch
+ide-use-the-dma-safe-check-for-req_type_ata_pc.patch
+block-blk_rq_map_kern-uses-the-bounce-buffers-for-stack-buffers.patch
+ide-avoid-dma-on-the-stack-for-req_type_ata_pc.patch
+scsi-sr-avoids-useless-buffer-allocation.patch
+cdrom-revert-commit-22a9189-cdrom-use-kmalloced-buffers-instead-of-buffers-on-stack.patch
+add-a-helper-function-to-test-if-an-object-is-on-the-stack.patch
+clean-up-duplicated-alloc-free_thread_info.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-b34-fix.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
 
