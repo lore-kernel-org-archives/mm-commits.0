@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + swap-cull-unevictable-pages-in-fault-path.patch added to -mm tree
-Date: Wed, 11 Jun 2008 13:00:08 -0700
-Message-ID: <200806112000.m5BK08mb015258@imap1.linux-foundation.org>
+Subject: + vmstat-unevictable-and-mlocked-pages-vm-events.patch added to -mm tree
+Date: Wed, 11 Jun 2008 13:00:10 -0700
+Message-ID: <200806112000.m5BK0AA6015261@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47291 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40937 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756713AbYFKUAa (ORCPT
+	by vger.kernel.org with ESMTP id S1757217AbYFKUAf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Jun 2008 16:00:30 -0400
+	Wed, 11 Jun 2008 16:00:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lee.schermerhorn@hp.com, riel@redhat.com
+Cc: lee.schermerhorn@hp.com, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com
 
 
 The patch titled
-     swap: cull unevictable pages in fault path
+     vmstat: unevictable and mlocked pages vm events
 has been added to the -mm tree.  Its filename is
-     swap-cull-unevictable-pages-in-fault-path.patch
+     vmstat-unevictable-and-mlocked-pages-vm-events.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,158 +34,225 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: swap: cull unevictable pages in fault path
+Subject: vmstat: unevictable and mlocked pages vm events
 From: Lee Schermerhorn <lee.schermerhorn@hp.com>
 
-In the fault paths that install new anonymous pages, check whether the
-page is evictable or not using lru_cache_add_active_or_unevictable().  If
-the page is evictable, just add it to the active lru list [via the pagevec
-cache], else add it to the unevictable list.
+Add some event counters to vmstats for testing unevictable/mlock.  Some of
+these might be interesting enough to keep around.
 
-This "proactive" culling in the fault path mimics the handling of mlocked
-pages in Nick Piggin's series to keep mlocked pages off the lru lists.
-
-Notes:
-
-1) This patch is optional--e.g., if one is concerned about the
-   additional test in the fault path.  We can defer the moving of
-   nonreclaimable pages until when vmscan [shrink_*_list()]
-   encounters them.  Vmscan will only need to handle such pages
-   once, but if there are a lot of them it could impact system
-   performance.
-
-2) The 'vma' argument to page_evictable() is require to notice that
-   we're faulting a page into an mlock()ed vma w/o having to scan the
-   page's rmap in the fault path.   Culling mlock()ed anon pages is
-   currently the only reason for this patch.
-
-3) We can't cull swap pages in read_swap_cache_async() because the
-   vma argument doesn't necessarily correspond to the swap cache
-   offset passed in by swapin_readahead().  This could [did!] result
-   in mlocking pages in non-VM_LOCKED vmas if [when] we tried to
-   cull in this path.
-
-4) Move set_pte_at() to after where we add page to lru to keep it
-   hidden from other tasks that might walk the page table.
-   We already do it in this order in do_anonymous() page.  And,
-   these are COW'd anon pages.  Is this safe?
-
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Signed-off-by: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    2 ++
- mm/memory.c          |   20 ++++++++++++--------
- mm/swap.c            |   21 +++++++++++++++++++++
- 3 files changed, 35 insertions(+), 8 deletions(-)
+ include/linux/vmstat.h |    9 +++++++++
+ mm/internal.h          |    4 +++-
+ mm/mlock.c             |   33 +++++++++++++++++++++++++--------
+ mm/vmscan.c            |   16 +++++++++++++++-
+ mm/vmstat.c            |   10 ++++++++++
+ 5 files changed, 62 insertions(+), 10 deletions(-)
 
-diff -puN include/linux/swap.h~swap-cull-unevictable-pages-in-fault-path include/linux/swap.h
---- a/include/linux/swap.h~swap-cull-unevictable-pages-in-fault-path
-+++ a/include/linux/swap.h
-@@ -173,6 +173,8 @@ extern unsigned int nr_free_pagecache_pa
- /* linux/mm/swap.c */
- extern void __lru_cache_add(struct page *, enum lru_list lru);
- extern void lru_cache_add_lru(struct page *, enum lru_list lru);
-+extern void lru_cache_add_active_or_unevictable(struct page *,
-+					struct vm_area_struct *);
- extern void activate_page(struct page *);
- extern void mark_page_accessed(struct page *);
- extern void lru_add_drain(void);
-diff -puN mm/memory.c~swap-cull-unevictable-pages-in-fault-path mm/memory.c
---- a/mm/memory.c~swap-cull-unevictable-pages-in-fault-path
-+++ a/mm/memory.c
-@@ -1813,12 +1813,15 @@ gotten:
- 		 * thread doing COW.
- 		 */
- 		ptep_clear_flush(vma, address, page_table);
--		set_pte_at(mm, address, page_table, entry);
--		update_mmu_cache(vma, address, entry);
-+
- 		SetPageSwapBacked(new_page);
--		lru_cache_add_active_anon(new_page);
-+		lru_cache_add_active_or_unevictable(new_page, vma);
- 		page_add_new_anon_rmap(new_page, vma, address);
+diff -puN include/linux/vmstat.h~vmstat-unevictable-and-mlocked-pages-vm-events include/linux/vmstat.h
+--- a/include/linux/vmstat.h~vmstat-unevictable-and-mlocked-pages-vm-events
++++ a/include/linux/vmstat.h
+@@ -41,6 +41,15 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
+ #ifdef CONFIG_HUGETLB_PAGE
+ 		HTLB_BUDDY_PGALLOC, HTLB_BUDDY_PGALLOC_FAIL,
+ #endif
++#ifdef CONFIG_UNEVICTABLE_LRU
++		NORECL_PGCULLED,	/* culled to noreclaim list */
++		NORECL_PGSCANNED,	/* scanned for reclaimability */
++		NORECL_PGRESCUED,	/* rescued from noreclaim list */
++		NORECL_PGMLOCKED,
++		NORECL_PGMUNLOCKED,
++		NORECL_PGCLEARED,
++		NORECL_PGSTRANDED,	/* unable to isolate on unlock */
++#endif
+ 		NR_VM_EVENT_ITEMS
+ };
  
-+//TODO:  is this safe?  do_anonymous_page() does it this way.
-+		set_pte_at(mm, address, page_table, entry);
-+		update_mmu_cache(vma, address, entry);
-+
- 		/* Free the old page.. */
- 		new_page = old_page;
- 		ret |= VM_FAULT_WRITE;
-@@ -2285,7 +2288,7 @@ static int do_anonymous_page(struct mm_s
- 		goto release;
- 	inc_mm_counter(mm, anon_rss);
- 	SetPageSwapBacked(page);
--	lru_cache_add_active_anon(page);
-+	lru_cache_add_active_or_unevictable(page, vma);
- 	page_add_new_anon_rmap(page, vma, address);
- 	set_pte_at(mm, address, page_table, entry);
+diff -puN mm/internal.h~vmstat-unevictable-and-mlocked-pages-vm-events mm/internal.h
+--- a/mm/internal.h~vmstat-unevictable-and-mlocked-pages-vm-events
++++ a/mm/internal.h
+@@ -101,8 +101,10 @@ static inline int is_mlocked_vma(struct 
+ 	if (likely((vma->vm_flags & (VM_LOCKED | VM_SPECIAL)) != VM_LOCKED))
+ 		return 0;
  
-@@ -2429,12 +2432,11 @@ static int __do_fault(struct mm_struct *
- 		entry = mk_pte(page, vma->vm_page_prot);
- 		if (flags & FAULT_FLAG_WRITE)
- 			entry = maybe_mkwrite(pte_mkdirty(entry), vma);
--		set_pte_at(mm, address, page_table, entry);
- 		if (anon) {
--                        inc_mm_counter(mm, anon_rss);
-+			inc_mm_counter(mm, anon_rss);
- 			SetPageSwapBacked(page);
--                        lru_cache_add_active_anon(page);
--                        page_add_new_anon_rmap(page, vma, address);
-+			lru_cache_add_active_or_unevictable(page, vma);
-+			page_add_new_anon_rmap(page, vma, address);
- 		} else {
- 			inc_mm_counter(mm, file_rss);
- 			page_add_file_rmap(page);
-@@ -2443,6 +2445,8 @@ static int __do_fault(struct mm_struct *
- 				get_page(dirty_page);
- 			}
- 		}
-+//TODO:  is this safe?  do_anonymous_page() does it this way.
-+		set_pte_at(mm, address, page_table, entry);
- 
- 		/* no need to invalidate: a not-present page won't be cached */
- 		update_mmu_cache(vma, address, entry);
-diff -puN mm/swap.c~swap-cull-unevictable-pages-in-fault-path mm/swap.c
---- a/mm/swap.c~swap-cull-unevictable-pages-in-fault-path
-+++ a/mm/swap.c
-@@ -31,6 +31,8 @@
- #include <linux/backing-dev.h>
- #include <linux/memcontrol.h>
- 
-+#include "internal.h"
-+
- /* How many pages do we try to swap or page in/out together? */
- int page_cluster;
- 
-@@ -244,6 +246,25 @@ void add_page_to_unevictable_list(struct
- 	spin_unlock_irq(&zone->lru_lock);
+-	if (!TestSetPageMlocked(page))
++	if (!TestSetPageMlocked(page)) {
+ 		inc_zone_page_state(page, NR_MLOCK);
++		count_vm_event(NORECL_PGMLOCKED);
++	}
+ 	return 1;
  }
  
-+/**
-+ * lru_cache_add_active_or_unevictable
-+ * @page:  the page to be added to LRU
-+ * @vma:   vma in which page is mapped for determining reclaimability
-+ *
-+ * place @page on active or unevictable LRU list, depending on
-+ * page_evictable().  Note that if the page is not evictable,
-+ * it goes directly back onto it's zone's unevictable list.  It does
-+ * NOT use a per cpu pagevec.
-+ */
-+void lru_cache_add_active_or_unevictable(struct page *page,
-+					struct vm_area_struct *vma)
-+{
-+	if (page_evictable(page, vma))
-+		lru_cache_add_lru(page, page_lru(page));
-+	else
-+		add_page_to_unevictable_list(page);
-+}
+diff -puN mm/mlock.c~vmstat-unevictable-and-mlocked-pages-vm-events mm/mlock.c
+--- a/mm/mlock.c~vmstat-unevictable-and-mlocked-pages-vm-events
++++ a/mm/mlock.c
+@@ -18,6 +18,7 @@
+ #include <linux/rmap.h>
+ #include <linux/mmzone.h>
+ #include <linux/hugetlb.h>
++#include <linux/vmstat.h>
+ 
+ #include "internal.h"
+ 
+@@ -57,6 +58,7 @@ void __clear_page_mlock(struct page *pag
+ 	VM_BUG_ON(!PageLocked(page));	/* for LRU isolate/putback */
+ 
+ 	dec_zone_page_state(page, NR_MLOCK);
++	count_vm_event(NORECL_PGCLEARED);
+ 	if (!isolate_lru_page(page)) {
+ 		putback_lru_page(page);
+ 	} else {
+@@ -66,6 +68,8 @@ void __clear_page_mlock(struct page *pag
+ 		lru_add_drain_all();
+ 		if (!isolate_lru_page(page))
+ 			putback_lru_page(page);
++		else if (PageUnevictable(page))
++			count_vm_event(NORECL_PGSTRANDED);
+ 	}
+ }
+ 
+@@ -79,6 +83,7 @@ void mlock_vma_page(struct page *page)
+ 
+ 	if (!TestSetPageMlocked(page)) {
+ 		inc_zone_page_state(page, NR_MLOCK);
++		count_vm_event(NORECL_PGMLOCKED);
+ 		if (!isolate_lru_page(page))
+ 			putback_lru_page(page);
+ 	}
+@@ -109,16 +114,28 @@ static void munlock_vma_page(struct page
+ 	if (TestClearPageMlocked(page)) {
+ 		dec_zone_page_state(page, NR_MLOCK);
+ 		if (!isolate_lru_page(page)) {
+-			try_to_munlock(page);	/* maybe relock the page */
++			int ret = try_to_munlock(page);
++			/*
++			 * did try_to_unlock() succeed or punt?
++			 */
++			if (ret == SWAP_SUCCESS || ret == SWAP_AGAIN)
++				count_vm_event(NORECL_PGMUNLOCKED);
 +
- /*
-  * Drain pages out of the cpu's pagevecs.
-  * Either "cpu" is the current CPU, and preemption has already been
+ 			putback_lru_page(page);
++		} else {
++			/*
++			 * We lost the race.  let try_to_unmap() deal
++			 * with it.  At least we get the page state and
++			 * mlock stats right.  However, page is still on
++			 * the noreclaim list.  We'll fix that up when
++			 * the page is eventually freed or we scan the
++			 * noreclaim list.
++			 */
++			if (PageUnevictable(page))
++				count_vm_event(NORECL_PGSTRANDED);
++			else
++				count_vm_event(NORECL_PGMUNLOCKED);
+ 		}
+-		/*
+-		 * Else we lost the race.  let try_to_unmap() deal with it.
+-		 * At least we get the page state and mlock stats right.
+-		 * However, page is still on the noreclaim list.  We'll fix
+-		 * that up when the page is eventually freed or we scan the
+-		 * noreclaim list.
+-		 */
+ 	}
+ }
+ 
+diff -puN mm/vmscan.c~vmstat-unevictable-and-mlocked-pages-vm-events mm/vmscan.c
+--- a/mm/vmscan.c~vmstat-unevictable-and-mlocked-pages-vm-events
++++ a/mm/vmscan.c
+@@ -486,12 +486,13 @@ int putback_lru_page(struct page *page)
+ {
+ 	int lru;
+ 	int ret = 1;
++	int was_unevictable;
+ 
+ 	VM_BUG_ON(!PageLocked(page));
+ 	VM_BUG_ON(PageLRU(page));
+ 
+ 	lru = !!TestClearPageActive(page);
+-	ClearPageUnevictable(page);	/* for page_evictable() */
++	was_unevictable = TestClearPageUnevictable(page); /* for page_evictable() */
+ 
+ 	if (unlikely(!page->mapping)) {
+ 		/*
+@@ -511,6 +512,10 @@ int putback_lru_page(struct page *page)
+ 		lru += page_is_file_cache(page);
+ 		lru_cache_add_lru(page, lru);
+ 		mem_cgroup_move_lists(page, lru);
++#ifdef CONFIG_UNEVICTABLE_LRU
++		if (was_unevictable)
++			count_vm_event(NORECL_PGRESCUED);
++#endif
+ 	} else {
+ 		/*
+ 		 * Put unevictable pages directly on zone's unevictable
+@@ -518,6 +523,10 @@ int putback_lru_page(struct page *page)
+ 		 */
+ 		add_page_to_unevictable_list(page);
+ 		mem_cgroup_move_lists(page, LRU_UNEVICTABLE);
++#ifdef CONFIG_UNEVICTABLE_LRU
++		if (!was_unevictable)
++			count_vm_event(NORECL_PGCULLED);
++#endif
+ 	}
+ 
+ 	put_page(page);		/* drop ref from isolate */
+@@ -2407,6 +2416,7 @@ static void check_move_unevictable_page(
+ 		__dec_zone_state(zone, NR_UNEVICTABLE);
+ 		list_move(&page->lru, &zone->lru[l].list);
+ 		__inc_zone_state(zone, NR_INACTIVE_ANON + l);
++		__count_vm_event(NORECL_PGRESCUED);
+ 	} else {
+ 		/*
+ 		 * rotate unevictable list
+@@ -2438,6 +2448,7 @@ void scan_mapping_unevictable_pages(stru
+ 	while (next < end &&
+ 		pagevec_lookup(&pvec, mapping, next, PAGEVEC_SIZE)) {
+ 		int i;
++		int pg_scanned = 0;
+ 
+ 		zone = NULL;
+ 
+@@ -2446,6 +2457,7 @@ void scan_mapping_unevictable_pages(stru
+ 			pgoff_t page_index = page->index;
+ 			struct zone *pagezone = page_zone(page);
+ 
++			pg_scanned++;
+ 			if (page_index > next)
+ 				next = page_index;
+ 			next++;
+@@ -2476,6 +2488,8 @@ void scan_mapping_unevictable_pages(stru
+ 		if (zone)
+ 			spin_unlock_irq(&zone->lru_lock);
+ 		pagevec_release(&pvec);
++
++		count_vm_events(NORECL_PGSCANNED, pg_scanned);
+ 	}
+ 
+ }
+diff -puN mm/vmstat.c~vmstat-unevictable-and-mlocked-pages-vm-events mm/vmstat.c
+--- a/mm/vmstat.c~vmstat-unevictable-and-mlocked-pages-vm-events
++++ a/mm/vmstat.c
+@@ -664,6 +664,16 @@ static const char * const vmstat_text[] 
+ 	"htlb_buddy_alloc_success",
+ 	"htlb_buddy_alloc_fail",
+ #endif
++
++#ifdef CONFIG_UNEVICTABLE_LRU
++	"noreclaim_pgs_culled",
++	"noreclaim_pgs_scanned",
++	"noreclaim_pgs_rescued",
++	"noreclaim_pgs_mlocked",
++	"noreclaim_pgs_munlocked",
++	"noreclaim_pgs_cleared",
++	"noreclaim_pgs_stranded",
++#endif
+ #endif
+ };
+ 
 _
 
 Patches currently in -mm which might be from lee.schermerhorn@hp.com are
