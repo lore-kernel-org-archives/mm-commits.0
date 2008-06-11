@@ -1,285 +1,157 @@
 From: akpm@linux-foundation.org
-Subject: - vmscan-move-isolate_lru_page-to-vmscanc.patch removed from -mm tree
-Date: Wed, 11 Jun 2008 12:45:48 -0700
-Message-ID: <200806111945.m5BJjmLN014523@imap1.linux-foundation.org>
+Subject: - vmscan-ramfs-and-ram-disk-pages-are-non-reclaimable.patch removed from -mm tree
+Date: Wed, 11 Jun 2008 12:46:26 -0700
+Message-ID: <200806111946.m5BJkQhr014584@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48785 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60791 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752214AbYFKTqn (ORCPT
+	by vger.kernel.org with ESMTP id S1751440AbYFKTqy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Jun 2008 15:46:43 -0400
+	Wed, 11 Jun 2008 15:46:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, Lee.Schermerhorn@hp.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: Lee.Schermerhorn@hp.com, lee.schermerhorn@hp.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vmscan: move isolate_lru_page() to vmscan.c
+     vmscan: ramfs and ram disk pages are non-reclaimable
 has been removed from the -mm tree.  Its filename was
-     vmscan-move-isolate_lru_page-to-vmscanc.patch
+     vmscan-ramfs-and-ram-disk-pages-are-non-reclaimable.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: move isolate_lru_page() to vmscan.c
-From: Nick Piggin <npiggin@suse.de>
+Subject: vmscan: ramfs and ram disk pages are non-reclaimable
+From: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
 
-isolate_lru_page logically belongs to be in vmscan.c than migrate.c.
+Christoph Lameter pointed out that ram disk pages also clutter the LRU
+lists.  When vmscan finds them dirty and tries to clean them, the ram disk
+writeback function just redirties the page so that it goes back onto the
+active list.  Round and round she goes...
 
-It is tough, because we don't need that function without memory migration
-so there is a valid argument to have it in migrate.c.  However a
-subsequent patch needs to make use of it in the core mm, so we can happily
-move it to vmscan.c.
+Define new address_space flag [shares address_space flags member with
+mapping's gfp mask] to indicate that the address space contains all
+non-reclaimable pages.  This will provide for efficient testing of ramdisk
+pages in page_reclaimable().
 
-Also, make the function a little more generic by not requiring that it
-adds an isolated page to a given list.  Callers can do that.
+Also provide wrapper functions to set/test the noreclaim state to minimize
+#ifdefs in ramdisk driver and any other users of this facility.
 
-	Note that we now have '__isolate_lru_page()', that does
-	something quite different, visible outside of vmscan.c
-	for use with memory controller.  Methinks we need to
-	rationalize these names/purposes.	--lts
+Set the noreclaim state on address_space structures for new ramdisk
+inodes.  Test the noreclaim state in page_reclaimable() to cull
+non-reclaimable pages.
 
-Signed-off-by: Nick Piggin <npiggin@suse.de>
+Similarly, ramfs pages are non-reclaimable.  Set the 'noreclaim'
+address_space flag for new ramfs inodes.
+
+Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Signed-off-by: Rik van Riel <riel@redhat.com>
-Signed-off-by: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/migrate.h |    3 --
- mm/internal.h           |    2 +
- mm/mempolicy.c          |    9 +++++--
- mm/migrate.c            |   34 ++--------------------------
- mm/vmscan.c             |   45 ++++++++++++++++++++++++++++++++++++++
- 5 files changed, 57 insertions(+), 36 deletions(-)
+ drivers/block/brd.c     |   13 +++++++++++++
+ fs/ramfs/inode.c        |    1 +
+ include/linux/pagemap.h |   22 ++++++++++++++++++++++
+ mm/vmscan.c             |    5 +++++
+ 4 files changed, 41 insertions(+)
 
-diff -puN include/linux/migrate.h~vmscan-move-isolate_lru_page-to-vmscanc include/linux/migrate.h
---- a/include/linux/migrate.h~vmscan-move-isolate_lru_page-to-vmscanc
-+++ a/include/linux/migrate.h
-@@ -25,7 +25,6 @@ static inline int vma_migratable(struct 
- 	return 1;
+diff -puN drivers/block/brd.c~vmscan-ramfs-and-ram-disk-pages-are-non-reclaimable drivers/block/brd.c
+--- a/drivers/block/brd.c~vmscan-ramfs-and-ram-disk-pages-are-non-reclaimable
++++ a/drivers/block/brd.c
+@@ -374,8 +374,21 @@ static int brd_ioctl(struct inode *inode
+ 	return error;
  }
  
--extern int isolate_lru_page(struct page *p, struct list_head *pagelist);
- extern int putback_lru_pages(struct list_head *l);
- extern int migrate_page(struct address_space *,
- 			struct page *, struct page *);
-@@ -42,8 +41,6 @@ extern int migrate_vmas(struct mm_struct
- static inline int vma_migratable(struct vm_area_struct *vma)
- 					{ return 0; }
- 
--static inline int isolate_lru_page(struct page *p, struct list_head *list)
--					{ return -ENOSYS; }
- static inline int putback_lru_pages(struct list_head *l) { return 0; }
- static inline int migrate_pages(struct list_head *l, new_page_t x,
- 		unsigned long private) { return -ENOSYS; }
-diff -puN mm/internal.h~vmscan-move-isolate_lru_page-to-vmscanc mm/internal.h
---- a/mm/internal.h~vmscan-move-isolate_lru_page-to-vmscanc
-+++ a/mm/internal.h
-@@ -39,6 +39,8 @@ static inline void __put_page(struct pag
- 	atomic_dec(&page->_count);
- }
- 
-+extern int isolate_lru_page(struct page *page);
-+
- extern void __free_pages_bootmem(struct page *page, unsigned int order);
- 
- /*
-diff -puN mm/mempolicy.c~vmscan-move-isolate_lru_page-to-vmscanc mm/mempolicy.c
---- a/mm/mempolicy.c~vmscan-move-isolate_lru_page-to-vmscanc
-+++ a/mm/mempolicy.c
-@@ -93,6 +93,8 @@
- #include <asm/tlbflush.h>
- #include <asm/uaccess.h>
- 
-+#include "internal.h"
-+
- /* Internal flags */
- #define MPOL_MF_DISCONTIG_OK (MPOL_MF_INTERNAL << 0)	/* Skip checks for continuous vmas */
- #define MPOL_MF_INVERT (MPOL_MF_INTERNAL << 1)		/* Invert check for nodemask */
-@@ -758,8 +760,11 @@ static void migrate_page_add(struct page
- 	/*
- 	 * Avoid migrating a page that is shared with others.
- 	 */
--	if ((flags & MPOL_MF_MOVE_ALL) || page_mapcount(page) == 1)
--		isolate_lru_page(page, pagelist);
-+	if ((flags & MPOL_MF_MOVE_ALL) || page_mapcount(page) == 1) {
-+		if (!isolate_lru_page(page)) {
-+			list_add_tail(&page->lru, pagelist);
-+		}
-+	}
- }
- 
- static struct page *new_node_page(struct page *page, unsigned long node, int **x)
-diff -puN mm/migrate.c~vmscan-move-isolate_lru_page-to-vmscanc mm/migrate.c
---- a/mm/migrate.c~vmscan-move-isolate_lru_page-to-vmscanc
-+++ a/mm/migrate.c
-@@ -37,36 +37,6 @@
- #define lru_to_page(_head) (list_entry((_head)->prev, struct page, lru))
- 
- /*
-- * Isolate one page from the LRU lists. If successful put it onto
-- * the indicated list with elevated page count.
-- *
-- * Result:
-- *  -EBUSY: page not on LRU list
-- *  0: page removed from LRU list and added to the specified list.
-- */
--int isolate_lru_page(struct page *page, struct list_head *pagelist)
--{
--	int ret = -EBUSY;
--
--	if (PageLRU(page)) {
--		struct zone *zone = page_zone(page);
--
--		spin_lock_irq(&zone->lru_lock);
--		if (PageLRU(page) && get_page_unless_zero(page)) {
--			ret = 0;
--			ClearPageLRU(page);
--			if (PageActive(page))
--				del_page_from_active_list(zone, page);
--			else
--				del_page_from_inactive_list(zone, page);
--			list_add_tail(&page->lru, pagelist);
--		}
--		spin_unlock_irq(&zone->lru_lock);
--	}
--	return ret;
--}
--
--/*
-  * migrate_prep() needs to be called before we start compiling a list of pages
-  * to be migrated using isolate_lru_page().
-  */
-@@ -909,7 +879,9 @@ static int do_move_pages(struct mm_struc
- 				!migrate_all)
- 			goto put_and_set;
- 
--		err = isolate_lru_page(page, &pagelist);
-+		err = isolate_lru_page(page);
-+		if (!err)
-+			list_add_tail(&page->lru, &pagelist);
- put_and_set:
- 		/*
- 		 * Either remove the duplicate refcount from
-diff -puN mm/vmscan.c~vmscan-move-isolate_lru_page-to-vmscanc mm/vmscan.c
---- a/mm/vmscan.c~vmscan-move-isolate_lru_page-to-vmscanc
-+++ a/mm/vmscan.c
-@@ -842,6 +842,51 @@ static unsigned long clear_active_flags(
- 	return nr_active;
- }
- 
-+/**
-+ * isolate_lru_page - tries to isolate a page from its LRU list
-+ * @page: page to isolate from its LRU list
-+ *
-+ * Isolates a @page from an LRU list, clears PageLRU and adjusts the
-+ * vmstat statistic corresponding to whatever LRU list the page was on.
-+ *
-+ * Returns 0 if the page was removed from an LRU list.
-+ * Returns -EBUSY if the page was not on an LRU list.
-+ *
-+ * The returned page will have PageLRU() cleared.  If it was found on
-+ * the active list, it will have PageActive set.  That flag may need
-+ * to be cleared by the caller before letting the page go.
-+ *
-+ * The vmstat statistic corresponding to the list on which the page was
-+ * found will be decremented.
-+ *
-+ * Restrictions:
-+ * (1) Must be called with an elevated refcount on the page. This is a
-+ *     fundamentnal difference from isolate_lru_pages (which is called
-+ *     without a stable reference).
-+ * (2) the lru_lock must not be held.
-+ * (3) interrupts must be enabled.
++/*
++ * brd_open():
++ * Just mark the mapping as containing non-reclaimable pages
 + */
-+int isolate_lru_page(struct page *page)
++static int brd_open(struct inode *inode, struct file *filp)
 +{
-+	int ret = -EBUSY;
++	struct address_space *mapping = inode->i_mapping;
 +
-+	if (PageLRU(page)) {
-+		struct zone *zone = page_zone(page);
-+
-+		spin_lock_irq(&zone->lru_lock);
-+		if (PageLRU(page) && get_page_unless_zero(page)) {
-+			ret = 0;
-+			ClearPageLRU(page);
-+			if (PageActive(page))
-+				del_page_from_active_list(zone, page);
-+			else
-+				del_page_from_inactive_list(zone, page);
-+		}
-+		spin_unlock_irq(&zone->lru_lock);
-+	}
-+	return ret;
++	mapping_set_noreclaim(mapping);
++	return 0;
 +}
 +
- /*
-  * shrink_inactive_list() is a helper for shrink_zone().  It returns the number
-  * of reclaimed pages
+ static struct block_device_operations brd_fops = {
+ 	.owner =		THIS_MODULE,
++	.open  =		brd_open,
+ 	.ioctl =		brd_ioctl,
+ #ifdef CONFIG_BLK_DEV_XIP
+ 	.direct_access =	brd_direct_access,
+diff -puN fs/ramfs/inode.c~vmscan-ramfs-and-ram-disk-pages-are-non-reclaimable fs/ramfs/inode.c
+--- a/fs/ramfs/inode.c~vmscan-ramfs-and-ram-disk-pages-are-non-reclaimable
++++ a/fs/ramfs/inode.c
+@@ -61,6 +61,7 @@ struct inode *ramfs_get_inode(struct sup
+ 		inode->i_mapping->a_ops = &ramfs_aops;
+ 		inode->i_mapping->backing_dev_info = &ramfs_backing_dev_info;
+ 		mapping_set_gfp_mask(inode->i_mapping, GFP_HIGHUSER);
++		mapping_set_noreclaim(inode->i_mapping);
+ 		inode->i_atime = inode->i_mtime = inode->i_ctime = CURRENT_TIME;
+ 		switch (mode & S_IFMT) {
+ 		default:
+diff -puN include/linux/pagemap.h~vmscan-ramfs-and-ram-disk-pages-are-non-reclaimable include/linux/pagemap.h
+--- a/include/linux/pagemap.h~vmscan-ramfs-and-ram-disk-pages-are-non-reclaimable
++++ a/include/linux/pagemap.h
+@@ -31,6 +31,28 @@ static inline void mapping_set_error(str
+ 	}
+ }
+ 
++#ifdef CONFIG_NORECLAIM_LRU
++#define AS_NORECLAIM	(__GFP_BITS_SHIFT + 2)	/* e.g., ramdisk, SHM_LOCK */
++
++static inline void mapping_set_noreclaim(struct address_space *mapping)
++{
++	set_bit(AS_NORECLAIM, &mapping->flags);
++}
++
++static inline int mapping_non_reclaimable(struct address_space *mapping)
++{
++	if (mapping && (mapping->flags & AS_NORECLAIM))
++		return 1;
++	return 0;
++}
++#else
++static inline void mapping_set_noreclaim(struct address_space *mapping) { }
++static inline int mapping_non_reclaimable(struct address_space *mapping)
++{
++	return 0;
++}
++#endif
++
+ static inline gfp_t mapping_gfp_mask(struct address_space * mapping)
+ {
+ 	return (__force gfp_t)mapping->flags & __GFP_BITS_MASK;
+diff -puN mm/vmscan.c~vmscan-ramfs-and-ram-disk-pages-are-non-reclaimable mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-ramfs-and-ram-disk-pages-are-non-reclaimable
++++ a/mm/vmscan.c
+@@ -2341,6 +2341,8 @@ int zone_reclaim(struct zone *zone, gfp_
+  * lists vs noreclaim list.
+  *
+  * Reasons page might not be reclaimable:
++ * (1) page's mapping marked non-reclaimable
++ *
+  * TODO - later patches
+  */
+ int page_reclaimable(struct page *page, struct vm_area_struct *vma)
+@@ -2348,6 +2350,9 @@ int page_reclaimable(struct page *page, 
+ 
+ 	VM_BUG_ON(PageNoreclaim(page));
+ 
++	if (mapping_non_reclaimable(page_mapping(page)))
++		return 0;
++
+ 	/* TODO:  test page [!]reclaimable conditions */
+ 
+ 	return 1;
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from Lee.Schermerhorn@hp.com are
 
-origin.patch
-linux-next.patch
-spufs-convert-nopfn-to-fault.patch
-mspec-convert-nopfn-to-fault.patch
-mspec-convert-nopfn-to-fault-fix.patch
-mm-remove-nopfn.patch
-mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co.patch
-hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed-build-fix.patch
-hugetlb-factor-out-prep_new_huge_page.patch
-hugetlb-modular-state-for-hugetlb-page-size.patch
-hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
-hugetlb-multiple-hstates-for-multiple-page-sizes.patch
-hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
-hugetlbfs-per-mount-huge-page-sizes.patch
-hugetlb-new-sysfs-interface.patch
-hugetlb-abstract-numa-round-robin-selection.patch
-mm-introduce-non-panic-alloc_bootmem.patch
-mm-export-prep_compound_page-to-mm.patch
-hugetlb-support-larger-than-max_order.patch
-hugetlb-support-boot-allocate-different-sizes.patch
-hugetlb-printk-cleanup.patch
-hugetlb-introduce-pud_huge.patch
-x86-support-gb-hugepages-on-64-bit.patch
-x86-add-hugepagesz-option-on-64-bit.patch
-hugetlb-override-default-huge-page-size.patch
-hugetlb-override-default-huge-page-size-ia64-build.patch
-hugetlb-allow-arch-overried-hugepage-allocation.patch
-powerpc-function-to-allocate-gigantic-hugepages.patch
-powerpc-scan-device-tree-for-gigantic-pages.patch
-powerpc-define-support-for-16g-hugepages.patch
-fs-check-for-statfs-overflow.patch
-powerpc-support-multiple-hugepage-sizes.patch
-x86-implement-pte_special.patch
-mm-introduce-get_user_pages_fast.patch
-mm-introduce-get_user_pages_fast-fix.patch
-mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast.patch
-x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-fix.patch
-x86-lockless-get_user_pages_fast-fix-2.patch
-x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
-x86-lockless-get_user_pages_fast-fix-warning.patch
-dio-use-get_user_pages_fast.patch
-splice-use-get_user_pages_fast.patch
-x86-support-1gb-hugepages-with-get_user_pages_lockless.patch
-mm-readahead-scan-lockless.patch
-radix-tree-add-gang_lookup_slot-gang_lookup_slot_tag.patch
-mm-speculative-page-references.patch
-mm-speculative-page-references-fix.patch
-mm-lockless-pagecache.patch
-mm-spinlock-tree_lock.patch
-powerpc-implement-pte_special.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
-vmscan-mlocked-pages-are-non-reclaimable.patch
-vmscan-handle-mlocked-pages-during-map-remap-unmap.patch
-vmscan-mlocked-pages-statistics.patch
-reiser4.patch
-likeliness-accounting-change-and-cleanup.patch
+vmscan-ramfs-and-ram-disk-pages-are-non-reclaimable.patch
+vmscan-shm_locked-pages-are-non-reclaimable.patch
 
