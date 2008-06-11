@@ -1,202 +1,261 @@
 From: akpm@linux-foundation.org
-Subject: - mm-only-vmscan-noreclaim-lru-scan-sysctl-fix.patch removed from -mm tree
-Date: Wed, 11 Jun 2008 12:46:49 -0700
-Message-ID: <200806111946.m5BJknCo014621@imap1.linux-foundation.org>
+Subject: - vmscan-noreclaim-and-mlocked-pages-vm-events.patch removed from -mm tree
+Date: Wed, 11 Jun 2008 12:46:45 -0700
+Message-ID: <200806111946.m5BJkjIr014614@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35128 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39389 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753745AbYFKTrX (ORCPT
+	by vger.kernel.org with ESMTP id S1750700AbYFKTrX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 11 Jun 2008 15:47:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jirislaby@gmail.com, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: lee.schermerhorn@hp.com, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-only-vmscan-noreclaim-lru-scan-sysctl-fix
+     vmscan: noreclaim and mlocked pages vm events
 has been removed from the -mm tree.  Its filename was
-     mm-only-vmscan-noreclaim-lru-scan-sysctl-fix.patch
+     vmscan-noreclaim-and-mlocked-pages-vm-events.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-only-vmscan-noreclaim-lru-scan-sysctl-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: vmscan: noreclaim and mlocked pages vm events
+From: Lee Schermerhorn <lee.schermerhorn@hp.com>
 
-build fix
+Add some event counters to vmstats for testing noreclaim/mlock.  Some of
+these might be interesting enough to keep around.
 
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Jiri Slaby <jirislaby@gmail.com>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Signed-off-by: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/vmstat.h |   11 +++++++++++
+ mm/internal.h          |    4 +++-
+ mm/mlock.c             |   33 +++++++++++++++++++++++++--------
+ mm/vmscan.c            |   16 +++++++++++++++-
+ mm/vmstat.c            |   12 ++++++++++++
+ 5 files changed, 66 insertions(+), 10 deletions(-)
 
-diff -puN mm/vmscan.c~mm-only-vmscan-noreclaim-lru-scan-sysctl-fix mm/vmscan.c
---- a/mm/vmscan.c~mm-only-vmscan-noreclaim-lru-scan-sysctl-fix
-+++ a/mm/vmscan.c
-@@ -2400,6 +2400,7 @@ static void show_page_path(struct page *
- 		       dentry_path(dentry, buf, 256), pgoff);
- 		spin_unlock(&mapping->i_mmap_lock);
- 	} else {
-+#ifdef CONFIG_MM_OWNER
- 		struct anon_vma *anon_vma;
- 		struct vm_area_struct *vma;
- 
-@@ -2413,6 +2414,7 @@ static void show_page_path(struct page *
- 			break;
- 		}
- 		page_unlock_anon_vma(anon_vma);
+diff -puN include/linux/vmstat.h~vmscan-noreclaim-and-mlocked-pages-vm-events include/linux/vmstat.h
+--- a/include/linux/vmstat.h~vmscan-noreclaim-and-mlocked-pages-vm-events
++++ a/include/linux/vmstat.h
+@@ -41,6 +41,17 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
+ #ifdef CONFIG_HUGETLB_PAGE
+ 		HTLB_BUDDY_PGALLOC, HTLB_BUDDY_PGALLOC_FAIL,
+ #endif
++#ifdef CONFIG_NORECLAIM_LRU
++		NORECL_PGCULLED,	/* culled to noreclaim list */
++		NORECL_PGSCANNED,	/* scanned for reclaimability */
++		NORECL_PGRESCUED,	/* rescued from noreclaim list */
++#ifdef CONFIG_NORECLAIM_MLOCK
++		NORECL_PGMLOCKED,
++		NORECL_PGMUNLOCKED,
++		NORECL_PGCLEARED,
++		NORECL_PGSTRANDED,	/* unable to isolate on unlock */
 +#endif
++#endif
+ 		NR_VM_EVENT_ITEMS
+ };
+ 
+diff -puN mm/internal.h~vmscan-noreclaim-and-mlocked-pages-vm-events mm/internal.h
+--- a/mm/internal.h~vmscan-noreclaim-and-mlocked-pages-vm-events
++++ a/mm/internal.h
+@@ -112,8 +112,10 @@ static inline int is_mlocked_vma(struct 
+ 	if (likely((vma->vm_flags & (VM_LOCKED | VM_SPECIAL)) != VM_LOCKED))
+ 		return 0;
+ 
+-	if (!TestSetPageMlocked(page))
++	if (!TestSetPageMlocked(page)) {
+ 		inc_zone_page_state(page, NR_MLOCK);
++		count_vm_event(NORECL_PGMLOCKED);
++	}
+ 	return 1;
+ }
+ 
+diff -puN mm/mlock.c~vmscan-noreclaim-and-mlocked-pages-vm-events mm/mlock.c
+--- a/mm/mlock.c~vmscan-noreclaim-and-mlocked-pages-vm-events
++++ a/mm/mlock.c
+@@ -18,6 +18,7 @@
+ #include <linux/rmap.h>
+ #include <linux/mmzone.h>
+ #include <linux/hugetlb.h>
++#include <linux/vmstat.h>
+ 
+ #include "internal.h"
+ 
+@@ -57,6 +58,7 @@ void __clear_page_mlock(struct page *pag
+ 	VM_BUG_ON(!PageLocked(page));	/* for LRU islolate/putback */
+ 
+ 	dec_zone_page_state(page, NR_MLOCK);
++	count_vm_event(NORECL_PGCLEARED);
+ 	if (!isolate_lru_page(page)) {
+ 		putback_lru_page(page);
+ 	} else {
+@@ -66,6 +68,8 @@ void __clear_page_mlock(struct page *pag
+ 		lru_add_drain_all();
+ 		if (!isolate_lru_page(page))
+ 			putback_lru_page(page);
++		else if (PageNoreclaim(page))
++			count_vm_event(NORECL_PGSTRANDED);
  	}
  }
  
+@@ -79,6 +83,7 @@ void mlock_vma_page(struct page *page)
+ 
+ 	if (!TestSetPageMlocked(page)) {
+ 		inc_zone_page_state(page, NR_MLOCK);
++		count_vm_event(NORECL_PGMLOCKED);
+ 		if (!isolate_lru_page(page))
+ 			putback_lru_page(page);
+ 	}
+@@ -109,16 +114,28 @@ static void munlock_vma_page(struct page
+ 	if (TestClearPageMlocked(page)) {
+ 		dec_zone_page_state(page, NR_MLOCK);
+ 		if (!isolate_lru_page(page)) {
+-			try_to_unlock(page);	/* maybe relock the page */
++			int ret = try_to_unlock(page);
++			/*
++			 * did try_to_unlock() succeed or punt?
++			 */
++			if (ret == SWAP_SUCCESS || ret == SWAP_AGAIN)
++				count_vm_event(NORECL_PGMUNLOCKED);
++
+ 			putback_lru_page(page);
++		} else {
++			/*
++			 * We lost the race.  let try_to_unmap() deal
++			 * with it.  At least we get the page state and
++			 * mlock stats right.  However, page is still on
++			 * the noreclaim list.  We'll fix that up when
++			 * the page is eventually freed or we scan the
++			 * noreclaim list.
++			 */
++			if (PageNoreclaim(page))
++				count_vm_event(NORECL_PGSTRANDED);
++			else
++				count_vm_event(NORECL_PGMUNLOCKED);
+ 		}
+-		/*
+-		 * Else we lost the race.  let try_to_unmap() deal with it.
+-		 * At least we get the page state and mlock stats right.
+-		 * However, page is still on the noreclaim list.  We'll fix
+-		 * that up when the page is eventually freed or we scan the
+-		 * noreclaim list.
+-		 */
+ 	}
+ }
+ 
+diff -puN mm/vmscan.c~vmscan-noreclaim-and-mlocked-pages-vm-events mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-noreclaim-and-mlocked-pages-vm-events
++++ a/mm/vmscan.c
+@@ -463,12 +463,13 @@ int putback_lru_page(struct page *page)
+ {
+ 	int lru;
+ 	int ret = 1;
++	int was_nonreclaimable;
+ 
+ 	VM_BUG_ON(!PageLocked(page));
+ 	VM_BUG_ON(PageLRU(page));
+ 
+ 	lru = !!TestClearPageActive(page);
+-	ClearPageNoreclaim(page);	/* for page_reclaimable() */
++	was_nonreclaimable = TestClearPageNoreclaim(page);
+ 
+ 	if (unlikely(!page->mapping)) {
+ 		/*
+@@ -488,6 +489,10 @@ int putback_lru_page(struct page *page)
+ 		lru += page_file_cache(page);
+ 		lru_cache_add_lru(page, lru);
+ 		mem_cgroup_move_lists(page, lru);
++#ifdef CONFIG_NORECLAIM_LRU
++		if (was_nonreclaimable)
++			count_vm_event(NORECL_PGRESCUED);
++#endif
+ 	} else {
+ 		/*
+ 		 * Put non-reclaimable pages directly on zone's noreclaim
+@@ -495,6 +500,10 @@ int putback_lru_page(struct page *page)
+ 		 */
+ 		add_page_to_noreclaim_list(page);
+ 		mem_cgroup_move_lists(page, LRU_NORECLAIM);
++#ifdef CONFIG_NORECLAIM_LRU
++		if (!was_nonreclaimable)
++			count_vm_event(NORECL_PGCULLED);
++#endif
+ 	}
+ 
+ 	put_page(page);		/* drop ref from isolate */
+@@ -2396,6 +2405,7 @@ static void check_move_noreclaim_page(st
+ 		__dec_zone_state(zone, NR_NORECLAIM);
+ 		list_move(&page->lru, &zone->list[l]);
+ 		__inc_zone_state(zone, NR_INACTIVE_ANON + l);
++		__count_vm_event(NORECL_PGRESCUED);
+ 	} else {
+ 		/*
+ 		 * rotate noreclaim list
+@@ -2427,6 +2437,7 @@ void scan_mapping_noreclaim_pages(struct
+ 	while (next < end &&
+ 		pagevec_lookup(&pvec, mapping, next, PAGEVEC_SIZE)) {
+ 		int i;
++		int pg_scanned = 0;
+ 
+ 		zone = NULL;
+ 
+@@ -2435,6 +2446,7 @@ void scan_mapping_noreclaim_pages(struct
+ 			pgoff_t page_index = page->index;
+ 			struct zone *pagezone = page_zone(page);
+ 
++			pg_scanned++;
+ 			if (page_index > next)
+ 				next = page_index;
+ 			next++;
+@@ -2465,6 +2477,8 @@ void scan_mapping_noreclaim_pages(struct
+ 		if (zone)
+ 			spin_unlock_irq(&zone->lru_lock);
+ 		pagevec_release(&pvec);
++
++		count_vm_events(NORECL_PGSCANNED, pg_scanned);
+ 	}
+ 
+ }
+diff -puN mm/vmstat.c~vmscan-noreclaim-and-mlocked-pages-vm-events mm/vmstat.c
+--- a/mm/vmstat.c~vmscan-noreclaim-and-mlocked-pages-vm-events
++++ a/mm/vmstat.c
+@@ -666,6 +666,18 @@ static const char * const vmstat_text[] 
+ 	"htlb_buddy_alloc_success",
+ 	"htlb_buddy_alloc_fail",
+ #endif
++
++#ifdef CONFIG_NORECLAIM_LRU
++	"noreclaim_pgs_culled",
++	"noreclaim_pgs_scanned",
++	"noreclaim_pgs_rescued",
++#ifdef CONFIG_NORECLAIM_MLOCK
++	"noreclaim_pgs_mlocked",
++	"noreclaim_pgs_munlocked",
++	"noreclaim_pgs_cleared",
++	"noreclaim_pgs_stranded",
++#endif
++#endif
+ #endif
+ };
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from lee.schermerhorn@hp.com are
 
-origin.patch
-m68k-add-ext2_find_firstnext_bit-for-ext4-checkpatch-fixes.patch
-linux-next.patch
-next-remove-localversion.patch
-linux-next-git-rejects.patch
-fix-kobject-fix-kobject_rename-and-config_sysfs.patch
-kvm-unbork.patch
-kvm-is-busted-on-ia64.patch
-drivers-mtd-nand-nandsimc-needs-div64h.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-lguest-use-cpu-capability-accessors.patch
-intel-agp-rewrite-gtt-on-resume.patch
-arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
-pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2.patch
-arch-powerpc-platforms-pseries-eeh_driverc-fix-warning.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-git-jg-misc-git-rejects.patch
-drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-git-leds.patch
-mmc-sd-host-driver-for-ricoh-bay1controllers.patch
-drivers-mtd-devices-block2mtdc-suppress-warning.patch
-bluetooth-hci_bcspc-small-cleanups-api-users.patch
-sundance-set-carrier-status-on-link-change-events.patch
-net-sh_eth-add-support-for-renesas-superh-ethernet.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-battery.patch
-pci-introduce-pci_slot.patch
-acpi-pci-slot-detection-driver.patch
-git-scsi-misc-fix-scsi_dh-build-errors.patch
-drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
-s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
-pktcdvd-push-bkl-down-into-driver-fix.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-git-logfs-fixup.patch
-drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
-drivers-uwb-wlp-sysfsc-dead-code.patch
-usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues.patch
-watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
-git-xtensa.patch
-driver-video-cirrusfb-fix-ram-address-printk-fix.patch
-driver-video-cirrusfb-fix-ram-address-printk-fix-fix.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-verify-the-page-links-and-memory-model.patch
-mspec-convert-nopfn-to-fault-fix.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers.patch
 page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
-kill-generic_file_direct_io-checkpatch-fixes.patch
-use-generic_access_phys-for-dev-mem-mappings-fix.patch
-spufs-use-the-new-vm_ops-access-fix.patch
-fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
-page-flags-record-page-flag-overlays-explicitly-xen.patch
-mapping_set_error-add-unlikely.patch
-huge-page-private-reservation-review-cleanups-fix.patch
-sync_file_range_write-may-and-will-block-document-that-fix.patch
-vmallocinfo-add-numa-information-fix.patch
-hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
-hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
-hugetlb-override-default-huge-page-size-ia64-build.patch
-bootmem-add-debugging-framework-fix.patch
-bootmem-clean-up-free_all_bootmem_core-fix.patch
-bootmem-free-reserve-helpers-fix.patch
-bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
-swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
-split-the-typecheck-macros-out-of-include-linux-kernelh.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
-remove-apparently-unused-fd1772h-header-file.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
-build-kernel-profileo-only-when-requested-cleanups.patch
-fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
-block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
-rename-warn-to-warning-to-clear-the-namespace-fix.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
-flag-parameters-paccept-fix.patch
-flag-parameters-paccept-sys_ni.patch
-flag-parameters-anon_inode_getfd-extension-fix.patch
-flag-parameters-signalfd-fix.patch
-flag-parameters-eventfd-fix.patch
-flag-parameters-inotify_init-fix.patch
-flag-parameters-check-magic-constants-alpha.patch
-cputopology-always-define-cpu-topology-information-cleanup.patch
-oprofile-multiplexing-checkpatch-fixes.patch
-gpio-gpio-driver-for-max7301-spi-gpio-expander-checkpatch-fixes.patch
-drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
-atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
-pnp-add-pnp_possible_config-can-a-device-could-be-configured-this-way-fix.patch
-pnp-convert-resource-options-to-single-linked-list-checkpatch-fixes.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
-reiserfs-convert-j_flush_sem-to-mutex.patch
-reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
-jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup.patch
-ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
-getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
-tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
-memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
-revert-linux-next-changes-to-make-memstick-use-fully-asynchronous-request-processing-apply.patch
-memstick-use-fully-asynchronous-request-processing-fix.patch
-revert-revert-linux-next-changes-to-make-memstick-use-fully-asynchronous-request-processing-apply.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-mm-introduce-get_user_pages_fast-fix.patch
-mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-fix.patch
-x86-lockless-get_user_pages_fast-fix-2.patch
-x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
-x86-lockless-get_user_pages_fast-fix-warning.patch
+vmscan-noreclaim-and-mlocked-pages-vm-events.patch
+mm-only-vmscan-noreclaim-lru-scan-sysctl.patch
 mm-only-vmscan-noreclaim-lru-scan-sysctl-fix.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+vmscan-mlocked-pages-count-attempts-to-free-mlocked-page.patch
+vmscan-noreclaim-lru-and-mlocked-pages-documentation.patch
 
