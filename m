@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch added to -mm tree
-Date: Wed, 11 Jun 2008 16:18:48 -0700
-Message-ID: <200806112330.m5BNUTkS023345@imap1.linux-foundation.org>
+Subject: + vmscan-move-isolate_lru_page-to-vmscanc-fix.patch added to -mm tree
+Date: Wed, 11 Jun 2008 16:55:10 -0700
+Message-ID: <200806120006.m5C06pKf024662@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53168 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60490 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751236AbYFKXbB (ORCPT
+	by vger.kernel.org with ESMTP id S1750771AbYFLAHy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Jun 2008 19:31:01 -0400
+	Wed, 11 Jun 2008 20:07:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, riel@redhat.com
+Cc: akpm@linux-foundation.org, Lee.Schermerhorn@hp.com, npiggin@suse.de, riel@redhat.com
 
 
 The patch titled
-     vmscan-unevictable-lru-scan-sysctl-nommu-fix
+     vmscan-move-isolate_lru_page-to-vmscanc-fix
 has been added to the -mm tree.  Its filename is
-     vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
+     vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan-unevictable-lru-scan-sysctl-nommu-fix
+Subject: vmscan-move-isolate_lru_page-to-vmscanc-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix one CONFIG_MMU=n build error.
+grep is good stuff!
 
-More remain:
-
-mm/built-in.o(.text+0x1bb28): In function `truncate_complete_page':
-: undefined reference to `__clear_page_mlock'
-mm/built-in.o(.text+0x1ca40): In function `__invalidate_mapping_pages':
-: undefined reference to `__clear_page_mlock'
-mm/built-in.o(.text+0x1d24c): In function `invalidate_inode_pages2_range':
-: undefined reference to `__clear_page_mlock'
-
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Nick Piggin <npiggin@suse.de>
 Cc: Rik van Riel <riel@redhat.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memory_hotplug.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/vmscan.c~vmscan-unevictable-lru-scan-sysctl-nommu-fix mm/vmscan.c
---- a/mm/vmscan.c~vmscan-unevictable-lru-scan-sysctl-nommu-fix
-+++ a/mm/vmscan.c
-@@ -2411,7 +2411,7 @@ static void show_page_path(struct page *
- 		       dentry_path(dentry, buf, 256), pgoff);
- 		spin_unlock(&mapping->i_mmap_lock);
- 	} else {
--#ifdef CONFIG_MM_OWNER
-+#if defined(CONFIG_MM_OWNER) && defined(CONFIG_MMU)
- 		struct anon_vma *anon_vma;
- 		struct vm_area_struct *vma;
- 
+diff -puN mm/memory_hotplug.c~vmscan-move-isolate_lru_page-to-vmscanc-fix mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~vmscan-move-isolate_lru_page-to-vmscanc-fix
++++ a/mm/memory_hotplug.c
+@@ -595,8 +595,9 @@ do_migrate_range(unsigned long start_pfn
+ 		 * We can skip free pages. And we can only deal with pages on
+ 		 * LRU.
+ 		 */
+-		ret = isolate_lru_page(page, &source);
++		ret = isolate_lru_page(page);
+ 		if (!ret) { /* Success */
++			list_add_tail(&page->lru, &source);
+ 			move_pages--;
+ 		} else {
+ 			/* Becasue we don't have big zone->lock. we should
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -193,6 +186,7 @@ x86-lockless-get_user_pages_fast-fix.patch
 x86-lockless-get_user_pages_fast-fix-2.patch
 x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
 x86-lockless-get_user_pages_fast-fix-warning.patch
+vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
 mlock-mlocked-pages-are-unevictable-fix.patch
 mlock-mlocked-pages-are-unevictable-fix-fix.patch
 mlock-mlocked-pages-are-unevictable-fix-2.patch
