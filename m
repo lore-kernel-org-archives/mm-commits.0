@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pageflag-helpers-for-configed-out-flags.patch added to -mm tree
-Date: Wed, 11 Jun 2008 12:59:43 -0700
-Message-ID: <200806111959.m5BJxh89015198@imap1.linux-foundation.org>
+Subject: + more-aggressively-use-lumpy-reclaim.patch added to -mm tree
+Date: Wed, 11 Jun 2008 12:59:41 -0700
+Message-ID: <200806111959.m5BJxgtZ015195@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42985 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53975 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754658AbYFKUAG (ORCPT
+	by vger.kernel.org with ESMTP id S1755934AbYFKUAE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Jun 2008 16:00:06 -0400
+	Wed, 11 Jun 2008 16:00:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lee.schermerhorn@hp.com, riel@redhat.com
+Cc: riel@redhat.com
 
 
 The patch titled
-     pageflag helpers for configed-out flags
+     more aggressively use lumpy reclaim
 has been added to the -mm tree.  Its filename is
-     pageflag-helpers-for-configed-out-flags.patch
+     more-aggressively-use-lumpy-reclaim.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,50 +34,113 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pageflag helpers for configed-out flags
-From: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Subject: more aggressively use lumpy reclaim
+From: Rik van Riel <riel@redhat.com>
 
-Define proper false/noop inline functions for noreclaim page flags when
-!defined(CONFIG_NORECLAIM_LRU)
+During an AIM7 run on a 16GB system, fork started failing around 32000
+threads, despite the system having plenty of free swap and 15GB of
+pageable memory.  This was on x86-64, so 8k stacks.
 
-Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
+If a higher order allocation fails, we can either:
+- keep evicting pages off the end of the LRUs and hope that
+  we eventually create a contiguous region; this is somewhat
+  unlikely if the system is under enough stress by new
+  allocations
+- after trying normal eviction for a bit, use lumpy reclaim
+
+This patch switches the system to lumpy reclaim if the VM is having
+trouble freeing enough pages, using the same threshold for detection as
+used by pageout congestion wait.
+
 Signed-off-by: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ mm/vmscan.c |   20 ++++++++++++++++----
+ 1 file changed, 16 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/page-flags.h~pageflag-helpers-for-configed-out-flags include/linux/page-flags.h
---- a/include/linux/page-flags.h~pageflag-helpers-for-configed-out-flags
-+++ a/include/linux/page-flags.h
-@@ -162,6 +162,18 @@ static inline int Page##uname(struct pag
- #define TESTSCFLAG(uname, lname)					\
- 	TESTSETFLAG(uname, lname) TESTCLEARFLAG(uname, lname)
+diff -puN mm/vmscan.c~more-aggressively-use-lumpy-reclaim mm/vmscan.c
+--- a/mm/vmscan.c~more-aggressively-use-lumpy-reclaim
++++ a/mm/vmscan.c
+@@ -909,7 +909,8 @@ int isolate_lru_page(struct page *page)
+  * of reclaimed pages
+  */
+ static unsigned long shrink_inactive_list(unsigned long max_scan,
+-			struct zone *zone, struct scan_control *sc, int file)
++			struct zone *zone, struct scan_control *sc,
++			int priority, int file)
+ {
+ 	LIST_HEAD(page_list);
+ 	struct pagevec pvec;
+@@ -927,8 +928,19 @@ static unsigned long shrink_inactive_lis
+ 		unsigned long nr_freed;
+ 		unsigned long nr_active;
+ 		unsigned int count[NR_LRU_LISTS] = { 0, };
+-		int mode = (sc->order > PAGE_ALLOC_COSTLY_ORDER) ?
+-					ISOLATE_BOTH : ISOLATE_INACTIVE;
++		int mode = ISOLATE_INACTIVE;
++
++		/*
++		 * If we need a large contiguous chunk of memory, or have
++		 * trouble getting a small set of contiguous pages, we
++		 * will reclaim both active and inactive pages.
++		 *
++		 * We use the same threshold as pageout congestion_wait below.
++		 */
++		if (sc->order > PAGE_ALLOC_COSTLY_ORDER)
++			mode = ISOLATE_BOTH;
++		else if (sc->order && priority < DEF_PRIORITY - 2)
++			mode = ISOLATE_BOTH;
  
-+#define SETPAGEFLAG_NOOP(uname)						\
-+static inline void SetPage##uname(struct page *page) {  }
-+
-+#define CLEARPAGEFLAG_NOOP(uname)					\
-+static inline void ClearPage##uname(struct page *page) {  }
-+
-+#define __CLEARPAGEFLAG_NOOP(uname)					\
-+static inline void __ClearPage##uname(struct page *page) {  }
-+
-+#define TESTCLEARFLAG_FALSE(uname)					\
-+static inline int TestClearPage##uname(struct page *page) { return 0; }
-+
- struct page;	/* forward declaration */
+ 		nr_taken = sc->isolate_pages(sc->swap_cluster_max,
+ 			     &page_list, &nr_scan, sc->order, mode,
+@@ -1209,7 +1221,7 @@ static unsigned long shrink_list(enum lr
+ 		shrink_active_list(nr_to_scan, zone, sc, priority, file);
+ 		return 0;
+ 	}
+-	return shrink_inactive_list(nr_to_scan, zone, sc, file);
++	return shrink_inactive_list(nr_to_scan, zone, sc, priority, file);
+ }
  
- PAGEFLAG(Locked, locked) TESTSCFLAG(Locked, locked)
+ /*
 _
 
-Patches currently in -mm which might be from lee.schermerhorn@hp.com are
+Patches currently in -mm which might be from riel@redhat.com are
 
-page-allocator-inlnie-some-__alloc_pages-wrappers.patch
-page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+ntp-let-update_persistent_clock-sleep.patch
+access_process_vm-device-memory-infrastructure.patch
+access_process_vm-device-memory-infrastructure-fix.patch
+use-generic_access_phys-for-dev-mem-mappings.patch
+use-generic_access_phys-for-dev-mem-mappings-fix.patch
+use-generic_access_phys-for-pci-mmap-on-x86.patch
+powerpc-ioremap_prot.patch
+spufs-use-the-new-vm_ops-access.patch
+spufs-use-the-new-vm_ops-access-fix.patch
+page-flags-record-page-flag-overlays-explicitly.patch
+page-flags-record-page-flag-overlays-explicitly-xen.patch
+slub-record-page-flag-overlays-explicitly.patch
+slob-record-page-flag-overlays-explicitly.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+idr-change-the-idr-structure.patch
+idr-rename-some-of-the-idr-apis-internal-routines.patch
+idr-fix-a-printk-call.patch
+idr-error-checking-factorization.patch
+idr-make-idr_get_new-rcu-safe.patch
+idr-make-idr_get_new-rcu-safe-fix.patch
+idr-make-idr_find-rcu-safe.patch
+idr-make-idr_remove-rcu-safe.patch
+ipc-call-idr_find-without-locking-in-ipc_lock.patch
+ipc-get-rid-of-ipc_lock_down.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
 vmscan-use-an-indexed-array-for-lru-variables.patch
+swap-use-an-array-for-the-lru-pagevecs.patch
+vmscan-free-swap-space-on-swap-in-activation.patch
 define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+vmscan-second-chance-replacement-for-anonymous-pages.patch
+vmscan-fix-pagecache-reclaim-referenced-bit-check.patch
+vmscan-add-newly-swapped-in-pages-to-the-inactive-list.patch
+more-aggressively-use-lumpy-reclaim.patch
 pageflag-helpers-for-configed-out-flags.patch
 unevictable-lru-infrastructure.patch
 unevictable-lru-page-statistics.patch
@@ -92,4 +155,5 @@ vmstat-unevictable-and-mlocked-pages-vm-events.patch
 vmscan-unevictable-lru-scan-sysctl.patch
 mlock-count-attempts-to-free-mlocked-page.patch
 doc-unevictable-lru-and-mlocked-pages-documentation.patch
+make-mm-rmapc-anon_vma_cachep-static.patch
 
