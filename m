@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + proc-sysvipc-shm-fix-32-bit-truncation-of-segment-sizes.patch added to -mm tree
-Date: Wed, 11 Jun 2008 13:49:06 -0700
-Message-ID: <200806112049.m5BKn7FJ017258@imap1.linux-foundation.org>
+Subject: + mlock-mlocked-pages-are-unevictable-fix.patch added to -mm tree
+Date: Wed, 11 Jun 2008 14:13:21 -0700
+Message-ID: <200806112113.m5BLDLZt018248@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58372 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33644 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752164AbYFKUuW (ORCPT
+	by vger.kernel.org with ESMTP id S1751908AbYFKVOo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Jun 2008 16:50:22 -0400
+	Wed, 11 Jun 2008 17:14:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: menage@google.com, Nadia.Derbey@bull.net, manfred@colorfullife.com, peifferp@gmail.com
+Cc: akpm@linux-foundation.org, dave@linux.vnet.ibm.com, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, mpm@selenic.com, npiggin@suse.de, riel@redhat.com
 
 
 The patch titled
-     /proc/sysvipc/shm: fix 32-bit truncation of segment sizes
+     mlock-mlocked-pages-are-unevictable-fix
 has been added to the -mm tree.  Its filename is
-     proc-sysvipc-shm-fix-32-bit-truncation-of-segment-sizes.patch
+     mlock-mlocked-pages-are-unevictable-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,82 +34,225 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: /proc/sysvipc/shm: fix 32-bit truncation of segment sizes
-From: Paul Menage <menage@google.com>
+Subject: mlock-mlocked-pages-are-unevictable-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-sysvipc_shm_proc_show() picks between format strings (based on the
-expected maximum length of a SHM segment) in a way that prevents gcc from
-performing format checks on the seq_printf() parameters.  This hid two
-format errors - shp->shm_segsz and shp->shm_nattach are both unsigned
-long, but were being printed as unsigned int and signed int respectively. 
-This leads to 32-bit truncation of SHM segment sizes reported in
-/proc/sysvipc/shm.  (And for nattach, but that's less of a problem for
-most users).
+Fix this patch for pagemap-pass-mm-into-pagewalkers.patch.
 
-This patch makes the format string directly visible to gcc's format
-specifier checker, and fixes the two broken format specifiers.
-
-Signed-off-by: Paul Menage <menage@google.com>
-Cc: Nadia Derbey <Nadia.Derbey@bull.net>
-Cc: Manfred Spraul <manfred@colorfullife.com>
-Cc: Pierre Peiffer <peifferp@gmail.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Nick Piggin <npiggin@suse.de>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Dave Hansen <dave@linux.vnet.ibm.com>
+Cc: Matt Mackall <mpm@selenic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/shm.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ mm/mlock.c |   25 +++++++++++++------------
+ 1 file changed, 13 insertions(+), 12 deletions(-)
 
-diff -puN ipc/shm.c~proc-sysvipc-shm-fix-32-bit-truncation-of-segment-sizes ipc/shm.c
---- a/ipc/shm.c~proc-sysvipc-shm-fix-32-bit-truncation-of-segment-sizes
-+++ a/ipc/shm.c
-@@ -1060,16 +1060,16 @@ asmlinkage long sys_shmdt(char __user *s
- static int sysvipc_shm_proc_show(struct seq_file *s, void *it)
+diff -puN mm/mlock.c~mlock-mlocked-pages-are-unevictable-fix mm/mlock.c
+--- a/mm/mlock.c~mlock-mlocked-pages-are-unevictable-fix
++++ a/mm/mlock.c
+@@ -202,9 +202,9 @@ struct munlock_page_walk {
+  * munlock normal pages for present ptes
+  */
+ static int __munlock_pte_handler(pte_t *ptep, unsigned long addr,
+-				   unsigned long end, void *private)
++				   unsigned long end, struct mm_walk *walk)
  {
- 	struct shmid_kernel *shp = it;
--	char *format;
+-	struct munlock_page_walk *mpw = private;
++	struct munlock_page_walk *mpw = walk->private;
+ 	swp_entry_t entry;
+ 	struct page *page;
+ 	pte_t pte;
+@@ -245,18 +245,14 @@ out:
+  * Save pmd for pte handler for waiting on migration entries
+  */
+ static int __munlock_pmd_handler(pmd_t *pmd, unsigned long addr,
+-				 unsigned long end, void *private)
++				 unsigned long end, struct mm_walk *walk)
+ {
+-	struct munlock_page_walk *mpw = private;
++	struct munlock_page_walk *mpw = walk->private;
  
--#define SMALL_STRING "%10d %10d  %4o %10u %5u %5u  %5d %5u %5u %5u %5u %10lu %10lu %10lu\n"
--#define BIG_STRING   "%10d %10d  %4o %21u %5u %5u  %5d %5u %5u %5u %5u %10lu %10lu %10lu\n"
-+#if BITS_PER_LONG <= 32
-+#define SIZE_SPEC "%10lu"
-+#else
-+#define SIZE_SPEC "%21lu"
-+#endif
+ 	mpw->pmd = pmd;
+ 	return 0;
+ }
  
--	if (sizeof(size_t) <= sizeof(int))
--		format = SMALL_STRING;
--	else
--		format = BIG_STRING;
--	return seq_printf(s, format,
-+	return seq_printf(s,
-+			  "%10d %10d  %4o " SIZE_SPEC " %5u %5u  "
-+			  "%5lu %5u %5u %5u %5u %10lu %10lu %10lu\n",
- 			  shp->shm_perm.key,
- 			  shp->shm_perm.id,
- 			  shp->shm_perm.mode,
+-static struct mm_walk munlock_page_walk = {
+-	.pmd_entry = __munlock_pmd_handler,
+-	.pte_entry = __munlock_pte_handler,
+-};
+ 
+ /*
+  * munlock a range of pages in the vma using standard page table walk.
+@@ -266,8 +262,14 @@ static struct mm_walk munlock_page_walk 
+ static void __munlock_vma_pages_range(struct vm_area_struct *vma,
+ 			      unsigned long start, unsigned long end)
+ {
+-	struct mm_struct *mm = vma->vm_mm;
+-	struct munlock_page_walk mpw;
++	struct munlock_page_walk mpw = {
++		.vma = vma,
++	};
++	struct mm_walk munlock_page_walk = {
++		.pmd_entry = __munlock_pmd_handler,
++		.pte_entry = __munlock_pte_handler,
++		.private = &mpw,
++	};
+ 
+ 	VM_BUG_ON(start & ~PAGE_MASK || end & ~PAGE_MASK);
+ 	VM_BUG_ON(!rwsem_is_locked(&vma->vm_mm->mmap_sem));
+@@ -275,8 +277,7 @@ static void __munlock_vma_pages_range(st
+ 	VM_BUG_ON(end > vma->vm_end);
+ 
+ 	lru_add_drain_all();	/* push cached pages to LRU */
+-	mpw.vma = vma;
+-	walk_page_range(mm, start, end, &munlock_page_walk, &mpw);
++	walk_page_range(start, end, &munlock_page_walk);
+ 	lru_add_drain_all();	/* to update stats */
+ }
+ 
 _
 
-Patches currently in -mm which might be from menage@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-proc-sysvipc-shm-fix-32-bit-truncation-of-segment-sizes.patch
-call_usermodehelper-increase-reliability.patch
-cgroup-use-read-lock-to-guard-find_existing_css_set.patch
-mark-res_counter_charge_locked-with-__must_check.patch
-cgroup-list_for_each-cleanup-v2.patch
-cgroup-anotate-two-variables-with-__read_mostly.patch
-memcg-remove-refcnt-from-page_cgroup.patch
-memcg-remove-refcnt-from-page_cgroup-fix.patch
-memcg-handle-swap-cache.patch
-memcg-handle-swap-cache-fix.patch
-memcg-helper-function-for-relcaim-from-shmem.patch
-memcg-add-hints-for-branch.patch
-memcg-remove-a-redundant-check.patch
-memrlimit-add-memrlimit-controller-documentation.patch
-memrlimit-setup-the-memrlimit-controller.patch
-memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
-memrlimit-add-memrlimit-controller-accounting-and-control.patch
-cpusets-update-tasks-cpus_allowed-and-mems_allowed-after-cpu-node-offline-online.patch
-make-cgroup_seqfile_release-static.patch
-add-a-refcount-check-in-dput.patch
+m68k-add-ext2_find_firstnext_bit-for-ext4-checkpatch-fixes.patch
+linux-next.patch
+next-remove-localversion.patch
+linux-next-git-rejects.patch
+fix-kobject-fix-kobject_rename-and-config_sysfs.patch
+kvm-unbork.patch
+kvm-is-busted-on-ia64.patch
+drivers-mtd-nand-nandsimc-needs-div64h.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+lguest-use-cpu-capability-accessors.patch
+intel-agp-rewrite-gtt-on-resume.patch
+arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2.patch
+arch-powerpc-platforms-pseries-eeh_driverc-fix-warning.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+git-jg-misc-git-rejects.patch
+drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+git-leds.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers.patch
+drivers-mtd-devices-block2mtdc-suppress-warning.patch
+bluetooth-hci_bcspc-small-cleanups-api-users.patch
+sundance-set-carrier-status-on-link-change-events.patch
+net-sh_eth-add-support-for-renesas-superh-ethernet.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+pci-introduce-pci_slot.patch
+acpi-pci-slot-detection-driver.patch
+git-scsi-misc-fix-scsi_dh-build-errors.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
+pktcdvd-push-bkl-down-into-driver-fix.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-logfs-fixup.patch
+drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
+drivers-uwb-wlp-sysfsc-dead-code.patch
+usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues.patch
+watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
+git-xtensa.patch
+driver-video-cirrusfb-fix-ram-address-printk-fix.patch
+driver-video-cirrusfb-fix-ram-address-printk-fix-fix.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-verify-the-page-links-and-memory-model.patch
+mspec-convert-nopfn-to-fault-fix.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+kill-generic_file_direct_io-checkpatch-fixes.patch
+use-generic_access_phys-for-dev-mem-mappings-fix.patch
+spufs-use-the-new-vm_ops-access-fix.patch
+fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
+page-flags-record-page-flag-overlays-explicitly-xen.patch
+mapping_set_error-add-unlikely.patch
+huge-page-private-reservation-review-cleanups-fix.patch
+sync_file_range_write-may-and-will-block-document-that-fix.patch
+vmallocinfo-add-numa-information-fix.patch
+hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
+hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
+hugetlb-override-default-huge-page-size-ia64-build.patch
+bootmem-add-debugging-framework-fix.patch
+bootmem-clean-up-free_all_bootmem_core-fix.patch
+bootmem-free-reserve-helpers-fix.patch
+bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
+swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
+block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
+rename-warn-to-warning-to-clear-the-namespace-fix.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-paccept-sys_ni.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-signalfd-fix.patch
+flag-parameters-eventfd-fix.patch
+flag-parameters-inotify_init-fix.patch
+flag-parameters-check-magic-constants-alpha.patch
+cputopology-always-define-cpu-topology-information-cleanup.patch
+oprofile-multiplexing-checkpatch-fixes.patch
+gpio-gpio-driver-for-max7301-spi-gpio-expander-checkpatch-fixes.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
+pnp-add-pnp_possible_config-can-a-device-could-be-configured-this-way-fix.patch
+pnp-convert-resource-options-to-single-linked-list-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
+reiserfs-convert-j_flush_sem-to-mutex.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
+jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup.patch
+ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
+getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
+tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
+memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
+revert-linux-next-changes-to-make-memstick-use-fully-asynchronous-request-processing-apply.patch
+memstick-use-fully-asynchronous-request-processing-fix.patch
+revert-revert-linux-next-changes-to-make-memstick-use-fully-asynchronous-request-processing-apply.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+mm-introduce-get_user_pages_fast-fix.patch
+mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-fix.patch
+x86-lockless-get_user_pages_fast-fix-2.patch
+x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
+x86-lockless-get_user_pages_fast-fix-warning.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
