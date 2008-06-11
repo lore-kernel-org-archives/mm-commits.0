@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pagemap-fix-large-pages-in-pagemap.patch added to -mm tree
-Date: Wed, 11 Jun 2008 13:29:44 -0700
-Message-ID: <200806112029.m5BKTj1V016503@imap1.linux-foundation.org>
+Subject: + proc-sysvipc-shm-fix-32-bit-truncation-of-segment-sizes.patch added to -mm tree
+Date: Wed, 11 Jun 2008 13:49:06 -0700
+Message-ID: <200806112049.m5BKn7FJ017258@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54597 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58372 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751472AbYFKUkN (ORCPT
+	by vger.kernel.org with ESMTP id S1752164AbYFKUuW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Jun 2008 16:40:13 -0400
+	Wed, 11 Jun 2008 16:50:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dave@linux.vnet.ibm.com, mpm@selenic.com
+Cc: menage@google.com, Nadia.Derbey@bull.net, manfred@colorfullife.com, peifferp@gmail.com
 
 
 The patch titled
-     pagemap: fix large pages in pagemap
+     /proc/sysvipc/shm: fix 32-bit truncation of segment sizes
 has been added to the -mm tree.  Its filename is
-     pagemap-fix-large-pages-in-pagemap.patch
+     proc-sysvipc-shm-fix-32-bit-truncation-of-segment-sizes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,87 +34,82 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pagemap: fix large pages in pagemap
-From: Dave Hansen <dave@linux.vnet.ibm.com>
+Subject: /proc/sysvipc/shm: fix 32-bit truncation of segment sizes
+From: Paul Menage <menage@google.com>
 
-We were walking right into huge page areas in the pagemap walker, and
-calling the pmds pmd_bad() and clearing them.
+sysvipc_shm_proc_show() picks between format strings (based on the
+expected maximum length of a SHM segment) in a way that prevents gcc from
+performing format checks on the seq_printf() parameters.  This hid two
+format errors - shp->shm_segsz and shp->shm_nattach are both unsigned
+long, but were being printed as unsigned int and signed int respectively. 
+This leads to 32-bit truncation of SHM segment sizes reported in
+/proc/sysvipc/shm.  (And for nattach, but that's less of a problem for
+most users).
 
-That leaked huge pages.  Bad.
+This patch makes the format string directly visible to gcc's format
+specifier checker, and fixes the two broken format specifiers.
 
-This patch at least works around that for now.  It ignores huge pages in
-the pagemap walker for the time being, and won't leak those pages.
-
-Signed-off-by: Dave Hansen <dave@linux.vnet.ibm.com>
-Acked-by: Matt Mackall <mpm@selenic.com>
+Signed-off-by: Paul Menage <menage@google.com>
+Cc: Nadia Derbey <Nadia.Derbey@bull.net>
+Cc: Manfred Spraul <manfred@colorfullife.com>
+Cc: Pierre Peiffer <peifferp@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   39 ++++++++++++++++++++++++++++++---------
- 1 file changed, 30 insertions(+), 9 deletions(-)
+ ipc/shm.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~pagemap-fix-large-pages-in-pagemap fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~pagemap-fix-large-pages-in-pagemap
-+++ a/fs/proc/task_mmu.c
-@@ -553,24 +553,45 @@ static u64 swap_pte_to_pagemap_entry(pte
- 	return swp_type(e) | (swp_offset(e) << MAX_SWAPFILES_SHIFT);
- }
- 
-+static unsigned long pte_to_pagemap_entry(pte_t pte)
-+{
-+	unsigned long pme = 0;
-+	if (is_swap_pte(pte))
-+		pme = PM_PFRAME(swap_pte_to_pagemap_entry(pte))
-+			| PM_PSHIFT(PAGE_SHIFT) | PM_SWAP;
-+	else if (pte_present(pte))
-+		pme = PM_PFRAME(pte_pfn(pte))
-+			| PM_PSHIFT(PAGE_SHIFT) | PM_PRESENT;
-+	return pme;
-+}
-+
- static int pagemap_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
- 			     struct mm_walk *walk)
+diff -puN ipc/shm.c~proc-sysvipc-shm-fix-32-bit-truncation-of-segment-sizes ipc/shm.c
+--- a/ipc/shm.c~proc-sysvipc-shm-fix-32-bit-truncation-of-segment-sizes
++++ a/ipc/shm.c
+@@ -1060,16 +1060,16 @@ asmlinkage long sys_shmdt(char __user *s
+ static int sysvipc_shm_proc_show(struct seq_file *s, void *it)
  {
-+	struct vm_area_struct *vma;
- 	struct pagemapread *pm = walk->private;
- 	pte_t *pte;
- 	int err = 0;
+ 	struct shmid_kernel *shp = it;
+-	char *format;
  
-+	/* find the first VMA at or above 'addr' */
-+	vma = find_vma(walk->mm, addr);
- 	for (; addr != end; addr += PAGE_SIZE) {
- 		u64 pfn = PM_NOT_PRESENT;
--		pte = pte_offset_map(pmd, addr);
--		if (is_swap_pte(*pte))
--			pfn = PM_PFRAME(swap_pte_to_pagemap_entry(*pte))
--				| PM_PSHIFT(PAGE_SHIFT) | PM_SWAP;
--		else if (pte_present(*pte))
--			pfn = PM_PFRAME(pte_pfn(*pte))
--				| PM_PSHIFT(PAGE_SHIFT) | PM_PRESENT;
--		/* unmap so we're not in atomic when we copy to userspace */
--		pte_unmap(pte);
-+
-+		/* check to see if we've left 'vma' behind
-+		 * and need a new, higher one */
-+		if (vma && (addr >= vma->vm_end))
-+			vma = find_vma(walk->mm, addr);
-+
-+		/* check that 'vma' actually covers this address,
-+		 * and that it isn't a huge page vma */
-+		if (vma && (vma->vm_start <= addr) &&
-+		    !is_vm_hugetlb_page(vma)) {
-+			pte = pte_offset_map(pmd, addr);
-+			pfn = pte_to_pagemap_entry(*pte);
-+			/* unmap before userspace copy */
-+			pte_unmap(pte);
-+		}
- 		err = add_to_pagemap(addr, pfn, pm);
- 		if (err)
- 			return err;
+-#define SMALL_STRING "%10d %10d  %4o %10u %5u %5u  %5d %5u %5u %5u %5u %10lu %10lu %10lu\n"
+-#define BIG_STRING   "%10d %10d  %4o %21u %5u %5u  %5d %5u %5u %5u %5u %10lu %10lu %10lu\n"
++#if BITS_PER_LONG <= 32
++#define SIZE_SPEC "%10lu"
++#else
++#define SIZE_SPEC "%21lu"
++#endif
+ 
+-	if (sizeof(size_t) <= sizeof(int))
+-		format = SMALL_STRING;
+-	else
+-		format = BIG_STRING;
+-	return seq_printf(s, format,
++	return seq_printf(s,
++			  "%10d %10d  %4o " SIZE_SPEC " %5u %5u  "
++			  "%5lu %5u %5u %5u %5u %10lu %10lu %10lu\n",
+ 			  shp->shm_perm.key,
+ 			  shp->shm_perm.id,
+ 			  shp->shm_perm.mode,
 _
 
-Patches currently in -mm which might be from dave@linux.vnet.ibm.com are
+Patches currently in -mm which might be from menage@google.com are
 
-pagemap-pass-mm-into-pagewalkers.patch
-pagemap-fix-large-pages-in-pagemap.patch
+origin.patch
+proc-sysvipc-shm-fix-32-bit-truncation-of-segment-sizes.patch
+call_usermodehelper-increase-reliability.patch
+cgroup-use-read-lock-to-guard-find_existing_css_set.patch
+mark-res_counter_charge_locked-with-__must_check.patch
+cgroup-list_for_each-cleanup-v2.patch
+cgroup-anotate-two-variables-with-__read_mostly.patch
+memcg-remove-refcnt-from-page_cgroup.patch
+memcg-remove-refcnt-from-page_cgroup-fix.patch
+memcg-handle-swap-cache.patch
+memcg-handle-swap-cache-fix.patch
+memcg-helper-function-for-relcaim-from-shmem.patch
+memcg-add-hints-for-branch.patch
+memcg-remove-a-redundant-check.patch
+memrlimit-add-memrlimit-controller-documentation.patch
+memrlimit-setup-the-memrlimit-controller.patch
+memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
+memrlimit-add-memrlimit-controller-accounting-and-control.patch
+cpusets-update-tasks-cpus_allowed-and-mems_allowed-after-cpu-node-offline-online.patch
+make-cgroup_seqfile_release-static.patch
+add-a-refcount-check-in-dput.patch
 
