@@ -1,375 +1,198 @@
 From: akpm@linux-foundation.org
-Subject: - vmscan-handle-mlocked-pages-during-map-remap-unmap.patch removed from -mm tree
-Date: Wed, 11 Jun 2008 12:46:38 -0700
-Message-ID: <200806111946.m5BJkccT014604@imap1.linux-foundation.org>
+Subject: - vmscan-free-swap-space-on-swap-in-activation.patch removed from -mm tree
+Date: Wed, 11 Jun 2008 12:45:58 -0700
+Message-ID: <200806111945.m5BJjwqQ014536@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59299 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47198 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753520AbYFKTq7 (ORCPT
+	by vger.kernel.org with ESMTP id S1753676AbYFKTq5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Jun 2008 15:46:59 -0400
+	Wed, 11 Jun 2008 15:46:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: riel@redhat.com, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, npiggin@suse.de, mm-commits@vger.kernel.org
+To: riel@redhat.com, Lee.Schermerhorn@hp.com, hugh@veritas.com, minchan.kim@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vmscan: handle mlocked pages during map, remap, unmap
+     vmscan: free swap space on swap-in/activation
 has been removed from the -mm tree.  Its filename was
-     vmscan-handle-mlocked-pages-during-map-remap-unmap.patch
+     vmscan-free-swap-space-on-swap-in-activation.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: handle mlocked pages during map, remap, unmap
+Subject: vmscan: free swap space on swap-in/activation
 From: Rik van Riel <riel@redhat.com>
 
-Originally from Nick Piggin <npiggin@suse.de>
+Free swap cache entries when swapping in pages if vm_swap_full() [swap
+space > 1/2 used].  Uses new pagevec to reduce pressure on locks.
 
-Remove mlocked pages from the LRU using "NoReclaim infrastructure" during
-mmap(), munmap(), mremap() and truncate().  Try to move back to normal LRU
-lists on munmap() when last mlocked mapping removed.  Removed
-PageMlocked() status when page truncated from file.
-
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Signed-off-by: Rik van Riel <riel@redhat.com>
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Signed-off-by: MinChan Kim <minchan.kim@gmail.com>
+Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/fremap.c   |   26 ++++++++++++++--
- mm/internal.h |   13 +++++++-
- mm/mlock.c    |   10 +++---
- mm/mmap.c     |   75 +++++++++++++++++++++++++++++++++++++-----------
- mm/mremap.c   |    8 +++--
- mm/truncate.c |    4 ++
- 6 files changed, 106 insertions(+), 30 deletions(-)
+ include/linux/pagevec.h |    1 +
+ include/linux/swap.h    |    6 ++++++
+ mm/swap.c               |   18 ++++++++++++++++++
+ mm/swapfile.c           |   25 ++++++++++++++++++++++---
+ mm/vmscan.c             |    7 +++++++
+ 5 files changed, 54 insertions(+), 3 deletions(-)
 
-diff -puN mm/fremap.c~vmscan-handle-mlocked-pages-during-map-remap-unmap mm/fremap.c
---- a/mm/fremap.c~vmscan-handle-mlocked-pages-during-map-remap-unmap
-+++ a/mm/fremap.c
-@@ -20,6 +20,8 @@
- #include <asm/cacheflush.h>
- #include <asm/tlbflush.h>
+diff -puN include/linux/pagevec.h~vmscan-free-swap-space-on-swap-in-activation include/linux/pagevec.h
+--- a/include/linux/pagevec.h~vmscan-free-swap-space-on-swap-in-activation
++++ a/include/linux/pagevec.h
+@@ -25,6 +25,7 @@ void __pagevec_release_nonlru(struct pag
+ void __pagevec_free(struct pagevec *pvec);
+ void ____pagevec_lru_add(struct pagevec *pvec, enum lru_list lru);
+ void pagevec_strip(struct pagevec *pvec);
++void pagevec_swap_free(struct pagevec *pvec);
+ unsigned pagevec_lookup(struct pagevec *pvec, struct address_space *mapping,
+ 		pgoff_t start, unsigned nr_pages);
+ unsigned pagevec_lookup_tag(struct pagevec *pvec,
+diff -puN include/linux/swap.h~vmscan-free-swap-space-on-swap-in-activation include/linux/swap.h
+--- a/include/linux/swap.h~vmscan-free-swap-space-on-swap-in-activation
++++ a/include/linux/swap.h
+@@ -266,6 +266,7 @@ extern sector_t swapdev_block(int, pgoff
+ extern struct swap_info_struct *get_swap_info_struct(unsigned);
+ extern int can_share_swap_page(struct page *);
+ extern int remove_exclusive_swap_page(struct page *);
++extern int remove_exclusive_swap_page_ref(struct page *);
+ struct backing_dev_info;
  
-+#include "internal.h"
-+
- static void zap_pte(struct mm_struct *mm, struct vm_area_struct *vma,
- 			unsigned long addr, pte_t *ptep)
- {
-@@ -214,13 +216,29 @@ asmlinkage long sys_remap_file_pages(uns
- 		spin_unlock(&mapping->i_mmap_lock);
- 	}
+ extern spinlock_t swap_lock;
+@@ -356,6 +357,11 @@ static inline int remove_exclusive_swap_
+ 	return 0;
+ }
  
-+	if (vma->vm_flags & VM_LOCKED) {
-+		/*
-+		 * drop PG_Mlocked flag for over-mapped range
-+		 */
-+		unsigned int saved_flags = vma->vm_flags;
-+		munlock_vma_pages_range(vma, start, start + size);
-+		vma->vm_flags = saved_flags;
-+	}
-+
- 	err = populate_range(mm, vma, start, size, pgoff);
- 	if (!err && !(flags & MAP_NONBLOCK)) {
--		if (unlikely(has_write_lock)) {
--			downgrade_write(&mm->mmap_sem);
--			has_write_lock = 0;
-+		if (vma->vm_flags & VM_LOCKED) {
-+			/*
-+			 * might be mapping previously unmapped range of file
-+			 */
-+			mlock_vma_pages_range(vma, start, start + size);
-+		} else {
-+			if (unlikely(has_write_lock)) {
-+				downgrade_write(&mm->mmap_sem);
-+				has_write_lock = 0;
-+			}
-+			make_pages_present(start, start+size);
- 		}
--		make_pages_present(start, start+size);
- 	}
- 
- 	/*
-diff -puN mm/internal.h~vmscan-handle-mlocked-pages-during-map-remap-unmap mm/internal.h
---- a/mm/internal.h~vmscan-handle-mlocked-pages-during-map-remap-unmap
-+++ a/mm/internal.h
-@@ -68,9 +68,18 @@ extern int mlock_vma_pages_range(struct 
- 			unsigned long start, unsigned long end);
- 
- /*
-- * munlock all pages in vma.   For munmap() and exit().
-+ * munlock all pages in vma range.   For mremap().
-  */
--extern void munlock_vma_pages_all(struct vm_area_struct *vma);
-+extern void munlock_vma_pages_range(struct vm_area_struct *vma,
-+			       unsigned long start, unsigned long end);
-+
-+/*
-+ * munlock all pages in vma.   For munmap and exit().
-+ */
-+static inline void munlock_vma_pages_all(struct vm_area_struct *vma)
++static inline int remove_exclusive_swap_page_ref(struct page *page)
 +{
-+	munlock_vma_pages_range(vma, vma->vm_start, vma->vm_end);
++	return 0;
 +}
- 
- #ifdef CONFIG_NORECLAIM_LRU
- /*
-diff -puN mm/mlock.c~vmscan-handle-mlocked-pages-during-map-remap-unmap mm/mlock.c
---- a/mm/mlock.c~vmscan-handle-mlocked-pages-during-map-remap-unmap
-+++ a/mm/mlock.c
-@@ -270,7 +270,8 @@ static void __munlock_vma_pages_range(st
- 	struct munlock_page_walk mpw;
- 
- 	VM_BUG_ON(start & ~PAGE_MASK || end & ~PAGE_MASK);
--	VM_BUG_ON(!rwsem_is_locked(&vma->vm_mm->mmap_sem));
-+	VM_BUG_ON((!rwsem_is_locked(&vma->vm_mm->mmap_sem)) &&
-+		  (atomic_read(&mm->mm_users) != 0));
- 	VM_BUG_ON(start < vma->vm_start);
- 	VM_BUG_ON(end > vma->vm_end);
- 
-@@ -354,12 +355,13 @@ no_mlock:
- 
- 
- /*
-- * munlock all pages in vma.   For munmap() and exit().
-+ * munlock all pages in the vma range.   For mremap(), munmap() and exit().
-  */
--void munlock_vma_pages_all(struct vm_area_struct *vma)
-+void munlock_vma_pages_range(struct vm_area_struct *vma,
-+			   unsigned long start, unsigned long end)
++
+ static inline swp_entry_t get_swap_page(void)
  {
- 	vma->vm_flags &= ~VM_LOCKED;
--	__munlock_vma_pages_range(vma, vma->vm_start, vma->vm_end);
-+	__munlock_vma_pages_range(vma, start, end);
- }
- 
- /*
-diff -puN mm/mmap.c~vmscan-handle-mlocked-pages-during-map-remap-unmap mm/mmap.c
---- a/mm/mmap.c~vmscan-handle-mlocked-pages-during-map-remap-unmap
-+++ a/mm/mmap.c
-@@ -35,6 +35,8 @@
- 
- #include "internal.h"
- 
-+#include "internal.h"
-+
- #ifndef arch_mmap_check
- #define arch_mmap_check(addr, len, flags)	(0)
- #endif
-@@ -970,6 +972,7 @@ unsigned long do_mmap_pgoff(struct file 
- 			return -EPERM;
- 		vm_flags |= VM_LOCKED;
+ 	swp_entry_t entry;
+diff -puN mm/swap.c~vmscan-free-swap-space-on-swap-in-activation mm/swap.c
+--- a/mm/swap.c~vmscan-free-swap-space-on-swap-in-activation
++++ a/mm/swap.c
+@@ -443,6 +443,24 @@ void pagevec_strip(struct pagevec *pvec)
  	}
+ }
+ 
++/*
++ * Try to free swap space from the pages in a pagevec
++ */
++void pagevec_swap_free(struct pagevec *pvec)
++{
++	int i;
 +
- 	/* mlock MCL_FUTURE? */
- 	if (vm_flags & VM_LOCKED) {
- 		unsigned long locked, lock_limit;
-@@ -1133,10 +1136,12 @@ munmap_back:
- 	 * The VM_SHARED test is necessary because shmem_zero_setup
- 	 * will create the file object for a shared anonymous map below.
- 	 */
--	if (!file && !(vm_flags & VM_SHARED) &&
--	    vma_merge(mm, prev, addr, addr + len, vm_flags,
--					NULL, NULL, pgoff, NULL))
--		goto out;
-+	if (!file && !(vm_flags & VM_SHARED)) {
-+		vma = vma_merge(mm, prev, addr, addr + len, vm_flags,
-+					NULL, NULL, pgoff, NULL);
-+		if (vma)
-+			goto out;
-+	}
- 
- 	/*
- 	 * Determine the object being mapped and call the appropriate
-@@ -1218,10 +1223,14 @@ out:
- 	mm->total_vm += len >> PAGE_SHIFT;
- 	vm_stat_account(mm, vm_flags, file, len >> PAGE_SHIFT);
- 	if (vm_flags & VM_LOCKED) {
--		mm->locked_vm += len >> PAGE_SHIFT;
--		make_pages_present(addr, addr + len);
--	}
--	if ((flags & MAP_POPULATE) && !(flags & MAP_NONBLOCK))
-+		/*
-+		 * makes pages present; downgrades, drops, reacquires mmap_sem
-+		 */
-+		int nr_pages = mlock_vma_pages_range(vma, addr, addr + len);
-+		if (nr_pages < 0)
-+			return nr_pages;	/* vma gone! */
-+		mm->locked_vm += (len >> PAGE_SHIFT) - nr_pages;
-+	} else if ((flags & MAP_POPULATE) && !(flags & MAP_NONBLOCK))
- 		make_pages_present(addr, addr + len);
- 	return addr;
- 
-@@ -1694,8 +1703,11 @@ find_extend_vma(struct mm_struct *mm, un
- 		return vma;
- 	if (!prev || expand_stack(prev, addr))
- 		return NULL;
--	if (prev->vm_flags & VM_LOCKED)
--		make_pages_present(addr, prev->vm_end);
-+	if (prev->vm_flags & VM_LOCKED) {
-+		int nr_pages = mlock_vma_pages_range(prev, addr, prev->vm_end);
-+		if (nr_pages < 0)
-+			return NULL;	/* vma gone! */
-+	}
- 	return prev;
- }
- #else
-@@ -1721,8 +1733,11 @@ find_extend_vma(struct mm_struct * mm, u
- 	start = vma->vm_start;
- 	if (expand_stack(vma, addr))
- 		return NULL;
--	if (vma->vm_flags & VM_LOCKED)
--		make_pages_present(addr, start);
-+	if (vma->vm_flags & VM_LOCKED) {
-+		int nr_pages = mlock_vma_pages_range(vma, addr, start);
-+		if (nr_pages < 0)
-+			return NULL;	/* vma gone! */
-+	}
- 	return vma;
- }
- #endif
-@@ -1909,6 +1924,18 @@ int do_munmap(struct mm_struct *mm, unsi
- 	vma = prev? prev->vm_next: mm->mmap;
- 
- 	/*
-+	 * unlock any mlock()ed ranges before detaching vmas
-+	 */
-+	if (mm->locked_vm) {
-+		struct vm_area_struct *tmp = vma;
-+		while (tmp && tmp->vm_start < end) {
-+			if (tmp->vm_flags & VM_LOCKED)
-+				munlock_vma_pages_all(tmp);
-+			tmp = tmp->vm_next;
++	for (i = 0; i < pagevec_count(pvec); i++) {
++		struct page *page = pvec->pages[i];
++
++		if (PageSwapCache(page) && !TestSetPageLocked(page)) {
++			if (PageSwapCache(page))
++				remove_exclusive_swap_page_ref(page);
++			unlock_page(page);
 +		}
 +	}
++}
 +
-+	/*
- 	 * Remove the vma's, and unmap the actual pages
- 	 */
- 	detach_vmas_to_be_unmapped(mm, vma, prev, end);
-@@ -2020,8 +2047,9 @@ unsigned long do_brk(unsigned long addr,
- 		return -ENOMEM;
- 
- 	/* Can we just expand an old private anonymous mapping? */
--	if (vma_merge(mm, prev, addr, addr + len, flags,
--					NULL, NULL, pgoff, NULL))
-+	vma = vma_merge(mm, prev, addr, addr + len, flags,
-+					NULL, NULL, pgoff, NULL);
-+	if (vma)
- 		goto out;
- 
- 	/*
-@@ -2043,8 +2071,9 @@ unsigned long do_brk(unsigned long addr,
- out:
- 	mm->total_vm += len >> PAGE_SHIFT;
- 	if (flags & VM_LOCKED) {
--		mm->locked_vm += len >> PAGE_SHIFT;
--		make_pages_present(addr, addr + len);
-+		int nr_pages = mlock_vma_pages_range(vma, addr, addr + len);
-+		if (nr_pages >= 0)
-+			mm->locked_vm += (len >> PAGE_SHIFT) - nr_pages;
- 	}
- 	return addr;
- }
-@@ -2055,13 +2084,25 @@ EXPORT_SYMBOL(do_brk);
- void exit_mmap(struct mm_struct *mm)
- {
- 	struct mmu_gather *tlb;
--	struct vm_area_struct *vma = mm->mmap;
-+	struct vm_area_struct *vma;
- 	unsigned long nr_accounted = 0;
- 	unsigned long end;
- 
- 	/* mm's last user has gone, and its about to be pulled down */
- 	arch_exit_mmap(mm);
- 
-+	if (mm->locked_vm) {
-+		vma = mm->mmap;
-+		while (vma) {
-+			if (vma->vm_flags & VM_LOCKED)
-+				munlock_vma_pages_all(vma);
-+			vma = vma->vm_next;
-+		}
-+	}
-+
-+	vma = mm->mmap;
-+
-+
- 	lru_add_drain();
- 	flush_cache_mm(mm);
- 	tlb = tlb_gather_mmu(mm, 1);
-diff -puN mm/mremap.c~vmscan-handle-mlocked-pages-during-map-remap-unmap mm/mremap.c
---- a/mm/mremap.c~vmscan-handle-mlocked-pages-during-map-remap-unmap
-+++ a/mm/mremap.c
-@@ -23,6 +23,8 @@
- #include <asm/cacheflush.h>
- #include <asm/tlbflush.h>
- 
-+#include "internal.h"
-+
- static pmd_t *get_old_pmd(struct mm_struct *mm, unsigned long addr)
- {
- 	pgd_t *pgd;
-@@ -232,8 +234,8 @@ static unsigned long move_vma(struct vm_
- 	if (vm_flags & VM_LOCKED) {
- 		mm->locked_vm += new_len >> PAGE_SHIFT;
- 		if (new_len > old_len)
--			make_pages_present(new_addr + old_len,
--					   new_addr + new_len);
-+			mlock_vma_pages_range(new_vma, new_addr + old_len,
-+						       new_addr + new_len);
- 	}
- 
- 	return new_addr;
-@@ -373,7 +375,7 @@ unsigned long do_mremap(unsigned long ad
- 			vm_stat_account(mm, vma->vm_flags, vma->vm_file, pages);
- 			if (vma->vm_flags & VM_LOCKED) {
- 				mm->locked_vm += pages;
--				make_pages_present(addr + old_len,
-+				mlock_vma_pages_range(vma, addr + old_len,
- 						   addr + new_len);
- 			}
- 			ret = addr;
-diff -puN mm/truncate.c~vmscan-handle-mlocked-pages-during-map-remap-unmap mm/truncate.c
---- a/mm/truncate.c~vmscan-handle-mlocked-pages-during-map-remap-unmap
-+++ a/mm/truncate.c
-@@ -18,6 +18,7 @@
- #include <linux/task_io_accounting_ops.h>
- #include <linux/buffer_head.h>	/* grr. try_to_release_page,
- 				   do_invalidatepage */
-+#include "internal.h"
- 
- 
  /**
-@@ -104,6 +105,7 @@ truncate_complete_page(struct address_sp
- 	cancel_dirty_page(page, PAGE_CACHE_SIZE);
- 
- 	remove_from_page_cache(page);
-+	clear_page_mlock(page);
- 	ClearPageUptodate(page);
- 	ClearPageMappedToDisk(page);
- 	page_cache_release(page);	/* pagecache ref */
-@@ -128,6 +130,7 @@ invalidate_complete_page(struct address_
- 	if (PagePrivate(page) && !try_to_release_page(page, 0))
+  * pagevec_lookup - gang pagecache lookup
+  * @pvec:	Where the resulting pages are placed
+diff -puN mm/swapfile.c~vmscan-free-swap-space-on-swap-in-activation mm/swapfile.c
+--- a/mm/swapfile.c~vmscan-free-swap-space-on-swap-in-activation
++++ a/mm/swapfile.c
+@@ -343,7 +343,7 @@ int can_share_swap_page(struct page *pag
+  * Work out if there are any other processes sharing this
+  * swap cache page. Free it if you can. Return success.
+  */
+-int remove_exclusive_swap_page(struct page *page)
++static int remove_exclusive_swap_page_count(struct page *page, int count)
+ {
+ 	int retval;
+ 	struct swap_info_struct * p;
+@@ -356,7 +356,7 @@ int remove_exclusive_swap_page(struct pa
+ 		return 0;
+ 	if (PageWriteback(page))
+ 		return 0;
+-	if (page_count(page) != 2) /* 2: us + cache */
++	if (page_count(page) != count) /* us + cache + ptes */
  		return 0;
  
-+	clear_page_mlock(page);
- 	ret = remove_mapping(mapping, page);
+ 	entry.val = page_private(page);
+@@ -369,7 +369,7 @@ int remove_exclusive_swap_page(struct pa
+ 	if (p->swap_map[swp_offset(entry)] == 1) {
+ 		/* Recheck the page count with the swapcache lock held.. */
+ 		spin_lock_irq(&swapper_space.tree_lock);
+-		if ((page_count(page) == 2) && !PageWriteback(page)) {
++		if ((page_count(page) == count) && !PageWriteback(page)) {
+ 			__delete_from_swap_cache(page);
+ 			SetPageDirty(page);
+ 			retval = 1;
+@@ -387,6 +387,25 @@ int remove_exclusive_swap_page(struct pa
+ }
  
- 	return ret;
-@@ -353,6 +356,7 @@ invalidate_complete_page2(struct address
- 	if (PageDirty(page))
- 		goto failed;
+ /*
++ * Most of the time the page should have two references: one for the
++ * process and one for the swap cache.
++ */
++int remove_exclusive_swap_page(struct page *page)
++{
++	return remove_exclusive_swap_page_count(page, 2);
++}
++
++/*
++ * The pageout code holds an extra reference to the page.  That raises
++ * the reference count to test for to 2 for a page that is only in the
++ * swap cache plus 1 for each process that maps the page.
++ */
++int remove_exclusive_swap_page_ref(struct page *page)
++{
++	return remove_exclusive_swap_page_count(page, 2 + page_mapcount(page));
++}
++
++/*
+  * Free the swap entry like above, but also try to
+  * free the page cache entry if it is the last user.
+  */
+diff -puN mm/vmscan.c~vmscan-free-swap-space-on-swap-in-activation mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-free-swap-space-on-swap-in-activation
++++ a/mm/vmscan.c
+@@ -645,6 +645,9 @@ free_it:
+ 		continue;
  
-+	clear_page_mlock(page);
- 	BUG_ON(PagePrivate(page));
- 	__remove_from_page_cache(page);
- 	spin_unlock_irq(&mapping->tree_lock);
+ activate_locked:
++		/* Not a candidate for swapping, so reclaim swap space. */
++		if (PageSwapCache(page) && vm_swap_full())
++			remove_exclusive_swap_page_ref(page);
+ 		SetPageActive(page);
+ 		pgactivate++;
+ keep_locked:
+@@ -1229,6 +1232,8 @@ static void shrink_active_list(unsigned 
+ 			__mod_zone_page_state(zone, NR_ACTIVE, pgmoved);
+ 			pgmoved = 0;
+ 			spin_unlock_irq(&zone->lru_lock);
++			if (vm_swap_full())
++				pagevec_swap_free(&pvec);
+ 			__pagevec_release(&pvec);
+ 			spin_lock_irq(&zone->lru_lock);
+ 		}
+@@ -1238,6 +1243,8 @@ static void shrink_active_list(unsigned 
+ 	__count_zone_vm_events(PGREFILL, zone, pgscanned);
+ 	__count_vm_events(PGDEACTIVATE, pgdeactivate);
+ 	spin_unlock_irq(&zone->lru_lock);
++	if (vm_swap_full())
++		pagevec_swap_free(&pvec);
+ 
+ 	pagevec_release(&pvec);
+ }
 _
 
 Patches currently in -mm which might be from riel@redhat.com are
@@ -398,6 +221,22 @@ idr-make-idr_find-rcu-safe.patch
 idr-make-idr_remove-rcu-safe.patch
 ipc-call-idr_find-without-locking-in-ipc_lock.patch
 ipc-get-rid-of-ipc_lock_down.patch
+vmscan-free-swap-space-on-swap-in-activation.patch
+vmscan-define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+vmscan-split-lru-lists-into-anon-file-sets-fix.patch
+vmscan-second-chance-replacement-for-anonymous-pages.patch
+vmscan-add-some-sanity-checks-to-get_scan_ratio.patch
+vmscan-fix-pagecache-reclaim-referenced-bit-check.patch
+vmscan-add-newly-swapped-in-pages-to-the-inactive-list.patch
+vmscan-more-aggressively-use-lumpy-reclaim.patch
+vmscan-pageflag-helpers-for-configed-out-flags.patch
+vmscan-noreclaim-lru-infrastructure.patch
+vmscan-noreclaim-lru-page-statistics.patch
+vmscan-ramfs-and-ram-disk-pages-are-non-reclaimable.patch
+vmscan-shm_locked-pages-are-non-reclaimable.patch
+vmscan-mlocked-pages-are-non-reclaimable.patch
+vmscan-downgrade-mmap-sem-while-populating-mlocked-regions.patch
 vmscan-handle-mlocked-pages-during-map-remap-unmap.patch
 vmscan-mlocked-pages-statistics.patch
 vmscan-cull-non-reclaimable-pages-in-fault-path.patch
