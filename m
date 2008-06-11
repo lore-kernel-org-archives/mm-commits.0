@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vmscan-free-swap-space-on-swap-in-activation.patch added to -mm tree
-Date: Wed, 11 Jun 2008 12:59:26 -0700
-Message-ID: <200806111959.m5BJxQxq015175@imap1.linux-foundation.org>
+Subject: + vmscan-second-chance-replacement-for-anonymous-pages.patch added to -mm tree
+Date: Wed, 11 Jun 2008 12:59:35 -0700
+Message-ID: <200806111959.m5BJxZEH015184@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43154 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39702 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754684AbYFKT74 (ORCPT
+	by vger.kernel.org with ESMTP id S1754815AbYFKT75 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Jun 2008 15:59:56 -0400
+	Wed, 11 Jun 2008 15:59:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: riel@redhat.com, Lee.Schermerhorn@hp.com, minchan.kim@gmail.com
+Cc: riel@redhat.com, kosaki.motohiro@jp.fujitsu.com
 
 
 The patch titled
-     vmscan: free swap space on swap-in/activation
+     vmscan: second chance replacement for anonymous pages
 has been added to the -mm tree.  Its filename is
-     vmscan-free-swap-space-on-swap-in-activation.patch
+     vmscan-second-chance-replacement-for-anonymous-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,182 +34,262 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: free swap space on swap-in/activation
+Subject: vmscan: second chance replacement for anonymous pages
 From: Rik van Riel <riel@redhat.com>
 
-If vm_swap_full() (swap space more than 50% full), the system will free
-swap space at swapin time.  With this patch, the system will also free the
-swap space in the pageout code, when we decide that the page is not a
-candidate for swapout (and just wasting swap space).
+We avoid evicting and scanning anonymous pages for the most part, but
+under some workloads we can end up with most of memory filled with
+anonymous pages.  At that point, we suddenly need to clear the referenced
+bits on all of memory, which can take ages on very large memory systems.
+
+We can reduce the maximum number of pages that need to be scanned by not
+taking the referenced state into account when deactivating an anonymous
+page.  After all, every anonymous page starts out referenced, so why
+check?
+
+If an anonymous page gets referenced again before it reaches the end of
+the inactive list, we move it back to the active list.
+
+To keep the maximum amount of necessary work reasonable, we scale the
+active to inactive ratio with the size of memory, using the formula
+active:inactive ratio = sqrt(memory in GB * 10).
+
+Kswapd CPU use now seems to scale by the amount of pageout bandwidth,
+instead of by the amount of memory present in the system.
 
 Signed-off-by: Rik van Riel <riel@redhat.com>
-Signed-off-by: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
-Signed-off-by: MinChan Kim <minchan.kim@gmail.com>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagevec.h |    1 +
- include/linux/swap.h    |    6 ++++++
- mm/swap.c               |   24 ++++++++++++++++++++++++
- mm/swapfile.c           |   25 ++++++++++++++++++++++---
- mm/vmscan.c             |    7 +++++++
- 5 files changed, 60 insertions(+), 3 deletions(-)
+ include/linux/mm_inline.h |   19 +++++++++++++
+ include/linux/mmzone.h    |    6 ++++
+ mm/page_alloc.c           |   41 ++++++++++++++++++++++++++++++
+ mm/vmscan.c               |   49 ++++++++++++++++++++++++++++++------
+ mm/vmstat.c               |    6 ++--
+ 5 files changed, 112 insertions(+), 9 deletions(-)
 
-diff -puN include/linux/pagevec.h~vmscan-free-swap-space-on-swap-in-activation include/linux/pagevec.h
---- a/include/linux/pagevec.h~vmscan-free-swap-space-on-swap-in-activation
-+++ a/include/linux/pagevec.h
-@@ -25,6 +25,7 @@ void __pagevec_release_nonlru(struct pag
- void __pagevec_free(struct pagevec *pvec);
- void ____pagevec_lru_add(struct pagevec *pvec, enum lru_list lru);
- void pagevec_strip(struct pagevec *pvec);
-+void pagevec_swap_free(struct pagevec *pvec);
- unsigned pagevec_lookup(struct pagevec *pvec, struct address_space *mapping,
- 		pgoff_t start, unsigned nr_pages);
- unsigned pagevec_lookup_tag(struct pagevec *pvec,
-diff -puN include/linux/swap.h~vmscan-free-swap-space-on-swap-in-activation include/linux/swap.h
---- a/include/linux/swap.h~vmscan-free-swap-space-on-swap-in-activation
-+++ a/include/linux/swap.h
-@@ -266,6 +266,7 @@ extern sector_t swapdev_block(int, pgoff
- extern struct swap_info_struct *get_swap_info_struct(unsigned);
- extern int can_share_swap_page(struct page *);
- extern int remove_exclusive_swap_page(struct page *);
-+extern int remove_exclusive_swap_page_ref(struct page *);
- struct backing_dev_info;
- 
- extern spinlock_t swap_lock;
-@@ -356,6 +357,11 @@ static inline int remove_exclusive_swap_
- 	return 0;
+diff -puN include/linux/mm_inline.h~vmscan-second-chance-replacement-for-anonymous-pages include/linux/mm_inline.h
+--- a/include/linux/mm_inline.h~vmscan-second-chance-replacement-for-anonymous-pages
++++ a/include/linux/mm_inline.h
+@@ -117,4 +117,23 @@ static inline enum lru_list page_lru(str
+ 	return lru;
  }
  
-+static inline int remove_exclusive_swap_page_ref(struct page *page)
++/**
++ * inactive_anon_is_low - check if anonymous pages need to be deactivated
++ * @zone: zone to check
++ *
++ * Returns true if the zone does not have enough inactive anon pages,
++ * meaning some active anon pages need to be deactivated.
++ */
++static inline int inactive_anon_is_low(struct zone *zone)
 +{
++	unsigned long active, inactive;
++
++	active = zone_page_state(zone, NR_ACTIVE_ANON);
++	inactive = zone_page_state(zone, NR_INACTIVE_ANON);
++
++	if (inactive * zone->inactive_ratio < active)
++		return 1;
++
 +	return 0;
 +}
+ #endif
+diff -puN include/linux/mmzone.h~vmscan-second-chance-replacement-for-anonymous-pages include/linux/mmzone.h
+--- a/include/linux/mmzone.h~vmscan-second-chance-replacement-for-anonymous-pages
++++ a/include/linux/mmzone.h
+@@ -323,6 +323,12 @@ struct zone {
+ 	 */
+ 	int prev_priority;
+ 
++	/*
++	 * The target ratio of ACTIVE_ANON to INACTIVE_ANON pages on
++	 * this zone's LRU.  Maintained by the pageout code.
++	 */
++	unsigned int inactive_ratio;
 +
- static inline swp_entry_t get_swap_page(void)
- {
- 	swp_entry_t entry;
-diff -puN mm/swap.c~vmscan-free-swap-space-on-swap-in-activation mm/swap.c
---- a/mm/swap.c~vmscan-free-swap-space-on-swap-in-activation
-+++ a/mm/swap.c
-@@ -427,6 +427,30 @@ void pagevec_strip(struct pagevec *pvec)
+ 
+ 	ZONE_PADDING(_pad2_)
+ 	/* Rarely used or read-mostly fields */
+diff -puN mm/page_alloc.c~vmscan-second-chance-replacement-for-anonymous-pages mm/page_alloc.c
+--- a/mm/page_alloc.c~vmscan-second-chance-replacement-for-anonymous-pages
++++ a/mm/page_alloc.c
+@@ -4194,6 +4194,46 @@ void setup_per_zone_pages_min(void)
+ 	calculate_totalreserve_pages();
  }
  
- /**
-+ * pagevec_swap_free - try to free swap space from the pages in a pagevec
-+ * @pvec: pagevec with swapcache pages to free the swap space of
++/**
++ * setup_per_zone_inactive_ratio - called when min_free_kbytes changes.
 + *
-+ * The caller needs to hold an extra reference to each page and
-+ * not hold the page lock on the pages.  This function uses a
-+ * trylock on the page lock so it may not always free the swap
-+ * space associated with a page.
++ * The inactive anon list should be small enough that the VM never has to
++ * do too much work, but large enough that each inactive page has a chance
++ * to be referenced again before it is swapped out.
++ *
++ * The inactive_anon ratio is the target ratio of ACTIVE_ANON to
++ * INACTIVE_ANON pages on this zone's LRU, maintained by the
++ * pageout code. A zone->inactive_ratio of 3 means 3:1 or 25% of
++ * the anonymous pages are kept on the inactive list.
++ *
++ * total     target    max
++ * memory    ratio     inactive anon
++ * -------------------------------------
++ *   10MB       1         5MB
++ *  100MB       1        50MB
++ *    1GB       3       250MB
++ *   10GB      10       0.9GB
++ *  100GB      31         3GB
++ *    1TB     101        10GB
++ *   10TB     320        32GB
 + */
-+void pagevec_swap_free(struct pagevec *pvec)
++void setup_per_zone_inactive_ratio(void)
 +{
-+	int i;
++	struct zone *zone;
 +
-+	for (i = 0; i < pagevec_count(pvec); i++) {
-+		struct page *page = pvec->pages[i];
++	for_each_zone(zone) {
++		unsigned int gb, ratio;
 +
-+		if (PageSwapCache(page) && !TestSetPageLocked(page)) {
-+			if (PageSwapCache(page))
-+				remove_exclusive_swap_page_ref(page);
-+			unlock_page(page);
-+		}
++		/* Zone size in gigabytes */
++		gb = zone->present_pages >> (30 - PAGE_SHIFT);
++		ratio = int_sqrt(10 * gb);
++		if (!ratio)
++			ratio = 1;
++
++		zone->inactive_ratio = ratio;
 +	}
 +}
 +
-+/**
-  * pagevec_lookup - gang pagecache lookup
-  * @pvec:	Where the resulting pages are placed
-  * @mapping:	The address_space to search
-diff -puN mm/swapfile.c~vmscan-free-swap-space-on-swap-in-activation mm/swapfile.c
---- a/mm/swapfile.c~vmscan-free-swap-space-on-swap-in-activation
-+++ a/mm/swapfile.c
-@@ -343,7 +343,7 @@ int can_share_swap_page(struct page *pag
-  * Work out if there are any other processes sharing this
-  * swap cache page. Free it if you can. Return success.
-  */
--int remove_exclusive_swap_page(struct page *page)
-+static int remove_exclusive_swap_page_count(struct page *page, int count)
- {
- 	int retval;
- 	struct swap_info_struct * p;
-@@ -356,7 +356,7 @@ int remove_exclusive_swap_page(struct pa
- 		return 0;
- 	if (PageWriteback(page))
- 		return 0;
--	if (page_count(page) != 2) /* 2: us + cache */
-+	if (page_count(page) != count) /* us + cache + ptes */
- 		return 0;
- 
- 	entry.val = page_private(page);
-@@ -369,7 +369,7 @@ int remove_exclusive_swap_page(struct pa
- 	if (p->swap_map[swp_offset(entry)] == 1) {
- 		/* Recheck the page count with the swapcache lock held.. */
- 		spin_lock_irq(&swapper_space.tree_lock);
--		if ((page_count(page) == 2) && !PageWriteback(page)) {
-+		if ((page_count(page) == count) && !PageWriteback(page)) {
- 			__delete_from_swap_cache(page);
- 			SetPageDirty(page);
- 			retval = 1;
-@@ -387,6 +387,25 @@ int remove_exclusive_swap_page(struct pa
- }
- 
  /*
-+ * Most of the time the page should have two references: one for the
-+ * process and one for the swap cache.
-+ */
-+int remove_exclusive_swap_page(struct page *page)
-+{
-+	return remove_exclusive_swap_page_count(page, 2);
-+}
-+
-+/*
-+ * The pageout code holds an extra reference to the page.  That raises
-+ * the reference count to test for to 2 for a page that is only in the
-+ * swap cache plus 1 for each process that maps the page.
-+ */
-+int remove_exclusive_swap_page_ref(struct page *page)
-+{
-+	return remove_exclusive_swap_page_count(page, 2 + page_mapcount(page));
-+}
-+
-+/*
-  * Free the swap entry like above, but also try to
-  * free the page cache entry if it is the last user.
-  */
-diff -puN mm/vmscan.c~vmscan-free-swap-space-on-swap-in-activation mm/vmscan.c
---- a/mm/vmscan.c~vmscan-free-swap-space-on-swap-in-activation
+  * Initialise min_free_kbytes.
+  *
+@@ -4231,6 +4271,7 @@ static int __init init_per_zone_pages_mi
+ 		min_free_kbytes = 65536;
+ 	setup_per_zone_pages_min();
+ 	setup_per_zone_lowmem_reserve();
++	setup_per_zone_inactive_ratio();
+ 	return 0;
+ }
+ module_init(init_per_zone_pages_min)
+diff -puN mm/vmscan.c~vmscan-second-chance-replacement-for-anonymous-pages mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-second-chance-replacement-for-anonymous-pages
 +++ a/mm/vmscan.c
-@@ -647,6 +647,9 @@ free_it:
- 		continue;
+@@ -1090,17 +1090,32 @@ static void shrink_active_list(unsigned 
+ 		__mod_zone_page_state(zone, NR_ACTIVE_ANON, -pgmoved);
+ 	spin_unlock_irq(&zone->lru_lock);
  
- activate_locked:
-+		/* Not a candidate for swapping, so reclaim swap space. */
-+		if (PageSwapCache(page) && vm_swap_full())
-+			remove_exclusive_swap_page_ref(page);
- 		SetPageActive(page);
- 		pgactivate++;
- keep_locked:
-@@ -1231,6 +1234,8 @@ static void shrink_active_list(unsigned 
- 			__mod_zone_page_state(zone, NR_ACTIVE, pgmoved);
- 			pgmoved = 0;
- 			spin_unlock_irq(&zone->lru_lock);
-+			if (vm_swap_full())
-+				pagevec_swap_free(&pvec);
- 			__pagevec_release(&pvec);
- 			spin_lock_irq(&zone->lru_lock);
++	pgmoved = 0;
+ 	while (!list_empty(&l_hold)) {
+ 		cond_resched();
+ 		page = lru_to_page(&l_hold);
+ 		list_del(&page->lru);
+-		if (page_referenced(page, 0, sc->mem_cgroup))
+-			list_add(&page->lru, &l_active);
+-		else
++		if (page_referenced(page, 0, sc->mem_cgroup)) {
++			pgmoved++;
++			if (file) {
++				/* Referenced file pages stay active. */
++				list_add(&page->lru, &l_active);
++			} else {
++				/* Anonymous pages always get deactivated. */
++				list_add(&page->lru, &l_inactive);
++			}
++		} else
+ 			list_add(&page->lru, &l_inactive);
+ 	}
+ 
+ 	/*
++	 * Count the referenced pages as rotated, even when they are moved
++	 * to the inactive list.  This helps balance scan pressure between
++	 * file and anonymous pages in get_scan_ratio.
++	 */
++	zone->recent_rotated[!!file] += pgmoved;
++
++	/*
+ 	 * Now put the pages back on the appropriate [file or anon] inactive
+ 	 * and active lists.
+ 	 */
+@@ -1161,7 +1176,6 @@ static void shrink_active_list(unsigned 
  		}
-@@ -1240,6 +1245,8 @@ static void shrink_active_list(unsigned 
+ 	}
+ 	__mod_zone_page_state(zone, NR_LRU_BASE + lru, pgmoved);
+-	zone->recent_rotated[!!file] += pgmoved;
+ 
  	__count_zone_vm_events(PGREFILL, zone, pgscanned);
  	__count_vm_events(PGDEACTIVATE, pgdeactivate);
- 	spin_unlock_irq(&zone->lru_lock);
-+	if (vm_swap_full())
-+		pagevec_swap_free(&pvec);
+@@ -1177,7 +1191,13 @@ static unsigned long shrink_list(enum lr
+ {
+ 	int file = is_file_lru(lru);
  
- 	pagevec_release(&pvec);
+-	if (lru == LRU_ACTIVE_ANON || lru == LRU_ACTIVE_FILE) {
++	if (lru == LRU_ACTIVE_FILE) {
++		shrink_active_list(nr_to_scan, zone, sc, priority, file);
++		return 0;
++	}
++
++	if (lru == LRU_ACTIVE_ANON &&
++	    (!scan_global_lru(sc) || inactive_anon_is_low(zone))) {
+ 		shrink_active_list(nr_to_scan, zone, sc, priority, file);
+ 		return 0;
+ 	}
+@@ -1311,8 +1331,8 @@ static unsigned long shrink_zone(int pri
+ 		}
+ 	}
+ 
+-	while (nr[LRU_ACTIVE_ANON] || nr[LRU_INACTIVE_ANON] ||
+-			nr[LRU_ACTIVE_FILE] || nr[LRU_INACTIVE_FILE]) {
++	while (nr[LRU_INACTIVE_ANON] || nr[LRU_ACTIVE_FILE] ||
++					nr[LRU_INACTIVE_FILE]) {
+ 		for_each_lru(l) {
+ 			if (nr[l]) {
+ 				nr_to_scan = min(nr[l],
+@@ -1325,6 +1345,13 @@ static unsigned long shrink_zone(int pri
+ 		}
+ 	}
+ 
++	/*
++	 * Even if we did not try to evict anon pages at all, we want to
++	 * rebalance the anon lru active/inactive ratio.
++	 */
++	if (scan_global_lru(sc) && inactive_anon_is_low(zone))
++		shrink_active_list(SWAP_CLUSTER_MAX, zone, sc, priority, 0);
++
+ 	throttle_vm_writeout(sc->gfp_mask);
+ 	return nr_reclaimed;
  }
+@@ -1618,6 +1645,14 @@ loop_again:
+ 			    priority != DEF_PRIORITY)
+ 				continue;
+ 
++			/*
++			 * Do some background aging of the anon list, to give
++			 * pages a chance to be referenced before reclaiming.
++			 */
++			if (inactive_anon_is_low(zone))
++				shrink_active_list(SWAP_CLUSTER_MAX, zone,
++							&sc, priority, 0);
++
+ 			if (!zone_watermark_ok(zone, order, zone->pages_high,
+ 					       0, 0)) {
+ 				end_zone = i;
+diff -puN mm/vmstat.c~vmscan-second-chance-replacement-for-anonymous-pages mm/vmstat.c
+--- a/mm/vmstat.c~vmscan-second-chance-replacement-for-anonymous-pages
++++ a/mm/vmstat.c
+@@ -721,10 +721,12 @@ static void zoneinfo_show_print(struct s
+ 	seq_printf(m,
+ 		   "\n  all_unreclaimable: %u"
+ 		   "\n  prev_priority:     %i"
+-		   "\n  start_pfn:         %lu",
++		   "\n  start_pfn:         %lu"
++		   "\n  inactive_ratio:    %u",
+ 			   zone_is_all_unreclaimable(zone),
+ 		   zone->prev_priority,
+-		   zone->zone_start_pfn);
++		   zone->zone_start_pfn,
++		   zone->inactive_ratio);
+ 	seq_putc(m, '\n');
+ }
+ 
 _
 
 Patches currently in -mm which might be from riel@redhat.com are
