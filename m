@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + console-keyboard-mapping-broken-by-04c71976.patch added to -mm tree
-Date: Wed, 11 Jun 2008 18:41:32 -0700
-Message-ID: <200806120141.m5C1fWXD028102@imap1.linux-foundation.org>
+Subject: + fsl-diu-db-compile-fix.patch added to -mm tree
+Date: Wed, 11 Jun 2008 23:28:49 -0700
+Message-ID: <200806120628.m5C6SnXP005501@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40775 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47384 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751539AbYFLBmB (ORCPT
+	by vger.kernel.org with ESMTP id S1752487AbYFLG3A (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Jun 2008 21:42:01 -0400
+	Thu, 12 Jun 2008 02:29:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jbohac@suse.cz, samuel.thibault@ens-lyon.org
+Cc: jeffm@suse.com, yorksun@freescale.com
 
 
 The patch titled
-     console keyboard mapping broken by 04c71976
+     fsl-diu-db: compile fix
 has been added to the -mm tree.  Its filename is
-     console-keyboard-mapping-broken-by-04c71976.patch
+     fsl-diu-db-compile-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: console keyboard mapping broken by 04c71976
-From: Jiri Bohac <jbohac@suse.cz>
+Subject: fsl-diu-db: compile fix
+From: Jeff Mahoney <jeffm@suse.com>
 
-Several console keyboard maps are broken since
+The variable is expected to be called ofdev.
 
-commit 04c71976500352d02f60616d2b960267d8c5fe24
-Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
-Date:   Tue Oct 16 23:27:04 2007 -0700
-
-    unicode diacritics support
-    
-
-because that changeset made k_self consider the value as a latin1
-character when in Unicode mode, which is wrong; k_self should still take
-the console map into account.
-
-Signed-off-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Signed-off-by: Jeff Mahoney <jeffm@suse.com>
+Cc: York Sun <yorksun@freescale.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/keyboard.c |    7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ drivers/video/fsl-diu-fb.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/keyboard.c~console-keyboard-mapping-broken-by-04c71976 drivers/char/keyboard.c
---- a/drivers/char/keyboard.c~console-keyboard-mapping-broken-by-04c71976
-+++ a/drivers/char/keyboard.c
-@@ -679,12 +679,7 @@ static void k_deadunicode(struct vc_data
- 
- static void k_self(struct vc_data *vc, unsigned char value, char up_flag)
+diff -puN drivers/video/fsl-diu-fb.c~fsl-diu-db-compile-fix drivers/video/fsl-diu-fb.c
+--- a/drivers/video/fsl-diu-fb.c~fsl-diu-db-compile-fix
++++ a/drivers/video/fsl-diu-fb.c
+@@ -1320,7 +1320,7 @@ static void free_irq_local(int irq)
+  * Power management hooks. Note that we won't be called from IRQ context,
+  * unlike the blank functions above, so we may sleep.
+  */
+-static int fsl_diu_suspend(struct of_device *dev, pm_message_t state)
++static int fsl_diu_suspend(struct of_device *ofdev, pm_message_t state)
  {
--	unsigned int uni;
--	if (kbd->kbdmode == VC_UNICODE)
--		uni = value;
--	else
--		uni = conv_8bit_to_uni(value);
--	k_unicode(vc, uni, up_flag);
-+	k_unicode(vc, conv_8bit_to_uni(value), up_flag);
+ 	struct fsl_diu_data *machine_data;
+ 
+@@ -1330,7 +1330,7 @@ static int fsl_diu_suspend(struct of_dev
+ 	return 0;
  }
  
- static void k_dead2(struct vc_data *vc, unsigned char value, char up_flag)
+-static int fsl_diu_resume(struct of_device *dev)
++static int fsl_diu_resume(struct of_device *ofdev)
+ {
+ 	struct fsl_diu_data *machine_data;
+ 
 _
 
-Patches currently in -mm which might be from jbohac@suse.cz are
+Patches currently in -mm which might be from jeffm@suse.com are
 
-console-keyboard-mapping-broken-by-04c71976.patch
+origin.patch
+reiserfs-convert-j_lock-to-mutex.patch
+reiserfs-convert-j_flush_sem-to-mutex.patch
+reiserfs-convert-j_commit_lock-to-mutex.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+fsl-diu-db-compile-fix.patch
 
