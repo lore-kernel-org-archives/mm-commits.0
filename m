@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + nommu-correct-kobjsize-page-validity-checks.patch added to -mm tree
-Date: Thu, 12 Jun 2008 00:51:30 -0700
-Message-ID: <200806120751.m5C7pUxq008535@imap1.linux-foundation.org>
+Subject: + dma-mapping-x86-per-device-dma_mapping_ops-support-fix-2.patch added to -mm tree
+Date: Thu, 12 Jun 2008 01:32:04 -0700
+Message-ID: <200806120832.m5C8W4Q2010005@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38438 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55954 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752976AbYFLHwS (ORCPT
+	by vger.kernel.org with ESMTP id S1754060AbYFLIeV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Jun 2008 03:52:18 -0400
+	Thu, 12 Jun 2008 04:34:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lethal@linux-sh.org, clameter@sgi.com, cooloney@kernel.org, dhowells@redhat.com, penberg@cs.helsinki.fi
+Cc: fujita.tomonori@lab.ntt.co.jp, andi@firstfloor.org, avi@qumranet.com, mingo@elte.hu, muli@il.ibm.com, tglx@linutronix.de
 
 
 The patch titled
-     nommu: correct kobjsize() page validity checks.
+     fix per-device dma_mapping_ops support
 has been added to the -mm tree.  Its filename is
-     nommu-correct-kobjsize-page-validity-checks.patch
+     dma-mapping-x86-per-device-dma_mapping_ops-support-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,121 +34,123 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nommu: correct kobjsize() page validity checks.
-From: Paul Mundt <lethal@linux-sh.org>
+Subject: fix per-device dma_mapping_ops support
+From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 
-This implements a few changes on top of the recent kobjsize() refactoring
-introduced by
+On x86, pci_dma_supported, pci_alloc_consistent, and pci_free_consistent
+don't call DMA APIs directly (the majority of platforms do).  per-device
+dma_mapping_ops support patch needs to modify pci-dma.c.
 
-commit 6cfd53fc03670c7a544a56d441eb1a6cc800d72b
-Author: Paul Mundt <lethal@linux-sh.org>
-Date:   Thu Jun 5 22:46:08 2008 -0700
-
-    nommu: fix kobjsize() for SLOB and SLUB
-    
-
-
-As Christoph points out:
-
-	virt_to_head_page cannot return NULL. virt_to_page also
-	does not return NULL. pfn_valid() needs to be used to
-	figure out if a page is valid.  Otherwise the page struct
-	reference that was returned may have PageReserved() set
-	to indicate that it is not a valid page.
-
-As discussed further in the thread, virt_addr_valid() is the preferable
-way to validate the object pointer in this case.  In addition to fixing up
-the reserved page case, it also has the benefit of encapsulating the hack
-introduced by commit 4016a1390d07f15b267eecb20e76a48fd5c524ef on the
-impacted platforms, allowing us to get rid of the extra checking in
-kobjsize() for the platforms that don't perform this type of bizarre
-memory_end abuse (every nommu platform that isn't blackfin).  If blackfin
-decides to get in line with every other platform and use PageReserved for
-the DMA pages in question, kobjsize() will also continue to work fine.
-
-It also turns out that compound_order() will give us back 0-order for
-non-head pages, so we can get rid of the PageCompound check and just use
-compound_order() directly.  Clean that up while we're at it.
-
-Signed-off-by: Paul Mundt <lethal@linux-sh.org>
-Reviewed-by: Christoph Lameter <clameter@sgi.com>
-Cc: Bryan Wu <cooloney@kernel.org>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Avi Kivity <avi@qumranet.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Muli Ben-Yehuda <muli@il.ibm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/nommu.c |   21 +++------------------
- 1 file changed, 3 insertions(+), 18 deletions(-)
+ arch/x86/kernel/pci-dma.c |   25 +++++++++++++++----------
+ 1 file changed, 15 insertions(+), 10 deletions(-)
 
-diff -puN mm/nommu.c~nommu-correct-kobjsize-page-validity-checks mm/nommu.c
---- a/mm/nommu.c~nommu-correct-kobjsize-page-validity-checks
-+++ a/mm/nommu.c
-@@ -104,21 +104,15 @@ EXPORT_SYMBOL(vmtruncate);
- unsigned int kobjsize(const void *objp)
+diff -puN arch/x86/kernel/pci-dma.c~dma-mapping-x86-per-device-dma_mapping_ops-support-fix-2 arch/x86/kernel/pci-dma.c
+--- a/arch/x86/kernel/pci-dma.c~dma-mapping-x86-per-device-dma_mapping_ops-support-fix-2
++++ a/arch/x86/kernel/pci-dma.c
+@@ -318,6 +318,8 @@ static int dma_release_coherent(struct d
+ 
+ int dma_supported(struct device *dev, u64 mask)
  {
++	struct dma_mapping_ops *ops = get_dma_ops(dev);
++
+ #ifdef CONFIG_PCI
+ 	if (mask > 0xffffffff && forbid_dac > 0) {
+ 		dev_info(dev, "PCI: Disallowing DAC for device\n");
+@@ -325,8 +327,8 @@ int dma_supported(struct device *dev, u6
+ 	}
+ #endif
+ 
+-	if (dma_ops->dma_supported)
+-		return dma_ops->dma_supported(dev, mask);
++	if (ops->dma_supported)
++		return ops->dma_supported(dev, mask);
+ 
+ 	/* Copied from i386. Doesn't make much sense, because it will
+ 	   only work for pci_alloc_coherent.
+@@ -373,6 +375,7 @@ void *
+ dma_alloc_coherent(struct device *dev, size_t size, dma_addr_t *dma_handle,
+ 		   gfp_t gfp)
+ {
++	struct dma_mapping_ops *ops = get_dma_ops(dev);
+ 	void *memory = NULL;
  	struct page *page;
--	int order = 0;
+ 	unsigned long dma_mask = 0;
+@@ -435,8 +438,8 @@ dma_alloc_coherent(struct device *dev, s
+ 			/* Let low level make its own zone decisions */
+ 			gfp &= ~(GFP_DMA32|GFP_DMA);
  
- 	/*
- 	 * If the object we have should not have ksize performed on it,
- 	 * return size of 0
- 	 */
--	if (!objp)
--		return 0;
--
--	if ((unsigned long)objp >= memory_end)
-+	if (!objp || !virt_addr_valid(objp))
- 		return 0;
+-			if (dma_ops->alloc_coherent)
+-				return dma_ops->alloc_coherent(dev, size,
++			if (ops->alloc_coherent)
++				return ops->alloc_coherent(dev, size,
+ 							   dma_handle, gfp);
+ 			return NULL;
+ 		}
+@@ -448,14 +451,14 @@ dma_alloc_coherent(struct device *dev, s
+ 		}
+ 	}
  
- 	page = virt_to_head_page(objp);
--	if (!page)
--		return 0;
+-	if (dma_ops->alloc_coherent) {
++	if (ops->alloc_coherent) {
+ 		free_pages((unsigned long)memory, get_order(size));
+ 		gfp &= ~(GFP_DMA|GFP_DMA32);
+-		return dma_ops->alloc_coherent(dev, size, dma_handle, gfp);
++		return ops->alloc_coherent(dev, size, dma_handle, gfp);
+ 	}
  
- 	/*
- 	 * If the allocator sets PageSlab, we know the pointer came from
-@@ -129,18 +123,9 @@ unsigned int kobjsize(const void *objp)
- 
- 	/*
- 	 * The ksize() function is only guaranteed to work for pointers
--	 * returned by kmalloc(). So handle arbitrary pointers, that we expect
--	 * always to be compound pages, here.
--	 */
--	if (PageCompound(page))
--		order = compound_order(page);
--
--	/*
--	 * Finally, handle arbitrary pointers that don't set PageSlab.
--	 * Default to 0-order in the case when we're unable to ksize()
--	 * the object.
-+	 * returned by kmalloc(). So handle arbitrary pointers here.
- 	 */
--	return PAGE_SIZE << order;
-+	return PAGE_SIZE << compound_order(page);
+-	if (dma_ops->map_simple) {
+-		*dma_handle = dma_ops->map_simple(dev, virt_to_phys(memory),
++	if (ops->map_simple) {
++		*dma_handle = ops->map_simple(dev, virt_to_phys(memory),
+ 					      size,
+ 					      PCI_DMA_BIDIRECTIONAL);
+ 		if (*dma_handle != bad_dma_address)
+@@ -477,12 +480,14 @@ EXPORT_SYMBOL(dma_alloc_coherent);
+ void dma_free_coherent(struct device *dev, size_t size,
+ 			 void *vaddr, dma_addr_t bus)
+ {
++	struct dma_mapping_ops *ops = get_dma_ops(dev);
++
+ 	int order = get_order(size);
+ 	WARN_ON(irqs_disabled());	/* for portability */
+ 	if (dma_release_coherent(dev, order, vaddr))
+ 		return;
+-	if (dma_ops->unmap_single)
+-		dma_ops->unmap_single(dev, bus, size, 0);
++	if (ops->unmap_single)
++		ops->unmap_single(dev, bus, size, 0);
+ 	free_pages((unsigned long)vaddr, order);
  }
- 
- /*
+ EXPORT_SYMBOL(dma_free_coherent);
 _
 
-Patches currently in -mm which might be from lethal@linux-sh.org are
+Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
 
-origin.patch
-nommu-correct-kobjsize-page-validity-checks.patch
 linux-next.patch
-add-have_clk-to-kconfig-for-driver-dependencies.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-maple-allow-removal-and-reinsertion-of-keyboard-driver-module.patch
-smc911x-remove-unused-8-bit-i-o-operations.patch
-smc911x-fix-16-bit-i-o-operations.patch
-smc911x-pass-along-private-data-and-use-iomem.patch
-smc911x-introduce-platform-data-flags.patch
-smc911x-superh-architecture-support.patch
-net-sh_eth-add-support-for-renesas-superh-ethernet.patch
-mm-move-bootmem-descriptors-definition-to-a-single-place.patch
-mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co.patch
-lib-taint-kernel-in-common-report_bug-warn-path.patch
-rtc-rtc-rs5c372-smbus-conversion-support.patch
-rtc-rtc-rs5c732-add-support-for-ricoh-r2025s-d-rtc.patch
-video-superh-mobile-lcdc-driver.patch
-video-superh-mobile-lcdc-driver-update.patch
+block-add-blk_queue_update_dma_pad.patch
+ide-use-the-dma-safe-check-for-req_type_ata_pc.patch
+block-blk_rq_map_kern-uses-the-bounce-buffers-for-stack-buffers.patch
+ide-avoid-dma-on-the-stack-for-req_type_ata_pc.patch
+scsi-sr-avoids-useless-buffer-allocation.patch
+cdrom-revert-commit-22a9189-cdrom-use-kmalloced-buffers-instead-of-buffers-on-stack.patch
+add-a-helper-function-to-test-if-an-object-is-on-the-stack.patch
+clean-up-duplicated-alloc-free_thread_info.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-b34-fix.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support-fix-2.patch
 
