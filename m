@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch added to -mm tree
-Date: Thu, 12 Jun 2008 13:54:08 -0700
-Message-ID: <200806122054.m5CKs8ar006155@imap1.linux-foundation.org>
+Subject: + revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch added to -mm tree
+Date: Thu, 12 Jun 2008 13:54:03 -0700
+Message-ID: <200806122054.m5CKs3WV006148@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52445 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50443 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753905AbYFLUyu (ORCPT
+	by vger.kernel.org with ESMTP id S1754142AbYFLUy4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Jun 2008 16:54:50 -0400
+	Thu, 12 Jun 2008 16:54:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, bwalle@suse.de, hannes@saeurebad.de, mingo@elte.h
 
 
 The patch titled
-     revert revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node
+     revert revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node
 has been added to the -mm tree.  Its filename is
-     revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+     revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node
+Subject: revert revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Johannes Weiner <hannes@saeurebad.de>
@@ -47,10 +47,10 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  mm/bootmem.c            |    5 ++---
  2 files changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/bootmem.h~revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node include/linux/bootmem.h
---- a/include/linux/bootmem.h~revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node
+diff -puN include/linux/bootmem.h~revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node include/linux/bootmem.h
+--- a/include/linux/bootmem.h~revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node
 +++ a/include/linux/bootmem.h
-@@ -65,7 +65,7 @@ extern void free_bootmem(unsigned long a
+@@ -67,7 +67,7 @@ extern void free_bootmem(unsigned long a
  #define BOOTMEM_DEFAULT		0
  #define BOOTMEM_EXCLUSIVE	(1<<0)
  
@@ -59,13 +59,13 @@ diff -puN include/linux/bootmem.h~revert-revert-revert-revert-linux-next-revert-
  				 unsigned long physaddr,
  				 unsigned long size,
  				 int flags);
-diff -puN mm/bootmem.c~revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node mm/bootmem.c
---- a/mm/bootmem.c~revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node
+diff -puN mm/bootmem.c~revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node mm/bootmem.c
+--- a/mm/bootmem.c~revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node
 +++ a/mm/bootmem.c
-@@ -412,16 +412,15 @@ static void __init reserve_bootmem_core(
-  *
-  * Only physical pages that actually reside on @pgdat are marked.
-  */
+@@ -319,16 +319,15 @@ static void __init reserve_bootmem_core(
+ 	}
+ }
+ 
 -int __init reserve_bootmem_node(pg_data_t *pgdat, unsigned long physaddr,
 +void __init reserve_bootmem_node(pg_data_t *pgdat, unsigned long physaddr,
  				 unsigned long size, int flags)
