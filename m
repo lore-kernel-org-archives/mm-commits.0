@@ -1,118 +1,128 @@
 From: akpm@linux-foundation.org
-Subject: - isight_firmware-avoid-crash-on-loading-invalid-firmware.patch removed from -mm tree
-Date: Thu, 12 Jun 2008 13:36:25 -0700
-Message-ID: <200806122036.m5CKaPUa005323@imap1.linux-foundation.org>
+Subject: - fix-x86_64-splat.patch removed from -mm tree
+Date: Thu, 12 Jun 2008 13:36:27 -0700
+Message-ID: <200806122036.m5CKaRMF005326@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50042 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39100 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755460AbYFLUgs (ORCPT
+	by vger.kernel.org with ESMTP id S1755460AbYFLUgr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Jun 2008 16:36:48 -0400
+	Thu, 12 Jun 2008 16:36:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mjg59@srcf.ucam.org, greg@kroah.com, justinmattock@gmail.com, mjg@redhat.com, mm-commits@vger.kernel.org
+To: vegard.nossum@gmail.com, mingo@elte.hu, travis@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     isight_firmware: Avoid crash on loading invalid firmware
+     fix x86_64 splat
 has been removed from the -mm tree.  Its filename was
-     isight_firmware-avoid-crash-on-loading-invalid-firmware.patch
+     fix-x86_64-splat.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: isight_firmware: Avoid crash on loading invalid firmware
-From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: fix x86_64 splat
+From: "Vegard Nossum" <vegard.nossum@gmail.com>
 
-Different tools generate slightly different formats of the isight
-firmware. Ensure that the firmware buffer is not overrun, while still
-ensuring that the correct amount of data is written if trailing data is
-present.
+I have attached two patches. The sched one fixes Andrew's boot
+problem. The x86 one is untested, but I believe it is better to BUG
+than silently corrupt some arbitrary memory. (Then the callers can be
+found easily and fixed at least.)
 
-Signed-off-by: Matthew Garrett <mjg@redhat.com>
-Report-by: Justin Mattock <justinmattock@gmail.com>
-Tested-by: Justin Mattock <justinmattock@gmail.com>
-Cc: Greg KH <greg@kroah.com>
+Cc: Mike Travis <travis@sgi.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/misc/isight_firmware.c |   23 ++++++++++++++++-------
- 1 file changed, 16 insertions(+), 7 deletions(-)
+ kernel/sched.c |   18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN drivers/usb/misc/isight_firmware.c~isight_firmware-avoid-crash-on-loading-invalid-firmware drivers/usb/misc/isight_firmware.c
---- a/drivers/usb/misc/isight_firmware.c~isight_firmware-avoid-crash-on-loading-invalid-firmware
-+++ a/drivers/usb/misc/isight_firmware.c
-@@ -39,9 +39,12 @@ static int isight_firmware_load(struct u
- 	struct usb_device *dev = interface_to_usbdev(intf);
- 	int llen, len, req, ret = 0;
- 	const struct firmware *firmware;
--	unsigned char *buf;
-+	unsigned char *buf = kmalloc(50, GFP_KERNEL);
- 	unsigned char data[4];
--	char *ptr;
-+	u8 *ptr;
-+
-+	if (!buf)
-+		return -ENOMEM;
+diff -puN kernel/sched.c~fix-x86_64-splat kernel/sched.c
+--- a/kernel/sched.c~fix-x86_64-splat
++++ a/kernel/sched.c
+@@ -6574,9 +6574,9 @@ static int find_next_best_node(int node,
  
- 	if (request_firmware(&firmware, "isight.fw", &dev->dev) != 0) {
- 		printk(KERN_ERR "Unable to load isight firmware\n");
-@@ -59,7 +62,7 @@ static int isight_firmware_load(struct u
- 		goto out;
- 	}
+ 	min_val = INT_MAX;
  
--	while (1) {
-+	while (ptr+4 <= firmware->data+firmware->size) {
- 		memcpy(data, ptr, 4);
- 		len = (data[0] << 8 | data[1]);
- 		req = (data[2] << 8 | data[3]);
-@@ -71,10 +74,14 @@ static int isight_firmware_load(struct u
+-	for (i = 0; i < MAX_NUMNODES; i++) {
++	for (i = 0; i < nr_node_ids; i++) {
+ 		/* Start at @node */
+-		n = (node + i) % MAX_NUMNODES;
++		n = (node + i) % nr_node_ids;
+ 
+ 		if (!nr_cpus_node(n))
+ 			continue;
+@@ -6770,7 +6770,7 @@ static void free_sched_groups(const cpum
+ 		if (!sched_group_nodes)
  			continue;
  
- 		for (; len > 0; req += 50) {
--			llen = len > 50 ? 50 : len;
-+			llen = min(len, 50);
- 			len -= llen;
--
--			buf = kmalloc(llen, GFP_KERNEL);
-+			if (ptr+llen > firmware->data+firmware->size) {
-+				printk(KERN_ERR
-+				       "Malformed isight firmware");
-+				ret = -ENODEV;
-+				goto out;
-+			}
- 			memcpy(buf, ptr, llen);
+-		for (i = 0; i < MAX_NUMNODES; i++) {
++		for (i = 0; i < nr_node_ids; i++) {
+ 			struct sched_group *oldsg, *sg = sched_group_nodes[i];
  
- 			ptr += llen;
-@@ -89,16 +96,18 @@ static int isight_firmware_load(struct u
- 				goto out;
- 			}
+ 			*nodemask = node_to_cpumask(i);
+@@ -6958,7 +6958,7 @@ static int __build_sched_domains(const c
+ 	/*
+ 	 * Allocate the per-node list of sched groups
+ 	 */
+-	sched_group_nodes = kcalloc(MAX_NUMNODES, sizeof(struct sched_group *),
++	sched_group_nodes = kcalloc(nr_node_ids, sizeof(struct sched_group *),
+ 				    GFP_KERNEL);
+ 	if (!sched_group_nodes) {
+ 		printk(KERN_WARNING "Can not alloc sched group node list\n");
+@@ -7097,7 +7097,7 @@ static int __build_sched_domains(const c
+ #endif
  
--			kfree(buf);
- 		}
+ 	/* Set up physical groups */
+-	for (i = 0; i < MAX_NUMNODES; i++) {
++	for (i = 0; i < nr_node_ids; i++) {
+ 		SCHED_CPUMASK_VAR(nodemask, allmasks);
+ 		SCHED_CPUMASK_VAR(send_covered, allmasks);
+ 
+@@ -7121,7 +7121,7 @@ static int __build_sched_domains(const c
+ 					send_covered, tmpmask);
  	}
-+
- 	if (usb_control_msg
- 	    (dev, usb_sndctrlpipe(dev, 0), 0xa0, 0x40, 0xe600, 0, "\0", 1,
- 	     300) != 1) {
- 		printk(KERN_ERR "isight firmware loading completion failed\n");
- 		ret = -ENODEV;
+ 
+-	for (i = 0; i < MAX_NUMNODES; i++) {
++	for (i = 0; i < nr_node_ids; i++) {
+ 		/* Set up node groups */
+ 		struct sched_group *sg, *prev;
+ 		SCHED_CPUMASK_VAR(nodemask, allmasks);
+@@ -7160,9 +7160,9 @@ static int __build_sched_domains(const c
+ 		cpus_or(*covered, *covered, *nodemask);
+ 		prev = sg;
+ 
+-		for (j = 0; j < MAX_NUMNODES; j++) {
++		for (j = 0; j < nr_node_ids; j++) {
+ 			SCHED_CPUMASK_VAR(notcovered, allmasks);
+-			int n = (i + j) % MAX_NUMNODES;
++			int n = (i + j) % nr_node_ids;
+ 			node_to_cpumask_ptr(pnodemask, n);
+ 
+ 			cpus_complement(*notcovered, *covered);
+@@ -7215,7 +7215,7 @@ static int __build_sched_domains(const c
  	}
-+
- out:
-+	kfree(buf);
- 	release_firmware(firmware);
- 	return ret;
- }
+ 
+ #ifdef CONFIG_NUMA
+-	for (i = 0; i < MAX_NUMNODES; i++)
++	for (i = 0; i < nr_node_ids; i++)
+ 		init_numa_sched_groups_power(sched_group_nodes[i]);
+ 
+ 	if (sd_allnodes) {
 _
 
-Patches currently in -mm which might be from mjg59@srcf.ucam.org are
+Patches currently in -mm which might be from vegard.nossum@gmail.com are
 
 origin.patch
 linux-next.patch
-input-add-switch-for-dock-events.patch
-misc-add-hp-wmi-laptop-extras-driver.patch
+arm-fix-header-guards.patch
+parisc-fix-incomplete-header-guard.patch
+kallsyms-fix-potential-overflow-in-binary-search.patch
+cputopology-always-define-cpu-topology-information-cleanup.patch
+quota-cleanup-loop-in-sync_dquots.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-b34-fix.patch
 
