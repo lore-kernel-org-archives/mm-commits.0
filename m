@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + define-page_file_cache-function-fix.patch added to -mm tree
-Date: Thu, 12 Jun 2008 13:26:06 -0700
-Message-ID: <200806122026.m5CKQ69p004888@imap1.linux-foundation.org>
+Subject: + unevictable-lru-infrastructure-fix.patch added to -mm tree
+Date: Thu, 12 Jun 2008 13:28:42 -0700
+Message-ID: <200806122028.m5CKSgA3004986@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55189 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44034 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759610AbYFLU0j (ORCPT
+	by vger.kernel.org with ESMTP id S1753940AbYFLU3O (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Jun 2008 16:26:39 -0400
+	Thu, 12 Jun 2008 16:29:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, lee.schermerhorn@hp.com, minchan.kim@gmail.com, riel@redhat.com, rja@sgi.com
+Cc: akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, riel@redhat.com
 
 
 The patch titled
-     define-page_file_cache-function-fix
+     unevictable-lru-infrastructure-fix
 has been added to the -mm tree.  Its filename is
-     define-page_file_cache-function-fix.patch
+     unevictable-lru-infrastructure-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: define-page_file_cache-function-fix
+Subject: unevictable-lru-infrastructure-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 a) Russ copying Linus on unimportant MM patches and ignoring all the
@@ -42,26 +42,33 @@ a) Russ copying Linus on unimportant MM patches and ignoring all the
 
 b) Linus making my life harder by merging it.
 
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: MinChan Kim <minchan.kim@gmail.com>
 Cc: Rik van Riel <riel@redhat.com>
-Cc: Russ Anderson <rja@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/page-flags.h |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/page-flags.h~define-page_file_cache-function-fix include/linux/page-flags.h
---- a/include/linux/page-flags.h~define-page_file_cache-function-fix
+diff -puN include/linux/page-flags.h~unevictable-lru-infrastructure-fix include/linux/page-flags.h
+--- a/include/linux/page-flags.h~unevictable-lru-infrastructure-fix
 +++ a/include/linux/page-flags.h
-@@ -333,7 +333,8 @@ static inline void __ClearPageTail(struc
+@@ -356,10 +356,16 @@ static inline void __ClearPageTail(struc
  
+ #endif /* !PAGEFLAGS_EXTENDED */
+ 
++#ifdef CONFIG_UNEVICTABLE_LRU
++#define __PG_UNEVICTABLE (1 << PG_unevictable)
++#else
++#define __PG_UNEVICTABLE 0
++#endif
++
  #define PAGE_FLAGS	(1 << PG_lru   | 1 << PG_private   | 1 << PG_locked | \
  			 1 << PG_buddy | 1 << PG_writeback | \
--			 1 << PG_slab  | 1 << PG_swapcache | 1 << PG_active)
-+			 1 << PG_slab  | 1 << PG_swapcache | 1 << PG_active | \
-+			 1 << PG_swapbacked)
+ 			 1 << PG_slab  | 1 << PG_swapcache | 1 << PG_active | \
+-			 1 << PG_swapbacked)
++			 1 << PG_swapbacked | __PG_UNEVICTABLE)
  
  /*
   * Flags checked in bad_page().  Pages on the free list should not have
@@ -186,6 +193,7 @@ x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
 x86-lockless-get_user_pages_fast-fix-warning.patch
 vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
 define-page_file_cache-function-fix.patch
+unevictable-lru-infrastructure-fix.patch
 mlock-mlocked-pages-are-unevictable-fix.patch
 mlock-mlocked-pages-are-unevictable-fix-fix.patch
 mlock-mlocked-pages-are-unevictable-fix-2.patch
