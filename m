@@ -1,72 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - cciss-bump-version-to-20-to-reflect-new-hw-support.patch removed from -mm tree
-Date: Thu, 12 Jun 2008 14:21:56 -0700
-Message-ID: <200806122133.m5CLXctp007777@imap1.linux-foundation.org>
+Subject: - provide-rtc_cmos-platform-device-take-2-fix.patch removed from -mm tree
+Date: Thu, 12 Jun 2008 14:23:02 -0700
+Message-ID: <200806122134.m5CLYiet007829@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46532 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59963 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751937AbYFLVex (ORCPT
+	by vger.kernel.org with ESMTP id S1752066AbYFLVfo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Jun 2008 17:34:53 -0400
+	Thu, 12 Jun 2008 17:35:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mike.miller@hp.com, jens.axboe@oracle.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: stsp@aknet.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cciss: bump version to .20 to reflect new HW support
+     provide-rtc_cmos-platform-device-take-2 fix
 has been removed from the -mm tree.  Its filename was
-     cciss-bump-version-to-20-to-reflect-new-hw-support.patch
+     provide-rtc_cmos-platform-device-take-2-fix.patch
 
-This patch was dropped because it was folded into cciss-add-new-hardware-support.patch
+This patch was dropped because it was folded into provide-rtc_cmos-platform-device-take-2.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cciss: bump version to .20 to reflect new HW support
-From: Mike Miller <mike.miller@hp.com>
+Subject: provide-rtc_cmos-platform-device-take-2 fix
+From: Stas Sergeev <stsp@aknet.ru>
 
-Bump the driver version to 3.6.20 to reflect the new hardware support from
-patch 1 of this set.
+Fix include problem reported by checkpatch.pl
 
-Signed-off-by: Mike Miller <mike.miller@hp.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Stas Sergeev <stsp@aknet.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/cciss.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ arch/x86/kernel/rtc.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/block/cciss.c~cciss-bump-version-to-20-to-reflect-new-hw-support drivers/block/cciss.c
---- a/drivers/block/cciss.c~cciss-bump-version-to-20-to-reflect-new-hw-support
-+++ a/drivers/block/cciss.c
-@@ -53,16 +53,16 @@
- #include <linux/scatterlist.h>
+diff -puN arch/x86/kernel/rtc.c~provide-rtc_cmos-platform-device-take-2-fix arch/x86/kernel/rtc.c
+--- a/arch/x86/kernel/rtc.c~provide-rtc_cmos-platform-device-take-2-fix
++++ a/arch/x86/kernel/rtc.c
+@@ -9,7 +9,6 @@
  
- #define CCISS_DRIVER_VERSION(maj,min,submin) ((maj<<16)|(min<<8)|(submin))
--#define DRIVER_NAME "HP CISS Driver (v 3.6.14)"
--#define DRIVER_VERSION CCISS_DRIVER_VERSION(3,6,14)
-+#define DRIVER_NAME "HP CISS Driver (v 3.6.20)"
-+#define DRIVER_VERSION CCISS_DRIVER_VERSION(3, 6, 20)
+ #include <asm/time.h>
+ #include <asm/vsyscall.h>
+-#include <asm/mc146818rtc.h>
  
- /* Embedded module documentation macros - see modules.h */
- MODULE_AUTHOR("Hewlett-Packard Company");
--MODULE_DESCRIPTION("Driver for HP Controller SA5xxx SA6xxx version 3.6.14");
-+MODULE_DESCRIPTION("Driver for HP Smart Array Controllers");
- MODULE_SUPPORTED_DEVICE("HP SA5i SA5i+ SA532 SA5300 SA5312 SA641 SA642 SA6400"
- 			" SA6i P600 P800 P400 P400i E200 E200i E500 P700m"
- 			" Smart Array G2 Series SAS/SATA Controllers");
--MODULE_VERSION("3.6.14");
-+MODULE_VERSION("3.6.20");
- MODULE_LICENSE("GPL");
- 
- #include "cciss_cmd.h"
+ #ifdef CONFIG_X86_32
+ /*
 _
 
-Patches currently in -mm which might be from mike.miller@hp.com are
+Patches currently in -mm which might be from stsp@aknet.ru are
 
-cciss-add-new-hardware-support.patch
-cciss-bump-version-to-20-to-reflect-new-hw-support.patch
+provide-rtc_cmos-platform-device-take-2.patch
+provide-rtc_cmos-platform-device-take-2-fix.patch
+linux-next.patch
 
