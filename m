@@ -1,208 +1,152 @@
 From: akpm@linux-foundation.org
-Subject: - cputopology-always-define-cpu-topology-information.patch removed from -mm tree
-Date: Thu, 12 Jun 2008 13:38:26 -0700
-Message-ID: <200806122038.m5CKcQhY005533@imap1.linux-foundation.org>
+Subject: - percpu-introduce-define_per_cpu_page_aligned.patch removed from -mm tree
+Date: Thu, 12 Jun 2008 13:38:19 -0700
+Message-ID: <200806122038.m5CKcJPE005525@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53840 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52681 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754799AbYFLUkD (ORCPT
+	by vger.kernel.org with ESMTP id S1754802AbYFLUkV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Jun 2008 16:40:03 -0400
+	Thu, 12 Jun 2008 16:40:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bhutchings@solarflare.com, clameter@sgi.com, hawkes@sgi.com, mingo@elte.hu, nickpiggin@yahoo.com.au, sekharan@us.ibm.com, suresh.b.siddha@intel.com, travis@sgi.com, vegard.nossum@gmail
+To: dada1@cosmosbay.com, mingo@elte.hu, rusty@rustcorp.com.au, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cpu topology: always define CPU topology information
+     percpu: introduce DEFINE_PER_CPU_PAGE_ALIGNED()
 has been removed from the -mm tree.  Its filename was
-     cputopology-always-define-cpu-topology-information.patch
+     percpu-introduce-define_per_cpu_page_aligned.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpu topology: always define CPU topology information
-From: Ben Hutchings <bhutchings@solarflare.com>
+Subject: percpu: introduce DEFINE_PER_CPU_PAGE_ALIGNED()
+From: Eric Dumazet <dada1@cosmosbay.com>
 
-Not all architectures and configurations define CPU topology information.
-This can result in an empty topology directory in sysfs, and requires
-in-kernel users to protect all uses with #ifdef - see
-<http://marc.info/?l=linux-netdev&m=120639033904472&w=2>.
+While examining percpu section on i386 I found we were wasting about 8000
+bytes because of two large holes :
 
-The documentation of CPU topology specifies what the defaults should be if
-only partial information is available from the hardware.  So we can
-provide these defaults as a fallback.
+c05dd000 D __per_cpu_start
+c05dd000 D per_cpu__current_task
+c05dd004 D per_cpu__cpu_number
+c05dd008 D per_cpu__irq_regs
+c05dd00c D per_cpu__x86_cpu_to_apicid
+c05dd010 d per_cpu__cpu_devices
+c05dd044 D per_cpu__cyc2ns
+*HOLE* of 4Kbytes
+c05de000 d per_cpu__cpuid4_info
+c05de004 d per_cpu__cache_kobject
+c05de008 d per_cpu__index_kobject
+*HOLE* of 4Kbytes
+c05df000 D per_cpu__gdt_page
+c05e0000 d per_cpu__next_check
+c05e0008 d per_cpu__thermal_throttle_count
 
-This patch:
+This is because gdt_page is a percpu variable, defined with a page
+alignement, and linker is doing its job, two times because of .o nesting
+in the build process, mixing variables with quite different alignment
+requirements.
 
-- Adds default definitions of the 4 topology macros to <linux/topology.h>
-- Changes drivers/base/topology.c to use the topology macros unconditionally
-  and to cope with definitions that aren't lvalues
-- Updates documentation accordingly
+I introduced a new macro DEFINE_PER_CPU_PAGE_ALIGNED() to avoid wasting
+this space.  All page aligned variables (only one at this time) are put in
+a separate subsection .data.percpu.page_aligned.
 
-Signed-off-by: Ben Hutchings <bhutchings@solarflare.com>
+# size -A vmlinux.old vmlinux | grep percpu
+.data.percpu                22272   3227373568
+.data.percpu                30336   3227373568
+
+Thats 8064 bytes saved for each CPU (plus one for the .data.percpu storage
+itself)
+
+Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Vegard Nossum <vegard.nossum@gmail.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Chandra Seetharaman <sekharan@us.ibm.com>
-Cc: Suresh Siddha <suresh.b.siddha@intel.com>
-Cc: Mike Travis <travis@sgi.com>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: John Hawkes <hawkes@sgi.com>
-Cc: Zhang, Yanmin <yanmin.zhang@intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cputopology.txt |   26 +++++++--------------
- drivers/base/topology.c       |   38 ++++++++------------------------
- include/linux/topology.h      |   13 ++++++++++
- 3 files changed, 32 insertions(+), 45 deletions(-)
+ arch/x86/kernel/cpu/common.c      |    2 +-
+ arch/x86/kernel/vmlinux_32.lds.S  |    1 +
+ include/asm-generic/vmlinux.lds.h |    1 +
+ include/linux/percpu.h            |   11 ++++++++++-
+ 4 files changed, 13 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/cputopology.txt~cputopology-always-define-cpu-topology-information Documentation/cputopology.txt
---- a/Documentation/cputopology.txt~cputopology-always-define-cpu-topology-information
-+++ a/Documentation/cputopology.txt
-@@ -14,9 +14,8 @@ represent the thread siblings to cpu X i
- To implement it in an architecture-neutral way, a new source file,
- drivers/base/topology.c, is to export the 4 attributes.
+diff -puN arch/x86/kernel/cpu/common.c~percpu-introduce-define_per_cpu_page_aligned arch/x86/kernel/cpu/common.c
+--- a/arch/x86/kernel/cpu/common.c~percpu-introduce-define_per_cpu_page_aligned
++++ a/arch/x86/kernel/cpu/common.c
+@@ -21,7 +21,7 @@
  
--If one architecture wants to support this feature, it just needs to
--implement 4 defines, typically in file include/asm-XXX/topology.h.
--The 4 defines are:
-+For an architecture to support this feature, it must define some of
-+these macros in include/asm-XXX/topology.h:
- #define topology_physical_package_id(cpu)
- #define topology_core_id(cpu)
- #define topology_thread_siblings(cpu)
-@@ -25,17 +24,10 @@ The 4 defines are:
- The type of **_id is int.
- The type of siblings is cpumask_t.
+ #include "cpu.h"
  
--To be consistent on all architectures, the 4 attributes should have
--default values if their values are unavailable. Below is the rule.
--1) physical_package_id: If cpu has no physical package id, -1 is the
--default value.
--2) core_id: If cpu doesn't support multi-core, its core id is 0.
--3) thread_siblings: Just include itself, if the cpu doesn't support
--HT/multi-thread.
--4) core_siblings: Just include itself, if the cpu doesn't support
--multi-core and HT/Multi-thread.
--
--So be careful when declaring the 4 defines in include/asm-XXX/topology.h.
--
--If an attribute isn't defined on an architecture, it won't be exported.
--
-+To be consistent on all architectures, include/linux/topology.h
-+provides default definitions for any of the above macros that are
-+not defined by include/asm-XXX/topology.h:
-+1) physical_package_id: -1
-+2) core_id: 0
-+3) thread_siblings: just the given CPU
-+4) core_siblings: just the given CPU
-diff -puN drivers/base/topology.c~cputopology-always-define-cpu-topology-information drivers/base/topology.c
---- a/drivers/base/topology.c~cputopology-always-define-cpu-topology-information
-+++ a/drivers/base/topology.c
-@@ -62,14 +62,16 @@ static ssize_t show_cpumap(int type, cpu
- static ssize_t show_##name(struct sys_device *dev, char *buf)	\
- {									\
- 	unsigned int cpu = dev->id;					\
--	return show_cpumap(0, &(topology_##name(cpu)), buf);		\
-+	cpumask_t siblings = topology_##name(cpu);			\
-+	return show_cpumap(0, &siblings, buf);				\
- }
+-DEFINE_PER_CPU(struct gdt_page, gdt_page) = { .gdt = {
++DEFINE_PER_CPU_PAGE_ALIGNED(struct gdt_page, gdt_page) = { .gdt = {
+ 	[GDT_ENTRY_KERNEL_CS] = { { { 0x0000ffff, 0x00cf9a00 } } },
+ 	[GDT_ENTRY_KERNEL_DS] = { { { 0x0000ffff, 0x00cf9200 } } },
+ 	[GDT_ENTRY_DEFAULT_USER_CS] = { { { 0x0000ffff, 0x00cffa00 } } },
+diff -puN arch/x86/kernel/vmlinux_32.lds.S~percpu-introduce-define_per_cpu_page_aligned arch/x86/kernel/vmlinux_32.lds.S
+--- a/arch/x86/kernel/vmlinux_32.lds.S~percpu-introduce-define_per_cpu_page_aligned
++++ a/arch/x86/kernel/vmlinux_32.lds.S
+@@ -189,6 +189,7 @@ SECTIONS
+   . = ALIGN(PAGE_SIZE);
+   .data.percpu  : AT(ADDR(.data.percpu) - LOAD_OFFSET) {
+ 	__per_cpu_start = .;
++	*(.data.percpu.page_aligned)
+ 	*(.data.percpu)
+ 	*(.data.percpu.shared_aligned)
+ 	__per_cpu_end = .;
+diff -puN include/asm-generic/vmlinux.lds.h~percpu-introduce-define_per_cpu_page_aligned include/asm-generic/vmlinux.lds.h
+--- a/include/asm-generic/vmlinux.lds.h~percpu-introduce-define_per_cpu_page_aligned
++++ a/include/asm-generic/vmlinux.lds.h
+@@ -354,6 +354,7 @@
+ 	. = ALIGN(align);						\
+ 	__per_cpu_start = .;						\
+ 	.data.percpu  : AT(ADDR(.data.percpu) - LOAD_OFFSET) {		\
++		*(.data.percpu.page_aligned)				\
+ 		*(.data.percpu)						\
+ 		*(.data.percpu.shared_aligned)				\
+ 	}								\
+diff -puN include/linux/percpu.h~percpu-introduce-define_per_cpu_page_aligned include/linux/percpu.h
+--- a/include/linux/percpu.h~percpu-introduce-define_per_cpu_page_aligned
++++ a/include/linux/percpu.h
+@@ -15,19 +15,28 @@
  
- #define define_siblings_show_list(name)					\
- static ssize_t show_##name##_list(struct sys_device *dev, char *buf) \
- {									\
- 	unsigned int cpu = dev->id;					\
--	return show_cpumap(1, &(topology_##name(cpu)), buf);		\
-+	cpumask_t siblings = topology_##name(cpu);			\
-+	return show_cpumap(1, &siblings, buf);				\
- }
- 
+ #ifdef MODULE
+ #define SHARED_ALIGNED_SECTION ".data.percpu"
++#define PAGE_ALIGNED_SECTION   ".data.percpu"
  #else
-@@ -93,47 +95,27 @@ static ssize_t show_##name##_list(struct
- #define define_siblings_show_func(name)		\
- 	define_siblings_show_map(name); define_siblings_show_list(name)
- 
--#ifdef	topology_physical_package_id
- define_id_show_func(physical_package_id);
- define_one_ro(physical_package_id);
--#define ref_physical_package_id_attr	&attr_physical_package_id.attr,
--#else
--#define ref_physical_package_id_attr
--#endif
- 
--#ifdef topology_core_id
- define_id_show_func(core_id);
- define_one_ro(core_id);
--#define ref_core_id_attr		&attr_core_id.attr,
--#else
--#define ref_core_id_attr
--#endif
- 
--#ifdef topology_thread_siblings
- define_siblings_show_func(thread_siblings);
- define_one_ro(thread_siblings);
- define_one_ro(thread_siblings_list);
--#define ref_thread_siblings_attr	\
--		&attr_thread_siblings.attr, &attr_thread_siblings_list.attr,
--#else
--#define ref_thread_siblings_attr
--#endif
- 
--#ifdef topology_core_siblings
- define_siblings_show_func(core_siblings);
- define_one_ro(core_siblings);
- define_one_ro(core_siblings_list);
--#define ref_core_siblings_attr		\
--		&attr_core_siblings.attr, &attr_core_siblings_list.attr,
--#else
--#define ref_core_siblings_attr
--#endif
- 
- static struct attribute *default_attrs[] = {
--	ref_physical_package_id_attr
--	ref_core_id_attr
--	ref_thread_siblings_attr
--	ref_core_siblings_attr
-+	&attr_physical_package_id.attr,
-+	&attr_core_id.attr,
-+	&attr_thread_siblings.attr,
-+	&attr_thread_siblings_list.attr,
-+	&attr_core_siblings.attr,
-+	&attr_core_siblings_list.attr,
- 	NULL
- };
- 
-diff -puN include/linux/topology.h~cputopology-always-define-cpu-topology-information include/linux/topology.h
---- a/include/linux/topology.h~cputopology-always-define-cpu-topology-information
-+++ a/include/linux/topology.h
-@@ -179,4 +179,17 @@ void arch_update_cpu_topology(void);
+ #define SHARED_ALIGNED_SECTION ".data.percpu.shared_aligned"
++#define PAGE_ALIGNED_SECTION   ".data.percpu.page_aligned"
  #endif
- #endif /* CONFIG_NUMA */
  
-+#ifndef topology_physical_package_id
-+#define topology_physical_package_id(cpu)	((void)(cpu), -1)
-+#endif
-+#ifndef topology_core_id
-+#define topology_core_id(cpu)			((void)(cpu), 0)
-+#endif
-+#ifndef topology_thread_siblings
-+#define topology_thread_siblings(cpu)		cpumask_of_cpu(cpu)
-+#endif
-+#ifndef topology_core_siblings
-+#define topology_core_siblings(cpu)		cpumask_of_cpu(cpu)
-+#endif
+ #define DEFINE_PER_CPU_SHARED_ALIGNED(type, name)			\
+ 	__attribute__((__section__(SHARED_ALIGNED_SECTION)))		\
+ 	PER_CPU_ATTRIBUTES __typeof__(type) per_cpu__##name		\
+ 	____cacheline_aligned_in_smp
 +
- #endif /* _LINUX_TOPOLOGY_H */
++#define DEFINE_PER_CPU_PAGE_ALIGNED(type, name)				\
++	__attribute__((__section__(PAGE_ALIGNED_SECTION)))		\
++	PER_CPU_ATTRIBUTES __typeof__(type) per_cpu__##name
+ #else
+ #define DEFINE_PER_CPU(type, name)					\
+ 	PER_CPU_ATTRIBUTES __typeof__(type) per_cpu__##name
+ 
+-#define DEFINE_PER_CPU_SHARED_ALIGNED(type, name)		      \
++#define DEFINE_PER_CPU_SHARED_ALIGNED(type, name)			\
++	DEFINE_PER_CPU(type, name)
++
++#define DEFINE_PER_CPU_PAGE_ALIGNED(type, name)				\
+ 	DEFINE_PER_CPU(type, name)
+ #endif
+ 
 _
 
-Patches currently in -mm which might be from bhutchings@solarflare.com are
+Patches currently in -mm which might be from dada1@cosmosbay.com are
 
-origin.patch
 linux-next.patch
-cputopology-always-define-cpu-topology-information-cleanup.patch
+vmallocinfo-add-numa-information.patch
+vmallocinfo-add-numa-information-fix.patch
 
