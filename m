@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + uml-work-around-broken-host-ptrace_sysemu.patch added to -mm tree
-Date: Thu, 12 Jun 2008 11:06:08 -0700
-Message-ID: <200806121806.m5CI68E9031827@imap1.linux-foundation.org>
+Subject: + ramfs-and-ram-disk-pages-are-unevictable-undo-the-brdc-part.patch added to -mm tree
+Date: Thu, 12 Jun 2008 11:14:18 -0700
+Message-ID: <200806121814.m5CIEIlS032065@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46584 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44333 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752302AbYFLSGN (ORCPT
+	by vger.kernel.org with ESMTP id S1752392AbYFLSO7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Jun 2008 14:06:13 -0400
+	Thu, 12 Jun 2008 14:14:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jdike@addtoit.com, jdike@linux.intel.com
+Cc: riel@redhat.com, nickpiggin@yahoo.com.au
 
 
 The patch titled
-     uml: work around broken host PTRACE_SYSEMU
+     ramfs-and-ram-disk-pages-are-unevictable: undo the brd.c part 
 has been added to the -mm tree.  Its filename is
-     uml-work-around-broken-host-ptrace_sysemu.patch
+     ramfs-and-ram-disk-pages-are-unevictable-undo-the-brdc-part.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,87 +34,104 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: work around broken host PTRACE_SYSEMU
-From: Jeff Dike <jdike@addtoit.com>
+Subject: ramfs-and-ram-disk-pages-are-unevictable: undo the brd.c part 
+From: Rik van Riel <riel@redhat.com>
 
-Fedora broke PTRACE_SYSEMU again, and UML crashes as a result when it
-doesn't need to.  This patch makes the PTRACE_SYSEMU check fail gracefully
-and makes UML fall back to PTRACE_SYSCALL.
+Undo the brd.c part of ramfs-and-ram-disk-pages-are-unevictable.patch.
+The brd pages do not live on the LRU at all, so there is no need to
+play these tricks.
 
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Debugged-by: Nick Piggin <nickpiggin@yahoo.com.au>
+Signed-off-by: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/os-Linux/start_up.c |   25 ++++++++++++++++---------
- 1 file changed, 16 insertions(+), 9 deletions(-)
+ drivers/block/brd.c |   13 -------------
+ 1 file changed, 13 deletions(-)
 
-diff -puN arch/um/os-Linux/start_up.c~uml-work-around-broken-host-ptrace_sysemu arch/um/os-Linux/start_up.c
---- a/arch/um/os-Linux/start_up.c~uml-work-around-broken-host-ptrace_sysemu
-+++ a/arch/um/os-Linux/start_up.c
-@@ -121,8 +121,10 @@ static int stop_ptraced_child(int pid, i
- {
- 	int status, n, ret = 0;
+diff -puN drivers/block/brd.c~ramfs-and-ram-disk-pages-are-unevictable-undo-the-brdc-part drivers/block/brd.c
+--- a/drivers/block/brd.c~ramfs-and-ram-disk-pages-are-unevictable-undo-the-brdc-part
++++ a/drivers/block/brd.c
+@@ -374,21 +374,8 @@ static int brd_ioctl(struct inode *inode
+ 	return error;
+ }
  
--	if (ptrace(PTRACE_CONT, pid, 0, 0) < 0)
--		fatal_perror("stop_ptraced_child : ptrace failed");
-+	if (ptrace(PTRACE_CONT, pid, 0, 0) < 0) {
-+		perror("stop_ptraced_child : ptrace failed");
-+		return -1;
-+	}
- 	CATCH_EINTR(n = waitpid(pid, &status, 0));
- 	if (!WIFEXITED(status) || (WEXITSTATUS(status) != exitcode)) {
- 		int exit_with = WEXITSTATUS(status);
-@@ -212,7 +214,7 @@ static void __init check_sysemu(void)
- 	if (n < 0)
- 		fatal_perror("check_sysemu : wait failed");
- 	if (!WIFSTOPPED(status) || (WSTOPSIG(status) != SIGTRAP))
--		fatal("check_sysemu : expected SIGTRAP, got status = %d",
-+		fatal("check_sysemu : expected SIGTRAP, got status = %d\n",
- 		      status);
- 
- 	if (ptrace(PTRACE_GETREGS, pid, 0, regs) < 0)
-@@ -254,9 +256,11 @@ static void __init check_sysemu(void)
- 
- 		if (WIFSTOPPED(status) &&
- 		    (WSTOPSIG(status) == (SIGTRAP|0x80))) {
--			if (!count)
--				fatal("check_ptrace : SYSEMU_SINGLESTEP "
--				      "doesn't singlestep");
-+			if (!count) {
-+				non_fatal("check_ptrace : SYSEMU_SINGLESTEP "
-+					  "doesn't singlestep");
-+				goto fail;
-+			}
- 			n = ptrace(PTRACE_POKEUSR, pid, PT_SYSCALL_RET_OFFSET,
- 				   os_getpid());
- 			if (n < 0)
-@@ -266,9 +270,12 @@ static void __init check_sysemu(void)
- 		}
- 		else if (WIFSTOPPED(status) && (WSTOPSIG(status) == SIGTRAP))
- 			count++;
--		else
--			fatal("check_ptrace : expected SIGTRAP or "
--			      "(SIGTRAP | 0x80), got status = %d", status);
-+		else {
-+			non_fatal("check_ptrace : expected SIGTRAP or "
-+				  "(SIGTRAP | 0x80), got status = %d\n",
-+				  status);
-+			goto fail;
-+		}
- 	}
- 	if (stop_ptraced_child(pid, 0, 0) < 0)
- 		goto fail_stopped;
+-/*
+- * brd_open():
+- * Just mark the mapping as containing unevictable pages
+- */
+-static int brd_open(struct inode *inode, struct file *filp)
+-{
+-	struct address_space *mapping = inode->i_mapping;
+-
+-	mapping_set_unevictable(mapping);
+-	return 0;
+-}
+-
+ static struct block_device_operations brd_fops = {
+ 	.owner =		THIS_MODULE,
+-	.open  =		brd_open,
+ 	.ioctl =		brd_ioctl,
+ #ifdef CONFIG_BLK_DEV_XIP
+ 	.direct_access =	brd_direct_access,
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from riel@redhat.com are
 
-origin.patch
-uml-remove-include-of-asm-userh.patch
-uml-work-around-broken-host-ptrace_sysemu.patch
-linux-next.patch
-arch-um-kernel-irqc-clean-up-some-functions.patch
-arch-um-kernel-memc-remove-arch_validate.patch
-uml-make-several-more-things-static.patch
-kernel-call-constructors-uml-fix-1.patch
-kernel-call-constructors-uml-fix-2.patch
+ntp-let-update_persistent_clock-sleep.patch
+access_process_vm-device-memory-infrastructure.patch
+access_process_vm-device-memory-infrastructure-fix.patch
+use-generic_access_phys-for-dev-mem-mappings.patch
+use-generic_access_phys-for-dev-mem-mappings-fix.patch
+use-generic_access_phys-for-pci-mmap-on-x86.patch
+powerpc-ioremap_prot.patch
+spufs-use-the-new-vm_ops-access.patch
+spufs-use-the-new-vm_ops-access-fix.patch
+page-flags-record-page-flag-overlays-explicitly.patch
+page-flags-record-page-flag-overlays-explicitly-xen.patch
+slub-record-page-flag-overlays-explicitly.patch
+slob-record-page-flag-overlays-explicitly.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+idr-change-the-idr-structure.patch
+idr-rename-some-of-the-idr-apis-internal-routines.patch
+idr-fix-a-printk-call.patch
+idr-error-checking-factorization.patch
+idr-make-idr_get_new-rcu-safe.patch
+idr-make-idr_get_new-rcu-safe-fix.patch
+idr-make-idr_find-rcu-safe.patch
+idr-make-idr_remove-rcu-safe.patch
+ipc-call-idr_find-without-locking-in-ipc_lock.patch
+ipc-get-rid-of-ipc_lock_down.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
+vmscan-use-an-indexed-array-for-lru-variables.patch
+swap-use-an-array-for-the-lru-pagevecs.patch
+vmscan-free-swap-space-on-swap-in-activation.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+vmscan-second-chance-replacement-for-anonymous-pages.patch
+vmscan-fix-pagecache-reclaim-referenced-bit-check.patch
+vmscan-add-newly-swapped-in-pages-to-the-inactive-list.patch
+more-aggressively-use-lumpy-reclaim.patch
+pageflag-helpers-for-configed-out-flags.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-page-statistics.patch
+ramfs-and-ram-disk-pages-are-unevictable.patch
+ramfs-and-ram-disk-pages-are-unevictable-undo-the-brdc-part.patch
+shm_locked-pages-are-unevictable.patch
+mlock-mlocked-pages-are-unevictable.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-2.patch
+mlock-downgrade-mmap-sem-while-populating-mlocked-regions.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
+vmstat-mlocked-pages-statistics.patch
+swap-cull-unevictable-pages-in-fault-path.patch
+vmstat-unevictable-and-mlocked-pages-vm-events.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
+mlock-count-attempts-to-free-mlocked-page.patch
+doc-unevictable-lru-and-mlocked-pages-documentation.patch
+make-mm-rmapc-anon_vma_cachep-static.patch
 
