@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + 8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix-fix.patch added to -mm tree
-Date: Thu, 12 Jun 2008 16:13:34 -0700
-Message-ID: <200806122313.m5CNDY4p011971@imap1.linux-foundation.org>
+Subject: + serial-dz11-avoid-a-hang-at-console-switch-over.patch added to -mm tree
+Date: Thu, 12 Jun 2008 16:15:16 -0700
+Message-ID: <200806122315.m5CNFGnX012106@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49079 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47378 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754702AbYFLXOO (ORCPT
+	by vger.kernel.org with ESMTP id S1754693AbYFLXPd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Jun 2008 19:14:14 -0400
+	Thu, 12 Jun 2008 19:15:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@redhat.com, jeff@garzik.org, randy.dunlap@oracle.com
+Cc: macro@linux-mips.org, alan@lxorguk.ukuu.org.uk, jirislaby@gmail.com
 
 
 The patch titled
-     8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix-fix
+     serial: DZ11: avoid a hang at console switch-over
 has been added to the -mm tree.  Its filename is
-     8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix-fix.patch
+     serial-dz11-avoid-a-hang-at-console-switch-over.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,186 +34,91 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: 8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: serial: DZ11: avoid a hang at console switch-over
+From: "Maciej W. Rozycki" <macro@linux-mips.org>
 
-nfi if this driver still works.
+Changes to the generic console support code that happened a while ago
+introduced a scenario where the initial console is used in parallel with
+the final console during a brief period when switching between the two is
+in progress.  During that time a message about the switch-over is printed.
 
-Cc: Alan Cox <alan@redhat.com>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
+With some combinations of chips, firmware and drivers, such as the DEC
+DZ11 clone used with the DECstation, a hang may happen because the
+firmware used for the initial console may not expect the state of the chip
+after it has been initialised by the driver.
+
+This is a workaround for the DZ11 which reuses the power-management
+callback to keep the transmitter of the line associated with the console
+enabled.  It reflects the consensus reached in a discussion a while ago.
+
+Signed-off-by: Maciej W. Rozycki <macro@linux-mips.org>
+Cc: Jiri Slaby <jirislaby@gmail.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ne2.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/serial/dz.c |   24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
-diff -puN drivers/net/ne2.c~8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix-fix drivers/net/ne2.c
---- a/drivers/net/ne2.c~8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix-fix
-+++ a/drivers/net/ne2.c
-@@ -499,7 +499,7 @@ static int __init ne2_probe1(struct net_
- #ifdef CONFIG_NET_POLL_CONTROLLER
- 	dev->poll_controller = eip_poll;
- #endif
--	NS8390_init(dev, 0);
-+	NS8390p_init(dev, 0);
+diff -puN drivers/serial/dz.c~serial-dz11-avoid-a-hang-at-console-switch-over drivers/serial/dz.c
+--- a/drivers/serial/dz.c~serial-dz11-avoid-a-hang-at-console-switch-over
++++ a/drivers/serial/dz.c
+@@ -642,6 +642,26 @@ static void dz_set_termios(struct uart_p
+ 	spin_unlock_irqrestore(&dport->port.lock, flags);
+ }
  
- 	retval = register_netdev(dev);
- 	if (retval)
-@@ -748,7 +748,7 @@ retry:
- 		if (time_after(jiffies, dma_start + 2*HZ/100)) {		/* 20ms */
- 			printk("%s: timeout waiting for Tx RDC.\n", dev->name);
- 			ne_reset_8390(dev);
--			NS8390_init(dev,1);
-+			NS8390p_init(dev, 1);
- 			break;
- 		}
++/*
++ * Hack alert!
++ * Required solely so that the initial PROM-based console
++ * works undisturbed in parallel with this one.
++ */
++static void dz_pm(struct uart_port *uport, unsigned int state,
++		  unsigned int oldstate)
++{
++	struct dz_port *dport = to_dport(uport);
++	unsigned long flags;
++
++	spin_lock_irqsave(&dport->port.lock, flags);
++	if (state < 3)
++		dz_start_tx(&dport->port);
++	else
++		dz_stop_tx(&dport->port);
++	spin_unlock_irqrestore(&dport->port.lock, flags);
++}
++
++
+ static const char *dz_type(struct uart_port *uport)
+ {
+ 	return "DZ";
+@@ -738,6 +758,7 @@ static struct uart_ops dz_ops = {
+ 	.startup	= dz_startup,
+ 	.shutdown	= dz_shutdown,
+ 	.set_termios	= dz_set_termios,
++	.pm		= dz_pm,
+ 	.type		= dz_type,
+ 	.release_port	= dz_release_port,
+ 	.request_port	= dz_request_port,
+@@ -861,7 +882,10 @@ static int __init dz_console_setup(struc
+ 	if (ret)
+ 		return ret;
  
++	spin_lock_init(&dport->port.lock);	/* For dz_pm().  */
++
+ 	dz_reset(dport);
++	dz_pm(uport, 0, -1);
+ 
+ 	if (options)
+ 		uart_parse_options(options, &baud, &parity, &bits, &flow);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from macro@linux-mips.org are
 
 origin.patch
-m68k-add-ext2_find_firstnext_bit-for-ext4.patch
-driver-video-cirrusfb-fix-ram-address-printk.patch
 linux-next.patch
-next-remove-localversion.patch
-fix-kobject-fix-kobject_rename-and-config_sysfs.patch
-kvm-unbork.patch
-kvm-is-busted-on-ia64.patch
-drivers-mtd-nand-nandsimc-needs-div64h.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-lguest-use-cpu-capability-accessors.patch
-intel-agp-rewrite-gtt-on-resume.patch
-arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
-pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2.patch
-arch-powerpc-platforms-pseries-eeh_driverc-fix-warning.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-git-jg-misc-git-rejects.patch
-drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-mmc-sd-host-driver-for-ricoh-bay1controllers.patch
-drivers-mtd-devices-block2mtdc-suppress-warning.patch
-git-net.patch
-sundance-set-carrier-status-on-link-change-events.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix-fix.patch
-net-sh_eth-add-support-for-renesas-superh-ethernet.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-scsi-misc-fix-scsi_dh-build-errors.patch
-drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
-s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
-pktcdvd-push-bkl-down-into-driver-fix.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-git-logfs-fixup.patch
-drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
-usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues.patch
-watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-verify-the-page-links-and-memory-model.patch
-mspec-convert-nopfn-to-fault-fix.patch
-page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
-kill-generic_file_direct_io-checkpatch-fixes.patch
-use-generic_access_phys-for-dev-mem-mappings-fix.patch
-spufs-use-the-new-vm_ops-access-fix.patch
-fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
-page-flags-record-page-flag-overlays-explicitly-xen.patch
-mapping_set_error-add-unlikely.patch
-huge-page-private-reservation-review-cleanups-fix.patch
-sync_file_range_write-may-and-will-block-document-that-fix.patch
-vmallocinfo-add-numa-information-fix.patch
-hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
-hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
-hugetlb-override-default-huge-page-size-ia64-build.patch
-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-bootmem-add-debugging-framework-fix.patch
-bootmem-clean-up-free_all_bootmem_core-fix.patch
-bootmem-free-reserve-helpers-fix.patch
-revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
-swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
-split-the-typecheck-macros-out-of-include-linux-kernelh.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
-remove-apparently-unused-fd1772h-header-file.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
-build-kernel-profileo-only-when-requested-cleanups.patch
-fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
-block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
-rename-warn-to-warning-to-clear-the-namespace-fix.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
-flag-parameters-paccept-fix.patch
-flag-parameters-paccept-sys_ni.patch
-flag-parameters-anon_inode_getfd-extension-fix.patch
-flag-parameters-signalfd-fix.patch
-flag-parameters-eventfd-fix.patch
-flag-parameters-inotify_init-fix.patch
-flag-parameters-check-magic-constants-alpha.patch
-cputopology-always-define-cpu-topology-information-cleanup.patch
-oprofile-multiplexing-checkpatch-fixes.patch
-gpio-gpio-driver-for-max7301-spi-gpio-expander-checkpatch-fixes.patch
-drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
-atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
-pnp-add-pnp_possible_config-can-a-device-could-be-configured-this-way-fix.patch
-pnp-convert-resource-options-to-single-linked-list-checkpatch-fixes.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
-reiserfs-convert-j_flush_sem-to-mutex.patch
-reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
-memcg-remove-refcnt-from-page_cgroup-fix-2.patch
-jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup.patch
-ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
-getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
-tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
-memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
-memstick-use-fully-asynchronous-request-processing-fix.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-mm-introduce-get_user_pages_fast-fix.patch
-mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-fix.patch
-x86-lockless-get_user_pages_fast-fix-2.patch
-x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
-x86-lockless-get_user_pages_fast-fix-warning.patch
-vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
-define-page_file_cache-function-fix.patch
-unevictable-lru-infrastructure-fix.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-3.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
-vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+ntp-let-update_persistent_clock-sleep.patch
+ntp-fix-calculation-of-the-next-jiffie-to-trigger-rtc-sync.patch
+serial-z85c30-avoid-a-hang-at-console-switch-over.patch
+serial-dz11-avoid-a-hang-at-console-switch-over.patch
+rtc-m41t80-sort-header-inclusions-for-readability.patch
+rtc-m41t80-use-pr_info-as-appropriate.patch
 
