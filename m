@@ -1,127 +1,141 @@
 From: akpm@linux-foundation.org
-Subject: - fat_valid_media-isnt-for-userspace.patch removed from -mm tree
-Date: Thu, 12 Jun 2008 13:37:32 -0700
-Message-ID: <200806122037.m5CKbWpt005436@imap1.linux-foundation.org>
+Subject: - pnpacpi-use-_crs-irq-descriptor-length-for-_srs-v2.patch removed from -mm tree
+Date: Thu, 12 Jun 2008 13:38:01 -0700
+Message-ID: <200806122038.m5CKc1Jp005487@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38299 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34068 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756526AbYFLUiX (ORCPT
+	by vger.kernel.org with ESMTP id S1756644AbYFLUi2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Jun 2008 16:38:23 -0400
+	Thu, 12 Jun 2008 16:38:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, caglar@pardus.org.tr, hirofumi@mail.parknet.co.jp, onur@pardus.org.tr, mm-commits@vger.kernel.org
+To: bjorn.helgaas@hp.com, Robert.Moore@intel.com, ThJaeger@gmail.com, ambx1@neo.rr.com, castet.matthieu@free.fr, lenb@kernel.org, shaohua.li@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fat_valid_media() isn't for userspace
+     PNPACPI: use _CRS IRQ descriptor length for _SRS
 has been removed from the -mm tree.  Its filename was
-     fat_valid_media-isnt-for-userspace.patch
+     pnpacpi-use-_crs-irq-descriptor-length-for-_srs-v2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fat_valid_media() isn't for userspace
-From: Adrian Bunk <bunk@kernel.org>
+Subject: PNPACPI: use _CRS IRQ descriptor length for _SRS
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Commit 73f20e58b1d586e9f6d3ddc3aad872829aca7743
-(FAT_VALID_MEDIA(): remove pointless test)
+When configuring the resources of an ACPI device, we first evaluate _CRS
+to get a template of resource descriptors, then fill in the specific
+resource values we want, and finally evaluate _SRS to actually configure
+the device.
 
-wrongly added the new fat_valid_media() function to the userspace-visible
-part of include/linux/msdos_fs.h
+Some resources have optional fields, so the size of encoded descriptors
+varies depending on the specific values.  For example, IRQ descriptors can
+be either two or three bytes long.  The third byte contains triggering
+information and can be omitted if the IRQ is edge-triggered and active
+high.
 
-Move it to the part of include/linux/msdos_fs.h that is not exported to
-userspace.
+The BIOS often assumes that IRQ descriptors in the _SRS buffer use the
+same format as those in the _CRS buffer, so this patch enforces that
+constraint.
 
-Reported-by: Onur Kucuk <onur@pardus.org.tr>
-Reported-by: S.Caglar Onur <caglar@pardus.org.tr>
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+The "Start Dependent Function" descriptor also has an optional byte, but
+we don't currently encode those descriptors, so I didn't do anything for
+those.
+
+I have tested this patch on a Toshiba Portege 4000.  Without the patch,
+parport_pc claims the parallel port only if I use "pnpacpi=off".  This
+patch makes it work with PNPACPI.
+
+This is an extension of a patch by Tom Jaeger:
+    http://bugzilla.kernel.org/show_bug.cgi?id=9487#c42
+
+References:
+    http://bugzilla.kernel.org/show_bug.cgi?id=5832 Enabling ACPI Plug and Play in kernels >2.6.9 kills Parallel support
+    http://bugzilla.kernel.org/show_bug.cgi?id=9487 buggy firmware expects four-byte IRQ resource descriptor (was: Serial port disappears after Suspend on Toshiba R25)
+    http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=1d5b285da1893b90507b081664ac27f1a8a3dc5b related ACPICA fix
+
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Adam Belay <ambx1@neo.rr.com>
+Cc: Matthieu Castet <castet.matthieu@free.fr>
+Cc: Li Shaohua <shaohua.li@intel.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Tom Jaeger <ThJaeger@gmail.com>
+Cc: Robert Moore <Robert.Moore@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/msdos_fs.h |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ drivers/pnp/pnpacpi/rsparser.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/msdos_fs.h~fat_valid_media-isnt-for-userspace include/linux/msdos_fs.h
---- a/include/linux/msdos_fs.h~fat_valid_media-isnt-for-userspace
-+++ a/include/linux/msdos_fs.h
-@@ -57,12 +57,6 @@
- #define MSDOS_DOT	".          "	/* ".", padded to MSDOS_NAME chars */
- #define MSDOS_DOTDOT	"..         "	/* "..", padded to MSDOS_NAME chars */
+diff -puN drivers/pnp/pnpacpi/rsparser.c~pnpacpi-use-_crs-irq-descriptor-length-for-_srs-v2 drivers/pnp/pnpacpi/rsparser.c
+--- a/drivers/pnp/pnpacpi/rsparser.c~pnpacpi-use-_crs-irq-descriptor-length-for-_srs-v2
++++ a/drivers/pnp/pnpacpi/rsparser.c
+@@ -755,6 +755,9 @@ static acpi_status pnpacpi_type_resource
+ 	if (pnpacpi_supported_resource(res)) {
+ 		(*resource)->type = res->type;
+ 		(*resource)->length = sizeof(struct acpi_resource);
++		if (res->type == ACPI_RESOURCE_TYPE_IRQ)
++			(*resource)->data.irq.descriptor_length =
++					res->data.irq.descriptor_length;
+ 		(*resource)++;
+ 	}
  
--/* media of boot sector */
--static inline int fat_valid_media(u8 media)
--{
--	return 0xf8 <= media || media == 0xf0;
--}
--
- #define FAT_FIRST_ENT(s, x)	((MSDOS_SB(s)->fat_bits == 32 ? 0x0FFFFF00 : \
- 	MSDOS_SB(s)->fat_bits == 16 ? 0xFF00 : 0xF00) | (x))
+@@ -810,10 +813,12 @@ static void pnpacpi_encode_irq(struct pn
+ 	irq->interrupt_count = 1;
+ 	irq->interrupts[0] = p->start;
  
-@@ -334,6 +328,12 @@ static inline void fatwchar_to16(__u8 *d
- #endif
+-	dev_dbg(&dev->dev, "  encode irq %d %s %s %s\n", (int) p->start,
++	dev_dbg(&dev->dev, "  encode irq %d %s %s %s (%d-byte descriptor)\n",
++		(int) p->start,
+ 		triggering == ACPI_LEVEL_SENSITIVE ? "level" : "edge",
+ 		polarity == ACPI_ACTIVE_LOW ? "low" : "high",
+-		irq->sharable == ACPI_SHARED ? "shared" : "exclusive");
++		irq->sharable == ACPI_SHARED ? "shared" : "exclusive",
++		irq->descriptor_length);
  }
  
-+/* media of boot sector */
-+static inline int fat_valid_media(u8 media)
-+{
-+	return 0xf8 <= media || media == 0xf0;
-+}
-+
- /* fat/cache.c */
- extern void fat_cache_inval_inode(struct inode *inode);
- extern int fat_get_cluster(struct inode *inode, int cluster,
+ static void pnpacpi_encode_ext_irq(struct pnp_dev *dev,
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from bjorn.helgaas@hp.com are
 
 origin.patch
-linux-next.patch
-remove-drivers-acorn-char-defkeymap-l7200c.patch
-drm-make-drm_minors_cleanup-static.patch
-if-0-ses_match_host.patch
-git-xtensa.patch
-mm-migratec-should-include-linux-syscallsh.patch
-mm-vmstatc-proper-externs.patch
-mm-hugetlbc-fix-duplicate-variable.patch
-remove-include-asm-h8300-keyboardh.patch
-remove-include-linux-pm_legacyh.patch
-remove-the-v850-port.patch
-init-do_mountsc-should-include-linux-initrdh.patch
-proper-spawn_ksoftirqd-prototype.patch
-build-kernel-profileo-only-when-requested.patch
-build-kernel-profileo-only-when-requested-cleanups.patch
-asm-generic-int-ll64h-always-provide-__su64.patch
-remove-some-more-tipar-bits.patch
-remove-the-oss-trident-driver.patch
-config_sound_wm97xx-remove-stale-makefile-line.patch
-serial-8250_gscc-add-module_license.patch
-mfd-sm501c-if-0-unused-functions.patch
-video-sis-remove-compat-code.patch
-minix-remove-no_truncate-code.patch
-remove-is_tty.patch
-proper-extern-for-mwave_s_mdd.patch
-if-0-hpet_unregister.patch
-unexport-proc_clear_tty.patch
-move-proc_kmsg_operations-to-fs-proc-internalh.patch
-proper-pidhashmap_init-prototypes.patch
-unexport-uts_sem.patch
-parport-sharec-proper-externs.patch
-tpm_biosc-make-2-structs-static.patch
-make-cgroup_seqfile_release-static.patch
-make-kprobe_blacklist-static.patch
+mm-only-enforce-acpi-resource-conflict-checks.patch
+provide-rtc_cmos-platform-device-take-2.patch
+pnp-add-detail-to-debug-resource-dump.patch
+pnp-remove-pnp_resourceindex.patch
+pnp-add-pnp_resource_type-internal-interface.patch
+pnp-add-pnp_resource_type_name-helper-function.patch
+pnp-make-pnp_portmemetc_start-et-al-work-for-invalid-resources.patch
+pnp-replace-pnp_resource_table-with-dynamically-allocated-resources.patch
+pnp-replace-pnp_resource_table-with-dynamically-allocated-resources-fix.patch
+pnp-remove-ratelimit-on-add-resource-failures.patch
+pnp-dont-sort-by-type-in-sys-resources.patch
+pnp-set-the-pnp_card-dma_mask-for-use-by-isapnp-cards.patch
+isa-set-24-bit-dma_mask-for-isa-devices.patch
+pnp-add-pnp_possible_config-can-a-device-could-be-configured-this-way.patch
+pnp-add-pnp_possible_config-can-a-device-could-be-configured-this-way-fix.patch
+pnp-whitespace-coding-style-fixes.patch
+pnp-define-pnp-specific-ioresource_io_-flags-alongside-irq-dma-mem.patch
+pnp-make-resource-option-structures-private-to-pnp-subsystem.patch
+pnp-introduce-pnp_irq_mask_t-typedef.patch
+pnp-increase-i-o-port-memory-option-address-sizes.patch
+pnp-improve-resource-assignment-debug.patch
+pnp-in-debug-resource-dump-make-empty-list-obvious.patch
+pnp-make-resource-assignment-functions-return-0-success-or-ebusy-failure.patch
+pnp-remove-redundant-pnp_can_configure-check.patch
+pnp-centralize-resource-option-allocations.patch
+pnpacpi-ignore-_prs-interrupt-numbers-larger-than-pnp_irq_nr.patch
+pnp-rename-pnp_register__resource-local-variables.patch
+pnp-support-optional-irq-resources.patch
+pnp-remove-extra-0x100-bit-from-option-priority.patch
+isapnp-handle-independent-options-following-dependent-ones.patch
+pnp-convert-resource-options-to-single-linked-list.patch
+pnp-convert-resource-options-to-single-linked-list-checkpatch-fixes.patch
+not-for-merging-pnp-changes-suspend-oops.patch
 make-pnp_add_card_id-static.patch
-make-parport_cs_release-static.patch
-make-mm-sparsec-make-a-function-static.patch
-mm-allocpercpuc-make-4-functions-static.patch
-make-mm-memoryc-print_bad_pte-static.patch
-mm-swapfilec-make-code-static.patch
-make-mm-rmapc-anon_vma_cachep-static.patch
-drivers-char-rtcc-make-2-functions-static.patch
-make-init-do_mountsc-root_device_name-static.patch
-reiser4.patch
 
