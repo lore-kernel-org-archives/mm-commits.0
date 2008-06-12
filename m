@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
 Subject: + console-keyboard-mapping-broken-by-04c71976.patch added to -mm tree
-Date: Wed, 11 Jun 2008 18:27:50 -0700
-Message-ID: <200806120127.m5C1Rox0027575@imap1.linux-foundation.org>
+Date: Wed, 11 Jun 2008 18:41:32 -0700
+Message-ID: <200806120141.m5C1fWXD028102@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47335 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40775 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753981AbYFLB2R (ORCPT
+	by vger.kernel.org with ESMTP id S1751539AbYFLBmB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Jun 2008 21:28:17 -0400
+	Wed, 11 Jun 2008 21:42:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -37,7 +37,18 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 Subject: console keyboard mapping broken by 04c71976
 From: Jiri Bohac <jbohac@suse.cz>
 
-unchangelogged
+Several console keyboard maps are broken since
+
+commit 04c71976500352d02f60616d2b960267d8c5fe24
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Tue Oct 16 23:27:04 2007 -0700
+
+    unicode diacritics support
+    
+
+because that changeset made k_self consider the value as a latin1
+character when in Unicode mode, which is wrong; k_self should still take
+the console map into account.
 
 Signed-off-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
