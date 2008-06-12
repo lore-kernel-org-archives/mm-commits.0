@@ -1,69 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: - smc91x-fix-build-error-from-the-smc_get_mac_addr-api-change.patch removed from -mm tree
-Date: Thu, 12 Jun 2008 13:37:55 -0700
-Message-ID: <200806122037.m5CKbtUj005475@imap1.linux-foundation.org>
+Subject: - fat_valid_media-isnt-for-userspace.patch removed from -mm tree
+Date: Thu, 12 Jun 2008 13:37:32 -0700
+Message-ID: <200806122037.m5CKbWpt005436@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57990 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38299 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756547AbYFLUiP (ORCPT
+	by vger.kernel.org with ESMTP id S1756526AbYFLUiX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Jun 2008 16:38:15 -0400
+	Thu, 12 Jun 2008 16:38:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cooloney@kernel.org, jeff@garzik.org, mm-commits@vger.kernel.org
+To: bunk@kernel.org, caglar@pardus.org.tr, hirofumi@mail.parknet.co.jp, onur@pardus.org.tr, mm-commits@vger.kernel.org
 
 
 The patch titled
-     smc91x: fix build error from the SMC_GET_MAC_ADDR API change
+     fat_valid_media() isn't for userspace
 has been removed from the -mm tree.  Its filename was
-     smc91x-fix-build-error-from-the-smc_get_mac_addr-api-change.patch
+     fat_valid_media-isnt-for-userspace.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: smc91x: fix build error from the SMC_GET_MAC_ADDR API change
-From: Bryan Wu <cooloney@kernel.org>
+Subject: fat_valid_media() isn't for userspace
+From: Adrian Bunk <bunk@kernel.org>
 
-Cc: Jeff Garzik <jeff@garzik.org>
-Signed-off-by: Bryan Wu <cooloney@kernel.org>
+Commit 73f20e58b1d586e9f6d3ddc3aad872829aca7743
+(FAT_VALID_MEDIA(): remove pointless test)
+
+wrongly added the new fat_valid_media() function to the userspace-visible
+part of include/linux/msdos_fs.h
+
+Move it to the part of include/linux/msdos_fs.h that is not exported to
+userspace.
+
+Reported-by: Onur Kucuk <onur@pardus.org.tr>
+Reported-by: S.Caglar Onur <caglar@pardus.org.tr>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/smc91x.h |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ include/linux/msdos_fs.h |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN drivers/net/smc91x.h~smc91x-fix-build-error-from-the-smc_get_mac_addr-api-change drivers/net/smc91x.h
---- a/drivers/net/smc91x.h~smc91x-fix-build-error-from-the-smc_get_mac_addr-api-change
-+++ a/drivers/net/smc91x.h
-@@ -93,14 +93,14 @@
- #define SMC_insw(a, r, p, l) 	insw ((unsigned long *)((a) + (r)), p, l)
- # endif
- /* check if the mac in reg is valid */
--#define SMC_GET_MAC_ADDR(addr)					\
-+#define SMC_GET_MAC_ADDR(lp, addr)				\
- 	do {							\
- 		unsigned int __v;				\
--		__v = SMC_inw(ioaddr, ADDR0_REG);		\
-+		__v = SMC_inw(ioaddr, ADDR0_REG(lp));		\
- 		addr[0] = __v; addr[1] = __v >> 8;		\
--		__v = SMC_inw(ioaddr, ADDR1_REG);		\
-+		__v = SMC_inw(ioaddr, ADDR1_REG(lp));		\
- 		addr[2] = __v; addr[3] = __v >> 8;		\
--		__v = SMC_inw(ioaddr, ADDR2_REG);		\
-+		__v = SMC_inw(ioaddr, ADDR2_REG(lp));		\
- 		addr[4] = __v; addr[5] = __v >> 8;		\
- 		if (*(u32 *)(&addr[0]) == 0xFFFFFFFF) {		\
- 			random_ether_addr(addr);		\
+diff -puN include/linux/msdos_fs.h~fat_valid_media-isnt-for-userspace include/linux/msdos_fs.h
+--- a/include/linux/msdos_fs.h~fat_valid_media-isnt-for-userspace
++++ a/include/linux/msdos_fs.h
+@@ -57,12 +57,6 @@
+ #define MSDOS_DOT	".          "	/* ".", padded to MSDOS_NAME chars */
+ #define MSDOS_DOTDOT	"..         "	/* "..", padded to MSDOS_NAME chars */
+ 
+-/* media of boot sector */
+-static inline int fat_valid_media(u8 media)
+-{
+-	return 0xf8 <= media || media == 0xf0;
+-}
+-
+ #define FAT_FIRST_ENT(s, x)	((MSDOS_SB(s)->fat_bits == 32 ? 0x0FFFFF00 : \
+ 	MSDOS_SB(s)->fat_bits == 16 ? 0xFF00 : 0xF00) | (x))
+ 
+@@ -334,6 +328,12 @@ static inline void fatwchar_to16(__u8 *d
+ #endif
+ }
+ 
++/* media of boot sector */
++static inline int fat_valid_media(u8 media)
++{
++	return 0xf8 <= media || media == 0xf0;
++}
++
+ /* fat/cache.c */
+ extern void fat_cache_inval_inode(struct inode *inode);
+ extern int fat_get_cluster(struct inode *inode, int cluster,
 _
 
-Patches currently in -mm which might be from cooloney@kernel.org are
+Patches currently in -mm which might be from bunk@kernel.org are
 
 origin.patch
 linux-next.patch
-pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2.patch
-usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues.patch
-mtd-m25p80-fix-bug-atmel-spi-flash-fails-to-be-copied-to.patch
+remove-drivers-acorn-char-defkeymap-l7200c.patch
+drm-make-drm_minors_cleanup-static.patch
+if-0-ses_match_host.patch
+git-xtensa.patch
+mm-migratec-should-include-linux-syscallsh.patch
+mm-vmstatc-proper-externs.patch
+mm-hugetlbc-fix-duplicate-variable.patch
+remove-include-asm-h8300-keyboardh.patch
+remove-include-linux-pm_legacyh.patch
+remove-the-v850-port.patch
+init-do_mountsc-should-include-linux-initrdh.patch
+proper-spawn_ksoftirqd-prototype.patch
+build-kernel-profileo-only-when-requested.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+asm-generic-int-ll64h-always-provide-__su64.patch
+remove-some-more-tipar-bits.patch
+remove-the-oss-trident-driver.patch
+config_sound_wm97xx-remove-stale-makefile-line.patch
+serial-8250_gscc-add-module_license.patch
+mfd-sm501c-if-0-unused-functions.patch
+video-sis-remove-compat-code.patch
+minix-remove-no_truncate-code.patch
+remove-is_tty.patch
+proper-extern-for-mwave_s_mdd.patch
+if-0-hpet_unregister.patch
+unexport-proc_clear_tty.patch
+move-proc_kmsg_operations-to-fs-proc-internalh.patch
+proper-pidhashmap_init-prototypes.patch
+unexport-uts_sem.patch
+parport-sharec-proper-externs.patch
+tpm_biosc-make-2-structs-static.patch
+make-cgroup_seqfile_release-static.patch
+make-kprobe_blacklist-static.patch
+make-pnp_add_card_id-static.patch
+make-parport_cs_release-static.patch
+make-mm-sparsec-make-a-function-static.patch
+mm-allocpercpuc-make-4-functions-static.patch
+make-mm-memoryc-print_bad_pte-static.patch
+mm-swapfilec-make-code-static.patch
+make-mm-rmapc-anon_vma_cachep-static.patch
+drivers-char-rtcc-make-2-functions-static.patch
+make-init-do_mountsc-root_device_name-static.patch
+reiser4.patch
 
