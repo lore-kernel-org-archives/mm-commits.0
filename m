@@ -1,88 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: - cifs-fix-oops-on-mount-when-config_cifs_dfs_upcall-is-enabled.patch removed from -mm tree
-Date: Thu, 12 Jun 2008 13:36:48 -0700
-Message-ID: <200806122036.m5CKamEl005365@imap1.linux-foundation.org>
+Subject: - acpi-use-memory_read_from_buffer.patch removed from -mm tree
+Date: Thu, 12 Jun 2008 13:36:39 -0700
+Message-ID: <200806122036.m5CKad9j005349@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59932 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34220 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755798AbYFLUhD (ORCPT
+	by vger.kernel.org with ESMTP id S1755814AbYFLUhD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 12 Jun 2008 16:37:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: marcin.slusarz@gmail.com, sfrench@samba.org, stable@kernel.org, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, lenb@kernel.org, robert.moore@intel.com, rui.zhang@intel.com, trenn@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cifs: fix oops on mount when CONFIG_CIFS_DFS_UPCALL is enabled
+     acpi: use memory_read_from_buffer()
 has been removed from the -mm tree.  Its filename was
-     cifs-fix-oops-on-mount-when-config_cifs_dfs_upcall-is-enabled.patch
+     acpi-use-memory_read_from_buffer.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cifs: fix oops on mount when CONFIG_CIFS_DFS_UPCALL is enabled
-From: Marcin Slusarz <marcin.slusarz@gmail.com>
+Subject: acpi: use memory_read_from_buffer()
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-simple "mount -t cifs //xxx /mnt" oopsed on strlen of options
-http://kerneloops.org/guilty.php?guilty=cifs_get_sb&version=2.6.25-release&start=1671168&end=1703935&class=oops
-
-Signed-off-by: Marcin Slusarz <marcin.slusarz@gmail.com>
-Cc: Steve French <sfrench@samba.org>
-Cc: <stable@kernel.org>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Zhang Rui <rui.zhang@intel.com>
+Cc: Bob Moore <robert.moore@intel.com>
+Cc: Thomas Renninger <trenn@suse.de>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/cifs/cifsfs.c |   21 ++++++++++-----------
- 1 file changed, 10 insertions(+), 11 deletions(-)
+ drivers/acpi/system.c |   15 ++-------------
+ 1 file changed, 2 insertions(+), 13 deletions(-)
 
-diff -puN fs/cifs/cifsfs.c~cifs-fix-oops-on-mount-when-config_cifs_dfs_upcall-is-enabled fs/cifs/cifsfs.c
---- a/fs/cifs/cifsfs.c~cifs-fix-oops-on-mount-when-config_cifs_dfs_upcall-is-enabled
-+++ a/fs/cifs/cifsfs.c
-@@ -124,9 +124,6 @@ cifs_read_super(struct super_block *sb, 
- {
- 	struct inode *inode;
- 	struct cifs_sb_info *cifs_sb;
--#ifdef CONFIG_CIFS_DFS_UPCALL
--	int len;
--#endif
- 	int rc = 0;
+diff -puN drivers/acpi/system.c~acpi-use-memory_read_from_buffer drivers/acpi/system.c
+--- a/drivers/acpi/system.c~acpi-use-memory_read_from_buffer
++++ a/drivers/acpi/system.c
+@@ -77,7 +77,6 @@ static ssize_t acpi_table_show(struct ko
+ 	    container_of(bin_attr, struct acpi_table_attr, attr);
+ 	struct acpi_table_header *table_header = NULL;
+ 	acpi_status status;
+-	ssize_t ret_count = count;
  
- 	/* BB should we make this contingent on mount parm? */
-@@ -144,15 +141,17 @@ cifs_read_super(struct super_block *sb, 
- 	 * complex operation (mount), and in case of fail
- 	 * just exit instead of doing mount and attempting
- 	 * undo it if this copy fails?*/
--	len = strlen(data);
--	cifs_sb->mountdata = kzalloc(len + 1, GFP_KERNEL);
--	if (cifs_sb->mountdata == NULL) {
--		kfree(sb->s_fs_info);
--		sb->s_fs_info = NULL;
--		return -ENOMEM;
-+	if (data) {
-+		int len = strlen(data);
-+		cifs_sb->mountdata = kzalloc(len + 1, GFP_KERNEL);
-+		if (cifs_sb->mountdata == NULL) {
-+			kfree(sb->s_fs_info);
-+			sb->s_fs_info = NULL;
-+			return -ENOMEM;
-+		}
-+		strncpy(cifs_sb->mountdata, data, len + 1);
-+		cifs_sb->mountdata[len] = '\0';
- 	}
--	strncpy(cifs_sb->mountdata, data, len + 1);
--	cifs_sb->mountdata[len] = '\0';
- #endif
+ 	status =
+ 	    acpi_get_table(table_attr->name, table_attr->instance,
+@@ -85,18 +84,8 @@ static ssize_t acpi_table_show(struct ko
+ 	if (ACPI_FAILURE(status))
+ 		return -ENODEV;
  
- 	rc = cifs_mount(sb, cifs_sb, data, devname);
+-	if (offset >= table_header->length) {
+-		ret_count = 0;
+-		goto end;
+-	}
+-
+-	if (offset + ret_count > table_header->length)
+-		ret_count = table_header->length - offset;
+-
+-	memcpy(buf, ((char *)table_header) + offset, ret_count);
+-
+-      end:
+-	return ret_count;
++	return memory_read_from_buffer(buf, count, &offset,
++					table_header, table_header->length);
+ }
+ 
+ static void acpi_table_attr_init(struct acpi_table_attr *table_attr,
 _
 
-Patches currently in -mm which might be from marcin.slusarz@gmail.com are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 origin.patch
 linux-next.patch
-vfs-fix-err_ptr-abuse-in-generic_readlink.patch
+ttusb-use-simple_read_from_buffer.patch
+s390-vmcp-use-simple_read_from_buffer.patch
+s390-use-simple_read_from_buffer.patch
+s390-cio-use-memory_read_from_buffer.patch
+s390-use-memory_read_from_buffer.patch
+ipr-use-memory_read_from_buffer.patch
+qla2xxx-use-memory_read_from_buffer.patch
+usbmon-use-simple_read_from_buffer.patch
+airo-use-simple_read_from_buffer.patch
+cris-use-simple_read_from_buffer.patch
+binfmt_misc-use-simple_read_from_buffer.patch
+aty-use-memory_read_from_buffer.patch
+ipc-use-simple_read_from_buffer.patch
+nwflash-use-simple_read_from_buffer.patch
+firmware-use-memory_read_from_buffer.patch
+dcdbas-use-memory_read_from_buffer.patch
+dell_rbu-use-memory_read_from_buffer.patch
 
