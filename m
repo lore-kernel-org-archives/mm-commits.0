@@ -1,92 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: + revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch added to -mm tree
-Date: Thu, 12 Jun 2008 13:54:05 -0700
-Message-ID: <200806122054.m5CKs5w9006151@imap1.linux-foundation.org>
+Subject: - m68k-add-ext2_find_firstnext_bit-for-ext4-checkpatch-fixes.patch removed from -mm tree
+Date: Thu, 12 Jun 2008 14:21:18 -0700
+Message-ID: <200806122133.m5CLX25l007763@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40489 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43116 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754198AbYFLUy6 (ORCPT
+	by vger.kernel.org with ESMTP id S1751267AbYFLVdT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Jun 2008 16:54:58 -0400
+	Thu, 12 Jun 2008 17:33:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, bwalle@suse.de, hannes@saeurebad.de, mingo@elte.hu
+To: akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com, geert@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node
-has been added to the -mm tree.  Its filename is
-     revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+     m68k-add-ext2_find_firstnext_bit-for-ext4-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     m68k-add-ext2_find_firstnext_bit-for-ext4-checkpatch-fixes.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into m68k-add-ext2_find_firstnext_bit-for-ext4.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node
+Subject: m68k-add-ext2_find_firstnext_bit-for-ext4-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Johannes Weiner <hannes@saeurebad.de>
-Cc: Bernhard Walle <bwalle@suse.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+ERROR: that open brace { should be on the previous line
+#37: FILE: include/asm-m68k/bitops.h:423:
++	while (*p++ == 0UL)
++	{
+
+total: 1 errors, 0 warnings, 52 lines checked
+
+./patches/m68k-add-ext2_find_firstnext_bit-for-ext4.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bootmem.h |    2 +-
- mm/bootmem.c            |    5 +++--
- 2 files changed, 4 insertions(+), 3 deletions(-)
+ include/asm-m68k/bitops.h |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN include/linux/bootmem.h~revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node include/linux/bootmem.h
---- a/include/linux/bootmem.h~revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node
-+++ a/include/linux/bootmem.h
-@@ -67,7 +67,7 @@ extern void free_bootmem(unsigned long a
- #define BOOTMEM_DEFAULT		0
- #define BOOTMEM_EXCLUSIVE	(1<<0)
+diff -puN include/asm-m68k/bitops.h~m68k-add-ext2_find_firstnext_bit-for-ext4-checkpatch-fixes include/asm-m68k/bitops.h
+--- a/include/asm-m68k/bitops.h~m68k-add-ext2_find_firstnext_bit-for-ext4-checkpatch-fixes
++++ a/include/asm-m68k/bitops.h
+@@ -420,8 +420,7 @@ static inline int ext2_find_first_bit(co
+ 		return 0;
  
--extern void reserve_bootmem_node(pg_data_t *pgdat,
-+extern int reserve_bootmem_node(pg_data_t *pgdat,
- 				 unsigned long physaddr,
- 				 unsigned long size,
- 				 int flags);
-diff -puN mm/bootmem.c~revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node mm/bootmem.c
---- a/mm/bootmem.c~revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node
-+++ a/mm/bootmem.c
-@@ -380,15 +380,16 @@ static void __init reserve_bootmem_core(
-  *
-  * Only physical pages that actually reside on @pgdat are marked.
-  */
--void __init reserve_bootmem_node(pg_data_t *pgdat, unsigned long physaddr,
-+int __init reserve_bootmem_node(pg_data_t *pgdat, unsigned long physaddr,
- 				 unsigned long size, int flags)
- {
- 	int ret;
- 
- 	ret = can_reserve_bootmem_core(pgdat->bdata, physaddr, size, flags);
- 	if (ret < 0)
--		return;
-+		return -ENOMEM;
- 	reserve_bootmem_core(pgdat->bdata, physaddr, size, flags);
-+	return 0;
- }
- 
- #ifndef CONFIG_HAVE_ARCH_BOOTMEM_NODE
+ 	size = (size >> 5) + ((size & 31) > 0);
+-	while (*p++ == 0UL)
+-	{
++	while (*p++ == 0UL) {
+ 		if (--size == 0)
+ 			return (p - addr) << 5;
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+m68k-add-ext2_find_firstnext_bit-for-ext4.patch
 m68k-add-ext2_find_firstnext_bit-for-ext4-checkpatch-fixes.patch
+driver-video-cirrusfb-fix-ram-address-printk-fix.patch
+driver-video-cirrusfb-fix-ram-address-printk-fix-fix.patch
 linux-next.patch
 next-remove-localversion.patch
 fix-kobject-fix-kobject_rename-and-config_sysfs.patch
@@ -120,8 +103,6 @@ drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
 usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues.patch
 watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
 git-xtensa.patch
-driver-video-cirrusfb-fix-ram-address-printk-fix.patch
-driver-video-cirrusfb-fix-ram-address-printk-fix-fix.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
 mm-verify-the-page-links-and-memory-model.patch
 mspec-convert-nopfn-to-fault-fix.patch
