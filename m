@@ -1,196 +1,182 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-uwb-wlp-sysfsc-dead-code.patch removed from -mm tree
-Date: Thu, 12 Jun 2008 13:37:23 -0700
-Message-ID: <200806122037.m5CKbNbx005422@imap1.linux-foundation.org>
+Subject: - usb-cp2101c-fix-sparse-signedness-mismatch-warnings.patch removed from -mm tree
+Date: Thu, 12 Jun 2008 13:37:25 -0700
+Message-ID: <200806122037.m5CKbPoR005425@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59069 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58288 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756122AbYFLUh0 (ORCPT
+	by vger.kernel.org with ESMTP id S1756184AbYFLUh3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Jun 2008 16:37:26 -0400
+	Thu, 12 Jun 2008 16:37:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, anderson.lizardo@gmail.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/uwb/wlp/sysfs.c: move misplaced debug statement
+     usb: cp2101.c fix sparse signedness mismatch warnings
 has been removed from the -mm tree.  Its filename was
-     drivers-uwb-wlp-sysfsc-dead-code.patch
+     usb-cp2101c-fix-sparse-signedness-mismatch-warnings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/uwb/wlp/sysfs.c: move misplaced debug statement
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: usb: cp2101.c fix sparse signedness mismatch warnings
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-drivers/uwb/wlp/sysfs.c:142: warning: control may reach end of non-void function 'wlp_wss_neighborhood_print_remove' being inlined
+The get/set 2101_config helpers take an unsigned int rather than an int. 
+It is safe to change these in each case and may even produce better code
+as it will be an unsigned divide rather than a signed divide in places. 
+All other manipulation was setting/masking bits which will not be affected
+by the sign change.
 
+Fixes the following sparse warnings:
+drivers/usb/serial/cp2101.c:378:44: warning: incorrect type in argument 3 (different signedness)
+drivers/usb/serial/cp2101.c:378:44:    expected unsigned int *data
+drivers/usb/serial/cp2101.c:378:44:    got int *<noident>
+drivers/usb/serial/cp2101.c:388:40: warning: incorrect type in argument 3 (different signedness)
+drivers/usb/serial/cp2101.c:388:40:    expected unsigned int *data
+drivers/usb/serial/cp2101.c:388:40:    got int *<noident>
+drivers/usb/serial/cp2101.c:413:42: warning: incorrect type in argument 3 (different signedness)
+drivers/usb/serial/cp2101.c:413:42:    expected unsigned int *data
+drivers/usb/serial/cp2101.c:413:42:    got int *<noident>
+drivers/usb/serial/cp2101.c:421:42: warning: incorrect type in argument 3 (different signedness)
+drivers/usb/serial/cp2101.c:421:42:    expected unsigned int *data
+drivers/usb/serial/cp2101.c:421:42:    got int *<noident>
+drivers/usb/serial/cp2101.c:444:42: warning: incorrect type in argument 3 (different signedness)
+drivers/usb/serial/cp2101.c:444:42:    expected unsigned int *data
+drivers/usb/serial/cp2101.c:444:42:    got int *<noident>
+drivers/usb/serial/cp2101.c:451:42: warning: incorrect type in argument 3 (different signedness)
+drivers/usb/serial/cp2101.c:451:42:    expected unsigned int *data
+drivers/usb/serial/cp2101.c:451:42:    got int *<noident>
+drivers/usb/serial/cp2101.c:458:42: warning: incorrect type in argument 3 (different signedness)
+drivers/usb/serial/cp2101.c:458:42:    expected unsigned int *data
+drivers/usb/serial/cp2101.c:458:42:    got int *<noident>
+drivers/usb/serial/cp2101.c:471:42: warning: incorrect type in argument 3 (different signedness)
+drivers/usb/serial/cp2101.c:471:42:    expected unsigned int *data
+drivers/usb/serial/cp2101.c:471:42:    got int *<noident>
+drivers/usb/serial/cp2101.c:481:42: warning: incorrect type in argument 3 (different signedness)
+drivers/usb/serial/cp2101.c:481:42:    expected unsigned int *data
+drivers/usb/serial/cp2101.c:481:42:    got int *<noident>
+drivers/usb/serial/cp2101.c:561:41: warning: incorrect type in argument 3 (different signedness)
+drivers/usb/serial/cp2101.c:561:41:    expected unsigned int *data
+drivers/usb/serial/cp2101.c:561:41:    got int *<noident>
+drivers/usb/serial/cp2101.c:591:45: warning: incorrect type in argument 3 (different signedness)
+drivers/usb/serial/cp2101.c:591:45:    expected unsigned int *data
+drivers/usb/serial/cp2101.c:591:45:    got int *<noident>
+drivers/usb/serial/cp2101.c:597:41: warning: incorrect type in argument 3 (different signedness)
+drivers/usb/serial/cp2101.c:597:41:    expected unsigned int *data
+drivers/usb/serial/cp2101.c:597:41:    got int *<noident>
+drivers/usb/serial/cp2101.c:608:45: warning: incorrect type in argument 3 (different signedness)
+drivers/usb/serial/cp2101.c:608:45:    expected unsigned int *data
+drivers/usb/serial/cp2101.c:608:45:    got int *<noident>
+drivers/usb/serial/cp2101.c:614:41: warning: incorrect type in argument 3 (different signedness)
+drivers/usb/serial/cp2101.c:614:41:    expected unsigned int *data
+drivers/usb/serial/cp2101.c:614:41:    got int *<noident>
+drivers/usb/serial/cp2101.c:623:45: warning: incorrect type in argument 3 (different signedness)
+drivers/usb/serial/cp2101.c:623:45:    expected unsigned int *data
+drivers/usb/serial/cp2101.c:623:45:    got int *<noident>
+drivers/usb/serial/cp2101.c:680:50: warning: incorrect type in argument 3 (different signedness)
+drivers/usb/serial/cp2101.c:680:50:    expected unsigned int *data
+drivers/usb/serial/cp2101.c:680:50:    got int *<noident>
+drivers/usb/serial/cp2101.c:690:43: warning: incorrect type in argument 3 (different signedness)
+drivers/usb/serial/cp2101.c:690:43:    expected unsigned int *data
+drivers/usb/serial/cp2101.c:690:43:    got int *<noident>
+drivers/usb/serial/cp2101.c:715:41: warning: incorrect type in argument 3 (different signedness)
+drivers/usb/serial/cp2101.c:715:41:    expected unsigned int *data
+drivers/usb/serial/cp2101.c:715:41:    got int *<noident>
+
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Cc: Greg KH <greg@kroah.com>
-Cc: "Anderson Lizardo" <anderson.lizardo@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/uwb/wlp/sysfs.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/usb/serial/cp2101.c |   13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
-diff -puN drivers/uwb/wlp/sysfs.c~drivers-uwb-wlp-sysfsc-dead-code drivers/uwb/wlp/sysfs.c
---- a/drivers/uwb/wlp/sysfs.c~drivers-uwb-wlp-sysfsc-dead-code
-+++ a/drivers/uwb/wlp/sysfs.c
-@@ -125,8 +125,8 @@ ssize_t wlp_wss_neighborhood_print_remov
+diff -puN drivers/usb/serial/cp2101.c~usb-cp2101c-fix-sparse-signedness-mismatch-warnings drivers/usb/serial/cp2101.c
+--- a/drivers/usb/serial/cp2101.c~usb-cp2101c-fix-sparse-signedness-mismatch-warnings
++++ a/drivers/usb/serial/cp2101.c
+@@ -365,8 +365,8 @@ static void cp2101_close (struct usb_ser
+ static void cp2101_get_termios (struct usb_serial_port *port)
+ {
+ 	unsigned int cflag, modem_ctl[4];
+-	int baud;
+-	int bits;
++	unsigned int baud;
++	unsigned int bits;
  
- out:
- 	mutex_unlock(&wlp->nbmutex);
--	return used;
- 	d_fnend(6, dev, "wlp %p\n", wlp);
-+	return used;
- }
+ 	dbg("%s - port %d", __func__, port->number);
  
+@@ -498,7 +498,7 @@ static void cp2101_set_termios (struct u
+ 		struct ktermios *old_termios)
+ {
+ 	unsigned int cflag, old_cflag;
+-	int baud=0, bits;
++	unsigned int baud = 0, bits;
+ 	unsigned int modem_ctl[4];
  
+ 	dbg("%s - port %d", __func__, port->number);
+@@ -654,7 +654,7 @@ static void cp2101_set_termios (struct u
+ static int cp2101_tiocmset (struct usb_serial_port *port, struct file *file,
+ 		unsigned int set, unsigned int clear)
+ {
+-	int control = 0;
++	unsigned int control = 0;
+ 
+ 	dbg("%s - port %d", __func__, port->number);
+ 
+@@ -683,7 +683,8 @@ static int cp2101_tiocmset (struct usb_s
+ 
+ static int cp2101_tiocmget (struct usb_serial_port *port, struct file *file)
+ {
+-	int control, result;
++	unsigned int control;
++	int result;
+ 
+ 	dbg("%s - port %d", __func__, port->number);
+ 
+@@ -703,7 +704,7 @@ static int cp2101_tiocmget (struct usb_s
+ 
+ static void cp2101_break_ctl (struct usb_serial_port *port, int break_state)
+ {
+-	int state;
++	unsigned int state;
+ 
+ 	dbg("%s - port %d", __func__, port->number);
+ 	if (break_state == 0)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
 origin.patch
-m68k-add-ext2_find_firstnext_bit-for-ext4-checkpatch-fixes.patch
 linux-next.patch
-next-remove-localversion.patch
-fix-kobject-fix-kobject_rename-and-config_sysfs.patch
-kvm-unbork.patch
-kvm-is-busted-on-ia64.patch
-drivers-mtd-nand-nandsimc-needs-div64h.patch
-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-lguest-use-cpu-capability-accessors.patch
-intel-agp-rewrite-gtt-on-resume.patch
-arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
-pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2.patch
-arch-powerpc-platforms-pseries-eeh_driverc-fix-warning.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-git-jg-misc-git-rejects.patch
-drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-mmc-sd-host-driver-for-ricoh-bay1controllers.patch
-drivers-mtd-devices-block2mtdc-suppress-warning.patch
-git-net.patch
-sundance-set-carrier-status-on-link-change-events.patch
-net-sh_eth-add-support-for-renesas-superh-ethernet.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-scsi-misc-fix-scsi_dh-build-errors.patch
-drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
-s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
-pktcdvd-push-bkl-down-into-driver-fix.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-git-logfs-fixup.patch
-drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
+cifs-remove-global_extern-macro.patch
+mtd-mtdcharc-silence-sparse-warning.patch
+mtd-mtdcharc-remove-shadowed-variable-warnings.patch
+scsi-replace-remaining-__function__-occurrences.patch
+fusion-replace-remaining-__function__-occurrences.patch
+scsi-replace-__inline-with-inline.patch
+scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
+scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
+block-use-get_unaligned_-helpers.patch
 usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues.patch
-watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
-git-xtensa.patch
-driver-video-cirrusfb-fix-ram-address-printk-fix.patch
-driver-video-cirrusfb-fix-ram-address-printk-fix-fix.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-verify-the-page-links-and-memory-model.patch
-mspec-convert-nopfn-to-fault-fix.patch
-page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
-kill-generic_file_direct_io-checkpatch-fixes.patch
-use-generic_access_phys-for-dev-mem-mappings-fix.patch
-spufs-use-the-new-vm_ops-access-fix.patch
-fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
-page-flags-record-page-flag-overlays-explicitly-xen.patch
-mapping_set_error-add-unlikely.patch
-huge-page-private-reservation-review-cleanups-fix.patch
-sync_file_range_write-may-and-will-block-document-that-fix.patch
-vmallocinfo-add-numa-information-fix.patch
-hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
-hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
-hugetlb-override-default-huge-page-size-ia64-build.patch
-bootmem-add-debugging-framework-fix.patch
-bootmem-clean-up-free_all_bootmem_core-fix.patch
-bootmem-free-reserve-helpers-fix.patch
-bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
-swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
-split-the-typecheck-macros-out-of-include-linux-kernelh.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
-remove-apparently-unused-fd1772h-header-file.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
-build-kernel-profileo-only-when-requested-cleanups.patch
-fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
-block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
-rename-warn-to-warning-to-clear-the-namespace-fix.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
-flag-parameters-paccept-fix.patch
-flag-parameters-paccept-sys_ni.patch
-flag-parameters-anon_inode_getfd-extension-fix.patch
-flag-parameters-signalfd-fix.patch
-flag-parameters-eventfd-fix.patch
-flag-parameters-inotify_init-fix.patch
-flag-parameters-check-magic-constants-alpha.patch
-cputopology-always-define-cpu-topology-information-cleanup.patch
-oprofile-multiplexing-checkpatch-fixes.patch
-gpio-gpio-driver-for-max7301-spi-gpio-expander-checkpatch-fixes.patch
-drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
-atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
-pnp-add-pnp_possible_config-can-a-device-could-be-configured-this-way-fix.patch
-pnp-convert-resource-options-to-single-linked-list-checkpatch-fixes.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
-reiserfs-convert-j_flush_sem-to-mutex.patch
-reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
-memcg-remove-refcnt-from-page_cgroup-fix-2.patch
-jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup.patch
-ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
-getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
-tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
-memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
-memstick-use-fully-asynchronous-request-processing-fix.patch
+xfs-use-get_unaligned_-helpers.patch
+xtensa-replace-remaining-__function__-occurences.patch
+fs-ldm-use-get_unaligned_-helpers.patch
+include-use-get-put_unaligned_-helpers.patch
+lzo-use-get-put_unaligned_-helpers.patch
+asm-generic-int-ll64h-always-provide-__su64.patch
+scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
+isdn-use-the-common-ascii-hex-helpers.patch
+net-use-the-common-ascii-hex-helpers.patch
+cris-use-the-common-ascii-hex-helpers.patch
+frv-use-the-common-ascii-hex-helpers.patch
+mips-use-the-common-ascii-hex-helpers.patch
+ppc-use-the-common-ascii-hex-helpers.patch
 ppc-use-the-common-ascii-hex-helpers-fix.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-mm-introduce-get_user_pages_fast-fix.patch
-mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-fix.patch
-x86-lockless-get_user_pages_fast-fix-2.patch
-x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
-x86-lockless-get_user_pages_fast-fix-warning.patch
-vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
-define-page_file_cache-function-fix.patch
-unevictable-lru-infrastructure-fix.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-3.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
-vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+mn10300-use-the-common-ascii-hex-helpers.patch
 
