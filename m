@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + tracer-fix-printout.patch added to -mm tree
-Date: Thu, 12 Jun 2008 02:34:32 -0700
-Message-ID: <200806120934.m5C9YWR6012333@imap1.linux-foundation.org>
+Subject: + ide-cd-use-the-new-object_is_in_stack-helper.patch added to -mm tree
+Date: Thu, 12 Jun 2008 10:41:34 -0700
+Message-ID: <200806121741.m5CHfYic030816@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57069 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56386 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754617AbYFLJfV (ORCPT
+	by vger.kernel.org with ESMTP id S1753603AbYFLRnM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Jun 2008 05:35:21 -0400
+	Thu, 12 Jun 2008 13:43:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com, mingo@redhat.com, srostedt@redhat.com
+Cc: fujita.tomonori@lab.ntt.co.jp, James.Bottomley@HansenPartnership.com, bzolnier@gmail.com, htejun@gmail.com, jens.axboe@oracle.com, petkovbb@gmail.com, tsbogend@alpha.franken.de
 
 
 The patch titled
-     tracer: fix printout
+     ide-cd: use the new object_is_in_stack() helper
 has been added to the -mm tree.  Its filename is
-     tracer-fix-printout.patch
+     ide-cd-use-the-new-object_is_in_stack-helper.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,53 +34,77 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tracer: fix printout
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: ide-cd: use the new object_is_in_stack() helper
+From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 
-Do not print loglevel before "entries of %ld bytes". Move it to the previous
-pr_info.
-
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: Steven Rostedt <srostedt@redhat.com>
-Cc: Ingo Molnar <mingo@redhat.com>
+Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: Borislav Petkov <petkovbb@gmail.com>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Tejun Heo <htejun@gmail.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/trace/trace.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/ide/ide-cd.c |   14 +++++---------
+ 1 file changed, 5 insertions(+), 9 deletions(-)
 
-diff -puN kernel/trace/trace.c~tracer-fix-printout kernel/trace/trace.c
---- a/kernel/trace/trace.c~tracer-fix-printout
-+++ a/kernel/trace/trace.c
-@@ -3084,9 +3084,8 @@ __init static int tracer_alloc_buffers(v
+diff -puN drivers/ide/ide-cd.c~ide-cd-use-the-new-object_is_in_stack-helper drivers/ide/ide-cd.c
+--- a/drivers/ide/ide-cd.c~ide-cd-use-the-new-object_is_in_stack-helper
++++ a/drivers/ide/ide-cd.c
+@@ -1194,13 +1194,12 @@ static ide_startstop_t cdrom_do_block_pc
+ 	if (rq->bio || ((rq->cmd_type == REQ_TYPE_ATA_PC) && rq->data_len)) {
+ 		struct request_queue *q = drive->queue;
+ 		unsigned int alignment;
+-		unsigned long addr;
+-		unsigned long stack_mask = ~(THREAD_SIZE - 1);
++		char *buf;
+ 
+ 		if (rq->bio)
+-			addr = (unsigned long)bio_data(rq->bio);
++			buf = bio_data(rq->bio);
+ 		else
+-			addr = (unsigned long)rq->data;
++			buf = rq->data;
+ 
+ 		info->dma = drive->using_dma;
+ 
+@@ -1211,11 +1210,8 @@ static ide_startstop_t cdrom_do_block_pc
+ 		 * separate masks.
+ 		 */
+ 		alignment = queue_dma_alignment(q) | q->dma_pad_mask;
+-		if (addr & alignment || rq->data_len & alignment)
+-			info->dma = 0;
+-
+-		if (!((addr & stack_mask) ^
+-		      ((unsigned long)current->stack & stack_mask)))
++		if ((unsigned long)buf & alignment || rq->data_len & alignment
++		    || object_is_on_stack(buf))
+ 			info->dma = 0;
  	}
- 	max_tr.entries = global_trace.entries;
  
--	pr_info("tracer: %d pages allocated for %ld",
--		pages, trace_nr_entries);
--	pr_info(" entries of %ld bytes\n", (long)TRACE_ENTRY_SIZE);
-+	pr_info("tracer: %d pages allocated for %ld entries of %ld bytes\n",
-+		pages, trace_nr_entries, (long)TRACE_ENTRY_SIZE);
- 	pr_info("   actual entries %ld\n", global_trace.entries);
- 
- 	tracer_init_debugfs();
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
 
-origin.patch
 linux-next.patch
-tracer-fix-printout.patch
-driver-video-cirrusfb-fix-ram-address-printk.patch
-driver-video-cirrusfb-fix-ram-address-printk-fix.patch
-driver-video-cirrusfb-fix-ram-address-printk-fix-fix.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
-vt-hold-console_sem-across-sysfs-operations.patch
-ip2-push-bkl-down-for-the-firmware-interface.patch
-rio-push-down-the-bkl-into-the-firmware-ioctl-handler.patch
-sx-push-bkl-down-into-the-firmware-ioctl-handler.patch
-ppdev-wrap-ioctl-handler-in-driver-and-push-lock-down.patch
-dsp56k-bkl-pushdown.patch
-reiser4.patch
-shrink_slab-handle-bad-shrinkers.patch
+block-add-blk_queue_update_dma_pad.patch
+ide-use-the-dma-safe-check-for-req_type_ata_pc.patch
+block-blk_rq_map_kern-uses-the-bounce-buffers-for-stack-buffers.patch
+ide-avoid-dma-on-the-stack-for-req_type_ata_pc.patch
+scsi-sr-avoids-useless-buffer-allocation.patch
+cdrom-revert-commit-22a9189-cdrom-use-kmalloced-buffers-instead-of-buffers-on-stack.patch
+add-a-helper-function-to-test-if-an-object-is-on-the-stack.patch
+ide-cd-use-the-new-object_is_in_stack-helper.patch
+clean-up-duplicated-alloc-free_thread_info.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-b34-fix.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support-fix-2.patch
 
