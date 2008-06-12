@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-call-constructors-uml-fix-1.patch added to -mm tree
-Date: Wed, 11 Jun 2008 17:23:17 -0700
-Message-ID: <200806120023.m5C0NIRf025217@imap1.linux-foundation.org>
+Subject: + kernel-call-constructors-uml-fix-2.patch added to -mm tree
+Date: Wed, 11 Jun 2008 17:23:21 -0700
+Message-ID: <200806120023.m5C0NLfn025290@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49286 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57413 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751708AbYFLAYU (ORCPT
+	by vger.kernel.org with ESMTP id S1753980AbYFLAZd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Jun 2008 20:24:20 -0400
+	Wed, 11 Jun 2008 20:25:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -18,7 +18,7 @@ Cc: peter.oberparleiter@de.ibm.com, jdike@addtoit.com, miklos@szeredi.hu, sam@ra
 The patch titled
      kernel-call-constructors-uml-fix-1
 has been added to the -mm tree.  Its filename is
-     kernel-call-constructors-uml-fix-1.patch
+     kernel-call-constructors-uml-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,21 +37,9 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 Subject: kernel-call-constructors-uml-fix-1
 From: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
 
-Fix for linker error on UML:
 
-/usr/lib64/gcc/x86_64-suse-linux/4.2.1/../../../../x86_64-suse-linux/bin/ld:arch/um/kernel/vmlinux.lds:267: syntax error
-
-The error is triggered by the use of SORT(CONSTRUCTORS) in the UML
-linker script which conflicts with the kernel-call-constructors patch.
-Here is what the ld info page says about sorting constructors:
-
-     If you are using the GNU C++ support for initialization priority,
-     which provides some control over the order in which global
-     constructors are run, you must sort the constructors at link time
-     to ensure that they are executed in the correct order.
-
-As there's no C++ code inside the kernel it should be safe to remove
-the SORT construct.
+Disable calling of constructor functions for uml as they are already
+called by the host run-time environment.
 
 Found-by: Miklos Szeredi <miklos@szeredi.hu>
 Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
@@ -60,21 +48,47 @@ Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/kernel/dyn.lds.S |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ init/main.c     |    4 ++++
+ kernel/module.c |    4 ++++
+ 2 files changed, 8 insertions(+)
 
-diff -puN arch/um/kernel/dyn.lds.S~kernel-call-constructors-uml-fix-1 arch/um/kernel/dyn.lds.S
---- a/arch/um/kernel/dyn.lds.S~kernel-call-constructors-uml-fix-1
-+++ a/arch/um/kernel/dyn.lds.S
-@@ -102,7 +102,7 @@ SECTIONS
-     *(.data.init_irqstack)
-     DATA_DATA
-     *(.data.* .gnu.linkonce.d.*)
--    SORT(CONSTRUCTORS)
-+    CONSTRUCTORS
-   }
-   .data1          : { *(.data1) }
-   .tdata	  : { *(.tdata .tdata.* .gnu.linkonce.td.*) }
+diff -puN init/main.c~kernel-call-constructors-uml-fix-2 init/main.c
+--- a/init/main.c~kernel-call-constructors-uml-fix-2
++++ a/init/main.c
+@@ -691,11 +691,15 @@ asmlinkage void __init start_kernel(void
+ 
+ static void __init do_ctors(void)
+ {
++#ifndef CONFIG_UML
++	/* Note: constructors on UML are called by the host run-time
++	 * environment. */
+ 	ctorcall_t *call;
+ 
+ 	for (call = (ctorcall_t *) __ctor_start;
+ 	     call < (ctorcall_t *) __ctor_end; call++)
+ 		(*call)();
++#endif /* !CONFIG_UML */
+ }
+ 
+ static int __initdata initcall_debug;
+diff -puN kernel/module.c~kernel-call-constructors-uml-fix-2 kernel/module.c
+--- a/kernel/module.c~kernel-call-constructors-uml-fix-2
++++ a/kernel/module.c
+@@ -2194,10 +2194,14 @@ static struct module *load_module(void _
+ 
+ static void do_mod_ctors(struct module *mod)
+ {
++#ifndef CONFIG_UML
++	/* Note: constructors on UML are called by the host run-time
++	 * environment. */
+ 	unsigned long i;
+ 
+ 	for (i = 0; i < mod->num_ctors; i++)
+ 		mod->ctors[i]();
++#endif /* !CONFIG_UML */
+ }
+ 
+ /* This is where the real work happens */
 _
 
 Patches currently in -mm which might be from peter.oberparleiter@de.ibm.com are
