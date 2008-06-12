@@ -1,152 +1,209 @@
 From: akpm@linux-foundation.org
-Subject: - percpu-introduce-define_per_cpu_page_aligned.patch removed from -mm tree
-Date: Thu, 12 Jun 2008 13:38:19 -0700
-Message-ID: <200806122038.m5CKcJPE005525@imap1.linux-foundation.org>
+Subject: - remove-argument-from-open_softirq-which-is-always-null.patch removed from -mm tree
+Date: Thu, 12 Jun 2008 13:38:22 -0700
+Message-ID: <200806122038.m5CKcMcw005530@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52681 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58621 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754802AbYFLUkV (ORCPT
+	by vger.kernel.org with ESMTP id S1754545AbYFLUks (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Jun 2008 16:40:21 -0400
+	Thu, 12 Jun 2008 16:40:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dada1@cosmosbay.com, mingo@elte.hu, rusty@rustcorp.com.au, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: crmafra2@gmail.com, crmafra@ift.unesp.br, davem@davemloft.net, jens.axboe@oracle.com, mingo@elte.hu, paulmck@us.ibm.com, tglx@linutronix.de, willy@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     percpu: introduce DEFINE_PER_CPU_PAGE_ALIGNED()
+     Remove argument from open_softirq which is always NULL
 has been removed from the -mm tree.  Its filename was
-     percpu-introduce-define_per_cpu_page_aligned.patch
+     remove-argument-from-open_softirq-which-is-always-null.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: percpu: introduce DEFINE_PER_CPU_PAGE_ALIGNED()
-From: Eric Dumazet <dada1@cosmosbay.com>
+Subject: Remove argument from open_softirq which is always NULL
+From: "Carlos R. Mafra" <crmafra2@gmail.com>
 
-While examining percpu section on i386 I found we were wasting about 8000
-bytes because of two large holes :
+As git-grep shows, open_softirq() is always called with the last argument
+being NULL
 
-c05dd000 D __per_cpu_start
-c05dd000 D per_cpu__current_task
-c05dd004 D per_cpu__cpu_number
-c05dd008 D per_cpu__irq_regs
-c05dd00c D per_cpu__x86_cpu_to_apicid
-c05dd010 d per_cpu__cpu_devices
-c05dd044 D per_cpu__cyc2ns
-*HOLE* of 4Kbytes
-c05de000 d per_cpu__cpuid4_info
-c05de004 d per_cpu__cache_kobject
-c05de008 d per_cpu__index_kobject
-*HOLE* of 4Kbytes
-c05df000 D per_cpu__gdt_page
-c05e0000 d per_cpu__next_check
-c05e0008 d per_cpu__thermal_throttle_count
+block/blk-core.c:       open_softirq(BLOCK_SOFTIRQ, blk_done_softirq, NULL);
+kernel/hrtimer.c:       open_softirq(HRTIMER_SOFTIRQ, run_hrtimer_softirq, NULL);
+kernel/rcuclassic.c:    open_softirq(RCU_SOFTIRQ, rcu_process_callbacks, NULL);
+kernel/rcupreempt.c:    open_softirq(RCU_SOFTIRQ, rcu_process_callbacks, NULL);
+kernel/sched.c: open_softirq(SCHED_SOFTIRQ, run_rebalance_domains, NULL);
+kernel/softirq.c:       open_softirq(TASKLET_SOFTIRQ, tasklet_action, NULL);
+kernel/softirq.c:       open_softirq(HI_SOFTIRQ, tasklet_hi_action, NULL);
+kernel/timer.c: open_softirq(TIMER_SOFTIRQ, run_timer_softirq, NULL);
+net/core/dev.c: open_softirq(NET_TX_SOFTIRQ, net_tx_action, NULL);
+net/core/dev.c: open_softirq(NET_RX_SOFTIRQ, net_rx_action, NULL);
 
-This is because gdt_page is a percpu variable, defined with a page
-alignement, and linker is doing its job, two times because of .o nesting
-in the build process, mixing variables with quite different alignment
-requirements.
+This observation has already been made by Matthew Wilcox in June 2002
+(http://www.cs.helsinki.fi/linux/linux-kernel/2002-25/0687.html)
 
-I introduced a new macro DEFINE_PER_CPU_PAGE_ALIGNED() to avoid wasting
-this space.  All page aligned variables (only one at this time) are put in
-a separate subsection .data.percpu.page_aligned.
+"I notice that none of the current softirq routines use the data element
+passed to them."
 
-# size -A vmlinux.old vmlinux | grep percpu
-.data.percpu                22272   3227373568
-.data.percpu                30336   3227373568
+and the situation hasn't changed since them. So it appears we can safely
+remove that extra argument to save 128 (54) bytes of kernel data (text).
 
-Thats 8064 bytes saved for each CPU (plus one for the .data.percpu storage
-itself)
-
-Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: Carlos R. Mafra <crmafra@ift.unesp.br>
 Cc: Ingo Molnar <mingo@elte.hu>
+Cc: David S. Miller <davem@davemloft.net>
 Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
+Reviewed-by: Matthew Wilcox <willy@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/common.c      |    2 +-
- arch/x86/kernel/vmlinux_32.lds.S  |    1 +
- include/asm-generic/vmlinux.lds.h |    1 +
- include/linux/percpu.h            |   11 ++++++++++-
- 4 files changed, 13 insertions(+), 2 deletions(-)
+ block/blk-core.c          |    2 +-
+ include/linux/interrupt.h |    3 +--
+ kernel/hrtimer.c          |    2 +-
+ kernel/rcuclassic.c       |    2 +-
+ kernel/rcupreempt.c       |    2 +-
+ kernel/sched.c            |    2 +-
+ kernel/softirq.c          |    7 +++----
+ kernel/timer.c            |    2 +-
+ net/core/dev.c            |    4 ++--
+ 9 files changed, 12 insertions(+), 14 deletions(-)
 
-diff -puN arch/x86/kernel/cpu/common.c~percpu-introduce-define_per_cpu_page_aligned arch/x86/kernel/cpu/common.c
---- a/arch/x86/kernel/cpu/common.c~percpu-introduce-define_per_cpu_page_aligned
-+++ a/arch/x86/kernel/cpu/common.c
-@@ -21,7 +21,7 @@
+diff -puN block/blk-core.c~remove-argument-from-open_softirq-which-is-always-null block/blk-core.c
+--- a/block/blk-core.c~remove-argument-from-open_softirq-which-is-always-null
++++ a/block/blk-core.c
+@@ -2042,7 +2042,7 @@ int __init blk_dev_init(void)
+ 	for_each_possible_cpu(i)
+ 		INIT_LIST_HEAD(&per_cpu(blk_cpu_done, i));
  
- #include "cpu.h"
+-	open_softirq(BLOCK_SOFTIRQ, blk_done_softirq, NULL);
++	open_softirq(BLOCK_SOFTIRQ, blk_done_softirq);
+ 	register_hotcpu_notifier(&blk_cpu_notifier);
  
--DEFINE_PER_CPU(struct gdt_page, gdt_page) = { .gdt = {
-+DEFINE_PER_CPU_PAGE_ALIGNED(struct gdt_page, gdt_page) = { .gdt = {
- 	[GDT_ENTRY_KERNEL_CS] = { { { 0x0000ffff, 0x00cf9a00 } } },
- 	[GDT_ENTRY_KERNEL_DS] = { { { 0x0000ffff, 0x00cf9200 } } },
- 	[GDT_ENTRY_DEFAULT_USER_CS] = { { { 0x0000ffff, 0x00cffa00 } } },
-diff -puN arch/x86/kernel/vmlinux_32.lds.S~percpu-introduce-define_per_cpu_page_aligned arch/x86/kernel/vmlinux_32.lds.S
---- a/arch/x86/kernel/vmlinux_32.lds.S~percpu-introduce-define_per_cpu_page_aligned
-+++ a/arch/x86/kernel/vmlinux_32.lds.S
-@@ -189,6 +189,7 @@ SECTIONS
-   . = ALIGN(PAGE_SIZE);
-   .data.percpu  : AT(ADDR(.data.percpu) - LOAD_OFFSET) {
- 	__per_cpu_start = .;
-+	*(.data.percpu.page_aligned)
- 	*(.data.percpu)
- 	*(.data.percpu.shared_aligned)
- 	__per_cpu_end = .;
-diff -puN include/asm-generic/vmlinux.lds.h~percpu-introduce-define_per_cpu_page_aligned include/asm-generic/vmlinux.lds.h
---- a/include/asm-generic/vmlinux.lds.h~percpu-introduce-define_per_cpu_page_aligned
-+++ a/include/asm-generic/vmlinux.lds.h
-@@ -354,6 +354,7 @@
- 	. = ALIGN(align);						\
- 	__per_cpu_start = .;						\
- 	.data.percpu  : AT(ADDR(.data.percpu) - LOAD_OFFSET) {		\
-+		*(.data.percpu.page_aligned)				\
- 		*(.data.percpu)						\
- 		*(.data.percpu.shared_aligned)				\
- 	}								\
-diff -puN include/linux/percpu.h~percpu-introduce-define_per_cpu_page_aligned include/linux/percpu.h
---- a/include/linux/percpu.h~percpu-introduce-define_per_cpu_page_aligned
-+++ a/include/linux/percpu.h
-@@ -15,19 +15,28 @@
+ 	return 0;
+diff -puN include/linux/interrupt.h~remove-argument-from-open_softirq-which-is-always-null include/linux/interrupt.h
+--- a/include/linux/interrupt.h~remove-argument-from-open_softirq-which-is-always-null
++++ a/include/linux/interrupt.h
+@@ -285,12 +285,11 @@ enum
+ struct softirq_action
+ {
+ 	void	(*action)(struct softirq_action *);
+-	void	*data;
+ };
  
- #ifdef MODULE
- #define SHARED_ALIGNED_SECTION ".data.percpu"
-+#define PAGE_ALIGNED_SECTION   ".data.percpu"
- #else
- #define SHARED_ALIGNED_SECTION ".data.percpu.shared_aligned"
-+#define PAGE_ALIGNED_SECTION   ".data.percpu.page_aligned"
+ asmlinkage void do_softirq(void);
+ asmlinkage void __do_softirq(void);
+-extern void open_softirq(int nr, void (*action)(struct softirq_action*), void *data);
++extern void open_softirq(int nr, void (*action)(struct softirq_action *));
+ extern void softirq_init(void);
+ #define __raise_softirq_irqoff(nr) do { or_softirq_pending(1UL << (nr)); } while (0)
+ extern void raise_softirq_irqoff(unsigned int nr);
+diff -puN kernel/hrtimer.c~remove-argument-from-open_softirq-which-is-always-null kernel/hrtimer.c
+--- a/kernel/hrtimer.c~remove-argument-from-open_softirq-which-is-always-null
++++ a/kernel/hrtimer.c
+@@ -1669,7 +1669,7 @@ void __init hrtimers_init(void)
+ 			  (void *)(long)smp_processor_id());
+ 	register_cpu_notifier(&hrtimers_nb);
+ #ifdef CONFIG_HIGH_RES_TIMERS
+-	open_softirq(HRTIMER_SOFTIRQ, run_hrtimer_softirq, NULL);
++	open_softirq(HRTIMER_SOFTIRQ, run_hrtimer_softirq);
+ #endif
+ }
+ 
+diff -puN kernel/rcuclassic.c~remove-argument-from-open_softirq-which-is-always-null kernel/rcuclassic.c
+--- a/kernel/rcuclassic.c~remove-argument-from-open_softirq-which-is-always-null
++++ a/kernel/rcuclassic.c
+@@ -557,7 +557,7 @@ static void __cpuinit rcu_online_cpu(int
+ 
+ 	rcu_init_percpu_data(cpu, &rcu_ctrlblk, rdp);
+ 	rcu_init_percpu_data(cpu, &rcu_bh_ctrlblk, bh_rdp);
+-	open_softirq(RCU_SOFTIRQ, rcu_process_callbacks, NULL);
++	open_softirq(RCU_SOFTIRQ, rcu_process_callbacks);
+ }
+ 
+ static int __cpuinit rcu_cpu_notify(struct notifier_block *self,
+diff -puN kernel/rcupreempt.c~remove-argument-from-open_softirq-which-is-always-null kernel/rcupreempt.c
+--- a/kernel/rcupreempt.c~remove-argument-from-open_softirq-which-is-always-null
++++ a/kernel/rcupreempt.c
+@@ -1443,7 +1443,7 @@ void __init __rcu_init(void)
+ 	for_each_online_cpu(cpu)
+ 		rcu_cpu_notify(&rcu_nb, CPU_UP_PREPARE,	(void *)(long) cpu);
+ 
+-	open_softirq(RCU_SOFTIRQ, rcu_process_callbacks, NULL);
++	open_softirq(RCU_SOFTIRQ, rcu_process_callbacks);
+ }
+ 
+ /*
+diff -puN kernel/sched.c~remove-argument-from-open_softirq-which-is-always-null kernel/sched.c
+--- a/kernel/sched.c~remove-argument-from-open_softirq-which-is-always-null
++++ a/kernel/sched.c
+@@ -8152,7 +8152,7 @@ void __init sched_init(void)
  #endif
  
- #define DEFINE_PER_CPU_SHARED_ALIGNED(type, name)			\
- 	__attribute__((__section__(SHARED_ALIGNED_SECTION)))		\
- 	PER_CPU_ATTRIBUTES __typeof__(type) per_cpu__##name		\
- 	____cacheline_aligned_in_smp
-+
-+#define DEFINE_PER_CPU_PAGE_ALIGNED(type, name)				\
-+	__attribute__((__section__(PAGE_ALIGNED_SECTION)))		\
-+	PER_CPU_ATTRIBUTES __typeof__(type) per_cpu__##name
- #else
- #define DEFINE_PER_CPU(type, name)					\
- 	PER_CPU_ATTRIBUTES __typeof__(type) per_cpu__##name
- 
--#define DEFINE_PER_CPU_SHARED_ALIGNED(type, name)		      \
-+#define DEFINE_PER_CPU_SHARED_ALIGNED(type, name)			\
-+	DEFINE_PER_CPU(type, name)
-+
-+#define DEFINE_PER_CPU_PAGE_ALIGNED(type, name)				\
- 	DEFINE_PER_CPU(type, name)
+ #ifdef CONFIG_SMP
+-	open_softirq(SCHED_SOFTIRQ, run_rebalance_domains, NULL);
++	open_softirq(SCHED_SOFTIRQ, run_rebalance_domains);
  #endif
  
+ #ifdef CONFIG_RT_MUTEXES
+diff -puN kernel/softirq.c~remove-argument-from-open_softirq-which-is-always-null kernel/softirq.c
+--- a/kernel/softirq.c~remove-argument-from-open_softirq-which-is-always-null
++++ a/kernel/softirq.c
+@@ -347,9 +347,8 @@ void raise_softirq(unsigned int nr)
+ 	local_irq_restore(flags);
+ }
+ 
+-void open_softirq(int nr, void (*action)(struct softirq_action*), void *data)
++void open_softirq(int nr, void (*action)(struct softirq_action *))
+ {
+-	softirq_vec[nr].data = data;
+ 	softirq_vec[nr].action = action;
+ }
+ 
+@@ -503,8 +502,8 @@ void __init softirq_init(void)
+ 			&per_cpu(tasklet_hi_vec, cpu).head;
+ 	}
+ 
+-	open_softirq(TASKLET_SOFTIRQ, tasklet_action, NULL);
+-	open_softirq(HI_SOFTIRQ, tasklet_hi_action, NULL);
++	open_softirq(TASKLET_SOFTIRQ, tasklet_action);
++	open_softirq(HI_SOFTIRQ, tasklet_hi_action);
+ }
+ 
+ static int ksoftirqd(void * __bind_cpu)
+diff -puN kernel/timer.c~remove-argument-from-open_softirq-which-is-always-null kernel/timer.c
+--- a/kernel/timer.c~remove-argument-from-open_softirq-which-is-always-null
++++ a/kernel/timer.c
+@@ -1494,7 +1494,7 @@ void __init init_timers(void)
+ 
+ 	BUG_ON(err == NOTIFY_BAD);
+ 	register_cpu_notifier(&timers_nb);
+-	open_softirq(TIMER_SOFTIRQ, run_timer_softirq, NULL);
++	open_softirq(TIMER_SOFTIRQ, run_timer_softirq);
+ }
+ 
+ /**
+diff -puN net/core/dev.c~remove-argument-from-open_softirq-which-is-always-null net/core/dev.c
+--- a/net/core/dev.c~remove-argument-from-open_softirq-which-is-always-null
++++ a/net/core/dev.c
+@@ -4563,8 +4563,8 @@ static int __init net_dev_init(void)
+ 
+ 	dev_boot_phase = 0;
+ 
+-	open_softirq(NET_TX_SOFTIRQ, net_tx_action, NULL);
+-	open_softirq(NET_RX_SOFTIRQ, net_rx_action, NULL);
++	open_softirq(NET_TX_SOFTIRQ, net_tx_action);
++	open_softirq(NET_RX_SOFTIRQ, net_rx_action);
+ 
+ 	hotcpu_notifier(dev_cpu_callback, 0);
+ 	dst_init();
+diff -puN /dev/null /dev/null
 _
 
-Patches currently in -mm which might be from dada1@cosmosbay.com are
+Patches currently in -mm which might be from crmafra2@gmail.com are
 
 linux-next.patch
-vmallocinfo-add-numa-information.patch
-vmallocinfo-add-numa-information-fix.patch
+drm-remove-defines-for-non-linux-systems.patch
 
