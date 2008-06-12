@@ -1,186 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: - bluetooth-hci_bcspc-small-cleanups-api-users.patch removed from -mm tree
-Date: Thu, 12 Jun 2008 13:36:56 -0700
-Message-ID: <200806122036.m5CKauxe005381@imap1.linux-foundation.org>
+Subject: - drivers-atm-enih-remove-unused-macro-kernel_offset.patch removed from -mm tree
+Date: Thu, 12 Jun 2008 13:36:54 -0700
+Message-ID: <200806122036.m5CKasfc005376@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58374 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39031 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755708AbYFLUhC (ORCPT
+	by vger.kernel.org with ESMTP id S1755506AbYFLUg4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Jun 2008 16:37:02 -0400
+	Thu, 12 Jun 2008 16:36:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, akinobu.mita@gmail.com, hidave.darkstar@gmail.com, marcel@holtmann.org, mm-commits@vger.kernel.org
+To: rautelap@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bluetooth: hci_bcsp.c small cleanups/api users
+     drivers/atm/eni.h: remove unused macro KERNEL_OFFSET
 has been removed from the -mm tree.  Its filename was
-     bluetooth-hci_bcspc-small-cleanups-api-users.patch
+     drivers-atm-enih-remove-unused-macro-kernel_offset.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bluetooth: hci_bcsp.c small cleanups/api users
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: drivers/atm/eni.h: remove unused macro KERNEL_OFFSET
+From: Pradeep Singh Rautela <rautelap@gmail.com>
 
-Use bitrev16 from lib/bitrev.c.
+KERNEL_OFFSET macro in eni.h is not required as it is not used anywhere. 
+Remove the unused macro from eni.h header file.
 
-Use the get_unaligned_be16 to get the crc from the packet, create a
-small helper function for this.
-
-Fix a shadowed variable sparse warning:
-drivers/bluetooth/hci_bcsp.c:218:26: warning: symbol 'hdr' shadows an earlier one
-drivers/bluetooth/hci_bcsp.c:187:5: originally declared here
-
-[akpm@linux-foundation.org: select CONFIG_BITREVERSE, noted by akinobu.mita@gmail.com]
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Akinobu Mita <akinobu.mita@gmail.com>
-Acked-by: Marcel Holtmann <marcel@holtmann.org>
-Cc: Dave Young <hidave.darkstar@gmail.com>
-Cc: Akinobu Mita <akinobu.mita@gmail.com>
+Signed-off-by: Pradeep Singh <rautelap@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/bluetooth/Kconfig    |    1 
- drivers/bluetooth/hci_bcsp.c |   44 +++++++++------------------------
- 2 files changed, 14 insertions(+), 31 deletions(-)
+ drivers/atm/eni.h |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/bluetooth/hci_bcsp.c~bluetooth-hci_bcspc-small-cleanups-api-users drivers/bluetooth/hci_bcsp.c
---- a/drivers/bluetooth/hci_bcsp.c~bluetooth-hci_bcspc-small-cleanups-api-users
-+++ a/drivers/bluetooth/hci_bcsp.c
-@@ -39,6 +39,8 @@
- #include <linux/signal.h>
- #include <linux/ioctl.h>
- #include <linux/skbuff.h>
-+#include <linux/bitrev.h>
-+#include <asm/unaligned.h>
+diff -puN drivers/atm/eni.h~drivers-atm-enih-remove-unused-macro-kernel_offset drivers/atm/eni.h
+--- a/drivers/atm/eni.h~drivers-atm-enih-remove-unused-macro-kernel_offset
++++ a/drivers/atm/eni.h
+@@ -18,7 +18,6 @@
+ #include "midway.h"
  
- #include <net/bluetooth/bluetooth.h>
- #include <net/bluetooth/hci_core.h>
-@@ -124,27 +126,6 @@ static void bcsp_crc_update(u16 *crc, u8
- 	*crc = reg;
- }
  
--/*
--   Get reverse of generated crc
--
--   Implementation note
--        The crc generator (bcsp_crc_init() and bcsp_crc_update())
--        creates a reversed crc, so it needs to be swapped back before
--        being passed on.
--*/
--static u16 bcsp_crc_reverse(u16 crc)
--{
--	u16 b, rev;
--
--	for (b = 0, rev = 0; b < 16; b++) {
--		rev = rev << 1;
--		rev |= (crc & 1);
--		crc = crc >> 1;
--	}
--
--	return (rev);
--}
--
- /* ---- BCSP core ---- */
+-#define KERNEL_OFFSET	0xC0000000	/* kernel 0x0 is at phys 0xC0000000 */
+ #define DEV_LABEL	"eni"
  
- static void bcsp_slip_msgdelim(struct sk_buff *skb)
-@@ -235,10 +216,10 @@ static struct sk_buff *bcsp_prepare_pkt(
- 	}
- 
- 	if (hciextn && chan == 5) {
--		struct hci_command_hdr *hdr = (struct hci_command_hdr *) data;
-+		__le16 opcode = ((struct hci_command_hdr *)data)->opcode;
- 
- 		/* Vendor specific commands */
--		if (hci_opcode_ogf(__le16_to_cpu(hdr->opcode)) == 0x3f) {
-+		if (hci_opcode_ogf(__le16_to_cpu(opcode)) == 0x3f) {
- 			u8 desc = *(data + HCI_COMMAND_HDR_SIZE);
- 			if ((desc & 0xf0) == 0xc0) {
- 				data += HCI_COMMAND_HDR_SIZE + 1;
-@@ -296,7 +277,7 @@ static struct sk_buff *bcsp_prepare_pkt(
- 
- 	/* Put CRC */
- 	if (bcsp->use_crc) {
--		bcsp_txmsg_crc = bcsp_crc_reverse(bcsp_txmsg_crc);
-+		bcsp_txmsg_crc = bitrev16(bcsp_txmsg_crc);
- 		bcsp_slip_one_byte(nskb, (u8) ((bcsp_txmsg_crc >> 8) & 0x00ff));
- 		bcsp_slip_one_byte(nskb, (u8) (bcsp_txmsg_crc & 0x00ff));
- 	}
-@@ -566,6 +547,11 @@ static void bcsp_complete_rx_pkt(struct 
- 	bcsp->rx_skb = NULL;
- }
- 
-+static u16 bscp_get_crc(struct bcsp_struct *bcsp)
-+{
-+	return get_unaligned_be16(&bcsp->rx_skb->data[bcsp->rx_skb->len - 2]);
-+}
-+
- /* Recv data */
- static int bcsp_recv(struct hci_uart *hu, void *data, int count)
- {
-@@ -624,14 +610,10 @@ static int bcsp_recv(struct hci_uart *hu
- 			continue;
- 
- 		case BCSP_W4_CRC:
--			if (bcsp_crc_reverse(bcsp->message_crc) !=
--					(bcsp->rx_skb->data[bcsp->rx_skb->len - 2] << 8) +
--					bcsp->rx_skb->data[bcsp->rx_skb->len - 1]) {
--
-+			if (bitrev16(bcsp->message_crc) != bscp_get_crc(bcsp)) {
- 				BT_ERR ("Checksum failed: computed %04x received %04x",
--					bcsp_crc_reverse(bcsp->message_crc),
--					(bcsp->rx_skb-> data[bcsp->rx_skb->len - 2] << 8) +
--					bcsp->rx_skb->data[bcsp->rx_skb->len - 1]);
-+					bitrev16(bcsp->message_crc),
-+					bscp_get_crc(bcsp));
- 
- 				kfree_skb(bcsp->rx_skb);
- 				bcsp->rx_state = BCSP_W4_PKT_DELIMITER;
-diff -puN drivers/bluetooth/Kconfig~bluetooth-hci_bcspc-small-cleanups-api-users drivers/bluetooth/Kconfig
---- a/drivers/bluetooth/Kconfig~bluetooth-hci_bcspc-small-cleanups-api-users
-+++ a/drivers/bluetooth/Kconfig
-@@ -71,6 +71,7 @@ config BT_HCIUART_H4
- config BT_HCIUART_BCSP
- 	bool "BCSP protocol support"
- 	depends on BT_HCIUART
-+	select CONFIG_BITREVERSE
- 	help
- 	  BCSP (BlueCore Serial Protocol) is serial protocol for communication 
- 	  between Bluetooth device and host. This protocol is required for non
+ #define UBR_BUFFER	(128*1024)	/* UBR buffer size */
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from rautelap@gmail.com are
 
 origin.patch
-linux-next.patch
-cifs-remove-global_extern-macro.patch
-mtd-mtdcharc-silence-sparse-warning.patch
-mtd-mtdcharc-remove-shadowed-variable-warnings.patch
-scsi-replace-remaining-__function__-occurrences.patch
-fusion-replace-remaining-__function__-occurrences.patch
-scsi-replace-__inline-with-inline.patch
-scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
-scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
-block-use-get_unaligned_-helpers.patch
-usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues.patch
-xfs-use-get_unaligned_-helpers.patch
-xtensa-replace-remaining-__function__-occurences.patch
-fs-ldm-use-get_unaligned_-helpers.patch
-include-use-get-put_unaligned_-helpers.patch
-lzo-use-get-put_unaligned_-helpers.patch
-asm-generic-int-ll64h-always-provide-__su64.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-isdn-use-the-common-ascii-hex-helpers.patch
-net-use-the-common-ascii-hex-helpers.patch
-cris-use-the-common-ascii-hex-helpers.patch
-frv-use-the-common-ascii-hex-helpers.patch
-mips-use-the-common-ascii-hex-helpers.patch
-ppc-use-the-common-ascii-hex-helpers.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-mn10300-use-the-common-ascii-hex-helpers.patch
 
