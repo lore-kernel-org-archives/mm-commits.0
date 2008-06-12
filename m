@@ -1,81 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - isdn-divas-fix-proc-creation.patch removed from -mm tree
-Date: Thu, 12 Jun 2008 13:36:58 -0700
-Message-ID: <200806122036.m5CKawAW005386@imap1.linux-foundation.org>
+Subject: - dockc-remove-trailing-printk-whitespace.patch removed from -mm tree
+Date: Thu, 12 Jun 2008 13:36:37 -0700
+Message-ID: <200806122036.m5CKabVF005345@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53304 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47706 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755967AbYFLUhE (ORCPT
+	by vger.kernel.org with ESMTP id S1755618AbYFLUg5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Jun 2008 16:37:04 -0400
+	Thu, 12 Jun 2008 16:36:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, kkeil@suse.de, mm-commits@vger.kernel.org
+To: lnxninja@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     isdn divas: fix proc creation
+     dock.c remove trailing printk whitespace
 has been removed from the -mm tree.  Its filename was
-     isdn-divas-fix-proc-creation.patch
+     dockc-remove-trailing-printk-whitespace.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: isdn divas: fix proc creation
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: dock.c remove trailing printk whitespace
+From: Tim Pepper <lnxninja@linux.vnet.ibm.com>
 
-1. creating proc entry and not saving pointer to PDE and checking it
-   is not going to work.
-2. if proc entry wasn't created, no reason to remove it on error path.
-
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Karsten Keil <kkeil@suse.de>
+Signed-off-by: Tim Pepper <lnxninja@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/hardware/eicon/divasmain.c |    1 -
- drivers/isdn/hardware/eicon/divasproc.c |    4 ++--
- 2 files changed, 2 insertions(+), 3 deletions(-)
+ drivers/acpi/dock.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/isdn/hardware/eicon/divasmain.c~isdn-divas-fix-proc-creation drivers/isdn/hardware/eicon/divasmain.c
---- a/drivers/isdn/hardware/eicon/divasmain.c~isdn-divas-fix-proc-creation
-+++ a/drivers/isdn/hardware/eicon/divasmain.c
-@@ -808,7 +808,6 @@ static int DIVA_INIT_FUNCTION divas_init
+diff -puN drivers/acpi/dock.c~dockc-remove-trailing-printk-whitespace drivers/acpi/dock.c
+--- a/drivers/acpi/dock.c~dockc-remove-trailing-printk-whitespace
++++ a/drivers/acpi/dock.c
+@@ -834,7 +834,7 @@ static int dock_add(acpi_handle handle)
+ 		goto dock_add_err;
+ 	}
  
- 	if (!create_divas_proc()) {
- #ifdef MODULE
--		remove_divas_proc();
- 		divas_unregister_chrdev();
- 		divasfunc_exit();
- #endif
-diff -puN drivers/isdn/hardware/eicon/divasproc.c~isdn-divas-fix-proc-creation drivers/isdn/hardware/eicon/divasproc.c
---- a/drivers/isdn/hardware/eicon/divasproc.c~isdn-divas-fix-proc-creation
-+++ a/drivers/isdn/hardware/eicon/divasproc.c
-@@ -125,8 +125,8 @@ static const struct file_operations diva
+-	printk(KERN_INFO PREFIX "%s \n", ACPI_DOCK_DRIVER_DESCRIPTION);
++	printk(KERN_INFO PREFIX "%s\n", ACPI_DOCK_DRIVER_DESCRIPTION);
  
- int create_divas_proc(void)
- {
--	proc_create(divas_proc_name, S_IFREG | S_IRUGO, proc_net_eicon,
--		    &divas_fops);
-+	divas_proc_entry = proc_create(divas_proc_name, S_IFREG | S_IRUGO,
-+					proc_net_eicon, &divas_fops);
- 	if (!divas_proc_entry)
- 		return (0);
+ 	return 0;
  
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from lnxninja@linux.vnet.ibm.com are
 
 origin.patch
-linux-next.patch
-cifs-switch-to-seq_files.patch
-mpt-remove-unused-struct-mpt_proc_entry_t.patch
-move-proc_kmsg_operations-to-fs-proc-internalh.patch
-sysctl-allow-override-of-proc-sys-net-with-cap_net_admin.patch
-proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
-likely_prof-changed-to-use-proc_create.patch
-proc-remove-proc_root-from-drivers-likelyprof.patch
 
