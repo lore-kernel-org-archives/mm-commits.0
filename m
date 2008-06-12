@@ -1,105 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch added to -mm tree
-Date: Thu, 12 Jun 2008 13:08:05 -0700
-Message-ID: <200806122008.m5CK85ht004141@imap1.linux-foundation.org>
+Subject: - revert-revert-linux-next-changes-to-make-memstick-use-fully-asynchronous-request-processing-apply.patch removed from -mm tree
+Date: Thu, 12 Jun 2008 13:13:59 -0700
+Message-ID: <200806122013.m5CKDxpB004368@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42492 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32811 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752224AbYFLUJ3 (ORCPT
+	by vger.kernel.org with ESMTP id S1752904AbYFLUOB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Jun 2008 16:09:29 -0400
+	Thu, 12 Jun 2008 16:14:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, bwalle@suse.de, hannes@saeurebad.de, mingo@elte.hu
+To: akpm@linux-foundation.org, oakad@yahoo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next: revert "bootmem: add return value to reserve_bootmem_node()"
-has been added to the -mm tree.  Its filename is
-     linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+     revert-revert-linux-next-changes-to-make-memstick-use-fully-asynchronous-request-processing-apply
+has been removed from the -mm tree.  Its filename was
+     revert-revert-linux-next-changes-to-make-memstick-use-fully-asynchronous-request-processing-apply.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next: revert "bootmem: add return value to reserve_bootmem_node()"
+Subject: revert-revert-linux-next-changes-to-make-memstick-use-fully-asynchronous-request-processing-apply
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Revert
-
-commit 91d48fc80f22817332170082e10de60a75851640
-Author: Bernhard Walle <bwalle@suse.de>
-Date:   Sun Jun 8 15:46:29 2008 +0200
-
-    bootmem: add return value to reserve_bootmem_node()
-    
-    This patch changes the function reserve_bootmem_node() from void to int,
-    returning -ENOMEM if the allocation fails.
-    
-    Signed-off-by: Bernhard Walle <bwalle@suse.de>
-    Signed-off-by: Ingo Molnar <mingo@elte.hu>
-
-since it trashes the bootmem rewrite in -mm.
-
-Please merge memory management patches via the -mm tree.
-
-Cc: Johannes Weiner <hannes@saeurebad.de>
-Cc: Bernhard Walle <bwalle@suse.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Alex Dubov <oakad@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bootmem.h |    2 +-
- mm/bootmem.c            |    6 ++----
- 2 files changed, 3 insertions(+), 5 deletions(-)
+ drivers/memstick/host/tifm_ms.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/bootmem.h~linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node include/linux/bootmem.h
---- a/include/linux/bootmem.h~linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node
-+++ a/include/linux/bootmem.h
-@@ -94,7 +94,7 @@ extern unsigned long init_bootmem_node(p
- 				       unsigned long freepfn,
- 				       unsigned long startpfn,
- 				       unsigned long endpfn);
--extern int reserve_bootmem_node(pg_data_t *pgdat,
-+extern void reserve_bootmem_node(pg_data_t *pgdat,
- 				 unsigned long physaddr,
- 				 unsigned long size,
- 				 int flags);
-diff -puN mm/bootmem.c~linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node mm/bootmem.c
---- a/mm/bootmem.c~linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node
-+++ a/mm/bootmem.c
-@@ -442,17 +442,15 @@ unsigned long __init init_bootmem_node(p
- 	return init_bootmem_core(pgdat, freepfn, startpfn, endpfn);
- }
+diff -puN drivers/memstick/host/tifm_ms.c~revert-revert-linux-next-changes-to-make-memstick-use-fully-asynchronous-request-processing-apply drivers/memstick/host/tifm_ms.c
+--- a/drivers/memstick/host/tifm_ms.c~revert-revert-linux-next-changes-to-make-memstick-use-fully-asynchronous-request-processing-apply
++++ a/drivers/memstick/host/tifm_ms.c
+@@ -546,7 +546,7 @@ static void tifm_ms_abort(unsigned long 
+ 	printk(KERN_ERR
+ 	       "%s : card failed to respond for a long period of time "
+ 	       "(%x, %x)\n",
+-	       host->dev->dev.bus_id, host->req ? host->req->tpc : 0,
++	       dev_name(&host->dev->dev), host->req ? host->req->tpc : 0,
+ 	       host->cmd_flags);
  
--int __init reserve_bootmem_node(pg_data_t *pgdat, unsigned long physaddr,
-+void __init reserve_bootmem_node(pg_data_t *pgdat, unsigned long physaddr,
- 				 unsigned long size, int flags)
- {
- 	int ret;
+ 	tifm_eject(host->dev);
+@@ -561,7 +561,7 @@ static int tifm_ms_probe(struct tifm_dev
+ 	if (!(TIFM_SOCK_STATE_OCCUPIED
+ 	      & readl(sock->addr + SOCK_PRESENT_STATE))) {
+ 		printk(KERN_WARNING "%s : card gone, unexpectedly\n",
+-		       sock->dev.bus_id);
++		       dev_name(&sock->dev));
+ 		return rc;
+ 	}
  
- 	ret = can_reserve_bootmem_core(pgdat->bdata, physaddr, size, flags);
- 	if (ret < 0)
--		return -ENOMEM;
-+		return;
- 	reserve_bootmem_core(pgdat->bdata, physaddr, size, flags);
--
--	return 0;
- }
- 
- void __init free_bootmem_node(pg_data_t *pgdat, unsigned long physaddr,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -209,7 +164,6 @@ dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
 dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
 tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
 memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
-revert-linux-next-changes-to-make-memstick-use-fully-asynchronous-request-processing-apply.patch
 memstick-use-fully-asynchronous-request-processing-fix.patch
 revert-revert-linux-next-changes-to-make-memstick-use-fully-asynchronous-request-processing-apply.patch
 ppc-use-the-common-ascii-hex-helpers-fix.patch
