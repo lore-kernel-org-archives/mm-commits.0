@@ -1,135 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: - pnpacpi-fix-irq-flag-decoding.patch removed from -mm tree
-Date: Thu, 12 Jun 2008 13:37:57 -0700
-Message-ID: <200806122037.m5CKbvNR005478@imap1.linux-foundation.org>
+Subject: - pnpacpi-fix-shareable-irq-encode-decode.patch removed from -mm tree
+Date: Thu, 12 Jun 2008 13:37:59 -0700
+Message-ID: <200806122037.m5CKbxGI005484@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42873 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55154 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756152AbYFLUiG (ORCPT
+	by vger.kernel.org with ESMTP id S1756263AbYFLUiI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Jun 2008 16:38:06 -0400
+	Thu, 12 Jun 2008 16:38:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bjorn.helgaas@hp.com, ThJaeger@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pnpacpi: fix IRQ flag decoding
+     pnpacpi: fix shareable IRQ encode/decode
 has been removed from the -mm tree.  Its filename was
-     pnpacpi-fix-irq-flag-decoding.patch
+     pnpacpi-fix-shareable-irq-encode-decode.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pnpacpi: fix IRQ flag decoding
+Subject: pnpacpi: fix shareable IRQ encode/decode
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-When decoding IRQ trigger mode and polarity, it is not enough to mask by
-IORESOURCE_BITS because there are now additional bits defined.  For
-example, if IORESOURCE_IRQ_SHAREABLE was set, we failed to set *triggering
-and *polarity at all.
-
-I can't point to a failure that this patch fixes, but
-bugs in this area have caused problems when resuming after
-suspend, for example:
-
-    http://bugzilla.kernel.org/show_bug.cgi?id=6316
-    http://bugzilla.kernel.org/show_bug.cgi?id=9487
-    https://bugs.launchpad.net/ubuntu/+source/linux-source-2.6.22/+bug/152187
+When we encode IRQ resources, we should use the "shareable" flag we got
+from _PRS rather than guessing based on the IRQ trigger mode.
 
 This is based on a patch by Tom Jaeger:
     http://bugzilla.kernel.org/show_bug.cgi?id=9487#c32
 
-[rene.herman@keyaccess.nl: fix comment]
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Cc: Tom Jaeger <ThJaeger@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/pnpacpi/rsparser.c |   16 ++++++++++++----
- include/linux/ioport.h         |    6 +++---
- 2 files changed, 15 insertions(+), 7 deletions(-)
+ drivers/pnp/pnpacpi/rsparser.c |   27 +++++++++++++--------------
+ 1 file changed, 13 insertions(+), 14 deletions(-)
 
-diff -puN drivers/pnp/pnpacpi/rsparser.c~pnpacpi-fix-irq-flag-decoding drivers/pnp/pnpacpi/rsparser.c
---- a/drivers/pnp/pnpacpi/rsparser.c~pnpacpi-fix-irq-flag-decoding
+diff -puN drivers/pnp/pnpacpi/rsparser.c~pnpacpi-fix-shareable-irq-encode-decode drivers/pnp/pnpacpi/rsparser.c
+--- a/drivers/pnp/pnpacpi/rsparser.c~pnpacpi-fix-shareable-irq-encode-decode
 +++ a/drivers/pnp/pnpacpi/rsparser.c
-@@ -56,9 +56,11 @@ static int irq_flags(int triggering, int
+@@ -50,14 +50,14 @@ static int irq_flags(int triggering, int
+ 			flags = IORESOURCE_IRQ_HIGHEDGE;
+ 	}
+ 
+-	if (shareable)
++	if (shareable == ACPI_SHARED)
+ 		flags |= IORESOURCE_IRQ_SHAREABLE;
+ 
  	return flags;
  }
  
--static void decode_irq_flags(int flag, int *triggering, int *polarity)
-+static void decode_irq_flags(struct pnp_dev *dev, int flags, int *triggering,
-+			     int *polarity)
+ static void decode_irq_flags(struct pnp_dev *dev, int flags, int *triggering,
+-			     int *polarity)
++			     int *polarity, int *shareable)
  {
--	switch (flag) {
-+	switch (flags & (IORESOURCE_IRQ_LOWLEVEL | IORESOURCE_IRQ_HIGHLEVEL |
-+			 IORESOURCE_IRQ_LOWEDGE  | IORESOURCE_IRQ_HIGHEDGE)) {
- 	case IORESOURCE_IRQ_LOWLEVEL:
- 		*triggering = ACPI_LEVEL_SENSITIVE;
- 		*polarity = ACPI_ACTIVE_LOW;
-@@ -75,6 +77,12 @@ static void decode_irq_flags(int flag, i
- 		*triggering = ACPI_EDGE_SENSITIVE;
+ 	switch (flags & (IORESOURCE_IRQ_LOWLEVEL | IORESOURCE_IRQ_HIGHLEVEL |
+ 			 IORESOURCE_IRQ_LOWEDGE  | IORESOURCE_IRQ_HIGHEDGE)) {
+@@ -84,6 +84,11 @@ static void decode_irq_flags(struct pnp_
  		*polarity = ACPI_ACTIVE_HIGH;
  		break;
-+	default:
-+		dev_err(&dev->dev, "can't encode invalid IRQ mode %#x\n",
-+			flags);
-+		*triggering = ACPI_EDGE_SENSITIVE;
-+		*polarity = ACPI_ACTIVE_HIGH;
-+		break;
  	}
++
++	if (flags & IORESOURCE_IRQ_SHAREABLE)
++		*shareable = ACPI_SHARED;
++	else
++		*shareable = ACPI_EXCLUSIVE;
  }
  
-@@ -790,7 +798,7 @@ static void pnpacpi_encode_irq(struct pn
+ static void pnpacpi_parse_allocated_irqresource(struct pnp_dev *dev,
+@@ -796,15 +801,12 @@ static void pnpacpi_encode_irq(struct pn
+ 			       struct resource *p)
+ {
  	struct acpi_resource_irq *irq = &resource->data.irq;
- 	int triggering, polarity;
+-	int triggering, polarity;
++	int triggering, polarity, shareable;
  
--	decode_irq_flags(p->flags & IORESOURCE_BITS, &triggering, &polarity);
-+	decode_irq_flags(dev, p->flags, &triggering, &polarity);
+-	decode_irq_flags(dev, p->flags, &triggering, &polarity);
++	decode_irq_flags(dev, p->flags, &triggering, &polarity, &shareable);
  	irq->triggering = triggering;
  	irq->polarity = polarity;
- 	if (triggering == ACPI_EDGE_SENSITIVE)
-@@ -813,7 +821,7 @@ static void pnpacpi_encode_ext_irq(struc
- 	struct acpi_resource_extended_irq *extended_irq = &resource->data.extended_irq;
- 	int triggering, polarity;
+-	if (triggering == ACPI_EDGE_SENSITIVE)
+-		irq->sharable = ACPI_EXCLUSIVE;
+-	else
+-		irq->sharable = ACPI_SHARED;
++	irq->sharable = shareable;
+ 	irq->interrupt_count = 1;
+ 	irq->interrupts[0] = p->start;
  
--	decode_irq_flags(p->flags & IORESOURCE_BITS, &triggering, &polarity);
-+	decode_irq_flags(dev, p->flags, &triggering, &polarity);
+@@ -819,16 +821,13 @@ static void pnpacpi_encode_ext_irq(struc
+ 				   struct resource *p)
+ {
+ 	struct acpi_resource_extended_irq *extended_irq = &resource->data.extended_irq;
+-	int triggering, polarity;
++	int triggering, polarity, shareable;
+ 
+-	decode_irq_flags(dev, p->flags, &triggering, &polarity);
++	decode_irq_flags(dev, p->flags, &triggering, &polarity, &shareable);
  	extended_irq->producer_consumer = ACPI_CONSUMER;
  	extended_irq->triggering = triggering;
  	extended_irq->polarity = polarity;
-diff -puN include/linux/ioport.h~pnpacpi-fix-irq-flag-decoding include/linux/ioport.h
---- a/include/linux/ioport.h~pnpacpi-fix-irq-flag-decoding
-+++ a/include/linux/ioport.h
-@@ -53,14 +53,14 @@ struct resource_list {
- #define IORESOURCE_AUTO		0x40000000
- #define IORESOURCE_BUSY		0x80000000	/* Driver has marked this resource busy */
+-	if (triggering == ACPI_EDGE_SENSITIVE)
+-		extended_irq->sharable = ACPI_EXCLUSIVE;
+-	else
+-		extended_irq->sharable = ACPI_SHARED;
++	extended_irq->sharable = shareable;
+ 	extended_irq->interrupt_count = 1;
+ 	extended_irq->interrupts[0] = p->start;
  
--/* ISA PnP IRQ specific bits (IORESOURCE_BITS) */
-+/* PnP IRQ specific bits (IORESOURCE_BITS) */
- #define IORESOURCE_IRQ_HIGHEDGE		(1<<0)
- #define IORESOURCE_IRQ_LOWEDGE		(1<<1)
- #define IORESOURCE_IRQ_HIGHLEVEL	(1<<2)
- #define IORESOURCE_IRQ_LOWLEVEL		(1<<3)
- #define IORESOURCE_IRQ_SHAREABLE	(1<<4)
- 
--/* ISA PnP DMA specific bits (IORESOURCE_BITS) */
-+/* PnP DMA specific bits (IORESOURCE_BITS) */
- #define IORESOURCE_DMA_TYPE_MASK	(3<<0)
- #define IORESOURCE_DMA_8BIT		(0<<0)
- #define IORESOURCE_DMA_8AND16BIT	(1<<0)
-@@ -76,7 +76,7 @@ struct resource_list {
- #define IORESOURCE_DMA_TYPEB		(2<<6)
- #define IORESOURCE_DMA_TYPEF		(3<<6)
- 
--/* ISA PnP memory I/O specific bits (IORESOURCE_BITS) */
-+/* PnP memory I/O specific bits (IORESOURCE_BITS) */
- #define IORESOURCE_MEM_WRITEABLE	(1<<0)	/* dup: IORESOURCE_READONLY */
- #define IORESOURCE_MEM_CACHEABLE	(1<<1)	/* dup: IORESOURCE_CACHEABLE */
- #define IORESOURCE_MEM_RANGELENGTH	(1<<2)	/* dup: IORESOURCE_RANGELENGTH */
 _
 
 Patches currently in -mm which might be from bjorn.helgaas@hp.com are
