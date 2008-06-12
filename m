@@ -1,123 +1,208 @@
 From: akpm@linux-foundation.org
-Subject: - do_generic_file_read-s-eintr-eio-if-lock_page_killable-fails.patch removed from -mm tree
-Date: Thu, 12 Jun 2008 13:38:13 -0700
-Message-ID: <200806122038.m5CKcD2c005519@imap1.linux-foundation.org>
+Subject: - cputopology-always-define-cpu-topology-information.patch removed from -mm tree
+Date: Thu, 12 Jun 2008 13:38:26 -0700
+Message-ID: <200806122038.m5CKcQhY005533@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56624 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53840 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756127AbYFLUjU (ORCPT
+	by vger.kernel.org with ESMTP id S1754799AbYFLUkD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Jun 2008 16:39:20 -0400
+	Thu, 12 Jun 2008 16:40:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, a.p.zijlstra@chello.nl, dmitry.adamushko@gmail.com, matthew@wil.cx, mingo@elte.hu, roland@redhat.com, mm-commits@vger.kernel.org
+To: bhutchings@solarflare.com, clameter@sgi.com, hawkes@sgi.com, mingo@elte.hu, nickpiggin@yahoo.com.au, sekharan@us.ibm.com, suresh.b.siddha@intel.com, travis@sgi.com, vegard.nossum@gmail
 
 
 The patch titled
-     do_generic_file_read: s/EINTR/EIO/ if lock_page_killable() fails
+     cpu topology: always define CPU topology information
 has been removed from the -mm tree.  Its filename was
-     do_generic_file_read-s-eintr-eio-if-lock_page_killable-fails.patch
+     cputopology-always-define-cpu-topology-information.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: do_generic_file_read: s/EINTR/EIO/ if lock_page_killable() fails
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: cpu topology: always define CPU topology information
+From: Ben Hutchings <bhutchings@solarflare.com>
 
-If lock_page_killable() fails because the task was killed by SIGKILL or
-any other fatal signal, do_generic_file_read() returns -EIO.
+Not all architectures and configurations define CPU topology information.
+This can result in an empty topology directory in sysfs, and requires
+in-kernel users to protect all uses with #ifdef - see
+<http://marc.info/?l=linux-netdev&m=120639033904472&w=2>.
 
-This seems to be OK, because in fact the userspace won't see this error,
-the task will dequeue SIGKILL and exit.
+The documentation of CPU topology specifies what the defaults should be if
+only partial information is available from the hardware.  So we can
+provide these defaults as a fallback.
 
-However, /sbin/init is different, it will dequeue SIGKILL, ignore it, and
-return to the user-space with the bogus -EIO.
+This patch:
 
-Change the code to return the error code from lock_page_killable(), -EINTR.
-This doesn't fix the bug, but perhaps makes sense anyway. Imho, with this
-change the code looks a bit more logical, and the "good" init should handle
-the spurious EINTR or short read.
+- Adds default definitions of the 4 topology macros to <linux/topology.h>
+- Changes drivers/base/topology.c to use the topology macros unconditionally
+  and to cope with definitions that aren't lvalues
+- Updates documentation accordingly
 
-Afaics we can also change lock_page_killable() to return -ERESTARTNOINTR,
-but this can't prevent the short reads.
-
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Signed-off-by: Ben Hutchings <bhutchings@solarflare.com>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Matthew Wilcox <matthew@wil.cx>
-Cc: Dmitry Adamushko <dmitry.adamushko@gmail.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Roland McGrath <roland@redhat.com>
+Cc: Vegard Nossum <vegard.nossum@gmail.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Chandra Seetharaman <sekharan@us.ibm.com>
+Cc: Suresh Siddha <suresh.b.siddha@intel.com>
+Cc: Mike Travis <travis@sgi.com>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: John Hawkes <hawkes@sgi.com>
+Cc: Zhang, Yanmin <yanmin.zhang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ Documentation/cputopology.txt |   26 +++++++--------------
+ drivers/base/topology.c       |   38 ++++++++------------------------
+ include/linux/topology.h      |   13 ++++++++++
+ 3 files changed, 32 insertions(+), 45 deletions(-)
 
-diff -puN mm/filemap.c~do_generic_file_read-s-eintr-eio-if-lock_page_killable-fails mm/filemap.c
---- a/mm/filemap.c~do_generic_file_read-s-eintr-eio-if-lock_page_killable-fails
-+++ a/mm/filemap.c
-@@ -1000,8 +1000,9 @@ page_ok:
+diff -puN Documentation/cputopology.txt~cputopology-always-define-cpu-topology-information Documentation/cputopology.txt
+--- a/Documentation/cputopology.txt~cputopology-always-define-cpu-topology-information
++++ a/Documentation/cputopology.txt
+@@ -14,9 +14,8 @@ represent the thread siblings to cpu X i
+ To implement it in an architecture-neutral way, a new source file,
+ drivers/base/topology.c, is to export the 4 attributes.
  
- page_not_up_to_date:
- 		/* Get exclusive access to the page ... */
--		if (lock_page_killable(page))
--			goto readpage_eio;
-+		error = lock_page_killable(page);
-+		if (unlikely(error))
-+			goto readpage_error;
+-If one architecture wants to support this feature, it just needs to
+-implement 4 defines, typically in file include/asm-XXX/topology.h.
+-The 4 defines are:
++For an architecture to support this feature, it must define some of
++these macros in include/asm-XXX/topology.h:
+ #define topology_physical_package_id(cpu)
+ #define topology_core_id(cpu)
+ #define topology_thread_siblings(cpu)
+@@ -25,17 +24,10 @@ The 4 defines are:
+ The type of **_id is int.
+ The type of siblings is cpumask_t.
  
- 		/* Did it get truncated before we got the lock? */
- 		if (!page->mapping) {
-@@ -1029,8 +1030,9 @@ readpage:
- 		}
+-To be consistent on all architectures, the 4 attributes should have
+-default values if their values are unavailable. Below is the rule.
+-1) physical_package_id: If cpu has no physical package id, -1 is the
+-default value.
+-2) core_id: If cpu doesn't support multi-core, its core id is 0.
+-3) thread_siblings: Just include itself, if the cpu doesn't support
+-HT/multi-thread.
+-4) core_siblings: Just include itself, if the cpu doesn't support
+-multi-core and HT/Multi-thread.
+-
+-So be careful when declaring the 4 defines in include/asm-XXX/topology.h.
+-
+-If an attribute isn't defined on an architecture, it won't be exported.
+-
++To be consistent on all architectures, include/linux/topology.h
++provides default definitions for any of the above macros that are
++not defined by include/asm-XXX/topology.h:
++1) physical_package_id: -1
++2) core_id: 0
++3) thread_siblings: just the given CPU
++4) core_siblings: just the given CPU
+diff -puN drivers/base/topology.c~cputopology-always-define-cpu-topology-information drivers/base/topology.c
+--- a/drivers/base/topology.c~cputopology-always-define-cpu-topology-information
++++ a/drivers/base/topology.c
+@@ -62,14 +62,16 @@ static ssize_t show_cpumap(int type, cpu
+ static ssize_t show_##name(struct sys_device *dev, char *buf)	\
+ {									\
+ 	unsigned int cpu = dev->id;					\
+-	return show_cpumap(0, &(topology_##name(cpu)), buf);		\
++	cpumask_t siblings = topology_##name(cpu);			\
++	return show_cpumap(0, &siblings, buf);				\
+ }
  
- 		if (!PageUptodate(page)) {
--			if (lock_page_killable(page))
--				goto readpage_eio;
-+			error = lock_page_killable(page);
-+			if (unlikely(error))
-+				goto readpage_error;
- 			if (!PageUptodate(page)) {
- 				if (page->mapping == NULL) {
- 					/*
-@@ -1042,15 +1044,14 @@ readpage:
- 				}
- 				unlock_page(page);
- 				shrink_readahead_size_eio(filp, ra);
--				goto readpage_eio;
-+				error = -EIO;
-+				goto readpage_error;
- 			}
- 			unlock_page(page);
- 		}
+ #define define_siblings_show_list(name)					\
+ static ssize_t show_##name##_list(struct sys_device *dev, char *buf) \
+ {									\
+ 	unsigned int cpu = dev->id;					\
+-	return show_cpumap(1, &(topology_##name(cpu)), buf);		\
++	cpumask_t siblings = topology_##name(cpu);			\
++	return show_cpumap(1, &siblings, buf);				\
+ }
  
- 		goto page_ok;
+ #else
+@@ -93,47 +95,27 @@ static ssize_t show_##name##_list(struct
+ #define define_siblings_show_func(name)		\
+ 	define_siblings_show_map(name); define_siblings_show_list(name)
  
--readpage_eio:
--		error = -EIO;
- readpage_error:
- 		/* UHHUH! A synchronous read error occurred. Report it */
- 		desc->error = error;
+-#ifdef	topology_physical_package_id
+ define_id_show_func(physical_package_id);
+ define_one_ro(physical_package_id);
+-#define ref_physical_package_id_attr	&attr_physical_package_id.attr,
+-#else
+-#define ref_physical_package_id_attr
+-#endif
+ 
+-#ifdef topology_core_id
+ define_id_show_func(core_id);
+ define_one_ro(core_id);
+-#define ref_core_id_attr		&attr_core_id.attr,
+-#else
+-#define ref_core_id_attr
+-#endif
+ 
+-#ifdef topology_thread_siblings
+ define_siblings_show_func(thread_siblings);
+ define_one_ro(thread_siblings);
+ define_one_ro(thread_siblings_list);
+-#define ref_thread_siblings_attr	\
+-		&attr_thread_siblings.attr, &attr_thread_siblings_list.attr,
+-#else
+-#define ref_thread_siblings_attr
+-#endif
+ 
+-#ifdef topology_core_siblings
+ define_siblings_show_func(core_siblings);
+ define_one_ro(core_siblings);
+ define_one_ro(core_siblings_list);
+-#define ref_core_siblings_attr		\
+-		&attr_core_siblings.attr, &attr_core_siblings_list.attr,
+-#else
+-#define ref_core_siblings_attr
+-#endif
+ 
+ static struct attribute *default_attrs[] = {
+-	ref_physical_package_id_attr
+-	ref_core_id_attr
+-	ref_thread_siblings_attr
+-	ref_core_siblings_attr
++	&attr_physical_package_id.attr,
++	&attr_core_id.attr,
++	&attr_thread_siblings.attr,
++	&attr_thread_siblings_list.attr,
++	&attr_core_siblings.attr,
++	&attr_core_siblings_list.attr,
+ 	NULL
+ };
+ 
+diff -puN include/linux/topology.h~cputopology-always-define-cpu-topology-information include/linux/topology.h
+--- a/include/linux/topology.h~cputopology-always-define-cpu-topology-information
++++ a/include/linux/topology.h
+@@ -179,4 +179,17 @@ void arch_update_cpu_topology(void);
+ #endif
+ #endif /* CONFIG_NUMA */
+ 
++#ifndef topology_physical_package_id
++#define topology_physical_package_id(cpu)	((void)(cpu), -1)
++#endif
++#ifndef topology_core_id
++#define topology_core_id(cpu)			((void)(cpu), 0)
++#endif
++#ifndef topology_thread_siblings
++#define topology_thread_siblings(cpu)		cpumask_of_cpu(cpu)
++#endif
++#ifndef topology_core_siblings
++#define topology_core_siblings(cpu)		cpumask_of_cpu(cpu)
++#endif
++
+ #endif /* _LINUX_TOPOLOGY_H */
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from bhutchings@solarflare.com are
 
 origin.patch
 linux-next.patch
-introduce-pf_kthread-flag.patch
-kill-pf_borrowed_mm-in-favour-of-pf_kthread.patch
-coredump-zap_threads-must-skip-kernel-threads.patch
-posix-timers-timer_delete-remove-the-bogus-it_process-=-null-check.patch
-posix-timers-release_posix_timer-kill-the-bogus-put_task_struct-it_process.patch
-signals-collect_signal-remove-the-unneeded-sigismember-check.patch
-signals-collect_signal-simplify-the-still_pending-logic.patch
-signals-change-collect_signal-to-return-void.patch
-__exit_signal-dont-take-rcu-lock.patch
-signals-dequeue_signal-dont-check-signal_group_exit-when-setting-signal_stop_dequeued.patch
-signals-do_signal_stop-kill-the-signal_unkillable-check.patch
-coredump-zap_threads-comments-use-while_each_thread.patch
-distinct-tgid-tid-i-o-statistics.patch
+cputopology-always-define-cpu-topology-information-cleanup.patch
 
