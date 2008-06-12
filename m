@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pm-x86-remove-obsolete-pm-definitions-from-nmi-header.patch added to -mm tree
-Date: Thu, 12 Jun 2008 01:47:40 -0700
-Message-ID: <200806120847.m5C8leoW010626@imap1.linux-foundation.org>
+Subject: + gcov-architecture-specific-compile-flag-adjustments-powerpc-fix.patch added to -mm tree
+Date: Thu, 12 Jun 2008 02:16:31 -0700
+Message-ID: <200806120916.m5C9GVFh011654@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36454 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34754 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754546AbYFLIsG (ORCPT
+	by vger.kernel.org with ESMTP id S1755047AbYFLJSx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Jun 2008 04:48:06 -0400
+	Thu, 12 Jun 2008 05:18:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rjw@sisk.pl, mingo@elte.hu, tglx@linutronix.de
+Cc: peter.oberparleiter@de.ibm.com
 
 
 The patch titled
-     pm: x86: remove obsolete PM definitions from NMI header
+     gcov: architecture specific compile flag adjustments powerpc fix
 has been added to the -mm tree.  Its filename is
-     pm-x86-remove-obsolete-pm-definitions-from-nmi-header.patch
+     gcov-architecture-specific-compile-flag-adjustments-powerpc-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,45 +34,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pm: x86: remove obsolete PM definitions from NMI header
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: gcov: architecture specific compile flag adjustments powerpc fix
+From: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
 
-Remove obsolete and no longer used PM-related definitions from
-include/asm-x86/nmi.h .
+Fix for gcov patch fallout:
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+powerpc allmodconfig fails with
+
+Error: External symbol '__gcov_init' referenced from prom_init.c
+Error: External symbol '__gcov_merge_add' referenced from prom_init.c
+
+Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-x86/nmi.h |   21 ---------------------
- 1 file changed, 21 deletions(-)
+ arch/powerpc/kernel/Makefile |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/asm-x86/nmi.h~pm-x86-remove-obsolete-pm-definitions-from-nmi-header include/asm-x86/nmi.h
---- a/include/asm-x86/nmi.h~pm-x86-remove-obsolete-pm-definitions-from-nmi-header
-+++ a/include/asm-x86/nmi.h
-@@ -15,27 +15,6 @@
-  */
- int do_nmi_callback(struct pt_regs *regs, int cpu);
+diff -puN arch/powerpc/kernel/Makefile~gcov-architecture-specific-compile-flag-adjustments-powerpc-fix arch/powerpc/kernel/Makefile
+--- a/arch/powerpc/kernel/Makefile~gcov-architecture-specific-compile-flag-adjustments-powerpc-fix
++++ a/arch/powerpc/kernel/Makefile
+@@ -11,6 +11,7 @@ ifeq ($(CONFIG_PPC32),y)
+ CFLAGS_prom_init.o      += -fPIC
+ CFLAGS_btext.o		+= -fPIC
+ endif
++GCOV_prom_init.o := n
  
--#ifdef CONFIG_PM
--
--/** Replace the PM callback routine for NMI. */
--struct pm_dev *set_nmi_pm_callback(pm_callback callback);
--
--/** Unset the PM callback routine back to the default. */
--void unset_nmi_pm_callback(struct pm_dev *dev);
--
--#else
--
--static inline struct pm_dev *set_nmi_pm_callback(pm_callback callback)
--{
--	return 0;
--}
--
--static inline void unset_nmi_pm_callback(struct pm_dev *dev)
--{
--}
--
--#endif /* CONFIG_PM */
+ ifdef CONFIG_FTRACE
+ # Do not trace early boot code
+_
+
+Patches currently in -mm which might be from peter.oberparleiter@de.ibm.com are
+
+origin.patch
+linux-next.patch
+s390-cio-use-memory_read_from_buffer.patch
+kernel-call-constructors.patch
+kernel-call-constructors-uml-fix-1.patch
+kernel-call-constructors-uml-fix-2.patch
+kernel-introduce-gcc_version_lower-macro.patch
+seq_file-add-function-to-write-binary-data.patch
+gcov-add-gcov-profiling-infrastructure.patch
+gcov-create-links-to-gcda-files-in-build-directory.patch
+gcov-architecture-specific-compile-flag-adjustments.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-fix.patch
+
