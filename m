@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch added to -mm tree
-Date: Thu, 12 Jun 2008 13:19:47 -0700
-Message-ID: <200806122019.m5CKJlHJ004588@imap1.linux-foundation.org>
+Subject: + define-page_file_cache-function-fix.patch added to -mm tree
+Date: Thu, 12 Jun 2008 13:26:06 -0700
+Message-ID: <200806122026.m5CKQ69p004888@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56520 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55189 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754698AbYFLUVf (ORCPT
+	by vger.kernel.org with ESMTP id S1759610AbYFLU0j (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Jun 2008 16:21:35 -0400
+	Thu, 12 Jun 2008 16:26:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, benh@kernel.crashing.org, paulus@samba.org, peter.oberparleiter@de.ibm.com, rusty@rustcorp.com.au, sam@ravnborg.org
+Cc: akpm@linux-foundation.org, lee.schermerhorn@hp.com, minchan.kim@gmail.com, riel@redhat.com, rja@sgi.com
 
 
 The patch titled
-     gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff
+     define-page_file_cache-function-fix
 has been added to the -mm tree.  Its filename is
-     gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+     define-page_file_cache-function-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff
+Subject: define-page_file_cache-function-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-all the powerpc files got moved around.  Hope this works..
+a) Russ copying Linus on unimportant MM patches and ignoring all the
+   pending MM work.
 
-Cc: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+b) Linus making my life harder by merging it.
+
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: MinChan Kim <minchan.kim@gmail.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Russ Anderson <rja@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/boot/Makefile |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/page-flags.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN arch/powerpc/boot/Makefile~gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff arch/powerpc/boot/Makefile
---- a/arch/powerpc/boot/Makefile~gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff
-+++ a/arch/powerpc/boot/Makefile
-@@ -25,6 +25,8 @@ BOOTCFLAGS    := -Wall -Wundef -Wstrict-
- 		 -isystem $(shell $(CROSS32CC) -print-file-name=include)
- BOOTAFLAGS	:= -D__ASSEMBLY__ $(BOOTCFLAGS) -traditional -nostdinc
+diff -puN include/linux/page-flags.h~define-page_file_cache-function-fix include/linux/page-flags.h
+--- a/include/linux/page-flags.h~define-page_file_cache-function-fix
++++ a/include/linux/page-flags.h
+@@ -333,7 +333,8 @@ static inline void __ClearPageTail(struc
  
-+GCOV	:= n
-+
- ifdef CONFIG_DEBUG_INFO
- BOOTCFLAGS	+= -g
- endif
+ #define PAGE_FLAGS	(1 << PG_lru   | 1 << PG_private   | 1 << PG_locked | \
+ 			 1 << PG_buddy | 1 << PG_writeback | \
+-			 1 << PG_slab  | 1 << PG_swapcache | 1 << PG_active)
++			 1 << PG_slab  | 1 << PG_swapcache | 1 << PG_active | \
++			 1 << PG_swapbacked)
+ 
+ /*
+  * Flags checked in bad_page().  Pages on the free list should not have
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -182,6 +185,7 @@ x86-lockless-get_user_pages_fast-fix-2.patch
 x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
 x86-lockless-get_user_pages_fast-fix-warning.patch
 vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
+define-page_file_cache-function-fix.patch
 mlock-mlocked-pages-are-unevictable-fix.patch
 mlock-mlocked-pages-are-unevictable-fix-fix.patch
 mlock-mlocked-pages-are-unevictable-fix-2.patch
