@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pm-remove-remaining-obsolete-definitions-from-pmh.patch added to -mm tree
-Date: Thu, 12 Jun 2008 02:32:41 -0700
-Message-ID: <200806120932.m5C9WfpY012212@imap1.linux-foundation.org>
+Subject: + tracer-fix-printout.patch added to -mm tree
+Date: Thu, 12 Jun 2008 02:34:32 -0700
+Message-ID: <200806120934.m5C9YWR6012333@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33943 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57069 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751936AbYFLJdM (ORCPT
+	by vger.kernel.org with ESMTP id S1754617AbYFLJfV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Jun 2008 05:33:12 -0400
+	Thu, 12 Jun 2008 05:35:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rjw@sisk.pl
+Cc: jirislaby@gmail.com, mingo@redhat.com, srostedt@redhat.com
 
 
 The patch titled
-     pm: remove remaining obsolete definitions from pm.h
+     tracer: fix printout
 has been added to the -mm tree.  Its filename is
-     pm-remove-remaining-obsolete-definitions-from-pmh.patch
+     tracer-fix-printout.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,84 +34,53 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pm: remove remaining obsolete definitions from pm.h
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: tracer: fix printout
+From: Jiri Slaby <jirislaby@gmail.com>
 
-Remove the remaining obsolete definitions from include/linux/pm.h and move
-the definitions of PM_SUSPEND and PM_RESUME to the header of h3600 which
-is the only user of them.
+Do not print loglevel before "entries of %ld bytes". Move it to the previous
+pr_info.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: Steven Rostedt <srostedt@redhat.com>
+Cc: Ingo Molnar <mingo@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-arm/arch-sa1100/h3600.h |    5 ++
- include/linux/pm.h                  |   46 --------------------------
- 2 files changed, 5 insertions(+), 46 deletions(-)
+ kernel/trace/trace.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN include/asm-arm/arch-sa1100/h3600.h~pm-remove-remaining-obsolete-definitions-from-pmh include/asm-arm/arch-sa1100/h3600.h
---- a/include/asm-arm/arch-sa1100/h3600.h~pm-remove-remaining-obsolete-definitions-from-pmh
-+++ a/include/asm-arm/arch-sa1100/h3600.h
-@@ -23,6 +23,11 @@
- #ifndef _INCLUDE_H3600_H_
- #define _INCLUDE_H3600_H_
+diff -puN kernel/trace/trace.c~tracer-fix-printout kernel/trace/trace.c
+--- a/kernel/trace/trace.c~tracer-fix-printout
++++ a/kernel/trace/trace.c
+@@ -3084,9 +3084,8 @@ __init static int tracer_alloc_buffers(v
+ 	}
+ 	max_tr.entries = global_trace.entries;
  
-+typedef int __bitwise pm_request_t;
-+
-+#define PM_SUSPEND	((__force pm_request_t) 1)	/* enter D1-D3 */
-+#define PM_RESUME	((__force pm_request_t) 2)	/* enter D0 */
-+
- /* generalized support for H3xxx series Compaq Pocket PC's */
- #define machine_is_h3xxx() (machine_is_h3100() || machine_is_h3600() || machine_is_h3800())
+-	pr_info("tracer: %d pages allocated for %ld",
+-		pages, trace_nr_entries);
+-	pr_info(" entries of %ld bytes\n", (long)TRACE_ENTRY_SIZE);
++	pr_info("tracer: %d pages allocated for %ld entries of %ld bytes\n",
++		pages, trace_nr_entries, (long)TRACE_ENTRY_SIZE);
+ 	pr_info("   actual entries %ld\n", global_trace.entries);
  
-diff -puN include/linux/pm.h~pm-remove-remaining-obsolete-definitions-from-pmh include/linux/pm.h
---- a/include/linux/pm.h~pm-remove-remaining-obsolete-definitions-from-pmh
-+++ a/include/linux/pm.h
-@@ -26,52 +26,6 @@
- #include <asm/errno.h>
- 
- /*
-- * Power management requests... these are passed to pm_send_all() and friends.
-- *
-- * these functions are old and deprecated, see below.
-- */
--typedef int __bitwise pm_request_t;
--
--#define PM_SUSPEND	((__force pm_request_t) 1)	/* enter D1-D3 */
--#define PM_RESUME	((__force pm_request_t) 2)	/* enter D0 */
--
--
--/*
-- * Device types... these are passed to pm_register
-- */
--typedef int __bitwise pm_dev_t;
--
--#define PM_UNKNOWN_DEV	((__force pm_dev_t) 0)	/* generic */
--#define PM_SYS_DEV	((__force pm_dev_t) 1)	/* system device (fan, KB controller, ...) */
--#define PM_PCI_DEV	((__force pm_dev_t) 2)	/* PCI device */
--#define PM_USB_DEV	((__force pm_dev_t) 3)	/* USB device */
--#define PM_SCSI_DEV	((__force pm_dev_t) 4)	/* SCSI device */
--#define PM_ISA_DEV	((__force pm_dev_t) 5)	/* ISA device */
--#define	PM_MTD_DEV	((__force pm_dev_t) 6)	/* Memory Technology Device */
--
--/*
-- * System device hardware ID (PnP) values
-- */
--enum
--{
--	PM_SYS_UNKNOWN = 0x00000000, /* generic */
--	PM_SYS_KBC =	 0x41d00303, /* keyboard controller */
--	PM_SYS_COM =	 0x41d00500, /* serial port */
--	PM_SYS_IRDA =	 0x41d00510, /* IRDA controller */
--	PM_SYS_FDC =	 0x41d00700, /* floppy controller */
--	PM_SYS_VGA =	 0x41d00900, /* VGA controller */
--	PM_SYS_PCMCIA =	 0x41d00e00, /* PCMCIA controller */
--};
--
--/*
-- * Device identifier
-- */
--#define PM_PCI_ID(dev) ((dev)->bus->number << 16 | (dev)->devfn)
--
--/* Functions above this comment are list-based old-style power
-- * management. Please avoid using them.  */
+ 	tracer_init_debugfs();
+_
+
+Patches currently in -mm which might be from jirislaby@gmail.com are
+
+origin.patch
+linux-next.patch
+tracer-fix-printout.patch
+driver-video-cirrusfb-fix-ram-address-printk.patch
+driver-video-cirrusfb-fix-ram-address-printk-fix.patch
+driver-video-cirrusfb-fix-ram-address-printk-fix-fix.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+vt-hold-console_sem-across-sysfs-operations.patch
+ip2-push-bkl-down-for-the-firmware-interface.patch
+rio-push-down-the-bkl-into-the-firmware-ioctl-handler.patch
+sx-push-bkl-down-into-the-firmware-ioctl-handler.patch
+ppdev-wrap-ioctl-handler-in-driver-and-push-lock-down.patch
+dsp56k-bkl-pushdown.patch
+reiser4.patch
+shrink_slab-handle-bad-shrinkers.patch
+
