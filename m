@@ -1,45 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: - x86-remove-unused-variable-loops-in-arch-x86-boot-a20c.patch removed from -mm tree
-Date: Thu, 12 Jun 2008 13:36:42 -0700
-Message-ID: <200806122036.m5CKagSq005354@imap1.linux-foundation.org>
+Subject: - isdn-use-simple_read_from_buffer.patch removed from -mm tree
+Date: Thu, 12 Jun 2008 13:37:00 -0700
+Message-ID: <200806122037.m5CKb01N005389@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51740 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47845 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755618AbYFLUgz (ORCPT
+	by vger.kernel.org with ESMTP id S1755792AbYFLUhE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Jun 2008 16:36:55 -0400
+	Thu, 12 Jun 2008 16:37:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mkatiyar@gmail.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, kkeil@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86: remove unused variable 'loops' in arch/x86/boot/a20.c
+     isdn: use simple_read_from_buffer()
 has been removed from the -mm tree.  Its filename was
-     x86-remove-unused-variable-loops-in-arch-x86-boot-a20c.patch
+     isdn-use-simple_read_from_buffer.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: remove unused variable 'loops' in arch/x86/boot/a20.c
-From: "Manish Katiyar" <mkatiyar@gmail.com>
+Subject: isdn: use simple_read_from_buffer()
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-Signed-off-by: Manish Katiyar <mkatiyar@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Acked-by: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/boot/a20.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/isdn/hysdn/hysdn_procconf.c |   27 ++++++--------------------
+ 1 file changed, 7 insertions(+), 20 deletions(-)
 
-diff -puN arch/x86/boot/a20.c~x86-remove-unused-variable-loops-in-arch-x86-boot-a20c arch/x86/boot/a20.c
---- a/arch/x86/boot/a20.c~x86-remove-unused-variable-loops-in-arch-x86-boot-a20c
-+++ a/arch/x86/boot/a20.c
-@@ -115,8 +115,6 @@ static void enable_a20_fast(void)
- 
- int enable_a20(void)
+diff -puN drivers/isdn/hysdn/hysdn_procconf.c~isdn-use-simple_read_from_buffer drivers/isdn/hysdn/hysdn_procconf.c
+--- a/drivers/isdn/hysdn/hysdn_procconf.c~isdn-use-simple_read_from_buffer
++++ a/drivers/isdn/hysdn/hysdn_procconf.c
+@@ -207,30 +207,17 @@ hysdn_conf_write(struct file *file, cons
+ /* read conf file -> output card info data */
+ /*******************************************/
+ static ssize_t
+-hysdn_conf_read(struct file *file, char __user *buf, size_t count, loff_t * off)
++hysdn_conf_read(struct file *file, char __user *buf, size_t count, loff_t *off)
  {
--	int loops = A20_ENABLE_LOOPS;
+ 	char *cp;
+-	int i;
+ 
+-	if (file->f_mode & FMODE_READ) {
+-		if (!(cp = file->private_data))
+-			return (-EFAULT);	/* should never happen */
+-		i = strlen(cp);	/* get total string length */
+-		if (*off < i) {
+-			/* still bytes to transfer */
+-			cp += *off;	/* point to desired data offset */
+-			i -= *off;	/* remaining length */
+-			if (i > count)
+-				i = count;	/* limit length to transfer */
+-			if (copy_to_user(buf, cp, i))
+-				return (-EFAULT);	/* copy error */
+-			*off += i;	/* adjust offset */
+-		} else
+-			return (0);
+-	} else
+-		return (-EPERM);	/* no permission to read */
++	if (!(file->f_mode & FMODE_READ))
++		return -EPERM;	/* no permission to read */
+ 
+-	return (i);
++	if (!(cp = file->private_data))
++		return -EFAULT;	/* should never happen */
++
++	return simple_read_from_buffer(buf, count, off, cp, strlen(cp));
+ }				/* hysdn_conf_read */
+ 
+ /******************/
+_
+
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
+
+origin.patch
+linux-next.patch
+ttusb-use-simple_read_from_buffer.patch
+s390-vmcp-use-simple_read_from_buffer.patch
+s390-use-simple_read_from_buffer.patch
+s390-cio-use-memory_read_from_buffer.patch
+s390-use-memory_read_from_buffer.patch
+ipr-use-memory_read_from_buffer.patch
+qla2xxx-use-memory_read_from_buffer.patch
+usbmon-use-simple_read_from_buffer.patch
+airo-use-simple_read_from_buffer.patch
+cris-use-simple_read_from_buffer.patch
+binfmt_misc-use-simple_read_from_buffer.patch
+aty-use-memory_read_from_buffer.patch
+ipc-use-simple_read_from_buffer.patch
+nwflash-use-simple_read_from_buffer.patch
+firmware-use-memory_read_from_buffer.patch
+dcdbas-use-memory_read_from_buffer.patch
+dell_rbu-use-memory_read_from_buffer.patch
+
