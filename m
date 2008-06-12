@@ -1,46 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mlock-mlocked-pages-are-unevictable-fix-3.patch added to -mm tree
-Date: Thu, 12 Jun 2008 13:31:00 -0700
-Message-ID: <200806122031.m5CKV01p005109@imap1.linux-foundation.org>
+Subject: - mlock-mlocked-pages-are-unevictable-fix-2.patch removed from -mm tree
+Date: Thu, 12 Jun 2008 13:33:20 -0700
+Message-ID: <200806122033.m5CKXKpV005150@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57157 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47410 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754873AbYFLUba (ORCPT
+	by vger.kernel.org with ESMTP id S1754096AbYFLUdw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Jun 2008 16:31:30 -0400
+	Thu, 12 Jun 2008 16:33:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, npiggin@suse.de, riel@redhat.com, rja@sgi.com
+To: akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, npiggin@suse.de, riel@redhat.com, rja@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mlock-mlocked-pages-are-unevictable-fix-3
-has been added to the -mm tree.  Its filename is
-     mlock-mlocked-pages-are-unevictable-fix-3.patch
+     mlock-mlocked-pages-are-unevictable-fix-2
+has been removed from the -mm tree.  Its filename was
+     mlock-mlocked-pages-are-unevictable-fix-2.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because hopefully this got fixed via all the (unnecessary) page-flags churn
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mlock-mlocked-pages-are-unevictable-fix-3
+Subject: mlock-mlocked-pages-are-unevictable-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
-
-a) Russ copying Linus on unimportant MM patches and ignoring all the
-   pending MM work.
-
-b) Linus making my life harder by merging it.
 
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
@@ -50,44 +35,22 @@ Cc: Russ Anderson <rja@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ mm/page_alloc.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN include/linux/mm.h~mlock-mlocked-pages-are-unevictable-fix-3 include/linux/mm.h
-diff -puN include/linux/page-flags.h~mlock-mlocked-pages-are-unevictable-fix-3 include/linux/page-flags.h
---- a/include/linux/page-flags.h~mlock-mlocked-pages-are-unevictable-fix-3
-+++ a/include/linux/page-flags.h
-@@ -368,15 +368,17 @@ static inline void __ClearPageTail(struc
- #endif /* !PAGEFLAGS_EXTENDED */
- 
+diff -puN mm/page_alloc.c~mlock-mlocked-pages-are-unevictable-fix-2 mm/page_alloc.c
+--- a/mm/page_alloc.c~mlock-mlocked-pages-are-unevictable-fix-2
++++ a/mm/page_alloc.c
+@@ -481,7 +481,9 @@ static inline int free_pages_check(struc
  #ifdef CONFIG_UNEVICTABLE_LRU
--#define __PG_UNEVICTABLE (1 << PG_unevictable)
-+#define __PG_UNEVICTABLE	(1 << PG_unevictable)
-+#define __PG_MLOCKED		(1 << PG_mlocked)
- #else
--#define __PG_UNEVICTABLE 0
-+#define __PG_UNEVICTABLE	0
-+#define __PG_MLOCKED		0
+ 			1 << PG_unevictable |
  #endif
- 
- #define PAGE_FLAGS	(1 << PG_lru   | 1 << PG_private   | 1 << PG_locked | \
- 			 1 << PG_buddy | 1 << PG_writeback | \
- 			 1 << PG_slab  | 1 << PG_swapcache | 1 << PG_active | \
--			 1 << PG_swapbacked | __PG_UNEVICTABLE)
-+			 1 << PG_swapbacked | __PG_UNEVICTABLE | __PG_MLOCKED)
- 
- /*
-  * Flags checked in bad_page().  Pages on the free list should not have
-diff -puN include/linux/rmap.h~mlock-mlocked-pages-are-unevictable-fix-3 include/linux/rmap.h
-diff -puN mm/internal.h~mlock-mlocked-pages-are-unevictable-fix-3 mm/internal.h
-diff -puN mm/memory.c~mlock-mlocked-pages-are-unevictable-fix-3 mm/memory.c
-diff -puN mm/migrate.c~mlock-mlocked-pages-are-unevictable-fix-3 mm/migrate.c
-diff -puN mm/mlock.c~mlock-mlocked-pages-are-unevictable-fix-3 mm/mlock.c
-diff -puN mm/mmap.c~mlock-mlocked-pages-are-unevictable-fix-3 mm/mmap.c
-diff -puN mm/page_alloc.c~mlock-mlocked-pages-are-unevictable-fix-3 mm/page_alloc.c
-diff -puN mm/rmap.c~mlock-mlocked-pages-are-unevictable-fix-3 mm/rmap.c
-diff -puN mm/swap.c~mlock-mlocked-pages-are-unevictable-fix-3 mm/swap.c
-diff -puN mm/vmscan.c~mlock-mlocked-pages-are-unevictable-fix-3 mm/vmscan.c
++#ifdef CONFIG_UNEVICTABLE_LRU
+ 			1 << PG_mlocked |
++#endif
+ 			1 << PG_buddy ))))
+ 		bad_page(page);
+ 	if (PageDirty(page))
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
