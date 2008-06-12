@@ -1,66 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: - ipg-fix-receivemode-ipg_rm_receivemulticasthash-in-ipg_nic_set_multicast_list.patch removed from -mm tree
-Date: Thu, 12 Jun 2008 13:37:02 -0700
-Message-ID: <200806122037.m5CKb2gp005398@imap1.linux-foundation.org>
+Subject: - ocfs2-use-simple_read_from_buffer.patch removed from -mm tree
+Date: Thu, 12 Jun 2008 13:37:08 -0700
+Message-ID: <200806122037.m5CKb8VY005404@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50614 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37385 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756036AbYFLUhR (ORCPT
+	by vger.kernel.org with ESMTP id S1756051AbYFLUhV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Jun 2008 16:37:17 -0400
+	Thu, 12 Jun 2008 16:37:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, jeff@garzik.org, romieu@fr.zoreil.com, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, joel.becker@oracle.com, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ipg: fix receivemode IPG_RM_RECEIVEMULTICAST{,HASH} in ipg_nic_set_multicast_list()
+     ocfs2: use simple_read_from_buffer()
 has been removed from the -mm tree.  Its filename was
-     ipg-fix-receivemode-ipg_rm_receivemulticasthash-in-ipg_nic_set_multicast_list.patch
+     ocfs2-use-simple_read_from_buffer.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ipg: fix receivemode IPG_RM_RECEIVEMULTICAST{,HASH} in ipg_nic_set_multicast_list()
-From: Roel Kluin <roel.kluin@gmail.com>
+Subject: ocfs2: use simple_read_from_buffer()
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-The branches are dead code.  even when dev->flag IFF_MULTICAST (defined
-0x1000) is set, dev->flags & IFF_MULTICAST & [boolean] always evaluates to
-0.
-
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: Francois Romieu <romieu@fr.zoreil.com>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <joel.becker@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ipg.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/ocfs2/stack_user.c |   19 +++++--------------
+ 1 file changed, 5 insertions(+), 14 deletions(-)
 
-diff -puN drivers/net/ipg.c~ipg-fix-receivemode-ipg_rm_receivemulticasthash-in-ipg_nic_set_multicast_list drivers/net/ipg.c
---- a/drivers/net/ipg.c~ipg-fix-receivemode-ipg_rm_receivemulticasthash-in-ipg_nic_set_multicast_list
-+++ a/drivers/net/ipg.c
-@@ -577,12 +577,12 @@ static void ipg_nic_set_multicast_list(s
- 		/* NIC to be configured in promiscuous mode. */
- 		receivemode = IPG_RM_RECEIVEALLFRAMES;
- 	} else if ((dev->flags & IFF_ALLMULTI) ||
--		   (dev->flags & IFF_MULTICAST &
-+		   ((dev->flags & IFF_MULTICAST) &&
- 		    (dev->mc_count > IPG_MULTICAST_HASHTABLE_SIZE))) {
- 		/* NIC to be configured to receive all multicast
- 		 * frames. */
- 		receivemode |= IPG_RM_RECEIVEMULTICAST;
--	} else if (dev->flags & IFF_MULTICAST & (dev->mc_count > 0)) {
-+	} else if ((dev->flags & IFF_MULTICAST) && (dev->mc_count > 0)) {
- 		/* NIC to be configured to receive selected
- 		 * multicast addresses. */
- 		receivemode |= IPG_RM_RECEIVEMULTICASTHASH;
+diff -puN fs/ocfs2/stack_user.c~ocfs2-use-simple_read_from_buffer fs/ocfs2/stack_user.c
+--- a/fs/ocfs2/stack_user.c~ocfs2-use-simple_read_from_buffer
++++ a/fs/ocfs2/stack_user.c
+@@ -550,26 +550,17 @@ static ssize_t ocfs2_control_read(struct
+ 				  size_t count,
+ 				  loff_t *ppos)
+ {
+-	char *proto_string = OCFS2_CONTROL_PROTO;
+-	size_t to_write = 0;
++	ssize_t ret;
+ 
+-	if (*ppos >= OCFS2_CONTROL_PROTO_LEN)
+-		return 0;
+-
+-	to_write = OCFS2_CONTROL_PROTO_LEN - *ppos;
+-	if (to_write > count)
+-		to_write = count;
+-	if (copy_to_user(buf, proto_string + *ppos, to_write))
+-		return -EFAULT;
+-
+-	*ppos += to_write;
++	ret = simple_read_from_buffer(buf, count, ppos,
++			OCFS2_CONTROL_PROTO, OCFS2_CONTROL_PROTO_LEN);
+ 
+ 	/* Have we read the whole protocol list? */
+-	if (*ppos >= OCFS2_CONTROL_PROTO_LEN)
++	if (ret > 0 && *ppos >= OCFS2_CONTROL_PROTO_LEN)
+ 		ocfs2_control_set_handshake_state(file,
+ 						  OCFS2_CONTROL_HANDSHAKE_READ);
+ 
+-	return to_write;
++	return ret;
+ }
+ 
+ static int ocfs2_control_release(struct inode *inode, struct file *file)
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
-git-net.patch
+origin.patch
+linux-next.patch
+ttusb-use-simple_read_from_buffer.patch
+s390-vmcp-use-simple_read_from_buffer.patch
+s390-use-simple_read_from_buffer.patch
+s390-cio-use-memory_read_from_buffer.patch
+s390-use-memory_read_from_buffer.patch
+ipr-use-memory_read_from_buffer.patch
+qla2xxx-use-memory_read_from_buffer.patch
+usbmon-use-simple_read_from_buffer.patch
+airo-use-simple_read_from_buffer.patch
+cris-use-simple_read_from_buffer.patch
+binfmt_misc-use-simple_read_from_buffer.patch
+aty-use-memory_read_from_buffer.patch
+ipc-use-simple_read_from_buffer.patch
+nwflash-use-simple_read_from_buffer.patch
+firmware-use-memory_read_from_buffer.patch
+dcdbas-use-memory_read_from_buffer.patch
+dell_rbu-use-memory_read_from_buffer.patch
 
