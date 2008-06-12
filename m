@@ -1,102 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: - isdn-use-simple_read_from_buffer.patch removed from -mm tree
-Date: Thu, 12 Jun 2008 13:37:00 -0700
-Message-ID: <200806122037.m5CKb01N005389@imap1.linux-foundation.org>
+Subject: - ipg-fix-receivemode-ipg_rm_receivemulticasthash-in-ipg_nic_set_multicast_list.patch removed from -mm tree
+Date: Thu, 12 Jun 2008 13:37:02 -0700
+Message-ID: <200806122037.m5CKb2gp005398@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47845 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50614 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755792AbYFLUhE (ORCPT
+	by vger.kernel.org with ESMTP id S1756036AbYFLUhR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Jun 2008 16:37:04 -0400
+	Thu, 12 Jun 2008 16:37:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, kkeil@suse.de, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, jeff@garzik.org, romieu@fr.zoreil.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     isdn: use simple_read_from_buffer()
+     ipg: fix receivemode IPG_RM_RECEIVEMULTICAST{,HASH} in ipg_nic_set_multicast_list()
 has been removed from the -mm tree.  Its filename was
-     isdn-use-simple_read_from_buffer.patch
+     ipg-fix-receivemode-ipg_rm_receivemulticasthash-in-ipg_nic_set_multicast_list.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: isdn: use simple_read_from_buffer()
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: ipg: fix receivemode IPG_RM_RECEIVEMULTICAST{,HASH} in ipg_nic_set_multicast_list()
+From: Roel Kluin <roel.kluin@gmail.com>
 
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Acked-by: Karsten Keil <kkeil@suse.de>
+The branches are dead code.  even when dev->flag IFF_MULTICAST (defined
+0x1000) is set, dev->flags & IFF_MULTICAST & [boolean] always evaluates to
+0.
+
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Francois Romieu <romieu@fr.zoreil.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/hysdn/hysdn_procconf.c |   27 ++++++--------------------
- 1 file changed, 7 insertions(+), 20 deletions(-)
+ drivers/net/ipg.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/isdn/hysdn/hysdn_procconf.c~isdn-use-simple_read_from_buffer drivers/isdn/hysdn/hysdn_procconf.c
---- a/drivers/isdn/hysdn/hysdn_procconf.c~isdn-use-simple_read_from_buffer
-+++ a/drivers/isdn/hysdn/hysdn_procconf.c
-@@ -207,30 +207,17 @@ hysdn_conf_write(struct file *file, cons
- /* read conf file -> output card info data */
- /*******************************************/
- static ssize_t
--hysdn_conf_read(struct file *file, char __user *buf, size_t count, loff_t * off)
-+hysdn_conf_read(struct file *file, char __user *buf, size_t count, loff_t *off)
- {
- 	char *cp;
--	int i;
- 
--	if (file->f_mode & FMODE_READ) {
--		if (!(cp = file->private_data))
--			return (-EFAULT);	/* should never happen */
--		i = strlen(cp);	/* get total string length */
--		if (*off < i) {
--			/* still bytes to transfer */
--			cp += *off;	/* point to desired data offset */
--			i -= *off;	/* remaining length */
--			if (i > count)
--				i = count;	/* limit length to transfer */
--			if (copy_to_user(buf, cp, i))
--				return (-EFAULT);	/* copy error */
--			*off += i;	/* adjust offset */
--		} else
--			return (0);
--	} else
--		return (-EPERM);	/* no permission to read */
-+	if (!(file->f_mode & FMODE_READ))
-+		return -EPERM;	/* no permission to read */
- 
--	return (i);
-+	if (!(cp = file->private_data))
-+		return -EFAULT;	/* should never happen */
-+
-+	return simple_read_from_buffer(buf, count, off, cp, strlen(cp));
- }				/* hysdn_conf_read */
- 
- /******************/
+diff -puN drivers/net/ipg.c~ipg-fix-receivemode-ipg_rm_receivemulticasthash-in-ipg_nic_set_multicast_list drivers/net/ipg.c
+--- a/drivers/net/ipg.c~ipg-fix-receivemode-ipg_rm_receivemulticasthash-in-ipg_nic_set_multicast_list
++++ a/drivers/net/ipg.c
+@@ -577,12 +577,12 @@ static void ipg_nic_set_multicast_list(s
+ 		/* NIC to be configured in promiscuous mode. */
+ 		receivemode = IPG_RM_RECEIVEALLFRAMES;
+ 	} else if ((dev->flags & IFF_ALLMULTI) ||
+-		   (dev->flags & IFF_MULTICAST &
++		   ((dev->flags & IFF_MULTICAST) &&
+ 		    (dev->mc_count > IPG_MULTICAST_HASHTABLE_SIZE))) {
+ 		/* NIC to be configured to receive all multicast
+ 		 * frames. */
+ 		receivemode |= IPG_RM_RECEIVEMULTICAST;
+-	} else if (dev->flags & IFF_MULTICAST & (dev->mc_count > 0)) {
++	} else if ((dev->flags & IFF_MULTICAST) && (dev->mc_count > 0)) {
+ 		/* NIC to be configured to receive selected
+ 		 * multicast addresses. */
+ 		receivemode |= IPG_RM_RECEIVEMULTICASTHASH;
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
-origin.patch
-linux-next.patch
-ttusb-use-simple_read_from_buffer.patch
-s390-vmcp-use-simple_read_from_buffer.patch
-s390-use-simple_read_from_buffer.patch
-s390-cio-use-memory_read_from_buffer.patch
-s390-use-memory_read_from_buffer.patch
-ipr-use-memory_read_from_buffer.patch
-qla2xxx-use-memory_read_from_buffer.patch
-usbmon-use-simple_read_from_buffer.patch
-airo-use-simple_read_from_buffer.patch
-cris-use-simple_read_from_buffer.patch
-binfmt_misc-use-simple_read_from_buffer.patch
-aty-use-memory_read_from_buffer.patch
-ipc-use-simple_read_from_buffer.patch
-nwflash-use-simple_read_from_buffer.patch
-firmware-use-memory_read_from_buffer.patch
-dcdbas-use-memory_read_from_buffer.patch
-dell_rbu-use-memory_read_from_buffer.patch
+git-net.patch
 
