@@ -1,60 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - revert-revert-linux-next-changes-to-make-memstick-use-fully-asynchronous-request-processing-apply.patch removed from -mm tree
-Date: Thu, 12 Jun 2008 13:13:59 -0700
-Message-ID: <200806122013.m5CKDxpB004368@imap1.linux-foundation.org>
+Subject: + gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch added to -mm tree
+Date: Thu, 12 Jun 2008 13:19:47 -0700
+Message-ID: <200806122019.m5CKJlHJ004588@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32811 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56520 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752904AbYFLUOB (ORCPT
+	by vger.kernel.org with ESMTP id S1754698AbYFLUVf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Jun 2008 16:14:01 -0400
+	Thu, 12 Jun 2008 16:21:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, oakad@yahoo.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, benh@kernel.crashing.org, paulus@samba.org, peter.oberparleiter@de.ibm.com, rusty@rustcorp.com.au, sam@ravnborg.org
 
 
 The patch titled
-     revert-revert-linux-next-changes-to-make-memstick-use-fully-asynchronous-request-processing-apply
-has been removed from the -mm tree.  Its filename was
-     revert-revert-linux-next-changes-to-make-memstick-use-fully-asynchronous-request-processing-apply.patch
+     gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff
+has been added to the -mm tree.  Its filename is
+     gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert-revert-linux-next-changes-to-make-memstick-use-fully-asynchronous-request-processing-apply
+Subject: gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Alex Dubov <oakad@yahoo.com>
+all the powerpc files got moved around.  Hope this works..
+
+Cc: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/memstick/host/tifm_ms.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/powerpc/boot/Makefile |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/memstick/host/tifm_ms.c~revert-revert-linux-next-changes-to-make-memstick-use-fully-asynchronous-request-processing-apply drivers/memstick/host/tifm_ms.c
---- a/drivers/memstick/host/tifm_ms.c~revert-revert-linux-next-changes-to-make-memstick-use-fully-asynchronous-request-processing-apply
-+++ a/drivers/memstick/host/tifm_ms.c
-@@ -546,7 +546,7 @@ static void tifm_ms_abort(unsigned long 
- 	printk(KERN_ERR
- 	       "%s : card failed to respond for a long period of time "
- 	       "(%x, %x)\n",
--	       host->dev->dev.bus_id, host->req ? host->req->tpc : 0,
-+	       dev_name(&host->dev->dev), host->req ? host->req->tpc : 0,
- 	       host->cmd_flags);
+diff -puN arch/powerpc/boot/Makefile~gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff arch/powerpc/boot/Makefile
+--- a/arch/powerpc/boot/Makefile~gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff
++++ a/arch/powerpc/boot/Makefile
+@@ -25,6 +25,8 @@ BOOTCFLAGS    := -Wall -Wundef -Wstrict-
+ 		 -isystem $(shell $(CROSS32CC) -print-file-name=include)
+ BOOTAFLAGS	:= -D__ASSEMBLY__ $(BOOTCFLAGS) -traditional -nostdinc
  
- 	tifm_eject(host->dev);
-@@ -561,7 +561,7 @@ static int tifm_ms_probe(struct tifm_dev
- 	if (!(TIFM_SOCK_STATE_OCCUPIED
- 	      & readl(sock->addr + SOCK_PRESENT_STATE))) {
- 		printk(KERN_WARNING "%s : card gone, unexpectedly\n",
--		       sock->dev.bus_id);
-+		       dev_name(&sock->dev));
- 		return rc;
- 	}
- 
++GCOV	:= n
++
+ ifdef CONFIG_DEBUG_INFO
+ BOOTCFLAGS	+= -g
+ endif
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -165,8 +172,8 @@ dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
 tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
 memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
 memstick-use-fully-asynchronous-request-processing-fix.patch
-revert-revert-linux-next-changes-to-make-memstick-use-fully-asynchronous-request-processing-apply.patch
 ppc-use-the-common-ascii-hex-helpers-fix.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
 mm-introduce-get_user_pages_fast-fix.patch
 mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
 x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
