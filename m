@@ -1,139 +1,150 @@
 From: akpm@linux-foundation.org
-Subject: + fix-double-unlock_page-in-2626-rc5-mm3-kernel-bug-at-mm-filemapc-575.patch added to -mm tree
-Date: Thu, 12 Jun 2008 19:11:20 -0700
-Message-ID: <200806130211.m5D2BKhU018826@imap1.linux-foundation.org>
+Subject: - fat-relax-the-permission-check-of-fat_setattr.patch removed from -mm tree
+Date: Sun, 15 Jun 2008 23:03:04 -0700
+Message-ID: <200806160603.m5G6341C010572@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36291 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48530 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754533AbYFMCMU (ORCPT
+	by vger.kernel.org with ESMTP id S1753958AbYFPGDI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Jun 2008 22:12:20 -0400
+	Mon, 16 Jun 2008 02:03:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, kamewzawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, npiggin@suse.de, riel@redhat.com
+To: hirofumi@mail.parknet.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix double unlock_page() in 2.6.26-rc5-mm3 kernel BUG at mm/filemap.c:575!
-has been added to the -mm tree.  Its filename is
-     fix-double-unlock_page-in-2626-rc5-mm3-kernel-bug-at-mm-filemapc-575.patch
+     fat: relax the permission check of fat_setattr()
+has been removed from the -mm tree.  Its filename was
+     fat-relax-the-permission-check-of-fat_setattr.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix double unlock_page() in 2.6.26-rc5-mm3 kernel BUG at mm/filemap.c:575!
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: fat: relax the permission check of fat_setattr()
+From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 
-This is reproducer of panic. "quick fix" is attached.
-But I think putback_lru_page() should be re-designed.
+New chmod() allows only acceptable permission, and if not acceptable, it
+returns -EPERM.  Old one allows even if it can't store permission to on
+disk inode.  But it seems too strict for users.
 
-==
-#include <stdio.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <sys/mman.h>
-#include <unistd.h>
-#include <errno.h>
+E.g.  https://bugzilla.redhat.com/show_bug.cgi?id=449080: With new one,
+rsync couldn't create the temporary file.
 
-int main(int argc, char *argv[])
-{
-        int fd;
-        char *filename = argv[1];
-        char buffer[4096];
-        char *addr;
-        int len;
+So, this patch allows like old one, but now it doesn't change the
+permission if it can't store, and it returns 0.
 
-        fd = open(filename, O_CREAT | O_EXCL | O_RDWR, S_IRWXU);
+Also, this patch fixes missing check.
 
-        if (fd < 0) {
-                perror("open");
-                exit(1);
-        }
-        len = write(fd, buffer, sizeof(buffer));
-
-        if (len < 0) {
-                perror("write");
-                exit(1);
-        }
-
-        addr = mmap(NULL, 4096, PROT_WRITE, MAP_SHARED|MAP_LOCKED, fd, 0);
-        if (addr == MAP_FAILED) {
-                perror("mmap");
-                exit(1);
-        }
-        munmap(addr, 4096);
-        close(fd);
-
-        unlink(filename);
-}
-==
-you'll see panic.
-
-Fix is here
-==
-
-quick fix for double unlock_page();
-
-Signed-off-by: KAMEZAWA Hiroyuki <kamewzawa.hiroyu@jp.fujitsu.com>
-Cc: Nick Piggin <npiggin@suse.de>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/truncate.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/fat/file.c |   44 +++++++++++++++++++++++++++-----------------
+ 1 file changed, 27 insertions(+), 17 deletions(-)
 
-diff -puN mm/truncate.c~fix-double-unlock_page-in-2626-rc5-mm3-kernel-bug-at-mm-filemapc-575 mm/truncate.c
---- a/mm/truncate.c~fix-double-unlock_page-in-2626-rc5-mm3-kernel-bug-at-mm-filemapc-575
-+++ a/mm/truncate.c
-@@ -104,8 +104,8 @@ truncate_complete_page(struct address_sp
+diff -puN fs/fat/file.c~fat-relax-the-permission-check-of-fat_setattr fs/fat/file.c
+--- a/fs/fat/file.c~fat-relax-the-permission-check-of-fat_setattr
++++ a/fs/fat/file.c
+@@ -257,26 +257,34 @@ int fat_getattr(struct vfsmount *mnt, st
+ }
+ EXPORT_SYMBOL_GPL(fat_getattr);
  
- 	cancel_dirty_page(page, PAGE_CACHE_SIZE);
+-static int fat_check_mode(const struct msdos_sb_info *sbi, struct inode *inode,
+-			  mode_t mode)
++static int fat_sanitize_mode(const struct msdos_sb_info *sbi,
++			     struct inode *inode, umode_t *mode_ptr)
+ {
+-	mode_t mask, req = mode & ~S_IFMT;
++	mode_t mask, perm;
  
--	remove_from_page_cache(page);
- 	clear_page_mlock(page);
-+	remove_from_page_cache(page);
- 	ClearPageUptodate(page);
- 	ClearPageMappedToDisk(page);
- 	page_cache_release(page);	/* pagecache ref */
+-	if (S_ISREG(mode))
++	/*
++	 * Note, the basic check is already done by a caller of
++	 * (attr->ia_mode & ~MSDOS_VALID_MODE)
++	 */
++
++	if (S_ISREG(inode->i_mode))
+ 		mask = sbi->options.fs_fmask;
+ 	else
+ 		mask = sbi->options.fs_dmask;
+ 
++	perm = *mode_ptr & ~(S_IFMT | mask);
++
+ 	/*
+ 	 * Of the r and x bits, all (subject to umask) must be present. Of the
+ 	 * w bits, either all (subject to umask) or none must be present.
+ 	 */
+-	req &= ~mask;
+-	if ((req & (S_IRUGO | S_IXUGO)) != (inode->i_mode & (S_IRUGO|S_IXUGO)))
++	if ((perm & (S_IRUGO | S_IXUGO)) != (inode->i_mode & (S_IRUGO|S_IXUGO)))
+ 		return -EPERM;
+-	if ((req & S_IWUGO) && ((req & S_IWUGO) != (S_IWUGO & ~mask)))
++	if ((perm & S_IWUGO) && ((perm & S_IWUGO) != (S_IWUGO & ~mask)))
+ 		return -EPERM;
+ 
++	*mode_ptr &= S_IFMT | perm;
++
+ 	return 0;
+ }
+ 
+@@ -299,7 +307,7 @@ int fat_setattr(struct dentry *dentry, s
+ {
+ 	struct msdos_sb_info *sbi = MSDOS_SB(dentry->d_sb);
+ 	struct inode *inode = dentry->d_inode;
+-	int mask, error = 0;
++	int error = 0;
+ 	unsigned int ia_valid;
+ 
+ 	lock_kernel();
+@@ -332,12 +340,13 @@ int fat_setattr(struct dentry *dentry, s
+ 			error = 0;
+ 		goto out;
+ 	}
++
+ 	if (((attr->ia_valid & ATTR_UID) &&
+ 	     (attr->ia_uid != sbi->options.fs_uid)) ||
+ 	    ((attr->ia_valid & ATTR_GID) &&
+ 	     (attr->ia_gid != sbi->options.fs_gid)) ||
+ 	    ((attr->ia_valid & ATTR_MODE) &&
+-	     fat_check_mode(sbi, inode, attr->ia_mode) < 0))
++	     (attr->ia_mode & ~MSDOS_VALID_MODE)))
+ 		error = -EPERM;
+ 
+ 	if (error) {
+@@ -346,15 +355,16 @@ int fat_setattr(struct dentry *dentry, s
+ 		goto out;
+ 	}
+ 
+-	error = inode_setattr(inode, attr);
+-	if (error)
+-		goto out;
++	/*
++	 * We don't return -EPERM here. Yes, strange, but this is too
++	 * old behavior.
++	 */
++	if (attr->ia_valid & ATTR_MODE) {
++		if (fat_sanitize_mode(sbi, inode, &attr->ia_mode) < 0)
++			attr->ia_valid &= ~ATTR_MODE;
++	}
+ 
+-	if (S_ISDIR(inode->i_mode))
+-		mask = sbi->options.fs_dmask;
+-	else
+-		mask = sbi->options.fs_fmask;
+-	inode->i_mode &= S_IFMT | (S_IRWXUGO & ~mask);
++	error = inode_setattr(inode, attr);
+ out:
+ 	unlock_kernel();
+ 	return error;
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
 
-page-flags-record-page-flag-overlays-explicitly.patch
-page-flags-record-page-flag-overlays-explicitly-xen.patch
-mark-res_counter_charge_locked-with-__must_check.patch
-memcg-make-global-var-read_mostly.patch
-memcg-avoid-unnecessary-initialization.patch
-memcg-better-migration-handling.patch
-memcg-remove-refcnt-from-page_cgroup.patch
-memcg-remove-refcnt-from-page_cgroup-fix.patch
-memcg-remove-refcnt-from-page_cgroup-fix-2.patch
-memcg-handle-swap-cache.patch
-memcg-handle-swap-cache-fix.patch
-memcg-helper-function-for-relcaim-from-shmem.patch
-memcg-add-hints-for-branch.patch
-memcg-remove-a-redundant-check.patch
-memcg-clean-up-checking-of-the-disabled-flag.patch
-memrlimit-add-memrlimit-controller-documentation.patch
-memrlimit-setup-the-memrlimit-controller.patch
-memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
-memrlimit-add-memrlimit-controller-accounting-and-control.patch
-fix-double-unlock_page-in-2626-rc5-mm3-kernel-bug-at-mm-filemapc-575.patch
+origin.patch
+linux-next.patch
+msdos-fs-remove-unsettable-atari-option.patch
 
