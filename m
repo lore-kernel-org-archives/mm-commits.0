@@ -1,64 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - driver-video-cirrusfb-fix-ram-address-printk.patch removed from -mm tree
-Date: Sun, 15 Jun 2008 23:03:50 -0700
-Message-ID: <200806160603.m5G63oT3010626@imap1.linux-foundation.org>
+Subject: - maintainers-update-maintainership-of-pxa2xx-pxa3xx.patch removed from -mm tree
+Date: Sun, 15 Jun 2008 23:03:38 -0700
+Message-ID: <200806160603.m5G63cmN010614@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40561 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56494 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751146AbYFPGDx (ORCPT
+	by vger.kernel.org with ESMTP id S1751363AbYFPGD4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jun 2008 02:03:53 -0400
+	Mon, 16 Jun 2008 02:03:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: phdm@macqel.be, jirislaby@gmail.com, mm-commits@vger.kernel.org
+To: eric.y.miao@gmail.com, eric.miao@marvell.com, nico@marvell.com, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/video/cirrusfb: fix RAM address printk
+     MAINTAINERS: update maintainership of pxa2xx/pxa3xx
 has been removed from the -mm tree.  Its filename was
-     driver-video-cirrusfb-fix-ram-address-printk.patch
+     maintainers-update-maintainership-of-pxa2xx-pxa3xx.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/video/cirrusfb: fix RAM address printk
-From: Philippe De Muyter <phdm@macqel.be>
+Subject: MAINTAINERS: update maintainership of pxa2xx/pxa3xx
+From: Eric Miao <eric.y.miao@gmail.com>
 
-In the cirrusfb driver, the RAM address printk has a superfluous 'x' that
-could be interpreted as "don't care", while it is actually a typo.  Fix
-that.
-
-[akpm@linux-foundation.org: join the two printk strings to make it atomic]
-Signed-off-by: Philippe De Muyter <phdm@macqel.be>
-Cc: Jiri Slaby <jirislaby@gmail.com>
+Signed-off-by: Eric Miao <eric.miao@marvell.com>
+Acked-by: Russell King <rmk@arm.linux.org.uk>
+Acked-by: Nicolas Pitre <nico@marvell.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/cirrusfb.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ MAINTAINERS |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN drivers/video/cirrusfb.c~driver-video-cirrusfb-fix-ram-address-printk drivers/video/cirrusfb.c
---- a/drivers/video/cirrusfb.c~driver-video-cirrusfb-fix-ram-address-printk
-+++ a/drivers/video/cirrusfb.c
-@@ -2432,9 +2432,9 @@ static int cirrusfb_pci_register(struct 
- 	info->screen_size = board_size;
- 	cinfo->unmap = cirrusfb_pci_unmap;
+diff -puN MAINTAINERS~maintainers-update-maintainership-of-pxa2xx-pxa3xx MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-maintainership-of-pxa2xx-pxa3xx
++++ a/MAINTAINERS
+@@ -3330,9 +3330,11 @@ L:	video4linux-list@redhat.com
+ W:	http://www.isely.net/pvrusb2/
+ S:	Maintained
  
--	printk(KERN_INFO " RAM (%lu kB) at 0xx%lx, ",
--		info->screen_size >> 10, board_addr);
--	printk(KERN_INFO "Cirrus Logic chipset on PCI bus\n");
-+	printk(KERN_INFO "RAM (%lu kB) at 0x%lx, Cirrus "
-+			"Logic chipset on PCI bus\n",
-+			info->screen_size >> 10, board_addr);
- 	pci_set_drvdata(pdev, info);
+-PXA2xx SUPPORT
+-P:	Nicolas Pitre
+-M:	nico@cam.org
++PXA2xx/PXA3xx SUPPORT
++P:	Eric Miao
++M:	eric.miao@marvell.com
++P:	Russell King
++M:	linux@arm.linux.org.uk
+ L:	linux-arm-kernel@lists.arm.linux.org.uk	(subscribers-only)
+ S:	Maintained
  
- 	ret = cirrusfb_register(info);
 _
 
-Patches currently in -mm which might be from phdm@macqel.be are
+Patches currently in -mm which might be from eric.y.miao@gmail.com are
 
 origin.patch
+linux-next.patch
 
