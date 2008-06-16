@@ -1,127 +1,192 @@
 From: akpm@linux-foundation.org
-Subject: - cciss-add-new-hardware-support.patch removed from -mm tree
-Date: Sun, 15 Jun 2008 23:03:21 -0700
-Message-ID: <200806160603.m5G63L7V010590@imap1.linux-foundation.org>
+Subject: - kvm-unbork.patch removed from -mm tree
+Date: Sun, 15 Jun 2008 23:04:16 -0700
+Message-ID: <200806160604.m5G64GaG010672@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37074 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38783 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751583AbYFPGEQ (ORCPT
+	by vger.kernel.org with ESMTP id S1751677AbYFPGEY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jun 2008 02:04:16 -0400
+	Mon, 16 Jun 2008 02:04:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mike.miller@hp.com, jens.axboe@oracle.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, avi@qumranet.com, xiantao.zhang@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cciss: add new hardware support
+     kvm-unbork
 has been removed from the -mm tree.  Its filename was
-     cciss-add-new-hardware-support.patch
+     kvm-unbork.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cciss: add new hardware support
-From: Mike Miller <mike.miller@hp.com>
+Subject: kvm-unbork
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Add support for the next generation of HP Smart Array SAS/SATA
-controllers.  Shipping date is late Fall 2008.
-
-Bump the driver version to 3.6.20 to reflect the new hardware support from
-patch 1 of this set.
-
-Signed-off-by: Mike Miller <mike.miller@hp.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: <stable@kernel.org>
+Cc: "Zhang, Xiantao" <xiantao.zhang@intel.com>
+Cc: "Avi Kivity" <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cciss.txt |    5 +++++
- drivers/block/cciss.c   |   21 ++++++++++++++++-----
- include/linux/pci_ids.h |    1 +
- 3 files changed, 22 insertions(+), 5 deletions(-)
+ arch/ia64/kvm/kvm-ia64.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/cciss.txt~cciss-add-new-hardware-support Documentation/cciss.txt
---- a/Documentation/cciss.txt~cciss-add-new-hardware-support
-+++ a/Documentation/cciss.txt
-@@ -21,6 +21,11 @@ This driver is known to work with the fo
- 	* SA E200
- 	* SA E200i
- 	* SA E500
-+	* SA P212
-+	* SA P410
-+	* SA P410i
-+	* SA P411
-+	* SA P812
+diff -puN arch/ia64/kvm/kvm-ia64.c~kvm-unbork arch/ia64/kvm/kvm-ia64.c
+--- a/arch/ia64/kvm/kvm-ia64.c~kvm-unbork
++++ a/arch/ia64/kvm/kvm-ia64.c
+@@ -187,7 +187,7 @@ int kvm_dev_ioctl_check_extension(long e
  
- Detecting drive failures:
- -------------------------
-diff -puN drivers/block/cciss.c~cciss-add-new-hardware-support drivers/block/cciss.c
---- a/drivers/block/cciss.c~cciss-add-new-hardware-support
-+++ a/drivers/block/cciss.c
-@@ -53,15 +53,16 @@
- #include <linux/scatterlist.h>
- 
- #define CCISS_DRIVER_VERSION(maj,min,submin) ((maj<<16)|(min<<8)|(submin))
--#define DRIVER_NAME "HP CISS Driver (v 3.6.14)"
--#define DRIVER_VERSION CCISS_DRIVER_VERSION(3,6,14)
-+#define DRIVER_NAME "HP CISS Driver (v 3.6.20)"
-+#define DRIVER_VERSION CCISS_DRIVER_VERSION(3, 6, 20)
- 
- /* Embedded module documentation macros - see modules.h */
- MODULE_AUTHOR("Hewlett-Packard Company");
--MODULE_DESCRIPTION("Driver for HP Controller SA5xxx SA6xxx version 3.6.14");
-+MODULE_DESCRIPTION("Driver for HP Smart Array Controllers");
- MODULE_SUPPORTED_DEVICE("HP SA5i SA5i+ SA532 SA5300 SA5312 SA641 SA642 SA6400"
--			" SA6i P600 P800 P400 P400i E200 E200i E500");
--MODULE_VERSION("3.6.14");
-+			" SA6i P600 P800 P400 P400i E200 E200i E500 P700m"
-+			" Smart Array G2 Series SAS/SATA Controllers");
-+MODULE_VERSION("3.6.20");
- MODULE_LICENSE("GPL");
- 
- #include "cciss_cmd.h"
-@@ -90,6 +91,11 @@ static const struct pci_device_id cciss_
- 	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSD,     0x103C, 0x3215},
- 	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSC,     0x103C, 0x3237},
- 	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSC,     0x103C, 0x323D},
-+	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSE,     0x103C, 0x3241},
-+	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSE,     0x103C, 0x3243},
-+	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSE,     0x103C, 0x3245},
-+	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSE,     0x103C, 0x3247},
-+	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSE,     0x103C, 0x3249},
- 	{PCI_VENDOR_ID_HP,     PCI_ANY_ID,	PCI_ANY_ID, PCI_ANY_ID,
- 		PCI_CLASS_STORAGE_RAID << 8, 0xffff << 8, 0},
- 	{0,}
-@@ -123,6 +129,11 @@ static struct board_type products[] = {
- 	{0x3215103C, "Smart Array E200i", &SA5_access, 120},
- 	{0x3237103C, "Smart Array E500", &SA5_access, 512},
- 	{0x323D103C, "Smart Array P700m", &SA5_access, 512},
-+	{0x3241103C, "Smart Array P212", &SA5_access, 384},
-+	{0x3243103C, "Smart Array P410", &SA5_access, 384},
-+	{0x3245103C, "Smart Array P410i", &SA5_access, 384},
-+	{0x3247103C, "Smart Array P411", &SA5_access, 384},
-+	{0x3249103C, "Smart Array P812", &SA5_access, 384},
- 	{0xFFFF103C, "Unknown Smart Array", &SA5_access, 120},
- };
- 
-diff -puN include/linux/pci_ids.h~cciss-add-new-hardware-support include/linux/pci_ids.h
---- a/include/linux/pci_ids.h~cciss-add-new-hardware-support
-+++ a/include/linux/pci_ids.h
-@@ -716,6 +716,7 @@
- #define PCI_DEVICE_ID_HP_CISSA		0x3220
- #define PCI_DEVICE_ID_HP_CISSC		0x3230
- #define PCI_DEVICE_ID_HP_CISSD		0x3238
-+#define PCI_DEVICE_ID_HP_CISSE		0x323a
- #define PCI_DEVICE_ID_HP_ZX2_IOC	0x4031
- 
- #define PCI_VENDOR_ID_PCTECH		0x1042
+ 		r = 1;
+ 		break;
+-	case KVM_CAP_COALESCED_MMIO::
++	case KVM_CAP_COALESCED_MMIO:
+ 		r = KVM_COALESCED_MMIO_PAGE_OFFSET;
+ 		break;
+ 	default:
 _
 
-Patches currently in -mm which might be from mike.miller@hp.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+linux-next.patch
+next-remove-localversion.patch
+fix-kobject-fix-kobject_rename-and-config_sysfs.patch
+kvm-is-busted-on-ia64.patch
+drivers-mtd-nand-nandsimc-needs-div64h.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+lguest-use-cpu-capability-accessors.patch
+intel-agp-rewrite-gtt-on-resume.patch
+arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
+pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2.patch
+arch-powerpc-platforms-pseries-eeh_driverc-fix-warning.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+git-jg-misc-git-rejects.patch
+drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers.patch
+drivers-mtd-devices-block2mtdc-suppress-warning.patch
+sundance-set-carrier-status-on-link-change-events.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix-fix.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-scsi-misc-fix-scsi_dh-build-errors.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
+pktcdvd-push-bkl-down-into-driver-fix.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-logfs-fixup.patch
+drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
+usb-host-use-get-put_unaligned_-helpers-to-fix-more-potential-unaligned-issues.patch
+watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
+git-xtensa.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-verify-the-page-links-and-memory-model.patch
+mspec-convert-nopfn-to-fault-fix.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+kill-generic_file_direct_io-checkpatch-fixes.patch
+use-generic_access_phys-for-dev-mem-mappings-fix.patch
+spufs-use-the-new-vm_ops-access-fix.patch
+fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
+page-flags-record-page-flag-overlays-explicitly-xen.patch
+mapping_set_error-add-unlikely.patch
+huge-page-private-reservation-review-cleanups-fix.patch
+sync_file_range_write-may-and-will-block-document-that-fix.patch
+vmallocinfo-add-numa-information-fix.patch
+hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
+hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
+hugetlb-override-default-huge-page-size-ia64-build.patch
+linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+bootmem-add-debugging-framework-fix.patch
+bootmem-clean-up-free_all_bootmem_core-fix.patch
+bootmem-free-reserve-helpers-fix.patch
+revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
+swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
+block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
+rename-warn-to-warning-to-clear-the-namespace-fix.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-paccept-sys_ni.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-signalfd-fix.patch
+flag-parameters-eventfd-fix.patch
+flag-parameters-inotify_init-fix.patch
+flag-parameters-check-magic-constants-alpha.patch
+cputopology-always-define-cpu-topology-information-cleanup.patch
+oprofile-multiplexing-checkpatch-fixes.patch
+gpio-gpio-driver-for-max7301-spi-gpio-expander-checkpatch-fixes.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
+pnp-add-pnp_possible_config-can-a-device-could-be-configured-this-way-fix.patch
+pnp-convert-resource-options-to-single-linked-list-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
+reiserfs-convert-j_flush_sem-to-mutex.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
+memcg-remove-refcnt-from-page_cgroup-fix-2.patch
+jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup.patch
+ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
+getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
+tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
+memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
+memstick-use-fully-asynchronous-request-processing-fix.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+mm-introduce-get_user_pages_fast-fix.patch
+mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-fix.patch
+x86-lockless-get_user_pages_fast-fix-2.patch
+x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
+x86-lockless-get_user_pages_fast-fix-warning.patch
+vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
+define-page_file_cache-function-fix.patch
+unevictable-lru-infrastructure-fix.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-3.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
+vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
