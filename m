@@ -1,90 +1,155 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-make-hpet_rtc_irq-track-hpet_emulate_rtc.patch removed from -mm tree
-Date: Sun, 15 Jun 2008 23:04:12 -0700
-Message-ID: <200806160604.m5G64Cog010666@imap1.linux-foundation.org>
+Subject: - provide-rtc_cmos-platform-device-take-2.patch removed from -mm tree
+Date: Sun, 15 Jun 2008 23:04:08 -0700
+Message-ID: <200806160604.m5G648Aq010657@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35571 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50159 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751693AbYFPGEa (ORCPT
+	by vger.kernel.org with ESMTP id S1751940AbYFPGGH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jun 2008 02:04:30 -0400
+	Mon, 16 Jun 2008 02:06:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dbrownell@users.sourceforge.net, maximlevitsky@gmail.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: stsp@aknet.ru, ambx1@neo.rr.com, bjorn.helgaas@hp.com, david-b@pacbell.net, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc: make HPET_RTC_IRQ track HPET_EMULATE_RTC
+     provide rtc_cmos platform device
 has been removed from the -mm tree.  Its filename was
-     rtc-make-hpet_rtc_irq-track-hpet_emulate_rtc.patch
+     provide-rtc_cmos-platform-device-take-2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: make HPET_RTC_IRQ track HPET_EMULATE_RTC
-From: David Brownell <dbrownell@users.sourceforge.net>
+Subject: provide rtc_cmos platform device
+From: Stas Sergeev <stsp@aknet.ru>
 
-More Kconfig tweaks related to the legacy PC RTC code:
+Recently (around 2.6.25) I've noticed that RTC no longer works for me.  It
+turned out this is because I use pnpacpi=off kernel option to work around
+the parport_pc bugs.  I always did so, but RTC used to work fine in the
+past, and now it have regressed.
 
- - Describe the legacy PC RTC driver as such ... it's never quite
-   been clear that this driver is for PC RTCs, and now it's fair
-   to call this the "legacy" driver.
+The patch fixes the problem by creating the platform device for the RTC
+when PNP is disabled.  This may also help running the PNP-enabled kernel
+on an older PCs.
 
- - Force it to understand about HPET stealing its IRQs ... kernel
-   code does this always when HPET is in use, there should be no
-   option for users to goof up the config.
-
-This seems to fix kernel bugzilla #10729.
-
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Maxim Levitsky <maximlevitsky@gmail.com>
+Signed-off-by: Stas Sergeev <stsp@aknet.ru>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Adam Belay <ambx1@neo.rr.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/Kconfig |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ arch/x86/kernel/rtc.c  |   34 ++++++++++++++++++++++++++++++++++
+ drivers/rtc/rtc-cmos.c |   31 ++++++++++++++++---------------
+ 2 files changed, 50 insertions(+), 15 deletions(-)
 
-diff -puN drivers/char/Kconfig~rtc-make-hpet_rtc_irq-track-hpet_emulate_rtc drivers/char/Kconfig
---- a/drivers/char/Kconfig~rtc-make-hpet_rtc_irq-track-hpet_emulate_rtc
-+++ a/drivers/char/Kconfig
-@@ -749,7 +749,7 @@ config NVRAM
- if RTC_LIB=n
+diff -puN arch/x86/kernel/rtc.c~provide-rtc_cmos-platform-device-take-2 arch/x86/kernel/rtc.c
+--- a/arch/x86/kernel/rtc.c~provide-rtc_cmos-platform-device-take-2
++++ a/arch/x86/kernel/rtc.c
+@@ -4,6 +4,8 @@
+ #include <linux/acpi.h>
+ #include <linux/bcd.h>
+ #include <linux/mc146818rtc.h>
++#include <linux/platform_device.h>
++#include <linux/pnp.h>
  
- config RTC
--	tristate "Enhanced Real Time Clock Support"
-+	tristate "Enhanced Real Time Clock Support (legacy PC RTC driver)"
- 	depends on !PPC && !PARISC && !IA64 && !M68K && !SPARC && !FRV \
- 			&& !ARM && !SUPERH && !S390 && !AVR32
- 	---help---
-@@ -1036,9 +1036,9 @@ config HPET
- 	  non-periodic and/or periodic.
+ #include <asm/time.h>
+ #include <asm/vsyscall.h>
+@@ -197,3 +199,35 @@ unsigned long long native_read_tsc(void)
+ }
+ EXPORT_SYMBOL(native_read_tsc);
  
- config HPET_RTC_IRQ
--	bool "HPET Control RTC IRQ" if !HPET_EMULATE_RTC
--	default n
--	depends on HPET
-+	bool
-+	default HPET_EMULATE_RTC
-+	depends on RTC && HPET
- 	help
- 	  If you say Y here, you will disable RTC_IRQ in drivers/char/rtc.c. It
- 	  is assumed the platform called hpet_alloc with the RTC IRQ values for
-_
-
-Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
-
-origin.patch
-linux-next.patch
-add-have_clk-to-kconfig-for-driver-dependencies.patch
-pm-boot-time-suspend-selftest.patch
-pm-boot-time-suspend-selftest-vs-linux-next.patch
-xilinx_spi-test-below-0-on-unsigned-irq-in-xilinx_spi_probe.patch
-spi-kconfig-simplifications.patch
-spi-make-spi_board_infomodalias-a-char-array.patch
-spidev-bkl-removal.patch
-gpio-sysfs-interface-updated.patch
-
++
++static struct resource rtc_resources[] = {
++	[0] = {
++		.start	= RTC_PORT(0),
++		.end	= RTC_PORT(1),
++		.flags	= IORESOURCE_IO,
++	},
++	[1] = {
++		.start	= RTC_IRQ,
++		.end	= RTC_IRQ,
++		.flags	= IORESOURCE_IRQ,
++	}
++};
++
++static struct platform_device rtc_device = {
++	.name		= "rtc_cmos",
++	.id		= -1,
++	.resource	= rtc_resources,
++	.num_resources	= ARRAY_SIZE(rtc_resources),
++};
++
++static __init int add_rtc_cmos(void)
++{
++#ifdef CONFIG_PNP
++	if (!pnp_platform_devices)
++		platform_device_register(&rtc_device);
++#else
++	platform_device_register(&rtc_device);
++#endif /* CONFIG_PNP */
++	return 0;
++}
++device_initcall(add_rtc_cmos);
+diff -puN drivers/rtc/rtc-cmos.c~provide-rtc_cmos-platform-device-take-2 drivers/rtc/rtc-cmos.c
+--- a/drivers/rtc/rtc-cmos.c~provide-rtc_cmos-platform-device-take-2
++++ a/drivers/rtc/rtc-cmos.c
+@@ -905,19 +905,7 @@ static struct pnp_driver cmos_pnp_driver
+ 	.resume		= cmos_pnp_resume,
+ };
+ 
+-static int __init cmos_init(void)
+-{
+-	return pnp_register_driver(&cmos_pnp_driver);
+-}
+-module_init(cmos_init);
+-
+-static void __exit cmos_exit(void)
+-{
+-	pnp_unregister_driver(&cmos_pnp_driver);
+-}
+-module_exit(cmos_exit);
+-
+-#else	/* no PNP */
++#endif	/* CONFIG_PNP */
+ 
+ /*----------------------------------------------------------------*/
+ 
+@@ -958,20 +946,33 @@ static struct platform_driver cmos_platf
+ 
+ static int __init cmos_init(void)
+ {
++#ifdef	CONFIG_PNP
++	if (pnp_platform_devices)
++		return pnp_register_driver(&cmos_pnp_driver);
++	else
++		return platform_driver_probe(&cmos_platform_driver,
++			cmos_platform_probe);
++#else
+ 	return platform_driver_probe(&cmos_platform_driver,
+ 			cmos_platform_probe);
++#endif /* CONFIG_PNP */
+ }
+ module_init(cmos_init);
+ 
+ static void __exit cmos_exit(void)
+ {
++#ifdef	CONFIG_PNP
++	if (pnp_platform_devices)
++		pnp_unregister_driver(&cmos_pnp_driver);
++	else
++		platform_driver_unregister(&cmos_platform_driver);
++#else
+ 	platform_driver_unregister(&cmos_platform_driver);
++#endif /* CONFIG_PNP */
+ }
+ module_exit(cmos_exit);
+ 
+ 
+-#endif	/* !PNP */
