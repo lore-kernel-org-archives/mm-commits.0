@@ -1,90 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: - mmc-wbsd-initialize-tasklets-before-requesting-interrupt.patch removed from -mm tree
-Date: Sun, 15 Jun 2008 23:03:41 -0700
-Message-ID: <200806160603.m5G63fsw010617@imap1.linux-foundation.org>
+Subject: - cciss-add-new-hardware-support.patch removed from -mm tree
+Date: Sun, 15 Jun 2008 23:03:21 -0700
+Message-ID: <200806160603.m5G63L7V010590@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51816 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37074 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751384AbYFPGEL (ORCPT
+	by vger.kernel.org with ESMTP id S1751583AbYFPGEQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jun 2008 02:04:11 -0400
+	Mon, 16 Jun 2008 02:04:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cebbert@redhat.com, drzeus@drzeus.cx, stable@kernel.org, mm-commits@vger.kernel.org
+To: mike.miller@hp.com, jens.axboe@oracle.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mmc: wbsd: initialize tasklets before requesting interrupt
+     cciss: add new hardware support
 has been removed from the -mm tree.  Its filename was
-     mmc-wbsd-initialize-tasklets-before-requesting-interrupt.patch
+     cciss-add-new-hardware-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc: wbsd: initialize tasklets before requesting interrupt
-From: Chuck Ebbert <cebbert@redhat.com>
+Subject: cciss: add new hardware support
+From: Mike Miller <mike.miller@hp.com>
 
-With CONFIG_DEBUG_SHIRQ set we will get an interrupt as soon as we
-allocate one.  Tasklets may be scheduled in the interrupt handler but they
-will be initialized after the handler returns, causing a BUG() in
-kernel/softirq.c when they run.
+Add support for the next generation of HP Smart Array SAS/SATA
+controllers.  Shipping date is late Fall 2008.
 
-Should fix this Fedora bug report:
-https://bugzilla.redhat.com/show_bug.cgi?id=449817
+Bump the driver version to 3.6.20 to reflect the new hardware support from
+patch 1 of this set.
 
-Signed-off-by: Chuck Ebbert <cebbert@redhat.com>
-Acked-by: Pierre Ossman <drzeus@drzeus.cx>
+Signed-off-by: Mike Miller <mike.miller@hp.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/wbsd.c |   21 ++++++++++-----------
- 1 file changed, 10 insertions(+), 11 deletions(-)
+ Documentation/cciss.txt |    5 +++++
+ drivers/block/cciss.c   |   21 ++++++++++++++++-----
+ include/linux/pci_ids.h |    1 +
+ 3 files changed, 22 insertions(+), 5 deletions(-)
 
-diff -puN drivers/mmc/host/wbsd.c~mmc-wbsd-initialize-tasklets-before-requesting-interrupt drivers/mmc/host/wbsd.c
---- a/drivers/mmc/host/wbsd.c~mmc-wbsd-initialize-tasklets-before-requesting-interrupt
-+++ a/drivers/mmc/host/wbsd.c
-@@ -1457,17 +1457,7 @@ static int __devinit wbsd_request_irq(st
- 	int ret;
+diff -puN Documentation/cciss.txt~cciss-add-new-hardware-support Documentation/cciss.txt
+--- a/Documentation/cciss.txt~cciss-add-new-hardware-support
++++ a/Documentation/cciss.txt
+@@ -21,6 +21,11 @@ This driver is known to work with the fo
+ 	* SA E200
+ 	* SA E200i
+ 	* SA E500
++	* SA P212
++	* SA P410
++	* SA P410i
++	* SA P411
++	* SA P812
  
- 	/*
--	 * Allocate interrupt.
--	 */
--
--	ret = request_irq(irq, wbsd_irq, IRQF_SHARED, DRIVER_NAME, host);
--	if (ret)
--		return ret;
--
--	host->irq = irq;
--
--	/*
--	 * Set up tasklets.
-+	 * Set up tasklets. Must be done before requesting interrupt.
- 	 */
- 	tasklet_init(&host->card_tasklet, wbsd_tasklet_card,
- 			(unsigned long)host);
-@@ -1480,6 +1470,15 @@ static int __devinit wbsd_request_irq(st
- 	tasklet_init(&host->finish_tasklet, wbsd_tasklet_finish,
- 			(unsigned long)host);
+ Detecting drive failures:
+ -------------------------
+diff -puN drivers/block/cciss.c~cciss-add-new-hardware-support drivers/block/cciss.c
+--- a/drivers/block/cciss.c~cciss-add-new-hardware-support
++++ a/drivers/block/cciss.c
+@@ -53,15 +53,16 @@
+ #include <linux/scatterlist.h>
  
-+	/*
-+	 * Allocate interrupt.
-+	 */
-+	ret = request_irq(irq, wbsd_irq, IRQF_SHARED, DRIVER_NAME, host);
-+	if (ret)
-+		return ret;
-+
-+	host->irq = irq;
-+
- 	return 0;
- }
+ #define CCISS_DRIVER_VERSION(maj,min,submin) ((maj<<16)|(min<<8)|(submin))
+-#define DRIVER_NAME "HP CISS Driver (v 3.6.14)"
+-#define DRIVER_VERSION CCISS_DRIVER_VERSION(3,6,14)
++#define DRIVER_NAME "HP CISS Driver (v 3.6.20)"
++#define DRIVER_VERSION CCISS_DRIVER_VERSION(3, 6, 20)
  
+ /* Embedded module documentation macros - see modules.h */
+ MODULE_AUTHOR("Hewlett-Packard Company");
+-MODULE_DESCRIPTION("Driver for HP Controller SA5xxx SA6xxx version 3.6.14");
++MODULE_DESCRIPTION("Driver for HP Smart Array Controllers");
+ MODULE_SUPPORTED_DEVICE("HP SA5i SA5i+ SA532 SA5300 SA5312 SA641 SA642 SA6400"
+-			" SA6i P600 P800 P400 P400i E200 E200i E500");
+-MODULE_VERSION("3.6.14");
++			" SA6i P600 P800 P400 P400i E200 E200i E500 P700m"
++			" Smart Array G2 Series SAS/SATA Controllers");
++MODULE_VERSION("3.6.20");
+ MODULE_LICENSE("GPL");
+ 
+ #include "cciss_cmd.h"
+@@ -90,6 +91,11 @@ static const struct pci_device_id cciss_
+ 	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSD,     0x103C, 0x3215},
+ 	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSC,     0x103C, 0x3237},
+ 	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSC,     0x103C, 0x323D},
++	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSE,     0x103C, 0x3241},
++	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSE,     0x103C, 0x3243},
++	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSE,     0x103C, 0x3245},
++	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSE,     0x103C, 0x3247},
++	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSE,     0x103C, 0x3249},
+ 	{PCI_VENDOR_ID_HP,     PCI_ANY_ID,	PCI_ANY_ID, PCI_ANY_ID,
+ 		PCI_CLASS_STORAGE_RAID << 8, 0xffff << 8, 0},
+ 	{0,}
+@@ -123,6 +129,11 @@ static struct board_type products[] = {
+ 	{0x3215103C, "Smart Array E200i", &SA5_access, 120},
+ 	{0x3237103C, "Smart Array E500", &SA5_access, 512},
+ 	{0x323D103C, "Smart Array P700m", &SA5_access, 512},
++	{0x3241103C, "Smart Array P212", &SA5_access, 384},
++	{0x3243103C, "Smart Array P410", &SA5_access, 384},
++	{0x3245103C, "Smart Array P410i", &SA5_access, 384},
++	{0x3247103C, "Smart Array P411", &SA5_access, 384},
++	{0x3249103C, "Smart Array P812", &SA5_access, 384},
+ 	{0xFFFF103C, "Unknown Smart Array", &SA5_access, 120},
+ };
+ 
+diff -puN include/linux/pci_ids.h~cciss-add-new-hardware-support include/linux/pci_ids.h
+--- a/include/linux/pci_ids.h~cciss-add-new-hardware-support
++++ a/include/linux/pci_ids.h
+@@ -716,6 +716,7 @@
+ #define PCI_DEVICE_ID_HP_CISSA		0x3220
+ #define PCI_DEVICE_ID_HP_CISSC		0x3230
+ #define PCI_DEVICE_ID_HP_CISSD		0x3238
++#define PCI_DEVICE_ID_HP_CISSE		0x323a
+ #define PCI_DEVICE_ID_HP_ZX2_IOC	0x4031
+ 
+ #define PCI_VENDOR_ID_PCTECH		0x1042
 _
 
-Patches currently in -mm which might be from cebbert@redhat.com are
+Patches currently in -mm which might be from mike.miller@hp.com are
 
 origin.patch
 
