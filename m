@@ -1,108 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - m68k-add-ext2_find_firstnext_bit-for-ext4.patch removed from -mm tree
-Date: Sun, 15 Jun 2008 23:03:07 -0700
-Message-ID: <200806160603.m5G637mb010575@imap1.linux-foundation.org>
+Subject: - intel_rng-make-device-not-found-a-warning.patch removed from -mm tree
+Date: Sun, 15 Jun 2008 23:03:47 -0700
+Message-ID: <200806160603.m5G63lJv010623@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49730 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42626 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751468AbYFPGEA (ORCPT
+	by vger.kernel.org with ESMTP id S1751525AbYFPGEC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jun 2008 02:04:00 -0400
+	Mon, 16 Jun 2008 02:04:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aneesh.kumar@linux.vnet.ibm.com, geert@linux-m68k.org, mm-commits@vger.kernel.org
+To: shemminger@vyatta.com, jbeulich@novell.com, mb@bu3sch.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     m68k: Add ext2_find_{first,next}_bit() for ext4
+     intel_rng: make device not found a warning
 has been removed from the -mm tree.  Its filename was
-     m68k-add-ext2_find_firstnext_bit-for-ext4.patch
+     intel_rng-make-device-not-found-a-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: m68k: Add ext2_find_{first,next}_bit() for ext4
-From: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Subject: intel_rng: make device not found a warning
+From: Stephen Hemminger <shemminger@vyatta.com>
 
-Add ext2_find_{first,next}_bit(), which are needed for ext4.  They're
-derived out of the ext2_find_next_zero_bit found in the same file. 
-Compile tested with crosstools
+Since many distros load this driver by default (throw it against the wall
+and see what sticks method).  Change the error message severity level to
+avoid alarming users.  Isn't it annoying when users actually read the
+error logs...
 
-[Reworked to preserve all symmetry with ext2_find_{first,next}_zero_bit()]
-
-This fixes http://bugzilla.kernel.org/show_bug.cgi?id=10393
-
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
+Cc: Michael Buesch <mb@bu3sch.de>
+Acked-by: Jan Beulich <jbeulich@novell.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-m68k/bitops.h |   45 ++++++++++++++++++++++++++++++++++--
- 1 file changed, 43 insertions(+), 2 deletions(-)
+ drivers/char/hw_random/intel-rng.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/asm-m68k/bitops.h~m68k-add-ext2_find_firstnext_bit-for-ext4 include/asm-m68k/bitops.h
---- a/include/asm-m68k/bitops.h~m68k-add-ext2_find_firstnext_bit-for-ext4
-+++ a/include/asm-m68k/bitops.h
-@@ -410,8 +410,49 @@ static inline int ext2_find_next_zero_bi
- 	res = ext2_find_first_zero_bit (p, size - 32 * (p - addr));
- 	return (p - addr) * 32 + res;
- }
--#define ext2_find_next_bit(addr, size, off) \
--	generic_find_next_le_bit((unsigned long *)(addr), (size), (off))
-+
-+static inline int ext2_find_first_bit(const void *vaddr, unsigned size)
-+{
-+	const unsigned long *p = vaddr, *addr = vaddr;
-+	int res;
-+
-+	if (!size)
-+		return 0;
-+
-+	size = (size >> 5) + ((size & 31) > 0);
-+	while (*p++ == 0UL) {
-+		if (--size == 0)
-+			return (p - addr) << 5;
-+	}
-+
-+	--p;
-+	for (res = 0; res < 32; res++)
-+		if (ext2_test_bit(res, p))
-+			break;
-+	return (p - addr) * 32 + res;
-+}
-+
-+static inline int ext2_find_next_bit(const void *vaddr, unsigned size,
-+				     unsigned offset)
-+{
-+	const unsigned long *addr = vaddr;
-+	const unsigned long *p = addr + (offset >> 5);
-+	int bit = offset & 31UL, res;
-+
-+	if (offset >= size)
-+		return size;
-+
-+	if (bit) {
-+		/* Look for one in first longword */
-+		for (res = bit; res < 32; res++)
-+			if (ext2_test_bit(res, p))
-+				return (p - addr) * 32 + res;
-+		p++;
-+	}
-+	/* No set bit yet, search remaining full bytes for a set bit */
-+	res = ext2_find_first_bit(p, size - 32 * (p - addr));
-+	return (p - addr) * 32 + res;
-+}
- 
- #endif /* __KERNEL__ */
+diff -puN drivers/char/hw_random/intel-rng.c~intel_rng-make-device-not-found-a-warning drivers/char/hw_random/intel-rng.c
+--- a/drivers/char/hw_random/intel-rng.c~intel_rng-make-device-not-found-a-warning
++++ a/drivers/char/hw_random/intel-rng.c
+@@ -273,7 +273,7 @@ static int __init intel_rng_hw_init(void
+ 	if (mfc != INTEL_FWH_MANUFACTURER_CODE ||
+ 	    (dvc != INTEL_FWH_DEVICE_CODE_8M &&
+ 	     dvc != INTEL_FWH_DEVICE_CODE_4M)) {
+-		printk(KERN_ERR PFX "FWH not detected\n");
++		printk(KERN_NOTICE PFX "FWH not detected\n");
+ 		return -ENODEV;
+ 	}
  
 _
 
-Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from shemminger@vyatta.com are
 
 origin.patch
 linux-next.patch
-ext4-error-processing-and-coding-enhancement-for-mballoc.patch
+sysctl-allow-override-of-proc-sys-net-with-cap_net_admin.patch
 
