@@ -1,336 +1,136 @@
 From: akpm@linux-foundation.org
-Subject: - pagemap-pass-mm-into-pagewalkers.patch removed from -mm tree
-Date: Sun, 15 Jun 2008 23:03:54 -0700
-Message-ID: <200806160603.m5G63sj6010632@imap1.linux-foundation.org>
+Subject: - smc911x-fix-16-bit-i-o-operations.patch removed from -mm tree
+Date: Sun, 15 Jun 2008 23:04:21 -0700
+Message-ID: <200806160604.m5G64L05010678@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43960 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56054 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751384AbYFPGEP (ORCPT
+	by vger.kernel.org with ESMTP id S1751759AbYFPGEb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jun 2008 02:04:15 -0400
+	Mon, 16 Jun 2008 02:04:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dave@linux.vnet.ibm.com, mpm@selenic.com, mm-commits@vger.kernel.org
+To: magnus.damm@gmail.com, damm@igel.co.jp, jeff@garzik.org, lethal@linux-sh.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pagemap: pass mm into pagewalkers
+     smc911x: fix 16-bit I/O operations
 has been removed from the -mm tree.  Its filename was
-     pagemap-pass-mm-into-pagewalkers.patch
+     smc911x-fix-16-bit-i-o-operations.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pagemap: pass mm into pagewalkers
-From: Dave Hansen <dave@linux.vnet.ibm.com>
+Subject: smc911x: fix 16-bit I/O operations
+From: Magnus Damm <magnus.damm@gmail.com>
 
-We need this at least for huge page detection for now, because powerpc
-needs the vm_area_struct to be able to determine whether a virtual address
-is referring to a huge page (its pmd_huge() doesn't work).
+This patch fixes the following issues related to 16-bit support:
+ - Remove unused 16-bit PXA DMA implementation.
+ - Remove unused SMC_inw() and SMC_outw() functions.
+ - Fix 16-bit SMC_outl to use writew() instead of writel().
 
-It might also come in handy for some of the other users.
-
-Signed-off-by: Dave Hansen <dave@linux.vnet.ibm.com>
-Acked-by: Matt Mackall <mpm@selenic.com>
+Signed-off-by: Magnus Damm <damm@igel.co.jp>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   44 ++++++++++++++++++++++++-------------------
- include/linux/mm.h |   17 ++++++++--------
- mm/pagewalk.c      |   42 +++++++++++++++++++++--------------------
- 3 files changed, 56 insertions(+), 47 deletions(-)
+ drivers/net/smc911x.h |   66 +---------------------------------------
+ 1 file changed, 3 insertions(+), 63 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~pagemap-pass-mm-into-pagewalkers fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~pagemap-pass-mm-into-pagewalkers
-+++ a/fs/proc/task_mmu.c
-@@ -315,9 +315,9 @@ struct mem_size_stats {
- };
- 
- static int smaps_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
--			   void *private)
-+			   struct mm_walk *walk)
- {
--	struct mem_size_stats *mss = private;
-+	struct mem_size_stats *mss = walk->private;
- 	struct vm_area_struct *vma = mss->vma;
- 	pte_t *pte, ptent;
- 	spinlock_t *ptl;
-@@ -365,19 +365,21 @@ static int smaps_pte_range(pmd_t *pmd, u
- 	return 0;
- }
- 
--static struct mm_walk smaps_walk = { .pmd_entry = smaps_pte_range };
--
- static int show_smap(struct seq_file *m, void *v)
- {
- 	struct vm_area_struct *vma = v;
- 	struct mem_size_stats mss;
- 	int ret;
-+	struct mm_walk smaps_walk = {
-+		.pmd_entry = smaps_pte_range,
-+		.mm = vma->vm_mm,
-+		.private = &mss,
-+	};
- 
- 	memset(&mss, 0, sizeof mss);
- 	mss.vma = vma;
- 	if (vma->vm_mm && !is_vm_hugetlb_page(vma))
--		walk_page_range(vma->vm_mm, vma->vm_start, vma->vm_end,
--				&smaps_walk, &mss);
-+		walk_page_range(vma->vm_start, vma->vm_end, &smaps_walk);
- 
- 	ret = show_map(m, v);
- 	if (ret)
-@@ -426,9 +428,9 @@ const struct file_operations proc_smaps_
- };
- 
- static int clear_refs_pte_range(pmd_t *pmd, unsigned long addr,
--				unsigned long end, void *private)
-+				unsigned long end, struct mm_walk *walk)
- {
--	struct vm_area_struct *vma = private;
-+	struct vm_area_struct *vma = walk->private;
- 	pte_t *pte, ptent;
- 	spinlock_t *ptl;
- 	struct page *page;
-@@ -452,8 +454,6 @@ static int clear_refs_pte_range(pmd_t *p
- 	return 0;
- }
- 
--static struct mm_walk clear_refs_walk = { .pmd_entry = clear_refs_pte_range };
--
- static ssize_t clear_refs_write(struct file *file, const char __user *buf,
- 				size_t count, loff_t *ppos)
- {
-@@ -476,11 +476,17 @@ static ssize_t clear_refs_write(struct f
- 		return -ESRCH;
- 	mm = get_task_mm(task);
- 	if (mm) {
-+		static struct mm_walk clear_refs_walk;
-+		memset(&clear_refs_walk, 0, sizeof(clear_refs_walk));
-+		clear_refs_walk.pmd_entry = clear_refs_pte_range;
-+		clear_refs_walk.mm = mm;
- 		down_read(&mm->mmap_sem);
--		for (vma = mm->mmap; vma; vma = vma->vm_next)
-+		for (vma = mm->mmap; vma; vma = vma->vm_next) {
-+			clear_refs_walk.private = vma;
- 			if (!is_vm_hugetlb_page(vma))
--				walk_page_range(mm, vma->vm_start, vma->vm_end,
--						&clear_refs_walk, vma);
-+				walk_page_range(vma->vm_start, vma->vm_end,
-+						&clear_refs_walk);
-+		}
- 		flush_tlb_mm(mm);
- 		up_read(&mm->mmap_sem);
- 		mmput(mm);
-@@ -528,9 +534,9 @@ static int add_to_pagemap(unsigned long 
- }
- 
- static int pagemap_pte_hole(unsigned long start, unsigned long end,
--				void *private)
-+				struct mm_walk *walk)
- {
--	struct pagemapread *pm = private;
-+	struct pagemapread *pm = walk->private;
- 	unsigned long addr;
- 	int err = 0;
- 	for (addr = start; addr < end; addr += PAGE_SIZE) {
-@@ -548,9 +554,9 @@ static u64 swap_pte_to_pagemap_entry(pte
- }
- 
- static int pagemap_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
--			     void *private)
-+			     struct mm_walk *walk)
- {
--	struct pagemapread *pm = private;
-+	struct pagemapread *pm = walk->private;
- 	pte_t *pte;
- 	int err = 0;
- 
-@@ -675,8 +681,8 @@ static ssize_t pagemap_read(struct file 
- 		 * user buffer is tracked in "pm", and the walk
- 		 * will stop when we hit the end of the buffer.
- 		 */
--		ret = walk_page_range(mm, start_vaddr, end_vaddr,
--					&pagemap_walk, &pm);
-+		ret = walk_page_range(start_vaddr, end_vaddr,
-+					&pagemap_walk);
- 		if (ret == PM_END_OF_BUFFER)
- 			ret = 0;
- 		/* don't need mmap_sem for these, but this looks cleaner */
-diff -puN include/linux/mm.h~pagemap-pass-mm-into-pagewalkers include/linux/mm.h
---- a/include/linux/mm.h~pagemap-pass-mm-into-pagewalkers
-+++ a/include/linux/mm.h
-@@ -760,16 +760,17 @@ unsigned long unmap_vmas(struct mmu_gath
-  * (see walk_page_range for more details)
+diff -puN drivers/net/smc911x.h~smc911x-fix-16-bit-i-o-operations drivers/net/smc911x.h
+--- a/drivers/net/smc911x.h~smc911x-fix-16-bit-i-o-operations
++++ a/drivers/net/smc911x.h
+@@ -50,19 +50,16 @@
   */
- struct mm_walk {
--	int (*pgd_entry)(pgd_t *, unsigned long, unsigned long, void *);
--	int (*pud_entry)(pud_t *, unsigned long, unsigned long, void *);
--	int (*pmd_entry)(pmd_t *, unsigned long, unsigned long, void *);
--	int (*pte_entry)(pte_t *, unsigned long, unsigned long, void *);
--	int (*pte_hole)(unsigned long, unsigned long, void *);
-+	int (*pgd_entry)(pgd_t *, unsigned long, unsigned long, struct mm_walk *);
-+	int (*pud_entry)(pud_t *, unsigned long, unsigned long, struct mm_walk *);
-+	int (*pmd_entry)(pmd_t *, unsigned long, unsigned long, struct mm_walk *);
-+	int (*pte_entry)(pte_t *, unsigned long, unsigned long, struct mm_walk *);
-+	int (*pte_hole)(unsigned long, unsigned long, struct mm_walk *);
-+	struct mm_struct *mm;
-+	void *private;
- };
  
--int walk_page_range(const struct mm_struct *, unsigned long addr,
--		    unsigned long end, const struct mm_walk *walk,
--		    void *private);
-+int walk_page_range(unsigned long addr, unsigned long end,
-+		struct mm_walk *walk);
- void free_pgd_range(struct mmu_gather **tlb, unsigned long addr,
- 		unsigned long end, unsigned long floor, unsigned long ceiling);
- void free_pgtables(struct mmu_gather **tlb, struct vm_area_struct *start_vma,
-diff -puN mm/pagewalk.c~pagemap-pass-mm-into-pagewalkers mm/pagewalk.c
---- a/mm/pagewalk.c~pagemap-pass-mm-into-pagewalkers
-+++ a/mm/pagewalk.c
-@@ -3,14 +3,14 @@
- #include <linux/sched.h>
+ #if	SMC_USE_16BIT
+-#define SMC_inw(a, r)			 readw((a) + (r))
+-#define SMC_inl(a, r)			 ((SMC_inw(a, r) & 0xFFFF)+(SMC_inw(a+2, r)<<16))
+-#define SMC_outw(v, a, r)		 writew(v, (a) + (r))
++#define SMC_inl(a, r)		 (readw((a) + (r)) & 0xFFFF) + (readw((a) + (r) + 2) << 16))
+ #define SMC_outl(v, a, r) 			 \
+ 	do{					 \
+-		 writel(v & 0xFFFF, (a) + (r));	 \
+-		 writel(v >> 16, (a) + (r) + 2); \
++		 writew(v & 0xFFFF, (a) + (r));	 \
++		 writew(v >> 16, (a) + (r) + 2); \
+ 	 } while (0)
+ #define SMC_insl(a, r, p, l)	 readsw((short*)((a) + (r)), p, l*2)
+ #define SMC_outsl(a, r, p, l)	 writesw((short*)((a) + (r)), p, l*2)
  
- static int walk_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
--			  const struct mm_walk *walk, void *private)
-+			  struct mm_walk *walk)
- {
- 	pte_t *pte;
- 	int err = 0;
- 
- 	pte = pte_offset_map(pmd, addr);
- 	for (;;) {
--		err = walk->pte_entry(pte, addr, addr + PAGE_SIZE, private);
-+		err = walk->pte_entry(pte, addr, addr + PAGE_SIZE, walk);
- 		if (err)
- 		       break;
- 		addr += PAGE_SIZE;
-@@ -24,7 +24,7 @@ static int walk_pte_range(pmd_t *pmd, un
+ #elif	SMC_USE_32BIT
+-#define SMC_inw(a, r)		 readw((a) + (r))
+ #define SMC_inl(a, r)		 readl((a) + (r))
+ #define SMC_outl(v, a, r)	 writel(v, (a) + (r))
+ #define SMC_insl(a, r, p, l)	 readsl((int*)((a) + (r)), p, l)
+@@ -132,34 +129,6 @@ smc_pxa_dma_insl(struct device *dev, u_l
  }
+ #endif
  
- static int walk_pmd_range(pud_t *pud, unsigned long addr, unsigned long end,
--			  const struct mm_walk *walk, void *private)
-+			  struct mm_walk *walk)
- {
- 	pmd_t *pmd;
- 	unsigned long next;
-@@ -35,15 +35,15 @@ static int walk_pmd_range(pud_t *pud, un
- 		next = pmd_addr_end(addr, end);
- 		if (pmd_none_or_clear_bad(pmd)) {
- 			if (walk->pte_hole)
--				err = walk->pte_hole(addr, next, private);
-+				err = walk->pte_hole(addr, next, walk);
- 			if (err)
- 				break;
- 			continue;
- 		}
- 		if (walk->pmd_entry)
--			err = walk->pmd_entry(pmd, addr, next, private);
-+			err = walk->pmd_entry(pmd, addr, next, walk);
- 		if (!err && walk->pte_entry)
--			err = walk_pte_range(pmd, addr, next, walk, private);
-+			err = walk_pte_range(pmd, addr, next, walk);
- 		if (err)
- 			break;
- 	} while (pmd++, addr = next, addr != end);
-@@ -52,7 +52,7 @@ static int walk_pmd_range(pud_t *pud, un
+-#ifdef SMC_insw
+-#undef SMC_insw
+-#define SMC_insw(a, r, p, l) \
+-	smc_pxa_dma_insw(lp->dev, a, lp->physaddr, r, lp->rxdma, p, l)
+-
+-static inline void
+-smc_pxa_dma_insw(struct device *dev, u_long ioaddr, u_long physaddr,
+-		int reg, int dma, u_char *buf, int len)
+-{
+-	/* 64 bit alignment is required for memory to memory DMA */
+-	while ((long)buf & 6) {
+-		*((u16 *)buf) = SMC_inw(ioaddr, reg);
+-		buf += 2;
+-		len--;
+-	}
+-
+-	len *= 2;
+-	rx_dmabuf = dma_map_single(dev, buf, len, DMA_FROM_DEVICE);
+-	rx_dmalen = len;
+-	DCSR(dma) = DCSR_NODESC;
+-	DTADR(dma) = rx_dmabuf;
+-	DSADR(dma) = physaddr + reg;
+-	DCMD(dma) = (DCMD_INCTRGADDR | DCMD_BURST32 |
+-		DCMD_WIDTH2 | DCMD_ENDIRQEN | (DCMD_LENGTH & rx_dmalen));
+-	DCSR(dma) = DCSR_NODESC | DCSR_RUN;
+-}
+-#endif
+-
+ #ifdef SMC_outsl
+ #undef SMC_outsl
+ #define SMC_outsl(a, r, p, l) \
+@@ -187,35 +156,6 @@ smc_pxa_dma_outsl(struct device *dev, u_
+ 	DCSR(dma) = DCSR_NODESC | DCSR_RUN;
  }
- 
- static int walk_pud_range(pgd_t *pgd, unsigned long addr, unsigned long end,
--			  const struct mm_walk *walk, void *private)
-+			  struct mm_walk *walk)
- {
- 	pud_t *pud;
- 	unsigned long next;
-@@ -63,15 +63,15 @@ static int walk_pud_range(pgd_t *pgd, un
- 		next = pud_addr_end(addr, end);
- 		if (pud_none_or_clear_bad(pud)) {
- 			if (walk->pte_hole)
--				err = walk->pte_hole(addr, next, private);
-+				err = walk->pte_hole(addr, next, walk);
- 			if (err)
- 				break;
- 			continue;
- 		}
- 		if (walk->pud_entry)
--			err = walk->pud_entry(pud, addr, next, private);
-+			err = walk->pud_entry(pud, addr, next, walk);
- 		if (!err && (walk->pmd_entry || walk->pte_entry))
--			err = walk_pmd_range(pud, addr, next, walk, private);
-+			err = walk_pmd_range(pud, addr, next, walk);
- 		if (err)
- 			break;
- 	} while (pud++, addr = next, addr != end);
-@@ -85,15 +85,15 @@ static int walk_pud_range(pgd_t *pgd, un
-  * @addr: starting address
-  * @end: ending address
-  * @walk: set of callbacks to invoke for each level of the tree
-- * @private: private data passed to the callback function
-  *
-  * Recursively walk the page table for the memory area in a VMA,
-  * calling supplied callbacks. Callbacks are called in-order (first
-  * PGD, first PUD, first PMD, first PTE, second PTE... second PMD,
-  * etc.). If lower-level callbacks are omitted, walking depth is reduced.
-  *
-- * Each callback receives an entry pointer, the start and end of the
-- * associated range, and a caller-supplied private data pointer.
-+ * Each callback receives an entry pointer and the start and end of the
-+ * associated range, and a copy of the original mm_walk for access to
-+ * the ->private or ->mm fields.
-  *
-  * No locks are taken, but the bottom level iterator will map PTE
-  * directories from highmem if necessary.
-@@ -101,9 +101,8 @@ static int walk_pud_range(pgd_t *pgd, un
-  * If any callback returns a non-zero value, the walk is aborted and
-  * the return value is propagated back to the caller. Otherwise 0 is returned.
-  */
--int walk_page_range(const struct mm_struct *mm,
--		    unsigned long addr, unsigned long end,
--		    const struct mm_walk *walk, void *private)
-+int walk_page_range(unsigned long addr, unsigned long end,
-+		    struct mm_walk *walk)
- {
- 	pgd_t *pgd;
- 	unsigned long next;
-@@ -112,21 +111,24 @@ int walk_page_range(const struct mm_stru
- 	if (addr >= end)
- 		return err;
- 
--	pgd = pgd_offset(mm, addr);
-+	if (!walk->mm)
-+		return -EINVAL;
-+
-+	pgd = pgd_offset(walk->mm, addr);
- 	do {
- 		next = pgd_addr_end(addr, end);
- 		if (pgd_none_or_clear_bad(pgd)) {
- 			if (walk->pte_hole)
--				err = walk->pte_hole(addr, next, private);
-+				err = walk->pte_hole(addr, next, walk);
- 			if (err)
- 				break;
- 			continue;
- 		}
- 		if (walk->pgd_entry)
--			err = walk->pgd_entry(pgd, addr, next, private);
-+			err = walk->pgd_entry(pgd, addr, next, walk);
- 		if (!err &&
- 		    (walk->pud_entry || walk->pmd_entry || walk->pte_entry))
--			err = walk_pud_range(pgd, addr, next, walk, private);
-+			err = walk_pud_range(pgd, addr, next, walk);
- 		if (err)
- 			break;
- 	} while (pgd++, addr = next, addr != end);
-_
-
-Patches currently in -mm which might be from dave@linux.vnet.ibm.com are
-
-origin.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-fix.patch
-
+ #endif
+-
+-#ifdef SMC_outsw
+-#undef SMC_outsw
+-#define SMC_outsw(a, r, p, l) \
+-	smc_pxa_dma_outsw(lp->dev, a, lp->physaddr, r, lp->txdma, p, l)
+-
+-static inline void
+-smc_pxa_dma_outsw(struct device *dev, u_long ioaddr, u_long physaddr,
+-		  int reg, int dma, u_char *buf, int len)
+-{
+-	/* 64 bit alignment is required for memory to memory DMA */
+-	while ((long)buf & 6) {
+-		SMC_outw(*((u16 *)buf), ioaddr, reg);
+-		buf += 2;
+-		len--;
+-	}
+-
+-	len *= 2;
+-	tx_dmabuf = dma_map_single(dev, buf, len, DMA_TO_DEVICE);
+-	tx_dmalen = len;
+-	DCSR(dma) = DCSR_NODESC;
+-	DSADR(dma) = tx_dmabuf;
+-	DTADR(dma) = physaddr + reg;
+-	DCMD(dma) = (DCMD_INCSRCADDR | DCMD_BURST32 |
+-		DCMD_WIDTH2 | DCMD_ENDIRQEN | (DCMD_LENGTH & tx_dmalen));
+-	DCSR(dma) = DCSR_NODESC | DCSR_RUN;
+-}
+-#endif
