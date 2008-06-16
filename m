@@ -1,61 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: - driver-char-generic_nvram-fix-banner.patch removed from -mm tree
-Date: Sun, 15 Jun 2008 23:03:52 -0700
-Message-ID: <200806160603.m5G63qR6010629@imap1.linux-foundation.org>
+Subject: - uml-remove-include-of-asm-userh.patch removed from -mm tree
+Date: Sun, 15 Jun 2008 23:03:33 -0700
+Message-ID: <200806160603.m5G63XWd010604@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52290 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36243 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751439AbYFPGD5 (ORCPT
+	by vger.kernel.org with ESMTP id S1751487AbYFPGD7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jun 2008 02:03:57 -0400
+	Mon, 16 Jun 2008 02:03:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: phdm@macqel.be, arjan@linux.intel.com, benh@kernel.crashing.org, paulus@samba.org, mm-commits@vger.kernel.org
+To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     driver/char/generic_nvram: fix banner
+     uml: remove include of asm/user.h
 has been removed from the -mm tree.  Its filename was
-     driver-char-generic_nvram-fix-banner.patch
+     uml-remove-include-of-asm-userh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: driver/char/generic_nvram: fix banner
-From: Philippe De Muyter <phdm@macqel.be>
+Subject: uml: remove include of asm/user.h
+From: Jeff Dike <jdike@addtoit.com>
 
-The generic nvram driver announces itself as
-	'Macintosh non-volatile memory driver'
-instead of 'Generic non-volatile memory driver'.  Fix that.
+I allowed an include of asm/user.h to sneak back in.  This patch replaces
+it with sys/user.h.
 
-Signed-off-by: Philippe De Muyter <phdm@macqel.be>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Arjan van de Ven <arjan@linux.intel.com>
-Cc: Paul Mackerras <paulus@samba.org>
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/generic_nvram.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/um/os-Linux/sys-i386/registers.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/generic_nvram.c~driver-char-generic_nvram-fix-banner drivers/char/generic_nvram.c
---- a/drivers/char/generic_nvram.c~driver-char-generic_nvram-fix-banner
-+++ a/drivers/char/generic_nvram.c
-@@ -133,7 +133,7 @@ static struct miscdevice nvram_dev = {
+diff -puN arch/um/os-Linux/sys-i386/registers.c~uml-remove-include-of-asm-userh arch/um/os-Linux/sys-i386/registers.c
+--- a/arch/um/os-Linux/sys-i386/registers.c~uml-remove-include-of-asm-userh
++++ a/arch/um/os-Linux/sys-i386/registers.c
+@@ -6,7 +6,7 @@
  
- int __init nvram_init(void)
+ #include <errno.h>
+ #include <sys/ptrace.h>
+-#include <asm/user.h>
++#include <sys/user.h>
+ #include "kern_constants.h"
+ #include "longjmp.h"
+ #include "user.h"
+@@ -76,7 +76,7 @@ int put_fp_registers(int pid, unsigned l
+ 
+ void arch_init_registers(int pid)
  {
--	printk(KERN_INFO "Macintosh non-volatile memory driver v%s\n",
-+	printk(KERN_INFO "Generic non-volatile memory driver v%s\n",
- 		NVRAM_VERSION);
- 	return misc_register(&nvram_dev);
- }
+-	struct user_fxsr_struct fpx_regs;
++	struct user_fpxregs_struct fpx_regs;
+ 	int err;
+ 
+ 	err = ptrace(PTRACE_GETFPXREGS, pid, 0, &fpx_regs);
 _
 
-Patches currently in -mm which might be from phdm@macqel.be are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
 origin.patch
+linux-next.patch
+arch-um-kernel-irqc-clean-up-some-functions.patch
+arch-um-kernel-memc-remove-arch_validate.patch
+uml-make-several-more-things-static.patch
+kernel-call-constructors-uml-fix-1.patch
+kernel-call-constructors-uml-fix-2.patch
 
