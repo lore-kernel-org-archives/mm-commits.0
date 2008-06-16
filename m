@@ -1,155 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: - provide-rtc_cmos-platform-device-take-2.patch removed from -mm tree
-Date: Sun, 15 Jun 2008 23:04:08 -0700
-Message-ID: <200806160604.m5G648Aq010657@imap1.linux-foundation.org>
+Subject: - pagemap-fix-large-pages-in-pagemap.patch removed from -mm tree
+Date: Sun, 15 Jun 2008 23:03:57 -0700
+Message-ID: <200806160603.m5G63v7p010635@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50159 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52682 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751940AbYFPGGH (ORCPT
+	by vger.kernel.org with ESMTP id S1754887AbYFPGTV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jun 2008 02:06:07 -0400
+	Mon, 16 Jun 2008 02:19:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: stsp@aknet.ru, ambx1@neo.rr.com, bjorn.helgaas@hp.com, david-b@pacbell.net, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: dave@linux.vnet.ibm.com, mpm@selenic.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     provide rtc_cmos platform device
+     pagemap: fix large pages in pagemap
 has been removed from the -mm tree.  Its filename was
-     provide-rtc_cmos-platform-device-take-2.patch
+     pagemap-fix-large-pages-in-pagemap.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: provide rtc_cmos platform device
-From: Stas Sergeev <stsp@aknet.ru>
+Subject: pagemap: fix large pages in pagemap
+From: Dave Hansen <dave@linux.vnet.ibm.com>
 
-Recently (around 2.6.25) I've noticed that RTC no longer works for me.  It
-turned out this is because I use pnpacpi=off kernel option to work around
-the parport_pc bugs.  I always did so, but RTC used to work fine in the
-past, and now it have regressed.
+We were walking right into huge page areas in the pagemap walker, and
+calling the pmds pmd_bad() and clearing them.
 
-The patch fixes the problem by creating the platform device for the RTC
-when PNP is disabled.  This may also help running the PNP-enabled kernel
-on an older PCs.
+That leaked huge pages.  Bad.
 
-Signed-off-by: Stas Sergeev <stsp@aknet.ru>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Adam Belay <ambx1@neo.rr.com>
+This patch at least works around that for now.  It ignores huge pages in
+the pagemap walker for the time being, and won't leak those pages.
+
+Signed-off-by: Dave Hansen <dave@linux.vnet.ibm.com>
+Acked-by: Matt Mackall <mpm@selenic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/rtc.c  |   34 ++++++++++++++++++++++++++++++++++
- drivers/rtc/rtc-cmos.c |   31 ++++++++++++++++---------------
- 2 files changed, 50 insertions(+), 15 deletions(-)
+ fs/proc/task_mmu.c |   39 ++++++++++++++++++++++++++++++---------
+ 1 file changed, 30 insertions(+), 9 deletions(-)
 
-diff -puN arch/x86/kernel/rtc.c~provide-rtc_cmos-platform-device-take-2 arch/x86/kernel/rtc.c
---- a/arch/x86/kernel/rtc.c~provide-rtc_cmos-platform-device-take-2
-+++ a/arch/x86/kernel/rtc.c
-@@ -4,6 +4,8 @@
- #include <linux/acpi.h>
- #include <linux/bcd.h>
- #include <linux/mc146818rtc.h>
-+#include <linux/platform_device.h>
-+#include <linux/pnp.h>
- 
- #include <asm/time.h>
- #include <asm/vsyscall.h>
-@@ -197,3 +199,35 @@ unsigned long long native_read_tsc(void)
+diff -puN fs/proc/task_mmu.c~pagemap-fix-large-pages-in-pagemap fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~pagemap-fix-large-pages-in-pagemap
++++ a/fs/proc/task_mmu.c
+@@ -553,24 +553,45 @@ static u64 swap_pte_to_pagemap_entry(pte
+ 	return swp_type(e) | (swp_offset(e) << MAX_SWAPFILES_SHIFT);
  }
- EXPORT_SYMBOL(native_read_tsc);
  
-+
-+static struct resource rtc_resources[] = {
-+	[0] = {
-+		.start	= RTC_PORT(0),
-+		.end	= RTC_PORT(1),
-+		.flags	= IORESOURCE_IO,
-+	},
-+	[1] = {
-+		.start	= RTC_IRQ,
-+		.end	= RTC_IRQ,
-+		.flags	= IORESOURCE_IRQ,
-+	}
-+};
-+
-+static struct platform_device rtc_device = {
-+	.name		= "rtc_cmos",
-+	.id		= -1,
-+	.resource	= rtc_resources,
-+	.num_resources	= ARRAY_SIZE(rtc_resources),
-+};
-+
-+static __init int add_rtc_cmos(void)
++static unsigned long pte_to_pagemap_entry(pte_t pte)
 +{
-+#ifdef CONFIG_PNP
-+	if (!pnp_platform_devices)
-+		platform_device_register(&rtc_device);
-+#else
-+	platform_device_register(&rtc_device);
-+#endif /* CONFIG_PNP */
-+	return 0;
++	unsigned long pme = 0;
++	if (is_swap_pte(pte))
++		pme = PM_PFRAME(swap_pte_to_pagemap_entry(pte))
++			| PM_PSHIFT(PAGE_SHIFT) | PM_SWAP;
++	else if (pte_present(pte))
++		pme = PM_PFRAME(pte_pfn(pte))
++			| PM_PSHIFT(PAGE_SHIFT) | PM_PRESENT;
++	return pme;
 +}
-+device_initcall(add_rtc_cmos);
-diff -puN drivers/rtc/rtc-cmos.c~provide-rtc_cmos-platform-device-take-2 drivers/rtc/rtc-cmos.c
---- a/drivers/rtc/rtc-cmos.c~provide-rtc_cmos-platform-device-take-2
-+++ a/drivers/rtc/rtc-cmos.c
-@@ -905,19 +905,7 @@ static struct pnp_driver cmos_pnp_driver
- 	.resume		= cmos_pnp_resume,
- };
- 
--static int __init cmos_init(void)
--{
--	return pnp_register_driver(&cmos_pnp_driver);
--}
--module_init(cmos_init);
--
--static void __exit cmos_exit(void)
--{
--	pnp_unregister_driver(&cmos_pnp_driver);
--}
--module_exit(cmos_exit);
--
--#else	/* no PNP */
-+#endif	/* CONFIG_PNP */
- 
- /*----------------------------------------------------------------*/
- 
-@@ -958,20 +946,33 @@ static struct platform_driver cmos_platf
- 
- static int __init cmos_init(void)
++
+ static int pagemap_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
+ 			     struct mm_walk *walk)
  {
-+#ifdef	CONFIG_PNP
-+	if (pnp_platform_devices)
-+		return pnp_register_driver(&cmos_pnp_driver);
-+	else
-+		return platform_driver_probe(&cmos_platform_driver,
-+			cmos_platform_probe);
-+#else
- 	return platform_driver_probe(&cmos_platform_driver,
- 			cmos_platform_probe);
-+#endif /* CONFIG_PNP */
- }
- module_init(cmos_init);
++	struct vm_area_struct *vma;
+ 	struct pagemapread *pm = walk->private;
+ 	pte_t *pte;
+ 	int err = 0;
  
- static void __exit cmos_exit(void)
- {
-+#ifdef	CONFIG_PNP
-+	if (pnp_platform_devices)
-+		pnp_unregister_driver(&cmos_pnp_driver);
-+	else
-+		platform_driver_unregister(&cmos_platform_driver);
-+#else
- 	platform_driver_unregister(&cmos_platform_driver);
-+#endif /* CONFIG_PNP */
- }
- module_exit(cmos_exit);
- 
- 
--#endif	/* !PNP */
++	/* find the first VMA at or above 'addr' */
++	vma = find_vma(walk->mm, addr);
+ 	for (; addr != end; addr += PAGE_SIZE) {
+ 		u64 pfn = PM_NOT_PRESENT;
+-		pte = pte_offset_map(pmd, addr);
+-		if (is_swap_pte(*pte))
+-			pfn = PM_PFRAME(swap_pte_to_pagemap_entry(*pte))
+-				| PM_PSHIFT(PAGE_SHIFT) | PM_SWAP;
+-		else if (pte_present(*pte))
+-			pfn = PM_PFRAME(pte_pfn(*pte))
+-				| PM_PSHIFT(PAGE_SHIFT) | PM_PRESENT;
+-		/* unmap so we're not in atomic when we copy to userspace */
+-		pte_unmap(pte);
++
++		/* check to see if we've left 'vma' behind
++		 * and need a new, higher one */
++		if (vma && (addr >= vma->vm_end))
++			vma = find_vma(walk->mm, addr);
++
++		/* check that 'vma' actually covers this address,
++		 * and that it isn't a huge page vma */
++		if (vma && (vma->vm_start <= addr) &&
++		    !is_vm_hugetlb_page(vma)) {
++			pte = pte_offset_map(pmd, addr);
++			pfn = pte_to_pagemap_entry(*pte);
++			/* unmap before userspace copy */
++			pte_unmap(pte);
++		}
+ 		err = add_to_pagemap(addr, pfn, pm);
+ 		if (err)
+ 			return err;
+_
+
+Patches currently in -mm which might be from dave@linux.vnet.ibm.com are
+
+origin.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-fix.patch
+
