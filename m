@@ -1,194 +1,786 @@
 From: akpm@linux-foundation.org
-Subject: - pnp-add-pnp_possible_config-can-a-device-could-be-configured-this-way-fix.patch removed from -mm tree
-Date: Mon, 23 Jun 2008 14:03:14 -0700
-Message-ID: <200806232103.m5NL3ElG016145@imap1.linux-foundation.org>
+Subject: - pnp-centralize-resource-option-allocations.patch removed from -mm tree
+Date: Mon, 23 Jun 2008 14:03:43 -0700
+Message-ID: <200806232103.m5NL3hU0016211@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34240 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57225 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757978AbYFWVDy (ORCPT
+	by vger.kernel.org with ESMTP id S1758281AbYFWVE2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Jun 2008 17:03:54 -0400
+	Mon, 23 Jun 2008 17:04:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, abelay@mit.edu, bjorn.helgaas@hp.com, castet.matthieu@free.fr, lenb@kernel.org, perex@perex.cz, rene.herman@keyaccess.nl, shaohua.li@intel.com, tiwai@suse.de
+To: bjorn.helgaas@hp.com, abelay@mit.edu, castet.matthieu@free.fr, lenb@kernel.org, perex@perex.cz, rene.herman@gmail.com, shaohua.li@intel.com, tiwai@suse.de, trenn@suse.de, mm-commits@v
 
 
 The patch titled
-     pnp-add-pnp_possible_config-can-a-device-could-be-configured-this-way-fix
+     pnp: centralize resource option allocations
 has been removed from the -mm tree.  Its filename was
-     pnp-add-pnp_possible_config-can-a-device-could-be-configured-this-way-fix.patch
+     pnp-centralize-resource-option-allocations.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pnp-add-pnp_possible_config-can-a-device-could-be-configured-this-way-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: pnp: centralize resource option allocations
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-i386 allmodconfig:
+This patch moves all the option allocations (pnp_mem, pnp_port, etc) into
+the pnp_register_{mem,port,irq,dma}_resource() functions.  This will make
+it easier to rework the option data structures.
 
-ERROR: "pnp_possible_config" [drivers/serial/8250_pnp.ko] undefined!
+The non-trivial part of this patch is the IRQ handling.  The backends have
+to allocate a local pnp_irq_mask_t bitmap, populate it, and pass a pointer
+to pnp_register_irq_resource().
 
-Cc: Adam M Belay <abelay@mit.edu>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Jaroslav Kysela <perex@perex.cz>
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Acked-by: Rene Herman <rene.herman@gmail.com>
 Cc: Len Brown <lenb@kernel.org>
+Cc: Adam M Belay <abelay@mit.edu>
 Cc: Li Shaohua <shaohua.li@intel.com>
 Cc: Matthieu Castet <castet.matthieu@free.fr>
-Cc: Rene Herman <rene.herman@keyaccess.nl>
-Cc: Takashi Iwai <tiwai@suse.de>
 Cc: Thomas Renninger <trenn@suse.de>
+Cc: Jaroslav Kysela <perex@perex.cz>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/resource.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/pnp/base.h             |   12 +-
+ drivers/pnp/isapnp/core.c      |  112 +++++++++--------------
+ drivers/pnp/pnpacpi/rsparser.c |  149 ++++++++++---------------------
+ drivers/pnp/pnpbios/rsparser.c |  110 +++++++++-------------
+ drivers/pnp/resource.c         |   58 +++++++++---
+ 5 files changed, 195 insertions(+), 246 deletions(-)
 
-diff -puN drivers/pnp/resource.c~pnp-add-pnp_possible_config-can-a-device-could-be-configured-this-way-fix drivers/pnp/resource.c
---- a/drivers/pnp/resource.c~pnp-add-pnp_possible_config-can-a-device-could-be-configured-this-way-fix
-+++ a/drivers/pnp/resource.c
-@@ -684,6 +684,7 @@ int pnp_possible_config(struct pnp_dev *
+diff -puN drivers/pnp/base.h~pnp-centralize-resource-option-allocations drivers/pnp/base.h
+--- a/drivers/pnp/base.h~pnp-centralize-resource-option-allocations
++++ a/drivers/pnp/base.h
+@@ -74,13 +74,17 @@ struct pnp_option *pnp_register_independ
+ struct pnp_option *pnp_register_dependent_option(struct pnp_dev *dev,
+ 						 int priority);
+ int pnp_register_irq_resource(struct pnp_dev *dev, struct pnp_option *option,
+-			      struct pnp_irq *data);
++			      pnp_irq_mask_t *map, unsigned char flags);
+ int pnp_register_dma_resource(struct pnp_dev *dev, struct pnp_option *option,
+-			      struct pnp_dma *data);
++			      unsigned char map, unsigned char flags);
+ int pnp_register_port_resource(struct pnp_dev *dev, struct pnp_option *option,
+-			       struct pnp_port *data);
++			       resource_size_t min, resource_size_t max,
++			       resource_size_t align, resource_size_t size,
++			       unsigned char flags);
+ int pnp_register_mem_resource(struct pnp_dev *dev, struct pnp_option *option,
+-			      struct pnp_mem *data);
++			      resource_size_t min, resource_size_t max,
++			      resource_size_t align, resource_size_t size,
++			      unsigned char flags);
+ void pnp_init_resources(struct pnp_dev *dev);
  
- 	return 0;
+ void pnp_fixup_device(struct pnp_dev *dev);
+diff -puN drivers/pnp/isapnp/core.c~pnp-centralize-resource-option-allocations drivers/pnp/isapnp/core.c
+--- a/drivers/pnp/isapnp/core.c~pnp-centralize-resource-option-allocations
++++ a/drivers/pnp/isapnp/core.c
+@@ -433,20 +433,20 @@ static void __init isapnp_parse_irq_reso
+ 					     int size)
+ {
+ 	unsigned char tmp[3];
+-	struct pnp_irq *irq;
+ 	unsigned long bits;
++	pnp_irq_mask_t map;
++	unsigned char flags = IORESOURCE_IRQ_HIGHEDGE;
+ 
+ 	isapnp_peek(tmp, size);
+-	irq = kzalloc(sizeof(struct pnp_irq), GFP_KERNEL);
+-	if (!irq)
+-		return;
+ 	bits = (tmp[1] << 8) | tmp[0];
+-	bitmap_copy(irq->map.bits, &bits, 16);
++
++	bitmap_zero(map.bits, PNP_IRQ_NR);
++	bitmap_copy(map.bits, &bits, 16);
++
+ 	if (size > 2)
+-		irq->flags = tmp[2];
+-	else
+-		irq->flags = IORESOURCE_IRQ_HIGHEDGE;
+-	pnp_register_irq_resource(dev, option, irq);
++		flags = tmp[2];
++
++	pnp_register_irq_resource(dev, option, &map, flags);
  }
-+EXPORT_SYMBOL(pnp_possible_config);
  
- /* format is: pnp_reserve_irq=irq1[,irq2] .... */
- static int __init pnp_setup_reserve_irq(char *str)
+ /*
+@@ -457,15 +457,9 @@ static void __init isapnp_parse_dma_reso
+ 					     int size)
+ {
+ 	unsigned char tmp[2];
+-	struct pnp_dma *dma;
+ 
+ 	isapnp_peek(tmp, size);
+-	dma = kzalloc(sizeof(struct pnp_dma), GFP_KERNEL);
+-	if (!dma)
+-		return;
+-	dma->map = tmp[0];
+-	dma->flags = tmp[1];
+-	pnp_register_dma_resource(dev, option, dma);
++	pnp_register_dma_resource(dev, option, tmp[0], tmp[1]);
+ }
+ 
+ /*
+@@ -476,18 +470,16 @@ static void __init isapnp_parse_port_res
+ 					      int size)
+ {
+ 	unsigned char tmp[7];
+-	struct pnp_port *port;
++	resource_size_t min, max, align, len;
++	unsigned char flags;
+ 
+ 	isapnp_peek(tmp, size);
+-	port = kzalloc(sizeof(struct pnp_port), GFP_KERNEL);
+-	if (!port)
+-		return;
+-	port->min = (tmp[2] << 8) | tmp[1];
+-	port->max = (tmp[4] << 8) | tmp[3];
+-	port->align = tmp[5];
+-	port->size = tmp[6];
+-	port->flags = tmp[0] ? IORESOURCE_IO_16BIT_ADDR : 0;
+-	pnp_register_port_resource(dev, option, port);
++	min = (tmp[2] << 8) | tmp[1];
++	max = (tmp[4] << 8) | tmp[3];
++	align = tmp[5];
++	len = tmp[6];
++	flags = tmp[0] ? IORESOURCE_IO_16BIT_ADDR : 0;
++	pnp_register_port_resource(dev, option, min, max, align, len, flags);
+ }
+ 
+ /*
+@@ -498,17 +490,13 @@ static void __init isapnp_parse_fixed_po
+ 						    int size)
+ {
+ 	unsigned char tmp[3];
+-	struct pnp_port *port;
++	resource_size_t base, len;
+ 
+ 	isapnp_peek(tmp, size);
+-	port = kzalloc(sizeof(struct pnp_port), GFP_KERNEL);
+-	if (!port)
+-		return;
+-	port->min = port->max = (tmp[1] << 8) | tmp[0];
+-	port->size = tmp[2];
+-	port->align = 0;
+-	port->flags = IORESOURCE_IO_FIXED;
+-	pnp_register_port_resource(dev, option, port);
++	base = (tmp[1] << 8) | tmp[0];
++	len = tmp[2];
++	pnp_register_port_resource(dev, option, base, base, 0, len,
++				   IORESOURCE_IO_FIXED);
+ }
+ 
+ /*
+@@ -519,18 +507,16 @@ static void __init isapnp_parse_mem_reso
+ 					     int size)
+ {
+ 	unsigned char tmp[9];
+-	struct pnp_mem *mem;
++	resource_size_t min, max, align, len;
++	unsigned char flags;
+ 
+ 	isapnp_peek(tmp, size);
+-	mem = kzalloc(sizeof(struct pnp_mem), GFP_KERNEL);
+-	if (!mem)
+-		return;
+-	mem->min = ((tmp[2] << 8) | tmp[1]) << 8;
+-	mem->max = ((tmp[4] << 8) | tmp[3]) << 8;
+-	mem->align = (tmp[6] << 8) | tmp[5];
+-	mem->size = ((tmp[8] << 8) | tmp[7]) << 8;
+-	mem->flags = tmp[0];
+-	pnp_register_mem_resource(dev, option, mem);
++	min = ((tmp[2] << 8) | tmp[1]) << 8;
++	max = ((tmp[4] << 8) | tmp[3]) << 8;
++	align = (tmp[6] << 8) | tmp[5];
++	len = ((tmp[8] << 8) | tmp[7]) << 8;
++	flags = tmp[0];
++	pnp_register_mem_resource(dev, option, min, max, align, len, flags);
+ }
+ 
+ /*
+@@ -541,20 +527,16 @@ static void __init isapnp_parse_mem32_re
+ 					       int size)
+ {
+ 	unsigned char tmp[17];
+-	struct pnp_mem *mem;
++	resource_size_t min, max, align, len;
++	unsigned char flags;
+ 
+ 	isapnp_peek(tmp, size);
+-	mem = kzalloc(sizeof(struct pnp_mem), GFP_KERNEL);
+-	if (!mem)
+-		return;
+-	mem->min = (tmp[4] << 24) | (tmp[3] << 16) | (tmp[2] << 8) | tmp[1];
+-	mem->max = (tmp[8] << 24) | (tmp[7] << 16) | (tmp[6] << 8) | tmp[5];
+-	mem->align =
+-	    (tmp[12] << 24) | (tmp[11] << 16) | (tmp[10] << 8) | tmp[9];
+-	mem->size =
+-	    (tmp[16] << 24) | (tmp[15] << 16) | (tmp[14] << 8) | tmp[13];
+-	mem->flags = tmp[0];
+-	pnp_register_mem_resource(dev, option, mem);
++	min = (tmp[4] << 24) | (tmp[3] << 16) | (tmp[2] << 8) | tmp[1];
++	max = (tmp[8] << 24) | (tmp[7] << 16) | (tmp[6] << 8) | tmp[5];
++	align = (tmp[12] << 24) | (tmp[11] << 16) | (tmp[10] << 8) | tmp[9];
++	len = (tmp[16] << 24) | (tmp[15] << 16) | (tmp[14] << 8) | tmp[13];
++	flags = tmp[0];
++	pnp_register_mem_resource(dev, option, min, max, align, len, flags);
+ }
+ 
+ /*
+@@ -565,18 +547,14 @@ static void __init isapnp_parse_fixed_me
+ 						     int size)
+ {
+ 	unsigned char tmp[9];
+-	struct pnp_mem *mem;
++	resource_size_t base, len;
++	unsigned char flags;
+ 
+ 	isapnp_peek(tmp, size);
+-	mem = kzalloc(sizeof(struct pnp_mem), GFP_KERNEL);
+-	if (!mem)
+-		return;
+-	mem->min = mem->max =
+-	    (tmp[4] << 24) | (tmp[3] << 16) | (tmp[2] << 8) | tmp[1];
+-	mem->size = (tmp[8] << 24) | (tmp[7] << 16) | (tmp[6] << 8) | tmp[5];
+-	mem->align = 0;
+-	mem->flags = tmp[0];
+-	pnp_register_mem_resource(dev, option, mem);
++	base = (tmp[4] << 24) | (tmp[3] << 16) | (tmp[2] << 8) | tmp[1];
++	len = (tmp[8] << 24) | (tmp[7] << 16) | (tmp[6] << 8) | tmp[5];
++	flags = tmp[0];
++	pnp_register_mem_resource(dev, option, base, base, 0, len, flags);
+ }
+ 
+ /*
+diff -puN drivers/pnp/pnpacpi/rsparser.c~pnp-centralize-resource-option-allocations drivers/pnp/pnpacpi/rsparser.c
+--- a/drivers/pnp/pnpacpi/rsparser.c~pnp-centralize-resource-option-allocations
++++ a/drivers/pnp/pnpacpi/rsparser.c
+@@ -377,20 +377,16 @@ static __init void pnpacpi_parse_dma_opt
+ 					    struct acpi_resource_dma *p)
+ {
+ 	int i;
+-	struct pnp_dma *dma;
++	unsigned char map = 0, flags;
+ 
+ 	if (p->channel_count == 0)
+ 		return;
+-	dma = kzalloc(sizeof(struct pnp_dma), GFP_KERNEL);
+-	if (!dma)
+-		return;
+ 
+ 	for (i = 0; i < p->channel_count; i++)
+-		dma->map |= 1 << p->channels[i];
+-
+-	dma->flags = dma_flags(p->type, p->bus_master, p->transfer);
++		map |= 1 << p->channels[i];
+ 
+-	pnp_register_dma_resource(dev, option, dma);
++	flags = dma_flags(p->type, p->bus_master, p->transfer);
++	pnp_register_dma_resource(dev, option, map, flags);
+ }
+ 
+ static __init void pnpacpi_parse_irq_option(struct pnp_dev *dev,
+@@ -398,20 +394,19 @@ static __init void pnpacpi_parse_irq_opt
+ 					    struct acpi_resource_irq *p)
+ {
+ 	int i;
+-	struct pnp_irq *irq;
++	pnp_irq_mask_t map;
++	unsigned char flags;
+ 
+ 	if (p->interrupt_count == 0)
+ 		return;
+-	irq = kzalloc(sizeof(struct pnp_irq), GFP_KERNEL);
+-	if (!irq)
+-		return;
+ 
++	bitmap_zero(map.bits, PNP_IRQ_NR);
+ 	for (i = 0; i < p->interrupt_count; i++)
+ 		if (p->interrupts[i])
+-			__set_bit(p->interrupts[i], irq->map.bits);
+-	irq->flags = irq_flags(p->triggering, p->polarity, p->sharable);
++			__set_bit(p->interrupts[i], map.bits);
+ 
+-	pnp_register_irq_resource(dev, option, irq);
++	flags = irq_flags(p->triggering, p->polarity, p->sharable);
++	pnp_register_irq_resource(dev, option, &map, flags);
+ }
+ 
+ static __init void pnpacpi_parse_ext_irq_option(struct pnp_dev *dev,
+@@ -419,123 +414,90 @@ static __init void pnpacpi_parse_ext_irq
+ 					struct acpi_resource_extended_irq *p)
+ {
+ 	int i;
+-	struct pnp_irq *irq;
++	pnp_irq_mask_t map;
++	unsigned char flags;
+ 
+ 	if (p->interrupt_count == 0)
+ 		return;
+-	irq = kzalloc(sizeof(struct pnp_irq), GFP_KERNEL);
+-	if (!irq)
+-		return;
+ 
++	bitmap_zero(map.bits, PNP_IRQ_NR);
+ 	for (i = 0; i < p->interrupt_count; i++)
+ 		if (p->interrupts[i])
+-			__set_bit(p->interrupts[i], irq->map.bits);
+-	irq->flags = irq_flags(p->triggering, p->polarity, p->sharable);
++			__set_bit(p->interrupts[i], map.bits);
+ 
+-	pnp_register_irq_resource(dev, option, irq);
++	flags = irq_flags(p->triggering, p->polarity, p->sharable);
++	pnp_register_irq_resource(dev, option, &map, flags);
+ }
+ 
+ static __init void pnpacpi_parse_port_option(struct pnp_dev *dev,
+ 					     struct pnp_option *option,
+ 					     struct acpi_resource_io *io)
+ {
+-	struct pnp_port *port;
++	unsigned char flags = 0;
+ 
+ 	if (io->address_length == 0)
+ 		return;
+-	port = kzalloc(sizeof(struct pnp_port), GFP_KERNEL);
+-	if (!port)
+-		return;
+-	port->min = io->minimum;
+-	port->max = io->maximum;
+-	port->align = io->alignment;
+-	port->size = io->address_length;
+-	port->flags = ACPI_DECODE_16 == io->io_decode ?
+-	    IORESOURCE_IO_16BIT_ADDR : 0;
+-	pnp_register_port_resource(dev, option, port);
++
++	if (io->io_decode == ACPI_DECODE_16)
++		flags = IORESOURCE_IO_16BIT_ADDR;
++	pnp_register_port_resource(dev, option, io->minimum, io->maximum,
++				   io->alignment, io->address_length, flags);
+ }
+ 
+ static __init void pnpacpi_parse_fixed_port_option(struct pnp_dev *dev,
+ 						   struct pnp_option *option,
+ 					struct acpi_resource_fixed_io *io)
+ {
+-	struct pnp_port *port;
+-
+ 	if (io->address_length == 0)
+ 		return;
+-	port = kzalloc(sizeof(struct pnp_port), GFP_KERNEL);
+-	if (!port)
+-		return;
+-	port->min = port->max = io->address;
+-	port->size = io->address_length;
+-	port->align = 0;
+-	port->flags = IORESOURCE_IO_FIXED;
+-	pnp_register_port_resource(dev, option, port);
++
++	pnp_register_port_resource(dev, option, io->address, io->address, 0,
++				   io->address_length, IORESOURCE_IO_FIXED);
+ }
+ 
+ static __init void pnpacpi_parse_mem24_option(struct pnp_dev *dev,
+ 					      struct pnp_option *option,
+ 					      struct acpi_resource_memory24 *p)
+ {
+-	struct pnp_mem *mem;
++	unsigned char flags = 0;
+ 
+ 	if (p->address_length == 0)
+ 		return;
+-	mem = kzalloc(sizeof(struct pnp_mem), GFP_KERNEL);
+-	if (!mem)
+-		return;
+-	mem->min = p->minimum;
+-	mem->max = p->maximum;
+-	mem->align = p->alignment;
+-	mem->size = p->address_length;
+ 
+-	mem->flags = (ACPI_READ_WRITE_MEMORY == p->write_protect) ?
+-	    IORESOURCE_MEM_WRITEABLE : 0;
+-
+-	pnp_register_mem_resource(dev, option, mem);
++	if (p->write_protect == ACPI_READ_WRITE_MEMORY)
++		flags = IORESOURCE_MEM_WRITEABLE;
++	pnp_register_mem_resource(dev, option, p->minimum, p->maximum,
++				  p->alignment, p->address_length, flags);
+ }
+ 
+ static __init void pnpacpi_parse_mem32_option(struct pnp_dev *dev,
+ 					      struct pnp_option *option,
+ 					      struct acpi_resource_memory32 *p)
+ {
+-	struct pnp_mem *mem;
++	unsigned char flags = 0;
+ 
+ 	if (p->address_length == 0)
+ 		return;
+-	mem = kzalloc(sizeof(struct pnp_mem), GFP_KERNEL);
+-	if (!mem)
+-		return;
+-	mem->min = p->minimum;
+-	mem->max = p->maximum;
+-	mem->align = p->alignment;
+-	mem->size = p->address_length;
+ 
+-	mem->flags = (ACPI_READ_WRITE_MEMORY == p->write_protect) ?
+-	    IORESOURCE_MEM_WRITEABLE : 0;
+-
+-	pnp_register_mem_resource(dev, option, mem);
++	if (p->write_protect == ACPI_READ_WRITE_MEMORY)
++		flags = IORESOURCE_MEM_WRITEABLE;
++	pnp_register_mem_resource(dev, option, p->minimum, p->maximum,
++				  p->alignment, p->address_length, flags);
+ }
+ 
+ static __init void pnpacpi_parse_fixed_mem32_option(struct pnp_dev *dev,
+ 						    struct pnp_option *option,
+ 					struct acpi_resource_fixed_memory32 *p)
+ {
+-	struct pnp_mem *mem;
++	unsigned char flags = 0;
+ 
+ 	if (p->address_length == 0)
+ 		return;
+-	mem = kzalloc(sizeof(struct pnp_mem), GFP_KERNEL);
+-	if (!mem)
+-		return;
+-	mem->min = mem->max = p->address;
+-	mem->size = p->address_length;
+-	mem->align = 0;
+ 
+-	mem->flags = (ACPI_READ_WRITE_MEMORY == p->write_protect) ?
+-	    IORESOURCE_MEM_WRITEABLE : 0;
+-
+-	pnp_register_mem_resource(dev, option, mem);
++	if (p->write_protect == ACPI_READ_WRITE_MEMORY)
++		flags = IORESOURCE_MEM_WRITEABLE;
++	pnp_register_mem_resource(dev, option, p->address, p->address,
++				  0, p->address_length, flags);
+ }
+ 
+ static __init void pnpacpi_parse_address_option(struct pnp_dev *dev,
+@@ -544,8 +506,7 @@ static __init void pnpacpi_parse_address
+ {
+ 	struct acpi_resource_address64 addr, *p = &addr;
+ 	acpi_status status;
+-	struct pnp_mem *mem;
+-	struct pnp_port *port;
++	unsigned char flags = 0;
+ 
+ 	status = acpi_resource_to_address64(r, p);
+ 	if (!ACPI_SUCCESS(status)) {
+@@ -558,26 +519,14 @@ static __init void pnpacpi_parse_address
+ 		return;
+ 
+ 	if (p->resource_type == ACPI_MEMORY_RANGE) {
+-		mem = kzalloc(sizeof(struct pnp_mem), GFP_KERNEL);
+-		if (!mem)
+-			return;
+-		mem->min = mem->max = p->minimum;
+-		mem->size = p->address_length;
+-		mem->align = 0;
+-		mem->flags = (p->info.mem.write_protect ==
+-			      ACPI_READ_WRITE_MEMORY) ? IORESOURCE_MEM_WRITEABLE
+-		    : 0;
+-		pnp_register_mem_resource(dev, option, mem);
+-	} else if (p->resource_type == ACPI_IO_RANGE) {
+-		port = kzalloc(sizeof(struct pnp_port), GFP_KERNEL);
+-		if (!port)
+-			return;
+-		port->min = port->max = p->minimum;
+-		port->size = p->address_length;
+-		port->align = 0;
+-		port->flags = IORESOURCE_IO_FIXED;
+-		pnp_register_port_resource(dev, option, port);
+-	}
++		if (p->info.mem.write_protect == ACPI_READ_WRITE_MEMORY)
++			flags = IORESOURCE_MEM_WRITEABLE;
++		pnp_register_mem_resource(dev, option, p->minimum, p->minimum,
++					  0, p->address_length, flags);
++	} else if (p->resource_type == ACPI_IO_RANGE)
++		pnp_register_port_resource(dev, option, p->minimum, p->minimum,
++					   0, p->address_length,
++					   IORESOURCE_IO_FIXED);
+ }
+ 
+ struct acpipnp_parse_option_s {
+diff -puN drivers/pnp/pnpbios/rsparser.c~pnp-centralize-resource-option-allocations drivers/pnp/pnpbios/rsparser.c
+--- a/drivers/pnp/pnpbios/rsparser.c~pnp-centralize-resource-option-allocations
++++ a/drivers/pnp/pnpbios/rsparser.c
+@@ -218,116 +218,96 @@ static __init void pnpbios_parse_mem_opt
+ 					    unsigned char *p, int size,
+ 					    struct pnp_option *option)
+ {
+-	struct pnp_mem *mem;
++	resource_size_t min, max, align, len;
++	unsigned char flags;
+ 
+-	mem = kzalloc(sizeof(struct pnp_mem), GFP_KERNEL);
+-	if (!mem)
+-		return;
+-	mem->min = ((p[5] << 8) | p[4]) << 8;
+-	mem->max = ((p[7] << 8) | p[6]) << 8;
+-	mem->align = (p[9] << 8) | p[8];
+-	mem->size = ((p[11] << 8) | p[10]) << 8;
+-	mem->flags = p[3];
+-	pnp_register_mem_resource(dev, option, mem);
++	min = ((p[5] << 8) | p[4]) << 8;
++	max = ((p[7] << 8) | p[6]) << 8;
++	align = (p[9] << 8) | p[8];
++	len = ((p[11] << 8) | p[10]) << 8;
++	flags = p[3];
++	pnp_register_mem_resource(dev, option, min, max, align, len, flags);
+ }
+ 
+ static __init void pnpbios_parse_mem32_option(struct pnp_dev *dev,
+ 					      unsigned char *p, int size,
+ 					      struct pnp_option *option)
+ {
+-	struct pnp_mem *mem;
++	resource_size_t min, max, align, len;
++	unsigned char flags;
+ 
+-	mem = kzalloc(sizeof(struct pnp_mem), GFP_KERNEL);
+-	if (!mem)
+-		return;
+-	mem->min = (p[7] << 24) | (p[6] << 16) | (p[5] << 8) | p[4];
+-	mem->max = (p[11] << 24) | (p[10] << 16) | (p[9] << 8) | p[8];
+-	mem->align = (p[15] << 24) | (p[14] << 16) | (p[13] << 8) | p[12];
+-	mem->size = (p[19] << 24) | (p[18] << 16) | (p[17] << 8) | p[16];
+-	mem->flags = p[3];
+-	pnp_register_mem_resource(dev, option, mem);
++	min = (p[7] << 24) | (p[6] << 16) | (p[5] << 8) | p[4];
++	max = (p[11] << 24) | (p[10] << 16) | (p[9] << 8) | p[8];
++	align = (p[15] << 24) | (p[14] << 16) | (p[13] << 8) | p[12];
++	len = (p[19] << 24) | (p[18] << 16) | (p[17] << 8) | p[16];
++	flags = p[3];
++	pnp_register_mem_resource(dev, option, min, max, align, len, flags);
+ }
+ 
+ static __init void pnpbios_parse_fixed_mem32_option(struct pnp_dev *dev,
+ 						    unsigned char *p, int size,
+ 						    struct pnp_option *option)
+ {
+-	struct pnp_mem *mem;
++	resource_size_t base, len;
++	unsigned char flags;
+ 
+-	mem = kzalloc(sizeof(struct pnp_mem), GFP_KERNEL);
+-	if (!mem)
+-		return;
+-	mem->min = mem->max = (p[7] << 24) | (p[6] << 16) | (p[5] << 8) | p[4];
+-	mem->size = (p[11] << 24) | (p[10] << 16) | (p[9] << 8) | p[8];
+-	mem->align = 0;
+-	mem->flags = p[3];
+-	pnp_register_mem_resource(dev, option, mem);
++	base = (p[7] << 24) | (p[6] << 16) | (p[5] << 8) | p[4];
++	len = (p[11] << 24) | (p[10] << 16) | (p[9] << 8) | p[8];
++	flags = p[3];
++	pnp_register_mem_resource(dev, option, base, base, 0, len, flags);
+ }
+ 
+ static __init void pnpbios_parse_irq_option(struct pnp_dev *dev,
+ 					    unsigned char *p, int size,
+ 					    struct pnp_option *option)
+ {
+-	struct pnp_irq *irq;
+ 	unsigned long bits;
++	pnp_irq_mask_t map;
++	unsigned char flags = IORESOURCE_IRQ_HIGHEDGE;
+ 
+-	irq = kzalloc(sizeof(struct pnp_irq), GFP_KERNEL);
+-	if (!irq)
+-		return;
+ 	bits = (p[2] << 8) | p[1];
+-	bitmap_copy(irq->map.bits, &bits, 16);
++
++	bitmap_zero(map.bits, PNP_IRQ_NR);
++	bitmap_copy(map.bits, &bits, 16);
++
+ 	if (size > 2)
+-		irq->flags = p[3];
+-	else
+-		irq->flags = IORESOURCE_IRQ_HIGHEDGE;
+-	pnp_register_irq_resource(dev, option, irq);
++		flags = p[3];
++
++	pnp_register_irq_resource(dev, option, &map, flags);
+ }
+ 
+ static __init void pnpbios_parse_dma_option(struct pnp_dev *dev,
+ 					    unsigned char *p, int size,
+ 					    struct pnp_option *option)
+ {
+-	struct pnp_dma *dma;
+-
+-	dma = kzalloc(sizeof(struct pnp_dma), GFP_KERNEL);
+-	if (!dma)
+-		return;
+-	dma->map = p[1];
+-	dma->flags = p[2];
+-	pnp_register_dma_resource(dev, option, dma);
++	pnp_register_dma_resource(dev, option, p[1], p[2]);
+ }
+ 
+ static __init void pnpbios_parse_port_option(struct pnp_dev *dev,
+ 					     unsigned char *p, int size,
+ 					     struct pnp_option *option)
+ {
+-	struct pnp_port *port;
++	resource_size_t min, max, align, len;
++	unsigned char flags;
+ 
+-	port = kzalloc(sizeof(struct pnp_port), GFP_KERNEL);
+-	if (!port)
+-		return;
+-	port->min = (p[3] << 8) | p[2];
+-	port->max = (p[5] << 8) | p[4];
+-	port->align = p[6];
+-	port->size = p[7];
+-	port->flags = p[1] ? IORESOURCE_IO_16BIT_ADDR : 0;
+-	pnp_register_port_resource(dev, option, port);
++	min = (p[3] << 8) | p[2];
++	max = (p[5] << 8) | p[4];
++	align = p[6];
++	len = p[7];
++	flags = p[1] ? IORESOURCE_IO_16BIT_ADDR : 0;
++	pnp_register_port_resource(dev, option, min, max, align, len, flags);
+ }
+ 
+ static __init void pnpbios_parse_fixed_port_option(struct pnp_dev *dev,
+ 						   unsigned char *p, int size,
+ 						   struct pnp_option *option)
+ {
+-	struct pnp_port *port;
++	resource_size_t base, len;
+ 
+-	port = kzalloc(sizeof(struct pnp_port), GFP_KERNEL);
+-	if (!port)
+-		return;
+-	port->min = port->max = (p[2] << 8) | p[1];
+-	port->size = p[3];
+-	port->align = 0;
+-	port->flags = IORESOURCE_IO_FIXED;
+-	pnp_register_port_resource(dev, option, port);
++	base = (p[2] << 8) | p[1];
++	len = p[3];
++	pnp_register_port_resource(dev, option, base, base, 0, len,
++				   IORESOURCE_IO_FIXED);
+ }
+ 
+ static __init unsigned char *
+diff -puN drivers/pnp/resource.c~pnp-centralize-resource-option-allocations drivers/pnp/resource.c
+--- a/drivers/pnp/resource.c~pnp-centralize-resource-option-allocations
++++ a/drivers/pnp/resource.c
+@@ -78,13 +78,20 @@ struct pnp_option *pnp_register_dependen
+ }
+ 
+ int pnp_register_irq_resource(struct pnp_dev *dev, struct pnp_option *option,
+-			      struct pnp_irq *data)
++			      pnp_irq_mask_t *map, unsigned char flags)
+ {
+-	struct pnp_irq *ptr;
++	struct pnp_irq *data, *ptr;
+ #ifdef DEBUG
+ 	char buf[PNP_IRQ_NR];   /* hex-encoded, so this is overkill but safe */
+ #endif
+ 
++	data = kzalloc(sizeof(struct pnp_irq), GFP_KERNEL);
++	if (!data)
++		return -ENOMEM;
++
++	data->map = *map;
++	data->flags = flags;
++
+ 	ptr = option->irq;
+ 	while (ptr && ptr->next)
+ 		ptr = ptr->next;
+@@ -112,9 +119,16 @@ int pnp_register_irq_resource(struct pnp
+ }
+ 
+ int pnp_register_dma_resource(struct pnp_dev *dev, struct pnp_option *option,
+-			      struct pnp_dma *data)
++			      unsigned char map, unsigned char flags)
+ {
+-	struct pnp_dma *ptr;
++	struct pnp_dma *data, *ptr;
++
++	data = kzalloc(sizeof(struct pnp_dma), GFP_KERNEL);
++	if (!data)
++		return -ENOMEM;
++
++	data->map = map;
++	data->flags = flags;
+ 
+ 	ptr = option->dma;
+ 	while (ptr && ptr->next)
+@@ -130,9 +144,21 @@ int pnp_register_dma_resource(struct pnp
+ }
+ 
+ int pnp_register_port_resource(struct pnp_dev *dev, struct pnp_option *option,
+-			       struct pnp_port *data)
+-{
+-	struct pnp_port *ptr;
++			       resource_size_t min, resource_size_t max,
++			       resource_size_t align, resource_size_t size,
++			       unsigned char flags)
++{
++	struct pnp_port *data, *ptr;
++
++	data = kzalloc(sizeof(struct pnp_port), GFP_KERNEL);
++	if (!data)
++		return -ENOMEM;
++
++	data->min = min;
++	data->max = max;
++	data->align = align;
++	data->size = size;
++	data->flags = flags;
+ 
+ 	ptr = option->port;
+ 	while (ptr && ptr->next)
+@@ -152,9 +178,21 @@ int pnp_register_port_resource(struct pn
+ }
+ 
+ int pnp_register_mem_resource(struct pnp_dev *dev, struct pnp_option *option,
+-			      struct pnp_mem *data)
+-{
+-	struct pnp_mem *ptr;
++			      resource_size_t min, resource_size_t max,
++			      resource_size_t align, resource_size_t size,
++			      unsigned char flags)
++{
++	struct pnp_mem *data, *ptr;
++
++	data = kzalloc(sizeof(struct pnp_mem), GFP_KERNEL);
++	if (!data)
++		return -ENOMEM;
++
++	data->min = min;
++	data->max = max;
++	data->align = align;
++	data->size = size;
++	data->flags = flags;
+ 
+ 	ptr = option->mem;
+ 	while (ptr && ptr->next)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from bjorn.helgaas@hp.com are
 
-origin.patch
 linux-next.patch
-next-remove-localversion.patch
-revert-git-pekka.patch
-fix-kobject-fix-kobject_rename-and-config_sysfs.patch
-kvm-is-busted-on-ia64.patch
-drivers-mtd-nand-nandsimc-needs-div64h.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-git-jg-misc-git-rejects.patch
-drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-mmc-sd-host-driver-for-ricoh-bay1controllers.patch
-drivers-mtd-devices-block2mtdc-suppress-warning.patch
-sundance-set-carrier-status-on-link-change-events.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix-fix.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-scsi-misc-fix-scsi_dh-build-errors.patch
-drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
-s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
-pktcdvd-push-bkl-down-into-driver-fix.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-git-logfs-fixup.patch
-watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-verify-the-page-links-and-memory-model.patch
-mspec-convert-nopfn-to-fault-fix.patch
-page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
-kill-generic_file_direct_io-checkpatch-fixes.patch
-use-generic_access_phys-for-dev-mem-mappings-fix.patch
-spufs-use-the-new-vm_ops-access-fix.patch
-fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
-page-flags-record-page-flag-overlays-explicitly-xen.patch
-mapping_set_error-add-unlikely.patch
-huge-page-private-reservation-review-cleanups-fix.patch
-sync_file_range_write-may-and-will-block-document-that-fix.patch
-vmallocinfo-add-numa-information-fix.patch
-hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
-hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
-hugetlb-override-default-huge-page-size-ia64-build.patch
-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-bootmem-add-debugging-framework-fix.patch
-bootmem-clean-up-free_all_bootmem_core-fix.patch
-bootmem-free-reserve-helpers-fix.patch
-revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
-swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
-split-the-typecheck-macros-out-of-include-linux-kernelh.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
-remove-apparently-unused-fd1772h-header-file.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
-build-kernel-profileo-only-when-requested-cleanups.patch
-fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
-block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
-rename-warn-to-warning-to-clear-the-namespace-fix.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
-flag-parameters-paccept-fix.patch
-flag-parameters-paccept-sys_ni.patch
-flag-parameters-anon_inode_getfd-extension-fix.patch
-flag-parameters-signalfd-fix.patch
-flag-parameters-eventfd-fix.patch
-flag-parameters-inotify_init-fix.patch
-flag-parameters-check-magic-constants-alpha.patch
-oprofile-multiplexing-checkpatch-fixes.patch
-gpio-gpio-driver-for-max7301-spi-gpio-expander-checkpatch-fixes.patch
-drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
-atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
-reiserfs-convert-j_flush_sem-to-mutex.patch
-reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
-memcg-remove-refcnt-from-page_cgroup-fix-2.patch
-jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup.patch
-ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
-getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
-tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
-memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
-memstick-use-fully-asynchronous-request-processing-fix.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-mm-introduce-get_user_pages_fast-fix.patch
-mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-fix.patch
-x86-lockless-get_user_pages_fast-fix-2.patch
-x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
-x86-lockless-get_user_pages_fast-fix-warning.patch
-vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
-define-page_file_cache-function-fix.patch
-unevictable-lru-infrastructure-fix.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-3.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
-vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+mm-only-enforce-acpi-resource-conflict-checks.patch
+pnp-set-the-pnp_card-dma_mask-for-use-by-isapnp-cards.patch
+isa-set-24-bit-dma_mask-for-isa-devices.patch
+make-pnp_add_card_id-static.patch
 
