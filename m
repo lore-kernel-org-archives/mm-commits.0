@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + christoph-has-moved.patch added to -mm tree
-Date: Mon, 23 Jun 2008 16:44:16 -0700
-Message-ID: <200806232344.m5NNiGhc022426@imap1.linux-foundation.org>
+Subject: + include-linux-kernelh-userspace-header-cleanup.patch added to -mm tree
+Date: Mon, 23 Jun 2008 16:51:53 -0700
+Message-ID: <200806232351.m5NNprSM022720@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37136 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59994 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752074AbYFWXom (ORCPT
+	by vger.kernel.org with ESMTP id S1751745AbYFWXwC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Jun 2008 19:44:42 -0400
+	Mon, 23 Jun 2008 19:52:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, cl@linux-foundation.org, mpm@selenic.com, penberg@cs.helsinki.fi, sfr@canb.auug.org.au
+Cc: bunk@kernel.org
 
 
 The patch titled
-     Christoph has moved
+     include/linux/kernel.h: userspace header cleanup
 has been added to the -mm tree.  Its filename is
-     christoph-has-moved.patch
+     include-linux-kernelh-userspace-header-cleanup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,217 +34,123 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Christoph has moved
-From: Christoph Lameter <clameter@sgi.com>
+Subject: include/linux/kernel.h: userspace header cleanup
+From: Adrian Bunk <bunk@kernel.org>
 
-Remove all clameter@sgi.com addresses from the kernel tree since they will
-become invalid on June 27th.  Change my maintainer email address for the
-slab allocators to cl@linux-foundation.org (which will be the new email
-address for the future).
+Nothing from the bottom of this header is part of the kernel<->userspace
+ABI.
 
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Signed-off-by: Christoph Lameter <cl@linux-foundation.org>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Matt Mackall <mpm@selenic.com>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/slabinfo.c  |    4 ++--
- Documentation/vm/slub.txt    |    2 +-
- MAINTAINERS                  |    2 +-
- include/asm-generic/atomic.h |    2 +-
- include/linux/slab.h         |    2 +-
- include/linux/slub_def.h     |    2 +-
- kernel/workqueue.c           |    2 +-
- lib/radix-tree.c             |    2 +-
- mm/allocpercpu.c             |    2 +-
- mm/migrate.c                 |    2 +-
- mm/slub.c                    |    2 +-
- mm/sparse-vmemmap.c          |    2 +-
- 12 files changed, 13 insertions(+), 13 deletions(-)
+ include/linux/kernel.h |   42 ++++++++++++++++++++-------------------
+ 1 file changed, 22 insertions(+), 20 deletions(-)
 
-diff -puN Documentation/vm/slabinfo.c~christoph-has-moved Documentation/vm/slabinfo.c
---- a/Documentation/vm/slabinfo.c~christoph-has-moved
-+++ a/Documentation/vm/slabinfo.c
-@@ -1,7 +1,7 @@
- /*
-  * Slabinfo: Tool to get reports about slabs
-  *
-- * (C) 2007 sgi, Christoph Lameter <clameter@sgi.com>
-+ * (C) 2007 sgi, Christoph Lameter
-  *
-  * Compile by:
-  *
-@@ -99,7 +99,7 @@ void fatal(const char *x, ...)
+diff -puN include/linux/kernel.h~include-linux-kernelh-userspace-header-cleanup include/linux/kernel.h
+--- a/include/linux/kernel.h~include-linux-kernelh-userspace-header-cleanup
++++ a/include/linux/kernel.h
+@@ -442,26 +442,6 @@ static inline char *pack_hex_byte(char *
+ struct sysinfo;
+ extern int do_sysinfo(struct sysinfo *info);
  
- void usage(void)
- {
--	printf("slabinfo 5/7/2007. (c) 2007 sgi. clameter@sgi.com\n\n"
-+	printf("slabinfo 5/7/2007. (c) 2007 sgi.\n\n"
- 		"slabinfo [-ahnpvtsz] [-d debugopts] [slab-regexp]\n"
- 		"-a|--aliases           Show aliases\n"
- 		"-A|--activity          Most active slabs first\n"
-diff -puN Documentation/vm/slub.txt~christoph-has-moved Documentation/vm/slub.txt
---- a/Documentation/vm/slub.txt~christoph-has-moved
-+++ a/Documentation/vm/slub.txt
-@@ -266,4 +266,4 @@ of other objects.
+-#endif /* __KERNEL__ */
+-
+-#define SI_LOAD_SHIFT	16
+-struct sysinfo {
+-	long uptime;			/* Seconds since boot */
+-	unsigned long loads[3];		/* 1, 5, and 15 minute load averages */
+-	unsigned long totalram;		/* Total usable main memory size */
+-	unsigned long freeram;		/* Available memory size */
+-	unsigned long sharedram;	/* Amount of shared memory */
+-	unsigned long bufferram;	/* Memory used by buffers */
+-	unsigned long totalswap;	/* Total swap space size */
+-	unsigned long freeswap;		/* swap space still available */
+-	unsigned short procs;		/* Number of current processes */
+-	unsigned short pad;		/* explicit padding for m68k */
+-	unsigned long totalhigh;	/* Total high memory size */
+-	unsigned long freehigh;		/* Available high memory size */
+-	unsigned int mem_unit;		/* Memory unit size in bytes */
+-	char _f[20-2*sizeof(long)-sizeof(int)];	/* Padding: libc5 uses this.. */
+-};
+-
+ /* Force a compilation error if condition is true */
+ #define BUILD_BUG_ON(condition) ((void)sizeof(char[1 - 2*!!(condition)]))
  
- 	slub_debug=FZ,dentry
- 
--Christoph Lameter, <clameter@sgi.com>, May 30, 2007
-+Christoph Lameter, May 30, 2007
-diff -puN MAINTAINERS~christoph-has-moved MAINTAINERS
---- a/MAINTAINERS~christoph-has-moved
-+++ a/MAINTAINERS
-@@ -3712,7 +3712,7 @@ S:	Maintained
- 
- SLAB ALLOCATOR
- P:	Christoph Lameter
--M:	clameter@sgi.com
-+M:	cl@linux-foundation.org
- P:	Pekka Enberg
- M:	penberg@cs.helsinki.fi
- P:	Matt Mackall
-diff -puN include/asm-generic/atomic.h~christoph-has-moved include/asm-generic/atomic.h
---- a/include/asm-generic/atomic.h~christoph-has-moved
-+++ a/include/asm-generic/atomic.h
-@@ -2,7 +2,7 @@
- #define _ASM_GENERIC_ATOMIC_H
- /*
-  * Copyright (C) 2005 Silicon Graphics, Inc.
-- *	Christoph Lameter <clameter@sgi.com>
-+ *	Christoph Lameter
-  *
-  * Allows to provide arch independent atomic definitions without the need to
-  * edit all arch specific atomic.h files.
-diff -puN include/linux/slab.h~christoph-has-moved include/linux/slab.h
---- a/include/linux/slab.h~christoph-has-moved
-+++ a/include/linux/slab.h
-@@ -1,7 +1,7 @@
- /*
-  * Written by Mark Hemment, 1996 (markhe@nextd.demon.co.uk).
-  *
-- * (C) SGI 2006, Christoph Lameter <clameter@sgi.com>
-+ * (C) SGI 2006, Christoph Lameter
-  * 	Cleaned up and restructured to ease the addition of alternative
-  * 	implementations of SLAB allocators.
-  */
-diff -puN include/linux/slub_def.h~christoph-has-moved include/linux/slub_def.h
---- a/include/linux/slub_def.h~christoph-has-moved
-+++ a/include/linux/slub_def.h
-@@ -4,7 +4,7 @@
- /*
-  * SLUB : A Slab allocator without object queues.
-  *
-- * (C) 2007 SGI, Christoph Lameter <clameter@sgi.com>
-+ * (C) 2007 SGI, Christoph Lameter
-  */
- #include <linux/types.h>
- #include <linux/gfp.h>
-diff -puN kernel/workqueue.c~christoph-has-moved kernel/workqueue.c
---- a/kernel/workqueue.c~christoph-has-moved
-+++ a/kernel/workqueue.c
-@@ -13,7 +13,7 @@
-  *   Kai Petzke <wpp@marie.physik.tu-berlin.de>
-  *   Theodore Ts'o <tytso@mit.edu>
-  *
-- * Made to use alloc_percpu by Christoph Lameter <clameter@sgi.com>.
-+ * Made to use alloc_percpu by Christoph Lameter.
-  */
- 
- #include <linux/module.h>
-diff -puN lib/radix-tree.c~christoph-has-moved lib/radix-tree.c
---- a/lib/radix-tree.c~christoph-has-moved
-+++ a/lib/radix-tree.c
-@@ -1,7 +1,7 @@
- /*
-  * Copyright (C) 2001 Momchil Velikov
-  * Portions Copyright (C) 2001 Christoph Hellwig
-- * Copyright (C) 2005 SGI, Christoph Lameter <clameter@sgi.com>
-+ * Copyright (C) 2005 SGI, Christoph Lameter
-  * Copyright (C) 2006 Nick Piggin
-  *
-  * This program is free software; you can redistribute it and/or
-diff -puN mm/allocpercpu.c~christoph-has-moved mm/allocpercpu.c
---- a/mm/allocpercpu.c~christoph-has-moved
-+++ a/mm/allocpercpu.c
-@@ -1,7 +1,7 @@
- /*
-  * linux/mm/allocpercpu.c
-  *
-- * Separated from slab.c August 11, 2006 Christoph Lameter <clameter@sgi.com>
-+ * Separated from slab.c August 11, 2006 Christoph Lameter
-  */
- #include <linux/mm.h>
- #include <linux/module.h>
-diff -puN mm/migrate.c~christoph-has-moved mm/migrate.c
---- a/mm/migrate.c~christoph-has-moved
-+++ a/mm/migrate.c
-@@ -9,7 +9,7 @@
-  * IWAMOTO Toshihiro <iwamoto@valinux.co.jp>
-  * Hirokazu Takahashi <taka@valinux.co.jp>
-  * Dave Hansen <haveblue@us.ibm.com>
-- * Christoph Lameter <clameter@sgi.com>
-+ * Christoph Lameter
-  */
- 
- #include <linux/migrate.h>
-diff -puN mm/slub.c~christoph-has-moved mm/slub.c
---- a/mm/slub.c~christoph-has-moved
-+++ a/mm/slub.c
-@@ -5,7 +5,7 @@
-  * The allocator synchronizes using per slab locks and only
-  * uses a centralized lock to manage a pool of partial slabs.
-  *
-- * (C) 2007 SGI, Christoph Lameter <clameter@sgi.com>
-+ * (C) 2007 SGI, Christoph Lameter
-  */
- 
- #include <linux/mm.h>
-diff -puN mm/sparse-vmemmap.c~christoph-has-moved mm/sparse-vmemmap.c
---- a/mm/sparse-vmemmap.c~christoph-has-moved
-+++ a/mm/sparse-vmemmap.c
-@@ -1,7 +1,7 @@
- /*
-  * Virtual Memory Map support
-  *
-- * (C) 2007 sgi. Christoph Lameter <clameter@sgi.com>.
-+ * (C) 2007 sgi. Christoph Lameter.
-  *
-  * Virtual memory maps allow VM primitives pfn_to_page, page_to_pfn,
-  * virt_to_page, page_address() to be implemented as a base offset
+@@ -516,4 +496,26 @@ struct sysinfo {
+ 	__typesafe_cb(rettype (*)(__VA_ARGS__, void *), (fn),		\
+ 		      rettype (*)(__VA_ARGS__, const typeof(arg)),	\
+ 		      rettype (*)(__VA_ARGS__, typeof(arg)))
++
++
++#endif /* __KERNEL__ */
++
++#define SI_LOAD_SHIFT	16
++struct sysinfo {
++	long uptime;			/* Seconds since boot */
++	unsigned long loads[3];		/* 1, 5, and 15 minute load averages */
++	unsigned long totalram;		/* Total usable main memory size */
++	unsigned long freeram;		/* Available memory size */
++	unsigned long sharedram;	/* Amount of shared memory */
++	unsigned long bufferram;	/* Memory used by buffers */
++	unsigned long totalswap;	/* Total swap space size */
++	unsigned long freeswap;		/* swap space still available */
++	unsigned short procs;		/* Number of current processes */
++	unsigned short pad;		/* explicit padding for m68k */
++	unsigned long totalhigh;	/* Total high memory size */
++	unsigned long freehigh;		/* Available high memory size */
++	unsigned int mem_unit;		/* Memory unit size in bytes */
++	char _f[20-2*sizeof(long)-sizeof(int)];	/* Padding: libc5 uses this.. */
++};
++
+ #endif
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from bunk@kernel.org are
 
 origin.patch
-christoph-has-moved.patch
-repeatable-slab-corruption-with-ltp-msgctl08.patch
-revert-git-pekka.patch
-git-unionfs.patch
-mm-add-a-basic-debugging-framework-for-memory-initialisation.patch
-mm-add-a-basic-debugging-framework-for-memory-initialisation-fix.patch
-mm-verify-the-page-links-and-memory-model.patch
-mm-make-defensive-checks-around-pfn-values-registered-for-memory-usage.patch
-mm-print-out-the-zonelists-on-request-for-manual-verification.patch
-add-a-helper-function-to-test-if-an-object-is-on-the-stack.patch
-mm-move-bootmem-descriptors-definition-to-a-single-place.patch
-mm-fix-free_all_bootmem_core-alignment-check.patch
-mm-normalize-internal-argument-passing-of-bootmem-data.patch
-mm-unexport-__alloc_bootmem_core.patch
+remove-drivers-acorn-char-defkeymap-l7200c.patch
+drm-make-drm_minors_cleanup-static.patch
+if-0-ses_match_host.patch
+git-xtensa.patch
 mm-migratec-should-include-linux-syscallsh.patch
-mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co.patch
-page-flags-record-page-flag-overlays-explicitly.patch
-page-flags-record-page-flag-overlays-explicitly-xen.patch
-slub-record-page-flag-overlays-explicitly.patch
-slob-record-page-flag-overlays-explicitly.patch
-vmallocinfo-add-numa-information.patch
-vmallocinfo-add-numa-information-fix.patch
-memcg-better-migration-handling.patch
-mm-speculative-page-references-hugh-fix3.patch
-vmscan-use-an-indexed-array-for-lru-variables.patch
+mm-vmstatc-proper-externs.patch
+mm-hugetlbc-fix-duplicate-variable.patch
+remove-include-asm-h8300-keyboardh.patch
+remove-include-linux-pm_legacyh.patch
+remove-the-v850-port.patch
+init-do_mountsc-should-include-linux-initrdh.patch
+proper-spawn_ksoftirqd-prototype.patch
+build-kernel-profileo-only-when-requested.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+asm-generic-int-ll64h-always-provide-__su64.patch
+remove-some-more-tipar-bits.patch
+include-linux-kernelh-userspace-header-cleanup.patch
+remove-the-oss-trident-driver.patch
+config_sound_wm97xx-remove-stale-makefile-line.patch
+serial-8250_gscc-add-module_license.patch
+mfd-sm501c-if-0-unused-functions.patch
+video-sis-remove-compat-code.patch
+minix-remove-no_truncate-code.patch
+remove-is_tty.patch
+proper-extern-for-mwave_s_mdd.patch
+if-0-hpet_unregister.patch
+unexport-proc_clear_tty.patch
+move-proc_kmsg_operations-to-fs-proc-internalh.patch
+proper-pidhashmap_init-prototypes.patch
+unexport-uts_sem.patch
+parport-sharec-proper-externs.patch
+tpm_biosc-make-2-structs-static.patch
+make-cgroup_seqfile_release-static.patch
+make-kprobe_blacklist-static.patch
+make-pnp_add_card_id-static.patch
+make-parport_cs_release-static.patch
+make-mm-sparsec-make-a-function-static.patch
 mm-allocpercpuc-make-4-functions-static.patch
+make-mm-memoryc-print_bad_pte-static.patch
+mm-swapfilec-make-code-static.patch
+make-mm-rmapc-anon_vma_cachep-static.patch
+drivers-char-rtcc-make-2-functions-static.patch
+make-init-do_mountsc-root_device_name-static.patch
 reiser4.patch
-page-owner-tracking-leak-detector.patch
 
