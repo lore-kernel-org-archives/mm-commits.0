@@ -1,55 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: - tty-remove-unused-var-real_tty-in-n_tty_ioctl.patch removed from -mm tree
-Date: Mon, 23 Jun 2008 14:04:16 -0700
-Message-ID: <200806232104.m5NL4GkV016264@imap1.linux-foundation.org>
+Subject: - pnp-remove-redundant-pnp_can_configure-check.patch removed from -mm tree
+Date: Mon, 23 Jun 2008 14:03:40 -0700
+Message-ID: <200806232103.m5NL3e2G016208@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54584 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58241 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759365AbYFWVEp (ORCPT
+	by vger.kernel.org with ESMTP id S1758718AbYFWVEb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Jun 2008 17:04:45 -0400
+	Mon, 23 Jun 2008 17:04:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gustavo@las.ic.unicamp.br, alan@redhat.com, mm-commits@vger.kernel.org
+To: bjorn.helgaas@hp.com, abelay@mit.edu, castet.matthieu@free.fr, lenb@kernel.org, perex@perex.cz, rene.herman@gmail.com, shaohua.li@intel.com, tiwai@suse.de, trenn@suse.de, mm-commits@v
 
 
 The patch titled
-     tty: remove unused var real_tty in n_tty_ioctl()
+     pnp: remove redundant pnp_can_configure() check
 has been removed from the -mm tree.  Its filename was
-     tty-remove-unused-var-real_tty-in-n_tty_ioctl.patch
+     pnp-remove-redundant-pnp_can_configure-check.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tty: remove unused var real_tty in n_tty_ioctl()
-From: Gustavo Fernando Padovan <gustavo@las.ic.unicamp.br>
+Subject: pnp: remove redundant pnp_can_configure() check
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-'struct tty_struct *real_tty' is not used in this function, so remove it.
+pnp_assign_resources() is static and the only caller checks
+pnp_can_configure() before calling it, so no need to do it again.
 
-Signed-off-by: Gustavo Fernando Padovan <gustavo@las.ic.unicamp.br>
-Signed-off-by: Alan Cox <alan@redhat.com>
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Acked-by: Rene Herman <rene.herman@gmail.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Adam M Belay <abelay@mit.edu>
+Cc: Li Shaohua <shaohua.li@intel.com>
+Cc: Matthieu Castet <castet.matthieu@free.fr>
+Cc: Thomas Renninger <trenn@suse.de>
+Cc: Jaroslav Kysela <perex@perex.cz>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tty_ioctl.c |    7 -------
- 1 file changed, 7 deletions(-)
+ drivers/pnp/manager.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN drivers/char/tty_ioctl.c~tty-remove-unused-var-real_tty-in-n_tty_ioctl drivers/char/tty_ioctl.c
---- a/drivers/char/tty_ioctl.c~tty-remove-unused-var-real_tty-in-n_tty_ioctl
-+++ a/drivers/char/tty_ioctl.c
-@@ -981,16 +981,9 @@ EXPORT_SYMBOL_GPL(tty_perform_flush);
- int n_tty_ioctl(struct tty_struct *tty, struct file *file,
- 		       unsigned int cmd, unsigned long arg)
- {
--	struct tty_struct *real_tty;
- 	unsigned long flags;
- 	int retval;
+diff -puN drivers/pnp/manager.c~pnp-remove-redundant-pnp_can_configure-check drivers/pnp/manager.c
+--- a/drivers/pnp/manager.c~pnp-remove-redundant-pnp_can_configure-check
++++ a/drivers/pnp/manager.c
+@@ -231,9 +231,6 @@ static int pnp_assign_resources(struct p
+ 	struct pnp_dma *dma;
+ 	int nport = 0, nmem = 0, nirq = 0, ndma = 0;
  
--	if (tty->driver->type == TTY_DRIVER_TYPE_PTY &&
--	    tty->driver->subtype == PTY_TYPE_MASTER)
--		real_tty = tty->link;
--	else
--		real_tty = tty;
+-	if (!pnp_can_configure(dev))
+-		return -ENODEV;
