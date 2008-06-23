@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + coda-remove-coda_fs_old_api.patch added to -mm tree
-Date: Mon, 23 Jun 2008 16:53:16 -0700
-Message-ID: <200806232353.m5NNrGex022760@imap1.linux-foundation.org>
+Subject: + include-asm-ptraceh-userspace-headers-cleanup.patch added to -mm tree
+Date: Mon, 23 Jun 2008 16:55:02 -0700
+Message-ID: <200806232355.m5NNt2pn022820@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48510 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59377 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751810AbYFWXyU (ORCPT
+	by vger.kernel.org with ESMTP id S1752787AbYFWX4K (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Jun 2008 19:54:20 -0400
+	Mon, 23 Jun 2008 19:56:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, jaharkes@cs.cmu.edu
+Cc: bunk@kernel.org, linux-arch@vger.kernel.org, oleg@tv-sign.ru, roland@redhat.com
 
 
 The patch titled
-     coda: remove CODA_FS_OLD_API
+     include/asm/ptrace.h userspace headers cleanup
 has been added to the -mm tree.  Its filename is
-     coda-remove-coda_fs_old_api.patch
+     include-asm-ptraceh-userspace-headers-cleanup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,215 +34,323 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: coda: remove CODA_FS_OLD_API
+Subject: include/asm/ptrace.h userspace headers cleanup
 From: Adrian Bunk <bunk@kernel.org>
 
-While fixing CONFIG_ leakages to the userspace kernel headers I ran into
-CODA_FS_OLD_API.
+This patch contains the following cleanups for the asm/ptrace.h
+userspace headers:
 
-After five years, are there still people using the old API left? 
-Especially considering that you have to choose at compile time which API
-to support in the kernel (and distributions tend to offer the new API for
-some time).
+- include/asm-generic/Kbuild.asm already lists ptrace.h, remove
+  the superfluous listings in the Kbuild files of the following
+  architectures:
+  - cris
+  - frv
+  - powerpc
+  - x86
+- don't expose function prototypes and macros to userspace:
+  - arm
+  - blackfin
+  - cris
+  - mn10300
+  - parisc
+- remove #ifdef CONFIG_'s around #define's:
+  - blackfin
+  - m68knommu
+- sh: AFAIK __SH5__ should work in both kernel and userspace,
+      no need to leak CONFIG_SUPERH64 to userspace
+- xtensa: cosmetical change to remove empty
+            #ifndef __ASSEMBLY__ #else #endif
+          from the userspace headers
 
-Jan: "The old API can definitely go.  Around the time the new
-      interface went in there were some non-Coda userspace file system
-      implementations that took a while longer to convert to the new API,
-      but by now they all switched to the new interface or in some cases
-      to a FUSE-based solution."
+Not changed by this patch is the fact that the following architectures
+have a different struct pt_regs depending on CONFIG_ variables:
+- h8300
+- m68knommu
+- mips
+
+This does not work in userspace.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Acked-by: Jan Harkes <jaharkes@cs.cmu.edu>
+Cc: <linux-arch@vger.kernel.org>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/Kconfig           |   14 -------------
- fs/coda/coda_linux.c |    6 +----
- fs/coda/psdev.c      |    4 ---
- fs/coda/upcall.c     |   15 --------------
- include/linux/coda.h |   43 -----------------------------------------
- 5 files changed, 3 insertions(+), 79 deletions(-)
+ include/asm-arm/ptrace.h           |    6 ++----
+ include/asm-blackfin/ptrace.h      |    6 ++++--
+ include/asm-cris/arch-v10/Kbuild   |    1 -
+ include/asm-cris/arch-v10/ptrace.h |    4 ++++
+ include/asm-cris/arch-v32/Kbuild   |    1 -
+ include/asm-cris/arch-v32/ptrace.h |    4 ++++
+ include/asm-cris/ptrace.h          |    4 +++-
+ include/asm-frv/Kbuild             |    1 -
+ include/asm-m68knommu/ptrace.h     |    2 --
+ include/asm-mn10300/ptrace.h       |    8 ++++++--
+ include/asm-parisc/ptrace.h        |    4 +++-
+ include/asm-powerpc/Kbuild         |    1 -
+ include/asm-sh/ptrace.h            |    2 +-
+ include/asm-x86/Kbuild             |    1 -
+ include/asm-xtensa/ptrace.h        |   10 +++++-----
+ 15 files changed, 32 insertions(+), 23 deletions(-)
 
-diff -puN fs/Kconfig~coda-remove-coda_fs_old_api fs/Kconfig
---- a/fs/Kconfig~coda-remove-coda_fs_old_api
-+++ a/fs/Kconfig
-@@ -2160,20 +2160,6 @@ config CODA_FS
- 	  To compile the coda client support as a module, choose M here: the
- 	  module will be called coda.
- 
--config CODA_FS_OLD_API
--	bool "Use 96-bit Coda file identifiers"
--	depends on CODA_FS
--	help
--	  A new kernel-userspace API had to be introduced for Coda v6.0
--	  to support larger 128-bit file identifiers as needed by the
--	  new realms implementation.
--
--	  However this new API is not backward compatible with older
--	  clients. If you really need to run the old Coda userspace
--	  cache manager then say Y.
--
--	  For most cases you probably want to say N.
--
- config AFS_FS
- 	tristate "Andrew File System support (AFS) (EXPERIMENTAL)"
- 	depends on INET && EXPERIMENTAL
-diff -puN fs/coda/coda_linux.c~coda-remove-coda_fs_old_api fs/coda/coda_linux.c
---- a/fs/coda/coda_linux.c~coda-remove-coda_fs_old_api
-+++ a/fs/coda/coda_linux.c
-@@ -28,11 +28,9 @@ int coda_fake_statfs;
- char * coda_f2s(struct CodaFid *f)
- {
- 	static char s[60];
--#ifdef CONFIG_CODA_FS_OLD_API
-- 	sprintf(s, "(%08x.%08x.%08x)", f->opaque[0], f->opaque[1], f->opaque[2]);
--#else
-+
-  	sprintf(s, "(%08x.%08x.%08x.%08x)", f->opaque[0], f->opaque[1], f->opaque[2], f->opaque[3]);
--#endif
-+
- 	return s;
+diff -puN include/asm-arm/ptrace.h~include-asm-ptraceh-userspace-headers-cleanup include/asm-arm/ptrace.h
+--- a/include/asm-arm/ptrace.h~include-asm-ptraceh-userspace-headers-cleanup
++++ a/include/asm-arm/ptrace.h
+@@ -139,8 +139,6 @@ static inline int valid_user_regs(struct
+ 	return 0;
  }
  
-diff -puN fs/coda/psdev.c~coda-remove-coda_fs_old_api fs/coda/psdev.c
---- a/fs/coda/psdev.c~coda-remove-coda_fs_old_api
-+++ a/fs/coda/psdev.c
-@@ -378,11 +378,7 @@ MODULE_AUTHOR("Jan Harkes, Peter J. Braa
- MODULE_DESCRIPTION("Coda Distributed File System VFS interface");
- MODULE_ALIAS_CHARDEV_MAJOR(CODA_PSDEV_MAJOR);
- MODULE_LICENSE("GPL");
--#ifdef CONFIG_CODA_FS_OLD_API
--MODULE_VERSION("5.3.21");
--#else
- MODULE_VERSION("6.6");
--#endif
+-#endif	/* __KERNEL__ */
+-
+ #define pc_pointer(v) \
+ 	((v) & ~PCMASK)
  
- static int __init init_coda(void)
- {
-diff -puN fs/coda/upcall.c~coda-remove-coda_fs_old_api fs/coda/upcall.c
---- a/fs/coda/upcall.c~coda-remove-coda_fs_old_api
-+++ a/fs/coda/upcall.c
-@@ -52,12 +52,8 @@ static void *alloc_upcall(int opcode, in
-         inp->ih.opcode = opcode;
- 	inp->ih.pid = current->pid;
- 	inp->ih.pgid = task_pgrp_nr(current);
--#ifdef CONFIG_CODA_FS_OLD_API
--	memset(&inp->ih.cred, 0, sizeof(struct coda_cred));
--	inp->ih.cred.cr_fsuid = current->fsuid;
--#else
- 	inp->ih.uid = current->fsuid;
+@@ -153,10 +151,10 @@ extern unsigned long profile_pc(struct p
+ #define profile_pc(regs) instruction_pointer(regs)
+ #endif
+ 
+-#ifdef __KERNEL__
+ #define predicate(x)		((x) & 0xf0000000)
+ #define PREDICATE_ALWAYS	0xe0000000
 -#endif
 +
- 	return (void*)inp;
- }
++#endif /* __KERNEL__ */
  
-@@ -166,20 +162,11 @@ int venus_close(struct super_block *sb, 
- 	union inputArgs *inp;
- 	union outputArgs *outp;
- 	int insize, outsize, error;
--#ifdef CONFIG_CODA_FS_OLD_API
--	struct coda_cred cred = { 0, };
--	cred.cr_fsuid = uid;
+ #endif /* __ASSEMBLY__ */
+ 
+diff -puN include/asm-blackfin/ptrace.h~include-asm-ptraceh-userspace-headers-cleanup include/asm-blackfin/ptrace.h
+--- a/include/asm-blackfin/ptrace.h~include-asm-ptraceh-userspace-headers-cleanup
++++ a/include/asm-blackfin/ptrace.h
+@@ -83,14 +83,14 @@ struct pt_regs {
+ #define PTRACE_GETREGS            12
+ #define PTRACE_SETREGS            13	/* ptrace signal  */
+ 
+-#ifdef CONFIG_BINFMT_ELF_FDPIC
+ #define PTRACE_GETFDPIC           31
+ #define PTRACE_GETFDPIC_EXEC      0
+ #define PTRACE_GETFDPIC_INTERP    1
 -#endif
- 	
- 	insize = SIZE(release);
- 	UPARG(CODA_CLOSE);
- 	
--#ifdef CONFIG_CODA_FS_OLD_API
--	memcpy(&(inp->ih.cred), &cred, sizeof(cred));
--#else
- 	inp->ih.uid = uid;
--#endif
--	
-         inp->coda_close.VFid = *fid;
-         inp->coda_close.flags = flags;
  
-diff -puN include/linux/coda.h~coda-remove-coda_fs_old_api include/linux/coda.h
---- a/include/linux/coda.h~coda-remove-coda_fs_old_api
-+++ a/include/linux/coda.h
-@@ -199,28 +199,6 @@ typedef u_int32_t vuid_t;
- typedef u_int32_t vgid_t;
- #endif /*_VUID_T_ */
+ #define PS_S  (0x0002)
  
--#ifdef CONFIG_CODA_FS_OLD_API
--struct CodaFid {
--	u_int32_t opaque[3];
--};
--
--static __inline__ ino_t  coda_f2i(struct CodaFid *fid)
--{
--	if ( ! fid ) 
--		return 0; 
--	if (fid->opaque[1] == 0xfffffffe || fid->opaque[1] == 0xffffffff)
--		return ((fid->opaque[0] << 20) | (fid->opaque[2] & 0xfffff));
--	else
--		return (fid->opaque[2] + (fid->opaque[1]<<10) + (fid->opaque[0]<<20));
--}
--
--struct coda_cred {
--    vuid_t cr_uid, cr_euid, cr_suid, cr_fsuid; /* Real, efftve, set, fs uid*/
--    vgid_t cr_groupid, cr_egid, cr_sgid, cr_fsgid; /* same for groups */
--};
--
--#else /* not defined(CONFIG_CODA_FS_OLD_API) */
--
- struct CodaFid {
- 	u_int32_t opaque[4];
- };
-@@ -228,8 +206,6 @@ struct CodaFid {
- #define coda_f2i(fid)\
- 	(fid ? (fid->opaque[3] ^ (fid->opaque[2]<<10) ^ (fid->opaque[1]<<20) ^ fid->opaque[0]) : 0)
++#ifdef __KERNEL__
++
+ /* user_mode returns true if only one bit is set in IPEND, other than the
+    master interrupt enable.  */
+ #define user_mode(regs) (!(((regs)->ipend & ~0x10) & (((regs)->ipend & ~0x10) - 1)))
+@@ -98,6 +98,8 @@ struct pt_regs {
+ #define profile_pc(regs) instruction_pointer(regs)
+ extern void show_regs(struct pt_regs *);
  
--#endif
--
- #ifndef _VENUS_VATTR_T_
- #define _VENUS_VATTR_T_
- /*
-@@ -313,15 +289,7 @@ struct coda_statfs {
- 
- #define CIOC_KERNEL_VERSION _IOWR('c', 10, size_t)
- 
--#if 0
--#define CODA_KERNEL_VERSION 0 /* don't care about kernel version number */
--#define CODA_KERNEL_VERSION 1 /* The old venus 4.6 compatible interface */
--#endif
--#ifdef CONFIG_CODA_FS_OLD_API
--#define CODA_KERNEL_VERSION 2 /* venus_lookup got an extra parameter */
--#else
- #define CODA_KERNEL_VERSION 3 /* 128-bit file identifiers */
--#endif
++#endif  /*  __KERNEL__  */
++
+ #endif				/* __ASSEMBLY__ */
  
  /*
-  *        Venus <-> Coda  RPC arguments
-@@ -329,16 +297,9 @@ struct coda_statfs {
- struct coda_in_hdr {
-     u_int32_t opcode;
-     u_int32_t unique;	    /* Keep multiple outstanding msgs distinct */
--#ifdef CONFIG_CODA_FS_OLD_API
--    u_int16_t pid;	    /* Common to all */
--    u_int16_t pgid;	    /* Common to all */
--    u_int16_t sid;          /* Common to all */
--    struct coda_cred cred;  /* Common to all */
--#else
-     pid_t pid;
-     pid_t pgid;
-     vuid_t uid;
--#endif
+diff -puN include/asm-cris/arch-v10/Kbuild~include-asm-ptraceh-userspace-headers-cleanup include/asm-cris/arch-v10/Kbuild
+--- a/include/asm-cris/arch-v10/Kbuild~include-asm-ptraceh-userspace-headers-cleanup
++++ a/include/asm-cris/arch-v10/Kbuild
+@@ -1,4 +1,3 @@
+-header-y += ptrace.h
+ header-y += user.h
+ header-y += svinto.h
+ header-y += sv_addr_ag.h
+diff -puN include/asm-cris/arch-v10/ptrace.h~include-asm-ptraceh-userspace-headers-cleanup include/asm-cris/arch-v10/ptrace.h
+--- a/include/asm-cris/arch-v10/ptrace.h~include-asm-ptraceh-userspace-headers-cleanup
++++ a/include/asm-cris/arch-v10/ptrace.h
+@@ -106,10 +106,14 @@ struct switch_stack {
+ 	unsigned long return_ip; /* ip that _resume will return to */
  };
  
- /* Really important that opcode and unique are 1st two fields! */
-@@ -613,11 +574,7 @@ struct coda_vget_out {
- /* CODA_PURGEUSER is a venus->kernel call */
- struct coda_purgeuser_out {
-     struct coda_out_hdr oh;
--#ifdef CONFIG_CODA_FS_OLD_API
--    struct coda_cred cred;
--#else
-     vuid_t uid;
--#endif
++#ifdef __KERNEL__
++
+ /* bit 8 is user-mode flag */
+ #define user_mode(regs) (((regs)->dccr & 0x100) != 0)
+ #define instruction_pointer(regs) ((regs)->irp)
+ #define profile_pc(regs) instruction_pointer(regs)
+ extern void show_regs(struct pt_regs *);
+ 
++#endif  /*  __KERNEL__  */
++
+ #endif
+diff -puN include/asm-cris/arch-v32/Kbuild~include-asm-ptraceh-userspace-headers-cleanup include/asm-cris/arch-v32/Kbuild
+--- a/include/asm-cris/arch-v32/Kbuild~include-asm-ptraceh-userspace-headers-cleanup
++++ a/include/asm-cris/arch-v32/Kbuild
+@@ -1,3 +1,2 @@
+-header-y += ptrace.h
+ header-y += user.h
+ header-y += cryptocop.h
+diff -puN include/asm-cris/arch-v32/ptrace.h~include-asm-ptraceh-userspace-headers-cleanup include/asm-cris/arch-v32/ptrace.h
+--- a/include/asm-cris/arch-v32/ptrace.h~include-asm-ptraceh-userspace-headers-cleanup
++++ a/include/asm-cris/arch-v32/ptrace.h
+@@ -106,9 +106,13 @@ struct switch_stack {
+ 	unsigned long return_ip; /* ip that _resume will return to */
  };
  
- /* coda_zapfile: */
++#ifdef __KERNEL__
++
+ #define user_mode(regs) (((regs)->ccs & (1 << (U_CCS_BITNR + CCS_SHIFT))) != 0)
+ #define instruction_pointer(regs) ((regs)->erp)
+ extern void show_regs(struct pt_regs *);
+ #define profile_pc(regs) instruction_pointer(regs)
+ 
++#endif  /*  __KERNEL__  */
++
+ #endif
+diff -puN include/asm-cris/ptrace.h~include-asm-ptraceh-userspace-headers-cleanup include/asm-cris/ptrace.h
+--- a/include/asm-cris/ptrace.h~include-asm-ptraceh-userspace-headers-cleanup
++++ a/include/asm-cris/ptrace.h
+@@ -4,11 +4,13 @@
+ #include <asm/arch/ptrace.h>
+ 
+ #ifdef __KERNEL__
++
+ /* Arbitrarily choose the same ptrace numbers as used by the Sparc code. */
+ #define PTRACE_GETREGS            12
+ #define PTRACE_SETREGS            13
+-#endif
+ 
+ #define profile_pc(regs) instruction_pointer(regs)
+ 
++#endif /* __KERNEL__ */
++
+ #endif /* _CRIS_PTRACE_H */
+diff -puN include/asm-frv/Kbuild~include-asm-ptraceh-userspace-headers-cleanup include/asm-frv/Kbuild
+--- a/include/asm-frv/Kbuild~include-asm-ptraceh-userspace-headers-cleanup
++++ a/include/asm-frv/Kbuild
+@@ -3,4 +3,3 @@ include include/asm-generic/Kbuild.asm
+ header-y += registers.h
+ 
+ unifdef-y += termios.h
+-unifdef-y += ptrace.h
+diff -puN include/asm-m68knommu/ptrace.h~include-asm-ptraceh-userspace-headers-cleanup include/asm-m68knommu/ptrace.h
+--- a/include/asm-m68knommu/ptrace.h~include-asm-ptraceh-userspace-headers-cleanup
++++ a/include/asm-m68knommu/ptrace.h
+@@ -68,10 +68,8 @@ struct switch_stack {
+ /* Arbitrarily choose the same ptrace numbers as used by the Sparc code. */
+ #define PTRACE_GETREGS            12
+ #define PTRACE_SETREGS            13
+-#ifdef CONFIG_FPU
+ #define PTRACE_GETFPREGS          14
+ #define PTRACE_SETFPREGS          15
+-#endif
+ 
+ #ifdef __KERNEL__
+ 
+diff -puN include/asm-mn10300/ptrace.h~include-asm-ptraceh-userspace-headers-cleanup include/asm-mn10300/ptrace.h
+--- a/include/asm-mn10300/ptrace.h~include-asm-ptraceh-userspace-headers-cleanup
++++ a/include/asm-mn10300/ptrace.h
+@@ -88,12 +88,16 @@ extern struct pt_regs *__frame; /* curre
+ /* options set using PTRACE_SETOPTIONS */
+ #define PTRACE_O_TRACESYSGOOD     0x00000001
+ 
+-#if defined(__KERNEL__) && !defined(__ASSEMBLY__)
++#if defined(__KERNEL__)
++
++#if !defined(__ASSEMBLY__)
+ #define user_mode(regs)			(((regs)->epsw & EPSW_nSL) == EPSW_nSL)
+ #define instruction_pointer(regs)	((regs)->pc)
+ extern void show_regs(struct pt_regs *);
+-#endif
++#endif  /*  !__ASSEMBLY  */
+ 
+ #define profile_pc(regs) ((regs)->pc)
+ 
++#endif  /*  __KERNEL__  */
++
+ #endif /* _ASM_PTRACE_H */
+diff -puN include/asm-parisc/ptrace.h~include-asm-ptraceh-userspace-headers-cleanup include/asm-parisc/ptrace.h
+--- a/include/asm-parisc/ptrace.h~include-asm-ptraceh-userspace-headers-cleanup
++++ a/include/asm-parisc/ptrace.h
+@@ -33,7 +33,6 @@ struct pt_regs {
+ 	unsigned long ipsw;	/* CR22 */
+ };
+ 
+-#define task_regs(task) ((struct pt_regs *) ((char *)(task) + TASK_REGS))
+ /*
+  * The numbers chosen here are somewhat arbitrary but absolutely MUST
+  * not overlap with any of the number assigned in <linux/ptrace.h>.
+@@ -43,8 +42,11 @@ struct pt_regs {
+  * since we have taken branch traps too)
+  */
+ #define PTRACE_SINGLEBLOCK	12	/* resume execution until next branch */
++
+ #ifdef __KERNEL__
+ 
++#define task_regs(task) ((struct pt_regs *) ((char *)(task) + TASK_REGS))
++
+ /* XXX should we use iaoq[1] or iaoq[0] ? */
+ #define user_mode(regs)			(((regs)->iaoq[0] & 3) ? 1 : 0)
+ #define user_space(regs)		(((regs)->iasq[1] != 0) ? 1 : 0)
+diff -puN include/asm-powerpc/Kbuild~include-asm-ptraceh-userspace-headers-cleanup include/asm-powerpc/Kbuild
+--- a/include/asm-powerpc/Kbuild~include-asm-ptraceh-userspace-headers-cleanup
++++ a/include/asm-powerpc/Kbuild
+@@ -32,7 +32,6 @@ unifdef-y += elf.h
+ unifdef-y += nvram.h
+ unifdef-y += param.h
+ unifdef-y += posix_types.h
+-unifdef-y += ptrace.h
+ unifdef-y += seccomp.h
+ unifdef-y += signal.h
+ unifdef-y += spu_info.h
+diff -puN include/asm-sh/ptrace.h~include-asm-ptraceh-userspace-headers-cleanup include/asm-sh/ptrace.h
+--- a/include/asm-sh/ptrace.h~include-asm-ptraceh-userspace-headers-cleanup
++++ a/include/asm-sh/ptrace.h
+@@ -5,7 +5,7 @@
+  * Copyright (C) 1999, 2000  Niibe Yutaka
+  *
+  */
+-#if defined(__SH5__) || defined(CONFIG_SUPERH64)
++#if defined(__SH5__)
+ struct pt_regs {
+ 	unsigned long long pc;
+ 	unsigned long long sr;
+diff -puN include/asm-x86/Kbuild~include-asm-ptraceh-userspace-headers-cleanup include/asm-x86/Kbuild
+--- a/include/asm-x86/Kbuild~include-asm-ptraceh-userspace-headers-cleanup
++++ a/include/asm-x86/Kbuild
+@@ -19,7 +19,6 @@ unifdef-y += msr.h
+ unifdef-y += mtrr.h
+ unifdef-y += posix_types_32.h
+ unifdef-y += posix_types_64.h
+-unifdef-y += ptrace.h
+ unifdef-y += unistd_32.h
+ unifdef-y += unistd_64.h
+ unifdef-y += vm86.h
+diff -puN include/asm-xtensa/ptrace.h~include-asm-ptraceh-userspace-headers-cleanup include/asm-xtensa/ptrace.h
+--- a/include/asm-xtensa/ptrace.h~include-asm-ptraceh-userspace-headers-cleanup
++++ a/include/asm-xtensa/ptrace.h
+@@ -73,10 +73,10 @@
+ #define PTRACE_GETXTREGS	18
+ #define PTRACE_SETXTREGS	19
+ 
+-#ifndef __ASSEMBLY__
+-
+ #ifdef __KERNEL__
+ 
++#ifndef __ASSEMBLY__
++
+ /*
+  * This struct defines the way the registers are stored on the
+  * kernel stack during a system call or other kernel entry.
+@@ -122,14 +122,14 @@ extern void show_regs(struct pt_regs *);
+ # ifndef CONFIG_SMP
+ #  define profile_pc(regs) instruction_pointer(regs)
+ # endif
+-#endif /* __KERNEL__ */
+ 
+ #else	/* __ASSEMBLY__ */
+ 
+-#ifdef __KERNEL__
+ # include <asm/asm-offsets.h>
+ #define PT_REGS_OFFSET	  (KERNEL_STACK_SIZE - PT_USER_SIZE)
+-#endif
+ 
+ #endif	/* !__ASSEMBLY__ */
++
++#endif  /* __KERNEL__ */
++
+ #endif	/* _XTENSA_PTRACE_H */
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
@@ -272,6 +380,7 @@ mfd-sm501c-if-0-unused-functions.patch
 video-sis-remove-compat-code.patch
 minix-remove-no_truncate-code.patch
 coda-remove-coda_fs_old_api.patch
+include-asm-ptraceh-userspace-headers-cleanup.patch
 remove-is_tty.patch
 proper-extern-for-mwave_s_mdd.patch
 if-0-hpet_unregister.patch
