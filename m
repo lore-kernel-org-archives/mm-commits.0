@@ -1,209 +1,307 @@
 From: akpm@linux-foundation.org
-Subject: - arch-powerpc-platforms-pseries-eeh_driverc-fix-warning.patch removed from -mm tree
-Date: Mon, 23 Jun 2008 14:02:17 -0700
-Message-ID: <200806232102.m5NL2HxW016061@imap1.linux-foundation.org>
+Subject: - cm4000_cs-switch-to-unlocked_ioctl.patch removed from -mm tree
+Date: Mon, 23 Jun 2008 14:02:11 -0700
+Message-ID: <200806232102.m5NL2BFD016053@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52360 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51767 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754345AbYFWVCV (ORCPT
+	by vger.kernel.org with ESMTP id S1759585AbYFWVCp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Jun 2008 17:02:21 -0400
+	Mon, 23 Jun 2008 17:02:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, benh@kernel.crashing.org, paulus@samba.org, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, laforge@gnumonks.org, linux@dominikbrodowski.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arch/powerpc/platforms/pseries/eeh_driver.c: fix warning
+     cm4000_cs: switch to unlocked_ioctl
 has been removed from the -mm tree.  Its filename was
-     arch-powerpc-platforms-pseries-eeh_driverc-fix-warning.patch
+     cm4000_cs-switch-to-unlocked_ioctl.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/powerpc/platforms/pseries/eeh_driver.c: fix warning
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: cm4000_cs: switch to unlocked_ioctl
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Fix this:
+Gack....
 
-/usr/src/devel/arch/powerpc/platforms/pseries/eeh_driver.c: In function 'print_device_node_tree':
-/usr/src/devel/arch/powerpc/platforms/pseries/eeh_driver.c:55: warning: ISO C90 forbids mixed declarations and code
-
-also make that function look like it's part of Linux.  I mean, wtf are you
-guys up to down there??
-
-[akpm@linux-foundation.org: coding-style fixes]
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
+Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Dominik Brodowski <linux@dominikbrodowski.net>
+Cc: Harald Welte <laforge@gnumonks.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/pseries/eeh_driver.c |   11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+ drivers/char/pcmcia/cm4000_cs.c |   92 ++++++++++++++++++------------
+ 1 file changed, 56 insertions(+), 36 deletions(-)
 
-diff -puN arch/powerpc/platforms/pseries/eeh_driver.c~arch-powerpc-platforms-pseries-eeh_driverc-fix-warning arch/powerpc/platforms/pseries/eeh_driver.c
---- a/arch/powerpc/platforms/pseries/eeh_driver.c~arch-powerpc-platforms-pseries-eeh_driverc-fix-warning
-+++ a/arch/powerpc/platforms/pseries/eeh_driver.c
-@@ -42,17 +42,20 @@ static inline const char * pcid_name (st
+diff -puN drivers/char/pcmcia/cm4000_cs.c~cm4000_cs-switch-to-unlocked_ioctl drivers/char/pcmcia/cm4000_cs.c
+--- a/drivers/char/pcmcia/cm4000_cs.c~cm4000_cs-switch-to-unlocked_ioctl
++++ a/drivers/char/pcmcia/cm4000_cs.c
+@@ -33,8 +33,8 @@
+ #include <linux/delay.h>
+ #include <linux/bitrev.h>
+ #include <linux/smp_lock.h>
+-#include <asm/uaccess.h>
+-#include <asm/io.h>
++#include <linux/uaccess.h>
++#include <linux/io.h>
+ 
+ #include <pcmcia/cs_types.h>
+ #include <pcmcia/cs.h>
+@@ -1406,11 +1406,11 @@ static void stop_monitor(struct cm4000_d
+ 	DEBUGP(3, dev, "<- stop_monitor\n");
  }
  
- #ifdef DEBUG
--static void print_device_node_tree (struct pci_dn *pdn, int dent)
-+static void print_device_node_tree(struct pci_dn *pdn, int dent)
+-static int cmm_ioctl(struct inode *inode, struct file *filp, unsigned int cmd,
+-		     unsigned long arg)
++static long cmm_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
  {
- 	int i;
--	if (!pdn) return;
--	for (i=0;i<dent; i++)
-+	struct device_node *pc;
-+
-+	if (!pdn)
-+		return;
-+	for (i = 0; i < dent; i++)
- 		printk(" ");
- 	printk("dn=%s mode=%x \tcfg_addr=%x pe_addr=%x \tfull=%s\n",
- 		pdn->node->name, pdn->eeh_mode, pdn->eeh_config_addr,
- 		pdn->eeh_pe_config_addr, pdn->node->full_name);
- 	dent += 3;
--	struct device_node *pc = pdn->node->child;
-+	pc = pdn->node->child;
- 	while (pc) {
- 		print_device_node_tree(PCI_DN(pc), dent);
- 		pc = pc->sibling;
+ 	struct cm4000_dev *dev = filp->private_data;
+ 	unsigned int iobase = dev->p_dev->io.BasePort1;
++	struct inode *inode = filp->f_path.dentry->d_inode;
+ 	struct pcmcia_device *link;
+ 	int size;
+ 	int rc;
+@@ -1427,38 +1427,42 @@ static int cmm_ioctl(struct inode *inode
+ 	DEBUGP(3, dev, "cmm_ioctl(device=%d.%d) %s\n", imajor(inode),
+ 	       iminor(inode), ioctl_names[_IOC_NR(cmd)]);
+ 
++	lock_kernel();
++	rc = -ENODEV;
+ 	link = dev_table[iminor(inode)];
+ 	if (!pcmcia_dev_present(link)) {
+ 		DEBUGP(4, dev, "DEV_OK false\n");
+-		return -ENODEV;
++		goto out;
+ 	}
+ 
+ 	if (test_bit(IS_CMM_ABSENT, &dev->flags)) {
+ 		DEBUGP(4, dev, "CMM_ABSENT flag set\n");
+-		return -ENODEV;
++		goto out;
+ 	}
++	rc = EINVAL;
+ 
+ 	if (_IOC_TYPE(cmd) != CM_IOC_MAGIC) {
+ 		DEBUGP(4, dev, "ioctype mismatch\n");
+-		return -EINVAL;
++		goto out;
+ 	}
+ 	if (_IOC_NR(cmd) > CM_IOC_MAXNR) {
+ 		DEBUGP(4, dev, "iocnr mismatch\n");
+-		return -EINVAL;
++		goto out;
+ 	}
+ 	size = _IOC_SIZE(cmd);
+-	rc = 0;
++	rc = -EFAULT;
+ 	DEBUGP(4, dev, "iocdir=%.4x iocr=%.4x iocw=%.4x iocsize=%d cmd=%.4x\n",
+ 	      _IOC_DIR(cmd), _IOC_READ, _IOC_WRITE, size, cmd);
+ 
+ 	if (_IOC_DIR(cmd) & _IOC_READ) {
+ 		if (!access_ok(VERIFY_WRITE, argp, size))
+-			return -EFAULT;
++			goto out;
+ 	}
+ 	if (_IOC_DIR(cmd) & _IOC_WRITE) {
+ 		if (!access_ok(VERIFY_READ, argp, size))
+-			return -EFAULT;
++			goto out;
+ 	}
++	rc = 0;
+ 
+ 	switch (cmd) {
+ 	case CM_IOCGSTATUS:
+@@ -1478,9 +1482,9 @@ static int cmm_ioctl(struct inode *inode
+ 			if (test_bit(IS_BAD_CARD, &dev->flags))
+ 				status |= CM_BAD_CARD;
+ 			if (copy_to_user(argp, &status, sizeof(int)))
+-				return -EFAULT;
++				rc = -EFAULT;
+ 		}
+-		return 0;
++		break;
+ 	case CM_IOCGATR:
+ 		DEBUGP(4, dev, "... in CM_IOCGATR\n");
+ 		{
+@@ -1493,25 +1497,29 @@ static int cmm_ioctl(struct inode *inode
+ 			      || (test_bit(IS_ATR_PRESENT, (void *)&dev->flags)
+ 				  != 0)))) {
+ 				if (filp->f_flags & O_NONBLOCK)
+-					return -EAGAIN;
+-				return -ERESTARTSYS;
++					rc = -EAGAIN;
++				else
++					rc = -ERESTARTSYS;
++				break;
+ 			}
+ 
++			rc = -EFAULT;
+ 			if (test_bit(IS_ATR_VALID, &dev->flags) == 0) {
+ 				tmp = -1;
+ 				if (copy_to_user(&(atreq->atr_len), &tmp,
+ 						 sizeof(int)))
+-					return -EFAULT;
++					break;
+ 			} else {
+ 				if (copy_to_user(atreq->atr, dev->atr,
+ 						 dev->atr_len))
+-					return -EFAULT;
++					break;
+ 
+ 				tmp = dev->atr_len;
+ 				if (copy_to_user(&(atreq->atr_len), &tmp, sizeof(int)))
+-					return -EFAULT;
++					break;
+ 			}
+-			return 0;
++			rc = 0;
++			break;
+ 		}
+ 	case CM_IOCARDOFF:
+ 
+@@ -1539,8 +1547,10 @@ static int cmm_ioctl(struct inode *inode
+ 			      || (test_and_set_bit(LOCK_IO, (void *)&dev->flags)
+ 				  == 0)))) {
+ 				if (filp->f_flags & O_NONBLOCK)
+-					return -EAGAIN;
+-				return -ERESTARTSYS;
++					rc = -EAGAIN;
++				else
++					rc = -ERESTARTSYS;
++				break;
+ 			}
+ 			/* Set Flags0 = 0x42 */
+ 			DEBUGP(4, dev, "Set Flags0=0x42 \n");
+@@ -1555,8 +1565,10 @@ static int cmm_ioctl(struct inode *inode
+ 			      || (test_bit(IS_ATR_VALID, (void *)&dev->flags) !=
+ 				  0)))) {
+ 				if (filp->f_flags & O_NONBLOCK)
+-					return -EAGAIN;
+-				return -ERESTARTSYS;
++					rc = -EAGAIN;
++				else
++					rc = -ERESTARTSYS;
++				break;
+ 			}
+ 		}
+ 		/* release lock */
+@@ -1569,8 +1581,10 @@ static int cmm_ioctl(struct inode *inode
+ 			struct ptsreq krnptsreq;
+ 
+ 			if (copy_from_user(&krnptsreq, argp,
+-					   sizeof(struct ptsreq)))
+-				return -EFAULT;
++					   sizeof(struct ptsreq))) {
++				rc = -EFAULT;
++				break;
++			}
+ 
+ 			rc = 0;
+ 			DEBUGP(4, dev, "... in CM_IOCSPTS\n");
+@@ -1581,8 +1595,10 @@ static int cmm_ioctl(struct inode *inode
+ 			      || (test_bit(IS_ATR_PRESENT, (void *)&dev->flags)
+ 				  != 0)))) {
+ 				if (filp->f_flags & O_NONBLOCK)
+-					return -EAGAIN;
+-				return -ERESTARTSYS;
++					rc = -EAGAIN;
++				else
++					rc = -ERESTARTSYS;
++				break;
+ 			}
+ 			/* get IO lock */
+ 			if (wait_event_interruptible
+@@ -1591,8 +1607,10 @@ static int cmm_ioctl(struct inode *inode
+ 			      || (test_and_set_bit(LOCK_IO, (void *)&dev->flags)
+ 				  == 0)))) {
+ 				if (filp->f_flags & O_NONBLOCK)
+-					return -EAGAIN;
+-				return -ERESTARTSYS;
++					rc = -EAGAIN;
++				else
++					rc = -ERESTARTSYS;
++				break;
+ 			}
+ 
+ 			if ((rc = set_protocol(dev, &krnptsreq)) != 0) {
+@@ -1605,7 +1623,7 @@ static int cmm_ioctl(struct inode *inode
+ 			wake_up_interruptible(&dev->ioq);
+ 
+ 		}
+-		return rc;
++		break;
+ #ifdef PCMCIA_DEBUG
+ 	case CM_IOSDBGLVL:	/* set debug log level */
+ 		{
+@@ -1613,18 +1631,20 @@ static int cmm_ioctl(struct inode *inode
+ 
+ 			old_pc_debug = pc_debug;
+ 			if (copy_from_user(&pc_debug, argp, sizeof(int)))
+-				return -EFAULT;
+-
+-			if (old_pc_debug != pc_debug)
++				rc = -EFAULT;
++			else if (old_pc_debug != pc_debug)
+ 				DEBUGP(0, dev, "Changed debug log level "
+ 				       "to %i\n", pc_debug);
+ 		}
+-		return rc;
++		break;
+ #endif
+ 	default:
+ 		DEBUGP(4, dev, "... in default (unknown IOCTL code)\n");
+-		return -EINVAL;
++		rc = -ENOTTY;
+ 	}
++out:
++	unlock_kernel();
++	return rc;
+ }
+ 
+ static int cmm_open(struct inode *inode, struct file *filp)
+@@ -1909,7 +1929,7 @@ static const struct file_operations cm40
+ 	.owner	= THIS_MODULE,
+ 	.read	= cmm_read,
+ 	.write	= cmm_write,
+-	.ioctl	= cmm_ioctl,
++	.unlocked_ioctl	= cmm_ioctl,
+ 	.open	= cmm_open,
+ 	.release= cmm_close,
+ };
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
 linux-next.patch
-next-remove-localversion.patch
-revert-git-pekka.patch
-fix-kobject-fix-kobject_rename-and-config_sysfs.patch
-kvm-is-busted-on-ia64.patch
-drivers-mtd-nand-nandsimc-needs-div64h.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-git-jg-misc-git-rejects.patch
-drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-mmc-sd-host-driver-for-ricoh-bay1controllers.patch
-drivers-mtd-devices-block2mtdc-suppress-warning.patch
-sundance-set-carrier-status-on-link-change-events.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix-fix.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-scsi-misc-fix-scsi_dh-build-errors.patch
-drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
-s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
+add-time_is_after_jiffies-and-others-which-compare-with-jiffies.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
+paride-push-ioctl-down-into-driver.patch
+pktcdvd-push-bkl-down-into-driver.patch
 pktcdvd-push-bkl-down-into-driver-fix.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-git-logfs-fixup.patch
-watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-verify-the-page-links-and-memory-model.patch
-mspec-convert-nopfn-to-fault-fix.patch
-page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
-kill-generic_file_direct_io-checkpatch-fixes.patch
-use-generic_access_phys-for-dev-mem-mappings-fix.patch
-spufs-use-the-new-vm_ops-access-fix.patch
-fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
-page-flags-record-page-flag-overlays-explicitly-xen.patch
-mapping_set_error-add-unlikely.patch
-huge-page-private-reservation-review-cleanups-fix.patch
-sync_file_range_write-may-and-will-block-document-that-fix.patch
-vmallocinfo-add-numa-information-fix.patch
-hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
-hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
-hugetlb-override-default-huge-page-size-ia64-build.patch
-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-bootmem-add-debugging-framework-fix.patch
-bootmem-clean-up-free_all_bootmem_core-fix.patch
-bootmem-free-reserve-helpers-fix.patch
-revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
-swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
-split-the-typecheck-macros-out-of-include-linux-kernelh.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
-remove-apparently-unused-fd1772h-header-file.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
-build-kernel-profileo-only-when-requested-cleanups.patch
-fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
-block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
-rename-warn-to-warning-to-clear-the-namespace-fix.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
-flag-parameters-paccept-fix.patch
-flag-parameters-paccept-sys_ni.patch
-flag-parameters-anon_inode_getfd-extension-fix.patch
-flag-parameters-signalfd-fix.patch
-flag-parameters-eventfd-fix.patch
-flag-parameters-inotify_init-fix.patch
-flag-parameters-check-magic-constants-alpha.patch
-oprofile-multiplexing-checkpatch-fixes.patch
-gpio-gpio-driver-for-max7301-spi-gpio-expander-checkpatch-fixes.patch
-drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
-atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
-reiserfs-convert-j_flush_sem-to-mutex.patch
-reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
-memcg-remove-refcnt-from-page_cgroup-fix-2.patch
-jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup.patch
-ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
-getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
-tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
-memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
-memstick-use-fully-asynchronous-request-processing-fix.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-mm-introduce-get_user_pages_fast-fix.patch
-mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-fix.patch
-x86-lockless-get_user_pages_fast-fix-2.patch
-x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
-x86-lockless-get_user_pages_fast-fix-warning.patch
-vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
-define-page_file_cache-function-fix.patch
-unevictable-lru-infrastructure-fix.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-3.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
-vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+dac960-push-down-bkl.patch
+pcwd-a-couple-of-watchdogs-escaped-conversion.patch
+8250-fix-break-handling-for-intel-82571.patch
+serial-z85c30-avoid-a-hang-at-console-switch-over.patch
+serial-dz11-avoid-a-hang-at-console-switch-over.patch
+spidev-bkl-removal.patch
+vt-hold-console_sem-across-sysfs-operations.patch
+rtc-push-the-bkl-down-into-the-driver-ioctl-method.patch
+rtc-push-the-bkl-down-into-the-driver-ioctl-method-fix.patch
+pnp-set-the-pnp_card-dma_mask-for-use-by-isapnp-cards.patch
+isa-set-24-bit-dma_mask-for-isa-devices.patch
+efirtc-push-down-the-bkl.patch
+ip2-push-bkl-down-for-the-firmware-interface.patch
+mwave-ioctl-bkl-pushdown.patch
+rio-push-down-the-bkl-into-the-firmware-ioctl-handler.patch
+sx-push-bkl-down-into-the-firmware-ioctl-handler.patch
+ixj-push-bkl-into-driver-and-wrap-ioctls.patch
+ppdev-wrap-ioctl-handler-in-driver-and-push-lock-down.patch
+ds1302-push-down-the-bkl-into-the-driver-ioctl-code.patch
+dsp56k-bkl-pushdown.patch
 
