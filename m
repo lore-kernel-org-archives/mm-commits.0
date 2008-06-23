@@ -1,60 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch removed from -mm tree
-Date: Mon, 23 Jun 2008 14:02:25 -0700
-Message-ID: <200806232102.m5NL2Pk8016073@imap1.linux-foundation.org>
+Subject: - lguest-use-cpu-capability-accessors.patch removed from -mm tree
+Date: Mon, 23 Jun 2008 14:02:00 -0700
+Message-ID: <200806232102.m5NL20ud016030@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46460 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32866 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759412AbYFWVC1 (ORCPT
+	by vger.kernel.org with ESMTP id S1757948AbYFWVCb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Jun 2008 17:02:27 -0400
+	Mon, 23 Jun 2008 17:02:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, greg@kroah.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, andrea@qumranet.com, mingo@elte.hu, rusty@rustcorp.com.au, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/usb/host/isp1760-hcd.c: processor flags have type `unsigned long'
+     lguest: use cpu capability accessors
 has been removed from the -mm tree.  Its filename was
-     drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
+     lguest-use-cpu-capability-accessors.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/usb/host/isp1760-hcd.c: processor flags have type `unsigned long'
+Subject: lguest: use cpu capability accessors
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Greg KH <greg@kroah.com>
+To support my little make-x86-bitops-use-proper-typechecking projectlet.
+
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Andrea Arcangeli <andrea@qumranet.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/host/isp1760-hcd.c |    4 ++--
+ drivers/lguest/x86/core.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/usb/host/isp1760-hcd.c~drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long drivers/usb/host/isp1760-hcd.c
---- a/drivers/usb/host/isp1760-hcd.c~drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long
-+++ a/drivers/usb/host/isp1760-hcd.c
-@@ -1592,7 +1592,7 @@ static int isp1760_urb_dequeue(struct us
- 	struct inter_packet_info *ints;
- 	u32 i;
- 	u32 reg_base, or_reg, skip_reg;
--	int flags;
-+	unsigned long flags;
- 	struct ptd ptd;
- 
- 	switch (usb_pipetype(urb->pipe)) {
-@@ -2061,7 +2061,7 @@ static void isp1760_endpoint_disable(str
- 	struct isp1760_hcd *priv = hcd_to_priv(usb_hcd);
- 	struct isp1760_qh *qh;
- 	struct isp1760_qtd *qtd;
--	u32 flags;
-+	unsigned long flags;
- 
- 	spin_lock_irqsave(&priv->lock, flags);
- 	qh = ep->hcpriv;
+diff -puN drivers/lguest/x86/core.c~lguest-use-cpu-capability-accessors drivers/lguest/x86/core.c
+--- a/drivers/lguest/x86/core.c~lguest-use-cpu-capability-accessors
++++ a/drivers/lguest/x86/core.c
+@@ -477,7 +477,7 @@ void __init lguest_arch_host_init(void)
+ 		 * bit on its CPU, depending on the argument (0 == unset). */
+ 		on_each_cpu(adjust_pge, (void *)0, 0, 1);
+ 		/* Turn off the feature in the global feature set. */
+-		clear_bit(X86_FEATURE_PGE, boot_cpu_data.x86_capability);
++		clear_cpu_cap(&boot_cpu_data, X86_FEATURE_PGE);
+ 	}
+ 	put_online_cpus();
+ };
+@@ -488,7 +488,7 @@ void __exit lguest_arch_host_fini(void)
+ 	/* If we had PGE before we started, turn it back on now. */
+ 	get_online_cpus();
+ 	if (cpu_had_pge) {
+-		set_bit(X86_FEATURE_PGE, boot_cpu_data.x86_capability);
++		set_cpu_cap(&boot_cpu_data, X86_FEATURE_PGE);
+ 		/* adjust_pge's argument "1" means set PGE. */
+ 		on_each_cpu(adjust_pge, (void *)1, 0, 1);
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
