@@ -1,25 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: - coredump-zap_threads-must-skip-kernel-threads.patch removed from -mm tree
-Date: Mon, 23 Jun 2008 13:47:12 -0700
-Message-ID: <200806232047.m5NKlCdY015391@imap1.linux-foundation.org>
+Subject: + coredump-zap_threads-must-skip-kernel-threads.patch added to -mm tree
+Date: Mon, 23 Jun 2008 13:53:12 -0700
+Message-ID: <200806232053.m5NKrCaR015628@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38678 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50326 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755395AbYFWUsA (ORCPT
+	by vger.kernel.org with ESMTP id S1751229AbYFWUx7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Jun 2008 16:48:00 -0400
+	Mon, 23 Jun 2008 16:53:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, roland@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: oleg@tv-sign.ru, roland@redhat.com
 
 
 The patch titled
      coredump: zap_threads() must skip kernel threads
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      coredump-zap_threads-must-skip-kernel-threads.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -44,7 +54,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 diff -puN fs/exec.c~coredump-zap_threads-must-skip-kernel-threads fs/exec.c
 --- a/fs/exec.c~coredump-zap_threads-must-skip-kernel-threads
 +++ a/fs/exec.c
-@@ -1546,11 +1546,12 @@ static inline int zap_threads(struct tas
+@@ -1547,11 +1547,12 @@ static inline int zap_threads(struct tas
  	for_each_process(g) {
  		if (g == tsk->group_leader)
  			continue;
@@ -64,6 +74,8 @@ _
 Patches currently in -mm which might be from oleg@tv-sign.ru are
 
 linux-next.patch
+introduce-pf_kthread-flag.patch
+kill-pf_borrowed_mm-in-favour-of-pf_kthread.patch
 coredump-zap_threads-must-skip-kernel-threads.patch
 posix-timers-timer_delete-remove-the-bogus-it_process-=-null-check.patch
 posix-timers-release_posix_timer-kill-the-bogus-put_task_struct-it_process.patch
