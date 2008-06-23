@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - pnp-remove-pnp_resourceindex.patch removed from -mm tree
-Date: Mon, 23 Jun 2008 14:02:50 -0700
-Message-ID: <200806232102.m5NL2o5v016110@imap1.linux-foundation.org>
+Subject: - pnp-add-pnp_possible_config-can-a-device-could-be-configured-this-way.patch removed from -mm tree
+Date: Mon, 23 Jun 2008 14:03:11 -0700
+Message-ID: <200806232103.m5NL3BZP016142@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41789 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44151 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757503AbYFWVDx (ORCPT
+	by vger.kernel.org with ESMTP id S1758007AbYFWVDx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 23 Jun 2008 17:03:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,27 +15,26 @@ To: bjorn.helgaas@hp.com, abelay@mit.edu, castet.matthieu@free.fr, lenb@kernel.o
 
 
 The patch titled
-     pnp: remove pnp_resource.index
+     pnp: add pnp_possible_config() -- can a device could be configured this way?
 has been removed from the -mm tree.  Its filename was
-     pnp-remove-pnp_resourceindex.patch
+     pnp-add-pnp_possible_config-can-a-device-could-be-configured-this-way.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pnp: remove pnp_resource.index
+Subject: pnp: add pnp_possible_config() -- can a device could be configured this way?
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-We used pnp_resource.index to keep track of which ISAPNP configuration
-register a resource should be written to.  We needed this only to handle the
-case where a register is disabled but a subsequent register in the same set is
-enabled.
+As part of a heuristic to identify modem devices, 8250_pnp.c checks to see
+whether a device can be configured at any of the legacy COM port
+addresses.
 
-Rather than explicitly maintaining the pnp_resource.index, this patch adds a
-resource every time we read an ISAPNP configuration register and marks the
-resource as IORESOURCE_DISABLED when appropriate.  This makes the position in
-the pnp_resource_table always correspond to the config register index.
+This patch moves the code that traverses the PNP "possible resource
+options" from 8250_pnp.c to the PNP subsystem.  This encapsulation is
+important because a future patch will change the implementation of those
+resource options.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Cc: Len Brown <lenb@kernel.org>
@@ -43,268 +42,151 @@ Cc: Adam M Belay <abelay@mit.edu>
 Cc: Li Shaohua <shaohua.li@intel.com>
 Cc: Matthieu Castet <castet.matthieu@free.fr>
 Cc: Thomas Renninger <trenn@suse.de>
-Acked-by: Rene Herman <rene.herman@keyaccess.nl>
+Cc: Rene Herman <rene.herman@keyaccess.nl>
 Cc: Jaroslav Kysela <perex@perex.cz>
 Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/base.h        |    1 
- drivers/pnp/interface.c   |   20 +-------
- drivers/pnp/isapnp/core.c |   84 ++++++++++++------------------------
- drivers/pnp/manager.c     |    4 -
- 4 files changed, 33 insertions(+), 76 deletions(-)
+ drivers/pnp/resource.c    |   61 ++++++++++++++++++++++++++++++++++++
+ drivers/serial/8250_pnp.c |   24 ++++----------
+ include/linux/pnp.h       |    3 +
+ 3 files changed, 71 insertions(+), 17 deletions(-)
 
-diff -puN drivers/pnp/base.h~pnp-remove-pnp_resourceindex drivers/pnp/base.h
---- a/drivers/pnp/base.h~pnp-remove-pnp_resourceindex
-+++ a/drivers/pnp/base.h
-@@ -57,7 +57,6 @@ struct pnp_resource *pnp_get_pnp_resourc
+diff -puN drivers/pnp/resource.c~pnp-add-pnp_possible_config-can-a-device-could-be-configured-this-way drivers/pnp/resource.c
+--- a/drivers/pnp/resource.c~pnp-add-pnp_possible_config-can-a-device-could-be-configured-this-way
++++ a/drivers/pnp/resource.c
+@@ -624,6 +624,67 @@ struct pnp_resource *pnp_add_mem_resourc
+ 	return pnp_res;
+ }
  
- struct pnp_resource {
- 	struct resource res;
--	unsigned int index;		/* ISAPNP config register index */
- };
- 
- struct pnp_resource_table {
-diff -puN drivers/pnp/interface.c~pnp-remove-pnp_resourceindex drivers/pnp/interface.c
---- a/drivers/pnp/interface.c~pnp-remove-pnp_resourceindex
-+++ a/drivers/pnp/interface.c
-@@ -320,7 +320,6 @@ pnp_set_current_resources(struct device 
- 			  const char *ubuf, size_t count)
++static int pnp_possible_option(struct pnp_option *option, int type,
++			       resource_size_t start, resource_size_t size)
++{
++	struct pnp_option *tmp;
++	struct pnp_port *port;
++	struct pnp_mem *mem;
++	struct pnp_irq *irq;
++	struct pnp_dma *dma;
++
++	if (!option)
++		return 0;
++
++	for (tmp = option; tmp; tmp = tmp->next) {
++		switch (type) {
++		case IORESOURCE_IO:
++			for (port = tmp->port; port; port = port->next) {
++				if (port->min == start && port->size == size)
++					return 1;
++			}
++			break;
++		case IORESOURCE_MEM:
++			for (mem = tmp->mem; mem; mem = mem->next) {
++				if (mem->min == start && mem->size == size)
++					return 1;
++			}
++			break;
++		case IORESOURCE_IRQ:
++			for (irq = tmp->irq; irq; irq = irq->next) {
++				if (start < PNP_IRQ_NR &&
++				    test_bit(start, irq->map))
++					return 1;
++			}
++			break;
++		case IORESOURCE_DMA:
++			for (dma = tmp->dma; dma; dma = dma->next) {
++				if (dma->map & (1 << start))
++					return 1;
++			}
++			break;
++		}
++	}
++
++	return 0;
++}
++
++/*
++ * Determine whether the specified resource is a possible configuration
++ * for this device.
++ */
++int pnp_possible_config(struct pnp_dev *dev, int type, resource_size_t start,
++			resource_size_t size)
++{
++	if (pnp_possible_option(dev->independent, type, start, size))
++		return 1;
++
++	if (pnp_possible_option(dev->dependent, type, start, size))
++		return 1;
++
++	return 0;
++}
++
+ /* format is: pnp_reserve_irq=irq1[,irq2] .... */
+ static int __init pnp_setup_reserve_irq(char *str)
  {
- 	struct pnp_dev *dev = to_pnp_dev(dmdev);
--	struct pnp_resource *pnp_res;
- 	char *buf = (void *)ubuf;
- 	int retval = 0;
- 	resource_size_t start, end;
-@@ -368,7 +367,6 @@ pnp_set_current_resources(struct device 
- 		goto done;
- 	}
- 	if (!strnicmp(buf, "set", 3)) {
--		int nport = 0, nmem = 0, nirq = 0, ndma = 0;
- 		if (dev->active)
- 			goto done;
- 		buf += 3;
-@@ -391,10 +389,7 @@ pnp_set_current_resources(struct device 
- 					end = simple_strtoul(buf, &buf, 0);
- 				} else
- 					end = start;
--				pnp_res = pnp_add_io_resource(dev, start, end,
--							      0);
--				if (pnp_res)
--					pnp_res->index = nport++;
-+				pnp_add_io_resource(dev, start, end, 0);
- 				continue;
- 			}
- 			if (!strnicmp(buf, "mem", 3)) {
-@@ -411,10 +406,7 @@ pnp_set_current_resources(struct device 
- 					end = simple_strtoul(buf, &buf, 0);
- 				} else
- 					end = start;
--				pnp_res = pnp_add_mem_resource(dev, start, end,
--							       0);
--				if (pnp_res)
--					pnp_res->index = nmem++;
-+				pnp_add_mem_resource(dev, start, end, 0);
- 				continue;
- 			}
- 			if (!strnicmp(buf, "irq", 3)) {
-@@ -422,9 +414,7 @@ pnp_set_current_resources(struct device 
- 				while (isspace(*buf))
- 					++buf;
- 				start = simple_strtoul(buf, &buf, 0);
--				pnp_res = pnp_add_irq_resource(dev, start, 0);
--				if (pnp_res)
--					pnp_res->index = nirq++;
-+				pnp_add_irq_resource(dev, start, 0);
- 				continue;
- 			}
- 			if (!strnicmp(buf, "dma", 3)) {
-@@ -432,9 +422,7 @@ pnp_set_current_resources(struct device 
- 				while (isspace(*buf))
- 					++buf;
- 				start = simple_strtoul(buf, &buf, 0);
--				pnp_res = pnp_add_dma_resource(dev, start, 0);
--				if (pnp_res)
--					pnp_res->index = ndma++;
-+				pnp_add_dma_resource(dev, start, 0);
- 				continue;
- 			}
- 			break;
-diff -puN drivers/pnp/isapnp/core.c~pnp-remove-pnp_resourceindex drivers/pnp/isapnp/core.c
---- a/drivers/pnp/isapnp/core.c~pnp-remove-pnp_resourceindex
-+++ a/drivers/pnp/isapnp/core.c
-@@ -928,7 +928,6 @@ EXPORT_SYMBOL(isapnp_write_byte);
+diff -puN drivers/serial/8250_pnp.c~pnp-add-pnp_possible_config-can-a-device-could-be-configured-this-way drivers/serial/8250_pnp.c
+--- a/drivers/serial/8250_pnp.c~pnp-add-pnp_possible_config-can-a-device-could-be-configured-this-way
++++ a/drivers/serial/8250_pnp.c
+@@ -383,21 +383,14 @@ static int __devinit check_name(char *na
+ 	return 0;
+ }
  
- static int isapnp_get_resources(struct pnp_dev *dev)
+-static int __devinit check_resources(struct pnp_option *option)
++static int __devinit check_resources(struct pnp_dev *dev)
  {
--	struct pnp_resource *pnp_res;
- 	int i, ret;
+-	struct pnp_option *tmp;
+-	if (!option)
+-		return 0;
++	resource_size_t base[] = {0x2f8, 0x3f8, 0x2e8, 0x3e8};
++	int i;
  
- 	dev_dbg(&dev->dev, "get resources\n");
-@@ -940,35 +939,23 @@ static int isapnp_get_resources(struct p
- 
- 	for (i = 0; i < ISAPNP_MAX_PORT; i++) {
- 		ret = isapnp_read_word(ISAPNP_CFG_PORT + (i << 1));
--		if (ret) {
--			pnp_res = pnp_add_io_resource(dev, ret, ret, 0);
--			if (pnp_res)
--				pnp_res->index = i;
--		}
-+		pnp_add_io_resource(dev, ret, ret,
-+				    ret == 0 ? IORESOURCE_DISABLED : 0);
- 	}
- 	for (i = 0; i < ISAPNP_MAX_MEM; i++) {
- 		ret = isapnp_read_word(ISAPNP_CFG_MEM + (i << 3)) << 8;
--		if (ret) {
--			pnp_res = pnp_add_mem_resource(dev, ret, ret, 0);
--			if (pnp_res)
--				pnp_res->index = i;
--		}
-+		pnp_add_mem_resource(dev, ret, ret,
-+				     ret == 0 ? IORESOURCE_DISABLED : 0);
- 	}
- 	for (i = 0; i < ISAPNP_MAX_IRQ; i++) {
- 		ret = isapnp_read_word(ISAPNP_CFG_IRQ + (i << 1)) >> 8;
--		if (ret) {
--			pnp_res = pnp_add_irq_resource(dev, ret, 0);
--			if (pnp_res)
--				pnp_res->index = i;
--		}
-+		pnp_add_irq_resource(dev, ret,
-+				     ret == 0 ? IORESOURCE_DISABLED : 0);
- 	}
- 	for (i = 0; i < ISAPNP_MAX_DMA; i++) {
- 		ret = isapnp_read_byte(ISAPNP_CFG_DMA + i);
--		if (ret != 4) {
--			pnp_res = pnp_add_dma_resource(dev, ret, 0);
--			if  (pnp_res)
--				pnp_res->index = i;
--		}
-+		pnp_add_dma_resource(dev, ret,
-+				     ret == 4 ? IORESOURCE_DISABLED : 0);
+-	for (tmp = option; tmp; tmp = tmp->next) {
+-		struct pnp_port *port;
+-		for (port = tmp->port; port; port = port->next)
+-			if ((port->size == 8) &&
+-			    ((port->min == 0x2f8) ||
+-			     (port->min == 0x3f8) ||
+-			     (port->min == 0x2e8) ||
+-			     (port->min == 0x3e8)))
+-				return 1;
++	for (i = 0; i < ARRAY_SIZE(base); i++) {
++		if (pnp_possible_config(dev, IORESOURCE_IO, base[i], 8))
++			return 1;
  	}
  
- __end:
-@@ -978,62 +965,49 @@ __end:
+ 	return 0;
+@@ -420,10 +413,7 @@ static int __devinit serial_pnp_guess_bo
+ 		(dev->card && check_name(dev->card->name))))
+ 			return -ENODEV;
  
- static int isapnp_set_resources(struct pnp_dev *dev)
- {
--	struct pnp_resource *pnp_res;
- 	struct resource *res;
--	int tmp, index;
-+	int tmp;
+-	if (check_resources(dev->independent))
+-		return 0;
+-
+-	if (check_resources(dev->dependent))
++	if (check_resources(dev))
+ 		return 0;
  
- 	dev_dbg(&dev->dev, "set resources\n");
- 	isapnp_cfg_begin(dev->card->number, dev->number);
- 	dev->active = 1;
- 	for (tmp = 0; tmp < ISAPNP_MAX_PORT; tmp++) {
--		pnp_res = pnp_get_pnp_resource(dev, IORESOURCE_IO, tmp);
--		if (!pnp_res)
--			continue;
--		res = &pnp_res->res;
--		if (pnp_resource_valid(res)) {
--			index = pnp_res->index;
-+		res = pnp_get_resource(dev, IORESOURCE_IO, tmp);
-+		if (res && pnp_resource_valid(res) &&
-+		    !(res->flags & IORESOURCE_DISABLED)) {
- 			dev_dbg(&dev->dev, "  set io  %d to %#llx\n",
--				index, (unsigned long long) res->start);
--			isapnp_write_word(ISAPNP_CFG_PORT + (index << 1),
-+				tmp, (unsigned long long) res->start);
-+			isapnp_write_word(ISAPNP_CFG_PORT + (tmp << 1),
- 					  res->start);
- 		}
- 	}
- 	for (tmp = 0; tmp < ISAPNP_MAX_IRQ; tmp++) {
--		pnp_res = pnp_get_pnp_resource(dev, IORESOURCE_IRQ, tmp);
--		if (!pnp_res)
--			continue;
--		res = &pnp_res->res;
--		if (pnp_resource_valid(res)) {
-+		res = pnp_get_resource(dev, IORESOURCE_IRQ, tmp);
-+		if (res && pnp_resource_valid(res) &&
-+		    !(res->flags & IORESOURCE_DISABLED)) {
- 			int irq = res->start;
- 			if (irq == 2)
- 				irq = 9;
--			index = pnp_res->index;
--			dev_dbg(&dev->dev, "  set irq %d to %d\n", index, irq);
--			isapnp_write_byte(ISAPNP_CFG_IRQ + (index << 1), irq);
-+			dev_dbg(&dev->dev, "  set irq %d to %d\n", tmp, irq);
-+			isapnp_write_byte(ISAPNP_CFG_IRQ + (tmp << 1), irq);
- 		}
- 	}
- 	for (tmp = 0; tmp < ISAPNP_MAX_DMA; tmp++) {
--		pnp_res = pnp_get_pnp_resource(dev, IORESOURCE_DMA, tmp);
--		if (!pnp_res)
--			continue;
--		res = &pnp_res->res;
--		if (pnp_resource_valid(res)) {
--			index = pnp_res->index;
-+		res = pnp_get_resource(dev, IORESOURCE_DMA, tmp);
-+		if (res && pnp_resource_valid(res) &&
-+		    !(res->flags & IORESOURCE_DISABLED)) {
- 			dev_dbg(&dev->dev, "  set dma %d to %lld\n",
--				index, (unsigned long long) res->start);
--			isapnp_write_byte(ISAPNP_CFG_DMA + index, res->start);
-+				tmp, (unsigned long long) res->start);
-+			isapnp_write_byte(ISAPNP_CFG_DMA + tmp, res->start);
- 		}
- 	}
- 	for (tmp = 0; tmp < ISAPNP_MAX_MEM; tmp++) {
--		pnp_res = pnp_get_pnp_resource(dev, IORESOURCE_MEM, tmp);
--		if (!pnp_res)
--			continue;
--		res = &pnp_res->res;
--		if (pnp_resource_valid(res)) {
--			index = pnp_res->index;
-+		res = pnp_get_resource(dev, IORESOURCE_MEM, tmp);
-+		if (res && pnp_resource_valid(res) &&
-+		    !(res->flags & IORESOURCE_DISABLED)) {
- 			dev_dbg(&dev->dev, "  set mem %d to %#llx\n",
--				index, (unsigned long long) res->start);
--			isapnp_write_word(ISAPNP_CFG_MEM + (index << 3),
-+				tmp, (unsigned long long) res->start);
-+			isapnp_write_word(ISAPNP_CFG_MEM + (tmp << 3),
- 					  (res->start >> 8) & 0xffff);
- 		}
- 	}
-diff -puN drivers/pnp/manager.c~pnp-remove-pnp_resourceindex drivers/pnp/manager.c
---- a/drivers/pnp/manager.c~pnp-remove-pnp_resourceindex
-+++ a/drivers/pnp/manager.c
-@@ -40,7 +40,6 @@ static int pnp_assign_port(struct pnp_de
- 	}
+ 	return -ENODEV;
+diff -puN include/linux/pnp.h~pnp-add-pnp_possible_config-can-a-device-could-be-configured-this-way include/linux/pnp.h
+--- a/include/linux/pnp.h~pnp-add-pnp_possible_config-can-a-device-could-be-configured-this-way
++++ a/include/linux/pnp.h
+@@ -472,6 +472,8 @@ void pnp_unregister_card_driver(struct p
+ extern struct list_head pnp_cards;
  
- 	/* set the initial values */
--	pnp_res->index = idx;
- 	res->flags |= rule->flags | IORESOURCE_IO;
- 	res->flags &= ~IORESOURCE_UNSET;
+ /* resource management */
++int pnp_possible_config(struct pnp_dev *dev, int type, resource_size_t base,
++			resource_size_t size);
+ int pnp_auto_config_dev(struct pnp_dev *dev);
+ int pnp_start_dev(struct pnp_dev *dev);
+ int pnp_stop_dev(struct pnp_dev *dev);
+@@ -499,6 +501,7 @@ static inline int pnp_register_card_driv
+ static inline void pnp_unregister_card_driver(struct pnp_card_driver *drv) { }
  
-@@ -90,7 +89,6 @@ static int pnp_assign_mem(struct pnp_dev
- 	}
- 
- 	/* set the initial values */
--	pnp_res->index = idx;
- 	res->flags |= rule->flags | IORESOURCE_MEM;
- 	res->flags &= ~IORESOURCE_UNSET;
- 
-@@ -155,7 +153,6 @@ static int pnp_assign_irq(struct pnp_dev
- 	}
- 
- 	/* set the initial values */
--	pnp_res->index = idx;
- 	res->flags |= rule->flags | IORESOURCE_IRQ;
- 	res->flags &= ~IORESOURCE_UNSET;
- 
-@@ -214,7 +211,6 @@ static void pnp_assign_dma(struct pnp_de
- 	}
- 
- 	/* set the initial values */
--	pnp_res->index = idx;
- 	res->flags |= rule->flags | IORESOURCE_DMA;
- 	res->flags &= ~IORESOURCE_UNSET;
- 
+ /* resource management */
++static inline int pnp_possible_config(struct pnp_dev *dev, int type, resource_size_t base, resource_size_t size) { return 0; }
+ static inline int pnp_auto_config_dev(struct pnp_dev *dev) { return -ENODEV; }
+ static inline int pnp_start_dev(struct pnp_dev *dev) { return -ENODEV; }
+ static inline int pnp_stop_dev(struct pnp_dev *dev) { return -ENODEV; }
 _
 
 Patches currently in -mm which might be from bjorn.helgaas@hp.com are
