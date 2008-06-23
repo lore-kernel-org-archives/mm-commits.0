@@ -1,115 +1,161 @@
 From: akpm@linux-foundation.org
-Subject: - pnp-add-detail-to-debug-resource-dump.patch removed from -mm tree
-Date: Mon, 23 Jun 2008 14:02:47 -0700
-Message-ID: <200806232102.m5NL2l5v016107@imap1.linux-foundation.org>
+Subject: - pnp-make-resource-option-structures-private-to-pnp-subsystem.patch removed from -mm tree
+Date: Mon, 23 Jun 2008 14:03:22 -0700
+Message-ID: <200806232103.m5NL3MmL016154@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56153 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60329 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757901AbYFWVDw (ORCPT
+	by vger.kernel.org with ESMTP id S1758034AbYFWVEC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Jun 2008 17:03:52 -0400
+	Mon, 23 Jun 2008 17:04:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bjorn.helgaas@hp.com, abelay@mit.edu, castet.matthieu@free.fr, lenb@kernel.org, perex@perex.cz, rene.herman@keyaccess.nl, shaohua.li@intel.com, tiwai@suse.de, trenn@suse.de, mm-commit
 
 
 The patch titled
-     pnp: add detail to debug resource dump
+     pnp: make resource option structures private to PNP subsystem
 has been removed from the -mm tree.  Its filename was
-     pnp-add-detail-to-debug-resource-dump.patch
+     pnp-make-resource-option-structures-private-to-pnp-subsystem.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pnp: add detail to debug resource dump
+Subject: pnp: make resource option structures private to PNP subsystem
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-In the debug resource dump, decode the flags and indicate when a resource is
-disabled or has been automatically assigned.
+Nothing outside the PNP subsystem should need access to a device's
+resource options, so this patch moves the option structure declarations to
+a private header file.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Rene Herman <rene.herman@keyaccess.nl>
 Cc: Len Brown <lenb@kernel.org>
 Cc: Adam M Belay <abelay@mit.edu>
 Cc: Li Shaohua <shaohua.li@intel.com>
 Cc: Matthieu Castet <castet.matthieu@free.fr>
 Cc: Thomas Renninger <trenn@suse.de>
-Cc: Rene Herman <rene.herman@keyaccess.nl>
 Cc: Jaroslav Kysela <perex@perex.cz>
 Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/support.c |   34 ++++++++++++++++++++++++++--------
- 1 file changed, 26 insertions(+), 8 deletions(-)
+ drivers/pnp/base.h  |   48 ++++++++++++++++++++++++++++++++++++++++++
+ include/linux/pnp.h |   48 ------------------------------------------
+ 2 files changed, 48 insertions(+), 48 deletions(-)
 
-diff -puN drivers/pnp/support.c~pnp-add-detail-to-debug-resource-dump drivers/pnp/support.c
---- a/drivers/pnp/support.c~pnp-add-detail-to-debug-resource-dump
-+++ a/drivers/pnp/support.c
-@@ -63,28 +63,46 @@ void dbg_pnp_show_resources(struct pnp_d
- 	for (i = 0; i < PNP_MAX_IRQ; i++) {
- 		res = pnp_get_resource(dev, IORESOURCE_IRQ, i);
- 		if (res && !(res->flags & IORESOURCE_UNSET))
--			dev_dbg(&dev->dev, "  irq %lld flags %#lx\n",
--				(unsigned long long) res->start, res->flags);
-+			dev_dbg(&dev->dev, "  irq %lld flags %#lx%s%s\n",
-+				(unsigned long long) res->start, res->flags,
-+				res->flags & IORESOURCE_DISABLED ?
-+					" DISABLED" : "",
-+				res->flags & IORESOURCE_AUTO ?
-+					" AUTO" : "");
- 	}
- 	for (i = 0; i < PNP_MAX_DMA; i++) {
- 		res = pnp_get_resource(dev, IORESOURCE_DMA, i);
- 		if (res && !(res->flags & IORESOURCE_UNSET))
--			dev_dbg(&dev->dev, "  dma %lld flags %#lx\n",
--				(unsigned long long) res->start, res->flags);
-+			dev_dbg(&dev->dev, "  dma %lld flags %#lx%s%s\n",
-+				(unsigned long long) res->start, res->flags,
-+				res->flags & IORESOURCE_DISABLED ?
-+					" DISABLED" : "",
-+				res->flags & IORESOURCE_AUTO ?
-+					" AUTO" : "");
- 	}
- 	for (i = 0; i < PNP_MAX_PORT; i++) {
- 		res = pnp_get_resource(dev, IORESOURCE_IO, i);
- 		if (res && !(res->flags & IORESOURCE_UNSET))
--			dev_dbg(&dev->dev, "  io  %#llx-%#llx flags %#lx\n",
-+			dev_dbg(&dev->dev, "  io  %#llx-%#llx flags %#lx"
-+				"%s%s\n",
- 				(unsigned long long) res->start,
--				(unsigned long long) res->end, res->flags);
-+				(unsigned long long) res->end, res->flags,
-+				res->flags & IORESOURCE_DISABLED ?
-+					" DISABLED" : "",
-+				res->flags & IORESOURCE_AUTO ?
-+					" AUTO" : "");
- 	}
- 	for (i = 0; i < PNP_MAX_MEM; i++) {
- 		res = pnp_get_resource(dev, IORESOURCE_MEM, i);
- 		if (res && !(res->flags & IORESOURCE_UNSET))
--			dev_dbg(&dev->dev, "  mem %#llx-%#llx flags %#lx\n",
-+			dev_dbg(&dev->dev, "  mem %#llx-%#llx flags %#lx"
-+				"%s%s\n",
- 				(unsigned long long) res->start,
--				(unsigned long long) res->end, res->flags);
-+				(unsigned long long) res->end, res->flags,
-+				res->flags & IORESOURCE_DISABLED ?
-+					" DISABLED" : "",
-+				res->flags & IORESOURCE_AUTO ?
-+					" AUTO" : "");
- 	}
- #endif
+diff -puN drivers/pnp/base.h~pnp-make-resource-option-structures-private-to-pnp-subsystem drivers/pnp/base.h
+--- a/drivers/pnp/base.h~pnp-make-resource-option-structures-private-to-pnp-subsystem
++++ a/drivers/pnp/base.h
+@@ -19,6 +19,54 @@ void pnp_remove_card(struct pnp_card *ca
+ int pnp_add_card_device(struct pnp_card *card, struct pnp_dev *dev);
+ void pnp_remove_card_device(struct pnp_dev *dev);
+ 
++struct pnp_port {
++	unsigned short min;	/* min base number */
++	unsigned short max;	/* max base number */
++	unsigned char align;	/* align boundary */
++	unsigned char size;	/* size of range */
++	unsigned char flags;	/* port flags */
++	unsigned char pad;	/* pad */
++	struct pnp_port *next;	/* next port */
++};
++
++#define PNP_IRQ_NR 256
++struct pnp_irq {
++	DECLARE_BITMAP(map, PNP_IRQ_NR);	/* bitmask for IRQ lines */
++	unsigned char flags;	/* IRQ flags */
++	unsigned char pad;	/* pad */
++	struct pnp_irq *next;	/* next IRQ */
++};
++
++struct pnp_dma {
++	unsigned char map;	/* bitmask for DMA channels */
++	unsigned char flags;	/* DMA flags */
++	struct pnp_dma *next;	/* next port */
++};
++
++struct pnp_mem {
++	unsigned int min;	/* min base number */
++	unsigned int max;	/* max base number */
++	unsigned int align;	/* align boundary */
++	unsigned int size;	/* size of range */
++	unsigned char flags;	/* memory flags */
++	unsigned char pad;	/* pad */
++	struct pnp_mem *next;	/* next memory resource */
++};
++
++#define PNP_RES_PRIORITY_PREFERRED	0
++#define PNP_RES_PRIORITY_ACCEPTABLE	1
++#define PNP_RES_PRIORITY_FUNCTIONAL	2
++#define PNP_RES_PRIORITY_INVALID	65535
++
++struct pnp_option {
++	unsigned short priority;	/* priority */
++	struct pnp_port *port;		/* first port */
++	struct pnp_irq *irq;		/* first IRQ */
++	struct pnp_dma *dma;		/* first DMA */
++	struct pnp_mem *mem;		/* first memory resource */
++	struct pnp_option *next;	/* used to chain dependent resources */
++};
++
+ struct pnp_option *pnp_build_option(int priority);
+ struct pnp_option *pnp_register_independent_option(struct pnp_dev *dev);
+ struct pnp_option *pnp_register_dependent_option(struct pnp_dev *dev,
+diff -puN include/linux/pnp.h~pnp-make-resource-option-structures-private-to-pnp-subsystem include/linux/pnp.h
+--- a/include/linux/pnp.h~pnp-make-resource-option-structures-private-to-pnp-subsystem
++++ a/include/linux/pnp.h
+@@ -175,54 +175,6 @@ static inline int pnp_dma_valid(struct p
  }
-_
-
-Patches currently in -mm which might be from bjorn.helgaas@hp.com are
-
-linux-next.patch
-mm-only-enforce-acpi-resource-conflict-checks.patch
-pnp-set-the-pnp_card-dma_mask-for-use-by-isapnp-cards.patch
-isa-set-24-bit-dma_mask-for-isa-devices.patch
-make-pnp_add_card_id-static.patch
-
+ 
+ 
+-struct pnp_port {
+-	unsigned short min;	/* min base number */
+-	unsigned short max;	/* max base number */
+-	unsigned char align;	/* align boundary */
+-	unsigned char size;	/* size of range */
+-	unsigned char flags;	/* port flags */
+-	unsigned char pad;	/* pad */
+-	struct pnp_port *next;	/* next port */
+-};
+-
+-#define PNP_IRQ_NR 256
+-struct pnp_irq {
+-	DECLARE_BITMAP(map, PNP_IRQ_NR);	/* bitmask for IRQ lines */
+-	unsigned char flags;	/* IRQ flags */
+-	unsigned char pad;	/* pad */
+-	struct pnp_irq *next;	/* next IRQ */
+-};
+-
+-struct pnp_dma {
+-	unsigned char map;	/* bitmask for DMA channels */
+-	unsigned char flags;	/* DMA flags */
+-	struct pnp_dma *next;	/* next port */
+-};
+-
+-struct pnp_mem {
+-	unsigned int min;	/* min base number */
+-	unsigned int max;	/* max base number */
+-	unsigned int align;	/* align boundary */
+-	unsigned int size;	/* size of range */
+-	unsigned char flags;	/* memory flags */
+-	unsigned char pad;	/* pad */
+-	struct pnp_mem *next;	/* next memory resource */
+-};
+-
+-#define PNP_RES_PRIORITY_PREFERRED	0
+-#define PNP_RES_PRIORITY_ACCEPTABLE	1
+-#define PNP_RES_PRIORITY_FUNCTIONAL	2
+-#define PNP_RES_PRIORITY_INVALID	65535
+-
+-struct pnp_option {
+-	unsigned short priority;	/* priority */
+-	struct pnp_port *port;		/* first port */
+-	struct pnp_irq *irq;		/* first IRQ */
+-	struct pnp_dma *dma;		/* first DMA */
+-	struct pnp_mem *mem;		/* first memory resource */
+-	struct pnp_option *next;	/* used to chain dependent resources */
+-};
