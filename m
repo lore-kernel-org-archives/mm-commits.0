@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + include-linux-kernelh-userspace-header-cleanup.patch added to -mm tree
-Date: Mon, 23 Jun 2008 16:51:53 -0700
-Message-ID: <200806232351.m5NNprSM022720@imap1.linux-foundation.org>
+Subject: + coda-remove-coda_fs_old_api.patch added to -mm tree
+Date: Mon, 23 Jun 2008 16:53:16 -0700
+Message-ID: <200806232353.m5NNrGex022760@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59994 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48510 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751745AbYFWXwC (ORCPT
+	by vger.kernel.org with ESMTP id S1751810AbYFWXyU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Jun 2008 19:52:02 -0400
+	Mon, 23 Jun 2008 19:54:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org
+Cc: bunk@kernel.org, jaharkes@cs.cmu.edu
 
 
 The patch titled
-     include/linux/kernel.h: userspace header cleanup
+     coda: remove CODA_FS_OLD_API
 has been added to the -mm tree.  Its filename is
-     include-linux-kernelh-userspace-header-cleanup.patch
+     coda-remove-coda_fs_old_api.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,76 +34,215 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: include/linux/kernel.h: userspace header cleanup
+Subject: coda: remove CODA_FS_OLD_API
 From: Adrian Bunk <bunk@kernel.org>
 
-Nothing from the bottom of this header is part of the kernel<->userspace
-ABI.
+While fixing CONFIG_ leakages to the userspace kernel headers I ran into
+CODA_FS_OLD_API.
+
+After five years, are there still people using the old API left? 
+Especially considering that you have to choose at compile time which API
+to support in the kernel (and distributions tend to offer the new API for
+some time).
+
+Jan: "The old API can definitely go.  Around the time the new
+      interface went in there were some non-Coda userspace file system
+      implementations that took a while longer to convert to the new API,
+      but by now they all switched to the new interface or in some cases
+      to a FUSE-based solution."
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Acked-by: Jan Harkes <jaharkes@cs.cmu.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |   42 ++++++++++++++++++++-------------------
- 1 file changed, 22 insertions(+), 20 deletions(-)
+ fs/Kconfig           |   14 -------------
+ fs/coda/coda_linux.c |    6 +----
+ fs/coda/psdev.c      |    4 ---
+ fs/coda/upcall.c     |   15 --------------
+ include/linux/coda.h |   43 -----------------------------------------
+ 5 files changed, 3 insertions(+), 79 deletions(-)
 
-diff -puN include/linux/kernel.h~include-linux-kernelh-userspace-header-cleanup include/linux/kernel.h
---- a/include/linux/kernel.h~include-linux-kernelh-userspace-header-cleanup
-+++ a/include/linux/kernel.h
-@@ -442,26 +442,6 @@ static inline char *pack_hex_byte(char *
- struct sysinfo;
- extern int do_sysinfo(struct sysinfo *info);
+diff -puN fs/Kconfig~coda-remove-coda_fs_old_api fs/Kconfig
+--- a/fs/Kconfig~coda-remove-coda_fs_old_api
++++ a/fs/Kconfig
+@@ -2160,20 +2160,6 @@ config CODA_FS
+ 	  To compile the coda client support as a module, choose M here: the
+ 	  module will be called coda.
  
--#endif /* __KERNEL__ */
+-config CODA_FS_OLD_API
+-	bool "Use 96-bit Coda file identifiers"
+-	depends on CODA_FS
+-	help
+-	  A new kernel-userspace API had to be introduced for Coda v6.0
+-	  to support larger 128-bit file identifiers as needed by the
+-	  new realms implementation.
 -
--#define SI_LOAD_SHIFT	16
--struct sysinfo {
--	long uptime;			/* Seconds since boot */
--	unsigned long loads[3];		/* 1, 5, and 15 minute load averages */
--	unsigned long totalram;		/* Total usable main memory size */
--	unsigned long freeram;		/* Available memory size */
--	unsigned long sharedram;	/* Amount of shared memory */
--	unsigned long bufferram;	/* Memory used by buffers */
--	unsigned long totalswap;	/* Total swap space size */
--	unsigned long freeswap;		/* swap space still available */
--	unsigned short procs;		/* Number of current processes */
--	unsigned short pad;		/* explicit padding for m68k */
--	unsigned long totalhigh;	/* Total high memory size */
--	unsigned long freehigh;		/* Available high memory size */
--	unsigned int mem_unit;		/* Memory unit size in bytes */
--	char _f[20-2*sizeof(long)-sizeof(int)];	/* Padding: libc5 uses this.. */
+-	  However this new API is not backward compatible with older
+-	  clients. If you really need to run the old Coda userspace
+-	  cache manager then say Y.
+-
+-	  For most cases you probably want to say N.
+-
+ config AFS_FS
+ 	tristate "Andrew File System support (AFS) (EXPERIMENTAL)"
+ 	depends on INET && EXPERIMENTAL
+diff -puN fs/coda/coda_linux.c~coda-remove-coda_fs_old_api fs/coda/coda_linux.c
+--- a/fs/coda/coda_linux.c~coda-remove-coda_fs_old_api
++++ a/fs/coda/coda_linux.c
+@@ -28,11 +28,9 @@ int coda_fake_statfs;
+ char * coda_f2s(struct CodaFid *f)
+ {
+ 	static char s[60];
+-#ifdef CONFIG_CODA_FS_OLD_API
+- 	sprintf(s, "(%08x.%08x.%08x)", f->opaque[0], f->opaque[1], f->opaque[2]);
+-#else
++
+  	sprintf(s, "(%08x.%08x.%08x.%08x)", f->opaque[0], f->opaque[1], f->opaque[2], f->opaque[3]);
+-#endif
++
+ 	return s;
+ }
+ 
+diff -puN fs/coda/psdev.c~coda-remove-coda_fs_old_api fs/coda/psdev.c
+--- a/fs/coda/psdev.c~coda-remove-coda_fs_old_api
++++ a/fs/coda/psdev.c
+@@ -378,11 +378,7 @@ MODULE_AUTHOR("Jan Harkes, Peter J. Braa
+ MODULE_DESCRIPTION("Coda Distributed File System VFS interface");
+ MODULE_ALIAS_CHARDEV_MAJOR(CODA_PSDEV_MAJOR);
+ MODULE_LICENSE("GPL");
+-#ifdef CONFIG_CODA_FS_OLD_API
+-MODULE_VERSION("5.3.21");
+-#else
+ MODULE_VERSION("6.6");
+-#endif
+ 
+ static int __init init_coda(void)
+ {
+diff -puN fs/coda/upcall.c~coda-remove-coda_fs_old_api fs/coda/upcall.c
+--- a/fs/coda/upcall.c~coda-remove-coda_fs_old_api
++++ a/fs/coda/upcall.c
+@@ -52,12 +52,8 @@ static void *alloc_upcall(int opcode, in
+         inp->ih.opcode = opcode;
+ 	inp->ih.pid = current->pid;
+ 	inp->ih.pgid = task_pgrp_nr(current);
+-#ifdef CONFIG_CODA_FS_OLD_API
+-	memset(&inp->ih.cred, 0, sizeof(struct coda_cred));
+-	inp->ih.cred.cr_fsuid = current->fsuid;
+-#else
+ 	inp->ih.uid = current->fsuid;
+-#endif
++
+ 	return (void*)inp;
+ }
+ 
+@@ -166,20 +162,11 @@ int venus_close(struct super_block *sb, 
+ 	union inputArgs *inp;
+ 	union outputArgs *outp;
+ 	int insize, outsize, error;
+-#ifdef CONFIG_CODA_FS_OLD_API
+-	struct coda_cred cred = { 0, };
+-	cred.cr_fsuid = uid;
+-#endif
+ 	
+ 	insize = SIZE(release);
+ 	UPARG(CODA_CLOSE);
+ 	
+-#ifdef CONFIG_CODA_FS_OLD_API
+-	memcpy(&(inp->ih.cred), &cred, sizeof(cred));
+-#else
+ 	inp->ih.uid = uid;
+-#endif
+-	
+         inp->coda_close.VFid = *fid;
+         inp->coda_close.flags = flags;
+ 
+diff -puN include/linux/coda.h~coda-remove-coda_fs_old_api include/linux/coda.h
+--- a/include/linux/coda.h~coda-remove-coda_fs_old_api
++++ a/include/linux/coda.h
+@@ -199,28 +199,6 @@ typedef u_int32_t vuid_t;
+ typedef u_int32_t vgid_t;
+ #endif /*_VUID_T_ */
+ 
+-#ifdef CONFIG_CODA_FS_OLD_API
+-struct CodaFid {
+-	u_int32_t opaque[3];
 -};
 -
- /* Force a compilation error if condition is true */
- #define BUILD_BUG_ON(condition) ((void)sizeof(char[1 - 2*!!(condition)]))
+-static __inline__ ino_t  coda_f2i(struct CodaFid *fid)
+-{
+-	if ( ! fid ) 
+-		return 0; 
+-	if (fid->opaque[1] == 0xfffffffe || fid->opaque[1] == 0xffffffff)
+-		return ((fid->opaque[0] << 20) | (fid->opaque[2] & 0xfffff));
+-	else
+-		return (fid->opaque[2] + (fid->opaque[1]<<10) + (fid->opaque[0]<<20));
+-}
+-
+-struct coda_cred {
+-    vuid_t cr_uid, cr_euid, cr_suid, cr_fsuid; /* Real, efftve, set, fs uid*/
+-    vgid_t cr_groupid, cr_egid, cr_sgid, cr_fsgid; /* same for groups */
+-};
+-
+-#else /* not defined(CONFIG_CODA_FS_OLD_API) */
+-
+ struct CodaFid {
+ 	u_int32_t opaque[4];
+ };
+@@ -228,8 +206,6 @@ struct CodaFid {
+ #define coda_f2i(fid)\
+ 	(fid ? (fid->opaque[3] ^ (fid->opaque[2]<<10) ^ (fid->opaque[1]<<20) ^ fid->opaque[0]) : 0)
  
-@@ -516,4 +496,26 @@ struct sysinfo {
- 	__typesafe_cb(rettype (*)(__VA_ARGS__, void *), (fn),		\
- 		      rettype (*)(__VA_ARGS__, const typeof(arg)),	\
- 		      rettype (*)(__VA_ARGS__, typeof(arg)))
-+
-+
-+#endif /* __KERNEL__ */
-+
-+#define SI_LOAD_SHIFT	16
-+struct sysinfo {
-+	long uptime;			/* Seconds since boot */
-+	unsigned long loads[3];		/* 1, 5, and 15 minute load averages */
-+	unsigned long totalram;		/* Total usable main memory size */
-+	unsigned long freeram;		/* Available memory size */
-+	unsigned long sharedram;	/* Amount of shared memory */
-+	unsigned long bufferram;	/* Memory used by buffers */
-+	unsigned long totalswap;	/* Total swap space size */
-+	unsigned long freeswap;		/* swap space still available */
-+	unsigned short procs;		/* Number of current processes */
-+	unsigned short pad;		/* explicit padding for m68k */
-+	unsigned long totalhigh;	/* Total high memory size */
-+	unsigned long freehigh;		/* Available high memory size */
-+	unsigned int mem_unit;		/* Memory unit size in bytes */
-+	char _f[20-2*sizeof(long)-sizeof(int)];	/* Padding: libc5 uses this.. */
-+};
-+
- #endif
+-#endif
+-
+ #ifndef _VENUS_VATTR_T_
+ #define _VENUS_VATTR_T_
+ /*
+@@ -313,15 +289,7 @@ struct coda_statfs {
+ 
+ #define CIOC_KERNEL_VERSION _IOWR('c', 10, size_t)
+ 
+-#if 0
+-#define CODA_KERNEL_VERSION 0 /* don't care about kernel version number */
+-#define CODA_KERNEL_VERSION 1 /* The old venus 4.6 compatible interface */
+-#endif
+-#ifdef CONFIG_CODA_FS_OLD_API
+-#define CODA_KERNEL_VERSION 2 /* venus_lookup got an extra parameter */
+-#else
+ #define CODA_KERNEL_VERSION 3 /* 128-bit file identifiers */
+-#endif
+ 
+ /*
+  *        Venus <-> Coda  RPC arguments
+@@ -329,16 +297,9 @@ struct coda_statfs {
+ struct coda_in_hdr {
+     u_int32_t opcode;
+     u_int32_t unique;	    /* Keep multiple outstanding msgs distinct */
+-#ifdef CONFIG_CODA_FS_OLD_API
+-    u_int16_t pid;	    /* Common to all */
+-    u_int16_t pgid;	    /* Common to all */
+-    u_int16_t sid;          /* Common to all */
+-    struct coda_cred cred;  /* Common to all */
+-#else
+     pid_t pid;
+     pid_t pgid;
+     vuid_t uid;
+-#endif
+ };
+ 
+ /* Really important that opcode and unique are 1st two fields! */
+@@ -613,11 +574,7 @@ struct coda_vget_out {
+ /* CODA_PURGEUSER is a venus->kernel call */
+ struct coda_purgeuser_out {
+     struct coda_out_hdr oh;
+-#ifdef CONFIG_CODA_FS_OLD_API
+-    struct coda_cred cred;
+-#else
+     vuid_t uid;
+-#endif
+ };
+ 
+ /* coda_zapfile: */
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
@@ -132,6 +271,7 @@ serial-8250_gscc-add-module_license.patch
 mfd-sm501c-if-0-unused-functions.patch
 video-sis-remove-compat-code.patch
 minix-remove-no_truncate-code.patch
+coda-remove-coda_fs_old_api.patch
 remove-is_tty.patch
 proper-extern-for-mwave_s_mdd.patch
 if-0-hpet_unregister.patch
