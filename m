@@ -1,65 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - lguest-use-cpu-capability-accessors.patch removed from -mm tree
-Date: Mon, 23 Jun 2008 14:02:00 -0700
-Message-ID: <200806232102.m5NL20ud016030@imap1.linux-foundation.org>
+Subject: - arch-powerpc-platforms-pseries-eeh_driverc-fix-warning.patch removed from -mm tree
+Date: Mon, 23 Jun 2008 14:02:17 -0700
+Message-ID: <200806232102.m5NL2HxW016061@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32866 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52360 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757948AbYFWVCb (ORCPT
+	by vger.kernel.org with ESMTP id S1754345AbYFWVCV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Jun 2008 17:02:31 -0400
+	Mon, 23 Jun 2008 17:02:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andrea@qumranet.com, mingo@elte.hu, rusty@rustcorp.com.au, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, benh@kernel.crashing.org, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lguest: use cpu capability accessors
+     arch/powerpc/platforms/pseries/eeh_driver.c: fix warning
 has been removed from the -mm tree.  Its filename was
-     lguest-use-cpu-capability-accessors.patch
+     arch-powerpc-platforms-pseries-eeh_driverc-fix-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lguest: use cpu capability accessors
+Subject: arch/powerpc/platforms/pseries/eeh_driver.c: fix warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-To support my little make-x86-bitops-use-proper-typechecking projectlet.
+Fix this:
 
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Andrea Arcangeli <andrea@qumranet.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+/usr/src/devel/arch/powerpc/platforms/pseries/eeh_driver.c: In function 'print_device_node_tree':
+/usr/src/devel/arch/powerpc/platforms/pseries/eeh_driver.c:55: warning: ISO C90 forbids mixed declarations and code
+
+also make that function look like it's part of Linux.  I mean, wtf are you
+guys up to down there??
+
+[akpm@linux-foundation.org: coding-style fixes]
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/lguest/x86/core.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/powerpc/platforms/pseries/eeh_driver.c |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
-diff -puN drivers/lguest/x86/core.c~lguest-use-cpu-capability-accessors drivers/lguest/x86/core.c
---- a/drivers/lguest/x86/core.c~lguest-use-cpu-capability-accessors
-+++ a/drivers/lguest/x86/core.c
-@@ -477,7 +477,7 @@ void __init lguest_arch_host_init(void)
- 		 * bit on its CPU, depending on the argument (0 == unset). */
- 		on_each_cpu(adjust_pge, (void *)0, 0, 1);
- 		/* Turn off the feature in the global feature set. */
--		clear_bit(X86_FEATURE_PGE, boot_cpu_data.x86_capability);
-+		clear_cpu_cap(&boot_cpu_data, X86_FEATURE_PGE);
- 	}
- 	put_online_cpus();
- };
-@@ -488,7 +488,7 @@ void __exit lguest_arch_host_fini(void)
- 	/* If we had PGE before we started, turn it back on now. */
- 	get_online_cpus();
- 	if (cpu_had_pge) {
--		set_bit(X86_FEATURE_PGE, boot_cpu_data.x86_capability);
-+		set_cpu_cap(&boot_cpu_data, X86_FEATURE_PGE);
- 		/* adjust_pge's argument "1" means set PGE. */
- 		on_each_cpu(adjust_pge, (void *)1, 0, 1);
- 	}
+diff -puN arch/powerpc/platforms/pseries/eeh_driver.c~arch-powerpc-platforms-pseries-eeh_driverc-fix-warning arch/powerpc/platforms/pseries/eeh_driver.c
+--- a/arch/powerpc/platforms/pseries/eeh_driver.c~arch-powerpc-platforms-pseries-eeh_driverc-fix-warning
++++ a/arch/powerpc/platforms/pseries/eeh_driver.c
+@@ -42,17 +42,20 @@ static inline const char * pcid_name (st
+ }
+ 
+ #ifdef DEBUG
+-static void print_device_node_tree (struct pci_dn *pdn, int dent)
++static void print_device_node_tree(struct pci_dn *pdn, int dent)
+ {
+ 	int i;
+-	if (!pdn) return;
+-	for (i=0;i<dent; i++)
++	struct device_node *pc;
++
++	if (!pdn)
++		return;
++	for (i = 0; i < dent; i++)
+ 		printk(" ");
+ 	printk("dn=%s mode=%x \tcfg_addr=%x pe_addr=%x \tfull=%s\n",
+ 		pdn->node->name, pdn->eeh_mode, pdn->eeh_config_addr,
+ 		pdn->eeh_pe_config_addr, pdn->node->full_name);
+ 	dent += 3;
+-	struct device_node *pc = pdn->node->child;
++	pc = pdn->node->child;
+ 	while (pc) {
+ 		print_device_node_tree(PCI_DN(pc), dent);
+ 		pc = pc->sibling;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
