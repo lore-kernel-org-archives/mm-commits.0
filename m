@@ -1,37 +1,41 @@
 From: akpm@linux-foundation.org
-Subject: - pnp-whitespace-coding-style-fixes.patch removed from -mm tree
-Date: Mon, 23 Jun 2008 14:03:17 -0700
-Message-ID: <200806232103.m5NL3HAC016148@imap1.linux-foundation.org>
+Subject: - pnp-remove-extra-0x100-bit-from-option-priority.patch removed from -mm tree
+Date: Mon, 23 Jun 2008 14:03:56 -0700
+Message-ID: <200806232103.m5NL3ugp016227@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60125 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39919 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758022AbYFWVD4 (ORCPT
+	by vger.kernel.org with ESMTP id S1758272AbYFWVE1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Jun 2008 17:03:56 -0400
+	Mon, 23 Jun 2008 17:04:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bjorn.helgaas@hp.com, abelay@mit.edu, castet.matthieu@free.fr, lenb@kernel.org, perex@perex.cz, rene.herman@gmail.com, shaohua.li@intel.com, tiwai@suse.de, trenn@suse.de, mm-commits@v
+To: bjorn.helgaas@hp.com, abelay@mit.edu, castet.matthieu@free.fr, lenb@kernel.org, perex@perex.cz, rene.herman@gmail.com, rene.herman@keyaccess.nl, shaohua.li@intel.com, tiwai@suse.det
 
 
 The patch titled
-     pnp: whitespace/coding style fixes
+     pnp: remove extra 0x100 bit from option priority
 has been removed from the -mm tree.  Its filename was
-     pnp-whitespace-coding-style-fixes.patch
+     pnp-remove-extra-0x100-bit-from-option-priority.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pnp: whitespace/coding style fixes
+Subject: pnp: remove extra 0x100 bit from option priority
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-No functional change; just make a couple declarations consistent with the
-rest of the file.
+When building resource options, ISAPNP and PNPBIOS set the priority to
+something like "0x100 | PNP_RES_PRIORITY_ACCEPTABLE", but we immediately
+mask off the 0x100 again in pnp_build_option(), so that bit looks
+superfluous.
+
+Thanks to Rene Herman <rene.herman@gmail.com> for pointing this out.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Acked-by: Rene Herman <rene.herman@gmail.com>
+Cc: Rene Herman <rene.herman@keyaccess.nl>
 Cc: Len Brown <lenb@kernel.org>
 Cc: Adam M Belay <abelay@mit.edu>
 Cc: Li Shaohua <shaohua.li@intel.com>
@@ -42,61 +46,88 @@ Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/interface.c |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ drivers/pnp/isapnp/core.c      |    8 +++-----
+ drivers/pnp/pnpacpi/rsparser.c |    2 +-
+ drivers/pnp/pnpbios/rsparser.c |    6 +++---
+ 3 files changed, 7 insertions(+), 9 deletions(-)
 
-diff -puN drivers/pnp/interface.c~pnp-whitespace-coding-style-fixes drivers/pnp/interface.c
---- a/drivers/pnp/interface.c~pnp-whitespace-coding-style-fixes
-+++ a/drivers/pnp/interface.c
-@@ -216,12 +216,12 @@ static ssize_t pnp_show_options(struct d
- 				struct device_attribute *attr, char *buf)
+diff -puN drivers/pnp/isapnp/core.c~pnp-remove-extra-0x100-bit-from-option-priority drivers/pnp/isapnp/core.c
+--- a/drivers/pnp/isapnp/core.c~pnp-remove-extra-0x100-bit-from-option-priority
++++ a/drivers/pnp/isapnp/core.c
+@@ -582,7 +582,7 @@ isapnp_parse_name(char *name, unsigned i
+ static int __init isapnp_create_device(struct pnp_card *card,
+ 				       unsigned short size)
  {
- 	struct pnp_dev *dev = to_pnp_dev(dmdev);
-+	pnp_info_buffer_t *buffer;
- 	struct pnp_option *independent = dev->independent;
- 	struct pnp_option *dependent = dev->dependent;
- 	int ret, dep = 1;
- 
--	pnp_info_buffer_t *buffer = (pnp_info_buffer_t *)
--	    pnp_alloc(sizeof(pnp_info_buffer_t));
-+	buffer = pnp_alloc(sizeof(pnp_info_buffer_t));
- 	if (!buffer)
- 		return -ENOMEM;
- 
-@@ -248,17 +248,18 @@ static ssize_t pnp_show_current_resource
- 					  char *buf)
+-	int number = 0, skip = 0, priority = 0, compat = 0;
++	int number = 0, skip = 0, priority, compat = 0;
+ 	unsigned char type, tmp[17];
+ 	struct pnp_option *option;
+ 	struct pnp_dev *dev;
+@@ -621,7 +621,6 @@ static int __init isapnp_create_device(s
+ 			} else {
+ 				skip = 1;
+ 			}
+-			priority = 0;
+ 			compat = 0;
+ 			break;
+ 		case _STAG_COMPATDEVID:
+@@ -650,10 +649,10 @@ static int __init isapnp_create_device(s
+ 		case _STAG_STARTDEP:
+ 			if (size > 1)
+ 				goto __skip;
+-			priority = 0x100 | PNP_RES_PRIORITY_ACCEPTABLE;
++			priority = PNP_RES_PRIORITY_ACCEPTABLE;
+ 			if (size > 0) {
+ 				isapnp_peek(tmp, size);
+-				priority = 0x100 | tmp[0];
++				priority = tmp[0];
+ 				size = 0;
+ 			}
+ 			option = pnp_register_dependent_option(dev, priority);
+@@ -663,7 +662,6 @@ static int __init isapnp_create_device(s
+ 		case _STAG_ENDDEP:
+ 			if (size != 0)
+ 				goto __skip;
+-			priority = 0;
+ 			dev_dbg(&dev->dev, "end dependent options\n");
+ 			break;
+ 		case _STAG_IOPORT:
+diff -puN drivers/pnp/pnpacpi/rsparser.c~pnp-remove-extra-0x100-bit-from-option-priority drivers/pnp/pnpacpi/rsparser.c
+--- a/drivers/pnp/pnpacpi/rsparser.c~pnp-remove-extra-0x100-bit-from-option-priority
++++ a/drivers/pnp/pnpacpi/rsparser.c
+@@ -545,7 +545,7 @@ struct acpipnp_parse_option_s {
+ static __init acpi_status pnpacpi_option_resource(struct acpi_resource *res,
+ 						  void *data)
  {
- 	struct pnp_dev *dev = to_pnp_dev(dmdev);
-+	pnp_info_buffer_t *buffer;
- 	struct pnp_resource *pnp_res;
- 	struct resource *res;
- 	int ret;
--	pnp_info_buffer_t *buffer;
- 
- 	if (!dev)
- 		return -EINVAL;
- 
--	buffer = (pnp_info_buffer_t *) pnp_alloc(sizeof(pnp_info_buffer_t));
-+	buffer = pnp_alloc(sizeof(pnp_info_buffer_t));
- 	if (!buffer)
- 		return -ENOMEM;
-+
- 	buffer->len = PAGE_SIZE;
- 	buffer->buffer = buf;
- 	buffer->curr = buffer->buffer;
-@@ -295,9 +296,9 @@ static ssize_t pnp_show_current_resource
- 	return ret;
- }
- 
--static ssize_t
--pnp_set_current_resources(struct device *dmdev, struct device_attribute *attr,
--			  const char *ubuf, size_t count)
-+static ssize_t pnp_set_current_resources(struct device *dmdev,
-+					 struct device_attribute *attr,
-+					 const char *ubuf, size_t count)
+-	int priority = 0;
++	int priority;
+ 	struct acpipnp_parse_option_s *parse_data = data;
+ 	struct pnp_dev *dev = parse_data->dev;
+ 	struct pnp_option *option = parse_data->option;
+diff -puN drivers/pnp/pnpbios/rsparser.c~pnp-remove-extra-0x100-bit-from-option-priority drivers/pnp/pnpbios/rsparser.c
+--- a/drivers/pnp/pnpbios/rsparser.c~pnp-remove-extra-0x100-bit-from-option-priority
++++ a/drivers/pnp/pnpbios/rsparser.c
+@@ -315,7 +315,7 @@ pnpbios_parse_resource_option_data(unsig
+ 					struct pnp_dev *dev)
  {
- 	struct pnp_dev *dev = to_pnp_dev(dmdev);
- 	char *buf = (void *)ubuf;
+ 	unsigned int len, tag;
+-	int priority = 0;
++	int priority;
+ 	struct pnp_option *option, *option_independent;
+ 
+ 	if (!p)
+@@ -389,9 +389,9 @@ pnpbios_parse_resource_option_data(unsig
+ 		case SMALL_TAG_STARTDEP:
+ 			if (len > 1)
+ 				goto len_err;
+-			priority = 0x100 | PNP_RES_PRIORITY_ACCEPTABLE;
++			priority = PNP_RES_PRIORITY_ACCEPTABLE;
+ 			if (len > 0)
+-				priority = 0x100 | p[1];
++				priority = p[1];
+ 			option = pnp_register_dependent_option(dev, priority);
+ 			if (!option)
+ 				return NULL;
 _
 
 Patches currently in -mm which might be from bjorn.helgaas@hp.com are
