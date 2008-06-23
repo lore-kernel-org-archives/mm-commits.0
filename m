@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - pnp-dont-sort-by-type-in-sys-resources.patch removed from -mm tree
-Date: Mon, 23 Jun 2008 14:03:09 -0700
-Message-ID: <200806232103.m5NL39RF016139@imap1.linux-foundation.org>
+Subject: - pnp-make-pnp_portmemetc_start-et-al-work-for-invalid-resources.patch removed from -mm tree
+Date: Mon, 23 Jun 2008 14:02:59 -0700
+Message-ID: <200806232102.m5NL2xlx016121@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42958 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50654 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757310AbYFWVDq (ORCPT
+	by vger.kernel.org with ESMTP id S1757556AbYFWVDq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 23 Jun 2008 17:03:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,37 +15,28 @@ To: bjorn.helgaas@hp.com, abelay@mit.edu, ambx1@neo.rr.com, castet.matthieu@free
 
 
 The patch titled
-     pnp: dont sort by type in /sys/.../resources
+     pnp: make pnp_{port,mem,etc}_start(), et al work for invalid resources
 has been removed from the -mm tree.  Its filename was
-     pnp-dont-sort-by-type-in-sys-resources.patch
+     pnp-make-pnp_portmemetc_start-et-al-work-for-invalid-resources.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pnp: dont sort by type in /sys/.../resources
+Subject: pnp: make pnp_{port,mem,etc}_start(), et al work for invalid resources
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Rather than stepping through all IO resources, then stepping through
-all MMIO resources, etc., we can just iterate over the resource list
-once directly.
+Some callers use pnp_port_start() and similar functions without
+making sure the resource is valid.  This patch makes us fall
+back to returning the initial values if the resource is not
+valid or not even present.
 
-This can change the order in /sys, e.g.,
-
-    # cat /sys/devices/pnp0/00:07/resources     # OLD
-    state = active
-    io 0x3f8-0x3ff
-    irq 4
-
-    # cat /sys/devices/pnp0/00:07/resources     # NEW
-    state = active
-    irq 4
-    io 0x3f8-0x3ff
-
-The old code artificially sorted resources by type; the new code
-just lists them in the order we read them from the ISAPNP hardware
-or the BIOS.
+This mostly preserves the previous behavior, where we would just
+return the initial values set by pnp_init_resource_table().  The
+original 2.6.25 code didn't range-check the "bar", so it would
+return garbage if the bar exceeded the table size.  This code
+returns sensible values instead.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Cc: Adam Belay <ambx1@neo.rr.com>
@@ -59,91 +50,150 @@ Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/interface.c |   58 +++++++++++++++-----------------------
- 1 file changed, 23 insertions(+), 35 deletions(-)
+ include/linux/pnp.h |   72 +++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 60 insertions(+), 12 deletions(-)
 
-diff -puN drivers/pnp/interface.c~pnp-dont-sort-by-type-in-sys-resources drivers/pnp/interface.c
---- a/drivers/pnp/interface.c~pnp-dont-sort-by-type-in-sys-resources
-+++ a/drivers/pnp/interface.c
-@@ -248,8 +248,9 @@ static ssize_t pnp_show_current_resource
- 					  char *buf)
+diff -puN include/linux/pnp.h~pnp-make-pnp_portmemetc_start-et-al-work-for-invalid-resources include/linux/pnp.h
+--- a/include/linux/pnp.h~pnp-make-pnp_portmemetc_start-et-al-work-for-invalid-resources
++++ a/include/linux/pnp.h
+@@ -40,19 +40,31 @@ static inline resource_size_t pnp_resour
+ static inline resource_size_t pnp_port_start(struct pnp_dev *dev,
+ 					     unsigned int bar)
  {
- 	struct pnp_dev *dev = to_pnp_dev(dmdev);
-+	struct pnp_resource *pnp_res;
- 	struct resource *res;
--	int i, ret;
-+	int ret;
- 	pnp_info_buffer_t *buffer;
+-	return pnp_get_resource(dev, IORESOURCE_IO, bar)->start;
++	struct resource *res = pnp_get_resource(dev, IORESOURCE_IO, bar);
++
++	if (pnp_resource_valid(res))
++		return res->start;
++	return 0;
+ }
  
- 	if (!dev)
-@@ -262,46 +263,33 @@ static ssize_t pnp_show_current_resource
- 	buffer->buffer = buf;
- 	buffer->curr = buffer->buffer;
+ static inline resource_size_t pnp_port_end(struct pnp_dev *dev,
+ 					   unsigned int bar)
+ {
+-	return pnp_get_resource(dev, IORESOURCE_IO, bar)->end;
++	struct resource *res = pnp_get_resource(dev, IORESOURCE_IO, bar);
++
++	if (pnp_resource_valid(res))
++		return res->end;
++	return 0;
+ }
  
--	pnp_printf(buffer, "state = ");
--	if (dev->active)
--		pnp_printf(buffer, "active\n");
--	else
--		pnp_printf(buffer, "disabled\n");
--
--	for (i = 0; (res = pnp_get_resource(dev, IORESOURCE_IO, i)); i++) {
--		pnp_printf(buffer, "io");
--		if (res->flags & IORESOURCE_DISABLED)
--			pnp_printf(buffer, " disabled\n");
--		else
--			pnp_printf(buffer, " 0x%llx-0x%llx\n",
--				   (unsigned long long) res->start,
--				   (unsigned long long) res->end);
--	}
--	for (i = 0; (res = pnp_get_resource(dev, IORESOURCE_MEM, i)); i++) {
--		pnp_printf(buffer, "mem");
--		if (res->flags & IORESOURCE_DISABLED)
-+	pnp_printf(buffer, "state = %s\n", dev->active ? "active" : "disabled");
+ static inline unsigned long pnp_port_flags(struct pnp_dev *dev,
+ 					   unsigned int bar)
+ {
+-	return pnp_get_resource(dev, IORESOURCE_IO, bar)->flags;
++	struct resource *res = pnp_get_resource(dev, IORESOURCE_IO, bar);
 +
-+	list_for_each_entry(pnp_res, &dev->resources, list) {
-+		res = &pnp_res->res;
++	if (pnp_resource_valid(res))
++		return res->flags;
++	return IORESOURCE_IO | IORESOURCE_AUTO | IORESOURCE_UNSET;
+ }
+ 
+ static inline int pnp_port_valid(struct pnp_dev *dev, unsigned int bar)
+@@ -63,25 +75,41 @@ static inline int pnp_port_valid(struct 
+ static inline resource_size_t pnp_port_len(struct pnp_dev *dev,
+ 					   unsigned int bar)
+ {
+-	return pnp_resource_len(pnp_get_resource(dev, IORESOURCE_IO, bar));
++	struct resource *res = pnp_get_resource(dev, IORESOURCE_IO, bar);
 +
-+		pnp_printf(buffer, pnp_resource_type_name(res));
++	if (pnp_resource_valid(res))
++		return pnp_resource_len(res);
++	return 0;
+ }
+ 
+ 
+ static inline resource_size_t pnp_mem_start(struct pnp_dev *dev,
+ 					    unsigned int bar)
+ {
+-	return pnp_get_resource(dev, IORESOURCE_MEM, bar)->start;
++	struct resource *res = pnp_get_resource(dev, IORESOURCE_MEM, bar);
 +
-+		if (res->flags & IORESOURCE_DISABLED) {
- 			pnp_printf(buffer, " disabled\n");
--		else
--			pnp_printf(buffer, " 0x%llx-0x%llx\n",
-+			continue;
-+		}
++	if (pnp_resource_valid(res))
++		return res->start;
++	return 0;
+ }
+ 
+ static inline resource_size_t pnp_mem_end(struct pnp_dev *dev,
+ 					  unsigned int bar)
+ {
+-	return pnp_get_resource(dev, IORESOURCE_MEM, bar)->end;
++	struct resource *res = pnp_get_resource(dev, IORESOURCE_MEM, bar);
 +
-+		switch (pnp_resource_type(res)) {
-+		case IORESOURCE_IO:
-+		case IORESOURCE_MEM:
-+			pnp_printf(buffer, " %#llx-%#llx\n",
- 				   (unsigned long long) res->start,
- 				   (unsigned long long) res->end);
--	}
--	for (i = 0; (res = pnp_get_resource(dev, IORESOURCE_IRQ, i)); i++) {
--		pnp_printf(buffer, "irq");
--		if (res->flags & IORESOURCE_DISABLED)
--			pnp_printf(buffer, " disabled\n");
--		else
--			pnp_printf(buffer, " %lld\n",
--				   (unsigned long long) res->start);
--	}
--	for (i = 0; (res = pnp_get_resource(dev, IORESOURCE_DMA, i)); i++) {
--		pnp_printf(buffer, "dma");
--		if (res->flags & IORESOURCE_DISABLED)
--			pnp_printf(buffer, " disabled\n");
--		else
-+			break;
-+		case IORESOURCE_IRQ:
-+		case IORESOURCE_DMA:
- 			pnp_printf(buffer, " %lld\n",
- 				   (unsigned long long) res->start);
-+			break;
-+		}
- 	}
++	if (pnp_resource_valid(res))
++		return res->end;
++	return 0;
+ }
+ 
+ static inline unsigned long pnp_mem_flags(struct pnp_dev *dev, unsigned int bar)
+ {
+-	return pnp_get_resource(dev, IORESOURCE_MEM, bar)->flags;
++	struct resource *res = pnp_get_resource(dev, IORESOURCE_MEM, bar);
 +
- 	ret = (buffer->curr - buf);
- 	kfree(buffer);
- 	return ret;
++	if (pnp_resource_valid(res))
++		return res->flags;
++	return IORESOURCE_MEM | IORESOURCE_AUTO | IORESOURCE_UNSET;
+ }
+ 
+ static inline int pnp_mem_valid(struct pnp_dev *dev, unsigned int bar)
+@@ -92,18 +120,30 @@ static inline int pnp_mem_valid(struct p
+ static inline resource_size_t pnp_mem_len(struct pnp_dev *dev,
+ 					  unsigned int bar)
+ {
+-	return pnp_resource_len(pnp_get_resource(dev, IORESOURCE_MEM, bar));
++	struct resource *res = pnp_get_resource(dev, IORESOURCE_MEM, bar);
++
++	if (pnp_resource_valid(res))
++		return pnp_resource_len(res);
++	return 0;
+ }
+ 
+ 
+ static inline resource_size_t pnp_irq(struct pnp_dev *dev, unsigned int bar)
+ {
+-	return pnp_get_resource(dev, IORESOURCE_IRQ, bar)->start;
++	struct resource *res = pnp_get_resource(dev, IORESOURCE_IRQ, bar);
++
++	if (pnp_resource_valid(res))
++		return res->start;
++	return -1;
+ }
+ 
+ static inline unsigned long pnp_irq_flags(struct pnp_dev *dev, unsigned int bar)
+ {
+-	return pnp_get_resource(dev, IORESOURCE_IRQ, bar)->flags;
++	struct resource *res = pnp_get_resource(dev, IORESOURCE_IRQ, bar);
++
++	if (pnp_resource_valid(res))
++		return res->flags;
++	return IORESOURCE_IRQ | IORESOURCE_AUTO | IORESOURCE_UNSET;
+ }
+ 
+ static inline int pnp_irq_valid(struct pnp_dev *dev, unsigned int bar)
+@@ -114,12 +154,20 @@ static inline int pnp_irq_valid(struct p
+ 
+ static inline resource_size_t pnp_dma(struct pnp_dev *dev, unsigned int bar)
+ {
+-	return pnp_get_resource(dev, IORESOURCE_DMA, bar)->start;
++	struct resource *res = pnp_get_resource(dev, IORESOURCE_DMA, bar);
++
++	if (pnp_resource_valid(res))
++		return res->start;
++	return -1;
+ }
+ 
+ static inline unsigned long pnp_dma_flags(struct pnp_dev *dev, unsigned int bar)
+ {
+-	return pnp_get_resource(dev, IORESOURCE_DMA, bar)->flags;
++	struct resource *res = pnp_get_resource(dev, IORESOURCE_DMA, bar);
++
++	if (pnp_resource_valid(res))
++		return res->flags;
++	return IORESOURCE_DMA | IORESOURCE_AUTO | IORESOURCE_UNSET;
+ }
+ 
+ static inline int pnp_dma_valid(struct pnp_dev *dev, unsigned int bar)
 _
 
 Patches currently in -mm which might be from bjorn.helgaas@hp.com are
