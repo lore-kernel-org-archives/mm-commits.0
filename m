@@ -1,60 +1,38 @@
 From: akpm@linux-foundation.org
-Subject: - pnp-support-optional-irq-resources.patch removed from -mm tree
-Date: Mon, 23 Jun 2008 14:03:53 -0700
-Message-ID: <200806232103.m5NL3r4L016224@imap1.linux-foundation.org>
+Subject: - pnp-introduce-pnp_irq_mask_t-typedef.patch removed from -mm tree
+Date: Mon, 23 Jun 2008 14:03:25 -0700
+Message-ID: <200806232103.m5NL3P3A016157@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59469 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33287 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758289AbYFWVE3 (ORCPT
+	by vger.kernel.org with ESMTP id S1757076AbYFWVEF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Jun 2008 17:04:29 -0400
+	Mon, 23 Jun 2008 17:04:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bjorn.helgaas@hp.com, abelay@mit.edu, castet.matthieu@free.fr, lenb@kernel.org, perex@perex.cz, rene.herman@gmail.com, rene.herman@keyaccess.nl, shaohua.li@intel.com, tiwai@suse.det
+To: bjorn.helgaas@hp.com, abelay@mit.edu, castet.matthieu@free.fr, lenb@kernel.org, perex@perex.cz, rene.herman@gmail.com, shaohua.li@intel.com, tiwai@suse.de, trenn@suse.de, mm-commits@v
 
 
 The patch titled
-     pnp: support optional IRQ resources
+     pnp: introduce pnp_irq_mask_t typedef
 has been removed from the -mm tree.  Its filename was
-     pnp-support-optional-irq-resources.patch
+     pnp-introduce-pnp_irq_mask_t-typedef.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pnp: support optional IRQ resources
+Subject: pnp: introduce pnp_irq_mask_t typedef
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-This patch adds an IORESOURCE_IRQ_OPTIONAL flag for use when assigning
-resources to a device.  If the flag is set and we are unable to assign an
-IRQ to the device, we can leave the IRQ disabled but allow the overall
-resource allocation to succeed.
-
-Some devices request an IRQ, but can run without an IRQ (possibly with
-degraded performance).  This flag lets us run the device without the IRQ
-instead of just leaving the device disabled.
-
-This is a reimplementation of this previous change by Rene
-Herman <rene.herman@gmail.com>:
-    http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=3b73a223661ed137c5d3d2635f954382e94f5a43
-
-I reimplemented this for two reasons:
-    - to prepare for converting all resource options into a single linked
-      list, as opposed to the per-resource-type lists we have now, and
-    - to preserve the order and number of resource options.
-
-In PNPBIOS and ACPI, we configure a device by giving firmware a list of
-resource assignments.  It is important that this list has exactly the same
-number of resources, in the same order, as the "template" list we got from
-the firmware in the first place.
-
-The problem of a sound card MPU401 being left disabled for want of an IRQ
-was reported by Uwe Bugla <uwe.bugla@gmx.de>.
+This adds a typedef for the IRQ bitmap, which should cause no functional
+change, but will make it easier to pass a pointer to a bitmap to
+pnp_register_irq_resource().
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Rene Herman <rene.herman@keyaccess.nl>
+Acked-by: Rene Herman <rene.herman@gmail.com>
 Cc: Len Brown <lenb@kernel.org>
 Cc: Adam M Belay <abelay@mit.edu>
 Cc: Li Shaohua <shaohua.li@intel.com>
@@ -65,172 +43,173 @@ Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/interface.c |    2 +
- drivers/pnp/manager.c   |    9 ++++
- drivers/pnp/quirks.c    |   69 ++++++++++++++------------------------
- include/linux/ioport.h  |    1 
- 4 files changed, 39 insertions(+), 42 deletions(-)
+ drivers/pnp/base.h             |    4 +++-
+ drivers/pnp/interface.c        |    4 ++--
+ drivers/pnp/isapnp/core.c      |    2 +-
+ drivers/pnp/manager.c          |    6 +++---
+ drivers/pnp/pnpacpi/rsparser.c |    4 ++--
+ drivers/pnp/pnpbios/rsparser.c |    2 +-
+ drivers/pnp/quirks.c           |    4 ++--
+ drivers/pnp/resource.c         |    6 +++---
+ 8 files changed, 17 insertions(+), 15 deletions(-)
 
-diff -puN drivers/pnp/interface.c~pnp-support-optional-irq-resources drivers/pnp/interface.c
---- a/drivers/pnp/interface.c~pnp-support-optional-irq-resources
+diff -puN drivers/pnp/base.h~pnp-introduce-pnp_irq_mask_t-typedef drivers/pnp/base.h
+--- a/drivers/pnp/base.h~pnp-introduce-pnp_irq_mask_t-typedef
++++ a/drivers/pnp/base.h
+@@ -30,8 +30,10 @@ struct pnp_port {
+ };
+ 
+ #define PNP_IRQ_NR 256
++typedef struct { DECLARE_BITMAP(bits, PNP_IRQ_NR); } pnp_irq_mask_t;
++
+ struct pnp_irq {
+-	DECLARE_BITMAP(map, PNP_IRQ_NR);	/* bitmask for IRQ lines */
++	pnp_irq_mask_t map;	/* bitmap for IRQ lines */
+ 	unsigned char flags;	/* IRQ flags */
+ 	unsigned char pad;	/* pad */
+ 	struct pnp_irq *next;	/* next IRQ */
+diff -puN drivers/pnp/interface.c~pnp-introduce-pnp_irq_mask_t-typedef drivers/pnp/interface.c
+--- a/drivers/pnp/interface.c~pnp-introduce-pnp_irq_mask_t-typedef
 +++ a/drivers/pnp/interface.c
-@@ -90,6 +90,8 @@ static void pnp_print_irq(pnp_info_buffe
- 		pnp_printf(buffer, " High-Level");
- 	if (irq->flags & IORESOURCE_IRQ_LOWLEVEL)
- 		pnp_printf(buffer, " Low-Level");
-+	if (irq->flags & IORESOURCE_IRQ_OPTIONAL)
-+		pnp_printf(buffer, " (optional)");
- 	pnp_printf(buffer, "\n");
- }
+@@ -67,7 +67,7 @@ static void pnp_print_irq(pnp_info_buffe
  
-diff -puN drivers/pnp/manager.c~pnp-support-optional-irq-resources drivers/pnp/manager.c
---- a/drivers/pnp/manager.c~pnp-support-optional-irq-resources
+ 	pnp_printf(buffer, "%sirq ", space);
+ 	for (i = 0; i < PNP_IRQ_NR; i++)
+-		if (test_bit(i, irq->map)) {
++		if (test_bit(i, irq->map.bits)) {
+ 			if (!first) {
+ 				pnp_printf(buffer, ",");
+ 			} else {
+@@ -78,7 +78,7 @@ static void pnp_print_irq(pnp_info_buffe
+ 			else
+ 				pnp_printf(buffer, "%i", i);
+ 		}
+-	if (bitmap_empty(irq->map, PNP_IRQ_NR))
++	if (bitmap_empty(irq->map.bits, PNP_IRQ_NR))
+ 		pnp_printf(buffer, "<none>");
+ 	if (irq->flags & IORESOURCE_IRQ_HIGHEDGE)
+ 		pnp_printf(buffer, " High-Edge");
+diff -puN drivers/pnp/isapnp/core.c~pnp-introduce-pnp_irq_mask_t-typedef drivers/pnp/isapnp/core.c
+--- a/drivers/pnp/isapnp/core.c~pnp-introduce-pnp_irq_mask_t-typedef
++++ a/drivers/pnp/isapnp/core.c
+@@ -441,7 +441,7 @@ static void __init isapnp_parse_irq_reso
+ 	if (!irq)
+ 		return;
+ 	bits = (tmp[1] << 8) | tmp[0];
+-	bitmap_copy(irq->map, &bits, 16);
++	bitmap_copy(irq->map.bits, &bits, 16);
+ 	if (size > 2)
+ 		irq->flags = tmp[2];
+ 	else
+diff -puN drivers/pnp/manager.c~pnp-introduce-pnp_irq_mask_t-typedef drivers/pnp/manager.c
+--- a/drivers/pnp/manager.c~pnp-introduce-pnp_irq_mask_t-typedef
 +++ a/drivers/pnp/manager.c
-@@ -153,6 +153,15 @@ static int pnp_assign_irq(struct pnp_dev
+@@ -128,20 +128,20 @@ static int pnp_assign_irq(struct pnp_dev
+ 	res->start = -1;
+ 	res->end = -1;
+ 
+-	if (bitmap_empty(rule->map, PNP_IRQ_NR)) {
++	if (bitmap_empty(rule->map.bits, PNP_IRQ_NR)) {
+ 		res->flags |= IORESOURCE_DISABLED;
+ 		dev_dbg(&dev->dev, "  irq %d disabled\n", idx);
+ 		goto __add;
+ 	}
+ 
+ 	/* TBD: need check for >16 IRQ */
+-	res->start = find_next_bit(rule->map, PNP_IRQ_NR, 16);
++	res->start = find_next_bit(rule->map.bits, PNP_IRQ_NR, 16);
+ 	if (res->start < PNP_IRQ_NR) {
+ 		res->end = res->start;
+ 		goto __add;
+ 	}
+ 	for (i = 0; i < 16; i++) {
+-		if (test_bit(xtab[i], rule->map)) {
++		if (test_bit(xtab[i], rule->map.bits)) {
+ 			res->start = res->end = xtab[i];
+ 			if (pnp_check_irq(dev, res))
  				goto __add;
- 		}
- 	}
-+
-+	if (rule->flags & IORESOURCE_IRQ_OPTIONAL) {
-+		res->start = -1;
-+		res->end = -1;
-+		res->flags |= IORESOURCE_DISABLED;
-+		dev_dbg(&dev->dev, "  irq %d disabled (optional)\n", idx);
-+		goto __add;
-+	}
-+
- 	dev_dbg(&dev->dev, "  couldn't assign irq %d\n", idx);
- 	return -EBUSY;
+diff -puN drivers/pnp/pnpacpi/rsparser.c~pnp-introduce-pnp_irq_mask_t-typedef drivers/pnp/pnpacpi/rsparser.c
+--- a/drivers/pnp/pnpacpi/rsparser.c~pnp-introduce-pnp_irq_mask_t-typedef
++++ a/drivers/pnp/pnpacpi/rsparser.c
+@@ -408,7 +408,7 @@ static __init void pnpacpi_parse_irq_opt
  
-diff -puN drivers/pnp/quirks.c~pnp-support-optional-irq-resources drivers/pnp/quirks.c
---- a/drivers/pnp/quirks.c~pnp-support-optional-irq-resources
+ 	for (i = 0; i < p->interrupt_count; i++)
+ 		if (p->interrupts[i])
+-			__set_bit(p->interrupts[i], irq->map);
++			__set_bit(p->interrupts[i], irq->map.bits);
+ 	irq->flags = irq_flags(p->triggering, p->polarity, p->sharable);
+ 
+ 	pnp_register_irq_resource(dev, option, irq);
+@@ -429,7 +429,7 @@ static __init void pnpacpi_parse_ext_irq
+ 
+ 	for (i = 0; i < p->interrupt_count; i++)
+ 		if (p->interrupts[i])
+-			__set_bit(p->interrupts[i], irq->map);
++			__set_bit(p->interrupts[i], irq->map.bits);
+ 	irq->flags = irq_flags(p->triggering, p->polarity, p->sharable);
+ 
+ 	pnp_register_irq_resource(dev, option, irq);
+diff -puN drivers/pnp/pnpbios/rsparser.c~pnp-introduce-pnp_irq_mask_t-typedef drivers/pnp/pnpbios/rsparser.c
+--- a/drivers/pnp/pnpbios/rsparser.c~pnp-introduce-pnp_irq_mask_t-typedef
++++ a/drivers/pnp/pnpbios/rsparser.c
+@@ -275,7 +275,7 @@ static __init void pnpbios_parse_irq_opt
+ 	if (!irq)
+ 		return;
+ 	bits = (p[2] << 8) | p[1];
+-	bitmap_copy(irq->map, &bits, 16);
++	bitmap_copy(irq->map.bits, &bits, 16);
+ 	if (size > 2)
+ 		irq->flags = p[3];
+ 	else
+diff -puN drivers/pnp/quirks.c~pnp-introduce-pnp_irq_mask_t-typedef drivers/pnp/quirks.c
+--- a/drivers/pnp/quirks.c~pnp-introduce-pnp_irq_mask_t-typedef
 +++ a/drivers/pnp/quirks.c
-@@ -118,34 +118,46 @@ static struct pnp_option *quirk_isapnp_m
- 	struct pnp_option *res;
+@@ -68,7 +68,7 @@ static void quirk_cmi8330_resources(stru
  
- 	/*
--	 * Build a functional IRQ-less variant of each MPU option.
-+	 * Build a functional IRQ-optional variant of each MPU option.
- 	 */
- 
- 	for (res = dev->dependent; res; res = res->next) {
- 		struct pnp_option *curr;
- 		struct pnp_port *port;
--		struct pnp_port *copy;
-+		struct pnp_port *copy_port;
-+		struct pnp_irq *irq;
-+		struct pnp_irq *copy_irq;
- 
- 		port = res->port;
--		if (!port || !res->irq)
-+		irq = res->irq;
-+		if (!port || !irq)
- 			continue;
- 
--		copy = pnp_alloc(sizeof *copy);
--		if (!copy)
-+		copy_port = pnp_alloc(sizeof *copy_port);
-+		if (!copy_port)
- 			break;
- 
--		copy->min = port->min;
--		copy->max = port->max;
--		copy->align = port->align;
--		copy->size = port->size;
--		copy->flags = port->flags;
-+		copy_irq = pnp_alloc(sizeof *copy_irq);
-+		if (!copy_irq) {
-+			kfree(copy_port);
-+			break;
-+		}
-+
-+		*copy_port = *port;
-+		copy_port->next = NULL;
-+
-+		*copy_irq = *irq;
-+		copy_irq->flags |= IORESOURCE_IRQ_OPTIONAL;
-+		copy_irq->next = NULL;
- 
- 		curr = pnp_build_option(PNP_RES_PRIORITY_FUNCTIONAL);
- 		if (!curr) {
--			kfree(copy);
-+			kfree(copy_port);
-+			kfree(copy_irq);
- 			break;
+ 		for (irq = res->irq; irq; irq = irq->next) {	// Valid irqs are 5, 7, 10
+ 			tmp = 0x04A0;
+-			bitmap_copy(irq->map, &tmp, 16);	// 0000 0100 1010 0000
++			bitmap_copy(irq->map.bits, &tmp, 16);	// 0000 0100 1010 0000
  		}
--		curr->port = copy;
-+		curr->port = copy_port;
-+		curr->irq = copy_irq;
  
- 		if (prev)
- 			prev->next = curr;
-@@ -154,7 +166,7 @@ static struct pnp_option *quirk_isapnp_m
- 		prev = curr;
+ 		for (dma = res->dma; dma; dma = dma->next)	// Valid 8bit dma channels are 1,3
+@@ -187,7 +187,7 @@ static void quirk_ad1815_mpu_resources(s
+ 		if (!copy)
+ 			break;
+ 
+-		memcpy(copy->map, irq->map, sizeof copy->map);
++		bitmap_copy(copy->map.bits, irq->map.bits, PNP_IRQ_NR);
+ 		copy->flags = irq->flags;
+ 
+ 		copy->next = res->irq; /* Yes, this is NULL */
+diff -puN drivers/pnp/resource.c~pnp-introduce-pnp_irq_mask_t-typedef drivers/pnp/resource.c
+--- a/drivers/pnp/resource.c~pnp-introduce-pnp_irq_mask_t-typedef
++++ a/drivers/pnp/resource.c
+@@ -98,13 +98,13 @@ int pnp_register_irq_resource(struct pnp
+ 		int i;
+ 
+ 		for (i = 0; i < 16; i++)
+-			if (test_bit(i, data->map))
++			if (test_bit(i, data->map.bits))
+ 				pcibios_penalize_isa_irq(i, 0);
  	}
- 	if (head)
--		dev_info(&dev->dev, "adding IRQ-less MPU options\n");
-+		dev_info(&dev->dev, "adding IRQ-optional MPU options\n");
+ #endif
  
- 	return head;
- }
-@@ -164,10 +176,6 @@ static void quirk_ad1815_mpu_resources(s
- 	struct pnp_option *res;
- 	struct pnp_irq *irq;
- 
--	/*
--	 * Distribute the independent IRQ over the dependent options
--	 */
--
- 	res = dev->independent;
- 	if (!res)
- 		return;
-@@ -176,33 +184,10 @@ static void quirk_ad1815_mpu_resources(s
- 	if (!irq || irq->next)
- 		return;
- 
--	res = dev->dependent;
--	if (!res)
--		return;
--
--	while (1) {
--		struct pnp_irq *copy;
--
--		copy = pnp_alloc(sizeof *copy);
--		if (!copy)
--			break;
--
--		bitmap_copy(copy->map.bits, irq->map.bits, PNP_IRQ_NR);
--		copy->flags = irq->flags;
--
--		copy->next = res->irq; /* Yes, this is NULL */
--		res->irq = copy;
--
--		if (!res->next)
--			break;
--		res = res->next;
--	}
--	kfree(irq);
-+	irq->flags |= IORESOURCE_IRQ_OPTIONAL;
-+	dev_info(&dev->dev, "made independent IRQ optional\n");
- 
- 	res->next = quirk_isapnp_mpu_options(dev);
--
--	res = dev->independent;
--	res->irq = NULL;
- }
- 
- static void quirk_isapnp_mpu_resources(struct pnp_dev *dev)
-diff -puN include/linux/ioport.h~pnp-support-optional-irq-resources include/linux/ioport.h
---- a/include/linux/ioport.h~pnp-support-optional-irq-resources
-+++ a/include/linux/ioport.h
-@@ -59,6 +59,7 @@ struct resource_list {
- #define IORESOURCE_IRQ_HIGHLEVEL	(1<<2)
- #define IORESOURCE_IRQ_LOWLEVEL		(1<<3)
- #define IORESOURCE_IRQ_SHAREABLE	(1<<4)
-+#define IORESOURCE_IRQ_OPTIONAL		(1<<5)
- 
- /* PnP DMA specific bits (IORESOURCE_BITS) */
- #define IORESOURCE_DMA_TYPE_MASK	(3<<0)
+ #ifdef DEBUG
+-	bitmap_scnprintf(buf, sizeof(buf), data->map, PNP_IRQ_NR);
++	bitmap_scnprintf(buf, sizeof(buf), data->map.bits, PNP_IRQ_NR);
+ 	dev_dbg(&dev->dev, "  irq bitmask %s flags %#x\n", buf,
+ 		data->flags);
+ #endif
+@@ -653,7 +653,7 @@ static int pnp_possible_option(struct pn
+ 		case IORESOURCE_IRQ:
+ 			for (irq = tmp->irq; irq; irq = irq->next) {
+ 				if (start < PNP_IRQ_NR &&
+-				    test_bit(start, irq->map))
++				    test_bit(start, irq->map.bits))
+ 					return 1;
+ 			}
+ 			break;
 _
 
 Patches currently in -mm which might be from bjorn.helgaas@hp.com are
