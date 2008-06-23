@@ -1,435 +1,192 @@
 From: akpm@linux-foundation.org
-Subject: - pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2.patch removed from -mm tree
-Date: Mon, 23 Jun 2008 14:02:14 -0700
-Message-ID: <200806232102.m5NL2E76016058@imap1.linux-foundation.org>
+Subject: - drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch removed from -mm tree
+Date: Mon, 23 Jun 2008 14:02:25 -0700
+Message-ID: <200806232102.m5NL2Pk8016073@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40539 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46460 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758030AbYFWVCj (ORCPT
+	by vger.kernel.org with ESMTP id S1759412AbYFWVC1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Jun 2008 17:02:39 -0400
+	Mon, 23 Jun 2008 17:02:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: michael.hennerich@analog.com, cooloney@kernel.org, linux@dominikbrodowski.net, vapier.adi@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     PCMCIA: add support the CF PCMCIA driver for Blackfin
+     drivers/usb/host/isp1760-hcd.c: processor flags have type `unsigned long'
 has been removed from the -mm tree.  Its filename was
-     pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2.patch
+     drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: PCMCIA: add support the CF PCMCIA driver for Blackfin
-From: Michael Hennerich <michael.hennerich@analog.com>
+Subject: drivers/usb/host/isp1760-hcd.c: processor flags have type `unsigned long'
+From: Andrew Morton <akpm@linux-foundation.org>
 
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Michael Hennerich <michael.hennerich@analog.com>
-Signed-off-by: Bryan Wu <cooloney@kernel.org>
-Cc: Dominik Brodowski <linux@dominikbrodowski.net>
-Cc: Mike Frysinger <vapier.adi@gmail.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pcmcia/Kconfig          |    7 
- drivers/pcmcia/Makefile         |    1 
- drivers/pcmcia/bfin_cf_pcmcia.c |  339 ++++++++++++++++++++++++++++++
- include/pcmcia/cs_types.h       |    3 
- 4 files changed, 349 insertions(+), 1 deletion(-)
+ drivers/usb/host/isp1760-hcd.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/pcmcia/Kconfig~pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2 drivers/pcmcia/Kconfig
---- a/drivers/pcmcia/Kconfig~pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2
-+++ a/drivers/pcmcia/Kconfig
-@@ -263,6 +263,13 @@ config OMAP_CF
- 	  Say Y here to support the CompactFlash controller on OMAP.
- 	  Note that this doesn't support "True IDE" mode.
+diff -puN drivers/usb/host/isp1760-hcd.c~drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long drivers/usb/host/isp1760-hcd.c
+--- a/drivers/usb/host/isp1760-hcd.c~drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long
++++ a/drivers/usb/host/isp1760-hcd.c
+@@ -1592,7 +1592,7 @@ static int isp1760_urb_dequeue(struct us
+ 	struct inter_packet_info *ints;
+ 	u32 i;
+ 	u32 reg_base, or_reg, skip_reg;
+-	int flags;
++	unsigned long flags;
+ 	struct ptd ptd;
  
-+config BFIN_CFPCMCIA
-+	tristate "Blackfin CompactFlash PCMCIA Driver"
-+	depends on PCMCIA && BLACKFIN
-+	help
-+	  Say Y here to support the CompactFlash PCMCIA driver for Blackfin.
-+
-+
- config AT91_CF
- 	tristate "AT91 CompactFlash Controller"
- 	depends on PCMCIA && ARCH_AT91RM9200
-diff -puN drivers/pcmcia/Makefile~pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2 drivers/pcmcia/Makefile
---- a/drivers/pcmcia/Makefile~pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2
-+++ a/drivers/pcmcia/Makefile
-@@ -36,6 +36,7 @@ obj-$(CONFIG_PCMCIA_AU1X00)			+= au1x00_
- obj-$(CONFIG_PCMCIA_VRC4171)			+= vrc4171_card.o
- obj-$(CONFIG_PCMCIA_VRC4173)			+= vrc4173_cardu.o
- obj-$(CONFIG_OMAP_CF)				+= omap_cf.o
-+obj-$(CONFIG_BFIN_CFPCMCIA)			+= bfin_cf_pcmcia.o
- obj-$(CONFIG_AT91_CF)				+= at91_cf.o
- obj-$(CONFIG_ELECTRA_CF)			+= electra_cf.o
+ 	switch (usb_pipetype(urb->pipe)) {
+@@ -2061,7 +2061,7 @@ static void isp1760_endpoint_disable(str
+ 	struct isp1760_hcd *priv = hcd_to_priv(usb_hcd);
+ 	struct isp1760_qh *qh;
+ 	struct isp1760_qtd *qtd;
+-	u32 flags;
++	unsigned long flags;
  
-diff -puN /dev/null drivers/pcmcia/bfin_cf_pcmcia.c
---- /dev/null
-+++ a/drivers/pcmcia/bfin_cf_pcmcia.c
-@@ -0,0 +1,339 @@
-+/*
-+ * file: drivers/pcmcia/bfin_cf.c
-+ * author: Michael Hennerich (hennerich@blackfin.uclinux.org)
-+ *
-+ * based on: drivers/pcmcia/omap_cf.c
-+ * omap_cf.c -- OMAP 16xx CompactFlash controller driver
-+ *
-+ * Copyright (c) 2005 David Brownell
-+ * Copyright (c) 2006-2008 Michael Hennerich Analog Devices Inc.
-+ *
-+ * bugs:         enter bugs at http://blackfin.uclinux.org/
-+ *
-+ * this program is free software; you can redistribute it and/or modify
-+ * it under the terms of the gnu general public license as published by
-+ * the free software foundation; either version 2, or (at your option)
-+ * any later version.
-+ *
-+ * this program is distributed in the hope that it will be useful,
-+ * but without any warranty; without even the implied warranty of
-+ * merchantability or fitness for a particular purpose.  see the
-+ * gnu general public license for more details.
-+ *
-+ * you should have received a copy of the gnu general public license
-+ * along with this program; see the file copying.
-+ * if not, write to the free software foundation,
-+ * 59 temple place - suite 330, boston, ma 02111-1307, usa.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/sched.h>
-+#include <linux/platform_device.h>
-+#include <linux/errno.h>
-+#include <linux/init.h>
-+#include <linux/delay.h>
-+#include <linux/interrupt.h>
-+#include <linux/irq.h>
-+#include <linux/io.h>
-+
-+#include <pcmcia/ss.h>
-+#include <pcmcia/cisreg.h>
-+#include <asm/gpio.h>
-+
-+#define	SZ_1K	0x00000400
-+#define	SZ_8K	0x00002000
-+#define	SZ_2K	(2 * SZ_1K)
-+
-+#define	POLL_INTERVAL	(2 * HZ)
-+
-+#define	CF_ATASEL_ENA 	0x20311802	/* Inverts RESET */
-+#define	CF_ATASEL_DIS 	0x20311800
-+
-+#define bfin_cf_present(pfx) (gpio_get_value(pfx))
-+
-+/*--------------------------------------------------------------------------*/
-+
-+static const char driver_name[] = "bfin_cf_pcmcia";
-+
-+struct bfin_cf_socket {
-+	struct pcmcia_socket socket;
-+
-+	struct timer_list timer;
-+	unsigned present:1;
-+	unsigned active:1;
-+
-+	struct platform_device *pdev;
-+	unsigned long phys_cf_io;
-+	unsigned long phys_cf_attr;
-+	u_int irq;
-+	u_short cd_pfx;
-+};
-+
-+/*--------------------------------------------------------------------------*/
-+static int bfin_cf_reset(void)
-+{
-+	outw(0, CF_ATASEL_ENA);
-+	mdelay(200);
-+	outw(0, CF_ATASEL_DIS);
-+
-+	return 0;
-+}
-+
-+static int bfin_cf_ss_init(struct pcmcia_socket *s)
-+{
-+	return 0;
-+}
-+
-+/* the timer is primarily to kick this socket's pccardd */
-+static void bfin_cf_timer(unsigned long _cf)
-+{
-+	struct bfin_cf_socket *cf = (void *)_cf;
-+	unsigned short present = bfin_cf_present(cf->cd_pfx);
-+
-+	if (present != cf->present) {
-+		cf->present = present;
-+		pr_debug("%s: card %s\n", driver_name,
-+			 present ? "present" : "gone");
-+		pcmcia_parse_events(&cf->socket, SS_DETECT);
-+	}
-+
-+	if (cf->active)
-+		mod_timer(&cf->timer, jiffies + POLL_INTERVAL);
-+}
-+
-+static int bfin_cf_get_status(struct pcmcia_socket *s, u_int *sp)
-+{
-+	struct bfin_cf_socket *cf;
-+
-+	if (!sp)
-+		return -EINVAL;
-+
-+	cf = container_of(s, struct bfin_cf_socket, socket);
-+
-+	if (bfin_cf_present(cf->cd_pfx)) {
-+		*sp = SS_READY | SS_DETECT | SS_POWERON | SS_3VCARD;
-+		s->irq.AssignedIRQ = 0;
-+		s->pci_irq = cf->irq;
-+
-+	} else
-+		*sp = 0;
-+	return 0;
-+}
-+
-+static int
-+bfin_cf_set_socket(struct pcmcia_socket *sock, struct socket_state_t *s)
-+{
-+
-+	struct bfin_cf_socket *cf;
-+	cf = container_of(sock, struct bfin_cf_socket, socket);
-+
-+	switch (s->Vcc) {
-+	case 0:
-+	case 33:
-+		break;
-+	case 50:
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	if (s->flags & SS_RESET) {
-+		disable_irq(cf->irq);
-+		bfin_cf_reset();
-+		enable_irq(cf->irq);
-+	}
-+
-+	pr_debug("%s: Vcc %d, io_irq %d, flags %04x csc %04x\n",
-+		 driver_name, s->Vcc, s->io_irq, s->flags, s->csc_mask);
-+
-+	return 0;
-+}
-+
-+static int bfin_cf_ss_suspend(struct pcmcia_socket *s)
-+{
-+	pr_debug("%s: %s\n", driver_name, __func__);
-+	return bfin_cf_set_socket(s, &dead_socket);
-+}
-+
-+/* regions are 2K each:  mem, attrib, io (and reserved-for-ide) */
-+
-+static int bfin_cf_set_io_map(struct pcmcia_socket *s, struct pccard_io_map *io)
-+{
-+	struct bfin_cf_socket *cf;
-+
-+	cf = container_of(s, struct bfin_cf_socket, socket);
-+	io->flags &= MAP_ACTIVE | MAP_ATTRIB | MAP_16BIT;
-+	io->start = cf->phys_cf_io;
-+	io->stop = io->start + SZ_2K - 1;
-+	return 0;
-+}
-+
-+static int
-+bfin_cf_set_mem_map(struct pcmcia_socket *s, struct pccard_mem_map *map)
-+{
-+	struct bfin_cf_socket *cf;
-+
-+	if (map->card_start)
-+		return -EINVAL;
-+	cf = container_of(s, struct bfin_cf_socket, socket);
-+	map->static_start = cf->phys_cf_io;
-+	map->flags &= MAP_ACTIVE | MAP_ATTRIB | MAP_16BIT;
-+	if (map->flags & MAP_ATTRIB)
-+		map->static_start = cf->phys_cf_attr;
-+
-+	return 0;
-+}
-+
-+static struct pccard_operations bfin_cf_ops = {
-+	.init = bfin_cf_ss_init,
-+	.suspend = bfin_cf_ss_suspend,
-+	.get_status = bfin_cf_get_status,
-+	.set_socket = bfin_cf_set_socket,
-+	.set_io_map = bfin_cf_set_io_map,
-+	.set_mem_map = bfin_cf_set_mem_map,
-+};
-+
-+/*--------------------------------------------------------------------------*/
-+
-+static int __init bfin_cf_probe(struct platform_device *pdev)
-+{
-+	struct bfin_cf_socket *cf;
-+	struct resource *io_mem, *attr_mem;
-+	int irq;
-+	unsigned short cd_pfx;
-+	int status = 0;
-+
-+	printk(KERN_INFO "Blackfin CompactFlash/PCMCIA Socket Driver\n");
-+
-+	irq = platform_get_irq(pdev, 0);
-+	if (!irq)
-+		return -EINVAL;
-+
-+	cd_pfx = platform_get_irq(pdev, 1);	/*Card Detect GPIO PIN */
-+	if (cd_pfx > MAX_BLACKFIN_GPIOS)
-+		return -EINVAL;
-+
-+	if (gpio_request(cd_pfx, "pcmcia: CD")) {
-+		printk(KERN_ERR
-+		       "BF5xx flash: Failed ro request Card Detect GPIO_%d\n",
-+		       cd_pfx);
-+		return -EBUSY;
-+	}
-+	gpio_direction_input(cd_pfx);
-+
-+	cf = kzalloc(sizeof *cf, GFP_KERNEL);
-+	if (!cf)
-+		return -ENOMEM;
-+
-+	cf->cd_pfx = cd_pfx;
-+
-+	setup_timer(&cf->timer, bfin_cf_timer, (unsigned long)cf);
-+
-+	cf->pdev = pdev;
-+	platform_set_drvdata(pdev, cf);
-+
-+	cf->irq = irq;
-+	cf->socket.pci_irq = irq;
-+
-+	set_irq_type(irq, IRQF_TRIGGER_LOW);
-+
-+	io_mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	attr_mem = platform_get_resource(pdev, IORESOURCE_MEM, 1);
-+
-+	if (!io_mem || !attr_mem)
-+		goto fail0;
-+
-+	cf->phys_cf_io = io_mem->start;
-+	cf->phys_cf_attr = attr_mem->start;
-+
-+	/* pcmcia layer only remaps "real" memory */
-+	cf->socket.io_offset = (unsigned long)
-+	    ioremap(cf->phys_cf_io, SZ_2K);
-+
-+	if (!cf->socket.io_offset)
-+		goto fail0;
-+
-+	pr_info("%s: on irq %d\n", driver_name, irq);
-+
-+	pr_debug("%s: %s\n", driver_name,
-+		 bfin_cf_present(cf->cd_pfx) ? "present" : "(not present)");
-+
-+	cf->socket.owner = THIS_MODULE;
-+	cf->socket.dev.parent = &pdev->dev;
-+	cf->socket.ops = &bfin_cf_ops;
-+	cf->socket.resource_ops = &pccard_static_ops;
-+	cf->socket.features = SS_CAP_PCCARD | SS_CAP_STATIC_MAP
-+	    | SS_CAP_MEM_ALIGN;
-+	cf->socket.map_size = SZ_2K;
-+
-+	status = pcmcia_register_socket(&cf->socket);
-+	if (status < 0)
-+		goto fail2;
-+
-+	cf->active = 1;
-+	mod_timer(&cf->timer, jiffies + POLL_INTERVAL);
-+	return 0;
-+
-+fail2:
-+	iounmap((void __iomem *)cf->socket.io_offset);
-+	release_mem_region(cf->phys_cf_io, SZ_8K);
-+
-+fail0:
-+	kfree(cf);
-+	platform_set_drvdata(pdev, NULL);
-+
-+	return status;
-+}
-+
-+static int __devexit bfin_cf_remove(struct platform_device *pdev)
-+{
-+	struct bfin_cf_socket *cf = platform_get_drvdata(pdev);
-+
-+	gpio_free(cf->cd_pfx);
-+	cf->active = 0;
-+	pcmcia_unregister_socket(&cf->socket);
-+	del_timer_sync(&cf->timer);
-+	iounmap((void __iomem *)cf->socket.io_offset);
-+	release_mem_region(cf->phys_cf_io, SZ_8K);
-+	platform_set_drvdata(pdev, NULL);
-+	kfree(cf);
-+	return 0;
-+}
-+
-+static int bfin_cf_suspend(struct platform_device *pdev, pm_message_t mesg)
-+{
-+	return pcmcia_socket_dev_suspend(&pdev->dev, mesg);
-+}
-+
-+static int bfin_cf_resume(struct platform_device *pdev)
-+{
-+	return pcmcia_socket_dev_resume(&pdev->dev);
-+}
-+
-+static struct platform_driver bfin_cf_driver = {
-+	.driver = {
-+		   .name = (char *)driver_name,
-+		   .owner = THIS_MODULE,
-+		   },
-+	.probe = bfin_cf_probe,
-+	.remove = __devexit_p(bfin_cf_remove),
-+	.suspend = bfin_cf_suspend,
-+	.resume = bfin_cf_resume,
-+};
-+
-+static int __init bfin_cf_init(void)
-+{
-+	return platform_driver_register(&bfin_cf_driver);
-+}
-+
-+static void __exit bfin_cf_exit(void)
-+{
-+	platform_driver_unregister(&bfin_cf_driver);
-+}
-+
-+module_init(bfin_cf_init);
-+module_exit(bfin_cf_exit);
-+
-+MODULE_DESCRIPTION("BFIN CF/PCMCIA Driver");
-+MODULE_LICENSE("GPL");
-diff -puN include/pcmcia/cs_types.h~pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2 include/pcmcia/cs_types.h
---- a/include/pcmcia/cs_types.h~pcmcia-add-support-the-cf-pcmcia-driver-for-blackfin-try-2
-+++ a/include/pcmcia/cs_types.h
-@@ -21,7 +21,8 @@
- #include <sys/types.h>
- #endif
- 
--#if defined(__arm__) || defined(__mips__) || defined(__avr32__)
-+#if defined(__arm__) || defined(__mips__) || defined(__avr32__) || \
-+	defined(__bfin__)
- /* This (ioaddr_t) is exposed to userspace & hence cannot be changed. */
- typedef u_int   ioaddr_t;
- #else
+ 	spin_lock_irqsave(&priv->lock, flags);
+ 	qh = ep->hcpriv;
 _
 
-Patches currently in -mm which might be from michael.hennerich@analog.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 linux-next.patch
-input-touchscreen-driver-add-support-ad7877-touchscreen-driver.patch
-mtd-m25p80-fix-bug-atmel-spi-flash-fails-to-be-copied-to.patch
+next-remove-localversion.patch
+revert-git-pekka.patch
+fix-kobject-fix-kobject_rename-and-config_sysfs.patch
+kvm-is-busted-on-ia64.patch
+drivers-mtd-nand-nandsimc-needs-div64h.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+git-jg-misc-git-rejects.patch
+drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers.patch
+drivers-mtd-devices-block2mtdc-suppress-warning.patch
+sundance-set-carrier-status-on-link-change-events.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix-fix.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-scsi-misc-fix-scsi_dh-build-errors.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
+pktcdvd-push-bkl-down-into-driver-fix.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-logfs-fixup.patch
+watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
+git-xtensa.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-verify-the-page-links-and-memory-model.patch
+mspec-convert-nopfn-to-fault-fix.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+kill-generic_file_direct_io-checkpatch-fixes.patch
+use-generic_access_phys-for-dev-mem-mappings-fix.patch
+spufs-use-the-new-vm_ops-access-fix.patch
+fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
+page-flags-record-page-flag-overlays-explicitly-xen.patch
+mapping_set_error-add-unlikely.patch
+huge-page-private-reservation-review-cleanups-fix.patch
+sync_file_range_write-may-and-will-block-document-that-fix.patch
+vmallocinfo-add-numa-information-fix.patch
+hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
+hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
+hugetlb-override-default-huge-page-size-ia64-build.patch
+linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+bootmem-add-debugging-framework-fix.patch
+bootmem-clean-up-free_all_bootmem_core-fix.patch
+bootmem-free-reserve-helpers-fix.patch
+revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
+swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
+block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
+rename-warn-to-warning-to-clear-the-namespace-fix.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-paccept-sys_ni.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-signalfd-fix.patch
+flag-parameters-eventfd-fix.patch
+flag-parameters-inotify_init-fix.patch
+flag-parameters-check-magic-constants-alpha.patch
+oprofile-multiplexing-checkpatch-fixes.patch
+gpio-gpio-driver-for-max7301-spi-gpio-expander-checkpatch-fixes.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
+reiserfs-convert-j_flush_sem-to-mutex.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
+memcg-remove-refcnt-from-page_cgroup-fix-2.patch
+jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup.patch
+ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
+getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
+tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
+memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
+memstick-use-fully-asynchronous-request-processing-fix.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+mm-introduce-get_user_pages_fast-fix.patch
+mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-fix.patch
+x86-lockless-get_user_pages_fast-fix-2.patch
+x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
+x86-lockless-get_user_pages_fast-fix-warning.patch
+vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
+define-page_file_cache-function-fix.patch
+unevictable-lru-infrastructure-fix.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-3.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
+vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
