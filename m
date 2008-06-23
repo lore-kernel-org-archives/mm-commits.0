@@ -1,45 +1,39 @@
 From: akpm@linux-foundation.org
-Subject: - pnpacpi-ignore-_prs-interrupt-numbers-larger-than-pnp_irq_nr.patch removed from -mm tree
-Date: Mon, 23 Jun 2008 14:03:46 -0700
-Message-ID: <200806232103.m5NL3k5I016214@imap1.linux-foundation.org>
+Subject: - pnp-make-resource-assignment-functions-return-0-success-or-ebusy-failure.patch removed from -mm tree
+Date: Mon, 23 Jun 2008 14:03:37 -0700
+Message-ID: <200806232103.m5NL3bYa016198@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56542 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44107 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759546AbYFWVEm (ORCPT
+	by vger.kernel.org with ESMTP id S1758264AbYFWVE0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Jun 2008 17:04:42 -0400
+	Mon, 23 Jun 2008 17:04:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bjorn.helgaas@hp.com, abelay@mit.edu, castet.matthieu@free.fr, lenb@kernel.org, perex@perex.cz, rene.herman@gmail.com, shaohua.li@intel.com, tiwai@suse.de, trenn@suse.de, mm-commits@v
 
 
 The patch titled
-     pnpacpi: ignore _PRS interrupt numbers larger than PNP_IRQ_NR
+     pnp: make resource assignment functions return 0 (success) or -EBUSY (failure)
 has been removed from the -mm tree.  Its filename was
-     pnpacpi-ignore-_prs-interrupt-numbers-larger-than-pnp_irq_nr.patch
+     pnp-make-resource-assignment-functions-return-0-success-or-ebusy-failure.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pnpacpi: ignore _PRS interrupt numbers larger than PNP_IRQ_NR
+Subject: pnp: make resource assignment functions return 0 (success) or -EBUSY (failure)
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-ACPI Extended Interrupt Descriptors can encode 32-bit interrupt numbers,
-so an interrupt number may exceed the size of the bitmap we use to track
-possible IRQ settings.
+This patch doesn't change any behavior; it just makes the return values
+more conventional.
 
-To avoid corrupting memory, complain and ignore too-large interrupt
-numbers.
-
-There's similar code in pnpacpi_parse_irq_option(), but I didn't change
-that because the small IRQ descriptor can only encode IRQs 0-15, which do
-not exceed bitmap size.
-
-In the future, we could handle IRQ numbers greater than PNP_IRQ_NR by
-replacing the bitmap with a table or list.
+This changes pnp_assign_dma() from a void function to one that returns an
+int, just like the other assignment functions.  For now, at least,
+pnp_assign_dma() always returns 0 (success), so it appears to never fail,
+just like before.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Acked-by: Rene Herman <rene.herman@gmail.com>
@@ -53,32 +47,168 @@ Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/pnpacpi/rsparser.c |   13 ++++++++++---
- 1 file changed, 10 insertions(+), 3 deletions(-)
+ drivers/pnp/manager.c |   41 +++++++++++++++++++++-------------------
+ 1 file changed, 22 insertions(+), 19 deletions(-)
 
-diff -puN drivers/pnp/pnpacpi/rsparser.c~pnpacpi-ignore-_prs-interrupt-numbers-larger-than-pnp_irq_nr drivers/pnp/pnpacpi/rsparser.c
---- a/drivers/pnp/pnpacpi/rsparser.c~pnpacpi-ignore-_prs-interrupt-numbers-larger-than-pnp_irq_nr
-+++ a/drivers/pnp/pnpacpi/rsparser.c
-@@ -421,9 +421,16 @@ static __init void pnpacpi_parse_ext_irq
- 		return;
+diff -puN drivers/pnp/manager.c~pnp-make-resource-assignment-functions-return-0-success-or-ebusy-failure drivers/pnp/manager.c
+--- a/drivers/pnp/manager.c~pnp-make-resource-assignment-functions-return-0-success-or-ebusy-failure
++++ a/drivers/pnp/manager.c
+@@ -26,7 +26,7 @@ static int pnp_assign_port(struct pnp_de
+ 		dev_dbg(&dev->dev, "  io %d already set to %#llx-%#llx "
+ 			"flags %#lx\n", idx, (unsigned long long) res->start,
+ 			(unsigned long long) res->end, res->flags);
+-		return 1;
++		return 0;
+ 	}
  
- 	bitmap_zero(map.bits, PNP_IRQ_NR);
--	for (i = 0; i < p->interrupt_count; i++)
--		if (p->interrupts[i])
--			__set_bit(p->interrupts[i], map.bits);
-+	for (i = 0; i < p->interrupt_count; i++) {
-+		if (p->interrupts[i]) {
-+			if (p->interrupts[i] < PNP_IRQ_NR)
-+				__set_bit(p->interrupts[i], map.bits);
-+			else
-+				dev_err(&dev->dev, "ignoring IRQ %d option "
-+					"(too large for %d entry bitmap)\n",
-+					p->interrupts[i], PNP_IRQ_NR);
-+		}
-+	}
+ 	res = &local_res;
+@@ -51,13 +51,13 @@ static int pnp_assign_port(struct pnp_de
+ 				"(min %#llx max %#llx)\n", idx,
+ 				(unsigned long long) rule->min,
+ 				(unsigned long long) rule->max);
+-			return 0;
++			return -EBUSY;
+ 		}
+ 	}
  
- 	flags = irq_flags(p->triggering, p->polarity, p->sharable);
- 	pnp_register_irq_resource(dev, option, &map, flags);
+ __add:
+ 	pnp_add_io_resource(dev, res->start, res->end, res->flags);
+-	return 1;
++	return 0;
+ }
+ 
+ static int pnp_assign_mem(struct pnp_dev *dev, struct pnp_mem *rule, int idx)
+@@ -69,7 +69,7 @@ static int pnp_assign_mem(struct pnp_dev
+ 		dev_dbg(&dev->dev, "  mem %d already set to %#llx-%#llx "
+ 			"flags %#lx\n", idx, (unsigned long long) res->start,
+ 			(unsigned long long) res->end, res->flags);
+-		return 1;
++		return 0;
+ 	}
+ 
+ 	res = &local_res;
+@@ -103,13 +103,13 @@ static int pnp_assign_mem(struct pnp_dev
+ 				"(min %#llx max %#llx)\n", idx,
+ 				(unsigned long long) rule->min,
+ 				(unsigned long long) rule->max);
+-			return 0;
++			return -EBUSY;
+ 		}
+ 	}
+ 
+ __add:
+ 	pnp_add_mem_resource(dev, res->start, res->end, res->flags);
+-	return 1;
++	return 0;
+ }
+ 
+ static int pnp_assign_irq(struct pnp_dev *dev, struct pnp_irq *rule, int idx)
+@@ -126,7 +126,7 @@ static int pnp_assign_irq(struct pnp_dev
+ 	if (res) {
+ 		dev_dbg(&dev->dev, "  irq %d already set to %d flags %#lx\n",
+ 			idx, (int) res->start, res->flags);
+-		return 1;
++		return 0;
+ 	}
+ 
+ 	res = &local_res;
+@@ -154,14 +154,14 @@ static int pnp_assign_irq(struct pnp_dev
+ 		}
+ 	}
+ 	dev_dbg(&dev->dev, "  couldn't assign irq %d\n", idx);
+-	return 0;
++	return -EBUSY;
+ 
+ __add:
+ 	pnp_add_irq_resource(dev, res->start, res->flags);
+-	return 1;
++	return 0;
+ }
+ 
+-static void pnp_assign_dma(struct pnp_dev *dev, struct pnp_dma *rule, int idx)
++static int pnp_assign_dma(struct pnp_dev *dev, struct pnp_dma *rule, int idx)
+ {
+ 	struct resource *res, local_res;
+ 	int i;
+@@ -175,7 +175,7 @@ static void pnp_assign_dma(struct pnp_de
+ 	if (res) {
+ 		dev_dbg(&dev->dev, "  dma %d already set to %d flags %#lx\n",
+ 			idx, (int) res->start, res->flags);
+-		return;
++		return 0;
+ 	}
+ 
+ 	res = &local_res;
+@@ -198,6 +198,7 @@ static void pnp_assign_dma(struct pnp_de
+ 
+ __add:
+ 	pnp_add_dma_resource(dev, res->start, res->flags);
++	return 0;
+ }
+ 
+ void pnp_init_resources(struct pnp_dev *dev)
+@@ -243,25 +244,26 @@ static int pnp_assign_resources(struct p
+ 		irq = dev->independent->irq;
+ 		dma = dev->independent->dma;
+ 		while (port) {
+-			if (!pnp_assign_port(dev, port, nport))
++			if (pnp_assign_port(dev, port, nport) < 0)
+ 				goto fail;
+ 			nport++;
+ 			port = port->next;
+ 		}
+ 		while (mem) {
+-			if (!pnp_assign_mem(dev, mem, nmem))
++			if (pnp_assign_mem(dev, mem, nmem) < 0)
+ 				goto fail;
+ 			nmem++;
+ 			mem = mem->next;
+ 		}
+ 		while (irq) {
+-			if (!pnp_assign_irq(dev, irq, nirq))
++			if (pnp_assign_irq(dev, irq, nirq) < 0)
+ 				goto fail;
+ 			nirq++;
+ 			irq = irq->next;
+ 		}
+ 		while (dma) {
+-			pnp_assign_dma(dev, dma, ndma);
++			if (pnp_assign_dma(dev, dma, ndma) < 0)
++				goto fail;
+ 			ndma++;
+ 			dma = dma->next;
+ 		}
+@@ -281,25 +283,26 @@ static int pnp_assign_resources(struct p
+ 		irq = dep->irq;
+ 		dma = dep->dma;
+ 		while (port) {
+-			if (!pnp_assign_port(dev, port, nport))
++			if (pnp_assign_port(dev, port, nport) < 0)
+ 				goto fail;
+ 			nport++;
+ 			port = port->next;
+ 		}
+ 		while (mem) {
+-			if (!pnp_assign_mem(dev, mem, nmem))
++			if (pnp_assign_mem(dev, mem, nmem) < 0)
+ 				goto fail;
+ 			nmem++;
+ 			mem = mem->next;
+ 		}
+ 		while (irq) {
+-			if (!pnp_assign_irq(dev, irq, nirq))
++			if (pnp_assign_irq(dev, irq, nirq) < 0)
+ 				goto fail;
+ 			nirq++;
+ 			irq = irq->next;
+ 		}
+ 		while (dma) {
+-			pnp_assign_dma(dev, dma, ndma);
++			if (pnp_assign_dma(dev, dma, ndma) < 0)
++				goto fail;
+ 			ndma++;
+ 			dma = dma->next;
+ 		}
 _
 
 Patches currently in -mm which might be from bjorn.helgaas@hp.com are
