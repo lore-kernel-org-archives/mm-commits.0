@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-kexecc-make-kimage_terminate-void.patch added to -mm tree
-Date: Tue, 24 Jun 2008 13:50:54 -0700
-Message-ID: <200806242050.m5OKosev005396@imap1.linux-foundation.org>
+Subject: + fb-add-support-for-the-ili9320-video-display-controller-fix.patch added to -mm tree
+Date: Tue, 24 Jun 2008 13:52:06 -0700
+Message-ID: <200806242052.m5OKq65D005447@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47464 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35406 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750770AbYFXUu6 (ORCPT
+	by vger.kernel.org with ESMTP id S1752291AbYFXUwo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jun 2008 16:50:58 -0400
+	Tue, 24 Jun 2008 16:52:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xiyou.wangcong@gmail.com, ebiederm@xmission.com, wangcong@zeuux.org
+Cc: ben-linux@fluff.org
 
 
 The patch titled
-     kernel/kexec.c: make 'kimage_terminate' void
+     ili9320: ensure resource cleanup on exit
 has been added to the -mm tree.  Its filename is
-     kernel-kexecc-make-kimage_terminate-void.patch
+     fb-add-support-for-the-ili9320-video-display-controller-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,30 +34,58 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel/kexec.c: make 'kimage_terminate' void
-From: WANG Cong <xiyou.wangcong@gmail.com>
+Subject: ili9320: ensure resource cleanup on exit
+From: Ben Dooks <ben-linux@fluff.org>
 
-Since kimage_terminate() always returns 0, make it void.
+Ensure we free our 'struct ili9320' on exit or error.
 
-Signed-off-by: WANG Cong <wangcong@zeuux.org>
-Signed-off-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: Ben Dooks <ben-linux@fluff.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec.c |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ drivers/video/backlight/ili9320.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN kernel/kexec.c~kernel-kexecc-make-kimage_terminate-void kernel/kexec.c
---- a/kernel/kexec.c~kernel-kexecc-make-kimage_terminate-void
-+++ a/kernel/kexec.c
-@@ -589,14 +589,12 @@ static void kimage_free_extra_pages(stru
- 	kimage_free_page_list(&image->unuseable_pages);
+diff -puN drivers/video/backlight/ili9320.c~fb-add-support-for-the-ili9320-video-display-controller-fix drivers/video/backlight/ili9320.c
+--- a/drivers/video/backlight/ili9320.c~fb-add-support-for-the-ili9320-video-display-controller-fix
++++ a/drivers/video/backlight/ili9320.c
+@@ -259,18 +259,19 @@ int __devinit ili9320_probe_spi(struct s
+ 	lcd_device_unregister(lcd);
  
+  err_free:
+-	kfree(lcd);
++	kfree(ili);
++
+ 	return ret;
  }
--static int kimage_terminate(struct kimage *image)
-+static void kimage_terminate(struct kimage *image)
- {
- 	if (*image->entry != 0)
- 		image->entry++;
  
- 	*image->entry = IND_DONE;
+ EXPORT_SYMBOL_GPL(ili9320_probe_spi);
+ 
+-int __devexit ili9320_remove(struct ili9320 *lcd)
++int __devexit ili9320_remove(struct ili9320 *ili)
+ {
+-	ili9320_power(lcd, FB_BLANK_POWERDOWN);
++	ili9320_power(ili, FB_BLANK_POWERDOWN);
+ 
+-	lcd_device_unregister(lcd->lcd);
+-	kfree(lcd);
++	lcd_device_unregister(ili->lcd);
++	kfree(ili);
+ 
+ 	return 0;
+ }
+_
+
+Patches currently in -mm which might be from ben-linux@fluff.org are
+
+sm501-add-power-control-callback.patch
+sm501-add-gpiolib-support.patch
+sm501-gpio-dynamic-registration-for-pci-devices.patch
+sm501-gpio-i2c-support.patch
+sm501-add-inversion-controls-for-vbiasen-and-fpen.patch
+sm501-restructure-init-to-allow-only-1-fb-on-an-sm501.patch
+fb-add-support-for-the-ili9320-video-display-controller.patch
+fb-add-support-for-the-ili9320-video-display-controller-fix.patch
+lcd-add-lcd_device-to-check_fb-entry-in-lcd_ops.patch
+lcd-add-platform_lcd-driver.patch
+
