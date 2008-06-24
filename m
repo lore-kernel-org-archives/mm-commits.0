@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + serial-fix-serial_match_port-for-dynamic-major-tty-device-numbers.patch added to -mm tree
-Date: Tue, 24 Jun 2008 15:23:22 -0700
-Message-ID: <200806242223.m5OMNMcu009237@imap1.linux-foundation.org>
+Subject: + get_user_pages-fix-possible-page-leak-on-oom.patch added to -mm tree
+Date: Tue, 24 Jun 2008 15:50:03 -0700
+Message-ID: <200806242250.m5OMo31l010266@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46645 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57834 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752804AbYFXWX5 (ORCPT
+	by vger.kernel.org with ESMTP id S1754194AbYFXWuu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jun 2008 18:23:57 -0400
+	Tue, 24 Jun 2008 18:50:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, alan@lxorguk.ukuu.org.uk, vcgandhi1@aol.com
+Cc: oleg@tv-sign.ru, npiggin@suse.de
 
 
 The patch titled
-     serial: fix serial_match_port() for dynamic major tty-device numbers
+     get_user_pages(): fix possible page leak on oom
 has been added to the -mm tree.  Its filename is
-     serial-fix-serial_match_port-for-dynamic-major-tty-device-numbers.patch
+     get_user_pages-fix-possible-page-leak-on-oom.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,38 +34,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: serial: fix serial_match_port() for dynamic major tty-device numbers
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: get_user_pages(): fix possible page leak on oom
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-As reported by Vipul Gandhi, the current serial_match_port() doesn't work
-for tty-devices using dynamic major number allocation.  Fix it.
+get_user_pages() must not return the error when i != 0.  When pages !=
+NULL we have i get_page()'ed pages.
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Tested-by: Vipul Gandhi <vcgandhi1@aol.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Acked-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/serial_core.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/serial/serial_core.c~serial-fix-serial_match_port-for-dynamic-major-tty-device-numbers drivers/serial/serial_core.c
---- a/drivers/serial/serial_core.c~serial-fix-serial_match_port-for-dynamic-major-tty-device-numbers
-+++ a/drivers/serial/serial_core.c
-@@ -1991,7 +1991,9 @@ struct uart_match {
- static int serial_match_port(struct device *dev, void *data)
- {
- 	struct uart_match *match = data;
--	dev_t devt = MKDEV(match->driver->major, match->driver->minor) + match->port->line;
-+	struct tty_driver *tty_drv = match->driver->tty_driver;
-+	dev_t devt = MKDEV(tty_drv->major, tty_drv->minor_start) +
-+		match->port->line;
+diff -puN mm/memory.c~get_user_pages-fix-possible-page-leak-on-oom mm/memory.c
+--- a/mm/memory.c~get_user_pages-fix-possible-page-leak-on-oom
++++ a/mm/memory.c
+@@ -1151,7 +1151,7 @@ int get_user_pages(struct task_struct *t
+ 			 * be processed until returning to user space.
+ 			 */
+ 			if (unlikely(test_tsk_thread_flag(tsk, TIF_MEMDIE)))
+-				return -ENOMEM;
++				return i ? i : -ENOMEM;
  
- 	return dev->devt == devt; /* Actually, only one tty per port */
- }
+ 			if (write)
+ 				foll_flags |= FOLL_WRITE;
 _
 
-Patches currently in -mm which might be from g.liakhovetski@gmx.de are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
-serial-fix-serial_match_port-for-dynamic-major-tty-device-numbers.patch
+get_user_pages-fix-possible-page-leak-on-oom.patch
+introduce-pf_kthread-flag.patch
+kill-pf_borrowed_mm-in-favour-of-pf_kthread.patch
+coredump-zap_threads-must-skip-kernel-threads.patch
+posix-timers-timer_delete-remove-the-bogus-it_process-=-null-check.patch
+posix-timers-release_posix_timer-kill-the-bogus-put_task_struct-it_process.patch
+signals-collect_signal-remove-the-unneeded-sigismember-check.patch
+signals-collect_signal-simplify-the-still_pending-logic.patch
+signals-change-collect_signal-to-return-void.patch
+__exit_signal-dont-take-rcu-lock.patch
+signals-dequeue_signal-dont-check-signal_group_exit-when-setting-signal_stop_dequeued.patch
+signals-do_signal_stop-kill-the-signal_unkillable-check.patch
+coredump-zap_threads-comments-use-while_each_thread.patch
+include-asm-ptraceh-userspace-headers-cleanup.patch
+distinct-tgid-tid-i-o-statistics.patch
 
