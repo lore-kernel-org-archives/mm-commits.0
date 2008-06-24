@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-remove-bkl-for-ioctl.patch added to -mm tree
-Date: Mon, 23 Jun 2008 20:42:41 -0700
-Message-ID: <200806240342.m5O3gfeZ031124@imap1.linux-foundation.org>
+Subject: + pm-remove-obsolete-piece-of-pm-documentation-rev-2.patch added to -mm tree
+Date: Mon, 23 Jun 2008 20:43:39 -0700
+Message-ID: <200806240343.m5O3hdAM031162@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38541 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32847 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753789AbYFXDnE (ORCPT
+	by vger.kernel.org with ESMTP id S1751932AbYFXDoJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Jun 2008 23:43:04 -0400
+	Mon, 23 Jun 2008 23:44:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: david-b@pacbell.net, alan@lxorguk.ukuu.org.uk, corbet@lwn.net, dbrownell@users.sourceforge.net
+Cc: rjw@sisk.pl, pavel@ucw.cz, randy.dunlap@oracle.com
 
 
 The patch titled
-     rtc: remove BKL for ioctl()
+     PM: Remove obsolete piece of PM documentation
 has been added to the -mm tree.  Its filename is
-     rtc-remove-bkl-for-ioctl.patch
+     pm-remove-obsolete-piece-of-pm-documentation-rev-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,243 +34,357 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: remove BKL for ioctl()
-From: David Brownell <david-b@pacbell.net>
+Subject: PM: Remove obsolete piece of PM documentation
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Remove implicit use of BKL in ioctl() from the RTC framework.
+Remove some obsolete PM documentation.
 
-Instead, the rtc->ops_lock is used.  That's the same lock that already
-protects the RTC operations when they're issued through the exported
-rtc_*() calls in drivers/rtc/interface.c ...  making this a bugfix, not
-just a cleanup, since both ioctl calls and set_alarm() need to update IRQ
-enable flags and that implies a common lock (which RTC drivers as a rule
-do not provide on their own).
+The majority of contents of Documentation/power/pm.txt are
+outdated.  Remove the outdated parts of this file and move the rest
+to Documentation/power/apm-acpi.txt .  Update the index in
+Documentation/power/ as appropriate.
 
-A new comment at the declaration of "struct rtc_class_ops" summarizes
-current locking rules.  It's not clear to me that the exceptions listed
-there should exist ...  if not, those are pre-existing problems which can
-be fixed in a patch that doesn't relate to BKL removal.
-
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Jonathan Corbet <corbet@lwn.net>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-dev.c |   58 ++++++++++++++++++++++++++--------------
- include/linux/rtc.h   |   17 +++++++++++
- 2 files changed, 55 insertions(+), 20 deletions(-)
+ Documentation/power/00-INDEX     |    4 
+ Documentation/power/apm-acpi.txt |   32 +++
+ Documentation/power/pm.txt       |  257 -----------------------------
+ 3 files changed, 34 insertions(+), 259 deletions(-)
 
-diff -puN drivers/rtc/rtc-dev.c~rtc-remove-bkl-for-ioctl drivers/rtc/rtc-dev.c
---- a/drivers/rtc/rtc-dev.c~rtc-remove-bkl-for-ioctl
-+++ a/drivers/rtc/rtc-dev.c
-@@ -209,7 +209,7 @@ static unsigned int rtc_dev_poll(struct 
- 	return (data != 0) ? (POLLIN | POLLRDNORM) : 0;
- }
- 
--static int rtc_dev_ioctl(struct inode *inode, struct file *file,
-+static long rtc_dev_ioctl(struct file *file,
- 		unsigned int cmd, unsigned long arg)
- {
- 	int err = 0;
-@@ -219,6 +219,10 @@ static int rtc_dev_ioctl(struct inode *i
- 	struct rtc_wkalrm alarm;
- 	void __user *uarg = (void __user *) arg;
- 
-+	err = mutex_lock_interruptible(&rtc->ops_lock);
-+	if (err)
-+		return -EBUSY;
+diff -puN Documentation/power/00-INDEX~pm-remove-obsolete-piece-of-pm-documentation-rev-2 Documentation/power/00-INDEX
+--- a/Documentation/power/00-INDEX~pm-remove-obsolete-piece-of-pm-documentation-rev-2
++++ a/Documentation/power/00-INDEX
+@@ -1,5 +1,7 @@
+ 00-INDEX
+ 	- This file
++apm-acpi.txt
++	- basic info about the APM and ACPI support.
+ basic-pm-debugging.txt
+ 	- Debugging suspend and resume
+ devices.txt
+@@ -14,8 +16,6 @@ notifiers.txt
+ 	- Registering suspend notifiers in device drivers
+ pci.txt
+ 	- How the PCI Subsystem Does Power Management
+-pm.txt
+-	- info on Linux power management support.
+ pm_qos_interface.txt
+ 	- info on Linux PM Quality of Service interface
+ power_supply_class.txt
+diff -puN /dev/null Documentation/power/apm-acpi.txt
+--- /dev/null
++++ a/Documentation/power/apm-acpi.txt
+@@ -0,0 +1,32 @@
++APM or ACPI?
++------------
++If you have a relatively recent x86 mobile, desktop, or server system,
++odds are it supports either Advanced Power Management (APM) or
++Advanced Configuration and Power Interface (ACPI).  ACPI is the newer
++of the two technologies and puts power management in the hands of the
++operating system, allowing for more intelligent power management than
++is possible with BIOS controlled APM.
 +
- 	/* check that the calling task has appropriate permissions
- 	 * for certain ioctls. doing this check here is useful
- 	 * to avoid duplicate code in each driver.
-@@ -227,26 +231,31 @@ static int rtc_dev_ioctl(struct inode *i
- 	case RTC_EPOCH_SET:
- 	case RTC_SET_TIME:
- 		if (!capable(CAP_SYS_TIME))
--			return -EACCES;
-+			err = -EACCES;
- 		break;
- 
- 	case RTC_IRQP_SET:
- 		if (arg > rtc->max_user_freq && !capable(CAP_SYS_RESOURCE))
--			return -EACCES;
-+			err = -EACCES;
- 		break;
- 
- 	case RTC_PIE_ON:
- 		if (rtc->irq_freq > rtc->max_user_freq &&
- 				!capable(CAP_SYS_RESOURCE))
--			return -EACCES;
-+			err = -EACCES;
- 		break;
- 	}
- 
-+	if (err)
-+		goto done;
++The best way to determine which, if either, your system supports is to
++build a kernel with both ACPI and APM enabled (as of 2.3.x ACPI is
++enabled by default).  If a working ACPI implementation is found, the
++ACPI driver will override and disable APM, otherwise the APM driver
++will be used.
 +
- 	/* try the driver's ioctl interface */
- 	if (ops->ioctl) {
- 		err = ops->ioctl(rtc->dev.parent, cmd, arg);
--		if (err != -ENOIOCTLCMD)
-+		if (err != -ENOIOCTLCMD) {
-+			mutex_unlock(&rtc->ops_lock);
- 			return err;
-+		}
- 	}
- 
- 	/* if the driver does not provide the ioctl interface
-@@ -265,15 +274,19 @@ static int rtc_dev_ioctl(struct inode *i
- 
- 	switch (cmd) {
- 	case RTC_ALM_READ:
-+		mutex_unlock(&rtc->ops_lock);
++No, sorry, you cannot have both ACPI and APM enabled and running at
++once.  Some people with broken ACPI or broken APM implementations
++would like to use both to get a full set of working features, but you
++simply cannot mix and match the two.  Only one power management
++interface can be in control of the machine at once.  Think about it..
 +
- 		err = rtc_read_alarm(rtc, &alarm);
- 		if (err < 0)
- 			return err;
- 
- 		if (copy_to_user(uarg, &alarm.time, sizeof(tm)))
--			return -EFAULT;
--		break;
-+			err = -EFAULT;
-+		return err;
- 
- 	case RTC_ALM_SET:
-+		mutex_unlock(&rtc->ops_lock);
++User-space Daemons
++------------------
++Both APM and ACPI rely on user-space daemons, apmd and acpid
++respectively, to be completely functional.  Obtain both of these
++daemons from your Linux distribution or from the Internet (see below)
++and be sure that they are started sometime in the system boot process.
++Go ahead and start both.  If ACPI or APM is not available on your
++system the associated daemon will exit gracefully.
 +
- 		if (copy_from_user(&alarm.time, uarg, sizeof(tm)))
- 			return -EFAULT;
- 
-@@ -321,24 +334,26 @@ static int rtc_dev_ioctl(struct inode *i
- 			}
- 		}
- 
--		err = rtc_set_alarm(rtc, &alarm);
--		break;
-+		return rtc_set_alarm(rtc, &alarm);
- 
- 	case RTC_RD_TIME:
-+		mutex_unlock(&rtc->ops_lock);
-+
- 		err = rtc_read_time(rtc, &tm);
- 		if (err < 0)
- 			return err;
- 
- 		if (copy_to_user(uarg, &tm, sizeof(tm)))
--			return -EFAULT;
--		break;
-+			err = -EFAULT;
-+		return err;
- 
- 	case RTC_SET_TIME:
-+		mutex_unlock(&rtc->ops_lock);
-+
- 		if (copy_from_user(&tm, uarg, sizeof(tm)))
- 			return -EFAULT;
- 
--		err = rtc_set_time(rtc, &tm);
--		break;
-+		return rtc_set_time(rtc, &tm);
- 
- 	case RTC_PIE_ON:
- 		err = rtc_irq_set_state(rtc, NULL, 1);
-@@ -376,34 +391,37 @@ static int rtc_dev_ioctl(struct inode *i
- 		break;
- #endif
- 	case RTC_WKALM_SET:
-+		mutex_unlock(&rtc->ops_lock);
- 		if (copy_from_user(&alarm, uarg, sizeof(alarm)))
- 			return -EFAULT;
- 
--		err = rtc_set_alarm(rtc, &alarm);
--		break;
-+		return rtc_set_alarm(rtc, &alarm);
- 
- 	case RTC_WKALM_RD:
-+		mutex_unlock(&rtc->ops_lock);
- 		err = rtc_read_alarm(rtc, &alarm);
- 		if (err < 0)
- 			return err;
- 
- 		if (copy_to_user(uarg, &alarm, sizeof(alarm)))
--			return -EFAULT;
--		break;
-+			err = -EFAULT;
-+		return err;
- 
- #ifdef CONFIG_RTC_INTF_DEV_UIE_EMUL
- 	case RTC_UIE_OFF:
- 		clear_uie(rtc);
--		return 0;
-+		break;
- 
- 	case RTC_UIE_ON:
--		return set_uie(rtc);
-+		err = set_uie(rtc);
- #endif
- 	default:
- 		err = -ENOTTY;
- 		break;
- 	}
- 
-+done:
-+	mutex_unlock(&rtc->ops_lock);
- 	return err;
- }
- 
-@@ -432,7 +450,7 @@ static const struct file_operations rtc_
- 	.llseek		= no_llseek,
- 	.read		= rtc_dev_read,
- 	.poll		= rtc_dev_poll,
--	.ioctl		= rtc_dev_ioctl,
-+	.unlocked_ioctl	= rtc_dev_ioctl,
- 	.open		= rtc_dev_open,
- 	.release	= rtc_dev_release,
- 	.fasync		= rtc_dev_fasync,
-diff -puN include/linux/rtc.h~rtc-remove-bkl-for-ioctl include/linux/rtc.h
---- a/include/linux/rtc.h~rtc-remove-bkl-for-ioctl
-+++ a/include/linux/rtc.h
-@@ -115,6 +115,23 @@ extern void rtc_time_to_tm(unsigned long
- 
- extern struct class *rtc_class;
- 
-+/*
-+ * For these RTC methods the device parameter is the physical device
-+ * on whatever bus holds the hardware (I2C, Platform, SPI, etc), which
-+ * was passed to rtc_device_register().  Its driver_data normally holds
-+ * device state, including the rtc_device pointer for the RTC.
-+ *
-+ * Most of these methods are called with rtc_device.ops_lock held,
-+ * through the rtc_*(struct rtc_device *, ...) calls.
-+ *
-+ * The (current) exceptions are mostly filesystem hooks:
-+ *   - the proc() hook for procfs
-+ *   - non-ioctl() chardev hooks:  open(), release(), read_callback()
-+ *   - periodic irq calls:  irq_set_state(), irq_set_freq()
-+ *
-+ * REVISIT those periodic irq calls *do* have ops_lock when they're
-+ * issued through ioctl() ...
-+ */
- struct rtc_class_ops {
- 	int (*open)(struct device *);
- 	void (*release)(struct device *);
++  apmd:   http://worldvisions.ca/~apenwarr/apmd/
++  acpid:  http://acpid.sf.net/
+diff -puN Documentation/power/pm.txt~pm-remove-obsolete-piece-of-pm-documentation-rev-2 /dev/null
+--- a/Documentation/power/pm.txt
++++ /dev/null
+@@ -1,257 +0,0 @@
+-               Linux Power Management Support
+-
+-This document briefly describes how to use power management with your
+-Linux system and how to add power management support to Linux drivers.
+-
+-APM or ACPI?
+-------------
+-If you have a relatively recent x86 mobile, desktop, or server system,
+-odds are it supports either Advanced Power Management (APM) or
+-Advanced Configuration and Power Interface (ACPI).  ACPI is the newer
+-of the two technologies and puts power management in the hands of the
+-operating system, allowing for more intelligent power management than
+-is possible with BIOS controlled APM.
+-
+-The best way to determine which, if either, your system supports is to
+-build a kernel with both ACPI and APM enabled (as of 2.3.x ACPI is
+-enabled by default).  If a working ACPI implementation is found, the
+-ACPI driver will override and disable APM, otherwise the APM driver
+-will be used.
+-
+-No, sorry, you cannot have both ACPI and APM enabled and running at
+-once.  Some people with broken ACPI or broken APM implementations
+-would like to use both to get a full set of working features, but you
+-simply cannot mix and match the two.  Only one power management
+-interface can be in control of the machine at once.  Think about it..
+-
+-User-space Daemons
+-------------------
+-Both APM and ACPI rely on user-space daemons, apmd and acpid
+-respectively, to be completely functional.  Obtain both of these
+-daemons from your Linux distribution or from the Internet (see below)
+-and be sure that they are started sometime in the system boot process.
+-Go ahead and start both.  If ACPI or APM is not available on your
+-system the associated daemon will exit gracefully.
+-
+-  apmd:   http://worldvisions.ca/~apenwarr/apmd/
+-  acpid:  http://acpid.sf.net/
+-
+-Driver Interface -- OBSOLETE, DO NOT USE!
+-----------------*************************
+-
+-Note: pm_register(), pm_access(), pm_dev_idle() and friends are
+-obsolete. Please do not use them. Instead you should properly hook
+-your driver into the driver model, and use its suspend()/resume()
+-callbacks to do this kind of stuff.
+-
+-If you are writing a new driver or maintaining an old driver, it
+-should include power management support.  Without power management
+-support, a single driver may prevent a system with power management
+-capabilities from ever being able to suspend (safely).
+-
+-Overview:
+-1) Register each instance of a device with "pm_register"
+-2) Call "pm_access" before accessing the hardware.
+-   (this will ensure that the hardware is awake and ready)
+-3) Your "pm_callback" is called before going into a
+-   suspend state (ACPI D1-D3) or after resuming (ACPI D0)
+-   from a suspend.
+-4) Call "pm_dev_idle" when the device is not being used
+-   (optional but will improve device idle detection)
+-5) When unloaded, unregister the device with "pm_unregister"
+-
+-/*
+- * Description: Register a device with the power-management subsystem
+- *
+- * Parameters:
+- *   type - device type (PCI device, system device, ...)
+- *   id - instance number or unique identifier
+- *   cback - request handler callback (suspend, resume, ...)
+- *
+- * Returns: Registered PM device or NULL on error
+- *
+- * Examples:
+- *   dev = pm_register(PM_SYS_DEV, PM_SYS_VGA, vga_callback);
+- *
+- *   struct pci_dev *pci_dev = pci_find_dev(...);
+- *   dev = pm_register(PM_PCI_DEV, PM_PCI_ID(pci_dev), callback);
+- */
+-struct pm_dev *pm_register(pm_dev_t type, unsigned long id, pm_callback cback);
+-
+-/*
+- * Description: Unregister a device with the power management subsystem
+- *
+- * Parameters:
+- *   dev - PM device previously returned from pm_register
+- */
+-void pm_unregister(struct pm_dev *dev);
+-
+-/*
+- * Description: Unregister all devices with a matching callback function
+- *
+- * Parameters:
+- *   cback - previously registered request callback
+- *
+- * Notes: Provided for easier porting from old APM interface
+- */
+-void pm_unregister_all(pm_callback cback);
+-
+-/*
+- * Power management request callback
+- *
+- * Parameters:
+- *   dev - PM device previously returned from pm_register
+- *   rqst - request type
+- *   data - data, if any, associated with the request
+- *
+- * Returns: 0 if the request is successful
+- *          EINVAL if the request is not supported
+- *          EBUSY if the device is now busy and cannot handle the request
+- *          ENOMEM if the device was unable to handle the request due to memory
+- *
+- * Details: The device request callback will be called before the
+- *          device/system enters a suspend state (ACPI D1-D3) or
+- *          or after the device/system resumes from suspend (ACPI D0).
+- *          For PM_SUSPEND, the ACPI D-state being entered is passed
+- *          as the "data" argument to the callback.  The device
+- *          driver should save (PM_SUSPEND) or restore (PM_RESUME)
+- *          device context when the request callback is called.
+- *
+- *          Once a driver returns 0 (success) from a suspend
+- *          request, it should not process any further requests or
+- *          access the device hardware until a call to "pm_access" is made.
+- */
+-typedef int (*pm_callback)(struct pm_dev *dev, pm_request_t rqst, void *data);
+-
+-Driver Details
+---------------
+-This is just a quick Q&A as a stopgap until a real driver writers'
+-power management guide is available.
+-
+-Q: When is a device suspended?
+-
+-Devices can be suspended based on direct user request (eg. laptop lid
+-closes), system power policy (eg.  sleep after 30 minutes of console
+-inactivity), or device power policy (eg. power down device after 5
+-minutes of inactivity)
+-
+-Q: Must a driver honor a suspend request?
+-
+-No, a driver can return -EBUSY from a suspend request and this
+-will stop the system from suspending.  When a suspend request
+-fails, all suspended devices are resumed and the system continues
+-to run.  Suspend can be retried at a later time.
+-
+-Q: Can the driver block suspend/resume requests?
+-
+-Yes, a driver can delay its return from a suspend or resume
+-request until the device is ready to handle requests.  It
+-is advantageous to return as quickly as possible from a
+-request as suspend/resume are done serially.
+-
+-Q: What context is a suspend/resume initiated from?
+-
+-A suspend or resume is initiated from a kernel thread context.
+-It is safe to block, allocate memory, initiate requests
+-or anything else you can do within the kernel.
+-
+-Q: Will requests continue to arrive after a suspend?
+-
+-Possibly.  It is the driver's responsibility to queue(*),
+-fail, or drop any requests that arrive after returning
+-success to a suspend request.  It is important that the
+-driver not access its device until after it receives
+-a resume request as the device's bus may no longer
+-be active.
+-
+-(*) If a driver queues requests for processing after
+-    resume be aware that the device, network, etc.
+-    might be in a different state than at suspend time.
+-    It's probably better to drop requests unless
+-    the driver is a storage device.
+-
+-Q: Do I have to manage bus-specific power management registers
+-
+-No.  It is the responsibility of the bus driver to manage
+-PCI, USB, etc. power management registers.  The bus driver
+-or the power management subsystem will also enable any
+-wake-on functionality that the device has.
+-
+-Q: So, really, what do I need to do to support suspend/resume?
+-
+-You need to save any device context that would
+-be lost if the device was powered off and then restore
+-it at resume time.  When ACPI is active, there are
+-three levels of device suspend states; D1, D2, and D3.
+-(The suspend state is passed as the "data" argument
+-to the device callback.)  With D3, the device is powered
+-off and loses all context, D1 and D2 are shallower power
+-states and require less device context to be saved.  To
+-play it safe, just save everything at suspend and restore
+-everything at resume.
+-
+-Q: Where do I store device context for suspend?
+-
+-Anywhere in memory, kmalloc a buffer or store it
+-in the device descriptor.  You are guaranteed that the
+-contents of memory will be restored and accessible
+-before resume, even when the system suspends to disk.
+-
+-Q: What do I need to do for ACPI vs. APM vs. etc?
+-
+-Drivers need not be aware of the specific power management
+-technology that is active.  They just need to be aware
+-of when the overlying power management system requests
+-that they suspend or resume.
+-
+-Q: What about device dependencies?
+-
+-When a driver registers a device, the power management
+-subsystem uses the information provided to build a
+-tree of device dependencies (eg. USB device X is on
+-USB controller Y which is on PCI bus Z)  When power
+-management wants to suspend a device, it first sends
+-a suspend request to its driver, then the bus driver,
+-and so on up to the system bus.  Device resumes
+-proceed in the opposite direction.
+-
+-Q: Who do I contact for additional information about
+-   enabling power management for my specific driver/device?
+-
+-ACPI Development mailing list: linux-acpi@vger.kernel.org
+-
+-System Interface -- OBSOLETE, DO NOT USE!
+-----------------*************************
+-If you are providing new power management support to Linux (ie.
+-adding support for something like APM or ACPI), you should
+-communicate with drivers through the existing generic power
+-management interface.
+-
+-/*
+- * Send a request to all devices
+- *
+- * Parameters:
+- *   rqst - request type
+- *   data - data, if any, associated with the request
+- *
+- * Returns: 0 if the request is successful
+- *          See "pm_callback" return for errors
+- *
+- * Details: Walk list of registered devices and call pm_send
+- *          for each until complete or an error is encountered.
+- *          If an error is encountered for a suspend request,
+- *          return all devices to the state they were in before
+- *          the suspend request.
+- */
+-int pm_send_all(pm_request_t rqst, void *data);
+-
+-/*
+- * Find a matching device
+- *
+- * Parameters:
+- *   type - device type (PCI device, system device, or 0 to match all devices)
+- *   from - previous match or NULL to start from the beginning
+- *
+- * Returns: Matching device or NULL if none found
+- */
+-struct pm_dev *pm_find(pm_dev_t type, struct pm_dev *from);
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
-origin.patch
-rtc_read_alarm-handles-wraparound.patch
-ntp-let-update_persistent_clock-sleep.patch
-jffs2-summary-allocation-dont-use-vmalloc.patch
-asic3-gpiolib-support.patch
-asic3-remove-children-platform-data.patch
-asic3-new-gpio-configuration-code.patch
-rtc-rtc-rs5c372-smbus-conversion-support.patch
-rtc-rtc-rs5c732-add-support-for-ricoh-r2025s-d-rtc.patch
-rtc-m41t80-sort-header-inclusions-for-readability.patch
-rtc-m41t80-use-pr_info-as-appropriate.patch
-rtc-remove-bkl-for-ioctl.patch
-gpio-gpio-driver-for-max7301-spi-gpio-expander.patch
-gpio-gpio-driver-for-max7301-spi-gpio-expander-checkpatch-fixes.patch
+pm-remove-references-to-struct-pm_dev-from-irda-headers.patch
+swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option.patch
+swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
+pm-boot-time-suspend-selftest.patch
+pm-boot-time-suspend-selftest-vs-linux-next.patch
+remove-include-linux-pm_legacyh.patch
+pm-remove-definition-of-struct-pm_dev.patch
+pm-remove-remaining-obsolete-definitions-from-pmh.patch
+pm-remove-obsolete-piece-of-pm-documentation-rev-2.patch
+pm-drop-unnecessary-includes-from-pmh.patch
+shrink_slab-handle-bad-shrinkers.patch
 
