@@ -1,207 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: + ext3-handle-corrupted-orphan-list-at-mount-cleanup-fix.patch added to -mm tree
-Date: Tue, 24 Jun 2008 10:50:13 -0700
-Message-ID: <200806241750.m5OHoDup031054@imap1.linux-foundation.org>
+Subject: - fix-setting-of-pf_superpriv-by-__capable.patch removed from -mm tree
+Date: Tue, 24 Jun 2008 12:12:48 -0700
+Message-ID: <200806241912.m5OJCnqt001655@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52083 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45547 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751403AbYFXRuU (ORCPT
+	by vger.kernel.org with ESMTP id S1752091AbYFXTOP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jun 2008 13:50:20 -0400
+	Tue, 24 Jun 2008 15:14:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, duaneg@dghda.com, linux-ext4@vger.kernel.org
+To: dhowells@redhat.com, casey@schaufler-ca.com, chrisw@sous-sol.org, jmorris@namei.org, sds@tycho.nsa.gov, serue@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext3-handle-corrupted-orphan-list-at-mount-cleanup-fix
-has been added to the -mm tree.  Its filename is
-     ext3-handle-corrupted-orphan-list-at-mount-cleanup-fix.patch
+     Fix setting of PF_SUPERPRIV by __capable()
+has been removed from the -mm tree.  Its filename was
+     fix-setting-of-pf_superpriv-by-__capable.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext3-handle-corrupted-orphan-list-at-mount-cleanup-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Fix setting of PF_SUPERPRIV by __capable()
+From: David Howells <dhowells@redhat.com>
 
-Cc: <linux-ext4@vger.kernel.org>
-Cc: Duane Griffin <duaneg@dghda.com>
+Fix the setting of PF_SUPERPRIV by __capable() as it could corrupt the
+flags the target process if that is not the current process and it is
+trying to change its own flags in a different way at the same time.
+
+__capable() is using neither atomic ops nor locking to protect t->flags. 
+This patch changes __capable() so it will only set PF_SUPERPRIV if current
+is checking its own capabilities.
+
+Possibly we should be setting PF_SUPERPRIV on current, regardless of the
+target pointer; however there are cases where you probably don't want to
+do this.
+
+Two of the instances of __capable() actually only act on current, and so have
+been changed to calls to capable().
+
+Of those that remain:
+
+ (1) The OOM killer calls __capable() thrice when weighing the killability of a
+     process.  I think it would be reasonable for this not to set PF_SUPERPRIV
+     at all.
+
+ (2) cap_ptrace() and smack_ptrace() are called in two different ways:
+
+     (a) The parent pointer is current, in which case it's securing PT_ATTACH,
+     	 and setting PF_SUPERPRIV is correct.
+
+     (b) The parent pointer is current->parent, in which case it's securing
+     	 PT_TRACEME, in which case not setting PF_SUPERPRIV is probably
+     	 reasonable as no-one has actually used a privileged operation as yet,
+     	 merely verified that one can be used.
+
+ (3) In smack_file_send_sigiotask(), we need to allow privileged processes to
+     receive SIGIO on files they're manipulating.  Setting PF_SUPERPRIV on
+     current is wrong, but setting it on the target might be correct.
+
+ (4) In smack_task_wait(), we let a process wait for a privileged process,
+     whether or not the process doing the waiting is privileged.  I'm not sure
+     whether this should set PF_SUPERPRIV, and if so on whom.
+
+Signed-off-by: David Howells <dhowells@redhat.com>
+Cc: James Morris <jmorris@namei.org>
+Acked-by: Casey Schaufler <casey@schaufler-ca.com>
+Acked-by: Serge Hallyn <serue@us.ibm.com>
+Cc: Stephen Smalley <sds@tycho.nsa.gov>
+Cc: Chris Wright <chrisw@sous-sol.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/inode.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ kernel/capability.c        |    3 ++-
+ security/commoncap.c       |    2 +-
+ security/smack/smack_lsm.c |    6 +++---
+ 3 files changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN fs/ext3/inode.c~ext3-handle-corrupted-orphan-list-at-mount-cleanup-fix fs/ext3/inode.c
---- a/fs/ext3/inode.c~ext3-handle-corrupted-orphan-list-at-mount-cleanup-fix
-+++ a/fs/ext3/inode.c
-@@ -2258,15 +2258,14 @@ static void ext3_free_branches(handle_t 
- 
- int ext3_can_truncate(struct inode *inode)
+diff -puN kernel/capability.c~fix-setting-of-pf_superpriv-by-__capable kernel/capability.c
+--- a/kernel/capability.c~fix-setting-of-pf_superpriv-by-__capable
++++ a/kernel/capability.c
+@@ -364,7 +364,8 @@ out:
+ int __capable(struct task_struct *t, int cap)
  {
-+	if (IS_APPEND(inode) || IS_IMMUTABLE(inode))
-+		return 0;
- 	if (S_ISREG(inode->i_mode))
+ 	if (security_capable(t, cap) == 0) {
+-		t->flags |= PF_SUPERPRIV;
++		if (t == current)
++			t->flags |= PF_SUPERPRIV;
  		return 1;
- 	if (S_ISDIR(inode->i_mode))
- 		return 1;
--	if (S_ISLNK(inode->i_mode)) {
--		if (!ext3_inode_is_fast_symlink(inode) &&
--				!(IS_APPEND(inode) || IS_IMMUTABLE(inode)))
--			return 1;
--	}
-+	if (S_ISLNK(inode->i_mode))
-+		return !ext3_inode_is_fast_symlink(inode);
+ 	}
+ 	return 0;
+diff -puN security/commoncap.c~fix-setting-of-pf_superpriv-by-__capable security/commoncap.c
+--- a/security/commoncap.c~fix-setting-of-pf_superpriv-by-__capable
++++ a/security/commoncap.c
+@@ -528,7 +528,7 @@ int cap_task_post_setuid (uid_t old_ruid
+ static inline int cap_safe_nice(struct task_struct *p)
+ {
+ 	if (!cap_issubset(p->cap_permitted, current->cap_permitted) &&
+-	    !__capable(current, CAP_SYS_NICE))
++	    !capable(CAP_SYS_NICE))
+ 		return -EPERM;
  	return 0;
  }
+diff -puN security/smack/smack_lsm.c~fix-setting-of-pf_superpriv-by-__capable security/smack/smack_lsm.c
+--- a/security/smack/smack_lsm.c~fix-setting-of-pf_superpriv-by-__capable
++++ a/security/smack/smack_lsm.c
+@@ -2038,9 +2038,6 @@ static int smack_setprocattr(struct task
+ {
+ 	char *newsmack;
  
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-origin.patch
-next-remove-localversion.patch
-revert-git-pekka.patch
-fix-kobject-fix-kobject_rename-and-config_sysfs.patch
-kvm-is-busted-on-ia64.patch
-drivers-mtd-nand-nandsimc-needs-div64h.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-git-jg-misc-git-rejects.patch
-drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-mmc-sd-host-driver-for-ricoh-bay1controllers.patch
-drivers-mtd-devices-block2mtdc-suppress-warning.patch
-sundance-set-carrier-status-on-link-change-events.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix-fix.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-scsi-misc-fix-scsi_dh-build-errors.patch
-drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
-s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
-pktcdvd-push-bkl-down-into-driver-fix.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-git-logfs-fixup.patch
-watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-verify-the-page-links-and-memory-model.patch
-mspec-convert-nopfn-to-fault-fix.patch
-page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
-kill-generic_file_direct_io-checkpatch-fixes.patch
-use-generic_access_phys-for-dev-mem-mappings-fix.patch
-spufs-use-the-new-vm_ops-access-fix.patch
-fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
-page-flags-record-page-flag-overlays-explicitly-xen.patch
-mapping_set_error-add-unlikely.patch
-huge-page-private-reservation-review-cleanups-fix.patch
-sync_file_range_write-may-and-will-block-document-that-fix.patch
-vmallocinfo-add-numa-information-fix.patch
-hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
-hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
-hugetlb-override-default-huge-page-size-ia64-build.patch
-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-bootmem-add-debugging-framework-fix.patch
-bootmem-clean-up-free_all_bootmem_core-fix.patch
-bootmem-free-reserve-helpers-fix.patch
-revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
-swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
-split-the-typecheck-macros-out-of-include-linux-kernelh.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
-remove-apparently-unused-fd1772h-header-file.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
-build-kernel-profileo-only-when-requested-cleanups.patch
-fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
-block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
-rename-warn-to-warning-to-clear-the-namespace-fix.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
-flag-parameters-paccept-fix.patch
-flag-parameters-paccept-sys_ni.patch
-flag-parameters-anon_inode_getfd-extension-fix.patch
-flag-parameters-signalfd-fix.patch
-flag-parameters-eventfd-fix.patch
-flag-parameters-inotify_init-fix.patch
-flag-parameters-check-magic-constants-alpha.patch
-oprofile-multiplexing-checkpatch-fixes.patch
-gpio-gpio-driver-for-max7301-spi-gpio-expander-checkpatch-fixes.patch
-drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
-atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
-ext3-handle-corrupted-orphan-list-at-mount-cleanup.patch
-ext3-handle-corrupted-orphan-list-at-mount-fix.patch
-ext3-handle-corrupted-orphan-list-at-mount-cleanup-fix.patch
-reiserfs-convert-j_flush_sem-to-mutex.patch
-reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
-memcg-remove-refcnt-from-page_cgroup-fix-2.patch
-jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup.patch
-ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
-getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
-tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
-memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
-memstick-use-fully-asynchronous-request-processing-fix.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-mm-introduce-get_user_pages_fast-fix.patch
-mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-fix.patch
-x86-lockless-get_user_pages_fast-fix-2.patch
-x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
-x86-lockless-get_user_pages_fast-fix-warning.patch
-vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
-define-page_file_cache-function-fix.patch
-unevictable-lru-infrastructure-fix.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-3.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
-vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
-
+-	if (!__capable(p, CAP_MAC_ADMIN))
+-		return -EPERM;
