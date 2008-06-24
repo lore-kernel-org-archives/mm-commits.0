@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + sm501-add-gpiolib-support.patch added to -mm tree
-Date: Mon, 23 Jun 2008 21:05:02 -0700
-Message-ID: <200806240405.m5O452kL031880@imap1.linux-foundation.org>
+Subject: + sm501-gpio-i2c-support.patch added to -mm tree
+Date: Mon, 23 Jun 2008 21:05:06 -0700
+Message-ID: <200806240405.m5O456nj031886@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51106 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44546 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751890AbYFXEFq (ORCPT
+	by vger.kernel.org with ESMTP id S1751498AbYFXEFq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 24 Jun 2008 00:05:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: ben-linux@fluff.org, apatard@mandriva.com, david-b@pacbell.net
 
 
 The patch titled
-     sm501: add gpiolib support
+     sm501: gpio I2C support
 has been added to the -mm tree.  Its filename is
-     sm501-add-gpiolib-support.patch
+     sm501-gpio-i2c-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sm501: add gpiolib support
+Subject: sm501: gpio I2C support
 From: Ben Dooks <ben-linux@fluff.org>
 
-Add support for exporting the GPIOs on the SM501 via gpiolib.
+Add support for adding the GPIO based I2C resources.
 
 Signed-off-by: Ben Dooks <ben-linux@fluff.org>
 Cc: Arnaud Patard <apatard@mandriva.com>
@@ -45,435 +45,157 @@ Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/Kconfig   |    8 +
- drivers/mfd/sm501.c   |  299 +++++++++++++++++++++++++++++++++-------
- include/linux/sm501.h |   20 --
- 3 files changed, 257 insertions(+), 70 deletions(-)
+ drivers/mfd/sm501.c   |   76 +++++++++++++++++++++++++++++++++++++++-
+ include/linux/sm501.h |   10 ++++-
+ 2 files changed, 84 insertions(+), 2 deletions(-)
 
-diff -puN drivers/mfd/Kconfig~sm501-add-gpiolib-support drivers/mfd/Kconfig
---- a/drivers/mfd/Kconfig~sm501-add-gpiolib-support
-+++ a/drivers/mfd/Kconfig
-@@ -15,6 +15,14 @@ config MFD_SM501
- 	  interface. The device may be connected by PCI or local bus with
- 	  varying functions enabled.
- 
-+config MFD_SM501_GPIO
-+	bool "Export GPIO via GPIO layer"
-+	depends on MFD_SM501 && HAVE_GPIO_LIB
-+	 ---help---
-+	 This option uses the gpio library layer to export the 64 GPIO
-+	 lines on the SM501. The platform data is used to supply the
-+	 base number for the first GPIO line to register.
-+
- config MFD_ASIC3
- 	bool "Support for Compaq ASIC3"
- 	depends on GENERIC_HARDIRQS && ARM
-diff -puN drivers/mfd/sm501.c~sm501-add-gpiolib-support drivers/mfd/sm501.c
---- a/drivers/mfd/sm501.c~sm501-add-gpiolib-support
+diff -puN drivers/mfd/sm501.c~sm501-gpio-i2c-support drivers/mfd/sm501.c
+--- a/drivers/mfd/sm501.c~sm501-gpio-i2c-support
 +++ a/drivers/mfd/sm501.c
-@@ -19,6 +19,7 @@
- #include <linux/device.h>
+@@ -20,6 +20,7 @@
  #include <linux/platform_device.h>
  #include <linux/pci.h>
-+#include <linux/gpio.h>
+ #include <linux/gpio.h>
++#include <linux/i2c-gpio.h>
  
  #include <linux/sm501.h>
  #include <linux/sm501-regs.h>
-@@ -31,10 +32,29 @@ struct sm501_device {
- 	struct platform_device		pdev;
- };
- 
-+struct sm501_gpio;
-+
-+struct sm501_gpio_chip {
-+	struct gpio_chip	gpio;
-+	struct sm501_gpio	*ourgpio;	/* to get back to parent. */
-+	void __iomem		*regbase;
-+};
-+
-+struct sm501_gpio {
-+	struct sm501_gpio_chip	low;
-+	struct sm501_gpio_chip	high;
-+	spinlock_t		lock;
-+
-+	unsigned int		 registered : 1;
-+	void __iomem		*regs;
-+	struct resource		*regs_res;
-+};
-+
- struct sm501_devdata {
- 	spinlock_t			 reg_lock;
- 	struct mutex			 clock_lock;
- 	struct list_head		 devices;
-+	struct sm501_gpio		 gpio;
- 
- 	struct device			*dev;
- 	struct resource			*io_res;
-@@ -42,6 +62,7 @@ struct sm501_devdata {
- 	struct resource			*regs_claim;
- 	struct sm501_platdata		*platdata;
- 
-+
- 	unsigned int			 in_suspend;
- 	unsigned long			 pm_misc;
- 
-@@ -52,6 +73,7 @@ struct sm501_devdata {
- 	unsigned int			 rev;
- };
- 
-+
- #define MHZ (1000 * 1000)
- 
- #ifdef DEBUG
-@@ -276,58 +298,6 @@ unsigned long sm501_modify_reg(struct de
- 
- EXPORT_SYMBOL_GPL(sm501_modify_reg);
- 
--unsigned long sm501_gpio_get(struct device *dev,
--			     unsigned long gpio)
--{
--	struct sm501_devdata *sm = dev_get_drvdata(dev);
--	unsigned long result;
--	unsigned long reg;
--
--	reg = (gpio > 32) ? SM501_GPIO_DATA_HIGH : SM501_GPIO_DATA_LOW;
--	result = readl(sm->regs + reg);
--
--	result >>= (gpio & 31);
--	return result & 1UL;
--}
--
--EXPORT_SYMBOL_GPL(sm501_gpio_get);
--
--void sm501_gpio_set(struct device *dev,
--		    unsigned long gpio,
--		    unsigned int to,
--		    unsigned int dir)
--{
--	struct sm501_devdata *sm = dev_get_drvdata(dev);
--
--	unsigned long bit = 1 << (gpio & 31);
--	unsigned long base;
--	unsigned long save;
--	unsigned long val;
--
--	base = (gpio > 32) ? SM501_GPIO_DATA_HIGH : SM501_GPIO_DATA_LOW;
--	base += SM501_GPIO;
--
--	spin_lock_irqsave(&sm->reg_lock, save);
--
--	val = readl(sm->regs + base) & ~bit;
--	if (to)
--		val |= bit;
--	writel(val, sm->regs + base);
--
--	val = readl(sm->regs + SM501_GPIO_DDR_LOW) & ~bit;
--	if (dir)
--		val |= bit;
--
--	writel(val, sm->regs + SM501_GPIO_DDR_LOW);
--	sm501_sync_regs(sm);
--
--	spin_unlock_irqrestore(&sm->reg_lock, save);
--
--}
--
--EXPORT_SYMBOL_GPL(sm501_gpio_set);
--
--
- /* sm501_unit_power
-  *
-  * alters the power active gate to set specific units on or off
-@@ -906,6 +876,226 @@ static int sm501_register_display(struct
- 	return sm501_register_device(sm, pdev);
+@@ -1086,6 +1087,11 @@ static void sm501_gpio_remove(struct sm5
+ 		dev_err(sm->dev, "cannot remove high chip, cannot tidy up\n");
  }
  
-+#ifdef CONFIG_MFD_SM501_GPIO
-+
-+static inline struct sm501_gpio_chip *to_sm501_gpio(struct gpio_chip *gc)
-+{
-+	return container_of(gc, struct sm501_gpio_chip, gpio);
-+}
-+
-+static inline struct sm501_devdata *sm501_gpio_to_dev(struct sm501_gpio *gpio)
-+{
-+	return container_of(gpio, struct sm501_devdata, gpio);
-+}
-+
-+static int sm501_gpio_get(struct gpio_chip *chip, unsigned offset)
-+
-+{
-+	struct sm501_gpio_chip *smgpio = to_sm501_gpio(chip);
-+	unsigned long result;
-+
-+	result = readl(smgpio->regbase + SM501_GPIO_DATA_LOW);
-+	result >>= offset;
-+
-+	return result & 1UL;
-+}
-+
-+static void sm501_gpio_set(struct gpio_chip *chip, unsigned offset, int value)
-+
-+{
-+	struct sm501_gpio_chip *smchip = to_sm501_gpio(chip);
-+	struct sm501_gpio *smgpio = smchip->ourgpio;
-+	unsigned long bit = 1 << offset;
-+	void __iomem *regs = smchip->regbase;
-+	unsigned long save;
-+	unsigned long val;
-+
-+	dev_dbg(sm501_gpio_to_dev(smgpio)->dev, "%s(%p,%d)\n",
-+		__func__, chip, offset);
-+
-+	spin_lock_irqsave(&smgpio->lock, save);
-+
-+	val = readl(regs + SM501_GPIO_DATA_LOW) & ~bit;
-+	if (value)
-+		val |= bit;
-+	writel(val, regs);
-+
-+	sm501_sync_regs(sm501_gpio_to_dev(smgpio));
-+	spin_unlock_irqrestore(&smgpio->lock, save);
-+}
-+
-+static int sm501_gpio_input(struct gpio_chip *chip, unsigned offset)
-+{
-+	struct sm501_gpio_chip *smchip = to_sm501_gpio(chip);
-+	struct sm501_gpio *smgpio = smchip->ourgpio;
-+	void __iomem *regs = smchip->regbase;
-+	unsigned long bit = 1 << offset;
-+	unsigned long save;
-+	unsigned long ddr;
-+
-+	dev_info(sm501_gpio_to_dev(smgpio)->dev, "%s(%p,%d)\n",
-+		 __func__, chip, offset);
-+
-+	spin_lock_irqsave(&smgpio->lock, save);
-+
-+	ddr = readl(regs + SM501_GPIO_DDR_LOW);
-+	writel(ddr & ~bit, regs + SM501_GPIO_DDR_LOW);
-+
-+	sm501_sync_regs(sm501_gpio_to_dev(smgpio));
-+	spin_unlock_irqrestore(&smgpio->lock, save);
-+
-+	return 0;
-+}
-+
-+static int sm501_gpio_output(struct gpio_chip *chip,
-+			     unsigned offset, int value)
-+{
-+	struct sm501_gpio_chip *smchip = to_sm501_gpio(chip);
-+	struct sm501_gpio *smgpio = smchip->ourgpio;
-+	unsigned long bit = 1 << offset;
-+	void __iomem *regs = smchip->regbase;
-+	unsigned long save;
-+	unsigned long val;
-+	unsigned long ddr;
-+
-+	dev_dbg(sm501_gpio_to_dev(smgpio)->dev, "%s(%p,%d,%d)\n",
-+		__func__, chip, offset, value);
-+
-+	spin_lock_irqsave(&smgpio->lock, save);
-+
-+	val = readl(regs + SM501_GPIO_DATA_LOW);
-+	if (value)
-+		val |= bit;
-+	else
-+		val &= ~bit;
-+	writel(val, regs);
-+
-+	ddr = readl(regs + SM501_GPIO_DDR_LOW);
-+	writel(ddr | bit, regs + SM501_GPIO_DDR_LOW);
-+
-+	sm501_sync_regs(sm501_gpio_to_dev(smgpio));
-+	writel(val, regs + SM501_GPIO_DATA_LOW);
-+
-+	sm501_sync_regs(sm501_gpio_to_dev(smgpio));
-+	spin_unlock_irqrestore(&smgpio->lock, save);
-+
-+	return 0;
-+}
-+
-+static struct gpio_chip gpio_chip_template = {
-+	.ngpio			= 32,
-+	.direction_input	= sm501_gpio_input,
-+	.direction_output	= sm501_gpio_output,
-+	.set			= sm501_gpio_set,
-+	.get			= sm501_gpio_get,
-+};
-+
-+static int __devinit sm501_gpio_register_chip(struct sm501_devdata *sm,
-+					      struct sm501_gpio *gpio,
-+					      struct sm501_gpio_chip *chip)
-+{
-+	struct sm501_platdata *pdata = sm->platdata;
-+	struct gpio_chip *gchip = &chip->gpio;
-+	unsigned base = pdata->gpio_base;
-+
-+	memcpy(chip, &gpio_chip_template, sizeof(struct gpio_chip));
-+
-+	if (chip == &gpio->high) {
-+		base += 32;
-+		chip->regbase = gpio->regs + SM501_GPIO_DATA_HIGH;
-+		gchip->label  = "SM501-HIGH";
-+	} else {
-+		chip->regbase = gpio->regs + SM501_GPIO_DATA_LOW;
-+		gchip->label  = "SM501-LOW";
-+	}
-+
-+	gchip->base   = base;
-+	chip->ourgpio = gpio;
-+
-+	return gpiochip_add(gchip);
-+}
-+
-+static int sm501_register_gpio(struct sm501_devdata *sm)
++static int sm501_gpio_pin2nr(struct sm501_devdata *sm, unsigned int pin)
 +{
 +	struct sm501_gpio *gpio = &sm->gpio;
-+	resource_size_t iobase = sm->io_res->start + SM501_GPIO;
++	return pin + (pin < 32) ? gpio->low.gpio.base : gpio->high.gpio.base;
++}
+ #else
+ static int sm501_register_gpio(struct sm501_devdata *sm)
+ {
+@@ -1095,8 +1101,66 @@ static int sm501_register_gpio(struct sm
+ static void sm501_gpio_remove(struct sm501_devdata *sm)
+ {
+ }
++
++static int sm501_gpio_pin2nr(struct sm501_devdata *sm, unsigned int pin)
++{
++	return -1;
++}
+ #endif
+ 
++static int sm501_register_gpio_i2c_instance(struct sm501_devdata *sm,
++					    struct sm501_platdata_gpio_i2c *iic)
++{
++	struct i2c_gpio_platform_data *icd;
++	struct platform_device *pdev;
++
++	pdev = sm501_create_subdev(sm, "i2c-gpio", 0,
++				   sizeof(struct i2c_gpio_platform_data));
++	if (!pdev)
++		return -ENOMEM;
++
++	icd = pdev->dev.platform_data;
++
++	/* We keep the pin_sda and pin_scl fields relative in case the
++	 * same platform data is passed to >1 SM501.
++	 */
++
++	icd->sda_pin = sm501_gpio_pin2nr(sm, iic->pin_sda);
++	icd->scl_pin = sm501_gpio_pin2nr(sm, iic->pin_scl);
++	icd->timeout = iic->timeout;
++	icd->udelay = iic->udelay;
++
++	/* note, we can't use either of the pin numbers, as the i2c-gpio
++	 * driver uses the platform.id field to generate the bus number
++	 * to register with the i2c core; The i2c core doesn't have enough
++	 * entries to deal with anything we currently use.
++	*/
++
++	pdev->id = iic->bus_num;
++
++	dev_info(sm->dev, "registering i2c-%d: sda=%d (%d), scl=%d (%d)\n",
++		 iic->bus_num,
++		 icd->sda_pin, iic->pin_sda, icd->scl_pin, iic->pin_scl);
++
++	return sm501_register_device(sm, pdev);
++}
++
++static int sm501_register_gpio_i2c(struct sm501_devdata *sm,
++				   struct sm501_platdata *pdata)
++{
++	struct sm501_platdata_gpio_i2c *iic = pdata->gpio_i2c;
++	int index;
 +	int ret;
-+	int tmp;
 +
-+	dev_dbg(sm->dev, "registering gpio block %08llx\n",
-+		(unsigned long long)iobase);
-+
-+	spin_lock_init(&gpio->lock);
-+
-+	gpio->regs_res = request_mem_region(iobase, 0x20, "sm501-gpio");
-+	if (gpio->regs_res == NULL) {
-+		dev_err(sm->dev, "gpio: failed to request region\n");
-+		return -ENXIO;
++	for (index = 0; index < pdata->gpio_i2c_nr; index++, iic++) {
++		ret = sm501_register_gpio_i2c_instance(sm, iic);
++		if (ret < 0)
++			return ret;
 +	}
-+
-+	gpio->regs = ioremap(iobase, 0x20);
-+	if (gpio->regs == NULL) {
-+		dev_err(sm->dev, "gpio: failed to remap registers\n");
-+		ret = -ENXIO;
-+		goto err_mapped;
-+	}
-+
-+	/* Register both our chips. */
-+
-+	ret = sm501_gpio_register_chip(sm, gpio, &gpio->low);
-+	if (ret) {
-+		dev_err(sm->dev, "failed to add low chip\n");
-+		goto err_mapped;
-+	}
-+
-+	ret = sm501_gpio_register_chip(sm, gpio, &gpio->high);
-+	if (ret) {
-+		dev_err(sm->dev, "failed to add high chip\n");
-+		goto err_low_chip;
-+	}
-+
-+	gpio->registered = 1;
 +
 +	return 0;
-+
-+ err_low_chip:
-+	tmp = gpiochip_remove(&gpio->low.gpio);
-+	if (tmp) {
-+		dev_err(sm->dev, "cannot remove low chip, cannot tidy up\n");
-+		return ret;
-+	}
-+
-+ err_mapped:
-+	release_resource(gpio->regs_res);
-+	kfree(gpio->regs_res);
-+
-+	return ret;
 +}
-+
-+static void sm501_gpio_remove(struct sm501_devdata *sm)
-+{
-+	int ret;
-+
-+	ret = gpiochip_remove(&sm->gpio.low.gpio);
-+	if (ret)
-+		dev_err(sm->dev, "cannot remove low chip, cannot tidy up\n");
-+
-+	ret = gpiochip_remove(&sm->gpio.high.gpio);
-+	if (ret)
-+		dev_err(sm->dev, "cannot remove high chip, cannot tidy up\n");
-+}
-+
-+#else
-+static int sm501_register_gpio(struct sm501_devdata *sm)
-+{
-+	return 0;
-+}
-+
-+static void sm501_gpio_remove(struct sm501_devdata *sm)
-+{
-+}
-+#endif
 +
  /* sm501_dbg_regs
   *
   * Debug attribute to attach to parent device to show core registers
-@@ -1059,6 +1249,8 @@ static int sm501_init_dev(struct sm501_d
- 			sm501_register_usbhost(sm, &mem_avail);
- 		if (idata->devices & (SM501_USE_UART0 | SM501_USE_UART1))
- 			sm501_register_uart(sm, idata->devices);
-+		if (idata->devices & SM501_USE_GPIO)
-+			sm501_register_gpio(sm);
+@@ -1204,6 +1268,7 @@ static unsigned int sm501_mem_local[] = 
+ static int sm501_init_dev(struct sm501_devdata *sm)
+ {
+ 	struct sm501_initdata *idata;
++	struct sm501_platdata *pdata;
+ 	resource_size_t mem_avail;
+ 	unsigned long dramctrl;
+ 	unsigned long devid;
+@@ -1242,7 +1307,9 @@ static int sm501_init_dev(struct sm501_d
+ 
+ 	/* check to see if we have some device initialisation */
+ 
+-	idata = sm->platdata ? sm->platdata->init : NULL;
++	pdata = sm->platdata;
++	idata = pdata ? pdata->init : NULL;
++
+ 	if (idata) {
+ 		sm501_init_regs(sm, idata);
+ 
+@@ -1254,6 +1321,13 @@ static int sm501_init_dev(struct sm501_d
+ 			sm501_register_gpio(sm);
  	}
  
- 	ret = sm501_check_clocks(sm);
-@@ -1366,6 +1558,9 @@ static void sm501_dev_remove(struct sm50
- 		sm501_remove_sub(sm, smdev);
- 
- 	device_remove_file(sm->dev, &dev_attr_dbg_regs);
++	if (pdata->gpio_i2c != NULL && pdata->gpio_i2c_nr > 0) {
++		if (!sm->gpio.registered)
++			dev_err(sm->dev, "no gpio registered for i2c gpio.\n");
++		else
++			sm501_register_gpio_i2c(sm, pdata);
++	}
 +
-+	if (sm->gpio.registered)
-+		sm501_gpio_remove(sm);
- }
- 
- static void sm501_pci_remove(struct pci_dev *dev)
-diff -puN include/linux/sm501.h~sm501-add-gpiolib-support include/linux/sm501.h
---- a/include/linux/sm501.h~sm501-add-gpiolib-support
+ 	ret = sm501_check_clocks(sm);
+ 	if (ret) {
+ 		dev_err(sm->dev, "M1X and M clocks sourced from different "
+diff -puN include/linux/sm501.h~sm501-gpio-i2c-support include/linux/sm501.h
+--- a/include/linux/sm501.h~sm501-gpio-i2c-support
 +++ a/include/linux/sm501.h
-@@ -46,24 +46,6 @@ extern unsigned long sm501_modify_reg(st
- 				      unsigned long set,
- 				      unsigned long clear);
+@@ -84,11 +84,19 @@ struct sm501_platdata_fb {
+ 	struct sm501_platdata_fbsub	*fb_pnl;
+ };
  
--/* sm501_gpio_set
-- *
-- * set the state of the given GPIO line
--*/
--
--extern void sm501_gpio_set(struct device *dev,
--			   unsigned long gpio,
--			   unsigned int to,
--			   unsigned int dir);
--
--/* sm501_gpio_get
-- *
-- * get the state of the given GPIO line
--*/
--
--extern unsigned long sm501_gpio_get(struct device *dev,
--				    unsigned long gpio);
--
+-/* gpio i2c */
++/* gpio i2c
++ *
++ * Note, we have to pass in the bus number, as the number used will be
++ * passed to the i2c-gpio driver's platform_device.id, subsequently used
++ * to register the i2c bus.
++*/
  
- /* Platform data definitions */
+ struct sm501_platdata_gpio_i2c {
++	unsigned int		bus_num;
+ 	unsigned int		pin_sda;
+ 	unsigned int		pin_scl;
++	int			udelay;
++	int			timeout;
+ };
  
-@@ -129,6 +111,7 @@ struct sm501_reg_init {
- #define SM501_USE_FBACCEL	(1<<6)
- #define SM501_USE_AC97		(1<<7)
- #define SM501_USE_I2S		(1<<8)
-+#define SM501_USE_GPIO		(1<<9)
- 
- #define SM501_USE_ALL		(0xffffffff)
- 
-@@ -171,6 +154,7 @@ struct sm501_platdata {
- 	struct sm501_platdata_fb	*fb;
- 
- 	int				 flags;
-+	unsigned			 gpio_base;
- 
- 	int	(*get_power)(struct device *dev);
- 	int	(*set_power)(struct device *dev, unsigned int on);
+ /* sm501_initdata
 _
 
 Patches currently in -mm which might be from ben-linux@fluff.org are
