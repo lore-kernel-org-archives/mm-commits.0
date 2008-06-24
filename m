@@ -1,101 +1,170 @@
 From: akpm@linux-foundation.org
-Subject: + sm501-gpio-dynamic-registration-for-pci-devices.patch added to -mm tree
-Date: Mon, 23 Jun 2008 21:05:04 -0700
-Message-ID: <200806240405.m5O454Kn031883@imap1.linux-foundation.org>
+Subject: - mfd-sm501c-if-0-unused-functions.patch removed from -mm tree
+Date: Mon, 23 Jun 2008 21:05:30 -0700
+Message-ID: <200806240405.m5O45Uuh031896@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44956 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40423 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751618AbYFXEFp (ORCPT
+	by vger.kernel.org with ESMTP id S1756709AbYFXEF7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jun 2008 00:05:45 -0400
+	Tue, 24 Jun 2008 00:05:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: apatard@mandriva.com, ben-linux@fluff.org, david-b@pacbell.net
+To: bunk@kernel.org, ben@simtec.co.uk, vince@simtec.co.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sm501: gpio dynamic registration for PCI devices
-has been added to the -mm tree.  Its filename is
-     sm501-gpio-dynamic-registration-for-pci-devices.patch
+     mfd/sm501.c: #if 0 unused functions
+has been removed from the -mm tree.  Its filename was
+     mfd-sm501c-if-0-unused-functions.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because Ben's SM501 patch series wrecked it
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sm501: gpio dynamic registration for PCI devices
-From: Arnaud Patard <apatard@mandriva.com>
+Subject: mfd/sm501.c: #if 0 unused functions
+From: Adrian Bunk <bunk@kernel.org>
 
-The SM501 PCI card requires a dyanmic gpio allocation as the number of
-cards is not known at compile time.  Fixup the platform data and
-registration to deal with this.
+This patch #if 0's the following unused functions:
+- sm501_find_clock()
+- sm501_gpio_get()
+- sm501_gpio_set()
 
-Acked-by: Ben Dooks <ben-linux@fluff.org>
-Signed-off-by: Arnaud Patard <apatard@mandriva.com>
-Cc: David Brownell <david-b@pacbell.net>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: Ben Dooks <ben@simtec.co.uk>
+Cc: Vincent Sanders <vince@simtec.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/sm501.c   |    6 ++++--
- include/linux/sm501.h |    2 +-
- 2 files changed, 5 insertions(+), 3 deletions(-)
+ drivers/mfd/sm501.c   |    5 +++++
+ include/linux/sm501.h |   21 ---------------------
+ 2 files changed, 5 insertions(+), 21 deletions(-)
 
-diff -puN drivers/mfd/sm501.c~sm501-gpio-dynamic-registration-for-pci-devices drivers/mfd/sm501.c
---- a/drivers/mfd/sm501.c~sm501-gpio-dynamic-registration-for-pci-devices
+diff -puN drivers/mfd/sm501.c~mfd-sm501c-if-0-unused-functions drivers/mfd/sm501.c
+--- a/drivers/mfd/sm501.c~mfd-sm501c-if-0-unused-functions
 +++ a/drivers/mfd/sm501.c
-@@ -996,12 +996,13 @@ static int __devinit sm501_gpio_register
+@@ -276,6 +276,8 @@ unsigned long sm501_modify_reg(struct de
+ 
+ EXPORT_SYMBOL_GPL(sm501_modify_reg);
+ 
++#if 0
++
+ unsigned long sm501_gpio_get(struct device *dev,
+ 			     unsigned long gpio)
  {
- 	struct sm501_platdata *pdata = sm->platdata;
- 	struct gpio_chip *gchip = &chip->gpio;
--	unsigned base = pdata->gpio_base;
-+	int base = pdata->gpio_base;
+@@ -327,6 +329,7 @@ void sm501_gpio_set(struct device *dev,
  
- 	memcpy(chip, &gpio_chip_template, sizeof(struct gpio_chip));
+ EXPORT_SYMBOL_GPL(sm501_gpio_set);
  
- 	if (chip == &gpio->high) {
--		base += 32;
-+		if (base > 0)
-+			base += 32;
- 		chip->regbase = gpio->regs + SM501_GPIO_DATA_HIGH;
- 		gchip->label  = "SM501-HIGH";
- 	} else {
-@@ -1452,6 +1453,7 @@ static struct sm501_platdata_fb sm501_fb
- static struct sm501_platdata sm501_pci_platdata = {
- 	.init		= &sm501_pci_initdata,
- 	.fb		= &sm501_fb_pdata,
-+	.gpio_base	= -1,
- };
++#endif  /*  0  */
  
- static int sm501_pci_probe(struct pci_dev *dev,
-diff -puN include/linux/sm501.h~sm501-gpio-dynamic-registration-for-pci-devices include/linux/sm501.h
---- a/include/linux/sm501.h~sm501-gpio-dynamic-registration-for-pci-devices
+ /* sm501_unit_power
+  *
+@@ -658,6 +661,7 @@ unsigned long sm501_set_clock(struct dev
+ 
+ EXPORT_SYMBOL_GPL(sm501_set_clock);
+ 
++#if 0
+ /* sm501_find_clock
+  *
+  * finds the closest available frequency for a given clock
+@@ -700,6 +704,7 @@ unsigned long sm501_find_clock(struct de
+ }
+ 
+ EXPORT_SYMBOL_GPL(sm501_find_clock);
++#endif  /*  0  */
+ 
+ static struct sm501_device *to_sm_device(struct platform_device *pdev)
+ {
+diff -puN include/linux/sm501.h~mfd-sm501c-if-0-unused-functions include/linux/sm501.h
+--- a/include/linux/sm501.h~mfd-sm501c-if-0-unused-functions
 +++ a/include/linux/sm501.h
-@@ -154,7 +154,7 @@ struct sm501_platdata {
- 	struct sm501_platdata_fb	*fb;
+@@ -24,9 +24,6 @@ extern int sm501_unit_power(struct devic
+ extern unsigned long sm501_set_clock(struct device *dev,
+ 				     int clksrc, unsigned long freq);
  
- 	int				 flags;
--	unsigned			 gpio_base;
-+	int				 gpio_base;
+-extern unsigned long sm501_find_clock(struct device *dev,
+-				      int clksrc, unsigned long req_freq);
+-
+ /* sm501_misc_control
+  *
+  * Modify the SM501's MISC_CONTROL register
+@@ -46,24 +43,6 @@ extern unsigned long sm501_modify_reg(st
+ 				      unsigned long set,
+ 				      unsigned long clear);
  
- 	int	(*get_power)(struct device *dev);
- 	int	(*set_power)(struct device *dev, unsigned int on);
+-/* sm501_gpio_set
+- *
+- * set the state of the given GPIO line
+-*/
+-
+-extern void sm501_gpio_set(struct device *dev,
+-			   unsigned long gpio,
+-			   unsigned int to,
+-			   unsigned int dir);
+-
+-/* sm501_gpio_get
+- *
+- * get the state of the given GPIO line
+-*/
+-
+-extern unsigned long sm501_gpio_get(struct device *dev,
+-				    unsigned long gpio);
+-
+ 
+ /* Platform data definitions */
+ 
 _
 
-Patches currently in -mm which might be from apatard@mandriva.com are
+Patches currently in -mm which might be from bunk@kernel.org are
 
-sm501-add-power-control-callback.patch
-sm501-add-gpiolib-support.patch
-sm501-gpio-dynamic-registration-for-pci-devices.patch
-sm501-gpio-i2c-support.patch
+origin.patch
+remove-drivers-acorn-char-defkeymap-l7200c.patch
+drm-make-drm_minors_cleanup-static.patch
+if-0-ses_match_host.patch
+git-xtensa.patch
+mm-migratec-should-include-linux-syscallsh.patch
+mm-vmstatc-proper-externs.patch
+mm-hugetlbc-fix-duplicate-variable.patch
+remove-include-asm-h8300-keyboardh.patch
+remove-include-linux-pm_legacyh.patch
+remove-the-v850-port.patch
+init-do_mountsc-should-include-linux-initrdh.patch
+proper-spawn_ksoftirqd-prototype.patch
+build-kernel-profileo-only-when-requested.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+asm-generic-int-ll64h-always-provide-__su64.patch
+remove-some-more-tipar-bits.patch
+include-linux-kernelh-userspace-header-cleanup.patch
+remove-the-oss-trident-driver.patch
+config_sound_wm97xx-remove-stale-makefile-line.patch
+serial-8250_gscc-add-module_license.patch
+mfd-sm501c-if-0-unused-functions.patch
+video-sis-remove-compat-code.patch
+minix-remove-no_truncate-code.patch
+coda-remove-coda_fs_old_api.patch
+include-asm-ptraceh-userspace-headers-cleanup.patch
+remove-is_tty.patch
+proper-extern-for-mwave_s_mdd.patch
+if-0-hpet_unregister.patch
+unexport-proc_clear_tty.patch
+move-proc_kmsg_operations-to-fs-proc-internalh.patch
+proper-pidhashmap_init-prototypes.patch
+unexport-uts_sem.patch
+parport-sharec-proper-externs.patch
+tpm_biosc-make-2-structs-static.patch
+make-cgroup_seqfile_release-static.patch
+make-kprobe_blacklist-static.patch
+make-pnp_add_card_id-static.patch
+make-parport_cs_release-static.patch
+make-mm-sparsec-make-a-function-static.patch
+mm-allocpercpuc-make-4-functions-static.patch
+make-mm-memoryc-print_bad_pte-static.patch
+mm-swapfilec-make-code-static.patch
+make-mm-rmapc-anon_vma_cachep-static.patch
+drivers-char-rtcc-make-2-functions-static.patch
+make-init-do_mountsc-root_device_name-static.patch
+reiser4.patch
 
