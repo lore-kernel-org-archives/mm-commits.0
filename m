@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + proc-remove-pathetic-remount-code.patch added to -mm tree
-Date: Mon, 23 Jun 2008 23:49:27 -0700
-Message-ID: <200806240649.m5O6nRtN005149@imap1.linux-foundation.org>
+Subject: + sm501-add-inversion-controls-for-vbiasen-and-fpen.patch added to -mm tree
+Date: Tue, 24 Jun 2008 00:09:39 -0700
+Message-ID: <200806240709.m5O79dXe005964@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35098 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56985 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750962AbYFXGta (ORCPT
+	by vger.kernel.org with ESMTP id S1750900AbYFXHKd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jun 2008 02:49:30 -0400
+	Tue, 24 Jun 2008 03:10:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@gmail.com
+Cc: ben-linux@fluff.org
 
 
 The patch titled
-     proc: remove pathetic remount code
+     sm501: add inversion controls for VBIASEN and FPEN
 has been added to the -mm tree.  Its filename is
-     proc-remove-pathetic-remount-code.patch
+     sm501-add-inversion-controls-for-vbiasen-and-fpen.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,54 +34,99 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc: remove pathetic remount code
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: sm501: add inversion controls for VBIASEN and FPEN
+From: Ben Dooks <ben-linux@fluff.org>
 
-MS_RMT_MASK will unmask changes in do_remount_sb() anyway.
+Add flags to allow the driver to invert the sense of both VBIASEN and FPEN
+signals comming from the SM501.
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Signed-off-by: Ben Dooks <ben-linux@fluff.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/inode.c |    7 -------
- 1 file changed, 7 deletions(-)
+ drivers/video/sm501fb.c |   26 ++++++++++++++++++++++----
+ include/linux/sm501.h   |    2 ++
+ 2 files changed, 24 insertions(+), 4 deletions(-)
 
-diff -puN fs/proc/inode.c~proc-remove-pathetic-remount-code fs/proc/inode.c
---- a/fs/proc/inode.c~proc-remove-pathetic-remount-code
-+++ a/fs/proc/inode.c
-@@ -111,19 +111,12 @@ int __init proc_init_inodecache(void)
- 	return 0;
- }
+diff -puN drivers/video/sm501fb.c~sm501-add-inversion-controls-for-vbiasen-and-fpen drivers/video/sm501fb.c
+--- a/drivers/video/sm501fb.c~sm501-add-inversion-controls-for-vbiasen-and-fpen
++++ a/drivers/video/sm501fb.c
+@@ -663,15 +663,25 @@ static void sm501fb_panel_power(struct s
+ 		sm501fb_sync_regs(fbi);
+ 		mdelay(10);
  
--static int proc_remount(struct super_block *sb, int *flags, char *data)
--{
--	*flags |= MS_NODIRATIME;
--	return 0;
--}
--
- static const struct super_operations proc_sops = {
- 	.alloc_inode	= proc_alloc_inode,
- 	.destroy_inode	= proc_destroy_inode,
- 	.drop_inode	= generic_delete_inode,
- 	.delete_inode	= proc_delete_inode,
- 	.statfs		= simple_statfs,
--	.remount_fs	= proc_remount,
- };
++		/* VBIASEN */
++
+ 		if (!(pd->flags & SM501FB_FLAG_PANEL_NO_VBIASEN)) {
+-			control |= SM501_DC_PANEL_CONTROL_BIAS;	/* VBIASEN */
++			if (pd->flags & SM501FB_FLAG_PANEL_INV_VBIASEN)
++				control &= ~SM501_DC_PANEL_CONTROL_BIAS;
++			else
++				control |= SM501_DC_PANEL_CONTROL_BIAS;
++
+ 			writel(control, ctrl_reg);
+ 			sm501fb_sync_regs(fbi);
+ 			mdelay(10);
+ 		}
  
- static void __pde_users_dec(struct proc_dir_entry *pde)
+ 		if (!(pd->flags & SM501FB_FLAG_PANEL_NO_FPEN)) {
+-			control |= SM501_DC_PANEL_CONTROL_FPEN;
++			if (pd->flags & SM501FB_FLAG_PANEL_INV_FPEN)
++				control &= ~SM501_DC_PANEL_CONTROL_FPEN;
++			else
++				control |= SM501_DC_PANEL_CONTROL_FPEN;
++
+ 			writel(control, ctrl_reg);
+ 			sm501fb_sync_regs(fbi);
+ 			mdelay(10);
+@@ -679,14 +689,22 @@ static void sm501fb_panel_power(struct s
+ 	} else if (!to && (control & SM501_DC_PANEL_CONTROL_VDD) != 0) {
+ 		/* disable panel power */
+ 		if (!(pd->flags & SM501FB_FLAG_PANEL_NO_FPEN)) {
+-			control &= ~SM501_DC_PANEL_CONTROL_FPEN;
++			if (pd->flags & SM501FB_FLAG_PANEL_INV_FPEN)
++				control |= SM501_DC_PANEL_CONTROL_FPEN;
++			else
++				control &= ~SM501_DC_PANEL_CONTROL_FPEN;
++
+ 			writel(control, ctrl_reg);
+ 			sm501fb_sync_regs(fbi);
+ 			mdelay(10);
+ 		}
+ 
+ 		if (!(pd->flags & SM501FB_FLAG_PANEL_NO_VBIASEN)) {
+-			control &= ~SM501_DC_PANEL_CONTROL_BIAS;
++			if (pd->flags & SM501FB_FLAG_PANEL_INV_VBIASEN)
++				control |= SM501_DC_PANEL_CONTROL_BIAS;
++			else
++				control &= ~SM501_DC_PANEL_CONTROL_BIAS;
++
+ 			writel(control, ctrl_reg);
+ 			sm501fb_sync_regs(fbi);
+ 			mdelay(10);
+diff -puN include/linux/sm501.h~sm501-add-inversion-controls-for-vbiasen-and-fpen include/linux/sm501.h
+--- a/include/linux/sm501.h~sm501-add-inversion-controls-for-vbiasen-and-fpen
++++ a/include/linux/sm501.h
+@@ -55,6 +55,8 @@ extern unsigned long sm501_modify_reg(st
+ #define SM501FB_FLAG_USE_HWACCEL	(1<<3)
+ #define SM501FB_FLAG_PANEL_NO_FPEN	(1<<4)
+ #define SM501FB_FLAG_PANEL_NO_VBIASEN	(1<<5)
++#define SM501FB_FLAG_PANEL_INV_FPEN	(1<<6)
++#define SM501FB_FLAG_PANEL_INV_VBIASEN	(1<<7)
+ 
+ struct sm501_platdata_fbsub {
+ 	struct fb_videomode	*def_mode;
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from ben-linux@fluff.org are
 
-origin.patch
-cifs-switch-to-seq_files.patch
-mpt-remove-unused-struct-mpt_proc_entry_t.patch
-move-proc_kmsg_operations-to-fs-proc-internalh.patch
-proc-always-do-release.patch
-proc-remove-pathetic-remount-code.patch
-proc-move-kconfig-to-fs-proc-kconfig.patch
-sysctl-allow-override-of-proc-sys-net-with-cap_net_admin.patch
-proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
-likely_prof-changed-to-use-proc_create.patch
-proc-remove-proc_root-from-drivers-likelyprof.patch
+sm501-add-power-control-callback.patch
+sm501-add-gpiolib-support.patch
+sm501-gpio-dynamic-registration-for-pci-devices.patch
+sm501-gpio-i2c-support.patch
+sm501-add-inversion-controls-for-vbiasen-and-fpen.patch
+sm501-restructure-init-to-allow-only-1-fb-on-an-sm501.patch
+fb-add-support-for-the-ili9320-video-display-controller.patch
+lcd-add-lcd_device-to-check_fb-entry-in-lcd_ops.patch
+lcd-add-platform_lcd-driver.patch
 
