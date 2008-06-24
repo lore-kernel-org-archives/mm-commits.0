@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hpwdt-remove-cflags.patch added to -mm tree
-Date: Tue, 24 Jun 2008 14:19:42 -0700
-Message-ID: <200806242119.m5OLJgth006634@imap1.linux-foundation.org>
+Subject: + x86-acpi-normalize-segment-descriptor-register-on-resume.patch added to -mm tree
+Date: Tue, 24 Jun 2008 14:22:06 -0700
+Message-ID: <200806242122.m5OLMFCs006712@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53343 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43445 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754412AbYFXVTz (ORCPT
+	by vger.kernel.org with ESMTP id S1752541AbYFXVWf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jun 2008 17:19:55 -0400
+	Tue, 24 Jun 2008 17:22:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: wim@iguana.be, Thomas.Mingarelli@hp.com
+Cc: hpa@zytor.com, kirill@shutemov.name, lenb@kernel.org, rjw@sisk.pl
 
 
 The patch titled
-     hpwdt: remove CFLAGS
+     x86 ACPI: normalize segment descriptor register on resume
 has been added to the -mm tree.  Its filename is
-     hpwdt-remove-cflags.patch
+     x86-acpi-normalize-segment-descriptor-register-on-resume.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,45 +34,172 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hpwdt: remove CFLAGS
-From: Wim Van Sebroeck <wim@iguana.be>
+Subject: x86 ACPI: normalize segment descriptor register on resume
+From: H. Peter Anvin <hpa@zytor.com>
 
-Revert "[WATCHDOG] hpwdt: Add CFLAGS to get driver working"
+Some Dell laptops enter resume with apparent garbage in the segment
+descriptor registers (almost certainly the result of a botched transition
+from protected to real mode.) The only way to clean that up is to enter
+protected mode ourselves and clean out the descriptor registers.
 
-After Linus fixed the inline assembly, the CFLAGS option is not needed
-anymore.
+This fixes resume on Dell XPS M1210 and Dell D620.
 
-Signed-off-by: Thomas Mingarelli <Thomas.Mingarelli@hp.com>
-Signed-off-by: Wim Van Sebroeck <wim@iguana.be>
+Reference: http://bugzilla.kernel.org/show_bug.cgi?id=10927
+
+Signed-off-by: H. Peter Anvin <hpa@zytor.com>
+Tested-by: Kirill A. Shutemov <kirill@shutemov.name>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/Makefile |    1 -
- 1 file changed, 1 deletion(-)
+ arch/x86/kernel/acpi/realmode/wakeup.S |   38 ++++++++++++++++++++++-
+ arch/x86/kernel/acpi/realmode/wakeup.h |    5 +++
+ arch/x86/kernel/acpi/sleep.c           |   16 +++++++++
+ drivers/acpi/sleep/main.c              |    5 +--
+ 4 files changed, 59 insertions(+), 5 deletions(-)
 
-diff -puN drivers/watchdog/Makefile~hpwdt-remove-cflags drivers/watchdog/Makefile
---- a/drivers/watchdog/Makefile~hpwdt-remove-cflags
-+++ a/drivers/watchdog/Makefile
-@@ -68,7 +68,6 @@ obj-$(CONFIG_WAFER_WDT) += wafer5823wdt.
- obj-$(CONFIG_I6300ESB_WDT) += i6300esb.o
- obj-$(CONFIG_ITCO_WDT) += iTCO_wdt.o iTCO_vendor_support.o
- obj-$(CONFIG_IT8712F_WDT) += it8712f_wdt.o
--CFLAGS_hpwdt.o += -O
- obj-$(CONFIG_HP_WATCHDOG) += hpwdt.o
- obj-$(CONFIG_SC1200_WDT) += sc1200wdt.o
- obj-$(CONFIG_SCx200_WDT) += scx200_wdt.o
+diff -puN arch/x86/kernel/acpi/realmode/wakeup.S~x86-acpi-normalize-segment-descriptor-register-on-resume arch/x86/kernel/acpi/realmode/wakeup.S
+--- a/arch/x86/kernel/acpi/realmode/wakeup.S~x86-acpi-normalize-segment-descriptor-register-on-resume
++++ a/arch/x86/kernel/acpi/realmode/wakeup.S
+@@ -5,6 +5,7 @@
+ #include <asm/msr-index.h>
+ #include <asm/page.h>
+ #include <asm/pgtable.h>
++#include <asm/processor-flags.h>
+ 
+ 	.code16
+ 	.section ".header", "a"
+@@ -24,6 +25,11 @@ pmode_gdt:	.quad	0
+ realmode_flags:	.long	0
+ real_magic:	.long	0
+ trampoline_segment:	.word 0
++_pad1:		.byte	0
++wakeup_jmp:	.byte	0xea	/* ljmpw */
++wakeup_jmp_off:	.word	3f
++wakeup_jmp_seg:	.word	0
++wakeup_gdt:	.quad	0, 0, 0
+ signature:	.long	0x51ee1111
+ 
+ 	.text
+@@ -34,11 +40,34 @@ _start:
+ 	cli
+ 	cld
+ 
++	/* Apparently some dimwit BIOS programmers don't know how to
++	   program a PM to RM transition, and we might end up here with
++	   junk in the data segment descriptor registers.  The only way
++	   to repair that is to go into PM and fix it ourselves... */
++	movw	$16, %cx
++	lgdtl	%cs:wakeup_gdt
++	movl	%cr0, %eax
++	orb	$X86_CR0_PE, %al
++	movl	%eax, %cr0
++	jmp	1f
++1:	ljmpw	$8, $2f
++2:
++	movw	%cx, %ds
++	movw	%cx, %es
++	movw	%cx, %ss
++	movw	%cx, %fs
++	movw	%cx, %gs
++
++	andb	$~X86_CR0_PE, %al
++	movl	%eax, %cr0
++	jmp	wakeup_jmp
++3:
+ 	/* Set up segments */
+ 	movw	%cs, %ax
+ 	movw	%ax, %ds
+ 	movw	%ax, %es
+ 	movw	%ax, %ss
++	lidtl	wakeup_idt
+ 
+ 	movl	$wakeup_stack_end, %esp
+ 
+@@ -98,7 +127,14 @@ bogus_real_magic:
+ 	jmp	1b
+ 
+ 	.data
+-	.balign	4
++	.balign	8
++
++	/* This is the standard real-mode IDT */
++wakeup_idt:
++	.word	0xffff		/* limit */
++	.long	0		/* address */
++	.word	0
++
+ 	.globl	HEAP, heap_end
+ HEAP:
+ 	.long	wakeup_heap
+diff -puN arch/x86/kernel/acpi/realmode/wakeup.h~x86-acpi-normalize-segment-descriptor-register-on-resume arch/x86/kernel/acpi/realmode/wakeup.h
+--- a/arch/x86/kernel/acpi/realmode/wakeup.h~x86-acpi-normalize-segment-descriptor-register-on-resume
++++ a/arch/x86/kernel/acpi/realmode/wakeup.h
+@@ -24,6 +24,11 @@ struct wakeup_header {
+ 	u32 realmode_flags;
+ 	u32 real_magic;
+ 	u16 trampoline_segment;	/* segment with trampoline code, 64-bit only */
++	u8  _pad1;
++	u8  wakeup_jmp;
++	u16 wakeup_jmp_off;
++	u16 wakeup_jmp_seg;
++	u64 wakeup_gdt[3];
+ 	u32 signature;		/* To check we have correct structure */
+ } __attribute__((__packed__));
+ 
+diff -puN arch/x86/kernel/acpi/sleep.c~x86-acpi-normalize-segment-descriptor-register-on-resume arch/x86/kernel/acpi/sleep.c
+--- a/arch/x86/kernel/acpi/sleep.c~x86-acpi-normalize-segment-descriptor-register-on-resume
++++ a/arch/x86/kernel/acpi/sleep.c
+@@ -50,6 +50,20 @@ int acpi_save_state_mem(void)
+ 
+ 	header->video_mode = saved_video_mode;
+ 
++	header->wakeup_jmp_seg = acpi_wakeup_address >> 4;
++	/* GDT[0]: GDT self-pointer */
++	header->wakeup_gdt[0] =
++		(u64)(sizeof(header->wakeup_gdt) - 1) +
++		((u64)(acpi_wakeup_address +
++			((char *)&header->wakeup_gdt - (char *)acpi_realmode))
++				<< 16);
++	/* GDT[1]: real-mode-like code segment */
++	header->wakeup_gdt[1] = (0x009bULL << 40) +
++		((u64)acpi_wakeup_address << 16) + 0xffff;
++	/* GDT[2]: real-mode-like data segment */
++	header->wakeup_gdt[2] = (0x0093ULL << 40) +
++		((u64)acpi_wakeup_address << 16) + 0xffff;
++
+ #ifndef CONFIG_64BIT
+ 	store_gdt((struct desc_ptr *)&header->pmode_gdt);
+ 
+@@ -113,7 +127,7 @@ void __init acpi_reserve_bootmem(void)
+ 		return;
+ 	}
+ 
+-	acpi_wakeup_address = acpi_realmode;
++	acpi_wakeup_address = virt_to_phys((void *)acpi_realmode);
+ }
+ 
+ 
+diff -puN drivers/acpi/sleep/main.c~x86-acpi-normalize-segment-descriptor-register-on-resume drivers/acpi/sleep/main.c
+--- a/drivers/acpi/sleep/main.c~x86-acpi-normalize-segment-descriptor-register-on-resume
++++ a/drivers/acpi/sleep/main.c
+@@ -32,9 +32,8 @@ static int acpi_sleep_prepare(u32 acpi_s
+ 		if (!acpi_wakeup_address) {
+ 			return -EFAULT;
+ 		}
+-		acpi_set_firmware_waking_vector((acpi_physical_address)
+-						virt_to_phys((void *)
+-							     acpi_wakeup_address));
++		acpi_set_firmware_waking_vector(
++				(acpi_physical_address)acpi_wakeup_address);
+ 
+ 	}
+ 	ACPI_FLUSH_CPU_CACHE();
 _
 
-Patches currently in -mm which might be from wim@iguana.be are
+Patches currently in -mm which might be from hpa@zytor.com are
 
-pcwd-a-couple-of-watchdogs-escaped-conversion.patch
-mpc83xx_wdt-convert-to-the-of-platform-driver.patch
-mpc83xx_wdt-add-support-for-mpc86xx-cpus.patch
-mpc83xx_wdt-rename-to-mpc8xxx_wdt.patch
-mpc8xxx_wdt-various-renames-mostly-s-mpc83xx-mpc8xxx-g.patch
-mpc8xxx_wdt-various-renames-mostly-s-mpc83xx-mpc8xxx-g-fix.patch
-mpc8xxx_wdt-add-support-for-mpc8xx-watchdogs.patch
-powerpc-fsl_soc-remove-mpc83xx_wdt-code.patch
-powerpc-86xx-mpc8610_hpcd-add-watchdog-node.patch
-hpwdt-remove-cflags.patch
+x86-acpi-normalize-segment-descriptor-register-on-resume.patch
+asm-generic-int-ll64h-always-provide-__su64.patch
 
