@@ -1,27 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + uio-howtotmpl-use-standard-copyright-legal-markings.patch added to -mm tree
-Date: Tue, 24 Jun 2008 14:24:57 -0700
-Message-ID: <200806242124.m5OLOw69006858@imap1.linux-foundation.org>
+Subject: + sm501-fixes-for-akpms-comments-on-gpiolib-addition.patch added to -mm tree
+Date: Tue, 24 Jun 2008 15:17:03 -0700
+Message-ID: <200806242217.m5OMHMKv009021@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36289 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59147 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754478AbYFXV0D (ORCPT
+	by vger.kernel.org with ESMTP id S1750841AbYFXWSC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jun 2008 17:26:03 -0400
+	Tue, 24 Jun 2008 18:18:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vapier@gentoo.org, greg@kroah.com, hjk@linutronix.de, randy.dunlap@oracle.com
+Cc: ben-linux@fluff.org
 
 
 The patch titled
-     uio-howto.tmpl: use standard copyright/legal markings
+     sm501: fixes for akpms comments on gpiolib addition
 has been added to the -mm tree.  Its filename is
-     uio-howtotmpl-use-standard-copyright-legal-markings.patch
+     sm501-fixes-for-akpms-comments-on-gpiolib-addition.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -29,71 +26,117 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
-find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uio-howto.tmpl: use standard copyright/legal markings
-=46rom: Mike Frysinger <vapier@gentoo.org>
+Subject: sm501: fixes for akpms comments on gpiolib addition
+From: Ben Dooks <ben-linux@fluff.org>
 
-The Userspace I/O HOWTO document uses straight <sect1> tags and plain t=
-ext
-to describe copyright/legal information.  It should instead use the
-<copyright> and <legalnotice> tags like all other documents in the kern=
-el.
+Fixup the comments from the patch that added the gpiolib support from
+Andrew Morton.  These include spotting some missing frees on error or
+release, and changing a memcpy for a type-safe assingment.
 
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
-Acked-by: Hans J. Koch <hjk@linutronix.de>
-Cc: Greg KH <greg@kroah.com>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Ben Dooks <ben-linux@fluff.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/DocBook/uio-howto.tmpl |   23 ++++++++++++-----------
- 1 file changed, 12 insertions(+), 11 deletions(-)
+ drivers/mfd/sm501.c |   24 ++++++++++++++++--------
+ 1 file changed, 16 insertions(+), 8 deletions(-)
 
-diff -puN Documentation/DocBook/uio-howto.tmpl~uio-howtotmpl-use-standa=
-rd-copyright-legal-markings Documentation/DocBook/uio-howto.tmpl
---- a/Documentation/DocBook/uio-howto.tmpl~uio-howtotmpl-use-standard-c=
-opyright-legal-markings
-+++ a/Documentation/DocBook/uio-howto.tmpl
-@@ -21,6 +21,18 @@
-     </affiliation>
- </author>
-=20
-+<copyright>
-+	<year>2006-2008</year>
-+	<holder>Hans-J=C3=BCrgen Koch.</holder>
-+</copyright>
+diff -puN drivers/mfd/sm501.c~sm501-fixes-for-akpms-comments-on-gpiolib-addition drivers/mfd/sm501.c
+--- a/drivers/mfd/sm501.c~sm501-fixes-for-akpms-comments-on-gpiolib-addition
++++ a/drivers/mfd/sm501.c
+@@ -999,7 +999,7 @@ static int __devinit sm501_gpio_register
+ 	struct gpio_chip *gchip = &chip->gpio;
+ 	int base = pdata->gpio_base;
+ 
+-	memcpy(chip, &gpio_chip_template, sizeof(struct gpio_chip));
++	chip->gpio = gpio_chip_template;
+ 
+ 	if (chip == &gpio->high) {
+ 		if (base > 0)
+@@ -1039,7 +1039,7 @@ static int sm501_register_gpio(struct sm
+ 	if (gpio->regs == NULL) {
+ 		dev_err(sm->dev, "gpio: failed to remap registers\n");
+ 		ret = -ENXIO;
+-		goto err_mapped;
++		goto err_claimed;
+ 	}
+ 
+ 	/* Register both our chips. */
+@@ -1068,6 +1068,9 @@ static int sm501_register_gpio(struct sm
+ 	}
+ 
+  err_mapped:
++	iounmap(gpio->regs);
 +
-+<legalnotice>
-+<para>
-+This documentation is Free Software licensed under the terms of the
-+GPL version 2.
-+</para>
-+</legalnotice>
++ err_claimed:
+ 	release_resource(gpio->regs_res);
+ 	kfree(gpio->regs_res);
+ 
+@@ -1076,33 +1079,38 @@ static int sm501_register_gpio(struct sm
+ 
+ static void sm501_gpio_remove(struct sm501_devdata *sm)
+ {
++	struct sm501_gpio *gpio = &sm->gpio;
+ 	int ret;
+ 
+-	ret = gpiochip_remove(&sm->gpio.low.gpio);
++	ret = gpiochip_remove(&gpio->low.gpio);
+ 	if (ret)
+ 		dev_err(sm->dev, "cannot remove low chip, cannot tidy up\n");
+ 
+-	ret = gpiochip_remove(&sm->gpio.high.gpio);
++	ret = gpiochip_remove(&gpio->high.gpio);
+ 	if (ret)
+ 		dev_err(sm->dev, "cannot remove high chip, cannot tidy up\n");
 +
- <pubdate>2006-12-11</pubdate>
-=20
- <abstract>
-@@ -66,17 +78,6 @@
- <?dbhtml filename=3D"about.html"?>
- <title>About this document</title>
-=20
--<sect1 id=3D"copyright">
--<?dbhtml filename=3D"copyright.html"?>
--<title>Copyright and License</title>
--<para>
--      Copyright (c) 2006-2008 by Hans-J=C3=BCrgen Koch.</para>
--<para>
--This documentation is Free Software licensed under the terms of the
--GPL version 2.
--</para>
--</sect1>
++	iounmap(gpio->regs);
++	release_resource(gpio->regs_res);
++	kfree(gpio->regs_res);
+ }
+ 
+-static int sm501_gpio_pin2nr(struct sm501_devdata *sm, unsigned int pin)
++static inline int sm501_gpio_pin2nr(struct sm501_devdata *sm, unsigned int pin)
+ {
+ 	struct sm501_gpio *gpio = &sm->gpio;
+ 	return pin + (pin < 32) ? gpio->low.gpio.base : gpio->high.gpio.base;
+ }
+ #else
+-static int sm501_register_gpio(struct sm501_devdata *sm)
++static inline int sm501_register_gpio(struct sm501_devdata *sm)
+ {
+ 	return 0;
+ }
+ 
+-static void sm501_gpio_remove(struct sm501_devdata *sm)
++static inline void sm501_gpio_remove(struct sm501_devdata *sm)
+ {
+ }
+ 
+-static int sm501_gpio_pin2nr(struct sm501_devdata *sm, unsigned int pin)
++static inline int sm501_gpio_pin2nr(struct sm501_devdata *sm, unsigned int pin)
+ {
+ 	return -1;
+ }
+_
+
+Patches currently in -mm which might be from ben-linux@fluff.org are
+
+sm501-add-power-control-callback.patch
+sm501-add-gpiolib-support.patch
+sm501-gpio-dynamic-registration-for-pci-devices.patch
+sm501-gpio-i2c-support.patch
+sm501-fixes-for-akpms-comments-on-gpiolib-addition.patch
+sm501-add-inversion-controls-for-vbiasen-and-fpen.patch
+sm501-restructure-init-to-allow-only-1-fb-on-an-sm501.patch
+fb-add-support-for-the-ili9320-video-display-controller.patch
+fb-add-support-for-the-ili9320-video-display-controller-fix.patch
+lcd-add-lcd_device-to-check_fb-entry-in-lcd_ops.patch
+lcd-add-platform_lcd-driver.patch
+
