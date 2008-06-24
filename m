@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-setting-of-pf_superpriv-by-__capable.patch added to -mm tree
-Date: Mon, 23 Jun 2008 17:00:04 -0700
-Message-ID: <200806240000.m5O004FS023032@imap1.linux-foundation.org>
+Subject: + fujitsu-laptop-depends-on-input.patch added to -mm tree
+Date: Mon, 23 Jun 2008 17:01:22 -0700
+Message-ID: <200806240001.m5O01M6h023130@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38465 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49459 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751212AbYFXABa (ORCPT
+	by vger.kernel.org with ESMTP id S1752804AbYFXACV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Jun 2008 20:01:30 -0400
+	Mon, 23 Jun 2008 20:02:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com, casey@schaufler-ca.com, chrisw@sous-sol.org, jmorris@namei.org, sds@tycho.nsa.gov, serue@us.ibm.com
+Cc: randy.dunlap@oracle.com, jwoithe@physics.adelaide.edu.au, lenb@kernel.org
 
 
 The patch titled
-     Fix setting of PF_SUPERPRIV by __capable()
+     fujitsu-laptop: depends on INPUT
 has been added to the -mm tree.  Its filename is
-     fix-setting-of-pf_superpriv-by-__capable.patch
+     fujitsu-laptop-depends-on-input.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,93 +34,68 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Fix setting of PF_SUPERPRIV by __capable()
-From: David Howells <dhowells@redhat.com>
+Subject: fujitsu-laptop: depends on INPUT
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Fix the setting of PF_SUPERPRIV by __capable() as it could corrupt the
-flags the target process if that is not the current process and it is
-trying to change its own flags in a different way at the same time.
+fujitsu-laptop uses input_* functions, so it should depend on INPUT.
 
-__capable() is using neither atomic ops nor locking to protect t->flags. 
-This patch changes __capable() so it will only set PF_SUPERPRIV if current
-is checking its own capabilities.
+drivers/built-in.o: In function `acpi_fujitsu_add':
+fujitsu-laptop.c:(.text+0xaaec7): undefined reference to `input_allocate_device'
+fujitsu-laptop.c:(.text+0xaaf39): undefined reference to `input_register_device'
+fujitsu-laptop.c:(.text+0xab025): undefined reference to `input_free_device'
+drivers/built-in.o: In function `acpi_fujitsu_notify':
+fujitsu-laptop.c:(.text+0xab0d8): undefined reference to `input_event'
+fujitsu-laptop.c:(.text+0xab0e5): undefined reference to `input_event'
+fujitsu-laptop.c:(.text+0xab0f5): undefined reference to `input_event'
+fujitsu-laptop.c:(.text+0xab102): undefined reference to `input_event'
+drivers/built-in.o: In function `acpi_fujitsu_hotkey_notify':
+fujitsu-laptop.c:(.text+0xab261): undefined reference to `input_event'
+drivers/built-in.o:fujitsu-laptop.c:(.text+0xab26e): more undefined references to `input_event' follow
+drivers/built-in.o: In function `acpi_fujitsu_hotkey_add':
+fujitsu-laptop.c:(.text+0xab49c): undefined reference to `input_allocate_device'
+fujitsu-laptop.c:(.text+0xab51a): undefined reference to `input_register_device'
+fujitsu-laptop.c:(.text+0xab5e4): undefined reference to `input_free_device'
+make[1]: *** [.tmp_vmlinux1] Error 1
 
-Possibly we should be setting PF_SUPERPRIV on current, regardless of the
-target pointer; however there are cases where you probably don't want to
-do this.
-
-Two of the instances of __capable() actually only act on current, and so have
-been changed to calls to capable().
-
-Of those that remain:
-
- (1) The OOM killer calls __capable() thrice when weighing the killability of a
-     process.  I think it would be reasonable for this not to set PF_SUPERPRIV
-     at all.
-
- (2) cap_ptrace() and smack_ptrace() are called in two different ways:
-
-     (a) The parent pointer is current, in which case it's securing PT_ATTACH,
-     	 and setting PF_SUPERPRIV is correct.
-
-     (b) The parent pointer is current->parent, in which case it's securing
-     	 PT_TRACEME, in which case not setting PF_SUPERPRIV is probably
-     	 reasonable as no-one has actually used a privileged operation as yet,
-     	 merely verified that one can be used.
-
- (3) In smack_file_send_sigiotask(), we need to allow privileged processes to
-     receive SIGIO on files they're manipulating.  Setting PF_SUPERPRIV on
-     current is wrong, but setting it on the target might be correct.
-
- (4) In smack_task_wait(), we let a process wait for a privileged process,
-     whether or not the process doing the waiting is privileged.  I'm not sure
-     whether this should set PF_SUPERPRIV, and if so on whom.
-
-Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: James Morris <jmorris@namei.org>
-Acked-by: Casey Schaufler <casey@schaufler-ca.com>
-Acked-by: Serge Hallyn <serue@us.ibm.com>
-Cc: Stephen Smalley <sds@tycho.nsa.gov>
-Cc: Chris Wright <chrisw@sous-sol.org>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: <jwoithe@physics.adelaide.edu.au>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/capability.c        |    3 ++-
- security/commoncap.c       |    2 +-
- security/smack/smack_lsm.c |    6 +++---
- 3 files changed, 6 insertions(+), 5 deletions(-)
+ drivers/misc/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN kernel/capability.c~fix-setting-of-pf_superpriv-by-__capable kernel/capability.c
---- a/kernel/capability.c~fix-setting-of-pf_superpriv-by-__capable
-+++ a/kernel/capability.c
-@@ -364,7 +364,8 @@ out:
- int __capable(struct task_struct *t, int cap)
- {
- 	if (security_capable(t, cap) == 0) {
--		t->flags |= PF_SUPERPRIV;
-+		if (t == current)
-+			t->flags |= PF_SUPERPRIV;
- 		return 1;
- 	}
- 	return 0;
-diff -puN security/commoncap.c~fix-setting-of-pf_superpriv-by-__capable security/commoncap.c
---- a/security/commoncap.c~fix-setting-of-pf_superpriv-by-__capable
-+++ a/security/commoncap.c
-@@ -528,7 +528,7 @@ int cap_task_post_setuid (uid_t old_ruid
- static inline int cap_safe_nice(struct task_struct *p)
- {
- 	if (!cap_issubset(p->cap_permitted, current->cap_permitted) &&
--	    !__capable(current, CAP_SYS_NICE))
-+	    !capable(CAP_SYS_NICE))
- 		return -EPERM;
- 	return 0;
- }
-diff -puN security/smack/smack_lsm.c~fix-setting-of-pf_superpriv-by-__capable security/smack/smack_lsm.c
---- a/security/smack/smack_lsm.c~fix-setting-of-pf_superpriv-by-__capable
-+++ a/security/smack/smack_lsm.c
-@@ -2038,9 +2038,6 @@ static int smack_setprocattr(struct task
- {
- 	char *newsmack;
- 
--	if (!__capable(p, CAP_MAC_ADMIN))
--		return -EPERM;
+diff -puN drivers/misc/Kconfig~fujitsu-laptop-depends-on-input drivers/misc/Kconfig
+--- a/drivers/misc/Kconfig~fujitsu-laptop-depends-on-input
++++ a/drivers/misc/Kconfig
+@@ -179,6 +179,7 @@ config FUJITSU_LAPTOP
+         tristate "Fujitsu Laptop Extras"
+         depends on X86
+         depends on ACPI
++        depends on INPUT
+         depends on BACKLIGHT_CLASS_DEVICE
+         ---help---
+ 	  This is a driver for laptops built by Fujitsu:
+_
+
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
+
+documentation-build-source-files-in-documentation-sub-dir.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix-fix.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+netfilter-conntrack_helper-needs-to-include-rculisth.patch
+git-scsi-misc-fix-scsi_dh-build-errors.patch
+git-unionfs.patch
+audit-fix-kernel-doc-parameter-notation.patch
+vmallocinfo-add-numa-information.patch
+vmallocinfo-add-numa-information-fix.patch
+flag-parameters-signalfd-fix.patch
+flag-parameters-eventfd-fix.patch
+bsdacct-stir-up-comments-around-acct_process.patch
+profile-likely-unlikely-macros.patch
+fujitsu-laptop-depends-on-input.patch
+
