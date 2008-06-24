@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + cgroup-files-remove-cpuset_common_file_write.patch added to -mm tree
-Date: Tue, 24 Jun 2008 16:24:55 -0700
-Message-ID: <200806242324.m5ONOtZA011655@imap1.linux-foundation.org>
+Subject: + cgroup-files-turn-attach_task_by_pid-directly-into-a-cgroup-write-handler.patch added to -mm tree
+Date: Tue, 24 Jun 2008 16:24:53 -0700
+Message-ID: <200806242324.m5ONOri7011652@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53691 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52778 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752726AbYFXXZn (ORCPT
+	by vger.kernel.org with ESMTP id S1752726AbYFXXZk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jun 2008 19:25:43 -0400
+	Tue, 24 Jun 2008 19:25:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: menage@google.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, pj@sgi
 
 
 The patch titled
-     cgroup files: remove cpuset_common_file_write()
+     cgroup files: turn attach_task_by_pid directly into a cgroup write handler
 has been added to the -mm tree.  Its filename is
-     cgroup-files-remove-cpuset_common_file_write.patch
+     cgroup-files-turn-attach_task_by_pid-directly-into-a-cgroup-write-handler.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,14 +34,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroup files: remove cpuset_common_file_write()
+Subject: cgroup files: turn attach_task_by_pid directly into a cgroup write handler
 From: Paul Menage <menage@google.com>
 
-This patch tweaks the signatures of the update_cpumask() and
-update_nodemask() functions so that they can be called directly as
-handlers for the new cgroups write_string() method.
-
-This allows cpuset_common_file_write() to be removed.
+This patch changes attach_task_by_pid() to take a u64 rather than a
+string; as a result it can be called directly as a control groups
+write_u64 handler, and cgroup_common_file_write() can be removed.
 
 Signed-off-by: Paul Menage <menage@google.com>
 Cc: Paul Jackson <pj@sgi.com>
@@ -52,79 +50,82 @@ Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpuset.c |  109 ++++++++++++++--------------------------------
- 1 file changed, 35 insertions(+), 74 deletions(-)
+ kernel/cgroup.c |   80 ++++++++--------------------------------------
+ 1 file changed, 14 insertions(+), 66 deletions(-)
 
-diff -puN kernel/cpuset.c~cgroup-files-remove-cpuset_common_file_write kernel/cpuset.c
---- a/kernel/cpuset.c~cgroup-files-remove-cpuset_common_file_write
-+++ a/kernel/cpuset.c
-@@ -227,10 +227,6 @@ static struct cpuset top_cpuset = {
-  * The task_struct fields mems_allowed and mems_generation may only
-  * be accessed in the context of that task, so require no locks.
+diff -puN kernel/cgroup.c~cgroup-files-turn-attach_task_by_pid-directly-into-a-cgroup-write-handler kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroup-files-turn-attach_task_by_pid-directly-into-a-cgroup-write-handler
++++ a/kernel/cgroup.c
+@@ -504,10 +504,6 @@ static struct css_set *find_css_set(
+  * knows that the cgroup won't be removed, as cgroup_rmdir()
+  * needs that mutex.
   *
-- * The cpuset_common_file_write handler for operations that modify
-- * the cpuset hierarchy holds cgroup_mutex across the entire operation,
-- * single threading all such cpuset modifications across the system.
+- * The cgroup_common_file_write handler for operations that modify
+- * the cgroup hierarchy holds cgroup_mutex across the entire operation,
+- * single threading all such cgroup modifications across the system.
 - *
-  * The cpuset_common_file_read() handlers only hold callback_mutex across
-  * small pieces of code, such as when reading out possibly multi-word
-  * cpumasks and nodemasks.
-@@ -770,7 +766,7 @@ static void cpuset_change_cpumask(struct
-  * @cs: the cpuset to consider
-  * @buf: buffer of cpu numbers written to this cpuset
+  * The fork and exit callbacks cgroup_fork() and cgroup_exit(), don't
+  * (usually) take cgroup_mutex.  These are the two most performance
+  * critical pieces of code here.  The exception occurs on cgroup_exit(),
+@@ -1279,18 +1275,14 @@ int cgroup_attach_task(struct cgroup *cg
+ }
+ 
+ /*
+- * Attach task with pid 'pid' to cgroup 'cgrp'. Call with
+- * cgroup_mutex, may take task_lock of task
++ * Attach task with pid 'pid' to cgroup 'cgrp'. Call with cgroup_mutex
++ * held. May take task_lock of task
   */
--static int update_cpumask(struct cpuset *cs, char *buf)
-+static int update_cpumask(struct cpuset *cs, const char *buf)
+-static int attach_task_by_pid(struct cgroup *cgrp, char *pidbuf)
++static int attach_task_by_pid(struct cgroup *cgrp, u64 pid)
  {
- 	struct cpuset trialcs;
- 	struct cgroup_scanner scan;
-@@ -790,7 +786,6 @@ static int update_cpumask(struct cpuset 
- 	 * that parsing.  The validate_change() call ensures that cpusets
- 	 * with tasks have cpus.
- 	 */
--	buf = strstrip(buf);
- 	if (!*buf) {
- 		cpus_clear(trialcs.cpus_allowed);
- 	} else {
-@@ -900,7 +895,7 @@ static void cpuset_migrate_mm(struct mm_
+-	pid_t pid;
+ 	struct task_struct *tsk;
+ 	int ret;
  
- static void *cpuset_being_rebound;
+-	if (sscanf(pidbuf, "%d", &pid) != 1)
+-		return -EIO;
+-
+ 	if (pid) {
+ 		rcu_read_lock();
+ 		tsk = find_task_by_vpid(pid);
+@@ -1316,6 +1308,16 @@ static int attach_task_by_pid(struct cgr
+ 	return ret;
+ }
  
--static int update_nodemask(struct cpuset *cs, char *buf)
-+static int update_nodemask(struct cpuset *cs, const char *buf)
- {
- 	struct cpuset trialcs;
- 	nodemask_t oldmem;
-@@ -927,7 +922,6 @@ static int update_nodemask(struct cpuset
- 	 * that parsing.  The validate_change() call ensures that cpusets
- 	 * with tasks have memory.
- 	 */
--	buf = strstrip(buf);
- 	if (!*buf) {
- 		nodes_clear(trialcs.mems_allowed);
- 	} else {
-@@ -1254,72 +1248,14 @@ typedef enum {
- 	FILE_SPREAD_SLAB,
- } cpuset_filetype_t;
++static int cgroup_tasks_write(struct cgroup *cgrp, struct cftype *cft, u64 pid)
++{
++	int ret;
++	if (!cgroup_lock_live_group(cgrp))
++		return -ENODEV;
++	ret = attach_task_by_pid(cgrp, pid);
++	cgroup_unlock();
++	return ret;
++}
++
+ /* The various types of files and directories in a cgroup file system */
+ enum cgroup_filetype {
+ 	FILE_ROOT,
+@@ -1431,60 +1433,6 @@ static ssize_t cgroup_write_string(struc
+ 	return retval;
+ }
  
--static ssize_t cpuset_common_file_write(struct cgroup *cont,
--					struct cftype *cft,
--					struct file *file,
--					const char __user *userbuf,
--					size_t nbytes, loff_t *unused_ppos)
+-static ssize_t cgroup_common_file_write(struct cgroup *cgrp,
+-					   struct cftype *cft,
+-					   struct file *file,
+-					   const char __user *userbuf,
+-					   size_t nbytes, loff_t *unused_ppos)
 -{
--	struct cpuset *cs = cgroup_cs(cont);
--	cpuset_filetype_t type = cft->private;
+-	enum cgroup_filetype type = cft->private;
 -	char *buffer;
 -	int retval = 0;
 -
--	/* Crude upper limit on largest legitimate cpulist user might write. */
--	if (nbytes > 100U + 6 * max(NR_CPUS, MAX_NUMNODES))
+-	if (nbytes >= PATH_MAX)
 -		return -E2BIG;
 -
 -	/* +1 for nul-terminator */
 -	buffer = kmalloc(nbytes + 1, GFP_KERNEL);
--	if (!buffer)
+-	if (buffer == NULL)
 -		return -ENOMEM;
 -
 -	if (copy_from_user(buffer, userbuf, nbytes)) {
@@ -132,20 +133,22 @@ diff -puN kernel/cpuset.c~cgroup-files-remove-cpuset_common_file_write kernel/cp
 -		goto out1;
 -	}
 -	buffer[nbytes] = 0;	/* nul-terminate */
+-	strstrip(buffer);	/* strip -just- trailing whitespace */
 -
--	cgroup_lock();
+-	mutex_lock(&cgroup_mutex);
 -
--	if (cgroup_is_removed(cont)) {
+-	/*
+-	 * This was already checked for in cgroup_file_write(), but
+-	 * check again now we're holding cgroup_mutex.
+-	 */
+-	if (cgroup_is_removed(cgrp)) {
 -		retval = -ENODEV;
 -		goto out2;
 -	}
 -
 -	switch (type) {
--	case FILE_CPULIST:
--		retval = update_cpumask(cs, buffer);
--		break;
--	case FILE_MEMLIST:
--		retval = update_nodemask(cs, buffer);
+-	case FILE_TASKLIST:
+-		retval = attach_task_by_pid(cgrp, buffer);
 -		break;
 -	default:
 -		retval = -EINVAL;
@@ -155,95 +158,24 @@ diff -puN kernel/cpuset.c~cgroup-files-remove-cpuset_common_file_write kernel/cp
 -	if (retval == 0)
 -		retval = nbytes;
 -out2:
--	cgroup_unlock();
+-	mutex_unlock(&cgroup_mutex);
 -out1:
 -	kfree(buffer);
 -	return retval;
 -}
 -
- static int cpuset_write_u64(struct cgroup *cgrp, struct cftype *cft, u64 val)
+ static ssize_t cgroup_file_write(struct file *file, const char __user *buf,
+ 						size_t nbytes, loff_t *ppos)
  {
- 	int retval = 0;
- 	struct cpuset *cs = cgroup_cs(cgrp);
- 	cpuset_filetype_t type = cft->private;
- 
--	cgroup_lock();
--
--	if (cgroup_is_removed(cgrp)) {
--		cgroup_unlock();
-+	if (!cgroup_lock_live_group(cgrp))
- 		return -ENODEV;
--	}
- 
- 	switch (type) {
- 	case FILE_CPU_EXCLUSIVE:
-@@ -1365,12 +1301,9 @@ static int cpuset_write_s64(struct cgrou
- 	struct cpuset *cs = cgroup_cs(cgrp);
- 	cpuset_filetype_t type = cft->private;
- 
--	cgroup_lock();
--
--	if (cgroup_is_removed(cgrp)) {
--		cgroup_unlock();
-+	if (!cgroup_lock_live_group(cgrp))
- 		return -ENODEV;
--	}
-+
- 	switch (type) {
- 	case FILE_SCHED_RELAX_DOMAIN_LEVEL:
- 		retval = update_relax_domain_level(cs, val);
-@@ -1384,6 +1317,32 @@ static int cpuset_write_s64(struct cgrou
- }
- 
- /*
-+ * Common handling for a write to a "cpus" or "mems" file.
-+ */
-+static int cpuset_write_resmask(struct cgroup *cgrp, struct cftype *cft,
-+				const char *buf)
-+{
-+	int retval = 0;
-+
-+	if (!cgroup_lock_live_group(cgrp))
-+		return -ENODEV;
-+
-+	switch (cft->private) {
-+	case FILE_CPULIST:
-+		retval = update_cpumask(cgroup_cs(cgrp), buf);
-+		break;
-+	case FILE_MEMLIST:
-+		retval = update_nodemask(cgroup_cs(cgrp), buf);
-+		break;
-+	default:
-+		retval = -EINVAL;
-+		break;
-+	}
-+	cgroup_unlock();
-+	return retval;
-+}
-+
-+/*
-  * These ascii lists should be read in a single call, by using a user
-  * buffer large enough to hold the entire map.  If read in smaller
-  * chunks, there is no guarantee of atomicity.  Since the display format
-@@ -1502,14 +1461,16 @@ static struct cftype files[] = {
- 	{
- 		.name = "cpus",
- 		.read = cpuset_common_file_read,
--		.write = cpuset_common_file_write,
-+		.write_string = cpuset_write_resmask,
-+		.max_write_len = (100U + 6 * NR_CPUS),
- 		.private = FILE_CPULIST,
+@@ -2262,7 +2210,7 @@ static struct cftype files[] = {
+ 		.name = "tasks",
+ 		.open = cgroup_tasks_open,
+ 		.read = cgroup_tasks_read,
+-		.write = cgroup_common_file_write,
++		.write_u64 = cgroup_tasks_write,
+ 		.release = cgroup_tasks_release,
+ 		.private = FILE_TASKLIST,
  	},
- 
- 	{
- 		.name = "mems",
- 		.read = cpuset_common_file_read,
--		.write = cpuset_common_file_write,
-+		.write_string = cpuset_write_resmask,
-+		.max_write_len = (100U + 6 * MAX_NUMNODES),
- 		.private = FILE_MEMLIST,
- 	},
- 
 _
 
 Patches currently in -mm which might be from menage@google.com are
