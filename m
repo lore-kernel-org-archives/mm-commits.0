@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlb-new-sysfs-interface-fix-2.patch added to -mm tree
-Date: Tue, 24 Jun 2008 00:24:53 -0700
-Message-ID: <200806240724.m5O7OrTJ006557@imap1.linux-foundation.org>
+Subject: + firmware-fix-the-request_firmware-dummy.patch added to -mm tree
+Date: Tue, 24 Jun 2008 00:33:27 -0700
+Message-ID: <200806240733.m5O7XRMN006986@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57599 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42284 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751745AbYFXHZj (ORCPT
+	by vger.kernel.org with ESMTP id S1751953AbYFXHds (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jun 2008 03:25:39 -0400
+	Tue, 24 Jun 2008 03:33:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dave@linux.vnet.ibm.com, npiggin@suse.de, tony@bakeyournoodle.com
+Cc: James.Bottomley@HansenPartnership.com, bunk@kernel.org, rjw@sisk.pl, toralf.foerster@gmx.de
 
 
 The patch titled
-     hugetlb-new-sysfs-interface-fix-2
+     firmware: fix the request_firmware() dummy
 has been added to the -mm tree.  Its filename is
-     hugetlb-new-sysfs-interface-fix-2.patch
+     firmware-fix-the-request_firmware-dummy.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,126 +34,69 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlb-new-sysfs-interface-fix-2
-From: Dave Hansen <dave@linux.vnet.ibm.com>
+Subject: firmware: fix the request_firmware() dummy
+From: James Bottomley <James.Bottomley@HansenPartnership.com>
 
-This one seems to be causing some compilation errors with SYSFS=n.
+> the build (.config attached) failed, make ends with :
+> ...
+>   UPD     include/linux/compile.h
+>   CC      init/version.o
+>   LD      init/built-in.o
+>   LD      vmlinux
+> drivers/built-in.o: In function `sas_request_addr':
+> (.text+0x33bab): undefined reference to `request_firmware'
+> drivers/built-in.o: In function `sas_request_addr':
+> (.text+0x33c3f): undefined reference to `release_firmware'
+> make: *** [vmlinux] Error 1
 
->> /scratch/kathys/containers/kernel_trees/upstream/mm/hugetlb.c: In
->> function 'hugetlb_exit':
->> /scratch/kathys/containers/kernel_trees/upstream/mm/hugetlb.c:1234:
->> error: 'hstate_kobjs' undeclared (first use in this function)
->> /scratch/kathys/containers/kernel_trees/upstream/mm/hugetlb.c:1234:
->> error: (Each undeclared identifier is reported only once
->> /scratch/kathys/containers/kernel_trees/upstream/mm/hugetlb.c:1234:
->> error: for each function it appears in.)
->> /scratch/kathys/containers/kernel_trees/upstream/mm/hugetlb.c:1237:
->> error: 'hugepages_kobj' undeclared (first use in this function)
->> make[2]: *** [mm/hugetlb.o] Error 1
->> make[1]: *** [mm] Error 2
->> make: *** [sub-make] Error 2
+There's a slight fault in the stub logic.  It fails for FW_LOADER=m and
+the user =y.
 
-Should we just move hugetlb_exit() inside the sysfs #ifdef with
-everything else?
+This should fix it.
 
-Cc: Nick Piggin <npiggin@suse.de>
-Cc: Tony Breeds <tony@bakeyournoodle.com>
+This patch fixes the following 2.6.26-rc regression:
+  http://bugzilla.kernel.org/show_bug.cgi?id=10730
+
+Reviewed-by: Toralf Foerster <toralf.foerster@gmx.de>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c      |   25 +++++++++++++------------
- mm/hugetlb.c.orig |   25 ++++++++++++-------------
- 2 files changed, 25 insertions(+), 25 deletions(-)
+ include/linux/firmware.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/hugetlb.c~hugetlb-new-sysfs-interface-fix-2 mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-new-sysfs-interface-fix-2
-+++ a/mm/hugetlb.c
-@@ -1104,6 +1104,19 @@ static void __init hugetlb_sysfs_init(vo
- 								h->name);
- 	}
- }
-+
-+static void __exit hugetlb_exit(void)
-+{
-+	struct hstate *h;
-+
-+	for_each_hstate(h) {
-+		kobject_put(hstate_kobjs[h - hstates]);
-+	}
-+
-+	kobject_put(hugepages_kobj);
-+}
-+module_exit(hugetlb_exit);
-+
- #else
- static void __init hugetlb_sysfs_init(void)
- {
-@@ -1130,18 +1143,6 @@ static int __init hugetlb_init(void)
- }
- module_init(hugetlb_init);
+diff -puN include/linux/firmware.h~firmware-fix-the-request_firmware-dummy include/linux/firmware.h
+--- a/include/linux/firmware.h~firmware-fix-the-request_firmware-dummy
++++ a/include/linux/firmware.h
+@@ -13,7 +13,7 @@ struct firmware {
  
--static void __exit hugetlb_exit(void)
--{
--	struct hstate *h;
--
--	for_each_hstate(h) {
--		kobject_put(hstate_kobjs[h - hstates]);
--	}
--
--	kobject_put(hugepages_kobj);
--}
--module_exit(hugetlb_exit);
--
- /* Should be called on processing a hugepagesz=... option */
- void __init hugetlb_add_hstate(unsigned order)
- {
-diff -puN mm/hugetlb.c.orig~hugetlb-new-sysfs-interface-fix-2 mm/hugetlb.c.orig
---- a/mm/hugetlb.c.orig~hugetlb-new-sysfs-interface-fix-2
-+++ a/mm/hugetlb.c.orig
-@@ -1104,19 +1104,6 @@ static void __init hugetlb_sysfs_init(vo
- 								h->name);
- 	}
- }
--
--static void __exit hugetlb_exit(void)
--{
--	struct hstate *h;
--
--	for_each_hstate(h) {
--		kobject_put(hstate_kobjs[h - hstates]);
--	}
--
--	kobject_put(hugepages_kobj);
--}
--module_exit(hugetlb_exit);
--
- #else
- static void __init hugetlb_sysfs_init(void)
- {
-@@ -1143,6 +1130,18 @@ static int __init hugetlb_init(void)
- }
- module_init(hugetlb_init);
+ struct device;
  
-+static void __exit hugetlb_exit(void)
-+{
-+	struct hstate *h;
-+
-+	for_each_hstate(h) {
-+		kobject_put(hstate_kobjs[h - hstates]);
-+	}
-+
-+	kobject_put(hugepages_kobj);
-+}
-+module_exit(hugetlb_exit);
-+
- /* Should be called on processing a hugepagesz=... option */
- void __init hugetlb_add_hstate(unsigned order)
- {
+-#if defined(CONFIG_FW_LOADER) || defined(CONFIG_FW_LOADER_MODULE)
++#if defined(CONFIG_FW_LOADER) || (defined(CONFIG_FW_LOADER_MODULE) && defined(MODULE))
+ int request_firmware(const struct firmware **fw, const char *name,
+ 		     struct device *device);
+ int request_firmware_nowait(
 _
 
-Patches currently in -mm which might be from dave@linux.vnet.ibm.com are
+Patches currently in -mm which might be from James.Bottomley@HansenPartnership.com are
 
-hugetlb-new-sysfs-interface-fix-2.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-fix.patch
+firmware-fix-the-request_firmware-dummy.patch
+git-scsi-misc-fix-scsi_dh-build-errors.patch
+scsi-replace-remaining-__function__-occurrences.patch
+fusion-replace-remaining-__function__-occurrences.patch
+scsi-replace-__inline-with-inline.patch
+mpt-remove-unused-struct-mpt_proc_entry_t.patch
+ipr-use-memory_read_from_buffer.patch
+qla2xxx-use-memory_read_from_buffer.patch
+block-add-blk_queue_update_dma_pad.patch
+ide-use-the-dma-safe-check-for-req_type_ata_pc.patch
+block-blk_rq_map_kern-uses-the-bounce-buffers-for-stack-buffers.patch
+ide-avoid-dma-on-the-stack-for-req_type_ata_pc.patch
+scsi-sr-avoids-useless-buffer-allocation.patch
+cdrom-revert-commit-22a9189-cdrom-use-kmalloced-buffers-instead-of-buffers-on-stack.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+ide-cd-use-the-new-object_is_in_stack-helper.patch
+block-blk-mapc-use-the-new-object_is_on_stack-helper.patch
 
