@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-dirty-page-accounting-vs-vm_mixedmap.patch added to -mm tree
-Date: Mon, 23 Jun 2008 20:38:39 -0700
-Message-ID: <200806240338.m5O3cdZw030965@imap1.linux-foundation.org>
+Subject: + rtc_read_alarm-handles-wraparound.patch added to -mm tree
+Date: Mon, 23 Jun 2008 20:40:06 -0700
+Message-ID: <200806240340.m5O3e643031004@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57706 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40196 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752719AbYFXDiu (ORCPT
+	by vger.kernel.org with ESMTP id S1751730AbYFXDkZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Jun 2008 23:38:50 -0400
+	Mon, 23 Jun 2008 23:40:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: a.p.zijlstra@chello.nl, hugh@veritas.com, jaredeh@gmail.com, nickpiggin@yahoo.com.au
+Cc: david-b@pacbell.net, dbrownell@users.sourceforge.net, lkml@rtr.ca
 
 
 The patch titled
-     mm: dirty page accounting vs VM_MIXEDMAP
+     rtc: rtc_read_alarm() handles wraparound
 has been added to the -mm tree.  Its filename is
-     mm-dirty-page-accounting-vs-vm_mixedmap.patch
+     rtc_read_alarm-handles-wraparound.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,98 +34,191 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: dirty page accounting vs VM_MIXEDMAP
-From: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Subject: rtc: rtc_read_alarm() handles wraparound
+From: David Brownell <david-b@pacbell.net>
 
-Dirty page accounting accurately measures the amound of dirty pages in
-writable shared mappings by mapping the pages RO (as indicated by
-vma_wants_writenotify).  We then trap on first write and call
-set_page_dirty() on the page, after which we map the page RW and
-continue execution.
+While 0e36a9a4a788e4e92407774df76c545910810d35 ("rtc: fix readback from
+/sys/class/rtc/rtc?/wakealarm") made sure that active alarms were never
+returned with invalid "wildcard" fields (negative), it can still report
+(wrongly) that the alarm triggers in the past.
 
-When we launder dirty pages, we call clear_page_dirty_for_io() which
-clears both the dirty flag, and maps the page RO again before we start
-writeout so that the story can repeat itself.
+Example, if it's now 10am, an alarm firing at 5am will be triggered
+TOMORROW not today.  (Which may also be next month or next year...)
 
-vma_wants_writenotify() excludes VM_PFNMAP on the basis that we cannot
-do the regular dirty page stuff on raw PFNs and the memory isn't going
-anywhere anyway.
+This updates that alarm handling in three ways:
 
-The recently introduced VM_MIXEDMAP mixes both !pfn_valid() and
-pfn_valid() pages in a single mapping.
+  * Handle alarm rollover in the common cases of RTCs that don't
+    support matching on all date fields.
 
-We can't do dirty page accounting on !pfn_valid() pages as stated
-above, and mapping them RO causes them to be COW'ed on write, which
-breaks VM_SHARED semantics.
+  * Skip the invalid-field logic when it's not needed.
 
-Excluding VM_MIXEDMAP in vma_wants_writenotify() would mean we don't do
-the regular dirty page accounting for the pfn_valid() pages, which
-would bring back all the head-aches from inaccurate dirty page
-accounting.
+  * Minor bugfix ... tm_isdst should be ignored, it's one of the
+    fields Linux doesn't maintain.
 
-So instead, we let the !pfn_valid() pages get mapped RO, but fix them
-up unconditionally in the fault path.
+A warning is emitted for some of the unhandled rollover cases, but the
+possible combinations are a bit too numerous to handle every bit of
+potential hardware and firmware braindamage.
 
-Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Acked-by: Hugh Dickins <hugh@veritas.com>
-Cc: "Jared Hulbert" <jaredeh@gmail.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Mark Lord <lkml@rtr.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
+ drivers/rtc/interface.c |  102 +++++++++++++++++++++++++++++++++-----
+ 1 file changed, 91 insertions(+), 11 deletions(-)
 
-diff -puN mm/memory.c~mm-dirty-page-accounting-vs-vm_mixedmap mm/memory.c
---- a/mm/memory.c~mm-dirty-page-accounting-vs-vm_mixedmap
-+++ a/mm/memory.c
-@@ -1697,8 +1697,19 @@ static int do_wp_page(struct mm_struct *
- 	struct page *dirty_page = NULL;
+diff -puN drivers/rtc/interface.c~rtc_read_alarm-handles-wraparound drivers/rtc/interface.c
+--- a/drivers/rtc/interface.c~rtc_read_alarm-handles-wraparound
++++ a/drivers/rtc/interface.c
+@@ -126,12 +126,25 @@ int rtc_read_alarm(struct rtc_device *rt
+ 	int err;
+ 	struct rtc_time before, now;
+ 	int first_time = 1;
++	unsigned long t_now, t_alm;
++	enum { none, day, month, year } missing = none;
++	unsigned days;
  
- 	old_page = vm_normal_page(vma, address, orig_pte);
--	if (!old_page)
-+	if (!old_page) {
-+		/*
-+		 * VM_MIXEDMAP !pfn_valid() case
-+		 *
-+		 * We should not cow pages in a shared writeable mapping.
-+		 * Just mark the pages writable as we can't do any dirty
-+		 * accounting on raw pfn maps.
-+		 */
-+		if ((vma->vm_flags & (VM_WRITE|VM_SHARED)) ==
-+				     (VM_WRITE|VM_SHARED))
-+			goto reuse;
- 		goto gotten;
+-	/* The lower level RTC driver may not be capable of filling
+-	 * in all fields of the rtc_time struct (eg. rtc-cmos),
+-	 * and so might instead return -1 in some fields.
+-	 * We deal with that here by grabbing a current RTC timestamp
+-	 * and using values from that for any missing (-1) values.
++	/* The lower level RTC driver may return -1 in some fields,
++	 * creating invalid alarm->time values, for reasons like:
++	 *
++	 *   - The hardware may not be capable of filling them in;
++	 *     many alarms match only on time-of-day fields, not
++	 *     day/month/year calendar data.
++	 *
++	 *   - Some hardware uses illegal values as "wildcard" match
++	 *     values, which non-Linux firmware (like a BIOS) may try
++	 *     to set up as e.g. "alarm 15 minutes after each hour".
++	 *     Linux uses only oneshot alarms.
++	 *
++	 * When we see that here, we deal with it by using values from
++	 * a current RTC timestamp for any missing (-1) values.  The
++	 * RTC driver prevents "periodic alarm" modes.
+ 	 *
+ 	 * But this can be racey, because some fields of the RTC timestamp
+ 	 * may have wrapped in the interval since we read the RTC alarm,
+@@ -174,6 +187,10 @@ int rtc_read_alarm(struct rtc_device *rt
+ 		if (!alarm->enabled)
+ 			return 0;
+ 
++		/* full-function RTCs won't have such missing fields */
++		if (rtc_valid_tm(&alarm->time) == 0)
++			return 0;
++
+ 		/* get the "after" timestamp, to detect wrapped fields */
+ 		err = rtc_read_time(rtc, &now);
+ 		if (err < 0)
+@@ -183,22 +200,85 @@ int rtc_read_alarm(struct rtc_device *rt
+ 	} while (   before.tm_min   != now.tm_min
+ 		 || before.tm_hour  != now.tm_hour
+ 		 || before.tm_mon   != now.tm_mon
+-		 || before.tm_year  != now.tm_year
+-		 || before.tm_isdst != now.tm_isdst);
++		 || before.tm_year  != now.tm_year);
+ 
+-	/* Fill in any missing alarm fields using the timestamp */
++	/* Fill in the missing alarm fields using the timestamp; we
++	 * know there's at least one since alarm->time is invalid.
++	 */
+ 	if (alarm->time.tm_sec == -1)
+ 		alarm->time.tm_sec = now.tm_sec;
+ 	if (alarm->time.tm_min == -1)
+ 		alarm->time.tm_min = now.tm_min;
+ 	if (alarm->time.tm_hour == -1)
+ 		alarm->time.tm_hour = now.tm_hour;
+-	if (alarm->time.tm_mday == -1)
++
++	/* For simplicity, only support date rollover for now */
++	if (alarm->time.tm_mday == -1) {
+ 		alarm->time.tm_mday = now.tm_mday;
+-	if (alarm->time.tm_mon == -1)
++		missing = day;
 +	}
- 
- 	/*
- 	 * Take out anonymous pages first, anonymous shared vmas are
-@@ -1751,6 +1762,7 @@ static int do_wp_page(struct mm_struct *
- 	}
- 
- 	if (reuse) {
-+reuse:
- 		flush_cache_page(vma, address, pte_pfn(orig_pte));
- 		entry = pte_mkyoung(orig_pte);
- 		entry = maybe_mkwrite(pte_mkdirty(entry), vma);
++	if (alarm->time.tm_mon == -1) {
+ 		alarm->time.tm_mon = now.tm_mon;
+-	if (alarm->time.tm_year == -1)
++		if (missing == none)
++			missing = month;
++	}
++	if (alarm->time.tm_year == -1) {
+ 		alarm->time.tm_year = now.tm_year;
++		if (missing == none)
++			missing = year;
++	}
++
++	/* with luck, no rollover is needed */
++	rtc_tm_to_time(&now, &t_now);
++	rtc_tm_to_time(&alarm->time, &t_alm);
++	if (t_now < t_alm)
++		goto done;
++
++	switch (missing) {
++
++	/* 24 hour rollover ... if it's now 10am Monday, an alarm that
++	 * that will trigger at 5am will do so at 5am Tuesday, which
++	 * could also be in the next month or year.  This is a common
++	 * case, especially for PCs.
++	 */
++	case day:
++		dev_dbg(&rtc->dev, "alarm rollover: %s\n", "day");
++		t_alm += 24 * 60 * 60;
++		rtc_time_to_tm(t_alm, &alarm->time);
++		break;
++
++	/* Month rollover ... if it's the 31th, an alarm on the 3rd will
++	 * be next month.  An alarm matching on the 30th, 29th, or 28th
++	 * may end up in the month after that!  Many newer PCs support
++	 * this type of alarm.
++	 */
++	case month:
++		dev_dbg(&rtc->dev, "alarm rollover: %s\n", "month");
++		do {
++			if (alarm->time.tm_mon < 11)
++				alarm->time.tm_mon++;
++			else {
++				alarm->time.tm_mon = 0;
++				alarm->time.tm_year++;
++			}
++			days = rtc_month_days(alarm->time.tm_mon,
++					alarm->time.tm_year);
++		} while (days < alarm->time.tm_mday);
++		break;
++
++	/* Year rollover ... easy except for leap years! */
++	case year:
++		dev_dbg(&rtc->dev, "alarm rollover: %s\n", "year");
++		do {
++			alarm->time.tm_year++;
++		} while (!rtc_valid_tm(&alarm->time));
++		break;
++
++	default:
++		dev_warn(&rtc->dev, "alarm rollover not handled\n");
++	}
++
++done:
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(rtc_read_alarm);
 _
 
-Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
-mm-dirty-page-accounting-vs-vm_mixedmap.patch
-access_process_vm-device-memory-infrastructure.patch
-access_process_vm-device-memory-infrastructure-fix.patch
-x86-implement-pte_special.patch
-mm-introduce-get_user_pages_fast.patch
-x86-lockless-get_user_pages_fast.patch
-dio-use-get_user_pages_fast.patch
-splice-use-get_user_pages_fast.patch
-mm-readahead-scan-lockless.patch
-radix-tree-add-gang_lookup_slot-gang_lookup_slot_tag.patch
-mm-speculative-page-references.patch
-mm-speculative-page-references-fix.patch
-mm-speculative-page-references-fix-fix.patch
-mm-lockless-pagecache.patch
-mm-spinlock-tree_lock.patch
-powerpc-implement-pte_special.patch
+origin.patch
+rtc_read_alarm-handles-wraparound.patch
+ntp-let-update_persistent_clock-sleep.patch
+jffs2-summary-allocation-dont-use-vmalloc.patch
+asic3-gpiolib-support.patch
+asic3-remove-children-platform-data.patch
+asic3-new-gpio-configuration-code.patch
+rtc-rtc-rs5c372-smbus-conversion-support.patch
+rtc-rtc-rs5c732-add-support-for-ricoh-r2025s-d-rtc.patch
+rtc-m41t80-sort-header-inclusions-for-readability.patch
+rtc-m41t80-use-pr_info-as-appropriate.patch
+gpio-gpio-driver-for-max7301-spi-gpio-expander.patch
+gpio-gpio-driver-for-max7301-spi-gpio-expander-checkpatch-fixes.patch
 
