@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + better-interface-for-hooking-early-initcalls.patch added to -mm tree
-Date: Mon, 23 Jun 2008 17:27:31 -0700
-Message-ID: <200806240027.m5O0RWoA024110@imap1.linux-foundation.org>
+Subject: + vfs-fix-coding-style-in-dcachec.patch added to -mm tree
+Date: Mon, 23 Jun 2008 19:11:48 -0700
+Message-ID: <200806240211.m5O2BmPj027850@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44221 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46354 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751015AbYFXA2W (ORCPT
+	by vger.kernel.org with ESMTP id S1756880AbYFXCLz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Jun 2008 20:28:22 -0400
+	Mon, 23 Jun 2008 22:11:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: eduard.munteanu@linux360.ro, tzanussi@gmail.com
+Cc: k-makita@np.css.fujitsu.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Better interface for hooking early initcalls
+     vfs: fix coding style in dcache.c
 has been added to the -mm tree.  Its filename is
-     better-interface-for-hooking-early-initcalls.patch
+     vfs-fix-coding-style-in-dcachec.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,104 +34,82 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Better interface for hooking early initcalls
-From: Eduard - Gabriel Munteanu <eduard.munteanu@linux360.ro>
+Subject: vfs: fix coding style in dcache.c
+From: Kentaro Makita <k-makita@np.css.fujitsu.com>
 
-Added early initcall (pre-SMP) support, using an identical interface to
-that of regular initcalls.  Functions called from do_pre_smp_initcalls()
-could be converted to use this cleaner interface.
+Fix coding style at dcache.c. No behavior changed.
 
-This is required by CPU hotplug, because early users have to register
-notifiers before going SMP.  One such CPU hotplug user is the relay
-interface with buffer-only channels, which needs to register such a
-notifier, to be usable in early code.  This in turn is used by kmemtrace.
-
-Signed-off-by: Eduard - Gabriel Munteanu <eduard.munteanu@linux360.ro>
-Cc: Tom Zanussi <tzanussi@gmail.com>
+Signed-off-by: Kentaro Makita <k-makita@np.css.fujitsu.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/vmlinux.lds.h |    2 ++
- include/linux/init.h              |    7 +++++++
- init/main.c                       |   13 +++++++++++--
- 3 files changed, 20 insertions(+), 2 deletions(-)
+ fs/dcache.c |   21 ++++++++++-----------
+ 1 file changed, 10 insertions(+), 11 deletions(-)
 
-diff -puN include/asm-generic/vmlinux.lds.h~better-interface-for-hooking-early-initcalls include/asm-generic/vmlinux.lds.h
---- a/include/asm-generic/vmlinux.lds.h~better-interface-for-hooking-early-initcalls
-+++ a/include/asm-generic/vmlinux.lds.h
-@@ -359,6 +359,8 @@
+diff -puN fs/dcache.c~vfs-fix-coding-style-in-dcachec fs/dcache.c
+--- a/fs/dcache.c~vfs-fix-coding-style-in-dcachec
++++ a/fs/dcache.c
+@@ -452,15 +452,15 @@ static void __shrink_dcache_sb(struct su
+ 	int cnt = 0;
+ 
+ 	BUG_ON(!sb);
+-	BUG_ON((flags & DCACHE_REFERENCED) && count == NULL);
++	BUG_ON((flags & DCACHE_REFERENCED) && !count);
+ 	spin_lock(&dcache_lock);
+-	if (count != NULL)
++	if (count)
+ 		/* called from prune_dcache() and shrink_dcache_parent() */
+ 		cnt = *count;
+ restart:
+-	if (count == NULL)
++	if (!count) {
+ 		list_splice_init(&sb->s_dentry_lru, &tmp);
+-	else {
++	} else {
+ 		while (!list_empty(&sb->s_dentry_lru)) {
+ 			dentry = list_entry(sb->s_dentry_lru.prev,
+ 					struct dentry, d_lru);
+@@ -472,16 +472,15 @@ restart:
+ 			 * the dentry has this flag set, don't free it. Clear
+ 			 * the flag and put it back on the LRU.
+ 			 */
+-			if ((flags & DCACHE_REFERENCED)
+-				&& (dentry->d_flags & DCACHE_REFERENCED)) {
++			if ((flags & DCACHE_REFERENCED) &&
++			    (dentry->d_flags & DCACHE_REFERENCED)) {
+ 				dentry->d_flags &= ~DCACHE_REFERENCED;
+ 				list_move_tail(&dentry->d_lru, &referenced);
+ 				spin_unlock(&dentry->d_lock);
+ 			} else {
+ 				list_move_tail(&dentry->d_lru, &tmp);
+ 				spin_unlock(&dentry->d_lock);
+-				cnt--;
+-				if (!cnt)
++				if (--cnt == 0)
+ 					break;
+ 			}
+ 		}
+@@ -503,10 +502,10 @@ restart:
+ 		/* dentry->d_lock was dropped in prune_one_dentry() */
+ 		cond_resched_lock(&dcache_lock);
  	}
- 
- #define INITCALLS							\
-+	*(.initcallearly.init)						\
-+	__early_initcall_end = .;					\
-   	*(.initcall0.init)						\
-   	*(.initcall0s.init)						\
-   	*(.initcall1.init)						\
-diff -puN include/linux/init.h~better-interface-for-hooking-early-initcalls include/linux/init.h
---- a/include/linux/init.h~better-interface-for-hooking-early-initcalls
-+++ a/include/linux/init.h
-@@ -171,6 +171,13 @@ extern void (*late_time_init)(void);
- 	__attribute__((__section__(".initcall" level ".init"))) = fn
- 
- /*
-+ * Early initcalls run before initializing SMP.
-+ *
-+ * Only for built-in code, not modules.
-+ */
-+#define early_initcall(fn)		__define_initcall("early",fn,early)
-+
-+/*
-  * A "pure" initcall has no dependencies on anything else, and purely
-  * initializes variables that couldn't be statically initialized.
-  *
-diff -puN init/main.c~better-interface-for-hooking-early-initcalls init/main.c
---- a/init/main.c~better-interface-for-hooking-early-initcalls
-+++ a/init/main.c
-@@ -743,13 +743,13 @@ static void __init do_one_initcall(initc
- }
- 
- 
--extern initcall_t __initcall_start[], __initcall_end[];
-+extern initcall_t __initcall_start[], __initcall_end[], __early_initcall_end[];
- 
- static void __init do_initcalls(void)
- {
- 	initcall_t *call;
- 
--	for (call = __initcall_start; call < __initcall_end; call++)
-+	for (call = __early_initcall_end; call < __initcall_end; call++)
- 		do_one_initcall(*call);
- 
- 	/* Make sure there is no pending stuff from the initcall sequence */
-@@ -783,6 +783,14 @@ static int __init nosoftlockup_setup(cha
- }
- __setup("nosoftlockup", nosoftlockup_setup);
- 
-+static void __init __do_pre_smp_initcalls(void)
-+{
-+	initcall_t *call;
-+
-+	for (call = __initcall_start; call < __early_initcall_end; call++)
-+		do_one_initcall(*call);
-+}
-+
- static void __init do_pre_smp_initcalls(void)
- {
- 	init_call_single_data();
-@@ -872,6 +880,7 @@ static int __init kernel_init(void * unu
- 
- 	smp_prepare_cpus(setup_max_cpus);
- 
-+	__do_pre_smp_initcalls();
- 	do_pre_smp_initcalls();
- 
- 	smp_init();
+-	if (count == NULL && !list_empty(&sb->s_dentry_lru))
+-		goto restart;
+-	if (count != NULL)
++	if (count)
+ 		*count = cnt;
++	else if (!list_empty(&sb->s_dentry_lru))
++		goto restart;
+ 	if (!list_empty(&referenced))
+ 		list_splice(&referenced, &sb->s_dentry_lru);
+ 	spin_unlock(&dcache_lock);
 _
 
-Patches currently in -mm which might be from eduard.munteanu@linux360.ro are
+Patches currently in -mm which might be from k-makita@np.css.fujitsu.com are
 
-better-interface-for-hooking-early-initcalls.patch
-full-conversion-to-early_initcall-interface-remove-old-interface.patch
-relay-add-buffer-only-channels-useful-for-early-logging.patch
+fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries.patch
+fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
+vfs-fix-coding-style-in-dcachec.patch
+vfs-add-cond_resched_lock-while-scanning-dentry-lru-lists.patch
 
