@@ -1,35 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlb-new-sysfs-interface-fix.patch added to -mm tree
-Date: Tue, 24 Jun 2008 00:12:55 -0700
-Message-ID: <200806240712.m5O7CtF0006135@imap1.linux-foundation.org>
+Subject: - hugetlb-new-sysfs-interface-fix.patch removed from -mm tree
+Date: Tue, 24 Jun 2008 00:22:15 -0700
+Message-ID: <200806240722.m5O7MFeh006504@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58527 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40588 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751621AbYFXHNN (ORCPT
+	by vger.kernel.org with ESMTP id S1751695AbYFXHWy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jun 2008 03:13:13 -0400
+	Tue, 24 Jun 2008 03:22:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: tony@bakeyournoodle.com, npiggin@suse.de
+To: tony@bakeyournoodle.com, npiggin@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
      Fix compilation of mm/hugetlb.c when !CONFIG_SYS
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      hugetlb-new-sysfs-interface-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
