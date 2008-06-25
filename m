@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + alpha-remove-the-unused-alpha_core_agp-option.patch added to -mm tree
-Date: Wed, 25 Jun 2008 14:27:51 -0700
-Message-ID: <200806252127.m5PLRpI8027707@imap1.linux-foundation.org>
+Subject: + pty-remove-unused-unix98_pty_count-options.patch added to -mm tree
+Date: Wed, 25 Jun 2008 14:27:11 -0700
+Message-ID: <200806252127.m5PLRB2T027694@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40214 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49276 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752465AbYFYVdw (ORCPT
+	by vger.kernel.org with ESMTP id S1752537AbYFYVeC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Jun 2008 17:33:52 -0400
+	Wed, 25 Jun 2008 17:34:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, ink@jurassic.park.msu.ru, rpjday@crashcourse.ca, rth@twiddle.net
+Cc: bunk@kernel.org, davem@davemloft.net, rpjday@crashcourse.ca, ysato@users.sourceforge.jp
 
 
 The patch titled
-     alpha: remove the unused ALPHA_CORE_AGP option
+     pty: remove unused UNIX98_PTY_COUNT options
 has been added to the -mm tree.  Its filename is
-     alpha-remove-the-unused-alpha_core_agp-option.patch
+     pty-remove-unused-unix98_pty_count-options.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,71 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: alpha: remove the unused ALPHA_CORE_AGP option
+Subject: pty: remove unused UNIX98_PTY_COUNT options
 From: Adrian Bunk <bunk@kernel.org>
 
-The real option is named AGP_ALPHA_CORE.
+The h8300 and sparc options somehow survived when the code stopped using
+CONFIG_UNIX98_PTY_COUNT.
 
 Reviewed-by: Robert P. J. Day <rpjday@crashcourse.ca>
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/Kconfig |    5 -----
- 1 file changed, 5 deletions(-)
+ arch/h8300/Kconfig |   14 --------------
+ arch/sparc/Kconfig |   14 --------------
+ 2 files changed, 28 deletions(-)
 
-diff -puN arch/alpha/Kconfig~alpha-remove-the-unused-alpha_core_agp-option arch/alpha/Kconfig
---- a/arch/alpha/Kconfig~alpha-remove-the-unused-alpha_core_agp-option
-+++ a/arch/alpha/Kconfig
-@@ -333,11 +333,6 @@ config PCI_SYSCALL
- config IOMMU_HELPER
- 	def_bool PCI
+diff -puN arch/h8300/Kconfig~pty-remove-unused-unix98_pty_count-options arch/h8300/Kconfig
+--- a/arch/h8300/Kconfig~pty-remove-unused-unix98_pty_count-options
++++ a/arch/h8300/Kconfig
+@@ -203,20 +203,6 @@ config UNIX98_PTYS
+ 	  Read the instructions in <file:Documentation/Changes> pertaining to
+ 	  pseudo terminals. It's safe to say N.
  
--config ALPHA_CORE_AGP
--	bool
--	depends on ALPHA_GENERIC || ALPHA_TITAN || ALPHA_MARVEL
--	default y
+-config UNIX98_PTY_COUNT
+-	int "Maximum number of Unix98 PTYs in use (0-2048)"
+-	depends on UNIX98_PTYS
+-	default "256"
+-	help
+-	  The maximum number of Unix98 PTYs that can be used at any one time.
+-	  The default is 256, and should be enough for desktop systems. Server
+-	  machines which support incoming telnet/rlogin/ssh connections and/or
+-	  serve several X terminals may want to increase this: every incoming
+-	  connection and every xterm uses up one PTY.
 -
- config ALPHA_NONAME
- 	bool
- 	depends on ALPHA_BOOK1 || ALPHA_NONAME_CH
+-	  When not in use, each additional set of 256 PTYs occupy
+-	  approximately 8 KB of kernel memory on 32-bit architectures.
+-
+ source "drivers/char/pcmcia/Kconfig"
+ 
+ source "drivers/serial/Kconfig"
+diff -puN arch/sparc/Kconfig~pty-remove-unused-unix98_pty_count-options arch/sparc/Kconfig
+--- a/arch/sparc/Kconfig~pty-remove-unused-unix98_pty_count-options
++++ a/arch/sparc/Kconfig
+@@ -283,20 +283,6 @@ config UNIX98_PTYS
+ 	  Read the instructions in <file:Documentation/Changes> pertaining to
+ 	  pseudo terminals. It's safe to say N.
+ 
+-config UNIX98_PTY_COUNT
+-	int "Maximum number of Unix98 PTYs in use (0-2048)"
+-	depends on UNIX98_PTYS
+-	default "256"
+-	help
+-	  The maximum number of Unix98 PTYs that can be used at any one time.
+-	  The default is 256, and should be enough for desktop systems. Server
+-	  machines which support incoming telnet/rlogin/ssh connections and/or
+-	  serve several X terminals may want to increase this: every incoming
+-	  connection and every xterm uses up one PTY.
+-
+-	  When not in use, each additional set of 256 PTYs occupy
+-	  approximately 8 KB of kernel memory on 32-bit architectures.
+-
+ endmenu
+ 
+ source "fs/Kconfig"
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
@@ -82,7 +117,6 @@ mm-hugetlbc-fix-duplicate-variable.patch
 mm-page_allocc-cleanups.patch
 mm-make-register_page_bootmem_info_section-static.patch
 remove-include-asm-h8300-keyboardh.patch
-alpha-remove-the-unused-alpha_core_agp-option.patch
 remove-include-linux-pm_legacyh.patch
 remove-the-v850-port.patch
 init-do_mountsc-should-include-linux-initrdh.patch
