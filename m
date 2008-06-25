@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ext3-validate-directory-entry-data-before-use.patch added to -mm tree
-Date: Wed, 25 Jun 2008 14:43:26 -0700
-Message-ID: <200806252143.m5PLhQFi028262@imap1.linux-foundation.org>
+Subject: + ext3-validate-directory-entry-data-before-use-checkpatch-fixes.patch added to -mm tree
+Date: Wed, 25 Jun 2008 14:44:20 -0700
+Message-ID: <200806252144.m5PLiLA2028308@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47624 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54071 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752734AbYFYVni (ORCPT
+	by vger.kernel.org with ESMTP id S1752838AbYFYVoZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Jun 2008 17:43:38 -0400
+	Wed, 25 Jun 2008 17:44:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: duaneg@dghda.com, jack@suse.cz, jochen.voss@googlemail.com, linux-ext4@vger.kernel.org, sliedes@cc.hut.fi
+Cc: akpm@linux-foundation.org, duaneg@dghda.com
 
 
 The patch titled
-     ext3: validate directory entry data before use
+     ext3-validate-directory-entry-data-before-use-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     ext3-validate-directory-entry-data-before-use.patch
+     ext3-validate-directory-entry-data-before-use-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,382 +34,210 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext3: validate directory entry data before use
-From: "Duane Griffin" <duaneg@dghda.com>
+Subject: ext3-validate-directory-entry-data-before-use-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Various places in fs/ext3/namei.c use ext3_next_entry to loop over
-directory entries, but not all of them verify that entries are valid
-before attempting to move to the next one.  In the case where rec_len == 0
-this causes an infinite loop.
+WARNING: space prohibited between function name and open parenthesis '('
+#40: FILE: fs/ext3/dir.c:190:
++			if (!ext3_check_dir_entry (__func__, inode, de,
 
-Introduce a new version of ext3_next_entry that checks the validity of the
-entry before using its data to find the next one.  Rename the original
-function to __ext3_next_entry and use it in places where we already know
-the data is valid.
+ERROR: space required after that ',' (ctx:VxV)
+#155: FILE: fs/ext3/namei.c:844:
++			if (!ext3_check_dir_entry(__func__, dir, de, bh,offset))
+ 			                                               ^
 
-Note that the changes to empty_dir follow the original code in reporting
-the directory as empty in the presence of errors.
+ERROR: space required after that ',' (ctx:VxV)
+#174: FILE: fs/ext3/namei.c:1016:
++			if (!ext3_check_dir_entry(__func__, dir,de,bh,offset)) {
+ 			                                       ^
 
-This patch fixes the first case (image hdb.25.softlockup.gz) reported in
-http://bugzilla.kernel.org/show_bug.cgi?id=10882.
+ERROR: space required after that ',' (ctx:VxV)
+#174: FILE: fs/ext3/namei.c:1016:
++			if (!ext3_check_dir_entry(__func__, dir,de,bh,offset)) {
+ 			                                          ^
 
-Signed-off-by: Duane Griffin <duaneg@dghda.com>
-Cc: Sami Liedes <sliedes@cc.hut.fi>
-Cc: <jochen.voss@googlemail.com>
-Acked-by: Jan Kara <jack@suse.cz>
-Cc: Duane Griffin <duaneg@dghda.com>
-Cc: <linux-ext4@vger.kernel.org>
+ERROR: space required after that ',' (ctx:VxV)
+#174: FILE: fs/ext3/namei.c:1016:
++			if (!ext3_check_dir_entry(__func__, dir,de,bh,offset)) {
+ 			                                             ^
+
+ERROR: space required after that ',' (ctx:VxV)
+#238: FILE: fs/ext3/namei.c:1318:
++			if (!ext3_check_dir_entry(__func__, dir,de,bh,offset)) {
+ 			                                       ^
+
+ERROR: space required after that ',' (ctx:VxV)
+#238: FILE: fs/ext3/namei.c:1318:
++			if (!ext3_check_dir_entry(__func__, dir,de,bh,offset)) {
+ 			                                          ^
+
+ERROR: space required after that ',' (ctx:VxV)
+#238: FILE: fs/ext3/namei.c:1318:
++			if (!ext3_check_dir_entry(__func__, dir,de,bh,offset)) {
+ 			                                             ^
+
+total: 7 errors, 1 warnings, 302 lines checked
+
+./patches/ext3-validate-directory-entry-data-before-use.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: "Duane Griffin" <duaneg@dghda.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/dir.c   |    2 
- fs/ext3/namei.c |  128 ++++++++++++++++++++++++++++++----------------
- 2 files changed, 87 insertions(+), 43 deletions(-)
+ fs/ext3/dir.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ext3/dir.c~ext3-validate-directory-entry-data-before-use fs/ext3/dir.c
---- a/fs/ext3/dir.c~ext3-validate-directory-entry-data-before-use
+diff -puN fs/ext3/dir.c~ext3-validate-directory-entry-data-before-use-checkpatch-fixes fs/ext3/dir.c
+--- a/fs/ext3/dir.c~ext3-validate-directory-entry-data-before-use-checkpatch-fixes
 +++ a/fs/ext3/dir.c
 @@ -187,7 +187,7 @@ revalidate:
  		while (!error && filp->f_pos < inode->i_size
  		       && offset < sb->s_blocksize) {
  			de = (struct ext3_dir_entry_2 *) (bh->b_data + offset);
--			if (!ext3_check_dir_entry ("ext3_readdir", inode, de,
-+			if (!ext3_check_dir_entry (__func__, inode, de,
+-			if (!ext3_check_dir_entry (__func__, inode, de,
++			if (!ext3_check_dir_entry(__func__, inode, de,
  						   bh, offset)) {
  				/* On error, skip the f_pos to the
                                     next block. */
-diff -puN fs/ext3/namei.c~ext3-validate-directory-entry-data-before-use fs/ext3/namei.c
---- a/fs/ext3/namei.c~ext3-validate-directory-entry-data-before-use
-+++ a/fs/ext3/namei.c
-@@ -185,13 +185,27 @@ static int ext3_dx_add_entry(handle_t *h
-  * p is at least 6 bytes before the end of page
-  */
- static inline struct ext3_dir_entry_2 *
--ext3_next_entry(struct ext3_dir_entry_2 *p)
-+__ext3_next_entry(struct ext3_dir_entry_2 *p)
- {
- 	return (struct ext3_dir_entry_2 *)((char *)p +
- 		ext3_rec_len_from_disk(p->rec_len));
- }
- 
- /*
-+ * Checks the directory entry looks sane before using it to find the next one.
-+ * Returns NULL and reports an error if an invalid entry is passed.
-+ */
-+static inline struct ext3_dir_entry_2 *
-+ext3_next_entry(const char *func, struct inode *dir,
-+		struct ext3_dir_entry_2 *de, struct buffer_head *bh, int offset)
-+{
-+	if (ext3_check_dir_entry(func, dir, de, bh, offset))
-+		return __ext3_next_entry(de);
-+	else
-+		return NULL;
-+}
-+
-+/*
-  * Future: use high four bits of block for coalesce-on-delete flags
-  * Mask them off for now.
-  */
-@@ -271,15 +285,17 @@ struct stats
- 	unsigned bcount;
- };
- 
--static struct stats dx_show_leaf(struct dx_hash_info *hinfo, struct ext3_dir_entry_2 *de,
--				 int size, int show_names)
-+static struct stats dx_show_leaf(struct dx_hash_info *hinfo, struct inode *dir,
-+				 struct buffer_head *bh, int size,
-+				 int show_names)
- {
-+	struct ext3_dir_entry_2 *de = (struct ext3_dir_entry_2 *) bh->b_data;
- 	unsigned names = 0, space = 0;
- 	char *base = (char *) de;
- 	struct dx_hash_info h = *hinfo;
- 
- 	printk("names: ");
--	while ((char *) de < base + size)
-+	while (de && (char *) de < base + size)
- 	{
- 		if (de->inode)
- 		{
-@@ -295,7 +311,7 @@ static struct stats dx_show_leaf(struct 
- 			space += EXT3_DIR_REC_LEN(de->name_len);
- 			names++;
- 		}
--		de = ext3_next_entry(de);
-+		de = ext3_next_entry(__func__, dir, de, bh, 0);
- 	}
- 	printk("(%i)\n", names);
- 	return (struct stats) { names, space, 1 };
-@@ -319,7 +335,7 @@ struct stats dx_show_entries(struct dx_h
- 		if (!(bh = ext3_bread (NULL,dir, block, 0,&err))) continue;
- 		stats = levels?
- 		   dx_show_entries(hinfo, dir, ((struct dx_node *) bh->b_data)->entries, levels - 1):
--		   dx_show_leaf(hinfo, (struct ext3_dir_entry_2 *) bh->b_data, blocksize, 0);
-+		   dx_show_leaf(hinfo, dir, bh, blocksize, 0);
- 		names += stats.names;
- 		space += stats.space;
- 		bcount += stats.bcount;
-@@ -583,8 +599,8 @@ static int htree_dirblock_to_tree(struct
- 	top = (struct ext3_dir_entry_2 *) ((char *) de +
- 					   dir->i_sb->s_blocksize -
- 					   EXT3_DIR_REC_LEN(0));
--	for (; de < top; de = ext3_next_entry(de)) {
--		if (!ext3_check_dir_entry("htree_dirblock_to_tree", dir, de, bh,
-+	for (; de < top; de = __ext3_next_entry(de)) {
-+		if (!ext3_check_dir_entry(__func__, dir, de, bh,
- 					(block<<EXT3_BLOCK_SIZE_BITS(dir->i_sb))
- 						+((char *)de - bh->b_data))) {
- 			/* On error, skip the f_pos to the next block. */
-@@ -658,7 +674,11 @@ int ext3_htree_fill_tree(struct file *di
- 	}
- 	if (start_hash < 2 || (start_hash ==2 && start_minor_hash==0)) {
- 		de = (struct ext3_dir_entry_2 *) frames[0].bh->b_data;
--		de = ext3_next_entry(de);
-+		de = ext3_next_entry(__func__, dir, de, frames[0].bh, 0);
-+		if (de == NULL) {
-+			err = -EIO;
-+			goto errout;
-+		}
- 		if ((err = ext3_htree_store_dirent(dir_file, 2, 0, de)) != 0)
- 			goto errout;
- 		count++;
-@@ -726,8 +746,7 @@ static int dx_make_map (struct ext3_dir_
- 			count++;
- 			cond_resched();
- 		}
--		/* XXX: do we need to check rec_len == 0 case? -Chris */
--		de = ext3_next_entry(de);
-+		de = __ext3_next_entry(de);
- 	}
- 	return count;
- }
-@@ -822,8 +841,7 @@ static inline int search_dirblock(struct
- 		if ((char *) de + namelen <= dlimit &&
- 		    ext3_match (namelen, name, de)) {
- 			/* found a match - just to be sure, do a full check */
--			if (!ext3_check_dir_entry("ext3_find_entry",
--						  dir, de, bh, offset))
-+			if (!ext3_check_dir_entry(__func__, dir, de, bh,offset))
- 				return -1;
- 			*res_dir = de;
- 			return 1;
-@@ -991,24 +1009,27 @@ static struct buffer_head * ext3_dx_find
- 		de = (struct ext3_dir_entry_2 *) bh->b_data;
- 		top = (struct ext3_dir_entry_2 *) ((char *) de + sb->s_blocksize -
- 				       EXT3_DIR_REC_LEN(0));
--		for (; de < top; de = ext3_next_entry(de))
--		if (ext3_match (namelen, name, de)) {
--			if (!ext3_check_dir_entry("ext3_find_entry",
--						  dir, de, bh,
--				  (block<<EXT3_BLOCK_SIZE_BITS(sb))
--					  +((char *)de - bh->b_data))) {
--				brelse (bh);
-+		for (; de < top; de = __ext3_next_entry(de)) {
-+			int offset = (block << EXT3_BLOCK_SIZE_BITS(sb))
-+				     + ((char *) de - bh->b_data);
-+
-+			if (!ext3_check_dir_entry(__func__, dir,de,bh,offset)) {
-+				brelse(bh);
- 				*err = ERR_BAD_DX_DIR;
- 				goto errout;
- 			}
--			*res_dir = de;
--			dx_release (frames);
--			return bh;
-+
-+			if (ext3_match(namelen, name, de)) {
-+				*res_dir = de;
-+				dx_release(frames);
-+				return bh;
-+			}
- 		}
- 		brelse (bh);
-+
- 		/* Check to see if we should continue to search */
--		retval = ext3_htree_next_block(dir, hash, frame,
--					       frames, NULL);
-+		retval = ext3_htree_next_block(dir, hash, frame, frames, NULL);
-+
- 		if (retval < 0) {
- 			ext3_warning(sb, __func__,
- 			     "error reading index page in directory #%lu",
-@@ -1141,7 +1162,7 @@ static struct ext3_dir_entry_2* dx_pack_
- 
- 	prev = to = de;
- 	while ((char*)de < base + size) {
--		next = ext3_next_entry(de);
-+		next = __ext3_next_entry(de);
- 		if (de->inode && de->name_len) {
- 			rec_len = EXT3_DIR_REC_LEN(de->name_len);
- 			if (de > to)
-@@ -1172,9 +1193,22 @@ static struct ext3_dir_entry_2 *do_split
- 	struct dx_map_entry *map;
- 	char *data1 = (*bh)->b_data, *data2;
- 	unsigned split, move, size, i;
--	struct ext3_dir_entry_2 *de = NULL, *de2;
-+	struct ext3_dir_entry_2 *de, *de2;
- 	int	err = 0;
- 
-+	/* Verify directory entries are sane before trying anything else. */
-+	de = (struct ext3_dir_entry_2 *) data1;
-+	de2 = (struct ext3_dir_entry_2 *) data1 +
-+		dir->i_sb->s_blocksize - EXT3_DIR_REC_LEN(0);
-+	while (de < de2) {
-+		de = ext3_next_entry(__func__, dir, de, *bh, 0);
-+		if (de == NULL) {
-+			brelse(*bh);
-+			*bh = NULL;
-+			goto errout;
-+		}
-+	}
-+
- 	bh2 = ext3_append (handle, dir, &newblock, &err);
- 	if (!(bh2)) {
- 		brelse(*bh);
-@@ -1281,8 +1315,7 @@ static int add_dirent_to_buf(handle_t *h
- 		de = (struct ext3_dir_entry_2 *)bh->b_data;
- 		top = bh->b_data + dir->i_sb->s_blocksize - reclen;
- 		while ((char *) de <= top) {
--			if (!ext3_check_dir_entry("ext3_add_entry", dir, de,
--						  bh, offset)) {
-+			if (!ext3_check_dir_entry(__func__, dir,de,bh,offset)) {
- 				brelse (bh);
- 				return -EIO;
- 			}
-@@ -1397,8 +1430,13 @@ static int make_indexed_dir(handle_t *ha
- 	memcpy (data1, de, len);
- 	de = (struct ext3_dir_entry_2 *) data1;
- 	top = data1 + len;
--	while ((char *)(de2 = ext3_next_entry(de)) < top)
-+
-+	de2 = de;
-+	while (de2 != NULL && de2 < top) {
- 		de = de2;
-+		de2 = ext3_next_entry(__func__, dir, de, bh, 0);
-+	}
-+
- 	de->rec_len = ext3_rec_len_to_disk(data1 + blocksize - (char *) de);
- 	/* Initialize the root; the dot dirents already exist */
- 	de = (struct ext3_dir_entry_2 *) (&root->dotdot);
-@@ -1637,7 +1675,7 @@ static int ext3_delete_entry (handle_t *
- 	pde = NULL;
- 	de = (struct ext3_dir_entry_2 *) bh->b_data;
- 	while (i < bh->b_size) {
--		if (!ext3_check_dir_entry("ext3_delete_entry", dir, de, bh, i))
-+		if (!ext3_check_dir_entry(__func__, dir, de, bh, i))
- 			return -EIO;
- 		if (de == de_del)  {
- 			BUFFER_TRACE(bh, "get_write_access");
-@@ -1655,7 +1693,7 @@ static int ext3_delete_entry (handle_t *
- 		}
- 		i += ext3_rec_len_from_disk(de->rec_len);
- 		pde = de;
--		de = ext3_next_entry(de);
-+		de = __ext3_next_entry(de);
- 	}
- 	return -ENOENT;
- }
-@@ -1792,7 +1830,7 @@ retry:
- 	de->rec_len = ext3_rec_len_to_disk(EXT3_DIR_REC_LEN(de->name_len));
- 	strcpy (de->name, ".");
- 	ext3_set_de_type(dir->i_sb, de, S_IFDIR);
--	de = ext3_next_entry(de);
-+	de = __ext3_next_entry(de);
- 	de->inode = cpu_to_le32(dir->i_ino);
- 	de->rec_len = ext3_rec_len_to_disk(inode->i_sb->s_blocksize -
- 					EXT3_DIR_REC_LEN(1));
-@@ -1825,7 +1863,7 @@ out_stop:
- /*
-  * routine to check that the specified directory is empty (for rmdir)
-  */
--static int empty_dir (struct inode * inode)
-+static int empty_dir(struct inode *dir, struct inode *inode)
- {
- 	unsigned long offset;
- 	struct buffer_head * bh;
-@@ -1846,8 +1884,14 @@ static int empty_dir (struct inode * ino
- 				     inode->i_ino);
- 		return 1;
- 	}
-+
- 	de = (struct ext3_dir_entry_2 *) bh->b_data;
--	de1 = ext3_next_entry(de);
-+	de1 = ext3_next_entry(__func__, dir, de, bh, 0);
-+	if (de1 == NULL) {
-+		brelse(bh);
-+		return 1;
-+	}
-+
- 	if (le32_to_cpu(de->inode) != inode->i_ino ||
- 			!le32_to_cpu(de1->inode) ||
- 			strcmp (".", de->name) ||
-@@ -1860,8 +1904,8 @@ static int empty_dir (struct inode * ino
- 	}
- 	offset = ext3_rec_len_from_disk(de->rec_len) +
- 			ext3_rec_len_from_disk(de1->rec_len);
--	de = ext3_next_entry(de1);
--	while (offset < inode->i_size ) {
-+	de = ext3_next_entry(__func__, dir, de1, bh, offset);
-+	while (de && offset < inode->i_size) {
- 		if (!bh ||
- 			(void *) de >= (void *) (bh->b_data+sb->s_blocksize)) {
- 			err = 0;
-@@ -1879,7 +1923,7 @@ static int empty_dir (struct inode * ino
- 			}
- 			de = (struct ext3_dir_entry_2 *) bh->b_data;
- 		}
--		if (!ext3_check_dir_entry("empty_dir", inode, de, bh, offset)) {
-+		if (!ext3_check_dir_entry(__func__, inode, de, bh, offset)) {
- 			de = (struct ext3_dir_entry_2 *)(bh->b_data +
- 							 sb->s_blocksize);
- 			offset = (offset | (sb->s_blocksize - 1)) + 1;
-@@ -1890,7 +1934,7 @@ static int empty_dir (struct inode * ino
- 			return 0;
- 		}
- 		offset += ext3_rec_len_from_disk(de->rec_len);
--		de = ext3_next_entry(de);
-+		de = __ext3_next_entry(de);
- 	}
- 	brelse (bh);
- 	return 1;
-@@ -2068,7 +2112,7 @@ static int ext3_rmdir (struct inode * di
- 		goto end_rmdir;
- 
- 	retval = -ENOTEMPTY;
--	if (!empty_dir (inode))
-+	if (!empty_dir(dir, inode))
- 		goto end_rmdir;
- 
- 	retval = ext3_delete_entry(handle, dir, de, bh);
-@@ -2244,7 +2288,7 @@ retry:
- }
- 
- #define PARENT_INO(buffer) \
--	(ext3_next_entry((struct ext3_dir_entry_2 *)(buffer))->inode)
-+	(__ext3_next_entry((struct ext3_dir_entry_2 *)(buffer))->inode)
- 
- /*
-  * Anybody can rename anything with this: the permission checks are left to the
-@@ -2297,7 +2341,7 @@ static int ext3_rename (struct inode * o
- 	if (S_ISDIR(old_inode->i_mode)) {
- 		if (new_inode) {
- 			retval = -ENOTEMPTY;
--			if (!empty_dir (new_inode))
-+			if (!empty_dir(new_dir, new_inode))
- 				goto end_rename;
- 		}
- 		retval = -EIO;
 _
 
-Patches currently in -mm which might be from duaneg@dghda.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-jbd-replace-potentially-false-assertion-with-if-block.patch
-jbd-eliminate-duplicated-code-in-revocation-table-init-destroy-functions.patch
-jbd-tidy-up-revoke-cache-initialisation-and-destruction.patch
-ext3-handle-corrupted-orphan-list-at-mount.patch
+origin.patch
+next-remove-localversion.patch
+revert-git-pekka.patch
+fix-kobject-fix-kobject_rename-and-config_sysfs.patch
+kvm-is-busted-on-ia64.patch
+drivers-mtd-nand-nandsimc-needs-div64h.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+git-jg-misc-git-rejects.patch
+drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers.patch
+drivers-mtd-devices-block2mtdc-suppress-warning.patch
+sundance-set-carrier-status-on-link-change-events.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix-fix.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-scsi-misc-fix-scsi_dh-build-errors.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
+pktcdvd-push-bkl-down-into-driver-fix.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-logfs-fixup.patch
+watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
+git-xtensa.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-verify-the-page-links-and-memory-model.patch
+mspec-convert-nopfn-to-fault-fix.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+kill-generic_file_direct_io-checkpatch-fixes.patch
+use-generic_access_phys-for-dev-mem-mappings-fix.patch
+spufs-use-the-new-vm_ops-access-fix.patch
+fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
+page-flags-record-page-flag-overlays-explicitly-xen.patch
+mapping_set_error-add-unlikely.patch
+huge-page-private-reservation-review-cleanups-fix.patch
+sync_file_range_write-may-and-will-block-document-that-fix.patch
+vmallocinfo-add-numa-information-fix.patch
+hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
+hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
+hugetlb-override-default-huge-page-size-ia64-build.patch
+linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+bootmem-add-debugging-framework-fix.patch
+bootmem-clean-up-free_all_bootmem_core-fix.patch
+bootmem-free-reserve-helpers-fix.patch
+revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
+swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
+block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
+rename-warn-to-warning-to-clear-the-namespace-fix.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-paccept-sys_ni.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-signalfd-fix.patch
+flag-parameters-eventfd-fix.patch
+flag-parameters-inotify_init-fix.patch
+flag-parameters-check-magic-constants-alpha.patch
+oprofile-multiplexing-checkpatch-fixes.patch
+gpio-gpio-driver-for-max7301-spi-gpio-expander-checkpatch-fixes.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
 ext3-handle-corrupted-orphan-list-at-mount-cleanup.patch
 ext3-handle-corrupted-orphan-list-at-mount-fix.patch
 ext3-handle-corrupted-orphan-list-at-mount-cleanup-fix.patch
-ext3-handle-deleting-corrupted-indirect-blocks.patch
-ext3-validate-directory-entry-data-before-use.patch
+ext3-validate-directory-entry-data-before-use-checkpatch-fixes.patch
+reiserfs-convert-j_flush_sem-to-mutex.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
+memcg-remove-refcnt-from-page_cgroup-fix-2.patch
+jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup.patch
+ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
+getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
+tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
+memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
+memstick-use-fully-asynchronous-request-processing-fix.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+mm-introduce-get_user_pages_fast-fix.patch
+mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-fix.patch
+x86-lockless-get_user_pages_fast-fix-2.patch
+x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
+x86-lockless-get_user_pages_fast-fix-warning.patch
+vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
+define-page_file_cache-function-fix.patch
+unevictable-lru-infrastructure-fix.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-3.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
+vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
