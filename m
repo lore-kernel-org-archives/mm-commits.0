@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + jbd-positively-dispose-the-unmapped-data-buffers-in-journal_commit_transaction.patch added to -mm tree
-Date: Wed, 25 Jun 2008 16:08:19 -0700
-Message-ID: <200806252308.m5PN8JOn031481@imap1.linux-foundation.org>
+Subject: + kernel-signalc-change-vars-pid-and-tgid-types-to-pid_t.patch added to -mm tree
+Date: Wed, 25 Jun 2008 16:10:58 -0700
+Message-ID: <200806252310.m5PNAw7H031604@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39228 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49602 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751169AbYFYXI2 (ORCPT
+	by vger.kernel.org with ESMTP id S1751636AbYFYXLo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Jun 2008 19:08:28 -0400
+	Wed, 25 Jun 2008 19:11:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: toshi.okajima@jp.fujitsu.com, jack@suse.cz, linux-ext4@vger.kernel.org
+Cc: gustavo@las.ic.unicamp.br, oleg@tv-sign.ru, roland@redhat.com
 
 
 The patch titled
-     jbd: positively dispose the unmapped data buffers in journal_commit_transaction()
+     kernel/signal.c: change vars pid and tgid types to pid_t
 has been added to the -mm tree.  Its filename is
-     jbd-positively-dispose-the-unmapped-data-buffers-in-journal_commit_transaction.patch
+     kernel-signalc-change-vars-pid-and-tgid-types-to-pid_t.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,178 +34,82 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: jbd: positively dispose the unmapped data buffers in journal_commit_transaction()
-From: Toshiyuki Okajima <toshi.okajima@jp.fujitsu.com>
+Subject: kernel/signal.c: change vars pid and tgid types to pid_t
+From: Gustavo Fernando Padovan <gustavo@las.ic.unicamp.br>
 
-After ext3-ordered files are truncated, there is a possibility that the
-pages which cannot be estimated still remain.  Remaining pages can be
-released when the system has really few memory.  So, it is not memory
-leakage.  But the resource management software etc.  may not work
-correctly.
+Change the type of pid and tgid variables from int to the POSIX type
+pid_t.
 
-It is possible that journal_unmap_buffer() cannot release the buffers, and
-the pages to which they belong because they are attached to a commiting
-transaction and journal_unmap_buffer() cannot release them.  To release
-such the buffers and the pages later, journal_unmap_buffer() leaves it to
-journal_commit_transaction().  (journal_unmap_buffer() puts the mark
-'BH_Freed' to the buffers so that journal_commit_transaction() can
-identify whether they can be released or not.)
-
-In the journalled mode and the writeback mode, jbd does with only metadata
-buffers.  But in the ordered mode, jbd does with metadata buffers and also
-data buffers.
-
-Actually, journal_commit_transaction() releases only the metadata buffers
-of which release is demanded by journal_unmap_buffer(), and also releases
-the pages to which they belong if possible.
-
-As a result, the data buffers of which release is demanded by
-journal_unmap_buffer() remain after a transaction commits.  And also the
-pages to which they belong remain.
-
-Such the remained pages don't have mapping any longer.  Due to this fact,
-there is a possibility that the pages which cannot be estimated remain.
-
-
-The metadata buffers marked 'BH_Freed' and the pages to which
-they belong can be released at 'JBD: commit phase 7'.
-
-Therefore, by applying the same code into 'JBD: commit phase 2' (where the
-data buffers are done with), journal_commit_transaction() can also release
-the data buffers marked 'BH_Freed' and the pages to which they belong.
-
-As a result, all the buffers marked 'BH_Freed' can be released, and also
-all the pages to which these buffers belong can be released at
-journal_commit_transaction().  So, the page which cannot be estimated is
-lost.
-
-<<Excerpt of code at 'JBD: commit phase 7'>>
- >         spin_lock(&journal->j_list_lock);
- >         while (commit_transaction->t_forget) {
- >                 transaction_t *cp_transaction;
- >                 struct buffer_head *bh;
- >
- >                 jh = commit_transaction->t_forget;
- >...
- >                 if (buffer_freed(bh)) {
- >                 ^^^^^^^^^^^^^^^^^^^^^^^^
- >                         clear_buffer_freed(bh);
- >                        ^^^^^^^^^^^^^^^^^^^^^^^^
- >                         clear_buffer_jbddirty(bh);
- >                 }
- >
- >                 if (buffer_jbddirty(bh)) {
- >                         JBUFFER_TRACE(jh, "add to new checkpointing trans");
- >                         __journal_insert_checkpoint(jh, commit_transaction);
- >                         JBUFFER_TRACE(jh, "refile for checkpoint writeback");
- >                         __journal_refile_buffer(jh);
- >                         jbd_unlock_bh_state(bh);
- >                 } else {
- >                         J_ASSERT_BH(bh, !buffer_dirty(bh));
- > ...
- >                         JBUFFER_TRACE(jh, "refile or unfile freed buffer");
- >                         __journal_refile_buffer(jh);
- >                         if (!jh->b_transaction) {
- >                                 jbd_unlock_bh_state(bh);
- >                                  /* needs a brelse */
- >                                 journal_remove_journal_head(bh);
- >                                 release_buffer_page(bh);
- >                                 ^^^^^^^^^^^^^^^^^^^^^^^^
- >                         } else
- >                 }
-****************************************************************
-* Apply the code of "^^^^^^" lines into 'JBD: commit phase 2' *
-****************************************************************
-
-At journal_commit_transaction() code, there is one extra message in the
-series of jbd debug messages.  ("JBD: commit phase 2") This patch fixes
-it, too.
-
-Signed-off-by: Toshiyuki Okajima <toshi.okajima@jp.fujitsu.com>
-Acked-by: Jan Kara <jack@suse.cz>
-Cc: <linux-ext4@vger.kernel.org>
+Signed-off-by: Gustavo F. Padovan <gustavo@las.ic.unicamp.br>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jbd/commit.c |   29 ++++++++++++++++++++---------
- 1 file changed, 20 insertions(+), 9 deletions(-)
+ kernel/signal.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN fs/jbd/commit.c~jbd-positively-dispose-the-unmapped-data-buffers-in-journal_commit_transaction fs/jbd/commit.c
---- a/fs/jbd/commit.c~jbd-positively-dispose-the-unmapped-data-buffers-in-journal_commit_transaction
-+++ a/fs/jbd/commit.c
-@@ -36,7 +36,7 @@ static void journal_end_buffer_io_sync(s
- 
- /*
-  * When an ext3-ordered file is truncated, it is possible that many pages are
-- * not sucessfully freed, because they are attached to a committing transaction.
-+ * not successfully freed, because they are attached to a committing transaction.
-  * After the transaction commits, these pages are left on the LRU, with no
-  * ->mapping, and with attached buffers.  These pages are trivially reclaimable
-  * by the VM, but their apparent absence upsets the VM accounting, and it makes
-@@ -45,8 +45,8 @@ static void journal_end_buffer_io_sync(s
-  * So here, we have a buffer which has just come off the forget list.  Look to
-  * see if we can strip all buffers from the backing page.
-  *
-- * Called under lock_journal(), and possibly under journal_datalist_lock.  The
-- * caller provided us with a ref against the buffer, and we drop that here.
-+ * Called under journal->j_list_lock.  The caller provided us with a ref
-+ * against the buffer, and we drop that here.
+diff -puN kernel/signal.c~kernel-signalc-change-vars-pid-and-tgid-types-to-pid_t kernel/signal.c
+--- a/kernel/signal.c~kernel-signalc-change-vars-pid-and-tgid-types-to-pid_t
++++ a/kernel/signal.c
+@@ -1116,7 +1116,7 @@ EXPORT_SYMBOL_GPL(kill_pid_info_as_uid);
+  * is probably wrong.  Should make it like BSD or SYSV.
   */
- static void release_buffer_page(struct buffer_head *bh)
+ 
+-static int kill_something_info(int sig, struct siginfo *info, int pid)
++static int kill_something_info(int sig, struct siginfo *info, pid_t pid)
  {
-@@ -78,6 +78,19 @@ nope:
+ 	int ret;
+ 
+@@ -2184,7 +2184,7 @@ sys_rt_sigtimedwait(const sigset_t __use
  }
  
- /*
-+ * Decrement reference counter for data buffer. If it has been marked
-+ * 'BH_Freed', release it and the page to which it belongs if possible.
-+ */
-+static void release_data_buffer(struct buffer_head *bh)
-+{
-+	if (buffer_freed(bh)) {
-+		clear_buffer_freed(bh);
-+		release_buffer_page(bh);
-+	} else
-+		put_bh(bh);
-+}
-+
-+/*
-  * Try to acquire jbd_lock_bh_state() against the buffer, when j_list_lock is
-  * held.  For ranking reasons we must trylock.  If we lose, schedule away and
-  * return 0.  j_list_lock is dropped in this case.
-@@ -231,7 +244,7 @@ write_out_data:
- 			if (locked)
- 				unlock_buffer(bh);
- 			BUFFER_TRACE(bh, "already cleaned up");
--			put_bh(bh);
-+			release_data_buffer(bh);
- 			continue;
- 		}
- 		if (locked && test_clear_buffer_dirty(bh)) {
-@@ -258,10 +271,10 @@ write_out_data:
- 			if (locked)
- 				unlock_buffer(bh);
- 			journal_remove_journal_head(bh);
--			/* Once for our safety reference, once for
-+			/* One for our safety reference, other for
- 			 * journal_remove_journal_head() */
- 			put_bh(bh);
--			put_bh(bh);
-+			release_data_buffer(bh);
- 		}
+ asmlinkage long
+-sys_kill(int pid, int sig)
++sys_kill(pid_t pid, int sig)
+ {
+ 	struct siginfo info;
  
- 		if (need_resched() || spin_needbreak(&journal->j_list_lock)) {
-@@ -443,7 +456,7 @@ void journal_commit_transaction(journal_
- 		} else {
- 			jbd_unlock_bh_state(bh);
- 		}
--		put_bh(bh);
-+		release_data_buffer(bh);
- 		cond_resched_lock(&journal->j_list_lock);
- 	}
- 	spin_unlock(&journal->j_list_lock);
-@@ -453,8 +466,6 @@ void journal_commit_transaction(journal_
+@@ -2197,7 +2197,7 @@ sys_kill(int pid, int sig)
+ 	return kill_something_info(sig, &info, pid);
+ }
  
- 	journal_write_revoke_records(journal, commit_transaction);
+-static int do_tkill(int tgid, int pid, int sig)
++static int do_tkill(pid_t tgid, pid_t pid, int sig)
+ {
+ 	int error;
+ 	struct siginfo info;
+@@ -2243,7 +2243,7 @@ static int do_tkill(int tgid, int pid, i
+  *  exists but it's not belonging to the target process anymore. This
+  *  method solves the problem of threads exiting and PIDs getting reused.
+  */
+-asmlinkage long sys_tgkill(int tgid, int pid, int sig)
++asmlinkage long sys_tgkill(pid_t tgid, pid_t pid, int sig)
+ {
+ 	/* This is only valid for single tasks */
+ 	if (pid <= 0 || tgid <= 0)
+@@ -2256,7 +2256,7 @@ asmlinkage long sys_tgkill(int tgid, int
+  *  Send a signal to only one task, even if it's a CLONE_THREAD task.
+  */
+ asmlinkage long
+-sys_tkill(int pid, int sig)
++sys_tkill(pid_t pid, int sig)
+ {
+ 	/* This is only valid for single tasks */
+ 	if (pid <= 0)
+@@ -2266,7 +2266,7 @@ sys_tkill(int pid, int sig)
+ }
  
--	jbd_debug(3, "JBD: commit phase 2\n");
+ asmlinkage long
+-sys_rt_sigqueueinfo(int pid, int sig, siginfo_t __user *uinfo)
++sys_rt_sigqueueinfo(pid_t pid, int sig, siginfo_t __user *uinfo)
+ {
+ 	siginfo_t info;
+ 
+_
+
+Patches currently in -mm which might be from gustavo@las.ic.unicamp.br are
+
+origin.patch
+kernel-signalc-change-vars-pid-and-tgid-types-to-pid_t.patch
+
