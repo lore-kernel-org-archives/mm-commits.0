@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + asic3-new-gpio-configuration-code-fix-asic3-config-array-initialisation.patch added to -mm tree
-Date: Wed, 25 Jun 2008 14:40:02 -0700
-Message-ID: <200806252140.m5PLe2x0028205@imap1.linux-foundation.org>
+Subject: + asic3-gpiolib-support-mfd-asic3-should-depend-on-gpiolib.patch added to -mm tree
+Date: Wed, 25 Jun 2008 14:41:11 -0700
+Message-ID: <200806252141.m5PLfBZP028233@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38944 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40929 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752765AbYFYVkh (ORCPT
+	by vger.kernel.org with ESMTP id S1752479AbYFYVls (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Jun 2008 17:40:37 -0400
+	Wed, 25 Jun 2008 17:41:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: philipp.zabel@gmail.com, sameo@openedhand.com
+Cc: sameo@openedhand.com
 
 
 The patch titled
-     mfd: fix asic3 config array initialisation
+     mfd: asic3 should depend on gpiolib
 has been added to the -mm tree.  Its filename is
-     asic3-new-gpio-configuration-code-fix-asic3-config-array-initialisation.patch
+     asic3-gpiolib-support-mfd-asic3-should-depend-on-gpiolib.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,39 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mfd: fix asic3 config array initialisation
-From: Philipp Zabel <philipp.zabel@gmail.com>
+Subject: mfd: asic3 should depend on gpiolib
+From: Samuel Ortiz <sameo@openedhand.com>
 
-Our memset length was incorrect.
+Now that asic3 implements the gpiolib API, it should depend on it at
+build time.
 
-Tested-by: Philipp Zabel <philipp.zabel@gmail.com>
 Signed-off-by: Samuel Ortiz <sameo@openedhand.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/asic3.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/mfd/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mfd/asic3.c~asic3-new-gpio-configuration-code-fix-asic3-config-array-initialisation drivers/mfd/asic3.c
---- a/drivers/mfd/asic3.c~asic3-new-gpio-configuration-code-fix-asic3-config-array-initialisation
-+++ a/drivers/mfd/asic3.c
-@@ -477,9 +477,9 @@ static int asic3_gpio_probe(struct platf
- 	u16 dir_reg[ASIC3_NUM_GPIO_BANKS];
- 	int i;
+diff -puN drivers/mfd/Kconfig~asic3-gpiolib-support-mfd-asic3-should-depend-on-gpiolib drivers/mfd/Kconfig
+--- a/drivers/mfd/Kconfig~asic3-gpiolib-support-mfd-asic3-should-depend-on-gpiolib
++++ a/drivers/mfd/Kconfig
+@@ -17,7 +17,7 @@ config MFD_SM501
  
--	memset(alt_reg, 0, ASIC3_NUM_GPIO_BANKS);
--	memset(out_reg, 0, ASIC3_NUM_GPIO_BANKS);
--	memset(dir_reg, 0, ASIC3_NUM_GPIO_BANKS);
-+	memzero(alt_reg, ASIC3_NUM_GPIO_BANKS * sizeof(u16));
-+	memzero(out_reg, ASIC3_NUM_GPIO_BANKS * sizeof(u16));
-+	memzero(dir_reg, ASIC3_NUM_GPIO_BANKS * sizeof(u16));
- 
- 	/* Enable all GPIOs */
- 	asic3_write_register(asic, ASIC3_GPIO_OFFSET(A, Mask), 0xffff);
+ config MFD_ASIC3
+ 	bool "Support for Compaq ASIC3"
+-	depends on GENERIC_HARDIRQS && ARM
++	depends on GENERIC_HARDIRQS && HAVE_GPIO_LIB && ARM
+ 	 ---help---
+ 	  This driver supports the ASIC3 multifunction chip found on many
+ 	  PDAs (mainly iPAQ and HTC based ones)
 _
 
-Patches currently in -mm which might be from philipp.zabel@gmail.com are
+Patches currently in -mm which might be from sameo@openedhand.com are
 
+asic3-platform_get_irq-may-return-signed-unnoticed.patch
+asic3-gpiolib-support.patch
+asic3-gpiolib-support-mfd-asic3-should-depend-on-gpiolib.patch
+asic3-remove-children-platform-data.patch
+asic3-new-gpio-configuration-code.patch
 asic3-new-gpio-configuration-code-fix-asic3-config-array-initialisation.patch
+asic3-use-dev_-macros.patch
+asic3-use-uppercase-only-for-macros-and-defines.patch
 mfd-move-asic3-probe-functions-into-__init-section.patch
 
