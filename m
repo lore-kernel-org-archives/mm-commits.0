@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + seq_file-fix-bug-when-seq_read-reads-nothing-fix.patch added to -mm tree
-Date: Wed, 25 Jun 2008 15:17:32 -0700
-Message-ID: <200806252217.m5PMHWsv029533@imap1.linux-foundation.org>
+Subject: + rtc-x1205-fix-alarm-set.patch added to -mm tree
+Date: Wed, 25 Jun 2008 15:19:02 -0700
+Message-ID: <200806252219.m5PMJ2jL029590@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35536 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49524 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752673AbYFYWSX (ORCPT
+	by vger.kernel.org with ESMTP id S1752681AbYFYWUE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Jun 2008 18:18:23 -0400
+	Wed, 25 Jun 2008 18:20:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, biannm@cn.fujitsu.com, viro@zeniv.linux.org.uk
+Cc: mhamel@adi.co.nz, a.zummo@towertech.it
 
 
 The patch titled
-     seq_file-fix-bug-when-seq_read-reads-nothing-fix
+     rtc-x1205: Fix alarm set
 has been added to the -mm tree.  Its filename is
-     seq_file-fix-bug-when-seq_read-reads-nothing-fix.patch
+     rtc-x1205-fix-alarm-set.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,174 +34,238 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: seq_file-fix-bug-when-seq_read-reads-nothing-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: rtc-x1205: Fix alarm set
+From: Michael Hamel <mhamel@adi.co.nz>
 
-tidy that comment
+I have discovered that the current version of rtc-x1205.c does not work
+correctly when asked to set the alarm time by the RTC_WKALM_SET ioctl()
+call.  This happens because the alarm registers do not behave like the
+current-time registers.  They are non-volatile.  Two things go wrong:
 
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Bian Naimeng <biannm@cn.fujitsu.com>
+- the X1205 requires a 10 msec delay after any attempt to write to the
+  non-volatile registers.  The x1205_set_datetime() routine does the write
+  as 8 single-byte writes without any delay.  Only the first write
+  succeeds.  The second is NAKed because the chip is busy.
+
+- the X1205 resets the RWEL bit after any write to the non-volatile
+  registers.  This would lock out any further writes after the first even
+  with a 10msec delay.
+
+I fix this by doing a single 8-byte write and then waiting 10msec for the
+chip to be ready.  A side effect of this change is that it will speed up
+x1205_rtc_set_time() which uses the same code.
+
+I have also implemented the 'enable' bit in the rtc_wkalm structure, which
+the existing driver does not attempt to do.  I have modified both
+x1205_rtc_set_alarm() to set the AL0E bit, and x1205_rtc_read_alarm() to
+return it.
+
+I have tested this patch on a LinkSys NSLU2 under OpenWRT, but on no other
+hardware.  On the NSLU2 the X1205 correctly asserts its IRQ pin when the
+alarm time matches the current time.
+
+Signed-off-by: Michael Hamel <mhamel@adi.co.nz>
+Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/seq_file.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ drivers/rtc/rtc-x1205.c |  103 ++++++++++++++++++++++++++++++++------
+ 1 file changed, 87 insertions(+), 16 deletions(-)
 
-diff -puN fs/seq_file.c~seq_file-fix-bug-when-seq_read-reads-nothing-fix fs/seq_file.c
---- a/fs/seq_file.c~seq_file-fix-bug-when-seq_read-reads-nothing-fix
-+++ a/fs/seq_file.c
-@@ -148,10 +148,11 @@ Fill:
- 			m->count = offs;
- 			if (err < 0)
- 				break;
--			/* If no data flush to the user buf and nothing was read
--			 * by show() before,it should increase the m->buf until
--			 * it can read this element.
--			*/
-+			/*
-+			 * If no data was flushed to the user buf and nothing
-+			 * was read by show() beforehand, we should advance the
-+			 * m->buf until it can read this element.
-+			 */
- 			if (err == 0 && m->count == 0 && copied == 0) {
- 				m->index = next;
- 				m->op->stop(m, p);
+diff -puN drivers/rtc/rtc-x1205.c~rtc-x1205-fix-alarm-set drivers/rtc/rtc-x1205.c
+--- a/drivers/rtc/rtc-x1205.c~rtc-x1205-fix-alarm-set
++++ a/drivers/rtc/rtc-x1205.c
+@@ -71,6 +71,7 @@
+ #define X1205_SR_RTCF		0x01	/* Clock failure */
+ #define X1205_SR_WEL		0x02	/* Write Enable Latch */
+ #define X1205_SR_RWEL		0x04	/* Register Write Enable */
++#define X1205_SR_AL0		0x20	/* Alarm 0 match */
+ 
+ #define X1205_DTR_DTR0		0x01
+ #define X1205_DTR_DTR1		0x02
+@@ -78,6 +79,8 @@
+ 
+ #define X1205_HR_MIL		0x80	/* Set in ccr.hour for 24 hr mode */
+ 
++#define X1205_INT_AL0E		0x20	/* Alarm 0 enable */
++
+ static struct i2c_driver x1205_driver;
+ 
+ /*
+@@ -89,8 +92,8 @@ static int x1205_get_datetime(struct i2c
+ 				unsigned char reg_base)
+ {
+ 	unsigned char dt_addr[2] = { 0, reg_base };
+-
+ 	unsigned char buf[8];
++	int i;
+ 
+ 	struct i2c_msg msgs[] = {
+ 		{ client->addr, 0, 2, dt_addr },	/* setup read ptr */
+@@ -110,6 +113,11 @@ static int x1205_get_datetime(struct i2c
+ 		buf[0], buf[1], buf[2], buf[3],
+ 		buf[4], buf[5], buf[6], buf[7]);
+ 
++	/* Mask out the enable bits if these are alarm registers */
++	if (reg_base < X1205_CCR_BASE)
++		for (i = 0; i <= 4; i++)
++			buf[i] &= 0x7F;
++
+ 	tm->tm_sec = BCD2BIN(buf[CCR_SEC]);
+ 	tm->tm_min = BCD2BIN(buf[CCR_MIN]);
+ 	tm->tm_hour = BCD2BIN(buf[CCR_HOUR] & 0x3F); /* hr is 0-23 */
+@@ -147,10 +155,11 @@ static int x1205_get_status(struct i2c_c
+ }
+ 
+ static int x1205_set_datetime(struct i2c_client *client, struct rtc_time *tm,
+-				int datetoo, u8 reg_base)
++			int datetoo, u8 reg_base, unsigned char alm_enable)
+ {
+-	int i, xfer;
++	int i, xfer, nbytes;
+ 	unsigned char buf[8];
++	unsigned char rdata[10] = { 0, reg_base };
+ 
+ 	static const unsigned char wel[3] = { 0, X1205_REG_SR,
+ 						X1205_SR_WEL };
+@@ -189,6 +198,11 @@ static int x1205_set_datetime(struct i2c
+ 		buf[CCR_Y2K] = BIN2BCD(tm->tm_year / 100);
+ 	}
+ 
++	/* If writing alarm registers, set compare bits on registers 0-4 */
++	if (reg_base < X1205_CCR_BASE)
++		for (i = 0; i <= 4; i++)
++			buf[i] |= 0x80;
++
+ 	/* this sequence is required to unlock the chip */
+ 	if ((xfer = i2c_master_send(client, wel, 3)) != 3) {
+ 		dev_err(&client->dev, "%s: wel - %d\n", __func__, xfer);
+@@ -200,19 +214,57 @@ static int x1205_set_datetime(struct i2c
+ 		return -EIO;
+ 	}
+ 
++
+ 	/* write register's data */
+-	for (i = 0; i < (datetoo ? 8 : 3); i++) {
+-		unsigned char rdata[3] = { 0, reg_base + i, buf[i] };
++	if (datetoo)
++		nbytes = 8;
++	else
++		nbytes = 3;
++	for (i = 0; i < nbytes; i++)
++		rdata[2+i] = buf[i];
+ 
+-		xfer = i2c_master_send(client, rdata, 3);
++	xfer = i2c_master_send(client, rdata, nbytes+2);
++	if (xfer != nbytes+2) {
++		dev_err(&client->dev,
++			"%s: result=%d addr=%02x, data=%02x\n",
++			__func__,
++			 xfer, rdata[1], rdata[2]);
++		return -EIO;
++	}
++
++	/* If we wrote to the nonvolatile region, wait 10msec for write cycle*/
++	if (reg_base < X1205_CCR_BASE) {
++		unsigned char al0e[3] = { 0, X1205_REG_INT, 0 };
++
++		msleep(10);
++
++		/* ...and set or clear the AL0E bit in the INT register */
++
++		/* Need to set RWEL again as the write has cleared it */
++		xfer = i2c_master_send(client, rwel, 3);
+ 		if (xfer != 3) {
+ 			dev_err(&client->dev,
+-				"%s: xfer=%d addr=%02x, data=%02x\n",
++				"%s: aloe rwel - %d\n",
+ 				__func__,
+-				 xfer, rdata[1], rdata[2]);
++				xfer);
+ 			return -EIO;
+ 		}
+-	};
++
++		if (alm_enable)
++			al0e[2] = X1205_INT_AL0E;
++
++		xfer = i2c_master_send(client, al0e, 3);
++		if (xfer != 3) {
++			dev_err(&client->dev,
++				"%s: al0e - %d\n",
++				__func__,
++				xfer);
++			return -EIO;
++		}
++
++		/* and wait 10msec again for this write to complete */
++		msleep(10);
++	}
+ 
+ 	/* disable further writes */
+ 	if ((xfer = i2c_master_send(client, diswe, 3)) != 3) {
+@@ -230,9 +282,9 @@ static int x1205_fix_osc(struct i2c_clie
+ 
+ 	tm.tm_hour = tm.tm_min = tm.tm_sec = 0;
+ 
+-	if ((err = x1205_set_datetime(client, &tm, 0, X1205_CCR_BASE)) < 0)
+-		dev_err(&client->dev,
+-			"unable to restart the oscillator\n");
++	err = x1205_set_datetime(client, &tm, 0, X1205_CCR_BASE, 0);
++	if (err < 0)
++		dev_err(&client->dev, "unable to restart the oscillator\n");
+ 
+ 	return err;
+ }
+@@ -403,14 +455,33 @@ static int x1205_validate_client(struct 
+ 
+ static int x1205_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alrm)
+ {
+-	return x1205_get_datetime(to_i2c_client(dev),
+-		&alrm->time, X1205_ALM0_BASE);
++	int err;
++	unsigned char intreg, status;
++	static unsigned char int_addr[2] = { 0, X1205_REG_INT };
++	struct i2c_client *client = to_i2c_client(dev);
++	struct i2c_msg msgs[] = {
++		{ client->addr, 0, 2, int_addr },        /* setup read ptr */
++		{ client->addr, I2C_M_RD, 1, &intreg },  /* read INT register */
++	};
++
++	/* read interrupt register and status register */
++	if ((i2c_transfer(client->adapter, &msgs[0], 2)) != 2) {
++		dev_err(&client->dev, "%s: read error\n", __func__);
++		return -EIO;
++	}
++	err = x1205_get_status(client, &status);
++	if (err == 0) {
++		alrm->pending = (status & X1205_SR_AL0) ? 1 : 0;
++		alrm->enabled = (intreg & X1205_INT_AL0E) ? 1 : 0;
++		err = x1205_get_datetime(client, &alrm->time, X1205_ALM0_BASE);
++	}
++	return err;
+ }
+ 
+ static int x1205_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
+ {
+ 	return x1205_set_datetime(to_i2c_client(dev),
+-		&alrm->time, 1, X1205_ALM0_BASE);
++		&alrm->time, 1, X1205_ALM0_BASE, alrm->enabled);
+ }
+ 
+ static int x1205_rtc_read_time(struct device *dev, struct rtc_time *tm)
+@@ -422,7 +493,7 @@ static int x1205_rtc_read_time(struct de
+ static int x1205_rtc_set_time(struct device *dev, struct rtc_time *tm)
+ {
+ 	return x1205_set_datetime(to_i2c_client(dev),
+-		tm, 1, X1205_CCR_BASE);
++		tm, 1, X1205_CCR_BASE, 0);
+ }
+ 
+ static int x1205_rtc_proc(struct device *dev, struct seq_file *seq)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mhamel@adi.co.nz are
 
-origin.patch
-next-remove-localversion.patch
-revert-git-pekka.patch
-fix-kobject-fix-kobject_rename-and-config_sysfs.patch
-kvm-is-busted-on-ia64.patch
-drivers-mtd-nand-nandsimc-needs-div64h.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-git-jg-misc-git-rejects.patch
-drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-mmc-sd-host-driver-for-ricoh-bay1controllers.patch
-drivers-mtd-devices-block2mtdc-suppress-warning.patch
-sundance-set-carrier-status-on-link-change-events.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix-fix.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-scsi-misc-fix-scsi_dh-build-errors.patch
-drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
-s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
-pktcdvd-push-bkl-down-into-driver-fix.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-git-logfs-fixup.patch
-watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-verify-the-page-links-and-memory-model.patch
-mspec-convert-nopfn-to-fault-fix.patch
-page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
-kill-generic_file_direct_io-checkpatch-fixes.patch
-use-generic_access_phys-for-dev-mem-mappings-fix.patch
-spufs-use-the-new-vm_ops-access-fix.patch
-fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
-page-flags-record-page-flag-overlays-explicitly-xen.patch
-mapping_set_error-add-unlikely.patch
-huge-page-private-reservation-review-cleanups-fix.patch
-sync_file_range_write-may-and-will-block-document-that-fix.patch
-vmallocinfo-add-numa-information-fix.patch
-hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
-hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
-hugetlb-override-default-huge-page-size-ia64-build.patch
-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-bootmem-add-debugging-framework-fix.patch
-bootmem-clean-up-free_all_bootmem_core-fix.patch
-bootmem-free-reserve-helpers-fix.patch
-revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
-swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
-split-the-typecheck-macros-out-of-include-linux-kernelh.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
-remove-apparently-unused-fd1772h-header-file.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
-build-kernel-profileo-only-when-requested-cleanups.patch
-fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
-block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
-seq_file-fix-bug-when-seq_read-reads-nothing-fix.patch
-rename-warn-to-warning-to-clear-the-namespace-fix.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
-flag-parameters-paccept-fix.patch
-flag-parameters-paccept-sys_ni.patch
-flag-parameters-anon_inode_getfd-extension-fix.patch
-flag-parameters-signalfd-fix.patch
-flag-parameters-eventfd-fix.patch
-flag-parameters-inotify_init-fix.patch
-flag-parameters-check-magic-constants-alpha.patch
-oprofile-multiplexing-checkpatch-fixes.patch
-gpio-gpio-driver-for-max7301-spi-gpio-expander-checkpatch-fixes.patch
-drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
-atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
-ext3-handle-corrupted-orphan-list-at-mount-cleanup.patch
-ext3-handle-corrupted-orphan-list-at-mount-fix.patch
-ext3-handle-corrupted-orphan-list-at-mount-cleanup-fix.patch
-ext3-validate-directory-entry-data-before-use-checkpatch-fixes.patch
-reiserfs-convert-j_flush_sem-to-mutex.patch
-reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
-memcg-remove-refcnt-from-page_cgroup-fix-2.patch
-jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup.patch
-ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
-getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
-tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
-memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
-memstick-use-fully-asynchronous-request-processing-fix.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-mm-introduce-get_user_pages_fast-fix.patch
-mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-fix.patch
-x86-lockless-get_user_pages_fast-fix-2.patch
-x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
-x86-lockless-get_user_pages_fast-fix-warning.patch
-vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
-define-page_file_cache-function-fix.patch
-unevictable-lru-infrastructure-fix.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-3.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
-vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+rtc-x1205-fix-alarm-set.patch
 
