@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pnp-have-quirk_system_pci_resources-include-io-resources.patch added to -mm tree
-Date: Wed, 25 Jun 2008 14:16:27 -0700
-Message-ID: <200806252116.m5PLGRbY027277@imap1.linux-foundation.org>
+Subject: + jbd-unexport-journal_update_superblock.patch added to -mm tree
+Date: Wed, 25 Jun 2008 14:22:41 -0700
+Message-ID: <200806252122.m5PLMftG027513@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49247 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35452 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752451AbYFYVQg (ORCPT
+	by vger.kernel.org with ESMTP id S1751406AbYFYVXk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Jun 2008 17:16:36 -0400
+	Wed, 25 Jun 2008 17:23:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rene.herman@gmail.com, bjorn.helgaas@hp.com
+Cc: bunk@kernel.org, linux-ext4@vger.kernel.org
 
 
 The patch titled
-     pnp: have quirk_system_pci_resources() include io resources
+     jbd: unexport journal_update_superblock
 has been added to the -mm tree.  Its filename is
-     pnp-have-quirk_system_pci_resources-include-io-resources.patch
+     jbd-unexport-journal_update_superblock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,70 +34,80 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pnp: have quirk_system_pci_resources() include io resources
-From: Rene Herman <rene.herman@gmail.com>
+Subject: jbd: unexport journal_update_superblock
+From: Adrian Bunk <bunk@kernel.org>
 
-quirk_system_pci_resources() disables a PnP mem resource that overlaps a
-PCI BAR so as to not keep the PCI driver from claiming the resource.  Have
-it do the same for io resources.
+Remove the unused EXPORT_SYMBOL(journal_update_superblock).
 
-Here, ACPI claims ports that overlap with my soundcard causing the
-soundcard driver to fail to load.  It's unknown why my ACPI BIOS claims
-those ports; it did not use to but this is not a (kernel) regression. 
-Some odd BIOS reconfig triggered by temporarily removing the card seems to
-have brought this on.
-
-Signed-off-by: Rene Herman <rene.herman@gmail.com>
-Acked-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/quirks.c |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ fs/jbd/journal.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/pnp/quirks.c~pnp-have-quirk_system_pci_resources-include-io-resources drivers/pnp/quirks.c
---- a/drivers/pnp/quirks.c~pnp-have-quirk_system_pci_resources-include-io-resources
-+++ a/drivers/pnp/quirks.c
-@@ -245,15 +245,17 @@ static void quirk_system_pci_resources(s
- 	 */
- 	for_each_pci_dev(pdev) {
- 		for (i = 0; i < DEVICE_COUNT_RESOURCE; i++) {
--			if (!(pci_resource_flags(pdev, i) & IORESOURCE_MEM) ||
--			    pci_resource_len(pdev, i) == 0)
-+			unsigned int type;
-+
-+			type = pci_resource_flags(pdev, i) &
-+					(IORESOURCE_IO | IORESOURCE_MEM);
-+			if (!type || pci_resource_len(pdev, i) == 0)
- 				continue;
- 
- 			pci_start = pci_resource_start(pdev, i);
- 			pci_end = pci_resource_end(pdev, i);
- 			for (j = 0;
--			     (res = pnp_get_resource(dev, IORESOURCE_MEM, j));
--			     j++) {
-+			     (res = pnp_get_resource(dev, type, j)); j++) {
- 				if (res->start == 0 && res->end == 0)
- 					continue;
- 
-@@ -283,9 +285,10 @@ static void quirk_system_pci_resources(s
- 				 * the PCI region, and that might prevent a PCI
- 				 * driver from requesting its resources.
- 				 */
--				dev_warn(&dev->dev, "mem resource "
-+				dev_warn(&dev->dev, "%s resource "
- 					"(0x%llx-0x%llx) overlaps %s BAR %d "
- 					"(0x%llx-0x%llx), disabling\n",
-+					pnp_resource_type_name(res),
- 					(unsigned long long) pnp_start,
- 					(unsigned long long) pnp_end,
- 					pci_name(pdev), i,
+diff -puN fs/jbd/journal.c~jbd-unexport-journal_update_superblock fs/jbd/journal.c
+--- a/fs/jbd/journal.c~jbd-unexport-journal_update_superblock
++++ a/fs/jbd/journal.c
+@@ -68,7 +68,6 @@ EXPORT_SYMBOL(journal_set_features);
+ EXPORT_SYMBOL(journal_create);
+ EXPORT_SYMBOL(journal_load);
+ EXPORT_SYMBOL(journal_destroy);
+-EXPORT_SYMBOL(journal_update_superblock);
+ EXPORT_SYMBOL(journal_abort);
+ EXPORT_SYMBOL(journal_errno);
+ EXPORT_SYMBOL(journal_ack_err);
 _
 
-Patches currently in -mm which might be from rene.herman@gmail.com are
+Patches currently in -mm which might be from bunk@kernel.org are
 
-pnp-set-the-pnp_card-dma_mask-for-use-by-isapnp-cards.patch
-isa-set-24-bit-dma_mask-for-isa-devices.patch
-pnp-have-quirk_system_pci_resources-include-io-resources.patch
+origin.patch
+firmware-fix-the-request_firmware-dummy.patch
+remove-drivers-acorn-char-defkeymap-l7200c.patch
+drm-make-drm_minors_cleanup-static.patch
+if-0-ses_match_host.patch
+git-xtensa.patch
+mm-migratec-should-include-linux-syscallsh.patch
+mm-vmstatc-proper-externs.patch
+mm-hugetlbc-fix-duplicate-variable.patch
+remove-include-asm-h8300-keyboardh.patch
+remove-include-linux-pm_legacyh.patch
+remove-the-v850-port.patch
+init-do_mountsc-should-include-linux-initrdh.patch
+proper-spawn_ksoftirqd-prototype.patch
+build-kernel-profileo-only-when-requested.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+asm-generic-int-ll64h-always-provide-__su64.patch
+remove-some-more-tipar-bits.patch
+include-linux-kernelh-userspace-header-cleanup.patch
+remove-the-oss-trident-driver.patch
+config_sound_wm97xx-remove-stale-makefile-line.patch
+serial-8250_gscc-add-module_license.patch
+video-sis-remove-compat-code.patch
+minix-remove-no_truncate-code.patch
+jbd-unexport-journal_update_superblock.patch
+coda-remove-coda_fs_old_api.patch
+include-asm-ptraceh-userspace-headers-cleanup.patch
+remove-is_tty.patch
+proper-extern-for-mwave_s_mdd.patch
+if-0-hpet_unregister.patch
+unexport-proc_clear_tty.patch
+move-proc_kmsg_operations-to-fs-proc-internalh.patch
+proper-pidhashmap_init-prototypes.patch
+unexport-uts_sem.patch
+parport-sharec-proper-externs.patch
+tpm_biosc-make-2-structs-static.patch
+make-cgroup_seqfile_release-static.patch
+make-kprobe_blacklist-static.patch
 make-pnp_add_card_id-static.patch
+make-parport_cs_release-static.patch
+make-mm-sparsec-make-a-function-static.patch
+mm-allocpercpuc-make-4-functions-static.patch
+make-mm-memoryc-print_bad_pte-static.patch
+mm-swapfilec-make-code-static.patch
+make-mm-rmapc-anon_vma_cachep-static.patch
+drivers-char-rtcc-make-2-functions-static.patch
+make-init-do_mountsc-root_device_name-static.patch
+reiser4.patch
 
