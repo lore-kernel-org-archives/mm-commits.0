@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + unevictable-lru-infrastructure-kconfig-fix.patch added to -mm tree
-Date: Wed, 25 Jun 2008 14:47:07 -0700
-Message-ID: <200806252147.m5PLl78w028452@imap1.linux-foundation.org>
+Subject: + unevictable-lru-page-statistics-fix-printk-in-show_free_areas.patch added to -mm tree
+Date: Wed, 25 Jun 2008 14:48:19 -0700
+Message-ID: <200806252148.m5PLmJ0X028467@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40417 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43994 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752748AbYFYVrh (ORCPT
+	by vger.kernel.org with ESMTP id S1752605AbYFYVso (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Jun 2008 17:47:37 -0400
+	Wed, 25 Jun 2008 17:48:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: riel@redhat.com, benjkidwell@yahoo.com, kosaki@jp.fujitsu.com, lee.schermerhorn@hp.com
+Cc: riel@redhat.com, h-shimamoto@ct.jp.nec.com, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com
 
 
 The patch titled
-     fix UNEVICTABLE_LRU and !PROC_PAGE_MONITOR build
+     fix printk in show_free_areas()
 has been added to the -mm tree.  Its filename is
-     unevictable-lru-infrastructure-kconfig-fix.patch
+     unevictable-lru-page-statistics-fix-printk-in-show_free_areas.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,66 +34,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix UNEVICTABLE_LRU and !PROC_PAGE_MONITOR build
+Subject: fix printk in show_free_areas()
 From: Rik van Riel <riel@redhat.com>
 
-Both CONFIG_PROC_PAGE_MONITOR and CONFIG_UNEVICTABLE_LRU depend on
-mm/pagewalk.c being built.  Create a CONFIG_PAGE_WALKER Kconfig variable
-that is automatically selected if needed.
+Fix typo in show_free_areas.
 
-Debugged-by: Benjamin Kidwell <benjkidwell@yahoo.com>
+Debugged-by: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
 Signed-off-by: Rik van Riel <riel@redhat.com>
-Signed-off-by: KOSAKI Motohiro <kosaki@jp.fujitsu.com>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |    1 +
- mm/Kconfig   |    5 +++++
- mm/Makefile  |    2 +-
- 3 files changed, 7 insertions(+), 1 deletion(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN init/Kconfig~unevictable-lru-infrastructure-kconfig-fix init/Kconfig
---- a/init/Kconfig~unevictable-lru-infrastructure-kconfig-fix
-+++ a/init/Kconfig
-@@ -803,6 +803,7 @@ source "arch/Kconfig"
- config PROC_PAGE_MONITOR
-  	default y
- 	depends on PROC_FS && MMU
-+	select PAGE_WALKER
- 	bool "Enable /proc page monitoring" if EMBEDDED
-  	help
- 	  Various /proc files exist to monitor process memory utilization:
-diff -puN mm/Kconfig~unevictable-lru-infrastructure-kconfig-fix mm/Kconfig
---- a/mm/Kconfig~unevictable-lru-infrastructure-kconfig-fix
-+++ a/mm/Kconfig
-@@ -209,9 +209,14 @@ config VIRT_TO_BUS
- 	def_bool y
- 	depends on !ARCH_NO_VIRT_TO_BUS
+diff -puN mm/page_alloc.c~unevictable-lru-page-statistics-fix-printk-in-show_free_areas mm/page_alloc.c
+--- a/mm/page_alloc.c~unevictable-lru-page-statistics-fix-printk-in-show_free_areas
++++ a/mm/page_alloc.c
+@@ -1858,7 +1858,7 @@ void show_free_areas(void)
+ 		}
+ 	}
  
-+# automatically selected by UNEVICTABLE_LRU or PROC_PAGE_MONITOR
-+config PAGE_WALKER
-+	def_bool n
-+
- config UNEVICTABLE_LRU
- 	bool "Add LRU list to track non-evictable pages"
- 	default y
-+	select PAGE_WALKER
- 	help
- 	  Keeps unevictable pages off of the active and inactive pageout
- 	  lists, so kswapd will not waste CPU time or have its balancing
-diff -puN mm/Makefile~unevictable-lru-infrastructure-kconfig-fix mm/Makefile
---- a/mm/Makefile~unevictable-lru-infrastructure-kconfig-fix
-+++ a/mm/Makefile
-@@ -13,7 +13,7 @@ obj-y			:= bootmem.o filemap.o mempool.o
- 			   prio_tree.o util.o mmzone.o vmstat.o backing-dev.o \
- 			   page_isolation.o $(mmu-y)
- 
--obj-$(CONFIG_PROC_PAGE_MONITOR) += pagewalk.o
-+obj-$(CONFIG_PAGE_WALKER) += pagewalk.o
- obj-$(CONFIG_BOUNCE)	+= bounce.o
- obj-$(CONFIG_SWAP)	+= page_io.o swap_state.o swapfile.o thrash.o
- obj-$(CONFIG_HAS_DMA)	+= dmapool.o
+-	printk("Active_anon:%lu active_file:%lu inactive_anon%lu\n"
++	printk("Active_anon:%lu active_file:%lu inactive_anon:%lu\n"
+ 		" inactive_file:%lu"
+ //TODO:  check/adjust line lengths
+ #ifdef CONFIG_UNEVICTABLE_LRU
 _
 
 Patches currently in -mm which might be from riel@redhat.com are
@@ -139,6 +106,7 @@ unevictable-lru-infrastructure.patch
 unevictable-lru-infrastructure-fix.patch
 unevictable-lru-infrastructure-kconfig-fix.patch
 unevictable-lru-page-statistics.patch
+unevictable-lru-page-statistics-fix-printk-in-show_free_areas.patch
 ramfs-and-ram-disk-pages-are-unevictable.patch
 ramfs-and-ram-disk-pages-are-unevictable-undo-the-brdc-part.patch
 shm_locked-pages-are-unevictable.patch
