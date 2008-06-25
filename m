@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + lxfb-drop-dead-declarations-from-header.patch added to -mm tree
-Date: Tue, 24 Jun 2008 16:46:40 -0700
-Message-ID: <200806242346.m5ONkeMZ012467@imap1.linux-foundation.org>
+Subject: + pnp-have-quirk_system_pci_resources-include-io-resources.patch added to -mm tree
+Date: Wed, 25 Jun 2008 14:16:27 -0700
+Message-ID: <200806252116.m5PLGRbY027277@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53394 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49247 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751072AbYFXXqv (ORCPT
+	by vger.kernel.org with ESMTP id S1752451AbYFYVQg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jun 2008 19:46:51 -0400
+	Wed, 25 Jun 2008 17:16:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dilinger@queued.net, dilinger@debian.org
+Cc: rene.herman@gmail.com, bjorn.helgaas@hp.com
 
 
 The patch titled
-     lxfb: drop dead declarations from header
+     pnp: have quirk_system_pci_resources() include io resources
 has been added to the -mm tree.  Its filename is
-     lxfb-drop-dead-declarations-from-header.patch
+     pnp-have-quirk_system_pci_resources-include-io-resources.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,37 +34,70 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lxfb: drop dead declarations from header
-From: Andres Salomon <dilinger@queued.net>
+Subject: pnp: have quirk_system_pci_resources() include io resources
+From: Rene Herman <rene.herman@gmail.com>
 
-We never sent the gamma stuff upstream, and don't really care about it. 
-However, lx_[gs]_et_gamma prototypes snuck into lxfb.h anyways; there are
-no definitions for them.  Drop the dead code.
+quirk_system_pci_resources() disables a PnP mem resource that overlaps a
+PCI BAR so as to not keep the PCI driver from claiming the resource.  Have
+it do the same for io resources.
 
-Signed-off-by: Andres Salomon <dilinger@debian.org>
+Here, ACPI claims ports that overlap with my soundcard causing the
+soundcard driver to fail to load.  It's unknown why my ACPI BIOS claims
+those ports; it did not use to but this is not a (kernel) regression. 
+Some odd BIOS reconfig triggered by temporarily removing the card seems to
+have brought this on.
+
+Signed-off-by: Rene Herman <rene.herman@gmail.com>
+Acked-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/geode/lxfb.h |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/pnp/quirks.c |   13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
-diff -puN drivers/video/geode/lxfb.h~lxfb-drop-dead-declarations-from-header drivers/video/geode/lxfb.h
---- a/drivers/video/geode/lxfb.h~lxfb-drop-dead-declarations-from-header
-+++ a/drivers/video/geode/lxfb.h
-@@ -51,8 +51,6 @@ static inline unsigned int lx_get_pitch(
- }
+diff -puN drivers/pnp/quirks.c~pnp-have-quirk_system_pci_resources-include-io-resources drivers/pnp/quirks.c
+--- a/drivers/pnp/quirks.c~pnp-have-quirk_system_pci_resources-include-io-resources
++++ a/drivers/pnp/quirks.c
+@@ -245,15 +245,17 @@ static void quirk_system_pci_resources(s
+ 	 */
+ 	for_each_pci_dev(pdev) {
+ 		for (i = 0; i < DEVICE_COUNT_RESOURCE; i++) {
+-			if (!(pci_resource_flags(pdev, i) & IORESOURCE_MEM) ||
+-			    pci_resource_len(pdev, i) == 0)
++			unsigned int type;
++
++			type = pci_resource_flags(pdev, i) &
++					(IORESOURCE_IO | IORESOURCE_MEM);
++			if (!type || pci_resource_len(pdev, i) == 0)
+ 				continue;
  
- void lx_set_mode(struct fb_info *);
--void lx_get_gamma(struct fb_info *, unsigned int *, int);
--void lx_set_gamma(struct fb_info *, unsigned int *, int);
- unsigned int lx_framebuffer_size(void);
- int lx_blank_display(struct fb_info *, int);
- void lx_set_palette_reg(struct fb_info *, unsigned int, unsigned int,
+ 			pci_start = pci_resource_start(pdev, i);
+ 			pci_end = pci_resource_end(pdev, i);
+ 			for (j = 0;
+-			     (res = pnp_get_resource(dev, IORESOURCE_MEM, j));
+-			     j++) {
++			     (res = pnp_get_resource(dev, type, j)); j++) {
+ 				if (res->start == 0 && res->end == 0)
+ 					continue;
+ 
+@@ -283,9 +285,10 @@ static void quirk_system_pci_resources(s
+ 				 * the PCI region, and that might prevent a PCI
+ 				 * driver from requesting its resources.
+ 				 */
+-				dev_warn(&dev->dev, "mem resource "
++				dev_warn(&dev->dev, "%s resource "
+ 					"(0x%llx-0x%llx) overlaps %s BAR %d "
+ 					"(0x%llx-0x%llx), disabling\n",
++					pnp_resource_type_name(res),
+ 					(unsigned long long) pnp_start,
+ 					(unsigned long long) pnp_end,
+ 					pci_name(pdev), i,
 _
 
-Patches currently in -mm which might be from dilinger@queued.net are
+Patches currently in -mm which might be from rene.herman@gmail.com are
 
-olpc-sdhci-add-quirk-for-the-marvell-cafes-vdd-powerup-issue.patch
-olpc-sdhci-add-quirk-for-the-marvell-cafes-interrupt-timeout.patch
-lxfb-drop-dead-declarations-from-header.patch
+pnp-set-the-pnp_card-dma_mask-for-use-by-isapnp-cards.patch
+isa-set-24-bit-dma_mask-for-isa-devices.patch
+pnp-have-quirk_system_pci_resources-include-io-resources.patch
+make-pnp_add_card_id-static.patch
 
