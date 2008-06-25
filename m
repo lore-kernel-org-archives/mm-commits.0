@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page_allocc-cleanups.patch added to -mm tree
-Date: Wed, 25 Jun 2008 14:23:23 -0700
-Message-ID: <200806252123.m5PLNNXx027528@imap1.linux-foundation.org>
+Subject: + scsi-make-struct-scsi_hosttarget_type-static.patch added to -mm tree
+Date: Wed, 25 Jun 2008 14:24:09 -0700
+Message-ID: <200806252124.m5PLOd9e027574@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34666 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33685 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751723AbYFYVYQ (ORCPT
+	by vger.kernel.org with ESMTP id S1751573AbYFYVcV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Jun 2008 17:24:16 -0400
+	Wed, 25 Jun 2008 17:32:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org
+Cc: bunk@kernel.org, James.Bottomley@HansenPartnership.com
 
 
 The patch titled
-     mm/page_alloc.c: cleanups
+     scsi: make struct scsi_{host,target}_type static
 has been added to the -mm tree.  Its filename is
-     mm-page_allocc-cleanups.patch
+     scsi-make-struct-scsi_hosttarget_type-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,122 +34,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/page_alloc.c: cleanups
+Subject: scsi: make struct scsi_{host,target}_type static
 From: Adrian Bunk <bunk@kernel.org>
 
-This patch contains the following cleanups:
-- make the following needlessly global variables static:
-  - required_kernelcore
-  - zone_movable_pfn[]
-- make the following needlessly global functions static:
-  - move_freepages()
-  - move_freepages_block()
-  - setup_pageset()
-  - find_usable_zone_for_movable()
-  - adjust_zone_range_for_zone_movable()
-  - __absent_pages_in_range()
-  - find_min_pfn_for_node()
-  - find_zone_movable_pfns_for_nodes()
+Make the needlessly global struct scsi_{host,target}_type static.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   25 +++++++++++++------------
- 1 file changed, 13 insertions(+), 12 deletions(-)
+ drivers/scsi/hosts.c     |    2 +-
+ drivers/scsi/scsi_scan.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_allocc-cleanups mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_allocc-cleanups
-+++ a/mm/page_alloc.c
-@@ -153,9 +153,9 @@ static unsigned long __meminitdata dma_r
-   static unsigned long __meminitdata node_boundary_start_pfn[MAX_NUMNODES];
-   static unsigned long __meminitdata node_boundary_end_pfn[MAX_NUMNODES];
- #endif /* CONFIG_MEMORY_HOTPLUG_RESERVE */
--  unsigned long __initdata required_kernelcore;
-+  static unsigned long __initdata required_kernelcore;
-   static unsigned long __initdata required_movablecore;
--  unsigned long __meminitdata zone_movable_pfn[MAX_NUMNODES];
-+  static unsigned long __meminitdata zone_movable_pfn[MAX_NUMNODES];
- 
-   /* movable_zone is the "real" zone pages in ZONE_MOVABLE are taken from */
-   int movable_zone;
-@@ -674,9 +674,9 @@ static int fallbacks[MIGRATE_TYPES][MIGR
-  * Note that start_page and end_pages are not aligned on a pageblock
-  * boundary. If alignment is required, use move_freepages_block()
-  */
--int move_freepages(struct zone *zone,
--			struct page *start_page, struct page *end_page,
--			int migratetype)
-+static int move_freepages(struct zone *zone,
-+			  struct page *start_page, struct page *end_page,
-+			  int migratetype)
- {
- 	struct page *page;
- 	unsigned long order;
-@@ -715,7 +715,8 @@ int move_freepages(struct zone *zone,
- 	return pages_moved;
+diff -puN drivers/scsi/hosts.c~scsi-make-struct-scsi_hosttarget_type-static drivers/scsi/hosts.c
+--- a/drivers/scsi/hosts.c~scsi-make-struct-scsi_hosttarget_type-static
++++ a/drivers/scsi/hosts.c
+@@ -290,7 +290,7 @@ static void scsi_host_dev_release(struct
+ 	kfree(shost);
  }
  
--int move_freepages_block(struct zone *zone, struct page *page, int migratetype)
-+static int move_freepages_block(struct zone *zone, struct page *page,
-+				int migratetype)
- {
- 	unsigned long start_pfn, end_pfn;
- 	struct page *start_page, *end_page;
-@@ -2653,7 +2654,7 @@ static int zone_batchsize(struct zone *z
- 	return batch;
+-struct device_type scsi_host_type = {
++static struct device_type scsi_host_type = {
+ 	.name =		"scsi_host",
+ 	.release =	scsi_host_dev_release,
+ };
+diff -puN drivers/scsi/scsi_scan.c~scsi-make-struct-scsi_hosttarget_type-static drivers/scsi/scsi_scan.c
+--- a/drivers/scsi/scsi_scan.c~scsi-make-struct-scsi_hosttarget_type-static
++++ a/drivers/scsi/scsi_scan.c
+@@ -346,7 +346,7 @@ static void scsi_target_dev_release(stru
+ 	put_device(parent);
  }
  
--inline void setup_pageset(struct per_cpu_pageset *p, unsigned long batch)
-+static void setup_pageset(struct per_cpu_pageset *p, unsigned long batch)
- {
- 	struct per_cpu_pages *pcp;
- 
-@@ -3096,7 +3097,7 @@ void __meminit get_pfn_range_for_nid(uns
-  * assumption is made that zones within a node are ordered in monotonic
-  * increasing memory addresses so that the "highest" populated zone is used
-  */
--void __init find_usable_zone_for_movable(void)
-+static void __init find_usable_zone_for_movable(void)
- {
- 	int zone_index;
- 	for (zone_index = MAX_NR_ZONES - 1; zone_index >= 0; zone_index--) {
-@@ -3122,7 +3123,7 @@ void __init find_usable_zone_for_movable
-  * highest usable zone for ZONE_MOVABLE. This preserves the assumption that
-  * zones within a node are in order of monotonic increases memory addresses
-  */
--void __meminit adjust_zone_range_for_zone_movable(int nid,
-+static void __meminit adjust_zone_range_for_zone_movable(int nid,
- 					unsigned long zone_type,
- 					unsigned long node_start_pfn,
- 					unsigned long node_end_pfn,
-@@ -3183,7 +3184,7 @@ static unsigned long __meminit zone_span
-  * Return the number of holes in a range on a node. If nid is MAX_NUMNODES,
-  * then all holes in the requested range will be accounted for.
-  */
--unsigned long __meminit __absent_pages_in_range(int nid,
-+static unsigned long __meminit __absent_pages_in_range(int nid,
- 				unsigned long range_start_pfn,
- 				unsigned long range_end_pfn)
- {
-@@ -3720,7 +3721,7 @@ static void __init sort_node_map(void)
- }
- 
- /* Find the lowest pfn for a node */
--unsigned long __init find_min_pfn_for_node(unsigned long nid)
-+static unsigned long __init find_min_pfn_for_node(unsigned long nid)
- {
- 	int i;
- 	unsigned long min_pfn = ULONG_MAX;
-@@ -3792,7 +3793,7 @@ static unsigned long __init early_calcul
-  * memory. When they don't, some nodes will have more kernelcore than
-  * others
-  */
--void __init find_zone_movable_pfns_for_nodes(unsigned long *movable_pfn)
-+static void __init find_zone_movable_pfns_for_nodes(unsigned long *movable_pfn)
- {
- 	int i, nid;
- 	unsigned long usable_startpfn;
+-struct device_type scsi_target_type = {
++static struct device_type scsi_target_type = {
+ 	.name =		"scsi_target",
+ 	.release =	scsi_target_dev_release,
+ };
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
@@ -159,6 +81,7 @@ firmware-fix-the-request_firmware-dummy.patch
 remove-drivers-acorn-char-defkeymap-l7200c.patch
 drm-make-drm_minors_cleanup-static.patch
 if-0-ses_match_host.patch
+scsi-make-struct-scsi_hosttarget_type-static.patch
 git-xtensa.patch
 mm-migratec-should-include-linux-syscallsh.patch
 mm-vmstatc-proper-externs.patch
