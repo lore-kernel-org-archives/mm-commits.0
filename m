@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + memrlimit-improve-error-handling.patch added to -mm tree
-Date: Wed, 25 Jun 2008 16:34:27 -0700
-Message-ID: <200806252334.m5PNYR6l032413@imap1.linux-foundation.org>
+Subject: + memrlimit-handle-attach_task-failure-add-can_attach-callback.patch added to -mm tree
+Date: Wed, 25 Jun 2008 16:37:58 -0700
+Message-ID: <200806252337.m5PNbw6s032546@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44964 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35388 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751686AbYFYXfP (ORCPT
+	by vger.kernel.org with ESMTP id S1756045AbYFYXik (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Jun 2008 19:35:15 -0400
+	Wed, 25 Jun 2008 19:38:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: balbir@linux.vnet.ibm.com, hugh@veritas.com, kamezawa.hiroyu@jp.fujitsu.com,
 
 
 The patch titled
-     memrlimit: improve error handling
+     memrlimit: handle attach_task() failure, add can_attach() callback
 has been added to the -mm tree.  Its filename is
-     memrlimit-improve-error-handling.patch
+     memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memrlimit: improve error handling
+Subject: memrlimit: handle attach_task() failure, add can_attach() callback
 From: Balbir Singh <balbir@linux.vnet.ibm.com>
 
-memrlimit cgroup does not handle error cases after may_expand_vm().  This
-BUG was reported by Kamezawa, with the test case below to reproduce it
+This patch fixes a task migration problem reported by Kamezawa-San.  This
+patch should fix all issues with migraiton, except for a rare condition
+documented in memrlimit_cgroup_move_task().  To fix that problem, we would
+need to add transaction properties to cgroups.
 
-[root@iridium kamezawa]# cat /opt/cgroup/test/memrlimit.usage_in_bytes
-71921664
-[root@iridium kamezawa]# ulimit -s 3
-[root@iridium kamezawa]# ls
-Killed
-[root@iridium kamezawa]# ls
-Killed
-[root@iridium kamezawa]# ls
-Killed
-[root@iridium kamezawa]# ls
-Killed
-[root@iridium kamezawa]# ls
-Killed
-[root@iridium kamezawa]# ulimit -s unlimited
-[root@iridium kamezawa]# cat /opt/cgroup/test/memrlimit.usage_in_bytes
-72368128
-[root@iridium kamezawa]#
+The problem reported was that migrating to a group that did not have
+sufficient limits to accept an incoming task caused a kernel warning.
 
-This patch adds better handling support to fix the reported problem.
+Steps to reproduce
 
-Reported-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+% mkdir /dev/cgroup/memrlimit/group_01
+% mkdir /dev/cgroup/memrlimit/group_02
+% echo 1G > /dev/cgroup/memrlimit/group_01/memrlimit.limit_in_bytes
+% echo 0 >  /dev/cgroup/memrlimit/group_02/memrlimit.limit_in_bytes
+% echo $$ > /dev/cgroup/memrlimit/group_01/tasks
+% echo $$ > /dev/cgroup/memrlimit/group_02/tasks
+% exit
+
+memrlimit does the right thing by not moving the charges to group_02, but
+the task is still put into g2 (since we did not use can_attach to fail
+migration).  Once in g2, when we echo the task to the root cgroup, it
+tries to uncharge the cost of the task from g2.  g2 does not have any
+charge associated with the task, hence we get a warning.
+
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Balbir Singh <balbir@linux.vnet.ibm.com>
 Cc: Pavel Emelyanov <xemul@openvz.org>
 Cc: Sudhir Kumar <skumar@linux.vnet.ibm.com>
@@ -74,170 +75,104 @@ Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c   |   36 +++++++++++++++++++++++++-----------
- mm/mremap.c |    6 ++++++
- 2 files changed, 31 insertions(+), 11 deletions(-)
+ include/linux/res_counter.h |   18 +++++++++++++
+ mm/memrlimitcgroup.c        |   44 ++++++++++++++++++++++++++++++++++
+ 2 files changed, 62 insertions(+)
 
-diff -puN mm/mmap.c~memrlimit-improve-error-handling mm/mmap.c
---- a/mm/mmap.c~memrlimit-improve-error-handling
-+++ a/mm/mmap.c
-@@ -1124,7 +1124,7 @@ munmap_back:
- 			 */
- 			charged = len >> PAGE_SHIFT;
- 			if (security_vm_enough_memory(charged))
--				return -ENOMEM;
-+				goto undo_charge;
- 			vm_flags |= VM_ACCOUNT;
- 		}
- 	}
-@@ -1240,6 +1240,8 @@ free_vma:
- unacct_error:
- 	if (charged)
- 		vm_unacct_memory(charged);
-+undo_charge:
-+	memrlimit_cgroup_uncharge_as(mm, len >> PAGE_SHIFT);
- 	return error;
+diff -puN include/linux/res_counter.h~memrlimit-handle-attach_task-failure-add-can_attach-callback include/linux/res_counter.h
+--- a/include/linux/res_counter.h~memrlimit-handle-attach_task-failure-add-can_attach-callback
++++ a/include/linux/res_counter.h
+@@ -158,4 +158,22 @@ static inline void res_counter_reset_fai
+ 	cnt->failcnt = 0;
+ 	spin_unlock_irqrestore(&cnt->lock, flags);
+ }
++
++/*
++ * Add the value val to the resource counter and check if we are
++ * still under the limit.
++ */
++static inline bool res_counter_add_check(struct res_counter *cnt,
++						unsigned long val)
++{
++	bool ret = false;
++	unsigned long flags;
++
++	spin_lock_irqsave(&cnt->lock, flags);
++	if (cnt->usage + val <= cnt->limit)
++		ret = true;
++	spin_unlock_irqrestore(&cnt->lock, flags);
++	return ret;
++}
++
+ #endif
+diff -puN mm/memrlimitcgroup.c~memrlimit-handle-attach_task-failure-add-can_attach-callback mm/memrlimitcgroup.c
+--- a/mm/memrlimitcgroup.c~memrlimit-handle-attach_task-failure-add-can_attach-callback
++++ a/mm/memrlimitcgroup.c
+@@ -153,6 +153,39 @@ static int memrlimit_cgroup_populate(str
+ 				ARRAY_SIZE(memrlimit_cgroup_files));
  }
  
-@@ -1535,14 +1537,15 @@ static int acct_stack_growth(struct vm_a
- 	struct mm_struct *mm = vma->vm_mm;
- 	struct rlimit *rlim = current->signal->rlim;
- 	unsigned long new_start;
-+	int ret = -ENOMEM;
- 
- 	/* address space limit tests */
- 	if (!may_expand_vm(mm, grow))
--		return -ENOMEM;
++static int memrlimit_cgroup_can_move_task(struct cgroup_subsys *ss,
++					struct cgroup *cgrp,
++					struct task_struct *p)
++{
++	struct mm_struct *mm;
++	struct memrlimit_cgroup *memrcg;
++	int ret = 0;
++
++	mm = get_task_mm(p);
++	if (mm == NULL)
++		return -EINVAL;
++
++	/*
++	 * Hold mmap_sem, so that total_vm does not change underneath us
++	 */
++	down_read(&mm->mmap_sem);
++
++	rcu_read_lock();
++	if (p != rcu_dereference(mm->owner))
 +		goto out;
- 
- 	/* Stack limit test */
- 	if (size > rlim[RLIMIT_STACK].rlim_cur)
--		return -ENOMEM;
-+		goto undo_charge;
- 
- 	/* mlock limit tests */
- 	if (vma->vm_flags & VM_LOCKED) {
-@@ -1551,21 +1554,23 @@ static int acct_stack_growth(struct vm_a
- 		locked = mm->locked_vm + grow;
- 		limit = rlim[RLIMIT_MEMLOCK].rlim_cur >> PAGE_SHIFT;
- 		if (locked > limit && !capable(CAP_IPC_LOCK))
--			return -ENOMEM;
-+			goto undo_charge;
- 	}
- 
- 	/* Check to ensure the stack will not grow into a hugetlb-only region */
- 	new_start = (vma->vm_flags & VM_GROWSUP) ? vma->vm_start :
- 			vma->vm_end - size;
--	if (is_hugepage_only_range(vma->vm_mm, new_start, size))
--		return -EFAULT;
-+	if (is_hugepage_only_range(vma->vm_mm, new_start, size)) {
-+		ret = -EFAULT;
-+		goto undo_charge;
-+	}
- 
- 	/*
- 	 * Overcommit..  This must be the final test, as it will
- 	 * update security statistics.
- 	 */
- 	if (security_vm_enough_memory(grow))
--		return -ENOMEM;
-+		goto undo_charge;
- 
- 	/* Ok, everything looks good - let it rip */
- 	mm->total_vm += grow;
-@@ -1573,6 +1578,11 @@ static int acct_stack_growth(struct vm_a
- 		mm->locked_vm += grow;
- 	vm_stat_account(mm, vma->vm_flags, vma->vm_file, grow);
- 	return 0;
-+undo_charge:
-+	/* Undo memrlimit charge */
-+	memrlimit_cgroup_uncharge_as(mm, grow);
++
++	memrcg = memrlimit_cgroup_from_cgrp(cgrp);
++
++	if (!res_counter_add_check(&memrcg->as_res,
++				(mm->total_vm << PAGE_SHIFT)))
++		ret = -ENOMEM;
 +out:
++	rcu_read_unlock();
++	up_read(&mm->mmap_sem);
++	mmput(mm);
 +	return ret;
- }
- 
- #if defined(CONFIG_STACK_GROWSUP) || defined(CONFIG_IA64)
-@@ -1959,6 +1969,7 @@ unsigned long do_brk(unsigned long addr,
- 	struct rb_node ** rb_link, * rb_parent;
- 	pgoff_t pgoff = addr >> PAGE_SHIFT;
- 	int error;
-+	int ret = -ENOMEM;
- 
- 	len = PAGE_ALIGN(len);
- 	if (!len)
-@@ -2012,13 +2023,13 @@ unsigned long do_brk(unsigned long addr,
- 
- 	/* Check against address space limits *after* clearing old maps... */
- 	if (!may_expand_vm(mm, len >> PAGE_SHIFT))
--		return -ENOMEM;
-+		return ret;
- 
- 	if (mm->map_count > sysctl_max_map_count)
--		return -ENOMEM;
-+		goto undo_charge;
- 
- 	if (security_vm_enough_memory(len >> PAGE_SHIFT))
--		return -ENOMEM;
-+		goto undo_charge;
- 
- 	/* Can we just expand an old private anonymous mapping? */
- 	if (vma_merge(mm, prev, addr, addr + len, flags,
-@@ -2031,7 +2042,7 @@ unsigned long do_brk(unsigned long addr,
- 	vma = kmem_cache_zalloc(vm_area_cachep, GFP_KERNEL);
- 	if (!vma) {
- 		vm_unacct_memory(len >> PAGE_SHIFT);
--		return -ENOMEM;
-+		goto undo_charge;
- 	}
- 
- 	vma->vm_mm = mm;
-@@ -2048,6 +2059,9 @@ out:
- 		make_pages_present(addr, addr + len);
- 	}
- 	return addr;
-+undo_charge:
-+	memrlimit_cgroup_uncharge_as(mm, len >> PAGE_SHIFT);
-+	return ret;
- }
- 
- EXPORT_SYMBOL(do_brk);
-diff -puN mm/mremap.c~memrlimit-improve-error-handling mm/mremap.c
---- a/mm/mremap.c~memrlimit-improve-error-handling
-+++ a/mm/mremap.c
-@@ -18,6 +18,7 @@
- #include <linux/highmem.h>
- #include <linux/security.h>
- #include <linux/syscalls.h>
-+#include <linux/memrlimitcgroup.h>
- 
- #include <asm/uaccess.h>
- #include <asm/cacheflush.h>
-@@ -254,6 +255,7 @@ unsigned long do_mremap(unsigned long ad
- 	struct vm_area_struct *vma;
- 	unsigned long ret = -EINVAL;
- 	unsigned long charged = 0;
-+	int vm_expanded = 0;
- 
- 	if (flags & ~(MREMAP_FIXED | MREMAP_MAYMOVE))
++}
++
+ static void memrlimit_cgroup_move_task(struct cgroup_subsys *ss,
+ 					struct cgroup *cgrp,
+ 					struct cgroup *old_cgrp,
+@@ -180,6 +213,16 @@ static void memrlimit_cgroup_move_task(s
+ 	if (memrcg == old_memrcg)
  		goto out;
-@@ -347,6 +349,7 @@ unsigned long do_mremap(unsigned long ad
+ 
++	/*
++	 * TBD: Even though we do the necessary checks in can_attach(),
++	 * by the time we come here, there is a chance that we still
++	 * fail (the memrlimit cgroup has grown its usage, and the
++	 * addition of total_vm will no longer fit into its limit)
++	 *
++	 * We need transactional support in cgroups to let us know
++	 * if can_attach() has failed and call attach_failed() on
++	 * cgroups for which can_attach() succeeded.
++	 */
+ 	if (res_counter_charge(&memrcg->as_res, (mm->total_vm << PAGE_SHIFT)))
  		goto out;
- 	}
- 
-+	vm_expanded = 1;
- 	if (vma->vm_flags & VM_ACCOUNT) {
- 		charged = (new_len - old_len) >> PAGE_SHIFT;
- 		if (security_vm_enough_memory(charged))
-@@ -409,6 +412,9 @@ out:
- 	if (ret & ~PAGE_MASK)
- 		vm_unacct_memory(charged);
- out_nc:
-+	if (vm_expanded)
-+		memrlimit_cgroup_uncharge_as(mm,
-+				(new_len - old_len) >> PAGE_SHIFT);
- 	return ret;
- }
- 
+ 	res_counter_uncharge(&old_memrcg->as_res, (mm->total_vm << PAGE_SHIFT));
+@@ -218,6 +261,7 @@ struct cgroup_subsys memrlimit_cgroup_su
+ 	.destroy = memrlimit_cgroup_destroy,
+ 	.populate = memrlimit_cgroup_populate,
+ 	.attach = memrlimit_cgroup_move_task,
++	.can_attach = memrlimit_cgroup_can_move_task,
+ 	.mm_owner_changed = memrlimit_cgroup_mm_owner_changed,
+ 	.early_init = 0,
+ };
 _
 
 Patches currently in -mm which might be from balbir@linux.vnet.ibm.com are
