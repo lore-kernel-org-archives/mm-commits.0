@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + scsi-make-struct-scsi_hosttarget_type-static.patch added to -mm tree
-Date: Wed, 25 Jun 2008 14:24:09 -0700
-Message-ID: <200806252124.m5PLOd9e027574@imap1.linux-foundation.org>
+Subject: + signals-make-siginfo_t-si_utime-si_sstime-report-times-in-user_hz-not-hz.patch added to -mm tree
+Date: Wed, 25 Jun 2008 14:30:28 -0700
+Message-ID: <200806252130.m5PLUSvb027830@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33685 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45182 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751573AbYFYVcV (ORCPT
+	by vger.kernel.org with ESMTP id S1752138AbYFYVcZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Jun 2008 17:32:21 -0400
+	Wed, 25 Jun 2008 17:32:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, James.Bottomley@HansenPartnership.com
+Cc: mtk.manpages@googlemail.com, mingo@elte.hu, mtk.manpages@gmail.com, oleg@tv-sign.ru, roland@redhat.com, tglx@linutronix.de
 
 
 The patch titled
-     scsi: make struct scsi_{host,target}_type static
+     signals: make siginfo_t si_utime + si_sstime report times in USER_HZ, not HZ
 has been added to the -mm tree.  Its filename is
-     scsi-make-struct-scsi_hosttarget_type-static.patch
+     signals-make-siginfo_t-si_utime-si_sstime-report-times-in-user_hz-not-hz.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,96 +34,97 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi: make struct scsi_{host,target}_type static
-From: Adrian Bunk <bunk@kernel.org>
+Subject: signals: make siginfo_t si_utime + si_sstime report times in USER_HZ, not HZ
+From: "Michael Kerrisk" <mtk.manpages@googlemail.com>
 
-Make the needlessly global struct scsi_{host,target}_type static.
+In the switch to configurable HZ in 2.6, the treatment of the si_utime and
+si_stime fields that are exposed to userland via the siginfo structure
+looks to have been botched.  As things stand, these fields report times in
+units of HZ, so that userland gets information that varies depending on
+the HZ that the kernel was configured with.  This patch changes the
+reported values to use USER_HZ units.
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Signed-off-by: Michael Kerrisk <mtk.manpages@gmail.com>
+Acked-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/hosts.c     |    2 +-
- drivers/scsi/scsi_scan.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ kernel/signal.c |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
-diff -puN drivers/scsi/hosts.c~scsi-make-struct-scsi_hosttarget_type-static drivers/scsi/hosts.c
---- a/drivers/scsi/hosts.c~scsi-make-struct-scsi_hosttarget_type-static
-+++ a/drivers/scsi/hosts.c
-@@ -290,7 +290,7 @@ static void scsi_host_dev_release(struct
- 	kfree(shost);
- }
+diff -puN kernel/signal.c~signals-make-siginfo_t-si_utime-si_sstime-report-times-in-user_hz-not-hz kernel/signal.c
+--- a/kernel/signal.c~signals-make-siginfo_t-si_utime-si_sstime-report-times-in-user_hz-not-hz
++++ a/kernel/signal.c
+@@ -1370,10 +1370,9 @@ void do_notify_parent(struct task_struct
  
--struct device_type scsi_host_type = {
-+static struct device_type scsi_host_type = {
- 	.name =		"scsi_host",
- 	.release =	scsi_host_dev_release,
- };
-diff -puN drivers/scsi/scsi_scan.c~scsi-make-struct-scsi_hosttarget_type-static drivers/scsi/scsi_scan.c
---- a/drivers/scsi/scsi_scan.c~scsi-make-struct-scsi_hosttarget_type-static
-+++ a/drivers/scsi/scsi_scan.c
-@@ -346,7 +346,7 @@ static void scsi_target_dev_release(stru
- 	put_device(parent);
- }
+ 	info.si_uid = tsk->uid;
  
--struct device_type scsi_target_type = {
-+static struct device_type scsi_target_type = {
- 	.name =		"scsi_target",
- 	.release =	scsi_target_dev_release,
- };
+-	/* FIXME: find out whether or not this is supposed to be c*time. */
+-	info.si_utime = cputime_to_jiffies(cputime_add(tsk->utime,
++	info.si_utime = cputime_to_clock_t(cputime_add(tsk->utime,
+ 						       tsk->signal->utime));
+-	info.si_stime = cputime_to_jiffies(cputime_add(tsk->stime,
++	info.si_stime = cputime_to_clock_t(cputime_add(tsk->stime,
+ 						       tsk->signal->stime));
+ 
+ 	info.si_status = tsk->exit_code & 0x7f;
+@@ -1441,9 +1440,8 @@ static void do_notify_parent_cldstop(str
+ 
+ 	info.si_uid = tsk->uid;
+ 
+-	/* FIXME: find out whether or not this is supposed to be c*time. */
+-	info.si_utime = cputime_to_jiffies(tsk->utime);
+-	info.si_stime = cputime_to_jiffies(tsk->stime);
++	info.si_utime = cputime_to_clock_t(tsk->utime);
++	info.si_stime = cputime_to_clock_t(tsk->stime);
+ 
+  	info.si_code = why;
+  	switch (why) {
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from mtk.manpages@googlemail.com are
 
-origin.patch
-firmware-fix-the-request_firmware-dummy.patch
-remove-drivers-acorn-char-defkeymap-l7200c.patch
-drm-make-drm_minors_cleanup-static.patch
-if-0-ses_match_host.patch
-scsi-make-struct-scsi_hosttarget_type-static.patch
-git-xtensa.patch
-mm-migratec-should-include-linux-syscallsh.patch
-mm-vmstatc-proper-externs.patch
-mm-hugetlbc-fix-duplicate-variable.patch
-mm-page_allocc-cleanups.patch
-remove-include-asm-h8300-keyboardh.patch
-remove-include-linux-pm_legacyh.patch
-remove-the-v850-port.patch
-init-do_mountsc-should-include-linux-initrdh.patch
-proper-spawn_ksoftirqd-prototype.patch
-build-kernel-profileo-only-when-requested.patch
-build-kernel-profileo-only-when-requested-cleanups.patch
-asm-generic-int-ll64h-always-provide-__su64.patch
-remove-some-more-tipar-bits.patch
-include-linux-kernelh-userspace-header-cleanup.patch
-remove-the-oss-trident-driver.patch
-config_sound_wm97xx-remove-stale-makefile-line.patch
-serial-8250_gscc-add-module_license.patch
-video-sis-remove-compat-code.patch
-minix-remove-no_truncate-code.patch
-jbd-unexport-journal_update_superblock.patch
-coda-remove-coda_fs_old_api.patch
-include-asm-ptraceh-userspace-headers-cleanup.patch
-remove-is_tty.patch
-proper-extern-for-mwave_s_mdd.patch
-if-0-hpet_unregister.patch
-unexport-proc_clear_tty.patch
-move-proc_kmsg_operations-to-fs-proc-internalh.patch
-proper-pidhashmap_init-prototypes.patch
-unexport-uts_sem.patch
-parport-sharec-proper-externs.patch
-tpm_biosc-make-2-structs-static.patch
-make-cgroup_seqfile_release-static.patch
-make-kprobe_blacklist-static.patch
-make-pnp_add_card_id-static.patch
-make-parport_cs_release-static.patch
-make-mm-sparsec-make-a-function-static.patch
-mm-allocpercpuc-make-4-functions-static.patch
-make-mm-memoryc-print_bad_pte-static.patch
-mm-swapfilec-make-code-static.patch
-make-mm-rmapc-anon_vma_cachep-static.patch
-drivers-char-rtcc-make-2-functions-static.patch
-make-init-do_mountsc-root_device_name-static.patch
-reiser4.patch
+vfs-utimensat-ignore-tv_sec-if-tv_nsec-==-utime_omit-or-utime_now.patch
+vfs-utimensat-be-consistent-with-utime-for-immutable-and-append-only-files.patch
+vfs-utimensat-fix-error-checking-for-utime_nowutime_omit-case.patch
+vfs-utimensat-fix-write-access-check-for-futimens.patch
+huge-page-private-reservation-review-cleanups.patch
+huge-page-private-reservation-review-cleanups-fix.patch
+mm-record-map_noreserve-status-on-vmas-and-fix-small-page-mprotect-reservations.patch
+hugetlb-move-reservation-region-support-earlier.patch
+hugetlb-allow-huge-page-mappings-to-be-created-without-reservations.patch
+hugetlb-allow-huge-page-mappings-to-be-created-without-reservations-cleanups.patch
+flag-parameters-socket-and-socketpair.patch
+flag-parameters-socket-and-socketpair-mips-fix.patch
+flag-parameters-paccept.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-paccept-fix-flag-parameters-arch-specific-sock_nonblock.patch
+flag-parameters-paccept-flag-parameters-paccept-w-out-set_restore_sigmask.patch
+flag-parameters-paccept-sys_ni.patch
+flag-parameters-anon_inode_getfd-extension.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-signalfd.patch
+flag-parameters-signalfd-fix.patch
+flag-parameters-eventfd.patch
+flag-parameters-eventfd-fix.patch
+flag-parameters-timerfd_create.patch
+flag-parameters-epoll_create.patch
+flag-parameters-dup2.patch
+flag-parameters-pipe.patch
+flag-parameters-inotify_init.patch
+flag-parameters-inotify_init-fix.patch
+flag-parametersi-nonblock-in-anon_inode_getfd.patch
+flag-parameters-nonblock-in-socket-and-socketpair.patch
+flag-parameters-nonblock-in-signalfd.patch
+flag-parameters-nonblock-in-eventfd.patch
+flag-parameters-nonblock-in-timerfd_create.patch
+flag-parameters-nonblock-in-pipe.patch
+flag-parameters-nonblock-in-inotify_init.patch
+flag-parameters-check-magic-constants.patch
+flag-parameters-check-magic-constants-alpha.patch
+flag-parameters-add-on-remove-epoll_create-size-param.patch
+signals-make-siginfo_t-si_utime-si_sstime-report-times-in-user_hz-not-hz.patch
 
