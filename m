@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + m32r-remove-the-unused-nohighmem-option.patch added to -mm tree
-Date: Wed, 25 Jun 2008 14:25:36 -0700
-Message-ID: <200806252125.m5PLPal2027660@imap1.linux-foundation.org>
+Subject: + mm-make-register_page_bootmem_info_section-static.patch added to -mm tree
+Date: Wed, 25 Jun 2008 14:25:00 -0700
+Message-ID: <200806252125.m5PLP0gS027580@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51388 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33328 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752446AbYFYVc1 (ORCPT
+	by vger.kernel.org with ESMTP id S1751617AbYFYVct (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Jun 2008 17:32:27 -0400
+	Wed, 25 Jun 2008 17:32:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, rpjday@crashcourse.ca, takata@linux-m32r.org
+Cc: bunk@kernel.org
 
 
 The patch titled
-     m32r: remove the unused NOHIGHMEM option
+     mm: make register_page_bootmem_info_section() static
 has been added to the -mm tree.  Its filename is
-     m32r-remove-the-unused-nohighmem-option.patch
+     mm-make-register_page_bootmem_info_section-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: m32r: remove the unused NOHIGHMEM option
+Subject: mm: make register_page_bootmem_info_section() static
 From: Adrian Bunk <bunk@kernel.org>
 
-Remove the unused NOHIGHMEM option.
+Make the needlessly global register_page_bootmem_info_section() static.
 
-Reviewed-by: Robert P. J. Day <rpjday@crashcourse.ca>
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Hirokazu Takata <takata@linux-m32r.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m32r/Kconfig |    4 ----
- 1 file changed, 4 deletions(-)
+ mm/memory_hotplug.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/m32r/Kconfig~m32r-remove-the-unused-nohighmem-option arch/m32r/Kconfig
---- a/arch/m32r/Kconfig~m32r-remove-the-unused-nohighmem-option
-+++ a/arch/m32r/Kconfig
-@@ -216,10 +216,6 @@ config MEMORY_SIZE
- 	default "01000000" if PLAT_M32104UT
- 	default "00800000" if PLAT_OAKS32R
+diff -puN mm/memory_hotplug.c~mm-make-register_page_bootmem_info_section-static mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-make-register_page_bootmem_info_section-static
++++ a/mm/memory_hotplug.c
+@@ -86,7 +86,7 @@ void put_page_bootmem(struct page *page)
  
--config NOHIGHMEM
--	bool
--	default y
--
- config ARCH_DISCONTIGMEM_ENABLE
- 	bool "Internal RAM Support"
- 	depends on CHIP_M32700 || CHIP_M32102 || CHIP_VDEC2 || CHIP_OPSP || CHIP_M32104
+ }
+ 
+-void register_page_bootmem_info_section(unsigned long start_pfn)
++static void register_page_bootmem_info_section(unsigned long start_pfn)
+ {
+ 	unsigned long *usemap, mapsize, section_nr, i;
+ 	struct mem_section *ms;
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
@@ -70,7 +66,6 @@ origin.patch
 firmware-fix-the-request_firmware-dummy.patch
 remove-drivers-acorn-char-defkeymap-l7200c.patch
 drm-make-drm_minors_cleanup-static.patch
-m32r-remove-the-unused-nohighmem-option.patch
 if-0-ses_match_host.patch
 scsi-make-struct-scsi_hosttarget_type-static.patch
 git-xtensa.patch
