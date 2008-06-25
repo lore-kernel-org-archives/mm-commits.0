@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vmscan-split-lru-lists-into-anon-file-sets-prevent-incorrect-oom-under-split_lru.patch added to -mm tree
-Date: Wed, 25 Jun 2008 14:59:15 -0700
-Message-ID: <200806252159.m5PLxFb7028821@imap1.linux-foundation.org>
+Subject: + memcg-handle-swap-cache-fix-shmem-page-migration-incorrectness-on-memcgroup.patch added to -mm tree
+Date: Wed, 25 Jun 2008 15:03:21 -0700
+Message-ID: <200806252203.m5PM3LlM028972@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52590 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48569 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750825AbYFYV7o (ORCPT
+	by vger.kernel.org with ESMTP id S1750976AbYFYWDv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Jun 2008 17:59:44 -0400
+	Wed, 25 Jun 2008 18:03:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, riel@redhat.com
+Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, ebiederm@xmission.com, hugh@veritas.com, kosaki.motohiro@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, nishimura@mxp.nes.nec.co.jp, rientjes@google.com, xemul@openvz.org, yamamoto@valinux.co.jp
 
 
 The patch titled
-     prevent incorrect oom under split_lru
+     fix shmem page migration incorrectness on memcgroup
 has been added to the -mm tree.  Its filename is
-     vmscan-split-lru-lists-into-anon-file-sets-prevent-incorrect-oom-under-split_lru.patch
+     memcg-handle-swap-cache-fix-shmem-page-migration-incorrectness-on-memcgroup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,78 +34,92 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: prevent incorrect oom under split_lru
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: fix shmem page migration incorrectness on memcgroup
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-If zone->recent_scanned parameter become inbalanceing anon and file, OOM
-killer can happened although swappable page exist.
+mem_cgroup_uncharge() against old page is done after
+radix-tree-replacement.  And there were special handling to ingore
+swap-cache page.  But, shmem can be swap-cache and file-cache at the same
+time.  Chekcing PageSwapCache() is not correct here.  Check PageAnon()
+instead.
 
-So, if priority==0, We should try to reclaim all page for prevent OOM.
-
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Acked-by: Rik van Riel <riel@redhat.com>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
+Cc: Paul Menage <menage@google.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/migrate.c |   11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-diff -puN mm/vmscan.c~vmscan-split-lru-lists-into-anon-file-sets-prevent-incorrect-oom-under-split_lru mm/vmscan.c
---- a/mm/vmscan.c~vmscan-split-lru-lists-into-anon-file-sets-prevent-incorrect-oom-under-split_lru
-+++ a/mm/vmscan.c
-@@ -1292,8 +1292,10 @@ static unsigned long shrink_zone(int pri
- 			 * kernel will slowly sift through each list.
- 			 */
- 			scan = zone_page_state(zone, NR_LRU_BASE + l);
--			scan >>= priority;
--			scan = (scan * percent[file]) / 100;
-+			if (priority) {
-+				scan >>= priority;
-+				scan = (scan * percent[file]) / 100;
-+			}
- 			zone->lru[l].nr_scan += scan + 1;
- 			nr[l] = zone->lru[l].nr_scan;
- 			if (nr[l] >= sc->swap_cluster_max)
+diff -puN mm/migrate.c~memcg-handle-swap-cache-fix-shmem-page-migration-incorrectness-on-memcgroup mm/migrate.c
+--- a/mm/migrate.c~memcg-handle-swap-cache-fix-shmem-page-migration-incorrectness-on-memcgroup
++++ a/mm/migrate.c
+@@ -358,7 +358,13 @@ static int migrate_page_move_mapping(str
+ 	__inc_zone_page_state(newpage, NR_FILE_PAGES);
+ 
+ 	write_unlock_irq(&mapping->tree_lock);
+-	if (!PageSwapCache(newpage))
++
++	/*
++	 * The page is removed from radix-tree implicitly.
++	 * We uncharge it here but swap cache of anonymous page should be
++	 * uncharged by mem_cgroup_ucharge_page().
++	 */
++	if (!PageAnon(newpage))
+ 		mem_cgroup_uncharge_cache_page(page);
+ 
+ 	return 0;
+@@ -402,7 +408,8 @@ static void migrate_page_copy(struct pag
+ 		/*
+ 		 * SwapCache is removed implicitly. Uncharge against swapcache
+ 		 * should be called after ClearPageSwapCache() because
+-		 * mem_cgroup_uncharge_page checks the flag.
++		 * mem_cgroup_uncharge_page checks the flag. shmem's swap cache
++		 * is uncharged before here.
+ 		 */
+ 		mem_cgroup_uncharge_page(page);
+ 	}
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
-page-allocator-inlnie-some-__alloc_pages-wrappers.patch
-page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
-mm-hugetlbc-fix-duplicate-variable.patch
 page-flags-record-page-flag-overlays-explicitly.patch
-slub-record-page-flag-overlays-explicitly.patch
-slob-record-page-flag-overlays-explicitly.patch
-call_usermodehelper-increase-reliability.patch
-cgroup-list_for_each-cleanup-v2.patch
+page-flags-record-page-flag-overlays-explicitly-xen.patch
+mark-res_counter_charge_locked-with-__must_check.patch
+cgroup-files-clean-up-whitespace-in-struct-cftype.patch
+cgroup-files-add-write_string-cgroup-control-file-method.patch
+cgroup-files-move-the-release_agent-file-to-use-typed-handlers.patch
+cgroup-files-move-notify_on_release-file-to-separate-write-handler.patch
+cgroup-files-turn-attach_task_by_pid-directly-into-a-cgroup-write-handler.patch
+cgroup-files-remove-cpuset_common_file_write.patch
+cgroup-files-convert-devcgroup_access_write-into-a-cgroup-write_string-handler.patch
+cgroup-files-convert-res_counter_write-to-be-a-cgroups-write_string-handler.patch
+memcg-make-global-var-read_mostly.patch
+memcg-avoid-unnecessary-initialization.patch
+memcg-better-migration-handling.patch
+memcg-remove-refcnt-from-page_cgroup.patch
+memcg-remove-refcnt-from-page_cgroup-fix.patch
+memcg-remove-refcnt-from-page_cgroup-fix-2.patch
+memcg-handle-swap-cache.patch
+memcg-handle-swap-cache-fix.patch
+memcg-handle-swap-cache-fix-shmem-page-migration-incorrectness-on-memcgroup.patch
+memcg-helper-function-for-relcaim-from-shmem.patch
+memcg-add-hints-for-branch.patch
+memcg-remove-a-redundant-check.patch
 memcg-clean-up-checking-of-the-disabled-flag.patch
-per-task-delay-accounting-update-document-and-getdelaysc-for-memory-reclaim.patch
+memrlimit-add-memrlimit-controller-documentation.patch
+memrlimit-setup-the-memrlimit-controller.patch
+memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
+memrlimit-add-memrlimit-controller-accounting-and-control.patch
 mm-speculative-page-references-fix-migration_entry_wait-for-speculative-page-cache.patch
-vmscan-use-an-indexed-array-for-lru-variables.patch
-swap-use-an-array-for-the-lru-pagevecs.patch
-vmscan-split-lru-lists-into-anon-file-sets-collect-lru-meminfo-statistics-from-correct-offset.patch
-vmscan-split-lru-lists-into-anon-file-sets-prevent-incorrect-oom-under-split_lru.patch
-vmscan-second-chance-replacement-for-anonymous-pages.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-infrastructure-fix.patch
-unevictable-lru-page-statistics.patch
-unevictable-lru-page-statistics-fix-printk-in-show_free_areas.patch
-shm_locked-pages-are-unevictable.patch
-mlock-mlocked-pages-are-unevictable.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-3.patch
-mlock-mlocked-pages-are-unevictable-fix-fix-munlock-page-table-walk-now-requires-mm.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
 fix-double-unlock_page-in-2626-rc5-mm3-kernel-bug-at-mm-filemapc-575.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
-vmstat-mlocked-pages-statistics.patch
-vmstat-mlocked-pages-statistics-fix-incorrect-mlocked-field-of-proc-meminfo.patch
-vmstat-unevictable-and-mlocked-pages-vm-events.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
-make-mm-memoryc-print_bad_pte-static.patch
-mm-swapfilec-make-code-static.patch
-make-mm-rmapc-anon_vma_cachep-static.patch
 
