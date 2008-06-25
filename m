@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vmstat-mlocked-pages-statistics-fix-incorrect-mlocked-field-of-proc-meminfo.patch added to -mm tree
-Date: Wed, 25 Jun 2008 14:55:22 -0700
-Message-ID: <200806252155.m5PLtMNU028742@imap1.linux-foundation.org>
+Subject: + vmscan-split-lru-lists-into-anon-file-sets-prevent-incorrect-oom-under-split_lru.patch added to -mm tree
+Date: Wed, 25 Jun 2008 14:59:15 -0700
+Message-ID: <200806252159.m5PLxFb7028821@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52440 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52590 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752889AbYFYV4H (ORCPT
+	by vger.kernel.org with ESMTP id S1750825AbYFYV7o (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Jun 2008 17:56:07 -0400
+	Wed, 25 Jun 2008 17:59:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, hugh@veritas.com, lee.schermerhorn@hp.com, npiggin@suse.de, riel@redhat.com
+Cc: kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, riel@redhat.com
 
 
 The patch titled
-     fix incorrect Mlocked field of /proc/meminfo
+     prevent incorrect oom under split_lru
 has been added to the -mm tree.  Its filename is
-     vmstat-mlocked-pages-statistics-fix-incorrect-mlocked-field-of-proc-meminfo.patch
+     vmscan-split-lru-lists-into-anon-file-sets-prevent-incorrect-oom-under-split_lru.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix incorrect Mlocked field of /proc/meminfo
+Subject: prevent incorrect oom under split_lru
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Mlocked field of /proc/meminfo display silly number.  because trivial
-mistake exist in meminfo_read_proc().
+If zone->recent_scanned parameter become inbalanceing anon and file, OOM
+killer can happened although swappable page exist.
 
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
+So, if priority==0, We should try to reclaim all page for prevent OOM.
+
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Nick Piggin <npiggin@suse.de>
+Acked-by: Rik van Riel <riel@redhat.com>
 Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/proc_misc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmscan.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN fs/proc/proc_misc.c~vmstat-mlocked-pages-statistics-fix-incorrect-mlocked-field-of-proc-meminfo fs/proc/proc_misc.c
---- a/fs/proc/proc_misc.c~vmstat-mlocked-pages-statistics-fix-incorrect-mlocked-field-of-proc-meminfo
-+++ a/fs/proc/proc_misc.c
-@@ -216,7 +216,7 @@ static int meminfo_read_proc(char *page,
- 		K(pages[LRU_INACTIVE_FILE]),
- #ifdef CONFIG_UNEVICTABLE_LRU
- 		K(pages[LRU_UNEVICTABLE]),
--		K(pages[NR_MLOCK]),
-+		K(global_page_state(NR_MLOCK)),
- #endif
- #ifdef CONFIG_HIGHMEM
- 		K(i.totalhigh),
+diff -puN mm/vmscan.c~vmscan-split-lru-lists-into-anon-file-sets-prevent-incorrect-oom-under-split_lru mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-split-lru-lists-into-anon-file-sets-prevent-incorrect-oom-under-split_lru
++++ a/mm/vmscan.c
+@@ -1292,8 +1292,10 @@ static unsigned long shrink_zone(int pri
+ 			 * kernel will slowly sift through each list.
+ 			 */
+ 			scan = zone_page_state(zone, NR_LRU_BASE + l);
+-			scan >>= priority;
+-			scan = (scan * percent[file]) / 100;
++			if (priority) {
++				scan >>= priority;
++				scan = (scan * percent[file]) / 100;
++			}
+ 			zone->lru[l].nr_scan += scan + 1;
+ 			nr[l] = zone->lru[l].nr_scan;
+ 			if (nr[l] >= sc->swap_cluster_max)
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
@@ -81,6 +85,7 @@ mm-speculative-page-references-fix-migration_entry_wait-for-speculative-page-cac
 vmscan-use-an-indexed-array-for-lru-variables.patch
 swap-use-an-array-for-the-lru-pagevecs.patch
 vmscan-split-lru-lists-into-anon-file-sets-collect-lru-meminfo-statistics-from-correct-offset.patch
+vmscan-split-lru-lists-into-anon-file-sets-prevent-incorrect-oom-under-split_lru.patch
 vmscan-second-chance-replacement-for-anonymous-pages.patch
 unevictable-lru-infrastructure.patch
 unevictable-lru-infrastructure-fix.patch
