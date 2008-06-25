@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-handle-swap-cache-fix-shmem-page-migration-incorrectness-on-memcgroup.patch added to -mm tree
-Date: Wed, 25 Jun 2008 15:03:21 -0700
-Message-ID: <200806252203.m5PM3LlM028972@imap1.linux-foundation.org>
+Subject: + memcg-remove-refcnt-from-page_cgroup-fix-memcg-fix-mem_cgroup_end_migration-race.patch added to -mm tree
+Date: Wed, 25 Jun 2008 15:04:46 -0700
+Message-ID: <200806252204.m5PM4kuo029005@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48569 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59984 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750976AbYFYWDv (ORCPT
+	by vger.kernel.org with ESMTP id S1750976AbYFYWF2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Jun 2008 18:03:51 -0400
+	Wed, 25 Jun 2008 18:05:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, ebiederm@xmission.com, hugh@veritas.com, kosaki.motohiro@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, nishimura@mxp.nes.nec.co.jp, rientjes@google.com, xemul@openvz.org, yamamoto@valinux.co.jp
+Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com, ebiederm@xmission.com, hugh@veritas.com, kosaki.motohiro@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, rientjes@google.com, xemul@openvz.org, yamamoto@valinux.co.jp
 
 
 The patch titled
-     fix shmem page migration incorrectness on memcgroup
+     memcg: fix mem_cgroup_end_migration() race
 has been added to the -mm tree.  Its filename is
-     memcg-handle-swap-cache-fix-shmem-page-migration-incorrectness-on-memcgroup.patch
+     memcg-remove-refcnt-from-page_cgroup-fix-memcg-fix-mem_cgroup_end_migration-race.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,19 +34,22 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix shmem page migration incorrectness on memcgroup
+Subject: memcg: fix mem_cgroup_end_migration() race
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-mem_cgroup_uncharge() against old page is done after
-radix-tree-replacement.  And there were special handling to ingore
-swap-cache page.  But, shmem can be swap-cache and file-cache at the same
-time.  Chekcing PageSwapCache() is not correct here.  Check PageAnon()
-instead.
+In general, mem_cgroup's charge on ANON page is removed when
+page_remove_rmap() is called.
+
+At migration, the newpage is remapped again by remove_migration_ptes(). 
+But pte may be already changed (by task exits).  It is charged at page
+allocation but have no chance to be uncharged in that case because it is
+never added to rmap.
+
+Handle that corner case in mem_cgroup_end_migration().
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: Pavel Emelyanov <xemul@openvz.org>
 Cc: Li Zefan <lizf@cn.fujitsu.com>
@@ -57,37 +60,36 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ mm/memcontrol.c |   14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
 
-diff -puN mm/migrate.c~memcg-handle-swap-cache-fix-shmem-page-migration-incorrectness-on-memcgroup mm/migrate.c
---- a/mm/migrate.c~memcg-handle-swap-cache-fix-shmem-page-migration-incorrectness-on-memcgroup
-+++ a/mm/migrate.c
-@@ -358,7 +358,13 @@ static int migrate_page_move_mapping(str
- 	__inc_zone_page_state(newpage, NR_FILE_PAGES);
- 
- 	write_unlock_irq(&mapping->tree_lock);
--	if (!PageSwapCache(newpage))
-+
+diff -puN mm/memcontrol.c~memcg-remove-refcnt-from-page_cgroup-fix-memcg-fix-mem_cgroup_end_migration-race mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-remove-refcnt-from-page_cgroup-fix-memcg-fix-mem_cgroup_end_migration-race
++++ a/mm/memcontrol.c
+@@ -762,10 +762,22 @@ int mem_cgroup_prepare_migration(struct 
+ /* remove redundant charge if migration failed*/
+ void mem_cgroup_end_migration(struct page *newpage)
+ {
+-	/* At success, page->mapping is not NULL and nothing to do. */
 +	/*
-+	 * The page is removed from radix-tree implicitly.
-+	 * We uncharge it here but swap cache of anonymous page should be
-+	 * uncharged by mem_cgroup_ucharge_page().
++	 * At success, page->mapping is not NULL.
++	 * special rollback care is necessary when
++	 * 1. at migration failure. (newpage->mapping is cleared in this case)
++	 * 2. the newpage was moved but not remapped again because the task
++	 *    exits and the newpage is obsolete. In this case, the new page
++	 *    may be a swapcache. So, we just call mem_cgroup_uncharge_page()
++	 *    always for avoiding mess. The  page_cgroup will be removed if
++	 *    unnecessary. File cache pages is still on radix-tree. Don't
++	 *    care it.
 +	 */
-+	if (!PageAnon(newpage))
- 		mem_cgroup_uncharge_cache_page(page);
+ 	if (!newpage->mapping)
+ 		__mem_cgroup_uncharge_common(newpage,
+ 					 MEM_CGROUP_CHARGE_TYPE_FORCE);
++	else if (PageAnon(newpage))
++		mem_cgroup_uncharge_page(newpage);
+ }
  
- 	return 0;
-@@ -402,7 +408,8 @@ static void migrate_page_copy(struct pag
- 		/*
- 		 * SwapCache is removed implicitly. Uncharge against swapcache
- 		 * should be called after ClearPageSwapCache() because
--		 * mem_cgroup_uncharge_page checks the flag.
-+		 * mem_cgroup_uncharge_page checks the flag. shmem's swap cache
-+		 * is uncharged before here.
- 		 */
- 		mem_cgroup_uncharge_page(page);
- 	}
+ /*
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
@@ -109,6 +111,7 @@ memcg-better-migration-handling.patch
 memcg-remove-refcnt-from-page_cgroup.patch
 memcg-remove-refcnt-from-page_cgroup-fix.patch
 memcg-remove-refcnt-from-page_cgroup-fix-2.patch
+memcg-remove-refcnt-from-page_cgroup-fix-memcg-fix-mem_cgroup_end_migration-race.patch
 memcg-handle-swap-cache.patch
 memcg-handle-swap-cache-fix.patch
 memcg-handle-swap-cache-fix-shmem-page-migration-incorrectness-on-memcgroup.patch
