@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-remove-nopfn-fix.patch added to -mm tree
-Date: Thu, 26 Jun 2008 14:07:33 -0700
-Message-ID: <200806262107.m5QL7XbF018171@imap1.linux-foundation.org>
+Subject: + mlock-mlocked-pages-are-unevictable-fix-4.patch added to -mm tree
+Date: Thu, 26 Jun 2008 14:24:26 -0700
+Message-ID: <200806262124.m5QLOQV8018799@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43491 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60453 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753116AbYFZVIM (ORCPT
+	by vger.kernel.org with ESMTP id S1750836AbYFZVYc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Jun 2008 17:08:12 -0400
+	Thu, 26 Jun 2008 17:24:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hugh@veritas.com, npiggin@suse.de
+Cc: hugh@veritas.com
 
 
 The patch titled
-     mm-remove-nopfn fix
+     mlock-mlocked-pages-are-unevictable-fix-4
 has been added to the -mm tree.  Its filename is
-     mm-remove-nopfn-fix.patch
+     mlock-mlocked-pages-are-unevictable-fix-4.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,69 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-remove-nopfn fix
+Subject: mlock-mlocked-pages-are-unevictable-fix-4
 From: Hugh Dickins <hugh@veritas.com>
 
-mm-remove-nopfn.patch
+I trust you put Linus on unpaid leave for this week, for his poor
+judgement in chucking that horrid patch from Russ into 2.6.26.
 
-is now giving
+You may do best just to revert it (I don't even like the result myself)
+and then omit the fixups it has demanded; but if you're sticking by
+it, then I'm afraid it's still not right - the screen floods with
+bad page state messages at startup, because you put PG_swapbacked
+into PAGE_FLAGS, you naive man: did you think it's a page flag???
+No, it's a PAGE_FLAGS_CLEAR_WHEN_BAD and a PAGE_FLAGS_CHECK_AT_PREP.
 
-mm/memory.c: In function `use_zero_page': mm/memory.c:1089:
-error: `struct vm_operations_struct' has no member named `nopfn'
+Here's a fix to the final result, to
+mlock-mlocked-pages-are-unevictable-fix-3.patch
+but of course that leaves breakage amidst the earlier ones:
+if I were really conscientious I'd supply you with little patches
+to the intervening stages too, but I'm tired, and I think you'll find
+it a lot easier to do yourself than fiddle around with bits from me.
 
-because of use_zero_page() now in origin.patch: please fold in this patch too.
+With this and those build fixes, I do have mmotm running on i386 and
+x86_64 and powerpc (I folded in Kosaki's 10/10 and Balbir's 1-5).
+I've several little -rc5-mm3/mmotm fixes for you, mainly related to
+tmpfs and memcgroups, but never quite get to assemble them, and
+most people seem to be managing without them.  Tomorrow...
 
 Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Cc: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ include/linux/page-flags.h |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN mm/memory.c~mm-remove-nopfn-fix mm/memory.c
---- a/mm/memory.c~mm-remove-nopfn-fix
-+++ a/mm/memory.c
-@@ -1058,11 +1058,9 @@ static inline int use_zero_page(struct v
- 	if (vma->vm_flags & (VM_LOCKED | VM_SHARED))
- 		return 0;
- 	/*
--	 * And if we have a fault or a nopfn routine, it's not an
--	 * anonymous region.
-+	 * And if we have a fault routine, it's not an anonymous region.
- 	 */
--	return !vma->vm_ops ||
--		(!vma->vm_ops->fault && !vma->vm_ops->nopfn);
-+	return !vma->vm_ops || !vma->vm_ops->fault;
- }
+diff -puN include/linux/page-flags.h~mlock-mlocked-pages-are-unevictable-fix-4 include/linux/page-flags.h
+--- a/include/linux/page-flags.h~mlock-mlocked-pages-are-unevictable-fix-4
++++ a/include/linux/page-flags.h
+@@ -378,13 +378,14 @@ static inline void __ClearPageTail(struc
+ #define PAGE_FLAGS	(1 << PG_lru   | 1 << PG_private   | 1 << PG_locked | \
+ 			 1 << PG_buddy | 1 << PG_writeback | \
+ 			 1 << PG_slab  | 1 << PG_swapcache | 1 << PG_active | \
+-			 1 << PG_swapbacked | __PG_UNEVICTABLE | __PG_MLOCKED)
++			 __PG_UNEVICTABLE | __PG_MLOCKED)
  
- int get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
+ /*
+  * Flags checked in bad_page().  Pages on the free list should not have
+  * these flags set.  It they are, there is a problem.
+  */
+-#define PAGE_FLAGS_CLEAR_WHEN_BAD (PAGE_FLAGS | 1 << PG_reclaim | 1 << PG_dirty)
++#define PAGE_FLAGS_CLEAR_WHEN_BAD (PAGE_FLAGS | \
++		1 << PG_reclaim | 1 << PG_dirty | 1 << PG_swapbacked)
+ 
+ /*
+  * Flags checked when a page is freed.  Pages being freed should not have
+@@ -397,7 +398,8 @@ static inline void __ClearPageTail(struc
+  * Pages being prepped should not have these flags set.  It they are, there
+  * is a problem.
+  */
+-#define PAGE_FLAGS_CHECK_AT_PREP (PAGE_FLAGS | 1 << PG_reserved | 1 << PG_dirty)
++#define PAGE_FLAGS_CHECK_AT_PREP (PAGE_FLAGS | \
++		1 << PG_reserved | 1 << PG_dirty | 1 << PG_swapbacked)
+ 
+ #endif /* !__GENERATING_BOUNDS_H */
+ #endif	/* PAGE_FLAGS_H */
 _
 
 Patches currently in -mm which might be from hugh@veritas.com are
@@ -121,6 +147,7 @@ mm-speculative-page-references-fix-fix.patch
 mm-lockless-pagecache.patch
 mm-spinlock-tree_lock.patch
 powerpc-implement-pte_special.patch
+mlock-mlocked-pages-are-unevictable-fix-4.patch
 vmstat-mlocked-pages-statistics-fix-incorrect-mlocked-field-of-proc-meminfo.patch
 prio_tree-debugging-patch.patch
 
