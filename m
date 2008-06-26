@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mlock-mlocked-pages-are-unevictable-fix-4.patch added to -mm tree
-Date: Thu, 26 Jun 2008 14:24:26 -0700
-Message-ID: <200806262124.m5QLOQV8018799@imap1.linux-foundation.org>
+Subject: + tcpc-calculate-tcp_mem-based-on-low-memory-instead-of-all-memory.patch added to -mm tree
+Date: Thu, 26 Jun 2008 15:12:12 -0700
+Message-ID: <200806262212.m5QMCCSw020450@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60453 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40781 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750836AbYFZVYc (ORCPT
+	by vger.kernel.org with ESMTP id S1751592AbYFZWNW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Jun 2008 17:24:32 -0400
+	Thu, 26 Jun 2008 18:13:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hugh@veritas.com
+Cc: miquels@cistron.nl, davem@davemloft.net, jheffner@psc.edu, stable@kernel.org
 
 
 The patch titled
-     mlock-mlocked-pages-are-unevictable-fix-4
+     tcp.c: calculate tcp_mem based on low memory instead of all memory
 has been added to the -mm tree.  Its filename is
-     mlock-mlocked-pages-are-unevictable-fix-4.patch
+     tcpc-calculate-tcp_mem-based-on-low-memory-instead-of-all-memory.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,120 +34,113 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mlock-mlocked-pages-are-unevictable-fix-4
-From: Hugh Dickins <hugh@veritas.com>
+Subject: tcp.c: calculate tcp_mem based on low memory instead of all memory
+From: Miquel van Smoorenburg <miquels@cistron.nl>
 
-I trust you put Linus on unpaid leave for this week, for his poor
-judgement in chucking that horrid patch from Russ into 2.6.26.
+I started upgrading a bunch of machines in my nntp server farm
+to a recent kernel- 2.6.25.x. They were running 2.6.11.12 on
+32 bits, and I upgraded them to 2.6.25.x on 64 bits.
 
-You may do best just to revert it (I don't even like the result myself)
-and then omit the fixups it has demanded; but if you're sticking by
-it, then I'm afraid it's still not right - the screen floods with
-bad page state messages at startup, because you put PG_swapbacked
-into PAGE_FLAGS, you naive man: did you think it's a page flag???
-No, it's a PAGE_FLAGS_CLEAR_WHEN_BAD and a PAGE_FLAGS_CHECK_AT_PREP.
+All went fine until I noticed a few machines didn't have a 64
+bit capable processor, so I had to keep them on a 32 bit kernel.
+These are machines with dual xeons 3 Ghz and 8 GB of RAM.
 
-Here's a fix to the final result, to
-mlock-mlocked-pages-are-unevictable-fix-3.patch
-but of course that leaves breakage amidst the earlier ones:
-if I were really conscientious I'd supply you with little patches
-to the intervening stages too, but I'm tired, and I think you'll find
-it a lot easier to do yourself than fiddle around with bits from me.
+On the 32 bit machines I keep getting the error below, and a flood
+of these on a 9600 baud serial console essentially kills the machine:
 
-With this and those build fixes, I do have mmotm running on i386 and
-x86_64 and powerpc (I folded in Kosaki's 10/10 and Balbir's 1-5).
-I've several little -rc5-mm3/mmotm fixes for you, mainly related to
-tmpfs and memcgroups, but never quite get to assemble them, and
-most people seem to be managing without them.  Tomorrow...
+diablo invoked oom-killer: gfp_mask=0xd0, order=0, oomkilladj=0
+Pid: 4459, comm: diablo Not tainted 2.6.25.7-rc1 #1
+ [<c0249660>] oom_kill_process+0x120/0x210
+ [<c0227ff8>] __capable+0x8/0x20
+ [<c0249898>] badness+0x128/0x1c0
+ [<c0249b1c>] out_of_memory+0x17c/0x1c0
+ [<c024bdf4>] __alloc_pages+0x254/0x350
+ [<c03b75ad>] tcp_sendmsg+0x5cd/0xb50
+ [<c0381672>] sock_aio_write+0xe2/0x100
+ [<c02681e7>] do_sync_write+0xc7/0x110
+ [<c0232f20>] autoremove_wake_function+0x0/0x50
+ [<c0268af3>] vfs_write+0x133/0x140
+ [<c0269131>] sys_write+0x41/0x70
+ [<c0202e5e>] syscall_call+0x7/0xb
 
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
+After some investigation, I found out that the values of
+/proc/sys/net/ipv4/tcp_mem are quite different between
+these two versions:
+
+2.6.11.12:
+$ cat tcp_mem
+98304	131072	196608
+
+2.6.25:
+# cat tcp_mem
+804672	1072896	1609344
+
+Somwehere between 2.6.11.12 and 2.6.25, the calculation method of
+the tcp_mem array was changed. Now 1609344 pages is 6.5 GB,
+and that will ofcourse never fit in x86_32's low memory ..
+
+I am not quite sure what the correct solution is here, I think
+something like the patch below.
+
+Alternatively we could use the existing calculation but limit 'limit'
+to 3/4 of (totalram_pages - totalhigh_pages) if (totalhigh_pages > 0) ?
+
+linux-2.6.26-tcp_mem-lowmem.patch
+
+[PATCH] tcp.c: calculate tcp_mem based on low memory instead of all memory
+
+The tcp_mem array which contains limits on the total amount of
+memory used by TCP sockets is calculated based on nr_all_pages.
+On a 32 bits x86 system, we should base this on the number of
+lowmem pages.
+
+Signed-off-by: Miquel van Smoorenburg <miquels@cistron.nl>
+Cc: John Heffner <jheffner@psc.edu>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ net/ipv4/tcp.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/page-flags.h~mlock-mlocked-pages-are-unevictable-fix-4 include/linux/page-flags.h
---- a/include/linux/page-flags.h~mlock-mlocked-pages-are-unevictable-fix-4
-+++ a/include/linux/page-flags.h
-@@ -378,13 +378,14 @@ static inline void __ClearPageTail(struc
- #define PAGE_FLAGS	(1 << PG_lru   | 1 << PG_private   | 1 << PG_locked | \
- 			 1 << PG_buddy | 1 << PG_writeback | \
- 			 1 << PG_slab  | 1 << PG_swapcache | 1 << PG_active | \
--			 1 << PG_swapbacked | __PG_UNEVICTABLE | __PG_MLOCKED)
-+			 __PG_UNEVICTABLE | __PG_MLOCKED)
+diff -puN net/ipv4/tcp.c~tcpc-calculate-tcp_mem-based-on-low-memory-instead-of-all-memory net/ipv4/tcp.c
+--- a/net/ipv4/tcp.c~tcpc-calculate-tcp_mem-based-on-low-memory-instead-of-all-memory
++++ a/net/ipv4/tcp.c
+@@ -260,6 +260,8 @@
+ #include <linux/socket.h>
+ #include <linux/random.h>
+ #include <linux/bootmem.h>
++#include <linux/highmem.h>
++#include <linux/swap.h>
+ #include <linux/cache.h>
+ #include <linux/err.h>
+ #include <linux/crypto.h>
+@@ -2620,7 +2622,7 @@ __setup("thash_entries=", set_thash_entr
+ void __init tcp_init(void)
+ {
+ 	struct sk_buff *skb = NULL;
+-	unsigned long limit;
++	unsigned long nr_pages, limit;
+ 	int order, i, max_share;
  
- /*
-  * Flags checked in bad_page().  Pages on the free list should not have
-  * these flags set.  It they are, there is a problem.
-  */
--#define PAGE_FLAGS_CLEAR_WHEN_BAD (PAGE_FLAGS | 1 << PG_reclaim | 1 << PG_dirty)
-+#define PAGE_FLAGS_CLEAR_WHEN_BAD (PAGE_FLAGS | \
-+		1 << PG_reclaim | 1 << PG_dirty | 1 << PG_swapbacked)
- 
- /*
-  * Flags checked when a page is freed.  Pages being freed should not have
-@@ -397,7 +398,8 @@ static inline void __ClearPageTail(struc
-  * Pages being prepped should not have these flags set.  It they are, there
-  * is a problem.
-  */
--#define PAGE_FLAGS_CHECK_AT_PREP (PAGE_FLAGS | 1 << PG_reserved | 1 << PG_dirty)
-+#define PAGE_FLAGS_CHECK_AT_PREP (PAGE_FLAGS | \
-+		1 << PG_reserved | 1 << PG_dirty | 1 << PG_swapbacked)
- 
- #endif /* !__GENERATING_BOUNDS_H */
- #endif	/* PAGE_FLAGS_H */
+ 	BUILD_BUG_ON(sizeof(struct tcp_skb_cb) > sizeof(skb->cb));
+@@ -2689,8 +2691,9 @@ void __init tcp_init(void)
+ 	 * is up to 1/2 at 256 MB, decreasing toward zero with the amount of
+ 	 * memory, with a floor of 128 pages.
+ 	 */
+-	limit = min(nr_all_pages, 1UL<<(28-PAGE_SHIFT)) >> (20-PAGE_SHIFT);
+-	limit = (limit * (nr_all_pages >> (20-PAGE_SHIFT))) >> (PAGE_SHIFT-11);
++	nr_pages = totalram_pages - totalhigh_pages;
++	limit = min(nr_pages, 1UL<<(28-PAGE_SHIFT)) >> (20-PAGE_SHIFT);
++	limit = (limit * (nr_pages >> (20-PAGE_SHIFT))) >> (PAGE_SHIFT-11);
+ 	limit = max(limit, 128UL);
+ 	sysctl_tcp_mem[0] = limit / 4 * 3;
+ 	sysctl_tcp_mem[1] = limit;
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from miquels@cistron.nl are
 
-origin.patch
-mm-dirty-page-accounting-vs-vm_mixedmap.patch
-git-unionfs.patch
-mm-remove-nopfn-fix.patch
-access_process_vm-device-memory-infrastructure.patch
-use-generic_access_phys-for-dev-mem-mappings.patch
-use-generic_access_phys-for-dev-mem-mappings-fix.patch
-use-generic_access_phys-for-pci-mmap-on-x86.patch
-powerpc-ioremap_prot.patch
-spufs-use-the-new-vm_ops-access.patch
-spufs-use-the-new-vm_ops-access-fix.patch
-mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co.patch
-hugetlb-move-hugetlb_acct_memory.patch
-hugetlb-reserve-huge-pages-for-reliable-map_private-hugetlbfs-mappings-until-fork.patch
-hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed.patch
-hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed-fix.patch
-hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed-build-fix.patch
-huge-page-private-reservation-review-cleanups.patch
-huge-page-private-reservation-review-cleanups-fix.patch
-mm-record-map_noreserve-status-on-vmas-and-fix-small-page-mprotect-reservations.patch
-hugetlb-move-reservation-region-support-earlier.patch
-hugetlb-allow-huge-page-mappings-to-be-created-without-reservations.patch
-hugetlb-allow-huge-page-mappings-to-be-created-without-reservations-cleanups.patch
-generic_file_aio_read-cleanups.patch
-tmpfs-support-aio.patch
-memcg-better-migration-handling.patch
-memcg-remove-refcnt-from-page_cgroup.patch
-memcg-remove-refcnt-from-page_cgroup-fix.patch
-memcg-remove-refcnt-from-page_cgroup-fix-2.patch
-memcg-remove-refcnt-from-page_cgroup-fix-memcg-fix-mem_cgroup_end_migration-race.patch
-memcg-handle-swap-cache.patch
-memcg-handle-swap-cache-fix.patch
-memcg-handle-swap-cache-fix-shmem-page-migration-incorrectness-on-memcgroup.patch
-memcg-helper-function-for-relcaim-from-shmem.patch
-memcg-add-hints-for-branch.patch
-memcg-remove-a-redundant-check.patch
-memrlimit-improve-error-handling.patch
-memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
-mm-readahead-scan-lockless.patch
-radix-tree-add-gang_lookup_slot-gang_lookup_slot_tag.patch
-mm-speculative-page-references.patch
-mm-speculative-page-references-fix.patch
-mm-speculative-page-references-fix-fix.patch
-mm-lockless-pagecache.patch
-mm-spinlock-tree_lock.patch
-powerpc-implement-pte_special.patch
-mlock-mlocked-pages-are-unevictable-fix-4.patch
-vmstat-mlocked-pages-statistics-fix-incorrect-mlocked-field-of-proc-meminfo.patch
-prio_tree-debugging-patch.patch
+tcpc-calculate-tcp_mem-based-on-low-memory-instead-of-all-memory.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
 
