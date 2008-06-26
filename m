@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + ext4-add-missing-unlock-to-an-error-path-in-ext4_quota_write.patch added to -mm tree
-Date: Thu, 26 Jun 2008 09:01:19 -0700
-Message-ID: <200806261601.m5QG1JBe006678@imap1.linux-foundation.org>
+Subject: + ext3-add-missing-unlock-to-error-path-in-ext3_quota_write.patch added to -mm tree
+Date: Thu, 26 Jun 2008 09:01:17 -0700
+Message-ID: <200806261601.m5QG1HsK006672@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59864 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35101 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754476AbYFZQBw (ORCPT
+	by vger.kernel.org with ESMTP id S1754440AbYFZQBv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Jun 2008 12:01:52 -0400
+	Thu, 26 Jun 2008 12:01:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jack@suse.cz
 
 
 The patch titled
-     ext4: add missing unlock to an error path in ext4_quota_write()
+     ext3: add missing unlock to error path in ext3_quota_write()
 has been added to the -mm tree.  Its filename is
-     ext4-add-missing-unlock-to-an-error-path-in-ext4_quota_write.patch
+     ext3-add-missing-unlock-to-error-path-in-ext3_quota_write.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,23 +34,23 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext4: add missing unlock to an error path in ext4_quota_write()
+Subject: ext3: add missing unlock to error path in ext3_quota_write()
 From: Jan Kara <jack@suse.cz>
 
-When write in ext4_quota_write() fails, we have to properly release
+When write in ext3_quota_write() fails, we have to properly release
 i_mutex.  One error path has been missing the unlock...
 
 Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/super.c |    4 +++-
+ fs/ext3/super.c |    4 +++-
  1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN fs/ext4/super.c~ext4-add-missing-unlock-to-an-error-path-in-ext4_quota_write fs/ext4/super.c
---- a/fs/ext4/super.c~ext4-add-missing-unlock-to-an-error-path-in-ext4_quota_write
-+++ a/fs/ext4/super.c
-@@ -3337,8 +3337,10 @@ static ssize_t ext4_quota_write(struct s
+diff -puN fs/ext3/super.c~ext3-add-missing-unlock-to-error-path-in-ext3_quota_write fs/ext3/super.c
+--- a/fs/ext3/super.c~ext3-add-missing-unlock-to-error-path-in-ext3_quota_write
++++ a/fs/ext3/super.c
+@@ -2875,8 +2875,10 @@ static ssize_t ext3_quota_write(struct s
  		blk++;
  	}
  out:
@@ -61,7 +61,7 @@ diff -puN fs/ext4/super.c~ext4-add-missing-unlock-to-an-error-path-in-ext4_quota
 +	}
  	if (inode->i_size < off+len-towrite) {
  		i_size_write(inode, off+len-towrite);
- 		EXT4_I(inode)->i_disksize = inode->i_size;
+ 		EXT3_I(inode)->i_disksize = inode->i_size;
 _
 
 Patches currently in -mm which might be from jack@suse.cz are
