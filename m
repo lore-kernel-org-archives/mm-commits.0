@@ -1,55 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: - parport-make-parport_cs_release-static.patch removed from -mm tree
-Date: Thu, 26 Jun 2008 02:54:23 -0700
-Message-ID: <200806260954.m5Q9sNOE021583@imap1.linux-foundation.org>
+Subject: + ext4-add-missing-unlock-to-an-error-path-in-ext4_quota_write.patch added to -mm tree
+Date: Thu, 26 Jun 2008 09:01:19 -0700
+Message-ID: <200806261601.m5QG1JBe006678@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35384 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59864 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750874AbYFZJyc (ORCPT
+	by vger.kernel.org with ESMTP id S1754476AbYFZQBw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Jun 2008 05:54:32 -0400
+	Thu, 26 Jun 2008 12:01:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andre@bitwigglers.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: jack@suse.cz
 
 
 The patch titled
-     parport: make parport_cs_release static
-has been removed from the -mm tree.  Its filename was
-     parport-make-parport_cs_release-static.patch
+     ext4: add missing unlock to an error path in ext4_quota_write()
+has been added to the -mm tree.  Its filename is
+     ext4-add-missing-unlock-to-an-error-path-in-ext4_quota_write.patch
 
-This patch was dropped because it was a dupe
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: parport: make parport_cs_release static
-From: Andre Haupt <andre@bitwigglers.org>
+Subject: ext4: add missing unlock to an error path in ext4_quota_write()
+From: Jan Kara <jack@suse.cz>
 
-Signed-off-by: Andre Haupt <andre@bitwigglers.org>
+When write in ext4_quota_write() fails, we have to properly release
+i_mutex.  One error path has been missing the unlock...
+
+Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/parport/parport_cs.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ext4/super.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/parport/parport_cs.c~parport-make-parport_cs_release-static drivers/parport/parport_cs.c
---- a/drivers/parport/parport_cs.c~parport-make-parport_cs_release-static
-+++ a/drivers/parport/parport_cs.c
-@@ -235,7 +235,7 @@ failed:
-     
- ======================================================================*/
- 
--void parport_cs_release(struct pcmcia_device *link)
-+static void parport_cs_release(struct pcmcia_device *link)
- {
- 	parport_info_t *info = link->priv;
- 
+diff -puN fs/ext4/super.c~ext4-add-missing-unlock-to-an-error-path-in-ext4_quota_write fs/ext4/super.c
+--- a/fs/ext4/super.c~ext4-add-missing-unlock-to-an-error-path-in-ext4_quota_write
++++ a/fs/ext4/super.c
+@@ -3337,8 +3337,10 @@ static ssize_t ext4_quota_write(struct s
+ 		blk++;
+ 	}
+ out:
+-	if (len == towrite)
++	if (len == towrite) {
++		mutex_unlock(&inode->i_mutex);
+ 		return err;
++	}
+ 	if (inode->i_size < off+len-towrite) {
+ 		i_size_write(inode, off+len-towrite);
+ 		EXT4_I(inode)->i_disksize = inode->i_size;
 _
 
-Patches currently in -mm which might be from andre@bitwigglers.org are
+Patches currently in -mm which might be from jack@suse.cz are
 
-parport-remove-superfluous-local-variable.patch
-parport-make-parport_cs_release-static.patch
+ext3-add-missing-unlock-to-error-path-in-ext3_quota_write.patch
+ext4-add-missing-unlock-to-an-error-path-in-ext4_quota_write.patch
+ext3-fix-synchronization-of-quota-files-in-journal=data-mode.patch
+ext3-fix-typos-in-messages-and-comments-journalled-journaled.patch
+ext3-correct-mount-option-parsing-to-detect-when-quota-options-can-be-changed.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
+ext3-validate-directory-entry-data-before-use.patch
+jbd-positively-dispose-the-unmapped-data-buffers-in-journal_commit_transaction.patch
+reiserfs-fix-synchronization-of-quota-files-in-journal=data-mode.patch
+reiserfs-fix-typos-in-messages-and-comments-journalled-journaled.patch
+reiserfs-correct-mount-option-parsing-to-detect-when-quota-options-can-be-changed.patch
+quota-rename-quota-functions-from-upper-case-make-bigger-ones-non-inline.patch
+quota-cleanup-loop-in-sync_dquots.patch
+quota-move-function-macros-from-quotah-to-quotaopsh.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-fix.patch
+quota-convert-macros-to-inline-functions.patch
 
