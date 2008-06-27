@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + edac-core-fix-workq-timer.patch added to -mm tree
-Date: Fri, 27 Jun 2008 16:09:10 -0700
-Message-ID: <200806272309.m5RN9B2E010816@imap1.linux-foundation.org>
+Subject: + edac-i5100-fix-enable-ecc-hardware.patch added to -mm tree
+Date: Fri, 27 Jun 2008 16:09:04 -0700
+Message-ID: <200806272309.m5RN95IZ010807@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39533 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36024 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763312AbYF0XJa (ORCPT
+	by vger.kernel.org with ESMTP id S932169AbYF0XJ3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Jun 2008 19:09:30 -0400
+	Fri, 27 Jun 2008 19:09:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ajones@riverbed.com, dougthompson@xmission.com
+Cc: ajones@riverbed.com
 
 
 The patch titled
-     edac: core fix workq timer
+     edac: i5100 fix enable ecc hardware
 has been added to the -mm tree.  Its filename is
-     edac-core-fix-workq-timer.patch
+     edac-i5100-fix-enable-ecc-hardware.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,67 +34,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: edac: core fix workq timer
+Subject: edac: i5100 fix enable ecc hardware
 From: Arthur Jones <ajones@riverbed.com>
 
-When updating the edac_mc_poll_msec module parameter from the sysfs
-/sys/module/edac_core/parameters/edac_mc_poll_msec file, we don't update
-the workq timers.  So that, if we move from a big poll time to a small
-one, the small one won't take effect until the big one has timed out.
-
-Here we provide a new module parameter set method to call out to the
-update routine.  This brings the /sys/module/edac_core/parameters
-functionality up to that provided by the /sys/drivers/system/edac/mc sysfs
-module parameter files so that we can remove them or at least link to the
-/sys/module files...
+It is possible that the BIOS did not enable ECC at boot time.  We check
+for that case and fail to load if it is true.
 
 Signed-off-by: Arthur Jones <ajones@riverbed.com>
-Signed-off-by: Doug Thompson <dougthompson@xmission.com>
+Signed-off-by: Arthur Jones <ajones@riverbed.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/edac_mc_sysfs.c |   22 +++++++++++++++++++++-
- 1 file changed, 21 insertions(+), 1 deletion(-)
+ drivers/edac/i5100_edac.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN drivers/edac/edac_mc_sysfs.c~edac-core-fix-workq-timer drivers/edac/edac_mc_sysfs.c
---- a/drivers/edac/edac_mc_sysfs.c~edac-core-fix-workq-timer
-+++ a/drivers/edac/edac_mc_sysfs.c
-@@ -44,6 +44,25 @@ int edac_mc_get_poll_msec(void)
- 	return edac_mc_poll_msec;
- }
+diff -puN drivers/edac/i5100_edac.c~edac-i5100-fix-enable-ecc-hardware drivers/edac/i5100_edac.c
+--- a/drivers/edac/i5100_edac.c~edac-i5100-fix-enable-ecc-hardware
++++ a/drivers/edac/i5100_edac.c
+@@ -24,6 +24,8 @@
+ /* register addresses and bit field accessors... */
  
-+static int edac_set_poll_msec(const char *val, struct kernel_param *kp)
-+{
-+	long l;
-+	int ret;
-+
-+	if (!val)
-+		return -EINVAL;
-+
-+	ret = strict_strtol(val, 0, &l);
-+	if (ret == -EINVAL || ((int)l != l))
-+		return -EINVAL;
-+	*((int *)kp->arg) = l;
-+
-+	/* notify edac_mc engine to reset the poll period */
-+	edac_mc_reset_delay_period(l);
-+
-+	return 0;
-+}
-+
- /* Parameter declarations for above */
- module_param(edac_mc_panic_on_ue, int, 0644);
- MODULE_PARM_DESC(edac_mc_panic_on_ue, "Panic on uncorrected error: 0=off 1=on");
-@@ -53,7 +72,8 @@ MODULE_PARM_DESC(edac_mc_log_ue,
- module_param(edac_mc_log_ce, int, 0644);
- MODULE_PARM_DESC(edac_mc_log_ce,
- 		 "Log correctable error to console: 0=off 1=on");
--module_param(edac_mc_poll_msec, int, 0644);
-+module_param_call(edac_mc_poll_msec, edac_set_poll_msec, param_get_int,
-+		  &edac_mc_poll_msec, 0644);
- MODULE_PARM_DESC(edac_mc_poll_msec, "Polling period in milliseconds");
+ /* device 16, func 1 */
++#define I5100_MC		0x40	/* Memory Control Register */
++#define		I5100_MC_ERRDETEN(a)	((a) >> 5 & 1)
+ #define I5100_MS		0x44	/* Memory Status Register */
+ #define I5100_SPDDATA		0x48	/* Serial Presence Detect Status Reg */
+ #define		I5100_SPDDATA_RDO(a)	((a) >> 15 & 1)
+@@ -688,6 +690,14 @@ static int __devinit i5100_init_one(stru
+ 		goto bail;
+ 	}
  
- /*
++	/* ECC enabled? */
++	pci_read_config_dword(pdev, I5100_MC, &dw);
++	if (!I5100_MC_ERRDETEN(dw)) {
++		printk(KERN_INFO "i5100_edac: ECC not enabled.\n");
++		ret = -ENODEV;
++		goto bail;
++	}
++
+ 	/* figure out how many ranks, from strapped state of 48GB_Mode input */
+ 	pci_read_config_dword(pdev, I5100_MS, &dw);
+ 	ranksperch = !!(dw & (1 << 8)) * 2 + 4;
 _
 
 Patches currently in -mm which might be from ajones@riverbed.com are
