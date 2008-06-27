@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + tcpc-calculate-tcp_mem-based-on-low-memory-instead-of-all-memory.patch added to -mm tree
-Date: Thu, 26 Jun 2008 15:12:12 -0700
-Message-ID: <200806262212.m5QMCCSw020450@imap1.linux-foundation.org>
+Subject: + hugetlb-modular-state-for-hugetlb-page-size-cleanup.patch added to -mm tree
+Date: Fri, 27 Jun 2008 11:52:19 -0700
+Message-ID: <200806271852.m5RIqJId000941@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40781 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45611 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751592AbYFZWNW (ORCPT
+	by vger.kernel.org with ESMTP id S1754915AbYF0Sxs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Jun 2008 18:13:22 -0400
+	Fri, 27 Jun 2008 14:53:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: miquels@cistron.nl, davem@davemloft.net, jheffner@psc.edu, stable@kernel.org
+Cc: hannes@saeurebad.de, agl@us.ibm.com, ak@suse.de, hugh@veritas.com, nacc@us.ibm.com, npiggin@suse.de
 
 
 The patch titled
-     tcp.c: calculate tcp_mem based on low memory instead of all memory
+     hugetlb-modular-state-for-hugetlb-page-size-cleanup
 has been added to the -mm tree.  Its filename is
-     tcpc-calculate-tcp_mem-based-on-low-memory-instead-of-all-memory.patch
+     hugetlb-modular-state-for-hugetlb-page-size-cleanup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,113 +34,126 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tcp.c: calculate tcp_mem based on low memory instead of all memory
-From: Miquel van Smoorenburg <miquels@cistron.nl>
+Subject: hugetlb-modular-state-for-hugetlb-page-size-cleanup
+From: Johannes Weiner <hannes@saeurebad.de>
 
-I started upgrading a bunch of machines in my nntp server farm
-to a recent kernel- 2.6.25.x. They were running 2.6.11.12 on
-32 bits, and I upgraded them to 2.6.25.x on 64 bits.
+vma_page_offset() has no callees: drop it.
 
-All went fine until I noticed a few machines didn't have a 64
-bit capable processor, so I had to keep them on a 32 bit kernel.
-These are machines with dual xeons 3 Ghz and 8 GB of RAM.
+Hugh adds: vma_pagecache_offset() has a dangerously misleading name, since
+it's using hugepage units: rename it to vma_hugecache_offset().
 
-On the 32 bit machines I keep getting the error below, and a flood
-of these on a 9600 baud serial console essentially kills the machine:
-
-diablo invoked oom-killer: gfp_mask=0xd0, order=0, oomkilladj=0
-Pid: 4459, comm: diablo Not tainted 2.6.25.7-rc1 #1
- [<c0249660>] oom_kill_process+0x120/0x210
- [<c0227ff8>] __capable+0x8/0x20
- [<c0249898>] badness+0x128/0x1c0
- [<c0249b1c>] out_of_memory+0x17c/0x1c0
- [<c024bdf4>] __alloc_pages+0x254/0x350
- [<c03b75ad>] tcp_sendmsg+0x5cd/0xb50
- [<c0381672>] sock_aio_write+0xe2/0x100
- [<c02681e7>] do_sync_write+0xc7/0x110
- [<c0232f20>] autoremove_wake_function+0x0/0x50
- [<c0268af3>] vfs_write+0x133/0x140
- [<c0269131>] sys_write+0x41/0x70
- [<c0202e5e>] syscall_call+0x7/0xb
-
-After some investigation, I found out that the values of
-/proc/sys/net/ipv4/tcp_mem are quite different between
-these two versions:
-
-2.6.11.12:
-$ cat tcp_mem
-98304	131072	196608
-
-2.6.25:
-# cat tcp_mem
-804672	1072896	1609344
-
-Somwehere between 2.6.11.12 and 2.6.25, the calculation method of
-the tcp_mem array was changed. Now 1609344 pages is 6.5 GB,
-and that will ofcourse never fit in x86_32's low memory ..
-
-I am not quite sure what the correct solution is here, I think
-something like the patch below.
-
-Alternatively we could use the existing calculation but limit 'limit'
-to 3/4 of (totalram_pages - totalhigh_pages) if (totalhigh_pages > 0) ?
-
-linux-2.6.26-tcp_mem-lowmem.patch
-
-[PATCH] tcp.c: calculate tcp_mem based on low memory instead of all memory
-
-The tcp_mem array which contains limits on the total amount of
-memory used by TCP sockets is calculated based on nr_all_pages.
-On a 32 bits x86 system, we should base this on the number of
-lowmem pages.
-
-Signed-off-by: Miquel van Smoorenburg <miquels@cistron.nl>
-Cc: John Heffner <jheffner@psc.edu>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: <stable@kernel.org>
+Signed-off-by: Johannes Weiner <hannes@saeurebad.de>
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Cc: Adam Litke <agl@us.ibm.com>
+Cc: Nishanth Aravamudan <nacc@us.ibm.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/ipv4/tcp.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ mm/hugetlb.c |   21 +++++----------------
+ 1 file changed, 5 insertions(+), 16 deletions(-)
 
-diff -puN net/ipv4/tcp.c~tcpc-calculate-tcp_mem-based-on-low-memory-instead-of-all-memory net/ipv4/tcp.c
---- a/net/ipv4/tcp.c~tcpc-calculate-tcp_mem-based-on-low-memory-instead-of-all-memory
-+++ a/net/ipv4/tcp.c
-@@ -260,6 +260,8 @@
- #include <linux/socket.h>
- #include <linux/random.h>
- #include <linux/bootmem.h>
-+#include <linux/highmem.h>
-+#include <linux/swap.h>
- #include <linux/cache.h>
- #include <linux/err.h>
- #include <linux/crypto.h>
-@@ -2620,7 +2622,7 @@ __setup("thash_entries=", set_thash_entr
- void __init tcp_init(void)
- {
- 	struct sk_buff *skb = NULL;
--	unsigned long limit;
-+	unsigned long nr_pages, limit;
- 	int order, i, max_share;
+diff -puN mm/hugetlb.c~hugetlb-modular-state-for-hugetlb-page-size-cleanup mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-modular-state-for-hugetlb-page-size-cleanup
++++ a/mm/hugetlb.c
+@@ -36,20 +36,9 @@ static DEFINE_SPINLOCK(hugetlb_lock);
  
- 	BUILD_BUG_ON(sizeof(struct tcp_skb_cb) > sizeof(skb->cb));
-@@ -2689,8 +2691,9 @@ void __init tcp_init(void)
- 	 * is up to 1/2 at 256 MB, decreasing toward zero with the amount of
- 	 * memory, with a floor of 128 pages.
- 	 */
--	limit = min(nr_all_pages, 1UL<<(28-PAGE_SHIFT)) >> (20-PAGE_SHIFT);
--	limit = (limit * (nr_all_pages >> (20-PAGE_SHIFT))) >> (PAGE_SHIFT-11);
-+	nr_pages = totalram_pages - totalhigh_pages;
-+	limit = min(nr_pages, 1UL<<(28-PAGE_SHIFT)) >> (20-PAGE_SHIFT);
-+	limit = (limit * (nr_pages >> (20-PAGE_SHIFT))) >> (PAGE_SHIFT-11);
- 	limit = max(limit, 128UL);
- 	sysctl_tcp_mem[0] = limit / 4 * 3;
- 	sysctl_tcp_mem[1] = limit;
+ /*
+  * Convert the address within this vma to the page offset within
+- * the mapping, in base page units.
+- */
+-static pgoff_t vma_page_offset(struct vm_area_struct *vma,
+-				unsigned long address)
+-{
+-	return ((address - vma->vm_start) >> PAGE_SHIFT) +
+-					(vma->vm_pgoff >> PAGE_SHIFT);
+-}
+-
+-/*
+- * Convert the address within this vma to the page offset within
+  * the mapping, in pagecache page units; huge pages here.
+  */
+-static pgoff_t vma_pagecache_offset(struct hstate *h,
++static pgoff_t vma_hugecache_offset(struct hstate *h,
+ 			struct vm_area_struct *vma, unsigned long address)
+ {
+ 	return ((address - vma->vm_start) >> huge_page_shift(h)) +
+@@ -746,7 +735,7 @@ static int vma_needs_reservation(struct 
+ 	struct inode *inode = mapping->host;
+ 
+ 	if (vma->vm_flags & VM_SHARED) {
+-		pgoff_t idx = vma_pagecache_offset(h, vma, addr);
++		pgoff_t idx = vma_hugecache_offset(h, vma, addr);
+ 		return region_chg(&inode->i_mapping->private_list,
+ 							idx, idx + 1);
+ 
+@@ -764,7 +753,7 @@ static void vma_commit_reservation(struc
+ 	struct inode *inode = mapping->host;
+ 
+ 	if (vma->vm_flags & VM_SHARED) {
+-		pgoff_t idx = vma_pagecache_offset(h, vma, addr);
++		pgoff_t idx = vma_hugecache_offset(h, vma, addr);
+ 		region_add(&inode->i_mapping->private_list, idx, idx + 1);
+ 	}
+ }
+@@ -1387,7 +1376,7 @@ static struct page *hugetlbfs_pagecache_
+ 	pgoff_t idx;
+ 
+ 	mapping = vma->vm_file->f_mapping;
+-	idx = vma_pagecache_offset(h, vma, address);
++	idx = vma_hugecache_offset(h, vma, address);
+ 
+ 	return find_lock_page(mapping, idx);
+ }
+@@ -1416,7 +1405,7 @@ static int hugetlb_no_page(struct mm_str
+ 	}
+ 
+ 	mapping = vma->vm_file->f_mapping;
+-	idx = vma_pagecache_offset(h, vma, address);
++	idx = vma_hugecache_offset(h, vma, address);
+ 
+ 	/*
+ 	 * Use page lock to guard against racing truncation
 _
 
-Patches currently in -mm which might be from miquels@cistron.nl are
+Patches currently in -mm which might be from hannes@saeurebad.de are
 
-tcpc-calculate-tcp_mem-based-on-low-memory-instead-of-all-memory.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
+git-xtensa.patch
+mm-move-bootmem-descriptors-definition-to-a-single-place.patch
+mm-fix-free_all_bootmem_core-alignment-check.patch
+mm-normalize-internal-argument-passing-of-bootmem-data.patch
+mm-unexport-__alloc_bootmem_core.patch
+mm-drop-unneeded-pgdat-argument-from-free_area_init_node.patch
+hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed-fix.patch
+huge-page-private-reservation-review-cleanups.patch
+huge-page-private-reservation-review-cleanups-fix.patch
+mm-record-map_noreserve-status-on-vmas-and-fix-small-page-mprotect-reservations.patch
+hugetlb-move-reservation-region-support-earlier.patch
+hugetlb-allow-huge-page-mappings-to-be-created-without-reservations.patch
+hugetlb-allow-huge-page-mappings-to-be-created-without-reservations-cleanups.patch
+hugetlb-modular-state-for-hugetlb-page-size-cleanup.patch
+linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+bootmem-reorder-code-to-match-new-bootmem-structure.patch
+revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+bootmem-clean-up-bootmemc-file-header.patch
+revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+bootmem-add-documentation-to-api-functions.patch
+revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+bootmem-add-debugging-framework.patch
+bootmem-add-debugging-framework-fix.patch
+bootmem-revisit-bitmap-size-calculations.patch
+bootmem-revisit-bootmem-descriptor-list-handling.patch
+bootmem-clean-up-free_all_bootmem_core.patch
+bootmem-clean-up-free_all_bootmem_core-fix.patch
+bootmem-clean-up-alloc_bootmem_core.patch
+bootmem-free-reserve-helpers.patch
+bootmem-free-reserve-helpers-fix.patch
+revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+bootmem-factor-out-the-marking-of-a-pfn-range.patch
+bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
+bootmem-respect-goal-more-likely.patch
+bootmem-make-__alloc_bootmem_low_node-fall-back-to-other-nodes.patch
+bootmem-revisit-alloc_bootmem_section.patch
+bootmem-replace-node_boot_start-in-struct-bootmem_data.patch
 
