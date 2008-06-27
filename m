@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + edac-i5100-fix-missing-bits.patch added to -mm tree
-Date: Fri, 27 Jun 2008 16:09:01 -0700
-Message-ID: <200806272309.m5RN92Wx010804@imap1.linux-foundation.org>
+Subject: + edac-core-fix-added-newline-to-sysfs-dimm-labels.patch added to -mm tree
+Date: Fri, 27 Jun 2008 16:09:16 -0700
+Message-ID: <200806272309.m5RN9HBU010825@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40064 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54597 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932188AbYF0XJr (ORCPT
+	by vger.kernel.org with ESMTP id S932220AbYF0XJg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Jun 2008 19:09:47 -0400
+	Fri, 27 Jun 2008 19:09:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: ajones@riverbed.com, dougthompson@xmission.com
 
 
 The patch titled
-     edac: i5100 fix missing bits
+     edac: core fix added newline to sysfs dimm labels
 has been added to the -mm tree.  Its filename is
-     edac-i5100-fix-missing-bits.patch
+     edac-core-fix-added-newline-to-sysfs-dimm-labels.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,52 +34,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: edac: i5100 fix missing bits
+Subject: edac: core fix added newline to sysfs dimm labels
 From: Arthur Jones <ajones@riverbed.com>
 
-The error mask we use to trigger ECC notifications is missing many bits of
-interest.  We add these bits here so that all possible ECC errors can be
-reported.
+The channel DIMM label does not seem to be used much in the edac code. 
+However, where it is used (in the core code), it is assumed to not have a
+newline embedded.  This leaves the sysfs file newline free which looks
+funny when cat'ing it.  Here we just add the trailing newline to the sysfs
+chX_dimm_label output...
+
+[Doug Thompson note: the DIMM label is one of the primary uses of EDAC. 
+User space daemon scripts, edac-utils@sourceforge, populate the DIMM label
+fields, via /sys/devices/system/edac attributes, with the silk screen
+labels of the motherboard in use.  dmidecode access BIOS tables, but BIOS
+tables are well known to be incorrect and useless in these respects. 
+edac-utils will strip off any newlines before its use of the output, when
+displaying DIMM slot silk screen labels.
 
 Signed-off-by: Arthur Jones <ajones@riverbed.com>
 Signed-off-by: Doug Thompson <dougthompson@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/i5100_edac.c |   18 +++++++++++++++---
- 1 file changed, 15 insertions(+), 3 deletions(-)
+ drivers/edac/edac_mc_sysfs.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN drivers/edac/i5100_edac.c~edac-i5100-fix-missing-bits drivers/edac/i5100_edac.c
---- a/drivers/edac/i5100_edac.c~edac-i5100-fix-missing-bits
-+++ a/drivers/edac/i5100_edac.c
-@@ -52,12 +52,24 @@
- #define		I5100_FERR_NF_MEM_M16ERR_MASK	(1 << 16)
- #define		I5100_FERR_NF_MEM_M15ERR_MASK	(1 << 15)
- #define		I5100_FERR_NF_MEM_M14ERR_MASK	(1 << 14)
--#define		I5100_FERR_NF_MEM_
--#define		I5100_FERR_NF_MEM_
-+#define		I5100_FERR_NF_MEM_M12ERR_MASK	(1 << 12)
-+#define		I5100_FERR_NF_MEM_M11ERR_MASK	(1 << 11)
-+#define		I5100_FERR_NF_MEM_M10ERR_MASK	(1 << 10)
-+#define		I5100_FERR_NF_MEM_M6ERR_MASK	(1 << 6)
-+#define		I5100_FERR_NF_MEM_M5ERR_MASK	(1 << 5)
-+#define		I5100_FERR_NF_MEM_M4ERR_MASK	(1 << 4)
-+#define		I5100_FERR_NF_MEM_M1ERR_MASK	1
- #define		I5100_FERR_NF_MEM_ANY_MASK	\
- 			(I5100_FERR_NF_MEM_M16ERR_MASK | \
- 			I5100_FERR_NF_MEM_M15ERR_MASK | \
--			I5100_FERR_NF_MEM_M14ERR_MASK)
-+			I5100_FERR_NF_MEM_M14ERR_MASK | \
-+			I5100_FERR_NF_MEM_M12ERR_MASK | \
-+			I5100_FERR_NF_MEM_M11ERR_MASK | \
-+			I5100_FERR_NF_MEM_M10ERR_MASK | \
-+			I5100_FERR_NF_MEM_M6ERR_MASK | \
-+			I5100_FERR_NF_MEM_M5ERR_MASK | \
-+			I5100_FERR_NF_MEM_M4ERR_MASK | \
-+			I5100_FERR_NF_MEM_M1ERR_MASK)
- #define		I5100_FERR_NF_MEM_ANY(a)  ((a) & I5100_FERR_NF_MEM_ANY_MASK)
- #define	I5100_NERR_NF_MEM	0xa4	/* MC Next Non-Fatal Errors */
- #define		I5100_NERR_NF_MEM_ANY(a)  I5100_FERR_NF_MEM_ANY(a)
+diff -puN drivers/edac/edac_mc_sysfs.c~edac-core-fix-added-newline-to-sysfs-dimm-labels drivers/edac/edac_mc_sysfs.c
+--- a/drivers/edac/edac_mc_sysfs.c~edac-core-fix-added-newline-to-sysfs-dimm-labels
++++ a/drivers/edac/edac_mc_sysfs.c
+@@ -178,7 +178,11 @@ static ssize_t csrow_edac_mode_show(stru
+ static ssize_t channel_dimm_label_show(struct csrow_info *csrow,
+ 				char *data, int channel)
+ {
+-	return snprintf(data, EDAC_MC_LABEL_LEN, "%s",
++	/* if field has not been initialized, there is nothing to send */
++	if (!csrow->channels[channel].label[0])
++		return 0;
++
++	return snprintf(data, EDAC_MC_LABEL_LEN, "%s\n",
+ 			csrow->channels[channel].label);
+ }
+ 
 _
 
 Patches currently in -mm which might be from ajones@riverbed.com are
