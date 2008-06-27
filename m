@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + edac-core-fix-added-newline-to-sysfs-dimm-labels.patch added to -mm tree
-Date: Fri, 27 Jun 2008 16:09:16 -0700
-Message-ID: <200806272309.m5RN9HBU010825@imap1.linux-foundation.org>
+Subject: + edac-mv64x60-add-pci-fixup.patch added to -mm tree
+Date: Fri, 27 Jun 2008 16:09:22 -0700
+Message-ID: <200806272309.m5RN9MSl010836@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54597 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59040 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932220AbYF0XJg (ORCPT
+	by vger.kernel.org with ESMTP id S932305AbYF0XKR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Jun 2008 19:09:36 -0400
+	Fri, 27 Jun 2008 19:10:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ajones@riverbed.com, dougthompson@xmission.com
+Cc: djiang@mvista.com
 
 
 The patch titled
-     edac: core fix added newline to sysfs dimm labels
+     edac: mv64x60 add pci fixup
 has been added to the -mm tree.  Its filename is
-     edac-core-fix-added-newline-to-sysfs-dimm-labels.patch
+     edac-mv64x60-add-pci-fixup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,58 +34,76 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: edac: core fix added newline to sysfs dimm labels
-From: Arthur Jones <ajones@riverbed.com>
+Subject: edac: mv64x60 add pci fixup
+From: Dave Jiang <djiang@mvista.com>
 
-The channel DIMM label does not seem to be used much in the edac code. 
-However, where it is used (in the core code), it is assumed to not have a
-newline embedded.  This leaves the sysfs file newline free which looks
-funny when cat'ing it.  Here we just add the trailing newline to the sysfs
-chX_dimm_label output...
+Fixup of missing bit 0 on 64360 PCIx_ERR_MASK and errata FEr-#11 and
+FEr-#16 for the 64460.  Bit 0 must remain 0.
 
-[Doug Thompson note: the DIMM label is one of the primary uses of EDAC. 
-User space daemon scripts, edac-utils@sourceforge, populate the DIMM label
-fields, via /sys/devices/system/edac attributes, with the silk screen
-labels of the motherboard in use.  dmidecode access BIOS tables, but BIOS
-tables are well known to be incorrect and useless in these respects. 
-edac-utils will strip off any newlines before its use of the output, when
-displaying DIMM slot silk screen labels.
-
-Signed-off-by: Arthur Jones <ajones@riverbed.com>
-Signed-off-by: Doug Thompson <dougthompson@xmission.com>
+Signed-off-by: Dave Jiang <djiang@mvista.com>
+Signed-off-by: Doug Thompson <dougthompson.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/edac_mc_sysfs.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ drivers/edac/mv64x60_edac.c |   35 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 35 insertions(+)
 
-diff -puN drivers/edac/edac_mc_sysfs.c~edac-core-fix-added-newline-to-sysfs-dimm-labels drivers/edac/edac_mc_sysfs.c
---- a/drivers/edac/edac_mc_sysfs.c~edac-core-fix-added-newline-to-sysfs-dimm-labels
-+++ a/drivers/edac/edac_mc_sysfs.c
-@@ -178,7 +178,11 @@ static ssize_t csrow_edac_mode_show(stru
- static ssize_t channel_dimm_label_show(struct csrow_info *csrow,
- 				char *data, int channel)
- {
--	return snprintf(data, EDAC_MC_LABEL_LEN, "%s",
-+	/* if field has not been initialized, there is nothing to send */
-+	if (!csrow->channels[channel].label[0])
-+		return 0;
-+
-+	return snprintf(data, EDAC_MC_LABEL_LEN, "%s\n",
- 			csrow->channels[channel].label);
+diff -puN drivers/edac/mv64x60_edac.c~edac-mv64x60-add-pci-fixup drivers/edac/mv64x60_edac.c
+--- a/drivers/edac/mv64x60_edac.c~edac-mv64x60-add-pci-fixup
++++ a/drivers/edac/mv64x60_edac.c
+@@ -71,6 +71,35 @@ static irqreturn_t mv64x60_pci_isr(int i
+ 	return IRQ_HANDLED;
  }
  
++/*
++ * Bit 0 of MV64x60_PCIx_ERR_MASK does not exist on the 64360 and because of
++ * errata FEr-#11 and FEr-##16 for the 64460, it should be 0 on that chip as
++ * well.  IOW, don't set bit 0.
++ */
++
++/* Erratum FEr PCI-#16: clear bit 0 of PCI SERRn Mask reg. */
++static int __init mv64x60_pci_fixup(struct platform_device *pdev)
++{
++	struct resource *r;
++	void __iomem *pci_serr;
++
++	r = platform_get_resource(pdev, IORESOURCE_MEM, 1);
++	if (!r) {
++		printk(KERN_ERR "%s: Unable to get resource for "
++		       "PCI err regs\n", __func__);
++		return -ENOENT;
++	}
++
++	pci_serr = ioremap(r->start, r->end - r->start + 1);
++	if (!pci_serr)
++		return -ENOMEM;
++
++	out_le32(pci_serr, in_le32(pci_serr) & ~0x1);
++	iounmap(pci_serr);
++
++	return 0;
++}
++
+ static int __devinit mv64x60_pci_err_probe(struct platform_device *pdev)
+ {
+ 	struct edac_pci_ctl_info *pci;
+@@ -128,6 +157,12 @@ static int __devinit mv64x60_pci_err_pro
+ 		goto err;
+ 	}
+ 
++	res = mv64x60_pci_fixup(pdev);
++	if (res < 0) {
++		printk(KERN_ERR "%s: PCI fixup failed\n", __func__);
++		goto err;
++	}
++
+ 	out_le32(pdata->pci_vbase + MV64X60_PCI_ERROR_CAUSE, 0);
+ 	out_le32(pdata->pci_vbase + MV64X60_PCI_ERROR_MASK, 0);
+ 	out_le32(pdata->pci_vbase + MV64X60_PCI_ERROR_MASK,
 _
 
-Patches currently in -mm which might be from ajones@riverbed.com are
+Patches currently in -mm which might be from djiang@mvista.com are
 
-edac-i5100-new-intel-chipset-driver.patch
-edac-i5100-fix-missing-bits.patch
-edac-i5100-fix-enable-ecc-hardware.patch
-edac-i5100-fix-unmask-ecc-bits.patch
-edac-core-fix-to-use-dynamic-kobject.patch
-edac-core-fix-workq-timer.patch
-edac-core-fix-redundant-sysfs-controls-to-parameters.patch
-edac-core-fix-static-to-dynamic-kset.patch
-edac-core-fix-added-newline-to-sysfs-dimm-labels.patch
+edac-mv64x60-fix-get_property.patch
+edac-mv64x60-add-pci-fixup.patch
 
