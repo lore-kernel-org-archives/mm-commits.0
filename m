@@ -1,110 +1,235 @@
 From: akpm@linux-foundation.org
-Subject: + gpio-gpio-driver-for-max7301-spi-gpio-expander-check-spi_setup-return-code-cleanup.patch added to -mm tree
-Date: Sun, 29 Jun 2008 00:17:58 -0700
-Message-ID: <200806290717.m5T7Hwm1009820@imap1.linux-foundation.org>
+Subject: - ext3-validate-directory-entry-data-before-use-checkpatch-fixes.patch removed from -mm tree
+Date: Sun, 29 Jun 2008 11:57:05 -0700
+Message-ID: <200806291857.m5TIv50X001786@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33227 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58649 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751524AbYF2HSS (ORCPT
+	by vger.kernel.org with ESMTP id S1753447AbYF2S5l (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 29 Jun 2008 03:18:18 -0400
+	Sun, 29 Jun 2008 14:57:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: g.liakhovetski@pengutronix.de, dbrownell@users.sourceforge.net
+To: akpm@linux-foundation.org, duaneg@dghda.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gpio max7301: check spi_setup() return code, cleanup
-has been added to the -mm tree.  Its filename is
-     gpio-gpio-driver-for-max7301-spi-gpio-expander-check-spi_setup-return-code-cleanup.patch
+     ext3-validate-directory-entry-data-before-use-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     ext3-validate-directory-entry-data-before-use-checkpatch-fixes.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it had testing failures
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpio max7301: check spi_setup() return code, cleanup
-From: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
+Subject: ext3-validate-directory-entry-data-before-use-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix inaccuracies in comments, check spi_setup() return code, mask off high
-byte in max7301_read().  Thanks to David Brownell for the review.
+WARNING: space prohibited between function name and open parenthesis '('
+#40: FILE: fs/ext3/dir.c:190:
++			if (!ext3_check_dir_entry (__func__, inode, de,
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+ERROR: space required after that ',' (ctx:VxV)
+#155: FILE: fs/ext3/namei.c:844:
++			if (!ext3_check_dir_entry(__func__, dir, de, bh,offset))
+ 			                                               ^
+
+ERROR: space required after that ',' (ctx:VxV)
+#174: FILE: fs/ext3/namei.c:1016:
++			if (!ext3_check_dir_entry(__func__, dir,de,bh,offset)) {
+ 			                                       ^
+
+ERROR: space required after that ',' (ctx:VxV)
+#174: FILE: fs/ext3/namei.c:1016:
++			if (!ext3_check_dir_entry(__func__, dir,de,bh,offset)) {
+ 			                                          ^
+
+ERROR: space required after that ',' (ctx:VxV)
+#174: FILE: fs/ext3/namei.c:1016:
++			if (!ext3_check_dir_entry(__func__, dir,de,bh,offset)) {
+ 			                                             ^
+
+ERROR: space required after that ',' (ctx:VxV)
+#238: FILE: fs/ext3/namei.c:1318:
++			if (!ext3_check_dir_entry(__func__, dir,de,bh,offset)) {
+ 			                                       ^
+
+ERROR: space required after that ',' (ctx:VxV)
+#238: FILE: fs/ext3/namei.c:1318:
++			if (!ext3_check_dir_entry(__func__, dir,de,bh,offset)) {
+ 			                                          ^
+
+ERROR: space required after that ',' (ctx:VxV)
+#238: FILE: fs/ext3/namei.c:1318:
++			if (!ext3_check_dir_entry(__func__, dir,de,bh,offset)) {
+ 			                                             ^
+
+total: 7 errors, 1 warnings, 302 lines checked
+
+./patches/ext3-validate-directory-entry-data-before-use.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: "Duane Griffin" <duaneg@dghda.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/max7301.c |   15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+ fs/ext3/dir.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/gpio/max7301.c~gpio-gpio-driver-for-max7301-spi-gpio-expander-check-spi_setup-return-code-cleanup drivers/gpio/max7301.c
---- a/drivers/gpio/max7301.c~gpio-gpio-driver-for-max7301-spi-gpio-expander-check-spi_setup-return-code-cleanup
-+++ a/drivers/gpio/max7301.c
-@@ -71,7 +71,7 @@ struct max7301 {
-  *
-  * A write to the MAX7301 means one message with one transfer
-  *
-- * Returns 0 if successfull or a negative value on error
-+ * Returns 0 if successful or a negative value on error
-  */
- static int max7301_write(struct spi_device *spi, unsigned int reg, unsigned int val)
- {
-@@ -84,9 +84,9 @@ static int max7301_write(struct spi_devi
-  * @spi: The SPI device
-  * @reg: Register offset
-  *
-- * A read from the MAX7301 means one message with two transfers
-+ * A read from the MAX7301 means two transfers; here, one message each
-  *
-- * Returns positive 8 bit value from device if successfull or a
-+ * Returns positive 8 bit value from device if successful or a
-  * negative value on error
-  */
- static int max7301_read(struct spi_device *spi, unsigned int reg)
-@@ -99,12 +99,13 @@ static int max7301_read(struct spi_devic
- 	if (ret)
- 		return ret;
- 	/*
--	 * FIXME: This read should write 0x0000 (=NOOP at MAX7301 side)
-+	 * This relies on the fact, that a transfer with NULL tx_buf shifts out
-+	 * zero bytes (=NOOP for MAX7301)
- 	 */
- 	ret = spi_read(spi, (u8 *)&word, sizeof(word));
- 	if (ret)
- 		return ret;
--	return word;
-+	return word & 0xff;
- }
- 
- static int max7301_direction_input(struct gpio_chip *chip, unsigned offset)
-@@ -224,7 +225,9 @@ static int __devinit max7301_probe(struc
- 	 */
- 	spi->bits_per_word = 16;
- 
--	spi->master->setup(spi);
-+	ret = spi_setup(spi);
-+	if (ret < 0)
-+		return ret;
- 
- 	ts = kzalloc(sizeof(struct max7301), GFP_KERNEL);
- 	if (!ts)
+diff -puN fs/ext3/dir.c~ext3-validate-directory-entry-data-before-use-checkpatch-fixes fs/ext3/dir.c
+--- a/fs/ext3/dir.c~ext3-validate-directory-entry-data-before-use-checkpatch-fixes
++++ a/fs/ext3/dir.c
+@@ -187,7 +187,7 @@ revalidate:
+ 		while (!error && filp->f_pos < inode->i_size
+ 		       && offset < sb->s_blocksize) {
+ 			de = (struct ext3_dir_entry_2 *) (bh->b_data + offset);
+-			if (!ext3_check_dir_entry (__func__, inode, de,
++			if (!ext3_check_dir_entry(__func__, inode, de,
+ 						   bh, offset)) {
+ 				/* On error, skip the f_pos to the
+                                    next block. */
 _
 
-Patches currently in -mm which might be from g.liakhovetski@pengutronix.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-gpio-gpio-driver-for-max7301-spi-gpio-expander.patch
+origin.patch
+rtc-x1205-fix-alarm-set-fix.patch
+next-remove-localversion.patch
+revert-git-pekka.patch
+fix-kobject-fix-kobject_rename-and-config_sysfs.patch
+kvm-is-busted-on-ia64.patch
+drivers-mtd-nand-nandsimc-needs-div64h.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+git-jg-misc-git-rejects.patch
+drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers.patch
+drivers-mtd-devices-block2mtdc-suppress-warning.patch
+sundance-set-carrier-status-on-link-change-events.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix-fix.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-scsi-misc-fix-scsi_dh-build-errors.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
+pktcdvd-push-bkl-down-into-driver-fix.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-logfs-fixup.patch
+watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
+git-xtensa.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-verify-the-page-links-and-memory-model.patch
+mspec-convert-nopfn-to-fault-fix.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+kill-generic_file_direct_io-checkpatch-fixes.patch
+use-generic_access_phys-for-dev-mem-mappings-fix.patch
+spufs-use-the-new-vm_ops-access-fix.patch
+fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
+page-flags-record-page-flag-overlays-explicitly-xen.patch
+mapping_set_error-add-unlikely.patch
+huge-page-private-reservation-review-cleanups-fix.patch
+sync_file_range_write-may-and-will-block-document-that-fix.patch
+vmallocinfo-add-numa-information-fix.patch
+hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
+hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
+hugetlb-override-default-huge-page-size-ia64-build.patch
+linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+bootmem-add-debugging-framework-fix.patch
+bootmem-clean-up-free_all_bootmem_core-fix.patch
+bootmem-free-reserve-helpers-fix.patch
+revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
+swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
+block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
+seq_file-fix-bug-when-seq_read-reads-nothing-fix.patch
+rename-warn-to-warning-to-clear-the-namespace-fix.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-paccept-sys_ni.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-signalfd-fix.patch
+flag-parameters-eventfd-fix.patch
+flag-parameters-inotify_init-fix.patch
+flag-parameters-check-magic-constants-alpha.patch
+oprofile-multiplexing-checkpatch-fixes.patch
 gpio-gpio-driver-for-max7301-spi-gpio-expander-checkpatch-fixes.patch
-gpio-gpio-driver-for-max7301-spi-gpio-expander-check-spi_setup-return-code-cleanup.patch
-gpio-sysfs-interface-updated.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
+ext3-handle-corrupted-orphan-list-at-mount-cleanup.patch
+ext3-handle-corrupted-orphan-list-at-mount-fix.patch
+ext3-handle-corrupted-orphan-list-at-mount-cleanup-fix.patch
+ext3-validate-directory-entry-data-before-use-checkpatch-fixes.patch
+reiserfs-convert-j_flush_sem-to-mutex.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
+memcg-remove-refcnt-from-page_cgroup-fix-2.patch
+jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup.patch
+ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
+getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
+tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
+memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
+memstick-use-fully-asynchronous-request-processing-fix.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+mm-introduce-get_user_pages_fast-fix.patch
+mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-fix.patch
+x86-lockless-get_user_pages_fast-fix-2.patch
+x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
+x86-lockless-get_user_pages_fast-fix-warning.patch
+vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
+define-page_file_cache-function-fix.patch
+unevictable-lru-infrastructure-fix.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-3.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
+vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
