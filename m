@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + spi-spi_mpc83xx-clockrate-fixes.patch added to -mm tree
-Date: Sun, 29 Jun 2008 00:15:36 -0700
-Message-ID: <200806290715.m5T7FaKl009700@imap1.linux-foundation.org>
+Subject: + gpio-gpio-driver-for-max7301-spi-gpio-expander-check-spi_setup-return-code-cleanup.patch added to -mm tree
+Date: Sun, 29 Jun 2008 00:17:58 -0700
+Message-ID: <200806290717.m5T7Hwm1009820@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55324 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33227 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756519AbYF2HQB (ORCPT
+	by vger.kernel.org with ESMTP id S1751524AbYF2HSS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 29 Jun 2008 03:16:01 -0400
+	Sun, 29 Jun 2008 03:18:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: g.chen@freescale.com, dbrownell@users.sourceforge.net
+Cc: g.liakhovetski@pengutronix.de, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     spi: spi_mpc83xx clockrate fixes
+     gpio max7301: check spi_setup() return code, cleanup
 has been added to the -mm tree.  Its filename is
-     spi-spi_mpc83xx-clockrate-fixes.patch
+     gpio-gpio-driver-for-max7301-spi-gpio-expander-check-spi_setup-return-code-cleanup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,65 +34,77 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spi: spi_mpc83xx clockrate fixes
-From: Chen Gong <g.chen@freescale.com>
+Subject: gpio max7301: check spi_setup() return code, cleanup
+From: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
 
-This updates the SPI clock rate calculations for the spi_mpc83xx driver. 
-Some boundary conditions were wrong, and in several cases divide-by-16
-wasn't always needed
+Fix inaccuracies in comments, check spi_setup() return code, mask off high
+byte in max7301_read().  Thanks to David Brownell for the review.
 
-Signed-off-by: Chen Gong <g.chen@freescale.com>
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi_mpc83xx.c |   29 ++++++++++++++++-------------
- 1 file changed, 16 insertions(+), 13 deletions(-)
+ drivers/gpio/max7301.c |   15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
-diff -puN drivers/spi/spi_mpc83xx.c~spi-spi_mpc83xx-clockrate-fixes drivers/spi/spi_mpc83xx.c
---- a/drivers/spi/spi_mpc83xx.c~spi-spi_mpc83xx-clockrate-fixes
-+++ a/drivers/spi/spi_mpc83xx.c
-@@ -266,21 +266,24 @@ int mpc83xx_spi_setup_transfer(struct sp
+diff -puN drivers/gpio/max7301.c~gpio-gpio-driver-for-max7301-spi-gpio-expander-check-spi_setup-return-code-cleanup drivers/gpio/max7301.c
+--- a/drivers/gpio/max7301.c~gpio-gpio-driver-for-max7301-spi-gpio-expander-check-spi_setup-return-code-cleanup
++++ a/drivers/gpio/max7301.c
+@@ -71,7 +71,7 @@ struct max7301 {
+  *
+  * A write to the MAX7301 means one message with one transfer
+  *
+- * Returns 0 if successfull or a negative value on error
++ * Returns 0 if successful or a negative value on error
+  */
+ static int max7301_write(struct spi_device *spi, unsigned int reg, unsigned int val)
+ {
+@@ -84,9 +84,9 @@ static int max7301_write(struct spi_devi
+  * @spi: The SPI device
+  * @reg: Register offset
+  *
+- * A read from the MAX7301 means one message with two transfers
++ * A read from the MAX7301 means two transfers; here, one message each
+  *
+- * Returns positive 8 bit value from device if successfull or a
++ * Returns positive 8 bit value from device if successful or a
+  * negative value on error
+  */
+ static int max7301_read(struct spi_device *spi, unsigned int reg)
+@@ -99,12 +99,13 @@ static int max7301_read(struct spi_devic
+ 	if (ret)
+ 		return ret;
+ 	/*
+-	 * FIXME: This read should write 0x0000 (=NOOP at MAX7301 side)
++	 * This relies on the fact, that a transfer with NULL tx_buf shifts out
++	 * zero bytes (=NOOP for MAX7301)
+ 	 */
+ 	ret = spi_read(spi, (u8 *)&word, sizeof(word));
+ 	if (ret)
+ 		return ret;
+-	return word;
++	return word & 0xff;
+ }
  
- 	cs->hw_mode |= SPMODE_LEN(bits_per_word);
+ static int max7301_direction_input(struct gpio_chip *chip, unsigned offset)
+@@ -224,7 +225,9 @@ static int __devinit max7301_probe(struc
+ 	 */
+ 	spi->bits_per_word = 16;
  
--	if ((mpc83xx_spi->spibrg / hz) >= 64) {
--		pm = mpc83xx_spi->spibrg / (hz * 64) - 1;
--		if (pm > 0x0f) {
--			dev_err(&spi->dev, "Requested speed is too "
--				"low: %d Hz. Will use %d Hz instead.\n",
--				hz, mpc83xx_spi->spibrg / 1024);
--			pm = 0x0f;
-+	if ((mpc83xx_spi->spibrg / hz) > 64) {
-+		pm = mpc83xx_spi->spibrg / (hz * 64);
-+		if (pm > 16) {
-+			cs->hw_mode |= SPMODE_DIV16;
-+			pm /= 16;
-+			if (pm > 16) {
-+				dev_err(&spi->dev, "Requested speed is too "
-+					"low: %d Hz. Will use %d Hz instead.\n",
-+					hz, mpc83xx_spi->spibrg / 1024);
-+				pm = 16;
-+			}
- 		}
--		cs->hw_mode |= SPMODE_PM(pm) | SPMODE_DIV16;
--	} else {
-+	} else
- 		pm = mpc83xx_spi->spibrg / (hz * 4);
--		if (pm)
--			pm--;
--		cs->hw_mode |= SPMODE_PM(pm);
--	}
-+	if (pm)
-+		pm--;
-+
-+	cs->hw_mode |= SPMODE_PM(pm);
- 	regval =  mpc83xx_spi_read_reg(&mpc83xx_spi->base->mode);
- 	if (cs->hw_mode != regval) {
- 		unsigned long flags;
+-	spi->master->setup(spi);
++	ret = spi_setup(spi);
++	if (ret < 0)
++		return ret;
+ 
+ 	ts = kzalloc(sizeof(struct max7301), GFP_KERNEL);
+ 	if (!ts)
 _
 
-Patches currently in -mm which might be from g.chen@freescale.com are
+Patches currently in -mm which might be from g.liakhovetski@pengutronix.de are
 
-spi-spi_mpc83xx-clockrate-fixes.patch
+gpio-gpio-driver-for-max7301-spi-gpio-expander.patch
+gpio-gpio-driver-for-max7301-spi-gpio-expander-checkpatch-fixes.patch
+gpio-gpio-driver-for-max7301-spi-gpio-expander-check-spi_setup-return-code-cleanup.patch
+gpio-sysfs-interface-updated.patch
 
