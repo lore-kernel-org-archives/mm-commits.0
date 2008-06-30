@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + workqueues-make-get_online_cpus-useable-for-work-func.patch added to -mm tree
-Date: Mon, 30 Jun 2008 16:46:28 -0700
-Message-ID: <200806302346.m5UNkToS031674@imap1.linux-foundation.org>
+Subject: + gcov-add-gcov-profiling-infrastructure-revert-link-changes.patch added to -mm tree
+Date: Mon, 30 Jun 2008 16:51:02 -0700
+Message-ID: <200806302351.m5UNp22b031837@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54897 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34086 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754425AbYF3XsJ (ORCPT
+	by vger.kernel.org with ESMTP id S1751570AbYF3XvX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jun 2008 19:48:09 -0400
+	Mon, 30 Jun 2008 19:51:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, ego@in.ibm.com, heiko.carstens@de.ibm.com, maxk@qualcomm.com, menage@google.com, mingo@elte.hu, peterz@infradead.org, pj@sgi.com, schwidefsky@de.ibm.com, vegard.nossum@gmail.com
+Cc: peter.oberparleiter@de.ibm.com, rusty@rustcorp.com.au, sam@ravnborg.org
 
 
 The patch titled
-     workqueues: make get_online_cpus() useable for work->func()
+     gcov: revert link changes
 has been added to the -mm tree.  Its filename is
-     workqueues-make-get_online_cpus-useable-for-work-func.patch
+     gcov-add-gcov-profiling-infrastructure-revert-link-changes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,174 +34,452 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: workqueues: make get_online_cpus() useable for work->func()
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: gcov: revert link changes
+From: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
 
-workqueue_cpu_callback(CPU_DEAD) flushes cwq->thread under
-cpu_maps_update_begin().  This means that the multithreaded workqueues
-can't use get_online_cpus() due to the possible deadlock, very bad and
-very old problem.
+Change the gcov mechanism back to using symbolic links in sysfs.  This
+is necessary to fix problems when profiling with CONFIG_MODVERSIONS=y. 
+The correct usage of the gcov tool now looks like this:
 
-Introduce the new state, CPU_POST_DEAD, which is called after
-cpu_hotplug_done() but before cpu_maps_update_done().
+  # cd $OBJTREE
+  # gcov -o /sys/kernel/debug/gcov/$OBJTREE/init main.c
 
-Change workqueue_cpu_callback() to use CPU_POST_DEAD instead of CPU_DEAD. 
-This means that create/destroy functions can't rely on get_online_cpus()
-any longer and should take cpu_add_remove_lock instead.
+Also update documentation to include a description on how to use gcov
+profiling in a separated build/test machine environment.
 
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Gautham R Shenoy <ego@in.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Max Krasnyansky <maxk@qualcomm.com>
-Cc: Paul Jackson <pj@sgi.com>
-Cc: Paul Menage <menage@google.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Vegard Nossum <vegard.nossum@gmail.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/notifier.h |    2 ++
- kernel/cpu.c             |    5 +++++
- kernel/workqueue.c       |   18 +++++++++---------
- 3 files changed, 16 insertions(+), 9 deletions(-)
+ Documentation/gcov.txt |  138 +++++++++++++++++++++++++++++++++++----
+ kernel/gcov/Makefile   |    2 
+ kernel/gcov/fs.c       |  123 ++++++++++++++++++++++++++++++++++
+ kernel/gcov/gcc_3_4.c  |    6 +
+ kernel/gcov/gcov.h     |    9 ++
+ 5 files changed, 262 insertions(+), 16 deletions(-)
 
-diff -puN include/linux/notifier.h~workqueues-make-get_online_cpus-useable-for-work-func include/linux/notifier.h
---- a/include/linux/notifier.h~workqueues-make-get_online_cpus-useable-for-work-func
-+++ a/include/linux/notifier.h
-@@ -214,6 +214,8 @@ static inline int notifier_to_errno(int 
- #define CPU_DEAD		0x0007 /* CPU (unsigned)v dead */
- #define CPU_DYING		0x0008 /* CPU (unsigned)v not running any task,
- 				        * not handling interrupts, soon dead */
-+#define CPU_POST_DEAD		0x0009 /* CPU (unsigned)v dead, cpu_hotplug
-+					* lock is dropped */
+diff -puN Documentation/gcov.txt~gcov-add-gcov-profiling-infrastructure-revert-link-changes Documentation/gcov.txt
+--- a/Documentation/gcov.txt~gcov-add-gcov-profiling-infrastructure-revert-link-changes
++++ a/Documentation/gcov.txt
+@@ -6,7 +6,10 @@ Using gcov with the Linux kernel
+ 3. Customization
+ 4. Files
+ 5. Modules
+-6. Troubleshooting
++6. Separated build and test machines
++7. Troubleshooting
++Appendix A: sample script: gather_on_build.sh
++Appendix B: sample script: gather_on_test.sh
  
- /* Used for CPU hotplug events occuring while tasks are frozen due to a suspend
-  * operation in progress
-diff -puN kernel/cpu.c~workqueues-make-get_online_cpus-useable-for-work-func kernel/cpu.c
---- a/kernel/cpu.c~workqueues-make-get_online_cpus-useable-for-work-func
-+++ a/kernel/cpu.c
-@@ -277,6 +277,11 @@ out_allowed:
- 	set_cpus_allowed_ptr(current, &old_allowed);
- out_release:
- 	cpu_hotplug_done();
-+	if (!err) {
-+		if (raw_notifier_call_chain(&cpu_chain, CPU_POST_DEAD | mod,
-+					    hcpu) == NOTIFY_BAD)
-+			BUG();
-+	}
- 	return err;
+ 
+ 1. Introduction
+@@ -15,16 +18,11 @@ Using gcov with the Linux kernel
+ gcov profiling kernel support enables the use of GCC's coverage testing
+ tool gcov [1] with the Linux kernel. Coverage data of a running kernel
+ is exported in gcov-compatible format via the "gcov "debugfs directory.
++To get coverage data for a specific file, change to the kernel build
++directory and use gcov with the -o option as follows (requires root):
+ 
+-Example:
+-
+-To get coverage data for file base.c in directory drivers/base, simply
+-change to the kernel build directory and run gcov with the -o option
+-(assumptions: kernel was built in /tmp/linux and debugfs is mounted at
+-/sys/kernel/debug):
+-
+-# cd /tmp/linux
+-# gcov -o drivers/base/ bus.c
++# cd /tmp/linux-out
++# gcov -o /sys/kernel/debug/gcov/tmp/linux/kernel spinlock.c
+ 
+ This will create source code files annotated with execution counts
+ in the current directory. In addition, graphical gcov front-ends such
+@@ -38,6 +36,11 @@ Possible uses:
+ * minimizing kernel configurations (do I need this option if the
+   associated code is never executed?)
+ 
++--
++
++[1] http://gcc.gnu.org/onlinedocs/gcc/Gcov.html
++[2] http://ltp.sourceforge.net/coverage/lcov.php
++
+ 
+ 2. Preparation
+ ==============
+@@ -99,6 +102,11 @@ The gcov kernel support creates the foll
+                 The actual gcov data file as understood by the gcov
+                 tool. Resets file coverage data to zero when written to.
+ 
++        /sys/kernel/debug/gcov/path/to/compile/dir/file.gcno
++                Symbolic link to a static data file required by the gcov
++                tool. This file is generated by gcc when compiling with
++                option -ftest-coverage.
++
+ 
+ 5. Modules
+ ==========
+@@ -119,7 +127,56 @@ At run-time, a user can also choose to d
+ module by writing to its data file or the global reset file.
+ 
+ 
+-6. Troubleshooting
++6. Separated build and test machines
++====================================
++
++The gcov kernel profiling infrastructure is designed to work out-of-the
++box for setups where kernels are built and run on the same machine. In
++cases where the kernel runs on a separate machine, special preparations
++must be made, depending on where the gcov tool is used:
++
++a) gcov is run on the TEST machine
++
++The gcov tool version on the test machine must be compatible with the
++gcc version used for kernel build. Also the following files need to be
++copied from build to test machine:
++
++from the source tree:
++  - all C source files + headers
++
++from the build tree:
++  - all C source files + headers
++  - all .gcda and .gcno files
++  - all links to directories
++
++It is important to note that these files need to be placed into the
++exact same file system location on the test machine as on the build
++machine. If any of the path components is symbolic link, the actual
++directory needs to be used instead (due to make's CURDIR handling).
++
++b) gcov is run on the BUILD machine
++
++The following files need to be copied after each test case from test
++to build machine:
++
++from the gcov directory in sysfs:
++  - all .gcda files
++  - all links to .gcno files
++
++These files can be copied to any location on the build machine. gcov
++must then be called with the -o option pointing to that directory.
++
++Example directory setup on the build machine:
++
++  /tmp/linux:    kernel source tree
++  /tmp/out:      kernel build directory as specified by make O=
++  /tmp/coverage: location of the files copied from the test machine
++
++  [user@build] cd /tmp/out
++  [user@build] gcov -o /tmp/coverage/tmp/out/init main.c
++
++
++7. Troubleshooting
+ ==================
+ 
+ Problem:  Compilation aborts during linker step.
+@@ -127,10 +184,62 @@ Cause:    Profiling flags are specified 
+           linked to the main kernel or which are linked by a custom
+           linker procedure.
+ Solution: Exclude affected source files from profiling by specifying
+-          GCOV := n in the corresponding Makefile.
++          GCOV := n or GCOV_basename.o := n in the corresponding
++          Makefile.
+ 
+ 
+---
++Appendix A: gather_on_build.sh
++==============================
+ 
+-[1] http://gcc.gnu.org/onlinedocs/gcc/Gcov.html
+-[2] http://ltp.sourceforge.net/coverage/lcov.php
++Sample script to gather coverage meta files on the build machine
++(see 6a):
++
++#!/bin/bash
++
++KSRC=$1
++KOBJ=$2
++DEST=$3
++
++if [ -z "$KSRC" ] || [ -z "$KOBJ" ] || [ -z "$DEST" ]; then
++  echo "Usage: $0 <ksrc directory> <kobj directory> <output.tar.gz>" >&2
++  exit 1
++fi
++
++KSRC=$(cd $KSRC; printf "all:\n\t@echo \${CURDIR}\n" | make -f -)
++KOBJ=$(cd $KOBJ; printf "all:\n\t@echo \${CURDIR}\n" | make -f -)
++
++find $KSRC $KOBJ \( -name '*.gcno' -o -name '*.[ch]' -o -type l \) -a \
++                 -perm /u+r,g+r | tar cfz $DEST -P -T -
++
++if [ $? -eq 0 ] ; then
++  echo "$DEST successfully created, copy to test system and unpack with:"
++  echo "  tar xfz $DEST -P"
++else
++  echo "Could not create file $DEST"
++fi
++
++
++Appendix B: gather_on_test.sh
++=============================
++
++Sample script to gather coverage data files on the test machine
++(see 6b):
++
++#!/bin/bash
++
++DEST=$1
++GCDA=/sys/kernel/debug/gcov
++
++if [ -z "$DEST" ] ; then
++  echo "Usage: $0 <output.tar.gz>" >&2
++  exit 1
++fi
++
++find $GCDA -name '*.gcno' -o -name '*.gcda' | tar cfz $DEST -T -
++
++if [ $? -eq 0 ] ; then
++  echo "$DEST successfully created, copy to build system and unpack with:"
++  echo "  tar xfz $DEST"
++else
++  echo "Could not create file $DEST"
++fi
+diff -puN kernel/gcov/Makefile~gcov-add-gcov-profiling-infrastructure-revert-link-changes kernel/gcov/Makefile
+--- a/kernel/gcov/Makefile~gcov-add-gcov-profiling-infrastructure-revert-link-changes
++++ a/kernel/gcov/Makefile
+@@ -1 +1,3 @@
++EXTRA_CFLAGS := -DSRCTREE='"$(srctree)"' -DOBJTREE='"$(objtree)"'
++
+ obj-$(CONFIG_GCOV_PROFILE) := base.o fs.o gcc_3_4.o
+diff -puN kernel/gcov/fs.c~gcov-add-gcov-profiling-infrastructure-revert-link-changes kernel/gcov/fs.c
+--- a/kernel/gcov/fs.c~gcov-add-gcov-profiling-infrastructure-revert-link-changes
++++ a/kernel/gcov/fs.c
+@@ -36,11 +36,13 @@
+  *         copy of the profiling data here to allow collecting coverage data
+  *         for cleanup code. Such a node is called a "ghost".
+  * @dentry: main debugfs entry, either a directory or data file
++ * @links: associated symbolic links
+  * @name: data file basename
+  *
+  * struct gcov_node represents an entity within the gcov/ subdirectory
+  * of debugfs. There are directory and data file nodes. The latter represent
+- * the actual synthesized data file.
++ * the actual synthesized data file plus any associated symbolic links which
++ * are needed by the gcov tool to work correctly.
+  */
+ struct gcov_node {
+ 	struct list_head list;
+@@ -50,9 +52,12 @@ struct gcov_node {
+ 	struct gcov_info *info;
+ 	struct gcov_info *ghost;
+ 	struct dentry *dentry;
++	struct dentry **links;
+ 	char name[0];
+ };
+ 
++static const char objtree[] = OBJTREE;
++static const char srctree[] = SRCTREE;
+ static struct gcov_node root_node;
+ static struct dentry *reset_dentry;
+ static LIST_HEAD(all_head);
+@@ -238,6 +243,104 @@ static ssize_t gcov_seq_write(struct fil
+ 	return len;
  }
  
-diff -puN kernel/workqueue.c~workqueues-make-get_online_cpus-useable-for-work-func kernel/workqueue.c
---- a/kernel/workqueue.c~workqueues-make-get_online_cpus-useable-for-work-func
-+++ a/kernel/workqueue.c
-@@ -791,7 +791,7 @@ struct workqueue_struct *__create_workqu
- 		err = create_workqueue_thread(cwq, singlethread_cpu);
- 		start_workqueue_thread(cwq, -1);
- 	} else {
--		get_online_cpus();
-+		cpu_maps_update_begin();
- 		spin_lock(&workqueue_lock);
- 		list_add(&wq->list, &workqueues);
- 		spin_unlock(&workqueue_lock);
-@@ -803,7 +803,7 @@ struct workqueue_struct *__create_workqu
- 			err = create_workqueue_thread(cwq, cpu);
- 			start_workqueue_thread(cwq, cpu);
- 		}
--		put_online_cpus();
-+		cpu_maps_update_done();
++/* Given a string <path> representing a file path of format:
++ *   path/to/file.gcda
++ * construct and return a new string:
++ *   <dir/>path/to/file.<ext> */
++static char *link_target(const char *dir, const char *path, const char *ext)
++{
++	char *target;
++	char *old_ext;
++	char *copy;
++
++	copy = kstrdup(path, GFP_KERNEL);
++	if (!copy)
++		return NULL;
++	old_ext = strrchr(copy, '.');
++	if (old_ext)
++		*old_ext = '\0';
++	if (dir)
++		target = kasprintf(GFP_KERNEL, "%s/%s.%s", dir, copy, ext);
++	else
++		target = kasprintf(GFP_KERNEL, "%s.%s", copy, ext);
++	kfree(copy);
++
++	return target;
++}
++
++/* Construct a string representing the symbolic link target for the given
++ * gcov data file name and link type. Depending on the link type and the
++ * location of the data file, the link target can either point to a
++ * subdirectory of srctree, objtree or in an external location. */
++static char *get_link_target(const char *filename, const struct gcov_link *ext)
++{
++	const char *rel;
++	char *result;
++
++	if (strncmp(filename, objtree, strlen(objtree)) == 0) {
++		rel = filename + strlen(objtree) + 1;
++		if (ext->dir == src_tree)
++			result = link_target(srctree, rel, ext->ext);
++		else
++			result = link_target(objtree, rel, ext->ext);
++	} else {
++		/* External compilation. */
++		result = link_target(NULL, filename, ext->ext);
++	}
++
++	return result;
++}
++
++#define SKEW_PREFIX	".tmp_"
++
++/* For a filename .tmp_filename.ext return filename.ext. Needed to compensate
++ * for filename skewing caused by the mod-versioning mechanism. */
++static const char *deskew(const char *basename)
++{
++	if (strncmp(basename, SKEW_PREFIX, sizeof(SKEW_PREFIX) - 1) == 0)
++		return basename + sizeof(SKEW_PREFIX) - 1;
++	return basename;
++}
++
++/* Create links to additional files (usually .c and .gcno files) which the
++ * gcov tool expects to find in the same directory as the gcov data file. */
++static void add_links(struct gcov_node *node, struct dentry *parent)
++{
++	char *basename;
++	char *target;
++	int num;
++	int i;
++
++	for (num = 0; gcov_link[num].ext; num++)
++		/* Nothing. */;
++	node->links = kcalloc(num, sizeof(struct dentry *), GFP_KERNEL);
++	if (!node->links)
++		return;
++	for (i = 0; i < num; i++) {
++		target = get_link_target(get_node_info(node)->filename,
++					 &gcov_link[i]);
++		if (!target)
++			goto out_err;
++		basename = strrchr(target, '/');
++		if (!basename)
++			goto out_err;
++		basename++;
++		node->links[i] = debugfs_create_symlink(deskew(basename),
++							parent,	target);
++		if (!node->links[i])
++			goto out_err;
++		kfree(target);
++	}
++
++	return;
++out_err:
++	kfree(target);
++	while (i-- > 0)
++		debugfs_remove(node->links[i]);
++	kfree(node->links);
++	node->links = NULL;
++}
++
+ static struct file_operations gcov_data_fops = {
+ 	.open = gcov_seq_open,
+ 	.release = gcov_seq_release,
+@@ -273,7 +376,7 @@ static struct gcov_node *new_node(struct
+ 	init_node(node, info, name);
+ 	/* Differentiate between gcov data file nodes and directory nodes. */
+ 	if (info) {
+-		node->dentry = debugfs_create_file(node->name, 0600,
++		node->dentry = debugfs_create_file(deskew(node->name), 0600,
+ 					parent->dentry, node, &gcov_data_fops);
+ 	} else
+ 		node->dentry = debugfs_create_dir(node->name, parent->dentry);
+@@ -282,12 +385,27 @@ static struct gcov_node *new_node(struct
+ 		kfree(node);
+ 		return NULL;
  	}
++	if (info)
++		add_links(node, parent->dentry);
+ 	list_add(&node->list, &parent->children);
+ 	list_add(&node->all, &all_head);
  
- 	if (err) {
-@@ -817,8 +817,8 @@ EXPORT_SYMBOL_GPL(__create_workqueue_key
- static void cleanup_workqueue_thread(struct cpu_workqueue_struct *cwq)
- {
- 	/*
--	 * Our caller is either destroy_workqueue() or CPU_DEAD,
--	 * get_online_cpus() protects cwq->thread.
-+	 * Our caller is either destroy_workqueue() or CPU_POST_DEAD,
-+	 * cpu_add_remove_lock protects cwq->thread.
- 	 */
- 	if (cwq->thread == NULL)
- 		return;
-@@ -828,7 +828,7 @@ static void cleanup_workqueue_thread(str
+ 	return node;
+ }
  
- 	flush_cpu_workqueue(cwq);
- 	/*
--	 * If the caller is CPU_DEAD and cwq->worklist was not empty,
-+	 * If the caller is CPU_POST_DEAD and cwq->worklist was not empty,
- 	 * a concurrent flush_workqueue() can insert a barrier after us.
- 	 * However, in that case run_workqueue() won't return and check
- 	 * kthread_should_stop() until it flushes all work_struct's.
-@@ -852,14 +852,14 @@ void destroy_workqueue(struct workqueue_
- 	const cpumask_t *cpu_map = wq_cpu_map(wq);
- 	int cpu;
++/* Remove symbolic links associated with node. */
++static void remove_links(struct gcov_node *node)
++{
++	int i;
++
++	if (!node->links)
++		return;
++	for (i = 0; gcov_link[i].ext; i++)
++		debugfs_remove(node->links[i]);
++	kfree(node->links);
++	node->links = NULL;
++}
++
+ /* Remove node from all lists and debugfs and release associated resources.
+  * Needs to be called with node_lock held. */
+ static void release_node(struct gcov_node *node)
+@@ -295,6 +413,7 @@ static void release_node(struct gcov_nod
+ 	list_del(&node->list);
+ 	list_del(&node->all);
+ 	debugfs_remove(node->dentry);
++	remove_links(node);
+ 	if (node->ghost)
+ 		gcov_info_free(node->ghost);
+ 	kfree(node);
+diff -puN kernel/gcov/gcc_3_4.c~gcov-add-gcov-profiling-infrastructure-revert-link-changes kernel/gcov/gcc_3_4.c
+--- a/kernel/gcov/gcc_3_4.c~gcov-add-gcov-profiling-infrastructure-revert-link-changes
++++ a/kernel/gcov/gcc_3_4.c
+@@ -20,6 +20,12 @@
+ #include <linux/seq_file.h>
+ #include "gcov.h"
  
--	get_online_cpus();
-+	cpu_maps_update_begin();
- 	spin_lock(&workqueue_lock);
- 	list_del(&wq->list);
- 	spin_unlock(&workqueue_lock);
++/* Symbolic links to be created for each profiling data file. */
++const struct gcov_link gcov_link[] = {
++	{ obj_tree, "gcno" },	/* Link to .gcno file in $(objtree). */
++	{ 0, NULL},
++};
++
+ /* Determine whether a counter is active. Based on gcc magic. Doesn't change
+  * at run-time. */
+ static int counter_active(struct gcov_info *info, unsigned int type)
+diff -puN kernel/gcov/gcov.h~gcov-add-gcov-profiling-infrastructure-revert-link-changes kernel/gcov/gcov.h
+--- a/kernel/gcov/gcov.h~gcov-add-gcov-profiling-infrastructure-revert-link-changes
++++ a/kernel/gcov/gcov.h
+@@ -116,4 +116,13 @@ void gcov_info_add(struct gcov_info *des
+ struct gcov_info *gcov_info_dup(struct gcov_info *info);
+ void gcov_info_free(struct gcov_info *info);
  
- 	for_each_cpu_mask_nr(cpu, *cpu_map)
- 		cleanup_workqueue_thread(per_cpu_ptr(wq->cpu_wq, cpu));
--	put_online_cpus();
-+ 	cpu_maps_update_done();
- 
- 	free_percpu(wq->cpu_wq);
- 	kfree(wq);
-@@ -898,7 +898,7 @@ static int __devinit workqueue_cpu_callb
- 
- 		case CPU_UP_CANCELED:
- 			start_workqueue_thread(cwq, -1);
--		case CPU_DEAD:
-+		case CPU_POST_DEAD:
- 			cleanup_workqueue_thread(cwq);
- 			break;
- 		}
-@@ -906,7 +906,7 @@ static int __devinit workqueue_cpu_callb
- 
- 	switch (action) {
- 	case CPU_UP_CANCELED:
--	case CPU_DEAD:
-+	case CPU_POST_DEAD:
- 		cpu_clear(cpu, cpu_populated_map);
- 	}
- 
++struct gcov_link {
++	enum {
++		obj_tree,
++		src_tree,
++	} dir;
++	const char *ext;
++};
++extern const struct gcov_link gcov_link[];
++
+ #endif /* GCOV_H */
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from peter.oberparleiter@de.ibm.com are
 
-get_user_pages-fix-possible-page-leak-on-oom.patch
-migrate_timers-add-comment-use-spinlock_irq.patch
-posix-timers-timer_delete-remove-the-bogus-it_process-=-null-check.patch
-posix-timers-release_posix_timer-kill-the-bogus-put_task_struct-it_process.patch
-signals-collect_signal-remove-the-unneeded-sigismember-check.patch
-signals-collect_signal-simplify-the-still_pending-logic.patch
-signals-change-collect_signal-to-return-void.patch
-__exit_signal-dont-take-rcu-lock.patch
-signals-dequeue_signal-dont-check-signal_group_exit-when-setting-signal_stop_dequeued.patch
-signals-do_signal_stop-kill-the-signal_unkillable-check.patch
-coredump-zap_threads-comments-use-while_each_thread.patch
-signals-make-siginfo_t-si_utime-si_sstime-report-times-in-user_hz-not-hz.patch
-kernel-signalc-change-vars-pid-and-tgid-types-to-pid_t.patch
-include-asm-ptraceh-userspace-headers-cleanup.patch
-ptrace-give-more-respect-to-sigkill.patch
-ptrace-never-sleep-in-task_traced-if-sigkilled.patch
-ptrace-kill-may_ptrace_stop.patch
-introduce-pf_kthread-flag.patch
-kill-pf_borrowed_mm-in-favour-of-pf_kthread.patch
-coredump-zap_threads-must-skip-kernel-threads.patch
-coredump-elf_core_dump-skip-kernel-threads.patch
-workqueues-insert_work-use-list_head-instead-of-int-tail.patch
-workqueues-implement-flush_work.patch
-workqueues-schedule_on_each_cpu-use-flush_work.patch
-workqueues-make-get_online_cpus-useable-for-work-func.patch
-s390-topology-dont-use-kthread-for-arch_reinit_sched_domains.patch
-pidns-remove-now-unused-kill_proc-function.patch
-pidns-remove-now-unused-find_pid-function.patch
-pidns-remove-find_task_by_pid-unused-for-a-long-time.patch
-distinct-tgid-tid-i-o-statistics.patch
+s390-cio-use-memory_read_from_buffer.patch
+kernel-call-constructors.patch
+kernel-call-constructors-uml-fix-1.patch
+kernel-call-constructors-uml-fix-2.patch
+kernel-introduce-gcc_version_lower-macro.patch
+seq_file-add-function-to-write-binary-data.patch
+gcov-add-gcov-profiling-infrastructure.patch
+gcov-add-gcov-profiling-infrastructure-revert-link-changes.patch
+gcov-create-links-to-gcda-files-in-build-directory.patch
+gcov-architecture-specific-compile-flag-adjustments.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-fix.patch
 
