@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-switch-report-trailing-statements-on-case-and-default.patch added to -mm tree
-Date: Mon, 30 Jun 2008 15:19:40 -0700
-Message-ID: <200806302219.m5UMJeXl028573@imap1.linux-foundation.org>
+Subject: + checkpatch-check-spacing-for-square-brackets.patch added to -mm tree
+Date: Mon, 30 Jun 2008 15:19:42 -0700
+Message-ID: <200806302219.m5UMJgtg028576@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59970 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60988 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933886AbYF3WTs (ORCPT
+	by vger.kernel.org with ESMTP id S933918AbYF3WTu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jun 2008 18:19:48 -0400
+	Mon, 30 Jun 2008 18:19:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: apw@shadowen.org
 
 
 The patch titled
-     checkpatch: switch -- report trailing statements on case and default
+     checkpatch: check spacing for square brackets
 has been added to the -mm tree.  Its filename is
-     checkpatch-switch-report-trailing-statements-on-case-and-default.patch
+     checkpatch-check-spacing-for-square-brackets.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: switch -- report trailing statements on case and default
+Subject: checkpatch: check spacing for square brackets
 From: Andy Whitcroft <apw@shadowen.org>
 
-Report trailing statements on case and default lines.
+Check on the spacing before square brackets.  We should only allow spaces
+there if this is part of a type definition or an initialialiser.
 
 Signed-off-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    4 ++++
- 1 file changed, 4 insertions(+)
+ scripts/checkpatch.pl |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-switch-report-trailing-statements-on-case-and-default scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-switch-report-trailing-statements-on-case-and-default
+diff -puN scripts/checkpatch.pl~checkpatch-check-spacing-for-square-brackets scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-check-spacing-for-square-brackets
 +++ a/scripts/checkpatch.pl
-@@ -1244,6 +1244,10 @@ sub process {
- 				ERROR("switch and case should be at the same indent\n$hereline$err");
- 			}
+@@ -1435,6 +1435,17 @@ sub process {
+ 			ERROR("open brace '{' following $1 go on the same line\n" . $hereprev);
  		}
-+		if ($line =~ /^.\s*(?:case\s*.*|default\s*):/g &&
-+		    $line !~ /\G(?:\s*{)?(?:\s*$;*)(?:\s*\\)?\s*$/g) {
-+			ERROR("trailing statements should be on next line\n" . $herecurr);
-+		}
  
- # if/while/etc brace do not go on next line, unless defining a do while loop,
- # or if that brace on the next line is for something else
++# check for spacing round square brackets; allowed:
++#  1. with a type on the left -- int [] a;
++#  2. at the beginning of a line for slice initialisers -- [0..10] = 5,
++		while ($line =~ /(.*?\s)\[/g) {
++			my ($where, $prefix) = ($-[1], $1);
++			if ($prefix !~ /$Type\s+$/ &&
++			    ($where != 0 || $prefix !~ /^.\s+$/)) {
++				ERROR("space prohibited before open square bracket '['\n" . $herecurr);
++			}
++		}
++
+ # check for spaces between functions and their parentheses.
+ 		while ($line =~ /($Ident)\s+\(/g) {
+ 			my $name = $1;
 _
 
 Patches currently in -mm which might be from apw@shadowen.org are
