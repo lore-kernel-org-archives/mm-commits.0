@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-allow-for-type-modifiers-on-multiple-declarations.patch added to -mm tree
-Date: Mon, 30 Jun 2008 15:19:52 -0700
-Message-ID: <200806302219.m5UMJqiA028591@imap1.linux-foundation.org>
+Subject: + checkpatch-macro-complexity-checks-are-meaningless-in-linker-scripts.patch added to -mm tree
+Date: Mon, 30 Jun 2008 15:19:58 -0700
+Message-ID: <200806302219.m5UMJwHV028601@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45552 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34510 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763378AbYF3WUA (ORCPT
+	by vger.kernel.org with ESMTP id S1763412AbYF3WUH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jun 2008 18:20:00 -0400
+	Mon, 30 Jun 2008 18:20:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: apw@shadowen.org
 
 
 The patch titled
-     checkpatch: allow for type modifiers on multiple declarations
+     checkpatch: macro complexity checks are meaningless in linker scripts
 has been added to the -mm tree.  Its filename is
-     checkpatch-allow-for-type-modifiers-on-multiple-declarations.patch
+     checkpatch-macro-complexity-checks-are-meaningless-in-linker-scripts.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: allow for type modifiers on multiple declarations
+Subject: checkpatch: macro complexity checks are meaningless in linker scripts
 From: Andy Whitcroft <apw@shadowen.org>
 
-Allow for type modifiers mid declaration on multiple declarations:
-
-	struct mxser_mstatus ms, __user *msu = argp;
-
-Reported by Jiri Slaby.
+Exclude vmlinux.lds.h from the macro complexity checks.  They will never
+apply sanely here.
 
 Signed-off-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    4 ++++
- 1 file changed, 4 insertions(+)
+ scripts/checkpatch.pl |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-allow-for-type-modifiers-on-multiple-declarations scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-allow-for-type-modifiers-on-multiple-declarations
+diff -puN scripts/checkpatch.pl~checkpatch-macro-complexity-checks-are-meaningless-in-linker-scripts scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-macro-complexity-checks-are-meaningless-in-linker-scripts
 +++ a/scripts/checkpatch.pl
-@@ -721,6 +721,10 @@ sub annotate_values {
- 			print "DECLARE($1)\n" if ($dbg_values > 1);
- 			$type = 'T';
- 
-+		} elsif ($cur =~ /^($Modifier)\s*/) {
-+			print "MODIFIER($1)\n" if ($dbg_values > 1);
-+			$type = 'T';
-+
- 		} elsif ($cur =~ /^(\#\s*define\s*$Ident)(\(?)/o) {
- 			print "DEFINE($1,$2)\n" if ($dbg_values > 1);
- 			$av_preprocessor = 1;
+@@ -1860,7 +1860,8 @@ sub process {
+ # multi-statement macros should be enclosed in a do while loop, grab the
+ # first statement and ensure its the whole macro if its not enclosed
+ # in a known good container
+-		if ($line =~ /^.\s*\#\s*define\s*$Ident(\()?/) {
++		if ($realfile !~ m@/vmlinux.lds.h$@ &&
++		    $line =~ /^.\s*\#\s*define\s*$Ident(\()?/) {
+ 			my $ln = $linenr;
+ 			my $cnt = $realcnt;
+ 			my ($off, $dstat, $dcond, $rest);
 _
 
 Patches currently in -mm which might be from apw@shadowen.org are
