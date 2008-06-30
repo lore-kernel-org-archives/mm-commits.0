@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-possible-modifiers-are-not-being-correctly-matched.patch added to -mm tree
-Date: Mon, 30 Jun 2008 15:19:56 -0700
-Message-ID: <200806302219.m5UMJuQZ028598@imap1.linux-foundation.org>
+Subject: + checkpatch-possible-types-known-modifiers-cannot-be-types.patch added to -mm tree
+Date: Mon, 30 Jun 2008 15:20:02 -0700
+Message-ID: <200806302220.m5UMKBAb028644@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40734 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37136 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763454AbYF3WUF (ORCPT
+	by vger.kernel.org with ESMTP id S932305AbYF3WUT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jun 2008 18:20:05 -0400
+	Mon, 30 Jun 2008 18:20:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: apw@shadowen.org
 
 
 The patch titled
-     checkpatch: possible modifiers are not being correctly matched
+     checkpatch: possible types -- known modifiers cannot be types
 has been added to the -mm tree.  Its filename is
-     checkpatch-possible-modifiers-are-not-being-correctly-matched.patch
+     checkpatch-possible-types-known-modifiers-cannot-be-types.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,42 +34,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: possible modifiers are not being correctly matched
+Subject: checkpatch: possible types -- known modifiers cannot be types
 From: Andy Whitcroft <apw@shadowen.org>
 
-Although we are finding the added modifier in the declaration below
-we are not correctly matching it as a type.  Fix the declaration.
-
-    static void __ref *vmem_alloc_pages(unsigned int order)
-    {
-    }
+Ensure we do not inadvertantly load known modifiers up as possible types.
 
 Signed-off-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ scripts/checkpatch.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-possible-modifiers-are-not-being-correctly-matched scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-possible-modifiers-are-not-being-correctly-matched
+diff -puN scripts/checkpatch.pl~checkpatch-possible-types-known-modifiers-cannot-be-types scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-possible-types-known-modifiers-cannot-be-types
 +++ a/scripts/checkpatch.pl
-@@ -168,12 +168,11 @@ our @modifierList = (
- );
+@@ -847,7 +847,7 @@ sub possible {
+ 	my ($possible, $line) = @_;
  
- sub build_types {
--	my $mods = "(?:  \n" . join("|\n  ", @modifierList) . "\n)";
--	my $all = "(?:  \n" . join("|\n  ", @typeList) . "\n)";
-+	my $mods = "(?x:  \n" . join("|\n  ", @modifierList) . "\n)";
-+	my $all = "(?x:  \n" . join("|\n  ", @typeList) . "\n)";
- 	$Modifier	= qr{(?:$Attribute|$Sparse|$mods)};
- 	$NonptrType	= qr{
--			(?:const\s+)?
--			(?:$mods\s+)?
-+			(?:$Modifier\s+|const\s+)*
- 			(?:
- 				(?:typeof|__typeof__)\s*\(\s*\**\s*$Ident\s*\)|
- 				(?:${all}\b)
+ 	print "CHECK<$possible> ($line)\n" if ($dbg_possible > 1);
+-	if ($possible !~ /^(?:$Storage|$Type|DEFINE_\S+)$/ &&
++	if ($possible !~ /^(?:$Modifier|$Storage|$Type|DEFINE_\S+)$/ &&
+ 	    $possible ne 'goto' && $possible ne 'return' &&
+ 	    $possible ne 'case' && $possible ne 'else' &&
+ 	    $possible ne 'asm' && $possible ne '__asm__' &&
 _
 
 Patches currently in -mm which might be from apw@shadowen.org are
