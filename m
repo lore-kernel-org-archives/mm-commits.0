@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
 Subject: + cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-checkpatch-fixes.patch added to -mm tree
-Date: Mon, 30 Jun 2008 15:10:21 -0700
-Message-ID: <200806302210.m5UMAMi0028182@imap1.linux-foundation.org>
+Date: Mon, 30 Jun 2008 15:11:08 -0700
+Message-ID: <200806302211.m5UMB8FD028192@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53098 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49980 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756029AbYF3WLN (ORCPT
+	by vger.kernel.org with ESMTP id S1763616AbYF3WLd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jun 2008 18:11:13 -0400
+	Mon, 30 Jun 2008 18:11:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -70,7 +70,7 @@ diff -puN kernel/fork.c~cgroup_clone-use-pid-of-newly-created-task-for-new-cgrou
  
 -	if (current->nsproxy != p->nsproxy)
 -		if ((retval = ns_cgroup_clone(p, pid)))
-+	if (current->nsproxy != p->nsproxy) }
++	if (current->nsproxy != p->nsproxy) {
 +		retval = ns_cgroup_clone(p, pid);
 +		if (retval)
  			goto bad_fork_free_pid;
