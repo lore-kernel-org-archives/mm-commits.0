@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-macro-complexity-checks-are-meaningless-in-linker-scripts.patch added to -mm tree
-Date: Mon, 30 Jun 2008 15:19:58 -0700
-Message-ID: <200806302219.m5UMJwHV028601@imap1.linux-foundation.org>
+Subject: + checkpatch-usb_free_urb-can-take-null.patch added to -mm tree
+Date: Mon, 30 Jun 2008 15:19:48 -0700
+Message-ID: <200806302219.m5UMJm1J028585@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34510 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54508 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763412AbYF3WUH (ORCPT
+	by vger.kernel.org with ESMTP id S1762544AbYF3WUA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jun 2008 18:20:07 -0400
+	Mon, 30 Jun 2008 18:20:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: apw@shadowen.org
+Cc: gregkh@suse.de, apw@shadowen.org
 
 
 The patch titled
-     checkpatch: macro complexity checks are meaningless in linker scripts
+     checkpatch: usb_free_urb() can take NULL
 has been added to the -mm tree.  Its filename is
-     checkpatch-macro-complexity-checks-are-meaningless-in-linker-scripts.patch
+     checkpatch-usb_free_urb-can-take-null.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,96 +34,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: macro complexity checks are meaningless in linker scripts
-From: Andy Whitcroft <apw@shadowen.org>
+Subject: checkpatch: usb_free_urb() can take NULL
+From: Greg Kroah-Hartman <gregkh@suse.de>
 
-Exclude vmlinux.lds.h from the macro complexity checks.  They will never
-apply sanely here.
+usb_free_urb() can take a NULL, so let's check and warn about that.
 
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 Signed-off-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ scripts/checkpatch.pl |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-macro-complexity-checks-are-meaningless-in-linker-scripts scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-macro-complexity-checks-are-meaningless-in-linker-scripts
+diff -puN scripts/checkpatch.pl~checkpatch-usb_free_urb-can-take-null scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-usb_free_urb-can-take-null
 +++ a/scripts/checkpatch.pl
-@@ -1860,7 +1860,8 @@ sub process {
- # multi-statement macros should be enclosed in a do while loop, grab the
- # first statement and ensure its the whole macro if its not enclosed
- # in a known good container
--		if ($line =~ /^.\s*\#\s*define\s*$Ident(\()?/) {
-+		if ($realfile !~ m@/vmlinux.lds.h$@ &&
-+		    $line =~ /^.\s*\#\s*define\s*$Ident(\()?/) {
- 			my $ln = $linenr;
- 			my $cnt = $realcnt;
- 			my ($off, $dstat, $dcond, $rest);
+@@ -2078,6 +2078,13 @@ sub process {
+ 				WARN("kfree(NULL) is safe this check is probabally not required\n" . $hereprev);
+ 			}
+ 		}
++# check for needless usb_free_urb() checks
++		if ($prevline =~ /\bif\s*\(([^\)]*)\)/) {
++			my $expr = $1;
++			if ($line =~ /\busb_free_urb\(\Q$expr\E\);/) {
++				WARN("usb_free_urb(NULL) is safe this check is probably not required\n" . $hereprev);
++			}
++		}
+ 
+ # warn about #ifdefs in C files
+ #		if ($line =~ /^.\s*\#\s*if(|n)def/ && ($realfile =~ /\.c$/)) {
 _
 
-Patches currently in -mm which might be from apw@shadowen.org are
+Patches currently in -mm which might be from gregkh@suse.de are
 
-mm-add-a-basic-debugging-framework-for-memory-initialisation.patch
-mm-add-a-basic-debugging-framework-for-memory-initialisation-fix.patch
-mm-verify-the-page-links-and-memory-model.patch
-mm-make-defensive-checks-around-pfn-values-registered-for-memory-usage.patch
-mm-print-out-the-zonelists-on-request-for-manual-verification.patch
-add-a-helper-function-to-test-if-an-object-is-on-the-stack.patch
-mm-move-bootmem-descriptors-definition-to-a-single-place.patch
-mm-fix-free_all_bootmem_core-alignment-check.patch
-mm-normalize-internal-argument-passing-of-bootmem-data.patch
-mm-unexport-__alloc_bootmem_core.patch
-buddy-clarify-comments-describing-buddy-merge.patch
-page-flags-record-page-flag-overlays-explicitly.patch
-page-flags-record-page-flag-overlays-explicitly-xen.patch
-slub-record-page-flag-overlays-explicitly.patch
-slob-record-page-flag-overlays-explicitly.patch
-hugetlb-move-hugetlb_acct_memory.patch
-hugetlb-reserve-huge-pages-for-reliable-map_private-hugetlbfs-mappings-until-fork.patch
-hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed.patch
-hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed-fix.patch
-hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed-build-fix.patch
-huge-page-private-reservation-review-cleanups.patch
-huge-page-private-reservation-review-cleanups-fix.patch
-mm-record-map_noreserve-status-on-vmas-and-fix-small-page-mprotect-reservations.patch
-hugetlb-move-reservation-region-support-earlier.patch
-hugetlb-allow-huge-page-mappings-to-be-created-without-reservations.patch
-hugetlb-allow-huge-page-mappings-to-be-created-without-reservations-cleanups.patch
-checkpatch-version-020.patch
-checkpatch-return-is-not-a-function-parentheses-for-casts-are-ok-too.patch
-checkpatch-types-some-types-may-also-be-identifiers.patch
-checkpatch-add-a-checkpatch-warning-for-new-uses-of-__initcall.patch
-checkpatch-possible-types-__asm__-is-never-a-type.patch
-checkpatch-comment-detection-ignore-macro-continuation-when-detecting-associated-comments.patch
-checkpatch-types-unary-goto-introduces-unary-context.patch
-checkpatch-macros-fix-statement-counting-block-end-detection.patch
-checkpatch-trailing-statement-indent-fix-end-of-statement-location.patch
-checkpatch-allow-printk-strings-to-exceed-80-characters-to-maintain-their-searchability.patch
-checkpatch-switch-report-trailing-statements-on-case-and-default.patch
-checkpatch-check-spacing-for-square-brackets.patch
-checkpatch-toughen-trailing-if-statement-checks-and-extend-them-to-while-and-for.patch
-checkpatch-condition-loop-indent-checks.patch
+fix-kobject-fix-kobject_rename-and-config_sysfs.patch
+usb-fix-possible-memory-leak-in-pxa27x_udc.patch
+hugetlb-new-sysfs-interface.patch
 checkpatch-usb_free_urb-can-take-null.patch
-checkpatch-correct-spelling-in-kfree-checks.patch
-checkpatch-allow-for-type-modifiers-on-multiple-declarations.patch
-checkpatch-improve-type-matcher-debug.patch
-checkpatch-possible-modifiers-are-not-being-correctly-matched.patch
-checkpatch-macro-complexity-checks-are-meaningless-in-linker-scripts.patch
-checkpatch-handle-return-types-of-pointers-to-functions.patch
-checkpatch-possible-types-known-modifiers-cannot-be-types.patch
-checkpatch-possible-modifiers-handle-multiple-modifiers-and-trailing.patch
-x86-implement-pte_special.patch
-mm-introduce-get_user_pages_fast.patch
-mm-introduce-get_user_pages_fast-fix.patch
-mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast.patch
-x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-fix.patch
-x86-lockless-get_user_pages_fast-fix-2.patch
-x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
-x86-lockless-get_user_pages_fast-fix-warning.patch
-dio-use-get_user_pages_fast.patch
-splice-use-get_user_pages_fast.patch
-page-owner-tracking-leak-detector.patch
+firmware-use-memory_read_from_buffer.patch
+edac-core-fix-to-use-dynamic-kobject.patch
 
