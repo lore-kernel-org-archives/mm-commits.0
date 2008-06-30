@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-comment-detection-ignore-macro-continuation-when-detecting-associated-comments.patch added to -mm tree
-Date: Mon, 30 Jun 2008 15:19:09 -0700
-Message-ID: <200806302219.m5UMJ963028558@imap1.linux-foundation.org>
+Subject: + checkpatch-possible-types-__asm__-is-never-a-type.patch added to -mm tree
+Date: Mon, 30 Jun 2008 15:19:07 -0700
+Message-ID: <200806302219.m5UMJ76x028555@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46918 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55827 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932866AbYF3WTR (ORCPT
+	by vger.kernel.org with ESMTP id S932863AbYF3WTP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jun 2008 18:19:17 -0400
+	Mon, 30 Jun 2008 18:19:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: apw@shadowen.org
 
 
 The patch titled
-     checkpatch: comment detection: ignore macro continuation when detecting associated comments
+     checkpatch: possible types: __asm__ is never a type
 has been added to the -mm tree.  Its filename is
-     checkpatch-comment-detection-ignore-macro-continuation-when-detecting-associated-comments.patch
+     checkpatch-possible-types-__asm__-is-never-a-type.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: comment detection: ignore macro continuation when detecting associated comments
+Subject: checkpatch: possible types: __asm__ is never a type
 From: Andy Whitcroft <apw@shadowen.org>
 
-When looking for an associated comment they may be suffixed by a macro
-continuation.  Ignore this.
+We are false matching __asm__ as a type, and then tripping the external
+function checks.  Squash.
 
 Signed-off-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
@@ -47,18 +47,18 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  scripts/checkpatch.pl |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-comment-detection-ignore-macro-continuation-when-detecting-associated-comments scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-comment-detection-ignore-macro-continuation-when-detecting-associated-comments
+diff -puN scripts/checkpatch.pl~checkpatch-possible-types-__asm__-is-never-a-type scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-possible-types-__asm__-is-never-a-type
 +++ a/scripts/checkpatch.pl
-@@ -631,7 +631,7 @@ sub ctx_locate_comment {
- 	my ($first_line, $end_line) = @_;
- 
- 	# Catch a comment on the end of the line itself.
--	my ($current_comment) = ($rawlines[$end_line - 1] =~ m@.*(/\*.*\*/)\s*$@);
-+	my ($current_comment) = ($rawlines[$end_line - 1] =~ m@.*(/\*.*\*/)\s*(?:\\\s*)?$@);
- 	return $current_comment if (defined $current_comment);
- 
- 	# Look through the context and try and figure out if there is a
+@@ -846,7 +846,7 @@ sub possible {
+ 	if ($possible !~ /^(?:$Storage|$Type|DEFINE_\S+)$/ &&
+ 	    $possible ne 'goto' && $possible ne 'return' &&
+ 	    $possible ne 'case' && $possible ne 'else' &&
+-	    $possible ne 'asm' &&
++	    $possible ne 'asm' && $possible ne '__asm__' &&
+ 	    $possible !~ /^(typedef|struct|enum)\b/) {
+ 		# Check for modifiers.
+ 		$possible =~ s/\s*$Storage\s*//g;
 _
 
 Patches currently in -mm which might be from apw@shadowen.org are
