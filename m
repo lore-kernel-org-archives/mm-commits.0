@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + pidns-remove-now-unused-find_pid-function.patch added to -mm tree
-Date: Mon, 30 Jun 2008 14:26:41 -0700
-Message-ID: <200806302126.m5ULQfSb026200@imap1.linux-foundation.org>
+Subject: + pidns-remove-now-unused-kill_proc-function.patch added to -mm tree
+Date: Mon, 30 Jun 2008 14:26:39 -0700
+Message-ID: <200806302126.m5ULQdcj026197@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36890 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36081 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757675AbYF3V0p (ORCPT
+	by vger.kernel.org with ESMTP id S1758518AbYF3V0y (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jun 2008 17:26:45 -0400
+	Mon, 30 Jun 2008 17:26:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: xemul@openvz.org, ebiederm@xmission.com, oleg@tv-sign.ru
 
 
 The patch titled
-     pidns: remove now unused find_pid function.
+     pidns: remove now unused kill_proc function
 has been added to the -mm tree.  Its filename is
-     pidns-remove-now-unused-find_pid-function.patch
+     pidns-remove-now-unused-kill_proc-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,13 +34,14 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pidns: remove now unused find_pid function.
+Subject: pidns: remove now unused kill_proc function
 From: Pavel Emelyanov <xemul@openvz.org>
 
-This one had the only users so far - the kill_proc, which is removed, so
-drop this (invalid in namespaced world) call too.
+This function operated on a pid_t to kill a task, which is no longer valid
+in a containerized system.
 
-And of course - erase all references on it from comments.
+It has finally lost all its users and we can safely remove it from the
+tree.
 
 Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
 Cc: Oleg Nesterov <oleg@tv-sign.ru>
@@ -48,75 +49,50 @@ Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pid.h   |    4 +---
- include/linux/sched.h |    2 +-
- kernel/pid.c          |    8 +-------
- 3 files changed, 3 insertions(+), 11 deletions(-)
+ include/linux/sched.h |    1 -
+ kernel/signal.c       |   12 ------------
+ 2 files changed, 13 deletions(-)
 
-diff -puN include/linux/pid.h~pidns-remove-now-unused-find_pid-function include/linux/pid.h
---- a/include/linux/pid.h~pidns-remove-now-unused-find_pid-function
-+++ a/include/linux/pid.h
-@@ -48,7 +48,7 @@ enum pid_type
-  */
- 
- struct upid {
--	/* Try to keep pid_chain in the same cacheline as nr for find_pid */
-+	/* Try to keep pid_chain in the same cacheline as nr for find_vpid */
- 	int nr;
- 	struct pid_namespace *ns;
- 	struct hlist_node pid_chain;
-@@ -105,14 +105,12 @@ extern struct pid_namespace init_pid_ns;
-  * or rcu_read_lock() held.
-  *
-  * find_pid_ns() finds the pid in the namespace specified
-- * find_pid() find the pid by its global id, i.e. in the init namespace
-  * find_vpid() finr the pid by its virtual id, i.e. in the current namespace
-  *
-  * see also find_task_by_pid() set in include/linux/sched.h
-  */
- extern struct pid *find_pid_ns(int nr, struct pid_namespace *ns);
- extern struct pid *find_vpid(int nr);
--extern struct pid *find_pid(int nr);
- 
- /*
-  * Lookup a PID in the hash table, and return with it's count elevated.
-diff -puN include/linux/sched.h~pidns-remove-now-unused-find_pid-function include/linux/sched.h
---- a/include/linux/sched.h~pidns-remove-now-unused-find_pid-function
+diff -puN include/linux/sched.h~pidns-remove-now-unused-kill_proc-function include/linux/sched.h
+--- a/include/linux/sched.h~pidns-remove-now-unused-kill_proc-function
 +++ a/include/linux/sched.h
-@@ -1687,7 +1687,7 @@ extern struct pid_namespace init_pid_ns;
-  * find_task_by_pid():
-  *      finds a task by its global pid
-  *
-- * see also find_pid() etc in include/linux/pid.h
-+ * see also find_vpid() etc in include/linux/pid.h
-  */
- 
- extern struct task_struct *find_task_by_pid_type_ns(int type, int pid,
-diff -puN kernel/pid.c~pidns-remove-now-unused-find_pid-function kernel/pid.c
---- a/kernel/pid.c~pidns-remove-now-unused-find_pid-function
-+++ a/kernel/pid.c
-@@ -309,12 +309,6 @@ struct pid *find_vpid(int nr)
+@@ -1769,7 +1769,6 @@ extern void force_sig(int, struct task_s
+ extern void force_sig_specific(int, struct task_struct *);
+ extern int send_sig(int, struct task_struct *, int);
+ extern void zap_other_threads(struct task_struct *p);
+-extern int kill_proc(pid_t, int, int);
+ extern struct sigqueue *sigqueue_alloc(void);
+ extern void sigqueue_free(struct sigqueue *);
+ extern int send_sigqueue(struct sigqueue *,  struct task_struct *, int group);
+diff -puN kernel/signal.c~pidns-remove-now-unused-kill_proc-function kernel/signal.c
+--- a/kernel/signal.c~pidns-remove-now-unused-kill_proc-function
++++ a/kernel/signal.c
+@@ -1228,17 +1228,6 @@ int kill_pid(struct pid *pid, int sig, i
  }
- EXPORT_SYMBOL_GPL(find_vpid);
+ EXPORT_SYMBOL(kill_pid);
  
--struct pid *find_pid(int nr)
+-int
+-kill_proc(pid_t pid, int sig, int priv)
 -{
--	return find_pid_ns(nr, &init_pid_ns);
+-	int ret;
+-
+-	rcu_read_lock();
+-	ret = kill_pid_info(sig, __si_special(priv), find_pid(pid));
+-	rcu_read_unlock();
+-	return ret;
 -}
--EXPORT_SYMBOL_GPL(find_pid);
 -
  /*
-  * attach_pid() must be called with the tasklist_lock write-held.
-  */
-@@ -483,7 +477,7 @@ EXPORT_SYMBOL(task_session_nr_ns);
- /*
-  * Used by proc to find the first pid that is greater then or equal to nr.
-  *
-- * If there is a pid at nr this function is exactly the same as find_pid.
-+ * If there is a pid at nr this function is exactly the same as find_pid_ns.
-  */
- struct pid *find_ge_pid(int nr, struct pid_namespace *ns)
- {
+  * These functions support sending signals using preallocated sigqueue
+  * structures.  This is needed "because realtime applications cannot
+@@ -1908,7 +1897,6 @@ EXPORT_SYMBOL(recalc_sigpending);
+ EXPORT_SYMBOL_GPL(dequeue_signal);
+ EXPORT_SYMBOL(flush_signals);
+ EXPORT_SYMBOL(force_sig);
+-EXPORT_SYMBOL(kill_proc);
+ EXPORT_SYMBOL(ptrace_notify);
+ EXPORT_SYMBOL(send_sig);
+ EXPORT_SYMBOL(send_sig_info);
 _
 
 Patches currently in -mm which might be from xemul@openvz.org are
