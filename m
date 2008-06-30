@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + ptrace-give-more-respect-to-sigkill.patch added to -mm tree
-Date: Mon, 30 Jun 2008 16:27:01 -0700
-Message-ID: <200806302327.m5UNR2nO030953@imap1.linux-foundation.org>
+Subject: + ptrace-kill-may_ptrace_stop.patch added to -mm tree
+Date: Mon, 30 Jun 2008 16:27:07 -0700
+Message-ID: <200806302327.m5UNR7NN030959@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59515 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58067 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753328AbYF3X1t (ORCPT
+	by vger.kernel.org with ESMTP id S1751784AbYF3X2L (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jun 2008 19:27:49 -0400
+	Mon, 30 Jun 2008 19:28:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: oleg@tv-sign.ru, matthew@wil.cx, mingo@elte.hu, roland@redhat.com
 
 
 The patch titled
-     ptrace: give more respect to SIGKILL
+     ptrace: kill may_ptrace_stop()
 has been added to the -mm tree.  Its filename is
-     ptrace-give-more-respect-to-sigkill.patch
+     ptrace-kill-may_ptrace_stop.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,21 +34,16 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ptrace: give more respect to SIGKILL
+Subject: ptrace: kill may_ptrace_stop()
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-ptrace_stop() has some complicated checks to prevent the scheduling in the
-TASK_TRACED state with the pending SIGKILL, but these checks are racy, and
-they depend on arch_ptrace_stop_needed().
+Now that ptrace_stop() can't sleep if the tracee was SIGKILL'ed, we don't
+need the special mm->core_waiters check in may_ptrace_stop(). It was needed
+to prevent the deadlock with the tracer with the same ->mm which waits for
+us in coredump_wait()->wait_for_completion(&startup_done), and the the
+unkillable tracee waits for PTRACE_CONT from the tracer.
 
-This patch assumes that the traced task should die asap if it was killed by
-SIGKILL, in that case schedule()->signal_pending_state() has no reason to
-ignore the TASK_WAKEKILL part of TASK_TRACED, and we can kill this nasty
-special case.
-
-Note: do_exit()->ptrace_notify() is special, the killed task can already
-dequeue SIGKILL at this point. Another indication that fatal_signal_pending()
-is not exactly right.
+Without this check may_ptrace_stop() becomes trivial and can be removed.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Ingo Molnar <mingo@elte.hu>
@@ -57,22 +52,48 @@ Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    3 ---
- 1 file changed, 3 deletions(-)
+ kernel/signal.c |   22 +---------------------
+ 1 file changed, 1 insertion(+), 21 deletions(-)
 
-diff -puN include/linux/sched.h~ptrace-give-more-respect-to-sigkill include/linux/sched.h
---- a/include/linux/sched.h~ptrace-give-more-respect-to-sigkill
-+++ a/include/linux/sched.h
-@@ -2039,9 +2039,6 @@ static inline int signal_pending_state(l
- 	if (!signal_pending(p))
- 		return 0;
- 
--	if (state & (__TASK_STOPPED | __TASK_TRACED))
--		return 0;
--
- 	return (state & TASK_INTERRUPTIBLE) || __fatal_signal_pending(p);
+diff -puN kernel/signal.c~ptrace-kill-may_ptrace_stop kernel/signal.c
+--- a/kernel/signal.c~ptrace-kill-may_ptrace_stop
++++ a/kernel/signal.c
+@@ -1470,26 +1470,6 @@ static void do_notify_parent_cldstop(str
+ 	spin_unlock_irqrestore(&sighand->siglock, flags);
  }
  
+-static inline int may_ptrace_stop(void)
+-{
+-	if (!likely(current->ptrace & PT_PTRACED))
+-		return 0;
+-	/*
+-	 * Are we in the middle of do_coredump?
+-	 * If so and our tracer is also part of the coredump stopping
+-	 * is a deadlock situation, and pointless because our tracer
+-	 * is dead so don't allow us to stop.
+-	 * If SIGKILL was already sent before the caller unlocked
+-	 * ->siglock we must see ->core_waiters != 0. Otherwise it
+-	 * is safe to enter schedule().
+-	 */
+-	if (unlikely(current->mm->core_waiters) &&
+-	    unlikely(current->mm == current->parent->mm))
+-		return 0;
+-
+-	return 1;
+-}
+-
+ /*
+  * This must be called with current->sighand->siglock held.
+  *
+@@ -1534,7 +1514,7 @@ static void ptrace_stop(int exit_code, i
+ 	__set_current_state(TASK_TRACED);
+ 	spin_unlock_irq(&current->sighand->siglock);
+ 	read_lock(&tasklist_lock);
+-	if (may_ptrace_stop()) {
++	if (likely(current->ptrace & PT_PTRACED)) {
+ 		do_notify_parent_cldstop(current, CLD_TRAPPED);
+ 		read_unlock(&tasklist_lock);
+ 		schedule();
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
