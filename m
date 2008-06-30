@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fat-dirc-switch-to-struct-__fat_fs_dirent.patch added to -mm tree
-Date: Mon, 30 Jun 2008 13:45:41 -0700
-Message-ID: <200806302045.m5UKjfoR024572@imap1.linux-foundation.org>
+Subject: + remove-the-in-kernel-struct-dirent64.patch added to -mm tree
+Date: Mon, 30 Jun 2008 13:46:12 -0700
+Message-ID: <200806302046.m5UKkC1V024588@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41353 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50788 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753395AbYF3Uq3 (ORCPT
+	by vger.kernel.org with ESMTP id S1760614AbYF3Ur2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jun 2008 16:46:29 -0400
+	Mon, 30 Jun 2008 16:47:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, hirofumi@mail.parknet.co.jp, hpa@zytor.com
+Cc: bunk@kernel.org, hirofumi@mail.parknet.co.jp, hpa@kernel.org
 
 
 The patch titled
-     fat/dir.c: switch to struct __fat_fs_dirent
+     remove the in-kernel struct dirent{,64}
 has been added to the -mm tree.  Its filename is
-     fat-dirc-switch-to-struct-__fat_fs_dirent.patch
+     remove-the-in-kernel-struct-dirent64.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,62 +34,73 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fat/dir.c: switch to struct __fat_fs_dirent
+Subject: remove the in-kernel struct dirent{,64}
 From: Adrian Bunk <bunk@kernel.org>
 
-struct __fat_fs_dirent is what was formerly the kernel struct dirent (that
-was different from the userspace struct dirent).
+The kernel struct dirent{,64} were different from the ones in
+userspace.
 
-Converting all fat users to struct __fat_fs_dirent will allow us to get
-rid of the conflicting struct dirent definition.
+Even worse, we exported the kernel ones to userspace.
 
+But after the fat usages are fixed we can remove the conflicting
+kernel versions.
+
+Reviewed-by: H. Peter Anvin <hpa@kernel.org>
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/dir.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ include/linux/Kbuild   |    1 -
+ include/linux/dirent.h |   20 --------------------
+ 2 files changed, 21 deletions(-)
 
-diff -puN fs/fat/dir.c~fat-dirc-switch-to-struct-__fat_fs_dirent fs/fat/dir.c
---- a/fs/fat/dir.c~fat-dirc-switch-to-struct-__fat_fs_dirent
-+++ a/fs/fat/dir.c
-@@ -17,7 +17,6 @@
- #include <linux/slab.h>
- #include <linux/time.h>
- #include <linux/msdos_fs.h>
--#include <linux/dirent.h>
- #include <linux/smp_lock.h>
- #include <linux/buffer_head.h>
- #include <linux/compat.h>
-@@ -715,7 +714,7 @@ efault:									   \
- 	return -EFAULT;							   \
- }
+diff -puN include/linux/Kbuild~remove-the-in-kernel-struct-dirent64 include/linux/Kbuild
+--- a/include/linux/Kbuild~remove-the-in-kernel-struct-dirent64
++++ a/include/linux/Kbuild
+@@ -189,7 +189,6 @@ unifdef-y += connector.h
+ unifdef-y += cuda.h
+ unifdef-y += cyclades.h
+ unifdef-y += dccp.h
+-unifdef-y += dirent.h
+ unifdef-y += dlm.h
+ unifdef-y += dlm_plock.h
+ unifdef-y += edd.h
+diff -puN include/linux/dirent.h~remove-the-in-kernel-struct-dirent64 include/linux/dirent.h
+--- a/include/linux/dirent.h~remove-the-in-kernel-struct-dirent64
++++ a/include/linux/dirent.h
+@@ -1,23 +1,6 @@
+ #ifndef _LINUX_DIRENT_H
+ #define _LINUX_DIRENT_H
  
--FAT_IOCTL_FILLDIR_FUNC(fat_ioctl_filldir, dirent)
-+FAT_IOCTL_FILLDIR_FUNC(fat_ioctl_filldir, __fat_fs_dirent)
+-struct dirent {
+-	long		d_ino;
+-	__kernel_off_t	d_off;
+-	unsigned short	d_reclen;
+-	char		d_name[256]; /* We must not include limits.h! */
+-};
+-
+-struct dirent64 {
+-	__u64		d_ino;
+-	__s64		d_off;
+-	unsigned short	d_reclen;
+-	unsigned char	d_type;
+-	char		d_name[256];
+-};
+-
+-#ifdef __KERNEL__
+-
+ struct linux_dirent64 {
+ 	u64		d_ino;
+ 	s64		d_off;
+@@ -26,7 +9,4 @@ struct linux_dirent64 {
+ 	char		d_name[0];
+ };
  
- static int fat_ioctl_readdir(struct inode *inode, struct file *filp,
- 			     void __user *dirent, filldir_t filldir,
-@@ -741,7 +740,7 @@ static int fat_ioctl_readdir(struct inod
- static int fat_dir_ioctl(struct inode *inode, struct file *filp,
- 			 unsigned int cmd, unsigned long arg)
- {
--	struct dirent __user *d1 = (struct dirent __user *)arg;
-+	struct __fat_fs_dirent __user *d1 = (struct __fat_fs_dirent __user *)arg;
- 	int short_only, both;
- 
- 	switch (cmd) {
-@@ -757,7 +756,7 @@ static int fat_dir_ioctl(struct inode *i
- 		return fat_generic_ioctl(inode, filp, cmd, arg);
- 	}
- 
--	if (!access_ok(VERIFY_WRITE, d1, sizeof(struct dirent[2])))
-+	if (!access_ok(VERIFY_WRITE, d1, sizeof(struct __fat_fs_dirent[2])))
- 		return -EFAULT;
- 	/*
- 	 * Yes, we don't need this put_user() absolutely. However old
+-#endif	/* __KERNEL__ */
+-
+-
+ #endif
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
@@ -125,6 +136,7 @@ minix-remove-no_truncate-code.patch
 jbd-unexport-journal_update_superblock.patch
 coda-remove-coda_fs_old_api.patch
 fat-dirc-switch-to-struct-__fat_fs_dirent.patch
+remove-the-in-kernel-struct-dirent64.patch
 include-asm-ptraceh-userspace-headers-cleanup.patch
 remove-is_tty.patch
 pty-remove-unused-unix98_pty_count-options.patch
