@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + doc-kernel-parameterstxt-fix-stale-references.patch added to -mm tree
-Date: Mon, 30 Jun 2008 16:03:18 -0700
-Message-ID: <200806302303.m5UN3IPR030139@imap1.linux-foundation.org>
+Subject: + hdaps-add-support-for-various-newer-lenovo-thinkpads.patch added to -mm tree
+Date: Mon, 30 Jun 2008 16:14:07 -0700
+Message-ID: <200806302314.m5UNE7HC030571@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49031 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58066 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762884AbYF3XDc (ORCPT
+	by vger.kernel.org with ESMTP id S1752187AbYF3XPC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jun 2008 19:03:32 -0400
+	Mon, 30 Jun 2008 19:15:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: pavel@suse.cz, randy.dunlap@oracle.com
+Cc: max@stro.at, khali@linux-fr.org, mhoffman@lightlink.com, tim.gardner@canonical.com, ubuntu@hjernemadsen.org, zulcss@ubuntu.com
 
 
 The patch titled
-     Doc*/kernel-parameters.txt: fix stale references
+     hdaps: add support for various newer Lenovo thinkpads
 has been added to the -mm tree.  Its filename is
-     doc-kernel-parameterstxt-fix-stale-references.patch
+     hdaps-add-support-for-various-newer-lenovo-thinkpads.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,56 +34,73 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Doc*/kernel-parameters.txt: fix stale references
-From: Pavel Machek <pavel@suse.cz>
+Subject: hdaps: add support for various newer Lenovo thinkpads
+From: maximilian attems <max@stro.at>
 
-Fix stale references to source files in kernel-parameters.txt.
+Adds R61, T61p, X61s, X61, Z61m, Z61p models to whitelist.
 
-Signed-off-by: Pavel Machek <pavel@suse.cz>
-Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
+Fixes this:
+
+cullen@lenny:~$ sudo modprobe hdaps
+FATAL: Error inserting hdaps (/lib/modules/2.6.22-10-generic/kernel/drivers/hwmon/hdaps.ko): No such device
+
+[25192.888000] hdaps: supported laptop not found!
+[25192.888000] hdaps: driver init failed (ret=-19)!
+
+
+Originally based on an Ubuntu patch that got it wrong, the dmidecode
+output of the corresponding laptops shows LENOVO as the manufacturer. 
+https://bugs.launchpad.net/ubuntu/+source/linux-source-2.6.22/+bug/133636
+
+tested on X61s:
+[  184.893588] hdaps: inverting axis readings.
+[  184.893588] hdaps: LENOVO ThinkPad X61s detected.
+[  184.893588] input: hdaps as /class/input/input12
+[  184.924326] hdaps: driver successfully loaded.
+
+Cc: Klaus S. Madsen <ubuntu@hjernemadsen.org>
+Cc: Chuck Short <zulcss@ubuntu.com>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Tim Gardner <tim.gardner@canonical.com>
+Signed-off-by: maximilian attems <max@stro.at>
+Cc: Mark M. Hoffman <mhoffman@lightlink.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/hwmon/hdaps.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN Documentation/kernel-parameters.txt~doc-kernel-parameterstxt-fix-stale-references Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~doc-kernel-parameterstxt-fix-stale-references
-+++ a/Documentation/kernel-parameters.txt
-@@ -295,7 +295,7 @@ and is between 256 and 4096 characters. 
- 			when initialising the APIC and IO-APIC components.
+diff -puN drivers/hwmon/hdaps.c~hdaps-add-support-for-various-newer-lenovo-thinkpads drivers/hwmon/hdaps.c
+--- a/drivers/hwmon/hdaps.c~hdaps-add-support-for-various-newer-lenovo-thinkpads
++++ a/drivers/hwmon/hdaps.c
+@@ -516,17 +516,23 @@ static struct dmi_system_id __initdata h
+ 	HDAPS_DMI_MATCH_NORMAL("IBM", "ThinkPad R51"),
+ 	HDAPS_DMI_MATCH_NORMAL("IBM", "ThinkPad R52"),
+ 	HDAPS_DMI_MATCH_INVERT("LENOVO", "ThinkPad R61i"),
++	HDAPS_DMI_MATCH_INVERT("LENOVO", "ThinkPad R61"),
+ 	HDAPS_DMI_MATCH_INVERT("IBM", "ThinkPad T41p"),
+ 	HDAPS_DMI_MATCH_NORMAL("IBM", "ThinkPad T41"),
+ 	HDAPS_DMI_MATCH_INVERT("IBM", "ThinkPad T42p"),
+ 	HDAPS_DMI_MATCH_NORMAL("IBM", "ThinkPad T42"),
+ 	HDAPS_DMI_MATCH_NORMAL("IBM", "ThinkPad T43"),
+ 	HDAPS_DMI_MATCH_INVERT("LENOVO", "ThinkPad T60"),
++	HDAPS_DMI_MATCH_INVERT("LENOVO", "ThinkPad T61p"),
+ 	HDAPS_DMI_MATCH_INVERT("LENOVO", "ThinkPad T61"),
+ 	HDAPS_DMI_MATCH_NORMAL("IBM", "ThinkPad X40"),
+ 	HDAPS_DMI_MATCH_NORMAL("IBM", "ThinkPad X41"),
+ 	HDAPS_DMI_MATCH_INVERT("LENOVO", "ThinkPad X60"),
++	HDAPS_DMI_MATCH_INVERT("LENOVO", "ThinkPad X61s"),
++	HDAPS_DMI_MATCH_INVERT("LENOVO", "ThinkPad X61"),
+ 	HDAPS_DMI_MATCH_NORMAL("IBM", "ThinkPad Z60m"),
++	HDAPS_DMI_MATCH_INVERT("LENOVO", "ThinkPad Z61m"),
++	HDAPS_DMI_MATCH_INVERT("LENOVO", "ThinkPad Z61p"),
+ 	{ .ident = NULL }
+ };
  
- 	apm=		[APM] Advanced Power Management
--			See header of arch/i386/kernel/apm.c.
-+			See header of arch/x86/kernel/apm_32.c.
- 
- 	arcrimi=	[HW,NET] ARCnet - "RIM I" (entirely mem-mapped) cards
- 			Format: <io>,<irq>,<nodeID>
-@@ -638,7 +638,7 @@ and is between 256 and 4096 characters. 
- 
- 	elanfreq=	[X86-32]
- 			See comment before function elanfreq_setup() in
--			arch/i386/kernel/cpu/cpufreq/elanfreq.c.
-+			arch/x86/kernel/cpu/cpufreq/elanfreq.c.
- 
- 	elevator=	[IOSCHED]
- 			Format: {"anticipatory" | "cfq" | "deadline" | "noop"}
 _
 
-Patches currently in -mm which might be from pavel@suse.cz are
+Patches currently in -mm which might be from max@stro.at are
 
-rtc-fix-cmos-time-error-after-writing-proc-acpi-alarm.patch
-doc-kernel-parameterstxt-fix-stale-references.patch
-x86-acpi-normalize-segment-descriptor-register-on-resume.patch
-pm-remove-references-to-struct-pm_dev-from-irda-headers.patch
-sync_file_range_write-may-and-will-block-document-that.patch
-sync_file_range_write-may-and-will-block-document-that-fix.patch
-swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option.patch
-swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
-pm-boot-time-suspend-selftest.patch
-pm-boot-time-suspend-selftest-vs-linux-next.patch
-remove-include-linux-pm_legacyh.patch
-pm-remove-definition-of-struct-pm_dev.patch
-pm-remove-remaining-obsolete-definitions-from-pmh.patch
-pm-drop-unnecessary-includes-from-pmh.patch
+hdaps-add-support-for-various-newer-lenovo-thinkpads.patch
+block-request_module-use-format-string.patch
 
