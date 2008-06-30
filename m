@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup.patch added to -mm tree
-Date: Mon, 30 Jun 2008 15:07:42 -0700
-Message-ID: <200806302207.m5UM7h0T028026@imap1.linux-foundation.org>
+Subject: + cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-checkpatch-fixes.patch added to -mm tree
+Date: Mon, 30 Jun 2008 15:10:21 -0700
+Message-ID: <200806302210.m5UMAMi0028182@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56357 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53098 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933228AbYF3WIz (ORCPT
+	by vger.kernel.org with ESMTP id S1756029AbYF3WLN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jun 2008 18:08:55 -0400
+	Mon, 30 Jun 2008 18:11:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: serue@us.ibm.com, balbir@in.ibm.com, danms@us.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, serge@us.ibm.com
+Cc: akpm@linux-foundation.org, balbir@in.ibm.com, danms@us.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, serge@us.ibm.com, serue@us.ibm.com
 
 
 The patch titled
-     cgroup_clone: use pid of newly created task for new cgroup
+     cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup.patch
+     cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,192 +34,189 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroup_clone: use pid of newly created task for new cgroup
-From: "Serge E. Hallyn" <serue@us.ibm.com>
+Subject: cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-cgroup_clone creates a new cgroup with the pid of the task.  This works
-correctly for unshare, but for clone cgroup_clone is called from
-copy_namespaces inside copy_process, which happens before the new pid is
-created.  As a result, the new cgroup was created with current's pid. 
-This patch:
+ERROR: do not use assignment in if condition
+#119: FILE: kernel/fork.c:1115:
++		if ((retval = ns_cgroup_clone(p, pid)))
 
-	1. Moves the call inside copy_process to after the new pid
-	   is created
-	2. Passes the struct pid into ns_cgroup_clone (as it is not
-	   yet attached to the task)
-	3. Passes a name from ns_cgroup_clone() into cgroup_clone()
-	   so as to keep cgroup_clone() itself simpler
-	4. Uses pid_vnr() to get the process id value, so that the
-	   pid used to name the new cgroup is always the pid as it
-	   would be known to the task which did the cloning or
-	   unsharing.  I think that is the most intuitive thing to
-	   do.  This way, task t1 does clone(CLONE_NEWPID) to get
-	   t2, which does clone(CLONE_NEWPID) to get t3, then the
-	   cgroup for t3 will be named for the pid by which t2 knows
-	   t3.
+total: 1 errors, 0 warnings, 94 lines checked
 
-(Thanks to Dan Smith for finding the main bug)
+./patches/cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
 
-Changelog:
-	June 11: Incorporate Paul Menage's feedback:  don't pass
-	         NULL to ns_cgroup_clone from unshare, and reduce
-		 patch size by using 'nodename' in cgroup_clone.
-	June 10: Original version
+Please run checkpatch prior to sending patches
 
-Signed-off-by: Serge Hallyn <serge@us.ibm.com>
-Acked-by: Paul Menage <menage@google.com>
-Tested-by: Dan Smith <danms@us.ibm.com>
+Cc: "Serge E. Hallyn" <serue@us.ibm.com>
 Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Dan Smith <danms@us.ibm.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Paul Menage <menage@google.com>
+Cc: Serge Hallyn <serge@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cgroup.h  |    3 ++-
- include/linux/nsproxy.h |    7 +++++--
- kernel/cgroup.c         |    7 +++----
- kernel/fork.c           |    4 ++++
- kernel/ns_cgroup.c      |    7 +++++--
- kernel/nsproxy.c        |    8 +-------
- 6 files changed, 20 insertions(+), 16 deletions(-)
+ kernel/fork.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/cgroup.h~cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup include/linux/cgroup.h
---- a/include/linux/cgroup.h~cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup
-+++ a/include/linux/cgroup.h
-@@ -364,7 +364,8 @@ static inline struct cgroup* task_cgroup
- 	return task_subsys_state(task, subsys_id)->cgroup;
- }
- 
--int cgroup_clone(struct task_struct *tsk, struct cgroup_subsys *ss);
-+int cgroup_clone(struct task_struct *tsk, struct cgroup_subsys *ss,
-+							char *nodename);
- 
- /* A cgroup_iter should be treated as an opaque object */
- struct cgroup_iter {
-diff -puN include/linux/nsproxy.h~cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup include/linux/nsproxy.h
---- a/include/linux/nsproxy.h~cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup
-+++ a/include/linux/nsproxy.h
-@@ -82,9 +82,12 @@ static inline void get_nsproxy(struct ns
- }
- 
- #ifdef CONFIG_CGROUP_NS
--int ns_cgroup_clone(struct task_struct *tsk);
-+int ns_cgroup_clone(struct task_struct *tsk, struct pid *pid);
- #else
--static inline int ns_cgroup_clone(struct task_struct *tsk) { return 0; }
-+static inline int ns_cgroup_clone(struct task_struct *tsk, struct pid *pid)
-+{
-+	return 0;
-+}
- #endif
- 
- #endif
-diff -puN kernel/cgroup.c~cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup kernel/cgroup.c
---- a/kernel/cgroup.c~cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup
-+++ a/kernel/cgroup.c
-@@ -2845,16 +2845,17 @@ void cgroup_exit(struct task_struct *tsk
-  * cgroup_clone - clone the cgroup the given subsystem is attached to
-  * @tsk: the task to be moved
-  * @subsys: the given subsystem
-+ * @nodename: the name for the new cgroup
-  *
-  * Duplicate the current cgroup in the hierarchy that the given
-  * subsystem is attached to, and move this task into the new
-  * child.
-  */
--int cgroup_clone(struct task_struct *tsk, struct cgroup_subsys *subsys)
-+int cgroup_clone(struct task_struct *tsk, struct cgroup_subsys *subsys,
-+							char *nodename)
- {
- 	struct dentry *dentry;
- 	int ret = 0;
--	char nodename[MAX_CGROUP_TYPE_NAMELEN];
- 	struct cgroup *parent, *child;
- 	struct inode *inode;
- 	struct css_set *cg;
-@@ -2879,8 +2880,6 @@ int cgroup_clone(struct task_struct *tsk
- 	cg = tsk->cgroups;
- 	parent = task_cgroup(tsk, subsys->subsys_id);
- 
--	snprintf(nodename, MAX_CGROUP_TYPE_NAMELEN, "%d", tsk->pid);
--
- 	/* Pin the hierarchy */
- 	atomic_inc(&parent->root->sb->s_active);
- 
-diff -puN kernel/fork.c~cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup kernel/fork.c
---- a/kernel/fork.c~cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup
+diff -puN kernel/fork.c~cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-checkpatch-fixes kernel/fork.c
+--- a/kernel/fork.c~cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-checkpatch-fixes
 +++ a/kernel/fork.c
-@@ -1111,6 +1111,10 @@ static struct task_struct *copy_process(
+@@ -1111,9 +1111,11 @@ static struct task_struct *copy_process(
  	if (clone_flags & CLONE_THREAD)
  		p->tgid = current->tgid;
  
-+	if (current->nsproxy != p->nsproxy)
-+		if ((retval = ns_cgroup_clone(p, pid)))
-+			goto bad_fork_free_pid;
-+
+-	if (current->nsproxy != p->nsproxy)
+-		if ((retval = ns_cgroup_clone(p, pid)))
++	if (current->nsproxy != p->nsproxy) }
++		retval = ns_cgroup_clone(p, pid);
++		if (retval)
+ 			goto bad_fork_free_pid;
++	}
+ 
  	p->set_child_tid = (clone_flags & CLONE_CHILD_SETTID) ? child_tidptr : NULL;
  	/*
- 	 * Clear TID on mm_release()?
-diff -puN kernel/ns_cgroup.c~cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup kernel/ns_cgroup.c
---- a/kernel/ns_cgroup.c~cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup
-+++ a/kernel/ns_cgroup.c
-@@ -24,9 +24,12 @@ static inline struct ns_cgroup *cgroup_t
- 			    struct ns_cgroup, css);
- }
- 
--int ns_cgroup_clone(struct task_struct *task)
-+int ns_cgroup_clone(struct task_struct *task, struct pid *pid)
- {
--	return cgroup_clone(task, &ns_subsys);
-+	char name[PROC_NUMBUF];
-+
-+	snprintf(name, PROC_NUMBUF, "%d", pid_vnr(pid));
-+	return cgroup_clone(task, &ns_subsys, name);
- }
- 
- /*
-diff -puN kernel/nsproxy.c~cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup kernel/nsproxy.c
---- a/kernel/nsproxy.c~cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup
-+++ a/kernel/nsproxy.c
-@@ -157,12 +157,6 @@ int copy_namespaces(unsigned long flags,
- 		goto out;
- 	}
- 
--	err = ns_cgroup_clone(tsk);
--	if (err) {
--		put_nsproxy(new_ns);
--		goto out;
--	}
--
- 	tsk->nsproxy = new_ns;
- 
- out:
-@@ -209,7 +203,7 @@ int unshare_nsproxy_namespaces(unsigned 
- 		goto out;
- 	}
- 
--	err = ns_cgroup_clone(current);
-+	err = ns_cgroup_clone(current, task_pid(current));
- 	if (err)
- 		put_nsproxy(*new_nsp);
- 
 _
 
-Patches currently in -mm which might be from serue@us.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+rtc-x1205-fix-alarm-set-fix.patch
+next-remove-localversion.patch
+revert-git-pekka.patch
+fix-kobject-fix-kobject_rename-and-config_sysfs.patch
+kvm-is-busted-on-ia64.patch
+drivers-mtd-nand-nandsimc-needs-div64h.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+git-jg-misc-git-rejects.patch
+drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers.patch
+drivers-mtd-devices-block2mtdc-suppress-warning.patch
+sundance-set-carrier-status-on-link-change-events.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix-fix.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-scsi-misc-fix-scsi_dh-build-errors.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
+pktcdvd-push-bkl-down-into-driver-fix.patch
+block-fix-bio_add_page-for-non-trivial-merge_bvec_fn-case-fix.patch
 git-unionfs.patch
-git-unprivileged-mounts.patch
-security-protect-legacy-apps-from-insufficient-privilege.patch
+git-unionfs-fixup.patch
+git-logfs-fixup.patch
+watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
+git-xtensa.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-verify-the-page-links-and-memory-model.patch
+mspec-convert-nopfn-to-fault-fix.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+kill-generic_file_direct_io-checkpatch-fixes.patch
+use-generic_access_phys-for-dev-mem-mappings-fix.patch
+spufs-use-the-new-vm_ops-access-fix.patch
+fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
+page-flags-record-page-flag-overlays-explicitly-xen.patch
+mapping_set_error-add-unlikely.patch
+huge-page-private-reservation-review-cleanups-fix.patch
+sync_file_range_write-may-and-will-block-document-that-fix.patch
+vmallocinfo-add-numa-information-fix.patch
+hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
+hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
+hugetlb-override-default-huge-page-size-ia64-build.patch
+linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+bootmem-add-debugging-framework-fix.patch
+bootmem-clean-up-free_all_bootmem_core-fix.patch
+bootmem-free-reserve-helpers-fix.patch
+revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
 security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
-ecryptfs-privileged-kthread-for-lower-file-opens.patch
-cgroup-files-clean-up-whitespace-in-struct-cftype.patch
-cgroup-files-add-write_string-cgroup-control-file-method.patch
-cgroup-files-move-the-release_agent-file-to-use-typed-handlers.patch
-cgroup-files-move-notify_on_release-file-to-separate-write-handler.patch
-cgroup-files-turn-attach_task_by_pid-directly-into-a-cgroup-write-handler.patch
-cgroup-files-remove-cpuset_common_file_write.patch
-cgroup-files-convert-devcgroup_access_write-into-a-cgroup-write_string-handler.patch
-cgroup-files-convert-res_counter_write-to-be-a-cgroups-write_string-handler.patch
-cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup.patch
+swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
+block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
+seq_file-fix-bug-when-seq_read-reads-nothing-fix.patch
+rename-warn-to-warning-to-clear-the-namespace-fix.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-paccept-sys_ni.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-signalfd-fix.patch
+flag-parameters-eventfd-fix.patch
+flag-parameters-inotify_init-fix.patch
+flag-parameters-check-magic-constants-alpha.patch
+oprofile-multiplexing-checkpatch-fixes.patch
+gpio-gpio-driver-for-max7301-spi-gpio-expander-checkpatch-fixes.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
+fsl-diu-fb-update-freescale-diu-driver-to-use-page_alloc_exact-fix.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
+ext3-handle-corrupted-orphan-list-at-mount-cleanup.patch
+ext3-handle-corrupted-orphan-list-at-mount-fix.patch
+ext3-handle-corrupted-orphan-list-at-mount-cleanup-fix.patch
+reiserfs-convert-j_flush_sem-to-mutex.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
+cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-checkpatch-fixes.patch
 memcg-remove-refcnt-from-page_cgroup-fix-2.patch
+jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup.patch
+ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
+getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
+tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
+memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
+memstick-use-fully-asynchronous-request-processing-fix.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+mm-introduce-get_user_pages_fast-fix.patch
+mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-fix.patch
+x86-lockless-get_user_pages_fast-fix-2.patch
+x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
+x86-lockless-get_user_pages_fast-fix-warning.patch
+vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
+define-page_file_cache-function-fix.patch
+unevictable-lru-infrastructure-fix.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-3.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
+vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
 reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
