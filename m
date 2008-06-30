@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + block-fix-bio_add_page-for-non-trivial-merge_bvec_fn-case.patch added to -mm tree
-Date: Mon, 30 Jun 2008 14:13:27 -0700
-Message-ID: <200806302113.m5ULDRas025640@imap1.linux-foundation.org>
+Subject: + drivers-media-video-videobuf-dma-sgc-avoid-clearing-memory-twice.patch added to -mm tree
+Date: Mon, 30 Jun 2008 14:16:06 -0700
+Message-ID: <200806302116.m5ULG9MY025778@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59443 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51498 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753994AbYF3VOI (ORCPT
+	by vger.kernel.org with ESMTP id S1752522AbYF3VQd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jun 2008 17:14:08 -0400
+	Mon, 30 Jun 2008 17:16:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dmonakhov@openvz.org, jens.axboe@oracle.com
+Cc: jaillet.christophe@wanadoo.fr, mchehab@infradead.org
 
 
 The patch titled
-     block: fix bio_add_page for non trivial merge_bvec_fn case
+     drivers/media/video/videobuf-dma-sg.c: avoid clearing memory twice
 has been added to the -mm tree.  Its filename is
-     block-fix-bio_add_page-for-non-trivial-merge_bvec_fn-case.patch
+     drivers-media-video-videobuf-dma-sgc-avoid-clearing-memory-twice.p=
+atch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -26,76 +30,74 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
+find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: block: fix bio_add_page for non trivial merge_bvec_fn case
-From: Dmitri Monakhov <dmonakhov@openvz.org>
+Subject: drivers/media/video/videobuf-dma-sg.c: avoid clearing memory t=
+wice
+=46rom: Christophe Jaillet <jaillet.christophe@wanadoo.fr>
 
-We have to properly decrease all related bio's counters, especially
-bi_size in order to merge_bvec_fn return right result.  Usually this
-result in false merge rejects for two absolutely valid bio_vecs.  This may
-cause significant performance penalty for example Itanium: page_size ==
-16k, fs_block_size == 1k and block device is raid with small chunk_size.
+1) Remove a useless initialisation of 'i'
 
-Signed-off-by: Dmitri Monakhov <dmonakhov@openvz.org>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+2) Avoid clearing the memory allocated twice (once in 'kcalloc', once
+   in 'sg_init_table')
+
+3) Remove a test that can never trigger.  The function returns NULL in
+   such a case, so we know that at this point '=EF=BB=BFpages[0]' !=3D =
+NULL
+
+Signed-off-by: Christophe Jaillet <jaillet.christophe@wanadoo.fr>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/bio.c |   15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+ drivers/media/video/videobuf-dma-sg.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN fs/bio.c~block-fix-bio_add_page-for-non-trivial-merge_bvec_fn-case fs/bio.c
---- a/fs/bio.c~block-fix-bio_add_page-for-non-trivial-merge_bvec_fn-case
-+++ a/fs/bio.c
-@@ -332,14 +332,21 @@ static int __bio_add_page(struct request
- 
- 		if (page == prev->bv_page &&
- 		    offset == prev->bv_offset + prev->bv_len) {
-+			/* Temprory detacth last bio_vec. */
-+			bio->bi_size -= prev->bv_len;
-+			bio->bi_vcnt--;
-+			bio->bi_phys_segments--;
-+			bio->bi_hw_segments--;
-+
- 			prev->bv_len += len;
- 			if (q->merge_bvec_fn &&
- 			    q->merge_bvec_fn(q, bio, prev) < len) {
- 				prev->bv_len -= len;
--				return 0;
-+				len = 0;
- 			}
- 
--			goto done;
-+			bio->bi_size += prev->bv_len;
-+			goto out_add_bvec;
- 		}
- 	}
- 
-@@ -394,11 +401,11 @@ static int __bio_add_page(struct request
- 	    BIOVEC_VIRT_MERGEABLE(bvec-1, bvec)))
- 		bio->bi_flags &= ~(1 << BIO_SEG_VALID);
- 
-+	bio->bi_size += len;
-+out_add_bvec:
- 	bio->bi_vcnt++;
- 	bio->bi_phys_segments++;
- 	bio->bi_hw_segments++;
-- done:
--	bio->bi_size += len;
- 	return len;
- }
- 
+diff -puN drivers/media/video/videobuf-dma-sg.c~drivers-media-video-vid=
+eobuf-dma-sgc-avoid-clearing-memory-twice drivers/media/video/videobuf-=
+dma-sg.c
+--- a/drivers/media/video/videobuf-dma-sg.c~drivers-media-video-videobu=
+f-dma-sgc-avoid-clearing-memory-twice
++++ a/drivers/media/video/videobuf-dma-sg.c
+@@ -80,17 +80,15 @@ struct scatterlist*
+ videobuf_pages_to_sg(struct page **pages, int nr_pages, int offset)
+ {
+ 	struct scatterlist *sglist;
+-	int i =3D 0;
++	int i;
+=20
+ 	if (NULL =3D=3D pages[0])
+ 		return NULL;
+-	sglist =3D kcalloc(nr_pages, sizeof(*sglist), GFP_KERNEL);
++	sglist =3D kmalloc(nr_pages * sizeof(*sglist), GFP_KERNEL);
+ 	if (NULL =3D=3D sglist)
+ 		return NULL;
+ 	sg_init_table(sglist, nr_pages);
+=20
+-	if (NULL =3D=3D pages[0])
+-		goto nopage;
+ 	if (PageHighMem(pages[0]))
+ 		/* DMA to highmem pages might not work */
+ 		goto highmem;
 _
 
-Patches currently in -mm which might be from dmonakhov@openvz.org are
+Patches currently in -mm which might be from jaillet.christophe@wanadoo=
+=2Efr are
 
-block-fix-bio_add_page-for-non-trivial-merge_bvec_fn-case.patch
-block-fix-bio_add_page-for-non-trivial-merge_bvec_fn-case-fix.patch
+drivers-media-video-videobuf-dma-sgc-avoid-clearing-memory-twice.patch
+drivers-block-pktcdvdc-avoid-useless-memset.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
