@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-trailing-statement-indent-fix-end-of-statement-location.patch added to -mm tree
-Date: Mon, 30 Jun 2008 15:19:36 -0700
-Message-ID: <200806302219.m5UMJaLG028567@imap1.linux-foundation.org>
+Subject: + checkpatch-toughen-trailing-if-statement-checks-and-extend-them-to-while-and-for.patch added to -mm tree
+Date: Mon, 30 Jun 2008 15:19:44 -0700
+Message-ID: <200806302219.m5UMJiPF028579@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45635 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49390 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933746AbYF3WTo (ORCPT
+	by vger.kernel.org with ESMTP id S1762723AbYF3WTx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jun 2008 18:19:44 -0400
+	Mon, 30 Jun 2008 18:19:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: apw@shadowen.org
 
 
 The patch titled
-     checkpatch: trailing statement indent: fix end of statement location
+     checkpatch: toughen trailing if statement checks and extend them to while and for
 has been added to the -mm tree.  Its filename is
-     checkpatch-trailing-statement-indent-fix-end-of-statement-location.patch
+     checkpatch-toughen-trailing-if-statement-checks-and-extend-them-to-while-and-for.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,52 +34,54 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: trailing statement indent: fix end of statement location
+Subject: checkpatch: toughen trailing if statement checks and extend them to while and for
 From: Andy Whitcroft <apw@shadowen.org>
 
-Fix end of statement location.  Where the last line of the statement is
-replaced we are miss reporting the newly added replacement an incorrectly
-indented trailing statement for the negative context.  We are also
-incorrectly reporting negative statements generally.
+Extend the trailing statement checks to report a trailing semi-colon ';'
+as we really want it on the next line and indented so it is really really
+obvious.  Also extend the tests to include while and for.
 
 Signed-off-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
+ scripts/checkpatch.pl |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-trailing-statement-indent-fix-end-of-statement-location scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-trailing-statement-indent-fix-end-of-statement-location
+diff -puN scripts/checkpatch.pl~checkpatch-toughen-trailing-if-statement-checks-and-extend-them-to-while-and-for scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-toughen-trailing-if-statement-checks-and-extend-them-to-while-and-for
 +++ a/scripts/checkpatch.pl
-@@ -1249,17 +1249,22 @@ sub process {
- 			my $pre_ctx = "$1$2";
- 
- 			my ($level, @ctx) = ctx_statement_level($linenr, $realcnt, 0);
--			my $ctx_ln = $linenr + $#ctx + 1;
- 			my $ctx_cnt = $realcnt - $#ctx - 1;
- 			my $ctx = join("\n", @ctx);
- 
--			##warn "realcnt<$realcnt> ctx_cnt<$ctx_cnt>\n";
-+			my $ctx_ln = $linenr;
-+			my $ctx_skip = $realcnt;
- 
--			# Skip over any removed lines in the context following statement.
--			while (defined($lines[$ctx_ln - 1]) && $lines[$ctx_ln - 1] =~ /^-/) {
-+			while ($ctx_skip > $ctx_cnt || ($ctx_skip == $ctx_cnt &&
-+					defined $lines[$ctx_ln - 1] &&
-+					$lines[$ctx_ln - 1] =~ /^-/)) {
-+				##print "SKIP<$ctx_skip> CNT<$ctx_cnt>\n";
-+				$ctx_skip-- if (!defined $lines[$ctx_ln - 1] || $lines[$ctx_ln - 1] !~ /^-/);
+@@ -1269,8 +1269,8 @@ sub process {
  				$ctx_ln++;
  			}
--			##warn "pre<$pre_ctx>\nline<$line>\nctx<$ctx>\nnext<$lines[$ctx_ln - 1]>\n";
-+
-+			##print "realcnt<$realcnt> ctx_cnt<$ctx_cnt>\n";
-+			##print "pre<$pre_ctx>\nline<$line>\nctx<$ctx>\nnext<$lines[$ctx_ln - 1]>\n";
+ 
+-			##print "realcnt<$realcnt> ctx_cnt<$ctx_cnt>\n";
+-			##print "pre<$pre_ctx>\nline<$line>\nctx<$ctx>\nnext<$lines[$ctx_ln - 1]>\n";
++			#print "realcnt<$realcnt> ctx_cnt<$ctx_cnt>\n";
++			#print "pre<$pre_ctx>\nline<$line>\nctx<$ctx>\nnext<$lines[$ctx_ln - 1]>\n";
  
  			if ($ctx !~ /{\s*/ && defined($lines[$ctx_ln -1]) && $lines[$ctx_ln - 1] =~ /^\+\s*{/) {
  				ERROR("that open brace { should be on the previous line\n" .
+@@ -1713,7 +1713,7 @@ sub process {
+ 		}
+ 
+ # Check for illegal assignment in if conditional.
+-		if ($line =~ /\bif\s*\(/) {
++		if ($line =~ /\b(?:if|while|for)\s*\(/ && $line !~ /^.\s*#/) {
+ 			my ($s, $c) = ($stat, $cond);
+ 
+ 			if ($c =~ /\bif\s*\(.*[^<>!=]=[^=].*/) {
+@@ -1725,8 +1725,8 @@ sub process {
+ 			substr($s, 0, length($c), '');
+ 			$s =~ s/\n.*//g;
+ 			$s =~ s/$;//g; 	# Remove any comments
+-			if (length($c) && $s !~ /^\s*({|;|)\s*\\*\s*$/ &&
+-			    $c !~ /^.\s*\#\s*if/)
++			if (length($c) && $s !~ /^\s*{?\s*\\*\s*$/ &&
++			    $c !~ /}\s*while\s*/)
+ 			{
+ 				ERROR("trailing statements should be on next line\n" . $herecurr);
+ 			}
 _
 
 Patches currently in -mm which might be from apw@shadowen.org are
