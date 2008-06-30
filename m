@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + remove-unused-include-linux-direnths.patch added to -mm tree
-Date: Mon, 30 Jun 2008 14:37:05 -0700
-Message-ID: <200806302137.m5ULb5kJ026662@imap1.linux-foundation.org>
+Subject: + rtc-add-support-for-st-m41t94-spi-rtc.patch added to -mm tree
+Date: Mon, 30 Jun 2008 14:56:50 -0700
+Message-ID: <200806302156.m5ULuoBl027560@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39194 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36299 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933146AbYF3Vh6 (ORCPT
+	by vger.kernel.org with ESMTP id S1763610AbYF3V56 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jun 2008 17:37:58 -0400
+	Mon, 30 Jun 2008 17:57:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, ralf@linux-mips.org
+Cc: Kim.Heino@bluegiga.com, a.zummo@towertech.it, david-b@pacbell.net
 
 
 The patch titled
-     remove unused #include <linux/dirent.h>'s
+     rtc: add support for ST M41T94 SPI RTC
 has been added to the -mm tree.  Its filename is
-     remove-unused-include-linux-direnths.patch
+     rtc-add-support-for-st-m41t94-spi-rtc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,138 +34,238 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: remove unused #include <linux/dirent.h>'s
-From: Adrian Bunk <bunk@kernel.org>
+Subject: rtc: add support for ST M41T94 SPI RTC
+From: "Kim B. Heino" <Kim.Heino@bluegiga.com>
 
-Remove some unused #include <linux/dirent.h>'s.
+This patch adds kernel driver for M41T94 RTC chip connected via SPI.
+I've tested it on two different AT91-based hardwares.
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+This is third revision of the patch: some comments made by
+Alessandro Zummo fixed.
+
+Revision two added support for century bit and fixes.
+
+Signed-off-by: Kim B. Heino <Kim.Heino@bluegiga.com>
+Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/kernel/linux32.c |    1 -
- fs/compat_ioctl.c          |    1 -
- fs/smbfs/cache.c           |    1 -
- fs/smbfs/proc.c            |    1 -
- include/linux/nfsd/nfsd.h  |    1 -
- 5 files changed, 5 deletions(-)
+ drivers/rtc/Kconfig      |    9 +
+ drivers/rtc/Makefile     |    1 
+ drivers/rtc/rtc-m41t94.c |  173 +++++++++++++++++++++++++++++++++++++
+ 3 files changed, 183 insertions(+)
 
-diff -puN arch/mips/kernel/linux32.c~remove-unused-include-linux-direnths arch/mips/kernel/linux32.c
---- a/arch/mips/kernel/linux32.c~remove-unused-include-linux-direnths
-+++ a/arch/mips/kernel/linux32.c
-@@ -11,7 +11,6 @@
- #include <linux/file.h>
- #include <linux/smp_lock.h>
- #include <linux/highuid.h>
--#include <linux/dirent.h>
- #include <linux/resource.h>
- #include <linux/highmem.h>
- #include <linux/time.h>
-diff -puN fs/compat_ioctl.c~remove-unused-include-linux-direnths fs/compat_ioctl.c
---- a/fs/compat_ioctl.c~remove-unused-include-linux-direnths
-+++ a/fs/compat_ioctl.c
-@@ -25,7 +25,6 @@
- #include <linux/slab.h>
- #include <linux/raid/md.h>
- #include <linux/kd.h>
--#include <linux/dirent.h>
- #include <linux/route.h>
- #include <linux/in6.h>
- #include <linux/ipv6_route.h>
-diff -puN fs/smbfs/cache.c~remove-unused-include-linux-direnths fs/smbfs/cache.c
---- a/fs/smbfs/cache.c~remove-unused-include-linux-direnths
-+++ a/fs/smbfs/cache.c
-@@ -13,7 +13,6 @@
- #include <linux/errno.h>
- #include <linux/kernel.h>
- #include <linux/mm.h>
--#include <linux/dirent.h>
- #include <linux/smb_fs.h>
- #include <linux/pagemap.h>
- #include <linux/net.h>
-diff -puN fs/smbfs/proc.c~remove-unused-include-linux-direnths fs/smbfs/proc.c
---- a/fs/smbfs/proc.c~remove-unused-include-linux-direnths
-+++ a/fs/smbfs/proc.c
-@@ -16,7 +16,6 @@
- #include <linux/stat.h>
- #include <linux/fcntl.h>
- #include <linux/dcache.h>
--#include <linux/dirent.h>
- #include <linux/nls.h>
- #include <linux/smp_lock.h>
- #include <linux/net.h>
-diff -puN include/linux/nfsd/nfsd.h~remove-unused-include-linux-direnths include/linux/nfsd/nfsd.h
---- a/include/linux/nfsd/nfsd.h~remove-unused-include-linux-direnths
-+++ a/include/linux/nfsd/nfsd.h
-@@ -12,7 +12,6 @@
+diff -puN drivers/rtc/Kconfig~rtc-add-support-for-st-m41t94-spi-rtc drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-add-support-for-st-m41t94-spi-rtc
++++ a/drivers/rtc/Kconfig
+@@ -273,6 +273,15 @@ comment "SPI RTC drivers"
  
- #include <linux/types.h>
- #include <linux/unistd.h>
--#include <linux/dirent.h>
- #include <linux/fs.h>
- #include <linux/posix_acl.h>
- #include <linux/mount.h>
+ if SPI_MASTER
+ 
++config RTC_DRV_M41T94
++	tristate "ST M41T94"
++	help
++	  If you say yes here you will get support for the
++	  ST M41T94 SPI RTC chip.
++
++	  This driver can also be built as a module. If so, the module
++	  will be called rtc-m41t94.
++
+ config RTC_DRV_MAX6902
+ 	tristate "Maxim MAX6902"
+ 	help
+diff -puN drivers/rtc/Makefile~rtc-add-support-for-st-m41t94-spi-rtc drivers/rtc/Makefile
+--- a/drivers/rtc/Makefile~rtc-add-support-for-st-m41t94-spi-rtc
++++ a/drivers/rtc/Makefile
+@@ -34,6 +34,7 @@ obj-$(CONFIG_RTC_DRV_EP93XX)	+= rtc-ep93
+ obj-$(CONFIG_RTC_DRV_FM3130)	+= rtc-fm3130.o
+ obj-$(CONFIG_RTC_DRV_ISL1208)	+= rtc-isl1208.o
+ obj-$(CONFIG_RTC_DRV_M41T80)	+= rtc-m41t80.o
++obj-$(CONFIG_RTC_DRV_M41T94)	+= rtc-m41t94.o
+ obj-$(CONFIG_RTC_DRV_M48T59)	+= rtc-m48t59.o
+ obj-$(CONFIG_RTC_DRV_M48T86)	+= rtc-m48t86.o
+ obj-$(CONFIG_RTC_DRV_MAX6900)	+= rtc-max6900.o
+diff -puN /dev/null drivers/rtc/rtc-m41t94.c
+--- /dev/null
++++ a/drivers/rtc/rtc-m41t94.c
+@@ -0,0 +1,173 @@
++/*
++ * Driver for ST M41T94 SPI RTC
++ *
++ * Copyright (C) 2008 Kim B. Heino
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/platform_device.h>
++#include <linux/rtc.h>
++#include <linux/spi/spi.h>
++#include <linux/bcd.h>
++
++#define M41T94_REG_SECONDS	0x01
++#define M41T94_REG_MINUTES	0x02
++#define M41T94_REG_HOURS	0x03
++#define M41T94_REG_WDAY		0x04
++#define M41T94_REG_DAY		0x05
++#define M41T94_REG_MONTH	0x06
++#define M41T94_REG_YEAR		0x07
++#define M41T94_REG_HT		0x0c
++
++#define M41T94_BIT_HALT		0x40
++#define M41T94_BIT_STOP		0x80
++#define M41T94_BIT_CB		0x40
++#define M41T94_BIT_CEB		0x80
++
++static int m41t94_set_time(struct device *dev, struct rtc_time *tm)
++{
++	struct spi_device *spi = to_spi_device(dev);
++	u8 buf[8]; /* write cmd + 7 registers */
++
++	dev_dbg(dev, "%s secs=%d, mins=%d, "
++		"hours=%d, mday=%d, mon=%d, year=%d, wday=%d\n",
++		"write", tm->tm_sec, tm->tm_min,
++		tm->tm_hour, tm->tm_mday,
++		tm->tm_mon, tm->tm_year, tm->tm_wday);
++
++	buf[0] = 0x80 | M41T94_REG_SECONDS; /* write time + date */
++	buf[M41T94_REG_SECONDS] = BIN2BCD(tm->tm_sec);
++	buf[M41T94_REG_MINUTES] = BIN2BCD(tm->tm_min);
++	buf[M41T94_REG_HOURS]   = BIN2BCD(tm->tm_hour);
++	buf[M41T94_REG_WDAY]    = BIN2BCD(tm->tm_wday + 1);
++	buf[M41T94_REG_DAY]     = BIN2BCD(tm->tm_mday);
++	buf[M41T94_REG_MONTH]   = BIN2BCD(tm->tm_mon + 1);
++
++	buf[M41T94_REG_HOURS] |= M41T94_BIT_CEB;
++	if (tm->tm_year >= 100)
++		buf[M41T94_REG_HOURS] |= M41T94_BIT_CB;
++	buf[M41T94_REG_YEAR] = BIN2BCD(tm->tm_year % 100);
++
++	return spi_write(spi, buf, 8);
++}
++
++static int m41t94_read_time(struct device *dev, struct rtc_time *tm)
++{
++	struct spi_device *spi = to_spi_device(dev);
++	u8 buf[2];
++	int ret, hour;
++
++	/* clear halt update bit */
++	ret = spi_w8r8(spi, M41T94_REG_HT);
++	if (ret < 0)
++		return ret;
++	if (ret & M41T94_BIT_HALT) {
++		buf[0] = 0x80 | M41T94_REG_HT;
++		buf[1] = ret & ~M41T94_BIT_HALT;
++		spi_write(spi, buf, 2);
++	}
++
++	/* clear stop bit */
++	ret = spi_w8r8(spi, M41T94_REG_SECONDS);
++	if (ret < 0)
++		return ret;
++	if (ret & M41T94_BIT_STOP) {
++		buf[0] = 0x80 | M41T94_REG_SECONDS;
++		buf[1] = ret & ~M41T94_BIT_STOP;
++		spi_write(spi, buf, 2);
++	}
++
++	tm->tm_sec  = BCD2BIN(spi_w8r8(spi, M41T94_REG_SECONDS));
++	tm->tm_min  = BCD2BIN(spi_w8r8(spi, M41T94_REG_MINUTES));
++	hour = spi_w8r8(spi, M41T94_REG_HOURS);
++	tm->tm_hour = BCD2BIN(hour & 0x3f);
++	tm->tm_wday = BCD2BIN(spi_w8r8(spi, M41T94_REG_WDAY)) - 1;
++	tm->tm_mday = BCD2BIN(spi_w8r8(spi, M41T94_REG_DAY));
++	tm->tm_mon  = BCD2BIN(spi_w8r8(spi, M41T94_REG_MONTH)) - 1;
++	tm->tm_year = BCD2BIN(spi_w8r8(spi, M41T94_REG_YEAR));
++	if ((hour & M41T94_BIT_CB) || !(hour & M41T94_BIT_CEB))
++		tm->tm_year += 100;
++
++	dev_dbg(dev, "%s secs=%d, mins=%d, "
++		"hours=%d, mday=%d, mon=%d, year=%d, wday=%d\n",
++		"read", tm->tm_sec, tm->tm_min,
++		tm->tm_hour, tm->tm_mday,
++		tm->tm_mon, tm->tm_year, tm->tm_wday);
++
++	/* initial clock setting can be undefined */
++	return rtc_valid_tm(tm);
++}
++
++static const struct rtc_class_ops m41t94_rtc_ops = {
++	.read_time	= m41t94_read_time,
++	.set_time	= m41t94_set_time,
++};
++
++static struct spi_driver m41t94_driver;
++
++static int __devinit m41t94_probe(struct spi_device *spi)
++{
++	struct rtc_device *rtc;
++	int res;
++
++	spi->bits_per_word = 8;
++	spi_setup(spi);
++
++	res = spi_w8r8(spi, M41T94_REG_SECONDS);
++	if (res < 0) {
++		dev_err(&spi->dev, "not found.\n");
++		return res;
++	}
++
++	rtc = rtc_device_register(m41t94_driver.driver.name,
++		&spi->dev, &m41t94_rtc_ops, THIS_MODULE);
++	if (IS_ERR(rtc))
++		return PTR_ERR(rtc);
++
++	dev_set_drvdata(&spi->dev, rtc);
++
++	return 0;
++}
++
++static int __devexit m41t94_remove(struct spi_device *spi)
++{
++	struct rtc_device *rtc = platform_get_drvdata(spi);
++
++	if (rtc)
++		rtc_device_unregister(rtc);
++
++	return 0;
++}
++
++static struct spi_driver m41t94_driver = {
++	.driver = {
++		.name	= "rtc-m41t94",
++		.bus	= &spi_bus_type,
++		.owner	= THIS_MODULE,
++	},
++	.probe	= m41t94_probe,
++	.remove = __devexit_p(m41t94_remove),
++};
++
++static __init int m41t94_init(void)
++{
++	return spi_register_driver(&m41t94_driver);
++}
++
++module_init(m41t94_init);
++
++static __exit void m41t94_exit(void)
++{
++	spi_unregister_driver(&m41t94_driver);
++}
++
++module_exit(m41t94_exit);
++
++MODULE_AUTHOR("Kim B. Heino <Kim.Heino@bluegiga.com>");
++MODULE_DESCRIPTION("Driver for ST M41T94 SPI RTC");
++MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from Kim.Heino@bluegiga.com are
 
-origin.patch
-firmware-fix-the-request_firmware-dummy.patch
-remove-drivers-acorn-char-defkeymap-l7200c.patch
-drm-make-drm_minors_cleanup-static.patch
-m32r-remove-the-unused-nohighmem-option.patch
-if-0-ses_match_host.patch
-scsi-make-struct-scsi_hosttarget_type-static.patch
-git-xtensa.patch
-mm-migratec-should-include-linux-syscallsh.patch
-mm-vmstatc-proper-externs.patch
-mm-hugetlbc-fix-duplicate-variable.patch
-mm-page_allocc-cleanups.patch
-mm-make-register_page_bootmem_info_section-static.patch
-remove-include-asm-h8300-keyboardh.patch
-alpha-remove-the-unused-alpha_core_agp-option.patch
-remove-include-linux-pm_legacyh.patch
-remove-the-v850-port.patch
-init-do_mountsc-should-include-linux-initrdh.patch
-build-kernel-profileo-only-when-requested.patch
-build-kernel-profileo-only-when-requested-cleanups.patch
-asm-generic-int-ll64h-always-provide-__su64.patch
-remove-some-more-tipar-bits.patch
-include-linux-kernelh-userspace-header-cleanup.patch
-remove-the-oss-trident-driver.patch
-config_sound_wm97xx-remove-stale-makefile-line.patch
-serial-8250_gscc-add-module_license.patch
-video-sis-remove-compat-code.patch
-drivers-video-amifbc-cleanups.patch
-minix-remove-no_truncate-code.patch
-jbd-unexport-journal_update_superblock.patch
-coda-remove-coda_fs_old_api.patch
-fat-dirc-switch-to-struct-__fat_fs_dirent.patch
-remove-the-in-kernel-struct-dirent64.patch
-remove-unused-include-linux-direnths.patch
-include-asm-ptraceh-userspace-headers-cleanup.patch
-remove-is_tty.patch
-pty-remove-unused-unix98_pty_count-options.patch
-proper-extern-for-mwave_s_mdd.patch
-if-0-hpet_unregister.patch
-unexport-proc_clear_tty.patch
-move-proc_kmsg_operations-to-fs-proc-internalh.patch
-proper-pidhashmap_init-prototypes.patch
-unexport-uts_sem.patch
-parport-sharec-proper-externs.patch
-tpm_biosc-make-2-structs-static.patch
-make-cgroup_seqfile_release-static.patch
-make-kprobe_blacklist-static.patch
-make-pnp_add_card_id-static.patch
-make-parport_cs_release-static.patch
-make-mm-sparsec-make-a-function-static.patch
-mm-allocpercpuc-make-4-functions-static.patch
-make-mm-memoryc-print_bad_pte-static.patch
-mm-swapfilec-make-code-static.patch
-make-mm-rmapc-anon_vma_cachep-static.patch
-drivers-char-rtcc-make-2-functions-static.patch
-make-init-do_mountsc-root_device_name-static.patch
-make-macfb_setup-static.patch
-reiser4.patch
+rtc-add-support-for-st-m41t94-spi-rtc.patch
 
