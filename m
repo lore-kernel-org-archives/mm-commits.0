@@ -1,89 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: - include-linux-msdos_fsh-cleanup-include-linux-msdos_fsh-for-userspace.patch removed from -mm tree
-Date: Mon, 30 Jun 2008 14:11:57 -0700
-Message-ID: <200806302111.m5ULBv55025601@imap1.linux-foundation.org>
+Subject: + block-fix-bio_add_page-for-non-trivial-merge_bvec_fn-case.patch added to -mm tree
+Date: Mon, 30 Jun 2008 14:13:27 -0700
+Message-ID: <200806302113.m5ULDRas025640@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48277 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59443 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760297AbYF3VMq (ORCPT
+	by vger.kernel.org with ESMTP id S1753994AbYF3VOI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jun 2008 17:12:46 -0400
+	Mon, 30 Jun 2008 17:14:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: caglar@pardus.org.tr, fseidel@suse.de, hirofumi@mail.parknet.co.jp, onur@pardus.org.tr, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: dmonakhov@openvz.org, jens.axboe@oracle.com
 
 
 The patch titled
-     include/linux/msdos_fs.h: cleanup include/linux/msdos_fs.h for use=
-rspace
-has been removed from the -mm tree.  Its filename was
-     include-linux-msdos_fsh-cleanup-include-linux-msdos_fsh-for-usersp=
-ace.patch
+     block: fix bio_add_page for non trivial merge_bvec_fn case
+has been added to the -mm tree.  Its filename is
+     block-fix-bio_add_page-for-non-trivial-merge_bvec_fn-case.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
+
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: include/linux/msdos_fs.h: cleanup include/linux/msdos_fs.h for=
- userspace
-=46rom: S.Caglar Onur <caglar@pardus.org.tr>
+Subject: block: fix bio_add_page for non trivial merge_bvec_fn case
+From: Dmitri Monakhov <dmonakhov@openvz.org>
 
-include/linux/msdos_fs.h header should use __u## rather than u## types
-else any userspace code (like syslinux) includes that header fails to
-compile like following;
+We have to properly decrease all related bio's counters, especially
+bi_size in order to merge_bvec_fn return right result.  Usually this
+result in false merge rejects for two absolutely valid bio_vecs.  This may
+cause significant performance penalty for example Itanium: page_size ==
+16k, fs_block_size == 1k and block device is raid with small chunk_size.
 
-[...]
-gcc -Wp,-MT,bootsect_bin.o,-MMD,.bootsect_bin.o.d -W -Wall -D_FILE_OFFS=
-ET_BITS=3D64 -g -Os -I. -I.. -I../libinstaller -c -o bootsect_bin.o ../=
-bootsect_bin.c
-gcc -Wp,-MT,ldlinux_bin.o,-MMD,.ldlinux_bin.o.d -W -Wall -D_FILE_OFFSET=
-_BITS=3D64 -g -Os -I. -I.. -I../libinstaller -c -o ldlinux_bin.o ../ldl=
-inux_bin.c
-In file included from syslinux.c:52:
-/usr/include/linux/msdos_fs.h:61: error: expected ')' before 'media'
-[...]
-
-Noticed by Onur K=C3=BC=C3=A7=C3=BCk <onur@pardus.org.tr>
-
-Cc: Frank Seidel <fseidel@suse.de>
-Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-Cc: Onur K=C3=BC=C3=A7=C3=BCk <onur@pardus.org.tr>
-Signed-off-by: S.Caglar Onur <caglar@pardus.org.tr>
+Signed-off-by: Dmitri Monakhov <dmonakhov@openvz.org>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/msdos_fs.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/bio.c |   15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/msdos_fs.h~include-linux-msdos_fsh-cleanup-incl=
-ude-linux-msdos_fsh-for-userspace include/linux/msdos_fs.h
---- a/include/linux/msdos_fs.h~include-linux-msdos_fsh-cleanup-include-=
-linux-msdos_fsh-for-userspace
-+++ a/include/linux/msdos_fs.h
-@@ -328,7 +328,7 @@ static inline void fatwchar_to16(__u8 *d
+diff -puN fs/bio.c~block-fix-bio_add_page-for-non-trivial-merge_bvec_fn-case fs/bio.c
+--- a/fs/bio.c~block-fix-bio_add_page-for-non-trivial-merge_bvec_fn-case
++++ a/fs/bio.c
+@@ -332,14 +332,21 @@ static int __bio_add_page(struct request
+ 
+ 		if (page == prev->bv_page &&
+ 		    offset == prev->bv_offset + prev->bv_len) {
++			/* Temprory detacth last bio_vec. */
++			bio->bi_size -= prev->bv_len;
++			bio->bi_vcnt--;
++			bio->bi_phys_segments--;
++			bio->bi_hw_segments--;
++
+ 			prev->bv_len += len;
+ 			if (q->merge_bvec_fn &&
+ 			    q->merge_bvec_fn(q, bio, prev) < len) {
+ 				prev->bv_len -= len;
+-				return 0;
++				len = 0;
+ 			}
+ 
+-			goto done;
++			bio->bi_size += prev->bv_len;
++			goto out_add_bvec;
+ 		}
+ 	}
+ 
+@@ -394,11 +401,11 @@ static int __bio_add_page(struct request
+ 	    BIOVEC_VIRT_MERGEABLE(bvec-1, bvec)))
+ 		bio->bi_flags &= ~(1 << BIO_SEG_VALID);
+ 
++	bio->bi_size += len;
++out_add_bvec:
+ 	bio->bi_vcnt++;
+ 	bio->bi_phys_segments++;
+ 	bio->bi_hw_segments++;
+- done:
+-	bio->bi_size += len;
+ 	return len;
  }
-=20
- /* media of boot sector */
--static inline int fat_valid_media(u8 media)
-+static inline int fat_valid_media(__u8 media)
- {
- 	return 0xf8 <=3D media || media =3D=3D 0xf0;
- }
+ 
 _
 
-Patches currently in -mm which might be from caglar@pardus.org.tr are
+Patches currently in -mm which might be from dmonakhov@openvz.org are
 
-include-linux-msdos_fsh-cleanup-include-linux-msdos_fsh-for-userspace.p=
-atch
+block-fix-bio_add_page-for-non-trivial-merge_bvec_fn-case.patch
+block-fix-bio_add_page-for-non-trivial-merge_bvec_fn-case-fix.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
