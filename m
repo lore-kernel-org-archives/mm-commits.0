@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + gcov-add-gcov-profiling-infrastructure-revert-link-changes.patch added to -mm tree
-Date: Mon, 30 Jun 2008 16:51:02 -0700
-Message-ID: <200806302351.m5UNp22b031837@imap1.linux-foundation.org>
+Subject: + acpi-use-dev_printk-when-possible.patch added to -mm tree
+Date: Mon, 30 Jun 2008 16:53:21 -0700
+Message-ID: <200806302353.m5UNrLE1031889@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34086 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44572 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751570AbYF3XvX (ORCPT
+	by vger.kernel.org with ESMTP id S1758734AbYF3Xxe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jun 2008 19:51:23 -0400
+	Mon, 30 Jun 2008 19:53:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: peter.oberparleiter@de.ibm.com, rusty@rustcorp.com.au, sam@ravnborg.org
+Cc: bjorn.helgaas@hp.com, andi@firstfloor.org, jbarnes@virtuousgeek.org
 
 
 The patch titled
-     gcov: revert link changes
+     acpi: use dev_printk when possible
 has been added to the -mm tree.  Its filename is
-     gcov-add-gcov-profiling-infrastructure-revert-link-changes.patch
+     acpi-use-dev_printk-when-possible.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,452 +34,120 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gcov: revert link changes
-From: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Subject: acpi: use dev_printk when possible
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Change the gcov mechanism back to using symbolic links in sysfs.  This
-is necessary to fix problems when profiling with CONFIG_MODVERSIONS=y. 
-The correct usage of the gcov tool now looks like this:
+Convert printks to use dev_printk().  The most obvious change will
+be messages like this:
 
-  # cd $OBJTREE
-  # gcov -o /sys/kernel/debug/gcov/$OBJTREE/init main.c
+   -ACPI: PCI Interrupt 0000:00:04.0[A] -> GSI 31 (level, low) -> IRQ 31
+   +cciss 0000:00:04.0: PCI INTA# -> GSI 31 (level, low) -> IRQ 31
 
-Also update documentation to include a description on how to use gcov
-profiling in a separated build/test machine environment.
-
-Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Andi Kleen <andi@firstfloor.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/gcov.txt |  138 +++++++++++++++++++++++++++++++++++----
- kernel/gcov/Makefile   |    2 
- kernel/gcov/fs.c       |  123 ++++++++++++++++++++++++++++++++++
- kernel/gcov/gcc_3_4.c  |    6 +
- kernel/gcov/gcov.h     |    9 ++
- 5 files changed, 262 insertions(+), 16 deletions(-)
+ drivers/acpi/pci_irq.c |   38 +++++++++++++++++---------------------
+ 1 file changed, 17 insertions(+), 21 deletions(-)
 
-diff -puN Documentation/gcov.txt~gcov-add-gcov-profiling-infrastructure-revert-link-changes Documentation/gcov.txt
---- a/Documentation/gcov.txt~gcov-add-gcov-profiling-infrastructure-revert-link-changes
-+++ a/Documentation/gcov.txt
-@@ -6,7 +6,10 @@ Using gcov with the Linux kernel
- 3. Customization
- 4. Files
- 5. Modules
--6. Troubleshooting
-+6. Separated build and test machines
-+7. Troubleshooting
-+Appendix A: sample script: gather_on_build.sh
-+Appendix B: sample script: gather_on_test.sh
+diff -puN drivers/acpi/pci_irq.c~acpi-use-dev_printk-when-possible drivers/acpi/pci_irq.c
+--- a/drivers/acpi/pci_irq.c~acpi-use-dev_printk-when-possible
++++ a/drivers/acpi/pci_irq.c
+@@ -162,7 +162,7 @@ do_prt_fixups(struct acpi_prt_entry *ent
+ 		    !strcmp(prt->source, quirk->source) &&
+ 		    strlen(prt->source) >= strlen(quirk->actual_source)) {
+ 			printk(KERN_WARNING PREFIX "firmware reports "
+-				"%04x:%02x:%02x[%c] connected to %s; "
++				"%04x:%02x:%02x PCI INT%c# connected to %s; "
+ 				"changing to %s\n",
+ 				entry->id.segment, entry->id.bus,
+ 				entry->id.device, 'A' + entry->pin,
+@@ -429,7 +429,7 @@ acpi_pci_irq_derive(struct pci_dev *dev,
+ {
+ 	struct pci_dev *bridge = dev;
+ 	int irq = -1;
+-	u8 bridge_pin = 0;
++	u8 bridge_pin = 0, orig_pin = pin;
  
  
- 1. Introduction
-@@ -15,16 +18,11 @@ Using gcov with the Linux kernel
- gcov profiling kernel support enables the use of GCC's coverage testing
- tool gcov [1] with the Linux kernel. Coverage data of a running kernel
- is exported in gcov-compatible format via the "gcov "debugfs directory.
-+To get coverage data for a specific file, change to the kernel build
-+directory and use gcov with the -o option as follows (requires root):
- 
--Example:
--
--To get coverage data for file base.c in directory drivers/base, simply
--change to the kernel build directory and run gcov with the -o option
--(assumptions: kernel was built in /tmp/linux and debugfs is mounted at
--/sys/kernel/debug):
--
--# cd /tmp/linux
--# gcov -o drivers/base/ bus.c
-+# cd /tmp/linux-out
-+# gcov -o /sys/kernel/debug/gcov/tmp/linux/kernel spinlock.c
- 
- This will create source code files annotated with execution counts
- in the current directory. In addition, graphical gcov front-ends such
-@@ -38,6 +36,11 @@ Possible uses:
- * minimizing kernel configurations (do I need this option if the
-   associated code is never executed?)
- 
-+--
-+
-+[1] http://gcc.gnu.org/onlinedocs/gcc/Gcov.html
-+[2] http://ltp.sourceforge.net/coverage/lcov.php
-+
- 
- 2. Preparation
- ==============
-@@ -99,6 +102,11 @@ The gcov kernel support creates the foll
-                 The actual gcov data file as understood by the gcov
-                 tool. Resets file coverage data to zero when written to.
- 
-+        /sys/kernel/debug/gcov/path/to/compile/dir/file.gcno
-+                Symbolic link to a static data file required by the gcov
-+                tool. This file is generated by gcc when compiling with
-+                option -ftest-coverage.
-+
- 
- 5. Modules
- ==========
-@@ -119,7 +127,56 @@ At run-time, a user can also choose to d
- module by writing to its data file or the global reset file.
- 
- 
--6. Troubleshooting
-+6. Separated build and test machines
-+====================================
-+
-+The gcov kernel profiling infrastructure is designed to work out-of-the
-+box for setups where kernels are built and run on the same machine. In
-+cases where the kernel runs on a separate machine, special preparations
-+must be made, depending on where the gcov tool is used:
-+
-+a) gcov is run on the TEST machine
-+
-+The gcov tool version on the test machine must be compatible with the
-+gcc version used for kernel build. Also the following files need to be
-+copied from build to test machine:
-+
-+from the source tree:
-+  - all C source files + headers
-+
-+from the build tree:
-+  - all C source files + headers
-+  - all .gcda and .gcno files
-+  - all links to directories
-+
-+It is important to note that these files need to be placed into the
-+exact same file system location on the test machine as on the build
-+machine. If any of the path components is symbolic link, the actual
-+directory needs to be used instead (due to make's CURDIR handling).
-+
-+b) gcov is run on the BUILD machine
-+
-+The following files need to be copied after each test case from test
-+to build machine:
-+
-+from the gcov directory in sysfs:
-+  - all .gcda files
-+  - all links to .gcno files
-+
-+These files can be copied to any location on the build machine. gcov
-+must then be called with the -o option pointing to that directory.
-+
-+Example directory setup on the build machine:
-+
-+  /tmp/linux:    kernel source tree
-+  /tmp/out:      kernel build directory as specified by make O=
-+  /tmp/coverage: location of the files copied from the test machine
-+
-+  [user@build] cd /tmp/out
-+  [user@build] gcov -o /tmp/coverage/tmp/out/init main.c
-+
-+
-+7. Troubleshooting
- ==================
- 
- Problem:  Compilation aborts during linker step.
-@@ -127,10 +184,62 @@ Cause:    Profiling flags are specified 
-           linked to the main kernel or which are linked by a custom
-           linker procedure.
- Solution: Exclude affected source files from profiling by specifying
--          GCOV := n in the corresponding Makefile.
-+          GCOV := n or GCOV_basename.o := n in the corresponding
-+          Makefile.
- 
- 
----
-+Appendix A: gather_on_build.sh
-+==============================
- 
--[1] http://gcc.gnu.org/onlinedocs/gcc/Gcov.html
--[2] http://ltp.sourceforge.net/coverage/lcov.php
-+Sample script to gather coverage meta files on the build machine
-+(see 6a):
-+
-+#!/bin/bash
-+
-+KSRC=$1
-+KOBJ=$2
-+DEST=$3
-+
-+if [ -z "$KSRC" ] || [ -z "$KOBJ" ] || [ -z "$DEST" ]; then
-+  echo "Usage: $0 <ksrc directory> <kobj directory> <output.tar.gz>" >&2
-+  exit 1
-+fi
-+
-+KSRC=$(cd $KSRC; printf "all:\n\t@echo \${CURDIR}\n" | make -f -)
-+KOBJ=$(cd $KOBJ; printf "all:\n\t@echo \${CURDIR}\n" | make -f -)
-+
-+find $KSRC $KOBJ \( -name '*.gcno' -o -name '*.[ch]' -o -type l \) -a \
-+                 -perm /u+r,g+r | tar cfz $DEST -P -T -
-+
-+if [ $? -eq 0 ] ; then
-+  echo "$DEST successfully created, copy to test system and unpack with:"
-+  echo "  tar xfz $DEST -P"
-+else
-+  echo "Could not create file $DEST"
-+fi
-+
-+
-+Appendix B: gather_on_test.sh
-+=============================
-+
-+Sample script to gather coverage data files on the test machine
-+(see 6b):
-+
-+#!/bin/bash
-+
-+DEST=$1
-+GCDA=/sys/kernel/debug/gcov
-+
-+if [ -z "$DEST" ] ; then
-+  echo "Usage: $0 <output.tar.gz>" >&2
-+  exit 1
-+fi
-+
-+find $GCDA -name '*.gcno' -o -name '*.gcda' | tar cfz $DEST -T -
-+
-+if [ $? -eq 0 ] ; then
-+  echo "$DEST successfully created, copy to build system and unpack with:"
-+  echo "  tar xfz $DEST"
-+else
-+  echo "Could not create file $DEST"
-+fi
-diff -puN kernel/gcov/Makefile~gcov-add-gcov-profiling-infrastructure-revert-link-changes kernel/gcov/Makefile
---- a/kernel/gcov/Makefile~gcov-add-gcov-profiling-infrastructure-revert-link-changes
-+++ a/kernel/gcov/Makefile
-@@ -1 +1,3 @@
-+EXTRA_CFLAGS := -DSRCTREE='"$(srctree)"' -DOBJTREE='"$(objtree)"'
-+
- obj-$(CONFIG_GCOV_PROFILE) := base.o fs.o gcc_3_4.o
-diff -puN kernel/gcov/fs.c~gcov-add-gcov-profiling-infrastructure-revert-link-changes kernel/gcov/fs.c
---- a/kernel/gcov/fs.c~gcov-add-gcov-profiling-infrastructure-revert-link-changes
-+++ a/kernel/gcov/fs.c
-@@ -36,11 +36,13 @@
-  *         copy of the profiling data here to allow collecting coverage data
-  *         for cleanup code. Such a node is called a "ghost".
-  * @dentry: main debugfs entry, either a directory or data file
-+ * @links: associated symbolic links
-  * @name: data file basename
-  *
-  * struct gcov_node represents an entity within the gcov/ subdirectory
-  * of debugfs. There are directory and data file nodes. The latter represent
-- * the actual synthesized data file.
-+ * the actual synthesized data file plus any associated symbolic links which
-+ * are needed by the gcov tool to work correctly.
-  */
- struct gcov_node {
- 	struct list_head list;
-@@ -50,9 +52,12 @@ struct gcov_node {
- 	struct gcov_info *info;
- 	struct gcov_info *ghost;
- 	struct dentry *dentry;
-+	struct dentry **links;
- 	char name[0];
- };
- 
-+static const char objtree[] = OBJTREE;
-+static const char srctree[] = SRCTREE;
- static struct gcov_node root_node;
- static struct dentry *reset_dentry;
- static LIST_HEAD(all_head);
-@@ -238,6 +243,104 @@ static ssize_t gcov_seq_write(struct fil
- 	return len;
- }
- 
-+/* Given a string <path> representing a file path of format:
-+ *   path/to/file.gcda
-+ * construct and return a new string:
-+ *   <dir/>path/to/file.<ext> */
-+static char *link_target(const char *dir, const char *path, const char *ext)
-+{
-+	char *target;
-+	char *old_ext;
-+	char *copy;
-+
-+	copy = kstrdup(path, GFP_KERNEL);
-+	if (!copy)
-+		return NULL;
-+	old_ext = strrchr(copy, '.');
-+	if (old_ext)
-+		*old_ext = '\0';
-+	if (dir)
-+		target = kasprintf(GFP_KERNEL, "%s/%s.%s", dir, copy, ext);
-+	else
-+		target = kasprintf(GFP_KERNEL, "%s.%s", copy, ext);
-+	kfree(copy);
-+
-+	return target;
-+}
-+
-+/* Construct a string representing the symbolic link target for the given
-+ * gcov data file name and link type. Depending on the link type and the
-+ * location of the data file, the link target can either point to a
-+ * subdirectory of srctree, objtree or in an external location. */
-+static char *get_link_target(const char *filename, const struct gcov_link *ext)
-+{
-+	const char *rel;
-+	char *result;
-+
-+	if (strncmp(filename, objtree, strlen(objtree)) == 0) {
-+		rel = filename + strlen(objtree) + 1;
-+		if (ext->dir == src_tree)
-+			result = link_target(srctree, rel, ext->ext);
-+		else
-+			result = link_target(objtree, rel, ext->ext);
-+	} else {
-+		/* External compilation. */
-+		result = link_target(NULL, filename, ext->ext);
-+	}
-+
-+	return result;
-+}
-+
-+#define SKEW_PREFIX	".tmp_"
-+
-+/* For a filename .tmp_filename.ext return filename.ext. Needed to compensate
-+ * for filename skewing caused by the mod-versioning mechanism. */
-+static const char *deskew(const char *basename)
-+{
-+	if (strncmp(basename, SKEW_PREFIX, sizeof(SKEW_PREFIX) - 1) == 0)
-+		return basename + sizeof(SKEW_PREFIX) - 1;
-+	return basename;
-+}
-+
-+/* Create links to additional files (usually .c and .gcno files) which the
-+ * gcov tool expects to find in the same directory as the gcov data file. */
-+static void add_links(struct gcov_node *node, struct dentry *parent)
-+{
-+	char *basename;
-+	char *target;
-+	int num;
-+	int i;
-+
-+	for (num = 0; gcov_link[num].ext; num++)
-+		/* Nothing. */;
-+	node->links = kcalloc(num, sizeof(struct dentry *), GFP_KERNEL);
-+	if (!node->links)
-+		return;
-+	for (i = 0; i < num; i++) {
-+		target = get_link_target(get_node_info(node)->filename,
-+					 &gcov_link[i]);
-+		if (!target)
-+			goto out_err;
-+		basename = strrchr(target, '/');
-+		if (!basename)
-+			goto out_err;
-+		basename++;
-+		node->links[i] = debugfs_create_symlink(deskew(basename),
-+							parent,	target);
-+		if (!node->links[i])
-+			goto out_err;
-+		kfree(target);
-+	}
-+
-+	return;
-+out_err:
-+	kfree(target);
-+	while (i-- > 0)
-+		debugfs_remove(node->links[i]);
-+	kfree(node->links);
-+	node->links = NULL;
-+}
-+
- static struct file_operations gcov_data_fops = {
- 	.open = gcov_seq_open,
- 	.release = gcov_seq_release,
-@@ -273,7 +376,7 @@ static struct gcov_node *new_node(struct
- 	init_node(node, info, name);
- 	/* Differentiate between gcov data file nodes and directory nodes. */
- 	if (info) {
--		node->dentry = debugfs_create_file(node->name, 0600,
-+		node->dentry = debugfs_create_file(deskew(node->name), 0600,
- 					parent->dentry, node, &gcov_data_fops);
- 	} else
- 		node->dentry = debugfs_create_dir(node->name, parent->dentry);
-@@ -282,12 +385,27 @@ static struct gcov_node *new_node(struct
- 		kfree(node);
- 		return NULL;
+ 	if (!dev)
+@@ -463,8 +463,8 @@ acpi_pci_irq_derive(struct pci_dev *dev,
  	}
-+	if (info)
-+		add_links(node, parent->dentry);
- 	list_add(&node->list, &parent->children);
- 	list_add(&node->all, &all_head);
  
- 	return node;
- }
+ 	if (irq < 0) {
+-		printk(KERN_WARNING PREFIX "Unable to derive IRQ for device %s\n",
+-			      pci_name(dev));
++		dev_warn(&dev->dev, "can't derive routing for PCI INT%c#\n",
++			 'A' + orig_pin);
+ 		return -1;
+ 	}
  
-+/* Remove symbolic links associated with node. */
-+static void remove_links(struct gcov_node *node)
-+{
-+	int i;
-+
-+	if (!node->links)
-+		return;
-+	for (i = 0; gcov_link[i].ext; i++)
-+		debugfs_remove(node->links[i]);
-+	kfree(node->links);
-+	node->links = NULL;
-+}
-+
- /* Remove node from all lists and debugfs and release associated resources.
-  * Needs to be called with node_lock held. */
- static void release_node(struct gcov_node *node)
-@@ -295,6 +413,7 @@ static void release_node(struct gcov_nod
- 	list_del(&node->list);
- 	list_del(&node->all);
- 	debugfs_remove(node->dentry);
-+	remove_links(node);
- 	if (node->ghost)
- 		gcov_info_free(node->ghost);
- 	kfree(node);
-diff -puN kernel/gcov/gcc_3_4.c~gcov-add-gcov-profiling-infrastructure-revert-link-changes kernel/gcov/gcc_3_4.c
---- a/kernel/gcov/gcc_3_4.c~gcov-add-gcov-profiling-infrastructure-revert-link-changes
-+++ a/kernel/gcov/gcc_3_4.c
-@@ -20,6 +20,12 @@
- #include <linux/seq_file.h>
- #include "gcov.h"
+@@ -487,6 +487,7 @@ int acpi_pci_irq_enable(struct pci_dev *
+ 	int triggering = ACPI_LEVEL_SENSITIVE;
+ 	int polarity = ACPI_ACTIVE_LOW;
+ 	char *link = NULL;
++	char link_desc[16];
+ 	int rc;
  
-+/* Symbolic links to be created for each profiling data file. */
-+const struct gcov_link gcov_link[] = {
-+	{ obj_tree, "gcno" },	/* Link to .gcno file in $(objtree). */
-+	{ 0, NULL},
-+};
-+
- /* Determine whether a counter is active. Based on gcc magic. Doesn't change
-  * at run-time. */
- static int counter_active(struct gcov_info *info, unsigned int type)
-diff -puN kernel/gcov/gcov.h~gcov-add-gcov-profiling-infrastructure-revert-link-changes kernel/gcov/gcov.h
---- a/kernel/gcov/gcov.h~gcov-add-gcov-profiling-infrastructure-revert-link-changes
-+++ a/kernel/gcov/gcov.h
-@@ -116,4 +116,13 @@ void gcov_info_add(struct gcov_info *des
- struct gcov_info *gcov_info_dup(struct gcov_info *info);
- void gcov_info_free(struct gcov_info *info);
  
-+struct gcov_link {
-+	enum {
-+		obj_tree,
-+		src_tree,
-+	} dir;
-+	const char *ext;
-+};
-+extern const struct gcov_link gcov_link[];
-+
- #endif /* GCOV_H */
-_
-
-Patches currently in -mm which might be from peter.oberparleiter@de.ibm.com are
-
-s390-cio-use-memory_read_from_buffer.patch
-kernel-call-constructors.patch
-kernel-call-constructors-uml-fix-1.patch
-kernel-call-constructors-uml-fix-2.patch
-kernel-introduce-gcc_version_lower-macro.patch
-seq_file-add-function-to-write-binary-data.patch
-gcov-add-gcov-profiling-infrastructure.patch
-gcov-add-gcov-profiling-infrastructure-revert-link-changes.patch
-gcov-create-links-to-gcda-files-in-build-directory.patch
-gcov-architecture-specific-compile-flag-adjustments.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-fix.patch
-
+@@ -503,7 +504,7 @@ int acpi_pci_irq_enable(struct pci_dev *
+ 	pin--;
+ 
+ 	if (!dev->bus) {
+-		printk(KERN_ERR PREFIX "Invalid (NULL) 'bus' field\n");
++		dev_err(&dev->dev, "invalid (NULL) 'bus' field\n");
+ 		return -ENODEV;
+ 	}
+ 
+@@ -538,8 +539,7 @@ int acpi_pci_irq_enable(struct pci_dev *
+ 	 * driver reported one, then use it. Exit in any case.
+ 	 */
+ 	if (irq < 0) {
+-		printk(KERN_WARNING PREFIX "PCI Interrupt %s[%c]: no GSI",
+-		       pci_name(dev), ('A' + pin));
++		dev_warn(&dev->dev, "PCI INT%c#: no GSI", 'A' + pin);
+ 		/* Interrupt Line values above 0xF are forbidden */
+ 		if (dev->irq > 0 && (dev->irq <= 0xF)) {
+ 			printk(" - using IRQ %d\n", dev->irq);
+@@ -554,21 +554,21 @@ int acpi_pci_irq_enable(struct pci_dev *
+ 
+ 	rc = acpi_register_gsi(irq, triggering, polarity);
+ 	if (rc < 0) {
+-		printk(KERN_WARNING PREFIX "PCI Interrupt %s[%c]: failed "
+-		       "to register GSI\n", pci_name(dev), ('A' + pin));
++		dev_warn(&dev->dev, "PCI INT%c#: failed to register GSI\n",
++			 'A' + pin);
+ 		return rc;
+ 	}
+ 	dev->irq = rc;
+ 
+-	printk(KERN_INFO PREFIX "PCI Interrupt %s[%c] -> ",
+-	       pci_name(dev), 'A' + pin);
+-
+ 	if (link)
+-		printk("Link [%s] -> ", link);
++		snprintf(link_desc, sizeof(link_desc), " -> Link[%s]", link);
++	else
++		link_desc[0] = '\0';
+ 
+-	printk("GSI %u (%s, %s) -> IRQ %d\n", irq,
+-	       (triggering == ACPI_LEVEL_SENSITIVE) ? "level" : "edge",
+-	       (polarity == ACPI_ACTIVE_LOW) ? "low" : "high", dev->irq);
++	dev_info(&dev->dev, "PCI INT%c#%s -> GSI %u (%s, %s) -> IRQ %d\n",
++		 'A' + pin, link_desc, irq,
++		 (triggering == ACPI_LEVEL_SENSITIVE) ? "level" : "edge",
++		 (polarity == ACPI_ACTIVE_LOW) ? "low" : "high", dev->irq);
+ 
+ #ifdef CONFIG_X86
+ 	mp_config_acpi_gsi(dev->bus->number, dev->devfn, dev->pin, irq,
+@@ -621,10 +621,6 @@ void acpi_pci_irq_disable(struct pci_dev
+ 	 * (e.g. PCI_UNDEFINED_IRQ).
+ 	 */
+ 
+-	printk(KERN_INFO PREFIX "PCI interrupt for device %s disabled\n",
+-	       pci_name(dev));
+-
++	dev_info(&dev->dev, "PCI INT%c# disabled\n", 'A' + pin);
+ 	acpi_unregister_gsi(gsi);
