@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-add-support-for-st-m41t94-spi-rtc.patch added to -mm tree
-Date: Mon, 30 Jun 2008 14:56:50 -0700
-Message-ID: <200806302156.m5ULuoBl027560@imap1.linux-foundation.org>
+Subject: + cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup.patch added to -mm tree
+Date: Mon, 30 Jun 2008 15:07:42 -0700
+Message-ID: <200806302207.m5UM7h0T028026@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36299 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56357 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763610AbYF3V56 (ORCPT
+	by vger.kernel.org with ESMTP id S933228AbYF3WIz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jun 2008 17:57:58 -0400
+	Mon, 30 Jun 2008 18:08:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Kim.Heino@bluegiga.com, a.zummo@towertech.it, david-b@pacbell.net
+Cc: serue@us.ibm.com, balbir@in.ibm.com, danms@us.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, serge@us.ibm.com
 
 
 The patch titled
-     rtc: add support for ST M41T94 SPI RTC
+     cgroup_clone: use pid of newly created task for new cgroup
 has been added to the -mm tree.  Its filename is
-     rtc-add-support-for-st-m41t94-spi-rtc.patch
+     cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,238 +34,192 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: add support for ST M41T94 SPI RTC
-From: "Kim B. Heino" <Kim.Heino@bluegiga.com>
+Subject: cgroup_clone: use pid of newly created task for new cgroup
+From: "Serge E. Hallyn" <serue@us.ibm.com>
 
-This patch adds kernel driver for M41T94 RTC chip connected via SPI.
-I've tested it on two different AT91-based hardwares.
+cgroup_clone creates a new cgroup with the pid of the task.  This works
+correctly for unshare, but for clone cgroup_clone is called from
+copy_namespaces inside copy_process, which happens before the new pid is
+created.  As a result, the new cgroup was created with current's pid. 
+This patch:
 
-This is third revision of the patch: some comments made by
-Alessandro Zummo fixed.
+	1. Moves the call inside copy_process to after the new pid
+	   is created
+	2. Passes the struct pid into ns_cgroup_clone (as it is not
+	   yet attached to the task)
+	3. Passes a name from ns_cgroup_clone() into cgroup_clone()
+	   so as to keep cgroup_clone() itself simpler
+	4. Uses pid_vnr() to get the process id value, so that the
+	   pid used to name the new cgroup is always the pid as it
+	   would be known to the task which did the cloning or
+	   unsharing.  I think that is the most intuitive thing to
+	   do.  This way, task t1 does clone(CLONE_NEWPID) to get
+	   t2, which does clone(CLONE_NEWPID) to get t3, then the
+	   cgroup for t3 will be named for the pid by which t2 knows
+	   t3.
 
-Revision two added support for century bit and fixes.
+(Thanks to Dan Smith for finding the main bug)
 
-Signed-off-by: Kim B. Heino <Kim.Heino@bluegiga.com>
-Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
-Cc: David Brownell <david-b@pacbell.net>
+Changelog:
+	June 11: Incorporate Paul Menage's feedback:  don't pass
+	         NULL to ns_cgroup_clone from unshare, and reduce
+		 patch size by using 'nodename' in cgroup_clone.
+	June 10: Original version
+
+Signed-off-by: Serge Hallyn <serge@us.ibm.com>
+Acked-by: Paul Menage <menage@google.com>
+Tested-by: Dan Smith <danms@us.ibm.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig      |    9 +
- drivers/rtc/Makefile     |    1 
- drivers/rtc/rtc-m41t94.c |  173 +++++++++++++++++++++++++++++++++++++
- 3 files changed, 183 insertions(+)
+ include/linux/cgroup.h  |    3 ++-
+ include/linux/nsproxy.h |    7 +++++--
+ kernel/cgroup.c         |    7 +++----
+ kernel/fork.c           |    4 ++++
+ kernel/ns_cgroup.c      |    7 +++++--
+ kernel/nsproxy.c        |    8 +-------
+ 6 files changed, 20 insertions(+), 16 deletions(-)
 
-diff -puN drivers/rtc/Kconfig~rtc-add-support-for-st-m41t94-spi-rtc drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-add-support-for-st-m41t94-spi-rtc
-+++ a/drivers/rtc/Kconfig
-@@ -273,6 +273,15 @@ comment "SPI RTC drivers"
+diff -puN include/linux/cgroup.h~cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup include/linux/cgroup.h
+--- a/include/linux/cgroup.h~cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup
++++ a/include/linux/cgroup.h
+@@ -364,7 +364,8 @@ static inline struct cgroup* task_cgroup
+ 	return task_subsys_state(task, subsys_id)->cgroup;
+ }
  
- if SPI_MASTER
+-int cgroup_clone(struct task_struct *tsk, struct cgroup_subsys *ss);
++int cgroup_clone(struct task_struct *tsk, struct cgroup_subsys *ss,
++							char *nodename);
  
-+config RTC_DRV_M41T94
-+	tristate "ST M41T94"
-+	help
-+	  If you say yes here you will get support for the
-+	  ST M41T94 SPI RTC chip.
-+
-+	  This driver can also be built as a module. If so, the module
-+	  will be called rtc-m41t94.
-+
- config RTC_DRV_MAX6902
- 	tristate "Maxim MAX6902"
- 	help
-diff -puN drivers/rtc/Makefile~rtc-add-support-for-st-m41t94-spi-rtc drivers/rtc/Makefile
---- a/drivers/rtc/Makefile~rtc-add-support-for-st-m41t94-spi-rtc
-+++ a/drivers/rtc/Makefile
-@@ -34,6 +34,7 @@ obj-$(CONFIG_RTC_DRV_EP93XX)	+= rtc-ep93
- obj-$(CONFIG_RTC_DRV_FM3130)	+= rtc-fm3130.o
- obj-$(CONFIG_RTC_DRV_ISL1208)	+= rtc-isl1208.o
- obj-$(CONFIG_RTC_DRV_M41T80)	+= rtc-m41t80.o
-+obj-$(CONFIG_RTC_DRV_M41T94)	+= rtc-m41t94.o
- obj-$(CONFIG_RTC_DRV_M48T59)	+= rtc-m48t59.o
- obj-$(CONFIG_RTC_DRV_M48T86)	+= rtc-m48t86.o
- obj-$(CONFIG_RTC_DRV_MAX6900)	+= rtc-max6900.o
-diff -puN /dev/null drivers/rtc/rtc-m41t94.c
---- /dev/null
-+++ a/drivers/rtc/rtc-m41t94.c
-@@ -0,0 +1,173 @@
-+/*
-+ * Driver for ST M41T94 SPI RTC
-+ *
-+ * Copyright (C) 2008 Kim B. Heino
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/platform_device.h>
-+#include <linux/rtc.h>
-+#include <linux/spi/spi.h>
-+#include <linux/bcd.h>
-+
-+#define M41T94_REG_SECONDS	0x01
-+#define M41T94_REG_MINUTES	0x02
-+#define M41T94_REG_HOURS	0x03
-+#define M41T94_REG_WDAY		0x04
-+#define M41T94_REG_DAY		0x05
-+#define M41T94_REG_MONTH	0x06
-+#define M41T94_REG_YEAR		0x07
-+#define M41T94_REG_HT		0x0c
-+
-+#define M41T94_BIT_HALT		0x40
-+#define M41T94_BIT_STOP		0x80
-+#define M41T94_BIT_CB		0x40
-+#define M41T94_BIT_CEB		0x80
-+
-+static int m41t94_set_time(struct device *dev, struct rtc_time *tm)
+ /* A cgroup_iter should be treated as an opaque object */
+ struct cgroup_iter {
+diff -puN include/linux/nsproxy.h~cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup include/linux/nsproxy.h
+--- a/include/linux/nsproxy.h~cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup
++++ a/include/linux/nsproxy.h
+@@ -82,9 +82,12 @@ static inline void get_nsproxy(struct ns
+ }
+ 
+ #ifdef CONFIG_CGROUP_NS
+-int ns_cgroup_clone(struct task_struct *tsk);
++int ns_cgroup_clone(struct task_struct *tsk, struct pid *pid);
+ #else
+-static inline int ns_cgroup_clone(struct task_struct *tsk) { return 0; }
++static inline int ns_cgroup_clone(struct task_struct *tsk, struct pid *pid)
 +{
-+	struct spi_device *spi = to_spi_device(dev);
-+	u8 buf[8]; /* write cmd + 7 registers */
-+
-+	dev_dbg(dev, "%s secs=%d, mins=%d, "
-+		"hours=%d, mday=%d, mon=%d, year=%d, wday=%d\n",
-+		"write", tm->tm_sec, tm->tm_min,
-+		tm->tm_hour, tm->tm_mday,
-+		tm->tm_mon, tm->tm_year, tm->tm_wday);
-+
-+	buf[0] = 0x80 | M41T94_REG_SECONDS; /* write time + date */
-+	buf[M41T94_REG_SECONDS] = BIN2BCD(tm->tm_sec);
-+	buf[M41T94_REG_MINUTES] = BIN2BCD(tm->tm_min);
-+	buf[M41T94_REG_HOURS]   = BIN2BCD(tm->tm_hour);
-+	buf[M41T94_REG_WDAY]    = BIN2BCD(tm->tm_wday + 1);
-+	buf[M41T94_REG_DAY]     = BIN2BCD(tm->tm_mday);
-+	buf[M41T94_REG_MONTH]   = BIN2BCD(tm->tm_mon + 1);
-+
-+	buf[M41T94_REG_HOURS] |= M41T94_BIT_CEB;
-+	if (tm->tm_year >= 100)
-+		buf[M41T94_REG_HOURS] |= M41T94_BIT_CB;
-+	buf[M41T94_REG_YEAR] = BIN2BCD(tm->tm_year % 100);
-+
-+	return spi_write(spi, buf, 8);
-+}
-+
-+static int m41t94_read_time(struct device *dev, struct rtc_time *tm)
-+{
-+	struct spi_device *spi = to_spi_device(dev);
-+	u8 buf[2];
-+	int ret, hour;
-+
-+	/* clear halt update bit */
-+	ret = spi_w8r8(spi, M41T94_REG_HT);
-+	if (ret < 0)
-+		return ret;
-+	if (ret & M41T94_BIT_HALT) {
-+		buf[0] = 0x80 | M41T94_REG_HT;
-+		buf[1] = ret & ~M41T94_BIT_HALT;
-+		spi_write(spi, buf, 2);
-+	}
-+
-+	/* clear stop bit */
-+	ret = spi_w8r8(spi, M41T94_REG_SECONDS);
-+	if (ret < 0)
-+		return ret;
-+	if (ret & M41T94_BIT_STOP) {
-+		buf[0] = 0x80 | M41T94_REG_SECONDS;
-+		buf[1] = ret & ~M41T94_BIT_STOP;
-+		spi_write(spi, buf, 2);
-+	}
-+
-+	tm->tm_sec  = BCD2BIN(spi_w8r8(spi, M41T94_REG_SECONDS));
-+	tm->tm_min  = BCD2BIN(spi_w8r8(spi, M41T94_REG_MINUTES));
-+	hour = spi_w8r8(spi, M41T94_REG_HOURS);
-+	tm->tm_hour = BCD2BIN(hour & 0x3f);
-+	tm->tm_wday = BCD2BIN(spi_w8r8(spi, M41T94_REG_WDAY)) - 1;
-+	tm->tm_mday = BCD2BIN(spi_w8r8(spi, M41T94_REG_DAY));
-+	tm->tm_mon  = BCD2BIN(spi_w8r8(spi, M41T94_REG_MONTH)) - 1;
-+	tm->tm_year = BCD2BIN(spi_w8r8(spi, M41T94_REG_YEAR));
-+	if ((hour & M41T94_BIT_CB) || !(hour & M41T94_BIT_CEB))
-+		tm->tm_year += 100;
-+
-+	dev_dbg(dev, "%s secs=%d, mins=%d, "
-+		"hours=%d, mday=%d, mon=%d, year=%d, wday=%d\n",
-+		"read", tm->tm_sec, tm->tm_min,
-+		tm->tm_hour, tm->tm_mday,
-+		tm->tm_mon, tm->tm_year, tm->tm_wday);
-+
-+	/* initial clock setting can be undefined */
-+	return rtc_valid_tm(tm);
-+}
-+
-+static const struct rtc_class_ops m41t94_rtc_ops = {
-+	.read_time	= m41t94_read_time,
-+	.set_time	= m41t94_set_time,
-+};
-+
-+static struct spi_driver m41t94_driver;
-+
-+static int __devinit m41t94_probe(struct spi_device *spi)
-+{
-+	struct rtc_device *rtc;
-+	int res;
-+
-+	spi->bits_per_word = 8;
-+	spi_setup(spi);
-+
-+	res = spi_w8r8(spi, M41T94_REG_SECONDS);
-+	if (res < 0) {
-+		dev_err(&spi->dev, "not found.\n");
-+		return res;
-+	}
-+
-+	rtc = rtc_device_register(m41t94_driver.driver.name,
-+		&spi->dev, &m41t94_rtc_ops, THIS_MODULE);
-+	if (IS_ERR(rtc))
-+		return PTR_ERR(rtc);
-+
-+	dev_set_drvdata(&spi->dev, rtc);
-+
 +	return 0;
 +}
+ #endif
+ 
+ #endif
+diff -puN kernel/cgroup.c~cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup
++++ a/kernel/cgroup.c
+@@ -2845,16 +2845,17 @@ void cgroup_exit(struct task_struct *tsk
+  * cgroup_clone - clone the cgroup the given subsystem is attached to
+  * @tsk: the task to be moved
+  * @subsys: the given subsystem
++ * @nodename: the name for the new cgroup
+  *
+  * Duplicate the current cgroup in the hierarchy that the given
+  * subsystem is attached to, and move this task into the new
+  * child.
+  */
+-int cgroup_clone(struct task_struct *tsk, struct cgroup_subsys *subsys)
++int cgroup_clone(struct task_struct *tsk, struct cgroup_subsys *subsys,
++							char *nodename)
+ {
+ 	struct dentry *dentry;
+ 	int ret = 0;
+-	char nodename[MAX_CGROUP_TYPE_NAMELEN];
+ 	struct cgroup *parent, *child;
+ 	struct inode *inode;
+ 	struct css_set *cg;
+@@ -2879,8 +2880,6 @@ int cgroup_clone(struct task_struct *tsk
+ 	cg = tsk->cgroups;
+ 	parent = task_cgroup(tsk, subsys->subsys_id);
+ 
+-	snprintf(nodename, MAX_CGROUP_TYPE_NAMELEN, "%d", tsk->pid);
+-
+ 	/* Pin the hierarchy */
+ 	atomic_inc(&parent->root->sb->s_active);
+ 
+diff -puN kernel/fork.c~cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup kernel/fork.c
+--- a/kernel/fork.c~cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup
++++ a/kernel/fork.c
+@@ -1111,6 +1111,10 @@ static struct task_struct *copy_process(
+ 	if (clone_flags & CLONE_THREAD)
+ 		p->tgid = current->tgid;
+ 
++	if (current->nsproxy != p->nsproxy)
++		if ((retval = ns_cgroup_clone(p, pid)))
++			goto bad_fork_free_pid;
 +
-+static int __devexit m41t94_remove(struct spi_device *spi)
-+{
-+	struct rtc_device *rtc = platform_get_drvdata(spi);
+ 	p->set_child_tid = (clone_flags & CLONE_CHILD_SETTID) ? child_tidptr : NULL;
+ 	/*
+ 	 * Clear TID on mm_release()?
+diff -puN kernel/ns_cgroup.c~cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup kernel/ns_cgroup.c
+--- a/kernel/ns_cgroup.c~cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup
++++ a/kernel/ns_cgroup.c
+@@ -24,9 +24,12 @@ static inline struct ns_cgroup *cgroup_t
+ 			    struct ns_cgroup, css);
+ }
+ 
+-int ns_cgroup_clone(struct task_struct *task)
++int ns_cgroup_clone(struct task_struct *task, struct pid *pid)
+ {
+-	return cgroup_clone(task, &ns_subsys);
++	char name[PROC_NUMBUF];
 +
-+	if (rtc)
-+		rtc_device_unregister(rtc);
-+
-+	return 0;
-+}
-+
-+static struct spi_driver m41t94_driver = {
-+	.driver = {
-+		.name	= "rtc-m41t94",
-+		.bus	= &spi_bus_type,
-+		.owner	= THIS_MODULE,
-+	},
-+	.probe	= m41t94_probe,
-+	.remove = __devexit_p(m41t94_remove),
-+};
-+
-+static __init int m41t94_init(void)
-+{
-+	return spi_register_driver(&m41t94_driver);
-+}
-+
-+module_init(m41t94_init);
-+
-+static __exit void m41t94_exit(void)
-+{
-+	spi_unregister_driver(&m41t94_driver);
-+}
-+
-+module_exit(m41t94_exit);
-+
-+MODULE_AUTHOR("Kim B. Heino <Kim.Heino@bluegiga.com>");
-+MODULE_DESCRIPTION("Driver for ST M41T94 SPI RTC");
-+MODULE_LICENSE("GPL");
++	snprintf(name, PROC_NUMBUF, "%d", pid_vnr(pid));
++	return cgroup_clone(task, &ns_subsys, name);
+ }
+ 
+ /*
+diff -puN kernel/nsproxy.c~cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup kernel/nsproxy.c
+--- a/kernel/nsproxy.c~cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup
++++ a/kernel/nsproxy.c
+@@ -157,12 +157,6 @@ int copy_namespaces(unsigned long flags,
+ 		goto out;
+ 	}
+ 
+-	err = ns_cgroup_clone(tsk);
+-	if (err) {
+-		put_nsproxy(new_ns);
+-		goto out;
+-	}
+-
+ 	tsk->nsproxy = new_ns;
+ 
+ out:
+@@ -209,7 +203,7 @@ int unshare_nsproxy_namespaces(unsigned 
+ 		goto out;
+ 	}
+ 
+-	err = ns_cgroup_clone(current);
++	err = ns_cgroup_clone(current, task_pid(current));
+ 	if (err)
+ 		put_nsproxy(*new_nsp);
+ 
 _
 
-Patches currently in -mm which might be from Kim.Heino@bluegiga.com are
+Patches currently in -mm which might be from serue@us.ibm.com are
 
-rtc-add-support-for-st-m41t94-spi-rtc.patch
+git-unionfs.patch
+git-unprivileged-mounts.patch
+security-protect-legacy-apps-from-insufficient-privilege.patch
+security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
+ecryptfs-privileged-kthread-for-lower-file-opens.patch
+cgroup-files-clean-up-whitespace-in-struct-cftype.patch
+cgroup-files-add-write_string-cgroup-control-file-method.patch
+cgroup-files-move-the-release_agent-file-to-use-typed-handlers.patch
+cgroup-files-move-notify_on_release-file-to-separate-write-handler.patch
+cgroup-files-turn-attach_task_by_pid-directly-into-a-cgroup-write-handler.patch
+cgroup-files-remove-cpuset_common_file_write.patch
+cgroup-files-convert-devcgroup_access_write-into-a-cgroup-write_string-handler.patch
+cgroup-files-convert-res_counter_write-to-be-a-cgroups-write_string-handler.patch
+cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup.patch
+memcg-remove-refcnt-from-page_cgroup-fix-2.patch
+reiser4.patch
 
