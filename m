@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + coredump-elf_core_dump-skip-kernel-threads.patch added to -mm tree
-Date: Mon, 30 Jun 2008 16:28:58 -0700
-Message-ID: <200806302328.m5UNSwwt031010@imap1.linux-foundation.org>
+Subject: + coredump-simplify-core_state-nr_threads-calculation.patch added to -mm tree
+Date: Mon, 30 Jun 2008 16:34:25 -0700
+Message-ID: <200806302334.m5UNYPrA031269@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46405 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36511 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752612AbYF3X31 (ORCPT
+	by vger.kernel.org with ESMTP id S1754180AbYF3Xeq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jun 2008 19:29:27 -0400
+	Mon, 30 Jun 2008 19:34:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: oleg@tv-sign.ru, roland@redhat.com
 
 
 The patch titled
-     coredump: elf_core_dump: skip kernel threads
+     coredump: simplify core_state->nr_threads calculation
 has been added to the -mm tree.  Its filename is
-     coredump-elf_core_dump-skip-kernel-threads.patch
+     coredump-simplify-core_state-nr_threads-calculation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,72 +34,119 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: coredump: elf_core_dump: skip kernel threads
+Subject: coredump: simplify core_state->nr_threads calculation
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-linux_binfmt->core_dump() runs before the process does exit_aio(), this
-means that we can hit the kernel thread which shares the same ->mm. 
-Afaics, nothing really bad can happen, but perhaps it makes sense to fix
-this minor bug.
+Change zap_process() to return int instead of incrementing
+mm->core_state->nr_threads directly. Change zap_threads() to set
+mm->core_state only on success.
 
-It is sad we have to iterate over all threads in system and use
-GFP_ATOMIC.  Hopefully we can kill theses ugly do_each_thread()s, but this
-needs some nontrivial changes in mm_struct and do_coredump.
+This patch restores the original size of .text, and more importantly now
+->nr_threads is used in two places only.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c       |    6 ++++++
- fs/binfmt_elf_fdpic.c |    3 +++
- 2 files changed, 9 insertions(+)
+ fs/exec.c |   33 ++++++++++++++++-----------------
+ 1 file changed, 16 insertions(+), 17 deletions(-)
 
-diff -puN fs/binfmt_elf.c~coredump-elf_core_dump-skip-kernel-threads fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~coredump-elf_core_dump-skip-kernel-threads
-+++ a/fs/binfmt_elf.c
-@@ -1520,6 +1520,9 @@ static int fill_note_info(struct elfhdr 
- 	rcu_read_lock();
- 	do_each_thread(g, p)
- 		if (p->mm == dump_task->mm) {
-+			if (p->flags & PF_KTHREAD)
-+				continue;
+diff -puN fs/exec.c~coredump-simplify-core_state-nr_threads-calculation fs/exec.c
+--- a/fs/exec.c~coredump-simplify-core_state-nr_threads-calculation
++++ a/fs/exec.c
+@@ -1504,9 +1504,10 @@ out:
+ 	return ispipe;
+ }
+ 
+-static void zap_process(struct task_struct *start)
++static int zap_process(struct task_struct *start)
+ {
+ 	struct task_struct *t;
++	int nr = 0;
+ 
+ 	start->signal->flags = SIGNAL_GROUP_EXIT;
+ 	start->signal->group_stop_count = 0;
+@@ -1514,31 +1515,32 @@ static void zap_process(struct task_stru
+ 	t = start;
+ 	do {
+ 		if (t != current && t->mm) {
+-			t->mm->core_state->nr_threads++;
+ 			sigaddset(&t->pending.signal, SIGKILL);
+ 			signal_wake_up(t, 1);
++			nr++;
+ 		}
+ 	} while_each_thread(start, t);
 +
- 			t = kzalloc(offsetof(struct elf_thread_core_info,
- 					     notes[info->thread_notes]),
- 				    GFP_ATOMIC);
-@@ -1724,6 +1727,9 @@ static int fill_note_info(struct elfhdr 
- 		rcu_read_lock();
- 		do_each_thread(g, p)
- 			if (current->mm == p->mm && current != p) {
-+				if (p->flags & PF_KTHREAD)
-+					continue;
-+
- 				ets = kzalloc(sizeof(*ets), GFP_ATOMIC);
- 				if (!ets) {
- 					rcu_read_unlock();
-diff -puN fs/binfmt_elf_fdpic.c~coredump-elf_core_dump-skip-kernel-threads fs/binfmt_elf_fdpic.c
---- a/fs/binfmt_elf_fdpic.c~coredump-elf_core_dump-skip-kernel-threads
-+++ a/fs/binfmt_elf_fdpic.c
-@@ -1631,6 +1631,9 @@ static int elf_fdpic_core_dump(long sign
- 		rcu_read_lock();
- 		do_each_thread(g,p)
- 			if (current->mm == p->mm && current != p) {
-+				if (p->flags & PF_KTHREAD)
-+					continue;
-+
- 				tmp = kzalloc(sizeof(*tmp), GFP_ATOMIC);
- 				if (!tmp) {
- 					rcu_read_unlock();
++	return nr;
+ }
+ 
+ static inline int zap_threads(struct task_struct *tsk, struct mm_struct *mm,
+-				int exit_code)
++				struct core_state *core_state, int exit_code)
+ {
+ 	struct task_struct *g, *p;
+ 	unsigned long flags;
+-	int err = -EAGAIN;
++	int nr = -EAGAIN;
+ 
+ 	spin_lock_irq(&tsk->sighand->siglock);
+ 	if (!signal_group_exit(tsk->signal)) {
+ 		tsk->signal->group_exit_code = exit_code;
+-		zap_process(tsk);
+-		err = 0;
++		nr = zap_process(tsk);
+ 	}
+ 	spin_unlock_irq(&tsk->sighand->siglock);
+-	if (err)
+-		return err;
++	if (unlikely(nr < 0))
++		return nr;
+ 
+-	if (atomic_read(&mm->mm_users) == mm->core_state->nr_threads + 1)
++	if (atomic_read(&mm->mm_users) == nr + 1)
+ 		goto done;
+ 	/*
+ 	 * We should find and kill all tasks which use this mm, and we should
+@@ -1581,7 +1583,7 @@ static inline int zap_threads(struct tas
+ 			if (p->mm) {
+ 				if (unlikely(p->mm == mm)) {
+ 					lock_task_sighand(p, &flags);
+-					zap_process(p);
++					nr += zap_process(p);
+ 					unlock_task_sighand(p, &flags);
+ 				}
+ 				break;
+@@ -1590,7 +1592,9 @@ static inline int zap_threads(struct tas
+ 	}
+ 	rcu_read_unlock();
+ done:
+-	return mm->core_state->nr_threads;
++	core_state->nr_threads = nr;
++	mm->core_state = core_state;
++	return nr;
+ }
+ 
+ static int coredump_wait(int exit_code)
+@@ -1603,12 +1607,7 @@ static int coredump_wait(int exit_code)
+ 
+ 	init_completion(&mm->core_done);
+ 	init_completion(&core_state.startup);
+-	core_state.nr_threads = 0;
+-	mm->core_state = &core_state;
+-
+-	core_waiters = zap_threads(tsk, mm, exit_code);
+-	if (core_waiters < 0)
+-		mm->core_state = NULL;
++	core_waiters = zap_threads(tsk, mm, &core_state, exit_code);
+ 	up_write(&mm->mmap_sem);
+ 
+ 	if (unlikely(core_waiters < 0))
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
 
 get_user_pages-fix-possible-page-leak-on-oom.patch
-introduce-pf_kthread-flag.patch
-kill-pf_borrowed_mm-in-favour-of-pf_kthread.patch
-coredump-zap_threads-must-skip-kernel-threads.patch
-coredump-elf_core_dump-skip-kernel-threads.patch
 posix-timers-timer_delete-remove-the-bogus-it_process-=-null-check.patch
 posix-timers-release_posix_timer-kill-the-bogus-put_task_struct-it_process.patch
 signals-collect_signal-remove-the-unneeded-sigismember-check.patch
@@ -115,6 +162,14 @@ include-asm-ptraceh-userspace-headers-cleanup.patch
 ptrace-give-more-respect-to-sigkill.patch
 ptrace-never-sleep-in-task_traced-if-sigkilled.patch
 ptrace-kill-may_ptrace_stop.patch
+introduce-pf_kthread-flag.patch
+kill-pf_borrowed_mm-in-favour-of-pf_kthread.patch
+coredump-zap_threads-must-skip-kernel-threads.patch
+coredump-elf_core_dump-skip-kernel-threads.patch
+coredump-turn-mm-core_startup_done-into-the-pointer-to-struct-core_state.patch
+coredump-move-mm-core_waiters-into-struct-core_state.patch
+coredump-simplify-core_state-nr_threads-calculation.patch
+coredump-turn-core_state-nr_threads-into-atomic_t.patch
 pidns-remove-now-unused-kill_proc-function.patch
 pidns-remove-now-unused-find_pid-function.patch
 pidns-remove-find_task_by_pid-unused-for-a-long-time.patch
