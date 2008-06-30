@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-improve-type-matcher-debug.patch added to -mm tree
-Date: Mon, 30 Jun 2008 15:19:54 -0700
-Message-ID: <200806302219.m5UMJsLA028595@imap1.linux-foundation.org>
+Subject: + checkpatch-handle-return-types-of-pointers-to-functions.patch added to -mm tree
+Date: Mon, 30 Jun 2008 15:20:00 -0700
+Message-ID: <200806302220.m5UMK0YS028608@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34039 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39645 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763187AbYF3WUD (ORCPT
+	by vger.kernel.org with ESMTP id S1763179AbYF3WUK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jun 2008 18:20:03 -0400
+	Mon, 30 Jun 2008 18:20:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: apw@shadowen.org
 
 
 The patch titled
-     checkpatch: improve type matcher debug
+     checkpatch: handle return types of pointers to functions
 has been added to the -mm tree.  Its filename is
-     checkpatch-improve-type-matcher-debug.patch
+     checkpatch-handle-return-types-of-pointers-to-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,60 +34,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: improve type matcher debug
+Subject: checkpatch: handle return types of pointers to functions
 From: Andy Whitcroft <apw@shadowen.org>
 
-Improve type matcher debug so we can see what it does match.  As part
-of this move us to to using the common debug framework.
+Make sure we correctly mark the return type of the pointer to a function
+declaration.
+
+    const void *(*sb_tag)(struct sysfs_tag_info *info);
 
 Signed-off-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+ scripts/checkpatch.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-improve-type-matcher-debug scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-improve-type-matcher-debug
+diff -puN scripts/checkpatch.pl~checkpatch-handle-return-types-of-pointers-to-functions scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-handle-return-types-of-pointers-to-functions
 +++ a/scripts/checkpatch.pl
-@@ -17,7 +17,6 @@ my $quiet = 0;
- my $tree = 1;
- my $chk_signoff = 1;
- my $chk_patch = 1;
--my $tst_type = 0;
- my $tst_only;
- my $emacs = 0;
- my $terse = 0;
-@@ -44,7 +43,6 @@ GetOptions(
- 	'summary-file!'	=> \$summary_file,
+@@ -715,7 +715,7 @@ sub annotate_values {
+ 				$av_preprocessor = 0;
+ 			}
  
- 	'debug=s'	=> \%debug,
--	'test-type!'	=> \$tst_type,
- 	'test-only=s'	=> \$tst_only,
- ) or exit;
- 
-@@ -67,6 +65,7 @@ if ($#ARGV < 0) {
- 
- my $dbg_values = 0;
- my $dbg_possible = 0;
-+my $dbg_type = 0;
- for my $key (keys %debug) {
- 	eval "\${dbg_$key} = '$debug{$key}';"
- }
-@@ -1307,8 +1306,12 @@ sub process {
- 		if ($line=~/^[^\+]/) {next;}
- 
- # TEST: allow direct testing of the type matcher.
--		if ($tst_type && $line =~ /^.$Declare$/) {
--			ERROR("TEST: is type $Declare\n" . $herecurr);
-+		if ($dbg_type) {
-+			if ($line =~ /^.\s*$Declare\s*$/) {
-+				ERROR("TEST: is type\n" . $herecurr);
-+			} elsif ($dbg_type > 1 && $line =~ /^.+($Declare)/) {
-+				ERROR("TEST: is not type ($1 is)\n". $herecurr);
-+			}
- 			next;
- 		}
+-		} elsif ($cur =~ /^($Type)\s*(?:$Ident|,|\))/) {
++		} elsif ($cur =~ /^($Type)\s*(?:$Ident|,|\)|\()/) {
+ 			print "DECLARE($1)\n" if ($dbg_values > 1);
+ 			$type = 'T';
  
 _
 
