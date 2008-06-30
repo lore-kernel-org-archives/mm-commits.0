@@ -1,137 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: - coredump-simplify-core_state-nr_threads-calculation.patch removed from -mm tree
-Date: Mon, 30 Jun 2008 16:39:56 -0700
-Message-ID: <200806302339.m5UNduVj031439@imap1.linux-foundation.org>
+Subject: + migrate_timers-add-comment-use-spinlock_irq.patch added to -mm tree
+Date: Mon, 30 Jun 2008 16:40:54 -0700
+Message-ID: <200806302340.m5UNesax031477@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48894 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59007 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753121AbYF3XkP (ORCPT
+	by vger.kernel.org with ESMTP id S1754637AbYF3Xma (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jun 2008 19:40:15 -0400
+	Mon, 30 Jun 2008 19:42:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, roland@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: oleg@tv-sign.ru, mingo@elte.hu, srostedt@redhat.com, tglx@linutronix.de
 
 
 The patch titled
-     coredump: simplify core_state->nr_threads calculation
-has been removed from the -mm tree.  Its filename was
-     coredump-simplify-core_state-nr_threads-calculation.patch
+     migrate_timers: add comment, use spinlock_irq()
+has been added to the -mm tree.  Its filename is
+     migrate_timers-add-comment-use-spinlock_irq.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: coredump: simplify core_state->nr_threads calculation
+Subject: migrate_timers: add comment, use spinlock_irq()
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Change zap_process() to return int instead of incrementing
-mm->core_state->nr_threads directly. Change zap_threads() to set
-mm->core_state only on success.
+Add the comment to explain why the double lock in migrate_timers()
+can't deadlock.
 
-This patch restores the original size of .text, and more importantly now
-->nr_threads is used in two places only.
+Change the code to use spinlock_irq() instead of local_irq_disable()
++ spin_lock().
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Roland McGrath <roland@redhat.com>
+Acked-by: Steven Rostedt <srostedt@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |   33 ++++++++++++++++-----------------
- 1 file changed, 16 insertions(+), 17 deletions(-)
+ kernel/hrtimer.c |   11 ++++++-----
+ kernel/timer.c   |   11 ++++++-----
+ 2 files changed, 12 insertions(+), 10 deletions(-)
 
-diff -puN fs/exec.c~coredump-simplify-core_state-nr_threads-calculation fs/exec.c
---- a/fs/exec.c~coredump-simplify-core_state-nr_threads-calculation
-+++ a/fs/exec.c
-@@ -1504,9 +1504,10 @@ out:
- 	return ispipe;
- }
+diff -puN kernel/hrtimer.c~migrate_timers-add-comment-use-spinlock_irq kernel/hrtimer.c
+--- a/kernel/hrtimer.c~migrate_timers-add-comment-use-spinlock_irq
++++ a/kernel/hrtimer.c
+@@ -1612,9 +1612,11 @@ static void migrate_hrtimers(int cpu)
+ 	new_base = &get_cpu_var(hrtimer_bases);
  
--static void zap_process(struct task_struct *start)
-+static int zap_process(struct task_struct *start)
- {
- 	struct task_struct *t;
-+	int nr = 0;
- 
- 	start->signal->flags = SIGNAL_GROUP_EXIT;
- 	start->signal->group_stop_count = 0;
-@@ -1514,31 +1515,32 @@ static void zap_process(struct task_stru
- 	t = start;
- 	do {
- 		if (t != current && t->mm) {
--			t->mm->core_state->nr_threads++;
- 			sigaddset(&t->pending.signal, SIGKILL);
- 			signal_wake_up(t, 1);
-+			nr++;
- 		}
- 	} while_each_thread(start, t);
-+
-+	return nr;
- }
- 
- static inline int zap_threads(struct task_struct *tsk, struct mm_struct *mm,
--				int exit_code)
-+				struct core_state *core_state, int exit_code)
- {
- 	struct task_struct *g, *p;
- 	unsigned long flags;
--	int err = -EAGAIN;
-+	int nr = -EAGAIN;
- 
- 	spin_lock_irq(&tsk->sighand->siglock);
- 	if (!signal_group_exit(tsk->signal)) {
- 		tsk->signal->group_exit_code = exit_code;
--		zap_process(tsk);
--		err = 0;
-+		nr = zap_process(tsk);
- 	}
- 	spin_unlock_irq(&tsk->sighand->siglock);
--	if (err)
--		return err;
-+	if (unlikely(nr < 0))
-+		return nr;
- 
--	if (atomic_read(&mm->mm_users) == mm->core_state->nr_threads + 1)
-+	if (atomic_read(&mm->mm_users) == nr + 1)
- 		goto done;
- 	/*
- 	 * We should find and kill all tasks which use this mm, and we should
-@@ -1581,7 +1583,7 @@ static inline int zap_threads(struct tas
- 			if (p->mm) {
- 				if (unlikely(p->mm == mm)) {
- 					lock_task_sighand(p, &flags);
--					zap_process(p);
-+					nr += zap_process(p);
- 					unlock_task_sighand(p, &flags);
- 				}
- 				break;
-@@ -1590,7 +1592,9 @@ static inline int zap_threads(struct tas
- 	}
- 	rcu_read_unlock();
- done:
--	return mm->core_state->nr_threads;
-+	core_state->nr_threads = nr;
-+	mm->core_state = core_state;
-+	return nr;
- }
- 
- static int coredump_wait(int exit_code)
-@@ -1603,12 +1607,7 @@ static int coredump_wait(int exit_code)
- 
- 	init_completion(&mm->core_done);
- 	init_completion(&core_state.startup);
--	core_state.nr_threads = 0;
--	mm->core_state = &core_state;
+ 	tick_cancel_sched_timer(cpu);
 -
--	core_waiters = zap_threads(tsk, mm, exit_code);
--	if (core_waiters < 0)
--		mm->core_state = NULL;
-+	core_waiters = zap_threads(tsk, mm, &core_state, exit_code);
- 	up_write(&mm->mmap_sem);
+-	local_irq_disable();
+-	spin_lock(&new_base->lock);
++	/*
++	 * The caller is globally serialized and nobody else
++	 * takes two locks at once, deadlock is not possible.
++	 */
++	spin_lock_irq(&new_base->lock);
+ 	spin_lock_nested(&old_base->lock, SINGLE_DEPTH_NESTING);
  
- 	if (unlikely(core_waiters < 0))
+ 	for (i = 0; i < HRTIMER_MAX_CLOCK_BASES; i++) {
+@@ -1623,8 +1625,7 @@ static void migrate_hrtimers(int cpu)
+ 	}
+ 
+ 	spin_unlock(&old_base->lock);
+-	spin_unlock(&new_base->lock);
+-	local_irq_enable();
++	spin_unlock_irq(&new_base->lock);
+ 	put_cpu_var(hrtimer_bases);
+ }
+ #endif /* CONFIG_HOTPLUG_CPU */
+diff -puN kernel/timer.c~migrate_timers-add-comment-use-spinlock_irq kernel/timer.c
+--- a/kernel/timer.c~migrate_timers-add-comment-use-spinlock_irq
++++ a/kernel/timer.c
+@@ -1435,9 +1435,11 @@ static void __cpuinit migrate_timers(int
+ 	BUG_ON(cpu_online(cpu));
+ 	old_base = per_cpu(tvec_bases, cpu);
+ 	new_base = get_cpu_var(tvec_bases);
+-
+-	local_irq_disable();
+-	spin_lock(&new_base->lock);
++	/*
++	 * The caller is globally serialized and nobody else
++	 * takes two locks at once, deadlock is not possible.
++	 */
++	spin_lock_irq(&new_base->lock);
+ 	spin_lock_nested(&old_base->lock, SINGLE_DEPTH_NESTING);
+ 
+ 	BUG_ON(old_base->running_timer);
+@@ -1452,8 +1454,7 @@ static void __cpuinit migrate_timers(int
+ 	}
+ 
+ 	spin_unlock(&old_base->lock);
+-	spin_unlock(&new_base->lock);
+-	local_irq_enable();
++	spin_unlock_irq(&new_base->lock);
+ 	put_cpu_var(tvec_bases);
+ }
+ #endif /* CONFIG_HOTPLUG_CPU */
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
@@ -156,10 +134,9 @@ introduce-pf_kthread-flag.patch
 kill-pf_borrowed_mm-in-favour-of-pf_kthread.patch
 coredump-zap_threads-must-skip-kernel-threads.patch
 coredump-elf_core_dump-skip-kernel-threads.patch
-coredump-simplify-core_state-nr_threads-calculation.patch
-coredump-turn-core_state-nr_threads-into-atomic_t.patch
 pidns-remove-now-unused-kill_proc-function.patch
 pidns-remove-now-unused-find_pid-function.patch
 pidns-remove-find_task_by_pid-unused-for-a-long-time.patch
 distinct-tgid-tid-i-o-statistics.patch
+migrate_timers-add-comment-use-spinlock_irq.patch
 
