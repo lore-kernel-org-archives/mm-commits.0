@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-return-is-not-a-function-parentheses-for-casts-are-ok-too.patch added to -mm tree
-Date: Mon, 30 Jun 2008 15:19:00 -0700
-Message-ID: <200806302219.m5UMJ0LN028474@imap1.linux-foundation.org>
+Subject: + checkpatch-version-020.patch added to -mm tree
+Date: Mon, 30 Jun 2008 15:18:58 -0700
+Message-ID: <200806302218.m5UMIwAS028471@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36948 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50720 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932181AbYF3WTJ (ORCPT
+	by vger.kernel.org with ESMTP id S932283AbYF3WTI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jun 2008 18:19:09 -0400
+	Mon, 30 Jun 2008 18:19:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: apw@shadowen.org
 
 
 The patch titled
-     checkpatch: return is not a function -- parentheses for casts are ok too
+     checkpatch: Version: 0.20
 has been added to the -mm tree.  Its filename is
-     checkpatch-return-is-not-a-function-parentheses-for-casts-are-ok-too.patch
+     checkpatch-version-020.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,27 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: return is not a function -- parentheses for casts are ok too
+Subject: checkpatch: Version: 0.20
 From: Andy Whitcroft <apw@shadowen.org>
-
-Casts require parentheses so it is possible to have something like this:
-
-	return (int)(*a);
-
-This miss trips the complexity function.  Ensure that the two separate
-parenthesised sections are not coelesced.
 
 Signed-off-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    1 +
- 1 file changed, 1 insertion(+)
+ scripts/checkpatch.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-return-is-not-a-function-parentheses-for-casts-are-ok-too scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-return-is-not-a-function-parentheses-for-casts-are-ok-too
+diff -puN scripts/checkpatch.pl~checkpatch-version-020 scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-version-020
 +++ a/scripts/checkpatch.pl
-@@ -1670,6 +1670,7 @@ sub process {
- 			my $value = $2;
+@@ -9,7 +9,7 @@ use strict;
+ my $P = $0;
+ $P =~ s@.*/@@g;
  
- 			# Flatten any parentheses and braces
-+			$value =~ s/\)\(/\) \(/g;
- 			while ($value =~ s/\([^\(\)]*\)/1/) {
- 			}
+-my $V = '0.19';
++my $V = '0.20';
+ 
+ use Getopt::Long qw(:config no_auto_abbrev);
  
 _
 
