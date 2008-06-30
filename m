@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-allow-printk-strings-to-exceed-80-characters-to-maintain-their-searchability.patch added to -mm tree
-Date: Mon, 30 Jun 2008 15:19:38 -0700
-Message-ID: <200806302219.m5UMJcaU028570@imap1.linux-foundation.org>
+Subject: + checkpatch-trailing-statement-indent-fix-end-of-statement-location.patch added to -mm tree
+Date: Mon, 30 Jun 2008 15:19:36 -0700
+Message-ID: <200806302219.m5UMJaLG028567@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47244 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45635 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933625AbYF3WTr (ORCPT
+	by vger.kernel.org with ESMTP id S933746AbYF3WTo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jun 2008 18:19:47 -0400
+	Mon, 30 Jun 2008 18:19:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: apw@shadowen.org
 
 
 The patch titled
-     checkpatch: allow printk strings to exceed 80 characters to maintain their searchability
+     checkpatch: trailing statement indent: fix end of statement location
 has been added to the -mm tree.  Its filename is
-     checkpatch-allow-printk-strings-to-exceed-80-characters-to-maintain-their-searchability.patch
+     checkpatch-trailing-statement-indent-fix-end-of-statement-location.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,52 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: allow printk strings to exceed 80 characters to maintain their searchability
+Subject: checkpatch: trailing statement indent: fix end of statement location
 From: Andy Whitcroft <apw@shadowen.org>
 
-Allow printk strings to break the 80 character width limits, thus keeping
-them complete and searchable.
+Fix end of statement location.  Where the last line of the statement is
+replaced we are miss reporting the newly added replacement an incorrectly
+indented trailing statement for the negative context.  We are also
+incorrectly reporting negative statements generally.
 
 Signed-off-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ scripts/checkpatch.pl |   15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-allow-printk-strings-to-exceed-80-characters-to-maintain-their-searchability scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-allow-printk-strings-to-exceed-80-characters-to-maintain-their-searchability
+diff -puN scripts/checkpatch.pl~checkpatch-trailing-statement-indent-fix-end-of-statement-location scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-trailing-statement-indent-fix-end-of-statement-location
 +++ a/scripts/checkpatch.pl
-@@ -1138,7 +1138,9 @@ sub process {
- 		}
- #80 column limit
- 		if ($line =~ /^\+/ && $prevrawline !~ /\/\*\*/ &&
--		    $rawline !~ /^.\s*\*\s*\@$Ident\s/ && $length > 80)
-+		    $rawline !~ /^.\s*\*\s*\@$Ident\s/ &&
-+		    $line !~ /^\+\s*printk\s*\(\s*(?:KERN_\S+\s*)?"[X\t]*"\s*(?:,|\)\s*;)\s*$/ &&
-+		    $length > 80)
- 		{
- 			WARN("line over 80 characters\n" . $herecurr);
- 		}
+@@ -1249,17 +1249,22 @@ sub process {
+ 			my $pre_ctx = "$1$2";
+ 
+ 			my ($level, @ctx) = ctx_statement_level($linenr, $realcnt, 0);
+-			my $ctx_ln = $linenr + $#ctx + 1;
+ 			my $ctx_cnt = $realcnt - $#ctx - 1;
+ 			my $ctx = join("\n", @ctx);
+ 
+-			##warn "realcnt<$realcnt> ctx_cnt<$ctx_cnt>\n";
++			my $ctx_ln = $linenr;
++			my $ctx_skip = $realcnt;
+ 
+-			# Skip over any removed lines in the context following statement.
+-			while (defined($lines[$ctx_ln - 1]) && $lines[$ctx_ln - 1] =~ /^-/) {
++			while ($ctx_skip > $ctx_cnt || ($ctx_skip == $ctx_cnt &&
++					defined $lines[$ctx_ln - 1] &&
++					$lines[$ctx_ln - 1] =~ /^-/)) {
++				##print "SKIP<$ctx_skip> CNT<$ctx_cnt>\n";
++				$ctx_skip-- if (!defined $lines[$ctx_ln - 1] || $lines[$ctx_ln - 1] !~ /^-/);
+ 				$ctx_ln++;
+ 			}
+-			##warn "pre<$pre_ctx>\nline<$line>\nctx<$ctx>\nnext<$lines[$ctx_ln - 1]>\n";
++
++			##print "realcnt<$realcnt> ctx_cnt<$ctx_cnt>\n";
++			##print "pre<$pre_ctx>\nline<$line>\nctx<$ctx>\nnext<$lines[$ctx_ln - 1]>\n";
+ 
+ 			if ($ctx !~ /{\s*/ && defined($lines[$ctx_ln -1]) && $lines[$ctx_ln - 1] =~ /^\+\s*{/) {
+ 				ERROR("that open brace { should be on the previous line\n" .
 _
 
 Patches currently in -mm which might be from apw@shadowen.org are
