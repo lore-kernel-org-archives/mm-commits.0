@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-types-unary-goto-introduces-unary-context.patch added to -mm tree
-Date: Mon, 30 Jun 2008 15:19:11 -0700
-Message-ID: <200806302219.m5UMJWCL028561@imap1.linux-foundation.org>
+Subject: + checkpatch-macros-fix-statement-counting-block-end-detection.patch added to -mm tree
+Date: Mon, 30 Jun 2008 15:19:34 -0700
+Message-ID: <200806302219.m5UMJYaq028564@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34925 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55607 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933404AbYF3WTl (ORCPT
+	by vger.kernel.org with ESMTP id S933646AbYF3WTm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jun 2008 18:19:41 -0400
+	Mon, 30 Jun 2008 18:19:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: apw@shadowen.org
 
 
 The patch titled
-     checkpatch: types: unary -- goto introduces unary context
+     checkpatch: macros: fix statement counting block end detection
 has been added to the -mm tree.  Its filename is
-     checkpatch-types-unary-goto-introduces-unary-context.patch
+     checkpatch-macros-fix-statement-counting-block-end-detection.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,80 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: types: unary -- goto introduces unary context
+Subject: checkpatch: macros: fix statement counting block end detection
 From: Andy Whitcroft <apw@shadowen.org>
 
-When we see a goto we enter unary context.  For example:
-
-	goto *h;
+We are incorrectly counting the lines in a block while accumulating
+the trailing lines in a macro statement, leading to false positives.
+Fix end of block handling and general counting for negative context lines.
 
 Signed-off-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/checkpatch.pl |   23 +++++++++++------------
+ 1 file changed, 11 insertions(+), 12 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-types-unary-goto-introduces-unary-context scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-types-unary-goto-introduces-unary-context
+diff -puN scripts/checkpatch.pl~checkpatch-macros-fix-statement-counting-block-end-detection scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-macros-fix-statement-counting-block-end-detection
 +++ a/scripts/checkpatch.pl
-@@ -780,7 +780,7 @@ sub annotate_values {
- 			$av_pending = 'N';
- 			$type = 'N';
+@@ -470,7 +470,9 @@ sub ctx_statement_block {
+ 		}
+ 		$off++;
+ 	}
++	# We are truly at the end, so shuffle to the next line.
+ 	if ($off == $len) {
++		$loff = $len + 1;
+ 		$line++;
+ 		$remain--;
+ 	}
+@@ -1793,30 +1795,26 @@ sub process {
+ 				$lines[$ln - 1] =~ /^(?:-|..*\\$)/)
+ 			{
+ 				$ctx .= $rawlines[$ln - 1] . "\n";
++				$cnt-- if ($lines[$ln - 1] !~ /^-/);
+ 				$ln++;
+-				$cnt--;
+ 			}
+ 			$ctx .= $rawlines[$ln - 1];
  
--		} elsif ($cur =~/^(return|case|else)/o) {
-+		} elsif ($cur =~/^(return|case|else|goto)/o) {
- 			print "KEYWORD($1)\n" if ($dbg_values > 1);
- 			$type = 'N';
+ 			($dstat, $dcond, $ln, $cnt, $off) =
+ 				ctx_statement_block($linenr, $ln - $linenr + 1, 0);
+ 			#print "dstat<$dstat> dcond<$dcond> cnt<$cnt> off<$off>\n";
+-			#print "LINE<$lines[$ln]> len<" . length($lines[$ln]) . "\n";
++			#print "LINE<$lines[$ln-1]> len<" . length($lines[$ln-1]) . "\n";
  
+ 			# Extract the remainder of the define (if any) and
+ 			# rip off surrounding spaces, and trailing \'s.
+ 			$rest = '';
+-			if (defined $lines[$ln - 1] &&
+-			    $off > length($lines[$ln - 1]))
+-			{
+-				$ln++;
+-				$cnt--;
+-				$off = 0;
+-			}
+-			while ($cnt > 0) {
+-				$rest .= substr($lines[$ln - 1], $off) . "\n";
++			while ($off != 0 || ($cnt > 0 && $rest =~ /(?:^|\\)\s*$/)) {
++				#print "ADDING $off <" . substr($lines[$ln - 1], $off) . ">\n";
++				if ($off != 0 || $lines[$ln - 1] !~ /^-/) {
++					$rest .= substr($lines[$ln - 1], $off) . "\n";
++					$cnt--;
++				}
+ 				$ln++;
+-				$cnt--;
+ 				$off = 0;
+ 			}
+ 			$rest =~ s/\\\n.//g;
+@@ -1847,6 +1845,7 @@ sub process {
+ 				DEFINE_PER_CPU|
+ 				__typeof__\(
+ 			}x;
++			#print "REST<$rest>\n";
+ 			if ($rest ne '') {
+ 				if ($rest !~ /while\s*\(/ &&
+ 				    $dstat !~ /$exceptions/)
 _
 
 Patches currently in -mm which might be from apw@shadowen.org are
