@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ptrace-never-sleep-in-task_traced-if-sigkilled.patch added to -mm tree
-Date: Mon, 30 Jun 2008 16:27:05 -0700
-Message-ID: <200806302327.m5UNR57B030956@imap1.linux-foundation.org>
+Subject: + coredump-elf_core_dump-skip-kernel-threads.patch added to -mm tree
+Date: Mon, 30 Jun 2008 16:28:58 -0700
+Message-ID: <200806302328.m5UNSwwt031010@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59403 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46405 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753416AbYF3X2V (ORCPT
+	by vger.kernel.org with ESMTP id S1752612AbYF3X31 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jun 2008 19:28:21 -0400
+	Mon, 30 Jun 2008 19:29:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, matthew@wil.cx, mingo@elte.hu, roland@redhat.com
+Cc: oleg@tv-sign.ru, roland@redhat.com
 
 
 The patch titled
-     ptrace: never sleep in TASK_TRACED if SIGKILL'ed
+     coredump: elf_core_dump: skip kernel threads
 has been added to the -mm tree.  Its filename is
-     ptrace-never-sleep-in-task_traced-if-sigkilled.patch
+     coredump-elf_core_dump-skip-kernel-threads.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,96 +34,63 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ptrace: never sleep in TASK_TRACED if SIGKILL'ed
+Subject: coredump: elf_core_dump: skip kernel threads
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Change ptrace_stop() to check if the task was killed unconditionally and
-simplify the "if (killed)" case - we can just return. Note that SIGKILL
-can be already dequeued if ptrace_stop() is called from do_exit(), that
-is why we use signal_group_exit().
+linux_binfmt->core_dump() runs before the process does exit_aio(), this
+means that we can hit the kernel thread which shares the same ->mm. 
+Afaics, nothing really bad can happen, but perhaps it makes sense to fix
+this minor bug.
 
-The current behaviour is somewhat unpredictable. If we enter ptrace_stop()
-with the pending SIGKILL the result depends on arch_ptrace_stop_needed()
-and if it is true it also depends on was this signal private or group-wide
-if the caller is do_exit().
-
-With this patch we never sleep in TASK_TRACED with the pending SIGKILL.
-This looks very logical, because only SIGKILL can wake up TASK_TRACED
-task, and the second SIGKILL (in general) has no effect.
-
-Note: If the tracee was killed because another thread execs, we are not going
-to sleep anyway. If this is not desirable, we can check SIGNAL_GROUP_EXIT
-instead. But again, the current behaviour is not very predictable.
+It is sad we have to iterate over all threads in system and use
+GFP_ATOMIC.  Hopefully we can kill theses ugly do_each_thread()s, but this
+needs some nontrivial changes in mm_struct and do_coredump.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Matthew Wilcox <matthew@wil.cx>
 Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |   22 ++++------------------
- 1 file changed, 4 insertions(+), 18 deletions(-)
+ fs/binfmt_elf.c       |    6 ++++++
+ fs/binfmt_elf_fdpic.c |    3 +++
+ 2 files changed, 9 insertions(+)
 
-diff -puN kernel/signal.c~ptrace-never-sleep-in-task_traced-if-sigkilled kernel/signal.c
---- a/kernel/signal.c~ptrace-never-sleep-in-task_traced-if-sigkilled
-+++ a/kernel/signal.c
-@@ -1491,17 +1491,6 @@ static inline int may_ptrace_stop(void)
- }
- 
- /*
-- * Return nonzero if there is a SIGKILL that should be waking us up.
-- * Called with the siglock held.
-- */
--static int sigkill_pending(struct task_struct *tsk)
--{
--	return ((sigismember(&tsk->pending.signal, SIGKILL) ||
--		 sigismember(&tsk->signal->shared_pending.signal, SIGKILL)) &&
--		!unlikely(sigismember(&tsk->blocked, SIGKILL)));
--}
--
--/*
-  * This must be called with current->sighand->siglock held.
-  *
-  * This should be the path for all ptrace stops.
-@@ -1514,8 +1503,6 @@ static int sigkill_pending(struct task_s
-  */
- static void ptrace_stop(int exit_code, int clear_code, siginfo_t *info)
- {
--	int killed = 0;
--
- 	if (arch_ptrace_stop_needed(exit_code, info)) {
- 		/*
- 		 * The arch code has something special to do before a
-@@ -1524,16 +1511,15 @@ static void ptrace_stop(int exit_code, i
- 		 * calling arch_ptrace_stop, so we must release it now.
- 		 * To preserve proper semantics, we must do this before
- 		 * any signal bookkeeping like checking group_stop_count.
--		 * Meanwhile, a SIGKILL could come in before we retake the
--		 * siglock.  That must prevent us from sleeping in TASK_TRACED.
--		 * So after regaining the lock, we must check for SIGKILL.
- 		 */
- 		spin_unlock_irq(&current->sighand->siglock);
- 		arch_ptrace_stop(exit_code, info);
- 		spin_lock_irq(&current->sighand->siglock);
--		killed = sigkill_pending(current);
- 	}
- 
-+	if (unlikely(signal_group_exit(current->signal)))
-+		return;
+diff -puN fs/binfmt_elf.c~coredump-elf_core_dump-skip-kernel-threads fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~coredump-elf_core_dump-skip-kernel-threads
++++ a/fs/binfmt_elf.c
+@@ -1520,6 +1520,9 @@ static int fill_note_info(struct elfhdr 
+ 	rcu_read_lock();
+ 	do_each_thread(g, p)
+ 		if (p->mm == dump_task->mm) {
++			if (p->flags & PF_KTHREAD)
++				continue;
 +
- 	/*
- 	 * If there is a group stop in progress,
- 	 * we must participate in the bookkeeping.
-@@ -1548,7 +1534,7 @@ static void ptrace_stop(int exit_code, i
- 	__set_current_state(TASK_TRACED);
- 	spin_unlock_irq(&current->sighand->siglock);
- 	read_lock(&tasklist_lock);
--	if (!unlikely(killed) && may_ptrace_stop()) {
-+	if (may_ptrace_stop()) {
- 		do_notify_parent_cldstop(current, CLD_TRAPPED);
- 		read_unlock(&tasklist_lock);
- 		schedule();
+ 			t = kzalloc(offsetof(struct elf_thread_core_info,
+ 					     notes[info->thread_notes]),
+ 				    GFP_ATOMIC);
+@@ -1724,6 +1727,9 @@ static int fill_note_info(struct elfhdr 
+ 		rcu_read_lock();
+ 		do_each_thread(g, p)
+ 			if (current->mm == p->mm && current != p) {
++				if (p->flags & PF_KTHREAD)
++					continue;
++
+ 				ets = kzalloc(sizeof(*ets), GFP_ATOMIC);
+ 				if (!ets) {
+ 					rcu_read_unlock();
+diff -puN fs/binfmt_elf_fdpic.c~coredump-elf_core_dump-skip-kernel-threads fs/binfmt_elf_fdpic.c
+--- a/fs/binfmt_elf_fdpic.c~coredump-elf_core_dump-skip-kernel-threads
++++ a/fs/binfmt_elf_fdpic.c
+@@ -1631,6 +1631,9 @@ static int elf_fdpic_core_dump(long sign
+ 		rcu_read_lock();
+ 		do_each_thread(g,p)
+ 			if (current->mm == p->mm && current != p) {
++				if (p->flags & PF_KTHREAD)
++					continue;
++
+ 				tmp = kzalloc(sizeof(*tmp), GFP_ATOMIC);
+ 				if (!tmp) {
+ 					rcu_read_unlock();
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
@@ -132,6 +99,7 @@ get_user_pages-fix-possible-page-leak-on-oom.patch
 introduce-pf_kthread-flag.patch
 kill-pf_borrowed_mm-in-favour-of-pf_kthread.patch
 coredump-zap_threads-must-skip-kernel-threads.patch
+coredump-elf_core_dump-skip-kernel-threads.patch
 posix-timers-timer_delete-remove-the-bogus-it_process-=-null-check.patch
 posix-timers-release_posix_timer-kill-the-bogus-put_task_struct-it_process.patch
 signals-collect_signal-remove-the-unneeded-sigismember-check.patch
