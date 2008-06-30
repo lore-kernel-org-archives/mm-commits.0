@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + char-mxser-add-cp-102uf-support.patch added to -mm tree
-Date: Mon, 30 Jun 2008 14:21:44 -0700
-Message-ID: <200806302121.m5ULLi31025997@imap1.linux-foundation.org>
+Subject: + char-mxser-various-cleanups.patch added to -mm tree
+Date: Mon, 30 Jun 2008 14:21:52 -0700
+Message-ID: <200806302121.m5ULLr15026015@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33347 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51396 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762191AbYF3VWa (ORCPT
+	by vger.kernel.org with ESMTP id S1761481AbYF3VW3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jun 2008 17:22:30 -0400
+	Mon, 30 Jun 2008 17:22:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jirislaby@gmail.com, alan@redhat.com
 
 
 The patch titled
-     Char: mxser, add CP-102UF support
+     Char: mxser, various cleanups
 has been added to the -mm tree.  Its filename is
-     char-mxser-add-cp-102uf-support.patch
+     char-mxser-various-cleanups.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,72 +34,104 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Char: mxser, add CP-102UF support
+Subject: Char: mxser, various cleanups
 From: Jiri Slaby <jirislaby@gmail.com>
 
-Add support for CP-102UF moxa card (update to 1.12 original driver) and
-increment this driver version.
+- remove unused macro
+- some whitespace cleanup
+- useless debug prints removal
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Acked-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mxser.c |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ drivers/char/mxser.c |   24 ++++--------------------
+ 1 file changed, 4 insertions(+), 20 deletions(-)
 
-diff -puN drivers/char/mxser.c~char-mxser-add-cp-102uf-support drivers/char/mxser.c
---- a/drivers/char/mxser.c~char-mxser-add-cp-102uf-support
+diff -puN drivers/char/mxser.c~char-mxser-various-cleanups drivers/char/mxser.c
+--- a/drivers/char/mxser.c~char-mxser-various-cleanups
 +++ a/drivers/char/mxser.c
-@@ -46,7 +46,7 @@
+@@ -48,7 +48,6 @@
  
- #include "mxser.h"
- 
--#define	MXSER_VERSION	"2.0.3"		/* 1.11 */
-+#define	MXSER_VERSION	"2.0.4"		/* 1.12 */
+ #define	MXSER_VERSION	"2.0.4"		/* 1.12 */
  #define	MXSERMAJOR	 174
- #define	MXSERCUMAJOR	 175
+-#define	MXSERCUMAJOR	 175
  
-@@ -72,10 +72,11 @@
- 
- #define PCI_DEVICE_ID_CB108	0x1080
- #define PCI_DEVICE_ID_CB114	0x1142
--#define PCI_DEVICE_ID_CP114UL	0x1143
- #define PCI_DEVICE_ID_CB134I	0x1341
--#define PCI_DEVICE_ID_CP138U	0x1380
-+#define PCI_DEVICE_ID_CP102UF	0x1023
- #define PCI_DEVICE_ID_POS104UL	0x1044
-+#define PCI_DEVICE_ID_CP114UL	0x1143
-+#define PCI_DEVICE_ID_CP138U	0x1380
- 
- 
- #define C168_ASIC_ID    1
-@@ -141,7 +142,8 @@ static const struct mxser_cardinfo mxser
- 	{ "CB-134I series",	4, },
- 	{ "CP-138U series",	8, },
- 	{ "POS-104UL series",	4, },
--	{ "CP-114UL series",	4, }
-+	{ "CP-114UL series",	4, },
-+/*30*/	{ "CP-102UF series",	2, },
+ #define MXSER_BOARDS		4	/* Max. boards */
+ #define MXSER_PORTS_PER_BOARD	8	/* Max. ports per board */
+@@ -191,7 +190,6 @@ struct mxser_log {
+ 	unsigned long txcnt[MXSER_PORTS];
  };
  
- /* driver_data correspond to the lines in the structure above
-@@ -171,6 +173,7 @@ static struct pci_device_id mxser_pcibrd
- 	{ PCI_VDEVICE(MOXA, PCI_DEVICE_ID_CP138U),	.driver_data = 27 },
- 	{ PCI_VDEVICE(MOXA, PCI_DEVICE_ID_POS104UL),	.driver_data = 28 },
- 	{ PCI_VDEVICE(MOXA, PCI_DEVICE_ID_CP114UL),	.driver_data = 29 },
-+	{ PCI_VDEVICE(MOXA, PCI_DEVICE_ID_CP102UF),	.driver_data = 30 },
- 	{ }
- };
- MODULE_DEVICE_TABLE(pci, mxser_pcibrds);
-@@ -1418,7 +1421,6 @@ static int mxser_set_serial_info(struct 
- 		info->closing_wait = new_serial.closing_wait * HZ / 100;
- 		info->tty->low_latency =
- 				(info->flags & ASYNC_LOW_LATENCY) ? 1 : 0;
--		info->tty->low_latency = 0;
- 		if ((info->flags & ASYNC_SPD_MASK) == ASYNC_SPD_CUST &&
- 				(new_serial.baud_base != info->baud_base ||
- 				new_serial.custom_divisor !=
+-
+ struct mxser_mon {
+ 	unsigned long rxcnt;
+ 	unsigned long txcnt;
+@@ -1314,13 +1312,9 @@ static void mxser_flush_chars(struct tty
+ 	struct mxser_port *info = tty->driver_data;
+ 	unsigned long flags;
+ 
+-	if (info->xmit_cnt <= 0 ||
+-			tty->stopped ||
+-			!info->xmit_buf ||
+-			(tty->hw_stopped &&
+-			 (info->type != PORT_16550A) &&
+-			 (!info->board->chip_flag)
+-			))
++	if (info->xmit_cnt <= 0 || tty->stopped || !info->xmit_buf ||
++			(tty->hw_stopped && info->type != PORT_16550A &&
++			 !info->board->chip_flag))
+ 		return;
+ 
+ 	spin_lock_irqsave(&info->slock, flags);
+@@ -1338,9 +1332,7 @@ static int mxser_write_room(struct tty_s
+ 	int ret;
+ 
+ 	ret = SERIAL_XMIT_SIZE - info->xmit_cnt - 1;
+-	if (ret < 0)
+-		ret = 0;
+-	return ret;
++	return ret < 0 ? 0 : ret;
+ }
+ 
+ static int mxser_chars_in_buffer(struct tty_struct *tty)
+@@ -2771,8 +2763,6 @@ static int __init mxser_module_init(void
+ 	unsigned int b, i, m;
+ 	int retval;
+ 
+-	pr_debug("Loading module mxser ...\n");
+-
+ 	mxvar_sdriver = alloc_tty_driver(MXSER_PORTS + 1);
+ 	if (!mxvar_sdriver)
+ 		return -ENOMEM;
+@@ -2838,8 +2828,6 @@ static int __init mxser_module_init(void
+ 		} /* else: we have some ISA cards under control */
+ 	}
+ 
+-	pr_debug("Done.\n");
+-
+ 	return 0;
+ err_unr:
+ 	tty_unregister_driver(mxvar_sdriver);
+@@ -2852,8 +2840,6 @@ static void __exit mxser_module_exit(voi
+ {
+ 	unsigned int i, j;
+ 
+-	pr_debug("Unloading module mxser ...\n");
+-
+ 	pci_unregister_driver(&mxser_driver);
+ 
+ 	for (i = 0; i < MXSER_BOARDS; i++) /* ISA remains */
+@@ -2867,8 +2853,6 @@ static void __exit mxser_module_exit(voi
+ 	for (i = 0; i < MXSER_BOARDS; i++)
+ 		if (mxser_boards[i].info != NULL)
+ 			mxser_release_res(&mxser_boards[i], NULL, 1);
+-
+-	pr_debug("Done.\n");
+ }
+ 
+ module_init(mxser_module_init);
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
