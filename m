@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + delay-accounting-maintainer-update.patch added to -mm tree
-Date: Mon, 30 Jun 2008 15:55:15 -0700
-Message-ID: <200806302255.m5UMtFSc029907@imap1.linux-foundation.org>
+Subject: + kallsyms-unify-32-and-64-bit-code.patch added to -mm tree
+Date: Mon, 30 Jun 2008 15:54:17 -0700
+Message-ID: <200806302254.m5UMsHuX029884@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54061 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41855 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933507AbYF3Wz5 (ORCPT
+	by vger.kernel.org with ESMTP id S1762391AbYF3W4Z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jun 2008 18:55:57 -0400
+	Mon, 30 Jun 2008 18:56:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: balbir@linux.vnet.ibm.com, nagar1234@in.ibm.com, nagar@watson.ibm.com
+Cc: vegard.nossum@gmail.com, arjan@infradead.org, heiko.carstens@de.ibm.com, randy.dunlap@oracle.com, sam@ravnborg.org
 
 
 The patch titled
-     delay accounting: maintainer update
+     kallsyms: unify 32- and 64-bit code
 has been added to the -mm tree.  Its filename is
-     delay-accounting-maintainer-update.patch
+     kallsyms-unify-32-and-64-bit-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,65 +34,71 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: delay accounting: maintainer update
-From: Balbir Singh <balbir@linux.vnet.ibm.com>
+Subject: kallsyms: unify 32- and 64-bit code
+From: Vegard Nossum <vegard.nossum@gmail.com>
 
-Update the delay accounting and taskstats maintainer to Balbir Singh.
-I spoke to Shailabh and he is now busy with other things.
+Use the %p format string which already accounts for the padding you need
+with a pointer type on a particular architecture.
 
-Cc: Shailabh Nagar <nagar1234@in.ibm.com>
-Cc: Shailabh Nagar <nagar@watson.ibm.com>
-Signed-off-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Also replace the macro with a static inline function to match the rest of
+the file.
+
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Arjan van de Ven <arjan@infradead.org>
+Signed-off-by: Vegard Nossum <vegard.nossum@gmail.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ include/linux/kallsyms.h |   19 ++++++-------------
+ 1 file changed, 6 insertions(+), 13 deletions(-)
 
-diff -puN MAINTAINERS~delay-accounting-maintainer-update MAINTAINERS
---- a/MAINTAINERS~delay-accounting-maintainer-update
-+++ a/MAINTAINERS
-@@ -3231,8 +3231,8 @@ L:	netdev@vger.kernel.org
- S:	Maintained
+diff -puN include/linux/kallsyms.h~kallsyms-unify-32-and-64-bit-code include/linux/kallsyms.h
+--- a/include/linux/kallsyms.h~kallsyms-unify-32-and-64-bit-code
++++ a/include/linux/kallsyms.h
+@@ -6,6 +6,7 @@
+ #define _LINUX_KALLSYMS_H
  
- PER-TASK DELAY ACCOUNTING
--P:	Shailabh Nagar
--M:	nagar@watson.ibm.com
-+P:	Balbir Singh
-+M:	balbir@linux.vnet.ibm.com
- L:	linux-kernel@vger.kernel.org
- S:	Maintained
+ #include <linux/errno.h>
++#include <linux/kernel.h>
+ #include <linux/stddef.h>
  
-@@ -3926,8 +3926,8 @@ M:	hch@infradead.org
- S:	Maintained
+ #define KSYM_NAME_LEN 128
+@@ -105,18 +106,10 @@ static inline void print_fn_descriptor_s
+ 	print_symbol(fmt, (unsigned long)addr);
+ }
  
- TASKSTATS STATISTICS INTERFACE
--P:	Shailabh Nagar
--M:	nagar@watson.ibm.com
-+P:	Balbir Singh
-+M:	balbir@linux.vnet.ibm.com
- L:	linux-kernel@vger.kernel.org
- S:	Maintained
+-#ifndef CONFIG_64BIT
+-#define print_ip_sym(ip)		\
+-do {					\
+-	printk("[<%08lx>]", ip);	\
+-	print_symbol(" %s\n", ip);	\
+-} while(0)
+-#else
+-#define print_ip_sym(ip)		\
+-do {					\
+-	printk("[<%016lx>]", ip);	\
+-	print_symbol(" %s\n", ip);	\
+-} while(0)
+-#endif
++static inline void print_ip_sym(unsigned long ip)
++{
++	printk("[<%p>]", (void *) ip);
++	print_symbol(" %s\n", ip);
++}
  
+ #endif /*_LINUX_KALLSYMS_H*/
 _
 
-Patches currently in -mm which might be from balbir@linux.vnet.ibm.com are
+Patches currently in -mm which might be from vegard.nossum@gmail.com are
 
-delay-accounting-maintainer-update.patch
-cgroup-use-read-lock-to-guard-find_existing_css_set.patch
-mark-res_counter_charge_locked-with-__must_check.patch
-memcg-make-global-var-read_mostly.patch
-memcg-avoid-unnecessary-initialization.patch
-memcg-remove-refcnt-from-page_cgroup-fix-memcg-fix-mem_cgroup_end_migration-race.patch
-memcg-clean-up-checking-of-the-disabled-flag.patch
-memrlimit-add-memrlimit-controller-documentation.patch
-memrlimit-setup-the-memrlimit-controller.patch
-memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
-memrlimit-add-memrlimit-controller-accounting-and-control.patch
-memrlimit-add-memrlimit-controller-accounting-and-control-fix.patch
-memrlimit-improve-error-handling.patch
-memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
-distinct-tgid-tid-i-o-statistics.patch
-per-task-delay-accounting-add-memory-reclaim-delay.patch
-per-task-delay-accounting-update-document-and-getdelaysc-for-memory-reclaim.patch
+arm-fix-header-guards.patch
+parisc-fix-incomplete-header-guard.patch
+mm-remove-initialization-of-static-per-cpu-variables.patch
+kallsyms-fix-potential-overflow-in-binary-search.patch
+kallsyms-unify-32-and-64-bit-code.patch
+quota-cleanup-loop-in-sync_dquots.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-fix.patch
+taskstats-remove-initialization-of-static-per-cpu-variable.patch
 
