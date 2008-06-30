@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kallsyms-unify-32-and-64-bit-code.patch added to -mm tree
-Date: Mon, 30 Jun 2008 15:54:17 -0700
-Message-ID: <200806302254.m5UMsHuX029884@imap1.linux-foundation.org>
+Subject: + doc-kernel-parameterstxt-fix-stale-references.patch added to -mm tree
+Date: Mon, 30 Jun 2008 16:03:18 -0700
+Message-ID: <200806302303.m5UN3IPR030139@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41855 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49031 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762391AbYF3W4Z (ORCPT
+	by vger.kernel.org with ESMTP id S1762884AbYF3XDc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jun 2008 18:56:25 -0400
+	Mon, 30 Jun 2008 19:03:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vegard.nossum@gmail.com, arjan@infradead.org, heiko.carstens@de.ibm.com, randy.dunlap@oracle.com, sam@ravnborg.org
+Cc: pavel@suse.cz, randy.dunlap@oracle.com
 
 
 The patch titled
-     kallsyms: unify 32- and 64-bit code
+     Doc*/kernel-parameters.txt: fix stale references
 has been added to the -mm tree.  Its filename is
-     kallsyms-unify-32-and-64-bit-code.patch
+     doc-kernel-parameterstxt-fix-stale-references.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,71 +34,56 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kallsyms: unify 32- and 64-bit code
-From: Vegard Nossum <vegard.nossum@gmail.com>
+Subject: Doc*/kernel-parameters.txt: fix stale references
+From: Pavel Machek <pavel@suse.cz>
 
-Use the %p format string which already accounts for the padding you need
-with a pointer type on a particular architecture.
+Fix stale references to source files in kernel-parameters.txt.
 
-Also replace the macro with a static inline function to match the rest of
-the file.
-
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Arjan van de Ven <arjan@infradead.org>
-Signed-off-by: Vegard Nossum <vegard.nossum@gmail.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Pavel Machek <pavel@suse.cz>
+Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kallsyms.h |   19 ++++++-------------
- 1 file changed, 6 insertions(+), 13 deletions(-)
+ Documentation/kernel-parameters.txt |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/kallsyms.h~kallsyms-unify-32-and-64-bit-code include/linux/kallsyms.h
---- a/include/linux/kallsyms.h~kallsyms-unify-32-and-64-bit-code
-+++ a/include/linux/kallsyms.h
-@@ -6,6 +6,7 @@
- #define _LINUX_KALLSYMS_H
+diff -puN Documentation/kernel-parameters.txt~doc-kernel-parameterstxt-fix-stale-references Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~doc-kernel-parameterstxt-fix-stale-references
++++ a/Documentation/kernel-parameters.txt
+@@ -295,7 +295,7 @@ and is between 256 and 4096 characters. 
+ 			when initialising the APIC and IO-APIC components.
  
- #include <linux/errno.h>
-+#include <linux/kernel.h>
- #include <linux/stddef.h>
+ 	apm=		[APM] Advanced Power Management
+-			See header of arch/i386/kernel/apm.c.
++			See header of arch/x86/kernel/apm_32.c.
  
- #define KSYM_NAME_LEN 128
-@@ -105,18 +106,10 @@ static inline void print_fn_descriptor_s
- 	print_symbol(fmt, (unsigned long)addr);
- }
+ 	arcrimi=	[HW,NET] ARCnet - "RIM I" (entirely mem-mapped) cards
+ 			Format: <io>,<irq>,<nodeID>
+@@ -638,7 +638,7 @@ and is between 256 and 4096 characters. 
  
--#ifndef CONFIG_64BIT
--#define print_ip_sym(ip)		\
--do {					\
--	printk("[<%08lx>]", ip);	\
--	print_symbol(" %s\n", ip);	\
--} while(0)
--#else
--#define print_ip_sym(ip)		\
--do {					\
--	printk("[<%016lx>]", ip);	\
--	print_symbol(" %s\n", ip);	\
--} while(0)
--#endif
-+static inline void print_ip_sym(unsigned long ip)
-+{
-+	printk("[<%p>]", (void *) ip);
-+	print_symbol(" %s\n", ip);
-+}
+ 	elanfreq=	[X86-32]
+ 			See comment before function elanfreq_setup() in
+-			arch/i386/kernel/cpu/cpufreq/elanfreq.c.
++			arch/x86/kernel/cpu/cpufreq/elanfreq.c.
  
- #endif /*_LINUX_KALLSYMS_H*/
+ 	elevator=	[IOSCHED]
+ 			Format: {"anticipatory" | "cfq" | "deadline" | "noop"}
 _
 
-Patches currently in -mm which might be from vegard.nossum@gmail.com are
+Patches currently in -mm which might be from pavel@suse.cz are
 
-arm-fix-header-guards.patch
-parisc-fix-incomplete-header-guard.patch
-mm-remove-initialization-of-static-per-cpu-variables.patch
-kallsyms-fix-potential-overflow-in-binary-search.patch
-kallsyms-unify-32-and-64-bit-code.patch
-quota-cleanup-loop-in-sync_dquots.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-fix.patch
-taskstats-remove-initialization-of-static-per-cpu-variable.patch
+rtc-fix-cmos-time-error-after-writing-proc-acpi-alarm.patch
+doc-kernel-parameterstxt-fix-stale-references.patch
+x86-acpi-normalize-segment-descriptor-register-on-resume.patch
+pm-remove-references-to-struct-pm_dev-from-irda-headers.patch
+sync_file_range_write-may-and-will-block-document-that.patch
+sync_file_range_write-may-and-will-block-document-that-fix.patch
+swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option.patch
+swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
+pm-boot-time-suspend-selftest.patch
+pm-boot-time-suspend-selftest-vs-linux-next.patch
+remove-include-linux-pm_legacyh.patch
+pm-remove-definition-of-struct-pm_dev.patch
+pm-remove-remaining-obsolete-definitions-from-pmh.patch
+pm-drop-unnecessary-includes-from-pmh.patch
 
