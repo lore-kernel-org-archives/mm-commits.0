@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fsl_diu_fb-fix-build-with-config_pm=y-plus-fix-some-warnings.patch added to -mm tree
-Date: Mon, 30 Jun 2008 12:40:30 -0700
-Message-ID: <200806301940.m5UJeVA1021965@imap1.linux-foundation.org>
+Subject: + fsl-diu-fb-update-freescale-diu-driver-to-use-page_alloc_exact-fix.patch added to -mm tree
+Date: Mon, 30 Jun 2008 13:24:34 -0700
+Message-ID: <200806302024.m5UKOYfc023753@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47461 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40837 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751033AbYF3Tkw (ORCPT
+	by vger.kernel.org with ESMTP id S1764264AbYF3UYn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jun 2008 15:40:52 -0400
+	Mon, 30 Jun 2008 16:24:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: avorontsov@ru.mvista.com, adaplas@gmail.com, krzysztof.h1@poczta.fm, timur@freescale.com, yorksun@freescale.com
+Cc: akpm@linux-foundation.org, timur@freescale.com
 
 
 The patch titled
-     fsl_diu_fb: fix build with CONFIG_PM=y, plus fix some warnings
+     fsl-diu-fb-update-freescale-diu-driver-to-use-page_alloc_exact-fix
 has been added to the -mm tree.  Its filename is
-     fsl_diu_fb-fix-build-with-config_pm=y-plus-fix-some-warnings.patch
+     fsl-diu-fb-update-freescale-diu-driver-to-use-page_alloc_exact-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,189 +34,181 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fsl_diu_fb: fix build with CONFIG_PM=y, plus fix some warnings
-From: Anton Vorontsov <avorontsov@ru.mvista.com>
+Subject: fsl-diu-fb-update-freescale-diu-driver-to-use-page_alloc_exact-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This patch fixes following build error when CONFIG_PM is set.
-
-  CC      drivers/video/fsl-diu-fb.o
-drivers/video/fsl-diu-fb.c: In function 'fsl_diu_suspend':
-drivers/video/fsl-diu-fb.c:1327: error: 'ofdev' undeclared (first use in this function)
-drivers/video/fsl-diu-fb.c:1327: error: (Each undeclared identifier is reported only once
-drivers/video/fsl-diu-fb.c:1327: error: for each function it appears in.)
-drivers/video/fsl-diu-fb.c: In function 'fsl_diu_resume':
-drivers/video/fsl-diu-fb.c:1337: error: 'ofdev' undeclared (first use in this function)
-
-While I'm at it, also fix this warning:
-
-drivers/video/fsl-diu-fb.c: In function 'fsl_diu_alloc':
-drivers/video/fsl-diu-fb.c:314: warning: format '%lx' expects type 'long unsigned int', but argument 3 has type 'phys_addr_t'
-
-And these section mismatches:
-
-..from the function fsl_diu_remove() to the function .exit.text:uninstall_fb()
-..from the function fsl_diu_remove() to the function .exit.text:uninstall_fb()
-..from the function install_fb() to the variable .devinit.data:fsl_diu_mode_db
-..from the function install_fb() to the variable .devinit.data:fsl_diu_mode_db
-..from the function fsl_diu_probe() to the function .exit.text:uninstall_fb()
-..from the function fsl_diu_probe() to the function .exit.text:uninstall_fb()
-
-Also, some sparse fixes: make two functions static, and use NULL where
-appropriate. There are still a lot of sparse warnings, mainly wrt absence
-of __iomem annotations, but some will require ugly __force stuff. I'll leave
-them for now, since proper fix would be not that trivial as few one-liners
-below.
-
-Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
 Cc: Timur Tabi <timur@freescale.com>
-Cc: Antonino Daplas <adaplas@gmail.com>
-Cc: York Sun <yorksun@freescale.com>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/fsl-diu-fb.c |   29 +++++++++++++++--------------
- 1 file changed, 15 insertions(+), 14 deletions(-)
+ drivers/video/fsl-diu-fb.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/video/fsl-diu-fb.c~fsl_diu_fb-fix-build-with-config_pm=y-plus-fix-some-warnings drivers/video/fsl-diu-fb.c
---- a/drivers/video/fsl-diu-fb.c~fsl_diu_fb-fix-build-with-config_pm=y-plus-fix-some-warnings
+diff -puN drivers/video/fsl-diu-fb.c~fsl-diu-fb-update-freescale-diu-driver-to-use-page_alloc_exact-fix drivers/video/fsl-diu-fb.c
+--- a/drivers/video/fsl-diu-fb.c~fsl-diu-fb-update-freescale-diu-driver-to-use-page_alloc_exact-fix
 +++ a/drivers/video/fsl-diu-fb.c
-@@ -286,7 +286,7 @@ static struct diu_pool pool;
-  *	rheap and make the furture large allocation fail.
-  */
- 
--void *fsl_diu_alloc(unsigned long size, phys_addr_t *phys)
-+static void *fsl_diu_alloc(unsigned long size, phys_addr_t *phys)
+@@ -290,12 +290,13 @@ static void *fsl_diu_alloc(size_t size, 
  {
  	void *virt;
  
-@@ -311,12 +311,12 @@ void *fsl_diu_alloc(unsigned long size, 
- 		memset(virt, 0, size);
- 	}
+-	pr_debug("size=%u\n", size);
++	pr_debug("size=%zu\n", size);
  
--	pr_debug("rh virt=%p phys=%lx\n", virt, *phys);
-+	pr_debug("rh virt=%p phys=%llx\n", virt, (unsigned long long)*phys);
+ 	virt = alloc_pages_exact(size, GFP_DMA | __GFP_ZERO);
+ 	if (virt) {
+ 		*phys = virt_to_phys(virt);
+-		pr_debug("virt=%p, phys=%llx\n", virt, (uint64_t) *phys);
++		pr_debug("virt=%p, phys=%llx\n", virt,
++			(unsigned long long)*phys);
+ 	}
  
  	return virt;
- }
- 
--void fsl_diu_free(void *p, unsigned long size)
-+static void fsl_diu_free(void *p, unsigned long size)
+@@ -310,7 +311,7 @@ static void *fsl_diu_alloc(size_t size, 
+  */
+ static void fsl_diu_free(void *virt, size_t size)
  {
- 	pr_debug("p=%p size=%lu\n", p, size);
+-	pr_debug("virt=%p size=%u\n", virt, size);
++	pr_debug("virt=%p size=%zu\n", virt, size);
  
-@@ -770,7 +770,7 @@ static int map_video_memory(struct fb_in
- 	info->fix.smem_len = info->fix.line_length * info->var.yres_virtual;
- 	pr_debug("MAP_VIDEO_MEMORY: smem_len = %d\n", info->fix.smem_len);
- 	info->screen_base = fsl_diu_alloc(info->fix.smem_len, &phys);
--	if (info->screen_base == 0) {
-+	if (info->screen_base == NULL) {
- 		printk(KERN_ERR "Unable to allocate fb memory\n");
- 		return -ENOMEM;
- 	}
-@@ -788,7 +788,7 @@ static int map_video_memory(struct fb_in
- static void unmap_video_memory(struct fb_info *info)
- {
- 	fsl_diu_free(info->screen_base, info->fix.smem_len);
--	info->screen_base = 0;
-+	info->screen_base = NULL;
- 	info->fix.smem_start = 0;
- 	info->fix.smem_len = 0;
- }
-@@ -1158,7 +1158,7 @@ static int init_fbinfo(struct fb_info *i
- 	return 0;
- }
- 
--static int install_fb(struct fb_info *info)
-+static int __devinit install_fb(struct fb_info *info)
- {
- 	int rc;
- 	struct mfb_info *mfbi = info->par;
-@@ -1233,7 +1233,7 @@ static int install_fb(struct fb_info *in
- 	return 0;
- }
- 
--static void __exit uninstall_fb(struct fb_info *info)
-+static void uninstall_fb(struct fb_info *info)
- {
- 	struct mfb_info *mfbi = info->par;
- 
-@@ -1287,7 +1287,7 @@ static int request_irq_local(int irq)
- 	/* Read to clear the status */
- 	status = in_be32(&hw->int_status);
- 
--	ret = request_irq(irq, fsl_diu_isr, 0, "diu", 0);
-+	ret = request_irq(irq, fsl_diu_isr, 0, "diu", NULL);
- 	if (ret)
- 		pr_info("Request diu IRQ failed.\n");
- 	else {
-@@ -1312,7 +1312,7 @@ static void free_irq_local(int irq)
- 	/* Disable all LCDC interrupt */
- 	out_be32(&hw->int_mask, 0x1f);
- 
--	free_irq(irq, 0);
-+	free_irq(irq, NULL);
- }
- 
- #ifdef CONFIG_PM
-@@ -1324,7 +1324,7 @@ static int fsl_diu_suspend(struct of_dev
- {
- 	struct fsl_diu_data *machine_data;
- 
--	machine_data = dev_get_drvdata(&ofdev->dev);
-+	machine_data = dev_get_drvdata(&dev->dev);
- 	disable_lcdc(machine_data->fsl_diu_info[0]);
- 
- 	return 0;
-@@ -1334,7 +1334,7 @@ static int fsl_diu_resume(struct of_devi
- {
- 	struct fsl_diu_data *machine_data;
- 
--	machine_data = dev_get_drvdata(&ofdev->dev);
-+	machine_data = dev_get_drvdata(&dev->dev);
- 	enable_lcdc(machine_data->fsl_diu_info[0]);
- 
- 	return 0;
-@@ -1353,7 +1353,8 @@ static int allocate_buf(struct diu_addr 
- 	dma_addr_t paddr = 0;
- 
- 	ssize = size + bytes_align;
--	buf->vaddr = dma_alloc_coherent(0, ssize, &paddr, GFP_DMA | __GFP_ZERO);
-+	buf->vaddr = dma_alloc_coherent(NULL, ssize, &paddr, GFP_DMA |
-+							     __GFP_ZERO);
- 	if (!buf->vaddr)
- 		return -ENOMEM;
- 
-@@ -1371,7 +1372,7 @@ static int allocate_buf(struct diu_addr 
- 
- static void free_buf(struct diu_addr *buf, u32 size, u32 bytes_align)
- {
--	dma_free_coherent(0, size + bytes_align,
-+	dma_free_coherent(NULL, size + bytes_align,
- 				buf->vaddr, (buf->paddr - buf->offset));
- 	return;
- }
-@@ -1411,7 +1412,7 @@ static ssize_t show_monitor(struct devic
- 	return diu_ops.show_monitor_port(machine_data->monitor_port, buf);
- }
- 
--static int fsl_diu_probe(struct of_device *ofdev,
-+static int __devinit fsl_diu_probe(struct of_device *ofdev,
- 	const struct of_device_id *match)
- {
- 	struct device_node *np = ofdev->node;
+ 	if (virt && size)
+ 		free_pages_exact(virt, size);
 _
 
-Patches currently in -mm which might be from avorontsov@ru.mvista.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-fsl_diu_fb-fix-build-with-config_pm=y-plus-fix-some-warnings.patch
-mpc83xx_wdt-convert-to-the-of-platform-driver.patch
-mpc83xx_wdt-add-support-for-mpc86xx-cpus.patch
-mpc83xx_wdt-rename-to-mpc8xxx_wdt.patch
-mpc8xxx_wdt-various-renames-mostly-s-mpc83xx-mpc8xxx-g.patch
-mpc8xxx_wdt-various-renames-mostly-s-mpc83xx-mpc8xxx-g-fix.patch
-mpc8xxx_wdt-add-support-for-mpc8xx-watchdogs.patch
-powerpc-fsl_soc-remove-mpc83xx_wdt-code.patch
-powerpc-86xx-mpc8610_hpcd-add-watchdog-node.patch
-hgafb-convert-to-new-platform-driver-api-bugzilla-9689.patch
+origin.patch
+rtc-x1205-fix-alarm-set-fix.patch
+next-remove-localversion.patch
+revert-git-pekka.patch
+fix-kobject-fix-kobject_rename-and-config_sysfs.patch
+kvm-is-busted-on-ia64.patch
+drivers-mtd-nand-nandsimc-needs-div64h.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+git-jg-misc-git-rejects.patch
+drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers.patch
+drivers-mtd-devices-block2mtdc-suppress-warning.patch
+sundance-set-carrier-status-on-link-change-events.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix-fix.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-scsi-misc-fix-scsi_dh-build-errors.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
+pktcdvd-push-bkl-down-into-driver-fix.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-logfs-fixup.patch
+watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
+git-xtensa.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-verify-the-page-links-and-memory-model.patch
+mspec-convert-nopfn-to-fault-fix.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+kill-generic_file_direct_io-checkpatch-fixes.patch
+use-generic_access_phys-for-dev-mem-mappings-fix.patch
+spufs-use-the-new-vm_ops-access-fix.patch
+fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
+page-flags-record-page-flag-overlays-explicitly-xen.patch
+mapping_set_error-add-unlikely.patch
+huge-page-private-reservation-review-cleanups-fix.patch
+sync_file_range_write-may-and-will-block-document-that-fix.patch
+vmallocinfo-add-numa-information-fix.patch
+hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
+hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
+hugetlb-override-default-huge-page-size-ia64-build.patch
+linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+bootmem-add-debugging-framework-fix.patch
+bootmem-clean-up-free_all_bootmem_core-fix.patch
+bootmem-free-reserve-helpers-fix.patch
+revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
+swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
+block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
+seq_file-fix-bug-when-seq_read-reads-nothing-fix.patch
+rename-warn-to-warning-to-clear-the-namespace-fix.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-paccept-sys_ni.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-signalfd-fix.patch
+flag-parameters-eventfd-fix.patch
+flag-parameters-inotify_init-fix.patch
+flag-parameters-check-magic-constants-alpha.patch
+oprofile-multiplexing-checkpatch-fixes.patch
+gpio-gpio-driver-for-max7301-spi-gpio-expander-checkpatch-fixes.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
+fsl-diu-fb-update-freescale-diu-driver-to-use-page_alloc_exact-fix.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
+ext3-handle-corrupted-orphan-list-at-mount-cleanup.patch
+ext3-handle-corrupted-orphan-list-at-mount-fix.patch
+ext3-handle-corrupted-orphan-list-at-mount-cleanup-fix.patch
+reiserfs-convert-j_flush_sem-to-mutex.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
+memcg-remove-refcnt-from-page_cgroup-fix-2.patch
+jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup.patch
+ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
+getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
+tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
+memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
+memstick-use-fully-asynchronous-request-processing-fix.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+mm-introduce-get_user_pages_fast-fix.patch
+mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-fix.patch
+x86-lockless-get_user_pages_fast-fix-2.patch
+x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
+x86-lockless-get_user_pages_fast-fix-warning.patch
+vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
+define-page_file_cache-function-fix.patch
+unevictable-lru-infrastructure-fix.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-3.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
+vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
