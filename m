@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + workqueues-insert_work-use-list_head-instead-of-int-tail.patch added to -mm tree
-Date: Mon, 30 Jun 2008 16:42:51 -0700
-Message-ID: <200806302342.m5UNgpq6031525@imap1.linux-foundation.org>
+Subject: + s390-topology-dont-use-kthread-for-arch_reinit_sched_domains.patch added to -mm tree
+Date: Mon, 30 Jun 2008 16:46:30 -0700
+Message-ID: <200806302346.m5UNkUxJ031677@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58932 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52212 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753259AbYF3XnN (ORCPT
+	by vger.kernel.org with ESMTP id S1754515AbYF3XrS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jun 2008 19:43:13 -0400
+	Mon, 30 Jun 2008 19:47:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, jarkao2@gmail.com, maxk@qualcomm.com, peterz@infradead.org
+Cc: oleg@tv-sign.ru, ego@in.ibm.com, heiko.carstens@de.ibm.com, maxk@qualcomm.com, menage@google.com, mingo@elte.hu, peterz@infradead.org, pj@sgi.com, schwidefsky@de.ibm.com, vegard.nossum@gmail.com
 
 
 The patch titled
-     workqueues: insert_work: use "list_head *" instead of "int tail"
+     S390 topology: don't use kthread() for arch_reinit_sched_domains()
 has been added to the -mm tree.  Its filename is
-     workqueues-insert_work-use-list_head-instead-of-int-tail.patch
+     s390-topology-dont-use-kthread-for-arch_reinit_sched_domains.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,92 +34,65 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: workqueues: insert_work: use "list_head *" instead of "int tail"
+Subject: S390 topology: don't use kthread() for arch_reinit_sched_domains()
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-insert_work() inserts the new work_struct before or after cwq->worklist,
-depending on the "int tail" parameter. Change it to accept "list_head *"
-instead, this shrinks .text a bit and allows us to insert the barrier
-after specific work_struct.
+Now that it is safe to use get_online_cpus() we can revert
+
+	[S390] cpu topology: Fix possible deadlock.
+	commit: fd781fa25c9e9c6fd1599df060b05e7c4ad724e5
+
+and call arch_reinit_sched_domains() directly from topology_work_fn().
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Jarek Poplawski <jarkao2@gmail.com>
+Cc: Gautham R Shenoy <ego@in.ibm.com>
+Tested-by: Heiko Carstens <heiko.carstens@de.ibm.com>
 Cc: Max Krasnyansky <maxk@qualcomm.com>
+Cc: Paul Jackson <pj@sgi.com>
+Cc: Paul Menage <menage@google.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Vegard Nossum <vegard.nossum@gmail.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/workqueue.c |   17 +++++++----------
- 1 file changed, 7 insertions(+), 10 deletions(-)
+ arch/s390/kernel/topology.c |   14 +-------------
+ 1 file changed, 1 insertion(+), 13 deletions(-)
 
-diff -puN kernel/workqueue.c~workqueues-insert_work-use-list_head-instead-of-int-tail kernel/workqueue.c
---- a/kernel/workqueue.c~workqueues-insert_work-use-list_head-instead-of-int-tail
-+++ a/kernel/workqueue.c
-@@ -125,7 +125,7 @@ struct cpu_workqueue_struct *get_wq_data
- }
- 
- static void insert_work(struct cpu_workqueue_struct *cwq,
--				struct work_struct *work, int tail)
-+			struct work_struct *work, struct list_head *head)
- {
- 	set_wq_data(work, cwq);
- 	/*
-@@ -133,10 +133,7 @@ static void insert_work(struct cpu_workq
- 	 * result of list_add() below, see try_to_grab_pending().
- 	 */
- 	smp_wmb();
--	if (tail)
--		list_add_tail(&work->entry, &cwq->worklist);
--	else
--		list_add(&work->entry, &cwq->worklist);
-+	list_add_tail(&work->entry, head);
- 	wake_up(&cwq->more_work);
- }
- 
-@@ -147,7 +144,7 @@ static void __queue_work(struct cpu_work
- 	unsigned long flags;
- 
- 	spin_lock_irqsave(&cwq->lock, flags);
--	insert_work(cwq, work, 1);
-+	insert_work(cwq, work, &cwq->worklist);
- 	spin_unlock_irqrestore(&cwq->lock, flags);
- }
- 
-@@ -337,14 +334,14 @@ static void wq_barrier_func(struct work_
- }
- 
- static void insert_wq_barrier(struct cpu_workqueue_struct *cwq,
--					struct wq_barrier *barr, int tail)
-+			struct wq_barrier *barr, struct list_head *head)
- {
- 	INIT_WORK(&barr->work, wq_barrier_func);
- 	__set_bit(WORK_STRUCT_PENDING, work_data_bits(&barr->work));
- 
- 	init_completion(&barr->done);
- 
--	insert_work(cwq, &barr->work, tail);
-+	insert_work(cwq, &barr->work, head);
- }
- 
- static int flush_cpu_workqueue(struct cpu_workqueue_struct *cwq)
-@@ -364,7 +361,7 @@ static int flush_cpu_workqueue(struct cp
- 		active = 0;
- 		spin_lock_irq(&cwq->lock);
- 		if (!list_empty(&cwq->worklist) || cwq->current_work != NULL) {
--			insert_wq_barrier(cwq, &barr, 1);
-+			insert_wq_barrier(cwq, &barr, &cwq->worklist);
- 			active = 1;
- 		}
- 		spin_unlock_irq(&cwq->lock);
-@@ -449,7 +446,7 @@ static void wait_on_cpu_work(struct cpu_
- 
- 	spin_lock_irq(&cwq->lock);
- 	if (unlikely(cwq->current_work == work)) {
--		insert_wq_barrier(cwq, &barr, 0);
-+		insert_wq_barrier(cwq, &barr, cwq->worklist.next);
- 		running = 1;
+diff -puN arch/s390/kernel/topology.c~s390-topology-dont-use-kthread-for-arch_reinit_sched_domains arch/s390/kernel/topology.c
+--- a/arch/s390/kernel/topology.c~s390-topology-dont-use-kthread-for-arch_reinit_sched_domains
++++ a/arch/s390/kernel/topology.c
+@@ -9,7 +9,6 @@
+ #include <linux/device.h>
+ #include <linux/bootmem.h>
+ #include <linux/sched.h>
+-#include <linux/kthread.h>
+ #include <linux/workqueue.h>
+ #include <linux/cpu.h>
+ #include <linux/smp.h>
+@@ -230,20 +229,9 @@ void arch_update_cpu_topology(void)
  	}
- 	spin_unlock_irq(&cwq->lock);
+ }
+ 
+-static int topology_kthread(void *data)
+-{
+-	arch_reinit_sched_domains();
+-	return 0;
+-}
+-
+ static void topology_work_fn(struct work_struct *work)
+ {
+-	/* We can't call arch_reinit_sched_domains() from a multi-threaded
+-	 * workqueue context since it may deadlock in case of cpu hotplug.
+-	 * So we have to create a kernel thread in order to call
+-	 * arch_reinit_sched_domains().
+-	 */
+-	kthread_run(topology_kthread, NULL, "topology_update");
++	arch_reinit_sched_domains();
+ }
+ 
+ void topology_schedule_update(void)
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
@@ -148,6 +121,8 @@ coredump-elf_core_dump-skip-kernel-threads.patch
 workqueues-insert_work-use-list_head-instead-of-int-tail.patch
 workqueues-implement-flush_work.patch
 workqueues-schedule_on_each_cpu-use-flush_work.patch
+workqueues-make-get_online_cpus-useable-for-work-func.patch
+s390-topology-dont-use-kthread-for-arch_reinit_sched_domains.patch
 pidns-remove-now-unused-kill_proc-function.patch
 pidns-remove-now-unused-find_pid-function.patch
 pidns-remove-find_task_by_pid-unused-for-a-long-time.patch
