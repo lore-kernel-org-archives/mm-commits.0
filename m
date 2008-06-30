@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-types-some-types-may-also-be-identifiers.patch added to -mm tree
-Date: Mon, 30 Jun 2008 15:19:02 -0700
-Message-ID: <200806302219.m5UMJ20a028549@imap1.linux-foundation.org>
+Subject: + checkpatch-comment-detection-ignore-macro-continuation-when-detecting-associated-comments.patch added to -mm tree
+Date: Mon, 30 Jun 2008 15:19:09 -0700
+Message-ID: <200806302219.m5UMJ963028558@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48051 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46918 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932812AbYF3WTL (ORCPT
+	by vger.kernel.org with ESMTP id S932866AbYF3WTR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jun 2008 18:19:11 -0400
+	Mon, 30 Jun 2008 18:19:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: apw@shadowen.org
 
 
 The patch titled
-     checkpatch: types: some types may also be identifiers
+     checkpatch: comment detection: ignore macro continuation when detecting associated comments
 has been added to the -mm tree.  Its filename is
-     checkpatch-types-some-types-may-also-be-identifiers.patch
+     checkpatch-comment-detection-ignore-macro-continuation-when-detecting-associated-comments.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,72 +34,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: types: some types may also be identifiers
+Subject: checkpatch: comment detection: ignore macro continuation when detecting associated comments
 From: Andy Whitcroft <apw@shadowen.org>
 
-Some types such as typedefs may overlap real identifiers.  Be more
-targetted about when a type can really exist.  Where it cannot let it be
-an identifier.  This prevents false reporting of the minus '-' in unary
-context in the following:
-
-	foo[bar->bool - 1];
+When looking for an associated comment they may be suffixed by a macro
+continuation.  Ignore this.
 
 Signed-off-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ scripts/checkpatch.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-types-some-types-may-also-be-identifiers scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-types-some-types-may-also-be-identifiers
+diff -puN scripts/checkpatch.pl~checkpatch-comment-detection-ignore-macro-continuation-when-detecting-associated-comments scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-comment-detection-ignore-macro-continuation-when-detecting-associated-comments
 +++ a/scripts/checkpatch.pl
-@@ -171,6 +171,7 @@ our @modifierList = (
- sub build_types {
- 	my $mods = "(?:  \n" . join("|\n  ", @modifierList) . "\n)";
- 	my $all = "(?:  \n" . join("|\n  ", @typeList) . "\n)";
-+	$Modifier	= qr{(?:$Attribute|$Sparse|$mods)};
- 	$NonptrType	= qr{
- 			(?:const\s+)?
- 			(?:$mods\s+)?
-@@ -178,15 +179,14 @@ sub build_types {
- 				(?:typeof|__typeof__)\s*\(\s*\**\s*$Ident\s*\)|
- 				(?:${all}\b)
- 			)
--			(?:\s+$Sparse|\s+const)*
-+			(?:\s+$Modifier|\s+const)*
- 		  }x;
- 	$Type	= qr{
- 			$NonptrType
- 			(?:\s*\*+\s*const|\s*\*+|(?:\s*\[\s*\])+)?
--			(?:\s+$Inline|\s+$Sparse|\s+$Attribute|\s+$mods)*
-+			(?:\s+$Inline|\s+$Modifier)*
- 		  }x;
- 	$Declare	= qr{(?:$Storage\s+)?$Type};
--	$Modifier	= qr{(?:$Attribute|$Sparse|$mods)};
- }
- build_types();
+@@ -631,7 +631,7 @@ sub ctx_locate_comment {
+ 	my ($first_line, $end_line) = @_;
  
-@@ -715,7 +715,7 @@ sub annotate_values {
- 				$av_preprocessor = 0;
- 			}
+ 	# Catch a comment on the end of the line itself.
+-	my ($current_comment) = ($rawlines[$end_line - 1] =~ m@.*(/\*.*\*/)\s*$@);
++	my ($current_comment) = ($rawlines[$end_line - 1] =~ m@.*(/\*.*\*/)\s*(?:\\\s*)?$@);
+ 	return $current_comment if (defined $current_comment);
  
--		} elsif ($cur =~ /^($Type)/) {
-+		} elsif ($cur =~ /^($Type)\s*(?:$Ident|,|\))/) {
- 			print "DECLARE($1)\n" if ($dbg_values > 1);
- 			$type = 'T';
- 
-@@ -800,8 +800,9 @@ sub annotate_values {
- 				print "PAREN('$1')\n" if ($dbg_values > 1);
- 			}
- 
--		} elsif ($cur =~ /^($Ident)\(/o) {
-+		} elsif ($cur =~ /^($Ident)\s*\(/o) {
- 			print "FUNC($1)\n" if ($dbg_values > 1);
-+			$type = 'V';
- 			$av_pending = 'V';
- 
- 		} elsif ($cur =~ /^($Ident|$Constant)/o) {
+ 	# Look through the context and try and figure out if there is a
 _
 
 Patches currently in -mm which might be from apw@shadowen.org are
