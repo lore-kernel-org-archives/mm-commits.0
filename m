@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + memory-hotplug-dont-calculate-vm_total_pages-twice-when-rebuilding-zonelists-in-online_pages.patch added to -mm tree
-Date: Tue, 01 Jul 2008 14:09:35 -0700
-Message-ID: <200807012109.m61L9Z0r014809@imap1.linux-foundation.org>
+Subject: + autofs4-fix-pending-mount-race-fix.patch added to -mm tree
+Date: Tue, 01 Jul 2008 14:12:33 -0700
+Message-ID: <200807012112.m61LCXbx014942@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36995 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33496 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752752AbYGAVKP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 17:10:15 -0400
+	by vger.kernel.org with ESMTP id S1753416AbYGAVMz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 17:12:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kent.liu@linux.intel.com, apw@shadowen.org, kamezawa.hiroyu@jp.fujitsu.com, y-goto@jp.fujitsu.com
+Cc: raven@themaw.net, jmoyer@redhat.com
 
 
 The patch titled
-     memory-hotplug: don't calculate vm_total_pages twice when rebuilding zonelists in online_pages()
+     autofs4: add missing kfree
 has been added to the -mm tree.  Its filename is
-     memory-hotplug-dont-calculate-vm_total_pages-twice-when-rebuilding-zonelists-in-online_pages.patch
+     autofs4-fix-pending-mount-race-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,40 +33,53 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memory-hotplug: don't calculate vm_total_pages twice when rebuilding zonelists in online_pages()
-From: Kent Liu <kent.liu@linux.intel.com>
+Subject: autofs4: add missing kfree
+From: Ian Kent <raven@themaw.net>
 
-If zonelist is required to be rebuilt in online_pages(), there is no need
-to recalculate vm_total_pages in that function, as it has been updated in
-the call build_all_zonelists().
+It see that the patch tittled "autofs4 - fix pending mount race" is
+missing a change that I had recently made.
 
-Signed-off-by: Kent Liu <kent.liu@linux.intel.com>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
+It's missing a kfree for the case mutex_lock_interruptible() fails
+to aquire the wait queue mutex.
+
+Signed-off-by: Ian Kent <raven@themaw.net>
+Cc: Jeff Moyer <jmoyer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    4 +++-
+ fs/autofs4/waitq.c |    4 +++-
  1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN mm/memory_hotplug.c~memory-hotplug-dont-calculate-vm_total_pages-twice-when-rebuilding-zonelists-in-online_pages mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~memory-hotplug-dont-calculate-vm_total_pages-twice-when-rebuilding-zonelists-in-online_pages
-+++ a/mm/memory_hotplug.c
-@@ -429,7 +429,9 @@ int online_pages(unsigned long pfn, unsi
+diff -puN fs/autofs4/waitq.c~autofs4-fix-pending-mount-race-fix fs/autofs4/waitq.c
+--- a/fs/autofs4/waitq.c~autofs4-fix-pending-mount-race-fix
++++ a/fs/autofs4/waitq.c
+@@ -332,8 +332,10 @@ int autofs4_wait(struct autofs_sb_info *
+ 	qstr.name = name;
+ 	qstr.hash = full_name_hash(name, qstr.len);
  
- 	if (need_zonelists_rebuild)
- 		build_all_zonelists();
--	vm_total_pages = nr_free_pagecache_pages();
-+	else
-+		vm_total_pages = nr_free_pagecache_pages();
-+
- 	writeback_set_ratelimit();
+-	if (mutex_lock_interruptible(&sbi->wq_mutex))
++	if (mutex_lock_interruptible(&sbi->wq_mutex)) {
++		kfree(qstr.name);
+ 		return -EINTR;
++	}
  
- 	if (onlined_pages)
+ 	ret = validate_request(&wq, sbi, &qstr, dentry, notify);
+ 	if (ret <= 0) {
 _
 
-Patches currently in -mm which might be from kent.liu@linux.intel.com are
+Patches currently in -mm which might be from raven@themaw.net are
 
-memory-hotplug-dont-calculate-vm_total_pages-twice-when-rebuilding-zonelists-in-online_pages.patch
+autofs4-dont-make-expiring-dentry-negative.patch
+autofs4-dont-make-expiring-dentry-negative-fix.patch
+autofs4-revert-redo-lookup-in-ttfd.patch
+autofs4-use-look-aside-list-for-lookups.patch
+autofs4-use-look-aside-list-for-lookups-autofs4-fix-symlink-name-allocation.patch
+autofs4-dont-release-directory-mutex-if-called-in-oz_mode.patch
+autofs4-use-lookup-intent-flags-to-trigger-mounts.patch
+autofs4-use-struct-qstr-in-waitqc.patch
+autofs4-fix-waitq-locking.patch
+autofs4-fix-pending-mount-race.patch
+autofs4-fix-pending-mount-race-fix.patch
+autofs4-check-kernel-communication-pipe-is-valid-for-write.patch
+autofs4-fix-waitq-memory-leak.patch
 
