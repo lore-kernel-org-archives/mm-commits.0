@@ -1,297 +1,215 @@
 From: akpm@linux-foundation.org
-Subject: + spi-au1550_spi-proper-platform-device.patch added to -mm tree
-Date: Tue, 01 Jul 2008 01:30:16 -0700
-Message-ID: <200807010830.m618UG2s017483@imap1.linux-foundation.org>
+Subject: - oprofile-multiplexing-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 01 Jul 2008 01:33:19 -0700
+Message-ID: <200807010833.m618XJT6017590@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60818 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38965 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757644AbYGAIdw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 04:33:52 -0400
+	by vger.kernel.org with ESMTP id S1755150AbYGAIec (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 04:34:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: mano@roarinelk.homelinux.net, dbrownell@users.sourceforge.net, jan.nikitenko@gmail.com
+To: akpm@linux-foundation.org, andi@firstfloor.org, jason.yeh@amd.com, levon@movementarian.org, mathieu.desnoyers@polymtl.ca, mingo@elte.hu, phil.el@wanadoo.fr, tglx@linutronix.de, mm-com
 
 
 The patch titled
-     spi: au1550_spi: proper platform device
-has been added to the -mm tree.  Its filename is
-     spi-au1550_spi-proper-platform-device.patch
+     oprofile-multiplexing-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     oprofile-multiplexing-checkpatch-fixes.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spi: au1550_spi: proper platform device
-From: Manuel Lauss <mano@roarinelk.homelinux.net>
+Subject: oprofile-multiplexing-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Remove the Au1550 resource table and instead extract MMIO/IRQ/DMA
-resources from platform resource information like any well-behaved
-platform driver.
+ERROR: do not use assignment in if condition
+#446: FILE: drivers/oprofile/oprof.c:195:
++	if ((timeout_jiffies = msecs_to_jiffies(val_msec)) == MAX_JIFFY_OFFSET)
 
-Signed-off-by: Manuel Lauss <mano@roarinelk.homelinux.net>
-Signed-off-by: Jan Nikitenko <jan.nikitenko@gmail.com>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+total: 1 errors, 0 warnings, 491 lines checked
+
+./patches/oprofile-multiplexing.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Jason Yeh <jason.yeh@amd.com>
+Cc: John Levon <levon@movementarian.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Cc: Philippe Elie <phil.el@wanadoo.fr>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/au1550_spi.c                  |  136 ++++++++++----------
- include/asm-mips/mach-au1x00/au1550_spi.h |    1 
- 2 files changed, 73 insertions(+), 64 deletions(-)
+ drivers/oprofile/oprof.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/spi/au1550_spi.c~spi-au1550_spi-proper-platform-device drivers/spi/au1550_spi.c
---- a/drivers/spi/au1550_spi.c~spi-au1550_spi-proper-platform-device
-+++ a/drivers/spi/au1550_spi.c
-@@ -26,6 +26,7 @@
- #include <linux/errno.h>
- #include <linux/device.h>
- #include <linux/platform_device.h>
-+#include <linux/resource.h>
- #include <linux/spi/spi.h>
- #include <linux/spi/spi_bitbang.h>
- #include <linux/dma-mapping.h>
-@@ -81,6 +82,7 @@ struct au1550_spi {
- 	struct spi_master *master;
- 	struct device *dev;
- 	struct au1550_spi_info *pdata;
-+	struct resource *ioarea;
- };
- 
- 
-@@ -96,6 +98,8 @@ static dbdev_tab_t au1550_spi_mem_dbdev 
- 	.dev_intpolarity	= 0
- };
- 
-+static int ddma_memid;	/* id to above mem dma device */
-+
- static void au1550_spi_bits_handlers_set(struct au1550_spi *hw, int bpw);
- 
- 
-@@ -732,6 +736,7 @@ static int __init au1550_spi_probe(struc
- {
- 	struct au1550_spi *hw;
- 	struct spi_master *master;
-+	struct resource *r;
- 	int err = 0;
- 
- 	master = spi_alloc_master(&pdev->dev, sizeof(struct au1550_spi));
-@@ -753,76 +758,64 @@ static int __init au1550_spi_probe(struc
- 		goto err_no_pdata;
+diff -puN drivers/oprofile/oprof.c~oprofile-multiplexing-checkpatch-fixes drivers/oprofile/oprof.c
+--- a/drivers/oprofile/oprof.c~oprofile-multiplexing-checkpatch-fixes
++++ a/drivers/oprofile/oprof.c
+@@ -192,7 +192,8 @@ int oprofile_set_timeout(unsigned long v
+ 		goto out;
  	}
  
--	platform_set_drvdata(pdev, hw);
--
--	init_completion(&hw->master_done);
-+	r = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
-+	if (!r) {
-+		dev_err(&pdev->dev, "no IRQ\n");
-+		err = -ENODEV;
-+		goto err_no_iores;
-+	}
-+	hw->irq = r->start;
+-	if ((timeout_jiffies = msecs_to_jiffies(val_msec)) == MAX_JIFFY_OFFSET)
++	timeout_jiffies = msecs_to_jiffies(val_msec);
++	if (timeout_jiffies == MAX_JIFFY_OFFSET)
+ 		timeout_jiffies = msecs_to_jiffies(1);
  
--	hw->bitbang.master = hw->master;
--	hw->bitbang.setup_transfer = au1550_spi_setupxfer;
--	hw->bitbang.chipselect = au1550_spi_chipsel;
--	hw->bitbang.master->setup = au1550_spi_setup;
--	hw->bitbang.txrx_bufs = au1550_spi_txrx_bufs;
-+	hw->usedma = 0;
-+	r = platform_get_resource(pdev, IORESOURCE_DMA, 0);
-+	if (r) {
-+		hw->dma_tx_id = r->start;
-+		r = platform_get_resource(pdev, IORESOURCE_DMA, 1);
-+		if (r) {
-+			hw->dma_rx_id = r->start;
-+			if (usedma && ddma_memid) {
-+				if (pdev->dev.dma_mask == NULL)
-+					dev_warn(&pdev->dev, "no dma mask\n");
-+				else
-+					hw->usedma = 1;
-+			}
-+		}
-+	}
- 
--	switch (hw->pdata->bus_num) {
--	case 0:
--		hw->irq = AU1550_PSC0_INT;
--		hw->regs = (volatile psc_spi_t *)PSC0_BASE_ADDR;
--		hw->dma_rx_id = DSCR_CMD0_PSC0_RX;
--		hw->dma_tx_id = DSCR_CMD0_PSC0_TX;
--		break;
--	case 1:
--		hw->irq = AU1550_PSC1_INT;
--		hw->regs = (volatile psc_spi_t *)PSC1_BASE_ADDR;
--		hw->dma_rx_id = DSCR_CMD0_PSC1_RX;
--		hw->dma_tx_id = DSCR_CMD0_PSC1_TX;
--		break;
--	case 2:
--		hw->irq = AU1550_PSC2_INT;
--		hw->regs = (volatile psc_spi_t *)PSC2_BASE_ADDR;
--		hw->dma_rx_id = DSCR_CMD0_PSC2_RX;
--		hw->dma_tx_id = DSCR_CMD0_PSC2_TX;
--		break;
--	case 3:
--		hw->irq = AU1550_PSC3_INT;
--		hw->regs = (volatile psc_spi_t *)PSC3_BASE_ADDR;
--		hw->dma_rx_id = DSCR_CMD0_PSC3_RX;
--		hw->dma_tx_id = DSCR_CMD0_PSC3_TX;
--		break;
--	default:
--		dev_err(&pdev->dev, "Wrong bus_num of SPI\n");
--		err = -ENOENT;
--		goto err_no_pdata;
-+	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (!r) {
-+		dev_err(&pdev->dev, "no mmio resource\n");
-+		err = -ENODEV;
-+		goto err_no_iores;
- 	}
- 
--	if (request_mem_region((unsigned long)hw->regs, sizeof(psc_spi_t),
--			pdev->name) == NULL) {
-+	hw->ioarea = request_mem_region(r->start, sizeof(psc_spi_t),
-+					pdev->name);
-+	if (!hw->ioarea) {
- 		dev_err(&pdev->dev, "Cannot reserve iomem region\n");
- 		err = -ENXIO;
- 		goto err_no_iores;
- 	}
- 
--
--	if (usedma) {
--		if (pdev->dev.dma_mask == NULL)
--			dev_warn(&pdev->dev, "no dma mask\n");
--		else
--			hw->usedma = 1;
-+	hw->regs = (psc_spi_t __iomem *)ioremap(r->start, sizeof(psc_spi_t));
-+	if (!hw->regs) {
-+		dev_err(&pdev->dev, "cannot ioremap\n");
-+		err = -ENXIO;
-+		goto err_ioremap;
- 	}
- 
--	if (hw->usedma) {
--		/*
--		 * create memory device with 8 bits dev_devwidth
--		 * needed for proper byte ordering to spi fifo
--		 */
--		int memid = au1xxx_ddma_add_device(&au1550_spi_mem_dbdev);
--		if (!memid) {
--			dev_err(&pdev->dev,
--				"Cannot create dma 8 bit mem device\n");
--			err = -ENXIO;
--			goto err_dma_add_dev;
--		}
-+	platform_set_drvdata(pdev, hw);
-+
-+	init_completion(&hw->master_done);
-+
-+	hw->bitbang.master = hw->master;
-+	hw->bitbang.setup_transfer = au1550_spi_setupxfer;
-+	hw->bitbang.chipselect = au1550_spi_chipsel;
-+	hw->bitbang.master->setup = au1550_spi_setup;
-+	hw->bitbang.txrx_bufs = au1550_spi_txrx_bufs;
- 
--		hw->dma_tx_ch = au1xxx_dbdma_chan_alloc(memid,
-+	if (hw->usedma) {
-+		hw->dma_tx_ch = au1xxx_dbdma_chan_alloc(ddma_memid,
- 			hw->dma_tx_id, NULL, (void *)hw);
- 		if (hw->dma_tx_ch == 0) {
- 			dev_err(&pdev->dev,
-@@ -841,7 +834,7 @@ static int __init au1550_spi_probe(struc
- 
- 
- 		hw->dma_rx_ch = au1xxx_dbdma_chan_alloc(hw->dma_rx_id,
--			memid, NULL, (void *)hw);
-+			ddma_memid, NULL, (void *)hw);
- 		if (hw->dma_rx_ch == 0) {
- 			dev_err(&pdev->dev,
- 				"Cannot allocate rx dma channel\n");
-@@ -874,7 +867,7 @@ static int __init au1550_spi_probe(struc
- 		goto err_no_irq;
- 	}
- 
--	master->bus_num = hw->pdata->bus_num;
-+	master->bus_num = pdev->id;
- 	master->num_chipselect = hw->pdata->num_chipselect;
- 
- 	/*
-@@ -924,8 +917,11 @@ err_no_txdma_descr:
- 		au1xxx_dbdma_chan_free(hw->dma_tx_ch);
- 
- err_no_txdma:
--err_dma_add_dev:
--	release_mem_region((unsigned long)hw->regs, sizeof(psc_spi_t));
-+	iounmap((void __iomem *)hw->regs);
-+
-+err_ioremap:
-+	release_resource(hw->ioarea);
-+	kfree(hw->ioarea);
- 
- err_no_iores:
- err_no_pdata:
-@@ -944,7 +940,9 @@ static int __exit au1550_spi_remove(stru
- 
- 	spi_bitbang_stop(&hw->bitbang);
- 	free_irq(hw->irq, hw);
--	release_mem_region((unsigned long)hw->regs, sizeof(psc_spi_t));
-+	iounmap((void __iomem *)hw->regs);
-+	release_resource(hw->ioarea);
-+	kfree(hw->ioarea);
- 
- 	if (hw->usedma) {
- 		au1550_spi_dma_rxtmp_free(hw);
-@@ -971,12 +969,24 @@ static struct platform_driver au1550_spi
- 
- static int __init au1550_spi_init(void)
- {
-+	/*
-+	 * create memory device with 8 bits dev_devwidth
-+	 * needed for proper byte ordering to spi fifo
-+	 */
-+	if (usedma) {
-+		ddma_memid = au1xxx_ddma_add_device(&au1550_spi_mem_dbdev);
-+		if (!ddma_memid)
-+			printk(KERN_ERR "au1550-spi: cannot add memory"
-+					"dbdma device\n");
-+	}
- 	return platform_driver_probe(&au1550_spi_drv, au1550_spi_probe);
- }
- module_init(au1550_spi_init);
- 
- static void __exit au1550_spi_exit(void)
- {
-+	if (usedma && ddma_memid)
-+		au1xxx_ddma_del_device(ddma_memid);
- 	platform_driver_unregister(&au1550_spi_drv);
- }
- module_exit(au1550_spi_exit);
-diff -puN include/asm-mips/mach-au1x00/au1550_spi.h~spi-au1550_spi-proper-platform-device include/asm-mips/mach-au1x00/au1550_spi.h
---- a/include/asm-mips/mach-au1x00/au1550_spi.h~spi-au1550_spi-proper-platform-device
-+++ a/include/asm-mips/mach-au1x00/au1550_spi.h
-@@ -6,7 +6,6 @@
- #define _AU1550_SPI_H_
- 
- struct au1550_spi_info {
--	s16 bus_num;		/* defines which PSC and IRQ to use */
- 	u32 mainclk_hz;		/* main input clock frequency of PSC */
- 	u16 num_chipselect;	/* number of chipselects supported */
- 	void (*activate_cs)(struct au1550_spi_info *spi, int cs, int polarity);
+ out:
 _
 
-Patches currently in -mm which might be from mano@roarinelk.homelinux.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-au1xmmc-remove-custom-carddetect-poll-implementation.patch
-spi-au1550_spi-proper-platform-device.patch
+origin.patch
+rtc-x1205-fix-alarm-set-fix.patch
+update-ntfs-help-text-fix.patch
+revert-introduce-rculisth.patch
+next-remove-localversion.patch
+revert-git-pekka.patch
+fix-kobject-fix-kobject_rename-and-config_sysfs.patch
+kvm-is-busted-on-ia64.patch
+drivers-mtd-nand-nandsimc-needs-div64h.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+tick-schedc-suppress-needless-timer-reprogramming-checkpatch-fixes.patch
+git-jg-misc-git-rejects.patch
+drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers.patch
+drivers-mtd-devices-block2mtdc-suppress-warning.patch
+sundance-set-carrier-status-on-link-change-events.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix-fix.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-scsi-misc-fix-scsi_dh-build-errors.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
+pktcdvd-push-bkl-down-into-driver-fix.patch
+block-fix-bio_add_page-for-non-trivial-merge_bvec_fn-case-fix.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-logfs-fixup.patch
+watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
+git-xtensa.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-verify-the-page-links-and-memory-model.patch
+mspec-convert-nopfn-to-fault-fix.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+kill-generic_file_direct_io-checkpatch-fixes.patch
+use-generic_access_phys-for-dev-mem-mappings-fix.patch
+spufs-use-the-new-vm_ops-access-fix.patch
+fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
+page-flags-record-page-flag-overlays-explicitly-xen.patch
+mapping_set_error-add-unlikely.patch
+huge-page-private-reservation-review-cleanups-fix.patch
+sync_file_range_write-may-and-will-block-document-that-fix.patch
+vmallocinfo-add-numa-information-fix.patch
+hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
+hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
+hugetlb-override-default-huge-page-size-ia64-build.patch
+linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+bootmem-add-debugging-framework-fix.patch
+bootmem-clean-up-free_all_bootmem_core-fix.patch
+bootmem-free-reserve-helpers-fix.patch
+revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-v850-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
+swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
+block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
+seq_file-fix-bug-when-seq_read-reads-nothing-fix.patch
+rename-warn-to-warning-to-clear-the-namespace-fix.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-paccept-sys_ni.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-signalfd-fix.patch
+flag-parameters-eventfd-fix.patch
+flag-parameters-inotify_init-fix.patch
+flag-parameters-check-magic-constants-alpha.patch
+oprofile-multiplexing-checkpatch-fixes.patch
+spi-au1550_spi-improve-pio-transfer-mode-checkpatch-fixes.patch
+gpio-gpio-driver-for-max7301-spi-gpio-expander-checkpatch-fixes.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
+fsl-diu-fb-update-freescale-diu-driver-to-use-page_alloc_exact-fix.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
+ext3-handle-corrupted-orphan-list-at-mount-cleanup.patch
+ext3-handle-corrupted-orphan-list-at-mount-fix.patch
+ext3-handle-corrupted-orphan-list-at-mount-cleanup-fix.patch
+reiserfs-convert-j_flush_sem-to-mutex.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
+cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-checkpatch-fixes.patch
+memcg-remove-refcnt-from-page_cgroup-fix-2.patch
+jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup.patch
+ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
+getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
+tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
+memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
+memstick-use-fully-asynchronous-request-processing-fix.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+mm-introduce-get_user_pages_fast-fix.patch
+mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-fix.patch
+x86-lockless-get_user_pages_fast-fix-2.patch
+x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
+x86-lockless-get_user_pages_fast-fix-warning.patch
+vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
+define-page_file_cache-function-fix.patch
+unevictable-lru-infrastructure-fix.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-3.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
+vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
+video-console-sticonrec-make-code-static-checkpatch-fixes.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
