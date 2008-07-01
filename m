@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + video-console-sticonrec-make-code-static-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 01 Jul 2008 00:15:51 -0700
-Message-ID: <200807010715.m617FpQ4014487@imap1.linux-foundation.org>
+Subject: + video-stifbc-make-2-functions-static.patch added to -mm tree
+Date: Tue, 01 Jul 2008 00:15:57 -0700
+Message-ID: <200807010715.m617Fvk8014490@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44241 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33843 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751881AbYGAHQh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 03:16:37 -0400
+	by vger.kernel.org with ESMTP id S1752115AbYGAHRB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 03:17:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, bunk@kernel.org
+Cc: bunk@kernel.org
 
 
 The patch titled
-     video-console-sticonrec-make-code-static-checkpatch-fixes
+     video/stifb.c: make 2 functions static
 has been added to the -mm tree.  Its filename is
-     video-console-sticonrec-make-code-static-checkpatch-fixes.patch
+     video-stifbc-make-2-functions-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,194 +33,107 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: video-console-sticonrec-make-code-static-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: video/stifb.c: make 2 functions static
+From: Adrian Bunk <bunk@kernel.org>
 
-ERROR: space required after that ',' (ctx:OxV)
-#107: FILE: drivers/video/console/sticore.c:544:
-+		 int (*search_font_fnc) (struct sti_cooked_rom *,int,int) )
- 		                                                ^
+This patch makes the following needlessly global functions static:
+- stifb_init_fb()
+- stifb_init()
 
-ERROR: space required after that ',' (ctx:VxV)
-#107: FILE: drivers/video/console/sticore.c:544:
-+		 int (*search_font_fnc) (struct sti_cooked_rom *,int,int) )
- 		                                                    ^
-
-ERROR: space prohibited before that close parenthesis ')'
-#107: FILE: drivers/video/console/sticore.c:544:
-+		 int (*search_font_fnc) (struct sti_cooked_rom *,int,int) )
-
-total: 3 errors, 0 warnings, 102 lines checked
-
-./patches/video-console-sticonrec-make-code-static.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Adrian Bunk <bunk@kernel.org>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/console/sticore.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/stifb.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN drivers/video/console/sticore.c~video-console-sticonrec-make-code-static-checkpatch-fixes drivers/video/console/sticore.c
---- a/drivers/video/console/sticore.c~video-console-sticonrec-make-code-static-checkpatch-fixes
-+++ a/drivers/video/console/sticore.c
-@@ -541,7 +541,7 @@ static struct sti_cooked_font __devinit
+diff -puN drivers/video/stifb.c~video-stifbc-make-2-functions-static drivers/video/stifb.c
+--- a/drivers/video/stifb.c~video-stifbc-make-2-functions-static
++++ a/drivers/video/stifb.c
+@@ -1078,8 +1078,7 @@ static struct fb_ops stifb_ops = {
+  *  Initialization
+  */
  
- static struct sti_cooked_font __devinit
- *sti_select_font(struct sti_cooked_rom *rom,
--		 int (*search_font_fnc) (struct sti_cooked_rom *,int,int) )
-+		 int (*search_font_fnc)(struct sti_cooked_rom *, int, int))
+-int __init
+-stifb_init_fb(struct sti_struct *sti, int bpp_pref)
++static int __init stifb_init_fb(struct sti_struct *sti, int bpp_pref)
  {
- 	struct sti_cooked_font *font;
- 	int i;
+ 	struct fb_fix_screeninfo *fix;
+ 	struct fb_var_screeninfo *var;
+@@ -1315,8 +1314,7 @@ static int stifb_disabled __initdata;
+ int __init
+ stifb_setup(char *options);
+ 
+-int __init
+-stifb_init(void)
++static int __init stifb_init(void)
+ {
+ 	struct sti_struct *sti;
+ 	struct sti_struct *def_sti;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from bunk@kernel.org are
 
 origin.patch
-rtc-x1205-fix-alarm-set-fix.patch
-revert-introduce-rculisth.patch
-next-remove-localversion.patch
-revert-git-pekka.patch
-fix-kobject-fix-kobject_rename-and-config_sysfs.patch
-kvm-is-busted-on-ia64.patch
-drivers-mtd-nand-nandsimc-needs-div64h.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-tick-schedc-suppress-needless-timer-reprogramming-checkpatch-fixes.patch
-git-jg-misc-git-rejects.patch
-drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-mmc-sd-host-driver-for-ricoh-bay1controllers.patch
-drivers-mtd-devices-block2mtdc-suppress-warning.patch
-sundance-set-carrier-status-on-link-change-events.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix-fix.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-scsi-misc-fix-scsi_dh-build-errors.patch
-drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
-s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
-pktcdvd-push-bkl-down-into-driver-fix.patch
-block-fix-bio_add_page-for-non-trivial-merge_bvec_fn-case-fix.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-git-logfs-fixup.patch
-watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
+firmware-fix-the-request_firmware-dummy.patch
+remove-drivers-acorn-char-defkeymap-l7200c.patch
+drm-make-drm_minors_cleanup-static.patch
+m32r-remove-the-unused-nohighmem-option.patch
+if-0-ses_match_host.patch
+scsi-make-struct-scsi_hosttarget_type-static.patch
 git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-verify-the-page-links-and-memory-model.patch
-mspec-convert-nopfn-to-fault-fix.patch
-page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
-kill-generic_file_direct_io-checkpatch-fixes.patch
-use-generic_access_phys-for-dev-mem-mappings-fix.patch
-spufs-use-the-new-vm_ops-access-fix.patch
-fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
-page-flags-record-page-flag-overlays-explicitly-xen.patch
-mapping_set_error-add-unlikely.patch
-huge-page-private-reservation-review-cleanups-fix.patch
-sync_file_range_write-may-and-will-block-document-that-fix.patch
-vmallocinfo-add-numa-information-fix.patch
-hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
-hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
-hugetlb-override-default-huge-page-size-ia64-build.patch
-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-bootmem-add-debugging-framework-fix.patch
-bootmem-clean-up-free_all_bootmem_core-fix.patch
-bootmem-free-reserve-helpers-fix.patch
-revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-v850-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
-swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
-split-the-typecheck-macros-out-of-include-linux-kernelh.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
-remove-apparently-unused-fd1772h-header-file.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+mm-migratec-should-include-linux-syscallsh.patch
+mm-vmstatc-proper-externs.patch
+mm-hugetlbc-fix-duplicate-variable.patch
+mm-page_allocc-cleanups.patch
+mm-make-register_page_bootmem_info_section-static.patch
+remove-include-asm-h8300-keyboardh.patch
+alpha-remove-the-unused-alpha_core_agp-option.patch
+remove-include-linux-pm_legacyh.patch
+mn10300-move-sg_dma_addresslen-to-asm-scatterlisth.patch
+remove-the-v850-port.patch
+init-do_mountsc-should-include-linux-initrdh.patch
+build-kernel-profileo-only-when-requested.patch
 build-kernel-profileo-only-when-requested-cleanups.patch
-fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
-block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
-seq_file-fix-bug-when-seq_read-reads-nothing-fix.patch
-rename-warn-to-warning-to-clear-the-namespace-fix.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
-flag-parameters-paccept-fix.patch
-flag-parameters-paccept-sys_ni.patch
-flag-parameters-anon_inode_getfd-extension-fix.patch
-flag-parameters-signalfd-fix.patch
-flag-parameters-eventfd-fix.patch
-flag-parameters-inotify_init-fix.patch
-flag-parameters-check-magic-constants-alpha.patch
-oprofile-multiplexing-checkpatch-fixes.patch
-gpio-gpio-driver-for-max7301-spi-gpio-expander-checkpatch-fixes.patch
-drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
-atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
-fsl-diu-fb-update-freescale-diu-driver-to-use-page_alloc_exact-fix.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
-ext3-handle-corrupted-orphan-list-at-mount-cleanup.patch
-ext3-handle-corrupted-orphan-list-at-mount-fix.patch
-ext3-handle-corrupted-orphan-list-at-mount-cleanup-fix.patch
-reiserfs-convert-j_flush_sem-to-mutex.patch
-reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
-cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-checkpatch-fixes.patch
-memcg-remove-refcnt-from-page_cgroup-fix-2.patch
-jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup.patch
-ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
-getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
-tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
-memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
-memstick-use-fully-asynchronous-request-processing-fix.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-mm-introduce-get_user_pages_fast-fix.patch
-mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-fix.patch
-x86-lockless-get_user_pages_fast-fix-2.patch
-x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
-x86-lockless-get_user_pages_fast-fix-warning.patch
-vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
-define-page_file_cache-function-fix.patch
-unevictable-lru-infrastructure-fix.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-3.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
-vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
+asm-generic-int-ll64h-always-provide-__su64.patch
+remove-some-more-tipar-bits.patch
+include-linux-kernelh-userspace-header-cleanup.patch
+remove-the-oss-trident-driver.patch
+config_sound_wm97xx-remove-stale-makefile-line.patch
+serial-8250_gscc-add-module_license.patch
+video-sis-remove-compat-code.patch
+drivers-video-amifbc-cleanups.patch
+minix-remove-no_truncate-code.patch
+jbd-unexport-journal_update_superblock.patch
+coda-remove-coda_fs_old_api.patch
+fat-dirc-switch-to-struct-__fat_dirent.patch
+remove-the-in-kernel-struct-dirent64.patch
+remove-unused-include-linux-direnths.patch
+include-asm-ptraceh-userspace-headers-cleanup.patch
+remove-is_tty.patch
+pty-remove-unused-unix98_pty_count-options.patch
+proper-extern-for-mwave_s_mdd.patch
+if-0-hpet_unregister.patch
+unexport-proc_clear_tty.patch
+move-proc_kmsg_operations-to-fs-proc-internalh.patch
+proper-pidhashmap_init-prototypes.patch
+unexport-uts_sem.patch
+parport-sharec-proper-externs.patch
+tpm_biosc-make-2-structs-static.patch
+make-cgroup_seqfile_release-static.patch
+make-kprobe_blacklist-static.patch
+make-pnp_add_card_id-static.patch
+make-parport_cs_release-static.patch
+make-mm-sparsec-make-a-function-static.patch
+mm-allocpercpuc-make-4-functions-static.patch
+make-mm-memoryc-print_bad_pte-static.patch
+mm-swapfilec-make-code-static.patch
+make-mm-rmapc-anon_vma_cachep-static.patch
+drivers-char-rtcc-make-2-functions-static.patch
+make-init-do_mountsc-root_device_name-static.patch
+make-macfb_setup-static.patch
+video-console-sticonrec-make-code-static.patch
 video-console-sticonrec-make-code-static-checkpatch-fixes.patch
+video-stifbc-make-2-functions-static.patch
 reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
 
