@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fifo-pipe-reuse-xxx_fifo_fops-for-xxx_pipe_fops.patch added to -mm tree
-Date: Tue, 01 Jul 2008 13:41:32 -0700
-Message-ID: <200807012041.m61KfWEr013678@imap1.linux-foundation.org>
+Subject: + hugetlb-reservations-fix-hugetlb-map_private-reservations-across-vma-splits-v2.patch added to -mm tree
+Date: Tue, 01 Jul 2008 13:50:14 -0700
+Message-ID: <200807012050.m61KoExm014014@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60065 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50275 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758954AbYGAUl7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 16:41:59 -0400
+	by vger.kernel.org with ESMTP id S1752941AbYGAUvz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 16:51:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vda.linux@googlemail.com, hch@lst.de, jens.axboe@oracle.com, viro@zeniv.linux.org.uk
+Cc: apw@shadowen.org, agl@us.ibm.com, hannes@saeurebad.de, hugh@veritas.com, kniht@linux.vnet.ibm.com, mel@csn.ul.ie, mtk.manpages@googlemail.com, wli@holomorphy.com
 
 
 The patch titled
-     fifo/pipe: reuse xxx_fifo_fops for xxx_pipe_fops
+     hugetlb reservations: fix hugetlb MAP_PRIVATE reservations across vma splits
 has been added to the -mm tree.  Its filename is
-     fifo-pipe-reuse-xxx_fifo_fops-for-xxx_pipe_fops.patch
+     hugetlb-reservations-fix-hugetlb-map_private-reservations-across-vma-splits-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,190 +33,412 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fifo/pipe: reuse xxx_fifo_fops for xxx_pipe_fops
-From: Denys Vlasenko <vda.linux@googlemail.com>
+Subject: hugetlb reservations: fix hugetlb MAP_PRIVATE reservations across vma splits
+From: Andy Whitcroft <apw@shadowen.org>
 
-I noticed that read/write/rdwr_pipe_fops are (1) const and
-(2) exactly identical to xxx_fifo_fops, which are also const.
+When a hugetlb mapping with a reservation is split, a new VMA is cloned
+from the original.  This new VMA is a direct copy of the original
+including the reservation count.  When this pair of VMAs are unmapped we
+will incorrect double account the unused reservation and the overall
+reservation count will be incorrect, in extreme cases it will wrap.
 
-Use the same struct file_operations objects for ->f_op of pipes and fifos.
+The problem occurs when we split an existing VMA say to unmap a page in
+the middle.  split_vma() will create a new VMA copying all fields from the
+original.  As we are storing our reservation count in vm_private_data this
+is also copies, endowing the new VMA with a duplicate of the original
+VMA's reservation.  Neither of the new VMAs can exhaust these reservations
+as they are too small, but when we unmap and close these VMAs we will
+incorrect credit the remainder twice and resv_huge_pages will become out
+of sync.  This can lead to allocation failures on mappings with
+reservations and even to resv_huge_pages wrapping which prevents all
+subsequent hugepage allocations.
 
-Size difference:
+The simple fix would be to correctly apportion the remaining reservation
+count when the split is made.  However the only hook we have vm_ops->open
+only has the new VMA we do not know the identity of the preceeding VMA. 
+Also even if we did have that VMA to hand we do not know how much of the
+reservation was consumed each side of the split.
 
-# size linux-2.6.25-rc6*/*/pipe.o
-   text    data     bss     dec     hex filename
-   6534     144       0    6678    1a16 linux-2.6.25-rc6/fs/pipe.o
-   5862     144       0    6006    1776 linux-2.6.25-rc6-pt/fs/pipe.o
+This patch therefore takes a different tack.  We know that the whole of
+any private mapping (which has a reservation) has a reservation over its
+whole size.  Any present pages represent consumed reservation.  Therefore
+if we track the instantiated pages we can calculate the remaining
+reservation.
 
-Signed-off-by: Denys Vlasenko <vda.linux@googlemail.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+This patch reuses the existing regions code to track the regions for which
+we have consumed reservation (ie.  the instantiated pages), as each page
+is faulted in we record the consumption of reservation for the new page. 
+When we need to return unused reservations at unmap time we simply count
+the consumed reservation region subtracting that from the whole of the
+map.  During a VMA split the newly opened VMA will point to the same
+region map, as this map is offset oriented it remains valid for both of
+the split VMAs.  This map is referenced counted so that it is removed when
+all VMAs which are part of the mmap are gone.
+
+Thanks to Adam Litke and Mel Gorman for their review feedback.
+
+Signed-off-by: Andy Whitcroft <apw@shadowen.org>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
+Cc: Adam Litke <agl@us.ibm.com>
+Cc: Johannes Weiner <hannes@saeurebad.de>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: William Lee Irwin III <wli@holomorphy.com>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
+Cc: Jon Tollefson <kniht@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fifo.c          |    8 +++---
- fs/pipe.c          |   51 ++++++-------------------------------------
- include/linux/fs.h |    6 ++---
- 3 files changed, 15 insertions(+), 50 deletions(-)
+ mm/hugetlb.c |  171 +++++++++++++++++++++++++++++++++++++++++--------
+ 1 file changed, 144 insertions(+), 27 deletions(-)
 
-diff -puN fs/fifo.c~fifo-pipe-reuse-xxx_fifo_fops-for-xxx_pipe_fops fs/fifo.c
---- a/fs/fifo.c~fifo-pipe-reuse-xxx_fifo_fops-for-xxx_pipe_fops
-+++ a/fs/fifo.c
-@@ -57,7 +57,7 @@ static int fifo_open(struct inode *inode
- 	 *  POSIX.1 says that O_NONBLOCK means return with the FIFO
- 	 *  opened, even when there is no process writing the FIFO.
- 	 */
--		filp->f_op = &read_fifo_fops;
-+		filp->f_op = &read_pipefifo_fops;
- 		pipe->r_counter++;
- 		if (pipe->readers++ == 0)
- 			wake_up_partner(inode);
-@@ -86,7 +86,7 @@ static int fifo_open(struct inode *inode
- 		if ((filp->f_flags & O_NONBLOCK) && !pipe->readers)
- 			goto err;
- 
--		filp->f_op = &write_fifo_fops;
-+		filp->f_op = &write_pipefifo_fops;
- 		pipe->w_counter++;
- 		if (!pipe->writers++)
- 			wake_up_partner(inode);
-@@ -105,7 +105,7 @@ static int fifo_open(struct inode *inode
- 	 *  This implementation will NEVER block on a O_RDWR open, since
- 	 *  the process can at least talk to itself.
- 	 */
--		filp->f_op = &rdwr_fifo_fops;
-+		filp->f_op = &rdwr_pipefifo_fops;
- 
- 		pipe->readers++;
- 		pipe->writers++;
-@@ -151,5 +151,5 @@ err_nocleanup:
-  * depending on the access mode of the file...
-  */
- const struct file_operations def_fifo_fops = {
--	.open		= fifo_open,	/* will set read or write pipe_fops */
-+	.open		= fifo_open,	/* will set read_ or write_pipefifo_fops */
- };
-diff -puN fs/pipe.c~fifo-pipe-reuse-xxx_fifo_fops-for-xxx_pipe_fops fs/pipe.c
---- a/fs/pipe.c~fifo-pipe-reuse-xxx_fifo_fops-for-xxx_pipe_fops
-+++ a/fs/pipe.c
-@@ -777,8 +777,10 @@ pipe_rdwr_open(struct inode *inode, stru
+diff -puN mm/hugetlb.c~hugetlb-reservations-fix-hugetlb-map_private-reservations-across-vma-splits-v2 mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-reservations-fix-hugetlb-map_private-reservations-across-vma-splits-v2
++++ a/mm/hugetlb.c
+@@ -49,6 +49,16 @@ static DEFINE_SPINLOCK(hugetlb_lock);
  /*
-  * The file_operations structs are not static because they
-  * are also used in linux/fs/fifo.c to do operations on FIFOs.
+  * Region tracking -- allows tracking of reservations and instantiated pages
+  *                    across the pages in a mapping.
 + *
-+ * Pipes reuse fifos' file_operations structs.
++ * The region data structures are protected by a combination of the mmap_sem
++ * and the hugetlb_instantion_mutex.  To access or modify a region the caller
++ * must either hold the mmap_sem for write, or the mmap_sem for read and
++ * the hugetlb_instantiation mutex:
++ *
++ * 	down_write(&mm->mmap_sem);
++ * or
++ * 	down_read(&mm->mmap_sem);
++ * 	mutex_lock(&hugetlb_instantiation_mutex);
   */
--const struct file_operations read_fifo_fops = {
-+const struct file_operations read_pipefifo_fops = {
- 	.llseek		= no_llseek,
- 	.read		= do_sync_read,
- 	.aio_read	= pipe_read,
-@@ -790,7 +792,7 @@ const struct file_operations read_fifo_f
- 	.fasync		= pipe_read_fasync,
+ struct file_region {
+ 	struct list_head link;
+@@ -171,6 +181,30 @@ static long region_truncate(struct list_
+ 	return chg;
+ }
+ 
++static long region_count(struct list_head *head, long f, long t)
++{
++	struct file_region *rg;
++	long chg = 0;
++
++	/* Locate each segment we overlap with, and count that overlap. */
++	list_for_each_entry(rg, head, link) {
++		int seg_from;
++		int seg_to;
++
++		if (rg->to <= f)
++			continue;
++		if (rg->from >= t)
++			break;
++
++		seg_from = max(rg->from, f);
++		seg_to = min(rg->to, t);
++
++		chg += seg_to - seg_from;
++	}
++
++	return chg;
++}
++
+ /*
+  * Convert the address within this vma to the page offset within
+  * the mapping, in pagecache page units; huge pages here.
+@@ -182,9 +216,15 @@ static pgoff_t vma_hugecache_offset(stru
+ 			(vma->vm_pgoff >> huge_page_order(h));
+ }
+ 
+-#define HPAGE_RESV_OWNER    (1UL << (BITS_PER_LONG - 1))
+-#define HPAGE_RESV_UNMAPPED (1UL << (BITS_PER_LONG - 2))
++/*
++ * Flags for MAP_PRIVATE reservations.  These are stored in the bottom
++ * bits of the reservation map pointer, which are always clear due to
++ * alignment.
++ */
++#define HPAGE_RESV_OWNER    (1UL << 0)
++#define HPAGE_RESV_UNMAPPED (1UL << 1)
+ #define HPAGE_RESV_MASK (HPAGE_RESV_OWNER | HPAGE_RESV_UNMAPPED)
++
+ /*
+  * These helpers are used to track how many pages are reserved for
+  * faults in a MAP_PRIVATE mapping. Only the process that called mmap()
+@@ -194,6 +234,15 @@ static pgoff_t vma_hugecache_offset(stru
+  * the reserve counters are updated with the hugetlb_lock held. It is safe
+  * to reset the VMA at fork() time as it is not in use yet and there is no
+  * chance of the global counters getting corrupted as a result of the values.
++ *
++ * The private mapping reservation is represented in a subtly different
++ * manner to a shared mapping.  A shared mapping has a region map associated
++ * with the underlying file, this region map represents the backing file
++ * pages which have ever had a reservation assigned which this persists even
++ * after the page is instantiated.  A private mapping has a region map
++ * associated with the original mmap which is attached to all VMAs which
++ * reference it, this region map represents those offsets which have consumed
++ * reservation ie. where pages have been instantiated.
+  */
+ static unsigned long get_vma_private_data(struct vm_area_struct *vma)
+ {
+@@ -206,22 +255,48 @@ static void set_vma_private_data(struct 
+ 	vma->vm_private_data = (void *)value;
+ }
+ 
+-static unsigned long vma_resv_huge_pages(struct vm_area_struct *vma)
++struct resv_map {
++	struct kref refs;
++	struct list_head regions;
++};
++
++struct resv_map *resv_map_alloc(void)
++{
++	struct resv_map *resv_map = kmalloc(sizeof(*resv_map), GFP_KERNEL);
++	if (!resv_map)
++		return NULL;
++
++	kref_init(&resv_map->refs);
++	INIT_LIST_HEAD(&resv_map->regions);
++
++	return resv_map;
++}
++
++void resv_map_release(struct kref *ref)
++{
++	struct resv_map *resv_map = container_of(ref, struct resv_map, refs);
++
++	/* Clear out any active regions before we release the map. */
++	region_truncate(&resv_map->regions, 0);
++	kfree(resv_map);
++}
++
++static struct resv_map *vma_resv_map(struct vm_area_struct *vma)
+ {
+ 	VM_BUG_ON(!is_vm_hugetlb_page(vma));
+ 	if (!(vma->vm_flags & VM_SHARED))
+-		return get_vma_private_data(vma) & ~HPAGE_RESV_MASK;
++		return (struct resv_map *)(get_vma_private_data(vma) &
++							~HPAGE_RESV_MASK);
+ 	return 0;
+ }
+ 
+-static void set_vma_resv_huge_pages(struct vm_area_struct *vma,
+-							unsigned long reserve)
++static void set_vma_resv_map(struct vm_area_struct *vma, struct resv_map *map)
+ {
+ 	VM_BUG_ON(!is_vm_hugetlb_page(vma));
+ 	VM_BUG_ON(vma->vm_flags & VM_SHARED);
+ 
+-	set_vma_private_data(vma,
+-		(get_vma_private_data(vma) & HPAGE_RESV_MASK) | reserve);
++	set_vma_private_data(vma, (get_vma_private_data(vma) &
++				HPAGE_RESV_MASK) | (unsigned long)map);
+ }
+ 
+ static void set_vma_resv_flags(struct vm_area_struct *vma, unsigned long flags)
+@@ -249,19 +324,12 @@ static void decrement_hugepage_resv_vma(
+ 	if (vma->vm_flags & VM_SHARED) {
+ 		/* Shared mappings always use reserves */
+ 		h->resv_huge_pages--;
+-	} else {
++	} else if (is_vma_resv_set(vma, HPAGE_RESV_OWNER)) {
+ 		/*
+ 		 * Only the process that called mmap() has reserves for
+ 		 * private mappings.
+ 		 */
+-		if (is_vma_resv_set(vma, HPAGE_RESV_OWNER)) {
+-			unsigned long flags, reserve;
+-			h->resv_huge_pages--;
+-			flags = (unsigned long)vma->vm_private_data &
+-							HPAGE_RESV_MASK;
+-			reserve = (unsigned long)vma->vm_private_data - 1;
+-			vma->vm_private_data = (void *)(reserve | flags);
+-		}
++		h->resv_huge_pages--;
+ 	}
+ }
+ 
+@@ -278,7 +346,7 @@ static int vma_has_private_reserves(stru
+ {
+ 	if (vma->vm_flags & VM_SHARED)
+ 		return 0;
+-	if (!vma_resv_huge_pages(vma))
++	if (!is_vma_resv_set(vma, HPAGE_RESV_OWNER))
+ 		return 0;
+ 	return 1;
+ }
+@@ -783,12 +851,19 @@ static int vma_needs_reservation(struct 
+ 		return region_chg(&inode->i_mapping->private_list,
+ 							idx, idx + 1);
+ 
+-	} else {
+-		if (!is_vma_resv_set(vma, HPAGE_RESV_OWNER))
+-			return 1;
+-	}
++	} else if (!is_vma_resv_set(vma, HPAGE_RESV_OWNER)) {
++		return 1;
+ 
+-	return 0;
++	} else  {
++		int err;
++		pgoff_t idx = vma_pagecache_offset(h, vma, addr);
++		struct resv_map *reservations = vma_resv_map(vma);
++
++		err = region_chg(&reservations->regions, idx, idx + 1);
++		if (err < 0)
++			return err;
++		return 0;
++	}
+ }
+ static void vma_commit_reservation(struct hstate *h,
+ 			struct vm_area_struct *vma, unsigned long addr)
+@@ -799,6 +874,13 @@ static void vma_commit_reservation(struc
+ 	if (vma->vm_flags & VM_SHARED) {
+ 		pgoff_t idx = vma_hugecache_offset(h, vma, addr);
+ 		region_add(&inode->i_mapping->private_list, idx, idx + 1);
++
++	} else if (is_vma_resv_set(vma, HPAGE_RESV_OWNER)) {
++		pgoff_t idx = vma_pagecache_offset(h, vma, addr);
++		struct resv_map *reservations = vma_resv_map(vma);
++
++		/* Mark this page used in the map. */
++		region_add(&reservations->regions, idx, idx + 1);
+ 	}
+ }
+ 
+@@ -1446,13 +1528,42 @@ out:
+ 	return ret;
+ }
+ 
++static void hugetlb_vm_op_open(struct vm_area_struct *vma)
++{
++	struct resv_map *reservations = vma_resv_map(vma);
++
++	/*
++	 * This new VMA should share its siblings reservation map if present.
++	 * The VMA will only ever have a valid reservation map pointer where
++	 * it is being copied for another still existing VMA.  As that VMA
++	 * has a reference to the reservation map it cannot dissappear until
++	 * after this open call completes.  It is therefore safe to take a
++	 * new reference here without additional locking.
++	 */
++	if (reservations)
++		kref_get(&reservations->refs);
++}
++
+ static void hugetlb_vm_op_close(struct vm_area_struct *vma)
+ {
+ 	struct hstate *h = hstate_vma(vma);
+-	unsigned long reserve = vma_resv_huge_pages(vma);
++	struct resv_map *reservations = vma_resv_map(vma);
++	unsigned long reserve;
++	unsigned long start;
++	unsigned long end;
++
++	if (reservations) {
++		start = vma_pagecache_offset(h, vma, vma->vm_start);
++		end = vma_pagecache_offset(h, vma, vma->vm_end);
+ 
+-	if (reserve)
+-		hugetlb_acct_memory(h, -reserve);
++		reserve = (end - start) -
++			region_count(&reservations->regions, start, end);
++
++		kref_put(&reservations->refs, resv_map_release);
++
++		if (reserve)
++			hugetlb_acct_memory(h, -reserve);
++	}
+ }
+ 
+ /*
+@@ -1469,6 +1580,7 @@ static int hugetlb_vm_op_fault(struct vm
+ 
+ struct vm_operations_struct hugetlb_vm_ops = {
+ 	.fault = hugetlb_vm_op_fault,
++	.open = hugetlb_vm_op_open,
+ 	.close = hugetlb_vm_op_close,
  };
  
--const struct file_operations write_fifo_fops = {
-+const struct file_operations write_pipefifo_fops = {
- 	.llseek		= no_llseek,
- 	.read		= bad_pipe_r,
- 	.write		= do_sync_write,
-@@ -802,44 +804,7 @@ const struct file_operations write_fifo_
- 	.fasync		= pipe_write_fasync,
- };
- 
--const struct file_operations rdwr_fifo_fops = {
--	.llseek		= no_llseek,
--	.read		= do_sync_read,
--	.aio_read	= pipe_read,
--	.write		= do_sync_write,
--	.aio_write	= pipe_write,
--	.poll		= pipe_poll,
--	.unlocked_ioctl	= pipe_ioctl,
--	.open		= pipe_rdwr_open,
--	.release	= pipe_rdwr_release,
--	.fasync		= pipe_rdwr_fasync,
--};
--
--static const struct file_operations read_pipe_fops = {
--	.llseek		= no_llseek,
--	.read		= do_sync_read,
--	.aio_read	= pipe_read,
--	.write		= bad_pipe_w,
--	.poll		= pipe_poll,
--	.unlocked_ioctl	= pipe_ioctl,
--	.open		= pipe_read_open,
--	.release	= pipe_read_release,
--	.fasync		= pipe_read_fasync,
--};
--
--static const struct file_operations write_pipe_fops = {
--	.llseek		= no_llseek,
--	.read		= bad_pipe_r,
--	.write		= do_sync_write,
--	.aio_write	= pipe_write,
--	.poll		= pipe_poll,
--	.unlocked_ioctl	= pipe_ioctl,
--	.open		= pipe_write_open,
--	.release	= pipe_write_release,
--	.fasync		= pipe_write_fasync,
--};
--
--static const struct file_operations rdwr_pipe_fops = {
-+const struct file_operations rdwr_pipefifo_fops = {
- 	.llseek		= no_llseek,
- 	.read		= do_sync_read,
- 	.aio_read	= pipe_read,
-@@ -927,7 +892,7 @@ static struct inode * get_pipe_inode(voi
- 	inode->i_pipe = pipe;
- 
- 	pipe->readers = pipe->writers = 1;
--	inode->i_fop = &rdwr_pipe_fops;
-+	inode->i_fop = &rdwr_pipefifo_fops;
- 
- 	/*
- 	 * Mark the inode dirty from the very beginning,
-@@ -978,7 +943,7 @@ struct file *create_write_pipe(void)
- 	d_instantiate(dentry, inode);
- 
- 	err = -ENFILE;
--	f = alloc_file(pipe_mnt, dentry, FMODE_WRITE, &write_pipe_fops);
-+	f = alloc_file(pipe_mnt, dentry, FMODE_WRITE, &write_pipefifo_fops);
- 	if (!f)
- 		goto err_dentry;
- 	f->f_mapping = inode->i_mapping;
-@@ -1020,7 +985,7 @@ struct file *create_read_pipe(struct fil
- 
- 	f->f_pos = 0;
- 	f->f_flags = O_RDONLY;
--	f->f_op = &read_pipe_fops;
-+	f->f_op = &read_pipefifo_fops;
- 	f->f_mode = FMODE_READ;
- 	f->f_version = 0;
- 
-diff -puN include/linux/fs.h~fifo-pipe-reuse-xxx_fifo_fops-for-xxx_pipe_fops include/linux/fs.h
---- a/include/linux/fs.h~fifo-pipe-reuse-xxx_fifo_fops-for-xxx_pipe_fops
-+++ a/include/linux/fs.h
-@@ -1698,9 +1698,9 @@ extern void init_special_inode(struct in
- extern void make_bad_inode(struct inode *);
- extern int is_bad_inode(struct inode *);
- 
--extern const struct file_operations read_fifo_fops;
--extern const struct file_operations write_fifo_fops;
--extern const struct file_operations rdwr_fifo_fops;
-+extern const struct file_operations read_pipefifo_fops;
-+extern const struct file_operations write_pipefifo_fops;
-+extern const struct file_operations rdwr_pipefifo_fops;
- 
- extern int fs_may_remount_ro(struct super_block *);
+@@ -2027,8 +2139,13 @@ int hugetlb_reserve_pages(struct inode *
+ 	if (!vma || vma->vm_flags & VM_SHARED)
+ 		chg = region_chg(&inode->i_mapping->private_list, from, to);
+ 	else {
++		struct resv_map *resv_map = resv_map_alloc();
++		if (!resv_map)
++			return -ENOMEM;
++
+ 		chg = to - from;
+-		set_vma_resv_huge_pages(vma, chg);
++
++		set_vma_resv_map(vma, resv_map);
+ 		set_vma_resv_flags(vma, HPAGE_RESV_OWNER);
+ 	}
  
 _
 
-Patches currently in -mm which might be from vda.linux@googlemail.com are
+Patches currently in -mm which might be from apw@shadowen.org are
 
-aic7xxx-introduce-dont_generate_debug_code-keyword-in-aicasm-parser.patch
-aic7xxx-update-reg-files.patch
-aic7xxx-update-reg-files-update.patch
-aic7xxx-update-_shipped-files.patch
-fifo-pipe-reuse-xxx_fifo_fops-for-xxx_pipe_fops.patch
+mm-add-a-basic-debugging-framework-for-memory-initialisation.patch
+mm-add-a-basic-debugging-framework-for-memory-initialisation-fix.patch
+mm-verify-the-page-links-and-memory-model.patch
+mm-make-defensive-checks-around-pfn-values-registered-for-memory-usage.patch
+mm-print-out-the-zonelists-on-request-for-manual-verification.patch
+add-a-helper-function-to-test-if-an-object-is-on-the-stack.patch
+mm-move-bootmem-descriptors-definition-to-a-single-place.patch
+mm-fix-free_all_bootmem_core-alignment-check.patch
+mm-normalize-internal-argument-passing-of-bootmem-data.patch
+mm-unexport-__alloc_bootmem_core.patch
+buddy-clarify-comments-describing-buddy-merge.patch
+page-flags-record-page-flag-overlays-explicitly.patch
+page-flags-record-page-flag-overlays-explicitly-xen.patch
+slub-record-page-flag-overlays-explicitly.patch
+slob-record-page-flag-overlays-explicitly.patch
+hugetlb-move-hugetlb_acct_memory.patch
+hugetlb-reserve-huge-pages-for-reliable-map_private-hugetlbfs-mappings-until-fork.patch
+hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed.patch
+hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed-fix.patch
+hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed-build-fix.patch
+huge-page-private-reservation-review-cleanups.patch
+huge-page-private-reservation-review-cleanups-fix.patch
+mm-record-map_noreserve-status-on-vmas-and-fix-small-page-mprotect-reservations.patch
+hugetlb-move-reservation-region-support-earlier.patch
+hugetlb-allow-huge-page-mappings-to-be-created-without-reservations.patch
+hugetlb-allow-huge-page-mappings-to-be-created-without-reservations-cleanups.patch
+hugetlb-reservations-move-region-tracking-earlier.patch
+hugetlb-reservations-fix-hugetlb-map_private-reservations-across-vma-splits-v2.patch
+memory-hotplugallocate-usemap-on-the-section-with-pgdat-take-4.patch
+memory-hotplug-small-fixes-to-bootmem-freeing-for-memory-hotremove.patch
+checkpatch-version-020.patch
+checkpatch-return-is-not-a-function-parentheses-for-casts-are-ok-too.patch
+checkpatch-types-some-types-may-also-be-identifiers.patch
+checkpatch-add-a-checkpatch-warning-for-new-uses-of-__initcall.patch
+checkpatch-possible-types-__asm__-is-never-a-type.patch
+checkpatch-comment-detection-ignore-macro-continuation-when-detecting-associated-comments.patch
+checkpatch-types-unary-goto-introduces-unary-context.patch
+checkpatch-macros-fix-statement-counting-block-end-detection.patch
+checkpatch-trailing-statement-indent-fix-end-of-statement-location.patch
+checkpatch-allow-printk-strings-to-exceed-80-characters-to-maintain-their-searchability.patch
+checkpatch-switch-report-trailing-statements-on-case-and-default.patch
+checkpatch-check-spacing-for-square-brackets.patch
+checkpatch-toughen-trailing-if-statement-checks-and-extend-them-to-while-and-for.patch
+checkpatch-condition-loop-indent-checks.patch
+checkpatch-usb_free_urb-can-take-null.patch
+checkpatch-correct-spelling-in-kfree-checks.patch
+checkpatch-allow-for-type-modifiers-on-multiple-declarations.patch
+checkpatch-improve-type-matcher-debug.patch
+checkpatch-possible-modifiers-are-not-being-correctly-matched.patch
+checkpatch-macro-complexity-checks-are-meaningless-in-linker-scripts.patch
+checkpatch-handle-return-types-of-pointers-to-functions.patch
+checkpatch-possible-types-known-modifiers-cannot-be-types.patch
+checkpatch-possible-modifiers-handle-multiple-modifiers-and-trailing.patch
+x86-implement-pte_special.patch
+mm-introduce-get_user_pages_fast.patch
+mm-introduce-get_user_pages_fast-fix.patch
+mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast.patch
+x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-fix.patch
+x86-lockless-get_user_pages_fast-fix-2.patch
+x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
+x86-lockless-get_user_pages_fast-fix-warning.patch
+dio-use-get_user_pages_fast.patch
+splice-use-get_user_pages_fast.patch
+page-owner-tracking-leak-detector.patch
 
