@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mtd-atmel_nand-can-be-modular.patch added to -mm tree
-Date: Tue, 01 Jul 2008 14:28:20 -0700
-Message-ID: <200807012128.m61LSKNf015536@imap1.linux-foundation.org>
+Subject: + atmel_nand-work-around-at32ap7000-ecc-errata.patch added to -mm tree
+Date: Tue, 01 Jul 2008 14:28:18 -0700
+Message-ID: <200807012128.m61LSIWp015533@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46968 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42313 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750891AbYGAV2o (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 17:28:44 -0400
+	by vger.kernel.org with ESMTP id S1751096AbYGAV2l (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 17:28:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dbrownell@users.sourceforge.net, dwmw2@infradead.org, haavard.skinnemoen@atmel.com, linux@maxim.org.za
+Cc: haavard.skinnemoen@atmel.com, dwmw2@infradead.org, linux@maxim.org.za
 
 
 The patch titled
-     MTD: atmel_nand can be modular
+     atmel_nand: Work around AT32AP7000 ECC errata
 has been added to the -mm tree.  Its filename is
-     mtd-atmel_nand-can-be-modular.patch
+     atmel_nand-work-around-at32ap7000-ecc-errata.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,60 +33,79 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MTD: atmel_nand can be modular
-From: David Brownell <dbrownell@users.sourceforge.net>
+Subject: atmel_nand: Work around AT32AP7000 ECC errata
+From: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
 
-There's no reason to prevent the Atmel NAND driver from
-building as a module.
+The ALE signal isn't correctly wired up to the ECC controller on the
+AP7000, so it starts calculating ECC during the address cycles.
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Work around this by resetting the ECC controller between the address and
+data cycles.
+
 Signed-off-by: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
 Acked-by: Andrew Victor <linux@maxim.org.za>
 Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/nand/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/mtd/nand/atmel_nand.c |   25 +++++++++++++++++++++++--
+ 1 file changed, 23 insertions(+), 2 deletions(-)
 
-diff -puN drivers/mtd/nand/Kconfig~mtd-atmel_nand-can-be-modular drivers/mtd/nand/Kconfig
---- a/drivers/mtd/nand/Kconfig~mtd-atmel_nand-can-be-modular
-+++ a/drivers/mtd/nand/Kconfig
-@@ -272,7 +272,7 @@ config MTD_NAND_CS553X
- 	  If you say "m", the module will be called "cs553x_nand.ko".
+diff -puN drivers/mtd/nand/atmel_nand.c~atmel_nand-work-around-at32ap7000-ecc-errata drivers/mtd/nand/atmel_nand.c
+--- a/drivers/mtd/nand/atmel_nand.c~atmel_nand-work-around-at32ap7000-ecc-errata
++++ a/drivers/mtd/nand/atmel_nand.c
+@@ -33,6 +33,7 @@
+ #include <linux/io.h>
  
- config MTD_NAND_ATMEL
--	bool "Support for NAND Flash / SmartMedia on AT91 and AVR32"
-+	tristate "Support for NAND Flash / SmartMedia on AT91 and AVR32"
- 	depends on ARCH_AT91 || AVR32
- 	help
- 	  Enables support for NAND Flash / Smart Media Card interface
+ #include <asm/arch/board.h>
++#include <asm/arch/cpu.h>
+ 
+ #ifdef CONFIG_MTD_NAND_ATMEL_ECC_HW
+ #define hard_ecc	1
+@@ -264,6 +265,19 @@ static int atmel_nand_read_page(struct m
+ 	uint8_t *ecc_pos;
+ 	int stat;
+ 
++	/*
++	 * Errata: ALE is incorrectly wired up to the ECC controller
++	 * on the AP7000, so it will include the address cycles in the
++	 * ECC calculation.
++	 *
++	 * Workaround: Reset the parity registers before reading the
++	 * actual data.
++	 */
++	if (cpu_is_at32ap7000()) {
++		struct atmel_nand_host *host = chip->priv;
++		ecc_writel(host->ecc, CR, ATMEL_ECC_RST);
++	}
++
+ 	/* read the page */
+ 	chip->read_buf(mtd, p, eccsize);
+ 
+@@ -377,9 +391,16 @@ static int atmel_nand_correct(struct mtd
+ }
+ 
+ /*
+- * Enable HW ECC : unsused
++ * Enable HW ECC : unused on most chips
+  */
+-static void atmel_nand_hwctl(struct mtd_info *mtd, int mode) { ; }
++static void atmel_nand_hwctl(struct mtd_info *mtd, int mode)
++{
++	if (cpu_is_at32ap7000()) {
++		struct nand_chip *nand_chip = mtd->priv;
++		struct atmel_nand_host *host = nand_chip->priv;
++		ecc_writel(host->ecc, CR, ATMEL_ECC_RST);
++	}
++}
+ 
+ #ifdef CONFIG_MTD_PARTITIONS
+ static const char *part_probes[] = { "cmdlinepart", NULL };
 _
 
-Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
+Patches currently in -mm which might be from haavard.skinnemoen@atmel.com are
 
-origin.patch
-rtc_read_alarm-handles-wraparound.patch
-spi-spi_mpc83xx-clockrate-fixes.patch
-gpio-pca953x-i2c-handles-max7310-too.patch
-spi-fix-the-read-path-in-spidev.patch
-spi-fix-the-read-path-in-spidev-cleanup.patch
-add-have_clk-to-kconfig-for-driver-dependencies.patch
 atmel_nand-speedup-via-readwritesbw.patch
+atmel_nand-work-around-at32ap7000-ecc-errata.patch
 mtd-atmel_nand-can-be-modular.patch
-usb-fix-possible-memory-leak-in-pxa27x_udc.patch
-pm-boot-time-suspend-selftest.patch
-pm-boot-time-suspend-selftest-vs-linux-next.patch
-xilinx_spi-test-below-0-on-unsigned-irq-in-xilinx_spi_probe.patch
-spi-kconfig-simplifications.patch
-spi-make-spi_board_infomodalias-a-char-array.patch
-spidev-bkl-removal.patch
-spi-au1550_spi-proper-platform-device.patch
-spi-au1550_spi-improve-pio-transfer-mode.patch
-spi-au1550_spi-improve-pio-transfer-mode-checkpatch-fixes.patch
-rtc-remove-bkl-for-ioctl.patch
-gpio-gpio-driver-for-max7301-spi-gpio-expander-check-spi_setup-return-code-cleanup.patch
-gpio-sysfs-interface-updated.patch
-gpio-sysfs-interface-updated-update.patch
-gpio-mcp23s08-handles-multiple-chips-per-chipselect.patch
 
