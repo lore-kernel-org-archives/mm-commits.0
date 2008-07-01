@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + tpm-use-correct-data-types-for-sizes-in-tpm_write-and-tpm_read.patch added to -mm tree
-Date: Tue, 01 Jul 2008 12:56:37 -0700
-Message-ID: <200807011956.m61JubRR011786@imap1.linux-foundation.org>
+Subject: + spi-fix-the-read-path-in-spidev.patch added to -mm tree
+Date: Tue, 01 Jul 2008 13:07:28 -0700
+Message-ID: <200807012007.m61K7SMO012227@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51445 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57778 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753979AbYGAT5W (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 15:57:22 -0400
+	by vger.kernel.org with ESMTP id S1752115AbYGAUIP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 16:08:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mhalcrow@us.ibm.com, tpm@selhorst.net
+Cc: bigeasy@linutronix.de, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     tpm: Use correct data types for sizes in tpm_write() and tpm_read()
+     spi: fix the read path in spidev
 has been added to the -mm tree.  Its filename is
-     tpm-use-correct-data-types-for-sizes-in-tpm_write-and-tpm_read.patch
+     spi-fix-the-read-path-in-spidev.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,52 +33,66 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tpm: Use correct data types for sizes in tpm_write() and tpm_read()
-From: Michael Halcrow <mhalcrow@us.ibm.com>
+Subject: spi: fix the read path in spidev
+From: Sebastian Siewior <bigeasy@linutronix.de>
 
-Use the correct data types for the size parameters in tpm_write() and
-tpm_read(). Note that rw_verify_area() makes sure that this bug cannot
-be exploited to produce a buffer overrun.
+This got broken by the recent "fix rmmod $spi_driver while spidev-user is
+active".  I tested the rmmod & write path but didn't check the read path. 
+I am sorry.  The read logic changed and spidev_sync_read() +
+spidev_sync_write() do not return zero on success anymore but the number
+of bytes that has been transfered over the bus.  This patch changes the
+logic and copy_to_user() gets called again.
 
-Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
-Cc: Marcel Selhorst <tpm@selhorst.net>
+The write path returns the number of bytes which are written to the
+underlying device what may be less than the requested size.  This patch
+makes the same change to the read path or else we request a read of 20
+bytes, get 10, don't call copy to user and report to the user that we read
+10 bytes.
+
+Signed-off-by: Sebastian Siewior <bigeasy@linutronix.de>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tpm/tpm.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/spi/spidev.c |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
-diff -puN drivers/char/tpm/tpm.c~tpm-use-correct-data-types-for-sizes-in-tpm_write-and-tpm_read drivers/char/tpm/tpm.c
---- a/drivers/char/tpm/tpm.c~tpm-use-correct-data-types-for-sizes-in-tpm_write-and-tpm_read
-+++ a/drivers/char/tpm/tpm.c
-@@ -1028,7 +1028,7 @@ ssize_t tpm_write(struct file *file, con
- 		  size_t size, loff_t *off)
- {
- 	struct tpm_chip *chip = file->private_data;
--	int in_size = size, out_size;
-+	size_t in_size = size, out_size;
+diff -puN drivers/spi/spidev.c~spi-fix-the-read-path-in-spidev drivers/spi/spidev.c
+--- a/drivers/spi/spidev.c~spi-fix-the-read-path-in-spidev
++++ a/drivers/spi/spidev.c
+@@ -167,14 +167,14 @@ spidev_read(struct file *filp, char __us
  
- 	/* cannot perform a write until the read has cleared
- 	   either via tpm_read or a user_read_timer timeout */
-@@ -1063,7 +1063,7 @@ ssize_t tpm_read(struct file *file, char
- 		 size_t size, loff_t *off)
- {
- 	struct tpm_chip *chip = file->private_data;
--	int ret_size;
-+	ssize_t ret_size;
+ 	mutex_lock(&spidev->buf_lock);
+ 	status = spidev_sync_read(spidev, count);
+-	if (status == 0) {
++	if (status > 0) {
+ 		unsigned long	missing;
  
- 	del_singleshot_timer_sync(&chip->user_read_timer);
- 	flush_scheduled_work();
+-		missing = copy_to_user(buf, spidev->buffer, count);
+-		if (count && missing == count)
++		missing = copy_to_user(buf, spidev->buffer, status);
++		if (status && missing == status)
+ 			status = -EFAULT;
+ 		else
+-			status = count - missing;
++			status = status - missing;
+ 	}
+ 	mutex_unlock(&spidev->buf_lock);
+ 
+@@ -200,8 +200,6 @@ spidev_write(struct file *filp, const ch
+ 	missing = copy_from_user(spidev->buffer, buf, count);
+ 	if (missing == 0) {
+ 		status = spidev_sync_write(spidev, count);
+-		if (status == 0)
+-			status = count;
+ 	} else
+ 		status = -EFAULT;
+ 	mutex_unlock(&spidev->buf_lock);
 _
 
-Patches currently in -mm which might be from mhalcrow@us.ibm.com are
+Patches currently in -mm which might be from bigeasy@linutronix.de are
 
-ecryptfs-remove-unnecessary-mux-from-ecryptfs_init_ecryptfs_miscdev.patch
-git-unionfs.patch
-ecryptfs-privileged-kthread-for-lower-file-opens.patch
-ecryptfs-discard-ecryptfsd-registration-messages-in-miscdev.patch
-ecryptfs-propagate-key-errors-up-at-mount-time.patch
-ecryptfs-string-copy-cleanup.patch
-tpm-use-correct-data-types-for-sizes-in-tpm_write-and-tpm_read.patch
-notify_change-callers-must-hold-i_mutex.patch
+spi-fix-the-read-path-in-spidev.patch
+add-the-carmine-fb-driver.patch
+add-the-carmine-fb-driver-update.patch
 
