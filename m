@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + autofs4-fix-waitq-locking.patch added to -mm tree
-Date: Tue, 01 Jul 2008 11:03:02 -0700
-Message-ID: <200807011803.m61I32xj007298@imap1.linux-foundation.org>
+Subject: + autofs4-check-kernel-communication-pipe-is-valid-for-write.patch added to -mm tree
+Date: Tue, 01 Jul 2008 11:03:57 -0700
+Message-ID: <200807011803.m61I3vwo007321@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38324 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38644 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751650AbYGASDd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 14:03:33 -0400
+	by vger.kernel.org with ESMTP id S1752470AbYGASEc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 14:04:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: raven@themaw.net
 
 
 The patch titled
-     autofs4: fix waitq locking
+     autofs4: check kernel communication pipe is valid for write
 has been added to the -mm tree.  Its filename is
-     autofs4-fix-waitq-locking.patch
+     autofs4-check-kernel-communication-pipe-is-valid-for-write.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,72 +33,67 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: autofs4: fix waitq locking
+Subject: autofs4: check kernel communication pipe is valid for write
 From: Ian Kent <raven@themaw.net>
 
-The autofs4_catatonic_mode() function accesses the wait queue without any
-locking but can be called at any time.  This could lead to a possible
-double free of the name field of the wait and a double fput of the daemon
-communication pipe or an fput of a NULL file pointer.
+It is possible for an autofs mount to become catatonic (and for the daemon
+communication pipe to become NULL) after a wait has been initiallized but
+before the request has been sent to the daemon.  We need to check for this
+before sending the request packet.
 
 Signed-off-by: Ian Kent <raven@themaw.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/inode.c |    4 ++--
- fs/autofs4/waitq.c |   23 ++++++++++++-----------
- 2 files changed, 14 insertions(+), 13 deletions(-)
+ fs/autofs4/waitq.c |   16 ++++++++++++++--
+ 1 file changed, 14 insertions(+), 2 deletions(-)
 
-diff -puN fs/autofs4/inode.c~autofs4-fix-waitq-locking fs/autofs4/inode.c
---- a/fs/autofs4/inode.c~autofs4-fix-waitq-locking
-+++ a/fs/autofs4/inode.c
-@@ -163,8 +163,8 @@ void autofs4_kill_sb(struct super_block 
- 	if (!sbi)
- 		goto out_kill_sb;
- 
--	if (!sbi->catatonic)
--		autofs4_catatonic_mode(sbi); /* Free wait queues, close pipe */
-+	/* Free wait queues, close pipe */
-+	autofs4_catatonic_mode(sbi);
- 
- 	/* Clean up and release dangling references */
- 	autofs4_force_release(sbi);
-diff -puN fs/autofs4/waitq.c~autofs4-fix-waitq-locking fs/autofs4/waitq.c
---- a/fs/autofs4/waitq.c~autofs4-fix-waitq-locking
+diff -puN fs/autofs4/waitq.c~autofs4-check-kernel-communication-pipe-is-valid-for-write fs/autofs4/waitq.c
+--- a/fs/autofs4/waitq.c~autofs4-check-kernel-communication-pipe-is-valid-for-write
 +++ a/fs/autofs4/waitq.c
-@@ -28,6 +28,12 @@ void autofs4_catatonic_mode(struct autof
- {
- 	struct autofs_wait_queue *wq, *nwq;
+@@ -99,6 +99,7 @@ static void autofs4_notify_daemon(struct
+ 		union autofs_packet_union v4_pkt;
+ 		union autofs_v5_packet_union v5_pkt;
+ 	} pkt;
++	struct file *pipe = NULL;
+ 	size_t pktsz;
  
-+	mutex_lock(&sbi->wq_mutex);
-+	if (sbi->catatonic) {
-+		mutex_unlock(&sbi->wq_mutex);
-+		return;
-+	}
-+
- 	DPRINTK("entering catatonic mode");
- 
- 	sbi->catatonic = 1;
-@@ -45,6 +51,8 @@ void autofs4_catatonic_mode(struct autof
+ 	DPRINTK("wait id = 0x%08lx, name = %.*s, type=%d",
+@@ -164,8 +165,19 @@ static void autofs4_notify_daemon(struct
+ 		return;
  	}
- 	fput(sbi->pipe);	/* Close the pipe */
- 	sbi->pipe = NULL;
-+	sbi->pipefd = -1;
+ 
+-	if (autofs4_write(sbi->pipe, &pkt, pktsz))
+-		autofs4_catatonic_mode(sbi);
++	/* Check if we have become catatonic */
++	mutex_lock(&sbi->wq_mutex);
++	if (!sbi->catatonic) {
++		pipe = sbi->pipe;
++		get_file(pipe);
++	}
 +	mutex_unlock(&sbi->wq_mutex);
++
++	if (pipe) {
++		if (autofs4_write(pipe, &pkt, pktsz))
++			autofs4_catatonic_mode(sbi);
++		fput(pipe);
++	}
  }
  
- static int autofs4_write(struct file *file, const void *addr, int bytes)
-@@ -333,17 +341,10 @@ int autofs4_wait(struct autofs_sb_info *
- 			wq->name.name, notify);
- 	}
- 
--	/* wq->name is NULL if and only if the lock is already released */
--
--	if (sbi->catatonic) {
--		/* We might have slept, so check again for catatonic mode */
--		wq->status = -ENOENT;
--		if (wq->name.name) {
--			kfree(wq->name.name);
--			wq->name.name = NULL;
--		}
--	}
+ static int autofs4_getpath(struct autofs_sb_info *sbi,
+_
+
+Patches currently in -mm which might be from raven@themaw.net are
+
+autofs4-dont-make-expiring-dentry-negative.patch
+autofs4-dont-make-expiring-dentry-negative-fix.patch
+autofs4-revert-redo-lookup-in-ttfd.patch
+autofs4-use-look-aside-list-for-lookups.patch
+autofs4-use-look-aside-list-for-lookups-autofs4-fix-symlink-name-allocation.patch
+autofs4-dont-release-directory-mutex-if-called-in-oz_mode.patch
+autofs4-use-lookup-intent-flags-to-trigger-mounts.patch
+autofs4-use-struct-qstr-in-waitqc.patch
+autofs4-fix-waitq-locking.patch
+autofs4-fix-pending-mount-race.patch
+autofs4-check-kernel-communication-pipe-is-valid-for-write.patch
+
