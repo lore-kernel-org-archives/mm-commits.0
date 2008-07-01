@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + e100-fix-printk-format-warning.patch added to -mm tree
-Date: Tue, 01 Jul 2008 01:35:25 -0700
-Message-ID: <200807010835.m618ZP4w017735@imap1.linux-foundation.org>
+Subject: + lkdtm-fix-for-config_scsi=n.patch added to -mm tree
+Date: Tue, 01 Jul 2008 01:36:20 -0700
+Message-ID: <200807010836.m618aKUS017766@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55739 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50359 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751934AbYGAIgy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 04:36:54 -0400
+	by vger.kernel.org with ESMTP id S1751331AbYGAIil (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 04:38:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, jeffrey.t.kirsher@intel.com
+Cc: randy.dunlap@oracle.com, ankita@in.ibm.com
 
 
 The patch titled
-     e100: fix printk format warning
+     lkdtm: fix for CONFIG_SCSI=n
 has been added to the -mm tree.  Its filename is
-     e100-fix-printk-format-warning.patch
+     lkdtm-fix-for-config_scsi=n.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,33 +33,72 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: e100: fix printk format warning
+Subject: lkdtm: fix for CONFIG_SCSI=n
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Fix printk format warning:
 
-drivers/net/e100.c:1145: warning: format '%d' expects type 'int', but argument 5 has type 'size_t'
+Fix lkdtm test code for case of CONFIG_SCSI=n, to avoid build errors:
+
+In file included from linux-next-20080618/tests/lkdtm.c:55:
+linux-next-20080618/include/scsi/scsi_cmnd.h:28:25: warning: "BLK_MAX_CDB" is not defined
+linux-next-20080618/include/scsi/scsi_cmnd.h:29:3: error: #error MAX_COMMAND_SIZE can not be bigger than BLK_MAX_CDB
+In file included from linux-next-20080618/tests/lkdtm.c:55:
+linux-next-20080618/include/scsi/scsi_cmnd.h: In function 'scsi_bidi_cmnd':
+linux-next-20080618/include/scsi/scsi_cmnd.h:183: error: implicit declaration of function 'blk_bidi_rq'
+linux-next-20080618/include/scsi/scsi_cmnd.h:184: error: dereferencing pointer to incomplete type
+linux-next-20080618/include/scsi/scsi_cmnd.h: In function 'scsi_in':
+linux-next-20080618/include/scsi/scsi_cmnd.h:190: error: dereferencing pointer to incomplete type
+make[2]: *** [tests/lkdtm.o] Error 1
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Acked-by: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
+Cc: <ankita@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/e100.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tests/lkdtm.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN drivers/net/e100.c~e100-fix-printk-format-warning drivers/net/e100.c
---- a/drivers/net/e100.c~e100-fix-printk-format-warning
-+++ a/drivers/net/e100.c
-@@ -1142,7 +1142,7 @@ static const struct firmware *e100_reque
- 	/* Firmware should be precisely UCODE_SIZE (words) plus three bytes
- 	   indicating the offsets for BUNDLESMALL, BUNDLEMAX, INTDELAY */
- 	if (fw->size != UCODE_SIZE * 4 + 3) {
--		DPRINTK(PROBE,ERR, "Firmware \"%s\" has wrong size %d\n",
-+		DPRINTK(PROBE,ERR, "Firmware \"%s\" has wrong size %zu\n",
- 			fw_name, fw->size);
- 		release_firmware(fw);
- 		return ERR_PTR(-EINVAL);
+diff -puN tests/lkdtm.c~lkdtm-fix-for-config_scsi=n tests/lkdtm.c
+--- a/tests/lkdtm.c~lkdtm-fix-for-config_scsi=n
++++ a/tests/lkdtm.c
+@@ -52,7 +52,9 @@
+ #include <linux/init.h>
+ #include <linux/interrupt.h>
+ #include <linux/hrtimer.h>
++#ifdef CONFIG_SCSI
+ #include <scsi/scsi_cmnd.h>
++#endif
+ 
+ #ifdef CONFIG_IDE
+ #include <linux/ide.h>
+@@ -175,12 +177,14 @@ static int jp_hrtimer_start(struct hrtim
+ 	return 0;
+ }
+ 
++#ifdef CONFIG_SCSI
+ static int jp_scsi_dispatch_cmd(struct scsi_cmnd *cmd)
+ {
+ 	lkdtm_handler();
+ 	jprobe_return();
+ 	return 0;
+ }
++#endif
+ 
+ #ifdef CONFIG_IDE
+ int jp_generic_ide_ioctl(ide_drive_t *drive, struct file *file,
+@@ -307,8 +311,12 @@ static int __init lkdtm_module_init(void
+ 		lkdtm.entry = (kprobe_opcode_t*) jp_hrtimer_start;
+ 		break;
+ 	case SCSI_DISPATCH_CMD:
++#ifdef CONFIG_SCSI
+ 		lkdtm.kp.symbol_name = "scsi_dispatch_cmd";
+ 		lkdtm.entry = (kprobe_opcode_t*) jp_scsi_dispatch_cmd;
++#else
++		printk(KERN_INFO "lkdtm : Crash point not available\n");
++#endif
+ 		break;
+ 	case IDE_CORE_CP:
+ #ifdef CONFIG_IDE
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
@@ -73,9 +112,11 @@ bluetooth-hci_bcsp-fix-bitrev-kconfig.patch
 8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
 8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix.patch
 8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix-fix.patch
+e100-fix-printk-format-warning.patch
 e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
 netfilter-conntrack_helper-needs-to-include-rculisth.patch
 git-scsi-misc-fix-scsi_dh-build-errors.patch
+lkdtm-fix-for-config_scsi=n.patch
 git-unionfs.patch
 iwlwifi-fix-build-for-config_input=n.patch
 audit-fix-kernel-doc-parameter-notation.patch
@@ -91,5 +132,4 @@ procfs-guide-drop-pointless-nbsp-entities.patch
 bsdacct-stir-up-comments-around-acct_process.patch
 documentation-cleanup-trivial-misspelling-punctuation-and-grammar-corrections.patch
 profile-likely-unlikely-macros.patch
-e100-fix-printk-format-warning.patch
 
