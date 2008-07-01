@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + forcedeth-fix-lockdep-warning-on-ethtool-s.patch added to -mm tree
-Date: Mon, 30 Jun 2008 22:37:48 -0700
-Message-ID: <200807010537.m615bmxw011036@imap1.linux-foundation.org>
+Subject: + memory-hotplug-small-fixes-to-bootmem-freeing-for-memory-hotremove.patch added to -mm tree
+Date: Mon, 30 Jun 2008 22:43:43 -0700
+Message-ID: <200807010543.m615hhtq011231@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39908 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38833 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751116AbYGAFiF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 01:38:05 -0400
+	by vger.kernel.org with ESMTP id S1751181AbYGAFof (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 01:44:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ranma+kernel@tdiedrich.de, aabdulla@nvidia.com, jeff@garzik.org
+Cc: y-goto@jp.fujitsu.com, apw@shadowen.org, hannes@saeurebad.de, pbadari@us.ibm.com, yhlu.kernel@gmail.com
 
 
 The patch titled
-     forcedeth: fix lockdep warning on ethtool -s
+     memory hotplug: small fixes to bootmem freeing for memory hotremove
 has been added to the -mm tree.  Its filename is
-     forcedeth-fix-lockdep-warning-on-ethtool-s.patch
+     memory-hotplug-small-fixes-to-bootmem-freeing-for-memory-hotremove.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,117 +33,106 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: forcedeth: fix lockdep warning on ethtool -s
-From: Tobias Diedrich <ranma+kernel@tdiedrich.de>
+Subject: memory hotplug: small fixes to bootmem freeing for memory hotremove
+From: Yasunori Goto <y-goto@jp.fujitsu.com>
 
-After enabling CONFIG_LOCKDEP and CONFIG_PROVE_LOCKING I get the
-following warning when ethtool -s is first called on one of the
-forcedeth ports:
+- Change some naming
+  * Magic -> types
+  * MIX_INFO -> MIX_SECTION_INFO
+  * Change definition of bootmem type from direct hex value
 
-=================================
-[ INFO: inconsistent lock state ]
-2.6.26-rc4 #28
----------------------------------
-inconsistent {in-hardirq-W} -> {hardirq-on-W} usage.
-ethtool/1985 [HC0[0]:SC0[1]:HE1:SE0] takes:
- (&np->lock){++..}, at: [<ffffffffa000c5fd>] nv_set_settings+0xc8/0x3de [forcedeth]
-{in-hardirq-W} state was registered at:
-  [<ffffffffffffffff>] 0xffffffffffffffff
-irq event stamp: 3606
-hardirqs last  enabled at (3605): [<ffffffff8068106f>] _spin_unlock_irqrestore+0x3f/0x68
-hardirqs last disabled at (3604): [<ffffffff80680d38>] _spin_lock_irqsave+0x13/0x46
-softirqs last  enabled at (3534): [<ffffffff80246ba5>] __do_softirq+0xbc/0xc5
-softirqs last disabled at (3606): [<ffffffff80680b33>] _spin_lock_bh+0x11/0x41
+- __free_pages_bootmem() becomes __meminit.
 
-other info that might help us debug this:
-2 locks held by ethtool/1985:
- #0:  (rtnl_mutex){--..}, at: [<ffffffff80596072>] rtnl_lock+0x12/0x14
- #1:  (_xmit_ETHER){-+..}, at: [<ffffffffa000c5e8>] nv_set_settings+0xb3/0x3de [forcedeth]
-stack backtrace:
-Pid: 1985, comm: ethtool Not tainted 2.6.26-rc4 #28
-Call Trace:
- [<ffffffff8025f190>] print_usage_bug+0x162/0x173
- [<ffffffff8025fa8b>] mark_lock+0x231/0x41f
- [<ffffffff802607cf>] __lock_acquire+0x4e7/0xcac
- [<ffffffff8025fe64>] ? trace_hardirqs_on+0xf1/0x115
- [<ffffffff80272c3a>] ? disable_irq_nosync+0x6f/0x7b
- [<ffffffff80261375>] lock_acquire+0x55/0x6e
- [<ffffffffa000c5fd>] ? :forcedeth:nv_set_settings+0xc8/0x3de
- [<ffffffff80680b15>] _spin_lock+0x2f/0x3c
- [<ffffffffa000c5fd>] :forcedeth:nv_set_settings+0xc8/0x3de
- [<ffffffff8058f8bb>] dev_ethtool+0x186/0xea3
- [<ffffffff8067f446>] ? mutex_lock_nested+0x243/0x275
- [<ffffffff8025df2b>] ? debug_mutex_free_waiter+0x46/0x4a
- [<ffffffff8067f469>] ? mutex_lock_nested+0x266/0x275
- [<ffffffff8058e1ce>] dev_ioctl+0x4eb/0x600
- [<ffffffff8068106f>] ? _spin_unlock_irqrestore+0x3f/0x68
- [<ffffffff80580f91>] sock_ioctl+0x1f5/0x202
- [<ffffffff802a322e>] vfs_ioctl+0x2a/0x77
- [<ffffffff802a34d6>] do_vfs_ioctl+0x25b/0x270
- [<ffffffff806807b6>] ? trace_hardirqs_on_thunk+0x35/0x3a
- [<ffffffff802a352d>] sys_ioctl+0x42/0x65
- [<ffffffff8021fffb>] system_call_after_swapgs+0x7b/0x80
-
-This is caused by the following snippet in nv_set_settings:
-
-
-	netif_carrier_off(dev);
-	if (netif_running(dev)) {
-		nv_disable_irq(dev);
-		netif_tx_lock_bh(dev);
-		spin_lock(&np->lock);
-		/* stop engines */
-		nv_stop_rxtx(dev);
-		spin_unlock(&np->lock);
-		netif_tx_unlock_bh(dev);
-	}
-
-Because of nv_disable_irq this is probably not really a problem
-though (I guess) and replacing the spin_lock with spin_lock_irqsave
-could keep interrupts disabled for a longer period of time because
-of delays in nv_stop_rx and nv_stop_tx.
-
-Signed-off-by: Tobias Diedrich <ranma+kernel@tdiedrich.de>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Ayaz Abdulla <aabdulla@nvidia.com>
+Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: Badari Pulavarty <pbadari@us.ibm.com>
+Cc: Yinghai Lu <yhlu.kernel@gmail.com>
+Cc: Johannes Weiner <hannes@saeurebad.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/forcedeth.c |   15 +++++++++++++--
- 1 file changed, 13 insertions(+), 2 deletions(-)
+ include/linux/memory_hotplug.h |    8 ++++----
+ mm/memory_hotplug.c            |   12 ++++++------
+ mm/page_alloc.c                |    2 +-
+ 3 files changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN drivers/net/forcedeth.c~forcedeth-fix-lockdep-warning-on-ethtool-s drivers/net/forcedeth.c
---- a/drivers/net/forcedeth.c~forcedeth-fix-lockdep-warning-on-ethtool-s
-+++ a/drivers/net/forcedeth.c
-@@ -4198,12 +4198,23 @@ static int nv_set_settings(struct net_de
+diff -puN include/linux/memory_hotplug.h~memory-hotplug-small-fixes-to-bootmem-freeing-for-memory-hotremove include/linux/memory_hotplug.h
+--- a/include/linux/memory_hotplug.h~memory-hotplug-small-fixes-to-bootmem-freeing-for-memory-hotremove
++++ a/include/linux/memory_hotplug.h
+@@ -13,12 +13,12 @@ struct mem_section;
+ #ifdef CONFIG_MEMORY_HOTPLUG
  
- 	netif_carrier_off(dev);
- 	if (netif_running(dev)) {
-+		unsigned long flags;
-+
- 		nv_disable_irq(dev);
- 		netif_tx_lock_bh(dev);
--		spin_lock(&np->lock);
-+		/* with plain spinlock lockdep complains */
-+		spin_lock_irqsave(&np->lock, flags);
- 		/* stop engines */
-+		/* FIXME:
-+		 * this can take some time, and interrupts are disabled
-+		 * due to spin_lock_irqsave, but let's hope no daemon
-+		 * is going to change the settings very often...
-+		 * Worst case:
-+		 * NV_RXSTOP_DELAY1MAX + NV_TXSTOP_DELAY1MAX
-+		 * + some minor delays, which is up to a second approximately
-+		 */
- 		nv_stop_rxtx(dev);
--		spin_unlock(&np->lock);
-+		spin_unlock_irqrestore(&np->lock, flags);
- 		netif_tx_unlock_bh(dev);
- 	}
+ /*
+- * Magic number for free bootmem.
++ * Types for free bootmem.
+  * The normal smallest mapcount is -1. Here is smaller value than it.
+  */
+-#define SECTION_INFO		0xfffffffe
+-#define MIX_INFO		0xfffffffd
+-#define NODE_INFO		0xfffffffc
++#define SECTION_INFO		(-1 - 1)
++#define MIX_SECTION_INFO	(-1 - 2)
++#define NODE_INFO		(-1 - 3)
  
+ /*
+  * pgdat resizing functions
+diff -puN mm/memory_hotplug.c~memory-hotplug-small-fixes-to-bootmem-freeing-for-memory-hotremove mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~memory-hotplug-small-fixes-to-bootmem-freeing-for-memory-hotremove
++++ a/mm/memory_hotplug.c
+@@ -62,9 +62,9 @@ static void release_memory_resource(stru
+ 
+ #ifdef CONFIG_MEMORY_HOTPLUG_SPARSE
+ #ifndef CONFIG_SPARSEMEM_VMEMMAP
+-static void get_page_bootmem(unsigned long info,  struct page *page, int magic)
++static void get_page_bootmem(unsigned long info,  struct page *page, int type)
+ {
+-	atomic_set(&page->_mapcount, magic);
++	atomic_set(&page->_mapcount, type);
+ 	SetPagePrivate(page);
+ 	set_page_private(page, info);
+ 	atomic_inc(&page->_count);
+@@ -72,10 +72,10 @@ static void get_page_bootmem(unsigned lo
+ 
+ void put_page_bootmem(struct page *page)
+ {
+-	int magic;
++	int type;
+ 
+-	magic = atomic_read(&page->_mapcount);
+-	BUG_ON(magic >= -1);
++	type = atomic_read(&page->_mapcount);
++	BUG_ON(type >= -1);
+ 
+ 	if (atomic_dec_return(&page->_count) == 1) {
+ 		ClearPagePrivate(page);
+@@ -119,7 +119,7 @@ static void register_page_bootmem_info_s
+ 	mapsize = PAGE_ALIGN(usemap_size()) >> PAGE_SHIFT;
+ 
+ 	for (i = 0; i < mapsize; i++, page++)
+-		get_page_bootmem(section_nr, page, MIX_INFO);
++		get_page_bootmem(section_nr, page, MIX_SECTION_INFO);
+ 
+ }
+ 
+diff -puN mm/page_alloc.c~memory-hotplug-small-fixes-to-bootmem-freeing-for-memory-hotremove mm/page_alloc.c
+--- a/mm/page_alloc.c~memory-hotplug-small-fixes-to-bootmem-freeing-for-memory-hotremove
++++ a/mm/page_alloc.c
+@@ -533,7 +533,7 @@ static void __free_pages_ok(struct page 
+ /*
+  * permit the bootmem allocator to evade page validation on high-order frees
+  */
+-void __free_pages_bootmem(struct page *page, unsigned int order)
++void __meminit __free_pages_bootmem(struct page *page, unsigned int order)
+ {
+ 	if (order == 0) {
+ 		__ClearPageReserved(page);
 _
 
-Patches currently in -mm which might be from ranma+kernel@tdiedrich.de are
+Patches currently in -mm which might be from y-goto@jp.fujitsu.com are
 
-forcedeth-fix-lockdep-warning-on-ethtool-s.patch
+bootmem-respect-goal-more-likely.patch
+bootmem-revisit-alloc_bootmem_section.patch
+mm-make-register_page_bootmem_info_section-static.patch
+memory-hotplugallocate-usemap-on-the-section-with-pgdat-take-4.patch
+memory-hotplug-small-fixes-to-bootmem-freeing-for-memory-hotremove.patch
 
