@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + memrlimit-improve-error-handling-update.patch added to -mm tree
-Date: Tue, 01 Jul 2008 15:26:18 -0700
-Message-ID: <200807012226.m61MQI4Y017825@imap1.linux-foundation.org>
+Subject: + memrlimit-handle-attach_task-failure-add-can_attach-callback-update.patch added to -mm tree
+Date: Tue, 01 Jul 2008 15:27:49 -0700
+Message-ID: <200807012227.m61MRoW9017877@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56592 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47740 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754625AbYGAW2K (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 18:28:10 -0400
+	by vger.kernel.org with ESMTP id S1754800AbYGAW22 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 18:28:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: balbir@linux.vnet.ibm.com, hugh@veritas.com, lizf@cn.fujitsu.com, menage@google.com, rientjes@google.com, skumar@linux.vnet.ibm.com, vgoyal@redhat.com, xemul@openvz.org, yamamoto@valinux.co.jp
+Cc: balbir@linux.vnet.ibm.com, hugh@veritas.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, rientjes@google.com, skumar@linux.vnet.ibm.com, vgoyal@redhat.com, xemul@openvz.org, yamamoto@valinux.co.jp
 
 
 The patch titled
-     memrlimit-improve-error-handling update
+     memrlimit handle attach_task() failure, add can_attach() callback (update)
 has been added to the -mm tree.  Its filename is
-     memrlimit-improve-error-handling-update.patch
+     memrlimit-handle-attach_task-failure-add-can_attach-callback-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,41 +33,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memrlimit-improve-error-handling update
+Subject: memrlimit handle attach_task() failure, add can_attach() callback (update)
 From: Balbir Singh <balbir@linux.vnet.ibm.com>
 
-This is a newer version of the patch, could you please drop the older one
-and pick this. Aplogies for the inconvenience.
-
 Changelog v2->v1
-1. Address some of Hugh's comments. Reuse error (don't add new ret variable)
 
-TODO: Merge ret & ~PAGE_MASK and vm_expanded.
+1. Rename res_counter_add_check() to res_counter_can_add()
 
-memrlimit cgroup does not handle error cases after may_expand_vm(). This
-BUG was reported by Kamezawa, with the test case below to reproduce it
+Making the first argument (struct res_counter *) a constant pointer causes
+the compiler to spew out warnings in spin_(un)lock_irq* routines, since
+we now pass address from a constant pointer to the lock routines.
 
-[root@iridium kamezawa]# cat /opt/cgroup/test/memrlimit.usage_in_bytes
-71921664
-[root@iridium kamezawa]# ulimit -s 3
-[root@iridium kamezawa]# ls
-Killed
-[root@iridium kamezawa]# ls
-Killed
-[root@iridium kamezawa]# ls
-Killed
-[root@iridium kamezawa]# ls
-Killed
-[root@iridium kamezawa]# ls
-Killed
-[root@iridium kamezawa]# ulimit -s unlimited
-[root@iridium kamezawa]# cat /opt/cgroup/test/memrlimit.usage_in_bytes
-72368128
-[root@iridium kamezawa]#
+This patch fixes a task migration problem reported by Kamezawa-San. This
+patch should fix all issues with migraiton, except for a rare condition
+documented in memrlimit_cgroup_move_task(). To fix that problem, we
+would need to add transaction properties to cgroups.
 
-This patch adds better handling support to fix the reported problem.
+The problem reported was that migrating to a group that did not have
+sufficient limits to accept an incoming task caused a kernel warning.
 
-Reported-by: [kamezawa.hiroyu@jp.fujitsu.com]
+Steps to reproduce
+
+% mkdir /dev/cgroup/memrlimit/group_01
+% mkdir /dev/cgroup/memrlimit/group_02
+% echo 1G > /dev/cgroup/memrlimit/group_01/memrlimit.limit_in_bytes
+% echo 0 >  /dev/cgroup/memrlimit/group_02/memrlimit.limit_in_bytes
+% echo $$ > /dev/cgroup/memrlimit/group_01/tasks
+% echo $$ > /dev/cgroup/memrlimit/group_02/tasks
+% exit
+
+memrlimit does the right thing by not moving the charges to group_02,
+but the task is still put into g2 (since we did not use can_attach to
+fail migration). Once in g2, when we echo the task to the root cgroup,
+it tries to uncharge the cost of the task from g2. g2 does not have
+any charge associated with the task, hence we get a warning.
+
+Reviewed-by: <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Balbir Singh <balbir@linux.vnet.ibm.com>
 Cc: Pavel Emelyanov <xemul@openvz.org>
 Cc: Sudhir Kumar <skumar@linux.vnet.ibm.com>
@@ -81,54 +82,35 @@ Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c   |    6 +++---
- mm/mremap.c |    2 +-
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ include/linux/res_counter.h |    2 +-
+ mm/memrlimitcgroup.c        |    3 +--
+ 2 files changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN mm/mmap.c~memrlimit-improve-error-handling-update mm/mmap.c
---- a/mm/mmap.c~memrlimit-improve-error-handling-update
-+++ a/mm/mmap.c
-@@ -1969,7 +1969,6 @@ unsigned long do_brk(unsigned long addr,
- 	struct rb_node ** rb_link, * rb_parent;
- 	pgoff_t pgoff = addr >> PAGE_SHIFT;
- 	int error;
--	int ret = -ENOMEM;
+diff -puN include/linux/res_counter.h~memrlimit-handle-attach_task-failure-add-can_attach-callback-update include/linux/res_counter.h
+--- a/include/linux/res_counter.h~memrlimit-handle-attach_task-failure-add-can_attach-callback-update
++++ a/include/linux/res_counter.h
+@@ -163,7 +163,7 @@ static inline void res_counter_reset_fai
+  * Add the value val to the resource counter and check if we are
+  * still under the limit.
+  */
+-static inline bool res_counter_add_check(struct res_counter *cnt,
++static inline bool res_counter_can_add(struct res_counter *cnt,
+ 						unsigned long val)
+ {
+ 	bool ret = false;
+diff -puN mm/memrlimitcgroup.c~memrlimit-handle-attach_task-failure-add-can_attach-callback-update mm/memrlimitcgroup.c
+--- a/mm/memrlimitcgroup.c~memrlimit-handle-attach_task-failure-add-can_attach-callback-update
++++ a/mm/memrlimitcgroup.c
+@@ -176,8 +176,7 @@ static int memrlimit_cgroup_can_move_tas
  
- 	len = PAGE_ALIGN(len);
- 	if (!len)
-@@ -2021,9 +2020,10 @@ unsigned long do_brk(unsigned long addr,
- 		goto munmap_back;
- 	}
+ 	memrcg = memrlimit_cgroup_from_cgrp(cgrp);
  
-+	error = -ENOMEM;
- 	/* Check against address space limits *after* clearing old maps... */
- 	if (!may_expand_vm(mm, len >> PAGE_SHIFT))
--		return ret;
-+		return error;
- 
- 	if (mm->map_count > sysctl_max_map_count)
- 		goto undo_charge;
-@@ -2061,7 +2061,7 @@ out:
- 	return addr;
- undo_charge:
- 	memrlimit_cgroup_uncharge_as(mm, len >> PAGE_SHIFT);
--	return ret;
-+	return error;
- }
- 
- EXPORT_SYMBOL(do_brk);
-diff -puN mm/mremap.c~memrlimit-improve-error-handling-update mm/mremap.c
---- a/mm/mremap.c~memrlimit-improve-error-handling-update
-+++ a/mm/mremap.c
-@@ -412,7 +412,7 @@ out:
- 	if (ret & ~PAGE_MASK)
- 		vm_unacct_memory(charged);
- out_nc:
--	if (vm_expanded)
-+	if ((ret & ~PAGE_MASK) && vm_expanded)
- 		memrlimit_cgroup_uncharge_as(mm,
- 				(new_len - old_len) >> PAGE_SHIFT);
- 	return ret;
+-	if (!res_counter_add_check(&memrcg->as_res,
+-				(mm->total_vm << PAGE_SHIFT)))
++	if (!res_counter_can_add(&memrcg->as_res, (mm->total_vm << PAGE_SHIFT)))
+ 		ret = -ENOMEM;
+ out:
+ 	rcu_read_unlock();
 _
 
 Patches currently in -mm which might be from balbir@linux.vnet.ibm.com are
@@ -148,6 +130,7 @@ memrlimit-add-memrlimit-controller-accounting-and-control-fix.patch
 memrlimit-improve-error-handling.patch
 memrlimit-improve-error-handling-update.patch
 memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
+memrlimit-handle-attach_task-failure-add-can_attach-callback-update.patch
 distinct-tgid-tid-i-o-statistics.patch
 per-task-delay-accounting-add-memory-reclaim-delay.patch
 per-task-delay-accounting-update-document-and-getdelaysc-for-memory-reclaim.patch
