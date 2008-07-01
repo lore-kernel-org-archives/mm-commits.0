@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + gru-driver-v2-driver-initialization-file-vma-ops.patch added to -mm tree
-Date: Mon, 30 Jun 2008 22:30:35 -0700
-Message-ID: <200807010530.m615UZ57010821@imap1.linux-foundation.org>
+Subject: + gru-driver-v2-proc-interfaces.patch added to -mm tree
+Date: Mon, 30 Jun 2008 22:30:43 -0700
+Message-ID: <200807010530.m615Uhjm010833@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50117 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46447 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751184AbYGAFbY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 01:31:24 -0400
+	by vger.kernel.org with ESMTP id S1751190AbYGAFbs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 01:31:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: steiner@sgi.com, andrea@qumranet.com, holt@sgi.com, mingo@elte.hu, tglx@linu
 
 
 The patch titled
-     GRU driver: driver initialization, file & vma ops
+     GRU driver: /proc interfaces
 has been added to the -mm tree.  Its filename is
-     gru-driver-v2-driver-initialization-file-vma-ops.patch
+     gru-driver-v2-proc-interfaces.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,11 +33,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: GRU driver: driver initialization, file & vma ops
+Subject: GRU driver: /proc interfaces
 From: Jack Steiner <steiner@sgi.com>
 
-The functions for initializing the driver, handling file & vma operations
-and for processing IOCTL requests from the user.
+Externalize some GRU state & statistics to the user using the /proc file
+system.
 
 Signed-off-by: Jack Steiner <steiner@sgi.com>
 Cc: Ingo Molnar <mingo@elte.hu>
@@ -47,20 +47,19 @@ Cc: Andrea Arcangeli <andrea@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-gru/grufile.c |  479 +++++++++++++++++++++++++++++++
- 1 file changed, 479 insertions(+)
+ drivers/misc/sgi-gru/gruprocfs.c |  336 +++++++++++++++++++++++++++++
+ 1 file changed, 336 insertions(+)
 
-diff -puN /dev/null drivers/misc/sgi-gru/grufile.c
+diff -puN /dev/null drivers/misc/sgi-gru/gruprocfs.c
 --- /dev/null
-+++ a/drivers/misc/sgi-gru/grufile.c
-@@ -0,0 +1,479 @@
++++ a/drivers/misc/sgi-gru/gruprocfs.c
+@@ -0,0 +1,336 @@
 +/*
 + * SN Platform GRU Driver
 + *
-+ *              FILE OPERATIONS & DRIVER INITIALIZATION
++ *              PROC INTERFACES
 + *
-+ * This file supports the user system call for file open, close, mmap, etc.
-+ * This also incudes the driver initialization code.
++ * This file supports the /proc interfaces for the GRU driver
 + *
 + *  Copyright (c) 2008 Silicon Graphics, Inc.  All Rights Reserved.
 + *
@@ -79,460 +78,318 @@ diff -puN /dev/null drivers/misc/sgi-gru/grufile.c
 + *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 + */
 +
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/errno.h>
-+#include <linux/slab.h>
-+#include <linux/mm.h>
-+#include <linux/smp_lock.h>
-+#include <linux/spinlock.h>
-+#include <linux/device.h>
-+#include <linux/miscdevice.h>
-+#include <linux/interrupt.h>
 +#include <linux/proc_fs.h>
++#include <linux/device.h>
++#include <linux/seq_file.h>
 +#include <linux/uaccess.h>
 +#include "gru.h"
 +#include "grulib.h"
 +#include "grutables.h"
 +
-+#if defined CONFIG_X86_64
-+#include <asm/genapic.h>
-+#include <asm/irq.h>
-+#define IS_UV()		is_uv_system()
-+#elif defined CONFIG_IA64
-+#include <asm/system.h>
-+#include <asm/sn/simulator.h>
-+/* temp support for running on hardware simulator */
-+#define IS_UV()		IS_RUNNING_ON_SIMULATOR() || ia64_platform_is("uv")
-+#else
-+#define IS_UV()		0
-+#endif
++#define printstat(s, f)		printstat_val(s, &gru_stats.f, #f)
 +
-+#include <asm/uv/uv_hub.h>
-+#include <asm/uv/uv_mmrs.h>
-+
-+struct gru_blade_state *gru_base[GRU_MAX_BLADES] __read_mostly;
-+unsigned long gru_start_paddr, gru_end_paddr __read_mostly;
-+struct gru_stats_s gru_stats;
-+
-+/* Guaranteed user available resources on each node */
-+static int max_user_cbrs, max_user_dsr_bytes;
-+
-+static struct file_operations gru_fops;
-+static struct miscdevice gru_miscdev;
-+
-+
-+/*
-+ * gru_vma_close
-+ *
-+ * Called when unmapping a device mapping. Frees all gru resources
-+ * and tables belonging to the vma.
-+ */
-+static void gru_vma_close(struct vm_area_struct *vma)
++static void printstat_val(struct seq_file *s, atomic_long_t *v, char *id)
 +{
-+	struct gru_vma_data *vdata;
-+	struct gru_thread_state *gts;
-+	struct list_head *entry, *next;
++	unsigned long val = atomic_long_read(v);
 +
-+	if (!vma->vm_private_data)
-+		return;
-+
-+	vdata = vma->vm_private_data;
-+	vma->vm_private_data = NULL;
-+	gru_dbg(grudev, "vma %p, file %p, vdata %p\n", vma, vma->vm_file,
-+				vdata);
-+	list_for_each_safe(entry, next, &vdata->vd_head) {
-+		gts =
-+		    list_entry(entry, struct gru_thread_state, ts_next);
-+		list_del(&gts->ts_next);
-+		mutex_lock(&gts->ts_ctxlock);
-+		if (gts->ts_gru)
-+			gru_unload_context(gts, 0);
-+		mutex_unlock(&gts->ts_ctxlock);
-+		gts_drop(gts);
-+	}
-+	kfree(vdata);
-+	STAT(vdata_free);
++	if (val)
++		seq_printf(s, "%16lu %s\n", val, id);
 +}
 +
-+/*
-+ * gru_file_mmap
-+ *
-+ * Called when mmaping the device.  Initializes the vma with a fault handler
-+ * and private data structure necessary to allocate, track, and free the
-+ * underlying pages.
-+ */
-+static int gru_file_mmap(struct file *file, struct vm_area_struct *vma)
++static int statistics_show(struct seq_file *s, void *p)
 +{
-+	if ((vma->vm_flags & (VM_SHARED | VM_WRITE)) != (VM_SHARED | VM_WRITE))
-+		return -EPERM;
-+
-+	vma->vm_flags |=
-+	    (VM_IO | VM_DONTCOPY | VM_LOCKED | VM_DONTEXPAND | VM_PFNMAP |
-+			VM_RESERVED);
-+	vma->vm_page_prot = PAGE_SHARED;
-+	vma->vm_ops = &gru_vm_ops;
-+
-+	vma->vm_private_data = gru_alloc_vma_data(vma, 0);
-+	if (!vma->vm_private_data)
-+		return -ENOMEM;
-+
-+	gru_dbg(grudev, "file %p, vaddr 0x%lx, vma %p, vdata %p\n",
-+		file, vma->vm_start, vma, vma->vm_private_data);
++	printstat(s, vdata_alloc);
++	printstat(s, vdata_free);
++	printstat(s, gts_alloc);
++	printstat(s, gts_free);
++	printstat(s, vdata_double_alloc);
++	printstat(s, gts_double_allocate);
++	printstat(s, assign_context);
++	printstat(s, assign_context_failed);
++	printstat(s, free_context);
++	printstat(s, load_context);
++	printstat(s, unload_context);
++	printstat(s, steal_context);
++	printstat(s, steal_context_failed);
++	printstat(s, nopfn);
++	printstat(s, break_cow);
++	printstat(s, asid_new);
++	printstat(s, asid_next);
++	printstat(s, asid_wrap);
++	printstat(s, asid_reuse);
++	printstat(s, intr);
++	printstat(s, call_os);
++	printstat(s, call_os_check_for_bug);
++	printstat(s, call_os_wait_queue);
++	printstat(s, user_flush_tlb);
++	printstat(s, user_unload_context);
++	printstat(s, user_exception);
++	printstat(s, set_task_slice);
++	printstat(s, migrate_check);
++	printstat(s, migrated_retarget);
++	printstat(s, migrated_unload);
++	printstat(s, migrated_unload_delay);
++	printstat(s, migrated_nopfn_retarget);
++	printstat(s, migrated_nopfn_unload);
++	printstat(s, tlb_dropin);
++	printstat(s, tlb_dropin_fail_no_asid);
++	printstat(s, tlb_dropin_fail_upm);
++	printstat(s, tlb_dropin_fail_invalid);
++	printstat(s, tlb_dropin_fail_range_active);
++	printstat(s, tlb_dropin_fail_idle);
++	printstat(s, tlb_dropin_fail_fmm);
++	printstat(s, mmu_invalidate_range);
++	printstat(s, mmu_invalidate_page);
++	printstat(s, mmu_clear_flush_young);
++	printstat(s, flush_tlb);
++	printstat(s, flush_tlb_gru);
++	printstat(s, flush_tlb_gru_tgh);
++	printstat(s, flush_tlb_gru_zero_asid);
++	printstat(s, copy_gpa);
++	printstat(s, mesq_receive);
++	printstat(s, mesq_receive_none);
++	printstat(s, mesq_send);
++	printstat(s, mesq_send_failed);
++	printstat(s, mesq_noop);
++	printstat(s, mesq_send_unexpected_error);
++	printstat(s, mesq_send_lb_overflow);
++	printstat(s, mesq_send_qlimit_reached);
++	printstat(s, mesq_send_amo_nacked);
++	printstat(s, mesq_send_put_nacked);
++	printstat(s, mesq_qf_not_full);
++	printstat(s, mesq_qf_locked);
++	printstat(s, mesq_qf_noop_not_full);
++	printstat(s, mesq_qf_switch_head_failed);
++	printstat(s, mesq_qf_unexpected_error);
++	printstat(s, mesq_noop_unexpected_error);
++	printstat(s, mesq_noop_lb_overflow);
++	printstat(s, mesq_noop_qlimit_reached);
++	printstat(s, mesq_noop_amo_nacked);
++	printstat(s, mesq_noop_put_nacked);
 +	return 0;
 +}
 +
-+/*
-+ * Create a new GRU context
-+ */
-+static int gru_create_new_context(unsigned long arg)
++static ssize_t statistics_write(struct file *file, const char __user *userbuf,
++				size_t count, loff_t *data)
 +{
-+	struct gru_create_context_req req;
-+	struct vm_area_struct *vma;
-+	struct gru_vma_data *vdata;
-+	int ret = -EINVAL;
-+
-+
-+	if (copy_from_user(&req, (void __user *)arg, sizeof(req)))
-+		return -EFAULT;
-+
-+	if (req.data_segment_bytes == 0 ||
-+				req.data_segment_bytes > max_user_dsr_bytes)
-+		return -EINVAL;
-+	if (!req.control_blocks || !req.maximum_thread_count ||
-+				req.control_blocks > max_user_cbrs)
-+		return -EINVAL;
-+
-+	if (!(req.options & GRU_OPT_MISS_MASK))
-+		req.options |= GRU_OPT_MISS_FMM_INTR;
-+
-+	down_write(&current->mm->mmap_sem);
-+	vma = gru_find_vma(req.gseg);
-+	if (vma) {
-+		vdata = vma->vm_private_data;
-+		vdata->vd_user_options = req.options;
-+		vdata->vd_dsr_au_count =
-+		    GRU_DS_BYTES_TO_AU(req.data_segment_bytes);
-+		vdata->vd_cbr_au_count = GRU_CB_COUNT_TO_AU(req.control_blocks);
-+		ret = 0;
-+	}
-+	up_write(&current->mm->mmap_sem);
-+
-+	return ret;
++	memset(&gru_stats, 0, sizeof(gru_stats));
++	return count;
 +}
 +
-+/*
-+ * Get GRU configuration info (temp - for emulator testing)
-+ */
-+static long gru_get_config_info(unsigned long arg)
++static int options_show(struct seq_file *s, void *p)
 +{
-+	struct gru_config_info info;
-+	int nodesperblade;
-+
-+	if (num_online_nodes() > 1 &&
-+			(uv_node_to_blade_id(1) == uv_node_to_blade_id(0)))
-+		nodesperblade = 2;
-+	else
-+		nodesperblade = 1;
-+	info.cpus = num_online_cpus();
-+	info.nodes = num_online_nodes();
-+	info.blades = info.nodes / nodesperblade;
-+	info.chiplets = GRU_CHIPLETS_PER_BLADE * info.blades;
-+
-+	if (copy_to_user((void __user *)arg, &info, sizeof(info)))
-+		return -EFAULT;
++	seq_printf(s, "0x%lx\n", options);
 +	return 0;
 +}
 +
-+/*
-+ * Get GRU chiplet status
-+ */
-+static long gru_get_chiplet_status(unsigned long arg)
++static ssize_t options_write(struct file *file, const char __user *userbuf,
++			     size_t count, loff_t *data)
 +{
-+	struct gru_state *gru;
-+	struct gru_chiplet_info info;
++	unsigned long val;
++	char buf[80];
 +
-+	if (copy_from_user(&info, (void __user *)arg, sizeof(info)))
++	if (copy_from_user
++	    (buf, userbuf, count < sizeof(buf) ? count : sizeof(buf)))
 +		return -EFAULT;
++	if (!strict_strtoul(buf, 10, &val))
++		options = val;
 +
-+	if (info.node == -1)
-+		info.node = numa_node_id();
-+	if (info.node >= num_possible_nodes() ||
-+			info.chiplet >= GRU_CHIPLETS_PER_HUB ||
-+			info.node < 0 || info.chiplet < 0)
-+		return -EINVAL;
-+
-+	info.blade = uv_node_to_blade_id(info.node);
-+	gru = get_gru(info.blade, info.chiplet);
-+
-+	info.total_dsr_bytes = GRU_NUM_DSR_BYTES;
-+	info.total_cbr = GRU_NUM_CB;
-+	info.total_user_dsr_bytes = GRU_NUM_DSR_BYTES -
-+		gru->gs_reserved_dsr_bytes;
-+	info.total_user_cbr = GRU_NUM_CB - gru->gs_reserved_cbrs;
-+	info.free_user_dsr_bytes = hweight64(gru->gs_dsr_map) *
-+			GRU_DSR_AU_BYTES;
-+	info.free_user_cbr = hweight64(gru->gs_cbr_map) * GRU_CBR_AU_SIZE;
-+
-+	if (copy_to_user((void __user *)arg, &info, sizeof(info)))
-+		return -EFAULT;
-+	return 0;
++	return count;
 +}
 +
-+/*
-+ * gru_file_unlocked_ioctl
-+ *
-+ * Called to update file attributes via IOCTL calls.
-+ */
-+static long gru_file_unlocked_ioctl(struct file *file, unsigned int req,
-+				    unsigned long arg)
++static int cch_seq_show(struct seq_file *file, void *data)
 +{
-+	int err = -EBADRQC;
++	long gid = *(long *)data;
++	int i;
++	struct gru_state *gru = GID_TO_GRU(gid);
++	struct gru_thread_state *ts;
++	const char *mode[] = { "??", "UPM", "INTR", "OS_POLL" };
 +
-+	gru_dbg(grudev, "file %p\n", file);
-+
-+	switch (req) {
-+	case GRU_CREATE_CONTEXT:
-+		err = gru_create_new_context(arg);
-+		break;
-+	case GRU_SET_TASK_SLICE:
-+		err = gru_set_task_slice(arg);
-+		break;
-+	case GRU_USER_GET_EXCEPTION_DETAIL:
-+		err = gru_get_exception_detail(arg);
-+		break;
-+	case GRU_USER_UNLOAD_CONTEXT:
-+		err = gru_user_unload_context(arg);
-+		break;
-+	case GRU_GET_CHIPLET_STATUS:
-+		err = gru_get_chiplet_status(arg);
-+		break;
-+	case GRU_USER_FLUSH_TLB:
-+		err = gru_user_flush_tlb(arg);
-+		break;
-+	case GRU_USER_CALL_OS:
-+		err = gru_handle_user_call_os(arg);
-+		break;
-+	case GRU_GET_CONFIG_INFO:
-+		err = gru_get_config_info(arg);
-+		break;
-+	}
-+	return err;
-+}
-+
-+/*
-+ * Called at init time to build tables for all GRUs that are present in the
-+ * system.
-+ */
-+static void gru_init_chiplet(struct gru_state *gru, unsigned long paddr,
-+			     void *vaddr, int nid, int bid, int grunum)
-+{
-+	spin_lock_init(&gru->gs_lock);
-+	spin_lock_init(&gru->gs_asid_lock);
-+	gru->gs_gru_base_paddr = paddr;
-+	gru->gs_gru_base_vaddr = vaddr;
-+	gru->gs_gid = bid * GRU_CHIPLETS_PER_BLADE + grunum;
-+	gru->gs_blade = gru_base[bid];
-+	gru->gs_blade_id = bid;
-+	gru->gs_cbr_map = (GRU_CBR_AU == 64) ? ~0 : (1UL << GRU_CBR_AU) - 1;
-+	gru->gs_dsr_map = (1UL << GRU_DSR_AU) - 1;
-+	gru_tgh_flush_init(gru);
-+	gru_dbg(grudev, "bid %d, nid %d, gru %x, vaddr %p (0x%lx)\n",
-+		bid, nid, gru->gs_gid, gru->gs_gru_base_vaddr,
-+		gru->gs_gru_base_paddr);
-+	gru_kservices_init(gru);
-+}
-+
-+static int gru_init_tables(unsigned long gru_base_paddr, void *gru_base_vaddr)
-+{
-+	int pnode, nid, bid, chip;
-+	int cbrs, dsrbytes, n;
-+	int order = get_order(sizeof(struct gru_blade_state));
-+	struct page *page;
-+	struct gru_state *gru;
-+	unsigned long paddr;
-+	void *vaddr;
-+
-+	max_user_cbrs = GRU_NUM_CB;
-+	max_user_dsr_bytes = GRU_NUM_DSR_BYTES;
-+	for_each_online_node(nid) {
-+		bid = uv_node_to_blade_id(nid);
-+		pnode = uv_node_to_pnode(nid);
-+		if (gru_base[bid])
-+			continue;
-+		page = alloc_pages_node(nid, GFP_KERNEL, order);
-+		if (!page)
-+			goto fail;
-+		gru_base[bid] = page_address(page);
-+		memset(gru_base[bid], 0, sizeof(struct gru_blade_state));
-+		gru_base[bid]->bs_lru_gru = &gru_base[bid]->bs_grus[0];
-+		spin_lock_init(&gru_base[bid]->bs_lock);
-+
-+		dsrbytes = 0;
-+		cbrs = 0;
-+		for (gru = gru_base[bid]->bs_grus, chip = 0;
-+		     		chip < GRU_CHIPLETS_PER_BLADE;
-+				chip++, gru++) {
-+			paddr = gru_chiplet_paddr(gru_base_paddr, pnode, chip);
-+			vaddr = gru_chiplet_vaddr(gru_base_vaddr, pnode, chip);
-+			gru_init_chiplet(gru, paddr, vaddr, bid, nid, chip);
-+			n = hweight64(gru->gs_cbr_map) * GRU_CBR_AU_SIZE;
-+			cbrs = max(cbrs, n);
-+			n = hweight64(gru->gs_dsr_map) * GRU_DSR_AU_BYTES;
-+			dsrbytes = max(dsrbytes, n);
++	if (gid == 0)
++		seq_printf(file, "#%5s%5s%6s%9s%6s%8s%8s\n", "gid", "bid",
++			   "ctx#", "pid", "cbrs", "dsbytes", "mode");
++	if (gru)
++		for (i = 0; i < GRU_NUM_CCH; i++) {
++			ts = gru->gs_gts[i];
++			if (!ts)
++				continue;
++			seq_printf(file, " %5d%5d%6d%9d%6d%8d%8s\n",
++				   gru->gs_gid, gru->gs_blade_id, i,
++				   ts->ts_tgid_owner,
++				   ts->ts_cbr_au_count * GRU_CBR_AU_SIZE,
++				   ts->ts_cbr_au_count * GRU_DSR_AU_BYTES,
++				   mode[ts->ts_user_options &
++					GRU_OPT_MISS_MASK]);
 +		}
-+		max_user_cbrs = min(max_user_cbrs, cbrs);
-+		max_user_dsr_bytes = min(max_user_dsr_bytes, dsrbytes);
++
++	return 0;
++}
++
++static int gru_seq_show(struct seq_file *file, void *data)
++{
++	long gid = *(long *)data, ctxfree, cbrfree, dsrfree;
++	struct gru_state *gru = GID_TO_GRU(gid);
++
++	if (gid == 0) {
++		seq_printf(file, "#%5s%5s%7s%6s%6s%8s%6s%6s\n", "gid", "nid",
++			   "ctx", "cbr", "dsr", "ctx", "cbr", "dsr");
++		seq_printf(file, "#%5s%5s%7s%6s%6s%8s%6s%6s\n", "", "", "busy",
++			   "busy", "busy", "free", "free", "free");
++	}
++	if (gru) {
++		ctxfree = GRU_NUM_CCH - gru->gs_active_contexts;
++		cbrfree = hweight64(gru->gs_cbr_map) * GRU_CBR_AU_SIZE;
++		dsrfree = hweight64(gru->gs_dsr_map) * GRU_DSR_AU_BYTES;
++		seq_printf(file, " %5d%5d%7ld%6ld%6ld%8ld%6ld%6ld\n",
++			   gru->gs_gid, gru->gs_blade_id, GRU_NUM_CCH - ctxfree,
++			   GRU_NUM_CBE - cbrfree, GRU_NUM_DSR_BYTES - dsrfree,
++			   ctxfree, cbrfree, dsrfree);
 +	}
 +
 +	return 0;
-+
-+fail:
-+	for (nid--; nid >= 0; nid--)
-+		free_pages((unsigned long)gru_base[nid], order);
-+	return -ENOMEM;
 +}
 +
-+#ifdef CONFIG_IA64
-+
-+static int get_base_irq(void)
-+{
-+	return IRQ_GRU;
-+}
-+
-+#elif defined CONFIG_X86_64
-+
-+static void noop(unsigned int irq)
++static void seq_stop(struct seq_file *file, void *data)
 +{
 +}
 +
-+static struct irq_chip gru_chip = {
-+	.name		= "gru",
-+	.mask		= noop,
-+	.unmask		= noop,
-+	.ack		= noop,
++static void *seq_start(struct seq_file *file, loff_t *gid)
++{
++	if (*gid < GRU_MAX_GRUS)
++		return gid;
++	return NULL;
++}
++
++static void *seq_next(struct seq_file *file, void *data, loff_t *gid)
++{
++	(*gid)++;
++	if (*gid < GRU_MAX_GRUS)
++		return gid;
++	return NULL;
++}
++
++static const struct seq_operations cch_seq_ops = {
++	.start	= seq_start,
++	.next	= seq_next,
++	.stop	= seq_stop,
++	.show	= cch_seq_show
 +};
 +
-+static int get_base_irq(void)
++static const struct seq_operations gru_seq_ops = {
++	.start	= seq_start,
++	.next	= seq_next,
++	.stop	= seq_stop,
++	.show	= gru_seq_show
++};
++
++static int statistics_open(struct inode *inode, struct file *file)
 +{
-+	set_irq_chip(IRQ_GRU, &gru_chip);
-+	set_irq_chip(IRQ_GRU + 1, &gru_chip);
-+	return IRQ_GRU;
++	return single_open(file, statistics_show, NULL);
 +}
-+#endif
 +
-+/*
-+ * gru_init
-+ *
-+ * Called at boot or module load time to initialize the GRUs.
-+ */
-+static int __init gru_init(void)
++static int options_open(struct inode *inode, struct file *file)
 +{
-+	int ret, irq;
-+	char id[10];
-+	void *gru_start_vaddr;
++	return single_open(file, options_show, NULL);
++}
 +
-+	if (!IS_UV())
-+		return 0;
++static int cch_open(struct inode *inode, struct file *file)
++{
++	return seq_open(file, &cch_seq_ops);
++}
 +
-+#if defined CONFIG_IA64
-+	gru_start_paddr = 0xd000000000UL; /* ZZZZZZZZZZZZZZZZZZZ fixme */
-+#else
-+	gru_start_paddr = uv_read_local_mmr(UVH_RH_GAM_GRU_OVERLAY_CONFIG_MMR) &
-+				0x7fffffffffffUL;
++static int gru_open(struct inode *inode, struct file *file)
++{
++	return seq_open(file, &gru_seq_ops);
++}
 +
-+#endif
-+	gru_start_vaddr = __va(gru_start_paddr);
-+	gru_end_paddr = gru_start_paddr + MAX_NUMNODES * GRU_SIZE;
-+	printk(KERN_INFO "GRU space: 0x%lx - 0x%lx\n",
-+	       gru_start_paddr, gru_end_paddr);
-+	for (irq = get_base_irq(); irq < GRU_CHIPLETS_PER_BLADE; irq++) {
-+		ret = request_irq(irq, gru_intr, 0, id, NULL);
-+		if (ret) {
-+			printk(KERN_ERR "%s: request_irq failed\n",
-+			       GRU_DRIVER_ID_STR);
-+			goto exit1;
-+		}
++/* *INDENT-OFF* */
++static const struct file_operations statistics_fops = {
++	.open 		= statistics_open,
++	.read 		= seq_read,
++	.write 		= statistics_write,
++	.llseek 	= seq_lseek,
++	.release 	= single_release,
++};
++
++static const struct file_operations options_fops = {
++	.open 		= options_open,
++	.read 		= seq_read,
++	.write 		= options_write,
++	.llseek 	= seq_lseek,
++	.release 	= single_release,
++};
++
++static const struct file_operations cch_fops = {
++	.open 		= cch_open,
++	.read 		= seq_read,
++	.llseek 	= seq_lseek,
++	.release 	= seq_release,
++};
++static const struct file_operations gru_fops = {
++	.open 		= gru_open,
++	.read 		= seq_read,
++	.llseek 	= seq_lseek,
++	.release 	= seq_release,
++};
++
++static struct proc_entry {
++	char *name;
++	int mode;
++	const struct file_operations *fops;
++	struct proc_dir_entry *entry;
++} proc_files[] = {
++	{"statistics", 0644, &statistics_fops},
++	{"debug_options", 0644, &options_fops},
++	{"cch_status", 0444, &cch_fops},
++	{"gru_status", 0444, &gru_fops},
++	{NULL}
++};
++/* *INDENT-ON* */
++
++static struct proc_dir_entry *proc_gru __read_mostly;
++
++static int create_proc_file(struct proc_entry *p)
++{
++	p->entry = create_proc_entry(p->name, p->mode, proc_gru);
++	if (!p->entry)
++		return -1;
++	p->entry->proc_fops = p->fops;
++	return 0;
++}
++
++static void delete_proc_files(void)
++{
++	struct proc_entry *p;
++
++	if (proc_gru) {
++		for (p = proc_files; p->name; p++)
++			if (p->entry)
++				remove_proc_entry(p->name, proc_gru);
++		remove_proc_entry("gru", NULL);
 +	}
++}
 +
-+	ret = misc_register(&gru_miscdev);
-+	if (ret) {
-+		printk(KERN_ERR "%s: misc_register failed\n",
-+		       GRU_DRIVER_ID_STR);
-+		goto exit1;
-+	}
++int gru_proc_init(void)
++{
++	struct proc_entry *p;
 +
-+	ret = gru_proc_init();
-+	if (ret) {
-+		printk(KERN_ERR "%s: proc init failed\n", GRU_DRIVER_ID_STR);
-+		goto exit2;
-+	}
++	proc_mkdir("sgi_uv", NULL);
++	proc_gru = proc_mkdir("sgi_uv/gru", NULL);
 +
-+	ret = gru_init_tables(gru_start_paddr, gru_start_vaddr);
-+	if (ret) {
-+		printk(KERN_ERR "%s: init tables failed\n", GRU_DRIVER_ID_STR);
-+		goto exit3;
-+	}
-+
-+	printk(KERN_INFO "%s: v%s\n", GRU_DRIVER_ID_STR,
-+	       GRU_DRIVER_VERSION_STR);
++	for (p = proc_files; p->name; p++)
++		if (create_proc_file(p))
++			goto err;
 +	return 0;
 +
-+exit3:
-+	gru_proc_exit();
-+exit2:
-+	misc_deregister(&gru_miscdev);
-+exit1:
-+	for (--irq; irq >= 0; irq--)
-+		free_irq(IRQ_GRU + irq, NULL);
-+	return ret;
-+
++err:
++	delete_proc_files();
++	return -1;
 +}
 +
-+static void __exit gru_exit(void)
++void gru_proc_exit(void)
 +{
-+	int i, bid;
-+	int order = get_order(sizeof(struct gru_state) *
-+			      GRU_CHIPLETS_PER_BLADE);
-+
-+	for (i = 0; i < GRU_CHIPLETS_PER_BLADE; i++)
-+		free_irq(IRQ_GRU + i, NULL);
-+
-+	for (bid = 0; bid < GRU_MAX_BLADES; bid++)
-+		free_pages((unsigned long)gru_base[bid], order);
-+
-+	misc_deregister(&gru_miscdev);
-+	gru_proc_exit();
++	delete_proc_files();
 +}
-+
-+static struct file_operations gru_fops = {
-+	.owner		= THIS_MODULE,
-+	.unlocked_ioctl	= gru_file_unlocked_ioctl,
-+	.mmap		= gru_file_mmap,
-+};
-+
-+static struct miscdevice gru_miscdev = {
-+	.minor		= MISC_DYNAMIC_MINOR,
-+	.name		= "gru",
-+	.fops		= &gru_fops,
-+};
-+
-+struct vm_operations_struct gru_vm_ops = {
-+	.close		= gru_vma_close,
-+	.fault		= gru_fault,
-+};
-+
-+module_init(gru_init);
-+module_exit(gru_exit);
-+
-+module_param(options, ulong, 0644);
-+MODULE_PARM_DESC(options, "Various debug options");
-+
-+MODULE_AUTHOR("Silicon Graphics, Inc.");
-+MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION(GRU_DRIVER_ID_STR GRU_DRIVER_VERSION_STR);
-+MODULE_VERSION(GRU_DRIVER_VERSION_STR);
-+
 _
 
 Patches currently in -mm which might be from steiner@sgi.com are
