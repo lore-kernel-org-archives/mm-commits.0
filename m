@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch added to -mm tree
-Date: Tue, 01 Jul 2008 16:07:49 -0700
-Message-ID: <200807012307.m61N7nf0019717@imap1.linux-foundation.org>
+Subject: + memory-hotplug-add-sysfs-removable-attribute-for-hotplug-memory-remove.patch added to -mm tree
+Date: Tue, 01 Jul 2008 16:17:26 -0700
+Message-ID: <200807012317.m61NHlWq020074@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59208 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51357 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753789AbYGAXIL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 19:08:11 -0400
+	by vger.kernel.org with ESMTP id S1752805AbYGAXSI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 19:18:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, david-b@pacbell.net, mb@bu3sch.de, mchehab@infradead.org, sfr@canb.auug.org.au
+Cc: pbadari@us.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie
 
 
 The patch titled
-     gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix
+     memory-hotplug: add sysfs removable attribute for hotplug memory remove
 has been added to the -mm tree.  Its filename is
-     gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch
+     memory-hotplug-add-sysfs-removable-attribute-for-hotplug-memory-remove.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,187 +33,253 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memory-hotplug: add sysfs removable attribute for hotplug memory remove
+From: Badari Pulavarty <pbadari@us.ibm.com>
 
-give up in horror.
+Memory may be hot-removed on a per-memory-block basis, particularly on
+POWER where the SPARSEMEM section size often matches the memory-block
+size.  A user-level agent must be able to identify which sections of
+memory are likely to be removable before attempting the potentially
+expensive operation.  This patch adds a file called "removable" to the
+memory directory in sysfs to help such an agent.  In this patch, a memory
+block is considered removable if;
 
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Michael Buesch <mb@bu3sch.de>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+o It contains only MOVABLE pageblocks
+o It contains only pageblocks with free pages regardless of pageblock type
+
+On the other hand, a memory block starting with a PageReserved() page will
+never be considered removable.  Without this patch, the user-agent is
+forced to choose a memory block to remove randomly.
+
+Sample output of the sysfs files:
+
+./memory/memory0/removable: 0
+./memory/memory1/removable: 0
+./memory/memory2/removable: 0
+./memory/memory3/removable: 0
+./memory/memory4/removable: 0
+./memory/memory5/removable: 0
+./memory/memory6/removable: 0
+./memory/memory7/removable: 1
+./memory/memory8/removable: 0
+./memory/memory9/removable: 0
+./memory/memory10/removable: 0
+./memory/memory11/removable: 0
+./memory/memory12/removable: 0
+./memory/memory13/removable: 0
+./memory/memory14/removable: 0
+./memory/memory15/removable: 0
+./memory/memory16/removable: 0
+./memory/memory17/removable: 1
+./memory/memory18/removable: 1
+./memory/memory19/removable: 1
+./memory/memory20/removable: 1
+./memory/memory21/removable: 1
+./memory/memory22/removable: 1
+
+Signed-off-by: Badari Pulavarty <pbadari@us.ibm.com>
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/bt8xxgpio.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ Documentation/ABI/testing/sysfs-devices-memory |   24 ++++++
+ drivers/base/memory.c                          |   19 ++++
+ include/linux/memory_hotplug.h                 |   12 +++
+ mm/memory_hotplug.c                            |   60 +++++++++++++++
+ 4 files changed, 115 insertions(+)
 
-diff -puN drivers/gpio/bt8xxgpio.c~gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix drivers/gpio/bt8xxgpio.c
---- a/drivers/gpio/bt8xxgpio.c~gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix
-+++ a/drivers/gpio/bt8xxgpio.c
-@@ -46,7 +46,8 @@
- #include <linux/module.h>
- #include <linux/pci.h>
- #include <linux/spinlock.h>
--#include <linux/gpio.h>
+diff -puN /dev/null Documentation/ABI/testing/sysfs-devices-memory
+--- /dev/null
++++ a/Documentation/ABI/testing/sysfs-devices-memory
+@@ -0,0 +1,24 @@
++What:		/sys/devices/system/memory
++Date:		June 2008
++Contact:	Badari Pulavarty <pbadari@us.ibm.com>
++Description:
++		The /sys/devices/system/memory contains a snapshot of the
++		internal state of the kernel memory blocks. Files could be
++		added or removed dynamically to represent hot-add/remove
++		operations.
 +
-+#include <asm/gpio.h>
++Users:		hotplug memory add/remove tools
++		https://w3.opensource.ibm.com/projects/powerpc-utils/
++
++What:		/sys/devices/system/memory/memoryX/removable
++Date:		June 2008
++Contact:	Badari Pulavarty <pbadari@us.ibm.com>
++Description:
++		The file /sys/devices/system/memory/memoryX/removable
++		indicates whether this memory block is removable or not.
++		This is useful for a user-level agent to determine
++		identify removable sections of the memory before attempting
++		potentially expensive hot-remove memory operation
++
++Users:		hotplug memory remove tools
++		https://w3.opensource.ibm.com/projects/powerpc-utils/
+diff -puN drivers/base/memory.c~memory-hotplug-add-sysfs-removable-attribute-for-hotplug-memory-remove drivers/base/memory.c
+--- a/drivers/base/memory.c~memory-hotplug-add-sysfs-removable-attribute-for-hotplug-memory-remove
++++ a/drivers/base/memory.c
+@@ -100,6 +100,21 @@ static ssize_t show_mem_phys_index(struc
+ }
  
- /* Steal the hardware definitions from the bttv driver. */
- #include "../media/video/bt8xx/bt848.h"
+ /*
++ * Show whether the section of memory is likely to be hot-removable
++ */
++static ssize_t show_mem_removable(struct sys_device *dev, char *buf)
++{
++	unsigned long start_pfn;
++	int ret;
++	struct memory_block *mem =
++		container_of(dev, struct memory_block, sysdev);
++
++	start_pfn = section_nr_to_pfn(mem->phys_index);
++	ret = is_mem_section_removable(start_pfn, PAGES_PER_SECTION);
++	return sprintf(buf, "%d\n", ret);
++}
++
++/*
+  * online, offline, going offline, etc.
+  */
+ static ssize_t show_mem_state(struct sys_device *dev, char *buf)
+@@ -258,6 +273,7 @@ static ssize_t show_phys_device(struct s
+ static SYSDEV_ATTR(phys_index, 0444, show_mem_phys_index, NULL);
+ static SYSDEV_ATTR(state, 0644, show_mem_state, store_mem_state);
+ static SYSDEV_ATTR(phys_device, 0444, show_phys_device, NULL);
++static SYSDEV_ATTR(removable, 0444, show_mem_removable, NULL);
+ 
+ #define mem_create_simple_file(mem, attr_name)	\
+ 	sysdev_create_file(&mem->sysdev, &attr_##attr_name)
+@@ -346,6 +362,8 @@ static int add_memory_block(unsigned lon
+ 		ret = mem_create_simple_file(mem, state);
+ 	if (!ret)
+ 		ret = mem_create_simple_file(mem, phys_device);
++	if (!ret)
++		ret = mem_create_simple_file(mem, removable);
+ 
+ 	return ret;
+ }
+@@ -390,6 +408,7 @@ int remove_memory_block(unsigned long no
+ 	mem_remove_simple_file(mem, phys_index);
+ 	mem_remove_simple_file(mem, state);
+ 	mem_remove_simple_file(mem, phys_device);
++	mem_remove_simple_file(mem, removable);
+ 	unregister_memory(mem, section);
+ 
+ 	return 0;
+diff -puN include/linux/memory_hotplug.h~memory-hotplug-add-sysfs-removable-attribute-for-hotplug-memory-remove include/linux/memory_hotplug.h
+--- a/include/linux/memory_hotplug.h~memory-hotplug-add-sysfs-removable-attribute-for-hotplug-memory-remove
++++ a/include/linux/memory_hotplug.h
+@@ -199,6 +199,18 @@ extern int walk_memory_resource(unsigned
+ 			unsigned long nr_pages, void *arg,
+ 			int (*func)(unsigned long, unsigned long, void *));
+ 
++#ifdef CONFIG_MEMORY_HOTREMOVE
++
++extern int is_mem_section_removable(unsigned long pfn, unsigned long nr_pages);
++
++#else
++static inline int is_mem_section_removable(unsigned long pfn,
++					unsigned long nr_pages)
++{
++	return 0;
++}
++#endif /* CONFIG_MEMORY_HOTREMOVE */
++
+ extern int add_memory(int nid, u64 start, u64 size);
+ extern int arch_add_memory(int nid, u64 start, u64 size);
+ extern int remove_memory(u64 start, u64 size);
+diff -puN mm/memory_hotplug.c~memory-hotplug-add-sysfs-removable-attribute-for-hotplug-memory-remove mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~memory-hotplug-add-sysfs-removable-attribute-for-hotplug-memory-remove
++++ a/mm/memory_hotplug.c
+@@ -523,6 +523,66 @@ EXPORT_SYMBOL_GPL(add_memory);
+ 
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+ /*
++ * A free page on the buddy free lists (not the per-cpu lists) has PageBuddy
++ * set and the size of the free page is given by page_order(). Using this,
++ * the function determines if the pageblock contains only free pages.
++ * Due to buddy contraints, a free page at least the size of a pageblock will
++ * be located at the start of the pageblock
++ */
++static inline int pageblock_free(struct page *page)
++{
++	return PageBuddy(page) && page_order(page) >= pageblock_order;
++}
++
++/* Return the start of the next active pageblock after a given page */
++static struct page *next_active_pageblock(struct page *page)
++{
++	int pageblocks_stride;
++
++	/* Ensure the starting page is pageblock-aligned */
++	BUG_ON(page_to_pfn(page) & (pageblock_nr_pages - 1));
++
++	/* Move forward by at least 1 * pageblock_nr_pages */
++	pageblocks_stride = 1;
++
++	/* If the entire pageblock is free, move to the end of free page */
++	if (pageblock_free(page))
++		pageblocks_stride += page_order(page) - pageblock_order;
++
++	return page + (pageblocks_stride * pageblock_nr_pages);
++}
++
++/* Checks if this range of memory is likely to be hot-removable. */
++int is_mem_section_removable(unsigned long start_pfn, unsigned long nr_pages)
++{
++	int type;
++	struct page *page = pfn_to_page(start_pfn);
++	struct page *end_page = page + nr_pages;
++
++	/* Check the starting page of each pageblock within the range */
++	for (; page < end_page; page = next_active_pageblock(page)) {
++		type = get_pageblock_migratetype(page);
++
++		/*
++		 * A pageblock containing MOVABLE or free pages is considered
++		 * removable
++		 */
++		if (type != MIGRATE_MOVABLE && !pageblock_free(page))
++			return 0;
++
++		/*
++		 * A pageblock starting with a PageReserved page is not
++		 * considered removable.
++		 */
++		if (PageReserved(page))
++			return 0;
++	}
++
++	/* All pageblocks in the memory block are likely to be hot-removable */
++	return 1;
++}
++
++/*
+  * Confirm all pages in a range [start, end) is belongs to the same zone.
+  */
+ static int test_pages_in_a_zone(unsigned long start_pfn, unsigned long end_pfn)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from pbadari@us.ibm.com are
 
-origin.patch
-rtc-x1205-fix-alarm-set-fix.patch
-update-ntfs-help-text-fix.patch
-cgroups-document-the-effect-of-attaching-pid-0-to-a-cgroup-fix.patch
-spi-fix-the-read-path-in-spidev-cleanup.patch
-security-filesystem-capabilities-fix-fragile-setuid-fixup-code-checkpatch-fixes.patch
-revert-introduce-rculisth.patch
-next-remove-localversion.patch
-revert-git-pekka.patch
-fix-kobject-fix-kobject_rename-and-config_sysfs.patch
-kvm-is-busted-on-ia64.patch
-drivers-mtd-nand-nandsimc-needs-div64h.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-tick-schedc-suppress-needless-timer-reprogramming-checkpatch-fixes.patch
-git-jg-misc-git-rejects.patch
-drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-mmc-sd-host-driver-for-ricoh-bay1controllers.patch
-drivers-mtd-devices-block2mtdc-suppress-warning.patch
-bug-in-random32c-all-zero-outputs-with-probability-1-232-other-seeding-bugs-checkpatch-fixes.patch
-sundance-set-carrier-status-on-link-change-events.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix-fix.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-scsi-misc-fix-scsi_dh-build-errors.patch
-drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
-s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
-pktcdvd-push-bkl-down-into-driver-fix.patch
-block-fix-bio_add_page-for-non-trivial-merge_bvec_fn-case-fix.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-git-logfs-fixup.patch
-watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-verify-the-page-links-and-memory-model.patch
-mspec-convert-nopfn-to-fault-fix.patch
-page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
-kill-generic_file_direct_io-checkpatch-fixes.patch
-use-generic_access_phys-for-dev-mem-mappings-fix.patch
-spufs-use-the-new-vm_ops-access-fix.patch
-fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
-page-flags-record-page-flag-overlays-explicitly-xen.patch
-mapping_set_error-add-unlikely.patch
-huge-page-private-reservation-review-cleanups-fix.patch
-sync_file_range_write-may-and-will-block-document-that-fix.patch
-vmallocinfo-add-numa-information-fix.patch
-hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
-hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
-hugetlb-override-default-huge-page-size-ia64-build.patch
-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-bootmem-add-debugging-framework-fix.patch
-bootmem-clean-up-free_all_bootmem_core-fix.patch
-bootmem-free-reserve-helpers-fix.patch
-revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-v850-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
-swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
-split-the-typecheck-macros-out-of-include-linux-kernelh.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
-remove-apparently-unused-fd1772h-header-file.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
-build-kernel-profileo-only-when-requested-cleanups.patch
-fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
-block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
-seq_file-fix-bug-when-seq_read-reads-nothing-fix.patch
-rename-warn-to-warning-to-clear-the-namespace-fix.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
-flag-parameters-paccept-fix.patch
-flag-parameters-paccept-sys_ni.patch
-flag-parameters-anon_inode_getfd-extension-fix.patch
-flag-parameters-signalfd-fix.patch
-flag-parameters-eventfd-fix.patch
-flag-parameters-inotify_init-fix.patch
-flag-parameters-check-magic-constants-alpha.patch
-spi-au1550_spi-improve-pio-transfer-mode-checkpatch-fixes.patch
-gpio-gpio-driver-for-max7301-spi-gpio-expander-checkpatch-fixes.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch
-drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
-atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
-fsl-diu-fb-update-freescale-diu-driver-to-use-page_alloc_exact-fix.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
-ext3-handle-corrupted-orphan-list-at-mount-cleanup.patch
-ext3-handle-corrupted-orphan-list-at-mount-fix.patch
-ext3-handle-corrupted-orphan-list-at-mount-cleanup-fix.patch
-jbd-dont-abort-if-flushing-file-data-failed-fix.patch
-reiserfs-convert-j_flush_sem-to-mutex.patch
-reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
-cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-checkpatch-fixes.patch
-memcg-remove-refcnt-from-page_cgroup-fix-2.patch
+generic_file_aio_read-cleanups.patch
+tmpfs-support-aio.patch
+memory-hotplugallocate-usemap-on-the-section-with-pgdat-take-4.patch
+memory-hotplug-small-fixes-to-bootmem-freeing-for-memory-hotremove.patch
+memory-hotplug-add-sysfs-removable-attribute-for-hotplug-memory-remove.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction.patch
 jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup.patch
-ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
-getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
-tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
-memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
-memstick-use-fully-asynchronous-request-processing-fix.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+x86-implement-pte_special.patch
+mm-introduce-get_user_pages_fast.patch
 mm-introduce-get_user_pages_fast-fix.patch
 mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast.patch
 x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
 x86-lockless-get_user_pages_fast-fix.patch
 x86-lockless-get_user_pages_fast-fix-2.patch
 x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
 x86-lockless-get_user_pages_fast-fix-warning.patch
-vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
-define-page_file_cache-function-fix.patch
-unevictable-lru-infrastructure-fix.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-3.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
-vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
-video-console-sticonrec-make-code-static-checkpatch-fixes.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+dio-use-get_user_pages_fast.patch
+splice-use-get_user_pages_fast.patch
 
