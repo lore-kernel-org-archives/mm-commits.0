@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + memrlimit-add-memrlimit-controller-accounting-and-control-memrlimit-improve-fork-and-error-handling.patch added to -mm tree
-Date: Tue, 01 Jul 2008 15:30:02 -0700
-Message-ID: <200807012230.m61MU2LN017955@imap1.linux-foundation.org>
+Subject: + memrlimit-setup-the-memrlimit-controller-memrlimit-correct-mremap-and-move_vma-accounting.patch added to -mm tree
+Date: Tue, 01 Jul 2008 15:34:25 -0700
+Message-ID: <200807012234.m61MYPIm018149@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32790 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58620 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757768AbYGAWbE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 18:31:04 -0400
+	by vger.kernel.org with ESMTP id S1761524AbYGAWfH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 18:35:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: balbir@linux.vnet.ibm.com, hugh@veritas.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, rientjes@google.com, skumar@linux.vnet.ibm.com, vgoyal@redhat.com, xemul@openvz.org, yamamoto@valinux.co.jp
+Cc: balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, rientjes@google.com, skumar@linux.vnet.ibm.com, vgoyal@redhat.com, xemul@openvz.org, yamamoto@valinux.co.jp
 
 
 The patch titled
-     memrlimit: improve fork and error handling
+     memrlimit: correct mremap and move_vma accounting
 has been added to the -mm tree.  Its filename is
-     memrlimit-add-memrlimit-controller-accounting-and-control-memrlimit-improve-fork-and-error-handling.patch
+     memrlimit-setup-the-memrlimit-controller-memrlimit-correct-mremap-and-move_vma-accounting.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,22 +33,22 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memrlimit: improve fork and error handling
+Subject: memrlimit: correct mremap and move_vma accounting
 From: Balbir Singh <balbir@linux.vnet.ibm.com>
 
-The fork path of the memrlimit patches adds an additional down_write() of
-mmap_sem. Ideally memrlimit should be zero overhead for non users and the
-error handling path also needed improvement. This patch fixes both problems.
+The memrlimit patches did not account for move_vma() since we account for
+address space usage in do_mremap().  The code flow actually increments
+total_vm twice (once in do_mremap() and once in move_vma()), the excess is
+removed in remove_vma_list() via do_munmap().  Since we did not do the
+duplicate accounting, the code was seeing the extra uncharge, causing our
+accounting to break.  This patch fixes the problem
 
-The accounting has now been moved from copy_mm() to dup_mmap()
-
-Reviewed-by: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
 Cc: Sudhir Kumar <skumar@linux.vnet.ibm.com>
 Cc: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
 Cc: Paul Menage <menage@google.com>
 Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Pavel Emelianov <xemul@openvz.org>
 Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: David Rientjes <rientjes@google.com>
@@ -56,58 +56,38 @@ Cc: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |   18 +++++++++++-------
- 1 file changed, 11 insertions(+), 7 deletions(-)
+ mm/mremap.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN kernel/fork.c~memrlimit-add-memrlimit-controller-accounting-and-control-memrlimit-improve-fork-and-error-handling kernel/fork.c
---- a/kernel/fork.c~memrlimit-add-memrlimit-controller-accounting-and-control-memrlimit-improve-fork-and-error-handling
-+++ a/kernel/fork.c
-@@ -261,7 +261,7 @@ static int dup_mmap(struct mm_struct *mm
- 	struct vm_area_struct *mpnt, *tmp, **pprev;
- 	struct rb_node **rb_link, *rb_parent;
- 	int retval;
--	unsigned long charge;
-+	unsigned long charge, uncharged = 0;
- 	struct mempolicy *pol;
+diff -puN mm/mremap.c~memrlimit-setup-the-memrlimit-controller-memrlimit-correct-mremap-and-move_vma-accounting mm/mremap.c
+--- a/mm/mremap.c~memrlimit-setup-the-memrlimit-controller-memrlimit-correct-mremap-and-move_vma-accounting
++++ a/mm/mremap.c
+@@ -174,10 +174,15 @@ static unsigned long move_vma(struct vm_
+ 	if (mm->map_count >= sysctl_max_map_count - 3)
+ 		return -ENOMEM;
  
- 	down_write(&oldmm->mmap_sem);
-@@ -271,6 +271,15 @@ static int dup_mmap(struct mm_struct *mm
- 	 */
- 	down_write_nested(&mm->mmap_sem, SINGLE_DEPTH_NESTING);
- 
-+	/*
-+	 * Uncharging as a result of failure is done by mmput()
-+	 * in dup_mm()
-+	 */
-+	if (memrlimit_cgroup_charge_as(oldmm, oldmm->total_vm)) {
-+		retval = -ENOMEM;
-+		goto out;
-+	}
++	if (memrlimit_cgroup_charge_as(mm, new_len >> PAGE_SHIFT))
++		return -ENOMEM;
 +
- 	mm->locked_vm = 0;
- 	mm->mmap = NULL;
- 	mm->mmap_cache = NULL;
-@@ -292,6 +301,7 @@ static int dup_mmap(struct mm_struct *mm
- 			vm_stat_account(mm, mpnt->vm_flags, mpnt->vm_file,
- 								-pages);
- 			memrlimit_cgroup_uncharge_as(mm, pages);
-+			uncharged += pages;
- 			continue;
+ 	new_pgoff = vma->vm_pgoff + ((old_addr - vma->vm_start) >> PAGE_SHIFT);
+ 	new_vma = copy_vma(&vma, new_addr, new_len, new_pgoff);
+-	if (!new_vma)
++	if (!new_vma) {
++		memrlimit_cgroup_uncharge_as(mm, new_len >> PAGE_SHIFT);
+ 		return -ENOMEM;
++	}
+ 
+ 	moved_len = move_page_tables(vma, old_addr, new_vma, new_addr, old_len);
+ 	if (moved_len < old_len) {
+@@ -381,6 +386,8 @@ unsigned long do_mremap(unsigned long ad
  		}
- 		charge = 0;
-@@ -629,12 +639,6 @@ static int copy_mm(unsigned long clone_f
- 		atomic_inc(&oldmm->mm_users);
- 		mm = oldmm;
- 		goto good_mm;
--	} else {
--		down_write(&oldmm->mmap_sem);
--		retval = memrlimit_cgroup_charge_as(oldmm, oldmm->total_vm);
--		up_write(&oldmm->mmap_sem);
--		if (retval)
--			goto fail_nomem;
  	}
  
- 	retval = -ENOMEM;
++	memrlimit_cgroup_uncharge_as(mm, (new_len - old_len) >> PAGE_SHIFT);
++
+ 	/*
+ 	 * We weren't able to just expand or shrink the area,
+ 	 * we need to create a new one and move it..
 _
 
 Patches currently in -mm which might be from balbir@linux.vnet.ibm.com are
@@ -121,6 +101,7 @@ memcg-remove-refcnt-from-page_cgroup-fix-memcg-fix-mem_cgroup_end_migration-race
 memcg-clean-up-checking-of-the-disabled-flag.patch
 memrlimit-add-memrlimit-controller-documentation.patch
 memrlimit-setup-the-memrlimit-controller.patch
+memrlimit-setup-the-memrlimit-controller-memrlimit-correct-mremap-and-move_vma-accounting.patch
 memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
 memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info-memrlimit-fix-sleep-inside-sleeplock-in-mm_update_next_owner.patch
 memrlimit-add-memrlimit-controller-accounting-and-control.patch
