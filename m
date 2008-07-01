@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cdrom-dont-check-cdc_play_audio-in-cdrom_count_tracks.patch added to -mm tree
-Date: Mon, 30 Jun 2008 23:31:39 -0700
-Message-ID: <200807010631.m616VdWw012856@imap1.linux-foundation.org>
+Subject: + unevictable-lru-infrastructure-remove-redundant-page-mapping-check.patch added to -mm tree
+Date: Mon, 30 Jun 2008 23:49:49 -0700
+Message-ID: <200807010649.m616nnqL013523@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60704 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44033 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752581AbYGAGcF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 02:32:05 -0400
+	by vger.kernel.org with ESMTP id S1752044AbYGAGuV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 02:50:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, bzolnier@gmail.com, jens.axboe@oracle.com, petkovbb@googlemail.com
+Cc: nishimura@mxp.nes.nec.co.jp, Lee.Schermerhorn@hp.com, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com
 
 
 The patch titled
-     cdrom: don't check CDC_PLAY_AUDIO in cdrom_count_tracks()
+     unevictable-lru-infrastructure: remove redundant page->mapping check
 has been added to the -mm tree.  Its filename is
-     cdrom-dont-check-cdc_play_audio-in-cdrom_count_tracks.patch
+     unevictable-lru-infrastructure-remove-redundant-page-mapping-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,45 +33,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cdrom: don't check CDC_PLAY_AUDIO in cdrom_count_tracks()
-From: Tejun Heo <tj@kernel.org>
+Subject: unevictable-lru-infrastructure: remove redundant page->mapping check
+From: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 
-According to MMC-3 (or any later versions) READ TOCs are mandatory
-commands and have nothing to do with CDC_PLAY_AUDIO.  I have no idea why
-the check was put there in the first place but it now only breaks
-automatic actions on certain drives.
+Remove redundant mapping check.
 
-Note that this test was only effective when ide-cdrom was being used
-as sr didn't mask CDC_PLAY_AUDIO according to the capabilities.
+We'd be doing exactly what putback_lru_page() is doing.  So, this code as
+always unnecessary, duplicate code.  So, just let putback_lru_page()
+handle this condition and conditionally unlock_page().
 
-Signed-off-by: Tejun Heo <tj@kernel.org>
-Acked-by: Jens Axboe <jens.axboe@oracle.com>
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
-Cc: Borislav Petkov <petkovbb@googlemail.com>
+Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Acked-by: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cdrom/cdrom.c |    4 ----
- 1 file changed, 4 deletions(-)
+ mm/migrate.c |    8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
 
-diff -puN drivers/cdrom/cdrom.c~cdrom-dont-check-cdc_play_audio-in-cdrom_count_tracks drivers/cdrom/cdrom.c
---- a/drivers/cdrom/cdrom.c~cdrom-dont-check-cdc_play_audio-in-cdrom_count_tracks
-+++ a/drivers/cdrom/cdrom.c
-@@ -1491,10 +1491,6 @@ static void cdrom_count_tracks(struct cd
- 	tracks->xa=0;
- 	tracks->error=0;
- 	cdinfo(CD_COUNT_TRACKS, "entering cdrom_count_tracks\n"); 
--        if (!CDROM_CAN(CDC_PLAY_AUDIO)) { 
--                tracks->error=CDS_NO_INFO;
--                return;
--        }        
- 	/* Grab the TOC header so we can see how many tracks there are */
- 	if ((ret = cdi->ops->audio_ioctl(cdi, CDROMREADTOCHDR, &header))) {
- 		if (ret == -ENOMEDIUM)
+diff -puN mm/migrate.c~unevictable-lru-infrastructure-remove-redundant-page-mapping-check mm/migrate.c
+--- a/mm/migrate.c~unevictable-lru-infrastructure-remove-redundant-page-mapping-check
++++ a/mm/migrate.c
+@@ -728,13 +728,7 @@ unlock:
+  		 * restored.
+  		 */
+  		list_del(&page->lru);
+-		if (!page->mapping) {
+-			VM_BUG_ON(page_count(page) != 1);
+-			unlock_page(page);
+-			put_page(page);		/* just free the old page */
+-			goto end_migration;
+-		} else
+-			unlock = putback_lru_page(page);
++		unlock = putback_lru_page(page);
+ 	}
+ 
+ 	if (unlock)
 _
 
-Patches currently in -mm which might be from tj@kernel.org are
+Patches currently in -mm which might be from nishimura@mxp.nes.nec.co.jp are
 
-pci-vt3336-cant-do-msi-either.patch
-cdrom-dont-check-cdc_play_audio-in-cdrom_count_tracks.patch
+memcg-handle-swap-cache-fix.patch
+memcg-handle-swap-cache-fix-shmem-page-migration-incorrectness-on-memcgroup.patch
+mm-speculative-page-references-fix-migration_entry_wait-for-speculative-page-cache.patch
+unevictable-lru-infrastructure-remove-redundant-page-mapping-check.patch
 
