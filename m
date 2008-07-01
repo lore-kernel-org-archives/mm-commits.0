@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + man-pages-is-supported.patch added to -mm tree
-Date: Mon, 30 Jun 2008 23:54:18 -0700
-Message-ID: <200807010654.m616sI79013691@imap1.linux-foundation.org>
+Subject: + autofs4-dont-make-expiring-dentry-negative.patch added to -mm tree
+Date: Tue, 01 Jul 2008 00:05:26 -0700
+Message-ID: <200807010705.m6175Qx2014099@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48329 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50445 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751731AbYGAGyV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 02:54:21 -0400
+	by vger.kernel.org with ESMTP id S1752195AbYGAHFb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 03:05:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mtk.manpages@googlemail.com
+Cc: raven@themaw.net
 
 
 The patch titled
-     man-pages is supported
+     autofs4: don't make expiring dentry negative
 has been added to the -mm tree.  Its filename is
-     man-pages-is-supported.patch
+     autofs4-dont-make-expiring-dentry-negative.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,93 +33,308 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: man-pages is supported
-From: Michael Kerrisk <mtk.manpages@googlemail.com>
+Subject: autofs4: don't make expiring dentry negative
+From: Ian Kent <raven@themaw.net>
 
-Starting last month, I reached a long-time goal: man-pages finally has a
-paid, full-time maintainer, thanks to a fellowship from the Linux
-Foundation.  It's still a little unclear how long the LF money will last
-for the fellowship, but for the foreseeable future, I'll be working on:
+Correct the error of making a positive dentry negative after it has been
+instantiated.
 
-* Properly documenting every new Linux kernel-userland (and glibc) API,
-  and every API change, that is released into the mainline kernel, ideally
-  before actual release.  (That's the ideal, but there's a quite a
-  backlog, so I'm not going to achieve the ideal immediately.)
+The code that makes this error attempts to re-use the dentry from a
+concurrent expire and mount to resolve a race and the dentry used for the
+lookup must be negative for mounts to trigger in the required cases.  The
+fact is that the dentry doesn't need to be re-used because all that is
+needed is to preserve the flag that indicates an expire is still
+incomplete at the time of the mount request.
 
-* Testing new APIs, again ideally before they are released into the
-  mainline kernel, and probably doing some light bug fixing while I'm at
-  it (e.g., the recent utimensat() work).
+This change uses the the dentry to check the flag and wait for the expire
+to complete then discards it instead of attempting to re-use it.
 
-* Design review of new APIs, which of course can only usefully be done
-  before they are released into the mainline kernel.
-
-* And of course accepting patches and dealing with bug reports for
-  existing man pages.
-
-Signed-off-by: Michael Kerrisk <mtk.manpages@googlemail.com>
+Signed-off-by: Ian Kent <raven@themaw.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/autofs4/autofs_i.h |    6 +-
+ fs/autofs4/inode.c    |    6 +-
+ fs/autofs4/root.c     |  115 ++++++++++++++--------------------------
+ 3 files changed, 49 insertions(+), 78 deletions(-)
 
-diff -puN MAINTAINERS~man-pages-is-supported MAINTAINERS
---- a/MAINTAINERS~man-pages-is-supported
-+++ a/MAINTAINERS
-@@ -2684,8 +2684,8 @@ S: 	Supported
- MAN-PAGES: MANUAL PAGES FOR LINUX -- Sections 2, 3, 4, 5, and 7
- P:	Michael Kerrisk
- M:	mtk.manpages@gmail.com
--W:	ftp://ftp.kernel.org/pub/linux/docs/manpages
--S:	Maintained
-+W:     http://www.kernel.org/doc/man-pages
-+S:     Supported
+diff -puN fs/autofs4/autofs_i.h~autofs4-dont-make-expiring-dentry-negative fs/autofs4/autofs_i.h
+--- a/fs/autofs4/autofs_i.h~autofs4-dont-make-expiring-dentry-negative
++++ a/fs/autofs4/autofs_i.h
+@@ -52,7 +52,7 @@ struct autofs_info {
  
- MARVELL LIBERTAS WIRELESS DRIVER
- P:	Dan Williams
+ 	int		flags;
+ 
+-	struct list_head rehash;
++	struct list_head expiring;
+ 
+ 	struct autofs_sb_info *sbi;
+ 	unsigned long last_used;
+@@ -112,8 +112,8 @@ struct autofs_sb_info {
+ 	struct mutex wq_mutex;
+ 	spinlock_t fs_lock;
+ 	struct autofs_wait_queue *queues; /* Wait queue pointer */
+-	spinlock_t rehash_lock;
+-	struct list_head rehash_list;
++	spinlock_t lookup_lock;
++	struct list_head expiring_list;
+ };
+ 
+ static inline struct autofs_sb_info *autofs4_sbi(struct super_block *sb)
+diff -puN fs/autofs4/inode.c~autofs4-dont-make-expiring-dentry-negative fs/autofs4/inode.c
+--- a/fs/autofs4/inode.c~autofs4-dont-make-expiring-dentry-negative
++++ a/fs/autofs4/inode.c
+@@ -47,7 +47,7 @@ struct autofs_info *autofs4_init_ino(str
+ 	ino->dentry = NULL;
+ 	ino->size = 0;
+ 
+-	INIT_LIST_HEAD(&ino->rehash);
++	INIT_LIST_HEAD(&ino->expiring);
+ 
+ 	ino->last_used = jiffies;
+ 	atomic_set(&ino->count, 0);
+@@ -338,8 +338,8 @@ int autofs4_fill_super(struct super_bloc
+ 	mutex_init(&sbi->wq_mutex);
+ 	spin_lock_init(&sbi->fs_lock);
+ 	sbi->queues = NULL;
+-	spin_lock_init(&sbi->rehash_lock);
+-	INIT_LIST_HEAD(&sbi->rehash_list);
++	spin_lock_init(&sbi->lookup_lock);
++	INIT_LIST_HEAD(&sbi->expiring_list);
+ 	s->s_blocksize = 1024;
+ 	s->s_blocksize_bits = 10;
+ 	s->s_magic = AUTOFS_SUPER_MAGIC;
+diff -puN fs/autofs4/root.c~autofs4-dont-make-expiring-dentry-negative fs/autofs4/root.c
+--- a/fs/autofs4/root.c~autofs4-dont-make-expiring-dentry-negative
++++ a/fs/autofs4/root.c
+@@ -493,10 +493,10 @@ void autofs4_dentry_release(struct dentr
+ 		struct autofs_sb_info *sbi = autofs4_sbi(de->d_sb);
+ 
+ 		if (sbi) {
+-			spin_lock(&sbi->rehash_lock);
+-			if (!list_empty(&inf->rehash))
+-				list_del(&inf->rehash);
+-			spin_unlock(&sbi->rehash_lock);
++			spin_lock(&sbi->lookup_lock);
++			if (!list_empty(&inf->expiring))
++				list_del(&inf->expiring);
++			spin_unlock(&sbi->lookup_lock);
+ 		}
+ 
+ 		inf->dentry = NULL;
+@@ -518,7 +518,7 @@ static struct dentry_operations autofs4_
+ 	.d_release	= autofs4_dentry_release,
+ };
+ 
+-static struct dentry *autofs4_lookup_unhashed(struct autofs_sb_info *sbi, struct dentry *parent, struct qstr *name)
++static struct dentry *autofs4_lookup_expiring(struct autofs_sb_info *sbi, struct dentry *parent, struct qstr *name)
+ {
+ 	unsigned int len = name->len;
+ 	unsigned int hash = name->hash;
+@@ -526,14 +526,14 @@ static struct dentry *autofs4_lookup_unh
+ 	struct list_head *p, *head;
+ 
+ 	spin_lock(&dcache_lock);
+-	spin_lock(&sbi->rehash_lock);
+-	head = &sbi->rehash_list;
++	spin_lock(&sbi->lookup_lock);
++	head = &sbi->expiring_list;
+ 	list_for_each(p, head) {
+ 		struct autofs_info *ino;
+ 		struct dentry *dentry;
+ 		struct qstr *qstr;
+ 
+-		ino = list_entry(p, struct autofs_info, rehash);
++		ino = list_entry(p, struct autofs_info, expiring);
+ 		dentry = ino->dentry;
+ 
+ 		spin_lock(&dentry->d_lock);
+@@ -555,33 +555,17 @@ static struct dentry *autofs4_lookup_unh
+ 			goto next;
+ 
+ 		if (d_unhashed(dentry)) {
+-			struct inode *inode = dentry->d_inode;
+-
+-			ino = autofs4_dentry_ino(dentry);
+-			list_del_init(&ino->rehash);
++			list_del_init(&ino->expiring);
+ 			dget(dentry);
+-			/*
+-			 * Make the rehashed dentry negative so the VFS
+-			 * behaves as it should.
+-			 */
+-			if (inode) {
+-				dentry->d_inode = NULL;
+-				list_del_init(&dentry->d_alias);
+-				spin_unlock(&dentry->d_lock);
+-				spin_unlock(&sbi->rehash_lock);
+-				spin_unlock(&dcache_lock);
+-				iput(inode);
+-				return dentry;
+-			}
+ 			spin_unlock(&dentry->d_lock);
+-			spin_unlock(&sbi->rehash_lock);
++			spin_unlock(&sbi->lookup_lock);
+ 			spin_unlock(&dcache_lock);
+ 			return dentry;
+ 		}
+ next:
+ 		spin_unlock(&dentry->d_lock);
+ 	}
+-	spin_unlock(&sbi->rehash_lock);
++	spin_unlock(&sbi->lookup_lock);
+ 	spin_unlock(&dcache_lock);
+ 
+ 	return NULL;
+@@ -591,7 +575,7 @@ next:
+ static struct dentry *autofs4_lookup(struct inode *dir, struct dentry *dentry, struct nameidata *nd)
+ {
+ 	struct autofs_sb_info *sbi;
+-	struct dentry *unhashed;
++	struct dentry *expiring;
+ 	int oz_mode;
+ 
+ 	DPRINTK("name = %.*s",
+@@ -607,44 +591,40 @@ static struct dentry *autofs4_lookup(str
+ 	DPRINTK("pid = %u, pgrp = %u, catatonic = %d, oz_mode = %d",
+ 		 current->pid, task_pgrp_nr(current), sbi->catatonic, oz_mode);
+ 
+-	unhashed = autofs4_lookup_unhashed(sbi, dentry->d_parent, &dentry->d_name);
+-	if (!unhashed) {
+-		/*
+-		 * Mark the dentry incomplete but don't hash it. We do this
+-		 * to serialize our inode creation operations (symlink and
+-		 * mkdir) which prevents deadlock during the callback to
+-		 * the daemon. Subsequent user space lookups for the same
+-		 * dentry are placed on the wait queue while the daemon
+-		 * itself is allowed passage unresticted so the create
+-		 * operation itself can then hash the dentry. Finally,
+-		 * we check for the hashed dentry and return the newly
+-		 * hashed dentry.
+-		 */
+-		dentry->d_op = &autofs4_root_dentry_operations;
+-
+-		dentry->d_fsdata = NULL;
+-		d_instantiate(dentry, NULL);
+-	} else {
+-		struct autofs_info *ino = autofs4_dentry_ino(unhashed);
+-		DPRINTK("rehash %p with %p", dentry, unhashed);
++	expiring = autofs4_lookup_expiring(sbi, dentry->d_parent, &dentry->d_name);
++	if (expiring) {
++		struct autofs_info *ino = autofs4_dentry_ino(expiring);
+ 		/*
+ 		 * If we are racing with expire the request might not
+ 		 * be quite complete but the directory has been removed
+ 		 * so it must have been successful, so just wait for it.
+-		 * We need to ensure the AUTOFS_INF_EXPIRING flag is clear
+-		 * before continuing as revalidate may fail when calling
+-		 * try_to_fill_dentry (returning EAGAIN) if we don't.
+ 		 */
+ 		while (ino && (ino->flags & AUTOFS_INF_EXPIRING)) {
+ 			DPRINTK("wait for incomplete expire %p name=%.*s",
+-				unhashed, unhashed->d_name.len,
+-				unhashed->d_name.name);
+-			autofs4_wait(sbi, unhashed, NFY_NONE);
++				expiring, expiring->d_name.len,
++				expiring->d_name.name);
++			autofs4_wait(sbi, expiring, NFY_NONE);
+ 			DPRINTK("request completed");
+ 		}
+-		dentry = unhashed;
++		dput(expiring);
+ 	}
+ 
++	/*
++	 * Mark the dentry incomplete but don't hash it. We do this
++	 * to serialize our inode creation operations (symlink and
++	 * mkdir) which prevents deadlock during the callback to
++	 * the daemon. Subsequent user space lookups for the same
++	 * dentry are placed on the wait queue while the daemon
++	 * itself is allowed passage unresticted so the create
++	 * operation itself can then hash the dentry. Finally,
++	 * we check for the hashed dentry and return the newly
++	 * hashed dentry.
++	 */
++	dentry->d_op = &autofs4_root_dentry_operations;
++
++	dentry->d_fsdata = NULL;
++	d_instantiate(dentry, NULL);
++
+ 	if (!oz_mode) {
+ 		spin_lock(&dentry->d_lock);
+ 		dentry->d_flags |= DCACHE_AUTOFS_PENDING;
+@@ -668,8 +648,6 @@ static struct dentry *autofs4_lookup(str
+ 			if (sigismember (sigset, SIGKILL) ||
+ 			    sigismember (sigset, SIGQUIT) ||
+ 			    sigismember (sigset, SIGINT)) {
+-			    if (unhashed)
+-				dput(unhashed);
+ 			    return ERR_PTR(-ERESTARTNOINTR);
+ 			}
+ 		}
+@@ -699,15 +677,9 @@ static struct dentry *autofs4_lookup(str
+ 		else
+ 			dentry = ERR_PTR(-ENOENT);
+ 
+-		if (unhashed)
+-			dput(unhashed);
+-
+ 		return dentry;
+ 	}
+ 
+-	if (unhashed)
+-		return dentry;
+-
+ 	return NULL;
+ }
+ 
+@@ -769,9 +741,8 @@ static int autofs4_dir_symlink(struct in
+  * that the file no longer exists. However, doing that means that the
+  * VFS layer can turn the dentry into a negative dentry.  We don't want
+  * this, because the unlink is probably the result of an expire.
+- * We simply d_drop it and add it to a rehash candidates list in the
+- * super block, which allows the dentry lookup to reuse it retaining
+- * the flags, such as expire in progress, in case we're racing with expire.
++ * We simply d_drop it and add it to a expiring list in the super block,
++ * which allows the dentry lookup to check for an incomplete expire.
+  *
+  * If a process is blocked on the dentry waiting for the expire to finish,
+  * it will invalidate the dentry and try to mount with a new one.
+@@ -801,9 +772,9 @@ static int autofs4_dir_unlink(struct ino
+ 	dir->i_mtime = CURRENT_TIME;
+ 
+ 	spin_lock(&dcache_lock);
+-	spin_lock(&sbi->rehash_lock);
+-	list_add(&ino->rehash, &sbi->rehash_list);
+-	spin_unlock(&sbi->rehash_lock);
++	spin_lock(&sbi->lookup_lock);
++	list_add(&ino->expiring, &sbi->expiring_list);
++	spin_unlock(&sbi->lookup_lock);
+ 	spin_lock(&dentry->d_lock);
+ 	__d_drop(dentry);
+ 	spin_unlock(&dentry->d_lock);
+@@ -829,9 +800,9 @@ static int autofs4_dir_rmdir(struct inod
+ 		spin_unlock(&dcache_lock);
+ 		return -ENOTEMPTY;
+ 	}
+-	spin_lock(&sbi->rehash_lock);
+-	list_add(&ino->rehash, &sbi->rehash_list);
+-	spin_unlock(&sbi->rehash_lock);
++	spin_lock(&sbi->lookup_lock);
++	list_add(&ino->expiring, &sbi->expiring_list);
++	spin_unlock(&sbi->lookup_lock);
+ 	spin_lock(&dentry->d_lock);
+ 	__d_drop(dentry);
+ 	spin_unlock(&dentry->d_lock);
 _
 
-Patches currently in -mm which might be from mtk.manpages@googlemail.com are
+Patches currently in -mm which might be from raven@themaw.net are
 
-man-pages-is-supported.patch
-vfs-utimensat-ignore-tv_sec-if-tv_nsec-==-utime_omit-or-utime_now.patch
-vfs-utimensat-be-consistent-with-utime-for-immutable-and-append-only-files.patch
-vfs-utimensat-fix-error-checking-for-utime_nowutime_omit-case.patch
-vfs-utimensat-fix-write-access-check-for-futimens.patch
-huge-page-private-reservation-review-cleanups.patch
-huge-page-private-reservation-review-cleanups-fix.patch
-mm-record-map_noreserve-status-on-vmas-and-fix-small-page-mprotect-reservations.patch
-hugetlb-move-reservation-region-support-earlier.patch
-hugetlb-allow-huge-page-mappings-to-be-created-without-reservations.patch
-hugetlb-allow-huge-page-mappings-to-be-created-without-reservations-cleanups.patch
-flag-parameters-socket-and-socketpair.patch
-flag-parameters-socket-and-socketpair-mips-fix.patch
-flag-parameters-paccept.patch
-flag-parameters-paccept-fix.patch
-flag-parameters-paccept-fix-flag-parameters-arch-specific-sock_nonblock.patch
-flag-parameters-paccept-flag-parameters-paccept-w-out-set_restore_sigmask.patch
-flag-parameters-paccept-sys_ni.patch
-flag-parameters-anon_inode_getfd-extension.patch
-flag-parameters-anon_inode_getfd-extension-fix.patch
-flag-parameters-signalfd.patch
-flag-parameters-signalfd-fix.patch
-flag-parameters-eventfd.patch
-flag-parameters-eventfd-fix.patch
-flag-parameters-timerfd_create.patch
-flag-parameters-epoll_create.patch
-flag-parameters-dup2.patch
-flag-parameters-pipe.patch
-flag-parameters-inotify_init.patch
-flag-parameters-inotify_init-fix.patch
-flag-parametersi-nonblock-in-anon_inode_getfd.patch
-flag-parameters-nonblock-in-socket-and-socketpair.patch
-flag-parameters-nonblock-in-signalfd.patch
-flag-parameters-nonblock-in-eventfd.patch
-flag-parameters-nonblock-in-timerfd_create.patch
-flag-parameters-nonblock-in-pipe.patch
-flag-parameters-nonblock-in-inotify_init.patch
-flag-parameters-check-magic-constants.patch
-flag-parameters-check-magic-constants-alpha.patch
-flag-parameters-add-on-remove-epoll_create-size-param.patch
-signals-make-siginfo_t-si_utime-si_sstime-report-times-in-user_hz-not-hz.patch
+autofs4-dont-make-expiring-dentry-negative.patch
+autofs4-revert-redo-lookup-in-ttfd.patch
+autofs4-use-look-aside-list-for-lookups.patch
+autofs4-dont-release-directory-mutex-if-called-in-oz_mode.patch
+autofs4-use-lookup-intent-flags-to-trigger-mounts.patch
+autofs4-use-struct-qstr-in-waitqc.patch
+autofs4-fix-pending-mount-race.patch
 
