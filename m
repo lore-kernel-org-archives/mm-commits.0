@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + memrlimit-handle-attach_task-failure-add-can_attach-callback-update.patch added to -mm tree
-Date: Tue, 01 Jul 2008 15:27:49 -0700
-Message-ID: <200807012227.m61MRoW9017877@imap1.linux-foundation.org>
+Subject: + memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info-memrlimit-fix-sleep-inside-sleeplock-in-mm_update_next_owner.patch added to -mm tree
+Date: Tue, 01 Jul 2008 15:28:48 -0700
+Message-ID: <200807012228.m61MSmK9017904@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47740 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55862 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754800AbYGAW22 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 18:28:28 -0400
+	by vger.kernel.org with ESMTP id S1752425AbYGAW35 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 18:29:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: balbir@linux.vnet.ibm.com, hugh@veritas.com, kamezawa.hiroyu@jp.fujitsu.com,
 
 
 The patch titled
-     memrlimit handle attach_task() failure, add can_attach() callback (update)
+     memrlimit fix sleep inside sleeplock in mm_update_next_owner()
 has been added to the -mm tree.  Its filename is
-     memrlimit-handle-attach_task-failure-add-can_attach-callback-update.patch
+     memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info-memrlimit-fix-sleep-inside-sleeplock-in-mm_update_next_owner.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,84 +33,66 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memrlimit handle attach_task() failure, add can_attach() callback (update)
+Subject: memrlimit fix sleep inside sleeplock in mm_update_next_owner()
 From: Balbir Singh <balbir@linux.vnet.ibm.com>
 
-Changelog v2->v1
+We have a sleep inside a spinlock (read side locking of tasklist_lock). We
+try to acquire mmap_sem without releasing the read_lock. Since we have
+the task_struct of the new process, we can release the read_lock, before
+acquiring the task_lock of the chosen one.
 
-1. Rename res_counter_add_check() to res_counter_can_add()
-
-Making the first argument (struct res_counter *) a constant pointer causes
-the compiler to spew out warnings in spin_(un)lock_irq* routines, since
-we now pass address from a constant pointer to the lock routines.
-
-This patch fixes a task migration problem reported by Kamezawa-San. This
-patch should fix all issues with migraiton, except for a rare condition
-documented in memrlimit_cgroup_move_task(). To fix that problem, we
-would need to add transaction properties to cgroups.
-
-The problem reported was that migrating to a group that did not have
-sufficient limits to accept an incoming task caused a kernel warning.
-
-Steps to reproduce
-
-% mkdir /dev/cgroup/memrlimit/group_01
-% mkdir /dev/cgroup/memrlimit/group_02
-% echo 1G > /dev/cgroup/memrlimit/group_01/memrlimit.limit_in_bytes
-% echo 0 >  /dev/cgroup/memrlimit/group_02/memrlimit.limit_in_bytes
-% echo $$ > /dev/cgroup/memrlimit/group_01/tasks
-% echo $$ > /dev/cgroup/memrlimit/group_02/tasks
-% exit
-
-memrlimit does the right thing by not moving the charges to group_02,
-but the task is still put into g2 (since we did not use can_attach to
-fail migration). Once in g2, when we echo the task to the root cgroup,
-it tries to uncharge the cost of the task from g2. g2 does not have
-any charge associated with the task, hence we get a warning.
-
-Reviewed-by: <kamezawa.hiroyu@jp.fujitsu.com>
+Reviewed-by: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
 Cc: Sudhir Kumar <skumar@linux.vnet.ibm.com>
 Cc: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
 Cc: Paul Menage <menage@google.com>
 Cc: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Pavel Emelianov <xemul@openvz.org>
 Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/res_counter.h |    2 +-
- mm/memrlimitcgroup.c        |    3 +--
- 2 files changed, 2 insertions(+), 3 deletions(-)
+ kernel/exit.c |   10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/res_counter.h~memrlimit-handle-attach_task-failure-add-can_attach-callback-update include/linux/res_counter.h
---- a/include/linux/res_counter.h~memrlimit-handle-attach_task-failure-add-can_attach-callback-update
-+++ a/include/linux/res_counter.h
-@@ -163,7 +163,7 @@ static inline void res_counter_reset_fai
-  * Add the value val to the resource counter and check if we are
-  * still under the limit.
-  */
--static inline bool res_counter_add_check(struct res_counter *cnt,
-+static inline bool res_counter_can_add(struct res_counter *cnt,
- 						unsigned long val)
- {
- 	bool ret = false;
-diff -puN mm/memrlimitcgroup.c~memrlimit-handle-attach_task-failure-add-can_attach-callback-update mm/memrlimitcgroup.c
---- a/mm/memrlimitcgroup.c~memrlimit-handle-attach_task-failure-add-can_attach-callback-update
-+++ a/mm/memrlimitcgroup.c
-@@ -176,8 +176,7 @@ static int memrlimit_cgroup_can_move_tas
+diff -puN kernel/exit.c~memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info-memrlimit-fix-sleep-inside-sleeplock-in-mm_update_next_owner kernel/exit.c
+--- a/kernel/exit.c~memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info-memrlimit-fix-sleep-inside-sleeplock-in-mm_update_next_owner
++++ a/kernel/exit.c
+@@ -626,28 +626,24 @@ retry:
+ assign_new_owner:
+ 	BUG_ON(c == p);
+ 	get_task_struct(c);
++	read_unlock(&tasklist_lock);
+ 	down_write(&mm->mmap_sem);
+ 	/*
+ 	 * The task_lock protects c->mm from changing.
+ 	 * We always want mm->owner->mm == mm
+ 	 */
+ 	task_lock(c);
+-	/*
+-	 * Delay read_unlock() till we have the task_lock()
+-	 * to ensure that c does not slip away underneath us
+-	 */
+-	read_unlock(&tasklist_lock);
+ 	if (c->mm != mm) {
+ 		task_unlock(c);
+-		put_task_struct(c);
+ 		up_write(&mm->mmap_sem);
++		put_task_struct(c);
+ 		goto retry;
+ 	}
+ 	cgroup_mm_owner_callbacks(mm->owner, c);
+ 	mm->owner = c;
+ 	task_unlock(c);
+-	put_task_struct(c);
+ 	up_write(&mm->mmap_sem);
++	put_task_struct(c);
+ }
+ #endif /* CONFIG_MM_OWNER */
  
- 	memrcg = memrlimit_cgroup_from_cgrp(cgrp);
- 
--	if (!res_counter_add_check(&memrcg->as_res,
--				(mm->total_vm << PAGE_SHIFT)))
-+	if (!res_counter_can_add(&memrcg->as_res, (mm->total_vm << PAGE_SHIFT)))
- 		ret = -ENOMEM;
- out:
- 	rcu_read_unlock();
 _
 
 Patches currently in -mm which might be from balbir@linux.vnet.ibm.com are
@@ -125,6 +107,7 @@ memcg-clean-up-checking-of-the-disabled-flag.patch
 memrlimit-add-memrlimit-controller-documentation.patch
 memrlimit-setup-the-memrlimit-controller.patch
 memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
+memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info-memrlimit-fix-sleep-inside-sleeplock-in-mm_update_next_owner.patch
 memrlimit-add-memrlimit-controller-accounting-and-control.patch
 memrlimit-add-memrlimit-controller-accounting-and-control-fix.patch
 memrlimit-improve-error-handling.patch
