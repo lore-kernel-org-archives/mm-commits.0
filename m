@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86-pci-use-dev_printk-when-possible.patch added to -mm tree
-Date: Mon, 30 Jun 2008 16:58:36 -0700
-Message-ID: <200806302358.m5UNwa1t032099@imap1.linux-foundation.org>
+Subject: + page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix.patch added to -mm tree
+Date: Mon, 30 Jun 2008 17:58:32 -0700
+Message-ID: <200807010058.m610wWcA001702@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43692 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37937 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754759AbYF3X7H (ORCPT
+	by vger.kernel.org with ESMTP id S1759753AbYGAA6g (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jun 2008 19:59:07 -0400
+	Mon, 30 Jun 2008 20:58:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bjorn.helgaas@hp.com, jbarnes@virtuousgeek.org, mingo@elte.hu, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, linux-arch@vger.kernel.org, paulus@samba.org, righi.andrea@gmail.com
 
 
 The patch titled
-     x86 PCI: use dev_printk when possible
+     page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix
 has been added to the -mm tree.  Its filename is
-     x86-pci-use-dev_printk-when-possible.patch
+     page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,204 +34,170 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86 PCI: use dev_printk when possible
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Convert printks to use dev_printk().
-
-I converted DBG() to dev_dbg().  This DBG() is from arch/x86/pci/pci.h and
-requires source-code modification to enable, so dev_dbg() seems roughly
-equivalent.
-
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: <linux-arch@vger.kernel.org>
+Cc: Andrea Righi <righi.andrea@gmail.com>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/pci/fixup.c |    3 ++-
- arch/x86/pci/i386.c  |   26 +++++++++++---------------
- arch/x86/pci/irq.c   |   23 ++++++++++-------------
- arch/x86/pci/numa.c  |    5 +++--
- 4 files changed, 26 insertions(+), 31 deletions(-)
+ arch/powerpc/boot/page.h |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN arch/x86/pci/fixup.c~x86-pci-use-dev_printk-when-possible arch/x86/pci/fixup.c
---- a/arch/x86/pci/fixup.c~x86-pci-use-dev_printk-when-possible
-+++ a/arch/x86/pci/fixup.c
-@@ -23,7 +23,8 @@ static void __devinit pci_fixup_i450nx(s
- 		pci_read_config_byte(d, reg++, &busno);
- 		pci_read_config_byte(d, reg++, &suba);
- 		pci_read_config_byte(d, reg++, &subb);
--		DBG("i450NX PXB %d: %02x/%02x/%02x\n", pxb, busno, suba, subb);
-+		dev_dbg(&d->dev, "i450NX PXB %d: %02x/%02x/%02x\n", pxb, busno,
-+			suba, subb);
- 		if (busno)
- 			pci_scan_bus_with_sysdata(busno);	/* Bus A */
- 		if (suba < subb)
-diff -puN arch/x86/pci/i386.c~x86-pci-use-dev_printk-when-possible arch/x86/pci/i386.c
---- a/arch/x86/pci/i386.c~x86-pci-use-dev_printk-when-possible
-+++ a/arch/x86/pci/i386.c
-@@ -128,10 +128,8 @@ static void __init pcibios_allocate_bus_
- 				pr = pci_find_parent_resource(dev, r);
- 				if (!r->start || !pr ||
- 				    request_resource(pr, r) < 0) {
--					printk(KERN_ERR "PCI: Cannot allocate "
--						"resource region %d "
--						"of bridge %s\n",
--						idx, pci_name(dev));
-+					dev_err(&dev->dev, "BAR %d: can't "
-+						"allocate resource\n", idx);
- 					/*
- 					 * Something is wrong with the region.
- 					 * Invalidate the resource to prevent
-@@ -166,15 +164,15 @@ static void __init pcibios_allocate_reso
- 			else
- 				disabled = !(command & PCI_COMMAND_MEMORY);
- 			if (pass == disabled) {
--				DBG("PCI: Resource %08lx-%08lx "
--				    "(f=%lx, d=%d, p=%d)\n",
--				    r->start, r->end, r->flags, disabled, pass);
-+				dev_dbg(&dev->dev, "resource %#08llx-%#08llx "
-+					"(f=%lx, d=%d, p=%d)\n",
-+					(unsigned long long) r->start,
-+					(unsigned long long) r->end,
-+					r->flags, disabled, pass);
- 				pr = pci_find_parent_resource(dev, r);
- 				if (!pr || request_resource(pr, r) < 0) {
--					printk(KERN_ERR "PCI: Cannot allocate "
--						"resource region %d "
--						"of device %s\n",
--						idx, pci_name(dev));
-+					dev_err(&dev->dev, "BAR %d: can't "
-+						"allocate resource\n", idx);
- 					/* We'll assign a new address later */
- 					r->end -= r->start;
- 					r->start = 0;
-@@ -187,8 +185,7 @@ static void __init pcibios_allocate_reso
- 				/* Turn the ROM off, leave the resource region,
- 				 * but keep it unregistered. */
- 				u32 reg;
--				DBG("PCI: Switching off ROM of %s\n",
--					pci_name(dev));
-+				dev_dbg(&dev->dev, "disabling ROM\n");
- 				r->flags &= ~IORESOURCE_ROM_ENABLE;
- 				pci_read_config_dword(dev,
- 						dev->rom_base_reg, &reg);
-@@ -257,8 +254,7 @@ void pcibios_set_master(struct pci_dev *
- 		lat = pcibios_max_latency;
- 	else
- 		return;
--	printk(KERN_DEBUG "PCI: Setting latency timer of device %s to %d\n",
--		pci_name(dev), lat);
-+	dev_printk(KERN_DEBUG, &dev->dev, "setting latency timer to %d\n", lat);
- 	pci_write_config_byte(dev, PCI_LATENCY_TIMER, lat);
- }
+diff -puN arch/powerpc/boot/page.h~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix arch/powerpc/boot/page.h
+--- a/arch/powerpc/boot/page.h~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix
++++ a/arch/powerpc/boot/page.h
+@@ -28,4 +28,7 @@
+ /* align addr on a size boundary - adjust address up if needed */
+ #define _ALIGN(addr,size)     _ALIGN_UP(addr,size)
  
-diff -puN arch/x86/pci/irq.c~x86-pci-use-dev_printk-when-possible arch/x86/pci/irq.c
---- a/arch/x86/pci/irq.c~x86-pci-use-dev_printk-when-possible
-+++ a/arch/x86/pci/irq.c
-@@ -452,7 +452,7 @@ static int pirq_vlsi_get(struct pci_dev 
- {
- 	WARN_ON_ONCE(pirq >= 9);
- 	if (pirq > 8) {
--		printk(KERN_INFO "VLSI router pirq escape (%d)\n", pirq);
-+		dev_info(&dev->dev, "VLSI router PIRQ escape (%d)\n", pirq);
- 		return 0;
- 	}
- 	return read_config_nybble(router, 0x74, pirq-1);
-@@ -463,7 +463,7 @@ pirq_vlsi_set(struct pci_dev *router, st
- {
- 	WARN_ON_ONCE(pirq >= 9);
- 	if (pirq > 8) {
--		printk(KERN_INFO "VLSI router pirq escape (%d)\n", pirq);
-+		dev_info(&dev->dev, "VLSI router PIRQ escape (%d)\n", pirq);
- 		return 0;
- 	}
- 	write_config_nybble(router, 0x74, pirq-1, irq);
-@@ -511,8 +511,8 @@ pirq_amd756_get(struct pci_dev *router, 
- 	irq = 0;
- 	if (pirq <= 4)
- 		irq = read_config_nybble(router, 0x56, pirq - 1);
--	printk(KERN_INFO
--		"AMD756: dev %04x:%04x, router pirq : %d get irq : %2d\n",
-+	dev_info(&dev->dev,
-+		"AMD756: dev [%04x/%04x], router PIRQ %d get IRQ %d\n",
- 		dev->vendor, dev->device, pirq, irq);
- 	return irq;
- }
-@@ -520,8 +520,8 @@ pirq_amd756_get(struct pci_dev *router, 
- static int
- pirq_amd756_set(struct pci_dev *router, struct pci_dev *dev, int pirq, int irq)
- {
--	printk(KERN_INFO
--		"AMD756: dev %04x:%04x, router pirq : %d SET irq : %2d\n",
-+	dev_info(&dev->dev,
-+		"AMD756: dev [%04x/%04x], router PIRQ %d set IRQ %d\n",
- 		dev->vendor, dev->device, pirq, irq);
- 	if (pirq <= 4)
- 		write_config_nybble(router, 0x56, pirq - 1, irq);
-@@ -762,7 +762,6 @@ ali_router_probe(struct irq_router *r, s
- 	switch (device) {
- 	case PCI_DEVICE_ID_AL_M1533:
- 	case PCI_DEVICE_ID_AL_M1563:
--		printk(KERN_DEBUG "PCI: Using ALI IRQ Router\n");
- 		r->name = "ALI";
- 		r->get = pirq_ali_get;
- 		r->set = pirq_ali_set;
-@@ -874,11 +873,9 @@ static void __init pirq_find_router(stru
- 			h->probe(r, pirq_router_dev, pirq_router_dev->device))
- 			break;
- 	}
--	printk(KERN_INFO "PCI: Using IRQ router %s [%04x/%04x] at %s\n",
--		pirq_router.name,
--		pirq_router_dev->vendor,
--		pirq_router_dev->device,
--		pci_name(pirq_router_dev));
-+	dev_info(&pirq_router_dev->dev, "%s IRQ router [%04x/%04x]\n",
-+		 pirq_router.name,
-+		 pirq_router_dev->vendor, pirq_router_dev->device);
- 
- 	/* The device remains referenced for the kernel lifetime */
- }
-@@ -911,7 +908,7 @@ static int pcibios_lookup_irq(struct pci
- 	/* Find IRQ pin */
- 	pci_read_config_byte(dev, PCI_INTERRUPT_PIN, &pin);
- 	if (!pin) {
--		DBG(KERN_DEBUG " -> no interrupt pin\n");
-+		dev_dbg(&dev->dev, "no interrupt pin\n");
- 		return 0;
- 	}
- 	pin = pin - 1;
-diff -puN arch/x86/pci/numa.c~x86-pci-use-dev_printk-when-possible arch/x86/pci/numa.c
---- a/arch/x86/pci/numa.c~x86-pci-use-dev_printk-when-possible
-+++ a/arch/x86/pci/numa.c
-@@ -131,13 +131,14 @@ static void __devinit pci_fixup_i450nx(s
- 	u8 busno, suba, subb;
- 	int quad = BUS2QUAD(d->bus->number);
- 
--	printk("PCI: Searching for i450NX host bridges on %s\n", pci_name(d));
-+	dev_info(&d->dev, "searching for i450NX host bridges\n");
- 	reg = 0xd0;
- 	for(pxb=0; pxb<2; pxb++) {
- 		pci_read_config_byte(d, reg++, &busno);
- 		pci_read_config_byte(d, reg++, &suba);
- 		pci_read_config_byte(d, reg++, &subb);
--		DBG("i450NX PXB %d: %02x/%02x/%02x\n", pxb, busno, suba, subb);
-+		dev_dbg(&d->dev, "i450NX PXB %d: %02x/%02x/%02x\n",
-+			pxb, busno, suba, subb);
- 		if (busno) {
- 			/* Bus A */
- 			pci_scan_bus_with_sysdata(QUADLOCAL2BUS(quad, busno));
++/* to align the pointer to the (next) page boundary */
++#define PAGE_ALIGN(addr)	_ALIGN(addr, PAGE_SIZE)
++
+ #endif				/* _PPC_BOOT_PAGE_H */
 _
 
-Patches currently in -mm which might be from bjorn.helgaas@hp.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-acpi-use-dev_printk-when-possible.patch
-mm-only-enforce-acpi-resource-conflict-checks.patch
-x86-pci-use-dev_printk-when-possible.patch
-pnp-set-the-pnp_card-dma_mask-for-use-by-isapnp-cards.patch
-isa-set-24-bit-dma_mask-for-isa-devices.patch
-pnp-have-quirk_system_pci_resources-include-io-resources.patch
-make-pnp_add_card_id-static.patch
+origin.patch
+rtc-x1205-fix-alarm-set-fix.patch
+next-remove-localversion.patch
+revert-git-pekka.patch
+fix-kobject-fix-kobject_rename-and-config_sysfs.patch
+kvm-is-busted-on-ia64.patch
+drivers-mtd-nand-nandsimc-needs-div64h.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+git-jg-misc-git-rejects.patch
+drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers.patch
+drivers-mtd-devices-block2mtdc-suppress-warning.patch
+sundance-set-carrier-status-on-link-change-events.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix-fix.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-scsi-misc-fix-scsi_dh-build-errors.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
+pktcdvd-push-bkl-down-into-driver-fix.patch
+block-fix-bio_add_page-for-non-trivial-merge_bvec_fn-case-fix.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-logfs-fixup.patch
+watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
+git-xtensa.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-verify-the-page-links-and-memory-model.patch
+mspec-convert-nopfn-to-fault-fix.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+kill-generic_file_direct_io-checkpatch-fixes.patch
+use-generic_access_phys-for-dev-mem-mappings-fix.patch
+spufs-use-the-new-vm_ops-access-fix.patch
+fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
+page-flags-record-page-flag-overlays-explicitly-xen.patch
+mapping_set_error-add-unlikely.patch
+huge-page-private-reservation-review-cleanups-fix.patch
+sync_file_range_write-may-and-will-block-document-that-fix.patch
+vmallocinfo-add-numa-information-fix.patch
+hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
+hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
+hugetlb-override-default-huge-page-size-ia64-build.patch
+linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+bootmem-add-debugging-framework-fix.patch
+bootmem-clean-up-free_all_bootmem_core-fix.patch
+bootmem-free-reserve-helpers-fix.patch
+revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-v850-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
+swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
+block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
+seq_file-fix-bug-when-seq_read-reads-nothing-fix.patch
+rename-warn-to-warning-to-clear-the-namespace-fix.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-paccept-sys_ni.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-signalfd-fix.patch
+flag-parameters-eventfd-fix.patch
+flag-parameters-inotify_init-fix.patch
+flag-parameters-check-magic-constants-alpha.patch
+oprofile-multiplexing-checkpatch-fixes.patch
+gpio-gpio-driver-for-max7301-spi-gpio-expander-checkpatch-fixes.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
+fsl-diu-fb-update-freescale-diu-driver-to-use-page_alloc_exact-fix.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
+ext3-handle-corrupted-orphan-list-at-mount-cleanup.patch
+ext3-handle-corrupted-orphan-list-at-mount-fix.patch
+ext3-handle-corrupted-orphan-list-at-mount-cleanup-fix.patch
+reiserfs-convert-j_flush_sem-to-mutex.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
+cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-checkpatch-fixes.patch
+memcg-remove-refcnt-from-page_cgroup-fix-2.patch
+jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup.patch
+ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
+getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
+tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
+memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
+memstick-use-fully-asynchronous-request-processing-fix.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+mm-introduce-get_user_pages_fast-fix.patch
+mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-fix.patch
+x86-lockless-get_user_pages_fast-fix-2.patch
+x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
+x86-lockless-get_user_pages_fast-fix-warning.patch
+vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
+define-page_file_cache-function-fix.patch
+unevictable-lru-infrastructure-fix.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-3.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
+vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
