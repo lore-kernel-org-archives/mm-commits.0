@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mfd-maintainer.patch added to -mm tree
-Date: Tue, 01 Jul 2008 01:41:08 -0700
-Message-ID: <200807010841.m618f8NZ017981@imap1.linux-foundation.org>
+Subject: + powerpc-keep-3-high-personality-bytes-across-exec.patch added to -mm tree
+Date: Tue, 01 Jul 2008 01:39:05 -0700
+Message-ID: <200807010839.m618d54i017908@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47756 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33838 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751344AbYGAImg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 04:42:36 -0400
+	by vger.kernel.org with ESMTP id S1753110AbYGAIpV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 04:45:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sameo@openedhand.com, ben-linux@fluff.org, dbaryshkov@gmail.com, philipp.zabel@gmail.com, rmk@arm.linux.org.uk, spyro@f2s.com
+Cc: ebmunson@us.ibm.com, benh@kernel.crashing.org, paulus@samba.org
 
 
 The patch titled
-     ] MFD maintainer
+     powerpc: keep 3 high personality bytes across exec
 has been added to the -mm tree.  Its filename is
-     mfd-maintainer.patch
+     powerpc-keep-3-high-personality-bytes-across-exec.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,54 +33,68 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ] MFD maintainer
-From: Samuel Ortiz <sameo@openedhand.com>
+Subject: powerpc: keep 3 high personality bytes across exec
+From: Eric B Munson <ebmunson@us.ibm.com>
 
-We probably need someone to look after the few drivers/mfd patches coming
-every now and then.  As agreed with Andrew, I'm ok to do so and my
-employer is fine with me spending a few working hours on it, if needed. 
-Ben, Philipp, feel free to add your names there too if you wish.
+Currently when a 32 bit process is exec'd on a powerpc 64 bit host the
+value in the top three bytes of the personality is clobbered.  This patch
+adds a check in the SET_PERSONALITY macro that will carry all the values
+in the top three bytes across the exec.
 
-Signed-off-by: Samuel Ortiz <sameo@openedhand.com>
-Cc: "pHilipp Zabel" <philipp.zabel@gmail.com>
-Cc: Ian Molton <spyro@f2s.com>
-Cc: Ben Dooks <ben-linux@fluff.org>
-Cc: Dmitry Baryshkov <dbaryshkov@gmail.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
+These three bytes currently carry flags to disable address randomisation,
+limit the address space, force zeroing of an mmapped page, etc.  Should an
+application set any of these bits they will be maintained and honoured on
+homogeneous environment but discarded and ignored on a heterogeneous
+environment.  So if an application requires all mmapped pages to be
+initial= ised to zero and a wrapper is used to setup the personality and
+exec the target, these flags will remain set on an all 32 or all 64 bit
+envrionment, but they will be lost in the exec on a mixed 32/64 bit
+environment.  Losing these bi= ts means that the same application would
+behave differently in different environments.  Tested on a POWER5+ machine
+with 64bit kernel and a mixed 64/32 bit user space.
+
+Signed-off-by: Eric B Munson <ebmunson@us.ibm.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    6 ++++++
- 1 file changed, 6 insertions(+)
+ include/asm-powerpc/elf.h   |    3 ++-
+ include/linux/personality.h |    6 ++++++
+ 2 files changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~mfd-maintainer MAINTAINERS
---- a/MAINTAINERS~mfd-maintainer
-+++ a/MAINTAINERS
-@@ -2850,6 +2850,12 @@ W:	https://tango.0pointer.de/mailman/lis
- W:	http://0pointer.de/lennart/tchibo.html
- S:	Maintained
+diff -puN include/asm-powerpc/elf.h~powerpc-keep-3-high-personality-bytes-across-exec include/asm-powerpc/elf.h
+--- a/include/asm-powerpc/elf.h~powerpc-keep-3-high-personality-bytes-across-exec
++++ a/include/asm-powerpc/elf.h
+@@ -257,7 +257,8 @@ do {								\
+ 	else							\
+ 		clear_thread_flag(TIF_ABI_PENDING);		\
+ 	if (personality(current->personality) != PER_LINUX32)	\
+-		set_personality(PER_LINUX);			\
++		set_personality(PER_LINUX |			\
++			(current->personality & PER_INHERIT));	\
+ } while (0)
+ /*
+  * An executable for which elf_read_implies_exec() returns TRUE will
+diff -puN include/linux/personality.h~powerpc-keep-3-high-personality-bytes-across-exec include/linux/personality.h
+--- a/include/linux/personality.h~powerpc-keep-3-high-personality-bytes-across-exec
++++ a/include/linux/personality.h
+@@ -36,6 +36,12 @@ enum {
+ 	ADDR_LIMIT_3GB = 	0x8000000,
+ };
  
-+MULTIFUNCTION DEVICES (MFD)
-+P:	Samuel Ortiz
-+M:	sameo@openedhand.com
-+L:	linux-kernel@vger.kernel.org
-+S:	Supported
++/* Mask for the above personality values */
++#define PER_INHERIT (ADDR_NO_RANDOMIZE|FDPIC_FUNCPTRS|MMAP_PAGE_ZERO| \
++			ADDR_COMPAT_LAYOUT|READ_IMPLIES_EXEC|ADDR_LIMIT_32BIT| \
++			SHORT_INODE|WHOLE_SECONDS|STICKY_TIMEOUTS| \
++			ADDR_LIMIT_3GB)
 +
- MULTIMEDIA CARD (MMC), SECURE DIGITAL (SD) AND SDIO SUBSYSTEM
- P:	Pierre Ossman
- M:	drzeus-mmc@drzeus.cx
+ /*
+  * Security-relevant compatibility flags that must be
+  * cleared upon setuid or setgid exec:
 _
 
-Patches currently in -mm which might be from sameo@openedhand.com are
+Patches currently in -mm which might be from ebmunson@us.ibm.com are
 
-asic3-platform_get_irq-may-return-signed-unnoticed.patch
-asic3-gpiolib-support.patch
-asic3-gpiolib-support-mfd-asic3-should-depend-on-gpiolib.patch
-asic3-remove-children-platform-data.patch
-asic3-new-gpio-configuration-code.patch
-asic3-new-gpio-configuration-code-fix-asic3-config-array-initialisation.patch
-asic3-use-dev_-macros.patch
-asic3-use-uppercase-only-for-macros-and-defines.patch
-mfd-move-asic3-probe-functions-into-__init-section.patch
-mfd-maintainer.patch
+powerpc-keep-3-high-personality-bytes-across-exec.patch
 
