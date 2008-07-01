@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sisusbvga-fix-oops-on-disconnect.patch added to -mm tree
-Date: Tue, 01 Jul 2008 01:16:31 -0700
-Message-ID: <200807010816.m618GVRl016904@imap1.linux-foundation.org>
+Subject: + w100fb-do-not-depend-on-sharpsl.patch added to -mm tree
+Date: Tue, 01 Jul 2008 01:17:26 -0700
+Message-ID: <200807010817.m618HQvg016948@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41192 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59482 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756530AbYGAIQ5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 04:16:57 -0400
+	by vger.kernel.org with ESMTP id S1752611AbYGAIRh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 04:17:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: will.newton@gmail.com, felipe.lima@indt.org.br, gregkh@suse.de, stable@kernel.org, thomas@winischhofer.net
+Cc: philipp.zabel@gmail.com, spyro@f2s.com
 
 
 The patch titled
-     sisusbvga: fix oops on disconnect
+     w100fb: do not depend on SHARPSL
 has been added to the -mm tree.  Its filename is
-     sisusbvga-fix-oops-on-disconnect.patch
+     w100fb-do-not-depend-on-sharpsl.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,29 +33,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sisusbvga: fix oops on disconnect
-From: Will Newton <will.newton@gmail.com>
+Subject: w100fb: do not depend on SHARPSL
+From: Philipp Zabel <philipp.zabel@gmail.com>
 
-Remove the message printed with dev_info on disconnect after sisusb_dev
-has potentially been zeroed by sisusb_delete.  The message does not
-provide any extra information over that which the USB subsystem prints as
-standard so just kill it.
+Apart from Sharp SL-Cxx series, there are a few other devices that have
+ATI Imageon chips, among them HP iPAQ hx4700.
 
-Signed-off-by: Will Newton <will.newton@gmail.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Felipe Balbi <felipe.lima@indt.org.br>
-Cc: Thomas Winischhofer <thomas@winischhofer.net>
-Cc: <stable@kernel.org>
+Signed-off-by: Philipp Zabel <philipp.zabel@gmail.com>
+Acked-by: Ian Molton <spyro@f2s.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/misc/sisusbvga/sisusb.c |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/video/Kconfig |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/usb/misc/sisusbvga/sisusb.c~sisusbvga-fix-oops-on-disconnect drivers/usb/misc/sisusbvga/sisusb.c
---- a/drivers/usb/misc/sisusbvga/sisusb.c~sisusbvga-fix-oops-on-disconnect
-+++ a/drivers/usb/misc/sisusbvga/sisusb.c
-@@ -3264,8 +3264,6 @@ static void sisusb_disconnect(struct usb
+diff -puN drivers/video/Kconfig~w100fb-do-not-depend-on-sharpsl drivers/video/Kconfig
+--- a/drivers/video/Kconfig~w100fb-do-not-depend-on-sharpsl
++++ a/drivers/video/Kconfig
+@@ -1825,12 +1825,13 @@ config FB_FSL_DIU
  
- 	/* decrement our usage count */
- 	kref_put(&sisusb->kref, sisusb_delete);
+ config FB_W100
+ 	tristate "W100 frame buffer support"
+-	depends on FB && PXA_SHARPSL
++	depends on FB && ARCH_PXA
+  	select FB_CFB_FILLRECT
+  	select FB_CFB_COPYAREA
+  	select FB_CFB_IMAGEBLIT
+ 	---help---
+ 	  Frame buffer driver for the w100 as found on the Sharp SL-Cxx series.
++	  It can also drive the w3220 chip found on iPAQ hx4700.
+ 
+ 	  This driver is also available as a module ( = code which can be
+ 	  inserted and removed from the running kernel whenever you want). The
+_
+
+Patches currently in -mm which might be from philipp.zabel@gmail.com are
+
+w100fb-do-not-depend-on-sharpsl.patch
+asic3-new-gpio-configuration-code-fix-asic3-config-array-initialisation.patch
+mfd-move-asic3-probe-functions-into-__init-section.patch
+
