@@ -1,58 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: + fat-dirc-switch-to-struct-__fat_dirent.patch added to -mm tree
-Date: Mon, 30 Jun 2008 20:34:12 -0700
-Message-ID: <200807010334.m613YCgS007136@imap1.linux-foundation.org>
+Subject: - fat-dirc-switch-to-struct-__fat_fs_dirent.patch removed from -mm tree
+Date: Mon, 30 Jun 2008 20:34:30 -0700
+Message-ID: <200807010334.m613YUNf007154@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54114 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44019 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751660AbYGADe3 (ORCPT
+	by vger.kernel.org with ESMTP id S1751832AbYGADep (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jun 2008 23:34:29 -0400
+	Mon, 30 Jun 2008 23:34:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, hirofumi@mail.parknet.co.jp
+To: bunk@kernel.org, hirofumi@mail.parknet.co.jp, hpa@zytor.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fat/dir.c: switch to struct __fat_dirent
-has been added to the -mm tree.  Its filename is
-     fat-dirc-switch-to-struct-__fat_dirent.patch
+     fat/dir.c: switch to struct __fat_fs_dirent
+has been removed from the -mm tree.  Its filename was
+     fat-dirc-switch-to-struct-__fat_fs_dirent.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fat/dir.c: switch to struct __fat_dirent
+Subject: fat/dir.c: switch to struct __fat_fs_dirent
 From: Adrian Bunk <bunk@kernel.org>
 
-struct __fat_dirent is what was formerly the kernel struct dirent (that
+struct __fat_fs_dirent is what was formerly the kernel struct dirent (that
 was different from the userspace struct dirent).
 
-Converting all fat users to struct __fat_dirent will allow us to get rid
-of the conflicting struct dirent definition.
+Converting all fat users to struct __fat_fs_dirent will allow us to get
+rid of the conflicting struct dirent definition.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  fs/fat/dir.c |    7 +++----
  1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN fs/fat/dir.c~fat-dirc-switch-to-struct-__fat_dirent fs/fat/dir.c
---- a/fs/fat/dir.c~fat-dirc-switch-to-struct-__fat_dirent
+diff -puN fs/fat/dir.c~fat-dirc-switch-to-struct-__fat_fs_dirent fs/fat/dir.c
+--- a/fs/fat/dir.c~fat-dirc-switch-to-struct-__fat_fs_dirent
 +++ a/fs/fat/dir.c
 @@ -17,7 +17,6 @@
  #include <linux/slab.h>
@@ -67,7 +58,7 @@ diff -puN fs/fat/dir.c~fat-dirc-switch-to-struct-__fat_dirent fs/fat/dir.c
  }
  
 -FAT_IOCTL_FILLDIR_FUNC(fat_ioctl_filldir, dirent)
-+FAT_IOCTL_FILLDIR_FUNC(fat_ioctl_filldir, __fat_dirent)
++FAT_IOCTL_FILLDIR_FUNC(fat_ioctl_filldir, __fat_fs_dirent)
  
  static int fat_ioctl_readdir(struct inode *inode, struct file *filp,
  			     void __user *dirent, filldir_t filldir,
@@ -76,7 +67,7 @@ diff -puN fs/fat/dir.c~fat-dirc-switch-to-struct-__fat_dirent fs/fat/dir.c
  			 unsigned int cmd, unsigned long arg)
  {
 -	struct dirent __user *d1 = (struct dirent __user *)arg;
-+	struct __fat_dirent __user *d1 = (struct __fat_dirent __user *)arg;
++	struct __fat_fs_dirent __user *d1 = (struct __fat_fs_dirent __user *)arg;
  	int short_only, both;
  
  	switch (cmd) {
@@ -85,7 +76,7 @@ diff -puN fs/fat/dir.c~fat-dirc-switch-to-struct-__fat_dirent fs/fat/dir.c
  	}
  
 -	if (!access_ok(VERIFY_WRITE, d1, sizeof(struct dirent[2])))
-+	if (!access_ok(VERIFY_WRITE, d1, sizeof(struct __fat_dirent[2])))
++	if (!access_ok(VERIFY_WRITE, d1, sizeof(struct __fat_fs_dirent[2])))
  		return -EFAULT;
  	/*
  	 * Yes, we don't need this put_user() absolutely. However old
