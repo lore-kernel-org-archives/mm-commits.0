@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + autofs4-detect-invalid-direct-mount-requests.patch added to -mm tree
-Date: Tue, 01 Jul 2008 14:17:21 -0700
-Message-ID: <200807012117.m61LHLoP015125@imap1.linux-foundation.org>
+Subject: + cciss-read-config-to-obtain-max-outstanding-commands-per-controller.patch added to -mm tree
+Date: Tue, 01 Jul 2008 14:24:05 -0700
+Message-ID: <200807012124.m61LO5KQ015356@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52262 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59877 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751668AbYGAVSb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 17:18:31 -0400
+	by vger.kernel.org with ESMTP id S1751149AbYGAVYx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 17:24:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: raven@themaw.net, jmoyer@redhat.com
+Cc: mike.miller@hp.com, jens.axboe@oracle.com
 
 
 The patch titled
-     autofs4: detect invalid direct mount requests
+     cciss: read config to obtain max outstanding commands per controller
 has been added to the -mm tree.  Its filename is
-     autofs4-detect-invalid-direct-mount-requests.patch
+     cciss-read-config-to-obtain-max-outstanding-commands-per-controller.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,52 +33,137 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: autofs4: detect invalid direct mount requests
-From: Ian Kent <raven@themaw.net>
+Subject: cciss: read config to obtain max outstanding commands per controller
+From: Mike Miller <mike.miller@hp.com>
 
-autofs v5 direct and offset mounts within an autofs filesystem are
-triggered by existing autofs triger mounts so the mount point dentry must
-be positive.  If the mount point dentry is negative then the trigger
-doesn't exist so we can return fail immediately.
+This patch changes the way we determine the maximum number of outstanding
+commands for each controller.
 
-Signed-off-by: Ian Kent <raven@themaw.net>
-Cc: Jeff Moyer <jmoyer@redhat.com>
+Most Smart Array controllers can support up to 1024 commands, the notable
+exceptions are the E200 and E200i.
+
+The next generation of controllers which were just added support a mode of
+operation called Zero Memory Raid (ZMR).  In this mode they only support
+64 outstanding commands.  In Full Function Raid (FFR) mode they support
+1024.
+
+We have been setting the queue depth by arbitrarily assigning some value
+for each controller.  We needed a better way to set the queue depth to
+avoid lots of annoying "fifo full" messages.  So we made the driver a
+little smarter.  We now read the config table and subtract 4 from the
+returned value.  The -4 is to allow some room for ioctl calls which are
+not tracked the same way as io commands are tracked.
+
+Please consider this for inclusion.
+
+Signed-off-by: Mike Miller <mike.miller@hp.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/waitq.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/block/cciss.c |   66 ++++++++++++++++++++++------------------
+ 1 file changed, 37 insertions(+), 29 deletions(-)
 
-diff -puN fs/autofs4/waitq.c~autofs4-detect-invalid-direct-mount-requests fs/autofs4/waitq.c
---- a/fs/autofs4/waitq.c~autofs4-detect-invalid-direct-mount-requests
-+++ a/fs/autofs4/waitq.c
-@@ -328,6 +328,10 @@ int autofs4_wait(struct autofs_sb_info *
- 	if (sbi->catatonic)
- 		return -ENOENT;
+diff -puN drivers/block/cciss.c~cciss-read-config-to-obtain-max-outstanding-commands-per-controller drivers/block/cciss.c
+--- a/drivers/block/cciss.c~cciss-read-config-to-obtain-max-outstanding-commands-per-controller
++++ a/drivers/block/cciss.c
+@@ -106,35 +106,34 @@ MODULE_DEVICE_TABLE(pci, cciss_pci_devic
+ /*  board_id = Subsystem Device ID & Vendor ID
+  *  product = Marketing Name for the board
+  *  access = Address of the struct of function pointers
+- *  nr_cmds = Number of commands supported by controller
+  */
+ static struct board_type products[] = {
+-	{0x40700E11, "Smart Array 5300", &SA5_access, 512},
+-	{0x40800E11, "Smart Array 5i", &SA5B_access, 512},
+-	{0x40820E11, "Smart Array 532", &SA5B_access, 512},
+-	{0x40830E11, "Smart Array 5312", &SA5B_access, 512},
+-	{0x409A0E11, "Smart Array 641", &SA5_access, 512},
+-	{0x409B0E11, "Smart Array 642", &SA5_access, 512},
+-	{0x409C0E11, "Smart Array 6400", &SA5_access, 512},
+-	{0x409D0E11, "Smart Array 6400 EM", &SA5_access, 512},
+-	{0x40910E11, "Smart Array 6i", &SA5_access, 512},
+-	{0x3225103C, "Smart Array P600", &SA5_access, 512},
+-	{0x3223103C, "Smart Array P800", &SA5_access, 512},
+-	{0x3234103C, "Smart Array P400", &SA5_access, 512},
+-	{0x3235103C, "Smart Array P400i", &SA5_access, 512},
+-	{0x3211103C, "Smart Array E200i", &SA5_access, 120},
+-	{0x3212103C, "Smart Array E200", &SA5_access, 120},
+-	{0x3213103C, "Smart Array E200i", &SA5_access, 120},
+-	{0x3214103C, "Smart Array E200i", &SA5_access, 120},
+-	{0x3215103C, "Smart Array E200i", &SA5_access, 120},
+-	{0x3237103C, "Smart Array E500", &SA5_access, 512},
+-	{0x323D103C, "Smart Array P700m", &SA5_access, 512},
+-	{0x3241103C, "Smart Array P212", &SA5_access, 384},
+-	{0x3243103C, "Smart Array P410", &SA5_access, 384},
+-	{0x3245103C, "Smart Array P410i", &SA5_access, 384},
+-	{0x3247103C, "Smart Array P411", &SA5_access, 384},
+-	{0x3249103C, "Smart Array P812", &SA5_access, 384},
+-	{0xFFFF103C, "Unknown Smart Array", &SA5_access, 120},
++	{0x40700E11, "Smart Array 5300", &SA5_access},
++	{0x40800E11, "Smart Array 5i", &SA5B_access},
++	{0x40820E11, "Smart Array 532", &SA5B_access},
++	{0x40830E11, "Smart Array 5312", &SA5B_access},
++	{0x409A0E11, "Smart Array 641", &SA5_access},
++	{0x409B0E11, "Smart Array 642", &SA5_access},
++	{0x409C0E11, "Smart Array 6400", &SA5_access},
++	{0x409D0E11, "Smart Array 6400 EM", &SA5_access},
++	{0x40910E11, "Smart Array 6i", &SA5_access},
++	{0x3225103C, "Smart Array P600", &SA5_access},
++	{0x3223103C, "Smart Array P800", &SA5_access},
++	{0x3234103C, "Smart Array P400", &SA5_access},
++	{0x3235103C, "Smart Array P400i", &SA5_access},
++	{0x3211103C, "Smart Array E200i", &SA5_access},
++	{0x3212103C, "Smart Array E200", &SA5_access},
++	{0x3213103C, "Smart Array E200i", &SA5_access},
++	{0x3214103C, "Smart Array E200i", &SA5_access},
++	{0x3215103C, "Smart Array E200i", &SA5_access},
++	{0x3237103C, "Smart Array E500", &SA5_access},
++	{0x323D103C, "Smart Array P700m", &SA5_access},
++	{0x3241103C, "Smart Array P212", &SA5_access},
++	{0x3243103C, "Smart Array P410", &SA5_access},
++	{0x3245103C, "Smart Array P410i", &SA5_access},
++	{0x3247103C, "Smart Array P411", &SA5_access},
++	{0x3249103C, "Smart Array P812", &SA5_access},
++	{0xFFFF103C, "Unknown Smart Array", &SA5_access},
+ };
  
-+	if (!dentry->d_inode &&
-+	    (sbi->type & (AUTOFS_TYPE_DIRECT | AUTOFS_TYPE_OFFSET)))
-+		return -ENOENT;
-+
- 	name = kmalloc(NAME_MAX + 1, GFP_KERNEL);
- 	if (!name)
- 		return -ENOMEM;
+ /* How long to wait (in milliseconds) for board to go into simple mode */
+@@ -3086,11 +3085,20 @@ static int __devinit cciss_pci_init(ctlr
+ 	print_cfg_table(c->cfgtable);
+ #endif				/* CCISS_DEBUG */
+ 
++	/* Some controllers support Zero Memory Raid (ZMR).
++	 * When configured in ZMR mode the number of supported
++	 * commands drops to 64. So instead of just setting an
++	 * arbitrary value we make the driver a little smarter.
++	 * We read the config table to tell us how many commands
++	 * are supported on the controller then subtract 4 to
++	 * leave a little room for ioctl calls.
++	 */
++	c->max_commands = readl(&(c->cfgtable->CmdsOutMax));
+ 	for (i = 0; i < ARRAY_SIZE(products); i++) {
+ 		if (board_id == products[i].board_id) {
+ 			c->product_name = products[i].product_name;
+ 			c->access = *(products[i].access);
+-			c->nr_cmds = products[i].nr_cmds;
++			c->nr_cmds = c->max_commands - 4;
+ 			break;
+ 		}
+ 	}
+@@ -3110,7 +3118,7 @@ static int __devinit cciss_pci_init(ctlr
+ 		if (subsystem_vendor_id == PCI_VENDOR_ID_HP) {
+ 			c->product_name = products[i-1].product_name;
+ 			c->access = *(products[i-1].access);
+-			c->nr_cmds = products[i-1].nr_cmds;
++			c->nr_cmds = c->max_commands - 4;
+ 			printk(KERN_WARNING "cciss: This is an unknown "
+ 				"Smart Array controller.\n"
+ 				"cciss: Please update to the latest driver "
 _
 
-Patches currently in -mm which might be from raven@themaw.net are
+Patches currently in -mm which might be from mike.miller@hp.com are
 
-autofs4-dont-make-expiring-dentry-negative.patch
-autofs4-dont-make-expiring-dentry-negative-fix.patch
-autofs4-revert-redo-lookup-in-ttfd.patch
-autofs4-use-look-aside-list-for-lookups.patch
-autofs4-use-look-aside-list-for-lookups-autofs4-fix-symlink-name-allocation.patch
-autofs4-dont-release-directory-mutex-if-called-in-oz_mode.patch
-autofs4-use-lookup-intent-flags-to-trigger-mounts.patch
-autofs4-use-struct-qstr-in-waitqc.patch
-autofs4-fix-waitq-locking.patch
-autofs4-fix-pending-mount-race.patch
-autofs4-fix-pending-mount-race-fix.patch
-autofs4-check-kernel-communication-pipe-is-valid-for-write.patch
-autofs4-fix-waitq-memory-leak.patch
-autofs4-detect-invalid-direct-mount-requests.patch
+cciss-fix-regression-that-no-device-nodes-are-created-if-no-logical-drives-are-configured.patch
+cciss-read-config-to-obtain-max-outstanding-commands-per-controller.patch
 
