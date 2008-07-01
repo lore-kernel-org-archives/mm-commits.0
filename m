@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + move-__attribute____cold__-functions-back-into-final-text-section.patch added to -mm tree
-Date: Tue, 01 Jul 2008 00:57:07 -0700
-Message-ID: <200807010757.m617v7OT016033@imap1.linux-foundation.org>
+Subject: + gcov-architecture-specific-compile-flag-adjustments-x86_64-fix.patch added to -mm tree
+Date: Tue, 01 Jul 2008 00:55:27 -0700
+Message-ID: <200807010755.m617tR0s015997@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55409 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39720 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752632AbYGAH5q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 03:57:46 -0400
+	by vger.kernel.org with ESMTP id S1751936AbYGAIBP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 04:01:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jbeulich@novell.com, llipavsky@suse.cz, stable@kernel.org
+Cc: peter.oberparleiter@de.ibm.com, balbir@linux.vnet.ibm.com, m.kozlowski@tuxland.pl
 
 
 The patch titled
-     move __attribute__((__cold__)) functions back into final .text section
+     gcov: fix run-time error on x86_64
 has been added to the -mm tree.  Its filename is
-     move-__attribute____cold__-functions-back-into-final-text-section.patch
+     gcov-architecture-specific-compile-flag-adjustments-x86_64-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,54 +33,77 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: move __attribute__((__cold__)) functions back into final .text section
-From: "Jan Beulich" <jbeulich@novell.com>
+Subject: gcov: fix run-time error on x86_64
+From: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
 
-Due to the addition of __attribute__((__cold__)) to a few symbols without
-adjusting the linker scripts, those symbols currently may end up outside
-the [_stext,_etext) range, as they get placed in .text.unlikely by (at
-least) gcc 4.3.0.  This may confuse code not only outside of the kernel,
-symbol_put_addr()'s BUG() could also trigger.  Hence we need to add
-.text.unlikely (and for future uses of __attribute__((__hot__)) also
-.text.hot) to the TEXT_TEXT() macro.
+Disable profiling of tsc_$(BITS).o to fix a run-time error when using
+CONFIG_GCOV_PROFILE_ALL on x86_64:
 
-Issue observed by Lukas Lipavsky.
+bash[498] segfault at ffffffff80868b58 ip ffffffffff600412
+          sp 7fffa3d010f0 error 7
+init[1] segfault at ffffffff80868b58 ip ffffffffff600412
+        sp 7fff9e97f640 error 7
+init[1] segfault at ffffffff80868b58 ip ffffffffff600412
+        sp 7fff9e97eed0 error 7
+Kernel panic - not syncing: Attemted to kill init!
+Pid 1, comm: init Not tainted 2.6.26-rc5-mm1 #1
 
-Tested-by: Lukas Lipavsky <llipavsky@suse.cz>
-Signed-off-by: Jan Beulich <jbeulich@novell.com>
-Cc: <stable@kernel.org>
+m.kozlowski@tuxland.pl wrote:
+> After a few hours and tons of reboots I narrowed it down to
+> arch/x86/kernel/Makefile:
+>
+> a) works
+>	obj-y                   += tsc_$(BITS).o io_delay.o rtc.o
+> 	GCOV_tsc_$(BITS).o      := n
+> 	#GCOV_io_delay.o        := n
+> 	#GCOV_rtc.o     := n
+>
+> b) doesn't work
+> 	obj-y                   += tsc_$(BITS).o io_delay.o rtc.o
+> 	#GCOV_tsc_$(BITS).o     := n
+> 	#GCOV_io_delay.o        := n
+>	#GCOV_rtc.o     := n
+>
+> and that points to arch/x86/kernel/tsc_64.c
+
+Reported-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Reviewed-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Reviewed-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/vmlinux.lds.h |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ arch/x86/kernel/Makefile |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN include/asm-generic/vmlinux.lds.h~move-__attribute____cold__-functions-back-into-final-text-section include/asm-generic/vmlinux.lds.h
---- a/include/asm-generic/vmlinux.lds.h~move-__attribute____cold__-functions-back-into-final-text-section
-+++ a/include/asm-generic/vmlinux.lds.h
-@@ -204,6 +204,7 @@
-  * during second ld run in second ld pass when generating System.map */
- #define TEXT_TEXT							\
- 		ALIGN_FUNCTION();					\
-+		*(.text.hot)						\
- 		*(.text)						\
- 		*(.ref.text)						\
- 		*(.text.init.refok)					\
-@@ -213,7 +214,8 @@
- 	CPU_KEEP(init.text)						\
- 	CPU_KEEP(exit.text)						\
- 	MEM_KEEP(init.text)						\
--	MEM_KEEP(exit.text)
-+	MEM_KEEP(exit.text)						\
-+		*(.text.unlikely)
+diff -puN arch/x86/kernel/Makefile~gcov-architecture-specific-compile-flag-adjustments-x86_64-fix arch/x86/kernel/Makefile
+--- a/arch/x86/kernel/Makefile~gcov-architecture-specific-compile-flag-adjustments-x86_64-fix
++++ a/arch/x86/kernel/Makefile
+@@ -13,6 +13,9 @@ CFLAGS_REMOVE_tsc_32.o = -pg
+ CFLAGS_REMOVE_rtc.o = -pg
+ endif
  
- 
- /* sched.text is aling to function alignment to secure we have same
++GCOV_tsc_32.o := n
++GCOV_tsc_64.o := n
++
+ #
+ # vsyscalls (which work on the user stack) should have
+ # no stack-protector checks:
 _
 
-Patches currently in -mm which might be from jbeulich@novell.com are
+Patches currently in -mm which might be from peter.oberparleiter@de.ibm.com are
 
-move-__attribute____cold__-functions-back-into-final-text-section.patch
-acpi-fix-fadt-parsing.patch
-mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co.patch
+s390-cio-use-memory_read_from_buffer.patch
+kernel-call-constructors.patch
+kernel-call-constructors-uml-fix-1.patch
+kernel-call-constructors-uml-fix-2.patch
+kernel-introduce-gcc_version_lower-macro.patch
+seq_file-add-function-to-write-binary-data.patch
+gcov-add-gcov-profiling-infrastructure.patch
+gcov-add-gcov-profiling-infrastructure-revert-link-changes.patch
+gcov-create-links-to-gcda-files-in-build-directory.patch
+gcov-architecture-specific-compile-flag-adjustments.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-fix.patch
+gcov-architecture-specific-compile-flag-adjustments-x86_64-fix.patch
 
