@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + security-protect-legacy-applications-from-executing-with-insufficient-privilege.patch added to -mm tree
-Date: Tue, 01 Jul 2008 16:33:13 -0700
-Message-ID: <200807012333.m61NXDoh020604@imap1.linux-foundation.org>
+Subject: + remove-bkl-from-remote_llseek-v2.patch added to -mm tree
+Date: Tue, 01 Jul 2008 16:32:55 -0700
+Message-ID: <200807012332.m61NWtxw020589@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35403 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44478 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755589AbYGAXeT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 19:34:19 -0400
+	by vger.kernel.org with ESMTP id S1754836AbYGAXed (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 19:34:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: morgan@kernel.org, serue@us.ibm.com
+Cc: andi@firstfloor.org, VANDROVE@vc.cvut.cz, ak@linux.intel.com, ak@suse.de, corbet@lwn.net, hch@lst.de, sfrench@us.ibm.com, swhiteho@redhat.com, trond.myklebust@fys.uio.no
 
 
 The patch titled
-     security: protect legacy applications from executing with insufficient privilege
+     Remove BKL from remote_llseek
 has been added to the -mm tree.  Its filename is
-     security-protect-legacy-applications-from-executing-with-insufficient-privilege.patch
+     remove-bkl-from-remote_llseek-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,243 +33,268 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: security: protect legacy applications from executing with insufficient privilege
-From: Andrew G. Morgan <morgan@kernel.org>
+Subject: Remove BKL from remote_llseek
+From: Andi Kleen <andi@firstfloor.org>
 
-When cap_bset suppresses some of the forced (fP) capabilities of a file,
-it is generally only safe to execute the program if it understands how to
-recognize it doesn't have enough privilege to work correctly.  For legacy
-applications (fE!=0), which have no non-destructive way to determine that
-they are missing privilege, we fail to execute (EPERM) any executable that
-requires fP capabilities, but would otherwise get pP' < fP.  This is a
-fail-safe permission check.
+- Replace remote_llseek with generic_file_llseek_unlocked (to force
+  compilation failures in all users)
 
-For some discussion of why it is problematic for (legacy) privileged
-applications to run with less than the set of capabilities requested for
-them, see:
+- Change all users to either use generic_file_llseek_unlocked directly
+  or take the BKL around.  I changed the file systems who don't use the
+  BKL for anything (CIFS, GFS) to call it directly.  NCPFS and SMBFS and
+  NFS take the BKL, but explicitely in their own source now.
 
- http://userweb.kernel.org/~morgan/sendmail-capabilities-war-story.html
+I moved them all over in a single patch to avoid unbisectable sections.
 
-With this iteration of this support, we do not include setuid-0 based
-privilege protection from the bounding set.  That is, the admin can still
-(ab)use the bounding set to suppress the privileges of a setuid-0 program.
+Open problem: 32bit kernels can corrupt fpos because its modification is
+not atomic, but they can do that anyways because there's other paths who
+modify it without BKL.
 
-Signed-off-by: Andrew G. Morgan <morgan@kernel.org>
-Acked-by: Serge Hallyn <serue@us.ibm.com>
+Do we need a special lock for the pos/f_version = 0 checks?
+
+Trond says the NFS BKL is likely not needed, but keep it for now
+until his full audit.
+
+v2: Use generic_file_llseek_unlocked instead of remote_llseek_unlocked
+    and factor duplicated code (suggested by hch)
+
+Signed-off-by: Andi Kleen <ak@suse.de>
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: Steven Whitehouse <swhiteho@redhat.com>
+Cc: Steven French <sfrench@us.ibm.com>
+Cc: Petr Vandrovec <VANDROVE@vc.cvut.cz>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/binfmts.h |    2 
- security/commoncap.c    |  110 +++++++++++++++++++++-----------------
- 2 files changed, 62 insertions(+), 50 deletions(-)
+ fs/cifs/cifsfs.c   |    2 +-
+ fs/gfs2/ops_file.c |    4 ++--
+ fs/ncpfs/file.c    |   12 +++++++++++-
+ fs/nfs/file.c      |    5 ++++-
+ fs/read_write.c    |   38 +++++++++++---------------------------
+ fs/smbfs/file.c    |   11 ++++++++++-
+ include/linux/fs.h |    3 ++-
+ 7 files changed, 41 insertions(+), 34 deletions(-)
 
-diff -puN include/linux/binfmts.h~security-protect-legacy-applications-from-executing-with-insufficient-privilege include/linux/binfmts.h
---- a/include/linux/binfmts.h~security-protect-legacy-applications-from-executing-with-insufficient-privilege
-+++ a/include/linux/binfmts.h
-@@ -38,7 +38,7 @@ struct linux_binprm{
- 		     misc_bang:1;
- 	struct file * file;
- 	int e_uid, e_gid;
--	kernel_cap_t cap_inheritable, cap_permitted;
-+	kernel_cap_t cap_post_exec_permitted;
- 	bool cap_effective;
- 	void *security;
- 	int argc, envc;
-diff -puN security/commoncap.c~security-protect-legacy-applications-from-executing-with-insufficient-privilege security/commoncap.c
---- a/security/commoncap.c~security-protect-legacy-applications-from-executing-with-insufficient-privilege
-+++ a/security/commoncap.c
-@@ -162,8 +162,7 @@ void cap_capset_set (struct task_struct 
- 
- static inline void bprm_clear_caps(struct linux_binprm *bprm)
- {
--	cap_clear(bprm->cap_inheritable);
--	cap_clear(bprm->cap_permitted);
-+	cap_clear(bprm->cap_post_exec_permitted);
- 	bprm->cap_effective = false;
+diff -puN fs/cifs/cifsfs.c~remove-bkl-from-remote_llseek-v2 fs/cifs/cifsfs.c
+--- a/fs/cifs/cifsfs.c~remove-bkl-from-remote_llseek-v2
++++ a/fs/cifs/cifsfs.c
+@@ -639,7 +639,7 @@ static loff_t cifs_llseek(struct file *f
+ 		if (retval < 0)
+ 			return (loff_t)retval;
+ 	}
+-	return remote_llseek(file, offset, origin);
++	return generic_file_llseek_unlocked(file, offset, origin);
  }
  
-@@ -198,6 +197,7 @@ static inline int cap_from_disk(struct v
- {
- 	__u32 magic_etc;
- 	unsigned tocopy, i;
-+	int ret;
+ struct file_system_type cifs_fs_type = {
+diff -puN fs/gfs2/ops_file.c~remove-bkl-from-remote_llseek-v2 fs/gfs2/ops_file.c
+--- a/fs/gfs2/ops_file.c~remove-bkl-from-remote_llseek-v2
++++ a/fs/gfs2/ops_file.c
+@@ -62,11 +62,11 @@ static loff_t gfs2_llseek(struct file *f
+ 		error = gfs2_glock_nq_init(ip->i_gl, LM_ST_SHARED, LM_FLAG_ANY,
+ 					   &i_gh);
+ 		if (!error) {
+-			error = remote_llseek(file, offset, origin);
++			error = generic_file_llseek_unlocked(file, offset, origin);
+ 			gfs2_glock_dq_uninit(&i_gh);
+ 		}
+ 	} else
+-		error = remote_llseek(file, offset, origin);
++		error = generic_file_llseek_unlocked(file, offset, origin);
  
- 	if (size < sizeof(magic_etc))
- 		return -EINVAL;
-@@ -225,19 +225,42 @@ static inline int cap_from_disk(struct v
- 		bprm->cap_effective = false;
- 	}
+ 	return error;
+ }
+diff -puN fs/ncpfs/file.c~remove-bkl-from-remote_llseek-v2 fs/ncpfs/file.c
+--- a/fs/ncpfs/file.c~remove-bkl-from-remote_llseek-v2
++++ a/fs/ncpfs/file.c
+@@ -18,6 +18,7 @@
+ #include <linux/slab.h>
+ #include <linux/vmalloc.h>
+ #include <linux/sched.h>
++#include <linux/smp_lock.h>
  
--	for (i = 0; i < tocopy; ++i) {
--		bprm->cap_permitted.cap[i] =
--			le32_to_cpu(caps->data[i].permitted);
--		bprm->cap_inheritable.cap[i] =
--			le32_to_cpu(caps->data[i].inheritable);
--	}
--	while (i < VFS_CAP_U32) {
--		bprm->cap_permitted.cap[i] = 0;
--		bprm->cap_inheritable.cap[i] = 0;
--		i++;
-+	ret = 0;
+ #include <linux/ncp_fs.h>
+ #include "ncplib_kernel.h"
+@@ -281,9 +282,18 @@ static int ncp_release(struct inode *ino
+ 	return 0;
+ }
+ 
++static loff_t ncp_remote_llseek(struct file *file, loff_t offset, int origin)
++{
++	loff_t ret;
++	lock_kernel();
++	ret = generic_file_llseek_unlocked(file, offset, origin);
++	unlock_kernel();
++	return ret;
++}
 +
-+	CAP_FOR_EACH_U32(i) {
-+		if (i >= tocopy) {
-+			/*
-+			 * Legacy capability sets have no upper bits
-+			 */
-+			bprm->cap_post_exec_permitted.cap[i] = 0;
-+		} else {
-+			__u32 value_cpu;
-+			/*
-+			 * pP' = (X & fP) | (pI & fI)
-+			 */
-+			value_cpu = le32_to_cpu(caps->data[i].permitted);
-+			bprm->cap_post_exec_permitted.cap[i] = (
-+					current->cap_bset.cap[i] & value_cpu
-+				) | (
-+					current->cap_inheritable.cap[i] &
-+					le32_to_cpu(caps->data[i].inheritable)
-+				);
-+			if (value_cpu &
-+			    ~bprm->cap_post_exec_permitted.cap[i]) {
-+				/*
-+				 * insufficient to execute correctly
-+				 */
-+				ret = -EPERM;
-+			}
-+		}
+ const struct file_operations ncp_file_operations =
+ {
+-	.llseek		= remote_llseek,
++	.llseek 	= ncp_remote_llseek,
+ 	.read		= ncp_file_read,
+ 	.write		= ncp_file_write,
+ 	.ioctl		= ncp_ioctl,
+diff -puN fs/nfs/file.c~remove-bkl-from-remote_llseek-v2 fs/nfs/file.c
+--- a/fs/nfs/file.c~remove-bkl-from-remote_llseek-v2
++++ a/fs/nfs/file.c
+@@ -192,7 +192,10 @@ static loff_t nfs_file_llseek(struct fil
+ 		if (retval < 0)
+ 			return (loff_t)retval;
  	}
- 
--	return 0;
-+	/*
-+	 * For legacy apps, with no internal support for recognizing they
-+	 * do not have enough capabilities, we return an error if they are
-+	 * missing some "forced" (aka file-permitted) capabilities.
-+	 */
-+	return (bprm->cap_effective ? ret : 0);
+-	return remote_llseek(filp, offset, origin);
++	lock_kernel();	/* BKL needed? */
++	loff = generic_file_llseek_unlocked(filp, offset, origin);
++	unlock_kernel();
++	return loff;
  }
  
- /* Locate any VFS capabilities: */
-@@ -269,9 +292,9 @@ static int get_file_caps(struct linux_bi
- 		goto out;
+ /*
+diff -puN fs/read_write.c~remove-bkl-from-remote_llseek-v2 fs/read_write.c
+--- a/fs/read_write.c~remove-bkl-from-remote_llseek-v2
++++ a/fs/read_write.c
+@@ -31,12 +31,12 @@ const struct file_operations generic_ro_
  
- 	rc = cap_from_disk(&vcaps, bprm, rc);
--	if (rc)
-+	if (rc == -EINVAL)
- 		printk(KERN_NOTICE "%s: cap_from_disk returned %d for %s\n",
--			__func__, rc, bprm->filename);
-+		       __func__, rc, bprm->filename);
+ EXPORT_SYMBOL(generic_ro_fops);
  
- out:
- 	dput(dentry);
-@@ -304,25 +327,24 @@ int cap_bprm_set_security (struct linux_
- 	int ret;
- 
- 	ret = get_file_caps(bprm);
--	if (ret)
--		printk(KERN_NOTICE "%s: get_file_caps returned %d for %s\n",
--			__func__, ret, bprm->filename);
--
--	/*  To support inheritance of root-permissions and suid-root
--	 *  executables under compatibility mode, we raise all three
--	 *  capability sets for the file.
--	 *
--	 *  If only the real uid is 0, we only raise the inheritable
--	 *  and permitted sets of the executable file.
--	 */
- 
--	if (!issecure (SECURE_NOROOT)) {
-+	if (!issecure(SECURE_NOROOT)) {
-+		/*
-+		 * To support inheritance of root-permissions and suid-root
-+		 * executables under compatibility mode, we override the
-+		 * capability sets for the file.
-+		 *
-+		 * If only the real uid is 0, we do not set the effective
-+		 * bit.
-+		 */
- 		if (bprm->e_uid == 0 || current->uid == 0) {
--			cap_set_full (bprm->cap_inheritable);
--			cap_set_full (bprm->cap_permitted);
-+			/* pP' = (cap_bset & ~0) | (pI & ~0) */
-+			bprm->cap_post_exec_permitted = cap_combine(
-+				current->cap_bset, current->cap_inheritable
-+				);
-+			bprm->cap_effective = (bprm->e_uid == 0);
-+			ret = 0;
- 		}
--		if (bprm->e_uid == 0)
--			bprm->cap_effective = true;
- 	}
- 
- 	return ret;
-@@ -330,17 +352,9 @@ int cap_bprm_set_security (struct linux_
- 
- void cap_bprm_apply_creds (struct linux_binprm *bprm, int unsafe)
+-loff_t generic_file_llseek(struct file *file, loff_t offset, int origin)
++loff_t
++generic_file_llseek_unlocked(struct file *file, loff_t offset, int origin)
  {
--	/* Derived from fs/exec.c:compute_creds. */
--	kernel_cap_t new_permitted, working;
--
--	new_permitted = cap_intersect(bprm->cap_permitted,
--				 current->cap_bset);
--	working = cap_intersect(bprm->cap_inheritable,
--				 current->cap_inheritable);
--	new_permitted = cap_combine(new_permitted, working);
--
- 	if (bprm->e_uid != current->uid || bprm->e_gid != current->gid ||
--	    !cap_issubset (new_permitted, current->cap_permitted)) {
-+	    !cap_issubset(bprm->cap_post_exec_permitted,
-+			  current->cap_permitted)) {
- 		set_dumpable(current->mm, suid_dumpable);
- 		current->pdeath_signal = 0;
+ 	loff_t retval;
+ 	struct inode *inode = file->f_mapping->host;
  
-@@ -350,9 +364,9 @@ void cap_bprm_apply_creds (struct linux_
- 				bprm->e_gid = current->gid;
- 			}
- 			if (cap_limit_ptraced_target()) {
--				new_permitted =
--					cap_intersect(new_permitted,
--						      current->cap_permitted);
-+				bprm->cap_post_exec_permitted = cap_intersect(
-+					bprm->cap_post_exec_permitted,
-+					current->cap_permitted);
- 			}
+-	mutex_lock(&inode->i_mutex);
+ 	switch (origin) {
+ 		case SEEK_END:
+ 			offset += inode->i_size;
+@@ -46,42 +46,26 @@ loff_t generic_file_llseek(struct file *
+ 	}
+ 	retval = -EINVAL;
+ 	if (offset>=0 && offset<=inode->i_sb->s_maxbytes) {
++		/* Special lock needed here? */
+ 		if (offset != file->f_pos) {
+ 			file->f_pos = offset;
+ 			file->f_version = 0;
  		}
+ 		retval = offset;
  	}
-@@ -364,9 +378,9 @@ void cap_bprm_apply_creds (struct linux_
- 	 * in the init_task struct. Thus we skip the usual
- 	 * capability rules */
- 	if (!is_global_init(current)) {
--		current->cap_permitted = new_permitted;
-+		current->cap_permitted = bprm->cap_post_exec_permitted;
- 		if (bprm->cap_effective)
--			current->cap_effective = new_permitted;
-+			current->cap_effective = bprm->cap_post_exec_permitted;
- 		else
- 			cap_clear(current->cap_effective);
- 	}
-@@ -381,9 +395,7 @@ int cap_bprm_secureexec (struct linux_bi
- 	if (current->uid != 0) {
- 		if (bprm->cap_effective)
- 			return 1;
--		if (!cap_isclear(bprm->cap_permitted))
--			return 1;
--		if (!cap_isclear(bprm->cap_inheritable))
-+		if (!cap_isclear(bprm->cap_post_exec_permitted))
- 			return 1;
- 	}
+-	mutex_unlock(&inode->i_mutex);
+ 	return retval;
+ }
++EXPORT_SYMBOL(generic_file_llseek_unlocked);
+ 
+-EXPORT_SYMBOL(generic_file_llseek);
+-
+-loff_t remote_llseek(struct file *file, loff_t offset, int origin)
++loff_t generic_file_llseek(struct file *file, loff_t offset, int origin)
+ {
+-	loff_t retval;
+-
+-	lock_kernel();
+-	switch (origin) {
+-		case SEEK_END:
+-			offset += i_size_read(file->f_path.dentry->d_inode);
+-			break;
+-		case SEEK_CUR:
+-			offset += file->f_pos;
+-	}
+-	retval = -EINVAL;
+-	if (offset>=0 && offset<=file->f_path.dentry->d_inode->i_sb->s_maxbytes) {
+-		if (offset != file->f_pos) {
+-			file->f_pos = offset;
+-			file->f_version = 0;
+-		}
+-		retval = offset;
+-	}
+-	unlock_kernel();
+-	return retval;
++	loff_t n;
++	mutex_lock(&file->f_dentry->d_inode->i_mutex);
++	n = generic_file_llseek_unlocked(file, offset, origin);
++	mutex_unlock(&file->f_dentry->d_inode->i_mutex);
++	return n;
+ }
+-EXPORT_SYMBOL(remote_llseek);
++EXPORT_SYMBOL(generic_file_llseek);
+ 
+ loff_t no_llseek(struct file *file, loff_t offset, int origin)
+ {
+diff -puN fs/smbfs/file.c~remove-bkl-from-remote_llseek-v2 fs/smbfs/file.c
+--- a/fs/smbfs/file.c~remove-bkl-from-remote_llseek-v2
++++ a/fs/smbfs/file.c
+@@ -422,9 +422,18 @@ smb_file_permission(struct inode *inode,
+ 	return error;
+ }
+ 
++static loff_t smb_remote_llseek(struct file *file, loff_t offset, int origin)
++{
++	loff_t ret;
++	lock_kernel();
++	ret = generic_file_llseek_unlocked(file, offset, origin);
++	unlock_kernel();
++	return ret;
++}
++
+ const struct file_operations smb_file_operations =
+ {
+-	.llseek		= remote_llseek,
++	.llseek 	= smb_remote_llseek,
+ 	.read		= do_sync_read,
+ 	.aio_read	= smb_file_aio_read,
+ 	.write		= do_sync_write,
+diff -puN include/linux/fs.h~remove-bkl-from-remote_llseek-v2 include/linux/fs.h
+--- a/include/linux/fs.h~remove-bkl-from-remote_llseek-v2
++++ a/include/linux/fs.h
+@@ -1884,7 +1884,8 @@ extern void
+ file_ra_state_init(struct file_ra_state *ra, struct address_space *mapping);
+ extern loff_t no_llseek(struct file *file, loff_t offset, int origin);
+ extern loff_t generic_file_llseek(struct file *file, loff_t offset, int origin);
+-extern loff_t remote_llseek(struct file *file, loff_t offset, int origin);
++extern loff_t generic_file_llseek_unlocked(struct file *file, loff_t offset,
++			int origin);
+ extern int generic_file_open(struct inode * inode, struct file * filp);
+ extern int nonseekable_open(struct inode * inode, struct file * filp);
  
 _
 
-Patches currently in -mm which might be from morgan@kernel.org are
+Patches currently in -mm which might be from andi@firstfloor.org are
 
-security-filesystem-capabilities-fix-fragile-setuid-fixup-code.patch
-security-filesystem-capabilities-fix-fragile-setuid-fixup-code-checkpatch-fixes.patch
-security-filesystem-capabilities-fix-cap_setpcap-handling.patch
-security-filesystem-capabilities-fix-cap_setpcap-handling-fix.patch
-security-protect-legacy-applications-from-executing-with-insufficient-privilege.patch
-security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
-security-filesystem-capabilities-refactor-kernel-code.patch
-security-filesystem-capabilities-no-longer-experimental.patch
-sysctl-allow-override-of-proc-sys-net-with-cap_net_admin.patch
+acpi-add-the-abity-to-reset-the-system-using-reset_reg-in-fadt-table.patch
+acpi-use-dev_printk-when-possible.patch
+bootmem-clean-up-free_all_bootmem_core.patch
+bootmem-clean-up-free_all_bootmem_core-fix.patch
+bootmem-free-reserve-helpers.patch
+bootmem-free-reserve-helpers-fix.patch
+bootmem-factor-out-the-marking-of-a-pfn-range.patch
+bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
+bootmem-respect-goal-more-likely.patch
+bootmem-make-__alloc_bootmem_low_node-fall-back-to-other-nodes.patch
+mm-add-alloc_pages_exact-and-free_pages_exact.patch
+call_usermodehelper-increase-reliability.patch
+remove-bkl-from-remote_llseek-v2.patch
+remove-bkl-from-remote_llseek-v2-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support-fix-2.patch
+x86-implement-pte_special.patch
+mm-introduce-get_user_pages_fast.patch
+mm-introduce-get_user_pages_fast-fix.patch
+mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast.patch
+x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-fix.patch
+x86-lockless-get_user_pages_fast-fix-2.patch
+x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
+x86-lockless-get_user_pages_fast-fix-warning.patch
+dio-use-get_user_pages_fast.patch
+splice-use-get_user_pages_fast.patch
+x86-support-1gb-hugepages-with-get_user_pages_lockless.patch
+profile-likely-unlikely-macros.patch
 
