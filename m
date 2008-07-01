@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cciss-read-config-to-obtain-max-outstanding-commands-per-controller.patch added to -mm tree
-Date: Tue, 01 Jul 2008 14:24:05 -0700
-Message-ID: <200807012124.m61LO5KQ015356@imap1.linux-foundation.org>
+Subject: + hppfs-remove-hppfs_permission.patch added to -mm tree
+Date: Tue, 01 Jul 2008 14:24:54 -0700
+Message-ID: <200807012124.m61LOsar015368@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59877 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58660 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751149AbYGAVYx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 17:24:53 -0400
+	by vger.kernel.org with ESMTP id S1750724AbYGAVZb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 17:25:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mike.miller@hp.com, jens.axboe@oracle.com
+Cc: mszeredi@suse.cz, jdike@addtoit.com
 
 
 The patch titled
-     cciss: read config to obtain max outstanding commands per controller
+     hppfs: remove hppfs_permission
 has been added to the -mm tree.  Its filename is
-     cciss-read-config-to-obtain-max-outstanding-commands-per-controller.patch
+     hppfs-remove-hppfs_permission.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,137 +33,58 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cciss: read config to obtain max outstanding commands per controller
-From: Mike Miller <mike.miller@hp.com>
+Subject: hppfs: remove hppfs_permission
+From: Miklos Szeredi <mszeredi@suse.cz>
 
-This patch changes the way we determine the maximum number of outstanding
-commands for each controller.
+hppfs_permission() is equivalent to the '.permission == NULL' case.
 
-Most Smart Array controllers can support up to 1024 commands, the notable
-exceptions are the E200 and E200i.
-
-The next generation of controllers which were just added support a mode of
-operation called Zero Memory Raid (ZMR).  In this mode they only support
-64 outstanding commands.  In Full Function Raid (FFR) mode they support
-1024.
-
-We have been setting the queue depth by arbitrarily assigning some value
-for each controller.  We needed a better way to set the queue depth to
-avoid lots of annoying "fifo full" messages.  So we made the driver a
-little smarter.  We now read the config table and subtract 4 from the
-returned value.  The -4 is to allow some room for ioctl calls which are
-not tracked the same way as io commands are tracked.
-
-Please consider this for inclusion.
-
-Signed-off-by: Mike Miller <mike.miller@hp.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Cc: Jeff Dike <jdike@addtoit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/cciss.c |   66 ++++++++++++++++++++++------------------
- 1 file changed, 37 insertions(+), 29 deletions(-)
+ fs/hppfs/hppfs.c |    7 -------
+ 1 file changed, 7 deletions(-)
 
-diff -puN drivers/block/cciss.c~cciss-read-config-to-obtain-max-outstanding-commands-per-controller drivers/block/cciss.c
---- a/drivers/block/cciss.c~cciss-read-config-to-obtain-max-outstanding-commands-per-controller
-+++ a/drivers/block/cciss.c
-@@ -106,35 +106,34 @@ MODULE_DEVICE_TABLE(pci, cciss_pci_devic
- /*  board_id = Subsystem Device ID & Vendor ID
-  *  product = Marketing Name for the board
-  *  access = Address of the struct of function pointers
-- *  nr_cmds = Number of commands supported by controller
-  */
- static struct board_type products[] = {
--	{0x40700E11, "Smart Array 5300", &SA5_access, 512},
--	{0x40800E11, "Smart Array 5i", &SA5B_access, 512},
--	{0x40820E11, "Smart Array 532", &SA5B_access, 512},
--	{0x40830E11, "Smart Array 5312", &SA5B_access, 512},
--	{0x409A0E11, "Smart Array 641", &SA5_access, 512},
--	{0x409B0E11, "Smart Array 642", &SA5_access, 512},
--	{0x409C0E11, "Smart Array 6400", &SA5_access, 512},
--	{0x409D0E11, "Smart Array 6400 EM", &SA5_access, 512},
--	{0x40910E11, "Smart Array 6i", &SA5_access, 512},
--	{0x3225103C, "Smart Array P600", &SA5_access, 512},
--	{0x3223103C, "Smart Array P800", &SA5_access, 512},
--	{0x3234103C, "Smart Array P400", &SA5_access, 512},
--	{0x3235103C, "Smart Array P400i", &SA5_access, 512},
--	{0x3211103C, "Smart Array E200i", &SA5_access, 120},
--	{0x3212103C, "Smart Array E200", &SA5_access, 120},
--	{0x3213103C, "Smart Array E200i", &SA5_access, 120},
--	{0x3214103C, "Smart Array E200i", &SA5_access, 120},
--	{0x3215103C, "Smart Array E200i", &SA5_access, 120},
--	{0x3237103C, "Smart Array E500", &SA5_access, 512},
--	{0x323D103C, "Smart Array P700m", &SA5_access, 512},
--	{0x3241103C, "Smart Array P212", &SA5_access, 384},
--	{0x3243103C, "Smart Array P410", &SA5_access, 384},
--	{0x3245103C, "Smart Array P410i", &SA5_access, 384},
--	{0x3247103C, "Smart Array P411", &SA5_access, 384},
--	{0x3249103C, "Smart Array P812", &SA5_access, 384},
--	{0xFFFF103C, "Unknown Smart Array", &SA5_access, 120},
-+	{0x40700E11, "Smart Array 5300", &SA5_access},
-+	{0x40800E11, "Smart Array 5i", &SA5B_access},
-+	{0x40820E11, "Smart Array 532", &SA5B_access},
-+	{0x40830E11, "Smart Array 5312", &SA5B_access},
-+	{0x409A0E11, "Smart Array 641", &SA5_access},
-+	{0x409B0E11, "Smart Array 642", &SA5_access},
-+	{0x409C0E11, "Smart Array 6400", &SA5_access},
-+	{0x409D0E11, "Smart Array 6400 EM", &SA5_access},
-+	{0x40910E11, "Smart Array 6i", &SA5_access},
-+	{0x3225103C, "Smart Array P600", &SA5_access},
-+	{0x3223103C, "Smart Array P800", &SA5_access},
-+	{0x3234103C, "Smart Array P400", &SA5_access},
-+	{0x3235103C, "Smart Array P400i", &SA5_access},
-+	{0x3211103C, "Smart Array E200i", &SA5_access},
-+	{0x3212103C, "Smart Array E200", &SA5_access},
-+	{0x3213103C, "Smart Array E200i", &SA5_access},
-+	{0x3214103C, "Smart Array E200i", &SA5_access},
-+	{0x3215103C, "Smart Array E200i", &SA5_access},
-+	{0x3237103C, "Smart Array E500", &SA5_access},
-+	{0x323D103C, "Smart Array P700m", &SA5_access},
-+	{0x3241103C, "Smart Array P212", &SA5_access},
-+	{0x3243103C, "Smart Array P410", &SA5_access},
-+	{0x3245103C, "Smart Array P410i", &SA5_access},
-+	{0x3247103C, "Smart Array P411", &SA5_access},
-+	{0x3249103C, "Smart Array P812", &SA5_access},
-+	{0xFFFF103C, "Unknown Smart Array", &SA5_access},
+diff -puN fs/hppfs/hppfs.c~hppfs-remove-hppfs_permission fs/hppfs/hppfs.c
+--- a/fs/hppfs/hppfs.c~hppfs-remove-hppfs_permission
++++ a/fs/hppfs/hppfs.c
+@@ -655,20 +655,13 @@ static void *hppfs_follow_link(struct de
+ 	return proc_dentry->d_inode->i_op->follow_link(proc_dentry, nd);
+ }
+ 
+-int hppfs_permission(struct inode *inode, int mask, struct nameidata *nd)
+-{
+-	return generic_permission(inode, mask, NULL);
+-}
+-
+ static const struct inode_operations hppfs_dir_iops = {
+ 	.lookup		= hppfs_lookup,
+-	.permission	= hppfs_permission,
  };
  
- /* How long to wait (in milliseconds) for board to go into simple mode */
-@@ -3086,11 +3085,20 @@ static int __devinit cciss_pci_init(ctlr
- 	print_cfg_table(c->cfgtable);
- #endif				/* CCISS_DEBUG */
+ static const struct inode_operations hppfs_link_iops = {
+ 	.readlink	= hppfs_readlink,
+ 	.follow_link	= hppfs_follow_link,
+-	.permission	= hppfs_permission,
+ };
  
-+	/* Some controllers support Zero Memory Raid (ZMR).
-+	 * When configured in ZMR mode the number of supported
-+	 * commands drops to 64. So instead of just setting an
-+	 * arbitrary value we make the driver a little smarter.
-+	 * We read the config table to tell us how many commands
-+	 * are supported on the controller then subtract 4 to
-+	 * leave a little room for ioctl calls.
-+	 */
-+	c->max_commands = readl(&(c->cfgtable->CmdsOutMax));
- 	for (i = 0; i < ARRAY_SIZE(products); i++) {
- 		if (board_id == products[i].board_id) {
- 			c->product_name = products[i].product_name;
- 			c->access = *(products[i].access);
--			c->nr_cmds = products[i].nr_cmds;
-+			c->nr_cmds = c->max_commands - 4;
- 			break;
- 		}
- 	}
-@@ -3110,7 +3118,7 @@ static int __devinit cciss_pci_init(ctlr
- 		if (subsystem_vendor_id == PCI_VENDOR_ID_HP) {
- 			c->product_name = products[i-1].product_name;
- 			c->access = *(products[i-1].access);
--			c->nr_cmds = products[i-1].nr_cmds;
-+			c->nr_cmds = c->max_commands - 4;
- 			printk(KERN_WARNING "cciss: This is an unknown "
- 				"Smart Array controller.\n"
- 				"cciss: Please update to the latest driver "
+ static struct inode *get_inode(struct super_block *sb, struct dentry *dentry)
 _
 
-Patches currently in -mm which might be from mike.miller@hp.com are
+Patches currently in -mm which might be from mszeredi@suse.cz are
 
-cciss-fix-regression-that-no-device-nodes-are-created-if-no-logical-drives-are-configured.patch
-cciss-read-config-to-obtain-max-outstanding-commands-per-controller.patch
+git-unprivileged-mounts.patch
+splice-fix-generic_file_splice_read-race-with-page-invalidation.patch
+hppfs-remove-hppfs_permission.patch
+ecryptfs-string-copy-cleanup.patch
+lockd-dont-return-eagain-for-a-permanent-error.patch
+locks-add-special-return-value-for-asynchronous-locks.patch
+locks-cleanup-code-duplication.patch
+locks-allow-lock-to-return-file_lock_deferred.patch
+fuse-prepare-lookup-for-nfs-export.patch
+fuse-add-export-operations.patch
+fuse-add-fuse_lookup_name-helper.patch
+fuse-nfs-export-special-lookups.patch
+fuse-lockd-support.patch
 
