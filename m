@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + spi-au1550_spi-improve-pio-transfer-mode-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 01 Jul 2008 01:30:56 -0700
-Message-ID: <200807010830.m618Uuju017524@imap1.linux-foundation.org>
+Subject: + gpio-sysfs-interface-updated-update.patch added to -mm tree
+Date: Tue, 01 Jul 2008 01:31:50 -0700
+Message-ID: <200807010831.m618VoGe017536@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55970 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59271 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754348AbYGAIbg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 04:31:36 -0400
+	by vger.kernel.org with ESMTP id S1754348AbYGAIcS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 04:32:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dbrownell@users.sourceforge.net, jan.nikitenko@gmail.com
+Cc: david-b@pacbell.net, dbrownell@users.sourceforge.net, g.liakhovetski@pengutronix.de, greg@kroah.com, kay.sievers@vrfy.org
 
 
 The patch titled
-     spi-au1550_spi-improve-pio-transfer-mode-checkpatch-fixes
+     gpio: updates to sysfs support
 has been added to the -mm tree.  Its filename is
-     spi-au1550_spi-improve-pio-transfer-mode-checkpatch-fixes.patch
+     gpio-sysfs-interface-updated-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,187 +33,107 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spi-au1550_spi-improve-pio-transfer-mode-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: gpio: updates to sysfs support
+From: David Brownell <david-b@pacbell.net>
 
-ERROR: code indent should use tabs where possible
-#46: FILE: drivers/spi/au1550_spi.c:603:
-+^I^I^I ^I| PSC_SPIEVNT_SD))$
+Update and bugfix the patch adding sysfs GPIO support:
 
-total: 1 errors, 0 warnings, 108 lines checked
+  * Bugfix:  the test initializing the IS_OUT flag for output-only
+    GPIOs had the sense inverted.
 
-./patches/spi-au1550_spi-improve-pio-transfer-mode.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
+  * Update:  when gpio_chip.dev is provided, list it in the debugfs
+    dump.  Device nodes are unique; the "label" isn't.
 
-Please run checkpatch prior to sending patches
+The bug of course caused output-only GPIOs to misbehave, but it also
+made just-exported (or generally:  only-requested) GPIOs always appear
+to be outputs in sysfs and debugfs.  That's wrong more often than it's
+right, although it gets corrected when the direction is assigned.
 
-Cc: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Jan Nikitenko <jan.nikitenko@gmail.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
+Cc: Greg KH <greg@kroah.com>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/au1550_spi.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/gpio/gpiolib.c |   28 +++++++++++++++++++++++-----
+ 1 file changed, 23 insertions(+), 5 deletions(-)
 
-diff -puN drivers/spi/au1550_spi.c~spi-au1550_spi-improve-pio-transfer-mode-checkpatch-fixes drivers/spi/au1550_spi.c
---- a/drivers/spi/au1550_spi.c~spi-au1550_spi-improve-pio-transfer-mode-checkpatch-fixes
-+++ a/drivers/spi/au1550_spi.c
-@@ -600,7 +600,7 @@ static irqreturn_t au1550_spi_pio_irq_ca
+diff -puN drivers/gpio/gpiolib.c~gpio-sysfs-interface-updated-update drivers/gpio/gpiolib.c
+--- a/drivers/gpio/gpiolib.c~gpio-sysfs-interface-updated-update
++++ a/drivers/gpio/gpiolib.c
+@@ -685,7 +685,14 @@ int gpiochip_add(struct gpio_chip *chip)
+ 	if (status == 0) {
+ 		for (id = base; id < base + chip->ngpio; id++) {
+ 			gpio_desc[id].chip = chip;
+-			gpio_desc[id].flags = chip->direction_input
++
++			/* REVISIT:  most hardware initializes GPIOs as
++			 * inputs (often with pullups enabled) so power
++			 * usage is minimized.  Linux code should set the
++			 * gpio direction first thing; but until it does,
++			 * we may expose the wrong direction in sysfs.
++			 */
++			gpio_desc[id].flags = !chip->direction_input
+ 				? (1 << FLAG_IS_OUT)
+ 				: 0;
+ 		}
+@@ -1108,17 +1115,28 @@ static int gpiolib_show(struct seq_file 
+ 	/* REVISIT this isn't locked against gpio_chip removal ... */
  
- 	if ((evnt & (PSC_SPIEVNT_MM | PSC_SPIEVNT_RO
- 				| PSC_SPIEVNT_RU | PSC_SPIEVNT_TO
--			 	| PSC_SPIEVNT_SD))
-+				| PSC_SPIEVNT_SD))
- 			!= 0) {
- 		/*
- 		 * due to an error we consider transfer as done,
+ 	for (gpio = 0; gpio_is_valid(gpio); gpio++) {
++		struct device *dev;
++
+ 		if (chip == gpio_desc[gpio].chip)
+ 			continue;
+ 		chip = gpio_desc[gpio].chip;
+ 		if (!chip)
+ 			continue;
+ 
+-		seq_printf(s, "%sGPIOs %d-%d, %s%s:\n",
++		seq_printf(s, "%sGPIOs %d-%d",
+ 				started ? "\n" : "",
+-				chip->base, chip->base + chip->ngpio - 1,
+-				chip->label ? : "generic",
+-				chip->can_sleep ? ", can sleep" : "");
++				chip->base, chip->base + chip->ngpio - 1);
++		dev = chip->dev;
++		if (dev)
++			seq_printf(s, ", %s/%s",
++				dev->bus ? dev->bus->name : "no-bus",
++				dev->bus_id);
++		if (chip->label)
++			seq_printf(s, ", %s", chip->label);
++		if (chip->can_sleep)
++			seq_printf(s, ", can sleep");
++		seq_printf(s, ":\n");
++
+ 		started = 1;
+ 		if (chip->dbg_show)
+ 			chip->dbg_show(s, chip);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
 origin.patch
-rtc-x1205-fix-alarm-set-fix.patch
-update-ntfs-help-text-fix.patch
-revert-introduce-rculisth.patch
-next-remove-localversion.patch
-revert-git-pekka.patch
-fix-kobject-fix-kobject_rename-and-config_sysfs.patch
-kvm-is-busted-on-ia64.patch
-drivers-mtd-nand-nandsimc-needs-div64h.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-tick-schedc-suppress-needless-timer-reprogramming-checkpatch-fixes.patch
-git-jg-misc-git-rejects.patch
-drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-mmc-sd-host-driver-for-ricoh-bay1controllers.patch
-drivers-mtd-devices-block2mtdc-suppress-warning.patch
-sundance-set-carrier-status-on-link-change-events.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix-fix.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-scsi-misc-fix-scsi_dh-build-errors.patch
-drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
-s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
-pktcdvd-push-bkl-down-into-driver-fix.patch
-block-fix-bio_add_page-for-non-trivial-merge_bvec_fn-case-fix.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-git-logfs-fixup.patch
-watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-verify-the-page-links-and-memory-model.patch
-mspec-convert-nopfn-to-fault-fix.patch
-page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
-kill-generic_file_direct_io-checkpatch-fixes.patch
-use-generic_access_phys-for-dev-mem-mappings-fix.patch
-spufs-use-the-new-vm_ops-access-fix.patch
-fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
-page-flags-record-page-flag-overlays-explicitly-xen.patch
-mapping_set_error-add-unlikely.patch
-huge-page-private-reservation-review-cleanups-fix.patch
-sync_file_range_write-may-and-will-block-document-that-fix.patch
-vmallocinfo-add-numa-information-fix.patch
-hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
-hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
-hugetlb-override-default-huge-page-size-ia64-build.patch
-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-bootmem-add-debugging-framework-fix.patch
-bootmem-clean-up-free_all_bootmem_core-fix.patch
-bootmem-free-reserve-helpers-fix.patch
-revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-v850-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
-swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
-split-the-typecheck-macros-out-of-include-linux-kernelh.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
-remove-apparently-unused-fd1772h-header-file.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
-build-kernel-profileo-only-when-requested-cleanups.patch
-fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
-block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
-seq_file-fix-bug-when-seq_read-reads-nothing-fix.patch
-rename-warn-to-warning-to-clear-the-namespace-fix.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
-flag-parameters-paccept-fix.patch
-flag-parameters-paccept-sys_ni.patch
-flag-parameters-anon_inode_getfd-extension-fix.patch
-flag-parameters-signalfd-fix.patch
-flag-parameters-eventfd-fix.patch
-flag-parameters-inotify_init-fix.patch
-flag-parameters-check-magic-constants-alpha.patch
-oprofile-multiplexing-checkpatch-fixes.patch
-spi-au1550_spi-improve-pio-transfer-mode-checkpatch-fixes.patch
+rtc_read_alarm-handles-wraparound.patch
+gpio-pca953x-i2c-handles-max7310-too.patch
+ntp-let-update_persistent_clock-sleep.patch
+jffs2-summary-allocation-dont-use-vmalloc.patch
+asic3-gpiolib-support.patch
+asic3-remove-children-platform-data.patch
+asic3-new-gpio-configuration-code.patch
+sm501-add-gpiolib-support.patch
+sm501-gpio-dynamic-registration-for-pci-devices.patch
+sm501-gpio-i2c-support.patch
+rtc-rtc-rs5c372-smbus-conversion-support.patch
+rtc-rtc-rs5c732-add-support-for-ricoh-r2025s-d-rtc.patch
+rtc-m41t80-sort-header-inclusions-for-readability.patch
+rtc-m41t80-use-pr_info-as-appropriate.patch
+rtc-remove-bkl-for-ioctl.patch
+rtc-add-support-for-st-m41t94-spi-rtc.patch
+gpio-gpio-driver-for-max7301-spi-gpio-expander.patch
 gpio-gpio-driver-for-max7301-spi-gpio-expander-checkpatch-fixes.patch
-drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
-atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
-fsl-diu-fb-update-freescale-diu-driver-to-use-page_alloc_exact-fix.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
-ext3-handle-corrupted-orphan-list-at-mount-cleanup.patch
-ext3-handle-corrupted-orphan-list-at-mount-fix.patch
-ext3-handle-corrupted-orphan-list-at-mount-cleanup-fix.patch
-reiserfs-convert-j_flush_sem-to-mutex.patch
-reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
-cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-checkpatch-fixes.patch
-memcg-remove-refcnt-from-page_cgroup-fix-2.patch
-jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup.patch
-ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
-getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
-tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
-memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
-memstick-use-fully-asynchronous-request-processing-fix.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-mm-introduce-get_user_pages_fast-fix.patch
-mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-fix.patch
-x86-lockless-get_user_pages_fast-fix-2.patch
-x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
-x86-lockless-get_user_pages_fast-fix-warning.patch
-vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
-define-page_file_cache-function-fix.patch
-unevictable-lru-infrastructure-fix.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-3.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
-vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
-video-console-sticonrec-make-code-static-checkpatch-fixes.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+gpio-sysfs-interface-updated-update.patch
+gpio-mcp23s08-handles-multiple-chips-per-chipselect.patch
 
