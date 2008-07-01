@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + security-filesystem-capabilities-no-longer-experimental.patch added to -mm tree
-Date: Tue, 01 Jul 2008 15:06:13 -0700
-Message-ID: <200807012206.m61M6DKF017025@imap1.linux-foundation.org>
+Subject: + rcu-classic-update-qlen-when-cpu-offline.patch added to -mm tree
+Date: Tue, 01 Jul 2008 15:22:02 -0700
+Message-ID: <200807012222.m61MM24p017664@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56894 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48892 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755827AbYGAWN6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 18:13:58 -0400
+	by vger.kernel.org with ESMTP id S1753891AbYGAW2E (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 18:28:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: morgan@kernel.org, serue@us.ibm.com
+Cc: laijs@cn.fujitsu.com, paulmck@linux.vnet.ibm.com
 
 
 The patch titled
-     security: filesystem capabilities no longer experimental
+     rcu classic: update qlen when cpu offline
 has been added to the -mm tree.  Its filename is
-     security-filesystem-capabilities-no-longer-experimental.patch
+     rcu-classic-update-qlen-when-cpu-offline.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,45 +33,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: security: filesystem capabilities no longer experimental
-From: Andrew G. Morgan <morgan@kernel.org>
+Subject: rcu classic: update qlen when cpu offline
+From: Lai Jiangshan <laijs@cn.fujitsu.com>
 
-Filesystem capabilities have come of age.  Remove the experimental tag for
-configuring filesystem capabilities.
+When callbacks are moved from offline cpu to this cpu, the qlen field of
+this rdp should be updated.
 
-Signed-off-by: Andrew G. Morgan <morgan@kernel.org>
-Acked-by: Serge Hallyn <serue@us.ibm.com>
+Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
+Reviewed-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/Kconfig |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/rcuclassic.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN security/Kconfig~security-filesystem-capabilities-no-longer-experimental security/Kconfig
---- a/security/Kconfig~security-filesystem-capabilities-no-longer-experimental
-+++ a/security/Kconfig
-@@ -82,8 +82,8 @@ config SECURITY_CAPABILITIES
- 	  If you are unsure how to answer this question, answer Y.
+diff -puN kernel/rcuclassic.c~rcu-classic-update-qlen-when-cpu-offline kernel/rcuclassic.c
+--- a/kernel/rcuclassic.c~rcu-classic-update-qlen-when-cpu-offline
++++ a/kernel/rcuclassic.c
+@@ -373,6 +373,10 @@ static void __rcu_offline_cpu(struct rcu
+ 	rcu_move_batch(this_rdp, rdp->donelist, rdp->donetail);
+ 	rcu_move_batch(this_rdp, rdp->curlist, rdp->curtail);
+ 	rcu_move_batch(this_rdp, rdp->nxtlist, rdp->nxttail);
++
++	local_irq_disable();
++	this_rdp->qlen += rdp->qlen;
++	local_irq_enable();
+ }
  
- config SECURITY_FILE_CAPABILITIES
--	bool "File POSIX Capabilities (EXPERIMENTAL)"
--	depends on (SECURITY=n || SECURITY_CAPABILITIES!=n) && EXPERIMENTAL
-+	bool "File POSIX Capabilities"
-+	depends on SECURITY=n || SECURITY_CAPABILITIES!=n
- 	default n
- 	help
- 	  This enables filesystem capabilities, allowing you to give
+ static void rcu_offline_cpu(int cpu)
 _
 
-Patches currently in -mm which might be from morgan@kernel.org are
+Patches currently in -mm which might be from laijs@cn.fujitsu.com are
 
-security-filesystem-capabilities-fix-fragile-setuid-fixup-code.patch
-security-filesystem-capabilities-fix-fragile-setuid-fixup-code-checkpatch-fixes.patch
-security-filesystem-capabilities-fix-cap_setpcap-handling.patch
-security-filesystem-capabilities-fix-cap_setpcap-handling-fix.patch
-security-protect-legacy-applications-from-executing-with-insufficient-privilege.patch
-security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
-security-filesystem-capabilities-refactor-kernel-code.patch
-security-filesystem-capabilities-no-longer-experimental.patch
-sysctl-allow-override-of-proc-sys-net-with-cap_net_admin.patch
+rcu-classic-update-qlen-when-cpu-offline.patch
 
