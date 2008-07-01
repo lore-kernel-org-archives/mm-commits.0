@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + autofs4-fix-pending-mount-race.patch added to -mm tree
-Date: Tue, 01 Jul 2008 00:05:39 -0700
-Message-ID: <200807010705.m6175du9014120@imap1.linux-foundation.org>
+Subject: + mlock-mlocked-pages-are-unevictable-fix-99.patch added to -mm tree
+Date: Tue, 01 Jul 2008 00:10:55 -0700
+Message-ID: <200807010710.m617At0q014306@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53863 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59753 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752705AbYGAHGk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 03:06:40 -0400
+	by vger.kernel.org with ESMTP id S1751917AbYGAHMX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 03:12:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: raven@themaw.net, jmoyer@redhat.com
+Cc: Lee.Schermerhorn@hp.com, dave@linux.vnet.ibm.com, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, mpm@selenic.com, npiggin@suse.de, riel@redhat.com
 
 
 The patch titled
-     autofs4: fix pending mount race
+     unevictable mlocked pages: initialize mm member of munlock mm_walk structure
 has been added to the -mm tree.  Its filename is
-     autofs4-fix-pending-mount-race.patch
+     mlock-mlocked-pages-are-unevictable-fix-99.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,249 +33,58 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: autofs4: fix pending mount race
-From: Ian Kent <raven@themaw.net>
+Subject: unevictable mlocked pages: initialize mm member of munlock mm_walk structure
+From: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
 
-Close a race between a pending mount that is about to finish and a new
-lookup for the same directory.
+Incremental fix for: mlock-mlocked-pages-are-unevictable-fix.patch
 
-Process P1 triggers a mount of directory foo.  It sets
-DCACHE_AUTOFS_PENDING in the ->lookup routine, creates a waitq entry for
-'foo', and calls out to the daemon to perform the mount.  The autofs
-daemon will then create the directory 'foo', using a new dentry that will
-be hashed in the dcache.
+Initialize the 'mm' member of the mm_walk structure, else the
+page table walk doesn't occur, and mlocked pages will not be
+munlocked.  This is visible in the vmstats:
 
-Before the mount completes, another process, P2, tries to walk into the
-'foo' directory.  The vfs path walking code finds an entry for 'foo' and
-calls the revalidate method.  Revalidate finds that the entry is not
-PENDING (because PENDING was never set on the dentry created by the
-mkdir), but it does find the directory is empty.  Revalidate calls
-try_to_fill_dentry, which sets the PENDING flag and then calls into the
-autofs4 wait code to trigger or wait for a mount of 'foo'.  The wait code
-finds the entry for 'foo' and goes to sleep waiting for the completion of
-the mount.
+	noreclaim_pgs_munlocked - should equal noreclaim_pgs_mlocked
+	  less (nr_mlock + noreclaim_pgs_cleared), but is always zero
+	  [munlock_vma_page() never called]
 
-Yet another process, P3, tries to walk into the 'foo' directory.  This
-process again finds a dentry in the dcache for 'foo', and calls into the
-autofs revalidate code.
+	noreclaim_pgs_mlockfreed - should be zero [for debug only],
+	  but == noreclaim_pgs_mlocked - (nr_mlock + noreclaim_pgs_cleared)
 
-The revalidate code finds that the PENDING flag is set, and so calls
-try_to_fill_dentry.
-
-a) try_to_fill_dentry sets the PENDING flag redundantly for this
-   dentry, then calls into the autofs4 wait code.
-
-b) the autofs4 wait code takes the waitq mutex and searches for an
-   entry for 'foo'
-
-Between a and b, P1 is woken up because the mount completed.  P1 takes the
-wait queue mutex, clears the PENDING flag from the dentry, and removes the
-waitqueue entry for 'foo' from the list.
-
-When it releases the waitq mutex, P3 (eventually) acquires it.  At this
-time, it looks for an existing waitq for 'foo', finds none, and so creates
-a new one and calls out to the daemon to mount the 'foo' directory.
-
-Now, the reason that three processes are required to trigger this race is
-that, because the PENDING flag is not set on the dentry created by mkdir,
-the window for the race would be way to slim for it to ever occur. 
-Basically, between the testing of d_mountpoint(dentry) and the taking of
-the waitq mutex, the mount would have to complete and the daemon would
-have to be woken up, and that in turn would have to wake up P1.  This is
-simply impossible.  Add the third process, though, and it becomes slightly
-more likely.
-
-Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
-Signed-off-by: Ian Kent <raven@themaw.net>
+Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Nick Piggin <npiggin@suse.de>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Dave Hansen <dave@linux.vnet.ibm.com>
+Cc: Matt Mackall <mpm@selenic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/waitq.c |  135 ++++++++++++++++++++++++++++++-------------
- 1 file changed, 97 insertions(+), 38 deletions(-)
+ mm/mlock.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/autofs4/waitq.c~autofs4-fix-pending-mount-race fs/autofs4/waitq.c
---- a/fs/autofs4/waitq.c~autofs4-fix-pending-mount-race
-+++ a/fs/autofs4/waitq.c
-@@ -207,19 +207,106 @@ autofs4_find_wait(struct autofs_sb_info 
- 	return wq;
- }
+diff -puN mm/mlock.c~mlock-mlocked-pages-are-unevictable-fix-99 mm/mlock.c
+--- a/mm/mlock.c~mlock-mlocked-pages-are-unevictable-fix-99
++++ a/mm/mlock.c
+@@ -278,6 +278,8 @@ static void __munlock_vma_pages_range(st
+ 	VM_BUG_ON(start < vma->vm_start);
+ 	VM_BUG_ON(end > vma->vm_end);
  
-+/*
-+ * Check if we have a valid request.
-+ * Returns
-+ * 1 if the request should continue.
-+ *   In this case we can return an autofs_wait_queue entry if one is
-+ *   found or NULL to idicate a new wait needs to be created.
-+ * 0 or a negative errno if the request shouldn't continue.
-+ */
-+static int validate_request(struct autofs_wait_queue **wait,
-+			    struct autofs_sb_info *sbi,
-+			    struct qstr *qstr,
-+			    struct dentry*dentry, enum autofs_notify notify)
-+{
-+	struct autofs_wait_queue *wq;
-+	struct autofs_info *ino;
++	munlock_page_walk.mm = mm;
 +
-+	/* Wait in progress, continue; */
-+	wq = autofs4_find_wait(sbi, qstr);
-+	if (wq) {
-+		*wait = wq;
-+		return 1;
-+	}
-+
-+	*wait = NULL;
-+
-+	/* If we don't yet have any info this is a new request */
-+	ino = autofs4_dentry_ino(dentry);
-+	if (!ino)
-+		return 1;
-+
-+	/*
-+	 * If we've been asked to wait on an existing expire (NFY_NONE)
-+	 * but there is no wait in the queue ...
-+	 */
-+	if (notify == NFY_NONE) {
-+		/*
-+		 * Either we've betean the pending expire to post it's
-+		 * wait or it finished while we waited on the mutex.
-+		 * So we need to wait till either, the wait appears
-+		 * or the expire finishes.
-+		 */
-+
-+		while (ino->flags & AUTOFS_INF_EXPIRING) {
-+			mutex_unlock(&sbi->wq_mutex);
-+			schedule_timeout_interruptible(HZ/10);
-+			if (mutex_lock_interruptible(&sbi->wq_mutex))
-+				return -EINTR;
-+
-+			wq = autofs4_find_wait(sbi, qstr);
-+			if (wq) {
-+				*wait = wq;
-+				return 1;
-+			}
-+		}
-+
-+		/*
-+		 * Not ideal but the status has already gone. Of the two
-+		 * cases where we wait on NFY_NONE neither depend on the
-+		 * return status of the wait.
-+		 */
-+		return 0;
-+	}
-+
-+	/*
-+	 * If we've been asked to trigger a mount and the request
-+	 * completed while we waited on the mutex ...
-+	 */
-+	if (notify == NFY_MOUNT) {
-+		/*
-+		 * If the dentry isn't hashed just go ahead and try the
-+		 * mount again with a new wait (not much else we can do).
-+		*/
-+		if (!d_unhashed(dentry)) {
-+			/*
-+			 * But if the dentry is hashed, that means that we
-+			 * got here through the revalidate path.  Thus, we
-+			 * need to check if the dentry has been mounted
-+			 * while we waited on the wq_mutex. If it has,
-+			 * simply return success.
-+			 */
-+			if (d_mountpoint(dentry))
-+				return 0;
-+		}
-+	}
-+
-+	return 1;
-+}
-+
- int autofs4_wait(struct autofs_sb_info *sbi, struct dentry *dentry,
- 		enum autofs_notify notify)
- {
--	struct autofs_info *ino;
- 	struct autofs_wait_queue *wq;
- 	struct qstr qstr;
- 	char *name;
--	int status, type;
-+	int status, ret, type;
- 
- 	/* In catatonic mode, we don't wait for nobody */
- 	if (sbi->catatonic)
- 		return -ENOENT;
--	
-+
- 	name = kmalloc(NAME_MAX + 1, GFP_KERNEL);
- 	if (!name)
- 		return -ENOMEM;
-@@ -237,43 +324,15 @@ int autofs4_wait(struct autofs_sb_info *
- 	qstr.name = name;
- 	qstr.hash = full_name_hash(name, qstr.len);
- 
--	if (mutex_lock_interruptible(&sbi->wq_mutex)) {
--		kfree(qstr.name);
-+	if (mutex_lock_interruptible(&sbi->wq_mutex))
- 		return -EINTR;
--	}
- 
--	wq = autofs4_find_wait(sbi, &qstr);
--	ino = autofs4_dentry_ino(dentry);
--	if (!wq && ino && notify == NFY_NONE) {
--		/*
--		 * Either we've betean the pending expire to post it's
--		 * wait or it finished while we waited on the mutex.
--		 * So we need to wait till either, the wait appears
--		 * or the expire finishes.
--		 */
--
--		while (ino->flags & AUTOFS_INF_EXPIRING) {
-+	ret = validate_request(&wq, sbi, &qstr, dentry, notify);
-+	if (ret <= 0) {
-+		if (ret == 0)
- 			mutex_unlock(&sbi->wq_mutex);
--			schedule_timeout_interruptible(HZ/10);
--			if (mutex_lock_interruptible(&sbi->wq_mutex)) {
--				kfree(qstr.name);
--				return -EINTR;
--			}
--			wq = autofs4_find_wait(sbi, &qstr);
--			if (wq)
--				break;
--		}
--
--		/*
--		 * Not ideal but the status has already gone. Of the two
--		 * cases where we wait on NFY_NONE neither depend on the
--		 * return status of the wait.
--		 */
--		if (!wq) {
--			kfree(qstr.name);
--			mutex_unlock(&sbi->wq_mutex);
--			return 0;
--		}
-+		kfree(qstr.name);
-+		return ret;
- 	}
- 
- 	if (!wq) {
-@@ -391,9 +450,9 @@ int autofs4_wait_release(struct autofs_s
- 	}
- 
- 	*wql = wq->next;	/* Unlink from chain */
--	mutex_unlock(&sbi->wq_mutex);
- 	kfree(wq->name.name);
- 	wq->name.name = NULL;	/* Do not wait on this queue */
-+	mutex_unlock(&sbi->wq_mutex);
- 
- 	wq->status = status;
- 
+ 	lru_add_drain_all();	/* push cached pages to LRU */
+ 	walk_page_range(start, end, &munlock_page_walk);
+ 	lru_add_drain_all();	/* to update stats */
 _
 
-Patches currently in -mm which might be from raven@themaw.net are
+Patches currently in -mm which might be from Lee.Schermerhorn@hp.com are
 
-autofs4-dont-make-expiring-dentry-negative.patch
-autofs4-revert-redo-lookup-in-ttfd.patch
-autofs4-use-look-aside-list-for-lookups.patch
-autofs4-dont-release-directory-mutex-if-called-in-oz_mode.patch
-autofs4-use-lookup-intent-flags-to-trigger-mounts.patch
-autofs4-use-struct-qstr-in-waitqc.patch
-autofs4-fix-pending-mount-race.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
+vmscan-free-swap-space-on-swap-in-activation.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-infrastructure-remove-redundant-page-mapping-check.patch
+unevictable-lru-page-statistics.patch
+ramfs-and-ram-disk-pages-are-unevictable.patch
+shm_locked-pages-are-unevictable.patch
+mlock-mlocked-pages-are-unevictable-fix-99.patch
 
