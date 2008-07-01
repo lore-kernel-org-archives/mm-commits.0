@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + autofs4-use-struct-qstr-in-waitqc.patch added to -mm tree
-Date: Tue, 01 Jul 2008 00:05:36 -0700
-Message-ID: <200807010705.m6175aMF014117@imap1.linux-foundation.org>
+Subject: + autofs4-fix-pending-mount-race.patch added to -mm tree
+Date: Tue, 01 Jul 2008 00:05:39 -0700
+Message-ID: <200807010705.m6175du9014120@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46917 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53863 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752038AbYGAHGh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 03:06:37 -0400
+	by vger.kernel.org with ESMTP id S1752705AbYGAHGk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 03:06:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: raven@themaw.net, jmoyer@redhat.com
 
 
 The patch titled
-     From: Ian Kent <raven@themaw.net>
+     autofs4: fix pending mount race
 has been added to the -mm tree.  Its filename is
-     autofs4-use-struct-qstr-in-waitqc.patch
+     autofs4-fix-pending-mount-race.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,266 +33,237 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: From: Ian Kent <raven@themaw.net>
-From: Jeff Moyer <jmoyer@redhat.com>
+Subject: autofs4: fix pending mount race
+From: Ian Kent <raven@themaw.net>
 
+Close a race between a pending mount that is about to finish and a new
+lookup for the same directory.
 
-The autofs_wait_queue already contains all of the fields of the
-struct qstr, so change it into a qstr.
+Process P1 triggers a mount of directory foo.  It sets
+DCACHE_AUTOFS_PENDING in the ->lookup routine, creates a waitq entry for
+'foo', and calls out to the daemon to perform the mount.  The autofs
+daemon will then create the directory 'foo', using a new dentry that will
+be hashed in the dcache.
 
-This patch, from Jeff Moyer, has been modified a liitle by myself.
+Before the mount completes, another process, P2, tries to walk into the
+'foo' directory.  The vfs path walking code finds an entry for 'foo' and
+calls the revalidate method.  Revalidate finds that the entry is not
+PENDING (because PENDING was never set on the dentry created by the
+mkdir), but it does find the directory is empty.  Revalidate calls
+try_to_fill_dentry, which sets the PENDING flag and then calls into the
+autofs4 wait code to trigger or wait for a mount of 'foo'.  The wait code
+finds the entry for 'foo' and goes to sleep waiting for the completion of
+the mount.
+
+Yet another process, P3, tries to walk into the 'foo' directory.  This
+process again finds a dentry in the dcache for 'foo', and calls into the
+autofs revalidate code.
+
+The revalidate code finds that the PENDING flag is set, and so calls
+try_to_fill_dentry.
+
+a) try_to_fill_dentry sets the PENDING flag redundantly for this
+   dentry, then calls into the autofs4 wait code.
+
+b) the autofs4 wait code takes the waitq mutex and searches for an
+   entry for 'foo'
+
+Between a and b, P1 is woken up because the mount completed.  P1 takes the
+wait queue mutex, clears the PENDING flag from the dentry, and removes the
+waitqueue entry for 'foo' from the list.
+
+When it releases the waitq mutex, P3 (eventually) acquires it.  At this
+time, it looks for an existing waitq for 'foo', finds none, and so creates
+a new one and calls out to the daemon to mount the 'foo' directory.
+
+Now, the reason that three processes are required to trigger this race is
+that, because the PENDING flag is not set on the dentry created by mkdir,
+the window for the race would be way to slim for it to ever occur. 
+Basically, between the testing of d_mountpoint(dentry) and the taking of
+the waitq mutex, the mount would have to complete and the daemon would
+have to be woken up, and that in turn would have to wake up P1.  This is
+simply impossible.  Add the third process, though, and it becomes slightly
+more likely.
 
 Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
 Signed-off-by: Ian Kent <raven@themaw.net>
-
----
-
-index 2dce233..da8882f 100644
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/autofs_i.h |    4 -
- fs/autofs4/waitq.c    |   86 ++++++++++++++++++++--------------------
- 2 files changed, 46 insertions(+), 44 deletions(-)
+ fs/autofs4/waitq.c |  135 ++++++++++++++++++++++++++++++-------------
+ 1 file changed, 97 insertions(+), 38 deletions(-)
 
-diff -puN fs/autofs4/autofs_i.h~autofs4-use-struct-qstr-in-waitqc fs/autofs4/autofs_i.h
---- a/fs/autofs4/autofs_i.h~autofs4-use-struct-qstr-in-waitqc
-+++ a/fs/autofs4/autofs_i.h
-@@ -75,9 +75,7 @@ struct autofs_wait_queue {
- 	struct autofs_wait_queue *next;
- 	autofs_wqt_t wait_queue_token;
- 	/* We use the following to see what we are waiting for */
--	unsigned int hash;
--	unsigned int len;
--	char *name;
-+	struct qstr name;
- 	u32 dev;
- 	u64 ino;
- 	uid_t uid;
-diff -puN fs/autofs4/waitq.c~autofs4-use-struct-qstr-in-waitqc fs/autofs4/waitq.c
---- a/fs/autofs4/waitq.c~autofs4-use-struct-qstr-in-waitqc
+diff -puN fs/autofs4/waitq.c~autofs4-fix-pending-mount-race fs/autofs4/waitq.c
+--- a/fs/autofs4/waitq.c~autofs4-fix-pending-mount-race
 +++ a/fs/autofs4/waitq.c
-@@ -36,8 +36,10 @@ void autofs4_catatonic_mode(struct autof
- 	while (wq) {
- 		nwq = wq->next;
- 		wq->status = -ENOENT; /* Magic is gone - report failure */
--		kfree(wq->name);
--		wq->name = NULL;
-+		if (wq->name.name) {
-+			kfree(wq->name.name);
-+			wq->name.name = NULL;
-+		}
- 		wake_up_interruptible(&wq->queue);
- 		wq = nwq;
- 	}
-@@ -92,7 +94,7 @@ static void autofs4_notify_daemon(struct
- 	size_t pktsz;
- 
- 	DPRINTK("wait id = 0x%08lx, name = %.*s, type=%d",
--		wq->wait_queue_token, wq->len, wq->name, type);
-+		wq->wait_queue_token, wq->name.len, wq->name.name, type);
- 
- 	memset(&pkt,0,sizeof pkt); /* For security reasons */
- 
-@@ -107,9 +109,9 @@ static void autofs4_notify_daemon(struct
- 		pktsz = sizeof(*mp);
- 
- 		mp->wait_queue_token = wq->wait_queue_token;
--		mp->len = wq->len;
--		memcpy(mp->name, wq->name, wq->len);
--		mp->name[wq->len] = '\0';
-+		mp->len = wq->name.len;
-+		memcpy(mp->name, wq->name.name, wq->name.len);
-+		mp->name[wq->name.len] = '\0';
- 		break;
- 	}
- 	case autofs_ptype_expire_multi:
-@@ -119,9 +121,9 @@ static void autofs4_notify_daemon(struct
- 		pktsz = sizeof(*ep);
- 
- 		ep->wait_queue_token = wq->wait_queue_token;
--		ep->len = wq->len;
--		memcpy(ep->name, wq->name, wq->len);
--		ep->name[wq->len] = '\0';
-+		ep->len = wq->name.len;
-+		memcpy(ep->name, wq->name.name, wq->name.len);
-+		ep->name[wq->name.len] = '\0';
- 		break;
- 	}
- 	/*
-@@ -138,9 +140,9 @@ static void autofs4_notify_daemon(struct
- 		pktsz = sizeof(*packet);
- 
- 		packet->wait_queue_token = wq->wait_queue_token;
--		packet->len = wq->len;
--		memcpy(packet->name, wq->name, wq->len);
--		packet->name[wq->len] = '\0';
-+		packet->len = wq->name.len;
-+		memcpy(packet->name, wq->name.name, wq->name.len);
-+		packet->name[wq->name.len] = '\0';
- 		packet->dev = wq->dev;
- 		packet->ino = wq->ino;
- 		packet->uid = wq->uid;
-@@ -191,15 +193,15 @@ static int autofs4_getpath(struct autofs
+@@ -207,19 +207,106 @@ autofs4_find_wait(struct autofs_sb_info 
+ 	return wq;
  }
  
- static struct autofs_wait_queue *
--autofs4_find_wait(struct autofs_sb_info *sbi,
--		  char *name, unsigned int hash, unsigned int len)
-+autofs4_find_wait(struct autofs_sb_info *sbi, struct qstr *qstr)
++/*
++ * Check if we have a valid request.
++ * Returns
++ * 1 if the request should continue.
++ *   In this case we can return an autofs_wait_queue entry if one is
++ *   found or NULL to idicate a new wait needs to be created.
++ * 0 or a negative errno if the request shouldn't continue.
++ */
++static int validate_request(struct autofs_wait_queue **wait,
++			    struct autofs_sb_info *sbi,
++			    struct qstr *qstr,
++			    struct dentry*dentry, enum autofs_notify notify)
++{
++	struct autofs_wait_queue *wq;
++	struct autofs_info *ino;
++
++	/* Wait in progress, continue; */
++	wq = autofs4_find_wait(sbi, qstr);
++	if (wq) {
++		*wait = wq;
++		return 1;
++	}
++
++	*wait = NULL;
++
++	/* If we don't yet have any info this is a new request */
++	ino = autofs4_dentry_ino(dentry);
++	if (!ino)
++		return 1;
++
++	/*
++	 * If we've been asked to wait on an existing expire (NFY_NONE)
++	 * but there is no wait in the queue ...
++	 */
++	if (notify == NFY_NONE) {
++		/*
++		 * Either we've betean the pending expire to post it's
++		 * wait or it finished while we waited on the mutex.
++		 * So we need to wait till either, the wait appears
++		 * or the expire finishes.
++		 */
++
++		while (ino->flags & AUTOFS_INF_EXPIRING) {
++			mutex_unlock(&sbi->wq_mutex);
++			schedule_timeout_interruptible(HZ/10);
++			if (mutex_lock_interruptible(&sbi->wq_mutex))
++				return -EINTR;
++
++			wq = autofs4_find_wait(sbi, qstr);
++			if (wq) {
++				*wait = wq;
++				return 1;
++			}
++		}
++
++		/*
++		 * Not ideal but the status has already gone. Of the two
++		 * cases where we wait on NFY_NONE neither depend on the
++		 * return status of the wait.
++		 */
++		return 0;
++	}
++
++	/*
++	 * If we've been asked to trigger a mount and the request
++	 * completed while we waited on the mutex ...
++	 */
++	if (notify == NFY_MOUNT) {
++		/*
++		 * If the dentry isn't hashed just go ahead and try the
++		 * mount again with a new wait (not much else we can do).
++		*/
++		if (!d_unhashed(dentry)) {
++			/*
++			 * But if the dentry is hashed, that means that we
++			 * got here through the revalidate path.  Thus, we
++			 * need to check if the dentry has been mounted
++			 * while we waited on the wq_mutex. If it has,
++			 * simply return success.
++			 */
++			if (d_mountpoint(dentry))
++				return 0;
++		}
++	}
++
++	return 1;
++}
++
+ int autofs4_wait(struct autofs_sb_info *sbi, struct dentry *dentry,
+ 		enum autofs_notify notify)
  {
+-	struct autofs_info *ino;
  	struct autofs_wait_queue *wq;
- 
- 	for (wq = sbi->queues; wq; wq = wq->next) {
--		if (wq->hash == hash &&
--		    wq->len == len &&
--		    wq->name && !memcmp(wq->name, name, len))
-+		if (wq->name.hash == qstr->hash &&
-+		    wq->name.len == qstr->len &&
-+		    wq->name.name &&
-+			 !memcmp(wq->name.name, qstr->name, qstr->len))
- 			break;
- 	}
- 	return wq;
-@@ -210,9 +212,8 @@ int autofs4_wait(struct autofs_sb_info *
- {
- 	struct autofs_info *ino;
- 	struct autofs_wait_queue *wq;
-+	struct qstr qstr;
+ 	struct qstr qstr;
  	char *name;
--	unsigned int len = 0;
--	unsigned int hash = 0;
- 	int status, type;
+-	int status, type;
++	int status, ret, type;
  
  	/* In catatonic mode, we don't wait for nobody */
-@@ -225,22 +226,23 @@ int autofs4_wait(struct autofs_sb_info *
+ 	if (sbi->catatonic)
+ 		return -ENOENT;
+-	
++
+ 	name = kmalloc(NAME_MAX + 1, GFP_KERNEL);
+ 	if (!name)
+ 		return -ENOMEM;
+@@ -237,43 +324,15 @@ int autofs4_wait(struct autofs_sb_info *
+ 	qstr.name = name;
+ 	qstr.hash = full_name_hash(name, qstr.len);
  
- 	/* If this is a direct mount request create a dummy name */
- 	if (IS_ROOT(dentry) && (sbi->type & AUTOFS_TYPE_DIRECT))
--		len = sprintf(name, "%p", dentry);
-+		qstr.len = sprintf(name, "%p", dentry);
- 	else {
--		len = autofs4_getpath(sbi, dentry, &name);
--		if (!len) {
-+		qstr.len = autofs4_getpath(sbi, dentry, &name);
-+		if (!qstr.len) {
- 			kfree(name);
- 			return -ENOENT;
- 		}
- 	}
--	hash = full_name_hash(name, len);
-+	qstr.name = name;
-+	qstr.hash = full_name_hash(name, qstr.len);
- 
- 	if (mutex_lock_interruptible(&sbi->wq_mutex)) {
--		kfree(name);
-+		kfree(qstr.name);
+-	if (mutex_lock_interruptible(&sbi->wq_mutex)) {
+-		kfree(qstr.name);
++	if (mutex_lock_interruptible(&sbi->wq_mutex))
  		return -EINTR;
- 	}
+-	}
  
--	wq = autofs4_find_wait(sbi, name, hash, len);
-+	wq = autofs4_find_wait(sbi, &qstr);
- 	ino = autofs4_dentry_ino(dentry);
- 	if (!wq && ino && notify == NFY_NONE) {
- 		/*
-@@ -254,10 +256,10 @@ int autofs4_wait(struct autofs_sb_info *
+-	wq = autofs4_find_wait(sbi, &qstr);
+-	ino = autofs4_dentry_ino(dentry);
+-	if (!wq && ino && notify == NFY_NONE) {
+-		/*
+-		 * Either we've betean the pending expire to post it's
+-		 * wait or it finished while we waited on the mutex.
+-		 * So we need to wait till either, the wait appears
+-		 * or the expire finishes.
+-		 */
+-
+-		while (ino->flags & AUTOFS_INF_EXPIRING) {
++	ret = validate_request(&wq, sbi, &qstr, dentry, notify);
++	if (ret <= 0) {
++		if (ret == 0)
  			mutex_unlock(&sbi->wq_mutex);
- 			schedule_timeout_interruptible(HZ/10);
- 			if (mutex_lock_interruptible(&sbi->wq_mutex)) {
--				kfree(name);
-+				kfree(qstr.name);
- 				return -EINTR;
- 			}
--			wq = autofs4_find_wait(sbi, name, hash, len);
-+			wq = autofs4_find_wait(sbi, &qstr);
- 			if (wq)
- 				break;
- 		}
-@@ -268,7 +270,7 @@ int autofs4_wait(struct autofs_sb_info *
- 		 * return status of the wait.
- 		 */
- 		if (!wq) {
--			kfree(name);
-+			kfree(qstr.name);
- 			mutex_unlock(&sbi->wq_mutex);
- 			return 0;
- 		}
-@@ -278,7 +280,7 @@ int autofs4_wait(struct autofs_sb_info *
- 		/* Create a new wait queue */
- 		wq = kmalloc(sizeof(struct autofs_wait_queue),GFP_KERNEL);
- 		if (!wq) {
--			kfree(name);
-+			kfree(qstr.name);
- 			mutex_unlock(&sbi->wq_mutex);
- 			return -ENOMEM;
- 		}
-@@ -289,9 +291,7 @@ int autofs4_wait(struct autofs_sb_info *
- 		wq->next = sbi->queues;
- 		sbi->queues = wq;
- 		init_waitqueue_head(&wq->queue);
--		wq->hash = hash;
--		wq->name = name;
--		wq->len = len;
-+		memcpy(&wq->name, &qstr, sizeof(struct qstr));
- 		wq->dev = autofs4_get_dev(sbi);
- 		wq->ino = autofs4_get_ino(sbi);
- 		wq->uid = current->uid;
-@@ -319,16 +319,18 @@ int autofs4_wait(struct autofs_sb_info *
- 		}
- 
- 		DPRINTK("new wait id = 0x%08lx, name = %.*s, nfy=%d\n",
--			(unsigned long) wq->wait_queue_token, wq->len, wq->name, notify);
-+			(unsigned long) wq->wait_queue_token, wq->name.len,
-+			wq->name.name, notify);
- 
- 		/* autofs4_notify_daemon() may block */
- 		autofs4_notify_daemon(sbi, wq, type);
- 	} else {
- 		atomic_inc(&wq->wait_ctr);
- 		mutex_unlock(&sbi->wq_mutex);
--		kfree(name);
+-			schedule_timeout_interruptible(HZ/10);
+-			if (mutex_lock_interruptible(&sbi->wq_mutex)) {
+-				kfree(qstr.name);
+-				return -EINTR;
+-			}
+-			wq = autofs4_find_wait(sbi, &qstr);
+-			if (wq)
+-				break;
+-		}
+-
+-		/*
+-		 * Not ideal but the status has already gone. Of the two
+-		 * cases where we wait on NFY_NONE neither depend on the
+-		 * return status of the wait.
+-		 */
+-		if (!wq) {
+-			kfree(qstr.name);
+-			mutex_unlock(&sbi->wq_mutex);
+-			return 0;
+-		}
 +		kfree(qstr.name);
- 		DPRINTK("existing wait id = 0x%08lx, name = %.*s, nfy=%d",
--			(unsigned long) wq->wait_queue_token, wq->len, wq->name, notify);
-+			(unsigned long) wq->wait_queue_token, wq->name.len,
-+			wq->name.name, notify);
++		return ret;
  	}
  
- 	/* wq->name is NULL if and only if the lock is already released */
-@@ -336,11 +338,13 @@ int autofs4_wait(struct autofs_sb_info *
- 	if (sbi->catatonic) {
- 		/* We might have slept, so check again for catatonic mode */
- 		wq->status = -ENOENT;
--		kfree(wq->name);
--		wq->name = NULL;
-+		if (wq->name.name) {
-+			kfree(wq->name.name);
-+			wq->name.name = NULL;
-+		}
+ 	if (!wq) {
+@@ -391,9 +450,9 @@ int autofs4_wait_release(struct autofs_s
  	}
- 
--	if (wq->name) {
-+	if (wq->name.name) {
- 		/* Block all but "shutdown" signals while waiting */
- 		sigset_t oldset;
- 		unsigned long irqflags;
-@@ -351,7 +355,7 @@ int autofs4_wait(struct autofs_sb_info *
- 		recalc_sigpending();
- 		spin_unlock_irqrestore(&current->sighand->siglock, irqflags);
- 
--		wait_event_interruptible(wq->queue, wq->name == NULL);
-+		wait_event_interruptible(wq->queue, wq->name.name == NULL);
- 
- 		spin_lock_irqsave(&current->sighand->siglock, irqflags);
- 		current->blocked = oldset;
-@@ -388,8 +392,8 @@ int autofs4_wait_release(struct autofs_s
  
  	*wql = wq->next;	/* Unlink from chain */
- 	mutex_unlock(&sbi->wq_mutex);
--	kfree(wq->name);
--	wq->name = NULL;	/* Do not wait on this queue */
-+	kfree(wq->name.name);
-+	wq->name.name = NULL;	/* Do not wait on this queue */
+-	mutex_unlock(&sbi->wq_mutex);
+ 	kfree(wq->name.name);
+ 	wq->name.name = NULL;	/* Do not wait on this queue */
++	mutex_unlock(&sbi->wq_mutex);
  
  	wq->status = status;
  
