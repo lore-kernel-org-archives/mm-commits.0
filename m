@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + video-console-sticonrec-make-code-static.patch added to -mm tree
-Date: Tue, 01 Jul 2008 00:14:42 -0700
-Message-ID: <200807010714.m617EgYU014464@imap1.linux-foundation.org>
+Subject: + video-console-sticonrec-make-code-static-checkpatch-fixes.patch added to -mm tree
+Date: Tue, 01 Jul 2008 00:15:51 -0700
+Message-ID: <200807010715.m617FpQ4014487@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58437 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44241 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751500AbYGAHP3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 03:15:29 -0400
+	by vger.kernel.org with ESMTP id S1751881AbYGAHQh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 03:16:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org
+Cc: akpm@linux-foundation.org, bunk@kernel.org
 
 
 The patch titled
-     video/console/stico{n,re}.c: make code static
+     video-console-sticonrec-make-code-static-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     video-console-sticonrec-make-code-static.patch
+     video-console-sticonrec-make-code-static-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,213 +33,194 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: video/console/stico{n,re}.c: make code static
-From: Adrian Bunk <bunk@kernel.org>
+Subject: video-console-sticonrec-make-code-static-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This patch makes the following needlessly global code static:
-- sticon.c: sticonsole_init()
-- sticore.c: struct default_sti
-- sticore.c: sti_init_graph()
-- sticore.c: sti_inq_conf()
-- sticore.c: sti_rom_copy()
-- sticore.c: sti_select_fbfont()
-- sticore.c: sti_select_font()
-- sticore.c: sti_get_wmode_rom()
-- sticore.c: sti_read_rom()
+ERROR: space required after that ',' (ctx:OxV)
+#107: FILE: drivers/video/console/sticore.c:544:
++		 int (*search_font_fnc) (struct sti_cooked_rom *,int,int) )
+ 		                                                ^
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
+ERROR: space required after that ',' (ctx:VxV)
+#107: FILE: drivers/video/console/sticore.c:544:
++		 int (*search_font_fnc) (struct sti_cooked_rom *,int,int) )
+ 		                                                    ^
+
+ERROR: space prohibited before that close parenthesis ')'
+#107: FILE: drivers/video/console/sticore.c:544:
++		 int (*search_font_fnc) (struct sti_cooked_rom *,int,int) )
+
+total: 3 errors, 0 warnings, 102 lines checked
+
+./patches/video-console-sticonrec-make-code-static.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/console/sticon.c  |    2 -
- drivers/video/console/sticore.c |   33 +++++++++++++-----------------
- drivers/video/sticore.h         |    2 -
- 3 files changed, 16 insertions(+), 21 deletions(-)
+ drivers/video/console/sticore.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/console/sticon.c~video-console-sticonrec-make-code-static drivers/video/console/sticon.c
---- a/drivers/video/console/sticon.c~video-console-sticonrec-make-code-static
-+++ a/drivers/video/console/sticon.c
-@@ -370,7 +370,7 @@ static const struct consw sti_con = {
- 
- 
- 
--int __init sticonsole_init(void)
-+static int __init sticonsole_init(void)
- {
-     /* already initialized ? */
-     if (sticon_sti)
-diff -puN drivers/video/console/sticore.c~video-console-sticonrec-make-code-static drivers/video/console/sticore.c
---- a/drivers/video/console/sticore.c~video-console-sticonrec-make-code-static
+diff -puN drivers/video/console/sticore.c~video-console-sticonrec-make-code-static-checkpatch-fixes drivers/video/console/sticore.c
+--- a/drivers/video/console/sticore.c~video-console-sticonrec-make-code-static-checkpatch-fixes
 +++ a/drivers/video/console/sticore.c
-@@ -29,7 +29,7 @@
+@@ -541,7 +541,7 @@ static struct sti_cooked_font __devinit
  
- #define STI_DRIVERVERSION "Version 0.9a"
- 
--struct sti_struct *default_sti __read_mostly;
-+static struct sti_struct *default_sti __read_mostly;
- 
- /* number of STI ROMS found and their ptrs to each struct */
- static int num_sti_roms __read_mostly;
-@@ -68,8 +68,7 @@ static const struct sti_init_flags defau
- 	.init_cmap_tx = 1,
- };
- 
--int
--sti_init_graph(struct sti_struct *sti) 
-+static int sti_init_graph(struct sti_struct *sti)
- {
- 	struct sti_init_inptr_ext inptr_ext = { 0, };
- 	struct sti_init_inptr inptr = {
-@@ -100,8 +99,7 @@ static const struct sti_conf_flags defau
- 	.wait	= STI_WAIT,
- };
- 
--void
--sti_inq_conf(struct sti_struct *sti)
-+static void sti_inq_conf(struct sti_struct *sti)
- {
- 	struct sti_conf_inptr inptr = { 0, };
- 	unsigned long flags;
-@@ -237,8 +235,8 @@ static void sti_flush(unsigned long star
- 	flush_icache_range(start, end);
- }
- 
--void __devinit
--sti_rom_copy(unsigned long base, unsigned long count, void *dest)
-+static void __devinit sti_rom_copy(unsigned long base, unsigned long count,
-+				   void *dest)
- {
- 	unsigned long dest_start = (unsigned long) dest;
- 
-@@ -478,8 +476,8 @@ sti_init_glob_cfg(struct sti_struct *sti
- }
- 
- #ifdef CONFIG_FB
--struct sti_cooked_font * __devinit
--sti_select_fbfont(struct sti_cooked_rom *cooked_rom, const char *fbfont_name)
-+static struct sti_cooked_font __devinit
-+*sti_select_fbfont(struct sti_cooked_rom *cooked_rom, const char *fbfont_name)
- {
- 	const struct font_desc *fbfont;
- 	unsigned int size, bpc;
-@@ -534,16 +532,16 @@ sti_select_fbfont(struct sti_cooked_rom 
- 	return cooked_font;
- }
- #else
--struct sti_cooked_font * __devinit
--sti_select_fbfont(struct sti_cooked_rom *cooked_rom, const char *fbfont_name)
-+static struct sti_cooked_font __devinit
-+*sti_select_fbfont(struct sti_cooked_rom *cooked_rom, const char *fbfont_name)
- {
- 	return NULL;
- }
- #endif
- 
--struct sti_cooked_font * __devinit
--sti_select_font(struct sti_cooked_rom *rom,
--	    int (*search_font_fnc) (struct sti_cooked_rom *,int,int) )
-+static struct sti_cooked_font __devinit
-+*sti_select_font(struct sti_cooked_rom *rom,
-+		 int (*search_font_fnc) (struct sti_cooked_rom *,int,int) )
+ static struct sti_cooked_font __devinit
+ *sti_select_font(struct sti_cooked_rom *rom,
+-		 int (*search_font_fnc) (struct sti_cooked_rom *,int,int) )
++		 int (*search_font_fnc)(struct sti_cooked_rom *, int, int))
  {
  	struct sti_cooked_font *font;
  	int i;
-@@ -707,8 +705,7 @@ sti_get_bmode_rom (unsigned long address
- 	return raw;
- }
- 
--struct sti_rom * __devinit
--sti_get_wmode_rom (unsigned long address)
-+static struct sti_rom __devinit *sti_get_wmode_rom(unsigned long address)
- {
- 	struct sti_rom *raw;
- 	unsigned long size;
-@@ -723,8 +720,8 @@ sti_get_wmode_rom (unsigned long address
- 	return raw;
- }
- 
--int __devinit
--sti_read_rom(int wordmode, struct sti_struct *sti, unsigned long address)
-+static int __devinit sti_read_rom(int wordmode, struct sti_struct *sti,
-+				  unsigned long address)
- {
- 	struct sti_cooked_rom *cooked;
- 	struct sti_rom *raw = NULL;
-diff -puN drivers/video/sticore.h~video-console-sticonrec-make-code-static drivers/video/sticore.h
---- a/drivers/video/sticore.h~video-console-sticonrec-make-code-static
-+++ a/drivers/video/sticore.h
-@@ -352,8 +352,6 @@ struct sti_struct *sti_get_rom(unsigned 
- 
- /* functions to call the STI ROM directly */
- 
--int  sti_init_graph(struct sti_struct *sti);
--void sti_inq_conf(struct sti_struct *sti);
- void sti_putc(struct sti_struct *sti, int c, int y, int x);
- void sti_set(struct sti_struct *sti, int src_y, int src_x,
- 	     int height, int width, u8 color);
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-firmware-fix-the-request_firmware-dummy.patch
-remove-drivers-acorn-char-defkeymap-l7200c.patch
-drm-make-drm_minors_cleanup-static.patch
-m32r-remove-the-unused-nohighmem-option.patch
-if-0-ses_match_host.patch
-scsi-make-struct-scsi_hosttarget_type-static.patch
+rtc-x1205-fix-alarm-set-fix.patch
+revert-introduce-rculisth.patch
+next-remove-localversion.patch
+revert-git-pekka.patch
+fix-kobject-fix-kobject_rename-and-config_sysfs.patch
+kvm-is-busted-on-ia64.patch
+drivers-mtd-nand-nandsimc-needs-div64h.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+tick-schedc-suppress-needless-timer-reprogramming-checkpatch-fixes.patch
+git-jg-misc-git-rejects.patch
+drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers.patch
+drivers-mtd-devices-block2mtdc-suppress-warning.patch
+sundance-set-carrier-status-on-link-change-events.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix-fix.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-scsi-misc-fix-scsi_dh-build-errors.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
+pktcdvd-push-bkl-down-into-driver-fix.patch
+block-fix-bio_add_page-for-non-trivial-merge_bvec_fn-case-fix.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-logfs-fixup.patch
+watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
 git-xtensa.patch
-mm-migratec-should-include-linux-syscallsh.patch
-mm-vmstatc-proper-externs.patch
-mm-hugetlbc-fix-duplicate-variable.patch
-mm-page_allocc-cleanups.patch
-mm-make-register_page_bootmem_info_section-static.patch
-remove-include-asm-h8300-keyboardh.patch
-alpha-remove-the-unused-alpha_core_agp-option.patch
-remove-include-linux-pm_legacyh.patch
-mn10300-move-sg_dma_addresslen-to-asm-scatterlisth.patch
-remove-the-v850-port.patch
-init-do_mountsc-should-include-linux-initrdh.patch
-build-kernel-profileo-only-when-requested.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-verify-the-page-links-and-memory-model.patch
+mspec-convert-nopfn-to-fault-fix.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+kill-generic_file_direct_io-checkpatch-fixes.patch
+use-generic_access_phys-for-dev-mem-mappings-fix.patch
+spufs-use-the-new-vm_ops-access-fix.patch
+fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
+page-flags-record-page-flag-overlays-explicitly-xen.patch
+mapping_set_error-add-unlikely.patch
+huge-page-private-reservation-review-cleanups-fix.patch
+sync_file_range_write-may-and-will-block-document-that-fix.patch
+vmallocinfo-add-numa-information-fix.patch
+hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
+hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
+hugetlb-override-default-huge-page-size-ia64-build.patch
+linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+bootmem-add-debugging-framework-fix.patch
+bootmem-clean-up-free_all_bootmem_core-fix.patch
+bootmem-free-reserve-helpers-fix.patch
+revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-v850-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
+swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
 build-kernel-profileo-only-when-requested-cleanups.patch
-asm-generic-int-ll64h-always-provide-__su64.patch
-remove-some-more-tipar-bits.patch
-include-linux-kernelh-userspace-header-cleanup.patch
-remove-the-oss-trident-driver.patch
-config_sound_wm97xx-remove-stale-makefile-line.patch
-serial-8250_gscc-add-module_license.patch
-video-sis-remove-compat-code.patch
-drivers-video-amifbc-cleanups.patch
-minix-remove-no_truncate-code.patch
-jbd-unexport-journal_update_superblock.patch
-coda-remove-coda_fs_old_api.patch
-fat-dirc-switch-to-struct-__fat_dirent.patch
-remove-the-in-kernel-struct-dirent64.patch
-remove-unused-include-linux-direnths.patch
-include-asm-ptraceh-userspace-headers-cleanup.patch
-remove-is_tty.patch
-pty-remove-unused-unix98_pty_count-options.patch
-proper-extern-for-mwave_s_mdd.patch
-if-0-hpet_unregister.patch
-unexport-proc_clear_tty.patch
-move-proc_kmsg_operations-to-fs-proc-internalh.patch
-proper-pidhashmap_init-prototypes.patch
-unexport-uts_sem.patch
-parport-sharec-proper-externs.patch
-tpm_biosc-make-2-structs-static.patch
-make-cgroup_seqfile_release-static.patch
-make-kprobe_blacklist-static.patch
-make-pnp_add_card_id-static.patch
-make-parport_cs_release-static.patch
-make-mm-sparsec-make-a-function-static.patch
-mm-allocpercpuc-make-4-functions-static.patch
-make-mm-memoryc-print_bad_pte-static.patch
-mm-swapfilec-make-code-static.patch
-make-mm-rmapc-anon_vma_cachep-static.patch
-drivers-char-rtcc-make-2-functions-static.patch
-make-init-do_mountsc-root_device_name-static.patch
-make-macfb_setup-static.patch
-video-console-sticonrec-make-code-static.patch
-video-stifbc-make-2-functions-static.patch
+fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
+block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
+seq_file-fix-bug-when-seq_read-reads-nothing-fix.patch
+rename-warn-to-warning-to-clear-the-namespace-fix.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-paccept-sys_ni.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-signalfd-fix.patch
+flag-parameters-eventfd-fix.patch
+flag-parameters-inotify_init-fix.patch
+flag-parameters-check-magic-constants-alpha.patch
+oprofile-multiplexing-checkpatch-fixes.patch
+gpio-gpio-driver-for-max7301-spi-gpio-expander-checkpatch-fixes.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
+fsl-diu-fb-update-freescale-diu-driver-to-use-page_alloc_exact-fix.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
+ext3-handle-corrupted-orphan-list-at-mount-cleanup.patch
+ext3-handle-corrupted-orphan-list-at-mount-fix.patch
+ext3-handle-corrupted-orphan-list-at-mount-cleanup-fix.patch
+reiserfs-convert-j_flush_sem-to-mutex.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
+cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-checkpatch-fixes.patch
+memcg-remove-refcnt-from-page_cgroup-fix-2.patch
+jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup.patch
+ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
+getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
+tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
+memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
+memstick-use-fully-asynchronous-request-processing-fix.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+mm-introduce-get_user_pages_fast-fix.patch
+mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-fix.patch
+x86-lockless-get_user_pages_fast-fix-2.patch
+x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
+x86-lockless-get_user_pages_fast-fix-warning.patch
+vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
+define-page_file_cache-function-fix.patch
+unevictable-lru-infrastructure-fix.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-3.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
+vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
+video-console-sticonrec-make-code-static-checkpatch-fixes.patch
 reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
