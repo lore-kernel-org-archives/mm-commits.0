@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + memory-hotplugallocate-usemap-on-the-section-with-pgdat-take-4.patch added to -mm tree
-Date: Mon, 30 Jun 2008 22:16:45 -0700
-Message-ID: <200807010516.m615GjrF010324@imap1.linux-foundation.org>
+Subject: + debugobjects-fix-lockdep-warning.patch added to -mm tree
+Date: Mon, 30 Jun 2008 22:19:41 -0700
+Message-ID: <200807010519.m615Jftp010449@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37114 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57305 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751014AbYGAFTD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 01:19:03 -0400
+	by vger.kernel.org with ESMTP id S1751014AbYGAFTz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 01:19:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: y-goto@jp.fujitsu.com, apw@shadowen.org, davem@davemloft.net, heiko.carstens@de.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, pbadari@us.ibm.com, tony@bakeyournoodle.com
+Cc: vegard.nossum@gmail.com, a.p.zijlstra@chello.nl, daniel.blueman@gmail.com, tglx@linutronix.de
 
 
 The patch titled
-     memory hotplug: allocate usemap on the section with pgdat
+     debugobjects: fix lockdep warning
 has been added to the -mm tree.  Its filename is
-     memory-hotplugallocate-usemap-on-the-section-with-pgdat-take-4.patch
+     debugobjects-fix-lockdep-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,142 +33,99 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memory hotplug: allocate usemap on the section with pgdat
-From: Yasunori Goto <y-goto@jp.fujitsu.com>
+Subject: debugobjects: fix lockdep warning
+From: Vegard Nossum <vegard.nossum@gmail.com>
 
-Usemaps are allocated on the section which has pgdat by this.
+Daniel J Blueman reported:
+| =======================================================
+| [ INFO: possible circular locking dependency detected ]
+| 2.6.26-rc5-201c #1
+| -------------------------------------------------------
+| nscd/3669 is trying to acquire lock:
+|  (&n->list_lock){.+..}, at: [<ffffffff802bab03>] deactivate_slab+0x173/0x1e0
+|
+| but task is already holding lock:
+|  (&obj_hash[i].lock){++..}, at: [<ffffffff803fa56f>]
+| __debug_object_init+0x2f/0x350
+|
+| which lock already depends on the new lock.
 
-Because usemap size is very small, many other sections usemaps are
-allocated on only one page.  If a section has usemap, it can't be removed
-until removing other sections.  This dependency is not desirable for
-memory removing.
+There are two locks involved here; the first is a SLUB-local lock, and
+the second is a debugobjects-local lock. They are basically taken in two
 
-Pgdat has similar feature.  When a section has pgdat area, it must be the
-last section for removing on the node.  So, if section A has pgdat and
-section B has usemap for section A, Both sections can't be removed due to
-dependency each other.
+1. SLUB { debugobjects { ... } }
+2. debugobjects { SLUB { ... } }
 
-To solve this issue, this patch collects usemap on same section with pgdat
-as much as possible.  If other sections doesn't have any dependency, this
-section will be able to be removed finally.
+This patch changes pattern #2 by trying to fill the memory pool (e.g.
+the call into SLUB/kmalloc()) outside the debugobjects lock, so now the
+two patterns look like this:
 
-Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: David Miller <davem@davemloft.net>
-Cc: Badari Pulavarty <pbadari@us.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Hiroyuki KAMEZAWA <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Tony Breeds <tony@bakeyournoodle.com>
+1. SLUB { debugobjects { ... } }
+2. SLUB { } debugobjects { ... }
+
+Reviewed-by: Daniel J Blueman <daniel.blueman@gmail.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Vegard Nossum <vegard.nossum@gmail.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse.c |   78 +++++++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 77 insertions(+), 1 deletion(-)
+ lib/debugobjects.c |   10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
 
-diff -puN mm/sparse.c~memory-hotplugallocate-usemap-on-the-section-with-pgdat-take-4 mm/sparse.c
---- a/mm/sparse.c~memory-hotplugallocate-usemap-on-the-section-with-pgdat-take-4
-+++ a/mm/sparse.c
-@@ -269,16 +269,92 @@ static unsigned long *__kmalloc_section_
+diff -puN lib/debugobjects.c~debugobjects-fix-lockdep-warning lib/debugobjects.c
+--- a/lib/debugobjects.c~debugobjects-fix-lockdep-warning
++++ a/lib/debugobjects.c
+@@ -110,16 +110,13 @@ static struct debug_obj *lookup_object(v
  }
- #endif /* CONFIG_MEMORY_HOTPLUG */
  
-+#ifdef CONFIG_MEMORY_HOTREMOVE
-+static unsigned long * __init
-+sparse_early_usemap_alloc_pgdat_section(struct pglist_data *pgdat)
-+{
-+	unsigned long section_nr;
-+
-+	/*
-+	 * A page may contain usemaps for other sections preventing the
-+	 * page being freed and making a section unremovable while
-+	 * other sections referencing the usemap retmain active. Similarly,
-+	 * a pgdat can prevent a section being removed. If section A
-+	 * contains a pgdat and section B contains the usemap, both
-+	 * sections become inter-dependent. This allocates usemaps
-+	 * from the same section as the pgdat where possible to avoid
-+	 * this problem.
-+	 */
-+	section_nr = pfn_to_section_nr(__pa(pgdat) >> PAGE_SHIFT);
-+	return alloc_bootmem_section(usemap_size(), section_nr);
-+}
-+
-+static void __init check_usemap_section_nr(int nid, unsigned long *usemap)
-+{
-+	unsigned long usemap_snr, pgdat_snr;
-+	static unsigned long old_usemap_snr = NR_MEM_SECTIONS;
-+	static unsigned long old_pgdat_snr = NR_MEM_SECTIONS;
-+	struct pglist_data *pgdat = NODE_DATA(nid);
-+	int usemap_nid;
-+
-+	usemap_snr = pfn_to_section_nr(__pa(usemap) >> PAGE_SHIFT);
-+	pgdat_snr = pfn_to_section_nr(__pa(pgdat) >> PAGE_SHIFT);
-+	if (usemap_snr == pgdat_snr)
-+		return;
-+
-+	if (old_usemap_snr == usemap_snr && old_pgdat_snr == pgdat_snr)
-+		/* skip redundant message */
-+		return;
-+
-+	old_usemap_snr = usemap_snr;
-+	old_pgdat_snr = pgdat_snr;
-+
-+	usemap_nid = sparse_early_nid(__nr_to_section(usemap_snr));
-+	if (usemap_nid != nid) {
-+		printk(KERN_INFO
-+		       "node %d must be removed before remove section %ld\n",
-+		       nid, usemap_snr);
-+		return;
-+	}
-+	/*
-+	 * There is a circular dependency.
-+	 * Some platforms allow un-removable section because they will just
-+	 * gather other removable sections for dynamic partitioning.
-+	 * Just notify un-removable section's number here.
-+	 */
-+	printk(KERN_INFO "Section %ld and %ld (node %d)", usemap_snr,
-+	       pgdat_snr, nid);
-+	printk(KERN_CONT
-+	       " have a circular dependency on usemap and pgdat allocations\n");
-+}
-+#else
-+static unsigned long * __init
-+sparse_early_usemap_alloc_pgdat_section(struct pglist_data *pgdat)
-+{
-+	return NULL;
-+}
-+
-+static void __init check_usemap_section_nr(int nid, unsigned long *usemap)
-+{
-+}
-+#endif /* CONFIG_MEMORY_HOTREMOVE */
-+
- static unsigned long *__init sparse_early_usemap_alloc(unsigned long pnum)
+ /*
+- * Allocate a new object. If the pool is empty and no refill possible,
+- * switch off the debugger.
++ * Allocate a new object. If the pool is empty, switch off the debugger.
+  */
+ static struct debug_obj *
+ alloc_object(void *addr, struct debug_bucket *b, struct debug_obj_descr *descr)
  {
- 	unsigned long *usemap;
- 	struct mem_section *ms = __nr_to_section(pnum);
- 	int nid = sparse_early_nid(ms);
+ 	struct debug_obj *obj = NULL;
+-	int retry = 0;
  
--	usemap = alloc_bootmem_node(NODE_DATA(nid), usemap_size());
-+	usemap = sparse_early_usemap_alloc_pgdat_section(NODE_DATA(nid));
- 	if (usemap)
- 		return usemap;
+-repeat:
+ 	spin_lock(&pool_lock);
+ 	if (obj_pool.first) {
+ 		obj	    = hlist_entry(obj_pool.first, typeof(*obj), node);
+@@ -141,9 +138,6 @@ repeat:
+ 	}
+ 	spin_unlock(&pool_lock);
  
-+	usemap = alloc_bootmem_node(NODE_DATA(nid), usemap_size());
-+	if (usemap) {
-+		check_usemap_section_nr(nid, usemap);
-+		return usemap;
-+	}
+-	if (fill_pool() && !obj && !retry++)
+-		goto repeat;
+-
+ 	return obj;
+ }
+ 
+@@ -261,6 +255,8 @@ __debug_object_init(void *addr, struct d
+ 	struct debug_obj *obj;
+ 	unsigned long flags;
+ 
++	fill_pool();
 +
- 	/* Stupid: suppress gcc warning for SPARSEMEM && !NUMA */
- 	nid = 0;
+ 	db = get_bucket((unsigned long) addr);
  
+ 	spin_lock_irqsave(&db->lock, flags);
 _
 
-Patches currently in -mm which might be from y-goto@jp.fujitsu.com are
+Patches currently in -mm which might be from vegard.nossum@gmail.com are
 
-bootmem-respect-goal-more-likely.patch
-bootmem-revisit-alloc_bootmem_section.patch
-mm-make-register_page_bootmem_info_section-static.patch
-memory-hotplugallocate-usemap-on-the-section-with-pgdat-take-4.patch
+debugobjects-fix-lockdep-warning.patch
+arm-fix-header-guards.patch
+parisc-fix-incomplete-header-guard.patch
+mm-remove-initialization-of-static-per-cpu-variables.patch
+kallsyms-fix-potential-overflow-in-binary-search.patch
+kallsyms-unify-32-and-64-bit-code.patch
+quota-cleanup-loop-in-sync_dquots.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-fix.patch
+workqueues-make-get_online_cpus-useable-for-work-func.patch
+s390-topology-dont-use-kthread-for-arch_reinit_sched_domains.patch
+taskstats-remove-initialization-of-static-per-cpu-variable.patch
 
