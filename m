@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + doc-doc-maintainers.patch added to -mm tree
-Date: Tue, 01 Jul 2008 13:08:49 -0700
-Message-ID: <200807012008.m61K8nRS012265@imap1.linux-foundation.org>
+Subject: + aic7xxx-introduce-dont_generate_debug_code-keyword-in-aicasm-parser.patch added to -mm tree
+Date: Tue, 01 Jul 2008 13:12:02 -0700
+Message-ID: <200807012012.m61KC2nG012439@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44623 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46282 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753580AbYGAUJV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 16:09:21 -0400
+	by vger.kernel.org with ESMTP id S1754321AbYGAUMK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 16:12:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rdunlap@xenotime.net, corbet@lwn.net, mtk.manpages@gmail.com
+Cc: vda.linux@googlemail.com, James.Bottomley@hansenpartnership.com, hare@suse.de
 
 
 The patch titled
-     doc: doc maintainers
+     aic7xxx: introduce "dont_generate_debug_code" keyword in aicasm parser
 has been added to the -mm tree.  Its filename is
-     doc-doc-maintainers.patch
+     aic7xxx-introduce-dont_generate_debug_code-keyword-in-aicasm-parser.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,52 +33,121 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: doc: doc maintainers
-From: Randy Dunlap <rdunlap@xenotime.net>
+Subject: aic7xxx: introduce "dont_generate_debug_code" keyword in aicasm parser
+From: Denys Vlasenko <vda.linux@googlemail.com>
 
-Maintain the kernel's Documentation/ tree.
+aic7xxx still contains ~30kb of dead code if pretty printing of registers
+is requested. These patches deal with it.
 
-This includes tree layout and contents, although not much in terms of new
-content production.  That will usually have to be done by someone familiar
-with the software, at least in some rough form.
+Size differences:
 
-Includes review and editorial assistance for people contributing changes
-to /Documentation.
+   text    data     bss     dec     hex filename
+DEBUG_ENABLE+PRETTY_PRINT:
+ 234697    2362    1188  238247   3a2a7 linux-2.6.26-rc8-/drivers/scsi/aic7xxx/built-in.o
+ 205092    2362    1188  208642   32f02 linux-2.6.26-rc8/drivers/scsi/aic7xxx/built-in.o
+NO_DEBUG_ENABLE+PRETTY_PRINT:
+ 227272    2362    1172  230806   38596 linux-2.6.26-rc8-/drivers/scsi/aic7xxx/built-in.o
+ 197671    2362    1172  201205   311f5 linux-2.6.26-rc8/drivers/scsi/aic7xxx/built-in.o
+DEBUG_ENABLE+NO_PRETTY_PRINT:
+ 192457    2362    1188  196007   2fda7 linux-2.6.26-rc8-/drivers/scsi/aic7xxx/built-in.o
+ 192457    2362    1188  196007   2fda7 linux-2.6.26-rc8/drivers/scsi/aic7xxx/built-in.o
+NO_DEBUG_ENABLE+NO_PRETTY_PRINT:
+ 185040    2362    1172  188574   2e09e linux-2.6.26-rc8-/drivers/scsi/aic7xxx/built-in.o
+ 185040    2362    1172  188574   2e09e linux-2.6.26-rc8/drivers/scsi/aic7xxx/built-in.o
 
-Also includes prodding people for content if something is in need of
-documentation.
 
-Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
-Acked-by: Michael Kerrisk <mtk.manpages@gmail.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
+This patch:
+
+Introduce "dont_generate_debug_code" keyword in aicasm parser.
+
+Signed-off-by: Denys Vlasenko <vda.linux@googlemail.com>
+Cc: Hannes Reinecke <hare@suse.de>
+Cc: James Bottomley <James.Bottomley@hansenpartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/scsi/aic7xxx/aicasm/aicasm_gram.y   |   10 ++++++++++
+ drivers/scsi/aic7xxx/aicasm/aicasm_scan.l   |    1 +
+ drivers/scsi/aic7xxx/aicasm/aicasm_symbol.c |    3 +++
+ drivers/scsi/aic7xxx/aicasm/aicasm_symbol.h |    3 ++-
+ 4 files changed, 16 insertions(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~doc-doc-maintainers MAINTAINERS
---- a/MAINTAINERS~doc-doc-maintainers
-+++ a/MAINTAINERS
-@@ -1423,6 +1423,14 @@ M:	kristen.c.accardi@intel.com
- L:	linux-acpi@vger.kernel.org
- S:	Supported
+diff -puN drivers/scsi/aic7xxx/aicasm/aicasm_gram.y~aic7xxx-introduce-dont_generate_debug_code-keyword-in-aicasm-parser drivers/scsi/aic7xxx/aicasm/aicasm_gram.y
+--- a/drivers/scsi/aic7xxx/aicasm/aicasm_gram.y~aic7xxx-introduce-dont_generate_debug_code-keyword-in-aicasm-parser
++++ a/drivers/scsi/aic7xxx/aicasm/aicasm_gram.y
+@@ -147,6 +147,8 @@ void yyerror(const char *string);
  
-+DOCUMENTATION (/Documentation directory)
-+P:     Michael Kerrisk
-+M:     mtk.manpages@gmail.com
-+P:     Randy Dunlap
-+M:     rdunlap@xenotime.net
-+L:     linux-doc@vger.kernel.org
-+S:     Maintained
+ %token T_ACCESS_MODE
+ 
++%token T_DONT_GENERATE_DEBUG_CODE
 +
- DOUBLETALK DRIVER
- P:	James R. Van Zandt
- M:	jrv@vanzandt.mv.com
+ %token T_MODES
+ 
+ %token T_DEFINE
+@@ -357,6 +359,7 @@ reg_attribute:
+ |	size
+ |	count
+ |	access_mode
++|	dont_generate_debug_code
+ |	modes
+ |	field_defn
+ |	enum_defn
+@@ -410,6 +413,13 @@ access_mode:
+ 	}
+ ;
+ 
++dont_generate_debug_code:
++	T_DONT_GENERATE_DEBUG_CODE
++	{
++		cur_symbol->dont_generate_debug_code = 1;
++	}
++;
++
+ modes:
+ 	T_MODES mode_list
+ 	{
+diff -puN drivers/scsi/aic7xxx/aicasm/aicasm_scan.l~aic7xxx-introduce-dont_generate_debug_code-keyword-in-aicasm-parser drivers/scsi/aic7xxx/aicasm/aicasm_scan.l
+--- a/drivers/scsi/aic7xxx/aicasm/aicasm_scan.l~aic7xxx-introduce-dont_generate_debug_code-keyword-in-aicasm-parser
++++ a/drivers/scsi/aic7xxx/aicasm/aicasm_scan.l
+@@ -164,6 +164,7 @@ download		{ return T_DOWNLOAD; }
+ address			{ return T_ADDRESS; }
+ count			{ return T_COUNT; }
+ access_mode		{ return T_ACCESS_MODE; }
++dont_generate_debug_code { return T_DONT_GENERATE_DEBUG_CODE; }
+ modes			{ return T_MODES; }
+ RW|RO|WO		{
+ 				 if (strcmp(yytext, "RW") == 0)
+diff -puN drivers/scsi/aic7xxx/aicasm/aicasm_symbol.c~aic7xxx-introduce-dont_generate_debug_code-keyword-in-aicasm-parser drivers/scsi/aic7xxx/aicasm/aicasm_symbol.c
+--- a/drivers/scsi/aic7xxx/aicasm/aicasm_symbol.c~aic7xxx-introduce-dont_generate_debug_code-keyword-in-aicasm-parser
++++ a/drivers/scsi/aic7xxx/aicasm/aicasm_symbol.c
+@@ -539,6 +539,9 @@ symtable_dump(FILE *ofile, FILE *dfile)
+ 	aic_print_include(dfile, stock_include_file);
+ 	SLIST_FOREACH(curnode, &registers, links) {
+ 
++		if (curnode->symbol->dont_generate_debug_code)
++			continue;
++
+ 		switch(curnode->symbol->type) {
+ 		case REGISTER:
+ 		case SCBLOC:
+diff -puN drivers/scsi/aic7xxx/aicasm/aicasm_symbol.h~aic7xxx-introduce-dont_generate_debug_code-keyword-in-aicasm-parser drivers/scsi/aic7xxx/aicasm/aicasm_symbol.h
+--- a/drivers/scsi/aic7xxx/aicasm/aicasm_symbol.h~aic7xxx-introduce-dont_generate_debug_code-keyword-in-aicasm-parser
++++ a/drivers/scsi/aic7xxx/aicasm/aicasm_symbol.h
+@@ -137,7 +137,8 @@ typedef struct symbol {
+ 		struct label_info *linfo;
+ 		struct cond_info  *condinfo;
+ 		struct macro_info *macroinfo;
+-	}info;
++	} info;
++	int	dont_generate_debug_code;
+ } symbol_t;
+ 
+ typedef struct symbol_ref {
 _
 
-Patches currently in -mm which might be from rdunlap@xenotime.net are
+Patches currently in -mm which might be from vda.linux@googlemail.com are
 
-add-kernel-doc-for-simple_read_from_buffer-and-memory_read_from_buffer.patch
-doc-doc-maintainers.patch
+aic7xxx-introduce-dont_generate_debug_code-keyword-in-aicasm-parser.patch
+aic7xxx-update-reg-files.patch
+aic7xxx-update-_shipped-files.patch
 
