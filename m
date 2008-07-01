@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + x86-mm-init_64-fix-printk-format-warning.patch added to -mm tree
-Date: Tue, 01 Jul 2008 01:34:04 -0700
-Message-ID: <200807010834.m618Y4aG017678@imap1.linux-foundation.org>
+Subject: + bluetooth-hci_bcsp-fix-bitrev-kconfig.patch added to -mm tree
+Date: Tue, 01 Jul 2008 01:34:53 -0700
+Message-ID: <200807010834.m618Yrwj017714@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53407 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49103 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757050AbYGAIez (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 04:34:55 -0400
+	by vger.kernel.org with ESMTP id S1758234AbYGAIfe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 04:35:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com
+Cc: randy.dunlap@oracle.com, hidave.darkstar@gmail.com, marcel@holtmann.org
 
 
 The patch titled
-     x86/mm/init_64: fix printk format warning
+     bluetooth/hci_bcsp: fix bitrev Kconfig
 has been added to the -mm tree.  Its filename is
-     x86-mm-init_64-fix-printk-format-warning.patch
+     bluetooth-hci_bcsp-fix-bitrev-kconfig.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,32 +33,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86/mm/init_64: fix printk format warning
+Subject: bluetooth/hci_bcsp: fix bitrev Kconfig
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Fix x86/mm/init_64.c printk format warning:
+Fix bluetooth hci_bcsp Kconfig to avoid build errors:
 
-linux-next-20080618/arch/x86/mm/init_64.c:834: warning: format '%u' expects type 'unsigned int', but argument 3 has type 'long unsigned int'
+drivers/built-in.o: In function `bcsp_prepare_pkt':
+hci_bcsp.c:(.text+0x7e9ac): undefined reference to `bitrev16'
+drivers/built-in.o: In function `bcsp_recv':
+hci_bcsp.c:(.text+0x7f276): undefined reference to `bitrev16'
+hci_bcsp.c:(.text+0x7f293): undefined reference to `bitrev16'
+make[1]: *** [.tmp_vmlinux1] Error 1
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Dave Young <hidave.darkstar@gmail.com>
+Acked-by: Marcel Holtmann <marcel@holtmann.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/init_64.c |    2 +-
+ drivers/bluetooth/Kconfig |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/mm/init_64.c~x86-mm-init_64-fix-printk-format-warning arch/x86/mm/init_64.c
---- a/arch/x86/mm/init_64.c~x86-mm-init_64-fix-printk-format-warning
-+++ a/arch/x86/mm/init_64.c
-@@ -830,7 +830,7 @@ int __init reserve_bootmem_generic(unsig
- 		if (pfn < max_pfn_mapped)
- 			return -EFAULT;
- 
--		printk(KERN_ERR "reserve_bootmem: illegal reserve %lx %u\n",
-+		printk(KERN_ERR "reserve_bootmem: illegal reserve %lx %lu\n",
- 				phys, len);
- 		return -EFAULT;
- 	}
+diff -puN drivers/bluetooth/Kconfig~bluetooth-hci_bcsp-fix-bitrev-kconfig drivers/bluetooth/Kconfig
+--- a/drivers/bluetooth/Kconfig~bluetooth-hci_bcsp-fix-bitrev-kconfig
++++ a/drivers/bluetooth/Kconfig
+@@ -71,7 +71,7 @@ config BT_HCIUART_H4
+ config BT_HCIUART_BCSP
+ 	bool "BCSP protocol support"
+ 	depends on BT_HCIUART
+-	select CONFIG_BITREVERSE
++	select BITREVERSE
+ 	help
+ 	  BCSP (BlueCore Serial Protocol) is serial protocol for communication 
+ 	  between Bluetooth device and host. This protocol is required for non
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
@@ -68,6 +75,7 @@ fujitsu-laptop-depends-on-input.patch
 x86-mm-init_64-fix-printk-format-warning.patch
 documentation-build-source-files-in-documentation-sub-dir.patch
 documentation-build-source-files-in-documentation-sub-dir-disable.patch
+bluetooth-hci_bcsp-fix-bitrev-kconfig.patch
 8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
 8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix.patch
 8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix-fix.patch
