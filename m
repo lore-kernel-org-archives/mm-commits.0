@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + likely-profiling-disable-ftrace.patch added to -mm tree
-Date: Tue, 01 Jul 2008 02:06:08 -0700
-Message-ID: <200807010906.m61968ls018989@imap1.linux-foundation.org>
+Subject: + autofs4-use-look-aside-list-for-lookups-autofs4-fix-symlink-name-allocation.patch added to -mm tree
+Date: Tue, 01 Jul 2008 11:01:02 -0700
+Message-ID: <200807011801.m61I12jR007211@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33532 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60701 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753477AbYGAJP4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 05:15:56 -0400
+	by vger.kernel.org with ESMTP id S1752284AbYGASBe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 14:01:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dwalker@mvista.com, mingo@elte.hu
+Cc: raven@themaw.net
 
 
 The patch titled
-     likely-profiling: disable ftrace
+     autofs4: fix symlink name allocation
 has been added to the -mm tree.  Its filename is
-     likely-profiling-disable-ftrace.patch
+     autofs4-use-look-aside-list-for-lookups-autofs4-fix-symlink-name-allocation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,40 +33,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: likely-profiling: disable ftrace
-From: Daniel Walker <dwalker@mvista.com>
+Subject: autofs4: fix symlink name allocation
+From: Ian Kent <raven@themaw.net>
 
-Remove tracing from likely profiling since it could cause recursion if
-ftrace uses likely/unlikely macro's internally.
+The length of the symlink name has been moved but it needs to be set
+before allocating space for it in the dentry info struct.  This corrects a
+mistake in a recent patch.
 
-Signed-off-by: Daniel Walker <dwalker@mvista.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Ian Kent <raven@themaw.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Makefile |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/autofs4/root.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/Makefile~likely-profiling-disable-ftrace lib/Makefile
---- a/lib/Makefile~likely-profiling-disable-ftrace
-+++ a/lib/Makefile
-@@ -15,6 +15,8 @@ CFLAGS_REMOVE_string.o = -pg
- CFLAGS_REMOVE_spinlock_debug.o = -pg
- CFLAGS_REMOVE_list_debug.o = -pg
- CFLAGS_REMOVE_debugobjects.o = -pg
-+# likely profiling can cause recursion in ftrace, so don't trace it.
-+CFLAGS_REMOVE_likely_prof.o = -pg
- endif
+diff -puN fs/autofs4/root.c~autofs4-use-look-aside-list-for-lookups-autofs4-fix-symlink-name-allocation fs/autofs4/root.c
+--- a/fs/autofs4/root.c~autofs4-use-look-aside-list-for-lookups-autofs4-fix-symlink-name-allocation
++++ a/fs/autofs4/root.c
+@@ -772,6 +772,7 @@ static int autofs4_dir_symlink(struct in
+ 		list_del_init(&ino->active);
+ 	spin_unlock(&sbi->lookup_lock);
  
- lib-$(CONFIG_MMU) += ioremap.o
++	ino->size = strlen(symname);
+ 	cp = kmalloc(ino->size + 1, GFP_KERNEL);
+ 	if (!cp) {
+ 		if (!dentry->d_fsdata)
+@@ -803,7 +804,6 @@ static int autofs4_dir_symlink(struct in
+ 		atomic_inc(&p_ino->count);
+ 	ino->inode = inode;
+ 
+-	ino->size = strlen(symname);
+ 	ino->u.symlink = cp;
+ 	dir->i_mtime = CURRENT_TIME;
+ 
 _
 
-Patches currently in -mm which might be from dwalker@mvista.com are
+Patches currently in -mm which might be from raven@themaw.net are
 
-macintosh-therm_windtunnel-semaphore-to-mutex.patch
-macintosh-media-bay-semaphore-to-mutex.patch
-profile-likely-unlikely-macros.patch
-likely_prof-changed-to-use-proc_create.patch
-likeliness-accounting-change-and-cleanup.patch
-likely-profiling-disable-ftrace.patch
+autofs4-dont-make-expiring-dentry-negative.patch
+autofs4-revert-redo-lookup-in-ttfd.patch
+autofs4-use-look-aside-list-for-lookups.patch
+autofs4-use-look-aside-list-for-lookups-autofs4-fix-symlink-name-allocation.patch
+autofs4-dont-release-directory-mutex-if-called-in-oz_mode.patch
+autofs4-use-lookup-intent-flags-to-trigger-mounts.patch
+autofs4-use-struct-qstr-in-waitqc.patch
+autofs4-fix-pending-mount-race.patch
 
