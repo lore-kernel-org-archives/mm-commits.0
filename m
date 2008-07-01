@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + remove-bkl-from-remote_llseek-v2.patch added to -mm tree
-Date: Tue, 01 Jul 2008 16:32:55 -0700
-Message-ID: <200807012332.m61NWtxw020589@imap1.linux-foundation.org>
+Subject: + security-protect-legacy-applications-from-executing-with-insufficient-privilege-checkpatch-fixes.patch added to -mm tree
+Date: Tue, 01 Jul 2008 16:33:45 -0700
+Message-ID: <200807012333.m61NXjgO020620@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44478 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54372 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754836AbYGAXed (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 19:34:33 -0400
+	by vger.kernel.org with ESMTP id S1756314AbYGAXeh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 19:34:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: andi@firstfloor.org, VANDROVE@vc.cvut.cz, ak@linux.intel.com, ak@suse.de, corbet@lwn.net, hch@lst.de, sfrench@us.ibm.com, swhiteho@redhat.com, trond.myklebust@fys.uio.no
+Cc: akpm@linux-foundation.org, morgan@kernel.org, serue@us.ibm.com
 
 
 The patch titled
-     Remove BKL from remote_llseek
+     security-protect-legacy-applications-from-executing-with-insufficient-privilege-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     remove-bkl-from-remote_llseek-v2.patch
+     security-protect-legacy-applications-from-executing-with-insufficient-privilege-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,268 +33,197 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Remove BKL from remote_llseek
-From: Andi Kleen <andi@firstfloor.org>
+Subject: security-protect-legacy-applications-from-executing-with-insufficient-privilege-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-- Replace remote_llseek with generic_file_llseek_unlocked (to force
-  compilation failures in all users)
+ERROR: return is not a function, parentheses are not required
+#113: FILE: security/commoncap.c:263:
++	return (bprm->cap_effective ? ret : 0);
 
-- Change all users to either use generic_file_llseek_unlocked directly
-  or take the BKL around.  I changed the file systems who don't use the
-  BKL for anything (CIFS, GFS) to call it directly.  NCPFS and SMBFS and
-  NFS take the BKL, but explicitely in their own source now.
+total: 1 errors, 0 warnings, 180 lines checked
 
-I moved them all over in a single patch to avoid unbisectable sections.
+./patches/security-protect-legacy-applications-from-executing-with-insufficient-privilege.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
 
-Open problem: 32bit kernels can corrupt fpos because its modification is
-not atomic, but they can do that anyways because there's other paths who
-modify it without BKL.
+Please run checkpatch prior to sending patches
 
-Do we need a special lock for the pos/f_version = 0 checks?
-
-Trond says the NFS BKL is likely not needed, but keep it for now
-until his full audit.
-
-v2: Use generic_file_llseek_unlocked instead of remote_llseek_unlocked
-    and factor duplicated code (suggested by hch)
-
-Signed-off-by: Andi Kleen <ak@suse.de>
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: Steven Whitehouse <swhiteho@redhat.com>
-Cc: Steven French <sfrench@us.ibm.com>
-Cc: Petr Vandrovec <VANDROVE@vc.cvut.cz>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Christoph Hellwig <hch@lst.de>
+Cc: Andrew G. Morgan <morgan@kernel.org>
+Cc: Serge Hallyn <serue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/cifs/cifsfs.c   |    2 +-
- fs/gfs2/ops_file.c |    4 ++--
- fs/ncpfs/file.c    |   12 +++++++++++-
- fs/nfs/file.c      |    5 ++++-
- fs/read_write.c    |   38 +++++++++++---------------------------
- fs/smbfs/file.c    |   11 ++++++++++-
- include/linux/fs.h |    3 ++-
- 7 files changed, 41 insertions(+), 34 deletions(-)
+ security/commoncap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/cifs/cifsfs.c~remove-bkl-from-remote_llseek-v2 fs/cifs/cifsfs.c
---- a/fs/cifs/cifsfs.c~remove-bkl-from-remote_llseek-v2
-+++ a/fs/cifs/cifsfs.c
-@@ -639,7 +639,7 @@ static loff_t cifs_llseek(struct file *f
- 		if (retval < 0)
- 			return (loff_t)retval;
- 	}
--	return remote_llseek(file, offset, origin);
-+	return generic_file_llseek_unlocked(file, offset, origin);
+diff -puN include/linux/binfmts.h~security-protect-legacy-applications-from-executing-with-insufficient-privilege-checkpatch-fixes include/linux/binfmts.h
+diff -puN security/commoncap.c~security-protect-legacy-applications-from-executing-with-insufficient-privilege-checkpatch-fixes security/commoncap.c
+--- a/security/commoncap.c~security-protect-legacy-applications-from-executing-with-insufficient-privilege-checkpatch-fixes
++++ a/security/commoncap.c
+@@ -258,7 +258,7 @@ static inline int cap_from_disk(struct v
+ 	 * do not have enough capabilities, we return an error if they are
+ 	 * missing some "forced" (aka file-permitted) capabilities.
+ 	 */
+-	return (bprm->cap_effective ? ret : 0);
++	return bprm->cap_effective ? ret : 0;
  }
  
- struct file_system_type cifs_fs_type = {
-diff -puN fs/gfs2/ops_file.c~remove-bkl-from-remote_llseek-v2 fs/gfs2/ops_file.c
---- a/fs/gfs2/ops_file.c~remove-bkl-from-remote_llseek-v2
-+++ a/fs/gfs2/ops_file.c
-@@ -62,11 +62,11 @@ static loff_t gfs2_llseek(struct file *f
- 		error = gfs2_glock_nq_init(ip->i_gl, LM_ST_SHARED, LM_FLAG_ANY,
- 					   &i_gh);
- 		if (!error) {
--			error = remote_llseek(file, offset, origin);
-+			error = generic_file_llseek_unlocked(file, offset, origin);
- 			gfs2_glock_dq_uninit(&i_gh);
- 		}
- 	} else
--		error = remote_llseek(file, offset, origin);
-+		error = generic_file_llseek_unlocked(file, offset, origin);
- 
- 	return error;
- }
-diff -puN fs/ncpfs/file.c~remove-bkl-from-remote_llseek-v2 fs/ncpfs/file.c
---- a/fs/ncpfs/file.c~remove-bkl-from-remote_llseek-v2
-+++ a/fs/ncpfs/file.c
-@@ -18,6 +18,7 @@
- #include <linux/slab.h>
- #include <linux/vmalloc.h>
- #include <linux/sched.h>
-+#include <linux/smp_lock.h>
- 
- #include <linux/ncp_fs.h>
- #include "ncplib_kernel.h"
-@@ -281,9 +282,18 @@ static int ncp_release(struct inode *ino
- 	return 0;
- }
- 
-+static loff_t ncp_remote_llseek(struct file *file, loff_t offset, int origin)
-+{
-+	loff_t ret;
-+	lock_kernel();
-+	ret = generic_file_llseek_unlocked(file, offset, origin);
-+	unlock_kernel();
-+	return ret;
-+}
-+
- const struct file_operations ncp_file_operations =
- {
--	.llseek		= remote_llseek,
-+	.llseek 	= ncp_remote_llseek,
- 	.read		= ncp_file_read,
- 	.write		= ncp_file_write,
- 	.ioctl		= ncp_ioctl,
-diff -puN fs/nfs/file.c~remove-bkl-from-remote_llseek-v2 fs/nfs/file.c
---- a/fs/nfs/file.c~remove-bkl-from-remote_llseek-v2
-+++ a/fs/nfs/file.c
-@@ -192,7 +192,10 @@ static loff_t nfs_file_llseek(struct fil
- 		if (retval < 0)
- 			return (loff_t)retval;
- 	}
--	return remote_llseek(filp, offset, origin);
-+	lock_kernel();	/* BKL needed? */
-+	loff = generic_file_llseek_unlocked(filp, offset, origin);
-+	unlock_kernel();
-+	return loff;
- }
- 
- /*
-diff -puN fs/read_write.c~remove-bkl-from-remote_llseek-v2 fs/read_write.c
---- a/fs/read_write.c~remove-bkl-from-remote_llseek-v2
-+++ a/fs/read_write.c
-@@ -31,12 +31,12 @@ const struct file_operations generic_ro_
- 
- EXPORT_SYMBOL(generic_ro_fops);
- 
--loff_t generic_file_llseek(struct file *file, loff_t offset, int origin)
-+loff_t
-+generic_file_llseek_unlocked(struct file *file, loff_t offset, int origin)
- {
- 	loff_t retval;
- 	struct inode *inode = file->f_mapping->host;
- 
--	mutex_lock(&inode->i_mutex);
- 	switch (origin) {
- 		case SEEK_END:
- 			offset += inode->i_size;
-@@ -46,42 +46,26 @@ loff_t generic_file_llseek(struct file *
- 	}
- 	retval = -EINVAL;
- 	if (offset>=0 && offset<=inode->i_sb->s_maxbytes) {
-+		/* Special lock needed here? */
- 		if (offset != file->f_pos) {
- 			file->f_pos = offset;
- 			file->f_version = 0;
- 		}
- 		retval = offset;
- 	}
--	mutex_unlock(&inode->i_mutex);
- 	return retval;
- }
-+EXPORT_SYMBOL(generic_file_llseek_unlocked);
- 
--EXPORT_SYMBOL(generic_file_llseek);
--
--loff_t remote_llseek(struct file *file, loff_t offset, int origin)
-+loff_t generic_file_llseek(struct file *file, loff_t offset, int origin)
- {
--	loff_t retval;
--
--	lock_kernel();
--	switch (origin) {
--		case SEEK_END:
--			offset += i_size_read(file->f_path.dentry->d_inode);
--			break;
--		case SEEK_CUR:
--			offset += file->f_pos;
--	}
--	retval = -EINVAL;
--	if (offset>=0 && offset<=file->f_path.dentry->d_inode->i_sb->s_maxbytes) {
--		if (offset != file->f_pos) {
--			file->f_pos = offset;
--			file->f_version = 0;
--		}
--		retval = offset;
--	}
--	unlock_kernel();
--	return retval;
-+	loff_t n;
-+	mutex_lock(&file->f_dentry->d_inode->i_mutex);
-+	n = generic_file_llseek_unlocked(file, offset, origin);
-+	mutex_unlock(&file->f_dentry->d_inode->i_mutex);
-+	return n;
- }
--EXPORT_SYMBOL(remote_llseek);
-+EXPORT_SYMBOL(generic_file_llseek);
- 
- loff_t no_llseek(struct file *file, loff_t offset, int origin)
- {
-diff -puN fs/smbfs/file.c~remove-bkl-from-remote_llseek-v2 fs/smbfs/file.c
---- a/fs/smbfs/file.c~remove-bkl-from-remote_llseek-v2
-+++ a/fs/smbfs/file.c
-@@ -422,9 +422,18 @@ smb_file_permission(struct inode *inode,
- 	return error;
- }
- 
-+static loff_t smb_remote_llseek(struct file *file, loff_t offset, int origin)
-+{
-+	loff_t ret;
-+	lock_kernel();
-+	ret = generic_file_llseek_unlocked(file, offset, origin);
-+	unlock_kernel();
-+	return ret;
-+}
-+
- const struct file_operations smb_file_operations =
- {
--	.llseek		= remote_llseek,
-+	.llseek 	= smb_remote_llseek,
- 	.read		= do_sync_read,
- 	.aio_read	= smb_file_aio_read,
- 	.write		= do_sync_write,
-diff -puN include/linux/fs.h~remove-bkl-from-remote_llseek-v2 include/linux/fs.h
---- a/include/linux/fs.h~remove-bkl-from-remote_llseek-v2
-+++ a/include/linux/fs.h
-@@ -1884,7 +1884,8 @@ extern void
- file_ra_state_init(struct file_ra_state *ra, struct address_space *mapping);
- extern loff_t no_llseek(struct file *file, loff_t offset, int origin);
- extern loff_t generic_file_llseek(struct file *file, loff_t offset, int origin);
--extern loff_t remote_llseek(struct file *file, loff_t offset, int origin);
-+extern loff_t generic_file_llseek_unlocked(struct file *file, loff_t offset,
-+			int origin);
- extern int generic_file_open(struct inode * inode, struct file * filp);
- extern int nonseekable_open(struct inode * inode, struct file * filp);
- 
+ /* Locate any VFS capabilities: */
 _
 
-Patches currently in -mm which might be from andi@firstfloor.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-acpi-add-the-abity-to-reset-the-system-using-reset_reg-in-fadt-table.patch
-acpi-use-dev_printk-when-possible.patch
-bootmem-clean-up-free_all_bootmem_core.patch
+origin.patch
+rtc-x1205-fix-alarm-set-fix.patch
+update-ntfs-help-text-fix.patch
+cgroups-document-the-effect-of-attaching-pid-0-to-a-cgroup-fix.patch
+spi-fix-the-read-path-in-spidev-cleanup.patch
+security-filesystem-capabilities-fix-fragile-setuid-fixup-code-checkpatch-fixes.patch
+revert-introduce-rculisth.patch
+next-remove-localversion.patch
+revert-git-pekka.patch
+fix-kobject-fix-kobject_rename-and-config_sysfs.patch
+kvm-is-busted-on-ia64.patch
+drivers-mtd-nand-nandsimc-needs-div64h.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+tick-schedc-suppress-needless-timer-reprogramming-checkpatch-fixes.patch
+git-jg-misc-git-rejects.patch
+drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers.patch
+drivers-mtd-devices-block2mtdc-suppress-warning.patch
+bug-in-random32c-all-zero-outputs-with-probability-1-232-other-seeding-bugs-checkpatch-fixes.patch
+sundance-set-carrier-status-on-link-change-events.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix-fix.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-scsi-misc-fix-scsi_dh-build-errors.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
+pktcdvd-push-bkl-down-into-driver-fix.patch
+block-fix-bio_add_page-for-non-trivial-merge_bvec_fn-case-fix.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-logfs-fixup.patch
+watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
+git-xtensa.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-verify-the-page-links-and-memory-model.patch
+mspec-convert-nopfn-to-fault-fix.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+kill-generic_file_direct_io-checkpatch-fixes.patch
+use-generic_access_phys-for-dev-mem-mappings-fix.patch
+spufs-use-the-new-vm_ops-access-fix.patch
+fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
+page-flags-record-page-flag-overlays-explicitly-xen.patch
+mapping_set_error-add-unlikely.patch
+huge-page-private-reservation-review-cleanups-fix.patch
+sync_file_range_write-may-and-will-block-document-that-fix.patch
+vmallocinfo-add-numa-information-fix.patch
+hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
+hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
+hugetlb-override-default-huge-page-size-ia64-build.patch
+linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+bootmem-add-debugging-framework-fix.patch
 bootmem-clean-up-free_all_bootmem_core-fix.patch
-bootmem-free-reserve-helpers.patch
 bootmem-free-reserve-helpers-fix.patch
-bootmem-factor-out-the-marking-of-a-pfn-range.patch
+revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
 bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
-bootmem-respect-goal-more-likely.patch
-bootmem-make-__alloc_bootmem_low_node-fall-back-to-other-nodes.patch
-mm-add-alloc_pages_exact-and-free_pages_exact.patch
-call_usermodehelper-increase-reliability.patch
-remove-bkl-from-remote_llseek-v2.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-v850-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
+security-protect-legacy-applications-from-executing-with-insufficient-privilege-checkpatch-fixes.patch
+swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
+block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
+seq_file-fix-bug-when-seq_read-reads-nothing-fix.patch
 remove-bkl-from-remote_llseek-v2-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error.patch
+rename-warn-to-warning-to-clear-the-namespace-fix.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-paccept-sys_ni.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-signalfd-fix.patch
+flag-parameters-eventfd-fix.patch
+flag-parameters-inotify_init-fix.patch
+flag-parameters-check-magic-constants-alpha.patch
+spi-au1550_spi-improve-pio-transfer-mode-checkpatch-fixes.patch
+gpio-gpio-driver-for-max7301-spi-gpio-expander-checkpatch-fixes.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
+fsl-diu-fb-update-freescale-diu-driver-to-use-page_alloc_exact-fix.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
+ext3-handle-corrupted-orphan-list-at-mount-cleanup.patch
+ext3-handle-corrupted-orphan-list-at-mount-fix.patch
+ext3-handle-corrupted-orphan-list-at-mount-cleanup-fix.patch
+jbd-dont-abort-if-flushing-file-data-failed-fix.patch
+reiserfs-convert-j_flush_sem-to-mutex.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
+cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-checkpatch-fixes.patch
+memcg-remove-refcnt-from-page_cgroup-fix-2.patch
+jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup.patch
+ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
+getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support.patch
 dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support-fix-2.patch
-x86-implement-pte_special.patch
-mm-introduce-get_user_pages_fast.patch
+tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
+memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
+memstick-use-fully-asynchronous-request-processing-fix.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
 mm-introduce-get_user_pages_fast-fix.patch
 mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast.patch
 x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
 x86-lockless-get_user_pages_fast-fix.patch
 x86-lockless-get_user_pages_fast-fix-2.patch
 x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
 x86-lockless-get_user_pages_fast-fix-warning.patch
-dio-use-get_user_pages_fast.patch
-splice-use-get_user_pages_fast.patch
-x86-support-1gb-hugepages-with-get_user_pages_lockless.patch
+vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
+define-page_file_cache-function-fix.patch
+unevictable-lru-infrastructure-fix.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-3.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
+vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
+video-console-sticonrec-make-code-static-checkpatch-fixes.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
