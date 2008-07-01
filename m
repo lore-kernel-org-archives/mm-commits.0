@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlb-fix-race-when-reading-proc-meminfo.patch added to -mm tree
-Date: Tue, 01 Jul 2008 13:54:07 -0700
-Message-ID: <200807012054.m61Ks7JI014198@imap1.linux-foundation.org>
+Subject: + usb-debug-port-converter-does-not-accept-more-than-8-byte-packets.patch added to -mm tree
+Date: Tue, 01 Jul 2008 13:56:40 -0700
+Message-ID: <200807012056.m61KueuN014322@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60910 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36448 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755489AbYGAUzq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 16:55:46 -0400
+	by vger.kernel.org with ESMTP id S1752025AbYGAU4n (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 16:56:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: eparis@redhat.com, agl@us.ibm.com, apw@shadowen.org, hannes@saeurebad.de, hugh@veritas.com, mel@csn.ul.ie, wli@holomorphy.com
+Cc: dared1st@yahoo.com, greg@kroah.com
 
 
 The patch titled
-     hugetlb: fix race when reading proc meminfo
+     usb: debug port converter does not accept more than 8 byte packets
 has been added to the -mm tree.  Its filename is
-     hugetlb-fix-race-when-reading-proc-meminfo.patch
+     usb-debug-port-converter-does-not-accept-more-than-8-byte-packets.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,84 +33,62 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlb: fix race when reading proc meminfo
-From: Eric Paris <eparis@redhat.com>
+Subject: usb: debug port converter does not accept more than 8 byte packets
+From: Aleksey Gorelov <dared1st@yahoo.com>
 
-minor nit that hugetlb_report_{,node_}meminfo() does not lock the reading
-of nr_huge_pages, free_huge_pages, and friends so this is not an atomic
-set of information put into the buffer.  If /proc/meminfo is read while
-the number of hugetlb pages is in flux it is possible to get incorrect
-output such as:
+USB debug port only supports 8 byte rx/tx packets.  Although spec implies
+that "if a packet larger than eight bytes is received from the remote
+computer, the device must break the larger packet into eight-byte packets
+before sending the data to the Debug Port", the real PLX NET20DC device
+does not handle it right - data is corrupted on debug port end if serial
+interface sends >8 byte urbs.
 
-HugePages_Total:     7
-HugePages_Free:      8
-HugePages_Rsvd:      0
-Hugepagesize:     4096 kB
+The patch fixes the issue by limiting the tx urb to 8 byte.
 
-(test available at https://bugzilla.redhat.com/attachment.cgi?id=309864)
-
-With the patch we beat on a number of boxes for hours with the above test
-and saw no inconsistencies in the meminfo output.
-
-Signed-off-by: Eric Paris <eparis@redhat.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Adam Litke <agl@us.ibm.com>
-Cc: Johannes Weiner <hannes@saeurebad.de>
-Cc: William Lee Irwin III <wli@holomorphy.com>
-Cc: Hugh Dickins <hugh@veritas.com>
+Signed-off-by: Aleks Gorelov <dared1st@yahoo.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+ drivers/usb/serial/usb_debug.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN mm/hugetlb.c~hugetlb-fix-race-when-reading-proc-meminfo mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-fix-race-when-reading-proc-meminfo
-+++ a/mm/hugetlb.c
-@@ -1455,7 +1455,10 @@ int hugetlb_overcommit_handler(struct ct
- int hugetlb_report_meminfo(char *buf)
- {
- 	struct hstate *h = &default_hstate;
--	return sprintf(buf,
-+	int ret;
-+
-+	spin_lock(&hugetlb_lock);
-+	ret = sprintf(buf,
- 			"HugePages_Total: %5lu\n"
- 			"HugePages_Free:  %5lu\n"
- 			"HugePages_Rsvd:  %5lu\n"
-@@ -1466,18 +1469,25 @@ int hugetlb_report_meminfo(char *buf)
- 			h->resv_huge_pages,
- 			h->surplus_huge_pages,
- 			1UL << (huge_page_order(h) + PAGE_SHIFT - 10));
-+	spin_unlock(&hugetlb_lock);
-+	return ret;
- }
+diff -puN drivers/usb/serial/usb_debug.c~usb-debug-port-converter-does-not-accept-more-than-8-byte-packets drivers/usb/serial/usb_debug.c
+--- a/drivers/usb/serial/usb_debug.c~usb-debug-port-converter-does-not-accept-more-than-8-byte-packets
++++ a/drivers/usb/serial/usb_debug.c
+@@ -15,6 +15,8 @@
+ #include <linux/usb.h>
+ #include <linux/usb/serial.h>
  
- int hugetlb_report_node_meminfo(int nid, char *buf)
- {
- 	struct hstate *h = &default_hstate;
--	return sprintf(buf,
-+	int ret;
++#define USB_DEBUG_MAX_PACKET_SIZE	8
 +
-+	spin_lock(&hugetlb_lock);
-+	ret = sprintf(buf,
- 		"Node %d HugePages_Total: %5u\n"
- 		"Node %d HugePages_Free:  %5u\n"
- 		"Node %d HugePages_Surp:  %5u\n",
- 		nid, h->nr_huge_pages_node[nid],
- 		nid, h->free_huge_pages_node[nid],
- 		nid, h->surplus_huge_pages_node[nid]);
-+	spin_unlock(&hugetlb_lock);
-+	return ret;
- }
+ static struct usb_device_id id_table [] = {
+ 	{ USB_DEVICE(0x0525, 0x127a) },
+ 	{ },
+@@ -29,6 +31,12 @@ static struct usb_driver debug_driver = 
+ 	.no_dynamic_id = 	1,
+ };
  
- /* Return the number pages of memory we physically have, in PAGE_SIZE units. */
++int usb_debug_open (struct usb_serial_port *port, struct file *filp)
++{
++	port->bulk_out_size = USB_DEBUG_MAX_PACKET_SIZE;
++	return usb_serial_generic_open(port, filp);
++}
++
+ static struct usb_serial_driver debug_device = {
+ 	.driver = {
+ 		.owner =	THIS_MODULE,
+@@ -36,6 +44,7 @@ static struct usb_serial_driver debug_de
+ 	},
+ 	.id_table =		id_table,
+ 	.num_ports =		1,
++	.open =            usb_debug_open,
+ };
+ 
+ static int __init debug_init(void)
 _
 
-Patches currently in -mm which might be from eparis@redhat.com are
+Patches currently in -mm which might be from dared1st@yahoo.com are
 
-kernel-auditc-nlh-nlmsg_type-is-gotten-more-than-once.patch
-hugetlb-fix-race-when-reading-proc-meminfo.patch
+usb-debug-port-converter-does-not-accept-more-than-8-byte-packets.patch
 
