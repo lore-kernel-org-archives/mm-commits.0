@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlb-reservations-move-region-tracking-earlier.patch added to -mm tree
-Date: Tue, 01 Jul 2008 13:50:09 -0700
-Message-ID: <200807012050.m61Ko9gS014011@imap1.linux-foundation.org>
+Subject: + hugetlb-fix-race-when-reading-proc-meminfo.patch added to -mm tree
+Date: Tue, 01 Jul 2008 13:54:07 -0700
+Message-ID: <200807012054.m61Ks7JI014198@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55399 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60910 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752941AbYGAUwA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 16:52:00 -0400
+	by vger.kernel.org with ESMTP id S1755489AbYGAUzq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 16:55:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: apw@shadowen.org, agl@us.ibm.com, hannes@saeurebad.de, hugh@veritas.com, kniht@linux.vnet.ibm.com, mel@csn.ul.ie, mtk.manpages@googlemail.com, wli@holomorphy.com
+Cc: eparis@redhat.com, agl@us.ibm.com, apw@shadowen.org, hannes@saeurebad.de, hugh@veritas.com, mel@csn.ul.ie, wli@holomorphy.com
 
 
 The patch titled
-     hugetlb reservations: move region tracking earlier
+     hugetlb: fix race when reading proc meminfo
 has been added to the -mm tree.  Its filename is
-     hugetlb-reservations-move-region-tracking-earlier.patch
+     hugetlb-fix-race-when-reading-proc-meminfo.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,387 +33,84 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlb reservations: move region tracking earlier
-From: Andy Whitcroft <apw@shadowen.org>
+Subject: hugetlb: fix race when reading proc meminfo
+From: Eric Paris <eparis@redhat.com>
 
-As reported by Adam Litke and Jon Tollefson one of the libhugetlbfs
-regression tests triggers a negative overall reservation count.  When
-this occurs where there is no dynamic pool enabled tests will fail.
+minor nit that hugetlb_report_{,node_}meminfo() does not lock the reading
+of nr_huge_pages, free_huge_pages, and friends so this is not an atomic
+set of information put into the buffer.  If /proc/meminfo is read while
+the number of hugetlb pages is in flux it is possible to get incorrect
+output such as:
 
-Following this email are two patches to address this issue:
+HugePages_Total:     7
+HugePages_Free:      8
+HugePages_Rsvd:      0
+Hugepagesize:     4096 kB
 
-hugetlb reservations: move region tracking earlier -- simply moves the
-  region tracking code earlier so we do not have to supply prototypes, and
+(test available at https://bugzilla.redhat.com/attachment.cgi?id=309864)
 
-hugetlb reservations: fix hugetlb MAP_PRIVATE reservations across vma
-  splits -- which moves us to tracking the consumed reservation so that
-  we can correctly calculate the remaining reservations at vma close time.
+With the patch we beat on a number of boxes for hours with the above test
+and saw no inconsistencies in the meminfo output.
 
-This stack is against the top of v2.6.25-rc6-mm3, should this solution
-prove acceptable it would need slipping underneath Nick's multiple hugepage
-size patches and those updated.  I have a modified stack prepared for that.
-
-This version incorporates Mel's feedback (both cosmetic, and an allocation
-under spinlock issue) and has an improved layout.
-
-Changes in V2:
- - commentry updates
- - pull allocations out from under hugetlb_lock
- - refactor to match shared code layout
- - reinstate BUG_ON's
-
-
-This patch:
-
-Move the region tracking code much earlier so we can use it for page
-presence tracking later on.  No code is changed, just its location.
-
-Signed-off-by: Andy Whitcroft <apw@shadowen.org>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Eric Paris <eparis@redhat.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Cc: Adam Litke <agl@us.ibm.com>
 Cc: Johannes Weiner <hannes@saeurebad.de>
-Cc: Andy Whitcroft <apw@shadowen.org>
 Cc: William Lee Irwin III <wli@holomorphy.com>
 Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
-Cc: Jon Tollefson <kniht@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |  246 ++++++++++++++++++++++++-------------------------
- 1 file changed, 125 insertions(+), 121 deletions(-)
+ mm/hugetlb.c |   14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
-diff -puN mm/hugetlb.c~hugetlb-reservations-move-region-tracking-earlier mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-reservations-move-region-tracking-earlier
+diff -puN mm/hugetlb.c~hugetlb-fix-race-when-reading-proc-meminfo mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-fix-race-when-reading-proc-meminfo
 +++ a/mm/hugetlb.c
-@@ -47,6 +47,131 @@ static unsigned long __initdata default_
- static DEFINE_SPINLOCK(hugetlb_lock);
- 
- /*
-+ * Region tracking -- allows tracking of reservations and instantiated pages
-+ *                    across the pages in a mapping.
-+ */
-+struct file_region {
-+	struct list_head link;
-+	long from;
-+	long to;
-+};
+@@ -1455,7 +1455,10 @@ int hugetlb_overcommit_handler(struct ct
+ int hugetlb_report_meminfo(char *buf)
+ {
+ 	struct hstate *h = &default_hstate;
+-	return sprintf(buf,
++	int ret;
 +
-+static long region_add(struct list_head *head, long f, long t)
-+{
-+	struct file_region *rg, *nrg, *trg;
-+
-+	/* Locate the region we are either in or before. */
-+	list_for_each_entry(rg, head, link)
-+		if (f <= rg->to)
-+			break;
-+
-+	/* Round our left edge to the current segment if it encloses us. */
-+	if (f > rg->from)
-+		f = rg->from;
-+
-+	/* Check for and consume any regions we now overlap with. */
-+	nrg = rg;
-+	list_for_each_entry_safe(rg, trg, rg->link.prev, link) {
-+		if (&rg->link == head)
-+			break;
-+		if (rg->from > t)
-+			break;
-+
-+		/* If this area reaches higher then extend our area to
-+		 * include it completely.  If this is not the first area
-+		 * which we intend to reuse, free it. */
-+		if (rg->to > t)
-+			t = rg->to;
-+		if (rg != nrg) {
-+			list_del(&rg->link);
-+			kfree(rg);
-+		}
-+	}
-+	nrg->from = f;
-+	nrg->to = t;
-+	return 0;
-+}
-+
-+static long region_chg(struct list_head *head, long f, long t)
-+{
-+	struct file_region *rg, *nrg;
-+	long chg = 0;
-+
-+	/* Locate the region we are before or in. */
-+	list_for_each_entry(rg, head, link)
-+		if (f <= rg->to)
-+			break;
-+
-+	/* If we are below the current region then a new region is required.
-+	 * Subtle, allocate a new region at the position but make it zero
-+	 * size such that we can guarantee to record the reservation. */
-+	if (&rg->link == head || t < rg->from) {
-+		nrg = kmalloc(sizeof(*nrg), GFP_KERNEL);
-+		if (!nrg)
-+			return -ENOMEM;
-+		nrg->from = f;
-+		nrg->to   = f;
-+		INIT_LIST_HEAD(&nrg->link);
-+		list_add(&nrg->link, rg->link.prev);
-+
-+		return t - f;
-+	}
-+
-+	/* Round our left edge to the current segment if it encloses us. */
-+	if (f > rg->from)
-+		f = rg->from;
-+	chg = t - f;
-+
-+	/* Check for and consume any regions we now overlap with. */
-+	list_for_each_entry(rg, rg->link.prev, link) {
-+		if (&rg->link == head)
-+			break;
-+		if (rg->from > t)
-+			return chg;
-+
-+		/* We overlap with this area, if it extends futher than
-+		 * us then we must extend ourselves.  Account for its
-+		 * existing reservation. */
-+		if (rg->to > t) {
-+			chg += rg->to - t;
-+			t = rg->to;
-+		}
-+		chg -= rg->to - rg->from;
-+	}
-+	return chg;
-+}
-+
-+static long region_truncate(struct list_head *head, long end)
-+{
-+	struct file_region *rg, *trg;
-+	long chg = 0;
-+
-+	/* Locate the region we are either in or before. */
-+	list_for_each_entry(rg, head, link)
-+		if (end <= rg->to)
-+			break;
-+	if (&rg->link == head)
-+		return 0;
-+
-+	/* If we are in the middle of a region then adjust it. */
-+	if (end > rg->from) {
-+		chg = rg->to - end;
-+		rg->to = end;
-+		rg = list_entry(rg->link.next, typeof(*rg), link);
-+	}
-+
-+	/* Drop any remaining regions. */
-+	list_for_each_entry_safe(rg, trg, rg->link.prev, link) {
-+		if (&rg->link == head)
-+			break;
-+		chg += rg->to - rg->from;
-+		list_del(&rg->link);
-+		kfree(rg);
-+	}
-+	return chg;
-+}
-+
-+/*
-  * Convert the address within this vma to the page offset within
-  * the mapping, in pagecache page units; huge pages here.
-  */
-@@ -638,127 +763,6 @@ static void return_unused_surplus_pages(
- 	}
++	spin_lock(&hugetlb_lock);
++	ret = sprintf(buf,
+ 			"HugePages_Total: %5lu\n"
+ 			"HugePages_Free:  %5lu\n"
+ 			"HugePages_Rsvd:  %5lu\n"
+@@ -1466,18 +1469,25 @@ int hugetlb_report_meminfo(char *buf)
+ 			h->resv_huge_pages,
+ 			h->surplus_huge_pages,
+ 			1UL << (huge_page_order(h) + PAGE_SHIFT - 10));
++	spin_unlock(&hugetlb_lock);
++	return ret;
  }
  
--struct file_region {
--	struct list_head link;
--	long from;
--	long to;
--};
--
--static long region_add(struct list_head *head, long f, long t)
--{
--	struct file_region *rg, *nrg, *trg;
--
--	/* Locate the region we are either in or before. */
--	list_for_each_entry(rg, head, link)
--		if (f <= rg->to)
--			break;
--
--	/* Round our left edge to the current segment if it encloses us. */
--	if (f > rg->from)
--		f = rg->from;
--
--	/* Check for and consume any regions we now overlap with. */
--	nrg = rg;
--	list_for_each_entry_safe(rg, trg, rg->link.prev, link) {
--		if (&rg->link == head)
--			break;
--		if (rg->from > t)
--			break;
--
--		/* If this area reaches higher then extend our area to
--		 * include it completely.  If this is not the first area
--		 * which we intend to reuse, free it. */
--		if (rg->to > t)
--			t = rg->to;
--		if (rg != nrg) {
--			list_del(&rg->link);
--			kfree(rg);
--		}
--	}
--	nrg->from = f;
--	nrg->to = t;
--	return 0;
--}
--
--static long region_chg(struct list_head *head, long f, long t)
--{
--	struct file_region *rg, *nrg;
--	long chg = 0;
--
--	/* Locate the region we are before or in. */
--	list_for_each_entry(rg, head, link)
--		if (f <= rg->to)
--			break;
--
--	/* If we are below the current region then a new region is required.
--	 * Subtle, allocate a new region at the position but make it zero
--	 * size such that we can guarantee to record the reservation. */
--	if (&rg->link == head || t < rg->from) {
--		nrg = kmalloc(sizeof(*nrg), GFP_KERNEL);
--		if (!nrg)
--			return -ENOMEM;
--		nrg->from = f;
--		nrg->to   = f;
--		INIT_LIST_HEAD(&nrg->link);
--		list_add(&nrg->link, rg->link.prev);
--
--		return t - f;
--	}
--
--	/* Round our left edge to the current segment if it encloses us. */
--	if (f > rg->from)
--		f = rg->from;
--	chg = t - f;
--
--	/* Check for and consume any regions we now overlap with. */
--	list_for_each_entry(rg, rg->link.prev, link) {
--		if (&rg->link == head)
--			break;
--		if (rg->from > t)
--			return chg;
--
--		/* We overlap with this area, if it extends futher than
--		 * us then we must extend ourselves.  Account for its
--		 * existing reservation. */
--		if (rg->to > t) {
--			chg += rg->to - t;
--			t = rg->to;
--		}
--		chg -= rg->to - rg->from;
--	}
--	return chg;
--}
--
--static long region_truncate(struct list_head *head, long end)
--{
--	struct file_region *rg, *trg;
--	long chg = 0;
--
--	/* Locate the region we are either in or before. */
--	list_for_each_entry(rg, head, link)
--		if (end <= rg->to)
--			break;
--	if (&rg->link == head)
--		return 0;
--
--	/* If we are in the middle of a region then adjust it. */
--	if (end > rg->from) {
--		chg = rg->to - end;
--		rg->to = end;
--		rg = list_entry(rg->link.next, typeof(*rg), link);
--	}
--
--	/* Drop any remaining regions. */
--	list_for_each_entry_safe(rg, trg, rg->link.prev, link) {
--		if (&rg->link == head)
--			break;
--		chg += rg->to - rg->from;
--		list_del(&rg->link);
--		kfree(rg);
--	}
--	return chg;
--}
--
- /*
-  * Determine if the huge page at addr within the vma has an associated
-  * reservation.  Where it does not we will need to logically increase
+ int hugetlb_report_node_meminfo(int nid, char *buf)
+ {
+ 	struct hstate *h = &default_hstate;
+-	return sprintf(buf,
++	int ret;
++
++	spin_lock(&hugetlb_lock);
++	ret = sprintf(buf,
+ 		"Node %d HugePages_Total: %5u\n"
+ 		"Node %d HugePages_Free:  %5u\n"
+ 		"Node %d HugePages_Surp:  %5u\n",
+ 		nid, h->nr_huge_pages_node[nid],
+ 		nid, h->free_huge_pages_node[nid],
+ 		nid, h->surplus_huge_pages_node[nid]);
++	spin_unlock(&hugetlb_lock);
++	return ret;
+ }
+ 
+ /* Return the number pages of memory we physically have, in PAGE_SIZE units. */
 _
 
-Patches currently in -mm which might be from apw@shadowen.org are
+Patches currently in -mm which might be from eparis@redhat.com are
 
-mm-add-a-basic-debugging-framework-for-memory-initialisation.patch
-mm-add-a-basic-debugging-framework-for-memory-initialisation-fix.patch
-mm-verify-the-page-links-and-memory-model.patch
-mm-make-defensive-checks-around-pfn-values-registered-for-memory-usage.patch
-mm-print-out-the-zonelists-on-request-for-manual-verification.patch
-add-a-helper-function-to-test-if-an-object-is-on-the-stack.patch
-mm-move-bootmem-descriptors-definition-to-a-single-place.patch
-mm-fix-free_all_bootmem_core-alignment-check.patch
-mm-normalize-internal-argument-passing-of-bootmem-data.patch
-mm-unexport-__alloc_bootmem_core.patch
-buddy-clarify-comments-describing-buddy-merge.patch
-page-flags-record-page-flag-overlays-explicitly.patch
-page-flags-record-page-flag-overlays-explicitly-xen.patch
-slub-record-page-flag-overlays-explicitly.patch
-slob-record-page-flag-overlays-explicitly.patch
-hugetlb-move-hugetlb_acct_memory.patch
-hugetlb-reserve-huge-pages-for-reliable-map_private-hugetlbfs-mappings-until-fork.patch
-hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed.patch
-hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed-fix.patch
-hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed-build-fix.patch
-huge-page-private-reservation-review-cleanups.patch
-huge-page-private-reservation-review-cleanups-fix.patch
-mm-record-map_noreserve-status-on-vmas-and-fix-small-page-mprotect-reservations.patch
-hugetlb-move-reservation-region-support-earlier.patch
-hugetlb-allow-huge-page-mappings-to-be-created-without-reservations.patch
-hugetlb-allow-huge-page-mappings-to-be-created-without-reservations-cleanups.patch
-hugetlb-reservations-move-region-tracking-earlier.patch
-hugetlb-reservations-fix-hugetlb-map_private-reservations-across-vma-splits-v2.patch
-memory-hotplugallocate-usemap-on-the-section-with-pgdat-take-4.patch
-memory-hotplug-small-fixes-to-bootmem-freeing-for-memory-hotremove.patch
-checkpatch-version-020.patch
-checkpatch-return-is-not-a-function-parentheses-for-casts-are-ok-too.patch
-checkpatch-types-some-types-may-also-be-identifiers.patch
-checkpatch-add-a-checkpatch-warning-for-new-uses-of-__initcall.patch
-checkpatch-possible-types-__asm__-is-never-a-type.patch
-checkpatch-comment-detection-ignore-macro-continuation-when-detecting-associated-comments.patch
-checkpatch-types-unary-goto-introduces-unary-context.patch
-checkpatch-macros-fix-statement-counting-block-end-detection.patch
-checkpatch-trailing-statement-indent-fix-end-of-statement-location.patch
-checkpatch-allow-printk-strings-to-exceed-80-characters-to-maintain-their-searchability.patch
-checkpatch-switch-report-trailing-statements-on-case-and-default.patch
-checkpatch-check-spacing-for-square-brackets.patch
-checkpatch-toughen-trailing-if-statement-checks-and-extend-them-to-while-and-for.patch
-checkpatch-condition-loop-indent-checks.patch
-checkpatch-usb_free_urb-can-take-null.patch
-checkpatch-correct-spelling-in-kfree-checks.patch
-checkpatch-allow-for-type-modifiers-on-multiple-declarations.patch
-checkpatch-improve-type-matcher-debug.patch
-checkpatch-possible-modifiers-are-not-being-correctly-matched.patch
-checkpatch-macro-complexity-checks-are-meaningless-in-linker-scripts.patch
-checkpatch-handle-return-types-of-pointers-to-functions.patch
-checkpatch-possible-types-known-modifiers-cannot-be-types.patch
-checkpatch-possible-modifiers-handle-multiple-modifiers-and-trailing.patch
-x86-implement-pte_special.patch
-mm-introduce-get_user_pages_fast.patch
-mm-introduce-get_user_pages_fast-fix.patch
-mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast.patch
-x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-fix.patch
-x86-lockless-get_user_pages_fast-fix-2.patch
-x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
-x86-lockless-get_user_pages_fast-fix-warning.patch
-dio-use-get_user_pages_fast.patch
-splice-use-get_user_pages_fast.patch
-page-owner-tracking-leak-detector.patch
+kernel-auditc-nlh-nlmsg_type-is-gotten-more-than-once.patch
+hugetlb-fix-race-when-reading-proc-meminfo.patch
 
