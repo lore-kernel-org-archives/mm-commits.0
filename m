@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-keep-3-high-personality-bytes-across-exec.patch added to -mm tree
-Date: Tue, 01 Jul 2008 01:39:05 -0700
-Message-ID: <200807010839.m618d54i017908@imap1.linux-foundation.org>
+Subject: + jbd-dont-abort-if-flushing-file-data-failed.patch added to -mm tree
+Date: Tue, 01 Jul 2008 02:03:23 -0700
+Message-ID: <200807010903.m6193N4t018834@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33838 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58955 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753110AbYGAIpV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 04:45:21 -0400
+	by vger.kernel.org with ESMTP id S1752622AbYGAJED (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 05:04:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebmunson@us.ibm.com, benh@kernel.crashing.org, paulus@samba.org
+Cc: hidehiro.kawai.ez@hitachi.com, jack@suse.cz, linux-ext4@vger.kernel.org
 
 
 The patch titled
-     powerpc: keep 3 high personality bytes across exec
+     jbd: don't abort if flushing file data failed
 has been added to the -mm tree.  Its filename is
-     powerpc-keep-3-high-personality-bytes-across-exec.patch
+     jbd-dont-abort-if-flushing-file-data-failed.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,68 +33,127 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: powerpc: keep 3 high personality bytes across exec
-From: Eric B Munson <ebmunson@us.ibm.com>
+Subject: jbd: don't abort if flushing file data failed
+From: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
 
-Currently when a 32 bit process is exec'd on a powerpc 64 bit host the
-value in the top three bytes of the personality is clobbered.  This patch
-adds a check in the SET_PERSONALITY macro that will carry all the values
-in the top three bytes across the exec.
+In ordered mode, the current jbd aborts the journal if a file data buffer
+has an error.  But this behavior is unintended, and we found that it has
+been adopted accidentally.
 
-These three bytes currently carry flags to disable address randomisation,
-limit the address space, force zeroing of an mmapped page, etc.  Should an
-application set any of these bits they will be maintained and honoured on
-homogeneous environment but discarded and ignored on a heterogeneous
-environment.  So if an application requires all mmapped pages to be
-initial= ised to zero and a wrapper is used to setup the personality and
-exec the target, these flags will remain set on an all 32 or all 64 bit
-envrionment, but they will be lost in the exec on a mixed 32/64 bit
-environment.  Losing these bi= ts means that the same application would
-behave differently in different environments.  Tested on a POWER5+ machine
-with 64bit kernel and a mixed 64/32 bit user space.
+This patch undoes it and just calls printk() instead of aborting the
+journal.  Additionally, set AS_EIO into the address_space object of the
+failed buffer which is submitted by journal_do_submit_data() so that
+fsync() can get -EIO.
 
-Signed-off-by: Eric B Munson <ebmunson@us.ibm.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Missing error checkings are also added to inform errors on file data
+buffers to the user.  The following buffers are targeted.
+
+  (a) the buffer which has already been written out by pdflush
+  (b) the buffer which has been unlocked before scanned in the
+      t_locked_list loop
+
+Signed-off-by: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
+Acked-by: Jan Kara <jack@suse.cz>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-powerpc/elf.h   |    3 ++-
- include/linux/personality.h |    6 ++++++
- 2 files changed, 8 insertions(+), 1 deletion(-)
+ fs/jbd/commit.c |   35 ++++++++++++++++++++++++++++-------
+ 1 file changed, 28 insertions(+), 7 deletions(-)
 
-diff -puN include/asm-powerpc/elf.h~powerpc-keep-3-high-personality-bytes-across-exec include/asm-powerpc/elf.h
---- a/include/asm-powerpc/elf.h~powerpc-keep-3-high-personality-bytes-across-exec
-+++ a/include/asm-powerpc/elf.h
-@@ -257,7 +257,8 @@ do {								\
- 	else							\
- 		clear_thread_flag(TIF_ABI_PENDING);		\
- 	if (personality(current->personality) != PER_LINUX32)	\
--		set_personality(PER_LINUX);			\
-+		set_personality(PER_LINUX |			\
-+			(current->personality & PER_INHERIT));	\
- } while (0)
+diff -puN fs/jbd/commit.c~jbd-dont-abort-if-flushing-file-data-failed fs/jbd/commit.c
+--- a/fs/jbd/commit.c~jbd-dont-abort-if-flushing-file-data-failed
++++ a/fs/jbd/commit.c
+@@ -185,7 +185,7 @@ static void journal_do_submit_data(struc
  /*
-  * An executable for which elf_read_implies_exec() returns TRUE will
-diff -puN include/linux/personality.h~powerpc-keep-3-high-personality-bytes-across-exec include/linux/personality.h
---- a/include/linux/personality.h~powerpc-keep-3-high-personality-bytes-across-exec
-+++ a/include/linux/personality.h
-@@ -36,6 +36,12 @@ enum {
- 	ADDR_LIMIT_3GB = 	0x8000000,
- };
+  *  Submit all the data buffers to disk
+  */
+-static void journal_submit_data_buffers(journal_t *journal,
++static int journal_submit_data_buffers(journal_t *journal,
+ 				transaction_t *commit_transaction)
+ {
+ 	struct journal_head *jh;
+@@ -193,6 +193,7 @@ static void journal_submit_data_buffers(
+ 	int locked;
+ 	int bufs = 0;
+ 	struct buffer_head **wbuf = journal->j_wbuf;
++	int err = 0;
  
-+/* Mask for the above personality values */
-+#define PER_INHERIT (ADDR_NO_RANDOMIZE|FDPIC_FUNCPTRS|MMAP_PAGE_ZERO| \
-+			ADDR_COMPAT_LAYOUT|READ_IMPLIES_EXEC|ADDR_LIMIT_32BIT| \
-+			SHORT_INODE|WHOLE_SECONDS|STICKY_TIMEOUTS| \
-+			ADDR_LIMIT_3GB)
+ 	/*
+ 	 * Whenever we unlock the journal and sleep, things can get added
+@@ -266,6 +267,8 @@ write_out_data:
+ 			put_bh(bh);
+ 		} else {
+ 			BUFFER_TRACE(bh, "writeout complete: unfile");
++			if (unlikely(!buffer_uptodate(bh)))
++				err = -EIO;
+ 			__journal_unfile_buffer(jh);
+ 			jbd_unlock_bh_state(bh);
+ 			if (locked)
+@@ -284,6 +287,8 @@ write_out_data:
+ 	}
+ 	spin_unlock(&journal->j_list_lock);
+ 	journal_do_submit_data(wbuf, bufs);
 +
++	return err;
+ }
+ 
  /*
-  * Security-relevant compatibility flags that must be
-  * cleared upon setuid or setgid exec:
+@@ -423,8 +428,7 @@ void journal_commit_transaction(journal_
+ 	 * Now start flushing things to disk, in the order they appear
+ 	 * on the transaction lists.  Data blocks go first.
+ 	 */
+-	err = 0;
+-	journal_submit_data_buffers(journal, commit_transaction);
++	err = journal_submit_data_buffers(journal, commit_transaction);
+ 
+ 	/*
+ 	 * Wait for all previously submitted IO to complete.
+@@ -439,10 +443,21 @@ void journal_commit_transaction(journal_
+ 		if (buffer_locked(bh)) {
+ 			spin_unlock(&journal->j_list_lock);
+ 			wait_on_buffer(bh);
+-			if (unlikely(!buffer_uptodate(bh)))
+-				err = -EIO;
+ 			spin_lock(&journal->j_list_lock);
+ 		}
++		if (unlikely(!buffer_uptodate(bh))) {
++			if (TestSetPageLocked(bh->b_page)) {
++				spin_unlock(&journal->j_list_lock);
++				lock_page(bh->b_page);
++				spin_lock(&journal->j_list_lock);
++			}
++			if (bh->b_page->mapping)
++				set_bit(AS_EIO, &bh->b_page->mapping->flags);
++
++			unlock_page(bh->b_page);
++			SetPageError(bh->b_page);
++			err = -EIO;
++		}
+ 		if (!inverted_lock(journal, bh)) {
+ 			put_bh(bh);
+ 			spin_lock(&journal->j_list_lock);
+@@ -461,8 +476,14 @@ void journal_commit_transaction(journal_
+ 	}
+ 	spin_unlock(&journal->j_list_lock);
+ 
+-	if (err)
+-		journal_abort(journal, err);
++	if (err) {
++		char b[BDEVNAME_SIZE];
++
++		printk(KERN_WARNING
++			"JBD: Detected IO errors during flushing file data "
++			"on %s\n", bdevname(journal->j_fs_dev, b));
++		err = 0;
++	}
+ 
+ 	journal_write_revoke_records(journal, commit_transaction);
+ 
 _
 
-Patches currently in -mm which might be from ebmunson@us.ibm.com are
+Patches currently in -mm which might be from hidehiro.kawai.ez@hitachi.com are
 
-powerpc-keep-3-high-personality-bytes-across-exec.patch
+ext3-dont-read-inode-block-if-the-buffer-has-a-write-error.patch
+jbd-dont-abort-if-flushing-file-data-failed.patch
 
