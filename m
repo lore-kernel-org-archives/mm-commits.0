@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cgroups-misc-cleanups-to-write_string-patchset.patch added to -mm tree
-Date: Tue, 01 Jul 2008 16:21:27 -0700
-Message-ID: <200807012321.m61NLR5v020219@imap1.linux-foundation.org>
+Subject: + fatfs-add-utc-timestamp-option.patch added to -mm tree
+Date: Tue, 01 Jul 2008 16:27:19 -0700
+Message-ID: <200807012327.m61NRJF3020402@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35578 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43884 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751537AbYGAXWC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 19:22:02 -0400
+	by vger.kernel.org with ESMTP id S1757237AbYGAX1x (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 19:27:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: menage@google.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, pj@sgi.com, serue@us.ibm.com, xemul@openvz.org
+Cc: joe@skyrush.com, hirofumi@mail.parknet.co.jp
 
 
 The patch titled
-     cgroups: misc cleanups to write_string patchset
+     fatfs: add UTC timestamp option
 has been added to the -mm tree.  Its filename is
-     cgroups-misc-cleanups-to-write_string-patchset.patch
+     fatfs-add-utc-timestamp-option.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,180 +33,242 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: misc cleanups to write_string patchset
-From: Paul Menage <menage@google.com>
+Subject: fatfs: add UTC timestamp option
+From: Joe Peterson <joe@skyrush.com>
 
-This patch contains cleanups suggested by reviewers for the recent
-write_string() patchset:
+Provide a new mount option ("tz=UTC") for DOS (vfat/msdos) filesystems,
+allowing timestamps to be in coordinated universal time (UTC) rather than
+local time in applications where doing this is advantageous.
 
-- pair cgroup_lock_live_group() with cgroup_unlock() in cgroup.c for
-  clarity, rather than directly unlocking cgroup_mutex.
+In particular, portable devices that use fat/vfat (such as digital
+cameras) can benefit from using UTC in their internal clocks, thus
+avoiding daylight saving time errors and general time ambiguity issues. 
+The user of the device does not have to worry about changing the time when
+moving from place or when daylight saving changes.
 
-- make the return type of cgroup_lock_live_group() a bool
+The new mount option, when set, disables the counter-adjustment that Linux
+currently makes to FAT timestamp info in anticipation of the normal
+userspace time zone correction.  When used in this new mode, all daylight
+saving time and time zone handling is done in userspace as is normal for
+many other filesystems (like ext3).  The default mode, which remains
+unchanged, is still appropriate when mounting volumes written in Windows
+(because of its use of local time).
 
-- use a #define'd constant for the local buffer size in read/write functions
+I originally based this patch on one submitted last year by Paul Collins,
+but I updated it to work with current source and changed variable/option
+naming.  Ogawa Hirofumi (who maintains these filesystems) and I discussed
+this patch at length on lkml, and he suggested using the option name in
+the attached version of the patch.  Barry Bouwsma pointed out a good
+addition to the patch as well.
 
-Signed-off-by: Paul Menage <menage@google.com>
-Cc: Paul Jackson <pj@sgi.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Acked-by: Serge Hallyn <serue@us.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Joe Peterson <joe@skyrush.com>
+Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cgroup.h |    4 ++--
- kernel/cgroup.c        |   21 ++++++++++++---------
- 2 files changed, 14 insertions(+), 11 deletions(-)
+ fs/fat/dir.c             |    2 +-
+ fs/fat/inode.c           |   27 ++++++++++++++++++++-------
+ fs/fat/misc.c            |   10 ++++++----
+ fs/msdos/namei.c         |    3 ++-
+ fs/vfat/namei.c          |    2 +-
+ include/linux/msdos_fs.h |    8 +++++---
+ 6 files changed, 35 insertions(+), 17 deletions(-)
 
-diff -puN include/linux/cgroup.h~cgroups-misc-cleanups-to-write_string-patchset include/linux/cgroup.h
---- a/include/linux/cgroup.h~cgroups-misc-cleanups-to-write_string-patchset
-+++ a/include/linux/cgroup.h
-@@ -21,11 +21,13 @@
- struct cgroupfs_root;
- struct cgroup_subsys;
- struct inode;
-+struct cgroup;
+diff -puN fs/fat/dir.c~fatfs-add-utc-timestamp-option fs/fat/dir.c
+--- a/fs/fat/dir.c~fatfs-add-utc-timestamp-option
++++ a/fs/fat/dir.c
+@@ -1101,7 +1101,7 @@ int fat_alloc_new_dir(struct inode *dir,
+ 		goto error_free;
+ 	}
  
- extern int cgroup_init_early(void);
- extern int cgroup_init(void);
- extern void cgroup_init_smp(void);
- extern void cgroup_lock(void);
-+extern bool cgroup_lock_live_group(struct cgroup *cgrp);
- extern void cgroup_unlock(void);
- extern void cgroup_fork(struct task_struct *p);
- extern void cgroup_fork_callbacks(struct task_struct *p);
-@@ -295,8 +297,6 @@ int cgroup_add_files(struct cgroup *cgrp
+-	fat_date_unix2dos(ts->tv_sec, &time, &date);
++	fat_date_unix2dos(ts->tv_sec, &time, &date, sbi->options.tz_utc);
  
- int cgroup_is_removed(const struct cgroup *cgrp);
+ 	de = (struct msdos_dir_entry *)bhs[0]->b_data;
+ 	/* filling the new directory slots ("." and ".." entries) */
+diff -puN fs/fat/inode.c~fatfs-add-utc-timestamp-option fs/fat/inode.c
+--- a/fs/fat/inode.c~fatfs-add-utc-timestamp-option
++++ a/fs/fat/inode.c
+@@ -382,17 +382,20 @@ static int fat_fill_inode(struct inode *
+ 	inode->i_blocks = ((inode->i_size + (sbi->cluster_size - 1))
+ 			   & ~((loff_t)sbi->cluster_size - 1)) >> 9;
+ 	inode->i_mtime.tv_sec =
+-		date_dos2unix(le16_to_cpu(de->time), le16_to_cpu(de->date));
++		date_dos2unix(le16_to_cpu(de->time), le16_to_cpu(de->date),
++			      sbi->options.tz_utc);
+ 	inode->i_mtime.tv_nsec = 0;
+ 	if (sbi->options.isvfat) {
+ 		int secs = de->ctime_cs / 100;
+ 		int csecs = de->ctime_cs % 100;
+ 		inode->i_ctime.tv_sec  =
+ 			date_dos2unix(le16_to_cpu(de->ctime),
+-				      le16_to_cpu(de->cdate)) + secs;
++				      le16_to_cpu(de->cdate),
++				      sbi->options.tz_utc) + secs;
+ 		inode->i_ctime.tv_nsec = csecs * 10000000;
+ 		inode->i_atime.tv_sec =
+-			date_dos2unix(0, le16_to_cpu(de->adate));
++			date_dos2unix(0, le16_to_cpu(de->adate),
++				      sbi->options.tz_utc);
+ 		inode->i_atime.tv_nsec = 0;
+ 	} else
+ 		inode->i_ctime = inode->i_atime = inode->i_mtime;
+@@ -591,11 +594,14 @@ retry:
+ 	raw_entry->attr = fat_attr(inode);
+ 	raw_entry->start = cpu_to_le16(MSDOS_I(inode)->i_logstart);
+ 	raw_entry->starthi = cpu_to_le16(MSDOS_I(inode)->i_logstart >> 16);
+-	fat_date_unix2dos(inode->i_mtime.tv_sec, &raw_entry->time, &raw_entry->date);
++	fat_date_unix2dos(inode->i_mtime.tv_sec, &raw_entry->time,
++			  &raw_entry->date, sbi->options.tz_utc);
+ 	if (sbi->options.isvfat) {
+ 		__le16 atime;
+-		fat_date_unix2dos(inode->i_ctime.tv_sec,&raw_entry->ctime,&raw_entry->cdate);
+-		fat_date_unix2dos(inode->i_atime.tv_sec,&atime,&raw_entry->adate);
++		fat_date_unix2dos(inode->i_ctime.tv_sec, &raw_entry->ctime,
++				  &raw_entry->cdate, sbi->options.tz_utc);
++		fat_date_unix2dos(inode->i_atime.tv_sec, &atime,
++				  &raw_entry->adate, sbi->options.tz_utc);
+ 		raw_entry->ctime_cs = (inode->i_ctime.tv_sec & 1) * 100 +
+ 			inode->i_ctime.tv_nsec / 10000000;
+ 	}
+@@ -836,6 +842,8 @@ static int fat_show_options(struct seq_f
+ 	}
+ 	if (sbi->options.flush)
+ 		seq_puts(m, ",flush");
++	if (opts->tz_utc)
++		seq_puts(m, ",tz=UTC");
  
--int cgroup_lock_live_group(struct cgroup *cgrp);
--
- int cgroup_path(const struct cgroup *cgrp, char *buf, int buflen);
- 
- int cgroup_task_count(const struct cgroup *cgrp);
-diff -puN kernel/cgroup.c~cgroups-misc-cleanups-to-write_string-patchset kernel/cgroup.c
---- a/kernel/cgroup.c~cgroups-misc-cleanups-to-write_string-patchset
-+++ a/kernel/cgroup.c
-@@ -1329,10 +1329,10 @@ enum cgroup_filetype {
-  * cgroup_lock_live_group - take cgroup_mutex and check that cgrp is alive.
-  * @cgrp: the cgroup to be checked for liveness
-  *
-- * Returns true (with lock held) on success, or false (with no lock
-- * held) on failure.
-+ * On success, returns true; the lock should be later released with
-+ * cgroup_unlock(). On failure returns false with no lock held.
-  */
--int cgroup_lock_live_group(struct cgroup *cgrp)
-+bool cgroup_lock_live_group(struct cgroup *cgrp)
- {
- 	mutex_lock(&cgroup_mutex);
- 	if (cgroup_is_removed(cgrp)) {
-@@ -1349,7 +1349,7 @@ static int cgroup_release_agent_write(st
- 	if (!cgroup_lock_live_group(cgrp))
- 		return -ENODEV;
- 	strcpy(cgrp->root->release_agent_path, buffer);
--	mutex_unlock(&cgroup_mutex);
-+	cgroup_unlock();
  	return 0;
  }
+@@ -848,7 +856,7 @@ enum {
+ 	Opt_charset, Opt_shortname_lower, Opt_shortname_win95,
+ 	Opt_shortname_winnt, Opt_shortname_mixed, Opt_utf8_no, Opt_utf8_yes,
+ 	Opt_uni_xl_no, Opt_uni_xl_yes, Opt_nonumtail_no, Opt_nonumtail_yes,
+-	Opt_obsolate, Opt_flush, Opt_err,
++	Opt_obsolate, Opt_flush, Opt_tz_utc, Opt_err,
+ };
  
-@@ -1360,16 +1360,19 @@ static int cgroup_release_agent_show(str
- 		return -ENODEV;
- 	seq_puts(seq, cgrp->root->release_agent_path);
- 	seq_putc(seq, '\n');
--	mutex_unlock(&cgroup_mutex);
-+	cgroup_unlock();
- 	return 0;
+ static match_table_t fat_tokens = {
+@@ -883,6 +891,7 @@ static match_table_t fat_tokens = {
+ 	{Opt_obsolate, "cvf_options=%100s"},
+ 	{Opt_obsolate, "posix"},
+ 	{Opt_flush, "flush"},
++	{Opt_tz_utc, "tz=UTC"},
+ 	{Opt_err, NULL},
+ };
+ static match_table_t msdos_tokens = {
+@@ -947,6 +956,7 @@ static int parse_options(char *options, 
+ 	opts->utf8 = opts->unicode_xlate = 0;
+ 	opts->numtail = 1;
+ 	opts->usefree = opts->nocase = 0;
++	opts->tz_utc = 0;
+ 	*debug = 0;
+ 
+ 	if (!options)
+@@ -1036,6 +1046,9 @@ static int parse_options(char *options, 
+ 		case Opt_flush:
+ 			opts->flush = 1;
+ 			break;
++		case Opt_tz_utc:
++			opts->tz_utc = 1;
++			break;
+ 
+ 		/* msdos specific */
+ 		case Opt_dots:
+diff -puN fs/fat/misc.c~fatfs-add-utc-timestamp-option fs/fat/misc.c
+--- a/fs/fat/misc.c~fatfs-add-utc-timestamp-option
++++ a/fs/fat/misc.c
+@@ -142,7 +142,7 @@ static int day_n[] = {
+ };
+ 
+ /* Convert a MS-DOS time/date pair to a UNIX date (seconds since 1 1 70). */
+-int date_dos2unix(unsigned short time, unsigned short date)
++int date_dos2unix(unsigned short time, unsigned short date, int tz_utc)
+ {
+ 	int month, year, secs;
+ 
+@@ -156,16 +156,18 @@ int date_dos2unix(unsigned short time, u
+ 	    ((date & 31)-1+day_n[month]+(year/4)+year*365-((year & 3) == 0 &&
+ 	    month < 2 ? 1 : 0)+3653);
+ 			/* days since 1.1.70 plus 80's leap day */
+-	secs += sys_tz.tz_minuteswest*60;
++	if (!tz_utc)
++		secs += sys_tz.tz_minuteswest*60;
+ 	return secs;
  }
  
-+/* A buffer size big enough for numbers or short strings */
-+#define CGROUP_LOCAL_BUFFER_SIZE 64
-+
- static ssize_t cgroup_write_X64(struct cgroup *cgrp, struct cftype *cft,
- 				struct file *file,
- 				const char __user *userbuf,
- 				size_t nbytes, loff_t *unused_ppos)
+ /* Convert linear UNIX date to a MS-DOS time/date pair. */
+-void fat_date_unix2dos(int unix_date, __le16 *time, __le16 *date)
++void fat_date_unix2dos(int unix_date, __le16 *time, __le16 *date, int tz_utc)
  {
--	char buffer[64];
-+	char buffer[CGROUP_LOCAL_BUFFER_SIZE];
- 	int retval = 0;
- 	char *end;
+ 	int day, year, nl_day, month;
  
-@@ -1403,7 +1406,7 @@ static ssize_t cgroup_write_string(struc
- 				   const char __user *userbuf,
- 				   size_t nbytes, loff_t *unused_ppos)
- {
--	char local_buffer[64];
-+	char local_buffer[CGROUP_LOCAL_BUFFER_SIZE];
- 	int retval = 0;
- 	size_t max_bytes = cft->max_write_len;
- 	char *buffer = local_buffer;
-@@ -1518,7 +1521,7 @@ static ssize_t cgroup_read_u64(struct cg
- 			       char __user *buf, size_t nbytes,
- 			       loff_t *ppos)
- {
--	char tmp[64];
-+	char tmp[CGROUP_LOCAL_BUFFER_SIZE];
- 	u64 val = cft->read_u64(cgrp, cft);
- 	int len = sprintf(tmp, "%llu\n", (unsigned long long) val);
+-	unix_date -= sys_tz.tz_minuteswest*60;
++	if (!tz_utc)
++		unix_date -= sys_tz.tz_minuteswest*60;
  
-@@ -1530,7 +1533,7 @@ static ssize_t cgroup_read_s64(struct cg
- 			       char __user *buf, size_t nbytes,
- 			       loff_t *ppos)
+ 	/* Jan 1 GMT 00:00:00 1980. But what about another time zone? */
+ 	if (unix_date < 315532800)
+diff -puN fs/msdos/namei.c~fatfs-add-utc-timestamp-option fs/msdos/namei.c
+--- a/fs/msdos/namei.c~fatfs-add-utc-timestamp-option
++++ a/fs/msdos/namei.c
+@@ -237,6 +237,7 @@ static int msdos_add_entry(struct inode 
+ 			   int is_dir, int is_hid, int cluster,
+ 			   struct timespec *ts, struct fat_slot_info *sinfo)
  {
--	char tmp[64];
-+	char tmp[CGROUP_LOCAL_BUFFER_SIZE];
- 	s64 val = cft->read_s64(cgrp, cft);
- 	int len = sprintf(tmp, "%lld\n", (long long) val);
++	struct msdos_sb_info *sbi = MSDOS_SB(dir->i_sb);
+ 	struct msdos_dir_entry de;
+ 	__le16 time, date;
+ 	int err;
+@@ -246,7 +247,7 @@ static int msdos_add_entry(struct inode 
+ 	if (is_hid)
+ 		de.attr |= ATTR_HIDDEN;
+ 	de.lcase = 0;
+-	fat_date_unix2dos(ts->tv_sec, &time, &date);
++	fat_date_unix2dos(ts->tv_sec, &time, &date, sbi->options.tz_utc);
+ 	de.cdate = de.adate = 0;
+ 	de.ctime = 0;
+ 	de.ctime_cs = 0;
+diff -puN fs/vfat/namei.c~fatfs-add-utc-timestamp-option fs/vfat/namei.c
+--- a/fs/vfat/namei.c~fatfs-add-utc-timestamp-option
++++ a/fs/vfat/namei.c
+@@ -621,7 +621,7 @@ shortname:
+ 	memcpy(de->name, msdos_name, MSDOS_NAME);
+ 	de->attr = is_dir ? ATTR_DIR : ATTR_ARCH;
+ 	de->lcase = lcase;
+-	fat_date_unix2dos(ts->tv_sec, &time, &date);
++	fat_date_unix2dos(ts->tv_sec, &time, &date, sbi->options.tz_utc);
+ 	de->time = de->ctime = time;
+ 	de->date = de->cdate = de->adate = date;
+ 	de->ctime_cs = 0;
+diff -puN include/linux/msdos_fs.h~fatfs-add-utc-timestamp-option include/linux/msdos_fs.h
+--- a/include/linux/msdos_fs.h~fatfs-add-utc-timestamp-option
++++ a/include/linux/msdos_fs.h
+@@ -203,7 +203,8 @@ struct fat_mount_options {
+ 		 numtail:1,       /* Does first alias have a numeric '~1' type tail? */
+ 		 flush:1,	  /* write things quickly */
+ 		 nocase:1,	  /* Does this need case conversion? 0=need case conversion*/
+-		 usefree:1;	  /* Use free_clusters for FAT32 */
++		 usefree:1,	  /* Use free_clusters for FAT32 */
++		 tz_utc:1;	  /* Filesystem timestamps are in UTC */
+ };
  
+ #define FAT_HASH_BITS	8
+@@ -434,8 +435,9 @@ extern int fat_flush_inodes(struct super
+ extern void fat_fs_panic(struct super_block *s, const char *fmt, ...);
+ extern void fat_clusters_flush(struct super_block *sb);
+ extern int fat_chain_add(struct inode *inode, int new_dclus, int nr_cluster);
+-extern int date_dos2unix(unsigned short time, unsigned short date);
+-extern void fat_date_unix2dos(int unix_date, __le16 *time, __le16 *date);
++extern int date_dos2unix(unsigned short time, unsigned short date, int tz_utc);
++extern void fat_date_unix2dos(int unix_date, __le16 *time, __le16 *date,
++			      int tz_utc);
+ extern int fat_sync_bhs(struct buffer_head **bhs, int nr_bhs);
+ 
+ int fat_cache_init(void);
 _
 
-Patches currently in -mm which might be from menage@google.com are
+Patches currently in -mm which might be from joe@skyrush.com are
 
-cgroups-document-the-effect-of-attaching-pid-0-to-a-cgroup.patch
-cgroups-document-the-effect-of-attaching-pid-0-to-a-cgroup-fix.patch
-call_usermodehelper-increase-reliability.patch
-cgroup-use-read-lock-to-guard-find_existing_css_set.patch
-mark-res_counter_charge_locked-with-__must_check.patch
-cgroup-list_for_each-cleanup-v2.patch
-cgroup-anotate-two-variables-with-__read_mostly.patch
-cgroup-files-clean-up-whitespace-in-struct-cftype.patch
-cgroup-files-add-write_string-cgroup-control-file-method.patch
-cgroup-files-move-the-release_agent-file-to-use-typed-handlers.patch
-cgroups-misc-cleanups-to-write_string-patchset.patch
-cgroup-files-move-notify_on_release-file-to-separate-write-handler.patch
-cgroup-files-turn-attach_task_by_pid-directly-into-a-cgroup-write-handler.patch
-cgroup-files-remove-cpuset_common_file_write.patch
-cgroup-files-convert-devcgroup_access_write-into-a-cgroup-write_string-handler.patch
-cgroup-files-convert-res_counter_write-to-be-a-cgroups-write_string-handler.patch
-cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup.patch
-cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-checkpatch-fixes.patch
-memcg-remove-refcnt-from-page_cgroup.patch
-memcg-remove-refcnt-from-page_cgroup-fix.patch
-memcg-remove-refcnt-from-page_cgroup-fix-2.patch
-memcg-remove-refcnt-from-page_cgroup-fix-memcg-fix-mem_cgroup_end_migration-race.patch
-memcg-handle-swap-cache.patch
-memcg-handle-swap-cache-fix.patch
-memcg-handle-swap-cache-fix-shmem-page-migration-incorrectness-on-memcgroup.patch
-memcg-helper-function-for-relcaim-from-shmem.patch
-memcg-add-hints-for-branch.patch
-memcg-remove-a-redundant-check.patch
-memrlimit-add-memrlimit-controller-documentation.patch
-memrlimit-setup-the-memrlimit-controller.patch
-memrlimit-setup-the-memrlimit-controller-cgroup-files-convert-res_counter_write-to-be-a-cgroups-write_string-handler-memrlimitcgroup.patch
-memrlimit-setup-the-memrlimit-controller-memrlimit-correct-mremap-and-move_vma-accounting.patch
-memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
-memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info-memrlimit-fix-sleep-inside-sleeplock-in-mm_update_next_owner.patch
-memrlimit-add-memrlimit-controller-accounting-and-control.patch
-memrlimit-add-memrlimit-controller-accounting-and-control-memrlimit-improve-fork-and-error-handling.patch
-memrlimit-improve-error-handling.patch
-memrlimit-improve-error-handling-update.patch
-memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
-memrlimit-handle-attach_task-failure-add-can_attach-callback-update.patch
-cpusets-update-tasks-cpus_allowed-and-mems_allowed-after-cpu-node-offline-online.patch
-workqueues-make-get_online_cpus-useable-for-work-func.patch
-s390-topology-dont-use-kthread-for-arch_reinit_sched_domains.patch
-make-cgroup_seqfile_release-static.patch
-add-a-refcount-check-in-dput.patch
+fatfs-add-utc-timestamp-option.patch
 
