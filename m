@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ext3-handle-deleting-corrupted-indirect-blocks-fix.patch added to -mm tree
-Date: Wed, 02 Jul 2008 02:09:38 -0700
-Message-ID: <200807020909.m6299cxR008863@imap1.linux-foundation.org>
+Subject: + arch-x86-kernel-smpbootc-fix-warning.patch added to -mm tree
+Date: Wed, 02 Jul 2008 02:10:54 -0700
+Message-ID: <200807020910.m629AsBP008900@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56311 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56037 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752142AbYGBJJp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 05:09:45 -0400
+	by vger.kernel.org with ESMTP id S1753019AbYGBJLW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 05:11:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, duaneg@dghda.com, linux-ext4@vger.kernel.org
+Cc: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     ext3-handle-deleting-corrupted-indirect-blocks-fix
+     arch/x86/kernel/smpboot.c: fix warning
 has been added to the -mm tree.  Its filename is
-     ext3-handle-deleting-corrupted-indirect-blocks-fix.patch
+     arch-x86-kernel-smpbootc-fix-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,35 +33,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext3-handle-deleting-corrupted-indirect-blocks-fix
+Subject: arch/x86/kernel/smpboot.c: fix warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/ext3/inode.c: In function 'ext3_free_data':
-fs/ext3/inode.c:2146: warning: format '%lu' expects type 'long unsigned int', but argument 5 has type 'sector_t'
+arch/x86/kernel/smpboot.c: In function 'do_boot_cpu':
+arch/x86/kernel/smpboot.c:943: warning: label 'restore_state' defined but not used
 
-Cc: <linux-ext4@vger.kernel.org>
-Cc: Duane Griffin <duaneg@dghda.com>
+(ugh)
+
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/inode.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ arch/x86/kernel/smpboot.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/ext3/inode.c~ext3-handle-deleting-corrupted-indirect-blocks-fix fs/ext3/inode.c
---- a/fs/ext3/inode.c~ext3-handle-deleting-corrupted-indirect-blocks-fix
-+++ a/fs/ext3/inode.c
-@@ -2142,8 +2142,9 @@ static void ext3_free_data(handle_t *han
- 		else
- 			ext3_error(inode->i_sb, "ext3_free_data",
- 				   "circular indirect block detected, "
--				   "inode=%lu, block="E3FSBLK,
--				   inode->i_ino, this_bh->b_blocknr);
-+				   "inode=%lu, block=%llu",
-+				   inode->i_ino,
-+				   (unsigned long long)this_bh->b_blocknr);
+diff -puN arch/x86/kernel/smpboot.c~arch-x86-kernel-smpbootc-fix-warning arch/x86/kernel/smpboot.c
+--- a/arch/x86/kernel/smpboot.c~arch-x86-kernel-smpbootc-fix-warning
++++ a/arch/x86/kernel/smpboot.c
+@@ -939,9 +939,9 @@ do_rest:
+ 				inquire_remote_apic(apicid);
+ 		}
  	}
- }
- 
+-
++#ifdef CONFIG_X86_64
+ restore_state:
+-
++#endif
+ 	if (boot_error) {
+ 		/* Try to put things back the way they were before ... */
+ 		numa_remove_cpu(cpu); /* was set by numa_add_cpu */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -224,4 +226,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
+arch-x86-kernel-smpbootc-fix-warning.patch
 
