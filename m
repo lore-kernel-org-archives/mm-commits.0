@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + security-remove-unused-forwards.patch added to -mm tree
-Date: Tue, 01 Jul 2008 17:01:01 -0700
-Message-ID: <200807020001.m62011fC021702@imap1.linux-foundation.org>
+Subject: + exec-remove-some-includes.patch added to -mm tree
+Date: Tue, 01 Jul 2008 17:01:36 -0700
+Message-ID: <200807020001.m6201as9021732@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37832 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42526 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758249AbYGBABh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 20:01:37 -0400
+	by vger.kernel.org with ESMTP id S1760853AbYGBACO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 20:02:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hugh@veritas.com, jmorris@namei.org
+Cc: hugh@veritas.com
 
 
 The patch titled
-     security: remove unused forwards
+     exec: remove some includes
 has been added to the -mm tree.  Its filename is
-     security-remove-unused-forwards.patch
+     exec-remove-some-includes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,33 +33,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: security: remove unused forwards
+Subject: exec: remove some includes
 From: Hugh Dickins <hugh@veritas.com>
 
-Why would linux/security.h need forward declarations for nfsctl_arg and
-swap_info_struct?  It's hard to imagine: remove them.
+fs/exec.c used to need mman.h pagemap.h swap.h and rmap.h when it did
+mm-ish stuff in install_arg_page(); but no need for them after 2.6.22.
 
 Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Acked-by: James Morris <jmorris@namei.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/security.h |    2 --
- 1 file changed, 2 deletions(-)
+ fs/exec.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN include/linux/security.h~security-remove-unused-forwards include/linux/security.h
---- a/include/linux/security.h~security-remove-unused-forwards
-+++ a/include/linux/security.h
-@@ -101,9 +101,7 @@ extern unsigned long mmap_min_addr;
- #define LSM_SETID_FS	8
- 
- /* forward declares to avoid warnings */
--struct nfsctl_arg;
- struct sched_param;
--struct swap_info_struct;
- struct request_sock;
- 
- /* bprm_apply_creds unsafe reasons */
+diff -puN fs/exec.c~exec-remove-some-includes fs/exec.c
+--- a/fs/exec.c~exec-remove-some-includes
++++ a/fs/exec.c
+@@ -25,19 +25,17 @@
+ #include <linux/slab.h>
+ #include <linux/file.h>
+ #include <linux/fdtable.h>
+-#include <linux/mman.h>
++#include <linux/mm.h>
+ #include <linux/stat.h>
+ #include <linux/fcntl.h>
+ #include <linux/smp_lock.h>
+ #include <linux/string.h>
+ #include <linux/init.h>
+-#include <linux/pagemap.h>
+ #include <linux/highmem.h>
+ #include <linux/spinlock.h>
+ #include <linux/key.h>
+ #include <linux/personality.h>
+ #include <linux/binfmts.h>
+-#include <linux/swap.h>
+ #include <linux/utsname.h>
+ #include <linux/pid_namespace.h>
+ #include <linux/module.h>
+@@ -47,7 +45,6 @@
+ #include <linux/mount.h>
+ #include <linux/security.h>
+ #include <linux/syscalls.h>
+-#include <linux/rmap.h>
+ #include <linux/tsacct_kern.h>
+ #include <linux/cn_proc.h>
+ #include <linux/audit.h>
 _
 
 Patches currently in -mm which might be from hugh@veritas.com are
@@ -94,6 +112,7 @@ hugetlb-reservations-move-region-tracking-earlier.patch
 hugetlb-reservations-fix-hugetlb-map_private-reservations-across-vma-splits-v2.patch
 hugetlb-fix-race-when-reading-proc-meminfo.patch
 security-remove-unused-forwards.patch
+exec-remove-some-includes.patch
 memcg-better-migration-handling.patch
 memcg-remove-refcnt-from-page_cgroup.patch
 memcg-remove-refcnt-from-page_cgroup-fix.patch
