@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + gpiolib-allow-user-selection.patch added to -mm tree
-Date: Wed, 02 Jul 2008 16:40:05 -0700
-Message-ID: <200807022340.m62Ne5Zj009682@imap1.linux-foundation.org>
+Subject: + x86-fix-intel-mac-booting-with-efi.patch added to -mm tree
+Date: Wed, 02 Jul 2008 16:40:47 -0700
+Message-ID: <200807022340.m62NelKu009702@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48715 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47053 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751222AbYGBXln (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 19:41:43 -0400
+	by vger.kernel.org with ESMTP id S1750985AbYGBXmP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 19:42:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mb@bu3sch.de, benh@kernel.crashing.org, bunk@stusta.de, david-b@pacbell.net, galak@gate.crashing.org, hskinnemoen@atmel.com, jesper.nilsson@axis.com, khali@linux-fr.org, mingo@elte.hu, paulus@samba.org, ralf@linux-mips.org, rmk@arm.linux.org.uk, sam@ravnborg.org, sameo@openedhand.com, sfr@canb.auug.org.au, tglx@linutronix.de
+Cc: hugh@veritas.com, mingo@elte.hu, pjones@redhat.com, tglx@linutronix.de
 
 
 The patch titled
-     gpiolib: allow user-selection
+     x86: fix Intel Mac booting with EFI
 has been added to the -mm tree.  Its filename is
-     gpiolib-allow-user-selection.patch
+     x86-fix-intel-mac-booting-with-efi.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,478 +33,138 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpiolib: allow user-selection
-From: Michael Buesch <mb@bu3sch.de>
+Subject: x86: fix Intel Mac booting with EFI
+From: Hugh Dickins <hugh@veritas.com>
 
-This patch adds functionality to the gpio-lib subsystem to make it
-possible to enable the gpio-lib code even if the architecture code didn't
-request to get it built in.
+Fedora reports that mem_init()'s zap_low_mappings(), extended to SMP in
+61165d7a035f6571c7576e7f51e7230157724c8d x86: fix app crashes after SMP
+resume causes 32-bit Intel Mac machines to reboot very early when booting
+with EFI.
 
-The archtitecture code does still need to implement the gpiolib accessor
-functions in its asm/gpio.h file.  This patch adds the implementations for
-x86 and PPC.
+The EFI code appears to manage low mappings for itself when needed; but
+like many before it, confuses PSE with PAE.  So it has only been mapping
+half the space it needed when PSE but not PAE.  This remained unnoticed
+until we moved the SMP zap_low_mappings() before efi_enter_virtual_mode().
+ Presumably could have been noticed years ago if anyone ran a UP kernel on
+such machines?
 
-With these changes it is possible to run generic GPIO expansion cards on
-every architecture that implements the trivial wrapper functions.  Support
-for more architectures can easily be added.
-
-Signed-off-by: Michael Buesch <mb@bu3sch.de>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Cc: Jesper Nilsson <jesper.nilsson@axis.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Reviewed-by: Peter Jones <pjones@redhat.com>
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Tested-by: Peter Jones <pjones@redhat.com>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: Samuel Ortiz <sameo@openedhand.com>
-Cc: Kumar Gala <galak@gate.crashing.org>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/gpio.txt                 |   12 ++++
- arch/arm/Kconfig                       |    8 +--
- arch/arm/configs/am200epdkit_defconfig |    2 
- arch/avr32/Kconfig                     |    2 
- arch/avr32/configs/atngw100_defconfig  |    2 
- arch/avr32/configs/atstk1002_defconfig |    2 
- arch/avr32/configs/atstk1003_defconfig |    2 
- arch/avr32/configs/atstk1004_defconfig |    2 
- arch/mips/Kconfig                      |    2 
- arch/powerpc/Kconfig                   |    1 
- arch/powerpc/platforms/52xx/Kconfig    |    2 
- arch/x86/Kconfig                       |    1 
- drivers/Makefile                       |    2 
- drivers/gpio/Kconfig                   |   33 +++++++++++--
- drivers/gpio/Makefile                  |    2 
- drivers/i2c/chips/Kconfig              |    2 
- drivers/mfd/Kconfig                    |    2 
- drivers/of/Kconfig                     |    2 
- include/asm-generic/gpio.h             |    2 
- include/asm-mips/mach-generic/gpio.h   |    2 
- include/asm-powerpc/gpio.h             |    4 -
- include/asm-x86/gpio.h                 |   56 +++++++++++++++++++++++
- 22 files changed, 119 insertions(+), 26 deletions(-)
+ arch/x86/kernel/efi_32.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN Documentation/gpio.txt~gpiolib-allow-user-selection Documentation/gpio.txt
---- a/Documentation/gpio.txt~gpiolib-allow-user-selection
-+++ a/Documentation/gpio.txt
-@@ -389,11 +389,21 @@ either NULL or the label associated with
+diff -puN arch/x86/kernel/efi_32.c~x86-fix-intel-mac-booting-with-efi arch/x86/kernel/efi_32.c
+--- a/arch/x86/kernel/efi_32.c~x86-fix-intel-mac-booting-with-efi
++++ a/arch/x86/kernel/efi_32.c
+@@ -49,13 +49,13 @@ void efi_call_phys_prelog(void)
+ 	local_irq_save(efi_rt_eflags);
  
- Platform Support
- ----------------
--To support this framework, a platform's Kconfig will "select HAVE_GPIO_LIB"
-+To support this framework, a platform's Kconfig will "select" either
-+ARCH_REQUIRE_GPIOLIB or ARCH_WANT_OPTIONAL_GPIOLIB
- and arrange that its <asm/gpio.h> includes <asm-generic/gpio.h> and defines
- three functions: gpio_get_value(), gpio_set_value(), and gpio_cansleep().
- They may also want to provide a custom value for ARCH_NR_GPIOS.
+ 	/*
+-	 * If I don't have PSE, I should just duplicate two entries in page
+-	 * directory. If I have PSE, I just need to duplicate one entry in
++	 * If I don't have PAE, I should just duplicate two entries in page
++	 * directory. If I have PAE, I just need to duplicate one entry in
+ 	 * page directory.
+ 	 */
+ 	cr4 = read_cr4();
  
-+ARCH_REQUIRE_GPIOLIB means that the gpio-lib code will always get compiled
-+into the kernel on that architecture.
-+
-+ARCH_WANT_OPTIONAL_GPIOLIB means the gpio-lib code defaults to off and the user
-+can enable it and build it into the kernel optionally.
-+
-+If neither of these options are selected, the platform does not support
-+GPIOs through GPIO-lib and the code cannot be enabled by the user.
-+
- Trivial implementations of those functions can directly use framework
- code, which always dispatches through the gpio_chip:
+-	if (cr4 & X86_CR4_PSE) {
++	if (cr4 & X86_CR4_PAE) {
+ 		efi_bak_pg_dir_pointer[0].pgd =
+ 		    swapper_pg_dir[pgd_index(0)].pgd;
+ 		swapper_pg_dir[0].pgd =
+@@ -93,7 +93,7 @@ void efi_call_phys_epilog(void)
  
-diff -puN arch/arm/Kconfig~gpiolib-allow-user-selection arch/arm/Kconfig
---- a/arch/arm/Kconfig~gpiolib-allow-user-selection
-+++ a/arch/arm/Kconfig
-@@ -268,7 +268,7 @@ config ARCH_EP93XX
- 	select GENERIC_GPIO
- 	select HAVE_CLK
- 	select HAVE_CLK
--	select HAVE_GPIO_LIB
-+	select ARCH_REQUIRE_GPIOLIB
- 	help
- 	  This enables support for the Cirrus EP93xx series of CPUs.
+ 	cr4 = read_cr4();
  
-@@ -439,7 +439,7 @@ config ARCH_PXA
- 	select ARCH_MTD_XIP
- 	select GENERIC_GPIO
- 	select HAVE_CLK
--	select HAVE_GPIO_LIB
-+	select ARCH_REQUIRE_GPIOLIB
- 	select GENERIC_TIME
- 	select GENERIC_CLOCKEVENTS
- 	select TICK_ONESHOT
-@@ -470,7 +470,7 @@ config ARCH_SA1100
- 	select GENERIC_CLOCKEVENTS
- 	select HAVE_CLK
- 	select TICK_ONESHOT
--	select HAVE_GPIO_LIB
-+	select ARCH_REQUIRE_GPIOLIB
- 	help
- 	  Support for StrongARM 11x0 based boards.
- 
-@@ -513,7 +513,7 @@ config ARCH_OMAP
- 	bool "TI OMAP"
- 	select GENERIC_GPIO
- 	select HAVE_CLK
--	select HAVE_GPIO_LIB
-+	select ARCH_REQUIRE_GPIOLIB
- 	select GENERIC_TIME
- 	select GENERIC_CLOCKEVENTS
- 	help
-diff -puN arch/arm/configs/am200epdkit_defconfig~gpiolib-allow-user-selection arch/arm/configs/am200epdkit_defconfig
---- a/arch/arm/configs/am200epdkit_defconfig~gpiolib-allow-user-selection
-+++ a/arch/arm/configs/am200epdkit_defconfig
-@@ -668,7 +668,7 @@ CONFIG_UNIX98_PTYS=y
- #
- # CONFIG_SPI is not set
- # CONFIG_SPI_MASTER is not set
--CONFIG_HAVE_GPIO_LIB=y
-+CONFIG_ARCH_REQUIRE_GPIOLIB=y
- 
- #
- # GPIO Support
-diff -puN arch/avr32/Kconfig~gpiolib-allow-user-selection arch/avr32/Kconfig
---- a/arch/avr32/Kconfig~gpiolib-allow-user-selection
-+++ a/arch/avr32/Kconfig
-@@ -88,7 +88,7 @@ config PLATFORM_AT32AP
- 	select SUBARCH_AVR32B
- 	select MMU
- 	select PERFORMANCE_COUNTERS
--	select HAVE_GPIO_LIB
-+	select ARCH_REQUIRE_GPIOLIB
- 
- #
- # CPU types
-diff -puN arch/avr32/configs/atngw100_defconfig~gpiolib-allow-user-selection arch/avr32/configs/atngw100_defconfig
---- a/arch/avr32/configs/atngw100_defconfig~gpiolib-allow-user-selection
-+++ a/arch/avr32/configs/atngw100_defconfig
-@@ -646,7 +646,7 @@ CONFIG_SPI_ATMEL=y
- # CONFIG_SPI_AT25 is not set
- CONFIG_SPI_SPIDEV=m
- # CONFIG_SPI_TLE62X0 is not set
--CONFIG_HAVE_GPIO_LIB=y
-+CONFIG_ARCH_REQUIRE_GPIOLIB=y
- 
- #
- # GPIO Support
-diff -puN arch/avr32/configs/atstk1002_defconfig~gpiolib-allow-user-selection arch/avr32/configs/atstk1002_defconfig
---- a/arch/avr32/configs/atstk1002_defconfig~gpiolib-allow-user-selection
-+++ a/arch/avr32/configs/atstk1002_defconfig
-@@ -664,7 +664,7 @@ CONFIG_SPI_ATMEL=y
- # CONFIG_SPI_AT25 is not set
- CONFIG_SPI_SPIDEV=m
- # CONFIG_SPI_TLE62X0 is not set
--CONFIG_HAVE_GPIO_LIB=y
-+CONFIG_ARCH_REQUIRE_GPIOLIB=y
- 
- #
- # GPIO Support
-diff -puN arch/avr32/configs/atstk1003_defconfig~gpiolib-allow-user-selection arch/avr32/configs/atstk1003_defconfig
---- a/arch/avr32/configs/atstk1003_defconfig~gpiolib-allow-user-selection
-+++ a/arch/avr32/configs/atstk1003_defconfig
-@@ -614,7 +614,7 @@ CONFIG_SPI_ATMEL=y
- # CONFIG_SPI_AT25 is not set
- CONFIG_SPI_SPIDEV=m
- # CONFIG_SPI_TLE62X0 is not set
--CONFIG_HAVE_GPIO_LIB=y
-+CONFIG_ARCH_REQUIRE_GPIOLIB=y
- 
- #
- # GPIO Support
-diff -puN arch/avr32/configs/atstk1004_defconfig~gpiolib-allow-user-selection arch/avr32/configs/atstk1004_defconfig
---- a/arch/avr32/configs/atstk1004_defconfig~gpiolib-allow-user-selection
-+++ a/arch/avr32/configs/atstk1004_defconfig
-@@ -390,7 +390,7 @@ CONFIG_SPI_ATMEL=y
- # CONFIG_SPI_AT25 is not set
- # CONFIG_SPI_SPIDEV is not set
- # CONFIG_SPI_TLE62X0 is not set
--CONFIG_HAVE_GPIO_LIB=y
-+CONFIG_ARCH_REQUIRE_GPIOLIB=y
- 
- #
- # GPIO Support
-diff -puN arch/mips/Kconfig~gpiolib-allow-user-selection arch/mips/Kconfig
---- a/arch/mips/Kconfig~gpiolib-allow-user-selection
-+++ a/arch/mips/Kconfig
-@@ -800,7 +800,7 @@ config CSRC_SB1250
- 
- config GPIO_TXX9
- 	select GENERIC_GPIO
--	select HAVE_GPIO_LIB
-+	select ARCH_REQUIRE_GPIOLIB
- 	bool
- 
- config CFE
-diff -puN arch/powerpc/Kconfig~gpiolib-allow-user-selection arch/powerpc/Kconfig
---- a/arch/powerpc/Kconfig~gpiolib-allow-user-selection
-+++ a/arch/powerpc/Kconfig
-@@ -114,6 +114,7 @@ config PPC
- 	select HAVE_KRETPROBES
- 	select HAVE_LMB
- 	select HAVE_OPROFILE
-+	select ARCH_WANT_OPTIONAL_GPIOLIB
- 
- config EARLY_PRINTK
- 	bool
-diff -puN arch/powerpc/platforms/52xx/Kconfig~gpiolib-allow-user-selection arch/powerpc/platforms/52xx/Kconfig
---- a/arch/powerpc/platforms/52xx/Kconfig~gpiolib-allow-user-selection
-+++ a/arch/powerpc/platforms/52xx/Kconfig
-@@ -47,6 +47,6 @@ config PPC_MPC5200_BUGFIX
- config PPC_MPC5200_GPIO
- 	bool "MPC5200 GPIO support"
- 	depends on PPC_MPC52xx
--	select HAVE_GPIO_LIB
-+	select ARCH_REQUIRE_GPIOLIB
- 	help
- 	  Enable gpiolib support for mpc5200 based boards
-diff -puN arch/x86/Kconfig~gpiolib-allow-user-selection arch/x86/Kconfig
---- a/arch/x86/Kconfig~gpiolib-allow-user-selection
-+++ a/arch/x86/Kconfig
-@@ -29,6 +29,7 @@ config X86
- 	select HAVE_KVM if ((X86_32 && !X86_VOYAGER && !X86_VISWS && !X86_NUMAQ) || X86_64)
- 	select HAVE_ARCH_KGDB if !X86_VOYAGER
- 	select HAVE_EFFICIENT_UNALIGNED_ACCESS
-+	select ARCH_WANT_OPTIONAL_GPIOLIB if !X86_RDC321X
- 
- config ARCH_DEFCONFIG
- 	string
-diff -puN drivers/Makefile~gpiolib-allow-user-selection drivers/Makefile
---- a/drivers/Makefile~gpiolib-allow-user-selection
-+++ a/drivers/Makefile
-@@ -5,7 +5,7 @@
- # Rewritten to use lists instead of if-statements.
- #
- 
--obj-$(CONFIG_HAVE_GPIO_LIB)	+= gpio/
-+obj-y				+= gpio/
- obj-$(CONFIG_PCI)		+= pci/
- obj-$(CONFIG_PARISC)		+= parisc/
- obj-$(CONFIG_RAPIDIO)		+= rapidio/
-diff -puN drivers/gpio/Kconfig~gpiolib-allow-user-selection drivers/gpio/Kconfig
---- a/drivers/gpio/Kconfig~gpiolib-allow-user-selection
-+++ a/drivers/gpio/Kconfig
-@@ -2,15 +2,40 @@
- # GPIO infrastructure and expanders
- #
- 
--config HAVE_GPIO_LIB
-+config ARCH_WANT_OPTIONAL_GPIOLIB
- 	bool
- 	help
-+	  Select this config option from the architecture Kconfig, if
-+	  it is possible to use gpiolib on the architecture, but let the
-+	  user decide whether to actually build it or not.
-+	  Select this instead of ARCH_REQUIRE_GPIOLIB, if your architecture does
-+	  not depend on GPIOs being available, but rather let the user
-+	  decide whether he needs it or not.
-+
-+config ARCH_REQUIRE_GPIOLIB
-+	bool
-+	select GPIOLIB
-+	help
- 	  Platforms select gpiolib if they use this infrastructure
- 	  for all their GPIOs, usually starting with ones integrated
- 	  into SOC processors.
-+	  Selecting this from the architecture code will cause the gpiolib
-+	  code to always get built in.
-+
-+
-+
-+menuconfig GPIOLIB
-+	bool "GPIO Support"
-+	depends on ARCH_WANT_OPTIONAL_GPIOLIB || ARCH_REQUIRE_GPIOLIB
-+	select GENERIC_GPIO
-+	help
-+	  This enables GPIO support through the generic GPIO library.
-+	  You only need to enable this, if you also want to enable
-+	  one or more of the GPIO expansion card drivers below.
-+
-+	  If unsure, say N.
- 
--menu "GPIO Support"
--	depends on HAVE_GPIO_LIB
-+if GPIOLIB
- 
- config DEBUG_GPIO
- 	bool "Debug GPIO calls"
-@@ -115,4 +140,4 @@ config GPIO_MCP23S08
- 	  SPI driver for Microchip MCP23S08 I/O expander.  This provides
- 	  a GPIO interface supporting inputs and outputs.
- 
--endmenu
-+endif
-diff -puN drivers/gpio/Makefile~gpiolib-allow-user-selection drivers/gpio/Makefile
---- a/drivers/gpio/Makefile~gpiolib-allow-user-selection
-+++ a/drivers/gpio/Makefile
-@@ -2,7 +2,7 @@
- 
- ccflags-$(CONFIG_DEBUG_GPIO)	+= -DDEBUG
- 
--obj-$(CONFIG_HAVE_GPIO_LIB)	+= gpiolib.o
-+obj-$(CONFIG_GPIOLIB)		+= gpiolib.o
- 
- obj-$(CONFIG_GPIO_MAX7301)	+= max7301.o
- obj-$(CONFIG_GPIO_MCP23S08)	+= mcp23s08.o
-diff -puN drivers/i2c/chips/Kconfig~gpiolib-allow-user-selection drivers/i2c/chips/Kconfig
---- a/drivers/i2c/chips/Kconfig~gpiolib-allow-user-selection
-+++ a/drivers/i2c/chips/Kconfig
-@@ -100,7 +100,7 @@ config ISP1301_OMAP
- 
- config TPS65010
- 	tristate "TPS6501x Power Management chips"
--	depends on HAVE_GPIO_LIB
-+	depends on GPIOLIB
- 	default y if MACH_OMAP_H2 || MACH_OMAP_H3 || MACH_OMAP_OSK
- 	help
- 	  If you say yes here you get support for the TPS6501x series of
-diff -puN drivers/mfd/Kconfig~gpiolib-allow-user-selection drivers/mfd/Kconfig
---- a/drivers/mfd/Kconfig~gpiolib-allow-user-selection
-+++ a/drivers/mfd/Kconfig
-@@ -36,7 +36,7 @@ config MFD_ASIC3
- 
- config HTC_EGPIO
- 	bool "HTC EGPIO support"
--	depends on GENERIC_HARDIRQS && HAVE_GPIO_LIB && ARM
-+	depends on GENERIC_HARDIRQS && GPIOLIB && ARM
- 	help
- 	    This driver supports the CPLD egpio chip present on
- 	    several HTC phones.  It provides basic support for input
-diff -puN drivers/of/Kconfig~gpiolib-allow-user-selection drivers/of/Kconfig
---- a/drivers/of/Kconfig~gpiolib-allow-user-selection
-+++ a/drivers/of/Kconfig
-@@ -4,7 +4,7 @@ config OF_DEVICE
- 
- config OF_GPIO
- 	def_bool y
--	depends on OF && PPC_OF && HAVE_GPIO_LIB
-+	depends on OF && PPC_OF && GPIOLIB
- 	help
- 	  OpenFirmware GPIO accessors
- 
-diff -puN include/asm-generic/gpio.h~gpiolib-allow-user-selection include/asm-generic/gpio.h
---- a/include/asm-generic/gpio.h~gpiolib-allow-user-selection
-+++ a/include/asm-generic/gpio.h
-@@ -3,7 +3,7 @@
- 
- #include <linux/types.h>
- 
--#ifdef CONFIG_HAVE_GPIO_LIB
-+#ifdef CONFIG_GPIOLIB
- 
- #include <linux/compiler.h>
- 
-diff -puN include/asm-mips/mach-generic/gpio.h~gpiolib-allow-user-selection include/asm-mips/mach-generic/gpio.h
---- a/include/asm-mips/mach-generic/gpio.h~gpiolib-allow-user-selection
-+++ a/include/asm-mips/mach-generic/gpio.h
-@@ -1,7 +1,7 @@
- #ifndef __ASM_MACH_GENERIC_GPIO_H
- #define __ASM_MACH_GENERIC_GPIO_H
- 
--#ifdef CONFIG_HAVE_GPIO_LIB
-+#ifdef CONFIG_GPIOLIB
- #define gpio_get_value	__gpio_get_value
- #define gpio_set_value	__gpio_set_value
- #define gpio_cansleep	__gpio_cansleep
-diff -puN include/asm-powerpc/gpio.h~gpiolib-allow-user-selection include/asm-powerpc/gpio.h
---- a/include/asm-powerpc/gpio.h~gpiolib-allow-user-selection
-+++ a/include/asm-powerpc/gpio.h
-@@ -17,7 +17,7 @@
- #include <linux/errno.h>
- #include <asm-generic/gpio.h>
- 
--#ifdef CONFIG_HAVE_GPIO_LIB
-+#ifdef CONFIG_GPIOLIB
- 
- /*
-  * We don't (yet) implement inlined/rapid versions for on-chip gpios.
-@@ -51,6 +51,6 @@ static inline int irq_to_gpio(unsigned i
- 	return -EINVAL;
- }
- 
--#endif /* CONFIG_HAVE_GPIO_LIB */
-+#endif /* CONFIG_GPIOLIB */
- 
- #endif /* __ASM_POWERPC_GPIO_H */
-diff -puN include/asm-x86/gpio.h~gpiolib-allow-user-selection include/asm-x86/gpio.h
---- a/include/asm-x86/gpio.h~gpiolib-allow-user-selection
-+++ a/include/asm-x86/gpio.h
-@@ -1,6 +1,62 @@
-+/*
-+ * Generic GPIO API implementation for x86.
-+ *
-+ * Derived from the generic GPIO API for powerpc:
-+ *
-+ * Copyright (c) 2007-2008  MontaVista Software, Inc.
-+ *
-+ * Author: Anton Vorontsov <avorontsov@ru.mvista.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
- #ifndef _ASM_I386_GPIO_H
- #define _ASM_I386_GPIO_H
- 
-+#ifdef CONFIG_X86_RDC321X
- #include <gpio.h>
-+#else /* CONFIG_X86_RDC321X */
-+
-+#include <asm-generic/gpio.h>
-+
-+#ifdef CONFIG_GPIOLIB
-+
-+/*
-+ * Just call gpiolib.
-+ */
-+static inline int gpio_get_value(unsigned int gpio)
-+{
-+	return __gpio_get_value(gpio);
-+}
-+
-+static inline void gpio_set_value(unsigned int gpio, int value)
-+{
-+	__gpio_set_value(gpio, value);
-+}
-+
-+static inline int gpio_cansleep(unsigned int gpio)
-+{
-+	return __gpio_cansleep(gpio);
-+}
-+
-+/*
-+ * Not implemented, yet.
-+ */
-+static inline int gpio_to_irq(unsigned int gpio)
-+{
-+	return -ENOSYS;
-+}
-+
-+static inline int irq_to_gpio(unsigned int irq)
-+{
-+	return -EINVAL;
-+}
-+
-+#endif /* CONFIG_GPIOLIB */
-+
-+#endif /* CONFIG_X86_RDC321X */
- 
- #endif /* _ASM_I386_GPIO_H */
+-	if (cr4 & X86_CR4_PSE) {
++	if (cr4 & X86_CR4_PAE) {
+ 		swapper_pg_dir[pgd_index(0)].pgd =
+ 		    efi_bak_pg_dir_pointer[0].pgd;
+ 	} else {
 _
 
-Patches currently in -mm which might be from mb@bu3sch.de are
+Patches currently in -mm which might be from hugh@veritas.com are
 
+mm-dirty-page-accounting-vs-vm_mixedmap.patch
 linux-next.patch
-drivers-net-wireless-b43legacy-dmac-remove-the-switch-in-b43legacy_dma_init.patch
-gpio-add-bt8xxgpio-driver.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch
-gpiolib-allow-user-selection.patch
+git-unionfs.patch
+unionfs-fix-memory-leak.patch
+fsstack-fsstack_copy_inode_size-locking.patch
+x86-fix-intel-mac-booting-with-efi.patch
+mm-remove-nopfn-fix.patch
+access_process_vm-device-memory-infrastructure.patch
+use-generic_access_phys-for-dev-mem-mappings.patch
+use-generic_access_phys-for-dev-mem-mappings-fix.patch
+use-generic_access_phys-for-pci-mmap-on-x86.patch
+powerpc-ioremap_prot.patch
+spufs-use-the-new-vm_ops-access.patch
+spufs-use-the-new-vm_ops-access-fix.patch
+mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co.patch
+hugetlb-move-hugetlb_acct_memory.patch
+hugetlb-reserve-huge-pages-for-reliable-map_private-hugetlbfs-mappings-until-fork.patch
+hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed.patch
+hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed-fix.patch
+hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed-build-fix.patch
+huge-page-private-reservation-review-cleanups.patch
+huge-page-private-reservation-review-cleanups-fix.patch
+mm-record-map_noreserve-status-on-vmas-and-fix-small-page-mprotect-reservations.patch
+hugetlb-move-reservation-region-support-earlier.patch
+hugetlb-allow-huge-page-mappings-to-be-created-without-reservations.patch
+hugetlb-allow-huge-page-mappings-to-be-created-without-reservations-cleanups.patch
+generic_file_aio_read-cleanups.patch
+tmpfs-support-aio.patch
+hugetlb-modular-state-for-hugetlb-page-size-cleanup.patch
+hugetlb-reservations-move-region-tracking-earlier.patch
+hugetlb-reservations-fix-hugetlb-map_private-reservations-across-vma-splits-v2.patch
+hugetlb-reservations-fix-hugetlb-map_private-reservations-across-vma-splits-v2-fix.patch
+hugetlb-fix-race-when-reading-proc-meminfo.patch
+mmu-notifiers-add-list_del_init_rcu.patch
+mmu-notifiers-add-mm_take_all_locks-operation.patch
+mmu-notifiers-add-mm_take_all_locks-operation-checkpatch-fixes.patch
+mmu-notifier-core.patch
+mmu-notifier-core-fix.patch
+security-remove-unused-forwards.patch
+exec-remove-some-includes.patch
+memcg-better-migration-handling.patch
+memcg-remove-refcnt-from-page_cgroup.patch
+memcg-remove-refcnt-from-page_cgroup-fix.patch
+memcg-remove-refcnt-from-page_cgroup-fix-2.patch
+memcg-remove-refcnt-from-page_cgroup-fix-memcg-fix-mem_cgroup_end_migration-race.patch
+memcg-remove-refcnt-from-page_cgroup-memcg-fix-shmem_unuse_inode-charging.patch
+memcg-handle-swap-cache.patch
+memcg-handle-swap-cache-fix.patch
+memcg-handle-swap-cache-fix-shmem-page-migration-incorrectness-on-memcgroup.patch
+memcg-helper-function-for-relcaim-from-shmem.patch
+memcg-helper-function-for-relcaim-from-shmem-memcg-shmem_getpage-release-page-sooner.patch
+memcg-helper-function-for-relcaim-from-shmem-memcg-mem_cgroup_shrink_usage-css_put.patch
+memcg-add-hints-for-branch.patch
+memcg-remove-a-redundant-check.patch
+memcg-clean-up-checking-of-the-disabled-flag-memcg-further-checking-of-disabled-flag.patch
+memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info-memrlimit-fix-sleep-inside-sleeplock-in-mm_update_next_owner.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-memrlimit-improve-fork-and-error-handling.patch
+memrlimit-improve-error-handling.patch
+memrlimit-improve-error-handling-update.patch
+memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
+memrlimit-handle-attach_task-failure-add-can_attach-callback-update.patch
+mm-readahead-scan-lockless.patch
+radix-tree-add-gang_lookup_slot-gang_lookup_slot_tag.patch
+mm-speculative-page-references.patch
+mm-speculative-page-references-fix.patch
+mm-speculative-page-references-fix-fix.patch
+mm-lockless-pagecache.patch
+mm-spinlock-tree_lock.patch
+powerpc-implement-pte_special.patch
+define-page_file_cache-function-fix-splitlru-shmem_getpage-setpageswapbacked-sooner.patch
+vmscan-split-lru-lists-into-anon-file-sets-splitlru-memcg-swapbacked-pages-active.patch
+vmscan-split-lru-lists-into-anon-file-sets-splitlru-bdi_cap_swap_backed.patch
+mlock-mlocked-pages-are-unevictable-fix-4.patch
+vmstat-mlocked-pages-statistics-fix-incorrect-mlocked-field-of-proc-meminfo.patch
+prio_tree-debugging-patch.patch
 
