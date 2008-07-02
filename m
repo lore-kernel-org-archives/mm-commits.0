@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ext3-validate-directory-entry-data-before-use-v5.patch added to -mm tree
-Date: Tue, 01 Jul 2008 20:37:17 -0700
-Message-ID: <200807020337.m623bHoF029491@imap1.linux-foundation.org>
+Subject: + dma-mapping-x86-per-device-dma_mapping_ops-support-x86-calgary-fix-handling-of-devces-that-arent-behind-the-calgary.patch added to -mm tree
+Date: Tue, 01 Jul 2008 21:07:16 -0700
+Message-ID: <200807020407.m6247GN1030497@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38911 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36838 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755681AbYGBDhy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 23:37:54 -0400
+	by vger.kernel.org with ESMTP id S1750991AbYGBEI4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 00:08:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: duaneg@dghda.com, linux-ext4@vger.kernel.org
+Cc: alexisb@us.ibm.com, fujita.tomonori@lab.ntt.co.jp, mingo@elte.hu, muli@il.ibm.com, tglx@linutronix.de
 
 
 The patch titled
-     ext3: validate directory entry data before use
+     x86 calgary: fix handling of devices that aren't behind the Calgary
 has been added to the -mm tree.  Its filename is
-     ext3-validate-directory-entry-data-before-use-v5.patch
+     dma-mapping-x86-per-device-dma_mapping_ops-support-x86-calgary-fix-handling-of-devces-that-arent-behind-the-calgary.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,75 +33,209 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext3: validate directory entry data before use
-From: "Duane Griffin" <duaneg@dghda.com>
+Subject: x86 calgary: fix handling of devices that aren't behind the Calgary
+From: Alexis Bruemmer <alexisb@us.ibm.com>
 
-ext3_dx_find_entry uses ext3_next_entry without verifying that the entry
-is valid.  If its rec_len == 0 this causes an infinite loop.  Refactor the
-loop to check the validity of entries before checking whether they match
-and moving onto the next one.
+The calgary code can give drivers addresses above 4GB which is very bad
+for hardware that is only 32bit DMA addressable.
 
-There are other uses of ext3_next_entry in this file which also look
-problematic.  They should be reviewed and fixed if/when we have a
-test-case that triggers them.
+With this patch, the calgary code sets the global dma_ops to swiotlb or
+nommu properly, and the dma_ops of devices behind the Calgary/CalIOC2
+to calgary_dma_ops.  So the calgary code can handle devices safely that
+aren't behind the Calgary/CalIOC2.
 
-This patch fixes the first case (image hdb.25.softlockup.gz) reported in
-http://bugzilla.kernel.org/show_bug.cgi?id=10882.
-
-Signed-off-by: Duane Griffin <duaneg@dghda.com>
-Cc: <linux-ext4@vger.kernel.org>
+Signed-off-by: Alexis Bruemmer <alexisb@us.ibm.com>
+Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: Muli Ben-Yehuda <muli@il.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/namei.c |   22 ++++++++++++----------
- 1 file changed, 12 insertions(+), 10 deletions(-)
+ arch/x86/kernel/pci-calgary_64.c |   72 ++++++++++-------------------
+ include/asm-x86/iommu.h          |    1 
+ 2 files changed, 28 insertions(+), 45 deletions(-)
 
-diff -puN fs/ext3/namei.c~ext3-validate-directory-entry-data-before-use-v5 fs/ext3/namei.c
---- a/fs/ext3/namei.c~ext3-validate-directory-entry-data-before-use-v5
-+++ a/fs/ext3/namei.c
-@@ -991,19 +991,21 @@ static struct buffer_head * ext3_dx_find
- 		de = (struct ext3_dir_entry_2 *) bh->b_data;
- 		top = (struct ext3_dir_entry_2 *) ((char *) de + sb->s_blocksize -
- 				       EXT3_DIR_REC_LEN(0));
--		for (; de < top; de = ext3_next_entry(de))
--		if (ext3_match (namelen, name, de)) {
--			if (!ext3_check_dir_entry("ext3_find_entry",
--						  dir, de, bh,
--				  (block<<EXT3_BLOCK_SIZE_BITS(sb))
--					  +((char *)de - bh->b_data))) {
--				brelse (bh);
-+		for (; de < top; de = ext3_next_entry(de)) {
-+			int off = (block << EXT3_BLOCK_SIZE_BITS(sb))
-+				  + ((char *) de - bh->b_data);
+diff -puN arch/x86/kernel/pci-calgary_64.c~dma-mapping-x86-per-device-dma_mapping_ops-support-x86-calgary-fix-handling-of-devces-that-arent-behind-the-calgary arch/x86/kernel/pci-calgary_64.c
+--- a/arch/x86/kernel/pci-calgary_64.c~dma-mapping-x86-per-device-dma_mapping_ops-support-x86-calgary-fix-handling-of-devces-that-arent-behind-the-calgary
++++ a/arch/x86/kernel/pci-calgary_64.c
+@@ -36,6 +36,7 @@
+ #include <linux/delay.h>
+ #include <linux/scatterlist.h>
+ #include <linux/iommu-helper.h>
++#include <asm/iommu.h>
+ #include <asm/gart.h>
+ #include <asm/calgary.h>
+ #include <asm/tce.h>
+@@ -410,22 +411,6 @@ static void calgary_unmap_sg(struct devi
+ 	}
+ }
+ 
+-static int calgary_nontranslate_map_sg(struct device* dev,
+-	struct scatterlist *sg, int nelems, int direction)
+-{
+-	struct scatterlist *s;
+-	int i;
+-
+-	for_each_sg(sg, s, nelems, i) {
+-		struct page *p = sg_page(s);
+-
+-		BUG_ON(!p);
+-		s->dma_address = virt_to_bus(sg_virt(s));
+-		s->dma_length = s->length;
+-	}
+-	return nelems;
+-}
+-
+ static int calgary_map_sg(struct device *dev, struct scatterlist *sg,
+ 	int nelems, int direction)
+ {
+@@ -436,9 +421,6 @@ static int calgary_map_sg(struct device 
+ 	unsigned long entry;
+ 	int i;
+ 
+-	if (!translation_enabled(tbl))
+-		return calgary_nontranslate_map_sg(dev, sg, nelems, direction);
+-
+ 	for_each_sg(sg, s, nelems, i) {
+ 		BUG_ON(!sg_page(s));
+ 
+@@ -474,7 +456,6 @@ error:
+ static dma_addr_t calgary_map_single(struct device *dev, phys_addr_t paddr,
+ 	size_t size, int direction)
+ {
+-	dma_addr_t dma_handle = bad_dma_address;
+ 	void *vaddr = phys_to_virt(paddr);
+ 	unsigned long uaddr;
+ 	unsigned int npages;
+@@ -483,12 +464,7 @@ static dma_addr_t calgary_map_single(str
+ 	uaddr = (unsigned long)vaddr;
+ 	npages = num_dma_pages(uaddr, size);
+ 
+-	if (translation_enabled(tbl))
+-		dma_handle = iommu_alloc(dev, tbl, vaddr, npages, direction);
+-	else
+-		dma_handle = virt_to_bus(vaddr);
+-
+-	return dma_handle;
++	return iommu_alloc(dev, tbl, vaddr, npages, direction);
+ }
+ 
+ static void calgary_unmap_single(struct device *dev, dma_addr_t dma_handle,
+@@ -497,9 +473,6 @@ static void calgary_unmap_single(struct 
+ 	struct iommu_table *tbl = find_iommu_table(dev);
+ 	unsigned int npages;
+ 
+-	if (!translation_enabled(tbl))
+-		return;
+-
+ 	npages = num_dma_pages(dma_handle, size);
+ 	iommu_free(tbl, dma_handle, npages);
+ }
+@@ -522,18 +495,12 @@ static void* calgary_alloc_coherent(stru
+ 		goto error;
+ 	memset(ret, 0, size);
+ 
+-	if (translation_enabled(tbl)) {
+-		/* set up tces to cover the allocated range */
+-		mapping = iommu_alloc(dev, tbl, ret, npages, DMA_BIDIRECTIONAL);
+-		if (mapping == bad_dma_address)
+-			goto free;
+-
+-		*dma_handle = mapping;
+-	} else /* non translated slot */
+-		*dma_handle = virt_to_bus(ret);
+-
++	/* set up tces to cover the allocated range */
++	mapping = iommu_alloc(dev, tbl, ret, npages, DMA_BIDIRECTIONAL);
++	if (mapping == bad_dma_address)
++		goto free;
++	*dma_handle = mapping;
+ 	return ret;
+-
+ free:
+ 	free_pages((unsigned long)ret, get_order(size));
+ 	ret = NULL;
+@@ -1230,6 +1197,16 @@ static int __init calgary_init(void)
+ 			goto error;
+ 	} while (1);
+ 
++	dev = NULL;
++	for_each_pci_dev(dev) {
++		struct iommu_table *tbl;
 +
-+			if (!ext3_check_dir_entry(__func__, dir, de, bh, off)) {
-+				brelse(bh);
- 				*err = ERR_BAD_DX_DIR;
- 				goto errout;
- 			}
--			*res_dir = de;
--			dx_release (frames);
--			return bh;
++		tbl = find_iommu_table(&dev->dev);
 +
-+			if (ext3_match(namelen, name, de)) {
-+				*res_dir = de;
-+				dx_release(frames);
-+				return bh;
-+			}
- 		}
- 		brelse (bh);
- 		/* Check to see if we should continue to search */
++		if(translation_enabled(tbl))
++			dev->dev.archdata.dma_ops = &calgary_dma_ops;
++	}
++
+ 	return ret;
+ 
+ error:
+@@ -1251,6 +1228,7 @@ error:
+ 		calgary_disable_translation(dev);
+ 		calgary_free_bus(dev);
+ 		pci_dev_put(dev); /* Undo calgary_init_one()'s pci_dev_get() */
++		dev->dev.archdata.dma_ops = NULL;
+ 	} while (1);
+ 
+ 	return ret;
+@@ -1430,6 +1408,10 @@ void __init detect_calgary(void)
+ 		printk(KERN_INFO "PCI-DMA: Calgary TCE table spec is %d, "
+ 		       "CONFIG_IOMMU_DEBUG is %s.\n", specified_table_size,
+ 		       debugging ? "enabled" : "disabled");
++
++		/* swiotlb for devices that aren't behind the Calgary. */
++		if (end_pfn > MAX_DMA32_PFN)
++			swiotlb = 1;
+ 	}
+ 	return;
+ 
+@@ -1446,7 +1428,7 @@ int __init calgary_iommu_init(void)
+ {
+ 	int ret;
+ 
+-	if (no_iommu || swiotlb)
++	if (no_iommu || (swiotlb && !calgary_detected))
+ 		return -ENODEV;
+ 
+ 	if (!calgary_detected)
+@@ -1459,15 +1441,15 @@ int __init calgary_iommu_init(void)
+ 	if (ret) {
+ 		printk(KERN_ERR "PCI-DMA: Calgary init failed %d, "
+ 		       "falling back to no_iommu\n", ret);
+-		if (end_pfn > MAX_DMA32_PFN)
+-			printk(KERN_ERR "WARNING more than 4GB of memory, "
+-					"32bit PCI may malfunction.\n");
+ 		return ret;
+ 	}
+ 
+ 	force_iommu = 1;
+ 	bad_dma_address = 0x0;
+-	dma_ops = &calgary_dma_ops;
++
++	/* dma_ops is set to swiotlb or nommu */
++	if (!dma_ops)
++		dma_ops = &nommu_dma_ops;
+ 
+ 	return 0;
+ }
+diff -puN include/asm-x86/iommu.h~dma-mapping-x86-per-device-dma_mapping_ops-support-x86-calgary-fix-handling-of-devces-that-arent-behind-the-calgary include/asm-x86/iommu.h
+--- a/include/asm-x86/iommu.h~dma-mapping-x86-per-device-dma_mapping_ops-support-x86-calgary-fix-handling-of-devces-that-arent-behind-the-calgary
++++ a/include/asm-x86/iommu.h
+@@ -3,6 +3,7 @@
+ 
+ extern void pci_iommu_shutdown(void);
+ extern void no_iommu_init(void);
++extern struct dma_mapping_ops nommu_dma_ops;
+ extern int force_iommu, no_iommu;
+ extern int iommu_detected;
+ #ifdef CONFIG_IOMMU
 _
 
-Patches currently in -mm which might be from duaneg@dghda.com are
+Patches currently in -mm which might be from alexisb@us.ibm.com are
 
-jbd-replace-potentially-false-assertion-with-if-block.patch
-jbd-eliminate-duplicated-code-in-revocation-table-init-destroy-functions.patch
-jbd-tidy-up-revoke-cache-initialisation-and-destruction.patch
-ext3-handle-corrupted-orphan-list-at-mount.patch
-ext3-handle-corrupted-orphan-list-at-mount-cleanup.patch
-ext3-handle-corrupted-orphan-list-at-mount-fix.patch
-ext3-handle-corrupted-orphan-list-at-mount-cleanup-fix.patch
-ext3-handle-deleting-corrupted-indirect-blocks.patch
-ext3-validate-directory-entry-data-before-use-v5.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support-x86-calgary-fix-handling-of-devces-that-arent-behind-the-calgary.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support-x86-calgary-fix-handling-of-devces-that-arent-behind-the-calgary-checkpatch-fixes.patch
 
