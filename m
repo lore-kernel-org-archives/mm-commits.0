@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + arch-x86-kernel-smpbootc-fix-warning.patch added to -mm tree
-Date: Wed, 02 Jul 2008 02:10:54 -0700
-Message-ID: <200807020910.m629AsBP008900@imap1.linux-foundation.org>
+Subject: + arch-x86-mm-pgtable_32c-remove-unused-variable-fixmaps.patch added to -mm tree
+Date: Wed, 02 Jul 2008 02:12:12 -0700
+Message-ID: <200807020912.m629CC2D009008@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56037 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49359 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753019AbYGBJLW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 05:11:22 -0400
+	by vger.kernel.org with ESMTP id S1751139AbYGBJM3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 05:12:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     arch/x86/kernel/smpboot.c: fix warning
+     arch/x86/mm/pgtable_32.c: remove unused variable `fixmaps'
 has been added to the -mm tree.  Its filename is
-     arch-x86-kernel-smpbootc-fix-warning.patch
+     arch-x86-mm-pgtable_32c-remove-unused-variable-fixmaps.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,37 +33,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/x86/kernel/smpboot.c: fix warning
+Subject: arch/x86/mm/pgtable_32.c: remove unused variable `fixmaps'
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/x86/kernel/smpboot.c: In function 'do_boot_cpu':
-arch/x86/kernel/smpboot.c:943: warning: label 'restore_state' defined but not used
-
-(ugh)
+arch/x86/mm/pgtable_32.c:144: warning: 'fixmaps' defined but not used
 
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/smpboot.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/x86/mm/pgtable_32.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN arch/x86/kernel/smpboot.c~arch-x86-kernel-smpbootc-fix-warning arch/x86/kernel/smpboot.c
---- a/arch/x86/kernel/smpboot.c~arch-x86-kernel-smpbootc-fix-warning
-+++ a/arch/x86/kernel/smpboot.c
-@@ -939,9 +939,9 @@ do_rest:
- 				inquire_remote_apic(apicid);
- 		}
- 	}
--
-+#ifdef CONFIG_X86_64
- restore_state:
--
-+#endif
- 	if (boot_error) {
- 		/* Try to put things back the way they were before ... */
- 		numa_remove_cpu(cpu); /* was set by numa_add_cpu */
+diff -puN arch/x86/mm/pgtable_32.c~arch-x86-mm-pgtable_32c-remove-unused-variable-fixmaps arch/x86/mm/pgtable_32.c
+--- a/arch/x86/mm/pgtable_32.c~arch-x86-mm-pgtable_32c-remove-unused-variable-fixmaps
++++ a/arch/x86/mm/pgtable_32.c
+@@ -141,7 +141,6 @@ void set_pmd_pfn(unsigned long vaddr, un
+ 	__flush_tlb_one(vaddr);
+ }
+ 
+-static int fixmaps;
+ unsigned long __FIXADDR_TOP = 0xfffff000;
+ EXPORT_SYMBOL(__FIXADDR_TOP);
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -83,6 +76,7 @@ fix-kobject-fix-kobject_rename-and-config_sysfs.patch
 kvm-is-busted-on-ia64.patch
 drivers-mtd-nand-nandsimc-needs-div64h.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+arch-x86-kernel-smpbootc-fix-warning.patch
 i2c-renesas-highlander-fpga-smbus-support.patch
 tick-schedc-suppress-needless-timer-reprogramming-checkpatch-fixes.patch
 git-jg-misc-git-rejects.patch
@@ -226,5 +220,6 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
-arch-x86-kernel-smpbootc-fix-warning.patch
+arch-x86-mm-pgtable_32c-remove-unused-variable-fixmaps.patch
+arch-x86-mm-pgtable_32c-remove-unused-variable-fixmaps.patch
 
