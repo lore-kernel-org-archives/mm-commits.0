@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 01 Jul 2008 20:32:31 -0700
-Message-ID: <200807020332.m623WVkI029321@imap1.linux-foundation.org>
+Subject: + edac-i5100-cleanup.patch added to -mm tree
+Date: Tue, 01 Jul 2008 20:36:17 -0700
+Message-ID: <200807020336.m623aHtQ029461@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37650 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38901 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754086AbYGBDdz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 23:33:55 -0400
+	by vger.kernel.org with ESMTP id S1754566AbYGBDgm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 23:36:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, andi@firstfloor.org, dhowells@redhat.com, hpa@zytor.com, hskinnemoen@atmel.com, ink@jurassic.park.msu.ru, jesper.nilsson@axis.com, lethal@linux-sh.org, mikael.starvik@axis.com, mingo@elte.hu, mpm@selenic.com, rth@twiddle.net, tglx@linutronix.de, thomas.petazzoni@free-electrons.com, ysato@users.sourceforge.jp
+Cc: ajones@riverbed.com, dougthompson@xmission.com
 
 
 The patch titled
-     inflate-refactor-inflate-malloc-code-checkpatch-fixes
+     edac: i5100: cleanup
 has been added to the -mm tree.  Its filename is
-     inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
+     edac-i5100-cleanup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,296 +33,611 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: inflate-refactor-inflate-malloc-code-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: edac: i5100: cleanup
+From: Arthur Jones <ajones@riverbed.com>
 
-ERROR: do not initialise statics to 0 or NULL
-#257: FILE: arch/cris/arch-v10/boot/compressed/misc.c:102:
-+static long free_mem_end_ptr = 0;
+Some code cleanliness issues found by Andrew Morton (thanks!) which should
+not affect functionality, but which should help make the code more
+maintainable.
 
-ERROR: do not initialise statics to 0 or NULL
-#320: FILE: arch/cris/arch-v32/boot/compressed/misc.c:107:
-+static long free_mem_end_ptr = 0;
+In particular, we now:
 
-ERROR: spaces required around that '<' (ctx:WxV)
-#825: FILE: lib/inflate.c:245:
-+       if (size <0)
-                 ^
+* convert all #define's w/ a parameter to static inlines
+* use 1UL rather than 1ULL when calculating an unsigned long
+* use pci_disable_device
 
-ERROR: code indent should use tabs where possible
-#826: FILE: lib/inflate.c:246:
-+               error("Malloc error");$
+The resulting code is tested and seems to work fine...
 
-ERROR: code indent should use tabs where possible
-#828: FILE: lib/inflate.c:248:
-+               malloc_ptr = free_mem_ptr;$
-
-ERROR: code indent should use tabs where possible
-#836: FILE: lib/inflate.c:256:
-+               error("Out of memory");$
-
-ERROR: code indent should use tabs where possible
-#846: FILE: lib/inflate.c:266:
-+               malloc_ptr = free_mem_ptr;$
-
-total: 7 errors, 0 warnings, 745 lines checked
-
-./patches/inflate-refactor-inflate-malloc-code.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Jesper Nilsson <jesper.nilsson@axis.com>
-Cc: Matt Mackall <mpm@selenic.com>
-Cc: Mikael Starvik <mikael.starvik@axis.com>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Signed-off-by: Arthur Jones <ajones@riverbed.com>
+Cc: Doug Thompson <dougthompson@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/arch-v10/boot/compressed/misc.c |    2 +-
- arch/cris/arch-v32/boot/compressed/misc.c |    6 +++---
- lib/inflate.c                             |   10 +++++-----
- 3 files changed, 9 insertions(+), 9 deletions(-)
+ drivers/edac/i5100_edac.c |  363 +++++++++++++++++++++++++-----------
+ 1 file changed, 261 insertions(+), 102 deletions(-)
 
-diff -puN arch/cris/arch-v10/boot/compressed/misc.c~inflate-refactor-inflate-malloc-code-checkpatch-fixes arch/cris/arch-v10/boot/compressed/misc.c
---- a/arch/cris/arch-v10/boot/compressed/misc.c~inflate-refactor-inflate-malloc-code-checkpatch-fixes
-+++ a/arch/cris/arch-v10/boot/compressed/misc.c
-@@ -99,7 +99,7 @@ static void puts(const char *);
-   
- extern int end;
- static long free_mem_ptr = (long)&end;
--static long free_mem_end_ptr = 0;
-+static long free_mem_end_ptr;
-  
- #include "../../../../../lib/inflate.c"
+diff -puN drivers/edac/i5100_edac.c~edac-i5100-cleanup drivers/edac/i5100_edac.c
+--- a/drivers/edac/i5100_edac.c~edac-i5100-cleanup
++++ a/drivers/edac/i5100_edac.c
+@@ -21,36 +21,19 @@
  
-diff -puN arch/cris/arch-v32/boot/compressed/misc.c~inflate-refactor-inflate-malloc-code-checkpatch-fixes arch/cris/arch-v32/boot/compressed/misc.c
---- a/arch/cris/arch-v32/boot/compressed/misc.c~inflate-refactor-inflate-malloc-code-checkpatch-fixes
-+++ a/arch/cris/arch-v32/boot/compressed/misc.c
-@@ -92,9 +92,9 @@ static void error(char *m);
+ #include "edac_core.h"
  
- extern char *input_data;  /* lives in head.S */
+-/* register addresses and bit field accessors... */
++/* register addresses */
  
--static long bytes_out = 0;
-+static long bytes_out;
- static uch *output_data;
--static unsigned long output_ptr = 0;
-+static unsigned long output_ptr;
+ /* device 16, func 1 */
+ #define I5100_MC		0x40	/* Memory Control Register */
+-#define		I5100_MC_ERRDETEN(a)	((a) >> 5 & 1)
+ #define I5100_MS		0x44	/* Memory Status Register */
+ #define I5100_SPDDATA		0x48	/* Serial Presence Detect Status Reg */
+-#define		I5100_SPDDATA_RDO(a)	((a) >> 15 & 1)
+-#define		I5100_SPDDATA_SBE(a)	((a) >> 13 & 1)
+-#define		I5100_SPDDATA_BUSY(a)	((a) >> 12 & 1)
+-#define		I5100_SPDDATA_DATA(a)	((a)       & ((1 << 8) - 1))
+ #define I5100_SPDCMD		0x4c	/* Serial Presence Detect Command Reg */
+-#define		I5100_SPDCMD_DTI(a)	(((a) & ((1 << 4) - 1)) << 28)
+-#define		I5100_SPDCMD_CKOVRD(a)	(((a) & 1)              << 27)
+-#define		I5100_SPDCMD_SA(a)	(((a) & ((1 << 3) - 1)) << 24)
+-#define		I5100_SPDCMD_BA(a)	(((a) & ((1 << 8) - 1)) << 16)
+-#define		I5100_SPDCMD_DATA(a)	(((a) & ((1 << 8) - 1)) <<  8)
+-#define		I5100_SPDCMD_CMD(a)	((a) & 1)
+ #define I5100_TOLM		0x6c	/* Top of Low Memory */
+-#define		I5100_TOLM_TOLM(a)	((a) >> 12 & ((1 << 4) - 1))
+ #define I5100_MIR0		0x80	/* Memory Interleave Range 0 */
+ #define I5100_MIR1		0x84	/* Memory Interleave Range 1 */
+ #define I5100_AMIR_0		0x8c	/* Adjusted Memory Interleave Range 0 */
+ #define I5100_AMIR_1		0x90	/* Adjusted Memory Interleave Range 1 */
+-#define		I5100_MIR_LIMIT(a)	((a) >> 4 & ((1 << 12) - 1))
+-#define		I5100_MIR_WAY1(a)	((a) >> 1 & 1)
+-#define		I5100_MIR_WAY0(a)	((a)      & 1)
+ #define I5100_FERR_NF_MEM	0xa0	/* MC First Non Fatal Errors */
+-#define		I5100_FERR_NF_MEM_CHAN_INDX(a)	((a) >> 28 & 1)
+-#define		I5100_FERR_NF_MEM_SPD_MASK	(1 << 18)
+ #define		I5100_FERR_NF_MEM_M16ERR_MASK	(1 << 16)
+ #define		I5100_FERR_NF_MEM_M15ERR_MASK	(1 << 15)
+ #define		I5100_FERR_NF_MEM_M14ERR_MASK	(1 << 14)
+@@ -72,47 +55,214 @@
+ 			I5100_FERR_NF_MEM_M5ERR_MASK | \
+ 			I5100_FERR_NF_MEM_M4ERR_MASK | \
+ 			I5100_FERR_NF_MEM_M1ERR_MASK)
+-#define		I5100_FERR_NF_MEM_ANY(a)  ((a) & I5100_FERR_NF_MEM_ANY_MASK)
+ #define	I5100_NERR_NF_MEM	0xa4	/* MC Next Non-Fatal Errors */
+-#define		I5100_NERR_NF_MEM_ANY(a)  I5100_FERR_NF_MEM_ANY(a)
+ #define I5100_EMASK_MEM		0xa8	/* MC Error Mask Register */
  
- static void error(char *m);
+ /* device 21 and 22, func 0 */
+ #define I5100_MTR_0	0x154	/* Memory Technology Registers 0-3 */
+ #define I5100_DMIR	0x15c	/* DIMM Interleave Range */
+-#define		I5100_DMIR_LIMIT(a)	((a) >> 16 & ((1 << 11) - 1))
+-#define		I5100_DMIR_RANK(a, i)	((a) >> (4 * i) & ((1 <<  2) - 1))
+-#define I5100_MTR_4	0x1b0	/* Memory Technology Registers 4,5 */
+-#define		I5100_MTR_PRESENT(a)	((a) >> 10 & 1)
+-#define		I5100_MTR_ETHROTTLE(a)	((a) >>  9 & 1)
+-#define		I5100_MTR_WIDTH(a)	((a) >>  8 & 1)
+-#define		I5100_MTR_NUMBANK(a)	((a) >>  6 & 1)
+-#define		I5100_MTR_NUMROW(a)	((a) >>  2 & ((1 << 2) - 1))
+-#define		I5100_MTR_NUMCOL(a)	((a)       & ((1 << 2) - 1))
+ #define	I5100_VALIDLOG	0x18c	/* Valid Log Markers */
+-#define		I5100_VALIDLOG_REDMEMVALID(a)	((a) >> 2 & 1)
+-#define		I5100_VALIDLOG_RECMEMVALID(a)	((a) >> 1 & 1)
+-#define		I5100_VALIDLOG_NRECMEMVALID(a)	((a)      & 1)
+ #define	I5100_NRECMEMA	0x190	/* Non-Recoverable Memory Error Log Reg A */
+-#define		I5100_NRECMEMA_MERR(a)		((a) >> 15 & ((1 << 5) - 1))
+-#define		I5100_NRECMEMA_BANK(a)		((a) >> 12 & ((1 << 3) - 1))
+-#define		I5100_NRECMEMA_RANK(a)		((a) >>  8 & ((1 << 3) - 1))
+-#define		I5100_NRECMEMA_DM_BUF_ID(a)	((a)       & ((1 << 8) - 1))
+ #define	I5100_NRECMEMB	0x194	/* Non-Recoverable Memory Error Log Reg B */
+-#define		I5100_NRECMEMB_CAS(a)		((a) >> 16 & ((1 << 13) - 1))
+-#define		I5100_NRECMEMB_RAS(a)		((a)       & ((1 << 16) - 1))
+ #define	I5100_REDMEMA	0x198	/* Recoverable Memory Data Error Log Reg A */
+-#define		I5100_REDMEMA_SYNDROME(a)	(a)
+ #define	I5100_REDMEMB	0x19c	/* Recoverable Memory Data Error Log Reg B */
+-#define		I5100_REDMEMB_ECC_LOCATOR(a)	((a) & ((1 << 18) - 1))
+ #define	I5100_RECMEMA	0x1a0	/* Recoverable Memory Error Log Reg A */
+-#define		I5100_RECMEMA_MERR(a)		I5100_NRECMEMA_MERR(a)
+-#define		I5100_RECMEMA_BANK(a)		I5100_NRECMEMA_BANK(a)
+-#define		I5100_RECMEMA_RANK(a)		I5100_NRECMEMA_RANK(a)
+-#define		I5100_RECMEMA_DM_BUF_ID(a)	I5100_NRECMEMA_DM_BUF_ID(a)
+ #define	I5100_RECMEMB	0x1a4	/* Recoverable Memory Error Log Reg B */
+-#define		I5100_RECMEMB_CAS(a)		I5100_NRECMEMB_CAS(a)
+-#define		I5100_RECMEMB_RAS(a)		I5100_NRECMEMB_RAS(a)
++#define I5100_MTR_4	0x1b0	/* Memory Technology Registers 4,5 */
++
++/* bit field accessors */
++
++static inline u32 i5100_mc_errdeten(u32 mc)
++{
++	return mc >> 5 & 1;
++}
++
++static inline u16 i5100_spddata_rdo(u16 a)
++{
++	return a >> 15 & 1;
++}
++
++static inline u16 i5100_spddata_sbe(u16 a)
++{
++	return a >> 13 & 1;
++}
++
++static inline u16 i5100_spddata_busy(u16 a)
++{
++	return a >> 12 & 1;
++}
++
++static inline u16 i5100_spddata_data(u16 a)
++{
++	return a & ((1 << 8) - 1);
++}
++
++static inline u32 i5100_spdcmd_create(u32 dti, u32 ckovrd, u32 sa, u32 ba,
++				      u32 data, u32 cmd)
++{
++	return	((dti & ((1 << 4) - 1))  << 28) |
++		((ckovrd & 1)            << 27) |
++		((sa & ((1 << 3) - 1))   << 24) |
++		((ba & ((1 << 8) - 1))   << 16) |
++		((data & ((1 << 8) - 1)) <<  8) |
++		(cmd & 1);
++}
++
++static inline u16 i5100_tolm_tolm(u16 a)
++{
++	return a >> 12 & ((1 << 4) - 1);
++}
++
++static inline u16 i5100_mir_limit(u16 a)
++{
++	return a >> 4 & ((1 << 12) - 1);
++}
++
++static inline u16 i5100_mir_way1(u16 a)
++{
++	return a >> 1 & 1;
++}
++
++static inline u16 i5100_mir_way0(u16 a)
++{
++	return a & 1;
++}
++
++static inline u32 i5100_ferr_nf_mem_chan_indx(u32 a)
++{
++	return a >> 28 & 1;
++}
++
++static inline u32 i5100_ferr_nf_mem_any(u32 a)
++{
++	return a & I5100_FERR_NF_MEM_ANY_MASK;
++}
++
++static inline u32 i5100_nerr_nf_mem_any(u32 a)
++{
++	return i5100_ferr_nf_mem_any(a);
++}
++
++static inline u32 i5100_dmir_limit(u32 a)
++{
++	return a >> 16 & ((1 << 11) - 1);
++}
++
++static inline u32 i5100_dmir_rank(u32 a, u32 i)
++{
++	return a >> (4 * i) & ((1 << 2) - 1);
++}
++
++static inline u16 i5100_mtr_present(u16 a)
++{
++	return a >> 10 & 1;
++}
++
++static inline u16 i5100_mtr_ethrottle(u16 a)
++{
++	return a >> 9 & 1;
++}
++
++static inline u16 i5100_mtr_width(u16 a)
++{
++	return a >> 8 & 1;
++}
++
++static inline u16 i5100_mtr_numbank(u16 a)
++{
++	return a >> 6 & 1;
++}
++
++static inline u16 i5100_mtr_numrow(u16 a)
++{
++	return a >> 2 & ((1 << 2) - 1);
++}
++
++static inline u16 i5100_mtr_numcol(u16 a)
++{
++	return a & ((1 << 2) - 1);
++}
++
++
++static inline u32 i5100_validlog_redmemvalid(u32 a)
++{
++	return a >> 2 & 1;
++}
++
++static inline u32 i5100_validlog_recmemvalid(u32 a)
++{
++	return a >> 1 & 1;
++}
++
++static inline u32 i5100_validlog_nrecmemvalid(u32 a)
++{
++	return a & 1;
++}
++
++static inline u32 i5100_nrecmema_merr(u32 a)
++{
++	return a >> 15 & ((1 << 5) - 1);
++}
++
++static inline u32 i5100_nrecmema_bank(u32 a)
++{
++	return a >> 12 & ((1 << 3) - 1);
++}
++
++static inline u32 i5100_nrecmema_rank(u32 a)
++{
++	return a >>  8 & ((1 << 3) - 1);
++}
++
++static inline u32 i5100_nrecmema_dm_buf_id(u32 a)
++{
++	return a & ((1 << 8) - 1);
++}
++
++static inline u32 i5100_nrecmemb_cas(u32 a)
++{
++	return a >> 16 & ((1 << 13) - 1);
++}
++
++static inline u32 i5100_nrecmemb_ras(u32 a)
++{
++	return a & ((1 << 16) - 1);
++}
++
++static inline u32 i5100_redmemb_ecc_locator(u32 a)
++{
++	return a & ((1 << 18) - 1);
++}
++
++static inline u32 i5100_recmema_merr(u32 a)
++{
++	return i5100_nrecmema_merr(a);
++}
++
++static inline u32 i5100_recmema_bank(u32 a)
++{
++	return i5100_nrecmema_bank(a);
++}
++
++static inline u32 i5100_recmema_rank(u32 a)
++{
++	return i5100_nrecmema_rank(a);
++}
++
++static inline u32 i5100_recmema_dm_buf_id(u32 a)
++{
++	return i5100_nrecmema_dm_buf_id(a);
++}
++
++static inline u32 i5100_recmemb_cas(a)
++{
++	return i5100_nrecmemb_cas(a);
++}
++
++static inline u32 i5100_recmemb_ras(a)
++{
++	return i5100_nrecmemb_ras(a);
++}
  
-@@ -104,7 +104,7 @@ static void puts(const char *);
+ /* some generic limits */
+ #define I5100_MAX_RANKS_PER_CTLR	6
+@@ -219,12 +369,12 @@ static unsigned long i5100_ctl_page_to_p
+ 	if (cntlr_addr < priv->tolm)
+ 		return cntlr_addr;
  
- extern int _end;
- static long free_mem_ptr = (long)&_end;
--static long free_mem_end_ptr = 0;
-+static long free_mem_end_ptr;
- 
- #include "../../../../../lib/inflate.c"
- 
-diff -puN lib/inflate.c~inflate-refactor-inflate-malloc-code-checkpatch-fixes lib/inflate.c
---- a/lib/inflate.c~inflate-refactor-inflate-malloc-code-checkpatch-fixes
-+++ a/lib/inflate.c
-@@ -242,10 +242,10 @@ static void *malloc(int size)
- {
-        void *p;
- 
--       if (size <0)
--               error("Malloc error");
-+       if (size < 0)
-+		error("Malloc error");
-        if (!malloc_ptr)
--               malloc_ptr = free_mem_ptr;
-+		malloc_ptr = free_mem_ptr;
- 
-        malloc_ptr = (malloc_ptr + 3) & ~3;     /* Align */
- 
-@@ -253,7 +253,7 @@ static void *malloc(int size)
-        malloc_ptr += size;
- 
-        if (free_mem_end_ptr && malloc_ptr >= free_mem_end_ptr)
--               error("Out of memory");
-+		error("Out of memory");
- 
-        malloc_count++;
-        return p;
-@@ -263,7 +263,7 @@ static void free(void *where)
- {
-        malloc_count--;
-        if (!malloc_count)
--               malloc_ptr = free_mem_ptr;
-+		malloc_ptr = free_mem_ptr;
+-	return (1ULL << 32) + (cntlr_addr - priv->tolm);
++	return (1UL << 32) + (cntlr_addr - priv->tolm);
  }
- #else
- #define malloc(a) kmalloc(a, GFP_KERNEL)
+ 
+ static const char *i5100_err_msg(unsigned err)
+ {
+-	const char *merrs[] = {
++	static const char *merrs[] = {
+ 		"unknown", /* 0 */
+ 		"uncorrectable data ECC on replay", /* 1 */
+ 		"unknown", /* 2 */
+@@ -341,24 +491,24 @@ static void i5100_read_log(struct mem_ct
+ 
+ 	pci_read_config_dword(pdev, I5100_VALIDLOG, &dw);
+ 
+-	if (I5100_VALIDLOG_REDMEMVALID(dw)) {
++	if (i5100_validlog_redmemvalid(dw)) {
+ 		pci_read_config_dword(pdev, I5100_REDMEMA, &dw2);
+-		syndrome = I5100_REDMEMA_SYNDROME(dw2);
++		syndrome = dw2;
+ 		pci_read_config_dword(pdev, I5100_REDMEMB, &dw2);
+-		ecc_loc = I5100_REDMEMB_ECC_LOCATOR(dw2);
++		ecc_loc = i5100_redmemb_ecc_locator(dw2);
+ 	}
+ 
+-	if (I5100_VALIDLOG_RECMEMVALID(dw)) {
++	if (i5100_validlog_recmemvalid(dw)) {
+ 		const char *msg;
+ 
+ 		pci_read_config_dword(pdev, I5100_RECMEMA, &dw2);
+-		merr = I5100_RECMEMA_MERR(dw2);
+-		bank = I5100_RECMEMA_BANK(dw2);
+-		rank = I5100_RECMEMA_RANK(dw2);
++		merr = i5100_recmema_merr(dw2);
++		bank = i5100_recmema_bank(dw2);
++		rank = i5100_recmema_rank(dw2);
+ 
+ 		pci_read_config_dword(pdev, I5100_RECMEMB, &dw2);
+-		cas = I5100_RECMEMB_CAS(dw2);
+-		ras = I5100_RECMEMB_RAS(dw2);
++		cas = i5100_recmemb_cas(dw2);
++		ras = i5100_recmemb_ras(dw2);
+ 
+ 		/* FIXME:  not really sure if this is what merr is...
+ 		 */
+@@ -370,17 +520,17 @@ static void i5100_read_log(struct mem_ct
+ 		i5100_handle_ce(mci, ctlr, bank, rank, syndrome, cas, ras, msg);
+ 	}
+ 
+-	if (I5100_VALIDLOG_NRECMEMVALID(dw)) {
++	if (i5100_validlog_nrecmemvalid(dw)) {
+ 		const char *msg;
+ 
+ 		pci_read_config_dword(pdev, I5100_NRECMEMA, &dw2);
+-		merr = I5100_NRECMEMA_MERR(dw2);
+-		bank = I5100_NRECMEMA_BANK(dw2);
+-		rank = I5100_NRECMEMA_RANK(dw2);
++		merr = i5100_nrecmema_merr(dw2);
++		bank = i5100_nrecmema_bank(dw2);
++		rank = i5100_nrecmema_rank(dw2);
+ 
+ 		pci_read_config_dword(pdev, I5100_NRECMEMB, &dw2);
+-		cas = I5100_NRECMEMB_CAS(dw2);
+-		ras = I5100_NRECMEMB_RAS(dw2);
++		cas = i5100_nrecmemb_cas(dw2);
++		ras = i5100_nrecmemb_ras(dw2);
+ 
+ 		/* FIXME:  not really sure if this is what merr is...
+ 		 */
+@@ -402,7 +552,7 @@ static void i5100_check_error(struct mem
+ 
+ 
+ 	pci_read_config_dword(priv->mc, I5100_FERR_NF_MEM, &dw);
+-	if (I5100_FERR_NF_MEM_ANY(dw)) {
++	if (i5100_ferr_nf_mem_any(dw)) {
+ 		u32 dw2;
+ 
+ 		pci_read_config_dword(priv->mc, I5100_NERR_NF_MEM, &dw2);
+@@ -411,9 +561,9 @@ static void i5100_check_error(struct mem
+ 					       dw2);
+ 		pci_write_config_dword(priv->mc, I5100_FERR_NF_MEM, dw);
+ 
+-		i5100_read_log(mci, I5100_FERR_NF_MEM_CHAN_INDX(dw),
+-			       I5100_FERR_NF_MEM_ANY(dw),
+-			       I5100_NERR_NF_MEM_ANY(dw2));
++		i5100_read_log(mci, i5100_ferr_nf_mem_chan_indx(dw),
++			       i5100_ferr_nf_mem_any(dw),
++			       i5100_nerr_nf_mem_any(dw2));
+ 	}
+ }
+ 
+@@ -476,12 +626,12 @@ static void __devinit i5100_init_mtr(str
+ 
+ 			pci_read_config_word(pdev, addr, &w);
+ 
+-			priv->mtr[i][j].present = I5100_MTR_PRESENT(w);
+-			priv->mtr[i][j].ethrottle = I5100_MTR_ETHROTTLE(w);
+-			priv->mtr[i][j].width = 4 + 4 * I5100_MTR_WIDTH(w);
+-			priv->mtr[i][j].numbank = 2 + I5100_MTR_NUMBANK(w);
+-			priv->mtr[i][j].numrow = 13 + I5100_MTR_NUMROW(w);
+-			priv->mtr[i][j].numcol = 10 + I5100_MTR_NUMCOL(w);
++			priv->mtr[i][j].present = i5100_mtr_present(w);
++			priv->mtr[i][j].ethrottle = i5100_mtr_ethrottle(w);
++			priv->mtr[i][j].width = 4 + 4 * i5100_mtr_width(w);
++			priv->mtr[i][j].numbank = 2 + i5100_mtr_numbank(w);
++			priv->mtr[i][j].numrow = 13 + i5100_mtr_numrow(w);
++			priv->mtr[i][j].numcol = 10 + i5100_mtr_numcol(w);
+ 		}
+ 	}
+ }
+@@ -495,35 +645,30 @@ static int i5100_read_spd_byte(const str
+ {
+ 	struct i5100_priv *priv = mci->pvt_info;
+ 	u16 w;
+-	u32 dw;
+ 	unsigned long et;
+ 
+ 	pci_read_config_word(priv->mc, I5100_SPDDATA, &w);
+-	if (I5100_SPDDATA_BUSY(w))
++	if (i5100_spddata_busy(w))
+ 		return -1;
+ 
+-	dw =	I5100_SPDCMD_DTI(0xa) |
+-		I5100_SPDCMD_CKOVRD(1) |
+-		I5100_SPDCMD_SA(ch * 4 + slot) |
+-		I5100_SPDCMD_BA(addr) |
+-		I5100_SPDCMD_DATA(0) |
+-		I5100_SPDCMD_CMD(0);
+-	pci_write_config_dword(priv->mc, I5100_SPDCMD, dw);
++	pci_write_config_dword(priv->mc, I5100_SPDCMD,
++			       i5100_spdcmd_create(0xa, 1, ch * 4 + slot, addr,
++						   0, 0));
+ 
+ 	/* wait up to 100ms */
+ 	et = jiffies + HZ / 10;
+ 	udelay(100);
+ 	while (1) {
+ 		pci_read_config_word(priv->mc, I5100_SPDDATA, &w);
+-		if (!I5100_SPDDATA_BUSY(w))
++		if (!i5100_spddata_busy(w))
+ 			break;
+ 		udelay(100);
+ 	}
+ 
+-	if (!I5100_SPDDATA_RDO(w) || I5100_SPDDATA_SBE(w))
++	if (!i5100_spddata_rdo(w) || i5100_spddata_sbe(w))
+ 		return -1;
+ 
+-	*byte = I5100_SPDDATA_DATA(w);
++	*byte = i5100_spddata_data(w);
+ 
+ 	return 0;
+ }
+@@ -591,17 +736,17 @@ static void __devinit i5100_init_interle
+ 	int i;
+ 
+ 	pci_read_config_word(pdev, I5100_TOLM, &w);
+-	priv->tolm = (u64) I5100_TOLM_TOLM(w) * 256 * 1024 * 1024;
++	priv->tolm = (u64) i5100_tolm_tolm(w) * 256 * 1024 * 1024;
+ 
+ 	pci_read_config_word(pdev, I5100_MIR0, &w);
+-	priv->mir[0].limit = (u64) I5100_MIR_LIMIT(w) << 28;
+-	priv->mir[0].way[1] = I5100_MIR_WAY1(w);
+-	priv->mir[0].way[0] = I5100_MIR_WAY0(w);
++	priv->mir[0].limit = (u64) i5100_mir_limit(w) << 28;
++	priv->mir[0].way[1] = i5100_mir_way1(w);
++	priv->mir[0].way[0] = i5100_mir_way0(w);
+ 
+ 	pci_read_config_word(pdev, I5100_MIR1, &w);
+-	priv->mir[1].limit = (u64) I5100_MIR_LIMIT(w) << 28;
+-	priv->mir[1].way[1] = I5100_MIR_WAY1(w);
+-	priv->mir[1].way[0] = I5100_MIR_WAY0(w);
++	priv->mir[1].limit = (u64) i5100_mir_limit(w) << 28;
++	priv->mir[1].way[1] = i5100_mir_way1(w);
++	priv->mir[1].way[0] = i5100_mir_way0(w);
+ 
+ 	pci_read_config_word(pdev, I5100_AMIR_0, &w);
+ 	priv->amir[0] = w;
+@@ -617,10 +762,10 @@ static void __devinit i5100_init_interle
+ 			pci_read_config_dword(mms[i], I5100_DMIR + j * 4, &dw);
+ 
+ 			priv->dmir[i][j].limit =
+-				(u64) I5100_DMIR_LIMIT(dw) << 28;
++				(u64) i5100_dmir_limit(dw) << 28;
+ 			for (k = 0; k < I5100_MAX_RANKS_PER_DIMM; k++)
+ 				priv->dmir[i][j].rank[k] =
+-					I5100_DMIR_RANK(dw, k);
++					i5100_dmir_rank(dw, k);
+ 		}
+ 	}
+ 
+@@ -693,10 +838,10 @@ static int __devinit i5100_init_one(stru
+ 
+ 	/* ECC enabled? */
+ 	pci_read_config_dword(pdev, I5100_MC, &dw);
+-	if (!I5100_MC_ERRDETEN(dw)) {
++	if (!i5100_mc_errdeten(dw)) {
+ 		printk(KERN_INFO "i5100_edac: ECC not enabled.\n");
+ 		ret = -ENODEV;
+-		goto bail;
++		goto bail_pdev;
+ 	}
+ 
+ 	/* figure out how many ranks, from strapped state of 48GB_Mode input */
+@@ -707,7 +852,7 @@ static int __devinit i5100_init_one(stru
+ 		/* FIXME: get 6 ranks / controller to work - need hw... */
+ 		printk(KERN_INFO "i5100_edac: unsupported configuration.\n");
+ 		ret = -ENODEV;
+-		goto bail;
++		goto bail_pdev;
+ 	}
+ 
+ 	/* enable error reporting... */
+@@ -718,8 +863,10 @@ static int __devinit i5100_init_one(stru
+ 	/* device 21, func 0, Channel 0 Memory Map, Error Flag/Mask, etc... */
+ 	ch0mm = pci_get_device_func(PCI_VENDOR_ID_INTEL,
+ 				    PCI_DEVICE_ID_INTEL_5100_21, 0);
+-	if (!ch0mm)
+-		return -ENODEV;
++	if (!ch0mm) {
++		ret = -ENODEV;
++		goto bail_pdev;
++	}
+ 
+ 	rc = pci_enable_device(ch0mm);
+ 	if (rc < 0) {
+@@ -732,7 +879,7 @@ static int __devinit i5100_init_one(stru
+ 				    PCI_DEVICE_ID_INTEL_5100_22, 0);
+ 	if (!ch1mm) {
+ 		ret = -ENODEV;
+-		goto bail_ch0;
++		goto bail_disable_ch0;
+ 	}
+ 
+ 	rc = pci_enable_device(ch1mm);
+@@ -744,7 +891,7 @@ static int __devinit i5100_init_one(stru
+ 	mci = edac_mc_alloc(sizeof(*priv), ranksperch * 2, 1, 0);
+ 	if (!mci) {
+ 		ret = -ENOMEM;
+-		goto bail_ch1;
++		goto bail_disable_ch1;
+ 	}
+ 
+ 	mci->dev = &pdev->dev;
+@@ -786,17 +933,26 @@ static int __devinit i5100_init_one(stru
+ 		goto bail_mc;
+ 	}
+ 
+-	goto bail;
++	return ret;
+ 
+ bail_mc:
+ 	edac_mc_free(mci);
+ 
++bail_disable_ch1:
++	pci_disable_device(ch1mm);
++
+ bail_ch1:
+ 	pci_dev_put(ch1mm);
+ 
++bail_disable_ch0:
++	pci_disable_device(ch0mm);
++
+ bail_ch0:
+ 	pci_dev_put(ch0mm);
+ 
++bail_pdev:
++	pci_disable_device(pdev);
++
+ bail:
+ 	return ret;
+ }
+@@ -812,6 +968,9 @@ static void __devexit i5100_remove_one(s
+ 		return;
+ 
+ 	priv = mci->pvt_info;
++	pci_disable_device(pdev);
++	pci_disable_device(priv->ch0mm);
++	pci_disable_device(priv->ch1mm);
+ 	pci_dev_put(priv->ch0mm);
+ 	pci_dev_put(priv->ch1mm);
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ajones@riverbed.com are
 
-origin.patch
-rtc-x1205-fix-alarm-set-fix.patch
-update-ntfs-help-text-fix.patch
-cgroups-document-the-effect-of-attaching-pid-0-to-a-cgroup-fix.patch
-spi-fix-the-read-path-in-spidev-cleanup.patch
-security-filesystem-capabilities-fix-fragile-setuid-fixup-code-checkpatch-fixes.patch
-doc-document-the-relax_domain_level-kernel-boot-argument-fix.patch
-revert-introduce-rculisth.patch
-next-remove-localversion.patch
-revert-git-pekka.patch
-fix-kobject-fix-kobject_rename-and-config_sysfs.patch
-kvm-is-busted-on-ia64.patch
-drivers-mtd-nand-nandsimc-needs-div64h.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-tick-schedc-suppress-needless-timer-reprogramming-checkpatch-fixes.patch
-git-jg-misc-git-rejects.patch
-drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-mmc-sd-host-driver-for-ricoh-bay1controllers.patch
-drivers-mtd-devices-block2mtdc-suppress-warning.patch
-bug-in-random32c-all-zero-outputs-with-probability-1-232-other-seeding-bugs-checkpatch-fixes.patch
-sundance-set-carrier-status-on-link-change-events.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix-fix.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-scsi-misc-fix-scsi_dh-build-errors.patch
-drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
-s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
-pktcdvd-push-bkl-down-into-driver-fix.patch
-block-fix-bio_add_page-for-non-trivial-merge_bvec_fn-case-fix.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-git-logfs-fixup.patch
-watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-verify-the-page-links-and-memory-model.patch
-mspec-convert-nopfn-to-fault-fix.patch
-page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
-kill-generic_file_direct_io-checkpatch-fixes.patch
-use-generic_access_phys-for-dev-mem-mappings-fix.patch
-spufs-use-the-new-vm_ops-access-fix.patch
-fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
-page-flags-record-page-flag-overlays-explicitly-xen.patch
-mapping_set_error-add-unlikely.patch
-huge-page-private-reservation-review-cleanups-fix.patch
-sync_file_range_write-may-and-will-block-document-that-fix.patch
-vmallocinfo-add-numa-information-fix.patch
-hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
-hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
-hugetlb-override-default-huge-page-size-ia64-build.patch
-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-bootmem-add-debugging-framework-fix.patch
-bootmem-clean-up-free_all_bootmem_core-fix.patch
-bootmem-free-reserve-helpers-fix.patch
-revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-v850-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
-security-protect-legacy-applications-from-executing-with-insufficient-privilege-checkpatch-fixes.patch
-swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
-split-the-typecheck-macros-out-of-include-linux-kernelh.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
-remove-apparently-unused-fd1772h-header-file.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
-build-kernel-profileo-only-when-requested-cleanups.patch
-fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
-block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
-seq_file-fix-bug-when-seq_read-reads-nothing-fix.patch
-remove-bkl-from-remote_llseek-v2-fix.patch
-inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
-rename-warn-to-warning-to-clear-the-namespace-fix.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
-flag-parameters-paccept-fix.patch
-flag-parameters-paccept-sys_ni.patch
-flag-parameters-anon_inode_getfd-extension-fix.patch
-flag-parameters-signalfd-fix.patch
-flag-parameters-eventfd-fix.patch
-flag-parameters-inotify_init-fix.patch
-flag-parameters-check-magic-constants-alpha.patch
-spi-au1550_spi-improve-pio-transfer-mode-checkpatch-fixes.patch
-gpio-gpio-driver-for-max7301-spi-gpio-expander-checkpatch-fixes.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch
-drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
-atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
-fsl-diu-fb-update-freescale-diu-driver-to-use-page_alloc_exact-fix.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
-ext3-handle-corrupted-orphan-list-at-mount-cleanup.patch
-ext3-handle-corrupted-orphan-list-at-mount-fix.patch
-ext3-handle-corrupted-orphan-list-at-mount-cleanup-fix.patch
-jbd-dont-abort-if-flushing-file-data-failed-fix.patch
-reiserfs-convert-j_flush_sem-to-mutex.patch
-reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
-cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-checkpatch-fixes.patch
-memcg-remove-refcnt-from-page_cgroup-fix-2.patch
-jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup.patch
-ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
-getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
-tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
-memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
-memstick-use-fully-asynchronous-request-processing-fix.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-mm-introduce-get_user_pages_fast-fix.patch
-mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-fix.patch
-x86-lockless-get_user_pages_fast-fix-2.patch
-x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
-x86-lockless-get_user_pages_fast-fix-warning.patch
-vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
-define-page_file_cache-function-fix.patch
-unevictable-lru-infrastructure-fix.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-3.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
-vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
-video-console-sticonrec-make-code-static-checkpatch-fixes.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+edac-i5100-new-intel-chipset-driver.patch
+edac-i5100-fix-missing-bits.patch
+edac-i5100-fix-enable-ecc-hardware.patch
+edac-i5100-fix-unmask-ecc-bits.patch
+edac-i5100-cleanup.patch
+edac-core-fix-to-use-dynamic-kobject.patch
+edac-core-fix-workq-timer.patch
+edac-core-fix-redundant-sysfs-controls-to-parameters.patch
+edac-core-fix-static-to-dynamic-kset.patch
+edac-core-fix-added-newline-to-sysfs-dimm-labels.patch
 
