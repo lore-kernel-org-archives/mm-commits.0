@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + edac-i5100-cleanup-fix.patch added to -mm tree
-Date: Wed, 02 Jul 2008 10:09:47 -0700
-Message-ID: <200807021709.m62H9ldN026993@imap1.linux-foundation.org>
+Subject: + rtc-ds1305-ds1306-driver-fix.patch added to -mm tree
+Date: Wed, 02 Jul 2008 10:13:42 -0700
+Message-ID: <200807021713.m62HDgoO027139@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36002 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36451 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751953AbYGBRJu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 13:09:50 -0400
+	by vger.kernel.org with ESMTP id S1750724AbYGBROC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 13:14:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ajones@riverbed.com, dougthompson@xmission.com
+Cc: david-b@pacbell.net, a.zummo@towertech.it, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     drivers/edac: i5100 cleanup addendum
+     rtc: ds1305/ds1306 driver fix
 has been added to the -mm tree.  Its filename is
-     edac-i5100-cleanup-fix.patch
+     rtc-ds1305-ds1306-driver-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,109 +33,64 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/edac: i5100 cleanup addendum
-From: Arthur Jones <ajones@riverbed.com>
+Subject: rtc: ds1305/ds1306 driver fix
+From: David Brownell <david-b@pacbell.net>
 
-This follow-on cleanup patch fixes the following compiler warnings found
-by Andrew Morton:
+Be differently paranoid about params from userspace: prevent
+overflows too, 96 + 96 fits in an "unsigned long".
 
-drivers/edac/i5100_edac.c:258: warning: function declaration isn't a prototype
-drivers/edac/i5100_edac.c:263: warning: function declaration isn't a prototype
-drivers/edac/i5100_edac.c: In function 'i5100_ctl_page_to_phys':
-drivers/edac/i5100_edac.c:372: warning: left shift count >= width of type
-
-The i5100_ctl_page_to_phys was not used, it will be
-re-added when the controller -> cpu address space
-translations work.
-
-Signed-off-by: Arthur Jones <ajones@riverbed.com>
-Cc: Doug Thompson <dougthompson@xmission.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/i5100_edac.c |   39 ++----------------------------------
- 1 file changed, 3 insertions(+), 36 deletions(-)
+ drivers/rtc/rtc-ds1305.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/edac/i5100_edac.c~edac-i5100-cleanup-fix drivers/edac/i5100_edac.c
---- a/drivers/edac/i5100_edac.c~edac-i5100-cleanup-fix
-+++ a/drivers/edac/i5100_edac.c
-@@ -254,12 +254,12 @@ static inline u32 i5100_recmema_dm_buf_i
- 	return i5100_nrecmema_dm_buf_id(a);
- }
+diff -puN drivers/rtc/rtc-ds1305.c~rtc-ds1305-ds1306-driver-fix drivers/rtc/rtc-ds1305.c
+--- a/drivers/rtc/rtc-ds1305.c~rtc-ds1305-ds1306-driver-fix
++++ a/drivers/rtc/rtc-ds1305.c
+@@ -557,6 +557,8 @@ ds1305_nvram_read(struct kobject *kobj, 
  
--static inline u32 i5100_recmemb_cas(a)
-+static inline u32 i5100_recmemb_cas(u32 a)
- {
- 	return i5100_nrecmemb_cas(a);
- }
- 
--static inline u32 i5100_recmemb_ras(a)
-+static inline u32 i5100_recmemb_ras(u32 a)
- {
- 	return i5100_nrecmemb_ras(a);
- }
-@@ -339,39 +339,6 @@ static int i5100_rank_to_slot(const stru
- 	return -1;
- }
- 
--/*
-- * The processor bus memory addresses are broken into three
-- * pieces, whereas the controller addresses are contiguous.
-- *
-- * here we map from the controller address space to the
-- * processor address space:
-- *
-- *    Processor Address Space
-- * +-----------------------------+
-- * |                             |
-- * |  "high" memory addresses    |
-- * |                             |
-- * +-----------------------------+ <- 4GB on the i5100
-- * |                             |
-- * |  other non-memory addresses |
-- * |                             |
-- * +-----------------------------+ <- top of low memory
-- * |                             |
-- * | "low" memory addresses      |
-- * |                             |
-- * +-----------------------------+
-- */
--static unsigned long i5100_ctl_page_to_phys(struct mem_ctl_info *mci,
--					    unsigned long cntlr_addr)
--{
--	const struct i5100_priv *priv = mci->pvt_info;
--
--	if (cntlr_addr < priv->tolm)
--		return cntlr_addr;
--
--	return (1UL << 32) + (cntlr_addr - priv->tolm);
--}
--
- static const char *i5100_err_msg(unsigned err)
- {
- 	static const char *merrs[] = {
-@@ -912,7 +879,7 @@ static int __devinit i5100_init_one(stru
- 	mci->mod_ver = "not versioned";
- 	mci->ctl_name = "i5100";
- 	mci->dev_name = pci_name(pdev);
--	mci->ctl_page_to_phys = i5100_ctl_page_to_phys;
-+	mci->ctl_page_to_phys = NULL;
- 
- 	mci->edac_check = i5100_check_error;
- 
+ 	if (unlikely(off >= DS1305_NVRAM_LEN))
+ 		return 0;
++	if (count >= DS1305_NVRAM_LEN)
++		count = DS1305_NVRAM_LEN;
+ 	if ((off + count) > DS1305_NVRAM_LEN)
+ 		count = DS1305_NVRAM_LEN - off;
+ 	if (unlikely(!count))
 _
 
-Patches currently in -mm which might be from ajones@riverbed.com are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
-edac-i5100-new-intel-chipset-driver.patch
-edac-i5100-fix-missing-bits.patch
-edac-i5100-fix-enable-ecc-hardware.patch
-edac-i5100-fix-unmask-ecc-bits.patch
-edac-i5100-cleanup.patch
-edac-i5100-cleanup-fix.patch
-edac-core-fix-to-use-dynamic-kobject.patch
-edac-core-fix-workq-timer.patch
-edac-core-fix-redundant-sysfs-controls-to-parameters.patch
-edac-core-fix-static-to-dynamic-kset.patch
-edac-core-fix-added-newline-to-sysfs-dimm-labels.patch
+rtc_read_alarm-handles-wraparound.patch
+gpio-pca953x-i2c-handles-max7310-too.patch
+linux-next.patch
+ntp-let-update_persistent_clock-sleep.patch
+jffs2-summary-allocation-dont-use-vmalloc.patch
+atmel_nand-speedup-via-readwritesbw.patch
+asic3-gpiolib-support.patch
+asic3-remove-children-platform-data.patch
+asic3-new-gpio-configuration-code.patch
+sm501-add-gpiolib-support.patch
+sm501-gpio-dynamic-registration-for-pci-devices.patch
+sm501-gpio-i2c-support.patch
+rtc-rtc-rs5c372-smbus-conversion-support.patch
+rtc-rtc-rs5c732-add-support-for-ricoh-r2025s-d-rtc.patch
+rtc-m41t80-sort-header-inclusions-for-readability.patch
+rtc-m41t80-use-pr_info-as-appropriate.patch
+rtc-remove-bkl-for-ioctl.patch
+rtc-add-support-for-st-m41t94-spi-rtc.patch
+rtc-ds1305-ds1306-driver.patch
+rtc-ds1305-ds1306-driver-fix.patch
+rtc-bcd-codeshrink.patch
+rtc-rtc-omap-footprint-shrinkage.patch
+gpio-gpio-driver-for-max7301-spi-gpio-expander.patch
+gpio-gpio-driver-for-max7301-spi-gpio-expander-checkpatch-fixes.patch
+gpio-sysfs-interface-updated-update.patch
+gpio-mcp23s08-handles-multiple-chips-per-chipselect.patch
+gpio-add-bt8xxgpio-driver.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch
 
