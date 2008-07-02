@@ -1,67 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: - e100-do-pci_dma_sync-after-skb_alloc-for-proper-operation-on-ixp4xx.patch removed from -mm tree
-Date: Wed, 02 Jul 2008 00:47:49 -0700
-Message-ID: <200807020747.m627lnei005680@imap1.linux-foundation.org>
+Subject: - vfs-utimensat-ignore-tv_sec-if-tv_nsec-==-utime_omit-or-utime_now.patch removed from -mm tree
+Date: Wed, 02 Jul 2008 00:47:52 -0700
+Message-ID: <200807020747.m627lqfm005683@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35946 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36653 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762329AbYGBHsd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 03:48:33 -0400
+	by vger.kernel.org with ESMTP id S1758068AbYGBHtE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 03:49:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kexin.hao@windriver.com, auke-jan.h.kok@intel.com, jeff@garzik.org, jeffrey.t.kirsher@intel.com, jesse.brandeburg@intel.com, john.ronciak@intel.com, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: mtk.manpages@googlemail.com, drepper@redhat.com, miklos@szeredi.hu, mtk.manpages@gmail.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     e100: do pci_dma_sync after skb_alloc for proper operation on ixp4xx
+     vfs: utimensat(): ignore tv_sec if tv_nsec == UTIME_OMIT or UTIME_NOW
 has been removed from the -mm tree.  Its filename was
-     e100-do-pci_dma_sync-after-skb_alloc-for-proper-operation-on-ixp4xx.patch
+     vfs-utimensat-ignore-tv_sec-if-tv_nsec-==-utime_omit-or-utime_now.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: e100: do pci_dma_sync after skb_alloc for proper operation on ixp4xx
-From: Kevin Hao <kexin.hao@windriver.com>
+Subject: vfs: utimensat(): ignore tv_sec if tv_nsec == UTIME_OMIT or UTIME_NOW
+From: Michael Kerrisk <mtk.manpages@googlemail.com>
 
-Do a DMA sync after we've allocated a new skb and link it with the
-previous RFD.  Otherwise the previous RFD may reference the previously
-freed skb and cause kernel corruption.
+The POSIX.1 draft spec for utimensat() says that if a times[n].tv_nsec
+field is UTIME_OMIT or UTIME_NOW, then the value in the corresponding
+tv_sec field is ignored.  See the last sentence of this para, from
+the spec:
 
-Previously there was such a DMA sync at this place, but it was removed by
-commit 7734f6e6bcd7ba78b00e93e74a4ddafd9886cdea.  Restoring this sync
-operation eliminates the regression.
+    If the tv_nsec field of a timespec structure has
+    the special value UTIME_NOW, the file's relevant
+    timestamp shall be set to the greatest value
+    supported by the file system that is not greater than
+    the current time. If the tv_nsec field has the
+    special value UTIME_OMIT, the file's relevant
+    timestamp shall not be changed. In either case,
+    the tv_sec field shall be ignored.
 
-Signed-off-by: Kevin Hao <kexin.hao@windriver.com>
-Auke Kok <auke-jan.h.kok@intel.com>
-Cc: <jeffrey.t.kirsher@intel.com>
-Cc: Jesse Brandeburg <jesse.brandeburg@intel.com>
-Cc: "Ronciak, John" <john.ronciak@intel.com>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+However the current Linux implementation requires the tv_sec value to be
+zero (or the EINVAL error results). This requirement should be removed.
+
+Acked-by: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Ulrich Drepper <drepper@redhat.com>
+Signed-off-by: Michael Kerrisk <mtk.manpages@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/e100.c |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/utimes.c |    8 --------
+ 1 file changed, 8 deletions(-)
 
-diff -puN drivers/net/e100.c~e100-do-pci_dma_sync-after-skb_alloc-for-proper-operation-on-ixp4xx drivers/net/e100.c
---- a/drivers/net/e100.c~e100-do-pci_dma_sync-after-skb_alloc-for-proper-operation-on-ixp4xx
-+++ a/drivers/net/e100.c
-@@ -1692,6 +1692,8 @@ static int e100_rx_alloc_skb(struct nic 
- 	if (rx->prev->skb) {
- 		struct rfd *prev_rfd = (struct rfd *)rx->prev->skb->data;
- 		put_unaligned_le32(rx->dma_addr, &prev_rfd->link);
-+		pci_dma_sync_single_for_device(nic->pdev, rx->prev->dma_addr,
-+			sizeof(struct rfd), PCI_DMA_TODEVICE);
- 	}
+diff -puN fs/utimes.c~vfs-utimensat-ignore-tv_sec-if-tv_nsec-==-utime_omit-or-utime_now fs/utimes.c
+--- a/fs/utimes.c~vfs-utimensat-ignore-tv_sec-if-tv_nsec-==-utime_omit-or-utime_now
++++ a/fs/utimes.c
+@@ -169,14 +169,6 @@ asmlinkage long sys_utimensat(int dfd, c
+ 	if (utimes) {
+ 		if (copy_from_user(&tstimes, utimes, sizeof(tstimes)))
+ 			return -EFAULT;
+-		if ((tstimes[0].tv_nsec == UTIME_OMIT ||
+-		     tstimes[0].tv_nsec == UTIME_NOW) &&
+-		    tstimes[0].tv_sec != 0)
+-			return -EINVAL;
+-		if ((tstimes[1].tv_nsec == UTIME_OMIT ||
+-		     tstimes[1].tv_nsec == UTIME_NOW) &&
+-		    tstimes[1].tv_sec != 0)
+-			return -EINVAL;
  
- 	return 0;
+ 		/* Nothing to do, we must not even check the path.  */
+ 		if (tstimes[0].tv_nsec == UTIME_OMIT &&
 _
 
-Patches currently in -mm which might be from kexin.hao@windriver.com are
+Patches currently in -mm which might be from mtk.manpages@googlemail.com are
 
-linux-next.patch
+origin.patch
+man-pages-is-supported.patch
+doc-document-the-relax_domain_level-kernel-boot-argument.patch
+doc-document-the-relax_domain_level-kernel-boot-argument-fix.patch
+huge-page-private-reservation-review-cleanups.patch
+huge-page-private-reservation-review-cleanups-fix.patch
+mm-record-map_noreserve-status-on-vmas-and-fix-small-page-mprotect-reservations.patch
+hugetlb-move-reservation-region-support-earlier.patch
+hugetlb-allow-huge-page-mappings-to-be-created-without-reservations.patch
+hugetlb-allow-huge-page-mappings-to-be-created-without-reservations-cleanups.patch
+hugetlb-reservations-move-region-tracking-earlier.patch
+hugetlb-reservations-fix-hugetlb-map_private-reservations-across-vma-splits-v2.patch
+flag-parameters-socket-and-socketpair.patch
+flag-parameters-socket-and-socketpair-mips-fix.patch
+flag-parameters-paccept.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-paccept-fix-flag-parameters-arch-specific-sock_nonblock.patch
+flag-parameters-paccept-flag-parameters-paccept-w-out-set_restore_sigmask.patch
+flag-parameters-paccept-sys_ni.patch
+flag-parameters-anon_inode_getfd-extension.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-signalfd.patch
+flag-parameters-signalfd-fix.patch
+flag-parameters-eventfd.patch
+flag-parameters-eventfd-fix.patch
+flag-parameters-timerfd_create.patch
+flag-parameters-epoll_create.patch
+flag-parameters-dup2.patch
+flag-parameters-pipe.patch
+flag-parameters-inotify_init.patch
+flag-parameters-inotify_init-fix.patch
+flag-parametersi-nonblock-in-anon_inode_getfd.patch
+flag-parameters-nonblock-in-socket-and-socketpair.patch
+flag-parameters-nonblock-in-signalfd.patch
+flag-parameters-nonblock-in-eventfd.patch
+flag-parameters-nonblock-in-timerfd_create.patch
+flag-parameters-nonblock-in-pipe.patch
+flag-parameters-nonblock-in-inotify_init.patch
+flag-parameters-check-magic-constants.patch
+flag-parameters-check-magic-constants-alpha.patch
+flag-parameters-add-on-remove-epoll_create-size-param.patch
+signals-make-siginfo_t-si_utime-si_sstime-report-times-in-user_hz-not-hz.patch
 
