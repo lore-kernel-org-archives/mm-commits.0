@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + doc-document-the-relax_domain_level-kernel-boot-argument-fix.patch added to -mm tree
-Date: Tue, 01 Jul 2008 20:22:10 -0700
-Message-ID: <200807020322.m623MAHJ028965@imap1.linux-foundation.org>
+Subject: + inflate-refactor-inflate-malloc-code.patch added to -mm tree
+Date: Tue, 01 Jul 2008 20:29:43 -0700
+Message-ID: <200807020329.m623ThO4029179@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47185 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41017 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752623AbYGBDWQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 23:22:16 -0400
+	by vger.kernel.org with ESMTP id S1752887AbYGBDbT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 23:31:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, lizf@cn.fujitsu.com, mtk.manpages@googlemail.com, pj@sgi.com
+Cc: thomas.petazzoni@free-electrons.com, andi@firstfloor.org, dhowells@redhat.com, hpa@zytor.com, hskinnemoen@atmel.com, ink@jurassic.park.msu.ru, jesper.nilsson@axis.com, lethal@linux-sh.org, mikael.starvik@axis.com, mingo@elte.hu, mpm@selenic.com, rth@twiddle.net, tglx@linutronix.de, ysato@users.sourceforge.jp
 
 
 The patch titled
-     doc-document-the-relax_domain_level-kernel-boot-argument-fix
+     inflate: refactor inflate malloc code
 has been added to the -mm tree.  Its filename is
-     doc-document-the-relax_domain_level-kernel-boot-argument-fix.patch
+     inflate-refactor-inflate-malloc-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,186 +33,891 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: doc-document-the-relax_domain_level-kernel-boot-argument-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: inflate: refactor inflate malloc code
+From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
 
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
-Cc: Paul Jackson <pj@sgi.com>
+Inflate requires some dynamic memory allocation very early in the boot
+process and this is provided with a set of four functions:
+malloc/free/gzip_mark/gzip_release.
+
+The old inflate code used a mark/release strategy rather than implement
+free.  This new version instead keeps a count on the number of outstanding
+allocations and when it hits zero, it resets the malloc arena.
+
+This allows removing all the mark and release implementations and unifying
+all the malloc/free implementations.
+
+The architecture-dependent code must define two addresses:
+ - free_mem_ptr, the address of the beginning of the area in which
+   allocations should be made
+ - free_mem_end_ptr, the address of the end of the area in which
+   allocations should be made. If set to 0, then no check is made on
+   the number of allocations, it just grows as much as needed
+
+The architecture-dependent code can also provide an arch_decomp_wdog()
+function call.  This function will be called several times during the
+decompression process, and allow to notify the watchdog that the system is
+still running.  If an architecture provides such a call, then it must
+define ARCH_HAS_DECOMP_WDOG so that the generic inflate code calls
+arch_decomp_wdog().
+
+Work initially done by Matt Mackall, updated to a recent version of the
+kernel and improved by me.
+
+Signed-off-by: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Mikael Starvik <mikael.starvik@axis.com>
+Cc: Jesper Nilsson <jesper.nilsson@axis.com>
+Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Acked-by: Paul Mundt <lethal@linux-sh.org>
+Acked-by: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/alpha/boot/misc.c                    |   39 -------------
+ arch/arm/boot/compressed/misc.c           |   59 ++------------------
+ arch/cris/arch-v10/boot/compressed/misc.c |   35 -----------
+ arch/cris/arch-v32/boot/compressed/misc.c |   35 -----------
+ arch/h8300/boot/compressed/misc.c         |   38 ------------
+ arch/m32r/boot/compressed/misc.c          |   37 ------------
+ arch/mn10300/boot/compressed/misc.c       |   37 ------------
+ arch/sh/boot/compressed/misc_32.c         |   38 ------------
+ arch/sh/boot/compressed/misc_64.c         |   40 -------------
+ arch/x86/boot/compressed/misc.c           |   39 -------------
+ init/do_mounts_rd.c                       |   25 --------
+ init/initramfs.c                          |   22 -------
+ lib/inflate.c                             |   52 +++++++++++++++--
+ 13 files changed, 60 insertions(+), 436 deletions(-)
 
-diff -puN Documentation/kernel-parameters.txt~doc-document-the-relax_domain_level-kernel-boot-argument-fix Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~doc-document-the-relax_domain_level-kernel-boot-argument-fix
-+++ a/Documentation/kernel-parameters.txt
-@@ -1680,7 +1680,7 @@ and is between 256 and 4096 characters. 
- 			See arch/*/kernel/reboot.c or arch/*/kernel/process.c			
+diff -puN arch/alpha/boot/misc.c~inflate-refactor-inflate-malloc-code arch/alpha/boot/misc.c
+--- a/arch/alpha/boot/misc.c~inflate-refactor-inflate-malloc-code
++++ a/arch/alpha/boot/misc.c
+@@ -78,8 +78,6 @@ static unsigned outcnt;		/* bytes in out
+ static int  fill_inbuf(void);
+ static void flush_window(void);
+ static void error(char *m);
+-static void gzip_mark(void **);
+-static void gzip_release(void **);
  
- 	relax_domain_level=
--			[KNL, SMP] Set schedulers default relax_domain_level.
-+			[KNL, SMP] Set scheduler's default relax_domain_level.
- 			See Documentation/cpusets.txt.
+ static char *input_data;
+ static int  input_data_size;
+@@ -88,51 +86,18 @@ static uch *output_data;
+ static ulg output_ptr;
+ static ulg bytes_out;
  
- 	reserve=	[KNL,BUGS] Force the kernel to ignore some iomem area
+-static void *malloc(int size);
+-static void free(void *where);
+ static void error(char *m);
+ static void gzip_mark(void **);
+ static void gzip_release(void **);
+ 
+ extern int end;
+ static ulg free_mem_ptr;
+-static ulg free_mem_ptr_end;
++static ulg free_mem_end_ptr;
+ 
+ #define HEAP_SIZE 0x3000
+ 
+ #include "../../../lib/inflate.c"
+ 
+-static void *malloc(int size)
+-{
+-	void *p;
+-
+-	if (size <0) error("Malloc error");
+-	if (free_mem_ptr <= 0) error("Memory error");
+-
+-	free_mem_ptr = (free_mem_ptr + 3) & ~3;	/* Align */
+-
+-	p = (void *)free_mem_ptr;
+-	free_mem_ptr += size;
+-
+-	if (free_mem_ptr >= free_mem_ptr_end)
+-		error("Out of memory");
+-	return p;
+-}
+-
+-static void free(void *where)
+-{ /* gzip_mark & gzip_release do the free */
+-}
+-
+-static void gzip_mark(void **ptr)
+-{
+-	*ptr = (void *) free_mem_ptr;
+-}
+-
+-static void gzip_release(void **ptr)
+-{
+-	free_mem_ptr = (long) *ptr;
+-}
+-
+ /* ===========================================================================
+  * Fill the input buffer. This is called only when the buffer is empty
+  * and at least one byte is really needed.
+@@ -193,7 +158,7 @@ decompress_kernel(void *output_start,
+ 
+ 	/* FIXME FIXME FIXME */
+ 	free_mem_ptr		= (ulg)output_start + ksize;
+-	free_mem_ptr_end	= (ulg)output_start + ksize + 0x200000;
++	free_mem_end_ptr	= (ulg)output_start + ksize + 0x200000;
+ 	/* FIXME FIXME FIXME */
+ 
+ 	/* put in temp area to reduce initial footprint */
+diff -puN arch/arm/boot/compressed/misc.c~inflate-refactor-inflate-malloc-code arch/arm/boot/compressed/misc.c
+--- a/arch/arm/boot/compressed/misc.c~inflate-refactor-inflate-malloc-code
++++ a/arch/arm/boot/compressed/misc.c
+@@ -217,8 +217,6 @@ static unsigned outcnt;		/* bytes in out
+ static int  fill_inbuf(void);
+ static void flush_window(void);
+ static void error(char *m);
+-static void gzip_mark(void **);
+-static void gzip_release(void **);
+ 
+ extern char input_data[];
+ extern char input_data_end[];
+@@ -227,64 +225,21 @@ static uch *output_data;
+ static ulg output_ptr;
+ static ulg bytes_out;
+ 
+-static void *malloc(int size);
+-static void free(void *where);
+ static void error(char *m);
+-static void gzip_mark(void **);
+-static void gzip_release(void **);
+ 
+ static void putstr(const char *);
+ 
+ extern int end;
+ static ulg free_mem_ptr;
+-static ulg free_mem_ptr_end;
++static ulg free_mem_end_ptr;
+ 
+-#define HEAP_SIZE 0x3000
+-
+-#include "../../../../lib/inflate.c"
+-
+-#ifndef STANDALONE_DEBUG
+-static void *malloc(int size)
+-{
+-	void *p;
+-
+-	if (size <0) error("Malloc error");
+-	if (free_mem_ptr <= 0) error("Memory error");
+-
+-	free_mem_ptr = (free_mem_ptr + 3) & ~3;	/* Align */
+-
+-	p = (void *)free_mem_ptr;
+-	free_mem_ptr += size;
+-
+-	if (free_mem_ptr >= free_mem_ptr_end)
+-		error("Out of memory");
+-	return p;
+-}
+-
+-static void free(void *where)
+-{ /* gzip_mark & gzip_release do the free */
+-}
+-
+-static void gzip_mark(void **ptr)
+-{
+-	arch_decomp_wdog();
+-	*ptr = (void *) free_mem_ptr;
+-}
++#ifdef STANDALONE_DEBUG
++#define NO_INFLATE_MALLOC
++#endif
+ 
+-static void gzip_release(void **ptr)
+-{
+-	arch_decomp_wdog();
+-	free_mem_ptr = (long) *ptr;
+-}
+-#else
+-static void gzip_mark(void **ptr)
+-{
+-}
++#define ARCH_HAS_DECOMP_WDOG
+ 
+-static void gzip_release(void **ptr)
+-{
+-}
+-#endif
++#include "../../../../lib/inflate.c"
+ 
+ /* ===========================================================================
+  * Fill the input buffer. This is called only when the buffer is empty
+@@ -348,7 +303,7 @@ decompress_kernel(ulg output_start, ulg 
+ {
+ 	output_data		= (uch *)output_start;	/* Points to kernel start */
+ 	free_mem_ptr		= free_mem_ptr_p;
+-	free_mem_ptr_end	= free_mem_ptr_end_p;
++	free_mem_end_ptr	= free_mem_ptr_end_p;
+ 	__machine_arch_type	= arch_id;
+ 
+ 	arch_decomp_setup();
+diff -puN arch/cris/arch-v10/boot/compressed/misc.c~inflate-refactor-inflate-malloc-code arch/cris/arch-v10/boot/compressed/misc.c
+--- a/arch/cris/arch-v10/boot/compressed/misc.c~inflate-refactor-inflate-malloc-code
++++ a/arch/cris/arch-v10/boot/compressed/misc.c
+@@ -84,8 +84,6 @@ static unsigned outcnt = 0;  /* bytes in
+ static int  fill_inbuf(void);
+ static void flush_window(void);
+ static void error(char *m);
+-static void gzip_mark(void **);
+-static void gzip_release(void **);
+ 
+ extern char *input_data;  /* lives in head.S */
+ 
+@@ -93,11 +91,7 @@ static long bytes_out = 0;
+ static uch *output_data;
+ static unsigned long output_ptr = 0;
+  
+-static void *malloc(int size);
+-static void free(void *where);
+ static void error(char *m);
+-static void gzip_mark(void **);
+-static void gzip_release(void **);
+  
+ static void puts(const char *);
+ 
+@@ -105,37 +99,10 @@ static void puts(const char *);
+   
+ extern int end;
+ static long free_mem_ptr = (long)&end;
++static long free_mem_end_ptr = 0;
+  
+ #include "../../../../../lib/inflate.c"
+ 
+-static void *malloc(int size)
+-{
+-	void *p;
+-
+-	if (size <0) error("Malloc error");
+-
+-	free_mem_ptr = (free_mem_ptr + 3) & ~3;	/* Align */
+-
+-	p = (void *)free_mem_ptr;
+-	free_mem_ptr += size;
+-
+-	return p;
+-}
+-
+-static void free(void *where)
+-{	/* Don't care */
+-}
+-
+-static void gzip_mark(void **ptr)
+-{
+-	*ptr = (void *) free_mem_ptr;
+-}
+-
+-static void gzip_release(void **ptr)
+-{
+-	free_mem_ptr = (long) *ptr;
+-}
+-
+ /* decompressor info and error messages to serial console */
+ 
+ static void
+diff -puN arch/cris/arch-v32/boot/compressed/misc.c~inflate-refactor-inflate-malloc-code arch/cris/arch-v32/boot/compressed/misc.c
+--- a/arch/cris/arch-v32/boot/compressed/misc.c~inflate-refactor-inflate-malloc-code
++++ a/arch/cris/arch-v32/boot/compressed/misc.c
+@@ -89,8 +89,6 @@ static unsigned outcnt = 0;  /* bytes in
+ 
+ static void flush_window(void);
+ static void error(char *m);
+-static void gzip_mark(void **);
+-static void gzip_release(void **);
+ 
+ extern char *input_data;  /* lives in head.S */
+ 
+@@ -98,11 +96,7 @@ static long bytes_out = 0;
+ static uch *output_data;
+ static unsigned long output_ptr = 0;
+ 
+-static void *malloc(int size);
+-static void free(void *where);
+ static void error(char *m);
+-static void gzip_mark(void **);
+-static void gzip_release(void **);
+ 
+ static void puts(const char *);
+ 
+@@ -110,37 +104,10 @@ static void puts(const char *);
+ 
+ extern int _end;
+ static long free_mem_ptr = (long)&_end;
++static long free_mem_end_ptr = 0;
+ 
+ #include "../../../../../lib/inflate.c"
+ 
+-static void *malloc(int size)
+-{
+-	void *p;
+-
+-	if (size <0) error("Malloc error");
+-
+-	free_mem_ptr = (free_mem_ptr + 3) & ~3;	/* Align */
+-
+-	p = (void *)free_mem_ptr;
+-	free_mem_ptr += size;
+-
+-	return p;
+-}
+-
+-static void free(void *where)
+-{	/* Don't care */
+-}
+-
+-static void gzip_mark(void **ptr)
+-{
+-	*ptr = (void *) free_mem_ptr;
+-}
+-
+-static void gzip_release(void **ptr)
+-{
+-	free_mem_ptr = (long) *ptr;
+-}
+-
+ /* decompressor info and error messages to serial console */
+ 
+ static inline void
+diff -puN arch/h8300/boot/compressed/misc.c~inflate-refactor-inflate-malloc-code arch/h8300/boot/compressed/misc.c
+--- a/arch/h8300/boot/compressed/misc.c~inflate-refactor-inflate-malloc-code
++++ a/arch/h8300/boot/compressed/misc.c
+@@ -67,8 +67,6 @@ static unsigned outcnt = 0;  /* bytes in
+ static int  fill_inbuf(void);
+ static void flush_window(void);
+ static void error(char *m);
+-static void gzip_mark(void **);
+-static void gzip_release(void **);
+ 
+ extern char input_data[];
+ extern int input_len;
+@@ -77,11 +75,7 @@ static long bytes_out = 0;
+ static uch *output_data;
+ static unsigned long output_ptr = 0;
+ 
+-static void *malloc(int size);
+-static void free(void *where);
+ static void error(char *m);
+-static void gzip_mark(void **);
+-static void gzip_release(void **);
+ 
+ int puts(const char *);
+ 
+@@ -98,38 +92,6 @@ static unsigned long free_mem_end_ptr;
+ #define TDR *((volatile unsigned char *)0xffff8b)
+ #define SSR *((volatile unsigned char *)0xffff8c)
+ 
+-static void *malloc(int size)
+-{
+-	void *p;
+-
+-	if (size <0) error("Malloc error");
+-	if (free_mem_ptr == 0) error("Memory error");
+-
+-	free_mem_ptr = (free_mem_ptr + 3) & ~3;	/* Align */
+-
+-	p = (void *)free_mem_ptr;
+-	free_mem_ptr += size;
+-
+-	if (free_mem_ptr >= free_mem_end_ptr)
+-		error("Out of memory");
+-
+-	return p;
+-}
+-
+-static void free(void *where)
+-{	/* Don't care */
+-}
+-
+-static void gzip_mark(void **ptr)
+-{
+-	*ptr = (void *) free_mem_ptr;
+-}
+-
+-static void gzip_release(void **ptr)
+-{
+-	free_mem_ptr = (long) *ptr;
+-}
+-
+ int puts(const char *s)
+ {
+ 	return 0;
+diff -puN arch/m32r/boot/compressed/misc.c~inflate-refactor-inflate-malloc-code arch/m32r/boot/compressed/misc.c
+--- a/arch/m32r/boot/compressed/misc.c~inflate-refactor-inflate-malloc-code
++++ a/arch/m32r/boot/compressed/misc.c
+@@ -70,8 +70,6 @@ static unsigned outcnt = 0;  /* bytes in
+ static int  fill_inbuf(void);
+ static void flush_window(void);
+ static void error(char *m);
+-static void gzip_mark(void **);
+-static void gzip_release(void **);
+ 
+ static unsigned char *input_data;
+ static int input_len;
+@@ -82,9 +80,6 @@ static unsigned long output_ptr = 0;
+ 
+ #include "m32r_sio.c"
+ 
+-static void *malloc(int size);
+-static void free(void *where);
+-
+ static unsigned long free_mem_ptr;
+ static unsigned long free_mem_end_ptr;
+ 
+@@ -92,38 +87,6 @@ static unsigned long free_mem_end_ptr;
+ 
+ #include "../../../../lib/inflate.c"
+ 
+-static void *malloc(int size)
+-{
+-	void *p;
+-
+-	if (size <0) error("Malloc error");
+-	if (free_mem_ptr == 0) error("Memory error");
+-
+-	free_mem_ptr = (free_mem_ptr + 3) & ~3;	/* Align */
+-
+-	p = (void *)free_mem_ptr;
+-	free_mem_ptr += size;
+-
+-	if (free_mem_ptr >= free_mem_end_ptr)
+-		error("Out of memory");
+-
+-	return p;
+-}
+-
+-static void free(void *where)
+-{	/* Don't care */
+-}
+-
+-static void gzip_mark(void **ptr)
+-{
+-	*ptr = (void *) free_mem_ptr;
+-}
+-
+-static void gzip_release(void **ptr)
+-{
+-	free_mem_ptr = (long) *ptr;
+-}
+-
+ void* memset(void* s, int c, size_t n)
+ {
+ 	int i;
+diff -puN arch/mn10300/boot/compressed/misc.c~inflate-refactor-inflate-malloc-code arch/mn10300/boot/compressed/misc.c
+--- a/arch/mn10300/boot/compressed/misc.c~inflate-refactor-inflate-malloc-code
++++ a/arch/mn10300/boot/compressed/misc.c
+@@ -153,26 +153,9 @@ static uch *output_data;
+ static unsigned long output_ptr;
+ 
+ 
+-static void *malloc(int size);
+-
+-static inline void free(void *where)
+-{	/* Don't care */
+-}
+-
+ static unsigned long free_mem_ptr = (unsigned long) &end;
+ static unsigned long free_mem_end_ptr = (unsigned long) &end + 0x90000;
+ 
+-static inline void gzip_mark(void **ptr)
+-{
+-	kputs(".");
+-	*ptr = (void *) free_mem_ptr;
+-}
+-
+-static inline void gzip_release(void **ptr)
+-{
+-	free_mem_ptr = (unsigned long) *ptr;
+-}
+-
+ #define INPLACE_MOVE_ROUTINE	0x1000
+ #define LOW_BUFFER_START	0x2000
+ #define LOW_BUFFER_END		0x90000
+@@ -186,26 +169,6 @@ static int lines, cols;
+ 
+ #include "../../../../lib/inflate.c"
+ 
+-static void *malloc(int size)
+-{
+-	void *p;
+-
+-	if (size < 0)
+-		error("Malloc error\n");
+-	if (!free_mem_ptr)
+-		error("Memory error\n");
+-
+-	free_mem_ptr = (free_mem_ptr + 3) & ~3;	/* Align */
+-
+-	p = (void *) free_mem_ptr;
+-	free_mem_ptr += size;
+-
+-	if (free_mem_ptr >= free_mem_end_ptr)
+-		error("\nOut of memory\n");
+-
+-	return p;
+-}
+-
+ static inline void scroll(void)
+ {
+ 	int i;
+diff -puN arch/sh/boot/compressed/misc_32.c~inflate-refactor-inflate-malloc-code arch/sh/boot/compressed/misc_32.c
+--- a/arch/sh/boot/compressed/misc_32.c~inflate-refactor-inflate-malloc-code
++++ a/arch/sh/boot/compressed/misc_32.c
+@@ -74,8 +74,6 @@ static unsigned outcnt = 0;  /* bytes in
+ static int  fill_inbuf(void);
+ static void flush_window(void);
+ static void error(char *m);
+-static void gzip_mark(void **);
+-static void gzip_release(void **);
+ 
+ extern char input_data[];
+ extern int input_len;
+@@ -84,11 +82,7 @@ static long bytes_out = 0;
+ static uch *output_data;
+ static unsigned long output_ptr = 0;
+ 
+-static void *malloc(int size);
+-static void free(void *where);
+ static void error(char *m);
+-static void gzip_mark(void **);
+-static void gzip_release(void **);
+ 
+ int puts(const char *);
+ 
+@@ -101,38 +95,6 @@ static unsigned long free_mem_end_ptr;
+ 
+ #include "../../../../lib/inflate.c"
+ 
+-static void *malloc(int size)
+-{
+-	void *p;
+-
+-	if (size <0) error("Malloc error");
+-	if (free_mem_ptr == 0) error("Memory error");
+-
+-	free_mem_ptr = (free_mem_ptr + 3) & ~3;	/* Align */
+-
+-	p = (void *)free_mem_ptr;
+-	free_mem_ptr += size;
+-
+-	if (free_mem_ptr >= free_mem_end_ptr)
+-		error("Out of memory");
+-
+-	return p;
+-}
+-
+-static void free(void *where)
+-{	/* Don't care */
+-}
+-
+-static void gzip_mark(void **ptr)
+-{
+-	*ptr = (void *) free_mem_ptr;
+-}
+-
+-static void gzip_release(void **ptr)
+-{
+-	free_mem_ptr = (long) *ptr;
+-}
+-
+ #ifdef CONFIG_SH_STANDARD_BIOS
+ size_t strlen(const char *s)
+ {
+diff -puN arch/sh/boot/compressed/misc_64.c~inflate-refactor-inflate-malloc-code arch/sh/boot/compressed/misc_64.c
+--- a/arch/sh/boot/compressed/misc_64.c~inflate-refactor-inflate-malloc-code
++++ a/arch/sh/boot/compressed/misc_64.c
+@@ -72,8 +72,6 @@ static unsigned outcnt = 0;	/* bytes in 
+ static int fill_inbuf(void);
+ static void flush_window(void);
+ static void error(char *m);
+-static void gzip_mark(void **);
+-static void gzip_release(void **);
+ 
+ extern char input_data[];
+ extern int input_len;
+@@ -82,11 +80,7 @@ static long bytes_out = 0;
+ static uch *output_data;
+ static unsigned long output_ptr = 0;
+ 
+-static void *malloc(int size);
+-static void free(void *where);
+ static void error(char *m);
+-static void gzip_mark(void **);
+-static void gzip_release(void **);
+ 
+ static void puts(const char *);
+ 
+@@ -99,40 +93,6 @@ static unsigned long free_mem_end_ptr;
+ 
+ #include "../../../../lib/inflate.c"
+ 
+-static void *malloc(int size)
+-{
+-	void *p;
+-
+-	if (size < 0)
+-		error("Malloc error\n");
+-	if (free_mem_ptr == 0)
+-		error("Memory error\n");
+-
+-	free_mem_ptr = (free_mem_ptr + 3) & ~3;	/* Align */
+-
+-	p = (void *) free_mem_ptr;
+-	free_mem_ptr += size;
+-
+-	if (free_mem_ptr >= free_mem_end_ptr)
+-		error("\nOut of memory\n");
+-
+-	return p;
+-}
+-
+-static void free(void *where)
+-{				/* Don't care */
+-}
+-
+-static void gzip_mark(void **ptr)
+-{
+-	*ptr = (void *) free_mem_ptr;
+-}
+-
+-static void gzip_release(void **ptr)
+-{
+-	free_mem_ptr = (long) *ptr;
+-}
+-
+ void puts(const char *s)
+ {
+ }
+diff -puN arch/x86/boot/compressed/misc.c~inflate-refactor-inflate-malloc-code arch/x86/boot/compressed/misc.c
+--- a/arch/x86/boot/compressed/misc.c~inflate-refactor-inflate-malloc-code
++++ a/arch/x86/boot/compressed/misc.c
+@@ -182,8 +182,6 @@ static unsigned		outcnt;
+ static int  fill_inbuf(void);
+ static void flush_window(void);
+ static void error(char *m);
+-static void gzip_mark(void **);
+-static void gzip_release(void **);
+ 
+ /*
+  * This is set up by the setup-routine at boot-time
+@@ -196,9 +194,6 @@ extern int input_len;
+ 
+ static long bytes_out;
+ 
+-static void *malloc(int size);
+-static void free(void *where);
+-
+ static void *memset(void *s, int c, unsigned n);
+ static void *memcpy(void *dest, const void *src, unsigned n);
+ 
+@@ -219,40 +214,6 @@ static int lines, cols;
+ 
+ #include "../../../../lib/inflate.c"
+ 
+-static void *malloc(int size)
+-{
+-	void *p;
+-
+-	if (size < 0)
+-		error("Malloc error");
+-	if (free_mem_ptr <= 0)
+-		error("Memory error");
+-
+-	free_mem_ptr = (free_mem_ptr + 3) & ~3;	/* Align */
+-
+-	p = (void *)free_mem_ptr;
+-	free_mem_ptr += size;
+-
+-	if (free_mem_ptr >= free_mem_end_ptr)
+-		error("Out of memory");
+-
+-	return p;
+-}
+-
+-static void free(void *where)
+-{	/* Don't care */
+-}
+-
+-static void gzip_mark(void **ptr)
+-{
+-	*ptr = (void *) free_mem_ptr;
+-}
+-
+-static void gzip_release(void **ptr)
+-{
+-	free_mem_ptr = (memptr) *ptr;
+-}
+-
+ static void scroll(void)
+ {
+ 	int i;
+diff -puN init/do_mounts_rd.c~inflate-refactor-inflate-malloc-code init/do_mounts_rd.c
+--- a/init/do_mounts_rd.c~inflate-refactor-inflate-malloc-code
++++ a/init/do_mounts_rd.c
+@@ -303,32 +303,11 @@ static int crd_infd, crd_outfd;
+ 
+ static int  __init fill_inbuf(void);
+ static void __init flush_window(void);
+-static void __init *malloc(size_t size);
+-static void __init free(void *where);
+ static void __init error(char *m);
+-static void __init gzip_mark(void **);
+-static void __init gzip_release(void **);
+ 
+-#include "../lib/inflate.c"
+-
+-static void __init *malloc(size_t size)
+-{
+-	return kmalloc(size, GFP_KERNEL);
+-}
+-
+-static void __init free(void *where)
+-{
+-	kfree(where);
+-}
+-
+-static void __init gzip_mark(void **ptr)
+-{
+-}
+-
+-static void __init gzip_release(void **ptr)
+-{
+-}
++#define NO_INFLATE_MALLOC
+ 
++#include "../lib/inflate.c"
+ 
+ /* ===========================================================================
+  * Fill the input buffer. This is called only when the buffer is empty
+diff -puN init/initramfs.c~inflate-refactor-inflate-malloc-code init/initramfs.c
+--- a/init/initramfs.c~inflate-refactor-inflate-malloc-code
++++ a/init/initramfs.c
+@@ -14,16 +14,6 @@ static void __init error(char *x)
+ 		message = x;
+ }
+ 
+-static void __init *malloc(size_t size)
+-{
+-	return kmalloc(size, GFP_KERNEL);
+-}
+-
+-static void __init free(void *where)
+-{
+-	kfree(where);
+-}
+-
+ /* link hash */
+ 
+ #define N_ALIGN(len) ((((len) + 1) & ~3) + 2)
+@@ -407,18 +397,10 @@ static long bytes_out;
+ 
+ static void __init flush_window(void);
+ static void __init error(char *m);
+-static void __init gzip_mark(void **);
+-static void __init gzip_release(void **);
+ 
+-#include "../lib/inflate.c"
++#define NO_INFLATE_MALLOC
+ 
+-static void __init gzip_mark(void **ptr)
+-{
+-}
+-
+-static void __init gzip_release(void **ptr)
+-{
+-}
++#include "../lib/inflate.c"
+ 
+ /* ===========================================================================
+  * Write the output window window[0..outcnt-1] and update crc and bytes_out.
+diff -puN lib/inflate.c~inflate-refactor-inflate-malloc-code lib/inflate.c
+--- a/lib/inflate.c~inflate-refactor-inflate-malloc-code
++++ a/lib/inflate.c
+@@ -230,6 +230,45 @@ STATIC const ush mask_bits[] = {
+ #define NEEDBITS(n) {while(k<(n)){b|=((ulg)NEXTBYTE())<<k;k+=8;}}
+ #define DUMPBITS(n) {b>>=(n);k-=(n);}
+ 
++#ifndef NO_INFLATE_MALLOC
++/* A trivial malloc implementation, adapted from
++ *  malloc by Hannu Savolainen 1993 and Matthias Urlichs 1994
++ */
++
++static unsigned long malloc_ptr;
++static int malloc_count;
++
++static void *malloc(int size)
++{
++       void *p;
++
++       if (size <0)
++               error("Malloc error");
++       if (!malloc_ptr)
++               malloc_ptr = free_mem_ptr;
++
++       malloc_ptr = (malloc_ptr + 3) & ~3;     /* Align */
++
++       p = (void *)malloc_ptr;
++       malloc_ptr += size;
++
++       if (free_mem_end_ptr && malloc_ptr >= free_mem_end_ptr)
++               error("Out of memory");
++
++       malloc_count++;
++       return p;
++}
++
++static void free(void *where)
++{
++       malloc_count--;
++       if (!malloc_count)
++               malloc_ptr = free_mem_ptr;
++}
++#else
++#define malloc(a) kmalloc(a, GFP_KERNEL)
++#define free(a) kfree(a)
++#endif
+ 
+ /*
+    Huffman code decoding is performed using a multi-level table lookup.
+@@ -1045,7 +1084,6 @@ STATIC int INIT inflate(void)
+   int e;                /* last block flag */
+   int r;                /* result code */
+   unsigned h;           /* maximum struct huft's malloc'ed */
+-  void *ptr;
+ 
+   /* initialize window, bit buffer */
+   wp = 0;
+@@ -1057,12 +1095,12 @@ STATIC int INIT inflate(void)
+   h = 0;
+   do {
+     hufts = 0;
+-    gzip_mark(&ptr);
+-    if ((r = inflate_block(&e)) != 0) {
+-      gzip_release(&ptr);	    
+-      return r;
+-    }
+-    gzip_release(&ptr);
++#ifdef ARCH_HAS_DECOMP_WDOG
++    arch_decomp_wdog();
++#endif
++    r = inflate_block(&e);
++    if (r)
++	    return r;
+     if (hufts > h)
+       h = hufts;
+   } while (!e);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from thomas.petazzoni@free-electrons.com are
 
-origin.patch
-rtc-x1205-fix-alarm-set-fix.patch
-update-ntfs-help-text-fix.patch
-cgroups-document-the-effect-of-attaching-pid-0-to-a-cgroup-fix.patch
-spi-fix-the-read-path-in-spidev-cleanup.patch
-security-filesystem-capabilities-fix-fragile-setuid-fixup-code-checkpatch-fixes.patch
-doc-document-the-relax_domain_level-kernel-boot-argument-fix.patch
-revert-introduce-rculisth.patch
-next-remove-localversion.patch
-revert-git-pekka.patch
-fix-kobject-fix-kobject_rename-and-config_sysfs.patch
-kvm-is-busted-on-ia64.patch
-drivers-mtd-nand-nandsimc-needs-div64h.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-tick-schedc-suppress-needless-timer-reprogramming-checkpatch-fixes.patch
-git-jg-misc-git-rejects.patch
-drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-mmc-sd-host-driver-for-ricoh-bay1controllers.patch
-drivers-mtd-devices-block2mtdc-suppress-warning.patch
-bug-in-random32c-all-zero-outputs-with-probability-1-232-other-seeding-bugs-checkpatch-fixes.patch
-sundance-set-carrier-status-on-link-change-events.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix-fix.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-scsi-misc-fix-scsi_dh-build-errors.patch
-drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
-s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
-pktcdvd-push-bkl-down-into-driver-fix.patch
-block-fix-bio_add_page-for-non-trivial-merge_bvec_fn-case-fix.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-git-logfs-fixup.patch
-watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-verify-the-page-links-and-memory-model.patch
-mspec-convert-nopfn-to-fault-fix.patch
-page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
-kill-generic_file_direct_io-checkpatch-fixes.patch
-use-generic_access_phys-for-dev-mem-mappings-fix.patch
-spufs-use-the-new-vm_ops-access-fix.patch
-fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
-page-flags-record-page-flag-overlays-explicitly-xen.patch
-mapping_set_error-add-unlikely.patch
-huge-page-private-reservation-review-cleanups-fix.patch
-sync_file_range_write-may-and-will-block-document-that-fix.patch
-vmallocinfo-add-numa-information-fix.patch
-hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
-hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
-hugetlb-override-default-huge-page-size-ia64-build.patch
-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-bootmem-add-debugging-framework-fix.patch
-bootmem-clean-up-free_all_bootmem_core-fix.patch
-bootmem-free-reserve-helpers-fix.patch
-revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-v850-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
-security-protect-legacy-applications-from-executing-with-insufficient-privilege-checkpatch-fixes.patch
-swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
-split-the-typecheck-macros-out-of-include-linux-kernelh.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
-remove-apparently-unused-fd1772h-header-file.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
-build-kernel-profileo-only-when-requested-cleanups.patch
-fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
-block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
-seq_file-fix-bug-when-seq_read-reads-nothing-fix.patch
-remove-bkl-from-remote_llseek-v2-fix.patch
-rename-warn-to-warning-to-clear-the-namespace-fix.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
-flag-parameters-paccept-fix.patch
-flag-parameters-paccept-sys_ni.patch
-flag-parameters-anon_inode_getfd-extension-fix.patch
-flag-parameters-signalfd-fix.patch
-flag-parameters-eventfd-fix.patch
-flag-parameters-inotify_init-fix.patch
-flag-parameters-check-magic-constants-alpha.patch
-spi-au1550_spi-improve-pio-transfer-mode-checkpatch-fixes.patch
-gpio-gpio-driver-for-max7301-spi-gpio-expander-checkpatch-fixes.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch
-drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
-atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
-fsl-diu-fb-update-freescale-diu-driver-to-use-page_alloc_exact-fix.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
-ext3-handle-corrupted-orphan-list-at-mount-cleanup.patch
-ext3-handle-corrupted-orphan-list-at-mount-fix.patch
-ext3-handle-corrupted-orphan-list-at-mount-cleanup-fix.patch
-jbd-dont-abort-if-flushing-file-data-failed-fix.patch
-reiserfs-convert-j_flush_sem-to-mutex.patch
-reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
-cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-checkpatch-fixes.patch
-memcg-remove-refcnt-from-page_cgroup-fix-2.patch
-jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup.patch
-ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
-getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
-tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
-memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
-memstick-use-fully-asynchronous-request-processing-fix.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-mm-introduce-get_user_pages_fast-fix.patch
-mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-fix.patch
-x86-lockless-get_user_pages_fast-fix-2.patch
-x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
-x86-lockless-get_user_pages_fast-fix-warning.patch
-vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
-define-page_file_cache-function-fix.patch
-unevictable-lru-infrastructure-fix.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-3.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
-vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
-video-console-sticonrec-make-code-static-checkpatch-fixes.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+inflate-refactor-inflate-malloc-code.patch
 
