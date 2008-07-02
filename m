@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlb-reservations-fix-hugetlb-map_private-reservations-across-vma-splits-v2-fix.patch added to -mm tree
-Date: Wed, 02 Jul 2008 01:02:21 -0700
-Message-ID: <200807020802.m6282LtQ006288@imap1.linux-foundation.org>
+Subject: + sm501-guess-n-giggle-build-fix.patch added to -mm tree
+Date: Wed, 02 Jul 2008 01:19:54 -0700
+Message-ID: <200807020819.m628JsOm006865@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35389 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56091 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751503AbYGBIIk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 04:08:40 -0400
+	by vger.kernel.org with ESMTP id S1752671AbYGBIUe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 04:20:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, agl@us.ibm.com, apw@shadowen.org, hannes@saeurebad.de, hugh@veritas.com, kniht@linux.vnet.ibm.com, lizf@cn.fujitsu.com, mel@csn.ul.ie, mtk.manpages@googlemail.com, wli@holomorphy.com
+Cc: akpm@linux-foundation.org, ben-linux@fluff.org, lizf@cn.fujitsu.com
 
 
 The patch titled
-     hugetlb-reservations-fix-hugetlb-map_private-reservations-across-vma-splits-v2-fix
+     sm501: guess-n-giggle build fix?
 has been added to the -mm tree.  Its filename is
-     hugetlb-reservations-fix-hugetlb-map_private-reservations-across-vma-splits-v2-fix.patch
+     sm501-guess-n-giggle-build-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,57 +33,97 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlb-reservations-fix-hugetlb-map_private-reservations-across-vma-splits-v2-fix
+Subject: sm501: guess-n-giggle build fix?
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Adam Litke <agl@us.ibm.com>
-Cc: Johannes Weiner <hannes@saeurebad.de>
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: William Lee Irwin III <wli@holomorphy.com>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
-Cc: Jon Tollefson <kniht@linux.vnet.ibm.com>
+Cc: Ben Dooks <ben-linux@fluff.org>
 Cc: Li Zefan <lizf@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/mfd/sm501.c |   13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
-diff -puN mm/hugetlb.c~hugetlb-reservations-fix-hugetlb-map_private-reservations-across-vma-splits-v2-fix mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-reservations-fix-hugetlb-map_private-reservations-across-vma-splits-v2-fix
-+++ a/mm/hugetlb.c
-@@ -856,7 +856,7 @@ static int vma_needs_reservation(struct 
+diff -puN drivers/mfd/sm501.c~sm501-guess-n-giggle-build-fix drivers/mfd/sm501.c
+--- a/drivers/mfd/sm501.c~sm501-guess-n-giggle-build-fix
++++ a/drivers/mfd/sm501.c
+@@ -19,7 +19,9 @@
+ #include <linux/device.h>
+ #include <linux/platform_device.h>
+ #include <linux/pci.h>
++#ifdef CONFIG_MFD_SM501_GPIO
+ #include <linux/gpio.h>
++#endif
+ #include <linux/i2c-gpio.h>
  
- 	} else  {
- 		int err;
--		pgoff_t idx = vma_pagecache_offset(h, vma, addr);
-+		pgoff_t idx = vma_hugecache_offset(h, vma, addr);
- 		struct resv_map *reservations = vma_resv_map(vma);
+ #include <linux/sm501.h>
+@@ -33,6 +35,7 @@ struct sm501_device {
+ 	struct platform_device		pdev;
+ };
  
- 		err = region_chg(&reservations->regions, idx, idx + 1);
-@@ -876,7 +876,7 @@ static void vma_commit_reservation(struc
- 		region_add(&inode->i_mapping->private_list, idx, idx + 1);
++#ifdef CONFIG_MFD_SM501_GPIO
+ struct sm501_gpio;
  
- 	} else if (is_vma_resv_set(vma, HPAGE_RESV_OWNER)) {
--		pgoff_t idx = vma_pagecache_offset(h, vma, addr);
-+		pgoff_t idx = vma_hugecache_offset(h, vma, addr);
- 		struct resv_map *reservations = vma_resv_map(vma);
+ struct sm501_gpio_chip {
+@@ -50,13 +53,15 @@ struct sm501_gpio {
+ 	void __iomem		*regs;
+ 	struct resource		*regs_res;
+ };
++#endif
  
- 		/* Mark this page used in the map. */
-@@ -1553,8 +1553,8 @@ static void hugetlb_vm_op_close(struct v
- 	unsigned long end;
+ struct sm501_devdata {
+ 	spinlock_t			 reg_lock;
+ 	struct mutex			 clock_lock;
+ 	struct list_head		 devices;
++#ifdef CONFIG_MFD_SM501_GPIO
+ 	struct sm501_gpio		 gpio;
+-
++#endif
+ 	struct device			*dev;
+ 	struct resource			*io_res;
+ 	struct resource			*mem_res;
+@@ -1116,6 +1121,7 @@ static inline int sm501_gpio_pin2nr(stru
+ }
+ #endif
  
- 	if (reservations) {
--		start = vma_pagecache_offset(h, vma, vma->vm_start);
--		end = vma_pagecache_offset(h, vma, vma->vm_end);
-+		start = vma_hugecache_offset(h, vma, vma->vm_start);
-+		end = vma_hugecache_offset(h, vma, vma->vm_end);
++#ifdef CONFIG_MFD_SM501_GPIO
+ static int sm501_register_gpio_i2c_instance(struct sm501_devdata *sm,
+ 					    struct sm501_platdata_gpio_i2c *iic)
+ {
+@@ -1168,6 +1174,7 @@ static int sm501_register_gpio_i2c(struc
  
- 		reserve = (end - start) -
- 			region_count(&reservations->regions, start, end);
+ 	return 0;
+ }
++#endif
+ 
+ /* sm501_dbg_regs
+  *
+@@ -1329,12 +1336,14 @@ static int sm501_init_dev(struct sm501_d
+ 			sm501_register_gpio(sm);
+ 	}
+ 
++#ifdef CONFIG_MFD_SM501_GPIO
+ 	if (pdata->gpio_i2c != NULL && pdata->gpio_i2c_nr > 0) {
+ 		if (!sm->gpio.registered)
+ 			dev_err(sm->dev, "no gpio registered for i2c gpio.\n");
+ 		else
+ 			sm501_register_gpio_i2c(sm, pdata);
+ 	}
++#endif
+ 
+ 	ret = sm501_check_clocks(sm);
+ 	if (ret) {
+@@ -1643,8 +1652,10 @@ static void sm501_dev_remove(struct sm50
+ 
+ 	device_remove_file(sm->dev, &dev_attr_dbg_regs);
+ 
++#ifdef CONFIG_MFD_SM501_GPIO
+ 	if (sm->gpio.registered)
+ 		sm501_gpio_remove(sm);
++#endif
+ }
+ 
+ static void sm501_pci_remove(struct pci_dev *dev)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -175,6 +215,7 @@ flag-parameters-eventfd-fix.patch
 flag-parameters-inotify_init-fix.patch
 flag-parameters-check-magic-constants-alpha.patch
 spi-au1550_spi-improve-pio-transfer-mode-checkpatch-fixes.patch
+sm501-guess-n-giggle-build-fix.patch
 gpio-gpio-driver-for-max7301-spi-gpio-expander-checkpatch-fixes.patch
 gpio-add-bt8xxgpio-driver-checkpatch-fixes.patch
 gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch
