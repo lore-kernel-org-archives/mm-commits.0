@@ -1,115 +1,179 @@
 From: akpm@linux-foundation.org
-Subject: - vfs-path_getput-cleanups.patch removed from -mm tree
-Date: Wed, 02 Jul 2008 00:47:29 -0700
-Message-ID: <200807020747.m627lTNo005651@imap1.linux-foundation.org>
+Subject: - drivers-acpi-video-fix-brightness-allocation-v3.patch removed from -mm tree
+Date: Wed, 02 Jul 2008 00:47:41 -0700
+Message-ID: <200807020747.m627lf47005666@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39749 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54858 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753499AbYGBHsM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 03:48:12 -0400
+	by vger.kernel.org with ESMTP id S1760824AbYGBHsZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 03:48:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jblunck@suse.de, jens.axboe@oracle.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: julia.jomantaite@gmail.com, lenb@kernel.org, rui.zhang@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vfs: path_{get,put}() cleanups
+     drivers/acpi/video: fix brightness allocation
 has been removed from the -mm tree.  Its filename was
-     vfs-path_getput-cleanups.patch
+     drivers-acpi-video-fix-brightness-allocation-v3.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: path_{get,put}() cleanups
-From: Jan Blunck <jblunck@suse.de>
+Subject: drivers/acpi/video: fix brightness allocation
+From: Julia Jomantaite <julia.jomantaite@gmail.com>
 
-Here are some more places where path_{get,put}() can be used instead of
-dput()/mntput() pair.
+Fix use of uninitialized device->brightness.
 
-Signed-off-by: Jan Blunck <jblunck@suse.de>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Signed-off-by: Julia Jomantaite <julia.jomantaite@gmail.com>
+Acked-by: Zhang Rui <rui.zhang@intel.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namei.c |   11 +++++------
- fs/pipe.c  |   10 ++++------
- 2 files changed, 9 insertions(+), 12 deletions(-)
+ drivers/acpi/video.c |  123 ++++++++++++++++++++++++-----------------
+ 1 file changed, 73 insertions(+), 50 deletions(-)
 
-diff -puN fs/namei.c~vfs-path_getput-cleanups fs/namei.c
---- a/fs/namei.c~vfs-path_getput-cleanups
-+++ a/fs/namei.c
-@@ -582,15 +582,13 @@ static __always_inline int link_path_wal
- 	int result;
- 
- 	/* make sure the stuff we saved doesn't go away */
--	dget(save.dentry);
--	mntget(save.mnt);
-+	path_get(&save);
- 
- 	result = __link_path_walk(name, nd);
- 	if (result == -ESTALE) {
- 		/* nd->path had been dropped */
- 		nd->path = save;
--		dget(nd->path.dentry);
--		mntget(nd->path.mnt);
-+		path_get(&nd->path);
- 		nd->flags |= LOOKUP_REVAL;
- 		result = __link_path_walk(name, nd);
- 	}
-@@ -1217,8 +1215,9 @@ int vfs_path_lookup(struct dentry *dentr
- 	nd->flags = flags;
- 	nd->depth = 0;
- 
--	nd->path.mnt = mntget(mnt);
--	nd->path.dentry = dget(dentry);
-+	nd->path.dentry = dentry;
-+	nd->path.mnt = mnt;
-+	path_get(&nd->path);
- 
- 	retval = path_walk(name, nd);
- 	if (unlikely(!retval && !audit_dummy_context() && nd->path.dentry &&
-diff -puN fs/pipe.c~vfs-path_getput-cleanups fs/pipe.c
---- a/fs/pipe.c~vfs-path_getput-cleanups
-+++ a/fs/pipe.c
-@@ -1003,8 +1003,7 @@ struct file *create_write_pipe(void)
- void free_write_pipe(struct file *f)
+diff -puN drivers/acpi/video.c~drivers-acpi-video-fix-brightness-allocation-v3 drivers/acpi/video.c
+--- a/drivers/acpi/video.c~drivers-acpi-video-fix-brightness-allocation-v3
++++ a/drivers/acpi/video.c
+@@ -631,6 +631,76 @@ acpi_video_bus_DOS(struct acpi_video_bus
+  *  	device	: video output device (LCD, CRT, ..)
+  *
+  *  Return Value:
++ *  	Maximum brightness level
++ *
++ *  Allocate and initialize device->brightness.
++ */
++
++static int
++acpi_video_init_brightness(struct acpi_video_device *device)
++{
++	union acpi_object *obj = NULL;
++	int i, max_level = 0, count = 0;
++	union acpi_object *o;
++	struct acpi_video_device_brightness *br = NULL;
++
++	if (!ACPI_SUCCESS(acpi_video_device_lcd_query_levels(device, &obj))) {
++		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Could not query available "
++						"LCD brightness level\n"));
++		goto out;
++	}
++
++	if (obj->package.count < 2)
++		goto out;
++
++	br = kzalloc(sizeof(*br), GFP_KERNEL);
++	if (!br) {
++		printk(KERN_ERR "can't allocate memory\n");
++		goto out;
++	}
++
++	br->levels = kmalloc(obj->package.count * sizeof *(br->levels),
++				GFP_KERNEL);
++	if (!br->levels)
++		goto out_free;
++
++	for (i = 0; i < obj->package.count; i++) {
++		o = (union acpi_object *)&obj->package.elements[i];
++		if (o->type != ACPI_TYPE_INTEGER) {
++			printk(KERN_ERR PREFIX "Invalid data\n");
++			continue;
++		}
++		br->levels[count] = (u32) o->integer.value;
++
++		if (br->levels[count] > max_level)
++			max_level = br->levels[count];
++		count++;
++	}
++
++	if (count < 2)
++		goto out_free_levels;
++
++	br->count = count;
++	device->brightness = br;
++	ACPI_DEBUG_PRINT((ACPI_DB_INFO,	"found %d brightness levels\n",	count));
++	kfree(obj);
++	return max_level;
++
++out_free_levels:
++	kfree(br->levels);
++out_free:
++	kfree(br);
++out:
++	device->brightness = NULL;
++	kfree(obj);
++	return 0;
++}
++
++/*
++ *  Arg:
++ *  	device	: video output device (LCD, CRT, ..)
++ *
++ *  Return Value:
+  *  	None
+  *
+  *  Find out all required AML methods defined under the output
+@@ -640,10 +710,7 @@ acpi_video_bus_DOS(struct acpi_video_bus
+ static void acpi_video_device_find_cap(struct acpi_video_device *device)
  {
- 	free_pipe_info(f->f_dentry->d_inode);
--	dput(f->f_path.dentry);
--	mntput(f->f_path.mnt);
-+	path_put(&f->f_path);
- 	put_filp(f);
- }
+ 	acpi_handle h_dummy1;
+-	int i;
+ 	u32 max_level = 0;
+-	union acpi_object *obj = NULL;
+-	struct acpi_video_device_brightness *br = NULL;
  
-@@ -1015,8 +1014,8 @@ struct file *create_read_pipe(struct fil
- 		return ERR_PTR(-ENFILE);
  
- 	/* Grab pipe from the writer */
--	f->f_path.mnt = mntget(wrf->f_path.mnt);
--	f->f_path.dentry = dget(wrf->f_path.dentry);
-+	f->f_path = wrf->f_path;
-+	path_get(&wrf->f_path);
- 	f->f_mapping = wrf->f_path.dentry->d_inode->i_mapping;
+ 	memset(&device->cap, 0, sizeof(device->cap));
+@@ -672,53 +739,7 @@ static void acpi_video_device_find_cap(s
+ 		device->cap._DSS = 1;
+ 	}
  
- 	f->f_pos = 0;
-@@ -1068,8 +1067,7 @@ int do_pipe(int *fd)
-  err_fdr:
- 	put_unused_fd(fdr);
-  err_read_pipe:
--	dput(fr->f_dentry);
--	mntput(fr->f_vfsmnt);
-+	path_put(&fr->f_path);
- 	put_filp(fr);
-  err_write_pipe:
- 	free_write_pipe(fw);
-_
-
-Patches currently in -mm which might be from jblunck@suse.de are
-
-origin.patch
-git-unionfs.patch
-
+-	if (ACPI_SUCCESS(acpi_video_device_lcd_query_levels(device, &obj))) {
+-
+-		if (obj->package.count >= 2) {
+-			int count = 0;
+-			union acpi_object *o;
+-
+-			br = kzalloc(sizeof(*br), GFP_KERNEL);
+-			if (!br) {
+-				printk(KERN_ERR "can't allocate memory\n");
+-			} else {
+-				br->levels = kmalloc(obj->package.count *
+-						     sizeof *(br->levels), GFP_KERNEL);
+-				if (!br->levels)
+-					goto out;
+-
+-				for (i = 0; i < obj->package.count; i++) {
+-					o = (union acpi_object *)&obj->package.
+-					    elements[i];
+-					if (o->type != ACPI_TYPE_INTEGER) {
+-						printk(KERN_ERR PREFIX "Invalid data\n");
+-						continue;
+-					}
+-					br->levels[count] = (u32) o->integer.value;
+-
+-					if (br->levels[count] > max_level)
+-						max_level = br->levels[count];
+-					count++;
+-				}
+-			      out:
+-				if (count < 2) {
+-					kfree(br->levels);
+-					kfree(br);
+-				} else {
+-					br->count = count;
+-					device->brightness = br;
+-					ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+-							  "found %d brightness levels\n",
+-							  count));
+-				}
+-			}
+-		}
+-
+-	} else {
+-		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Could not query available LCD brightness level\n"));
+-	}
