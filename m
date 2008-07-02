@@ -1,132 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: - bug-in-random32c-all-zero-outputs-with-probability-1-232-other-seeding-bugs.patch removed from -mm tree
-Date: Wed, 02 Jul 2008 12:17:16 -0700
-Message-ID: <200807021917.m62JHHKs031809@imap1.linux-foundation.org>
+Subject: + acpi-utmisc-use-warn_on-instead-of-warn_on_slowpath.patch added to -mm tree
+Date: Wed, 02 Jul 2008 12:14:57 -0700
+Message-ID: <200807021914.m62JEvTX031668@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48710 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44613 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752639AbYGBTRy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 15:17:54 -0400
+	by vger.kernel.org with ESMTP id S1752085AbYGBTT6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 15:19:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lloyd@randombit.net, ak@suse.de, bboissin@gmail.com, davem@davemloft.net, mpm@selenic.com, shemminger@linuxfoundation.org, tytso@mit.edu, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: randy.dunlap@oracle.com, andi@firstfloor.org, lenb@kernel.org
 
 
 The patch titled
-     Bug in random32.c: all-zero outputs with probability 1/2^32, other seeding bugs
-has been removed from the -mm tree.  Its filename was
-     bug-in-random32c-all-zero-outputs-with-probability-1-232-other-seeding-bugs.patch
+     acpi utmisc: use WARN_ON() instead of warn_on_slowpath()
+has been added to the -mm tree.  Its filename is
+     acpi-utmisc-use-warn_on-instead-of-warn_on_slowpath.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Bug in random32.c: all-zero outputs with probability 1/2^32, other seeding bugs
-From: Jack Lloyd <lloyd@randombit.net>
+Subject: acpi utmisc: use WARN_ON() instead of warn_on_slowpath()
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-There appears to be an error in how random seeding is done in the
-random32.c RNG.  I am looking at 2.6.25.7.
+utmisc.c needs to include asm-generic/bug.h for warn()/WARN() functions,
+but it should use WARN_ON() instead of warn_on_slowpath() since arches can
+provide their own implementation of WARN_ON(), which does not have to
+use/provide/implement warn_on_slowpath() at all.  Just use the front door
+(WARN_ON).
 
-For background, that file contains this comment:
+linux-next-20080702/drivers/acpi/utilities/utmisc.c:1027: error: implicit declaration of function 'warn_on_slowpath'
 
-"""
-        ... the k_j most significant bits of z_j must be non-
-        zero, for each j. (Note: this restriction also applies to the
-        computer code given in [4], but was mistakenly not mentioned in
-        that paper.)
-
-   This affects the seeding procedure by imposing the requirement
-   s1 > 1, s2 > 7, s3 > 15.
-"""
-
-The function random32_reseed takes an unsigned long's worth of entropy
-from the entropy pool (get_random_bytes) and passes it to __set_random32. 
-That function (seemingly attempts) to impose the requirement mentioned
-above by first checking if the seed is == 0, and if so setting it to one,
-then setting s2 to s*69069 and s3 to s2*69069
-
-However this will allow bad seeds.  On 64-bit systems, if the low order 32
-bits of the seed are zero, then the check for s == 0 will pass, but s1,
-s2, and s3 will all be initialized to zero due to truncation.  This will,
-since there are no additive factors in the RNG sequence, cause the RNG to
-output nothing but zero values.  Assuming get_random_bytes returns uniform
-random numbers, this will occur with probability around 1/2^32.
-
-An easy and straightforward fix for this that doesn't require changing any
-interfaces is to add
-
-  s &= 0xFFFFFFFF;
-
-before the check in __set_random32, which ensures this condition will be
-caught by the check.  Alternately, you could replace the check for s == 0
-with some logic like:
-
-  if((s & 0xFFFFFFFF) == 0)
-     s += 1;
-
-since just chopping the seed to 32 bits does throw away some of your seed
-input (with sizeof(long) == 8, at least; doesn't make any difference for
-sizeof(long) == 4)
-
-There are also many other seeds which will cause some (but not all) of the
-seeding requirements to be violated.  Which seeds will cause this problem
-depend on the size of unsigned long, since the multiplications by 69069
-are done in that size.
-
-For instance on 32-bit systems, a seed of 0x4BC54E0A will generate the
-state:
-
-  s1 = 0x4BC54E0A
-  s2 = (s1 * 69069) % 2^32 = 2
-  s3 = 2*69069 = 138138
-
-In general, there seem to be large numbers of seeds that cause at least
-one of the restrictions on s1, s2, s3 to be false.  The paper referenced
-in the source is not clear exactly how badly the generator fails when only
-one of the restrictions is violated.  Certainly it seems much less serious
-than the 64-bit specific bug described above; which is fortunate since it
-seems to occur much more often.  A trivial patch for both problems is
-attached.
-
-Cc: Theodore Ts'o <tytso@mit.edu>
-Cc: Matt Mackall <mpm@selenic.com>
-Cc: Stephen Hemminger <shemminger@osdl.org>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/random32.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/acpi/utilities/utmisc.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN lib/random32.c~bug-in-random32c-all-zero-outputs-with-probability-1-232-other-seeding-bugs lib/random32.c
---- a/lib/random32.c~bug-in-random32c-all-zero-outputs-with-probability-1-232-other-seeding-bugs
-+++ a/lib/random32.c
-@@ -58,13 +58,17 @@ static u32 __random32(struct rnd_state *
+diff -puN drivers/acpi/utilities/utmisc.c~acpi-utmisc-use-warn_on-instead-of-warn_on_slowpath drivers/acpi/utilities/utmisc.c
+--- a/drivers/acpi/utilities/utmisc.c~acpi-utmisc-use-warn_on-instead-of-warn_on_slowpath
++++ a/drivers/acpi/utilities/utmisc.c
+@@ -42,6 +42,7 @@
+  */
  
- static void __set_random32(struct rnd_state *state, unsigned long s)
+ #include <linux/module.h>
++#include <asm-generic/bug.h>
+ 
+ #include <acpi/acpi.h>
+ #include <acpi/acnamesp.h>
+@@ -1024,7 +1025,7 @@ acpi_ut_error(const char *module_name, u
  {
-+       s &= 0xFFFFFFFF;
- 	if (s == 0)
- 		s = 1;      /* default seed is 1 */
+ 	va_list args;
  
- #define LCG(n) (69069 * n)
- 	state->s1 = LCG(s);
-+       if(state->s1 < 2) state->s1 += 2;
- 	state->s2 = LCG(state->s1);
-+       if(state->s2 < 8) state->s2 += 8;
- 	state->s3 = LCG(state->s2);
-+       if(state->s3 < 16) state->s3 += 16;
+-	warn_on_slowpath(module_name, line_number);
++	WARN_ON(1);
+ 	acpi_os_printf("ACPI Error (%s-%04d): ", module_name, line_number);
  
- 	/* "warm it up" */
- 	__random32(state);
+ 	va_start(args, format);
+@@ -1039,7 +1040,7 @@ acpi_ut_exception(const char *module_nam
+ {
+ 	va_list args;
+ 
+-	warn_on_slowpath(module_name, line_number);
++	WARN_ON(1);
+ 	acpi_os_printf("ACPI Exception (%s-%04d): %s, ", module_name,
+ 		       line_number, acpi_format_exception(status));
+ 
 _
 
-Patches currently in -mm which might be from lloyd@randombit.net are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-random32-seeding-improvement.patch
-bug-in-random32c-all-zero-outputs-with-probability-1-232-other-seeding-bugs.patch
-bug-in-random32c-all-zero-outputs-with-probability-1-232-other-seeding-bugs-checkpatch-fixes.patch
+origin.patch
+doc-kernel-parameterstxt-fix-stale-references.patch
+cpusets-document-proc-status-cpus-and-mems-allowed-lists.patch
+linux-next.patch
+acpi-utmisc-use-warn_on-instead-of-warn_on_slowpath.patch
+documentation-build-source-files-in-documentation-sub-dir.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+git-kbuild-next.patch
+bluetooth-hci_bcsp-fix-bitrev-kconfig.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix-fix.patch
+e100-fix-printk-format-warning.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+netfilter-conntrack_helper-needs-to-include-rculisth.patch
+git-scsi-misc-fix-scsi_dh-build-errors.patch
+lkdtm-fix-for-config_scsi=n.patch
+git-unionfs.patch
+vmallocinfo-add-numa-information.patch
+vmallocinfo-add-numa-information-fix.patch
+pm-remove-obsolete-piece-of-pm-documentation-rev-2.patch
+flag-parameters-signalfd-fix.patch
+flag-parameters-eventfd-fix.patch
+kallsyms-unify-32-and-64-bit-code.patch
+procfs-guide-drop-pointless-nbsp-entities.patch
+bsdacct-stir-up-comments-around-acct_process.patch
+documentation-cleanup-trivial-misspelling-punctuation-and-grammar-corrections.patch
+profile-likely-unlikely-macros.patch
 
