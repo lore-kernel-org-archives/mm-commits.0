@@ -1,137 +1,262 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-version-021.patch added to -mm tree
-Date: Wed, 02 Jul 2008 11:11:02 -0700
-Message-ID: <200807021811.m62IB282029267@imap1.linux-foundation.org>
+Subject: - bug-in-random32c-all-zero-outputs-with-probability-1-232-other-seeding-bugs-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 02 Jul 2008 12:17:20 -0700
+Message-ID: <200807021917.m62JHK7f031814@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47737 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36571 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752457AbYGBSLK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 14:11:10 -0400
+	by vger.kernel.org with ESMTP id S1751295AbYGBTRj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 15:17:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: apw@shadowen.org
+To: akpm@linux-foundation.org, ak@suse.de, bboissin@gmail.com, davem@davemloft.net, lloyd@randombit.net, mpm@selenic.com, shemminger@linuxfoundation.org, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     checkpatch: version 0.21
-has been added to the -mm tree.  Its filename is
-     checkpatch-version-021.patch
+     bug-in-random32c-all-zero-outputs-with-probability-1-232-other-seeding-bugs-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     bug-in-random32c-all-zero-outputs-with-probability-1-232-other-seeding-bugs-checkpatch-fixes.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: version 0.21
-From: Andy Whitcroft <apw@shadowen.org>
+Subject: bug-in-random32c-all-zero-outputs-with-probability-1-232-other-seeding-bugs-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Signed-off-by: Andy Whitcroft <apw@shadowen.org>
+ERROR: space required before the open parenthesis '('
+#91: FILE: lib/random32.c:67:
++       if(state->s1 < 2) state->s1 += 2;
+
+ERROR: trailing statements should be on next line
+#91: FILE: lib/random32.c:67:
++       if(state->s1 < 2) state->s1 += 2;
+
+ERROR: space required before the open parenthesis '('
+#93: FILE: lib/random32.c:69:
++       if(state->s2 < 8) state->s2 += 8;
+
+ERROR: trailing statements should be on next line
+#93: FILE: lib/random32.c:69:
++       if(state->s2 < 8) state->s2 += 8;
+
+ERROR: space required before the open parenthesis '('
+#95: FILE: lib/random32.c:71:
++       if(state->s3 < 16) state->s3 += 16;
+
+ERROR: trailing statements should be on next line
+#95: FILE: lib/random32.c:71:
++       if(state->s3 < 16) state->s3 += 16;
+
+total: 6 errors, 0 warnings, 17 lines checked
+
+./patches/bug-in-random32c-all-zero-outputs-with-probability-1-232-other-seeding-bugs.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Andi Kleen <ak@suse.de>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Jack Lloyd <lloyd@randombit.net>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: Stephen Hemminger <shemminger@osdl.org>
+Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/random32.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-version-021 scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-version-021
-+++ a/scripts/checkpatch.pl
-@@ -9,7 +9,7 @@ use strict;
- my $P = $0;
- $P =~ s@.*/@@g;
+diff -puN lib/random32.c~bug-in-random32c-all-zero-outputs-with-probability-1-232-other-seeding-bugs-checkpatch-fixes lib/random32.c
+--- a/lib/random32.c~bug-in-random32c-all-zero-outputs-with-probability-1-232-other-seeding-bugs-checkpatch-fixes
++++ a/lib/random32.c
+@@ -64,11 +64,14 @@ static void __set_random32(struct rnd_st
  
--my $V = '0.20';
-+my $V = '0.21';
+ #define LCG(n) (69069 * n)
+ 	state->s1 = LCG(s);
+-       if(state->s1 < 2) state->s1 += 2;
++	if (state->s1 < 2)
++		state->s1 += 2;
+ 	state->s2 = LCG(state->s1);
+-       if(state->s2 < 8) state->s2 += 8;
++	if (state->s2 < 8)
++		state->s2 += 8;
+ 	state->s3 = LCG(state->s2);
+-       if(state->s3 < 16) state->s3 += 16;
++	if (state->s3 < 16)
++		state->s3 += 16;
  
- use Getopt::Long qw(:config no_auto_abbrev);
- 
+ 	/* "warm it up" */
+ 	__random32(state);
 _
 
-Patches currently in -mm which might be from apw@shadowen.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+rtc-x1205-fix-alarm-set-fix.patch
+update-ntfs-help-text-fix.patch
+cgroups-document-the-effect-of-attaching-pid-0-to-a-cgroup-fix.patch
+spi-fix-the-read-path-in-spidev-cleanup.patch
+security-filesystem-capabilities-fix-fragile-setuid-fixup-code-checkpatch-fixes.patch
+doc-document-the-relax_domain_level-kernel-boot-argument-fix.patch
+revert-introduce-rculisth.patch
 linux-next.patch
-mm-add-a-basic-debugging-framework-for-memory-initialisation.patch
-mm-add-a-basic-debugging-framework-for-memory-initialisation-fix.patch
+next-remove-localversion.patch
+linux-next-fixups.patch
+fix-kobject-fix-kobject_rename-and-config_sysfs.patch
+kvm-is-busted-on-ia64.patch
+drivers-mtd-nand-nandsimc-needs-div64h.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+arch-x86-kernel-smpbootc-fix-warning.patch
+arch-x86-mm-pgtable_32c-remove-unused-variable-fixmaps.patch
+drivers-media-video-cx18-cx18-av-firmwarec-fix-warning.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+tick-schedc-suppress-needless-timer-reprogramming-checkpatch-fixes.patch
+git-jg-misc-git-rejects.patch
+drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers.patch
+drivers-mtd-devices-block2mtdc-suppress-warning.patch
+bug-in-random32c-all-zero-outputs-with-probability-1-232-other-seeding-bugs-checkpatch-fixes.patch
+sundance-set-carrier-status-on-link-change-events.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix-fix.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-scsi-misc-fix-scsi_dh-build-errors.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
+pktcdvd-push-bkl-down-into-driver-fix.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-logfs-fixup.patch
+watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
+git-xtensa.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
 mm-verify-the-page-links-and-memory-model.patch
-mm-make-defensive-checks-around-pfn-values-registered-for-memory-usage.patch
-mm-print-out-the-zonelists-on-request-for-manual-verification.patch
-add-a-helper-function-to-test-if-an-object-is-on-the-stack.patch
-mm-move-bootmem-descriptors-definition-to-a-single-place.patch
-mm-fix-free_all_bootmem_core-alignment-check.patch
-mm-normalize-internal-argument-passing-of-bootmem-data.patch
-mm-unexport-__alloc_bootmem_core.patch
-buddy-clarify-comments-describing-buddy-merge.patch
-page-flags-record-page-flag-overlays-explicitly.patch
+mspec-convert-nopfn-to-fault-fix.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+kill-generic_file_direct_io-checkpatch-fixes.patch
+use-generic_access_phys-for-dev-mem-mappings-fix.patch
+spufs-use-the-new-vm_ops-access-fix.patch
+fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
 page-flags-record-page-flag-overlays-explicitly-xen.patch
-slub-record-page-flag-overlays-explicitly.patch
-slob-record-page-flag-overlays-explicitly.patch
-hugetlb-move-hugetlb_acct_memory.patch
-hugetlb-reserve-huge-pages-for-reliable-map_private-hugetlbfs-mappings-until-fork.patch
-hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed.patch
-hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed-fix.patch
-hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed-build-fix.patch
-huge-page-private-reservation-review-cleanups.patch
+mapping_set_error-add-unlikely.patch
 huge-page-private-reservation-review-cleanups-fix.patch
-mm-record-map_noreserve-status-on-vmas-and-fix-small-page-mprotect-reservations.patch
-hugetlb-move-reservation-region-support-earlier.patch
-hugetlb-allow-huge-page-mappings-to-be-created-without-reservations.patch
-hugetlb-allow-huge-page-mappings-to-be-created-without-reservations-cleanups.patch
-hugetlb-reservations-move-region-tracking-earlier.patch
-hugetlb-reservations-fix-hugetlb-map_private-reservations-across-vma-splits-v2.patch
+sync_file_range_write-may-and-will-block-document-that-fix.patch
+vmallocinfo-add-numa-information-fix.patch
+hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
+hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
+hugetlb-override-default-huge-page-size-ia64-build.patch
 hugetlb-reservations-fix-hugetlb-map_private-reservations-across-vma-splits-v2-fix.patch
-hugetlb-fix-race-when-reading-proc-meminfo.patch
-memory-hotplugallocate-usemap-on-the-section-with-pgdat-take-4.patch
-memory-hotplug-small-fixes-to-bootmem-freeing-for-memory-hotremove.patch
-memory-hotplug-dont-calculate-vm_total_pages-twice-when-rebuilding-zonelists-in-online_pages.patch
-checkpatch-version-020.patch
-checkpatch-return-is-not-a-function-parentheses-for-casts-are-ok-too.patch
-checkpatch-types-some-types-may-also-be-identifiers.patch
-checkpatch-add-a-checkpatch-warning-for-new-uses-of-__initcall.patch
-checkpatch-possible-types-__asm__-is-never-a-type.patch
-checkpatch-comment-detection-ignore-macro-continuation-when-detecting-associated-comments.patch
-checkpatch-types-unary-goto-introduces-unary-context.patch
-checkpatch-macros-fix-statement-counting-block-end-detection.patch
-checkpatch-trailing-statement-indent-fix-end-of-statement-location.patch
-checkpatch-allow-printk-strings-to-exceed-80-characters-to-maintain-their-searchability.patch
-checkpatch-switch-report-trailing-statements-on-case-and-default.patch
-checkpatch-check-spacing-for-square-brackets.patch
-checkpatch-toughen-trailing-if-statement-checks-and-extend-them-to-while-and-for.patch
-checkpatch-condition-loop-indent-checks.patch
-checkpatch-usb_free_urb-can-take-null.patch
-checkpatch-correct-spelling-in-kfree-checks.patch
-checkpatch-allow-for-type-modifiers-on-multiple-declarations.patch
-checkpatch-improve-type-matcher-debug.patch
-checkpatch-possible-modifiers-are-not-being-correctly-matched.patch
-checkpatch-macro-complexity-checks-are-meaningless-in-linker-scripts.patch
-checkpatch-handle-return-types-of-pointers-to-functions.patch
-checkpatch-possible-types-known-modifiers-cannot-be-types.patch
-checkpatch-possible-modifiers-handle-multiple-modifiers-and-trailing.patch
-checkpatch-add-checks-for-question-mark-and-colon-spacing.patch
-checkpatch-variants-move-the-main-unary-binary-operators-to-use-variants.patch
-checkpatch-complex-macros-need-to-ignore-comments.patch
-checkpatch-types-cannot-start-mid-word-for-pointer-tests.patch
-checkpatch-version-021.patch
-x86-implement-pte_special.patch
-mm-introduce-get_user_pages_fast.patch
+linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+bootmem-add-debugging-framework-fix.patch
+bootmem-clean-up-free_all_bootmem_core-fix.patch
+bootmem-free-reserve-helpers-fix.patch
+revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-v850-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
+security-protect-legacy-applications-from-executing-with-insufficient-privilege-checkpatch-fixes.patch
+swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
+block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
+seq_file-fix-bug-when-seq_read-reads-nothing-fix.patch
+inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-paccept-sys_ni.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-signalfd-fix.patch
+flag-parameters-eventfd-fix.patch
+flag-parameters-inotify_init-fix.patch
+flag-parameters-check-magic-constants-alpha.patch
+spi-au1550_spi-improve-pio-transfer-mode-checkpatch-fixes.patch
+gpio-gpio-driver-for-max7301-spi-gpio-expander-checkpatch-fixes.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
+fsl-diu-fb-update-freescale-diu-driver-to-use-page_alloc_exact-fix.patch
+fbdev-add-new-cobalt-lcd-framebuffer-driver-fix.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
+ext3-handle-corrupted-orphan-list-at-mount-cleanup.patch
+ext3-handle-corrupted-orphan-list-at-mount-fix.patch
+ext3-handle-corrupted-orphan-list-at-mount-cleanup-fix.patch
+ext3-handle-deleting-corrupted-indirect-blocks-fix.patch
+jbd-dont-abort-if-flushing-file-data-failed-fix.patch
+reiserfs-convert-j_flush_sem-to-mutex.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
+cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-fix.patch
+cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-checkpatch-fixes.patch
+memcg-remove-refcnt-from-page_cgroup-fix-2.patch
+workqueues-make-get_online_cpus-useable-for-work-func-fix.patch
+jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup.patch
+ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
+getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
+edac-mpc85xx-fix-pci-ofdev-2nd-pass-checkpatch-fixes.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-s2io.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
+x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary-checkpatch-fixes.patch
+tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
+memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
+memstick-use-fully-asynchronous-request-processing-fix.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
 mm-introduce-get_user_pages_fast-fix.patch
 mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast.patch
 x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
 x86-lockless-get_user_pages_fast-fix.patch
 x86-lockless-get_user_pages_fast-fix-2.patch
 x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
 x86-lockless-get_user_pages_fast-fix-warning.patch
-dio-use-get_user_pages_fast.patch
-splice-use-get_user_pages_fast.patch
+vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
+define-page_file_cache-function-fix.patch
+unevictable-lru-infrastructure-fix.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-3.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
+vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
+video-console-sticonrec-make-code-static-checkpatch-fixes.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
 page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
