@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-helper-function-for-relcaim-from-shmem-memcg-shmem_getpage-release-page-sooner.patch added to -mm tree
-Date: Tue, 01 Jul 2008 17:22:49 -0700
-Message-ID: <200807020022.m620Mnlo022493@imap1.linux-foundation.org>
+Subject: + memcg-helper-function-for-relcaim-from-shmem-memcg-mem_cgroup_shrink_usage-css_put.patch added to -mm tree
+Date: Tue, 01 Jul 2008 17:24:00 -0700
+Message-ID: <200807020024.m620O0en022519@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52059 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49036 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755959AbYGBAX2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 20:23:28 -0400
+	by vger.kernel.org with ESMTP id S1754637AbYGBAYo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 20:24:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: hugh@veritas.com, balbir@in.ibm.com, ebiederm@xmission.com, kamezawa.hiroyu@
 
 
 The patch titled
-     From: Hugh Dickins <hugh@veritas.com>
+     memcg: mem_cgroup_shrink_usage css_put
 has been added to the -mm tree.  Its filename is
-     memcg-helper-function-for-relcaim-from-shmem-memcg-shmem_getpage-release-page-sooner.patch
+     memcg-helper-function-for-relcaim-from-shmem-memcg-mem_cgroup_shrink_usage-css_put.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,16 +33,14 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: From: Hugh Dickins <hugh@veritas.com>
+Subject: memcg: mem_cgroup_shrink_usage css_put
+From: Hugh Dickins <hugh@veritas.com>
 
-
-No big deal, but since mem_cgroup_shrink_usage doesn't require a page to
-operate upon, page_cache_release the swappage before calling it, so it's
-not pinned across the reclaim.
+mem_cgroup_shrink_usage makes no charge: balance its css_get with a css_put.
 
 Signed-off-by: Hugh Dickins <hugh@veritas.com>
 Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
+Reviewed-by: Balbir Singh <balbir@in.ibm.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: Pavel Emelyanov <xemul@openvz.org>
 Cc: Li Zefan <lizf@cn.fujitsu.com>
@@ -52,32 +50,20 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ mm/memcontrol.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/shmem.c~memcg-helper-function-for-relcaim-from-shmem-memcg-shmem_getpage-release-page-sooner mm/shmem.c
---- a/mm/shmem.c~memcg-helper-function-for-relcaim-from-shmem-memcg-shmem_getpage-release-page-sooner
-+++ a/mm/shmem.c
-@@ -1315,16 +1315,14 @@ repeat:
- 			shmem_swp_unmap(entry);
- 			spin_unlock(&info->lock);
- 			unlock_page(swappage);
-+			page_cache_release(swappage);
- 			if (error == -ENOMEM) {
- 				/* allow reclaim from this memory cgroup */
- 				error = mem_cgroup_shrink_usage(current->mm,
--					gfp & ~__GFP_HIGHMEM);
--				if (error) {
--					page_cache_release(swappage);
-+								gfp);
-+				if (error)
- 					goto failed;
--				}
- 			}
--			page_cache_release(swappage);
- 			goto repeat;
- 		}
- 	} else if (sgp == SGP_READ && !filepage) {
+diff -puN mm/memcontrol.c~memcg-helper-function-for-relcaim-from-shmem-memcg-mem_cgroup_shrink_usage-css_put mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-helper-function-for-relcaim-from-shmem-memcg-mem_cgroup_shrink_usage-css_put
++++ a/mm/memcontrol.c
+@@ -801,6 +801,7 @@ int mem_cgroup_shrink_usage(struct mm_st
+ 		progress = try_to_free_mem_cgroup_pages(mem, gfp_mask);
+ 	} while (!progress && --retry);
+ 
++	css_put(&mem->css);
+ 	if (!retry)
+ 		return -ENOMEM;
+ 	return 0;
 _
 
 Patches currently in -mm which might be from hugh@veritas.com are
@@ -126,6 +112,7 @@ memcg-handle-swap-cache-fix.patch
 memcg-handle-swap-cache-fix-shmem-page-migration-incorrectness-on-memcgroup.patch
 memcg-helper-function-for-relcaim-from-shmem.patch
 memcg-helper-function-for-relcaim-from-shmem-memcg-shmem_getpage-release-page-sooner.patch
+memcg-helper-function-for-relcaim-from-shmem-memcg-mem_cgroup_shrink_usage-css_put.patch
 memcg-add-hints-for-branch.patch
 memcg-remove-a-redundant-check.patch
 memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info-memrlimit-fix-sleep-inside-sleeplock-in-mm_update_next_owner.patch
