@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-bcd-codeshrink.patch added to -mm tree
-Date: Wed, 02 Jul 2008 01:45:07 -0700
-Message-ID: <200807020845.m628j7Gx007907@imap1.linux-foundation.org>
+Subject: + rtc-rtc-omap-footprint-shrinkage.patch added to -mm tree
+Date: Wed, 02 Jul 2008 01:46:05 -0700
+Message-ID: <200807020846.m628k5gn007982@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35628 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50270 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752228AbYGBIqX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 04:46:23 -0400
+	by vger.kernel.org with ESMTP id S1752361AbYGBIrI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 04:47:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: david-b@pacbell.net, a.zummo@towertech.it, bunk@kernel.org, dbrownell@users.sourceforge.net
+Cc: david-b@pacbell.net, a.zummo@towertech.it, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     rtc: BCD codeshrink
+     rtc: rtc-omap footprint shrinkage
 has been added to the -mm tree.  Its filename is
-     rtc-bcd-codeshrink.patch
+     rtc-rtc-omap-footprint-shrinkage.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,80 +33,79 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: BCD codeshrink
+Subject: rtc: rtc-omap footprint shrinkage
 From: David Brownell <david-b@pacbell.net>
 
-This updates <linux/bcd.h> to define the key routines as constant
-functions, which the macros will then call.  Newer code can now call
-bcd2bin() instead of SCREAMING BCD2BIN() TO THE FOUR WINDS.
-
-This lets each driver shrink their codespace by using N function calls to
-a single (global) copy of those routines, instead of N inlined copies of
-these functions per driver.
-
-These routines aren't used in speed-critical code.  Almost all callers are
-in the RTC framework.  Typical per-driver savings is near 300 bytes.
+Shrink the runtime footprint of the OMAP1 RTC driver a bunch by removing
+some old hacks and switching to platform_driver_probe().
 
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Acked-by: Adrian Bunk <bunk@kernel.org>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bcd.h |    9 +++++++--
- lib/Makefile        |    2 +-
- lib/bcd.c           |   14 ++++++++++++++
- 3 files changed, 22 insertions(+), 3 deletions(-)
+ drivers/rtc/rtc-omap.c |   21 ++++-----------------
+ 1 file changed, 4 insertions(+), 17 deletions(-)
 
-diff -puN include/linux/bcd.h~rtc-bcd-codeshrink include/linux/bcd.h
---- a/include/linux/bcd.h~rtc-bcd-codeshrink
-+++ a/include/linux/bcd.h
-@@ -10,8 +10,13 @@
- #ifndef _BCD_H
- #define _BCD_H
+diff -puN drivers/rtc/rtc-omap.c~rtc-rtc-omap-footprint-shrinkage drivers/rtc/rtc-omap.c
+--- a/drivers/rtc/rtc-omap.c~rtc-rtc-omap-footprint-shrinkage
++++ a/drivers/rtc/rtc-omap.c
+@@ -92,18 +92,6 @@
+ #define rtc_write(val, addr)	omap_writeb(val, OMAP_RTC_BASE + (addr))
  
--#define BCD2BIN(val)	(((val) & 0x0f) + ((val)>>4)*10)
--#define BIN2BCD(val)	((((val)/10)<<4) + (val)%10)
-+#include <linux/compiler.h>
-+
-+unsigned bcd2bin(unsigned char val) __attribute_const__;
-+unsigned char bin2bcd(unsigned val) __attribute_const__;
-+
-+#define BCD2BIN(val)	bcd2bin(val)
-+#define BIN2BCD(val)	bin2bcd(val)
  
- /* backwards compat */
- #define BCD_TO_BIN(val) ((val)=BCD2BIN(val))
-diff -puN lib/Makefile~rtc-bcd-codeshrink lib/Makefile
---- a/lib/Makefile~rtc-bcd-codeshrink
-+++ a/lib/Makefile
-@@ -22,7 +22,7 @@ lib-$(CONFIG_SMP) += cpumask.o
+-/* platform_bus isn't hotpluggable, so for static linkage it'd be safe
+- * to get rid of probe() and remove() code ... too bad the driver struct
+- * remembers probe(), that's about 25% of the runtime footprint!!
+- */
+-#ifndef	MODULE
+-#undef	__devexit
+-#undef	__devexit_p
+-#define	__devexit	__exit
+-#define	__devexit_p	__exit_p
+-#endif
+-
+-
+ /* we rely on the rtc framework to handle locking (rtc->ops_lock),
+  * so the only other requirement is that register accesses which
+  * require BUSY to be clear are made with IRQs locally disabled
+@@ -324,7 +312,7 @@ static struct rtc_class_ops omap_rtc_ops
+ static int omap_rtc_alarm;
+ static int omap_rtc_timer;
  
- lib-y	+= kobject.o kref.o klist.o
+-static int __devinit omap_rtc_probe(struct platform_device *pdev)
++static int __init omap_rtc_probe(struct platform_device *pdev)
+ {
+ 	struct resource		*res, *mem;
+ 	struct rtc_device	*rtc;
+@@ -440,7 +428,7 @@ fail:
+ 	return -EIO;
+ }
  
--obj-y += div64.o sort.o parser.o halfmd4.o debug_locks.o random32.o \
-+obj-y += bcd.o div64.o sort.o parser.o halfmd4.o debug_locks.o random32.o \
- 	 bust_spinlocks.o hexdump.o kasprintf.o bitmap.o scatterlist.o
+-static int __devexit omap_rtc_remove(struct platform_device *pdev)
++static int __exit omap_rtc_remove(struct platform_device *pdev)
+ {
+ 	struct rtc_device	*rtc = platform_get_drvdata(pdev);;
  
- ifeq ($(CONFIG_DEBUG_KOBJECT),y)
-diff -puN /dev/null lib/bcd.c
---- /dev/null
-+++ a/lib/bcd.c
-@@ -0,0 +1,14 @@
-+#include <linux/bcd.h>
-+#include <linux/module.h>
-+
-+unsigned bcd2bin(unsigned char val)
-+{
-+	return (val & 0x0f) + (val >> 4) * 10;
-+}
-+EXPORT_SYMBOL(bcd2bin);
-+
-+unsigned char bin2bcd(unsigned val)
-+{
-+	return ((val / 10) << 4) + val % 10;
-+}
-+EXPORT_SYMBOL(bin2bcd);
+@@ -498,8 +486,7 @@ static void omap_rtc_shutdown(struct pla
+ 
+ MODULE_ALIAS("platform:omap_rtc");
+ static struct platform_driver omap_rtc_driver = {
+-	.probe		= omap_rtc_probe,
+-	.remove		= __devexit_p(omap_rtc_remove),
++	.remove		= __exit_p(omap_rtc_remove),
+ 	.suspend	= omap_rtc_suspend,
+ 	.resume		= omap_rtc_resume,
+ 	.shutdown	= omap_rtc_shutdown,
+@@ -511,7 +498,7 @@ static struct platform_driver omap_rtc_d
+ 
+ static int __init rtc_init(void)
+ {
+-	return platform_driver_register(&omap_rtc_driver);
++	return platform_driver_probe(&omap_rtc_driver, omap_rtc_probe);
+ }
+ module_init(rtc_init);
+ 
 _
 
 Patches currently in -mm which might be from david-b@pacbell.net are
@@ -131,6 +130,7 @@ rtc-remove-bkl-for-ioctl.patch
 rtc-add-support-for-st-m41t94-spi-rtc.patch
 rtc-ds1305-ds1306-driver.patch
 rtc-bcd-codeshrink.patch
+rtc-rtc-omap-footprint-shrinkage.patch
 gpio-gpio-driver-for-max7301-spi-gpio-expander.patch
 gpio-gpio-driver-for-max7301-spi-gpio-expander-checkpatch-fixes.patch
 gpio-sysfs-interface-updated-update.patch
