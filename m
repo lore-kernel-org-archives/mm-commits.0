@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-omap-footprint-shrinkage.patch added to -mm tree
-Date: Wed, 02 Jul 2008 01:46:05 -0700
-Message-ID: <200807020846.m628k5gn007982@imap1.linux-foundation.org>
+Subject: + drivers-power-fix-platform-driver-hotplug-coldplug.patch added to -mm tree
+Date: Wed, 02 Jul 2008 01:46:54 -0700
+Message-ID: <200807020846.m628ks0O008016@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50270 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42833 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752361AbYGBIrI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 04:47:08 -0400
+	by vger.kernel.org with ESMTP id S1752228AbYGBIrz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 04:47:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: david-b@pacbell.net, a.zummo@towertech.it, dbrownell@users.sourceforge.net
+Cc: kay.sievers@vrfy.org, dbrownell@users.sourceforge.net, greg@kroah.com, rjw@sisk.pl
 
 
 The patch titled
-     rtc: rtc-omap footprint shrinkage
+     drivers/power:  fix platform driver hotplug/coldplug
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-omap-footprint-shrinkage.patch
+     drivers-power-fix-platform-driver-hotplug-coldplug.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,110 +33,56 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: rtc-omap footprint shrinkage
-From: David Brownell <david-b@pacbell.net>
+Subject: drivers/power:  fix platform driver hotplug/coldplug
+From: Kay Sievers <kay.sievers@vrfy.org>
 
-Shrink the runtime footprint of the OMAP1 RTC driver a bunch by removing
-some old hacks and switching to platform_driver_probe().
+Since 43cc71eed1250755986da4c0f9898f9a635cb3bf, the platform
+modalias is prefixed with "platform:". Add MODULE_ALIAS() to the
+hotpluggable "power" drivers drivers, to re-enable auto loading.
 
+[dbrownell@users.sourceforge.net: one was missing]
+Signed-off-by: Kay Sievers <kay.sievers@vrfy.org>
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Greg KH <greg@kroah.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-omap.c |   21 ++++-----------------
- 1 file changed, 4 insertions(+), 17 deletions(-)
+ drivers/power/ds2760_battery.c |    2 ++
+ drivers/power/pda_power.c      |    2 ++
+ 2 files changed, 4 insertions(+)
 
-diff -puN drivers/rtc/rtc-omap.c~rtc-rtc-omap-footprint-shrinkage drivers/rtc/rtc-omap.c
---- a/drivers/rtc/rtc-omap.c~rtc-rtc-omap-footprint-shrinkage
-+++ a/drivers/rtc/rtc-omap.c
-@@ -92,18 +92,6 @@
- #define rtc_write(val, addr)	omap_writeb(val, OMAP_RTC_BASE + (addr))
+diff -puN drivers/power/ds2760_battery.c~drivers-power-fix-platform-driver-hotplug-coldplug drivers/power/ds2760_battery.c
+--- a/drivers/power/ds2760_battery.c~drivers-power-fix-platform-driver-hotplug-coldplug
++++ a/drivers/power/ds2760_battery.c
+@@ -433,6 +433,8 @@ static int ds2760_battery_resume(struct 
  
+ #endif /* CONFIG_PM */
  
--/* platform_bus isn't hotpluggable, so for static linkage it'd be safe
-- * to get rid of probe() and remove() code ... too bad the driver struct
-- * remembers probe(), that's about 25% of the runtime footprint!!
-- */
--#ifndef	MODULE
--#undef	__devexit
--#undef	__devexit_p
--#define	__devexit	__exit
--#define	__devexit_p	__exit_p
--#endif
--
--
- /* we rely on the rtc framework to handle locking (rtc->ops_lock),
-  * so the only other requirement is that register accesses which
-  * require BUSY to be clear are made with IRQs locally disabled
-@@ -324,7 +312,7 @@ static struct rtc_class_ops omap_rtc_ops
- static int omap_rtc_alarm;
- static int omap_rtc_timer;
++MODULE_ALIAS("platform:ds2760-battery");
++
+ static struct platform_driver ds2760_battery_driver = {
+ 	.driver = {
+ 		.name = "ds2760-battery",
+diff -puN drivers/power/pda_power.c~drivers-power-fix-platform-driver-hotplug-coldplug drivers/power/pda_power.c
+--- a/drivers/power/pda_power.c~drivers-power-fix-platform-driver-hotplug-coldplug
++++ a/drivers/power/pda_power.c
+@@ -362,6 +362,8 @@ static int pda_power_resume(struct platf
+ #define pda_power_resume NULL
+ #endif /* CONFIG_PM */
  
--static int __devinit omap_rtc_probe(struct platform_device *pdev)
-+static int __init omap_rtc_probe(struct platform_device *pdev)
- {
- 	struct resource		*res, *mem;
- 	struct rtc_device	*rtc;
-@@ -440,7 +428,7 @@ fail:
- 	return -EIO;
- }
- 
--static int __devexit omap_rtc_remove(struct platform_device *pdev)
-+static int __exit omap_rtc_remove(struct platform_device *pdev)
- {
- 	struct rtc_device	*rtc = platform_get_drvdata(pdev);;
- 
-@@ -498,8 +486,7 @@ static void omap_rtc_shutdown(struct pla
- 
- MODULE_ALIAS("platform:omap_rtc");
- static struct platform_driver omap_rtc_driver = {
--	.probe		= omap_rtc_probe,
--	.remove		= __devexit_p(omap_rtc_remove),
-+	.remove		= __exit_p(omap_rtc_remove),
- 	.suspend	= omap_rtc_suspend,
- 	.resume		= omap_rtc_resume,
- 	.shutdown	= omap_rtc_shutdown,
-@@ -511,7 +498,7 @@ static struct platform_driver omap_rtc_d
- 
- static int __init rtc_init(void)
- {
--	return platform_driver_register(&omap_rtc_driver);
-+	return platform_driver_probe(&omap_rtc_driver, omap_rtc_probe);
- }
- module_init(rtc_init);
- 
++MODULE_ALIAS("platform:pda-power");
++
+ static struct platform_driver pda_power_pdrv = {
+ 	.driver = {
+ 		.name = "pda-power",
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from kay.sievers@vrfy.org are
 
-rtc_read_alarm-handles-wraparound.patch
-gpio-pca953x-i2c-handles-max7310-too.patch
 linux-next.patch
-ntp-let-update_persistent_clock-sleep.patch
-jffs2-summary-allocation-dont-use-vmalloc.patch
-atmel_nand-speedup-via-readwritesbw.patch
-asic3-gpiolib-support.patch
-asic3-remove-children-platform-data.patch
-asic3-new-gpio-configuration-code.patch
-sm501-add-gpiolib-support.patch
-sm501-gpio-dynamic-registration-for-pci-devices.patch
-sm501-gpio-i2c-support.patch
-rtc-rtc-rs5c372-smbus-conversion-support.patch
-rtc-rtc-rs5c732-add-support-for-ricoh-r2025s-d-rtc.patch
-rtc-m41t80-sort-header-inclusions-for-readability.patch
-rtc-m41t80-use-pr_info-as-appropriate.patch
-rtc-remove-bkl-for-ioctl.patch
-rtc-add-support-for-st-m41t94-spi-rtc.patch
-rtc-ds1305-ds1306-driver.patch
-rtc-bcd-codeshrink.patch
-rtc-rtc-omap-footprint-shrinkage.patch
-gpio-gpio-driver-for-max7301-spi-gpio-expander.patch
-gpio-gpio-driver-for-max7301-spi-gpio-expander-checkpatch-fixes.patch
+drivers-power-fix-platform-driver-hotplug-coldplug.patch
+gpio-sysfs-interface-updated.patch
 gpio-sysfs-interface-updated-update.patch
-gpio-mcp23s08-handles-multiple-chips-per-chipselect.patch
-gpio-add-bt8xxgpio-driver.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch
+firmware-use-memory_read_from_buffer.patch
 
