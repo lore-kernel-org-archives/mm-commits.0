@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-fix.patch added to -mm tree
-Date: Wed, 02 Jul 2008 02:06:56 -0700
-Message-ID: <200807020906.m6296v2E008815@imap1.linux-foundation.org>
+Subject: + ext3-handle-deleting-corrupted-indirect-blocks-fix.patch added to -mm tree
+Date: Wed, 02 Jul 2008 02:09:38 -0700
+Message-ID: <200807020909.m6299cxR008863@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48454 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56311 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751507AbYGBJH0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 05:07:26 -0400
+	by vger.kernel.org with ESMTP id S1752142AbYGBJJp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 05:09:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, balbir@in.ibm.com, danms@us.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, serge@us.ibm.com, serue@us.ibm.com
+Cc: akpm@linux-foundation.org, duaneg@dghda.com, linux-ext4@vger.kernel.org
 
 
 The patch titled
-     cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-fix
+     ext3-handle-deleting-corrupted-indirect-blocks-fix
 has been added to the -mm tree.  Its filename is
-     cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-fix.patch
+     ext3-handle-deleting-corrupted-indirect-blocks-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,38 +33,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-fix
+Subject: ext3-handle-deleting-corrupted-indirect-blocks-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-kernel/ns_cgroup.c: In function 'ns_cgroup_clone':
-kernel/ns_cgroup.c:29: error: 'PROC_NUMBUF' undeclared (first use in this function)
-kernel/ns_cgroup.c:29: error: (Each undeclared identifier is reported only once
-kernel/ns_cgroup.c:29: error: for each function it appears in.)
-kernel/ns_cgroup.c:29: warning: unused variable 'name'
+fs/ext3/inode.c: In function 'ext3_free_data':
+fs/ext3/inode.c:2146: warning: format '%lu' expects type 'long unsigned int', but argument 5 has type 'sector_t'
 
-
-Cc: "Serge E. Hallyn" <serue@us.ibm.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Dan Smith <danms@us.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Paul Menage <menage@google.com>
-Cc: Serge Hallyn <serge@us.ibm.com>
+Cc: <linux-ext4@vger.kernel.org>
+Cc: Duane Griffin <duaneg@dghda.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/ns_cgroup.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/ext3/inode.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN kernel/ns_cgroup.c~cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-fix kernel/ns_cgroup.c
---- a/kernel/ns_cgroup.c~cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-fix
-+++ a/kernel/ns_cgroup.c
-@@ -7,6 +7,7 @@
- #include <linux/module.h>
- #include <linux/cgroup.h>
- #include <linux/fs.h>
-+#include <linux/proc_fs.h>
- #include <linux/slab.h>
- #include <linux/nsproxy.h>
+diff -puN fs/ext3/inode.c~ext3-handle-deleting-corrupted-indirect-blocks-fix fs/ext3/inode.c
+--- a/fs/ext3/inode.c~ext3-handle-deleting-corrupted-indirect-blocks-fix
++++ a/fs/ext3/inode.c
+@@ -2142,8 +2142,9 @@ static void ext3_free_data(handle_t *han
+ 		else
+ 			ext3_error(inode->i_sb, "ext3_free_data",
+ 				   "circular indirect block detected, "
+-				   "inode=%lu, block="E3FSBLK,
+-				   inode->i_ino, this_bh->b_blocknr);
++				   "inode=%lu, block=%llu",
++				   inode->i_ino,
++				   (unsigned long long)this_bh->b_blocknr);
+ 	}
+ }
  
 _
 
@@ -169,6 +165,7 @@ jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.pat
 ext3-handle-corrupted-orphan-list-at-mount-cleanup.patch
 ext3-handle-corrupted-orphan-list-at-mount-fix.patch
 ext3-handle-corrupted-orphan-list-at-mount-cleanup-fix.patch
+ext3-handle-deleting-corrupted-indirect-blocks-fix.patch
 jbd-dont-abort-if-flushing-file-data-failed-fix.patch
 reiserfs-convert-j_flush_sem-to-mutex.patch
 reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
