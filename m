@@ -1,100 +1,181 @@
 From: akpm@linux-foundation.org
-Subject: - fujitsu-laptop-depends-on-input.patch removed from -mm tree
-Date: Wed, 02 Jul 2008 00:46:41 -0700
-Message-ID: <200807020746.m627kf7t005587@imap1.linux-foundation.org>
+Subject: - vfs-properly-notify-block-layer-of-sync-writes.patch removed from -mm tree
+Date: Wed, 02 Jul 2008 00:46:38 -0700
+Message-ID: <200807020746.m627kcgZ005584@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55300 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45355 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751401AbYGBHrq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 03:47:46 -0400
+	by vger.kernel.org with ESMTP id S1751331AbYGBHre (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 03:47:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, jwoithe@physics.adelaide.edu.au, lenb@kernel.org, mm-commits@vger.kernel.org
+To: jens.axboe@oracle.com, ming.m.lin@intel.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fujitsu-laptop: depends on INPUT
+     vfs: properly notify block layer of sync writes
 has been removed from the -mm tree.  Its filename was
-     fujitsu-laptop-depends-on-input.patch
+     vfs-properly-notify-block-layer-of-sync-writes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fujitsu-laptop: depends on INPUT
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: vfs: properly notify block layer of sync writes
+From: Jens Axboe <jens.axboe@oracle.com>
 
-fujitsu-laptop uses input_* functions, so it should depend on INPUT.
+fsync_buffers_list() and sync_dirty_buffer() both issue async writes and
+then immediately wait on them.  Conceptually, that makes them sync writes
+and we should treat them as such so that the IO schedulers can handle them
+appropriately.
 
-drivers/built-in.o: In function `acpi_fujitsu_add':
-fujitsu-laptop.c:(.text+0xaaec7): undefined reference to `input_allocate_device'
-fujitsu-laptop.c:(.text+0xaaf39): undefined reference to `input_register_device'
-fujitsu-laptop.c:(.text+0xab025): undefined reference to `input_free_device'
-drivers/built-in.o: In function `acpi_fujitsu_notify':
-fujitsu-laptop.c:(.text+0xab0d8): undefined reference to `input_event'
-fujitsu-laptop.c:(.text+0xab0e5): undefined reference to `input_event'
-fujitsu-laptop.c:(.text+0xab0f5): undefined reference to `input_event'
-fujitsu-laptop.c:(.text+0xab102): undefined reference to `input_event'
-drivers/built-in.o: In function `acpi_fujitsu_hotkey_notify':
-fujitsu-laptop.c:(.text+0xab261): undefined reference to `input_event'
-drivers/built-in.o:fujitsu-laptop.c:(.text+0xab26e): more undefined references to `input_event' follow
-drivers/built-in.o: In function `acpi_fujitsu_hotkey_add':
-fujitsu-laptop.c:(.text+0xab49c): undefined reference to `input_allocate_device'
-fujitsu-laptop.c:(.text+0xab51a): undefined reference to `input_register_device'
-fujitsu-laptop.c:(.text+0xab5e4): undefined reference to `input_free_device'
-make[1]: *** [.tmp_vmlinux1] Error 1
+This patch fixes a write starvation issue that Lin Ming reported, where xx
+is stuck for more than 2 minutes because of a large number of synchronous
+IO in the system:
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Acked-by: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
-Cc: Len Brown <lenb@kernel.org>
+INFO: task kjournald:20558 blocked for more than 120 seconds.
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this
+message.
+kjournald     D ffff810010820978  6712 20558      2
+ffff81022ddb1d10 0000000000000046 ffff81022e7baa10 ffffffff803ba6f2
+ffff81022ecd0000 ffff8101e6dc9160 ffff81022ecd0348 000000008048b6cb
+0000000000000086 ffff81022c4e8d30 0000000000000000 ffffffff80247537
+Call Trace:
+[<ffffffff803ba6f2>] kobject_get+0x12/0x17
+[<ffffffff80247537>] getnstimeofday+0x2f/0x83
+[<ffffffff8029c1ac>] sync_buffer+0x0/0x3f
+[<ffffffff8066d195>] io_schedule+0x5d/0x9f
+[<ffffffff8029c1e7>] sync_buffer+0x3b/0x3f
+[<ffffffff8066d3f0>] __wait_on_bit+0x40/0x6f
+[<ffffffff8029c1ac>] sync_buffer+0x0/0x3f
+[<ffffffff8066d48b>] out_of_line_wait_on_bit+0x6c/0x78
+[<ffffffff80243909>] wake_bit_function+0x0/0x23
+[<ffffffff8029e3ad>] sync_dirty_buffer+0x98/0xcb
+[<ffffffff8030056b>] journal_commit_transaction+0x97d/0xcb6
+[<ffffffff8023a676>] lock_timer_base+0x26/0x4b
+[<ffffffff8030300a>] kjournald+0xc1/0x1fb
+[<ffffffff802438db>] autoremove_wake_function+0x0/0x2e
+[<ffffffff80302f49>] kjournald+0x0/0x1fb
+[<ffffffff802437bb>] kthread+0x47/0x74
+[<ffffffff8022de51>] schedule_tail+0x28/0x5d
+[<ffffffff8020cac8>] child_rip+0xa/0x12
+[<ffffffff80243774>] kthread+0x0/0x74
+[<ffffffff8020cabe>] child_rip+0x0/0x12
+
+Lin Ming confirms that this patch fixes the issue. I've run tests with
+it for the past week and no ill effects have been observed, so I'm
+proposing it for inclusion into 2.6.26.
+
+Signed-off-by: Jens Axboe <jens.axboe@oracle.com>
+Tested-by: Lin Ming <ming.m.lin@intel.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ fs/buffer.c        |   13 ++++++++-----
+ include/linux/fs.h |    1 +
+ 2 files changed, 9 insertions(+), 5 deletions(-)
 
-diff -puN drivers/misc/Kconfig~fujitsu-laptop-depends-on-input drivers/misc/Kconfig
---- a/drivers/misc/Kconfig~fujitsu-laptop-depends-on-input
-+++ a/drivers/misc/Kconfig
-@@ -179,6 +179,7 @@ config FUJITSU_LAPTOP
-         tristate "Fujitsu Laptop Extras"
-         depends on X86
-         depends on ACPI
-+        depends on INPUT
-         depends on BACKLIGHT_CLASS_DEVICE
-         ---help---
- 	  This is a driver for laptops built by Fujitsu:
+diff -puN fs/buffer.c~vfs-properly-notify-block-layer-of-sync-writes fs/buffer.c
+--- a/fs/buffer.c~vfs-properly-notify-block-layer-of-sync-writes
++++ a/fs/buffer.c
+@@ -821,7 +821,7 @@ static int fsync_buffers_list(spinlock_t
+ 				 * contents - it is a noop if I/O is still in
+ 				 * flight on potentially older contents.
+ 				 */
+-				ll_rw_block(SWRITE, 1, &bh);
++				ll_rw_block(SWRITE_SYNC, 1, &bh);
+ 				brelse(bh);
+ 				spin_lock(lock);
+ 			}
+@@ -2940,16 +2940,19 @@ void ll_rw_block(int rw, int nr, struct 
+ 	for (i = 0; i < nr; i++) {
+ 		struct buffer_head *bh = bhs[i];
+ 
+-		if (rw == SWRITE)
++		if (rw == SWRITE || rw == SWRITE_SYNC)
+ 			lock_buffer(bh);
+ 		else if (test_set_buffer_locked(bh))
+ 			continue;
+ 
+-		if (rw == WRITE || rw == SWRITE) {
++		if (rw == WRITE || rw == SWRITE || rw == SWRITE_SYNC) {
+ 			if (test_clear_buffer_dirty(bh)) {
+ 				bh->b_end_io = end_buffer_write_sync;
+ 				get_bh(bh);
+-				submit_bh(WRITE, bh);
++				if (rw == SWRITE_SYNC)
++					submit_bh(WRITE_SYNC, bh);
++				else
++					submit_bh(WRITE, bh);
+ 				continue;
+ 			}
+ 		} else {
+@@ -2978,7 +2981,7 @@ int sync_dirty_buffer(struct buffer_head
+ 	if (test_clear_buffer_dirty(bh)) {
+ 		get_bh(bh);
+ 		bh->b_end_io = end_buffer_write_sync;
+-		ret = submit_bh(WRITE, bh);
++		ret = submit_bh(WRITE_SYNC, bh);
+ 		wait_on_buffer(bh);
+ 		if (buffer_eopnotsupp(bh)) {
+ 			clear_buffer_eopnotsupp(bh);
+diff -puN include/linux/fs.h~vfs-properly-notify-block-layer-of-sync-writes include/linux/fs.h
+--- a/include/linux/fs.h~vfs-properly-notify-block-layer-of-sync-writes
++++ a/include/linux/fs.h
+@@ -83,6 +83,7 @@ extern int dir_notify_enable;
+ #define READ_SYNC	(READ | (1 << BIO_RW_SYNC))
+ #define READ_META	(READ | (1 << BIO_RW_META))
+ #define WRITE_SYNC	(WRITE | (1 << BIO_RW_SYNC))
++#define SWRITE_SYNC	(SWRITE | (1 << BIO_RW_SYNC))
+ #define WRITE_BARRIER	((1 << BIO_RW) | (1 << BIO_RW_BARRIER))
+ 
+ #define SEL_IN		1
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from jens.axboe@oracle.com are
 
 origin.patch
-doc-kernel-parameterstxt-fix-stale-references.patch
-cpusets-document-proc-status-cpus-and-mems-allowed-lists.patch
+cciss-read-config-to-obtain-max-outstanding-commands-per-controller.patch
 linux-next.patch
-documentation-build-source-files-in-documentation-sub-dir.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-git-kbuild-next.patch
-bluetooth-hci_bcsp-fix-bitrev-kconfig.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix-fix.patch
-e100-fix-printk-format-warning.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-netfilter-conntrack_helper-needs-to-include-rculisth.patch
-git-scsi-misc-fix-scsi_dh-build-errors.patch
-lkdtm-fix-for-config_scsi=n.patch
-git-unionfs.patch
-vmallocinfo-add-numa-information.patch
-vmallocinfo-add-numa-information-fix.patch
-pm-remove-obsolete-piece-of-pm-documentation-rev-2.patch
-flag-parameters-signalfd-fix.patch
-flag-parameters-eventfd-fix.patch
-kallsyms-unify-32-and-64-bit-code.patch
-procfs-guide-drop-pointless-nbsp-entities.patch
-bsdacct-stir-up-comments-around-acct_process.patch
-documentation-cleanup-trivial-misspelling-punctuation-and-grammar-corrections.patch
-profile-likely-unlikely-macros.patch
+cdrom-dont-check-cdc_play_audio-in-cdrom_count_tracks.patch
+s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
+block-use-get_unaligned_-helpers.patch
+paride-push-ioctl-down-into-driver.patch
+pktcdvd-push-bkl-down-into-driver.patch
+pktcdvd-push-bkl-down-into-driver-fix.patch
+dac960-push-down-bkl.patch
+block-add-blk_queue_update_dma_pad.patch
+ide-use-the-dma-safe-check-for-req_type_ata_pc.patch
+block-blk_rq_map_kern-uses-the-bounce-buffers-for-stack-buffers.patch
+ide-avoid-dma-on-the-stack-for-req_type_ata_pc.patch
+scsi-sr-avoids-useless-buffer-allocation.patch
+cdrom-revert-commit-22a9189-cdrom-use-kmalloced-buffers-instead-of-buffers-on-stack.patch
+drivers-block-pktcdvdc-avoid-useless-memset.patch
+ramfs-enable-splice-write.patch
+block-request_module-use-format-string.patch
+splice-fix-generic_file_splice_read-race-with-page-invalidation.patch
+ide-cd-use-the-new-object_is_in_stack-helper.patch
+block-blk-mapc-use-the-new-object_is_on_stack-helper.patch
+fs-partition-checkc-fix-return-value-warning.patch
+fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
+block-ioctlc-and-fs-partition-checkc.patch
+block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
+fifo-pipe-reuse-xxx_fifo_fops-for-xxx_pipe_fops.patch
+i2o-handle-sysfs_create_link-failures.patch
+x86-implement-pte_special.patch
+mm-introduce-get_user_pages_fast.patch
+mm-introduce-get_user_pages_fast-fix.patch
+mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast.patch
+x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-fix.patch
+x86-lockless-get_user_pages_fast-fix-2.patch
+x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
+x86-lockless-get_user_pages_fast-fix-warning.patch
+dio-use-get_user_pages_fast.patch
+splice-use-get_user_pages_fast.patch
+reiser4.patch
 
