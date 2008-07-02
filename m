@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + workqueues-make-get_online_cpus-useable-for-work-func-fix.patch added to -mm tree
-Date: Wed, 02 Jul 2008 01:32:19 -0700
-Message-ID: <200807020832.m628WJCK007366@imap1.linux-foundation.org>
+Subject: + drivers-net-wireless-b43legacy-dmac-remove-the-switch-in-b43legacy_dma_init.patch added to -mm tree
+Date: Wed, 02 Jul 2008 01:35:59 -0700
+Message-ID: <200807020835.m628Zx2e007473@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51457 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44312 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753657AbYGBIel (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 04:34:41 -0400
+	by vger.kernel.org with ESMTP id S1752716AbYGBIhz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 04:37:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ego@in.ibm.com, heiko.carstens@de.ibm.com, maxk@qualcomm.com, menage@google.com, mingo@elte.hu, oleg@tv-sign.ru, peterz@infradead.org, pj@sgi.com, schwidefsky@de.ibm.com, vegard.nossum@gmail.com
+Cc: bunk@stusta.de, Larry.Finger@lwfinger.net, bunk@kernel.org, dhowells@redhat.com, linville@tuxdriver.com, mb@bu3sch.de, stefano.brivio@polimi.it
 
 
 The patch titled
-     workqueues-make-get_online_cpus-useable-for-work-func-fix
+     drivers/net/wireless/b43legacy/dma.c: remove the switch in b43legacy_dma_init()
 has been added to the -mm tree.  Its filename is
-     workqueues-make-get_online_cpus-useable-for-work-func-fix.patch
+     drivers-net-wireless-b43legacy-dmac-remove-the-switch-in-b43legacy_dma_init.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,221 +33,68 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: workqueues-make-get_online_cpus-useable-for-work-func-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers/net/wireless/b43legacy/dma.c: remove the switch in b43legacy_dma_init()
+From: Adrian Bunk <bunk@stusta.de>
 
-Fix CONFIG_SMP=n.
+The gcc 3.4 fork used to compile the MN10300 port emits unwanted
+__ucmpdi2() calls for this switch on a 64bit value.
 
-Cc: Gautham R Shenoy <ego@in.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Max Krasnyansky <maxk@qualcomm.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Paul Jackson <pj@sgi.com>
-Cc: Paul Menage <menage@google.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Vegard Nossum <vegard.nossum@gmail.com>
+Fix it by transforming the switch to equivalent "if ... else if ..."
+statements.
+
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Stefano Brivio <stefano.brivio@polimi.it>
+Cc: John W. Linville <linville@tuxdriver.com>
+Cc: Michael Buesch <mb@bu3sch.de>
+Cc: Larry Finger <Larry.Finger@lwfinger.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cpu.h |   15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+ drivers/net/wireless/b43legacy/dma.c |   16 ++++++----------
+ 1 file changed, 6 insertions(+), 10 deletions(-)
 
-diff -puN include/linux/cpu.h~workqueues-make-get_online_cpus-useable-for-work-func-fix include/linux/cpu.h
---- a/include/linux/cpu.h~workqueues-make-get_online_cpus-useable-for-work-func-fix
-+++ a/include/linux/cpu.h
-@@ -69,10 +69,11 @@ static inline void unregister_cpu_notifi
- #endif
+diff -puN drivers/net/wireless/b43legacy/dma.c~drivers-net-wireless-b43legacy-dmac-remove-the-switch-in-b43legacy_dma_init drivers/net/wireless/b43legacy/dma.c
+--- a/drivers/net/wireless/b43legacy/dma.c~drivers-net-wireless-b43legacy-dmac-remove-the-switch-in-b43legacy_dma_init
++++ a/drivers/net/wireless/b43legacy/dma.c
+@@ -1027,19 +1027,15 @@ int b43legacy_dma_init(struct b43legacy_
+ 	enum b43legacy_dmatype type;
  
- int cpu_up(unsigned int cpu);
--
- extern void cpu_hotplug_init(void);
-+extern void cpu_maps_update_begin(void);
-+extern void cpu_maps_update_done(void);
- 
--#else
-+#else	/* CONFIG_SMP */
- 
- static inline int register_cpu_notifier(struct notifier_block *nb)
- {
-@@ -87,10 +88,16 @@ static inline void cpu_hotplug_init(void
- {
- }
- 
-+static inline void cpu_maps_update_begin(void)
-+{
-+}
+ 	dmamask = supported_dma_mask(dev);
+-	switch (dmamask) {
+-	default:
+-		B43legacy_WARN_ON(1);
+-	case DMA_30BIT_MASK:
 +
-+static inline void cpu_maps_update_done(void)
-+{
-+}
-+
- #endif /* CONFIG_SMP */
- extern struct sysdev_class cpu_sysdev_class;
--extern void cpu_maps_update_begin(void);
--extern void cpu_maps_update_done(void);
++	if (dmamask == DMA_30BIT_MASK)
+ 		type = B43legacy_DMA_30BIT;
+-		break;
+-	case DMA_32BIT_MASK:
++	else if (dmamask == DMA_32BIT_MASK)
+ 		type = B43legacy_DMA_32BIT;
+-		break;
+-	case DMA_64BIT_MASK:
++	else if (dmamask == DMA_64BIT_MASK)
+ 		type = B43legacy_DMA_64BIT;
+-		break;
+-	}
++	else
++		B43legacy_WARN_ON(1);
  
- #ifdef CONFIG_HOTPLUG_CPU
- /* Stop CPUs going up and down. */
+ 	err = ssb_dma_set_mask(dev->dev, dmamask);
+ 	if (err) {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from bunk@stusta.de are
 
-origin.patch
-rtc-x1205-fix-alarm-set-fix.patch
-update-ntfs-help-text-fix.patch
-cgroups-document-the-effect-of-attaching-pid-0-to-a-cgroup-fix.patch
-spi-fix-the-read-path-in-spidev-cleanup.patch
-security-filesystem-capabilities-fix-fragile-setuid-fixup-code-checkpatch-fixes.patch
-doc-document-the-relax_domain_level-kernel-boot-argument-fix.patch
-revert-introduce-rculisth.patch
+mn10300-export-certain-arch-symbols-required-to-build-allmodconfig.patch
+mn10300-provide-__ucmpdi2-for-mn10300.patch
 linux-next.patch
-next-remove-localversion.patch
-linux-next-fixups.patch
-fix-kobject-fix-kobject_rename-and-config_sysfs.patch
-kvm-is-busted-on-ia64.patch
-drivers-mtd-nand-nandsimc-needs-div64h.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-tick-schedc-suppress-needless-timer-reprogramming-checkpatch-fixes.patch
-git-jg-misc-git-rejects.patch
-drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-mmc-sd-host-driver-for-ricoh-bay1controllers.patch
-drivers-mtd-devices-block2mtdc-suppress-warning.patch
-bug-in-random32c-all-zero-outputs-with-probability-1-232-other-seeding-bugs-checkpatch-fixes.patch
-sundance-set-carrier-status-on-link-change-events.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix-fix.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-scsi-misc-fix-scsi_dh-build-errors.patch
-drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
-s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
-pktcdvd-push-bkl-down-into-driver-fix.patch
 git-unionfs.patch
-git-unionfs-fixup.patch
-git-logfs-fixup.patch
-watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-verify-the-page-links-and-memory-model.patch
-mspec-convert-nopfn-to-fault-fix.patch
-page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
-kill-generic_file_direct_io-checkpatch-fixes.patch
-use-generic_access_phys-for-dev-mem-mappings-fix.patch
-spufs-use-the-new-vm_ops-access-fix.patch
-fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
-page-flags-record-page-flag-overlays-explicitly-xen.patch
-mapping_set_error-add-unlikely.patch
-huge-page-private-reservation-review-cleanups-fix.patch
-sync_file_range_write-may-and-will-block-document-that-fix.patch
-vmallocinfo-add-numa-information-fix.patch
-hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
-hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
-hugetlb-override-default-huge-page-size-ia64-build.patch
-hugetlb-reservations-fix-hugetlb-map_private-reservations-across-vma-splits-v2-fix.patch
-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-bootmem-add-debugging-framework-fix.patch
-bootmem-clean-up-free_all_bootmem_core-fix.patch
-bootmem-free-reserve-helpers-fix.patch
-revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-v850-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
-security-protect-legacy-applications-from-executing-with-insufficient-privilege-checkpatch-fixes.patch
-swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
-split-the-typecheck-macros-out-of-include-linux-kernelh.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
 remove-apparently-unused-fd1772h-header-file.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
-build-kernel-profileo-only-when-requested-cleanups.patch
-fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
-block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
-seq_file-fix-bug-when-seq_read-reads-nothing-fix.patch
-inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
-flag-parameters-paccept-fix.patch
-flag-parameters-paccept-sys_ni.patch
-flag-parameters-anon_inode_getfd-extension-fix.patch
-flag-parameters-signalfd-fix.patch
-flag-parameters-eventfd-fix.patch
-flag-parameters-inotify_init-fix.patch
-flag-parameters-check-magic-constants-alpha.patch
-spi-au1550_spi-improve-pio-transfer-mode-checkpatch-fixes.patch
-sm501-guess-n-giggle-build-fix.patch
-gpio-gpio-driver-for-max7301-spi-gpio-expander-checkpatch-fixes.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch
-drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
-atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
-fsl-diu-fb-update-freescale-diu-driver-to-use-page_alloc_exact-fix.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
-ext3-handle-corrupted-orphan-list-at-mount-cleanup.patch
-ext3-handle-corrupted-orphan-list-at-mount-fix.patch
-ext3-handle-corrupted-orphan-list-at-mount-cleanup-fix.patch
-jbd-dont-abort-if-flushing-file-data-failed-fix.patch
-reiserfs-convert-j_flush_sem-to-mutex.patch
-reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
-cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-checkpatch-fixes.patch
-memcg-remove-refcnt-from-page_cgroup-fix-2.patch
-workqueues-make-get_online_cpus-useable-for-work-func-fix.patch
-jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup.patch
-ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
-getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
-x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary-checkpatch-fixes.patch
-tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
-memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
-memstick-use-fully-asynchronous-request-processing-fix.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-mm-introduce-get_user_pages_fast-fix.patch
-mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-fix.patch
-x86-lockless-get_user_pages_fast-fix-2.patch
-x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
-x86-lockless-get_user_pages_fast-fix-warning.patch
-vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
-define-page_file_cache-function-fix.patch
-unevictable-lru-infrastructure-fix.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-3.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
-vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
-video-console-sticonrec-make-code-static-checkpatch-fixes.patch
+remove-the-oss-trident-driver-fix.patch
+reiser4-export-remove_from_page_cache.patch
 reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+mutex-subsystem-synchro-test-module.patch
+drivers-net-wireless-b43legacy-dmac-remove-the-switch-in-b43legacy_dma_init.patch
 
