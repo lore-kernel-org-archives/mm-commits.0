@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sysfs-rulestxt-reword-api-stability-statement.patch added to -mm tree
-Date: Wed, 02 Jul 2008 10:21:30 -0700
-Message-ID: <200807021721.m62HLU8F027407@imap1.linux-foundation.org>
+Subject: + mfd-fix-a-bug-in-the-asic3-irq-demux-code.patch added to -mm tree
+Date: Wed, 02 Jul 2008 10:51:20 -0700
+Message-ID: <200807021751.m62HpKAw028511@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43431 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45254 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752095AbYGBRV4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 13:21:56 -0400
+	by vger.kernel.org with ESMTP id S1752020AbYGBRvZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 13:51:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ntl@pobox.com, greg@kroah.com, sfr@canb.auug.org.au
+Cc: philipp.zabel@gmail.com, sameo@openedhand.com
 
 
 The patch titled
-     sysfs-rules.txt: reword API stability statement
+     mfd: fix a bug in the asic3 irq demux code
 has been added to the -mm tree.  Its filename is
-     sysfs-rulestxt-reword-api-stability-statement.patch
+     mfd-fix-a-bug-in-the-asic3-irq-demux-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,45 +33,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysfs-rules.txt: reword API stability statement
-From: Nathan Lynch <ntl@pobox.com>
+Subject: mfd: fix a bug in the asic3 irq demux code
+From: Philipp Zabel <philipp.zabel@gmail.com>
 
-The first paragraph of this document implies that user space developers
-shouldn't use sysfs at all, but then it goes on to describe rules that
-developers should follow when accessing sysfs.  Not only is this somewhat
-self-contradictory, it has been shown to discourage developers from using
-established sysfs interfaces.
+Wrong irq numbers were given to desc->handle_irq, which on some devices
+caused endless loops (asic3_irq_demux calling itself, basically).
 
-A note of caution is more appropriate than a blanket "sysfs will never
-be stable" assertion.
-
-Signed-off-by: Nathan Lynch <ntl@pobox.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Philipp Zabel <philipp.zabel@gmail.com>
+Cc: Samuel Ortiz <sameo@openedhand.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysfs-rules.txt |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/mfd/asic3.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/sysfs-rules.txt~sysfs-rulestxt-reword-api-stability-statement Documentation/sysfs-rules.txt
---- a/Documentation/sysfs-rules.txt~sysfs-rulestxt-reword-api-stability-statement
-+++ a/Documentation/sysfs-rules.txt
-@@ -3,9 +3,8 @@ Rules on how to access information in th
- The kernel-exported sysfs exports internal kernel implementation details
- and depends on internal kernel structures and layout. It is agreed upon
- by the kernel developers that the Linux kernel does not provide a stable
--internal API. As sysfs is a direct export of kernel internal
--structures, the sysfs interface cannot provide a stable interface either;
--it may always change along with internal kernel changes.
-+internal API. Therefore, there are aspects of the sysfs interface that
-+may not be stable across kernel releases.
- 
- To minimize the risk of breaking users of sysfs, which are in most cases
- low-level userspace applications, with a new kernel release, the users
+diff -puN drivers/mfd/asic3.c~mfd-fix-a-bug-in-the-asic3-irq-demux-code drivers/mfd/asic3.c
+--- a/drivers/mfd/asic3.c~mfd-fix-a-bug-in-the-asic3-irq-demux-code
++++ a/drivers/mfd/asic3.c
+@@ -137,7 +137,7 @@ static void asic3_irq_demux(unsigned int
+ 		for (i = ASIC3_NUM_GPIOS; i < ASIC3_NR_IRQS; i++) {
+ 			/* They start at bit 4 and go up */
+ 			if (status & (1 << (i - ASIC3_NUM_GPIOS + 4))) {
+-				desc = irq_desc +  + i;
++				desc = irq_desc + asic->irq_base + i;
+ 				desc->handle_irq(asic->irq_base + i,
+ 						 desc);
+ 			}
 _
 
-Patches currently in -mm which might be from ntl@pobox.com are
+Patches currently in -mm which might be from philipp.zabel@gmail.com are
 
-sysfs-rulestxt-reword-api-stability-statement.patch
+w100fb-do-not-depend-on-sharpsl.patch
+w100fb-add-80-mhz-modeline.patch
+mfd-maintainer.patch
+linux-next.patch
+asic3-new-gpio-configuration-code-fix-asic3-config-array-initialisation.patch
+mfd-move-asic3-probe-functions-into-__init-section.patch
+mfd-fix-a-bug-in-the-asic3-irq-demux-code.patch
 
