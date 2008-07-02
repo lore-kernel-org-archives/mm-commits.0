@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-remove-refcnt-from-page_cgroup-memcg-fix-shmem_unuse_inode-charging.patch added to -mm tree
-Date: Tue, 01 Jul 2008 17:21:44 -0700
-Message-ID: <200807020021.m620LjLk022474@imap1.linux-foundation.org>
+Subject: + memcg-helper-function-for-relcaim-from-shmem-memcg-shmem_getpage-release-page-sooner.patch added to -mm tree
+Date: Tue, 01 Jul 2008 17:22:49 -0700
+Message-ID: <200807020022.m620Mnlo022493@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55323 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52059 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751234AbYGBAWd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 20:22:33 -0400
+	by vger.kernel.org with ESMTP id S1755959AbYGBAX2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 20:23:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hugh@veritas.com, balbir@linux.vnet.ibm.com, ebiederm@xmission.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, rientjes@google.com, xemul@openvz.org, yamamoto@valinux.co.jp
+Cc: hugh@veritas.com, balbir@in.ibm.com, ebiederm@xmission.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, rientjes@google.com, xemul@openvz.org, yamamoto@valinux.co.jp
 
 
 The patch titled
-     memcg: fix shmem_unuse_inode charging
+     From: Hugh Dickins <hugh@veritas.com>
 has been added to the -mm tree.  Its filename is
-     memcg-remove-refcnt-from-page_cgroup-memcg-fix-shmem_unuse_inode-charging.patch
+     memcg-helper-function-for-relcaim-from-shmem-memcg-shmem_getpage-release-page-sooner.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,17 +33,16 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: fix shmem_unuse_inode charging
-From: Hugh Dickins <hugh@veritas.com>
+Subject: From: Hugh Dickins <hugh@veritas.com>
 
-The mem_cgroup_cache_charge in shmem_unuse_inode has been moved after the
-radix_tree_preload, so generating a BUG: sleeping function called from
-invalid context.  Move it back, uncharging where necessary.
+
+No big deal, but since mem_cgroup_shrink_usage doesn't require a page to
+operate upon, page_cache_release the swappage before calling it, so it's
+not pinned across the reclaim.
 
 Signed-off-by: Hugh Dickins <hugh@veritas.com>
 Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: Pavel Emelyanov <xemul@openvz.org>
 Cc: Li Zefan <lizf@cn.fujitsu.com>
@@ -53,60 +52,32 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   28 ++++++++++++----------------
- 1 file changed, 12 insertions(+), 16 deletions(-)
+ mm/shmem.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN mm/shmem.c~memcg-remove-refcnt-from-page_cgroup-memcg-fix-shmem_unuse_inode-charging mm/shmem.c
---- a/mm/shmem.c~memcg-remove-refcnt-from-page_cgroup-memcg-fix-shmem_unuse_inode-charging
+diff -puN mm/shmem.c~memcg-helper-function-for-relcaim-from-shmem-memcg-shmem_getpage-release-page-sooner mm/shmem.c
+--- a/mm/shmem.c~memcg-helper-function-for-relcaim-from-shmem-memcg-shmem_getpage-release-page-sooner
 +++ a/mm/shmem.c
-@@ -922,27 +922,24 @@ found:
- 	error = 1;
- 	if (!inode)
- 		goto out;
--	error = radix_tree_preload(GFP_KERNEL);
--	if (error)
--		goto out;
--	/*
--	 * Because we use GFP_NOWAIT in add_to_page_cache(), we can see -ENOMEM
--	 * failure because of memory pressure in memory resource controller.
--	 * Then, precharge page while we can wait, uncharge at failure will be
--	 * automatically done in add_to_page_cache()
--	 */
-+	/* Precharge page using GFP_KERNEL while we can wait */
- 	error = mem_cgroup_cache_charge(page, current->mm, GFP_KERNEL);
- 	if (error)
--		goto preload_out;
--
-+		goto out;
-+	error = radix_tree_preload(GFP_KERNEL);
-+	if (error) {
-+		mem_cgroup_uncharge_cache_page(page);
-+		goto out;
-+	}
- 	error = 1;
- 
- 	spin_lock(&info->lock);
- 	ptr = shmem_swp_entry(info, idx, NULL);
--	if (ptr && ptr->val == entry.val)
--		error = add_to_page_cache(page, inode->i_mapping, idx,
--					GFP_NOWAIT);
--	else /* we don't have to account this page. */
-+	if (ptr && ptr->val == entry.val) {
-+		error = add_to_page_cache(page, inode->i_mapping,
-+						idx, GFP_NOWAIT);
-+		/* does mem_cgroup_uncharge_cache_page on error */
-+	} else	/* we must compensate for our precharge above */
- 		mem_cgroup_uncharge_cache_page(page);
- 
- 	if (error == -EEXIST) {
-@@ -969,7 +966,6 @@ found:
- 	if (ptr)
- 		shmem_swp_unmap(ptr);
- 	spin_unlock(&info->lock);
--preload_out:
- 	radix_tree_preload_end();
- out:
- 	unlock_page(page);
+@@ -1315,16 +1315,14 @@ repeat:
+ 			shmem_swp_unmap(entry);
+ 			spin_unlock(&info->lock);
+ 			unlock_page(swappage);
++			page_cache_release(swappage);
+ 			if (error == -ENOMEM) {
+ 				/* allow reclaim from this memory cgroup */
+ 				error = mem_cgroup_shrink_usage(current->mm,
+-					gfp & ~__GFP_HIGHMEM);
+-				if (error) {
+-					page_cache_release(swappage);
++								gfp);
++				if (error)
+ 					goto failed;
+-				}
+ 			}
+-			page_cache_release(swappage);
+ 			goto repeat;
+ 		}
+ 	} else if (sgp == SGP_READ && !filepage) {
 _
 
 Patches currently in -mm which might be from hugh@veritas.com are
@@ -154,6 +125,7 @@ memcg-handle-swap-cache.patch
 memcg-handle-swap-cache-fix.patch
 memcg-handle-swap-cache-fix-shmem-page-migration-incorrectness-on-memcgroup.patch
 memcg-helper-function-for-relcaim-from-shmem.patch
+memcg-helper-function-for-relcaim-from-shmem-memcg-shmem_getpage-release-page-sooner.patch
 memcg-add-hints-for-branch.patch
 memcg-remove-a-redundant-check.patch
 memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info-memrlimit-fix-sleep-inside-sleeplock-in-mm_update_next_owner.patch
