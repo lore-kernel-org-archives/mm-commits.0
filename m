@@ -1,84 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - usb-debug-port-converter-does-not-accept-more-than-8-byte-packets.patch removed from -mm tree
-Date: Wed, 02 Jul 2008 00:47:26 -0700
-Message-ID: <200807020747.m627lQ13005648@imap1.linux-foundation.org>
+Subject: - move-__attribute____cold__-functions-back-into-final-text-section.patch removed from -mm tree
+Date: Wed, 02 Jul 2008 00:47:14 -0700
+Message-ID: <200807020747.m627lEik005633@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40133 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46840 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752611AbYGBHr6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 03:47:58 -0400
+	by vger.kernel.org with ESMTP id S1753678AbYGBHsB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 03:48:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dared1st@yahoo.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: jbeulich@novell.com, llipavsky@suse.cz, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     usb: debug port converter does not accept more than 8 byte packets
+     move __attribute__((__cold__)) functions back into final .text section
 has been removed from the -mm tree.  Its filename was
-     usb-debug-port-converter-does-not-accept-more-than-8-byte-packets.patch
+     move-__attribute____cold__-functions-back-into-final-text-section.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb: debug port converter does not accept more than 8 byte packets
-From: Aleksey Gorelov <dared1st@yahoo.com>
+Subject: move __attribute__((__cold__)) functions back into final .text section
+From: "Jan Beulich" <jbeulich@novell.com>
 
-USB debug port only supports 8 byte rx/tx packets.  Although spec implies
-that "if a packet larger than eight bytes is received from the remote
-computer, the device must break the larger packet into eight-byte packets
-before sending the data to the Debug Port", the real PLX NET20DC device
-does not handle it right - data is corrupted on debug port end if serial
-interface sends >8 byte urbs.
+Due to the addition of __attribute__((__cold__)) to a few symbols without
+adjusting the linker scripts, those symbols currently may end up outside
+the [_stext,_etext) range, as they get placed in .text.unlikely by (at
+least) gcc 4.3.0.  This may confuse code not only outside of the kernel,
+symbol_put_addr()'s BUG() could also trigger.  Hence we need to add
+.text.unlikely (and for future uses of __attribute__((__hot__)) also
+.text.hot) to the TEXT_TEXT() macro.
 
-The patch fixes the issue by limiting the tx urb to 8 byte.
+Issue observed by Lukas Lipavsky.
 
-Signed-off-by: Aleks Gorelov <dared1st@yahoo.com>
-Cc: Greg KH <greg@kroah.com>
+Tested-by: Lukas Lipavsky <llipavsky@suse.cz>
+Signed-off-by: Jan Beulich <jbeulich@novell.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/usb_debug.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ include/asm-generic/vmlinux.lds.h |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/usb/serial/usb_debug.c~usb-debug-port-converter-does-not-accept-more-than-8-byte-packets drivers/usb/serial/usb_debug.c
---- a/drivers/usb/serial/usb_debug.c~usb-debug-port-converter-does-not-accept-more-than-8-byte-packets
-+++ a/drivers/usb/serial/usb_debug.c
-@@ -15,6 +15,8 @@
- #include <linux/usb.h>
- #include <linux/usb/serial.h>
+diff -puN include/asm-generic/vmlinux.lds.h~move-__attribute____cold__-functions-back-into-final-text-section include/asm-generic/vmlinux.lds.h
+--- a/include/asm-generic/vmlinux.lds.h~move-__attribute____cold__-functions-back-into-final-text-section
++++ a/include/asm-generic/vmlinux.lds.h
+@@ -204,6 +204,7 @@
+  * during second ld run in second ld pass when generating System.map */
+ #define TEXT_TEXT							\
+ 		ALIGN_FUNCTION();					\
++		*(.text.hot)						\
+ 		*(.text)						\
+ 		*(.ref.text)						\
+ 		*(.text.init.refok)					\
+@@ -213,7 +214,8 @@
+ 	CPU_KEEP(init.text)						\
+ 	CPU_KEEP(exit.text)						\
+ 	MEM_KEEP(init.text)						\
+-	MEM_KEEP(exit.text)
++	MEM_KEEP(exit.text)						\
++		*(.text.unlikely)
  
-+#define USB_DEBUG_MAX_PACKET_SIZE	8
-+
- static struct usb_device_id id_table [] = {
- 	{ USB_DEVICE(0x0525, 0x127a) },
- 	{ },
-@@ -29,6 +31,12 @@ static struct usb_driver debug_driver = 
- 	.no_dynamic_id = 	1,
- };
  
-+int usb_debug_open (struct usb_serial_port *port, struct file *filp)
-+{
-+	port->bulk_out_size = USB_DEBUG_MAX_PACKET_SIZE;
-+	return usb_serial_generic_open(port, filp);
-+}
-+
- static struct usb_serial_driver debug_device = {
- 	.driver = {
- 		.owner =	THIS_MODULE,
-@@ -36,6 +44,7 @@ static struct usb_serial_driver debug_de
- 	},
- 	.id_table =		id_table,
- 	.num_ports =		1,
-+	.open =            usb_debug_open,
- };
- 
- static int __init debug_init(void)
+ /* sched.text is aling to function alignment to secure we have same
 _
 
-Patches currently in -mm which might be from dared1st@yahoo.com are
+Patches currently in -mm which might be from jbeulich@novell.com are
 
 linux-next.patch
+acpi-fix-fadt-parsing.patch
+git-kbuild-next.patch
+mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co.patch
 
