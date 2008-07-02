@@ -1,122 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: - debugobjects-fix-lockdep-warning.patch removed from -mm tree
-Date: Wed, 02 Jul 2008 00:46:31 -0700
-Message-ID: <200807020746.m627kV2f005558@imap1.linux-foundation.org>
+Subject: - x86-mm-init_64-fix-printk-format-warning.patch removed from -mm tree
+Date: Wed, 02 Jul 2008 00:46:50 -0700
+Message-ID: <200807020746.m627kohr005596@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55604 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57585 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750781AbYGBHrQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 03:47:16 -0400
+	by vger.kernel.org with ESMTP id S1751096AbYGBHrd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 03:47:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vegard.nossum@gmail.com, a.p.zijlstra@chello.nl, daniel.blueman@gmail.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     debugobjects: fix lockdep warning
+     x86/mm/init_64: fix printk format warning
 has been removed from the -mm tree.  Its filename was
-     debugobjects-fix-lockdep-warning.patch
+     x86-mm-init_64-fix-printk-format-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: debugobjects: fix lockdep warning
-From: Vegard Nossum <vegard.nossum@gmail.com>
+Subject: x86/mm/init_64: fix printk format warning
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Daniel J Blueman reported:
-| =======================================================
-| [ INFO: possible circular locking dependency detected ]
-| 2.6.26-rc5-201c #1
-| -------------------------------------------------------
-| nscd/3669 is trying to acquire lock:
-|  (&n->list_lock){.+..}, at: [<ffffffff802bab03>] deactivate_slab+0x173/0x1e0
-|
-| but task is already holding lock:
-|  (&obj_hash[i].lock){++..}, at: [<ffffffff803fa56f>]
-| __debug_object_init+0x2f/0x350
-|
-| which lock already depends on the new lock.
+Fix x86/mm/init_64.c printk format warning:
 
-There are two locks involved here; the first is a SLUB-local lock, and
-the second is a debugobjects-local lock. They are basically taken in two
+linux-next-20080618/arch/x86/mm/init_64.c:834: warning: format '%u' expects type 'unsigned int', but argument 3 has type 'long unsigned int'
 
-1. SLUB { debugobjects { ... } }
-2. debugobjects { SLUB { ... } }
-
-This patch changes pattern #2 by trying to fill the memory pool (e.g.
-the call into SLUB/kmalloc()) outside the debugobjects lock, so now the
-two patterns look like this:
-
-1. SLUB { debugobjects { ... } }
-2. SLUB { } debugobjects { ... }
-
-Reviewed-by: Daniel J Blueman <daniel.blueman@gmail.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Signed-off-by: Vegard Nossum <vegard.nossum@gmail.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/debugobjects.c |   10 +++-------
- 1 file changed, 3 insertions(+), 7 deletions(-)
+ arch/x86/mm/init_64.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/debugobjects.c~debugobjects-fix-lockdep-warning lib/debugobjects.c
---- a/lib/debugobjects.c~debugobjects-fix-lockdep-warning
-+++ a/lib/debugobjects.c
-@@ -110,16 +110,13 @@ static struct debug_obj *lookup_object(v
- }
+diff -puN arch/x86/mm/init_64.c~x86-mm-init_64-fix-printk-format-warning arch/x86/mm/init_64.c
+--- a/arch/x86/mm/init_64.c~x86-mm-init_64-fix-printk-format-warning
++++ a/arch/x86/mm/init_64.c
+@@ -830,7 +830,7 @@ int __init reserve_bootmem_generic(unsig
+ 		if (pfn < max_pfn_mapped)
+ 			return -EFAULT;
  
- /*
-- * Allocate a new object. If the pool is empty and no refill possible,
-- * switch off the debugger.
-+ * Allocate a new object. If the pool is empty, switch off the debugger.
-  */
- static struct debug_obj *
- alloc_object(void *addr, struct debug_bucket *b, struct debug_obj_descr *descr)
- {
- 	struct debug_obj *obj = NULL;
--	int retry = 0;
- 
--repeat:
- 	spin_lock(&pool_lock);
- 	if (obj_pool.first) {
- 		obj	    = hlist_entry(obj_pool.first, typeof(*obj), node);
-@@ -141,9 +138,6 @@ repeat:
+-		printk(KERN_ERR "reserve_bootmem: illegal reserve %lx %u\n",
++		printk(KERN_ERR "reserve_bootmem: illegal reserve %lx %lu\n",
+ 				phys, len);
+ 		return -EFAULT;
  	}
- 	spin_unlock(&pool_lock);
- 
--	if (fill_pool() && !obj && !retry++)
--		goto repeat;
--
- 	return obj;
- }
- 
-@@ -261,6 +255,8 @@ __debug_object_init(void *addr, struct d
- 	struct debug_obj *obj;
- 	unsigned long flags;
- 
-+	fill_pool();
-+
- 	db = get_bucket((unsigned long) addr);
- 
- 	spin_lock_irqsave(&db->lock, flags);
 _
 
-Patches currently in -mm which might be from vegard.nossum@gmail.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
+doc-kernel-parameterstxt-fix-stale-references.patch
+cpusets-document-proc-status-cpus-and-mems-allowed-lists.patch
 linux-next.patch
+documentation-build-source-files-in-documentation-sub-dir.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
 git-kbuild-next.patch
-parisc-fix-incomplete-header-guard.patch
-mm-remove-initialization-of-static-per-cpu-variables.patch
-kallsyms-fix-potential-overflow-in-binary-search.patch
+bluetooth-hci_bcsp-fix-bitrev-kconfig.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix-fix.patch
+e100-fix-printk-format-warning.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+netfilter-conntrack_helper-needs-to-include-rculisth.patch
+git-scsi-misc-fix-scsi_dh-build-errors.patch
+lkdtm-fix-for-config_scsi=n.patch
+git-unionfs.patch
+vmallocinfo-add-numa-information.patch
+vmallocinfo-add-numa-information-fix.patch
+pm-remove-obsolete-piece-of-pm-documentation-rev-2.patch
+flag-parameters-signalfd-fix.patch
+flag-parameters-eventfd-fix.patch
 kallsyms-unify-32-and-64-bit-code.patch
-quota-cleanup-loop-in-sync_dquots.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-fix.patch
-workqueues-make-get_online_cpus-useable-for-work-func.patch
-s390-topology-dont-use-kthread-for-arch_reinit_sched_domains.patch
-taskstats-remove-initialization-of-static-per-cpu-variable.patch
+procfs-guide-drop-pointless-nbsp-entities.patch
+bsdacct-stir-up-comments-around-acct_process.patch
+documentation-cleanup-trivial-misspelling-punctuation-and-grammar-corrections.patch
+profile-likely-unlikely-macros.patch
 
