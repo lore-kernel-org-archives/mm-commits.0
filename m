@@ -1,143 +1,213 @@
 From: akpm@linux-foundation.org
-Subject: - vfs-utimensat-fix-write-access-check-for-futimens.patch removed from -mm tree
-Date: Wed, 02 Jul 2008 00:48:01 -0700
-Message-ID: <200807020748.m627m1ZZ005698@imap1.linux-foundation.org>
+Subject: - remove-bkl-from-remote_llseek-v2-fix.patch removed from -mm tree
+Date: Wed, 02 Jul 2008 00:48:08 -0700
+Message-ID: <200807020748.m627m8mO005707@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35343 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51523 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753880AbYGBHsz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 03:48:55 -0400
+	by vger.kernel.org with ESMTP id S1758031AbYGBHtB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 03:49:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mtk.manpages@googlemail.com, drepper@redhat.com, miklos@szeredi.hu, mtk.manpages@gmail.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, VANDROVE@vc.cvut.cz, andi@firstfloor.org, corbet@lwn.net, hch@lst.de, sfrench@us.ibm.com, swhiteho@redhat.com, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vfs: utimensat(): fix write access check for futimens()
+     remove-bkl-from-remote_llseek-v2-fix
 has been removed from the -mm tree.  Its filename was
-     vfs-utimensat-fix-write-access-check-for-futimens.patch
+     remove-bkl-from-remote_llseek-v2-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: utimensat(): fix write access check for futimens()
-From: Michael Kerrisk <mtk.manpages@googlemail.com>
+Subject: remove-bkl-from-remote_llseek-v2-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The POSIX.1 draft spec for futimens()/utimensat() says:
+Update for conflicting changes in linux-next.
 
-        Only a process with the effective user ID equal to the
-        user ID of the file, *or with write access to the file*,
-        or with appropriate privileges may use futimens() or
-        utimensat() with a null pointer as the times argument
-        or with both tv_nsec fields set to the special value
-        UTIME_NOW.
-
-The important piece here is "with write access to the file", and
-this matters for futimens(), which deals with an argument that
-is a file descriptor referring to the file whose timestamps are
-being updated,  The standard is saying that the "writability"
-check is based on the file permissions, not the access mode with
-which the file is opened.  (This behavior is consistent with the
-semantics of FreeBSD's futimes().)  However, Linux is currently
-doing the latter -- futimens(fd, times) is a library
-function implemented as
-
-       utimensat(fd, NULL, times, 0)
-
-and within the utimensat() implementation we have the code:
-
-                f = fget(dfd);  // dfd is 'fd'
-                ...
-                if (f) {
-                        if (!(f->f_mode & FMODE_WRITE))
-                                goto mnt_drop_write_and_out;
-
-The check should instead be based on the file permissions.
-
-Thanks to Miklos for pointing out how to do this check.
-Miklos also pointed out a simplification that could be
-made to my first version of this patch, since the checks
-for the pathname and file descriptor cases can now be
-conflated.
-
-Acked-by: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Ulrich Drepper <drepper@redhat.com>
-Signed-off-by: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Petr Vandrovec <VANDROVE@vc.cvut.cz>
+Cc: Steven French <sfrench@us.ibm.com>
+Cc: Steven Whitehouse <swhiteho@redhat.com>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/utimes.c |   11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+ fs/nfs/file.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/utimes.c~vfs-utimensat-fix-write-access-check-for-futimens fs/utimes.c
---- a/fs/utimes.c~vfs-utimensat-fix-write-access-check-for-futimens
-+++ a/fs/utimes.c
-@@ -148,14 +148,9 @@ long do_utimes(int dfd, char __user *fil
- 			goto mnt_drop_write_and_out;
+diff -puN fs/nfs/file.c~remove-bkl-from-remote_llseek-v2-fix fs/nfs/file.c
+--- a/fs/nfs/file.c~remove-bkl-from-remote_llseek-v2-fix
++++ a/fs/nfs/file.c
+@@ -180,6 +180,8 @@ force_reval:
  
- 		if (!is_owner_or_cap(inode)) {
--			if (f) {
--				if (!(f->f_mode & FMODE_WRITE))
--					goto mnt_drop_write_and_out;
--			} else {
--				error = vfs_permission(&nd, MAY_WRITE);
--				if (error)
--					goto mnt_drop_write_and_out;
--			}
-+			error = permission(inode, MAY_WRITE, NULL);
-+			if (error)
-+				goto mnt_drop_write_and_out;
- 		}
- 	}
- 	mutex_lock(&inode->i_mutex);
+ static loff_t nfs_file_llseek(struct file *filp, loff_t offset, int origin)
+ {
++	loff_t loff;
++
+ 	dprintk("NFS: llseek file(%s/%s, %lld, %d)\n",
+ 			filp->f_path.dentry->d_parent->d_name.name,
+ 			filp->f_path.dentry->d_name.name,
 _
 
-Patches currently in -mm which might be from mtk.manpages@googlemail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-man-pages-is-supported.patch
-doc-document-the-relax_domain_level-kernel-boot-argument.patch
+rtc-x1205-fix-alarm-set-fix.patch
+update-ntfs-help-text-fix.patch
+cgroups-document-the-effect-of-attaching-pid-0-to-a-cgroup-fix.patch
+spi-fix-the-read-path-in-spidev-cleanup.patch
+security-filesystem-capabilities-fix-fragile-setuid-fixup-code-checkpatch-fixes.patch
 doc-document-the-relax_domain_level-kernel-boot-argument-fix.patch
-huge-page-private-reservation-review-cleanups.patch
+revert-introduce-rculisth.patch
+linux-next.patch
+next-remove-localversion.patch
+linux-next-fixups.patch
+fix-kobject-fix-kobject_rename-and-config_sysfs.patch
+kvm-is-busted-on-ia64.patch
+drivers-mtd-nand-nandsimc-needs-div64h.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+tick-schedc-suppress-needless-timer-reprogramming-checkpatch-fixes.patch
+git-jg-misc-git-rejects.patch
+drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers.patch
+drivers-mtd-devices-block2mtdc-suppress-warning.patch
+bug-in-random32c-all-zero-outputs-with-probability-1-232-other-seeding-bugs-checkpatch-fixes.patch
+sundance-set-carrier-status-on-link-change-events.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix-fix.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-scsi-misc-fix-scsi_dh-build-errors.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
+pktcdvd-push-bkl-down-into-driver-fix.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-logfs-fixup.patch
+watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
+git-xtensa.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-verify-the-page-links-and-memory-model.patch
+mspec-convert-nopfn-to-fault-fix.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+kill-generic_file_direct_io-checkpatch-fixes.patch
+use-generic_access_phys-for-dev-mem-mappings-fix.patch
+spufs-use-the-new-vm_ops-access-fix.patch
+fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
+page-flags-record-page-flag-overlays-explicitly-xen.patch
+mapping_set_error-add-unlikely.patch
 huge-page-private-reservation-review-cleanups-fix.patch
-mm-record-map_noreserve-status-on-vmas-and-fix-small-page-mprotect-reservations.patch
-hugetlb-move-reservation-region-support-earlier.patch
-hugetlb-allow-huge-page-mappings-to-be-created-without-reservations.patch
-hugetlb-allow-huge-page-mappings-to-be-created-without-reservations-cleanups.patch
-hugetlb-reservations-move-region-tracking-earlier.patch
-hugetlb-reservations-fix-hugetlb-map_private-reservations-across-vma-splits-v2.patch
-flag-parameters-socket-and-socketpair.patch
-flag-parameters-socket-and-socketpair-mips-fix.patch
-flag-parameters-paccept.patch
+sync_file_range_write-may-and-will-block-document-that-fix.patch
+vmallocinfo-add-numa-information-fix.patch
+hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
+hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
+hugetlb-override-default-huge-page-size-ia64-build.patch
+linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+bootmem-add-debugging-framework-fix.patch
+bootmem-clean-up-free_all_bootmem_core-fix.patch
+bootmem-free-reserve-helpers-fix.patch
+revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-v850-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
+security-protect-legacy-applications-from-executing-with-insufficient-privilege-checkpatch-fixes.patch
+swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
+block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
+seq_file-fix-bug-when-seq_read-reads-nothing-fix.patch
+inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
 flag-parameters-paccept-fix.patch
-flag-parameters-paccept-fix-flag-parameters-arch-specific-sock_nonblock.patch
-flag-parameters-paccept-flag-parameters-paccept-w-out-set_restore_sigmask.patch
 flag-parameters-paccept-sys_ni.patch
-flag-parameters-anon_inode_getfd-extension.patch
 flag-parameters-anon_inode_getfd-extension-fix.patch
-flag-parameters-signalfd.patch
 flag-parameters-signalfd-fix.patch
-flag-parameters-eventfd.patch
 flag-parameters-eventfd-fix.patch
-flag-parameters-timerfd_create.patch
-flag-parameters-epoll_create.patch
-flag-parameters-dup2.patch
-flag-parameters-pipe.patch
-flag-parameters-inotify_init.patch
 flag-parameters-inotify_init-fix.patch
-flag-parametersi-nonblock-in-anon_inode_getfd.patch
-flag-parameters-nonblock-in-socket-and-socketpair.patch
-flag-parameters-nonblock-in-signalfd.patch
-flag-parameters-nonblock-in-eventfd.patch
-flag-parameters-nonblock-in-timerfd_create.patch
-flag-parameters-nonblock-in-pipe.patch
-flag-parameters-nonblock-in-inotify_init.patch
-flag-parameters-check-magic-constants.patch
 flag-parameters-check-magic-constants-alpha.patch
-flag-parameters-add-on-remove-epoll_create-size-param.patch
-signals-make-siginfo_t-si_utime-si_sstime-report-times-in-user_hz-not-hz.patch
+spi-au1550_spi-improve-pio-transfer-mode-checkpatch-fixes.patch
+gpio-gpio-driver-for-max7301-spi-gpio-expander-checkpatch-fixes.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
+fsl-diu-fb-update-freescale-diu-driver-to-use-page_alloc_exact-fix.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
+ext3-handle-corrupted-orphan-list-at-mount-cleanup.patch
+ext3-handle-corrupted-orphan-list-at-mount-fix.patch
+ext3-handle-corrupted-orphan-list-at-mount-cleanup-fix.patch
+jbd-dont-abort-if-flushing-file-data-failed-fix.patch
+reiserfs-convert-j_flush_sem-to-mutex.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
+cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-checkpatch-fixes.patch
+memcg-remove-refcnt-from-page_cgroup-fix-2.patch
+jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup.patch
+ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
+getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
+x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary-checkpatch-fixes.patch
+tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
+memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
+memstick-use-fully-asynchronous-request-processing-fix.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+mm-introduce-get_user_pages_fast-fix.patch
+mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-fix.patch
+x86-lockless-get_user_pages_fast-fix-2.patch
+x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
+x86-lockless-get_user_pages_fast-fix-warning.patch
+vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
+define-page_file_cache-function-fix.patch
+unevictable-lru-infrastructure-fix.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-3.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
+vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
+video-console-sticonrec-make-code-static-checkpatch-fixes.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
