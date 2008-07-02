@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + exec-remove-some-includes.patch added to -mm tree
-Date: Tue, 01 Jul 2008 17:01:36 -0700
-Message-ID: <200807020001.m6201as9021732@imap1.linux-foundation.org>
+Subject: + fsstack-fsstack_copy_inode_size-locking.patch added to -mm tree
+Date: Tue, 01 Jul 2008 17:03:55 -0700
+Message-ID: <200807020003.m6203tfT021788@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42526 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57720 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760853AbYGBACO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 20:02:14 -0400
+	by vger.kernel.org with ESMTP id S1755202AbYGBAFG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 20:05:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hugh@veritas.com
+Cc: hugh@veritas.com, ezk@cs.sunysb.edu, hch@lst.de, hooanon05@yahoo.co.jp, mhalcrow@us.ibm.com
 
 
 The patch titled
-     exec: remove some includes
+     fsstack: fsstack_copy_inode_size locking
 has been added to the -mm tree.  Its filename is
-     exec-remove-some-includes.patch
+     fsstack-fsstack_copy_inode_size-locking.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,51 +33,119 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: exec: remove some includes
+Subject: fsstack: fsstack_copy_inode_size locking
 From: Hugh Dickins <hugh@veritas.com>
 
-fs/exec.c used to need mman.h pagemap.h swap.h and rmap.h when it did
-mm-ish stuff in install_arg_page(); but no need for them after 2.6.22.
+LTP's iogen01 doio tests used to hang nicely on 32-bit SMP when /tmp was a
+unionfs mount of a tmpfs, i_size_read spinning forever, waiting for a lost
+seqcount update: fixed by taking i_lock around i_size_write when 32-bit
+SMP.
+
+But akpm was dissatisfied with the resulting patch: its lack of
+commentary, the #ifs, the nesting around i_size_read, the lack of
+attention to i_blocks.  I promised to redo it with the general
+spin_lock_32bit() he proposed; but disliked the result, partly because
+"32bit" obscures the real constraints, which are best commented within
+fsstack_copy_inode_size itself.
+
+This version adds those comments, and uses sizeof comparisons which the
+compiler can optimize out, instead of CONFIG_SMP, CONFIG_LSF. 
+BITS_PER_LONG.
 
 Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Cc: Erez Zadok <ezk@cs.sunysb.edu>
+Cc: Michael Halcrow <mhalcrow@us.ibm.com>
+Cc: <hooanon05@yahoo.co.jp>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ fs/stack.c               |   58 +++++++++++++++++++++++++++++++------
+ include/linux/fs_stack.h |    3 -
+ 2 files changed, 50 insertions(+), 11 deletions(-)
 
-diff -puN fs/exec.c~exec-remove-some-includes fs/exec.c
---- a/fs/exec.c~exec-remove-some-includes
-+++ a/fs/exec.c
-@@ -25,19 +25,17 @@
- #include <linux/slab.h>
- #include <linux/file.h>
- #include <linux/fdtable.h>
--#include <linux/mman.h>
-+#include <linux/mm.h>
- #include <linux/stat.h>
- #include <linux/fcntl.h>
- #include <linux/smp_lock.h>
- #include <linux/string.h>
- #include <linux/init.h>
--#include <linux/pagemap.h>
- #include <linux/highmem.h>
- #include <linux/spinlock.h>
- #include <linux/key.h>
- #include <linux/personality.h>
- #include <linux/binfmts.h>
--#include <linux/swap.h>
- #include <linux/utsname.h>
- #include <linux/pid_namespace.h>
- #include <linux/module.h>
-@@ -47,7 +45,6 @@
- #include <linux/mount.h>
- #include <linux/security.h>
- #include <linux/syscalls.h>
--#include <linux/rmap.h>
- #include <linux/tsacct_kern.h>
- #include <linux/cn_proc.h>
- #include <linux/audit.h>
+diff -puN fs/stack.c~fsstack-fsstack_copy_inode_size-locking fs/stack.c
+--- a/fs/stack.c~fsstack-fsstack_copy_inode_size-locking
++++ a/fs/stack.c
+@@ -19,16 +19,56 @@
+  * This function cannot be inlined since i_size_{read,write} is rather
+  * heavy-weight on 32-bit systems
+  */
+-void fsstack_copy_inode_size(struct inode *dst, const struct inode *src)
++void fsstack_copy_inode_size(struct inode *dst, struct inode *src)
+ {
+-#if BITS_PER_LONG == 32 && defined(CONFIG_SMP)
+-	spin_lock(&dst->i_lock);
+-#endif
+-	i_size_write(dst, i_size_read(src));
+-	dst->i_blocks = src->i_blocks;
+-#if BITS_PER_LONG == 32 && defined(CONFIG_SMP)
+-	spin_unlock(&dst->i_lock);
+-#endif
++	loff_t i_size;
++	blkcnt_t i_blocks;
++
++	/*
++	 * i_size_read() includes its own seqlocking and protection from
++	 * preemption (see include/linux/fs.h): we need nothing extra for
++	 * that here, and prefer to avoid nesting locks than attempt to
++	 * keep i_size and i_blocks in synch together.
++	 */
++	i_size = i_size_read(src);
++
++	/*
++	 * But if CONFIG_LSF (on 32-bit), we ought to make an effort to keep
++	 * the two halves of i_blocks in synch despite SMP or PREEMPT - though
++	 * stat's generic_fillattr() doesn't bother, and we won't be applying
++	 * quotas (where i_blocks does become important) at the upper level.
++	 *
++	 * We don't actually know what locking is used at the lower level; but
++	 * if it's a filesystem that supports quotas, it will be using i_lock
++	 * as in inode_add_bytes().  tmpfs uses other locking, and its 32-bit
++	 * is (just) able to exceed 2TB i_size with the aid of holes; but its
++	 * i_blocks cannot carry into the upper long without almost 2TB swap -
++	 * let's ignore that case.
++	 */
++	if (sizeof(i_blocks) > sizeof(long))
++		spin_lock(&src->i_lock);
++	i_blocks = src->i_blocks;
++	if (sizeof(i_blocks) > sizeof(long))
++		spin_unlock(&src->i_lock);
++
++	/*
++	 * If CONFIG_SMP on 32-bit, it's vital for fsstack_copy_inode_size()
++	 * to hold some lock around i_size_write(), otherwise i_size_read()
++	 * may spin forever (see include/linux/fs.h).  We don't necessarily
++	 * hold i_mutex when this is called, so take i_lock for that case.
++	 *
++	 * And if CONFIG_LSF (on 32-bit), continue our effort to keep the
++	 * two halves of i_blocks in synch despite SMP or PREEMPT: use i_lock
++	 * for that case too, and do both at once by combining the tests.
++	 *
++	 * There is none of this locking overhead in the 64-bit case.
++	 */
++	if (sizeof(i_size) > sizeof(long) || sizeof(i_blocks) > sizeof(long))
++		spin_lock(&dst->i_lock);
++	i_size_write(dst, i_size);
++	dst->i_blocks = i_blocks;
++	if (sizeof(i_size) > sizeof(long) || sizeof(i_blocks) > sizeof(long))
++		spin_unlock(&dst->i_lock);
+ }
+ EXPORT_SYMBOL_GPL(fsstack_copy_inode_size);
+ 
+diff -puN include/linux/fs_stack.h~fsstack-fsstack_copy_inode_size-locking include/linux/fs_stack.h
+--- a/include/linux/fs_stack.h~fsstack-fsstack_copy_inode_size-locking
++++ a/include/linux/fs_stack.h
+@@ -21,8 +21,7 @@
+ 
+ /* externs for fs/stack.c */
+ extern void fsstack_copy_attr_all(struct inode *dest, const struct inode *src);
+-extern void fsstack_copy_inode_size(struct inode *dst,
+-				    const struct inode *src);
++extern void fsstack_copy_inode_size(struct inode *dst, struct inode *src);
+ 
+ /* inlines */
+ static inline void fsstack_copy_attr_atime(struct inode *dest,
 _
 
 Patches currently in -mm which might be from hugh@veritas.com are
@@ -85,6 +153,7 @@ Patches currently in -mm which might be from hugh@veritas.com are
 origin.patch
 mm-dirty-page-accounting-vs-vm_mixedmap.patch
 git-unionfs.patch
+fsstack-fsstack_copy_inode_size-locking.patch
 mm-remove-nopfn-fix.patch
 access_process_vm-device-memory-infrastructure.patch
 use-generic_access_phys-for-dev-mem-mappings.patch
