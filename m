@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fsstack-fsstack_copy_inode_size-locking.patch added to -mm tree
-Date: Tue, 01 Jul 2008 17:03:55 -0700
-Message-ID: <200807020003.m6203tfT021788@imap1.linux-foundation.org>
+Subject: + unionfs-fix-memory-leak.patch added to -mm tree
+Date: Tue, 01 Jul 2008 17:04:35 -0700
+Message-ID: <200807020004.m6204ZMB021797@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57720 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49130 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755202AbYGBAFG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 20:05:06 -0400
+	by vger.kernel.org with ESMTP id S1757939AbYGBAFR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 20:05:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hugh@veritas.com, ezk@cs.sunysb.edu, hch@lst.de, hooanon05@yahoo.co.jp, mhalcrow@us.ibm.com
+Cc: hugh@veritas.com, ezk@cs.sunysb.edu
 
 
 The patch titled
-     fsstack: fsstack_copy_inode_size locking
+     unionfs: fix memory leak
 has been added to the -mm tree.  Its filename is
-     fsstack-fsstack_copy_inode_size-locking.patch
+     unionfs-fix-memory-leak.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,119 +33,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fsstack: fsstack_copy_inode_size locking
+Subject: unionfs: fix memory leak
 From: Hugh Dickins <hugh@veritas.com>
 
-LTP's iogen01 doio tests used to hang nicely on 32-bit SMP when /tmp was a
-unionfs mount of a tmpfs, i_size_read spinning forever, waiting for a lost
-seqcount update: fixed by taking i_lock around i_size_write when 32-bit
-SMP.
-
-But akpm was dissatisfied with the resulting patch: its lack of
-commentary, the #ifs, the nesting around i_size_read, the lack of
-attention to i_blocks.  I promised to redo it with the general
-spin_lock_32bit() he proposed; but disliked the result, partly because
-"32bit" obscures the real constraints, which are best commented within
-fsstack_copy_inode_size itself.
-
-This version adds those comments, and uses sizeof comparisons which the
-compiler can optimize out, instead of CONFIG_SMP, CONFIG_LSF. 
-BITS_PER_LONG.
+Unionfs has slowly been leaking memory: although many places do explicitly
+free the dentry's lower_paths array (and I've not changed those, in case
+the ordering is important), not all do - and adding a WARN_ON didn't seem
+to finger any particular culprit.  So free_dentry_private_data needs to
+kfree lower_paths (other freeers are good about setting it to NULL).
 
 Signed-off-by: Hugh Dickins <hugh@veritas.com>
 Cc: Erez Zadok <ezk@cs.sunysb.edu>
-Cc: Michael Halcrow <mhalcrow@us.ibm.com>
-Cc: <hooanon05@yahoo.co.jp>
-Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/stack.c               |   58 +++++++++++++++++++++++++++++++------
- include/linux/fs_stack.h |    3 -
- 2 files changed, 50 insertions(+), 11 deletions(-)
+ fs/unionfs/lookup.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/stack.c~fsstack-fsstack_copy_inode_size-locking fs/stack.c
---- a/fs/stack.c~fsstack-fsstack_copy_inode_size-locking
-+++ a/fs/stack.c
-@@ -19,16 +19,56 @@
-  * This function cannot be inlined since i_size_{read,write} is rather
-  * heavy-weight on 32-bit systems
-  */
--void fsstack_copy_inode_size(struct inode *dst, const struct inode *src)
-+void fsstack_copy_inode_size(struct inode *dst, struct inode *src)
+diff -puN fs/unionfs/lookup.c~unionfs-fix-memory-leak fs/unionfs/lookup.c
+--- a/fs/unionfs/lookup.c~unionfs-fix-memory-leak
++++ a/fs/unionfs/lookup.c
+@@ -498,6 +498,7 @@ void free_dentry_private_data(struct den
  {
--#if BITS_PER_LONG == 32 && defined(CONFIG_SMP)
--	spin_lock(&dst->i_lock);
--#endif
--	i_size_write(dst, i_size_read(src));
--	dst->i_blocks = src->i_blocks;
--#if BITS_PER_LONG == 32 && defined(CONFIG_SMP)
--	spin_unlock(&dst->i_lock);
--#endif
-+	loff_t i_size;
-+	blkcnt_t i_blocks;
-+
-+	/*
-+	 * i_size_read() includes its own seqlocking and protection from
-+	 * preemption (see include/linux/fs.h): we need nothing extra for
-+	 * that here, and prefer to avoid nesting locks than attempt to
-+	 * keep i_size and i_blocks in synch together.
-+	 */
-+	i_size = i_size_read(src);
-+
-+	/*
-+	 * But if CONFIG_LSF (on 32-bit), we ought to make an effort to keep
-+	 * the two halves of i_blocks in synch despite SMP or PREEMPT - though
-+	 * stat's generic_fillattr() doesn't bother, and we won't be applying
-+	 * quotas (where i_blocks does become important) at the upper level.
-+	 *
-+	 * We don't actually know what locking is used at the lower level; but
-+	 * if it's a filesystem that supports quotas, it will be using i_lock
-+	 * as in inode_add_bytes().  tmpfs uses other locking, and its 32-bit
-+	 * is (just) able to exceed 2TB i_size with the aid of holes; but its
-+	 * i_blocks cannot carry into the upper long without almost 2TB swap -
-+	 * let's ignore that case.
-+	 */
-+	if (sizeof(i_blocks) > sizeof(long))
-+		spin_lock(&src->i_lock);
-+	i_blocks = src->i_blocks;
-+	if (sizeof(i_blocks) > sizeof(long))
-+		spin_unlock(&src->i_lock);
-+
-+	/*
-+	 * If CONFIG_SMP on 32-bit, it's vital for fsstack_copy_inode_size()
-+	 * to hold some lock around i_size_write(), otherwise i_size_read()
-+	 * may spin forever (see include/linux/fs.h).  We don't necessarily
-+	 * hold i_mutex when this is called, so take i_lock for that case.
-+	 *
-+	 * And if CONFIG_LSF (on 32-bit), continue our effort to keep the
-+	 * two halves of i_blocks in synch despite SMP or PREEMPT: use i_lock
-+	 * for that case too, and do both at once by combining the tests.
-+	 *
-+	 * There is none of this locking overhead in the 64-bit case.
-+	 */
-+	if (sizeof(i_size) > sizeof(long) || sizeof(i_blocks) > sizeof(long))
-+		spin_lock(&dst->i_lock);
-+	i_size_write(dst, i_size);
-+	dst->i_blocks = i_blocks;
-+	if (sizeof(i_size) > sizeof(long) || sizeof(i_blocks) > sizeof(long))
-+		spin_unlock(&dst->i_lock);
+ 	if (!dentry || !dentry->d_fsdata)
+ 		return;
++	kfree(UNIONFS_D(dentry)->lower_paths);
+ 	kmem_cache_free(unionfs_dentry_cachep, dentry->d_fsdata);
+ 	dentry->d_fsdata = NULL;
  }
- EXPORT_SYMBOL_GPL(fsstack_copy_inode_size);
- 
-diff -puN include/linux/fs_stack.h~fsstack-fsstack_copy_inode_size-locking include/linux/fs_stack.h
---- a/include/linux/fs_stack.h~fsstack-fsstack_copy_inode_size-locking
-+++ a/include/linux/fs_stack.h
-@@ -21,8 +21,7 @@
- 
- /* externs for fs/stack.c */
- extern void fsstack_copy_attr_all(struct inode *dest, const struct inode *src);
--extern void fsstack_copy_inode_size(struct inode *dst,
--				    const struct inode *src);
-+extern void fsstack_copy_inode_size(struct inode *dst, struct inode *src);
- 
- /* inlines */
- static inline void fsstack_copy_attr_atime(struct inode *dest,
 _
 
 Patches currently in -mm which might be from hugh@veritas.com are
@@ -153,6 +68,7 @@ Patches currently in -mm which might be from hugh@veritas.com are
 origin.patch
 mm-dirty-page-accounting-vs-vm_mixedmap.patch
 git-unionfs.patch
+unionfs-fix-memory-leak.patch
 fsstack-fsstack_copy_inode_size-locking.patch
 mm-remove-nopfn-fix.patch
 access_process_vm-device-memory-infrastructure.patch
