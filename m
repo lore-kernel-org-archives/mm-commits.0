@@ -1,103 +1,138 @@
 From: akpm@linux-foundation.org
-Subject: - input-add-support-for-egalax-touchkit-usb-touchscreen-used-on-hp-tx1305us.patch removed from -mm tree
-Date: Wed, 02 Jul 2008 09:50:01 -0700
-Message-ID: <200807021650.m62Go1ne026236@imap1.linux-foundation.org>
+Subject: + swap-cull-unevictable-pages-in-fault-path-fix.patch added to -mm tree
+Date: Wed, 02 Jul 2008 09:56:31 -0700
+Message-ID: <200807021656.m62GuVOi026432@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39136 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53693 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750882AbYGBQuL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 12:50:11 -0400
+	by vger.kernel.org with ESMTP id S1754503AbYGBQ56 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 12:57:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nyef@lisphacker.com, dtor@mail.ru, greg@kroah.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: riel@redhat.com, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com
 
 
 The patch titled
-     input: add support for eGalax TouchKit USB touchscreen used on HP tx1305us
-has been removed from the -mm tree.  Its filename was
-     input-add-support-for-egalax-touchkit-usb-touchscreen-used-on-hp-tx1305us.patch
+     fix lru_cache_add_active_or_unevictable
+has been added to the -mm tree.  Its filename is
+     swap-cull-unevictable-pages-in-fault-path-fix.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: input: add support for eGalax TouchKit USB touchscreen used on HP tx1305us
-From: Alastair Bridgewater <nyef@lisphacker.com>
+Subject: fix lru_cache_add_active_or_unevictable
+From: Rik van Riel <riel@redhat.com>
 
-The eGalax touchscreen used in the HP tx1305us tablet PC (and presumably
-the rest of the tx1000 series) uses a different format for events from the
-device than the existing driver supports.
+Undo an overzealous code cleanup to lru_cache_add_active_or_unevictable. 
+The callers do not set PageActive so the page would get added to the wrong
+list.
 
-Add a new device description and interrupt packet handler for the
-touchscreen used in the tx1305us, claiming the USB device ID for the
-device that this patch was tested with from the older eGalax device code.
-
-Signed-off-by: Alastair Bridgewater <nyef@lisphacker.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Dmitry Torokhov <dtor@mail.ru>
+Signed-off-by: Rik van Riel <riel@redhat.com>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/touchscreen/usbtouchscreen.c |   21 ++++++++++++++++++-
- 1 file changed, 20 insertions(+), 1 deletion(-)
+ mm/swap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/input/touchscreen/usbtouchscreen.c~input-add-support-for-egalax-touchkit-usb-touchscreen-used-on-hp-tx1305us drivers/input/touchscreen/usbtouchscreen.c
---- a/drivers/input/touchscreen/usbtouchscreen.c~input-add-support-for-egalax-touchkit-usb-touchscreen-used-on-hp-tx1305us
-+++ a/drivers/input/touchscreen/usbtouchscreen.c
-@@ -103,6 +103,7 @@ struct usbtouch_usb {
- enum {
- 	DEVTPYE_DUMMY = -1,
- 	DEVTYPE_EGALAX,
-+	DEVTYPE_EGALAX2,
- 	DEVTYPE_PANJIT,
- 	DEVTYPE_3M,
- 	DEVTYPE_ITM,
-@@ -120,7 +121,7 @@ static struct usb_device_id usbtouch_dev
- 	{USB_DEVICE(0x3823, 0x0001), .driver_info = DEVTYPE_EGALAX},
- 	{USB_DEVICE(0x3823, 0x0002), .driver_info = DEVTYPE_EGALAX},
- 	{USB_DEVICE(0x0123, 0x0001), .driver_info = DEVTYPE_EGALAX},
--	{USB_DEVICE(0x0eef, 0x0001), .driver_info = DEVTYPE_EGALAX},
-+	{USB_DEVICE(0x0eef, 0x0001), .driver_info = DEVTYPE_EGALAX2},
- 	{USB_DEVICE(0x0eef, 0x0002), .driver_info = DEVTYPE_EGALAX},
- 	{USB_DEVICE(0x1234, 0x0001), .driver_info = DEVTYPE_EGALAX},
- 	{USB_DEVICE(0x1234, 0x0002), .driver_info = DEVTYPE_EGALAX},
-@@ -217,6 +218,15 @@ static int egalax_get_pkt_len(unsigned c
- 
- 	return 0;
+diff -puN mm/swap.c~swap-cull-unevictable-pages-in-fault-path-fix mm/swap.c
+--- a/mm/swap.c~swap-cull-unevictable-pages-in-fault-path-fix
++++ a/mm/swap.c
+@@ -260,7 +260,7 @@ void lru_cache_add_active_or_unevictable
+ 					struct vm_area_struct *vma)
+ {
+ 	if (page_evictable(page, vma))
+-		lru_cache_add_lru(page, page_lru(page));
++		lru_cache_add_lru(page, LRU_ACTIVE + page_is_file_cache(page));
+ 	else
+ 		add_page_to_unevictable_list(page);
  }
-+
-+static int egalax2_read_data(struct usbtouch_usb *dev, unsigned char *pkt)
-+{
-+	dev->x = ((pkt[3] & 0x0F) << 8) | pkt[2];
-+	dev->y = ((pkt[5] & 0x0F) << 8) | pkt[4];
-+	dev->touch = pkt[1] & 0x01;
-+
-+	return 1;
-+}
- #endif
- 
- 
-@@ -555,6 +565,15 @@ static struct usbtouch_device_info usbto
- 		.get_pkt_len	= egalax_get_pkt_len,
- 		.read_data	= egalax_read_data,
- 	},
-+
-+	[DEVTYPE_EGALAX2] = {
-+		.min_xc		= 0x0,
-+		.max_xc		= 0x0fff,
-+		.min_yc		= 0x0,
-+		.max_yc		= 0x0fff,
-+		.rept_size	= 8,
-+		.read_data	= egalax2_read_data,
-+	},
- #endif
- 
- #ifdef CONFIG_TOUCHSCREEN_USB_PANJIT
 _
 
-Patches currently in -mm which might be from nyef@lisphacker.com are
+Patches currently in -mm which might be from riel@redhat.com are
 
-input-add-support-for-egalax-touchkit-usb-touchscreen-used-on-hp-tx1305us.patch
+ntp-let-update_persistent_clock-sleep.patch
+access_process_vm-device-memory-infrastructure.patch
+access_process_vm-device-memory-infrastructure-fix.patch
+use-generic_access_phys-for-dev-mem-mappings.patch
+use-generic_access_phys-for-dev-mem-mappings-fix.patch
+use-generic_access_phys-for-pci-mmap-on-x86.patch
+powerpc-ioremap_prot.patch
+spufs-use-the-new-vm_ops-access.patch
+spufs-use-the-new-vm_ops-access-fix.patch
+page-flags-record-page-flag-overlays-explicitly.patch
+page-flags-record-page-flag-overlays-explicitly-xen.patch
+slub-record-page-flag-overlays-explicitly.patch
+slob-record-page-flag-overlays-explicitly.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+idr-change-the-idr-structure.patch
+idr-rename-some-of-the-idr-apis-internal-routines.patch
+idr-fix-a-printk-call.patch
+idr-error-checking-factorization.patch
+idr-make-idr_get_new-rcu-safe.patch
+idr-make-idr_get_new-rcu-safe-fix.patch
+idr-make-idr_find-rcu-safe.patch
+idr-make-idr_remove-rcu-safe.patch
+ipc-call-idr_find-without-locking-in-ipc_lock.patch
+ipc-get-rid-of-ipc_lock_down.patch
+mm-speculative-page-references-fix-migration_entry_wait-for-speculative-page-cache.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
+vmscan-use-an-indexed-array-for-lru-variables.patch
+swap-use-an-array-for-the-lru-pagevecs.patch
+vmscan-free-swap-space-on-swap-in-activation.patch
+define-page_file_cache-function.patch
+define-page_file_cache-function-fix.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+vmscan-split-lru-lists-into-anon-file-sets-collect-lru-meminfo-statistics-from-correct-offset.patch
+vmscan-split-lru-lists-into-anon-file-sets-prevent-incorrect-oom-under-split_lru.patch
+vmscan-split-lru-lists-into-anon-file-sets-split_lru-fix-pagevec_move_tail-doesnt-treat-unevictable-page.patch
+vmscan-second-chance-replacement-for-anonymous-pages.patch
+vmscan-fix-pagecache-reclaim-referenced-bit-check.patch
+vmscan-add-newly-swapped-in-pages-to-the-inactive-list.patch
+more-aggressively-use-lumpy-reclaim.patch
+pageflag-helpers-for-configed-out-flags.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-infrastructure-fix.patch
+unevictable-lru-infrastructure-kconfig-fix.patch
+unevictable-lru-infrastructure-remove-redundant-page-mapping-check.patch
+unevictable-lru-page-statistics.patch
+unevictable-lru-page-statistics-fix-printk-in-show_free_areas.patch
+ramfs-and-ram-disk-pages-are-unevictable.patch
+ramfs-and-ram-disk-pages-are-unevictable-undo-the-brdc-part.patch
+shm_locked-pages-are-unevictable.patch
+mlock-mlocked-pages-are-unevictable.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-3.patch
+mlock-mlocked-pages-are-unevictable-fix-fix-munlock-page-table-walk-now-requires-mm.patch
+mlock-downgrade-mmap-sem-while-populating-mlocked-regions.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+fix-double-unlock_page-in-2626-rc5-mm3-kernel-bug-at-mm-filemapc-575.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
+vmstat-mlocked-pages-statistics.patch
+vmstat-mlocked-pages-statistics-fix-incorrect-mlocked-field-of-proc-meminfo.patch
+swap-cull-unevictable-pages-in-fault-path.patch
+swap-cull-unevictable-pages-in-fault-path-fix.patch
+vmstat-unevictable-and-mlocked-pages-vm-events.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
+mlock-count-attempts-to-free-mlocked-page.patch
+doc-unevictable-lru-and-mlocked-pages-documentation.patch
+vmscam-kill-unused-lru-functions.patch
+make-mm-rmapc-anon_vma_cachep-static.patch
 
