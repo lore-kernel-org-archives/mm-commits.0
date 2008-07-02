@@ -1,156 +1,245 @@
 From: akpm@linux-foundation.org
-Subject: - macintosh-media-bay-semaphore-to-mutex.patch removed from -mm tree
-Date: Wed, 02 Jul 2008 00:47:09 -0700
-Message-ID: <200807020747.m627l9HG005627@imap1.linux-foundation.org>
+Subject: + hugetlb-reservations-fix-hugetlb-map_private-reservations-across-vma-splits-v2-fix.patch added to -mm tree
+Date: Wed, 02 Jul 2008 01:02:21 -0700
+Message-ID: <200807020802.m6282LtQ006288@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49746 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35389 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750899AbYGBIEb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 04:04:31 -0400
+	by vger.kernel.org with ESMTP id S1751503AbYGBIIk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 04:08:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dwalker@mvista.com, benh@kernel.crashing.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, agl@us.ibm.com, apw@shadowen.org, hannes@saeurebad.de, hugh@veritas.com, kniht@linux.vnet.ibm.com, lizf@cn.fujitsu.com, mel@csn.ul.ie, mtk.manpages@googlemail.com, wli@holomorphy.com
 
 
 The patch titled
-     macintosh: media bay: semaphore to mutex
-has been removed from the -mm tree.  Its filename was
-     macintosh-media-bay-semaphore-to-mutex.patch
+     hugetlb-reservations-fix-hugetlb-map_private-reservations-across-vma-splits-v2-fix
+has been added to the -mm tree.  Its filename is
+     hugetlb-reservations-fix-hugetlb-map_private-reservations-across-vma-splits-v2-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: macintosh: media bay: semaphore to mutex
-From: Daniel Walker <dwalker@mvista.com>
+Subject: hugetlb-reservations-fix-hugetlb-map_private-reservations-across-vma-splits-v2-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Signed-off-by: Daniel Walker <dwalker@mvista.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Adam Litke <agl@us.ibm.com>
+Cc: Johannes Weiner <hannes@saeurebad.de>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: William Lee Irwin III <wli@holomorphy.com>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
+Cc: Jon Tollefson <kniht@linux.vnet.ibm.com>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/macintosh/mediabay.c |   27 ++++++++++++++-------------
- 1 file changed, 14 insertions(+), 13 deletions(-)
+ mm/hugetlb.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/macintosh/mediabay.c~macintosh-media-bay-semaphore-to-mutex drivers/macintosh/mediabay.c
---- a/drivers/macintosh/mediabay.c~macintosh-media-bay-semaphore-to-mutex
-+++ a/drivers/macintosh/mediabay.c
-@@ -21,6 +21,7 @@
- #include <linux/init.h>
- #include <linux/ide.h>
- #include <linux/kthread.h>
-+#include <linux/mutex.h>
- #include <asm/prom.h>
- #include <asm/pgtable.h>
- #include <asm/io.h>
-@@ -77,7 +78,7 @@ struct media_bay_info {
- 	int				index;
- 	int				cached_gpio;
- 	int				sleeping;
--	struct semaphore		lock;
-+	struct mutex			lock;
- #ifdef CONFIG_BLK_DEV_IDE_PMAC
- 	ide_hwif_t			*cd_port;
- 	void __iomem			*cd_base;
-@@ -459,27 +460,27 @@ int media_bay_set_ide_infos(struct devic
- 		if (bay->mdev && which_bay == bay->mdev->ofdev.node) {
- 			int timeout = 5000, index = hwif->index;
- 			
--			down(&bay->lock);
-+			mutex_lock(&bay->lock);
+diff -puN mm/hugetlb.c~hugetlb-reservations-fix-hugetlb-map_private-reservations-across-vma-splits-v2-fix mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-reservations-fix-hugetlb-map_private-reservations-across-vma-splits-v2-fix
++++ a/mm/hugetlb.c
+@@ -856,7 +856,7 @@ static int vma_needs_reservation(struct 
  
- 			bay->cd_port	= hwif;
-  			bay->cd_base	= (void __iomem *) base;
- 			bay->cd_irq	= irq;
+ 	} else  {
+ 		int err;
+-		pgoff_t idx = vma_pagecache_offset(h, vma, addr);
++		pgoff_t idx = vma_hugecache_offset(h, vma, addr);
+ 		struct resv_map *reservations = vma_resv_map(vma);
  
- 			if ((MB_CD != bay->content_id) || bay->state != mb_up) {
--				up(&bay->lock);
-+				mutex_unlock(&bay->lock);
- 				return 0;
- 			}
- 			printk(KERN_DEBUG "Registered ide%d for media bay %d\n", index, i);
- 			do {
- 				if (MB_IDE_READY(i)) {
- 					bay->cd_index	= index;
--					up(&bay->lock);
-+					mutex_unlock(&bay->lock);
- 					return 0;
- 				}
- 				mdelay(1);
- 			} while(--timeout);
- 			printk(KERN_DEBUG "Timeount waiting IDE in bay %d\n", i);
--			up(&bay->lock);
-+			mutex_unlock(&bay->lock);
- 			return -ENODEV;
- 		}
- 	}
-@@ -616,10 +617,10 @@ static int media_bay_task(void *x)
+ 		err = region_chg(&reservations->regions, idx, idx + 1);
+@@ -876,7 +876,7 @@ static void vma_commit_reservation(struc
+ 		region_add(&inode->i_mapping->private_list, idx, idx + 1);
  
- 	while (!kthread_should_stop()) {
- 		for (i = 0; i < media_bay_count; ++i) {
--			down(&media_bays[i].lock);
-+			mutex_lock(&media_bays[i].lock);
- 			if (!media_bays[i].sleeping)
- 				media_bay_step(i);
--			up(&media_bays[i].lock);
-+			mutex_unlock(&media_bays[i].lock);
- 		}
+ 	} else if (is_vma_resv_set(vma, HPAGE_RESV_OWNER)) {
+-		pgoff_t idx = vma_pagecache_offset(h, vma, addr);
++		pgoff_t idx = vma_hugecache_offset(h, vma, addr);
+ 		struct resv_map *reservations = vma_resv_map(vma);
  
- 		msleep_interruptible(MB_POLL_DELAY);
-@@ -659,7 +660,7 @@ static int __devinit media_bay_attach(st
- 	bay->index = i;
- 	bay->ops = match->data;
- 	bay->sleeping = 0;
--	init_MUTEX(&bay->lock);
-+	mutex_init(&bay->lock);
+ 		/* Mark this page used in the map. */
+@@ -1553,8 +1553,8 @@ static void hugetlb_vm_op_close(struct v
+ 	unsigned long end;
  
- 	/* Init HW probing */
- 	if (bay->ops->init)
-@@ -697,10 +698,10 @@ static int media_bay_suspend(struct maci
+ 	if (reservations) {
+-		start = vma_pagecache_offset(h, vma, vma->vm_start);
+-		end = vma_pagecache_offset(h, vma, vma->vm_end);
++		start = vma_hugecache_offset(h, vma, vma->vm_start);
++		end = vma_hugecache_offset(h, vma, vma->vm_end);
  
- 	if (state.event != mdev->ofdev.dev.power.power_state.event
- 	    && (state.event & PM_EVENT_SLEEP)) {
--		down(&bay->lock);
-+		mutex_lock(&bay->lock);
- 		bay->sleeping = 1;
- 		set_mb_power(bay, 0);
--		up(&bay->lock);
-+		mutex_unlock(&bay->lock);
- 		msleep(MB_POLL_DELAY);
- 		mdev->ofdev.dev.power.power_state = state;
- 	}
-@@ -719,12 +720,12 @@ static int media_bay_resume(struct macio
- 	       	   they seem to help the 3400 get it right.
- 	       	 */
- 	       	/* Force MB power to 0 */
--		down(&bay->lock);
-+		mutex_lock(&bay->lock);
- 	       	set_mb_power(bay, 0);
- 		msleep(MB_POWER_DELAY);
- 	       	if (bay->ops->content(bay) != bay->content_id) {
- 			printk("mediabay%d: content changed during sleep...\n", bay->index);
--			up(&bay->lock);
-+			mutex_unlock(&bay->lock);
- 	       		return 0;
- 		}
- 	       	set_mb_power(bay, 1);
-@@ -740,7 +741,7 @@ static int media_bay_resume(struct macio
- 	       	} while((bay->state != mb_empty) &&
- 	       		(bay->state != mb_up));
- 		bay->sleeping = 0;
--		up(&bay->lock);
-+		mutex_unlock(&bay->lock);
- 	}
- 	return 0;
- }
+ 		reserve = (end - start) -
+ 			region_count(&reservations->regions, start, end);
 _
 
-Patches currently in -mm which might be from dwalker@mvista.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+rtc-x1205-fix-alarm-set-fix.patch
+update-ntfs-help-text-fix.patch
+cgroups-document-the-effect-of-attaching-pid-0-to-a-cgroup-fix.patch
+spi-fix-the-read-path-in-spidev-cleanup.patch
+security-filesystem-capabilities-fix-fragile-setuid-fixup-code-checkpatch-fixes.patch
+doc-document-the-relax_domain_level-kernel-boot-argument-fix.patch
+revert-introduce-rculisth.patch
 linux-next.patch
+next-remove-localversion.patch
+linux-next-fixups.patch
+fix-kobject-fix-kobject_rename-and-config_sysfs.patch
+kvm-is-busted-on-ia64.patch
+drivers-mtd-nand-nandsimc-needs-div64h.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+tick-schedc-suppress-needless-timer-reprogramming-checkpatch-fixes.patch
+git-jg-misc-git-rejects.patch
+drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers.patch
+drivers-mtd-devices-block2mtdc-suppress-warning.patch
+bug-in-random32c-all-zero-outputs-with-probability-1-232-other-seeding-bugs-checkpatch-fixes.patch
+sundance-set-carrier-status-on-link-change-events.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix-fix.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-scsi-misc-fix-scsi_dh-build-errors.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
+pktcdvd-push-bkl-down-into-driver-fix.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-logfs-fixup.patch
+watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
+git-xtensa.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-verify-the-page-links-and-memory-model.patch
+mspec-convert-nopfn-to-fault-fix.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+kill-generic_file_direct_io-checkpatch-fixes.patch
+use-generic_access_phys-for-dev-mem-mappings-fix.patch
+spufs-use-the-new-vm_ops-access-fix.patch
+fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
+page-flags-record-page-flag-overlays-explicitly-xen.patch
+mapping_set_error-add-unlikely.patch
+huge-page-private-reservation-review-cleanups-fix.patch
+sync_file_range_write-may-and-will-block-document-that-fix.patch
+vmallocinfo-add-numa-information-fix.patch
+hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
+hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
+hugetlb-override-default-huge-page-size-ia64-build.patch
+hugetlb-reservations-fix-hugetlb-map_private-reservations-across-vma-splits-v2-fix.patch
+linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+bootmem-add-debugging-framework-fix.patch
+bootmem-clean-up-free_all_bootmem_core-fix.patch
+bootmem-free-reserve-helpers-fix.patch
+revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-v850-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
+security-protect-legacy-applications-from-executing-with-insufficient-privilege-checkpatch-fixes.patch
+swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
+block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
+seq_file-fix-bug-when-seq_read-reads-nothing-fix.patch
+inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-paccept-sys_ni.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-signalfd-fix.patch
+flag-parameters-eventfd-fix.patch
+flag-parameters-inotify_init-fix.patch
+flag-parameters-check-magic-constants-alpha.patch
+spi-au1550_spi-improve-pio-transfer-mode-checkpatch-fixes.patch
+gpio-gpio-driver-for-max7301-spi-gpio-expander-checkpatch-fixes.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
+fsl-diu-fb-update-freescale-diu-driver-to-use-page_alloc_exact-fix.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
+ext3-handle-corrupted-orphan-list-at-mount-cleanup.patch
+ext3-handle-corrupted-orphan-list-at-mount-fix.patch
+ext3-handle-corrupted-orphan-list-at-mount-cleanup-fix.patch
+jbd-dont-abort-if-flushing-file-data-failed-fix.patch
+reiserfs-convert-j_flush_sem-to-mutex.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
+cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-checkpatch-fixes.patch
+memcg-remove-refcnt-from-page_cgroup-fix-2.patch
+jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup.patch
+ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
+getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
+x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary-checkpatch-fixes.patch
+tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
+memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
+memstick-use-fully-asynchronous-request-processing-fix.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+mm-introduce-get_user_pages_fast-fix.patch
+mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-fix.patch
+x86-lockless-get_user_pages_fast-fix-2.patch
+x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
+x86-lockless-get_user_pages_fast-fix-warning.patch
+vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
+define-page_file_cache-function-fix.patch
+unevictable-lru-infrastructure-fix.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-3.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
+vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
+video-console-sticonrec-make-code-static-checkpatch-fixes.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
-likely_prof-changed-to-use-proc_create.patch
-likeliness-accounting-change-and-cleanup.patch
-likely-profiling-disable-ftrace.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
