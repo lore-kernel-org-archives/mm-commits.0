@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mfd-fix-platform-driver-hotplug-coldplug.patch added to -mm tree
-Date: Wed, 02 Jul 2008 01:50:46 -0700
-Message-ID: <200807020850.m628okVa008077@imap1.linux-foundation.org>
+Subject: + dma-fix-platform-driver-hotplug-coldplug.patch added to -mm tree
+Date: Wed, 02 Jul 2008 01:52:25 -0700
+Message-ID: <200807020852.m628qPpL008206@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39735 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34299 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752295AbYGBIwD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 04:52:03 -0400
+	by vger.kernel.org with ESMTP id S1753300AbYGBIxG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 04:53:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kay.sievers@vrfy.org, dbrownell@users.sourceforge.net, greg@kroah.com, rjw@sisk.pl, samuel@sortiz.org, stable@kernel.org
+Cc: kay.sievers@vrfy.org, dan.j.williams@intel.com, dbrownell@users.sourceforge.net, greg@kroah.com, rjw@sisk.pl, stable@kernel.org
 
 
 The patch titled
-     mfd: fix platform driver hotplug/coldplug
+     dma: fix platform driver hotplug/coldplug
 has been added to the -mm tree.  Its filename is
-     mfd-fix-platform-driver-hotplug-coldplug.patch
+     dma-fix-platform-driver-hotplug-coldplug.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,72 +33,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mfd: fix platform driver hotplug/coldplug
+Subject: dma: fix platform driver hotplug/coldplug
 From: Kay Sievers <kay.sievers@vrfy.org>
 
 Since 43cc71eed1250755986da4c0f9898f9a635cb3bf (platform: prefix MODALIAS
 with "platform:"), the platform modalias is prefixed with "platform:". 
-Add MODULE_ALIAS() to the MFD platform drivers, to re-enable auto loading.
+Add MODULE_ALIAS() to most of the hotpluggable platform drivers, to
+re-enable auto loading.
 
-[dbrownell@users.sourceforge.net: one was missing]
 Signed-off-by: Kay Sievers <kay.sievers@vrfy.org>
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Cc: <stable@kernel.org>
 Cc: Greg KH <greg@kroah.com>
 Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Samuel Ortiz <samuel@sortiz.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/htc-pasic3.c |    2 ++
- drivers/mfd/mcp-sa11x0.c |    2 ++
- drivers/mfd/sm501.c      |    2 ++
- 3 files changed, 6 insertions(+)
+ drivers/dma/iop-adma.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/mfd/htc-pasic3.c~mfd-fix-platform-driver-hotplug-coldplug drivers/mfd/htc-pasic3.c
---- a/drivers/mfd/htc-pasic3.c~mfd-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/mfd/htc-pasic3.c
-@@ -238,6 +238,8 @@ static int pasic3_remove(struct platform
- 	return 0;
+diff -puN drivers/dma/iop-adma.c~dma-fix-platform-driver-hotplug-coldplug drivers/dma/iop-adma.c
+--- a/drivers/dma/iop-adma.c~dma-fix-platform-driver-hotplug-coldplug
++++ a/drivers/dma/iop-adma.c
+@@ -1387,6 +1387,8 @@ static void iop_chan_start_null_xor(stru
+ 	spin_unlock_bh(&iop_chan->lock);
  }
  
-+MODULE_ALIAS("platform:pasic3");
++MODULE_ALIAS("platform:iop-adma");
 +
- static struct platform_driver pasic3_driver = {
- 	.driver		= {
- 		.name	= "pasic3",
-diff -puN drivers/mfd/mcp-sa11x0.c~mfd-fix-platform-driver-hotplug-coldplug drivers/mfd/mcp-sa11x0.c
---- a/drivers/mfd/mcp-sa11x0.c~mfd-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/mfd/mcp-sa11x0.c
-@@ -242,6 +242,8 @@ static int mcp_sa11x0_resume(struct plat
- /*
-  * The driver for the SA11x0 MCP port.
-  */
-+MODULE_ALIAS("platform:sa11x0-mcp");
-+
- static struct platform_driver mcp_sa11x0_driver = {
- 	.probe		= mcp_sa11x0_probe,
- 	.remove		= mcp_sa11x0_remove,
-diff -puN drivers/mfd/sm501.c~mfd-fix-platform-driver-hotplug-coldplug drivers/mfd/sm501.c
---- a/drivers/mfd/sm501.c~mfd-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/mfd/sm501.c
-@@ -1699,6 +1699,8 @@ static struct pci_driver sm501_pci_drv =
- 	.remove		= sm501_pci_remove,
- };
- 
-+MODULE_ALIAS("platform:sm501");
-+
- static struct platform_driver sm501_plat_drv = {
- 	.driver		= {
- 		.name	= "sm501",
+ static struct platform_driver iop_adma_driver = {
+ 	.probe		= iop_adma_probe,
+ 	.remove		= iop_adma_remove,
 _
 
 Patches currently in -mm which might be from kay.sievers@vrfy.org are
 
 drivers-power-fix-platform-driver-hotplug-coldplug.patch
+mfd-fix-platform-driver-hotplug-coldplug.patch
+parport-fix-platform-driver-hotplug-coldplug.patch
 linux-next.patch
 gpio-sysfs-interface-updated.patch
 gpio-sysfs-interface-updated-update.patch
 firmware-use-memory_read_from_buffer.patch
-mfd-fix-platform-driver-hotplug-coldplug.patch
+dma-fix-platform-driver-hotplug-coldplug.patch
 
