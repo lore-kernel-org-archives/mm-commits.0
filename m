@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sm501-guess-n-giggle-build-fix.patch added to -mm tree
-Date: Wed, 02 Jul 2008 01:19:54 -0700
-Message-ID: <200807020819.m628JsOm006865@imap1.linux-foundation.org>
+Subject: + edac-mpc85xx-fix-pci-ofdev-2nd-pass-checkpatch-fixes.patch added to -mm tree
+Date: Wed, 02 Jul 2008 01:34:50 -0700
+Message-ID: <200807020834.m628Yovg007454@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56091 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55611 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752671AbYGBIUe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 04:20:34 -0400
+	by vger.kernel.org with ESMTP id S1752800AbYGBIfJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 04:35:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ben-linux@fluff.org, lizf@cn.fujitsu.com
+Cc: akpm@linux-foundation.org, djiang@mvista.com, dougthompson@xmission.com
 
 
 The patch titled
-     sm501: guess-n-giggle build fix?
+     edac-mpc85xx-fix-pci-ofdev-2nd-pass-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     sm501-guess-n-giggle-build-fix.patch
+     edac-mpc85xx-fix-pci-ofdev-2nd-pass-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,97 +33,60 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sm501: guess-n-giggle build fix?
+Subject: edac-mpc85xx-fix-pci-ofdev-2nd-pass-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Ben Dooks <ben-linux@fluff.org>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
+ERROR: code indent should use tabs where possible
+#42: FILE: drivers/edac/mpc85xx_edac.c:216:
++ ^Idev_set_drvdata(&op->dev, pci);$
+
+ERROR: code indent should use tabs where possible
+#43: FILE: drivers/edac/mpc85xx_edac.c:217:
++ ^Ipci->dev = &op->dev;$
+
+ERROR: code indent should use tabs where possible
+#69: FILE: drivers/edac/mpc85xx_edac.c:238:
++ ^I^I^I^I     r.end - r.start + 1, pdata->name)) {$
+
+total: 3 errors, 0 warnings, 154 lines checked
+
+./patches/edac-mpc85xx-fix-pci-ofdev-2nd-pass.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Dave Jiang <djiang@mvista.com>
+Cc: Doug Thompson <dougthompson@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/sm501.c |   13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ drivers/edac/mpc85xx_edac.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/mfd/sm501.c~sm501-guess-n-giggle-build-fix drivers/mfd/sm501.c
---- a/drivers/mfd/sm501.c~sm501-guess-n-giggle-build-fix
-+++ a/drivers/mfd/sm501.c
-@@ -19,7 +19,9 @@
- #include <linux/device.h>
- #include <linux/platform_device.h>
- #include <linux/pci.h>
-+#ifdef CONFIG_MFD_SM501_GPIO
- #include <linux/gpio.h>
-+#endif
- #include <linux/i2c-gpio.h>
+diff -puN drivers/edac/mpc85xx_edac.c~edac-mpc85xx-fix-pci-ofdev-2nd-pass-checkpatch-fixes drivers/edac/mpc85xx_edac.c
+--- a/drivers/edac/mpc85xx_edac.c~edac-mpc85xx-fix-pci-ofdev-2nd-pass-checkpatch-fixes
++++ a/drivers/edac/mpc85xx_edac.c
+@@ -213,8 +213,8 @@ static int __devinit mpc85xx_pci_err_pro
+ 	pdata = pci->pvt_info;
+ 	pdata->name = "mpc85xx_pci_err";
+ 	pdata->irq = NO_IRQ;
+- 	dev_set_drvdata(&op->dev, pci);
+- 	pci->dev = &op->dev;
++	dev_set_drvdata(&op->dev, pci);
++	pci->dev = &op->dev;
+ 	pci->mod_name = EDAC_MOD_STR;
+ 	pci->ctl_name = pdata->name;
+ 	pci->dev_name = op->dev.bus_id;
+@@ -235,7 +235,7 @@ static int __devinit mpc85xx_pci_err_pro
+ 	r.start += 0xe00;
  
- #include <linux/sm501.h>
-@@ -33,6 +35,7 @@ struct sm501_device {
- 	struct platform_device		pdev;
- };
- 
-+#ifdef CONFIG_MFD_SM501_GPIO
- struct sm501_gpio;
- 
- struct sm501_gpio_chip {
-@@ -50,13 +53,15 @@ struct sm501_gpio {
- 	void __iomem		*regs;
- 	struct resource		*regs_res;
- };
-+#endif
- 
- struct sm501_devdata {
- 	spinlock_t			 reg_lock;
- 	struct mutex			 clock_lock;
- 	struct list_head		 devices;
-+#ifdef CONFIG_MFD_SM501_GPIO
- 	struct sm501_gpio		 gpio;
--
-+#endif
- 	struct device			*dev;
- 	struct resource			*io_res;
- 	struct resource			*mem_res;
-@@ -1116,6 +1121,7 @@ static inline int sm501_gpio_pin2nr(stru
- }
- #endif
- 
-+#ifdef CONFIG_MFD_SM501_GPIO
- static int sm501_register_gpio_i2c_instance(struct sm501_devdata *sm,
- 					    struct sm501_platdata_gpio_i2c *iic)
- {
-@@ -1168,6 +1174,7 @@ static int sm501_register_gpio_i2c(struc
- 
- 	return 0;
- }
-+#endif
- 
- /* sm501_dbg_regs
-  *
-@@ -1329,12 +1336,14 @@ static int sm501_init_dev(struct sm501_d
- 			sm501_register_gpio(sm);
- 	}
- 
-+#ifdef CONFIG_MFD_SM501_GPIO
- 	if (pdata->gpio_i2c != NULL && pdata->gpio_i2c_nr > 0) {
- 		if (!sm->gpio.registered)
- 			dev_err(sm->dev, "no gpio registered for i2c gpio.\n");
- 		else
- 			sm501_register_gpio_i2c(sm, pdata);
- 	}
-+#endif
- 
- 	ret = sm501_check_clocks(sm);
- 	if (ret) {
-@@ -1643,8 +1652,10 @@ static void sm501_dev_remove(struct sm50
- 
- 	device_remove_file(sm->dev, &dev_attr_dbg_regs);
- 
-+#ifdef CONFIG_MFD_SM501_GPIO
- 	if (sm->gpio.registered)
- 		sm501_gpio_remove(sm);
-+#endif
- }
- 
- static void sm501_pci_remove(struct pci_dev *dev)
+ 	if (!devm_request_mem_region(&op->dev, r.start,
+- 				     r.end - r.start + 1, pdata->name)) {
++					r.end - r.start + 1, pdata->name)) {
+ 		printk(KERN_ERR "%s: Error while requesting mem region\n",
+ 		       __func__);
+ 		res = -EBUSY;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -235,11 +198,13 @@ quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
 quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
 cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-checkpatch-fixes.patch
 memcg-remove-refcnt-from-page_cgroup-fix-2.patch
+workqueues-make-get_online_cpus-useable-for-work-func-fix.patch
 jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup.patch
 ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
 ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
 ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
 getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
+edac-mpc85xx-fix-pci-ofdev-2nd-pass-checkpatch-fixes.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
