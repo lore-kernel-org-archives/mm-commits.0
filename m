@@ -1,213 +1,178 @@
 From: akpm@linux-foundation.org
-Subject: - remove-bkl-from-remote_llseek-v2-fix.patch removed from -mm tree
-Date: Wed, 02 Jul 2008 00:48:08 -0700
-Message-ID: <200807020748.m627m8mO005707@imap1.linux-foundation.org>
+Subject: - vfs-utimensat-fix-error-checking-for-utime_nowutime_omit-case.patch removed from -mm tree
+Date: Wed, 02 Jul 2008 00:47:58 -0700
+Message-ID: <200807020747.m627lwNJ005689@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51523 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57254 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758031AbYGBHtB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 03:49:01 -0400
+	by vger.kernel.org with ESMTP id S1756619AbYGBHtX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 03:49:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, VANDROVE@vc.cvut.cz, andi@firstfloor.org, corbet@lwn.net, hch@lst.de, sfrench@us.ibm.com, swhiteho@redhat.com, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
+To: mtk.manpages@googlemail.com, drepper@redhat.com, miklos@szeredi.hu, mtk.manpages@gmail.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     remove-bkl-from-remote_llseek-v2-fix
+     vfs: utimensat(): fix error checking for {UTIME_NOW,UTIME_OMIT} case
 has been removed from the -mm tree.  Its filename was
-     remove-bkl-from-remote_llseek-v2-fix.patch
+     vfs-utimensat-fix-error-checking-for-utime_nowutime_omit-case.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: remove-bkl-from-remote_llseek-v2-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: vfs: utimensat(): fix error checking for {UTIME_NOW,UTIME_OMIT} case
+From: Michael Kerrisk <mtk.manpages@googlemail.com>
 
-Update for conflicting changes in linux-next.
+The POSIX.1 draft spec for utimensat() says:
 
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Petr Vandrovec <VANDROVE@vc.cvut.cz>
-Cc: Steven French <sfrench@us.ibm.com>
-Cc: Steven Whitehouse <swhiteho@redhat.com>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+    Only a process with the effective user ID equal to the
+    user ID of the file or with appropriate privileges may use
+    futimens() or utimensat() with a non-null times argument
+    that does not have both tv_nsec fields set to UTIME_NOW
+    and does not have both tv_nsec fields set to UTIME_OMIT.
+
+If this condition is violated, then the error EPERM should result.
+However, the current implementation does not generate EPERM if
+one tv_nsec field is UTIME_NOW while the other is UTIME_OMIT.
+It should give this error for that case.
+
+This patch:
+
+a) Repairs that problem.
+b) Removes the now unneeded nsec_special() helper function.
+c) Adds some comments to explain the checks that are being
+   performed.
+
+Thanks to Miklos, who provided comments on the previous iteration
+of this patch.  As a result, this version is a little simpler and
+and its logic is better structured.
+
+Miklos suggested an alternative idea, migrating the
+is_owner_or_cap() checks into fs/attr.c:inode_change_ok() via
+the use of an ATTR_OWNER_CHECK flag.  Maybe we could do that
+later, but for now I've gone with this version, which is
+IMO simpler, and can be more easily read as being correct.
+
+Acked-by: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Ulrich Drepper <drepper@redhat.com>
+Signed-off-by: Michael Kerrisk <mtk.manpages@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/file.c |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/utimes.c |   36 +++++++++++++++++++++---------------
+ 1 file changed, 21 insertions(+), 15 deletions(-)
 
-diff -puN fs/nfs/file.c~remove-bkl-from-remote_llseek-v2-fix fs/nfs/file.c
---- a/fs/nfs/file.c~remove-bkl-from-remote_llseek-v2-fix
-+++ a/fs/nfs/file.c
-@@ -180,6 +180,8 @@ force_reval:
+diff -puN fs/utimes.c~vfs-utimensat-fix-error-checking-for-utime_nowutime_omit-case fs/utimes.c
+--- a/fs/utimes.c~vfs-utimensat-fix-error-checking-for-utime_nowutime_omit-case
++++ a/fs/utimes.c
+@@ -40,14 +40,9 @@ asmlinkage long sys_utime(char __user *f
  
- static loff_t nfs_file_llseek(struct file *filp, loff_t offset, int origin)
+ #endif
+ 
+-static bool nsec_special(long nsec)
+-{
+-	return nsec == UTIME_OMIT || nsec == UTIME_NOW;
+-}
+-
+ static bool nsec_valid(long nsec)
  {
-+	loff_t loff;
+-	if (nsec_special(nsec))
++	if (nsec == UTIME_OMIT || nsec == UTIME_NOW)
+ 		return true;
+ 
+ 	return nsec >= 0 && nsec <= 999999999;
+@@ -106,7 +101,7 @@ long do_utimes(int dfd, char __user *fil
+ 		     times[1].tv_nsec == UTIME_NOW)
+ 		times = NULL;
+ 
+-	/* Don't worry, the checks are done in inode_change_ok() */
++	/* In most cases, the checks are done in inode_change_ok() */
+ 	newattrs.ia_valid = ATTR_CTIME | ATTR_MTIME | ATTR_ATIME;
+ 	if (times) {
+ 		error = -EPERM;
+@@ -128,15 +123,26 @@ long do_utimes(int dfd, char __user *fil
+ 			newattrs.ia_mtime.tv_nsec = times[1].tv_nsec;
+ 			newattrs.ia_valid |= ATTR_MTIME_SET;
+ 		}
+-	}
+ 
+-	/*
+-	 * If times is NULL or both times are either UTIME_OMIT or
+-	 * UTIME_NOW, then need to check permissions, because
+-	 * inode_change_ok() won't do it.
+-	 */
+-	if (!times || (nsec_special(times[0].tv_nsec) &&
+-		       nsec_special(times[1].tv_nsec))) {
++		/*
++		 * For the UTIME_OMIT/UTIME_NOW and UTIME_NOW/UTIME_OMIT
++		 * cases, we need to make an extra check that is not done by
++		 * inode_change_ok().
++		 */
++		if (((times[0].tv_nsec == UTIME_NOW &&
++			    times[1].tv_nsec == UTIME_OMIT)
++		     ||
++		     (times[0].tv_nsec == UTIME_OMIT &&
++			    times[1].tv_nsec == UTIME_NOW))
++		    && !is_owner_or_cap(inode))
++			goto mnt_drop_write_and_out;
++	} else {
 +
- 	dprintk("NFS: llseek file(%s/%s, %lld, %d)\n",
- 			filp->f_path.dentry->d_parent->d_name.name,
- 			filp->f_path.dentry->d_name.name,
++		/*
++		 * If times is NULL (or both times are UTIME_NOW),
++		 * then we need to check permissions, because
++		 * inode_change_ok() won't do it.
++		 */
+ 		error = -EACCES;
+                 if (IS_IMMUTABLE(inode))
+ 			goto mnt_drop_write_and_out;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mtk.manpages@googlemail.com are
 
 origin.patch
-rtc-x1205-fix-alarm-set-fix.patch
-update-ntfs-help-text-fix.patch
-cgroups-document-the-effect-of-attaching-pid-0-to-a-cgroup-fix.patch
-spi-fix-the-read-path-in-spidev-cleanup.patch
-security-filesystem-capabilities-fix-fragile-setuid-fixup-code-checkpatch-fixes.patch
+man-pages-is-supported.patch
+doc-document-the-relax_domain_level-kernel-boot-argument.patch
 doc-document-the-relax_domain_level-kernel-boot-argument-fix.patch
-revert-introduce-rculisth.patch
-linux-next.patch
-next-remove-localversion.patch
-linux-next-fixups.patch
-fix-kobject-fix-kobject_rename-and-config_sysfs.patch
-kvm-is-busted-on-ia64.patch
-drivers-mtd-nand-nandsimc-needs-div64h.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-tick-schedc-suppress-needless-timer-reprogramming-checkpatch-fixes.patch
-git-jg-misc-git-rejects.patch
-drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-mmc-sd-host-driver-for-ricoh-bay1controllers.patch
-drivers-mtd-devices-block2mtdc-suppress-warning.patch
-bug-in-random32c-all-zero-outputs-with-probability-1-232-other-seeding-bugs-checkpatch-fixes.patch
-sundance-set-carrier-status-on-link-change-events.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix-fix.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-scsi-misc-fix-scsi_dh-build-errors.patch
-drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
-s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
-pktcdvd-push-bkl-down-into-driver-fix.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-git-logfs-fixup.patch
-watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-verify-the-page-links-and-memory-model.patch
-mspec-convert-nopfn-to-fault-fix.patch
-page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
-kill-generic_file_direct_io-checkpatch-fixes.patch
-use-generic_access_phys-for-dev-mem-mappings-fix.patch
-spufs-use-the-new-vm_ops-access-fix.patch
-fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
-page-flags-record-page-flag-overlays-explicitly-xen.patch
-mapping_set_error-add-unlikely.patch
+huge-page-private-reservation-review-cleanups.patch
 huge-page-private-reservation-review-cleanups-fix.patch
-sync_file_range_write-may-and-will-block-document-that-fix.patch
-vmallocinfo-add-numa-information-fix.patch
-hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
-hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
-hugetlb-override-default-huge-page-size-ia64-build.patch
-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-bootmem-add-debugging-framework-fix.patch
-bootmem-clean-up-free_all_bootmem_core-fix.patch
-bootmem-free-reserve-helpers-fix.patch
-revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-v850-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
-security-protect-legacy-applications-from-executing-with-insufficient-privilege-checkpatch-fixes.patch
-swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
-split-the-typecheck-macros-out-of-include-linux-kernelh.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
-remove-apparently-unused-fd1772h-header-file.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
-build-kernel-profileo-only-when-requested-cleanups.patch
-fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
-block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
-seq_file-fix-bug-when-seq_read-reads-nothing-fix.patch
-inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+mm-record-map_noreserve-status-on-vmas-and-fix-small-page-mprotect-reservations.patch
+hugetlb-move-reservation-region-support-earlier.patch
+hugetlb-allow-huge-page-mappings-to-be-created-without-reservations.patch
+hugetlb-allow-huge-page-mappings-to-be-created-without-reservations-cleanups.patch
+hugetlb-reservations-move-region-tracking-earlier.patch
+hugetlb-reservations-fix-hugetlb-map_private-reservations-across-vma-splits-v2.patch
+flag-parameters-socket-and-socketpair.patch
+flag-parameters-socket-and-socketpair-mips-fix.patch
+flag-parameters-paccept.patch
 flag-parameters-paccept-fix.patch
+flag-parameters-paccept-fix-flag-parameters-arch-specific-sock_nonblock.patch
+flag-parameters-paccept-flag-parameters-paccept-w-out-set_restore_sigmask.patch
 flag-parameters-paccept-sys_ni.patch
+flag-parameters-anon_inode_getfd-extension.patch
 flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-signalfd.patch
 flag-parameters-signalfd-fix.patch
+flag-parameters-eventfd.patch
 flag-parameters-eventfd-fix.patch
+flag-parameters-timerfd_create.patch
+flag-parameters-epoll_create.patch
+flag-parameters-dup2.patch
+flag-parameters-pipe.patch
+flag-parameters-inotify_init.patch
 flag-parameters-inotify_init-fix.patch
+flag-parametersi-nonblock-in-anon_inode_getfd.patch
+flag-parameters-nonblock-in-socket-and-socketpair.patch
+flag-parameters-nonblock-in-signalfd.patch
+flag-parameters-nonblock-in-eventfd.patch
+flag-parameters-nonblock-in-timerfd_create.patch
+flag-parameters-nonblock-in-pipe.patch
+flag-parameters-nonblock-in-inotify_init.patch
+flag-parameters-check-magic-constants.patch
 flag-parameters-check-magic-constants-alpha.patch
-spi-au1550_spi-improve-pio-transfer-mode-checkpatch-fixes.patch
-gpio-gpio-driver-for-max7301-spi-gpio-expander-checkpatch-fixes.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch
-drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
-atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
-fsl-diu-fb-update-freescale-diu-driver-to-use-page_alloc_exact-fix.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
-ext3-handle-corrupted-orphan-list-at-mount-cleanup.patch
-ext3-handle-corrupted-orphan-list-at-mount-fix.patch
-ext3-handle-corrupted-orphan-list-at-mount-cleanup-fix.patch
-jbd-dont-abort-if-flushing-file-data-failed-fix.patch
-reiserfs-convert-j_flush_sem-to-mutex.patch
-reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
-cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-checkpatch-fixes.patch
-memcg-remove-refcnt-from-page_cgroup-fix-2.patch
-jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup.patch
-ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
-getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
-x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary-checkpatch-fixes.patch
-tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
-memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
-memstick-use-fully-asynchronous-request-processing-fix.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-mm-introduce-get_user_pages_fast-fix.patch
-mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-fix.patch
-x86-lockless-get_user_pages_fast-fix-2.patch
-x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
-x86-lockless-get_user_pages_fast-fix-warning.patch
-vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
-define-page_file_cache-function-fix.patch
-unevictable-lru-infrastructure-fix.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-3.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
-vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
-video-console-sticonrec-make-code-static-checkpatch-fixes.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+flag-parameters-add-on-remove-epoll_create-size-param.patch
+signals-make-siginfo_t-si_utime-si_sstime-report-times-in-user_hz-not-hz.patch
 
