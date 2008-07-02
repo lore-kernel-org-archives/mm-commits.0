@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + arch-x86-mm-pgtable_32c-remove-unused-variable-fixmaps.patch added to -mm tree
-Date: Wed, 02 Jul 2008 02:12:12 -0700
-Message-ID: <200807020912.m629CC2D009008@imap1.linux-foundation.org>
+Subject: + page_align-correctly-handle-64-bit-values-on-32-bit-architectures-fix.patch added to -mm tree
+Date: Wed, 02 Jul 2008 02:39:58 -0700
+Message-ID: <200807020939.m629dwvW009959@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49359 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44025 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751139AbYGBJM3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 05:12:29 -0400
+	by vger.kernel.org with ESMTP id S1753135AbYGBJkA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 05:40:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, righi.andrea@gmail.com
 
 
 The patch titled
-     arch/x86/mm/pgtable_32.c: remove unused variable `fixmaps'
+     page_align-correctly-handle-64-bit-values-on-32-bit-architectures-fix
 has been added to the -mm tree.  Its filename is
-     arch-x86-mm-pgtable_32c-remove-unused-variable-fixmaps.patch
+     page_align-correctly-handle-64-bit-values-on-32-bit-architectures-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,30 +33,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/x86/mm/pgtable_32.c: remove unused variable `fixmaps'
+Subject: page_align-correctly-handle-64-bit-values-on-32-bit-architectures-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/x86/mm/pgtable_32.c:144: warning: 'fixmaps' defined but not used
+drivers/media/video/uvc/uvc_queue.c: In function 'uvc_alloc_buffers':
+drivers/media/video/uvc/uvc_queue.c:100: error: implicit declaration of function 'PAGE_ALIGN'
 
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Andrea Righi <righi.andrea@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/pgtable_32.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/media/video/uvc/uvc_queue.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/x86/mm/pgtable_32.c~arch-x86-mm-pgtable_32c-remove-unused-variable-fixmaps arch/x86/mm/pgtable_32.c
---- a/arch/x86/mm/pgtable_32.c~arch-x86-mm-pgtable_32c-remove-unused-variable-fixmaps
-+++ a/arch/x86/mm/pgtable_32.c
-@@ -141,7 +141,6 @@ void set_pmd_pfn(unsigned long vaddr, un
- 	__flush_tlb_one(vaddr);
- }
+diff -puN drivers/media/video/uvc/uvc_queue.c~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-fix drivers/media/video/uvc/uvc_queue.c
+--- a/drivers/media/video/uvc/uvc_queue.c~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-fix
++++ a/drivers/media/video/uvc/uvc_queue.c
+@@ -13,6 +13,7 @@
  
--static int fixmaps;
- unsigned long __FIXADDR_TOP = 0xfffff000;
- EXPORT_SYMBOL(__FIXADDR_TOP);
- 
+ #include <linux/kernel.h>
+ #include <linux/version.h>
++#include <linux/mm.h>
+ #include <linux/list.h>
+ #include <linux/module.h>
+ #include <linux/usb.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -77,6 +77,7 @@ kvm-is-busted-on-ia64.patch
 drivers-mtd-nand-nandsimc-needs-div64h.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 arch-x86-kernel-smpbootc-fix-warning.patch
+arch-x86-mm-pgtable_32c-remove-unused-variable-fixmaps.patch
 i2c-renesas-highlander-fpga-smbus-support.patch
 tick-schedc-suppress-needless-timer-reprogramming-checkpatch-fixes.patch
 git-jg-misc-git-rejects.patch
@@ -123,6 +124,7 @@ bootmem-clean-up-free_all_bootmem_core-fix.patch
 bootmem-free-reserve-helpers-fix.patch
 revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
 bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-fix.patch
 page_align-correctly-handle-64-bit-values-on-32-bit-architectures-v850-fix.patch
 page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
@@ -220,6 +222,4 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
-arch-x86-mm-pgtable_32c-remove-unused-variable-fixmaps.patch
-arch-x86-mm-pgtable_32c-remove-unused-variable-fixmaps.patch
 
