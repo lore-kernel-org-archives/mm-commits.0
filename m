@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + unionfs-fix-memory-leak.patch added to -mm tree
-Date: Tue, 01 Jul 2008 17:04:35 -0700
-Message-ID: <200807020004.m6204ZMB021797@imap1.linux-foundation.org>
+Subject: + memcg-remove-refcnt-from-page_cgroup-memcg-fix-shmem_unuse_inode-charging.patch added to -mm tree
+Date: Tue, 01 Jul 2008 17:21:44 -0700
+Message-ID: <200807020021.m620LjLk022474@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49130 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55323 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757939AbYGBAFR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 20:05:17 -0400
+	by vger.kernel.org with ESMTP id S1751234AbYGBAWd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 20:22:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hugh@veritas.com, ezk@cs.sunysb.edu
+Cc: hugh@veritas.com, balbir@linux.vnet.ibm.com, ebiederm@xmission.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, rientjes@google.com, xemul@openvz.org, yamamoto@valinux.co.jp
 
 
 The patch titled
-     unionfs: fix memory leak
+     memcg: fix shmem_unuse_inode charging
 has been added to the -mm tree.  Its filename is
-     unionfs-fix-memory-leak.patch
+     memcg-remove-refcnt-from-page_cgroup-memcg-fix-shmem_unuse_inode-charging.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,34 +33,80 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: unionfs: fix memory leak
+Subject: memcg: fix shmem_unuse_inode charging
 From: Hugh Dickins <hugh@veritas.com>
 
-Unionfs has slowly been leaking memory: although many places do explicitly
-free the dentry's lower_paths array (and I've not changed those, in case
-the ordering is important), not all do - and adding a WARN_ON didn't seem
-to finger any particular culprit.  So free_dentry_private_data needs to
-kfree lower_paths (other freeers are good about setting it to NULL).
+The mem_cgroup_cache_charge in shmem_unuse_inode has been moved after the
+radix_tree_preload, so generating a BUG: sleeping function called from
+invalid context.  Move it back, uncharging where necessary.
 
 Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Cc: Erez Zadok <ezk@cs.sunysb.edu>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
+Cc: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
+Cc: Paul Menage <menage@google.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/unionfs/lookup.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/shmem.c |   28 ++++++++++++----------------
+ 1 file changed, 12 insertions(+), 16 deletions(-)
 
-diff -puN fs/unionfs/lookup.c~unionfs-fix-memory-leak fs/unionfs/lookup.c
---- a/fs/unionfs/lookup.c~unionfs-fix-memory-leak
-+++ a/fs/unionfs/lookup.c
-@@ -498,6 +498,7 @@ void free_dentry_private_data(struct den
- {
- 	if (!dentry || !dentry->d_fsdata)
- 		return;
-+	kfree(UNIONFS_D(dentry)->lower_paths);
- 	kmem_cache_free(unionfs_dentry_cachep, dentry->d_fsdata);
- 	dentry->d_fsdata = NULL;
- }
+diff -puN mm/shmem.c~memcg-remove-refcnt-from-page_cgroup-memcg-fix-shmem_unuse_inode-charging mm/shmem.c
+--- a/mm/shmem.c~memcg-remove-refcnt-from-page_cgroup-memcg-fix-shmem_unuse_inode-charging
++++ a/mm/shmem.c
+@@ -922,27 +922,24 @@ found:
+ 	error = 1;
+ 	if (!inode)
+ 		goto out;
+-	error = radix_tree_preload(GFP_KERNEL);
+-	if (error)
+-		goto out;
+-	/*
+-	 * Because we use GFP_NOWAIT in add_to_page_cache(), we can see -ENOMEM
+-	 * failure because of memory pressure in memory resource controller.
+-	 * Then, precharge page while we can wait, uncharge at failure will be
+-	 * automatically done in add_to_page_cache()
+-	 */
++	/* Precharge page using GFP_KERNEL while we can wait */
+ 	error = mem_cgroup_cache_charge(page, current->mm, GFP_KERNEL);
+ 	if (error)
+-		goto preload_out;
+-
++		goto out;
++	error = radix_tree_preload(GFP_KERNEL);
++	if (error) {
++		mem_cgroup_uncharge_cache_page(page);
++		goto out;
++	}
+ 	error = 1;
+ 
+ 	spin_lock(&info->lock);
+ 	ptr = shmem_swp_entry(info, idx, NULL);
+-	if (ptr && ptr->val == entry.val)
+-		error = add_to_page_cache(page, inode->i_mapping, idx,
+-					GFP_NOWAIT);
+-	else /* we don't have to account this page. */
++	if (ptr && ptr->val == entry.val) {
++		error = add_to_page_cache(page, inode->i_mapping,
++						idx, GFP_NOWAIT);
++		/* does mem_cgroup_uncharge_cache_page on error */
++	} else	/* we must compensate for our precharge above */
+ 		mem_cgroup_uncharge_cache_page(page);
+ 
+ 	if (error == -EEXIST) {
+@@ -969,7 +966,6 @@ found:
+ 	if (ptr)
+ 		shmem_swp_unmap(ptr);
+ 	spin_unlock(&info->lock);
+-preload_out:
+ 	radix_tree_preload_end();
+ out:
+ 	unlock_page(page);
 _
 
 Patches currently in -mm which might be from hugh@veritas.com are
@@ -103,6 +149,7 @@ memcg-remove-refcnt-from-page_cgroup.patch
 memcg-remove-refcnt-from-page_cgroup-fix.patch
 memcg-remove-refcnt-from-page_cgroup-fix-2.patch
 memcg-remove-refcnt-from-page_cgroup-fix-memcg-fix-mem_cgroup_end_migration-race.patch
+memcg-remove-refcnt-from-page_cgroup-memcg-fix-shmem_unuse_inode-charging.patch
 memcg-handle-swap-cache.patch
 memcg-handle-swap-cache-fix.patch
 memcg-handle-swap-cache-fix-shmem-page-migration-incorrectness-on-memcgroup.patch
