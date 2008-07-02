@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
 Subject: + rtc-ds1305-ds1306-driver-fix.patch added to -mm tree
-Date: Wed, 02 Jul 2008 10:13:42 -0700
-Message-ID: <200807021713.m62HDgoO027139@imap1.linux-foundation.org>
+Date: Wed, 02 Jul 2008 10:14:38 -0700
+Message-ID: <200807021714.m62HEcdR027151@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36451 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56017 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750724AbYGBROC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 13:14:02 -0400
+	by vger.kernel.org with ESMTP id S1750826AbYGBROz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 13:14:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -44,8 +44,8 @@ Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds1305.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/rtc/rtc-ds1305.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
 diff -puN drivers/rtc/rtc-ds1305.c~rtc-ds1305-ds1306-driver-fix drivers/rtc/rtc-ds1305.c
 --- a/drivers/rtc/rtc-ds1305.c~rtc-ds1305-ds1306-driver-fix
@@ -54,6 +54,15 @@ diff -puN drivers/rtc/rtc-ds1305.c~rtc-ds1305-ds1306-driver-fix drivers/rtc/rtc-
  
  	if (unlikely(off >= DS1305_NVRAM_LEN))
  		return 0;
++	if (count >= DS1305_NVRAM_LEN)
++		count = DS1305_NVRAM_LEN;
+ 	if ((off + count) > DS1305_NVRAM_LEN)
+ 		count = DS1305_NVRAM_LEN - off;
+ 	if (unlikely(!count))
+@@ -585,6 +587,8 @@ ds1305_nvram_write(struct kobject *kobj,
+ 
+ 	if (unlikely(off >= DS1305_NVRAM_LEN))
+ 		return -EFBIG;
 +	if (count >= DS1305_NVRAM_LEN)
 +		count = DS1305_NVRAM_LEN;
  	if ((off + count) > DS1305_NVRAM_LEN)
