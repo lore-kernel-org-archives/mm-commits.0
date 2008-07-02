@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + edac-mpc85xx-fix-pci-ofdev-2nd-pass-checkpatch-fixes.patch added to -mm tree
-Date: Wed, 02 Jul 2008 01:34:50 -0700
-Message-ID: <200807020834.m628Yovg007454@imap1.linux-foundation.org>
+Subject: + workqueues-make-get_online_cpus-useable-for-work-func-fix.patch added to -mm tree
+Date: Wed, 02 Jul 2008 01:32:19 -0700
+Message-ID: <200807020832.m628WJCK007366@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55611 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51457 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752800AbYGBIfJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 04:35:09 -0400
+	by vger.kernel.org with ESMTP id S1753657AbYGBIel (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 04:34:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, djiang@mvista.com, dougthompson@xmission.com
+Cc: akpm@linux-foundation.org, ego@in.ibm.com, heiko.carstens@de.ibm.com, maxk@qualcomm.com, menage@google.com, mingo@elte.hu, oleg@tv-sign.ru, peterz@infradead.org, pj@sgi.com, schwidefsky@de.ibm.com, vegard.nossum@gmail.com
 
 
 The patch titled
-     edac-mpc85xx-fix-pci-ofdev-2nd-pass-checkpatch-fixes
+     workqueues-make-get_online_cpus-useable-for-work-func-fix
 has been added to the -mm tree.  Its filename is
-     edac-mpc85xx-fix-pci-ofdev-2nd-pass-checkpatch-fixes.patch
+     workqueues-make-get_online_cpus-useable-for-work-func-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,60 +33,63 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: edac-mpc85xx-fix-pci-ofdev-2nd-pass-checkpatch-fixes
+Subject: workqueues-make-get_online_cpus-useable-for-work-func-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: code indent should use tabs where possible
-#42: FILE: drivers/edac/mpc85xx_edac.c:216:
-+ ^Idev_set_drvdata(&op->dev, pci);$
+Fix CONFIG_SMP=n.
 
-ERROR: code indent should use tabs where possible
-#43: FILE: drivers/edac/mpc85xx_edac.c:217:
-+ ^Ipci->dev = &op->dev;$
-
-ERROR: code indent should use tabs where possible
-#69: FILE: drivers/edac/mpc85xx_edac.c:238:
-+ ^I^I^I^I     r.end - r.start + 1, pdata->name)) {$
-
-total: 3 errors, 0 warnings, 154 lines checked
-
-./patches/edac-mpc85xx-fix-pci-ofdev-2nd-pass.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Dave Jiang <djiang@mvista.com>
-Cc: Doug Thompson <dougthompson@xmission.com>
+Cc: Gautham R Shenoy <ego@in.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Max Krasnyansky <maxk@qualcomm.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Paul Jackson <pj@sgi.com>
+Cc: Paul Menage <menage@google.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Vegard Nossum <vegard.nossum@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/mpc85xx_edac.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/cpu.h |   15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
-diff -puN drivers/edac/mpc85xx_edac.c~edac-mpc85xx-fix-pci-ofdev-2nd-pass-checkpatch-fixes drivers/edac/mpc85xx_edac.c
---- a/drivers/edac/mpc85xx_edac.c~edac-mpc85xx-fix-pci-ofdev-2nd-pass-checkpatch-fixes
-+++ a/drivers/edac/mpc85xx_edac.c
-@@ -213,8 +213,8 @@ static int __devinit mpc85xx_pci_err_pro
- 	pdata = pci->pvt_info;
- 	pdata->name = "mpc85xx_pci_err";
- 	pdata->irq = NO_IRQ;
-- 	dev_set_drvdata(&op->dev, pci);
-- 	pci->dev = &op->dev;
-+	dev_set_drvdata(&op->dev, pci);
-+	pci->dev = &op->dev;
- 	pci->mod_name = EDAC_MOD_STR;
- 	pci->ctl_name = pdata->name;
- 	pci->dev_name = op->dev.bus_id;
-@@ -235,7 +235,7 @@ static int __devinit mpc85xx_pci_err_pro
- 	r.start += 0xe00;
+diff -puN include/linux/cpu.h~workqueues-make-get_online_cpus-useable-for-work-func-fix include/linux/cpu.h
+--- a/include/linux/cpu.h~workqueues-make-get_online_cpus-useable-for-work-func-fix
++++ a/include/linux/cpu.h
+@@ -69,10 +69,11 @@ static inline void unregister_cpu_notifi
+ #endif
  
- 	if (!devm_request_mem_region(&op->dev, r.start,
-- 				     r.end - r.start + 1, pdata->name)) {
-+					r.end - r.start + 1, pdata->name)) {
- 		printk(KERN_ERR "%s: Error while requesting mem region\n",
- 		       __func__);
- 		res = -EBUSY;
+ int cpu_up(unsigned int cpu);
+-
+ extern void cpu_hotplug_init(void);
++extern void cpu_maps_update_begin(void);
++extern void cpu_maps_update_done(void);
+ 
+-#else
++#else	/* CONFIG_SMP */
+ 
+ static inline int register_cpu_notifier(struct notifier_block *nb)
+ {
+@@ -87,10 +88,16 @@ static inline void cpu_hotplug_init(void
+ {
+ }
+ 
++static inline void cpu_maps_update_begin(void)
++{
++}
++
++static inline void cpu_maps_update_done(void)
++{
++}
++
+ #endif /* CONFIG_SMP */
+ extern struct sysdev_class cpu_sysdev_class;
+-extern void cpu_maps_update_begin(void);
+-extern void cpu_maps_update_done(void);
+ 
+ #ifdef CONFIG_HOTPLUG_CPU
+ /* Stop CPUs going up and down. */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -204,7 +207,6 @@ ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
 ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
 ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
 getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
-edac-mpc85xx-fix-pci-ofdev-2nd-pass-checkpatch-fixes.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
