@@ -1,113 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: - full-conversion-to-early_initcall-interface-remove-old-interface-fix.patch removed from -mm tree
-Date: Wed, 02 Jul 2008 00:31:35 -0700
-Message-ID: <200807020731.m627VZfv005057@imap1.linux-foundation.org>
+Subject: - debugobjects-fix-lockdep-warning.patch removed from -mm tree
+Date: Wed, 02 Jul 2008 00:46:31 -0700
+Message-ID: <200807020746.m627kV2f005558@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50452 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55604 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761386AbYGBHbu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 03:31:50 -0400
+	by vger.kernel.org with ESMTP id S1750781AbYGBHrQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 03:47:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: eduard.munteanu@linux360.ro, mm-commits@vger.kernel.org
+To: vegard.nossum@gmail.com, a.p.zijlstra@chello.nl, daniel.blueman@gmail.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     full-conversion-to-early_initcall-interface-remove-old-interface-fix
+     debugobjects: fix lockdep warning
 has been removed from the -mm tree.  Its filename was
-     full-conversion-to-early_initcall-interface-remove-old-interface-fix.patch
+     debugobjects-fix-lockdep-warning.patch
 
-This patch was dropped because kernel/smp.c has vanshed from linux-next
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: full-conversion-to-early_initcall-interface-remove-old-interface-fix
-From: Eduard - Gabriel Munteanu <eduard.munteanu@linux360.ro>
+Subject: debugobjects: fix lockdep warning
+From: Vegard Nossum <vegard.nossum@gmail.com>
 
-Signed-off-by: Eduard - Gabriel Munteanu <eduard.munteanu@linux360.ro>
+Daniel J Blueman reported:
+| =======================================================
+| [ INFO: possible circular locking dependency detected ]
+| 2.6.26-rc5-201c #1
+| -------------------------------------------------------
+| nscd/3669 is trying to acquire lock:
+|  (&n->list_lock){.+..}, at: [<ffffffff802bab03>] deactivate_slab+0x173/0x1e0
+|
+| but task is already holding lock:
+|  (&obj_hash[i].lock){++..}, at: [<ffffffff803fa56f>]
+| __debug_object_init+0x2f/0x350
+|
+| which lock already depends on the new lock.
+
+There are two locks involved here; the first is a SLUB-local lock, and
+the second is a debugobjects-local lock. They are basically taken in two
+
+1. SLUB { debugobjects { ... } }
+2. debugobjects { SLUB { ... } }
+
+This patch changes pattern #2 by trying to fill the memory pool (e.g.
+the call into SLUB/kmalloc()) outside the debugobjects lock, so now the
+two patterns look like this:
+
+1. SLUB { debugobjects { ... } }
+2. SLUB { } debugobjects { ... }
+
+Reviewed-by: Daniel J Blueman <daniel.blueman@gmail.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Vegard Nossum <vegard.nossum@gmail.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    3 ---
- include/linux/smp.h   |   10 ----------
- kernel/smp.c          |    2 ++
- kernel/softirq.c      |    2 +-
- 4 files changed, 3 insertions(+), 14 deletions(-)
+ lib/debugobjects.c |   10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/sched.h~full-conversion-to-early_initcall-interface-remove-old-interface-fix include/linux/sched.h
---- a/include/linux/sched.h~full-conversion-to-early_initcall-interface-remove-old-interface-fix
-+++ a/include/linux/sched.h
-@@ -303,9 +303,6 @@ extern int softlockup_thresh;
- static inline void softlockup_tick(void)
- {
+diff -puN lib/debugobjects.c~debugobjects-fix-lockdep-warning lib/debugobjects.c
+--- a/lib/debugobjects.c~debugobjects-fix-lockdep-warning
++++ a/lib/debugobjects.c
+@@ -110,16 +110,13 @@ static struct debug_obj *lookup_object(v
  }
--static inline void spawn_softlockup_task(void)
--{
--}
- static inline void touch_softlockup_watchdog(void)
- {
- }
-diff -puN include/linux/smp.h~full-conversion-to-early_initcall-interface-remove-old-interface-fix include/linux/smp.h
---- a/include/linux/smp.h~full-conversion-to-early_initcall-interface-remove-old-interface-fix
-+++ a/include/linux/smp.h
-@@ -75,13 +75,7 @@ void __smp_call_function_single(int cpui
- #ifdef CONFIG_USE_GENERIC_SMP_HELPERS
- void generic_smp_call_function_single_interrupt(void);
- void generic_smp_call_function_interrupt(void);
--int init_call_single_data(void);
- extern spinlock_t call_function_lock;
--#else
--static inline int init_call_single_data(void)
--{
--	return 0;
--}
- #endif
  
  /*
-@@ -139,10 +133,6 @@ static inline void smp_send_reschedule(i
- })
- #define smp_call_function_mask(mask, func, info, wait) \
- 			(up_smp_call_function(func, info))
--static inline int init_call_single_data(void)
--{
--	return 0;
--}
- #endif /* !SMP */
+- * Allocate a new object. If the pool is empty and no refill possible,
+- * switch off the debugger.
++ * Allocate a new object. If the pool is empty, switch off the debugger.
+  */
+ static struct debug_obj *
+ alloc_object(void *addr, struct debug_bucket *b, struct debug_obj_descr *descr)
+ {
+ 	struct debug_obj *obj = NULL;
+-	int retry = 0;
  
- /*
-diff -puN kernel/smp.c~full-conversion-to-early_initcall-interface-remove-old-interface-fix kernel/smp.c
---- a/kernel/smp.c~full-conversion-to-early_initcall-interface-remove-old-interface-fix
-+++ a/kernel/smp.c
-@@ -46,6 +46,8 @@ static int __cpuinit init_call_single_da
- 	return 0;
+-repeat:
+ 	spin_lock(&pool_lock);
+ 	if (obj_pool.first) {
+ 		obj	    = hlist_entry(obj_pool.first, typeof(*obj), node);
+@@ -141,9 +138,6 @@ repeat:
+ 	}
+ 	spin_unlock(&pool_lock);
+ 
+-	if (fill_pool() && !obj && !retry++)
+-		goto repeat;
+-
+ 	return obj;
  }
  
-+early_initcall(init_call_single_data);
+@@ -261,6 +255,8 @@ __debug_object_init(void *addr, struct d
+ 	struct debug_obj *obj;
+ 	unsigned long flags;
+ 
++	fill_pool();
 +
- static void csd_flag_wait(struct call_single_data *data)
- {
- 	/* Wait for response */
-diff -puN kernel/softirq.c~full-conversion-to-early_initcall-interface-remove-old-interface-fix kernel/softirq.c
---- a/kernel/softirq.c~full-conversion-to-early_initcall-interface-remove-old-interface-fix
-+++ a/kernel/softirq.c
-@@ -658,7 +658,7 @@ static struct notifier_block __cpuinitda
- 	.notifier_call = cpu_callback
- };
+ 	db = get_bucket((unsigned long) addr);
  
--static __init int spawn_ksoftirqd(void)
-+static int __init spawn_ksoftirqd(void)
- {
- 	void *cpu = (void *)(long)smp_processor_id();
- 	int err = cpu_callback(&cpu_nfb, CPU_UP_PREPARE, cpu);
+ 	spin_lock_irqsave(&db->lock, flags);
 _
 
-Patches currently in -mm which might be from eduard.munteanu@linux360.ro are
+Patches currently in -mm which might be from vegard.nossum@gmail.com are
 
 origin.patch
-better-interface-for-hooking-early-initcalls.patch
-full-conversion-to-early_initcall-interface-remove-old-interface.patch
-full-conversion-to-early_initcall-interface-remove-old-interface-fix.patch
-relay-add-buffer-only-channels-useful-for-early-logging.patch
+linux-next.patch
+git-kbuild-next.patch
+parisc-fix-incomplete-header-guard.patch
+mm-remove-initialization-of-static-per-cpu-variables.patch
+kallsyms-fix-potential-overflow-in-binary-search.patch
+kallsyms-unify-32-and-64-bit-code.patch
+quota-cleanup-loop-in-sync_dquots.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-fix.patch
+workqueues-make-get_online_cpus-useable-for-work-func.patch
+s390-topology-dont-use-kthread-for-arch_reinit_sched_domains.patch
+taskstats-remove-initialization-of-static-per-cpu-variable.patch
 
