@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fbdev-add-new-cobalt-lcd-framebuffer-driver-fix.patch added to -mm tree
-Date: Wed, 02 Jul 2008 03:31:25 -0700
-Message-ID: <200807021031.m62AVPnv011902@imap1.linux-foundation.org>
+Subject: + dma-mapping-add-the-device-argument-to-dma_mapping_error-s2io.patch added to -mm tree
+Date: Wed, 02 Jul 2008 03:40:34 -0700
+Message-ID: <200807021040.m62AeYdQ012152@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35781 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59310 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751718AbYGBKbq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 06:31:46 -0400
+	by vger.kernel.org with ESMTP id S1751082AbYGBKk5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 06:40:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, adaplas@pol.net, krzysztof.h1@poczta.fm, ralf@linux-mips.org, yoichi_yuasa@tripeaks.co.jp
+Cc: akpm@linux-foundation.org, Sivakumar.Subramani@neterion.com, Sreenivasa.Honnur@neterion.com, fujita.tomonori@lab.ntt.co.jp, jgarzik@pobox.com, ravinandan.arakali@neterion.com, sivakumar.subramani@neterion.com, sreenivasa.honnur@neterion.com, surjit.reang@neterion.com
 
 
 The patch titled
-     fbdev-add-new-cobalt-lcd-framebuffer-driver-fix
+     dma-mapping-add-the-device-argument-to-dma_mapping_error-s2io
 has been added to the -mm tree.  Its filename is
-     fbdev-add-new-cobalt-lcd-framebuffer-driver-fix.patch
+     dma-mapping-add-the-device-argument-to-dma_mapping_error-s2io.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,45 +33,193 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbdev-add-new-cobalt-lcd-framebuffer-driver-fix
+Subject: dma-mapping-add-the-device-argument-to-dma_mapping_error-s2io
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/video/cobalt_lcdfb.c: In function 'cobalt_lcdfb_read':
-drivers/video/cobalt_lcdfb.c:166: error: implicit declaration of function 'copy_to_user'
-drivers/video/cobalt_lcdfb.c: In function 'cobalt_lcdfb_write':
-drivers/video/cobalt_lcdfb.c:188: error: implicit declaration of function 'copy_from_user'
-drivers/video/cobalt_lcdfb.c: At top level:
-drivers/video/cobalt_lcdfb.c:358: error: expected ',' or ';' before 'static'
-
-
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
+Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: Jeff Garzik <jgarzik@pobox.com>
+Cc: Sivakumar Subramani <sivakumar.subramani@neterion.com>
+Cc: Sreenivasa Honnur <Sreenivasa.Honnur@neterion.com>
+Cc: Sreenivasa Honnur <sreenivasa.honnur@neterion.com>
+Cc: Ravinandan Arakali <ravinandan.arakali@neterion.com>
+Cc: Surjit Reang <surjit.reang@neterion.com>
+Cc: Sivakumar Subramani <Sivakumar.Subramani@neterion.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/cobalt_lcdfb.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/net/s2io.c |   44 ++++++++++++++++++++++++-------------------
+ 1 file changed, 25 insertions(+), 19 deletions(-)
 
-diff -puN drivers/video/cobalt_lcdfb.c~fbdev-add-new-cobalt-lcd-framebuffer-driver-fix drivers/video/cobalt_lcdfb.c
---- a/drivers/video/cobalt_lcdfb.c~fbdev-add-new-cobalt-lcd-framebuffer-driver-fix
-+++ a/drivers/video/cobalt_lcdfb.c
-@@ -22,6 +22,7 @@
- #include <linux/init.h>
- #include <linux/io.h>
- #include <linux/ioport.h>
-+#include <linux/uaccess.h>
- #include <linux/platform_device.h>
+diff -puN drivers/net/s2io.c~dma-mapping-add-the-device-argument-to-dma_mapping_error-s2io drivers/net/s2io.c
+--- a/drivers/net/s2io.c~dma-mapping-add-the-device-argument-to-dma_mapping_error-s2io
++++ a/drivers/net/s2io.c
+@@ -2536,7 +2536,7 @@ static void stop_nic(struct s2io_nic *ni
+  *  SUCCESS on success or an appropriate -ve value on failure.
+  */
  
- /*
-@@ -354,5 +355,5 @@ module_init(cobalt_lcdfb_init);
- module_exit(cobalt_lcdfb_exit);
+-static int fill_rx_buffers(struct ring_info *ring)
++static int fill_rx_buffers(struct s2io_nic *nic, struct ring_info *ring)
+ {
+ 	struct sk_buff *skb;
+ 	struct RxD_t *rxdp;
+@@ -2625,7 +2625,8 @@ static int fill_rx_buffers(struct ring_i
+ 			rxdp1->Buffer0_ptr = pci_map_single
+ 			    (ring->pdev, skb->data, size - NET_IP_ALIGN,
+ 				PCI_DMA_FROMDEVICE);
+-			if(pci_dma_mapping_error(rxdp1->Buffer0_ptr))
++			if (pci_dma_mapping_error(nic->pdev,
++						rxdp1->Buffer0_ptr))
+ 				goto pci_map_failed;
  
- MODULE_LICENSE("GPL v2");
--MODULE_AUTHOR("Yoichi Yuasa")
-+MODULE_AUTHOR("Yoichi Yuasa");
- MODULE_DESCRIPTION("Cobalt server LCD frame buffer driver");
+ 			rxdp->Control_2 =
+@@ -2664,7 +2665,8 @@ static int fill_rx_buffers(struct ring_i
+ 				pci_dma_sync_single_for_device(ring->pdev,
+ 				(dma_addr_t) rxdp3->Buffer0_ptr,
+ 				    BUF0_LEN, PCI_DMA_FROMDEVICE);
+-			if (pci_dma_mapping_error(rxdp3->Buffer0_ptr))
++			if (pci_dma_mapping_error(nic->pdev,
++						rxdp3->Buffer0_ptr))
+ 				goto pci_map_failed;
+ 
+ 			rxdp->Control_2 = SET_BUFFER0_SIZE_3(BUF0_LEN);
+@@ -2679,7 +2681,8 @@ static int fill_rx_buffers(struct ring_i
+ 				(ring->pdev, skb->data, ring->mtu + 4,
+ 						PCI_DMA_FROMDEVICE);
+ 
+-				if (pci_dma_mapping_error(rxdp3->Buffer2_ptr))
++				if (pci_dma_mapping_error(nic->pdev,
++							rxdp3->Buffer2_ptr))
+ 					goto pci_map_failed;
+ 
+ 				/* AK: check is wrong */
+@@ -2689,7 +2692,8 @@ static int fill_rx_buffers(struct ring_i
+ 						ba->ba_1, BUF1_LEN,
+ 						PCI_DMA_FROMDEVICE);
+ 
+-				if (pci_dma_mapping_error(rxdp3->Buffer1_ptr)) {
++				if (pci_dma_mapping_error(nic->pdev,
++							rxdp3->Buffer1_ptr)) {
+ 					pci_unmap_single
+ 						(ring->pdev,
+ 						(dma_addr_t)(unsigned long)
+@@ -2829,9 +2833,9 @@ static void free_rx_buffers(struct s2io_
+ 	}
+ }
+ 
+-static int s2io_chk_rx_buffers(struct ring_info *ring)
++static int s2io_chk_rx_buffers(struct s2io_nic *nic, struct ring_info *ring)
+ {
+-	if (fill_rx_buffers(ring) == -ENOMEM) {
++	if (fill_rx_buffers(nic, ring) == -ENOMEM) {
+ 		DBG_PRINT(INFO_DBG, "%s:Out of memory", ring->dev->name);
+ 		DBG_PRINT(INFO_DBG, " in Rx Intr!!\n");
+ 	}
+@@ -2871,7 +2875,7 @@ static int s2io_poll_msix(struct napi_st
+ 		return 0;
+ 
+ 	pkts_processed = rx_intr_handler(ring, budget);
+-	s2io_chk_rx_buffers(ring);
++	s2io_chk_rx_buffers(nic, ring);
+ 
+ 	if (pkts_processed < budget_org) {
+ 		netif_rx_complete(dev, napi);
+@@ -2905,7 +2909,7 @@ static int s2io_poll_inta(struct napi_st
+ 	for (i = 0; i < config->rx_ring_num; i++) {
+ 		ring = &mac_control->rings[i];
+ 		ring_pkts_processed = rx_intr_handler(ring, budget);
+-		s2io_chk_rx_buffers(ring);
++		s2io_chk_rx_buffers(nic, ring);
+ 		pkts_processed += ring_pkts_processed;
+ 		budget -= ring_pkts_processed;
+ 		if (budget <= 0)
+@@ -2962,7 +2966,7 @@ static void s2io_netpoll(struct net_devi
+ 		rx_intr_handler(&mac_control->rings[i], 0);
+ 
+ 	for (i = 0; i < config->rx_ring_num; i++) {
+-		if (fill_rx_buffers(&mac_control->rings[i]) == -ENOMEM) {
++		if (fill_rx_buffers(nic, &mac_control->rings[i]) == -ENOMEM) {
+ 			DBG_PRINT(INFO_DBG, "%s:Out of memory", dev->name);
+ 			DBG_PRINT(INFO_DBG, " in Rx Netpoll!!\n");
+ 			break;
+@@ -4261,14 +4265,14 @@ static int s2io_xmit(struct sk_buff *skb
+ 		txdp->Buffer_Pointer = pci_map_single(sp->pdev,
+ 					fifo->ufo_in_band_v,
+ 					sizeof(u64), PCI_DMA_TODEVICE);
+-		if (pci_dma_mapping_error(txdp->Buffer_Pointer))
++		if (pci_dma_mapping_error(sp->pdev, txdp->Buffer_Pointer))
+ 			goto pci_map_failed;
+ 		txdp++;
+ 	}
+ 
+ 	txdp->Buffer_Pointer = pci_map_single
+ 	    (sp->pdev, skb->data, frg_len, PCI_DMA_TODEVICE);
+-	if (pci_dma_mapping_error(txdp->Buffer_Pointer))
++	if (pci_dma_mapping_error(sp->pdev, txdp->Buffer_Pointer))
+ 		goto pci_map_failed;
+ 
+ 	txdp->Host_Control = (unsigned long) skb;
+@@ -4371,7 +4375,7 @@ static irqreturn_t s2io_msix_ring_handle
+ 		netif_rx_schedule(dev, &ring->napi);
+ 	} else {
+ 		rx_intr_handler(ring, 0);
+-		s2io_chk_rx_buffers(ring);
++		s2io_chk_rx_buffers(sp, ring);
+ 	}
+ 
+ 	return IRQ_HANDLED;
+@@ -4846,7 +4850,7 @@ static irqreturn_t s2io_isr(int irq, voi
+ 		 */
+ 		if (!config->napi) {
+ 			for (i = 0; i < config->rx_ring_num; i++)
+-				s2io_chk_rx_buffers(&mac_control->rings[i]);
++				s2io_chk_rx_buffers(sp, &mac_control->rings[i]);
+ 		}
+ 		writeq(sp->general_int_mask, &bar0->general_int_mask);
+ 		readl(&bar0->general_int_status);
+@@ -6879,7 +6883,7 @@ static int set_rxd_buffer_pointer(struct
+ 				pci_map_single( sp->pdev, (*skb)->data,
+ 					size - NET_IP_ALIGN,
+ 					PCI_DMA_FROMDEVICE);
+-			if (pci_dma_mapping_error(rxdp1->Buffer0_ptr))
++			if (pci_dma_mapping_error(sp->pdev, rxdp1->Buffer0_ptr))
+ 				goto memalloc_failed;
+ 			rxdp->Host_Control = (unsigned long) (*skb);
+ 		}
+@@ -6906,12 +6910,13 @@ static int set_rxd_buffer_pointer(struct
+ 				pci_map_single(sp->pdev, (*skb)->data,
+ 					       dev->mtu + 4,
+ 					       PCI_DMA_FROMDEVICE);
+-			if (pci_dma_mapping_error(rxdp3->Buffer2_ptr))
++			if (pci_dma_mapping_error(sp->pdev, rxdp3->Buffer2_ptr))
+ 				goto memalloc_failed;
+ 			rxdp3->Buffer0_ptr = *temp0 =
+ 				pci_map_single( sp->pdev, ba->ba_0, BUF0_LEN,
+ 						PCI_DMA_FROMDEVICE);
+-			if (pci_dma_mapping_error(rxdp3->Buffer0_ptr)) {
++			if (pci_dma_mapping_error(sp->pdev,
++						rxdp3->Buffer0_ptr)) {
+ 				pci_unmap_single (sp->pdev,
+ 					(dma_addr_t)rxdp3->Buffer2_ptr,
+ 					dev->mtu + 4, PCI_DMA_FROMDEVICE);
+@@ -6923,7 +6928,8 @@ static int set_rxd_buffer_pointer(struct
+ 			rxdp3->Buffer1_ptr = *temp1 =
+ 				pci_map_single(sp->pdev, ba->ba_1, BUF1_LEN,
+ 						PCI_DMA_FROMDEVICE);
+-			if (pci_dma_mapping_error(rxdp3->Buffer1_ptr)) {
++			if (pci_dma_mapping_error(sp->pdev,
++						rxdp3->Buffer1_ptr)) {
+ 				pci_unmap_single (sp->pdev,
+ 					(dma_addr_t)rxdp3->Buffer0_ptr,
+ 					BUF0_LEN, PCI_DMA_FROMDEVICE);
+@@ -7204,7 +7210,7 @@ static int s2io_card_up(struct s2io_nic 
+ 
+ 	for (i = 0; i < config->rx_ring_num; i++) {
+ 		mac_control->rings[i].mtu = dev->mtu;
+-		ret = fill_rx_buffers(&mac_control->rings[i]);
++		ret = fill_rx_buffers(sp, &mac_control->rings[i]);
+ 		if (ret) {
+ 			DBG_PRINT(ERR_DBG, "%s: Out of memory in Open\n",
+ 				  dev->name);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -200,6 +348,7 @@ dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-s2io.patch
 dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
 x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary-checkpatch-fixes.patch
 tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
