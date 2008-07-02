@@ -1,152 +1,132 @@
 From: akpm@linux-foundation.org
-Subject: + random32-seeding-improvement.patch added to -mm tree
-Date: Wed, 02 Jul 2008 12:17:10 -0700
-Message-ID: <200807021917.m62JHAlf031805@imap1.linux-foundation.org>
+Subject: - bug-in-random32c-all-zero-outputs-with-probability-1-232-other-seeding-bugs.patch removed from -mm tree
+Date: Wed, 02 Jul 2008 12:17:16 -0700
+Message-ID: <200807021917.m62JHHKs031809@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48448 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48710 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752586AbYGBTRs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 15:17:48 -0400
+	by vger.kernel.org with ESMTP id S1752639AbYGBTRy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 15:17:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: shemminger@linux-foundation.org, ak@suse.de, bboissin@gmail.com, davem@davemloft.net, lloyd@randombit.net, mpm@selenic.com, tytso@mit.edu
+To: lloyd@randombit.net, ak@suse.de, bboissin@gmail.com, davem@davemloft.net, mpm@selenic.com, shemminger@linuxfoundation.org, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     random32: seeding improvement
-has been added to the -mm tree.  Its filename is
-     random32-seeding-improvement.patch
+     Bug in random32.c: all-zero outputs with probability 1/2^32, other seeding bugs
+has been removed from the -mm tree.  Its filename was
+     bug-in-random32c-all-zero-outputs-with-probability-1-232-other-seeding-bugs.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: random32: seeding improvement
-From: Stephen Hemminger <shemminger@linux-foundation.org>
+Subject: Bug in random32.c: all-zero outputs with probability 1/2^32, other seeding bugs
+From: Jack Lloyd <lloyd@randombit.net>
 
-Please consider this patch instead for fixing the seeding issue with
-random32.  The rationale is:
+There appears to be an error in how random seeding is done in the
+random32.c RNG.  I am looking at 2.6.25.7.
 
-   * use u32 consistently
-   * no need to do LCG on values from (better) get_random_bytes
-   * use more data from get_random_bytes for secondary seeding
-   * don't reduce state space on srandom32()
-   * enforce state variable initialization restrictions
+For background, that file contains this comment:
 
-Note: the second paper has a version of random32() with even longer period
-and a version of random64() if needed.
+"""
+        ... the k_j most significant bits of z_j must be non-
+        zero, for each j. (Note: this restriction also applies to the
+        computer code given in [4], but was mistakenly not mentioned in
+        that paper.)
 
-Cc: Jack Lloyd <lloyd@randombit.net>
+   This affects the seeding procedure by imposing the requirement
+   s1 > 1, s2 > 7, s3 > 15.
+"""
+
+The function random32_reseed takes an unsigned long's worth of entropy
+from the entropy pool (get_random_bytes) and passes it to __set_random32. 
+That function (seemingly attempts) to impose the requirement mentioned
+above by first checking if the seed is == 0, and if so setting it to one,
+then setting s2 to s*69069 and s3 to s2*69069
+
+However this will allow bad seeds.  On 64-bit systems, if the low order 32
+bits of the seed are zero, then the check for s == 0 will pass, but s1,
+s2, and s3 will all be initialized to zero due to truncation.  This will,
+since there are no additive factors in the RNG sequence, cause the RNG to
+output nothing but zero values.  Assuming get_random_bytes returns uniform
+random numbers, this will occur with probability around 1/2^32.
+
+An easy and straightforward fix for this that doesn't require changing any
+interfaces is to add
+
+  s &= 0xFFFFFFFF;
+
+before the check in __set_random32, which ensures this condition will be
+caught by the check.  Alternately, you could replace the check for s == 0
+with some logic like:
+
+  if((s & 0xFFFFFFFF) == 0)
+     s += 1;
+
+since just chopping the seed to 32 bits does throw away some of your seed
+input (with sizeof(long) == 8, at least; doesn't make any difference for
+sizeof(long) == 4)
+
+There are also many other seeds which will cause some (but not all) of the
+seeding requirements to be violated.  Which seeds will cause this problem
+depend on the size of unsigned long, since the multiplications by 69069
+are done in that size.
+
+For instance on 32-bit systems, a seed of 0x4BC54E0A will generate the
+state:
+
+  s1 = 0x4BC54E0A
+  s2 = (s1 * 69069) % 2^32 = 2
+  s3 = 2*69069 = 138138
+
+In general, there seem to be large numbers of seeds that cause at least
+one of the restrictions on s1, s2, s3 to be false.  The paper referenced
+in the source is not clear exactly how badly the generator fails when only
+one of the restrictions is violated.  Certainly it seems much less serious
+than the 64-bit specific bug described above; which is fortunate since it
+seems to occur much more often.  A trivial patch for both problems is
+attached.
+
 Cc: Theodore Ts'o <tytso@mit.edu>
 Cc: Matt Mackall <mpm@selenic.com>
+Cc: Stephen Hemminger <shemminger@osdl.org>
 Cc: David S. Miller <davem@davemloft.net>
 Cc: Andi Kleen <ak@suse.de>
-Cc: Benoit Boissinot <bboissin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/random32.c |   48 ++++++++++++++++++++++++++---------------------
- 1 file changed, 27 insertions(+), 21 deletions(-)
+ lib/random32.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN lib/random32.c~random32-seeding-improvement lib/random32.c
---- a/lib/random32.c~random32-seeding-improvement
+diff -puN lib/random32.c~bug-in-random32c-all-zero-outputs-with-probability-1-232-other-seeding-bugs lib/random32.c
+--- a/lib/random32.c~bug-in-random32c-all-zero-outputs-with-probability-1-232-other-seeding-bugs
 +++ a/lib/random32.c
-@@ -56,23 +56,12 @@ static u32 __random32(struct rnd_state *
- 	return (state->s1 ^ state->s2 ^ state->s3);
- }
+@@ -58,13 +58,17 @@ static u32 __random32(struct rnd_state *
  
--static void __set_random32(struct rnd_state *state, unsigned long s)
-+/*
-+ * Handle minimum values for seeds
-+ */
-+static inline u32 __seed(u32 x, u32 m)
+ static void __set_random32(struct rnd_state *state, unsigned long s)
  {
--	if (s == 0)
--		s = 1;      /* default seed is 1 */
--
--#define LCG(n) (69069 * n)
--	state->s1 = LCG(s);
--	state->s2 = LCG(state->s1);
--	state->s3 = LCG(state->s2);
--
--	/* "warm it up" */
--	__random32(state);
--	__random32(state);
--	__random32(state);
--	__random32(state);
--	__random32(state);
--	__random32(state);
-+	return (x < m) ? x + m : x;
- }
++       s &= 0xFFFFFFFF;
+ 	if (s == 0)
+ 		s = 1;      /* default seed is 1 */
  
- /**
-@@ -107,7 +96,7 @@ void srandom32(u32 entropy)
- 	 */
- 	for_each_possible_cpu (i) {
- 		struct rnd_state *state = &per_cpu(net_rand_state, i);
--		__set_random32(state, state->s1 ^ entropy);
-+		state->s1 = __seed(state->s1 ^ entropy, 1);
- 	}
- }
- EXPORT_SYMBOL(srandom32);
-@@ -122,7 +111,19 @@ static int __init random32_init(void)
+ #define LCG(n) (69069 * n)
+ 	state->s1 = LCG(s);
++       if(state->s1 < 2) state->s1 += 2;
+ 	state->s2 = LCG(state->s1);
++       if(state->s2 < 8) state->s2 += 8;
+ 	state->s3 = LCG(state->s2);
++       if(state->s3 < 16) state->s3 += 16;
  
- 	for_each_possible_cpu(i) {
- 		struct rnd_state *state = &per_cpu(net_rand_state,i);
--		__set_random32(state, i + jiffies);
-+
-+#define LCG(x)	(x * 69069)	/* super-duper LCG */
-+		state->s1 = __seed(LCG(i + jiffies), 1);
-+		state->s2 = __seed(LCG(state->s1), 7);
-+		state->s3 = __seed(LCG(state->s2), 15);
-+
-+		/* "warm it up" */
-+		__random32(state);
-+		__random32(state);
-+		__random32(state);
-+		__random32(state);
-+		__random32(state);
-+		__random32(state);
- 	}
- 	return 0;
- }
-@@ -135,13 +136,18 @@ core_initcall(random32_init);
- static int __init random32_reseed(void)
- {
- 	int i;
--	unsigned long seed;
- 
- 	for_each_possible_cpu(i) {
- 		struct rnd_state *state = &per_cpu(net_rand_state,i);
-+		u32 seeds[3];
-+
-+		get_random_bytes(&seeds, sizeof(seeds));
-+		state->s1 = __seed(seeds[0], 1);
-+		state->s2 = __seed(seeds[1], 7);
-+		state->s3 = __seed(seeds[2], 15);
- 
--		get_random_bytes(&seed, sizeof(seed));
--		__set_random32(state, seed);
-+		/* mix it in */
-+		__random32(state);
- 	}
- 	return 0;
- }
+ 	/* "warm it up" */
+ 	__random32(state);
 _
 
-Patches currently in -mm which might be from shemminger@linux-foundation.org are
+Patches currently in -mm which might be from lloyd@randombit.net are
 
 random32-seeding-improvement.patch
+bug-in-random32c-all-zero-outputs-with-probability-1-232-other-seeding-bugs.patch
+bug-in-random32c-all-zero-outputs-with-probability-1-232-other-seeding-bugs-checkpatch-fixes.patch
 
