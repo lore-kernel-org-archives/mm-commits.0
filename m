@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + page_align-correctly-handle-64-bit-values-on-32-bit-architectures-fix.patch added to -mm tree
-Date: Wed, 02 Jul 2008 02:39:58 -0700
-Message-ID: <200807020939.m629dwvW009959@imap1.linux-foundation.org>
+Subject: + drivers-media-video-cx18-cx18-av-firmwarec-fix-warning.patch added to -mm tree
+Date: Wed, 02 Jul 2008 02:41:16 -0700
+Message-ID: <200807020941.m629fGLU010066@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44025 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40409 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753135AbYGBJkA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 05:40:00 -0400
+	by vger.kernel.org with ESMTP id S1752963AbYGBJlV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 05:41:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, righi.andrea@gmail.com
+Cc: akpm@linux-foundation.org, mchehab@infradead.org
 
 
 The patch titled
-     page_align-correctly-handle-64-bit-values-on-32-bit-architectures-fix
+     drivers/media/video/cx18/cx18-av-firmware.c: fix warning
 has been added to the -mm tree.  Its filename is
-     page_align-correctly-handle-64-bit-values-on-32-bit-architectures-fix.patch
+     drivers-media-video-cx18-cx18-av-firmwarec-fix-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,30 +33,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page_align-correctly-handle-64-bit-values-on-32-bit-architectures-fix
+Subject: drivers/media/video/cx18/cx18-av-firmware.c: fix warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/media/video/uvc/uvc_queue.c: In function 'uvc_alloc_buffers':
-drivers/media/video/uvc/uvc_queue.c:100: error: implicit declaration of function 'PAGE_ALIGN'
+drivers/media/video/cx18/cx18-av-firmware.c: In function 'cx18_av_loadfw':
+drivers/media/video/cx18/cx18-av-firmware.c:49: warning: assignment discards qualifiers from pointer target type
 
-Cc: Andrea Righi <righi.andrea@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/uvc/uvc_queue.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/media/video/cx18/cx18-av-firmware.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/media/video/uvc/uvc_queue.c~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-fix drivers/media/video/uvc/uvc_queue.c
---- a/drivers/media/video/uvc/uvc_queue.c~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-fix
-+++ a/drivers/media/video/uvc/uvc_queue.c
-@@ -13,6 +13,7 @@
+diff -puN drivers/media/video/cx18/cx18-av-firmware.c~drivers-media-video-cx18-cx18-av-firmwarec-fix-warning drivers/media/video/cx18/cx18-av-firmware.c
+--- a/drivers/media/video/cx18/cx18-av-firmware.c~drivers-media-video-cx18-cx18-av-firmwarec-fix-warning
++++ a/drivers/media/video/cx18/cx18-av-firmware.c
+@@ -29,7 +29,7 @@ int cx18_av_loadfw(struct cx18 *cx)
+ 	const struct firmware *fw = NULL;
+ 	u32 size;
+ 	u32 v;
+-	u8 *ptr;
++	const u8 *ptr;
+ 	int i;
  
- #include <linux/kernel.h>
- #include <linux/version.h>
-+#include <linux/mm.h>
- #include <linux/list.h>
- #include <linux/module.h>
- #include <linux/usb.h>
+ 	if (request_firmware(&fw, FWFILE, &cx->dev->dev) != 0) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -222,4 +223,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
+drivers-media-video-cx18-cx18-av-firmwarec-fix-warning.patch
 
