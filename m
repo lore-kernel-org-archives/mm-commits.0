@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + neofb-drop-redundant-code.patch added to -mm tree
-Date: Wed, 02 Jul 2008 10:53:31 -0700
-Message-ID: <200807021753.m62HrVUL028641@imap1.linux-foundation.org>
+Subject: + checkpatch-variants-move-the-main-unary-binary-operators-to-use-variants.patch added to -mm tree
+Date: Wed, 02 Jul 2008 11:10:56 -0700
+Message-ID: <200807021810.m62IAuVM029252@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40535 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42208 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751016AbYGBRyD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 13:54:03 -0400
+	by vger.kernel.org with ESMTP id S1752329AbYGBSLF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 14:11:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: krzysztof.h1@wp.pl
+Cc: apw@shadowen.org
 
 
 The patch titled
-     neofb: drop redundant code
+     checkpatch: variants -- move the main unary/binary operators to use variants
 has been added to the -mm tree.  Its filename is
-     neofb-drop-redundant-code.patch
+     checkpatch-variants-move-the-main-unary-binary-operators-to-use-variants.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,233 +33,166 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: neofb: drop redundant code
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: checkpatch: variants -- move the main unary/binary operators to use variants
+From: Andy Whitcroft <apw@shadowen.org>
 
-Drop structure which is only set but never read.  Drop variables which are
-only set and never read.  Convert one long switch into two shorter ones.
+Now that we have a variants system, move to using that to carry the
+unary/binary designation for +, -, &, and *.
 
-Add cpu_relax() in busy waiting loop.
-
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Signed-off-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/neofb.c |   95 +++++++++-------------------------------
- 1 file changed, 22 insertions(+), 73 deletions(-)
+ scripts/checkpatch.pl |   36 ++++++++++++++++++------------------
+ 1 file changed, 18 insertions(+), 18 deletions(-)
 
-diff -puN drivers/video/neofb.c~neofb-drop-redundant-code drivers/video/neofb.c
---- a/drivers/video/neofb.c~neofb-drop-redundant-code
-+++ a/drivers/video/neofb.c
-@@ -479,7 +479,8 @@ static inline int neo2200_sync(struct fb
- {
- 	struct neofb_par *par = info->par;
+diff -puN scripts/checkpatch.pl~checkpatch-variants-move-the-main-unary-binary-operators-to-use-variants scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-variants-move-the-main-unary-binary-operators-to-use-variants
++++ a/scripts/checkpatch.pl
+@@ -858,6 +858,19 @@ sub annotate_values {
+ 			print "CLOSE($1)\n" if ($dbg_values > 1);
+ 			$type = 'N';
  
--	while (readl(&par->neo2200->bltStat) & 1);
-+	while (readl(&par->neo2200->bltStat) & 1)
-+		cpu_relax();
- 	return 0;
- }
++		} elsif ($cur =~ /^(-(?![->])|\+(?!\+)|\*|\&(?!\&))/o) {
++			my $variant;
++
++			print "OPV($1)\n" if ($dbg_values > 1);
++			if ($type eq 'V') {
++				$variant = 'B';
++			} else {
++				$variant = 'U';
++			}
++
++			substr($var, length($res), 1, $variant);
++			$type = 'N';
++
+ 		} elsif ($cur =~ /^($Operators)/o) {
+ 			print "OP($1)\n" if ($dbg_values > 1);
+ 			if ($1 ne '++' && $1 ne '--') {
+@@ -1573,22 +1586,8 @@ sub process {
+ 				my $ptr = substr($blank, 0, $off) . "^";
+ 				my $hereptr = "$hereline$ptr\n";
  
-@@ -587,34 +588,14 @@ static int
- neofb_check_var(struct fb_var_screeninfo *var, struct fb_info *info)
- {
- 	struct neofb_par *par = info->par;
--	unsigned int pixclock = var->pixclock;
--	struct xtimings timings;
- 	int memlen, vramlen;
- 	int mode_ok = 0;
+-				# Classify operators into binary, unary, or
+-				# definitions (* only) where they have more
+-				# than one mode.
++				# Pull out the value of this operator.
+ 				my $op_type = substr($curr_values, $off + 1, 1);
+-				my $op_left = substr($curr_values, $off, 1);
+-				my $is_unary;
+-				if ($op_type eq 'T') {
+-					$is_unary = 2;
+-				} elsif ($op_left eq 'V') {
+-					$is_unary = 0;
+-				} else {
+-					$is_unary = 1;
+-				}
+-				#if ($op eq '-' || $op eq '&' || $op eq '*') {
+-				#	print "UNARY: <$op_left$op_type $is_unary $a:$op:$c> <$ca:$op:$cc> <$unary_ctx>\n";
+-				#}
  
- 	DBG("neofb_check_var");
+ 				# Get the full operator variant.
+ 				my $opv = $op . substr($curr_vars, $off, 1);
+@@ -1625,18 +1624,19 @@ sub process {
+ 					}
  
--	if (!pixclock)
--		pixclock = 10000;	/* 10ns = 100MHz */
--	timings.pixclock = 1000000000 / pixclock;
--	if (timings.pixclock < 1)
--		timings.pixclock = 1;
--
--	if (timings.pixclock > par->maxClock)
-+	if (PICOS2KHZ(var->pixclock) > par->maxClock)
- 		return -EINVAL;
+ 				# '*' as part of a type definition -- reported already.
+-				} elsif ($op eq '*' && $is_unary == 2) {
++				} elsif ($opv eq '*_') {
+ 					#warn "'*' is part of type\n";
  
--	timings.dblscan = var->vmode & FB_VMODE_DOUBLE;
--	timings.interlaced = var->vmode & FB_VMODE_INTERLACED;
--	timings.HDisplay = var->xres;
--	timings.HSyncStart = timings.HDisplay + var->right_margin;
--	timings.HSyncEnd = timings.HSyncStart + var->hsync_len;
--	timings.HTotal = timings.HSyncEnd + var->left_margin;
--	timings.VDisplay = var->yres;
--	timings.VSyncStart = timings.VDisplay + var->lower_margin;
--	timings.VSyncEnd = timings.VSyncStart + var->vsync_len;
--	timings.VTotal = timings.VSyncEnd + var->upper_margin;
--	timings.sync = var->sync;
--
- 	/* Is the mode larger than the LCD panel? */
- 	if (par->internal_display &&
-             ((var->xres > par->NeoPanelWidth) ||
-@@ -1923,9 +1904,6 @@ static int __devinit neo_init_hw(struct 
- 	int maxClock = 65000;
- 	int CursorMem = 1024;
- 	int CursorOff = 0x100;
--	int linearSize = 1024;
--	int maxWidth = 1024;
--	int maxHeight = 1024;
+ 				# unary operators should have a space before and
+ 				# none after.  May be left adjacent to another
+ 				# unary operator, or a cast
+ 				} elsif ($op eq '!' || $op eq '~' ||
+-				         ($is_unary && ($op eq '*' || $op eq '-' || $op eq '&'))) {
++					 $opv eq '*U' || $opv eq '-U' ||
++					 $opv eq '&U') {
+ 					if ($ctx !~ /[WEBC]x./ && $ca !~ /(?:\)|!|~|\*|-|\&|\||\+\+|\-\-|\{)$/) {
+ 						ERROR("space required before that '$op' $at\n" . $hereptr);
+ 					}
+-					if ($op  eq '*' && $cc =~/\s*const\b/) {
++					if ($op eq '*' && $cc =~/\s*const\b/) {
+ 						# A unary '*' may be const
  
- 	DBG("neo_init_hw");
- 
-@@ -1944,81 +1922,52 @@ static int __devinit neo_init_hw(struct 
- 	case FB_ACCEL_NEOMAGIC_NM2070:
- 		videoRam = 896;
- 		maxClock = 65000;
--		CursorMem = 2048;
--		CursorOff = 0x100;
--		linearSize = 1024;
--		maxWidth = 1024;
--		maxHeight = 1024;
- 		break;
- 	case FB_ACCEL_NEOMAGIC_NM2090:
- 	case FB_ACCEL_NEOMAGIC_NM2093:
--		videoRam = 1152;
--		maxClock = 80000;
--		CursorMem = 2048;
--		CursorOff = 0x100;
--		linearSize = 2048;
--		maxWidth = 1024;
--		maxHeight = 1024;
--		break;
- 	case FB_ACCEL_NEOMAGIC_NM2097:
- 		videoRam = 1152;
- 		maxClock = 80000;
--		CursorMem = 1024;
--		CursorOff = 0x100;
--		linearSize = 2048;
--		maxWidth = 1024;
--		maxHeight = 1024;
- 		break;
- 	case FB_ACCEL_NEOMAGIC_NM2160:
- 		videoRam = 2048;
- 		maxClock = 90000;
--		CursorMem = 1024;
--		CursorOff = 0x100;
--		linearSize = 2048;
--		maxWidth = 1024;
--		maxHeight = 1024;
- 		break;
- 	case FB_ACCEL_NEOMAGIC_NM2200:
- 		videoRam = 2560;
- 		maxClock = 110000;
--		CursorMem = 1024;
--		CursorOff = 0x1000;
--		linearSize = 4096;
--		maxWidth = 1280;
--		maxHeight = 1024;	/* ???? */
--
--		par->neo2200 = (Neo2200 __iomem *) par->mmio_vbase;
- 		break;
- 	case FB_ACCEL_NEOMAGIC_NM2230:
- 		videoRam = 3008;
- 		maxClock = 110000;
--		CursorMem = 1024;
--		CursorOff = 0x1000;
--		linearSize = 4096;
--		maxWidth = 1280;
--		maxHeight = 1024;	/* ???? */
--
--		par->neo2200 = (Neo2200 __iomem *) par->mmio_vbase;
- 		break;
- 	case FB_ACCEL_NEOMAGIC_NM2360:
- 		videoRam = 4096;
- 		maxClock = 110000;
--		CursorMem = 1024;
--		CursorOff = 0x1000;
--		linearSize = 4096;
--		maxWidth = 1280;
--		maxHeight = 1024;	/* ???? */
--
--		par->neo2200 = (Neo2200 __iomem *) par->mmio_vbase;
- 		break;
- 	case FB_ACCEL_NEOMAGIC_NM2380:
- 		videoRam = 6144;
- 		maxClock = 110000;
-+		break;
-+	}
-+	switch (info->fix.accel) {
-+	case FB_ACCEL_NEOMAGIC_NM2070:
-+	case FB_ACCEL_NEOMAGIC_NM2090:
-+	case FB_ACCEL_NEOMAGIC_NM2093:
-+		CursorMem = 2048;
-+		CursorOff = 0x100;
-+		break;
-+	case FB_ACCEL_NEOMAGIC_NM2097:
-+	case FB_ACCEL_NEOMAGIC_NM2160:
-+		CursorMem = 1024;
-+		CursorOff = 0x100;
-+		break;
-+	case FB_ACCEL_NEOMAGIC_NM2200:
-+	case FB_ACCEL_NEOMAGIC_NM2230:
-+	case FB_ACCEL_NEOMAGIC_NM2360:
-+	case FB_ACCEL_NEOMAGIC_NM2380:
- 		CursorMem = 1024;
- 		CursorOff = 0x1000;
--		linearSize = 8192;
--		maxWidth = 1280;
--		maxHeight = 1024;	/* ???? */
- 
- 		par->neo2200 = (Neo2200 __iomem *) par->mmio_vbase;
- 		break;
-@@ -2032,7 +1981,7 @@ static int __devinit neo_init_hw(struct 
- */
- 	par->maxClock = maxClock;
- 	par->cursorOff = CursorOff;
--	return ((videoRam * 1024));
-+	return videoRam * 1024;
- }
- 
- 
+ 					} elsif ($ctx =~ /.xW/) {
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from apw@shadowen.org are
 
 linux-next.patch
-tridentfb-replace-macros-with-functions.patch
-tridentfb-convert-fb_info-into-allocated-one.patch
-tridentfb-move-global-pseudo-palette-into-structure.patch
-tridentfb-move-global-chip_id-into-structure.patch
-tridentfb-move-global-flat-panel-variable-into-structure.patch
-tridentfb-convert-is_blade-and-is_xp-macros-into-functions.patch
-tridentfb-move-global-acceleration-hooks-into-structure.patch
-tridentfb-make-use-of-functions-and-constants-from-the-vgah.patch
-tridentfb-fix-timing-calculations.patch
-tridentfb-use-mmio-access-for-clock-setting.patch
-tridentfb-fix-clock-settings-for-older-trident-96xx-chips.patch
-tridentfb-improve-probe-function.patch
-tridentfb-improved-register-values-on-tgui-9680.patch
-tridentfb-add-tgui-9440-support.patch
-tridentfb-fix-unitialized-pseudo_palette.patch
-tridentfb-improve-check_var-function.patch
-tridentfb-preserve-memory-type-settings.patch
-tridentfb-fix-hi-color-modes-for-tgui-9440.patch
-tridentfb-add-acceleration-for-tgui-families.patch
-tridentfb-acceleration-code-improvements.patch
-tridentfb-acceleration-bug-fixes.patch
-tridentfb-various-pixclock-and-timing-improvements.patch
-tridentfb-acceleration-constants-change.patch
-tridentfb-source-code-improvements.patch
-tridentfb-fix-console-freeze-when-switching-from-x11.patch
-tridentfb-fix-224-color-logo-at-8-bpp.patch
-tridentfb-y-panning-fixes.patch
-tridentfb-blade3d-clock-fixes.patch
-amifb-test-virtual-screen-range-before-subtraction-on-unsigned.patch
-atafb-test-virtual-screen-range-before-subtraction-on-unsigned.patch
-fbcon-make-logo_height-a-local-variable.patch
-uvesafb-change-mode-parameter-to-mode_option.patch
-tridentfb-documentation-update.patch
-tdfxfb-add-mode_option-module-parameter.patch
-vga16fb-source-code-improvement.patch
-tdfxfb-remove-ypan-checks-done-by-a-higher-layer.patch
-vfb-only-enable-if-explicitly-requested-when-compiled-in.patch
-hgafb-convert-to-new-platform-driver-api-bugzilla-9689.patch
-skeletonfb-update-to-correct-platform-driver-usage.patch
-neofb-simplify-clock-calculation.patch
-neofb-drop-redundant-code.patch
+mm-add-a-basic-debugging-framework-for-memory-initialisation.patch
+mm-add-a-basic-debugging-framework-for-memory-initialisation-fix.patch
+mm-verify-the-page-links-and-memory-model.patch
+mm-make-defensive-checks-around-pfn-values-registered-for-memory-usage.patch
+mm-print-out-the-zonelists-on-request-for-manual-verification.patch
+add-a-helper-function-to-test-if-an-object-is-on-the-stack.patch
+mm-move-bootmem-descriptors-definition-to-a-single-place.patch
+mm-fix-free_all_bootmem_core-alignment-check.patch
+mm-normalize-internal-argument-passing-of-bootmem-data.patch
+mm-unexport-__alloc_bootmem_core.patch
+buddy-clarify-comments-describing-buddy-merge.patch
+page-flags-record-page-flag-overlays-explicitly.patch
+page-flags-record-page-flag-overlays-explicitly-xen.patch
+slub-record-page-flag-overlays-explicitly.patch
+slob-record-page-flag-overlays-explicitly.patch
+hugetlb-move-hugetlb_acct_memory.patch
+hugetlb-reserve-huge-pages-for-reliable-map_private-hugetlbfs-mappings-until-fork.patch
+hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed.patch
+hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed-fix.patch
+hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed-build-fix.patch
+huge-page-private-reservation-review-cleanups.patch
+huge-page-private-reservation-review-cleanups-fix.patch
+mm-record-map_noreserve-status-on-vmas-and-fix-small-page-mprotect-reservations.patch
+hugetlb-move-reservation-region-support-earlier.patch
+hugetlb-allow-huge-page-mappings-to-be-created-without-reservations.patch
+hugetlb-allow-huge-page-mappings-to-be-created-without-reservations-cleanups.patch
+hugetlb-reservations-move-region-tracking-earlier.patch
+hugetlb-reservations-fix-hugetlb-map_private-reservations-across-vma-splits-v2.patch
+hugetlb-reservations-fix-hugetlb-map_private-reservations-across-vma-splits-v2-fix.patch
+hugetlb-fix-race-when-reading-proc-meminfo.patch
+memory-hotplugallocate-usemap-on-the-section-with-pgdat-take-4.patch
+memory-hotplug-small-fixes-to-bootmem-freeing-for-memory-hotremove.patch
+memory-hotplug-dont-calculate-vm_total_pages-twice-when-rebuilding-zonelists-in-online_pages.patch
+checkpatch-version-020.patch
+checkpatch-return-is-not-a-function-parentheses-for-casts-are-ok-too.patch
+checkpatch-types-some-types-may-also-be-identifiers.patch
+checkpatch-add-a-checkpatch-warning-for-new-uses-of-__initcall.patch
+checkpatch-possible-types-__asm__-is-never-a-type.patch
+checkpatch-comment-detection-ignore-macro-continuation-when-detecting-associated-comments.patch
+checkpatch-types-unary-goto-introduces-unary-context.patch
+checkpatch-macros-fix-statement-counting-block-end-detection.patch
+checkpatch-trailing-statement-indent-fix-end-of-statement-location.patch
+checkpatch-allow-printk-strings-to-exceed-80-characters-to-maintain-their-searchability.patch
+checkpatch-switch-report-trailing-statements-on-case-and-default.patch
+checkpatch-check-spacing-for-square-brackets.patch
+checkpatch-toughen-trailing-if-statement-checks-and-extend-them-to-while-and-for.patch
+checkpatch-condition-loop-indent-checks.patch
+checkpatch-usb_free_urb-can-take-null.patch
+checkpatch-correct-spelling-in-kfree-checks.patch
+checkpatch-allow-for-type-modifiers-on-multiple-declarations.patch
+checkpatch-improve-type-matcher-debug.patch
+checkpatch-possible-modifiers-are-not-being-correctly-matched.patch
+checkpatch-macro-complexity-checks-are-meaningless-in-linker-scripts.patch
+checkpatch-handle-return-types-of-pointers-to-functions.patch
+checkpatch-possible-types-known-modifiers-cannot-be-types.patch
+checkpatch-possible-modifiers-handle-multiple-modifiers-and-trailing.patch
+checkpatch-add-checks-for-question-mark-and-colon-spacing.patch
+checkpatch-variants-move-the-main-unary-binary-operators-to-use-variants.patch
+checkpatch-complex-macros-need-to-ignore-comments.patch
+checkpatch-types-cannot-start-mid-word-for-pointer-tests.patch
+checkpatch-version-021.patch
+x86-implement-pte_special.patch
+mm-introduce-get_user_pages_fast.patch
+mm-introduce-get_user_pages_fast-fix.patch
+mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast.patch
+x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-fix.patch
+x86-lockless-get_user_pages_fast-fix-2.patch
+x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
+x86-lockless-get_user_pages_fast-fix-warning.patch
+dio-use-get_user_pages_fast.patch
+splice-use-get_user_pages_fast.patch
+page-owner-tracking-leak-detector.patch
 
