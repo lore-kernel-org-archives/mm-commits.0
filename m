@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + input-add-support-for-egalax-touchkit-usb-touchscreen-used-on-hp-tx1305us.patch added to -mm tree
-Date: Tue, 01 Jul 2008 16:57:38 -0700
-Message-ID: <200807012357.m61NvcF8021543@imap1.linux-foundation.org>
+Subject: + security-remove-unused-forwards.patch added to -mm tree
+Date: Tue, 01 Jul 2008 17:01:01 -0700
+Message-ID: <200807020001.m62011fC021702@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36011 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37832 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754045AbYGAX5u (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 19:57:50 -0400
+	by vger.kernel.org with ESMTP id S1758249AbYGBABh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Jul 2008 20:01:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nyef@lisphacker.com, dtor@mail.ru, greg@kroah.com
+Cc: hugh@veritas.com, jmorris@namei.org
 
 
 The patch titled
-     input: add support for eGalax TouchKit USB touchscreen used on HP tx1305us
+     security: remove unused forwards
 has been added to the -mm tree.  Its filename is
-     input-add-support-for-egalax-touchkit-usb-touchscreen-used-on-hp-tx1305us.patch
+     security-remove-unused-forwards.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,81 +33,93 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: input: add support for eGalax TouchKit USB touchscreen used on HP tx1305us
-From: Alastair Bridgewater <nyef@lisphacker.com>
+Subject: security: remove unused forwards
+From: Hugh Dickins <hugh@veritas.com>
 
-The eGalax touchscreen used in the HP tx1305us tablet PC (and presumably
-the rest of the tx1000 series) uses a different format for events from the
-device than the existing driver supports.
+Why would linux/security.h need forward declarations for nfsctl_arg and
+swap_info_struct?  It's hard to imagine: remove them.
 
-Add a new device description and interrupt packet handler for the
-touchscreen used in the tx1305us, claiming the USB device ID for the
-device that this patch was tested with from the older eGalax device code.
-
-Signed-off-by: Alastair Bridgewater <nyef@lisphacker.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Dmitry Torokhov <dtor@mail.ru>
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Acked-by: James Morris <jmorris@namei.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/touchscreen/usbtouchscreen.c |   21 ++++++++++++++++++-
- 1 file changed, 20 insertions(+), 1 deletion(-)
+ include/linux/security.h |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN drivers/input/touchscreen/usbtouchscreen.c~input-add-support-for-egalax-touchkit-usb-touchscreen-used-on-hp-tx1305us drivers/input/touchscreen/usbtouchscreen.c
---- a/drivers/input/touchscreen/usbtouchscreen.c~input-add-support-for-egalax-touchkit-usb-touchscreen-used-on-hp-tx1305us
-+++ a/drivers/input/touchscreen/usbtouchscreen.c
-@@ -103,6 +103,7 @@ struct usbtouch_usb {
- enum {
- 	DEVTPYE_DUMMY = -1,
- 	DEVTYPE_EGALAX,
-+	DEVTYPE_EGALAX2,
- 	DEVTYPE_PANJIT,
- 	DEVTYPE_3M,
- 	DEVTYPE_ITM,
-@@ -120,7 +121,7 @@ static struct usb_device_id usbtouch_dev
- 	{USB_DEVICE(0x3823, 0x0001), .driver_info = DEVTYPE_EGALAX},
- 	{USB_DEVICE(0x3823, 0x0002), .driver_info = DEVTYPE_EGALAX},
- 	{USB_DEVICE(0x0123, 0x0001), .driver_info = DEVTYPE_EGALAX},
--	{USB_DEVICE(0x0eef, 0x0001), .driver_info = DEVTYPE_EGALAX},
-+	{USB_DEVICE(0x0eef, 0x0001), .driver_info = DEVTYPE_EGALAX2},
- 	{USB_DEVICE(0x0eef, 0x0002), .driver_info = DEVTYPE_EGALAX},
- 	{USB_DEVICE(0x1234, 0x0001), .driver_info = DEVTYPE_EGALAX},
- 	{USB_DEVICE(0x1234, 0x0002), .driver_info = DEVTYPE_EGALAX},
-@@ -217,6 +218,15 @@ static int egalax_get_pkt_len(unsigned c
+diff -puN include/linux/security.h~security-remove-unused-forwards include/linux/security.h
+--- a/include/linux/security.h~security-remove-unused-forwards
++++ a/include/linux/security.h
+@@ -101,9 +101,7 @@ extern unsigned long mmap_min_addr;
+ #define LSM_SETID_FS	8
  
- 	return 0;
- }
-+
-+static int egalax2_read_data(struct usbtouch_usb *dev, unsigned char *pkt)
-+{
-+	dev->x = ((pkt[3] & 0x0F) << 8) | pkt[2];
-+	dev->y = ((pkt[5] & 0x0F) << 8) | pkt[4];
-+	dev->touch = pkt[1] & 0x01;
-+
-+	return 1;
-+}
- #endif
+ /* forward declares to avoid warnings */
+-struct nfsctl_arg;
+ struct sched_param;
+-struct swap_info_struct;
+ struct request_sock;
  
- 
-@@ -555,6 +565,15 @@ static struct usbtouch_device_info usbto
- 		.get_pkt_len	= egalax_get_pkt_len,
- 		.read_data	= egalax_read_data,
- 	},
-+
-+	[DEVTYPE_EGALAX2] = {
-+		.min_xc		= 0x0,
-+		.max_xc		= 0x0fff,
-+		.min_yc		= 0x0,
-+		.max_yc		= 0x0fff,
-+		.rept_size	= 8,
-+		.read_data	= egalax2_read_data,
-+	},
- #endif
- 
- #ifdef CONFIG_TOUCHSCREEN_USB_PANJIT
+ /* bprm_apply_creds unsafe reasons */
 _
 
-Patches currently in -mm which might be from nyef@lisphacker.com are
+Patches currently in -mm which might be from hugh@veritas.com are
 
-input-add-support-for-egalax-touchkit-usb-touchscreen-used-on-hp-tx1305us.patch
+origin.patch
+mm-dirty-page-accounting-vs-vm_mixedmap.patch
+git-unionfs.patch
+mm-remove-nopfn-fix.patch
+access_process_vm-device-memory-infrastructure.patch
+use-generic_access_phys-for-dev-mem-mappings.patch
+use-generic_access_phys-for-dev-mem-mappings-fix.patch
+use-generic_access_phys-for-pci-mmap-on-x86.patch
+powerpc-ioremap_prot.patch
+spufs-use-the-new-vm_ops-access.patch
+spufs-use-the-new-vm_ops-access-fix.patch
+mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co.patch
+hugetlb-move-hugetlb_acct_memory.patch
+hugetlb-reserve-huge-pages-for-reliable-map_private-hugetlbfs-mappings-until-fork.patch
+hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed.patch
+hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed-fix.patch
+hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed-build-fix.patch
+huge-page-private-reservation-review-cleanups.patch
+huge-page-private-reservation-review-cleanups-fix.patch
+mm-record-map_noreserve-status-on-vmas-and-fix-small-page-mprotect-reservations.patch
+hugetlb-move-reservation-region-support-earlier.patch
+hugetlb-allow-huge-page-mappings-to-be-created-without-reservations.patch
+hugetlb-allow-huge-page-mappings-to-be-created-without-reservations-cleanups.patch
+generic_file_aio_read-cleanups.patch
+tmpfs-support-aio.patch
+hugetlb-modular-state-for-hugetlb-page-size-cleanup.patch
+hugetlb-reservations-move-region-tracking-earlier.patch
+hugetlb-reservations-fix-hugetlb-map_private-reservations-across-vma-splits-v2.patch
+hugetlb-fix-race-when-reading-proc-meminfo.patch
+security-remove-unused-forwards.patch
+memcg-better-migration-handling.patch
+memcg-remove-refcnt-from-page_cgroup.patch
+memcg-remove-refcnt-from-page_cgroup-fix.patch
+memcg-remove-refcnt-from-page_cgroup-fix-2.patch
+memcg-remove-refcnt-from-page_cgroup-fix-memcg-fix-mem_cgroup_end_migration-race.patch
+memcg-handle-swap-cache.patch
+memcg-handle-swap-cache-fix.patch
+memcg-handle-swap-cache-fix-shmem-page-migration-incorrectness-on-memcgroup.patch
+memcg-helper-function-for-relcaim-from-shmem.patch
+memcg-add-hints-for-branch.patch
+memcg-remove-a-redundant-check.patch
+memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info-memrlimit-fix-sleep-inside-sleeplock-in-mm_update_next_owner.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-memrlimit-improve-fork-and-error-handling.patch
+memrlimit-improve-error-handling.patch
+memrlimit-improve-error-handling-update.patch
+memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
+memrlimit-handle-attach_task-failure-add-can_attach-callback-update.patch
+mm-readahead-scan-lockless.patch
+radix-tree-add-gang_lookup_slot-gang_lookup_slot_tag.patch
+mm-speculative-page-references.patch
+mm-speculative-page-references-fix.patch
+mm-speculative-page-references-fix-fix.patch
+mm-lockless-pagecache.patch
+mm-spinlock-tree_lock.patch
+powerpc-implement-pte_special.patch
+mlock-mlocked-pages-are-unevictable-fix-4.patch
+vmstat-mlocked-pages-statistics-fix-incorrect-mlocked-field-of-proc-meminfo.patch
+prio_tree-debugging-patch.patch
 
