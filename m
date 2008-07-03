@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + hrtimer-prevent-migration-for-raising-softirq.patch added to -mm tree
-Date: Thu, 03 Jul 2008 15:50:16 -0700
-Message-ID: <200807032250.m63MoG5V031449@imap1.linux-foundation.org>
+Subject: + ecryptfs-inodec-mmapc-use-unaligned-byteorder-helpers.patch added to -mm tree
+Date: Thu, 03 Jul 2008 15:54:28 -0700
+Message-ID: <200807032254.m63MsTPa031628@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48198 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50983 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754863AbYGCWv2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jul 2008 18:51:28 -0400
+	by vger.kernel.org with ESMTP id S1757325AbYGCWzP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jul 2008 18:55:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rostedt@goodmis.org, mingo@elte.hu, srostedt@redhat.com, tglx@linutronix.de
+Cc: harvey.harrison@gmail.com, mhalcrow@us.ibm.com
 
 
 The patch titled
-     hrtimer: prevent migration for raising softirq
+     ecryptfs: inode.c mmap.c use unaligned byteorder helpers
 has been added to the -mm tree.  Its filename is
-     hrtimer-prevent-migration-for-raising-softirq.patch
+     ecryptfs-inodec-mmapc-use-unaligned-byteorder-helpers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,60 +33,126 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hrtimer: prevent migration for raising softirq
-From: Steven Rostedt <rostedt@goodmis.org>
+Subject: ecryptfs: inode.c mmap.c use unaligned byteorder helpers
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Due to a possible deadlock, the waking of the softirq was pushed outside
-of the hrtimer base locks.  See commit
-0c96c5979a522c3323c30a078a70120e29b5bdbc
+Fixe sparse warnings:
+fs/ecryptfs/inode.c:368:15: warning: cast to restricted __be64
+fs/ecryptfs/mmap.c:385:12: warning: incorrect type in assignment (different base types)
+fs/ecryptfs/mmap.c:385:12:    expected unsigned long long [unsigned] [assigned] [usertype] file_size
+fs/ecryptfs/mmap.c:385:12:    got restricted __be64 [usertype] <noident>
+fs/ecryptfs/mmap.c:428:12: warning: incorrect type in assignment (different base types)
+fs/ecryptfs/mmap.c:428:12:    expected unsigned long long [unsigned] [assigned] [usertype] file_size
+fs/ecryptfs/mmap.c:428:12:    got restricted __be64 [usertype] <noident>
 
-Unfortunately this allows the task to migrate after setting up the softirq
-and raising it.  Since softirqs run a queue that is per-cpu we may raise
-the softirq on the wrong CPU and this will keep the queued softirq task
-from running.
-
-To solve this issue, this patch disables preemption around the releasing
-of the hrtimer lock and raising of the softirq.
-
-Signed-off-by: Steven Rostedt <srostedt@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/hrtimer.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ fs/ecryptfs/inode.c |    4 ++--
+ fs/ecryptfs/mmap.c  |   11 +++--------
+ 2 files changed, 5 insertions(+), 10 deletions(-)
 
-diff -puN kernel/hrtimer.c~hrtimer-prevent-migration-for-raising-softirq kernel/hrtimer.c
---- a/kernel/hrtimer.c~hrtimer-prevent-migration-for-raising-softirq
-+++ a/kernel/hrtimer.c
-@@ -1000,10 +1000,18 @@ hrtimer_start(struct hrtimer *timer, kti
- 	 */
- 	raise = timer->state == HRTIMER_STATE_PENDING;
+diff -puN fs/ecryptfs/inode.c~ecryptfs-inodec-mmapc-use-unaligned-byteorder-helpers fs/ecryptfs/inode.c
+--- a/fs/ecryptfs/inode.c~ecryptfs-inodec-mmapc-use-unaligned-byteorder-helpers
++++ a/fs/ecryptfs/inode.c
+@@ -31,6 +31,7 @@
+ #include <linux/mount.h>
+ #include <linux/crypto.h>
+ #include <linux/fs_stack.h>
++#include <asm/unaligned.h>
+ #include "ecryptfs_kernel.h"
  
-+	/*
-+	 * We use preempt_disable to prevent this task from migrating after
-+	 * setting up the softirq and raising it. Otherwise, if me migrate
-+	 * we will raise the softirq on the wrong CPU.
-+	 */
-+	preempt_disable();
-+
- 	unlock_hrtimer_base(timer, &flags);
+ static struct dentry *lock_parent(struct dentry *dentry)
+@@ -364,8 +365,7 @@ static struct dentry *ecryptfs_lookup(st
+ 		else
+ 			file_size = i_size_read(lower_dentry->d_inode);
+ 	} else {
+-		memcpy(&file_size, page_virt, sizeof(file_size));
+-		file_size = be64_to_cpu(file_size);
++		file_size = get_unaligned_be64(page_virt);
+ 	}
+ 	i_size_write(dentry->d_inode, (loff_t)file_size);
+ 	kmem_cache_free(ecryptfs_header_cache_2, page_virt);
+diff -puN fs/ecryptfs/mmap.c~ecryptfs-inodec-mmapc-use-unaligned-byteorder-helpers fs/ecryptfs/mmap.c
+--- a/fs/ecryptfs/mmap.c~ecryptfs-inodec-mmapc-use-unaligned-byteorder-helpers
++++ a/fs/ecryptfs/mmap.c
+@@ -32,6 +32,7 @@
+ #include <linux/file.h>
+ #include <linux/crypto.h>
+ #include <linux/scatterlist.h>
++#include <asm/unaligned.h>
+ #include "ecryptfs_kernel.h"
  
- 	if (raise)
- 		hrtimer_raise_softirq();
-+	preempt_enable();
+ /**
+@@ -372,7 +373,6 @@ out:
+  */
+ static int ecryptfs_write_inode_size_to_header(struct inode *ecryptfs_inode)
+ {
+-	u64 file_size;
+ 	char *file_size_virt;
+ 	int rc;
  
- 	return ret;
- }
+@@ -381,9 +381,7 @@ static int ecryptfs_write_inode_size_to_
+ 		rc = -ENOMEM;
+ 		goto out;
+ 	}
+-	file_size = (u64)i_size_read(ecryptfs_inode);
+-	file_size = cpu_to_be64(file_size);
+-	memcpy(file_size_virt, &file_size, sizeof(u64));
++	put_unaligned_be64(i_size_read(ecryptfs_inode), file_size_virt);
+ 	rc = ecryptfs_write_lower(ecryptfs_inode, file_size_virt, 0,
+ 				  sizeof(u64));
+ 	kfree(file_size_virt);
+@@ -403,7 +401,6 @@ static int ecryptfs_write_inode_size_to_
+ 	struct dentry *lower_dentry =
+ 		ecryptfs_inode_to_private(ecryptfs_inode)->lower_file->f_dentry;
+ 	struct inode *lower_inode = lower_dentry->d_inode;
+-	u64 file_size;
+ 	int rc;
+ 
+ 	if (!lower_inode->i_op->getxattr || !lower_inode->i_op->setxattr) {
+@@ -424,9 +421,7 @@ static int ecryptfs_write_inode_size_to_
+ 					   xattr_virt, PAGE_CACHE_SIZE);
+ 	if (size < 0)
+ 		size = 8;
+-	file_size = (u64)i_size_read(ecryptfs_inode);
+-	file_size = cpu_to_be64(file_size);
+-	memcpy(xattr_virt, &file_size, sizeof(u64));
++	put_unaligned_be64(i_size_read(ecryptfs_inode), xattr_virt);
+ 	rc = lower_inode->i_op->setxattr(lower_dentry, ECRYPTFS_XATTR_NAME,
+ 					 xattr_virt, size, 0);
+ 	mutex_unlock(&lower_inode->i_mutex);
 _
 
-Patches currently in -mm which might be from rostedt@goodmis.org are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
 linux-next.patch
-ftrace-disable-function-tracing-bringing-up-new-cpu.patch
-hrtimer-prevent-migration-for-raising-softirq.patch
-split-the-typecheck-macros-out-of-include-linux-kernelh.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+cifs-remove-global_extern-macro.patch
+mtd-mtdcharc-silence-sparse-warning.patch
+mtd-mtdcharc-remove-shadowed-variable-warnings.patch
+scsi-replace-remaining-__function__-occurrences.patch
+fusion-replace-remaining-__function__-occurrences.patch
+scsi-replace-__inline-with-inline.patch
+scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
+scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
+block-use-get_unaligned_-helpers.patch
+xfs-use-get_unaligned_-helpers.patch
+xtensa-replace-remaining-__function__-occurences.patch
+fs-ldm-use-get_unaligned_-helpers.patch
+include-use-get-put_unaligned_-helpers.patch
+lzo-use-get-put_unaligned_-helpers.patch
+asm-generic-int-ll64h-always-provide-__su64.patch
+ecryptfs-cryptoc-use-unaligned-byteorder-helpers.patch
+ecryptfs-inodec-mmapc-use-unaligned-byteorder-helpers.patch
+scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
+isdn-use-the-common-ascii-hex-helpers.patch
+net-use-the-common-ascii-hex-helpers.patch
+cris-use-the-common-ascii-hex-helpers.patch
+frv-use-the-common-ascii-hex-helpers.patch
+mips-use-the-common-ascii-hex-helpers.patch
+ppc-use-the-common-ascii-hex-helpers.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+mn10300-use-the-common-ascii-hex-helpers.patch
 
