@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + crypto-rmd160c-rmd256c-rmd320c-sparse-annotations.patch added to -mm tree
-Date: Thu, 03 Jul 2008 16:03:41 -0700
-Message-ID: <200807032303.m63N3fGD031959@imap1.linux-foundation.org>
+Subject: + crypto-rmd128c-sparse-annotations.patch added to -mm tree
+Date: Thu, 03 Jul 2008 16:03:14 -0700
+Message-ID: <200807032303.m63N3EKn031949@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42777 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55269 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755917AbYGCXEp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jul 2008 19:04:45 -0400
+	by vger.kernel.org with ESMTP id S1755693AbYGCXET (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jul 2008 19:04:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: harvey.harrison@gmail.com, herbert@gondor.apana.org.au
 
 
 The patch titled
-     crypto: rmd160.c rmd256.c rmd320.c sparse annotations
+     crypto: rmd128.c sparse annotations
 has been added to the -mm tree.  Its filename is
-     crypto-rmd160c-rmd256c-rmd320c-sparse-annotations.patch
+     crypto-rmd128c-sparse-annotations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,109 +33,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: crypto: rmd160.c rmd256.c rmd320.c sparse annotations
+Subject: crypto: rmd128.c sparse annotations
 From: Harvey Harrison <harvey.harrison@gmail.com>
-
-Similar to the rmd128.c annotations, significantly cuts down on the noise.
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Cc: Herbert Xu <herbert@gondor.apana.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- crypto/rmd160.c |    8 ++++----
- crypto/rmd256.c |    8 ++++----
- crypto/rmd320.c |    8 ++++----
- 3 files changed, 12 insertions(+), 12 deletions(-)
+ crypto/rmd128.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN crypto/rmd160.c~crypto-rmd160c-rmd256c-rmd320c-sparse-annotations crypto/rmd160.c
---- a/crypto/rmd160.c~crypto-rmd160c-rmd256c-rmd320c-sparse-annotations
-+++ a/crypto/rmd160.c
+diff -puN crypto/rmd128.c~crypto-rmd128c-sparse-annotations crypto/rmd128.c
+--- a/crypto/rmd128.c~crypto-rmd128c-sparse-annotations
++++ a/crypto/rmd128.c
 @@ -26,7 +26,7 @@
- struct rmd160_ctx {
+ struct rmd128_ctx {
  	u64 byte_count;
- 	u32 state[5];
+ 	u32 state[4];
 -	u32 buffer[16];
 +	__le32 buffer[16];
  };
  
  #define K1  RMD_K1
-@@ -52,7 +52,7 @@ struct rmd160_ctx {
- 	(c) = rol32((c), 10); \
- }
- 
--static void rmd160_transform(u32 *state, u32 const *in)
-+static void rmd160_transform(u32 *state, const __le32 *in)
- {
- 	u32 aa, bb, cc, dd, ee, aaa, bbb, ccc, ddd, eee;
- 
-@@ -313,8 +313,8 @@ static void rmd160_final(struct crypto_t
- {
- 	struct rmd160_ctx *rctx = crypto_tfm_ctx(tfm);
- 	u32 i, index, padlen;
--	u64 bits;
--	u32 *dst = (u32 *)out;
-+	__le64 bits;
-+	__le32 *dst = (__le32 *)out;
- 	static const u8 padding[64] = { 0x80, };
- 
- 	bits = cpu_to_le64(rctx->byte_count << 3);
-diff -puN crypto/rmd256.c~crypto-rmd160c-rmd256c-rmd320c-sparse-annotations crypto/rmd256.c
---- a/crypto/rmd256.c~crypto-rmd160c-rmd256c-rmd320c-sparse-annotations
-+++ a/crypto/rmd256.c
-@@ -26,7 +26,7 @@
- struct rmd256_ctx {
- 	u64 byte_count;
- 	u32 state[8];
--	u32 buffer[16];
-+	__le32 buffer[16];
- };
- 
- #define K1  RMD_K1
-@@ -48,7 +48,7 @@ struct rmd256_ctx {
+@@ -48,7 +48,7 @@ struct rmd128_ctx {
  	(a) = rol32((a), (s)); \
  }
  
--static void rmd256_transform(u32 *state, u32 const *in)
-+static void rmd256_transform(u32 *state, const __le32 *in)
+-static void rmd128_transform(u32 *state, u32 const *in)
++static void rmd128_transform(u32 *state, const __le32 *in)
  {
- 	u32 aa, bb, cc, dd, aaa, bbb, ccc, ddd, tmp;
+ 	u32 aa, bb, cc, dd, aaa, bbb, ccc, ddd;
  
-@@ -288,8 +288,8 @@ static void rmd256_final(struct crypto_t
+@@ -269,8 +269,8 @@ static void rmd128_final(struct crypto_t
  {
- 	struct rmd256_ctx *rctx = crypto_tfm_ctx(tfm);
- 	u32 i, index, padlen;
--	u64 bits;
--	u32 *dst = (u32 *)out;
-+	__le64 bits;
-+	__le32 *dst = (__le32 *)out;
- 	static const u8 padding[64] = { 0x80, };
- 
- 	bits = cpu_to_le64(rctx->byte_count << 3);
-diff -puN crypto/rmd320.c~crypto-rmd160c-rmd256c-rmd320c-sparse-annotations crypto/rmd320.c
---- a/crypto/rmd320.c~crypto-rmd160c-rmd256c-rmd320c-sparse-annotations
-+++ a/crypto/rmd320.c
-@@ -26,7 +26,7 @@
- struct rmd320_ctx {
- 	u64 byte_count;
- 	u32 state[10];
--	u32 buffer[16];
-+	__le32 buffer[16];
- };
- 
- #define K1  RMD_K1
-@@ -52,7 +52,7 @@ struct rmd320_ctx {
- 	(c) = rol32((c), 10); \
- }
- 
--static void rmd320_transform(u32 *state, u32 const *in)
-+static void rmd320_transform(u32 *state, const __le32 *in)
- {
- 	u32 aa, bb, cc, dd, ee, aaa, bbb, ccc, ddd, eee, tmp;
- 
-@@ -337,8 +337,8 @@ static void rmd320_final(struct crypto_t
- {
- 	struct rmd320_ctx *rctx = crypto_tfm_ctx(tfm);
+ 	struct rmd128_ctx *rctx = crypto_tfm_ctx(tfm);
  	u32 i, index, padlen;
 -	u64 bits;
 -	u32 *dst = (u32 *)out;
@@ -161,7 +93,6 @@ block-use-get_unaligned_-helpers.patch
 xfs-use-get_unaligned_-helpers.patch
 crypto-use-kernel-provided-bitops-unaligned-access-helpers.patch
 crypto-rmd128c-sparse-annotations.patch
-crypto-rmd160c-rmd256c-rmd320c-sparse-annotations.patch
 xtensa-replace-remaining-__function__-occurences.patch
 fs-ldm-use-get_unaligned_-helpers.patch
 include-use-get-put_unaligned_-helpers.patch
