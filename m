@@ -1,273 +1,391 @@
 From: akpm@linux-foundation.org
-Subject: - s390-build-fixes.patch removed from -mm tree
-Date: Thu, 03 Jul 2008 10:47:40 -0700
-Message-ID: <200807031747.m63Hlejg019265@imap1.linux-foundation.org>
+Subject: + hugetlb-move-reservation-region-support-earlier-fix.patch added to -mm tree
+Date: Thu, 03 Jul 2008 15:24:55 -0700
+Message-ID: <200807032224.m63MOt9k030473@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38695 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50355 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753145AbYGCRtI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jul 2008 13:49:08 -0400
+	by vger.kernel.org with ESMTP id S1754022AbYGCWZH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jul 2008 18:25:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: apw@shadowen.org
 
 
 The patch titled
-     s390: build fixes
-has been removed from the -mm tree.  Its filename was
-     s390-build-fixes.patch
+     hugetlb reservations: move region tracking earlier
+has been added to the -mm tree.  Its filename is
+     hugetlb-move-reservation-region-support-earlier-fix.patch
 
-This patch was dropped because it was withdrawn
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: s390: build fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: hugetlb reservations: move region tracking earlier
+From: Andy Whitcroft <apw@shadowen.org>
 
-In file included from include/asm/pgtable.h:1087,
-                 from include/linux/mm.h:39,
-                 from arch/s390/mm/hugetlbpage.c:8:
-include/asm-generic/pgtable.h: In function '__ptep_modify_prot_start':
-include/asm-generic/pgtable.h:209: error: dereferencing pointer to incomplete type
+Move the region tracking code much earlier so we can use it for page
+presence tracking later on.  No code is changed, just its location.
 
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Signed-off-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/pgtable.h |   26 +++++++++-----------------
- 1 file changed, 9 insertions(+), 17 deletions(-)
+ mm/hugetlb.c |  246 ++++++++++++++++++++++++-------------------------
+ 1 file changed, 125 insertions(+), 121 deletions(-)
 
-diff -puN include/asm-generic/pgtable.h~s390-build-fixes include/asm-generic/pgtable.h
---- a/include/asm-generic/pgtable.h~s390-build-fixes
-+++ a/include/asm-generic/pgtable.h
-@@ -197,17 +197,13 @@ static inline int pmd_none_or_clear_bad(
- }
- #endif /* CONFIG_MMU */
- 
--static inline pte_t __ptep_modify_prot_start(struct mm_struct *mm,
--					     unsigned long addr,
--					     pte_t *ptep)
--{
--	/*
--	 * Get the current pte state, but zero it out to make it
--	 * non-present, preventing the hardware from asynchronously
--	 * updating it.
--	 */
--	return ptep_get_and_clear(mm, addr, ptep);
--}
-+/*
-+ * Get the current pte state, but zero it out to make it
-+ * non-present, preventing the hardware from asynchronously
-+ * updating it.
-+ */
-+#define __ptep_modify_prot_start(mm, addr, ptep)	\
-+	ptep_get_and_clear(mm, addr, ptep)
- 
- static inline void __ptep_modify_prot_commit(struct mm_struct *mm,
- 					     unsigned long addr,
-@@ -235,12 +231,8 @@ static inline void __ptep_modify_prot_co
-  * queue the update to be done at some later time.  The update must be
-  * actually committed before the pte lock is released, however.
-  */
--static inline pte_t ptep_modify_prot_start(struct mm_struct *mm,
--					   unsigned long addr,
--					   pte_t *ptep)
--{
--	return __ptep_modify_prot_start(mm, addr, ptep);
--}
-+#define ptep_modify_prot_start(mm, addr, ptep)		\
-+	__ptep_modify_prot_start(mm, addr, ptep)
+diff -puN mm/hugetlb.c~hugetlb-move-reservation-region-support-earlier-fix mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-move-reservation-region-support-earlier-fix
++++ a/mm/hugetlb.c
+@@ -41,6 +41,131 @@ static int hugetlb_next_nid;
+ static DEFINE_SPINLOCK(hugetlb_lock);
  
  /*
-  * Commit an update to a pte, leaving any hardware-controlled bits in
++ * Region tracking -- allows tracking of reservations and instantiated pages
++ *                    across the pages in a mapping.
++ */
++struct file_region {
++	struct list_head link;
++	long from;
++	long to;
++};
++
++static long region_add(struct list_head *head, long f, long t)
++{
++	struct file_region *rg, *nrg, *trg;
++
++	/* Locate the region we are either in or before. */
++	list_for_each_entry(rg, head, link)
++		if (f <= rg->to)
++			break;
++
++	/* Round our left edge to the current segment if it encloses us. */
++	if (f > rg->from)
++		f = rg->from;
++
++	/* Check for and consume any regions we now overlap with. */
++	nrg = rg;
++	list_for_each_entry_safe(rg, trg, rg->link.prev, link) {
++		if (&rg->link == head)
++			break;
++		if (rg->from > t)
++			break;
++
++		/* If this area reaches higher then extend our area to
++		 * include it completely.  If this is not the first area
++		 * which we intend to reuse, free it. */
++		if (rg->to > t)
++			t = rg->to;
++		if (rg != nrg) {
++			list_del(&rg->link);
++			kfree(rg);
++		}
++	}
++	nrg->from = f;
++	nrg->to = t;
++	return 0;
++}
++
++static long region_chg(struct list_head *head, long f, long t)
++{
++	struct file_region *rg, *nrg;
++	long chg = 0;
++
++	/* Locate the region we are before or in. */
++	list_for_each_entry(rg, head, link)
++		if (f <= rg->to)
++			break;
++
++	/* If we are below the current region then a new region is required.
++	 * Subtle, allocate a new region at the position but make it zero
++	 * size such that we can guarantee to record the reservation. */
++	if (&rg->link == head || t < rg->from) {
++		nrg = kmalloc(sizeof(*nrg), GFP_KERNEL);
++		if (!nrg)
++			return -ENOMEM;
++		nrg->from = f;
++		nrg->to   = f;
++		INIT_LIST_HEAD(&nrg->link);
++		list_add(&nrg->link, rg->link.prev);
++
++		return t - f;
++	}
++
++	/* Round our left edge to the current segment if it encloses us. */
++	if (f > rg->from)
++		f = rg->from;
++	chg = t - f;
++
++	/* Check for and consume any regions we now overlap with. */
++	list_for_each_entry(rg, rg->link.prev, link) {
++		if (&rg->link == head)
++			break;
++		if (rg->from > t)
++			return chg;
++
++		/* We overlap with this area, if it extends futher than
++		 * us then we must extend ourselves.  Account for its
++		 * existing reservation. */
++		if (rg->to > t) {
++			chg += rg->to - t;
++			t = rg->to;
++		}
++		chg -= rg->to - rg->from;
++	}
++	return chg;
++}
++
++static long region_truncate(struct list_head *head, long end)
++{
++	struct file_region *rg, *trg;
++	long chg = 0;
++
++	/* Locate the region we are either in or before. */
++	list_for_each_entry(rg, head, link)
++		if (end <= rg->to)
++			break;
++	if (&rg->link == head)
++		return 0;
++
++	/* If we are in the middle of a region then adjust it. */
++	if (end > rg->from) {
++		chg = rg->to - end;
++		rg->to = end;
++		rg = list_entry(rg->link.next, typeof(*rg), link);
++	}
++
++	/* Drop any remaining regions. */
++	list_for_each_entry_safe(rg, trg, rg->link.prev, link) {
++		if (&rg->link == head)
++			break;
++		chg += rg->to - rg->from;
++		list_del(&rg->link);
++		kfree(rg);
++	}
++	return chg;
++}
++
++/*
+  * Convert the address within this vma to the page offset within
+  * the mapping, in base page units.
+  */
+@@ -595,127 +720,6 @@ static void return_unused_surplus_pages(
+ 	}
+ }
+ 
+-struct file_region {
+-	struct list_head link;
+-	long from;
+-	long to;
+-};
+-
+-static long region_add(struct list_head *head, long f, long t)
+-{
+-	struct file_region *rg, *nrg, *trg;
+-
+-	/* Locate the region we are either in or before. */
+-	list_for_each_entry(rg, head, link)
+-		if (f <= rg->to)
+-			break;
+-
+-	/* Round our left edge to the current segment if it encloses us. */
+-	if (f > rg->from)
+-		f = rg->from;
+-
+-	/* Check for and consume any regions we now overlap with. */
+-	nrg = rg;
+-	list_for_each_entry_safe(rg, trg, rg->link.prev, link) {
+-		if (&rg->link == head)
+-			break;
+-		if (rg->from > t)
+-			break;
+-
+-		/* If this area reaches higher then extend our area to
+-		 * include it completely.  If this is not the first area
+-		 * which we intend to reuse, free it. */
+-		if (rg->to > t)
+-			t = rg->to;
+-		if (rg != nrg) {
+-			list_del(&rg->link);
+-			kfree(rg);
+-		}
+-	}
+-	nrg->from = f;
+-	nrg->to = t;
+-	return 0;
+-}
+-
+-static long region_chg(struct list_head *head, long f, long t)
+-{
+-	struct file_region *rg, *nrg;
+-	long chg = 0;
+-
+-	/* Locate the region we are before or in. */
+-	list_for_each_entry(rg, head, link)
+-		if (f <= rg->to)
+-			break;
+-
+-	/* If we are below the current region then a new region is required.
+-	 * Subtle, allocate a new region at the position but make it zero
+-	 * size such that we can guarantee to record the reservation. */
+-	if (&rg->link == head || t < rg->from) {
+-		nrg = kmalloc(sizeof(*nrg), GFP_KERNEL);
+-		if (!nrg)
+-			return -ENOMEM;
+-		nrg->from = f;
+-		nrg->to   = f;
+-		INIT_LIST_HEAD(&nrg->link);
+-		list_add(&nrg->link, rg->link.prev);
+-
+-		return t - f;
+-	}
+-
+-	/* Round our left edge to the current segment if it encloses us. */
+-	if (f > rg->from)
+-		f = rg->from;
+-	chg = t - f;
+-
+-	/* Check for and consume any regions we now overlap with. */
+-	list_for_each_entry(rg, rg->link.prev, link) {
+-		if (&rg->link == head)
+-			break;
+-		if (rg->from > t)
+-			return chg;
+-
+-		/* We overlap with this area, if it extends futher than
+-		 * us then we must extend ourselves.  Account for its
+-		 * existing reservation. */
+-		if (rg->to > t) {
+-			chg += rg->to - t;
+-			t = rg->to;
+-		}
+-		chg -= rg->to - rg->from;
+-	}
+-	return chg;
+-}
+-
+-static long region_truncate(struct list_head *head, long end)
+-{
+-	struct file_region *rg, *trg;
+-	long chg = 0;
+-
+-	/* Locate the region we are either in or before. */
+-	list_for_each_entry(rg, head, link)
+-		if (end <= rg->to)
+-			break;
+-	if (&rg->link == head)
+-		return 0;
+-
+-	/* If we are in the middle of a region then adjust it. */
+-	if (end > rg->from) {
+-		chg = rg->to - end;
+-		rg->to = end;
+-		rg = list_entry(rg->link.next, typeof(*rg), link);
+-	}
+-
+-	/* Drop any remaining regions. */
+-	list_for_each_entry_safe(rg, trg, rg->link.prev, link) {
+-		if (&rg->link == head)
+-			break;
+-		chg += rg->to - rg->from;
+-		list_del(&rg->link);
+-		kfree(rg);
+-	}
+-	return chg;
+-}
+-
+ static struct page *alloc_huge_page(struct vm_area_struct *vma,
+ 				    unsigned long addr, int avoid_reserve)
+ {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from apw@shadowen.org are
 
-origin.patch
-rtc-x1205-fix-alarm-set-fix.patch
-update-ntfs-help-text-fix.patch
-cgroups-document-the-effect-of-attaching-pid-0-to-a-cgroup-fix.patch
-spi-fix-the-read-path-in-spidev-cleanup.patch
-security-filesystem-capabilities-fix-fragile-setuid-fixup-code-checkpatch-fixes.patch
-net-ipv4-tcpc-needs-linux-scatterlisth.patch
-doc-document-the-relax_domain_level-kernel-boot-argument-fix.patch
-revert-introduce-rculisth.patch
 linux-next.patch
-next-remove-localversion.patch
-s390-build-fixes.patch
-linux-next-fixups.patch
-fix-kobject-fix-kobject_rename-and-config_sysfs.patch
-kvm-is-busted-on-ia64.patch
-drivers-mtd-nand-nandsimc-needs-div64h.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-arch-x86-kernel-smpbootc-fix-warning.patch
-arch-x86-mm-pgtable_32c-remove-unused-variable-fixmaps.patch
-arch-x86-mm-init_64c-early_memtest-fix-types.patch
-drivers-media-video-cx18-cx18-av-firmwarec-fix-warning.patch
-drivers-media-video-uvc-uvc_v4l2c-suppress-uninitialized-var-warning.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-tick-schedc-suppress-needless-timer-reprogramming-checkpatch-fixes.patch
-git-jg-misc-git-rejects.patch
-drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-mmc-sd-host-driver-for-ricoh-bay1controllers.patch
-drivers-mtd-devices-block2mtdc-suppress-warning.patch
-sundance-set-carrier-status-on-link-change-events.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix-fix.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-scsi-misc-fix-scsi_dh-build-errors.patch
-drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
-git-block-fix-drivers-block-pktcdvdc.patch
-s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
-pktcdvd-push-bkl-down-into-driver-fix.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-git-logfs-fixup.patch
-drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
-drivers-usb-class-cdc-acmc-fix-build-with-config_pm=n.patch
-drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
-watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-add-a-basic-debugging-framework-for-memory-initialisation.patch
+mm-add-a-basic-debugging-framework-for-memory-initialisation-fix.patch
 mm-verify-the-page-links-and-memory-model.patch
-mspec-convert-nopfn-to-fault-fix.patch
-page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
-kill-generic_file_direct_io-checkpatch-fixes.patch
-use-generic_access_phys-for-dev-mem-mappings-fix.patch
-spufs-use-the-new-vm_ops-access-fix.patch
-fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
+mm-make-defensive-checks-around-pfn-values-registered-for-memory-usage.patch
+mm-print-out-the-zonelists-on-request-for-manual-verification.patch
+add-a-helper-function-to-test-if-an-object-is-on-the-stack.patch
+mm-move-bootmem-descriptors-definition-to-a-single-place.patch
+mm-fix-free_all_bootmem_core-alignment-check.patch
+mm-normalize-internal-argument-passing-of-bootmem-data.patch
+mm-unexport-__alloc_bootmem_core.patch
+buddy-clarify-comments-describing-buddy-merge.patch
+page-flags-record-page-flag-overlays-explicitly.patch
 page-flags-record-page-flag-overlays-explicitly-xen.patch
-mapping_set_error-add-unlikely.patch
+slub-record-page-flag-overlays-explicitly.patch
+slob-record-page-flag-overlays-explicitly.patch
+hugetlb-move-hugetlb_acct_memory.patch
+hugetlb-reserve-huge-pages-for-reliable-map_private-hugetlbfs-mappings-until-fork.patch
+hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed.patch
+hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed-fix.patch
+hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed-build-fix.patch
+huge-page-private-reservation-review-cleanups.patch
 huge-page-private-reservation-review-cleanups-fix.patch
-sync_file_range_write-may-and-will-block-document-that-fix.patch
-vmallocinfo-add-numa-information-fix.patch
-hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
-hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
-hugetlb-override-default-huge-page-size-ia64-build.patch
-hugetlb-reservations-fix-hugetlb-map_private-reservations-across-vma-splits-v2-fix.patch
-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-bootmem-add-debugging-framework-fix.patch
-bootmem-clean-up-free_all_bootmem_core-fix.patch
-bootmem-free-reserve-helpers-fix.patch
-revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-v850-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-arm-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mips-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mtd-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fixes.patch
-mmu-notifiers-add-mm_take_all_locks-operation-checkpatch-fixes.patch
-mmu-notifier-core-checkpatch-fixes.patch
-mmu-notifier-core-fix.patch
-mmu-notifier-core-fix-2.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
-security-protect-legacy-applications-from-executing-with-insufficient-privilege-checkpatch-fixes.patch
-swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
-split-the-typecheck-macros-out-of-include-linux-kernelh.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
-remove-apparently-unused-fd1772h-header-file.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
-build-kernel-profileo-only-when-requested-cleanups.patch
-fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
-block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
-seq_file-fix-bug-when-seq_read-reads-nothing-fix.patch
-exec-remove-some-includes-fix.patch
-inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
-flag-parameters-paccept-fix.patch
-flag-parameters-paccept-sys_ni.patch
-flag-parameters-anon_inode_getfd-extension-fix.patch
-flag-parameters-signalfd-fix.patch
-flag-parameters-eventfd-fix.patch
-flag-parameters-inotify_init-fix.patch
-flag-parameters-check-magic-constants-alpha.patch
-spi-au1550_spi-improve-pio-transfer-mode-checkpatch-fixes.patch
-gpio-gpio-driver-for-max7301-spi-gpio-expander-checkpatch-fixes.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch
-drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
-atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
-lcd-add-platform_lcd-driver-fix.patch
-fsl-diu-fb-update-freescale-diu-driver-to-use-page_alloc_exact-fix.patch
-fbdev-add-new-cobalt-lcd-framebuffer-driver-fix.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
-ext3-handle-corrupted-orphan-list-at-mount-cleanup.patch
-ext3-handle-corrupted-orphan-list-at-mount-fix.patch
-ext3-handle-corrupted-orphan-list-at-mount-cleanup-fix.patch
-ext3-handle-deleting-corrupted-indirect-blocks-fix.patch
-jbd-dont-abort-if-flushing-file-data-failed-fix.patch
-reiserfs-convert-j_flush_sem-to-mutex.patch
-reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
-cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-fix.patch
-cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-checkpatch-fixes.patch
-memcg-remove-refcnt-from-page_cgroup-fix-2.patch
-workqueues-make-get_online_cpus-useable-for-work-func-fix.patch
-jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup.patch
-ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
-getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
-edac-mpc85xx-fix-pci-ofdev-2nd-pass-checkpatch-fixes.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-s2io.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
-x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary-checkpatch-fixes.patch
-tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
-memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
-memstick-use-fully-asynchronous-request-processing-fix.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+mm-record-map_noreserve-status-on-vmas-and-fix-small-page-mprotect-reservations.patch
+hugetlb-move-reservation-region-support-earlier.patch
+hugetlb-move-reservation-region-support-earlier-fix.patch
+hugetlb-allow-huge-page-mappings-to-be-created-without-reservations.patch
+hugetlb-allow-huge-page-mappings-to-be-created-without-reservations-cleanups.patch
+hugetlb-reservations-fix-hugetlb-map_private-reservations-across-vma-splits-v2.patch
+vma-page-offset-has-no-callees-drop-it.patch
+hugetlb-fix-race-when-reading-proc-meminfo.patch
+memory-hotplugallocate-usemap-on-the-section-with-pgdat-take-4.patch
+memory-hotplug-small-fixes-to-bootmem-freeing-for-memory-hotremove.patch
+memory-hotplug-dont-calculate-vm_total_pages-twice-when-rebuilding-zonelists-in-online_pages.patch
+checkpatch-version-020.patch
+checkpatch-return-is-not-a-function-parentheses-for-casts-are-ok-too.patch
+checkpatch-types-some-types-may-also-be-identifiers.patch
+checkpatch-add-a-checkpatch-warning-for-new-uses-of-__initcall.patch
+checkpatch-possible-types-__asm__-is-never-a-type.patch
+checkpatch-comment-detection-ignore-macro-continuation-when-detecting-associated-comments.patch
+checkpatch-types-unary-goto-introduces-unary-context.patch
+checkpatch-macros-fix-statement-counting-block-end-detection.patch
+checkpatch-trailing-statement-indent-fix-end-of-statement-location.patch
+checkpatch-allow-printk-strings-to-exceed-80-characters-to-maintain-their-searchability.patch
+checkpatch-switch-report-trailing-statements-on-case-and-default.patch
+checkpatch-check-spacing-for-square-brackets.patch
+checkpatch-toughen-trailing-if-statement-checks-and-extend-them-to-while-and-for.patch
+checkpatch-condition-loop-indent-checks.patch
+checkpatch-usb_free_urb-can-take-null.patch
+checkpatch-correct-spelling-in-kfree-checks.patch
+checkpatch-allow-for-type-modifiers-on-multiple-declarations.patch
+checkpatch-improve-type-matcher-debug.patch
+checkpatch-possible-modifiers-are-not-being-correctly-matched.patch
+checkpatch-macro-complexity-checks-are-meaningless-in-linker-scripts.patch
+checkpatch-handle-return-types-of-pointers-to-functions.patch
+checkpatch-possible-types-known-modifiers-cannot-be-types.patch
+checkpatch-possible-modifiers-handle-multiple-modifiers-and-trailing.patch
+checkpatch-add-checks-for-question-mark-and-colon-spacing.patch
+checkpatch-variants-move-the-main-unary-binary-operators-to-use-variants.patch
+checkpatch-complex-macros-need-to-ignore-comments.patch
+checkpatch-types-cannot-start-mid-word-for-pointer-tests.patch
+checkpatch-version-021.patch
+x86-implement-pte_special.patch
+mm-introduce-get_user_pages_fast.patch
 mm-introduce-get_user_pages_fast-fix.patch
 mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast.patch
 x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
 x86-lockless-get_user_pages_fast-fix.patch
 x86-lockless-get_user_pages_fast-fix-2.patch
 x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
 x86-lockless-get_user_pages_fast-fix-warning.patch
-vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
-define-page_file_cache-function-fix.patch
-unevictable-lru-infrastructure-fix.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-3.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
-vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
-video-console-sticonrec-make-code-static-checkpatch-fixes.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
+dio-use-get_user_pages_fast.patch
+splice-use-get_user_pages_fast.patch
 page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
 
