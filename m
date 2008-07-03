@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fixes.patch added to -mm tree
-Date: Wed, 02 Jul 2008 23:03:37 -0700
-Message-ID: <200807030615.m636Fkc8022913@imap1.linux-foundation.org>
+Subject: + page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mips-fix.patch added to -mm tree
+Date: Wed, 02 Jul 2008 21:15:48 -0700
+Message-ID: <200807030427.m634Rvak019386@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60236 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58211 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755199AbYGCGPt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jul 2008 02:15:49 -0400
+	by vger.kernel.org with ESMTP id S1751242AbYGCE2L (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jul 2008 00:28:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, linux-arch@vger.kernel.org, righi.andrea@gmail.com
+Cc: akpm@linux-foundation.org, ralf@linux-mips.org, righi.andrea@gmail.com
 
 
 The patch titled
-     page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fixes
+     page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mips-fix
 has been added to the -mm tree.  Its filename is
-     page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fixes.patch
+     page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mips-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,40 +33,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fixes
+Subject: page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mips-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: <linux-arch@vger.kernel.org>
+This patch is killing me.
+
+include/linux/sched.h: In function `arch_pick_mmap_layout':
+include/linux/sched.h:2136: error: implicit declaration of function `PAGE_ALIGN'
+
+mips uses PAGE_ALIGN in TASK_UNMAPPED_BASE.
+
+Don't wanna include mm.h from sched.h
+
+Including mm.h from include/asm-mips/processor.h explodes in lots of ways.
+
+Give up and open-code it
+
 Cc: Andrea Righi <righi.andrea@gmail.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/suspend.c    |    1 +
- arch/powerpc/lib/code-patching.c |    1 +
- 2 files changed, 2 insertions(+)
+ include/asm-mips/processor.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/powerpc/kernel/suspend.c~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fixes arch/powerpc/kernel/suspend.c
---- a/arch/powerpc/kernel/suspend.c~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fixes
-+++ a/arch/powerpc/kernel/suspend.c
-@@ -7,6 +7,7 @@
-  * Copyright (c) 2001 Patrick Mochel <mochel@osdl.org>
+diff -puN include/asm-mips/processor.h~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mips-fix include/asm-mips/processor.h
+--- a/include/asm-mips/processor.h~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mips-fix
++++ a/include/asm-mips/processor.h
+@@ -45,7 +45,7 @@ extern unsigned int vced_count, vcei_cou
+  * This decides where the kernel will search for a free chunk of vm
+  * space during mmap's.
   */
+-#define TASK_UNMAPPED_BASE	(PAGE_ALIGN(TASK_SIZE / 3))
++#define TASK_UNMAPPED_BASE	((TASK_SIZE / 3) & ~(PAGE_SIZE))
+ #endif
  
-+#include <linux/mm.h>
- #include <asm/page.h>
- 
- /* References to section boundaries */
-diff -puN arch/powerpc/lib/code-patching.c~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fixes arch/powerpc/lib/code-patching.c
---- a/arch/powerpc/lib/code-patching.c~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fixes
-+++ a/arch/powerpc/lib/code-patching.c
-@@ -10,6 +10,7 @@
- #include <linux/kernel.h>
- #include <linux/vmalloc.h>
- #include <linux/init.h>
-+#include <linux/mm.h>
- #include <asm/page.h>
- #include <asm/code-patching.h>
- 
+ #ifdef CONFIG_64BIT
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -82,7 +84,6 @@ doc-document-the-relax_domain_level-kernel-boot-argument-fix.patch
 revert-introduce-rculisth.patch
 linux-next.patch
 next-remove-localversion.patch
-s390-build-fixes.patch
 linux-next-fixups.patch
 fix-kobject-fix-kobject_rename-and-config_sysfs.patch
 kvm-is-busted-on-ia64.patch
@@ -91,7 +92,6 @@ acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 arch-x86-kernel-smpbootc-fix-warning.patch
 arch-x86-mm-pgtable_32c-remove-unused-variable-fixmaps.patch
 drivers-media-video-cx18-cx18-av-firmwarec-fix-warning.patch
-drivers-media-video-uvc-uvc_v4l2c-suppress-uninitialized-var-warning.patch
 i2c-renesas-highlander-fpga-smbus-support.patch
 tick-schedc-suppress-needless-timer-reprogramming-checkpatch-fixes.patch
 git-jg-misc-git-rejects.patch
@@ -110,8 +110,6 @@ git-unionfs.patch
 git-unionfs-fixup.patch
 git-logfs-fixup.patch
 drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
-drivers-usb-class-cdc-acmc-fix-build-with-config_pm=n.patch
-drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
 watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
 git-xtensa.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
@@ -145,9 +143,6 @@ page_align-correctly-handle-64-bit-values-on-32-bit-architectures-v850-fix.patch
 page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix.patch
 page_align-correctly-handle-64-bit-values-on-32-bit-architectures-arm-fix.patch
 page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mips-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mtd-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fixes.patch
 mmu-notifiers-add-mm_take_all_locks-operation-checkpatch-fixes.patch
 mmu-notifier-core-checkpatch-fixes.patch
 mmu-notifier-core-fix.patch
