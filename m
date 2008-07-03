@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-media-video-uvc-uvc_v4l2c-suppress-uninitialized-var-warning.patch added to -mm tree
-Date: Wed, 02 Jul 2008 21:25:13 -0700
-Message-ID: <200807030437.m634bMO1019699@imap1.linux-foundation.org>
+Subject: + drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch added to -mm tree
+Date: Wed, 02 Jul 2008 22:43:02 -0700
+Message-ID: <200807030555.m635tB9v022230@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55270 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55343 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751715AbYGCEh1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jul 2008 00:37:27 -0400
+	by vger.kernel.org with ESMTP id S1755032AbYGCFzQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jul 2008 01:55:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mchehab@infradead.org
+Cc: akpm@linux-foundation.org, gregkh@suse.de, oneukum@suse.de
 
 
 The patch titled
-     drivers/media/video/uvc/uvc_v4l2.c: suppress uninitialized var warning
+     drivers/usb/class/cdc-wdm.c: fix build with CONFIG_PM=n
 has been added to the -mm tree.  Its filename is
-     drivers-media-video-uvc-uvc_v4l2c-suppress-uninitialized-var-warning.patch
+     drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,31 +33,69 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/media/video/uvc/uvc_v4l2.c: suppress uninitialized var warning
+Subject: drivers/usb/class/cdc-wdm.c: fix build with CONFIG_PM=n
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/media/video/uvc/uvc_v4l2.c: In function `uvc_v4l2_mmap':
-drivers/media/video/uvc/uvc_v4l2.c:1035: warning: 'buffer' might be used uninitialized in this function
-
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Oliver Neukum <oneukum@suse.de>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/uvc/uvc_v4l2.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/usb/class/cdc-wdm.c |   28 +++++++++++++++++-----------
+ 1 file changed, 17 insertions(+), 11 deletions(-)
 
-diff -puN drivers/media/video/uvc/uvc_v4l2.c~drivers-media-video-uvc-uvc_v4l2c-suppress-uninitialized-var-warning drivers/media/video/uvc/uvc_v4l2.c
---- a/drivers/media/video/uvc/uvc_v4l2.c~drivers-media-video-uvc-uvc_v4l2c-suppress-uninitialized-var-warning
-+++ a/drivers/media/video/uvc/uvc_v4l2.c
-@@ -1032,7 +1032,7 @@ static int uvc_v4l2_mmap(struct file *fi
+diff -puN drivers/usb/class/cdc-wdm.c~drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n drivers/usb/class/cdc-wdm.c
+--- a/drivers/usb/class/cdc-wdm.c~drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n
++++ a/drivers/usb/class/cdc-wdm.c
+@@ -742,6 +742,19 @@ static void wdm_disconnect(struct usb_in
+ 	mutex_unlock(&wdm_mutex);
+ }
+ 
++static int recover_from_urb_loss(struct wdm_device *desc)
++{
++	int rv = 0;
++
++	if (desc->count) {
++		rv = usb_submit_urb(desc->validity, GFP_NOIO);
++		if (rv < 0)
++			err("Error resume submitting int urb - %d", rv);
++	}
++	return rv;
++}
++
++#ifdef CONFIG_PM
+ static int wdm_suspend(struct usb_interface *intf, pm_message_t message)
  {
- 	struct video_device *vdev = video_devdata(file);
- 	struct uvc_video_device *video = video_get_drvdata(vdev);
--	struct uvc_buffer *buffer;
-+	struct uvc_buffer *uninitialized_var(buffer);
- 	struct page *page;
- 	unsigned long addr, start, size;
- 	unsigned int i;
+ 	struct wdm_device *desc = usb_get_intfdata(intf);
+@@ -761,17 +774,6 @@ static int wdm_suspend(struct usb_interf
+ 	return rv;
+ }
+ 
+-static int recover_from_urb_loss(struct wdm_device *desc)
+-{
+-	int rv = 0;
+-
+-	if (desc->count) {
+-		rv = usb_submit_urb(desc->validity, GFP_NOIO);
+-		if (rv < 0)
+-			err("Error resume submitting int urb - %d", rv);
+-	}
+-	return rv;
+-}
+ static int wdm_resume(struct usb_interface *intf)
+ {
+ 	struct wdm_device *desc = usb_get_intfdata(intf);
+@@ -783,6 +785,10 @@ static int wdm_resume(struct usb_interfa
+ 	mutex_unlock(&desc->plock);
+ 	return rv;
+ }
++#else
++#define wdm_suspend NULL
++#define wdm_resume NULL
++#endif
+ 
+ static int wdm_pre_reset(struct usb_interface *intf)
+ {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -73,6 +111,7 @@ doc-document-the-relax_domain_level-kernel-boot-argument-fix.patch
 revert-introduce-rculisth.patch
 linux-next.patch
 next-remove-localversion.patch
+s390-build-fixes.patch
 linux-next-fixups.patch
 fix-kobject-fix-kobject_rename-and-config_sysfs.patch
 kvm-is-busted-on-ia64.patch
@@ -81,6 +120,7 @@ acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 arch-x86-kernel-smpbootc-fix-warning.patch
 arch-x86-mm-pgtable_32c-remove-unused-variable-fixmaps.patch
 drivers-media-video-cx18-cx18-av-firmwarec-fix-warning.patch
+drivers-media-video-uvc-uvc_v4l2c-suppress-uninitialized-var-warning.patch
 i2c-renesas-highlander-fpga-smbus-support.patch
 tick-schedc-suppress-needless-timer-reprogramming-checkpatch-fixes.patch
 git-jg-misc-git-rejects.patch
@@ -99,6 +139,7 @@ git-unionfs.patch
 git-unionfs-fixup.patch
 git-logfs-fixup.patch
 drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
+drivers-usb-class-cdc-acmc-fix-build-with-config_pm=n.patch
 watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
 git-xtensa.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
@@ -133,6 +174,7 @@ page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix.pa
 page_align-correctly-handle-64-bit-values-on-32-bit-architectures-arm-fix.patch
 page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mips-fix.patch
 page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mtd-fix.patch
 mmu-notifiers-add-mm_take_all_locks-operation-checkpatch-fixes.patch
 mmu-notifier-core-checkpatch-fixes.patch
 mmu-notifier-core-fix.patch
@@ -236,5 +278,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
-drivers-media-video-uvc-uvc_v4l2c-suppress-uninitialized-var-warning.patch
+drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
 
