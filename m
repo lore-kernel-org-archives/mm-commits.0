@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + gru-driver-v3-driver-initialization-file-vma-ops.patch added to -mm tree
-Date: Thu, 03 Jul 2008 16:08:19 -0700
-Message-ID: <200807032308.m63N8JLn032130@imap1.linux-foundation.org>
+Subject: + gru-driver-v3-kernel-services-provide-by-driver.patch added to -mm tree
+Date: Thu, 03 Jul 2008 16:08:25 -0700
+Message-ID: <200807032308.m63N8Psq032136@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55558 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60668 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756035AbYGCXIW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jul 2008 19:08:22 -0400
+	by vger.kernel.org with ESMTP id S1756142AbYGCXI2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jul 2008 19:08:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: steiner@sgi.com
 
 
 The patch titled
-     GRU Driver: driver initialization, file & vma ops
+     GRU Driver: kernel services provide by driver
 has been added to the -mm tree.  Its filename is
-     gru-driver-v3-driver-initialization-file-vma-ops.patch
+     gru-driver-v3-kernel-services-provide-by-driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,30 +33,27 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: GRU Driver: driver initialization, file & vma ops
+Subject: GRU Driver: kernel services provide by driver
 From: Jack Steiner <steiner@sgi.com>
 
-This file contains the functions for initializing the driver, handling
-file & vma operations and for processing IOCTL requests from the user.
+This file contains functions for handling services provided to other
+kernel modules that use the GRU.
 
 Signed-off-by: Jack Steiner <steiner@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-gru/grufile.c |  481 +++++++++++++++++++++++++++++++
- 1 file changed, 481 insertions(+)
+ drivers/misc/sgi-gru/grukservices.c |  679 ++++++++++++++++++++++++++
+ 1 file changed, 679 insertions(+)
 
-diff -puN /dev/null drivers/misc/sgi-gru/grufile.c
+diff -puN /dev/null drivers/misc/sgi-gru/grukservices.c
 --- /dev/null
-+++ a/drivers/misc/sgi-gru/grufile.c
-@@ -0,0 +1,481 @@
++++ a/drivers/misc/sgi-gru/grukservices.c
+@@ -0,0 +1,679 @@
 +/*
 + * SN Platform GRU Driver
 + *
-+ *              FILE OPERATIONS & DRIVER INITIALIZATION
-+ *
-+ * This file supports the user system call for file open, close, mmap, etc.
-+ * This also incudes the driver initialization code.
++ *              KERNEL SERVICES THAT USE THE GRU
 + *
 + *  Copyright (c) 2008 Silicon Graphics, Inc.  All Rights Reserved.
 + *
@@ -75,462 +72,663 @@ diff -puN /dev/null drivers/misc/sgi-gru/grufile.c
 + *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 + */
 +
-+#include <linux/module.h>
 +#include <linux/kernel.h>
 +#include <linux/errno.h>
 +#include <linux/slab.h>
 +#include <linux/mm.h>
-+#include <linux/io.h>
 +#include <linux/smp_lock.h>
 +#include <linux/spinlock.h>
 +#include <linux/device.h>
 +#include <linux/miscdevice.h>
-+#include <linux/interrupt.h>
 +#include <linux/proc_fs.h>
++#include <linux/interrupt.h>
 +#include <linux/uaccess.h>
 +#include "gru.h"
 +#include "grulib.h"
 +#include "grutables.h"
-+
-+#if defined CONFIG_X86_64
-+#include <asm/genapic.h>
-+#include <asm/irq.h>
-+#define IS_UV()		is_uv_system()
-+#elif defined CONFIG_IA64
-+#include <asm/system.h>
-+#include <asm/sn/simulator.h>
-+/* temp support for running on hardware simulator */
-+#define IS_UV()		IS_MEDUSA() || ia64_platform_is("uv")
-+#else
-+#define IS_UV()		0
-+#endif
-+
++#include "grukservices.h"
++#include "gru_instructions.h"
 +#include <asm/uv/uv_hub.h>
-+#include <asm/uv/uv_mmrs.h>
-+
-+struct gru_blade_state *gru_base[GRU_MAX_BLADES] __read_mostly;
-+unsigned long gru_start_paddr, gru_end_paddr __read_mostly;
-+struct gru_stats_s gru_stats;
-+
-+/* Guaranteed user available resources on each node */
-+static int max_user_cbrs, max_user_dsr_bytes;
-+
-+static struct file_operations gru_fops;
-+static struct miscdevice gru_miscdev;
-+
 +
 +/*
-+ * gru_vma_close
++ * Kernel GRU Usage
 + *
-+ * Called when unmapping a device mapping. Frees all gru resources
-+ * and tables belonging to the vma.
-+ */
-+static void gru_vma_close(struct vm_area_struct *vma)
-+{
-+	struct gru_vma_data *vdata;
-+	struct gru_thread_state *gts;
-+	struct list_head *entry, *next;
-+
-+	if (!vma->vm_private_data)
-+		return;
-+
-+	vdata = vma->vm_private_data;
-+	vma->vm_private_data = NULL;
-+	gru_dbg(grudev, "vma %p, file %p, vdata %p\n", vma, vma->vm_file,
-+				vdata);
-+	list_for_each_safe(entry, next, &vdata->vd_head) {
-+		gts =
-+		    list_entry(entry, struct gru_thread_state, ts_next);
-+		list_del(&gts->ts_next);
-+		mutex_lock(&gts->ts_ctxlock);
-+		if (gts->ts_gru)
-+			gru_unload_context(gts, 0);
-+		mutex_unlock(&gts->ts_ctxlock);
-+		gts_drop(gts);
-+	}
-+	kfree(vdata);
-+	STAT(vdata_free);
-+}
-+
-+/*
-+ * gru_file_mmap
++ * The following is an interim algorithm for management of kernel GRU
++ * resources. This will likely be replaced when we better understand the
++ * kernel/user requirements.
 + *
-+ * Called when mmaping the device.  Initializes the vma with a fault handler
-+ * and private data structure necessary to allocate, track, and free the
-+ * underlying pages.
++ * At boot time, the kernel permanently reserves a fixed number of
++ * CBRs/DSRs for each cpu to use. The resources are all taken from
++ * the GRU chiplet 1 on the blade. This leaves the full set of resources
++ * of chiplet 0 available to be allocated to a single user.
 + */
-+static int gru_file_mmap(struct file *file, struct vm_area_struct *vma)
++
++/* Blade percpu resources PERMANENTLY reserved for kernel use */
++#define GRU_NUM_KERNEL_CBR      1
++#define GRU_NUM_KERNEL_DSR_BYTES 256
++#define KERNEL_CTXNUM           15
++
++/* GRU instruction attributes for all instructions */
++#define IMA			IMA_CB_DELAY
++
++/* GRU cacheline size is always 64 bytes - even on arches with 128 byte lines */
++#define __gru_cacheline_aligned__                               \
++	__attribute__((__aligned__(GRU_CACHE_LINE_BYTES)))
++
++#define MAGIC	0x1234567887654321UL
++
++/* Default retry count for GRU errors on kernel instructions */
++#define EXCEPTION_RETRY_LIMIT	3
++
++/* Status of message queue sections */
++#define MQS_EMPTY		0
++#define MQS_FULL		1
++#define MQS_NOOP		2
++
++/*----------------- RESOURCE MANAGEMENT -------------------------------------*/
++/* optimized for x86_64 */
++struct message_queue {
++	union gru_mesqhead	head __gru_cacheline_aligned__;	/* CL 0 */
++	int			qlines;				/* DW 1 */
++	long 			hstatus[2];
++	void 			*next __gru_cacheline_aligned__;/* CL 1 */
++	void 			*limit;
++	void 			*start;
++	void 			*start2;
++	char			data ____cacheline_aligned;	/* CL 2 */
++};
++
++/* First word in every message - used by mesq interface */
++struct message_header {
++	char	present;
++	char	present2;
++	char 	lines;
++	char	fill;
++};
++
++#define QLINES(mq)	((mq) + offsetof(struct message_queue, qlines))
++#define HSTATUS(mq, h)	((mq) + offsetof(struct message_queue, hstatus[h]))
++
++static int gru_get_cpu_resources(int dsr_bytes, void **cb, void **dsr)
 +{
-+	if ((vma->vm_flags & (VM_SHARED | VM_WRITE)) != (VM_SHARED | VM_WRITE))
-+		return -EPERM;
++	struct gru_blade_state *bs;
++	int lcpu;
 +
-+	vma->vm_flags |=
-+	    (VM_IO | VM_DONTCOPY | VM_LOCKED | VM_DONTEXPAND | VM_PFNMAP |
-+			VM_RESERVED);
-+	vma->vm_page_prot = PAGE_SHARED;
-+	vma->vm_ops = &gru_vm_ops;
-+
-+	vma->vm_private_data = gru_alloc_vma_data(vma, 0);
-+	if (!vma->vm_private_data)
-+		return -ENOMEM;
-+
-+	gru_dbg(grudev, "file %p, vaddr 0x%lx, vma %p, vdata %p\n",
-+		file, vma->vm_start, vma, vma->vm_private_data);
++	BUG_ON(dsr_bytes > GRU_NUM_KERNEL_DSR_BYTES);
++	preempt_disable();
++	bs = gru_base[uv_numa_blade_id()];
++	lcpu = uv_blade_processor_id();
++	*cb = bs->kernel_cb + lcpu * GRU_HANDLE_STRIDE;
++	*dsr = bs->kernel_dsr + lcpu * GRU_NUM_KERNEL_DSR_BYTES;
 +	return 0;
 +}
 +
-+/*
-+ * Create a new GRU context
-+ */
-+static int gru_create_new_context(unsigned long arg)
++static void gru_free_cpu_resources(void *cb, void *dsr)
 +{
-+	struct gru_create_context_req req;
-+	struct vm_area_struct *vma;
-+	struct gru_vma_data *vdata;
-+	int ret = -EINVAL;
++	preempt_enable();
++}
 +
++int gru_get_cb_exception_detail(void *cb,
++		struct control_block_extended_exc_detail *excdet)
++{
++	struct gru_control_block_extended *cbe;
 +
-+	if (copy_from_user(&req, (void __user *)arg, sizeof(req)))
-+		return -EFAULT;
++	cbe = get_cbe(GRUBASE(cb), get_cb_number(cb));
++	excdet->opc = cbe->opccpy;
++	excdet->exopc = cbe->exopccpy;
++	excdet->ecause = cbe->ecause;
++	excdet->exceptdet0 = cbe->idef1upd;
++	excdet->exceptdet1 = cbe->idef3upd;
++	return 0;
++}
 +
-+	if (req.data_segment_bytes == 0 ||
-+				req.data_segment_bytes > max_user_dsr_bytes)
-+		return -EINVAL;
-+	if (!req.control_blocks || !req.maximum_thread_count ||
-+				req.control_blocks > max_user_cbrs)
-+		return -EINVAL;
++char *gru_get_cb_exception_detail_str(int ret, void *cb,
++				      char *buf, int size)
++{
++	struct gru_control_block_status *gen = (void *)cb;
++	struct control_block_extended_exc_detail excdet;
 +
-+	if (!(req.options & GRU_OPT_MISS_MASK))
-+		req.options |= GRU_OPT_MISS_FMM_INTR;
-+
-+	down_write(&current->mm->mmap_sem);
-+	vma = gru_find_vma(req.gseg);
-+	if (vma) {
-+		vdata = vma->vm_private_data;
-+		vdata->vd_user_options = req.options;
-+		vdata->vd_dsr_au_count =
-+		    GRU_DS_BYTES_TO_AU(req.data_segment_bytes);
-+		vdata->vd_cbr_au_count = GRU_CB_COUNT_TO_AU(req.control_blocks);
-+		ret = 0;
++	if (ret > 0 && gen->istatus == CBS_EXCEPTION) {
++		gru_get_cb_exception_detail(cb, &excdet);
++		snprintf(buf, size,
++			"GRU exception: cb %p, opc %d, exopc %d, ecause 0x%x,"
++			"excdet0 0x%lx, excdet1 0x%x",
++			gen, excdet.opc, excdet.exopc, excdet.ecause,
++			excdet.exceptdet0, excdet.exceptdet1);
++	} else {
++		snprintf(buf, size, "No exception");
 +	}
-+	up_write(&current->mm->mmap_sem);
++	return buf;
++}
++
++static int gru_wait_idle_or_exception(struct gru_control_block_status *gen)
++{
++	while (gen->istatus >= CBS_ACTIVE) {
++		cpu_relax();
++		barrier();
++	}
++	return gen->istatus;
++}
++
++static int gru_retry_exception(void *cb)
++{
++	struct gru_control_block_status *gen = (void *)cb;
++	struct control_block_extended_exc_detail excdet;
++	int retry = EXCEPTION_RETRY_LIMIT;
++
++	while (1)  {
++		if (gru_get_cb_message_queue_substatus(cb))
++			break;
++		if (gru_wait_idle_or_exception(gen) == CBS_IDLE)
++			return CBS_IDLE;
++
++		gru_get_cb_exception_detail(cb, &excdet);
++		if (excdet.ecause & ~EXCEPTION_RETRY_BITS)
++			break;
++		if (retry-- == 0)
++			break;
++		gen->icmd = 1;
++		gru_flush_cache(gen);
++	}
++	return CBS_EXCEPTION;
++}
++
++int gru_check_status_proc(void *cb)
++{
++	struct gru_control_block_status *gen = (void *)cb;
++	int ret;
++
++	ret = gen->istatus;
++	if (ret != CBS_EXCEPTION)
++		return ret;
++	return gru_retry_exception(cb);
++
++}
++
++int gru_wait_proc(void *cb)
++{
++	struct gru_control_block_status *gen = (void *)cb;
++	int ret;
++
++	ret = gru_wait_idle_or_exception(gen);
++	if (ret == CBS_EXCEPTION)
++		ret = gru_retry_exception(cb);
 +
 +	return ret;
 +}
 +
-+/*
-+ * Get GRU configuration info (temp - for emulator testing)
-+ */
-+static long gru_get_config_info(unsigned long arg)
++void gru_abort(int ret, void *cb, char *str)
 +{
-+	struct gru_config_info info;
-+	int nodesperblade;
++	char buf[GRU_EXC_STR_SIZE];
 +
-+	if (num_online_nodes() > 1 &&
-+			(uv_node_to_blade_id(1) == uv_node_to_blade_id(0)))
-+		nodesperblade = 2;
-+	else
-+		nodesperblade = 1;
-+	info.cpus = num_online_cpus();
-+	info.nodes = num_online_nodes();
-+	info.blades = info.nodes / nodesperblade;
-+	info.chiplets = GRU_CHIPLETS_PER_BLADE * info.blades;
++	panic("GRU FATAL ERROR: %s - %s\n", str,
++	      gru_get_cb_exception_detail_str(ret, cb, buf, sizeof(buf)));
++}
 +
-+	if (copy_to_user((void __user *)arg, &info, sizeof(info)))
-+		return -EFAULT;
++void gru_wait_abort_proc(void *cb)
++{
++	int ret;
++
++	ret = gru_wait_proc(cb);
++	if (ret)
++		gru_abort(ret, cb, "gru_wait_abort");
++}
++
++
++/*------------------------------ MESSAGE QUEUES -----------------------------*/
++
++/* Internal status . These are NOT returned to the user. */
++#define MQIE_AGAIN		-1	/* try again */
++
++
++/*
++ * Save/restore the "present" flag that is in the second line of 2-line
++ * messages
++ */
++static inline int get_present2(void *p)
++{
++	struct message_header *mhdr = p + GRU_CACHE_LINE_BYTES;
++	return mhdr->present;
++}
++
++static inline void restore_present2(void *p, int val)
++{
++	struct message_header *mhdr = p + GRU_CACHE_LINE_BYTES;
++	mhdr->present = val;
++}
++
++/*
++ * Create a message queue.
++ * 	qlines - message queue size in cache lines. Includes 2-line header.
++ */
++int gru_create_message_queue(void *p, unsigned int bytes)
++{
++	struct message_queue *mq = p;
++	unsigned int qlines;
++
++	qlines = bytes / GRU_CACHE_LINE_BYTES - 2;
++	memset(mq, 0, bytes);
++	mq->start = &mq->data;
++	mq->start2 = &mq->data + (qlines / 2 - 1) * GRU_CACHE_LINE_BYTES;
++	mq->next = &mq->data;
++	mq->limit = &mq->data + (qlines - 2) * GRU_CACHE_LINE_BYTES;
++	mq->qlines = qlines;
++	mq->hstatus[0] = 0;
++	mq->hstatus[1] = 1;
++	mq->head = gru_mesq_head(2, qlines / 2 + 1);
 +	return 0;
 +}
++EXPORT_SYMBOL_GPL(gru_create_message_queue);
 +
 +/*
-+ * Get GRU chiplet status
++ * Send a NOOP message to a message queue
++ * 	Returns:
++ * 		 0 - if queue is full after the send. This is the normal case
++ * 		     but various races can change this.
++ *		-1 - if mesq sent successfully but queue not full
++ *		>0 - unexpected error. MQE_xxx returned
 + */
-+static long gru_get_chiplet_status(unsigned long arg)
++static int send_noop_message(void *cb,
++				unsigned long mq, void *mesg)
 +{
-+	struct gru_state *gru;
-+	struct gru_chiplet_info info;
++	const struct message_header noop_header = {
++					.present = MQS_NOOP, .lines = 1};
++	unsigned long m;
++	int substatus, ret;
++	struct message_header save_mhdr, *mhdr = mesg;
 +
-+	if (copy_from_user(&info, (void __user *)arg, sizeof(info)))
-+		return -EFAULT;
++	STAT(mesq_noop);
++	save_mhdr = *mhdr;
++	*mhdr = noop_header;
++	gru_mesq(cb, mq, gru_get_tri(mhdr), 1, IMA);
++	ret = gru_wait(cb);
 +
-+	if (info.node == -1)
-+		info.node = numa_node_id();
-+	if (info.node >= num_possible_nodes() ||
-+			info.chiplet >= GRU_CHIPLETS_PER_HUB ||
-+			info.node < 0 || info.chiplet < 0)
-+		return -EINVAL;
-+
-+	info.blade = uv_node_to_blade_id(info.node);
-+	gru = get_gru(info.blade, info.chiplet);
-+
-+	info.total_dsr_bytes = GRU_NUM_DSR_BYTES;
-+	info.total_cbr = GRU_NUM_CB;
-+	info.total_user_dsr_bytes = GRU_NUM_DSR_BYTES -
-+		gru->gs_reserved_dsr_bytes;
-+	info.total_user_cbr = GRU_NUM_CB - gru->gs_reserved_cbrs;
-+	info.free_user_dsr_bytes = hweight64(gru->gs_dsr_map) *
-+			GRU_DSR_AU_BYTES;
-+	info.free_user_cbr = hweight64(gru->gs_cbr_map) * GRU_CBR_AU_SIZE;
-+
-+	if (copy_to_user((void __user *)arg, &info, sizeof(info)))
-+		return -EFAULT;
-+	return 0;
-+}
-+
-+/*
-+ * gru_file_unlocked_ioctl
-+ *
-+ * Called to update file attributes via IOCTL calls.
-+ */
-+static long gru_file_unlocked_ioctl(struct file *file, unsigned int req,
-+				    unsigned long arg)
-+{
-+	int err = -EBADRQC;
-+
-+	gru_dbg(grudev, "file %p\n", file);
-+
-+	switch (req) {
-+	case GRU_CREATE_CONTEXT:
-+		err = gru_create_new_context(arg);
-+		break;
-+	case GRU_SET_TASK_SLICE:
-+		err = gru_set_task_slice(arg);
-+		break;
-+	case GRU_USER_GET_EXCEPTION_DETAIL:
-+		err = gru_get_exception_detail(arg);
-+		break;
-+	case GRU_USER_UNLOAD_CONTEXT:
-+		err = gru_user_unload_context(arg);
-+		break;
-+	case GRU_GET_CHIPLET_STATUS:
-+		err = gru_get_chiplet_status(arg);
-+		break;
-+	case GRU_USER_FLUSH_TLB:
-+		err = gru_user_flush_tlb(arg);
-+		break;
-+	case GRU_USER_CALL_OS:
-+		err = gru_handle_user_call_os(arg);
-+		break;
-+	case GRU_GET_CONFIG_INFO:
-+		err = gru_get_config_info(arg);
-+		break;
-+	}
-+	return err;
-+}
-+
-+/*
-+ * Called at init time to build tables for all GRUs that are present in the
-+ * system.
-+ */
-+static void gru_init_chiplet(struct gru_state *gru, unsigned long paddr,
-+			     void *vaddr, int nid, int bid, int grunum)
-+{
-+	spin_lock_init(&gru->gs_lock);
-+	spin_lock_init(&gru->gs_asid_lock);
-+	gru->gs_gru_base_paddr = paddr;
-+	gru->gs_gru_base_vaddr = vaddr;
-+	gru->gs_gid = bid * GRU_CHIPLETS_PER_BLADE + grunum;
-+	gru->gs_blade = gru_base[bid];
-+	gru->gs_blade_id = bid;
-+	gru->gs_cbr_map = (GRU_CBR_AU == 64) ? ~0 : (1UL << GRU_CBR_AU) - 1;
-+	gru->gs_dsr_map = (1UL << GRU_DSR_AU) - 1;
-+	gru_tgh_flush_init(gru);
-+	gru_dbg(grudev, "bid %d, nid %d, gru %x, vaddr %p (0x%lx)\n",
-+		bid, nid, gru->gs_gid, gru->gs_gru_base_vaddr,
-+		gru->gs_gru_base_paddr);
-+	gru_kservices_init(gru);
-+}
-+
-+static int gru_init_tables(unsigned long gru_base_paddr, void *gru_base_vaddr)
-+{
-+	int pnode, nid, bid, chip;
-+	int cbrs, dsrbytes, n;
-+	int order = get_order(sizeof(struct gru_blade_state));
-+	struct page *page;
-+	struct gru_state *gru;
-+	unsigned long paddr;
-+	void *vaddr;
-+
-+	max_user_cbrs = GRU_NUM_CB;
-+	max_user_dsr_bytes = GRU_NUM_DSR_BYTES;
-+	for_each_online_node(nid) {
-+		bid = uv_node_to_blade_id(nid);
-+		pnode = uv_node_to_pnode(nid);
-+		if (gru_base[bid])
-+			continue;
-+		page = alloc_pages_node(nid, GFP_KERNEL, order);
-+		if (!page)
-+			goto fail;
-+		gru_base[bid] = page_address(page);
-+		memset(gru_base[bid], 0, sizeof(struct gru_blade_state));
-+		gru_base[bid]->bs_lru_gru = &gru_base[bid]->bs_grus[0];
-+		spin_lock_init(&gru_base[bid]->bs_lock);
-+
-+		dsrbytes = 0;
-+		cbrs = 0;
-+		for (gru = gru_base[bid]->bs_grus, chip = 0;
-+		     		chip < GRU_CHIPLETS_PER_BLADE;
-+				chip++, gru++) {
-+			paddr = gru_chiplet_paddr(gru_base_paddr, pnode, chip);
-+			vaddr = gru_chiplet_vaddr(gru_base_vaddr, pnode, chip);
-+			gru_init_chiplet(gru, paddr, vaddr, bid, nid, chip);
-+			n = hweight64(gru->gs_cbr_map) * GRU_CBR_AU_SIZE;
-+			cbrs = max(cbrs, n);
-+			n = hweight64(gru->gs_dsr_map) * GRU_DSR_AU_BYTES;
-+			dsrbytes = max(dsrbytes, n);
++	if (ret) {
++		substatus = gru_get_cb_message_queue_substatus(cb);
++		switch (substatus) {
++		case CBSS_NO_ERROR:
++			STAT(mesq_noop_unexpected_error);
++			ret = MQE_UNEXPECTED_CB_ERR;
++			break;
++		case CBSS_LB_OVERFLOWED:
++			STAT(mesq_noop_lb_overflow);
++			ret = MQE_CONGESTION;
++			break;
++		case CBSS_QLIMIT_REACHED:
++			STAT(mesq_noop_qlimit_reached);
++			ret = 0;
++			break;
++		case CBSS_AMO_NACKED:
++			STAT(mesq_noop_amo_nacked);
++			ret = MQE_CONGESTION;
++			break;
++		case CBSS_PUT_NACKED:
++			STAT(mesq_noop_put_nacked);
++			m = mq + (gru_get_amo_value_head(cb) << 6);
++			gru_vstore(cb, m, gru_get_tri(mesg), XTYPE_CL, 1, 1,
++						IMA);
++			if (gru_wait(cb) == CBS_IDLE)
++				ret = MQIE_AGAIN;
++			else
++				ret = MQE_UNEXPECTED_CB_ERR;
++			break;
++		case CBSS_PAGE_OVERFLOW:
++		default:
++			BUG();
 +		}
-+		max_user_cbrs = min(max_user_cbrs, cbrs);
-+		max_user_dsr_bytes = min(max_user_dsr_bytes, dsrbytes);
++	}
++	*mhdr = save_mhdr;
++	return ret;
++}
++
++/*
++ * Handle a gru_mesq full.
++ */
++static int send_message_queue_full(void *cb,
++			   unsigned long mq, void *mesg, int lines)
++{
++	union gru_mesqhead mqh;
++	unsigned int limit, head;
++	unsigned long avalue;
++	int half, qlines, save;
++
++	/* Determine if switching to first/second half of q */
++	avalue = gru_get_amo_value(cb);
++	head = gru_get_amo_value_head(cb);
++	limit = gru_get_amo_value_limit(cb);
++
++	/*
++	 * Fetch "qlines" from the queue header. Since the queue may be
++	 * in memory that can't be accessed using socket addresses, use
++	 * the GRU to access the data. Use DSR space from the message.
++	 */
++	save = *(int *)mesg;
++	gru_vload(cb, QLINES(mq), gru_get_tri(mesg), XTYPE_W, 1, 1, IMA);
++	if (gru_wait(cb) != CBS_IDLE)
++		goto cberr;
++	qlines = *(int *)mesg;
++	*(int *)mesg = save;
++	half = (limit != qlines);
++
++	if (half)
++		mqh = gru_mesq_head(qlines / 2 + 1, qlines);
++	else
++		mqh = gru_mesq_head(2, qlines / 2 + 1);
++
++	/* Try to get lock for switching head pointer */
++	gru_gamir(cb, EOP_IR_CLR, HSTATUS(mq, half), XTYPE_DW, IMA);
++	if (gru_wait(cb) != CBS_IDLE)
++		goto cberr;
++	if (!gru_get_amo_value(cb)) {
++		STAT(mesq_qf_locked);
++		return MQE_QUEUE_FULL;
++	}
++
++	/* Got the lock. Send optional NOP if queue not full, */
++	if (head != limit) {
++		if (send_noop_message(cb, mq, mesg)) {
++			gru_gamir(cb, EOP_IR_INC, HSTATUS(mq, half),
++					XTYPE_DW, IMA);
++			if (gru_wait(cb) != CBS_IDLE)
++				goto cberr;
++			STAT(mesq_qf_noop_not_full);
++			return MQIE_AGAIN;
++		}
++		avalue++;
++	}
++
++	/* Then flip queuehead to other half of queue. */
++	gru_gamer(cb, EOP_ERR_CSWAP, mq, XTYPE_DW, mqh.val, avalue, IMA);
++	if (gru_wait(cb) != CBS_IDLE)
++		goto cberr;
++
++	/* If not successfully in swapping queue head, clear the hstatus lock */
++	if (gru_get_amo_value(cb) != avalue) {
++		STAT(mesq_qf_switch_head_failed);
++		gru_gamir(cb, EOP_IR_INC, HSTATUS(mq, half), XTYPE_DW, IMA);
++		if (gru_wait(cb) != CBS_IDLE)
++			goto cberr;
++	}
++	return MQIE_AGAIN;
++cberr:
++	STAT(mesq_qf_unexpected_error);
++	return MQE_UNEXPECTED_CB_ERR;
++}
++
++
++/*
++ * Handle a gru_mesq failure. Some of these failures are software recoverable
++ * or retryable.
++ */
++static int send_message_failure(void *cb,
++				unsigned long mq,
++				void *mesg,
++				int lines)
++{
++	int substatus, ret = 0;
++	unsigned long m;
++
++	substatus = gru_get_cb_message_queue_substatus(cb);
++	switch (substatus) {
++	case CBSS_NO_ERROR:
++		STAT(mesq_send_unexpected_error);
++		ret = MQE_UNEXPECTED_CB_ERR;
++		break;
++	case CBSS_LB_OVERFLOWED:
++		STAT(mesq_send_lb_overflow);
++		ret = MQE_CONGESTION;
++		break;
++	case CBSS_QLIMIT_REACHED:
++		STAT(mesq_send_qlimit_reached);
++		ret = send_message_queue_full(cb, mq, mesg, lines);
++		break;
++	case CBSS_AMO_NACKED:
++		STAT(mesq_send_amo_nacked);
++		ret = MQE_CONGESTION;
++		break;
++	case CBSS_PUT_NACKED:
++		STAT(mesq_send_put_nacked);
++		m =mq + (gru_get_amo_value_head(cb) << 6);
++		gru_vstore(cb, m, gru_get_tri(mesg), XTYPE_CL, lines, 1, IMA);
++		if (gru_wait(cb) == CBS_IDLE)
++			ret = MQE_OK;
++		else
++			ret = MQE_UNEXPECTED_CB_ERR;
++		break;
++	default:
++		BUG();
++	}
++	return ret;
++}
++
++/*
++ * Send a message to a message queue
++ * 	cb	GRU control block to use to send message
++ * 	mq	message queue
++ * 	mesg	message. ust be vaddr within a GSEG
++ * 	bytes	message size (<= 2 CL)
++ */
++int gru_send_message_gpa(unsigned long mq, void *mesg, unsigned int bytes)
++{
++	struct message_header *mhdr;
++	void *cb;
++	void *dsr;
++	int istatus, clines, ret;
++
++	STAT(mesq_send);
++	BUG_ON(bytes < sizeof(int) || bytes > 2 * GRU_CACHE_LINE_BYTES);
++
++	clines = (bytes + GRU_CACHE_LINE_BYTES - 1) / GRU_CACHE_LINE_BYTES;
++	if (gru_get_cpu_resources(bytes, &cb, &dsr))
++		return MQE_BUG_NO_RESOURCES;
++	memcpy(dsr, mesg, bytes);
++	mhdr = dsr;
++	mhdr->present = MQS_FULL;
++	mhdr->lines = clines;
++	if (clines == 2) {
++		mhdr->present2 = get_present2(mhdr);
++		restore_present2(mhdr, MQS_FULL);
++	}
++
++	do {
++		ret = MQE_OK;
++		gru_mesq(cb, mq, gru_get_tri(mhdr), clines, IMA);
++		istatus = gru_wait(cb);
++		if (istatus != CBS_IDLE)
++			ret = send_message_failure(cb, mq, dsr, clines);
++	} while (ret == MQIE_AGAIN);
++	gru_free_cpu_resources(cb, dsr);
++
++	if (ret)
++		STAT(mesq_send_failed);
++	return ret;
++}
++EXPORT_SYMBOL_GPL(gru_send_message_gpa);
++
++/*
++ * Advance the receive pointer for the queue to the next message.
++ */
++void gru_free_message(void *rmq, void *mesg)
++{
++	struct message_queue *mq = rmq;
++	struct message_header *mhdr = mq->next;
++	void *next, *pnext;
++	int half = -1;
++	int lines = mhdr->lines;
++
++	if (lines == 2)
++		restore_present2(mhdr, MQS_EMPTY);
++	mhdr->present = MQS_EMPTY;
++
++	pnext = mq->next;
++	next = pnext + GRU_CACHE_LINE_BYTES * lines;
++	if (next == mq->limit) {
++		next = mq->start;
++		half = 1;
++	} else if (pnext < mq->start2 && next >= mq->start2) {
++		half = 0;
++	}
++
++	if (half >= 0)
++		mq->hstatus[half] = 1;
++	mq->next = next;
++}
++EXPORT_SYMBOL_GPL(gru_free_message);
++
++/*
++ * Get next message from message queue. Return NULL if no message
++ * present. User must call next_message() to move to next message.
++ * 	rmq	message queue
++ */
++void *gru_get_next_message(void *rmq)
++{
++	struct message_queue *mq = rmq;
++	struct message_header *mhdr = mq->next;
++	int present = mhdr->present;
++
++	/* skip NOOP messages */
++	STAT(mesq_receive);
++	while (present == MQS_NOOP) {
++		gru_free_message(rmq, mhdr);
++		mhdr = mq->next;
++		present = mhdr->present;
++	}
++
++	/* Wait for both halves of 2 line messages */
++	if (present == MQS_FULL && mhdr->lines == 2 &&
++				get_present2(mhdr) == MQS_EMPTY)
++		present = MQS_EMPTY;
++
++	if (!present) {
++		STAT(mesq_receive_none);
++		return NULL;
++	}
++
++	if (mhdr->lines == 2)
++		restore_present2(mhdr, mhdr->present2);
++
++	return mhdr;
++}
++EXPORT_SYMBOL_GPL(gru_get_next_message);
++
++/* ---------------------- GRU DATA COPY FUNCTIONS ---------------------------*/
++
++/*
++ * Copy a block of data using the GRU resources
++ */
++int gru_copy_gpa(unsigned long dest_gpa, unsigned long src_gpa,
++				unsigned int bytes)
++{
++	void *cb;
++	void *dsr;
++	int ret;
++
++	STAT(copy_gpa);
++	if (gru_get_cpu_resources(GRU_NUM_KERNEL_DSR_BYTES, &cb, &dsr))
++		return MQE_BUG_NO_RESOURCES;
++	gru_bcopy(cb, src_gpa, dest_gpa, gru_get_tri(dsr),
++		  XTYPE_B, bytes, GRU_NUM_KERNEL_DSR_BYTES, IMA);
++	ret = gru_wait(cb);
++	gru_free_cpu_resources(cb, dsr);
++	return ret;
++}
++EXPORT_SYMBOL_GPL(gru_copy_gpa);
++
++/* ------------------- KERNEL QUICKTESTS RUN AT STARTUP ----------------*/
++/* 	Temp - will delete after we gain confidence in the GRU		*/
++static __cacheline_aligned unsigned long word0;
++static __cacheline_aligned unsigned long word1;
++
++static int quicktest(struct gru_state *gru)
++{
++	void *cb;
++	void *ds;
++	unsigned long *p;
++
++	cb = get_gseg_base_address_cb(gru->gs_gru_base_vaddr, KERNEL_CTXNUM, 0);
++	ds = get_gseg_base_address_ds(gru->gs_gru_base_vaddr, KERNEL_CTXNUM, 0);
++	p = ds;
++	word0 = MAGIC;
++
++	gru_vload(cb, uv_gpa(&word0), 0, XTYPE_DW, 1, 1, IMA);
++	if (gru_wait(cb) != CBS_IDLE)
++		BUG();
++
++	if (*(unsigned long *)ds != MAGIC)
++		BUG();
++	gru_vstore(cb, uv_gpa(&word1), 0, XTYPE_DW, 1, 1, IMA);
++	if (gru_wait(cb) != CBS_IDLE)
++		BUG();
++
++	if (word0 != word1 || word0 != MAGIC) {
++		printk
++		    ("GRU quicktest err: gru %d, found 0x%lx, expected 0x%lx\n",
++		     gru->gs_gid, word1, MAGIC);
++		BUG();		/* ZZZ should not be fatal */
 +	}
 +
 +	return 0;
-+
-+fail:
-+	for (nid--; nid >= 0; nid--)
-+		free_pages((unsigned long)gru_base[nid], order);
-+	return -ENOMEM;
 +}
 +
-+#ifdef CONFIG_IA64
 +
-+static int get_base_irq(void)
++int gru_kservices_init(struct gru_state *gru)
 +{
-+	return IRQ_GRU;
-+}
++	struct gru_blade_state *bs;
++	struct gru_context_configuration_handle *cch;
++	unsigned long cbr_map, dsr_map;
++	int err, num, cpus_possible;
 +
-+#elif defined CONFIG_X86_64
-+
-+static void noop(unsigned int irq)
-+{
-+}
-+
-+static struct irq_chip gru_chip = {
-+	.name		= "gru",
-+	.mask		= noop,
-+	.unmask		= noop,
-+	.ack		= noop,
-+};
-+
-+static int get_base_irq(void)
-+{
-+	set_irq_chip(IRQ_GRU, &gru_chip);
-+	set_irq_chip(IRQ_GRU + 1, &gru_chip);
-+	return IRQ_GRU;
-+}
-+#endif
-+
-+/*
-+ * gru_init
-+ *
-+ * Called at boot or module load time to initialize the GRUs.
-+ */
-+static int __init gru_init(void)
-+{
-+	int ret, irq, chip;
-+	char id[10];
-+	void *gru_start_vaddr;
-+
-+	if (!IS_UV())
++	/*
++	 * Currently, resources are reserved ONLY on the second chiplet
++	 * on each blade. This leaves ALL resources on chiplet 0 available
++	 * for user code.
++	 */
++	bs = gru->gs_blade;
++	if (gru != &bs->bs_grus[1])
 +		return 0;
 +
-+#if defined CONFIG_IA64
-+	gru_start_paddr = 0xd000000000UL; /* ZZZZZZZZZZZZZZZZZZZ fixme */
-+#else
-+	gru_start_paddr = uv_read_local_mmr(UVH_RH_GAM_GRU_OVERLAY_CONFIG_MMR) &
-+				0x7fffffffffffUL;
++	cpus_possible = uv_blade_nr_possible_cpus(gru->gs_blade_id);
 +
-+#endif
-+	gru_start_vaddr = __va(gru_start_paddr);
-+	gru_end_paddr = gru_start_paddr + MAX_NUMNODES * GRU_SIZE;
-+	printk(KERN_INFO "GRU space: 0x%lx - 0x%lx\n",
-+	       gru_start_paddr, gru_end_paddr);
-+	irq = get_base_irq();
-+	for (chip = 0; chip < GRU_CHIPLETS_PER_BLADE; chip++) {
-+		ret = request_irq(irq + chip, gru_intr, 0, id, NULL);
-+		if (ret) {
-+			printk(KERN_ERR "%s: request_irq failed\n",
-+			       GRU_DRIVER_ID_STR);
-+			goto exit1;
-+		}
++	num = GRU_NUM_KERNEL_CBR * cpus_possible;
++	cbr_map = reserve_gru_cb_resources(gru, GRU_CB_COUNT_TO_AU(num), NULL);
++	gru->gs_reserved_cbrs += num;
++
++	num = GRU_NUM_KERNEL_DSR_BYTES * cpus_possible;
++	dsr_map = reserve_gru_ds_resources(gru, GRU_DS_BYTES_TO_AU(num), NULL);
++	gru->gs_reserved_dsr_bytes += num;
++
++	gru->gs_active_contexts++;
++	__set_bit(KERNEL_CTXNUM, &gru->gs_context_map);
++	cch = get_cch(gru->gs_gru_base_vaddr, KERNEL_CTXNUM);
++
++	bs->kernel_cb = get_gseg_base_address_cb(gru->gs_gru_base_vaddr,
++					KERNEL_CTXNUM, 0);
++	bs->kernel_dsr = get_gseg_base_address_ds(gru->gs_gru_base_vaddr,
++					KERNEL_CTXNUM, 0);
++
++	lock_cch_handle(cch);
++	cch->tfm_fault_bit_enable = 0;
++	cch->tlb_int_enable = 0;
++	cch->tfm_done_bit_enable = 0;
++	cch->unmap_enable = 1;
++	err = cch_allocate(cch, 0, cbr_map, dsr_map);
++	if (err) {
++		gru_dbg(grudev,
++			"Unable to allocate kernel CCH: gru %d, err %d\n",
++			gru->gs_gid, err);
++		BUG();
 +	}
-+
-+	ret = misc_register(&gru_miscdev);
-+	if (ret) {
-+		printk(KERN_ERR "%s: misc_register failed\n",
-+		       GRU_DRIVER_ID_STR);
-+		goto exit1;
++	if (cch_start(cch)) {
++		gru_dbg(grudev, "Unable to start kernel CCH: gru %d, err %d\n",
++			gru->gs_gid, err);
++		BUG();
 +	}
++	unlock_cch_handle(cch);
 +
-+	ret = gru_proc_init();
-+	if (ret) {
-+		printk(KERN_ERR "%s: proc init failed\n", GRU_DRIVER_ID_STR);
-+		goto exit2;
-+	}
-+
-+	ret = gru_init_tables(gru_start_paddr, gru_start_vaddr);
-+	if (ret) {
-+		printk(KERN_ERR "%s: init tables failed\n", GRU_DRIVER_ID_STR);
-+		goto exit3;
-+	}
-+
-+	printk(KERN_INFO "%s: v%s\n", GRU_DRIVER_ID_STR,
-+	       GRU_DRIVER_VERSION_STR);
++	if (options & GRU_QUICKLOOK)
++		quicktest(gru);
 +	return 0;
-+
-+exit3:
-+	gru_proc_exit();
-+exit2:
-+	misc_deregister(&gru_miscdev);
-+exit1:
-+	for (--chip; chip >= 0; chip--)
-+		free_irq(irq + chip, NULL);
-+	return ret;
-+
 +}
-+
-+static void __exit gru_exit(void)
-+{
-+	int i, bid;
-+	int order = get_order(sizeof(struct gru_state) *
-+			      GRU_CHIPLETS_PER_BLADE);
-+
-+	for (i = 0; i < GRU_CHIPLETS_PER_BLADE; i++)
-+		free_irq(IRQ_GRU + i, NULL);
-+
-+	for (bid = 0; bid < GRU_MAX_BLADES; bid++)
-+		free_pages((unsigned long)gru_base[bid], order);
-+
-+	misc_deregister(&gru_miscdev);
-+	gru_proc_exit();
-+}
-+
-+static struct file_operations gru_fops = {
-+	.owner		= THIS_MODULE,
-+	.unlocked_ioctl	= gru_file_unlocked_ioctl,
-+	.mmap		= gru_file_mmap,
-+};
-+
-+static struct miscdevice gru_miscdev = {
-+	.minor		= MISC_DYNAMIC_MINOR,
-+	.name		= "gru",
-+	.fops		= &gru_fops,
-+};
-+
-+struct vm_operations_struct gru_vm_ops = {
-+	.close		= gru_vma_close,
-+	.fault		= gru_fault,
-+};
-+
-+module_init(gru_init);
-+module_exit(gru_exit);
-+
-+module_param(options, ulong, 0644);
-+MODULE_PARM_DESC(options, "Various debug options");
-+
-+MODULE_AUTHOR("Silicon Graphics, Inc.");
-+MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION(GRU_DRIVER_ID_STR GRU_DRIVER_VERSION_STR);
-+MODULE_VERSION(GRU_DRIVER_VERSION_STR);
-+
 _
 
 Patches currently in -mm which might be from steiner@sgi.com are
