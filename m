@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + exec-remove-some-includes-fix.patch added to -mm tree
-Date: Wed, 02 Jul 2008 18:29:39 -0700
-Message-ID: <200807030141.m631flvh013871@imap1.linux-foundation.org>
+Subject: + s390-build-fixes.patch added to -mm tree
+Date: Wed, 02 Jul 2008 21:45:17 -0700
+Message-ID: <200807030457.m634vQe5020361@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33157 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60376 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752173AbYGCBlx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 21:41:53 -0400
+	by vger.kernel.org with ESMTP id S1752676AbYGCE7P (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jul 2008 00:59:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hugh@veritas.com
+Cc: akpm@linux-foundation.org, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com
 
 
 The patch titled
-     exec-remove-some-includes-fix
+     s390: build fixes
 has been added to the -mm tree.  Its filename is
-     exec-remove-some-includes-fix.patch
+     s390-build-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,32 +33,66 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: exec-remove-some-includes-fix
+Subject: s390: build fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arm:
+In file included from include/asm/pgtable.h:1087,
+                 from include/linux/mm.h:39,
+                 from arch/s390/mm/hugetlbpage.c:8:
+include/asm-generic/pgtable.h: In function '__ptep_modify_prot_start':
+include/asm-generic/pgtable.h:209: error: dereferencing pointer to incomplete type
 
-fs/exec.c: In function `shift_arg_pages':
-fs/exec.c:535: error: implicit declaration of function `lru_add_drain'
-
-Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/asm-generic/pgtable.h |   26 +++++++++-----------------
+ 1 file changed, 9 insertions(+), 17 deletions(-)
 
-diff -puN fs/exec.c~exec-remove-some-includes-fix fs/exec.c
---- a/fs/exec.c~exec-remove-some-includes-fix
-+++ a/fs/exec.c
-@@ -29,6 +29,7 @@
- #include <linux/stat.h>
- #include <linux/fcntl.h>
- #include <linux/smp_lock.h>
-+#Include <linux/swap.h>
- #include <linux/string.h>
- #include <linux/init.h>
- #include <linux/highmem.h>
+diff -puN include/asm-generic/pgtable.h~s390-build-fixes include/asm-generic/pgtable.h
+--- a/include/asm-generic/pgtable.h~s390-build-fixes
++++ a/include/asm-generic/pgtable.h
+@@ -197,17 +197,13 @@ static inline int pmd_none_or_clear_bad(
+ }
+ #endif /* CONFIG_MMU */
+ 
+-static inline pte_t __ptep_modify_prot_start(struct mm_struct *mm,
+-					     unsigned long addr,
+-					     pte_t *ptep)
+-{
+-	/*
+-	 * Get the current pte state, but zero it out to make it
+-	 * non-present, preventing the hardware from asynchronously
+-	 * updating it.
+-	 */
+-	return ptep_get_and_clear(mm, addr, ptep);
+-}
++/*
++ * Get the current pte state, but zero it out to make it
++ * non-present, preventing the hardware from asynchronously
++ * updating it.
++ */
++#define __ptep_modify_prot_start(mm, addr, ptep)	\
++	ptep_get_and_clear(mm, addr, ptep)
+ 
+ static inline void __ptep_modify_prot_commit(struct mm_struct *mm,
+ 					     unsigned long addr,
+@@ -235,12 +231,8 @@ static inline void __ptep_modify_prot_co
+  * queue the update to be done at some later time.  The update must be
+  * actually committed before the pte lock is released, however.
+  */
+-static inline pte_t ptep_modify_prot_start(struct mm_struct *mm,
+-					   unsigned long addr,
+-					   pte_t *ptep)
+-{
+-	return __ptep_modify_prot_start(mm, addr, ptep);
+-}
++#define ptep_modify_prot_start(mm, addr, ptep)		\
++	__ptep_modify_prot_start(mm, addr, ptep)
+ 
+ /*
+  * Commit an update to a pte, leaving any hardware-controlled bits in
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -69,10 +103,12 @@ update-ntfs-help-text-fix.patch
 cgroups-document-the-effect-of-attaching-pid-0-to-a-cgroup-fix.patch
 spi-fix-the-read-path-in-spidev-cleanup.patch
 security-filesystem-capabilities-fix-fragile-setuid-fixup-code-checkpatch-fixes.patch
+net-ipv4-tcpc-needs-linux-scatterlisth.patch
 doc-document-the-relax_domain_level-kernel-boot-argument-fix.patch
 revert-introduce-rculisth.patch
 linux-next.patch
 next-remove-localversion.patch
+s390-build-fixes.patch
 linux-next-fixups.patch
 fix-kobject-fix-kobject_rename-and-config_sysfs.patch
 kvm-is-busted-on-ia64.patch
@@ -81,6 +117,7 @@ acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 arch-x86-kernel-smpbootc-fix-warning.patch
 arch-x86-mm-pgtable_32c-remove-unused-variable-fixmaps.patch
 drivers-media-video-cx18-cx18-av-firmwarec-fix-warning.patch
+drivers-media-video-uvc-uvc_v4l2c-suppress-uninitialized-var-warning.patch
 i2c-renesas-highlander-fpga-smbus-support.patch
 tick-schedc-suppress-needless-timer-reprogramming-checkpatch-fixes.patch
 git-jg-misc-git-rejects.patch
@@ -130,6 +167,9 @@ bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
 page_align-correctly-handle-64-bit-values-on-32-bit-architectures-fix.patch
 page_align-correctly-handle-64-bit-values-on-32-bit-architectures-v850-fix.patch
 page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-arm-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mips-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb.patch
 mmu-notifiers-add-mm_take_all_locks-operation-checkpatch-fixes.patch
 mmu-notifier-core-checkpatch-fixes.patch
 mmu-notifier-core-fix.patch
@@ -165,6 +205,7 @@ gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch
 gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch
 drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
 atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
+lcd-add-platform_lcd-driver-fix.patch
 fsl-diu-fb-update-freescale-diu-driver-to-use-page_alloc_exact-fix.patch
 fbdev-add-new-cobalt-lcd-framebuffer-driver-fix.patch
 jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
@@ -232,5 +273,4 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-arm-fix.patch
 
