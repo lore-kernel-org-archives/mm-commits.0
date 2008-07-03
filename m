@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch added to -mm tree
-Date: Wed, 02 Jul 2008 22:43:02 -0700
-Message-ID: <200807030555.m635tB9v022230@imap1.linux-foundation.org>
+Subject: + git-block-fix-drivers-block-pktcdvdc.patch added to -mm tree
+Date: Thu, 03 Jul 2008 00:47:21 -0700
+Message-ID: <200807030747.m637lLfA026167@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55343 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49241 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755032AbYGCFzQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jul 2008 01:55:16 -0400
+	by vger.kernel.org with ESMTP id S937029AbYGCHss (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jul 2008 03:48:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, gregkh@suse.de, oneukum@suse.de
+Cc: akpm@linux-foundation.org, jens.axboe@oracle.com
 
 
 The patch titled
-     drivers/usb/class/cdc-wdm.c: fix build with CONFIG_PM=n
+     git-block: fix drivers/block/pktcdvd.c
 has been added to the -mm tree.  Its filename is
-     drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
+     git-block-fix-drivers-block-pktcdvdc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,69 +33,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/usb/class/cdc-wdm.c: fix build with CONFIG_PM=n
+Subject: git-block: fix drivers/block/pktcdvd.c
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Oliver Neukum <oneukum@suse.de>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
+drivers/block/pktcdvd.c: In function 'pkt_init_queue':
+drivers/block/pktcdvd.c:2664: warning: passing argument 2 of 'blk_queue_merge_bvec' from incompatible pointer type
+
+it will crash...
+
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/class/cdc-wdm.c |   28 +++++++++++++++++-----------
- 1 file changed, 17 insertions(+), 11 deletions(-)
+ drivers/block/pktcdvd.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN drivers/usb/class/cdc-wdm.c~drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n drivers/usb/class/cdc-wdm.c
---- a/drivers/usb/class/cdc-wdm.c~drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n
-+++ a/drivers/usb/class/cdc-wdm.c
-@@ -742,6 +742,19 @@ static void wdm_disconnect(struct usb_in
- 	mutex_unlock(&wdm_mutex);
- }
+diff -puN drivers/block/pktcdvd.c~git-block-fix-drivers-block-pktcdvdc drivers/block/pktcdvd.c
+--- a/drivers/block/pktcdvd.c~git-block-fix-drivers-block-pktcdvdc
++++ a/drivers/block/pktcdvd.c
+@@ -2635,11 +2635,12 @@ end_io:
  
-+static int recover_from_urb_loss(struct wdm_device *desc)
-+{
-+	int rv = 0;
-+
-+	if (desc->count) {
-+		rv = usb_submit_urb(desc->validity, GFP_NOIO);
-+		if (rv < 0)
-+			err("Error resume submitting int urb - %d", rv);
-+	}
-+	return rv;
-+}
-+
-+#ifdef CONFIG_PM
- static int wdm_suspend(struct usb_interface *intf, pm_message_t message)
- {
- 	struct wdm_device *desc = usb_get_intfdata(intf);
-@@ -761,17 +774,6 @@ static int wdm_suspend(struct usb_interf
- 	return rv;
- }
  
--static int recover_from_urb_loss(struct wdm_device *desc)
--{
--	int rv = 0;
--
--	if (desc->count) {
--		rv = usb_submit_urb(desc->validity, GFP_NOIO);
--		if (rv < 0)
--			err("Error resume submitting int urb - %d", rv);
--	}
--	return rv;
--}
- static int wdm_resume(struct usb_interface *intf)
- {
- 	struct wdm_device *desc = usb_get_intfdata(intf);
-@@ -783,6 +785,10 @@ static int wdm_resume(struct usb_interfa
- 	mutex_unlock(&desc->plock);
- 	return rv;
- }
-+#else
-+#define wdm_suspend NULL
-+#define wdm_resume NULL
-+#endif
  
- static int wdm_pre_reset(struct usb_interface *intf)
+-static int pkt_merge_bvec(struct request_queue *q, struct bio *bio, struct bio_vec *bvec)
++static int pkt_merge_bvec(struct request_queue *q, struct bvec_merge_data *bmd,
++			struct bio_vec *bvec)
  {
+ 	struct pktcdvd_device *pd = q->queuedata;
+-	sector_t zone = ZONE(bio->bi_sector, pd);
+-	int used = ((bio->bi_sector - zone) << 9) + bio->bi_size;
++	sector_t zone = ZONE(bmd->bi_sector, pd);
++	int used = ((bmd->bi_sector - zone) << 9) + bmd->bi_size;
+ 	int remaining = (pd->settings.size << 9) - used;
+ 	int remaining2;
+ 
+@@ -2647,7 +2648,7 @@ static int pkt_merge_bvec(struct request
+ 	 * A bio <= PAGE_SIZE must be allowed. If it crosses a packet
+ 	 * boundary, pkt_make_request() will split the bio.
+ 	 */
+-	remaining2 = PAGE_SIZE - bio->bi_size;
++	remaining2 = PAGE_SIZE - bmd->bi_size;
+ 	remaining = max(remaining, remaining2);
+ 
+ 	BUG_ON(remaining < 0);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -140,6 +120,7 @@ git-unionfs-fixup.patch
 git-logfs-fixup.patch
 drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
 drivers-usb-class-cdc-acmc-fix-build-with-config_pm=n.patch
+drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
 watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
 git-xtensa.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
@@ -175,6 +156,7 @@ page_align-correctly-handle-64-bit-values-on-32-bit-architectures-arm-fix.patch
 page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mips-fix.patch
 page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb.patch
 page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mtd-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fixes.patch
 mmu-notifiers-add-mm_take_all_locks-operation-checkpatch-fixes.patch
 mmu-notifier-core-checkpatch-fixes.patch
 mmu-notifier-core-fix.patch
@@ -239,6 +221,7 @@ dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error-s2io.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac.patch
 dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
 x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary-checkpatch-fixes.patch
 tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
@@ -278,5 +261,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
-drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
+git-block-fix-drivers-block-pktcdvdc.patch
 
