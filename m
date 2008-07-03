@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb.patch added to -mm tree
-Date: Wed, 02 Jul 2008 21:23:50 -0700
-Message-ID: <200807030435.m634ZxUU019593@imap1.linux-foundation.org>
+Subject: + exec-remove-some-includes-fix.patch added to -mm tree
+Date: Wed, 02 Jul 2008 18:34:54 -0700
+Message-ID: <200807030147.m631l3uj014112@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40124 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36494 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751140AbYGCEgB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jul 2008 00:36:01 -0400
+	by vger.kernel.org with ESMTP id S1752258AbYGCBrJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 21:47:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, righi.andrea@gmail.com
+Cc: akpm@linux-foundation.org, hugh@veritas.com
 
 
 The patch titled
-     page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb
+     exec-remove-some-includes-fix
 has been added to the -mm tree.  Its filename is
-     page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb.patch
+     exec-remove-some-includes-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,62 +33,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb
+Subject: exec-remove-some-includes-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/media/video/pvrusb2/pvrusb2-dvb.c: In function `pvr2_dvb_stream_do_start':
-drivers/media/video/pvrusb2/pvrusb2-dvb.c:157: error: implicit declaration of function `PAGE_ALIGN'
+arm:
 
-Cc: Andrea Righi <righi.andrea@gmail.com>
+fs/exec.c: In function `shift_arg_pages':
+fs/exec.c:535: error: implicit declaration of function `lru_add_drain'
+
+Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/pvrusb2/pvrusb2-dvb.c |    1 +
+ fs/exec.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN arch/powerpc/boot/page.h~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb arch/powerpc/boot/page.h
-diff -puN arch/sparc64/kernel/iommu_common.h~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb arch/sparc64/kernel/iommu_common.h
-diff -puN drivers/char/random.c~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb drivers/char/random.c
-diff -puN drivers/media/video/pvrusb2/pvrusb2-ioread.c~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb drivers/media/video/pvrusb2/pvrusb2-ioread.c
-diff -puN drivers/media/video/videobuf-core.c~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb drivers/media/video/videobuf-core.c
-diff -puN drivers/pci/intel-iommu.h~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb drivers/pci/intel-iommu.h
-diff -puN include/asm-alpha/page.h~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb include/asm-alpha/page.h
-diff -puN include/asm-arm/page-nommu.h~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb include/asm-arm/page-nommu.h
-diff -puN include/asm-arm/page.h~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb include/asm-arm/page.h
-diff -puN include/asm-avr32/page.h~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb include/asm-avr32/page.h
-diff -puN include/asm-blackfin/page.h~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb include/asm-blackfin/page.h
-diff -puN include/asm-cris/page.h~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb include/asm-cris/page.h
-diff -puN include/asm-frv/page.h~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb include/asm-frv/page.h
-diff -puN include/asm-h8300/page.h~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb include/asm-h8300/page.h
-diff -puN include/asm-ia64/page.h~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb include/asm-ia64/page.h
-diff -puN include/asm-m32r/page.h~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb include/asm-m32r/page.h
-diff -puN include/asm-m68k/dvma.h~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb include/asm-m68k/dvma.h
-diff -puN include/asm-m68k/page.h~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb include/asm-m68k/page.h
-diff -puN include/asm-m68knommu/page.h~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb include/asm-m68knommu/page.h
-diff -puN include/asm-mips/page.h~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb include/asm-mips/page.h
-diff -puN include/asm-mn10300/page.h~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb include/asm-mn10300/page.h
-diff -puN include/asm-parisc/page.h~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb include/asm-parisc/page.h
-diff -puN include/asm-powerpc/page.h~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb include/asm-powerpc/page.h
-diff -puN include/asm-s390/page.h~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb include/asm-s390/page.h
-diff -puN include/asm-sh/page.h~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb include/asm-sh/page.h
-diff -puN include/asm-sparc/page.h~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb include/asm-sparc/page.h
-diff -puN include/asm-sparc64/page.h~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb include/asm-sparc64/page.h
-diff -puN include/asm-um/page.h~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb include/asm-um/page.h
-diff -puN include/asm-x86/page.h~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb include/asm-x86/page.h
-diff -puN include/asm-xtensa/page.h~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb include/asm-xtensa/page.h
-diff -puN include/linux/mm.h~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb include/linux/mm.h
-diff -puN sound/core/info.c~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb sound/core/info.c
-diff -puN drivers/media/video/pvrusb2/pvrusb2-dvb.c~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb drivers/media/video/pvrusb2/pvrusb2-dvb.c
---- a/drivers/media/video/pvrusb2/pvrusb2-dvb.c~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb
-+++ a/drivers/media/video/pvrusb2/pvrusb2-dvb.c
-@@ -20,6 +20,7 @@
- 
- #include <linux/kthread.h>
- #include <linux/freezer.h>
-+#include <linux/mm.h>
- #include "dvbdev.h"
- #include "pvrusb2-debug.h"
- #include "pvrusb2-hdw-internal.h"
+diff -puN fs/exec.c~exec-remove-some-includes-fix fs/exec.c
+--- a/fs/exec.c~exec-remove-some-includes-fix
++++ a/fs/exec.c
+@@ -29,6 +29,7 @@
+ #include <linux/stat.h>
+ #include <linux/fcntl.h>
+ #include <linux/smp_lock.h>
++#include <linux/swap.h>
+ #include <linux/string.h>
+ #include <linux/init.h>
+ #include <linux/highmem.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -99,7 +69,6 @@ update-ntfs-help-text-fix.patch
 cgroups-document-the-effect-of-attaching-pid-0-to-a-cgroup-fix.patch
 spi-fix-the-read-path-in-spidev-cleanup.patch
 security-filesystem-capabilities-fix-fragile-setuid-fixup-code-checkpatch-fixes.patch
-net-ipv4-tcpc-needs-linux-scatterlisth.patch
 doc-document-the-relax_domain_level-kernel-boot-argument-fix.patch
 revert-introduce-rculisth.patch
 linux-next.patch
@@ -162,8 +131,6 @@ page_align-correctly-handle-64-bit-values-on-32-bit-architectures-fix.patch
 page_align-correctly-handle-64-bit-values-on-32-bit-architectures-v850-fix.patch
 page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix.patch
 page_align-correctly-handle-64-bit-values-on-32-bit-architectures-arm-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mips-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb.patch
 mmu-notifiers-add-mm_take_all_locks-operation-checkpatch-fixes.patch
 mmu-notifier-core-checkpatch-fixes.patch
 mmu-notifier-core-fix.patch
@@ -199,7 +166,6 @@ gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch
 gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch
 drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
 atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
-lcd-add-platform_lcd-driver-fix.patch
 fsl-diu-fb-update-freescale-diu-driver-to-use-page_alloc_exact-fix.patch
 fbdev-add-new-cobalt-lcd-framebuffer-driver-fix.patch
 jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
