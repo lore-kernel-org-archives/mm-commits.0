@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + exec-remove-some-includes-fix.patch added to -mm tree
-Date: Wed, 02 Jul 2008 18:34:54 -0700
-Message-ID: <200807030147.m631l3uj014112@imap1.linux-foundation.org>
+Subject: + dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac.patch added to -mm tree
+Date: Wed, 02 Jul 2008 23:24:07 -0700
+Message-ID: <200807030636.m636aG3n023582@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36494 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58739 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752258AbYGCBrJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 21:47:09 -0400
+	by vger.kernel.org with ESMTP id S1755351AbYGCGg1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jul 2008 02:36:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hugh@veritas.com
+Cc: akpm@linux-foundation.org, benh@kernel.crashing.org, fujita.tomonori@lab.ntt.co.jp, paulus@samba.org
 
 
 The patch titled
-     exec-remove-some-includes-fix
+     dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac
 has been added to the -mm tree.  Its filename is
-     exec-remove-some-includes-fix.patch
+     dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,32 +33,50 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: exec-remove-some-includes-fix
+Subject: dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arm:
+Is this right?
 
-fs/exec.c: In function `shift_arg_pages':
-fs/exec.c:535: error: implicit declaration of function `lru_add_drain'
-
-Cc: Hugh Dickins <hugh@veritas.com>
+Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/net/pasemi_mac.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/exec.c~exec-remove-some-includes-fix fs/exec.c
---- a/fs/exec.c~exec-remove-some-includes-fix
-+++ a/fs/exec.c
-@@ -29,6 +29,7 @@
- #include <linux/stat.h>
- #include <linux/fcntl.h>
- #include <linux/smp_lock.h>
-+#include <linux/swap.h>
- #include <linux/string.h>
- #include <linux/init.h>
- #include <linux/highmem.h>
+diff -puN drivers/net/pasemi_mac.c~dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac drivers/net/pasemi_mac.c
+--- a/drivers/net/pasemi_mac.c~dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac
++++ a/drivers/net/pasemi_mac.c
+@@ -650,7 +650,7 @@ static void pasemi_mac_replenish_rx_ring
+ 				     mac->bufsz - LOCAL_SKB_ALIGN,
+ 				     PCI_DMA_FROMDEVICE);
+ 
+-		if (unlikely(mac->dma_pdev, dma_mapping_error(dma))) {
++		if (unlikely(pci_dma_mapping_error(mac->dma_pdev, dma))) {
+ 			dev_kfree_skb_irq(info->skb);
+ 			break;
+ 		}
+@@ -1519,7 +1519,7 @@ static int pasemi_mac_start_tx(struct sk
+ 	map[0] = pci_map_single(mac->dma_pdev, skb->data, skb_headlen(skb),
+ 				PCI_DMA_TODEVICE);
+ 	map_size[0] = skb_headlen(skb);
+-	if (dma_mapping_error(mac->dma_pdev, map[0]))
++	if (pci_dma_mapping_error(mac->dma_pdev, map[0]))
+ 		goto out_err_nolock;
+ 
+ 	for (i = 0; i < nfrags; i++) {
+@@ -1529,7 +1529,7 @@ static int pasemi_mac_start_tx(struct sk
+ 					frag->page_offset, frag->size,
+ 					PCI_DMA_TODEVICE);
+ 		map_size[i+1] = frag->size;
+-		if (dma_mapping_error(mac->dma_pdev, map[i+1])) {
++		if (pci_dma_mapping_error(mac->dma_pdev, map[i+1])) {
+ 			nfrags = i;
+ 			goto out_err_nolock;
+ 		}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -69,10 +87,12 @@ update-ntfs-help-text-fix.patch
 cgroups-document-the-effect-of-attaching-pid-0-to-a-cgroup-fix.patch
 spi-fix-the-read-path-in-spidev-cleanup.patch
 security-filesystem-capabilities-fix-fragile-setuid-fixup-code-checkpatch-fixes.patch
+net-ipv4-tcpc-needs-linux-scatterlisth.patch
 doc-document-the-relax_domain_level-kernel-boot-argument-fix.patch
 revert-introduce-rculisth.patch
 linux-next.patch
 next-remove-localversion.patch
+s390-build-fixes.patch
 linux-next-fixups.patch
 fix-kobject-fix-kobject_rename-and-config_sysfs.patch
 kvm-is-busted-on-ia64.patch
@@ -81,6 +101,7 @@ acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 arch-x86-kernel-smpbootc-fix-warning.patch
 arch-x86-mm-pgtable_32c-remove-unused-variable-fixmaps.patch
 drivers-media-video-cx18-cx18-av-firmwarec-fix-warning.patch
+drivers-media-video-uvc-uvc_v4l2c-suppress-uninitialized-var-warning.patch
 i2c-renesas-highlander-fpga-smbus-support.patch
 tick-schedc-suppress-needless-timer-reprogramming-checkpatch-fixes.patch
 git-jg-misc-git-rejects.patch
@@ -99,6 +120,8 @@ git-unionfs.patch
 git-unionfs-fixup.patch
 git-logfs-fixup.patch
 drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
+drivers-usb-class-cdc-acmc-fix-build-with-config_pm=n.patch
+drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
 watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
 git-xtensa.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
@@ -131,6 +154,10 @@ page_align-correctly-handle-64-bit-values-on-32-bit-architectures-fix.patch
 page_align-correctly-handle-64-bit-values-on-32-bit-architectures-v850-fix.patch
 page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix.patch
 page_align-correctly-handle-64-bit-values-on-32-bit-architectures-arm-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mips-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mtd-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fixes.patch
 mmu-notifiers-add-mm_take_all_locks-operation-checkpatch-fixes.patch
 mmu-notifier-core-checkpatch-fixes.patch
 mmu-notifier-core-fix.patch
@@ -166,6 +193,7 @@ gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch
 gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch
 drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
 atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
+lcd-add-platform_lcd-driver-fix.patch
 fsl-diu-fb-update-freescale-diu-driver-to-use-page_alloc_exact-fix.patch
 fbdev-add-new-cobalt-lcd-framebuffer-driver-fix.patch
 jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
@@ -194,6 +222,7 @@ dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error-s2io.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac.patch
 dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
 x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary-checkpatch-fixes.patch
 tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
