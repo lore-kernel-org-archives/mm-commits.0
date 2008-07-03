@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac.patch added to -mm tree
-Date: Wed, 02 Jul 2008 23:24:07 -0700
-Message-ID: <200807030636.m636aG3n023582@imap1.linux-foundation.org>
+Subject: + lcd-add-platform_lcd-driver-fix.patch added to -mm tree
+Date: Wed, 02 Jul 2008 21:00:55 -0700
+Message-ID: <200807030413.m634D4ok018885@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58739 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50781 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755351AbYGCGg1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jul 2008 02:36:27 -0400
+	by vger.kernel.org with ESMTP id S1750915AbYGCENn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jul 2008 00:13:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, benh@kernel.crashing.org, fujita.tomonori@lab.ntt.co.jp, paulus@samba.org
+Cc: akpm@linux-foundation.org, ben-linux@fluff.org
 
 
 The patch titled
-     dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac
+     lcd-add-platform_lcd-driver-fix
 has been added to the -mm tree.  Its filename is
-     dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac.patch
+     lcd-add-platform_lcd-driver-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,50 +33,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac
+Subject: lcd-add-platform_lcd-driver-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Is this right?
+drivers/video/backlight/platform_lcd.c:153: error: 'platform_lcd_suspend' undeclared here (not in a function)
+drivers/video/backlight/platform_lcd.c:154: error: 'platform_lcd_resume' undeclared here (not in a function)
 
-Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Ben Dooks <ben-linux@fluff.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/pasemi_mac.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/video/backlight/platform_lcd.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/net/pasemi_mac.c~dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac drivers/net/pasemi_mac.c
---- a/drivers/net/pasemi_mac.c~dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac
-+++ a/drivers/net/pasemi_mac.c
-@@ -650,7 +650,7 @@ static void pasemi_mac_replenish_rx_ring
- 				     mac->bufsz - LOCAL_SKB_ALIGN,
- 				     PCI_DMA_FROMDEVICE);
+diff -puN drivers/video/backlight/platform_lcd.c~lcd-add-platform_lcd-driver-fix drivers/video/backlight/platform_lcd.c
+--- a/drivers/video/backlight/platform_lcd.c~lcd-add-platform_lcd-driver-fix
++++ a/drivers/video/backlight/platform_lcd.c
+@@ -139,8 +139,8 @@ static int platform_lcd_resume(struct pl
+ 	return 0;
+ }
+ #else
+-#define s3c2410bl_suspend NULL
+-#define s3c2410bl_resume  NULL
++#define platform_lcd_suspend NULL
++#define platform_lcd_resume NULL
+ #endif
  
--		if (unlikely(mac->dma_pdev, dma_mapping_error(dma))) {
-+		if (unlikely(pci_dma_mapping_error(mac->dma_pdev, dma))) {
- 			dev_kfree_skb_irq(info->skb);
- 			break;
- 		}
-@@ -1519,7 +1519,7 @@ static int pasemi_mac_start_tx(struct sk
- 	map[0] = pci_map_single(mac->dma_pdev, skb->data, skb_headlen(skb),
- 				PCI_DMA_TODEVICE);
- 	map_size[0] = skb_headlen(skb);
--	if (dma_mapping_error(mac->dma_pdev, map[0]))
-+	if (pci_dma_mapping_error(mac->dma_pdev, map[0]))
- 		goto out_err_nolock;
- 
- 	for (i = 0; i < nfrags; i++) {
-@@ -1529,7 +1529,7 @@ static int pasemi_mac_start_tx(struct sk
- 					frag->page_offset, frag->size,
- 					PCI_DMA_TODEVICE);
- 		map_size[i+1] = frag->size;
--		if (dma_mapping_error(mac->dma_pdev, map[i+1])) {
-+		if (pci_dma_mapping_error(mac->dma_pdev, map[i+1])) {
- 			nfrags = i;
- 			goto out_err_nolock;
- 		}
+ static struct platform_driver platform_lcd_driver = {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -92,7 +75,6 @@ doc-document-the-relax_domain_level-kernel-boot-argument-fix.patch
 revert-introduce-rculisth.patch
 linux-next.patch
 next-remove-localversion.patch
-s390-build-fixes.patch
 linux-next-fixups.patch
 fix-kobject-fix-kobject_rename-and-config_sysfs.patch
 kvm-is-busted-on-ia64.patch
@@ -101,7 +83,6 @@ acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 arch-x86-kernel-smpbootc-fix-warning.patch
 arch-x86-mm-pgtable_32c-remove-unused-variable-fixmaps.patch
 drivers-media-video-cx18-cx18-av-firmwarec-fix-warning.patch
-drivers-media-video-uvc-uvc_v4l2c-suppress-uninitialized-var-warning.patch
 i2c-renesas-highlander-fpga-smbus-support.patch
 tick-schedc-suppress-needless-timer-reprogramming-checkpatch-fixes.patch
 git-jg-misc-git-rejects.patch
@@ -120,8 +101,6 @@ git-unionfs.patch
 git-unionfs-fixup.patch
 git-logfs-fixup.patch
 drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
-drivers-usb-class-cdc-acmc-fix-build-with-config_pm=n.patch
-drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
 watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
 git-xtensa.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
@@ -154,10 +133,6 @@ page_align-correctly-handle-64-bit-values-on-32-bit-architectures-fix.patch
 page_align-correctly-handle-64-bit-values-on-32-bit-architectures-v850-fix.patch
 page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix.patch
 page_align-correctly-handle-64-bit-values-on-32-bit-architectures-arm-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mips-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mtd-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fixes.patch
 mmu-notifiers-add-mm_take_all_locks-operation-checkpatch-fixes.patch
 mmu-notifier-core-checkpatch-fixes.patch
 mmu-notifier-core-fix.patch
@@ -222,7 +197,6 @@ dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error-s2io.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac.patch
 dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
 x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary-checkpatch-fixes.patch
 tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
