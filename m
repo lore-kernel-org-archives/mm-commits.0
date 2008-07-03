@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + gru-driver-v3-resource-management.patch added to -mm tree
-Date: Thu, 03 Jul 2008 16:08:28 -0700
-Message-ID: <200807032308.m63N8S4C032139@imap1.linux-foundation.org>
+Subject: + gru-driver-v3-proc-interfaces.patch added to -mm tree
+Date: Thu, 03 Jul 2008 16:08:31 -0700
+Message-ID: <200807032308.m63N8VDn032142@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46508 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34610 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756143AbYGCXIc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jul 2008 19:08:32 -0400
+	by vger.kernel.org with ESMTP id S1756110AbYGCXIe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jul 2008 19:08:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: steiner@sgi.com
 
 
 The patch titled
-     GRU Driver: resource management
+     GRU Driver: /proc interfaces
 has been added to the -mm tree.  Its filename is
-     gru-driver-v3-resource-management.patch
+     gru-driver-v3-proc-interfaces.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,822 +33,359 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: GRU Driver: resource management
+Subject: GRU Driver: /proc interfaces
 From: Jack Steiner <steiner@sgi.com>
 
-This file contains functions realted to managing GRU resources provided to
-the user.  Examples include GRU context assignment, load, unload,
-migration, etc..
+This file externalizes some GRU state & statistics to the user using the
+/proc file system.
 
 Signed-off-by: Jack Steiner <steiner@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-gru/grumain.c |  798 +++++++++++++++++++++++++++++++
- 1 file changed, 798 insertions(+)
+ drivers/misc/sgi-gru/gruprocfs.c |  336 +++++++++++++++++++++++++++++
+ 1 file changed, 336 insertions(+)
 
-diff -puN /dev/null drivers/misc/sgi-gru/grumain.c
+diff -puN /dev/null drivers/misc/sgi-gru/gruprocfs.c
 --- /dev/null
-+++ a/drivers/misc/sgi-gru/grumain.c
-@@ -0,0 +1,798 @@
++++ a/drivers/misc/sgi-gru/gruprocfs.c
+@@ -0,0 +1,336 @@
 +/*
 + * SN Platform GRU Driver
 + *
-+ *            DRIVER TABLE MANAGER + GRU CONTEXT LOAD/UNLOAD
++ *              PROC INTERFACES
 + *
-+ * This file is subject to the terms and conditions of the GNU General Public
-+ * License.  See the file "COPYING" in the main directory of this archive
-+ * for more details.
++ * This file supports the /proc interfaces for the GRU driver
 + *
-+ * Copyright (c) 2008 Silicon Graphics, Inc.  All Rights Reserved.
++ *  Copyright (c) 2008 Silicon Graphics, Inc.  All Rights Reserved.
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or
++ *  (at your option) any later version.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with this program; if not, write to the Free Software
++ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 + */
 +
-+#include <linux/kernel.h>
-+#include <linux/slab.h>
-+#include <linux/mm.h>
-+#include <linux/spinlock.h>
-+#include <linux/sched.h>
++#include <linux/proc_fs.h>
 +#include <linux/device.h>
-+#include <linux/list.h>
-+#include <asm/uv/uv_hub.h>
++#include <linux/seq_file.h>
++#include <linux/uaccess.h>
 +#include "gru.h"
++#include "grulib.h"
 +#include "grutables.h"
-+#include "gruhandles.h"
 +
-+unsigned long options __read_mostly;
++#define printstat(s, f)		printstat_val(s, &gru_stats.f, #f)
 +
-+static struct device_driver gru_driver = {
-+	.name = "gru"
-+};
-+
-+static struct device gru_device = {
-+	.bus_id = {0},
-+	.driver = &gru_driver,
-+};
-+
-+struct device *grudev = &gru_device;
-+
-+/*
-+ * Select a gru fault map to be used by the current cpu. Note that
-+ * multiple cpus may be using the same map.
-+ *	ZZZ should "shift" be used?? Depends on HT cpu numbering
-+ *	ZZZ should be inline but did not work on emulator
-+ */
-+int gru_cpu_fault_map_id(void)
++static void printstat_val(struct seq_file *s, atomic_long_t *v, char *id)
 +{
-+	return uv_blade_processor_id() % GRU_NUM_TFM;
++	unsigned long val = atomic_long_read(v);
++
++	if (val)
++		seq_printf(s, "%16lu %s\n", val, id);
 +}
 +
-+/*--------- ASID Management -------------------------------------------
-+ *
-+ *  Initially, assign asids sequentially from MIN_ASID .. MAX_ASID.
-+ *  Once MAX is reached, flush the TLB & start over. However,
-+ *  some asids may still be in use. There won't be many (percentage wise) still
-+ *  in use. Search active contexts & determine the value of the first
-+ *  asid in use ("x"s below). Set "limit" to this value.
-+ *  This defines a block of assignable asids.
-+ *
-+ *  When "limit" is reached, search forward from limit+1 and determine the
-+ *  next block of assignable asids.
-+ *
-+ *  Repeat until MAX_ASID is reached, then start over again.
-+ *
-+ *  Each time MAX_ASID is reached, increment the asid generation. Since
-+ *  the search for in-use asids only checks contexts with GRUs currently
-+ *  assigned, asids in some contexts will be missed. Prior to loading
-+ *  a context, the asid generation of the GTS asid is rechecked. If it
-+ *  doesn't match the current generation, a new asid will be assigned.
-+ *
-+ *   	0---------------x------------x---------------------x----|
-+ *	  ^-next	^-limit	   				^-MAX_ASID
-+ *
-+ * All asid manipulation & context loading/unloading is protected by the
-+ * gs_lock.
-+ */
-+
-+/* Hit the asid limit. Start over */
-+static int gru_wrap_asid(struct gru_state *gru)
++static int statistics_show(struct seq_file *s, void *p)
 +{
-+	gru_dbg(grudev, "gru %p\n", gru);
-+	STAT(asid_wrap);
-+	gru->gs_asid_gen++;
-+	gru_flush_all_tlb(gru);
-+	return MIN_ASID;
++	printstat(s, vdata_alloc);
++	printstat(s, vdata_free);
++	printstat(s, gts_alloc);
++	printstat(s, gts_free);
++	printstat(s, vdata_double_alloc);
++	printstat(s, gts_double_allocate);
++	printstat(s, assign_context);
++	printstat(s, assign_context_failed);
++	printstat(s, free_context);
++	printstat(s, load_context);
++	printstat(s, unload_context);
++	printstat(s, steal_context);
++	printstat(s, steal_context_failed);
++	printstat(s, nopfn);
++	printstat(s, break_cow);
++	printstat(s, asid_new);
++	printstat(s, asid_next);
++	printstat(s, asid_wrap);
++	printstat(s, asid_reuse);
++	printstat(s, intr);
++	printstat(s, call_os);
++	printstat(s, call_os_check_for_bug);
++	printstat(s, call_os_wait_queue);
++	printstat(s, user_flush_tlb);
++	printstat(s, user_unload_context);
++	printstat(s, user_exception);
++	printstat(s, set_task_slice);
++	printstat(s, migrate_check);
++	printstat(s, migrated_retarget);
++	printstat(s, migrated_unload);
++	printstat(s, migrated_unload_delay);
++	printstat(s, migrated_nopfn_retarget);
++	printstat(s, migrated_nopfn_unload);
++	printstat(s, tlb_dropin);
++	printstat(s, tlb_dropin_fail_no_asid);
++	printstat(s, tlb_dropin_fail_upm);
++	printstat(s, tlb_dropin_fail_invalid);
++	printstat(s, tlb_dropin_fail_range_active);
++	printstat(s, tlb_dropin_fail_idle);
++	printstat(s, tlb_dropin_fail_fmm);
++	printstat(s, mmu_invalidate_range);
++	printstat(s, mmu_invalidate_page);
++	printstat(s, mmu_clear_flush_young);
++	printstat(s, flush_tlb);
++	printstat(s, flush_tlb_gru);
++	printstat(s, flush_tlb_gru_tgh);
++	printstat(s, flush_tlb_gru_zero_asid);
++	printstat(s, copy_gpa);
++	printstat(s, mesq_receive);
++	printstat(s, mesq_receive_none);
++	printstat(s, mesq_send);
++	printstat(s, mesq_send_failed);
++	printstat(s, mesq_noop);
++	printstat(s, mesq_send_unexpected_error);
++	printstat(s, mesq_send_lb_overflow);
++	printstat(s, mesq_send_qlimit_reached);
++	printstat(s, mesq_send_amo_nacked);
++	printstat(s, mesq_send_put_nacked);
++	printstat(s, mesq_qf_not_full);
++	printstat(s, mesq_qf_locked);
++	printstat(s, mesq_qf_noop_not_full);
++	printstat(s, mesq_qf_switch_head_failed);
++	printstat(s, mesq_qf_unexpected_error);
++	printstat(s, mesq_noop_unexpected_error);
++	printstat(s, mesq_noop_lb_overflow);
++	printstat(s, mesq_noop_qlimit_reached);
++	printstat(s, mesq_noop_amo_nacked);
++	printstat(s, mesq_noop_put_nacked);
++	return 0;
 +}
 +
-+/* Find the next chunk of unused asids */
-+static int gru_reset_asid_limit(struct gru_state *gru, int asid)
++static ssize_t statistics_write(struct file *file, const char __user *userbuf,
++				size_t count, loff_t *data)
 +{
-+	int i, gid, inuse_asid, limit;
++	memset(&gru_stats, 0, sizeof(gru_stats));
++	return count;
++}
 +
-+	gru_dbg(grudev, "gru %p, asid 0x%x\n", gru, asid);
-+	STAT(asid_next);
-+	limit = MAX_ASID;
-+	if (asid >= limit)
-+		asid = gru_wrap_asid(gru);
-+	gid = gru->gs_gid;
-+again:
-+	for (i = 0; i < GRU_NUM_CCH; i++) {
-+		if (!gru->gs_gts[i])
-+			continue;
-+		inuse_asid = gru->gs_gts[i]->ts_gms->ms_asids[gid].mt_asid;
-+		gru_dbg(grudev, "gru %p, inuse_asid 0x%x, cxtnum %d, gts %p\n",
-+			gru, inuse_asid, i, gru->gs_gts[i]);
-+		if (inuse_asid == asid) {
-+			asid += ASID_INC;
-+			if (asid >= limit) {
-+				/*
-+				 * empty range: reset the range limit and
-+				 * start over
-+				 */
-+				limit = MAX_ASID;
-+				if (asid >= MAX_ASID)
-+					asid = gru_wrap_asid(gru);
-+				goto again;
-+			}
++static int options_show(struct seq_file *s, void *p)
++{
++	seq_printf(s, "0x%lx\n", options);
++	return 0;
++}
++
++static ssize_t options_write(struct file *file, const char __user *userbuf,
++			     size_t count, loff_t *data)
++{
++	unsigned long val;
++	char buf[80];
++
++	if (copy_from_user
++	    (buf, userbuf, count < sizeof(buf) ? count : sizeof(buf)))
++		return -EFAULT;
++	if (!strict_strtoul(buf, 10, &val))
++		options = val;
++
++	return count;
++}
++
++static int cch_seq_show(struct seq_file *file, void *data)
++{
++	long gid = *(long *)data;
++	int i;
++	struct gru_state *gru = GID_TO_GRU(gid);
++	struct gru_thread_state *ts;
++	const char *mode[] = { "??", "UPM", "INTR", "OS_POLL" };
++
++	if (gid == 0)
++		seq_printf(file, "#%5s%5s%6s%9s%6s%8s%8s\n", "gid", "bid",
++			   "ctx#", "pid", "cbrs", "dsbytes", "mode");
++	if (gru)
++		for (i = 0; i < GRU_NUM_CCH; i++) {
++			ts = gru->gs_gts[i];
++			if (!ts)
++				continue;
++			seq_printf(file, " %5d%5d%6d%9d%6d%8d%8s\n",
++				   gru->gs_gid, gru->gs_blade_id, i,
++				   ts->ts_tgid_owner,
++				   ts->ts_cbr_au_count * GRU_CBR_AU_SIZE,
++				   ts->ts_cbr_au_count * GRU_DSR_AU_BYTES,
++				   mode[ts->ts_user_options &
++					GRU_OPT_MISS_MASK]);
 +		}
 +
-+		if ((inuse_asid > asid) && (inuse_asid < limit))
-+			limit = inuse_asid;
++	return 0;
++}
++
++static int gru_seq_show(struct seq_file *file, void *data)
++{
++	long gid = *(long *)data, ctxfree, cbrfree, dsrfree;
++	struct gru_state *gru = GID_TO_GRU(gid);
++
++	if (gid == 0) {
++		seq_printf(file, "#%5s%5s%7s%6s%6s%8s%6s%6s\n", "gid", "nid",
++			   "ctx", "cbr", "dsr", "ctx", "cbr", "dsr");
++		seq_printf(file, "#%5s%5s%7s%6s%6s%8s%6s%6s\n", "", "", "busy",
++			   "busy", "busy", "free", "free", "free");
 +	}
-+	gru->gs_asid_limit = limit;
-+	gru->gs_asid = asid;
-+	gru_dbg(grudev, "gru %p, new asid 0x%x, new_limit 0x%x\n", gru, asid,
-+		limit);
-+	return asid;
-+}
-+
-+/* Assign a new ASID to a thread context.  */
-+static int gru_assign_asid(struct gru_state *gru)
-+{
-+	int asid;
-+
-+	spin_lock(&gru->gs_asid_lock);
-+	gru->gs_asid += ASID_INC;
-+	asid = gru->gs_asid;
-+	if (asid >= gru->gs_asid_limit)
-+		asid = gru_reset_asid_limit(gru, asid);
-+	spin_unlock(&gru->gs_asid_lock);
-+
-+	gru_dbg(grudev, "gru %p, asid 0x%x\n", gru, asid);
-+	return asid;
-+}
-+
-+/*
-+ * Clear n bits in a word. Return a word indicating the bits that were cleared.
-+ * Optionally, build an array of chars that contain the bit numbers allocated.
-+ */
-+static unsigned long reserve_resources(unsigned long *p, int n, int mmax,
-+				       char *idx)
-+{
-+	unsigned long bits = 0;
-+	int i;
-+
-+	do {
-+		i = find_first_bit(p, mmax);
-+		if (i == mmax)
-+			BUG();
-+		__clear_bit(i, p);
-+		__set_bit(i, &bits);
-+		if (idx)
-+			*idx++ = i;
-+	} while (--n);
-+	return bits;
-+}
-+
-+unsigned long reserve_gru_cb_resources(struct gru_state *gru, int cbr_au_count,
-+				       char *cbmap)
-+{
-+	return reserve_resources(&gru->gs_cbr_map, cbr_au_count, GRU_CBR_AU,
-+				 cbmap);
-+}
-+
-+unsigned long reserve_gru_ds_resources(struct gru_state *gru, int dsr_au_count,
-+				       char *dsmap)
-+{
-+	return reserve_resources(&gru->gs_dsr_map, dsr_au_count, GRU_DSR_AU,
-+				 dsmap);
-+}
-+
-+static void reserve_gru_resources(struct gru_state *gru,
-+				  struct gru_thread_state *gts)
-+{
-+	gru->gs_active_contexts++;
-+	gts->ts_cbr_map =
-+	    reserve_gru_cb_resources(gru, gts->ts_cbr_au_count,
-+				     gts->ts_cbr_idx);
-+	gts->ts_dsr_map =
-+	    reserve_gru_ds_resources(gru, gts->ts_dsr_au_count, NULL);
-+}
-+
-+static void free_gru_resources(struct gru_state *gru,
-+			       struct gru_thread_state *gts)
-+{
-+	gru->gs_active_contexts--;
-+	gru->gs_cbr_map |= gts->ts_cbr_map;
-+	gru->gs_dsr_map |= gts->ts_dsr_map;
-+}
-+
-+/*
-+ * Check if a GRU has sufficient free resources to satisfy an allocation
-+ * request. Note: GRU locks may or may not be held when this is called. If
-+ * not held, recheck after acquiring the appropriate locks.
-+ *
-+ * Returns 1 if sufficient resources, 0 if not
-+ */
-+static int check_gru_resources(struct gru_state *gru, int cbr_au_count,
-+			       int dsr_au_count, int max_active_contexts)
-+{
-+	return hweight64(gru->gs_cbr_map) >= cbr_au_count
-+		&& hweight64(gru->gs_dsr_map) >= dsr_au_count
-+		&& gru->gs_active_contexts < max_active_contexts;
-+}
-+
-+/*
-+ * TLB manangment requires tracking all GRU chiplets that have loaded a GSEG
-+ * context.
-+ */
-+static int gru_load_mm_tracker(struct gru_state *gru, struct gru_mm_struct *gms,
-+			       int ctxnum)
-+{
-+	struct gru_mm_tracker *asids = &gms->ms_asids[gru->gs_gid];
-+	unsigned short ctxbitmap = (1 << ctxnum);
-+	int asid;
-+
-+	spin_lock(&gms->ms_asid_lock);
-+	asid = asids->mt_asid;
-+
-+	if (asid == 0 || asids->mt_asid_gen != gru->gs_asid_gen) {
-+		asid = gru_assign_asid(gru);
-+		asids->mt_asid = asid;
-+		asids->mt_asid_gen = gru->gs_asid_gen;
-+		STAT(asid_new);
-+	} else {
-+		STAT(asid_reuse);
++	if (gru) {
++		ctxfree = GRU_NUM_CCH - gru->gs_active_contexts;
++		cbrfree = hweight64(gru->gs_cbr_map) * GRU_CBR_AU_SIZE;
++		dsrfree = hweight64(gru->gs_dsr_map) * GRU_DSR_AU_BYTES;
++		seq_printf(file, " %5d%5d%7ld%6ld%6ld%8ld%6ld%6ld\n",
++			   gru->gs_gid, gru->gs_blade_id, GRU_NUM_CCH - ctxfree,
++			   GRU_NUM_CBE - cbrfree, GRU_NUM_DSR_BYTES - dsrfree,
++			   ctxfree, cbrfree, dsrfree);
 +	}
 +
-+	BUG_ON(asids->mt_ctxbitmap & ctxbitmap);
-+	asids->mt_ctxbitmap |= ctxbitmap;
-+	if (!test_bit(gru->gs_gid, gms->ms_asidmap))
-+		__set_bit(gru->gs_gid, gms->ms_asidmap);
-+	spin_unlock(&gms->ms_asid_lock);
-+
-+	gru_dbg(grudev,
-+		"gru %x, gms %p, ctxnum 0x%d, asid 0x%x, asidmap 0x%lx\n",
-+		gru->gs_gid, gms, ctxnum, asid, gms->ms_asidmap[0]);
-+	return asid;
++	return 0;
 +}
 +
-+static void gru_unload_mm_tracker(struct gru_state *gru,
-+				  struct gru_mm_struct *gms, int ctxnum)
++static void seq_stop(struct seq_file *file, void *data)
 +{
-+	struct gru_mm_tracker *asids;
-+	unsigned short ctxbitmap;
-+
-+	asids = &gms->ms_asids[gru->gs_gid];
-+	ctxbitmap = (1 << ctxnum);
-+	spin_lock(&gms->ms_asid_lock);
-+	BUG_ON((asids->mt_ctxbitmap & ctxbitmap) != ctxbitmap);
-+	asids->mt_ctxbitmap ^= ctxbitmap;
-+	gru_dbg(grudev, "gru %x, gms %p, ctxnum 0x%d, asidmap 0x%lx\n",
-+		gru->gs_gid, gms, ctxnum, gms->ms_asidmap[0]);
-+	spin_unlock(&gms->ms_asid_lock);
 +}
 +
-+/*
-+ * Decrement the reference count on a GTS structure. Free the structure
-+ * if the reference count goes to zero.
-+ */
-+void gts_drop(struct gru_thread_state *gts)
++static void *seq_start(struct seq_file *file, loff_t *gid)
 +{
-+	if (gts && atomic_dec_return(&gts->ts_refcnt) == 0) {
-+		gru_drop_mmu_notifier(gts->ts_gms);
-+		kfree(gts);
-+		STAT(gts_free);
-+	}
-+}
-+
-+/*
-+ * Locate the GTS structure for the current thread.
-+ */
-+static struct gru_thread_state *gru_find_current_gts_nolock(struct gru_vma_data
-+			    *vdata, int tsid)
-+{
-+	struct gru_thread_state *gts;
-+
-+	list_for_each_entry(gts, &vdata->vd_head, ts_next)
-+	    if (gts->ts_tsid == tsid)
-+		return gts;
++	if (*gid < GRU_MAX_GRUS)
++		return gid;
 +	return NULL;
 +}
 +
-+/*
-+ * Allocate a thread state structure.
-+ */
-+static struct gru_thread_state *gru_alloc_gts(struct vm_area_struct *vma,
-+					      struct gru_vma_data *vdata,
-+					      int tsid)
++static void *seq_next(struct seq_file *file, void *data, loff_t *gid)
 +{
-+	struct gru_thread_state *gts;
-+	int bytes;
++	(*gid)++;
++	if (*gid < GRU_MAX_GRUS)
++		return gid;
++	return NULL;
++}
 +
-+	bytes = DSR_BYTES(vdata->vd_dsr_au_count) +
-+				CBR_BYTES(vdata->vd_cbr_au_count);
-+	bytes += sizeof(struct gru_thread_state);
-+	gts = kzalloc(bytes, GFP_KERNEL);
-+	if (!gts)
-+		return NULL;
++static const struct seq_operations cch_seq_ops = {
++	.start	= seq_start,
++	.next	= seq_next,
++	.stop	= seq_stop,
++	.show	= cch_seq_show
++};
 +
-+	STAT(gts_alloc);
-+	atomic_set(&gts->ts_refcnt, 1);
-+	mutex_init(&gts->ts_ctxlock);
-+	gts->ts_cbr_au_count = vdata->vd_cbr_au_count;
-+	gts->ts_dsr_au_count = vdata->vd_dsr_au_count;
-+	gts->ts_user_options = vdata->vd_user_options;
-+	gts->ts_tsid = tsid;
-+	gts->ts_user_options = vdata->vd_user_options;
-+	gts->ts_ctxnum = NULLCTX;
-+	gts->ts_mm = current->mm;
-+	gts->ts_vma = vma;
-+	gts->ts_tlb_int_select = -1;
-+	gts->ts_gms = gru_register_mmu_notifier();
-+	if (!gts->ts_gms)
-+		goto err;
++static const struct seq_operations gru_seq_ops = {
++	.start	= seq_start,
++	.next	= seq_next,
++	.stop	= seq_stop,
++	.show	= gru_seq_show
++};
 +
-+	gru_dbg(grudev, "alloc vdata %p, new gts %p\n", vdata, gts);
-+	return gts;
++static int statistics_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, statistics_show, NULL);
++}
++
++static int options_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, options_show, NULL);
++}
++
++static int cch_open(struct inode *inode, struct file *file)
++{
++	return seq_open(file, &cch_seq_ops);
++}
++
++static int gru_open(struct inode *inode, struct file *file)
++{
++	return seq_open(file, &gru_seq_ops);
++}
++
++/* *INDENT-OFF* */
++static const struct file_operations statistics_fops = {
++	.open 		= statistics_open,
++	.read 		= seq_read,
++	.write 		= statistics_write,
++	.llseek 	= seq_lseek,
++	.release 	= single_release,
++};
++
++static const struct file_operations options_fops = {
++	.open 		= options_open,
++	.read 		= seq_read,
++	.write 		= options_write,
++	.llseek 	= seq_lseek,
++	.release 	= single_release,
++};
++
++static const struct file_operations cch_fops = {
++	.open 		= cch_open,
++	.read 		= seq_read,
++	.llseek 	= seq_lseek,
++	.release 	= seq_release,
++};
++static const struct file_operations gru_fops = {
++	.open 		= gru_open,
++	.read 		= seq_read,
++	.llseek 	= seq_lseek,
++	.release 	= seq_release,
++};
++
++static struct proc_entry {
++	char *name;
++	int mode;
++	const struct file_operations *fops;
++	struct proc_dir_entry *entry;
++} proc_files[] = {
++	{"statistics", 0644, &statistics_fops},
++	{"debug_options", 0644, &options_fops},
++	{"cch_status", 0444, &cch_fops},
++	{"gru_status", 0444, &gru_fops},
++	{NULL}
++};
++/* *INDENT-ON* */
++
++static struct proc_dir_entry *proc_gru __read_mostly;
++
++static int create_proc_file(struct proc_entry *p)
++{
++	p->entry = create_proc_entry(p->name, p->mode, proc_gru);
++	if (!p->entry)
++		return -1;
++	p->entry->proc_fops = p->fops;
++	return 0;
++}
++
++static void delete_proc_files(void)
++{
++	struct proc_entry *p;
++
++	if (proc_gru) {
++		for (p = proc_files; p->name; p++)
++			if (p->entry)
++				remove_proc_entry(p->name, proc_gru);
++		remove_proc_entry("gru", NULL);
++	}
++}
++
++int gru_proc_init(void)
++{
++	struct proc_entry *p;
++
++	proc_mkdir("sgi_uv", NULL);
++	proc_gru = proc_mkdir("sgi_uv/gru", NULL);
++
++	for (p = proc_files; p->name; p++)
++		if (create_proc_file(p))
++			goto err;
++	return 0;
 +
 +err:
-+	gts_drop(gts);
-+	return NULL;
++	delete_proc_files();
++	return -1;
 +}
 +
-+/*
-+ * Allocate a vma private data structure.
-+ */
-+struct gru_vma_data *gru_alloc_vma_data(struct vm_area_struct *vma, int tsid)
++void gru_proc_exit(void)
 +{
-+	struct gru_vma_data *vdata = NULL;
-+
-+	vdata = kmalloc(sizeof(*vdata), GFP_KERNEL);
-+	if (!vdata)
-+		return NULL;
-+
-+	INIT_LIST_HEAD(&vdata->vd_head);
-+	spin_lock_init(&vdata->vd_lock);
-+	gru_dbg(grudev, "alloc vdata %p\n", vdata);
-+	return vdata;
++	delete_proc_files();
 +}
-+
-+/*
-+ * Find the thread state structure for the current thread.
-+ */
-+struct gru_thread_state *gru_find_thread_state(struct vm_area_struct *vma,
-+					int tsid)
-+{
-+	struct gru_vma_data *vdata = vma->vm_private_data;
-+	struct gru_thread_state *gts;
-+
-+	spin_lock(&vdata->vd_lock);
-+	gts = gru_find_current_gts_nolock(vdata, tsid);
-+	spin_unlock(&vdata->vd_lock);
-+	gru_dbg(grudev, "vma %p, gts %p\n", vma, gts);
-+	return gts;
-+}
-+
-+/*
-+ * Allocate a new thread state for a GSEG. Note that races may allow
-+ * another thread to race to create a gts.
-+ */
-+struct gru_thread_state *gru_alloc_thread_state(struct vm_area_struct *vma,
-+					int tsid)
-+{
-+	struct gru_vma_data *vdata = vma->vm_private_data;
-+	struct gru_thread_state *gts, *ngts;
-+
-+	gts = gru_alloc_gts(vma, vdata, tsid);
-+	if (!gts)
-+		return NULL;
-+
-+	spin_lock(&vdata->vd_lock);
-+	ngts = gru_find_current_gts_nolock(vdata, tsid);
-+	if (ngts) {
-+		gts_drop(gts);
-+		gts = ngts;
-+		STAT(gts_double_allocate);
-+	} else {
-+		list_add(&gts->ts_next, &vdata->vd_head);
-+	}
-+	spin_unlock(&vdata->vd_lock);
-+	gru_dbg(grudev, "vma %p, gts %p\n", vma, gts);
-+	return gts;
-+}
-+
-+/*
-+ * Free the GRU context assigned to the thread state.
-+ */
-+static void gru_free_gru_context(struct gru_thread_state *gts)
-+{
-+	struct gru_state *gru;
-+
-+	gru = gts->ts_gru;
-+	gru_dbg(grudev, "gts %p, gru %p\n", gts, gru);
-+
-+	spin_lock(&gru->gs_lock);
-+	gru->gs_gts[gts->ts_ctxnum] = NULL;
-+	free_gru_resources(gru, gts);
-+	BUG_ON(test_bit(gts->ts_ctxnum, &gru->gs_context_map) == 0);
-+	__clear_bit(gts->ts_ctxnum, &gru->gs_context_map);
-+	gts->ts_ctxnum = NULLCTX;
-+	gts->ts_gru = NULL;
-+	spin_unlock(&gru->gs_lock);
-+
-+	gts_drop(gts);
-+	STAT(free_context);
-+}
-+
-+/*
-+ * Prefetching cachelines help hardware performance.
-+ */
-+static void prefetch_data(void *p, int num, int stride)
-+{
-+	while (num-- > 0) {
-+		prefetchw(p);
-+		p += stride;
-+	}
-+}
-+
-+static inline long gru_copy_handle(void *d, void *s)
-+{
-+	memcpy(d, s, GRU_HANDLE_BYTES);
-+	return GRU_HANDLE_BYTES;
-+}
-+
-+/* rewrite in assembly & use lots of prefetch */
-+static void gru_load_context_data(void *save, void *grubase, int ctxnum,
-+				  unsigned long cbrmap, unsigned long dsrmap)
-+{
-+	void *gseg, *cb, *cbe;
-+	unsigned long length;
-+	int i, scr;
-+
-+	gseg = grubase + ctxnum * GRU_GSEG_STRIDE;
-+	length = hweight64(dsrmap) * GRU_DSR_AU_BYTES;
-+	prefetch_data(gseg + GRU_DS_BASE, length / GRU_CACHE_LINE_BYTES,
-+		      GRU_CACHE_LINE_BYTES);
-+
-+	cb = gseg + GRU_CB_BASE;
-+	cbe = grubase + GRU_CBE_BASE;
-+	for_each_cbr_in_allocation_map(i, &cbrmap, scr) {
-+		prefetch_data(cb, 1, GRU_CACHE_LINE_BYTES);
-+		prefetch_data(cbe + i * GRU_HANDLE_STRIDE, 1,
-+			      GRU_CACHE_LINE_BYTES);
-+		cb += GRU_HANDLE_STRIDE;
-+	}
-+
-+	cb = gseg + GRU_CB_BASE;
-+	for_each_cbr_in_allocation_map(i, &cbrmap, scr) {
-+		save += gru_copy_handle(cb, save);
-+		save += gru_copy_handle(cbe + i * GRU_HANDLE_STRIDE, save);
-+		cb += GRU_HANDLE_STRIDE;
-+	}
-+
-+	memcpy(gseg + GRU_DS_BASE, save, length);
-+}
-+
-+static void gru_unload_context_data(void *save, void *grubase, int ctxnum,
-+				    unsigned long cbrmap, unsigned long dsrmap)
-+{
-+	void *gseg, *cb, *cbe;
-+	unsigned long length;
-+	int i, scr;
-+
-+	gseg = grubase + ctxnum * GRU_GSEG_STRIDE;
-+
-+	cb = gseg + GRU_CB_BASE;
-+	cbe = grubase + GRU_CBE_BASE;
-+	for_each_cbr_in_allocation_map(i, &cbrmap, scr) {
-+		save += gru_copy_handle(save, cb);
-+		save += gru_copy_handle(save, cbe + i * GRU_HANDLE_STRIDE);
-+		cb += GRU_HANDLE_STRIDE;
-+	}
-+	length = hweight64(dsrmap) * GRU_DSR_AU_BYTES;
-+	memcpy(save, gseg + GRU_DS_BASE, length);
-+}
-+
-+void gru_unload_context(struct gru_thread_state *gts, int savestate)
-+{
-+	struct gru_state *gru = gts->ts_gru;
-+	struct gru_context_configuration_handle *cch;
-+	int ctxnum = gts->ts_ctxnum;
-+
-+	zap_page_range(gts->ts_vma, UGRUADDR(gts), GRU_GSEG_PAGESIZE, NULL);
-+	cch = get_cch(gru->gs_gru_base_vaddr, ctxnum);
-+
-+	lock_cch_handle(cch);
-+	if (cch_interrupt_sync(cch))
-+		BUG();
-+	gru_dbg(grudev, "gts %p\n", gts);
-+
-+	gru_unload_mm_tracker(gru, gts->ts_gms, gts->ts_ctxnum);
-+	if (savestate)
-+		gru_unload_context_data(gts->ts_gdata, gru->gs_gru_base_vaddr,
-+					ctxnum, gts->ts_cbr_map,
-+					gts->ts_dsr_map);
-+
-+	if (cch_deallocate(cch))
-+		BUG();
-+	gts->ts_force_unload = 0;	/* ts_force_unload locked by CCH lock */
-+	unlock_cch_handle(cch);
-+
-+	gru_free_gru_context(gts);
-+	STAT(unload_context);
-+}
-+
-+/*
-+ * Load a GRU context by copying it from the thread data structure in memory
-+ * to the GRU.
-+ */
-+static void gru_load_context(struct gru_thread_state *gts)
-+{
-+	struct gru_state *gru = gts->ts_gru;
-+	struct gru_context_configuration_handle *cch;
-+	int err, asid, ctxnum = gts->ts_ctxnum;
-+
-+	gru_dbg(grudev, "gts %p\n", gts);
-+	cch = get_cch(gru->gs_gru_base_vaddr, ctxnum);
-+
-+	lock_cch_handle(cch);
-+	asid = gru_load_mm_tracker(gru, gts->ts_gms, gts->ts_ctxnum);
-+	cch->tfm_fault_bit_enable =
-+	    (gts->ts_user_options == GRU_OPT_MISS_FMM_POLL
-+	     || gts->ts_user_options == GRU_OPT_MISS_FMM_INTR);
-+	cch->tlb_int_enable = (gts->ts_user_options == GRU_OPT_MISS_FMM_INTR);
-+	if (cch->tlb_int_enable) {
-+		gts->ts_tlb_int_select = gru_cpu_fault_map_id();
-+		cch->tlb_int_select = gts->ts_tlb_int_select;
-+	}
-+	cch->tfm_done_bit_enable = 0;
-+	err = cch_allocate(cch, asid, gts->ts_cbr_map, gts->ts_dsr_map);
-+	if (err) {
-+		gru_dbg(grudev,
-+			"err %d: cch %p, gts %p, cbr 0x%lx, dsr 0x%lx\n",
-+			err, cch, gts, gts->ts_cbr_map, gts->ts_dsr_map);
-+		BUG();
-+	}
-+
-+	gru_load_context_data(gts->ts_gdata, gru->gs_gru_base_vaddr, ctxnum,
-+			      gts->ts_cbr_map, gts->ts_dsr_map);
-+
-+	if (cch_start(cch))
-+		BUG();
-+	unlock_cch_handle(cch);
-+
-+	STAT(load_context);
-+}
-+
-+/*
-+ * Update fields in an active CCH:
-+ * 	- retarget interrupts on local blade
-+ * 	- force a delayed context unload by clearing the CCH asids. This
-+ * 	  forces TLB misses for new GRU instructions. The context is unloaded
-+ * 	  when the next TLB miss occurs.
-+ */
-+static int gru_update_cch(struct gru_thread_state *gts, int int_select)
-+{
-+	struct gru_context_configuration_handle *cch;
-+	struct gru_state *gru = gts->ts_gru;
-+	int i, ctxnum = gts->ts_ctxnum, ret = 0;
-+
-+	cch = get_cch(gru->gs_gru_base_vaddr, ctxnum);
-+
-+	lock_cch_handle(cch);
-+	if (cch->state == CCHSTATE_ACTIVE) {
-+		if (gru->gs_gts[gts->ts_ctxnum] != gts)
-+			goto exit;
-+		if (cch_interrupt(cch))
-+			BUG();
-+		if (int_select >= 0) {
-+			gts->ts_tlb_int_select = int_select;
-+			cch->tlb_int_select = int_select;
-+		} else {
-+			for (i = 0; i < 8; i++)
-+				cch->asid[i] = 0;
-+			cch->tfm_fault_bit_enable = 0;
-+			cch->tlb_int_enable = 0;
-+			gts->ts_force_unload = 1;
-+		}
-+		if (cch_start(cch))
-+			BUG();
-+		ret = 1;
-+	}
-+exit:
-+	unlock_cch_handle(cch);
-+	return ret;
-+}
-+
-+/*
-+ * Update CCH tlb interrupt select. Required when all the following is true:
-+ * 	- task's GRU context is loaded into a GRU
-+ * 	- task is using interrupt notification for TLB faults
-+ * 	- task has migrated to a different cpu on the same blade where
-+ * 	  it was previously running.
-+ */
-+static int gru_retarget_intr(struct gru_thread_state *gts)
-+{
-+	if (gts->ts_tlb_int_select < 0
-+	    || gts->ts_tlb_int_select == gru_cpu_fault_map_id())
-+		return 0;
-+
-+	gru_dbg(grudev, "retarget from %d to %d\n", gts->ts_tlb_int_select,
-+		gru_cpu_fault_map_id());
-+	return gru_update_cch(gts, gru_cpu_fault_map_id());
-+}
-+
-+
-+/*
-+ * Insufficient GRU resources available on the local blade. Steal a context from
-+ * a process. This is a hack until a _real_ resource scheduler is written....
-+ */
-+#define next_ctxnum(n)	((n) <  GRU_NUM_CCH - 2 ? (n) + 1 : 0)
-+#define next_gru(b, g)	(((g) < &(b)->bs_grus[GRU_CHIPLETS_PER_BLADE - 1]) ?  \
-+				 ((g)+1) : &(b)->bs_grus[0])
-+
-+static void gru_steal_context(struct gru_thread_state *gts)
-+{
-+	struct gru_blade_state *blade;
-+	struct gru_state *gru, *gru0;
-+	struct gru_thread_state *ngts = NULL;
-+	int ctxnum, ctxnum0, flag = 0, cbr, dsr;
-+
-+	cbr = gts->ts_cbr_au_count;
-+	dsr = gts->ts_dsr_au_count;
-+
-+	preempt_disable();
-+	blade = gru_base[uv_numa_blade_id()];
-+	spin_lock(&blade->bs_lock);
-+
-+	ctxnum = next_ctxnum(blade->bs_lru_ctxnum);
-+	gru = blade->bs_lru_gru;
-+	if (ctxnum == 0)
-+		gru = next_gru(blade, gru);
-+	ctxnum0 = ctxnum;
-+	gru0 = gru;
-+	while (1) {
-+		if (check_gru_resources(gru, cbr, dsr, GRU_NUM_CCH))
-+			break;
-+		spin_lock(&gru->gs_lock);
-+		for (; ctxnum < GRU_NUM_CCH; ctxnum++) {
-+			if (flag && gru == gru0 && ctxnum == ctxnum0)
-+				break;
-+			ngts = gru->gs_gts[ctxnum];
-+			/*
-+			 * We are grabbing locks out of order, so trylock is
-+			 * needed. GTSs are usually not locked, so the odds of
-+			 * success are high. If trylock fails, try to steal a
-+			 * different GSEG.
-+			 */
-+			if (ngts && mutex_trylock(&ngts->ts_ctxlock))
-+				break;
-+			ngts = NULL;
-+			flag = 1;
-+		}
-+		spin_unlock(&gru->gs_lock);
-+		if (ngts || (flag && gru == gru0 && ctxnum == ctxnum0))
-+			break;
-+		ctxnum = 0;
-+		gru = next_gru(blade, gru);
-+	}
-+	blade->bs_lru_gru = gru;
-+	blade->bs_lru_ctxnum = ctxnum;
-+	spin_unlock(&blade->bs_lock);
-+	preempt_enable();
-+
-+	if (ngts) {
-+		STAT(steal_context);
-+		ngts->ts_steal_jiffies = jiffies;
-+		gru_unload_context(ngts, 1);
-+		mutex_unlock(&ngts->ts_ctxlock);
-+	} else {
-+		STAT(steal_context_failed);
-+	}
-+	gru_dbg(grudev,
-+		"stole gru %x, ctxnum %d from gts %p. Need cb %d, ds %d;"
-+		" avail cb %ld, ds %ld\n",
-+		gru->gs_gid, ctxnum, ngts, cbr, dsr, hweight64(gru->gs_cbr_map),
-+		hweight64(gru->gs_dsr_map));
-+}
-+
-+/*
-+ * Scan the GRUs on the local blade & assign a GRU context.
-+ */
-+static struct gru_state *gru_assign_gru_context(struct gru_thread_state *gts)
-+{
-+	struct gru_state *gru, *grux;
-+	int i, max_active_contexts;
-+
-+	preempt_disable();
-+
-+again:
-+	gru = NULL;
-+	max_active_contexts = GRU_NUM_CCH;
-+	for_each_gru_on_blade(grux, uv_numa_blade_id(), i) {
-+		if (check_gru_resources(grux, gts->ts_cbr_au_count,
-+					gts->ts_dsr_au_count,
-+					max_active_contexts)) {
-+			gru = grux;
-+			max_active_contexts = grux->gs_active_contexts;
-+			if (max_active_contexts == 0)
-+				break;
-+		}
-+	}
-+
-+	if (gru) {
-+		spin_lock(&gru->gs_lock);
-+		if (!check_gru_resources(gru, gts->ts_cbr_au_count,
-+					 gts->ts_dsr_au_count, GRU_NUM_CCH)) {
-+			spin_unlock(&gru->gs_lock);
-+			goto again;
-+		}
-+		reserve_gru_resources(gru, gts);
-+		gts->ts_gru = gru;
-+		gts->ts_ctxnum =
-+		    find_first_zero_bit(&gru->gs_context_map, GRU_NUM_CCH);
-+		BUG_ON(gts->ts_ctxnum == GRU_NUM_CCH);
-+		atomic_inc(&gts->ts_refcnt);
-+		gru->gs_gts[gts->ts_ctxnum] = gts;
-+		__set_bit(gts->ts_ctxnum, &gru->gs_context_map);
-+		spin_unlock(&gru->gs_lock);
-+
-+		STAT(assign_context);
-+		gru_dbg(grudev,
-+			"gseg %p, gts %p, gru %x, ctx %d, cbr %d, dsr %d\n",
-+			gseg_virtual_address(gts->ts_gru, gts->ts_ctxnum), gts,
-+			gts->ts_gru->gs_gid, gts->ts_ctxnum,
-+			gts->ts_cbr_au_count, gts->ts_dsr_au_count);
-+	} else {
-+		gru_dbg(grudev, "failed to allocate a GTS %s\n", "");
-+		STAT(assign_context_failed);
-+	}
-+
-+	preempt_enable();
-+	return gru;
-+}
-+
-+/*
-+ * gru_nopage
-+ *
-+ * Map the user's GRU segment
-+ */
-+int gru_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
-+{
-+	struct gru_thread_state *gts;
-+	unsigned long paddr, vaddr;
-+
-+	vaddr = (unsigned long)vmf->virtual_address;
-+	gru_dbg(grudev, "vma %p, vaddr 0x%lx (0x%lx)\n",
-+		vma, vaddr, GSEG_BASE(vaddr));
-+	STAT(nopfn);
-+
-+	gts = gru_find_thread_state(vma, TSID(vaddr, vma));
-+	if (!gts)
-+		return VM_FAULT_SIGBUS;
-+
-+again:
-+	preempt_disable();
-+	mutex_lock(&gts->ts_ctxlock);
-+	if (gts->ts_gru) {
-+		if (gts->ts_gru->gs_blade_id != uv_numa_blade_id()) {
-+			STAT(migrated_nopfn_unload);
-+			gru_unload_context(gts, 1);
-+		} else {
-+			if (gru_retarget_intr(gts))
-+				STAT(migrated_nopfn_retarget);
-+		}
-+	}
-+
-+	if (!gts->ts_gru) {
-+		while (!gru_assign_gru_context(gts)) {
-+			mutex_unlock(&gts->ts_ctxlock);
-+			preempt_enable();
-+			schedule_timeout(GRU_ASSIGN_DELAY);  /* true hack ZZZ */
-+			if (gts->ts_steal_jiffies + GRU_STEAL_DELAY < jiffies)
-+				gru_steal_context(gts);
-+			goto again;
-+		}
-+		gru_load_context(gts);
-+		paddr = gseg_physical_address(gts->ts_gru, gts->ts_ctxnum);
-+		remap_pfn_range(vma, vaddr & ~(GRU_GSEG_PAGESIZE - 1),
-+				paddr >> PAGE_SHIFT, GRU_GSEG_PAGESIZE,
-+				vma->vm_page_prot);
-+	}
-+
-+	mutex_unlock(&gts->ts_ctxlock);
-+	preempt_enable();
-+
-+	return VM_FAULT_NOPAGE;
-+}
-+
 _
 
 Patches currently in -mm which might be from steiner@sgi.com are
