@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mips-fix.patch added to -mm tree
-Date: Wed, 02 Jul 2008 21:15:48 -0700
-Message-ID: <200807030427.m634Rvak019386@imap1.linux-foundation.org>
+Subject: + drivers-media-video-uvc-uvc_v4l2c-suppress-uninitialized-var-warning.patch added to -mm tree
+Date: Wed, 02 Jul 2008 21:25:13 -0700
+Message-ID: <200807030437.m634bMO1019699@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58211 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55270 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751242AbYGCE2L (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jul 2008 00:28:11 -0400
+	by vger.kernel.org with ESMTP id S1751715AbYGCEh1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jul 2008 00:37:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ralf@linux-mips.org, righi.andrea@gmail.com
+Cc: akpm@linux-foundation.org, mchehab@infradead.org
 
 
 The patch titled
-     page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mips-fix
+     drivers/media/video/uvc/uvc_v4l2.c: suppress uninitialized var warning
 has been added to the -mm tree.  Its filename is
-     page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mips-fix.patch
+     drivers-media-video-uvc-uvc_v4l2c-suppress-uninitialized-var-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,42 +33,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mips-fix
+Subject: drivers/media/video/uvc/uvc_v4l2.c: suppress uninitialized var warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-This patch is killing me.
+drivers/media/video/uvc/uvc_v4l2.c: In function `uvc_v4l2_mmap':
+drivers/media/video/uvc/uvc_v4l2.c:1035: warning: 'buffer' might be used uninitialized in this function
 
-include/linux/sched.h: In function `arch_pick_mmap_layout':
-include/linux/sched.h:2136: error: implicit declaration of function `PAGE_ALIGN'
-
-mips uses PAGE_ALIGN in TASK_UNMAPPED_BASE.
-
-Don't wanna include mm.h from sched.h
-
-Including mm.h from include/asm-mips/processor.h explodes in lots of ways.
-
-Give up and open-code it
-
-Cc: Andrea Righi <righi.andrea@gmail.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-mips/processor.h |    2 +-
+ drivers/media/video/uvc/uvc_v4l2.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/asm-mips/processor.h~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mips-fix include/asm-mips/processor.h
---- a/include/asm-mips/processor.h~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mips-fix
-+++ a/include/asm-mips/processor.h
-@@ -45,7 +45,7 @@ extern unsigned int vced_count, vcei_cou
-  * This decides where the kernel will search for a free chunk of vm
-  * space during mmap's.
-  */
--#define TASK_UNMAPPED_BASE	(PAGE_ALIGN(TASK_SIZE / 3))
-+#define TASK_UNMAPPED_BASE	((TASK_SIZE / 3) & ~(PAGE_SIZE))
- #endif
- 
- #ifdef CONFIG_64BIT
+diff -puN drivers/media/video/uvc/uvc_v4l2.c~drivers-media-video-uvc-uvc_v4l2c-suppress-uninitialized-var-warning drivers/media/video/uvc/uvc_v4l2.c
+--- a/drivers/media/video/uvc/uvc_v4l2.c~drivers-media-video-uvc-uvc_v4l2c-suppress-uninitialized-var-warning
++++ a/drivers/media/video/uvc/uvc_v4l2.c
+@@ -1032,7 +1032,7 @@ static int uvc_v4l2_mmap(struct file *fi
+ {
+ 	struct video_device *vdev = video_devdata(file);
+ 	struct uvc_video_device *video = video_get_drvdata(vdev);
+-	struct uvc_buffer *buffer;
++	struct uvc_buffer *uninitialized_var(buffer);
+ 	struct page *page;
+ 	unsigned long addr, start, size;
+ 	unsigned int i;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -143,6 +132,7 @@ page_align-correctly-handle-64-bit-values-on-32-bit-architectures-v850-fix.patch
 page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix.patch
 page_align-correctly-handle-64-bit-values-on-32-bit-architectures-arm-fix.patch
 page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mips-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb.patch
 mmu-notifiers-add-mm_take_all_locks-operation-checkpatch-fixes.patch
 mmu-notifier-core-checkpatch-fixes.patch
 mmu-notifier-core-fix.patch
@@ -246,4 +236,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
+drivers-media-video-uvc-uvc_v4l2c-suppress-uninitialized-var-warning.patch
 
