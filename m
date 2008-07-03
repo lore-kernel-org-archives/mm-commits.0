@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + ecryptfs-inodec-mmapc-use-unaligned-byteorder-helpers.patch added to -mm tree
-Date: Thu, 03 Jul 2008 15:54:28 -0700
-Message-ID: <200807032254.m63MsTPa031628@imap1.linux-foundation.org>
+Subject: + ecryptfs-cryptoc-use-unaligned-byteorder-helpers.patch added to -mm tree
+Date: Thu, 03 Jul 2008 15:54:26 -0700
+Message-ID: <200807032254.m63MsR6q031625@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50983 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45167 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757325AbYGCWzP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jul 2008 18:55:15 -0400
+	by vger.kernel.org with ESMTP id S1757316AbYGCWzV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jul 2008 18:55:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: harvey.harrison@gmail.com, mhalcrow@us.ibm.com
 
 
 The patch titled
-     ecryptfs: inode.c mmap.c use unaligned byteorder helpers
+     ecryptfs: crypto.c use unaligned byteorder helpers
 has been added to the -mm tree.  Its filename is
-     ecryptfs-inodec-mmapc-use-unaligned-byteorder-helpers.patch
+     ecryptfs-cryptoc-use-unaligned-byteorder-helpers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,97 +33,122 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ecryptfs: inode.c mmap.c use unaligned byteorder helpers
+Subject: ecryptfs: crypto.c use unaligned byteorder helpers
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Fixe sparse warnings:
-fs/ecryptfs/inode.c:368:15: warning: cast to restricted __be64
-fs/ecryptfs/mmap.c:385:12: warning: incorrect type in assignment (different base types)
-fs/ecryptfs/mmap.c:385:12:    expected unsigned long long [unsigned] [assigned] [usertype] file_size
-fs/ecryptfs/mmap.c:385:12:    got restricted __be64 [usertype] <noident>
-fs/ecryptfs/mmap.c:428:12: warning: incorrect type in assignment (different base types)
-fs/ecryptfs/mmap.c:428:12:    expected unsigned long long [unsigned] [assigned] [usertype] file_size
-fs/ecryptfs/mmap.c:428:12:    got restricted __be64 [usertype] <noident>
+Fixes the following sparse warnings:
+fs/ecryptfs/crypto.c:1036:8: warning: cast to restricted __be32
+fs/ecryptfs/crypto.c:1038:8: warning: cast to restricted __be32
+fs/ecryptfs/crypto.c:1077:10: warning: cast to restricted __be32
+fs/ecryptfs/crypto.c:1103:6: warning: incorrect type in assignment (different base types)
+fs/ecryptfs/crypto.c:1105:6: warning: incorrect type in assignment (different base types)
+fs/ecryptfs/crypto.c:1124:8: warning: incorrect type in assignment (different base types)
+fs/ecryptfs/crypto.c:1241:21: warning: incorrect type in assignment (different base types)
+fs/ecryptfs/crypto.c:1244:30: warning: incorrect type in assignment (different base types)
+fs/ecryptfs/crypto.c:1414:23: warning: cast to restricted __be32
+fs/ecryptfs/crypto.c:1417:32: warning: cast to restricted __be16
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Cc: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/inode.c |    4 ++--
- fs/ecryptfs/mmap.c  |   11 +++--------
- 2 files changed, 5 insertions(+), 10 deletions(-)
+ fs/ecryptfs/crypto.c |   37 ++++++++++++++-----------------------
+ 1 file changed, 14 insertions(+), 23 deletions(-)
 
-diff -puN fs/ecryptfs/inode.c~ecryptfs-inodec-mmapc-use-unaligned-byteorder-helpers fs/ecryptfs/inode.c
---- a/fs/ecryptfs/inode.c~ecryptfs-inodec-mmapc-use-unaligned-byteorder-helpers
-+++ a/fs/ecryptfs/inode.c
-@@ -31,6 +31,7 @@
- #include <linux/mount.h>
+diff -puN fs/ecryptfs/crypto.c~ecryptfs-cryptoc-use-unaligned-byteorder-helpers fs/ecryptfs/crypto.c
+--- a/fs/ecryptfs/crypto.c~ecryptfs-cryptoc-use-unaligned-byteorder-helpers
++++ a/fs/ecryptfs/crypto.c
+@@ -33,6 +33,7 @@
  #include <linux/crypto.h>
- #include <linux/fs_stack.h>
-+#include <asm/unaligned.h>
- #include "ecryptfs_kernel.h"
- 
- static struct dentry *lock_parent(struct dentry *dentry)
-@@ -364,8 +365,7 @@ static struct dentry *ecryptfs_lookup(st
- 		else
- 			file_size = i_size_read(lower_dentry->d_inode);
- 	} else {
--		memcpy(&file_size, page_virt, sizeof(file_size));
--		file_size = be64_to_cpu(file_size);
-+		file_size = get_unaligned_be64(page_virt);
- 	}
- 	i_size_write(dentry->d_inode, (loff_t)file_size);
- 	kmem_cache_free(ecryptfs_header_cache_2, page_virt);
-diff -puN fs/ecryptfs/mmap.c~ecryptfs-inodec-mmapc-use-unaligned-byteorder-helpers fs/ecryptfs/mmap.c
---- a/fs/ecryptfs/mmap.c~ecryptfs-inodec-mmapc-use-unaligned-byteorder-helpers
-+++ a/fs/ecryptfs/mmap.c
-@@ -32,6 +32,7 @@
  #include <linux/file.h>
- #include <linux/crypto.h>
  #include <linux/scatterlist.h>
 +#include <asm/unaligned.h>
  #include "ecryptfs_kernel.h"
  
- /**
-@@ -372,7 +373,6 @@ out:
-  */
- static int ecryptfs_write_inode_size_to_header(struct inode *ecryptfs_inode)
+ static int
+@@ -1032,10 +1033,8 @@ static int contains_ecryptfs_marker(char
  {
--	u64 file_size;
- 	char *file_size_virt;
- 	int rc;
+ 	u32 m_1, m_2;
  
-@@ -381,9 +381,7 @@ static int ecryptfs_write_inode_size_to_
- 		rc = -ENOMEM;
- 		goto out;
- 	}
--	file_size = (u64)i_size_read(ecryptfs_inode);
--	file_size = cpu_to_be64(file_size);
--	memcpy(file_size_virt, &file_size, sizeof(u64));
-+	put_unaligned_be64(i_size_read(ecryptfs_inode), file_size_virt);
- 	rc = ecryptfs_write_lower(ecryptfs_inode, file_size_virt, 0,
- 				  sizeof(u64));
- 	kfree(file_size_virt);
-@@ -403,7 +401,6 @@ static int ecryptfs_write_inode_size_to_
- 	struct dentry *lower_dentry =
- 		ecryptfs_inode_to_private(ecryptfs_inode)->lower_file->f_dentry;
- 	struct inode *lower_inode = lower_dentry->d_inode;
--	u64 file_size;
- 	int rc;
+-	memcpy(&m_1, data, 4);
+-	m_1 = be32_to_cpu(m_1);
+-	memcpy(&m_2, (data + 4), 4);
+-	m_2 = be32_to_cpu(m_2);
++	m_1 = get_unaligned_be32(data);
++	m_2 = get_unaligned_be32(data + 4);
+ 	if ((m_1 ^ MAGIC_ECRYPTFS_MARKER) == m_2)
+ 		return 1;
+ 	ecryptfs_printk(KERN_DEBUG, "m_1 = [0x%.8x]; m_2 = [0x%.8x]; "
+@@ -1073,8 +1072,7 @@ static int ecryptfs_process_flags(struct
+ 	int i;
+ 	u32 flags;
  
- 	if (!lower_inode->i_op->getxattr || !lower_inode->i_op->setxattr) {
-@@ -424,9 +421,7 @@ static int ecryptfs_write_inode_size_to_
- 					   xattr_virt, PAGE_CACHE_SIZE);
- 	if (size < 0)
- 		size = 8;
--	file_size = (u64)i_size_read(ecryptfs_inode);
--	file_size = cpu_to_be64(file_size);
--	memcpy(xattr_virt, &file_size, sizeof(u64));
-+	put_unaligned_be64(i_size_read(ecryptfs_inode), xattr_virt);
- 	rc = lower_inode->i_op->setxattr(lower_dentry, ECRYPTFS_XATTR_NAME,
- 					 xattr_virt, size, 0);
- 	mutex_unlock(&lower_inode->i_mutex);
+-	memcpy(&flags, page_virt, 4);
+-	flags = be32_to_cpu(flags);
++	flags = get_unaligned_be32(page_virt);
+ 	for (i = 0; i < ((sizeof(ecryptfs_flag_map)
+ 			  / sizeof(struct ecryptfs_flag_map_elem))); i++)
+ 		if (flags & ecryptfs_flag_map[i].file_flag) {
+@@ -1100,11 +1098,9 @@ static void write_ecryptfs_marker(char *
+ 
+ 	get_random_bytes(&m_1, (MAGIC_ECRYPTFS_MARKER_SIZE_BYTES / 2));
+ 	m_2 = (m_1 ^ MAGIC_ECRYPTFS_MARKER);
+-	m_1 = cpu_to_be32(m_1);
+-	memcpy(page_virt, &m_1, (MAGIC_ECRYPTFS_MARKER_SIZE_BYTES / 2));
+-	m_2 = cpu_to_be32(m_2);
+-	memcpy(page_virt + (MAGIC_ECRYPTFS_MARKER_SIZE_BYTES / 2), &m_2,
+-	       (MAGIC_ECRYPTFS_MARKER_SIZE_BYTES / 2));
++	put_unaligned_be32(m_1, page_virt);
++	page_virt += (MAGIC_ECRYPTFS_MARKER_SIZE_BYTES / 2);
++	put_unaligned_be32(m_2, page_virt);
+ 	(*written) = MAGIC_ECRYPTFS_MARKER_SIZE_BYTES;
+ }
+ 
+@@ -1121,8 +1117,7 @@ write_ecryptfs_flags(char *page_virt, st
+ 			flags |= ecryptfs_flag_map[i].file_flag;
+ 	/* Version is in top 8 bits of the 32-bit flag vector */
+ 	flags |= ((((u8)crypt_stat->file_version) << 24) & 0xFF000000);
+-	flags = cpu_to_be32(flags);
+-	memcpy(page_virt, &flags, 4);
++	put_unaligned_be32(flags, page_virt);
+ 	(*written) = 4;
+ }
+ 
+@@ -1238,11 +1233,9 @@ ecryptfs_write_header_metadata(char *vir
+ 	num_header_extents_at_front =
+ 		(u16)(crypt_stat->num_header_bytes_at_front
+ 		      / crypt_stat->extent_size);
+-	header_extent_size = cpu_to_be32(header_extent_size);
+-	memcpy(virt, &header_extent_size, 4);
++	put_unaligned_be32(header_extent_size, virt);
+ 	virt += 4;
+-	num_header_extents_at_front = cpu_to_be16(num_header_extents_at_front);
+-	memcpy(virt, &num_header_extents_at_front, 2);
++	put_unaligned_be16(num_header_extents_at_front, virt);
+ 	(*written) = 6;
+ }
+ 
+@@ -1410,15 +1403,13 @@ static int parse_header_metadata(struct 
+ 	u32 header_extent_size;
+ 	u16 num_header_extents_at_front;
+ 
+-	memcpy(&header_extent_size, virt, sizeof(u32));
+-	header_extent_size = be32_to_cpu(header_extent_size);
+-	virt += sizeof(u32);
+-	memcpy(&num_header_extents_at_front, virt, sizeof(u16));
+-	num_header_extents_at_front = be16_to_cpu(num_header_extents_at_front);
++	header_extent_size = get_unaligned_be32(virt);
++	virt += sizeof(__be32);
++	num_header_extents_at_front = get_unaligned_be16(virt);
+ 	crypt_stat->num_header_bytes_at_front =
+ 		(((size_t)num_header_extents_at_front
+ 		  * (size_t)header_extent_size));
+-	(*bytes_read) = (sizeof(u32) + sizeof(u16));
++	(*bytes_read) = (sizeof(__be32) + sizeof(__be16));
+ 	if ((validate_header_size == ECRYPTFS_VALIDATE_HEADER_SIZE)
+ 	    && (crypt_stat->num_header_bytes_at_front
+ 		< ECRYPTFS_MINIMUM_HEADER_EXTENT_SIZE)) {
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
