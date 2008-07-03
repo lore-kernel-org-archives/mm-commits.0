@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + page_align-correctly-handle-64-bit-values-on-32-bit-architectures-arm-fix.patch added to -mm tree
-Date: Wed, 02 Jul 2008 18:26:30 -0700
-Message-ID: <200807030138.m631cd9E013785@imap1.linux-foundation.org>
+Subject: + exec-remove-some-includes-fix.patch added to -mm tree
+Date: Wed, 02 Jul 2008 18:29:39 -0700
+Message-ID: <200807030141.m631flvh013871@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36445 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33157 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752168AbYGCBis (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 21:38:48 -0400
+	by vger.kernel.org with ESMTP id S1752173AbYGCBlx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 21:41:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, righi.andrea@gmail.com
+Cc: akpm@linux-foundation.org, hugh@veritas.com
 
 
 The patch titled
-     page_align-correctly-handle-64-bit-values-on-32-bit-architectures-arm-fix
+     exec-remove-some-includes-fix
 has been added to the -mm tree.  Its filename is
-     page_align-correctly-handle-64-bit-values-on-32-bit-architectures-arm-fix.patch
+     exec-remove-some-includes-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,27 +33,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page_align-correctly-handle-64-bit-values-on-32-bit-architectures-arm-fix
+Subject: exec-remove-some-includes-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Andrea Righi <righi.andrea@gmail.com>
+arm:
+
+fs/exec.c: In function `shift_arg_pages':
+fs/exec.c:535: error: implicit declaration of function `lru_add_drain'
+
+Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/kernel/module.c |    1 +
+ fs/exec.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN arch/arm/kernel/module.c~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-arm-fix arch/arm/kernel/module.c
---- a/arch/arm/kernel/module.c~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-arm-fix
-+++ a/arch/arm/kernel/module.c
-@@ -13,6 +13,7 @@
- #include <linux/module.h>
- #include <linux/moduleloader.h>
- #include <linux/kernel.h>
-+#include <linux/mm.h>
- #include <linux/elf.h>
- #include <linux/vmalloc.h>
- #include <linux/slab.h>
+diff -puN fs/exec.c~exec-remove-some-includes-fix fs/exec.c
+--- a/fs/exec.c~exec-remove-some-includes-fix
++++ a/fs/exec.c
+@@ -29,6 +29,7 @@
+ #include <linux/stat.h>
+ #include <linux/fcntl.h>
+ #include <linux/smp_lock.h>
++#Include <linux/swap.h>
+ #include <linux/string.h>
+ #include <linux/init.h>
+ #include <linux/highmem.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -143,6 +148,7 @@ build-kernel-profileo-only-when-requested-cleanups.patch
 fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
 block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
 seq_file-fix-bug-when-seq_read-reads-nothing-fix.patch
+exec-remove-some-includes-fix.patch
 inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
 add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
 flag-parameters-paccept-fix.patch
