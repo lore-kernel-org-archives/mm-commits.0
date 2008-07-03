@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + page_align-h8300-fix-implicit-declaration-of-function-page_align.patch added to -mm tree
-Date: Thu, 03 Jul 2008 10:09:50 -0700
-Message-ID: <200807031709.m63H9oR5017749@imap1.linux-foundation.org>
+Subject: + page_align-m68k-fix-implicit-declaration-of-function-page_align.patch added to -mm tree
+Date: Thu, 03 Jul 2008 10:09:51 -0700
+Message-ID: <200807031709.m63H9pUa017752@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36867 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57867 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752978AbYGCRKt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jul 2008 13:10:49 -0400
+	by vger.kernel.org with ESMTP id S1753805AbYGCRKz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jul 2008 13:10:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: righi.andrea@gmail.com
 
 
 The patch titled
-     page_align: h8300: fix implicit declaration of function 'PAGE_ALIGN'
+     page_align: m68k: fix implicit declaration of function 'PAGE_ALIGN'
 has been added to the -mm tree.  Its filename is
-     page_align-h8300-fix-implicit-declaration-of-function-page_align.patch
+     page_align-m68k-fix-implicit-declaration-of-function-page_align.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,27 +33,27 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page_align: h8300: fix implicit declaration of function 'PAGE_ALIGN'
+Subject: page_align: m68k: fix implicit declaration of function 'PAGE_ALIGN'
 From: Andrea Righi <righi.andrea@gmail.com>
 
 Signed-off-by: Andrea Righi <righi.andrea@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/h8300/kernel/setup.c |    1 +
+ arch/m68k/amiga/chipram.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN arch/h8300/kernel/setup.c~page_align-h8300-fix-implicit-declaration-of-function-page_align arch/h8300/kernel/setup.c
---- a/arch/h8300/kernel/setup.c~page_align-h8300-fix-implicit-declaration-of-function-page_align
-+++ a/arch/h8300/kernel/setup.c
-@@ -20,6 +20,7 @@
- #include <linux/sched.h>
- #include <linux/delay.h>
- #include <linux/interrupt.h>
+diff -puN arch/m68k/amiga/chipram.c~page_align-m68k-fix-implicit-declaration-of-function-page_align arch/m68k/amiga/chipram.c
+--- a/arch/m68k/amiga/chipram.c~page_align-m68k-fix-implicit-declaration-of-function-page_align
++++ a/arch/m68k/amiga/chipram.c
+@@ -9,6 +9,7 @@
+ 
+ #include <linux/types.h>
+ #include <linux/kernel.h>
 +#include <linux/mm.h>
- #include <linux/fs.h>
- #include <linux/fb.h>
- #include <linux/console.h>
+ #include <linux/init.h>
+ #include <linux/ioport.h>
+ #include <linux/slab.h>
 _
 
 Patches currently in -mm which might be from righi.andrea@gmail.com are
