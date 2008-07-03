@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-usb-class-cdc-acmc-fix-build-with-config_pm=n.patch added to -mm tree
-Date: Wed, 02 Jul 2008 22:40:28 -0700
-Message-ID: <200807030552.m635qbAJ022178@imap1.linux-foundation.org>
+Subject: + page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mtd-fix.patch added to -mm tree
+Date: Wed, 02 Jul 2008 22:07:49 -0700
+Message-ID: <200807030519.m635Jwov021072@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50577 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42202 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754988AbYGCFwu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jul 2008 01:52:50 -0400
+	by vger.kernel.org with ESMTP id S1754779AbYGCFUa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jul 2008 01:20:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, gregkh@suse.de, oliver@neukum.org
+Cc: akpm@linux-foundation.org, righi.andrea@gmail.com
 
 
 The patch titled
-     drivers/usb/class/cdc-acm.c: fix build with CONFIG_PM=n
+     page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mtd-fix
 has been added to the -mm tree.  Its filename is
-     drivers-usb-class-cdc-acmc-fix-build-with-config_pm=n.patch
+     page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mtd-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,40 +33,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/usb/class/cdc-acm.c: fix build with CONFIG_PM=n
+Subject: page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mtd-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Oliver Neukum <oliver@neukum.org>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
+drivers/mtd/maps/uclinux.c: In function `uclinux_mtd_init':
+drivers/mtd/maps/uclinux.c:62: error: implicit declaration of function `PAGE_ALIGN'
+
+Cc: Andrea Righi <righi.andrea@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/class/cdc-acm.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/mtd/maps/uclinux.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/usb/class/cdc-acm.c~drivers-usb-class-cdc-acmc-fix-build-with-config_pm=n drivers/usb/class/cdc-acm.c
---- a/drivers/usb/class/cdc-acm.c~drivers-usb-class-cdc-acmc-fix-build-with-config_pm=n
-+++ a/drivers/usb/class/cdc-acm.c
-@@ -1255,6 +1255,7 @@ static void acm_disconnect(struct usb_in
- 		tty_hangup(acm->tty);
- }
- 
-+#ifdef CONFIG_PM
- static int acm_suspend(struct usb_interface *intf, pm_message_t message)
- {
- 	struct acm *acm = usb_get_intfdata(intf);
-@@ -1320,6 +1321,11 @@ err_out:
- 	mutex_unlock(&acm->mutex);
- 	return rv;
- }
-+#else
-+#define acm_suspend NULL
-+#define acm_resume NULL
-+#endif
-+
- /*
-  * USB driver structure.
-  */
+diff -puN drivers/mtd/maps/uclinux.c~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mtd-fix drivers/mtd/maps/uclinux.c
+--- a/drivers/mtd/maps/uclinux.c~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mtd-fix
++++ a/drivers/mtd/maps/uclinux.c
+@@ -13,6 +13,7 @@
+ #include <linux/init.h>
+ #include <linux/kernel.h>
+ #include <linux/fs.h>
++#include <linux/mm.h>
+ #include <linux/major.h>
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/map.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -248,5 +238,4 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
-drivers-usb-class-cdc-acmc-fix-build-with-config_pm=n.patch
 
