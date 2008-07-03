@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-switch-node-meminfo-active-inactive-pages-to-kbytes.patch added to -mm tree
-Date: Thu, 03 Jul 2008 15:42:40 -0700
-Message-ID: <200807032242.m63Mge0E031140@imap1.linux-foundation.org>
+Subject: + update-maintainers-file-for-the-tpm-device-driver.patch added to -mm tree
+Date: Thu, 03 Jul 2008 15:45:36 -0700
+Message-ID: <200807032245.m63Mja60031281@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51253 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46817 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755974AbYGCWmy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jul 2008 18:42:54 -0400
+	by vger.kernel.org with ESMTP id S1755404AbYGCWpl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jul 2008 18:45:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: john.blackwood@ccur.com, stable@kernel.org
+Cc: srajiv@linux.vnet.ibm.com, debora@linux.vnet.ibm.com, zohar@linux.vnet.ibm.com
 
 
 The patch titled
-     mm: switch node meminfo Active & Inactive pages to Kbytes
+     Update MAINTAINERS file for the TPM device driver
 has been added to the -mm tree.  Its filename is
-     mm-switch-node-meminfo-active-inactive-pages-to-kbytes.patch
+     update-maintainers-file-for-the-tpm-device-driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,39 +33,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: switch node meminfo Active & Inactive pages to Kbytes
-From: John Blackwood <john.blackwood@ccur.com>
+Subject: Update MAINTAINERS file for the TPM device driver
+From: Rajiv Andrade <srajiv@linux.vnet.ibm.com>
 
-There is a bug in the output of /sys/devices/system/node/node[n]/meminfo
-where the Active and Inactive values are in pages instead of Kbytes.
-
-Looks like this occurred back in 2.6.20 when the code was changed
-over to use node_page_state().
-
-Cc: <stable@kernel.org>
+Acked-By: Debora Velarde <debora@linux.vnet.ibm.com>
+Cc: <zohar@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/node.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ MAINTAINERS |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/base/node.c~mm-switch-node-meminfo-active-inactive-pages-to-kbytes drivers/base/node.c
---- a/drivers/base/node.c~mm-switch-node-meminfo-active-inactive-pages-to-kbytes
-+++ a/drivers/base/node.c
-@@ -84,8 +84,8 @@ static ssize_t node_read_meminfo(struct 
- 		       nid, K(i.totalram),
- 		       nid, K(i.freeram),
- 		       nid, K(i.totalram - i.freeram),
--		       nid, node_page_state(nid, NR_ACTIVE),
--		       nid, node_page_state(nid, NR_INACTIVE),
-+		       nid, K(node_page_state(nid, NR_ACTIVE)),
-+		       nid, K(node_page_state(nid, NR_INACTIVE)),
- #ifdef CONFIG_HIGHMEM
- 		       nid, K(i.totalhigh),
- 		       nid, K(i.freehigh),
+diff -puN MAINTAINERS~update-maintainers-file-for-the-tpm-device-driver MAINTAINERS
+--- a/MAINTAINERS~update-maintainers-file-for-the-tpm-device-driver
++++ a/MAINTAINERS
+@@ -4013,7 +4013,8 @@ W:	http://www.buzzard.org.uk/toshiba/
+ S:	Maintained
+ 
+ TPM DEVICE DRIVER
+-P:	Kylene Hall
++P:     Debora Velarde
++P:     Rajiv Andrade
+ M:	tpmdd-devel@lists.sourceforge.net
+ W:	http://tpmdd.sourceforge.net
+ P:	Marcel Selhorst
 _
 
-Patches currently in -mm which might be from john.blackwood@ccur.com are
+Patches currently in -mm which might be from srajiv@linux.vnet.ibm.com are
 
-mm-switch-node-meminfo-active-inactive-pages-to-kbytes.patch
+update-maintainers-file-for-the-tpm-device-driver.patch
 
