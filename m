@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + git-block-fix-drivers-block-pktcdvdc.patch added to -mm tree
-Date: Thu, 03 Jul 2008 00:47:21 -0700
-Message-ID: <200807030747.m637lLfA026167@imap1.linux-foundation.org>
+Subject: + arch-x86-mm-init_64c-early_memtest-fix-types.patch added to -mm tree
+Date: Thu, 03 Jul 2008 01:07:01 -0700
+Message-ID: <200807030807.m63871VU027421@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49241 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52563 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S937029AbYGCHss (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jul 2008 03:48:48 -0400
+	by vger.kernel.org with ESMTP id S1751858AbYGCL4S (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jul 2008 07:56:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jens.axboe@oracle.com
+Cc: akpm@linux-foundation.org, mingo@elte.hu
 
 
 The patch titled
-     git-block: fix drivers/block/pktcdvd.c
+     arch/x86/mm/init_64.c: early_memtest(): fix types
 has been added to the -mm tree.  Its filename is
-     git-block-fix-drivers-block-pktcdvdc.patch
+     arch-x86-mm-init_64c-early_memtest-fix-types.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,49 +33,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-block: fix drivers/block/pktcdvd.c
+Subject: arch/x86/mm/init_64.c: early_memtest(): fix types
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/block/pktcdvd.c: In function 'pkt_init_queue':
-drivers/block/pktcdvd.c:2664: warning: passing argument 2 of 'blk_queue_merge_bvec' from incompatible pointer type
+arch/x86/mm/init_64.c: In function 'early_memtest':
+arch/x86/mm/init_64.c:524: warning: passing argument 2 of 'find_e820_area_size' from incompatible pointer type
 
-it will crash...
-
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/pktcdvd.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ arch/x86/mm/init_64.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/block/pktcdvd.c~git-block-fix-drivers-block-pktcdvdc drivers/block/pktcdvd.c
---- a/drivers/block/pktcdvd.c~git-block-fix-drivers-block-pktcdvdc
-+++ a/drivers/block/pktcdvd.c
-@@ -2635,11 +2635,12 @@ end_io:
+diff -puN arch/x86/mm/init_64.c~arch-x86-mm-init_64c-early_memtest-fix-types arch/x86/mm/init_64.c
+--- a/arch/x86/mm/init_64.c~arch-x86-mm-init_64c-early_memtest-fix-types
++++ a/arch/x86/mm/init_64.c
+@@ -510,7 +510,7 @@ early_param("memtest", parse_memtest);
  
- 
- 
--static int pkt_merge_bvec(struct request_queue *q, struct bio *bio, struct bio_vec *bvec)
-+static int pkt_merge_bvec(struct request_queue *q, struct bvec_merge_data *bmd,
-+			struct bio_vec *bvec)
+ static void __init early_memtest(unsigned long start, unsigned long end)
  {
- 	struct pktcdvd_device *pd = q->queuedata;
--	sector_t zone = ZONE(bio->bi_sector, pd);
--	int used = ((bio->bi_sector - zone) << 9) + bio->bi_size;
-+	sector_t zone = ZONE(bmd->bi_sector, pd);
-+	int used = ((bmd->bi_sector - zone) << 9) + bmd->bi_size;
- 	int remaining = (pd->settings.size << 9) - used;
- 	int remaining2;
+-	unsigned long t_start, t_size;
++	u64 t_start, t_size;
+ 	unsigned pattern;
  
-@@ -2647,7 +2648,7 @@ static int pkt_merge_bvec(struct request
- 	 * A bio <= PAGE_SIZE must be allowed. If it crosses a packet
- 	 * boundary, pkt_make_request() will split the bio.
- 	 */
--	remaining2 = PAGE_SIZE - bio->bi_size;
-+	remaining2 = PAGE_SIZE - bmd->bi_size;
- 	remaining = max(remaining, remaining2);
+ 	if (!memtest_pattern)
+@@ -529,8 +529,9 @@ static void __init early_memtest(unsigne
+ 			if (t_start + t_size > end)
+ 				t_size = end - t_start;
  
- 	BUG_ON(remaining < 0);
+-			printk(KERN_CONT "\n  %016lx - %016lx pattern %d",
+-				t_start, t_start + t_size, pattern);
++			printk(KERN_CONT "\n  %016llx - %016llx pattern %d",
++				(unsigned long long)t_start,
++				(unsigned long long)t_start + t_size, pattern);
+ 
+ 			memtest(t_start, t_size, pattern);
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -113,6 +107,7 @@ sundance-set-carrier-status-on-link-change-events.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 git-scsi-misc-fix-scsi_dh-build-errors.patch
 drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+git-block-fix-drivers-block-pktcdvdc.patch
 s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
 pktcdvd-push-bkl-down-into-driver-fix.patch
 git-unionfs.patch
@@ -261,5 +256,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
-git-block-fix-drivers-block-pktcdvdc.patch
+arch-x86-mm-init_64c-early_memtest-fix-types.patch
 
