@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + s390-build-fixes.patch added to -mm tree
-Date: Wed, 02 Jul 2008 21:45:17 -0700
-Message-ID: <200807030457.m634vQe5020361@imap1.linux-foundation.org>
+Subject: + drivers-usb-class-cdc-acmc-fix-build-with-config_pm=n.patch added to -mm tree
+Date: Wed, 02 Jul 2008 22:40:28 -0700
+Message-ID: <200807030552.m635qbAJ022178@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60376 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50577 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752676AbYGCE7P (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jul 2008 00:59:15 -0400
+	by vger.kernel.org with ESMTP id S1754988AbYGCFwu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jul 2008 01:52:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com
+Cc: akpm@linux-foundation.org, gregkh@suse.de, oliver@neukum.org
 
 
 The patch titled
-     s390: build fixes
+     drivers/usb/class/cdc-acm.c: fix build with CONFIG_PM=n
 has been added to the -mm tree.  Its filename is
-     s390-build-fixes.patch
+     drivers-usb-class-cdc-acmc-fix-build-with-config_pm=n.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,66 +33,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: s390: build fixes
+Subject: drivers/usb/class/cdc-acm.c: fix build with CONFIG_PM=n
 From: Andrew Morton <akpm@linux-foundation.org>
 
-In file included from include/asm/pgtable.h:1087,
-                 from include/linux/mm.h:39,
-                 from arch/s390/mm/hugetlbpage.c:8:
-include/asm-generic/pgtable.h: In function '__ptep_modify_prot_start':
-include/asm-generic/pgtable.h:209: error: dereferencing pointer to incomplete type
-
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Oliver Neukum <oliver@neukum.org>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/pgtable.h |   26 +++++++++-----------------
- 1 file changed, 9 insertions(+), 17 deletions(-)
+ drivers/usb/class/cdc-acm.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN include/asm-generic/pgtable.h~s390-build-fixes include/asm-generic/pgtable.h
---- a/include/asm-generic/pgtable.h~s390-build-fixes
-+++ a/include/asm-generic/pgtable.h
-@@ -197,17 +197,13 @@ static inline int pmd_none_or_clear_bad(
+diff -puN drivers/usb/class/cdc-acm.c~drivers-usb-class-cdc-acmc-fix-build-with-config_pm=n drivers/usb/class/cdc-acm.c
+--- a/drivers/usb/class/cdc-acm.c~drivers-usb-class-cdc-acmc-fix-build-with-config_pm=n
++++ a/drivers/usb/class/cdc-acm.c
+@@ -1255,6 +1255,7 @@ static void acm_disconnect(struct usb_in
+ 		tty_hangup(acm->tty);
  }
- #endif /* CONFIG_MMU */
  
--static inline pte_t __ptep_modify_prot_start(struct mm_struct *mm,
--					     unsigned long addr,
--					     pte_t *ptep)
--{
--	/*
--	 * Get the current pte state, but zero it out to make it
--	 * non-present, preventing the hardware from asynchronously
--	 * updating it.
--	 */
--	return ptep_get_and_clear(mm, addr, ptep);
--}
-+/*
-+ * Get the current pte state, but zero it out to make it
-+ * non-present, preventing the hardware from asynchronously
-+ * updating it.
-+ */
-+#define __ptep_modify_prot_start(mm, addr, ptep)	\
-+	ptep_get_and_clear(mm, addr, ptep)
- 
- static inline void __ptep_modify_prot_commit(struct mm_struct *mm,
- 					     unsigned long addr,
-@@ -235,12 +231,8 @@ static inline void __ptep_modify_prot_co
-  * queue the update to be done at some later time.  The update must be
-  * actually committed before the pte lock is released, however.
-  */
--static inline pte_t ptep_modify_prot_start(struct mm_struct *mm,
--					   unsigned long addr,
--					   pte_t *ptep)
--{
--	return __ptep_modify_prot_start(mm, addr, ptep);
--}
-+#define ptep_modify_prot_start(mm, addr, ptep)		\
-+	__ptep_modify_prot_start(mm, addr, ptep)
- 
++#ifdef CONFIG_PM
+ static int acm_suspend(struct usb_interface *intf, pm_message_t message)
+ {
+ 	struct acm *acm = usb_get_intfdata(intf);
+@@ -1320,6 +1321,11 @@ err_out:
+ 	mutex_unlock(&acm->mutex);
+ 	return rv;
+ }
++#else
++#define acm_suspend NULL
++#define acm_resume NULL
++#endif
++
  /*
-  * Commit an update to a pte, leaving any hardware-controlled bits in
+  * USB driver structure.
+  */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -170,6 +144,7 @@ page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix.pa
 page_align-correctly-handle-64-bit-values-on-32-bit-architectures-arm-fix.patch
 page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mips-fix.patch
 page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mtd-fix.patch
 mmu-notifiers-add-mm_take_all_locks-operation-checkpatch-fixes.patch
 mmu-notifier-core-checkpatch-fixes.patch
 mmu-notifier-core-fix.patch
@@ -273,4 +248,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
+drivers-usb-class-cdc-acmc-fix-build-with-config_pm=n.patch
 
