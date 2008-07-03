@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + lcd-add-platform_lcd-driver-fix.patch added to -mm tree
-Date: Wed, 02 Jul 2008 21:00:55 -0700
-Message-ID: <200807030413.m634D4ok018885@imap1.linux-foundation.org>
+Subject: + page_align-correctly-handle-64-bit-values-on-32-bit-architectures-arm-fix.patch added to -mm tree
+Date: Wed, 02 Jul 2008 18:26:30 -0700
+Message-ID: <200807030138.m631cd9E013785@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50781 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36445 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750915AbYGCENn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jul 2008 00:13:43 -0400
+	by vger.kernel.org with ESMTP id S1752168AbYGCBis (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 21:38:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ben-linux@fluff.org
+Cc: akpm@linux-foundation.org, righi.andrea@gmail.com
 
 
 The patch titled
-     lcd-add-platform_lcd-driver-fix
+     page_align-correctly-handle-64-bit-values-on-32-bit-architectures-arm-fix
 has been added to the -mm tree.  Its filename is
-     lcd-add-platform_lcd-driver-fix.patch
+     page_align-correctly-handle-64-bit-values-on-32-bit-architectures-arm-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,33 +33,27 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lcd-add-platform_lcd-driver-fix
+Subject: page_align-correctly-handle-64-bit-values-on-32-bit-architectures-arm-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/video/backlight/platform_lcd.c:153: error: 'platform_lcd_suspend' undeclared here (not in a function)
-drivers/video/backlight/platform_lcd.c:154: error: 'platform_lcd_resume' undeclared here (not in a function)
-
-Cc: Ben Dooks <ben-linux@fluff.org>
+Cc: Andrea Righi <righi.andrea@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/platform_lcd.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/kernel/module.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/video/backlight/platform_lcd.c~lcd-add-platform_lcd-driver-fix drivers/video/backlight/platform_lcd.c
---- a/drivers/video/backlight/platform_lcd.c~lcd-add-platform_lcd-driver-fix
-+++ a/drivers/video/backlight/platform_lcd.c
-@@ -139,8 +139,8 @@ static int platform_lcd_resume(struct pl
- 	return 0;
- }
- #else
--#define s3c2410bl_suspend NULL
--#define s3c2410bl_resume  NULL
-+#define platform_lcd_suspend NULL
-+#define platform_lcd_resume NULL
- #endif
- 
- static struct platform_driver platform_lcd_driver = {
+diff -puN arch/arm/kernel/module.c~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-arm-fix arch/arm/kernel/module.c
+--- a/arch/arm/kernel/module.c~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-arm-fix
++++ a/arch/arm/kernel/module.c
+@@ -13,6 +13,7 @@
+ #include <linux/module.h>
+ #include <linux/moduleloader.h>
+ #include <linux/kernel.h>
++#include <linux/mm.h>
+ #include <linux/elf.h>
+ #include <linux/vmalloc.h>
+ #include <linux/slab.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -70,7 +64,6 @@ update-ntfs-help-text-fix.patch
 cgroups-document-the-effect-of-attaching-pid-0-to-a-cgroup-fix.patch
 spi-fix-the-read-path-in-spidev-cleanup.patch
 security-filesystem-capabilities-fix-fragile-setuid-fixup-code-checkpatch-fixes.patch
-net-ipv4-tcpc-needs-linux-scatterlisth.patch
 doc-document-the-relax_domain_level-kernel-boot-argument-fix.patch
 revert-introduce-rculisth.patch
 linux-next.patch
@@ -132,7 +125,6 @@ bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
 page_align-correctly-handle-64-bit-values-on-32-bit-architectures-fix.patch
 page_align-correctly-handle-64-bit-values-on-32-bit-architectures-v850-fix.patch
 page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-arm-fix.patch
 mmu-notifiers-add-mm_take_all_locks-operation-checkpatch-fixes.patch
 mmu-notifier-core-checkpatch-fixes.patch
 mmu-notifier-core-fix.patch
@@ -151,7 +143,6 @@ build-kernel-profileo-only-when-requested-cleanups.patch
 fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
 block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
 seq_file-fix-bug-when-seq_read-reads-nothing-fix.patch
-exec-remove-some-includes-fix.patch
 inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
 add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
 flag-parameters-paccept-fix.patch
@@ -168,7 +159,6 @@ gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch
 gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch
 drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
 atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
-lcd-add-platform_lcd-driver-fix.patch
 fsl-diu-fb-update-freescale-diu-driver-to-use-page_alloc_exact-fix.patch
 fbdev-add-new-cobalt-lcd-framebuffer-driver-fix.patch
 jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
@@ -236,4 +226,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-arm-fix.patch
 
