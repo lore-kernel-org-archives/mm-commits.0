@@ -1,260 +1,273 @@
 From: akpm@linux-foundation.org
-Subject: + tridentfb-add-imageblit-acceleration-for-blade3d-family.patch added to -mm tree
-Date: Thu, 03 Jul 2008 10:22:45 -0700
-Message-ID: <200807031722.m63HMjJn018228@imap1.linux-foundation.org>
+Subject: - s390-build-fixes.patch removed from -mm tree
+Date: Thu, 03 Jul 2008 10:47:40 -0700
+Message-ID: <200807031747.m63Hlejg019265@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37339 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38695 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751054AbYGCRWs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jul 2008 13:22:48 -0400
+	by vger.kernel.org with ESMTP id S1753145AbYGCRtI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jul 2008 13:49:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: krzysztof.h1@wp.pl
+To: akpm@linux-foundation.org, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tridentfb: add imageblit acceleration for Blade3D family
-has been added to the -mm tree.  Its filename is
-     tridentfb-add-imageblit-acceleration-for-blade3d-family.patch
+     s390: build fixes
+has been removed from the -mm tree.  Its filename was
+     s390-build-fixes.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was withdrawn
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tridentfb: add imageblit acceleration for Blade3D family
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: s390: build fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Add imageblit acceleration for the Blade3D family of cores.  The code is
-based on code from the cyblafb driver.
+In file included from include/asm/pgtable.h:1087,
+                 from include/linux/mm.h:39,
+                 from arch/s390/mm/hugetlbpage.c:8:
+include/asm-generic/pgtable.h: In function '__ptep_modify_prot_start':
+include/asm-generic/pgtable.h:209: error: dereferencing pointer to incomplete type
 
-It is a step toward assimilating back the cyblafb driver into the
-tridentfb driver.  The cyblafb driver handles a subfamily of the Trident
-Blade3d cores.
-
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/tridentfb.c |   79 ++++++++++++++++++++++++++++++++++--
- include/video/trident.h   |    1 
- 2 files changed, 77 insertions(+), 3 deletions(-)
+ include/asm-generic/pgtable.h |   26 +++++++++-----------------
+ 1 file changed, 9 insertions(+), 17 deletions(-)
 
-diff -puN drivers/video/tridentfb.c~tridentfb-add-imageblit-acceleration-for-blade3d-family drivers/video/tridentfb.c
---- a/drivers/video/tridentfb.c~tridentfb-add-imageblit-acceleration-for-blade3d-family
-+++ a/drivers/video/tridentfb.c
-@@ -35,11 +35,12 @@ struct tridentfb_par {
- 		(struct tridentfb_par *par, u32, u32, u32, u32, u32, u32);
- 	void (*copy_rect)
- 		(struct tridentfb_par *par, u32, u32, u32, u32, u32, u32);
-+	void (*image_blit)
-+		(struct tridentfb_par *par, const char*,
-+		 u32, u32, u32, u32, u32, u32);
- 	unsigned char eng_oper;	/* engine operation... */
- };
- 
--static struct fb_ops tridentfb_ops;
--
- static struct fb_fix_screeninfo tridentfb_fix = {
- 	.id = "Trident",
- 	.type = FB_TYPE_PACKED_PIXELS,
-@@ -212,6 +213,21 @@ static void blade_fill_rect(struct tride
- 	writemmr(par, DST2, point(x + w - 1, y + h - 1));
+diff -puN include/asm-generic/pgtable.h~s390-build-fixes include/asm-generic/pgtable.h
+--- a/include/asm-generic/pgtable.h~s390-build-fixes
++++ a/include/asm-generic/pgtable.h
+@@ -197,17 +197,13 @@ static inline int pmd_none_or_clear_bad(
  }
+ #endif /* CONFIG_MMU */
  
-+static void blade_image_blit(struct tridentfb_par *par, const char *data,
-+			     u32 x, u32 y, u32 w, u32 h, u32 c, u32 b)
-+{
-+	unsigned size = ((w + 31) >> 5) * h;
-+
-+	writemmr(par, COLOR, c);
-+	writemmr(par, BGCOLOR, b);
-+	writemmr(par, CMD, 0xa0000000 | 3 << 19);
-+
-+	writemmr(par, DST1, point(x, y));
-+	writemmr(par, DST2, point(x + w - 1, y + h - 1));
-+
-+	memcpy(par->io_virt + 0x10000, data, 4 * size);
-+}
-+
- static void blade_copy_rect(struct tridentfb_par *par,
- 			    u32 x1, u32 y1, u32 x2, u32 y2, u32 w, u32 h)
- {
-@@ -497,6 +513,36 @@ static void tridentfb_fillrect(struct fb
- 		       fr->height, col, fr->rop);
- }
+-static inline pte_t __ptep_modify_prot_start(struct mm_struct *mm,
+-					     unsigned long addr,
+-					     pte_t *ptep)
+-{
+-	/*
+-	 * Get the current pte state, but zero it out to make it
+-	 * non-present, preventing the hardware from asynchronously
+-	 * updating it.
+-	 */
+-	return ptep_get_and_clear(mm, addr, ptep);
+-}
++/*
++ * Get the current pte state, but zero it out to make it
++ * non-present, preventing the hardware from asynchronously
++ * updating it.
++ */
++#define __ptep_modify_prot_start(mm, addr, ptep)	\
++	ptep_get_and_clear(mm, addr, ptep)
  
-+static void tridentfb_imageblit(struct fb_info *info,
-+				const struct fb_image *img)
-+{
-+	struct tridentfb_par *par = info->par;
-+	int col, bgcol;
-+
-+	if ((info->flags & FBINFO_HWACCEL_DISABLED) || img->depth != 1) {
-+		cfb_imageblit(info, img);
-+		return;
-+	}
-+	if (info->var.bits_per_pixel == 8) {
-+		col = img->fg_color;
-+		col |= col << 8;
-+		col |= col << 16;
-+		bgcol = img->bg_color;
-+		bgcol |= bgcol << 8;
-+		bgcol |= bgcol << 16;
-+	} else {
-+		col = ((u32 *)(info->pseudo_palette))[img->fg_color];
-+		bgcol = ((u32 *)(info->pseudo_palette))[img->bg_color];
-+	}
-+
-+	par->wait_engine(par);
-+	if (par->image_blit)
-+		par->image_blit(par, img->data, img->dx, img->dy,
-+				img->width, img->height, col, bgcol);
-+	else
-+		cfb_imageblit(info, img);
-+}
-+
- static void tridentfb_copyarea(struct fb_info *info,
- 			       const struct fb_copyarea *ca)
- {
-@@ -522,6 +568,7 @@ static int tridentfb_sync(struct fb_info
- #else
- #define tridentfb_fillrect cfb_fillrect
- #define tridentfb_copyarea cfb_copyarea
-+#define tridentfb_imageblit cfb_imageblit
- #endif /* CONFIG_FB_TRIDENT_ACCEL */
+ static inline void __ptep_modify_prot_commit(struct mm_struct *mm,
+ 					     unsigned long addr,
+@@ -235,12 +231,8 @@ static inline void __ptep_modify_prot_co
+  * queue the update to be done at some later time.  The update must be
+  * actually committed before the pte lock is released, however.
+  */
+-static inline pte_t ptep_modify_prot_start(struct mm_struct *mm,
+-					   unsigned long addr,
+-					   pte_t *ptep)
+-{
+-	return __ptep_modify_prot_start(mm, addr, ptep);
+-}
++#define ptep_modify_prot_start(mm, addr, ptep)		\
++	__ptep_modify_prot_start(mm, addr, ptep)
  
  /*
-@@ -1285,7 +1332,7 @@ static struct fb_ops tridentfb_ops = {
- 	.fb_set_par = tridentfb_set_par,
- 	.fb_fillrect = tridentfb_fillrect,
- 	.fb_copyarea = tridentfb_copyarea,
--	.fb_imageblit = cfb_imageblit,
-+	.fb_imageblit = tridentfb_imageblit,
- #ifdef CONFIG_FB_TRIDENT_ACCEL
- 	.fb_sync = tridentfb_sync,
- #endif
-@@ -1369,6 +1416,7 @@ static int __devinit trident_pci_probe(s
- 		default_par->wait_engine = blade_wait_engine;
- 		default_par->fill_rect = blade_fill_rect;
- 		default_par->copy_rect = blade_copy_rect;
-+		default_par->image_blit = blade_image_blit;
- 		tridentfb_fix.accel = FB_ACCEL_TRIDENT_BLADE3D;
- 	} else if (chip3D) {			/* 3DImage family left */
- 		default_par->init_accel = image_init_accel;
-@@ -1446,6 +1494,29 @@ static int __devinit trident_pci_probe(s
- 	} else
- 		info->flags |= FBINFO_HWACCEL_DISABLED;
- 
-+	info->pixmap.addr = kmalloc(4096, GFP_KERNEL);
-+	if (!info->pixmap.addr) {
-+		err = -ENOMEM;
-+		goto out_unmap2;
-+	}
-+
-+	info->pixmap.size = 4096;
-+	info->pixmap.buf_align = 4;
-+	info->pixmap.scan_align = 1;
-+	info->pixmap.access_align = 32;
-+	info->pixmap.flags = FB_PIXMAP_SYSTEM;
-+
-+	if (default_par->image_blit) {
-+		info->flags |= FBINFO_HWACCEL_IMAGEBLIT;
-+		info->pixmap.scan_align = 4;
-+	}
-+
-+	if (noaccel) {
-+		printk(KERN_DEBUG "disabling acceleration\n");
-+		info->flags |= FBINFO_HWACCEL_DISABLED;
-+		info->pixmap.scan_align = 1;
-+	}
-+
- 	if (!fb_find_mode(&info->var, info,
- 			  mode_option, NULL, 0, NULL, bpp)) {
- 		err = -EINVAL;
-@@ -1471,6 +1542,7 @@ static int __devinit trident_pci_probe(s
- 	return 0;
- 
- out_unmap2:
-+	kfree(info->pixmap.addr);
- 	if (info->screen_base)
- 		iounmap(info->screen_base);
- 	release_mem_region(tridentfb_fix.smem_start, tridentfb_fix.smem_len);
-@@ -1494,6 +1566,7 @@ static void __devexit trident_pci_remove
- 	release_mem_region(tridentfb_fix.smem_start, tridentfb_fix.smem_len);
- 	release_mem_region(tridentfb_fix.mmio_start, tridentfb_fix.mmio_len);
- 	pci_set_drvdata(dev, NULL);
-+	kfree(info->pixmap.addr);
- 	framebuffer_release(info);
- }
- 
-diff -puN include/video/trident.h~tridentfb-add-imageblit-acceleration-for-blade3d-family include/video/trident.h
---- a/include/video/trident.h~tridentfb-add-imageblit-acceleration-for-blade3d-family
-+++ a/include/video/trident.h
-@@ -135,6 +135,7 @@
- #define CMD	0x2144
- #define ROP	0x2148
- #define COLOR	0x2160
-+#define BGCOLOR	0x2164
- #define SRC1	0x2100
- #define SRC2	0x2104
- #define DST1	0x2108
+  * Commit an update to a pte, leaving any hardware-controlled bits in
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+rtc-x1205-fix-alarm-set-fix.patch
+update-ntfs-help-text-fix.patch
+cgroups-document-the-effect-of-attaching-pid-0-to-a-cgroup-fix.patch
+spi-fix-the-read-path-in-spidev-cleanup.patch
+security-filesystem-capabilities-fix-fragile-setuid-fixup-code-checkpatch-fixes.patch
+net-ipv4-tcpc-needs-linux-scatterlisth.patch
+doc-document-the-relax_domain_level-kernel-boot-argument-fix.patch
+revert-introduce-rculisth.patch
 linux-next.patch
-tridentfb-replace-macros-with-functions.patch
-tridentfb-convert-fb_info-into-allocated-one.patch
-tridentfb-move-global-pseudo-palette-into-structure.patch
-tridentfb-move-global-chip_id-into-structure.patch
-tridentfb-move-global-flat-panel-variable-into-structure.patch
-tridentfb-convert-is_blade-and-is_xp-macros-into-functions.patch
-tridentfb-move-global-acceleration-hooks-into-structure.patch
-tridentfb-make-use-of-functions-and-constants-from-the-vgah.patch
-tridentfb-fix-timing-calculations.patch
-tridentfb-use-mmio-access-for-clock-setting.patch
-tridentfb-fix-clock-settings-for-older-trident-96xx-chips.patch
-tridentfb-improve-probe-function.patch
-tridentfb-improved-register-values-on-tgui-9680.patch
-tridentfb-add-tgui-9440-support.patch
-tridentfb-fix-unitialized-pseudo_palette.patch
-tridentfb-improve-check_var-function.patch
-tridentfb-preserve-memory-type-settings.patch
-tridentfb-fix-hi-color-modes-for-tgui-9440.patch
-tridentfb-add-acceleration-for-tgui-families.patch
-tridentfb-acceleration-code-improvements.patch
-tridentfb-acceleration-bug-fixes.patch
-tridentfb-various-pixclock-and-timing-improvements.patch
-tridentfb-acceleration-constants-change.patch
-tridentfb-source-code-improvements.patch
-tridentfb-fix-console-freeze-when-switching-from-x11.patch
-tridentfb-fix-224-color-logo-at-8-bpp.patch
-tridentfb-y-panning-fixes.patch
-tridentfb-blade3d-clock-fixes.patch
-tridentfb-add-imageblit-acceleration-for-blade3d-family.patch
-amifb-test-virtual-screen-range-before-subtraction-on-unsigned.patch
-atafb-test-virtual-screen-range-before-subtraction-on-unsigned.patch
-fbcon-make-logo_height-a-local-variable.patch
-uvesafb-change-mode-parameter-to-mode_option.patch
-tridentfb-documentation-update.patch
-tdfxfb-add-mode_option-module-parameter.patch
-vga16fb-source-code-improvement.patch
-tdfxfb-remove-ypan-checks-done-by-a-higher-layer.patch
-vfb-only-enable-if-explicitly-requested-when-compiled-in.patch
-hgafb-convert-to-new-platform-driver-api-bugzilla-9689.patch
-skeletonfb-update-to-correct-platform-driver-usage.patch
-neofb-simplify-clock-calculation.patch
-neofb-drop-redundant-code.patch
+next-remove-localversion.patch
+s390-build-fixes.patch
+linux-next-fixups.patch
+fix-kobject-fix-kobject_rename-and-config_sysfs.patch
+kvm-is-busted-on-ia64.patch
+drivers-mtd-nand-nandsimc-needs-div64h.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+arch-x86-kernel-smpbootc-fix-warning.patch
+arch-x86-mm-pgtable_32c-remove-unused-variable-fixmaps.patch
+arch-x86-mm-init_64c-early_memtest-fix-types.patch
+drivers-media-video-cx18-cx18-av-firmwarec-fix-warning.patch
+drivers-media-video-uvc-uvc_v4l2c-suppress-uninitialized-var-warning.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+tick-schedc-suppress-needless-timer-reprogramming-checkpatch-fixes.patch
+git-jg-misc-git-rejects.patch
+drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers.patch
+drivers-mtd-devices-block2mtdc-suppress-warning.patch
+sundance-set-carrier-status-on-link-change-events.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix-fix.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-scsi-misc-fix-scsi_dh-build-errors.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+git-block-fix-drivers-block-pktcdvdc.patch
+s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
+pktcdvd-push-bkl-down-into-driver-fix.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-logfs-fixup.patch
+drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
+drivers-usb-class-cdc-acmc-fix-build-with-config_pm=n.patch
+drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
+watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
+git-xtensa.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-verify-the-page-links-and-memory-model.patch
+mspec-convert-nopfn-to-fault-fix.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+kill-generic_file_direct_io-checkpatch-fixes.patch
+use-generic_access_phys-for-dev-mem-mappings-fix.patch
+spufs-use-the-new-vm_ops-access-fix.patch
+fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
+page-flags-record-page-flag-overlays-explicitly-xen.patch
+mapping_set_error-add-unlikely.patch
+huge-page-private-reservation-review-cleanups-fix.patch
+sync_file_range_write-may-and-will-block-document-that-fix.patch
+vmallocinfo-add-numa-information-fix.patch
+hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
+hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
+hugetlb-override-default-huge-page-size-ia64-build.patch
+hugetlb-reservations-fix-hugetlb-map_private-reservations-across-vma-splits-v2-fix.patch
+linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+bootmem-add-debugging-framework-fix.patch
+bootmem-clean-up-free_all_bootmem_core-fix.patch
+bootmem-free-reserve-helpers-fix.patch
+revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-v850-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-arm-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mips-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mtd-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fixes.patch
+mmu-notifiers-add-mm_take_all_locks-operation-checkpatch-fixes.patch
+mmu-notifier-core-checkpatch-fixes.patch
+mmu-notifier-core-fix.patch
+mmu-notifier-core-fix-2.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
+security-protect-legacy-applications-from-executing-with-insufficient-privilege-checkpatch-fixes.patch
+swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
+block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
+seq_file-fix-bug-when-seq_read-reads-nothing-fix.patch
+exec-remove-some-includes-fix.patch
+inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-paccept-sys_ni.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-signalfd-fix.patch
+flag-parameters-eventfd-fix.patch
+flag-parameters-inotify_init-fix.patch
+flag-parameters-check-magic-constants-alpha.patch
+spi-au1550_spi-improve-pio-transfer-mode-checkpatch-fixes.patch
+gpio-gpio-driver-for-max7301-spi-gpio-expander-checkpatch-fixes.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
+lcd-add-platform_lcd-driver-fix.patch
+fsl-diu-fb-update-freescale-diu-driver-to-use-page_alloc_exact-fix.patch
+fbdev-add-new-cobalt-lcd-framebuffer-driver-fix.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
+ext3-handle-corrupted-orphan-list-at-mount-cleanup.patch
+ext3-handle-corrupted-orphan-list-at-mount-fix.patch
+ext3-handle-corrupted-orphan-list-at-mount-cleanup-fix.patch
+ext3-handle-deleting-corrupted-indirect-blocks-fix.patch
+jbd-dont-abort-if-flushing-file-data-failed-fix.patch
+reiserfs-convert-j_flush_sem-to-mutex.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
+cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-fix.patch
+cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-checkpatch-fixes.patch
+memcg-remove-refcnt-from-page_cgroup-fix-2.patch
+workqueues-make-get_online_cpus-useable-for-work-func-fix.patch
+jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup.patch
+ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
+getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
+edac-mpc85xx-fix-pci-ofdev-2nd-pass-checkpatch-fixes.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-s2io.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
+x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary-checkpatch-fixes.patch
+tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
+memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
+memstick-use-fully-asynchronous-request-processing-fix.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+mm-introduce-get_user_pages_fast-fix.patch
+mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-fix.patch
+x86-lockless-get_user_pages_fast-fix-2.patch
+x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
+x86-lockless-get_user_pages_fast-fix-warning.patch
+vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
+define-page_file_cache-function-fix.patch
+unevictable-lru-infrastructure-fix.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-3.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
+vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
+video-console-sticonrec-make-code-static-checkpatch-fixes.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
