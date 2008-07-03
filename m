@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + page_align-fix-implicit-declarations-of-function-page_align-in-various-drivers.patch added to -mm tree
-Date: Thu, 03 Jul 2008 10:09:55 -0700
-Message-ID: <200807031709.m63H9tdA017767@imap1.linux-foundation.org>
+Subject: + tridentfb-add-imageblit-acceleration-for-blade3d-family.patch added to -mm tree
+Date: Thu, 03 Jul 2008 10:22:45 -0700
+Message-ID: <200807031722.m63HMjJn018228@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58084 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37339 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752068AbYGCRRm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jul 2008 13:17:42 -0400
+	by vger.kernel.org with ESMTP id S1751054AbYGCRWs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jul 2008 13:22:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: righi.andrea@gmail.com
+Cc: krzysztof.h1@wp.pl
 
 
 The patch titled
-     page_align: fix implicit declarations of function 'PAGE_ALIGN' in various drivers
+     tridentfb: add imageblit acceleration for Blade3D family
 has been added to the -mm tree.  Its filename is
-     page_align-fix-implicit-declarations-of-function-page_align-in-various-drivers.patch
+     tridentfb-add-imageblit-acceleration-for-blade3d-family.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,157 +33,228 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page_align: fix implicit declarations of function 'PAGE_ALIGN' in various drivers
-From: Andrea Righi <righi.andrea@gmail.com>
+Subject: tridentfb: add imageblit acceleration for Blade3D family
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Signed-off-by: Andrea Righi <righi.andrea@gmail.com>
+Add imageblit acceleration for the Blade3D family of cores.  The code is
+based on code from the cyblafb driver.
+
+It is a step toward assimilating back the cyblafb driver into the
+tridentfb driver.  The cyblafb driver handles a subfamily of the Trident
+Blade3d cores.
+
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ieee1394/iso.c           |    1 +
- drivers/net/mlx4/eq.c            |    1 +
- drivers/pcmcia/electra_cf.c      |    1 +
- drivers/scsi/sun_esp.c           |    1 +
- drivers/video/acornfb.c          |    1 +
- drivers/video/imxfb.c            |    1 +
- drivers/video/omap/dispc.c       |    1 +
- drivers/video/omap/omapfb_main.c |    1 +
- drivers/video/pxafb.c            |    1 +
- drivers/video/sa1100fb.c         |    1 +
- 10 files changed, 10 insertions(+)
+ drivers/video/tridentfb.c |   79 ++++++++++++++++++++++++++++++++++--
+ include/video/trident.h   |    1 
+ 2 files changed, 77 insertions(+), 3 deletions(-)
 
-diff -puN drivers/ieee1394/iso.c~page_align-fix-implicit-declarations-of-function-page_align-in-various-drivers drivers/ieee1394/iso.c
---- a/drivers/ieee1394/iso.c~page_align-fix-implicit-declarations-of-function-page_align-in-various-drivers
-+++ a/drivers/ieee1394/iso.c
-@@ -11,6 +11,7 @@
+diff -puN drivers/video/tridentfb.c~tridentfb-add-imageblit-acceleration-for-blade3d-family drivers/video/tridentfb.c
+--- a/drivers/video/tridentfb.c~tridentfb-add-imageblit-acceleration-for-blade3d-family
++++ a/drivers/video/tridentfb.c
+@@ -35,11 +35,12 @@ struct tridentfb_par {
+ 		(struct tridentfb_par *par, u32, u32, u32, u32, u32, u32);
+ 	void (*copy_rect)
+ 		(struct tridentfb_par *par, u32, u32, u32, u32, u32, u32);
++	void (*image_blit)
++		(struct tridentfb_par *par, const char*,
++		 u32, u32, u32, u32, u32, u32);
+ 	unsigned char eng_oper;	/* engine operation... */
+ };
  
- #include <linux/pci.h>
- #include <linux/sched.h>
-+#include <linux/mm.h>
- #include <linux/slab.h>
+-static struct fb_ops tridentfb_ops;
+-
+ static struct fb_fix_screeninfo tridentfb_fix = {
+ 	.id = "Trident",
+ 	.type = FB_TYPE_PACKED_PIXELS,
+@@ -212,6 +213,21 @@ static void blade_fill_rect(struct tride
+ 	writemmr(par, DST2, point(x + w - 1, y + h - 1));
+ }
  
- #include "hosts.h"
-diff -puN drivers/net/mlx4/eq.c~page_align-fix-implicit-declarations-of-function-page_align-in-various-drivers drivers/net/mlx4/eq.c
---- a/drivers/net/mlx4/eq.c~page_align-fix-implicit-declarations-of-function-page_align-in-various-drivers
-+++ a/drivers/net/mlx4/eq.c
-@@ -33,6 +33,7 @@
++static void blade_image_blit(struct tridentfb_par *par, const char *data,
++			     u32 x, u32 y, u32 w, u32 h, u32 c, u32 b)
++{
++	unsigned size = ((w + 31) >> 5) * h;
++
++	writemmr(par, COLOR, c);
++	writemmr(par, BGCOLOR, b);
++	writemmr(par, CMD, 0xa0000000 | 3 << 19);
++
++	writemmr(par, DST1, point(x, y));
++	writemmr(par, DST2, point(x + w - 1, y + h - 1));
++
++	memcpy(par->io_virt + 0x10000, data, 4 * size);
++}
++
+ static void blade_copy_rect(struct tridentfb_par *par,
+ 			    u32 x1, u32 y1, u32 x2, u32 y2, u32 w, u32 h)
+ {
+@@ -497,6 +513,36 @@ static void tridentfb_fillrect(struct fb
+ 		       fr->height, col, fr->rop);
+ }
  
- #include <linux/init.h>
- #include <linux/interrupt.h>
-+#include <linux/mm.h>
- #include <linux/dma-mapping.h>
++static void tridentfb_imageblit(struct fb_info *info,
++				const struct fb_image *img)
++{
++	struct tridentfb_par *par = info->par;
++	int col, bgcol;
++
++	if ((info->flags & FBINFO_HWACCEL_DISABLED) || img->depth != 1) {
++		cfb_imageblit(info, img);
++		return;
++	}
++	if (info->var.bits_per_pixel == 8) {
++		col = img->fg_color;
++		col |= col << 8;
++		col |= col << 16;
++		bgcol = img->bg_color;
++		bgcol |= bgcol << 8;
++		bgcol |= bgcol << 16;
++	} else {
++		col = ((u32 *)(info->pseudo_palette))[img->fg_color];
++		bgcol = ((u32 *)(info->pseudo_palette))[img->bg_color];
++	}
++
++	par->wait_engine(par);
++	if (par->image_blit)
++		par->image_blit(par, img->data, img->dx, img->dy,
++				img->width, img->height, col, bgcol);
++	else
++		cfb_imageblit(info, img);
++}
++
+ static void tridentfb_copyarea(struct fb_info *info,
+ 			       const struct fb_copyarea *ca)
+ {
+@@ -522,6 +568,7 @@ static int tridentfb_sync(struct fb_info
+ #else
+ #define tridentfb_fillrect cfb_fillrect
+ #define tridentfb_copyarea cfb_copyarea
++#define tridentfb_imageblit cfb_imageblit
+ #endif /* CONFIG_FB_TRIDENT_ACCEL */
  
- #include <linux/mlx4/cmd.h>
-diff -puN drivers/pcmcia/electra_cf.c~page_align-fix-implicit-declarations-of-function-page_align-in-various-drivers drivers/pcmcia/electra_cf.c
---- a/drivers/pcmcia/electra_cf.c~page_align-fix-implicit-declarations-of-function-page_align-in-various-drivers
-+++ a/drivers/pcmcia/electra_cf.c
-@@ -28,6 +28,7 @@
- #include <linux/init.h>
- #include <linux/delay.h>
- #include <linux/interrupt.h>
-+#include <linux/mm.h>
- #include <linux/vmalloc.h>
- #include <linux/of_platform.h>
+ /*
+@@ -1285,7 +1332,7 @@ static struct fb_ops tridentfb_ops = {
+ 	.fb_set_par = tridentfb_set_par,
+ 	.fb_fillrect = tridentfb_fillrect,
+ 	.fb_copyarea = tridentfb_copyarea,
+-	.fb_imageblit = cfb_imageblit,
++	.fb_imageblit = tridentfb_imageblit,
+ #ifdef CONFIG_FB_TRIDENT_ACCEL
+ 	.fb_sync = tridentfb_sync,
+ #endif
+@@ -1369,6 +1416,7 @@ static int __devinit trident_pci_probe(s
+ 		default_par->wait_engine = blade_wait_engine;
+ 		default_par->fill_rect = blade_fill_rect;
+ 		default_par->copy_rect = blade_copy_rect;
++		default_par->image_blit = blade_image_blit;
+ 		tridentfb_fix.accel = FB_ACCEL_TRIDENT_BLADE3D;
+ 	} else if (chip3D) {			/* 3DImage family left */
+ 		default_par->init_accel = image_init_accel;
+@@ -1446,6 +1494,29 @@ static int __devinit trident_pci_probe(s
+ 	} else
+ 		info->flags |= FBINFO_HWACCEL_DISABLED;
  
-diff -puN drivers/scsi/sun_esp.c~page_align-fix-implicit-declarations-of-function-page_align-in-various-drivers drivers/scsi/sun_esp.c
---- a/drivers/scsi/sun_esp.c~page_align-fix-implicit-declarations-of-function-page_align-in-various-drivers
-+++ a/drivers/scsi/sun_esp.c
-@@ -7,6 +7,7 @@
- #include <linux/types.h>
- #include <linux/delay.h>
- #include <linux/module.h>
-+#include <linux/mm.h>
- #include <linux/init.h>
++	info->pixmap.addr = kmalloc(4096, GFP_KERNEL);
++	if (!info->pixmap.addr) {
++		err = -ENOMEM;
++		goto out_unmap2;
++	}
++
++	info->pixmap.size = 4096;
++	info->pixmap.buf_align = 4;
++	info->pixmap.scan_align = 1;
++	info->pixmap.access_align = 32;
++	info->pixmap.flags = FB_PIXMAP_SYSTEM;
++
++	if (default_par->image_blit) {
++		info->flags |= FBINFO_HWACCEL_IMAGEBLIT;
++		info->pixmap.scan_align = 4;
++	}
++
++	if (noaccel) {
++		printk(KERN_DEBUG "disabling acceleration\n");
++		info->flags |= FBINFO_HWACCEL_DISABLED;
++		info->pixmap.scan_align = 1;
++	}
++
+ 	if (!fb_find_mode(&info->var, info,
+ 			  mode_option, NULL, 0, NULL, bpp)) {
+ 		err = -EINVAL;
+@@ -1471,6 +1542,7 @@ static int __devinit trident_pci_probe(s
+ 	return 0;
  
- #include <asm/irq.h>
-diff -puN drivers/video/acornfb.c~page_align-fix-implicit-declarations-of-function-page_align-in-various-drivers drivers/video/acornfb.c
---- a/drivers/video/acornfb.c~page_align-fix-implicit-declarations-of-function-page_align-in-various-drivers
-+++ a/drivers/video/acornfb.c
-@@ -23,6 +23,7 @@
- #include <linux/string.h>
- #include <linux/ctype.h>
- #include <linux/slab.h>
-+#include <linux/mm.h>
- #include <linux/init.h>
- #include <linux/fb.h>
- #include <linux/platform_device.h>
-diff -puN drivers/video/imxfb.c~page_align-fix-implicit-declarations-of-function-page_align-in-various-drivers drivers/video/imxfb.c
---- a/drivers/video/imxfb.c~page_align-fix-implicit-declarations-of-function-page_align-in-various-drivers
-+++ a/drivers/video/imxfb.c
-@@ -24,6 +24,7 @@
- #include <linux/string.h>
- #include <linux/interrupt.h>
- #include <linux/slab.h>
-+#include <linux/mm.h>
- #include <linux/fb.h>
- #include <linux/delay.h>
- #include <linux/init.h>
-diff -puN drivers/video/omap/dispc.c~page_align-fix-implicit-declarations-of-function-page_align-in-various-drivers drivers/video/omap/dispc.c
---- a/drivers/video/omap/dispc.c~page_align-fix-implicit-declarations-of-function-page_align-in-various-drivers
-+++ a/drivers/video/omap/dispc.c
-@@ -20,6 +20,7 @@
-  */
- #include <linux/kernel.h>
- #include <linux/dma-mapping.h>
-+#include <linux/mm.h>
- #include <linux/vmalloc.h>
- #include <linux/clk.h>
- #include <linux/io.h>
-diff -puN drivers/video/omap/omapfb_main.c~page_align-fix-implicit-declarations-of-function-page_align-in-various-drivers drivers/video/omap/omapfb_main.c
---- a/drivers/video/omap/omapfb_main.c~page_align-fix-implicit-declarations-of-function-page_align-in-various-drivers
-+++ a/drivers/video/omap/omapfb_main.c
-@@ -25,6 +25,7 @@
-  * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-  */
- #include <linux/platform_device.h>
-+#include <linux/mm.h>
- #include <linux/uaccess.h>
+ out_unmap2:
++	kfree(info->pixmap.addr);
+ 	if (info->screen_base)
+ 		iounmap(info->screen_base);
+ 	release_mem_region(tridentfb_fix.smem_start, tridentfb_fix.smem_len);
+@@ -1494,6 +1566,7 @@ static void __devexit trident_pci_remove
+ 	release_mem_region(tridentfb_fix.smem_start, tridentfb_fix.smem_len);
+ 	release_mem_region(tridentfb_fix.mmio_start, tridentfb_fix.mmio_len);
+ 	pci_set_drvdata(dev, NULL);
++	kfree(info->pixmap.addr);
+ 	framebuffer_release(info);
+ }
  
- #include <asm/mach-types.h>
-diff -puN drivers/video/pxafb.c~page_align-fix-implicit-declarations-of-function-page_align-in-various-drivers drivers/video/pxafb.c
---- a/drivers/video/pxafb.c~page_align-fix-implicit-declarations-of-function-page_align-in-various-drivers
-+++ a/drivers/video/pxafb.c
-@@ -30,6 +30,7 @@
- #include <linux/string.h>
- #include <linux/interrupt.h>
- #include <linux/slab.h>
-+#include <linux/mm.h>
- #include <linux/fb.h>
- #include <linux/delay.h>
- #include <linux/init.h>
-diff -puN drivers/video/sa1100fb.c~page_align-fix-implicit-declarations-of-function-page_align-in-various-drivers drivers/video/sa1100fb.c
---- a/drivers/video/sa1100fb.c~page_align-fix-implicit-declarations-of-function-page_align-in-various-drivers
-+++ a/drivers/video/sa1100fb.c
-@@ -167,6 +167,7 @@
- #include <linux/string.h>
- #include <linux/interrupt.h>
- #include <linux/slab.h>
-+#include <linux/mm.h>
- #include <linux/fb.h>
- #include <linux/delay.h>
- #include <linux/init.h>
+diff -puN include/video/trident.h~tridentfb-add-imageblit-acceleration-for-blade3d-family include/video/trident.h
+--- a/include/video/trident.h~tridentfb-add-imageblit-acceleration-for-blade3d-family
++++ a/include/video/trident.h
+@@ -135,6 +135,7 @@
+ #define CMD	0x2144
+ #define ROP	0x2148
+ #define COLOR	0x2160
++#define BGCOLOR	0x2164
+ #define SRC1	0x2100
+ #define SRC2	0x2104
+ #define DST1	0x2108
 _
 
-Patches currently in -mm which might be from righi.andrea@gmail.com are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
-cgroups-document-the-effect-of-attaching-pid-0-to-a-cgroup-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-v850-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-x86_64-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-arm-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mips-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mtd-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fixes.patch
-page_align-arm-fix-implicit-declaration-of-function-page_align.patch
-page_align-avr32-fix-implicit-declaration-of-function-page_align.patch
-page_align-h8300-fix-implicit-declaration-of-function-page_align.patch
-page_align-m68k-fix-implicit-declaration-of-function-page_align.patch
-page_align-m68knommu-fix-implicit-declaration-of-function-page_align.patch
-page_align-mips-fix-implicit-declarations-of-function-page_align.patch
-page_align-xtensa-fix-implicit-declaration-of-function-page_align.patch
-page_align-fix-implicit-declarations-of-function-page_align-in-various-drivers.patch
-distinct-tgid-tid-i-o-statistics.patch
+linux-next.patch
+tridentfb-replace-macros-with-functions.patch
+tridentfb-convert-fb_info-into-allocated-one.patch
+tridentfb-move-global-pseudo-palette-into-structure.patch
+tridentfb-move-global-chip_id-into-structure.patch
+tridentfb-move-global-flat-panel-variable-into-structure.patch
+tridentfb-convert-is_blade-and-is_xp-macros-into-functions.patch
+tridentfb-move-global-acceleration-hooks-into-structure.patch
+tridentfb-make-use-of-functions-and-constants-from-the-vgah.patch
+tridentfb-fix-timing-calculations.patch
+tridentfb-use-mmio-access-for-clock-setting.patch
+tridentfb-fix-clock-settings-for-older-trident-96xx-chips.patch
+tridentfb-improve-probe-function.patch
+tridentfb-improved-register-values-on-tgui-9680.patch
+tridentfb-add-tgui-9440-support.patch
+tridentfb-fix-unitialized-pseudo_palette.patch
+tridentfb-improve-check_var-function.patch
+tridentfb-preserve-memory-type-settings.patch
+tridentfb-fix-hi-color-modes-for-tgui-9440.patch
+tridentfb-add-acceleration-for-tgui-families.patch
+tridentfb-acceleration-code-improvements.patch
+tridentfb-acceleration-bug-fixes.patch
+tridentfb-various-pixclock-and-timing-improvements.patch
+tridentfb-acceleration-constants-change.patch
+tridentfb-source-code-improvements.patch
+tridentfb-fix-console-freeze-when-switching-from-x11.patch
+tridentfb-fix-224-color-logo-at-8-bpp.patch
+tridentfb-y-panning-fixes.patch
+tridentfb-blade3d-clock-fixes.patch
+tridentfb-add-imageblit-acceleration-for-blade3d-family.patch
+amifb-test-virtual-screen-range-before-subtraction-on-unsigned.patch
+atafb-test-virtual-screen-range-before-subtraction-on-unsigned.patch
+fbcon-make-logo_height-a-local-variable.patch
+uvesafb-change-mode-parameter-to-mode_option.patch
+tridentfb-documentation-update.patch
+tdfxfb-add-mode_option-module-parameter.patch
+vga16fb-source-code-improvement.patch
+tdfxfb-remove-ypan-checks-done-by-a-higher-layer.patch
+vfb-only-enable-if-explicitly-requested-when-compiled-in.patch
+hgafb-convert-to-new-platform-driver-api-bugzilla-9689.patch
+skeletonfb-update-to-correct-platform-driver-usage.patch
+neofb-simplify-clock-calculation.patch
+neofb-drop-redundant-code.patch
 
