@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch added to -mm tree
-Date: Wed, 02 Jul 2008 17:04:44 -0700
-Message-ID: <200807030016.m630GrUN010944@imap1.linux-foundation.org>
+Subject: + net-ipv4-tcpc-needs-linux-scatterlisth.patch added to -mm tree
+Date: Wed, 02 Jul 2008 20:04:57 -0700
+Message-ID: <200807030317.m633H5Ys017057@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60001 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44979 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751149AbYGCAQ4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 20:16:56 -0400
+	by vger.kernel.org with ESMTP id S1754602AbYGCDRK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jul 2008 23:17:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com
+Cc: akpm@linux-foundation.org, davem@davemloft.net
 
 
 The patch titled
-     drivers/usb/class/cdc-acm.c: use correct type for CPU flags
+     net/ipv4/tcp.c needs linux/scatterlist.h
 has been added to the -mm tree.  Its filename is
-     drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
+     net-ipv4-tcpc-needs-linux-scatterlisth.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,34 +33,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/usb/class/cdc-acm.c: use correct type for CPU flags
+Subject: net/ipv4/tcp.c needs linux/scatterlist.h
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/usb/class/cdc-acm.c: In function 'acm_waker':
-drivers/usb/class/cdc-acm.c:527: warning: comparison of distinct pointer types lacks a cast
-drivers/usb/class/cdc-acm.c:529: warning: comparison of distinct pointer types lacks a cast
+alpha:
 
-Nobody tests linux-next.
+net/ipv4/tcp.c: In function 'tcp_calc_md5_hash':
+net/ipv4/tcp.c:2479: error: implicit declaration of function 'sg_init_table'    net/ipv4/tcp.c:2482: error: implicit declaration of function 'sg_set_buf'
+net/ipv4/tcp.c:2507: error: implicit declaration of function 'sg_mark_end'      
 
-Cc: Greg KH <greg@kroah.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/class/cdc-acm.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/ipv4/tcp.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/usb/class/cdc-acm.c~drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags drivers/usb/class/cdc-acm.c
---- a/drivers/usb/class/cdc-acm.c~drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags
-+++ a/drivers/usb/class/cdc-acm.c
-@@ -512,7 +512,7 @@ static void acm_softint(struct work_stru
- static void acm_waker(struct work_struct *waker)
- {
- 	struct acm *acm = container_of(waker, struct acm, waker);
--	long flags;
-+	unsigned long flags;
- 	int rv;
- 
- 	rv = usb_autopm_get_interface(acm->control);
+diff -puN net/ipv4/tcp.c~a net/ipv4/tcp.c
+--- a/net/ipv4/tcp.c~a
++++ a/net/ipv4/tcp.c
+@@ -253,6 +253,7 @@
+ #include <linux/init.h>
+ #include <linux/fs.h>
+ #include <linux/skbuff.h>
++#include <linux/scatterlist.h>
+ #include <linux/splice.h>
+ #include <linux/net.h>
+ #include <linux/socket.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -100,6 +99,7 @@ pktcdvd-push-bkl-down-into-driver-fix.patch
 git-unionfs.patch
 git-unionfs-fixup.patch
 git-logfs-fixup.patch
+drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
 watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
 git-xtensa.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
@@ -131,6 +131,7 @@ bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
 page_align-correctly-handle-64-bit-values-on-32-bit-architectures-fix.patch
 page_align-correctly-handle-64-bit-values-on-32-bit-architectures-v850-fix.patch
 page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-arm-fix.patch
 mmu-notifiers-add-mm_take_all_locks-operation-checkpatch-fixes.patch
 mmu-notifier-core-checkpatch-fixes.patch
 mmu-notifier-core-fix.patch
@@ -149,6 +150,7 @@ build-kernel-profileo-only-when-requested-cleanups.patch
 fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
 block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
 seq_file-fix-bug-when-seq_read-reads-nothing-fix.patch
+exec-remove-some-includes-fix.patch
 inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
 add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
 flag-parameters-paccept-fix.patch
@@ -232,5 +234,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
-drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
+net-ipv4-tcpc-needs-linux-scatterlisth.patch
 
