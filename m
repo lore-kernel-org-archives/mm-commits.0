@@ -1,165 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Thu, 03 Jul 2008 23:32:31 -0700
-Message-ID: <200807040632.m646WVjF016701@imap1.linux-foundation.org>
+Subject: - tick-schedc-suppress-needless-timer-reprogramming-checkpatch-fixes.patch removed from -mm tree
+Date: Thu, 03 Jul 2008 23:34:30 -0700
+Message-ID: <200807040634.m646YU9i016818@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54319 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41987 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751557AbYGDGcf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jul 2008 02:32:35 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m646WVx4011030
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 3 Jul 2008 23:32:32 -0700
+	by vger.kernel.org with ESMTP id S1756595AbYGDGfV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jul 2008 02:35:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, r-woodruff2@ti.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     tick-schedc-suppress-needless-timer-reprogramming-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     tick-schedc-suppress-needless-timer-reprogramming-checkpatch-fixes.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into tick-schedc-suppress-needless-timer-reprogramming.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
+Subject: tick-schedc-suppress-needless-timer-reprogramming-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
+ERROR: space required before the open parenthesis '('
+#42: FILE: kernel/time/tick-sched.c:272:
++		if(ts->tick_stopped && ktime_equal(expires, dev->next_event))
+
+total: 1 errors, 0 warnings, 37 lines checked
+
+./patches/tick-schedc-suppress-needless-timer-reprogramming.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: "Woodruff, Richard" <r-woodruff2@ti.com>
+Cc: Richard Woodruff <r-woodruff2@ti.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig            |    5 -----
- drivers/char/tty_io.c       |   13 -------------
- drivers/media/video/Kconfig |    3 ---
- drivers/usb/core/hub.c      |   32 --------------------------------
- 4 files changed, 53 deletions(-)
+ kernel/time/tick-sched.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/Kconfig~linux-next-git-rejects arch/x86/Kconfig
---- a/arch/x86/Kconfig~linux-next-git-rejects
-+++ a/arch/x86/Kconfig
-@@ -1009,13 +1009,8 @@ endif
+diff -puN kernel/time/tick-sched.c~tick-schedc-suppress-needless-timer-reprogramming-checkpatch-fixes kernel/time/tick-sched.c
+--- a/kernel/time/tick-sched.c~tick-schedc-suppress-needless-timer-reprogramming-checkpatch-fixes
++++ a/kernel/time/tick-sched.c
+@@ -269,7 +269,7 @@ void tick_nohz_stop_sched_tick(void)
+ 				   delta_jiffies);
  
- if !MAXSMP
- config NODES_SHIFT
--<<<<<<< HEAD:arch/x86/Kconfig
--	int "Max num nodes shift(1-9)"
--	range 1 9  if X86_64
--=======
- 	int "Maximum NUMA Nodes (as a power of 2)"
- 	range 1 9   if X86_64
-->>>>>>> FETCH_HEAD:arch/x86/Kconfig
- 	default "6" if X86_64
- 	default "4" if X86_NUMAQ
- 	default "3"
-diff -puN drivers/char/tty_io.c~linux-next-git-rejects drivers/char/tty_io.c
---- a/drivers/char/tty_io.c~linux-next-git-rejects
-+++ a/drivers/char/tty_io.c
-@@ -2849,18 +2849,6 @@ static int tiocsetd(struct tty_struct *t
+ 		/* Skip reprogram of event if its not changed */
+-		if(ts->tick_stopped && ktime_equal(expires, dev->next_event))
++		if (ts->tick_stopped && ktime_equal(expires, dev->next_event))
+ 			goto out2;
  
- static int send_break(struct tty_struct *tty, unsigned int duration)
- {
--<<<<<<< HEAD:drivers/char/tty_io.c
--	if (tty_write_lock(tty, 0) < 0)
--		return -EINTR;
--	tty->ops->break_ctl(tty, -1);
--	if (!signal_pending(current))
--		msleep_interruptible(duration);
--	tty->ops->break_ctl(tty, 0);
--	tty_write_unlock(tty);
--	if (signal_pending(current))
--		return -EINTR;
--	return 0;
--=======
- 	int retval;
- 
- 	if (tty->ops->break_ctl == NULL)
-@@ -2884,7 +2872,6 @@ out:
- 			retval = -EINTR;
- 	}
- 	return retval;
-->>>>>>> FETCH_HEAD:drivers/char/tty_io.c
- }
- 
- /**
-diff -puN drivers/media/video/Kconfig~linux-next-git-rejects drivers/media/video/Kconfig
---- a/drivers/media/video/Kconfig~linux-next-git-rejects
-+++ a/drivers/media/video/Kconfig
-@@ -801,11 +801,8 @@ config USB_VIDEO_CLASS
- 
- 	  For more information see: <http://linux-uvc.berlios.de/>
- 
--<<<<<<< HEAD:drivers/media/video/Kconfig
--=======
- source "drivers/media/video/gspca/Kconfig"
- 
-->>>>>>> FETCH_HEAD:drivers/media/video/Kconfig
- source "drivers/media/video/pvrusb2/Kconfig"
- 
- source "drivers/media/video/em28xx/Kconfig"
-diff -puN drivers/usb/core/hub.c~linux-next-git-rejects drivers/usb/core/hub.c
---- a/drivers/usb/core/hub.c~linux-next-git-rejects
-+++ a/drivers/usb/core/hub.c
-@@ -716,37 +716,6 @@ static void hub_quiesce(struct usb_hub *
- 	struct usb_device *hdev = hub->hdev;
- 	int i;
- 
--<<<<<<< HEAD:drivers/usb/core/hub.c
--		/* Was the power session lost while we were suspended? */
--		status = hub_port_status(hub, port1, &portstatus, &portchange);
--
--		/* If the device is gone, khubd will handle it later */
--		if (status == 0 && !(portstatus & USB_PORT_STAT_CONNECTION))
--			continue;
--
--		/* For "USB_PERSIST"-enabled children we must
--		 * mark the child device for reset-resume and
--		 * turn off the various status changes to prevent
--		 * khubd from disconnecting it later.
--		 */
--		if (status == 0 && !(portstatus & USB_PORT_STAT_ENABLE) &&
--				persistent_device(udev)) {
--			if (portchange & USB_PORT_STAT_C_ENABLE)
--				clear_port_feature(hub->hdev, port1,
--						USB_PORT_FEAT_C_ENABLE);
--			if (portchange & USB_PORT_STAT_C_CONNECTION)
--				clear_port_feature(hub->hdev, port1,
--						USB_PORT_FEAT_C_CONNECTION);
--			udev->reset_resume = 1;
--		}
--
--		/* Otherwise for a reset_resume we must disconnect the child,
--		 * but as we may not lock the child device here
--		 * we have to do a "logical" disconnect.
--		 */
--		else if (type == HUB_RESET_RESUME)
--			hub_port_logical_disconnect(hub, port1);
--=======
- 	/* khubd and related activity won't re-trigger */
- 	hub->quiescing = 1;
- 
-@@ -756,7 +725,6 @@ static void hub_quiesce(struct usb_hub *
- 			if (hdev->children[i])
- 				usb_disconnect(&hdev->children[i]);
- 		}
-->>>>>>> FETCH_HEAD:drivers/usb/core/hub.c
- 	}
- 
- 	/* Stop khubd and related activity */
+ 		if (delta_jiffies > 1)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -187,7 +86,7 @@ arch-x86-mm-init_64c-early_memtest-fix-types.patch
 drivers-media-video-cx18-cx18-av-firmwarec-fix-warning.patch
 drivers-media-video-uvc-uvc_v4l2c-suppress-uninitialized-var-warning.patch
 i2c-renesas-highlander-fpga-smbus-support.patch
-git-hid.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
 tick-schedc-suppress-needless-timer-reprogramming-checkpatch-fixes.patch
 git-input.patch
 git-jg-misc-git-rejects.patch
