@@ -1,52 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - doc-document-the-relax_domain_level-kernel-boot-argument-fix.patch removed from -mm tree
-Date: Fri, 04 Jul 2008 00:34:41 -0700
-Message-ID: <200807040734.m647YfGk019666@imap1.linux-foundation.org>
+Subject: - security-filesystem-capabilities-fix-fragile-setuid-fixup-code-checkpatch-fixes.patch removed from -mm tree
+Date: Fri, 04 Jul 2008 00:33:15 -0700
+Message-ID: <200807040733.m647XF7n019566@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36655 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55275 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755732AbYGDHfR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jul 2008 03:35:17 -0400
+	by vger.kernel.org with ESMTP id S1750953AbYGDHhJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jul 2008 03:37:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, lizf@cn.fujitsu.com, mtk.manpages@googlemail.com, pj@sgi.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dhowells@redhat.com, morgan@kernel.org, serue@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     doc-document-the-relax_domain_level-kernel-boot-argument-fix
+     security-filesystem-capabilities-fix-fragile-setuid-fixup-code-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     doc-document-the-relax_domain_level-kernel-boot-argument-fix.patch
+     security-filesystem-capabilities-fix-fragile-setuid-fixup-code-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into doc-document-the-relax_domain_level-kernel-boot-argument.patch
+This patch was dropped because it was folded into security-filesystem-capabilities-fix-fragile-setuid-fixup-code.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: doc-document-the-relax_domain_level-kernel-boot-argument-fix
+Subject: security-filesystem-capabilities-fix-fragile-setuid-fixup-code-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
-Cc: Paul Jackson <pj@sgi.com>
+WARNING: braces {} are not necessary for single statement blocks
+#88: FILE: fs/open.c:487:
++	if (!issecure(SECURE_NO_SETUID_FIXUP)) {
++		(void) cap_set_effective(old_cap);
++	}
+
+WARNING: EXPORT_SYMBOL(foo); should immediately follow its function/variable
+#169: FILE: kernel/capability.c:143:
++EXPORT_SYMBOL(cap_set_effective);
+
+total: 0 errors, 2 warnings, 133 lines checked
+
+./patches/security-filesystem-capabilities-fix-fragile-setuid-fixup-code.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Andrew G. Morgan <morgan@kernel.org>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Serge Hallyn <serue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/open.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN Documentation/kernel-parameters.txt~doc-document-the-relax_domain_level-kernel-boot-argument-fix Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~doc-document-the-relax_domain_level-kernel-boot-argument-fix
-+++ a/Documentation/kernel-parameters.txt
-@@ -1680,7 +1680,7 @@ and is between 256 and 4096 characters. 
- 			See arch/*/kernel/reboot.c or arch/*/kernel/process.c			
+diff -puN fs/open.c~security-filesystem-capabilities-fix-fragile-setuid-fixup-code-checkpatch-fixes fs/open.c
+--- a/fs/open.c~security-filesystem-capabilities-fix-fragile-setuid-fixup-code-checkpatch-fixes
++++ a/fs/open.c
+@@ -484,9 +484,8 @@ out:
+ 	current->fsuid = old_fsuid;
+ 	current->fsgid = old_fsgid;
  
- 	relax_domain_level=
--			[KNL, SMP] Set schedulers default relax_domain_level.
-+			[KNL, SMP] Set scheduler's default relax_domain_level.
- 			See Documentation/cpusets.txt.
+-	if (!issecure(SECURE_NO_SETUID_FIXUP)) {
+-		(void) cap_set_effective(old_cap);
+-	}
++	if (!issecure(SECURE_NO_SETUID_FIXUP))
++		cap_set_effective(old_cap);
  
- 	reserve=	[KNL,BUGS] Force the kernel to ignore some iomem area
+ 	return res;
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -55,8 +76,8 @@ origin.patch
 rtc-x1205-fix-alarm-set.patch
 spi-fix-the-read-path-in-spidev.patch
 security-filesystem-capabilities-fix-fragile-setuid-fixup-code.patch
+security-filesystem-capabilities-fix-fragile-setuid-fixup-code-checkpatch-fixes.patch
 net-ipv4-tcpc-needs-linux-scatterlisth.patch
-doc-document-the-relax_domain_level-kernel-boot-argument.patch
 doc-document-the-relax_domain_level-kernel-boot-argument-fix.patch
 revert-introduce-rculisth.patch
 linux-next.patch
