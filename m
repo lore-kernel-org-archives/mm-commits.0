@@ -1,60 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - update-ntfs-help-text-fix.patch removed from -mm tree
-Date: Fri, 04 Jul 2008 00:31:36 -0700
-Message-ID: <200807040731.m647VagX019516@imap1.linux-foundation.org>
+Subject: - spi-fix-the-read-path-in-spidev-cleanup.patch removed from -mm tree
+Date: Fri, 04 Jul 2008 00:32:28 -0700
+Message-ID: <200807040732.m647WSPY019529@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44586 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54309 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752261AbYGDHbq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jul 2008 03:31:46 -0400
+	by vger.kernel.org with ESMTP id S1755626AbYGDHcu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jul 2008 03:32:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aia21@cantab.net, i92guboj@terra.es, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, bigeasy@linutronix.de, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     update-ntfs-help-text-fix
+     spi-fix-the-read-path-in-spidev-cleanup
 has been removed from the -mm tree.  Its filename was
-     update-ntfs-help-text-fix.patch
+     spi-fix-the-read-path-in-spidev-cleanup.patch
 
-This patch was dropped because it was folded into update-ntfs-help-text.patch
+This patch was dropped because it was folded into spi-fix-the-read-path-in-spidev.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: update-ntfs-help-text-fix
+Subject: spi-fix-the-read-path-in-spidev-cleanup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Anton Altaparmakov <aia21@cantab.net>
-Cc: Jess Guerrero <i92guboj@terra.es>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Sebastian Siewior <bigeasy@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/Kconfig |    2 +-
+ drivers/spi/spidev.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/Kconfig~update-ntfs-help-text-fix fs/Kconfig
---- a/fs/Kconfig~update-ntfs-help-text-fix
-+++ a/fs/Kconfig
-@@ -830,7 +830,7 @@ config NTFS_FS
- 	  from the project web site.
+diff -puN drivers/spi/spidev.c~spi-fix-the-read-path-in-spidev-cleanup drivers/spi/spidev.c
+--- a/drivers/spi/spidev.c~spi-fix-the-read-path-in-spidev-cleanup
++++ a/drivers/spi/spidev.c
+@@ -171,7 +171,7 @@ spidev_read(struct file *filp, char __us
+ 		unsigned long	missing;
  
- 	  For more information see <file:Documentation/filesystems/ntfs.txt>
--	  and <http://www.linux-ntfs.org/doku.php>.
-+	  and <http://www.linux-ntfs.org/>.
- 
- 	  To compile this file system support as a module, choose M here: the
- 	  module will be called ntfs.
+ 		missing = copy_to_user(buf, spidev->buffer, status);
+-		if (status && missing == status)
++		if (missing == status)
+ 			status = -EFAULT;
+ 		else
+ 			status = status - missing;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 rtc-x1205-fix-alarm-set.patch
-update-ntfs-help-text.patch
-update-ntfs-help-text-fix.patch
-cgroups-document-the-effect-of-attaching-pid-0-to-a-cgroup-fix.patch
+spi-fix-the-read-path-in-spidev.patch
 spi-fix-the-read-path-in-spidev-cleanup.patch
 security-filesystem-capabilities-fix-fragile-setuid-fixup-code-checkpatch-fixes.patch
 net-ipv4-tcpc-needs-linux-scatterlisth.patch
