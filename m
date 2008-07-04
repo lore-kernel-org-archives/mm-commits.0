@@ -1,73 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: - drm-i915-only-use-tiled-blits-on-965.patch removed from -mm tree
-Date: Fri, 04 Jul 2008 00:26:46 -0700
-Message-ID: <200807040726.m647Qka7019301@imap1.linux-foundation.org>
+Subject: - fbdev-add-new-cobalt-lcd-platform-device-register.patch removed from -mm tree
+Date: Fri, 04 Jul 2008 00:27:10 -0700
+Message-ID: <200807040727.m647RAjA019338@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37713 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51101 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752790AbYGDH06 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jul 2008 03:26:58 -0400
+	by vger.kernel.org with ESMTP id S1755515AbYGDH1a (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jul 2008 03:27:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jbarnes@virtuousgeek.org, airlied@linux.ie, keithp@keithp.com, rjw@sisk.pl, tomi@nomi.cz, mm-commits@vger.kernel.org
+To: yoichi_yuasa@tripeaks.co.jp, adaplas@pol.net, krzysztof.h1@poczta.fm, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     DRM/i915: only use tiled blits on 965+
+     fbdev: add new Cobalt LCD platform device register
 has been removed from the -mm tree.  Its filename was
-     drm-i915-only-use-tiled-blits-on-965.patch
+     fbdev-add-new-cobalt-lcd-platform-device-register.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: DRM/i915: only use tiled blits on 965+
-From: Jesse Barnes <jbarnes@virtuousgeek.org>
+Subject: fbdev: add new Cobalt LCD platform device register
+From: Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
 
-When scheduled swaps occur, we need to blit between front & back buffers. 
-If the buffers are tiled, we need to set the appropriate XY_SRC_COPY tile
-bit, but only on 965 chips, since it will cause corruption on pre-965
-(e.g.  945).
+Add new Cobalt LCD platform device register.
 
-Bug reported by and fix tested by Tomas Janousek.
-
-Reported-by: Tomas Janousek <tomi@nomi.cz>
-Tested-by: Tomas Janousek <tomi@nomi.cz>
-Signed-off-by: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Dave Airlie <airlied@linux.ie>
-Cc: Keith Packard <keithp@keithp.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Signed-off-by: Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/drm/i915_irq.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/mips/cobalt/Makefile |    2 -
+ arch/mips/cobalt/lcd.c    |   55 ++++++++++++++++++++++++++++++++++++
+ 2 files changed, 56 insertions(+), 1 deletion(-)
 
-diff -puN drivers/char/drm/i915_irq.c~drm-i915-only-use-tiled-blits-on-965 drivers/char/drm/i915_irq.c
---- a/drivers/char/drm/i915_irq.c~drm-i915-only-use-tiled-blits-on-965
-+++ a/drivers/char/drm/i915_irq.c
-@@ -62,11 +62,11 @@ static void i915_vblank_tasklet(struct d
- 	u32 ropcpp = (0xcc << 16) | ((cpp - 1) << 24);
- 	RING_LOCALS;
+diff -puN arch/mips/cobalt/Makefile~fbdev-add-new-cobalt-lcd-platform-device-register arch/mips/cobalt/Makefile
+--- a/arch/mips/cobalt/Makefile~fbdev-add-new-cobalt-lcd-platform-device-register
++++ a/arch/mips/cobalt/Makefile
+@@ -2,7 +2,7 @@
+ # Makefile for the Cobalt micro systems family specific parts of the kernel
+ #
  
--	if (sarea_priv->front_tiled) {
-+	if (IS_I965G(dev) && sarea_priv->front_tiled) {
- 		cmd |= XY_SRC_COPY_BLT_DST_TILED;
- 		dst_pitch >>= 2;
- 	}
--	if (sarea_priv->back_tiled) {
-+	if (IS_I965G(dev) && sarea_priv->back_tiled) {
- 		cmd |= XY_SRC_COPY_BLT_SRC_TILED;
- 		src_pitch >>= 2;
- 	}
+-obj-y := buttons.o irq.o led.o reset.o rtc.o serial.o setup.o time.o
++obj-y := buttons.o irq.o lcd.o led.o reset.o rtc.o serial.o setup.o time.o
+ 
+ obj-$(CONFIG_PCI)		+= pci.o
+ obj-$(CONFIG_EARLY_PRINTK)	+= console.o
+diff -puN /dev/null arch/mips/cobalt/lcd.c
+--- /dev/null
++++ a/arch/mips/cobalt/lcd.c
+@@ -0,0 +1,55 @@
++/*
++ *  Registration of Cobalt LCD platform device.
++ *
++ *  Copyright (C) 2008  Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or
++ *  (at your option) any later version.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with this program; if not, write to the Free Software
++ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
++ */
++#include <linux/errno.h>
++#include <linux/init.h>
++#include <linux/ioport.h>
++#include <linux/platform_device.h>
++
++static struct resource cobalt_lcd_resource __initdata = {
++	.start	= 0x1f000000,
++	.end	= 0x1f00001f,
++	.flags	= IORESOURCE_MEM,
++};
++
++static __init int cobalt_lcd_add(void)
++{
++	struct platform_device *pdev;
++	int retval;
++
++	pdev = platform_device_alloc("cobalt-lcd", -1);
++	if (!pdev)
++		return -ENOMEM;
++
++	retval = platform_device_add_resources(pdev, &cobalt_lcd_resource, 1);
++	if (retval)
++		goto err_free_device;
++
++	retval = platform_device_add(pdev);
++	if (retval)
++		goto err_free_device;
++
++	return 0;
++
++err_free_device:
++	platform_device_put(pdev);
++
++	return retval;
++}
++device_initcall(cobalt_lcd_add);
 _
 
-Patches currently in -mm which might be from jbarnes@virtuousgeek.org are
+Patches currently in -mm which might be from yoichi_yuasa@tripeaks.co.jp are
 
-origin.patch
-pci-vt3336-cant-do-msi-either.patch
-linux-next.patch
-x86-pci-use-dev_printk-when-possible.patch
+git-mips.patch
+fbdev-add-new-cobalt-lcd-framebuffer-driver.patch
+fbdev-add-new-cobalt-lcd-framebuffer-driver-fix.patch
 
