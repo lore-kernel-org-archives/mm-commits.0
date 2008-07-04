@@ -1,154 +1,330 @@
 From: akpm@linux-foundation.org
-Subject: + devcgroup-fix-odd-behaviour-when-writing-a-to-devicesallow.patch added to -mm tree
-Date: Thu, 03 Jul 2008 23:09:02 -0700
-Message-ID: <200807040609.m64692q7015922@imap1.linux-foundation.org>
+Subject: - s390-uninline-spinlock-functions-which-use-smp_processor_id.patch removed from -mm tree
+Date: Thu, 03 Jul 2008 23:59:05 -0700
+Message-ID: <200807040659.m646x5dB018289@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37697 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40473 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752816AbYGDGvN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jul 2008 02:51:13 -0400
+	by vger.kernel.org with ESMTP id S1751831AbYGDHBF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jul 2008 03:01:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: lizf@cn.fujitsu.com, balbir@in.ibm.com, chrisw@sous-sol.org, jmorris@namei.org, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, sds@tycho.nsa.gov, serue@us.ibm.com, xemul@openvz.org
+To: akpm@linux-foundation.org, heiko.carstens@de.ibm.com, jens.axboe@oracle.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     devcgroup: fix odd behaviour when writing 'a' to devices.allow
-has been added to the -mm tree.  Its filename is
-     devcgroup-fix-odd-behaviour-when-writing-a-to-devicesallow.patch
+     s390: uninline spinlock functions which use smp_processor_id()
+has been removed from the -mm tree.  Its filename was
+     s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: devcgroup: fix odd behaviour when writing 'a' to devices.allow
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: s390: uninline spinlock functions which use smp_processor_id()
+From: Andrew Morton <akpm@linux-foundation.org>
 
- # cat /devcg/devices.list
- a *:* rwm
- # echo a > devices.allow
- # cat /devcg/devices.list
- a *:* rwm
- a 0:0 rwm
+git-block.patch somehow triggers this:
 
-This is odd and maybe confusing.  With this patch, writing 'a' to
-devices.allow will add 'a *:* rwm' to the whitelist.
+I don't see why and I don't have time/inclination to unpick the mess.  Just
+uninline them.
 
-Also a few fixes and updates to the document.
-
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: Serge E. Hallyn <serue@us.ibm.com>
-Cc: Paul Menage <menage@google.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: James Morris <jmorris@namei.org>
-Cc: Chris Wright <chrisw@sous-sol.org>
-Cc: Stephen Smalley <sds@tycho.nsa.gov>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/controllers/devices.txt |    8 ++++++--
- security/device_cgroup.c              |    2 ++
- 2 files changed, 8 insertions(+), 2 deletions(-)
+ arch/s390/kernel/Makefile   |    2 -
+ arch/s390/kernel/spinlock.c |   37 ++++++++++++++++++++++++++++++++++
+ include/asm-s390/spinlock.h |   33 ++----------------------------
+ 3 files changed, 41 insertions(+), 31 deletions(-)
 
-diff -puN Documentation/controllers/devices.txt~devcgroup-fix-odd-behaviour-when-writing-a-to-devicesallow Documentation/controllers/devices.txt
---- a/Documentation/controllers/devices.txt~devcgroup-fix-odd-behaviour-when-writing-a-to-devicesallow
-+++ a/Documentation/controllers/devices.txt
-@@ -13,7 +13,7 @@ either an integer or * for all.  Access 
- The root device cgroup starts with rwm to 'all'.  A child device
- cgroup gets a copy of the parent.  Administrators can then remove
- devices from the whitelist or add new entries.  A child cgroup can
--never receive a device access which is denied its parent.  However
-+never receive a device access which is denied by its parent.  However
- when a device access is removed from a parent it will not also be
- removed from the child(ren).
+diff -puN arch/s390/kernel/Makefile~s390-uninline-spinlock-functions-which-use-smp_processor_id arch/s390/kernel/Makefile
+--- a/arch/s390/kernel/Makefile~s390-uninline-spinlock-functions-which-use-smp_processor_id
++++ a/arch/s390/kernel/Makefile
+@@ -22,7 +22,7 @@ obj-y	+= $(if $(CONFIG_64BIT),reipl64.o,
+ extra-y				+= head.o init_task.o vmlinux.lds
  
-@@ -29,7 +29,11 @@ allows cgroup 1 to read and mknod the de
+ obj-$(CONFIG_MODULES)		+= s390_ksyms.o module.o
+-obj-$(CONFIG_SMP)		+= smp.o topology.o
++obj-$(CONFIG_SMP)		+= smp.o topology.o spinlock.o
  
- 	echo a > /cgroups/1/devices.deny
- 
--will remove the default 'a *:* mrw' entry.
-+will remove the default 'a *:* rwm' entry. Doing
+ obj-$(CONFIG_AUDIT)		+= audit.o
+ compat-obj-$(CONFIG_AUDIT)	+= compat_audit.o
+diff -puN /dev/null arch/s390/kernel/spinlock.c
+--- /dev/null
++++ a/arch/s390/kernel/spinlock.c
+@@ -0,0 +1,37 @@
 +
-+	echo a > /cgroups/1/devices.allow
++#include <linux/spinlock.h>
++#include <linux/module.h>
 +
-+will add the 'a *:* rwm' entry to the whitelist.
++void __raw_spin_lock(raw_spinlock_t *lp)
++{
++	int old;
++
++	old = _raw_compare_and_swap(&lp->owner_cpu, 0, ~smp_processor_id());
++	if (likely(old == 0))
++		return;
++	_raw_spin_lock_wait(lp);
++}
++EXPORT_SYMBOL(__raw_spin_lock);
++
++void __raw_spin_lock_flags(raw_spinlock_t *lp, unsigned long flags)
++{
++	int old;
++
++	old = _raw_compare_and_swap(&lp->owner_cpu, 0, ~smp_processor_id());
++	if (likely(old == 0))
++		return;
++	_raw_spin_lock_wait_flags(lp, flags);
++}
++EXPORT_SYMBOL(__raw_spin_lock_flags);
++
++int __raw_spin_trylock(raw_spinlock_t *lp)
++{
++	int old;
++
++	old = _raw_compare_and_swap(&lp->owner_cpu, 0, ~smp_processor_id());
++	if (likely(old == 0))
++		return 1;
++	return _raw_spin_trylock_retry(lp);
++}
++EXPORT_SYMBOL(__raw_spin_trylock);
++
+diff -puN include/asm-s390/spinlock.h~s390-uninline-spinlock-functions-which-use-smp_processor_id include/asm-s390/spinlock.h
+--- a/include/asm-s390/spinlock.h~s390-uninline-spinlock-functions-which-use-smp_processor_id
++++ a/include/asm-s390/spinlock.h
+@@ -62,36 +62,9 @@ extern void _raw_spin_lock_wait_flags(ra
+ extern int _raw_spin_trylock_retry(raw_spinlock_t *);
+ extern void _raw_spin_relax(raw_spinlock_t *lock);
  
- 3. Security
+-static inline void __raw_spin_lock(raw_spinlock_t *lp)
+-{
+-	int old;
+-
+-	old = _raw_compare_and_swap(&lp->owner_cpu, 0, ~smp_processor_id());
+-	if (likely(old == 0))
+-		return;
+-	_raw_spin_lock_wait(lp);
+-}
+-
+-static inline void __raw_spin_lock_flags(raw_spinlock_t *lp,
+-					 unsigned long flags)
+-{
+-	int old;
+-
+-	old = _raw_compare_and_swap(&lp->owner_cpu, 0, ~smp_processor_id());
+-	if (likely(old == 0))
+-		return;
+-	_raw_spin_lock_wait_flags(lp, flags);
+-}
+-
+-static inline int __raw_spin_trylock(raw_spinlock_t *lp)
+-{
+-	int old;
+-
+-	old = _raw_compare_and_swap(&lp->owner_cpu, 0, ~smp_processor_id());
+-	if (likely(old == 0))
+-		return 1;
+-	return _raw_spin_trylock_retry(lp);
+-}
++void __raw_spin_lock(raw_spinlock_t *lp);
++void __raw_spin_lock_flags(raw_spinlock_t *lp, unsigned long flags);
++int __raw_spin_trylock(raw_spinlock_t *lp);
  
-diff -puN security/device_cgroup.c~devcgroup-fix-odd-behaviour-when-writing-a-to-devicesallow security/device_cgroup.c
---- a/security/device_cgroup.c~devcgroup-fix-odd-behaviour-when-writing-a-to-devicesallow
-+++ a/security/device_cgroup.c
-@@ -382,6 +382,8 @@ static ssize_t devcgroup_access_write(st
- 	case 'a':
- 		wh.type = DEV_ALL;
- 		wh.access = ACC_MASK;
-+		wh.major = ~0;
-+		wh.minor = ~0;
- 		goto handle;
- 	case 'b':
- 		wh.type = DEV_BLOCK;
+ static inline void __raw_spin_unlock(raw_spinlock_t *lp)
+ {
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-cgroups-document-the-effect-of-attaching-pid-0-to-a-cgroup.patch
+origin.patch
+rtc-x1205-fix-alarm-set-fix.patch
+update-ntfs-help-text-fix.patch
 cgroups-document-the-effect-of-attaching-pid-0-to-a-cgroup-fix.patch
-devcgroup-fix-odd-behaviour-when-writing-a-to-devicesallow.patch
-doc-document-the-relax_domain_level-kernel-boot-argument.patch
+spi-fix-the-read-path-in-spidev-cleanup.patch
+security-filesystem-capabilities-fix-fragile-setuid-fixup-code-checkpatch-fixes.patch
+net-ipv4-tcpc-needs-linux-scatterlisth.patch
 doc-document-the-relax_domain_level-kernel-boot-argument-fix.patch
-doc-document-the-relax_domain_level-kernel-boot-argument-correct-default.patch
+revert-introduce-rculisth.patch
 linux-next.patch
-call_usermodehelper-increase-reliability.patch
-mfd-sm501-build-fixes-when-config_mfd_sm501_gpio-unset.patch
-rtc-push-the-bkl-down-into-the-driver-ioctl-method-fix.patch
-ext3-kill-2-useless-magic-numbers.patch
-cgroup-use-read-lock-to-guard-find_existing_css_set.patch
-cgroup-list_for_each-cleanup-v2.patch
-cgroup-anotate-two-variables-with-__read_mostly.patch
-cgroup-files-convert-res_counter_write-to-be-a-cgroups-write_string-handler-fix.patch
-memcg-avoid-unnecessary-initialization.patch
-memcg-better-migration-handling.patch
-memcg-remove-refcnt-from-page_cgroup.patch
-memcg-remove-refcnt-from-page_cgroup-fix.patch
+next-remove-localversion.patch
+linux-next-fixups.patch
+linux-next-git-rejects.patch
+fix-kobject-fix-kobject_rename-and-config_sysfs.patch
+kvm-is-busted-on-ia64.patch
+drivers-mtd-nand-nandsimc-needs-div64h.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+arch-x86-kernel-smpbootc-fix-warning.patch
+arch-x86-mm-pgtable_32c-remove-unused-variable-fixmaps.patch
+arch-x86-mm-init_64c-early_memtest-fix-types.patch
+drivers-media-video-cx18-cx18-av-firmwarec-fix-warning.patch
+drivers-media-video-uvc-uvc_v4l2c-suppress-uninitialized-var-warning.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+git-jg-misc-git-rejects.patch
+drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+git-mips.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers.patch
+git-ubifs.patch
+git-net.patch
+git-net-next.patch
+sundance-set-carrier-status-on-link-change-events.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-scsi-misc-fix-scsi_dh-build-errors.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+git-block-fix-drivers-block-pktcdvdc.patch
+s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
+pktcdvd-push-bkl-down-into-driver.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-logfs-fixup.patch
+drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
+drivers-usb-class-cdc-acmc-fix-build-with-config_pm=n.patch
+drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
+watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
+git-xtensa.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-verify-the-page-links-and-memory-model.patch
+mspec-convert-nopfn-to-fault-fix.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+kill-generic_file_direct_io-checkpatch-fixes.patch
+use-generic_access_phys-for-dev-mem-mappings-fix.patch
+spufs-use-the-new-vm_ops-access-fix.patch
+fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
+page-flags-record-page-flag-overlays-explicitly-xen.patch
+mapping_set_error-add-unlikely.patch
+huge-page-private-reservation-review-cleanups-fix.patch
+vma-page-offset-has-no-callees-drop-it.patch
+sync_file_range_write-may-and-will-block-document-that-fix.patch
+vmallocinfo-add-numa-information-fix.patch
+hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
+hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
+hugetlb-override-default-huge-page-size-ia64-build.patch
+linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+bootmem-add-debugging-framework-fix.patch
+bootmem-clean-up-free_all_bootmem_core-fix.patch
+bootmem-free-reserve-helpers-fix.patch
+revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-v850-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-arm-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mips-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mtd-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fixes.patch
+mmu-notifiers-add-mm_take_all_locks-operation-checkpatch-fixes.patch
+mmu-notifier-core-checkpatch-fixes.patch
+mmu-notifier-core-fix.patch
+mmu-notifier-core-fix-2.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
+security-protect-legacy-applications-from-executing-with-insufficient-privilege-checkpatch-fixes.patch
+swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
+block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
+seq_file-fix-bug-when-seq_read-reads-nothing-fix.patch
+exec-remove-some-includes-fix.patch
+inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-paccept-sys_ni.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-signalfd-fix.patch
+flag-parameters-eventfd-fix.patch
+flag-parameters-inotify_init-fix.patch
+flag-parameters-check-magic-constants-alpha.patch
+spi-au1550_spi-improve-pio-transfer-mode-checkpatch-fixes.patch
+gpio-gpio-driver-for-max7301-spi-gpio-expander-checkpatch-fixes.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
+lcd-add-platform_lcd-driver-fix.patch
+fsl-diu-fb-update-freescale-diu-driver-to-use-page_alloc_exact-fix.patch
+fbdev-add-new-cobalt-lcd-framebuffer-driver-fix.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
+ext3-handle-corrupted-orphan-list-at-mount-cleanup.patch
+ext3-handle-corrupted-orphan-list-at-mount-fix.patch
+ext3-handle-corrupted-orphan-list-at-mount-cleanup-fix.patch
+ext3-handle-deleting-corrupted-indirect-blocks-fix.patch
+jbd-dont-abort-if-flushing-file-data-failed-fix.patch
+reiserfs-convert-j_flush_sem-to-mutex.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
+cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-fix.patch
+cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-checkpatch-fixes.patch
 memcg-remove-refcnt-from-page_cgroup-fix-2.patch
-memcg-remove-refcnt-from-page_cgroup-fix-memcg-fix-mem_cgroup_end_migration-race.patch
-memcg-remove-refcnt-from-page_cgroup-memcg-fix-shmem_unuse_inode-charging.patch
-memcg-handle-swap-cache.patch
-memcg-handle-swap-cache-fix.patch
-memcg-handle-swap-cache-fix-shmem-page-migration-incorrectness-on-memcgroup.patch
-memcg-helper-function-for-relcaim-from-shmem.patch
-memcg-helper-function-for-relcaim-from-shmem-memcg-shmem_getpage-release-page-sooner.patch
-memcg-helper-function-for-relcaim-from-shmem-memcg-mem_cgroup_shrink_usage-css_put.patch
-memcg-add-hints-for-branch.patch
-memcg-remove-a-redundant-check.patch
-memcg-clean-up-checking-of-the-disabled-flag.patch
-memcg-clean-up-checking-of-the-disabled-flag-memcg-further-checking-of-disabled-flag.patch
-memrlimit-add-memrlimit-controller-documentation.patch
-memrlimit-setup-the-memrlimit-controller.patch
-memrlimit-setup-the-memrlimit-controller-memrlimit-correct-mremap-and-move_vma-accounting.patch
-memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
-memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info-memrlimit-fix-mmap_sem-deadlock.patch
-memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info-memrlimit-fix-sleep-inside-sleeplock-in-mm_update_next_owner.patch
-memrlimit-add-memrlimit-controller-accounting-and-control.patch
-memrlimit-add-memrlimit-controller-accounting-and-control-memrlimit-improve-fork-and-error-handling.patch
-memrlimit-improve-error-handling.patch
-memrlimit-improve-error-handling-update.patch
-memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
-memrlimit-handle-attach_task-failure-add-can_attach-callback-update.patch
-cpusets-restructure-the-function-update_cpumask-and-update_nodemask-fix.patch
-cpusets-update-tasks-cpus_allowed-and-mems_allowed-after-cpu-node-offline-online.patch
+workqueues-make-get_online_cpus-useable-for-work-func-fix.patch
+jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup.patch
+ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
+getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
+edac-mpc85xx-fix-pci-ofdev-2nd-pass-checkpatch-fixes.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-s2io.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
+x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary-checkpatch-fixes.patch
+tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
+memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
+memstick-use-fully-asynchronous-request-processing-fix.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+mm-introduce-get_user_pages_fast-fix.patch
+mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-fix.patch
+x86-lockless-get_user_pages_fast-fix-2.patch
+x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
+x86-lockless-get_user_pages_fast-fix-warning.patch
+vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
+define-page_file_cache-function-fix.patch
+unevictable-lru-infrastructure-fix.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-3.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
+vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
+video-console-sticonrec-make-code-static-checkpatch-fixes.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
