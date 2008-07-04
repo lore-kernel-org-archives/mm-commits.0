@@ -1,81 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - security-filesystem-capabilities-fix-fragile-setuid-fixup-code-checkpatch-fixes.patch removed from -mm tree
-Date: Fri, 04 Jul 2008 00:33:15 -0700
-Message-ID: <200807040733.m647XF7n019566@imap1.linux-foundation.org>
+Subject: - cgroups-document-the-effect-of-attaching-pid-0-to-a-cgroup-fix.patch removed from -mm tree
+Date: Fri, 04 Jul 2008 00:31:52 -0700
+Message-ID: <200807040731.m647Vq32019519@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55275 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48977 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750953AbYGDHhJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jul 2008 03:37:09 -0400
+	by vger.kernel.org with ESMTP id S1751696AbYGDHj4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jul 2008 03:39:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dhowells@redhat.com, morgan@kernel.org, serue@us.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, balbir@in.ibm.com, dhaval@linux.vnet.ibm.com, lizf@cn.fujitsu.com, menage@google.com, pj@sgi.com, righi.andrea@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     security-filesystem-capabilities-fix-fragile-setuid-fixup-code-checkpatch-fixes
+     cgroups-document-the-effect-of-attaching-pid-0-to-a-cgroup-fix
 has been removed from the -mm tree.  Its filename was
-     security-filesystem-capabilities-fix-fragile-setuid-fixup-code-checkpatch-fixes.patch
+     cgroups-document-the-effect-of-attaching-pid-0-to-a-cgroup-fix.patch
 
-This patch was dropped because it was folded into security-filesystem-capabilities-fix-fragile-setuid-fixup-code.patch
+This patch was dropped because it was folded into cgroups-document-the-effect-of-attaching-pid-0-to-a-cgroup.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: security-filesystem-capabilities-fix-fragile-setuid-fixup-code-checkpatch-fixes
+Subject: cgroups-document-the-effect-of-attaching-pid-0-to-a-cgroup-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: braces {} are not necessary for single statement blocks
-#88: FILE: fs/open.c:487:
-+	if (!issecure(SECURE_NO_SETUID_FIXUP)) {
-+		(void) cap_set_effective(old_cap);
-+	}
-
-WARNING: EXPORT_SYMBOL(foo); should immediately follow its function/variable
-#169: FILE: kernel/capability.c:143:
-+EXPORT_SYMBOL(cap_set_effective);
-
-total: 0 errors, 2 warnings, 133 lines checked
-
-./patches/security-filesystem-capabilities-fix-fragile-setuid-fixup-code.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Andrew G. Morgan <morgan@kernel.org>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Serge Hallyn <serue@us.ibm.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Dhaval Giani <dhaval@linux.vnet.ibm.com>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Paul Jackson <pj@sgi.com>
+Cc: Paul Menage <menage@google.com>
+Cc: Andrea Righi <righi.andrea@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/open.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ Documentation/cgroups.txt |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/open.c~security-filesystem-capabilities-fix-fragile-setuid-fixup-code-checkpatch-fixes fs/open.c
---- a/fs/open.c~security-filesystem-capabilities-fix-fragile-setuid-fixup-code-checkpatch-fixes
-+++ a/fs/open.c
-@@ -484,9 +484,8 @@ out:
- 	current->fsuid = old_fsuid;
- 	current->fsgid = old_fsgid;
+diff -puN Documentation/cgroups.txt~cgroups-document-the-effect-of-attaching-pid-0-to-a-cgroup-fix Documentation/cgroups.txt
+--- a/Documentation/cgroups.txt~cgroups-document-the-effect-of-attaching-pid-0-to-a-cgroup-fix
++++ a/Documentation/cgroups.txt
+@@ -390,9 +390,9 @@ If you have several tasks to attach, you
+ 	...
+ # /bin/echo PIDn > tasks
  
--	if (!issecure(SECURE_NO_SETUID_FIXUP)) {
--		(void) cap_set_effective(old_cap);
--	}
-+	if (!issecure(SECURE_NO_SETUID_FIXUP))
-+		cap_set_effective(old_cap);
+-You can attach the current task by echoing 0:
++You can attach the current shell task by echoing 0:
  
- 	return res;
- }
+-# /bin/echo 0 > tasks
++# echo 0 > tasks
+ 
+ 3. Kernel API
+ =============
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 rtc-x1205-fix-alarm-set.patch
-spi-fix-the-read-path-in-spidev.patch
-security-filesystem-capabilities-fix-fragile-setuid-fixup-code.patch
+cgroups-document-the-effect-of-attaching-pid-0-to-a-cgroup.patch
+cgroups-document-the-effect-of-attaching-pid-0-to-a-cgroup-fix.patch
+spi-fix-the-read-path-in-spidev-cleanup.patch
 security-filesystem-capabilities-fix-fragile-setuid-fixup-code-checkpatch-fixes.patch
 net-ipv4-tcpc-needs-linux-scatterlisth.patch
 doc-document-the-relax_domain_level-kernel-boot-argument-fix.patch
