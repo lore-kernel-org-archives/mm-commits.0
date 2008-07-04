@@ -1,63 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: + unevictable-lru-page-statistics-units-fix.patch added to -mm tree
-Date: Fri, 04 Jul 2008 00:25:38 -0700
-Message-ID: <200807040725.m647PcxW019285@imap1.linux-foundation.org>
+Subject: - drivers-mtd-devices-block2mtdc-suppress-warning.patch removed from -mm tree
+Date: Fri, 04 Jul 2008 00:26:51 -0700
+Message-ID: <200807040726.m647QpN1019307@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48109 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35084 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751164AbYGDH0i (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jul 2008 03:26:38 -0400
+	by vger.kernel.org with ESMTP id S1752289AbYGDH0z (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jul 2008 03:26:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, Lee.Schermerhorn@hp.com, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, riel@redhat.com
+To: akpm@linux-foundation.org, dwmw2@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     unevictable-lru-page-statistics-units-fix
-has been added to the -mm tree.  Its filename is
-     unevictable-lru-page-statistics-units-fix.patch
+     drivers/mtd/devices/block2mtd.c: suppress warning
+has been removed from the -mm tree.  Its filename was
+     drivers-mtd-devices-block2mtdc-suppress-warning.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: unevictable-lru-page-statistics-units-fix
+Subject: drivers/mtd/devices/block2mtd.c: suppress warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Rik van Riel <riel@redhat.com>
+drivers/mtd/devices/block2mtd.c: In function 'add_device':
+drivers/mtd/devices/block2mtd.c:282: warning: passing argument 1 of 'sprintf' discards qualifiers from pointer target type
+
+(ugh?)
+
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/node.c |    2 +-
+ drivers/mtd/devices/block2mtd.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/base/node.c~unevictable-lru-page-statistics-units-fix drivers/base/node.c
---- a/drivers/base/node.c~unevictable-lru-page-statistics-units-fix
-+++ a/drivers/base/node.c
-@@ -100,7 +100,7 @@ static ssize_t node_read_meminfo(struct 
- 		       nid, K(node_page_state(nid, NR_ACTIVE_FILE)),
- 		       nid, K(node_page_state(nid, NR_INACTIVE_FILE)),
- #ifdef CONFIG_UNEVICTABLE_LRU
--		       nid, node_page_state(nid, NR_UNEVICTABLE),
-+		       nid, K(node_page_state(nid, NR_UNEVICTABLE)),
- #endif
- #ifdef CONFIG_HIGHMEM
- 		       nid, K(i.totalhigh),
+diff -puN drivers/mtd/devices/block2mtd.c~drivers-mtd-devices-block2mtdc-suppress-warning drivers/mtd/devices/block2mtd.c
+--- a/drivers/mtd/devices/block2mtd.c~drivers-mtd-devices-block2mtdc-suppress-warning
++++ a/drivers/mtd/devices/block2mtd.c
+@@ -279,7 +279,7 @@ static struct block2mtd_dev *add_device(
+ 	if (!dev->mtd.name)
+ 		goto devinit_err;
+ 
+-	sprintf(dev->mtd.name, "block2mtd: %s", devname);
++	sprintf((char *)dev->mtd.name, "block2mtd: %s", devname);
+ 
+ 	dev->mtd.size = dev->blkdev->bd_inode->i_size & PAGE_MASK;
+ 	dev->mtd.erasesize = erase_size;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
