@@ -1,57 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: - mips-remove-board_watchpoint_handler.patch removed from -mm tree
-Date: Fri, 04 Jul 2008 00:26:49 -0700
-Message-ID: <200807040726.m647QnxI019304@imap1.linux-foundation.org>
+Subject: - 3c59x-handle-pci_name-being-const.patch removed from -mm tree
+Date: Fri, 04 Jul 2008 00:26:55 -0700
+Message-ID: <200807040726.m647QtBA019313@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48411 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41590 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752332AbYGDH06 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jul 2008 03:26:58 -0400
+	by vger.kernel.org with ESMTP id S1753608AbYGDH1E (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jul 2008 03:27:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ddaney@avtrex.com, mm-commits@vger.kernel.org
+To: gregkh@suse.de, klassert@mathematik.tu-chemnitz.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mips: remove board_watchpoint_handler
+     3c59x: handle pci_name() being const
 has been removed from the -mm tree.  Its filename was
-     mips-remove-board_watchpoint_handler.patch
+     3c59x-handle-pci_name-being-const.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mips: remove board_watchpoint_handler
-From: David Daney <ddaney@avtrex.com>
+Subject: 3c59x: handle pci_name() being const
+From: Greg Kroah-Hartman <gregkh@suse.de>
 
-It is not used anywhere in tree.
+This changes vortex_prob1() to handle pci_name() now returning a constant
+string.
 
-Signed-off-by: David Daney <ddaney@avtrex.com>
+Cc: Steffen Klassert <klassert@mathematik.tu-chemnitz.de>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/kernel/traps.c |    6 ------
- include/asm-mips/traps.h |    1 -
- 2 files changed, 7 deletions(-)
+ drivers/net/3c59x.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/mips/kernel/traps.c~mips-remove-board_watchpoint_handler arch/mips/kernel/traps.c
---- a/arch/mips/kernel/traps.c~mips-remove-board_watchpoint_handler
-+++ a/arch/mips/kernel/traps.c
-@@ -71,7 +71,6 @@ extern asmlinkage void handle_reserved(v
- extern int fpu_emulator_cop1Handler(struct pt_regs *xcp,
- 	struct mips_fpu_struct *ctx, int has_fpu);
- 
--void (*board_watchpoint_handler)(struct pt_regs *regs);
- void (*board_be_init)(void);
- int (*board_be_handler)(struct pt_regs *regs, int is_fixup);
- void (*board_nmi_handler_setup)(void);
-@@ -892,11 +891,6 @@ asmlinkage void do_mdmx(struct pt_regs *
- 
- asmlinkage void do_watch(struct pt_regs *regs)
- {
--	if (board_watchpoint_handler) {
--		(*board_watchpoint_handler)(regs);
--		return;
--	}
+diff -puN drivers/net/3c59x.c~3c59x-handle-pci_name-being-const drivers/net/3c59x.c
+--- a/drivers/net/3c59x.c~3c59x-handle-pci_name-being-const
++++ a/drivers/net/3c59x.c
+@@ -1010,7 +1010,7 @@ static int __devinit vortex_probe1(struc
+ 	static int printed_version;
+ 	int retval, print_info;
+ 	struct vortex_chip_info * const vci = &vortex_info_tbl[chip_idx];
+-	char *print_name = "3c59x";
++	const char *print_name = "3c59x";
+ 	struct pci_dev *pdev = NULL;
+ 	struct eisa_device *edev = NULL;
+ 	DECLARE_MAC_BUF(mac);
+_
+
+Patches currently in -mm which might be from gregkh@suse.de are
+
+origin.patch
+linux-next.patch
+fix-kobject-fix-kobject_rename-and-config_sysfs.patch
+drivers-usb-class-cdc-acmc-fix-build-with-config_pm=n.patch
+drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
+usb-fix-possible-memory-leak-in-pxa27x_udc.patch
+hugetlb-new-sysfs-interface.patch
+checkpatch-usb_free_urb-can-take-null.patch
+firmware-use-memory_read_from_buffer.patch
+edac-core-fix-to-use-dynamic-kobject.patch
+
