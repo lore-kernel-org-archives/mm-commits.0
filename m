@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + full-conversion-to-early_initcall-interface-remove-old-interface-fix.patch added to -mm tree
-Date: Fri, 04 Jul 2008 00:18:34 -0700
-Message-ID: <200807040718.m647IYiC018979@imap1.linux-foundation.org>
+Subject: + full-conversion-to-early_initcall-interface-remove-old-interface-cleanup.patch added to -mm tree
+Date: Fri, 04 Jul 2008 00:19:44 -0700
+Message-ID: <200807040719.m647JieM019074@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43869 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50150 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752662AbYGDHTi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jul 2008 03:19:38 -0400
+	by vger.kernel.org with ESMTP id S1753630AbYGDHUi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jul 2008 03:20:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, eduard.munteanu@linux360.ro, jens.axboe@oracle.com, tzanussi@gmail.com
+Cc: akpm@linux-foundation.org, eduard.munteanu@linux360.ro, tzanussi@gmail.com
 
 
 The patch titled
-     full-conversion-to-early_initcall-interface-remove-old-interface-fix
+     full-conversion-to-early_initcall-interface-remove-old-interface-cleanup
 has been added to the -mm tree.  Its filename is
-     full-conversion-to-early_initcall-interface-remove-old-interface-fix.patch
+     full-conversion-to-early_initcall-interface-remove-old-interface-cleanup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,40 +33,53 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: full-conversion-to-early_initcall-interface-remove-old-interface-fix
+Subject: full-conversion-to-early_initcall-interface-remove-old-interface-cleanup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Do this in a separate diff in case kernel/smp.c magically disappears again.
+Somewhat more kernely coding style.
 
 Cc: Eduard - Gabriel Munteanu <eduard.munteanu@linux360.ro>
 Cc: Tom Zanussi <tzanussi@gmail.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/smp.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ kernel/sched.c      |    1 -
+ kernel/softirq.c    |    1 -
+ kernel/softlockup.c |    2 --
+ 3 files changed, 4 deletions(-)
 
-diff -puN kernel/smp.c~full-conversion-to-early_initcall-interface-remove-old-interface-fix kernel/smp.c
---- a/kernel/smp.c~full-conversion-to-early_initcall-interface-remove-old-interface-fix
-+++ a/kernel/smp.c
-@@ -33,7 +33,7 @@ struct call_single_queue {
- 	spinlock_t lock;
- };
+diff -puN kernel/sched.c~full-conversion-to-early_initcall-interface-remove-old-interface-cleanup kernel/sched.c
+--- a/kernel/sched.c~full-conversion-to-early_initcall-interface-remove-old-interface-cleanup
++++ a/kernel/sched.c
+@@ -6459,7 +6459,6 @@ static int __init migration_init(void)
  
--void __cpuinit init_call_single_data(void)
-+static void __cpuinit init_call_single_data(void)
- {
- 	int i;
- 
-@@ -44,6 +44,7 @@ void __cpuinit init_call_single_data(voi
- 		INIT_LIST_HEAD(&q->list);
- 	}
+ 	return err;
  }
-+early_initcall(init_call_single_data);
+-
+ early_initcall(migration_init);
+ #endif
  
- static void csd_flag_wait(struct call_single_data *data)
- {
+diff -puN kernel/softirq.c~full-conversion-to-early_initcall-interface-remove-old-interface-cleanup kernel/softirq.c
+--- a/kernel/softirq.c~full-conversion-to-early_initcall-interface-remove-old-interface-cleanup
++++ a/kernel/softirq.c
+@@ -651,7 +651,6 @@ static __init int spawn_ksoftirqd(void)
+ 	register_cpu_notifier(&cpu_nfb);
+ 	return 0;
+ }
+-
+ early_initcall(spawn_ksoftirqd);
+ 
+ #ifdef CONFIG_SMP
+diff -puN kernel/softlockup.c~full-conversion-to-early_initcall-interface-remove-old-interface-cleanup kernel/softlockup.c
+--- a/kernel/softlockup.c~full-conversion-to-early_initcall-interface-remove-old-interface-cleanup
++++ a/kernel/softlockup.c
+@@ -367,6 +367,4 @@ static int __init spawn_softlockup_task(
+ 
+ 	return 0;
+ }
+-
+ early_initcall(spawn_softlockup_task);
+-
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -218,6 +231,7 @@ x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary-checkpatch-fix
 tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
 memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
 memstick-use-fully-asynchronous-request-processing-fix.patch
+full-conversion-to-early_initcall-interface-remove-old-interface-cleanup.patch
 full-conversion-to-early_initcall-interface-remove-old-interface-fix.patch
 ppc-use-the-common-ascii-hex-helpers-fix.patch
 gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
