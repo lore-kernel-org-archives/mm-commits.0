@@ -1,60 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - block-request_module-use-format-string.patch removed from -mm tree
-Date: Fri, 04 Jul 2008 00:27:00 -0700
-Message-ID: <200807040727.m647R0K0019320@imap1.linux-foundation.org>
+Subject: - dm-crypt-add-cond_resched-to-crypt_convert.patch removed from -mm tree
+Date: Fri, 04 Jul 2008 00:27:05 -0700
+Message-ID: <200807040727.m647R59D019332@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57632 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33458 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755527AbYGDH2F (ORCPT
+	by vger.kernel.org with ESMTP id S1755548AbYGDH2F (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jul 2008 03:28:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: max@stro.at, jens.axboe@oracle.com, mm-commits@vger.kernel.org
+To: mbroz@redhat.com, agk@redhat.com, elliot.li.tech@gmail.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     block: request_module(): use format string
+     dm-crypt: add cond_resched() to crypt_convert()
 has been removed from the -mm tree.  Its filename was
-     block-request_module-use-format-string.patch
+     dm-crypt-add-cond_resched-to-crypt_convert.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: block: request_module(): use format string
-From: maximilian attems <max@stro.at>
+Subject: dm-crypt: add cond_resched() to crypt_convert()
+From: Milan Broz <mbroz@redhat.com>
 
-Avoid bad things happening if the module has a printk control string in
-its name.
+Add cond_resched() to prevent monopolising CPU when processing large bios.
 
-Signed-off-by: maximilian attems <max@stro.at>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+dm-crypt processes encryption of bios in sector units.  If the bio request
+is big it can spend a long time in the encryption call.
+
+(akpm: needed in 2.6.26 and, given that it fixes soft-lockup warnings,
+needed in -stable too)
+
+Signed-off-by: Milan Broz <mbroz@redhat.com>
+Signed-off-by: Alasdair G Kergon <agk@redhat.com>
+Tested-by: Yan Li <elliot.li.tech@gmail.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/elevator.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/md/dm-crypt.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN block/elevator.c~block-request_module-use-format-string block/elevator.c
---- a/block/elevator.c~block-request_module-use-format-string
-+++ a/block/elevator.c
-@@ -150,7 +150,7 @@ static struct elevator_type *elevator_ge
- 		else
- 			sprintf(elv, "%s-iosched", name);
+diff -puN drivers/md/dm-crypt.c~dm-crypt-add-cond_resched-to-crypt_convert drivers/md/dm-crypt.c
+--- a/drivers/md/dm-crypt.c~dm-crypt-add-cond_resched-to-crypt_convert
++++ a/drivers/md/dm-crypt.c
+@@ -432,6 +432,7 @@ static int crypt_convert(struct crypt_co
+ 		case 0:
+ 			atomic_dec(&ctx->pending);
+ 			ctx->sector++;
++			cond_resched();
+ 			continue;
  
--		request_module(elv);
-+		request_module("%s", elv);
- 		spin_lock(&elv_list_lock);
- 		e = elevator_find(name);
- 	}
+ 		/* error */
 _
 
-Patches currently in -mm which might be from max@stro.at are
+Patches currently in -mm which might be from mbroz@redhat.com are
 
 origin.patch
-hdaps-add-support-for-various-newer-lenovo-thinkpads.patch
-alpha-linux-kernel-fails-with-inconsistent-kallsyms-data.patch
 linux-next.patch
 
