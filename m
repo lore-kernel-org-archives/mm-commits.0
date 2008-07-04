@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + full-conversion-to-early_initcall-interface-remove-old-interface-cleanup.patch added to -mm tree
-Date: Fri, 04 Jul 2008 00:19:44 -0700
-Message-ID: <200807040719.m647JieM019074@imap1.linux-foundation.org>
+Subject: + vmscan-split-lru-lists-into-anon-file-sets-units-fix.patch added to -mm tree
+Date: Fri, 04 Jul 2008 00:24:02 -0700
+Message-ID: <200807040724.m647O25S019266@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50150 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54325 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753630AbYGDHUi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jul 2008 03:20:38 -0400
+	by vger.kernel.org with ESMTP id S1755155AbYGDHYa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jul 2008 03:24:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, eduard.munteanu@linux360.ro, tzanussi@gmail.com
+Cc: akpm@linux-foundation.org, Lee.Schermerhorn@hp.com, riel@redhat.com
 
 
 The patch titled
-     full-conversion-to-early_initcall-interface-remove-old-interface-cleanup
+     vmscan-split-lru-lists-into-anon-file-sets-units-fix
 has been added to the -mm tree.  Its filename is
-     full-conversion-to-early_initcall-interface-remove-old-interface-cleanup.patch
+     vmscan-split-lru-lists-into-anon-file-sets-units-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,53 +33,45 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: full-conversion-to-early_initcall-interface-remove-old-interface-cleanup
+Subject: vmscan-split-lru-lists-into-anon-file-sets-units-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Somewhat more kernely coding style.
+These were all in the wrong units.
 
-Cc: Eduard - Gabriel Munteanu <eduard.munteanu@linux360.ro>
-Cc: Tom Zanussi <tzanussi@gmail.com>
+Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c      |    1 -
- kernel/softirq.c    |    1 -
- kernel/softlockup.c |    2 --
- 3 files changed, 4 deletions(-)
+ drivers/base/node.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN kernel/sched.c~full-conversion-to-early_initcall-interface-remove-old-interface-cleanup kernel/sched.c
---- a/kernel/sched.c~full-conversion-to-early_initcall-interface-remove-old-interface-cleanup
-+++ a/kernel/sched.c
-@@ -6459,7 +6459,6 @@ static int __init migration_init(void)
- 
- 	return err;
- }
--
- early_initcall(migration_init);
- #endif
- 
-diff -puN kernel/softirq.c~full-conversion-to-early_initcall-interface-remove-old-interface-cleanup kernel/softirq.c
---- a/kernel/softirq.c~full-conversion-to-early_initcall-interface-remove-old-interface-cleanup
-+++ a/kernel/softirq.c
-@@ -651,7 +651,6 @@ static __init int spawn_ksoftirqd(void)
- 	register_cpu_notifier(&cpu_nfb);
- 	return 0;
- }
--
- early_initcall(spawn_ksoftirqd);
- 
- #ifdef CONFIG_SMP
-diff -puN kernel/softlockup.c~full-conversion-to-early_initcall-interface-remove-old-interface-cleanup kernel/softlockup.c
---- a/kernel/softlockup.c~full-conversion-to-early_initcall-interface-remove-old-interface-cleanup
-+++ a/kernel/softlockup.c
-@@ -367,6 +367,4 @@ static int __init spawn_softlockup_task(
- 
- 	return 0;
- }
--
- early_initcall(spawn_softlockup_task);
--
+diff -puN drivers/base/node.c~vmscan-split-lru-lists-into-anon-file-sets-units-fix drivers/base/node.c
+--- a/drivers/base/node.c~vmscan-split-lru-lists-into-anon-file-sets-units-fix
++++ a/drivers/base/node.c
+@@ -88,14 +88,14 @@ static ssize_t node_read_meminfo(struct 
+ 		       nid, K(i.totalram),
+ 		       nid, K(i.freeram),
+ 		       nid, K(i.totalram - i.freeram),
+-		       nid, node_page_state(nid, NR_ACTIVE_ANON) +
+-				node_page_state(nid, NR_ACTIVE_FILE),
+-		       nid, node_page_state(nid, NR_INACTIVE_ANON) +
+-				node_page_state(nid, NR_INACTIVE_FILE),
+-		       nid, node_page_state(nid, NR_ACTIVE_ANON),
+-		       nid, node_page_state(nid, NR_INACTIVE_ANON),
+-		       nid, node_page_state(nid, NR_ACTIVE_FILE),
+-		       nid, node_page_state(nid, NR_INACTIVE_FILE),
++		       nid, K(node_page_state(nid, NR_ACTIVE_ANON) +
++				node_page_state(nid, NR_ACTIVE_FILE)),
++		       nid, K(node_page_state(nid, NR_INACTIVE_ANON) +
++				node_page_state(nid, NR_INACTIVE_FILE)),
++		       nid, K(node_page_state(nid, NR_ACTIVE_ANON)),
++		       nid, K(node_page_state(nid, NR_INACTIVE_ANON)),
++		       nid, K(node_page_state(nid, NR_ACTIVE_FILE)),
++		       nid, K(node_page_state(nid, NR_INACTIVE_FILE)),
+ #ifdef CONFIG_HIGHMEM
+ 		       nid, K(i.totalhigh),
+ 		       nid, K(i.freehigh),
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -244,6 +236,7 @@ x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
 x86-lockless-get_user_pages_fast-fix-warning.patch
 vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
 define-page_file_cache-function-fix.patch
+vmscan-split-lru-lists-into-anon-file-sets-units-fix.patch
 unevictable-lru-infrastructure-fix.patch
 mlock-mlocked-pages-are-unevictable-fix.patch
 mlock-mlocked-pages-are-unevictable-fix-fix.patch
