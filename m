@@ -1,96 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-x1205-fix-alarm-set-fix.patch removed from -mm tree
-Date: Fri, 04 Jul 2008 00:31:02 -0700
-Message-ID: <200807040731.m647V2am019504@imap1.linux-foundation.org>
+Subject: - update-ntfs-help-text-fix.patch removed from -mm tree
+Date: Fri, 04 Jul 2008 00:31:36 -0700
+Message-ID: <200807040731.m647VagX019516@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37633 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44586 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752261AbYGDHbQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jul 2008 03:31:16 -0400
+	by vger.kernel.org with ESMTP id S1752261AbYGDHbq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jul 2008 03:31:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.zummo@towertech.it, mhamel@adi.co.nz, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aia21@cantab.net, i92guboj@terra.es, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc-x1205-fix-alarm-set-fix
+     update-ntfs-help-text-fix
 has been removed from the -mm tree.  Its filename was
-     rtc-x1205-fix-alarm-set-fix.patch
+     update-ntfs-help-text-fix.patch
 
-This patch was dropped because it was folded into rtc-x1205-fix-alarm-set.patch
+This patch was dropped because it was folded into update-ntfs-help-text.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-x1205-fix-alarm-set-fix
+Subject: update-ntfs-help-text-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fix weird over-parenthesisation
-
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Michael Hamel <mhamel@adi.co.nz>
+Cc: Anton Altaparmakov <aia21@cantab.net>
+Cc: Jess Guerrero <i92guboj@terra.es>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-x1205.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ fs/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-x1205.c~rtc-x1205-fix-alarm-set-fix drivers/rtc/rtc-x1205.c
---- a/drivers/rtc/rtc-x1205.c~rtc-x1205-fix-alarm-set-fix
-+++ a/drivers/rtc/rtc-x1205.c
-@@ -101,7 +101,7 @@ static int x1205_get_datetime(struct i2c
- 	};
+diff -puN fs/Kconfig~update-ntfs-help-text-fix fs/Kconfig
+--- a/fs/Kconfig~update-ntfs-help-text-fix
++++ a/fs/Kconfig
+@@ -830,7 +830,7 @@ config NTFS_FS
+ 	  from the project web site.
  
- 	/* read date registers */
--	if ((i2c_transfer(client->adapter, &msgs[0], 2)) != 2) {
-+	if (i2c_transfer(client->adapter, &msgs[0], 2) != 2) {
- 		dev_err(&client->dev, "%s: read error\n", __func__);
- 		return -EIO;
- 	}
-@@ -146,7 +146,7 @@ static int x1205_get_status(struct i2c_c
- 	};
+ 	  For more information see <file:Documentation/filesystems/ntfs.txt>
+-	  and <http://www.linux-ntfs.org/doku.php>.
++	  and <http://www.linux-ntfs.org/>.
  
- 	/* read status register */
--	if ((i2c_transfer(client->adapter, &msgs[0], 2)) != 2) {
-+	if (i2c_transfer(client->adapter, &msgs[0], 2) != 2) {
- 		dev_err(&client->dev, "%s: read error\n", __func__);
- 		return -EIO;
- 	}
-@@ -300,7 +300,7 @@ static int x1205_get_dtrim(struct i2c_cl
- 	};
- 
- 	/* read dtr register */
--	if ((i2c_transfer(client->adapter, &msgs[0], 2)) != 2) {
-+	if (i2c_transfer(client->adapter, &msgs[0], 2) != 2) {
- 		dev_err(&client->dev, "%s: read error\n", __func__);
- 		return -EIO;
- 	}
-@@ -332,7 +332,7 @@ static int x1205_get_atrim(struct i2c_cl
- 	};
- 
- 	/* read atr register */
--	if ((i2c_transfer(client->adapter, &msgs[0], 2)) != 2) {
-+	if (i2c_transfer(client->adapter, &msgs[0], 2) != 2) {
- 		dev_err(&client->dev, "%s: read error\n", __func__);
- 		return -EIO;
- 	}
-@@ -465,7 +465,7 @@ static int x1205_rtc_read_alarm(struct d
- 	};
- 
- 	/* read interrupt register and status register */
--	if ((i2c_transfer(client->adapter, &msgs[0], 2)) != 2) {
-+	if (i2c_transfer(client->adapter, &msgs[0], 2) != 2) {
- 		dev_err(&client->dev, "%s: read error\n", __func__);
- 		return -EIO;
- 	}
+ 	  To compile this file system support as a module, choose M here: the
+ 	  module will be called ntfs.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 rtc-x1205-fix-alarm-set.patch
-rtc-x1205-fix-alarm-set-fix.patch
+update-ntfs-help-text.patch
 update-ntfs-help-text-fix.patch
 cgroups-document-the-effect-of-attaching-pid-0-to-a-cgroup-fix.patch
 spi-fix-the-read-path-in-spidev-cleanup.patch
