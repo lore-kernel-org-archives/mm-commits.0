@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + vmscan-split-lru-lists-into-anon-file-sets-units-fix.patch added to -mm tree
-Date: Fri, 04 Jul 2008 00:24:02 -0700
-Message-ID: <200807040724.m647O25S019266@imap1.linux-foundation.org>
+Subject: + unevictable-lru-page-statistics-units-fix.patch added to -mm tree
+Date: Fri, 04 Jul 2008 00:25:38 -0700
+Message-ID: <200807040725.m647PcxW019285@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54325 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48109 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755155AbYGDHYa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jul 2008 03:24:30 -0400
+	by vger.kernel.org with ESMTP id S1751164AbYGDH0i (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jul 2008 03:26:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, Lee.Schermerhorn@hp.com, riel@redhat.com
+Cc: akpm@linux-foundation.org, Lee.Schermerhorn@hp.com, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, riel@redhat.com
 
 
 The patch titled
-     vmscan-split-lru-lists-into-anon-file-sets-units-fix
+     unevictable-lru-page-statistics-units-fix
 has been added to the -mm tree.  Its filename is
-     vmscan-split-lru-lists-into-anon-file-sets-units-fix.patch
+     unevictable-lru-page-statistics-units-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,45 +33,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan-split-lru-lists-into-anon-file-sets-units-fix
+Subject: unevictable-lru-page-statistics-units-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-These were all in the wrong units.
-
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/node.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ drivers/base/node.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/base/node.c~vmscan-split-lru-lists-into-anon-file-sets-units-fix drivers/base/node.c
---- a/drivers/base/node.c~vmscan-split-lru-lists-into-anon-file-sets-units-fix
+diff -puN drivers/base/node.c~unevictable-lru-page-statistics-units-fix drivers/base/node.c
+--- a/drivers/base/node.c~unevictable-lru-page-statistics-units-fix
 +++ a/drivers/base/node.c
-@@ -88,14 +88,14 @@ static ssize_t node_read_meminfo(struct 
- 		       nid, K(i.totalram),
- 		       nid, K(i.freeram),
- 		       nid, K(i.totalram - i.freeram),
--		       nid, node_page_state(nid, NR_ACTIVE_ANON) +
--				node_page_state(nid, NR_ACTIVE_FILE),
--		       nid, node_page_state(nid, NR_INACTIVE_ANON) +
--				node_page_state(nid, NR_INACTIVE_FILE),
--		       nid, node_page_state(nid, NR_ACTIVE_ANON),
--		       nid, node_page_state(nid, NR_INACTIVE_ANON),
--		       nid, node_page_state(nid, NR_ACTIVE_FILE),
--		       nid, node_page_state(nid, NR_INACTIVE_FILE),
-+		       nid, K(node_page_state(nid, NR_ACTIVE_ANON) +
-+				node_page_state(nid, NR_ACTIVE_FILE)),
-+		       nid, K(node_page_state(nid, NR_INACTIVE_ANON) +
-+				node_page_state(nid, NR_INACTIVE_FILE)),
-+		       nid, K(node_page_state(nid, NR_ACTIVE_ANON)),
-+		       nid, K(node_page_state(nid, NR_INACTIVE_ANON)),
-+		       nid, K(node_page_state(nid, NR_ACTIVE_FILE)),
-+		       nid, K(node_page_state(nid, NR_INACTIVE_FILE)),
+@@ -100,7 +100,7 @@ static ssize_t node_read_meminfo(struct 
+ 		       nid, K(node_page_state(nid, NR_ACTIVE_FILE)),
+ 		       nid, K(node_page_state(nid, NR_INACTIVE_FILE)),
+ #ifdef CONFIG_UNEVICTABLE_LRU
+-		       nid, node_page_state(nid, NR_UNEVICTABLE),
++		       nid, K(node_page_state(nid, NR_UNEVICTABLE)),
+ #endif
  #ifdef CONFIG_HIGHMEM
  		       nid, K(i.totalhigh),
- 		       nid, K(i.freehigh),
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -238,6 +224,7 @@ vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
 define-page_file_cache-function-fix.patch
 vmscan-split-lru-lists-into-anon-file-sets-units-fix.patch
 unevictable-lru-infrastructure-fix.patch
+unevictable-lru-page-statistics-units-fix.patch
 mlock-mlocked-pages-are-unevictable-fix.patch
 mlock-mlocked-pages-are-unevictable-fix-fix.patch
 mlock-mlocked-pages-are-unevictable-fix-3.patch
