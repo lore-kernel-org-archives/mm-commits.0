@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + pci-make-pci_register_driver-a-macro.patch added to -mm tree
-Date: Fri, 04 Jul 2008 19:29:06 -0700
-Message-ID: <200807050229.m652T6Il029880@imap1.linux-foundation.org>
+Subject: + pagemap-fixes-to-pagemap_read.patch added to -mm tree
+Date: Fri, 04 Jul 2008 19:29:57 -0700
+Message-ID: <200807050229.m652TvPH029896@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37615 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45454 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752484AbYGEC3L (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jul 2008 22:29:11 -0400
+	by vger.kernel.org with ESMTP id S1752743AbYGECaL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jul 2008 22:30:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com, jbarnes@virtuousgeek.org, sam@ravnborg.org
+Cc: akpm@linux-foundation.org, adobriyan@gmail.com, mpm@selenic.com
 
 
 The patch titled
-     pci: make pci_register_driver() a macro
+     pagemap fixes to pagemap_read()
 has been added to the -mm tree.  Its filename is
-     pci-make-pci_register_driver-a-macro.patch
+     pagemap-fixes-to-pagemap_read.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,72 +33,70 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pci: make pci_register_driver() a macro
+Subject: pagemap fixes to pagemap_read()
 From: Andrew Morton <akpm@linux-foundation.org>
 
-alpha:
+- initialize pagemap_walk.mm to "mm" , so the code starts working as
+  advertised
 
-CC [M]  drivers/usb/gadget/u_ether.o
-In file included from include/asm/dma-mapping.h:7,
-                 from include/linux/dma-mapping.h:52,
-                 from include/linux/dmaengine.h:29,
-                 from include/linux/skbuff.h:29,
-                 from include/linux/if_ether.h:114,
-                 from include/linux/etherdevice.h:27,
-                 from drivers/usb/gadget/u_ether.c:29:
-include/linux/pci.h: In function 'pci_register_driver':
-include/linux/pci.h:673: error: 'KBUILD_MODNAME' undeclared (first use in this function)
-include/linux/pci.h:673: error: (Each undeclared identifier is reported only once
-include/linux/pci.h:673: error: for each function it appears in.)
+- initialize ->private to "&pm" so it wouldn't immediately oops in
+  pagemap_pte_hole()
 
+- unstatic struct pagemap_walk, so two threads won't fsckup each other
+  (including those started by root, including flipping ->mm when you don't
+  have permissions)
 
-Sam says:
-
-The problem is that u_ether.o is used by two rules so when we build it
-KBUILD_MODNAME is not defined because kbuild does not know what value to
-use.
-
-And in pci.h we have the following inline:
-
-static inline int __must_check pci_register_driver(struct pci_driver *driver)
-{
-        return __pci_register_driver(driver, THIS_MODULE, KBUILD_MODNAME);
-}
-
-And alpha uses dma-mapping.h to nullify a number of functions that seem to
-require something from pci.h.
-
-Making it a macro seems to fix this.
-
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Greg KH <greg@kroah.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Matt Mackall <mpm@selenic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pci.h |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ fs/proc/task_mmu.c |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/pci.h~pci-make-pci_register_driver-a-macro include/linux/pci.h
---- a/include/linux/pci.h~pci-make-pci_register_driver-a-macro
-+++ a/include/linux/pci.h
-@@ -668,10 +668,12 @@ void pci_enable_bridges(struct pci_bus *
- /* Proper probing supporting hot-pluggable devices */
- int __must_check __pci_register_driver(struct pci_driver *, struct module *,
- 				       const char *mod_name);
--static inline int __must_check pci_register_driver(struct pci_driver *driver)
--{
--	return __pci_register_driver(driver, THIS_MODULE, KBUILD_MODNAME);
--}
-+
-+/*
-+ * pci_register_driver must be a macro so that KBUILD_MODNAME can be expanded
-+ */
-+#define pci_register_driver(driver)		\
-+	__pci_register_driver(driver, THIS_MODULE, KBUILD_MODNAME)
+diff -puN fs/proc/task_mmu.c~pagemap-fixes-to-pagemap_read fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~pagemap-fixes-to-pagemap_read
++++ a/fs/proc/task_mmu.c
+@@ -602,11 +602,6 @@ static int pagemap_pte_range(pmd_t *pmd,
+ 	return err;
+ }
  
- void pci_unregister_driver(struct pci_driver *dev);
- void pci_remove_behind_bridge(struct pci_dev *dev);
+-static struct mm_walk pagemap_walk = {
+-	.pmd_entry = pagemap_pte_range,
+-	.pte_hole = pagemap_pte_hole
+-};
+-
+ /*
+  * /proc/pid/pagemap - an array mapping virtual pages to pfns
+  *
+@@ -641,6 +636,7 @@ static ssize_t pagemap_read(struct file 
+ 	struct pagemapread pm;
+ 	int pagecount;
+ 	int ret = -ESRCH;
++	static struct mm_walk pagemap_walk;
+ 
+ 	if (!task)
+ 		goto out;
+@@ -659,6 +655,7 @@ static ssize_t pagemap_read(struct file 
+ 	if (!mm)
+ 		goto out_task;
+ 
++
+ 	ret = -ENOMEM;
+ 	uaddr = (unsigned long)buf & PAGE_MASK;
+ 	uend = (unsigned long)(buf + count);
+@@ -684,6 +681,11 @@ static ssize_t pagemap_read(struct file 
+ 	pm.out = (u64 *)buf;
+ 	pm.end = (u64 *)(buf + count);
+ 
++	pagemap_walk.pmd_entry = pagemap_pte_range;
++	pagemap_walk.pte_hole = pagemap_pte_hole;
++	pagemap_walk.mm = mm;
++	pagemap_walk.private = &pm;
++
+ 	if (!ptrace_may_attach(task)) {
+ 		ret = -EIO;
+ 	} else {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
