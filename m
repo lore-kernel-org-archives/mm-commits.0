@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + pagemap-make-clear_refs_writes-clear_refs_walk-non-static.patch added to -mm tree
-Date: Sat, 05 Jul 2008 12:28:44 -0700
-Message-ID: <200807051928.m65JSiVs002889@imap1.linux-foundation.org>
+Subject: + neofb-drop-the-xtimings-structure.patch added to -mm tree
+Date: Sat, 05 Jul 2008 12:33:12 -0700
+Message-ID: <200807051933.m65JXCAp003083@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38639 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56886 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752193AbYGET27 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 5 Jul 2008 15:28:59 -0400
+	by vger.kernel.org with ESMTP id S1752394AbYGETdP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 5 Jul 2008 15:33:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, adobriyan@gmail.com, mpm@selenic.com
+Cc: krzysztof.h1@wp.pl
 
 
 The patch titled
-     pagemap: make clear_refs_write's clear_refs_walk non-static
+     neofb: drop the xtimings structure
 has been added to the -mm tree.  Its filename is
-     pagemap-make-clear_refs_writes-clear_refs_walk-non-static.patch
+     neofb-drop-the-xtimings-structure.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,225 +33,254 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pagemap: make clear_refs_write's clear_refs_walk non-static
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: neofb: drop the xtimings structure
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Prevent races during concurrent use of this function.
+Remove the xtimings structure which only stored some values to be used
+later (mostly once).  Calculate and use these values in places they are
+needed.
 
-Reported-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Matt Mackall <mpm@selenic.com>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/video/neofb.c    |   88 ++++++++++++++++---------------------
+ include/video/neomagic.h |   17 -------
+ 2 files changed, 40 insertions(+), 65 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~pagemap-make-clear_refs_writes-clear_refs_walk-non-static fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~pagemap-make-clear_refs_writes-clear_refs_walk-non-static
-+++ a/fs/proc/task_mmu.c
-@@ -476,10 +476,10 @@ static ssize_t clear_refs_write(struct f
- 		return -ESRCH;
- 	mm = get_task_mm(task);
- 	if (mm) {
--		static struct mm_walk clear_refs_walk;
--		memset(&clear_refs_walk, 0, sizeof(clear_refs_walk));
--		clear_refs_walk.pmd_entry = clear_refs_pte_range;
--		clear_refs_walk.mm = mm;
-+		struct mm_walk clear_refs_walk = {
-+			.pmd_entry = clear_refs_pte_range,
-+			.mm = mm,
-+		};
- 		down_read(&mm->mmap_sem);
- 		for (vma = mm->mmap; vma; vma = vma->vm_next) {
- 			clear_refs_walk.private = vma;
+diff -puN drivers/video/neofb.c~neofb-drop-the-xtimings-structure drivers/video/neofb.c
+--- a/drivers/video/neofb.c~neofb-drop-the-xtimings-structure
++++ a/drivers/video/neofb.c
+@@ -259,15 +259,20 @@ static void neoCalcVCLK(const struct fb_
+  */
+ 
+ static int vgaHWInit(const struct fb_var_screeninfo *var,
+-		     const struct fb_info *info,
+-		     struct neofb_par *par, struct xtimings *timings)
++		     struct neofb_par *par)
+ {
++	int hsync_end = var->xres + var->right_margin + var->hsync_len;
++	int htotal = (hsync_end + var->left_margin) >> 3;
++	int vsync_start = var->yres + var->lower_margin;
++	int vsync_end = vsync_start + var->vsync_len;
++	int vtotal = vsync_end + var->upper_margin;
++
+ 	par->MiscOutReg = 0x23;
+ 
+-	if (!(timings->sync & FB_SYNC_HOR_HIGH_ACT))
++	if (!(var->sync & FB_SYNC_HOR_HIGH_ACT))
+ 		par->MiscOutReg |= 0x40;
+ 
+-	if (!(timings->sync & FB_SYNC_VERT_HIGH_ACT))
++	if (!(var->sync & FB_SYNC_VERT_HIGH_ACT))
+ 		par->MiscOutReg |= 0x80;
+ 
+ 	/*
+@@ -282,25 +287,25 @@ static int vgaHWInit(const struct fb_var
+ 	/*
+ 	 * CRTC Controller
+ 	 */
+-	par->CRTC[0] = (timings->HTotal >> 3) - 5;
+-	par->CRTC[1] = (timings->HDisplay >> 3) - 1;
+-	par->CRTC[2] = (timings->HDisplay >> 3) - 1;
+-	par->CRTC[3] = (((timings->HTotal >> 3) - 1) & 0x1F) | 0x80;
+-	par->CRTC[4] = (timings->HSyncStart >> 3);
+-	par->CRTC[5] = ((((timings->HTotal >> 3) - 1) & 0x20) << 2)
+-	    | (((timings->HSyncEnd >> 3)) & 0x1F);
+-	par->CRTC[6] = (timings->VTotal - 2) & 0xFF;
+-	par->CRTC[7] = (((timings->VTotal - 2) & 0x100) >> 8)
+-	    | (((timings->VDisplay - 1) & 0x100) >> 7)
+-	    | ((timings->VSyncStart & 0x100) >> 6)
+-	    | (((timings->VDisplay - 1) & 0x100) >> 5)
+-	    | 0x10 | (((timings->VTotal - 2) & 0x200) >> 4)
+-	    | (((timings->VDisplay - 1) & 0x200) >> 3)
+-	    | ((timings->VSyncStart & 0x200) >> 2);
++	par->CRTC[0] = htotal - 5;
++	par->CRTC[1] = (var->xres >> 3) - 1;
++	par->CRTC[2] = (var->xres >> 3) - 1;
++	par->CRTC[3] = ((htotal - 1) & 0x1F) | 0x80;
++	par->CRTC[4] = ((var->xres + var->right_margin) >> 3);
++	par->CRTC[5] = (((htotal - 1) & 0x20) << 2)
++	    | (((hsync_end >> 3)) & 0x1F);
++	par->CRTC[6] = (vtotal - 2) & 0xFF;
++	par->CRTC[7] = (((vtotal - 2) & 0x100) >> 8)
++	    | (((var->yres - 1) & 0x100) >> 7)
++	    | ((vsync_start & 0x100) >> 6)
++	    | (((var->yres - 1) & 0x100) >> 5)
++	    | 0x10 | (((vtotal - 2) & 0x200) >> 4)
++	    | (((var->yres - 1) & 0x200) >> 3)
++	    | ((vsync_start & 0x200) >> 2);
+ 	par->CRTC[8] = 0x00;
+-	par->CRTC[9] = (((timings->VDisplay - 1) & 0x200) >> 4) | 0x40;
++	par->CRTC[9] = (((var->yres - 1) & 0x200) >> 4) | 0x40;
+ 
+-	if (timings->dblscan)
++	if (var->vmode & FB_VMODE_DOUBLE)
+ 		par->CRTC[9] |= 0x80;
+ 
+ 	par->CRTC[10] = 0x00;
+@@ -309,13 +314,13 @@ static int vgaHWInit(const struct fb_var
+ 	par->CRTC[13] = 0x00;
+ 	par->CRTC[14] = 0x00;
+ 	par->CRTC[15] = 0x00;
+-	par->CRTC[16] = timings->VSyncStart & 0xFF;
+-	par->CRTC[17] = (timings->VSyncEnd & 0x0F) | 0x20;
+-	par->CRTC[18] = (timings->VDisplay - 1) & 0xFF;
++	par->CRTC[16] = vsync_start & 0xFF;
++	par->CRTC[17] = (vsync_end & 0x0F) | 0x20;
++	par->CRTC[18] = (var->yres - 1) & 0xFF;
+ 	par->CRTC[19] = var->xres_virtual >> 4;
+ 	par->CRTC[20] = 0x00;
+-	par->CRTC[21] = (timings->VDisplay - 1) & 0xFF;
+-	par->CRTC[22] = (timings->VTotal - 1) & 0xFF;
++	par->CRTC[21] = (var->yres - 1) & 0xFF;
++	par->CRTC[22] = (vtotal - 1) & 0xFF;
+ 	par->CRTC[23] = 0xC3;
+ 	par->CRTC[24] = 0xFF;
+ 
+@@ -736,11 +741,11 @@ neofb_check_var(struct fb_var_screeninfo
+ static int neofb_set_par(struct fb_info *info)
+ {
+ 	struct neofb_par *par = info->par;
+-	struct xtimings timings;
+ 	unsigned char temp;
+ 	int i, clock_hi = 0;
+ 	int lcd_stretch;
+ 	int hoffset, voffset;
++	int vsync_start, vtotal;
+ 
+ 	DBG("neofb_set_par");
+ 
+@@ -748,28 +753,15 @@ static int neofb_set_par(struct fb_info 
+ 
+ 	vgaHWProtect(1);	/* Blank the screen */
+ 
+-	timings.dblscan = info->var.vmode & FB_VMODE_DOUBLE;
+-	timings.interlaced = info->var.vmode & FB_VMODE_INTERLACED;
+-	timings.HDisplay = info->var.xres;
+-	timings.HSyncStart = timings.HDisplay + info->var.right_margin;
+-	timings.HSyncEnd = timings.HSyncStart + info->var.hsync_len;
+-	timings.HTotal = timings.HSyncEnd + info->var.left_margin;
+-	timings.VDisplay = info->var.yres;
+-	timings.VSyncStart = timings.VDisplay + info->var.lower_margin;
+-	timings.VSyncEnd = timings.VSyncStart + info->var.vsync_len;
+-	timings.VTotal = timings.VSyncEnd + info->var.upper_margin;
+-	timings.sync = info->var.sync;
+-	timings.pixclock = PICOS2KHZ(info->var.pixclock);
+-
+-	if (timings.pixclock < 1)
+-		timings.pixclock = 1;
++	vsync_start = info->var.yres + info->var.lower_margin;
++	vtotal = vsync_start + info->var.vsync_len + info->var.upper_margin;
+ 
+ 	/*
+ 	 * This will allocate the datastructure and initialize all of the
+ 	 * generic VGA registers.
+ 	 */
+ 
+-	if (vgaHWInit(&info->var, info, par, &timings))
++	if (vgaHWInit(&info->var, par))
+ 		return -EINVAL;
+ 
+ 	/*
+@@ -808,10 +800,10 @@ static int neofb_set_par(struct fb_info 
+ 	par->ExtCRTDispAddr = 0x10;
+ 
+ 	/* Vertical Extension */
+-	par->VerticalExt = (((timings.VTotal - 2) & 0x400) >> 10)
+-	    | (((timings.VDisplay - 1) & 0x400) >> 9)
+-	    | (((timings.VSyncStart) & 0x400) >> 8)
+-	    | (((timings.VSyncStart) & 0x400) >> 7);
++	par->VerticalExt = (((vtotal - 2) & 0x400) >> 10)
++	    | (((info->var.yres - 1) & 0x400) >> 9)
++	    | (((vsync_start) & 0x400) >> 8)
++	    | (((vsync_start) & 0x400) >> 7);
+ 
+ 	/* Fast write bursts on unless disabled. */
+ 	if (par->pci_burst)
+@@ -972,7 +964,7 @@ static int neofb_set_par(struct fb_info 
+ 	 * Calculate the VCLK that most closely matches the requested dot
+ 	 * clock.
+ 	 */
+-	neoCalcVCLK(info, par, timings.pixclock);
++	neoCalcVCLK(info, par, PICOS2KHZ(info->var.pixclock));
+ 
+ 	/* Since we program the clocks ourselves, always use VCLK3. */
+ 	par->MiscOutReg |= 0x0C;
+diff -puN include/video/neomagic.h~neofb-drop-the-xtimings-structure include/video/neomagic.h
+--- a/include/video/neomagic.h~neofb-drop-the-xtimings-structure
++++ a/include/video/neomagic.h
+@@ -90,23 +90,6 @@
+ #define PCI_CHIP_NM2360 0x0006
+ #define PCI_CHIP_NM2380 0x0016
+ 
+-
+-struct xtimings {
+-	unsigned int pixclock;
+-	unsigned int HDisplay;
+-	unsigned int HSyncStart;
+-	unsigned int HSyncEnd;
+-	unsigned int HTotal;
+-	unsigned int VDisplay;
+-	unsigned int VSyncStart;
+-	unsigned int VSyncEnd;
+-	unsigned int VTotal;
+-	unsigned int sync;
+-	int dblscan;
+-	int interlaced;
+-};
+-
+-
+ /* --------------------------------------------------------------------- */
+ 
+ typedef volatile struct {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
 origin.patch
-rtc-x1205-fix-alarm-set.patch
-spi-fix-the-read-path-in-spidev.patch
-security-filesystem-capabilities-fix-fragile-setuid-fixup-code.patch
-pagemap-fixes-to-pagemap_read.patch
-pagemap-make-clear_refs_writes-clear_refs_walk-non-static.patch
-revert-introduce-rculisth.patch
-revert-cpumask-introduce-new-apis.patch
 linux-next.patch
-next-remove-localversion.patch
-linux-next-fixups.patch
-linux-next-git-rejects.patch
-fix-kobject-fix-kobject_rename-and-config_sysfs.patch
-kvm-is-busted-on-ia64.patch
-drivers-mtd-nand-nandsimc-needs-div64h.patch
-pci-make-pci_register_driver-a-macro.patch
-net-ipv4-tcpc-needs-linux-scatterlisth.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-arch-x86-kernel-smpbootc-fix-warning.patch
-arch-x86-mm-pgtable_32c-remove-unused-variable-fixmaps.patch
-arch-x86-mm-init_64c-early_memtest-fix-types.patch
-drivers-media-video-cx18-cx18-av-firmwarec-fix-warning.patch
-drivers-media-video-uvc-uvc_v4l2c-suppress-uninitialized-var-warning.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-git-jg-misc-git-rejects.patch
-drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-git-mips.patch
-mmc-sd-host-driver-for-ricoh-bay1controllers.patch
-sundance-set-carrier-status-on-link-change-events.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-scsi-misc-fix-scsi_dh-build-errors.patch
-drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
-git-block-fix-drivers-block-pktcdvdc.patch
-pktcdvd-push-bkl-down-into-driver.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-git-logfs-fixup.patch
-drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
-drivers-usb-class-cdc-acmc-fix-build-with-config_pm=n.patch
-drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
-watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-verify-the-page-links-and-memory-model.patch
-mspec-convert-nopfn-to-fault-fix.patch
-page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
-kill-generic_file_direct_io-checkpatch-fixes.patch
-use-generic_access_phys-for-dev-mem-mappings-fix.patch
-spufs-use-the-new-vm_ops-access-fix.patch
-fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
-page-flags-record-page-flag-overlays-explicitly-xen.patch
-mapping_set_error-add-unlikely.patch
-huge-page-private-reservation-review-cleanups-fix.patch
-vma-page-offset-has-no-callees-drop-it.patch
-sync_file_range_write-may-and-will-block-document-that-fix.patch
-vmallocinfo-add-numa-information-fix.patch
-hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
-hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
-hugetlb-override-default-huge-page-size-ia64-build.patch
-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-bootmem-add-debugging-framework-fix.patch
-bootmem-clean-up-free_all_bootmem_core-fix.patch
-bootmem-free-reserve-helpers-fix.patch
-revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-v850-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-arm-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mips-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mtd-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fixes.patch
-mmu-notifiers-add-mm_take_all_locks-operation-checkpatch-fixes.patch
-mmu-notifier-core-checkpatch-fixes.patch
-mmu-notifier-core-fix.patch
-mmu-notifier-core-fix-2.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
-security-protect-legacy-applications-from-executing-with-insufficient-privilege-checkpatch-fixes.patch
-swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
-split-the-typecheck-macros-out-of-include-linux-kernelh.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
-remove-apparently-unused-fd1772h-header-file.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
-build-kernel-profileo-only-when-requested-cleanups.patch
-fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
-block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
-seq_file-fix-bug-when-seq_read-reads-nothing-fix.patch
-exec-remove-some-includes-fix.patch
-inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
-flag-parameters-paccept-fix.patch
-flag-parameters-paccept-sys_ni.patch
-flag-parameters-anon_inode_getfd-extension-fix.patch
-flag-parameters-signalfd-fix.patch
-flag-parameters-eventfd-fix.patch
-flag-parameters-inotify_init-fix.patch
-flag-parameters-check-magic-constants-alpha.patch
-spi-au1550_spi-improve-pio-transfer-mode-checkpatch-fixes.patch
-gpio-gpio-driver-for-max7301-spi-gpio-expander-checkpatch-fixes.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch
-drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
-atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
-lcd-add-platform_lcd-driver-fix.patch
-fsl-diu-fb-update-freescale-diu-driver-to-use-page_alloc_exact-fix.patch
-fbdev-add-new-cobalt-lcd-framebuffer-driver-fix.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
-ext3-handle-corrupted-orphan-list-at-mount-cleanup.patch
-ext3-handle-corrupted-orphan-list-at-mount-fix.patch
-ext3-handle-corrupted-orphan-list-at-mount-cleanup-fix.patch
-ext3-handle-deleting-corrupted-indirect-blocks-fix.patch
-jbd-dont-abort-if-flushing-file-data-failed-fix.patch
-reiserfs-convert-j_flush_sem-to-mutex.patch
-reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
-cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-fix.patch
-cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-checkpatch-fixes.patch
-memcg-remove-refcnt-from-page_cgroup-fix-2.patch
-workqueues-make-get_online_cpus-useable-for-work-func-fix.patch
-jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup.patch
-ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
-getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
-edac-mpc85xx-fix-pci-ofdev-2nd-pass-checkpatch-fixes.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-s2io.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
-x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary-checkpatch-fixes.patch
-tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
-memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
-memstick-use-fully-asynchronous-request-processing-fix.patch
-full-conversion-to-early_initcall-interface-remove-old-interface-cleanup.patch
-full-conversion-to-early_initcall-interface-remove-old-interface-fix.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-mm-introduce-get_user_pages_fast-fix.patch
-mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-fix.patch
-x86-lockless-get_user_pages_fast-fix-2.patch
-x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
-x86-lockless-get_user_pages_fast-fix-warning.patch
-vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
-define-page_file_cache-function-fix.patch
-vmscan-split-lru-lists-into-anon-file-sets-units-fix.patch
-unevictable-lru-infrastructure-fix.patch
-unevictable-lru-page-statistics-units-fix.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-3.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
-vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
-video-console-sticonrec-make-code-static-checkpatch-fixes.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+tridentfb-replace-macros-with-functions.patch
+tridentfb-convert-fb_info-into-allocated-one.patch
+tridentfb-move-global-pseudo-palette-into-structure.patch
+tridentfb-move-global-chip_id-into-structure.patch
+tridentfb-move-global-flat-panel-variable-into-structure.patch
+tridentfb-convert-is_blade-and-is_xp-macros-into-functions.patch
+tridentfb-move-global-acceleration-hooks-into-structure.patch
+tridentfb-make-use-of-functions-and-constants-from-the-vgah.patch
+tridentfb-fix-timing-calculations.patch
+tridentfb-use-mmio-access-for-clock-setting.patch
+tridentfb-fix-clock-settings-for-older-trident-96xx-chips.patch
+tridentfb-improve-probe-function.patch
+tridentfb-improved-register-values-on-tgui-9680.patch
+tridentfb-add-tgui-9440-support.patch
+tridentfb-fix-unitialized-pseudo_palette.patch
+tridentfb-improve-check_var-function.patch
+tridentfb-preserve-memory-type-settings.patch
+tridentfb-fix-hi-color-modes-for-tgui-9440.patch
+tridentfb-add-acceleration-for-tgui-families.patch
+tridentfb-acceleration-code-improvements.patch
+tridentfb-acceleration-bug-fixes.patch
+tridentfb-various-pixclock-and-timing-improvements.patch
+tridentfb-acceleration-constants-change.patch
+tridentfb-source-code-improvements.patch
+tridentfb-fix-console-freeze-when-switching-from-x11.patch
+tridentfb-fix-224-color-logo-at-8-bpp.patch
+tridentfb-y-panning-fixes.patch
+tridentfb-blade3d-clock-fixes.patch
+tridentfb-add-imageblit-acceleration-for-blade3d-family.patch
+amifb-test-virtual-screen-range-before-subtraction-on-unsigned.patch
+atafb-test-virtual-screen-range-before-subtraction-on-unsigned.patch
+fbcon-make-logo_height-a-local-variable.patch
+uvesafb-change-mode-parameter-to-mode_option.patch
+tridentfb-documentation-update.patch
+tdfxfb-add-mode_option-module-parameter.patch
+vga16fb-source-code-improvement.patch
+tdfxfb-remove-ypan-checks-done-by-a-higher-layer.patch
+vfb-only-enable-if-explicitly-requested-when-compiled-in.patch
+hgafb-convert-to-new-platform-driver-api-bugzilla-9689.patch
+skeletonfb-update-to-correct-platform-driver-usage.patch
+neofb-simplify-clock-calculation.patch
+neofb-drop-redundant-code.patch
+neofb-drop-the-xtimings-structure.patch
 
