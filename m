@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + pagemap-fixes-to-pagemap_read.patch added to -mm tree
-Date: Fri, 04 Jul 2008 19:30:20 -0700
-Message-ID: <200807050230.m652UK0m029917@imap1.linux-foundation.org>
+Subject: + pagemap-make-clear_refs_writes-clear_refs_walk-non-static.patch added to -mm tree
+Date: Sat, 05 Jul 2008 12:28:44 -0700
+Message-ID: <200807051928.m65JSiVs002889@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39243 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38639 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752662AbYGECac (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jul 2008 22:30:32 -0400
+	by vger.kernel.org with ESMTP id S1752193AbYGET27 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 5 Jul 2008 15:28:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, adobriyan@gmail.com, mpm@selenic.com
 
 
 The patch titled
-     pagemap fixes to pagemap_read()
+     pagemap: make clear_refs_write's clear_refs_walk non-static
 has been added to the -mm tree.  Its filename is
-     pagemap-fixes-to-pagemap_read.patch
+     pagemap-make-clear_refs_writes-clear_refs_walk-non-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,72 +33,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pagemap fixes to pagemap_read()
+Subject: pagemap: make clear_refs_write's clear_refs_walk non-static
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix some issues noted by Alexey:
+Prevent races during concurrent use of this function.
 
-- initialize pagemap_walk.mm to "mm" , so the code starts working as
-  advertised
-
-- initialize ->private to "&pm" so it wouldn't immediately oops in
-  pagemap_pte_hole()
-
-- unstatic struct pagemap_walk, so two threads won't fsckup each other
-  (including those started by root, including flipping ->mm when you don't
-  have permissions)
-
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Reported-by: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: Matt Mackall <mpm@selenic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ fs/proc/task_mmu.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~pagemap-fixes-to-pagemap_read fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~pagemap-fixes-to-pagemap_read
+diff -puN fs/proc/task_mmu.c~pagemap-make-clear_refs_writes-clear_refs_walk-non-static fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~pagemap-make-clear_refs_writes-clear_refs_walk-non-static
 +++ a/fs/proc/task_mmu.c
-@@ -602,11 +602,6 @@ static int pagemap_pte_range(pmd_t *pmd,
- 	return err;
- }
- 
--static struct mm_walk pagemap_walk = {
--	.pmd_entry = pagemap_pte_range,
--	.pte_hole = pagemap_pte_hole
--};
--
- /*
-  * /proc/pid/pagemap - an array mapping virtual pages to pfns
-  *
-@@ -641,6 +636,7 @@ static ssize_t pagemap_read(struct file 
- 	struct pagemapread pm;
- 	int pagecount;
- 	int ret = -ESRCH;
-+	static struct mm_walk pagemap_walk;
- 
- 	if (!task)
- 		goto out;
-@@ -659,6 +655,7 @@ static ssize_t pagemap_read(struct file 
- 	if (!mm)
- 		goto out_task;
- 
-+
- 	ret = -ENOMEM;
- 	uaddr = (unsigned long)buf & PAGE_MASK;
- 	uend = (unsigned long)(buf + count);
-@@ -684,6 +681,11 @@ static ssize_t pagemap_read(struct file 
- 	pm.out = (u64 *)buf;
- 	pm.end = (u64 *)(buf + count);
- 
-+	pagemap_walk.pmd_entry = pagemap_pte_range;
-+	pagemap_walk.pte_hole = pagemap_pte_hole;
-+	pagemap_walk.mm = mm;
-+	pagemap_walk.private = &pm;
-+
- 	if (!ptrace_may_attach(task)) {
- 		ret = -EIO;
- 	} else {
+@@ -476,10 +476,10 @@ static ssize_t clear_refs_write(struct f
+ 		return -ESRCH;
+ 	mm = get_task_mm(task);
+ 	if (mm) {
+-		static struct mm_walk clear_refs_walk;
+-		memset(&clear_refs_walk, 0, sizeof(clear_refs_walk));
+-		clear_refs_walk.pmd_entry = clear_refs_pte_range;
+-		clear_refs_walk.mm = mm;
++		struct mm_walk clear_refs_walk = {
++			.pmd_entry = clear_refs_pte_range,
++			.mm = mm,
++		};
+ 		down_read(&mm->mmap_sem);
+ 		for (vma = mm->mmap; vma; vma = vma->vm_next) {
+ 			clear_refs_walk.private = vma;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -108,6 +73,7 @@ rtc-x1205-fix-alarm-set.patch
 spi-fix-the-read-path-in-spidev.patch
 security-filesystem-capabilities-fix-fragile-setuid-fixup-code.patch
 pagemap-fixes-to-pagemap_read.patch
+pagemap-make-clear_refs_writes-clear_refs_walk-non-static.patch
 revert-introduce-rculisth.patch
 revert-cpumask-introduce-new-apis.patch
 linux-next.patch
