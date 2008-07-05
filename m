@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
 Subject: + pagemap-fixes-to-pagemap_read.patch added to -mm tree
-Date: Fri, 04 Jul 2008 19:29:57 -0700
-Message-ID: <200807050229.m652TvPH029896@imap1.linux-foundation.org>
+Date: Fri, 04 Jul 2008 19:30:20 -0700
+Message-ID: <200807050230.m652UK0m029917@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45454 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39243 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752743AbYGECaL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jul 2008 22:30:11 -0400
+	by vger.kernel.org with ESMTP id S1752662AbYGECac (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jul 2008 22:30:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -35,6 +35,8 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 ------------------------------------------------------
 Subject: pagemap fixes to pagemap_read()
 From: Andrew Morton <akpm@linux-foundation.org>
+
+Fix some issues noted by Alexey:
 
 - initialize pagemap_walk.mm to "mm" , so the code starts working as
   advertised
