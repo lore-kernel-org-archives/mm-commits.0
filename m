@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + coredump-simplify-core_state-nr_threads-calculation.patch added to -mm tree
-Date: Sun, 06 Jul 2008 12:24:22 -0700
-Message-ID: <200807061924.m66JOMFD021280@imap1.linux-foundation.org>
+Subject: + coredump-turn-core_state-nr_threads-into-atomic_t.patch added to -mm tree
+Date: Sun, 06 Jul 2008 12:24:24 -0700
+Message-ID: <200807061924.m66JOOh5021283@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59293 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60601 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755841AbYGFTYn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 6 Jul 2008 15:24:43 -0400
+	by vger.kernel.org with ESMTP id S1756346AbYGFTYp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 6 Jul 2008 15:24:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: oleg@tv-sign.ru, roland@redhat.com
 
 
 The patch titled
-     coredump: simplify core_state->nr_threads calculation
+     coredump: turn core_state->nr_threads into atomic_t
 has been added to the -mm tree.  Its filename is
-     coredump-simplify-core_state-nr_threads-calculation.patch
+     coredump-turn-core_state-nr_threads-into-atomic_t.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,114 +33,62 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: coredump: simplify core_state->nr_threads calculation
+Subject: coredump: turn core_state->nr_threads into atomic_t
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Change zap_process() to return int instead of incrementing
-mm->core_state->nr_threads directly.  Change zap_threads() to set
-mm->core_state only on success.
-
-This patch restores the original size of .text, and more importantly now
-->nr_threads is used in two places only.
+Turn core_state->nr_threads into atomic_t and kill now unneeded
+down_write(&mm->mmap_sem) in exit_mm().
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |   33 ++++++++++++++++-----------------
- 1 file changed, 16 insertions(+), 17 deletions(-)
+ fs/exec.c                |    2 +-
+ include/linux/mm_types.h |    2 +-
+ kernel/exit.c            |    5 ++---
+ 3 files changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN fs/exec.c~coredump-simplify-core_state-nr_threads-calculation fs/exec.c
---- a/fs/exec.c~coredump-simplify-core_state-nr_threads-calculation
+diff -puN fs/exec.c~coredump-turn-core_state-nr_threads-into-atomic_t fs/exec.c
+--- a/fs/exec.c~coredump-turn-core_state-nr_threads-into-atomic_t
 +++ a/fs/exec.c
-@@ -1502,9 +1502,10 @@ out:
- 	return ispipe;
- }
- 
--static void zap_process(struct task_struct *start)
-+static int zap_process(struct task_struct *start)
- {
- 	struct task_struct *t;
-+	int nr = 0;
- 
- 	start->signal->flags = SIGNAL_GROUP_EXIT;
- 	start->signal->group_stop_count = 0;
-@@ -1512,31 +1513,33 @@ static void zap_process(struct task_stru
- 	t = start;
- 	do {
- 		if (t != current && t->mm) {
--			t->mm->core_state->nr_threads++;
- 			sigaddset(&t->pending.signal, SIGKILL);
- 			signal_wake_up(t, 1);
-+			nr++;
- 		}
- 	} while_each_thread(start, t);
-+
-+	return nr;
- }
- 
- static inline int zap_threads(struct task_struct *tsk, struct mm_struct *mm,
--				int exit_code)
-+				struct core_state *core_state, int exit_code)
- {
- 	struct task_struct *g, *p;
- 	unsigned long flags;
--	int err = -EAGAIN;
-+	int nr = -EAGAIN;
- 
- 	spin_lock_irq(&tsk->sighand->siglock);
- 	if (!signal_group_exit(tsk->signal)) {
-+		mm->core_state = core_state;
- 		tsk->signal->group_exit_code = exit_code;
--		zap_process(tsk);
--		err = 0;
-+		nr = zap_process(tsk);
- 	}
- 	spin_unlock_irq(&tsk->sighand->siglock);
--	if (err)
--		return err;
-+	if (unlikely(nr < 0))
-+		return nr;
- 
--	if (atomic_read(&mm->mm_users) == mm->core_state->nr_threads + 1)
-+	if (atomic_read(&mm->mm_users) == nr + 1)
- 		goto done;
- 	/*
- 	 * We should find and kill all tasks which use this mm, and we should
-@@ -1579,7 +1582,7 @@ static inline int zap_threads(struct tas
- 			if (p->mm) {
- 				if (unlikely(p->mm == mm)) {
- 					lock_task_sighand(p, &flags);
--					zap_process(p);
-+					nr += zap_process(p);
- 					unlock_task_sighand(p, &flags);
- 				}
- 				break;
-@@ -1588,7 +1591,8 @@ static inline int zap_threads(struct tas
+@@ -1591,7 +1591,7 @@ static inline int zap_threads(struct tas
  	}
  	rcu_read_unlock();
  done:
--	return mm->core_state->nr_threads;
-+	core_state->nr_threads = nr;
-+	return nr;
+-	core_state->nr_threads = nr;
++	atomic_set(&core_state->nr_threads, nr);
+ 	return nr;
  }
  
- static int coredump_wait(int exit_code)
-@@ -1601,12 +1605,7 @@ static int coredump_wait(int exit_code)
+diff -puN include/linux/mm_types.h~coredump-turn-core_state-nr_threads-into-atomic_t include/linux/mm_types.h
+--- a/include/linux/mm_types.h~coredump-turn-core_state-nr_threads-into-atomic_t
++++ a/include/linux/mm_types.h
+@@ -165,7 +165,7 @@ struct vm_area_struct {
+ };
  
- 	init_completion(&mm->core_done);
- 	init_completion(&core_state.startup);
--	core_state.nr_threads = 0;
--	mm->core_state = &core_state;
--
--	core_waiters = zap_threads(tsk, mm, exit_code);
--	if (core_waiters < 0)
--		mm->core_state = NULL;
-+	core_waiters = zap_threads(tsk, mm, &core_state, exit_code);
- 	up_write(&mm->mmap_sem);
+ struct core_state {
+-	int nr_threads;
++	atomic_t nr_threads;
+ 	struct completion startup;
+ };
  
- 	if (unlikely(core_waiters < 0))
+diff -puN kernel/exit.c~coredump-turn-core_state-nr_threads-into-atomic_t kernel/exit.c
+--- a/kernel/exit.c~coredump-turn-core_state-nr_threads-into-atomic_t
++++ a/kernel/exit.c
+@@ -665,10 +665,9 @@ static void exit_mm(struct task_struct *
+ 	down_read(&mm->mmap_sem);
+ 	if (mm->core_state) {
+ 		up_read(&mm->mmap_sem);
+-		down_write(&mm->mmap_sem);
+-		if (!--mm->core_state->nr_threads)
++
++		if (atomic_dec_and_test(&mm->core_state->nr_threads))
+ 			complete(&mm->core_state->startup);
+-		up_write(&mm->mmap_sem);
+ 
+ 		wait_for_completion(&mm->core_done);
+ 		down_read(&mm->mmap_sem);
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
