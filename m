@@ -1,112 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: + workqueues-lockdep-annotations-for-flush_work.patch added to -mm tree
-Date: Sun, 06 Jul 2008 12:26:06 -0700
-Message-ID: <200807061926.m66JQ6LK021326@imap1.linux-foundation.org>
+Subject: - acpi-enable-c3-power-state-on-dell-inspiron-8200.patch removed from -mm tree
+Date: Sun, 06 Jul 2008 12:36:30 -0700
+Message-ID: <200807061936.m66JaURh021654@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60990 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45651 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753764AbYGFT0u (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 6 Jul 2008 15:26:50 -0400
+	by vger.kernel.org with ESMTP id S1755884AbYGFThV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 6 Jul 2008 15:37:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, jarkao2@o2.pl, johannes@sipsolutions.net
+To: dag@bakke.com, arjan@infradead.org, lenb@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     workqueues: lockdep annotations for flush_work()
-has been added to the -mm tree.  Its filename is
-     workqueues-lockdep-annotations-for-flush_work.patch
+     acpi: enable C3 Power State on Dell Inspiron 8200
+has been removed from the -mm tree.  Its filename was
+     acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was nacked
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: workqueues: lockdep annotations for flush_work()
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: acpi: enable C3 Power State on Dell Inspiron 8200
+From: Dag Bakke <dag@bakke.com>
 
-Add lockdep annotations to flush_work() and update the comment.
+Taken from http://bugzilla.kernel.org/show_bug.cgi?id=8703
 
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Jarek Poplawski <jarkao2@o2.pl>
-Cc: Johannes Berg <johannes@sipsolutions.net>
+[akpm@linux-foundation.org: fix warning]
+Cc: Arjan van de Ven <arjan@infradead.org>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/workqueue.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/acpi/processor_idle.c |   23 +++++++++++++++++++++--
+ 1 file changed, 21 insertions(+), 2 deletions(-)
 
-diff -puN kernel/workqueue.c~workqueues-lockdep-annotations-for-flush_work kernel/workqueue.c
---- a/kernel/workqueue.c~workqueues-lockdep-annotations-for-flush_work
-+++ a/kernel/workqueue.c
-@@ -403,6 +403,8 @@ EXPORT_SYMBOL_GPL(flush_workqueue);
-  * flush_work - block until a work_struct's callback has terminated
-  * @work: the work which is to be flushed
-  *
-+ * Returns false if @work has already terminated.
-+ *
-  * It is expected that, prior to calling flush_work(), the caller has
-  * arranged for the work to not be requeued, otherwise it doesn't make
-  * sense to use this function.
-@@ -418,6 +420,9 @@ int flush_work(struct work_struct *work)
- 	if (!cwq)
- 		return 0;
+diff -puN drivers/acpi/processor_idle.c~acpi-enable-c3-power-state-on-dell-inspiron-8200 drivers/acpi/processor_idle.c
+--- a/drivers/acpi/processor_idle.c~acpi-enable-c3-power-state-on-dell-inspiron-8200
++++ a/drivers/acpi/processor_idle.c
+@@ -105,6 +105,8 @@ static unsigned int latency_factor __rea
+ module_param(latency_factor, uint, 0644);
+ #endif
  
-+	lock_acquire(&cwq->wq->lockdep_map, 0, 0, 0, 2, _THIS_IP_);
-+	lock_release(&cwq->wq->lockdep_map, 1, _THIS_IP_);
++static int forced_c3;
 +
- 	prev = NULL;
- 	spin_lock_irq(&cwq->lock);
- 	if (!list_empty(&work->entry)) {
+ /*
+  * IBM ThinkPad R40e crashes mysteriously when going into C2 or C3.
+  * For now disable this. Probably a bug somewhere else.
+@@ -125,6 +127,19 @@ static int set_max_cstate(const struct d
+ 	return 0;
+ }
+ 
++/*
++ * Some (Dell) machines set the C3 latency to a value which effectively says:
++ * "Don't use C3." Still, C3 works if we force it.
++ * This enables C3 on Dell Inspiron 8200 machines.
++ */
++static int dmi_force_c3(const struct dmi_system_id *id)
++{
++	forced_c3 = 1;
++	printk(KERN_NOTICE PREFIX "%s detected - Force enabling C3.",
++			id->ident);
++	return 0;
++}
++
+ /* Actually this shouldn't be __cpuinitdata, would be better to fix the
+    callers to only run once -AK */
+ static struct dmi_system_id __cpuinitdata processor_power_dmi_table[] = {
+@@ -183,6 +198,9 @@ static struct dmi_system_id __cpuinitdat
+ 	  DMI_MATCH(DMI_BIOS_VENDOR,"Phoenix Technologies LTD"),
+ 	  DMI_MATCH(DMI_BIOS_VERSION,"SHE845M0.86C.0013.D.0302131307")},
+ 	 (void *)2},
++	{ dmi_force_c3, "Dell Inspiron 8200", {
++	  DMI_MATCH(DMI_SYS_VENDOR,"Dell Computer Corporation"),
++	  DMI_MATCH(DMI_PRODUCT_NAME,"Inspiron 8200") }, NULL},
+ 	{},
+ };
+ 
+@@ -1067,11 +1085,12 @@ static void acpi_processor_power_verify_
+ 	 * C3 latency must be less than or equal to 1000
+ 	 * microseconds.
+ 	 */
+-	else if (cx->latency > ACPI_PROCESSOR_MAX_C3_LATENCY) {
++	if (cx->latency > ACPI_PROCESSOR_MAX_C3_LATENCY && !forced_c3) {
+ 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+ 				  "latency too large [%d]\n", cx->latency));
+ 		return;
+-	}
++	} else if (forced_c3)
++		cx->latency = ACPI_PROCESSOR_MAX_C3_LATENCY;
+ 
+ 	/*
+ 	 * PIIX4 Erratum #18: We don't support C3 when Type-F (fast)
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from dag@bakke.com are
 
-get_user_pages-fix-possible-page-leak-on-oom.patch
-linux-next.patch
-migrate_timers-add-comment-use-spinlock_irq.patch
-posix-timers-timer_delete-remove-the-bogus-it_process-=-null-check.patch
-posix-timers-release_posix_timer-kill-the-bogus-put_task_struct-it_process.patch
-signals-collect_signal-remove-the-unneeded-sigismember-check.patch
-signals-collect_signal-simplify-the-still_pending-logic.patch
-signals-change-collect_signal-to-return-void.patch
-__exit_signal-dont-take-rcu-lock.patch
-signals-dequeue_signal-dont-check-signal_group_exit-when-setting-signal_stop_dequeued.patch
-signals-do_signal_stop-kill-the-signal_unkillable-check.patch
-coredump-zap_threads-comments-use-while_each_thread.patch
-signals-make-siginfo_t-si_utime-si_sstime-report-times-in-user_hz-not-hz.patch
-kernel-signalc-change-vars-pid-and-tgid-types-to-pid_t.patch
-include-asm-ptraceh-userspace-headers-cleanup.patch
-ptrace-give-more-respect-to-sigkill.patch
-ptrace-simplify-ptrace_stop-sigkill_pending-path.patch
-introduce-pf_kthread-flag.patch
-kill-pf_borrowed_mm-in-favour-of-pf_kthread.patch
-coredump-zap_threads-must-skip-kernel-threads.patch
-coredump-elf_core_dump-skip-kernel-threads.patch
-coredump-turn-mm-core_startup_done-into-the-pointer-to-struct-core_state.patch
-coredump-move-mm-core_waiters-into-struct-core_state.patch
-coredump-simplify-core_state-nr_threads-calculation.patch
-coredump-turn-core_state-nr_threads-into-atomic_t.patch
-workqueues-insert_work-use-list_head-instead-of-int-tail.patch
-workqueues-implement-flush_work.patch
-workqueues-schedule_on_each_cpu-use-flush_work.patch
-workqueues-make-get_online_cpus-useable-for-work-func.patch
-workqueues-make-get_online_cpus-useable-for-work-func-fix.patch
-s390-topology-dont-use-kthread-for-arch_reinit_sched_domains.patch
-workqueues-lockdep-annotations-for-flush_work.patch
-pidns-remove-now-unused-kill_proc-function.patch
-pidns-remove-now-unused-find_pid-function.patch
-pidns-remove-find_task_by_pid-unused-for-a-long-time.patch
-distinct-tgid-tid-i-o-statistics.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 
