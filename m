@@ -1,131 +1,121 @@
 From: akpm@linux-foundation.org
-Subject: + watchdog-s3c2410-watchdog-cleanup-and-switch-to-unlocked_ioctl-fix.patch added to -mm tree
-Date: Sat, 05 Jul 2008 13:58:35 -0700
-Message-ID: <200807052058.m65KwZ7N006112@imap1.linux-foundation.org>
+Subject: - ptrace-kill-may_ptrace_stop.patch removed from -mm tree
+Date: Sun, 06 Jul 2008 12:22:17 -0700
+Message-ID: <200807061922.m66JMHg8021140@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52558 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39486 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752744AbYGEU70 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 5 Jul 2008 16:59:26 -0400
+	by vger.kernel.org with ESMTP id S1753567AbYGFTWq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 6 Jul 2008 15:22:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: krzysztof.h1@wp.pl, alan@lxorguk.ukuu.org.uk, wim@iguana.be
+To: oleg@tv-sign.ru, matthew@wil.cx, mingo@elte.hu, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     s3c2410_wdt: remove duplicated function __s3c2410wdt_stop
-has been added to the -mm tree.  Its filename is
-     watchdog-s3c2410-watchdog-cleanup-and-switch-to-unlocked_ioctl-fix.patch
+     ptrace: kill may_ptrace_stop()
+has been removed from the -mm tree.  Its filename was
+     ptrace-kill-may_ptrace_stop.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: s3c2410_wdt: remove duplicated function __s3c2410wdt_stop
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: ptrace: kill may_ptrace_stop()
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Remove the duplicated function __s3c2410wdt_stop() and remove return value
-from the s3c2410wdt_start().
+Now that ptrace_stop() can't sleep if the tracee was SIGKILL'ed, we don't
+need the special mm->core_waiters check in may_ptrace_stop(). It was needed
+to prevent the deadlock with the tracer with the same ->mm which waits for
+us in coredump_wait()->wait_for_completion(&startup_done), and the the
+unkillable tracee waits for PTRACE_CONT from the tracer.
 
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Wim Van Sebroeck <wim@iguana.be>
+Without this check may_ptrace_stop() becomes trivial and can be removed.
+
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Matthew Wilcox <matthew@wil.cx>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/s3c2410_wdt.c |   13 -------------
- 1 file changed, 13 deletions(-)
+ kernel/signal.c |   22 +---------------------
+ 1 file changed, 1 insertion(+), 21 deletions(-)
 
-diff -puN drivers/watchdog/s3c2410_wdt.c~watchdog-s3c2410-watchdog-cleanup-and-switch-to-unlocked_ioctl-fix drivers/watchdog/s3c2410_wdt.c
---- a/drivers/watchdog/s3c2410_wdt.c~watchdog-s3c2410-watchdog-cleanup-and-switch-to-unlocked_ioctl-fix
-+++ a/drivers/watchdog/s3c2410_wdt.c
-@@ -119,17 +119,6 @@ static void __s3c2410wdt_stop(void)
- {
- 	unsigned long wtcon;
- 
--	spin_lock(&wdt_lock);
--	wtcon = readl(wdt_base + S3C2410_WTCON);
--	wtcon &= ~(S3C2410_WTCON_ENABLE | S3C2410_WTCON_RSTEN);
--	writel(wtcon, wdt_base + S3C2410_WTCON);
--	spin_unlock(&wdt_lock);
--}
--
--static void __s3c2410wdt_stop(void)
--{
--	unsigned long wtcon;
--
- 	wtcon = readl(wdt_base + S3C2410_WTCON);
- 	wtcon &= ~(S3C2410_WTCON_ENABLE | S3C2410_WTCON_RSTEN);
- 	writel(wtcon, wdt_base + S3C2410_WTCON);
-@@ -168,8 +157,6 @@ static void s3c2410wdt_start(void)
- 	writel(wdt_count, wdt_base + S3C2410_WTCNT);
- 	writel(wtcon, wdt_base + S3C2410_WTCON);
- 	spin_unlock(&wdt_lock);
--
--	return 0;
+diff -puN kernel/signal.c~ptrace-kill-may_ptrace_stop kernel/signal.c
+--- a/kernel/signal.c~ptrace-kill-may_ptrace_stop
++++ a/kernel/signal.c
+@@ -1470,26 +1470,6 @@ static void do_notify_parent_cldstop(str
+ 	spin_unlock_irqrestore(&sighand->siglock, flags);
  }
  
- static int s3c2410wdt_set_heartbeat(int timeout)
+-static inline int may_ptrace_stop(void)
+-{
+-	if (!likely(current->ptrace & PT_PTRACED))
+-		return 0;
+-	/*
+-	 * Are we in the middle of do_coredump?
+-	 * If so and our tracer is also part of the coredump stopping
+-	 * is a deadlock situation, and pointless because our tracer
+-	 * is dead so don't allow us to stop.
+-	 * If SIGKILL was already sent before the caller unlocked
+-	 * ->siglock we must see ->core_waiters != 0. Otherwise it
+-	 * is safe to enter schedule().
+-	 */
+-	if (unlikely(current->mm->core_waiters) &&
+-	    unlikely(current->mm == current->parent->mm))
+-		return 0;
+-
+-	return 1;
+-}
+-
+ /*
+  * This must be called with current->sighand->siglock held.
+  *
+@@ -1534,7 +1514,7 @@ static void ptrace_stop(int exit_code, i
+ 	__set_current_state(TASK_TRACED);
+ 	spin_unlock_irq(&current->sighand->siglock);
+ 	read_lock(&tasklist_lock);
+-	if (may_ptrace_stop()) {
++	if (likely(current->ptrace & PT_PTRACED)) {
+ 		do_notify_parent_cldstop(current, CLD_TRAPPED);
+ 		read_unlock(&tasklist_lock);
+ 		schedule();
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
-origin.patch
+get_user_pages-fix-possible-page-leak-on-oom.patch
 linux-next.patch
-watchdog-s3c2410-watchdog-cleanup-and-switch-to-unlocked_ioctl-fix.patch
-tridentfb-replace-macros-with-functions.patch
-tridentfb-convert-fb_info-into-allocated-one.patch
-tridentfb-move-global-pseudo-palette-into-structure.patch
-tridentfb-move-global-chip_id-into-structure.patch
-tridentfb-move-global-flat-panel-variable-into-structure.patch
-tridentfb-convert-is_blade-and-is_xp-macros-into-functions.patch
-tridentfb-move-global-acceleration-hooks-into-structure.patch
-tridentfb-make-use-of-functions-and-constants-from-the-vgah.patch
-tridentfb-fix-timing-calculations.patch
-tridentfb-use-mmio-access-for-clock-setting.patch
-tridentfb-fix-clock-settings-for-older-trident-96xx-chips.patch
-tridentfb-improve-probe-function.patch
-tridentfb-improved-register-values-on-tgui-9680.patch
-tridentfb-add-tgui-9440-support.patch
-tridentfb-fix-unitialized-pseudo_palette.patch
-tridentfb-improve-check_var-function.patch
-tridentfb-preserve-memory-type-settings.patch
-tridentfb-fix-hi-color-modes-for-tgui-9440.patch
-tridentfb-add-acceleration-for-tgui-families.patch
-tridentfb-acceleration-code-improvements.patch
-tridentfb-acceleration-bug-fixes.patch
-tridentfb-various-pixclock-and-timing-improvements.patch
-tridentfb-acceleration-constants-change.patch
-tridentfb-source-code-improvements.patch
-tridentfb-fix-console-freeze-when-switching-from-x11.patch
-tridentfb-fix-224-color-logo-at-8-bpp.patch
-tridentfb-y-panning-fixes.patch
-tridentfb-blade3d-clock-fixes.patch
-tridentfb-add-imageblit-acceleration-for-blade3d-family.patch
-amifb-test-virtual-screen-range-before-subtraction-on-unsigned.patch
-atafb-test-virtual-screen-range-before-subtraction-on-unsigned.patch
-fbcon-make-logo_height-a-local-variable.patch
-uvesafb-change-mode-parameter-to-mode_option.patch
-tridentfb-documentation-update.patch
-tdfxfb-add-mode_option-module-parameter.patch
-vga16fb-source-code-improvement.patch
-tdfxfb-remove-ypan-checks-done-by-a-higher-layer.patch
-vfb-only-enable-if-explicitly-requested-when-compiled-in.patch
-hgafb-convert-to-new-platform-driver-api-bugzilla-9689.patch
-skeletonfb-update-to-correct-platform-driver-usage.patch
-neofb-simplify-clock-calculation.patch
-neofb-drop-redundant-code.patch
-neofb-drop-the-xtimings-structure.patch
+migrate_timers-add-comment-use-spinlock_irq.patch
+posix-timers-timer_delete-remove-the-bogus-it_process-=-null-check.patch
+posix-timers-release_posix_timer-kill-the-bogus-put_task_struct-it_process.patch
+signals-collect_signal-remove-the-unneeded-sigismember-check.patch
+signals-collect_signal-simplify-the-still_pending-logic.patch
+signals-change-collect_signal-to-return-void.patch
+__exit_signal-dont-take-rcu-lock.patch
+signals-dequeue_signal-dont-check-signal_group_exit-when-setting-signal_stop_dequeued.patch
+signals-do_signal_stop-kill-the-signal_unkillable-check.patch
+coredump-zap_threads-comments-use-while_each_thread.patch
+signals-make-siginfo_t-si_utime-si_sstime-report-times-in-user_hz-not-hz.patch
+kernel-signalc-change-vars-pid-and-tgid-types-to-pid_t.patch
+include-asm-ptraceh-userspace-headers-cleanup.patch
+ptrace-give-more-respect-to-sigkill.patch
+ptrace-kill-may_ptrace_stop.patch
+introduce-pf_kthread-flag.patch
+kill-pf_borrowed_mm-in-favour-of-pf_kthread.patch
+coredump-zap_threads-must-skip-kernel-threads.patch
+coredump-elf_core_dump-skip-kernel-threads.patch
+workqueues-insert_work-use-list_head-instead-of-int-tail.patch
+workqueues-implement-flush_work.patch
+workqueues-schedule_on_each_cpu-use-flush_work.patch
+workqueues-make-get_online_cpus-useable-for-work-func.patch
+workqueues-make-get_online_cpus-useable-for-work-func-fix.patch
+s390-topology-dont-use-kthread-for-arch_reinit_sched_domains.patch
+pidns-remove-now-unused-kill_proc-function.patch
+pidns-remove-now-unused-find_pid-function.patch
+pidns-remove-find_task_by_pid-unused-for-a-long-time.patch
+distinct-tgid-tid-i-o-statistics.patch
 
