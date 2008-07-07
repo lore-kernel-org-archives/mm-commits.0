@@ -1,78 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - reiserfs-add-missing-unlock-to-an-error-path-in-reiserfs_quota_write.patch removed from -mm tree
-Date: Sun, 06 Jul 2008 20:01:51 -0700
-Message-ID: <200807070303.m6731pe0004570@imap1.linux-foundation.org>
+Subject: - update-ntfs-help-text.patch removed from -mm tree
+Date: Sun, 06 Jul 2008 20:04:46 -0700
+Message-ID: <200807070304.m6734kfa004691@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60304 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37002 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753187AbYGGDEt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 6 Jul 2008 23:04:49 -0400
+	by vger.kernel.org with ESMTP id S1753190AbYGGDEz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 6 Jul 2008 23:04:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, mm-commits@vger.kernel.org
+To: i92guboj@terra.es, aia21@cantab.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     reiserfs: add missing unlock to an error path in reiserfs_quota_write()
+     ntfs: update help text
 has been removed from the -mm tree.  Its filename was
-     reiserfs-add-missing-unlock-to-an-error-path-in-reiserfs_quota_write.patch
+     update-ntfs-help-text.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: reiserfs: add missing unlock to an error path in reiserfs_quota_write()
-From: Jan Kara <jack@suse.cz>
+Subject: ntfs: update help text
+From: Jess Guerrero <i92guboj@terra.es>
 
-When write in reiserfs_quota_write() fails, we have to properly release
-i_mutex. One error path has been missing the unlock...
+The url in the help text for ntfs should be updated.
 
-Signed-off-by: Jan Kara <jack@suse.cz>
+Acked-by: Anton Altaparmakov <aia21@cantab.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/super.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ fs/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/reiserfs/super.c~reiserfs-add-missing-unlock-to-an-error-path-in-reiserfs_quota_write fs/reiserfs/super.c
---- a/fs/reiserfs/super.c~reiserfs-add-missing-unlock-to-an-error-path-in-reiserfs_quota_write
-+++ a/fs/reiserfs/super.c
-@@ -2165,8 +2165,10 @@ static ssize_t reiserfs_quota_write(stru
- 		blk++;
- 	}
- out:
--	if (len == towrite)
-+	if (len == towrite) {
-+		mutex_unlock(&inode->i_mutex);
- 		return err;
-+	}
- 	if (inode->i_size < off + len - towrite)
- 		i_size_write(inode, off + len - towrite);
- 	inode->i_version++;
+diff -puN fs/Kconfig~update-ntfs-help-text fs/Kconfig
+--- a/fs/Kconfig~update-ntfs-help-text
++++ a/fs/Kconfig
+@@ -830,7 +830,7 @@ config NTFS_FS
+ 	  from the project web site.
+ 
+ 	  For more information see <file:Documentation/filesystems/ntfs.txt>
+-	  and <http://linux-ntfs.sourceforge.net/>.
++	  and <http://www.linux-ntfs.org/>.
+ 
+ 	  To compile this file system support as a module, choose M here: the
+ 	  module will be called ntfs.
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from i92guboj@terra.es are
 
-linux-next.patch
-ext3-fix-synchronization-of-quota-files-in-journal=data-mode.patch
-ext3-fix-typos-in-messages-and-comments-journalled-journaled.patch
-ext3-correct-mount-option-parsing-to-detect-when-quota-options-can-be-changed.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
-jbd-positively-dispose-the-unmapped-data-buffers-in-journal_commit_transaction.patch
-jbd-dont-abort-if-flushing-file-data-failed.patch
-jbd-dont-abort-if-flushing-file-data-failed-fix.patch
-reiserfs-fix-synchronization-of-quota-files-in-journal=data-mode.patch
-reiserfs-fix-typos-in-messages-and-comments-journalled-journaled.patch
-reiserfs-correct-mount-option-parsing-to-detect-when-quota-options-can-be-changed.patch
-quota-rename-quota-functions-from-upper-case-make-bigger-ones-non-inline.patch
-quota-cleanup-loop-in-sync_dquots.patch
-quota-move-function-macros-from-quotah-to-quotaopsh.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-fix.patch
-quota-convert-macros-to-inline-functions.patch
 
