@@ -1,73 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: - doc-doc-maintainers.patch removed from -mm tree
-Date: Sun, 06 Jul 2008 20:05:05 -0700
-Message-ID: <200807070305.m67355A8004791@imap1.linux-foundation.org>
+Subject: - hdaps-add-support-for-various-newer-lenovo-thinkpads.patch removed from -mm tree
+Date: Sun, 06 Jul 2008 20:04:33 -0700
+Message-ID: <200807070304.m6734XAf004664@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60567 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49014 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753258AbYGGDFJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 6 Jul 2008 23:05:09 -0400
+	by vger.kernel.org with ESMTP id S1753214AbYGGDFG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 6 Jul 2008 23:05:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rdunlap@xenotime.net, corbet@lwn.net, mtk.manpages@gmail.com, mm-commits@vger.kernel.org
+To: max@stro.at, khali@linux-fr.org, mhoffman@lightlink.com, tim.gardner@canonical.com, ubuntu@hjernemadsen.org, zulcss@ubuntu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     doc: doc maintainers
+     hdaps: add support for various newer Lenovo thinkpads
 has been removed from the -mm tree.  Its filename was
-     doc-doc-maintainers.patch
+     hdaps-add-support-for-various-newer-lenovo-thinkpads.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: doc: doc maintainers
-From: Randy Dunlap <rdunlap@xenotime.net>
+Subject: hdaps: add support for various newer Lenovo thinkpads
+From: maximilian attems <max@stro.at>
 
-Maintain the kernel's Documentation/ tree.
+Adds R61, T61p, X61s, X61, Z61m, Z61p models to whitelist.
 
-This includes tree layout and contents, although not much in terms of new
-content production.  That will usually have to be done by someone familiar
-with the software, at least in some rough form.
+Fixes this:
 
-Includes review and editorial assistance for people contributing changes
-to /Documentation.
+cullen@lenny:~$ sudo modprobe hdaps
+FATAL: Error inserting hdaps (/lib/modules/2.6.22-10-generic/kernel/drivers/hwmon/hdaps.ko): No such device
 
-Also includes prodding people for content if something is in need of
-documentation.
+[25192.888000] hdaps: supported laptop not found!
+[25192.888000] hdaps: driver init failed (ret=-19)!
 
-Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
-Acked-by: Michael Kerrisk <mtk.manpages@gmail.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
+
+Originally based on an Ubuntu patch that got it wrong, the dmidecode
+output of the corresponding laptops shows LENOVO as the manufacturer. 
+https://bugs.launchpad.net/ubuntu/+source/linux-source-2.6.22/+bug/133636
+
+tested on X61s:
+[  184.893588] hdaps: inverting axis readings.
+[  184.893588] hdaps: LENOVO ThinkPad X61s detected.
+[  184.893588] input: hdaps as /class/input/input12
+[  184.924326] hdaps: driver successfully loaded.
+
+Cc: Klaus S. Madsen <ubuntu@hjernemadsen.org>
+Cc: Chuck Short <zulcss@ubuntu.com>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Tim Gardner <tim.gardner@canonical.com>
+Signed-off-by: maximilian attems <max@stro.at>
+Cc: Mark M. Hoffman <mhoffman@lightlink.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/hwmon/hdaps.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN MAINTAINERS~doc-doc-maintainers MAINTAINERS
---- a/MAINTAINERS~doc-doc-maintainers
-+++ a/MAINTAINERS
-@@ -1423,6 +1423,14 @@ M:	kristen.c.accardi@intel.com
- L:	linux-acpi@vger.kernel.org
- S:	Supported
+diff -puN drivers/hwmon/hdaps.c~hdaps-add-support-for-various-newer-lenovo-thinkpads drivers/hwmon/hdaps.c
+--- a/drivers/hwmon/hdaps.c~hdaps-add-support-for-various-newer-lenovo-thinkpads
++++ a/drivers/hwmon/hdaps.c
+@@ -516,17 +516,23 @@ static struct dmi_system_id __initdata h
+ 	HDAPS_DMI_MATCH_NORMAL("IBM", "ThinkPad R51"),
+ 	HDAPS_DMI_MATCH_NORMAL("IBM", "ThinkPad R52"),
+ 	HDAPS_DMI_MATCH_INVERT("LENOVO", "ThinkPad R61i"),
++	HDAPS_DMI_MATCH_INVERT("LENOVO", "ThinkPad R61"),
+ 	HDAPS_DMI_MATCH_INVERT("IBM", "ThinkPad T41p"),
+ 	HDAPS_DMI_MATCH_NORMAL("IBM", "ThinkPad T41"),
+ 	HDAPS_DMI_MATCH_INVERT("IBM", "ThinkPad T42p"),
+ 	HDAPS_DMI_MATCH_NORMAL("IBM", "ThinkPad T42"),
+ 	HDAPS_DMI_MATCH_NORMAL("IBM", "ThinkPad T43"),
+ 	HDAPS_DMI_MATCH_INVERT("LENOVO", "ThinkPad T60"),
++	HDAPS_DMI_MATCH_INVERT("LENOVO", "ThinkPad T61p"),
+ 	HDAPS_DMI_MATCH_INVERT("LENOVO", "ThinkPad T61"),
+ 	HDAPS_DMI_MATCH_NORMAL("IBM", "ThinkPad X40"),
+ 	HDAPS_DMI_MATCH_NORMAL("IBM", "ThinkPad X41"),
+ 	HDAPS_DMI_MATCH_INVERT("LENOVO", "ThinkPad X60"),
++	HDAPS_DMI_MATCH_INVERT("LENOVO", "ThinkPad X61s"),
++	HDAPS_DMI_MATCH_INVERT("LENOVO", "ThinkPad X61"),
+ 	HDAPS_DMI_MATCH_NORMAL("IBM", "ThinkPad Z60m"),
++	HDAPS_DMI_MATCH_INVERT("LENOVO", "ThinkPad Z61m"),
++	HDAPS_DMI_MATCH_INVERT("LENOVO", "ThinkPad Z61p"),
+ 	{ .ident = NULL }
+ };
  
-+DOCUMENTATION (/Documentation directory)
-+P:     Michael Kerrisk
-+M:     mtk.manpages@gmail.com
-+P:     Randy Dunlap
-+M:     rdunlap@xenotime.net
-+L:     linux-doc@vger.kernel.org
-+S:     Maintained
-+
- DOUBLETALK DRIVER
- P:	James R. Van Zandt
- M:	jrv@vanzandt.mv.com
 _
 
-Patches currently in -mm which might be from rdunlap@xenotime.net are
+Patches currently in -mm which might be from max@stro.at are
 
 linux-next.patch
 
