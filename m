@@ -1,158 +1,247 @@
 From: akpm@linux-foundation.org
-Subject: - cciss-read-config-to-obtain-max-outstanding-commands-per-controller.patch removed from -mm tree
-Date: Sun, 06 Jul 2008 20:05:20 -0700
-Message-ID: <200807070305.m6735K2I004812@imap1.linux-foundation.org>
+Subject: - git-block-fix-drivers-block-pktcdvdc.patch removed from -mm tree
+Date: Sun, 06 Jul 2008 20:05:51 -0700
+Message-ID: <200807070305.m6735pM3004851@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59334 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52169 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753739AbYGGDGd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 6 Jul 2008 23:06:33 -0400
+	by vger.kernel.org with ESMTP id S1753765AbYGGDGn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 6 Jul 2008 23:06:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mike.miller@hp.com, jens.axboe@oracle.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jens.axboe@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cciss: read config to obtain max outstanding commands per controller
+     git-block: fix drivers/block/pktcdvd.c
 has been removed from the -mm tree.  Its filename was
-     cciss-read-config-to-obtain-max-outstanding-commands-per-controller.patch
+     git-block-fix-drivers-block-pktcdvdc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cciss: read config to obtain max outstanding commands per controller
-From: Mike Miller <mike.miller@hp.com>
+Subject: git-block: fix drivers/block/pktcdvd.c
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This patch changes the way we determine the maximum number of outstanding
-commands for each controller.
+drivers/block/pktcdvd.c: In function 'pkt_init_queue':
+drivers/block/pktcdvd.c:2664: warning: passing argument 2 of 'blk_queue_merge_bvec' from incompatible pointer type
 
-Most Smart Array controllers can support up to 1024 commands, the notable
-exceptions are the E200 and E200i.
+it will crash...
 
-The next generation of controllers which were just added support a mode of
-operation called Zero Memory Raid (ZMR).  In this mode they only support
-64 outstanding commands.  In Full Function Raid (FFR) mode they support
-1024.
-
-We have been setting the queue depth by arbitrarily assigning some value
-for each controller.  We needed a better way to set the queue depth to
-avoid lots of annoying "fifo full" messages.  So we made the driver a
-little smarter.  We now read the config table and subtract 4 from the
-returned value.  The -4 is to allow some room for ioctl calls which are
-not tracked the same way as io commands are tracked.
-
-Please consider this for inclusion.
-
-Signed-off-by: Mike Miller <mike.miller@hp.com>
 Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/cciss.c |   66 ++++++++++++++++++++++------------------
- 1 file changed, 37 insertions(+), 29 deletions(-)
+ drivers/block/pktcdvd.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN drivers/block/cciss.c~cciss-read-config-to-obtain-max-outstanding-commands-per-controller drivers/block/cciss.c
---- a/drivers/block/cciss.c~cciss-read-config-to-obtain-max-outstanding-commands-per-controller
-+++ a/drivers/block/cciss.c
-@@ -106,35 +106,34 @@ MODULE_DEVICE_TABLE(pci, cciss_pci_devic
- /*  board_id = Subsystem Device ID & Vendor ID
-  *  product = Marketing Name for the board
-  *  access = Address of the struct of function pointers
-- *  nr_cmds = Number of commands supported by controller
-  */
- static struct board_type products[] = {
--	{0x40700E11, "Smart Array 5300", &SA5_access, 512},
--	{0x40800E11, "Smart Array 5i", &SA5B_access, 512},
--	{0x40820E11, "Smart Array 532", &SA5B_access, 512},
--	{0x40830E11, "Smart Array 5312", &SA5B_access, 512},
--	{0x409A0E11, "Smart Array 641", &SA5_access, 512},
--	{0x409B0E11, "Smart Array 642", &SA5_access, 512},
--	{0x409C0E11, "Smart Array 6400", &SA5_access, 512},
--	{0x409D0E11, "Smart Array 6400 EM", &SA5_access, 512},
--	{0x40910E11, "Smart Array 6i", &SA5_access, 512},
--	{0x3225103C, "Smart Array P600", &SA5_access, 512},
--	{0x3223103C, "Smart Array P800", &SA5_access, 512},
--	{0x3234103C, "Smart Array P400", &SA5_access, 512},
--	{0x3235103C, "Smart Array P400i", &SA5_access, 512},
--	{0x3211103C, "Smart Array E200i", &SA5_access, 120},
--	{0x3212103C, "Smart Array E200", &SA5_access, 120},
--	{0x3213103C, "Smart Array E200i", &SA5_access, 120},
--	{0x3214103C, "Smart Array E200i", &SA5_access, 120},
--	{0x3215103C, "Smart Array E200i", &SA5_access, 120},
--	{0x3237103C, "Smart Array E500", &SA5_access, 512},
--	{0x323D103C, "Smart Array P700m", &SA5_access, 512},
--	{0x3241103C, "Smart Array P212", &SA5_access, 384},
--	{0x3243103C, "Smart Array P410", &SA5_access, 384},
--	{0x3245103C, "Smart Array P410i", &SA5_access, 384},
--	{0x3247103C, "Smart Array P411", &SA5_access, 384},
--	{0x3249103C, "Smart Array P812", &SA5_access, 384},
--	{0xFFFF103C, "Unknown Smart Array", &SA5_access, 120},
-+	{0x40700E11, "Smart Array 5300", &SA5_access},
-+	{0x40800E11, "Smart Array 5i", &SA5B_access},
-+	{0x40820E11, "Smart Array 532", &SA5B_access},
-+	{0x40830E11, "Smart Array 5312", &SA5B_access},
-+	{0x409A0E11, "Smart Array 641", &SA5_access},
-+	{0x409B0E11, "Smart Array 642", &SA5_access},
-+	{0x409C0E11, "Smart Array 6400", &SA5_access},
-+	{0x409D0E11, "Smart Array 6400 EM", &SA5_access},
-+	{0x40910E11, "Smart Array 6i", &SA5_access},
-+	{0x3225103C, "Smart Array P600", &SA5_access},
-+	{0x3223103C, "Smart Array P800", &SA5_access},
-+	{0x3234103C, "Smart Array P400", &SA5_access},
-+	{0x3235103C, "Smart Array P400i", &SA5_access},
-+	{0x3211103C, "Smart Array E200i", &SA5_access},
-+	{0x3212103C, "Smart Array E200", &SA5_access},
-+	{0x3213103C, "Smart Array E200i", &SA5_access},
-+	{0x3214103C, "Smart Array E200i", &SA5_access},
-+	{0x3215103C, "Smart Array E200i", &SA5_access},
-+	{0x3237103C, "Smart Array E500", &SA5_access},
-+	{0x323D103C, "Smart Array P700m", &SA5_access},
-+	{0x3241103C, "Smart Array P212", &SA5_access},
-+	{0x3243103C, "Smart Array P410", &SA5_access},
-+	{0x3245103C, "Smart Array P410i", &SA5_access},
-+	{0x3247103C, "Smart Array P411", &SA5_access},
-+	{0x3249103C, "Smart Array P812", &SA5_access},
-+	{0xFFFF103C, "Unknown Smart Array", &SA5_access},
- };
+diff -puN drivers/block/pktcdvd.c~git-block-fix-drivers-block-pktcdvdc drivers/block/pktcdvd.c
+--- a/drivers/block/pktcdvd.c~git-block-fix-drivers-block-pktcdvdc
++++ a/drivers/block/pktcdvd.c
+@@ -2635,11 +2635,12 @@ end_io:
  
- /* How long to wait (in milliseconds) for board to go into simple mode */
-@@ -3086,11 +3085,20 @@ static int __devinit cciss_pci_init(ctlr
- 	print_cfg_table(c->cfgtable);
- #endif				/* CCISS_DEBUG */
  
-+	/* Some controllers support Zero Memory Raid (ZMR).
-+	 * When configured in ZMR mode the number of supported
-+	 * commands drops to 64. So instead of just setting an
-+	 * arbitrary value we make the driver a little smarter.
-+	 * We read the config table to tell us how many commands
-+	 * are supported on the controller then subtract 4 to
-+	 * leave a little room for ioctl calls.
-+	 */
-+	c->max_commands = readl(&(c->cfgtable->CmdsOutMax));
- 	for (i = 0; i < ARRAY_SIZE(products); i++) {
- 		if (board_id == products[i].board_id) {
- 			c->product_name = products[i].product_name;
- 			c->access = *(products[i].access);
--			c->nr_cmds = products[i].nr_cmds;
-+			c->nr_cmds = c->max_commands - 4;
- 			break;
- 		}
- 	}
-@@ -3110,7 +3118,7 @@ static int __devinit cciss_pci_init(ctlr
- 		if (subsystem_vendor_id == PCI_VENDOR_ID_HP) {
- 			c->product_name = products[i-1].product_name;
- 			c->access = *(products[i-1].access);
--			c->nr_cmds = products[i-1].nr_cmds;
-+			c->nr_cmds = c->max_commands - 4;
- 			printk(KERN_WARNING "cciss: This is an unknown "
- 				"Smart Array controller.\n"
- 				"cciss: Please update to the latest driver "
+ 
+-static int pkt_merge_bvec(struct request_queue *q, struct bio *bio, struct bio_vec *bvec)
++static int pkt_merge_bvec(struct request_queue *q, struct bvec_merge_data *bmd,
++			struct bio_vec *bvec)
+ {
+ 	struct pktcdvd_device *pd = q->queuedata;
+-	sector_t zone = ZONE(bio->bi_sector, pd);
+-	int used = ((bio->bi_sector - zone) << 9) + bio->bi_size;
++	sector_t zone = ZONE(bmd->bi_sector, pd);
++	int used = ((bmd->bi_sector - zone) << 9) + bmd->bi_size;
+ 	int remaining = (pd->settings.size << 9) - used;
+ 	int remaining2;
+ 
+@@ -2647,7 +2648,7 @@ static int pkt_merge_bvec(struct request
+ 	 * A bio <= PAGE_SIZE must be allowed. If it crosses a packet
+ 	 * boundary, pkt_make_request() will split the bio.
+ 	 */
+-	remaining2 = PAGE_SIZE - bio->bi_size;
++	remaining2 = PAGE_SIZE - bmd->bi_size;
+ 	remaining = max(remaining, remaining2);
+ 
+ 	BUG_ON(remaining < 0);
 _
 
-Patches currently in -mm which might be from mike.miller@hp.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+revert-introduce-rculisth.patch
+revert-cpumask-introduce-new-apis.patch
+linux-next.patch
+next-remove-localversion.patch
+linux-next-fixups.patch
+linux-next-git-rejects.patch
+fix-kobject-fix-kobject_rename-and-config_sysfs.patch
+kvm-is-busted-on-ia64.patch
+drivers-mtd-nand-nandsimc-needs-div64h.patch
+pci-make-pci_register_driver-a-macro.patch
+arch-x86-kernel-smpbootc-fix-warning.patch
+arch-x86-mm-pgtable_32c-remove-unused-variable-fixmaps.patch
+drivers-media-video-cx18-cx18-av-firmwarec-fix-warning.patch
+drivers-media-video-uvc-uvc_v4l2c-suppress-uninitialized-var-warning.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+git-jg-misc-git-rejects.patch
+drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers.patch
+sundance-set-carrier-status-on-link-change-events.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-scsi-misc-fix-scsi_dh-build-errors.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+pktcdvd-push-bkl-down-into-driver.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-logfs-fixup.patch
+drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
+drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
+watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
+git-xtensa.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-verify-the-page-links-and-memory-model.patch
+mspec-convert-nopfn-to-fault-fix.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+kill-generic_file_direct_io-checkpatch-fixes.patch
+use-generic_access_phys-for-dev-mem-mappings-fix.patch
+spufs-use-the-new-vm_ops-access-fix.patch
+fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
+page-flags-record-page-flag-overlays-explicitly-xen.patch
+mapping_set_error-add-unlikely.patch
+huge-page-private-reservation-review-cleanups-fix.patch
+vma-page-offset-has-no-callees-drop-it.patch
+sync_file_range_write-may-and-will-block-document-that-fix.patch
+vmallocinfo-add-numa-information-fix.patch
+hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
+hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
+hugetlb-override-default-huge-page-size-ia64-build.patch
+linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+bootmem-add-debugging-framework-fix.patch
+bootmem-clean-up-free_all_bootmem_core-fix.patch
+bootmem-free-reserve-helpers-fix.patch
+revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-v850-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-arm-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mips-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mtd-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fixes.patch
+mmu-notifiers-add-mm_take_all_locks-operation-checkpatch-fixes.patch
+mmu-notifier-core-checkpatch-fixes.patch
+mmu-notifier-core-fix.patch
+mmu-notifier-core-fix-2.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
+security-protect-legacy-applications-from-executing-with-insufficient-privilege-checkpatch-fixes.patch
+swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
+block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
+seq_file-fix-bug-when-seq_read-reads-nothing-fix.patch
+exec-remove-some-includes-fix.patch
+inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-paccept-sys_ni.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-signalfd-fix.patch
+flag-parameters-eventfd-fix.patch
+flag-parameters-inotify_init-fix.patch
+flag-parameters-check-magic-constants-alpha.patch
+spi-au1550_spi-improve-pio-transfer-mode-checkpatch-fixes.patch
+gpio-gpio-driver-for-max7301-spi-gpio-expander-checkpatch-fixes.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
+lcd-add-platform_lcd-driver-fix.patch
+fsl-diu-fb-update-freescale-diu-driver-to-use-page_alloc_exact-fix.patch
+fbdev-add-new-cobalt-lcd-framebuffer-driver-fix.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
+ext3-handle-corrupted-orphan-list-at-mount-cleanup.patch
+ext3-handle-corrupted-orphan-list-at-mount-fix.patch
+ext3-handle-corrupted-orphan-list-at-mount-cleanup-fix.patch
+ext3-handle-deleting-corrupted-indirect-blocks-fix.patch
+jbd-dont-abort-if-flushing-file-data-failed-fix.patch
+reiserfs-convert-j_flush_sem-to-mutex.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
+cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-fix.patch
+cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-checkpatch-fixes.patch
+memcg-remove-refcnt-from-page_cgroup-fix-2.patch
+workqueues-make-get_online_cpus-useable-for-work-func-fix.patch
+jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup.patch
+ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
+getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
+edac-mpc85xx-fix-pci-ofdev-2nd-pass-checkpatch-fixes.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-s2io.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
+x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary-checkpatch-fixes.patch
+tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
+memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
+memstick-use-fully-asynchronous-request-processing-fix.patch
+full-conversion-to-early_initcall-interface-remove-old-interface-cleanup.patch
+full-conversion-to-early_initcall-interface-remove-old-interface-fix.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+mm-introduce-get_user_pages_fast-fix.patch
+mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-fix.patch
+x86-lockless-get_user_pages_fast-fix-2.patch
+x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
+x86-lockless-get_user_pages_fast-fix-warning.patch
+vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
+define-page_file_cache-function-fix.patch
+vmscan-split-lru-lists-into-anon-file-sets-units-fix.patch
+unevictable-lru-infrastructure-fix.patch
+unevictable-lru-page-statistics-units-fix.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-3.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
+vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
+video-console-sticonrec-make-code-static-checkpatch-fixes.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
