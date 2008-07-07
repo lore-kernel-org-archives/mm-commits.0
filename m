@@ -1,65 +1,162 @@
 From: akpm@linux-foundation.org
-Subject: - arch-x86-mm-init_64c-early_memtest-fix-types.patch removed from -mm tree
-Date: Sun, 06 Jul 2008 20:05:42 -0700
-Message-ID: <200807070305.m6735gC8004839@imap1.linux-foundation.org>
+Subject: - pagemap-fixes-to-pagemap_read.patch removed from -mm tree
+Date: Sun, 06 Jul 2008 20:05:36 -0700
+Message-ID: <200807070305.m6735aIL004830@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32887 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42012 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753352AbYGGDGA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 6 Jul 2008 23:06:00 -0400
+	by vger.kernel.org with ESMTP id S1753316AbYGGDFu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 6 Jul 2008 23:05:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mingo@elte.hu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, adobriyan@gmail.com, mpm@selenic.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arch/x86/mm/init_64.c: early_memtest(): fix types
+     pagemap fixes to pagemap_read()
 has been removed from the -mm tree.  Its filename was
-     arch-x86-mm-init_64c-early_memtest-fix-types.patch
+     pagemap-fixes-to-pagemap_read.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/x86/mm/init_64.c: early_memtest(): fix types
+Subject: pagemap fixes to pagemap_read()
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/x86/mm/init_64.c: In function 'early_memtest':
-arch/x86/mm/init_64.c:524: warning: passing argument 2 of 'find_e820_area_size' from incompatible pointer type
+Fix some issues noted by Alexey:
 
-Cc: Ingo Molnar <mingo@elte.hu>
+- initialize pagemap_walk.mm to "mm" , so the code starts working as
+  advertised
+
+- initialize ->private to "&pm" so it wouldn't immediately oops in
+  pagemap_pte_hole()
+
+- unstatic struct pagemap_walk, so two threads won't fsckup each other
+  (including those started by root, including flipping ->mm when you don't
+  have permissions)
+
+- pagemap_read() contains two calls to ptrace_may_attach(), second one
+  looks unneeded.
+
+- avoid possible kmalloc(0) and integer wraparound.
+
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Matt Mackall <mpm@selenic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/init_64.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ fs/proc/task_mmu.c |   72 ++++++++++++++++++++++---------------------
+ 1 file changed, 38 insertions(+), 34 deletions(-)
 
-diff -puN arch/x86/mm/init_64.c~arch-x86-mm-init_64c-early_memtest-fix-types arch/x86/mm/init_64.c
---- a/arch/x86/mm/init_64.c~arch-x86-mm-init_64c-early_memtest-fix-types
-+++ a/arch/x86/mm/init_64.c
-@@ -522,7 +522,7 @@ early_param("memtest", parse_memtest);
+diff -puN fs/proc/task_mmu.c~pagemap-fixes-to-pagemap_read fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~pagemap-fixes-to-pagemap_read
++++ a/fs/proc/task_mmu.c
+@@ -602,11 +602,6 @@ static int pagemap_pte_range(pmd_t *pmd,
+ 	return err;
+ }
  
- static void __init early_memtest(unsigned long start, unsigned long end)
- {
--	unsigned long t_start, t_size;
-+	u64 t_start, t_size;
- 	unsigned pattern;
+-static struct mm_walk pagemap_walk = {
+-	.pmd_entry = pagemap_pte_range,
+-	.pte_hole = pagemap_pte_hole
+-};
+-
+ /*
+  * /proc/pid/pagemap - an array mapping virtual pages to pfns
+  *
+@@ -641,6 +636,11 @@ static ssize_t pagemap_read(struct file 
+ 	struct pagemapread pm;
+ 	int pagecount;
+ 	int ret = -ESRCH;
++	struct mm_walk pagemap_walk;
++	unsigned long src;
++	unsigned long svpfn;
++	unsigned long start_vaddr;
++	unsigned long end_vaddr;
  
- 	if (!memtest_pattern)
-@@ -541,8 +541,9 @@ static void __init early_memtest(unsigne
- 			if (t_start + t_size > end)
- 				t_size = end - t_start;
+ 	if (!task)
+ 		goto out;
+@@ -659,11 +659,15 @@ static ssize_t pagemap_read(struct file 
+ 	if (!mm)
+ 		goto out_task;
  
--			printk(KERN_CONT "\n  %016lx - %016lx pattern %d",
--				t_start, t_start + t_size, pattern);
-+			printk(KERN_CONT "\n  %016llx - %016llx pattern %d",
-+				(unsigned long long)t_start,
-+				(unsigned long long)t_start + t_size, pattern);
+-	ret = -ENOMEM;
++
+ 	uaddr = (unsigned long)buf & PAGE_MASK;
+ 	uend = (unsigned long)(buf + count);
+ 	pagecount = (PAGE_ALIGN(uend) - uaddr) / PAGE_SIZE;
+-	pages = kmalloc(pagecount * sizeof(struct page *), GFP_KERNEL);
++	ret = 0;
++	if (pagecount == 0)
++		goto out_mm;
++	pages = kcalloc(pagecount, sizeof(struct page *), GFP_KERNEL);
++	ret = -ENOMEM;
+ 	if (!pages)
+ 		goto out_mm;
  
- 			memtest(t_start, t_size, pattern);
+@@ -684,33 +688,33 @@ static ssize_t pagemap_read(struct file 
+ 	pm.out = (u64 *)buf;
+ 	pm.end = (u64 *)(buf + count);
  
+-	if (!ptrace_may_attach(task)) {
+-		ret = -EIO;
+-	} else {
+-		unsigned long src = *ppos;
+-		unsigned long svpfn = src / PM_ENTRY_BYTES;
+-		unsigned long start_vaddr = svpfn << PAGE_SHIFT;
+-		unsigned long end_vaddr = TASK_SIZE_OF(task);
+-
+-		/* watch out for wraparound */
+-		if (svpfn > TASK_SIZE_OF(task) >> PAGE_SHIFT)
+-			start_vaddr = end_vaddr;
+-
+-		/*
+-		 * The odds are that this will stop walking way
+-		 * before end_vaddr, because the length of the
+-		 * user buffer is tracked in "pm", and the walk
+-		 * will stop when we hit the end of the buffer.
+-		 */
+-		ret = walk_page_range(start_vaddr, end_vaddr,
+-					&pagemap_walk);
+-		if (ret == PM_END_OF_BUFFER)
+-			ret = 0;
+-		/* don't need mmap_sem for these, but this looks cleaner */
+-		*ppos += (char *)pm.out - buf;
+-		if (!ret)
+-			ret = (char *)pm.out - buf;
+-	}
++	pagemap_walk.pmd_entry = pagemap_pte_range;
++	pagemap_walk.pte_hole = pagemap_pte_hole;
++	pagemap_walk.mm = mm;
++	pagemap_walk.private = &pm;
++
++	src = *ppos;
++	svpfn = src / PM_ENTRY_BYTES;
++	start_vaddr = svpfn << PAGE_SHIFT;
++	end_vaddr = TASK_SIZE_OF(task);
++
++	/* watch out for wraparound */
++	if (svpfn > TASK_SIZE_OF(task) >> PAGE_SHIFT)
++		start_vaddr = end_vaddr;
++
++	/*
++	 * The odds are that this will stop walking way
++	 * before end_vaddr, because the length of the
++	 * user buffer is tracked in "pm", and the walk
++	 * will stop when we hit the end of the buffer.
++	 */
++	ret = walk_page_range(start_vaddr, end_vaddr, &pagemap_walk);
++	if (ret == PM_END_OF_BUFFER)
++		ret = 0;
++	/* don't need mmap_sem for these, but this looks cleaner */
++	*ppos += (char *)pm.out - buf;
++	if (!ret)
++		ret = (char *)pm.out - buf;
+ 
+ out_pages:
+ 	for (; pagecount; pagecount--) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
