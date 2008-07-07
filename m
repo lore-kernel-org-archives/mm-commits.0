@@ -1,60 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - mm-switch-node-meminfo-active-inactive-pages-to-kbytes.patch removed from -mm tree
-Date: Sun, 06 Jul 2008 20:05:25 -0700
-Message-ID: <200807070305.m6735PQ6004818@imap1.linux-foundation.org>
+Subject: - cpumask-introduce-new-apis.patch removed from -mm tree
+Date: Sun, 06 Jul 2008 20:05:23 -0700
+Message-ID: <200807070305.m6735N2e004815@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40788 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50921 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753295AbYGGDFf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 6 Jul 2008 23:05:35 -0400
+	by vger.kernel.org with ESMTP id S1753349AbYGGDFo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 6 Jul 2008 23:05:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: john.blackwood@ccur.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: sfr@canb.auug.org.au, mingo@elte.hu, tglx@linutronix.de, travis@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: switch node meminfo Active & Inactive pages to Kbytes
+     cpumask: introduce new APIs
 has been removed from the -mm tree.  Its filename was
-     mm-switch-node-meminfo-active-inactive-pages-to-kbytes.patch
+     cpumask-introduce-new-apis.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: switch node meminfo Active & Inactive pages to Kbytes
-From: John Blackwood <john.blackwood@ccur.com>
+Subject: cpumask: introduce new APIs
+From: Stephen Rothwell <sfr@canb.auug.org.au>
 
-There is a bug in the output of /sys/devices/system/node/node[n]/meminfo
-where the Active and Inactive values are in pages instead of Kbytes.
+In linux-next there is a commit ("x86: Add performance variants of cpumask
+operators") which, as part of the 4096 cpu support work adds some new APIs
+for dealing with cpu masks.  Add trivial versions of these now so that
+subsystems can update in a timely manner and avoid conflicts in linux-next
+and the next merge window.
 
-Looks like this occurred back in 2.6.20 when the code was changed
-over to use node_page_state().
-
-Cc: <stable@kernel.org>
+Cc: Mike Travis <travis@sgi.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/node.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/cpumask.h |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN drivers/base/node.c~mm-switch-node-meminfo-active-inactive-pages-to-kbytes drivers/base/node.c
---- a/drivers/base/node.c~mm-switch-node-meminfo-active-inactive-pages-to-kbytes
-+++ a/drivers/base/node.c
-@@ -84,8 +84,8 @@ static ssize_t node_read_meminfo(struct 
- 		       nid, K(i.totalram),
- 		       nid, K(i.freeram),
- 		       nid, K(i.totalram - i.freeram),
--		       nid, node_page_state(nid, NR_ACTIVE),
--		       nid, node_page_state(nid, NR_INACTIVE),
-+		       nid, K(node_page_state(nid, NR_ACTIVE)),
-+		       nid, K(node_page_state(nid, NR_INACTIVE)),
- #ifdef CONFIG_HIGHMEM
- 		       nid, K(i.totalhigh),
- 		       nid, K(i.freehigh),
+diff -puN include/linux/cpumask.h~cpumask-introduce-new-apis include/linux/cpumask.h
+--- a/include/linux/cpumask.h~cpumask-introduce-new-apis
++++ a/include/linux/cpumask.h
+@@ -353,6 +353,10 @@ static inline void __cpus_fold(cpumask_t
+ 	for ((cpu) = 0; (cpu) < 1; (cpu)++, (void)mask)
+ #endif /* NR_CPUS */
+ 
++#define next_cpu_nr(n, src)		next_cpu(n, src)
++#define cpus_weight_nr(cpumask)		cpus_weight(cpumask)
++#define for_each_cpu_mask_nr(cpu, mask)	for_each_cpu_mask(cpu, mask)
++
+ /*
+  * The following particular system cpumasks and operations manage
+  * possible, present and online cpus.  Each of them is a fixed size
 _
 
-Patches currently in -mm which might be from john.blackwood@ccur.com are
+Patches currently in -mm which might be from sfr@canb.auug.org.au are
 
+revert-introduce-rculisth.patch
+linux-next.patch
+fix-kobject-fix-kobject_rename-and-config_sysfs.patch
+drivers-mtd-nand-nandsimc-needs-div64h.patch
+mpc83xx_wdt-convert-to-the-of-platform-driver.patch
+gpio-add-bt8xxgpio-driver.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch
+gpiolib-allow-user-selection.patch
 
