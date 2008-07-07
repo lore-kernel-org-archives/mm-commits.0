@@ -1,106 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: - add-kernel-doc-for-simple_read_from_buffer-and-memory_read_from_buffer.patch removed from -mm tree
-Date: Sun, 06 Jul 2008 20:04:48 -0700
-Message-ID: <200807070304.m6734mCg004694@imap1.linux-foundation.org>
+Subject: - mn10300-export-certain-arch-symbols-required-to-build-allmodconfig.patch removed from -mm tree
+Date: Sun, 06 Jul 2008 20:04:38 -0700
+Message-ID: <200807070304.m6734c6K004681@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59015 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54568 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753214AbYGGDFA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 6 Jul 2008 23:05:00 -0400
+	by vger.kernel.org with ESMTP id S1753215AbYGGDFI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 6 Jul 2008 23:05:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, hch@lst.de, rdunlap@xenotime.net, mm-commits@vger.kernel.org
+To: dhowells@redhat.com, bunk@stusta.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add kernel-doc for simple_read_from_buffer and memory_read_from_buffer
+     mn10300: export certain arch symbols required to build allmodconfig
 has been removed from the -mm tree.  Its filename was
-     add-kernel-doc-for-simple_read_from_buffer-and-memory_read_from_buffer.patch
+     mn10300-export-certain-arch-symbols-required-to-build-allmodconfig.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: add kernel-doc for simple_read_from_buffer and memory_read_from_buffer
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: mn10300: export certain arch symbols required to build allmodconfig
+From: David Howells <dhowells@redhat.com>
 
-Add kernel-doc comments describing simple_read_from_buffer and
-memory_read_from_buffer.
+Export kernel_thread() and empty_zero_page so that allmodconfig can be
+built for MN10300.
 
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
+Signed-off-by: David Howells <dhowells@redhat.com>
+Cc: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/libfs.c |   28 ++++++++++++++++++++++++++++
- 1 file changed, 28 insertions(+)
+ arch/mn10300/kernel/mn10300_ksyms.c |    3 +++
+ arch/mn10300/kernel/process.c       |    1 +
+ 2 files changed, 4 insertions(+)
 
-diff -puN fs/libfs.c~add-kernel-doc-for-simple_read_from_buffer-and-memory_read_from_buffer fs/libfs.c
---- a/fs/libfs.c~add-kernel-doc-for-simple_read_from_buffer-and-memory_read_from_buffer
-+++ a/fs/libfs.c
-@@ -512,6 +512,20 @@ void simple_release_fs(struct vfsmount *
- 	mntput(mnt);
- }
+diff -puN arch/mn10300/kernel/mn10300_ksyms.c~mn10300-export-certain-arch-symbols-required-to-build-allmodconfig arch/mn10300/kernel/mn10300_ksyms.c
+--- a/arch/mn10300/kernel/mn10300_ksyms.c~mn10300-export-certain-arch-symbols-required-to-build-allmodconfig
++++ a/arch/mn10300/kernel/mn10300_ksyms.c
+@@ -10,8 +10,11 @@
+  */
+ #include <linux/module.h>
+ #include <asm/uaccess.h>
++#include <asm/pgtable.h>
  
-+/**
-+ * simple_read_from_buffer - copy data from the buffer to user space
-+ * @to: the user space buffer to read to
-+ * @count: the maximum number of bytes to read
-+ * @ppos: the current position in the buffer
-+ * @from: the buffer to read from
-+ * @available: the size of the buffer
-+ *
-+ * The simple_read_from_buffer() function reads up to @count bytes from the
-+ * buffer @from at offset @ppos into the user space address starting at @to.
-+ *
-+ * On success, the number of bytes read is returned and the offset @ppos is
-+ * advanced by this number, or negative value is returned on error.
-+ **/
- ssize_t simple_read_from_buffer(void __user *to, size_t count, loff_t *ppos,
- 				const void *from, size_t available)
- {
-@@ -528,6 +542,20 @@ ssize_t simple_read_from_buffer(void __u
- 	return count;
- }
  
-+/**
-+ * memory_read_from_buffer - copy data from the buffer
-+ * @to: the kernel space buffer to read to
-+ * @count: the maximum number of bytes to read
-+ * @ppos: the current position in the buffer
-+ * @from: the buffer to read from
-+ * @available: the size of the buffer
-+ *
-+ * The memory_read_from_buffer() function reads up to @count bytes from the
-+ * buffer @from at offset @ppos into the kernel space address starting at @to.
-+ *
-+ * On success, the number of bytes read is returned and the offset @ppos is
-+ * advanced by this number, or negative value is returned on error.
-+ **/
- ssize_t memory_read_from_buffer(void *to, size_t count, loff_t *ppos,
- 				const void *from, size_t available)
- {
++EXPORT_SYMBOL(empty_zero_page);
++
+ EXPORT_SYMBOL(change_bit);
+ EXPORT_SYMBOL(test_and_change_bit);
+ 
+diff -puN arch/mn10300/kernel/process.c~mn10300-export-certain-arch-symbols-required-to-build-allmodconfig arch/mn10300/kernel/process.c
+--- a/arch/mn10300/kernel/process.c~mn10300-export-certain-arch-symbols-required-to-build-allmodconfig
++++ a/arch/mn10300/kernel/process.c
+@@ -153,6 +153,7 @@ int kernel_thread(int (*fn)(void *), voi
+ 	return do_fork(flags | CLONE_VM | CLONE_UNTRACED, 0, &regs, 0,
+ 		       NULL, NULL);
+ }
++EXPORT_SYMBOL(kernel_thread);
+ 
+ /*
+  * free current thread data structures etc..
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
 linux-next.patch
-ttusb-use-simple_read_from_buffer.patch
-s390-vmcp-use-simple_read_from_buffer.patch
-s390-use-simple_read_from_buffer.patch
-s390-cio-use-memory_read_from_buffer.patch
-s390-use-memory_read_from_buffer.patch
-ipr-use-memory_read_from_buffer.patch
-qla2xxx-use-memory_read_from_buffer.patch
-cris-use-simple_read_from_buffer.patch
-binfmt_misc-use-simple_read_from_buffer.patch
-aty-use-memory_read_from_buffer.patch
-ipc-use-simple_read_from_buffer.patch
-nwflash-use-simple_read_from_buffer.patch
-firmware-use-memory_read_from_buffer.patch
-dcdbas-use-memory_read_from_buffer.patch
-dell_rbu-use-memory_read_from_buffer.patch
+git-unionfs.patch
+mn10300-move-sg_dma_addresslen-to-asm-scatterlisth.patch
+inflate-refactor-inflate-malloc-code.patch
+inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
+include-asm-ptraceh-userspace-headers-cleanup.patch
+frv-use-the-common-ascii-hex-helpers.patch
+mn10300-use-the-common-ascii-hex-helpers.patch
+mutex-subsystem-synchro-test-module.patch
 
