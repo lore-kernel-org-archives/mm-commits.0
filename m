@@ -1,68 +1,158 @@
 From: akpm@linux-foundation.org
-Subject: - wan-add-missing-skb-dev-assignment-in-frame-relay-rx-code.patch removed from -mm tree
-Date: Sun, 06 Jul 2008 20:05:56 -0700
-Message-ID: <200807070305.m6735uND004857@imap1.linux-foundation.org>
+Subject: - cciss-read-config-to-obtain-max-outstanding-commands-per-controller.patch removed from -mm tree
+Date: Sun, 06 Jul 2008 20:05:20 -0700
+Message-ID: <200807070305.m6735K2I004812@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37960 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59334 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753728AbYGGDGc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 6 Jul 2008 23:06:32 -0400
+	by vger.kernel.org with ESMTP id S1753739AbYGGDGd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 6 Jul 2008 23:06:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khc@pm.waw.pl, acme@redhat.com, davem@davemloft.net, jeff@garzik.org, shemminger@linuxfoundation.org, stable@kernel.org, mm-commits@vger.kernel.org
+To: mike.miller@hp.com, jens.axboe@oracle.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     wan: add missing skb->dev assignment in Frame Relay RX code
+     cciss: read config to obtain max outstanding commands per controller
 has been removed from the -mm tree.  Its filename was
-     wan-add-missing-skb-dev-assignment-in-frame-relay-rx-code.patch
+     cciss-read-config-to-obtain-max-outstanding-commands-per-controller.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: wan: add missing skb->dev assignment in Frame Relay RX code
-From: Krzysztof Halasa <khc@pm.waw.pl>
+Subject: cciss: read config to obtain max outstanding commands per controller
+From: Mike Miller <mike.miller@hp.com>
 
-Commit 4c13eb6657fe9ef7b4dc8f1a405c902e9e5234e0 ([ETH]: Make
-eth_type_trans set skb->dev like the other *_type_trans) removed skb->dev
-assignment from hdlc_fr.c:fr_rx().  Unfortunately it was also needed for
-cases other than eth_type_trans().
+This patch changes the way we determine the maximum number of outstanding
+commands for each controller.
 
-Add it back.
+Most Smart Array controllers can support up to 1024 commands, the notable
+exceptions are the E200 and E200i.
 
-It's quite serious and may be a security risk as it causes a wrong input
-interface indication (the physical hdlcX instead of logical pvcX). 
-Probably -stable class fix.
+The next generation of controllers which were just added support a mode of
+operation called Zero Memory Raid (ZMR).  In this mode they only support
+64 outstanding commands.  In Full Function Raid (FFR) mode they support
+1024.
 
-Signed-off-by: Krzysztof Halasa <khc@pm.waw.pl>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Arnaldo Carvalho de Melo <acme@redhat.com>
-Cc: Stephen Hemminger <shemminger@osdl.org>
+We have been setting the queue depth by arbitrarily assigning some value
+for each controller.  We needed a better way to set the queue depth to
+avoid lots of annoying "fifo full" messages.  So we made the driver a
+little smarter.  We now read the config table and subtract 4 from the
+returned value.  The -4 is to allow some room for ioctl calls which are
+not tracked the same way as io commands are tracked.
+
+Please consider this for inclusion.
+
+Signed-off-by: Mike Miller <mike.miller@hp.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wan/hdlc_fr.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/block/cciss.c |   66 ++++++++++++++++++++++------------------
+ 1 file changed, 37 insertions(+), 29 deletions(-)
 
-diff -puN drivers/net/wan/hdlc_fr.c~wan-add-missing-skb-dev-assignment-in-frame-relay-rx-code drivers/net/wan/hdlc_fr.c
---- a/drivers/net/wan/hdlc_fr.c~wan-add-missing-skb-dev-assignment-in-frame-relay-rx-code
-+++ a/drivers/net/wan/hdlc_fr.c
-@@ -1008,6 +1008,7 @@ static int fr_rx(struct sk_buff *skb)
- 		stats->rx_bytes += skb->len;
- 		if (pvc->state.becn)
- 			stats->rx_compressed++;
-+		skb->dev = dev;
- 		netif_rx(skb);
- 		return NET_RX_SUCCESS;
- 	} else {
+diff -puN drivers/block/cciss.c~cciss-read-config-to-obtain-max-outstanding-commands-per-controller drivers/block/cciss.c
+--- a/drivers/block/cciss.c~cciss-read-config-to-obtain-max-outstanding-commands-per-controller
++++ a/drivers/block/cciss.c
+@@ -106,35 +106,34 @@ MODULE_DEVICE_TABLE(pci, cciss_pci_devic
+ /*  board_id = Subsystem Device ID & Vendor ID
+  *  product = Marketing Name for the board
+  *  access = Address of the struct of function pointers
+- *  nr_cmds = Number of commands supported by controller
+  */
+ static struct board_type products[] = {
+-	{0x40700E11, "Smart Array 5300", &SA5_access, 512},
+-	{0x40800E11, "Smart Array 5i", &SA5B_access, 512},
+-	{0x40820E11, "Smart Array 532", &SA5B_access, 512},
+-	{0x40830E11, "Smart Array 5312", &SA5B_access, 512},
+-	{0x409A0E11, "Smart Array 641", &SA5_access, 512},
+-	{0x409B0E11, "Smart Array 642", &SA5_access, 512},
+-	{0x409C0E11, "Smart Array 6400", &SA5_access, 512},
+-	{0x409D0E11, "Smart Array 6400 EM", &SA5_access, 512},
+-	{0x40910E11, "Smart Array 6i", &SA5_access, 512},
+-	{0x3225103C, "Smart Array P600", &SA5_access, 512},
+-	{0x3223103C, "Smart Array P800", &SA5_access, 512},
+-	{0x3234103C, "Smart Array P400", &SA5_access, 512},
+-	{0x3235103C, "Smart Array P400i", &SA5_access, 512},
+-	{0x3211103C, "Smart Array E200i", &SA5_access, 120},
+-	{0x3212103C, "Smart Array E200", &SA5_access, 120},
+-	{0x3213103C, "Smart Array E200i", &SA5_access, 120},
+-	{0x3214103C, "Smart Array E200i", &SA5_access, 120},
+-	{0x3215103C, "Smart Array E200i", &SA5_access, 120},
+-	{0x3237103C, "Smart Array E500", &SA5_access, 512},
+-	{0x323D103C, "Smart Array P700m", &SA5_access, 512},
+-	{0x3241103C, "Smart Array P212", &SA5_access, 384},
+-	{0x3243103C, "Smart Array P410", &SA5_access, 384},
+-	{0x3245103C, "Smart Array P410i", &SA5_access, 384},
+-	{0x3247103C, "Smart Array P411", &SA5_access, 384},
+-	{0x3249103C, "Smart Array P812", &SA5_access, 384},
+-	{0xFFFF103C, "Unknown Smart Array", &SA5_access, 120},
++	{0x40700E11, "Smart Array 5300", &SA5_access},
++	{0x40800E11, "Smart Array 5i", &SA5B_access},
++	{0x40820E11, "Smart Array 532", &SA5B_access},
++	{0x40830E11, "Smart Array 5312", &SA5B_access},
++	{0x409A0E11, "Smart Array 641", &SA5_access},
++	{0x409B0E11, "Smart Array 642", &SA5_access},
++	{0x409C0E11, "Smart Array 6400", &SA5_access},
++	{0x409D0E11, "Smart Array 6400 EM", &SA5_access},
++	{0x40910E11, "Smart Array 6i", &SA5_access},
++	{0x3225103C, "Smart Array P600", &SA5_access},
++	{0x3223103C, "Smart Array P800", &SA5_access},
++	{0x3234103C, "Smart Array P400", &SA5_access},
++	{0x3235103C, "Smart Array P400i", &SA5_access},
++	{0x3211103C, "Smart Array E200i", &SA5_access},
++	{0x3212103C, "Smart Array E200", &SA5_access},
++	{0x3213103C, "Smart Array E200i", &SA5_access},
++	{0x3214103C, "Smart Array E200i", &SA5_access},
++	{0x3215103C, "Smart Array E200i", &SA5_access},
++	{0x3237103C, "Smart Array E500", &SA5_access},
++	{0x323D103C, "Smart Array P700m", &SA5_access},
++	{0x3241103C, "Smart Array P212", &SA5_access},
++	{0x3243103C, "Smart Array P410", &SA5_access},
++	{0x3245103C, "Smart Array P410i", &SA5_access},
++	{0x3247103C, "Smart Array P411", &SA5_access},
++	{0x3249103C, "Smart Array P812", &SA5_access},
++	{0xFFFF103C, "Unknown Smart Array", &SA5_access},
+ };
+ 
+ /* How long to wait (in milliseconds) for board to go into simple mode */
+@@ -3086,11 +3085,20 @@ static int __devinit cciss_pci_init(ctlr
+ 	print_cfg_table(c->cfgtable);
+ #endif				/* CCISS_DEBUG */
+ 
++	/* Some controllers support Zero Memory Raid (ZMR).
++	 * When configured in ZMR mode the number of supported
++	 * commands drops to 64. So instead of just setting an
++	 * arbitrary value we make the driver a little smarter.
++	 * We read the config table to tell us how many commands
++	 * are supported on the controller then subtract 4 to
++	 * leave a little room for ioctl calls.
++	 */
++	c->max_commands = readl(&(c->cfgtable->CmdsOutMax));
+ 	for (i = 0; i < ARRAY_SIZE(products); i++) {
+ 		if (board_id == products[i].board_id) {
+ 			c->product_name = products[i].product_name;
+ 			c->access = *(products[i].access);
+-			c->nr_cmds = products[i].nr_cmds;
++			c->nr_cmds = c->max_commands - 4;
+ 			break;
+ 		}
+ 	}
+@@ -3110,7 +3118,7 @@ static int __devinit cciss_pci_init(ctlr
+ 		if (subsystem_vendor_id == PCI_VENDOR_ID_HP) {
+ 			c->product_name = products[i-1].product_name;
+ 			c->access = *(products[i-1].access);
+-			c->nr_cmds = products[i-1].nr_cmds;
++			c->nr_cmds = c->max_commands - 4;
+ 			printk(KERN_WARNING "cciss: This is an unknown "
+ 				"Smart Array controller.\n"
+ 				"cciss: Please update to the latest driver "
 _
 
-Patches currently in -mm which might be from khc@pm.waw.pl are
+Patches currently in -mm which might be from mike.miller@hp.com are
 
-linux-next.patch
 
