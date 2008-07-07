@@ -1,86 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: - lib-taint-kernel-in-common-report_bug-warn-path.patch removed from -mm tree
-Date: Sun, 06 Jul 2008 20:03:04 -0700
-Message-ID: <200807070303.m67334JR004625@imap1.linux-foundation.org>
+Subject: - ecryptfs-remove-unnecessary-mux-from-ecryptfs_init_ecryptfs_miscdev.patch removed from -mm tree
+Date: Sun, 06 Jul 2008 20:03:02 -0700
+Message-ID: <200807070303.m67332bh004622@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39032 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49179 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753101AbYGGDDP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 6 Jul 2008 23:03:15 -0400
+	by vger.kernel.org with ESMTP id S1753133AbYGGDDY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 6 Jul 2008 23:03:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lethal@linux-sh.org, hskinnemoen@atmel.com, kyle@mcmartin.ca, mm-commits@vger.kernel.org
+To: mhalcrow@us.ibm.com, gorcunov@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lib: taint kernel in common report_bug() WARN path.
+     ecryptfs: remove unnecessary mux from ecryptfs_init_ecryptfs_miscdev()
 has been removed from the -mm tree.  Its filename was
-     lib-taint-kernel-in-common-report_bug-warn-path.patch
+     ecryptfs-remove-unnecessary-mux-from-ecryptfs_init_ecryptfs_miscdev.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lib: taint kernel in common report_bug() WARN path.
-From: Paul Mundt <lethal@linux-sh.org>
+Subject: ecryptfs: remove unnecessary mux from ecryptfs_init_ecryptfs_miscdev()
+From: Michael Halcrow <mhalcrow@us.ibm.com>
 
-Commit 95b570c9cef3b12356454c7112571b7e406b4b51 introduced a TAINT_WARN
-that was implemented for all architectures using the generic
-warn_on_slowpath(), which excluded any architecture that set
-HAVE_ARCH_WARN_ON.
+The misc_mtx should provide all the protection required to keep the daemon
+hash table sane during miscdev registration.  Since this mutex is causing
+gratuitous lockdep warnings, this patch removes it.
 
-As all of the architectures that implement their own WARN_ON() all go
-through the report_bug() path (specifically handling BUG_TRAP_TYPE_WARN),
-taint the kernel there as well for consistency.
-
-Tested on avr32 and sh. Also relevant for s390, parisc, and powerpc.
-
-Signed-off-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Signed-off-by: Paul Mundt <lethal@linux-sh.org>
-Acked-by: Kyle McMartin <kyle@mcmartin.ca>
+Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
+Reported-by: Cyrill Gorcunov <gorcunov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/bug.c |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/ecryptfs/miscdev.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN lib/bug.c~lib-taint-kernel-in-common-report_bug-warn-path lib/bug.c
---- a/lib/bug.c~lib-taint-kernel-in-common-report_bug-warn-path
-+++ a/lib/bug.c
-@@ -37,6 +37,7 @@
-  */
- #include <linux/list.h>
- #include <linux/module.h>
-+#include <linux/kernel.h>
- #include <linux/bug.h>
- #include <linux/sched.h>
+diff -puN fs/ecryptfs/miscdev.c~ecryptfs-remove-unnecessary-mux-from-ecryptfs_init_ecryptfs_miscdev fs/ecryptfs/miscdev.c
+--- a/fs/ecryptfs/miscdev.c~ecryptfs-remove-unnecessary-mux-from-ecryptfs_init_ecryptfs_miscdev
++++ a/fs/ecryptfs/miscdev.c
+@@ -575,13 +575,11 @@ int ecryptfs_init_ecryptfs_miscdev(void)
+ 	int rc;
  
-@@ -149,6 +150,7 @@ enum bug_trap_type report_bug(unsigned l
- 			       (void *)bugaddr);
- 
- 		show_regs(regs);
-+		add_taint(TAINT_WARN);
- 		return BUG_TRAP_TYPE_WARN;
- 	}
+ 	atomic_set(&ecryptfs_num_miscdev_opens, 0);
+-	mutex_lock(&ecryptfs_daemon_hash_mux);
+ 	rc = misc_register(&ecryptfs_miscdev);
+ 	if (rc)
+ 		printk(KERN_ERR "%s: Failed to register miscellaneous device "
+ 		       "for communications with userspace daemons; rc = [%d]\n",
+ 		       __func__, rc);
+-	mutex_unlock(&ecryptfs_daemon_hash_mux);
+ 	return rc;
+ }
  
 _
 
-Patches currently in -mm which might be from lethal@linux-sh.org are
+Patches currently in -mm which might be from mhalcrow@us.ibm.com are
 
-linux-next.patch
-add-have_clk-to-kconfig-for-driver-dependencies.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-maple-allow-removal-and-reinsertion-of-keyboard-driver-module.patch
-mm-move-bootmem-descriptors-definition-to-a-single-place.patch
-mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co.patch
-inflate-refactor-inflate-malloc-code.patch
-inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
-rtc-rtc-rs5c372-smbus-conversion-support.patch
-rtc-rtc-rs5c732-add-support-for-ricoh-r2025s-d-rtc.patch
-video-superh-mobile-lcdc-driver.patch
-video-superh-mobile-lcdc-driver-update.patch
-video-sh7760fb-sh7760-sh7763-lcdc-framebuffer-driver.patch
-include-asm-ptraceh-userspace-headers-cleanup.patch
+git-unionfs.patch
+fsstack-fsstack_copy_inode_size-locking.patch
+ecryptfs-privileged-kthread-for-lower-file-opens.patch
+ecryptfs-discard-ecryptfsd-registration-messages-in-miscdev.patch
+ecryptfs-propagate-key-errors-up-at-mount-time.patch
+ecryptfs-string-copy-cleanup.patch
+ecryptfs-cryptoc-use-unaligned-byteorder-helpers.patch
+ecryptfs-inodec-mmapc-use-unaligned-byteorder-helpers.patch
+tpm-use-correct-data-types-for-sizes-in-tpm_write-and-tpm_read.patch
+notify_change-callers-must-hold-i_mutex.patch
 
