@@ -1,64 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: - w100fb-do-not-depend-on-sharpsl.patch removed from -mm tree
-Date: Sun, 06 Jul 2008 20:04:51 -0700
-Message-ID: <200807070304.m6734pxd004697@imap1.linux-foundation.org>
+Subject: - add-kernel-doc-for-simple_read_from_buffer-and-memory_read_from_buffer.patch removed from -mm tree
+Date: Sun, 06 Jul 2008 20:04:48 -0700
+Message-ID: <200807070304.m6734mCg004694@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58669 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59015 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753215AbYGGDFA (ORCPT
+	by vger.kernel.org with ESMTP id S1753214AbYGGDFA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Sun, 6 Jul 2008 23:05:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: philipp.zabel@gmail.com, spyro@f2s.com, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, hch@lst.de, rdunlap@xenotime.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     w100fb: do not depend on SHARPSL
+     add kernel-doc for simple_read_from_buffer and memory_read_from_buffer
 has been removed from the -mm tree.  Its filename was
-     w100fb-do-not-depend-on-sharpsl.patch
+     add-kernel-doc-for-simple_read_from_buffer-and-memory_read_from_buffer.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: w100fb: do not depend on SHARPSL
-From: Philipp Zabel <philipp.zabel@gmail.com>
+Subject: add kernel-doc for simple_read_from_buffer and memory_read_from_buffer
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-Apart from Sharp SL-Cxx series, there are a few other devices that have
-ATI Imageon chips, among them HP iPAQ hx4700.
+Add kernel-doc comments describing simple_read_from_buffer and
+memory_read_from_buffer.
 
-Signed-off-by: Philipp Zabel <philipp.zabel@gmail.com>
-Acked-by: Ian Molton <spyro@f2s.com>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/Kconfig |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/libfs.c |   28 ++++++++++++++++++++++++++++
+ 1 file changed, 28 insertions(+)
 
-diff -puN drivers/video/Kconfig~w100fb-do-not-depend-on-sharpsl drivers/video/Kconfig
---- a/drivers/video/Kconfig~w100fb-do-not-depend-on-sharpsl
-+++ a/drivers/video/Kconfig
-@@ -1825,12 +1825,13 @@ config FB_FSL_DIU
+diff -puN fs/libfs.c~add-kernel-doc-for-simple_read_from_buffer-and-memory_read_from_buffer fs/libfs.c
+--- a/fs/libfs.c~add-kernel-doc-for-simple_read_from_buffer-and-memory_read_from_buffer
++++ a/fs/libfs.c
+@@ -512,6 +512,20 @@ void simple_release_fs(struct vfsmount *
+ 	mntput(mnt);
+ }
  
- config FB_W100
- 	tristate "W100 frame buffer support"
--	depends on FB && PXA_SHARPSL
-+	depends on FB && ARCH_PXA
-  	select FB_CFB_FILLRECT
-  	select FB_CFB_COPYAREA
-  	select FB_CFB_IMAGEBLIT
- 	---help---
- 	  Frame buffer driver for the w100 as found on the Sharp SL-Cxx series.
-+	  It can also drive the w3220 chip found on iPAQ hx4700.
++/**
++ * simple_read_from_buffer - copy data from the buffer to user space
++ * @to: the user space buffer to read to
++ * @count: the maximum number of bytes to read
++ * @ppos: the current position in the buffer
++ * @from: the buffer to read from
++ * @available: the size of the buffer
++ *
++ * The simple_read_from_buffer() function reads up to @count bytes from the
++ * buffer @from at offset @ppos into the user space address starting at @to.
++ *
++ * On success, the number of bytes read is returned and the offset @ppos is
++ * advanced by this number, or negative value is returned on error.
++ **/
+ ssize_t simple_read_from_buffer(void __user *to, size_t count, loff_t *ppos,
+ 				const void *from, size_t available)
+ {
+@@ -528,6 +542,20 @@ ssize_t simple_read_from_buffer(void __u
+ 	return count;
+ }
  
- 	  This driver is also available as a module ( = code which can be
- 	  inserted and removed from the running kernel whenever you want). The
++/**
++ * memory_read_from_buffer - copy data from the buffer
++ * @to: the kernel space buffer to read to
++ * @count: the maximum number of bytes to read
++ * @ppos: the current position in the buffer
++ * @from: the buffer to read from
++ * @available: the size of the buffer
++ *
++ * The memory_read_from_buffer() function reads up to @count bytes from the
++ * buffer @from at offset @ppos into the kernel space address starting at @to.
++ *
++ * On success, the number of bytes read is returned and the offset @ppos is
++ * advanced by this number, or negative value is returned on error.
++ **/
+ ssize_t memory_read_from_buffer(void *to, size_t count, loff_t *ppos,
+ 				const void *from, size_t available)
+ {
 _
 
-Patches currently in -mm which might be from philipp.zabel@gmail.com are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
-origin.patch
 linux-next.patch
+ttusb-use-simple_read_from_buffer.patch
+s390-vmcp-use-simple_read_from_buffer.patch
+s390-use-simple_read_from_buffer.patch
+s390-cio-use-memory_read_from_buffer.patch
+s390-use-memory_read_from_buffer.patch
+ipr-use-memory_read_from_buffer.patch
+qla2xxx-use-memory_read_from_buffer.patch
+cris-use-simple_read_from_buffer.patch
+binfmt_misc-use-simple_read_from_buffer.patch
+aty-use-memory_read_from_buffer.patch
+ipc-use-simple_read_from_buffer.patch
+nwflash-use-simple_read_from_buffer.patch
+firmware-use-memory_read_from_buffer.patch
+dcdbas-use-memory_read_from_buffer.patch
+dell_rbu-use-memory_read_from_buffer.patch
 
