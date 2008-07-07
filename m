@@ -1,59 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - pagemap-make-clear_refs_writes-clear_refs_walk-non-static.patch removed from -mm tree
-Date: Sun, 06 Jul 2008 20:05:38 -0700
-Message-ID: <200807070305.m6735c6p004833@imap1.linux-foundation.org>
+Subject: - arch-x86-mm-init_64c-early_memtest-fix-types.patch removed from -mm tree
+Date: Sun, 06 Jul 2008 20:05:42 -0700
+Message-ID: <200807070305.m6735gC8004839@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46943 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32887 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753356AbYGGDFv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 6 Jul 2008 23:05:51 -0400
+	by vger.kernel.org with ESMTP id S1753352AbYGGDGA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 6 Jul 2008 23:06:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, adobriyan@gmail.com, mpm@selenic.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pagemap: make clear_refs_write's clear_refs_walk non-static
+     arch/x86/mm/init_64.c: early_memtest(): fix types
 has been removed from the -mm tree.  Its filename was
-     pagemap-make-clear_refs_writes-clear_refs_walk-non-static.patch
+     arch-x86-mm-init_64c-early_memtest-fix-types.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pagemap: make clear_refs_write's clear_refs_walk non-static
+Subject: arch/x86/mm/init_64.c: early_memtest(): fix types
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Prevent races during concurrent use of this function.
+arch/x86/mm/init_64.c: In function 'early_memtest':
+arch/x86/mm/init_64.c:524: warning: passing argument 2 of 'find_e820_area_size' from incompatible pointer type
 
-Reported-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Matt Mackall <mpm@selenic.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ arch/x86/mm/init_64.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~pagemap-make-clear_refs_writes-clear_refs_walk-non-static fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~pagemap-make-clear_refs_writes-clear_refs_walk-non-static
-+++ a/fs/proc/task_mmu.c
-@@ -476,10 +476,10 @@ static ssize_t clear_refs_write(struct f
- 		return -ESRCH;
- 	mm = get_task_mm(task);
- 	if (mm) {
--		static struct mm_walk clear_refs_walk;
--		memset(&clear_refs_walk, 0, sizeof(clear_refs_walk));
--		clear_refs_walk.pmd_entry = clear_refs_pte_range;
--		clear_refs_walk.mm = mm;
-+		struct mm_walk clear_refs_walk = {
-+			.pmd_entry = clear_refs_pte_range,
-+			.mm = mm,
-+		};
- 		down_read(&mm->mmap_sem);
- 		for (vma = mm->mmap; vma; vma = vma->vm_next) {
- 			clear_refs_walk.private = vma;
+diff -puN arch/x86/mm/init_64.c~arch-x86-mm-init_64c-early_memtest-fix-types arch/x86/mm/init_64.c
+--- a/arch/x86/mm/init_64.c~arch-x86-mm-init_64c-early_memtest-fix-types
++++ a/arch/x86/mm/init_64.c
+@@ -522,7 +522,7 @@ early_param("memtest", parse_memtest);
+ 
+ static void __init early_memtest(unsigned long start, unsigned long end)
+ {
+-	unsigned long t_start, t_size;
++	u64 t_start, t_size;
+ 	unsigned pattern;
+ 
+ 	if (!memtest_pattern)
+@@ -541,8 +541,9 @@ static void __init early_memtest(unsigne
+ 			if (t_start + t_size > end)
+ 				t_size = end - t_start;
+ 
+-			printk(KERN_CONT "\n  %016lx - %016lx pattern %d",
+-				t_start, t_start + t_size, pattern);
++			printk(KERN_CONT "\n  %016llx - %016llx pattern %d",
++				(unsigned long long)t_start,
++				(unsigned long long)t_start + t_size, pattern);
+ 
+ 			memtest(t_start, t_size, pattern);
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
