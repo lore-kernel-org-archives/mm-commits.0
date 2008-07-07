@@ -1,66 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - maintainers-update-the-email-address-of-andreas-dilger.patch removed from -mm tree
-Date: Sun, 06 Jul 2008 20:05:17 -0700
-Message-ID: <200807070305.m6735Hrl004809@imap1.linux-foundation.org>
+Subject: - alpha-linux-kernel-fails-with-inconsistent-kallsyms-data.patch removed from -mm tree
+Date: Sun, 06 Jul 2008 20:05:11 -0700
+Message-ID: <200807070305.m6735BOs004800@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38695 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34410 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753261AbYGGDFb (ORCPT
+	by vger.kernel.org with ESMTP id S1753291AbYGGDFb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Sun, 6 Jul 2008 23:05:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geert@linux-m68k.org, adilger@sun.com, mm-commits@vger.kernel.org
+To: waldi@debian.org, ink@jurassic.park.msu.ru, max@stro.at, rth@twiddle.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     MAINTAINERS: update the email address of Andreas Dilger
+     Alpha Linux kernel fails with inconsistent kallsyms data
 has been removed from the -mm tree.  Its filename was
-     maintainers-update-the-email-address-of-andreas-dilger.patch
+     alpha-linux-kernel-fails-with-inconsistent-kallsyms-data.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: update the email address of Andreas Dilger
-From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: Alpha Linux kernel fails with inconsistent kallsyms data
+From: Bastian Blank <waldi@debian.org>
 
-The old one bounces.
+The build of the Alpha Linux kernel currently fails[1] with inconsistent
+kallsyms data.  As I never saw that before, I thought about hardware
+problems.  But in fact it is a bug in the Linux kernel.
 
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Andreas Dilger <adilger@sun.com>
+The end of the rodata section is marked with the "__end_rodata" symbol. 
+This symbol have different aligning constraints than the inittext parts
+and therefor the start marked "_sinittext".  Because of that the
+__end_rodata symbol shifts between < _sinittext and == _sinittext.  The
+later variant is seen as a code symbol and recorded in the kallsyms data.
+
+On fix would be to move the exception table a little bit and get some
+space between that two areas.
+
+[1]: http://buildd.debian.org/fetch.cgi?pkg=linux-2.6&arch=alpha&ver=2.6.25-5&stamp=1213919009&file=log&as=raw
+
+Cc: maximilian attems <max@stro.at>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/alpha/kernel/vmlinux.lds.S |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-update-the-email-address-of-andreas-dilger MAINTAINERS
---- a/MAINTAINERS~maintainers-update-the-email-address-of-andreas-dilger
-+++ a/MAINTAINERS
-@@ -1637,13 +1637,13 @@ S:	Maintained
+diff -puN arch/alpha/kernel/vmlinux.lds.S~alpha-linux-kernel-fails-with-inconsistent-kallsyms-data arch/alpha/kernel/vmlinux.lds.S
+--- a/arch/alpha/kernel/vmlinux.lds.S~alpha-linux-kernel-fails-with-inconsistent-kallsyms-data
++++ a/arch/alpha/kernel/vmlinux.lds.S
+@@ -25,6 +25,13 @@ SECTIONS
+ 	} :kernel
+ 	_etext = .;	/* End of text section */
  
- EXT3 FILE SYSTEM
- P:	Stephen Tweedie, Andrew Morton
--M:	sct@redhat.com, akpm@linux-foundation.org, adilger@clusterfs.com
-+M:	sct@redhat.com, akpm@linux-foundation.org, adilger@sun.com
- L:	linux-ext4@vger.kernel.org
- S:	Maintained
++	NOTES :kernel :note
++	.dummy : {
++		*(.dummy)
++	} :kernel
++
++	RODATA
++
+ 	/* Exception table */
+ 	. = ALIGN(16);
+ 	__ex_table : {
+@@ -33,13 +40,6 @@ SECTIONS
+ 		__stop___ex_table = .;
+ 	}
  
- EXT4 FILE SYSTEM
- P:	Stephen Tweedie, Andrew Morton
--M:	sct@redhat.com, akpm@linux-foundation.org, adilger@clusterfs.com
-+M:	sct@redhat.com, akpm@linux-foundation.org, adilger@sun.com
- L:	linux-ext4@vger.kernel.org
- S:	Maintained
- 
-_
-
-Patches currently in -mm which might be from geert@linux-m68k.org are
-
-linux-next.patch
-mm-move-bootmem-descriptors-definition-to-a-single-place.patch
-atafb-test-virtual-screen-range-before-subtraction-on-unsigned.patch
-drivers-video-amifbc-cleanups.patch
-
+-	NOTES :kernel :note
+-	.dummy : {
+-		*(.dummy)
+-	} :kernel
+-
+-	RODATA
