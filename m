@@ -1,102 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: - acpi-enable-c3-power-state-on-dell-inspiron-8200.patch removed from -mm tree
-Date: Sun, 06 Jul 2008 12:36:30 -0700
-Message-ID: <200807061936.m66JaURh021654@imap1.linux-foundation.org>
+Subject: - mm-dirty-page-accounting-vs-vm_mixedmap.patch removed from -mm tree
+Date: Sun, 06 Jul 2008 19:57:56 -0700
+Message-ID: <200807070257.m672vuku004405@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45651 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40841 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755884AbYGFThV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 6 Jul 2008 15:37:21 -0400
+	by vger.kernel.org with ESMTP id S1752310AbYGGC6G (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 6 Jul 2008 22:58:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dag@bakke.com, arjan@infradead.org, lenb@kernel.org, mm-commits@vger.kernel.org
+To: a.p.zijlstra@chello.nl, hugh@veritas.com, jaredeh@gmail.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     acpi: enable C3 Power State on Dell Inspiron 8200
+     mm: dirty page accounting vs VM_MIXEDMAP
 has been removed from the -mm tree.  Its filename was
-     acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+     mm-dirty-page-accounting-vs-vm_mixedmap.patch
 
-This patch was dropped because it was nacked
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi: enable C3 Power State on Dell Inspiron 8200
-From: Dag Bakke <dag@bakke.com>
+Subject: mm: dirty page accounting vs VM_MIXEDMAP
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-Taken from http://bugzilla.kernel.org/show_bug.cgi?id=8703
+Dirty page accounting accurately measures the amound of dirty pages in
+writable shared mappings by mapping the pages RO (as indicated by
+vma_wants_writenotify).  We then trap on first write and call
+set_page_dirty() on the page, after which we map the page RW and
+continue execution.
 
-[akpm@linux-foundation.org: fix warning]
-Cc: Arjan van de Ven <arjan@infradead.org>
-Cc: Len Brown <lenb@kernel.org>
+When we launder dirty pages, we call clear_page_dirty_for_io() which
+clears both the dirty flag, and maps the page RO again before we start
+writeout so that the story can repeat itself.
+
+vma_wants_writenotify() excludes VM_PFNMAP on the basis that we cannot
+do the regular dirty page stuff on raw PFNs and the memory isn't going
+anywhere anyway.
+
+The recently introduced VM_MIXEDMAP mixes both !pfn_valid() and
+pfn_valid() pages in a single mapping.
+
+We can't do dirty page accounting on !pfn_valid() pages as stated
+above, and mapping them RO causes them to be COW'ed on write, which
+breaks VM_SHARED semantics.
+
+Excluding VM_MIXEDMAP in vma_wants_writenotify() would mean we don't do
+the regular dirty page accounting for the pfn_valid() pages, which
+would bring back all the head-aches from inaccurate dirty page
+accounting.
+
+So instead, we let the !pfn_valid() pages get mapped RO, but fix them
+up unconditionally in the fault path.
+
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Acked-by: Hugh Dickins <hugh@veritas.com>
+Cc: "Jared Hulbert" <jaredeh@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/processor_idle.c |   23 +++++++++++++++++++++--
- 1 file changed, 21 insertions(+), 2 deletions(-)
+ mm/memory.c |   14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
 
-diff -puN drivers/acpi/processor_idle.c~acpi-enable-c3-power-state-on-dell-inspiron-8200 drivers/acpi/processor_idle.c
---- a/drivers/acpi/processor_idle.c~acpi-enable-c3-power-state-on-dell-inspiron-8200
-+++ a/drivers/acpi/processor_idle.c
-@@ -105,6 +105,8 @@ static unsigned int latency_factor __rea
- module_param(latency_factor, uint, 0644);
- #endif
+diff -puN mm/memory.c~mm-dirty-page-accounting-vs-vm_mixedmap mm/memory.c
+--- a/mm/memory.c~mm-dirty-page-accounting-vs-vm_mixedmap
++++ a/mm/memory.c
+@@ -1697,8 +1697,19 @@ static int do_wp_page(struct mm_struct *
+ 	struct page *dirty_page = NULL;
  
-+static int forced_c3;
-+
- /*
-  * IBM ThinkPad R40e crashes mysteriously when going into C2 or C3.
-  * For now disable this. Probably a bug somewhere else.
-@@ -125,6 +127,19 @@ static int set_max_cstate(const struct d
- 	return 0;
- }
- 
-+/*
-+ * Some (Dell) machines set the C3 latency to a value which effectively says:
-+ * "Don't use C3." Still, C3 works if we force it.
-+ * This enables C3 on Dell Inspiron 8200 machines.
-+ */
-+static int dmi_force_c3(const struct dmi_system_id *id)
-+{
-+	forced_c3 = 1;
-+	printk(KERN_NOTICE PREFIX "%s detected - Force enabling C3.",
-+			id->ident);
-+	return 0;
-+}
-+
- /* Actually this shouldn't be __cpuinitdata, would be better to fix the
-    callers to only run once -AK */
- static struct dmi_system_id __cpuinitdata processor_power_dmi_table[] = {
-@@ -183,6 +198,9 @@ static struct dmi_system_id __cpuinitdat
- 	  DMI_MATCH(DMI_BIOS_VENDOR,"Phoenix Technologies LTD"),
- 	  DMI_MATCH(DMI_BIOS_VERSION,"SHE845M0.86C.0013.D.0302131307")},
- 	 (void *)2},
-+	{ dmi_force_c3, "Dell Inspiron 8200", {
-+	  DMI_MATCH(DMI_SYS_VENDOR,"Dell Computer Corporation"),
-+	  DMI_MATCH(DMI_PRODUCT_NAME,"Inspiron 8200") }, NULL},
- 	{},
- };
- 
-@@ -1067,11 +1085,12 @@ static void acpi_processor_power_verify_
- 	 * C3 latency must be less than or equal to 1000
- 	 * microseconds.
- 	 */
--	else if (cx->latency > ACPI_PROCESSOR_MAX_C3_LATENCY) {
-+	if (cx->latency > ACPI_PROCESSOR_MAX_C3_LATENCY && !forced_c3) {
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
- 				  "latency too large [%d]\n", cx->latency));
- 		return;
--	}
-+	} else if (forced_c3)
-+		cx->latency = ACPI_PROCESSOR_MAX_C3_LATENCY;
+ 	old_page = vm_normal_page(vma, address, orig_pte);
+-	if (!old_page)
++	if (!old_page) {
++		/*
++		 * VM_MIXEDMAP !pfn_valid() case
++		 *
++		 * We should not cow pages in a shared writeable mapping.
++		 * Just mark the pages writable as we can't do any dirty
++		 * accounting on raw pfn maps.
++		 */
++		if ((vma->vm_flags & (VM_WRITE|VM_SHARED)) ==
++				     (VM_WRITE|VM_SHARED))
++			goto reuse;
+ 		goto gotten;
++	}
  
  	/*
- 	 * PIIX4 Erratum #18: We don't support C3 when Type-F (fast)
+ 	 * Take out anonymous pages first, anonymous shared vmas are
+@@ -1751,6 +1762,7 @@ static int do_wp_page(struct mm_struct *
+ 	}
+ 
+ 	if (reuse) {
++reuse:
+ 		flush_cache_page(vma, address, pte_pfn(orig_pte));
+ 		entry = pte_mkyoung(orig_pte);
+ 		entry = maybe_mkwrite(pte_mkdirty(entry), vma);
 _
 
-Patches currently in -mm which might be from dag@bakke.com are
+Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
 
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+linux-next.patch
+access_process_vm-device-memory-infrastructure.patch
+access_process_vm-device-memory-infrastructure-fix.patch
+mmu-notifiers-add-list_del_init_rcu.patch
+mmu-notifiers-add-mm_take_all_locks-operation.patch
+mmu-notifiers-add-mm_take_all_locks-operation-checkpatch-fixes.patch
+mmu-notifier-core.patch
+mmu-notifier-core-fix.patch
+mmu-notifier-core-fix-2.patch
+x86-implement-pte_special.patch
+x86-implement-pte_special-fix.patch
+mm-introduce-get_user_pages_fast.patch
+x86-lockless-get_user_pages_fast.patch
+dio-use-get_user_pages_fast.patch
+splice-use-get_user_pages_fast.patch
+mm-readahead-scan-lockless.patch
+radix-tree-add-gang_lookup_slot-gang_lookup_slot_tag.patch
+mm-speculative-page-references.patch
+mm-speculative-page-references-fix.patch
+mm-speculative-page-references-fix-fix.patch
+mm-lockless-pagecache.patch
+mm-spinlock-tree_lock.patch
+powerpc-implement-pte_special.patch
 
