@@ -1,89 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: - spi-fix-the-read-path-in-spidev.patch removed from -mm tree
-Date: Sun, 06 Jul 2008 20:05:03 -0700
-Message-ID: <200807070305.m67353Eo004788@imap1.linux-foundation.org>
+Subject: - cpusets-document-proc-status-cpus-and-mems-allowed-lists.patch removed from -mm tree
+Date: Sun, 06 Jul 2008 20:05:15 -0700
+Message-ID: <200807070305.m6735F2K004806@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53933 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60955 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753247AbYGGDF1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 6 Jul 2008 23:05:27 -0400
+	by vger.kernel.org with ESMTP id S1753258AbYGGDF2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 6 Jul 2008 23:05:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bigeasy@linutronix.de, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: pj@sgi.com, mtk.manpages@gmail.com, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spi: fix the read path in spidev
+     cpusets: document proc status cpus and mems allowed lists
 has been removed from the -mm tree.  Its filename was
-     spi-fix-the-read-path-in-spidev.patch
+     cpusets-document-proc-status-cpus-and-mems-allowed-lists.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spi: fix the read path in spidev
-From: Sebastian Siewior <bigeasy@linutronix.de>
+Subject: cpusets: document proc status cpus and mems allowed lists
+From: Paul Jackson <pj@sgi.com>
 
-This got broken by the recent "fix rmmod $spi_driver while spidev-user is
-active".  I tested the rmmod & write path but didn't check the read path. 
-I am sorry.  The read logic changed and spidev_sync_read() +
-spidev_sync_write() do not return zero on success anymore but the number
-of bytes that has been transfered over the bus.  This patch changes the
-logic and copy_to_user() gets called again.
+Provide a little documentation for the two new fields, Cpus_allowed_list
+and Mems_allowed_list, that were added to each /proc/<pid>/status file a
+while back.
 
-The write path returns the number of bytes which are written to the
-underlying device what may be less than the requested size.  This patch
-makes the same change to the read path or else we request a read of 20
-bytes, get 10, don't call copy to user and report to the user that we read
-10 bytes.
-
-[akpm@linux-foundation.org: remove test of known-to-be-zero local]
-Signed-off-by: Sebastian Siewior <bigeasy@linutronix.de>
-Acked-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Paul Jackson <pj@sgi.com>
+Acked-by: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spidev.c |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ Documentation/cpusets.txt |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/spi/spidev.c~spi-fix-the-read-path-in-spidev drivers/spi/spidev.c
---- a/drivers/spi/spidev.c~spi-fix-the-read-path-in-spidev
-+++ a/drivers/spi/spidev.c
-@@ -167,14 +167,14 @@ spidev_read(struct file *filp, char __us
+diff -puN Documentation/cpusets.txt~cpusets-document-proc-status-cpus-and-mems-allowed-lists Documentation/cpusets.txt
+--- a/Documentation/cpusets.txt~cpusets-document-proc-status-cpus-and-mems-allowed-lists
++++ a/Documentation/cpusets.txt
+@@ -154,13 +154,15 @@ browsing and modifying the cpusets prese
+ new system calls are added for cpusets - all support for querying and
+ modifying cpusets is via this cpuset file system.
  
- 	mutex_lock(&spidev->buf_lock);
- 	status = spidev_sync_read(spidev, count);
--	if (status == 0) {
-+	if (status > 0) {
- 		unsigned long	missing;
+-The /proc/<pid>/status file for each task has two added lines,
++The /proc/<pid>/status file for each task has four added lines,
+ displaying the tasks cpus_allowed (on which CPUs it may be scheduled)
+ and mems_allowed (on which Memory Nodes it may obtain memory),
+-in the format seen in the following example:
++in the two formats seen in the following example:
  
--		missing = copy_to_user(buf, spidev->buffer, count);
--		if (count && missing == count)
-+		missing = copy_to_user(buf, spidev->buffer, status);
-+		if (missing == status)
- 			status = -EFAULT;
- 		else
--			status = count - missing;
-+			status = status - missing;
- 	}
- 	mutex_unlock(&spidev->buf_lock);
+   Cpus_allowed:   ffffffff,ffffffff,ffffffff,ffffffff
++  Cpus_allowed_list:      0-127
+   Mems_allowed:   ffffffff,ffffffff
++  Mems_allowed_list:      0-63
  
-@@ -200,8 +200,6 @@ spidev_write(struct file *filp, const ch
- 	missing = copy_from_user(spidev->buffer, buf, count);
- 	if (missing == 0) {
- 		status = spidev_sync_write(spidev, count);
--		if (status == 0)
--			status = count;
- 	} else
- 		status = -EFAULT;
- 	mutex_unlock(&spidev->buf_lock);
+ Each cpuset is represented by a directory in the cgroup file system
+ containing (on top of the standard cgroup files) the following
 _
 
-Patches currently in -mm which might be from bigeasy@linutronix.de are
+Patches currently in -mm which might be from pj@sgi.com are
 
 linux-next.patch
-add-the-carmine-fb-driver.patch
-add-the-carmine-fb-driver-update.patch
+cgroup-files-clean-up-whitespace-in-struct-cftype.patch
+cgroup-files-add-write_string-cgroup-control-file-method.patch
+cgroup-files-move-the-release_agent-file-to-use-typed-handlers.patch
+cgroups-misc-cleanups-to-write_string-patchset.patch
+cgroup-files-move-notify_on_release-file-to-separate-write-handler.patch
+cgroup-files-turn-attach_task_by_pid-directly-into-a-cgroup-write-handler.patch
+cgroup-files-remove-cpuset_common_file_write.patch
+cgroup-files-convert-devcgroup_access_write-into-a-cgroup-write_string-handler.patch
+cgroup-files-convert-res_counter_write-to-be-a-cgroups-write_string-handler.patch
+cpusets-restructure-the-function-update_cpumask-and-update_nodemask.patch
+cpusets-restructure-the-function-update_cpumask-and-update_nodemask-fix.patch
+cpusets-update-tasks-cpus_allowed-and-mems_allowed-after-cpu-node-offline-online.patch
+workqueues-make-get_online_cpus-useable-for-work-func.patch
+workqueues-make-get_online_cpus-useable-for-work-func-fix.patch
+s390-topology-dont-use-kthread-for-arch_reinit_sched_domains.patch
 
