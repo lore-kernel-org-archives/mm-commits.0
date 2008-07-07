@@ -1,54 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: - update-ntfs-help-text.patch removed from -mm tree
-Date: Sun, 06 Jul 2008 20:04:46 -0700
-Message-ID: <200807070304.m6734kfa004691@imap1.linux-foundation.org>
+Subject: - w100fb-add-80-mhz-modeline.patch removed from -mm tree
+Date: Sun, 06 Jul 2008 20:04:54 -0700
+Message-ID: <200807070304.m6734slk004700@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37002 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35243 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753190AbYGGDEz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 6 Jul 2008 23:04:55 -0400
+	by vger.kernel.org with ESMTP id S1753193AbYGGDFA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 6 Jul 2008 23:05:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: i92guboj@terra.es, aia21@cantab.net, mm-commits@vger.kernel.org
+To: philipp.zabel@gmail.com, spyro@f2s.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ntfs: update help text
+     w100fb: add 80 MHz modeline
 has been removed from the -mm tree.  Its filename was
-     update-ntfs-help-text.patch
+     w100fb-add-80-mhz-modeline.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ntfs: update help text
-From: Jess Guerrero <i92guboj@terra.es>
+Subject: w100fb: add 80 MHz modeline
+From: Philipp Zabel <philipp.zabel@gmail.com>
 
-The url in the help text for ntfs should be updated.
+This is needed for HTC Blueangel (w3200).  At 96MHz its screen flickers.
 
-Acked-by: Anton Altaparmakov <aia21@cantab.net>
+Signed-off-by: Philipp Zabel <philipp.zabel@gmail.com>
+Acked-by: Ian Molton <spyro@f2s.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/w100fb.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/Kconfig~update-ntfs-help-text fs/Kconfig
---- a/fs/Kconfig~update-ntfs-help-text
-+++ a/fs/Kconfig
-@@ -830,7 +830,7 @@ config NTFS_FS
- 	  from the project web site.
- 
- 	  For more information see <file:Documentation/filesystems/ntfs.txt>
--	  and <http://linux-ntfs.sourceforge.net/>.
-+	  and <http://www.linux-ntfs.org/>.
- 
- 	  To compile this file system support as a module, choose M here: the
- 	  module will be called ntfs.
+diff -puN drivers/video/w100fb.c~w100fb-add-80-mhz-modeline drivers/video/w100fb.c
+--- a/drivers/video/w100fb.c~w100fb-add-80-mhz-modeline
++++ a/drivers/video/w100fb.c
+@@ -1003,6 +1003,7 @@ static struct w100_pll_info xtal_1431800
+ static struct w100_pll_info xtal_16000000[] = {
+ 	/*freq     M   N_int    N_fac  tfgoal  lock_time */
+ 	{ 72,      1,   8,       0,     0xe0,        48}, /* tfgoal guessed */
++	{ 80,      1,   9,       0,     0xe0,        13}, /* tfgoal guessed */
+ 	{ 95,      1,   10,      7,     0xe0,        38}, /* tfgoal guessed */
+ 	{ 96,      1,   11,      0,     0xe0,        36}, /* tfgoal guessed */
+ 	{  0,      0,   0,       0,        0,         0},
 _
 
-Patches currently in -mm which might be from i92guboj@terra.es are
+Patches currently in -mm which might be from philipp.zabel@gmail.com are
 
+origin.patch
+linux-next.patch
 
