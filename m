@@ -1,70 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-fix-cmos-time-error-after-writing-proc-acpi-alarm.patch removed from -mm tree
-Date: Sun, 06 Jul 2008 19:58:15 -0700
-Message-ID: <200807070258.m672wFtM004429@imap1.linux-foundation.org>
+Subject: - ext3-add-missing-unlock-to-error-path-in-ext3_quota_write.patch removed from -mm tree
+Date: Sun, 06 Jul 2008 19:59:31 -0700
+Message-ID: <200807070300.m672xVWI004456@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34909 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60066 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751562AbYGGDBc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 6 Jul 2008 23:01:32 -0400
+	by vger.kernel.org with ESMTP id S1751861AbYGGDC0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 6 Jul 2008 23:02:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: huacai.chen@intel.com, a.zummo@towertech.it, lenb@kernel.org, pavel@suse.cz, yakui.zhao@intel.com, mm-commits@vger.kernel.org
+To: jack@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc: fix CMOS time error after writing /proc/acpi/alarm
+     ext3: add missing unlock to error path in ext3_quota_write()
 has been removed from the -mm tree.  Its filename was
-     rtc-fix-cmos-time-error-after-writing-proc-acpi-alarm.patch
+     ext3-add-missing-unlock-to-error-path-in-ext3_quota_write.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: fix CMOS time error after writing /proc/acpi/alarm
-From: Huacai Chen <huacai.chen@intel.com>
+Subject: ext3: add missing unlock to error path in ext3_quota_write()
+From: Jan Kara <jack@suse.cz>
 
-When writing /proc/acpi/alarm in adjust mode, e.g.
-	echo "+0000-00-00 00:00:15" >/proc/acpi/alarm
-The "century" field should be read and added to "year" field before
-writing, otherwise the CMOS time will go back to 2000 years ago, e.g.
-	# cat /proc/acpi/alarm
-	0008-06-21 11:38:46
-Then the system time may be reset to the date of manufacture after
-rebooting. This patch fixed this issue.
+When write in ext3_quota_write() fails, we have to properly release
+i_mutex.  One error path has been missing the unlock...
 
-Signed-off-by: Huacai Chen <huacai.chen@intel.com>
-Acked-by: Pavel Machek <pavel@suse.cz>
-Acked-by: Zhao Yakui <yakui.zhao@intel.com>
-Acked-by: Alessandro Zummo <a.zummo@towertech.it>
-Acked-by: Len Brown <lenb@kernel.org>
+Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/sleep/proc.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ fs/ext3/super.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/acpi/sleep/proc.c~rtc-fix-cmos-time-error-after-writing-proc-acpi-alarm drivers/acpi/sleep/proc.c
---- a/drivers/acpi/sleep/proc.c~rtc-fix-cmos-time-error-after-writing-proc-acpi-alarm
-+++ a/drivers/acpi/sleep/proc.c
-@@ -315,8 +315,11 @@ acpi_system_write_alarm(struct file *fil
- 		cmos_bcd_write(day, acpi_gbl_FADT.day_alarm, rtc_control);
- 	if (acpi_gbl_FADT.month_alarm)
- 		cmos_bcd_write(mo, acpi_gbl_FADT.month_alarm, rtc_control);
--	if (acpi_gbl_FADT.century)
-+	if (acpi_gbl_FADT.century) {
-+		if (adjust)
-+			yr += cmos_bcd_read(acpi_gbl_FADT.century, rtc_control) * 100;
- 		cmos_bcd_write(yr / 100, acpi_gbl_FADT.century, rtc_control);
+diff -puN fs/ext3/super.c~ext3-add-missing-unlock-to-error-path-in-ext3_quota_write fs/ext3/super.c
+--- a/fs/ext3/super.c~ext3-add-missing-unlock-to-error-path-in-ext3_quota_write
++++ a/fs/ext3/super.c
+@@ -2875,8 +2875,10 @@ static ssize_t ext3_quota_write(struct s
+ 		blk++;
+ 	}
+ out:
+-	if (len == towrite)
++	if (len == towrite) {
++		mutex_unlock(&inode->i_mutex);
+ 		return err;
 +	}
- 	/* enable the rtc alarm interrupt */
- 	rtc_control |= RTC_AIE;
- 	CMOS_WRITE(rtc_control, RTC_CONTROL);
+ 	if (inode->i_size < off+len-towrite) {
+ 		i_size_write(inode, off+len-towrite);
+ 		EXT3_I(inode)->i_disksize = inode->i_size;
 _
 
-Patches currently in -mm which might be from huacai.chen@intel.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
 linux-next.patch
+ext3-fix-synchronization-of-quota-files-in-journal=data-mode.patch
+ext3-fix-typos-in-messages-and-comments-journalled-journaled.patch
+ext3-correct-mount-option-parsing-to-detect-when-quota-options-can-be-changed.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
+jbd-positively-dispose-the-unmapped-data-buffers-in-journal_commit_transaction.patch
+jbd-dont-abort-if-flushing-file-data-failed.patch
+jbd-dont-abort-if-flushing-file-data-failed-fix.patch
+reiserfs-fix-synchronization-of-quota-files-in-journal=data-mode.patch
+reiserfs-fix-typos-in-messages-and-comments-journalled-journaled.patch
+reiserfs-correct-mount-option-parsing-to-detect-when-quota-options-can-be-changed.patch
+quota-rename-quota-functions-from-upper-case-make-bigger-ones-non-inline.patch
+quota-cleanup-loop-in-sync_dquots.patch
+quota-move-function-macros-from-quotah-to-quotaopsh.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-fix.patch
+quota-convert-macros-to-inline-functions.patch
 
