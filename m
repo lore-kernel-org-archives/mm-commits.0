@@ -1,70 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: - introduce-rculisth.patch removed from -mm tree
-Date: Sun, 06 Jul 2008 20:04:41 -0700
-Message-ID: <200807070304.m6734fGw004684@imap1.linux-foundation.org>
+Subject: + quota-fix-possible-infinite-loop-in-quota-code.patch added to -mm tree
+Date: Wed, 09 Jul 2008 15:10:56 -0700
+Message-ID: <200807092216.m69MGKtJ027526@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48200 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44181 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753819AbYGGDKw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 6 Jul 2008 23:10:52 -0400
+	by vger.kernel.org with ESMTP id S1751614AbYGIWQd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Jul 2008 18:16:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sfr@canb.auug.org.au, fbuihuu@gmail.com, josh@kernel.org, mingo@elte.hu, paulmck@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: jack@suse.cz, dingdinghua85@gmail.com
 
 
 The patch titled
-     Introduce rculist.h
-has been removed from the -mm tree.  Its filename was
-     introduce-rculisth.patch
+     quota: fix possible infinite loop in quota code
+has been added to the -mm tree.  Its filename is
+     quota-fix-possible-infinite-loop-in-quota-code.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Introduce rculist.h
-From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: quota: fix possible infinite loop in quota code
+From: Jan Kara <jack@suse.cz>
 
-In linux-next there is a commit ("rcu: split list.h and move rcu-protected
-lists into rculist.h") that moved the rcu related list iterators from
-list.h to rculist.h.  Add a trivial version of the file now so that
-various subsystem trees can start using it now for -next changes and so
-reduce the build errors caused by adding uses of the moved functions.
+When quota structure is going to be dropped and it is dirty, quota code tries
+to write it.  If the write fails for some reason (e.  g.  transaction cannot
+be started because the journal is aborted), we try writing again and again and
+again...  Fix the problem by clearing the dirty bit even if the write failed.
 
-Cc: Franck Bui-Huu <fbuihuu@gmail.com>
-Acked-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Cc: Josh Triplett <josh@kernel.org>
-Acked-by: Ingo Molnar <mingo@elte.hu>
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Jan Kara <jack@suse.cz>
+Reviewed-by: dingdinghua <dingdinghua85@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rculist.h |    6 ++++++
- 1 file changed, 6 insertions(+)
+ fs/dquot.c |   16 +++++++++++++++-
+ 1 file changed, 15 insertions(+), 1 deletion(-)
 
-diff -puN /dev/null include/linux/rculist.h
---- /dev/null
-+++ a/include/linux/rculist.h
-@@ -0,0 +1,6 @@
-+#ifndef _LINUX_RCULIST_H
-+#define _LINUX_RCULIST_H
+diff -puN fs/dquot.c~quota-fix-possible-infinite-loop-in-quota-code fs/dquot.c
+--- a/fs/dquot.c~quota-fix-possible-infinite-loop-in-quota-code
++++ a/fs/dquot.c
+@@ -562,6 +562,8 @@ static struct shrinker dqcache_shrinker 
+  */
+ static void dqput(struct dquot *dquot)
+ {
++	int ret;
 +
-+#include <linux/list.h>
-+
-+#endif	/* _LINUX_RCULIST_H */
+ 	if (!dquot)
+ 		return;
+ #ifdef __DQUOT_PARANOIA
+@@ -594,7 +596,19 @@ we_slept:
+ 	if (test_bit(DQ_ACTIVE_B, &dquot->dq_flags) && dquot_dirty(dquot)) {
+ 		spin_unlock(&dq_list_lock);
+ 		/* Commit dquot before releasing */
+-		dquot->dq_sb->dq_op->write_dquot(dquot);
++		ret = dquot->dq_sb->dq_op->write_dquot(dquot);
++		if (ret < 0) {
++			printk(KERN_ERR "VFS: cannot write quota structure on "
++				"device %s (error %d). Quota may get out of "
++				"sync!\n", dquot->dq_sb->s_id, ret);
++			/*
++			 * We clear dirty bit anyway, so that we avoid
++			 * infinite loop here
++			 */
++			spin_lock(&dq_list_lock);
++			clear_dquot_dirty(dquot);
++			spin_unlock(&dq_list_lock);
++		}
+ 		goto we_slept;
+ 	}
+ 	/* Clear flag in case dquot was inactive (something bad happened) */
 _
 
-Patches currently in -mm which might be from sfr@canb.auug.org.au are
+Patches currently in -mm which might be from jack@suse.cz are
 
-revert-introduce-rculisth.patch
+quota-fix-possible-infinite-loop-in-quota-code.patch
 linux-next.patch
-fix-kobject-fix-kobject_rename-and-config_sysfs.patch
-drivers-mtd-nand-nandsimc-needs-div64h.patch
-mpc83xx_wdt-convert-to-the-of-platform-driver.patch
-gpio-add-bt8xxgpio-driver.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch
-gpiolib-allow-user-selection.patch
+ext3-fix-synchronization-of-quota-files-in-journal=data-mode.patch
+ext3-fix-typos-in-messages-and-comments-journalled-journaled.patch
+ext3-correct-mount-option-parsing-to-detect-when-quota-options-can-be-changed.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
+jbd-positively-dispose-the-unmapped-data-buffers-in-journal_commit_transaction.patch
+jbd-dont-abort-if-flushing-file-data-failed.patch
+jbd-dont-abort-if-flushing-file-data-failed-fix.patch
+reiserfs-fix-synchronization-of-quota-files-in-journal=data-mode.patch
+reiserfs-fix-typos-in-messages-and-comments-journalled-journaled.patch
+reiserfs-correct-mount-option-parsing-to-detect-when-quota-options-can-be-changed.patch
+quota-rename-quota-functions-from-upper-case-make-bigger-ones-non-inline.patch
+quota-cleanup-loop-in-sync_dquots.patch
+quota-move-function-macros-from-quotah-to-quotaopsh.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-fix.patch
+quota-convert-macros-to-inline-functions.patch
 
