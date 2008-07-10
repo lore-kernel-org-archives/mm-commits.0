@@ -1,18 +1,18 @@
 From: akpm@linux-foundation.org
 Subject: + char-isicom-enable-disable-pci-device.patch added to -mm tree
-Date: Thu, 10 Jul 2008 16:36:07 -0700
-Message-ID: <200807102341.m6ANfhsQ020823@imap1.linux-foundation.org>
+Date: Thu, 10 Jul 2008 16:37:29 -0700
+Message-ID: <200807102343.m6ANh4u5020868@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48408 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56141 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754868AbYGJXm2 (ORCPT
+	by vger.kernel.org with ESMTP id S1753142AbYGJXnt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Jul 2008 19:42:28 -0400
+	Thu, 10 Jul 2008 19:43:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com, alan@lxorguk.ukuu.org.uk
+Cc: jirislaby@gmail.com, alan@lxorguk.ukuu.org.uk, prabhatg@cdotd.ernet.in
 
 
 The patch titled
@@ -40,8 +40,11 @@ From: Jiri Slaby <jirislaby@gmail.com>
 Don't forget to enable and disable PCI devices.  The device might be unusable
 without that.
 
+Might fix http://bugzilla.kernel.org/show_bug.cgi?id=11067
+
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Prabhat Gupta <prabhatg@cdotd.ernet.in>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
@@ -100,7 +103,7 @@ char-mxser-update-documentation.patch
 char-mxser-prints-cleanup.patch
 char-mxser-remove-predefined-isa-support.patch
 char-mxser-various-cleanups.patch
+char-isicom-enable-disable-pci-device.patch
 reiser4.patch
 shrink_slab-handle-bad-shrinkers.patch
-char-isicom-enable-disable-pci-device.patch
 
