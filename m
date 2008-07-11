@@ -1,168 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: - crypto-rmd160c-rmd256c-rmd320c-sparse-annotations.patch removed from -mm tree
-Date: Fri, 11 Jul 2008 16:52:01 -0700
-Message-ID: <200807112352.m6BNq1Bs011091@imap1.linux-foundation.org>
+Subject: - s390-vmcp-use-simple_read_from_buffer.patch removed from -mm tree
+Date: Fri, 11 Jul 2008 16:51:24 -0700
+Message-ID: <200807112351.m6BNpOPd011037@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42632 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47374 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755656AbYGKXwf (ORCPT
+	by vger.kernel.org with ESMTP id S1759639AbYGKXwm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jul 2008 19:52:35 -0400
+	Fri, 11 Jul 2008 19:52:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, herbert@gondor.apana.org.au, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, borntraeger@de.ibm.com, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     crypto: rmd160.c rmd256.c rmd320.c sparse annotations
+     s390/vmcp: use simple_read_from_buffer()
 has been removed from the -mm tree.  Its filename was
-     crypto-rmd160c-rmd256c-rmd320c-sparse-annotations.patch
+     s390-vmcp-use-simple_read_from_buffer.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: crypto: rmd160.c rmd256.c rmd320.c sparse annotations
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: s390/vmcp: use simple_read_from_buffer()
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-Similar to the rmd128.c annotations, significantly cuts down on the noise.
-
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- crypto/rmd160.c |    8 ++++----
- crypto/rmd256.c |    8 ++++----
- crypto/rmd320.c |    8 ++++----
- 3 files changed, 12 insertions(+), 12 deletions(-)
+ drivers/s390/char/vmcp.c |   22 ++++++++--------------
+ 1 file changed, 8 insertions(+), 14 deletions(-)
 
-diff -puN crypto/rmd160.c~crypto-rmd160c-rmd256c-rmd320c-sparse-annotations crypto/rmd160.c
---- a/crypto/rmd160.c~crypto-rmd160c-rmd256c-rmd320c-sparse-annotations
-+++ a/crypto/rmd160.c
-@@ -26,7 +26,7 @@
- struct rmd160_ctx {
- 	u64 byte_count;
- 	u32 state[5];
--	u32 buffer[16];
-+	__le32 buffer[16];
- };
+diff -puN drivers/s390/char/vmcp.c~s390-vmcp-use-simple_read_from_buffer drivers/s390/char/vmcp.c
+--- a/drivers/s390/char/vmcp.c~s390-vmcp-use-simple_read_from_buffer
++++ a/drivers/s390/char/vmcp.c
+@@ -65,30 +65,24 @@ static int vmcp_release(struct inode *in
+ static ssize_t
+ vmcp_read(struct file *file, char __user *buff, size_t count, loff_t *ppos)
+ {
+-	size_t tocopy;
++	ssize_t ret;
++	size_t size;
+ 	struct vmcp_session *session;
  
- #define K1  RMD_K1
-@@ -52,7 +52,7 @@ struct rmd160_ctx {
- 	(c) = rol32((c), 10); \
+-	session = (struct vmcp_session *)file->private_data;
++	session = file->private_data;
+ 	if (mutex_lock_interruptible(&session->mutex))
+ 		return -ERESTARTSYS;
+ 	if (!session->response) {
+ 		mutex_unlock(&session->mutex);
+ 		return 0;
+ 	}
+-	if (*ppos > session->resp_size) {
+-		mutex_unlock(&session->mutex);
+-		return 0;
+-	}
+-	tocopy = min(session->resp_size - (size_t) (*ppos), count);
+-	tocopy = min(tocopy, session->bufsize - (size_t) (*ppos));
++	size = min_t(size_t, session->resp_size, session->bufsize);
++	ret = simple_read_from_buffer(buff, count, ppos,
++					session->response, size);
+ 
+-	if (copy_to_user(buff, session->response + (*ppos), tocopy)) {
+-		mutex_unlock(&session->mutex);
+-		return -EFAULT;
+-	}
+ 	mutex_unlock(&session->mutex);
+-	*ppos += tocopy;
+-	return tocopy;
++
++	return ret;
  }
  
--static void rmd160_transform(u32 *state, u32 const *in)
-+static void rmd160_transform(u32 *state, const __le32 *in)
- {
- 	u32 aa, bb, cc, dd, ee, aaa, bbb, ccc, ddd, eee;
- 
-@@ -313,8 +313,8 @@ static void rmd160_final(struct crypto_t
- {
- 	struct rmd160_ctx *rctx = crypto_tfm_ctx(tfm);
- 	u32 i, index, padlen;
--	u64 bits;
--	u32 *dst = (u32 *)out;
-+	__le64 bits;
-+	__le32 *dst = (__le32 *)out;
- 	static const u8 padding[64] = { 0x80, };
- 
- 	bits = cpu_to_le64(rctx->byte_count << 3);
-diff -puN crypto/rmd256.c~crypto-rmd160c-rmd256c-rmd320c-sparse-annotations crypto/rmd256.c
---- a/crypto/rmd256.c~crypto-rmd160c-rmd256c-rmd320c-sparse-annotations
-+++ a/crypto/rmd256.c
-@@ -26,7 +26,7 @@
- struct rmd256_ctx {
- 	u64 byte_count;
- 	u32 state[8];
--	u32 buffer[16];
-+	__le32 buffer[16];
- };
- 
- #define K1  RMD_K1
-@@ -48,7 +48,7 @@ struct rmd256_ctx {
- 	(a) = rol32((a), (s)); \
- }
- 
--static void rmd256_transform(u32 *state, u32 const *in)
-+static void rmd256_transform(u32 *state, const __le32 *in)
- {
- 	u32 aa, bb, cc, dd, aaa, bbb, ccc, ddd, tmp;
- 
-@@ -288,8 +288,8 @@ static void rmd256_final(struct crypto_t
- {
- 	struct rmd256_ctx *rctx = crypto_tfm_ctx(tfm);
- 	u32 i, index, padlen;
--	u64 bits;
--	u32 *dst = (u32 *)out;
-+	__le64 bits;
-+	__le32 *dst = (__le32 *)out;
- 	static const u8 padding[64] = { 0x80, };
- 
- 	bits = cpu_to_le64(rctx->byte_count << 3);
-diff -puN crypto/rmd320.c~crypto-rmd160c-rmd256c-rmd320c-sparse-annotations crypto/rmd320.c
---- a/crypto/rmd320.c~crypto-rmd160c-rmd256c-rmd320c-sparse-annotations
-+++ a/crypto/rmd320.c
-@@ -26,7 +26,7 @@
- struct rmd320_ctx {
- 	u64 byte_count;
- 	u32 state[10];
--	u32 buffer[16];
-+	__le32 buffer[16];
- };
- 
- #define K1  RMD_K1
-@@ -52,7 +52,7 @@ struct rmd320_ctx {
- 	(c) = rol32((c), 10); \
- }
- 
--static void rmd320_transform(u32 *state, u32 const *in)
-+static void rmd320_transform(u32 *state, const __le32 *in)
- {
- 	u32 aa, bb, cc, dd, ee, aaa, bbb, ccc, ddd, eee, tmp;
- 
-@@ -337,8 +337,8 @@ static void rmd320_final(struct crypto_t
- {
- 	struct rmd320_ctx *rctx = crypto_tfm_ctx(tfm);
- 	u32 i, index, padlen;
--	u64 bits;
--	u32 *dst = (u32 *)out;
-+	__le64 bits;
-+	__le32 *dst = (__le32 *)out;
- 	static const u8 padding[64] = { 0x80, };
- 
- 	bits = cpu_to_le64(rctx->byte_count << 3);
+ static ssize_t
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 linux-next.patch
-cifs-remove-global_extern-macro.patch
-mtd-mtdcharc-silence-sparse-warning.patch
-mtd-mtdcharc-remove-shadowed-variable-warnings.patch
-scsi-replace-remaining-__function__-occurrences.patch
-fusion-replace-remaining-__function__-occurrences.patch
-scsi-replace-__inline-with-inline.patch
-scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
-scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
-xfs-use-get_unaligned_-helpers.patch
-xtensa-replace-remaining-__function__-occurences.patch
-fs-ldm-use-get_unaligned_-helpers.patch
-include-use-get-put_unaligned_-helpers.patch
-lzo-use-get-put_unaligned_-helpers.patch
-asm-generic-int-ll64h-always-provide-__su64.patch
-ecryptfs-cryptoc-use-unaligned-byteorder-helpers.patch
-ecryptfs-inodec-mmapc-use-unaligned-byteorder-helpers.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-isdn-use-the-common-ascii-hex-helpers.patch
-net-use-the-common-ascii-hex-helpers.patch
-cris-use-the-common-ascii-hex-helpers.patch
-frv-use-the-common-ascii-hex-helpers.patch
-mips-use-the-common-ascii-hex-helpers.patch
-ppc-use-the-common-ascii-hex-helpers.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-mn10300-use-the-common-ascii-hex-helpers.patch
+ttusb-use-simple_read_from_buffer.patch
+ipr-use-memory_read_from_buffer.patch
+qla2xxx-use-memory_read_from_buffer.patch
+pm-hibernation-simplify-memory-bitmap.patch
+cris-use-simple_read_from_buffer.patch
+binfmt_misc-use-simple_read_from_buffer.patch
+aty-use-memory_read_from_buffer.patch
+ipc-use-simple_read_from_buffer.patch
+nwflash-use-simple_read_from_buffer.patch
+firmware-use-memory_read_from_buffer.patch
+dcdbas-use-memory_read_from_buffer.patch
+dell_rbu-use-memory_read_from_buffer.patch
 
