@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + use-warn-in-arch-x86-kernel.patch added to -mm tree
-Date: Fri, 11 Jul 2008 11:45:28 -0700
-Message-ID: <200807111851.m6BIp96p031307@imap1.linux-foundation.org>
+Subject: + use-warn-in-fs-proc.patch added to -mm tree
+Date: Fri, 11 Jul 2008 11:45:40 -0700
+Message-ID: <200807111851.m6BIpLra031332@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59241 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49108 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757401AbYGKSva (ORCPT
+	by vger.kernel.org with ESMTP id S1756425AbYGKSvm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jul 2008 14:51:30 -0400
+	Fri, 11 Jul 2008 14:51:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: arjan@linux.intel.com, mingo@elte.hu
+Cc: arjan@linux.intel.com
 
 
 The patch titled
-     Use WARN() in arch/x86/kernel
+     Use WARN() in fs/proc/
 has been added to the -mm tree.  Its filename is
-     use-warn-in-arch-x86-kernel.patch
+     use-warn-in-fs-proc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,70 +34,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Use WARN() in arch/x86/kernel
+Subject: Use WARN() in fs/proc/
 From: Arjan van de Ven <arjan@linux.intel.com>
 
-Use WARN() instead of a printk+WARN_ON() pair; this way the message becomes
-part of the warning section for better reporting/collection.  This also
-allowed the folding of some if()'s into the WARN()
+Use WARN() instead of a printk+WARN_ON() pair; this way the message
+becomes part of the warning section for better reporting/collection.
+This way, the entire if() {} section can collapse into the WARN() as well.
 
 Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
-Acked-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/mtrr/main.c  |    5 +----
- arch/x86/kernel/pci-calgary_64.c |    3 +--
- arch/x86/kernel/tsc_sync.c       |    6 ++----
- 3 files changed, 4 insertions(+), 10 deletions(-)
+ fs/proc/generic.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN arch/x86/kernel/cpu/mtrr/main.c~use-warn-in-arch-x86-kernel arch/x86/kernel/cpu/mtrr/main.c
---- a/arch/x86/kernel/cpu/mtrr/main.c~use-warn-in-arch-x86-kernel
-+++ a/arch/x86/kernel/cpu/mtrr/main.c
-@@ -1496,11 +1496,8 @@ int __init mtrr_trim_uncached_memory(uns
- 
- 	/* kvm/qemu doesn't have mtrr set right, don't trim them all */
- 	if (!highest_pfn) {
--		if (!kvm_para_available()) {
--			printk(KERN_WARNING
-+		WARN(!kvm_para_available(), KERN_WARNING
- 				"WARNING: strange, CPU MTRRs all blank?\n");
--			WARN_ON(1);
--		}
- 		return 0;
- 	}
- 
-diff -puN arch/x86/kernel/pci-calgary_64.c~use-warn-in-arch-x86-kernel arch/x86/kernel/pci-calgary_64.c
---- a/arch/x86/kernel/pci-calgary_64.c~use-warn-in-arch-x86-kernel
-+++ a/arch/x86/kernel/pci-calgary_64.c
-@@ -340,9 +340,8 @@ static void iommu_free(struct iommu_tabl
- 	/* were we called with bad_dma_address? */
- 	badend = bad_dma_address + (EMERGENCY_PAGES * PAGE_SIZE);
- 	if (unlikely((dma_addr >= bad_dma_address) && (dma_addr < badend))) {
--		printk(KERN_ERR "Calgary: driver tried unmapping bad DMA "
-+		WARN(1, KERN_ERR "Calgary: driver tried unmapping bad DMA "
- 		       "address 0x%Lx\n", dma_addr);
--		WARN_ON(1);
- 		return;
- 	}
- 
-diff -puN arch/x86/kernel/tsc_sync.c~use-warn-in-arch-x86-kernel arch/x86/kernel/tsc_sync.c
---- a/arch/x86/kernel/tsc_sync.c~use-warn-in-arch-x86-kernel
-+++ a/arch/x86/kernel/tsc_sync.c
-@@ -88,11 +88,9 @@ static __cpuinit void check_tsc_warp(voi
- 			__raw_spin_unlock(&sync_lock);
- 		}
- 	}
--	if (!(now-start)) {
--		printk("Warning: zero tsc calibration delta: %Ld [max: %Ld]\n",
-+	WARN(!(now-start),
-+		"Warning: zero tsc calibration delta: %Ld [max: %Ld]\n",
- 			now-start, end-start);
+diff -puN fs/proc/generic.c~use-warn-in-fs-proc fs/proc/generic.c
+--- a/fs/proc/generic.c~use-warn-in-fs-proc
++++ a/fs/proc/generic.c
+@@ -806,12 +806,9 @@ continue_removing:
+ 	if (S_ISDIR(de->mode))
+ 		parent->nlink--;
+ 	de->nlink = 0;
+-	if (de->subdir) {
+-		printk(KERN_WARNING "%s: removing non-empty directory "
++	WARN(de->subdir, KERN_WARNING "%s: removing non-empty directory "
+ 			"'%s/%s', leaking at least '%s'\n", __func__,
+ 			de->parent->name, de->name, de->subdir->name);
 -		WARN_ON(1);
 -	}
+ 	if (atomic_dec_and_test(&de->count))
+ 		free_proc_entry(de);
  }
- 
- /*
 _
 
 Patches currently in -mm which might be from arjan@linux.intel.com are
