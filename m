@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drx397xd-demodulator-driver-fix-a-const-pointer-assignment.patch added to -mm tree
-Date: Fri, 11 Jul 2008 11:37:31 -0700
-Message-ID: <200807111843.m6BIhCMh030786@imap1.linux-foundation.org>
+Subject: + regulator-virtual-consumer-current-limit-support.patch added to -mm tree
+Date: Fri, 11 Jul 2008 11:38:25 -0700
+Message-ID: <200807111844.m6BIi6DO030846@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40907 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36072 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755975AbYGKSn4 (ORCPT
+	by vger.kernel.org with ESMTP id S1754652AbYGKSoN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jul 2008 14:43:56 -0400
+	Fri, 11 Jul 2008 14:44:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com, mchehab@infradead.org
+Cc: philipp.zabel@gmail.com, broonie@opensource.wolfsonmicro.com, lg@opensource.wolfsonmicro.com
 
 
 The patch titled
-     drx397xD demodulator driver: fix a const pointer assignment
+     regulator: virtual consumer current limit support
 has been added to the -mm tree.  Its filename is
-     drx397xd-demodulator-driver-fix-a-const-pointer-assignment.patch
+     regulator-virtual-consumer-current-limit-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,91 +34,173 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drx397xD demodulator driver: fix a const pointer assignment
-From: David Howells <dhowells@redhat.com>
+Subject: regulator: virtual consumer current limit support
+From: Philipp Zabel <philipp.zabel@gmail.com>
 
-Fix an assignment of a const pointer to a non-const pointer in the drx397xD
-demodulator driver.
+This expands the virtual consumer driver to handle current limit control
+via the min_microamps and max_microamps sysfs files.
 
-This was introduced in patch eb9bd0e567365d4f607d32d8c41e201da65aa971.
-
-Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Signed-off-by: Philipp Zabel <philipp.zabel@gmail.com>
+Cc: Liam Girdwood <lg@opensource.wolfsonmicro.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/dvb/frontends/drx397xD.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/regulator/virtual.c |   99 ++++++++++++++++++++++++++++++++--
+ 1 file changed, 96 insertions(+), 3 deletions(-)
 
-diff -puN drivers/media/dvb/frontends/drx397xD.c~drx397xd-demodulator-driver-fix-a-const-pointer-assignment drivers/media/dvb/frontends/drx397xD.c
---- a/drivers/media/dvb/frontends/drx397xD.c~drx397xd-demodulator-driver-fix-a-const-pointer-assignment
-+++ a/drivers/media/dvb/frontends/drx397xD.c
-@@ -73,7 +73,7 @@ static struct {
- 	const struct firmware *file;
- 	rwlock_t lock;
- 	int refcnt;
--	u8 *data[ARRAY_SIZE(blob_name)];
-+	const u8 *data[ARRAY_SIZE(blob_name)];
- } fw[] = {
- #define _FW_ENTRY(a, b)		{			\
- 			.name	= a,			\
-@@ -109,7 +109,7 @@ static void drx_release_fw(struct drx397
+diff -puN drivers/regulator/virtual.c~regulator-virtual-consumer-current-limit-support drivers/regulator/virtual.c
+--- a/drivers/regulator/virtual.c~regulator-virtual-consumer-current-limit-support
++++ a/drivers/regulator/virtual.c
+@@ -22,10 +22,12 @@ struct virtual_consumer_data {
+ 	int enabled;
+ 	int min_uV;
+ 	int max_uV;
++	int min_uA;
++	int max_uA;
+ 	unsigned int mode;
+ };
  
- static int drx_load_fw(struct drx397xD_state *s, fw_ix_t ix)
+-static void update_constraints(struct virtual_consumer_data *data)
++static void update_voltage_constraints(struct virtual_consumer_data *data)
  {
--	u8 *data;
-+	const u8 *data;
- 	size_t size, len;
- 	int i = 0, j, rc = -EINVAL;
+ 	int ret;
  
-@@ -193,7 +193,7 @@ static int drx_load_fw(struct drx397xD_s
- static int write_fw(struct drx397xD_state *s, blob_ix_t ix)
+@@ -59,6 +61,41 @@ static void update_constraints(struct vi
+ 	}
+ }
+ 
++static void update_current_limit_constraints(struct virtual_consumer_data
++						*data)
++{
++	int ret;
++
++	if (data->max_uA
++	    && data->min_uA <= data->max_uA) {
++		ret = regulator_set_current_limit(data->regulator,
++					data->min_uA, data->max_uA);
++		if (ret != 0) {
++			pr_err("regulator_set_current_limit() failed: %d\n",
++			       ret);
++			return;
++		}
++	}
++
++	if (data->max_uA && !data->enabled) {
++		ret = regulator_enable(data->regulator);
++		if (ret == 0)
++			data->enabled = 1;
++		else
++			printk(KERN_ERR "regulator_enable() failed: %d\n",
++				ret);
++	}
++
++	if (!(data->min_uA && data->max_uA) && data->enabled) {
++		ret = regulator_disable(data->regulator);
++		if (ret == 0)
++			data->enabled = 0;
++		else
++			printk(KERN_ERR "regulator_disable() failed: %d\n",
++				ret);
++	}
++}
++
+ static ssize_t show_min_uV(struct device *dev,
+ 			   struct device_attribute *attr, char *buf)
  {
- 	struct i2c_msg msg = {.addr = s->config.demod_address,.flags = 0 };
--	u8 *data;
-+	const u8 *data;
- 	int len, rc = 0, i = 0;
+@@ -78,7 +115,7 @@ static ssize_t set_min_uV(struct device 
+ 	mutex_lock(&data->lock);
  
- 	if (ix < 0 || ix >= ARRAY_SIZE(blob_name)) {
-@@ -214,7 +214,7 @@ static int write_fw(struct drx397xD_stat
- 		case 0:	/* bytecode */
- 			len = data[i++];
- 			msg.len = len;
--			msg.buf = &data[i];
-+			msg.buf = (__u8 *) &data[i];
- 			if (i2c_transfer(s->i2c, &msg, 1) != 1) {
- 				rc = -EIO;
- 				goto exit_rc;
+ 	data->min_uV = val;
+-	update_constraints(data);
++	update_voltage_constraints(data);
+ 
+ 	mutex_unlock(&data->lock);
+ 
+@@ -104,7 +141,59 @@ static ssize_t set_max_uV(struct device 
+ 	mutex_lock(&data->lock);
+ 
+ 	data->max_uV = val;
+-	update_constraints(data);
++	update_voltage_constraints(data);
++
++	mutex_unlock(&data->lock);
++
++	return count;
++}
++
++static ssize_t show_min_uA(struct device *dev,
++			   struct device_attribute *attr, char *buf)
++{
++	struct virtual_consumer_data *data = dev_get_drvdata(dev);
++	return sprintf(buf, "%d\n", data->min_uA);
++}
++
++static ssize_t set_min_uA(struct device *dev, struct device_attribute *attr,
++			  const char *buf, size_t count)
++{
++	struct virtual_consumer_data *data = dev_get_drvdata(dev);
++	long val;
++
++	if (strict_strtol(buf, 10, &val) != 0)
++		return count;
++
++	mutex_lock(&data->lock);
++
++	data->min_uA = val;
++	update_current_limit_constraints(data);
++
++	mutex_unlock(&data->lock);
++
++	return count;
++}
++
++static ssize_t show_max_uA(struct device *dev,
++			   struct device_attribute *attr, char *buf)
++{
++	struct virtual_consumer_data *data = dev_get_drvdata(dev);
++	return sprintf(buf, "%d\n", data->max_uA);
++}
++
++static ssize_t set_max_uA(struct device *dev, struct device_attribute *attr,
++			  const char *buf, size_t count)
++{
++	struct virtual_consumer_data *data = dev_get_drvdata(dev);
++	long val;
++
++	if (strict_strtol(buf, 10, &val) != 0)
++		return count;
++
++	mutex_lock(&data->lock);
++
++	data->max_uA = val;
++	update_current_limit_constraints(data);
+ 
+ 	mutex_unlock(&data->lock);
+ 
+@@ -163,11 +252,15 @@ static ssize_t set_mode(struct device *d
+ 
+ static DEVICE_ATTR(min_microvolts, 0666, show_min_uV, set_min_uV);
+ static DEVICE_ATTR(max_microvolts, 0666, show_max_uV, set_max_uV);
++static DEVICE_ATTR(min_microamps, 0666, show_min_uA, set_min_uA);
++static DEVICE_ATTR(max_microamps, 0666, show_max_uA, set_max_uA);
+ static DEVICE_ATTR(mode, 0666, show_mode, set_mode);
+ 
+ struct device_attribute *attributes[] = {
+ 	&dev_attr_min_microvolts,
+ 	&dev_attr_max_microvolts,
++	&dev_attr_min_microamps,
++	&dev_attr_max_microamps,
+ 	&dev_attr_mode,
+ };
+ 
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from philipp.zabel@gmail.com are
 
+origin.patch
 linux-next.patch
-acpi-fix-a-cast-of-a-32-bit-int-to-a-pointer.patch
-acpi-fix-build-with-config_pm_sleep=n.patch
-calgary-fix-a-comparison-warning-the-pci-calgary-64-driver.patch
-alsa-fix-a-const-pointer-usage-warning-in-the-digigram-pcxhr-soundcard-driver.patch
-alsa-fix-a-const-pointer-usage-warning-in-the-digigram-mixart-soundcard-driver.patch
-cifs-fix-range-check.patch
-sis-drm-fix-the-memory-allocator-if-the-sis-fb-is-built-as-a-module.patch
-sis-drm-fix-a-pointer-cast-warning.patch
-ivtv-framebuffer-driver-fix-pointer-cast-warnings.patch
-drx397xd-demodulator-driver-fix-a-const-pointer-assignment.patch
-mtd-fix-const-assignment-in-the-command-line-partitioning-driver.patch
-atm-fix-const-assignment-discard-warnings-in-the-atm-networking-driver.patch
-atm-fix-direct-casts-of-pointers-to-u32-in-the-interphase-driver.patch
-hysdn-remove-the-packed-attribute-from-poftimstamp_tag.patch
-git-unionfs.patch
-xfs-fix-disabled-xfs-posix-acl-handling.patch
-mn10300-move-sg_dma_addresslen-to-asm-scatterlisth.patch
-inflate-refactor-inflate-malloc-code.patch
-inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
-pnpacpi-fix-pnpacpi_parse_irq_options-test-against-pnp_irq_nr.patch
-include-asm-ptraceh-userspace-headers-cleanup.patch
-sdio-fix-break-control-to-now-return-success-or-an-error.patch
-ip2-fix-iielliscleanup-as-it-is-static-but-not-always-used.patch
-fix-a-const-assignment-in-moxa_load_fw.patch
-frv-use-the-common-ascii-hex-helpers.patch
-mn10300-use-the-common-ascii-hex-helpers.patch
-mutex-subsystem-synchro-test-module.patch
+regulator-ti-bq24022-li-ion-charger-driver.patch
+regulator-ti-bq24022-li-ion-charger-driver-fix.patch
+regulator-virtual-consumer-current-limit-support.patch
 
