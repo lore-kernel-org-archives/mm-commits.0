@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + use-warn-in-arch-x86-mm-ioremapc.patch added to -mm tree
-Date: Fri, 11 Jul 2008 11:45:24 -0700
-Message-ID: <200807111851.m6BIp5rQ031299@imap1.linux-foundation.org>
+Subject: + use-warn-in-block.patch added to -mm tree
+Date: Fri, 11 Jul 2008 11:45:30 -0700
+Message-ID: <200807111851.m6BIpB0R031314@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57946 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52209 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757401AbYGKSvU (ORCPT
+	by vger.kernel.org with ESMTP id S1757286AbYGKSvW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jul 2008 14:51:20 -0400
+	Fri, 11 Jul 2008 14:51:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: arjan@linux.intel.com, mingo@elte.hu
+Cc: arjan@linux.intel.com, jens.axboe@oracle.com
 
 
 The patch titled
-     Use WARN() in arch/x86/mm/ioremap.c
+     Use WARN() in block/
 has been added to the -mm tree.  Its filename is
-     use-warn-in-arch-x86-mm-ioremapc.patch
+     use-warn-in-block.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Use WARN() in arch/x86/mm/ioremap.c
+Subject: Use WARN() in block/
 From: Arjan van de Ven <arjan@linux.intel.com>
 
-Use WARN() instead of a printk+WARN_ON() pair; this way the message becomes
-part of the warning section for better reporting/collection.
+Use WARN() instead of a printk+WARN_ON() pair; this way the message
+becomes part of the warning section for better reporting/collection.
 
 Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
-Acked-by: Ingo Molnar <mingo@elte.hu>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/ioremap.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ block/as-iosched.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN arch/x86/mm/ioremap.c~use-warn-in-arch-x86-mm-ioremapc arch/x86/mm/ioremap.c
---- a/arch/x86/mm/ioremap.c~use-warn-in-arch-x86-mm-ioremapc
-+++ a/arch/x86/mm/ioremap.c
-@@ -530,13 +530,11 @@ static int __init check_early_ioremap_le
- {
- 	if (!early_ioremap_nested)
- 		return 0;
--
--	printk(KERN_WARNING
-+	WARN(1, KERN_WARNING
- 	       "Debug warning: early ioremap leak of %d areas detected.\n",
--	       early_ioremap_nested);
-+		early_ioremap_nested);
- 	printk(KERN_WARNING
--	       "please boot with early_ioremap_debug and report the dmesg.\n");
--	WARN_ON(1);
-+		"please boot with early_ioremap_debug and report the dmesg.\n");
+diff -puN block/as-iosched.c~use-warn-in-block block/as-iosched.c
+--- a/block/as-iosched.c~use-warn-in-block
++++ a/block/as-iosched.c
+@@ -837,8 +837,7 @@ static void as_completed_request(struct 
+ 	WARN_ON(!list_empty(&rq->queuelist));
  
- 	return 1;
- }
+ 	if (RQ_STATE(rq) != AS_RQ_REMOVED) {
+-		printk("rq->state %d\n", RQ_STATE(rq));
+-		WARN_ON(1);
++		WARN(1, "rq->state %d\n", RQ_STATE(rq));
+ 		goto out;
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from arjan@linux.intel.com are
