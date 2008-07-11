@@ -1,80 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: - block-use-get_unaligned_-helpers.patch removed from -mm tree
-Date: Fri, 11 Jul 2008 16:51:34 -0700
-Message-ID: <200807112351.m6BNpY8o011052@imap1.linux-foundation.org>
+Subject: - scsi-make-struct-scsi_hosttarget_type-static.patch removed from -mm tree
+Date: Fri, 11 Jul 2008 16:51:32 -0700
+Message-ID: <200807112351.m6BNpWY9011049@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33242 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48100 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754784AbYGKXvq (ORCPT
+	by vger.kernel.org with ESMTP id S1754750AbYGKXvn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jul 2008 19:51:46 -0400
+	Fri, 11 Jul 2008 19:51:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, jens.axboe@oracle.com, mm-commits@vger.kernel.org
+To: bunk@kernel.org, James.Bottomley@HansenPartnership.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     block: use get_unaligned_* helpers
+     scsi: make struct scsi_{host,target}_type static
 has been removed from the -mm tree.  Its filename was
-     block-use-get_unaligned_-helpers.patch
+     scsi-make-struct-scsi_hosttarget_type-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: block: use get_unaligned_* helpers
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: scsi: make struct scsi_{host,target}_type static
+From: Adrian Bunk <bunk@kernel.org>
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Make the needlessly global struct scsi_{host,target}_type static.
+
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/aoe/aoecmd.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/scsi/hosts.c     |    2 +-
+ drivers/scsi/scsi_scan.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/block/aoe/aoecmd.c~block-use-get_unaligned_-helpers drivers/block/aoe/aoecmd.c
---- a/drivers/block/aoe/aoecmd.c~block-use-get_unaligned_-helpers
-+++ a/drivers/block/aoe/aoecmd.c
-@@ -1003,7 +1003,7 @@ aoecmd_cfg_rsp(struct sk_buff *skb)
- 	 * Enough people have their dip switches set backwards to
- 	 * warrant a loud message for this special case.
- 	 */
--	aoemajor = be16_to_cpu(get_unaligned(&h->major));
-+	aoemajor = get_unaligned_be16(&h->major);
- 	if (aoemajor == 0xfff) {
- 		printk(KERN_ERR "aoe: Warning: shelf address is all ones.  "
- 			"Check shelf dip switches.\n");
+diff -puN drivers/scsi/hosts.c~scsi-make-struct-scsi_hosttarget_type-static drivers/scsi/hosts.c
+--- a/drivers/scsi/hosts.c~scsi-make-struct-scsi_hosttarget_type-static
++++ a/drivers/scsi/hosts.c
+@@ -290,7 +290,7 @@ static void scsi_host_dev_release(struct
+ 	kfree(shost);
+ }
+ 
+-struct device_type scsi_host_type = {
++static struct device_type scsi_host_type = {
+ 	.name =		"scsi_host",
+ 	.release =	scsi_host_dev_release,
+ };
+diff -puN drivers/scsi/scsi_scan.c~scsi-make-struct-scsi_hosttarget_type-static drivers/scsi/scsi_scan.c
+--- a/drivers/scsi/scsi_scan.c~scsi-make-struct-scsi_hosttarget_type-static
++++ a/drivers/scsi/scsi_scan.c
+@@ -346,7 +346,7 @@ static void scsi_target_dev_release(stru
+ 	put_device(parent);
+ }
+ 
+-struct device_type scsi_target_type = {
++static struct device_type scsi_target_type = {
+ 	.name =		"scsi_target",
+ 	.release =	scsi_target_dev_release,
+ };
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from bunk@kernel.org are
 
+origin.patch
 linux-next.patch
-cifs-remove-global_extern-macro.patch
-mtd-mtdcharc-silence-sparse-warning.patch
-mtd-mtdcharc-remove-shadowed-variable-warnings.patch
-scsi-replace-remaining-__function__-occurrences.patch
-fusion-replace-remaining-__function__-occurrences.patch
-scsi-replace-__inline-with-inline.patch
-scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
-scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
-xfs-use-get_unaligned_-helpers.patch
-xtensa-replace-remaining-__function__-occurences.patch
-fs-ldm-use-get_unaligned_-helpers.patch
-include-use-get-put_unaligned_-helpers.patch
-lzo-use-get-put_unaligned_-helpers.patch
+m32r-remove-the-unused-nohighmem-option.patch
+if-0-ses_match_host.patch
+git-xtensa.patch
+mm-migratec-should-include-linux-syscallsh.patch
+mm-vmstatc-proper-externs.patch
+mm-hugetlbc-fix-duplicate-variable.patch
+mm-page_allocc-cleanups.patch
+mm-make-register_page_bootmem_info_section-static.patch
+remove-include-asm-h8300-keyboardh.patch
+alpha-remove-the-unused-alpha_core_agp-option.patch
+remove-include-linux-pm_legacyh.patch
+mn10300-move-sg_dma_addresslen-to-asm-scatterlisth.patch
+remove-the-v850-port.patch
+init-do_mountsc-should-include-linux-initrdh.patch
+build-kernel-profileo-only-when-requested.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
 asm-generic-int-ll64h-always-provide-__su64.patch
-ecryptfs-cryptoc-use-unaligned-byteorder-helpers.patch
-ecryptfs-inodec-mmapc-use-unaligned-byteorder-helpers.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-isdn-use-the-common-ascii-hex-helpers.patch
-net-use-the-common-ascii-hex-helpers.patch
-cris-use-the-common-ascii-hex-helpers.patch
-frv-use-the-common-ascii-hex-helpers.patch
-mips-use-the-common-ascii-hex-helpers.patch
-ppc-use-the-common-ascii-hex-helpers.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-mn10300-use-the-common-ascii-hex-helpers.patch
+remove-some-more-tipar-bits.patch
+include-linux-kernelh-userspace-header-cleanup.patch
+remove-the-oss-trident-driver.patch
+config_sound_wm97xx-remove-stale-makefile-line.patch
+serial-8250_gscc-add-module_license.patch
+rtc-bcd-codeshrink.patch
+video-sis-remove-compat-code.patch
+drivers-video-amifbc-cleanups.patch
+minix-remove-no_truncate-code.patch
+jbd-unexport-journal_update_superblock.patch
+coda-remove-coda_fs_old_api.patch
+fat-dirc-switch-to-struct-__fat_dirent.patch
+remove-the-in-kernel-struct-dirent64.patch
+remove-unused-include-linux-direnths.patch
+include-asm-ptraceh-userspace-headers-cleanup.patch
+remove-is_tty.patch
+pty-remove-unused-unix98_pty_count-options.patch
+proper-extern-for-mwave_s_mdd.patch
+if-0-hpet_unregister.patch
+unexport-proc_clear_tty.patch
+move-proc_kmsg_operations-to-fs-proc-internalh.patch
+proper-pidhashmap_init-prototypes.patch
+unexport-uts_sem.patch
+parport-sharec-proper-externs.patch
+tpm_biosc-make-2-structs-static.patch
+drm-make-drm_minors_cleanup-static.patch
+make-cgroup_seqfile_release-static.patch
+make-pnp_add_card_id-static.patch
+make-parport_cs_release-static.patch
+make-mm-sparsec-make-a-function-static.patch
+mm-allocpercpuc-make-4-functions-static.patch
+make-mm-memoryc-print_bad_pte-static.patch
+mm-swapfilec-make-code-static.patch
+make-mm-rmapc-anon_vma_cachep-static.patch
+drivers-char-rtcc-make-2-functions-static.patch
+make-init-do_mountsc-root_device_name-static.patch
+make-macfb_setup-static.patch
+video-console-sticonrec-make-code-static.patch
+video-console-sticonrec-make-code-static-checkpatch-fixes.patch
+video-stifbc-make-2-functions-static.patch
+reiser4.patch
 
