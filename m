@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + alsa-fix-a-const-pointer-usage-warning-in-the-digigram-mixart-soundcard-driver.patch added to -mm tree
-Date: Fri, 11 Jul 2008 11:37:19 -0700
-Message-ID: <200807111843.m6BIh0st030696@imap1.linux-foundation.org>
+Subject: + acpi-fix-build-with-config_pm_sleep=n.patch added to -mm tree
+Date: Fri, 11 Jul 2008 11:37:10 -0700
+Message-ID: <200807111842.m6BIgops030684@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54309 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47436 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756363AbYGKSoA (ORCPT
+	by vger.kernel.org with ESMTP id S1754542AbYGKSoQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jul 2008 14:44:00 -0400
+	Fri, 11 Jul 2008 14:44:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com, tiwai@suse.de
+Cc: dhowells@redhat.com, andi@firstfloor.org, jbarnes@virtuousgeek.org, lenb@kernel.org, rjw@sisk.pl
 
 
 The patch titled
-     alsa: fix a const pointer usage warning in the Digigram miXart soundcard driver
+     acpi: fix build with CONFIG_PM_SLEEP=n
 has been added to the -mm tree.  Its filename is
-     alsa-fix-a-const-pointer-usage-warning-in-the-digigram-mixart-soundcard-driver.patch
+     acpi-fix-build-with-config_pm_sleep=n.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,37 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: alsa: fix a const pointer usage warning in the Digigram miXart soundcard driver
+Subject: acpi: fix build with CONFIG_PM_SLEEP=n
 From: David Howells <dhowells@redhat.com>
 
-Fix a const pointer usage warning in the Digigram miXart soundcard driver.  A
-const pointer is being passed to copy_from_user() to load the firmware into. 
-This is okay in this case because the function has allocated the firmware
-struct itself, but the const qualifier is part of the firmware struct - so the
-patch casts the const away.
-
-This was introduced by patch 0aa4937648b91e9e6d3879b2cbeaa5f0c9863ac0.
+Fix acpi_pm_device_sleep_wake() by providing a stub for CONFIG_PM_SLEEP=n.
 
 Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: Takashi Iwai <tiwai@suse.de>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Andi Kleen <andi@firstfloor.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/pci/mixart/mixart_hwdep.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/acpi/acpi_bus.h |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN sound/pci/mixart/mixart_hwdep.c~alsa-fix-a-const-pointer-usage-warning-in-the-digigram-mixart-soundcard-driver sound/pci/mixart/mixart_hwdep.c
---- a/sound/pci/mixart/mixart_hwdep.c~alsa-fix-a-const-pointer-usage-warning-in-the-digigram-mixart-soundcard-driver
-+++ a/sound/pci/mixart/mixart_hwdep.c
-@@ -613,7 +613,7 @@ static int mixart_hwdep_dsp_load(struct 
- 			   (int)dsp->length);
- 		return -ENOMEM;
- 	}
--	if (copy_from_user(fw.data, dsp->image, dsp->length)) {
-+	if (copy_from_user((void *) fw.data, dsp->image, dsp->length)) {
- 		vfree(fw.data);
- 		return -EFAULT;
- 	}
+diff -puN include/acpi/acpi_bus.h~acpi-fix-build-with-config_pm_sleep=n include/acpi/acpi_bus.h
+--- a/include/acpi/acpi_bus.h~acpi-fix-build-with-config_pm_sleep=n
++++ a/include/acpi/acpi_bus.h
+@@ -384,6 +384,10 @@ static inline int acpi_pm_device_sleep_s
+ 		*p = ACPI_STATE_D0;
+ 	return ACPI_STATE_D3;
+ }
++static inline int acpi_pm_device_sleep_wake(struct device *dev, bool enable)
++{
++	return -ENODEV;
++}
+ #endif /* !CONFIG_PM_SLEEP */
+ 
+ #endif				/* CONFIG_ACPI */
 _
 
 Patches currently in -mm which might be from dhowells@redhat.com are
