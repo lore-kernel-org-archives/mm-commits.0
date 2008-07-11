@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + fix-a-const-assignment-in-moxa_load_fw.patch added to -mm tree
-Date: Fri, 11 Jul 2008 11:43:35 -0700
-Message-ID: <200807111849.m6BInG1L031209@imap1.linux-foundation.org>
+Subject: + ip2-fix-iielliscleanup-as-it-is-static-but-not-always-used.patch added to -mm tree
+Date: Fri, 11 Jul 2008 11:43:33 -0700
+Message-ID: <200807111849.m6BInEqD031184@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50828 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40010 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755975AbYGKSth (ORCPT
+	by vger.kernel.org with ESMTP id S1755940AbYGKStf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jul 2008 14:49:37 -0400
+	Fri, 11 Jul 2008 14:49:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: dhowells@redhat.com, jirislaby@gmail.com
 
 
 The patch titled
-     moxa: fix a const assignment in moxa_load_fw()
+     ip2: fix iiEllisCleanup() as it is static but not always used
 has been added to the -mm tree.  Its filename is
-     fix-a-const-assignment-in-moxa_load_fw.patch
+     ip2-fix-iielliscleanup-as-it-is-static-but-not-always-used.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: moxa: fix a const assignment in moxa_load_fw()
+Subject: ip2: fix iiEllisCleanup() as it is static but not always used
 From: David Howells <dhowells@redhat.com>
 
-Fix an assignment of a const pointer to a non-const pointer in moxa_load_fw().
-
-This was introduced by patch 037182346f0991683cc7320a257c3f6089432cee.
+Fix iiEllisCleanup(), which is static but only used if the driver is being
+built as a module, by wrapping it in #ifdef MODULE as the function that calls
+it is.
 
 Signed-off-by: David Howells <dhowells@redhat.com>
 Cc: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/moxa.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/ip2/i2ellis.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/char/moxa.c~fix-a-const-assignment-in-moxa_load_fw drivers/char/moxa.c
---- a/drivers/char/moxa.c~fix-a-const-assignment-in-moxa_load_fw
-+++ a/drivers/char/moxa.c
-@@ -731,7 +731,7 @@ static int moxa_load_fw(struct moxa_boar
- 		u8 model;	/* C218T=1, C320T=2, CP204=3 */
- 		u8 reserved2[8];
- 		__le16 len[5];
--	} *hdr = ptr;
-+	} const *hdr = ptr;
+diff -puN drivers/char/ip2/i2ellis.c~ip2-fix-iielliscleanup-as-it-is-static-but-not-always-used drivers/char/ip2/i2ellis.c
+--- a/drivers/char/ip2/i2ellis.c~ip2-fix-iielliscleanup-as-it-is-static-but-not-always-used
++++ a/drivers/char/ip2/i2ellis.c
+@@ -95,10 +95,12 @@ iiEllisInit(void)
+ // This routine performs any required cleanup of the iiEllis subsystem.
+ //
+ //******************************************************************************
++#ifdef MODULE
+ static void
+ iiEllisCleanup(void)
+ {
+ }
++#endif
  
- 	BUILD_BUG_ON(ARRAY_SIZE(hdr->len) != ARRAY_SIZE(lens));
- 
+ //******************************************************************************
+ // Function:   iiSetAddress(pB, address, delay)
 _
 
 Patches currently in -mm which might be from dhowells@redhat.com are
