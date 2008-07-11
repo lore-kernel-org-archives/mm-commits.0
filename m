@@ -1,698 +1,322 @@
 From: akpm@linux-foundation.org
-Subject: - cdrom-revert-commit-22a9189-cdrom-use-kmalloced-buffers-instead-of-buffers-on-stack.patch removed from -mm tree
-Date: Fri, 11 Jul 2008 16:51:51 -0700
-Message-ID: <200807112351.m6BNppPA011079@imap1.linux-foundation.org>
+Subject: - crypto-use-kernel-provided-bitops-unaligned-access-helpers.patch removed from -mm tree
+Date: Fri, 11 Jul 2008 16:51:56 -0700
+Message-ID: <200807112351.m6BNpuAr011085@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34862 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43920 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756134AbYGKXwv (ORCPT
+	by vger.kernel.org with ESMTP id S1755656AbYGKXwc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jul 2008 19:52:51 -0400
+	Fri, 11 Jul 2008 19:52:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fujita.tomonori@lab.ntt.co.jp, James.Bottomley@HansenPartnership.com, bzolnier@gmail.com, htejun@gmail.com, jens.axboe@oracle.com, tsbogend@alpha.franken.de, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, herbert@gondor.apana.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cdrom: revert commit 22a9189 (cdrom: use kmalloced buffers instead of buffers on stack)
+     crypto: use kernel-provided bitops, unaligned access helpers
 has been removed from the -mm tree.  Its filename was
-     cdrom-revert-commit-22a9189-cdrom-use-kmalloced-buffers-instead-of-buffers-on-stack.patch
+     crypto-use-kernel-provided-bitops-unaligned-access-helpers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cdrom: revert commit 22a9189 (cdrom: use kmalloced buffers instead of buffers on stack)
-From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Subject: crypto: use kernel-provided bitops, unaligned access helpers
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-The commit 22a9189fd073db3d03a4cf8b8c098aa207602de1 (cdrom: use
-kmalloced buffers instead of buffers on stack) is introduced to use
-kmalloced buffers for packet commands to avoid stack corruption on non
-coherent platforms.
+Remove the private implementation of 32-bit rotation and unaligned access
+with byteswapping.
 
-SCSI cdrom uses blk_rq_map_kern, which properly avoids DMA on the
-stack by using the bounce buffers. IDE cdrom also has the mechnism to
-avoids DMA on the stack. So we don't need this extra complexitiy in
-cdrom.c, such as allocating just 8 bytes. The lower layers can handle
-it.
+As a bonus, fixes sparse warnings:
+crypto/camellia.c:602:2: warning: cast to restricted __be32
+crypto/camellia.c:603:2: warning: cast to restricted __be32
+crypto/camellia.c:604:2: warning: cast to restricted __be32
+crypto/camellia.c:605:2: warning: cast to restricted __be32
+crypto/camellia.c:710:2: warning: cast to restricted __be32
+crypto/camellia.c:711:2: warning: cast to restricted __be32
+crypto/camellia.c:712:2: warning: cast to restricted __be32
+crypto/camellia.c:713:2: warning: cast to restricted __be32
+crypto/camellia.c:714:2: warning: cast to restricted __be32
+crypto/camellia.c:715:2: warning: cast to restricted __be32
+crypto/camellia.c:716:2: warning: cast to restricted __be32
+crypto/camellia.c:717:2: warning: cast to restricted __be32
 
-Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Tejun Heo <htejun@gmail.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cdrom/cdrom.c |  274 +++++++++++++---------------------------
- 1 file changed, 93 insertions(+), 181 deletions(-)
+ crypto/camellia.c |   84 ++++++++++++++++++--------------------------
+ 1 file changed, 36 insertions(+), 48 deletions(-)
 
-diff -puN drivers/cdrom/cdrom.c~cdrom-revert-commit-22a9189-cdrom-use-kmalloced-buffers-instead-of-buffers-on-stack drivers/cdrom/cdrom.c
---- a/drivers/cdrom/cdrom.c~cdrom-revert-commit-22a9189-cdrom-use-kmalloced-buffers-instead-of-buffers-on-stack
-+++ a/drivers/cdrom/cdrom.c
-@@ -461,37 +461,27 @@ int cdrom_get_media_event(struct cdrom_d
- 			  struct media_event_desc *med)
- {
- 	struct packet_command cgc;
--	unsigned char *buffer;
--	struct event_header *eh;
--	int ret = 1;
--
--	buffer = kmalloc(8, GFP_KERNEL);
--	if (!buffer)
--		return -ENOMEM;
-+	unsigned char buffer[8];
-+	struct event_header *eh = (struct event_header *) buffer;
+diff -puN crypto/camellia.c~crypto-use-kernel-provided-bitops-unaligned-access-helpers crypto/camellia.c
+--- a/crypto/camellia.c~crypto-use-kernel-provided-bitops-unaligned-access-helpers
++++ a/crypto/camellia.c
+@@ -35,6 +35,8 @@
+ #include <linux/init.h>
+ #include <linux/kernel.h>
+ #include <linux/module.h>
++#include <linux/bitops.h>
++#include <asm/unaligned.h>
  
--	eh = (struct event_header *)buffer;
--
--	init_cdrom_command(&cgc, buffer, 8, CGC_DATA_READ);
-+	init_cdrom_command(&cgc, buffer, sizeof(buffer), CGC_DATA_READ);
- 	cgc.cmd[0] = GPCMD_GET_EVENT_STATUS_NOTIFICATION;
- 	cgc.cmd[1] = 1;		/* IMMED */
- 	cgc.cmd[4] = 1 << 4;	/* media event */
--	cgc.cmd[8] = 8;
-+	cgc.cmd[8] = sizeof(buffer);
- 	cgc.quiet = 1;
- 
- 	if (cdi->ops->generic_packet(cdi, &cgc))
--		goto err;
-+		return 1;
- 
- 	if (be16_to_cpu(eh->data_len) < sizeof(*med))
--		goto err;
-+		return 1;
- 
- 	if (eh->nea || eh->notification_class != 0x4)
--		goto err;
-+		return 1;
- 
--	memcpy(med, buffer + sizeof(*eh), sizeof(*med));
--	ret = 0;
--err:
--	kfree(buffer);
--	return ret;
-+	memcpy(med, &buffer[sizeof(*eh)], sizeof(*med));
-+	return 0;
- }
- 
+ static const u32 camellia_sp1110[256] = {
+ 	0x70707000,0x82828200,0x2c2c2c00,0xececec00,
+@@ -335,20 +337,6 @@ static const u32 camellia_sp4404[256] = 
  /*
-@@ -501,82 +491,68 @@ err:
- static int cdrom_mrw_probe_pc(struct cdrom_device_info *cdi)
- {
- 	struct packet_command cgc;
--	char *buffer;
--	int ret = 1;
+  *  macros
+  */
+-#define GETU32(v, pt) \
+-    do { \
+-	/* latest breed of gcc is clever enough to use move */ \
+-	memcpy(&(v), (pt), 4); \
+-	(v) = be32_to_cpu(v); \
+-    } while(0)
 -
--	buffer = kmalloc(16, GFP_KERNEL);
--	if (!buffer)
--		return -ENOMEM;
-+	char buffer[16];
- 
--	init_cdrom_command(&cgc, buffer, 16, CGC_DATA_READ);
-+	init_cdrom_command(&cgc, buffer, sizeof(buffer), CGC_DATA_READ);
- 
- 	cgc.timeout = HZ;
- 	cgc.quiet = 1;
- 
- 	if (!cdrom_mode_sense(cdi, &cgc, MRW_MODE_PC, 0)) {
- 		cdi->mrw_mode_page = MRW_MODE_PC;
--		ret = 0;
-+		return 0;
- 	} else if (!cdrom_mode_sense(cdi, &cgc, MRW_MODE_PC_PRE1, 0)) {
- 		cdi->mrw_mode_page = MRW_MODE_PC_PRE1;
--		ret = 0;
-+		return 0;
- 	}
--	kfree(buffer);
--	return ret;
-+
-+	return 1;
- }
- 
- static int cdrom_is_mrw(struct cdrom_device_info *cdi, int *write)
- {
- 	struct packet_command cgc;
- 	struct mrw_feature_desc *mfd;
--	unsigned char *buffer;
-+	unsigned char buffer[16];
- 	int ret;
- 
- 	*write = 0;
--	buffer = kmalloc(16, GFP_KERNEL);
--	if (!buffer)
--		return -ENOMEM;
- 
--	init_cdrom_command(&cgc, buffer, 16, CGC_DATA_READ);
-+	init_cdrom_command(&cgc, buffer, sizeof(buffer), CGC_DATA_READ);
- 
- 	cgc.cmd[0] = GPCMD_GET_CONFIGURATION;
- 	cgc.cmd[3] = CDF_MRW;
--	cgc.cmd[8] = 16;
-+	cgc.cmd[8] = sizeof(buffer);
- 	cgc.quiet = 1;
- 
- 	if ((ret = cdi->ops->generic_packet(cdi, &cgc)))
--		goto err;
-+		return ret;
- 
- 	mfd = (struct mrw_feature_desc *)&buffer[sizeof(struct feature_header)];
--	if (be16_to_cpu(mfd->feature_code) != CDF_MRW) {
--		ret = 1;
--		goto err;
--	}
-+	if (be16_to_cpu(mfd->feature_code) != CDF_MRW)
-+		return 1;
- 	*write = mfd->write;
- 
- 	if ((ret = cdrom_mrw_probe_pc(cdi))) {
- 		*write = 0;
-+		return ret;
- 	}
--err:
--	kfree(buffer);
--	return ret;
-+
-+	return 0;
- }
- 
- static int cdrom_mrw_bgformat(struct cdrom_device_info *cdi, int cont)
- {
- 	struct packet_command cgc;
--	unsigned char *buffer;
-+	unsigned char buffer[12];
- 	int ret;
- 
- 	printk(KERN_INFO "cdrom: %sstarting format\n", cont ? "Re" : "");
- 
--	buffer = kmalloc(12, GFP_KERNEL);
--	if (!buffer)
--		return -ENOMEM;
+-/* rotation right shift 1byte */
+-#define ROR8(x) (((x) >> 8) + ((x) << 24))
+-/* rotation left shift 1bit */
+-#define ROL1(x) (((x) << 1) + ((x) >> 31))
+-/* rotation left shift 1byte */
+-#define ROL8(x) (((x) << 8) + ((x) >> 24))
 -
- 	/*
- 	 * FmtData bit set (bit 4), format type is 1
+ #define ROLDQ(ll, lr, rl, rr, w0, w1, bits)		\
+     do {						\
+ 	w0 = ll;					\
+@@ -383,7 +371,7 @@ static const u32 camellia_sp4404[256] = 
+ 	   ^ camellia_sp3033[(u8)(il >> 8)]			\
+ 	   ^ camellia_sp4404[(u8)(il     )];			\
+ 	yl ^= yr;						\
+-	yr = ROR8(yr);						\
++	yr = ror32(yr, 8);					\
+ 	yr ^= yl;						\
+     } while(0)
+ 
+@@ -405,7 +393,7 @@ static void camellia_setup_tail(u32 *sub
+ 	subL[7] ^= subL[1]; subR[7] ^= subR[1];
+ 	subL[1] ^= subR[1] & ~subR[9];
+ 	dw = subL[1] & subL[9],
+-		subR[1] ^= ROL1(dw); /* modified for FLinv(kl2) */
++		subR[1] ^= rol32(dw, 1); /* modified for FLinv(kl2) */
+ 	/* round 8 */
+ 	subL[11] ^= subL[1]; subR[11] ^= subR[1];
+ 	/* round 10 */
+@@ -414,7 +402,7 @@ static void camellia_setup_tail(u32 *sub
+ 	subL[15] ^= subL[1]; subR[15] ^= subR[1];
+ 	subL[1] ^= subR[1] & ~subR[17];
+ 	dw = subL[1] & subL[17],
+-		subR[1] ^= ROL1(dw); /* modified for FLinv(kl4) */
++		subR[1] ^= rol32(dw, 1); /* modified for FLinv(kl4) */
+ 	/* round 14 */
+ 	subL[19] ^= subL[1]; subR[19] ^= subR[1];
+ 	/* round 16 */
+@@ -430,7 +418,7 @@ static void camellia_setup_tail(u32 *sub
+ 	} else {
+ 		subL[1] ^= subR[1] & ~subR[25];
+ 		dw = subL[1] & subL[25],
+-			subR[1] ^= ROL1(dw); /* modified for FLinv(kl6) */
++			subR[1] ^= rol32(dw, 1); /* modified for FLinv(kl6) */
+ 		/* round 20 */
+ 		subL[27] ^= subL[1]; subR[27] ^= subR[1];
+ 		/* round 22 */
+@@ -450,7 +438,7 @@ static void camellia_setup_tail(u32 *sub
+ 		subL[26] ^= kw4l; subR[26] ^= kw4r;
+ 		kw4l ^= kw4r & ~subR[24];
+ 		dw = kw4l & subL[24],
+-			kw4r ^= ROL1(dw); /* modified for FL(kl5) */
++			kw4r ^= rol32(dw, 1); /* modified for FL(kl5) */
+ 	}
+ 	/* round 17 */
+ 	subL[22] ^= kw4l; subR[22] ^= kw4r;
+@@ -460,7 +448,7 @@ static void camellia_setup_tail(u32 *sub
+ 	subL[18] ^= kw4l; subR[18] ^= kw4r;
+ 	kw4l ^= kw4r & ~subR[16];
+ 	dw = kw4l & subL[16],
+-		kw4r ^= ROL1(dw); /* modified for FL(kl3) */
++		kw4r ^= rol32(dw, 1); /* modified for FL(kl3) */
+ 	/* round 11 */
+ 	subL[14] ^= kw4l; subR[14] ^= kw4r;
+ 	/* round 9 */
+@@ -469,7 +457,7 @@ static void camellia_setup_tail(u32 *sub
+ 	subL[10] ^= kw4l; subR[10] ^= kw4r;
+ 	kw4l ^= kw4r & ~subR[8];
+ 	dw = kw4l & subL[8],
+-		kw4r ^= ROL1(dw); /* modified for FL(kl1) */
++		kw4r ^= rol32(dw, 1); /* modified for FL(kl1) */
+ 	/* round 5 */
+ 	subL[6] ^= kw4l; subR[6] ^= kw4r;
+ 	/* round 3 */
+@@ -494,7 +482,7 @@ static void camellia_setup_tail(u32 *sub
+ 	SUBKEY_R(6) = subR[5] ^ subR[7];
+ 	tl = subL[10] ^ (subR[10] & ~subR[8]);
+ 	dw = tl & subL[8],  /* FL(kl1) */
+-		tr = subR[10] ^ ROL1(dw);
++		tr = subR[10] ^ rol32(dw, 1);
+ 	SUBKEY_L(7) = subL[6] ^ tl; /* round 6 */
+ 	SUBKEY_R(7) = subR[6] ^ tr;
+ 	SUBKEY_L(8) = subL[8];       /* FL(kl1) */
+@@ -503,7 +491,7 @@ static void camellia_setup_tail(u32 *sub
+ 	SUBKEY_R(9) = subR[9];
+ 	tl = subL[7] ^ (subR[7] & ~subR[9]);
+ 	dw = tl & subL[9],  /* FLinv(kl2) */
+-		tr = subR[7] ^ ROL1(dw);
++		tr = subR[7] ^ rol32(dw, 1);
+ 	SUBKEY_L(10) = tl ^ subL[11]; /* round 7 */
+ 	SUBKEY_R(10) = tr ^ subR[11];
+ 	SUBKEY_L(11) = subL[10] ^ subL[12]; /* round 8 */
+@@ -516,7 +504,7 @@ static void camellia_setup_tail(u32 *sub
+ 	SUBKEY_R(14) = subR[13] ^ subR[15];
+ 	tl = subL[18] ^ (subR[18] & ~subR[16]);
+ 	dw = tl & subL[16], /* FL(kl3) */
+-		tr = subR[18] ^ ROL1(dw);
++		tr = subR[18] ^ rol32(dw, 1);
+ 	SUBKEY_L(15) = subL[14] ^ tl; /* round 12 */
+ 	SUBKEY_R(15) = subR[14] ^ tr;
+ 	SUBKEY_L(16) = subL[16];     /* FL(kl3) */
+@@ -525,7 +513,7 @@ static void camellia_setup_tail(u32 *sub
+ 	SUBKEY_R(17) = subR[17];
+ 	tl = subL[15] ^ (subR[15] & ~subR[17]);
+ 	dw = tl & subL[17], /* FLinv(kl4) */
+-		tr = subR[15] ^ ROL1(dw);
++		tr = subR[15] ^ rol32(dw, 1);
+ 	SUBKEY_L(18) = tl ^ subL[19]; /* round 13 */
+ 	SUBKEY_R(18) = tr ^ subR[19];
+ 	SUBKEY_L(19) = subL[18] ^ subL[20]; /* round 14 */
+@@ -544,7 +532,7 @@ static void camellia_setup_tail(u32 *sub
+ 	} else {
+ 		tl = subL[26] ^ (subR[26] & ~subR[24]);
+ 		dw = tl & subL[24], /* FL(kl5) */
+-			tr = subR[26] ^ ROL1(dw);
++			tr = subR[26] ^ rol32(dw, 1);
+ 		SUBKEY_L(23) = subL[22] ^ tl; /* round 18 */
+ 		SUBKEY_R(23) = subR[22] ^ tr;
+ 		SUBKEY_L(24) = subL[24];     /* FL(kl5) */
+@@ -553,7 +541,7 @@ static void camellia_setup_tail(u32 *sub
+ 		SUBKEY_R(25) = subR[25];
+ 		tl = subL[23] ^ (subR[23] & ~subR[25]);
+ 		dw = tl & subL[25], /* FLinv(kl6) */
+-			tr = subR[23] ^ ROL1(dw);
++			tr = subR[23] ^ rol32(dw, 1);
+ 		SUBKEY_L(26) = tl ^ subL[27]; /* round 19 */
+ 		SUBKEY_R(26) = tr ^ subR[27];
+ 		SUBKEY_L(27) = subL[26] ^ subL[28]; /* round 20 */
+@@ -573,17 +561,17 @@ static void camellia_setup_tail(u32 *sub
+ 	/* apply the inverse of the last half of P-function */
+ 	i = 2;
+ 	do {
+-		dw = SUBKEY_L(i + 0) ^ SUBKEY_R(i + 0); dw = ROL8(dw);/* round 1 */
++		dw = SUBKEY_L(i + 0) ^ SUBKEY_R(i + 0); dw = rol32(dw, 8);/* round 1 */
+ 		SUBKEY_R(i + 0) = SUBKEY_L(i + 0) ^ dw; SUBKEY_L(i + 0) = dw;
+-		dw = SUBKEY_L(i + 1) ^ SUBKEY_R(i + 1); dw = ROL8(dw);/* round 2 */
++		dw = SUBKEY_L(i + 1) ^ SUBKEY_R(i + 1); dw = rol32(dw, 8);/* round 2 */
+ 		SUBKEY_R(i + 1) = SUBKEY_L(i + 1) ^ dw; SUBKEY_L(i + 1) = dw;
+-		dw = SUBKEY_L(i + 2) ^ SUBKEY_R(i + 2); dw = ROL8(dw);/* round 3 */
++		dw = SUBKEY_L(i + 2) ^ SUBKEY_R(i + 2); dw = rol32(dw, 8);/* round 3 */
+ 		SUBKEY_R(i + 2) = SUBKEY_L(i + 2) ^ dw; SUBKEY_L(i + 2) = dw;
+-		dw = SUBKEY_L(i + 3) ^ SUBKEY_R(i + 3); dw = ROL8(dw);/* round 4 */
++		dw = SUBKEY_L(i + 3) ^ SUBKEY_R(i + 3); dw = rol32(dw, 8);/* round 4 */
+ 		SUBKEY_R(i + 3) = SUBKEY_L(i + 3) ^ dw; SUBKEY_L(i + 3) = dw;
+-		dw = SUBKEY_L(i + 4) ^ SUBKEY_R(i + 4); dw = ROL8(dw);/* round 5 */
++		dw = SUBKEY_L(i + 4) ^ SUBKEY_R(i + 4); dw = rol32(dw, 9);/* round 5 */
+ 		SUBKEY_R(i + 4) = SUBKEY_L(i + 4) ^ dw; SUBKEY_L(i + 4) = dw;
+-		dw = SUBKEY_L(i + 5) ^ SUBKEY_R(i + 5); dw = ROL8(dw);/* round 6 */
++		dw = SUBKEY_L(i + 5) ^ SUBKEY_R(i + 5); dw = rol32(dw, 8);/* round 6 */
+ 		SUBKEY_R(i + 5) = SUBKEY_L(i + 5) ^ dw; SUBKEY_L(i + 5) = dw;
+ 		i += 8;
+ 	} while (i < max);
+@@ -599,10 +587,10 @@ static void camellia_setup128(const unsi
+ 	/**
+ 	 *  k == kll || klr || krl || krr (|| is concatenation)
  	 */
--	init_cdrom_command(&cgc, buffer, 12, CGC_DATA_WRITE);
-+	init_cdrom_command(&cgc, buffer, sizeof(buffer), CGC_DATA_WRITE);
- 	cgc.cmd[0] = GPCMD_FORMAT_UNIT;
- 	cgc.cmd[1] = (1 << 4) | 1;
- 
-@@ -603,7 +579,6 @@ static int cdrom_mrw_bgformat(struct cdr
- 	if (ret)
- 		printk(KERN_INFO "cdrom: bgformat failed\n");
- 
--	kfree(buffer);
- 	return ret;
- }
- 
-@@ -663,17 +638,16 @@ static int cdrom_mrw_set_lba_space(struc
- {
- 	struct packet_command cgc;
- 	struct mode_page_header *mph;
--	char *buffer;
-+	char buffer[16];
- 	int ret, offset, size;
- 
--	buffer = kmalloc(16, GFP_KERNEL);
--	if (!buffer)
--		return -ENOMEM;
-+	init_cdrom_command(&cgc, buffer, sizeof(buffer), CGC_DATA_READ);
- 
--	init_cdrom_command(&cgc, buffer, 16, CGC_DATA_READ);
-+	cgc.buffer = buffer;
-+	cgc.buflen = sizeof(buffer);
- 
- 	if ((ret = cdrom_mode_sense(cdi, &cgc, cdi->mrw_mode_page, 0)))
--		goto err;
-+		return ret;
- 
- 	mph = (struct mode_page_header *) buffer;
- 	offset = be16_to_cpu(mph->desc_length);
-@@ -683,70 +657,55 @@ static int cdrom_mrw_set_lba_space(struc
- 	cgc.buflen = size;
- 
- 	if ((ret = cdrom_mode_select(cdi, &cgc)))
--		goto err;
-+		return ret;
- 
- 	printk(KERN_INFO "cdrom: %s: mrw address space %s selected\n", cdi->name, mrw_address_space[space]);
--	ret = 0;
--err:
--	kfree(buffer);
--	return ret;
-+	return 0;
- }
- 
- static int cdrom_get_random_writable(struct cdrom_device_info *cdi,
- 			      struct rwrt_feature_desc *rfd)
- {
- 	struct packet_command cgc;
--	char *buffer;
-+	char buffer[24];
- 	int ret;
- 
--	buffer = kmalloc(24, GFP_KERNEL);
--	if (!buffer)
--		return -ENOMEM;
--
--	init_cdrom_command(&cgc, buffer, 24, CGC_DATA_READ);
-+	init_cdrom_command(&cgc, buffer, sizeof(buffer), CGC_DATA_READ);
- 
- 	cgc.cmd[0] = GPCMD_GET_CONFIGURATION;	/* often 0x46 */
- 	cgc.cmd[3] = CDF_RWRT;			/* often 0x0020 */
--	cgc.cmd[8] = 24;		        /* often 0x18 */
-+	cgc.cmd[8] = sizeof(buffer);		/* often 0x18 */
- 	cgc.quiet = 1;
- 
- 	if ((ret = cdi->ops->generic_packet(cdi, &cgc)))
--		goto err;
-+		return ret;
- 
- 	memcpy(rfd, &buffer[sizeof(struct feature_header)], sizeof (*rfd));
--	ret = 0;
--err:
--	kfree(buffer);
--	return ret;
-+	return 0;
- }
- 
- static int cdrom_has_defect_mgt(struct cdrom_device_info *cdi)
- {
- 	struct packet_command cgc;
--	char *buffer;
-+	char buffer[16];
- 	__be16 *feature_code;
- 	int ret;
- 
--	buffer = kmalloc(16, GFP_KERNEL);
--	if (!buffer)
--		return -ENOMEM;
--
--	init_cdrom_command(&cgc, buffer, 16, CGC_DATA_READ);
-+	init_cdrom_command(&cgc, buffer, sizeof(buffer), CGC_DATA_READ);
- 
- 	cgc.cmd[0] = GPCMD_GET_CONFIGURATION;
- 	cgc.cmd[3] = CDF_HWDM;
--	cgc.cmd[8] = 16;
-+	cgc.cmd[8] = sizeof(buffer);
- 	cgc.quiet = 1;
- 
- 	if ((ret = cdi->ops->generic_packet(cdi, &cgc)))
--		goto err;
-+		return ret;
- 
- 	feature_code = (__be16 *) &buffer[sizeof(struct feature_header)];
- 	if (be16_to_cpu(*feature_code) == CDF_HWDM)
--		ret = 0;
--err:
--	kfree(buffer);
--	return ret;
-+		return 0;
-+
-+	return 1;
- }
- 
- 
-@@ -837,14 +796,10 @@ static int cdrom_mrw_open_write(struct c
- static int mo_open_write(struct cdrom_device_info *cdi)
- {
- 	struct packet_command cgc;
--	char *buffer;
-+	char buffer[255];
- 	int ret;
- 
--	buffer = kmalloc(255, GFP_KERNEL);
--	if (!buffer)
--		return -ENOMEM;
--
--	init_cdrom_command(&cgc, buffer, 4, CGC_DATA_READ);
-+	init_cdrom_command(&cgc, &buffer, 4, CGC_DATA_READ);
- 	cgc.quiet = 1;
- 
- 	/*
-@@ -861,15 +816,10 @@ static int mo_open_write(struct cdrom_de
- 	}
- 
- 	/* drive gave us no info, let the user go ahead */
--	if (ret) {
--		ret = 0;
--		goto err;
--	}
-+	if (ret)
-+		return 0;
- 
--	ret = buffer[3] & 0x80;
--err:
--	kfree(buffer);
--	return ret;
-+	return buffer[3] & 0x80;
- }
- 
- static int cdrom_ram_open_write(struct cdrom_device_info *cdi)
-@@ -892,19 +842,15 @@ static int cdrom_ram_open_write(struct c
- static void cdrom_mmc3_profile(struct cdrom_device_info *cdi)
- {
- 	struct packet_command cgc;
--	char *buffer;
-+	char buffer[32];
- 	int ret, mmc3_profile;
- 
--	buffer = kmalloc(32, GFP_KERNEL);
--	if (!buffer)
--		return;
--
--	init_cdrom_command(&cgc, buffer, 32, CGC_DATA_READ);
-+	init_cdrom_command(&cgc, buffer, sizeof(buffer), CGC_DATA_READ);
- 
- 	cgc.cmd[0] = GPCMD_GET_CONFIGURATION;
- 	cgc.cmd[1] = 0;
- 	cgc.cmd[2] = cgc.cmd[3] = 0;		/* Starting Feature Number */
--	cgc.cmd[8] = 32;		        /* Allocation Length */
-+	cgc.cmd[8] = sizeof(buffer);		/* Allocation Length */
- 	cgc.quiet = 1;
- 
- 	if ((ret = cdi->ops->generic_packet(cdi, &cgc)))
-@@ -913,7 +859,6 @@ static void cdrom_mmc3_profile(struct cd
- 		mmc3_profile = (buffer[6] << 8) | buffer[7];
- 
- 	cdi->mmc3_profile = mmc3_profile;
--	kfree(buffer);
- }
- 
- static int cdrom_is_dvd_rw(struct cdrom_device_info *cdi)
-@@ -1624,15 +1569,12 @@ static void setup_send_key(struct packet
- static int dvd_do_auth(struct cdrom_device_info *cdi, dvd_authinfo *ai)
- {
- 	int ret;
--	u_char *buf;
-+	u_char buf[20];
- 	struct packet_command cgc;
- 	struct cdrom_device_ops *cdo = cdi->ops;
--	rpc_state_t *rpc_state;
--
--	buf = kzalloc(20, GFP_KERNEL);
--	if (!buf)
--		return -ENOMEM;
-+	rpc_state_t rpc_state;
- 
-+	memset(buf, 0, sizeof(buf));
- 	init_cdrom_command(&cgc, buf, 0, CGC_DATA_READ);
- 
- 	switch (ai->type) {
-@@ -1643,7 +1585,7 @@ static int dvd_do_auth(struct cdrom_devi
- 		setup_report_key(&cgc, ai->lsa.agid, 0);
- 
- 		if ((ret = cdo->generic_packet(cdi, &cgc)))
--			goto err;
-+			return ret;
- 
- 		ai->lsa.agid = buf[7] >> 6;
- 		/* Returning data, let host change state */
-@@ -1654,7 +1596,7 @@ static int dvd_do_auth(struct cdrom_devi
- 		setup_report_key(&cgc, ai->lsk.agid, 2);
- 
- 		if ((ret = cdo->generic_packet(cdi, &cgc)))
--			goto err;
-+			return ret;
- 
- 		copy_key(ai->lsk.key, &buf[4]);
- 		/* Returning data, let host change state */
-@@ -1665,7 +1607,7 @@ static int dvd_do_auth(struct cdrom_devi
- 		setup_report_key(&cgc, ai->lsc.agid, 1);
- 
- 		if ((ret = cdo->generic_packet(cdi, &cgc)))
--			goto err;
-+			return ret;
- 
- 		copy_chal(ai->lsc.chal, &buf[4]);
- 		/* Returning data, let host change state */
-@@ -1682,7 +1624,7 @@ static int dvd_do_auth(struct cdrom_devi
- 		cgc.cmd[2] = ai->lstk.lba >> 24;
- 
- 		if ((ret = cdo->generic_packet(cdi, &cgc)))
--			goto err;
-+			return ret;
- 
- 		ai->lstk.cpm = (buf[4] >> 7) & 1;
- 		ai->lstk.cp_sec = (buf[4] >> 6) & 1;
-@@ -1696,7 +1638,7 @@ static int dvd_do_auth(struct cdrom_devi
- 		setup_report_key(&cgc, ai->lsasf.agid, 5);
- 		
- 		if ((ret = cdo->generic_packet(cdi, &cgc)))
--			goto err;
-+			return ret;
- 
- 		ai->lsasf.asf = buf[7] & 1;
- 		break;
-@@ -1709,7 +1651,7 @@ static int dvd_do_auth(struct cdrom_devi
- 		copy_chal(&buf[4], ai->hsc.chal);
- 
- 		if ((ret = cdo->generic_packet(cdi, &cgc)))
--			goto err;
-+			return ret;
- 
- 		ai->type = DVD_LU_SEND_KEY1;
- 		break;
-@@ -1722,7 +1664,7 @@ static int dvd_do_auth(struct cdrom_devi
- 
- 		if ((ret = cdo->generic_packet(cdi, &cgc))) {
- 			ai->type = DVD_AUTH_FAILURE;
--			goto err;
-+			return ret;
- 		}
- 		ai->type = DVD_AUTH_ESTABLISHED;
- 		break;
-@@ -1733,23 +1675,24 @@ static int dvd_do_auth(struct cdrom_devi
- 		cdinfo(CD_DVD, "entering DVD_INVALIDATE_AGID\n"); 
- 		setup_report_key(&cgc, ai->lsa.agid, 0x3f);
- 		if ((ret = cdo->generic_packet(cdi, &cgc)))
--			goto err;
-+			return ret;
- 		break;
- 
- 	/* Get region settings */
- 	case DVD_LU_SEND_RPC_STATE:
- 		cdinfo(CD_DVD, "entering DVD_LU_SEND_RPC_STATE\n");
- 		setup_report_key(&cgc, 0, 8);
-+		memset(&rpc_state, 0, sizeof(rpc_state_t));
-+		cgc.buffer = (char *) &rpc_state;
- 
- 		if ((ret = cdo->generic_packet(cdi, &cgc)))
--			goto err;
-+			return ret;
- 
--		rpc_state = (rpc_state_t *)buf;
--		ai->lrpcs.type = rpc_state->type_code;
--		ai->lrpcs.vra = rpc_state->vra;
--		ai->lrpcs.ucca = rpc_state->ucca;
--		ai->lrpcs.region_mask = rpc_state->region_mask;
--		ai->lrpcs.rpc_scheme = rpc_state->rpc_scheme;
-+		ai->lrpcs.type = rpc_state.type_code;
-+		ai->lrpcs.vra = rpc_state.vra;
-+		ai->lrpcs.ucca = rpc_state.ucca;
-+		ai->lrpcs.region_mask = rpc_state.region_mask;
-+		ai->lrpcs.rpc_scheme = rpc_state.rpc_scheme;
- 		break;
- 
- 	/* Set region settings */
-@@ -1760,23 +1703,20 @@ static int dvd_do_auth(struct cdrom_devi
- 		buf[4] = ai->hrpcs.pdrc;
- 
- 		if ((ret = cdo->generic_packet(cdi, &cgc)))
--			goto err;
-+			return ret;
- 		break;
- 
- 	default:
- 		cdinfo(CD_WARNING, "Invalid DVD key ioctl (%d)\n", ai->type);
--		ret = -ENOTTY;
--		goto err;
-+		return -ENOTTY;
- 	}
--	ret = 0;
--err:
--	kfree(buf);
--	return ret;
-+
-+	return 0;
- }
- 
- static int dvd_read_physical(struct cdrom_device_info *cdi, dvd_struct *s)
- {
--	unsigned char *buf, *base;
-+	unsigned char buf[21], *base;
- 	struct dvd_layer *layer;
- 	struct packet_command cgc;
- 	struct cdrom_device_ops *cdo = cdi->ops;
-@@ -1785,11 +1725,7 @@ static int dvd_read_physical(struct cdro
- 	if (layer_num >= DVD_LAYERS)
- 		return -EINVAL;
- 
--	buf = kmalloc(21, GFP_KERNEL);
--	if (!buf)
--		return -ENOMEM;
--
--	init_cdrom_command(&cgc, buf, 21, CGC_DATA_READ);
-+	init_cdrom_command(&cgc, buf, sizeof(buf), CGC_DATA_READ);
- 	cgc.cmd[0] = GPCMD_READ_DVD_STRUCTURE;
- 	cgc.cmd[6] = layer_num;
- 	cgc.cmd[7] = s->type;
-@@ -1801,7 +1737,7 @@ static int dvd_read_physical(struct cdro
- 	cgc.quiet = 1;
- 
- 	if ((ret = cdo->generic_packet(cdi, &cgc)))
--		goto err;
-+		return ret;
- 
- 	base = &buf[4];
- 	layer = &s->physical.layer[layer_num];
-@@ -1825,24 +1761,17 @@ static int dvd_read_physical(struct cdro
- 	layer->end_sector_l0 = base[13] << 16 | base[14] << 8 | base[15];
- 	layer->bca = base[16] >> 7;
- 
--	ret = 0;
--err:
--	kfree(buf);
--	return ret;
-+	return 0;
- }
- 
- static int dvd_read_copyright(struct cdrom_device_info *cdi, dvd_struct *s)
- {
- 	int ret;
--	u_char *buf;
-+	u_char buf[8];
- 	struct packet_command cgc;
- 	struct cdrom_device_ops *cdo = cdi->ops;
- 
--	buf = kmalloc(8, GFP_KERNEL);
--	if (!buf)
--		return -ENOMEM;
--
--	init_cdrom_command(&cgc, buf, 8, CGC_DATA_READ);
-+	init_cdrom_command(&cgc, buf, sizeof(buf), CGC_DATA_READ);
- 	cgc.cmd[0] = GPCMD_READ_DVD_STRUCTURE;
- 	cgc.cmd[6] = s->copyright.layer_num;
- 	cgc.cmd[7] = s->type;
-@@ -1850,15 +1779,12 @@ static int dvd_read_copyright(struct cdr
- 	cgc.cmd[9] = cgc.buflen & 0xff;
- 
- 	if ((ret = cdo->generic_packet(cdi, &cgc)))
--		goto err;
-+		return ret;
- 
- 	s->copyright.cpst = buf[4];
- 	s->copyright.rmi = buf[5];
- 
--	ret = 0;
--err:
--	kfree(buf);
--	return ret;
-+	return 0;
- }
- 
- static int dvd_read_disckey(struct cdrom_device_info *cdi, dvd_struct *s)
-@@ -1890,33 +1816,26 @@ static int dvd_read_disckey(struct cdrom
- static int dvd_read_bca(struct cdrom_device_info *cdi, dvd_struct *s)
- {
- 	int ret;
--	u_char *buf;
-+	u_char buf[4 + 188];
- 	struct packet_command cgc;
- 	struct cdrom_device_ops *cdo = cdi->ops;
- 
--	buf = kmalloc(4 + 188, GFP_KERNEL);
--	if (!buf)
--		return -ENOMEM;
--
--	init_cdrom_command(&cgc, buf, 4 + 188, CGC_DATA_READ);
-+	init_cdrom_command(&cgc, buf, sizeof(buf), CGC_DATA_READ);
- 	cgc.cmd[0] = GPCMD_READ_DVD_STRUCTURE;
- 	cgc.cmd[7] = s->type;
- 	cgc.cmd[9] = cgc.buflen & 0xff;
- 
- 	if ((ret = cdo->generic_packet(cdi, &cgc)))
--		goto err;
-+		return ret;
- 
- 	s->bca.len = buf[0] << 8 | buf[1];
- 	if (s->bca.len < 12 || s->bca.len > 188) {
- 		cdinfo(CD_WARNING, "Received invalid BCA length (%d)\n", s->bca.len);
--		ret = -EIO;
--		goto err;
-+		return -EIO;
- 	}
- 	memcpy(s->bca.value, &buf[4], s->bca.len);
--	ret = 0;
--err:
--	kfree(buf);
--	return ret;
-+
-+	return 0;
- }
- 
- static int dvd_read_manufact(struct cdrom_device_info *cdi, dvd_struct *s)
-@@ -2016,13 +1935,9 @@ static int cdrom_read_subchannel(struct 
- {
- 	struct cdrom_device_ops *cdo = cdi->ops;
- 	struct packet_command cgc;
--	char *buffer;
-+	char buffer[32];
- 	int ret;
- 
--	buffer = kmalloc(32, GFP_KERNEL);
--	if (!buffer)
--		return -ENOMEM;
--
- 	init_cdrom_command(&cgc, buffer, 16, CGC_DATA_READ);
- 	cgc.cmd[0] = GPCMD_READ_SUBCHANNEL;
- 	cgc.cmd[1] = 2;     /* MSF addressing */
-@@ -2031,7 +1946,7 @@ static int cdrom_read_subchannel(struct 
- 	cgc.cmd[8] = 16;
- 
- 	if ((ret = cdo->generic_packet(cdi, &cgc)))
--		goto err;
-+		return ret;
- 
- 	subchnl->cdsc_audiostatus = cgc.buffer[1];
- 	subchnl->cdsc_format = CDROM_MSF;
-@@ -2046,10 +1961,7 @@ static int cdrom_read_subchannel(struct 
- 	subchnl->cdsc_absaddr.msf.second = cgc.buffer[10];
- 	subchnl->cdsc_absaddr.msf.frame = cgc.buffer[11];
- 
--	ret = 0;
--err:
--	kfree(buffer);
--	return ret;
-+	return 0;
- }
- 
- /*
+-	GETU32(kll, key     );
+-	GETU32(klr, key +  4);
+-	GETU32(krl, key +  8);
+-	GETU32(krr, key + 12);
++	kll = get_unaligned_be32(key);
++	klr = get_unaligned_be32(key + 4);
++	krl = get_unaligned_be32(key + 8);
++	krr = get_unaligned_be32(key + 12);
+ 
+ 	/* generate KL dependent subkeys */
+ 	/* kw1 */
+@@ -707,14 +695,14 @@ static void camellia_setup256(const unsi
+ 	 *  key = (kll || klr || krl || krr || krll || krlr || krrl || krrr)
+ 	 *  (|| is concatenation)
+ 	 */
+-	GETU32(kll,  key     );
+-	GETU32(klr,  key +  4);
+-	GETU32(krl,  key +  8);
+-	GETU32(krr,  key + 12);
+-	GETU32(krll, key + 16);
+-	GETU32(krlr, key + 20);
+-	GETU32(krrl, key + 24);
+-	GETU32(krrr, key + 28);
++	kll = get_unaligned_be32(key);
++	klr = get_unaligned_be32(key + 4);
++	krl = get_unaligned_be32(key + 8);
++	krr = get_unaligned_be32(key + 12);
++	krll = get_unaligned_be32(key + 16);
++	krlr = get_unaligned_be32(key + 20);
++	krrl = get_unaligned_be32(key + 24);
++	krrr = get_unaligned_be32(key + 28);
+ 
+ 	/* generate KL dependent subkeys */
+ 	/* kw1 */
+@@ -870,13 +858,13 @@ static void camellia_setup192(const unsi
+ 	t0 &= ll;							\
+ 	t2 |= rr;							\
+ 	rl ^= t2;							\
+-	lr ^= ROL1(t0);							\
++	lr ^= rol32(t0, 1);						\
+ 	t3 = krl;							\
+ 	t1 = klr;							\
+ 	t3 &= rl;							\
+ 	t1 |= lr;							\
+ 	ll ^= t1;							\
+-	rr ^= ROL1(t3);							\
++	rr ^= rol32(t3, 1);						\
+     } while(0)
+ 
+ #define CAMELLIA_ROUNDSM(xl, xr, kl, kr, yl, yr, il, ir)		\
+@@ -892,7 +880,7 @@ static void camellia_setup192(const unsi
+ 	il ^= kl;							\
+ 	ir ^= il ^ kr;							\
+ 	yl ^= ir;							\
+-	yr ^= ROR8(il) ^ ir;						\
++	yr ^= ror32(il, 8) ^ ir;						\
+     } while(0)
+ 
+ /* max = 24: 128bit encrypt, max = 32: 256bit encrypt */
 _
 
-Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
 linux-next.patch
-ide-use-the-dma-safe-check-for-req_type_ata_pc.patch
-ide-avoid-dma-on-the-stack-for-req_type_ata_pc.patch
-add-a-helper-function-to-test-if-an-object-is-on-the-stack.patch
-ide-cd-use-the-new-object_is_in_stack-helper.patch
-block-blk-mapc-use-the-new-object_is_on_stack-helper.patch
-clean-up-duplicated-alloc-free_thread_info.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-s2io.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support-fix-2.patch
-x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary.patch
-x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary-checkpatch-fixes.patch
+cifs-remove-global_extern-macro.patch
+mtd-mtdcharc-silence-sparse-warning.patch
+mtd-mtdcharc-remove-shadowed-variable-warnings.patch
+scsi-replace-remaining-__function__-occurrences.patch
+fusion-replace-remaining-__function__-occurrences.patch
+scsi-replace-__inline-with-inline.patch
+scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
+scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
+xfs-use-get_unaligned_-helpers.patch
+xtensa-replace-remaining-__function__-occurences.patch
+fs-ldm-use-get_unaligned_-helpers.patch
+include-use-get-put_unaligned_-helpers.patch
+lzo-use-get-put_unaligned_-helpers.patch
+asm-generic-int-ll64h-always-provide-__su64.patch
+ecryptfs-cryptoc-use-unaligned-byteorder-helpers.patch
+ecryptfs-inodec-mmapc-use-unaligned-byteorder-helpers.patch
+scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
+isdn-use-the-common-ascii-hex-helpers.patch
+net-use-the-common-ascii-hex-helpers.patch
+cris-use-the-common-ascii-hex-helpers.patch
+frv-use-the-common-ascii-hex-helpers.patch
+mips-use-the-common-ascii-hex-helpers.patch
+ppc-use-the-common-ascii-hex-helpers.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+mn10300-use-the-common-ascii-hex-helpers.patch
 
