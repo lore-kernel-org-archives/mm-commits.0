@@ -1,67 +1,382 @@
 From: akpm@linux-foundation.org
-Subject: - linux-next-fixups.patch removed from -mm tree
-Date: Fri, 11 Jul 2008 16:19:24 -0700
-Message-ID: <200807112319.m6BNJOQg009789@imap1.linux-foundation.org>
+Subject: - linux-next-git-rejects.patch removed from -mm tree
+Date: Fri, 11 Jul 2008 16:19:28 -0700
+Message-ID: <200807112319.m6BNJSGV009792@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40085 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49742 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752082AbYGKXTz (ORCPT
+	by vger.kernel.org with ESMTP id S1754261AbYGKXUA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jul 2008 19:19:55 -0400
+	Fri, 11 Jul 2008 19:20:00 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m6BNJOJH016624
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m6BNJS96016628
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 11 Jul 2008 16:19:25 -0700
+	for <mm-commits@vger.kernel.org>; Fri, 11 Jul 2008 16:19:29 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next-fixups
+     linux-next-git-rejects
 has been removed from the -mm tree.  Its filename was
-     linux-next-fixups.patch
+     linux-next-git-rejects.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-fixups
+Subject: linux-next-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/firmware.h |    4 ----
- 1 file changed, 4 deletions(-)
+ MAINTAINERS                |    7 -
+ drivers/ide/ide.c          |    7 -
+ drivers/mmc/host/sdhci.c   |  132 -----------------------------------
+ drivers/usb/core/hcd.c     |   10 --
+ drivers/usb/core/hub.c     |   19 -----
+ fs/proc/task_mmu.c         |   30 -------
+ include/linux/securebits.h |    7 -
+ kernel/softlockup.c        |    3 
+ 8 files changed, 215 deletions(-)
 
-diff -puN include/linux/firmware.h~linux-next-fixups include/linux/firmware.h
---- a/include/linux/firmware.h~linux-next-fixups
-+++ a/include/linux/firmware.h
-@@ -16,9 +16,7 @@ struct firmware {
+diff -puN arch/x86/Kconfig~linux-next-git-rejects arch/x86/Kconfig
+diff -puN drivers/char/tty_io.c~linux-next-git-rejects drivers/char/tty_io.c
+diff -puN drivers/media/video/Kconfig~linux-next-git-rejects drivers/media/video/Kconfig
+diff -puN drivers/usb/core/hub.c~linux-next-git-rejects drivers/usb/core/hub.c
+--- a/drivers/usb/core/hub.c~linux-next-git-rejects
++++ a/drivers/usb/core/hub.c
+@@ -711,14 +711,6 @@ enum hub_quiescing_type {
+ 	HUB_DISCONNECT, HUB_PRE_RESET, HUB_SUSPEND
+ };
  
- struct device;
- 
--<<<<<<< HEAD:include/linux/firmware.h
- #if defined(CONFIG_FW_LOADER) || (defined(CONFIG_FW_LOADER_MODULE) && defined(MODULE))
+-<<<<<<< HEAD:drivers/usb/core/hub.c
+-		/* Was the power session lost while we were suspended? */
+-		status = hub_port_status(hub, port1, &portstatus, &portchange);
+-
+-		/* If the device is gone, khubd will handle it later */
+-		if (status == 0 && !(portstatus & USB_PORT_STAT_CONNECTION))
+-			continue;
 -=======
- struct builtin_fw {
- 	char *name;
- 	void *data;
-@@ -37,8 +35,6 @@ struct builtin_fw {
- 	static const struct builtin_fw __fw_concat(__builtin_fw,__COUNTER__) \
- 	__used __section(.builtin_fw) = { name, blob, size }
+ static void hub_quiesce(struct usb_hub *hub, enum hub_quiescing_type type)
+ {
+ 	struct usb_device *hdev = hub->hdev;
+@@ -726,7 +718,6 @@ static void hub_quiesce(struct usb_hub *
  
--#if defined(CONFIG_FW_LOADER) || defined(CONFIG_FW_LOADER_MODULE)
-->>>>>>> FETCH_HEAD:include/linux/firmware.h
- int request_firmware(const struct firmware **fw, const char *name,
- 		     struct device *device);
- int request_firmware_nowait(
-diff -puN drivers/usb/misc/sisusbvga/sisusb.c~linux-next-fixups drivers/usb/misc/sisusbvga/sisusb.c
-diff -puN drivers/mmc/host/sdhci.c~linux-next-fixups drivers/mmc/host/sdhci.c
-diff -puN include/linux/securebits.h~linux-next-fixups include/linux/securebits.h
+ 	/* khubd and related activity won't re-trigger */
+ 	hub->quiescing = 1;
+->>>>>>> FETCH_HEAD:drivers/usb/core/hub.c
+ 
+ 	if (type != HUB_SUSPEND) {
+ 		/* Disconnect all the children */
+@@ -3089,16 +3080,6 @@ static void hub_events(void)
+ 			}
+ 		}
+ 
+-<<<<<<< HEAD:drivers/usb/core/hub.c
+-		hub->activating = 0;
+-
+-		/* If this is a root hub, tell the HCD it's okay to
+-		 * re-enable port-change interrupts now. */
+-		if (!hdev->parent && !hub->busy_bits[0])
+-			usb_enable_root_hub_irq(hdev->bus);
+-
+-=======
+->>>>>>> FETCH_HEAD:drivers/usb/core/hub.c
+ loop_autopm:
+ 		/* Allow autosuspend if we're not going to run again */
+ 		if (list_empty(&hub->event_list))
+diff -puN MAINTAINERS~linux-next-git-rejects MAINTAINERS
+--- a/MAINTAINERS~linux-next-git-rejects
++++ a/MAINTAINERS
+@@ -2857,17 +2857,10 @@ W:	http://0pointer.de/lennart/tchibo.htm
+ S:	Maintained
+ 
+ MULTIFUNCTION DEVICES (MFD)
+-<<<<<<< HEAD:MAINTAINERS
+-P:	Samuel Ortiz
+-M:	sameo@openedhand.com
+-L:	linux-kernel@vger.kernel.org
+-S:	Supported
+-=======
+ P:     Samuel Ortiz
+ M:     sameo@openedhand.com
+ L:     linux-kernel@vger.kernel.org
+ S:     Supported
+->>>>>>> FETCH_HEAD:MAINTAINERS
+ 
+ MULTIMEDIA CARD (MMC), SECURE DIGITAL (SD) AND SDIO SUBSYSTEM
+ P:	Pierre Ossman
+diff -puN drivers/ide/ide.c~linux-next-git-rejects drivers/ide/ide.c
+--- a/drivers/ide/ide.c~linux-next-git-rejects
++++ a/drivers/ide/ide.c
+@@ -232,14 +232,7 @@ void ide_unregister(ide_hwif_t *hwif)
+ 
+ 	if (hwif->dma_base)
+ 		ide_release_dma_engine(hwif);
+-<<<<<<< HEAD:drivers/ide/ide.c
+-
+-	spin_lock_irq(&ide_lock);
+-	/* restore hwif data to pristine status */
+-	ide_init_port_data(hwif, hwif->index);
+-=======
+ abort:
+->>>>>>> FETCH_HEAD:drivers/ide/ide.c
+ 	spin_unlock_irq(&ide_lock);
+ 
+ 	mutex_unlock(&ide_cfg_mtx);
+diff -puN drivers/mmc/host/sdhci.c~linux-next-git-rejects drivers/mmc/host/sdhci.c
+--- a/drivers/mmc/host/sdhci.c~linux-next-git-rejects
++++ a/drivers/mmc/host/sdhci.c
+@@ -32,138 +32,6 @@
+ 
+ static unsigned int debug_quirks = 0;
+ 
+-<<<<<<< HEAD:drivers/mmc/host/sdhci.c
+-/*
+- * Different quirks to handle when the hardware deviates from a strict
+- * interpretation of the SDHCI specification.
+- */
+-
+-/* Controller doesn't honor resets unless we touch the clock register */
+-#define SDHCI_QUIRK_CLOCK_BEFORE_RESET			(1<<0)
+-/* Controller has bad caps bits, but really supports DMA */
+-#define SDHCI_QUIRK_FORCE_DMA				(1<<1)
+-/* Controller doesn't like to be reset when there is no card inserted. */
+-#define SDHCI_QUIRK_NO_CARD_NO_RESET			(1<<2)
+-/* Controller doesn't like clearing the power reg before a change */
+-#define SDHCI_QUIRK_SINGLE_POWER_WRITE			(1<<3)
+-/* Controller has flaky internal state so reset it on each ios change */
+-#define SDHCI_QUIRK_RESET_CMD_DATA_ON_IOS		(1<<4)
+-/* Controller has an unusable DMA engine */
+-#define SDHCI_QUIRK_BROKEN_DMA				(1<<5)
+-/* Controller can only DMA from 32-bit aligned addresses */
+-#define SDHCI_QUIRK_32BIT_DMA_ADDR			(1<<6)
+-/* Controller can only DMA chunk sizes that are a multiple of 32 bits */
+-#define SDHCI_QUIRK_32BIT_DMA_SIZE			(1<<7)
+-/* Controller needs to be reset after each request to stay stable */
+-#define SDHCI_QUIRK_RESET_AFTER_REQUEST			(1<<8)
+-/* Controller needs voltage and power writes to happen separately */
+-#define SDHCI_QUIRK_NO_SIMULT_VDD_AND_POWER		(1<<9)
+-/* Controller has an off-by-one issue with timeout value */
+-#define SDHCI_QUIRK_INCR_TIMEOUT_CONTROL		(1<<10)
+-
+-static const struct pci_device_id pci_ids[] __devinitdata = {
+-	{
+-		.vendor		= PCI_VENDOR_ID_RICOH,
+-		.device		= PCI_DEVICE_ID_RICOH_R5C822,
+-		.subvendor	= PCI_VENDOR_ID_IBM,
+-		.subdevice	= PCI_ANY_ID,
+-		.driver_data	= SDHCI_QUIRK_CLOCK_BEFORE_RESET |
+-				  SDHCI_QUIRK_FORCE_DMA,
+-	},
+-
+-	{
+-		.vendor		= PCI_VENDOR_ID_RICOH,
+-		.device		= PCI_DEVICE_ID_RICOH_R5C822,
+-		.subvendor	= PCI_VENDOR_ID_SAMSUNG,
+-		.subdevice	= PCI_ANY_ID,
+-		.driver_data	= SDHCI_QUIRK_FORCE_DMA |
+-				  SDHCI_QUIRK_NO_CARD_NO_RESET,
+-	},
+-
+-	{
+-		.vendor		= PCI_VENDOR_ID_RICOH,
+-		.device		= PCI_DEVICE_ID_RICOH_R5C822,
+-		.subvendor	= PCI_ANY_ID,
+-		.subdevice	= PCI_ANY_ID,
+-		.driver_data	= SDHCI_QUIRK_FORCE_DMA,
+-	},
+-
+-	{
+-		.vendor		= PCI_VENDOR_ID_TI,
+-		.device		= PCI_DEVICE_ID_TI_XX21_XX11_SD,
+-		.subvendor	= PCI_ANY_ID,
+-		.subdevice	= PCI_ANY_ID,
+-		.driver_data	= SDHCI_QUIRK_FORCE_DMA,
+-	},
+-
+-	{
+-		.vendor		= PCI_VENDOR_ID_ENE,
+-		.device		= PCI_DEVICE_ID_ENE_CB712_SD,
+-		.subvendor	= PCI_ANY_ID,
+-		.subdevice	= PCI_ANY_ID,
+-		.driver_data	= SDHCI_QUIRK_SINGLE_POWER_WRITE |
+-				  SDHCI_QUIRK_BROKEN_DMA,
+-	},
+-
+-	{
+-		.vendor		= PCI_VENDOR_ID_ENE,
+-		.device		= PCI_DEVICE_ID_ENE_CB712_SD_2,
+-		.subvendor	= PCI_ANY_ID,
+-		.subdevice	= PCI_ANY_ID,
+-		.driver_data	= SDHCI_QUIRK_SINGLE_POWER_WRITE |
+-				  SDHCI_QUIRK_BROKEN_DMA,
+-	},
+-
+-	{
+-		.vendor         = PCI_VENDOR_ID_ENE,
+-		.device         = PCI_DEVICE_ID_ENE_CB714_SD,
+-		.subvendor      = PCI_ANY_ID,
+-		.subdevice      = PCI_ANY_ID,
+-		.driver_data    = SDHCI_QUIRK_SINGLE_POWER_WRITE |
+-				  SDHCI_QUIRK_RESET_CMD_DATA_ON_IOS |
+-				  SDHCI_QUIRK_BROKEN_DMA,
+-	},
+-
+-	{
+-		.vendor         = PCI_VENDOR_ID_ENE,
+-		.device         = PCI_DEVICE_ID_ENE_CB714_SD_2,
+-		.subvendor      = PCI_ANY_ID,
+-		.subdevice      = PCI_ANY_ID,
+-		.driver_data    = SDHCI_QUIRK_SINGLE_POWER_WRITE |
+-				  SDHCI_QUIRK_RESET_CMD_DATA_ON_IOS |
+-				  SDHCI_QUIRK_BROKEN_DMA,
+-	},
+-
+-	{
+-		.vendor         = PCI_VENDOR_ID_MARVELL,
+-		.device         = PCI_DEVICE_ID_MARVELL_CAFE_SD,
+-		.subvendor      = PCI_ANY_ID,
+-		.subdevice      = PCI_ANY_ID,
+-		.driver_data    = SDHCI_QUIRK_NO_SIMULT_VDD_AND_POWER |
+-				  SDHCI_QUIRK_INCR_TIMEOUT_CONTROL,
+-	},
+-
+-	{
+-		.vendor         = PCI_VENDOR_ID_JMICRON,
+-		.device         = PCI_DEVICE_ID_JMICRON_JMB38X_SD,
+-		.subvendor      = PCI_ANY_ID,
+-		.subdevice      = PCI_ANY_ID,
+-		.driver_data    = SDHCI_QUIRK_32BIT_DMA_ADDR |
+-				  SDHCI_QUIRK_32BIT_DMA_SIZE |
+-				  SDHCI_QUIRK_RESET_AFTER_REQUEST,
+-	},
+-
+-	{	/* Generic SD host controller */
+-		PCI_DEVICE_CLASS((PCI_CLASS_SYSTEM_SDHCI << 8), 0xFFFF00)
+-	},
+-
+-	{ /* end: all zeroes */ },
+-};
+-
+-MODULE_DEVICE_TABLE(pci, pci_ids);
+-
+-=======
+->>>>>>> FETCH_HEAD:drivers/mmc/host/sdhci.c
+ static void sdhci_prepare_data(struct sdhci_host *, struct mmc_data *);
+ static void sdhci_finish_data(struct sdhci_host *);
+ 
+diff -puN drivers/usb/core/hcd.c~linux-next-git-rejects drivers/usb/core/hcd.c
+--- a/drivers/usb/core/hcd.c~linux-next-git-rejects
++++ a/drivers/usb/core/hcd.c
+@@ -1709,21 +1709,11 @@ irqreturn_t usb_hcd_irq (int irq, void *
+ 		rc = IRQ_NONE;
+ 	} else {
+ 		set_bit(HCD_FLAG_SAW_IRQ, &hcd->flags);
+-<<<<<<< HEAD:drivers/usb/core/hcd.c
+ 
+ 		if (unlikely(hcd->state == HC_STATE_HALT))
+ 			usb_hc_died(hcd);
+ 		rc = IRQ_HANDLED;
+ 	}
+-
+-=======
+-
+-		if (unlikely(hcd->state == HC_STATE_HALT))
+-			usb_hc_died(hcd);
+-		rc = IRQ_HANDLED;
+-	}
+-
+->>>>>>> FETCH_HEAD:drivers/usb/core/hcd.c
+ 	local_irq_restore(flags);
+ 	return rc;
+ }
+diff -puN fs/proc/task_mmu.c~linux-next-git-rejects fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~linux-next-git-rejects
++++ a/fs/proc/task_mmu.c
+@@ -688,35 +688,6 @@ static ssize_t pagemap_read(struct file 
+ 	pm.out = (u64 *)buf;
+ 	pm.end = (u64 *)(buf + count);
+ 
+-<<<<<<< HEAD:fs/proc/task_mmu.c
+-	pagemap_walk.pmd_entry = pagemap_pte_range;
+-	pagemap_walk.pte_hole = pagemap_pte_hole;
+-	pagemap_walk.mm = mm;
+-	pagemap_walk.private = &pm;
+-
+-	src = *ppos;
+-	svpfn = src / PM_ENTRY_BYTES;
+-	start_vaddr = svpfn << PAGE_SHIFT;
+-	end_vaddr = TASK_SIZE_OF(task);
+-
+-	/* watch out for wraparound */
+-	if (svpfn > TASK_SIZE_OF(task) >> PAGE_SHIFT)
+-		start_vaddr = end_vaddr;
+-
+-	/*
+-	 * The odds are that this will stop walking way
+-	 * before end_vaddr, because the length of the
+-	 * user buffer is tracked in "pm", and the walk
+-	 * will stop when we hit the end of the buffer.
+-	 */
+-	ret = walk_page_range(start_vaddr, end_vaddr, &pagemap_walk);
+-	if (ret == PM_END_OF_BUFFER)
+-		ret = 0;
+-	/* don't need mmap_sem for these, but this looks cleaner */
+-	*ppos += (char *)pm.out - buf;
+-	if (!ret)
+-		ret = (char *)pm.out - buf;
+-=======
+ 	if (!ptrace_may_access(task, PTRACE_MODE_READ)) {
+ 		ret = -EIO;
+ 	} else {
+@@ -744,7 +715,6 @@ static ssize_t pagemap_read(struct file 
+ 		if (!ret)
+ 			ret = (char *)pm.out - buf;
+ 	}
+->>>>>>> FETCH_HEAD:fs/proc/task_mmu.c
+ 
+ out_pages:
+ 	for (; pagecount; pagecount--) {
+diff -puN include/linux/securebits.h~linux-next-git-rejects include/linux/securebits.h
+--- a/include/linux/securebits.h~linux-next-git-rejects
++++ a/include/linux/securebits.h
+@@ -12,16 +12,9 @@
+ #define SECURE_NOROOT			0
+ #define SECURE_NOROOT_LOCKED		1  /* make bit-0 immutable */
+ 
+-<<<<<<< HEAD:include/linux/securebits.h
+-/* When set, setuid to/from uid 0 does not trigger capability-"fixup".
+-   When unset, to provide compatiblility with old programs relying on
+-   set*uid to gain/lose privilege, transitions to/from uid 0 cause
+-   capabilities to be gained/lost. */
+-=======
+ /* When set, setuid to/from uid 0 does not trigger capability-"fixes"
+    to be compatible with old programs relying on set*uid to lose
+    privileges. When unset, setuid doesn't change privileges. */
+->>>>>>> FETCH_HEAD:include/linux/securebits.h
+ #define SECURE_NO_SETUID_FIXUP		2
+ #define SECURE_NO_SETUID_FIXUP_LOCKED	3  /* make bit-2 immutable */
+ 
+diff -puN kernel/softlockup.c~linux-next-git-rejects kernel/softlockup.c
+--- a/kernel/softlockup.c~linux-next-git-rejects
++++ a/kernel/softlockup.c
+@@ -145,10 +145,7 @@ void softlockup_tick(void)
+ 			this_cpu, now - touch_timestamp,
+ 			current->comm, task_pid_nr(current));
+ 	print_modules();
+-<<<<<<< HEAD:kernel/softlockup.c
+-=======
+ 	print_irqtrace_events(current);
+->>>>>>> FETCH_HEAD:kernel/softlockup.c
+ 	if (regs)
+ 		show_regs(regs);
+ 	else
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -69,7 +384,6 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 linux-next.patch
 next-remove-localversion.patch
-linux-next-fixups.patch
 linux-next-git-rejects.patch
 fix-kobject-fix-kobject_rename-and-config_sysfs.patch
 kvm-is-busted-on-ia64.patch
