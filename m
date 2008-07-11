@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + serial8250-sanity-check-nr_uarts-on-all-paths.patch added to -mm tree
-Date: Fri, 11 Jul 2008 14:54:36 -0700
-Message-ID: <200807112154.m6BLsavW006662@imap1.linux-foundation.org>
+Subject: + ov7670-clean-up-ov7670_read-semantics.patch added to -mm tree
+Date: Fri, 11 Jul 2008 15:18:19 -0700
+Message-ID: <200807112218.m6BMIJPi007528@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53203 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56179 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754205AbYGKVzI (ORCPT
+	by vger.kernel.org with ESMTP id S1756884AbYGKWTX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jul 2008 17:55:08 -0400
+	Fri, 11 Jul 2008 18:19:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, alan@redhat.com, stable@kernel.org
+Cc: dilinger@queued.net, corbet@lwn.net, csetlow@tower-research.com, dilinger@debian.org, stable@kernel.org
 
 
 The patch titled
-     serial8250: sanity check nr_uarts on all paths.
+     ov7670: clean up ov7670_read semantics
 has been added to the -mm tree.  Its filename is
-     serial8250-sanity-check-nr_uarts-on-all-paths.patch
+     ov7670-clean-up-ov7670_read-semantics.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,79 +34,54 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: serial8250: sanity check nr_uarts on all paths.
-From: Eric W. Biederman <ebiederm@xmission.com>
+Subject: ov7670: clean up ov7670_read semantics
+From: Andres Salomon <dilinger@queued.net>
 
-I had 8250.nr_uarts=16 in the boot line of a test kernel and I had a weird
-mysterious crash in sysfs.  After an taking in depth look I realized that
-CONFIG_SERIAL_8250_NR_UARTS was set to 4 and I was walking off the end of
-the serial8250_ports array.
+Cortland Setlow pointed out a bug in ov7670.c where the result from
+ov7670_read() was just being checked for !0, rather than <0.  This made me
+realize that ov7670_read's semantics were rather confusing; it both fills
+in 'value' with the result, and returns it.  This is goes against general
+kernel convention; so rather than fixing callers, let's fix the function.
 
-Ouch!!!
+This makes ov7670_read return <0 in the case of an error, and 0 upon
+success. Thus, code like:
 
-Don't let this happen to someone else.
+res = ov7670_read(...);
+if (!res)
+	goto error;
 
-Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Acked-by: Alan Cox <alan@redhat.com>
+..will work properly.
+
+Signed-off-by: Cortland Setlow <csetlow@tower-research.com>
+Signed-off-by: Andres Salomon <dilinger@debian.org>
+Acked-by: Jonathan Corbet <corbet@lwn.net>
 Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/media/video/ov7670.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/serial/8250.c~serial8250-sanity-check-nr_uarts-on-all-paths drivers/serial/8250.c
---- a/drivers/serial/8250.c~serial8250-sanity-check-nr_uarts-on-all-paths
-+++ a/drivers/serial/8250.c
-@@ -2623,6 +2623,9 @@ static struct console serial8250_console
+diff -puN drivers/media/video/ov7670.c~ov7670-clean-up-ov7670_read-semantics drivers/media/video/ov7670.c
+--- a/drivers/media/video/ov7670.c~ov7670-clean-up-ov7670_read-semantics
++++ a/drivers/media/video/ov7670.c
+@@ -406,8 +406,10 @@ static int ov7670_read(struct i2c_client
+ 	int ret;
  
- static int __init serial8250_console_init(void)
- {
-+	if (nr_uarts > UART_NR)
-+		nr_uarts = UART_NR;
-+
- 	serial8250_isa_init_ports();
- 	register_console(&serial8250_console);
- 	return 0;
+ 	ret = i2c_smbus_read_byte_data(c, reg);
+-	if (ret >= 0)
++	if (ret >= 0) {
+ 		*value = (unsigned char) ret;
++		ret = 0;
++	}
+ 	return ret;
+ }
+ 
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from dilinger@queued.net are
 
-serial8250-sanity-check-nr_uarts-on-all-paths.patch
+ov7670-clean-up-ov7670_read-semantics.patch
 linux-next.patch
-fix-kobject-fix-kobject_rename-and-config_sysfs.patch
-generic-irqs-enable-polling-for-disabled-screaming-irqs.patch
-memcg-remove-refcnt-from-page_cgroup.patch
-memcg-remove-refcnt-from-page_cgroup-fix.patch
-memcg-remove-refcnt-from-page_cgroup-fix-2.patch
-memcg-remove-refcnt-from-page_cgroup-fix-memcg-fix-mem_cgroup_end_migration-race.patch
-memcg-remove-refcnt-from-page_cgroup-memcg-fix-shmem_unuse_inode-charging.patch
-memcg-handle-swap-cache.patch
-memcg-handle-swap-cache-fix.patch
-memcg-handle-swap-cache-fix-shmem-page-migration-incorrectness-on-memcgroup.patch
-memcg-helper-function-for-relcaim-from-shmem.patch
-memcg-helper-function-for-relcaim-from-shmem-memcg-shmem_getpage-release-page-sooner.patch
-memcg-helper-function-for-relcaim-from-shmem-memcg-mem_cgroup_shrink_usage-css_put.patch
-memcg-add-hints-for-branch.patch
-memcg-remove-a-redundant-check.patch
-sysctl-check-for-bogus-modes.patch
-sysctl-allow-override-of-proc-sys-net-with-cap_net_admin.patch
-shrink-struct-pid-by-removing-padding-on-64-bit-builds.patch
-pidns-remove-now-unused-kill_proc-function.patch
-pidns-remove-now-unused-find_pid-function.patch
-pidns-remove-find_task_by_pid-unused-for-a-long-time.patch
-bsdacct-rename-acct_blbls-to-bsd_acct_struct.patch
-pidns-use-kzalloc-when-allocating-new-pid_namespace-struct.patch
-pidns-add-the-struct-bsd_acct_struct-pointer-on-pid_namespace-struct.patch
-bsdacct-truthify-a-comment-near-acct_process.patch
-bsdacct-make-check-timer-accept-a-bsd_acct_struct-argument.patch
-bsdacct-turn-the-acct_lock-from-on-the-struct-to-global.patch
-bsdacct-make-internal-code-work-with-passed-bsd_acct_struct-not-global.patch
-bsdacct-switch-from-global-bsd_acct_struct-instance-to-per-pidns-one.patch
-bsdacct-turn-acct-off-for-all-pidns-s-on-umount-time.patch
-bsdacct-account-dying-tasks-in-all-relevant-namespaces.patch
-kernel-kexecc-make-kimage_terminate-void.patch
-kexec-jump.patch
-kexec-jump-save-restore-device-state.patch
-proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
+lxfb-drop-dead-declarations-from-header.patch
 
