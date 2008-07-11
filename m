@@ -1,117 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - scsi-sr-avoids-useless-buffer-allocation.patch removed from -mm tree
-Date: Fri, 11 Jul 2008 16:51:49 -0700
-Message-ID: <200807112351.m6BNpnYr011076@imap1.linux-foundation.org>
+Subject: - drivers-block-pktcdvdc-avoid-useless-memset.patch removed from -mm tree
+Date: Fri, 11 Jul 2008 16:51:53 -0700
+Message-ID: <200807112351.m6BNprHa011082@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53139 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47587 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755154AbYGKXwH (ORCPT
+	by vger.kernel.org with ESMTP id S1755554AbYGKXwI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jul 2008 19:52:07 -0400
+	Fri, 11 Jul 2008 19:52:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fujita.tomonori@lab.ntt.co.jp, James.Bottomley@HansenPartnership.com, bzolnier@gmail.com, htejun@gmail.com, jens.axboe@oracle.com, tsbogend@alpha.franken.de, mm-commits@vger.kernel.org
+To: jaillet.christophe@wanadoo.fr, jens.axboe@oracle.com, petero2@telia.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scsi: sr avoids useless buffer allocation
+     drivers/block/pktcdvd.c: avoid useless memset
 has been removed from the -mm tree.  Its filename was
-     scsi-sr-avoids-useless-buffer-allocation.patch
+     drivers-block-pktcdvdc-avoid-useless-memset.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi: sr avoids useless buffer allocation
-From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Subject: drivers/block/pktcdvd.c: avoid useless memset
+From: Christophe Jaillet <jaillet.christophe@wanadoo.fr>
 
-blk_rq_map_kern can handle the stack buffers correctly (avoid DMA
-from/to the stack buffers by using the bounce buffer) so we don't need
-to complicate the code by allocating just 8 bytes.
+Avoid the 'memset(...,0, ...)' before calling 'init_cdrom_command' because
+this function already does it.
 
-Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Tejun Heo <htejun@gmail.com>
+Signed-off-by: Christophe Jaillet <jaillet.christophe@wanadoo.fr>
+Acked-by: Peter Osterlund <petero2@telia.com>
 Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/sr.c |   20 +++++---------------
- 1 file changed, 5 insertions(+), 15 deletions(-)
+ drivers/block/pktcdvd.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN drivers/scsi/sr.c~scsi-sr-avoids-useless-buffer-allocation drivers/scsi/sr.c
---- a/drivers/scsi/sr.c~scsi-sr-avoids-useless-buffer-allocation
-+++ a/drivers/scsi/sr.c
-@@ -673,24 +673,20 @@ fail:
- static void get_sectorsize(struct scsi_cd *cd)
- {
- 	unsigned char cmd[10];
--	unsigned char *buffer;
-+	unsigned char buffer[8];
- 	int the_result, retries = 3;
- 	int sector_size;
- 	struct request_queue *queue;
+diff -puN drivers/block/pktcdvd.c~drivers-block-pktcdvdc-avoid-useless-memset drivers/block/pktcdvd.c
+--- a/drivers/block/pktcdvd.c~drivers-block-pktcdvdc-avoid-useless-memset
++++ a/drivers/block/pktcdvd.c
+@@ -2082,7 +2082,6 @@ static noinline_for_stack int pkt_write_
+ 	unsigned char buf[64];
+ 	int ret;
  
--	buffer = kmalloc(512, GFP_KERNEL | GFP_DMA);
--	if (!buffer)
--		goto Enomem;
--
- 	do {
- 		cmd[0] = READ_CAPACITY;
- 		memset((void *) &cmd[1], 0, 9);
--		memset(buffer, 0, 8);
-+		memset(buffer, 0, sizeof(buffer));
+-	memset(buf, 0, sizeof(buf));
+ 	init_cdrom_command(&cgc, buf, sizeof(buf), CGC_DATA_READ);
+ 	cgc.sense = &sense;
+ 	cgc.buflen = pd->mode_offset + 12;
+@@ -2129,7 +2128,6 @@ static noinline_for_stack int pkt_get_ma
+ 	unsigned char *cap_buf;
+ 	int ret, offset;
  
- 		/* Do the command and wait.. */
- 		the_result = scsi_execute_req(cd->device, cmd, DMA_FROM_DEVICE,
--					      buffer, 8, NULL, SR_TIMEOUT,
--					      MAX_RETRIES);
-+					      buffer, sizeof(buffer), NULL,
-+					      SR_TIMEOUT, MAX_RETRIES);
- 
- 		retries--;
- 
-@@ -745,14 +741,8 @@ static void get_sectorsize(struct scsi_c
- 
- 	queue = cd->device->request_queue;
- 	blk_queue_hardsect_size(queue, sector_size);
--out:
--	kfree(buffer);
--	return;
- 
--Enomem:
--	cd->capacity = 0x1fffff;
--	cd->device->sector_size = 2048;	/* A guess, just in case */
--	goto out;
-+	return;
- }
- 
- static void get_capabilities(struct scsi_cd *cd)
+-	memset(buf, 0, sizeof(buf));
+ 	cap_buf = &buf[sizeof(struct mode_page_header) + pd->mode_offset];
+ 	init_cdrom_command(&cgc, buf, sizeof(buf), CGC_DATA_UNKNOWN);
+ 	cgc.sense = &sense;
 _
 
-Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
+Patches currently in -mm which might be from jaillet.christophe@wanadoo.fr are
 
 linux-next.patch
-ide-use-the-dma-safe-check-for-req_type_ata_pc.patch
-ide-avoid-dma-on-the-stack-for-req_type_ata_pc.patch
-add-a-helper-function-to-test-if-an-object-is-on-the-stack.patch
-ide-cd-use-the-new-object_is_in_stack-helper.patch
-block-blk-mapc-use-the-new-object_is_on_stack-helper.patch
-clean-up-duplicated-alloc-free_thread_info.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-s2io.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support-fix-2.patch
-x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary.patch
-x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary-checkpatch-fixes.patch
+drivers-media-video-videobuf-dma-sgc-avoid-clearing-memory-twice.patch
 
