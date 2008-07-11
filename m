@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-create-sys-kernel-mm.patch added to -mm tree
-Date: Fri, 11 Jul 2008 11:39:46 -0700
-Message-ID: <200807111845.m6BIjRHU030959@imap1.linux-foundation.org>
+Subject: + pm-add-new-pm_event-codes-for-runtime-power-transitions.patch added to -mm tree
+Date: Fri, 11 Jul 2008 11:40:37 -0700
+Message-ID: <200807111846.m6BIkIfP031006@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46894 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56086 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754372AbYGKSqS (ORCPT
+	by vger.kernel.org with ESMTP id S1751434AbYGKSqd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jul 2008 14:46:18 -0400
+	Fri, 11 Jul 2008 14:46:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nacc@us.ibm.com, mel@csn.ul.ie, nickpiggin@yahoo.com.au
+Cc: stern@rowland.harvard.edu, pavel@ucw.cz, rjw@sisk.pl
 
 
 The patch titled
-     mm: create /sys/kernel/mm
+     pm: add new PM_EVENT codes for runtime power transitions
 has been added to the -mm tree.  Its filename is
-     mm-create-sys-kernel-mm.patch
+     pm-add-new-pm_event-codes-for-runtime-power-transitions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,95 +34,92 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: create /sys/kernel/mm
-From: Nishanth Aravamudan <nacc@us.ibm.com>
+Subject: pm: add new PM_EVENT codes for runtime power transitions
+From: Alan Stern <stern@rowland.harvard.edu>
 
-Add a kobject to create /sys/kernel/mm when sysfs is mounted.  The kobject
-will exist regardless.  This will allow for the hugepage related sysfs
-directories to exist under the mm "subsystem" directory.  Add an ABI file
-appropriately.
+This patch (as1112) adds some new PM_EVENT_* codes for use by kernel
+subsystems.  They describe runtime power-state transitions of the sort already
+implemented by the USB subsystem.
 
-Signed-off-by: Nishanth Aravamudan <nacc@us.ibm.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-kernel-mm |    6 ++++++
- include/linux/kobject.h                   |    2 ++
- mm/mm_init.c                              |   15 +++++++++++++++
- 3 files changed, 23 insertions(+)
+ include/linux/pm.h |   39 ++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 36 insertions(+), 3 deletions(-)
 
-diff -puN /dev/null Documentation/ABI/testing/sysfs-kernel-mm
---- /dev/null
-+++ a/Documentation/ABI/testing/sysfs-kernel-mm
-@@ -0,0 +1,6 @@
-+What:		/sys/kernel/mm
-+Date:		July 2008
-+Contact:	Nishanth Aravamudan <nacc@us.ibm.com>, VM maintainers
-+Description:
-+		/sys/kernel/mm/ should contain any and all VM
-+		related information in /sys/kernel/.
-diff -puN include/linux/kobject.h~mm-create-sys-kernel-mm include/linux/kobject.h
---- a/include/linux/kobject.h~mm-create-sys-kernel-mm
-+++ a/include/linux/kobject.h
-@@ -186,6 +186,8 @@ extern struct kobject *kset_find_obj(str
- 
- /* The global /sys/kernel/ kobject for people to chain off of */
- extern struct kobject *kernel_kobj;
-+/* The global /sys/kernel/mm/ kobject for people to chain off of */
-+extern struct kobject *mm_kobj;
- /* The global /sys/hypervisor/ kobject for people to chain off of */
- extern struct kobject *hypervisor_kobj;
- /* The global /sys/power/ kobject for people to chain off of */
-diff -puN mm/mm_init.c~mm-create-sys-kernel-mm mm/mm_init.c
---- a/mm/mm_init.c~mm-create-sys-kernel-mm
-+++ a/mm/mm_init.c
-@@ -7,6 +7,7 @@
+diff -puN include/linux/pm.h~pm-add-new-pm_event-codes-for-runtime-power-transitions include/linux/pm.h
+--- a/include/linux/pm.h~pm-add-new-pm_event-codes-for-runtime-power-transitions
++++ a/include/linux/pm.h
+@@ -245,6 +245,21 @@ struct pm_ext_ops {
+  * RECOVER	Creation of a hibernation image or restoration of the main
+  *		memory contents from a hibernation image has failed, call
+  *		->thaw() and ->complete() for all devices.
++ *
++ * The following PM_EVENT_ messages are defined for internal use by
++ * kernel subsystems.  They are never issued by the PM core.
++ *
++ * USER_SUSPEND		Manual selective suspend was issued by userspace.
++ *
++ * USER_RESUME		Manual selective resume was issued by userspace.
++ *
++ * REMOTE_WAKEUP	Remote-wakeup request was received from the device.
++ *
++ * AUTO_SUSPEND		Automatic (device idle) runtime suspend was
++ *			initiated by the subsystem.
++ *
++ * AUTO_RESUME		Automatic (device needed) runtime resume was
++ *			requested by a driver.
   */
- #include <linux/kernel.h>
- #include <linux/init.h>
-+#include <linux/kobject.h>
- #include "internal.h"
  
- #ifdef CONFIG_DEBUG_MEMORY_INIT
-@@ -134,3 +135,17 @@ static __init int set_mminit_loglevel(ch
- }
- early_param("mminit_loglevel", set_mminit_loglevel);
- #endif /* CONFIG_DEBUG_MEMORY_INIT */
+ #define PM_EVENT_ON		0x0000
+@@ -256,9 +271,18 @@ struct pm_ext_ops {
+ #define PM_EVENT_THAW		0x0020
+ #define PM_EVENT_RESTORE	0x0040
+ #define PM_EVENT_RECOVER	0x0080
++#define PM_EVENT_USER		0x0100
++#define PM_EVENT_REMOTE		0x0200
++#define PM_EVENT_AUTO		0x0400
 +
-+struct kobject *mm_kobj;
-+EXPORT_SYMBOL_GPL(mm_kobj);
-+
-+static int __init mm_sysfs_init(void)
-+{
-+	mm_kobj = kobject_create_and_add("mm", kernel_kobj);
-+	if (!mm_kobj)
-+		return -ENOMEM;
-+
-+	return 0;
-+}
-+
-+__initcall(mm_sysfs_init);
++#define PM_EVENT_SLEEP		(PM_EVENT_SUSPEND | PM_EVENT_HIBERNATE)
++#define PM_EVENT_USER_SUSPEND	(PM_EVENT_USER | PM_EVENT_SUSPEND)
++#define PM_EVENT_USER_RESUME	(PM_EVENT_USER | PM_EVENT_RESUME)
++#define PM_EVENT_REMOTE_WAKEUP	(PM_EVENT_REMOTE | PM_EVENT_RESUME)
++#define PM_EVENT_AUTO_SUSPEND	(PM_EVENT_AUTO | PM_EVENT_SUSPEND)
++#define PM_EVENT_AUTO_RESUME	(PM_EVENT_AUTO | PM_EVENT_RESUME)
+ 
+-#define PM_EVENT_SLEEP	(PM_EVENT_SUSPEND | PM_EVENT_HIBERNATE)
+-
++#define PMSG_ON		((struct pm_message){ .event = PM_EVENT_ON, })
+ #define PMSG_FREEZE	((struct pm_message){ .event = PM_EVENT_FREEZE, })
+ #define PMSG_QUIESCE	((struct pm_message){ .event = PM_EVENT_QUIESCE, })
+ #define PMSG_SUSPEND	((struct pm_message){ .event = PM_EVENT_SUSPEND, })
+@@ -267,7 +291,16 @@ struct pm_ext_ops {
+ #define PMSG_THAW	((struct pm_message){ .event = PM_EVENT_THAW, })
+ #define PMSG_RESTORE	((struct pm_message){ .event = PM_EVENT_RESTORE, })
+ #define PMSG_RECOVER	((struct pm_message){ .event = PM_EVENT_RECOVER, })
+-#define PMSG_ON		((struct pm_message){ .event = PM_EVENT_ON, })
++#define PMSG_USER_SUSPEND	((struct pm_messge) \
++					{ .event = PM_EVENT_USER_SUSPEND, })
++#define PMSG_USER_RESUME	((struct pm_messge) \
++					{ .event = PM_EVENT_USER_RESUME, })
++#define PMSG_REMOTE_RESUME	((struct pm_messge) \
++					{ .event = PM_EVENT_REMOTE_RESUME, })
++#define PMSG_AUTO_SUSPEND	((struct pm_messge) \
++					{ .event = PM_EVENT_AUTO_SUSPEND, })
++#define PMSG_AUTO_RESUME		((struct pm_messge) \
++					{ .event = PM_EVENT_AUTO_RESUME, })
+ 
+ /**
+  * Device power management states
 _
 
-Patches currently in -mm which might be from nacc@us.ibm.com are
+Patches currently in -mm which might be from stern@rowland.harvard.edu are
 
-vma-page-offset-has-no-callees-drop-it.patch
-mm-remove-mm_init-compilation-dependency-on-config_debug_memory_init.patch
-mm-create-sys-kernel-mm.patch
-hugetlb-factor-out-prep_new_huge_page.patch
-hugetlb-modular-state-for-hugetlb-page-size.patch
-hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
-hugetlb-multiple-hstates-for-multiple-page-sizes.patch
-hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
-hugetlbfs-per-mount-huge-page-sizes.patch
-hugetlb-new-sysfs-interface.patch
-hugetlb-new-sysfs-interface-hugetlb-hang-off-of-sys-kernel-mm-rather-than-sys-kernel.patch
-hugetlb-new-sysfs-interface-hugetlb-remove-config_sysfs-dependency.patch
-hugetlb-abstract-numa-round-robin-selection.patch
-hugetlb-support-boot-allocate-different-sizes.patch
-hugetlb-printk-cleanup.patch
-fs-check-for-statfs-overflow.patch
-ixj-push-bkl-into-driver-and-wrap-ioctls.patch
+origin.patch
+linux-next.patch
+git-scsi-rc-fixes.patch
+pm-add-new-pm_event-codes-for-runtime-power-transitions.patch
 
