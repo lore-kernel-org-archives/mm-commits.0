@@ -1,18 +1,18 @@
 From: akpm@linux-foundation.org
 Subject: + drivers-char-pcmcia-ipwireless-hardwarec-fix-resource-leak.patch added to -mm tree
-Date: Thu, 10 Jul 2008 18:49:55 -0700
-Message-ID: <200807110155.m6B1tWAt026073@imap1.linux-foundation.org>
+Date: Thu, 10 Jul 2008 18:50:28 -0700
+Message-ID: <200807110156.m6B1u5tP026098@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35850 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56327 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752932AbYGKBzi (ORCPT
+	by vger.kernel.org with ESMTP id S1754206AbYGKB4S (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Jul 2008 21:55:38 -0400
+	Thu, 10 Jul 2008 21:56:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: darrenrjenkins@gmail.com, jkosina@suse.cz
+Cc: darrenrjenkins@gmail.com, jkosina@suse.cz, stable@kernel.org
 
 
 The patch titled
@@ -46,6 +46,7 @@ This patch just frees the packet first.
 
 Signed-off-by: Darren Jenkins <darrenrjenkins@gmail.com>
 Acked-by: Jiri Kosina <jkosina@suse.cz>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
@@ -71,6 +72,6 @@ _
 
 Patches currently in -mm which might be from darrenrjenkins@gmail.com are
 
-linux-next.patch
 drivers-char-pcmcia-ipwireless-hardwarec-fix-resource-leak.patch
+linux-next.patch
 
