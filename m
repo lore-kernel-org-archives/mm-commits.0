@@ -1,250 +1,138 @@
 From: akpm@linux-foundation.org
-Subject: - git-jg-misc-git-rejects.patch removed from -mm tree
-Date: Fri, 11 Jul 2008 16:31:41 -0700
-Message-ID: <200807112331.m6BNVgkr010258@imap1.linux-foundation.org>
+Subject: - fix-name-of-russell-king-in-various-comments.patch removed from -mm tree
+Date: Fri, 11 Jul 2008 16:50:33 -0700
+Message-ID: <200807112350.m6BNoXfY010968@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33703 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51349 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753112AbYGKXbo (ORCPT
+	by vger.kernel.org with ESMTP id S1751171AbYGKXun (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jul 2008 19:31:44 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m6BNVgSH017295
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 11 Jul 2008 16:31:43 -0700
+	Fri, 11 Jul 2008 19:50:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: Uwe.Kleine-Koenig@digi.com, rmk+kernel@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-jg-misc-git-rejects
+     Fix name of Russell King in various comments
 has been removed from the -mm tree.  Its filename was
-     git-jg-misc-git-rejects.patch
+     fix-name-of-russell-king-in-various-comments.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: git-jg-misc-git-rejects
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Fix name of Russell King in various comments
+=46rom: Uwe Kleine-K=F6nig <Uwe.Kleine-Koenig@digi.com>
 
+This patch was created by
 
+	git grep -E -l 'Rus(el|s?e)l King' | xargs -r -t perl -p -i -e 's/Rus(=
+el|s?e)l King/Russell King/g'
+
+Signed-off-by: Uwe Kleine-K=F6nig <Uwe.Kleine-Koenig@digi.com>
+Most-Definitely-Acked-by: Russell King <rmk+kernel@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/Kconfig |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/usb/host/ohci-au1xxx.c  |    2 +-
+ drivers/usb/host/ohci-lh7a404.c |    2 +-
+ drivers/usb/host/ohci-s3c2410.c |    2 +-
+ drivers/usb/host/ohci-sa1111.c  |    2 +-
+ include/asm-avr32/setup.h       |    2 +-
+ 5 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/scsi/Kconfig~git-jg-misc-git-rejects drivers/scsi/Kconfig
---- a/drivers/scsi/Kconfig~git-jg-misc-git-rejects
-+++ a/drivers/scsi/Kconfig
-@@ -504,8 +504,6 @@ config SCSI_AIC7XXX_OLD
- source "drivers/scsi/aic7xxx/Kconfig.aic79xx"
- source "drivers/scsi/aic94xx/Kconfig"
- 
--<<<<<<< HEAD:drivers/scsi/Kconfig
--=======
- config SCSI_BROADSAS
- 	tristate "Broadcom 8603 SAS/SATA support"
- 	depends on PCI
-@@ -517,7 +515,7 @@ config SCSI_BROADSAS
- 	  module will be called broadsas.
- 
- # All the I2O code and drivers do not seem to be 64bit safe.
-->>>>>>> FETCH_HEAD:drivers/scsi/Kconfig
-+
- config SCSI_DPT_I2O
- 	tristate "Adaptec I2O RAID support "
- 	depends on SCSI && PCI && VIRT_TO_BUS
+diff -puN drivers/usb/host/ohci-au1xxx.c~fix-name-of-russell-king-in-va=
+rious-comments drivers/usb/host/ohci-au1xxx.c
+--- a/drivers/usb/host/ohci-au1xxx.c~fix-name-of-russell-king-in-variou=
+s-comments
++++ a/drivers/usb/host/ohci-au1xxx.c
+@@ -8,7 +8,7 @@
+  * Bus Glue for AMD Alchemy Au1xxx
+  *
+  * Written by Christopher Hoover <ch@hpl.hp.com>
+- * Based on fragments of previous driver by Rusell King et al.
++ * Based on fragments of previous driver by Russell King et al.
+  *
+  * Modified for LH7A404 from ohci-sa1111.c
+  *  by Durgesh Pattamatta <pattamattad@sharpsec.com>
+diff -puN drivers/usb/host/ohci-lh7a404.c~fix-name-of-russell-king-in-v=
+arious-comments drivers/usb/host/ohci-lh7a404.c
+--- a/drivers/usb/host/ohci-lh7a404.c~fix-name-of-russell-king-in-vario=
+us-comments
++++ a/drivers/usb/host/ohci-lh7a404.c
+@@ -8,7 +8,7 @@
+  * Bus Glue for Sharp LH7A404
+  *
+  * Written by Christopher Hoover <ch@hpl.hp.com>
+- * Based on fragments of previous driver by Rusell King et al.
++ * Based on fragments of previous driver by Russell King et al.
+  *
+  * Modified for LH7A404 from ohci-sa1111.c
+  *  by Durgesh Pattamatta <pattamattad@sharpsec.com>
+diff -puN drivers/usb/host/ohci-s3c2410.c~fix-name-of-russell-king-in-v=
+arious-comments drivers/usb/host/ohci-s3c2410.c
+--- a/drivers/usb/host/ohci-s3c2410.c~fix-name-of-russell-king-in-vario=
+us-comments
++++ a/drivers/usb/host/ohci-s3c2410.c
+@@ -8,7 +8,7 @@
+  * USB Bus Glue for Samsung S3C2410
+  *
+  * Written by Christopher Hoover <ch@hpl.hp.com>
+- * Based on fragments of previous driver by Rusell King et al.
++ * Based on fragments of previous driver by Russell King et al.
+  *
+  * Modified for S3C2410 from ohci-sa1111.c, ohci-omap.c and ohci-lh7a4=
+0.c
+  *	by Ben Dooks, <ben@simtec.co.uk>
+diff -puN drivers/usb/host/ohci-sa1111.c~fix-name-of-russell-king-in-va=
+rious-comments drivers/usb/host/ohci-sa1111.c
+--- a/drivers/usb/host/ohci-sa1111.c~fix-name-of-russell-king-in-variou=
+s-comments
++++ a/drivers/usb/host/ohci-sa1111.c
+@@ -8,7 +8,7 @@
+  * SA1111 Bus Glue
+  *
+  * Written by Christopher Hoover <ch@hpl.hp.com>
+- * Based on fragments of previous driver by Rusell King et al.
++ * Based on fragments of previous driver by Russell King et al.
+  *
+  * This file is licenced under the GPL.
+  */
+diff -puN include/asm-avr32/setup.h~fix-name-of-russell-king-in-various=
+-comments include/asm-avr32/setup.h
+--- a/include/asm-avr32/setup.h~fix-name-of-russell-king-in-various-com=
+ments
++++ a/include/asm-avr32/setup.h
+@@ -2,7 +2,7 @@
+  * Copyright (C) 2004-2006 Atmel Corporation
+  *
+  * Based on linux/include/asm-arm/setup.h
+- *   Copyright (C) 1997-1999 Russel King
++ *   Copyright (C) 1997-1999 Russell King
+  *
+  * This program is free software; you can redistribute it and/or modif=
+y
+  * it under the terms of the GNU General Public License version 2 as
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from Uwe.Kleine-Koenig@digi.com=
+ are
 
 origin.patch
 linux-next.patch
-next-remove-localversion.patch
-kvm-is-busted-on-ia64.patch
-drivers-mtd-nand-nandsimc-needs-div64h.patch
-pci-make-pci_register_driver-a-macro.patch
-drivers-media-video-uvc-uvc_v4l2c-suppress-uninitialized-var-warning.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-git-jg-misc.patch
-git-jg-misc-git-rejects.patch
-drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-git-kvm.patch
-git-leds.patch
-git-async-tx.patch
-git-mips.patch
-mmc-sd-host-driver-for-ricoh-bay1controllers.patch
-git-mtd.patch
-git-ubifs.patch
-git-net-next.patch
-sundance-set-carrier-status-on-link-change-events.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-battery.patch
-git-ocfs2.patch
-git-pci-next.patch
-regulator-ti-bq24022-li-ion-charger-driver-fix.patch
-git-s390.patch
-git-scsi-misc.patch
-git-scsi-misc-fix-scsi_dh-build-errors.patch
-drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
-git-block.patch
-pktcdvd-push-bkl-down-into-driver.patch
-git-unionfs.patch
-git-logfs-fixup.patch
-drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
-drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
-watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-verify-the-page-links-and-memory-model.patch
-mspec-convert-nopfn-to-fault-fix.patch
-page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
-kill-generic_file_direct_io-checkpatch-fixes.patch
-use-generic_access_phys-for-dev-mem-mappings-fix.patch
-spufs-use-the-new-vm_ops-access-fix.patch
-fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
-page-flags-record-page-flag-overlays-explicitly-xen.patch
-mapping_set_error-add-unlikely.patch
-huge-page-private-reservation-review-cleanups-fix.patch
-vma-page-offset-has-no-callees-drop-it.patch
-sync_file_range_write-may-and-will-block-document-that-fix.patch
-vmallocinfo-add-numa-information-fix.patch
-hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
-hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
-hugetlb-override-default-huge-page-size-ia64-build.patch
-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-bootmem-add-debugging-framework-fix.patch
-bootmem-clean-up-free_all_bootmem_core-fix.patch
-bootmem-free-reserve-helpers-fix.patch
-revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-v850-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-arm-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mips-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mtd-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fixes.patch
-mmu-notifiers-add-mm_take_all_locks-operation-checkpatch-fixes.patch
-mmu-notifier-core-checkpatch-fixes.patch
-mmu-notifier-core-fix.patch
-mmu-notifier-core-fix-2.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
-security-protect-legacy-applications-from-executing-with-insufficient-privilege-checkpatch-fixes.patch
-swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
-split-the-typecheck-macros-out-of-include-linux-kernelh.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
-remove-apparently-unused-fd1772h-header-file.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
-build-kernel-profileo-only-when-requested-cleanups.patch
-seq_file-fix-bug-when-seq_read-reads-nothing-fix.patch
-exec-remove-some-includes-fix.patch
-inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments.patch
-flag-parameters-paccept-fix.patch
-flag-parameters-paccept-sys_ni.patch
-flag-parameters-anon_inode_getfd-extension-fix.patch
-flag-parameters-signalfd-fix.patch
-flag-parameters-eventfd-fix.patch
-flag-parameters-inotify_init-fix.patch
-flag-parameters-check-magic-constants-alpha.patch
-spi-au1550_spi-improve-pio-transfer-mode-checkpatch-fixes.patch
-gpio-gpio-driver-for-max7301-spi-gpio-expander-checkpatch-fixes.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch
-drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
-atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
-lcd-add-platform_lcd-driver-fix.patch
-fsl-diu-fb-update-freescale-diu-driver-to-use-page_alloc_exact-fix.patch
-fbdev-add-new-cobalt-lcd-framebuffer-driver-fix.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
-ext3-handle-corrupted-orphan-list-at-mount-cleanup.patch
-ext3-handle-corrupted-orphan-list-at-mount-fix.patch
-ext3-handle-corrupted-orphan-list-at-mount-cleanup-fix.patch
-ext3-handle-deleting-corrupted-indirect-blocks-fix.patch
-jbd-dont-abort-if-flushing-file-data-failed-fix.patch
-reiserfs-convert-j_flush_sem-to-mutex.patch
-reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
-cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-fix.patch
-cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-checkpatch-fixes.patch
-memcg-remove-refcnt-from-page_cgroup-fix-2.patch
-workqueues-make-get_online_cpus-useable-for-work-func-fix.patch
-jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup.patch
-ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
-fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
-block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
-getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
-edac-mpc85xx-fix-pci-ofdev-2nd-pass-checkpatch-fixes.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-s2io.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
-x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary-checkpatch-fixes.patch
-tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
-memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
-memstick-use-fully-asynchronous-request-processing-fix.patch
-full-conversion-to-early_initcall-interface-remove-old-interface-cleanup.patch
-full-conversion-to-early_initcall-interface-remove-old-interface-fix.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-mm-introduce-get_user_pages_fast-fix.patch
-mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-fix.patch
-x86-lockless-get_user_pages_fast-fix-2.patch
-x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
-x86-lockless-get_user_pages_fast-fix-warning.patch
-vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
-define-page_file_cache-function-fix.patch
-vmscan-split-lru-lists-into-anon-file-sets-units-fix.patch
-unevictable-lru-infrastructure-fix.patch
-unevictable-lru-page-statistics-units-fix.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-3.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
-vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-fix.patch
-resource-add-resource_size-fix.patch
-resource-add-resource_type-and-ioresource_type_bits-fix.patch
-video-console-sticonrec-make-code-static-checkpatch-fixes.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+handle-failure-of-irqchip-set_type-in-setup_irq.patch
+handle-failure-of-irqchip-set_type-in-setup_irq-update.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
