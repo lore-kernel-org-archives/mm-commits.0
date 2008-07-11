@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + alsa-correct-kcalloc-usage.patch added to -mm tree
-Date: Fri, 11 Jul 2008 11:37:15 -0700
-Message-ID: <200807111842.m6BIguAG030690@imap1.linux-foundation.org>
+Subject: + via-velocity-remove-the-bounce-buffers.patch added to -mm tree
+Date: Fri, 11 Jul 2008 11:37:59 -0700
+Message-ID: <200807111843.m6BIheji030807@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57438 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56039 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754144AbYGKSnR (ORCPT
+	by vger.kernel.org with ESMTP id S1755670AbYGKSnx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jul 2008 14:43:17 -0400
+	Fri, 11 Jul 2008 14:43:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: miltonm@bga.com, tiwai@suse.de
+Cc: romieu@fr.zoreil.com, rseguier@e-teleport.net
 
 
 The patch titled
-     alsa: correct kcalloc usage
+     via-velocity: remove the bounce buffers
 has been added to the -mm tree.  Its filename is
-     alsa-correct-kcalloc-usage.patch
+     via-velocity-remove-the-bounce-buffers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,193 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: alsa: correct kcalloc usage
-From: Milton Miller <miltonm@bga.com>
+Subject: via-velocity: remove the bounce buffers
+From: Francois Romieu <romieu@fr.zoreil.com>
 
-kcalloc is supposed to be called with the count as its first argument and the
-element size as the second.
+Executive summary: the bounce buffers are in my way
 
-Both arguments are size_t so does not affect correctness.  This callsite is
-during module_init and therefore not performance critical.  Another patch will
-optimize the case when the count is variable but the size is fixed.
+- they use something like a 64 * 1500 bytes area of PCI
+  consistent area
+- they are not resized when the MTU changes
+- they are used
+  - to hand-pad undersized packets. skb_pad anyone ?
+  - to linearize fragmented skbs whose fragment count
+    goes beyond the 7 fragments hardware limit in order
+    to claim scatter-gather support
 
-Signed-off-by: Milton Miller <miltonm@bga.com>
-Cc: Takashi Iwai <tiwai@suse.de>
+Actually the SG code is commented out and I wonder if it
+could not be implemented (ab-)using the large send feature
+of the chipset since the latter should support some
+multi-descriptor packet transmitting.
+
+Signed-off-by: Francois Romieu <romieu@fr.zoreil.com>
+Fixed-by: Seguier Regis <rseguier@e-teleport.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/pci/nm256/nm256.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/net/via-velocity.c |   72 ++++++++---------------------------
+ drivers/net/via-velocity.h |    5 --
+ 2 files changed, 18 insertions(+), 59 deletions(-)
 
-diff -puN sound/pci/nm256/nm256.c~alsa-correct-kcalloc-usage sound/pci/nm256/nm256.c
---- a/sound/pci/nm256/nm256.c~alsa-correct-kcalloc-usage
-+++ a/sound/pci/nm256/nm256.c
-@@ -1302,8 +1302,8 @@ snd_nm256_mixer(struct nm256 *chip)
- 		.read = snd_nm256_ac97_read,
- 	};
+diff -puN drivers/net/via-velocity.c~via-velocity-remove-the-bounce-buffers drivers/net/via-velocity.c
+--- a/drivers/net/via-velocity.c~via-velocity-remove-the-bounce-buffers
++++ a/drivers/net/via-velocity.c
+@@ -1104,7 +1104,6 @@ static int velocity_init_rings(struct ve
+ {
+ 	int i;
+ 	unsigned int psize;
+-	unsigned int tsize;
+ 	dma_addr_t pool_dma;
+ 	u8 *pool;
  
--	chip->ac97_regs = kcalloc(sizeof(short),
--				  ARRAY_SIZE(nm256_ac97_init_val), GFP_KERNEL);
-+	chip->ac97_regs = kcalloc(ARRAY_SIZE(nm256_ac97_init_val),
-+				  sizeof(short), GFP_KERNEL);
- 	if (! chip->ac97_regs)
- 		return -ENOMEM;
+@@ -1133,19 +1132,6 @@ static int velocity_init_rings(struct ve
  
-_
-
-Patches currently in -mm which might be from miltonm@bga.com are
-
-alsa-correct-kcalloc-usage.patch
-pci-dynidsuse_driver_data-considered-harmful.patch
-kcalloc-remove-runtime-division.patch
-
+ 	vptr->rd_pool_dma = pool_dma;
+ 
+-	tsize = vptr->options.numtx * PKT_BUF_SZ * vptr->num_txq;
+-	vptr->tx_bufs = pci_alloc_consistent(vptr->pdev, tsize,
+-						&vptr->tx_bufs_dma);
+-
+-	if (vptr->tx_bufs == NULL) {
+-		printk(KERN_ERR "%s: DMA memory allocation failed.\n",
+-					vptr->dev->name);
+-		pci_free_consistent(vptr->pdev, psize, pool, pool_dma);
+-		return -ENOMEM;
+-	}
+-
+-	memset(vptr->tx_bufs, 0, vptr->options.numtx * PKT_BUF_SZ * vptr->num_txq);
+-
+ 	i = vptr->options.numrx * sizeof(struct rx_desc);
+ 	pool += i;
+ 	pool_dma += i;
+@@ -1169,16 +1155,10 @@ static int velocity_init_rings(struct ve
+ 
+ static void velocity_free_rings(struct velocity_info *vptr)
+ {
+-	int size;
+-
+-	size = vptr->options.numrx * sizeof(struct rx_desc) +
+-	       vptr->options.numtx * sizeof(struct tx_desc) * vptr->num_txq;
++	const int size = vptr->options.numrx * sizeof(struct rx_desc) +
++		vptr->options.numtx * sizeof(struct tx_desc) * vptr->num_txq;
+ 
+ 	pci_free_consistent(vptr->pdev, size, vptr->rd_ring, vptr->rd_pool_dma);
+-
+-	size = vptr->options.numtx * PKT_BUF_SZ * vptr->num_txq;
+-
+-	pci_free_consistent(vptr->pdev, size, vptr->tx_bufs, vptr->tx_bufs_dma);
+ }
+ 
+ static inline void velocity_give_many_rx_descs(struct velocity_info *vptr)
+@@ -1313,10 +1293,8 @@ static void velocity_free_rd_ring(struct
+ 
+ static int velocity_init_td_ring(struct velocity_info *vptr)
+ {
+-	int i, j;
+ 	dma_addr_t curr;
+-	struct tx_desc *td;
+-	struct velocity_td_info *td_info;
++	unsigned int j;
+ 
+ 	/* Init the TD ring entries */
+ 	for (j = 0; j < vptr->num_txq; j++) {
+@@ -1331,14 +1309,6 @@ static int velocity_init_td_ring(struct 
+ 			return -ENOMEM;
+ 		}
+ 
+-		for (i = 0; i < vptr->options.numtx; i++, curr += sizeof(struct tx_desc)) {
+-			td = &(vptr->td_rings[j][i]);
+-			td_info = &(vptr->td_infos[j][i]);
+-			td_info->buf = vptr->tx_bufs +
+-				(j * vptr->options.numtx + i) * PKT_BUF_SZ;
+-			td_info->buf_dma = vptr->tx_bufs_dma +
+-				(j * vptr->options.numtx + i) * PKT_BUF_SZ;
+-		}
+ 		vptr->td_tail[j] = vptr->td_curr[j] = vptr->td_used[j] = 0;
+ 	}
+ 	return 0;
+@@ -1867,7 +1837,7 @@ static void velocity_free_tx_buf(struct 
+ 	/*
+ 	 *	Don't unmap the pre-allocated tx_bufs
+ 	 */
+-	if (tdinfo->skb_dma && (tdinfo->skb_dma[0] != tdinfo->buf_dma)) {
++	if (tdinfo->skb_dma) {
+ 
+ 		for (i = 0; i < tdinfo->nskb_dma; i++) {
+ #ifdef VELOCITY_ZERO_COPY_SUPPORT
+@@ -2063,9 +2033,19 @@ static int velocity_xmit(struct sk_buff 
+ 	struct tx_desc *td_ptr;
+ 	struct velocity_td_info *tdinfo;
+ 	unsigned long flags;
+-	int index;
+ 	int pktlen = skb->len;
+-	__le16 len = cpu_to_le16(pktlen);
++	__le16 len;
++	int index;
++
++
++
++	if (skb->len < ETH_ZLEN) {
++		if (skb_padto(skb, ETH_ZLEN))
++			goto out;
++		pktlen = ETH_ZLEN;
++	}
++
++	len = cpu_to_le16(pktlen);
+ 
+ #ifdef VELOCITY_ZERO_COPY_SUPPORT
+ 	if (skb_shinfo(skb)->nr_frags > 6 && __skb_linearize(skb)) {
+@@ -2083,23 +2063,6 @@ static int velocity_xmit(struct sk_buff 
+ 	td_ptr->tdesc1.TCR = TCR0_TIC;
+ 	td_ptr->td_buf[0].size &= ~TD_QUEUE;
+ 
+-	/*
+-	 *	Pad short frames.
+-	 */
+-	if (pktlen < ETH_ZLEN) {
+-		/* Cannot occur until ZC support */
+-		pktlen = ETH_ZLEN;
+-		len = cpu_to_le16(ETH_ZLEN);
+-		skb_copy_from_linear_data(skb, tdinfo->buf, skb->len);
+-		memset(tdinfo->buf + skb->len, 0, ETH_ZLEN - skb->len);
+-		tdinfo->skb = skb;
+-		tdinfo->skb_dma[0] = tdinfo->buf_dma;
+-		td_ptr->tdesc0.len = len;
+-		td_ptr->td_buf[0].pa_low = cpu_to_le32(tdinfo->skb_dma[0]);
+-		td_ptr->td_buf[0].pa_high = 0;
+-		td_ptr->td_buf[0].size = len;	/* queue is 0 anyway */
+-		tdinfo->nskb_dma = 1;
+-	} else
+ #ifdef VELOCITY_ZERO_COPY_SUPPORT
+ 	if (skb_shinfo(skb)->nr_frags > 0) {
+ 		int nfrags = skb_shinfo(skb)->nr_frags;
+@@ -2191,7 +2154,8 @@ static int velocity_xmit(struct sk_buff 
+ 	}
+ 	dev->trans_start = jiffies;
+ 	spin_unlock_irqrestore(&vptr->lock, flags);
+-	return 0;
++out:
++	return NETDEV_TX_OK;
+ }
+ 
+ /**
+diff -puN drivers/net/via-velocity.h~via-velocity-remove-the-bounce-buffers drivers/net/via-velocity.h
+--- a/drivers/net/via-velocity.h~via-velocity-remove-the-bounce-buffers
++++ a/drivers/net/via-velocity.h
+@@ -236,10 +236,8 @@ struct velocity_rd_info {
+ 
+ struct velocity_td_info {
+ 	struct sk_buff *skb;
+-	u8 *buf;
+ 	int nskb_dma;
+ 	dma_addr_t skb_dma[7];
+-	dma_addr_t buf_dma;
+ };
+ 
+ enum  velocity_owner {
+@@ -1506,9 +1504,6 @@ struct velocity_info {
+ 	dma_addr_t rd_pool_dma;
+ 	dma_addr_t td_pool_dma[TX_QUEUE_NO];
+ 
+-	dma_addr_t tx_bufs_dma;
+-	u8 *tx_bufs;
