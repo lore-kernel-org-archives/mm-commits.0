@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - block-blk_rq_map_kern-uses-the-bounce-buffers-for-stack-buffers.patch removed from -mm tree
-Date: Fri, 11 Jul 2008 16:51:46 -0700
-Message-ID: <200807112351.m6BNpk1w011073@imap1.linux-foundation.org>
+Subject: - scsi-sr-avoids-useless-buffer-allocation.patch removed from -mm tree
+Date: Fri, 11 Jul 2008 16:51:49 -0700
+Message-ID: <200807112351.m6BNpnYr011076@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44307 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53139 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754868AbYGKXwH (ORCPT
+	by vger.kernel.org with ESMTP id S1755154AbYGKXwH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 11 Jul 2008 19:52:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,59 +15,82 @@ To: fujita.tomonori@lab.ntt.co.jp, James.Bottomley@HansenPartnership.com, bzolni
 
 
 The patch titled
-     block: blk_rq_map_kern uses the bounce buffers for stack buffers
+     scsi: sr avoids useless buffer allocation
 has been removed from the -mm tree.  Its filename was
-     block-blk_rq_map_kern-uses-the-bounce-buffers-for-stack-buffers.patch
+     scsi-sr-avoids-useless-buffer-allocation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: block: blk_rq_map_kern uses the bounce buffers for stack buffers
+Subject: scsi: sr avoids useless buffer allocation
 From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 
-blk_rq_map_kern is used for kernel internal I/Os. Some callers use
-this function with stack buffers but DMA to/from the stack buffers
-leads to memory corruption on a non-coherent platform.
-
-This patch make blk_rq_map_kern uses the bounce buffers if a caller
-passes a stack buffer (on the all platforms for simplicity).
+blk_rq_map_kern can handle the stack buffers correctly (avoid DMA
+from/to the stack buffers by using the bounce buffer) so we don't need
+to complicate the code by allocating just 8 bytes.
 
 Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Cc: Tejun Heo <htejun@gmail.com>
 Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/blk-map.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/scsi/sr.c |   20 +++++---------------
+ 1 file changed, 5 insertions(+), 15 deletions(-)
 
-diff -puN block/blk-map.c~block-blk_rq_map_kern-uses-the-bounce-buffers-for-stack-buffers block/blk-map.c
---- a/block/blk-map.c~block-blk_rq_map_kern-uses-the-bounce-buffers-for-stack-buffers
-+++ a/block/blk-map.c
-@@ -269,6 +269,7 @@ int blk_rq_map_kern(struct request_queue
- 	int reading = rq_data_dir(rq) == READ;
- 	int do_copy = 0;
- 	struct bio *bio;
-+	unsigned long stack_mask = ~(THREAD_SIZE - 1);
+diff -puN drivers/scsi/sr.c~scsi-sr-avoids-useless-buffer-allocation drivers/scsi/sr.c
+--- a/drivers/scsi/sr.c~scsi-sr-avoids-useless-buffer-allocation
++++ a/drivers/scsi/sr.c
+@@ -673,24 +673,20 @@ fail:
+ static void get_sectorsize(struct scsi_cd *cd)
+ {
+ 	unsigned char cmd[10];
+-	unsigned char *buffer;
++	unsigned char buffer[8];
+ 	int the_result, retries = 3;
+ 	int sector_size;
+ 	struct request_queue *queue;
  
- 	if (len > (q->max_hw_sectors << 9))
- 		return -EINVAL;
-@@ -279,6 +280,10 @@ int blk_rq_map_kern(struct request_queue
- 	alignment = queue_dma_alignment(q) | q->dma_pad_mask;
- 	do_copy = ((kaddr & alignment) || (len & alignment));
+-	buffer = kmalloc(512, GFP_KERNEL | GFP_DMA);
+-	if (!buffer)
+-		goto Enomem;
+-
+ 	do {
+ 		cmd[0] = READ_CAPACITY;
+ 		memset((void *) &cmd[1], 0, 9);
+-		memset(buffer, 0, 8);
++		memset(buffer, 0, sizeof(buffer));
  
-+	if (!((kaddr & stack_mask) ^
-+	      ((unsigned long)current->stack & stack_mask)))
-+		do_copy = 1;
-+
- 	if (do_copy)
- 		bio = bio_copy_kern(q, kbuf, len, gfp_mask, reading);
- 	else
+ 		/* Do the command and wait.. */
+ 		the_result = scsi_execute_req(cd->device, cmd, DMA_FROM_DEVICE,
+-					      buffer, 8, NULL, SR_TIMEOUT,
+-					      MAX_RETRIES);
++					      buffer, sizeof(buffer), NULL,
++					      SR_TIMEOUT, MAX_RETRIES);
+ 
+ 		retries--;
+ 
+@@ -745,14 +741,8 @@ static void get_sectorsize(struct scsi_c
+ 
+ 	queue = cd->device->request_queue;
+ 	blk_queue_hardsect_size(queue, sector_size);
+-out:
+-	kfree(buffer);
+-	return;
+ 
+-Enomem:
+-	cd->capacity = 0x1fffff;
+-	cd->device->sector_size = 2048;	/* A guess, just in case */
+-	goto out;
++	return;
+ }
+ 
+ static void get_capabilities(struct scsi_cd *cd)
 _
 
 Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
