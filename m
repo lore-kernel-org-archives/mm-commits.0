@@ -1,61 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: - revert-introduce-rculisth.patch removed from -mm tree
-Date: Fri, 11 Jul 2008 16:15:17 -0700
-Message-ID: <200807112315.m6BNFHEs009622@imap1.linux-foundation.org>
+Subject: - linux-next-fixups.patch removed from -mm tree
+Date: Fri, 11 Jul 2008 16:19:24 -0700
+Message-ID: <200807112319.m6BNJOQg009789@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36218 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40085 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752728AbYGKXQS (ORCPT
+	by vger.kernel.org with ESMTP id S1752082AbYGKXTz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jul 2008 19:16:18 -0400
+	Fri, 11 Jul 2008 19:19:55 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m6BNJOJH016624
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Fri, 11 Jul 2008 16:19:25 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, fbuihuu@gmail.com, josh@kernel.org, mingo@elte.hu, paulmck@linux.vnet.ibm.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert introduce-rculisth
+     linux-next-fixups
 has been removed from the -mm tree.  Its filename was
-     revert-introduce-rculisth.patch
+     linux-next-fixups.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert introduce-rculisth
+Subject: linux-next-fixups
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Make linux-next apply.
-
-Cc: Franck Bui-Huu <fbuihuu@gmail.com>
-Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Cc: Josh Triplett <josh@kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rculist.h |    6 ------
- 1 file changed, 6 deletions(-)
+ include/linux/firmware.h |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN include/linux/rculist.h~revert-introduce-rculisth /dev/null
---- a/include/linux/rculist.h
-+++ /dev/null
-@@ -1,6 +0,0 @@
--#ifndef _LINUX_RCULIST_H
--#define _LINUX_RCULIST_H
--
--#include <linux/list.h>
--
--#endif	/* _LINUX_RCULIST_H */
+diff -puN include/linux/firmware.h~linux-next-fixups include/linux/firmware.h
+--- a/include/linux/firmware.h~linux-next-fixups
++++ a/include/linux/firmware.h
+@@ -16,9 +16,7 @@ struct firmware {
+ 
+ struct device;
+ 
+-<<<<<<< HEAD:include/linux/firmware.h
+ #if defined(CONFIG_FW_LOADER) || (defined(CONFIG_FW_LOADER_MODULE) && defined(MODULE))
+-=======
+ struct builtin_fw {
+ 	char *name;
+ 	void *data;
+@@ -37,8 +35,6 @@ struct builtin_fw {
+ 	static const struct builtin_fw __fw_concat(__builtin_fw,__COUNTER__) \
+ 	__used __section(.builtin_fw) = { name, blob, size }
+ 
+-#if defined(CONFIG_FW_LOADER) || defined(CONFIG_FW_LOADER_MODULE)
+->>>>>>> FETCH_HEAD:include/linux/firmware.h
+ int request_firmware(const struct firmware **fw, const char *name,
+ 		     struct device *device);
+ int request_firmware_nowait(
+diff -puN drivers/usb/misc/sisusbvga/sisusb.c~linux-next-fixups drivers/usb/misc/sisusbvga/sisusb.c
+diff -puN drivers/mmc/host/sdhci.c~linux-next-fixups drivers/mmc/host/sdhci.c
+diff -puN include/linux/securebits.h~linux-next-fixups include/linux/securebits.h
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-revert-introduce-rculisth.patch
 linux-next.patch
 next-remove-localversion.patch
 linux-next-fixups.patch
