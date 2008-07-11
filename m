@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + md-ensure-all-blocks-are-uptodate-or-locked-when-syncing.patch added to -mm tree
-Date: Fri, 11 Jul 2008 11:36:34 -0700
-Message-ID: <200807111842.m6BIgFWb030658@imap1.linux-foundation.org>
+Subject: + mtd-fix-const-assignment-in-the-command-line-partitioning-driver.patch added to -mm tree
+Date: Fri, 11 Jul 2008 11:37:47 -0700
+Message-ID: <200807111843.m6BIhSMq030792@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41661 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41343 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753862AbYGKSm1 (ORCPT
+	by vger.kernel.org with ESMTP id S1755940AbYGKSnz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jul 2008 14:42:27 -0400
+	Fri, 11 Jul 2008 14:43:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dan.j.williams@intel.com, neilb@suse.de, stable@kernel.org
+Cc: dhowells@redhat.com, dwmw2@infradead.org
 
 
 The patch titled
-     md: ensure all blocks are uptodate or locked when syncing
+     mtd: fix const assignment in the command line partitioning driver
 has been added to the -mm tree.  Its filename is
-     md-ensure-all-blocks-are-uptodate-or-locked-when-syncing.patch
+     mtd-fix-const-assignment-in-the-command-line-partitioning-driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,44 +34,62 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: md: ensure all blocks are uptodate or locked when syncing
-From: Dan Williams <dan.j.williams@intel.com>
+Subject: mtd: fix const assignment in the command line partitioning driver
+From: David Howells <dhowells@redhat.com>
 
-Remove the dubious attempt to prefer 'compute' over 'read'.  Not only is it
-wrong given commit c337869d (md: do not compute parity unless it is on a
-failed drive), but it can trigger a BUG_ON in handle_parity_checks5().
+Fix const to non-const pointer assignment in the MTD command line partitioning
+driver.
 
-Cc: <stable@kernel.org>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Cc: Neil Brown <neilb@suse.de>
+Signed-off-by: David Howells <dhowells@redhat.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/raid5.c |    7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ drivers/mtd/cmdlinepart.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/md/raid5.c~md-ensure-all-blocks-are-uptodate-or-locked-when-syncing drivers/md/raid5.c
---- a/drivers/md/raid5.c~md-ensure-all-blocks-are-uptodate-or-locked-when-syncing
-+++ a/drivers/md/raid5.c
-@@ -2017,12 +2017,7 @@ static int __handle_issuing_new_read_req
- 			 */
- 			s->uptodate++;
- 			return 0; /* uptodate + compute == disks */
--		} else if ((s->uptodate < disks - 1) &&
--			test_bit(R5_Insync, &dev->flags)) {
--			/* Note: we hold off compute operations while checks are
--			 * in flight, but we still prefer 'compute' over 'read'
--			 * hence we only read if (uptodate < * disks-1)
--			 */
-+		} else if (test_bit(R5_Insync, &dev->flags)) {
- 			set_bit(R5_LOCKED, &dev->flags);
- 			set_bit(R5_Wantread, &dev->flags);
- 			if (!test_and_set_bit(STRIPE_OP_IO, &sh->ops.pending))
+diff -puN drivers/mtd/cmdlinepart.c~mtd-fix-const-assignment-in-the-command-line-partitioning-driver drivers/mtd/cmdlinepart.c
+--- a/drivers/mtd/cmdlinepart.c~mtd-fix-const-assignment-in-the-command-line-partitioning-driver
++++ a/drivers/mtd/cmdlinepart.c
+@@ -306,7 +306,7 @@ static int parse_cmdline_partitions(stru
+ 	unsigned long offset;
+ 	int i;
+ 	struct cmdline_mtd_partition *part;
+-	char *mtd_id = master->name;
++	const char *mtd_id = master->name;
+ 
+ 	/* parse command line */
+ 	if (!cmdline_parsed)
 _
 
-Patches currently in -mm which might be from dan.j.williams@intel.com are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
-md-ensure-all-blocks-are-uptodate-or-locked-when-syncing.patch
 linux-next.patch
-dma-fix-platform-driver-hotplug-coldplug.patch
+acpi-fix-a-cast-of-a-32-bit-int-to-a-pointer.patch
+acpi-fix-build-with-config_pm_sleep=n.patch
+calgary-fix-a-comparison-warning-the-pci-calgary-64-driver.patch
+alsa-fix-a-const-pointer-usage-warning-in-the-digigram-pcxhr-soundcard-driver.patch
+alsa-fix-a-const-pointer-usage-warning-in-the-digigram-mixart-soundcard-driver.patch
+cifs-fix-range-check.patch
+sis-drm-fix-the-memory-allocator-if-the-sis-fb-is-built-as-a-module.patch
+sis-drm-fix-a-pointer-cast-warning.patch
+ivtv-framebuffer-driver-fix-pointer-cast-warnings.patch
+drx397xd-demodulator-driver-fix-a-const-pointer-assignment.patch
+mtd-fix-const-assignment-in-the-command-line-partitioning-driver.patch
+atm-fix-const-assignment-discard-warnings-in-the-atm-networking-driver.patch
+atm-fix-direct-casts-of-pointers-to-u32-in-the-interphase-driver.patch
+hysdn-remove-the-packed-attribute-from-poftimstamp_tag.patch
+git-unionfs.patch
+xfs-fix-disabled-xfs-posix-acl-handling.patch
+mn10300-move-sg_dma_addresslen-to-asm-scatterlisth.patch
+inflate-refactor-inflate-malloc-code.patch
+inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
+pnpacpi-fix-pnpacpi_parse_irq_options-test-against-pnp_irq_nr.patch
+include-asm-ptraceh-userspace-headers-cleanup.patch
+sdio-fix-break-control-to-now-return-success-or-an-error.patch
+ip2-fix-iielliscleanup-as-it-is-static-but-not-always-used.patch
+fix-a-const-assignment-in-moxa_load_fw.patch
+frv-use-the-common-ascii-hex-helpers.patch
+mn10300-use-the-common-ascii-hex-helpers.patch
+mutex-subsystem-synchro-test-module.patch
 
