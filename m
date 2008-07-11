@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + xfs-fix-disabled-xfs-posix-acl-handling.patch added to -mm tree
-Date: Fri, 11 Jul 2008 11:39:20 -0700
-Message-ID: <200807111845.m6BIj1EB030923@imap1.linux-foundation.org>
+Subject: + mm-remove-mm_init-compilation-dependency-on-config_debug_memory_init.patch added to -mm tree
+Date: Fri, 11 Jul 2008 11:39:44 -0700
+Message-ID: <200807111845.m6BIjPbv030956@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60348 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38850 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756853AbYGKSpa (ORCPT
+	by vger.kernel.org with ESMTP id S1755287AbYGKSpm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jul 2008 14:45:30 -0400
+	Fri, 11 Jul 2008 14:45:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com, david@fromorbit.com, hch@lst.de, lachlan@sgi.com, tes@sgi.com
+Cc: nacc@us.ibm.com, mel@csn.ul.ie, nickpiggin@yahoo.com.au
 
 
 The patch titled
-     xfs: fix disabled XFS POSIX ACL handling
+     mm: remove mm_init compilation dependency on CONFIG_DEBUG_MEMORY_INIT
 has been added to the -mm tree.  Its filename is
-     xfs-fix-disabled-xfs-posix-acl-handling.patch
+     mm-remove-mm_init-compilation-dependency-on-config_debug_memory_init.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,121 +34,80 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: xfs: fix disabled XFS POSIX ACL handling
-From: David Howells <dhowells@redhat.com>
+Subject: mm: remove mm_init compilation dependency on CONFIG_DEBUG_MEMORY_INIT
+From: Nishanth Aravamudan <nacc@us.ibm.com>
 
-Fix XFS POSIX ACL handling when it's not enabled.  xfs_decode_acl() refers to
-return types that aren't defined under those circumstances.
+Towards the end of putting all core mm initialization in mm_init.c, I
+plan on putting the creation of a mm kobject in a function in that file.
+However, the file is currently only compiled if CONFIG_DEBUG_MEMORY_INIT
+is set. Remove this dependency, but put the code under an #ifdef on the
+same config option. This should result in no functional changes.
 
-Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Timothy Shimmin <tes@sgi.com>
-Cc: Lachlan McIlroy <lachlan@sgi.com>
-Cc: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Nishanth Aravamudan <nacc@us.ibm.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xfs/linux-2.6/xfs_xattr.c |   14 --------------
- fs/xfs/xfs_acl.c             |   13 +++++++++++++
- fs/xfs/xfs_acl.h             |    2 ++
- 3 files changed, 15 insertions(+), 14 deletions(-)
+ mm/Makefile  |    3 +--
+ mm/mm_init.c |    2 ++
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN fs/xfs/linux-2.6/xfs_xattr.c~xfs-fix-disabled-xfs-posix-acl-handling fs/xfs/linux-2.6/xfs_xattr.c
---- a/fs/xfs/linux-2.6/xfs_xattr.c~xfs-fix-disabled-xfs-posix-acl-handling
-+++ a/fs/xfs/linux-2.6/xfs_xattr.c
-@@ -30,20 +30,6 @@
+diff -puN mm/Makefile~mm-remove-mm_init-compilation-dependency-on-config_debug_memory_init mm/Makefile
+--- a/mm/Makefile~mm-remove-mm_init-compilation-dependency-on-config_debug_memory_init
++++ a/mm/Makefile
+@@ -11,7 +11,7 @@ obj-y			:= bootmem.o filemap.o mempool.o
+ 			   maccess.o page_alloc.o page-writeback.o pdflush.o \
+ 			   readahead.o swap.o truncate.o vmscan.o \
+ 			   prio_tree.o util.o mmzone.o vmstat.o backing-dev.o \
+-			   page_isolation.o $(mmu-y)
++			   page_isolation.o mm_init.o $(mmu-y)
  
+ obj-$(CONFIG_PROC_PAGE_MONITOR) += pagewalk.o
+ obj-$(CONFIG_BOUNCE)	+= bounce.o
+@@ -26,7 +26,6 @@ obj-$(CONFIG_TMPFS_POSIX_ACL) += shmem_a
+ obj-$(CONFIG_TINY_SHMEM) += tiny-shmem.o
+ obj-$(CONFIG_SLOB) += slob.o
+ obj-$(CONFIG_SLAB) += slab.o
+-obj-$(CONFIG_DEBUG_MEMORY_INIT) += mm_init.o
+ obj-$(CONFIG_SLUB) += slub.o
+ obj-$(CONFIG_KMEMCHECK) += kmemcheck.o
+ obj-$(CONFIG_MEMORY_HOTPLUG) += memory_hotplug.o
+diff -puN mm/mm_init.c~mm-remove-mm_init-compilation-dependency-on-config_debug_memory_init mm/mm_init.c
+--- a/mm/mm_init.c~mm-remove-mm_init-compilation-dependency-on-config_debug_memory_init
++++ a/mm/mm_init.c
+@@ -9,6 +9,7 @@
+ #include <linux/init.h>
+ #include "internal.h"
  
- /*
-- * ACL handling.  Should eventually be moved into xfs_acl.c
-- */
--
--static int
--xfs_decode_acl(const char *name)
--{
--	if (strcmp(name, "posix_acl_access") == 0)
--		return _ACL_TYPE_ACCESS;
--	else if (strcmp(name, "posix_acl_default") == 0)
--		return _ACL_TYPE_DEFAULT;
--	return -EINVAL;
--}
--
--/*
-  * Get system extended attributes which at the moment only
-  * includes Posix ACLs.
-  */
-diff -puN fs/xfs/xfs_acl.c~xfs-fix-disabled-xfs-posix-acl-handling fs/xfs/xfs_acl.c
---- a/fs/xfs/xfs_acl.c~xfs-fix-disabled-xfs-posix-acl-handling
-+++ a/fs/xfs/xfs_acl.c
-@@ -51,6 +51,19 @@ kmem_zone_t *xfs_acl_zone;
++#ifdef CONFIG_DEBUG_MEMORY_INIT
+ int __meminitdata mminit_loglevel;
  
- 
- /*
-+ * ACL handling.
-+ */
-+int
-+xfs_decode_acl(const char *name)
-+{
-+	if (strcmp(name, "posix_acl_access") == 0)
-+		return _ACL_TYPE_ACCESS;
-+	else if (strcmp(name, "posix_acl_default") == 0)
-+		return _ACL_TYPE_DEFAULT;
-+	return -EINVAL;
-+}
-+
-+/*
-  * Test for existence of access ACL attribute as efficiently as possible.
-  */
- int
-diff -puN fs/xfs/xfs_acl.h~xfs-fix-disabled-xfs-posix-acl-handling fs/xfs/xfs_acl.h
---- a/fs/xfs/xfs_acl.h~xfs-fix-disabled-xfs-posix-acl-handling
-+++ a/fs/xfs/xfs_acl.h
-@@ -59,6 +59,7 @@ extern struct kmem_zone *xfs_acl_zone;
- 		(zone) = kmem_zone_init(sizeof(xfs_acl_t), (name))
- #define xfs_acl_zone_destroy(zone)	kmem_zone_destroy(zone)
- 
-+extern int xfs_decode_acl(const char *);
- extern int xfs_acl_inherit(bhv_vnode_t *, mode_t mode, xfs_acl_t *);
- extern int xfs_acl_iaccess(struct xfs_inode *, mode_t, cred_t *);
- extern int xfs_acl_vtoacl(bhv_vnode_t *, xfs_acl_t *, xfs_acl_t *);
-@@ -80,6 +81,7 @@ extern int xfs_acl_vremove(bhv_vnode_t *
- #define _ACL_FREE(a)		((a)? kmem_zone_free(xfs_acl_zone, (a)):(void)0)
- 
- #else
-+#define xfs_decode_acl(name)	(-EINVAL)
- #define xfs_acl_zone_init(zone,name)
- #define xfs_acl_zone_destroy(zone)
- #define xfs_acl_vset(v,p,sz,t)	(-EOPNOTSUPP)
+ /* The zonelists are simply reported, validation is manual. */
+@@ -132,3 +133,4 @@ static __init int set_mminit_loglevel(ch
+ 	return 0;
+ }
+ early_param("mminit_loglevel", set_mminit_loglevel);
++#endif /* CONFIG_DEBUG_MEMORY_INIT */
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from nacc@us.ibm.com are
 
-linux-next.patch
-acpi-fix-a-cast-of-a-32-bit-int-to-a-pointer.patch
-acpi-fix-build-with-config_pm_sleep=n.patch
-calgary-fix-a-comparison-warning-the-pci-calgary-64-driver.patch
-alsa-fix-a-const-pointer-usage-warning-in-the-digigram-pcxhr-soundcard-driver.patch
-alsa-fix-a-const-pointer-usage-warning-in-the-digigram-mixart-soundcard-driver.patch
-cifs-fix-range-check.patch
-sis-drm-fix-the-memory-allocator-if-the-sis-fb-is-built-as-a-module.patch
-sis-drm-fix-a-pointer-cast-warning.patch
-ivtv-framebuffer-driver-fix-pointer-cast-warnings.patch
-drx397xd-demodulator-driver-fix-a-const-pointer-assignment.patch
-mtd-fix-const-assignment-in-the-command-line-partitioning-driver.patch
-atm-fix-const-assignment-discard-warnings-in-the-atm-networking-driver.patch
-atm-fix-direct-casts-of-pointers-to-u32-in-the-interphase-driver.patch
-hysdn-remove-the-packed-attribute-from-poftimstamp_tag.patch
-git-unionfs.patch
-xfs-fix-disabled-xfs-posix-acl-handling.patch
-mn10300-move-sg_dma_addresslen-to-asm-scatterlisth.patch
-inflate-refactor-inflate-malloc-code.patch
-inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
-pnpacpi-fix-pnpacpi_parse_irq_options-test-against-pnp_irq_nr.patch
-include-asm-ptraceh-userspace-headers-cleanup.patch
-sdio-fix-break-control-to-now-return-success-or-an-error.patch
-ip2-fix-iielliscleanup-as-it-is-static-but-not-always-used.patch
-fix-a-const-assignment-in-moxa_load_fw.patch
-frv-use-the-common-ascii-hex-helpers.patch
-mn10300-use-the-common-ascii-hex-helpers.patch
-mutex-subsystem-synchro-test-module.patch
+vma-page-offset-has-no-callees-drop-it.patch
+mm-remove-mm_init-compilation-dependency-on-config_debug_memory_init.patch
+mm-create-sys-kernel-mm.patch
+hugetlb-factor-out-prep_new_huge_page.patch
+hugetlb-modular-state-for-hugetlb-page-size.patch
+hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
+hugetlb-multiple-hstates-for-multiple-page-sizes.patch
+hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
+hugetlbfs-per-mount-huge-page-sizes.patch
+hugetlb-new-sysfs-interface.patch
+hugetlb-new-sysfs-interface-hugetlb-hang-off-of-sys-kernel-mm-rather-than-sys-kernel.patch
+hugetlb-new-sysfs-interface-hugetlb-remove-config_sysfs-dependency.patch
+hugetlb-abstract-numa-round-robin-selection.patch
+hugetlb-support-boot-allocate-different-sizes.patch
+hugetlb-printk-cleanup.patch
+fs-check-for-statfs-overflow.patch
+ixj-push-bkl-into-driver-and-wrap-ioctls.patch
 
