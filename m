@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + uml-fix-gcc-ices-and-unresolved-externs.patch added to -mm tree
-Date: Thu, 10 Jul 2008 19:03:48 -0700
-Message-ID: <200807110209.m6B29Pug026538@imap1.linux-foundation.org>
+Subject: + reiserfs-discard-prealloc-in-reiserfs_delete_inode.patch added to -mm tree
+Date: Fri, 11 Jul 2008 11:36:41 -0700
+Message-ID: <200807111842.m6BIgMnU030672@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58249 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45768 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752082AbYGKCKU (ORCPT
+	by vger.kernel.org with ESMTP id S1753813AbYGKSm1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Jul 2008 22:10:20 -0400
+	Fri, 11 Jul 2008 14:42:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jdike@addtoit.com, bhalevy@panasas.com, bunk@kernel.org, drepper@redhat.com, jdike@linux.intel.com, mingo@elte.hu
+Cc: jeffm@suse.com
 
 
 The patch titled
-     uml: fix gcc ICEs and unresolved externs
+     reiserfs: discard prealloc in reiserfs_delete_inode
 has been added to the -mm tree.  Its filename is
-     uml-fix-gcc-ices-and-unresolved-externs.patch
+     reiserfs-discard-prealloc-in-reiserfs_delete_inode.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,88 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: fix gcc ICEs and unresolved externs
-From: Jeff Dike <jdike@addtoit.com>
+Subject: reiserfs: discard prealloc in reiserfs_delete_inode
+From: Jeff Mahoney <jeffm@suse.com>
 
-There are various constraints on the use of unit-at-a-time:
-        i386 uses no-unit-at-a-time for pre-4.0 (not 4.3)
-        x86_64 uses unit-at-a-time always
+With the removal of struct file from the xattr code, reiserfs_file_release()
+isn't used anymore, so the prealloc isn't discarded.  This causes hangs later
+down the line.
 
-Uli reported a crash on x86_64 with gcc 4.1.2 with unit-at-a-time, resulting
-in commit c0a18111e571138747a98af18b3a2124df56a0d1
+This patch adds it to reiserfs_delete_inode.  In most cases it will be a no-op
+due to it already having been called, but will avoid hangs with xattrs.
 
-Ingo reported a gcc internal error with gcc 4.3 with no-unit-at-a-timem,
-resulting in 22eecde2f9034764a3fd095eecfa3adfb8ec9a98
-
-Benny Halevy <bhalevy@panasas.com> is seeing extern inlines not resolved with
-gcc 4.3 with no-unit-at-a-time
-
-This patch reintroduces unit-at-a-time for gcc >= 4.0, bringing back the
-possibility of Uli's crash.  If that happens, we'll debug it.
-
-I started seeing both the internal compiler errors and unresolved inlines on
-Fedora 9.  This patch fixes both problems, without so far reintroducing the
-crash reported by Uli.
-
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
-Cc: Benny Halevy <bhalevy@panasas.com>
-Cc: Adrian Bunk <bunk@kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Ulrich Drepper <drepper@redhat.com>
+Signed-off-by: Jeff Mahoney <jeffm@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/Makefile        |    1 -
- arch/um/Makefile-i386   |    7 +++++++
- arch/um/Makefile-x86_64 |    3 +++
- 3 files changed, 10 insertions(+), 1 deletion(-)
+ fs/reiserfs/inode.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN arch/um/Makefile~uml-fix-gcc-ices-and-unresolved-externs arch/um/Makefile
---- a/arch/um/Makefile~uml-fix-gcc-ices-and-unresolved-externs
-+++ a/arch/um/Makefile
-@@ -77,7 +77,6 @@ include $(srctree)/$(ARCH_DIR)/Makefile-
- KERNEL_DEFINES = $(strip -Derrno=kernel_errno -Dsigprocmask=kernel_sigprocmask \
- 			 -Dmktime=kernel_mktime $(ARCH_KERNEL_DEFINES))
- KBUILD_CFLAGS += $(KERNEL_DEFINES)
--KBUILD_CFLAGS += $(call cc-option,-fno-unit-at-a-time,)
+diff -puN fs/reiserfs/inode.c~reiserfs-discard-prealloc-in-reiserfs_delete_inode fs/reiserfs/inode.c
+--- a/fs/reiserfs/inode.c~reiserfs-discard-prealloc-in-reiserfs_delete_inode
++++ a/fs/reiserfs/inode.c
+@@ -45,6 +45,8 @@ void reiserfs_delete_inode(struct inode 
+ 			goto out;
+ 		reiserfs_update_inode_transaction(inode);
  
- PHONY += linux
- 
-diff -puN arch/um/Makefile-i386~uml-fix-gcc-ices-and-unresolved-externs arch/um/Makefile-i386
---- a/arch/um/Makefile-i386~uml-fix-gcc-ices-and-unresolved-externs
-+++ a/arch/um/Makefile-i386
-@@ -32,4 +32,11 @@ cflags-y += $(call cc-option,-mpreferred
- # an unresolved reference.
- cflags-y += -ffreestanding
- 
-+# Disable unit-at-a-time mode on pre-gcc-4.0 compilers, it makes gcc use
-+# a lot more stack due to the lack of sharing of stacklots.  Also, gcc
-+# 4.3.0 needs -funit-at-a-time for extern inline functions.
-+KBUILD_CFLAGS += $(shell if [ $(call cc-version) -lt 0400 ] ; then \
-+			echo $(call cc-option,-fno-unit-at-a-time); \
-+			else echo $(call cc-option,-funit-at-a-time); fi ;)
++		reiserfs_discard_prealloc(&th, inode);
 +
- KBUILD_CFLAGS += $(cflags-y)
-diff -puN arch/um/Makefile-x86_64~uml-fix-gcc-ices-and-unresolved-externs arch/um/Makefile-x86_64
---- a/arch/um/Makefile-x86_64~uml-fix-gcc-ices-and-unresolved-externs
-+++ a/arch/um/Makefile-x86_64
-@@ -21,3 +21,6 @@ HEADER_ARCH := x86
+ 		err = reiserfs_delete_object(&th, inode);
  
- LINK-$(CONFIG_LD_SCRIPT_DYN) += -Wl,-rpath,/lib64
- LINK-y += -m64
-+
-+# Do unit-at-a-time unconditionally on x86_64, following the host
-+KBUILD_CFLAGS += $(call cc-option,-funit-at-a-time)
+ 		/* Do quota update inside a transaction for journaled quotas. We must do that
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from jeffm@suse.com are
 
-linux-next.patch
-arch-um-kernel-irqc-clean-up-some-functions.patch
-arch-um-kernel-memc-remove-arch_validate.patch
-uml-make-several-more-things-static.patch
-hppfs-remove-hppfs_permission.patch
-kernel-call-constructors-uml-fix-1.patch
-kernel-call-constructors-uml-fix-2.patch
-uml-fix-gcc-ices-and-unresolved-externs.patch
+reiserfs-discard-prealloc-in-reiserfs_delete_inode.patch
+reiserfs-convert-j_lock-to-mutex.patch
+reiserfs-convert-j_flush_sem-to-mutex.patch
+reiserfs-convert-j_commit_lock-to-mutex.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
 
