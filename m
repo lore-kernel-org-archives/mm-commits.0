@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + via-velocity-fix-sleep-with-spinlock-bug-during-mtu-change.patch added to -mm tree
-Date: Fri, 11 Jul 2008 11:38:10 -0700
-Message-ID: <200807111843.m6BIhp2K030823@imap1.linux-foundation.org>
+Subject: + atm-fix-direct-casts-of-pointers-to-u32-in-the-interphase-driver.patch added to -mm tree
+Date: Fri, 11 Jul 2008 11:37:54 -0700
+Message-ID: <200807111843.m6BIhZ7e030801@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42635 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51958 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756425AbYGKSoA (ORCPT
+	by vger.kernel.org with ESMTP id S1756335AbYGKSoB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jul 2008 14:44:00 -0400
+	Fri, 11 Jul 2008 14:44:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: romieu@fr.zoreil.com, arjan@linux.intel.com, rseguier@e-teleport.net
+Cc: dhowells@redhat.com, chas@cmf.nrl.navy.mil
 
 
 The patch titled
-     via-velocity: fix sleep-with-spinlock bug during MTU change
+     atm: fix direct casts of pointers to u32 in the InterPhase driver
 has been added to the -mm tree.  Its filename is
-     via-velocity-fix-sleep-with-spinlock-bug-during-mtu-change.patch
+     atm-fix-direct-casts-of-pointers-to-u32-in-the-interphase-driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,283 +34,172 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: via-velocity: fix sleep-with-spinlock bug during MTU change
-From: Francois Romieu <romieu@fr.zoreil.com>
+Subject: atm: fix direct casts of pointers to u32 in the InterPhase driver
+From: David Howells <dhowells@redhat.com>
 
-velocity_init_{rd/tx}_ring use kcalloc(..., GFP_KERNEL).
+Fix direct casts of pointers to u32 in the InterPhase ATM driver.  These are
+all arguments being passed to printk() calls.  So drop the cast and change the
+%x to a %p.
 
-Allocate and free everyting outside of the locked section.
-
-Spotted-by: Arjan van de Ven <arjan@linux.intel.com>
-Signed-off-by: Francois Romieu <romieu@fr.zoreil.com>
-Fixed-by: Seguier Regis <rseguier@e-teleport.net>
+Signed-off-by: David Howells <dhowells@redhat.com>
+Acked-by: Chas Williams <chas@cmf.nrl.navy.mil>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/via-velocity.c |  132 ++++++++++++++++++++++-------------
- 1 file changed, 86 insertions(+), 46 deletions(-)
+ drivers/atm/iphase.c |   40 ++++++++++++++++++++--------------------
+ 1 file changed, 20 insertions(+), 20 deletions(-)
 
-diff -puN drivers/net/via-velocity.c~via-velocity-fix-sleep-with-spinlock-bug-during-mtu-change drivers/net/via-velocity.c
---- a/drivers/net/via-velocity.c~via-velocity-fix-sleep-with-spinlock-bug-during-mtu-change
-+++ a/drivers/net/via-velocity.c
-@@ -662,6 +662,10 @@ static void velocity_vlan_rx_kill_vid(st
-         spin_unlock_irq(&vptr->lock);
- }
- 
-+static void velocity_init_rx_ring_indexes(struct velocity_info *vptr)
-+{
-+	vptr->rx.dirty = vptr->rx.filled = vptr->rx.curr = 0;
-+}
- 
- /**
-  *	velocity_rx_reset	-	handle a receive reset
-@@ -677,7 +681,7 @@ static void velocity_rx_reset(struct vel
- 	struct mac_regs __iomem * regs = vptr->mac_regs;
- 	int i;
- 
--	vptr->rx.dirty = vptr->rx.filled = vptr->rx.curr = 0;
-+	velocity_init_rx_ring_indexes(vptr);
- 
- 	/*
- 	 *	Init state, all RD entries belong to the NIC
-@@ -1093,14 +1097,14 @@ static int __devinit velocity_get_pci_in
- }
- 
- /**
-- *	velocity_init_rings	-	set up DMA rings
-+ *	velocity_init_dma_rings	-	set up DMA rings
-  *	@vptr: Velocity to set up
-  *
-  *	Allocate PCI mapped DMA rings for the receive and transmit layer
-  *	to use.
-  */
- 
--static int velocity_init_rings(struct velocity_info *vptr)
-+static int velocity_init_dma_rings(struct velocity_info *vptr)
- {
- 	struct velocity_opt *opt = &vptr->options;
- 	const unsigned int rx_ring_size = opt->numrx * sizeof(struct rx_desc);
-@@ -1141,13 +1145,13 @@ static int velocity_init_rings(struct ve
- }
- 
- /**
-- *	velocity_free_rings	-	free PCI ring pointers
-+ *	velocity_free_dma_rings	-	free PCI ring pointers
-  *	@vptr: Velocity to free from
-  *
-  *	Clean up the PCI ring buffers allocated to this velocity.
-  */
- 
--static void velocity_free_rings(struct velocity_info *vptr)
-+static void velocity_free_dma_rings(struct velocity_info *vptr)
- {
- 	const int size = vptr->options.numrx * sizeof(struct rx_desc) +
- 		vptr->options.numtx * sizeof(struct tx_desc) * vptr->tx.numq;
-@@ -1229,7 +1233,7 @@ static int velocity_init_rd_ring(struct 
- 	if (!vptr->rx.info)
- 		goto out;
- 
--	vptr->rx.filled = vptr->rx.dirty = vptr->rx.curr = 0;
-+	velocity_init_rx_ring_indexes(vptr);
- 
- 	if (velocity_rx_refill(vptr) != vptr->options.numrx) {
- 		VELOCITY_PRT(MSG_LEVEL_ERR, KERN_ERR
-@@ -1847,6 +1851,40 @@ static void velocity_free_tx_buf(struct 
- 	tdinfo->skb = NULL;
- }
- 
-+static int velocity_init_rings(struct velocity_info *vptr, int mtu)
-+{
-+	int ret;
-+
-+	velocity_set_rxbufsize(vptr, mtu);
-+
-+	ret = velocity_init_dma_rings(vptr);
-+	if (ret < 0)
-+		goto out;
-+
-+	ret = velocity_init_rd_ring(vptr);
-+	if (ret < 0)
-+		goto err_free_dma_rings_0;
-+
-+	ret = velocity_init_td_ring(vptr);
-+	if (ret < 0)
-+		goto err_free_rd_ring_1;
-+out:
-+	return ret;
-+
-+err_free_rd_ring_1:
-+	velocity_free_rd_ring(vptr);
-+err_free_dma_rings_0:
-+	velocity_free_dma_rings(vptr);
-+	goto out;
-+}
-+
-+static void velocity_free_rings(struct velocity_info *vptr)
-+{
-+	velocity_free_td_ring(vptr);
-+	velocity_free_rd_ring(vptr);
-+	velocity_free_dma_rings(vptr);
-+}
-+
- /**
-  *	velocity_open		-	interface activation callback
-  *	@dev: network layer device to open
-@@ -1863,20 +1901,10 @@ static int velocity_open(struct net_devi
- 	struct velocity_info *vptr = netdev_priv(dev);
- 	int ret;
- 
--	velocity_set_rxbufsize(vptr, dev->mtu);
--
--	ret = velocity_init_rings(vptr);
-+	ret = velocity_init_rings(vptr, dev->mtu);
- 	if (ret < 0)
- 		goto out;
- 
--	ret = velocity_init_rd_ring(vptr);
--	if (ret < 0)
--		goto err_free_desc_rings;
--
--	ret = velocity_init_td_ring(vptr);
--	if (ret < 0)
--		goto err_free_rd_ring;
--
- 	/* Ensure chip is running */
- 	pci_set_power_state(vptr->pdev, PCI_D0);
- 
-@@ -1889,7 +1917,8 @@ static int velocity_open(struct net_devi
- 	if (ret < 0) {
- 		/* Power down the chip */
- 		pci_set_power_state(vptr->pdev, PCI_D3hot);
--		goto err_free_td_ring;
-+		velocity_free_rings(vptr);
-+		goto out;
+diff -puN drivers/atm/iphase.c~atm-fix-direct-casts-of-pointers-to-u32-in-the-interphase-driver drivers/atm/iphase.c
+--- a/drivers/atm/iphase.c~atm-fix-direct-casts-of-pointers-to-u32-in-the-interphase-driver
++++ a/drivers/atm/iphase.c
+@@ -156,8 +156,8 @@ static void ia_hack_tcq(IADEV *dev) {
+         }
+         iavcc_r->vc_desc_cnt--;
+         dev->desc_tbl[desc1 -1].timestamp = 0;
+-        IF_EVENT(printk("ia_hack: return_q skb = 0x%x desc = %d\n", 
+-                                   (u32)dev->desc_tbl[desc1 -1].txskb, desc1);)
++        IF_EVENT(printk("ia_hack: return_q skb = 0x%p desc = %d\n",
++                                   dev->desc_tbl[desc1 -1].txskb, desc1);)
+         if (iavcc_r->pcr < dev->rate_limit) {
+            IA_SKB_STATE (dev->desc_tbl[desc1-1].txskb) |= IA_TX_DONE;
+            if (ia_enque_rtn_q(&dev->tx_return_q, dev->desc_tbl[desc1 -1]) < 0)
+@@ -527,8 +527,8 @@ static int ia_cbr_setup (IADEV *dev, str
+       inc = 0;
+       testSlot = idealSlot;
+       TstSchedTbl = (u16*)(SchedTbl+testSlot);  //set index and read in value
+-      IF_CBR(printk("CBR Testslot 0x%x AT Location 0x%x, NumToAssign=%d\n",
+-                                testSlot, (u32)TstSchedTbl,toBeAssigned);) 
++      IF_CBR(printk("CBR Testslot 0x%x AT Location 0x%p, NumToAssign=%d\n",
++                                testSlot, TstSchedTbl,toBeAssigned);)
+       memcpy((caddr_t)&cbrVC,(caddr_t)TstSchedTbl,sizeof(cbrVC));
+       while (cbrVC)  // If another VC at this location, we have to keep looking
+       {
+@@ -536,8 +536,8 @@ static int ia_cbr_setup (IADEV *dev, str
+           testSlot = idealSlot - inc;
+           if (testSlot < 0) { // Wrap if necessary
+              testSlot += dev->CbrTotEntries;
+-             IF_CBR(printk("Testslot Wrap. STable Start=0x%x,Testslot=%d\n",
+-                                                       (u32)SchedTbl,testSlot);)
++             IF_CBR(printk("Testslot Wrap. STable Start=0x%p,Testslot=%d\n",
++                                                       SchedTbl,testSlot);)
+           }
+           TstSchedTbl = (u16 *)(SchedTbl + testSlot);  // set table index
+           memcpy((caddr_t)&cbrVC,(caddr_t)TstSchedTbl,sizeof(cbrVC)); 
+@@ -552,8 +552,8 @@ static int ia_cbr_setup (IADEV *dev, str
+           } 
+           // set table index and read in value
+           TstSchedTbl = (u16*)(SchedTbl + testSlot);
+-          IF_CBR(printk("Reading CBR Tbl from 0x%x, CbrVal=0x%x Iteration %d\n",
+-                          (u32)TstSchedTbl,cbrVC,inc);) 
++          IF_CBR(printk("Reading CBR Tbl from 0x%p, CbrVal=0x%x Iteration %d\n",
++                          TstSchedTbl,cbrVC,inc);)
+           memcpy((caddr_t)&cbrVC,(caddr_t)TstSchedTbl,sizeof(cbrVC));
+        } /* while */
+        // Move this VCI number into this location of the CBR Sched table.
+@@ -1427,11 +1427,11 @@ static int rx_init(struct atm_dev *dev) 
+ 	/* We know this is 32bit bus addressed so the following is safe */
+ 	writel(iadev->rx_dle_dma & 0xfffff000,
+ 	       iadev->dma + IPHASE5575_RX_LIST_ADDR);  
+-	IF_INIT(printk("Tx Dle list addr: 0x%08x value: 0x%0x\n", 
+-                      (u32)(iadev->dma+IPHASE5575_TX_LIST_ADDR), 
++	IF_INIT(printk("Tx Dle list addr: 0x%p value: 0x%0x\n",
++                      iadev->dma+IPHASE5575_TX_LIST_ADDR,
+                       *(u32*)(iadev->dma+IPHASE5575_TX_LIST_ADDR));  
+-	printk("Rx Dle list addr: 0x%08x value: 0x%0x\n", 
+-                      (u32)(iadev->dma+IPHASE5575_RX_LIST_ADDR), 
++	printk("Rx Dle list addr: 0x%p value: 0x%0x\n",
++                      iadev->dma+IPHASE5575_RX_LIST_ADDR,
+                       *(u32*)(iadev->dma+IPHASE5575_RX_LIST_ADDR));)  
+   
+ 	writew(0xffff, iadev->reass_reg+REASS_MASK_REG);  
+@@ -1470,7 +1470,7 @@ static int rx_init(struct atm_dev *dev) 
+ 		buf_desc_ptr++;		  
+ 		rx_pkt_start += iadev->rx_buf_sz;  
+ 	}  
+-	IF_INIT(printk("Rx Buffer desc ptr: 0x%0x\n", (u32)(buf_desc_ptr));)  
++	IF_INIT(printk("Rx Buffer desc ptr: 0x%p\n", buf_desc_ptr);)
+         i = FREE_BUF_DESC_Q*iadev->memSize; 
+ 	writew(i >> 16,  iadev->reass_reg+REASS_QUEUE_BASE); 
+         writew(i, iadev->reass_reg+FREEQ_ST_ADR);
+@@ -1487,7 +1487,7 @@ static int rx_init(struct atm_dev *dev) 
+ 		*freeq_start = (u_short)i;  
+ 		freeq_start++;  
+ 	}  
+-	IF_INIT(printk("freeq_start: 0x%0x\n", (u32)freeq_start);)  
++	IF_INIT(printk("freeq_start: 0x%p\n", freeq_start);)
+         /* Packet Complete Queue */
+         i = (PKT_COMP_Q * iadev->memSize) & 0xffff;
+         writew(i, iadev->reass_reg+PCQ_ST_ADR);
+@@ -1713,7 +1713,7 @@ static void tx_dle_intr(struct atm_dev *
+                IA_SKB_STATE(skb) |= IA_DLED;
+                skb_queue_tail(&iavcc->txing_skb, skb);
+             }
+-            IF_EVENT(printk("tx_dle_intr: enque skb = 0x%x \n", (u32)skb);)
++            IF_EVENT(printk("tx_dle_intr: enque skb = 0x%p \n", skb);)
+             if (++dle == iadev->tx_dle_q.end)
+                  dle = iadev->tx_dle_q.start;
+         }
+@@ -2044,8 +2044,8 @@ static int tx_init(struct atm_dev *dev) 
+         writew(tmp16, iadev->seg_reg+CBR_TAB_END+1); // CBR_PTR;
+         tmp16 = (CBR_SCHED_TABLE*iadev->memSize + iadev->num_vc*6 - 2) >> 1;
+         writew(tmp16, iadev->seg_reg+CBR_TAB_END);
+-        IF_INIT(printk("iadev->seg_reg = 0x%x CBR_PTR_BASE = 0x%x\n",
+-               (u32)iadev->seg_reg, readw(iadev->seg_reg+CBR_PTR_BASE));)
++        IF_INIT(printk("iadev->seg_reg = 0x%p CBR_PTR_BASE = 0x%x\n",
++               iadev->seg_reg, readw(iadev->seg_reg+CBR_PTR_BASE));)
+         IF_INIT(printk("CBR_TAB_BEG = 0x%x, CBR_TAB_END = 0x%x, CBR_PTR = 0x%x\n",
+           readw(iadev->seg_reg+CBR_TAB_BEG), readw(iadev->seg_reg+CBR_TAB_END),
+           readw(iadev->seg_reg+CBR_TAB_END+1));)
+@@ -2963,8 +2963,8 @@ static int ia_pkt_tx (struct atm_vcc *vc
+  
+ 	/* Put the packet in a tx buffer */   
+ 	trailer = iadev->tx_buf[desc-1].cpcs;
+-        IF_TX(printk("Sent: skb = 0x%x skb->data: 0x%x len: %d, desc: %d\n",
+-                  (u32)skb, (u32)skb->data, skb->len, desc);)
++        IF_TX(printk("Sent: skb = 0x%p skb->data: 0x%p len: %d, desc: %d\n",
++                  skb, skb->data, skb->len, desc);)
+ 	trailer->control = 0; 
+         /*big endian*/ 
+ 	trailer->length = ((skb->len & 0xff) << 8) | ((skb->len & 0xff00) >> 8);
+@@ -3181,7 +3181,7 @@ static int __devinit ia_init_one(struct 
  	}
+ 	dev->dev_data = iadev;
+ 	IF_INIT(printk(DEV_LABEL "registered at (itf :%d)\n", dev->number);)
+-	IF_INIT(printk("dev_id = 0x%x iadev->LineRate = %d \n", (u32)dev,
++	IF_INIT(printk("dev_id = 0x%p iadev->LineRate = %d \n", dev,
+ 		iadev->LineRate);)
  
- 	mac_enable_int(vptr->mac_regs);
-@@ -1897,14 +1926,6 @@ static int velocity_open(struct net_devi
- 	vptr->flags |= VELOCITY_FLAGS_OPENED;
- out:
- 	return ret;
--
--err_free_td_ring:
--	velocity_free_td_ring(vptr);
--err_free_rd_ring:
--	velocity_free_rd_ring(vptr);
--err_free_desc_rings:
--	velocity_free_rings(vptr);
--	goto out;
- }
- 
- /**
-@@ -1920,50 +1941,72 @@ err_free_desc_rings:
- static int velocity_change_mtu(struct net_device *dev, int new_mtu)
- {
- 	struct velocity_info *vptr = netdev_priv(dev);
--	unsigned long flags;
--	int oldmtu = dev->mtu;
- 	int ret = 0;
- 
- 	if ((new_mtu < VELOCITY_MIN_MTU) || new_mtu > (VELOCITY_MAX_MTU)) {
- 		VELOCITY_PRT(MSG_LEVEL_ERR, KERN_NOTICE "%s: Invalid MTU.\n",
- 				vptr->dev->name);
--		return -EINVAL;
-+		ret = -EINVAL;
-+		goto out_0;
- 	}
- 
- 	if (!netif_running(dev)) {
- 		dev->mtu = new_mtu;
--		return 0;
-+		goto out_0;
- 	}
- 
--	if (new_mtu != oldmtu) {
-+	if (dev->mtu != new_mtu) {
-+		struct velocity_info *tmp_vptr;
-+		unsigned long flags;
-+		struct rx_info rx;
-+		struct tx_info tx;
-+
-+		tmp_vptr = kzalloc(sizeof(*tmp_vptr), GFP_KERNEL);
-+		if (!tmp_vptr) {
-+			ret = -ENOMEM;
-+			goto out_0;
-+		}
-+
-+		tmp_vptr->dev = dev;
-+		tmp_vptr->pdev = vptr->pdev;
-+		tmp_vptr->options = vptr->options;
-+		tmp_vptr->tx.numq = vptr->tx.numq;
-+
-+		ret = velocity_init_rings(tmp_vptr, new_mtu);
-+		if (ret < 0)
-+			goto out_free_tmp_vptr_1;
-+
- 		spin_lock_irqsave(&vptr->lock, flags);
- 
- 		netif_stop_queue(dev);
- 		velocity_shutdown(vptr);
- 
--		velocity_free_td_ring(vptr);
--		velocity_free_rd_ring(vptr);
-+		rx = vptr->rx;
-+		tx = vptr->tx;
- 
--		dev->mtu = new_mtu;
-+		vptr->rx = tmp_vptr->rx;
-+		vptr->tx = tmp_vptr->tx;
- 
--		velocity_set_rxbufsize(vptr, new_mtu);
-+		tmp_vptr->rx = rx;
-+		tmp_vptr->tx = tx;
- 
--		ret = velocity_init_rd_ring(vptr);
--		if (ret < 0)
--			goto out_unlock;
-+		dev->mtu = new_mtu;
- 
--		ret = velocity_init_td_ring(vptr);
--		if (ret < 0)
--			goto out_unlock;
-+		velocity_give_many_rx_descs(vptr);
- 
- 		velocity_init_registers(vptr, VELOCITY_INIT_COLD);
- 
- 		mac_enable_int(vptr->mac_regs);
- 		netif_start_queue(dev);
--out_unlock:
-+
- 		spin_unlock_irqrestore(&vptr->lock, flags);
--	}
- 
-+		velocity_free_rings(tmp_vptr);
-+
-+out_free_tmp_vptr_1:
-+		kfree(tmp_vptr);
-+	}
-+out_0:
- 	return ret;
- }
- 
-@@ -2009,9 +2052,6 @@ static int velocity_close(struct net_dev
- 	/* Power down the chip */
- 	pci_set_power_state(vptr->pdev, PCI_D3hot);
- 
--	/* Free the resources */
--	velocity_free_td_ring(vptr);
--	velocity_free_rd_ring(vptr);
- 	velocity_free_rings(vptr);
- 
- 	vptr->flags &= (~VELOCITY_FLAGS_OPENED);
+ 	pci_set_drvdata(pdev, dev);
 _
 
-Patches currently in -mm which might be from romieu@fr.zoreil.com are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
-via-velocity-remove-the-bounce-buffers.patch
-via-velocity-lean-and-clean-velocity_init_rings.patch
-via-velocity-move-residual-free-rx-descriptors-count-register-update.patch
-via-velocity-add-velocity_set_rxbufsize-helper.patch
-via-velocity-give-a-structure-to-the-rx-tx-fields.patch
-via-velocity-fix-sleep-with-spinlock-bug-during-mtu-change.patch
+linux-next.patch
+acpi-fix-a-cast-of-a-32-bit-int-to-a-pointer.patch
+acpi-fix-build-with-config_pm_sleep=n.patch
+calgary-fix-a-comparison-warning-the-pci-calgary-64-driver.patch
+alsa-fix-a-const-pointer-usage-warning-in-the-digigram-pcxhr-soundcard-driver.patch
+alsa-fix-a-const-pointer-usage-warning-in-the-digigram-mixart-soundcard-driver.patch
+cifs-fix-range-check.patch
+sis-drm-fix-the-memory-allocator-if-the-sis-fb-is-built-as-a-module.patch
+sis-drm-fix-a-pointer-cast-warning.patch
+ivtv-framebuffer-driver-fix-pointer-cast-warnings.patch
+drx397xd-demodulator-driver-fix-a-const-pointer-assignment.patch
+mtd-fix-const-assignment-in-the-command-line-partitioning-driver.patch
+atm-fix-const-assignment-discard-warnings-in-the-atm-networking-driver.patch
+atm-fix-direct-casts-of-pointers-to-u32-in-the-interphase-driver.patch
+hysdn-remove-the-packed-attribute-from-poftimstamp_tag.patch
+git-unionfs.patch
+xfs-fix-disabled-xfs-posix-acl-handling.patch
+mn10300-move-sg_dma_addresslen-to-asm-scatterlisth.patch
+inflate-refactor-inflate-malloc-code.patch
+inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
+pnpacpi-fix-pnpacpi_parse_irq_options-test-against-pnp_irq_nr.patch
+include-asm-ptraceh-userspace-headers-cleanup.patch
+sdio-fix-break-control-to-now-return-success-or-an-error.patch
+ip2-fix-iielliscleanup-as-it-is-static-but-not-always-used.patch
+fix-a-const-assignment-in-moxa_load_fw.patch
+frv-use-the-common-ascii-hex-helpers.patch
+mn10300-use-the-common-ascii-hex-helpers.patch
+mutex-subsystem-synchro-test-module.patch
 
