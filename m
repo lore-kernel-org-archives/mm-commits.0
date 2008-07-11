@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + regulator-ti-bq24022-li-ion-charger-driver-fix.patch added to -mm tree
-Date: Fri, 11 Jul 2008 11:38:23 -0700
-Message-ID: <200807111844.m6BIi4uV030843@imap1.linux-foundation.org>
+Subject: + compat_ioctl-handle-block=n-scsi=n.patch added to -mm tree
+Date: Fri, 11 Jul 2008 11:38:44 -0700
+Message-ID: <200807111844.m6BIiPSf030892@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51562 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53671 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756292AbYGKSoK (ORCPT
+	by vger.kernel.org with ESMTP id S1754386AbYGKSoq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jul 2008 14:44:10 -0400
+	Fri, 11 Jul 2008 14:44:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, broonie@opensource.wolfsonmicro.com, lg@opensource.wolfsonmicro.com, philipp.zabel@gmail.com
+Cc: randy.dunlap@oracle.com, James.Bottomley@HansenPartnership.com, jens.axboe@oracle.com
 
 
 The patch titled
-     regulator-ti-bq24022-li-ion-charger-driver-fix
+     compat_ioctl: handle BLOCK=n, SCSI=n
 has been added to the -mm tree.  Its filename is
-     regulator-ti-bq24022-li-ion-charger-driver-fix.patch
+     compat_ioctl-handle-block=n-scsi=n.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,215 +34,104 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: regulator-ti-bq24022-li-ion-charger-driver-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: compat_ioctl: handle BLOCK=n, SCSI=n
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Cc: Liam Girdwood <lg@opensource.wolfsonmicro.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Philipp Zabel <philipp.zabel@gmail.com>
+Fix fs/compat_ioctl.c to handle CONFIG_BLOCK=n, CONFIG_SCSI=n
+to avoid build errors:
+
+In file included from linux-next-20080708/include/scsi/scsi.h:12,
+                 from linux-next-20080708/fs/compat_ioctl.c:71:
+linux-next-20080708/include/scsi/scsi_cmnd.h:27:25: warning: "BLK_MAX_CDB" is not defined
+linux-next-20080708/include/scsi/scsi_cmnd.h:28:3: error: #error MAX_COMMAND_SIZE can not be bigger than BLK_MAX_CDB
+In file included from linux-next-20080708/include/scsi/scsi.h:12,
+                 from linux-next-20080708/fs/compat_ioctl.c:71:
+linux-next-20080708/include/scsi/scsi_cmnd.h: In function 'scsi_bidi_cmnd':
+linux-next-20080708/include/scsi/scsi_cmnd.h:182: error: implicit declaration of function 'blk_bidi_rq'
+linux-next-20080708/include/scsi/scsi_cmnd.h:183: error: dereferencing pointer to incomplete type
+linux-next-20080708/include/scsi/scsi_cmnd.h: In function 'scsi_in':
+linux-next-20080708/include/scsi/scsi_cmnd.h:189: error: dereferencing pointer to incomplete type
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/regulator/bq24022.h |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ fs/compat_ioctl.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN include/linux/regulator/bq24022.h~regulator-ti-bq24022-li-ion-charger-driver-fix include/linux/regulator/bq24022.h
---- a/include/linux/regulator/bq24022.h~regulator-ti-bq24022-li-ion-charger-driver-fix
-+++ a/include/linux/regulator/bq24022.h
-@@ -11,11 +11,9 @@
-  */
+diff -puN fs/compat_ioctl.c~compat_ioctl-handle-block=n-scsi=n fs/compat_ioctl.c
+--- a/fs/compat_ioctl.c~compat_ioctl-handle-block=n-scsi=n
++++ a/fs/compat_ioctl.c
+@@ -68,9 +68,11 @@
+ #include <linux/capi.h>
+ #include <linux/gigaset_dev.h>
  
- /**
-- *bq24022_mach_info - platform data for bq24022
-- *@gpio_nce: GPIO line connected to the nCE pin,
-- *           used to enable / disable charging.
-- *@gpio_iset2: GPIO line connected to the ISET2 pin,
-- *             used to limit charging current to 100 mA / 500 mA.
-+ * bq24022_mach_info - platform data for bq24022
-+ * @gpio_nce: GPIO line connected to the nCE pin, used to enable / disable charging
-+ * @gpio_iset2: GPIO line connected to the ISET2 pin, used to limit charging current to 100 mA / 500 mA
-  */
- struct bq24022_mach_info {
- 	int gpio_nce;
++#ifdef CONFIG_BLOCK
+ #include <scsi/scsi.h>
+ #include <scsi/scsi_ioctl.h>
+ #include <scsi/sg.h>
++#endif
+ 
+ #include <asm/uaccess.h>
+ #include <linux/ethtool.h>
+@@ -1965,6 +1967,7 @@ COMPATIBLE_IOCTL(GIO_UNISCRNMAP)
+ COMPATIBLE_IOCTL(PIO_UNISCRNMAP)
+ COMPATIBLE_IOCTL(PIO_FONTRESET)
+ COMPATIBLE_IOCTL(PIO_UNIMAPCLR)
++#ifdef CONFIG_BLOCK
+ /* Big S */
+ COMPATIBLE_IOCTL(SCSI_IOCTL_GET_IDLUN)
+ COMPATIBLE_IOCTL(SCSI_IOCTL_DOORLOCK)
+@@ -1974,6 +1977,7 @@ COMPATIBLE_IOCTL(SCSI_IOCTL_GET_BUS_NUMB
+ COMPATIBLE_IOCTL(SCSI_IOCTL_SEND_COMMAND)
+ COMPATIBLE_IOCTL(SCSI_IOCTL_PROBE_HOST)
+ COMPATIBLE_IOCTL(SCSI_IOCTL_GET_PCI)
++#endif
+ /* Big T */
+ COMPATIBLE_IOCTL(TUNSETNOCSUM)
+ COMPATIBLE_IOCTL(TUNSETDEBUG)
+@@ -2044,6 +2048,7 @@ COMPATIBLE_IOCTL(SIOCGIFVLAN)
+ COMPATIBLE_IOCTL(SIOCSIFVLAN)
+ COMPATIBLE_IOCTL(SIOCBRADDBR)
+ COMPATIBLE_IOCTL(SIOCBRDELBR)
++#ifdef CONFIG_BLOCK
+ /* SG stuff */
+ COMPATIBLE_IOCTL(SG_SET_TIMEOUT)
+ COMPATIBLE_IOCTL(SG_GET_TIMEOUT)
+@@ -2068,6 +2073,7 @@ COMPATIBLE_IOCTL(SG_SCSI_RESET)
+ COMPATIBLE_IOCTL(SG_GET_REQUEST_TABLE)
+ COMPATIBLE_IOCTL(SG_SET_KEEP_ORPHAN)
+ COMPATIBLE_IOCTL(SG_GET_KEEP_ORPHAN)
++#endif
+ /* PPP stuff */
+ COMPATIBLE_IOCTL(PPPIOCGFLAGS)
+ COMPATIBLE_IOCTL(PPPIOCSFLAGS)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-revert-introduce-rculisth.patch
-revert-cpumask-introduce-new-apis.patch
 linux-next.patch
-next-remove-localversion.patch
-linux-next-fixups.patch
-linux-next-git-rejects.patch
-fix-kobject-fix-kobject_rename-and-config_sysfs.patch
-kvm-is-busted-on-ia64.patch
-drivers-mtd-nand-nandsimc-needs-div64h.patch
-pci-make-pci_register_driver-a-macro.patch
-arch-x86-kernel-smpbootc-fix-warning.patch
-arch-x86-mm-pgtable_32c-remove-unused-variable-fixmaps.patch
-drivers-media-video-cx18-cx18-av-firmwarec-fix-warning.patch
-drivers-media-video-uvc-uvc_v4l2c-suppress-uninitialized-var-warning.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-git-jg-misc-git-rejects.patch
-drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
+acpi-utmisc-use-warn_on-instead-of-warn_on_slowpath.patch
+documentation-build-source-files-in-documentation-sub-dir.patch
 documentation-build-source-files-in-documentation-sub-dir-disable.patch
-mmc-sd-host-driver-for-ricoh-bay1controllers.patch
-sundance-set-carrier-status-on-link-change-events.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-regulator-ti-bq24022-li-ion-charger-driver-fix.patch
+bluetooth-hci_bcsp-fix-bitrev-kconfig.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+netfilter-conntrack_helper-needs-to-include-rculisth.patch
 git-scsi-misc-fix-scsi_dh-build-errors.patch
-drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
-pktcdvd-push-bkl-down-into-driver.patch
+lkdtm-fix-for-config_scsi=n.patch
+compat_ioctl-handle-block=n-scsi=n.patch
 git-unionfs.patch
-git-logfs-fixup.patch
-drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
-drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
-watchdog-wdt501-pci-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-verify-the-page-links-and-memory-model.patch
-mspec-convert-nopfn-to-fault-fix.patch
-page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
-kill-generic_file_direct_io-checkpatch-fixes.patch
-use-generic_access_phys-for-dev-mem-mappings-fix.patch
-spufs-use-the-new-vm_ops-access-fix.patch
-fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
-page-flags-record-page-flag-overlays-explicitly-xen.patch
-mapping_set_error-add-unlikely.patch
-huge-page-private-reservation-review-cleanups-fix.patch
-vma-page-offset-has-no-callees-drop-it.patch
-sync_file_range_write-may-and-will-block-document-that-fix.patch
+e100-fix-printk-format-warning.patch
+vmallocinfo-add-numa-information.patch
 vmallocinfo-add-numa-information-fix.patch
-hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
-hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
-hugetlb-override-default-huge-page-size-ia64-build.patch
-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-bootmem-add-debugging-framework-fix.patch
-bootmem-clean-up-free_all_bootmem_core-fix.patch
-bootmem-free-reserve-helpers-fix.patch
-revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-v850-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-arm-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mips-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mtd-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fixes.patch
-mmu-notifiers-add-mm_take_all_locks-operation-checkpatch-fixes.patch
-mmu-notifier-core-checkpatch-fixes.patch
-mmu-notifier-core-fix.patch
-mmu-notifier-core-fix-2.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
-security-protect-legacy-applications-from-executing-with-insufficient-privilege-checkpatch-fixes.patch
-swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
-split-the-typecheck-macros-out-of-include-linux-kernelh.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
-remove-apparently-unused-fd1772h-header-file.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
-build-kernel-profileo-only-when-requested-cleanups.patch
-seq_file-fix-bug-when-seq_read-reads-nothing-fix.patch
-exec-remove-some-includes-fix.patch
-inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments.patch
-flag-parameters-paccept-fix.patch
-flag-parameters-paccept-sys_ni.patch
-flag-parameters-anon_inode_getfd-extension-fix.patch
+pm-remove-obsolete-piece-of-pm-documentation-rev-2.patch
 flag-parameters-signalfd-fix.patch
 flag-parameters-eventfd-fix.patch
-flag-parameters-inotify_init-fix.patch
-flag-parameters-check-magic-constants-alpha.patch
-spi-au1550_spi-improve-pio-transfer-mode-checkpatch-fixes.patch
-gpio-gpio-driver-for-max7301-spi-gpio-expander-checkpatch-fixes.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch
-drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
-atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
-lcd-add-platform_lcd-driver-fix.patch
-fsl-diu-fb-update-freescale-diu-driver-to-use-page_alloc_exact-fix.patch
-fbdev-add-new-cobalt-lcd-framebuffer-driver-fix.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
-ext3-handle-corrupted-orphan-list-at-mount-cleanup.patch
-ext3-handle-corrupted-orphan-list-at-mount-fix.patch
-ext3-handle-corrupted-orphan-list-at-mount-cleanup-fix.patch
-ext3-handle-deleting-corrupted-indirect-blocks-fix.patch
-jbd-dont-abort-if-flushing-file-data-failed-fix.patch
-reiserfs-convert-j_flush_sem-to-mutex.patch
-reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
-cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-fix.patch
-cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-checkpatch-fixes.patch
-memcg-remove-refcnt-from-page_cgroup-fix-2.patch
-workqueues-make-get_online_cpus-useable-for-work-func-fix.patch
-jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup.patch
-ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
-fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
-block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
-getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
-edac-mpc85xx-fix-pci-ofdev-2nd-pass-checkpatch-fixes.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc32.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-s2io.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
-x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary-checkpatch-fixes.patch
-tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
-memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
-memstick-use-fully-asynchronous-request-processing-fix.patch
-full-conversion-to-early_initcall-interface-remove-old-interface-cleanup.patch
-full-conversion-to-early_initcall-interface-remove-old-interface-fix.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-mm-introduce-get_user_pages_fast-fix.patch
-mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-fix.patch
-x86-lockless-get_user_pages_fast-fix-2.patch
-x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
-x86-lockless-get_user_pages_fast-fix-warning.patch
-vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
-define-page_file_cache-function-fix.patch
-vmscan-split-lru-lists-into-anon-file-sets-units-fix.patch
-unevictable-lru-infrastructure-fix.patch
-unevictable-lru-page-statistics-units-fix.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-3.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
-vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-fix.patch
-resource-add-resource_size-fix.patch
-resource-add-resource_type-and-ioresource_type_bits-fix.patch
-video-console-sticonrec-make-code-static-checkpatch-fixes.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+kallsyms-unify-32-and-64-bit-code.patch
+procfs-guide-drop-pointless-nbsp-entities.patch
+bsdacct-stir-up-comments-around-acct_process.patch
+documentation-cleanup-trivial-misspelling-punctuation-and-grammar-corrections.patch
 profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
 
