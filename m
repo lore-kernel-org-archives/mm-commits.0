@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-add-zap_vma_ptes-a-library-function-to-unmap-driver-ptes.patch added to -mm tree
-Date: Fri, 11 Jul 2008 11:44:21 -0700
-Message-ID: <200807111850.m6BIo2Mg031233@imap1.linux-foundation.org>
+Subject: + gru-driver-v3-page-faults-exceptions-gru-virtual-physical-translation.patch added to -mm tree
+Date: Fri, 11 Jul 2008 11:44:25 -0700
+Message-ID: <200807111850.m6BIo6Yg031236@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49663 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39516 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755981AbYGKSuK (ORCPT
+	by vger.kernel.org with ESMTP id S1755996AbYGKSuR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jul 2008 14:50:10 -0400
+	Fri, 11 Jul 2008 14:50:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: steiner@sgi.com, hugh@veritas.com, nickpiggin@yahoo.com.au
+Cc: steiner@sgi.com, hch@lst.de
 
 
 The patch titled
-     mm: add zap_vma_ptes(): a library function to unmap driver ptes
+     GRU virtual -> physical translation
 has been added to the -mm tree.  Its filename is
-     mm-add-zap_vma_ptes-a-library-function-to-unmap-driver-ptes.patch
+     gru-driver-v3-page-faults-exceptions-gru-virtual-physical-translation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,70 +34,91 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: add zap_vma_ptes(): a library function to unmap driver ptes
+Subject: GRU virtual -> physical translation
 From: Jack Steiner <steiner@sgi.com>
 
-zap_vma_ptes() is intended to be used by drivers to unmap ptes assigned to the
-driver private vmas.  This interface is similar to zap_page_range() but is
-less general & less likely to be abused.
-
-Needed by the GRU driver.
+Open code the equivalent to follow_page(). This eliminates the
+requirement for an EXPORT of follow_page(). In addition, the code
+is optimized for the specific case that is needed by the GRU and only
+supports architectures supported by the GRU (ia64 & x86_64).
 
 Signed-off-by: Jack Steiner <steiner@sgi.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 ++
- mm/memory.c        |   23 +++++++++++++++++++++++
- 2 files changed, 25 insertions(+)
+ drivers/misc/sgi-gru/grufault.c |   54 +++++++++++++++++++++++++-----
+ 1 file changed, 45 insertions(+), 9 deletions(-)
 
-diff -puN include/linux/mm.h~mm-add-zap_vma_ptes-a-library-function-to-unmap-driver-ptes include/linux/mm.h
---- a/include/linux/mm.h~mm-add-zap_vma_ptes-a-library-function-to-unmap-driver-ptes
-+++ a/include/linux/mm.h
-@@ -743,6 +743,8 @@ struct zap_details {
- struct page *vm_normal_page(struct vm_area_struct *vma, unsigned long addr,
- 		pte_t pte);
- 
-+int zap_vma_ptes(struct vm_area_struct *vma, unsigned long address,
-+		unsigned long size);
- unsigned long zap_page_range(struct vm_area_struct *vma, unsigned long address,
- 		unsigned long size, struct zap_details *);
- unsigned long unmap_vmas(struct mmu_gather **tlb,
-diff -puN mm/memory.c~mm-add-zap_vma_ptes-a-library-function-to-unmap-driver-ptes mm/memory.c
---- a/mm/memory.c~mm-add-zap_vma_ptes-a-library-function-to-unmap-driver-ptes
-+++ a/mm/memory.c
-@@ -993,6 +993,29 @@ unsigned long zap_page_range(struct vm_a
- 	return end;
+diff -puN drivers/misc/sgi-gru/grufault.c~gru-driver-v3-page-faults-exceptions-gru-virtual-physical-translation drivers/misc/sgi-gru/grufault.c
+--- a/drivers/misc/sgi-gru/grufault.c~gru-driver-v3-page-faults-exceptions-gru-virtual-physical-translation
++++ a/drivers/misc/sgi-gru/grufault.c
+@@ -213,20 +213,56 @@ static int non_atomic_pte_lookup(struct 
+ 	return 0;
  }
  
-+/**
-+ * zap_vma_ptes - remove ptes mapping the vma
-+ * @vma: vm_area_struct holding ptes to be zapped
-+ * @address: starting address of pages to zap
-+ * @size: number of bytes to zap
++/*
 + *
-+ * This function only unmaps ptes assigned to VM_PFNMAP vmas.
++ * atomic_pte_lookup
 + *
-+ * The entire address range must be fully contained within the vma.
-+ *
-+ * Returns 0 if successful.
++ * Convert a user virtual address to a physical address
++ * Only supports Intel large pages (2MB only) on x86_64.
++ *	ZZZ - hugepage support is incomplete
 + */
-+int zap_vma_ptes(struct vm_area_struct *vma, unsigned long address,
-+		unsigned long size)
-+{
-+	if (address < vma->vm_start || address + size > vma->vm_end ||
-+	    		!(vma->vm_flags & VM_PFNMAP))
-+		return -1;
-+	zap_page_range(vma, address, size, NULL);
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(zap_vma_ptes);
+ static int atomic_pte_lookup(struct vm_area_struct *vma, unsigned long vaddr,
+-			     int write, unsigned long *paddr, int *pageshift)
++	int write, unsigned long *paddr, int *pageshift)
+ {
+-	struct page *page;
++	pgd_t *pgdp;
++	pmd_t *pmdp;
++	pud_t *pudp;
++	pte_t pte;
 +
++	WARN_ON(irqs_disabled());		/* ZZZ debug */
++
++	local_irq_disable();
++	pgdp = pgd_offset(vma->vm_mm, vaddr);
++	if (unlikely(pgd_none(*pgdp)))
++		goto err;
++
++	pudp = pud_offset(pgdp, vaddr);
++	if (unlikely(pud_none(*pudp)))
++		goto err;
++
++	pmdp = pmd_offset(pudp, vaddr);
++	if (unlikely(pmd_none(*pmdp)))
++		goto err;
++#ifdef CONFIG_X86_64
++	if (unlikely(pmd_large(*pmdp)))
++		pte = *(pte_t *) pmdp;
++	else
++#endif
++		pte = *pte_offset_kernel(pmdp, vaddr);
+ 
+-	/* ZZZ Need to handle HUGE pages */
+-	if (is_vm_hugetlb_page(vma))
+-		return -EFAULT;
+-	*pageshift = PAGE_SHIFT;
+-	page = follow_page(vma, vaddr, (write ? FOLL_WRITE : 0));
+-	if (!page)
++	local_irq_enable();
++
++	if (unlikely(!pte_present(pte) ||
++		     (write && (!pte_write(pte) || !pte_dirty(pte)))))
+ 		return 1;
+-	*paddr = page_to_phys(page);
++
++	*paddr = pte_pfn(pte) << PAGE_SHIFT;
++	*pageshift = is_vm_hugetlb_page(vma) ? HPAGE_SHIFT : PAGE_SHIFT;
+ 	return 0;
++
++err:
++	local_irq_enable();
++	return 1;
+ }
+ 
  /*
-  * Do a quick page-table lookup for a single page.
-  */
 _
 
 Patches currently in -mm which might be from steiner@sgi.com are
