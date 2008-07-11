@@ -1,129 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: - scsi-make-struct-scsi_hosttarget_type-static.patch removed from -mm tree
-Date: Fri, 11 Jul 2008 16:51:32 -0700
-Message-ID: <200807112351.m6BNpWY9011049@imap1.linux-foundation.org>
+Subject: - uml-fix-gcc-ices-and-unresolved-externs.patch removed from -mm tree
+Date: Fri, 11 Jul 2008 16:50:43 -0700
+Message-ID: <200807112350.m6BNohlj010978@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48100 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43761 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754750AbYGKXvn (ORCPT
+	by vger.kernel.org with ESMTP id S1754780AbYGKXvo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jul 2008 19:51:43 -0400
+	Fri, 11 Jul 2008 19:51:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, James.Bottomley@HansenPartnership.com, mm-commits@vger.kernel.org
+To: jdike@addtoit.com, bhalevy@panasas.com, bunk@kernel.org, drepper@redhat.com, jdike@linux.intel.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scsi: make struct scsi_{host,target}_type static
+     uml: fix gcc ICEs and unresolved externs
 has been removed from the -mm tree.  Its filename was
-     scsi-make-struct-scsi_hosttarget_type-static.patch
+     uml-fix-gcc-ices-and-unresolved-externs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi: make struct scsi_{host,target}_type static
-From: Adrian Bunk <bunk@kernel.org>
+Subject: uml: fix gcc ICEs and unresolved externs
+From: Jeff Dike <jdike@addtoit.com>
 
-Make the needlessly global struct scsi_{host,target}_type static.
+There are various constraints on the use of unit-at-a-time:
+        i386 uses no-unit-at-a-time for pre-4.0 (not 4.3)
+        x86_64 uses unit-at-a-time always
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Uli reported a crash on x86_64 with gcc 4.1.2 with unit-at-a-time, resulting
+in commit c0a18111e571138747a98af18b3a2124df56a0d1
+
+Ingo reported a gcc internal error with gcc 4.3 with no-unit-at-a-timem,
+resulting in 22eecde2f9034764a3fd095eecfa3adfb8ec9a98
+
+Benny Halevy <bhalevy@panasas.com> is seeing extern inlines not resolved with
+gcc 4.3 with no-unit-at-a-time
+
+This patch reintroduces unit-at-a-time for gcc >= 4.0, bringing back the
+possibility of Uli's crash.  If that happens, we'll debug it.
+
+I started seeing both the internal compiler errors and unresolved inlines on
+Fedora 9.  This patch fixes both problems, without so far reintroducing the
+crash reported by Uli.
+
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Cc: Benny Halevy <bhalevy@panasas.com>
+Cc: Adrian Bunk <bunk@kernel.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Ulrich Drepper <drepper@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/hosts.c     |    2 +-
- drivers/scsi/scsi_scan.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ arch/um/Makefile        |    1 -
+ arch/um/Makefile-i386   |    7 +++++++
+ arch/um/Makefile-x86_64 |    3 +++
+ 3 files changed, 10 insertions(+), 1 deletion(-)
 
-diff -puN drivers/scsi/hosts.c~scsi-make-struct-scsi_hosttarget_type-static drivers/scsi/hosts.c
---- a/drivers/scsi/hosts.c~scsi-make-struct-scsi_hosttarget_type-static
-+++ a/drivers/scsi/hosts.c
-@@ -290,7 +290,7 @@ static void scsi_host_dev_release(struct
- 	kfree(shost);
- }
+diff -puN arch/um/Makefile~uml-fix-gcc-ices-and-unresolved-externs arch/um/Makefile
+--- a/arch/um/Makefile~uml-fix-gcc-ices-and-unresolved-externs
++++ a/arch/um/Makefile
+@@ -77,7 +77,6 @@ include $(srctree)/$(ARCH_DIR)/Makefile-
+ KERNEL_DEFINES = $(strip -Derrno=kernel_errno -Dsigprocmask=kernel_sigprocmask \
+ 			 -Dmktime=kernel_mktime $(ARCH_KERNEL_DEFINES))
+ KBUILD_CFLAGS += $(KERNEL_DEFINES)
+-KBUILD_CFLAGS += $(call cc-option,-fno-unit-at-a-time,)
  
--struct device_type scsi_host_type = {
-+static struct device_type scsi_host_type = {
- 	.name =		"scsi_host",
- 	.release =	scsi_host_dev_release,
- };
-diff -puN drivers/scsi/scsi_scan.c~scsi-make-struct-scsi_hosttarget_type-static drivers/scsi/scsi_scan.c
---- a/drivers/scsi/scsi_scan.c~scsi-make-struct-scsi_hosttarget_type-static
-+++ a/drivers/scsi/scsi_scan.c
-@@ -346,7 +346,7 @@ static void scsi_target_dev_release(stru
- 	put_device(parent);
- }
+ PHONY += linux
  
--struct device_type scsi_target_type = {
-+static struct device_type scsi_target_type = {
- 	.name =		"scsi_target",
- 	.release =	scsi_target_dev_release,
- };
+diff -puN arch/um/Makefile-i386~uml-fix-gcc-ices-and-unresolved-externs arch/um/Makefile-i386
+--- a/arch/um/Makefile-i386~uml-fix-gcc-ices-and-unresolved-externs
++++ a/arch/um/Makefile-i386
+@@ -32,4 +32,11 @@ cflags-y += $(call cc-option,-mpreferred
+ # an unresolved reference.
+ cflags-y += -ffreestanding
+ 
++# Disable unit-at-a-time mode on pre-gcc-4.0 compilers, it makes gcc use
++# a lot more stack due to the lack of sharing of stacklots.  Also, gcc
++# 4.3.0 needs -funit-at-a-time for extern inline functions.
++KBUILD_CFLAGS += $(shell if [ $(call cc-version) -lt 0400 ] ; then \
++			echo $(call cc-option,-fno-unit-at-a-time); \
++			else echo $(call cc-option,-funit-at-a-time); fi ;)
++
+ KBUILD_CFLAGS += $(cflags-y)
+diff -puN arch/um/Makefile-x86_64~uml-fix-gcc-ices-and-unresolved-externs arch/um/Makefile-x86_64
+--- a/arch/um/Makefile-x86_64~uml-fix-gcc-ices-and-unresolved-externs
++++ a/arch/um/Makefile-x86_64
+@@ -21,3 +21,6 @@ HEADER_ARCH := x86
+ 
+ LINK-$(CONFIG_LD_SCRIPT_DYN) += -Wl,-rpath,/lib64
+ LINK-y += -m64
++
++# Do unit-at-a-time unconditionally on x86_64, following the host
++KBUILD_CFLAGS += $(call cc-option,-funit-at-a-time)
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
 origin.patch
 linux-next.patch
-m32r-remove-the-unused-nohighmem-option.patch
-if-0-ses_match_host.patch
-git-xtensa.patch
-mm-migratec-should-include-linux-syscallsh.patch
-mm-vmstatc-proper-externs.patch
-mm-hugetlbc-fix-duplicate-variable.patch
-mm-page_allocc-cleanups.patch
-mm-make-register_page_bootmem_info_section-static.patch
-remove-include-asm-h8300-keyboardh.patch
-alpha-remove-the-unused-alpha_core_agp-option.patch
-remove-include-linux-pm_legacyh.patch
-mn10300-move-sg_dma_addresslen-to-asm-scatterlisth.patch
-remove-the-v850-port.patch
-init-do_mountsc-should-include-linux-initrdh.patch
-build-kernel-profileo-only-when-requested.patch
-build-kernel-profileo-only-when-requested-cleanups.patch
-asm-generic-int-ll64h-always-provide-__su64.patch
-remove-some-more-tipar-bits.patch
-include-linux-kernelh-userspace-header-cleanup.patch
-remove-the-oss-trident-driver.patch
-config_sound_wm97xx-remove-stale-makefile-line.patch
-serial-8250_gscc-add-module_license.patch
-rtc-bcd-codeshrink.patch
-video-sis-remove-compat-code.patch
-drivers-video-amifbc-cleanups.patch
-minix-remove-no_truncate-code.patch
-jbd-unexport-journal_update_superblock.patch
-coda-remove-coda_fs_old_api.patch
-fat-dirc-switch-to-struct-__fat_dirent.patch
-remove-the-in-kernel-struct-dirent64.patch
-remove-unused-include-linux-direnths.patch
-include-asm-ptraceh-userspace-headers-cleanup.patch
-remove-is_tty.patch
-pty-remove-unused-unix98_pty_count-options.patch
-proper-extern-for-mwave_s_mdd.patch
-if-0-hpet_unregister.patch
-unexport-proc_clear_tty.patch
-move-proc_kmsg_operations-to-fs-proc-internalh.patch
-proper-pidhashmap_init-prototypes.patch
-unexport-uts_sem.patch
-parport-sharec-proper-externs.patch
-tpm_biosc-make-2-structs-static.patch
-drm-make-drm_minors_cleanup-static.patch
-make-cgroup_seqfile_release-static.patch
-make-pnp_add_card_id-static.patch
-make-parport_cs_release-static.patch
-make-mm-sparsec-make-a-function-static.patch
-mm-allocpercpuc-make-4-functions-static.patch
-make-mm-memoryc-print_bad_pte-static.patch
-mm-swapfilec-make-code-static.patch
-make-mm-rmapc-anon_vma_cachep-static.patch
-drivers-char-rtcc-make-2-functions-static.patch
-make-init-do_mountsc-root_device_name-static.patch
-make-macfb_setup-static.patch
-video-console-sticonrec-make-code-static.patch
-video-console-sticonrec-make-code-static-checkpatch-fixes.patch
-video-stifbc-make-2-functions-static.patch
-reiser4.patch
+arch-um-kernel-irqc-clean-up-some-functions.patch
+arch-um-kernel-memc-remove-arch_validate.patch
+uml-make-several-more-things-static.patch
+hppfs-remove-hppfs_permission.patch
+kernel-call-constructors-uml-fix-1.patch
+kernel-call-constructors-uml-fix-2.patch
 
