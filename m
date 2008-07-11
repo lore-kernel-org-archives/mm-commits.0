@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hysdn-remove-the-packed-attribute-from-poftimstamp_tag.patch added to -mm tree
-Date: Fri, 11 Jul 2008 11:37:56 -0700
-Message-ID: <200807111843.m6BIhb7t030804@imap1.linux-foundation.org>
+Subject: + atm-fix-const-assignment-discard-warnings-in-the-atm-networking-driver.patch added to -mm tree
+Date: Fri, 11 Jul 2008 11:37:52 -0700
+Message-ID: <200807111843.m6BIhXgh030798@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38049 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60028 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756666AbYGKSoF (ORCPT
+	by vger.kernel.org with ESMTP id S1756338AbYGKSn7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jul 2008 14:44:05 -0400
+	Fri, 11 Jul 2008 14:43:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com, kkeil@suse.de
+Cc: dhowells@redhat.com, chas@cmf.nrl.navy.mil
 
 
 The patch titled
-     hysdn: remove the packed attribute from PofTimStamp_tag
+     atm: fix const assignment/discard warnings in the ATM networking driver
 has been added to the -mm tree.  Its filename is
-     hysdn-remove-the-packed-attribute-from-poftimstamp_tag.patch
+     atm-fix-const-assignment-discard-warnings-in-the-atm-networking-driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,37 +34,80 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hysdn: remove the packed attribute from PofTimStamp_tag
+Subject: atm: fix const assignment/discard warnings in the ATM networking driver
 From: David Howells <dhowells@redhat.com>
 
-Remove the packed attribute from PofTimStamp_tag in the hysdn driver as the
-thing being packed is just an array of chars and so is unpackable.
+Fix const assignment/discard warnings in the ATM networking driver.
 
-This deals with a compiler warning:
-
-In file included from drivers/isdn/hysdn/hysdn_boot.c:19:
-drivers/isdn/hysdn/hysdn_pof.h:63: warning: 'packed' attribute ignored for field of type 'unsigned char[40]'
+The lane2_assoc_ind() function needed its arguments changing to match changes
+in the lane2_ops struct (patch 61c33e012964ce358b42d2a1e9cd309af5dab02b).
 
 Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: Karsten Keil <kkeil@suse.de>
+Acked-by: Chas Williams <chas@cmf.nrl.navy.mil>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/hysdn/hysdn_pof.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/atm/mpc.c |   22 +++++++++++++---------
+ 1 file changed, 13 insertions(+), 9 deletions(-)
 
-diff -puN drivers/isdn/hysdn/hysdn_pof.h~hysdn-remove-the-packed-attribute-from-poftimstamp_tag drivers/isdn/hysdn/hysdn_pof.h
---- a/drivers/isdn/hysdn/hysdn_pof.h~hysdn-remove-the-packed-attribute-from-poftimstamp_tag
-+++ a/drivers/isdn/hysdn/hysdn_pof.h
-@@ -60,7 +60,7 @@ typedef struct PofRecHdr_tag {	/* Pof re
+diff -puN net/atm/mpc.c~atm-fix-const-assignment-discard-warnings-in-the-atm-networking-driver net/atm/mpc.c
+--- a/net/atm/mpc.c~atm-fix-const-assignment-discard-warnings-in-the-atm-networking-driver
++++ a/net/atm/mpc.c
+@@ -62,11 +62,13 @@ static void MPOA_cache_impos_rcvd(struct
+ static void set_mpc_ctrl_addr_rcvd(struct k_message *mesg, struct mpoa_client *mpc);
+ static void set_mps_mac_addr_rcvd(struct k_message *mesg, struct mpoa_client *mpc);
  
- typedef struct PofTimeStamp_tag {
- /*00 */ unsigned long UnixTime __attribute__((packed));
--	/*04 */ unsigned char DateTimeText[0x28] __attribute__((packed));
-+	/*04 */ unsigned char DateTimeText[0x28];
- 	/* =40 */
- /*2C */
- } tPofTimeStamp;
+-static uint8_t *copy_macs(struct mpoa_client *mpc, uint8_t *router_mac,
+-			  uint8_t *tlvs, uint8_t mps_macs, uint8_t device_type);
++static const uint8_t *copy_macs(struct mpoa_client *mpc,
++				const uint8_t *router_mac,
++				const uint8_t *tlvs, uint8_t mps_macs,
++				uint8_t device_type);
+ static void purge_egress_shortcut(struct atm_vcc *vcc, eg_cache_entry *entry);
+ 
+-static void send_set_mps_ctrl_addr(char *addr, struct mpoa_client *mpc);
++static void send_set_mps_ctrl_addr(const char *addr, struct mpoa_client *mpc);
+ static void mpoad_close(struct atm_vcc *vcc);
+ static int msg_from_mpoad(struct atm_vcc *vcc, struct sk_buff *skb);
+ 
+@@ -351,12 +353,12 @@ static const char *mpoa_device_type_stri
+  * lec sees a TLV it uses the pointer to call this function.
+  *
+  */
+-static void lane2_assoc_ind(struct net_device *dev, uint8_t *mac_addr,
+-			    uint8_t *tlvs, uint32_t sizeoftlvs)
++static void lane2_assoc_ind(struct net_device *dev, const u8 *mac_addr,
++			    const u8 *tlvs, u32 sizeoftlvs)
+ {
+ 	uint32_t type;
+ 	uint8_t length, mpoa_device_type, number_of_mps_macs;
+-	uint8_t *end_of_tlvs;
++	const uint8_t *end_of_tlvs;
+ 	struct mpoa_client *mpc;
+ 
+ 	mpoa_device_type = number_of_mps_macs = 0; /* silence gcc */
+@@ -430,8 +432,10 @@ static void lane2_assoc_ind(struct net_d
+  * plus the possible MAC address(es) to mpc->mps_macs.
+  * For a freshly allocated MPOA client mpc->mps_macs == 0.
+  */
+-static uint8_t *copy_macs(struct mpoa_client *mpc, uint8_t *router_mac,
+-			  uint8_t *tlvs, uint8_t mps_macs, uint8_t device_type)
++static const uint8_t *copy_macs(struct mpoa_client *mpc,
++				const uint8_t *router_mac,
++				const uint8_t *tlvs, uint8_t mps_macs,
++				uint8_t device_type)
+ {
+ 	int num_macs;
+ 	num_macs = (mps_macs > 1) ? mps_macs : 1;
+@@ -811,7 +815,7 @@ static int atm_mpoa_mpoad_attach (struct
+ 	return arg;
+ }
+ 
+-static void send_set_mps_ctrl_addr(char *addr, struct mpoa_client *mpc)
++static void send_set_mps_ctrl_addr(const char *addr, struct mpoa_client *mpc)
+ {
+ 	struct k_message mesg;
+ 
 _
 
 Patches currently in -mm which might be from dhowells@redhat.com are
