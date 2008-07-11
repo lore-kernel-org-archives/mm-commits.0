@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + use-warn-in-kernel-panicc.patch added to -mm tree
-Date: Fri, 11 Jul 2008 11:45:15 -0700
-Message-ID: <200807111850.m6BIouft031280@imap1.linux-foundation.org>
+Subject: + use-warn-in-mm-vmallocc.patch added to -mm tree
+Date: Fri, 11 Jul 2008 11:45:17 -0700
+Message-ID: <200807111850.m6BIowrP031283@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34012 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34628 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756032AbYGKSu6 (ORCPT
+	by vger.kernel.org with ESMTP id S1756296AbYGKSvA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jul 2008 14:50:58 -0400
+	Fri, 11 Jul 2008 14:51:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: arjan@linux.intel.com
 
 
 The patch titled
-     Use WARN() in kernel/panic.c
+     Use WARN() in mm/vmalloc.c
 has been added to the -mm tree.  Its filename is
-     use-warn-in-kernel-panicc.patch
+     use-warn-in-mm-vmallocc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Use WARN() in kernel/panic.c
+Subject: Use WARN() in mm/vmalloc.c
 From: Arjan van de Ven <arjan@linux.intel.com>
 
 Use WARN() instead of a printk+WARN_ON() pair; this way the message becomes
-part of the warning section for better reporting/collection.  This allowed the
-if() to be folded entirely into the WARN()
+part of the warning section for better reporting/collection.
 
 Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/panic.c |    6 ++----
+ mm/vmalloc.c |    6 ++----
  1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN kernel/panic.c~use-warn-in-kernel-panicc kernel/panic.c
---- a/kernel/panic.c~use-warn-in-kernel-panicc
-+++ a/kernel/panic.c
-@@ -392,10 +392,8 @@ static int __stack_chk_test(void)
- 	printk(KERN_INFO "Testing -fstack-protector-all feature\n");
- 	__stack_check_testing = (unsigned long)&__stack_chk_test_func;
- 	__stack_chk_test_func();
--	if (__stack_check_testing) {
--		printk(KERN_ERR "-fstack-protector-all test failed\n");
+diff -puN mm/vmalloc.c~use-warn-in-mm-vmallocc mm/vmalloc.c
+--- a/mm/vmalloc.c~use-warn-in-mm-vmallocc
++++ a/mm/vmalloc.c
+@@ -381,16 +381,14 @@ static void __vunmap(const void *addr, i
+ 		return;
+ 
+ 	if ((PAGE_SIZE-1) & (unsigned long)addr) {
+-		printk(KERN_ERR "Trying to vfree() bad address (%p)\n", addr);
 -		WARN_ON(1);
--	}
-+	WARN(__stack_check_testing,
-+			KERN_ERR "-fstack-protector-all test failed\n");
- 	return 0;
- }
- /*
++		WARN(1, KERN_ERR "Trying to vfree() bad address (%p)\n", addr);
+ 		return;
+ 	}
+ 
+ 	area = remove_vm_area(addr);
+ 	if (unlikely(!area)) {
+-		printk(KERN_ERR "Trying to vfree() nonexistent vm area (%p)\n",
++		WARN(1, KERN_ERR "Trying to vfree() nonexistent vm area (%p)\n",
+ 				addr);
+-		WARN_ON(1);
+ 		return;
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from arjan@linux.intel.com are
