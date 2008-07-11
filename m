@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pm-schedule-sysrq-poweroff-on-boot-cpu.patch added to -mm tree
-Date: Fri, 11 Jul 2008 11:41:03 -0700
-Message-ID: <200807111846.m6BIkiX8031028@imap1.linux-foundation.org>
+Subject: + pm-ahci-speed-up-resume.patch added to -mm tree
+Date: Fri, 11 Jul 2008 11:40:43 -0700
+Message-ID: <200807111846.m6BIkOkC031009@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33087 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35214 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754806AbYGKSqx (ORCPT
+	by vger.kernel.org with ESMTP id S1754213AbYGKSqu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jul 2008 14:46:53 -0400
+	Fri, 11 Jul 2008 14:46:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rui.zhang@intel.com, harbour@sfinx.od.ua, pavel@ucw.cz, rjw@sisk.pl
+Cc: rui.zhang@intel.com, jeff@garzik.org, pavel@ucw.cz, rjw@sisk.pl, tj@kernel.org
 
 
 The patch titled
-     pm: schedule sysrq poweroff on boot cpu
+     pm: ahci: speed up resume
 has been added to the -mm tree.  Its filename is
-     pm-schedule-sysrq-poweroff-on-boot-cpu.patch
+     pm-ahci-speed-up-resume.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,37 +34,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pm: schedule sysrq poweroff on boot cpu
+Subject: pm: ahci: speed up resume
 From: Zhang Rui <rui.zhang@intel.com>
 
-schedule sysrq poweroff on boot cpu.
+During resume, sleep 1 second to wait for the HBA reset to finish is a waste
+of time.
 
-sysrq poweroff needs to disable nonboot cpus, and we need to run this on boot
-cpu to avoid any recursion.  http://bugzilla.kernel.org/show_bug.cgi?id=10897
+According to the AHCI 1.2 spec, We should poll the HOST_CTL register, and
+return error if the host reset is not finished within 1 second.
+
+Test results show that the HBA reset can be done quickly(in usecs).  And this
+patch may save nearly 1 second during resume.
 
 Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-Tested-by: Rus <harbour@sfinx.od.ua>
+Acked-by: Tejun Heo <tj@kernel.org>
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Jeff Garzik <jeff@garzik.org>
 Acked-by: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/poweroff.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/ata/ahci.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN kernel/power/poweroff.c~pm-schedule-sysrq-poweroff-on-boot-cpu kernel/power/poweroff.c
---- a/kernel/power/poweroff.c~pm-schedule-sysrq-poweroff-on-boot-cpu
-+++ a/kernel/power/poweroff.c
-@@ -25,7 +25,8 @@ static DECLARE_WORK(poweroff_work, do_po
+diff -puN drivers/ata/ahci.c~pm-ahci-speed-up-resume drivers/ata/ahci.c
+--- a/drivers/ata/ahci.c~pm-ahci-speed-up-resume
++++ a/drivers/ata/ahci.c
+@@ -1142,12 +1142,15 @@ static int ahci_reset_controller(struct 
+ 			readl(mmio + HOST_CTL); /* flush */
+ 		}
  
- static void handle_poweroff(int key, struct tty_struct *tty)
- {
--	schedule_work(&poweroff_work);
-+	/* run sysrq poweroff on boot cpu */
-+	schedule_work_on(first_cpu(cpu_online_map), &poweroff_work);
- }
+-		/* reset must complete within 1 second, or
++		/*
++		 * to perform host reset, OS should set HOST_RESET
++		 * and poll until this bit is read to be "0".
++		 * reset must complete within 1 second, or
+ 		 * the hardware should be considered fried.
+ 		 */
+-		ssleep(1);
++		tmp = ata_wait_register(mmio + HOST_CTL, HOST_RESET,
++					HOST_RESET, 10, 1000);
  
- static struct sysrq_key_op	sysrq_poweroff_op = {
+-		tmp = readl(mmio + HOST_CTL);
+ 		if (tmp & HOST_RESET) {
+ 			dev_printk(KERN_ERR, host->dev,
+ 				   "controller reset failed (0x%x)\n", tmp);
 _
 
 Patches currently in -mm which might be from rui.zhang@intel.com are
