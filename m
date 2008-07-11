@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ecryptfs-do-not-try-to-open-device-files-on-mknod.patch added to -mm tree
-Date: Fri, 11 Jul 2008 11:41:57 -0700
-Message-ID: <200807111847.m6BIlcA5031057@imap1.linux-foundation.org>
+Subject: + lxfb-fix-console-blanking.patch added to -mm tree
+Date: Fri, 11 Jul 2008 11:42:35 -0700
+Message-ID: <200807111848.m6BImGpN031150@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48761 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38415 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755762AbYGKSr7 (ORCPT
+	by vger.kernel.org with ESMTP id S1755026AbYGKSs2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jul 2008 14:47:59 -0400
+	Fri, 11 Jul 2008 14:48:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mhalcrow@us.ibm.com
+Cc: jordan.crouse@amd.com, dilinger@debian.org
 
 
 The patch titled
-     eCryptfs: do not try to open device files on mknod
+     lxfb: fix console blanking
 has been added to the -mm tree.  Its filename is
-     ecryptfs-do-not-try-to-open-device-files-on-mknod.patch
+     lxfb-fix-console-blanking.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,173 +34,88 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: eCryptfs: do not try to open device files on mknod
-From: Michael Halcrow <mhalcrow@us.ibm.com>
+Subject: lxfb: fix console blanking
+From: Jordan Crouse <jordan.crouse@amd.com>
 
-When creating device nodes, eCryptfs needs to delay actually opening the lower
-persistent file until an application tries to open.  Device handles may not be
-backed by anything when they first come into existence.
+Simply enabling DAC blanking without turning off the CRT seems to be resulting
+in characters remaining on the screen when the monitor blanks.  This patch
+turns off the CRT for all modes, and also powers down the DACs when vsync
+and/or hsync are disabled.
 
-Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
+Signed-off-by: Jordan Crouse <jordan.crouse@amd.com>
+Acked-by: Andres Salomon <dilinger@debian.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/ecryptfs_kernel.h |    5 ++++-
- fs/ecryptfs/file.c            |   14 ++++++++++++++
- fs/ecryptfs/inode.c           |    6 ++++--
- fs/ecryptfs/main.c            |   29 +++++++++++++++++++----------
- 4 files changed, 41 insertions(+), 13 deletions(-)
+ drivers/video/geode/lxfb_ops.c |   28 ++++++++++++++++++----------
+ 1 file changed, 18 insertions(+), 10 deletions(-)
 
-diff -puN fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-do-not-try-to-open-device-files-on-mknod fs/ecryptfs/ecryptfs_kernel.h
---- a/fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-do-not-try-to-open-device-files-on-mknod
-+++ a/fs/ecryptfs/ecryptfs_kernel.h
-@@ -235,6 +235,7 @@ struct ecryptfs_crypt_stat {
- #define ECRYPTFS_METADATA_IN_XATTR  0x00000100
- #define ECRYPTFS_VIEW_AS_ENCRYPTED  0x00000200
- #define ECRYPTFS_KEY_SET            0x00000400
-+#define ECRYPTFS_DELAY_PERSISTENT   0x00000800
- 	u32 flags;
- 	unsigned int file_version;
- 	size_t iv_bytes;
-@@ -574,9 +575,11 @@ struct ecryptfs_open_req {
- 	struct list_head kthread_ctl_list;
- };
+diff -puN drivers/video/geode/lxfb_ops.c~lxfb-fix-console-blanking drivers/video/geode/lxfb_ops.c
+--- a/drivers/video/geode/lxfb_ops.c~lxfb-fix-console-blanking
++++ a/drivers/video/geode/lxfb_ops.c
+@@ -517,25 +517,25 @@ void lx_set_palette_reg(struct fb_info *
+ int lx_blank_display(struct fb_info *info, int blank_mode)
+ {
+ 	struct lxfb_par *par = info->par;
+-	u32 dcfg, fp_pm;
+-	int blank, hsync, vsync, crt;
++	u32 dcfg, misc, fp_pm;
++	int blank, hsync, vsync;
  
-+#define ECRYPTFS_INTERPOSE_FLAG_D_ADD                 0x00000001
-+#define ECRYPTFS_INTERPOSE_FLAG_DELAY_PERSISTENT_FILE 0x00000002
- int ecryptfs_interpose(struct dentry *hidden_dentry,
- 		       struct dentry *this_dentry, struct super_block *sb,
--		       int flag);
-+		       u32 flags);
- int ecryptfs_fill_zeros(struct file *file, loff_t new_length);
- int ecryptfs_decode_filename(struct ecryptfs_crypt_stat *crypt_stat,
- 			     const char *name, int length,
-diff -puN fs/ecryptfs/file.c~ecryptfs-do-not-try-to-open-device-files-on-mknod fs/ecryptfs/file.c
---- a/fs/ecryptfs/file.c~ecryptfs-do-not-try-to-open-device-files-on-mknod
-+++ a/fs/ecryptfs/file.c
-@@ -199,6 +199,20 @@ static int ecryptfs_open(struct inode *i
- 		       "file must hence be opened RO\n", __func__);
- 		goto out;
- 	}
-+	if (!ecryptfs_inode_to_private(inode)->lower_file) {
-+		BUG_ON(!(crypt_stat->flags & ECRYPTFS_DELAY_PERSISTENT));
-+		mutex_lock(&crypt_stat->cs_mutex);
-+		crypt_stat->flags &= ~(ECRYPTFS_ENCRYPTED);
-+		mutex_unlock(&crypt_stat->cs_mutex);
-+		rc = ecryptfs_init_persistent_file(ecryptfs_dentry);
-+		if (rc) {
-+			printk(KERN_ERR "%s: Error attempting to initialize "
-+			       "the persistent file for the dentry with name "
-+			       "[%s]; rc = [%d]\n", __func__,
-+			       ecryptfs_dentry->d_name.name, rc);
-+			goto out;
-+		}
-+	}
- 	ecryptfs_set_file_lower(
- 		file, ecryptfs_inode_to_private(inode)->lower_file);
- 	if (S_ISDIR(ecryptfs_dentry->d_inode->i_mode)) {
-diff -puN fs/ecryptfs/inode.c~ecryptfs-do-not-try-to-open-device-files-on-mknod fs/ecryptfs/inode.c
---- a/fs/ecryptfs/inode.c~ecryptfs-do-not-try-to-open-device-files-on-mknod
-+++ a/fs/ecryptfs/inode.c
-@@ -308,7 +308,8 @@ static struct dentry *ecryptfs_lookup(st
- 		d_add(dentry, NULL);
- 		goto out;
- 	}
--	rc = ecryptfs_interpose(lower_dentry, dentry, dir->i_sb, 1);
-+	rc = ecryptfs_interpose(lower_dentry, dentry, dir->i_sb,
-+				ECRYPTFS_INTERPOSE_FLAG_D_ADD);
- 	if (rc) {
- 		ecryptfs_printk(KERN_ERR, "Error interposing\n");
- 		goto out_dput;
-@@ -537,7 +538,8 @@ ecryptfs_mknod(struct inode *dir, struct
- 	rc = vfs_mknod(lower_dir_dentry->d_inode, lower_dentry, mode, dev);
- 	if (rc || !lower_dentry->d_inode)
- 		goto out;
--	rc = ecryptfs_interpose(lower_dentry, dentry, dir->i_sb, 0);
-+	rc = ecryptfs_interpose(lower_dentry, dentry, dir->i_sb,
-+				ECRYPTFS_INTERPOSE_FLAG_DELAY_PERSISTENT_FILE);
- 	if (rc)
- 		goto out;
- 	fsstack_copy_attr_times(dir, lower_dir_dentry->d_inode);
-diff -puN fs/ecryptfs/main.c~ecryptfs-do-not-try-to-open-device-files-on-mknod fs/ecryptfs/main.c
---- a/fs/ecryptfs/main.c~ecryptfs-do-not-try-to-open-device-files-on-mknod
-+++ a/fs/ecryptfs/main.c
-@@ -117,7 +117,7 @@ void __ecryptfs_printk(const char *fmt, 
-  *
-  * Returns zero on success; non-zero otherwise
-  */
--static int ecryptfs_init_persistent_file(struct dentry *ecryptfs_dentry)
-+int ecryptfs_init_persistent_file(struct dentry *ecryptfs_dentry)
- {
- 	struct ecryptfs_inode_info *inode_info =
- 		ecryptfs_inode_to_private(ecryptfs_dentry->d_inode);
-@@ -149,14 +149,14 @@ static int ecryptfs_init_persistent_file
-  * @lower_dentry: Existing dentry in the lower filesystem
-  * @dentry: ecryptfs' dentry
-  * @sb: ecryptfs's super_block
-- * @flag: If set to true, then d_add is called, else d_instantiate is called
-+ * @flags: flags to govern behavior of interpose procedure
-  *
-  * Interposes upper and lower dentries.
-  *
-  * Returns zero on success; non-zero otherwise
-  */
- int ecryptfs_interpose(struct dentry *lower_dentry, struct dentry *dentry,
--		       struct super_block *sb, int flag)
-+		       struct super_block *sb, u32 flags)
- {
- 	struct inode *lower_inode;
- 	struct inode *inode;
-@@ -193,7 +193,7 @@ int ecryptfs_interpose(struct dentry *lo
- 		init_special_inode(inode, lower_inode->i_mode,
- 				   lower_inode->i_rdev);
- 	dentry->d_op = &ecryptfs_dops;
--	if (flag)
-+	if (flags & ECRYPTFS_INTERPOSE_FLAG_D_ADD)
- 		d_add(dentry, inode);
- 	else
- 		d_instantiate(dentry, inode);
-@@ -201,12 +201,21 @@ int ecryptfs_interpose(struct dentry *lo
- 	/* This size will be overwritten for real files w/ headers and
- 	 * other metadata */
- 	fsstack_copy_inode_size(inode, lower_inode);
--	rc = ecryptfs_init_persistent_file(dentry);
--	if (rc) {
--		printk(KERN_ERR "%s: Error attempting to initialize the "
--		       "persistent file for the dentry with name [%s]; "
--		       "rc = [%d]\n", __func__, dentry->d_name.name, rc);
--		goto out;
-+	if (!(flags & ECRYPTFS_INTERPOSE_FLAG_DELAY_PERSISTENT_FILE)) {
-+		rc = ecryptfs_init_persistent_file(dentry);
-+		if (rc) {
-+			printk(KERN_ERR "%s: Error attempting to initialize "
-+			       "the persistent file for the dentry with name "
-+			       "[%s]; rc = [%d]\n", __func__,
-+			       dentry->d_name.name, rc);
-+			goto out;
-+		}
-+	} else {
-+		struct ecryptfs_inode_info *inode_info =
-+			ecryptfs_inode_to_private(dentry->d_inode);
+ 	/* CRT power saving modes. */
+ 	switch (blank_mode) {
+ 	case FB_BLANK_UNBLANK:
+-		blank = 0; hsync = 1; vsync = 1; crt = 1;
++		blank = 0; hsync = 1; vsync = 1;
+ 		break;
+ 	case FB_BLANK_NORMAL:
+-		blank = 1; hsync = 1; vsync = 1; crt = 1;
++		blank = 1; hsync = 1; vsync = 1;
+ 		break;
+ 	case FB_BLANK_VSYNC_SUSPEND:
+-		blank = 1; hsync = 1; vsync = 0; crt = 1;
++		blank = 1; hsync = 1; vsync = 0;
+ 		break;
+ 	case FB_BLANK_HSYNC_SUSPEND:
+-		blank = 1; hsync = 0; vsync = 1; crt = 1;
++		blank = 1; hsync = 0; vsync = 1;
+ 		break;
+ 	case FB_BLANK_POWERDOWN:
+-		blank = 1; hsync = 0; vsync = 0; crt = 0;
++		blank = 1; hsync = 0; vsync = 0;
+ 		break;
+ 	default:
+ 		return -EINVAL;
+@@ -545,15 +545,23 @@ int lx_blank_display(struct fb_info *inf
+ 	dcfg &= ~(VP_DCFG_DAC_BL_EN | VP_DCFG_HSYNC_EN | VP_DCFG_VSYNC_EN |
+ 			VP_DCFG_CRT_EN);
+ 	if (!blank)
+-		dcfg |= VP_DCFG_DAC_BL_EN;
++		dcfg |= VP_DCFG_DAC_BL_EN | VP_DCFG_CRT_EN;
+ 	if (hsync)
+ 		dcfg |= VP_DCFG_HSYNC_EN;
+ 	if (vsync)
+ 		dcfg |= VP_DCFG_VSYNC_EN;
+-	if (crt)
+-		dcfg |= VP_DCFG_CRT_EN;
 +
-+		inode_info->lower_file = NULL;
-+		inode_info->crypt_stat.flags |= ECRYPTFS_DELAY_PERSISTENT;
- 	}
- out:
- 	return rc;
+ 	write_vp(par, VP_DCFG, dcfg);
+ 
++	misc = read_vp(par, VP_MISC);
++
++	if (vsync && hsync)
++		misc &= ~VP_MISC_DACPWRDN;
++	else
++		misc |= VP_MISC_DACPWRDN;
++
++	write_vp(par, VP_MISC, misc);
++
+ 	/* Power on/off flat panel */
+ 
+ 	if (par->output & OUTPUT_PANEL) {
 _
 
-Patches currently in -mm which might be from mhalcrow@us.ibm.com are
+Patches currently in -mm which might be from jordan.crouse@amd.com are
 
-git-unionfs.patch
-fsstack-fsstack_copy_inode_size-locking.patch
-ecryptfs-privileged-kthread-for-lower-file-opens.patch
-ecryptfs-discard-ecryptfsd-registration-messages-in-miscdev.patch
-ecryptfs-propagate-key-errors-up-at-mount-time.patch
-ecryptfs-string-copy-cleanup.patch
-ecryptfs-cryptoc-use-unaligned-byteorder-helpers.patch
-ecryptfs-inodec-mmapc-use-unaligned-byteorder-helpers.patch
-ecryptfs-do-not-try-to-open-device-files-on-mknod.patch
-tpm-use-correct-data-types-for-sizes-in-tpm_write-and-tpm_read.patch
-notify_change-callers-must-hold-i_mutex.patch
+lxfb-fix-console-blanking.patch
 
