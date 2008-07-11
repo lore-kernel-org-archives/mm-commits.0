@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pnpacpi-fix-pnpacpi_parse_irq_options-test-against-pnp_irq_nr.patch added to -mm tree
-Date: Fri, 11 Jul 2008 11:42:43 -0700
-Message-ID: <200807111848.m6BImOME031163@imap1.linux-foundation.org>
+Subject: + kthread-reduce-stack-pressure-in-create_kthread-and-kthreadd.patch added to -mm tree
+Date: Fri, 11 Jul 2008 11:43:19 -0700
+Message-ID: <200807111849.m6BIn05t031170@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45709 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58582 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755940AbYGKStG (ORCPT
+	by vger.kernel.org with ESMTP id S1755795AbYGKStC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jul 2008 14:49:06 -0400
+	Fri, 11 Jul 2008 14:49:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com, bjorn.helgaas@hp.com
+Cc: travis@sgi.com
 
 
 The patch titled
-     pnpacpi: fix pnpacpi_parse_irq_option()'s test against PNP_IRQ_NR
+     kthread: reduce stack pressure in create_kthread and kthreadd
 has been added to the -mm tree.  Its filename is
-     pnpacpi-fix-pnpacpi_parse_irq_options-test-against-pnp_irq_nr.patch
+     kthread-reduce-stack-pressure-in-create_kthread-and-kthreadd.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,73 +34,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pnpacpi: fix pnpacpi_parse_irq_option()'s test against PNP_IRQ_NR
-From: David Howells <dhowells@redhat.com>
+Subject: kthread: reduce stack pressure in create_kthread and kthreadd
+From: Mike Travis <travis@sgi.com>
 
-Fix the test pnpacpi_parse_irq_option() makes against PNP_IRQ_NR by sticking
-p->interrupt[i] into an unsigned int and then using it in the three places
-that want it.  This gets rid of the warning:
+Replace:
 
-drivers/pnp/pnpacpi/rsparser.c:500: warning: comparison is always true due to limited range of data type
+  	set_cpus_allowed(..., CPU_MASK_ALL)
 
-Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+with:
+
+  	set_cpus_allowed_ptr(..., CPU_MASK_ALL_PTR)
+
+to remove excessive stack requirements when NR_CPUS=4096.
+
+Signed-off-by: Mike Travis <travis@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/pnpacpi/rsparser.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ kernel/kthread.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/pnp/pnpacpi/rsparser.c~pnpacpi-fix-pnpacpi_parse_irq_options-test-against-pnp_irq_nr drivers/pnp/pnpacpi/rsparser.c
---- a/drivers/pnp/pnpacpi/rsparser.c~pnpacpi-fix-pnpacpi_parse_irq_options-test-against-pnp_irq_nr
-+++ a/drivers/pnp/pnpacpi/rsparser.c
-@@ -517,12 +517,13 @@ static __init void pnpacpi_parse_ext_irq
- 	bitmap_zero(map.bits, PNP_IRQ_NR);
- 	for (i = 0; i < p->interrupt_count; i++) {
- 		if (p->interrupts[i]) {
--			if (p->interrupts[i] < PNP_IRQ_NR)
--				__set_bit(p->interrupts[i], map.bits);
-+			unsigned irq = p->interrupts[i];
-+			if (irq < PNP_IRQ_NR)
-+				__set_bit(irq, map.bits);
- 			else
- 				dev_err(&dev->dev, "ignoring IRQ %d option "
- 					"(too large for %d entry bitmap)\n",
--					p->interrupts[i], PNP_IRQ_NR);
-+					irq, PNP_IRQ_NR);
- 		}
+diff -puN kernel/kthread.c~kthread-reduce-stack-pressure-in-create_kthread-and-kthreadd kernel/kthread.c
+--- a/kernel/kthread.c~kthread-reduce-stack-pressure-in-create_kthread-and-kthreadd
++++ a/kernel/kthread.c
+@@ -106,7 +106,7 @@ static void create_kthread(struct kthrea
+ 		 */
+ 		sched_setscheduler(create->result, SCHED_NORMAL, &param);
+ 		set_user_nice(create->result, KTHREAD_NICE_LEVEL);
+-		set_cpus_allowed(create->result, CPU_MASK_ALL);
++		set_cpus_allowed_ptr(create->result, CPU_MASK_ALL_PTR);
  	}
+ 	complete(&create->done);
+ }
+@@ -214,7 +214,7 @@ int kthreadd(void *unused)
+ 	set_task_comm(tsk, "kthreadd");
+ 	ignore_signals(tsk);
+ 	set_user_nice(tsk, KTHREAD_NICE_LEVEL);
+-	set_cpus_allowed(tsk, CPU_MASK_ALL);
++	set_cpus_allowed_ptr(tsk, CPU_MASK_ALL_PTR);
+ 
+ 	current->flags |= PF_NOFREEZE | PF_FREEZER_NOSIG;
  
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from travis@sgi.com are
 
 linux-next.patch
-acpi-fix-a-cast-of-a-32-bit-int-to-a-pointer.patch
-acpi-fix-build-with-config_pm_sleep=n.patch
-calgary-fix-a-comparison-warning-the-pci-calgary-64-driver.patch
-alsa-fix-a-const-pointer-usage-warning-in-the-digigram-pcxhr-soundcard-driver.patch
-alsa-fix-a-const-pointer-usage-warning-in-the-digigram-mixart-soundcard-driver.patch
-cifs-fix-range-check.patch
-sis-drm-fix-the-memory-allocator-if-the-sis-fb-is-built-as-a-module.patch
-sis-drm-fix-a-pointer-cast-warning.patch
-ivtv-framebuffer-driver-fix-pointer-cast-warnings.patch
-drx397xd-demodulator-driver-fix-a-const-pointer-assignment.patch
-mtd-fix-const-assignment-in-the-command-line-partitioning-driver.patch
-atm-fix-const-assignment-discard-warnings-in-the-atm-networking-driver.patch
-atm-fix-direct-casts-of-pointers-to-u32-in-the-interphase-driver.patch
-hysdn-remove-the-packed-attribute-from-poftimstamp_tag.patch
-git-unionfs.patch
-xfs-fix-disabled-xfs-posix-acl-handling.patch
-mn10300-move-sg_dma_addresslen-to-asm-scatterlisth.patch
-inflate-refactor-inflate-malloc-code.patch
-inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
-pnpacpi-fix-pnpacpi_parse_irq_options-test-against-pnp_irq_nr.patch
-include-asm-ptraceh-userspace-headers-cleanup.patch
-sdio-fix-break-control-to-now-return-success-or-an-error.patch
-ip2-fix-iielliscleanup-as-it-is-static-but-not-always-used.patch
-fix-a-const-assignment-in-moxa_load_fw.patch
-frv-use-the-common-ascii-hex-helpers.patch
-mn10300-use-the-common-ascii-hex-helpers.patch
-mutex-subsystem-synchro-test-module.patch
+kthread-reduce-stack-pressure-in-create_kthread-and-kthreadd.patch
 
