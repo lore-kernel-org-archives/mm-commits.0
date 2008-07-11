@@ -1,77 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-video-fsl-diu-fbc-fix-broken-fix.patch removed from -mm tree
-Date: Fri, 11 Jul 2008 16:50:49 -0700
-Message-ID: <200807112350.m6BNon6m010985@imap1.linux-foundation.org>
+Subject: - reiserfs-discard-prealloc-in-reiserfs_delete_inode.patch removed from -mm tree
+Date: Fri, 11 Jul 2008 16:50:53 -0700
+Message-ID: <200807112350.m6BNorgV010988@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49612 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50623 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754309AbYGKXvA (ORCPT
+	by vger.kernel.org with ESMTP id S1754494AbYGKXvI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jul 2008 19:51:00 -0400
+	Fri, 11 Jul 2008 19:51:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tiwai@suse.de, avorontsov@ru.mvista.com, mm-commits@vger.kernel.org
+To: jeffm@suse.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/video/fsl-diu-fb.c: fix broken fix
+     reiserfs: discard prealloc in reiserfs_delete_inode
 has been removed from the -mm tree.  Its filename was
-     drivers-video-fsl-diu-fbc-fix-broken-fix.patch
+     reiserfs-discard-prealloc-in-reiserfs_delete_inode.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/video/fsl-diu-fb.c: fix broken fix
-From: Takashi Iwai <tiwai@suse.de>
+Subject: reiserfs: discard prealloc in reiserfs_delete_inode
+From: Jeff Mahoney <jeffm@suse.com>
 
-On 2.6.26-rc9, the commit 05946bce839b4fed5442dbfab77060fb75e051f3
-    fsl_diu_fb: fix build with CONFIG_PM=y, plus fix some warnings
-breaks its previous fix f969c5672b16b857e5231ad3c78f08d8ef3305aa
-    fsl-diu-db: compile fix
+With the removal of struct file from the xattr code, reiserfs_file_release()
+isn't used anymore, so the prealloc isn't discarded.  This causes hangs later
+down the line.
 
-This patch reverts the broken part.
+This patch adds it to reiserfs_delete_inode.  In most cases it will be a no-op
+due to it already having been called, but will avoid hangs with xattrs.
 
-Signed-off-by: Takashi Iwai <tiwai@suse.de>
-Acked-by: Anton Vorontsov <avorontsov@ru.mvista.com>
+Signed-off-by: Jeff Mahoney <jeffm@suse.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/fsl-diu-fb.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/reiserfs/inode.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/video/fsl-diu-fb.c~drivers-video-fsl-diu-fbc-fix-broken-fix drivers/video/fsl-diu-fb.c
---- a/drivers/video/fsl-diu-fb.c~drivers-video-fsl-diu-fbc-fix-broken-fix
-+++ a/drivers/video/fsl-diu-fb.c
-@@ -1324,7 +1324,7 @@ static int fsl_diu_suspend(struct of_dev
- {
- 	struct fsl_diu_data *machine_data;
+diff -puN fs/reiserfs/inode.c~reiserfs-discard-prealloc-in-reiserfs_delete_inode fs/reiserfs/inode.c
+--- a/fs/reiserfs/inode.c~reiserfs-discard-prealloc-in-reiserfs_delete_inode
++++ a/fs/reiserfs/inode.c
+@@ -45,6 +45,8 @@ void reiserfs_delete_inode(struct inode 
+ 			goto out;
+ 		reiserfs_update_inode_transaction(inode);
  
--	machine_data = dev_get_drvdata(&dev->dev);
-+	machine_data = dev_get_drvdata(&ofdev->dev);
- 	disable_lcdc(machine_data->fsl_diu_info[0]);
++		reiserfs_discard_prealloc(&th, inode);
++
+ 		err = reiserfs_delete_object(&th, inode);
  
- 	return 0;
-@@ -1334,7 +1334,7 @@ static int fsl_diu_resume(struct of_devi
- {
- 	struct fsl_diu_data *machine_data;
- 
--	machine_data = dev_get_drvdata(&dev->dev);
-+	machine_data = dev_get_drvdata(&ofdev->dev);
- 	enable_lcdc(machine_data->fsl_diu_info[0]);
- 
- 	return 0;
+ 		/* Do quota update inside a transaction for journaled quotas. We must do that
 _
 
-Patches currently in -mm which might be from tiwai@suse.de are
+Patches currently in -mm which might be from jeffm@suse.com are
 
 origin.patch
-linux-next.patch
-alsa-correct-kcalloc-usage.patch
-kernel-schedc-add-missing-attr-parameter.patch
-kcalloc-remove-runtime-division.patch
-pnp-set-the-pnp_card-dma_mask-for-use-by-isapnp-cards.patch
-isa-set-24-bit-dma_mask-for-isa-devices.patch
+reiserfs-convert-j_lock-to-mutex.patch
+reiserfs-convert-j_flush_sem-to-mutex.patch
+reiserfs-convert-j_commit_lock-to-mutex.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
 
