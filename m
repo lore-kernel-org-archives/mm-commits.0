@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ipmi-return-correct-value-from-ipmi_write.patch added to -mm tree
-Date: Fri, 11 Jul 2008 11:36:22 -0700
-Message-ID: <200807111842.m6BIg9Oh030648@imap1.linux-foundation.org>
+Subject: + drivers-video-fsl-diu-fbc-fix-broken-fix.patch added to -mm tree
+Date: Fri, 11 Jul 2008 11:36:39 -0700
+Message-ID: <200807111842.m6BIgKY4030669@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54072 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56806 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755707AbYGKSr0 (ORCPT
+	by vger.kernel.org with ESMTP id S1755746AbYGKSra (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jul 2008 14:47:26 -0400
+	Fri, 11 Jul 2008 14:47:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mrustad@gmail.com, MRustad@gmail.com, cminyard@mvista.com, stable@kernel.org
+Cc: tiwai@suse.de, avorontsov@ru.mvista.com
 
 
 The patch titled
-     ipmi: return correct value from ipmi_write
+     drivers/video/fsl-diu-fb.c: fix broken fix
 has been added to the -mm tree.  Its filename is
-     ipmi-return-correct-value-from-ipmi_write.patch
+     drivers-video-fsl-diu-fbc-fix-broken-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,47 +34,56 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ipmi: return correct value from ipmi_write
-From: Mark Rustad <mrustad@gmail.com>
+Subject: drivers/video/fsl-diu-fb.c: fix broken fix
+From: Takashi Iwai <tiwai@suse.de>
 
-This patch corrects the handling of write operations to the IPMI watchdog to
-work as intended by returning the number of characters actually processed. 
-Without this patch, an "echo V >/dev/watchdog" enables the watchdog if IPMI is
-providing the watchdog function.
+On 2.6.26-rc9, the commit 05946bce839b4fed5442dbfab77060fb75e051f3
+    fsl_diu_fb: fix build with CONFIG_PM=y, plus fix some warnings
+breaks its previous fix f969c5672b16b857e5231ad3c78f08d8ef3305aa
+    fsl-diu-db: compile fix
 
-I have not checked all of the watchdogs to see if there are others that have
-this problem, but the one I was using before using the IPMI one did work
-right.  It was also a big surprise how much the default watchdog timeout
-varies from one to another.  Let me tell you that the 10 second default for
-the IPMI watchdog was a real sore spot while tracking this problem down!  This
-problem goes back at least as far as 2.6.20.
+This patch reverts the broken part.
 
-Signed-off-by: Mark Rustad <MRustad@gmail.com>
-Cc: Corey Minyard <cminyard@mvista.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Takashi Iwai <tiwai@suse.de>
+Acked-by: Anton Vorontsov <avorontsov@ru.mvista.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ipmi/ipmi_watchdog.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/video/fsl-diu-fb.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/ipmi/ipmi_watchdog.c~ipmi-return-correct-value-from-ipmi_write drivers/char/ipmi/ipmi_watchdog.c
---- a/drivers/char/ipmi/ipmi_watchdog.c~ipmi-return-correct-value-from-ipmi_write
-+++ a/drivers/char/ipmi/ipmi_watchdog.c
-@@ -755,9 +755,8 @@ static ssize_t ipmi_write(struct file *f
- 		rv = ipmi_heartbeat();
- 		if (rv)
- 			return rv;
--		return 1;
- 	}
--	return 0;
-+	return len;
- }
+diff -puN drivers/video/fsl-diu-fb.c~drivers-video-fsl-diu-fbc-fix-broken-fix drivers/video/fsl-diu-fb.c
+--- a/drivers/video/fsl-diu-fb.c~drivers-video-fsl-diu-fbc-fix-broken-fix
++++ a/drivers/video/fsl-diu-fb.c
+@@ -1324,7 +1324,7 @@ static int fsl_diu_suspend(struct of_dev
+ {
+ 	struct fsl_diu_data *machine_data;
  
- static ssize_t ipmi_read(struct file *file,
+-	machine_data = dev_get_drvdata(&dev->dev);
++	machine_data = dev_get_drvdata(&ofdev->dev);
+ 	disable_lcdc(machine_data->fsl_diu_info[0]);
+ 
+ 	return 0;
+@@ -1334,7 +1334,7 @@ static int fsl_diu_resume(struct of_devi
+ {
+ 	struct fsl_diu_data *machine_data;
+ 
+-	machine_data = dev_get_drvdata(&dev->dev);
++	machine_data = dev_get_drvdata(&ofdev->dev);
+ 	enable_lcdc(machine_data->fsl_diu_info[0]);
+ 
+ 	return 0;
 _
 
-Patches currently in -mm which might be from mrustad@gmail.com are
+Patches currently in -mm which might be from tiwai@suse.de are
 
-ipmi-return-correct-value-from-ipmi_write.patch
+drivers-video-fsl-diu-fbc-fix-broken-fix.patch
+linux-next.patch
+alsa-correct-kcalloc-usage.patch
+alsa-fix-a-const-pointer-usage-warning-in-the-digigram-pcxhr-soundcard-driver.patch
+alsa-fix-a-const-pointer-usage-warning-in-the-digigram-mixart-soundcard-driver.patch
+kernel-schedc-add-missing-attr-parameter.patch
+kcalloc-remove-runtime-division.patch
+pnp-set-the-pnp_card-dma_mask-for-use-by-isapnp-cards.patch
+isa-set-24-bit-dma_mask-for-isa-devices.patch
 
