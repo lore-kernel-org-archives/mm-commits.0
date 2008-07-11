@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pm-hibernation-simplify-memory-bitmap.patch added to -mm tree
-Date: Fri, 11 Jul 2008 11:40:53 -0700
-Message-ID: <200807111846.m6BIkYX6031016@imap1.linux-foundation.org>
+Subject: + hugetlb-fix-a-hugepage-reservation-check-for-map_shared.patch added to -mm tree
+Date: Fri, 11 Jul 2008 11:40:04 -0700
+Message-ID: <200807111845.m6BIji8L030972@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37326 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55205 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751434AbYGKSqm (ORCPT
+	by vger.kernel.org with ESMTP id S1754806AbYGKSq2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jul 2008 14:46:42 -0400
+	Fri, 11 Jul 2008 14:46:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, pavel@ucw.cz, rjw@sisk.pl
+Cc: mel@csn.ul.ie, agl@us.ibm.com, apw@shadowen.org
 
 
 The patch titled
-     pm: hibernation: simplify memory bitmap
+     hugetlb: fix a hugepage reservation check for MAP_SHARED
 has been added to the -mm tree.  Its filename is
-     pm-hibernation-simplify-memory-bitmap.patch
+     hugetlb-fix-a-hugepage-reservation-check-for-map_shared.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,237 +34,102 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pm: hibernation: simplify memory bitmap
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: hugetlb: fix a hugepage reservation check for MAP_SHARED
+From: Mel Gorman <mel@csn.ul.ie>
 
-This patch simplifies the memory bitmap manipulations.
+When removing a huge page from the hugepage pool for a fault the system checks
+to see if the mapping requires additional pages to be reserved, and if it does
+whether there are any unreserved pages remaining.  If not, the allocation
+fails without even attempting to get a page.  In order to determine whether to
+apply this check we call vma_has_private_reserves() which tells us if this vma
+is MAP_PRIVATE and is the owner.  This incorrectly triggers the remaining
+reservation test for MAP_SHARED mappings which prevents allocation of the
+final page in the pool even though it is reserved for this mapping.
 
-- remove the member size in struct bm_block
+In reality we only want to check this for MAP_PRIVATE mappings where the
+process is not the original mapper.  Replace vma_has_private_reserves() with
+vma_has_reserves() which indicates whether further reserves are required, and
+update the caller.
 
-It is not necessary for struct bm_block to have the number of bit chunks that
-can be calculated by using end_pfn and start_pfn.
-
-- use find_next_bit() for memory_bm_next_pfn
-
-No need to invent the bitmap library only for the memory bitmap.
-
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Acked-by: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Acked-by: Adam Litke <agl@us.ibm.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/snapshot.c |   88 +++++++++-----------------------------
- 1 file changed, 21 insertions(+), 67 deletions(-)
+ mm/hugetlb.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN kernel/power/snapshot.c~pm-hibernation-simplify-memory-bitmap kernel/power/snapshot.c
---- a/kernel/power/snapshot.c~pm-hibernation-simplify-memory-bitmap
-+++ a/kernel/power/snapshot.c
-@@ -205,8 +205,7 @@ static void chain_free(struct chain_allo
-  *	objects.  The main list's elements are of type struct zone_bitmap
-  *	and each of them corresonds to one zone.  For each zone bitmap
-  *	object there is a list of objects of type struct bm_block that
-- *	represent each blocks of bit chunks in which information is
-- *	stored.
-+ *	represent each blocks of bitmap in which information is stored.
-  *
-  *	struct memory_bitmap contains a pointer to the main list of zone
-  *	bitmap objects, a struct bm_position used for browsing the bitmap,
-@@ -224,26 +223,27 @@ static void chain_free(struct chain_allo
-  *	pfns that correspond to the start and end of the represented zone.
-  *
-  *	struct bm_block contains a pointer to the memory page in which
-- *	information is stored (in the form of a block of bit chunks
-- *	of type unsigned long each).  It also contains the pfns that
-- *	correspond to the start and end of the represented memory area and
-- *	the number of bit chunks in the block.
-+ *	information is stored (in the form of a block of bitmap)
-+ *	It also contains the pfns that correspond to the start and end of
-+ *	the represented memory area.
-  */
+diff -puN mm/hugetlb.c~hugetlb-fix-a-hugepage-reservation-check-for-map_shared mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-fix-a-hugepage-reservation-check-for-map_shared
++++ a/mm/hugetlb.c
+@@ -342,13 +342,13 @@ void reset_vma_resv_huge_pages(struct vm
+ }
  
- #define BM_END_OF_MAP	(~0UL)
- 
--#define BM_CHUNKS_PER_BLOCK	(PAGE_SIZE / sizeof(long))
--#define BM_BITS_PER_CHUNK	(sizeof(long) << 3)
- #define BM_BITS_PER_BLOCK	(PAGE_SIZE << 3)
- 
- struct bm_block {
- 	struct bm_block *next;		/* next element of the list */
- 	unsigned long start_pfn;	/* pfn represented by the first bit */
- 	unsigned long end_pfn;	/* pfn represented by the last bit plus 1 */
--	unsigned int size;	/* number of bit chunks */
--	unsigned long *data;	/* chunks of bits representing pages */
-+	unsigned long *data;	/* bitmap representing pages */
- };
- 
-+static inline unsigned long bm_block_bits(struct bm_block *bb)
-+{
-+	return bb->end_pfn - bb->start_pfn;
-+}
-+
- struct zone_bitmap {
- 	struct zone_bitmap *next;	/* next element of the list */
- 	unsigned long start_pfn;	/* minimal pfn in this zone */
-@@ -257,7 +257,6 @@ struct zone_bitmap {
- struct bm_position {
- 	struct zone_bitmap *zone_bm;
- 	struct bm_block *block;
--	int chunk;
- 	int bit;
- };
- 
-@@ -272,12 +271,6 @@ struct memory_bitmap {
- 
- /* Functions that operate on memory bitmaps */
- 
--static inline void memory_bm_reset_chunk(struct memory_bitmap *bm)
--{
--	bm->cur.chunk = 0;
--	bm->cur.bit = -1;
--}
--
- static void memory_bm_position_reset(struct memory_bitmap *bm)
+ /* Returns true if the VMA has associated reserve pages */
+-static int vma_has_private_reserves(struct vm_area_struct *vma)
++static int vma_has_reserves(struct vm_area_struct *vma)
  {
- 	struct zone_bitmap *zone_bm;
-@@ -285,7 +278,7 @@ static void memory_bm_position_reset(str
- 	zone_bm = bm->zone_bm_list;
- 	bm->cur.zone_bm = zone_bm;
- 	bm->cur.block = zone_bm->bm_blocks;
--	memory_bm_reset_chunk(bm);
-+	bm->cur.bit = 0;
+ 	if (vma->vm_flags & VM_SHARED)
+-		return 0;
+-	if (!is_vma_resv_set(vma, HPAGE_RESV_OWNER))
+-		return 0;
+-	return 1;
++		return 1;
++	if (is_vma_resv_set(vma, HPAGE_RESV_OWNER))
++		return 1;
++	return 0;
  }
  
- static void memory_bm_free(struct memory_bitmap *bm, int clear_nosave_free);
-@@ -394,12 +387,10 @@ memory_bm_create(struct memory_bitmap *b
- 			bb->start_pfn = pfn;
- 			if (nr >= BM_BITS_PER_BLOCK) {
- 				pfn += BM_BITS_PER_BLOCK;
--				bb->size = BM_CHUNKS_PER_BLOCK;
- 				nr -= BM_BITS_PER_BLOCK;
- 			} else {
- 				/* This is executed only once in the loop */
- 				pfn += nr;
--				bb->size = DIV_ROUND_UP(nr, BM_BITS_PER_CHUNK);
- 			}
- 			bb->end_pfn = pfn;
- 			bb = bb->next;
-@@ -478,8 +469,8 @@ static int memory_bm_find_bit(struct mem
- 	}
- 	zone_bm->cur_block = bb;
- 	pfn -= bb->start_pfn;
--	*bit_nr = pfn % BM_BITS_PER_CHUNK;
--	*addr = bb->data + pfn / BM_BITS_PER_CHUNK;
-+	*bit_nr = pfn;
-+	*addr = bb->data;
- 	return 0;
- }
+ static void clear_huge_page(struct page *page,
+@@ -420,7 +420,7 @@ static struct page *dequeue_huge_page_vm
+ 	 * have no page reserves. This check ensures that reservations are
+ 	 * not "stolen". The child may still get SIGKILLed
+ 	 */
+-	if (!vma_has_private_reserves(vma) &&
++	if (!vma_has_reserves(vma) &&
+ 			h->free_huge_pages - h->resv_huge_pages == 0)
+ 		return NULL;
  
-@@ -528,36 +519,6 @@ static int memory_bm_test_bit(struct mem
- 	return test_bit(bit, addr);
- }
- 
--/* Two auxiliary functions for memory_bm_next_pfn */
--
--/* Find the first set bit in the given chunk, if there is one */
--
--static inline int next_bit_in_chunk(int bit, unsigned long *chunk_p)
--{
--	bit++;
--	while (bit < BM_BITS_PER_CHUNK) {
--		if (test_bit(bit, chunk_p))
--			return bit;
--
--		bit++;
--	}
--	return -1;
--}
--
--/* Find a chunk containing some bits set in given block of bits */
--
--static inline int next_chunk_in_block(int n, struct bm_block *bb)
--{
--	n++;
--	while (n < bb->size) {
--		if (bb->data[n])
--			return n;
--
--		n++;
--	}
--	return -1;
--}
--
- /**
-  *	memory_bm_next_pfn - find the pfn that corresponds to the next set bit
-  *	in the bitmap @bm.  If the pfn cannot be found, BM_END_OF_MAP is
-@@ -571,40 +532,33 @@ static unsigned long memory_bm_next_pfn(
- {
- 	struct zone_bitmap *zone_bm;
- 	struct bm_block *bb;
--	int chunk;
- 	int bit;
- 
- 	do {
- 		bb = bm->cur.block;
- 		do {
--			chunk = bm->cur.chunk;
- 			bit = bm->cur.bit;
--			do {
--				bit = next_bit_in_chunk(bit, bb->data + chunk);
--				if (bit >= 0)
--					goto Return_pfn;
--
--				chunk = next_chunk_in_block(chunk, bb);
--				bit = -1;
--			} while (chunk >= 0);
-+			bit = find_next_bit(bb->data, bm_block_bits(bb), bit);
-+			if (bit < bm_block_bits(bb))
-+				goto Return_pfn;
-+
- 			bb = bb->next;
- 			bm->cur.block = bb;
--			memory_bm_reset_chunk(bm);
-+			bm->cur.bit = 0;
- 		} while (bb);
- 		zone_bm = bm->cur.zone_bm->next;
- 		if (zone_bm) {
- 			bm->cur.zone_bm = zone_bm;
- 			bm->cur.block = zone_bm->bm_blocks;
--			memory_bm_reset_chunk(bm);
-+			bm->cur.bit = 0;
- 		}
- 	} while (zone_bm);
- 	memory_bm_position_reset(bm);
- 	return BM_END_OF_MAP;
- 
-  Return_pfn:
--	bm->cur.chunk = chunk;
--	bm->cur.bit = bit;
--	return bb->start_pfn + chunk * BM_BITS_PER_CHUNK + bit;
-+	bm->cur.bit = bit + 1;
-+	return bb->start_pfn + bit;
- }
- 
- /**
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from mel@csn.ul.ie are
 
 linux-next.patch
-ttusb-use-simple_read_from_buffer.patch
-s390-vmcp-use-simple_read_from_buffer.patch
-s390-use-simple_read_from_buffer.patch
-s390-cio-use-memory_read_from_buffer.patch
-s390-use-memory_read_from_buffer.patch
-ipr-use-memory_read_from_buffer.patch
-qla2xxx-use-memory_read_from_buffer.patch
-pm-hibernation-simplify-memory-bitmap.patch
-cris-use-simple_read_from_buffer.patch
-binfmt_misc-use-simple_read_from_buffer.patch
-aty-use-memory_read_from_buffer.patch
-ipc-use-simple_read_from_buffer.patch
-nwflash-use-simple_read_from_buffer.patch
-firmware-use-memory_read_from_buffer.patch
-dcdbas-use-memory_read_from_buffer.patch
-dell_rbu-use-memory_read_from_buffer.patch
+mm-add-a-basic-debugging-framework-for-memory-initialisation.patch
+mm-add-a-basic-debugging-framework-for-memory-initialisation-fix.patch
+mm-verify-the-page-links-and-memory-model.patch
+mm-make-defensive-checks-around-pfn-values-registered-for-memory-usage.patch
+mm-print-out-the-zonelists-on-request-for-manual-verification.patch
+mm-move-bootmem-descriptors-definition-to-a-single-place.patch
+mm-fix-free_all_bootmem_core-alignment-check.patch
+mm-normalize-internal-argument-passing-of-bootmem-data.patch
+mm-unexport-__alloc_bootmem_core.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+hugetlb-move-hugetlb_acct_memory.patch
+hugetlb-reserve-huge-pages-for-reliable-map_private-hugetlbfs-mappings-until-fork.patch
+hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed.patch
+hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed-fix.patch
+hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed-build-fix.patch
+hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed-align-faulting-address-to-a-hugepage-boundary-before-unmapping.patch
+huge-page-private-reservation-review-cleanups.patch
+huge-page-private-reservation-review-cleanups-fix.patch
+mm-record-map_noreserve-status-on-vmas-and-fix-small-page-mprotect-reservations.patch
+hugetlb-move-reservation-region-support-earlier.patch
+hugetlb-allow-huge-page-mappings-to-be-created-without-reservations.patch
+hugetlb-allow-huge-page-mappings-to-be-created-without-reservations-cleanups.patch
+hugetlb-reservations-fix-hugetlb-map_private-reservations-across-vma-splits-v2.patch
+mm-remove-mm_init-compilation-dependency-on-config_debug_memory_init.patch
+mm-create-sys-kernel-mm.patch
+hugetlb-new-sysfs-interface-hugetlb-hang-off-of-sys-kernel-mm-rather-than-sys-kernel.patch
+hugetlb-new-sysfs-interface-hugetlb-remove-config_sysfs-dependency.patch
+hugetlb-fix-race-when-reading-proc-meminfo.patch
+hugetlb-fix-a-hugepage-reservation-check-for-map_shared.patch
+hugetlb-quota-is-not-freed-for-unused-reserved-private-huge-pages.patch
+mm-add-alloc_pages_exact-and-free_pages_exact.patch
+memory-hotplugallocate-usemap-on-the-section-with-pgdat-take-4.patch
+memory-hotplug-add-sysfs-removable-attribute-for-hotplug-memory-remove.patch
+page-owner-tracking-leak-detector.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
 
