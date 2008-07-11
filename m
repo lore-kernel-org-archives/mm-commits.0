@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fbdev-bugfix-for-multiprocess-defio.patch added to -mm tree
-Date: Fri, 11 Jul 2008 11:36:36 -0700
-Message-ID: <200807111842.m6BIgHuo030666@imap1.linux-foundation.org>
+Subject: + md-ensure-all-blocks-are-uptodate-or-locked-when-syncing.patch added to -mm tree
+Date: Fri, 11 Jul 2008 11:36:34 -0700
+Message-ID: <200807111842.m6BIgFWb030658@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57209 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41661 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753921AbYGKSmf (ORCPT
+	by vger.kernel.org with ESMTP id S1753862AbYGKSm1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jul 2008 14:42:35 -0400
+	Fri, 11 Jul 2008 14:42:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jayakumar.lkml@gmail.com, bernard@largestprime.net, stable@kernel.org
+Cc: dan.j.williams@intel.com, neilb@suse.de, stable@kernel.org
 
 
 The patch titled
-     fbdev: bugfix for multiprocess defio
+     md: ensure all blocks are uptodate or locked when syncing
 has been added to the -mm tree.  Its filename is
-     fbdev-bugfix-for-multiprocess-defio.patch
+     md-ensure-all-blocks-are-uptodate-or-locked-when-syncing.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,72 +34,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbdev: bugfix for multiprocess defio
-From: Jaya Kumar <jayakumar.lkml@gmail.com>
+Subject: md: ensure all blocks are uptodate or locked when syncing
+From: Dan Williams <dan.j.williams@intel.com>
 
-This patch is a bugfix for how defio handles multiple processes manipulating
-the same framebuffer.
+Remove the dubious attempt to prefer 'compute' over 'read'.  Not only is it
+wrong given commit c337869d (md: do not compute parity unless it is on a
+failed drive), but it can trigger a BUG_ON in handle_parity_checks5().
 
-Thanks to Bernard Blackham for identifying this bug.
-
-It occurs when two applications mmap the same framebuffer and concurrently
-write to the same page.  Normally, this doesn't occur since only a single
-process mmaps the framebuffer.  The symptom of the bug is that the mapping
-applications will hang.  The cause is that defio incorrectly tries to add the
-same page twice to the pagelist.  The solution I have is to walk the pagelist
-and check for a duplicate before adding.  Since I needed to walk the pagelist,
-I now also keep the pagelist in sorted order.
-
-Signed-off-by: Jaya Kumar <jayakumar.lkml@gmail.com>
-Cc: Bernard Blackham <bernard@largestprime.net>
 Cc: <stable@kernel.org>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/fb_defio.c |   20 +++++++++++++++++++-
- 1 file changed, 19 insertions(+), 1 deletion(-)
+ drivers/md/raid5.c |    7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
-diff -puN drivers/video/fb_defio.c~fbdev-bugfix-for-multiprocess-defio drivers/video/fb_defio.c
---- a/drivers/video/fb_defio.c~fbdev-bugfix-for-multiprocess-defio
-+++ a/drivers/video/fb_defio.c
-@@ -74,6 +74,7 @@ static int fb_deferred_io_mkwrite(struct
- {
- 	struct fb_info *info = vma->vm_private_data;
- 	struct fb_deferred_io *fbdefio = info->fbdefio;
-+	struct page *cur;
- 
- 	/* this is a callback we get when userspace first tries to
- 	write to the page. we schedule a workqueue. that workqueue
-@@ -83,7 +84,24 @@ static int fb_deferred_io_mkwrite(struct
- 
- 	/* protect against the workqueue changing the page list */
- 	mutex_lock(&fbdefio->lock);
--	list_add(&page->lru, &fbdefio->pagelist);
-+
-+	/* we loop through the pagelist before adding in order
-+	to keep the pagelist sorted */
-+	list_for_each_entry(cur, &fbdefio->pagelist, lru) {
-+		/* this check is to catch the case where a new
-+		process could start writing to the same page
-+		through a new pte. this new access can cause the
-+		mkwrite even when the original ps's pte is marked
-+		writable */
-+		if (unlikely(cur == page))
-+			goto page_already_added;
-+		else if (cur->index > page->index)
-+			break;
-+	}
-+
-+	list_add_tail(&page->lru, &cur->lru);
-+
-+page_already_added:
- 	mutex_unlock(&fbdefio->lock);
- 
- 	/* come back after delay to process the deferred IO */
+diff -puN drivers/md/raid5.c~md-ensure-all-blocks-are-uptodate-or-locked-when-syncing drivers/md/raid5.c
+--- a/drivers/md/raid5.c~md-ensure-all-blocks-are-uptodate-or-locked-when-syncing
++++ a/drivers/md/raid5.c
+@@ -2017,12 +2017,7 @@ static int __handle_issuing_new_read_req
+ 			 */
+ 			s->uptodate++;
+ 			return 0; /* uptodate + compute == disks */
+-		} else if ((s->uptodate < disks - 1) &&
+-			test_bit(R5_Insync, &dev->flags)) {
+-			/* Note: we hold off compute operations while checks are
+-			 * in flight, but we still prefer 'compute' over 'read'
+-			 * hence we only read if (uptodate < * disks-1)
+-			 */
++		} else if (test_bit(R5_Insync, &dev->flags)) {
+ 			set_bit(R5_LOCKED, &dev->flags);
+ 			set_bit(R5_Wantread, &dev->flags);
+ 			if (!test_and_set_bit(STRIPE_OP_IO, &sh->ops.pending))
 _
 
-Patches currently in -mm which might be from jayakumar.lkml@gmail.com are
+Patches currently in -mm which might be from dan.j.williams@intel.com are
 
-fbdev-bugfix-for-multiprocess-defio.patch
+md-ensure-all-blocks-are-uptodate-or-locked-when-syncing.patch
 linux-next.patch
+dma-fix-platform-driver-hotplug-coldplug.patch
 
