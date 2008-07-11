@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlb-new-sysfs-interface-hugetlb-hang-off-of-sys-kernel-mm-rather-than-sys-kernel.patch added to -mm tree
-Date: Fri, 11 Jul 2008 11:39:52 -0700
-Message-ID: <200807111845.m6BIjX9u030962@imap1.linux-foundation.org>
+Subject: + use-warn-in-arch-x86-mm-pageattrc.patch added to -mm tree
+Date: Fri, 11 Jul 2008 11:45:26 -0700
+Message-ID: <200807111851.m6BIp7xi031304@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33494 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33081 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757286AbYGKSvP (ORCPT
+	by vger.kernel.org with ESMTP id S1756065AbYGKSvW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jul 2008 14:51:15 -0400
+	Fri, 11 Jul 2008 14:51:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nacc@us.ibm.com, mel@csn.ul.ie, nickpiggin@yahoo.com.au
+Cc: arjan@linux.intel.com, mingo@elte.hu
 
 
 The patch titled
-     hugetlb: hang off of /sys/kernel/mm rather than /sys/kernel
+     use WARN() in arch/x86/mm/pageattr.c
 has been added to the -mm tree.  Its filename is
-     hugetlb-new-sysfs-interface-hugetlb-hang-off-of-sys-kernel-mm-rather-than-sys-kernel.patch
+     use-warn-in-arch-x86-mm-pageattrc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,127 +34,71 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlb: hang off of /sys/kernel/mm rather than /sys/kernel
-From: Nishanth Aravamudan <nacc@us.ibm.com>
+Subject: use WARN() in arch/x86/mm/pageattr.c
+From: Arjan van de Ven <arjan@linux.intel.com>
 
-To keep /sys/kernel uncluttered, use the newly created /sys/kernel/mm as
-the parent for the hugepage-controlling directories/files. Update the
-ABI file and redirect the user to the more complete vm/hugetlbpage.txt
-for details on hugepage usage.
+Use WARN() instead of a printk+WARN_ON() pair; this way the message becomes
+part of the warning section for better reporting/collection.
 
-Signed-off-by: Nishanth Aravamudan <nacc@us.ibm.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
+Acked-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-kernel-hugepages    |   14 ------
- Documentation/ABI/testing/sysfs-kernel-mm-hugepages |   15 ++++++
- Documentation/vm/hugetlbpage.txt                    |   23 ++++++++++
- mm/hugetlb.c                                        |    2 
- 4 files changed, 39 insertions(+), 15 deletions(-)
+ arch/x86/mm/pageattr-test.c |    3 +--
+ arch/x86/mm/pageattr.c      |    3 +--
+ 2 files changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN Documentation/ABI/testing/sysfs-kernel-hugepages~hugetlb-new-sysfs-interface-hugetlb-hang-off-of-sys-kernel-mm-rather-than-sys-kernel /dev/null
---- a/Documentation/ABI/testing/sysfs-kernel-hugepages
-+++ /dev/null
-@@ -1,14 +0,0 @@
--What:		/sys/kernel/hugepages/
--Date:		June 2008
--Contact:	Nishanth Aravamudan <nacc@us.ibm.com>, hugetlb maintainers
--Description:
--		/sys/kernel/hugepages/ contains a number of subdirectories
--		of the form hugepages-<size>kb, where <size> is the page size
--		of the hugepages supported by the kernel/CPU combination.
--
--		Under these directories are a number of files:
--		nr_hugepages - minimum number of hugepages reserved
--		nr_overcommit_hugepages - maximum number that can be allocated
--		free_hugepages - number of hugepages free
--		surplus_hugepages -
--		resv_hugepages -
-diff -puN /dev/null Documentation/ABI/testing/sysfs-kernel-mm-hugepages
---- /dev/null
-+++ a/Documentation/ABI/testing/sysfs-kernel-mm-hugepages
-@@ -0,0 +1,15 @@
-+What:		/sys/kernel/mm/hugepages/
-+Date:		June 2008
-+Contact:	Nishanth Aravamudan <nacc@us.ibm.com>, hugetlb maintainers
-+Description:
-+		/sys/kernel/mm/hugepages/ contains a number of subdirectories
-+		of the form hugepages-<size>kB, where <size> is the page size
-+		of the hugepages supported by the kernel/CPU combination.
-+
-+		Under these directories are a number of files:
-+			nr_hugepages
-+			nr_overcommit_hugepages
-+			free_hugepages
-+			surplus_hugepages
-+			resv_hugepages
-+		See Documentation/vm/hugetlbpage.txt for details.
-diff -puN Documentation/vm/hugetlbpage.txt~hugetlb-new-sysfs-interface-hugetlb-hang-off-of-sys-kernel-mm-rather-than-sys-kernel Documentation/vm/hugetlbpage.txt
---- a/Documentation/vm/hugetlbpage.txt~hugetlb-new-sysfs-interface-hugetlb-hang-off-of-sys-kernel-mm-rather-than-sys-kernel
-+++ a/Documentation/vm/hugetlbpage.txt
-@@ -95,6 +95,29 @@ this condition holds, however, no more s
- allowed on the system until one of the two sysctls are increased
- sufficiently, or the surplus huge pages go out of use and are freed.
+diff -puN arch/x86/mm/pageattr-test.c~use-warn-in-arch-x86-mm-pageattrc arch/x86/mm/pageattr-test.c
+--- a/arch/x86/mm/pageattr-test.c~use-warn-in-arch-x86-mm-pageattrc
++++ a/arch/x86/mm/pageattr-test.c
+@@ -216,8 +216,7 @@ static int pageattr_test(void)
+ 	failed += print_split(&sc);
  
-+With support for multiple hugepage pools at run-time available, much of
-+the hugepage userspace interface has been duplicated in sysfs. The above
-+information applies to the default hugepage size (which will be
-+controlled by the proc interfaces for backwards compatibility). The root
-+hugepage control directory is
-+
-+	/sys/kernel/mm/hugepages
-+
-+For each hugepage size supported by the running kernel, a subdirectory
-+will exist, of the form
-+
-+	hugepages-${size}kB
-+
-+Inside each of these directories, the same set of files will exist:
-+
-+	nr_hugepages
-+	nr_overcommit_hugepages
-+	free_hugepages
-+	resv_hugepages
-+	surplus_hugepages
-+
-+which function as described above for the default hugepage-sized case.
-+
- If the user applications are going to request hugepages using mmap system
- call, then it is required that system administrator mount a file system of
- type hugetlbfs:
-diff -puN mm/hugetlb.c~hugetlb-new-sysfs-interface-hugetlb-hang-off-of-sys-kernel-mm-rather-than-sys-kernel mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-new-sysfs-interface-hugetlb-hang-off-of-sys-kernel-mm-rather-than-sys-kernel
-+++ a/mm/hugetlb.c
-@@ -1168,7 +1168,7 @@ static void __init hugetlb_sysfs_init(vo
- 	struct hstate *h;
- 	int err;
- 
--	hugepages_kobj = kobject_create_and_add("hugepages", kernel_kobj);
-+	hugepages_kobj = kobject_create_and_add("hugepages", mm_kobj);
- 	if (!hugepages_kobj)
- 		return;
+ 	if (failed) {
+-		printk(KERN_ERR "NOT PASSED. Please report.\n");
+-		WARN_ON(1);
++		WARN(1, KERN_ERR "NOT PASSED. Please report.\n");
+ 		return -EINVAL;
+ 	} else {
+ 		if (print)
+diff -puN arch/x86/mm/pageattr.c~use-warn-in-arch-x86-mm-pageattrc arch/x86/mm/pageattr.c
+--- a/arch/x86/mm/pageattr.c~use-warn-in-arch-x86-mm-pageattrc
++++ a/arch/x86/mm/pageattr.c
+@@ -586,10 +586,9 @@ repeat:
+ 	if (!pte_val(old_pte)) {
+ 		if (!primary)
+ 			return 0;
+-		printk(KERN_WARNING "CPA: called for zero pte. "
++		WARN(1, KERN_WARNING "CPA: called for zero pte. "
+ 		       "vaddr = %lx cpa->vaddr = %lx\n", address,
+ 		       cpa->vaddr);
+-		WARN_ON(1);
+ 		return -EINVAL;
+ 	}
  
 _
 
-Patches currently in -mm which might be from nacc@us.ibm.com are
+Patches currently in -mm which might be from arjan@linux.intel.com are
 
-vma-page-offset-has-no-callees-drop-it.patch
-mm-remove-mm_init-compilation-dependency-on-config_debug_memory_init.patch
-mm-create-sys-kernel-mm.patch
-hugetlb-factor-out-prep_new_huge_page.patch
-hugetlb-modular-state-for-hugetlb-page-size.patch
-hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
-hugetlb-multiple-hstates-for-multiple-page-sizes.patch
-hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
-hugetlbfs-per-mount-huge-page-sizes.patch
-hugetlb-new-sysfs-interface.patch
-hugetlb-new-sysfs-interface-hugetlb-hang-off-of-sys-kernel-mm-rather-than-sys-kernel.patch
-hugetlb-new-sysfs-interface-hugetlb-remove-config_sysfs-dependency.patch
-hugetlb-abstract-numa-round-robin-selection.patch
-hugetlb-support-boot-allocate-different-sizes.patch
-hugetlb-printk-cleanup.patch
-fs-check-for-statfs-overflow.patch
-ixj-push-bkl-into-driver-and-wrap-ioctls.patch
+linux-next.patch
+via-velocity-fix-sleep-with-spinlock-bug-during-mtu-change.patch
+rename-warn-to-warning-to-clear-the-namespace.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments.patch
+kernel-irq-managec-replace-a-printk-warn_on-to-a-warn.patch
+example-use-of-warn.patch
+use-warn-in-kernel-irq-managec.patch
+use-warn-in-kernel-panicc.patch
+use-warn-in-mm-vmallocc.patch
+use-warn-in-kernel-lockdepc.patch
+use-warn-in-kernel-irq-chipc.patch
+use-warn-in-arch-x86-mm-ioremapc.patch
+use-warn-in-arch-x86-mm-pageattrc.patch
+use-warn-in-arch-x86-kernel.patch
+use-warn-in-block.patch
+use-warn-in-drivers-base.patch
+use-warn-in-lib.patch
+use-warn-in-fs.patch
+usr-warn-in-fs-sysfs.patch
+use-warn-in-fs-proc.patch
 
