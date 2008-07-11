@@ -1,63 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - revert-cpumask-introduce-new-apis.patch removed from -mm tree
-Date: Fri, 11 Jul 2008 16:15:08 -0700
-Message-ID: <200807112315.m6BNF8s9009614@imap1.linux-foundation.org>
+Subject: - revert-introduce-rculisth.patch removed from -mm tree
+Date: Fri, 11 Jul 2008 16:15:17 -0700
+Message-ID: <200807112315.m6BNFHEs009622@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54525 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36218 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752354AbYGKXPL (ORCPT
+	by vger.kernel.org with ESMTP id S1752728AbYGKXQS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jul 2008 19:15:11 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m6BNF83d016381
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 11 Jul 2008 16:15:09 -0700
+	Fri, 11 Jul 2008 19:16:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, fbuihuu@gmail.com, josh@kernel.org, mingo@elte.hu, paulmck@linux.vnet.ibm.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert cpumask-introduce-new-apis
+     revert introduce-rculisth
 has been removed from the -mm tree.  Its filename was
-     revert-cpumask-introduce-new-apis.patch
+     revert-introduce-rculisth.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert cpumask-introduce-new-apis
+Subject: revert introduce-rculisth
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Make linux-next apply.
+
+Cc: Franck Bui-Huu <fbuihuu@gmail.com>
+Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Cc: Josh Triplett <josh@kernel.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cpumask.h |    4 ----
- 1 file changed, 4 deletions(-)
+ include/linux/rculist.h |    6 ------
+ 1 file changed, 6 deletions(-)
 
-diff -puN include/linux/cpumask.h~revert-cpumask-introduce-new-apis include/linux/cpumask.h
---- a/include/linux/cpumask.h~revert-cpumask-introduce-new-apis
-+++ a/include/linux/cpumask.h
-@@ -353,10 +353,6 @@ static inline void __cpus_fold(cpumask_t
- 	for ((cpu) = 0; (cpu) < 1; (cpu)++, (void)mask)
- #endif /* NR_CPUS */
- 
--#define next_cpu_nr(n, src)		next_cpu(n, src)
--#define cpus_weight_nr(cpumask)		cpus_weight(cpumask)
--#define for_each_cpu_mask_nr(cpu, mask)	for_each_cpu_mask(cpu, mask)
+diff -puN include/linux/rculist.h~revert-introduce-rculisth /dev/null
+--- a/include/linux/rculist.h
++++ /dev/null
+@@ -1,6 +0,0 @@
+-#ifndef _LINUX_RCULIST_H
+-#define _LINUX_RCULIST_H
 -
- /*
-  * The following particular system cpumasks and operations manage
-  * possible, present and online cpus.  Each of them is a fixed size
+-#include <linux/list.h>
+-
+-#endif	/* _LINUX_RCULIST_H */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 revert-introduce-rculisth.patch
-revert-cpumask-introduce-new-apis.patch
 linux-next.patch
 next-remove-localversion.patch
 linux-next-fixups.patch
