@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + use-warn-in-mm-vmallocc.patch added to -mm tree
-Date: Fri, 11 Jul 2008 11:45:17 -0700
-Message-ID: <200807111850.m6BIowrP031283@imap1.linux-foundation.org>
+Subject: + use-warn-in-kernel-lockdepc.patch added to -mm tree
+Date: Fri, 11 Jul 2008 11:45:20 -0700
+Message-ID: <200807111851.m6BIp1cK031287@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34628 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37453 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756296AbYGKSvA (ORCPT
+	by vger.kernel.org with ESMTP id S1756855AbYGKSvL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jul 2008 14:51:00 -0400
+	Fri, 11 Jul 2008 14:51:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: arjan@linux.intel.com
+Cc: arjan@linux.intel.com, mingo@elte.hu
 
 
 The patch titled
-     Use WARN() in mm/vmalloc.c
+     use WARN() in kernel/lockdep.c
 has been added to the -mm tree.  Its filename is
-     use-warn-in-mm-vmallocc.patch
+     use-warn-in-kernel-lockdepc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Use WARN() in mm/vmalloc.c
+Subject: use WARN() in kernel/lockdep.c
 From: Arjan van de Ven <arjan@linux.intel.com>
 
-Use WARN() instead of a printk+WARN_ON() pair; this way the message becomes
-part of the warning section for better reporting/collection.
+Use WARN() instead of a printk+WARN_ON() pair; this way the message
+becomes part of the warning section for better reporting/collection.
 
 Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    6 ++----
+ kernel/lockdep.c |    6 ++----
  1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN mm/vmalloc.c~use-warn-in-mm-vmallocc mm/vmalloc.c
---- a/mm/vmalloc.c~use-warn-in-mm-vmallocc
-+++ a/mm/vmalloc.c
-@@ -381,16 +381,14 @@ static void __vunmap(const void *addr, i
- 		return;
- 
- 	if ((PAGE_SIZE-1) & (unsigned long)addr) {
--		printk(KERN_ERR "Trying to vfree() bad address (%p)\n", addr);
--		WARN_ON(1);
-+		WARN(1, KERN_ERR "Trying to vfree() bad address (%p)\n", addr);
- 		return;
+diff -puN kernel/lockdep.c~use-warn-in-kernel-lockdepc kernel/lockdep.c
+--- a/kernel/lockdep.c~use-warn-in-kernel-lockdepc
++++ a/kernel/lockdep.c
+@@ -1643,11 +1643,10 @@ static void check_chain_key(struct task_
+ 		hlock = curr->held_locks + i;
+ 		if (chain_key != hlock->prev_chain_key) {
+ 			debug_locks_off();
+-			printk("hm#1, depth: %u [%u], %016Lx != %016Lx\n",
++			WARN(1, "hm#1, depth: %u [%u], %016Lx != %016Lx\n",
+ 				curr->lockdep_depth, i,
+ 				(unsigned long long)chain_key,
+ 				(unsigned long long)hlock->prev_chain_key);
+-			WARN_ON(1);
+ 			return;
+ 		}
+ 		id = hlock->class - lock_classes;
+@@ -1662,11 +1661,10 @@ static void check_chain_key(struct task_
  	}
- 
- 	area = remove_vm_area(addr);
- 	if (unlikely(!area)) {
--		printk(KERN_ERR "Trying to vfree() nonexistent vm area (%p)\n",
-+		WARN(1, KERN_ERR "Trying to vfree() nonexistent vm area (%p)\n",
- 				addr);
+ 	if (chain_key != curr->curr_chain_key) {
+ 		debug_locks_off();
+-		printk("hm#2, depth: %u [%u], %016Lx != %016Lx\n",
++		WARN(1, "hm#2, depth: %u [%u], %016Lx != %016Lx\n",
+ 			curr->lockdep_depth, i,
+ 			(unsigned long long)chain_key,
+ 			(unsigned long long)curr->curr_chain_key);
 -		WARN_ON(1);
- 		return;
  	}
- 
+ #endif
+ }
 _
 
 Patches currently in -mm which might be from arjan@linux.intel.com are
