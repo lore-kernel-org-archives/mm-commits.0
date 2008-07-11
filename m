@@ -1,322 +1,182 @@
 From: akpm@linux-foundation.org
-Subject: - crypto-use-kernel-provided-bitops-unaligned-access-helpers.patch removed from -mm tree
-Date: Fri, 11 Jul 2008 16:51:56 -0700
-Message-ID: <200807112351.m6BNpuAr011085@imap1.linux-foundation.org>
+Subject: - pktcdvd-push-bkl-down-into-driver.patch removed from -mm tree
+Date: Fri, 11 Jul 2008 16:51:38 -0700
+Message-ID: <200807112351.m6BNpc2k011058@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43920 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37303 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755656AbYGKXwc (ORCPT
+	by vger.kernel.org with ESMTP id S1755322AbYGKXw4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jul 2008 19:52:32 -0400
+	Fri, 11 Jul 2008 19:52:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, herbert@gondor.apana.org.au, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jens.axboe@oracle.com, petero2@telia.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     crypto: use kernel-provided bitops, unaligned access helpers
+     pktcdvd: push BKL down into driver
 has been removed from the -mm tree.  Its filename was
-     crypto-use-kernel-provided-bitops-unaligned-access-helpers.patch
+     pktcdvd-push-bkl-down-into-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: crypto: use kernel-provided bitops, unaligned access helpers
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: pktcdvd: push BKL down into driver
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Remove the private implementation of 32-bit rotation and unaligned access
-with byteswapping.
+Push the lock_kernel down into the driver and switch to unlocked_ioctl
 
-As a bonus, fixes sparse warnings:
-crypto/camellia.c:602:2: warning: cast to restricted __be32
-crypto/camellia.c:603:2: warning: cast to restricted __be32
-crypto/camellia.c:604:2: warning: cast to restricted __be32
-crypto/camellia.c:605:2: warning: cast to restricted __be32
-crypto/camellia.c:710:2: warning: cast to restricted __be32
-crypto/camellia.c:711:2: warning: cast to restricted __be32
-crypto/camellia.c:712:2: warning: cast to restricted __be32
-crypto/camellia.c:713:2: warning: cast to restricted __be32
-crypto/camellia.c:714:2: warning: cast to restricted __be32
-crypto/camellia.c:715:2: warning: cast to restricted __be32
-crypto/camellia.c:716:2: warning: cast to restricted __be32
-crypto/camellia.c:717:2: warning: cast to restricted __be32
-
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
+[akpm@linux-foundation.org: build fix]
+Signed-off-by: Alan Cox <alan@redhat.com>
+Acked-by: Peter Osterlund <petero2@telia.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- crypto/camellia.c |   84 ++++++++++++++++++--------------------------
- 1 file changed, 36 insertions(+), 48 deletions(-)
+ drivers/block/pktcdvd.c |   35 +++++++++++++++++++++++++----------
+ 1 file changed, 25 insertions(+), 10 deletions(-)
 
-diff -puN crypto/camellia.c~crypto-use-kernel-provided-bitops-unaligned-access-helpers crypto/camellia.c
---- a/crypto/camellia.c~crypto-use-kernel-provided-bitops-unaligned-access-helpers
-+++ a/crypto/camellia.c
-@@ -35,6 +35,8 @@
- #include <linux/init.h>
+diff -puN drivers/block/pktcdvd.c~pktcdvd-push-bkl-down-into-driver drivers/block/pktcdvd.c
+--- a/drivers/block/pktcdvd.c~pktcdvd-push-bkl-down-into-driver
++++ a/drivers/block/pktcdvd.c
+@@ -49,6 +49,7 @@
+ #include <linux/types.h>
  #include <linux/kernel.h>
- #include <linux/module.h>
-+#include <linux/bitops.h>
-+#include <asm/unaligned.h>
+ #include <linux/kthread.h>
++#include <linux/smp_lock.h>
+ #include <linux/errno.h>
+ #include <linux/spinlock.h>
+ #include <linux/file.h>
+@@ -2799,9 +2800,14 @@ out_mem:
+ 	return ret;
+ }
  
- static const u32 camellia_sp1110[256] = {
- 	0x70707000,0x82828200,0x2c2c2c00,0xececec00,
-@@ -335,20 +337,6 @@ static const u32 camellia_sp4404[256] = 
- /*
-  *  macros
-  */
--#define GETU32(v, pt) \
--    do { \
--	/* latest breed of gcc is clever enough to use move */ \
--	memcpy(&(v), (pt), 4); \
--	(v) = be32_to_cpu(v); \
--    } while(0)
--
--/* rotation right shift 1byte */
--#define ROR8(x) (((x) >> 8) + ((x) << 24))
--/* rotation left shift 1bit */
--#define ROL1(x) (((x) << 1) + ((x) >> 31))
--/* rotation left shift 1byte */
--#define ROL8(x) (((x) << 8) + ((x) >> 24))
--
- #define ROLDQ(ll, lr, rl, rr, w0, w1, bits)		\
-     do {						\
- 	w0 = ll;					\
-@@ -383,7 +371,7 @@ static const u32 camellia_sp4404[256] = 
- 	   ^ camellia_sp3033[(u8)(il >> 8)]			\
- 	   ^ camellia_sp4404[(u8)(il     )];			\
- 	yl ^= yr;						\
--	yr = ROR8(yr);						\
-+	yr = ror32(yr, 8);					\
- 	yr ^= yl;						\
-     } while(0)
+-static int pkt_ioctl(struct inode *inode, struct file *file, unsigned int cmd, unsigned long arg)
++static long pkt_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ {
+-	struct pktcdvd_device *pd = inode->i_bdev->bd_disk->private_data;
++	struct inode *inode = file->f_path.dentry->d_inode;
++	struct pktcdvd_device *pd;
++	long ret;
++
++	lock_kernel();
++	pd = inode->i_bdev->bd_disk->private_data;
  
-@@ -405,7 +393,7 @@ static void camellia_setup_tail(u32 *sub
- 	subL[7] ^= subL[1]; subR[7] ^= subR[1];
- 	subL[1] ^= subR[1] & ~subR[9];
- 	dw = subL[1] & subL[9],
--		subR[1] ^= ROL1(dw); /* modified for FLinv(kl2) */
-+		subR[1] ^= rol32(dw, 1); /* modified for FLinv(kl2) */
- 	/* round 8 */
- 	subL[11] ^= subL[1]; subR[11] ^= subR[1];
- 	/* round 10 */
-@@ -414,7 +402,7 @@ static void camellia_setup_tail(u32 *sub
- 	subL[15] ^= subL[1]; subR[15] ^= subR[1];
- 	subL[1] ^= subR[1] & ~subR[17];
- 	dw = subL[1] & subL[17],
--		subR[1] ^= ROL1(dw); /* modified for FLinv(kl4) */
-+		subR[1] ^= rol32(dw, 1); /* modified for FLinv(kl4) */
- 	/* round 14 */
- 	subL[19] ^= subL[1]; subR[19] ^= subR[1];
- 	/* round 16 */
-@@ -430,7 +418,7 @@ static void camellia_setup_tail(u32 *sub
- 	} else {
- 		subL[1] ^= subR[1] & ~subR[25];
- 		dw = subL[1] & subL[25],
--			subR[1] ^= ROL1(dw); /* modified for FLinv(kl6) */
-+			subR[1] ^= rol32(dw, 1); /* modified for FLinv(kl6) */
- 		/* round 20 */
- 		subL[27] ^= subL[1]; subR[27] ^= subR[1];
- 		/* round 22 */
-@@ -450,7 +438,7 @@ static void camellia_setup_tail(u32 *sub
- 		subL[26] ^= kw4l; subR[26] ^= kw4r;
- 		kw4l ^= kw4r & ~subR[24];
- 		dw = kw4l & subL[24],
--			kw4r ^= ROL1(dw); /* modified for FL(kl5) */
-+			kw4r ^= rol32(dw, 1); /* modified for FL(kl5) */
+ 	VPRINTK("pkt_ioctl: cmd %x, dev %d:%d\n", cmd, imajor(inode), iminor(inode));
+ 
+@@ -2814,7 +2820,8 @@ static int pkt_ioctl(struct inode *inode
+ 	case CDROM_LAST_WRITTEN:
+ 	case CDROM_SEND_PACKET:
+ 	case SCSI_IOCTL_SEND_COMMAND:
+-		return blkdev_ioctl(pd->bdev->bd_inode, file, cmd, arg);
++		ret = blkdev_ioctl(pd->bdev->bd_inode, file, cmd, arg);
++		break;
+ 
+ 	case CDROMEJECT:
+ 		/*
+@@ -2823,14 +2830,15 @@ static int pkt_ioctl(struct inode *inode
+ 		 */
+ 		if (pd->refcnt == 1)
+ 			pkt_lock_door(pd, 0);
+-		return blkdev_ioctl(pd->bdev->bd_inode, file, cmd, arg);
++		ret = blkdev_ioctl(pd->bdev->bd_inode, file, cmd, arg);
++		break;
+ 
+ 	default:
+ 		VPRINTK(DRIVER_NAME": Unknown ioctl for %s (%x)\n", pd->name, cmd);
+-		return -ENOTTY;
++		ret = -ENOTTY;
  	}
- 	/* round 17 */
- 	subL[22] ^= kw4l; subR[22] ^= kw4r;
-@@ -460,7 +448,7 @@ static void camellia_setup_tail(u32 *sub
- 	subL[18] ^= kw4l; subR[18] ^= kw4r;
- 	kw4l ^= kw4r & ~subR[16];
- 	dw = kw4l & subL[16],
--		kw4r ^= ROL1(dw); /* modified for FL(kl3) */
-+		kw4r ^= rol32(dw, 1); /* modified for FL(kl3) */
- 	/* round 11 */
- 	subL[14] ^= kw4l; subR[14] ^= kw4r;
- 	/* round 9 */
-@@ -469,7 +457,7 @@ static void camellia_setup_tail(u32 *sub
- 	subL[10] ^= kw4l; subR[10] ^= kw4r;
- 	kw4l ^= kw4r & ~subR[8];
- 	dw = kw4l & subL[8],
--		kw4r ^= ROL1(dw); /* modified for FL(kl1) */
-+		kw4r ^= rol32(dw, 1); /* modified for FL(kl1) */
- 	/* round 5 */
- 	subL[6] ^= kw4l; subR[6] ^= kw4r;
- 	/* round 3 */
-@@ -494,7 +482,7 @@ static void camellia_setup_tail(u32 *sub
- 	SUBKEY_R(6) = subR[5] ^ subR[7];
- 	tl = subL[10] ^ (subR[10] & ~subR[8]);
- 	dw = tl & subL[8],  /* FL(kl1) */
--		tr = subR[10] ^ ROL1(dw);
-+		tr = subR[10] ^ rol32(dw, 1);
- 	SUBKEY_L(7) = subL[6] ^ tl; /* round 6 */
- 	SUBKEY_R(7) = subR[6] ^ tr;
- 	SUBKEY_L(8) = subL[8];       /* FL(kl1) */
-@@ -503,7 +491,7 @@ static void camellia_setup_tail(u32 *sub
- 	SUBKEY_R(9) = subR[9];
- 	tl = subL[7] ^ (subR[7] & ~subR[9]);
- 	dw = tl & subL[9],  /* FLinv(kl2) */
--		tr = subR[7] ^ ROL1(dw);
-+		tr = subR[7] ^ rol32(dw, 1);
- 	SUBKEY_L(10) = tl ^ subL[11]; /* round 7 */
- 	SUBKEY_R(10) = tr ^ subR[11];
- 	SUBKEY_L(11) = subL[10] ^ subL[12]; /* round 8 */
-@@ -516,7 +504,7 @@ static void camellia_setup_tail(u32 *sub
- 	SUBKEY_R(14) = subR[13] ^ subR[15];
- 	tl = subL[18] ^ (subR[18] & ~subR[16]);
- 	dw = tl & subL[16], /* FL(kl3) */
--		tr = subR[18] ^ ROL1(dw);
-+		tr = subR[18] ^ rol32(dw, 1);
- 	SUBKEY_L(15) = subL[14] ^ tl; /* round 12 */
- 	SUBKEY_R(15) = subR[14] ^ tr;
- 	SUBKEY_L(16) = subL[16];     /* FL(kl3) */
-@@ -525,7 +513,7 @@ static void camellia_setup_tail(u32 *sub
- 	SUBKEY_R(17) = subR[17];
- 	tl = subL[15] ^ (subR[15] & ~subR[17]);
- 	dw = tl & subL[17], /* FLinv(kl4) */
--		tr = subR[15] ^ ROL1(dw);
-+		tr = subR[15] ^ rol32(dw, 1);
- 	SUBKEY_L(18) = tl ^ subL[19]; /* round 13 */
- 	SUBKEY_R(18) = tr ^ subR[19];
- 	SUBKEY_L(19) = subL[18] ^ subL[20]; /* round 14 */
-@@ -544,7 +532,7 @@ static void camellia_setup_tail(u32 *sub
- 	} else {
- 		tl = subL[26] ^ (subR[26] & ~subR[24]);
- 		dw = tl & subL[24], /* FL(kl5) */
--			tr = subR[26] ^ ROL1(dw);
-+			tr = subR[26] ^ rol32(dw, 1);
- 		SUBKEY_L(23) = subL[22] ^ tl; /* round 18 */
- 		SUBKEY_R(23) = subR[22] ^ tr;
- 		SUBKEY_L(24) = subL[24];     /* FL(kl5) */
-@@ -553,7 +541,7 @@ static void camellia_setup_tail(u32 *sub
- 		SUBKEY_R(25) = subR[25];
- 		tl = subL[23] ^ (subR[23] & ~subR[25]);
- 		dw = tl & subL[25], /* FLinv(kl6) */
--			tr = subR[23] ^ ROL1(dw);
-+			tr = subR[23] ^ rol32(dw, 1);
- 		SUBKEY_L(26) = tl ^ subL[27]; /* round 19 */
- 		SUBKEY_R(26) = tr ^ subR[27];
- 		SUBKEY_L(27) = subL[26] ^ subL[28]; /* round 20 */
-@@ -573,17 +561,17 @@ static void camellia_setup_tail(u32 *sub
- 	/* apply the inverse of the last half of P-function */
- 	i = 2;
- 	do {
--		dw = SUBKEY_L(i + 0) ^ SUBKEY_R(i + 0); dw = ROL8(dw);/* round 1 */
-+		dw = SUBKEY_L(i + 0) ^ SUBKEY_R(i + 0); dw = rol32(dw, 8);/* round 1 */
- 		SUBKEY_R(i + 0) = SUBKEY_L(i + 0) ^ dw; SUBKEY_L(i + 0) = dw;
--		dw = SUBKEY_L(i + 1) ^ SUBKEY_R(i + 1); dw = ROL8(dw);/* round 2 */
-+		dw = SUBKEY_L(i + 1) ^ SUBKEY_R(i + 1); dw = rol32(dw, 8);/* round 2 */
- 		SUBKEY_R(i + 1) = SUBKEY_L(i + 1) ^ dw; SUBKEY_L(i + 1) = dw;
--		dw = SUBKEY_L(i + 2) ^ SUBKEY_R(i + 2); dw = ROL8(dw);/* round 3 */
-+		dw = SUBKEY_L(i + 2) ^ SUBKEY_R(i + 2); dw = rol32(dw, 8);/* round 3 */
- 		SUBKEY_R(i + 2) = SUBKEY_L(i + 2) ^ dw; SUBKEY_L(i + 2) = dw;
--		dw = SUBKEY_L(i + 3) ^ SUBKEY_R(i + 3); dw = ROL8(dw);/* round 4 */
-+		dw = SUBKEY_L(i + 3) ^ SUBKEY_R(i + 3); dw = rol32(dw, 8);/* round 4 */
- 		SUBKEY_R(i + 3) = SUBKEY_L(i + 3) ^ dw; SUBKEY_L(i + 3) = dw;
--		dw = SUBKEY_L(i + 4) ^ SUBKEY_R(i + 4); dw = ROL8(dw);/* round 5 */
-+		dw = SUBKEY_L(i + 4) ^ SUBKEY_R(i + 4); dw = rol32(dw, 9);/* round 5 */
- 		SUBKEY_R(i + 4) = SUBKEY_L(i + 4) ^ dw; SUBKEY_L(i + 4) = dw;
--		dw = SUBKEY_L(i + 5) ^ SUBKEY_R(i + 5); dw = ROL8(dw);/* round 6 */
-+		dw = SUBKEY_L(i + 5) ^ SUBKEY_R(i + 5); dw = rol32(dw, 8);/* round 6 */
- 		SUBKEY_R(i + 5) = SUBKEY_L(i + 5) ^ dw; SUBKEY_L(i + 5) = dw;
- 		i += 8;
- 	} while (i < max);
-@@ -599,10 +587,10 @@ static void camellia_setup128(const unsi
- 	/**
- 	 *  k == kll || klr || krl || krr (|| is concatenation)
- 	 */
--	GETU32(kll, key     );
--	GETU32(klr, key +  4);
--	GETU32(krl, key +  8);
--	GETU32(krr, key + 12);
-+	kll = get_unaligned_be32(key);
-+	klr = get_unaligned_be32(key + 4);
-+	krl = get_unaligned_be32(key + 8);
-+	krr = get_unaligned_be32(key + 12);
+-
+-	return 0;
++	unlock_kernel();
++	return ret;
+ }
  
- 	/* generate KL dependent subkeys */
- 	/* kw1 */
-@@ -707,14 +695,14 @@ static void camellia_setup256(const unsi
- 	 *  key = (kll || klr || krl || krr || krll || krlr || krrl || krrr)
- 	 *  (|| is concatenation)
- 	 */
--	GETU32(kll,  key     );
--	GETU32(klr,  key +  4);
--	GETU32(krl,  key +  8);
--	GETU32(krr,  key + 12);
--	GETU32(krll, key + 16);
--	GETU32(krlr, key + 20);
--	GETU32(krrl, key + 24);
--	GETU32(krrr, key + 28);
-+	kll = get_unaligned_be32(key);
-+	klr = get_unaligned_be32(key + 4);
-+	krl = get_unaligned_be32(key + 8);
-+	krr = get_unaligned_be32(key + 12);
-+	krll = get_unaligned_be32(key + 16);
-+	krlr = get_unaligned_be32(key + 20);
-+	krrl = get_unaligned_be32(key + 24);
-+	krrr = get_unaligned_be32(key + 28);
+ static int pkt_media_changed(struct gendisk *disk)
+@@ -2852,7 +2860,7 @@ static struct block_device_operations pk
+ 	.owner =		THIS_MODULE,
+ 	.open =			pkt_open,
+ 	.release =		pkt_close,
+-	.ioctl =		pkt_ioctl,
++	.unlocked_ioctl =	pkt_ioctl,
+ 	.media_changed =	pkt_media_changed,
+ };
  
- 	/* generate KL dependent subkeys */
- 	/* kw1 */
-@@ -870,13 +858,13 @@ static void camellia_setup192(const unsi
- 	t0 &= ll;							\
- 	t2 |= rr;							\
- 	rl ^= t2;							\
--	lr ^= ROL1(t0);							\
-+	lr ^= rol32(t0, 1);						\
- 	t3 = krl;							\
- 	t1 = klr;							\
- 	t3 &= rl;							\
- 	t1 |= lr;							\
- 	ll ^= t1;							\
--	rr ^= ROL1(t3);							\
-+	rr ^= rol32(t3, 1);						\
-     } while(0)
+@@ -3017,7 +3025,8 @@ static void pkt_get_status(struct pkt_ct
+ 	mutex_unlock(&ctl_mutex);
+ }
  
- #define CAMELLIA_ROUNDSM(xl, xr, kl, kr, yl, yr, il, ir)		\
-@@ -892,7 +880,7 @@ static void camellia_setup192(const unsi
- 	il ^= kl;							\
- 	ir ^= il ^ kr;							\
- 	yl ^= ir;							\
--	yr ^= ROR8(il) ^ ir;						\
-+	yr ^= ror32(il, 8) ^ ir;						\
-     } while(0)
+-static int pkt_ctl_ioctl(struct inode *inode, struct file *file, unsigned int cmd, unsigned long arg)
++static long pkt_ctl_ioctl(struct file *file, unsigned int cmd,
++						unsigned long arg)
+ {
+ 	void __user *argp = (void __user *)arg;
+ 	struct pkt_ctrl_command ctrl_cmd;
+@@ -3034,16 +3043,22 @@ static int pkt_ctl_ioctl(struct inode *i
+ 	case PKT_CTRL_CMD_SETUP:
+ 		if (!capable(CAP_SYS_ADMIN))
+ 			return -EPERM;
++		lock_kernel();
+ 		ret = pkt_setup_dev(new_decode_dev(ctrl_cmd.dev), &pkt_dev);
+ 		ctrl_cmd.pkt_dev = new_encode_dev(pkt_dev);
++		unlock_kernel();
+ 		break;
+ 	case PKT_CTRL_CMD_TEARDOWN:
+ 		if (!capable(CAP_SYS_ADMIN))
+ 			return -EPERM;
++		lock_kernel();
+ 		ret = pkt_remove_dev(new_decode_dev(ctrl_cmd.pkt_dev));
++		unlock_kernel();
+ 		break;
+ 	case PKT_CTRL_CMD_STATUS:
++		lock_kernel();
+ 		pkt_get_status(&ctrl_cmd);
++		unlock_kernel();
+ 		break;
+ 	default:
+ 		return -ENOTTY;
+@@ -3056,7 +3071,7 @@ static int pkt_ctl_ioctl(struct inode *i
  
- /* max = 24: 128bit encrypt, max = 32: 256bit encrypt */
+ 
+ static const struct file_operations pkt_ctl_fops = {
+-	.ioctl	 = pkt_ctl_ioctl,
++	.unlocked_ioctl	 = pkt_ctl_ioctl,
+ 	.owner	 = THIS_MODULE,
+ };
+ 
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 linux-next.patch
-cifs-remove-global_extern-macro.patch
-mtd-mtdcharc-silence-sparse-warning.patch
-mtd-mtdcharc-remove-shadowed-variable-warnings.patch
-scsi-replace-remaining-__function__-occurrences.patch
-fusion-replace-remaining-__function__-occurrences.patch
-scsi-replace-__inline-with-inline.patch
-scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
-scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
-xfs-use-get_unaligned_-helpers.patch
-xtensa-replace-remaining-__function__-occurences.patch
-fs-ldm-use-get_unaligned_-helpers.patch
-include-use-get-put_unaligned_-helpers.patch
-lzo-use-get-put_unaligned_-helpers.patch
-asm-generic-int-ll64h-always-provide-__su64.patch
-ecryptfs-cryptoc-use-unaligned-byteorder-helpers.patch
-ecryptfs-inodec-mmapc-use-unaligned-byteorder-helpers.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-isdn-use-the-common-ascii-hex-helpers.patch
-net-use-the-common-ascii-hex-helpers.patch
-cris-use-the-common-ascii-hex-helpers.patch
-frv-use-the-common-ascii-hex-helpers.patch
-mips-use-the-common-ascii-hex-helpers.patch
-ppc-use-the-common-ascii-hex-helpers.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-mn10300-use-the-common-ascii-hex-helpers.patch
+add-time_is_after_jiffies-and-others-which-compare-with-jiffies.patch
+watchdog-s3c2410-watchdog-cleanup-and-switch-to-unlocked_ioctl-fix.patch
+pcwd-a-couple-of-watchdogs-escaped-conversion.patch
+generic-irqs-enable-polling-for-disabled-screaming-irqs.patch
+8250-fix-break-handling-for-intel-82571.patch
+serial-z85c30-avoid-a-hang-at-console-switch-over.patch
+serial-dz11-avoid-a-hang-at-console-switch-over.patch
+cpm1-dont-send-break-on-tx_stop-dont-interrupt-rx-tx-when-adjusting-termios-parameters.patch
+spidev-bkl-removal.patch
+vt-hold-console_sem-across-sysfs-operations.patch
+rtc-push-the-bkl-down-into-the-driver-ioctl-method.patch
+rtc-push-the-bkl-down-into-the-driver-ioctl-method-fix.patch
+rtc-remove-bkl-for-ioctl.patch
+pnp-set-the-pnp_card-dma_mask-for-use-by-isapnp-cards.patch
+isa-set-24-bit-dma_mask-for-isa-devices.patch
+sdio-fix-break-control-to-now-return-success-or-an-error.patch
+efirtc-push-down-the-bkl.patch
+ip2-push-bkl-down-for-the-firmware-interface.patch
+mwave-ioctl-bkl-pushdown.patch
+rio-push-down-the-bkl-into-the-firmware-ioctl-handler.patch
+sx-push-bkl-down-into-the-firmware-ioctl-handler.patch
+ixj-push-bkl-into-driver-and-wrap-ioctls.patch
+ppdev-wrap-ioctl-handler-in-driver-and-push-lock-down.patch
+ds1302-push-down-the-bkl-into-the-driver-ioctl-code.patch
+dsp56k-bkl-pushdown.patch
+char-isicom-enable-disable-pci-device.patch
 
