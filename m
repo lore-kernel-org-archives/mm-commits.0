@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sis-drm-fix-the-memory-allocator-if-the-sis-fb-is-built-as-a-module.patch added to -mm tree
-Date: Fri, 11 Jul 2008 11:37:24 -0700
-Message-ID: <200807111843.m6BIh51H030775@imap1.linux-foundation.org>
+Subject: + hysdn-remove-the-packed-attribute-from-poftimstamp_tag.patch added to -mm tree
+Date: Fri, 11 Jul 2008 11:37:56 -0700
+Message-ID: <200807111843.m6BIhb7t030804@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42149 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38049 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755999AbYGKSn6 (ORCPT
+	by vger.kernel.org with ESMTP id S1756666AbYGKSoF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jul 2008 14:43:58 -0400
+	Fri, 11 Jul 2008 14:44:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com, airlied@linux.ie
+Cc: dhowells@redhat.com, kkeil@suse.de
 
 
 The patch titled
-     SiS DRM: fix the memory allocator if the SIS FB is built as a module
+     hysdn: remove the packed attribute from PofTimStamp_tag
 has been added to the -mm tree.  Its filename is
-     sis-drm-fix-the-memory-allocator-if-the-sis-fb-is-built-as-a-module.patch
+     hysdn-remove-the-packed-attribute-from-poftimstamp_tag.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,58 +34,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: SiS DRM: fix the memory allocator if the SIS FB is built as a module
+Subject: hysdn: remove the packed attribute from PofTimStamp_tag
 From: David Howells <dhowells@redhat.com>
 
-Fix the SIS DRM memory allocator if the SIS FB built as a module.  The SIS DRM
-code initialises the mm allocation hooks, but _only_ if the SIS FB is not
-built as a module because it depends on CONFIG_FB_SIS, and that's unset if the
-SIS FB is not built in.  It must check CONFIG_FB_SIS_MODULE as well.
+Remove the packed attribute from PofTimStamp_tag in the hysdn driver as the
+thing being packed is just an array of chars and so is unpackable.
+
+This deals with a compiler warning:
+
+In file included from drivers/isdn/hysdn/hysdn_boot.c:19:
+drivers/isdn/hysdn/hysdn_pof.h:63: warning: 'packed' attribute ignored for field of type 'unsigned char[40]'
 
 Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: Dave Airlie <airlied@linux.ie>
+Cc: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/drm/sis_mm.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/isdn/hysdn/hysdn_pof.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/drm/sis_mm.c~sis-drm-fix-the-memory-allocator-if-the-sis-fb-is-built-as-a-module drivers/char/drm/sis_mm.c
---- a/drivers/char/drm/sis_mm.c~sis-drm-fix-the-memory-allocator-if-the-sis-fb-is-built-as-a-module
-+++ a/drivers/char/drm/sis_mm.c
-@@ -41,7 +41,7 @@
- #define AGP_TYPE 1
+diff -puN drivers/isdn/hysdn/hysdn_pof.h~hysdn-remove-the-packed-attribute-from-poftimstamp_tag drivers/isdn/hysdn/hysdn_pof.h
+--- a/drivers/isdn/hysdn/hysdn_pof.h~hysdn-remove-the-packed-attribute-from-poftimstamp_tag
++++ a/drivers/isdn/hysdn/hysdn_pof.h
+@@ -60,7 +60,7 @@ typedef struct PofRecHdr_tag {	/* Pof re
  
- 
--#if defined(CONFIG_FB_SIS)
-+#if defined(CONFIG_FB_SIS) || defined(CONFIG_FB_SIS_MODULE)
- /* fb management via fb device */
- 
- #define SIS_MM_ALIGN_SHIFT 0
-@@ -75,12 +75,12 @@ static unsigned long sis_sman_mm_offset(
- 	return ~((unsigned long)ref);
- }
- 
--#else /* CONFIG_FB_SIS */
-+#else /* CONFIG_FB_SIS[_MODULE] */
- 
- #define SIS_MM_ALIGN_SHIFT 4
- #define SIS_MM_ALIGN_MASK ( (1 << SIS_MM_ALIGN_SHIFT) - 1)
- 
--#endif /* CONFIG_FB_SIS */
-+#endif /* CONFIG_FB_SIS[_MODULE] */
- 
- static int sis_fb_init(struct drm_device *dev, void *data, struct drm_file *file_priv)
- {
-@@ -89,7 +89,7 @@ static int sis_fb_init(struct drm_device
- 	int ret;
- 
- 	mutex_lock(&dev->struct_mutex);
--#if defined(CONFIG_FB_SIS)
-+#if defined(CONFIG_FB_SIS) || defined(CONFIG_FB_SIS_MODULE)
- 	{
- 		struct drm_sman_mm sman_mm;
- 		sman_mm.private = (void *)0xFFFFFFFF;
+ typedef struct PofTimeStamp_tag {
+ /*00 */ unsigned long UnixTime __attribute__((packed));
+-	/*04 */ unsigned char DateTimeText[0x28] __attribute__((packed));
++	/*04 */ unsigned char DateTimeText[0x28];
+ 	/* =40 */
+ /*2C */
+ } tPofTimeStamp;
 _
 
 Patches currently in -mm which might be from dhowells@redhat.com are
