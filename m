@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + compat_ioctl-handle-block=n-scsi=n.patch added to -mm tree
-Date: Fri, 11 Jul 2008 11:38:44 -0700
-Message-ID: <200807111844.m6BIiPSf030892@imap1.linux-foundation.org>
+Subject: + kernel-schedc-add-missing-attr-parameter.patch added to -mm tree
+Date: Fri, 11 Jul 2008 11:38:30 -0700
+Message-ID: <200807111844.m6BIiBok030852@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53671 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34016 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754386AbYGKSoq (ORCPT
+	by vger.kernel.org with ESMTP id S1753851AbYGKSoi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jul 2008 14:44:46 -0400
+	Fri, 11 Jul 2008 14:44:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, James.Bottomley@HansenPartnership.com, jens.axboe@oracle.com
+Cc: tiwai@suse.de, mingo@elte.hu, sfr@canb.auug.org.au
 
 
 The patch titled
-     compat_ioctl: handle BLOCK=n, SCSI=n
+     kernel/sched.c: Add missing attr parameter
 has been added to the -mm tree.  Its filename is
-     compat_ioctl-handle-block=n-scsi=n.patch
+     kernel-schedc-add-missing-attr-parameter.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,104 +34,73 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: compat_ioctl: handle BLOCK=n, SCSI=n
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: kernel/sched.c: Add missing attr parameter
+From: Takashi Iwai <tiwai@suse.de>
 
-Fix fs/compat_ioctl.c to handle CONFIG_BLOCK=n, CONFIG_SCSI=n
-to avoid build errors:
+The second attribute parameter is missing in sched_*_show() and
+store() in kernel/sched.c, which has been added recently.
 
-In file included from linux-next-20080708/include/scsi/scsi.h:12,
-                 from linux-next-20080708/fs/compat_ioctl.c:71:
-linux-next-20080708/include/scsi/scsi_cmnd.h:27:25: warning: "BLK_MAX_CDB" is not defined
-linux-next-20080708/include/scsi/scsi_cmnd.h:28:3: error: #error MAX_COMMAND_SIZE can not be bigger than BLK_MAX_CDB
-In file included from linux-next-20080708/include/scsi/scsi.h:12,
-                 from linux-next-20080708/fs/compat_ioctl.c:71:
-linux-next-20080708/include/scsi/scsi_cmnd.h: In function 'scsi_bidi_cmnd':
-linux-next-20080708/include/scsi/scsi_cmnd.h:182: error: implicit declaration of function 'blk_bidi_rq'
-linux-next-20080708/include/scsi/scsi_cmnd.h:183: error: dereferencing pointer to incomplete type
-linux-next-20080708/include/scsi/scsi_cmnd.h: In function 'scsi_in':
-linux-next-20080708/include/scsi/scsi_cmnd.h:189: error: dereferencing pointer to incomplete type
+  CC      kernel/sched.o
+kernel/sched.c:7743: warning: initialization from incompatible pointer type
+kernel/sched.c:7743: warning: initialization from incompatible pointer type
+kernel/sched.c:7757: warning: initialization from incompatible pointer type
+kernel/sched.c:7757: warning: initialization from incompatible pointer type
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Signed-off-by: Takashi Iwai <tiwai@suse.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/compat_ioctl.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ kernel/sched.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN fs/compat_ioctl.c~compat_ioctl-handle-block=n-scsi=n fs/compat_ioctl.c
---- a/fs/compat_ioctl.c~compat_ioctl-handle-block=n-scsi=n
-+++ a/fs/compat_ioctl.c
-@@ -68,9 +68,11 @@
- #include <linux/capi.h>
- #include <linux/gigaset_dev.h>
+diff -puN kernel/sched.c~kernel-schedc-add-missing-attr-parameter kernel/sched.c
+--- a/kernel/sched.c~kernel-schedc-add-missing-attr-parameter
++++ a/kernel/sched.c
+@@ -7712,11 +7712,14 @@ static ssize_t sched_power_savings_store
+ }
  
-+#ifdef CONFIG_BLOCK
- #include <scsi/scsi.h>
- #include <scsi/scsi_ioctl.h>
- #include <scsi/sg.h>
-+#endif
+ #ifdef CONFIG_SCHED_MC
+-static ssize_t sched_mc_power_savings_show(struct sys_device *dev, char *page)
++static ssize_t sched_mc_power_savings_show(struct sys_device *dev,
++					   struct sysdev_attribute *attr,
++					   char *page)
+ {
+ 	return sprintf(page, "%u\n", sched_mc_power_savings);
+ }
+ static ssize_t sched_mc_power_savings_store(struct sys_device *dev,
++					    struct sysdev_attribute *attr,
+ 					    const char *buf, size_t count)
+ {
+ 	return sched_power_savings_store(buf, count, 0);
+@@ -7726,11 +7729,14 @@ static SYSDEV_ATTR(sched_mc_power_saving
+ #endif
  
- #include <asm/uaccess.h>
- #include <linux/ethtool.h>
-@@ -1965,6 +1967,7 @@ COMPATIBLE_IOCTL(GIO_UNISCRNMAP)
- COMPATIBLE_IOCTL(PIO_UNISCRNMAP)
- COMPATIBLE_IOCTL(PIO_FONTRESET)
- COMPATIBLE_IOCTL(PIO_UNIMAPCLR)
-+#ifdef CONFIG_BLOCK
- /* Big S */
- COMPATIBLE_IOCTL(SCSI_IOCTL_GET_IDLUN)
- COMPATIBLE_IOCTL(SCSI_IOCTL_DOORLOCK)
-@@ -1974,6 +1977,7 @@ COMPATIBLE_IOCTL(SCSI_IOCTL_GET_BUS_NUMB
- COMPATIBLE_IOCTL(SCSI_IOCTL_SEND_COMMAND)
- COMPATIBLE_IOCTL(SCSI_IOCTL_PROBE_HOST)
- COMPATIBLE_IOCTL(SCSI_IOCTL_GET_PCI)
-+#endif
- /* Big T */
- COMPATIBLE_IOCTL(TUNSETNOCSUM)
- COMPATIBLE_IOCTL(TUNSETDEBUG)
-@@ -2044,6 +2048,7 @@ COMPATIBLE_IOCTL(SIOCGIFVLAN)
- COMPATIBLE_IOCTL(SIOCSIFVLAN)
- COMPATIBLE_IOCTL(SIOCBRADDBR)
- COMPATIBLE_IOCTL(SIOCBRDELBR)
-+#ifdef CONFIG_BLOCK
- /* SG stuff */
- COMPATIBLE_IOCTL(SG_SET_TIMEOUT)
- COMPATIBLE_IOCTL(SG_GET_TIMEOUT)
-@@ -2068,6 +2073,7 @@ COMPATIBLE_IOCTL(SG_SCSI_RESET)
- COMPATIBLE_IOCTL(SG_GET_REQUEST_TABLE)
- COMPATIBLE_IOCTL(SG_SET_KEEP_ORPHAN)
- COMPATIBLE_IOCTL(SG_GET_KEEP_ORPHAN)
-+#endif
- /* PPP stuff */
- COMPATIBLE_IOCTL(PPPIOCGFLAGS)
- COMPATIBLE_IOCTL(PPPIOCSFLAGS)
+ #ifdef CONFIG_SCHED_SMT
+-static ssize_t sched_smt_power_savings_show(struct sys_device *dev, char *page)
++static ssize_t sched_smt_power_savings_show(struct sys_device *dev,
++					    struct sysdev_attribute *attr,
++					    char *page)
+ {
+ 	return sprintf(page, "%u\n", sched_smt_power_savings);
+ }
+ static ssize_t sched_smt_power_savings_store(struct sys_device *dev,
++					    struct sysdev_attribute *attr,
+ 					     const char *buf, size_t count)
+ {
+ 	return sched_power_savings_store(buf, count, 1);
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from tiwai@suse.de are
 
+drivers-video-fsl-diu-fbc-fix-broken-fix.patch
 linux-next.patch
-acpi-utmisc-use-warn_on-instead-of-warn_on_slowpath.patch
-documentation-build-source-files-in-documentation-sub-dir.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-bluetooth-hci_bcsp-fix-bitrev-kconfig.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-netfilter-conntrack_helper-needs-to-include-rculisth.patch
-git-scsi-misc-fix-scsi_dh-build-errors.patch
-lkdtm-fix-for-config_scsi=n.patch
-compat_ioctl-handle-block=n-scsi=n.patch
-git-unionfs.patch
-e100-fix-printk-format-warning.patch
-vmallocinfo-add-numa-information.patch
-vmallocinfo-add-numa-information-fix.patch
-pm-remove-obsolete-piece-of-pm-documentation-rev-2.patch
-flag-parameters-signalfd-fix.patch
-flag-parameters-eventfd-fix.patch
-kallsyms-unify-32-and-64-bit-code.patch
-procfs-guide-drop-pointless-nbsp-entities.patch
-bsdacct-stir-up-comments-around-acct_process.patch
-documentation-cleanup-trivial-misspelling-punctuation-and-grammar-corrections.patch
-profile-likely-unlikely-macros.patch
+alsa-correct-kcalloc-usage.patch
+alsa-fix-a-const-pointer-usage-warning-in-the-digigram-pcxhr-soundcard-driver.patch
+alsa-fix-a-const-pointer-usage-warning-in-the-digigram-mixart-soundcard-driver.patch
+kernel-schedc-add-missing-attr-parameter.patch
+kcalloc-remove-runtime-division.patch
+pnp-set-the-pnp_card-dma_mask-for-use-by-isapnp-cards.patch
+isa-set-24-bit-dma_mask-for-isa-devices.patch
 
