@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-fix-build-with-config_pm_sleep=n.patch added to -mm tree
-Date: Fri, 11 Jul 2008 11:37:10 -0700
-Message-ID: <200807111842.m6BIgops030684@imap1.linux-foundation.org>
+Subject: + drx397xd-demodulator-driver-fix-a-const-pointer-assignment.patch added to -mm tree
+Date: Fri, 11 Jul 2008 11:37:31 -0700
+Message-ID: <200807111843.m6BIhCMh030786@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47436 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40907 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754542AbYGKSoQ (ORCPT
+	by vger.kernel.org with ESMTP id S1755975AbYGKSn4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jul 2008 14:44:16 -0400
+	Fri, 11 Jul 2008 14:43:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com, andi@firstfloor.org, jbarnes@virtuousgeek.org, lenb@kernel.org, rjw@sisk.pl
+Cc: dhowells@redhat.com, mchehab@infradead.org
 
 
 The patch titled
-     acpi: fix build with CONFIG_PM_SLEEP=n
+     drx397xD demodulator driver: fix a const pointer assignment
 has been added to the -mm tree.  Its filename is
-     acpi-fix-build-with-config_pm_sleep=n.patch
+     drx397xd-demodulator-driver-fix-a-const-pointer-assignment.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,61 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi: fix build with CONFIG_PM_SLEEP=n
+Subject: drx397xD demodulator driver: fix a const pointer assignment
 From: David Howells <dhowells@redhat.com>
 
-Fix acpi_pm_device_sleep_wake() by providing a stub for CONFIG_PM_SLEEP=n.
+Fix an assignment of a const pointer to a non-const pointer in the drx397xD
+demodulator driver.
+
+This was introduced in patch eb9bd0e567365d4f607d32d8c41e201da65aa971.
 
 Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/acpi/acpi_bus.h |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/media/dvb/frontends/drx397xD.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/acpi/acpi_bus.h~acpi-fix-build-with-config_pm_sleep=n include/acpi/acpi_bus.h
---- a/include/acpi/acpi_bus.h~acpi-fix-build-with-config_pm_sleep=n
-+++ a/include/acpi/acpi_bus.h
-@@ -384,6 +384,10 @@ static inline int acpi_pm_device_sleep_s
- 		*p = ACPI_STATE_D0;
- 	return ACPI_STATE_D3;
- }
-+static inline int acpi_pm_device_sleep_wake(struct device *dev, bool enable)
-+{
-+	return -ENODEV;
-+}
- #endif /* !CONFIG_PM_SLEEP */
+diff -puN drivers/media/dvb/frontends/drx397xD.c~drx397xd-demodulator-driver-fix-a-const-pointer-assignment drivers/media/dvb/frontends/drx397xD.c
+--- a/drivers/media/dvb/frontends/drx397xD.c~drx397xd-demodulator-driver-fix-a-const-pointer-assignment
++++ a/drivers/media/dvb/frontends/drx397xD.c
+@@ -73,7 +73,7 @@ static struct {
+ 	const struct firmware *file;
+ 	rwlock_t lock;
+ 	int refcnt;
+-	u8 *data[ARRAY_SIZE(blob_name)];
++	const u8 *data[ARRAY_SIZE(blob_name)];
+ } fw[] = {
+ #define _FW_ENTRY(a, b)		{			\
+ 			.name	= a,			\
+@@ -109,7 +109,7 @@ static void drx_release_fw(struct drx397
  
- #endif				/* CONFIG_ACPI */
+ static int drx_load_fw(struct drx397xD_state *s, fw_ix_t ix)
+ {
+-	u8 *data;
++	const u8 *data;
+ 	size_t size, len;
+ 	int i = 0, j, rc = -EINVAL;
+ 
+@@ -193,7 +193,7 @@ static int drx_load_fw(struct drx397xD_s
+ static int write_fw(struct drx397xD_state *s, blob_ix_t ix)
+ {
+ 	struct i2c_msg msg = {.addr = s->config.demod_address,.flags = 0 };
+-	u8 *data;
++	const u8 *data;
+ 	int len, rc = 0, i = 0;
+ 
+ 	if (ix < 0 || ix >= ARRAY_SIZE(blob_name)) {
+@@ -214,7 +214,7 @@ static int write_fw(struct drx397xD_stat
+ 		case 0:	/* bytecode */
+ 			len = data[i++];
+ 			msg.len = len;
+-			msg.buf = &data[i];
++			msg.buf = (__u8 *) &data[i];
+ 			if (i2c_transfer(s->i2c, &msg, 1) != 1) {
+ 				rc = -EIO;
+ 				goto exit_rc;
 _
 
 Patches currently in -mm which might be from dhowells@redhat.com are
