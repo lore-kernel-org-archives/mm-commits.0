@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-fix-a-cast-of-a-32-bit-int-to-a-pointer.patch added to -mm tree
-Date: Fri, 11 Jul 2008 11:37:06 -0700
-Message-ID: <200807111842.m6BIglsF030679@imap1.linux-foundation.org>
+Subject: + via-velocity-add-velocity_set_rxbufsize-helper.patch added to -mm tree
+Date: Fri, 11 Jul 2008 11:38:06 -0700
+Message-ID: <200807111843.m6BIhlbG030816@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57716 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43089 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752652AbYGKSne (ORCPT
+	by vger.kernel.org with ESMTP id S1755093AbYGKSnu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jul 2008 14:43:34 -0400
+	Fri, 11 Jul 2008 14:43:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com, andi@firstfloor.org, len.brown@intel.com, ming.m.lin@intel.com, robert.moore@intel.com
+Cc: romieu@fr.zoreil.com
 
 
 The patch titled
-     acpi: fix a cast of a 32-bit int to a pointer
+     via-velocity: add velocity_set_rxbufsize helper
 has been added to the -mm tree.  Its filename is
-     acpi-fix-a-cast-of-a-32-bit-int-to-a-pointer.patch
+     via-velocity-add-velocity_set_rxbufsize-helper.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,81 +34,71 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi: fix a cast of a 32-bit int to a pointer
-From: David Howells <dhowells@redhat.com>
+Subject: via-velocity: add velocity_set_rxbufsize helper
+From: Francois Romieu <romieu@fr.zoreil.com>
 
-Fix a cast of a 32-bit int to a pointer in ACPI to avoid a compiler warning.
+It removes a dependancy from velocity_init_rd_ring to dev->mtu.
 
-This problem was introduced by the following patch:
-
-	commit 1f3ee987b56d6354cdbbe8faa90079886a464b9c
-	Author: Bob Moore <robert.moore@intel.com>
-	Date:   Tue Jun 10 13:42:13 2008 +0800
-
-	    ACPICA: Eliminate acpi_native_uint type
-
-	    No longer needed; replaced mostly with u32, but also acpi_size
-	    where a type that changes 32/64 bit on 32/64-bit platforms is
-	    required.
-
-	    Signed-off-by: Bob Moore <robert.moore@intel.com>
-	    Signed-off-by: Lin Ming <ming.m.lin@intel.com>
-	    Signed-off-by: Len Brown <len.brown@intel.com>
-
-Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: Bob Moore <robert.moore@intel.com>
-Cc: Lin Ming <ming.m.lin@intel.com>
-Cc: Len Brown <len.brown@intel.com>
-Cc: Andi Kleen <andi@firstfloor.org>
+Signed-off-by: Francois Romieu <romieu@fr.zoreil.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/executer/exconfig.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/net/via-velocity.c |   12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
-diff -puN drivers/acpi/executer/exconfig.c~acpi-fix-a-cast-of-a-32-bit-int-to-a-pointer drivers/acpi/executer/exconfig.c
---- a/drivers/acpi/executer/exconfig.c~acpi-fix-a-cast-of-a-32-bit-int-to-a-pointer
-+++ a/drivers/acpi/executer/exconfig.c
-@@ -96,7 +96,8 @@ acpi_ex_add_table(u32 table_index,
+diff -puN drivers/net/via-velocity.c~via-velocity-add-velocity_set_rxbufsize-helper drivers/net/via-velocity.c
+--- a/drivers/net/via-velocity.c~via-velocity-add-velocity_set_rxbufsize-helper
++++ a/drivers/net/via-velocity.c
+@@ -1207,6 +1207,11 @@ static int velocity_rx_refill(struct vel
+ 	return done;
+ }
  
- 	/* Install the new table into the local data structures */
++static void velocity_set_rxbufsize(struct velocity_info *vptr, int mtu)
++{
++	vptr->rx_buf_sz = (mtu <= ETH_DATA_LEN) ? PKT_BUF_SZ : mtu + 32;
++}
++
+ /**
+  *	velocity_init_rd_ring	-	set up receive ring
+  *	@vptr: velocity to configure
+@@ -1217,11 +1222,8 @@ static int velocity_rx_refill(struct vel
  
--	obj_desc->reference.object = ACPI_CAST_PTR(void, table_index);
-+	obj_desc->reference.object =
-+		ACPI_CAST_PTR(void, (unsigned long) table_index);
+ static int velocity_init_rd_ring(struct velocity_info *vptr)
+ {
+-	int mtu = vptr->dev->mtu;
+ 	int ret = -ENOMEM;
  
- 	/* Add the table to the namespace */
+-	vptr->rx_buf_sz = (mtu <= ETH_DATA_LEN) ? PKT_BUF_SZ : mtu + 32;
+-
+ 	vptr->rd_info = kcalloc(vptr->options.numrx,
+ 				sizeof(struct velocity_rd_info), GFP_KERNEL);
+ 	if (!vptr->rd_info)
+@@ -1860,6 +1862,8 @@ static int velocity_open(struct net_devi
+ 	struct velocity_info *vptr = netdev_priv(dev);
+ 	int ret;
  
++	velocity_set_rxbufsize(vptr, dev->mtu);
++
+ 	ret = velocity_init_rings(vptr);
+ 	if (ret < 0)
+ 		goto out;
+@@ -1941,6 +1945,8 @@ static int velocity_change_mtu(struct ne
+ 
+ 		dev->mtu = new_mtu;
+ 
++		velocity_set_rxbufsize(vptr, new_mtu);
++
+ 		ret = velocity_init_rd_ring(vptr);
+ 		if (ret < 0)
+ 			goto out_unlock;
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from romieu@fr.zoreil.com are
 
-linux-next.patch
-acpi-fix-a-cast-of-a-32-bit-int-to-a-pointer.patch
-acpi-fix-build-with-config_pm_sleep=n.patch
-calgary-fix-a-comparison-warning-the-pci-calgary-64-driver.patch
-alsa-fix-a-const-pointer-usage-warning-in-the-digigram-pcxhr-soundcard-driver.patch
-alsa-fix-a-const-pointer-usage-warning-in-the-digigram-mixart-soundcard-driver.patch
-cifs-fix-range-check.patch
-sis-drm-fix-the-memory-allocator-if-the-sis-fb-is-built-as-a-module.patch
-sis-drm-fix-a-pointer-cast-warning.patch
-ivtv-framebuffer-driver-fix-pointer-cast-warnings.patch
-drx397xd-demodulator-driver-fix-a-const-pointer-assignment.patch
-mtd-fix-const-assignment-in-the-command-line-partitioning-driver.patch
-atm-fix-const-assignment-discard-warnings-in-the-atm-networking-driver.patch
-atm-fix-direct-casts-of-pointers-to-u32-in-the-interphase-driver.patch
-hysdn-remove-the-packed-attribute-from-poftimstamp_tag.patch
-git-unionfs.patch
-xfs-fix-disabled-xfs-posix-acl-handling.patch
-mn10300-move-sg_dma_addresslen-to-asm-scatterlisth.patch
-inflate-refactor-inflate-malloc-code.patch
-inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
-pnpacpi-fix-pnpacpi_parse_irq_options-test-against-pnp_irq_nr.patch
-include-asm-ptraceh-userspace-headers-cleanup.patch
-sdio-fix-break-control-to-now-return-success-or-an-error.patch
-ip2-fix-iielliscleanup-as-it-is-static-but-not-always-used.patch
-fix-a-const-assignment-in-moxa_load_fw.patch
-frv-use-the-common-ascii-hex-helpers.patch
-mn10300-use-the-common-ascii-hex-helpers.patch
-mutex-subsystem-synchro-test-module.patch
+via-velocity-remove-the-bounce-buffers.patch
+via-velocity-lean-and-clean-velocity_init_rings.patch
+via-velocity-move-residual-free-rx-descriptors-count-register-update.patch
+via-velocity-add-velocity_set_rxbufsize-helper.patch
+via-velocity-give-a-structure-to-the-rx-tx-fields.patch
+via-velocity-fix-sleep-with-spinlock-bug-during-mtu-change.patch
 
