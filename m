@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + reiserfs-discard-prealloc-in-reiserfs_delete_inode.patch added to -mm tree
-Date: Fri, 11 Jul 2008 14:50:55 -0700
-Message-ID: <200807112150.m6BLotiu006514@imap1.linux-foundation.org>
+Subject: + serial8250-sanity-check-nr_uarts-on-all-paths.patch added to -mm tree
+Date: Fri, 11 Jul 2008 14:54:36 -0700
+Message-ID: <200807112154.m6BLsavW006662@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46982 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53203 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754972AbYGKVvK (ORCPT
+	by vger.kernel.org with ESMTP id S1754205AbYGKVzI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jul 2008 17:51:10 -0400
+	Fri, 11 Jul 2008 17:55:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jeffm@suse.com, stable@kernel.org
+Cc: ebiederm@xmission.com, alan@redhat.com, stable@kernel.org
 
 
 The patch titled
-     reiserfs: discard prealloc in reiserfs_delete_inode
+     serial8250: sanity check nr_uarts on all paths.
 has been added to the -mm tree.  Its filename is
-     reiserfs-discard-prealloc-in-reiserfs_delete_inode.patch
+     serial8250-sanity-check-nr_uarts-on-all-paths.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,79 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: reiserfs: discard prealloc in reiserfs_delete_inode
-From: Jeff Mahoney <jeffm@suse.com>
+Subject: serial8250: sanity check nr_uarts on all paths.
+From: Eric W. Biederman <ebiederm@xmission.com>
 
-With the removal of struct file from the xattr code, reiserfs_file_release()
-isn't used anymore, so the prealloc isn't discarded.  This causes hangs later
-down the line.
+I had 8250.nr_uarts=16 in the boot line of a test kernel and I had a weird
+mysterious crash in sysfs.  After an taking in depth look I realized that
+CONFIG_SERIAL_8250_NR_UARTS was set to 4 and I was walking off the end of
+the serial8250_ports array.
 
-This patch adds it to reiserfs_delete_inode.  In most cases it will be a no-op
-due to it already having been called, but will avoid hangs with xattrs.
+Ouch!!!
 
-Signed-off-by: Jeff Mahoney <jeffm@suse.com>
+Don't let this happen to someone else.
+
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Acked-by: Alan Cox <alan@redhat.com>
 Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/inode.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/serial/8250.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN fs/reiserfs/inode.c~reiserfs-discard-prealloc-in-reiserfs_delete_inode fs/reiserfs/inode.c
---- a/fs/reiserfs/inode.c~reiserfs-discard-prealloc-in-reiserfs_delete_inode
-+++ a/fs/reiserfs/inode.c
-@@ -45,6 +45,8 @@ void reiserfs_delete_inode(struct inode 
- 			goto out;
- 		reiserfs_update_inode_transaction(inode);
+diff -puN drivers/serial/8250.c~serial8250-sanity-check-nr_uarts-on-all-paths drivers/serial/8250.c
+--- a/drivers/serial/8250.c~serial8250-sanity-check-nr_uarts-on-all-paths
++++ a/drivers/serial/8250.c
+@@ -2623,6 +2623,9 @@ static struct console serial8250_console
  
-+		reiserfs_discard_prealloc(&th, inode);
+ static int __init serial8250_console_init(void)
+ {
++	if (nr_uarts > UART_NR)
++		nr_uarts = UART_NR;
 +
- 		err = reiserfs_delete_object(&th, inode);
- 
- 		/* Do quota update inside a transaction for journaled quotas. We must do that
+ 	serial8250_isa_init_ports();
+ 	register_console(&serial8250_console);
+ 	return 0;
 _
 
-Patches currently in -mm which might be from jeffm@suse.com are
+Patches currently in -mm which might be from ebiederm@xmission.com are
 
-reiserfs-discard-prealloc-in-reiserfs_delete_inode.patch
-reiserfs-convert-j_lock-to-mutex.patch
-reiserfs-convert-j_flush_sem-to-mutex.patch
-reiserfs-convert-j_commit_lock-to-mutex.patch
-reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+serial8250-sanity-check-nr_uarts-on-all-paths.patch
+linux-next.patch
+fix-kobject-fix-kobject_rename-and-config_sysfs.patch
+generic-irqs-enable-polling-for-disabled-screaming-irqs.patch
+memcg-remove-refcnt-from-page_cgroup.patch
+memcg-remove-refcnt-from-page_cgroup-fix.patch
+memcg-remove-refcnt-from-page_cgroup-fix-2.patch
+memcg-remove-refcnt-from-page_cgroup-fix-memcg-fix-mem_cgroup_end_migration-race.patch
+memcg-remove-refcnt-from-page_cgroup-memcg-fix-shmem_unuse_inode-charging.patch
+memcg-handle-swap-cache.patch
+memcg-handle-swap-cache-fix.patch
+memcg-handle-swap-cache-fix-shmem-page-migration-incorrectness-on-memcgroup.patch
+memcg-helper-function-for-relcaim-from-shmem.patch
+memcg-helper-function-for-relcaim-from-shmem-memcg-shmem_getpage-release-page-sooner.patch
+memcg-helper-function-for-relcaim-from-shmem-memcg-mem_cgroup_shrink_usage-css_put.patch
+memcg-add-hints-for-branch.patch
+memcg-remove-a-redundant-check.patch
+sysctl-check-for-bogus-modes.patch
+sysctl-allow-override-of-proc-sys-net-with-cap_net_admin.patch
+shrink-struct-pid-by-removing-padding-on-64-bit-builds.patch
+pidns-remove-now-unused-kill_proc-function.patch
+pidns-remove-now-unused-find_pid-function.patch
+pidns-remove-find_task_by_pid-unused-for-a-long-time.patch
+bsdacct-rename-acct_blbls-to-bsd_acct_struct.patch
+pidns-use-kzalloc-when-allocating-new-pid_namespace-struct.patch
+pidns-add-the-struct-bsd_acct_struct-pointer-on-pid_namespace-struct.patch
+bsdacct-truthify-a-comment-near-acct_process.patch
+bsdacct-make-check-timer-accept-a-bsd_acct_struct-argument.patch
+bsdacct-turn-the-acct_lock-from-on-the-struct-to-global.patch
+bsdacct-make-internal-code-work-with-passed-bsd_acct_struct-not-global.patch
+bsdacct-switch-from-global-bsd_acct_struct-instance-to-per-pidns-one.patch
+bsdacct-turn-acct-off-for-all-pidns-s-on-umount-time.patch
+bsdacct-account-dying-tasks-in-all-relevant-namespaces.patch
+kernel-kexecc-make-kimage_terminate-void.patch
+kexec-jump.patch
+kexec-jump-save-restore-device-state.patch
+proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
 
