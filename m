@@ -1,53 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - arch-x86-mm-pgtable_32c-remove-unused-variable-fixmaps.patch removed from -mm tree
-Date: Fri, 11 Jul 2008 16:51:00 -0700
-Message-ID: <200807112351.m6BNp0dK011000@imap1.linux-foundation.org>
+Subject: - arch-x86-kernel-smpbootc-fix-warning.patch removed from -mm tree
+Date: Fri, 11 Jul 2008 16:50:58 -0700
+Message-ID: <200807112350.m6BNowiC010995@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58637 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45182 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754573AbYGKXvS (ORCPT
+	by vger.kernel.org with ESMTP id S1754584AbYGKXvQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jul 2008 19:51:18 -0400
+	Fri, 11 Jul 2008 19:51:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arch/x86/mm/pgtable_32.c: remove unused variable `fixmaps'
+     arch/x86/kernel/smpboot.c: fix warning
 has been removed from the -mm tree.  Its filename was
-     arch-x86-mm-pgtable_32c-remove-unused-variable-fixmaps.patch
+     arch-x86-kernel-smpbootc-fix-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/x86/mm/pgtable_32.c: remove unused variable `fixmaps'
+Subject: arch/x86/kernel/smpboot.c: fix warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/x86/mm/pgtable_32.c:144: warning: 'fixmaps' defined but not used
+arch/x86/kernel/smpboot.c: In function 'do_boot_cpu':
+arch/x86/kernel/smpboot.c:943: warning: label 'restore_state' defined but not used
+
+(ugh)
 
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/pgtable_32.c |    1 -
- 1 file changed, 1 deletion(-)
+ arch/x86/kernel/smpboot.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/mm/pgtable_32.c~arch-x86-mm-pgtable_32c-remove-unused-variable-fixmaps arch/x86/mm/pgtable_32.c
---- a/arch/x86/mm/pgtable_32.c~arch-x86-mm-pgtable_32c-remove-unused-variable-fixmaps
-+++ a/arch/x86/mm/pgtable_32.c
-@@ -141,7 +141,6 @@ void set_pmd_pfn(unsigned long vaddr, un
- 	__flush_tlb_one(vaddr);
- }
- 
--static int fixmaps;
- unsigned long __FIXADDR_TOP = 0xfffff000;
- EXPORT_SYMBOL(__FIXADDR_TOP);
- 
+diff -puN arch/x86/kernel/smpboot.c~arch-x86-kernel-smpbootc-fix-warning arch/x86/kernel/smpboot.c
+--- a/arch/x86/kernel/smpboot.c~arch-x86-kernel-smpbootc-fix-warning
++++ a/arch/x86/kernel/smpboot.c
+@@ -939,9 +939,9 @@ do_rest:
+ 				inquire_remote_apic(apicid);
+ 		}
+ 	}
+-
++#ifdef CONFIG_X86_64
+ restore_state:
+-
++#endif
+ 	if (boot_error) {
+ 		/* Try to put things back the way they were before ... */
+ 		numa_remove_cpu(cpu); /* was set by numa_add_cpu */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
