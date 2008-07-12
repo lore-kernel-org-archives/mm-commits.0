@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-mtd-chips-jedec_probec-fix-am29dl800bb-device-id.patch added to -mm tree
-Date: Fri, 11 Jul 2008 18:01:00 -0700
-Message-ID: <200807120101.m6C110qJ013526@imap1.linux-foundation.org>
+Subject: + x86-pci-fix-pci_subsys_init-to-have-a-return-value.patch added to -mm tree
+Date: Fri, 11 Jul 2008 18:04:45 -0700
+Message-ID: <200807120104.m6C14jsR013672@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42303 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52504 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754065AbYGLBBg (ORCPT
+	by vger.kernel.org with ESMTP id S1751569AbYGLBGo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jul 2008 21:01:36 -0400
+	Fri, 11 Jul 2008 21:06:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hickswgjr@gmail.com, dwmw2@infradead.org
+Cc: dhowells@redhat.com, jbarnes@virtuousgeek.org, mingo@elte.hu
 
 
 The patch titled
-     drivers/mtd/chips/jedec_probe.c: fix Am29DL800BB device ID
+     x86 pci: fix pci_subsys_init() to have a return value
 has been added to the -mm tree.  Its filename is
-     drivers-mtd-chips-jedec_probec-fix-am29dl800bb-device-id.patch
+     x86-pci-fix-pci_subsys_init-to-have-a-return-value.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,60 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/mtd/chips/jedec_probe.c: fix Am29DL800BB device ID
-From: Jerry Hicks <hickswgjr@gmail.com>
+Subject: x86 pci: fix pci_subsys_init() to have a return value
+From: David Howells <dhowells@redhat.com>
 
-The device id for Am29DL800BB in jedec_probe.c is wrong.
+Fix pci_subsys_init() to return a value (0) when it has finished.  All the
+functions it calls currently return 0, so returning 0 here unconditionally
+rather than gathering the results of its callees would seem reasonable.
 
-Reference: http://www.spansion.com/datasheets/21519c4.pdf
-
-I discovered this while working with u-boot.
-
-The u-boot folks mentioned Linux as an upstream reference, thought I'd
-post a heads-up here too.
-
-Cc: David Woodhouse <dwmw2@infradead.org>
+Signed-off-by: David Howells <dhowells@redhat.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/chips/jedec_probe.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/pci/legacy.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/mtd/chips/jedec_probe.c~drivers-mtd-chips-jedec_probec-fix-am29dl800bb-device-id drivers/mtd/chips/jedec_probe.c
---- a/drivers/mtd/chips/jedec_probe.c~drivers-mtd-chips-jedec_probec-fix-am29dl800bb-device-id
-+++ a/drivers/mtd/chips/jedec_probe.c
-@@ -41,7 +41,7 @@
- 
- 
- /* AMD */
--#define AM29DL800BB	0x22C8
-+#define AM29DL800BB	0x22CB
- #define AM29DL800BT	0x224A
- 
- #define AM29F800BB	0x2258
+diff -puN arch/x86/pci/legacy.c~x86-pci-fix-pci_subsys_init-to-have-a-return-value arch/x86/pci/legacy.c
+--- a/arch/x86/pci/legacy.c~x86-pci-fix-pci_subsys_init-to-have-a-return-value
++++ a/arch/x86/pci/legacy.c
+@@ -63,5 +63,6 @@ int __init pci_subsys_init(void)
+ 	pci_legacy_init();
+ 	pcibios_irq_init();
+ 	pcibios_init();
++	return 0;
+ }
+ subsys_initcall(pci_subsys_init);
 _
 
-Patches currently in -mm which might be from hickswgjr@gmail.com are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
-drivers-mtd-chips-jedec_probec-fix-am29dl800bb-device-id.patch
+origin.patch
+linux-next.patch
+acpi-fix-a-cast-of-a-32-bit-int-to-a-pointer.patch
+calgary-fix-a-comparison-warning-the-pci-calgary-64-driver.patch
+cifs-fix-range-check.patch
+sis-drm-fix-the-memory-allocator-if-the-sis-fb-is-built-as-a-module.patch
+sis-drm-fix-a-pointer-cast-warning.patch
+ivtv-framebuffer-driver-fix-pointer-cast-warnings.patch
+drx397xd-demodulator-driver-fix-a-const-pointer-assignment.patch
+mtd-fix-const-assignment-in-the-command-line-partitioning-driver.patch
+atm-fix-const-assignment-discard-warnings-in-the-atm-networking-driver.patch
+atm-fix-direct-casts-of-pointers-to-u32-in-the-interphase-driver.patch
+hysdn-remove-the-packed-attribute-from-poftimstamp_tag.patch
+git-unionfs.patch
+xfs-fix-disabled-xfs-posix-acl-handling.patch
+x86-pci-fix-pci_subsys_init-to-have-a-return-value.patch
+mn10300-move-sg_dma_addresslen-to-asm-scatterlisth.patch
+inflate-refactor-inflate-malloc-code.patch
+inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
+pnpacpi-fix-pnpacpi_parse_irq_options-test-against-pnp_irq_nr.patch
+include-asm-ptraceh-userspace-headers-cleanup.patch
+sdio-fix-break-control-to-now-return-success-or-an-error.patch
+ip2-fix-iielliscleanup-as-it-is-static-but-not-always-used.patch
+frv-use-the-common-ascii-hex-helpers.patch
+mn10300-use-the-common-ascii-hex-helpers.patch
+mutex-subsystem-synchro-test-module.patch
 
