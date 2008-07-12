@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cifs-fix-inode-leak-in-cifs_get_inode_info_unix.patch added to -mm tree
-Date: Fri, 11 Jul 2008 17:51:40 -0700
-Message-ID: <200807120051.m6C0per0013188@imap1.linux-foundation.org>
+Subject: + rtc-convert-the-pcf8583-driver-to-the-new-i2c-style-framework-with-device_ids.patch added to -mm tree
+Date: Fri, 11 Jul 2008 17:54:52 -0700
+Message-ID: <200807120054.m6C0sq12013328@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47711 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47605 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751736AbYGLAwz (ORCPT
+	by vger.kernel.org with ESMTP id S1755362AbYGLAzg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jul 2008 20:52:55 -0400
+	Fri, 11 Jul 2008 20:55:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jlayton@redhat.com, sfrench@us.ibm.com, stable@kernel.org
+Cc: w.sang@pengutronix.de, a.zummo@towertech.it, david-b@pacbell.net, j.beisert@pengutronix.de, khali@linux-fr.org
 
 
 The patch titled
-     cifs: fix inode leak in cifs_get_inode_info_unix
+     rtc: convert the PCF8583 driver to the new I2C style framework with device_ids
 has been added to the -mm tree.  Its filename is
-     cifs-fix-inode-leak-in-cifs_get_inode_info_unix.patch
+     rtc-convert-the-pcf8583-driver-to-the-new-i2c-style-framework-with-device_ids.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,81 +34,210 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cifs: fix inode leak in cifs_get_inode_info_unix
-From: Jeff Layton <jlayton@redhat.com>
+Subject: rtc: convert the PCF8583 driver to the new I2C style framework with device_ids
+From: Wolfram Sang <w.sang@pengutronix.de>
 
-Try this:
+Convert the PCF8583 driver to the new I2C style framework with device_ids
 
-    mount a share with unix extensions
-    create a file on it
-    umount the share
-
-You'll get the following message in the ring buffer:
-
-VFS: Busy inodes after unmount of cifs. Self-destruct in 5 seconds.  Have a
-nice day...
-
-...the problem is that cifs_get_inode_info_unix is creating and hashing
-a new inode even when it's going to return error anyway. The first
-lookup when creating a file returns an error so we end up leaking this
-inode before we do the actual create. This appears to be a regression
-caused by commit 0e4bbde94fdc33f5b3d793166b21bf768ca3e098.
-
-The following patch seems to fix it for me, and fixes a minor
-formatting nit as well.
-
-Signed-off-by: Jeff Layton <jlayton@redhat.com>
-Cc: Steven French <sfrench@us.ibm.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Juergen Beisert <j.beisert@pengutronix.de>
+Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
+Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/cifs/inode.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ drivers/rtc/rtc-pcf8583.c |  129 ++++++++++--------------------------
+ 1 file changed, 39 insertions(+), 90 deletions(-)
 
-diff -puN fs/cifs/inode.c~cifs-fix-inode-leak-in-cifs_get_inode_info_unix fs/cifs/inode.c
---- a/fs/cifs/inode.c~cifs-fix-inode-leak-in-cifs_get_inode_info_unix
-+++ a/fs/cifs/inode.c
-@@ -219,15 +219,15 @@ int cifs_get_inode_info_unix(struct inod
- 	rc = CIFSSMBUnixQPathInfo(xid, pTcon, full_path, &find_data,
- 				  cifs_sb->local_nls, cifs_sb->mnt_cifs_flags &
- 					CIFS_MOUNT_MAP_SPECIAL_CHR);
--	if (rc) {
--		if (rc == -EREMOTE && !is_dfs_referral) {
--			is_dfs_referral = true;
--			cFYI(DBG2, ("DFS ref"));
--			/* for DFS, server does not give us real inode data */
--			fill_fake_finddataunix(&find_data, sb);
--			rc = 0;
--		}
--	}
-+	if (rc == -EREMOTE && !is_dfs_referral) {
-+		is_dfs_referral = true;
-+		cFYI(DBG2, ("DFS ref"));
-+		/* for DFS, server does not give us real inode data */
-+		fill_fake_finddataunix(&find_data, sb);
-+		rc = 0;
-+	} else if (rc)
-+		goto cgiiu_exit;
-+
- 	num_of_bytes = le64_to_cpu(find_data.NumOfBytes);
- 	end_of_file = le64_to_cpu(find_data.EndOfFile);
+diff -puN drivers/rtc/rtc-pcf8583.c~rtc-convert-the-pcf8583-driver-to-the-new-i2c-style-framework-with-device_ids drivers/rtc/rtc-pcf8583.c
+--- a/drivers/rtc/rtc-pcf8583.c~rtc-convert-the-pcf8583-driver-to-the-new-i2c-style-framework-with-device_ids
++++ a/drivers/rtc/rtc-pcf8583.c
+@@ -2,6 +2,7 @@
+  *  drivers/rtc/rtc-pcf8583.c
+  *
+  *  Copyright (C) 2000 Russell King
++ *  Copyright (C) 2008 Wolfram Sang & Juergen Beisert, Pengutronix
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
+@@ -14,7 +15,6 @@
+ #include <linux/module.h>
+ #include <linux/i2c.h>
+ #include <linux/slab.h>
+-#include <linux/string.h>
+ #include <linux/rtc.h>
+ #include <linux/init.h>
+ #include <linux/errno.h>
+@@ -27,7 +27,6 @@ struct rtc_mem {
+ };
  
-@@ -236,7 +236,7 @@ int cifs_get_inode_info_unix(struct inod
- 		*pinode = new_inode(sb);
- 		if (*pinode == NULL) {
- 			rc = -ENOMEM;
--		goto cgiiu_exit;
-+			goto cgiiu_exit;
- 		}
- 		/* Is an i_ino of zero legal? */
- 		/* note ino incremented to unique num in new_inode */
+ struct pcf8583 {
+-	struct i2c_client client;
+ 	struct rtc_device *rtc;
+ 	unsigned char ctrl;
+ };
+@@ -40,10 +39,6 @@ struct pcf8583 {
+ #define CTRL_ALARM	0x02
+ #define CTRL_TIMER	0x01
+ 
+-static const unsigned short normal_i2c[] = { 0x50, I2C_CLIENT_END };
+-
+-/* Module parameters */
+-I2C_CLIENT_INSMOD;
+ 
+ static struct i2c_driver pcf8583_driver;
+ 
+@@ -269,106 +264,60 @@ static const struct rtc_class_ops pcf858
+ 	.set_time	= pcf8583_rtc_set_time,
+ };
+ 
+-static int pcf8583_probe(struct i2c_adapter *adap, int addr, int kind);
+-
+-static int pcf8583_attach(struct i2c_adapter *adap)
+-{
+-	return i2c_probe(adap, &addr_data, pcf8583_probe);
+-}
+-
+-static int pcf8583_detach(struct i2c_client *client)
+-{
+-	int err;
+-	struct pcf8583 *pcf = i2c_get_clientdata(client);
+-	struct rtc_device *rtc = pcf->rtc;
+-
+-	if (rtc)
+-		rtc_device_unregister(rtc);
+-
+-	if ((err = i2c_detach_client(client)))
+-		return err;
+-
+-	kfree(pcf);
+-	return 0;
+-}
+-
+-static struct i2c_driver pcf8583_driver = {
+-	.driver = {
+-		.name	= "pcf8583",
+-	},
+-	.id		= I2C_DRIVERID_PCF8583,
+-	.attach_adapter	= pcf8583_attach,
+-	.detach_client	= pcf8583_detach,
+-};
+-
+-static int pcf8583_probe(struct i2c_adapter *adap, int addr, int kind)
++static int pcf8583_probe(struct i2c_client *client,
++				const struct i2c_device_id *id)
+ {
+-	struct pcf8583 *pcf;
+-	struct i2c_client *client;
+-	struct rtc_device *rtc;
+-	unsigned char buf[1], ad[1] = { 0 };
++	struct pcf8583 *pcf8583;
+ 	int err;
+-	struct i2c_msg msgs[2] = {
+-		{
+-			.addr = addr,
+-			.flags = 0,
+-			.len = 1,
+-			.buf = ad,
+-		}, {
+-			.addr = addr,
+-			.flags = I2C_M_RD,
+-			.len = 1,
+-			.buf = buf,
+-		}
+-	};
+ 
+-	if (!i2c_check_functionality(adap, I2C_FUNC_I2C))
+-		return 0;
++	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C))
++		return -ENODEV;
+ 
+-	pcf = kzalloc(sizeof(*pcf), GFP_KERNEL);
+-	if (!pcf)
++	pcf8583 = kzalloc(sizeof(struct pcf8583), GFP_KERNEL);
++	if (!pcf8583)
+ 		return -ENOMEM;
+ 
+-	client = &pcf->client;
++	pcf8583->rtc = rtc_device_register(pcf8583_driver.driver.name,
++			&client->dev, &pcf8583_rtc_ops, THIS_MODULE);
+ 
+-	client->addr		= addr;
+-	client->adapter	= adap;
+-	client->driver	= &pcf8583_driver;
+-
+-	strlcpy(client->name, pcf8583_driver.driver.name, I2C_NAME_SIZE);
+-
+-	if (i2c_transfer(client->adapter, msgs, 2) != 2) {
+-		err = -EIO;
++	if (IS_ERR(pcf8583->rtc)) {
++		err = PTR_ERR(pcf8583->rtc);
+ 		goto exit_kfree;
+ 	}
+ 
+-	err = i2c_attach_client(client);
+-
+-	if (err)
+-		goto exit_kfree;
+-
+-	rtc = rtc_device_register(pcf8583_driver.driver.name, &client->dev,
+-				  &pcf8583_rtc_ops, THIS_MODULE);
++	i2c_set_clientdata(client, pcf8583);
++	return 0;
+ 
+-	if (IS_ERR(rtc)) {
+-		err = PTR_ERR(rtc);
+-		goto exit_detach;
+-	}
++exit_kfree:
++	kfree(pcf8583);
++	return err;
++}
+ 
+-	pcf->rtc = rtc;
+-	i2c_set_clientdata(client, pcf);
+-	set_ctrl(client, buf[0]);
++static int __devexit pcf8583_remove(struct i2c_client *client)
++{
++	struct pcf8583 *pcf8583 = i2c_get_clientdata(client);
+ 
++	if (pcf8583->rtc)
++		rtc_device_unregister(pcf8583->rtc);
++	kfree(pcf8583);
+ 	return 0;
++}
+ 
+-exit_detach:
+-	i2c_detach_client(client);
+-
+-exit_kfree:
+-	kfree(pcf);
++static const struct i2c_device_id pcf8583_id[] = {
++	{ "pcf8583", 0 },
++	{ }
++};
++MODULE_DEVICE_TABLE(i2c, pcf8583_id);
+ 
+-	return err;
+-}
++static struct i2c_driver pcf8583_driver = {
++	.driver = {
++		.name	= "pcf8583",
++		.owner	= THIS_MODULE,
++	},
++	.probe		= pcf8583_probe,
++	.remove		= __devexit_p(pcf8583_remove),
++	.id_table	= pcf8583_id,
++};
+ 
+ static __init int pcf8583_init(void)
+ {
 _
 
-Patches currently in -mm which might be from jlayton@redhat.com are
+Patches currently in -mm which might be from w.sang@pengutronix.de are
 
 linux-next.patch
-cifs-fix-inode-leak-in-cifs_get_inode_info_unix.patch
-cifs-fix-wksidarr-declaration-to-be-big-endian-friendly.patch
-git-unionfs.patch
+checkpatch-correct-spelling-in-kfree-checks.patch
+rtc-convert-the-pcf8583-driver-to-the-new-i2c-style-framework-with-device_ids.patch
 
