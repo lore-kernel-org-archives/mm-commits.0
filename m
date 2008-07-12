@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + frv-fix-irqs_disabled-to-return-an-int-not-an-unsigned-long.patch added to -mm tree
-Date: Fri, 11 Jul 2008 18:06:43 -0700
-Message-ID: <200807120106.m6C16htr013727@imap1.linux-foundation.org>
+Subject: + clocksource-fix-a-print-format-error-in-the-acpi-pm-clocksource-driver-and-check-range.patch added to -mm tree
+Date: Fri, 11 Jul 2008 18:05:54 -0700
+Message-ID: <200807120105.m6C15scT013707@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52661 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58140 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755250AbYGLBIL (ORCPT
+	by vger.kernel.org with ESMTP id S1750848AbYGLBMO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jul 2008 21:08:11 -0400
+	Fri, 11 Jul 2008 21:12:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com
+Cc: dhowells@redhat.com, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     frv: fix irqs_disabled() to return an int, not an unsigned long
+     clocksource: fix a print format error in the ACPI PM clocksource driver and check range
 has been added to the -mm tree.  Its filename is
-     frv-fix-irqs_disabled-to-return-an-int-not-an-unsigned-long.patch
+     clocksource-fix-a-print-format-error-in-the-acpi-pm-clocksource-driver-and-check-range.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,50 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: frv: fix irqs_disabled() to return an int, not an unsigned long
+Subject: clocksource: fix a print format error in the ACPI PM clocksource driver and check range
 From: David Howells <dhowells@redhat.com>
 
-Fix FRV irqs_disabled() to return an int, not an unsigned long to avoid
-this warning:
+Fix a print format error in the ACPI PM clocksource driver:
 
-kernel/sched.c: In function '__might_sleep':
-kernel/sched.c:8198: warning: format '%d' expects type 'int', but argument 3 has type 'long unsigned int'
+drivers/clocksource/acpi_pm.c:231: warning: format '%04lx' expects type 'long unsigned int', but argument 2 has type 'u32'
+
+This was introduced in patch 6b148507d3d042a3c11f4c3f6c0f649c6a89220d.
+
+And check that the value being passed to parse_pmtmr() does not exceed the
+limits of pmtmr_ioport.
 
 Signed-off-by: David Howells <dhowells@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-frv/system.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/clocksource/acpi_pm.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN include/asm-frv/system.h~frv-fix-irqs_disabled-to-return-an-int-not-an-unsigned-long include/asm-frv/system.h
---- a/include/asm-frv/system.h~frv-fix-irqs_disabled-to-return-an-int-not-an-unsigned-long
-+++ a/include/asm-frv/system.h
-@@ -87,7 +87,7 @@ do {								\
- } while(0)
+diff -puN drivers/clocksource/acpi_pm.c~clocksource-fix-a-print-format-error-in-the-acpi-pm-clocksource-driver-and-check-range drivers/clocksource/acpi_pm.c
+--- a/drivers/clocksource/acpi_pm.c~clocksource-fix-a-print-format-error-in-the-acpi-pm-clocksource-driver-and-check-range
++++ a/drivers/clocksource/acpi_pm.c
+@@ -227,7 +227,12 @@ static int __init parse_pmtmr(char *arg)
+ 	if (strict_strtoul(arg, 16, &base))
+ 		return -EINVAL;
  
- #define irqs_disabled() \
--	({unsigned long flags; local_save_flags(flags); flags; })
-+	({unsigned long flags; local_save_flags(flags); !!flags; })
+-	printk(KERN_INFO "PMTMR IOPort override: 0x%04lx -> 0x%04lx\n",
++#ifdef CONFIG_X86_64
++	if (base > UINT_MAX)
++		return -ERANGE;
++#endif
++
++	printk(KERN_INFO "PMTMR IOPort override: 0x%04x -> 0x%04lx\n",
+ 	       pmtmr_ioport, base);
+ 	pmtmr_ioport = base;
  
- #define	local_irq_save(flags)			\
- do {						\
 _
 
 Patches currently in -mm which might be from dhowells@redhat.com are
 
 origin.patch
-frv-fix-irqs_disabled-to-return-an-int-not-an-unsigned-long.patch
 linux-next.patch
 acpi-fix-a-cast-of-a-32-bit-int-to-a-pointer.patch
 calgary-fix-a-comparison-warning-the-pci-calgary-64-driver.patch
