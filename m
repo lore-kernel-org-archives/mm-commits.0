@@ -1,157 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: + gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support.patch added to -mm tree
-Date: Sat, 12 Jul 2008 00:00:04 -0700
-Message-ID: <200807120700.m6C704eN025411@imap1.linux-foundation.org>
+Subject: - xfs-fix-reference-counting-race-on-log-buffers.patch removed from -mm tree
+Date: Sat, 12 Jul 2008 13:25:26 -0700
+Message-ID: <200807122025.m6CKPQcq020317@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50900 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49598 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751172AbYGLHAb (ORCPT
+	by vger.kernel.org with ESMTP id S1752720AbYGLU0L (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 Jul 2008 03:00:31 -0400
+	Sat, 12 Jul 2008 16:26:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: david-b@pacbell.net, dbrownell@users.sourceforge.net, mb@bu3sch.de, sfr@canb.auug.org.au
+To: david@fromorbit.com, sandeen@sandeen.net, tes@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gpio: linux-next fixes for sysfs support
-has been added to the -mm tree.  Its filename is
-     gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support.patch
+     xfs: fix reference counting race on log buffers
+has been removed from the -mm tree.  Its filename was
+     xfs-fix-reference-counting-race-on-log-buffers.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpio: linux-next fixes for sysfs support
-From: David Brownell <david-b@pacbell.net>
+Subject: xfs: fix reference counting race on log buffers
+From: Dave Chinner <david@fromorbit.com>
 
-Cope with some backwards-incompatible driver model API changes
-now in the linux-next tree:
+When we release the iclog, we do an atomic_dec_and_lock to determine if we
+are the last reference and need to trigger update of log headers and
+writeout.  However, in xlog_state_get_iclog_space() we also need to check
+if we have the last reference count there.  If we do, we release the log
+buffer, otherwise we decrement the reference count.
 
- - device_create() is going away, even for drivers using it safely,
-   in favor of device_create_drvdata().
- - class->devices is gone, but testing class->p serves the same
-   purpose (non-null when class is usable with driver model calls).
- - class_find_device() needs a new argument #2 (NULL)
+The issue is that the compare and decrement in
+xlog_state_get_iclog_space() is not atomic, so both places can see a
+reference count of 2 and neither will release the iclog.  That leads to a
+filesystem hang.
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Michael Buesch <mb@bu3sch.de>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Close the race by replacing the atomic_read() and atomic_dec() pair with
+atomic_add_unless() to ensure that they are executed atomically.
+
+Signed-off-by: Dave Chinner <david@fromorbit.com>
+Reviewed-by: Tim Shimmin <tes@sgi.com>
+Tested-by: Eric Sandeen <sandeen@sandeen.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/gpiolib.c |   16 +++++++---------
- 1 file changed, 7 insertions(+), 9 deletions(-)
+ fs/xfs/xfs_log.c |   15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
-diff -puN drivers/gpio/gpiolib.c~gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support drivers/gpio/gpiolib.c
---- a/drivers/gpio/gpiolib.c~gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support
-+++ a/drivers/gpio/gpiolib.c
-@@ -429,7 +429,7 @@ int gpio_export(unsigned gpio, bool dire
- 	int			status = -EINVAL;
+diff -puN fs/xfs/xfs_log.c~xfs-fix-reference-counting-race-on-log-buffers fs/xfs/xfs_log.c
+--- a/fs/xfs/xfs_log.c~xfs-fix-reference-counting-race-on-log-buffers
++++ a/fs/xfs/xfs_log.c
+@@ -2427,13 +2427,20 @@ restart:
+ 	if (iclog->ic_size - iclog->ic_offset < 2*sizeof(xlog_op_header_t)) {
+ 		xlog_state_switch_iclogs(log, iclog, iclog->ic_size);
  
- 	/* can't export until sysfs is available ... */
--	if (!gpio_class.devices.next) {
-+	if (!gpio_class.p) {
- 		pr_debug("%s: called too early!\n", __func__);
- 		return -ENOENT;
- 	}
-@@ -453,10 +453,9 @@ int gpio_export(unsigned gpio, bool dire
- 	if (status == 0) {
- 		struct device	*dev;
- 
--		dev = device_create(&gpio_class, desc->chip->dev, 0,
--				"gpio%d", gpio);
-+		dev = device_create_drvdata(&gpio_class, desc->chip->dev, 0,
-+				desc, "gpio%d", gpio);
- 		if (dev) {
--			dev_set_drvdata(dev, desc);
- 			if (direction_may_change)
- 				status = sysfs_create_group(&dev->kobj,
- 						&gpio_attr_group);
-@@ -506,7 +505,7 @@ void gpio_unexport(unsigned gpio)
- 	if (test_bit(FLAG_EXPORT, &desc->flags)) {
- 		struct device	*dev = NULL;
- 
--		dev = class_find_device(&gpio_class, desc, match_export);
-+		dev = class_find_device(&gpio_class, NULL, desc, match_export);
- 		if (dev) {
- 			clear_bit(FLAG_EXPORT, &desc->flags);
- 			put_device(dev);
-@@ -533,15 +532,14 @@ static int gpiochip_export(struct gpio_c
- 	 * export this later, in gpiolib_sysfs_init() ... here we just
- 	 * verify that _some_ field of gpio_class got initialized.
- 	 */
--	if (!gpio_class.devices.next)
-+	if (!gpio_class.p)
- 		return 0;
- 
- 	/* use chip->base for the ID; it's already known to be unique */
- 	mutex_lock(&sysfs_lock);
--	dev = device_create(&gpio_class, chip->dev, 0,
-+	dev = device_create_drvdata(&gpio_class, chip->dev, 0, chip,
- 			"gpiochip%d", chip->base);
- 	if (dev) {
--		dev_set_drvdata(dev, chip);
- 		status = sysfs_create_group(&dev->kobj,
- 				&gpiochip_attr_group);
- 	} else
-@@ -572,7 +570,7 @@ static void gpiochip_unexport(struct gpi
- 	struct device		*dev;
- 
- 	mutex_lock(&sysfs_lock);
--	dev = class_find_device(&gpio_class, chip, match_export);
-+	dev = class_find_device(&gpio_class, NULL, chip, match_export);
- 	if (dev) {
- 		put_device(dev);
- 		device_unregister(dev);
+-		/* If I'm the only one writing to this iclog, sync it to disk */
+-		if (atomic_read(&iclog->ic_refcnt) == 1) {
++		/*
++		 * If I'm the only one writing to this iclog, sync it to disk.
++		 * We need to do an atomic compare and decrement here to avoid
++		 * racing with concurrent atomic_dec_and_lock() calls in
++		 * xlog_state_release_iclog() when there is more than one
++		 * reference to the iclog.
++		 */
++		if (!atomic_add_unless(&iclog->ic_refcnt, -1, 1)) {
++			/* we are the only one */
+ 			spin_unlock(&log->l_icloglock);
+-			if ((error = xlog_state_release_iclog(log, iclog)))
++			error = xlog_state_release_iclog(log, iclog);
++			if (error)
+ 				return error;
+ 		} else {
+-			atomic_dec(&iclog->ic_refcnt);
+ 			spin_unlock(&log->l_icloglock);
+ 		}
+ 		goto restart;
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from david@fromorbit.com are
 
 origin.patch
-rtc-fm3130-fix-chip-naming.patch
-rtc-pcf8563-add-chip-id.patch
-linux-next.patch
-ntp-let-update_persistent_clock-sleep.patch
-jffs2-summary-allocation-dont-use-vmalloc.patch
-atmel_nand-speedup-via-readwritesbw.patch
-atmel_pwm-set-up-only-one-pwm-clock-when-allocating-a-clock.patch
-sm501-add-gpiolib-support.patch
-sm501-gpio-dynamic-registration-for-pci-devices.patch
-sm501-gpio-i2c-support.patch
-rtc-rtc-rs5c372-smbus-conversion-support.patch
-rtc-rtc-rs5c732-add-support-for-ricoh-r2025s-d-rtc.patch
-rtc-m41t80-sort-header-inclusions-for-readability.patch
-rtc-m41t80-use-pr_info-as-appropriate.patch
-rtc-remove-bkl-for-ioctl.patch
-rtc-add-support-for-st-m41t94-spi-rtc.patch
-rtc-ds1305-ds1306-driver.patch
-rtc-ds1305-ds1306-driver-fix.patch
-rtc-bcd-codeshrink.patch
-rtc-rtc-omap-footprint-shrinkage.patch
-rtc-convert-the-pcf8583-driver-to-the-new-i2c-style-framework-with-device_ids.patch
-rtc-marvell-soc-rtc-driver.patch
-gpio-gpio-driver-for-max7301-spi-gpio-expander.patch
-gpio-gpio-driver-for-max7301-spi-gpio-expander-checkpatch-fixes.patch
-gpio-sysfs-interface-updated-update.patch
-gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support.patch
-gpio-mcp23s08-handles-multiple-chips-per-chipselect.patch
-gpio-add-bt8xxgpio-driver.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch
-gpiolib-allow-user-selection.patch
-gpiolib-allow-user-selection-update.patch
+xfs-clean-up-stale-references-to-semaphores.patch
+xfs-replace-the-xfs-buf-iodone-semaphore-with-a-completion.patch
+xfs-extend-completions-to-provide-xfs-object-flush-requirements.patch
+xfs-replace-inode-flush-semaphore-with-a-completion.patch
+xfs-replace-dquot-flush-semaphore-with-a-completion.patch
+xfs-remove-the-sema_t-from-xfs.patch
+xfs-fix-disabled-xfs-posix-acl-handling.patch
 
