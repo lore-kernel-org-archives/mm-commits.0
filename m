@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + xfs-fix-reference-counting-race-on-log-buffers.patch added to -mm tree
-Date: Fri, 11 Jul 2008 19:19:08 -0700
-Message-ID: <200807120219.m6C2J8jh016048@imap1.linux-foundation.org>
+Subject: + dev_printk-constify-the-dev-argument.patch added to -mm tree
+Date: Fri, 11 Jul 2008 19:21:26 -0700
+Message-ID: <200807120221.m6C2LQkV016196@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43659 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60190 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751602AbYGLCTU (ORCPT
+	by vger.kernel.org with ESMTP id S1752106AbYGLCVh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jul 2008 22:19:20 -0400
+	Fri, 11 Jul 2008 22:21:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: david@fromorbit.com, sandeen@sandeen.net, tes@sgi.com
+Cc: khali@linux-fr.org
 
 
 The patch titled
-     xfs: fix reference counting race on log buffers
+     dev_printk(): constify the `dev' argument
 has been added to the -mm tree.  Its filename is
-     xfs-fix-reference-counting-race-on-log-buffers.patch
+     dev_printk-constify-the-dev-argument.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,70 +34,65 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: xfs: fix reference counting race on log buffers
-From: Dave Chinner <david@fromorbit.com>
+Subject: dev_printk(): constify the `dev' argument
+From: Jean Delvare <khali@linux-fr.org>
 
-When we release the iclog, we do an atomic_dec_and_lock to determine if we
-are the last reference and need to trigger update of log headers and
-writeout.  However, in xlog_state_get_iclog_space() we also need to check
-if we have the last reference count there.  If we do, we release the log
-buffer, otherwise we decrement the reference count.
+Add const markings to dev_name and dev_driver_string to make it clear that
+dev_printk doesn't modify dev.  This is a prerequisite to adding more
+const markings to other functions make it clearer, which functions can
+modify dev and which can't.
 
-The issue is that the compare and decrement in
-xlog_state_get_iclog_space() is not atomic, so both places can see a
-reference count of 2 and neither will release the iclog.  That leads to a
-filesystem hang.
-
-Close the race by replacing the atomic_read() and atomic_dec() pair with
-atomic_add_unless() to ensure that they are executed atomically.
-
-Signed-off-by: Dave Chinner <david@fromorbit.com>
-Reviewed-by: Tim Shimmin <tes@sgi.com>
-Tested-by: Eric Sandeen <sandeen@sandeen.net>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xfs/xfs_log.c |   15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+ drivers/base/core.c    |    2 +-
+ include/linux/device.h |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/xfs/xfs_log.c~xfs-fix-reference-counting-race-on-log-buffers fs/xfs/xfs_log.c
---- a/fs/xfs/xfs_log.c~xfs-fix-reference-counting-race-on-log-buffers
-+++ a/fs/xfs/xfs_log.c
-@@ -2427,13 +2427,20 @@ restart:
- 	if (iclog->ic_size - iclog->ic_offset < 2*sizeof(xlog_op_header_t)) {
- 		xlog_state_switch_iclogs(log, iclog, iclog->ic_size);
+diff -puN drivers/base/core.c~dev_printk-constify-the-dev-argument drivers/base/core.c
+--- a/drivers/base/core.c~dev_printk-constify-the-dev-argument
++++ a/drivers/base/core.c
+@@ -53,7 +53,7 @@ static inline int device_is_not_partitio
+  * it is attached to.  If it is not attached to a bus either, an empty
+  * string will be returned.
+  */
+-const char *dev_driver_string(struct device *dev)
++const char *dev_driver_string(const struct device *dev)
+ {
+ 	return dev->driver ? dev->driver->name :
+ 			(dev->bus ? dev->bus->name :
+diff -puN include/linux/device.h~dev_printk-constify-the-dev-argument include/linux/device.h
+--- a/include/linux/device.h~dev_printk-constify-the-dev-argument
++++ a/include/linux/device.h
+@@ -406,7 +406,7 @@ struct device {
+ /* Get the wakeup routines, which depend on struct device */
+ #include <linux/pm_wakeup.h>
  
--		/* If I'm the only one writing to this iclog, sync it to disk */
--		if (atomic_read(&iclog->ic_refcnt) == 1) {
-+		/*
-+		 * If I'm the only one writing to this iclog, sync it to disk.
-+		 * We need to do an atomic compare and decrement here to avoid
-+		 * racing with concurrent atomic_dec_and_lock() calls in
-+		 * xlog_state_release_iclog() when there is more than one
-+		 * reference to the iclog.
-+		 */
-+		if (!atomic_add_unless(&iclog->ic_refcnt, -1, 1)) {
-+			/* we are the only one */
- 			spin_unlock(&log->l_icloglock);
--			if ((error = xlog_state_release_iclog(log, iclog)))
-+			error = xlog_state_release_iclog(log, iclog);
-+			if (error)
- 				return error;
- 		} else {
--			atomic_dec(&iclog->ic_refcnt);
- 			spin_unlock(&log->l_icloglock);
- 		}
- 		goto restart;
+-static inline const char *dev_name(struct device *dev)
++static inline const char *dev_name(const struct device *dev)
+ {
+ 	/* will be changed into kobject_name(&dev->kobj) in the near future */
+ 	return dev->bus_id;
+@@ -519,7 +519,7 @@ extern void device_shutdown(void);
+ extern void sysdev_shutdown(void);
+ 
+ /* debugging and troubleshooting/diagnostic helpers. */
+-extern const char *dev_driver_string(struct device *dev);
++extern const char *dev_driver_string(const struct device *dev);
+ #define dev_printk(level, dev, format, arg...)	\
+ 	printk(level "%s %s: " format , dev_driver_string(dev) , \
+ 	       dev_name(dev) , ## arg)
 _
 
-Patches currently in -mm which might be from david@fromorbit.com are
+Patches currently in -mm which might be from khali@linux-fr.org are
 
-xfs-fix-reference-counting-race-on-log-buffers.patch
-xfs-clean-up-stale-references-to-semaphores.patch
-xfs-replace-the-xfs-buf-iodone-semaphore-with-a-completion.patch
-xfs-extend-completions-to-provide-xfs-object-flush-requirements.patch
-xfs-replace-inode-flush-semaphore-with-a-completion.patch
-xfs-replace-dquot-flush-semaphore-with-a-completion.patch
-xfs-remove-the-sema_t-from-xfs.patch
-xfs-fix-disabled-xfs-posix-acl-handling.patch
+linux-next.patch
+mm-only-enforce-acpi-resource-conflict-checks.patch
+dev_printk-constify-the-dev-argument.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+pci-dynidsuse_driver_data-considered-harmful.patch
+rtc-convert-the-pcf8583-driver-to-the-new-i2c-style-framework-with-device_ids.patch
+gpiolib-allow-user-selection.patch
+gpiolib-allow-user-selection-update.patch
 
