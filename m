@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + dev_printk-constify-the-dev-argument.patch added to -mm tree
-Date: Fri, 11 Jul 2008 19:21:26 -0700
-Message-ID: <200807120221.m6C2LQkV016196@imap1.linux-foundation.org>
+Subject: + todays-linux-next-fails-to-boot.patch added to -mm tree
+Date: Fri, 11 Jul 2008 19:23:42 -0700
+Message-ID: <200807120223.m6C2Ng1I016221@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60190 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56238 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752106AbYGLCVh (ORCPT
+	by vger.kernel.org with ESMTP id S1751911AbYGLCXz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jul 2008 22:21:37 -0400
+	Fri, 11 Jul 2008 22:23:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: khali@linux-fr.org
+Cc: rjw@sisk.pl
 
 
 The patch titled
-     dev_printk(): constify the `dev' argument
+     today's linux-next fails to boot
 has been added to the -mm tree.  Its filename is
-     dev_printk-constify-the-dev-argument.patch
+     todays-linux-next-fails-to-boot.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,65 +34,158 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dev_printk(): constify the `dev' argument
-From: Jean Delvare <khali@linux-fr.org>
+Subject: today's linux-next fails to boot
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
 
-Add const markings to dev_name and dev_driver_string to make it clear that
-dev_printk doesn't modify dev.  This is a prerequisite to adding more
-const markings to other functions make it clearer, which functions can
-modify dev and which can't.
+Hi Ingo,
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
+On Friday, 11 of July 2008, Rafael J. Wysocki wrote:
+> On Friday, 11 of July 2008, Ingo Molnar wrote:
+> >
+> > * Rafael J. Wysocki <rjw@sisk.pl> wrote:
+[--snip--]
+>
+> Well, it turns out that linux-next from today doesn't boot on my box too
+> (64-bit) and I don't see anything obviously suspicious.  Bisection time.
+
+I have identified the source of the breakage on my box, but I don't really
+think it's the same problem that Edwin is observing.
+
+Namely, it turns out that some code in arch/x86/kernel/acpi/boot.c, as in
+today's linux-next, doesn't really make sense, because we have two conflicting
+DMA-based quirks in there for the same set of boxes (HP nx6325 and nx6125) and
+one of them actually breaks my box.
+
+I have reported that already, but it probably got lost somewhere.
+
+Below is a patch that fixes things for me, on top of today's linux-next.
+Please apply.
+
+Thanks,
+Rafael
+
+---
+Remove some code that breaks my HP nx6325 from arch/x86/kernel/acpi/boot.c.
+
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/core.c    |    2 +-
- include/linux/device.h |    4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ arch/x86/kernel/acpi/boot.c |   47 ----------------------------------
+ 1 file changed, 47 deletions(-)
 
-diff -puN drivers/base/core.c~dev_printk-constify-the-dev-argument drivers/base/core.c
---- a/drivers/base/core.c~dev_printk-constify-the-dev-argument
-+++ a/drivers/base/core.c
-@@ -53,7 +53,7 @@ static inline int device_is_not_partitio
-  * it is attached to.  If it is not attached to a bus either, an empty
-  * string will be returned.
+diff -puN arch/x86/kernel/acpi/boot.c~todays-linux-next-fails-to-boot arch/x86/kernel/acpi/boot.c
+--- a/arch/x86/kernel/acpi/boot.c~todays-linux-next-fails-to-boot
++++ a/arch/x86/kernel/acpi/boot.c
+@@ -84,8 +84,6 @@ int acpi_lapic;
+ int acpi_ioapic;
+ int acpi_strict;
+ 
+-static int disable_irq0_through_ioapic __initdata;
+-
+ u8 acpi_sci_flags __initdata;
+ int acpi_sci_override_gsi __initdata;
+ int acpi_skip_timer_override __initdata;
+@@ -982,10 +980,6 @@ void __init mp_override_legacy_irq(u8 bu
+ 	int pin;
+ 	struct mp_config_intsrc mp_irq;
+ 
+-	/* Skip the 8254 timer interrupt (IRQ 0) if requested.  */
+-	if (bus_irq == 0 && disable_irq0_through_ioapic)
+-		return;
+-
+ 	/*
+ 	 * Convert 'gsi' to 'ioapic.pin'.
+ 	 */
+@@ -1052,10 +1046,6 @@ void __init mp_config_acpi_legacy_irqs(v
+ 	for (i = 0; i < 16; i++) {
+ 		int idx;
+ 
+-		/* Skip the 8254 timer interrupt (IRQ 0) if requested.  */
+-		if (i == 0 && disable_irq0_through_ioapic)
+-			continue;
+-
+ 		for (idx = 0; idx < mp_irq_entries; idx++) {
+ 			struct mp_config_intsrc *irq = mp_irqs + idx;
+ 
+@@ -1413,17 +1403,6 @@ static int __init force_acpi_ht(const st
+ }
+ 
+ /*
+- * Don't register any I/O APIC entries for the 8254 timer IRQ.
+- */
+-static int __init
+-dmi_disable_irq0_through_ioapic(const struct dmi_system_id *d)
+-{
+-	pr_notice("%s detected: disabling IRQ 0 through I/O APIC\n", d->ident);
+-	disable_irq0_through_ioapic = 1;
+-	return 0;
+-}
+-
+-/*
+  * Force ignoring BIOS IRQ0 pin2 override
   */
--const char *dev_driver_string(struct device *dev)
-+const char *dev_driver_string(const struct device *dev)
- {
- 	return dev->driver ? dev->driver->name :
- 			(dev->bus ? dev->bus->name :
-diff -puN include/linux/device.h~dev_printk-constify-the-dev-argument include/linux/device.h
---- a/include/linux/device.h~dev_printk-constify-the-dev-argument
-+++ a/include/linux/device.h
-@@ -406,7 +406,7 @@ struct device {
- /* Get the wakeup routines, which depend on struct device */
- #include <linux/pm_wakeup.h>
- 
--static inline const char *dev_name(struct device *dev)
-+static inline const char *dev_name(const struct device *dev)
- {
- 	/* will be changed into kobject_name(&dev->kobj) in the near future */
- 	return dev->bus_id;
-@@ -519,7 +519,7 @@ extern void device_shutdown(void);
- extern void sysdev_shutdown(void);
- 
- /* debugging and troubleshooting/diagnostic helpers. */
--extern const char *dev_driver_string(struct device *dev);
-+extern const char *dev_driver_string(const struct device *dev);
- #define dev_printk(level, dev, format, arg...)	\
- 	printk(level "%s %s: " format , dev_driver_string(dev) , \
- 	       dev_name(dev) , ## arg)
+ static int __init dmi_ignore_irq0_timer_override(const struct dmi_system_id *d)
+@@ -1608,32 +1587,6 @@ static struct dmi_system_id __initdata a
+ 	 * is enabled.  This input is incorrectly designated the
+ 	 * ISA IRQ 0 via an interrupt source override even though
+ 	 * it is wired to the output of the master 8259A and INTIN0
+-	 * is not connected at all.  Abandon any attempts to route
+-	 * IRQ 0 through the I/O APIC therefore.
+-	 */
+-	{
+-	 .callback = dmi_disable_irq0_through_ioapic,
+-	 .ident = "HP NX6125 laptop",
+-	 .matches = {
+-		     DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
+-		     DMI_MATCH(DMI_PRODUCT_NAME, "HP Compaq nx6125"),
+-		     },
+-	 },
+-	{
+-	 .callback = dmi_disable_irq0_through_ioapic,
+-	 .ident = "HP NX6325 laptop",
+-	 .matches = {
+-		     DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
+-		     DMI_MATCH(DMI_PRODUCT_NAME, "HP Compaq nx6325"),
+-		     },
+-	 },
+-	/*
+-	 * HP laptops which use a DSDT reporting as HP/SB400/10000,
+-	 * which includes some code which overrides all temperature
+-	 * trip points to 16C if the INTIN2 input of the I/O APIC
+-	 * is enabled.  This input is incorrectly designated the
+-	 * ISA IRQ 0 via an interrupt source override even though
+-	 * it is wired to the output of the master 8259A and INTIN0
+ 	 * is not connected at all.  Force ignoring BIOS IRQ0 pin2
+ 	 * override in that cases.
+ 	 */
 _
 
-Patches currently in -mm which might be from khali@linux-fr.org are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
 linux-next.patch
-mm-only-enforce-acpi-resource-conflict-checks.patch
-dev_printk-constify-the-dev-argument.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-pci-dynidsuse_driver_data-considered-harmful.patch
-rtc-convert-the-pcf8583-driver-to-the-new-i2c-style-framework-with-device_ids.patch
-gpiolib-allow-user-selection.patch
-gpiolib-allow-user-selection-update.patch
+todays-linux-next-fails-to-boot.patch
+swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option.patch
+swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
+pm-boot-time-suspend-selftest.patch
+pm-boot-time-suspend-selftest-vs-linux-next.patch
+remove-include-linux-pm_legacyh.patch
+pm-remove-definition-of-struct-pm_dev.patch
+pm-remove-remaining-obsolete-definitions-from-pmh.patch
+pm-remove-obsolete-piece-of-pm-documentation-rev-2.patch
+pm-drop-unnecessary-includes-from-pmh.patch
+pm-add-new-pm_event-codes-for-runtime-power-transitions.patch
+pm-ahci-speed-up-resume.patch
+pm-hibernation-simplify-memory-bitmap.patch
+pm-serio-speed-up-resume.patch
+pm-introduce-new-interfaces-schedule_work_on-and-queue_work_on.patch
+pm-schedule-sysrq-poweroff-on-boot-cpu.patch
+pm-acpi-hibernation-utilize-hardware-signature.patch
+pm-acpi-pm-add-dmi-quirk-list-for-acpi-10-suspend-ordering.patch
+drivers-power-fix-platform-driver-hotplug-coldplug.patch
+mfd-fix-platform-driver-hotplug-coldplug.patch
+parport-fix-platform-driver-hotplug-coldplug.patch
+kexec-jump.patch
+kexec-jump-save-restore-device-state.patch
+shrink_slab-handle-bad-shrinkers.patch
 
