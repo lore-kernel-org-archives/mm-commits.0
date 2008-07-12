@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + oprofile-kernel-maintainership-changes.patch added to -mm tree
-Date: Fri, 11 Jul 2008 17:58:02 -0700
-Message-ID: <200807120058.m6C0w27Z013380@imap1.linux-foundation.org>
+Subject: + drivers-mtd-chips-jedec_probec-fix-am29dl800bb-device-id.patch added to -mm tree
+Date: Fri, 11 Jul 2008 18:01:00 -0700
+Message-ID: <200807120101.m6C110qJ013526@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48481 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42303 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754438AbYGLA73 (ORCPT
+	by vger.kernel.org with ESMTP id S1754065AbYGLBBg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jul 2008 20:59:29 -0400
+	Fri, 11 Jul 2008 21:01:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: robert.richter@amd.com, akpm@linux-foundation.org, daniel.hansel@linux.vnet.ibm.com, jason.yeh@amd.com, levon@movementarian.org, maynardj@us.ibm.com, phil.el@wanadoo.fr, rpurdie@openedhand.com
+Cc: hickswgjr@gmail.com, dwmw2@infradead.org
 
 
 The patch titled
-     OProfile kernel maintainership changes
+     drivers/mtd/chips/jedec_probe.c: fix Am29DL800BB device ID
 has been added to the -mm tree.  Its filename is
-     oprofile-kernel-maintainership-changes.patch
+     drivers-mtd-chips-jedec_probec-fix-am29dl800bb-device-id.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: OProfile kernel maintainership changes
-From: Robert Richter <robert.richter@amd.com>
+Subject: drivers/mtd/chips/jedec_probe.c: fix Am29DL800BB device ID
+From: Jerry Hicks <hickswgjr@gmail.com>
 
-Cc: Philippe Elie <phil.el@wanadoo.fr>
-Cc: John Levon <levon@movementarian.org>
-Cc: Maynard Johnson <maynardj@us.ibm.com>
-Cc: Richard Purdie <rpurdie@openedhand.com>
-Cc: Daniel Hansel <daniel.hansel@linux.vnet.ibm.com>
-Cc: Jason Yeh <jason.yeh@amd.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Signed-off-by: Robert Richter <robert.richter@amd.com>
+The device id for Am29DL800BB in jedec_probe.c is wrong.
+
+Reference: http://www.spansion.com/datasheets/21519c4.pdf
+
+I discovered this while working with u-boot.
+
+The u-boot folks mentioned Linux as an upstream reference, thought I'd
+post a heads-up here too.
+
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/mtd/chips/jedec_probe.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~oprofile-kernel-maintainership-changes MAINTAINERS
---- a/MAINTAINERS~oprofile-kernel-maintainership-changes
-+++ a/MAINTAINERS
-@@ -3141,8 +3141,8 @@ L:	linux-scsi@vger.kernel.org
- S:	Maintained
+diff -puN drivers/mtd/chips/jedec_probe.c~drivers-mtd-chips-jedec_probec-fix-am29dl800bb-device-id drivers/mtd/chips/jedec_probe.c
+--- a/drivers/mtd/chips/jedec_probe.c~drivers-mtd-chips-jedec_probec-fix-am29dl800bb-device-id
++++ a/drivers/mtd/chips/jedec_probe.c
+@@ -41,7 +41,7 @@
  
- OPROFILE
--P:	Philippe Elie
--M:	phil.el@wanadoo.fr
-+P:	Robert Richter
-+M:	robert.richter@amd.com
- L:	oprofile-list@lists.sf.net
- S:	Maintained
  
+ /* AMD */
+-#define AM29DL800BB	0x22C8
++#define AM29DL800BB	0x22CB
+ #define AM29DL800BT	0x224A
+ 
+ #define AM29F800BB	0x2258
 _
 
-Patches currently in -mm which might be from robert.richter@amd.com are
+Patches currently in -mm which might be from hickswgjr@gmail.com are
 
-linux-next.patch
-oprofile-kernel-maintainership-changes.patch
+drivers-mtd-chips-jedec_probec-fix-am29dl800bb-device-id.patch
 
