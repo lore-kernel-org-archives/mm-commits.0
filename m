@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + todays-linux-next-fails-to-boot.patch added to -mm tree
-Date: Fri, 11 Jul 2008 19:23:42 -0700
-Message-ID: <200807120223.m6C2Ng1I016221@imap1.linux-foundation.org>
+Subject: + gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support.patch added to -mm tree
+Date: Sat, 12 Jul 2008 00:00:04 -0700
+Message-ID: <200807120700.m6C704eN025411@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56238 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50900 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751911AbYGLCXz (ORCPT
+	by vger.kernel.org with ESMTP id S1751172AbYGLHAb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Jul 2008 22:23:55 -0400
+	Sat, 12 Jul 2008 03:00:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rjw@sisk.pl
+Cc: david-b@pacbell.net, dbrownell@users.sourceforge.net, mb@bu3sch.de, sfr@canb.auug.org.au
 
 
 The patch titled
-     today's linux-next fails to boot
+     gpio: linux-next fixes for sysfs support
 has been added to the -mm tree.  Its filename is
-     todays-linux-next-fails-to-boot.patch
+     gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,158 +34,124 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: today's linux-next fails to boot
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: gpio: linux-next fixes for sysfs support
+From: David Brownell <david-b@pacbell.net>
 
-Hi Ingo,
+Cope with some backwards-incompatible driver model API changes
+now in the linux-next tree:
 
-On Friday, 11 of July 2008, Rafael J. Wysocki wrote:
-> On Friday, 11 of July 2008, Ingo Molnar wrote:
-> >
-> > * Rafael J. Wysocki <rjw@sisk.pl> wrote:
-[--snip--]
->
-> Well, it turns out that linux-next from today doesn't boot on my box too
-> (64-bit) and I don't see anything obviously suspicious.  Bisection time.
+ - device_create() is going away, even for drivers using it safely,
+   in favor of device_create_drvdata().
+ - class->devices is gone, but testing class->p serves the same
+   purpose (non-null when class is usable with driver model calls).
+ - class_find_device() needs a new argument #2 (NULL)
 
-I have identified the source of the breakage on my box, but I don't really
-think it's the same problem that Edwin is observing.
-
-Namely, it turns out that some code in arch/x86/kernel/acpi/boot.c, as in
-today's linux-next, doesn't really make sense, because we have two conflicting
-DMA-based quirks in there for the same set of boxes (HP nx6325 and nx6125) and
-one of them actually breaks my box.
-
-I have reported that already, but it probably got lost somewhere.
-
-Below is a patch that fixes things for me, on top of today's linux-next.
-Please apply.
-
-Thanks,
-Rafael
-
----
-Remove some code that breaks my HP nx6325 from arch/x86/kernel/acpi/boot.c.
-
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Michael Buesch <mb@bu3sch.de>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/acpi/boot.c |   47 ----------------------------------
- 1 file changed, 47 deletions(-)
+ drivers/gpio/gpiolib.c |   16 +++++++---------
+ 1 file changed, 7 insertions(+), 9 deletions(-)
 
-diff -puN arch/x86/kernel/acpi/boot.c~todays-linux-next-fails-to-boot arch/x86/kernel/acpi/boot.c
---- a/arch/x86/kernel/acpi/boot.c~todays-linux-next-fails-to-boot
-+++ a/arch/x86/kernel/acpi/boot.c
-@@ -84,8 +84,6 @@ int acpi_lapic;
- int acpi_ioapic;
- int acpi_strict;
+diff -puN drivers/gpio/gpiolib.c~gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support drivers/gpio/gpiolib.c
+--- a/drivers/gpio/gpiolib.c~gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support
++++ a/drivers/gpio/gpiolib.c
+@@ -429,7 +429,7 @@ int gpio_export(unsigned gpio, bool dire
+ 	int			status = -EINVAL;
  
--static int disable_irq0_through_ioapic __initdata;
--
- u8 acpi_sci_flags __initdata;
- int acpi_sci_override_gsi __initdata;
- int acpi_skip_timer_override __initdata;
-@@ -982,10 +980,6 @@ void __init mp_override_legacy_irq(u8 bu
- 	int pin;
- 	struct mp_config_intsrc mp_irq;
+ 	/* can't export until sysfs is available ... */
+-	if (!gpio_class.devices.next) {
++	if (!gpio_class.p) {
+ 		pr_debug("%s: called too early!\n", __func__);
+ 		return -ENOENT;
+ 	}
+@@ -453,10 +453,9 @@ int gpio_export(unsigned gpio, bool dire
+ 	if (status == 0) {
+ 		struct device	*dev;
  
--	/* Skip the 8254 timer interrupt (IRQ 0) if requested.  */
--	if (bus_irq == 0 && disable_irq0_through_ioapic)
--		return;
--
- 	/*
- 	 * Convert 'gsi' to 'ioapic.pin'.
+-		dev = device_create(&gpio_class, desc->chip->dev, 0,
+-				"gpio%d", gpio);
++		dev = device_create_drvdata(&gpio_class, desc->chip->dev, 0,
++				desc, "gpio%d", gpio);
+ 		if (dev) {
+-			dev_set_drvdata(dev, desc);
+ 			if (direction_may_change)
+ 				status = sysfs_create_group(&dev->kobj,
+ 						&gpio_attr_group);
+@@ -506,7 +505,7 @@ void gpio_unexport(unsigned gpio)
+ 	if (test_bit(FLAG_EXPORT, &desc->flags)) {
+ 		struct device	*dev = NULL;
+ 
+-		dev = class_find_device(&gpio_class, desc, match_export);
++		dev = class_find_device(&gpio_class, NULL, desc, match_export);
+ 		if (dev) {
+ 			clear_bit(FLAG_EXPORT, &desc->flags);
+ 			put_device(dev);
+@@ -533,15 +532,14 @@ static int gpiochip_export(struct gpio_c
+ 	 * export this later, in gpiolib_sysfs_init() ... here we just
+ 	 * verify that _some_ field of gpio_class got initialized.
  	 */
-@@ -1052,10 +1046,6 @@ void __init mp_config_acpi_legacy_irqs(v
- 	for (i = 0; i < 16; i++) {
- 		int idx;
+-	if (!gpio_class.devices.next)
++	if (!gpio_class.p)
+ 		return 0;
  
--		/* Skip the 8254 timer interrupt (IRQ 0) if requested.  */
--		if (i == 0 && disable_irq0_through_ioapic)
--			continue;
--
- 		for (idx = 0; idx < mp_irq_entries; idx++) {
- 			struct mp_config_intsrc *irq = mp_irqs + idx;
+ 	/* use chip->base for the ID; it's already known to be unique */
+ 	mutex_lock(&sysfs_lock);
+-	dev = device_create(&gpio_class, chip->dev, 0,
++	dev = device_create_drvdata(&gpio_class, chip->dev, 0, chip,
+ 			"gpiochip%d", chip->base);
+ 	if (dev) {
+-		dev_set_drvdata(dev, chip);
+ 		status = sysfs_create_group(&dev->kobj,
+ 				&gpiochip_attr_group);
+ 	} else
+@@ -572,7 +570,7 @@ static void gpiochip_unexport(struct gpi
+ 	struct device		*dev;
  
-@@ -1413,17 +1403,6 @@ static int __init force_acpi_ht(const st
- }
- 
- /*
-- * Don't register any I/O APIC entries for the 8254 timer IRQ.
-- */
--static int __init
--dmi_disable_irq0_through_ioapic(const struct dmi_system_id *d)
--{
--	pr_notice("%s detected: disabling IRQ 0 through I/O APIC\n", d->ident);
--	disable_irq0_through_ioapic = 1;
--	return 0;
--}
--
--/*
-  * Force ignoring BIOS IRQ0 pin2 override
-  */
- static int __init dmi_ignore_irq0_timer_override(const struct dmi_system_id *d)
-@@ -1608,32 +1587,6 @@ static struct dmi_system_id __initdata a
- 	 * is enabled.  This input is incorrectly designated the
- 	 * ISA IRQ 0 via an interrupt source override even though
- 	 * it is wired to the output of the master 8259A and INTIN0
--	 * is not connected at all.  Abandon any attempts to route
--	 * IRQ 0 through the I/O APIC therefore.
--	 */
--	{
--	 .callback = dmi_disable_irq0_through_ioapic,
--	 .ident = "HP NX6125 laptop",
--	 .matches = {
--		     DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
--		     DMI_MATCH(DMI_PRODUCT_NAME, "HP Compaq nx6125"),
--		     },
--	 },
--	{
--	 .callback = dmi_disable_irq0_through_ioapic,
--	 .ident = "HP NX6325 laptop",
--	 .matches = {
--		     DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
--		     DMI_MATCH(DMI_PRODUCT_NAME, "HP Compaq nx6325"),
--		     },
--	 },
--	/*
--	 * HP laptops which use a DSDT reporting as HP/SB400/10000,
--	 * which includes some code which overrides all temperature
--	 * trip points to 16C if the INTIN2 input of the I/O APIC
--	 * is enabled.  This input is incorrectly designated the
--	 * ISA IRQ 0 via an interrupt source override even though
--	 * it is wired to the output of the master 8259A and INTIN0
- 	 * is not connected at all.  Force ignoring BIOS IRQ0 pin2
- 	 * override in that cases.
- 	 */
+ 	mutex_lock(&sysfs_lock);
+-	dev = class_find_device(&gpio_class, chip, match_export);
++	dev = class_find_device(&gpio_class, NULL, chip, match_export);
+ 	if (dev) {
+ 		put_device(dev);
+ 		device_unregister(dev);
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
+origin.patch
+rtc-fm3130-fix-chip-naming.patch
+rtc-pcf8563-add-chip-id.patch
 linux-next.patch
-todays-linux-next-fails-to-boot.patch
-swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option.patch
-swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
-pm-boot-time-suspend-selftest.patch
-pm-boot-time-suspend-selftest-vs-linux-next.patch
-remove-include-linux-pm_legacyh.patch
-pm-remove-definition-of-struct-pm_dev.patch
-pm-remove-remaining-obsolete-definitions-from-pmh.patch
-pm-remove-obsolete-piece-of-pm-documentation-rev-2.patch
-pm-drop-unnecessary-includes-from-pmh.patch
-pm-add-new-pm_event-codes-for-runtime-power-transitions.patch
-pm-ahci-speed-up-resume.patch
-pm-hibernation-simplify-memory-bitmap.patch
-pm-serio-speed-up-resume.patch
-pm-introduce-new-interfaces-schedule_work_on-and-queue_work_on.patch
-pm-schedule-sysrq-poweroff-on-boot-cpu.patch
-pm-acpi-hibernation-utilize-hardware-signature.patch
-pm-acpi-pm-add-dmi-quirk-list-for-acpi-10-suspend-ordering.patch
-drivers-power-fix-platform-driver-hotplug-coldplug.patch
-mfd-fix-platform-driver-hotplug-coldplug.patch
-parport-fix-platform-driver-hotplug-coldplug.patch
-kexec-jump.patch
-kexec-jump-save-restore-device-state.patch
-shrink_slab-handle-bad-shrinkers.patch
+ntp-let-update_persistent_clock-sleep.patch
+jffs2-summary-allocation-dont-use-vmalloc.patch
+atmel_nand-speedup-via-readwritesbw.patch
+atmel_pwm-set-up-only-one-pwm-clock-when-allocating-a-clock.patch
+sm501-add-gpiolib-support.patch
+sm501-gpio-dynamic-registration-for-pci-devices.patch
+sm501-gpio-i2c-support.patch
+rtc-rtc-rs5c372-smbus-conversion-support.patch
+rtc-rtc-rs5c732-add-support-for-ricoh-r2025s-d-rtc.patch
+rtc-m41t80-sort-header-inclusions-for-readability.patch
+rtc-m41t80-use-pr_info-as-appropriate.patch
+rtc-remove-bkl-for-ioctl.patch
+rtc-add-support-for-st-m41t94-spi-rtc.patch
+rtc-ds1305-ds1306-driver.patch
+rtc-ds1305-ds1306-driver-fix.patch
+rtc-bcd-codeshrink.patch
+rtc-rtc-omap-footprint-shrinkage.patch
+rtc-convert-the-pcf8583-driver-to-the-new-i2c-style-framework-with-device_ids.patch
+rtc-marvell-soc-rtc-driver.patch
+gpio-gpio-driver-for-max7301-spi-gpio-expander.patch
+gpio-gpio-driver-for-max7301-spi-gpio-expander-checkpatch-fixes.patch
+gpio-sysfs-interface-updated-update.patch
+gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support.patch
+gpio-mcp23s08-handles-multiple-chips-per-chipselect.patch
+gpio-add-bt8xxgpio-driver.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch
+gpiolib-allow-user-selection.patch
+gpiolib-allow-user-selection-update.patch
 
