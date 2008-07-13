@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + workqueues-queue_work-can-use-queue_work_on.patch added to -mm tree
-Date: Sat, 12 Jul 2008 18:26:25 -0700
-Message-ID: <200807130126.m6D1QP4W030576@imap1.linux-foundation.org>
+Subject: + bridge-send-correct-mtu-value-in-pmtu.patch added to -mm tree
+Date: Sat, 12 Jul 2008 18:28:31 -0700
+Message-ID: <200807130128.m6D1SVHI030601@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34756 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45460 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752629AbYGMB0f (ORCPT
+	by vger.kernel.org with ESMTP id S1751233AbYGMB2z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 Jul 2008 21:26:35 -0400
+	Sat, 12 Jul 2008 21:28:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru
+Cc: simon.wunderlich@s2003.tu-chemnitz.de, shemminger@linux-foundation.org, siwu@hrz.tu-chemnitz.de
 
 
 The patch titled
-     From: Oleg Nesterov <oleg@tv-sign.ru>
+     bridge: send correct MTU value in PMTU
 has been added to the -mm tree.  Its filename is
-     workqueues-queue_work-can-use-queue_work_on.patch
+     bridge-send-correct-mtu-value-in-pmtu.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,82 +34,214 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: bridge: send correct MTU value in PMTU
+From: Simon Wunderlich <simon.wunderlich@s2003.tu-chemnitz.de>
 
+When bridging interfaces with different MTUs, the bridge correctly chooses
+the minimum of the MTUs of the physical devices as the bridges MTU.  But
+when a frame is passed which fits through the incoming, but not through
+the outgoing interface, a "Fragmentation Needed" packet is generated.
 
-queue_work() can use queue_work_on() to avoid the code duplication.
+However, the propagated MTU is hardcoded to 1500, which is wrong in this
+situation.  The sender will repeat the packet again with the same frame
+size, and the same problem will occur again.
 
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Instead of sending 1500, the (correct) MTU value of the bridge is now sent
+via PMTU.  To achieve this, the corresponding rtable structure is stored
+in its net_bridge structure.
 
+Signed-off-by: Simon Wunderlich <siwu@hrz.tu-chemnitz.de>
+Cc: Stephen Hemminger <shemminger@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/workqueue.c |   11 ++++-------
- 1 file changed, 4 insertions(+), 7 deletions(-)
+ net/bridge/br_device.c    |    9 +++++-
+ net/bridge/br_if.c        |   27 +++++++++++++++++++
+ net/bridge/br_netfilter.c |   51 +++++++++++++-----------------------
+ net/bridge/br_private.h   |    5 +++
+ 4 files changed, 59 insertions(+), 33 deletions(-)
 
-diff -puN kernel/workqueue.c~workqueues-queue_work-can-use-queue_work_on kernel/workqueue.c
---- a/kernel/workqueue.c~workqueues-queue_work-can-use-queue_work_on
-+++ a/kernel/workqueue.c
-@@ -159,14 +159,11 @@ static void __queue_work(struct cpu_work
-  */
- int queue_work(struct workqueue_struct *wq, struct work_struct *work)
- {
--	int ret = 0;
-+	int ret;
-+
-+	ret = queue_work_on(get_cpu(), wq, work);
-+	put_cpu();
+diff -puN net/bridge/br_device.c~bridge-send-correct-mtu-value-in-pmtu net/bridge/br_device.c
+--- a/net/bridge/br_device.c~bridge-send-correct-mtu-value-in-pmtu
++++ a/net/bridge/br_device.c
+@@ -68,10 +68,17 @@ static int br_dev_stop(struct net_device
  
--	if (!test_and_set_bit(WORK_STRUCT_PENDING, work_data_bits(work))) {
--		BUG_ON(!list_empty(&work->entry));
--		__queue_work(wq_per_cpu(wq, get_cpu()), work);
--		put_cpu();
--		ret = 1;
--	}
- 	return ret;
+ static int br_change_mtu(struct net_device *dev, int new_mtu)
+ {
+-	if (new_mtu < 68 || new_mtu > br_min_mtu(netdev_priv(dev)))
++	struct net_bridge *br = netdev_priv(dev);
++	if (new_mtu < 68 || new_mtu > br_min_mtu(br))
+ 		return -EINVAL;
+ 
+ 	dev->mtu = new_mtu;
++
++#ifdef CONFIG_BRIDGE_NETFILTER
++	/* remember the MTU in the rtable for PMTU */
++	br->fake_rtable.u.dst.metrics[RTAX_MTU - 1] = new_mtu;
++#endif
++
+ 	return 0;
  }
- EXPORT_SYMBOL_GPL(queue_work);
+ 
+diff -puN net/bridge/br_if.c~bridge-send-correct-mtu-value-in-pmtu net/bridge/br_if.c
+--- a/net/bridge/br_if.c~bridge-send-correct-mtu-value-in-pmtu
++++ a/net/bridge/br_if.c
+@@ -168,6 +168,23 @@ static void del_br(struct net_bridge *br
+ 	unregister_netdevice(br->dev);
+ }
+ 
++#ifdef CONFIG_BRIDGE_NETFILTER
++/* We need these fake structures to make netfilter happy --
++ * lots of places assume that skb->dst != NULL, which isn't
++ * all that unreasonable.
++ *
++ * Currently, we fill in the PMTU entry because netfilter
++ * refragmentation needs it, and the rt_flags entry because
++ * ipt_REJECT needs it.  Future netfilter modules might
++ * require us to fill additional fields. */
++struct net_device __fake_net_device = {
++	.hard_header_len	= ETH_HLEN,
++#ifdef CONFIG_NET_NS
++	.nd_net			= &init_net,
++#endif
++};
++#endif
++
+ static struct net_device *new_bridge_dev(const char *name)
+ {
+ 	struct net_bridge *br;
+@@ -202,6 +219,16 @@ static struct net_device *new_bridge_dev
+ 	br->topology_change = 0;
+ 	br->topology_change_detected = 0;
+ 	br->ageing_time = 300 * HZ;
++
++#ifdef CONFIG_BRIDGE_NETFILTER
++	atomic_set(&br->fake_rtable.u.dst.__refcnt, 1);
++	br->fake_rtable.u.dst.dev = &__fake_net_device;
++	br->fake_rtable.u.dst.path = &br->fake_rtable.u.dst;
++	br->fake_rtable.u.dst.metrics[RTAX_MTU - 1] = 1500;
++	br->fake_rtable.u.dst.flags	= DST_NOXFRM;
++	br->fake_rtable.rt_flags = 0;
++#endif
++
+ 	INIT_LIST_HEAD(&br->age_list);
+ 
+ 	br_stp_timer_init(br);
+diff -puN net/bridge/br_netfilter.c~bridge-send-correct-mtu-value-in-pmtu net/bridge/br_netfilter.c
+--- a/net/bridge/br_netfilter.c~bridge-send-correct-mtu-value-in-pmtu
++++ a/net/bridge/br_netfilter.c
+@@ -101,33 +101,12 @@ static inline __be16 pppoe_proto(const s
+ 	 pppoe_proto(skb) == htons(PPP_IPV6) && \
+ 	 brnf_filter_pppoe_tagged)
+ 
+-/* We need these fake structures to make netfilter happy --
+- * lots of places assume that skb->dst != NULL, which isn't
+- * all that unreasonable.
+- *
+- * Currently, we fill in the PMTU entry because netfilter
+- * refragmentation needs it, and the rt_flags entry because
+- * ipt_REJECT needs it.  Future netfilter modules might
+- * require us to fill additional fields. */
+-static struct net_device __fake_net_device = {
+-	.hard_header_len	= ETH_HLEN,
+-#ifdef CONFIG_NET_NS
+-	.nd_net			= &init_net,
+-#endif
+-};
++static inline struct rtable *bridge_parent_rtable(const struct net_device *dev)
++{
++	struct net_bridge_port *port = rcu_dereference(dev->br_port);
+ 
+-static struct rtable __fake_rtable = {
+-	.u = {
+-		.dst = {
+-			.__refcnt		= ATOMIC_INIT(1),
+-			.dev			= &__fake_net_device,
+-			.path			= &__fake_rtable.u.dst,
+-			.metrics		= {[RTAX_MTU - 1] = 1500},
+-			.flags			= DST_NOXFRM,
+-		}
+-	},
+-	.rt_flags	= 0,
+-};
++	return port ? &port->br->fake_rtable: NULL;
++}
+ 
+ static inline struct net_device *bridge_parent(const struct net_device *dev)
+ {
+@@ -226,8 +205,12 @@ static int br_nf_pre_routing_finish_ipv6
+ 	}
+ 	nf_bridge->mask ^= BRNF_NF_BRIDGE_PREROUTING;
+ 
+-	skb->rtable = &__fake_rtable;
+-	dst_hold(&__fake_rtable.u.dst);
++	skb->rtable = bridge_parent_rtable(nf_bridge->physindev);
++	if (!skb->rtable) {
++		kfree_skb(skb);
++		return 0;
++	}
++	dst_hold(&skb->rtable->u.dst);
+ 
+ 	skb->dev = nf_bridge->physindev;
+ 	nf_bridge_push_encap_header(skb);
+@@ -391,8 +374,12 @@ bridged_dnat:
+ 			skb->pkt_type = PACKET_HOST;
+ 		}
+ 	} else {
+-		skb->rtable = &__fake_rtable;
+-		dst_hold(&__fake_rtable.u.dst);
++		skb->rtable = bridge_parent_rtable(nf_bridge->physindev);
++		if (!skb->rtable) {
++			kfree_skb(skb);
++			return 0;
++		}
++		dst_hold(&skb->rtable->u.dst);
+ 	}
+ 
+ 	skb->dev = nf_bridge->physindev;
+@@ -611,8 +598,8 @@ static unsigned int br_nf_local_in(unsig
+ 				   const struct net_device *out,
+ 				   int (*okfn)(struct sk_buff *))
+ {
+-	if (skb->rtable == &__fake_rtable) {
+-		dst_release(&__fake_rtable.u.dst);
++	if (skb->rtable && skb->rtable == bridge_parent_rtable(in)) {
++		dst_release(&skb->rtable->u.dst);
+ 		skb->rtable = NULL;
+ 	}
+ 
+diff -puN net/bridge/br_private.h~bridge-send-correct-mtu-value-in-pmtu net/bridge/br_private.h
+--- a/net/bridge/br_private.h~bridge-send-correct-mtu-value-in-pmtu
++++ a/net/bridge/br_private.h
+@@ -15,6 +15,7 @@
+ 
+ #include <linux/netdevice.h>
+ #include <linux/if_bridge.h>
++#include <net/route.h>	/* struct rtable, RTAX_MTU */
+ 
+ #define BR_HASH_BITS 8
+ #define BR_HASH_SIZE (1 << BR_HASH_BITS)
+@@ -92,6 +93,9 @@ struct net_bridge
+ 	struct hlist_head		hash[BR_HASH_SIZE];
+ 	struct list_head		age_list;
+ 	unsigned long			feature_mask;
++#ifdef CONFIG_BRIDGE_NETFILTER
++	struct rtable 			fake_rtable;
++#endif
+ 	unsigned long			flags;
+ #define BR_SET_MAC_ADDR		0x00000001
+ 
+@@ -200,6 +204,7 @@ extern void br_netfilter_fini(void);
+ #else
+ #define br_netfilter_init()	(0)
+ #define br_netfilter_fini()	do { } while(0)
++extern struct net_device __fake_net_device;
+ #endif
+ 
+ /* br_stp.c */
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from simon.wunderlich@s2003.tu-chemnitz.de are
 
-linux-next.patch
-migrate_timers-add-comment-use-spinlock_irq.patch
-pm-introduce-new-interfaces-schedule_work_on-and-queue_work_on.patch
-pm-introduce-new-interfaces-schedule_work_on-and-queue_work_on-cleanup.patch
-posix-timers-timer_delete-remove-the-bogus-it_process-=-null-check.patch
-posix-timers-release_posix_timer-kill-the-bogus-put_task_struct-it_process.patch
-signals-collect_signal-remove-the-unneeded-sigismember-check.patch
-signals-collect_signal-simplify-the-still_pending-logic.patch
-signals-change-collect_signal-to-return-void.patch
-__exit_signal-dont-take-rcu-lock.patch
-signals-dequeue_signal-dont-check-signal_group_exit-when-setting-signal_stop_dequeued.patch
-signals-do_signal_stop-kill-the-signal_unkillable-check.patch
-coredump-zap_threads-comments-use-while_each_thread.patch
-signals-make-siginfo_t-si_utime-si_sstime-report-times-in-user_hz-not-hz.patch
-kernel-signalc-change-vars-pid-and-tgid-types-to-pid_t.patch
-include-asm-ptraceh-userspace-headers-cleanup.patch
-ptrace-give-more-respect-to-sigkill.patch
-ptrace-simplify-ptrace_stop-sigkill_pending-path.patch
-introduce-pf_kthread-flag.patch
-kill-pf_borrowed_mm-in-favour-of-pf_kthread.patch
-coredump-zap_threads-must-skip-kernel-threads.patch
-coredump-elf_core_dump-skip-kernel-threads.patch
-coredump-turn-mm-core_startup_done-into-the-pointer-to-struct-core_state.patch
-coredump-move-mm-core_waiters-into-struct-core_state.patch
-coredump-simplify-core_state-nr_threads-calculation.patch
-coredump-turn-core_state-nr_threads-into-atomic_t.patch
-workqueues-insert_work-use-list_head-instead-of-int-tail.patch
-workqueues-implement-flush_work.patch
-workqueues-schedule_on_each_cpu-use-flush_work.patch
-workqueues-make-get_online_cpus-useable-for-work-func.patch
-workqueues-make-get_online_cpus-useable-for-work-func-fix.patch
-s390-topology-dont-use-kthread-for-arch_reinit_sched_domains.patch
-workqueues-lockdep-annotations-for-flush_work.patch
-workqueues-queue_work-can-use-queue_work_on.patch
-workqueues-schedule_on_each_cpu-can-use-schedule_work_on.patch
-pidns-remove-now-unused-kill_proc-function.patch
-pidns-remove-now-unused-find_pid-function.patch
-pidns-remove-find_task_by_pid-unused-for-a-long-time.patch
-distinct-tgid-tid-i-o-statistics.patch
+bridge-send-correct-mtu-value-in-pmtu.patch
 
