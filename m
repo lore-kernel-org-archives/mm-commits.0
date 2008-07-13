@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sched-fix-inc_rt_tasks-to-not-declare-variable-rq-if-its-not-needed.patch added to -mm tree
-Date: Sat, 12 Jul 2008 22:34:29 -0700
-Message-ID: <200807130534.m6D5YTpd006121@imap1.linux-foundation.org>
+Subject: + netfilter-fix-xt_times-time_mts-use-of-do_div.patch added to -mm tree
+Date: Sat, 12 Jul 2008 22:50:13 -0700
+Message-ID: <200807130550.m6D5oDn6006663@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42995 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57774 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751173AbYGMFfJ (ORCPT
+	by vger.kernel.org with ESMTP id S1751085AbYGMFup (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 13 Jul 2008 01:35:09 -0400
+	Sun, 13 Jul 2008 01:50:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com, ghaskins@novell.com, mingo@elte.hu
+Cc: dhowells@redhat.com, jengelh@computergmbh.de, kaber@trash.net
 
 
 The patch titled
-     sched: fix inc_rt_tasks() to not declare variable 'rq' if it's not needed
+     netfilter: fix xt_time's time_mt()'s use of do_div()
 has been added to the -mm tree.  Its filename is
-     sched-fix-inc_rt_tasks-to-not-declare-variable-rq-if-its-not-needed.patch
+     netfilter-fix-xt_times-time_mts-use-of-do_div.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,38 +34,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sched: fix inc_rt_tasks() to not declare variable 'rq' if it's not needed
+Subject: netfilter: fix xt_time's time_mt()'s use of do_div()
 From: David Howells <dhowells@redhat.com>
 
-Fix inc_rt_tasks() to not declare variable 'rq' if it's not needed.  It is
-declared if CONFIG_SMP or CONFIG_RT_GROUP_SCHED, but only used if
-CONFIG_SMP.
+Fix netfilter xt_time's time_mt()'s use of do_div() on an s64 by using
+div_s64() instead.
 
-This is a consequence of patch 1f11eb6a8bc92536d9e93ead48fa3ffbd1478571
-plus patch 1100ac91b6af02d8639d518fad5b434b1bf44ed6.
+This was introduced by patch ee4411a1b1e0b679c99686629b5eab5a072ce49f.
 
 Signed-off-by: David Howells <dhowells@redhat.com>
-Acked by: Gregory Haskins <ghaskins@novell.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Patrick McHardy <kaber@trash.net>
+Cc: Jan Engelhardt <jengelh@computergmbh.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched_rt.c |    2 ++
- 1 file changed, 2 insertions(+)
+ net/netfilter/xt_time.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/sched_rt.c~sched-fix-inc_rt_tasks-to-not-declare-variable-rq-if-its-not-needed kernel/sched_rt.c
---- a/kernel/sched_rt.c~sched-fix-inc_rt_tasks-to-not-declare-variable-rq-if-its-not-needed
-+++ a/kernel/sched_rt.c
-@@ -505,7 +505,9 @@ void inc_rt_tasks(struct sched_rt_entity
- 	rt_rq->rt_nr_running++;
- #if defined CONFIG_SMP || defined CONFIG_RT_GROUP_SCHED
- 	if (rt_se_prio(rt_se) < rt_rq->highest_prio) {
-+#ifdef CONFIG_SMP
- 		struct rq *rq = rq_of_rt_rq(rt_rq);
-+#endif
+diff -puN net/netfilter/xt_time.c~netfilter-fix-xt_times-time_mts-use-of-do_div net/netfilter/xt_time.c
+--- a/net/netfilter/xt_time.c~netfilter-fix-xt_times-time_mts-use-of-do_div
++++ a/net/netfilter/xt_time.c
+@@ -173,7 +173,7 @@ time_mt(const struct sk_buff *skb, const
+ 		__net_timestamp((struct sk_buff *)skb);
  
- 		rt_rq->highest_prio = rt_se_prio(rt_se);
- #ifdef CONFIG_SMP
+ 	stamp = ktime_to_ns(skb->tstamp);
+-	do_div(stamp, NSEC_PER_SEC);
++	stamp = div_s64(stamp, NSEC_PER_SEC);
+ 
+ 	if (info->flags & XT_TIME_LOCAL_TZ)
+ 		/* Adjust for local timezone */
 _
 
 Patches currently in -mm which might be from dhowells@redhat.com are
@@ -81,6 +78,7 @@ sis-drm-fix-a-pointer-cast-warning.patch
 ivtv-framebuffer-driver-fix-pointer-cast-warnings.patch
 drx397xd-demodulator-driver-fix-a-const-pointer-assignment.patch
 mtd-fix-const-assignment-in-the-command-line-partitioning-driver.patch
+netfilter-fix-xt_times-time_mts-use-of-do_div.patch
 atm-fix-const-assignment-discard-warnings-in-the-atm-networking-driver.patch
 atm-fix-direct-casts-of-pointers-to-u32-in-the-interphase-driver.patch
 hysdn-remove-the-packed-attribute-from-poftimstamp_tag.patch
