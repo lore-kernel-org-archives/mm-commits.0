@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + workqueues-schedule_on_each_cpu-can-use-schedule_work_on.patch added to -mm tree
-Date: Sat, 12 Jul 2008 18:26:26 -0700
-Message-ID: <200807130126.m6D1QQpu030579@imap1.linux-foundation.org>
+Subject: + workqueues-queue_work-can-use-queue_work_on.patch added to -mm tree
+Date: Sat, 12 Jul 2008 18:26:25 -0700
+Message-ID: <200807130126.m6D1QP4W030576@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52873 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34756 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752580AbYGMB02 (ORCPT
+	by vger.kernel.org with ESMTP id S1752629AbYGMB0f (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 Jul 2008 21:26:28 -0400
+	Sat, 12 Jul 2008 21:26:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -18,7 +18,7 @@ Cc: oleg@tv-sign.ru
 The patch titled
      From: Oleg Nesterov <oleg@tv-sign.ru>
 has been added to the -mm tree.  Its filename is
-     workqueues-schedule_on_each_cpu-can-use-schedule_work_on.patch
+     workqueues-queue_work-can-use-queue_work_on.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,30 +37,38 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 Subject: From: Oleg Nesterov <oleg@tv-sign.ru>
 
 
-schedule_on_each_cpu() can use schedule_work_on() to avoid the code
-duplication.
+queue_work() can use queue_work_on() to avoid the code duplication.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/workqueue.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ kernel/workqueue.c |   11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
 
-diff -puN kernel/workqueue.c~workqueues-schedule_on_each_cpu-can-use-schedule_work_on kernel/workqueue.c
---- a/kernel/workqueue.c~workqueues-schedule_on_each_cpu-can-use-schedule_work_on
+diff -puN kernel/workqueue.c~workqueues-queue_work-can-use-queue_work_on kernel/workqueue.c
+--- a/kernel/workqueue.c~workqueues-queue_work-can-use-queue_work_on
 +++ a/kernel/workqueue.c
-@@ -689,8 +689,7 @@ int schedule_on_each_cpu(work_func_t fun
- 		struct work_struct *work = per_cpu_ptr(works, cpu);
+@@ -159,14 +159,11 @@ static void __queue_work(struct cpu_work
+  */
+ int queue_work(struct workqueue_struct *wq, struct work_struct *work)
+ {
+-	int ret = 0;
++	int ret;
++
++	ret = queue_work_on(get_cpu(), wq, work);
++	put_cpu();
  
- 		INIT_WORK(work, func);
--		set_bit(WORK_STRUCT_PENDING, work_data_bits(work));
--		__queue_work(per_cpu_ptr(keventd_wq->cpu_wq, cpu), work);
-+		schedule_work_on(cpu, work);
- 	}
- 	for_each_online_cpu(cpu)
- 		flush_work(per_cpu_ptr(works, cpu));
+-	if (!test_and_set_bit(WORK_STRUCT_PENDING, work_data_bits(work))) {
+-		BUG_ON(!list_empty(&work->entry));
+-		__queue_work(wq_per_cpu(wq, get_cpu()), work);
+-		put_cpu();
+-		ret = 1;
+-	}
+ 	return ret;
+ }
+ EXPORT_SYMBOL_GPL(queue_work);
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
