@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cxacru-fix-printk-format-flag-in-error-message.patch added to -mm tree
-Date: Sat, 12 Jul 2008 18:20:17 -0700
-Message-ID: <200807130120.m6D1KHR1030394@imap1.linux-foundation.org>
+Subject: + documentation-howto-correct-wrong-kernel-bugzilla-faq-url.patch added to -mm tree
+Date: Sat, 12 Jul 2008 18:24:14 -0700
+Message-ID: <200807130124.m6D1OEko030509@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58687 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40541 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751648AbYGMBUi (ORCPT
+	by vger.kernel.org with ESMTP id S1752387AbYGMBYq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 Jul 2008 21:20:38 -0400
+	Sat, 12 Jul 2008 21:24:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: simon@fire.lp0.eu
+Cc: jpirko@redhat.com, randy.dunlap@oracle.com
 
 
 The patch titled
-     cxacru: fix printk format flag in error message
+     Documentation/HOWTO: correct wrong kernel bugzilla FAQ URL
 has been added to the -mm tree.  Its filename is
-     cxacru-fix-printk-format-flag-in-error-message.patch
+     documentation-howto-correct-wrong-kernel-bugzilla-faq-url.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cxacru: fix printk format flag in error message
-From: Simon Arlott <simon@fire.lp0.eu>
+Subject: Documentation/HOWTO: correct wrong kernel bugzilla FAQ URL
+From: Jiri Pirko <jpirko@redhat.com>
 
-"#%x" should have been "%#x"
-
-Signed-off-by: Simon Arlott <simon@fire.lp0.eu>
+Signed-off-by: Jiri Pirko <jpirko@redhat.com>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/atm/cxacru.c |    2 +-
+ Documentation/HOWTO |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/usb/atm/cxacru.c~cxacru-fix-printk-format-flag-in-error-message drivers/usb/atm/cxacru.c
---- a/drivers/usb/atm/cxacru.c~cxacru-fix-printk-format-flag-in-error-message
-+++ a/drivers/usb/atm/cxacru.c
-@@ -602,7 +602,7 @@ static int cxacru_cm_get_array(struct cx
- 			offd = le32_to_cpu(buf[offb++]);
- 			if (offd >= size) {
- 				if (printk_ratelimit())
--					usb_err(instance->usbatm, "wrong index #%x in response to cm #%x\n",
-+					usb_err(instance->usbatm, "wrong index %#x in response to cm %#x\n",
- 						offd, cm);
- 				ret = -EIO;
- 				goto cleanup;
+diff -puN Documentation/HOWTO~documentation-howto-correct-wrong-kernel-bugzilla-faq-url Documentation/HOWTO
+--- a/Documentation/HOWTO~documentation-howto-correct-wrong-kernel-bugzilla-faq-url
++++ a/Documentation/HOWTO
+@@ -377,7 +377,7 @@ Bug Reporting
+ bugzilla.kernel.org is where the Linux kernel developers track kernel
+ bugs.  Users are encouraged to report all bugs that they find in this
+ tool.  For details on how to use the kernel bugzilla, please see:
+-	http://test.kernel.org/bugzilla/faq.html
++	http://bugzilla.kernel.org/page.cgi?id=faq.html
+ 
+ The file REPORTING-BUGS in the main kernel source directory has a good
+ template for how to report a possible kernel bug, and details what kind
 _
 
-Patches currently in -mm which might be from simon@fire.lp0.eu are
+Patches currently in -mm which might be from jpirko@redhat.com are
 
-cxacru-fix-printk-format-flag-in-error-message.patch
+documentation-howto-correct-wrong-kernel-bugzilla-faq-url.patch
 
