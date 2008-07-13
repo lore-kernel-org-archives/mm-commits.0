@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vmstat-mlocked-pages-statistics-fix.patch added to -mm tree
-Date: Sat, 12 Jul 2008 18:43:33 -0700
-Message-ID: <200807130143.m6D1hXAS031094@imap1.linux-foundation.org>
+Subject: + relay-add-buffer-only-channels-useful-for-early-logging-fix.patch added to -mm tree
+Date: Sat, 12 Jul 2008 18:45:00 -0700
+Message-ID: <200807130145.m6D1j0cW031204@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52157 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58968 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752289AbYGMBnh (ORCPT
+	by vger.kernel.org with ESMTP id S1754848AbYGMBpP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 Jul 2008 21:43:37 -0400
+	Sat, 12 Jul 2008 21:45:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com
+Cc: kosaki.motohiro@jp.fujitsu.com, eduard.munteanu@linux360.ro, tzanussi@gmail.com
 
 
 The patch titled
-     vmstat-mlocked-pages-statistics fix
+     relay: fix build error
 has been added to the -mm tree.  Its filename is
-     vmstat-mlocked-pages-statistics-fix.patch
+     relay-add-buffer-only-channels-useful-for-early-logging-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,27 +34,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmstat-mlocked-pages-statistics fix
+Subject: relay: fix build error
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
+against: mmotm
+patchname: relay-add-buffer-only-channels-useful-for-early-logging-fix.patch
+applies after: relay-add-buffer-only-channels-useful-for-early-logging.patch
+
+recently, smp_call_function remove retry argument.
+it cause following build error on mmotm.
+
+	kernel/relay.c: In function ‘relay_late_setup_files’:
+	kernel/relay.c:754: error: too many arguments to function ‘smp_call_function_single’
+	make[1]: *** [kernel/relay.o] error 1
+
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Acked-by: Eduard - Gabriel Munteanu <eduard.munteanu@linux360.ro>
+Cc: Tom Zanussi <tzanussi@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/node.c |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/relay.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/base/node.c~vmstat-mlocked-pages-statistics-fix drivers/base/node.c
---- a/drivers/base/node.c~vmstat-mlocked-pages-statistics-fix
-+++ a/drivers/base/node.c
-@@ -105,6 +105,7 @@ static ssize_t node_read_meminfo(struct 
- 		       nid, K(node_page_state(nid, NR_INACTIVE_FILE)),
- #ifdef CONFIG_UNEVICTABLE_LRU
- 		       nid, K(node_page_state(nid, NR_UNEVICTABLE)),
-+		       nid, K(node_page_state(nid, NR_MLOCK)),
- #endif
- #ifdef CONFIG_HIGHMEM
- 		       nid, K(i.totalhigh),
+diff -puN kernel/relay.c~relay-add-buffer-only-channels-useful-for-early-logging-fix kernel/relay.c
+--- a/kernel/relay.c~relay-add-buffer-only-channels-useful-for-early-logging-fix
++++ a/kernel/relay.c
+@@ -751,7 +751,7 @@ int relay_late_setup_files(struct rchan 
+ 			/* relay_channels_mutex must be held, so wait. */
+ 			err = smp_call_function_single(i,
+ 						       __relay_set_buf_dentry,
+-						       &disp, 0, 1);
++						       &disp, 1);
+ 		}
+ 		if (unlikely(err))
+ 			break;
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
@@ -74,6 +88,7 @@ memcg-handle-swap-cache-fix-shmem-page-migration-incorrectness-on-memcgroup.patc
 memcg-clean-up-checking-of-the-disabled-flag.patch
 memcg-clean-up-checking-of-the-disabled-flag-memcg-further-checking-of-disabled-flag.patch
 per-task-delay-accounting-update-document-and-getdelaysc-for-memory-reclaim.patch
+relay-add-buffer-only-channels-useful-for-early-logging-fix.patch
 mm-speculative-page-references-fix-migration_entry_wait-for-speculative-page-cache.patch
 vmscan-use-an-indexed-array-for-lru-variables.patch
 swap-use-an-array-for-the-lru-pagevecs.patch
