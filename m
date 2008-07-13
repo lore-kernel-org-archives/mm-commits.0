@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + net-phy-fix-missing-exports-for-net-phy-mdio-bitbangc.patch added to -mm tree
-Date: Sat, 12 Jul 2008 23:17:34 -0700
-Message-ID: <200807130617.m6D6HYFv007562@imap1.linux-foundation.org>
+Subject: + drivers-input-touchscreen-ads7846c-optimize-order-of-calculating-rt-in-ads7846_rx.patch added to -mm tree
+Date: Sat, 12 Jul 2008 23:19:58 -0700
+Message-ID: <200807130619.m6D6Jw28007609@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47267 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40088 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752182AbYGMGRm (ORCPT
+	by vger.kernel.org with ESMTP id S1752232AbYGMGU0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 13 Jul 2008 02:17:42 -0400
+	Sun, 13 Jul 2008 02:20:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tiwai@suse.de
+Cc: hans-christian.egtvedt@atmel.com, dbrownell@users.sourceforge.net, dtor@mail.ru, imre.deak@solidboot.com, juha.yrjola@solidboot.com, semih.hazar@indefia.com
 
 
 The patch titled
-     net/phy: fix missing exports for net/phy/mdio-bitbang.c
+     drivers/input/touchscreen/ads7846.c: optimize order of calculating Rt in ads7846_rx()
 has been added to the -mm tree.  Its filename is
-     net-phy-fix-missing-exports-for-net-phy-mdio-bitbangc.patch
+     drivers-input-touchscreen-ads7846c-optimize-order-of-calculating-rt-in-ads7846_rx.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,47 +34,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: net/phy: fix missing exports for net/phy/mdio-bitbang.c
-From: Takashi Iwai <tiwai@suse.de>
+Subject: drivers/input/touchscreen/ads7846.c: optimize order of calculating Rt in ads7846_rx()
+From: Hans-Christian Egtvedt <hans-christian.egtvedt@atmel.com>
 
-{alloc,free}_mdio_bitbang() are not exported while they are used in
-mdio-ofgpio driver.
+Alter the if expression for calculating Rt.  The old implementation would
+run unnecessary code when the ADS7843 device was used.
 
-Signed-off-by: Takashi Iwai <tiwai@suse.de>
+The patch also fixes the code style to kernel standard.
+
+Signed-off-by: Hans-Christian Egtvedt <hans-christian.egtvedt@atmel.com>
+Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Imre Deak <imre.deak@solidboot.com>
+Cc: Semih Hazar <semih.hazar@indefia.com>
+Cc: Juha Yrjola <juha.yrjola@solidboot.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/phy/mdio-bitbang.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/input/touchscreen/ads7846.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/net/phy/mdio-bitbang.c~net-phy-fix-missing-exports-for-net-phy-mdio-bitbangc drivers/net/phy/mdio-bitbang.c
---- a/drivers/net/phy/mdio-bitbang.c~net-phy-fix-missing-exports-for-net-phy-mdio-bitbangc
-+++ a/drivers/net/phy/mdio-bitbang.c
-@@ -177,6 +177,7 @@ struct mii_bus *alloc_mdio_bitbang(struc
+diff -puN drivers/input/touchscreen/ads7846.c~drivers-input-touchscreen-ads7846c-optimize-order-of-calculating-rt-in-ads7846_rx drivers/input/touchscreen/ads7846.c
+--- a/drivers/input/touchscreen/ads7846.c~drivers-input-touchscreen-ads7846c-optimize-order-of-calculating-rt-in-ads7846_rx
++++ a/drivers/input/touchscreen/ads7846.c
+@@ -517,7 +517,9 @@ static void ads7846_rx(void *ads)
+ 	if (x == MAX_12BIT)
+ 		x = 0;
  
- 	return bus;
- }
-+EXPORT_SYMBOL(alloc_mdio_bitbang);
- 
- void free_mdio_bitbang(struct mii_bus *bus)
- {
-@@ -185,5 +186,6 @@ void free_mdio_bitbang(struct mii_bus *b
- 	module_put(ctrl->ops->owner);
- 	kfree(bus);
- }
-+EXPORT_SYMBOL(free_mdio_bitbang);
- 
- MODULE_LICENSE("GPL");
-_
-
-Patches currently in -mm which might be from tiwai@suse.de are
-
-origin.patch
-linux-next.patch
-alsa-correct-kcalloc-usage.patch
-net-phy-fix-missing-exports-for-net-phy-mdio-bitbangc.patch
-kernel-schedc-add-missing-attr-parameter.patch
-kcalloc-remove-runtime-division.patch
-pnp-set-the-pnp_card-dma_mask-for-use-by-isapnp-cards.patch
-isa-set-24-bit-dma_mask-for-isa-devices.patch
-
+-	if (likely(x && z1)) {
++	if (ts->model == 7843) {
++		Rt = ts->pressure_max / 2;
++	} else if (likely(x && z1)) {
+ 		/* compute touch pressure resistance using equation #2 */
+ 		Rt = z2;
+ 		Rt -= z1;
+@@ -525,11 +527,9 @@ static void ads7846_rx(void *ads)
+ 		Rt *= ts->x_plate_ohms;
+ 		Rt /= z1;
+ 		Rt = (Rt + 2047) >> 12;
+-	} else
++	} else {
+ 		Rt = 0;
