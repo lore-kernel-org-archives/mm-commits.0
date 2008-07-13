@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + devcgroup-always-show-positive-major-minor-num.patch added to -mm tree
-Date: Sat, 12 Jul 2008 22:52:20 -0700
-Message-ID: <200807130552.m6D5qKI2006699@imap1.linux-foundation.org>
+Subject: + devcgroup-fix-permission-check-when-adding-entry-to-child-cgroup.patch added to -mm tree
+Date: Sat, 12 Jul 2008 22:52:41 -0700
+Message-ID: <200807130552.m6D5qfW2006702@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42215 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50197 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751122AbYGMFws (ORCPT
+	by vger.kernel.org with ESMTP id S1751293AbYGMFxR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 13 Jul 2008 01:52:48 -0400
+	Sun, 13 Jul 2008 01:53:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: lizf@cn.fujitsu.com, menage@google.com, serue@us.ibm.com, xemul@openvz.org
 
 
 The patch titled
-     devcgroup: always show positive major/minor num
+     devcgroup: fix permission check when adding entry to child cgroup
 has been added to the -mm tree.  Its filename is
-     devcgroup-always-show-positive-major-minor-num.patch
+     devcgroup-fix-permission-check-when-adding-entry-to-child-cgroup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,15 +34,17 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: devcgroup: always show positive major/minor num
+Subject: devcgroup: fix permission check when adding entry to child cgroup
 From: Li Zefan <lizf@cn.fujitsu.com>
 
- # echo "b $((0x7fffffff)):$((0x80000000)) rwm" > devices.allow
  # cat devices.list
- b 214748364:-21474836 rwm
+ c 1:3 r
+ # echo 'c 1:3 w' > sub/devices.allow
+ # cat sub/devices.list
+ c 1:3 w
 
-though a major/minor number of 0x800000000 is meaningless, we
-should not cast it to a negative value.
+As illustrated, the parent group has no write permission to /dev/null, so
+it's child should not be allowed to add this write permission.
 
 Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
 Acked-by: Serge Hallyn <serue@us.ibm.com>
@@ -52,30 +54,21 @@ Cc: Pavel Emelyanov <xemul@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/device_cgroup.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ security/device_cgroup.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN security/device_cgroup.c~devcgroup-always-show-positive-major-minor-num security/device_cgroup.c
---- a/security/device_cgroup.c~devcgroup-always-show-positive-major-minor-num
+diff -puN security/device_cgroup.c~devcgroup-fix-permission-check-when-adding-entry-to-child-cgroup security/device_cgroup.c
+--- a/security/device_cgroup.c~devcgroup-fix-permission-check-when-adding-entry-to-child-cgroup
 +++ a/security/device_cgroup.c
-@@ -222,7 +222,7 @@ static void devcgroup_destroy(struct cgr
- #define DEVCG_DENY 2
- #define DEVCG_LIST 3
- 
--#define MAJMINLEN 10
-+#define MAJMINLEN 13
- #define ACCLEN 4
- 
- static void set_access(char *acc, short access)
-@@ -254,7 +254,7 @@ static void set_majmin(char *str, unsign
- 	if (m == ~0)
- 		sprintf(str, "*");
- 	else
--		snprintf(str, MAJMINLEN, "%d", m);
-+		snprintf(str, MAJMINLEN, "%u", m);
- }
- 
- static int devcgroup_seq_read(struct cgroup *cgroup, struct cftype *cft,
+@@ -300,7 +300,7 @@ static int may_access_whitelist(struct d
+ 			continue;
+ 		if (whitem->minor != ~0 && whitem->minor != refwh->minor)
+ 			continue;
+-		if (refwh->access & (~(whitem->access | ACC_MASK)))
++		if (refwh->access & (~whitem->access))
+ 			continue;
+ 		return 1;
+ 	}
 _
 
 Patches currently in -mm which might be from lizf@cn.fujitsu.com are
