@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + stallion-fix-the-istallion-drivers-putchar-and-break_ctl-ops.patch added to -mm tree
-Date: Sat, 12 Jul 2008 22:32:56 -0700
-Message-ID: <200807130532.m6D5WurL006081@imap1.linux-foundation.org>
+Subject: + sched-fix-inc_rt_tasks-to-not-declare-variable-rq-if-its-not-needed.patch added to -mm tree
+Date: Sat, 12 Jul 2008 22:34:29 -0700
+Message-ID: <200807130534.m6D5YTpd006121@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58834 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42995 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751072AbYGMFdZ (ORCPT
+	by vger.kernel.org with ESMTP id S1751173AbYGMFfJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 13 Jul 2008 01:33:25 -0400
+	Sun, 13 Jul 2008 01:35:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com, alan@lxorguk.ukuu.org.uk, jirislaby@gmail.com
+Cc: dhowells@redhat.com, ghaskins@novell.com, mingo@elte.hu
 
 
 The patch titled
-     stallion: fix the (i)Stallion driver's putchar() and break_ctl() ops
+     sched: fix inc_rt_tasks() to not declare variable 'rq' if it's not needed
 has been added to the -mm tree.  Its filename is
-     stallion-fix-the-istallion-drivers-putchar-and-break_ctl-ops.patch
+     sched-fix-inc_rt_tasks-to-not-declare-variable-rq-if-its-not-needed.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,120 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: stallion: fix the (i)Stallion driver's putchar() and break_ctl() ops
+Subject: sched: fix inc_rt_tasks() to not declare variable 'rq' if it's not needed
 From: David Howells <dhowells@redhat.com>
 
-Fix the Stallion driver's putchar() and break_ctl() ops and iStallion's
-putchar() to return values.
+Fix inc_rt_tasks() to not declare variable 'rq' if it's not needed.  It is
+declared if CONFIG_SMP or CONFIG_RT_GROUP_SCHED, but only used if
+CONFIG_SMP.
 
-Is it actually possible for putchar() or break_ctl() to be called with tty
-== NULL or can the check be discarded?
-
-Should stl_write() be returning 0 if tty->driver_data is NULL or tx.buf is
-NULL?  Is this even possible?
-
-I've made Stallion's functions return -EINVAL as stli_breakctl() if the checks
-fail.
+This is a consequence of patch 1f11eb6a8bc92536d9e93ead48fa3ffbd1478571
+plus patch 1100ac91b6af02d8639d518fad5b434b1bf44ed6.
 
 Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Jiri Slaby <jirislaby@gmail.com>
+Acked by: Gregory Haskins <ghaskins@novell.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/istallion.c |    5 +++--
- drivers/char/stallion.c  |   16 +++++++++-------
- 2 files changed, 12 insertions(+), 9 deletions(-)
+ kernel/sched_rt.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/char/istallion.c~stallion-fix-the-istallion-drivers-putchar-and-break_ctl-ops drivers/char/istallion.c
---- a/drivers/char/istallion.c~stallion-fix-the-istallion-drivers-putchar-and-break_ctl-ops
-+++ a/drivers/char/istallion.c
-@@ -598,7 +598,7 @@ static int	stli_parsebrd(struct stlconf 
- static int	stli_open(struct tty_struct *tty, struct file *filp);
- static void	stli_close(struct tty_struct *tty, struct file *filp);
- static int	stli_write(struct tty_struct *tty, const unsigned char *buf, int count);
--static void	stli_putchar(struct tty_struct *tty, unsigned char ch);
-+static int	stli_putchar(struct tty_struct *tty, unsigned char ch);
- static void	stli_flushchars(struct tty_struct *tty);
- static int	stli_writeroom(struct tty_struct *tty);
- static int	stli_charsinbuffer(struct tty_struct *tty);
-@@ -1333,7 +1333,7 @@ static int stli_write(struct tty_struct 
-  *	first them do the new ports.
-  */
+diff -puN kernel/sched_rt.c~sched-fix-inc_rt_tasks-to-not-declare-variable-rq-if-its-not-needed kernel/sched_rt.c
+--- a/kernel/sched_rt.c~sched-fix-inc_rt_tasks-to-not-declare-variable-rq-if-its-not-needed
++++ a/kernel/sched_rt.c
+@@ -505,7 +505,9 @@ void inc_rt_tasks(struct sched_rt_entity
+ 	rt_rq->rt_nr_running++;
+ #if defined CONFIG_SMP || defined CONFIG_RT_GROUP_SCHED
+ 	if (rt_se_prio(rt_se) < rt_rq->highest_prio) {
++#ifdef CONFIG_SMP
+ 		struct rq *rq = rq_of_rt_rq(rt_rq);
++#endif
  
--static void stli_putchar(struct tty_struct *tty, unsigned char ch)
-+static int stli_putchar(struct tty_struct *tty, unsigned char ch)
- {
- 	if (tty != stli_txcooktty) {
- 		if (stli_txcooktty != NULL)
-@@ -1342,6 +1342,7 @@ static void stli_putchar(struct tty_stru
- 	}
- 
- 	stli_txcookbuf[stli_txcooksize++] = ch;
-+	return 0;
- }
- 
- /*****************************************************************************/
-diff -puN drivers/char/stallion.c~stallion-fix-the-istallion-drivers-putchar-and-break_ctl-ops drivers/char/stallion.c
---- a/drivers/char/stallion.c~stallion-fix-the-istallion-drivers-putchar-and-break_ctl-ops
-+++ a/drivers/char/stallion.c
-@@ -1025,7 +1025,7 @@ static int stl_write(struct tty_struct *
- 
- /*****************************************************************************/
- 
--static void stl_putchar(struct tty_struct *tty, unsigned char ch)
-+static int stl_putchar(struct tty_struct *tty, unsigned char ch)
- {
- 	struct stlport	*portp;
- 	unsigned int	len;
-@@ -1034,12 +1034,12 @@ static void stl_putchar(struct tty_struc
- 	pr_debug("stl_putchar(tty=%p,ch=%x)\n", tty, ch);
- 
- 	if (tty == NULL)
--		return;
-+		return -EINVAL;
- 	portp = tty->driver_data;
- 	if (portp == NULL)
--		return;
-+		return -EINVAL;
- 	if (portp->tx.buf == NULL)
--		return;
-+		return -EINVAL;
- 
- 	head = portp->tx.head;
- 	tail = portp->tx.tail;
-@@ -1053,6 +1053,7 @@ static void stl_putchar(struct tty_struc
- 			head = portp->tx.buf;
- 	}	
- 	portp->tx.head = head;
-+	return 0;
- }
- 
- /*****************************************************************************/
-@@ -1459,19 +1460,20 @@ static void stl_hangup(struct tty_struct
- 
- /*****************************************************************************/
- 
--static void stl_breakctl(struct tty_struct *tty, int state)
-+static int stl_breakctl(struct tty_struct *tty, int state)
- {
- 	struct stlport	*portp;
- 
- 	pr_debug("stl_breakctl(tty=%p,state=%d)\n", tty, state);
- 
- 	if (tty == NULL)
--		return;
-+		return -EINVAL;
- 	portp = tty->driver_data;
- 	if (portp == NULL)
--		return;
-+		return -EINVAL;
- 
- 	stl_sendbreak(portp, ((state == -1) ? 1 : 2));
-+	return 0;
- }
- 
- /*****************************************************************************/
+ 		rt_rq->highest_prio = rt_se_prio(rt_se);
+ #ifdef CONFIG_SMP
 _
 
 Patches currently in -mm which might be from dhowells@redhat.com are
@@ -166,6 +84,7 @@ mtd-fix-const-assignment-in-the-command-line-partitioning-driver.patch
 atm-fix-const-assignment-discard-warnings-in-the-atm-networking-driver.patch
 atm-fix-direct-casts-of-pointers-to-u32-in-the-interphase-driver.patch
 hysdn-remove-the-packed-attribute-from-poftimstamp_tag.patch
+sched-fix-inc_rt_tasks-to-not-declare-variable-rq-if-its-not-needed.patch
 git-unionfs.patch
 xfs-fix-disabled-xfs-posix-acl-handling.patch
 clocksource-fix-a-print-format-error-in-the-acpi-pm-clocksource-driver-and-check-range.patch
