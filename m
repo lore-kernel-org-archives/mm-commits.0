@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + tsacct-fix-bacct_add_tsks-use-of-do_div.patch added to -mm tree
-Date: Sat, 12 Jul 2008 22:30:29 -0700
-Message-ID: <200807130530.m6D5UTwh006040@imap1.linux-foundation.org>
+Subject: + pm-fix-try_to_freeze_taskss-use-of-do_div.patch added to -mm tree
+Date: Sat, 12 Jul 2008 22:31:31 -0700
+Message-ID: <200807130531.m6D5VVMC006068@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39701 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54275 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750987AbYGMFbW (ORCPT
+	by vger.kernel.org with ESMTP id S1751072AbYGMFcH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 13 Jul 2008 01:31:22 -0400
+	Sun, 13 Jul 2008 01:32:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com, jlan@engr.sgi.com
+Cc: dhowells@redhat.com, pavel@ucw.cz, rjw@sisk.pl
 
 
 The patch titled
-     tsacct: fix bacct_add_tsk()'s use of do_div()
+     pm: fix try_to_freeze_tasks()'s use of do_div()
 has been added to the -mm tree.  Its filename is
-     tsacct-fix-bacct_add_tsks-use-of-do_div.patch
+     pm-fix-try_to_freeze_taskss-use-of-do_div.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +34,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tsacct: fix bacct_add_tsk()'s use of do_div()
+Subject: pm: fix try_to_freeze_tasks()'s use of do_div()
 From: David Howells <dhowells@redhat.com>
 
-Fix bacct_add_tsk()'s use of do_div() on an s64 by making ac_etime a u64
-instead and dividing that.
+Fix try_to_freeze_tasks()'s use of do_div() on an s64 by making
+elapsed_csecs64 a u64 instead and dividing that.
 
 Possibly this should be guarded lest the interval calculation turn up
 negative, but the possible negativity of the result of the division is
-cast away, and it shouldn't end up negative anyway.
+cast away anyway.
 
-This was introduced by patch f3cef7a99469afc159fec3a61b42dc7ca5b6824f.
+This was introduced by patch 438e2ce68dfd4af4cfcec2f873564fb921db4bb5.
 
 Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: Jay Lan <jlan@engr.sgi.com>
+Acked-by: "Rafael J. Wysocki" <rjw@sisk.pl>
+Acked-by: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/tsacct.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/power/process.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/tsacct.c~tsacct-fix-bacct_add_tsks-use-of-do_div kernel/tsacct.c
---- a/kernel/tsacct.c~tsacct-fix-bacct_add_tsks-use-of-do_div
-+++ a/kernel/tsacct.c
-@@ -28,14 +28,14 @@
- void bacct_add_tsk(struct taskstats *stats, struct task_struct *tsk)
- {
- 	struct timespec uptime, ts;
--	s64 ac_etime;
-+	u64 ac_etime;
+diff -puN kernel/power/process.c~pm-fix-try_to_freeze_taskss-use-of-do_div kernel/power/process.c
+--- a/kernel/power/process.c~pm-fix-try_to_freeze_taskss-use-of-do_div
++++ a/kernel/power/process.c
+@@ -149,7 +149,7 @@ static int try_to_freeze_tasks(bool sig_
+ 	unsigned long end_time;
+ 	unsigned int todo;
+ 	struct timeval start, end;
+-	s64 elapsed_csecs64;
++	u64 elapsed_csecs64;
+ 	unsigned int elapsed_csecs;
  
- 	BUILD_BUG_ON(TS_COMM_LEN < TASK_COMM_LEN);
- 
- 	/* calculate task elapsed time in timespec */
- 	do_posix_clock_monotonic_gettime(&uptime);
- 	ts = timespec_sub(uptime, tsk->start_time);
--	/* rebase elapsed time to usec */
-+	/* rebase elapsed time to usec (should never be negative) */
- 	ac_etime = timespec_to_ns(&ts);
- 	do_div(ac_etime, NSEC_PER_USEC);
- 	stats->ac_etime = ac_etime;
+ 	do_gettimeofday(&start);
 _
 
 Patches currently in -mm which might be from dhowells@redhat.com are
@@ -96,6 +89,7 @@ git-unionfs.patch
 xfs-fix-disabled-xfs-posix-acl-handling.patch
 clocksource-fix-a-print-format-error-in-the-acpi-pm-clocksource-driver-and-check-range.patch
 x86-pci-fix-pci_subsys_init-to-have-a-return-value.patch
+pm-fix-try_to_freeze_taskss-use-of-do_div.patch
 mn10300-move-sg_dma_addresslen-to-asm-scatterlisth.patch
 inflate-refactor-inflate-malloc-code.patch
 inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
