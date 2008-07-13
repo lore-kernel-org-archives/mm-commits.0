@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + relay-add-buffer-only-channels-useful-for-early-logging-fix.patch added to -mm tree
-Date: Sat, 12 Jul 2008 18:45:00 -0700
-Message-ID: <200807130145.m6D1j0cW031204@imap1.linux-foundation.org>
+Subject: + full-conversion-to-early_initcall-interface-remove-old-interface-fix-fix.patch added to -mm tree
+Date: Sat, 12 Jul 2008 18:45:50 -0700
+Message-ID: <200807130145.m6D1jofO031238@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58968 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59793 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754848AbYGMBpP (ORCPT
+	by vger.kernel.org with ESMTP id S1752735AbYGMBq7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 Jul 2008 21:45:15 -0400
+	Sat, 12 Jul 2008 21:46:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, eduard.munteanu@linux360.ro, tzanussi@gmail.com
+Cc: kosaki.motohiro@jp.fujitsu.com, eduard.munteanu@linux360.ro, jens.axboe@oracle.com, tzanussi@gmail.com
 
 
 The patch titled
-     relay: fix build error
+     smp.c: fix build error
 has been added to the -mm tree.  Its filename is
-     relay-add-buffer-only-channels-useful-for-early-logging-fix.patch
+     full-conversion-to-early_initcall-interface-remove-old-interface-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,52 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: relay: fix build error
+Subject: smp.c: fix build error
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-against: mmotm
-patchname: relay-add-buffer-only-channels-useful-for-early-logging-fix.patch
-applies after: relay-add-buffer-only-channels-useful-for-early-logging.patch
+Against: mmotm
+Patch name: full-conversion-to-early_initcall-interface-remove-old-interface-fix-fix.patch
+Applies after: full-conversion-to-early_initcall-interface-remove-old-interface-fix.patch
 
-recently, smp_call_function remove retry argument.
-it cause following build error on mmotm.
+--------------------------------
 
-	kernel/relay.c: In function ‘relay_late_setup_files’:
-	kernel/relay.c:754: error: too many arguments to function ‘smp_call_function_single’
-	make[1]: *** [kernel/relay.o] error 1
+Now, init_call_single_data() is static function.
+then redundant declaration cause build error as below.
+
+     kernel/smp.c:36: error: static declaration of ‘init_call_single_data’ follows non-static declaration
+     include/linux/smp.h:77: error: previous declaration of ‘init_call_single_data’ was here
+     kernel/smp.c:47: warning: initialization from incompatible pointer type
+     make[1]: *** [kernel/smp.o] error 1
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Acked-by: Eduard - Gabriel Munteanu <eduard.munteanu@linux360.ro>
 Cc: Tom Zanussi <tzanussi@gmail.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/relay.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/smp.h |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN kernel/relay.c~relay-add-buffer-only-channels-useful-for-early-logging-fix kernel/relay.c
---- a/kernel/relay.c~relay-add-buffer-only-channels-useful-for-early-logging-fix
-+++ a/kernel/relay.c
-@@ -751,7 +751,7 @@ int relay_late_setup_files(struct rchan 
- 			/* relay_channels_mutex must be held, so wait. */
- 			err = smp_call_function_single(i,
- 						       __relay_set_buf_dentry,
--						       &disp, 0, 1);
-+						       &disp, 1);
- 		}
- 		if (unlikely(err))
- 			break;
+diff -puN include/linux/smp.h~full-conversion-to-early_initcall-interface-remove-old-interface-fix-fix include/linux/smp.h
+--- a/include/linux/smp.h~full-conversion-to-early_initcall-interface-remove-old-interface-fix-fix
++++ a/include/linux/smp.h
+@@ -74,15 +74,10 @@ void __smp_call_function_single(int cpui
+ #ifdef CONFIG_USE_GENERIC_SMP_HELPERS
+ void generic_smp_call_function_single_interrupt(void);
+ void generic_smp_call_function_interrupt(void);
+-void init_call_single_data(void);
+ void ipi_call_lock(void);
+ void ipi_call_unlock(void);
+ void ipi_call_lock_irq(void);
+ void ipi_call_unlock_irq(void);
+-#else
+-static inline void init_call_single_data(void)
+-{
+-}
+ #endif
+ 
+ /*
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
@@ -88,6 +99,7 @@ memcg-handle-swap-cache-fix-shmem-page-migration-incorrectness-on-memcgroup.patc
 memcg-clean-up-checking-of-the-disabled-flag.patch
 memcg-clean-up-checking-of-the-disabled-flag-memcg-further-checking-of-disabled-flag.patch
 per-task-delay-accounting-update-document-and-getdelaysc-for-memory-reclaim.patch
+full-conversion-to-early_initcall-interface-remove-old-interface-fix-fix.patch
 relay-add-buffer-only-channels-useful-for-early-logging-fix.patch
 mm-speculative-page-references-fix-migration_entry_wait-for-speculative-page-cache.patch
 vmscan-use-an-indexed-array-for-lru-variables.patch
