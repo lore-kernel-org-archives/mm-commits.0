@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ahci-use-correct-type-for-cpu-flags.patch added to -mm tree
-Date: Mon, 14 Jul 2008 16:01:47 -0700
-Message-ID: <200807142301.m6EN1lgu032080@imap1.linux-foundation.org>
+Subject: + full-conversion-to-early_initcall-interface-remove-old-interface-fix-fix-fix.patch added to -mm tree
+Date: Mon, 14 Jul 2008 16:47:04 -0700
+Message-ID: <200807142347.m6ENl4Bc001240@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44485 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36059 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758691AbYGNXCZ (ORCPT
+	by vger.kernel.org with ESMTP id S932182AbYGNXri (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Jul 2008 19:02:25 -0400
+	Mon, 14 Jul 2008 19:47:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, hugh@veritas.com, jgarzik@redhat.com, kristen.c.accardi@intel.com
+Cc: kosaki.motohiro@jp.fujitsu.com, eduard.munteanu@linux360.ro, hugh@veritas.com, jens.axboe@oracle.com, tzanussi@gmail.com
 
 
 The patch titled
-     ahci: use correct type for CPU flags
+     init_call_single_data makes int
 has been added to the -mm tree.  Its filename is
-     ahci-use-correct-type-for-cpu-flags.patch
+     full-conversion-to-early_initcall-interface-remove-old-interface-fix-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,37 +34,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ahci: use correct type for CPU flags
+Subject: init_call_single_data makes int
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-spin_lock_irqsave() required unsigned long.
+Patch title: full-conversion-to-early_initcall-interface-remove-old-interface-fix-fix-fix.patch
+Against: mmotm Jul 14
+Applies after: full-conversion-to-early_initcall-interface-remove-old-interface-fix-fix.patch
 
-  drivers/ata/ahci.c: In function 'ahci_transmit_led_message':
-  drivers/ata/ahci.c:1287: warning: comparison of distinct pointer types lacks a cast
-  drivers/ata/ahci.c:1295: warning: comparison of distinct pointer types lacks a cast
-  drivers/ata/ahci.c:1320: warning: comparison of distinct pointer types lacks a cast
+Now, init_call_single_data is early init function.
+then, its return type should be int.
+
+   kernel/smp.c:47: warning: initialization from incompatible pointer type
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Cc: Jeff Garzik <jgarzik@redhat.com>
+Cc: Eduard - Gabriel Munteanu <eduard.munteanu@linux360.ro>
+Cc: Tom Zanussi <tzanussi@gmail.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/ahci.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/smp.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/ata/ahci.c~ahci-use-correct-type-for-cpu-flags drivers/ata/ahci.c
---- a/drivers/ata/ahci.c~ahci-use-correct-type-for-cpu-flags
-+++ a/drivers/ata/ahci.c
-@@ -1273,7 +1273,7 @@ static ssize_t ahci_transmit_led_message
- 	void __iomem *mmio = ap->host->iomap[AHCI_PCI_BAR];
- 	u32 em_ctl;
- 	u32 message[] = {0, 0};
--	unsigned int flags;
-+	unsigned long flags;
- 	int pmp;
- 	struct ahci_em_priv *emp;
+diff -puN kernel/smp.c~full-conversion-to-early_initcall-interface-remove-old-interface-fix-fix-fix kernel/smp.c
+--- a/kernel/smp.c~full-conversion-to-early_initcall-interface-remove-old-interface-fix-fix-fix
++++ a/kernel/smp.c
+@@ -33,7 +33,7 @@ struct call_single_queue {
+ 	spinlock_t lock;
+ };
+ 
+-static void __cpuinit init_call_single_data(void)
++static int __cpuinit init_call_single_data(void)
+ {
+ 	int i;
+ 
+@@ -43,6 +43,7 @@ static void __cpuinit init_call_single_d
+ 		spin_lock_init(&q->lock);
+ 		INIT_LIST_HEAD(&q->list);
+ 	}
++	return 0;
+ }
+ early_initcall(init_call_single_data);
  
 _
 
@@ -90,6 +101,7 @@ memcg-clean-up-checking-of-the-disabled-flag.patch
 memcg-clean-up-checking-of-the-disabled-flag-memcg-further-checking-of-disabled-flag.patch
 per-task-delay-accounting-update-document-and-getdelaysc-for-memory-reclaim.patch
 full-conversion-to-early_initcall-interface-remove-old-interface-fix-fix.patch
+full-conversion-to-early_initcall-interface-remove-old-interface-fix-fix-fix.patch
 relay-add-buffer-only-channels-useful-for-early-logging-fix.patch
 mm-speculative-page-references-fix-migration_entry_wait-for-speculative-page-cache.patch
 vmscan-use-an-indexed-array-for-lru-variables.patch
