@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + unevictable-lru-infrastructure-revert-migration-change-of-unevictable-lru-infrastructure.patch added to -mm tree
-Date: Mon, 14 Jul 2008 14:34:18 -0700
-Message-ID: <200807142134.m6ELYImk028634@imap1.linux-foundation.org>
+Subject: + shm_locked-pages-are-unevictable-revert-shm-change-of-shm_locked-pages-are-unevictable-patch.patch added to -mm tree
+Date: Mon, 14 Jul 2008 14:34:22 -0700
+Message-ID: <200807142134.m6ELYMwN028637@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33327 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54253 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756584AbYGNVer (ORCPT
+	by vger.kernel.org with ESMTP id S1756584AbYGNVew (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Jul 2008 17:34:47 -0400
+	Mon, 14 Jul 2008 17:34:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, riel@redhat.com
 
 
 The patch titled
-     unevictable-lru-infrastructure: revert migration change of unevictable lru infrastructure
+     shm_locked-pages-are-unevictable: revert shm change of shm_locked pages are unevictable patch
 has been added to the -mm tree.  Its filename is
-     unevictable-lru-infrastructure-revert-migration-change-of-unevictable-lru-infrastructure.patch
+     shm_locked-pages-are-unevictable-revert-shm-change-of-shm_locked-pages-are-unevictable-patch.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,14 +34,17 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: unevictable-lru-infrastructure: revert migration change of unevictable lru infrastructure
+Subject: shm_locked-pages-are-unevictable: revert shm change of shm_locked pages are unevictable patch
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Unevictable LRU Infrastructure patch changed several migration code
-because Old version putback_lru_page() had needed to page lock.
+shm_locked-pages-are-unevictable.patch changed several shmem code because
+that putback_lru_page() had needed page lock.
 
-It has little performance regression and isn't necessary now.  So,
+It has little performance degression and isn't necessary now.  So,
 reverting is better.
+
+Fixup to handle changes to putback_lru_page() change.  Add retry to loop
+check_move_unevictable_page().
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
@@ -49,112 +52,163 @@ Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |   38 +++++++++++---------------------------
- 1 file changed, 11 insertions(+), 27 deletions(-)
+ include/linux/mm.h |    9 ++++-----
+ ipc/shm.c          |   16 ++--------------
+ mm/shmem.c         |   10 +++++-----
+ mm/vmscan.c        |   19 +++++--------------
+ 4 files changed, 16 insertions(+), 38 deletions(-)
 
-diff -puN mm/migrate.c~unevictable-lru-infrastructure-revert-migration-change-of-unevictable-lru-infrastructure mm/migrate.c
---- a/mm/migrate.c~unevictable-lru-infrastructure-revert-migration-change-of-unevictable-lru-infrastructure
-+++ a/mm/migrate.c
-@@ -67,11 +67,7 @@ int putback_lru_pages(struct list_head *
+diff -puN include/linux/mm.h~shm_locked-pages-are-unevictable-revert-shm-change-of-shm_locked-pages-are-unevictable-patch include/linux/mm.h
+--- a/include/linux/mm.h~shm_locked-pages-are-unevictable-revert-shm-change-of-shm_locked-pages-are-unevictable-patch
++++ a/include/linux/mm.h
+@@ -705,13 +705,12 @@ static inline int page_mapped(struct pag
+ extern void show_free_areas(void);
  
- 	list_for_each_entry_safe(page, page2, l, lru) {
- 		list_del(&page->lru);
--		get_page(page);
--		lock_page(page);
- 		putback_lru_page(page);
--		unlock_page(page);
--		put_page(page);
- 		count++;
- 	}
- 	return count;
-@@ -581,8 +577,6 @@ static int move_to_new_page(struct page 
- 	struct address_space *mapping;
- 	int rc;
- 
--	get_page(newpage); /* for prevent page release under lock_page() */
--
- 	/*
- 	 * Block others from accessing the page when we get around to
- 	 * establishing additional references. We are the only one
-@@ -615,12 +609,10 @@ static int move_to_new_page(struct page 
- 
- 	if (!rc) {
- 		remove_migration_ptes(page, newpage);
--		putback_lru_page(newpage);
- 	} else
- 		newpage->mapping = NULL;
- 
- 	unlock_page(newpage);
--	put_page(newpage);
- 
- 	return rc;
+ #ifdef CONFIG_SHMEM
+-extern struct address_space *shmem_lock(struct file *file, int lock,
+-					struct user_struct *user);
++extern int shmem_lock(struct file *file, int lock, struct user_struct *user);
+ #else
+-static inline struct address_space *shmem_lock(struct file *file, int lock,
+-					struct user_struct *user)
++static inline int shmem_lock(struct file *file, int lock,
++			    struct user_struct *user)
+ {
+-	return NULL;
++	return 0;
  }
-@@ -643,16 +635,13 @@ static int unmap_and_move(new_page_t get
+ #endif
+ struct file *shmem_file_setup(char *name, loff_t size, unsigned long flags);
+diff -puN ipc/shm.c~shm_locked-pages-are-unevictable-revert-shm-change-of-shm_locked-pages-are-unevictable-patch ipc/shm.c
+--- a/ipc/shm.c~shm_locked-pages-are-unevictable-revert-shm-change-of-shm_locked-pages-are-unevictable-patch
++++ a/ipc/shm.c
+@@ -737,7 +737,6 @@ asmlinkage long sys_shmctl(int shmid, in
+ 	case SHM_LOCK:
+ 	case SHM_UNLOCK:
+ 	{
+-		struct address_space *mapping = NULL;
+ 		struct file *uninitialized_var(shm_file);
  
- 	if (page_count(page) == 1) {
- 		/* page was freed from under us. So we are done. */
--		get_page(page);
--		goto end_migration;
-+		goto move_newpage;
+ 		lru_add_drain_all();  /* drain pagevecs to lru lists */
+@@ -769,29 +768,18 @@ asmlinkage long sys_shmctl(int shmid, in
+ 		if(cmd==SHM_LOCK) {
+ 			struct user_struct * user = current->user;
+ 			if (!is_file_hugepages(shp->shm_file)) {
+-				mapping = shmem_lock(shp->shm_file, 1, user);
+-				if (IS_ERR(mapping))
+-					err = PTR_ERR(mapping);
+-				mapping = NULL;
++				err = shmem_lock(shp->shm_file, 1, user);
+ 				if (!err && !(shp->shm_perm.mode & SHM_LOCKED)){
+ 					shp->shm_perm.mode |= SHM_LOCKED;
+ 					shp->mlock_user = user;
+ 				}
+ 			}
+ 		} else if (!is_file_hugepages(shp->shm_file)) {
+-			mapping = shmem_lock(shp->shm_file, 0, shp->mlock_user);
++			shmem_lock(shp->shm_file, 0, shp->mlock_user);
+ 			shp->shm_perm.mode &= ~SHM_LOCKED;
+ 			shp->mlock_user = NULL;
+-			if (mapping) {
+-				shm_file = shp->shm_file;
+-				get_file(shm_file);	/* hold across unlock */
+-			}
+ 		}
+ 		shm_unlock(shp);
+-		if (mapping) {
+-			scan_mapping_unevictable_pages(mapping);
+-			fput(shm_file);
+-		}
+ 		goto out;
  	}
+ 	case IPC_RMID:
+diff -puN mm/shmem.c~shm_locked-pages-are-unevictable-revert-shm-change-of-shm_locked-pages-are-unevictable-patch mm/shmem.c
+--- a/mm/shmem.c~shm_locked-pages-are-unevictable-revert-shm-change-of-shm_locked-pages-are-unevictable-patch
++++ a/mm/shmem.c
+@@ -1468,12 +1468,11 @@ static struct mempolicy *shmem_get_polic
+ }
+ #endif
  
--	get_page(page);
--
- 	charge = mem_cgroup_prepare_migration(page, newpage);
- 	if (charge == -ENOMEM) {
- 		rc = -ENOMEM;
--		goto end_migration;
-+		goto move_newpage;
+-struct address_space *shmem_lock(struct file *file, int lock,
+-				 struct user_struct *user)
++int shmem_lock(struct file *file, int lock, struct user_struct *user)
+ {
+ 	struct inode *inode = file->f_path.dentry->d_inode;
+ 	struct shmem_inode_info *info = SHMEM_I(inode);
+-	struct address_space *retval = ERR_PTR(-ENOMEM);
++	int retval = -ENOMEM;
+ 
+ 	spin_lock(&info->lock);
+ 	if (lock && !(info->flags & VM_LOCKED)) {
+@@ -1481,14 +1480,15 @@ struct address_space *shmem_lock(struct 
+ 			goto out_nomem;
+ 		info->flags |= VM_LOCKED;
+ 		mapping_set_unevictable(file->f_mapping);
+-		retval = NULL;
  	}
- 	/* prepare cgroup just returns 0 or -ENOMEM */
- 	BUG_ON(charge);
-@@ -660,7 +649,7 @@ static int unmap_and_move(new_page_t get
- 	rc = -EAGAIN;
- 	if (TestSetPageLocked(page)) {
- 		if (!force)
--			goto end_migration;
-+			goto move_newpage;
- 		lock_page(page);
+ 	if (!lock && (info->flags & VM_LOCKED) && user) {
+ 		user_shm_unlock(inode->i_size, user);
+ 		info->flags &= ~VM_LOCKED;
+ 		mapping_clear_unevictable(file->f_mapping);
+-		retval = file->f_mapping;
++		scan_mapping_unevictable_pages(file->f_mapping);
  	}
- 
-@@ -721,6 +710,7 @@ rcu_unlock:
- 		rcu_read_unlock();
- 
- unlock:
-+	unlock_page(page);
- 
- 	if (rc != -EAGAIN) {
-  		/*
-@@ -733,22 +723,16 @@ unlock:
- 		putback_lru_page(page);
- 	}
- 
--	unlock_page(page);
--
--end_migration:
--	put_page(page);
--
-+move_newpage:
- 	if (!charge)
- 		mem_cgroup_end_migration(newpage);
- 
--	if (!newpage->mapping) {
--		/*
--		 * Migration failed or was never attempted.
--		 * Free the newpage.
--		 */
--		VM_BUG_ON(page_count(newpage) != 1);
--		put_page(newpage);
--	}
-+	/*
-+	 * Move the new page to the LRU. If migration was not successful
-+	 * then this will free the page.
-+	 */
-+	putback_lru_page(newpage);
++	retval = 0;
 +
- 	if (result) {
- 		if (rc)
- 			*result = rc;
+ out_nomem:
+ 	spin_unlock(&info->lock);
+ 	return retval;
+diff -puN mm/vmscan.c~shm_locked-pages-are-unevictable-revert-shm-change-of-shm_locked-pages-are-unevictable-patch mm/vmscan.c
+--- a/mm/vmscan.c~shm_locked-pages-are-unevictable-revert-shm-change-of-shm_locked-pages-are-unevictable-patch
++++ a/mm/vmscan.c
+@@ -2391,8 +2391,10 @@ int page_evictable(struct page *page, st
+  */
+ static void check_move_unevictable_page(struct page *page, struct zone *zone)
+ {
++	VM_BUG_ON(PageActive(page));
+ 
+-	ClearPageUnevictable(page); /* for page_evictable() */
++retry:
++	ClearPageUnevictable(page);
+ 	if (page_evictable(page, NULL)) {
+ 		enum lru_list l = LRU_INACTIVE_ANON + page_is_file_cache(page);
+ 		__dec_zone_state(zone, NR_UNEVICTABLE);
+@@ -2404,6 +2406,8 @@ static void check_move_unevictable_page(
+ 		 */
+ 		SetPageUnevictable(page);
+ 		list_move(&page->lru, &zone->lru[LRU_UNEVICTABLE].list);
++		if (page_evictable(page, NULL))
++			goto retry;
+ 	}
+ }
+ 
+@@ -2441,16 +2445,6 @@ void scan_mapping_unevictable_pages(stru
+ 				next = page_index;
+ 			next++;
+ 
+-			if (TestSetPageLocked(page)) {
+-				/*
+-				 * OK, let's do it the hard way...
+-				 */
+-				if (zone)
+-					spin_unlock_irq(&zone->lru_lock);
+-				zone = NULL;
+-				lock_page(page);
+-			}
+-
+ 			if (pagezone != zone) {
+ 				if (zone)
+ 					spin_unlock_irq(&zone->lru_lock);
+@@ -2460,9 +2454,6 @@ void scan_mapping_unevictable_pages(stru
+ 
+ 			if (PageLRU(page) && PageUnevictable(page))
+ 				check_move_unevictable_page(page, zone);
+-
+-			unlock_page(page);
+-
+ 		}
+ 		if (zone)
+ 			spin_unlock_irq(&zone->lru_lock);
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
