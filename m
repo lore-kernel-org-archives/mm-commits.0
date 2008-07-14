@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + spi-add-spi-over-gpio-driver.patch added to -mm tree
-Date: Mon, 14 Jul 2008 13:54:51 -0700
-Message-ID: <200807142054.m6EKsq0g027051@imap1.linux-foundation.org>
+Subject: + unevictable-lru-infrastructure-putback_lru_page-unevictable-page-handling-rework.patch added to -mm tree
+Date: Mon, 14 Jul 2008 14:34:14 -0700
+Message-ID: <200807142134.m6ELYF7t028628@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46043 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47538 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757606AbYGNUzl (ORCPT
+	by vger.kernel.org with ESMTP id S1756456AbYGNVe0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Jul 2008 16:55:41 -0400
+	Mon, 14 Jul 2008 17:34:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mb@bu3sch.de, david-b@pacbell.net, drzeus-mmc@drzeus.cx, piotr.skamruk@gmail.com
+Cc: kosaki.motohiro@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, lee.schermerhorn@hp.com
 
 
 The patch titled
-     spi: add SPI over GPIO driver
+     unevictable-lru-infrastructure: putback_lru_page()/unevictable page handling rework
 has been added to the -mm tree.  Its filename is
-     spi-add-spi-over-gpio-driver.patch
+     unevictable-lru-infrastructure-putback_lru_page-unevictable-page-handling-rework.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,373 +34,332 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spi: add SPI over GPIO driver
-From: Michael Buesch <mb@bu3sch.de>
+Subject: unevictable-lru-infrastructure: putback_lru_page()/unevictable page handling rework
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-This adds a driver that lets you drive an SPI bus over
-generic GPIO pins.
+Now, putback_lru_page() requires that the page is locked.  And in some
+special case, implicitly unlock it.
 
-Signed-off-by: Michael Buesch <mb@bu3sch.de>
-Cc: Piot Skamruk <piotr.skamruk@gmail.com>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Pierre Ossman <drzeus-mmc@drzeus.cx>
+This patch tries to make putback_lru_pages() to be lock_page() free.  (Of
+course, some callers must take the lock.)
+
+The main reason that putback_lru_page() assumes that page is locked is to
+avoid the change in page's status among Mlocked/Not-Mlocked.
+
+Once it is added to unevictable list, the page is removed from unevictable
+list only when page is munlocked.  (there are other special case.  but we
+ignore the special case.) So, status change during putback_lru_page() is
+fatal and page should be locked.
+
+putback_lru_page() in this patch has a new concepts.  When it adds page to
+unevictable list, it checks the status is changed or not again.  if
+changed, retry to putback.
+
+This patche doesn't remove caller's lock_page.  latter patches do it.
+
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/Kconfig          |   13 +
- drivers/spi/Makefile         |    1 
- drivers/spi/spi_gpio.c       |  242 +++++++++++++++++++++++++++++++++
- include/linux/spi/spi_gpio.h |   53 +++++++
- 4 files changed, 309 insertions(+)
+ mm/internal.h |    2 -
+ mm/migrate.c  |   33 ++++++++++++----------
+ mm/vmscan.c   |   69 +++++++++++++++++++++++++++++++-----------------
+ 3 files changed, 64 insertions(+), 40 deletions(-)
 
-diff -puN drivers/spi/Kconfig~spi-add-spi-over-gpio-driver drivers/spi/Kconfig
---- a/drivers/spi/Kconfig~spi-add-spi-over-gpio-driver
-+++ a/drivers/spi/Kconfig
-@@ -100,6 +100,19 @@ config SPI_BUTTERFLY
- 	  inexpensive battery powered microcontroller evaluation board.
- 	  This same cable can be used to flash new firmware.
+diff -puN mm/internal.h~unevictable-lru-infrastructure-putback_lru_page-unevictable-page-handling-rework mm/internal.h
+--- a/mm/internal.h~unevictable-lru-infrastructure-putback_lru_page-unevictable-page-handling-rework
++++ a/mm/internal.h
+@@ -43,7 +43,7 @@ static inline void __put_page(struct pag
+  * in mm/vmscan.c:
+  */
+ extern int isolate_lru_page(struct page *page);
+-extern int putback_lru_page(struct page *page);
++extern void putback_lru_page(struct page *page);
  
-+config SPI_GPIO
-+	tristate "GPIO API based bitbanging SPI controller"
-+	depends on SPI_MASTER && GENERIC_GPIO
-+	select SPI_BITBANG
-+	help
-+	  This is a platform driver that can be used for bitbanging
-+	  an SPI bus over GPIO pins.
-+	  Select this, if you have any SPI device that is connected via
-+	  GPIO pins.
-+	  The module will be called spi_gpio.
+ /*
+  * in mm/page_alloc.c
+diff -puN mm/migrate.c~unevictable-lru-infrastructure-putback_lru_page-unevictable-page-handling-rework mm/migrate.c
+--- a/mm/migrate.c~unevictable-lru-infrastructure-putback_lru_page-unevictable-page-handling-rework
++++ a/mm/migrate.c
+@@ -67,9 +67,11 @@ int putback_lru_pages(struct list_head *
+ 
+ 	list_for_each_entry_safe(page, page2, l, lru) {
+ 		list_del(&page->lru);
++		get_page(page);
+ 		lock_page(page);
+-		if (putback_lru_page(page))
+-			unlock_page(page);
++		putback_lru_page(page);
++		unlock_page(page);
++		put_page(page);
+ 		count++;
+ 	}
+ 	return count;
+@@ -577,9 +579,10 @@ static int fallback_migrate_page(struct 
+ static int move_to_new_page(struct page *newpage, struct page *page)
+ {
+ 	struct address_space *mapping;
+-	int unlock = 1;
+ 	int rc;
+ 
++	get_page(newpage); /* for prevent page release under lock_page() */
 +
-+	  If unsure, say N.
+ 	/*
+ 	 * Block others from accessing the page when we get around to
+ 	 * establishing additional references. We are the only one
+@@ -612,16 +615,12 @@ static int move_to_new_page(struct page 
+ 
+ 	if (!rc) {
+ 		remove_migration_ptes(page, newpage);
+-		/*
+-		 * Put back on LRU while holding page locked to
+-		 * handle potential race with, e.g., munlock()
+-		 */
+-		unlock = putback_lru_page(newpage);
++		putback_lru_page(newpage);
+ 	} else
+ 		newpage->mapping = NULL;
+ 
+-	if (unlock)
+-		unlock_page(newpage);
++	unlock_page(newpage);
++	put_page(newpage);
+ 
+ 	return rc;
+ }
+@@ -638,14 +637,17 @@ static int unmap_and_move(new_page_t get
+ 	struct page *newpage = get_new_page(page, private, &result);
+ 	int rcu_locked = 0;
+ 	int charge = 0;
+-	int unlock = 1;
+ 
+ 	if (!newpage)
+ 		return -ENOMEM;
+ 
+-	if (page_count(page) == 1)
++	if (page_count(page) == 1) {
+ 		/* page was freed from under us. So we are done. */
++		get_page(page);
+ 		goto end_migration;
++	}
 +
- config SPI_IMX
- 	tristate "Freescale iMX SPI controller"
- 	depends on ARCH_IMX && EXPERIMENTAL
-diff -puN drivers/spi/Makefile~spi-add-spi-over-gpio-driver drivers/spi/Makefile
---- a/drivers/spi/Makefile~spi-add-spi-over-gpio-driver
-+++ a/drivers/spi/Makefile
-@@ -16,6 +16,7 @@ obj-$(CONFIG_SPI_BFIN)			+= spi_bfin5xx.
- obj-$(CONFIG_SPI_BITBANG)		+= spi_bitbang.o
- obj-$(CONFIG_SPI_AU1550)		+= au1550_spi.o
- obj-$(CONFIG_SPI_BUTTERFLY)		+= spi_butterfly.o
-+obj-$(CONFIG_SPI_GPIO)			+= spi_gpio.o
- obj-$(CONFIG_SPI_IMX)			+= spi_imx.o
- obj-$(CONFIG_SPI_LM70_LLP)		+= spi_lm70llp.o
- obj-$(CONFIG_SPI_PXA2XX)		+= pxa2xx_spi.o
-diff -puN /dev/null drivers/spi/spi_gpio.c
---- /dev/null
-+++ a/drivers/spi/spi_gpio.c
-@@ -0,0 +1,242 @@
-+/*
-+ * Bitbanging SPI bus driver using GPIO API
-+ *
-+ * Copyright (c) 2008 Piotr Skamruk
-+ * Copyright (c) 2008 Michael Buesch
-+ *
-+ * based on spi_s3c2410_gpio.c
-+ *   Copyright (c) 2006 Ben Dooks
-+ *   Copyright (c) 2006 Simtec Electronics
-+ * and on i2c-gpio.c
-+ *   Copyright (C) 2007 Atmel Corporation
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
++	get_page(page);
+ 
+ 	charge = mem_cgroup_prepare_migration(page, newpage);
+ 	if (charge == -ENOMEM) {
+@@ -728,13 +730,14 @@ unlock:
+  		 * restored.
+  		 */
+  		list_del(&page->lru);
+-		unlock = putback_lru_page(page);
++		putback_lru_page(page);
+ 	}
+ 
+-	if (unlock)
+-		unlock_page(page);
++	unlock_page(page);
+ 
+ end_migration:
++	put_page(page);
 +
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/delay.h>
-+#include <linux/spinlock.h>
-+#include <linux/workqueue.h>
-+#include <linux/module.h>
-+#include <linux/platform_device.h>
-+#include <linux/spi/spi.h>
-+#include <linux/spi/spi_bitbang.h>
-+#include <linux/spi/spi_gpio.h>
-+#include <linux/gpio.h>
+ 	if (!charge)
+ 		mem_cgroup_end_migration(newpage);
+ 
+diff -puN mm/vmscan.c~unevictable-lru-infrastructure-putback_lru_page-unevictable-page-handling-rework mm/vmscan.c
+--- a/mm/vmscan.c~unevictable-lru-infrastructure-putback_lru_page-unevictable-page-handling-rework
++++ a/mm/vmscan.c
+@@ -478,30 +478,20 @@ int remove_mapping(struct address_space 
+  * Page may still be unevictable for other reasons.
+  *
+  * lru_lock must not be held, interrupts must be enabled.
+- * Must be called with page locked.
+- *
+- * return 1 if page still locked [not truncated], else 0
+  */
+-int putback_lru_page(struct page *page)
++#ifdef CONFIG_UNEVICTABLE_LRU
++void putback_lru_page(struct page *page)
+ {
+ 	int lru;
+ 	int ret = 1;
+ 
+-	VM_BUG_ON(!PageLocked(page));
+ 	VM_BUG_ON(PageLRU(page));
+ 
++redo:
+ 	lru = !!TestClearPageActive(page);
+-	ClearPageUnevictable(page);	/* for page_evictable() */
++	ClearPageUnevictable(page);
+ 
+-	if (unlikely(!page->mapping)) {
+-		/*
+-		 * page truncated.  drop lock as put_page() will
+-		 * free the page.
+-		 */
+-		VM_BUG_ON(page_count(page) != 1);
+-		unlock_page(page);
+-		ret = 0;
+-	} else if (page_evictable(page, NULL)) {
++	if (page_evictable(page, NULL)) {
+ 		/*
+ 		 * For evictable pages, we can use the cache.
+ 		 * In event of a race, worst case is we end up with an
+@@ -510,20 +500,50 @@ int putback_lru_page(struct page *page)
+ 		 */
+ 		lru += page_is_file_cache(page);
+ 		lru_cache_add_lru(page, lru);
+-		mem_cgroup_move_lists(page, lru);
+ 	} else {
+ 		/*
+ 		 * Put unevictable pages directly on zone's unevictable
+ 		 * list.
+ 		 */
++		lru = LRU_UNEVICTABLE;
+ 		add_page_to_unevictable_list(page);
+-		mem_cgroup_move_lists(page, LRU_UNEVICTABLE);
++	}
++	mem_cgroup_move_lists(page, lru);
 +
++	/*
++	 * page's status can change while we move it among lru. If an evictable
++	 * page is on unevictable list, it never be freed. To avoid that,
++	 * check after we added it to the list, again.
++	 */
++	if (lru == LRU_UNEVICTABLE && page_evictable(page, NULL)) {
++		if (!isolate_lru_page(page)) {
++			put_page(page);
++			goto redo;
++		}
++		/* This means someone else dropped this page from LRU
++		 * So, it will be freed or putback to LRU again. There is
++		 * nothing to do here.
++		 */
+ 	}
+ 
+ 	put_page(page);		/* drop ref from isolate */
+-	return ret;		/* ret => "page still locked" */
+ }
+ 
++#else /* CONFIG_UNEVICTABLE_LRU */
 +
-+struct spi_gpio {
-+	struct spi_bitbang bitbang;
-+	struct spi_gpio_platform_data *info;
-+	struct platform_device *pdev;
-+	struct spi_board_info bi;
-+};
-+
-+
-+static inline struct spi_gpio *spidev_to_sg(struct spi_device *dev)
++void putback_lru_page(struct page *page)
 +{
-+	return dev->controller_data;
++	int lru;
++	VM_BUG_ON(PageLRU(page));
++
++	lru = !!TestClearPageActive(page) + page_is_file_cache(page);
++	lru_cache_add_lru(page, lru);
++	mem_cgroup_move_lists(page, lru);
++	put_page(page);
 +}
-+
-+static inline void setsck(struct spi_device *dev, int val)
-+{
-+	struct spi_gpio *sp = spidev_to_sg(dev);
-+	gpio_set_value(sp->info->pin_clk, val ? 1 : 0);
-+}
-+
-+static inline void setmosi(struct spi_device *dev, int val)
-+{
-+	struct spi_gpio *sp = spidev_to_sg(dev);
-+	gpio_set_value(sp->info->pin_mosi, val ? 1 : 0);
-+}
-+
-+static inline u32 getmiso(struct spi_device *dev)
-+{
-+	struct spi_gpio *sp = spidev_to_sg(dev);
-+	return gpio_get_value(sp->info->pin_miso) ? 1 : 0;
-+}
-+
-+static inline void do_spidelay(struct spi_device *dev, unsigned nsecs)
-+{
-+	struct spi_gpio *sp = spidev_to_sg(dev);
-+
-+	if (!sp->info->no_spi_delay)
-+		ndelay(nsecs);
-+}
-+
-+#define spidelay(nsecs) do {					\
-+	/* Steal the spi_device pointer from our caller.	\
-+	 * The bitbang-API should probably get fixed here... */	\
-+	do_spidelay(spi, nsecs);				\
-+  } while (0)
-+
-+#define EXPAND_BITBANG_TXRX
-+#include <linux/spi/spi_bitbang.h>
-+
-+static u32 spi_gpio_txrx_mode0(struct spi_device *spi,
-+			       unsigned nsecs, u32 word, u8 bits)
-+{
-+	return bitbang_txrx_be_cpha0(spi, nsecs, 0, word, bits);
-+}
-+
-+static u32 spi_gpio_txrx_mode1(struct spi_device *spi,
-+			       unsigned nsecs, u32 word, u8 bits)
-+{
-+	return bitbang_txrx_be_cpha1(spi, nsecs, 0, word, bits);
-+}
-+
-+static u32 spi_gpio_txrx_mode2(struct spi_device *spi,
-+			       unsigned nsecs, u32 word, u8 bits)
-+{
-+	return bitbang_txrx_be_cpha0(spi, nsecs, 1, word, bits);
-+}
-+
-+static u32 spi_gpio_txrx_mode3(struct spi_device *spi,
-+			       unsigned nsecs, u32 word, u8 bits)
-+{
-+	return bitbang_txrx_be_cpha1(spi, nsecs, 1, word, bits);
-+}
-+
-+static void spi_gpio_chipselect(struct spi_device *dev, int on)
-+{
-+	struct spi_gpio *sp = spidev_to_sg(dev);
-+
-+	if (sp->info->cs_activelow)
-+		on = !on;
-+	gpio_set_value(sp->info->pin_cs, on ? 1 : 0);
-+}
-+
-+static int spi_gpio_probe(struct platform_device *pdev)
-+{
-+	struct spi_master *master;
-+	struct spi_gpio_platform_data *pdata;
-+	struct spi_gpio *sp;
-+	struct spi_device *spidev;
-+	int err;
-+
-+	pdata = pdev->dev.platform_data;
-+	if (!pdata)
-+		return -ENXIO;
-+
-+	err = -ENOMEM;
-+	master = spi_alloc_master(&pdev->dev, sizeof(struct spi_gpio));
-+	if (!master)
-+		goto err_alloc_master;
-+
-+	sp = spi_master_get_devdata(master);
-+	platform_set_drvdata(pdev, sp);
-+	sp->info = pdata;
-+
-+	err = gpio_request(pdata->pin_clk, "spi_clock");
-+	if (err)
-+		goto err_request_clk;
-+	err = gpio_request(pdata->pin_mosi, "spi_mosi");
-+	if (err)
-+		goto err_request_mosi;
-+	err = gpio_request(pdata->pin_miso, "spi_miso");
-+	if (err)
-+		goto err_request_miso;
-+	err = gpio_request(pdata->pin_cs, "spi_cs");
-+	if (err)
-+		goto err_request_cs;
-+
-+	sp->bitbang.master = spi_master_get(master);
-+	sp->bitbang.master->bus_num = -1;
-+	sp->bitbang.master->num_chipselect = 1;
-+	sp->bitbang.chipselect = spi_gpio_chipselect;
-+	sp->bitbang.txrx_word[SPI_MODE_0] = spi_gpio_txrx_mode0;
-+	sp->bitbang.txrx_word[SPI_MODE_1] = spi_gpio_txrx_mode1;
-+	sp->bitbang.txrx_word[SPI_MODE_2] = spi_gpio_txrx_mode2;
-+	sp->bitbang.txrx_word[SPI_MODE_3] = spi_gpio_txrx_mode3;
-+
-+	gpio_direction_output(pdata->pin_clk, 0);
-+	gpio_direction_output(pdata->pin_mosi, 0);
-+	gpio_direction_output(pdata->pin_cs,
-+			      pdata->cs_activelow ? 1 : 0);
-+	gpio_direction_input(pdata->pin_miso);
-+
-+	err = spi_bitbang_start(&sp->bitbang);
-+	if (err)
-+		goto err_no_bitbang;
-+	err = pdata->boardinfo_setup(&sp->bi, master,
-+				     pdata->boardinfo_setup_data);
-+	if (err)
-+		goto err_bi_setup;
-+	sp->bi.controller_data = sp;
-+	spidev = spi_new_device(master, &sp->bi);
-+	if (!spidev)
-+		goto err_new_dev;
-+
-+	return 0;
-+
-+err_new_dev:
-+err_bi_setup:
-+	spi_bitbang_stop(&sp->bitbang);
-+err_no_bitbang:
-+	spi_master_put(sp->bitbang.master);
-+	gpio_free(pdata->pin_cs);
-+err_request_cs:
-+	gpio_free(pdata->pin_miso);
-+err_request_miso:
-+	gpio_free(pdata->pin_mosi);
-+err_request_mosi:
-+	gpio_free(pdata->pin_clk);
-+err_request_clk:
-+	kfree(master);
-+
-+err_alloc_master:
-+	return err;
-+}
-+
-+static int __devexit spi_gpio_remove(struct platform_device *pdev)
-+{
-+	struct spi_gpio *sp;
-+	struct spi_gpio_platform_data *pdata;
-+
-+	pdata = pdev->dev.platform_data;
-+	sp = platform_get_drvdata(pdev);
-+
-+	gpio_free(pdata->pin_clk);
-+	gpio_free(pdata->pin_mosi);
-+	gpio_free(pdata->pin_miso);
-+	gpio_free(pdata->pin_cs);
-+	spi_bitbang_stop(&sp->bitbang);
-+	spi_master_put(sp->bitbang.master);
-+
-+	return 0;
-+}
-+
-+static struct platform_driver spi_gpio_driver = {
-+	.driver		= {
-+		.name	= "spi-gpio",
-+		.owner	= THIS_MODULE,
-+	},
-+	.probe		= spi_gpio_probe,
-+	.remove		= __devexit_p(spi_gpio_remove),
-+};
-+
-+static int __init spi_gpio_init(void)
-+{
-+	int err;
-+
-+	err = platform_driver_register(&spi_gpio_driver);
-+	if (err)
-+		printk(KERN_ERR "spi-gpio: register failed: %d\n", err);
-+
-+	return err;
-+}
-+module_init(spi_gpio_init);
-+
-+static void __exit spi_gpio_exit(void)
-+{
-+	platform_driver_unregister(&spi_gpio_driver);
-+}
-+module_exit(spi_gpio_exit);
-+
-+MODULE_AUTHOR("Piot Skamruk <piotr.skamruk at gmail.com>");
-+MODULE_AUTHOR("Michael Buesch");
-+MODULE_DESCRIPTION("Platform independent GPIO bitbanging SPI driver");
-+MODULE_LICENSE("GPL v2");
-diff -puN /dev/null include/linux/spi/spi_gpio.h
---- /dev/null
-+++ a/include/linux/spi/spi_gpio.h
-@@ -0,0 +1,53 @@
-+/*
-+ * spi_gpio interface to platform code
-+ *
-+ * Copyright (c) 2008 Piotr Skamruk
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+#ifndef _LINUX_SPI_SPI_GPIO
-+#define _LINUX_SPI_SPI_GPIO
-+
-+#include <linux/types.h>
-+#include <linux/spi/spi.h>
++#endif /* CONFIG_UNEVICTABLE_LRU */
 +
 +
-+/** struct spi_gpio_platform_data - Data definitions for a SPI-GPIO device.
-+ * This structure holds information about a GPIO-based SPI device.
-+ *
-+ * @pin_clk: The GPIO pin number of the CLOCK pin.
-+ *
-+ * @pin_miso: The GPIO pin number of the MISO pin.
-+ *
-+ * @pin_mosi: The GPIO pin number of the MOSI pin.
-+ *
-+ * @pin_cs: The GPIO pin number of the CHIPSELECT pin.
-+ *
-+ * @cs_activelow: If true, the chip is selected when the CS line is low.
-+ *
-+ * @no_spi_delay: If true, no delay is done in the lowlevel bitbanging.
-+ *                Note that doing no delay is not standards compliant,
-+ *                but it might be needed to speed up transfers on some
-+ *                slow embedded machines.
-+ *
-+ * @boardinfo_setup: This callback is called after the
-+ *                   SPI master device was registered, but before the
-+ *                   device is registered.
-+ * @boardinfo_setup_data: Data argument passed to boardinfo_setup().
-+ */
-+struct spi_gpio_platform_data {
-+	unsigned int pin_clk;
-+	unsigned int pin_miso;
-+	unsigned int pin_mosi;
-+	unsigned int pin_cs;
-+	bool cs_activelow;
-+	bool no_spi_delay;
-+	int (*boardinfo_setup)(struct spi_board_info *bi,
-+			       struct spi_master *master,
-+			       void *data);
-+	void *boardinfo_setup_data;
-+};
+ /*
+  * Cull page that shrink_*_list() has detected to be unevictable
+  * under page lock to close races with other tasks that might be making
+@@ -532,11 +552,14 @@ int putback_lru_page(struct page *page)
+  */
+ static void cull_unevictable_page(struct page *page)
+ {
++	get_page(page);
+ 	lock_page(page);
+-	if (putback_lru_page(page))
+-		unlock_page(page);
++	putback_lru_page(page);
++	unlock_page(page);
++	put_page(page);
+ }
+ 
 +
-+#endif /* _LINUX_SPI_SPI_GPIO */
+ /*
+  * shrink_page_list() returns the number of reclaimed pages
+  */
+@@ -571,8 +594,8 @@ static unsigned long shrink_page_list(st
+ 		sc->nr_scanned++;
+ 
+ 		if (unlikely(!page_evictable(page, NULL))) {
+-			if (putback_lru_page(page))
+-				unlock_page(page);
++			unlock_page(page);
++			putback_lru_page(page);
+ 			continue;
+ 		}
+ 
+@@ -2361,8 +2384,6 @@ int zone_reclaim(struct zone *zone, gfp_
+ int page_evictable(struct page *page, struct vm_area_struct *vma)
+ {
+ 
+-	VM_BUG_ON(PageUnevictable(page));
+-
+ 	/* TODO:  test page [!]evictable conditions */
+ 
+ 	return 1;
 _
 
-Patches currently in -mm which might be from mb@bu3sch.de are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
-linux-next.patch
-spi-add-spi-over-gpio-driver.patch
-gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support.patch
-gpio-add-bt8xxgpio-driver.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch
-gpiolib-allow-user-selection.patch
-gpiolib-allow-user-selection-update.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+mm-hugetlbc-fix-duplicate-variable.patch
+page-flags-record-page-flag-overlays-explicitly.patch
+slub-record-page-flag-overlays-explicitly.patch
+slob-record-page-flag-overlays-explicitly.patch
+pm-schedule-sysrq-poweroff-on-boot-cpu-fix.patch
+call_usermodehelper-increase-reliability.patch
+cgroup-list_for_each-cleanup-v2.patch
+cgroup-anotate-two-variables-with-__read_mostly.patch
+memcg-remove-refcnt-from-page_cgroup-fix-memcg-fix-mem_cgroup_end_migration-race.patch
+memcg-remove-refcnt-from-page_cgroup-memcg-fix-shmem_unuse_inode-charging.patch
+memcg-handle-swap-cache-fix-shmem-page-migration-incorrectness-on-memcgroup.patch
+memcg-clean-up-checking-of-the-disabled-flag.patch
+memcg-clean-up-checking-of-the-disabled-flag-memcg-further-checking-of-disabled-flag.patch
+per-task-delay-accounting-update-document-and-getdelaysc-for-memory-reclaim.patch
+full-conversion-to-early_initcall-interface-remove-old-interface-fix-fix.patch
+relay-add-buffer-only-channels-useful-for-early-logging-fix.patch
+mm-speculative-page-references-fix-migration_entry_wait-for-speculative-page-cache.patch
+vmscan-use-an-indexed-array-for-lru-variables.patch
+swap-use-an-array-for-the-lru-pagevecs.patch
+define-page_file_cache-function-fix-splitlru-shmem_getpage-setpageswapbacked-sooner.patch
+vmscan-split-lru-lists-into-anon-file-sets-collect-lru-meminfo-statistics-from-correct-offset.patch
+vmscan-split-lru-lists-into-anon-file-sets-prevent-incorrect-oom-under-split_lru.patch
+vmscan-split-lru-lists-into-anon-file-sets-split_lru-fix-pagevec_move_tail-doesnt-treat-unevictable-page.patch
+vmscan-split-lru-lists-into-anon-file-sets-splitlru-memcg-swapbacked-pages-active.patch
+vmscan-split-lru-lists-into-anon-file-sets-splitlru-bdi_cap_swap_backed.patch
+vmscan-second-chance-replacement-for-anonymous-pages.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-infrastructure-fix.patch
+unevictable-lru-infrastructure-remove-redundant-page-mapping-check.patch
+unevictable-lru-infrastructure-putback_lru_page-unevictable-page-handling-rework.patch
+unevictable-lru-infrastructure-kill-unnecessary-lock_page-in-vmscanc.patch
+unevictable-lru-infrastructure-revert-migration-change-of-unevictable-lru-infrastructure.patch
+unevictable-lru-page-statistics.patch
+unevictable-lru-page-statistics-fix-printk-in-show_free_areas.patch
+unevictable-lru-page-statistics-units-fix.patch
+shm_locked-pages-are-unevictable.patch
+shm_locked-pages-are-unevictable-revert-shm-change-of-shm_locked-pages-are-unevictable-patch.patch
+mlock-mlocked-pages-are-unevictable.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-3.patch
+mlock-mlocked-pages-are-unevictable-fix-fix-munlock-page-table-walk-now-requires-mm.patch
+mlock-mlocked-pages-are-unevictable-restore-patch-failure-hunk-of-mlock-mlocked-pages-are-unevictablepatch.patch
+mlock-mlocked-pages-are-unevictable-fix-truncate-race-and-sevaral-comments.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+fix-double-unlock_page-in-2626-rc5-mm3-kernel-bug-at-mm-filemapc-575.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
+vmstat-mlocked-pages-statistics.patch
+vmstat-mlocked-pages-statistics-fix-incorrect-mlocked-field-of-proc-meminfo.patch
+vmstat-mlocked-pages-statistics-fix.patch
+swap-cull-unevictable-pages-in-fault-path-fix.patch
+vmstat-unevictable-and-mlocked-pages-vm-events.patch
+restore-patch-failure-of-vmstat-unevictable-and-mlocked-pages-vm-eventspatch.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
+vmscam-kill-unused-lru-functions.patch
+make-mm-memoryc-print_bad_pte-static.patch
+mm-swapfilec-make-code-static.patch
+make-mm-rmapc-anon_vma_cachep-static.patch
 
