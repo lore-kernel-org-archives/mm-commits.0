@@ -1,100 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: - serial8250-sanity-check-nr_uarts-on-all-paths.patch removed from -mm tree
-Date: Mon, 14 Jul 2008 12:34:51 -0700
-Message-ID: <200807141934.m6EJYp2I023842@imap1.linux-foundation.org>
+Subject: - drx397xd-demodulator-driver-fix-a-const-pointer-assignment.patch removed from -mm tree
+Date: Mon, 14 Jul 2008 12:35:33 -0700
+Message-ID: <200807141935.m6EJZXqp023929@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58907 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42370 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755013AbYGNTfg (ORCPT
+	by vger.kernel.org with ESMTP id S1756740AbYGNTfx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Jul 2008 15:35:36 -0400
+	Mon, 14 Jul 2008 15:35:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, alan@redhat.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: dhowells@redhat.com, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     serial8250: sanity check nr_uarts on all paths.
+     drx397xD demodulator driver: fix a const pointer assignment
 has been removed from the -mm tree.  Its filename was
-     serial8250-sanity-check-nr_uarts-on-all-paths.patch
+     drx397xd-demodulator-driver-fix-a-const-pointer-assignment.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: serial8250: sanity check nr_uarts on all paths.
-From: Eric W. Biederman <ebiederm@xmission.com>
+Subject: drx397xD demodulator driver: fix a const pointer assignment
+From: David Howells <dhowells@redhat.com>
 
-I had 8250.nr_uarts=16 in the boot line of a test kernel and I had a weird
-mysterious crash in sysfs.  After taking an in-depth look I realized that
-CONFIG_SERIAL_8250_NR_UARTS was set to 4 and I was walking off the end of
-the serial8250_ports array.
+Fix an assignment of a const pointer to a non-const pointer in the drx397xD
+demodulator driver.
 
-Ouch!!!
+This was introduced in patch eb9bd0e567365d4f607d32d8c41e201da65aa971.
 
-Don't let this happen to someone else.
-
-Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Acked-by: Alan Cox <alan@redhat.com>
-Cc: <stable@kernel.org>
+Signed-off-by: David Howells <dhowells@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/media/dvb/frontends/drx397xD.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/serial/8250.c~serial8250-sanity-check-nr_uarts-on-all-paths drivers/serial/8250.c
---- a/drivers/serial/8250.c~serial8250-sanity-check-nr_uarts-on-all-paths
-+++ a/drivers/serial/8250.c
-@@ -2623,6 +2623,9 @@ static struct console serial8250_console
+diff -puN drivers/media/dvb/frontends/drx397xD.c~drx397xd-demodulator-driver-fix-a-const-pointer-assignment drivers/media/dvb/frontends/drx397xD.c
+--- a/drivers/media/dvb/frontends/drx397xD.c~drx397xd-demodulator-driver-fix-a-const-pointer-assignment
++++ a/drivers/media/dvb/frontends/drx397xD.c
+@@ -73,7 +73,7 @@ static struct {
+ 	const struct firmware *file;
+ 	rwlock_t lock;
+ 	int refcnt;
+-	u8 *data[ARRAY_SIZE(blob_name)];
++	const u8 *data[ARRAY_SIZE(blob_name)];
+ } fw[] = {
+ #define _FW_ENTRY(a, b)		{			\
+ 			.name	= a,			\
+@@ -109,7 +109,7 @@ static void drx_release_fw(struct drx397
  
- static int __init serial8250_console_init(void)
+ static int drx_load_fw(struct drx397xD_state *s, fw_ix_t ix)
  {
-+	if (nr_uarts > UART_NR)
-+		nr_uarts = UART_NR;
-+
- 	serial8250_isa_init_ports();
- 	register_console(&serial8250_console);
- 	return 0;
+-	u8 *data;
++	const u8 *data;
+ 	size_t size, len;
+ 	int i = 0, j, rc = -EINVAL;
+ 
+@@ -193,7 +193,7 @@ static int drx_load_fw(struct drx397xD_s
+ static int write_fw(struct drx397xD_state *s, blob_ix_t ix)
+ {
+ 	struct i2c_msg msg = {.addr = s->config.demod_address,.flags = 0 };
+-	u8 *data;
++	const u8 *data;
+ 	int len, rc = 0, i = 0;
+ 
+ 	if (ix < 0 || ix >= ARRAY_SIZE(blob_name)) {
+@@ -214,7 +214,7 @@ static int write_fw(struct drx397xD_stat
+ 		case 0:	/* bytecode */
+ 			len = data[i++];
+ 			msg.len = len;
+-			msg.buf = &data[i];
++			msg.buf = (__u8 *) &data[i];
+ 			if (i2c_transfer(s->i2c, &msg, 1) != 1) {
+ 				rc = -EIO;
+ 				goto exit_rc;
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
 linux-next.patch
-generic-irqs-enable-polling-for-disabled-screaming-irqs.patch
-memcg-remove-refcnt-from-page_cgroup.patch
-memcg-remove-refcnt-from-page_cgroup-fix.patch
-memcg-remove-refcnt-from-page_cgroup-fix-2.patch
-memcg-remove-refcnt-from-page_cgroup-fix-memcg-fix-mem_cgroup_end_migration-race.patch
-memcg-remove-refcnt-from-page_cgroup-memcg-fix-shmem_unuse_inode-charging.patch
-memcg-handle-swap-cache.patch
-memcg-handle-swap-cache-fix.patch
-memcg-handle-swap-cache-fix-shmem-page-migration-incorrectness-on-memcgroup.patch
-memcg-helper-function-for-relcaim-from-shmem.patch
-memcg-helper-function-for-relcaim-from-shmem-memcg-shmem_getpage-release-page-sooner.patch
-memcg-helper-function-for-relcaim-from-shmem-memcg-mem_cgroup_shrink_usage-css_put.patch
-memcg-add-hints-for-branch.patch
-memcg-remove-a-redundant-check.patch
-sysctl-check-for-bogus-modes.patch
-sysctl-allow-override-of-proc-sys-net-with-cap_net_admin.patch
-shrink-struct-pid-by-removing-padding-on-64-bit-builds.patch
-pidns-remove-now-unused-kill_proc-function.patch
-pidns-remove-now-unused-find_pid-function.patch
-pidns-remove-find_task_by_pid-unused-for-a-long-time.patch
-bsdacct-rename-acct_blbls-to-bsd_acct_struct.patch
-pidns-use-kzalloc-when-allocating-new-pid_namespace-struct.patch
-pidns-add-the-struct-bsd_acct_struct-pointer-on-pid_namespace-struct.patch
-bsdacct-truthify-a-comment-near-acct_process.patch
-bsdacct-make-check-timer-accept-a-bsd_acct_struct-argument.patch
-bsdacct-turn-the-acct_lock-from-on-the-struct-to-global.patch
-bsdacct-make-internal-code-work-with-passed-bsd_acct_struct-not-global.patch
-bsdacct-switch-from-global-bsd_acct_struct-instance-to-per-pidns-one.patch
-bsdacct-turn-acct-off-for-all-pidns-s-on-umount-time.patch
-bsdacct-account-dying-tasks-in-all-relevant-namespaces.patch
-kernel-kexecc-make-kimage_terminate-void.patch
-kexec-jump.patch
-kexec-jump-save-restore-device-state.patch
-proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
+acpi-fix-a-cast-of-a-32-bit-int-to-a-pointer.patch
+calgary-fix-a-comparison-warning-the-pci-calgary-64-driver.patch
+cifs-fix-range-check.patch
+sis-drm-fix-the-memory-allocator-if-the-sis-fb-is-built-as-a-module.patch
+sis-drm-fix-a-pointer-cast-warning.patch
+netfilter-fix-xt_times-time_mts-use-of-do_div.patch
+atm-fix-const-assignment-discard-warnings-in-the-atm-networking-driver.patch
+atm-fix-direct-casts-of-pointers-to-u32-in-the-interphase-driver.patch
+hysdn-remove-the-packed-attribute-from-poftimstamp_tag.patch
+sched-fix-inc_rt_tasks-to-not-declare-variable-rq-if-its-not-needed.patch
+git-unionfs.patch
+clocksource-fix-a-print-format-error-in-the-acpi-pm-clocksource-driver-and-check-range.patch
+pm-fix-try_to_freeze_taskss-use-of-do_div.patch
+mn10300-move-sg_dma_addresslen-to-asm-scatterlisth.patch
+inflate-refactor-inflate-malloc-code.patch
+inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
+pnpacpi-fix-pnpacpi_parse_irq_options-test-against-pnp_irq_nr.patch
+pnp-fix-the-fcpnp_driver-declaration-to-only-exist-if-config_pnp=y.patch
+include-asm-ptraceh-userspace-headers-cleanup.patch
+sdio-fix-break-control-to-now-return-success-or-an-error.patch
+mn10300-fix-mn10300s-serial-port-driver-to-get-at-its-tty_struct.patch
+ip2-fix-iielliscleanup-as-it-is-static-but-not-always-used.patch
+stallion-fix-the-istallion-drivers-putchar-and-break_ctl-ops.patch
+tsacct-fix-bacct_add_tsks-use-of-do_div.patch
+frv-use-the-common-ascii-hex-helpers.patch
+mn10300-use-the-common-ascii-hex-helpers.patch
+mutex-subsystem-synchro-test-module.patch
 
