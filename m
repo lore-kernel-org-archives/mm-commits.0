@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vmscan-unevictable-lru-scan-sysctl-add-sys_device-parameter.patch added to -mm tree
-Date: Mon, 14 Jul 2008 16:49:52 -0700
-Message-ID: <200807142349.m6ENnqfM001313@imap1.linux-foundation.org>
+Subject: + mm-create-sys-kernel-mm-fix.patch added to -mm tree
+Date: Mon, 14 Jul 2008 16:52:22 -0700
+Message-ID: <200807142352.m6ENqMdD001420@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54212 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41166 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759810AbYGNXu3 (ORCPT
+	by vger.kernel.org with ESMTP id S1759884AbYGNXws (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Jul 2008 19:50:29 -0400
+	Mon, 14 Jul 2008 19:52:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, ak@linux.intel.com, gregkh@suse.de, hugh@veritas.com, lee.schermerhorn@hp.com, riel@redhat.com
+Cc: kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, nacc@us.ibm.com, nickpiggin@yahoo.com.au
 
 
 The patch titled
-     adapt vmscan-unevictable-lru-scan-sysctl.patch to new sysfs API
+     mm-create-sys-kernel-mm fix
 has been added to the -mm tree.  Its filename is
-     vmscan-unevictable-lru-scan-sysctl-add-sys_device-parameter.patch
+     mm-create-sys-kernel-mm-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,48 +34,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: adapt vmscan-unevictable-lru-scan-sysctl.patch to new sysfs API
+Subject: mm-create-sys-kernel-mm fix
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-The second attribute parameter is missing in
-read_scan_unevictable_node()/write_scan_unevictable_node().
-which has been added recently.
+Recently, Nishanth Aravamudan introduce /sys/kernel/mm and add
+EXPORT_SYMBOL_GPL() to mm_init.c.  then module.h should be included.
 
-	mm/vmscan.c:2654: warning: initialization from incompatible pointer type
-	mm/vmscan.c:2654: warning: initialization from incompatible pointer type
+otherwise following warning happend.
+
+  mm/mm_init.c:140: warning: data definition has no type or storage class
+  mm/mm_init.c:140: warning: type defaults to 'int' in declaration of 'EXPORT_SYMBOL_GPL'
+  mm/mm_init.c:140: warning: parameter names (without types) in function declaration
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Rik van Riel <riel@redhat.com>
+Cc: Nishanth Aravamudan <nacc@us.ibm.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ mm/mm_init.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/vmscan.c~vmscan-unevictable-lru-scan-sysctl-add-sys_device-parameter mm/vmscan.c
---- a/mm/vmscan.c~vmscan-unevictable-lru-scan-sysctl-add-sys_device-parameter
-+++ a/mm/vmscan.c
-@@ -2611,12 +2611,15 @@ int scan_unevictable_handler(struct ctl_
-  * a specified node's per zone unevictable lists for evictable pages.
-  */
+diff -puN mm/mm_init.c~mm-create-sys-kernel-mm-fix mm/mm_init.c
+--- a/mm/mm_init.c~mm-create-sys-kernel-mm-fix
++++ a/mm/mm_init.c
+@@ -8,6 +8,7 @@
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+ #include <linux/kobject.h>
++#include <linux/module.h>
+ #include "internal.h"
  
--static ssize_t read_scan_unevictable_node(struct sys_device *dev, char *buf)
-+static ssize_t read_scan_unevictable_node(struct sys_device *dev,
-+					  struct sysdev_attribute *attr,
-+					  char *buf)
- {
- 	return sprintf(buf, "0\n");	/* always zero; should fit... */
- }
- 
- static ssize_t write_scan_unevictable_node(struct sys_device *dev,
-+					   struct sysdev_attribute *attr,
- 					const char *buf, size_t count)
- {
- 	struct zone *node_zones = NODE_DATA(dev->id)->node_zones;
+ #ifdef CONFIG_DEBUG_MEMORY_INIT
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
@@ -89,6 +80,7 @@ mm-hugetlbc-fix-duplicate-variable.patch
 page-flags-record-page-flag-overlays-explicitly.patch
 slub-record-page-flag-overlays-explicitly.patch
 slob-record-page-flag-overlays-explicitly.patch
+mm-create-sys-kernel-mm-fix.patch
 mm-make-config_migration-available-w-o-config_numa-fix.patch
 pm-schedule-sysrq-poweroff-on-boot-cpu-fix.patch
 call_usermodehelper-increase-reliability.patch
