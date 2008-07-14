@@ -1,92 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: - sched_clock-widen-the-max-and-min-time.patch removed from -mm tree
-Date: Mon, 14 Jul 2008 12:35:59 -0700
-Message-ID: <200807141935.m6EJZxIT023984@imap1.linux-foundation.org>
+Subject: - x86-pci-fix-pci_subsys_init-to-have-a-return-value.patch removed from -mm tree
+Date: Mon, 14 Jul 2008 12:36:11 -0700
+Message-ID: <200807141936.m6EJaB4s024068@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57378 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46910 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755448AbYGNTgm (ORCPT
+	by vger.kernel.org with ESMTP id S1755406AbYGNTgj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Jul 2008 15:36:42 -0400
+	Mon, 14 Jul 2008 15:36:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rostedt@goodmis.org, mingo@elte.hu, peterz@infradead.org, srostedt@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: dhowells@redhat.com, jbarnes@virtuousgeek.org, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sched_clock: widen the max and min time
+     x86 pci: fix pci_subsys_init() to have a return value
 has been removed from the -mm tree.  Its filename was
-     sched_clock-widen-the-max-and-min-time.patch
+     x86-pci-fix-pci_subsys_init-to-have-a-return-value.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sched_clock: widen the max and min time
-From: Steven Rostedt <rostedt@goodmis.org>
+Subject: x86 pci: fix pci_subsys_init() to have a return value
+From: David Howells <dhowells@redhat.com>
 
-With keeping the max and min sched time within one jiffy of the gtod clock
-was too tight.  Just before a schedule tick the max could easily be hit,
-as well as just after a schedule_tick the min could be hit.  This caused
-the clock to jump around by a jiffy.
+Fix pci_subsys_init() to return a value (0) when it has finished.  All the
+functions it calls currently return 0, so returning 0 here unconditionally
+rather than gathering the results of its callees would seem reasonable.
 
-This patch widens the minimum to
-   last gtod + (delta_jiffies ? delta_jiffies - 1 : 0) * TICK_NSECS
-
-and the maximum to
-    last gtod + (2 + delta_jiffies) * TICK_NSECS
-
-This keeps the minum to gtod or if one jiffy less than delta jiffies and
-the maxim 2 jiffies ahead of gtod.  This may cause unstable TSCs to be a
-bit more sporadic, but it helps keep a clock with a stable TSC working
-well.
-
-Signed-off-by: Steven Rostedt <srostedt@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
+Signed-off-by: David Howells <dhowells@redhat.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched_clock.c |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ arch/x86/pci/legacy.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN kernel/sched_clock.c~sched_clock-widen-the-max-and-min-time kernel/sched_clock.c
---- a/kernel/sched_clock.c~sched_clock-widen-the-max-and-min-time
-+++ a/kernel/sched_clock.c
-@@ -96,14 +96,21 @@ static void __update_sched_clock(struct 
- 	s64 delta = now - scd->prev_raw;
- 
- 	WARN_ON_ONCE(!irqs_disabled());
--	min_clock = scd->tick_gtod + delta_jiffies * TICK_NSEC;
-+
-+	min_clock = scd->tick_gtod +
-+		(delta_jiffies ? delta_jiffies - 1 : 0) * TICK_NSEC;
- 
- 	if (unlikely(delta < 0)) {
- 		clock++;
- 		goto out;
- 	}
- 
--	max_clock = min_clock + TICK_NSEC;
-+	/*
-+	 * The clock must stay within a jiffie of the gtod.
-+	 * But since we may be at the start of a jiffy or the end of one
-+	 * we add another jiffy buffer.
-+	 */
-+	max_clock = scd->tick_gtod + (2 + delta_jiffies) * TICK_NSEC;
- 
- 	if (unlikely(clock + delta > max_clock)) {
- 		if (clock < max_clock)
+diff -puN arch/x86/pci/legacy.c~x86-pci-fix-pci_subsys_init-to-have-a-return-value arch/x86/pci/legacy.c
+--- a/arch/x86/pci/legacy.c~x86-pci-fix-pci_subsys_init-to-have-a-return-value
++++ a/arch/x86/pci/legacy.c
+@@ -63,5 +63,6 @@ int __init pci_subsys_init(void)
+ 	pci_legacy_init();
+ 	pcibios_irq_init();
+ 	pcibios_init();
++	return 0;
+ }
+ subsys_initcall(pci_subsys_init);
 _
 
-Patches currently in -mm which might be from rostedt@goodmis.org are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
 linux-next.patch
-ftrace-disable-function-tracing-bringing-up-new-cpu.patch
-split-the-typecheck-macros-out-of-include-linux-kernelh.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+acpi-fix-a-cast-of-a-32-bit-int-to-a-pointer.patch
+calgary-fix-a-comparison-warning-the-pci-calgary-64-driver.patch
+cifs-fix-range-check.patch
+sis-drm-fix-the-memory-allocator-if-the-sis-fb-is-built-as-a-module.patch
+sis-drm-fix-a-pointer-cast-warning.patch
+netfilter-fix-xt_times-time_mts-use-of-do_div.patch
+atm-fix-const-assignment-discard-warnings-in-the-atm-networking-driver.patch
+atm-fix-direct-casts-of-pointers-to-u32-in-the-interphase-driver.patch
+hysdn-remove-the-packed-attribute-from-poftimstamp_tag.patch
+sched-fix-inc_rt_tasks-to-not-declare-variable-rq-if-its-not-needed.patch
+git-unionfs.patch
+clocksource-fix-a-print-format-error-in-the-acpi-pm-clocksource-driver-and-check-range.patch
+pm-fix-try_to_freeze_taskss-use-of-do_div.patch
+mn10300-move-sg_dma_addresslen-to-asm-scatterlisth.patch
+inflate-refactor-inflate-malloc-code.patch
+inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
+pnpacpi-fix-pnpacpi_parse_irq_options-test-against-pnp_irq_nr.patch
+pnp-fix-the-fcpnp_driver-declaration-to-only-exist-if-config_pnp=y.patch
+include-asm-ptraceh-userspace-headers-cleanup.patch
+sdio-fix-break-control-to-now-return-success-or-an-error.patch
+mn10300-fix-mn10300s-serial-port-driver-to-get-at-its-tty_struct.patch
+ip2-fix-iielliscleanup-as-it-is-static-but-not-always-used.patch
+stallion-fix-the-istallion-drivers-putchar-and-break_ctl-ops.patch
+tsacct-fix-bacct_add_tsks-use-of-do_div.patch
+frv-use-the-common-ascii-hex-helpers.patch
+mn10300-use-the-common-ascii-hex-helpers.patch
+mutex-subsystem-synchro-test-module.patch
 
