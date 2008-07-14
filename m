@@ -1,81 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: - use-warn-in-kernel-panicc.patch removed from -mm tree
-Date: Mon, 14 Jul 2008 12:34:33 -0700
-Message-ID: <200807141934.m6EJYXrg023830@imap1.linux-foundation.org>
+Subject: - drivers-char-pcmcia-ipwireless-hardwarec-fix-resource-leak.patch removed from -mm tree
+Date: Mon, 14 Jul 2008 12:34:43 -0700
+Message-ID: <200807141934.m6EJYhI1023833@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42927 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36705 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753260AbYGNTeg (ORCPT
+	by vger.kernel.org with ESMTP id S1753535AbYGNTe4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Jul 2008 15:34:36 -0400
+	Mon, 14 Jul 2008 15:34:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arjan@linux.intel.com, mm-commits@vger.kernel.org
+To: darrenrjenkins@gmail.com, jkosina@suse.cz, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Use WARN() in kernel/panic.c
+     drivers/char/pcmcia/ipwireless/hardware.c fix resource leak
 has been removed from the -mm tree.  Its filename was
-     use-warn-in-kernel-panicc.patch
+     drivers-char-pcmcia-ipwireless-hardwarec-fix-resource-leak.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Use WARN() in kernel/panic.c
-From: Arjan van de Ven <arjan@linux.intel.com>
+Subject: drivers/char/pcmcia/ipwireless/hardware.c fix resource leak
+From: Darren Jenkins <darrenrjenkins@gmail.com>
 
-Use WARN() instead of a printk+WARN_ON() pair; this way the message becomes
-part of the warning section for better reporting/collection.  This allowed the
-if() to be folded entirely into the WARN()
+Coverity CID: 2172 RESOURCE_LEAK
 
-Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
+When pool_allocate() tries to enlarge a packet, if it can not allocate enough
+memory, it returns NULL without first freeing the old packet.
+
+This patch just frees the packet first.
+
+Signed-off-by: Darren Jenkins <darrenrjenkins@gmail.com>
+Acked-by: Jiri Kosina <jkosina@suse.cz>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/panic.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ drivers/char/pcmcia/ipwireless/hardware.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN kernel/panic.c~use-warn-in-kernel-panicc kernel/panic.c
---- a/kernel/panic.c~use-warn-in-kernel-panicc
-+++ a/kernel/panic.c
-@@ -392,10 +392,8 @@ static int __stack_chk_test(void)
- 	printk(KERN_INFO "Testing -fstack-protector-all feature\n");
- 	__stack_check_testing = (unsigned long)&__stack_chk_test_func;
- 	__stack_chk_test_func();
--	if (__stack_check_testing) {
--		printk(KERN_ERR "-fstack-protector-all test failed\n");
--		WARN_ON(1);
--	}
-+	WARN(__stack_check_testing,
-+			KERN_ERR "-fstack-protector-all test failed\n");
- 	return 0;
- }
- /*
+diff -puN drivers/char/pcmcia/ipwireless/hardware.c~drivers-char-pcmcia-ipwireless-hardwarec-fix-resource-leak drivers/char/pcmcia/ipwireless/hardware.c
+--- a/drivers/char/pcmcia/ipwireless/hardware.c~drivers-char-pcmcia-ipwireless-hardwarec-fix-resource-leak
++++ a/drivers/char/pcmcia/ipwireless/hardware.c
+@@ -590,8 +590,10 @@ static struct ipw_rx_packet *pool_alloca
+ 		packet = kmalloc(sizeof(struct ipw_rx_packet) +
+ 				old_packet->length + minimum_free_space,
+ 				GFP_ATOMIC);
+-		if (!packet)
++		if (!packet) {
++			kfree(old_packet);
+ 			return NULL;
++		}
+ 		memcpy(packet, old_packet,
+ 				sizeof(struct ipw_rx_packet)
+ 					+ old_packet->length);
 _
 
-Patches currently in -mm which might be from arjan@linux.intel.com are
+Patches currently in -mm which might be from darrenrjenkins@gmail.com are
 
 linux-next.patch
-via-velocity-fix-sleep-with-spinlock-bug-during-mtu-change.patch
-rename-warn-to-warning-to-clear-the-namespace.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments.patch
-kernel-irq-managec-replace-a-printk-warn_on-to-a-warn.patch
-example-use-of-warn.patch
-use-warn-in-kernel-irq-managec.patch
-use-warn-in-kernel-panicc.patch
-use-warn-in-mm-vmallocc.patch
-use-warn-in-kernel-lockdepc.patch
-use-warn-in-kernel-irq-chipc.patch
-use-warn-in-arch-x86-mm-ioremapc.patch
-use-warn-in-arch-x86-mm-pageattrc.patch
-use-warn-in-arch-x86-kernel.patch
-use-warn-in-block.patch
-use-warn-in-drivers-base.patch
-use-warn-in-lib.patch
-use-warn-in-fs.patch
-usr-warn-in-fs-sysfs.patch
-use-warn-in-fs-proc.patch
 
