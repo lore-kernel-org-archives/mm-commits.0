@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + adapt-drivers-base-topologyc-to-new-sysfs-api.patch added to -mm tree
-Date: Mon, 14 Jul 2008 16:47:48 -0700
-Message-ID: <200807142347.m6ENlmaq001262@imap1.linux-foundation.org>
+Subject: + vmscan-unevictable-lru-scan-sysctl-add-sys_device-parameter.patch added to -mm tree
+Date: Mon, 14 Jul 2008 16:49:52 -0700
+Message-ID: <200807142349.m6ENnqfM001313@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43516 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54212 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759764AbYGNXsT (ORCPT
+	by vger.kernel.org with ESMTP id S1759810AbYGNXu3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Jul 2008 19:48:19 -0400
+	Mon, 14 Jul 2008 19:50:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, ak@linux.intel.com, gregkh@suse.de, mingo@elte.hu, tglx@linutronix.de, travis@sgi.com
+Cc: kosaki.motohiro@jp.fujitsu.com, ak@linux.intel.com, gregkh@suse.de, hugh@veritas.com, lee.schermerhorn@hp.com, riel@redhat.com
 
 
 The patch titled
-     adapt drivers/base/topology.c to new sysfs API
+     adapt vmscan-unevictable-lru-scan-sysctl.patch to new sysfs API
 has been added to the -mm tree.  Its filename is
-     adapt-drivers-base-topologyc-to-new-sysfs-api.patch
+     vmscan-unevictable-lru-scan-sysctl-add-sys_device-parameter.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,53 +34,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: adapt drivers/base/topology.c to new sysfs API
+Subject: adapt vmscan-unevictable-lru-scan-sysctl.patch to new sysfs API
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-If arch_provides_topology_pointers is not defined, topology.c output
-following warnings.  because sysfs function parameter was changed
-recently.
+The second attribute parameter is missing in
+read_scan_unevictable_node()/write_scan_unevictable_node().
+which has been added recently.
 
-  drivers/base/topology.c:106: warning: initialization from incompatible pointer type
-  drivers/base/topology.c:107: warning: initialization from incompatible pointer type
-  drivers/base/topology.c:110: warning: initialization from incompatible pointer type
-  drivers/base/topology.c:111: warning: initialization from incompatible pointer type
+	mm/vmscan.c:2654: warning: initialization from incompatible pointer type
+	mm/vmscan.c:2654: warning: initialization from incompatible pointer type
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Mike Travis <travis@sgi.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
 Cc: Andi Kleen <ak@linux.intel.com>
 Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/topology.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/vmscan.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/base/topology.c~adapt-drivers-base-topologyc-to-new-sysfs-api drivers/base/topology.c
---- a/drivers/base/topology.c~adapt-drivers-base-topologyc-to-new-sysfs-api
-+++ a/drivers/base/topology.c
-@@ -77,7 +77,8 @@ static ssize_t show_##name##_list(struct
+diff -puN mm/vmscan.c~vmscan-unevictable-lru-scan-sysctl-add-sys_device-parameter mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-unevictable-lru-scan-sysctl-add-sys_device-parameter
++++ a/mm/vmscan.c
+@@ -2611,12 +2611,15 @@ int scan_unevictable_handler(struct ctl_
+  * a specified node's per zone unevictable lists for evictable pages.
+  */
  
- #else
- #define define_siblings_show_map(name)					\
--static ssize_t show_##name(struct sys_device *dev, char *buf)	\
-+static ssize_t show_##name(struct sys_device *dev,                      \
-+			   struct sysdev_attribute *attr, char *buf)	\
- {									\
- 	unsigned int cpu = dev->id;					\
- 	cpumask_t mask = topology_##name(cpu);				\
-@@ -85,7 +86,8 @@ static ssize_t show_##name(struct sys_de
+-static ssize_t read_scan_unevictable_node(struct sys_device *dev, char *buf)
++static ssize_t read_scan_unevictable_node(struct sys_device *dev,
++					  struct sysdev_attribute *attr,
++					  char *buf)
+ {
+ 	return sprintf(buf, "0\n");	/* always zero; should fit... */
  }
  
- #define define_siblings_show_list(name)					\
--static ssize_t show_##name##_list(struct sys_device *dev, char *buf) \
-+static ssize_t show_##name##_list(struct sys_device *dev,               \
-+			      struct sysdev_attribute *attr, char *buf) \
- {									\
- 	unsigned int cpu = dev->id;					\
- 	cpumask_t mask = topology_##name(cpu);				\
+ static ssize_t write_scan_unevictable_node(struct sys_device *dev,
++					   struct sysdev_attribute *attr,
+ 					const char *buf, size_t count)
+ {
+ 	struct zone *node_zones = NODE_DATA(dev->id)->node_zones;
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
@@ -147,6 +142,7 @@ vmstat-unevictable-and-mlocked-pages-vm-events.patch
 restore-patch-failure-of-vmstat-unevictable-and-mlocked-pages-vm-eventspatch.patch
 vmscan-unevictable-lru-scan-sysctl.patch
 vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
+vmscan-unevictable-lru-scan-sysctl-add-sys_device-parameter.patch
 vmscam-kill-unused-lru-functions.patch
 make-mm-memoryc-print_bad_pte-static.patch
 mm-swapfilec-make-code-static.patch
