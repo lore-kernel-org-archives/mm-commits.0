@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + full-conversion-to-early_initcall-interface-remove-old-interface-fix-fix-fix.patch added to -mm tree
-Date: Mon, 14 Jul 2008 16:47:04 -0700
-Message-ID: <200807142347.m6ENl4Bc001240@imap1.linux-foundation.org>
+Subject: + adapt-drivers-base-topologyc-to-new-sysfs-api.patch added to -mm tree
+Date: Mon, 14 Jul 2008 16:47:48 -0700
+Message-ID: <200807142347.m6ENlmaq001262@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36059 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43516 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932182AbYGNXri (ORCPT
+	by vger.kernel.org with ESMTP id S1759764AbYGNXsT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Jul 2008 19:47:38 -0400
+	Mon, 14 Jul 2008 19:48:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, eduard.munteanu@linux360.ro, hugh@veritas.com, jens.axboe@oracle.com, tzanussi@gmail.com
+Cc: kosaki.motohiro@jp.fujitsu.com, ak@linux.intel.com, gregkh@suse.de, mingo@elte.hu, tglx@linutronix.de, travis@sgi.com
 
 
 The patch titled
-     init_call_single_data makes int
+     adapt drivers/base/topology.c to new sysfs API
 has been added to the -mm tree.  Its filename is
-     full-conversion-to-early_initcall-interface-remove-old-interface-fix-fix-fix.patch
+     adapt-drivers-base-topologyc-to-new-sysfs-api.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,53 +34,58 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: init_call_single_data makes int
+Subject: adapt drivers/base/topology.c to new sysfs API
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Patch title: full-conversion-to-early_initcall-interface-remove-old-interface-fix-fix-fix.patch
-Against: mmotm Jul 14
-Applies after: full-conversion-to-early_initcall-interface-remove-old-interface-fix-fix.patch
+If arch_provides_topology_pointers is not defined, topology.c output
+following warnings.  because sysfs function parameter was changed
+recently.
 
-Now, init_call_single_data is early init function.
-then, its return type should be int.
-
-   kernel/smp.c:47: warning: initialization from incompatible pointer type
+  drivers/base/topology.c:106: warning: initialization from incompatible pointer type
+  drivers/base/topology.c:107: warning: initialization from incompatible pointer type
+  drivers/base/topology.c:110: warning: initialization from incompatible pointer type
+  drivers/base/topology.c:111: warning: initialization from incompatible pointer type
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Cc: Eduard - Gabriel Munteanu <eduard.munteanu@linux360.ro>
-Cc: Tom Zanussi <tzanussi@gmail.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Mike Travis <travis@sgi.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/smp.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/base/topology.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN kernel/smp.c~full-conversion-to-early_initcall-interface-remove-old-interface-fix-fix-fix kernel/smp.c
---- a/kernel/smp.c~full-conversion-to-early_initcall-interface-remove-old-interface-fix-fix-fix
-+++ a/kernel/smp.c
-@@ -33,7 +33,7 @@ struct call_single_queue {
- 	spinlock_t lock;
- };
+diff -puN drivers/base/topology.c~adapt-drivers-base-topologyc-to-new-sysfs-api drivers/base/topology.c
+--- a/drivers/base/topology.c~adapt-drivers-base-topologyc-to-new-sysfs-api
++++ a/drivers/base/topology.c
+@@ -77,7 +77,8 @@ static ssize_t show_##name##_list(struct
  
--static void __cpuinit init_call_single_data(void)
-+static int __cpuinit init_call_single_data(void)
- {
- 	int i;
- 
-@@ -43,6 +43,7 @@ static void __cpuinit init_call_single_d
- 		spin_lock_init(&q->lock);
- 		INIT_LIST_HEAD(&q->list);
- 	}
-+	return 0;
+ #else
+ #define define_siblings_show_map(name)					\
+-static ssize_t show_##name(struct sys_device *dev, char *buf)	\
++static ssize_t show_##name(struct sys_device *dev,                      \
++			   struct sysdev_attribute *attr, char *buf)	\
+ {									\
+ 	unsigned int cpu = dev->id;					\
+ 	cpumask_t mask = topology_##name(cpu);				\
+@@ -85,7 +86,8 @@ static ssize_t show_##name(struct sys_de
  }
- early_initcall(init_call_single_data);
  
+ #define define_siblings_show_list(name)					\
+-static ssize_t show_##name##_list(struct sys_device *dev, char *buf) \
++static ssize_t show_##name##_list(struct sys_device *dev,               \
++			      struct sysdev_attribute *attr, char *buf) \
+ {									\
+ 	unsigned int cpu = dev->id;					\
+ 	cpumask_t mask = topology_##name(cpu);				\
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
+adapt-drivers-base-topologyc-to-new-sysfs-api.patch
 ia64-hp-sim-simserialc-adapt-to-new-tty-framework.patch
 ahci-use-correct-type-for-cpu-flags.patch
 page-allocator-inlnie-some-__alloc_pages-wrappers.patch
