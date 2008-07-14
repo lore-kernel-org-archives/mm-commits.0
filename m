@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ia64-hp-sim-simserialc-adapt-to-new-tty-framework.patch added to -mm tree
-Date: Mon, 14 Jul 2008 16:00:53 -0700
-Message-ID: <200807142300.m6EN0sNu032001@imap1.linux-foundation.org>
+Subject: + ahci-use-correct-type-for-cpu-flags.patch added to -mm tree
+Date: Mon, 14 Jul 2008 16:01:47 -0700
+Message-ID: <200807142301.m6EN1lgu032080@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35192 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44485 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758642AbYGNXBZ (ORCPT
+	by vger.kernel.org with ESMTP id S1758691AbYGNXCZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Jul 2008 19:01:25 -0400
+	Mon, 14 Jul 2008 19:02:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, alan@redhat.com, gregkh@suse.de
+Cc: kosaki.motohiro@jp.fujitsu.com, hugh@veritas.com, jgarzik@redhat.com, kristen.c.accardi@intel.com
 
 
 The patch titled
-     ia64/hp/sim/simserial.c adapt to new tty framework
+     ahci: use correct type for CPU flags
 has been added to the -mm tree.  Its filename is
-     ia64-hp-sim-simserialc-adapt-to-new-tty-framework.patch
+     ahci-use-correct-type-for-cpu-flags.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,70 +34,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ia64/hp/sim/simserial.c adapt to new tty framework
+Subject: ahci: use correct type for CPU flags
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Recently, Alan Cox made cleanup tty widely.  But unfortunately it cause
-simserial build error.  This patch fixes it.
+spin_lock_irqsave() required unsigned long.
 
-  arch/ia64/hp/sim/simserial.c: In function 'rs_flush_buffer':
-  arch/ia64/hp/sim/simserial.c:357: error: 'struct tty_ldisc' has no member named 'write_wakeup'
-  arch/ia64/hp/sim/simserial.c:358: error: 'struct tty_ldisc' has no member named 'write_wakeup'
-  arch/ia64/hp/sim/simserial.c: In function 'rs_close':
-  arch/ia64/hp/sim/simserial.c:628: error: 'struct tty_ldisc' has no member named 'flush_buffer'
-  arch/ia64/hp/sim/simserial.c:628: error: 'struct tty_ldisc' has no member named 'flush_buffer'
-  arch/ia64/hp/sim/simserial.c: At top level:
-  arch/ia64/hp/sim/simserial.c:958: warning: initialization from incompatible pointer type
+  drivers/ata/ahci.c: In function 'ahci_transmit_led_message':
+  drivers/ata/ahci.c:1287: warning: comparison of distinct pointer types lacks a cast
+  drivers/ata/ahci.c:1295: warning: comparison of distinct pointer types lacks a cast
+  drivers/ata/ahci.c:1320: warning: comparison of distinct pointer types lacks a cast
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Alan Cox <alan@redhat.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Cc: Jeff Garzik <jgarzik@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/hp/sim/simserial.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ drivers/ata/ahci.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/ia64/hp/sim/simserial.c~ia64-hp-sim-simserialc-adapt-to-new-tty-framework arch/ia64/hp/sim/simserial.c
---- a/arch/ia64/hp/sim/simserial.c~ia64-hp-sim-simserialc-adapt-to-new-tty-framework
-+++ a/arch/ia64/hp/sim/simserial.c
-@@ -354,8 +354,8 @@ static void rs_flush_buffer(struct tty_s
- 	wake_up_interruptible(&tty->write_wait);
+diff -puN drivers/ata/ahci.c~ahci-use-correct-type-for-cpu-flags drivers/ata/ahci.c
+--- a/drivers/ata/ahci.c~ahci-use-correct-type-for-cpu-flags
++++ a/drivers/ata/ahci.c
+@@ -1273,7 +1273,7 @@ static ssize_t ahci_transmit_led_message
+ 	void __iomem *mmio = ap->host->iomap[AHCI_PCI_BAR];
+ 	u32 em_ctl;
+ 	u32 message[] = {0, 0};
+-	unsigned int flags;
++	unsigned long flags;
+ 	int pmp;
+ 	struct ahci_em_priv *emp;
  
- 	if ((tty->flags & (1 << TTY_DO_WRITE_WAKEUP)) &&
--	    tty->ldisc.write_wakeup)
--		(tty->ldisc.write_wakeup)(tty);
-+	    tty->ldisc.ops->write_wakeup)
-+		(tty->ldisc.ops->write_wakeup)(tty);
- }
- 
- /*
-@@ -407,8 +407,9 @@ static void rs_unthrottle(struct tty_str
- /*
-  * rs_break() --- routine which turns the break handling on or off
-  */
--static void rs_break(struct tty_struct *tty, int break_state)
-+static int rs_break(struct tty_struct *tty, int break_state)
- {
-+	return 0;
- }
- 
- static int rs_ioctl(struct tty_struct *tty, struct file * file,
-@@ -625,7 +626,8 @@ static void rs_close(struct tty_struct *
- 	shutdown(info);
- 	if (tty->ops->flush_buffer)
- 		tty->ops->flush_buffer(tty);
--	if (tty->ldisc.flush_buffer) tty->ldisc.flush_buffer(tty);
-+	if (tty->ldisc.ops->flush_buffer)
-+		tty->ldisc.ops->flush_buffer(tty);
- 	info->event = 0;
- 	info->tty = NULL;
- 	if (info->blocked_open) {
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
 ia64-hp-sim-simserialc-adapt-to-new-tty-framework.patch
+ahci-use-correct-type-for-cpu-flags.patch
 page-allocator-inlnie-some-__alloc_pages-wrappers.patch
 page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
 mm-hugetlbc-fix-duplicate-variable.patch
