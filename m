@@ -1,96 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: - mtd-m25p80-fix-bug-atmel-spi-flash-fails-to-be-copied-to.patch removed from -mm tree
-Date: Mon, 14 Jul 2008 12:36:08 -0700
-Message-ID: <200807141936.m6EJa8kx024065@imap1.linux-foundation.org>
+Subject: - pm-ahci-speed-up-resume.patch removed from -mm tree
+Date: Mon, 14 Jul 2008 12:36:13 -0700
+Message-ID: <200807141936.m6EJaDZ8024071@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58243 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41668 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755430AbYGNTgZ (ORCPT
+	by vger.kernel.org with ESMTP id S1754744AbYGNTgi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Jul 2008 15:36:25 -0400
+	Mon, 14 Jul 2008 15:36:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: michael.hennerich@analog.com, cooloney@kernel.org, dwmw2@infradead.org, mm-commits@vger.kernel.org
+To: rui.zhang@intel.com, jeff@garzik.org, pavel@ucw.cz, rjw@sisk.pl, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mtd m25p80: fix bug - ATmel spi flash fails to be copied to
+     pm: ahci: speed up resume
 has been removed from the -mm tree.  Its filename was
-     mtd-m25p80-fix-bug-atmel-spi-flash-fails-to-be-copied-to.patch
+     pm-ahci-speed-up-resume.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd m25p80: fix bug - ATmel spi flash fails to be copied to
-From: Michael Hennerich <michael.hennerich@analog.com>
+Subject: pm: ahci: speed up resume
+From: Zhang Rui <rui.zhang@intel.com>
 
-Atmel serial flash tends to power up with the protection status bits set.
-http://blackfin.uclinux.org/gf/project/uclinux-dist/tracker/?action=TrackerItemEdit&tracker_item_id=4089
+During resume, sleep 1 second to wait for the HBA reset to finish is a waste
+of time.
 
-[michael.hennerich@analog.com: remove duplicate code]
-Signed-off-by: Michael Hennerich <michael.hennerich@analog.com>
-Signed-off-by: Bryan Wu <cooloney@kernel.org>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Signed-off-by: Michael Hennerich <michael.hennerich@analog.com>
+According to the AHCI 1.2 spec, We should poll the HOST_CTL register, and
+return error if the host reset is not finished within 1 second.
+
+Test results show that the HBA reset can be done quickly(in usecs).  And this
+patch may save nearly 1 second during resume.
+
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+Acked-by: Tejun Heo <tj@kernel.org>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Jeff Garzik <jeff@garzik.org>
+Acked-by: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/devices/m25p80.c |   22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ drivers/ata/ahci.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN drivers/mtd/devices/m25p80.c~mtd-m25p80-fix-bug-atmel-spi-flash-fails-to-be-copied-to drivers/mtd/devices/m25p80.c
---- a/drivers/mtd/devices/m25p80.c~mtd-m25p80-fix-bug-atmel-spi-flash-fails-to-be-copied-to
-+++ a/drivers/mtd/devices/m25p80.c
-@@ -33,6 +33,7 @@
- /* Flash opcodes. */
- #define	OPCODE_WREN		0x06	/* Write enable */
- #define	OPCODE_RDSR		0x05	/* Read status register */
-+#define	OPCODE_WRSR		0x01	/* Write status register 1 byte */
- #define	OPCODE_NORM_READ	0x03	/* Read data bytes (low frequency) */
- #define	OPCODE_FAST_READ	0x0b	/* Read data bytes (high frequency) */
- #define	OPCODE_PP		0x02	/* Page program (up to 256 bytes) */
-@@ -112,6 +113,17 @@ static int read_sr(struct m25p *flash)
- 	return val;
- }
+diff -puN drivers/ata/ahci.c~pm-ahci-speed-up-resume drivers/ata/ahci.c
+--- a/drivers/ata/ahci.c~pm-ahci-speed-up-resume
++++ a/drivers/ata/ahci.c
+@@ -1142,12 +1142,15 @@ static int ahci_reset_controller(struct 
+ 			readl(mmio + HOST_CTL); /* flush */
+ 		}
  
-+/*
-+ * Write status register 1 byte
-+ * Returns negative if error occurred.
-+ */
-+static int write_sr(struct m25p *flash, u8 val)
-+{
-+	flash->command[0] = OPCODE_WRSR;
-+	flash->command[1] = val;
-+
-+	return spi_write(flash->spi, flash->command, 2);
-+}
+-		/* reset must complete within 1 second, or
++		/*
++		 * to perform host reset, OS should set HOST_RESET
++		 * and poll until this bit is read to be "0".
++		 * reset must complete within 1 second, or
+ 		 * the hardware should be considered fried.
+ 		 */
+-		ssleep(1);
++		tmp = ata_wait_register(mmio + HOST_CTL, HOST_RESET,
++					HOST_RESET, 10, 1000);
  
- /*
-  * Set write enable latch with Write Enable command.
-@@ -589,6 +601,16 @@ static int __devinit m25p_probe(struct s
- 	mutex_init(&flash->lock);
- 	dev_set_drvdata(&spi->dev, flash);
- 
-+	/*
-+	 * Atmel serial flash tend to power up
-+	 * with the software protection bits set
-+	 */
-+
-+	if (info->jedec_id >> 16 == 0x1f) {
-+		write_enable(flash);
-+		write_sr(flash, 0);
-+	}
-+
- 	if (data && data->name)
- 		flash->mtd.name = data->name;
- 	else
+-		tmp = readl(mmio + HOST_CTL);
+ 		if (tmp & HOST_RESET) {
+ 			dev_printk(KERN_ERR, host->dev,
+ 				   "controller reset failed (0x%x)\n", tmp);
 _
 
-Patches currently in -mm which might be from michael.hennerich@analog.com are
+Patches currently in -mm which might be from rui.zhang@intel.com are
 
 linux-next.patch
-input-touchscreen-driver-add-support-ad7877-touchscreen-driver.patch
+pm-introduce-new-interfaces-schedule_work_on-and-queue_work_on.patch
+pm-introduce-new-interfaces-schedule_work_on-and-queue_work_on-cleanup.patch
+pm-schedule-sysrq-poweroff-on-boot-cpu.patch
+pm-schedule-sysrq-poweroff-on-boot-cpu-fix.patch
+dcdbas-use-memory_read_from_buffer.patch
+dell_rbu-use-memory_read_from_buffer.patch
 
