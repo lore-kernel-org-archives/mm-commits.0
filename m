@@ -1,150 +1,139 @@
 From: akpm@linux-foundation.org
-Subject: - xfs-fix-disabled-xfs-posix-acl-handling.patch removed from -mm tree
-Date: Sun, 13 Jul 2008 21:35:53 -0700
-Message-ID: <200807140435.m6E4Zrmn022440@imap1.linux-foundation.org>
+Subject: + pm-schedule-sysrq-poweroff-on-boot-cpu-fix.patch added to -mm tree
+Date: Mon, 14 Jul 2008 00:37:45 -0700
+Message-ID: <200807140737.m6E7bjjk028817@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57550 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60468 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752036AbYGNEgd (ORCPT
+	by vger.kernel.org with ESMTP id S1755006AbYGNHiq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Jul 2008 00:36:33 -0400
+	Mon, 14 Jul 2008 03:38:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, david@fromorbit.com, hch@lst.de, lachlan@sgi.com, tes@sgi.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: kosaki.motohiro@jp.fujitsu.com, harbour@sfinx.od.ua, pavel@ucw.cz, rjw@sisk.pl, rui.zhang@intel.com
 
 
 The patch titled
-     xfs: fix disabled XFS POSIX ACL handling
-has been removed from the -mm tree.  Its filename was
-     xfs-fix-disabled-xfs-posix-acl-handling.patch
+     pm-schedule-sysrq-poweroff-on-boot-cpu fix
+has been added to the -mm tree.  Its filename is
+     pm-schedule-sysrq-poweroff-on-boot-cpu-fix.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: xfs: fix disabled XFS POSIX ACL handling
-From: David Howells <dhowells@redhat.com>
+Subject: pm-schedule-sysrq-poweroff-on-boot-cpu fix
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Fix XFS POSIX ACL handling when it's not enabled.  xfs_decode_acl() refers to
-return types that aren't defined under those circumstances.
+My IA64 machine can't build on today's mmotm(Jul 13).
+So, below patch is necessary, I think.
 
-Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Timothy Shimmin <tes@sgi.com>
-Cc: Lachlan McIlroy <lachlan@sgi.com>
-Cc: Christoph Hellwig <hch@lst.de>
+----------------------------------------------------
+Against: mmotm, Jul 13
+Applies after: pm-schedule-sysrq-poweroff-on-boot-cpu.patch
+
+Now, handle_poweroff() use cpu_online_map variable.
+So cpumask.h sould be included.
+Otherwise it cause following build error on ia64 (I guess also sevaral othor platfom).
+
+	kernel/power/poweroff.c: In function 'handle_poweroff':
+	kernel/power/poweroff.c:29: error: implicit declaration of function 'first_cpu'
+	kernel/power/poweroff.c:29: error: 'cpu_online_map' undeclared (first use in this function)
+	kernel/power/poweroff.c:29: error: (Each undeclared identifier is reported only once
+	kernel/power/poweroff.c:29: error: for each function it appears in.)
+	make[2]: *** [kernel/power/poweroff.o] Error 1
+	make[1]: *** [kernel/power] Error 2
+
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Zhang Rui <rui.zhang@intel.com>
+Cc: Rus <harbour@sfinx.od.ua>
+Cc: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xfs/linux-2.6/xfs_xattr.c |   14 --------------
- fs/xfs/xfs_acl.c             |   13 +++++++++++++
- fs/xfs/xfs_acl.h             |    2 ++
- 3 files changed, 15 insertions(+), 14 deletions(-)
+ kernel/power/poweroff.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/xfs/linux-2.6/xfs_xattr.c~xfs-fix-disabled-xfs-posix-acl-handling fs/xfs/linux-2.6/xfs_xattr.c
---- a/fs/xfs/linux-2.6/xfs_xattr.c~xfs-fix-disabled-xfs-posix-acl-handling
-+++ a/fs/xfs/linux-2.6/xfs_xattr.c
-@@ -30,20 +30,6 @@
- 
- 
- /*
-- * ACL handling.  Should eventually be moved into xfs_acl.c
-- */
--
--static int
--xfs_decode_acl(const char *name)
--{
--	if (strcmp(name, "posix_acl_access") == 0)
--		return _ACL_TYPE_ACCESS;
--	else if (strcmp(name, "posix_acl_default") == 0)
--		return _ACL_TYPE_DEFAULT;
--	return -EINVAL;
--}
--
--/*
-  * Get system extended attributes which at the moment only
-  * includes Posix ACLs.
-  */
-diff -puN fs/xfs/xfs_acl.c~xfs-fix-disabled-xfs-posix-acl-handling fs/xfs/xfs_acl.c
---- a/fs/xfs/xfs_acl.c~xfs-fix-disabled-xfs-posix-acl-handling
-+++ a/fs/xfs/xfs_acl.c
-@@ -51,6 +51,19 @@ kmem_zone_t *xfs_acl_zone;
- 
+diff -puN kernel/power/poweroff.c~pm-schedule-sysrq-poweroff-on-boot-cpu-fix kernel/power/poweroff.c
+--- a/kernel/power/poweroff.c~pm-schedule-sysrq-poweroff-on-boot-cpu-fix
++++ a/kernel/power/poweroff.c
+@@ -10,6 +10,7 @@
+ #include <linux/pm.h>
+ #include <linux/workqueue.h>
+ #include <linux/reboot.h>
++#include <linux/cpumask.h>
  
  /*
-+ * ACL handling.
-+ */
-+int
-+xfs_decode_acl(const char *name)
-+{
-+	if (strcmp(name, "posix_acl_access") == 0)
-+		return _ACL_TYPE_ACCESS;
-+	else if (strcmp(name, "posix_acl_default") == 0)
-+		return _ACL_TYPE_DEFAULT;
-+	return -EINVAL;
-+}
-+
-+/*
-  * Test for existence of access ACL attribute as efficiently as possible.
-  */
- int
-diff -puN fs/xfs/xfs_acl.h~xfs-fix-disabled-xfs-posix-acl-handling fs/xfs/xfs_acl.h
---- a/fs/xfs/xfs_acl.h~xfs-fix-disabled-xfs-posix-acl-handling
-+++ a/fs/xfs/xfs_acl.h
-@@ -59,6 +59,7 @@ extern struct kmem_zone *xfs_acl_zone;
- 		(zone) = kmem_zone_init(sizeof(xfs_acl_t), (name))
- #define xfs_acl_zone_destroy(zone)	kmem_zone_destroy(zone)
- 
-+extern int xfs_decode_acl(const char *);
- extern int xfs_acl_inherit(bhv_vnode_t *, mode_t mode, xfs_acl_t *);
- extern int xfs_acl_iaccess(struct xfs_inode *, mode_t, cred_t *);
- extern int xfs_acl_vtoacl(bhv_vnode_t *, xfs_acl_t *, xfs_acl_t *);
-@@ -80,6 +81,7 @@ extern int xfs_acl_vremove(bhv_vnode_t *
- #define _ACL_FREE(a)		((a)? kmem_zone_free(xfs_acl_zone, (a)):(void)0)
- 
- #else
-+#define xfs_decode_acl(name)	(-EINVAL)
- #define xfs_acl_zone_init(zone,name)
- #define xfs_acl_zone_destroy(zone)
- #define xfs_acl_vset(v,p,sz,t)	(-EOPNOTSUPP)
+  * When the user hits Sys-Rq o to power down the machine this is the
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
-origin.patch
-linux-next.patch
-acpi-fix-a-cast-of-a-32-bit-int-to-a-pointer.patch
-calgary-fix-a-comparison-warning-the-pci-calgary-64-driver.patch
-cifs-fix-range-check.patch
-sis-drm-fix-the-memory-allocator-if-the-sis-fb-is-built-as-a-module.patch
-sis-drm-fix-a-pointer-cast-warning.patch
-ivtv-framebuffer-driver-fix-pointer-cast-warnings.patch
-drx397xd-demodulator-driver-fix-a-const-pointer-assignment.patch
-mtd-fix-const-assignment-in-the-command-line-partitioning-driver.patch
-netfilter-fix-xt_times-time_mts-use-of-do_div.patch
-atm-fix-const-assignment-discard-warnings-in-the-atm-networking-driver.patch
-atm-fix-direct-casts-of-pointers-to-u32-in-the-interphase-driver.patch
-hysdn-remove-the-packed-attribute-from-poftimstamp_tag.patch
-sched-fix-inc_rt_tasks-to-not-declare-variable-rq-if-its-not-needed.patch
-git-unionfs.patch
-xfs-fix-disabled-xfs-posix-acl-handling.patch
-clocksource-fix-a-print-format-error-in-the-acpi-pm-clocksource-driver-and-check-range.patch
-x86-pci-fix-pci_subsys_init-to-have-a-return-value.patch
-pm-fix-try_to_freeze_taskss-use-of-do_div.patch
-mn10300-move-sg_dma_addresslen-to-asm-scatterlisth.patch
-inflate-refactor-inflate-malloc-code.patch
-inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
-pnpacpi-fix-pnpacpi_parse_irq_options-test-against-pnp_irq_nr.patch
-pnp-fix-the-fcpnp_driver-declaration-to-only-exist-if-config_pnp=y.patch
-include-asm-ptraceh-userspace-headers-cleanup.patch
-sdio-fix-break-control-to-now-return-success-or-an-error.patch
-mn10300-fix-mn10300s-serial-port-driver-to-get-at-its-tty_struct.patch
-ip2-fix-iielliscleanup-as-it-is-static-but-not-always-used.patch
-stallion-fix-the-istallion-drivers-putchar-and-break_ctl-ops.patch
-tsacct-fix-bacct_add_tsks-use-of-do_div.patch
-frv-use-the-common-ascii-hex-helpers.patch
-mn10300-use-the-common-ascii-hex-helpers.patch
-mutex-subsystem-synchro-test-module.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+mm-hugetlbc-fix-duplicate-variable.patch
+page-flags-record-page-flag-overlays-explicitly.patch
+slub-record-page-flag-overlays-explicitly.patch
+slob-record-page-flag-overlays-explicitly.patch
+pm-schedule-sysrq-poweroff-on-boot-cpu-fix.patch
+call_usermodehelper-increase-reliability.patch
+cgroup-list_for_each-cleanup-v2.patch
+cgroup-anotate-two-variables-with-__read_mostly.patch
+memcg-remove-refcnt-from-page_cgroup-fix-memcg-fix-mem_cgroup_end_migration-race.patch
+memcg-remove-refcnt-from-page_cgroup-memcg-fix-shmem_unuse_inode-charging.patch
+memcg-handle-swap-cache-fix-shmem-page-migration-incorrectness-on-memcgroup.patch
+memcg-clean-up-checking-of-the-disabled-flag.patch
+memcg-clean-up-checking-of-the-disabled-flag-memcg-further-checking-of-disabled-flag.patch
+per-task-delay-accounting-update-document-and-getdelaysc-for-memory-reclaim.patch
+full-conversion-to-early_initcall-interface-remove-old-interface-fix-fix.patch
+relay-add-buffer-only-channels-useful-for-early-logging-fix.patch
+mm-speculative-page-references-fix-migration_entry_wait-for-speculative-page-cache.patch
+vmscan-use-an-indexed-array-for-lru-variables.patch
+swap-use-an-array-for-the-lru-pagevecs.patch
+define-page_file_cache-function-fix-splitlru-shmem_getpage-setpageswapbacked-sooner.patch
+vmscan-split-lru-lists-into-anon-file-sets-collect-lru-meminfo-statistics-from-correct-offset.patch
+vmscan-split-lru-lists-into-anon-file-sets-prevent-incorrect-oom-under-split_lru.patch
+vmscan-split-lru-lists-into-anon-file-sets-split_lru-fix-pagevec_move_tail-doesnt-treat-unevictable-page.patch
+vmscan-split-lru-lists-into-anon-file-sets-splitlru-memcg-swapbacked-pages-active.patch
+vmscan-split-lru-lists-into-anon-file-sets-splitlru-bdi_cap_swap_backed.patch
+vmscan-second-chance-replacement-for-anonymous-pages.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-infrastructure-fix.patch
+unevictable-lru-infrastructure-remove-redundant-page-mapping-check.patch
+unevictable-lru-page-statistics.patch
+unevictable-lru-page-statistics-fix-printk-in-show_free_areas.patch
+unevictable-lru-page-statistics-units-fix.patch
+shm_locked-pages-are-unevictable.patch
+mlock-mlocked-pages-are-unevictable.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-3.patch
+mlock-mlocked-pages-are-unevictable-fix-fix-munlock-page-table-walk-now-requires-mm.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+fix-double-unlock_page-in-2626-rc5-mm3-kernel-bug-at-mm-filemapc-575.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
+vmstat-mlocked-pages-statistics.patch
+vmstat-mlocked-pages-statistics-fix-incorrect-mlocked-field-of-proc-meminfo.patch
+vmstat-mlocked-pages-statistics-fix.patch
+swap-cull-unevictable-pages-in-fault-path-fix.patch
+vmstat-unevictable-and-mlocked-pages-vm-events.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
+vmscam-kill-unused-lru-functions.patch
+make-mm-memoryc-print_bad_pte-static.patch
+mm-swapfilec-make-code-static.patch
+make-mm-rmapc-anon_vma_cachep-static.patch
 
