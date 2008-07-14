@@ -1,91 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-media-video-videobuf-dma-sgc-avoid-clearing-memory-twice.patch removed from -mm tree
-Date: Mon, 14 Jul 2008 12:35:26 -0700
-Message-ID: <200807141935.m6EJZQg7023920@imap1.linux-foundation.org>
+Subject: - ivtv-framebuffer-driver-fix-pointer-cast-warnings.patch removed from -mm tree
+Date: Mon, 14 Jul 2008 12:35:30 -0700
+Message-ID: <200807141935.m6EJZUZd023926@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37739 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57963 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754961AbYGNTfb (ORCPT
+	by vger.kernel.org with ESMTP id S1756283AbYGNTfw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Jul 2008 15:35:31 -0400
+	Mon, 14 Jul 2008 15:35:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jaillet.christophe@wanadoo.fr, mchehab@infradead.org, mm-commits@vger.kernel.org
+To: dhowells@redhat.com, hverkuil@xs4all.nl, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/media/video/videobuf-dma-sg.c: avoid clearing memory twice
+     ivtv framebuffer driver: fix pointer cast warnings
 has been removed from the -mm tree.  Its filename was
-     drivers-media-video-videobuf-dma-sgc-avoid-clearing-memory-twice.p=
-atch
+     ivtv-framebuffer-driver-fix-pointer-cast-warnings.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/media/video/videobuf-dma-sg.c: avoid clearing memory t=
-wice
-=46rom: Christophe Jaillet <jaillet.christophe@wanadoo.fr>
+Subject: ivtv framebuffer driver: fix pointer cast warnings
+From: David Howells <dhowells@redhat.com>
 
-1) Remove a useless initialisation of 'i'
+Fix casts of pointers to integers of different sizes in the ivtv framebuffer
+driver.
 
-2) Avoid clearing the memory allocated twice (once in 'kcalloc', once
-   in 'sg_init_table')
+These were introduced in patch 38eb6ba5b8487d15b020fe391d324edd2b659b03.
 
-3) Remove a test that can never trigger.  The function returns NULL in
-   such a case, so we know that at this point '=EF=BB=BFpages[0]' !=3D =
-NULL
-
-Signed-off-by: Christophe Jaillet <jaillet.christophe@wanadoo.fr>
+Signed-off-by: David Howells <dhowells@redhat.com>
+Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
 Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/videobuf-dma-sg.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ drivers/media/video/ivtv/ivtvfb.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/media/video/videobuf-dma-sg.c~drivers-media-video-vid=
-eobuf-dma-sgc-avoid-clearing-memory-twice drivers/media/video/videobuf-=
-dma-sg.c
---- a/drivers/media/video/videobuf-dma-sg.c~drivers-media-video-videobu=
-f-dma-sgc-avoid-clearing-memory-twice
-+++ a/drivers/media/video/videobuf-dma-sg.c
-@@ -80,17 +80,15 @@ struct scatterlist*
- videobuf_pages_to_sg(struct page **pages, int nr_pages, int offset)
- {
- 	struct scatterlist *sglist;
--	int i =3D 0;
-+	int i;
-=20
- 	if (NULL =3D=3D pages[0])
- 		return NULL;
--	sglist =3D kcalloc(nr_pages, sizeof(*sglist), GFP_KERNEL);
-+	sglist =3D kmalloc(nr_pages * sizeof(*sglist), GFP_KERNEL);
- 	if (NULL =3D=3D sglist)
- 		return NULL;
- 	sg_init_table(sglist, nr_pages);
-=20
--	if (NULL =3D=3D pages[0])
--		goto nopage;
- 	if (PageHighMem(pages[0]))
- 		/* DMA to highmem pages might not work */
- 		goto highmem;
+diff -puN drivers/media/video/ivtv/ivtvfb.c~ivtv-framebuffer-driver-fix-pointer-cast-warnings drivers/media/video/ivtv/ivtvfb.c
+--- a/drivers/media/video/ivtv/ivtvfb.c~ivtv-framebuffer-driver-fix-pointer-cast-warnings
++++ a/drivers/media/video/ivtv/ivtvfb.c
+@@ -417,10 +417,11 @@ static ssize_t ivtvfb_write(struct fb_in
+ 	if (!err) {
+ 		/* If transfer size > threshold and both src/dst
+ 		addresses are aligned, use DMA */
+-		if (count >= 4096 && ((u32)buf & 3) == ((u32)dst & 3)) {
++		if (count >= 4096 &&
++		    ((unsigned long)buf & 3) == ((unsigned long)dst & 3)) {
+ 			/* Odd address = can't DMA. Align */
+-			if ((u32)dst & 3) {
+-				lead = 4 - ((u32)dst & 3);
++			if ((unsigned long)dst & 3) {
++				lead = 4 - ((unsigned long)dst & 3);
+ 				memcpy(dst, buf, lead);
+ 				buf += lead;
+ 				dst += lead;
 _
 
-Patches currently in -mm which might be from jaillet.christophe@wanadoo=
-=2Efr are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
 linux-next.patch
+acpi-fix-a-cast-of-a-32-bit-int-to-a-pointer.patch
+calgary-fix-a-comparison-warning-the-pci-calgary-64-driver.patch
+cifs-fix-range-check.patch
+sis-drm-fix-the-memory-allocator-if-the-sis-fb-is-built-as-a-module.patch
+sis-drm-fix-a-pointer-cast-warning.patch
+netfilter-fix-xt_times-time_mts-use-of-do_div.patch
+atm-fix-const-assignment-discard-warnings-in-the-atm-networking-driver.patch
+atm-fix-direct-casts-of-pointers-to-u32-in-the-interphase-driver.patch
+hysdn-remove-the-packed-attribute-from-poftimstamp_tag.patch
+sched-fix-inc_rt_tasks-to-not-declare-variable-rq-if-its-not-needed.patch
+git-unionfs.patch
+clocksource-fix-a-print-format-error-in-the-acpi-pm-clocksource-driver-and-check-range.patch
+pm-fix-try_to_freeze_taskss-use-of-do_div.patch
+mn10300-move-sg_dma_addresslen-to-asm-scatterlisth.patch
+inflate-refactor-inflate-malloc-code.patch
+inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
+pnpacpi-fix-pnpacpi_parse_irq_options-test-against-pnp_irq_nr.patch
+pnp-fix-the-fcpnp_driver-declaration-to-only-exist-if-config_pnp=y.patch
+include-asm-ptraceh-userspace-headers-cleanup.patch
+sdio-fix-break-control-to-now-return-success-or-an-error.patch
+mn10300-fix-mn10300s-serial-port-driver-to-get-at-its-tty_struct.patch
+ip2-fix-iielliscleanup-as-it-is-static-but-not-always-used.patch
+stallion-fix-the-istallion-drivers-putchar-and-break_ctl-ops.patch
+tsacct-fix-bacct_add_tsks-use-of-do_div.patch
+frv-use-the-common-ascii-hex-helpers.patch
+mn10300-use-the-common-ascii-hex-helpers.patch
+mutex-subsystem-synchro-test-module.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
