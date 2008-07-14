@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - mtd-mtdcharc-remove-shadowed-variable-warnings.patch removed from -mm tree
-Date: Mon, 14 Jul 2008 12:35:37 -0700
-Message-ID: <200807141935.m6EJZbl6023936@imap1.linux-foundation.org>
+Subject: - mtd-mtdcharc-silence-sparse-warning.patch removed from -mm tree
+Date: Mon, 14 Jul 2008 12:35:35 -0700
+Message-ID: <200807141935.m6EJZZNY023932@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33715 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51848 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755053AbYGNTfk (ORCPT
+	by vger.kernel.org with ESMTP id S1754993AbYGNTfk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 14 Jul 2008 15:35:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,94 +15,56 @@ To: harvey.harrison@gmail.com, dwmw2@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mtd: mtdchar.c remove shadowed variable warnings
+     mtd: mtdchar.c silence sparse warning
 has been removed from the -mm tree.  Its filename was
-     mtd-mtdcharc-remove-shadowed-variable-warnings.patch
+     mtd-mtdcharc-silence-sparse-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd: mtdchar.c remove shadowed variable warnings
+Subject: mtd: mtdchar.c silence sparse warning
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Use einfo, oinfo for the inner erase_info and otp_info structs used in
-individual case statements.
+The copy_to_user was casting away the address space to get the offset of
+the length member.  Use offsetof() instead and add it to the void __user
+*argp.
 
-drivers/mtd/mtdchar.c:582:26: warning: symbol 'info' shadows an earlier one
-drivers/mtd/mtdchar.c:380:23: originally declared here
-drivers/mtd/mtdchar.c:596:26: warning: symbol 'info' shadows an earlier one
-drivers/mtd/mtdchar.c:380:23: originally declared here
-drivers/mtd/mtdchar.c:704:19: warning: symbol 'info' shadows an earlier one
-drivers/mtd/mtdchar.c:380:23: originally declared here
+drivers/mtd/mtdchar.c:527:23: warning: cast removes address space of expression
+drivers/mtd/mtdchar.c:527:23: warning: incorrect type in argument 1 (different address spaces)
+drivers/mtd/mtdchar.c:527:23:    expected void [noderef] <asn:1>*to
+drivers/mtd/mtdchar.c:527:23:    got unsigned int *<noident>
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/mtdchar.c |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ drivers/mtd/mtdchar.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/mtd/mtdchar.c~mtd-mtdcharc-remove-shadowed-variable-warnings drivers/mtd/mtdchar.c
---- a/drivers/mtd/mtdchar.c~mtd-mtdcharc-remove-shadowed-variable-warnings
+diff -puN drivers/mtd/mtdchar.c~mtd-mtdcharc-silence-sparse-warning drivers/mtd/mtdchar.c
+--- a/drivers/mtd/mtdchar.c~mtd-mtdcharc-silence-sparse-warning
 +++ a/drivers/mtd/mtdchar.c
-@@ -590,29 +590,29 @@ static int mtd_ioctl(struct inode *inode
- 
- 	case MEMLOCK:
+@@ -492,6 +492,7 @@ static int mtd_ioctl(struct inode *inode
  	{
--		struct erase_info_user info;
-+		struct erase_info_user einfo;
+ 		struct mtd_oob_buf buf;
+ 		struct mtd_oob_ops ops;
++		struct mtd_oob_buf __user *user_buf = argp;
+ 	        uint32_t retlen;
  
--		if (copy_from_user(&info, argp, sizeof(info)))
-+		if (copy_from_user(&einfo, argp, sizeof(einfo)))
- 			return -EFAULT;
+ 		if(!(file->f_mode & 2))
+@@ -535,8 +536,7 @@ static int mtd_ioctl(struct inode *inode
+ 		if (ops.oobretlen > 0xFFFFFFFFU)
+ 			ret = -EOVERFLOW;
+ 		retlen = ops.oobretlen;
+-		if (copy_to_user(&((struct mtd_oob_buf *)argp)->length,
+-				 &retlen, sizeof(buf.length)))
++		if (copy_to_user(&user_buf->length, &retlen, sizeof(buf.length)))
+ 			ret = -EFAULT;
  
- 		if (!mtd->lock)
- 			ret = -EOPNOTSUPP;
- 		else
--			ret = mtd->lock(mtd, info.start, info.length);
-+			ret = mtd->lock(mtd, einfo.start, einfo.length);
- 		break;
- 	}
- 
- 	case MEMUNLOCK:
- 	{
--		struct erase_info_user info;
-+		struct erase_info_user einfo;
- 
--		if (copy_from_user(&info, argp, sizeof(info)))
-+		if (copy_from_user(&einfo, argp, sizeof(einfo)))
- 			return -EFAULT;
- 
- 		if (!mtd->unlock)
- 			ret = -EOPNOTSUPP;
- 		else
--			ret = mtd->unlock(mtd, info.start, info.length);
-+			ret = mtd->unlock(mtd, einfo.start, einfo.length);
- 		break;
- 	}
- 
-@@ -712,15 +712,15 @@ static int mtd_ioctl(struct inode *inode
- 
- 	case OTPLOCK:
- 	{
--		struct otp_info info;
-+		struct otp_info oinfo;
- 
- 		if (mfi->mode != MTD_MODE_OTP_USER)
- 			return -EINVAL;
--		if (copy_from_user(&info, argp, sizeof(info)))
-+		if (copy_from_user(&oinfo, argp, sizeof(oinfo)))
- 			return -EFAULT;
- 		if (!mtd->lock_user_prot_reg)
- 			return -EOPNOTSUPP;
--		ret = mtd->lock_user_prot_reg(mtd, info.start, info.length);
-+		ret = mtd->lock_user_prot_reg(mtd, oinfo.start, oinfo.length);
- 		break;
- 	}
- #endif
+ 		kfree(ops.oobbuf);
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
