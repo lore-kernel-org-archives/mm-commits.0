@@ -1,85 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: - x86-pci-fix-pci_subsys_init-to-have-a-return-value.patch removed from -mm tree
-Date: Mon, 14 Jul 2008 12:36:11 -0700
-Message-ID: <200807141936.m6EJaB4s024068@imap1.linux-foundation.org>
+Subject: - sched_clock-record-from-last-tick.patch removed from -mm tree
+Date: Mon, 14 Jul 2008 12:35:56 -0700
+Message-ID: <200807141935.m6EJZusY023977@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46910 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39533 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755406AbYGNTgj (ORCPT
+	by vger.kernel.org with ESMTP id S1755482AbYGNTgn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Jul 2008 15:36:39 -0400
+	Mon, 14 Jul 2008 15:36:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, jbarnes@virtuousgeek.org, mingo@elte.hu, mm-commits@vger.kernel.org
+To: rostedt@goodmis.org, mingo@elte.hu, peterz@infradead.org, srostedt@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86 pci: fix pci_subsys_init() to have a return value
+     sched_clock: record from last tick
 has been removed from the -mm tree.  Its filename was
-     x86-pci-fix-pci_subsys_init-to-have-a-return-value.patch
+     sched_clock-record-from-last-tick.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86 pci: fix pci_subsys_init() to have a return value
-From: David Howells <dhowells@redhat.com>
+Subject: sched_clock: record from last tick
+From: Steven Rostedt <rostedt@goodmis.org>
 
-Fix pci_subsys_init() to return a value (0) when it has finished.  All the
-functions it calls currently return 0, so returning 0 here unconditionally
-rather than gathering the results of its callees would seem reasonable.
+The sched_clock code tries to keep within the gtod time by one tick
+(jiffy).  The current code mistakenly keeps track of the delta jiffies
+between updates of the clock, where the the delta is used to compare with
+the number of jiffies that have past since an update of the gtod.  The
+gtod is updated at each schedule tick not each sched_clock update.  After
+one jiffy passes the clock is updated fine.  But the delta is taken from
+the last update so if the next update happens before the next tick the
+delta jiffies used will be incorrect.
 
-Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+This patch changes the code to check the delta of jiffies between ticks
+and not updates to match the comparison of the updates with the gtod.
+
+Signed-off-by: Steven Rostedt <srostedt@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/pci/legacy.c |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/sched_clock.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN arch/x86/pci/legacy.c~x86-pci-fix-pci_subsys_init-to-have-a-return-value arch/x86/pci/legacy.c
---- a/arch/x86/pci/legacy.c~x86-pci-fix-pci_subsys_init-to-have-a-return-value
-+++ a/arch/x86/pci/legacy.c
-@@ -63,5 +63,6 @@ int __init pci_subsys_init(void)
- 	pci_legacy_init();
- 	pcibios_irq_init();
- 	pcibios_init();
-+	return 0;
+diff -puN kernel/sched_clock.c~sched_clock-record-from-last-tick kernel/sched_clock.c
+--- a/kernel/sched_clock.c~sched_clock-record-from-last-tick
++++ a/kernel/sched_clock.c
+@@ -40,7 +40,7 @@ struct sched_clock_data {
+ 	 */
+ 	raw_spinlock_t		lock;
+ 
+-	unsigned long		prev_jiffies;
++	unsigned long		tick_jiffies;
+ 	u64			prev_raw;
+ 	u64			tick_raw;
+ 	u64			tick_gtod;
+@@ -71,7 +71,7 @@ void sched_clock_init(void)
+ 		struct sched_clock_data *scd = cpu_sdc(cpu);
+ 
+ 		scd->lock = (raw_spinlock_t)__RAW_SPIN_LOCK_UNLOCKED;
+-		scd->prev_jiffies = now_jiffies;
++		scd->tick_jiffies = now_jiffies;
+ 		scd->prev_raw = 0;
+ 		scd->tick_raw = 0;
+ 		scd->tick_gtod = ktime_now;
+@@ -90,7 +90,7 @@ void sched_clock_init(void)
+ static void __update_sched_clock(struct sched_clock_data *scd, u64 now)
+ {
+ 	unsigned long now_jiffies = jiffies;
+-	long delta_jiffies = now_jiffies - scd->prev_jiffies;
++	long delta_jiffies = now_jiffies - scd->tick_jiffies;
+ 	u64 clock = scd->clock;
+ 	u64 min_clock, max_clock;
+ 	s64 delta = now - scd->prev_raw;
+@@ -119,7 +119,6 @@ static void __update_sched_clock(struct 
+ 		clock = min_clock;
+ 
+ 	scd->prev_raw = now;
+-	scd->prev_jiffies = now_jiffies;
+ 	scd->clock = clock;
  }
- subsys_initcall(pci_subsys_init);
+ 
+@@ -179,6 +178,7 @@ u64 sched_clock_cpu(int cpu)
+ void sched_clock_tick(void)
+ {
+ 	struct sched_clock_data *scd = this_scd();
++	unsigned long now_jiffies = jiffies;
+ 	u64 now, now_gtod;
+ 
+ 	if (unlikely(!sched_clock_running))
+@@ -196,6 +196,7 @@ void sched_clock_tick(void)
+ 	 * already observe 1 new jiffy; adding a new tick_gtod to that would
+ 	 * increase the clock 2 jiffies.
+ 	 */
++	scd->tick_jiffies = now_jiffies;
+ 	scd->tick_raw = now;
+ 	scd->tick_gtod = now_gtod;
+ 	__raw_spin_unlock(&scd->lock);
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from rostedt@goodmis.org are
 
 linux-next.patch
-acpi-fix-a-cast-of-a-32-bit-int-to-a-pointer.patch
-calgary-fix-a-comparison-warning-the-pci-calgary-64-driver.patch
-cifs-fix-range-check.patch
-sis-drm-fix-the-memory-allocator-if-the-sis-fb-is-built-as-a-module.patch
-sis-drm-fix-a-pointer-cast-warning.patch
-netfilter-fix-xt_times-time_mts-use-of-do_div.patch
-atm-fix-const-assignment-discard-warnings-in-the-atm-networking-driver.patch
-atm-fix-direct-casts-of-pointers-to-u32-in-the-interphase-driver.patch
-hysdn-remove-the-packed-attribute-from-poftimstamp_tag.patch
-sched-fix-inc_rt_tasks-to-not-declare-variable-rq-if-its-not-needed.patch
-git-unionfs.patch
-clocksource-fix-a-print-format-error-in-the-acpi-pm-clocksource-driver-and-check-range.patch
-pm-fix-try_to_freeze_taskss-use-of-do_div.patch
-mn10300-move-sg_dma_addresslen-to-asm-scatterlisth.patch
-inflate-refactor-inflate-malloc-code.patch
-inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
-pnpacpi-fix-pnpacpi_parse_irq_options-test-against-pnp_irq_nr.patch
-pnp-fix-the-fcpnp_driver-declaration-to-only-exist-if-config_pnp=y.patch
-include-asm-ptraceh-userspace-headers-cleanup.patch
-sdio-fix-break-control-to-now-return-success-or-an-error.patch
-mn10300-fix-mn10300s-serial-port-driver-to-get-at-its-tty_struct.patch
-ip2-fix-iielliscleanup-as-it-is-static-but-not-always-used.patch
-stallion-fix-the-istallion-drivers-putchar-and-break_ctl-ops.patch
-tsacct-fix-bacct_add_tsks-use-of-do_div.patch
-frv-use-the-common-ascii-hex-helpers.patch
-mn10300-use-the-common-ascii-hex-helpers.patch
-mutex-subsystem-synchro-test-module.patch
+ftrace-disable-function-tracing-bringing-up-new-cpu.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
 
