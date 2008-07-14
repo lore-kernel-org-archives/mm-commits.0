@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + restore-patch-failure-of-vmstat-unevictable-and-mlocked-pages-vm-eventspatch.patch added to -mm tree
-Date: Mon, 14 Jul 2008 14:34:33 -0700
-Message-ID: <200807142134.m6ELYXv0028674@imap1.linux-foundation.org>
+Subject: + unevictable-lru-infrastructure-kill-unnecessary-lock_page-in-vmscanc.patch added to -mm tree
+Date: Mon, 14 Jul 2008 14:34:16 -0700
+Message-ID: <200807142134.m6ELYG4n028631@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45660 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46712 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756292AbYGNVeg (ORCPT
+	by vger.kernel.org with ESMTP id S1756584AbYGNVeq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Jul 2008 17:34:36 -0400
+	Mon, 14 Jul 2008 17:34:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com
+Cc: kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, riel@redhat.com
 
 
 The patch titled
-     vmstat-unevictable-and-mlocked-pages-vm-events: restore patch failure of vmstat-unevictable-and-mlocked-pages-vm-events.patch
+     unevictable-lru-infrastructure: kill unnecessary lock_page() in vmscan.c
 has been added to the -mm tree.  Its filename is
-     restore-patch-failure-of-vmstat-unevictable-and-mlocked-pages-vm-eventspatch.patch
+     unevictable-lru-infrastructure-kill-unnecessary-lock_page-in-vmscanc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,42 +34,66 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmstat-unevictable-and-mlocked-pages-vm-events: restore patch failure of vmstat-unevictable-and-mlocked-pages-vm-events.patch
+Subject: unevictable-lru-infrastructure: kill unnecessary lock_page() in vmscan.c
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-This patch restore it properly.
+Old version putback_lru_page need() page lock held.  but current one
+doesn't.
+
+So, several lock_page() can be removeed.
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ mm/vmscan.c |   20 ++------------------
+ 1 file changed, 2 insertions(+), 18 deletions(-)
 
-diff -puN mm/vmscan.c~restore-patch-failure-of-vmstat-unevictable-and-mlocked-pages-vm-eventspatch mm/vmscan.c
---- a/mm/vmscan.c~restore-patch-failure-of-vmstat-unevictable-and-mlocked-pages-vm-eventspatch
+diff -puN mm/vmscan.c~unevictable-lru-infrastructure-kill-unnecessary-lock_page-in-vmscanc mm/vmscan.c
+--- a/mm/vmscan.c~unevictable-lru-infrastructure-kill-unnecessary-lock_page-in-vmscanc
 +++ a/mm/vmscan.c
-@@ -483,7 +483,7 @@ int remove_mapping(struct address_space 
- void putback_lru_page(struct page *page)
- {
- 	int lru;
--	int ret = 1;
-+	int was_unevictable = PageUnevictable(page);
+@@ -545,22 +545,6 @@ void putback_lru_page(struct page *page)
  
- 	VM_BUG_ON(PageLRU(page));
  
-@@ -526,6 +526,11 @@ redo:
- 		 */
- 	}
+ /*
+- * Cull page that shrink_*_list() has detected to be unevictable
+- * under page lock to close races with other tasks that might be making
+- * the page evictable.  Avoid stranding an evictable page on the
+- * unevictable list.
+- */
+-static void cull_unevictable_page(struct page *page)
+-{
+-	get_page(page);
+-	lock_page(page);
+-	putback_lru_page(page);
+-	unlock_page(page);
+-	put_page(page);
+-}
+-
+-
+-/*
+  * shrink_page_list() returns the number of reclaimed pages
+  */
+ static unsigned long shrink_page_list(struct list_head *page_list,
+@@ -1119,7 +1103,7 @@ static unsigned long shrink_inactive_lis
+ 			list_del(&page->lru);
+ 			if (unlikely(!page_evictable(page, NULL))) {
+ 				spin_unlock_irq(&zone->lru_lock);
+-				cull_unevictable_page(page);
++				putback_lru_page(page);
+ 				spin_lock_irq(&zone->lru_lock);
+ 				continue;
+ 			}
+@@ -1223,7 +1207,7 @@ static void shrink_active_list(unsigned 
+ 		list_del(&page->lru);
  
-+	if (was_unevictable && lru != LRU_UNEVICTABLE)
-+		count_vm_event(NORECL_PGRESCUED);
-+	else if (!was_unevictable && lru == LRU_UNEVICTABLE)
-+		count_vm_event(NORECL_PGCULLED);
-+
- 	put_page(page);		/* drop ref from isolate */
- }
+ 		if (unlikely(!page_evictable(page, NULL))) {
+-			cull_unevictable_page(page);
++			putback_lru_page(page);
+ 			continue;
+ 		}
  
 _
 
