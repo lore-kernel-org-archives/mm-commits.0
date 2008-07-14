@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mlock-mlocked-pages-are-unevictable-fix-truncate-race-and-sevaral-comments.patch added to -mm tree
-Date: Mon, 14 Jul 2008 14:34:28 -0700
-Message-ID: <200807142134.m6ELYS16028643@imap1.linux-foundation.org>
+Subject: + restore-patch-failure-of-vmstat-unevictable-and-mlocked-pages-vm-eventspatch.patch added to -mm tree
+Date: Mon, 14 Jul 2008 14:34:33 -0700
+Message-ID: <200807142134.m6ELYXv0028674@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42139 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45660 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756629AbYGNVei (ORCPT
+	by vger.kernel.org with ESMTP id S1756292AbYGNVeg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Jul 2008 17:34:38 -0400
+	Mon, 14 Jul 2008 17:34:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, Lee.Schermerhorn@hp.com, kamezawa.hiroyu@jp.fujitsu.com
+Cc: kosaki.motohiro@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com
 
 
 The patch titled
-     mlock-mlocked-pages-are-unevictable: fix truncate race and sevaral comments
+     vmstat-unevictable-and-mlocked-pages-vm-events: restore patch failure of vmstat-unevictable-and-mlocked-pages-vm-events.patch
 has been added to the -mm tree.  Its filename is
-     mlock-mlocked-pages-are-unevictable-fix-truncate-race-and-sevaral-comments.patch
+     restore-patch-failure-of-vmstat-unevictable-and-mlocked-pages-vm-eventspatch.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,64 +34,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mlock-mlocked-pages-are-unevictable: fix truncate race and sevaral comments
+Subject: vmstat-unevictable-and-mlocked-pages-vm-events: restore patch failure of vmstat-unevictable-and-mlocked-pages-vm-events.patch
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-This patch is part of putback_lru_page() rework.  several comment fix and
-one bugfix contained.
+This patch restore it properly.
 
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Signed-off-by: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |   17 ++++++++++++-----
- 1 file changed, 12 insertions(+), 5 deletions(-)
+ mm/vmscan.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN mm/mlock.c~mlock-mlocked-pages-are-unevictable-fix-truncate-race-and-sevaral-comments mm/mlock.c
---- a/mm/mlock.c~mlock-mlocked-pages-are-unevictable-fix-truncate-race-and-sevaral-comments
-+++ a/mm/mlock.c
-@@ -54,7 +54,11 @@ EXPORT_SYMBOL(can_do_mlock);
-  */
- void __clear_page_mlock(struct page *page)
+diff -puN mm/vmscan.c~restore-patch-failure-of-vmstat-unevictable-and-mlocked-pages-vm-eventspatch mm/vmscan.c
+--- a/mm/vmscan.c~restore-patch-failure-of-vmstat-unevictable-and-mlocked-pages-vm-eventspatch
++++ a/mm/vmscan.c
+@@ -483,7 +483,7 @@ int remove_mapping(struct address_space 
+ void putback_lru_page(struct page *page)
  {
--	VM_BUG_ON(!PageLocked(page));	/* for LRU isolate/putback */
-+	VM_BUG_ON(!PageLocked(page));
-+
-+	if (!page->mapping) {	/* truncated ? */
-+		return;
-+	}
+ 	int lru;
+-	int ret = 1;
++	int was_unevictable = PageUnevictable(page);
  
- 	if (!isolate_lru_page(page)) {
- 		putback_lru_page(page);
-@@ -138,7 +142,9 @@ static int __mlock_vma_pages_range(struc
+ 	VM_BUG_ON(PageLRU(page));
  
- 		/*
- 		 * get_user_pages makes pages present if we are
--		 * setting mlock.
-+		 * setting mlock. and this extra reference count will
-+		 * disable migration of this page.  However, page may
-+		 * still be truncated out from under us.
+@@ -526,6 +526,11 @@ redo:
  		 */
- 		ret = get_user_pages(current, mm, addr,
- 				min_t(int, nr_pages, ARRAY_SIZE(pages)),
-@@ -166,11 +172,12 @@ static int __mlock_vma_pages_range(struc
- 		for (i = 0; i < ret; i++) {
- 			struct page *page = pages[i];
+ 	}
  
-+			lock_page(page);
- 			/*
--			 * page might be truncated or migrated out from under
--			 * us.  Check after acquiring page lock.
-+			 * Because we lock page here and migration is blocked
-+			 * by the elevated reference, we need only check for
-+			 * page truncation (file-cache only).
- 			 */
--			lock_page(page);
- 			if (page->mapping)
- 				mlock_vma_page(page);
- 			unlock_page(page);
++	if (was_unevictable && lru != LRU_UNEVICTABLE)
++		count_vm_event(NORECL_PGRESCUED);
++	else if (!was_unevictable && lru == LRU_UNEVICTABLE)
++		count_vm_event(NORECL_PGCULLED);
++
+ 	put_page(page);		/* drop ref from isolate */
+ }
+ 
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
