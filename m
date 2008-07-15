@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-create-sys-kernel-mm-fix.patch added to -mm tree
-Date: Mon, 14 Jul 2008 16:52:22 -0700
-Message-ID: <200807142352.m6ENqMdD001420@imap1.linux-foundation.org>
+Subject: + devcgroup-code-cleanup-fix-fix.patch added to -mm tree
+Date: Mon, 14 Jul 2008 17:11:32 -0700
+Message-ID: <200807150011.m6F0BWHv002149@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41166 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41468 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759884AbYGNXws (ORCPT
+	by vger.kernel.org with ESMTP id S932418AbYGOAMP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Jul 2008 19:52:48 -0400
+	Mon, 14 Jul 2008 20:12:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, nacc@us.ibm.com, nickpiggin@yahoo.com.au
+Cc: kosaki.motohiro@jp.fujitsu.com, lizf@cn.fujitsu.com
 
 
 The patch titled
-     mm-create-sys-kernel-mm fix
+     kill devcgroup-code-cleanup.patch warning
 has been added to the -mm tree.  Its filename is
-     mm-create-sys-kernel-mm-fix.patch
+     devcgroup-code-cleanup-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,39 +34,54 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-create-sys-kernel-mm fix
+Subject: kill devcgroup-code-cleanup.patch warning
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Recently, Nishanth Aravamudan introduce /sys/kernel/mm and add
-EXPORT_SYMBOL_GPL() to mm_init.c.  then module.h should be included.
+devcgroup-code-cleanup.patch made following warnings because b is const.
 
-otherwise following warning happend.
-
-  mm/mm_init.c:140: warning: data definition has no type or storage class
-  mm/mm_init.c:140: warning: type defaults to 'int' in declaration of 'EXPORT_SYMBOL_GPL'
-  mm/mm_init.c:140: warning: parameter names (without types) in function declaration
+  security/device_cgroup.c: In function 'devcgroup_update_access':
+  security/device_cgroup.c:397: warning: passing argument 2 of 'simple_strtoul' from incompatible pointer type
+  security/device_cgroup.c:410: warning: passing argument 2 of 'simple_strtoul' from incompatible pointer type
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Nishanth Aravamudan <nacc@us.ibm.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mm_init.c |    1 +
- 1 file changed, 1 insertion(+)
+ security/device_cgroup.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN mm/mm_init.c~mm-create-sys-kernel-mm-fix mm/mm_init.c
---- a/mm/mm_init.c~mm-create-sys-kernel-mm-fix
-+++ a/mm/mm_init.c
-@@ -8,6 +8,7 @@
- #include <linux/kernel.h>
- #include <linux/init.h>
- #include <linux/kobject.h>
-+#include <linux/module.h>
- #include "internal.h"
+diff -puN security/device_cgroup.c~devcgroup-code-cleanup-fix-fix security/device_cgroup.c
+--- a/security/device_cgroup.c~devcgroup-code-cleanup-fix-fix
++++ a/security/device_cgroup.c
+@@ -359,6 +359,7 @@ static int devcgroup_update_access(struc
+ {
+ 	struct dev_cgroup *cur_devcgroup;
+ 	const char *b;
++	char *endp;
+ 	int retval = 0, count;
+ 	struct dev_whitelist_item wh;
  
- #ifdef CONFIG_DEBUG_MEMORY_INIT
+@@ -394,7 +395,8 @@ static int devcgroup_update_access(struc
+ 		wh.major = ~0;
+ 		b++;
+ 	} else if (isdigit(*b)) {
+-		wh.major = simple_strtoul(b, &b, 10);
++		wh.major = simple_strtoul(b, &endp, 10);
++		b = endp;
+ 	} else {
+ 		return -EINVAL;
+ 	}
+@@ -407,7 +409,8 @@ static int devcgroup_update_access(struc
+ 		wh.minor = ~0;
+ 		b++;
+ 	} else if (isdigit(*b)) {
+-		wh.minor = simple_strtoul(b, &b, 10);
++		wh.minor = simple_strtoul(b, &endp, 10);
++		b = endp;
+ 	} else {
+ 		return -EINVAL;
+ 	}
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
@@ -86,6 +101,7 @@ pm-schedule-sysrq-poweroff-on-boot-cpu-fix.patch
 call_usermodehelper-increase-reliability.patch
 cgroup-list_for_each-cleanup-v2.patch
 cgroup-anotate-two-variables-with-__read_mostly.patch
+devcgroup-code-cleanup-fix-fix.patch
 memcg-remove-refcnt-from-page_cgroup-fix-memcg-fix-mem_cgroup_end_migration-race.patch
 memcg-remove-refcnt-from-page_cgroup-memcg-fix-shmem_unuse_inode-charging.patch
 memcg-handle-swap-cache-fix-shmem-page-migration-incorrectness-on-memcgroup.patch
