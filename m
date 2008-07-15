@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + devcgroup-code-cleanup-fix-fix.patch added to -mm tree
-Date: Mon, 14 Jul 2008 17:11:32 -0700
-Message-ID: <200807150011.m6F0BWHv002149@imap1.linux-foundation.org>
+Subject: + coredump-kill-mm-core_done.patch added to -mm tree
+Date: Tue, 15 Jul 2008 15:39:06 -0700
+Message-ID: <200807152239.m6FMd6i9024628@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41468 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42997 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932418AbYGOAMP (ORCPT
+	by vger.kernel.org with ESMTP id S1753503AbYGOWka (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Jul 2008 20:12:15 -0400
+	Tue, 15 Jul 2008 18:40:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, lizf@cn.fujitsu.com
+Cc: oleg@tv-sign.ru, randy.dunlap@oracle.com
 
 
 The patch titled
-     kill devcgroup-code-cleanup.patch warning
+     coredump: kill mm->core_done
 has been added to the -mm tree.  Its filename is
-     devcgroup-code-cleanup-fix-fix.patch
+     coredump-kill-mm-core_done.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,125 +34,148 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kill devcgroup-code-cleanup.patch warning
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: coredump: kill mm->core_done
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-devcgroup-code-cleanup.patch made following warnings because b is const.
+Now that we have core_state->dumper list we can use it to wake up the
+sub-threads waiting for the coredump completion.
 
-  security/device_cgroup.c: In function 'devcgroup_update_access':
-  security/device_cgroup.c:397: warning: passing argument 2 of 'simple_strtoul' from incompatible pointer type
-  security/device_cgroup.c:410: warning: passing argument 2 of 'simple_strtoul' from incompatible pointer type
+This uglifies the code and .text grows by 47 bytes, but otoh mm_struct
+lessens by sizeof(struct completion).  Also, with this change we can
+decouple exit_mm() from the coredumping code.
 
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/device_cgroup.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ fs/exec.c                |   24 ++++++++++++++++++++++--
+ include/linux/mm_types.h |    4 +---
+ kernel/exit.c            |    8 +++++++-
+ 3 files changed, 30 insertions(+), 6 deletions(-)
 
-diff -puN security/device_cgroup.c~devcgroup-code-cleanup-fix-fix security/device_cgroup.c
---- a/security/device_cgroup.c~devcgroup-code-cleanup-fix-fix
-+++ a/security/device_cgroup.c
-@@ -359,6 +359,7 @@ static int devcgroup_update_access(struc
- {
- 	struct dev_cgroup *cur_devcgroup;
- 	const char *b;
-+	char *endp;
- 	int retval = 0, count;
- 	struct dev_whitelist_item wh;
+diff -puN fs/exec.c~coredump-kill-mm-core_done fs/exec.c
+--- a/fs/exec.c~coredump-kill-mm-core_done
++++ a/fs/exec.c
+@@ -1603,7 +1603,6 @@ static int coredump_wait(int exit_code)
+ 	struct completion *vfork_done;
+ 	int core_waiters;
  
-@@ -394,7 +395,8 @@ static int devcgroup_update_access(struc
- 		wh.major = ~0;
- 		b++;
- 	} else if (isdigit(*b)) {
--		wh.major = simple_strtoul(b, &b, 10);
-+		wh.major = simple_strtoul(b, &endp, 10);
-+		b = endp;
- 	} else {
- 		return -EINVAL;
+-	init_completion(&mm->core_done);
+ 	init_completion(&core_state.startup);
+ 	core_waiters = zap_threads(tsk, mm, &core_state, exit_code);
+ 	up_write(&mm->mmap_sem);
+@@ -1628,6 +1627,27 @@ fail:
+ 	return core_waiters;
+ }
+ 
++static void coredump_finish(struct mm_struct *mm)
++{
++	struct core_thread *curr, *next;
++	struct task_struct *task;
++
++	next = mm->core_state->dumper.next;
++	while ((curr = next) != NULL) {
++		next = curr->next;
++		task = curr->task;
++		/*
++		 * see exit_mm(), curr->task must not see
++		 * ->task == NULL before we read ->next.
++		 */
++		smp_mb();
++		curr->task = NULL;
++		wake_up_process(task);
++	}
++
++	mm->core_state = NULL;
++}
++
+ /*
+  * set_dumpable converts traditional three-value dumpable to two flags and
+  * stores them into mm->flags.  It modifies lower two bits of mm->flags, but
+@@ -1811,7 +1831,7 @@ fail_unlock:
+ 		argv_free(helper_argv);
+ 
+ 	current->fsuid = fsuid;
+-	complete_all(&mm->core_done);
++	coredump_finish(mm);
+ fail:
+ 	return retval;
+ }
+diff -puN include/linux/mm_types.h~coredump-kill-mm-core_done include/linux/mm_types.h
+--- a/include/linux/mm_types.h~coredump-kill-mm-core_done
++++ a/include/linux/mm_types.h
+@@ -228,9 +228,7 @@ struct mm_struct {
+ 
+ 	unsigned long flags; /* Must use atomic bitops to access the bits */
+ 
+-	/* coredumping support */
+-	struct core_state *core_state;
+-	struct completion core_done;
++	struct core_state *core_state; /* coredumping support */
+ 
+ 	/* aio bits */
+ 	rwlock_t		ioctx_list_lock;	/* aio lock */
+diff -puN kernel/exit.c~coredump-kill-mm-core_done kernel/exit.c
+--- a/kernel/exit.c~coredump-kill-mm-core_done
++++ a/kernel/exit.c
+@@ -669,7 +669,13 @@ static void exit_mm(struct task_struct *
+ 		if (atomic_dec_and_test(&mm->core_state->nr_threads))
+ 			complete(&mm->core_state->startup);
+ 
+-		wait_for_completion(&mm->core_done);
++		for (;;) {
++			set_task_state(tsk, TASK_UNINTERRUPTIBLE);
++			if (!self.task) /* see coredump_finish() */
++				break;
++			schedule();
++		}
++		__set_task_state(tsk, TASK_RUNNING);
+ 		down_read(&mm->mmap_sem);
  	}
-@@ -407,7 +409,8 @@ static int devcgroup_update_access(struc
- 		wh.minor = ~0;
- 		b++;
- 	} else if (isdigit(*b)) {
--		wh.minor = simple_strtoul(b, &b, 10);
-+		wh.minor = simple_strtoul(b, &endp, 10);
-+		b = endp;
- 	} else {
- 		return -EINVAL;
- 	}
+ 	atomic_inc(&mm->mm_count);
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
-adapt-drivers-base-topologyc-to-new-sysfs-api.patch
-ia64-hp-sim-simserialc-adapt-to-new-tty-framework.patch
-ahci-use-correct-type-for-cpu-flags.patch
-page-allocator-inlnie-some-__alloc_pages-wrappers.patch
-page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
-mm-hugetlbc-fix-duplicate-variable.patch
-page-flags-record-page-flag-overlays-explicitly.patch
-slub-record-page-flag-overlays-explicitly.patch
-slob-record-page-flag-overlays-explicitly.patch
-mm-create-sys-kernel-mm-fix.patch
-mm-make-config_migration-available-w-o-config_numa-fix.patch
-pm-schedule-sysrq-poweroff-on-boot-cpu-fix.patch
-call_usermodehelper-increase-reliability.patch
-cgroup-list_for_each-cleanup-v2.patch
-cgroup-anotate-two-variables-with-__read_mostly.patch
-devcgroup-code-cleanup-fix-fix.patch
-memcg-remove-refcnt-from-page_cgroup-fix-memcg-fix-mem_cgroup_end_migration-race.patch
-memcg-remove-refcnt-from-page_cgroup-memcg-fix-shmem_unuse_inode-charging.patch
-memcg-handle-swap-cache-fix-shmem-page-migration-incorrectness-on-memcgroup.patch
-memcg-clean-up-checking-of-the-disabled-flag.patch
-memcg-clean-up-checking-of-the-disabled-flag-memcg-further-checking-of-disabled-flag.patch
-per-task-delay-accounting-update-document-and-getdelaysc-for-memory-reclaim.patch
-full-conversion-to-early_initcall-interface-remove-old-interface-fix-fix.patch
-full-conversion-to-early_initcall-interface-remove-old-interface-fix-fix-fix.patch
-relay-add-buffer-only-channels-useful-for-early-logging-fix.patch
-mm-speculative-page-references-fix-migration_entry_wait-for-speculative-page-cache.patch
-vmscan-use-an-indexed-array-for-lru-variables.patch
-swap-use-an-array-for-the-lru-pagevecs.patch
-define-page_file_cache-function-fix-splitlru-shmem_getpage-setpageswapbacked-sooner.patch
-vmscan-split-lru-lists-into-anon-file-sets-collect-lru-meminfo-statistics-from-correct-offset.patch
-vmscan-split-lru-lists-into-anon-file-sets-prevent-incorrect-oom-under-split_lru.patch
-vmscan-split-lru-lists-into-anon-file-sets-split_lru-fix-pagevec_move_tail-doesnt-treat-unevictable-page.patch
-vmscan-split-lru-lists-into-anon-file-sets-splitlru-memcg-swapbacked-pages-active.patch
-vmscan-split-lru-lists-into-anon-file-sets-splitlru-bdi_cap_swap_backed.patch
-vmscan-second-chance-replacement-for-anonymous-pages.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-infrastructure-fix.patch
-unevictable-lru-infrastructure-remove-redundant-page-mapping-check.patch
-unevictable-lru-infrastructure-putback_lru_page-unevictable-page-handling-rework.patch
-unevictable-lru-infrastructure-kill-unnecessary-lock_page-in-vmscanc.patch
-unevictable-lru-infrastructure-revert-migration-change-of-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-unevictable-lru-page-statistics-fix-printk-in-show_free_areas.patch
-unevictable-lru-page-statistics-units-fix.patch
-shm_locked-pages-are-unevictable.patch
-shm_locked-pages-are-unevictable-revert-shm-change-of-shm_locked-pages-are-unevictable-patch.patch
-mlock-mlocked-pages-are-unevictable.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-3.patch
-mlock-mlocked-pages-are-unevictable-fix-fix-munlock-page-table-walk-now-requires-mm.patch
-mlock-mlocked-pages-are-unevictable-restore-patch-failure-hunk-of-mlock-mlocked-pages-are-unevictablepatch.patch
-mlock-mlocked-pages-are-unevictable-fix-truncate-race-and-sevaral-comments.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-fix-double-unlock_page-in-2626-rc5-mm3-kernel-bug-at-mm-filemapc-575.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
-vmstat-mlocked-pages-statistics.patch
-vmstat-mlocked-pages-statistics-fix-incorrect-mlocked-field-of-proc-meminfo.patch
-vmstat-mlocked-pages-statistics-fix.patch
-swap-cull-unevictable-pages-in-fault-path-fix.patch
-vmstat-unevictable-and-mlocked-pages-vm-events.patch
-restore-patch-failure-of-vmstat-unevictable-and-mlocked-pages-vm-eventspatch.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
-vmscan-unevictable-lru-scan-sysctl-add-sys_device-parameter.patch
-vmscam-kill-unused-lru-functions.patch
-make-mm-memoryc-print_bad_pte-static.patch
-mm-swapfilec-make-code-static.patch
-make-mm-rmapc-anon_vma_cachep-static.patch
+linux-next.patch
+migrate_timers-add-comment-use-spinlock_irq.patch
+pm-introduce-new-interfaces-schedule_work_on-and-queue_work_on.patch
+pm-introduce-new-interfaces-schedule_work_on-and-queue_work_on-cleanup.patch
+posix-timers-timer_delete-remove-the-bogus-it_process-=-null-check.patch
+posix-timers-release_posix_timer-kill-the-bogus-put_task_struct-it_process.patch
+signals-collect_signal-remove-the-unneeded-sigismember-check.patch
+signals-collect_signal-simplify-the-still_pending-logic.patch
+signals-change-collect_signal-to-return-void.patch
+__exit_signal-dont-take-rcu-lock.patch
+signals-dequeue_signal-dont-check-signal_group_exit-when-setting-signal_stop_dequeued.patch
+signals-do_signal_stop-kill-the-signal_unkillable-check.patch
+coredump-zap_threads-comments-use-while_each_thread.patch
+signals-make-siginfo_t-si_utime-si_sstime-report-times-in-user_hz-not-hz.patch
+kernel-signalc-change-vars-pid-and-tgid-types-to-pid_t.patch
+include-asm-ptraceh-userspace-headers-cleanup.patch
+ptrace-give-more-respect-to-sigkill.patch
+ptrace-simplify-ptrace_stop-sigkill_pending-path.patch
+introduce-pf_kthread-flag.patch
+kill-pf_borrowed_mm-in-favour-of-pf_kthread.patch
+coredump-zap_threads-must-skip-kernel-threads.patch
+coredump-elf_core_dump-skip-kernel-threads.patch
+coredump-turn-mm-core_startup_done-into-the-pointer-to-struct-core_state.patch
+coredump-move-mm-core_waiters-into-struct-core_state.patch
+coredump-simplify-core_state-nr_threads-calculation.patch
+coredump-turn-core_state-nr_threads-into-atomic_t.patch
+coredump-kill-mm-core_done.patch
+workqueues-insert_work-use-list_head-instead-of-int-tail.patch
+workqueues-implement-flush_work.patch
+workqueues-schedule_on_each_cpu-use-flush_work.patch
+workqueues-make-get_online_cpus-useable-for-work-func.patch
+workqueues-make-get_online_cpus-useable-for-work-func-fix.patch
+s390-topology-dont-use-kthread-for-arch_reinit_sched_domains.patch
+workqueues-lockdep-annotations-for-flush_work.patch
+workqueues-queue_work-can-use-queue_work_on.patch
+workqueues-schedule_on_each_cpu-can-use-schedule_work_on.patch
+pidns-remove-now-unused-kill_proc-function.patch
+pidns-remove-now-unused-find_pid-function.patch
+pidns-remove-find_task_by_pid-unused-for-a-long-time.patch
+distinct-tgid-tid-i-o-statistics.patch
 
