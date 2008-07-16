@@ -1,223 +1,136 @@
 From: akpm@linux-foundation.org
-Subject: - watchdog-softdog-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch removed from -mm tree
-Date: Wed, 16 Jul 2008 14:37:09 -0700
-Message-ID: <200807162137.m6GLb9Jt014353@imap1.linux-foundation.org>
+Subject: - watchdog-sa1100_wdt-switch-to-unlocked_ioctl.patch removed from -mm tree
+Date: Wed, 16 Jul 2008 14:36:47 -0700
+Message-ID: <200807162136.m6GLalW9014242@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60677 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53671 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756295AbYGPVrA (ORCPT
+	by vger.kernel.org with ESMTP id S1757880AbYGPVqw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jul 2008 17:47:00 -0400
+	Wed, 16 Jul 2008 17:46:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     watchdog: softdog: clean up, coding style and switch to unlocked_ioctl
+     watchdog: sa1100_wdt: Switch to unlocked_ioctl
 has been removed from the -mm tree.  Its filename was
-     watchdog-softdog-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
+     watchdog-sa1100_wdt-switch-to-unlocked_ioctl.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: watchdog: softdog: clean up, coding style and switch to unlocked_ioctl
+Subject: watchdog: sa1100_wdt: Switch to unlocked_ioctl
 From: Alan Cox <alan@redhat.com>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/softdog.c |   87 ++++++++++++++++++-----------------
- 1 file changed, 46 insertions(+), 41 deletions(-)
+ drivers/watchdog/sa1100_wdt.c |   32 +++++++++++++++-----------------
+ 1 file changed, 15 insertions(+), 17 deletions(-)
 
-diff -puN drivers/watchdog/softdog.c~watchdog-softdog-clean-up-coding-style-and-switch-to-unlocked_ioctl drivers/watchdog/softdog.c
---- a/drivers/watchdog/softdog.c~watchdog-softdog-clean-up-coding-style-and-switch-to-unlocked_ioctl
-+++ a/drivers/watchdog/softdog.c
-@@ -47,19 +47,22 @@
- #include <linux/reboot.h>
+diff -puN drivers/watchdog/sa1100_wdt.c~watchdog-sa1100_wdt-switch-to-unlocked_ioctl drivers/watchdog/sa1100_wdt.c
+--- a/drivers/watchdog/sa1100_wdt.c~watchdog-sa1100_wdt-switch-to-unlocked_ioctl
++++ a/drivers/watchdog/sa1100_wdt.c
+@@ -26,13 +26,13 @@
+ #include <linux/watchdog.h>
  #include <linux/init.h>
- #include <linux/jiffies.h>
--
--#include <asm/uaccess.h>
+ #include <linux/bitops.h>
 +#include <linux/uaccess.h>
  
- #define PFX "SoftDog: "
+ #ifdef CONFIG_ARCH_PXA
+ #include <asm/arch/pxa-regs.h>
+ #endif
  
- #define TIMER_MARGIN	60		/* Default is 60 seconds */
- static int soft_margin = TIMER_MARGIN;	/* in seconds */
- module_param(soft_margin, int, 0);
--MODULE_PARM_DESC(soft_margin, "Watchdog soft_margin in seconds. (0<soft_margin<65536, default=" __MODULE_STRING(TIMER_MARGIN) ")");
-+MODULE_PARM_DESC(soft_margin,
-+	"Watchdog soft_margin in seconds. (0 < soft_margin < 65536, default="
-+					__MODULE_STRING(TIMER_MARGIN) ")");
+ #include <asm/hardware.h>
+-#include <asm/uaccess.h>
  
- static int nowayout = WATCHDOG_NOWAYOUT;
- module_param(nowayout, int, 0);
--MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started (default=" __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
-+MODULE_PARM_DESC(nowayout,
-+		"Watchdog cannot be stopped once started (default="
-+				__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
+ #define OSCR_FREQ		CLOCK_TICK_RATE
  
- #ifdef ONLY_TESTING
- static int soft_noboot = 1;
-@@ -93,8 +96,7 @@ static void watchdog_fire(unsigned long 
+@@ -45,7 +45,7 @@ static int boot_status;
+  */
+ static int sa1100dog_open(struct inode *inode, struct file *file)
+ {
+-	if (test_and_set_bit(1,&sa1100wdt_users))
++	if (test_and_set_bit(1, &sa1100wdt_users))
+ 		return -EBUSY;
  
- 	if (soft_noboot)
- 		printk(KERN_CRIT PFX "Triggered - Reboot ignored.\n");
--	else
--	{
-+	else {
- 		printk(KERN_CRIT PFX "Initiating system reboot.\n");
- 		emergency_restart();
- 		printk(KERN_CRIT PFX "Reboot didn't ?????\n");
-@@ -153,7 +155,8 @@ static int softdog_release(struct inode 
- 		softdog_stop();
- 		module_put(THIS_MODULE);
- 	} else {
--		printk(KERN_CRIT PFX "Unexpected close, not stopping watchdog!\n");
-+		printk(KERN_CRIT PFX
-+			"Unexpected close, not stopping watchdog!\n");
- 		set_bit(0, &orphan_timer);
- 		softdog_keepalive();
- 	}
-@@ -162,12 +165,13 @@ static int softdog_release(struct inode 
+ 	/* Activate SA1100 Watchdog timer */
+@@ -66,28 +66,27 @@ static int sa1100dog_open(struct inode *
+ static int sa1100dog_release(struct inode *inode, struct file *file)
+ {
+ 	printk(KERN_CRIT "WATCHDOG: Device closed - timer will not stop\n");
+-
+ 	clear_bit(1, &sa1100wdt_users);
+-
  	return 0;
  }
  
--static ssize_t softdog_write(struct file *file, const char __user *data, size_t len, loff_t *ppos)
-+static ssize_t softdog_write(struct file *file, const char __user *data,
+-static ssize_t sa1100dog_write(struct file *file, const char __user *data, size_t len, loff_t *ppos)
++static ssize_t sa1100dog_write(struct file *file, const char __user *data,
 +						size_t len, loff_t *ppos)
  {
- 	/*
- 	 *	Refresh the timer.
- 	 */
--	if(len) {
-+	if (len) {
- 		if (!nowayout) {
- 			size_t i;
- 
-@@ -188,13 +192,13 @@ static ssize_t softdog_write(struct file
+ 	if (len)
+ 		/* Refresh OSMR3 timer. */
+ 		OSMR3 = OSCR + pre_margin;
+-
  	return len;
  }
  
--static int softdog_ioctl(struct inode *inode, struct file *file,
+-static struct watchdog_info ident = {
+-	.options	= WDIOF_CARDRESET | WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING,
++static const struct watchdog_info ident = {
++	.options	= WDIOF_CARDRESET | WDIOF_SETTIMEOUT
++				| WDIOF_KEEPALIVEPING,
+ 	.identity	= "SA1100/PXA255 Watchdog",
+ };
+ 
+-static int sa1100dog_ioctl(struct inode *inode, struct file *file,
 -	unsigned int cmd, unsigned long arg)
-+static long softdog_ioctl(struct file *file, unsigned int cmd,
++static long sa1100dog_ioctl(struct file *file, unsigned int cmd,
 +							unsigned long arg)
  {
- 	void __user *argp = (void __user *)arg;
- 	int __user *p = argp;
- 	int new_margin;
--	static struct watchdog_info ident = {
-+	static const struct watchdog_info ident = {
- 		.options =		WDIOF_SETTIMEOUT |
- 					WDIOF_KEEPALIVEPING |
- 					WDIOF_MAGICCLOSE,
-@@ -202,26 +206,25 @@ static int softdog_ioctl(struct inode *i
- 		.identity =		"Software Watchdog",
- 	};
- 	switch (cmd) {
--		default:
--			return -ENOTTY;
--		case WDIOC_GETSUPPORT:
--			return copy_to_user(argp, &ident,
--				sizeof(ident)) ? -EFAULT : 0;
--		case WDIOC_GETSTATUS:
--		case WDIOC_GETBOOTSTATUS:
--			return put_user(0, p);
--		case WDIOC_KEEPALIVE:
--			softdog_keepalive();
--			return 0;
--		case WDIOC_SETTIMEOUT:
--			if (get_user(new_margin, p))
--				return -EFAULT;
--			if (softdog_set_heartbeat(new_margin))
--				return -EINVAL;
--			softdog_keepalive();
--			/* Fall */
--		case WDIOC_GETTIMEOUT:
--			return put_user(soft_margin, p);
-+	default:
-+		return -ENOTTY;
-+	case WDIOC_GETSUPPORT:
-+		return copy_to_user(argp, &ident, sizeof(ident)) ? -EFAULT : 0;
-+	case WDIOC_GETSTATUS:
-+	case WDIOC_GETBOOTSTATUS:
-+		return put_user(0, p);
-+	case WDIOC_KEEPALIVE:
-+		softdog_keepalive();
-+		return 0;
-+	case WDIOC_SETTIMEOUT:
-+		if (get_user(new_margin, p))
-+			return -EFAULT;
-+		if (softdog_set_heartbeat(new_margin))
-+			return -EINVAL;
-+		softdog_keepalive();
-+		/* Fall */
-+	case WDIOC_GETTIMEOUT:
-+		return put_user(soft_margin, p);
- 	}
+ 	int ret = -ENOTTY;
+ 	int time;
+@@ -134,18 +133,16 @@ static int sa1100dog_ioctl(struct inode 
+ 	return ret;
  }
  
-@@ -232,10 +235,9 @@ static int softdog_ioctl(struct inode *i
- static int softdog_notify_sys(struct notifier_block *this, unsigned long code,
- 	void *unused)
- {
--	if(code==SYS_DOWN || code==SYS_HALT) {
-+	if (code == SYS_DOWN || code == SYS_HALT)
- 		/* Turn the WDT off */
- 		softdog_stop();
--	}
- 	return NOTIFY_DONE;
- }
- 
-@@ -247,7 +249,7 @@ static const struct file_operations soft
+-static const struct file_operations sa1100dog_fops =
+-{
++static const struct file_operations sa1100dog_fops = {
  	.owner		= THIS_MODULE,
  	.llseek		= no_llseek,
- 	.write		= softdog_write,
--	.ioctl		= softdog_ioctl,
-+	.unlocked_ioctl	= softdog_ioctl,
- 	.open		= softdog_open,
- 	.release	= softdog_release,
+ 	.write		= sa1100dog_write,
+-	.ioctl		= sa1100dog_ioctl,
++	.unlocked_ioctl	= sa1100dog_ioctl,
+ 	.open		= sa1100dog_open,
+ 	.release	= sa1100dog_release,
  };
-@@ -268,24 +270,27 @@ static int __init watchdog_init(void)
- {
- 	int ret;
  
--	/* Check that the soft_margin value is within it's range ; if not reset to the default */
-+	/* Check that the soft_margin value is within it's range;
-+	   if not reset to the default */
- 	if (softdog_set_heartbeat(soft_margin)) {
- 		softdog_set_heartbeat(TIMER_MARGIN);
--		printk(KERN_INFO PFX "soft_margin value must be 0<soft_margin<65536, using %d\n",
-+		printk(KERN_INFO PFX
-+		    "soft_margin must be 0 < soft_margin < 65536, using %d\n",
- 			TIMER_MARGIN);
- 	}
+-static struct miscdevice sa1100dog_miscdev =
+-{
++static struct miscdevice sa1100dog_miscdev = {
+ 	.minor		= WATCHDOG_MINOR,
+ 	.name		= "watchdog",
+ 	.fops		= &sa1100dog_fops,
+@@ -167,8 +164,9 @@ static int __init sa1100dog_init(void)
  
- 	ret = register_reboot_notifier(&softdog_notifier);
- 	if (ret) {
--		printk (KERN_ERR PFX "cannot register reboot notifier (err=%d)\n",
--			ret);
-+		printk(KERN_ERR PFX
-+			"cannot register reboot notifier (err=%d)\n", ret);
- 		return ret;
- 	}
+ 	ret = misc_register(&sa1100dog_miscdev);
+ 	if (ret == 0)
+-		printk("SA1100/PXA2xx Watchdog Timer: timer margin %d sec\n",
+-		       margin);
++		printk(KERN_INFO
++			"SA1100/PXA2xx Watchdog Timer: timer margin %d sec\n",
++						margin);
+ 	return ret;
+ }
  
- 	ret = misc_register(&softdog_miscdev);
- 	if (ret) {
--		printk (KERN_ERR PFX "cannot register miscdev on minor=%d (err=%d)\n",
--			WATCHDOG_MINOR, ret);
-+		printk(KERN_ERR PFX
-+			"cannot register miscdev on minor=%d (err=%d)\n",
-+						WATCHDOG_MINOR, ret);
- 		unregister_reboot_notifier(&softdog_notifier);
- 		return ret;
- 	}
 _
 
 Patches currently in -mm which might be from alan@redhat.com are
