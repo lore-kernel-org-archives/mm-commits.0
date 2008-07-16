@@ -1,245 +1,173 @@
 From: akpm@linux-foundation.org
-Subject: - watchdog-at91-watchdog-to-unlocked_ioctl.patch removed from -mm tree
-Date: Wed, 16 Jul 2008 14:35:51 -0700
-Message-ID: <200807162135.m6GLZpEh014128@imap1.linux-foundation.org>
+Subject: - watchdog-ixp2000_wdt-clean-up-and-unlocked_ioctl.patch removed from -mm tree
+Date: Wed, 16 Jul 2008 14:36:17 -0700
+Message-ID: <200807162136.m6GLaHvX014179@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48137 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45594 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756890AbYGPVgk (ORCPT
+	by vger.kernel.org with ESMTP id S1757125AbYGPVhG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jul 2008 17:36:40 -0400
+	Wed, 16 Jul 2008 17:37:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     watchdog: at91: watchdog to unlocked_ioctl
+     watchdog: ixp2000_wdt: clean up and unlocked_ioctl
 has been removed from the -mm tree.  Its filename was
-     watchdog-at91-watchdog-to-unlocked_ioctl.patch
+     watchdog-ixp2000_wdt-clean-up-and-unlocked_ioctl.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: watchdog: at91: watchdog to unlocked_ioctl
+Subject: watchdog: ixp2000_wdt: clean up and unlocked_ioctl
 From: Alan Cox <alan@redhat.com>
-
-Review and switch to unlocked_ioctl
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/at91rm9200_wdt.c |  108 ++++++++++++++--------------
- 1 file changed, 54 insertions(+), 54 deletions(-)
+ drivers/watchdog/ixp2000_wdt.c |   50 ++++++++++++++-----------------
+ 1 file changed, 23 insertions(+), 27 deletions(-)
 
-diff -puN drivers/watchdog/at91rm9200_wdt.c~watchdog-at91-watchdog-to-unlocked_ioctl drivers/watchdog/at91rm9200_wdt.c
---- a/drivers/watchdog/at91rm9200_wdt.c~watchdog-at91-watchdog-to-unlocked_ioctl
-+++ a/drivers/watchdog/at91rm9200_wdt.c
-@@ -20,7 +20,7 @@
- #include <linux/platform_device.h>
- #include <linux/types.h>
+diff -puN drivers/watchdog/ixp2000_wdt.c~watchdog-ixp2000_wdt-clean-up-and-unlocked_ioctl drivers/watchdog/ixp2000_wdt.c
+--- a/drivers/watchdog/ixp2000_wdt.c~watchdog-ixp2000_wdt-clean-up-and-unlocked_ioctl
++++ a/drivers/watchdog/ixp2000_wdt.c
+@@ -25,42 +25,45 @@
  #include <linux/watchdog.h>
--#include <asm/uaccess.h>
+ #include <linux/init.h>
+ #include <linux/bitops.h>
 +#include <linux/uaccess.h>
- #include <asm/arch/at91_st.h>
  
+ #include <asm/hardware.h>
+-#include <asm/uaccess.h>
  
-@@ -31,11 +31,14 @@ static int wdt_time = WDT_DEFAULT_TIME;
  static int nowayout = WATCHDOG_NOWAYOUT;
+ static unsigned int heartbeat = 60;	/* (secs) Default is 1 minute */
+ static unsigned long wdt_status;
++static spinlock_t wdt_lock;
  
- module_param(wdt_time, int, 0);
--MODULE_PARM_DESC(wdt_time, "Watchdog time in seconds. (default="__MODULE_STRING(WDT_DEFAULT_TIME) ")");
-+MODULE_PARM_DESC(wdt_time, "Watchdog time in seconds. (default="
-+				__MODULE_STRING(WDT_DEFAULT_TIME) ")");
+ #define	WDT_IN_USE		0
+ #define	WDT_OK_TO_CLOSE		1
  
- #ifdef CONFIG_WATCHDOG_NOWAYOUT
- module_param(nowayout, int, 0);
--MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started (default=" __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
-+MODULE_PARM_DESC(nowayout,
-+		"Watchdog cannot be stopped once started (default="
-+				__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
- #endif
+ static unsigned long wdt_tick_rate;
  
- 
-@@ -46,7 +49,7 @@ static unsigned long at91wdt_busy;
- /*
-  * Disable the watchdog.
-  */
--static void inline at91_wdt_stop(void)
-+static inline void at91_wdt_stop(void)
+-static void
+-wdt_enable(void)
++static void wdt_enable(void)
  {
- 	at91_sys_write(AT91_ST_WDMR, AT91_ST_EXTEN);
- }
-@@ -54,16 +57,17 @@ static void inline at91_wdt_stop(void)
- /*
-  * Enable and reset the watchdog.
-  */
--static void inline at91_wdt_start(void)
-+static inline void at91_wdt_start(void)
- {
--	at91_sys_write(AT91_ST_WDMR, AT91_ST_EXTEN | AT91_ST_RSTEN | (((65536 * wdt_time) >> 8) & AT91_ST_WDV));
-+	at91_sys_write(AT91_ST_WDMR, AT91_ST_EXTEN | AT91_ST_RSTEN |
-+				(((65536 * wdt_time) >> 8) & AT91_ST_WDV));
- 	at91_sys_write(AT91_ST_CR, AT91_ST_WDRST);
++	spin_lock(&wdt_lock);
+ 	ixp2000_reg_write(IXP2000_RESET0, *(IXP2000_RESET0) | WDT_RESET_ENABLE);
+ 	ixp2000_reg_write(IXP2000_TWDE, WDT_ENABLE);
+ 	ixp2000_reg_write(IXP2000_T4_CLD, heartbeat * wdt_tick_rate);
+ 	ixp2000_reg_write(IXP2000_T4_CTL, TIMER_DIVIDER_256 | TIMER_ENABLE);
++	spin_unlock(&wdt_lock);
  }
  
- /*
-  * Reload the watchdog timer.  (ie, pat the watchdog)
-  */
--static void inline at91_wdt_reload(void)
-+static inline void at91_wdt_reload(void)
+-static void
+-wdt_disable(void)
++static void wdt_disable(void)
  {
- 	at91_sys_write(AT91_ST_CR, AT91_ST_WDRST);
- }
-@@ -89,8 +93,9 @@ static int at91_wdt_open(struct inode *i
-  */
- static int at91_wdt_close(struct inode *inode, struct file *file)
- {
-+	/* Disable the watchdog when file is closed */
- 	if (!nowayout)
--		at91_wdt_stop();	/* Disable the watchdog when file is closed */
-+		at91_wdt_stop();
- 
- 	clear_bit(0, &at91wdt_busy);
- 	return 0;
-@@ -110,7 +115,8 @@ static int at91_wdt_settimeout(int new_t
- 	if ((new_time <= 0) || (new_time > WDT_MAX_TIME))
- 		return -EINVAL;
- 
--	/* Set new watchdog time. It will be used when at91_wdt_start() is called. */
-+	/* Set new watchdog time. It will be used when
-+	   at91_wdt_start() is called. */
- 	wdt_time = new_time;
- 	return 0;
- }
-@@ -123,60 +129,52 @@ static struct watchdog_info at91_wdt_inf
- /*
-  * Handle commands from user-space.
-  */
--static int at91_wdt_ioctl(struct inode *inode, struct file *file,
--		unsigned int cmd, unsigned long arg)
-+static long at91_wdt_ioct(struct file *file,
-+					unsigned int cmd, unsigned long arg)
- {
- 	void __user *argp = (void __user *)arg;
- 	int __user *p = argp;
- 	int new_value;
- 
--	switch(cmd) {
--		case WDIOC_KEEPALIVE:
--			at91_wdt_reload();	/* pat the watchdog */
--			return 0;
--
--		case WDIOC_GETSUPPORT:
--			return copy_to_user(argp, &at91_wdt_info, sizeof(at91_wdt_info)) ? -EFAULT : 0;
--
--		case WDIOC_SETTIMEOUT:
--			if (get_user(new_value, p))
--				return -EFAULT;
--
--			if (at91_wdt_settimeout(new_value))
--				return -EINVAL;
--
--			/* Enable new time value */
-+	switch (cmd) {
-+	case WDIOC_KEEPALIVE:
-+		at91_wdt_reload();	/* pat the watchdog */
-+		return 0;
-+	case WDIOC_GETSUPPORT:
-+		return copy_to_user(argp, &at91_wdt_info,
-+				sizeof(at91_wdt_info)) ? -EFAULT : 0;
-+	case WDIOC_SETTIMEOUT:
-+		if (get_user(new_value, p))
-+			return -EFAULT;
-+		if (at91_wdt_settimeout(new_value))
-+			return -EINVAL;
-+		/* Enable new time value */
-+		at91_wdt_start();
-+		/* Return current value */
-+		return put_user(wdt_time, p);
-+	case WDIOC_GETTIMEOUT:
-+		return put_user(wdt_time, p);
-+	case WDIOC_GETSTATUS:
-+	case WDIOC_GETBOOTSTATUS:
-+		return put_user(0, p);
-+	case WDIOC_SETOPTIONS:
-+		if (get_user(new_value, p))
-+			return -EFAULT;
-+		if (new_value & WDIOS_DISABLECARD)
-+			at91_wdt_stop();
-+		if (new_value & WDIOS_ENABLECARD)
- 			at91_wdt_start();
--
--			/* Return current value */
--			return put_user(wdt_time, p);
--
--		case WDIOC_GETTIMEOUT:
--			return put_user(wdt_time, p);
--
--		case WDIOC_GETSTATUS:
--		case WDIOC_GETBOOTSTATUS:
--			return put_user(0, p);
--
--		case WDIOC_SETOPTIONS:
--			if (get_user(new_value, p))
--				return -EFAULT;
--
--			if (new_value & WDIOS_DISABLECARD)
--				at91_wdt_stop();
--			if (new_value & WDIOS_ENABLECARD)
--				at91_wdt_start();
--			return 0;
--
--		default:
--			return -ENOTTY;
-+		return 0;
-+	default:
-+		return -ENOTTY;
- 	}
++	spin_lock(&wdt_lock);
+ 	ixp2000_reg_write(IXP2000_T4_CTL, 0);
++	spin_unlock(&wdt_lock);
  }
  
- /*
-  * Pat the watchdog whenever device is written to.
-  */
--static ssize_t at91_wdt_write(struct file *file, const char *data, size_t len, loff_t *ppos)
-+static ssize_t at91_wdt_write(struct file *file, const char *data,
+-static void
+-wdt_keepalive(void)
++static void wdt_keepalive(void)
+ {
++	spin_lock(&wdt_lock);
+ 	ixp2000_reg_write(IXP2000_T4_CLD, heartbeat * wdt_tick_rate);
++	spin_unlock(&wdt_lock);
+ }
+ 
+-static int
+-ixp2000_wdt_open(struct inode *inode, struct file *file)
++static int ixp2000_wdt_open(struct inode *inode, struct file *file)
+ {
+ 	if (test_and_set_bit(WDT_IN_USE, &wdt_status))
+ 		return -EBUSY;
+@@ -72,8 +75,8 @@ ixp2000_wdt_open(struct inode *inode, st
+ 	return nonseekable_open(inode, file);
+ }
+ 
+-static ssize_t
+-ixp2000_wdt_write(struct file *file, const char *data, size_t len, loff_t *ppos)
++static ssize_t ixp2000_wdt_write(struct file *file, const char *data,
 +						size_t len, loff_t *ppos)
  {
- 	at91_wdt_reload();		/* pat the watchdog */
- 	return len;
-@@ -187,7 +185,7 @@ static ssize_t at91_wdt_write(struct fil
- static const struct file_operations at91wdt_fops = {
- 	.owner		= THIS_MODULE,
- 	.llseek		= no_llseek,
--	.ioctl		= at91_wdt_ioctl,
-+	.unlocked_ioctl	= at91_wdt_ioctl,
- 	.open		= at91_wdt_open,
- 	.release	= at91_wdt_close,
- 	.write		= at91_wdt_write,
-@@ -211,7 +209,8 @@ static int __init at91wdt_probe(struct p
- 	if (res)
- 		return res;
+ 	if (len) {
+ 		if (!nowayout) {
+@@ -103,9 +106,8 @@ static struct watchdog_info ident = {
+ 	.identity	= "IXP2000 Watchdog",
+ };
  
--	printk("AT91 Watchdog Timer enabled (%d seconds%s)\n", wdt_time, nowayout ? ", nowayout" : "");
-+	printk(KERN_INFO "AT91 Watchdog Timer enabled (%d seconds%s)\n",
-+				wdt_time, nowayout ? ", nowayout" : "");
- 	return 0;
+-static int
+-ixp2000_wdt_ioctl(struct inode *inode, struct file *file, unsigned int cmd,
+-			unsigned long arg)
++static long ixp2000_wdt_ioctl(struct file *file, unsigned int cmd,
++							unsigned long arg)
+ {
+ 	int ret = -ENOTTY;
+ 	int time;
+@@ -151,16 +153,13 @@ ixp2000_wdt_ioctl(struct inode *inode, s
+ 	return ret;
  }
  
-@@ -265,7 +264,8 @@ static struct platform_driver at91wdt_dr
- 
- static int __init at91_wdt_init(void)
+-static int
+-ixp2000_wdt_release(struct inode *inode, struct file *file)
++static int ixp2000_wdt_release(struct inode *inode, struct file *file)
  {
--	/* Check that the heartbeat value is within range; if not reset to the default */
-+	/* Check that the heartbeat value is within range;
-+	   if not reset to the default */
- 	if (at91_wdt_settimeout(wdt_time)) {
- 		at91_wdt_settimeout(WDT_DEFAULT_TIME);
- 		pr_info("at91_wdt: wdt_time value must be 1 <= wdt_time <= 256, using %d\n", wdt_time);
+-	if (test_bit(WDT_OK_TO_CLOSE, &wdt_status)) {
++	if (test_bit(WDT_OK_TO_CLOSE, &wdt_status))
+ 		wdt_disable();
+-	} else {
++	else
+ 		printk(KERN_CRIT "WATCHDOG: Device closed unexpectedly - "
+ 					"timer will not stop\n");
+-	}
+-
+ 	clear_bit(WDT_IN_USE, &wdt_status);
+ 	clear_bit(WDT_OK_TO_CLOSE, &wdt_status);
+ 
+@@ -168,18 +167,16 @@ ixp2000_wdt_release(struct inode *inode,
+ }
+ 
+ 
+-static const struct file_operations ixp2000_wdt_fops =
+-{
++static const struct file_operations ixp2000_wdt_fops = {
+ 	.owner		= THIS_MODULE,
+ 	.llseek		= no_llseek,
+ 	.write		= ixp2000_wdt_write,
+-	.ioctl		= ixp2000_wdt_ioctl,
++	.unlocked_ioctl	= ixp2000_wdt_ioctl,
+ 	.open		= ixp2000_wdt_open,
+ 	.release	= ixp2000_wdt_release,
+ };
+ 
+-static struct miscdevice ixp2000_wdt_miscdev =
+-{
++static struct miscdevice ixp2000_wdt_miscdev = {
+ 	.minor		= WATCHDOG_MINOR,
+ 	.name		= "watchdog",
+ 	.fops		= &ixp2000_wdt_fops,
+@@ -191,9 +188,8 @@ static int __init ixp2000_wdt_init(void)
+ 		printk(KERN_INFO "Unable to use IXP2000 watchdog due to IXP2800 erratum #25.\n");
+ 		return -EIO;
+ 	}
+-
+ 	wdt_tick_rate = (*IXP2000_T1_CLD * HZ) / 256;
+-
++	spin_lock_init(&wdt_lock);
+ 	return misc_register(&ixp2000_wdt_miscdev);
+ }
+ 
 _
 
 Patches currently in -mm which might be from alan@redhat.com are
