@@ -1,84 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - powerpc-ep8248e-fix-compile-problem-if-config_fs_enet.patch removed from -mm tree
-Date: Wed, 16 Jul 2008 14:35:17 -0700
-Message-ID: <200807162135.m6GLZH8V014071@imap1.linux-foundation.org>
+Subject: - mm-fix-ptep_modify_-for-no-mmu-systems.patch removed from -mm tree
+Date: Wed, 16 Jul 2008 14:35:12 -0700
+Message-ID: <200807162135.m6GLZC6K014062@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41564 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40628 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753866AbYGPVfq (ORCPT
+	by vger.kernel.org with ESMTP id S1754979AbYGPVf4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jul 2008 17:35:46 -0400
+	Wed, 16 Jul 2008 17:35:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: galak@kernel.crashing.org, benh@kernel.crashing.org, mm-commits@vger.kernel.org
+To: jeremy@goop.org, bunk@kernel.org, jeremy.fitzhardinge@citrix.com, vapier.adi@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     powerpc/ep8248e: Fix compile problem if !CONFIG_FS_ENET
+     mm: fix ptep_modify_* for no-MMU systems
 has been removed from the -mm tree.  Its filename was
-     powerpc-ep8248e-fix-compile-problem-if-config_fs_enet.patch
+     mm-fix-ptep_modify_-for-no-mmu-systems.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: powerpc/ep8248e: Fix compile problem if !CONFIG_FS_ENET
-From: Kumar Gala <galak@kernel.crashing.org>
+Subject: mm: fix ptep_modify_* for no-MMU systems
+From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-If we don't enable FS_ENET we get build issues:
+Fixes build problem:
+ the functions added to asm-generic/pgtable.h are only used by
+ mm/mprotect.c (a MMU-only file), but they were not added inside of the
+ CONFIG_MMU ifdef block.  since the functions rely on things inside of
+ CONFIG_MMU (the lines just above in pgtable.h), we get build failure
+ on all no-mmu setups:
+   CC      init/main.o
+ In file included from include/asm/pgtable.h:94,
+                  from include/linux/mm.h:39,
+                  from include/asm/dma.h:39,
+                  from include/linux/bootmem.h:8,
+                  from init/main.c:27:
+ include/asm-generic/pgtable.h: In function '__ptep_modify_prot_start':
+ include/asm-generic/pgtable.h:210: error: implicit declaration of
+ function 'ptep_get_and_clear'
+ include/asm-generic/pgtable.h:210: error: incompatible types in return
+ make[1]: *** [init/main.o] Error 1
+ make: *** [init/main.o] Error 2
 
-arch/powerpc/platforms/built-in.o: In function `ep8248e_mdio_probe':
-arch/powerpc/platforms/82xx/ep8248e.c:129: undefined reference to `alloc_mdio_bitbang'
-arch/powerpc/platforms/82xx/ep8248e.c:143: undefined reference to `mdiobus_register'
-
-Signed-off-by: Kumar Gala <galak@kernel.crashing.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Cc: Adrian Bunk <bunk@kernel.org>
+Cc: Mike Frysinger <vapier.adi@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/82xx/ep8248e.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ include/asm-generic/pgtable.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/powerpc/platforms/82xx/ep8248e.c~powerpc-ep8248e-fix-compile-problem-if-config_fs_enet arch/powerpc/platforms/82xx/ep8248e.c
---- a/arch/powerpc/platforms/82xx/ep8248e.c~powerpc-ep8248e-fix-compile-problem-if-config_fs_enet
-+++ a/arch/powerpc/platforms/82xx/ep8248e.c
-@@ -59,6 +59,7 @@ static void __init ep8248e_pic_init(void
- 	of_node_put(np);
- }
- 
-+#ifdef CONFIG_FS_ENET_MDIO_FCC
- static void ep8248e_set_mdc(struct mdiobb_ctrl *ctrl, int level)
- {
- 	if (level)
-@@ -164,6 +165,7 @@ static struct of_platform_driver ep8248e
- 	.probe = ep8248e_mdio_probe,
- 	.remove = ep8248e_mdio_remove,
- };
-+#endif
- 
- struct cpm_pin {
- 	int port, pin, flags;
-@@ -296,7 +298,9 @@ static  __initdata struct of_device_id o
- static int __init declare_of_platform_devices(void)
- {
- 	of_platform_bus_probe(NULL, of_bus_ids, NULL);
-+#ifdef CONFIG_FS_ENET_MDIO_FCC
- 	of_register_platform_driver(&ep8248e_mdio_driver);
-+#endif
- 
+diff -puN include/asm-generic/pgtable.h~mm-fix-ptep_modify_-for-no-mmu-systems include/asm-generic/pgtable.h
+--- a/include/asm-generic/pgtable.h~mm-fix-ptep_modify_-for-no-mmu-systems
++++ a/include/asm-generic/pgtable.h
+@@ -195,7 +195,6 @@ static inline int pmd_none_or_clear_bad(
+ 	}
  	return 0;
  }
+-#endif /* CONFIG_MMU */
+ 
+ static inline pte_t __ptep_modify_prot_start(struct mm_struct *mm,
+ 					     unsigned long addr,
+@@ -253,6 +252,7 @@ static inline void ptep_modify_prot_comm
+ 	__ptep_modify_prot_commit(mm, addr, ptep, pte);
+ }
+ #endif /* __HAVE_ARCH_PTEP_MODIFY_PROT_TRANSACTION */
++#endif /* CONFIG_MMU */
+ 
+ /*
+  * A facility to provide lazy MMU batching.  This allows PTE updates and
 _
 
-Patches currently in -mm which might be from galak@kernel.crashing.org are
+Patches currently in -mm which might be from jeremy@goop.org are
 
 origin.patch
-linux-next.patch
-git-watchdog.patch
-mpc8xxx_wdt-add-support-for-mpc8xx-watchdogs.patch
-powerpc-86xx-mpc8610_hpcd-add-watchdog-node.patch
-cpm1-dont-send-break-on-tx_stop-dont-interrupt-rx-tx-when-adjusting-termios-parameters.patch
-resource-use-new-resource-type-changes.patch
+mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co.patch
+page-flags-record-page-flag-overlays-explicitly.patch
+page-flags-record-page-flag-overlays-explicitly-xen.patch
+slub-record-page-flag-overlays-explicitly.patch
+slob-record-page-flag-overlays-explicitly.patch
 
