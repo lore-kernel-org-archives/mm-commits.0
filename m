@@ -1,225 +1,426 @@
 From: akpm@linux-foundation.org
-Subject: - jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup.patch removed from -mm tree
-Date: Wed, 16 Jul 2008 14:37:47 -0700
-Message-ID: <200807162137.m6GLblf2014420@imap1.linux-foundation.org>
+Subject: - watchdog-w83627hf-coding-style-clean-up-and-switch-to-unlocked_ioctl.patch removed from -mm tree
+Date: Wed, 16 Jul 2008 14:37:13 -0700
+Message-ID: <200807162137.m6GLbDEb014362@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47324 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49877 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756518AbYGPVq2 (ORCPT
+	by vger.kernel.org with ESMTP id S1757627AbYGPVqq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jul 2008 17:46:28 -0400
+	Wed, 16 Jul 2008 17:46:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cmm@us.ibm.com, pbadari@us.ibm.com, mm-commits@vger.kernel.org
+To: alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup
+     watchdog: w83627hf: coding style, clean up and switch to unlocked_ioctl
 has been removed from the -mm tree.  Its filename was
-     jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup.patch
+     watchdog-w83627hf-coding-style-clean-up-and-switch-to-unlocked_ioctl.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: watchdog: w83627hf: coding style, clean up and switch to unlocked_ioctl
+From: Alan Cox <alan@redhat.com>
 
-unneeded initialisation.
-
-Cc: Badari Pulavarty <pbadari@us.ibm.com>
-Cc: Mingming Cao <cmm@us.ibm.com>
+Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jbd2/transaction.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/watchdog/w83627hf_wdt.c |  175 ++++++++++++++----------------
+ 1 file changed, 83 insertions(+), 92 deletions(-)
 
-diff -puN fs/jbd2/transaction.c~jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup fs/jbd2/transaction.c
---- a/fs/jbd2/transaction.c~jbd2-fix-race-between-jbd2_journal_try_to_free_buffers-and-jbd2-commit-transaction-cleanup
-+++ a/fs/jbd2/transaction.c
-@@ -1479,7 +1479,7 @@ out:
-  */
- static void jbd2_journal_wait_for_transaction_sync_data(journal_t *journal)
- {
--	transaction_t *transaction = NULL;
-+	transaction_t *transaction;
- 	tid_t tid;
+diff -puN drivers/watchdog/w83627hf_wdt.c~watchdog-w83627hf-coding-style-clean-up-and-switch-to-unlocked_ioctl drivers/watchdog/w83627hf_wdt.c
+--- a/drivers/watchdog/w83627hf_wdt.c~watchdog-w83627hf-coding-style-clean-up-and-switch-to-unlocked_ioctl
++++ a/drivers/watchdog/w83627hf_wdt.c
+@@ -37,9 +37,9 @@
+ #include <linux/reboot.h>
+ #include <linux/init.h>
+ #include <linux/spinlock.h>
++#include <linux/io.h>
++#include <linux/uaccess.h>
  
- 	spin_lock(&journal->j_state_lock);
+-#include <asm/io.h>
+-#include <asm/uaccess.h>
+ #include <asm/system.h>
+ 
+ #define WATCHDOG_NAME "w83627hf/thf/hg WDT"
+@@ -57,22 +57,26 @@ MODULE_PARM_DESC(wdt_io, "w83627hf/thf W
+ 
+ static int timeout = WATCHDOG_TIMEOUT;	/* in seconds */
+ module_param(timeout, int, 0);
+-MODULE_PARM_DESC(timeout, "Watchdog timeout in seconds. 1<= timeout <=255, default=" __MODULE_STRING(WATCHDOG_TIMEOUT) ".");
++MODULE_PARM_DESC(timeout,
++		"Watchdog timeout in seconds. 1 <= timeout <= 255, default="
++				__MODULE_STRING(WATCHDOG_TIMEOUT) ".");
+ 
+ static int nowayout = WATCHDOG_NOWAYOUT;
+ module_param(nowayout, int, 0);
+-MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started (default=" __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
++MODULE_PARM_DESC(nowayout,
++		"Watchdog cannot be stopped once started (default="
++				__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
+ 
+ /*
+  *	Kernel methods.
+  */
+ 
+ #define WDT_EFER (wdt_io+0)   /* Extended Function Enable Registers */
+-#define WDT_EFIR (wdt_io+0)   /* Extended Function Index Register (same as EFER) */
++#define WDT_EFIR (wdt_io+0)   /* Extended Function Index Register
++							(same as EFER) */
+ #define WDT_EFDR (WDT_EFIR+1) /* Extended Function Data Register */
+ 
+-static void
+-w83627hf_select_wd_register(void)
++static void w83627hf_select_wd_register(void)
+ {
+ 	unsigned char c;
+ 	outb_p(0x87, WDT_EFER); /* Enter extended function mode */
+@@ -93,43 +97,45 @@ w83627hf_select_wd_register(void)
+ 	outb_p(0x01, WDT_EFDR); /* set bit 0 to activate GPIO2 */
+ }
+ 
+-static void
+-w83627hf_unselect_wd_register(void)
++static void w83627hf_unselect_wd_register(void)
+ {
+ 	outb_p(0xAA, WDT_EFER); /* Leave extended function mode */
+ }
+ 
+ /* tyan motherboards seem to set F5 to 0x4C ?
+  * So explicitly init to appropriate value. */
+-static void
+-w83627hf_init(void)
++
++static void w83627hf_init(void)
+ {
+ 	unsigned char t;
+ 
+ 	w83627hf_select_wd_register();
+ 
+ 	outb_p(0xF6, WDT_EFER); /* Select CRF6 */
+-	t=inb_p(WDT_EFDR);      /* read CRF6 */
++	t = inb_p(WDT_EFDR);      /* read CRF6 */
+ 	if (t != 0) {
+-		printk (KERN_INFO PFX "Watchdog already running. Resetting timeout to %d sec\n", timeout);
++		printk(KERN_INFO PFX
++		     "Watchdog already running. Resetting timeout to %d sec\n",
++								timeout);
+ 		outb_p(timeout, WDT_EFDR);    /* Write back to CRF6 */
+ 	}
+ 
+ 	outb_p(0xF5, WDT_EFER); /* Select CRF5 */
+-	t=inb_p(WDT_EFDR);      /* read CRF5 */
+-	t&=~0x0C;               /* set second mode & disable keyboard turning off watchdog */
++	t = inb_p(WDT_EFDR);      /* read CRF5 */
++	t &= ~0x0C;               /* set second mode & disable keyboard
++				    turning off watchdog */
+ 	outb_p(t, WDT_EFDR);    /* Write back to CRF5 */
+ 
+ 	outb_p(0xF7, WDT_EFER); /* Select CRF7 */
+-	t=inb_p(WDT_EFDR);      /* read CRF7 */
+-	t&=~0xC0;               /* disable keyboard & mouse turning off watchdog */
++	t = inb_p(WDT_EFDR);      /* read CRF7 */
++	t &= ~0xC0;               /* disable keyboard & mouse turning off
++				    watchdog */
+ 	outb_p(t, WDT_EFDR);    /* Write back to CRF7 */
+ 
+ 	w83627hf_unselect_wd_register();
+ }
+ 
+-static void
+-wdt_ctrl(int timeout)
++static void wdt_ctrl(int timeout)
+ {
+ 	spin_lock(&io_lock);
+ 
+@@ -143,32 +149,28 @@ wdt_ctrl(int timeout)
+ 	spin_unlock(&io_lock);
+ }
+ 
+-static int
+-wdt_ping(void)
++static int wdt_ping(void)
+ {
+ 	wdt_ctrl(timeout);
+ 	return 0;
+ }
+ 
+-static int
+-wdt_disable(void)
++static int wdt_disable(void)
+ {
+ 	wdt_ctrl(0);
+ 	return 0;
+ }
+ 
+-static int
+-wdt_set_heartbeat(int t)
++static int wdt_set_heartbeat(int t)
+ {
+-	if ((t < 1) || (t > 255))
++	if (t < 1 || t > 255)
+ 		return -EINVAL;
+-
+ 	timeout = t;
+ 	return 0;
+ }
+ 
+-static ssize_t
+-wdt_write(struct file *file, const char __user *buf, size_t count, loff_t *ppos)
++static ssize_t wdt_write(struct file *file, const char __user *buf,
++						size_t count, loff_t *ppos)
+ {
+ 	if (count) {
+ 		if (!nowayout) {
+@@ -189,72 +191,61 @@ wdt_write(struct file *file, const char 
+ 	return count;
+ }
+ 
+-static int
+-wdt_ioctl(struct inode *inode, struct file *file, unsigned int cmd,
+-	  unsigned long arg)
++static long wdt_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ {
+ 	void __user *argp = (void __user *)arg;
+ 	int __user *p = argp;
+ 	int new_timeout;
+ 	static struct watchdog_info ident = {
+-		.options = WDIOF_KEEPALIVEPING | WDIOF_SETTIMEOUT | WDIOF_MAGICCLOSE,
++		.options = WDIOF_KEEPALIVEPING | WDIOF_SETTIMEOUT |
++							WDIOF_MAGICCLOSE,
+ 		.firmware_version = 1,
+ 		.identity = "W83627HF WDT",
+ 	};
+ 
+ 	switch (cmd) {
+ 	case WDIOC_GETSUPPORT:
+-	  if (copy_to_user(argp, &ident, sizeof(ident)))
+-	    return -EFAULT;
+-	  break;
+-
++		if (copy_to_user(argp, &ident, sizeof(ident)))
++			return -EFAULT;
++		break;
+ 	case WDIOC_GETSTATUS:
+ 	case WDIOC_GETBOOTSTATUS:
+-	  return put_user(0, p);
+-
++		return put_user(0, p);
+ 	case WDIOC_KEEPALIVE:
+-	  wdt_ping();
+-	  break;
+-
++		wdt_ping();
++		break;
+ 	case WDIOC_SETTIMEOUT:
+-	  if (get_user(new_timeout, p))
+-		  return -EFAULT;
+-	  if (wdt_set_heartbeat(new_timeout))
+-		  return -EINVAL;
+-	  wdt_ping();
+-	  /* Fall */
+-
++		if (get_user(new_timeout, p))
++			return -EFAULT;
++		if (wdt_set_heartbeat(new_timeout))
++			return -EINVAL;
++		wdt_ping();
++		/* Fall */
+ 	case WDIOC_GETTIMEOUT:
+-	  return put_user(timeout, p);
+-
++		return put_user(timeout, p);
+ 	case WDIOC_SETOPTIONS:
+ 	{
+-	  int options, retval = -EINVAL;
+-
+-	  if (get_user(options, p))
+-	    return -EFAULT;
++		int options, retval = -EINVAL;
+ 
+-	  if (options & WDIOS_DISABLECARD) {
+-	    wdt_disable();
+-	    retval = 0;
+-	  }
+-
+-	  if (options & WDIOS_ENABLECARD) {
+-	    wdt_ping();
+-	    retval = 0;
+-	  }
+-
+-	  return retval;
++		if (get_user(options, p))
++			return -EFAULT;
++		if (options & WDIOS_DISABLECARD) {
++			wdt_disable();
++			retval = 0;
++		}
++		if (options & WDIOS_ENABLECARD) {
++			wdt_ping();
++			retval = 0;
++		}
++		return retval;
+ 	}
+-
+ 	default:
+-	  return -ENOTTY;
++		return -ENOTTY;
+ 	}
+ 	return 0;
+ }
+ 
+-static int
+-wdt_open(struct inode *inode, struct file *file)
++static int wdt_open(struct inode *inode, struct file *file)
+ {
+ 	if (test_and_set_bit(0, &wdt_is_open))
+ 		return -EBUSY;
+@@ -266,13 +257,13 @@ wdt_open(struct inode *inode, struct fil
+ 	return nonseekable_open(inode, file);
+ }
+ 
+-static int
+-wdt_close(struct inode *inode, struct file *file)
++static int wdt_close(struct inode *inode, struct file *file)
+ {
+-	if (expect_close == 42) {
++	if (expect_close == 42)
+ 		wdt_disable();
+-	} else {
+-		printk(KERN_CRIT PFX "Unexpected close, not stopping watchdog!\n");
++	else {
++		printk(KERN_CRIT PFX
++			"Unexpected close, not stopping watchdog!\n");
+ 		wdt_ping();
+ 	}
+ 	expect_close = 0;
+@@ -284,8 +275,7 @@ wdt_close(struct inode *inode, struct fi
+  *	Notifier for system down
+  */
+ 
+-static int
+-wdt_notify_sys(struct notifier_block *this, unsigned long code,
++static int wdt_notify_sys(struct notifier_block *this, unsigned long code,
+ 	void *unused)
+ {
+ 	if (code == SYS_DOWN || code == SYS_HALT) {
+@@ -303,7 +293,7 @@ static const struct file_operations wdt_
+ 	.owner		= THIS_MODULE,
+ 	.llseek		= no_llseek,
+ 	.write		= wdt_write,
+-	.ioctl		= wdt_ioctl,
++	.unlocked_ioctl	= wdt_ioctl,
+ 	.open		= wdt_open,
+ 	.release	= wdt_close,
+ };
+@@ -323,8 +313,7 @@ static struct notifier_block wdt_notifie
+ 	.notifier_call = wdt_notify_sys,
+ };
+ 
+-static int __init
+-wdt_init(void)
++static int __init wdt_init(void)
+ {
+ 	int ret;
+ 
+@@ -332,12 +321,13 @@ wdt_init(void)
+ 
+ 	if (wdt_set_heartbeat(timeout)) {
+ 		wdt_set_heartbeat(WATCHDOG_TIMEOUT);
+-		printk (KERN_INFO PFX "timeout value must be 1<=timeout<=255, using %d\n",
+-			WATCHDOG_TIMEOUT);
++		printk(KERN_INFO PFX
++		     "timeout value must be 1 <= timeout <= 255, using %d\n",
++				WATCHDOG_TIMEOUT);
+ 	}
+ 
+ 	if (!request_region(wdt_io, 1, WATCHDOG_NAME)) {
+-		printk (KERN_ERR PFX "I/O address 0x%04x already in use\n",
++		printk(KERN_ERR PFX "I/O address 0x%04x already in use\n",
+ 			wdt_io);
+ 		ret = -EIO;
+ 		goto out;
+@@ -347,20 +337,22 @@ wdt_init(void)
+ 
+ 	ret = register_reboot_notifier(&wdt_notifier);
+ 	if (ret != 0) {
+-		printk (KERN_ERR PFX "cannot register reboot notifier (err=%d)\n",
+-			ret);
++		printk(KERN_ERR PFX
++			"cannot register reboot notifier (err=%d)\n", ret);
+ 		goto unreg_regions;
+ 	}
+ 
+ 	ret = misc_register(&wdt_miscdev);
+ 	if (ret != 0) {
+-		printk (KERN_ERR PFX "cannot register miscdev on minor=%d (err=%d)\n",
+-			WATCHDOG_MINOR, ret);
++		printk(KERN_ERR PFX
++			"cannot register miscdev on minor=%d (err=%d)\n",
++							WATCHDOG_MINOR, ret);
+ 		goto unreg_reboot;
+ 	}
+ 
+-	printk (KERN_INFO PFX "initialized. timeout=%d sec (nowayout=%d)\n",
+-		timeout, nowayout);
++	printk(KERN_INFO PFX
++			"initialized. timeout=%d sec (nowayout=%d)\n",
++							timeout, nowayout);
+ 
+ out:
+ 	return ret;
+@@ -371,12 +363,11 @@ unreg_regions:
+ 	goto out;
+ }
+ 
+-static void __exit
+-wdt_exit(void)
++static void __exit wdt_exit(void)
+ {
+ 	misc_deregister(&wdt_miscdev);
+ 	unregister_reboot_notifier(&wdt_notifier);
+-	release_region(wdt_io,1);
++	release_region(wdt_io, 1);
+ }
+ 
+ module_init(wdt_init);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from alan@redhat.com are
 
 origin.patch
-arm-fix-fls-for-64-bit-arguments.patch
 linux-next.patch
-next-remove-localversion.patch
-kvm-is-busted-on-ia64.patch
-drivers-mtd-nand-nandsimc-needs-div64h.patch
-pci-make-pci_register_driver-a-macro.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-ia64-improper-printk-format-in-acpi-cpufreq-checkpatch-fixes.patch
-git-jg-misc.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-bridge-send-correct-mtu-value-in-pmtu-checkpatch-fixes.patch
-sundance-set-carrier-status-on-link-change-events.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-use-sysdev_class-in-schedc-fix.patch
-drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
-git-unionfs.patch
-git-logfs-fixup.patch
-drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
-drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
+ia64-hp-sim-simserialc-adapt-to-new-tty-framework.patch
+remove-is_tty.patch
+mn10300-fix-mn10300s-serial-port-driver-to-get-at-its-tty_struct.patch
+hamradio-add-missing-sanity-check-to-tty-operation.patch
 git-watchdog.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-verify-the-page-links-and-memory-model.patch
-mspec-convert-nopfn-to-fault-fix.patch
-page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
-kill-generic_file_direct_io-checkpatch-fixes.patch
-use-generic_access_phys-for-dev-mem-mappings-fix.patch
-spufs-use-the-new-vm_ops-access-fix.patch
-fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
-page-flags-record-page-flag-overlays-explicitly-xen.patch
-mapping_set_error-add-unlikely.patch
-huge-page-private-reservation-review-cleanups-fix.patch
-vma-page-offset-has-no-callees-drop-it.patch
-sync_file_range_write-may-and-will-block-document-that-fix.patch
-vmallocinfo-add-numa-information-fix.patch
-hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
-hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
-hugetlb-override-default-huge-page-size-ia64-build.patch
-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-bootmem-add-debugging-framework-fix.patch
-bootmem-clean-up-free_all_bootmem_core-fix.patch
-bootmem-free-reserve-helpers-fix.patch
-revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-v850-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-arm-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mips-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mtd-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fixes.patch
-mmu-notifiers-add-mm_take_all_locks-operation-checkpatch-fixes.patch
-mmu-notifier-core-checkpatch-fixes.patch
-mmu-notifier-core-fix.patch
-mmu-notifier-core-fix-2.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
-security-protect-legacy-applications-from-executing-with-insufficient-privilege-checkpatch-fixes.patch
-swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
-split-the-typecheck-macros-out-of-include-linux-kernelh.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
-remove-apparently-unused-fd1772h-header-file.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
-build-kernel-profileo-only-when-requested-cleanups.patch
-seq_file-fix-bug-when-seq_read-reads-nothing-fix.patch
-exec-remove-some-includes-fix.patch
-inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments.patch
-flag-parameters-paccept-fix.patch
-flag-parameters-paccept-sys_ni.patch
-flag-parameters-anon_inode_getfd-extension-fix.patch
-flag-parameters-signalfd-fix.patch
-flag-parameters-eventfd-fix.patch
-flag-parameters-inotify_init-fix.patch
-flag-parameters-check-magic-constants-alpha.patch
-spi-au1550_spi-improve-pio-transfer-mode-checkpatch-fixes.patch
-gpio-gpio-driver-for-max7301-spi-gpio-expander-checkpatch-fixes.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch
-drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
-atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
-lcd-add-platform_lcd-driver-fix.patch
-fsl-diu-fb-update-freescale-diu-driver-to-use-page_alloc_exact-fix.patch
-fbdev-add-new-cobalt-lcd-framebuffer-driver-fix.patch
-eink_apollofb-new-driver-for-apollo-eink-controller-cleanup.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
-ext3-handle-corrupted-orphan-list-at-mount-cleanup.patch
-ext3-handle-corrupted-orphan-list-at-mount-fix.patch
-ext3-handle-corrupted-orphan-list-at-mount-cleanup-fix.patch
-ext3-handle-deleting-corrupted-indirect-blocks-fix.patch
-jbd-dont-abort-if-flushing-file-data-failed-fix.patch
-reiserfs-convert-j_flush_sem-to-mutex.patch
-reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
-cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-fix.patch
-cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-checkpatch-fixes.patch
-devcgroup-code-cleanup-fix.patch
-memcg-remove-refcnt-from-page_cgroup-fix-2.patch
-coredump-exit_mm-clear-mm-first-then-play-with-core_state-checkpatch-fixes.patch
-workqueues-make-get_online_cpus-useable-for-work-func-fix.patch
-ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
-fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
-block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
-getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
-edac-mpc85xx-fix-pci-ofdev-2nd-pass-checkpatch-fixes.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-s2io.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
-x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary-checkpatch-fixes.patch
-tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
-memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
-memstick-use-fully-asynchronous-request-processing-fix.patch
-full-conversion-to-early_initcall-interface-remove-old-interface-cleanup.patch
-full-conversion-to-early_initcall-interface-remove-old-interface-fix.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-mm-introduce-get_user_pages_fast-fix.patch
-mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-fix.patch
-x86-lockless-get_user_pages_fast-fix-2.patch
-x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
-x86-lockless-get_user_pages_fast-fix-warning.patch
-vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
-define-page_file_cache-function-fix.patch
-vmscan-split-lru-lists-into-anon-file-sets-units-fix.patch
-unevictable-lru-infrastructure-fix.patch
-unevictable-lru-page-statistics-units-fix.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-3.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
-vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-fix.patch
-resource-add-resource_size-fix.patch
-resource-add-resource_type-and-ioresource_type_bits-fix.patch
-video-console-sticonrec-make-code-static-checkpatch-fixes.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+serial-8250_gscc-add-module_license.patch
+serial-add-support-for-a-no-name-4-ports-multiserial-card.patch
+istallion-remove-unused-variable.patch
+stallion-removed-unused-variable.patch
+spidev-bkl-removal.patch
+rtc-push-the-bkl-down-into-the-driver-ioctl-method.patch
+efirtc-push-down-the-bkl.patch
+ip2-push-bkl-down-for-the-firmware-interface.patch
+mwave-ioctl-bkl-pushdown.patch
+rio-push-down-the-bkl-into-the-firmware-ioctl-handler.patch
+sx-push-bkl-down-into-the-firmware-ioctl-handler.patch
+ixj-push-bkl-into-driver-and-wrap-ioctls.patch
+ppdev-wrap-ioctl-handler-in-driver-and-push-lock-down.patch
+ds1302-push-down-the-bkl-into-the-driver-ioctl-code.patch
+dsp56k-bkl-pushdown.patch
+char-mxser-ioctl-cleanup.patch
+char-mxser-globals-cleanup.patch
+char-mxser-update-documentation.patch
+char-mxser-prints-cleanup.patch
+char-mxser-remove-predefined-isa-support.patch
+char-mxser-various-cleanups.patch
+unexport-proc_clear_tty.patch
 
