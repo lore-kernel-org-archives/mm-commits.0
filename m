@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-ep8248e-fix-compile-problem-if-config_fs_enet.patch added to -mm tree
-Date: Wed, 16 Jul 2008 13:23:23 -0700
-Message-ID: <200807162023.m6GKNNYc011242@imap1.linux-foundation.org>
+Subject: + ia64-improper-printk-format-in-acpi-cpufreq.patch added to -mm tree
+Date: Wed, 16 Jul 2008 13:23:54 -0700
+Message-ID: <200807162023.m6GKNsnF011251@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52597 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35990 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753006AbYGPUX0 (ORCPT
+	by vger.kernel.org with ESMTP id S1753172AbYGPUX7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jul 2008 16:23:26 -0400
+	Wed, 16 Jul 2008 16:23:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: galak@kernel.crashing.org, benh@kernel.crashing.org
+Cc: den@openvz.org, tony.luck@intel.com, venkatesh.pallipadi@intel.com
 
 
 The patch titled
-     powerpc/ep8248e: Fix compile problem if !CONFIG_FS_ENET
+     ia64: improper printk format in acpi-cpufreq
 has been added to the -mm tree.  Its filename is
-     powerpc-ep8248e-fix-compile-problem-if-config_fs_enet.patch
+     ia64-improper-printk-format-in-acpi-cpufreq.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,65 +34,50 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: powerpc/ep8248e: Fix compile problem if !CONFIG_FS_ENET
-From: Kumar Gala <galak@kernel.crashing.org>
+Subject: ia64: improper printk format in acpi-cpufreq
+From: "Denis V. Lunev" <den@openvz.org>
 
-If we don't enable FS_ENET we get build issues:
+When dprintk is enabled the following warnings are generated:
+arch/ia64/kernel/cpufreq/acpi-cpufreq.c: In function 'processor_set_pstate':
+arch/ia64/kernel/cpufreq/acpi-cpufreq.c:54: warning: format '%x' expects type 'unsigned int', but argument 3 has type 's64'
+arch/ia64/kernel/cpufreq/acpi-cpufreq.c: In function 'processor_get_pstate':
+arch/ia64/kernel/cpufreq/acpi-cpufreq.c:76: warning: format '%x' expects type 'unsigned int', but argument 2 has type 's64'
 
-arch/powerpc/platforms/built-in.o: In function `ep8248e_mdio_probe':
-arch/powerpc/platforms/82xx/ep8248e.c:129: undefined reference to `alloc_mdio_bitbang'
-arch/powerpc/platforms/82xx/ep8248e.c:143: undefined reference to `mdiobus_register'
-
-Signed-off-by: Kumar Gala <galak@kernel.crashing.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Denis V. Lunev <den@openvz.org>
+Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/82xx/ep8248e.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ arch/ia64/kernel/cpufreq/acpi-cpufreq.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/powerpc/platforms/82xx/ep8248e.c~powerpc-ep8248e-fix-compile-problem-if-config_fs_enet arch/powerpc/platforms/82xx/ep8248e.c
---- a/arch/powerpc/platforms/82xx/ep8248e.c~powerpc-ep8248e-fix-compile-problem-if-config_fs_enet
-+++ a/arch/powerpc/platforms/82xx/ep8248e.c
-@@ -59,6 +59,7 @@ static void __init ep8248e_pic_init(void
- 	of_node_put(np);
- }
+diff -puN arch/ia64/kernel/cpufreq/acpi-cpufreq.c~ia64-improper-printk-format-in-acpi-cpufreq arch/ia64/kernel/cpufreq/acpi-cpufreq.c
+--- a/arch/ia64/kernel/cpufreq/acpi-cpufreq.c~ia64-improper-printk-format-in-acpi-cpufreq
++++ a/arch/ia64/kernel/cpufreq/acpi-cpufreq.c
+@@ -51,7 +51,7 @@ processor_set_pstate (
+ 	retval = ia64_pal_set_pstate((u64)value);
  
-+#ifdef CONFIG_FS_ENET_MDIO_FCC
- static void ep8248e_set_mdc(struct mdiobb_ctrl *ctrl, int level)
- {
- 	if (level)
-@@ -164,6 +165,7 @@ static struct of_platform_driver ep8248e
- 	.probe = ep8248e_mdio_probe,
- 	.remove = ep8248e_mdio_remove,
- };
-+#endif
+ 	if (retval) {
+-		dprintk("Failed to set freq to 0x%x, with error 0x%x\n",
++		dprintk("Failed to set freq to 0x%x, with error 0x%lx\n",
+ 		        value, retval);
+ 		return -ENODEV;
+ 	}
+@@ -74,7 +74,7 @@ processor_get_pstate (
  
- struct cpm_pin {
- 	int port, pin, flags;
-@@ -296,7 +298,9 @@ static  __initdata struct of_device_id o
- static int __init declare_of_platform_devices(void)
- {
- 	of_platform_bus_probe(NULL, of_bus_ids, NULL);
-+#ifdef CONFIG_FS_ENET_MDIO_FCC
- 	of_register_platform_driver(&ep8248e_mdio_driver);
-+#endif
+ 	if (retval)
+ 		dprintk("Failed to get current freq with "
+-		        "error 0x%x, idx 0x%x\n", retval, *value);
++		        "error 0x%lx, idx 0x%x\n", retval, *value);
  
- 	return 0;
+ 	return (int)retval;
  }
 _
 
-Patches currently in -mm which might be from galak@kernel.crashing.org are
+Patches currently in -mm which might be from den@openvz.org are
 
 linux-next.patch
-powerpc-ep8248e-fix-compile-problem-if-config_fs_enet.patch
-mpc83xx_wdt-convert-to-the-of-platform-driver.patch
-mpc83xx_wdt-add-support-for-mpc86xx-cpus.patch
-mpc83xx_wdt-rename-to-mpc8xxx_wdt.patch
-mpc8xxx_wdt-various-renames-mostly-s-mpc83xx-mpc8xxx-g.patch
-mpc8xxx_wdt-various-renames-mostly-s-mpc83xx-mpc8xxx-g-fix.patch
-mpc8xxx_wdt-add-support-for-mpc8xx-watchdogs.patch
-powerpc-86xx-mpc8610_hpcd-add-watchdog-node.patch
-cpm1-dont-send-break-on-tx_stop-dont-interrupt-rx-tx-when-adjusting-termios-parameters.patch
-resource-use-new-resource-type-changes.patch
+proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
+ia64-improper-printk-format-in-acpi-cpufreq.patch
 
