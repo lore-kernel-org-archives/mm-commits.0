@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + cpuset-code-cleanup-for-started_after.patch added to -mm tree
-Date: Wed, 16 Jul 2008 13:27:31 -0700
-Message-ID: <200807162027.m6GKRV1V011434@imap1.linux-foundation.org>
+Subject: + cpuset-dont-pass-empty-cpumasks-to-partition_sched_domains.patch added to -mm tree
+Date: Wed, 16 Jul 2008 13:27:29 -0700
+Message-ID: <200807162027.m6GKRT5w011427@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56993 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41949 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754166AbYGPU1l (ORCPT
+	by vger.kernel.org with ESMTP id S1753646AbYGPU1j (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jul 2008 16:27:41 -0400
+	Wed, 16 Jul 2008 16:27:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: laijs@cn.fujitsu.com, menage@google.com, pj@sgi.com
 
 
 The patch titled
-     cpuset: code-cleanup for started_after
+     cpuset: don't pass empty cpumasks to partition_sched_domains()
 has been added to the -mm tree.  Its filename is
-     cpuset-code-cleanup-for-started_after.patch
+     cpuset-dont-pass-empty-cpumasks-to-partition_sched_domains.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,18 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpuset: code-cleanup for started_after
+Subject: cpuset: don't pass empty cpumasks to partition_sched_domains()
 From: Lai Jiangshan <laijs@cn.fujitsu.com>
 
-cgroup(cgroup_scan_tasks) will initialize heap->gt for us.  This patch
-removes started_after() and its helper-function.
+I create lots of empty cpusets(empty cpumasks) and turn off the
+"sched_load_balance" in top cpuset.
+
+I found that all these empty cpumasks are passed to
+partition_sched_domains() in rebuild_sched_domains(), it's very
+time-consuming for partition_sched_domains() and it's not need.
+
+It also reduce memory consumed and some works in rebuild_sched_domains()
+too.
 
 Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
 Acked-by: Paul Menage <menage@google.com>
@@ -46,63 +53,26 @@ Cc: Paul Jackson <pj@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpuset.c |   37 ++++++-------------------------------
- 1 file changed, 6 insertions(+), 31 deletions(-)
+ kernel/cpuset.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN kernel/cpuset.c~cpuset-code-cleanup-for-started_after kernel/cpuset.c
---- a/kernel/cpuset.c~cpuset-code-cleanup-for-started_after
+diff -puN kernel/cpuset.c~cpuset-dont-pass-empty-cpumasks-to-partition_sched_domains kernel/cpuset.c
+--- a/kernel/cpuset.c~cpuset-dont-pass-empty-cpumasks-to-partition_sched_domains
 +++ a/kernel/cpuset.c
-@@ -709,36 +709,6 @@ done:
- 	/* Don't kfree(dattr) -- partition_sched_domains() does that. */
- }
- 
--static inline int started_after_time(struct task_struct *t1,
--				     struct timespec *time,
--				     struct task_struct *t2)
--{
--	int start_diff = timespec_compare(&t1->start_time, time);
--	if (start_diff > 0) {
--		return 1;
--	} else if (start_diff < 0) {
--		return 0;
--	} else {
--		/*
--		 * Arbitrarily, if two processes started at the same
--		 * time, we'll say that the lower pointer value
--		 * started first. Note that t2 may have exited by now
--		 * so this may not be a valid pointer any longer, but
--		 * that's fine - it still serves to distinguish
--		 * between two tasks started (effectively)
--		 * simultaneously.
--		 */
--		return t1 > t2;
--	}
--}
--
--static inline int started_after(void *p1, void *p2)
--{
--	struct task_struct *t1 = p1;
--	struct task_struct *t2 = p2;
--	return started_after_time(t1, &t2->start_time, t2);
--}
--
- /**
-  * cpuset_test_cpumask - test a task's cpus_allowed versus its cpuset's
-  * @tsk: task to test
-@@ -790,7 +760,12 @@ static int update_tasks_cpumask(struct c
- 	struct ptr_heap heap;
- 	int retval;
- 
--	retval = heap_init(&heap, PAGE_SIZE, GFP_KERNEL, &started_after);
-+	/*
-+	 * cgroup_scan_tasks() will initialize heap->gt for us.
-+	 * heap_init() is still needed here for we should not change
-+	 * cs->cpus_allowed when heap_init() fails.
-+	 */
-+	retval = heap_init(&heap, PAGE_SIZE, GFP_KERNEL, NULL);
- 	if (retval)
- 		return retval;
- 
+@@ -610,8 +610,13 @@ static void rebuild_sched_domains(void)
+ 	while (__kfifo_get(q, (void *)&cp, sizeof(cp))) {
+ 		struct cgroup *cont;
+ 		struct cpuset *child;   /* scans child cpusets of cp */
++
++		if (cpus_empty(cp->cpus_allowed))
++			continue;
++
+ 		if (is_sched_load_balance(cp))
+ 			csa[csn++] = cp;
++
+ 		list_for_each_entry(cont, &cp->css.cgroup->children, sibling) {
+ 			child = cgroup_cs(cont);
+ 			__kfifo_put(q, (void *)&child, sizeof(cp));
 _
 
 Patches currently in -mm which might be from laijs@cn.fujitsu.com are
