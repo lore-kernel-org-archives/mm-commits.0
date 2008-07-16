@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cpuset-dont-pass-empty-cpumasks-to-partition_sched_domains.patch added to -mm tree
-Date: Wed, 16 Jul 2008 13:27:29 -0700
-Message-ID: <200807162027.m6GKRT5w011427@imap1.linux-foundation.org>
+Subject: + timekeeping-fix-rounding-problem-during-clock-update.patch added to -mm tree
+Date: Wed, 16 Jul 2008 13:28:43 -0700
+Message-ID: <200807162028.m6GKShYT011461@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41949 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38868 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753646AbYGPU1j (ORCPT
+	by vger.kernel.org with ESMTP id S1756477AbYGPUaT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jul 2008 16:27:39 -0400
+	Wed, 16 Jul 2008 16:30:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: laijs@cn.fujitsu.com, menage@google.com, pj@sgi.com
+Cc: zippel@linux-m68k.org, johnstul@us.ibm.com, tglx@linutronix.de
 
 
 The patch titled
-     cpuset: don't pass empty cpumasks to partition_sched_domains()
+     timekeeping: fix rounding problem during clock update
 has been added to the -mm tree.  Its filename is
-     cpuset-dont-pass-empty-cpumasks-to-partition_sched_domains.patch
+     timekeeping-fix-rounding-problem-during-clock-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,52 +34,78 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpuset: don't pass empty cpumasks to partition_sched_domains()
-From: Lai Jiangshan <laijs@cn.fujitsu.com>
+Subject: timekeeping: fix rounding problem during clock update
+From: Roman Zippel <zippel@linux-m68k.org>
 
-I create lots of empty cpusets(empty cpumasks) and turn off the
-"sched_load_balance" in top cpuset.
+Due to a rounding problem during a clock update it's possible for readers
+to observe the clock jumping back by 1nsec.  The following simplified
+example demonstrates the problem:
 
-I found that all these empty cpumasks are passed to
-partition_sched_domains() in rebuild_sched_domains(), it's very
-time-consuming for partition_sched_domains() and it's not need.
+cycle	xtime
+0	0
+1000	999999.6
+2000	1999999.2
+3000	2999998.8
+...
 
-It also reduce memory consumed and some works in rebuild_sched_domains()
-too.
+1500 =	1499999.4
+=	0.0 + 1499999.4
+=	999999.6 + 499999.8
 
-Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
-Acked-by: Paul Menage <menage@google.com>
-Cc: Paul Jackson <pj@sgi.com>
+When reading the clock only the full nanosecond part is used, while
+timekeeping internally keeps nanosecond fractions.  If the clock is now
+updated at cycle 1500 here, a nanosecond is missing due to the truncation.
+
+The simple fix is to round up the xtime value during the update, this also
+changes the distance to the reference time, but the adjustment will
+automatically take care that it stays under control.
+
+Signed-off-by: Roman Zippel <zippel@linux-m68k.org>
+Signed-off-by: John Stultz <johnstul@us.ibm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpuset.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ kernel/time/timekeeping.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN kernel/cpuset.c~cpuset-dont-pass-empty-cpumasks-to-partition_sched_domains kernel/cpuset.c
---- a/kernel/cpuset.c~cpuset-dont-pass-empty-cpumasks-to-partition_sched_domains
-+++ a/kernel/cpuset.c
-@@ -610,8 +610,13 @@ static void rebuild_sched_domains(void)
- 	while (__kfifo_get(q, (void *)&cp, sizeof(cp))) {
- 		struct cgroup *cont;
- 		struct cpuset *child;   /* scans child cpusets of cp */
-+
-+		if (cpus_empty(cp->cpus_allowed))
-+			continue;
-+
- 		if (is_sched_load_balance(cp))
- 			csa[csn++] = cp;
-+
- 		list_for_each_entry(cont, &cp->css.cgroup->children, sibling) {
- 			child = cgroup_cs(cont);
- 			__kfifo_put(q, (void *)&child, sizeof(cp));
+diff -puN kernel/time/timekeeping.c~timekeeping-fix-rounding-problem-during-clock-update kernel/time/timekeeping.c
+--- a/kernel/time/timekeeping.c~timekeeping-fix-rounding-problem-during-clock-update
++++ a/kernel/time/timekeeping.c
+@@ -454,7 +454,7 @@ void update_wall_time(void)
+ #else
+ 	offset = clock->cycle_interval;
+ #endif
+-	clock->xtime_nsec += (s64)xtime.tv_nsec << clock->shift;
++	clock->xtime_nsec = (s64)xtime.tv_nsec << clock->shift;
+ 
+ 	/* normally this loop will run just once, however in the
+ 	 * case of lost or late ticks, it will accumulate correctly.
+@@ -479,9 +479,12 @@ void update_wall_time(void)
+ 	/* correct the clock when NTP error is too big */
+ 	clocksource_adjust(offset);
+ 
+-	/* store full nanoseconds into xtime */
+-	xtime.tv_nsec = (s64)clock->xtime_nsec >> clock->shift;
++	/* store full nanoseconds into xtime after rounding it up and
++	 * add the remainder to the error difference.
++	 */
++	xtime.tv_nsec = ((s64)clock->xtime_nsec >> clock->shift) + 1;
+ 	clock->xtime_nsec -= (s64)xtime.tv_nsec << clock->shift;
++	clock->error += clock->xtime_nsec << (NTP_SCALE_SHIFT - clock->shift);
+ 
+ 	update_xtime_cache(cyc2ns(clock, offset));
+ 
 _
 
-Patches currently in -mm which might be from laijs@cn.fujitsu.com are
+Patches currently in -mm which might be from zippel@linux-m68k.org are
 
 linux-next.patch
-rcu-classic-update-qlen-when-cpu-offline.patch
-cpuset-dont-pass-empty-cpumasks-to-partition_sched_domains.patch
-cpuset-code-cleanup-for-started_after.patch
-cpuset-two-minor-code-cleanups.patch
+ntp-let-update_persistent_clock-sleep.patch
+timekeeping-fix-rounding-problem-during-clock-update.patch
+ntp-fix-calculation-of-the-next-jiffie-to-trigger-rtc-sync.patch
+hfs-convert-bitmap_lock-in-a-mutex.patch
+hfs-convert-extents_lock-in-a-mutex.patch
+hfsplus-convert-the-extents_lock-in-a-mutex.patch
+affs-convert-s_bmlock-into-a-mutex.patch
 
