@@ -1,76 +1,248 @@
 From: akpm@linux-foundation.org
-Subject: - watchdog-davinci_wdt-unlocked_ioctl-and-check-locking.patch removed from -mm tree
-Date: Wed, 16 Jul 2008 14:35:55 -0700
-Message-ID: <200807162135.m6GLZt6M014134@imap1.linux-foundation.org>
+Subject: - watchdog-indydog-clean-up-and-tidy.patch removed from -mm tree
+Date: Wed, 16 Jul 2008 14:36:09 -0700
+Message-ID: <200807162136.m6GLa9bb014167@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59447 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36902 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756953AbYGPVjB (ORCPT
+	by vger.kernel.org with ESMTP id S1751394AbYGPVjg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jul 2008 17:39:01 -0400
+	Wed, 16 Jul 2008 17:39:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     watchdog: davinci_wdt: unlocked_ioctl and check locking
+     watchdog: indydog: Clean up and tidy
 has been removed from the -mm tree.  Its filename was
-     watchdog-davinci_wdt-unlocked_ioctl-and-check-locking.patch
+     watchdog-indydog-clean-up-and-tidy.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: watchdog: davinci_wdt: unlocked_ioctl and check locking
+Subject: watchdog: indydog: Clean up and tidy
 From: Alan Cox <alan@redhat.com>
+
+Switch to unlocked_ioctl as well
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/davinci_wdt.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ drivers/watchdog/indydog.c |  114 +++++++++++++++++++----------------
+ 1 file changed, 62 insertions(+), 52 deletions(-)
 
-diff -puN drivers/watchdog/davinci_wdt.c~watchdog-davinci_wdt-unlocked_ioctl-and-check-locking drivers/watchdog/davinci_wdt.c
---- a/drivers/watchdog/davinci_wdt.c~watchdog-davinci_wdt-unlocked_ioctl-and-check-locking
-+++ a/drivers/watchdog/davinci_wdt.c
-@@ -22,10 +22,10 @@
- #include <linux/bitops.h>
- #include <linux/platform_device.h>
- #include <linux/spinlock.h>
-+#include <linux/uaccess.h>
-+#include <linux/io.h>
- 
- #include <asm/hardware.h>
+diff -puN drivers/watchdog/indydog.c~watchdog-indydog-clean-up-and-tidy drivers/watchdog/indydog.c
+--- a/drivers/watchdog/indydog.c~watchdog-indydog-clean-up-and-tidy
++++ a/drivers/watchdog/indydog.c
+@@ -1,7 +1,8 @@
+ /*
+  *	IndyDog	0.3	A Hardware Watchdog Device for SGI IP22
+  *
+- *	(c) Copyright 2002 Guido Guenther <agx@sigxcpu.org>, All Rights Reserved.
++ *	(c) Copyright 2002 Guido Guenther <agx@sigxcpu.org>,
++ *						All Rights Reserved.
+  *
+  *	This program is free software; you can redistribute it and/or
+  *	modify it under the terms of the GNU General Public License
+@@ -22,32 +23,42 @@
+ #include <linux/notifier.h>
+ #include <linux/reboot.h>
+ #include <linux/init.h>
 -#include <asm/uaccess.h>
--#include <asm/io.h>
++#include <linux/uaccess.h>
+ #include <asm/sgi/mc.h>
  
- #define MODULE_NAME "DAVINCI-WDT: "
+ #define PFX "indydog: "
+-static int indydog_alive;
++static unsigned long indydog_alive;
++static spinlock_t indydog_lock;
  
-@@ -143,9 +143,8 @@ static struct watchdog_info ident = {
- 	.identity = "DaVinci Watchdog",
- };
+ #define WATCHDOG_TIMEOUT 30		/* 30 sec default timeout */
  
--static int
--davinci_wdt_ioctl(struct inode *inode, struct file *file, unsigned int cmd,
--		  unsigned long arg)
-+static long davinci_wdt_ioctl(struct file *file,
-+					unsigned int cmd, unsigned long arg)
+ static int nowayout = WATCHDOG_NOWAYOUT;
+ module_param(nowayout, int, 0);
+-MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started (default=" __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
++MODULE_PARM_DESC(nowayout,
++		"Watchdog cannot be stopped once started (default="
++				__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
+ 
+ static void indydog_start(void)
  {
- 	int ret = -ENOTTY;
+-	u32 mc_ctrl0 = sgimc->cpuctrl0;
++	u32 mc_ctrl0;
  
-@@ -184,7 +183,7 @@ static const struct file_operations davi
- 	.owner = THIS_MODULE,
- 	.llseek = no_llseek,
- 	.write = davinci_wdt_write,
--	.ioctl = davinci_wdt_ioctl,
-+	.unlocked_ioctl = davinci_wdt_ioctl,
- 	.open = davinci_wdt_open,
- 	.release = davinci_wdt_release,
++	spin_lock(&indydog_lock);
++	mc_ctrl0 = sgimc->cpuctrl0;
+ 	mc_ctrl0 = sgimc->cpuctrl0 | SGIMC_CCTRL0_WDOG;
+ 	sgimc->cpuctrl0 = mc_ctrl0;
++	spin_unlock(&indydog_lock);
+ }
+ 
+ static void indydog_stop(void)
+ {
+-	u32 mc_ctrl0 = sgimc->cpuctrl0;
++	u32 mc_ctrl0;
+ 
++	spin_lock(&indydog_lock);
++
++	mc_ctrl0 = sgimc->cpuctrl0;
+ 	mc_ctrl0 &= ~SGIMC_CCTRL0_WDOG;
+ 	sgimc->cpuctrl0 = mc_ctrl0;
++	spin_unlock(&indydog_lock);
+ 
+ 	printk(KERN_INFO PFX "Stopped watchdog timer.\n");
+ }
+@@ -62,7 +73,7 @@ static void indydog_ping(void)
+  */
+ static int indydog_open(struct inode *inode, struct file *file)
+ {
+-	if (indydog_alive)
++	if (test_and_set_bit(0, &indydog_alive))
+ 		return -EBUSY;
+ 
+ 	if (nowayout)
+@@ -84,23 +95,21 @@ static int indydog_release(struct inode 
+ 	 * Lock it in if it's a module and we defined ...NOWAYOUT */
+ 	if (!nowayout)
+ 		indydog_stop();		/* Turn the WDT off */
+-
+-	indydog_alive = 0;
+-
++	clear_bit(0, &indydog_alive);
+ 	return 0;
+ }
+ 
+-static ssize_t indydog_write(struct file *file, const char *data, size_t len, loff_t *ppos)
++static ssize_t indydog_write(struct file *file, const char *data,
++						size_t len, loff_t *ppos)
+ {
+ 	/* Refresh the timer. */
+-	if (len) {
++	if (len)
+ 		indydog_ping();
+-	}
+ 	return len;
+ }
+ 
+-static int indydog_ioctl(struct inode *inode, struct file *file,
+-	unsigned int cmd, unsigned long arg)
++static long indydog_ioctl(struct file *file, unsigned int cmd,
++							unsigned long arg)
+ {
+ 	int options, retval = -EINVAL;
+ 	static struct watchdog_info ident = {
+@@ -111,42 +120,40 @@ static int indydog_ioctl(struct inode *i
+ 	};
+ 
+ 	switch (cmd) {
+-		default:
+-			return -ENOTTY;
+-		case WDIOC_GETSUPPORT:
+-			if (copy_to_user((struct watchdog_info *)arg,
+-					 &ident, sizeof(ident)))
+-				return -EFAULT;
+-			return 0;
+-		case WDIOC_GETSTATUS:
+-		case WDIOC_GETBOOTSTATUS:
+-			return put_user(0,(int *)arg);
+-		case WDIOC_KEEPALIVE:
+-			indydog_ping();
+-			return 0;
+-		case WDIOC_GETTIMEOUT:
+-			return put_user(WATCHDOG_TIMEOUT,(int *)arg);
+-		case WDIOC_SETOPTIONS:
+-		{
+-			if (get_user(options, (int *)arg))
+-				return -EFAULT;
+-
+-			if (options & WDIOS_DISABLECARD) {
+-				indydog_stop();
+-				retval = 0;
+-			}
+-
+-			if (options & WDIOS_ENABLECARD) {
+-				indydog_start();
+-				retval = 0;
+-			}
+-
+-			return retval;
++	case WDIOC_GETSUPPORT:
++		if (copy_to_user((struct watchdog_info *)arg,
++				 &ident, sizeof(ident)))
++			return -EFAULT;
++		return 0;
++	case WDIOC_GETSTATUS:
++	case WDIOC_GETBOOTSTATUS:
++		return put_user(0, (int *)arg);
++	case WDIOC_KEEPALIVE:
++		indydog_ping();
++		return 0;
++	case WDIOC_GETTIMEOUT:
++		return put_user(WATCHDOG_TIMEOUT, (int *)arg);
++	case WDIOC_SETOPTIONS:
++	{
++		if (get_user(options, (int *)arg))
++			return -EFAULT;
++		if (options & WDIOS_DISABLECARD) {
++			indydog_stop();
++			retval = 0;
++		}
++		if (options & WDIOS_ENABLECARD) {
++			indydog_start();
++			retval = 0;
+ 		}
++		return retval;
++	}
++	default:
++		return -ENOTTY;
+ 	}
+ }
+ 
+-static int indydog_notify_sys(struct notifier_block *this, unsigned long code, void *unused)
++static int indydog_notify_sys(struct notifier_block *this,
++					unsigned long code, void *unused)
+ {
+ 	if (code == SYS_DOWN || code == SYS_HALT)
+ 		indydog_stop();		/* Turn the WDT off */
+@@ -158,7 +165,7 @@ static const struct file_operations indy
+ 	.owner		= THIS_MODULE,
+ 	.llseek		= no_llseek,
+ 	.write		= indydog_write,
+-	.ioctl		= indydog_ioctl,
++	.unlocked_ioctl	= indydog_ioctl,
+ 	.open		= indydog_open,
+ 	.release	= indydog_release,
  };
+@@ -180,17 +187,20 @@ static int __init watchdog_init(void)
+ {
+ 	int ret;
+ 
++	spin_lock_init(&indydog_lock);
++
+ 	ret = register_reboot_notifier(&indydog_notifier);
+ 	if (ret) {
+-		printk(KERN_ERR PFX "cannot register reboot notifier (err=%d)\n",
+-			ret);
++		printk(KERN_ERR PFX
++			"cannot register reboot notifier (err=%d)\n", ret);
+ 		return ret;
+ 	}
+ 
+ 	ret = misc_register(&indydog_miscdev);
+ 	if (ret) {
+-		printk(KERN_ERR PFX "cannot register miscdev on minor=%d (err=%d)\n",
+-			WATCHDOG_MINOR, ret);
++		printk(KERN_ERR PFX
++			"cannot register miscdev on minor=%d (err=%d)\n",
++							WATCHDOG_MINOR, ret);
+ 		unregister_reboot_notifier(&indydog_notifier);
+ 		return ret;
+ 	}
 _
 
 Patches currently in -mm which might be from alan@redhat.com are
