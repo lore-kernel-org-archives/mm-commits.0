@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - via-velocity-move-residual-free-rx-descriptors-count-register-update.patch removed from -mm tree
-Date: Wed, 16 Jul 2008 14:35:27 -0700
-Message-ID: <200807162135.m6GLZRDV014093@imap1.linux-foundation.org>
+Subject: - via-velocity-lean-and-clean-velocity_init_rings.patch removed from -mm tree
+Date: Wed, 16 Jul 2008 14:35:25 -0700
+Message-ID: <200807162135.m6GLZPJH014090@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60486 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44769 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757298AbYGPVgB (ORCPT
+	by vger.kernel.org with ESMTP id S1757284AbYGPVgB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 16 Jul 2008 17:36:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,138 +15,101 @@ To: romieu@fr.zoreil.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     via-velocity: move residual free rx descriptors count register update
+     via-velocity: lean and clean velocity_init_rings
 has been removed from the -mm tree.  Its filename was
-     via-velocity-move-residual-free-rx-descriptors-count-register-update.patch
+     via-velocity-lean-and-clean-velocity_init_rings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: via-velocity: move residual free rx descriptors count register update
+Subject: via-velocity: lean and clean velocity_init_rings
 From: Francois Romieu <romieu@fr.zoreil.com>
 
-Updates of the RBRDU have two different meanings depending on their
-context:
-1. the receiving process has not started - the value which is written
-   into the RBRDU register is supposed to be the free rx descriptors
-   count (rounded to a multiple of 4)
-2. the receiving process is running - the value increments the count
-   above (sic)
-
-The update is currently issued deep inside the rx replenish chain (see
-velocity_give_many_rx_descs).
-
-Let's propagate enough information to the caller so that the rx
-replenish functions do not depend on hardware any more.
-
-It is needed to perform the Rx/Tx buffers housekeeping when MTU changes.
+- PCI consistent areas need no memset
+- use dev_err instead of plain printk
+- avoid a few casts
 
 Signed-off-by: Francois Romieu <romieu@fr.zoreil.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/via-velocity.c |   28 ++++++++++++++--------------
- 1 file changed, 14 insertions(+), 14 deletions(-)
+ drivers/net/via-velocity.c |   48 +++++++++++++++--------------------
+ 1 file changed, 21 insertions(+), 27 deletions(-)
 
-diff -puN drivers/net/via-velocity.c~via-velocity-move-residual-free-rx-descriptors-count-register-update drivers/net/via-velocity.c
---- a/drivers/net/via-velocity.c~via-velocity-move-residual-free-rx-descriptors-count-register-update
+diff -puN drivers/net/via-velocity.c~via-velocity-lean-and-clean-velocity_init_rings drivers/net/via-velocity.c
+--- a/drivers/net/via-velocity.c~via-velocity-lean-and-clean-velocity_init_rings
 +++ a/drivers/net/via-velocity.c
-@@ -1155,7 +1155,7 @@ static void velocity_free_rings(struct v
- 	pci_free_consistent(vptr->pdev, size, vptr->rd_ring, vptr->rd_pool_dma);
- }
+@@ -1102,47 +1102,41 @@ static int __devinit velocity_get_pci_in
  
--static inline void velocity_give_many_rx_descs(struct velocity_info *vptr)
-+static void velocity_give_many_rx_descs(struct velocity_info *vptr)
+ static int velocity_init_rings(struct velocity_info *vptr)
  {
- 	struct mac_regs __iomem *regs = vptr->mac_regs;
- 	int avail, dirty, unusable;
-@@ -1182,7 +1182,7 @@ static inline void velocity_give_many_rx
+-	int i;
+-	unsigned int psize;
++	struct velocity_opt *opt = &vptr->options;
++	const unsigned int rx_ring_size = opt->numrx * sizeof(struct rx_desc);
++	const unsigned int tx_ring_size = opt->numtx * sizeof(struct tx_desc);
++	struct pci_dev *pdev = vptr->pdev;
+ 	dma_addr_t pool_dma;
+-	u8 *pool;
+-
+-	/*
+-	 *	Allocate all RD/TD rings a single pool
+-	 */
+-
+-	psize = vptr->options.numrx * sizeof(struct rx_desc) +
+-		vptr->options.numtx * sizeof(struct tx_desc) * vptr->num_txq;
++	void *pool;
++	unsigned int i;
  
- static int velocity_rx_refill(struct velocity_info *vptr)
- {
--	int dirty = vptr->rd_dirty, done = 0, ret = 0;
-+	int dirty = vptr->rd_dirty, done = 0;
- 
- 	do {
- 		struct rx_desc *rd = vptr->rd_ring + dirty;
-@@ -1192,8 +1192,7 @@ static int velocity_rx_refill(struct vel
- 			break;
- 
- 		if (!vptr->rd_info[dirty].skb) {
--			ret = velocity_alloc_rx_buf(vptr, dirty);
--			if (ret < 0)
-+			if (velocity_alloc_rx_buf(vptr, dirty) < 0)
- 				break;
- 		}
- 		done++;
-@@ -1203,10 +1202,9 @@ static int velocity_rx_refill(struct vel
- 	if (done) {
- 		vptr->rd_dirty = dirty;
- 		vptr->rd_filled += done;
--		velocity_give_many_rx_descs(vptr);
+ 	/*
++	 * Allocate all RD/TD rings a single pool.
++	 *
+ 	 * pci_alloc_consistent() fulfills the requirement for 64 bytes
+ 	 * alignment
+ 	 */
+-	pool = pci_alloc_consistent(vptr->pdev, psize, &pool_dma);
+-
+-	if (pool == NULL) {
+-		printk(KERN_ERR "%s : DMA memory allocation failed.\n",
+-					vptr->dev->name);
++	pool = pci_alloc_consistent(pdev, tx_ring_size * vptr->num_txq +
++				    rx_ring_size, &pool_dma);
++	if (!pool) {
++		dev_err(&pdev->dev, "%s : DMA memory allocation failed.\n",
++			vptr->dev->name);
+ 		return -ENOMEM;
  	}
  
--	return ret;
-+	return done;
- }
+-	memset(pool, 0, psize);
+-
+-	vptr->rd_ring = (struct rx_desc *) pool;
+-
++	vptr->rd_ring = pool;
+ 	vptr->rd_pool_dma = pool_dma;
  
- /**
-@@ -1219,25 +1217,27 @@ static int velocity_rx_refill(struct vel
+-	i = vptr->options.numrx * sizeof(struct rx_desc);
+-	pool += i;
+-	pool_dma += i;
+-	for (i = 0; i < vptr->num_txq; i++) {
+-		int offset = vptr->options.numtx * sizeof(struct tx_desc);
++	pool += rx_ring_size;
++	pool_dma += rx_ring_size;
  
- static int velocity_init_rd_ring(struct velocity_info *vptr)
- {
--	int ret;
- 	int mtu = vptr->dev->mtu;
-+	int ret = -ENOMEM;
- 
- 	vptr->rx_buf_sz = (mtu <= ETH_DATA_LEN) ? PKT_BUF_SZ : mtu + 32;
- 
- 	vptr->rd_info = kcalloc(vptr->options.numrx,
- 				sizeof(struct velocity_rd_info), GFP_KERNEL);
- 	if (!vptr->rd_info)
--		return -ENOMEM;
-+		goto out;
- 
- 	vptr->rd_filled = vptr->rd_dirty = vptr->rd_curr = 0;
- 
--	ret = velocity_rx_refill(vptr);
--	if (ret < 0) {
-+	if (velocity_rx_refill(vptr) != vptr->options.numrx) {
- 		VELOCITY_PRT(MSG_LEVEL_ERR, KERN_ERR
- 			"%s: failed to allocate RX buffer.\n", vptr->dev->name);
- 		velocity_free_rd_ring(vptr);
-+		goto out;
++	for (i = 0; i < vptr->num_txq; i++) {
++		vptr->td_rings[i] = pool;
+ 		vptr->td_pool_dma[i] = pool_dma;
+-		vptr->td_rings[i] = (struct tx_desc *) pool;
+-		pool += offset;
+-		pool_dma += offset;
++		pool += tx_ring_size;
++		pool_dma += tx_ring_size;
  	}
- 
-+	ret = 0;
-+out:
- 	return ret;
- }
- 
-@@ -1412,10 +1412,8 @@ static int velocity_rx_srv(struct veloci
- 
- 	vptr->rd_curr = rd_curr;
- 
--	if (works > 0 && velocity_rx_refill(vptr) < 0) {
--		VELOCITY_PRT(MSG_LEVEL_ERR, KERN_ERR
--			"%s: rx buf allocation failure\n", vptr->dev->name);
--	}
-+	if ((works > 0) && (velocity_rx_refill(vptr) > 0))
-+		velocity_give_many_rx_descs(vptr);
- 
- 	VAR_USED(stats);
- 	return works;
-@@ -1877,6 +1875,8 @@ static int velocity_open(struct net_devi
- 	/* Ensure chip is running */
- 	pci_set_power_state(vptr->pdev, PCI_D0);
- 
-+	velocity_give_many_rx_descs(vptr);
 +
- 	velocity_init_registers(vptr, VELOCITY_INIT_COLD);
+ 	return 0;
+ }
  
- 	ret = request_irq(vptr->pdev->irq, &velocity_intr, IRQF_SHARED,
 _
 
 Patches currently in -mm which might be from romieu@fr.zoreil.com are
