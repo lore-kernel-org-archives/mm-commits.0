@@ -1,325 +1,304 @@
 From: akpm@linux-foundation.org
-Subject: - watchdog-ibmasr-coding-style-locking-verify.patch removed from -mm tree
-Date: Wed, 16 Jul 2008 14:36:07 -0700
-Message-ID: <200807162136.m6GLa7lm014164@imap1.linux-foundation.org>
+Subject: - watchdog-clean-acquirewdt-and-check-for-bkl-dependancies.patch removed from -mm tree
+Date: Wed, 16 Jul 2008 14:35:41 -0700
+Message-ID: <200807162135.m6GLZfjB014112@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43962 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45547 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758811AbYGPVmb (ORCPT
+	by vger.kernel.org with ESMTP id S1756624AbYGPVmv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jul 2008 17:42:31 -0400
+	Wed, 16 Jul 2008 17:42:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     watchdog: ibmasr: coding style, locking verify
+     watchdog: clean acquirewdt and check for BKL dependancies
 has been removed from the -mm tree.  Its filename was
-     watchdog-ibmasr-coding-style-locking-verify.patch
+     watchdog-clean-acquirewdt-and-check-for-bkl-dependancies.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: watchdog: ibmasr: coding style, locking verify
+Subject: watchdog: clean acquirewdt and check for BKL dependancies
 From: Alan Cox <alan@redhat.com>
 
-There is a new #if 0 section here which is a suggested fix for the horrible
-PCI hack in the existing code. Would be good if someone with a box that uses
-this device could test it.
+This brings the file into line with coding style.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/ibmasr.c |  149 +++++++++++++++++++++---------------
- 1 file changed, 87 insertions(+), 62 deletions(-)
+ drivers/watchdog/acquirewdt.c |  119 +++++++++++++++-----------------
+ 1 file changed, 58 insertions(+), 61 deletions(-)
 
-diff -puN drivers/watchdog/ibmasr.c~watchdog-ibmasr-coding-style-locking-verify drivers/watchdog/ibmasr.c
---- a/drivers/watchdog/ibmasr.c~watchdog-ibmasr-coding-style-locking-verify
-+++ a/drivers/watchdog/ibmasr.c
-@@ -19,9 +19,8 @@
- #include <linux/miscdevice.h>
- #include <linux/watchdog.h>
- #include <linux/dmi.h>
--
--#include <asm/io.h>
--#include <asm/uaccess.h>
-+#include <linux/io.h>
-+#include <linux/uaccess.h>
+diff -puN drivers/watchdog/acquirewdt.c~watchdog-clean-acquirewdt-and-check-for-bkl-dependancies drivers/watchdog/acquirewdt.c
+--- a/drivers/watchdog/acquirewdt.c~watchdog-clean-acquirewdt-and-check-for-bkl-dependancies
++++ a/drivers/watchdog/acquirewdt.c
+@@ -58,39 +58,46 @@
+ #include <linux/types.h>		/* For standard types (like size_t) */
+ #include <linux/errno.h>		/* For the -ENODEV/... values */
+ #include <linux/kernel.h>		/* For printk/panic/... */
+-#include <linux/miscdevice.h>		/* For MODULE_ALIAS_MISCDEV(WATCHDOG_MINOR) */
++#include <linux/miscdevice.h>		/* For MODULE_ALIAS_MISCDEV
++							(WATCHDOG_MINOR) */
+ #include <linux/watchdog.h>		/* For the watchdog specific items */
+ #include <linux/fs.h>			/* For file operations */
+ #include <linux/ioport.h>		/* For io-port access */
+ #include <linux/platform_device.h>	/* For platform_driver framework */
+ #include <linux/init.h>			/* For __init/__exit/... */
  
+-#include <asm/uaccess.h>		/* For copy_to_user/put_user/... */
+-#include <asm/io.h>			/* For inb/outb/... */
++#include <linux/uaccess.h>		/* For copy_to_user/put_user/... */
++#include <linux/io.h>			/* For inb/outb/... */
  
- enum {
-@@ -70,10 +69,13 @@ static char asr_expect_close;
- static unsigned int asr_type, asr_base, asr_length;
- static unsigned int asr_read_addr, asr_write_addr;
- static unsigned char asr_toggle_mask, asr_disable_mask;
-+static spinlock_t asr_lock;
+ /* Module information */
+ #define DRV_NAME "acquirewdt"
+ #define PFX DRV_NAME ": "
+ #define WATCHDOG_NAME "Acquire WDT"
+-#define WATCHDOG_HEARTBEAT 0	/* There is no way to see what the correct time-out period is */
++/* There is no way to see what the correct time-out period is */
++#define WATCHDOG_HEARTBEAT 0
  
--static void asr_toggle(void)
-+static void __asr_toggle(void)
- {
--	unsigned char reg = inb(asr_read_addr);
-+	unsigned char reg;
-+
-+	reg = inb(asr_read_addr);
+ /* internal variables */
+-static struct platform_device *acq_platform_device;	/* the watchdog platform device */
++/* the watchdog platform device */
++static struct platform_device *acq_platform_device;
+ static unsigned long acq_is_open;
+ static char expect_close;
  
- 	outb(reg & ~asr_toggle_mask, asr_write_addr);
- 	reg = inb(asr_read_addr);
-@@ -83,12 +85,21 @@ static void asr_toggle(void)
+ /* module parameters */
+-static int wdt_stop = 0x43;	/* You must set this - there is no sane way to probe for this board. */
++/* You must set this - there is no sane way to probe for this board. */
++static int wdt_stop = 0x43;
+ module_param(wdt_stop, int, 0);
+ MODULE_PARM_DESC(wdt_stop, "Acquire WDT 'stop' io port (default 0x43)");
  
- 	outb(reg & ~asr_toggle_mask, asr_write_addr);
- 	reg = inb(asr_read_addr);
-+	spin_unlock(&asr_lock);
-+}
-+
-+static void asr_toggle(void)
-+{
-+	spin_lock(&asr_lock);
-+	__asr_toggle();
-+	spin_unlock(&asr_lock);
- }
+-static int wdt_start = 0x443;	/* You must set this - there is no sane way to probe for this board. */
++/* You must set this - there is no sane way to probe for this board. */
++static int wdt_start = 0x443;
+ module_param(wdt_start, int, 0);
+ MODULE_PARM_DESC(wdt_start, "Acquire WDT 'start' io port (default 0x443)");
  
- static void asr_enable(void)
- {
- 	unsigned char reg;
- 
-+	spin_lock(&asr_lock);
- 	if (asr_type == ASMTYPE_TOPAZ) {
- 		/* asr_write_addr == asr_read_addr */
- 		reg = inb(asr_read_addr);
-@@ -99,17 +110,21 @@ static void asr_enable(void)
- 		 * First make sure the hardware timer is reset by toggling
- 		 * ASR hardware timer line.
- 		 */
--		asr_toggle();
-+		__asr_toggle();
- 
- 		reg = inb(asr_read_addr);
- 		outb(reg & ~asr_disable_mask, asr_write_addr);
- 	}
- 	reg = inb(asr_read_addr);
-+	spin_unlock(&asr_lock);
- }
- 
- static void asr_disable(void)
- {
--	unsigned char reg = inb(asr_read_addr);
-+	unsigned char reg;
-+
-+	spin_lock(&asr_lock);
-+	reg = inb(asr_read_addr);
- 
- 	if (asr_type == ASMTYPE_TOPAZ)
- 		/* asr_write_addr == asr_read_addr */
-@@ -122,6 +137,7 @@ static void asr_disable(void)
- 		outb(reg | asr_disable_mask, asr_write_addr);
- 	}
- 	reg = inb(asr_read_addr);
-+	spin_unlock(&asr_lock);
- }
- 
- static int __init asr_get_base_address(void)
-@@ -133,7 +149,8 @@ static int __init asr_get_base_address(v
- 
- 	switch (asr_type) {
- 	case ASMTYPE_TOPAZ:
--		/* SELECT SuperIO CHIP FOR QUERYING (WRITE 0x07 TO BOTH 0x2E and 0x2F) */
-+		/* SELECT SuperIO CHIP FOR QUERYING
-+		   (WRITE 0x07 TO BOTH 0x2E and 0x2F) */
- 		outb(0x07, 0x2e);
- 		outb(0x07, 0x2f);
- 
-@@ -154,14 +171,26 @@ static int __init asr_get_base_address(v
- 
- 	case ASMTYPE_JASPER:
- 		type = "Jaspers ";
--
--		/* FIXME: need to use pci_config_lock here, but it's not exported */
-+#if 0
-+		u32 r;
-+		/* Suggested fix */
-+		pdev = pci_get_bus_and_slot(0, DEVFN(0x1f, 0));
-+		if (pdev == NULL)
-+			return -ENODEV;
-+		pci_read_config_dword(pdev, 0x58, &r);
-+		asr_base = r & 0xFFFE;
-+		pci_dev_put(pdev);
-+#else
-+		/* FIXME: need to use pci_config_lock here,
-+		   but it's not exported */
- 
- /*		spin_lock_irqsave(&pci_config_lock, flags);*/
- 
- 		/* Select the SuperIO chip in the PCI I/O port register */
- 		outl(0x8000f858, 0xcf8);
- 
-+		/* BUS 0, Slot 1F, fnc 0, offset 58 */
-+
- 		/*
- 		 * Read the base address for the SuperIO chip.
- 		 * Only the lower 16 bits are valid, but the address is word
-@@ -170,7 +199,7 @@ static int __init asr_get_base_address(v
- 		asr_base = inl(0xcfc) & 0xfffe;
- 
- /*		spin_unlock_irqrestore(&pci_config_lock, flags);*/
--
-+#endif
- 		asr_read_addr = asr_write_addr =
- 			asr_base + JASPER_ASR_REG_OFFSET;
- 		asr_toggle_mask = JASPER_ASR_TOGGLE_MASK;
-@@ -241,11 +270,10 @@ static ssize_t asr_write(struct file *fi
- 	return count;
- }
- 
--static int asr_ioctl(struct inode *inode, struct file *file,
--		     unsigned int cmd, unsigned long arg)
-+static long asr_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
- {
- 	static const struct watchdog_info ident = {
--		.options =	WDIOF_KEEPALIVEPING | 
-+		.options =	WDIOF_KEEPALIVEPING |
- 				WDIOF_MAGICCLOSE,
- 		.identity =	"IBM ASR"
- 	};
-@@ -254,53 +282,45 @@ static int asr_ioctl(struct inode *inode
- 	int heartbeat;
- 
- 	switch (cmd) {
--		case WDIOC_GETSUPPORT:
--			return copy_to_user(argp, &ident, sizeof(ident)) ?
--				-EFAULT : 0;
--
--		case WDIOC_GETSTATUS:
--		case WDIOC_GETBOOTSTATUS:
--			return put_user(0, p);
--
--		case WDIOC_KEEPALIVE:
-+	case WDIOC_GETSUPPORT:
-+		return copy_to_user(argp, &ident, sizeof(ident)) ? -EFAULT : 0;
-+	case WDIOC_GETSTATUS:
-+	case WDIOC_GETBOOTSTATUS:
-+		return put_user(0, p);
-+	case WDIOC_KEEPALIVE:
-+		asr_toggle();
-+		return 0;
-+	/*
-+	 * The hardware has a fixed timeout value, so no WDIOC_SETTIMEOUT
-+	 * and WDIOC_GETTIMEOUT always returns 256.
-+	 */
-+	case WDIOC_GETTIMEOUT:
-+		heartbeat = 256;
-+		return put_user(heartbeat, p);
-+	case WDIOC_SETOPTIONS:
-+	{
-+		int new_options, retval = -EINVAL;
-+		if (get_user(new_options, p))
-+			return -EFAULT;
-+		if (new_options & WDIOS_DISABLECARD) {
-+			asr_disable();
-+			retval = 0;
-+		}
-+		if (new_options & WDIOS_ENABLECARD) {
-+			asr_enable();
- 			asr_toggle();
--			return 0;
--
--		/*
--		 * The hardware has a fixed timeout value, so no WDIOC_SETTIMEOUT
--		 * and WDIOC_GETTIMEOUT always returns 256.
--		 */
--		case WDIOC_GETTIMEOUT:
--			heartbeat = 256;
--			return put_user(heartbeat, p);
--
--		case WDIOC_SETOPTIONS: {
--			int new_options, retval = -EINVAL;
--
--			if (get_user(new_options, p))
--				return -EFAULT;
--
--			if (new_options & WDIOS_DISABLECARD) {
--				asr_disable();
--				retval = 0;
--			}
--
--			if (new_options & WDIOS_ENABLECARD) {
--				asr_enable();
--				asr_toggle();
--				retval = 0;
--			}
--
--			return retval;
-+			retval = 0;
- 		}
-+		return retval;
-+	}
-+	default:
-+		return -ENOTTY;
- 	}
--
--	return -ENOTTY;
- }
- 
- static int asr_open(struct inode *inode, struct file *file)
- {
--	if(test_and_set_bit(0, &asr_is_open))
-+	if (test_and_set_bit(0, &asr_is_open))
- 		return -EBUSY;
- 
- 	asr_toggle();
-@@ -314,7 +334,8 @@ static int asr_release(struct inode *ino
- 	if (asr_expect_close == 42)
- 		asr_disable();
- 	else {
--		printk(KERN_CRIT PFX "unexpected close, not stopping watchdog!\n");
-+		printk(KERN_CRIT PFX
-+				"unexpected close, not stopping watchdog!\n");
- 		asr_toggle();
- 	}
- 	clear_bit(0, &asr_is_open);
-@@ -323,12 +344,12 @@ static int asr_release(struct inode *ino
- }
- 
- static const struct file_operations asr_fops = {
--	.owner =	THIS_MODULE,
--	.llseek	=	no_llseek,
--	.write =	asr_write,
--	.ioctl =	asr_ioctl,
--	.open =		asr_open,
--	.release =	asr_release,
-+	.owner =		THIS_MODULE,
-+	.llseek	=		no_llseek,
-+	.write =		asr_write,
-+	.unlocked_ioctl =	asr_ioctl,
-+	.open =			asr_open,
-+	.release =		asr_release,
- };
- 
- static struct miscdevice asr_miscdev = {
-@@ -367,6 +388,8 @@ static int __init ibmasr_init(void)
- 	if (!asr_type)
- 		return -ENODEV;
- 
-+	spin_lock_init(&asr_lock);
-+
- 	rc = asr_get_base_address();
- 	if (rc)
- 		return rc;
-@@ -395,7 +418,9 @@ module_init(ibmasr_init);
- module_exit(ibmasr_exit);
- 
+ static int nowayout = WATCHDOG_NOWAYOUT;
  module_param(nowayout, int, 0);
 -MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started (default=" __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
 +MODULE_PARM_DESC(nowayout,
 +	"Watchdog cannot be stopped once started (default="
-+				__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
++	__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
  
- MODULE_DESCRIPTION("IBM Automatic Server Restart driver");
- MODULE_AUTHOR("Andrey Panin");
+ /*
+  *	Watchdog Operations
+@@ -112,18 +119,18 @@ static void acq_stop(void)
+  *	/dev/watchdog handling
+  */
+ 
+-static ssize_t acq_write(struct file *file, const char __user *buf, size_t count, loff_t *ppos)
++static ssize_t acq_write(struct file *file, const char __user *buf,
++						size_t count, loff_t *ppos)
+ {
+ 	/* See if we got the magic character 'V' and reload the timer */
+-	if(count) {
++	if (count) {
+ 		if (!nowayout) {
+ 			size_t i;
+-
+ 			/* note: just in case someone wrote the magic character
+ 			 * five months ago... */
+ 			expect_close = 0;
+-
+-			/* scan to see whether or not we got the magic character */
++			/* scan to see whether or not we got the
++			   magic character */
+ 			for (i = 0; i != count; i++) {
+ 				char c;
+ 				if (get_user(c, buf + i))
+@@ -132,64 +139,55 @@ static ssize_t acq_write(struct file *fi
+ 					expect_close = 42;
+ 			}
+ 		}
+-
+-		/* Well, anyhow someone wrote to us, we should return that favour */
++		/* Well, anyhow someone wrote to us, we should
++				return that favour */
+ 		acq_keepalive();
+ 	}
+ 	return count;
+ }
+ 
+-static int acq_ioctl(struct inode *inode, struct file *file, unsigned int cmd,
+-	unsigned long arg)
++static long acq_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ {
+ 	int options, retval = -EINVAL;
+ 	void __user *argp = (void __user *)arg;
+ 	int __user *p = argp;
+-	static struct watchdog_info ident =
+-	{
++	static struct watchdog_info ident = {
+ 		.options = WDIOF_KEEPALIVEPING | WDIOF_MAGICCLOSE,
+ 		.firmware_version = 1,
+ 		.identity = WATCHDOG_NAME,
+ 	};
+ 
+-	switch(cmd)
+-	{
++	switch (cmd) {
+ 	case WDIOC_GETSUPPORT:
+-	  return copy_to_user(argp, &ident, sizeof(ident)) ? -EFAULT : 0;
++		return copy_to_user(argp, &ident, sizeof(ident)) ? -EFAULT : 0;
+ 
+ 	case WDIOC_GETSTATUS:
+ 	case WDIOC_GETBOOTSTATUS:
+-	  return put_user(0, p);
++		return put_user(0, p);
+ 
+ 	case WDIOC_KEEPALIVE:
+-	  acq_keepalive();
+-	  return 0;
++		acq_keepalive();
++		return 0;
+ 
+ 	case WDIOC_GETTIMEOUT:
+ 	  return put_user(WATCHDOG_HEARTBEAT, p);
+ 
+ 	case WDIOC_SETOPTIONS:
+ 	{
+-	    if (get_user(options, p))
+-	      return -EFAULT;
+-
+-	    if (options & WDIOS_DISABLECARD)
+-	    {
+-	      acq_stop();
+-	      retval = 0;
+-	    }
+-
+-	    if (options & WDIOS_ENABLECARD)
+-	    {
+-	      acq_keepalive();
+-	      retval = 0;
+-	    }
+-
+-	    return retval;
++		if (get_user(options, p))
++			return -EFAULT;
++		if (options & WDIOS_DISABLECARD) {
++			acq_stop();
++			retval = 0;
++		}
++		if (options & WDIOS_ENABLECARD) {
++			acq_keepalive();
++			retval = 0;
++		}
++		return retval;
+ 	}
+-
+ 	default:
+-	  return -ENOTTY;
++		return -ENOTTY;
+ 	}
+ }
+ 
+@@ -211,7 +209,8 @@ static int acq_close(struct inode *inode
+ 	if (expect_close == 42) {
+ 		acq_stop();
+ 	} else {
+-		printk(KERN_CRIT PFX "Unexpected close, not stopping watchdog!\n");
++		printk(KERN_CRIT PFX
++			"Unexpected close, not stopping watchdog!\n");
+ 		acq_keepalive();
+ 	}
+ 	clear_bit(0, &acq_is_open);
+@@ -227,7 +226,7 @@ static const struct file_operations acq_
+ 	.owner		= THIS_MODULE,
+ 	.llseek		= no_llseek,
+ 	.write		= acq_write,
+-	.ioctl		= acq_ioctl,
++	.unlocked_ioctl	= acq_ioctl,
+ 	.open		= acq_open,
+ 	.release	= acq_close,
+ };
+@@ -248,32 +247,29 @@ static int __devinit acq_probe(struct pl
+ 
+ 	if (wdt_stop != wdt_start) {
+ 		if (!request_region(wdt_stop, 1, WATCHDOG_NAME)) {
+-			printk (KERN_ERR PFX "I/O address 0x%04x already in use\n",
+-				wdt_stop);
++			printk(KERN_ERR PFX
++			    "I/O address 0x%04x already in use\n", wdt_stop);
+ 			ret = -EIO;
+ 			goto out;
+ 		}
+ 	}
+ 
+ 	if (!request_region(wdt_start, 1, WATCHDOG_NAME)) {
+-		printk (KERN_ERR PFX "I/O address 0x%04x already in use\n",
++		printk(KERN_ERR PFX "I/O address 0x%04x already in use\n",
+ 			wdt_start);
+ 		ret = -EIO;
+ 		goto unreg_stop;
+ 	}
+-
+ 	ret = misc_register(&acq_miscdev);
+ 	if (ret != 0) {
+-		printk (KERN_ERR PFX "cannot register miscdev on minor=%d (err=%d)\n",
+-			WATCHDOG_MINOR, ret);
++		printk(KERN_ERR PFX
++			"cannot register miscdev on minor=%d (err=%d)\n",
++							WATCHDOG_MINOR, ret);
+ 		goto unreg_regions;
+ 	}
+-
+-	printk (KERN_INFO PFX "initialized. (nowayout=%d)\n",
+-		nowayout);
++	printk(KERN_INFO PFX "initialized. (nowayout=%d)\n", nowayout);
+ 
+ 	return 0;
+-
+ unreg_regions:
+ 	release_region(wdt_start, 1);
+ unreg_stop:
+@@ -286,9 +282,9 @@ out:
+ static int __devexit acq_remove(struct platform_device *dev)
+ {
+ 	misc_deregister(&acq_miscdev);
+-	release_region(wdt_start,1);
+-	if(wdt_stop != wdt_start)
+-		release_region(wdt_stop,1);
++	release_region(wdt_start, 1);
++	if (wdt_stop != wdt_start)
++		release_region(wdt_stop, 1);
+ 
+ 	return 0;
+ }
+@@ -313,18 +309,19 @@ static int __init acq_init(void)
+ {
+ 	int err;
+ 
+-	printk(KERN_INFO "WDT driver for Acquire single board computer initialising.\n");
++	printk(KERN_INFO
++	      "WDT driver for Acquire single board computer initialising.\n");
+ 
+ 	err = platform_driver_register(&acquirewdt_driver);
+ 	if (err)
+ 		return err;
+ 
+-	acq_platform_device = platform_device_register_simple(DRV_NAME, -1, NULL, 0);
++	acq_platform_device = platform_device_register_simple(DRV_NAME,
++								-1, NULL, 0);
+ 	if (IS_ERR(acq_platform_device)) {
+ 		err = PTR_ERR(acq_platform_device);
+ 		goto unreg_platform_driver;
+ 	}
+-
+ 	return 0;
+ 
+ unreg_platform_driver:
 _
 
 Patches currently in -mm which might be from alan@redhat.com are
