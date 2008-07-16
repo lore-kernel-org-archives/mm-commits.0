@@ -1,62 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - watchdog-w83627hf-coding-style-clean-up-and-switch-to-unlocked_ioctl.patch removed from -mm tree
-Date: Wed, 16 Jul 2008 14:37:13 -0700
-Message-ID: <200807162137.m6GLbDEb014362@imap1.linux-foundation.org>
+Subject: - watchdog-mixcomwd-coding-style-locking-unlocked_ioctl.patch removed from -mm tree
+Date: Wed, 16 Jul 2008 14:36:25 -0700
+Message-ID: <200807162136.m6GLaPBQ014198@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49877 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47370 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757627AbYGPVqq (ORCPT
+	by vger.kernel.org with ESMTP id S1754920AbYGPVqp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jul 2008 17:46:46 -0400
+	Wed, 16 Jul 2008 17:46:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     watchdog: w83627hf: coding style, clean up and switch to unlocked_ioctl
+     watchdog: mixcomwd: coding style locking, unlocked_ioctl
 has been removed from the -mm tree.  Its filename was
-     watchdog-w83627hf-coding-style-clean-up-and-switch-to-unlocked_ioctl.patch
+     watchdog-mixcomwd-coding-style-locking-unlocked_ioctl.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: watchdog: w83627hf: coding style, clean up and switch to unlocked_ioctl
+Subject: watchdog: mixcomwd: coding style locking, unlocked_ioctl
 From: Alan Cox <alan@redhat.com>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/w83627hf_wdt.c |  175 ++++++++++++++----------------
- 1 file changed, 83 insertions(+), 92 deletions(-)
+ drivers/watchdog/mixcomwd.c |  133 ++++++++++++++++------------------
+ 1 file changed, 63 insertions(+), 70 deletions(-)
 
-diff -puN drivers/watchdog/w83627hf_wdt.c~watchdog-w83627hf-coding-style-clean-up-and-switch-to-unlocked_ioctl drivers/watchdog/w83627hf_wdt.c
---- a/drivers/watchdog/w83627hf_wdt.c~watchdog-w83627hf-coding-style-clean-up-and-switch-to-unlocked_ioctl
-+++ a/drivers/watchdog/w83627hf_wdt.c
-@@ -37,9 +37,9 @@
- #include <linux/reboot.h>
+diff -puN drivers/watchdog/mixcomwd.c~watchdog-mixcomwd-coding-style-locking-unlocked_ioctl drivers/watchdog/mixcomwd.c
+--- a/drivers/watchdog/mixcomwd.c~watchdog-mixcomwd-coding-style-locking-unlocked_ioctl
++++ a/drivers/watchdog/mixcomwd.c
+@@ -29,7 +29,8 @@
+  *		- support for one more type board
+  *
+  * Version 0.5 (2001/12/14) Matt Domsch <Matt_Domsch@dell.com>
+- *		- added nowayout module option to override CONFIG_WATCHDOG_NOWAYOUT
++ *		- added nowayout module option to override
++ *		  CONFIG_WATCHDOG_NOWAYOUT
+  *
+  * Version 0.6 (2002/04/12): Rob Radez <rob@osinvestor.com>
+  *		- make mixcomwd_opened unsigned,
+@@ -53,8 +54,8 @@
  #include <linux/init.h>
- #include <linux/spinlock.h>
-+#include <linux/io.h>
-+#include <linux/uaccess.h>
- 
--#include <asm/io.h>
+ #include <linux/jiffies.h>
+ #include <linux/timer.h>
 -#include <asm/uaccess.h>
- #include <asm/system.h>
+-#include <asm/io.h>
++#include <linux/uaccess.h>
++#include <linux/io.h>
  
- #define WATCHDOG_NAME "w83627hf/thf/hg WDT"
-@@ -57,22 +57,26 @@ MODULE_PARM_DESC(wdt_io, "w83627hf/thf W
- 
- static int timeout = WATCHDOG_TIMEOUT;	/* in seconds */
- module_param(timeout, int, 0);
--MODULE_PARM_DESC(timeout, "Watchdog timeout in seconds. 1<= timeout <=255, default=" __MODULE_STRING(WATCHDOG_TIMEOUT) ".");
-+MODULE_PARM_DESC(timeout,
-+		"Watchdog timeout in seconds. 1 <= timeout <= 255, default="
-+				__MODULE_STRING(WATCHDOG_TIMEOUT) ".");
+ /*
+  * We have two types of cards that can be probed:
+@@ -108,18 +109,19 @@ static char expect_close;
  
  static int nowayout = WATCHDOG_NOWAYOUT;
  module_param(nowayout, int, 0);
@@ -65,331 +67,238 @@ diff -puN drivers/watchdog/w83627hf_wdt.c~watchdog-w83627hf-coding-style-clean-u
 +		"Watchdog cannot be stopped once started (default="
 +				__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
  
- /*
-  *	Kernel methods.
-  */
- 
- #define WDT_EFER (wdt_io+0)   /* Extended Function Enable Registers */
--#define WDT_EFIR (wdt_io+0)   /* Extended Function Index Register (same as EFER) */
-+#define WDT_EFIR (wdt_io+0)   /* Extended Function Index Register
-+							(same as EFER) */
- #define WDT_EFDR (WDT_EFIR+1) /* Extended Function Data Register */
- 
--static void
--w83627hf_select_wd_register(void)
-+static void w83627hf_select_wd_register(void)
+ static void mixcomwd_ping(void)
  {
- 	unsigned char c;
- 	outb_p(0x87, WDT_EFER); /* Enter extended function mode */
-@@ -93,43 +97,45 @@ w83627hf_select_wd_register(void)
- 	outb_p(0x01, WDT_EFDR); /* set bit 0 to activate GPIO2 */
+-	outb_p(55,watchdog_port);
++	outb_p(55, watchdog_port);
+ 	return;
  }
  
--static void
--w83627hf_unselect_wd_register(void)
-+static void w83627hf_unselect_wd_register(void)
+ static void mixcomwd_timerfun(unsigned long d)
  {
- 	outb_p(0xAA, WDT_EFER); /* Leave extended function mode */
- }
- 
- /* tyan motherboards seem to set F5 to 0x4C ?
-  * So explicitly init to appropriate value. */
--static void
--w83627hf_init(void)
-+
-+static void w83627hf_init(void)
- {
- 	unsigned char t;
- 
- 	w83627hf_select_wd_register();
- 
- 	outb_p(0xF6, WDT_EFER); /* Select CRF6 */
--	t=inb_p(WDT_EFDR);      /* read CRF6 */
-+	t = inb_p(WDT_EFDR);      /* read CRF6 */
- 	if (t != 0) {
--		printk (KERN_INFO PFX "Watchdog already running. Resetting timeout to %d sec\n", timeout);
-+		printk(KERN_INFO PFX
-+		     "Watchdog already running. Resetting timeout to %d sec\n",
-+								timeout);
- 		outb_p(timeout, WDT_EFDR);    /* Write back to CRF6 */
- 	}
- 
- 	outb_p(0xF5, WDT_EFER); /* Select CRF5 */
--	t=inb_p(WDT_EFDR);      /* read CRF5 */
--	t&=~0x0C;               /* set second mode & disable keyboard turning off watchdog */
-+	t = inb_p(WDT_EFDR);      /* read CRF5 */
-+	t &= ~0x0C;               /* set second mode & disable keyboard
-+				    turning off watchdog */
- 	outb_p(t, WDT_EFDR);    /* Write back to CRF5 */
- 
- 	outb_p(0xF7, WDT_EFER); /* Select CRF7 */
--	t=inb_p(WDT_EFDR);      /* read CRF7 */
--	t&=~0xC0;               /* disable keyboard & mouse turning off watchdog */
-+	t = inb_p(WDT_EFDR);      /* read CRF7 */
-+	t &= ~0xC0;               /* disable keyboard & mouse turning off
-+				    watchdog */
- 	outb_p(t, WDT_EFDR);    /* Write back to CRF7 */
- 
- 	w83627hf_unselect_wd_register();
- }
- 
--static void
--wdt_ctrl(int timeout)
-+static void wdt_ctrl(int timeout)
- {
- 	spin_lock(&io_lock);
- 
-@@ -143,32 +149,28 @@ wdt_ctrl(int timeout)
- 	spin_unlock(&io_lock);
- }
- 
--static int
--wdt_ping(void)
-+static int wdt_ping(void)
- {
- 	wdt_ctrl(timeout);
- 	return 0;
- }
- 
--static int
--wdt_disable(void)
-+static int wdt_disable(void)
- {
- 	wdt_ctrl(0);
- 	return 0;
- }
- 
--static int
--wdt_set_heartbeat(int t)
-+static int wdt_set_heartbeat(int t)
- {
--	if ((t < 1) || (t > 255))
-+	if (t < 1 || t > 255)
- 		return -EINVAL;
+ 	mixcomwd_ping();
 -
- 	timeout = t;
+ 	mod_timer(&mixcomwd_timer, jiffies + 5 * HZ);
+ }
+ 
+@@ -129,22 +131,22 @@ static void mixcomwd_timerfun(unsigned l
+ 
+ static int mixcomwd_open(struct inode *inode, struct file *file)
+ {
+-	if(test_and_set_bit(0,&mixcomwd_opened)) {
++	if (test_and_set_bit(0, &mixcomwd_opened))
+ 		return -EBUSY;
+-	}
++
+ 	mixcomwd_ping();
+ 
+-	if (nowayout) {
++	if (nowayout)
+ 		/*
+ 		 * fops_get() code via open() has already done
+ 		 * a try_module_get() so it is safe to do the
+ 		 * __module_get().
+ 		 */
+ 		__module_get(THIS_MODULE);
+-	} else {
+-		if(mixcomwd_timer_alive) {
++	else {
++		if (mixcomwd_timer_alive) {
+ 			del_timer(&mixcomwd_timer);
+-			mixcomwd_timer_alive=0;
++			mixcomwd_timer_alive = 0;
+ 		}
+ 	}
+ 	return nonseekable_open(inode, file);
+@@ -153,26 +155,27 @@ static int mixcomwd_open(struct inode *i
+ static int mixcomwd_release(struct inode *inode, struct file *file)
+ {
+ 	if (expect_close == 42) {
+-		if(mixcomwd_timer_alive) {
+-			printk(KERN_ERR PFX "release called while internal timer alive");
++		if (mixcomwd_timer_alive) {
++			printk(KERN_ERR PFX
++				"release called while internal timer alive");
+ 			return -EBUSY;
+ 		}
+-		mixcomwd_timer_alive=1;
++		mixcomwd_timer_alive = 1;
+ 		mod_timer(&mixcomwd_timer, jiffies + 5 * HZ);
+-	} else {
+-		printk(KERN_CRIT PFX "WDT device closed unexpectedly.  WDT will not stop!\n");
+-	}
++	} else
++		printk(KERN_CRIT PFX
++		    "WDT device closed unexpectedly.  WDT will not stop!\n");
+ 
+-	clear_bit(0,&mixcomwd_opened);
+-	expect_close=0;
++	clear_bit(0, &mixcomwd_opened);
++	expect_close = 0;
  	return 0;
  }
  
--static ssize_t
--wdt_write(struct file *file, const char __user *buf, size_t count, loff_t *ppos)
-+static ssize_t wdt_write(struct file *file, const char __user *buf,
-+						size_t count, loff_t *ppos)
+ 
+-static ssize_t mixcomwd_write(struct file *file, const char __user *data, size_t len, loff_t *ppos)
++static ssize_t mixcomwd_write(struct file *file, const char __user *data,
++						size_t len, loff_t *ppos)
  {
- 	if (count) {
+-	if(len)
+-	{
++	if (len) {
  		if (!nowayout) {
-@@ -189,72 +191,61 @@ wdt_write(struct file *file, const char 
- 	return count;
+ 			size_t i;
+ 
+@@ -192,8 +195,8 @@ static ssize_t mixcomwd_write(struct fil
+ 	return len;
  }
  
--static int
--wdt_ioctl(struct inode *inode, struct file *file, unsigned int cmd,
--	  unsigned long arg)
-+static long wdt_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+-static int mixcomwd_ioctl(struct inode *inode, struct file *file,
+-	unsigned int cmd, unsigned long arg)
++static long mixcomwd_ioctl(struct file *file,
++				unsigned int cmd, unsigned long arg)
  {
  	void __user *argp = (void __user *)arg;
  	int __user *p = argp;
- 	int new_timeout;
- 	static struct watchdog_info ident = {
--		.options = WDIOF_KEEPALIVEPING | WDIOF_SETTIMEOUT | WDIOF_MAGICCLOSE,
-+		.options = WDIOF_KEEPALIVEPING | WDIOF_SETTIMEOUT |
-+							WDIOF_MAGICCLOSE,
- 		.firmware_version = 1,
- 		.identity = "W83627HF WDT",
+@@ -204,32 +207,23 @@ static int mixcomwd_ioctl(struct inode *
+ 		.identity = "MixCOM watchdog",
  	};
  
- 	switch (cmd) {
- 	case WDIOC_GETSUPPORT:
--	  if (copy_to_user(argp, &ident, sizeof(ident)))
--	    return -EFAULT;
--	  break;
--
+-	switch(cmd)
+-	{
+-		case WDIOC_GETSTATUS:
+-			status=mixcomwd_opened;
+-			if (!nowayout) {
+-				status|=mixcomwd_timer_alive;
+-			}
+-			if (copy_to_user(p, &status, sizeof(int))) {
+-				return -EFAULT;
+-			}
+-			break;
+-		case WDIOC_GETBOOTSTATUS:
+-			if (copy_to_user(p, &status, sizeof(int))) {
+-				return -EFAULT;
+-			}
+-			break;
+-		case WDIOC_GETSUPPORT:
+-			if (copy_to_user(argp, &ident, sizeof(ident))) {
+-				return -EFAULT;
+-			}
+-			break;
+-		case WDIOC_KEEPALIVE:
+-			mixcomwd_ping();
+-			break;
+-		default:
+-			return -ENOTTY;
++	switch (cmd) {
++	case WDIOC_GETSTATUS:
++		status = mixcomwd_opened;
++		if (!nowayout)
++			status |= mixcomwd_timer_alive;
++		return put_user(status, p);
++	case WDIOC_GETBOOTSTATUS:
++		return put_user(0, p);
++	case WDIOC_GETSUPPORT:
 +		if (copy_to_user(argp, &ident, sizeof(ident)))
 +			return -EFAULT;
 +		break;
- 	case WDIOC_GETSTATUS:
- 	case WDIOC_GETBOOTSTATUS:
--	  return put_user(0, p);
--
-+		return put_user(0, p);
- 	case WDIOC_KEEPALIVE:
--	  wdt_ping();
--	  break;
--
-+		wdt_ping();
++	case WDIOC_KEEPALIVE:
++		mixcomwd_ping();
 +		break;
- 	case WDIOC_SETTIMEOUT:
--	  if (get_user(new_timeout, p))
--		  return -EFAULT;
--	  if (wdt_set_heartbeat(new_timeout))
--		  return -EINVAL;
--	  wdt_ping();
--	  /* Fall */
--
-+		if (get_user(new_timeout, p))
-+			return -EFAULT;
-+		if (wdt_set_heartbeat(new_timeout))
-+			return -EINVAL;
-+		wdt_ping();
-+		/* Fall */
- 	case WDIOC_GETTIMEOUT:
--	  return put_user(timeout, p);
--
-+		return put_user(timeout, p);
- 	case WDIOC_SETOPTIONS:
- 	{
--	  int options, retval = -EINVAL;
--
--	  if (get_user(options, p))
--	    return -EFAULT;
-+		int options, retval = -EINVAL;
- 
--	  if (options & WDIOS_DISABLECARD) {
--	    wdt_disable();
--	    retval = 0;
--	  }
--
--	  if (options & WDIOS_ENABLECARD) {
--	    wdt_ping();
--	    retval = 0;
--	  }
--
--	  return retval;
-+		if (get_user(options, p))
-+			return -EFAULT;
-+		if (options & WDIOS_DISABLECARD) {
-+			wdt_disable();
-+			retval = 0;
-+		}
-+		if (options & WDIOS_ENABLECARD) {
-+			wdt_ping();
-+			retval = 0;
-+		}
-+		return retval;
- 	}
--
- 	default:
--	  return -ENOTTY;
++	default:
 +		return -ENOTTY;
  	}
  	return 0;
  }
- 
--static int
--wdt_open(struct inode *inode, struct file *file)
-+static int wdt_open(struct inode *inode, struct file *file)
- {
- 	if (test_and_set_bit(0, &wdt_is_open))
- 		return -EBUSY;
-@@ -266,13 +257,13 @@ wdt_open(struct inode *inode, struct fil
- 	return nonseekable_open(inode, file);
- }
- 
--static int
--wdt_close(struct inode *inode, struct file *file)
-+static int wdt_close(struct inode *inode, struct file *file)
- {
--	if (expect_close == 42) {
-+	if (expect_close == 42)
- 		wdt_disable();
--	} else {
--		printk(KERN_CRIT PFX "Unexpected close, not stopping watchdog!\n");
-+	else {
-+		printk(KERN_CRIT PFX
-+			"Unexpected close, not stopping watchdog!\n");
- 		wdt_ping();
- 	}
- 	expect_close = 0;
-@@ -284,8 +275,7 @@ wdt_close(struct inode *inode, struct fi
-  *	Notifier for system down
-  */
- 
--static int
--wdt_notify_sys(struct notifier_block *this, unsigned long code,
-+static int wdt_notify_sys(struct notifier_block *this, unsigned long code,
- 	void *unused)
- {
- 	if (code == SYS_DOWN || code == SYS_HALT) {
-@@ -303,7 +293,7 @@ static const struct file_operations wdt_
+@@ -238,7 +232,7 @@ static const struct file_operations mixc
  	.owner		= THIS_MODULE,
  	.llseek		= no_llseek,
- 	.write		= wdt_write,
--	.ioctl		= wdt_ioctl,
-+	.unlocked_ioctl	= wdt_ioctl,
- 	.open		= wdt_open,
- 	.release	= wdt_close,
+ 	.write		= mixcomwd_write,
+-	.ioctl		= mixcomwd_ioctl,
++	.unlocked_ioctl	= mixcomwd_ioctl,
+ 	.open		= mixcomwd_open,
+ 	.release	= mixcomwd_release,
  };
-@@ -323,8 +313,7 @@ static struct notifier_block wdt_notifie
- 	.notifier_call = wdt_notify_sys,
- };
- 
--static int __init
--wdt_init(void)
-+static int __init wdt_init(void)
+@@ -253,15 +247,14 @@ static int __init checkcard(int port, in
  {
- 	int ret;
+ 	int id;
  
-@@ -332,12 +321,13 @@ wdt_init(void)
+-	if (!request_region(port, 1, "MixCOM watchdog")) {
++	if (!request_region(port, 1, "MixCOM watchdog"))
+ 		return 0;
+-	}
  
- 	if (wdt_set_heartbeat(timeout)) {
- 		wdt_set_heartbeat(WATCHDOG_TIMEOUT);
--		printk (KERN_INFO PFX "timeout value must be 1<=timeout<=255, using %d\n",
--			WATCHDOG_TIMEOUT);
-+		printk(KERN_INFO PFX
-+		     "timeout value must be 1 <= timeout <= 255, using %d\n",
-+				WATCHDOG_TIMEOUT);
+-	id=inb_p(port);
+-	if (card_id==MIXCOM_ID)
++	id = inb_p(port);
++	if (card_id == MIXCOM_ID)
+ 		id &= 0x3f;
+ 
+-	if (id!=card_id) {
++	if (id != card_id) {
+ 		release_region(port, 1);
+ 		return 0;
+ 	}
+@@ -270,9 +263,7 @@ static int __init checkcard(int port, in
+ 
+ static int __init mixcomwd_init(void)
+ {
+-	int i;
+-	int ret;
+-	int found=0;
++	int i, ret, found = 0;
+ 
+ 	for (i = 0; !found && mixcomwd_io_info[i].ioport != 0; i++) {
+ 		if (checkcard(mixcomwd_io_info[i].ioport,
+@@ -283,20 +274,22 @@ static int __init mixcomwd_init(void)
  	}
  
- 	if (!request_region(wdt_io, 1, WATCHDOG_NAME)) {
--		printk (KERN_ERR PFX "I/O address 0x%04x already in use\n",
-+		printk(KERN_ERR PFX "I/O address 0x%04x already in use\n",
- 			wdt_io);
- 		ret = -EIO;
- 		goto out;
-@@ -347,20 +337,22 @@ wdt_init(void)
- 
- 	ret = register_reboot_notifier(&wdt_notifier);
- 	if (ret != 0) {
--		printk (KERN_ERR PFX "cannot register reboot notifier (err=%d)\n",
--			ret);
+ 	if (!found) {
+-		printk(KERN_ERR PFX "No card detected, or port not available.\n");
 +		printk(KERN_ERR PFX
-+			"cannot register reboot notifier (err=%d)\n", ret);
- 		goto unreg_regions;
++			"No card detected, or port not available.\n");
+ 		return -ENODEV;
  	}
  
- 	ret = misc_register(&wdt_miscdev);
- 	if (ret != 0) {
--		printk (KERN_ERR PFX "cannot register miscdev on minor=%d (err=%d)\n",
+ 	ret = misc_register(&mixcomwd_miscdev);
+-	if (ret)
+-	{
+-		printk(KERN_ERR PFX "cannot register miscdev on minor=%d (err=%d)\n",
 -			WATCHDOG_MINOR, ret);
++	if (ret) {
 +		printk(KERN_ERR PFX
 +			"cannot register miscdev on minor=%d (err=%d)\n",
-+							WATCHDOG_MINOR, ret);
- 		goto unreg_reboot;
++					WATCHDOG_MINOR, ret);
+ 		goto error_misc_register_watchdog;
  	}
  
--	printk (KERN_INFO PFX "initialized. timeout=%d sec (nowayout=%d)\n",
--		timeout, nowayout);
-+	printk(KERN_INFO PFX
-+			"initialized. timeout=%d sec (nowayout=%d)\n",
-+							timeout, nowayout);
+-	printk(KERN_INFO "MixCOM watchdog driver v%s, watchdog port at 0x%3x\n",
+-		VERSION, watchdog_port);
++	printk(KERN_INFO
++		"MixCOM watchdog driver v%s, watchdog port at 0x%3x\n",
++					VERSION, watchdog_port);
  
- out:
- 	return ret;
-@@ -371,12 +363,11 @@ unreg_regions:
- 	goto out;
- }
+ 	return 0;
  
--static void __exit
--wdt_exit(void)
-+static void __exit wdt_exit(void)
+@@ -309,15 +302,15 @@ error_misc_register_watchdog:
+ static void __exit mixcomwd_exit(void)
  {
- 	misc_deregister(&wdt_miscdev);
- 	unregister_reboot_notifier(&wdt_notifier);
--	release_region(wdt_io,1);
-+	release_region(wdt_io, 1);
+ 	if (!nowayout) {
+-		if(mixcomwd_timer_alive) {
++		if (mixcomwd_timer_alive) {
+ 			printk(KERN_WARNING PFX "I quit now, hardware will"
+ 			       " probably reboot!\n");
+ 			del_timer_sync(&mixcomwd_timer);
+-			mixcomwd_timer_alive=0;
++			mixcomwd_timer_alive = 0;
+ 		}
+ 	}
+ 	misc_deregister(&mixcomwd_miscdev);
+-	release_region(watchdog_port,1);
++	release_region(watchdog_port, 1);
  }
  
- module_init(wdt_init);
+ module_init(mixcomwd_init);
 _
 
 Patches currently in -mm which might be from alan@redhat.com are
