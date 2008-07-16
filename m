@@ -1,148 +1,192 @@
 From: akpm@linux-foundation.org
-Subject: - watchdog-ar7-watchdog.patch removed from -mm tree
-Date: Wed, 16 Jul 2008 14:35:47 -0700
-Message-ID: <200807162135.m6GLZlAk014122@imap1.linux-foundation.org>
+Subject: - watchdog-iop-watchdog-switch-to-unlocked_ioctl.patch removed from -mm tree
+Date: Wed, 16 Jul 2008 14:36:11 -0700
+Message-ID: <200807162136.m6GLaBmj014170@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53479 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55125 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756732AbYGPVge (ORCPT
+	by vger.kernel.org with ESMTP id S1757048AbYGPVgy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jul 2008 17:36:34 -0400
+	Wed, 16 Jul 2008 17:36:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     watchdog: aR7 watchdog
+     watchdog: iop: watchdog switch to unlocked_ioctl
 has been removed from the -mm tree.  Its filename was
-     watchdog-ar7-watchdog.patch
+     watchdog-iop-watchdog-switch-to-unlocked_ioctl.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: watchdog: aR7 watchdog
+Subject: watchdog: iop: watchdog switch to unlocked_ioctl
 From: Alan Cox <alan@redhat.com>
-
-Fix locking
-Use unlocked_ioctl
-Remove semaphores
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/ar7_wdt.c |   29 +++++++++++++++++------------
- 1 file changed, 17 insertions(+), 12 deletions(-)
+ drivers/watchdog/iop_wdt.c |   46 ++++++++++++++++++-----------------
+ 1 file changed, 24 insertions(+), 22 deletions(-)
 
-diff -puN drivers/watchdog/ar7_wdt.c~watchdog-ar7-watchdog drivers/watchdog/ar7_wdt.c
---- a/drivers/watchdog/ar7_wdt.c~watchdog-ar7-watchdog
-+++ a/drivers/watchdog/ar7_wdt.c
-@@ -69,7 +69,8 @@ struct ar7_wdt {
- 	u32 prescale;
- };
- 
--static struct semaphore open_semaphore;
-+static unsigned long wdt_is_open;
+diff -puN drivers/watchdog/iop_wdt.c~watchdog-iop-watchdog-switch-to-unlocked_ioctl drivers/watchdog/iop_wdt.c
+--- a/drivers/watchdog/iop_wdt.c~watchdog-iop-watchdog-switch-to-unlocked_ioctl
++++ a/drivers/watchdog/iop_wdt.c
+@@ -37,6 +37,7 @@
+ static int nowayout = WATCHDOG_NOWAYOUT;
+ static unsigned long wdt_status;
+ static unsigned long boot_status;
 +static spinlock_t wdt_lock;
- static unsigned expect_close;
  
- /* XXX currently fixed, allows max margin ~68.72 secs */
-@@ -154,8 +155,10 @@ static void ar7_wdt_update_margin(int ne
- 	u32 change;
- 
- 	change = new_margin * (ar7_vbus_freq() / prescale_value);
--	if (change < 1) change = 1;
--	if (change > 0xffff) change = 0xffff;
-+	if (change < 1)
-+		change = 1;
-+	if (change > 0xffff)
-+		change = 0xffff;
- 	ar7_wdt_change(change);
- 	margin = change * prescale_value / ar7_vbus_freq();
- 	printk(KERN_INFO DRVNAME
-@@ -179,7 +182,7 @@ static void ar7_wdt_disable_wdt(void)
- static int ar7_wdt_open(struct inode *inode, struct file *file)
- {
- 	/* only allow one at a time */
--	if (down_trylock(&open_semaphore))
-+	if (test_and_set_bit(0, &wdt_is_open))
- 		return -EBUSY;
- 	ar7_wdt_enable_wdt();
- 	expect_close = 0;
-@@ -195,9 +198,7 @@ static int ar7_wdt_release(struct inode 
- 		"will not disable the watchdog timer\n");
- 	else if (!nowayout)
- 		ar7_wdt_disable_wdt();
--
--	up(&open_semaphore);
--
-+	clear_bit(0, &wdt_is_open);
- 	return 0;
+ #define WDT_IN_USE		0
+ #define WDT_OK_TO_CLOSE		1
+@@ -68,8 +69,10 @@ static void wdt_enable(void)
+ 	/* Arm and enable the Timer to starting counting down from 0xFFFF.FFFF
+ 	 * Takes approx. 10.7s to timeout
+ 	 */
++	spin_lock(&wdt_lock);
+ 	write_wdtcr(IOP_WDTCR_EN_ARM);
+ 	write_wdtcr(IOP_WDTCR_EN);
++	spin_unlock(&wdt_lock);
  }
  
-@@ -222,7 +223,9 @@ static ssize_t ar7_wdt_write(struct file
- 	if (len) {
- 		size_t i;
- 
+ /* returns 0 if the timer was successfully disabled */
+@@ -77,9 +80,11 @@ static int wdt_disable(void)
+ {
+ 	/* Stop Counting */
+ 	if (wdt_supports_disable()) {
 +		spin_lock(&wdt_lock);
- 		ar7_wdt_kick(1);
+ 		write_wdtcr(IOP_WDTCR_DIS_ARM);
+ 		write_wdtcr(IOP_WDTCR_DIS);
+ 		clear_bit(WDT_ENABLED, &wdt_status);
 +		spin_unlock(&wdt_lock);
+ 		printk(KERN_INFO "WATCHDOG: Disabled\n");
+ 		return 0;
+ 	} else
+@@ -92,16 +97,12 @@ static int iop_wdt_open(struct inode *in
+ 		return -EBUSY;
  
- 		expect_close = 0;
- 		for (i = 0; i < len; ++i) {
-@@ -237,8 +240,8 @@ static ssize_t ar7_wdt_write(struct file
+ 	clear_bit(WDT_OK_TO_CLOSE, &wdt_status);
+-
+ 	wdt_enable();
+-
+ 	set_bit(WDT_ENABLED, &wdt_status);
+-
+ 	return nonseekable_open(inode, file);
+ }
+ 
+-static ssize_t
+-iop_wdt_write(struct file *file, const char *data, size_t len,
++static ssize_t iop_wdt_write(struct file *file, const char *data, size_t len,
+ 		  loff_t *ppos)
+ {
+ 	if (len) {
+@@ -121,41 +122,39 @@ iop_wdt_write(struct file *file, const c
+ 		}
+ 		wdt_enable();
+ 	}
+-
  	return len;
  }
  
--static int ar7_wdt_ioctl(struct inode *inode, struct file *file,
--			 unsigned int cmd, unsigned long arg)
-+static long ar7_wdt_ioctl(struct file *file,
-+					unsigned int cmd, unsigned long arg)
- {
- 	static struct watchdog_info ident = {
- 		.identity = LONGNAME,
-@@ -269,8 +272,10 @@ static int ar7_wdt_ioctl(struct inode *i
- 		if (new_margin < 1)
- 			return -EINVAL;
+-static struct watchdog_info ident = {
++static const struct watchdog_info ident = {
+ 	.options = WDIOF_CARDRESET | WDIOF_MAGICCLOSE | WDIOF_KEEPALIVEPING,
+ 	.identity = "iop watchdog",
+ };
  
-+		spin_lock(&wdt_lock);
- 		ar7_wdt_update_margin(new_margin);
- 		ar7_wdt_kick(1);
-+		spin_unlock(&wdt_lock);
+-static int
+-iop_wdt_ioctl(struct inode *inode, struct file *file, unsigned int cmd,
+-		  unsigned long arg)
++static long iop_wdt_ioctl(struct file *file,
++				unsigned int cmd, unsigned long arg)
+ {
+ 	int options;
+ 	int ret = -ENOTTY;
++	int __user *argp = (int __user *)arg;
+ 
+ 	switch (cmd) {
+ 	case WDIOC_GETSUPPORT:
+-		if (copy_to_user
+-		    ((struct watchdog_info *)arg, &ident, sizeof ident))
++		if (copy_to_user(argp, &ident, sizeof ident))
+ 			ret = -EFAULT;
+ 		else
+ 			ret = 0;
+ 		break;
+ 
+ 	case WDIOC_GETSTATUS:
+-		ret = put_user(0, (int *)arg);
++		ret = put_user(0, argp);
+ 		break;
+ 
+ 	case WDIOC_GETBOOTSTATUS:
+-		ret = put_user(boot_status, (int *)arg);
++		ret = put_user(boot_status, argp);
+ 		break;
  
  	case WDIOC_GETTIMEOUT:
- 		if (put_user(margin, (int *)arg))
-@@ -282,7 +287,7 @@ static int ar7_wdt_ioctl(struct inode *i
- static const struct file_operations ar7_wdt_fops = {
- 	.owner		= THIS_MODULE,
- 	.write		= ar7_wdt_write,
--	.ioctl		= ar7_wdt_ioctl,
-+	.unlocked_ioctl	= ar7_wdt_ioctl,
- 	.open		= ar7_wdt_open,
- 	.release	= ar7_wdt_release,
- };
-@@ -297,6 +302,8 @@ static int __init ar7_wdt_init(void)
- {
- 	int rc;
+-		ret = put_user(iop_watchdog_timeout(), (int *)arg);
++		ret = put_user(iop_watchdog_timeout(), argp);
+ 		break;
  
+ 	case WDIOC_KEEPALIVE:
+@@ -177,14 +176,12 @@ iop_wdt_ioctl(struct inode *inode, struc
+ 			} else
+ 				ret = 0;
+ 		}
+-
+ 		if (options & WDIOS_ENABLECARD) {
+ 			wdt_enable();
+ 			ret = 0;
+ 		}
+ 		break;
+ 	}
+-
+ 	return ret;
+ }
+ 
+@@ -214,7 +211,7 @@ static const struct file_operations iop_
+ 	.owner = THIS_MODULE,
+ 	.llseek = no_llseek,
+ 	.write = iop_wdt_write,
+-	.ioctl = iop_wdt_ioctl,
++	.unlocked_ioctl = iop_wdt_ioctl,
+ 	.open = iop_wdt_open,
+ 	.release = iop_wdt_release,
+ };
+@@ -229,10 +226,8 @@ static int __init iop_wdt_init(void)
+ {
+ 	int ret;
+ 
+-	ret = misc_register(&iop_wdt_miscdev);
+-	if (ret == 0)
+-		printk("iop watchdog timer: timeout %lu sec\n",
+-		       iop_watchdog_timeout());
 +	spin_lock_init(&wdt_lock);
 +
- 	ar7_wdt_get_regs();
  
- 	if (!request_mem_region(ar7_regs_wdt, sizeof(struct ar7_wdt),
-@@ -312,8 +319,6 @@ static int __init ar7_wdt_init(void)
- 	ar7_wdt_prescale(prescale_value);
- 	ar7_wdt_update_margin(margin);
+ 	/* check if the reset was caused by the watchdog timer */
+ 	boot_status = (read_rcsr() & IOP_RCSR_WDT) ? WDIOF_CARDRESET : 0;
+@@ -242,6 +237,13 @@ static int __init iop_wdt_init(void)
+ 	 */
+ 	write_wdtsr(IOP13XX_WDTCR_IB_RESET);
  
--	sema_init(&open_semaphore, 1);
--
- 	rc = register_reboot_notifier(&ar7_wdt_notifier);
- 	if (rc) {
- 		printk(KERN_ERR DRVNAME
++	/* Register after we have the device set up so we cannot race
++	   with an open */
++	ret = misc_register(&iop_wdt_miscdev);
++	if (ret == 0)
++		printk("iop watchdog timer: timeout %lu sec\n",
++		       iop_watchdog_timeout());
++
+ 	return ret;
+ }
+ 
 _
 
 Patches currently in -mm which might be from alan@redhat.com are
