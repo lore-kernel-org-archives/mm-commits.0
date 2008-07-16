@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + coredump-kill-mm-core_done.patch added to -mm tree
-Date: Tue, 15 Jul 2008 19:08:27 -0700
-Message-ID: <200807160208.m6G28R9K000814@imap1.linux-foundation.org>
+Subject: + coredump-construct-the-list-of-coredumping-threads-at-startup-time.patch added to -mm tree
+Date: Tue, 15 Jul 2008 19:08:21 -0700
+Message-ID: <200807160208.m6G28LG7000805@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47383 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33101 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754697AbYGPCIs (ORCPT
+	by vger.kernel.org with ESMTP id S1755419AbYGPCIv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Jul 2008 22:08:48 -0400
+	Tue, 15 Jul 2008 22:08:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: oleg@tv-sign.ru, roland@redhat.com
 
 
 The patch titled
-     coredump: kill mm->core_done
+     coredump: construct the list of coredumping threads at startup time
 has been added to the -mm tree.  Its filename is
-     coredump-kill-mm-core_done.patch
+     coredump-construct-the-list-of-coredumping-threads-at-startup-time.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,107 +34,99 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: coredump: kill mm->core_done
+Subject: coredump: construct the list of coredumping threads at startup time
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Now that we have core_state->dumper list we can use it to wake up the
-sub-threads waiting for the coredump completion.
+binfmt->core_dump() has to iterate over the all threads in system in order
+to find the coredumping threads and construct the list using the
+GFP_ATOMIC allocations.
 
-This uglifies the code and .text grows by 47 bytes, but otoh mm_struct
-lessens by sizeof(struct completion).  Also, with this change we can
-decouple exit_mm() from the coredumping code.
+With this patch each thread allocates the list node on exit_mm()'s stack and
+adds itself to the list.
+
+This allows us to do further changes:
+
+	- simplify ->core_dump()
+
+	- change exit_mm() to clear ->mm first, then wait for ->core_done.
+	  this makes the coredumping process visible to oom_kill
+
+	- kill mm->core_done
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Roland McGrath <roland@redhat.com>
+Acked-by: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c                |   25 ++++++++++++++++++++++---
- include/linux/mm_types.h |    4 +---
- kernel/exit.c            |    8 +++++++-
- 3 files changed, 30 insertions(+), 7 deletions(-)
+ fs/exec.c                |    2 ++
+ include/linux/mm_types.h |    6 ++++++
+ kernel/exit.c            |   15 ++++++++++++---
+ 3 files changed, 20 insertions(+), 3 deletions(-)
 
-diff -puN fs/exec.c~coredump-kill-mm-core_done fs/exec.c
---- a/fs/exec.c~coredump-kill-mm-core_done
+diff -puN fs/exec.c~coredump-construct-the-list-of-coredumping-threads-at-startup-time fs/exec.c
+--- a/fs/exec.c~coredump-construct-the-list-of-coredumping-threads-at-startup-time
 +++ a/fs/exec.c
-@@ -1602,7 +1602,6 @@ static int coredump_wait(int exit_code, 
- 	struct completion *vfork_done;
- 	int core_waiters;
+@@ -1604,6 +1604,8 @@ static int coredump_wait(int exit_code, 
  
--	init_completion(&mm->core_done);
+ 	init_completion(&mm->core_done);
  	init_completion(&core_state->startup);
- 	core_state->dumper.task = tsk;
- 	core_state->dumper.next = NULL;
-@@ -1628,6 +1627,27 @@ fail:
- 	return core_waiters;
- }
++	core_state->dumper.task = tsk;
++	core_state->dumper.next = NULL;
+ 	core_waiters = zap_threads(tsk, mm, core_state, exit_code);
+ 	up_write(&mm->mmap_sem);
  
-+static void coredump_finish(struct mm_struct *mm)
-+{
-+	struct core_thread *curr, *next;
-+	struct task_struct *task;
-+
-+	next = mm->core_state->dumper.next;
-+	while ((curr = next) != NULL) {
-+		next = curr->next;
-+		task = curr->task;
-+		/*
-+		 * see exit_mm(), curr->task must not see
-+		 * ->task == NULL before we read ->next.
-+		 */
-+		smp_mb();
-+		curr->task = NULL;
-+		wake_up_process(task);
-+	}
-+
-+	mm->core_state = NULL;
-+}
-+
- /*
-  * set_dumpable converts traditional three-value dumpable to two flags and
-  * stores them into mm->flags.  It modifies lower two bits of mm->flags, but
-@@ -1812,8 +1832,7 @@ fail_unlock:
- 		argv_free(helper_argv);
- 
- 	current->fsuid = fsuid;
--	complete_all(&mm->core_done);
--	mm->core_state = NULL;
-+	coredump_finish(mm);
- fail:
- 	return retval;
- }
-diff -puN include/linux/mm_types.h~coredump-kill-mm-core_done include/linux/mm_types.h
---- a/include/linux/mm_types.h~coredump-kill-mm-core_done
+diff -puN include/linux/mm_types.h~coredump-construct-the-list-of-coredumping-threads-at-startup-time include/linux/mm_types.h
+--- a/include/linux/mm_types.h~coredump-construct-the-list-of-coredumping-threads-at-startup-time
 +++ a/include/linux/mm_types.h
-@@ -234,9 +234,7 @@ struct mm_struct {
+@@ -164,8 +164,14 @@ struct vm_area_struct {
+ #endif
+ };
  
- 	unsigned long flags; /* Must use atomic bitops to access the bits */
++struct core_thread {
++	struct task_struct *task;
++	struct core_thread *next;
++};
++
+ struct core_state {
+ 	atomic_t nr_threads;
++	struct core_thread dumper;
+ 	struct completion startup;
+ };
  
--	/* coredumping support */
--	struct core_state *core_state;
--	struct completion core_done;
-+	struct core_state *core_state; /* coredumping support */
- 
- 	/* aio bits */
- 	rwlock_t		ioctx_list_lock;	/* aio lock */
-diff -puN kernel/exit.c~coredump-kill-mm-core_done kernel/exit.c
---- a/kernel/exit.c~coredump-kill-mm-core_done
+diff -puN kernel/exit.c~coredump-construct-the-list-of-coredumping-threads-at-startup-time kernel/exit.c
+--- a/kernel/exit.c~coredump-construct-the-list-of-coredumping-threads-at-startup-time
 +++ a/kernel/exit.c
-@@ -678,7 +678,13 @@ static void exit_mm(struct task_struct *
- 		if (atomic_dec_and_test(&core_state->nr_threads))
- 			complete(&core_state->startup);
+@@ -651,6 +651,7 @@ assign_new_owner:
+ static void exit_mm(struct task_struct * tsk)
+ {
+ 	struct mm_struct *mm = tsk->mm;
++	struct core_state *core_state;
  
--		wait_for_completion(&mm->core_done);
-+		for (;;) {
-+			set_task_state(tsk, TASK_UNINTERRUPTIBLE);
-+			if (!self.task) /* see coredump_finish() */
-+				break;
-+			schedule();
-+		}
-+		__set_task_state(tsk, TASK_RUNNING);
+ 	mm_release(tsk, mm);
+ 	if (!mm)
+@@ -663,11 +664,19 @@ static void exit_mm(struct task_struct *
+ 	 * group with ->mm != NULL.
+ 	 */
+ 	down_read(&mm->mmap_sem);
+-	if (mm->core_state) {
++	core_state = mm->core_state;
++	if (core_state) {
++		struct core_thread self;
+ 		up_read(&mm->mmap_sem);
+ 
+-		if (atomic_dec_and_test(&mm->core_state->nr_threads))
+-			complete(&mm->core_state->startup);
++		self.task = tsk;
++		self.next = xchg(&core_state->dumper.next, &self);
++		/*
++		 * Implies mb(), the result of xchg() must be visible
++		 * to core_state->dumper.
++		 */
++		if (atomic_dec_and_test(&core_state->nr_threads))
++			complete(&core_state->startup);
+ 
+ 		wait_for_completion(&mm->core_done);
  		down_read(&mm->mmap_sem);
- 	}
- 	atomic_inc(&mm->mm_count);
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
