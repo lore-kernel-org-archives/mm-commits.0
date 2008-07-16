@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - watchdog-pnx4008_wdt-unlocked_ioctl-setup.patch removed from -mm tree
-Date: Wed, 16 Jul 2008 14:36:41 -0700
-Message-ID: <200807162136.m6GLafPl014233@imap1.linux-foundation.org>
+Subject: - watchdog-sbc_epx_c3_wdt-switch-to-unlocked_ioctl.patch removed from -mm tree
+Date: Wed, 16 Jul 2008 14:36:55 -0700
+Message-ID: <200807162136.m6GLatv3014255@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41813 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51940 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755304AbYGPVqp (ORCPT
+	by vger.kernel.org with ESMTP id S1757313AbYGPVqp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 16 Jul 2008 17:46:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,78 +15,63 @@ To: alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     watchdog: pnx4008_wdt: unlocked_ioctl setup
+     watchdog: sbc_epx_c3_wdt: switch to unlocked_ioctl
 has been removed from the -mm tree.  Its filename was
-     watchdog-pnx4008_wdt-unlocked_ioctl-setup.patch
+     watchdog-sbc_epx_c3_wdt-switch-to-unlocked_ioctl.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: watchdog: pnx4008_wdt: unlocked_ioctl setup
+Subject: watchdog: sbc_epx_c3_wdt: switch to unlocked_ioctl
 From: Alan Cox <alan@redhat.com>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/pnx4008_wdt.c |   18 ++++++++----------
- 1 file changed, 8 insertions(+), 10 deletions(-)
+ drivers/watchdog/sbc_epx_c3.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN drivers/watchdog/pnx4008_wdt.c~watchdog-pnx4008_wdt-unlocked_ioctl-setup drivers/watchdog/pnx4008_wdt.c
---- a/drivers/watchdog/pnx4008_wdt.c~watchdog-pnx4008_wdt-unlocked_ioctl-setup
-+++ a/drivers/watchdog/pnx4008_wdt.c
-@@ -30,8 +30,8 @@
- #include <linux/spinlock.h>
- 
- #include <asm/hardware.h>
+diff -puN drivers/watchdog/sbc_epx_c3.c~watchdog-sbc_epx_c3_wdt-switch-to-unlocked_ioctl drivers/watchdog/sbc_epx_c3.c
+--- a/drivers/watchdog/sbc_epx_c3.c~watchdog-sbc_epx_c3_wdt-switch-to-unlocked_ioctl
++++ a/drivers/watchdog/sbc_epx_c3.c
+@@ -25,8 +25,8 @@
+ #include <linux/reboot.h>
+ #include <linux/init.h>
+ #include <linux/ioport.h>
 -#include <asm/uaccess.h>
 -#include <asm/io.h>
 +#include <linux/uaccess.h>
 +#include <linux/io.h>
  
- #define MODULE_NAME "PNX4008-WDT: "
- 
-@@ -144,9 +144,8 @@ static int pnx4008_wdt_open(struct inode
- 	return nonseekable_open(inode, file);
- }
- 
--static ssize_t
--pnx4008_wdt_write(struct file *file, const char *data, size_t len,
--		  loff_t * ppos)
-+static ssize_t pnx4008_wdt_write(struct file *file, const char *data,
-+					size_t len, loff_t *ppos)
- {
- 	if (len) {
- 		if (!nowayout) {
-@@ -169,15 +168,14 @@ pnx4008_wdt_write(struct file *file, con
+ #define PFX "epx_c3: "
+ static int epx_c3_alive;
+@@ -100,12 +100,12 @@ static ssize_t epx_c3_write(struct file 
  	return len;
  }
  
--static struct watchdog_info ident = {
-+static const struct watchdog_info ident = {
- 	.options = WDIOF_CARDRESET | WDIOF_MAGICCLOSE |
- 	    WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING,
- 	.identity = "PNX4008 Watchdog",
- };
- 
--static int
--pnx4008_wdt_ioctl(struct inode *inode, struct file *file, unsigned int cmd,
--		  unsigned long arg)
-+static long pnx4008_wdt_ioctl(struct inode *inode, struct file *file,
-+					unsigned int cmd, unsigned long arg)
+-static int epx_c3_ioctl(struct inode *inode, struct file *file,
+-			unsigned int cmd, unsigned long arg)
++static long epx_c3_ioctl(struct file *file, unsigned int cmd,
++						unsigned long arg)
  {
- 	int ret = -ENOTTY;
- 	int time;
-@@ -238,7 +236,7 @@ static const struct file_operations pnx4
- 	.owner = THIS_MODULE,
- 	.llseek = no_llseek,
- 	.write = pnx4008_wdt_write,
--	.ioctl = pnx4008_wdt_ioctl,
-+	.unlocked_ioctl = pnx4008_wdt_ioctl,
- 	.open = pnx4008_wdt_open,
- 	.release = pnx4008_wdt_release,
+ 	int options, retval = -EINVAL;
+ 	int __user *argp = (void __user *)arg;
+-	static struct watchdog_info ident = {
++	static const struct watchdog_info ident = {
+ 		.options		= WDIOF_KEEPALIVEPING |
+ 					  WDIOF_MAGICCLOSE,
+ 		.firmware_version	= 0,
+@@ -158,7 +158,7 @@ static const struct file_operations epx_
+ 	.owner		= THIS_MODULE,
+ 	.llseek		= no_llseek,
+ 	.write		= epx_c3_write,
+-	.ioctl		= epx_c3_ioctl,
++	.unlocked_ioctl	= epx_c3_ioctl,
+ 	.open		= epx_c3_open,
+ 	.release	= epx_c3_release,
  };
 _
 
