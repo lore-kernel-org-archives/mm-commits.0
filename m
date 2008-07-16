@@ -1,291 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: - watchdog-ib700wdt-clean-up-and-switch-to-unlocked_ioctl.patch removed from -mm tree
-Date: Wed, 16 Jul 2008 14:36:03 -0700
-Message-ID: <200807162136.m6GLa3jO014158@imap1.linux-foundation.org>
+Subject: - sdio-fix-break-control-to-now-return-success-or-an-error.patch removed from -mm tree
+Date: Wed, 16 Jul 2008 14:35:14 -0700
+Message-ID: <200807162135.m6GLZERI014065@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52096 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45787 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752919AbYGPVkZ (ORCPT
+	by vger.kernel.org with ESMTP id S1756942AbYGPVlS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jul 2008 17:40:25 -0400
+	Wed, 16 Jul 2008 17:41:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@redhat.com, mm-commits@vger.kernel.org
+To: dhowells@redhat.com, alan@lxorguk.ukuu.org.uk, drzeus@drzeus.cx, mm-commits@vger.kernel.org
 
 
 The patch titled
-     watchdog: ib700wdt: clean up and switch to unlocked_ioctl
+     sdio: fix break control to now return success or an error
 has been removed from the -mm tree.  Its filename was
-     watchdog-ib700wdt-clean-up-and-switch-to-unlocked_ioctl.patch
+     sdio-fix-break-control-to-now-return-success-or-an-error.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: watchdog: ib700wdt: clean up and switch to unlocked_ioctl
-From: Alan Cox <alan@redhat.com>
+Subject: sdio: fix break control to now return success or an error
+From: David Howells <dhowells@redhat.com>
 
-Signed-off-by: Alan Cox <alan@redhat.com>
+Fix SDIO break control to now return success or an error.
+
+This is a consequence of patch 9ea761bfef52c116fed4715d4043392c2503fe6a.
+
+Signed-off-by: David Howells <dhowells@redhat.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Pierre Ossman <drzeus@drzeus.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/ib700wdt.c |  103 +++++++++++++++++-----------------
- 1 file changed, 52 insertions(+), 51 deletions(-)
+ drivers/mmc/card/sdio_uart.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN drivers/watchdog/ib700wdt.c~watchdog-ib700wdt-clean-up-and-switch-to-unlocked_ioctl drivers/watchdog/ib700wdt.c
---- a/drivers/watchdog/ib700wdt.c~watchdog-ib700wdt-clean-up-and-switch-to-unlocked_ioctl
-+++ a/drivers/watchdog/ib700wdt.c
-@@ -42,8 +42,8 @@
- #include <linux/moduleparam.h>
- #include <linux/platform_device.h>
- 
--#include <asm/io.h>
--#include <asm/uaccess.h>
-+#include <linux/io.h>
-+#include <linux/uaccess.h>
- #include <asm/system.h>
- 
- static struct platform_device *ibwdt_platform_device;
-@@ -120,7 +120,9 @@ static int wd_margin = WD_TIMO;
- 
- static int nowayout = WATCHDOG_NOWAYOUT;
- module_param(nowayout, int, 0);
--MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started (default=" __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
-+MODULE_PARM_DESC(nowayout,
-+		"Watchdog cannot be stopped once started (default="
-+				__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
- 
- 
- /*
-@@ -165,8 +167,8 @@ ibwdt_set_heartbeat(int t)
-  *	/dev/watchdog handling
-  */
- 
--static ssize_t
--ibwdt_write(struct file *file, const char __user *buf, size_t count, loff_t *ppos)
-+static ssize_t ibwdt_write(struct file *file, const char __user *buf,
-+						size_t count, loff_t *ppos)
- {
- 	if (count) {
- 		if (!nowayout) {
-@@ -188,77 +190,71 @@ ibwdt_write(struct file *file, const cha
- 	return count;
+diff -puN drivers/mmc/card/sdio_uart.c~sdio-fix-break-control-to-now-return-success-or-an-error drivers/mmc/card/sdio_uart.c
+--- a/drivers/mmc/card/sdio_uart.c~sdio-fix-break-control-to-now-return-success-or-an-error
++++ a/drivers/mmc/card/sdio_uart.c
+@@ -885,12 +885,14 @@ static void sdio_uart_set_termios(struct
+ 	sdio_uart_release_func(port);
  }
  
--static int
--ibwdt_ioctl(struct inode *inode, struct file *file, unsigned int cmd,
--	  unsigned long arg)
-+static long ibwdt_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+-static void sdio_uart_break_ctl(struct tty_struct *tty, int break_state)
++static int sdio_uart_break_ctl(struct tty_struct *tty, int break_state)
  {
- 	int new_margin;
- 	void __user *argp = (void __user *)arg;
- 	int __user *p = argp;
+ 	struct sdio_uart_port *port = tty->driver_data;
++	int result;
  
- 	static struct watchdog_info ident = {
--		.options = WDIOF_KEEPALIVEPING | WDIOF_SETTIMEOUT | WDIOF_MAGICCLOSE,
-+		.options = WDIOF_KEEPALIVEPING | WDIOF_SETTIMEOUT
-+							| WDIOF_MAGICCLOSE,
- 		.firmware_version = 1,
- 		.identity = "IB700 WDT",
- 	};
+-	if (sdio_uart_claim_func(port) != 0)
+-		return;
++	result = sdio_uart_claim_func(port);
++	if (result != 0)
++		return result;
  
- 	switch (cmd) {
- 	case WDIOC_GETSUPPORT:
--	  if (copy_to_user(argp, &ident, sizeof(ident)))
--	    return -EFAULT;
--	  break;
-+		if (copy_to_user(argp, &ident, sizeof(ident)))
-+			return -EFAULT;
-+		break;
+ 	if (break_state == -1)
+ 		port->lcr |= UART_LCR_SBC;
+@@ -899,6 +901,7 @@ static void sdio_uart_break_ctl(struct t
+ 	sdio_out(port, UART_LCR, port->lcr);
  
- 	case WDIOC_GETSTATUS:
- 	case WDIOC_GETBOOTSTATUS:
--	  return put_user(0, p);
-+		return put_user(0, p);
- 
- 	case WDIOC_KEEPALIVE:
--	  ibwdt_ping();
--	  break;
-+		ibwdt_ping();
-+		break;
- 
- 	case WDIOC_SETTIMEOUT:
--	  if (get_user(new_margin, p))
--		  return -EFAULT;
--	  if (ibwdt_set_heartbeat(new_margin))
--		  return -EINVAL;
--	  ibwdt_ping();
--	  /* Fall */
-+		if (get_user(new_margin, p))
-+			return -EFAULT;
-+		if (ibwdt_set_heartbeat(new_margin))
-+			return -EINVAL;
-+		ibwdt_ping();
-+		/* Fall */
- 
- 	case WDIOC_GETTIMEOUT:
--	  return put_user(wd_times[wd_margin], p);
-+		return put_user(wd_times[wd_margin], p);
- 
- 	case WDIOC_SETOPTIONS:
- 	{
--	  int options, retval = -EINVAL;
-+		int options, retval = -EINVAL;
- 
--	  if (get_user(options, p))
--	    return -EFAULT;
-+		if (get_user(options, p))
-+			return -EFAULT;
- 
--	  if (options & WDIOS_DISABLECARD) {
--	    ibwdt_disable();
--	    retval = 0;
--	  }
--
--	  if (options & WDIOS_ENABLECARD) {
--	    ibwdt_ping();
--	    retval = 0;
--	  }
--
--	  return retval;
-+		if (options & WDIOS_DISABLECARD) {
-+			ibwdt_disable();
-+			retval = 0;
-+		}
-+		if (options & WDIOS_ENABLECARD) {
-+			ibwdt_ping();
-+			retval = 0;
-+		}
-+		return retval;
- 	}
--
- 	default:
--	  return -ENOTTY;
-+		return -ENOTTY;
- 	}
- 	return 0;
+ 	sdio_uart_release_func(port);
++	return 0;
  }
  
--static int
--ibwdt_open(struct inode *inode, struct file *file)
-+static int ibwdt_open(struct inode *inode, struct file *file)
- {
--	if (test_and_set_bit(0, &ibwdt_is_open)) {
-+	if (test_and_set_bit(0, &ibwdt_is_open))
- 		return -EBUSY;
--	}
- 	if (nowayout)
- 		__module_get(THIS_MODULE);
- 
-@@ -273,7 +269,8 @@ ibwdt_close(struct inode *inode, struct 
- 	if (expect_close == 42) {
- 		ibwdt_disable();
- 	} else {
--		printk(KERN_CRIT PFX "WDT device closed unexpectedly.  WDT will not stop!\n");
-+		printk(KERN_CRIT PFX
-+		     "WDT device closed unexpectedly.  WDT will not stop!\n");
- 		ibwdt_ping();
- 	}
- 	clear_bit(0, &ibwdt_is_open);
-@@ -289,7 +286,7 @@ static const struct file_operations ibwd
- 	.owner		= THIS_MODULE,
- 	.llseek		= no_llseek,
- 	.write		= ibwdt_write,
--	.ioctl		= ibwdt_ioctl,
-+	.unlocked_ioctl	= ibwdt_ioctl,
- 	.open		= ibwdt_open,
- 	.release	= ibwdt_close,
- };
-@@ -310,21 +307,23 @@ static int __devinit ibwdt_probe(struct 
- 
- #if WDT_START != WDT_STOP
- 	if (!request_region(WDT_STOP, 1, "IB700 WDT")) {
--		printk (KERN_ERR PFX "STOP method I/O %X is not available.\n", WDT_STOP);
-+		printk(KERN_ERR PFX "STOP method I/O %X is not available.\n",
-+								WDT_STOP);
- 		res = -EIO;
- 		goto out_nostopreg;
- 	}
- #endif
- 
- 	if (!request_region(WDT_START, 1, "IB700 WDT")) {
--		printk (KERN_ERR PFX "START method I/O %X is not available.\n", WDT_START);
-+		printk(KERN_ERR PFX "START method I/O %X is not available.\n",
-+								WDT_START);
- 		res = -EIO;
- 		goto out_nostartreg;
- 	}
- 
- 	res = misc_register(&ibwdt_miscdev);
- 	if (res) {
--		printk (KERN_ERR PFX "failed to register misc device\n");
-+		printk(KERN_ERR PFX "failed to register misc device\n");
- 		goto out_nomisc;
- 	}
- 	return 0;
-@@ -342,9 +341,9 @@ out_nostopreg:
- static int __devexit ibwdt_remove(struct platform_device *dev)
- {
- 	misc_deregister(&ibwdt_miscdev);
--	release_region(WDT_START,1);
-+	release_region(WDT_START, 1);
- #if WDT_START != WDT_STOP
--	release_region(WDT_STOP,1);
-+	release_region(WDT_STOP, 1);
- #endif
- 	return 0;
- }
-@@ -369,13 +368,15 @@ static int __init ibwdt_init(void)
- {
- 	int err;
- 
--	printk(KERN_INFO PFX "WDT driver for IB700 single board computer initialising.\n");
-+	printk(KERN_INFO PFX
-+		"WDT driver for IB700 single board computer initialising.\n");
- 
- 	err = platform_driver_register(&ibwdt_driver);
- 	if (err)
- 		return err;
- 
--	ibwdt_platform_device = platform_device_register_simple(DRV_NAME, -1, NULL, 0);
-+	ibwdt_platform_device = platform_device_register_simple(DRV_NAME,
-+								-1, NULL, 0);
- 	if (IS_ERR(ibwdt_platform_device)) {
- 		err = PTR_ERR(ibwdt_platform_device);
- 		goto unreg_platform_driver;
+ static int sdio_uart_tiocmget(struct tty_struct *tty, struct file *file)
 _
 
-Patches currently in -mm which might be from alan@redhat.com are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
 origin.patch
 linux-next.patch
-ia64-hp-sim-simserialc-adapt-to-new-tty-framework.patch
-remove-is_tty.patch
 mn10300-fix-mn10300s-serial-port-driver-to-get-at-its-tty_struct.patch
-hamradio-add-missing-sanity-check-to-tty-operation.patch
-git-watchdog.patch
-serial-8250_gscc-add-module_license.patch
-serial-add-support-for-a-no-name-4-ports-multiserial-card.patch
-istallion-remove-unused-variable.patch
-stallion-removed-unused-variable.patch
-spidev-bkl-removal.patch
-rtc-push-the-bkl-down-into-the-driver-ioctl-method.patch
-efirtc-push-down-the-bkl.patch
-ip2-push-bkl-down-for-the-firmware-interface.patch
-mwave-ioctl-bkl-pushdown.patch
-rio-push-down-the-bkl-into-the-firmware-ioctl-handler.patch
-sx-push-bkl-down-into-the-firmware-ioctl-handler.patch
-ixj-push-bkl-into-driver-and-wrap-ioctls.patch
-ppdev-wrap-ioctl-handler-in-driver-and-push-lock-down.patch
-ds1302-push-down-the-bkl-into-the-driver-ioctl-code.patch
-dsp56k-bkl-pushdown.patch
-char-mxser-ioctl-cleanup.patch
-char-mxser-globals-cleanup.patch
-char-mxser-update-documentation.patch
-char-mxser-prints-cleanup.patch
-char-mxser-remove-predefined-isa-support.patch
-char-mxser-various-cleanups.patch
-unexport-proc_clear_tty.patch
+acpi-fix-a-cast-of-a-32-bit-int-to-a-pointer.patch
+calgary-fix-a-comparison-warning-the-pci-calgary-64-driver.patch
+cifs-fix-range-check.patch
+sis-drm-fix-the-memory-allocator-if-the-sis-fb-is-built-as-a-module.patch
+sis-drm-fix-a-pointer-cast-warning.patch
+netfilter-fix-xt_times-time_mts-use-of-do_div.patch
+atm-fix-const-assignment-discard-warnings-in-the-atm-networking-driver.patch
+atm-fix-direct-casts-of-pointers-to-u32-in-the-interphase-driver.patch
+hysdn-remove-the-packed-attribute-from-poftimstamp_tag.patch
+sched-fix-inc_rt_tasks-to-not-declare-variable-rq-if-its-not-needed.patch
+git-unionfs.patch
+clocksource-fix-a-print-format-error-in-the-acpi-pm-clocksource-driver-and-check-range.patch
+pm-fix-try_to_freeze_taskss-use-of-do_div.patch
+mn10300-move-sg_dma_addresslen-to-asm-scatterlisth.patch
+inflate-refactor-inflate-malloc-code.patch
+inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
+pnpacpi-fix-pnpacpi_parse_irq_options-test-against-pnp_irq_nr.patch
+pnp-fix-the-fcpnp_driver-declaration-to-only-exist-if-config_pnp=y.patch
+include-asm-ptraceh-userspace-headers-cleanup.patch
+coredump-elf_fdpic_core_dump-use-core_state-dumper-list.patch
+coredump-binfmt_elf_fdpic-dont-use-sub-threads-mm.patch
+coredump-exit_mm-clear-mm-first-then-play-with-core_state.patch
+coredump-exit_mm-clear-mm-first-then-play-with-core_state-checkpatch-fixes.patch
+ip2-fix-iielliscleanup-as-it-is-static-but-not-always-used.patch
+stallion-fix-the-istallion-drivers-putchar-and-break_ctl-ops.patch
+tsacct-fix-bacct_add_tsks-use-of-do_div.patch
+frv-use-the-common-ascii-hex-helpers.patch
+mn10300-use-the-common-ascii-hex-helpers.patch
+mutex-subsystem-synchro-test-module.patch
 
