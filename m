@@ -1,248 +1,277 @@
 From: akpm@linux-foundation.org
-Subject: - watchdog-indydog-clean-up-and-tidy.patch removed from -mm tree
-Date: Wed, 16 Jul 2008 14:36:09 -0700
-Message-ID: <200807162136.m6GLa9bb014167@imap1.linux-foundation.org>
+Subject: - watchdog-it8712f-unlocked_ioctl.patch removed from -mm tree
+Date: Wed, 16 Jul 2008 14:36:13 -0700
+Message-ID: <200807162136.m6GLaD1s014173@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36902 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48318 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751394AbYGPVjg (ORCPT
+	by vger.kernel.org with ESMTP id S1754979AbYGPVkF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jul 2008 17:39:36 -0400
+	Wed, 16 Jul 2008 17:40:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     watchdog: indydog: Clean up and tidy
+     watchdog: it8712f: unlocked_ioctl
 has been removed from the -mm tree.  Its filename was
-     watchdog-indydog-clean-up-and-tidy.patch
+     watchdog-it8712f-unlocked_ioctl.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: watchdog: indydog: Clean up and tidy
+Subject: watchdog: it8712f: unlocked_ioctl
 From: Alan Cox <alan@redhat.com>
-
-Switch to unlocked_ioctl as well
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/indydog.c |  114 +++++++++++++++++++----------------
- 1 file changed, 62 insertions(+), 52 deletions(-)
+ drivers/watchdog/it8712f_wdt.c |   77 ++++++++++---------------------
+ 1 file changed, 27 insertions(+), 50 deletions(-)
 
-diff -puN drivers/watchdog/indydog.c~watchdog-indydog-clean-up-and-tidy drivers/watchdog/indydog.c
---- a/drivers/watchdog/indydog.c~watchdog-indydog-clean-up-and-tidy
-+++ a/drivers/watchdog/indydog.c
-@@ -1,7 +1,8 @@
- /*
-  *	IndyDog	0.3	A Hardware Watchdog Device for SGI IP22
-  *
-- *	(c) Copyright 2002 Guido Guenther <agx@sigxcpu.org>, All Rights Reserved.
-+ *	(c) Copyright 2002 Guido Guenther <agx@sigxcpu.org>,
-+ *						All Rights Reserved.
-  *
-  *	This program is free software; you can redistribute it and/or
-  *	modify it under the terms of the GNU General Public License
-@@ -22,32 +23,42 @@
- #include <linux/notifier.h>
- #include <linux/reboot.h>
- #include <linux/init.h>
+diff -puN drivers/watchdog/it8712f_wdt.c~watchdog-it8712f-unlocked_ioctl drivers/watchdog/it8712f_wdt.c
+--- a/drivers/watchdog/it8712f_wdt.c~watchdog-it8712f-unlocked_ioctl
++++ a/drivers/watchdog/it8712f_wdt.c
+@@ -30,9 +30,8 @@
+ #include <linux/fs.h>
+ #include <linux/pci.h>
+ #include <linux/spinlock.h>
+-
 -#include <asm/uaccess.h>
+-#include <asm/io.h>
 +#include <linux/uaccess.h>
- #include <asm/sgi/mc.h>
++#include <linux/io.h>
  
- #define PFX "indydog: "
--static int indydog_alive;
-+static unsigned long indydog_alive;
-+static spinlock_t indydog_lock;
+ #define NAME "it8712f_wdt"
  
- #define WATCHDOG_TIMEOUT 30		/* 30 sec default timeout */
- 
- static int nowayout = WATCHDOG_NOWAYOUT;
+@@ -50,7 +49,7 @@ static int nowayout = WATCHDOG_NOWAYOUT;
  module_param(nowayout, int, 0);
--MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started (default=" __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
-+MODULE_PARM_DESC(nowayout,
-+		"Watchdog cannot be stopped once started (default="
-+				__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
+ MODULE_PARM_DESC(nowayout, "Disable watchdog shutdown on close");
  
- static void indydog_start(void)
+-static struct semaphore it8712f_wdt_sem;
++static unsigned long wdt_open;
+ static unsigned expect_close;
+ static spinlock_t io_lock;
+ static unsigned char revision;
+@@ -86,22 +85,19 @@ static unsigned short address;
+ #define WDT_OUT_PWROK	0x10
+ #define WDT_OUT_KRST	0x40
+ 
+-static int
+-superio_inb(int reg)
++static int superio_inb(int reg)
  {
--	u32 mc_ctrl0 = sgimc->cpuctrl0;
-+	u32 mc_ctrl0;
- 
-+	spin_lock(&indydog_lock);
-+	mc_ctrl0 = sgimc->cpuctrl0;
- 	mc_ctrl0 = sgimc->cpuctrl0 | SGIMC_CCTRL0_WDOG;
- 	sgimc->cpuctrl0 = mc_ctrl0;
-+	spin_unlock(&indydog_lock);
+ 	outb(reg, REG);
+ 	return inb(VAL);
  }
  
- static void indydog_stop(void)
+-static void
+-superio_outb(int val, int reg)
++static void superio_outb(int val, int reg)
  {
--	u32 mc_ctrl0 = sgimc->cpuctrl0;
-+	u32 mc_ctrl0;
- 
-+	spin_lock(&indydog_lock);
-+
-+	mc_ctrl0 = sgimc->cpuctrl0;
- 	mc_ctrl0 &= ~SGIMC_CCTRL0_WDOG;
- 	sgimc->cpuctrl0 = mc_ctrl0;
-+	spin_unlock(&indydog_lock);
- 
- 	printk(KERN_INFO PFX "Stopped watchdog timer.\n");
- }
-@@ -62,7 +73,7 @@ static void indydog_ping(void)
-  */
- static int indydog_open(struct inode *inode, struct file *file)
- {
--	if (indydog_alive)
-+	if (test_and_set_bit(0, &indydog_alive))
- 		return -EBUSY;
- 
- 	if (nowayout)
-@@ -84,23 +95,21 @@ static int indydog_release(struct inode 
- 	 * Lock it in if it's a module and we defined ...NOWAYOUT */
- 	if (!nowayout)
- 		indydog_stop();		/* Turn the WDT off */
--
--	indydog_alive = 0;
--
-+	clear_bit(0, &indydog_alive);
- 	return 0;
+ 	outb(reg, REG);
+ 	outb(val, VAL);
  }
  
--static ssize_t indydog_write(struct file *file, const char *data, size_t len, loff_t *ppos)
-+static ssize_t indydog_write(struct file *file, const char *data,
-+						size_t len, loff_t *ppos)
+-static int
+-superio_inw(int reg)
++static int superio_inw(int reg)
  {
- 	/* Refresh the timer. */
--	if (len) {
-+	if (len)
- 		indydog_ping();
--	}
+ 	int val;
+ 	outb(reg++, REG);
+@@ -111,15 +107,13 @@ superio_inw(int reg)
+ 	return val;
+ }
+ 
+-static inline void
+-superio_select(int ldn)
++static inline void superio_select(int ldn)
+ {
+ 	outb(LDN, REG);
+ 	outb(ldn, VAL);
+ }
+ 
+-static inline void
+-superio_enter(void)
++static inline void superio_enter(void)
+ {
+ 	spin_lock(&io_lock);
+ 	outb(0x87, REG);
+@@ -128,22 +122,19 @@ superio_enter(void)
+ 	outb(0x55, REG);
+ }
+ 
+-static inline void
+-superio_exit(void)
++static inline void superio_exit(void)
+ {
+ 	outb(0x02, REG);
+ 	outb(0x02, VAL);
+ 	spin_unlock(&io_lock);
+ }
+ 
+-static inline void
+-it8712f_wdt_ping(void)
++static inline void it8712f_wdt_ping(void)
+ {
+ 	inb(address);
+ }
+ 
+-static void
+-it8712f_wdt_update_margin(void)
++static void it8712f_wdt_update_margin(void)
+ {
+ 	int config = WDT_OUT_KRST | WDT_OUT_PWROK;
+ 	int units = margin;
+@@ -165,8 +156,7 @@ it8712f_wdt_update_margin(void)
+ 	superio_outb(units, WDT_TIMEOUT);
+ }
+ 
+-static int
+-it8712f_wdt_get_status(void)
++static int it8712f_wdt_get_status(void)
+ {
+ 	if (superio_inb(WDT_CONTROL) & 0x01)
+ 		return WDIOF_CARDRESET;
+@@ -174,8 +164,7 @@ it8712f_wdt_get_status(void)
+ 		return 0;
+ }
+ 
+-static void
+-it8712f_wdt_enable(void)
++static void it8712f_wdt_enable(void)
+ {
+ 	printk(KERN_DEBUG NAME ": enabling watchdog timer\n");
+ 	superio_enter();
+@@ -190,8 +179,7 @@ it8712f_wdt_enable(void)
+ 	it8712f_wdt_ping();
+ }
+ 
+-static void
+-it8712f_wdt_disable(void)
++static void it8712f_wdt_disable(void)
+ {
+ 	printk(KERN_DEBUG NAME ": disabling watchdog timer\n");
+ 
+@@ -207,8 +195,7 @@ it8712f_wdt_disable(void)
+ 	superio_exit();
+ }
+ 
+-static int
+-it8712f_wdt_notify(struct notifier_block *this,
++static int it8712f_wdt_notify(struct notifier_block *this,
+ 		    unsigned long code, void *unused)
+ {
+ 	if (code == SYS_HALT || code == SYS_POWER_OFF)
+@@ -222,9 +209,8 @@ static struct notifier_block it8712f_wdt
+ 	.notifier_call = it8712f_wdt_notify,
+ };
+ 
+-static ssize_t
+-it8712f_wdt_write(struct file *file, const char __user *data,
+-	size_t len, loff_t *ppos)
++static ssize_t it8712f_wdt_write(struct file *file, const char __user *data,
++					size_t len, loff_t *ppos)
+ {
+ 	/* check for a magic close character */
+ 	if (len) {
+@@ -245,9 +231,8 @@ it8712f_wdt_write(struct file *file, con
  	return len;
  }
  
--static int indydog_ioctl(struct inode *inode, struct file *file,
+-static int
+-it8712f_wdt_ioctl(struct inode *inode, struct file *file,
 -	unsigned int cmd, unsigned long arg)
-+static long indydog_ioctl(struct file *file, unsigned int cmd,
++static long it8712f_wdt_ioctl(struct file *file, unsigned int cmd,
 +							unsigned long arg)
  {
- 	int options, retval = -EINVAL;
- 	static struct watchdog_info ident = {
-@@ -111,42 +120,40 @@ static int indydog_ioctl(struct inode *i
- 	};
- 
- 	switch (cmd) {
--		default:
--			return -ENOTTY;
--		case WDIOC_GETSUPPORT:
--			if (copy_to_user((struct watchdog_info *)arg,
--					 &ident, sizeof(ident)))
--				return -EFAULT;
--			return 0;
--		case WDIOC_GETSTATUS:
--		case WDIOC_GETBOOTSTATUS:
--			return put_user(0,(int *)arg);
--		case WDIOC_KEEPALIVE:
--			indydog_ping();
--			return 0;
--		case WDIOC_GETTIMEOUT:
--			return put_user(WATCHDOG_TIMEOUT,(int *)arg);
--		case WDIOC_SETOPTIONS:
--		{
--			if (get_user(options, (int *)arg))
--				return -EFAULT;
--
--			if (options & WDIOS_DISABLECARD) {
--				indydog_stop();
--				retval = 0;
--			}
--
--			if (options & WDIOS_ENABLECARD) {
--				indydog_start();
--				retval = 0;
--			}
--
--			return retval;
-+	case WDIOC_GETSUPPORT:
-+		if (copy_to_user((struct watchdog_info *)arg,
-+				 &ident, sizeof(ident)))
-+			return -EFAULT;
-+		return 0;
-+	case WDIOC_GETSTATUS:
-+	case WDIOC_GETBOOTSTATUS:
-+		return put_user(0, (int *)arg);
-+	case WDIOC_KEEPALIVE:
-+		indydog_ping();
-+		return 0;
-+	case WDIOC_GETTIMEOUT:
-+		return put_user(WATCHDOG_TIMEOUT, (int *)arg);
-+	case WDIOC_SETOPTIONS:
-+	{
-+		if (get_user(options, (int *)arg))
-+			return -EFAULT;
-+		if (options & WDIOS_DISABLECARD) {
-+			indydog_stop();
-+			retval = 0;
-+		}
-+		if (options & WDIOS_ENABLECARD) {
-+			indydog_start();
-+			retval = 0;
- 		}
-+		return retval;
-+	}
-+	default:
-+		return -ENOTTY;
+ 	void __user *argp = (void __user *)arg;
+ 	int __user *p = argp;
+@@ -302,19 +287,16 @@ it8712f_wdt_ioctl(struct inode *inode, s
  	}
  }
  
--static int indydog_notify_sys(struct notifier_block *this, unsigned long code, void *unused)
-+static int indydog_notify_sys(struct notifier_block *this,
-+					unsigned long code, void *unused)
+-static int
+-it8712f_wdt_open(struct inode *inode, struct file *file)
++static int it8712f_wdt_open(struct inode *inode, struct file *file)
  {
- 	if (code == SYS_DOWN || code == SYS_HALT)
- 		indydog_stop();		/* Turn the WDT off */
-@@ -158,7 +165,7 @@ static const struct file_operations indy
- 	.owner		= THIS_MODULE,
- 	.llseek		= no_llseek,
- 	.write		= indydog_write,
--	.ioctl		= indydog_ioctl,
-+	.unlocked_ioctl	= indydog_ioctl,
- 	.open		= indydog_open,
- 	.release	= indydog_release,
+ 	/* only allow one at a time */
+-	if (down_trylock(&it8712f_wdt_sem))
++	if (test_and_set_bit(0, &wdt_open))
+ 		return -EBUSY;
+ 	it8712f_wdt_enable();
+-
+ 	return nonseekable_open(inode, file);
+ }
+ 
+-static int
+-it8712f_wdt_release(struct inode *inode, struct file *file)
++static int it8712f_wdt_release(struct inode *inode, struct file *file)
+ {
+ 	if (expect_close != 42) {
+ 		printk(KERN_WARNING NAME
+@@ -324,7 +306,7 @@ it8712f_wdt_release(struct inode *inode,
+ 		it8712f_wdt_disable();
+ 	}
+ 	expect_close = 0;
+-	up(&it8712f_wdt_sem);
++	clear_bit(0, &wdt_open);
+ 
+ 	return 0;
+ }
+@@ -333,7 +315,7 @@ static const struct file_operations it87
+ 	.owner = THIS_MODULE,
+ 	.llseek = no_llseek,
+ 	.write = it8712f_wdt_write,
+-	.ioctl = it8712f_wdt_ioctl,
++	.unlocked_ioctl = it8712f_wdt_ioctl,
+ 	.open = it8712f_wdt_open,
+ 	.release = it8712f_wdt_release,
  };
-@@ -180,17 +187,20 @@ static int __init watchdog_init(void)
+@@ -344,8 +326,7 @@ static struct miscdevice it8712f_wdt_mis
+ 	.fops = &it8712f_wdt_fops,
+ };
+ 
+-static int __init
+-it8712f_wdt_find(unsigned short *address)
++static int __init it8712f_wdt_find(unsigned short *address)
  {
- 	int ret;
+ 	int err = -ENODEV;
+ 	int chip_type;
+@@ -387,8 +368,7 @@ exit:
+ 	return err;
+ }
  
-+	spin_lock_init(&indydog_lock);
-+
- 	ret = register_reboot_notifier(&indydog_notifier);
- 	if (ret) {
--		printk(KERN_ERR PFX "cannot register reboot notifier (err=%d)\n",
--			ret);
-+		printk(KERN_ERR PFX
-+			"cannot register reboot notifier (err=%d)\n", ret);
- 		return ret;
- 	}
+-static int __init
+-it8712f_wdt_init(void)
++static int __init it8712f_wdt_init(void)
+ {
+ 	int err = 0;
  
- 	ret = misc_register(&indydog_miscdev);
- 	if (ret) {
--		printk(KERN_ERR PFX "cannot register miscdev on minor=%d (err=%d)\n",
--			WATCHDOG_MINOR, ret);
-+		printk(KERN_ERR PFX
-+			"cannot register miscdev on minor=%d (err=%d)\n",
-+							WATCHDOG_MINOR, ret);
- 		unregister_reboot_notifier(&indydog_notifier);
- 		return ret;
- 	}
+@@ -404,8 +384,6 @@ it8712f_wdt_init(void)
+ 
+ 	it8712f_wdt_disable();
+ 
+-	sema_init(&it8712f_wdt_sem, 1);
+-
+ 	err = register_reboot_notifier(&it8712f_wdt_notifier);
+ 	if (err) {
+ 		printk(KERN_ERR NAME ": unable to register reboot notifier\n");
+@@ -430,8 +408,7 @@ out:
+ 	return err;
+ }
+ 
+-static void __exit
+-it8712f_wdt_exit(void)
++static void __exit it8712f_wdt_exit(void)
+ {
+ 	misc_deregister(&it8712f_wdt_miscdev);
+ 	unregister_reboot_notifier(&it8712f_wdt_notifier);
 _
 
 Patches currently in -mm which might be from alan@redhat.com are
