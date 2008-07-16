@@ -1,334 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: - watchdog-sc520_wdt-clean-up-and-switch-to-unlocked_ioctl.patch removed from -mm tree
-Date: Wed, 16 Jul 2008 14:37:01 -0700
-Message-ID: <200807162137.m6GLb16s014267@imap1.linux-foundation.org>
+Subject: - watchdog-txx9-fix-locking-switch-to-unlocked_ioctl.patch removed from -mm tree
+Date: Wed, 16 Jul 2008 14:37:11 -0700
+Message-ID: <200807162137.m6GLbBMo014356@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56503 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42459 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758290AbYGPVhs (ORCPT
+	by vger.kernel.org with ESMTP id S1757298AbYGPVhz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jul 2008 17:37:48 -0400
+	Wed, 16 Jul 2008 17:37:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     watchdog: sc520_wdt: Clean up and switch to unlocked_ioctl
+     watchdog: txx9: Fix locking, switch to unlocked_ioctl
 has been removed from the -mm tree.  Its filename was
-     watchdog-sc520_wdt-clean-up-and-switch-to-unlocked_ioctl.patch
+     watchdog-txx9-fix-locking-switch-to-unlocked_ioctl.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: watchdog: sc520_wdt: Clean up and switch to unlocked_ioctl
+Subject: watchdog: txx9: Fix locking, switch to unlocked_ioctl
 From: Alan Cox <alan@redhat.com>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/sc520_wdt.c |  161 +++++++++++++++++----------------
- 1 file changed, 86 insertions(+), 75 deletions(-)
+ drivers/watchdog/txx9wdt.c |   31 +++++++++++++++++++------------
+ 1 file changed, 19 insertions(+), 12 deletions(-)
 
-diff -puN drivers/watchdog/sc520_wdt.c~watchdog-sc520_wdt-clean-up-and-switch-to-unlocked_ioctl drivers/watchdog/sc520_wdt.c
---- a/drivers/watchdog/sc520_wdt.c~watchdog-sc520_wdt-clean-up-and-switch-to-unlocked_ioctl
-+++ a/drivers/watchdog/sc520_wdt.c
-@@ -64,9 +64,9 @@
- #include <linux/reboot.h>
- #include <linux/init.h>
- #include <linux/jiffies.h>
-+#include <linux/io.h>
-+#include <linux/uaccess.h>
+diff -puN drivers/watchdog/txx9wdt.c~watchdog-txx9-fix-locking-switch-to-unlocked_ioctl drivers/watchdog/txx9wdt.c
+--- a/drivers/watchdog/txx9wdt.c~watchdog-txx9-fix-locking-switch-to-unlocked_ioctl
++++ a/drivers/watchdog/txx9wdt.c
+@@ -45,27 +45,34 @@ static unsigned long txx9wdt_alive;
+ static int expect_close;
+ static struct txx9_tmr_reg __iomem *txx9wdt_reg;
+ static struct clk *txx9_imclk;
++static DECLARE_LOCK(txx9_lock);
  
--#include <asm/io.h>
--#include <asm/uaccess.h>
- #include <asm/system.h>
- 
- #define OUR_NAME "sc520_wdt"
-@@ -91,13 +91,18 @@
-  */
- 
- #define WATCHDOG_TIMEOUT 30		/* 30 sec default timeout */
--static int timeout = WATCHDOG_TIMEOUT;	/* in seconds, will be multiplied by HZ to get seconds to wait for a ping */
-+/* in seconds, will be multiplied by HZ to get seconds to wait for a ping */
-+static int timeout = WATCHDOG_TIMEOUT;
- module_param(timeout, int, 0);
--MODULE_PARM_DESC(timeout, "Watchdog timeout in seconds. (1<=timeout<=3600, default=" __MODULE_STRING(WATCHDOG_TIMEOUT) ")");
-+MODULE_PARM_DESC(timeout,
-+	"Watchdog timeout in seconds. (1 <= timeout <= 3600, default="
-+				__MODULE_STRING(WATCHDOG_TIMEOUT) ")");
- 
- static int nowayout = WATCHDOG_NOWAYOUT;
- module_param(nowayout, int, 0);
--MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started (default=" __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
-+MODULE_PARM_DESC(nowayout,
-+		"Watchdog cannot be stopped once started (default="
-+				__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
- 
- /*
-  * AMD Elan SC520 - Watchdog Timer Registers
-@@ -136,8 +141,7 @@ static void wdt_timer_ping(unsigned long
- 	/* If we got a heartbeat pulse within the WDT_US_INTERVAL
- 	 * we agree to ping the WDT
- 	 */
--	if(time_before(jiffies, next_heartbeat))
--	{
-+	if (time_before(jiffies, next_heartbeat)) {
- 		/* Ping the WDT */
- 		spin_lock(&wdt_spinlock);
- 		writew(0xAAAA, wdtmrctl);
-@@ -146,9 +150,9 @@ static void wdt_timer_ping(unsigned long
- 
- 		/* Re-set the timer interval */
- 		mod_timer(&timer, jiffies + WDT_INTERVAL);
--	} else {
--		printk(KERN_WARNING PFX "Heartbeat lost! Will not ping the watchdog\n");
--	}
-+	} else
-+		printk(KERN_WARNING PFX
-+			"Heartbeat lost! Will not ping the watchdog\n");
- }
- 
- /*
-@@ -162,7 +166,7 @@ static void wdt_config(int writeval)
- 
- 	/* buy some time (ping) */
- 	spin_lock_irqsave(&wdt_spinlock, flags);
--	dummy=readw(wdtmrctl);	/* ensure write synchronization */
-+	dummy = readw(wdtmrctl);	/* ensure write synchronization */
- 	writew(0xAAAA, wdtmrctl);
- 	writew(0x5555, wdtmrctl);
- 	/* unlock WDT = make WDT configuration register writable one time */
-@@ -219,10 +223,11 @@ static int wdt_set_heartbeat(int t)
-  *	/dev/watchdog handling
-  */
- 
--static ssize_t fop_write(struct file * file, const char __user * buf, size_t count, loff_t * ppos)
-+static ssize_t fop_write(struct file *file, const char __user *buf,
-+						size_t count, loff_t *ppos)
+ static void txx9wdt_ping(void)
  {
- 	/* See if we got the magic character 'V' and reload the timer */
--	if(count) {
-+	if (count) {
- 		if (!nowayout) {
- 			size_t ofs;
- 
-@@ -231,25 +236,26 @@ static ssize_t fop_write(struct file * f
- 			wdt_expect_close = 0;
- 
- 			/* now scan */
--			for(ofs = 0; ofs != count; ofs++) {
-+			for (ofs = 0; ofs != count; ofs++) {
- 				char c;
- 				if (get_user(c, buf + ofs))
- 					return -EFAULT;
--				if(c == 'V')
-+				if (c == 'V')
- 					wdt_expect_close = 42;
- 			}
- 		}
- 
--		/* Well, anyhow someone wrote to us, we should return that favour */
-+		/* Well, anyhow someone wrote to us, we should
-+		   return that favour */
- 		wdt_keepalive();
- 	}
- 	return count;
++	spin_lock(&txx9_lock);
+ 	__raw_writel(TXx9_TMWTMR_TWIE | TXx9_TMWTMR_TWC, &txx9wdt_reg->wtmr);
++	spin_unlock(&txx9_lock);
  }
  
--static int fop_open(struct inode * inode, struct file * file)
-+static int fop_open(struct inode *inode, struct file *file)
+ static void txx9wdt_start(void)
  {
- 	/* Just in case we're already talking to someone... */
--	if(test_and_set_bit(0, &wdt_is_open))
-+	if (test_and_set_bit(0, &wdt_is_open))
- 		return -EBUSY;
- 	if (nowayout)
- 		__module_get(THIS_MODULE);
-@@ -259,12 +265,13 @@ static int fop_open(struct inode * inode
- 	return nonseekable_open(inode, file);
++	spin_lock(&txx9_lock);
+ 	__raw_writel(WD_TIMER_CLK * timeout, &txx9wdt_reg->cpra);
+ 	__raw_writel(WD_TIMER_CCD, &txx9wdt_reg->ccdr);
+ 	__raw_writel(0, &txx9wdt_reg->tisr);	/* clear pending interrupt */
+ 	__raw_writel(TXx9_TMTCR_TCE | TXx9_TMTCR_CCDE | TXx9_TMTCR_TMODE_WDOG,
+ 		     &txx9wdt_reg->tcr);
+ 	__raw_writel(TXx9_TMWTMR_TWIE | TXx9_TMWTMR_TWC, &txx9wdt_reg->wtmr);
++	spin_unlock(&txx9_lock);
  }
  
--static int fop_close(struct inode * inode, struct file * file)
-+static int fop_close(struct inode *inode, struct file *file)
+ static void txx9wdt_stop(void)
  {
--	if(wdt_expect_close == 42) {
-+	if (wdt_expect_close == 42)
- 		wdt_turnoff();
--	} else {
--		printk(KERN_CRIT PFX "Unexpected close, not stopping watchdog!\n");
-+	else {
-+		printk(KERN_CRIT PFX
-+			"Unexpected close, not stopping watchdog!\n");
- 		wdt_keepalive();
- 	}
- 	clear_bit(0, &wdt_is_open);
-@@ -272,63 +279,63 @@ static int fop_close(struct inode * inod
- 	return 0;
++	spin_lock(&txx9_lock);
+ 	__raw_writel(TXx9_TMWTMR_WDIS, &txx9wdt_reg->wtmr);
+ 	__raw_writel(__raw_readl(&txx9wdt_reg->tcr) & ~TXx9_TMTCR_TCE,
+ 		     &txx9wdt_reg->tcr);
++	spin_unlock(&txx9_lock);
  }
  
--static int fop_ioctl(struct inode *inode, struct file *file, unsigned int cmd,
--	unsigned long arg)
-+static int fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ static int txx9wdt_open(struct inode *inode, struct file *file)
+@@ -120,13 +127,13 @@ static ssize_t txx9wdt_write(struct file
+ 	return len;
+ }
+ 
+-static int txx9wdt_ioctl(struct inode *inode, struct file *file,
+-	unsigned int cmd, unsigned long arg)
++static long txx9wdt_ioctl(struct file *file, unsigned int cmd,
++							unsigned long arg)
  {
  	void __user *argp = (void __user *)arg;
  	int __user *p = argp;
+ 	int new_timeout;
 -	static struct watchdog_info ident = {
--		.options = WDIOF_KEEPALIVEPING | WDIOF_SETTIMEOUT | WDIOF_MAGICCLOSE,
 +	static const struct watchdog_info ident = {
-+		.options = WDIOF_KEEPALIVEPING | WDIOF_SETTIMEOUT
-+							| WDIOF_MAGICCLOSE,
- 		.firmware_version = 1,
- 		.identity = "SC520",
- 	};
- 
--	switch(cmd)
-+	switch (cmd)
- 	{
--		default:
--			return -ENOTTY;
--		case WDIOC_GETSUPPORT:
--			return copy_to_user(argp, &ident, sizeof(ident))?-EFAULT:0;
--		case WDIOC_GETSTATUS:
--		case WDIOC_GETBOOTSTATUS:
--			return put_user(0, p);
--		case WDIOC_KEEPALIVE:
--			wdt_keepalive();
--			return 0;
--		case WDIOC_SETOPTIONS:
--		{
--			int new_options, retval = -EINVAL;
--
--			if(get_user(new_options, p))
--				return -EFAULT;
--
--			if(new_options & WDIOS_DISABLECARD) {
--				wdt_turnoff();
--				retval = 0;
--			}
-+	default:
-+		return -ENOTTY;
-+	case WDIOC_GETSUPPORT:
-+		return copy_to_user(argp, &ident, sizeof(ident)) ? -EFAULT : 0;
-+	case WDIOC_GETSTATUS:
-+	case WDIOC_GETBOOTSTATUS:
-+		return put_user(0, p);
-+	case WDIOC_KEEPALIVE:
-+		wdt_keepalive();
-+		return 0;
-+	case WDIOC_SETOPTIONS:
-+	{
-+		int new_options, retval = -EINVAL;
- 
--			if(new_options & WDIOS_ENABLECARD) {
--				wdt_startup();
--				retval = 0;
--			}
-+		if (get_user(new_options, p))
-+			return -EFAULT;
-+
-+		if (new_options & WDIOS_DISABLECARD) {
-+			wdt_turnoff();
-+			retval = 0;
-+		}
- 
--			return retval;
-+		if (new_options & WDIOS_ENABLECARD) {
-+			wdt_startup();
-+			retval = 0;
- 		}
--		case WDIOC_SETTIMEOUT:
--		{
--			int new_timeout;
- 
--			if(get_user(new_timeout, p))
--				return -EFAULT;
-+		return retval;
-+	}
-+	case WDIOC_SETTIMEOUT:
-+	{
-+		int new_timeout;
- 
--			if(wdt_set_heartbeat(new_timeout))
--				return -EINVAL;
-+		if (get_user(new_timeout, p))
-+			return -EFAULT;
- 
--			wdt_keepalive();
--			/* Fall through */
--		}
--		case WDIOC_GETTIMEOUT:
--			return put_user(timeout, p);
-+		if (wdt_set_heartbeat(new_timeout))
-+			return -EINVAL;
-+
-+		wdt_keepalive();
-+		/* Fall through */
-+	}
-+	case WDIOC_GETTIMEOUT:
-+		return put_user(timeout, p);
- 	}
+ 		.options =		WDIOF_SETTIMEOUT |
+ 					WDIOF_KEEPALIVEPING |
+ 					WDIOF_MAGICCLOSE,
+@@ -168,18 +175,18 @@ static int txx9wdt_notify_sys(struct not
  }
  
-@@ -354,7 +361,7 @@ static struct miscdevice wdt_miscdev = {
- static int wdt_notify_sys(struct notifier_block *this, unsigned long code,
- 	void *unused)
- {
--	if(code==SYS_DOWN || code==SYS_HALT)
-+	if (code == SYS_DOWN || code == SYS_HALT)
- 		wdt_turnoff();
- 	return NOTIFY_DONE;
- }
-@@ -383,11 +390,13 @@ static int __init sc520_wdt_init(void)
- {
- 	int rc = -EBUSY;
+ static const struct file_operations txx9wdt_fops = {
+-	.owner =	THIS_MODULE,
+-	.llseek =	no_llseek,
+-	.write =	txx9wdt_write,
+-	.ioctl =	txx9wdt_ioctl,
+-	.open =		txx9wdt_open,
+-	.release =	txx9wdt_release,
++	.owner		=	THIS_MODULE,
++	.llseek		=	no_llseek,
++	.write		=	txx9wdt_write,
++	.unlocked_ioctl =	txx9wdt_ioctl,
++	.open		=	txx9wdt_open,
++	.release	=	txx9wdt_release,
+ };
  
--	/* Check that the timeout value is within it's range ; if not reset to the default */
-+	/* Check that the timeout value is within it's range ;
-+	   if not reset to the default */
- 	if (wdt_set_heartbeat(timeout)) {
- 		wdt_set_heartbeat(WATCHDOG_TIMEOUT);
--		printk(KERN_INFO PFX "timeout value must be 1<=timeout<=3600, using %d\n",
--			WATCHDOG_TIMEOUT);
-+		printk(KERN_INFO PFX
-+		    "timeout value must be 1 <= timeout <= 3600, using %d\n",
-+							WATCHDOG_TIMEOUT);
- 	}
+ static struct miscdevice txx9wdt_miscdev = {
+-	.minor =	WATCHDOG_MINOR,
+-	.name =		"watchdog",
+-	.fops =		&txx9wdt_fops,
++	.minor	=	WATCHDOG_MINOR,
++	.name	=	"watchdog",
++	.fops	=	&txx9wdt_fops,
+ };
  
- 	wdtmrctl = ioremap((unsigned long)(MMCR_BASE + OFFS_WDTMRCTL), 2);
-@@ -399,20 +408,22 @@ static int __init sc520_wdt_init(void)
- 
- 	rc = register_reboot_notifier(&wdt_notifier);
- 	if (rc) {
--		printk(KERN_ERR PFX "cannot register reboot notifier (err=%d)\n",
--			rc);
-+		printk(KERN_ERR PFX
-+			"cannot register reboot notifier (err=%d)\n", rc);
- 		goto err_out_ioremap;
- 	}
- 
- 	rc = misc_register(&wdt_miscdev);
- 	if (rc) {
--		printk(KERN_ERR PFX "cannot register miscdev on minor=%d (err=%d)\n",
--			WATCHDOG_MINOR, rc);
-+		printk(KERN_ERR PFX
-+			"cannot register miscdev on minor=%d (err=%d)\n",
-+							WATCHDOG_MINOR, rc);
- 		goto err_out_notifier;
- 	}
- 
--	printk(KERN_INFO PFX "WDT driver for SC520 initialised. timeout=%d sec (nowayout=%d)\n",
--		timeout,nowayout);
-+	printk(KERN_INFO PFX
-+	   "WDT driver for SC520 initialised. timeout=%d sec (nowayout=%d)\n",
-+							timeout, nowayout);
- 
- 	return 0;
- 
+ static struct notifier_block txx9wdt_notifier = {
 _
 
 Patches currently in -mm which might be from alan@redhat.com are
