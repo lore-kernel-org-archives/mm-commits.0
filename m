@@ -1,205 +1,300 @@
 From: akpm@linux-foundation.org
-Subject: - watchdog-mpcore-watchdog-unlocked_ioctl-and-bkl-work.patch removed from -mm tree
-Date: Wed, 16 Jul 2008 14:36:29 -0700
-Message-ID: <200807162136.m6GLaTQG014209@imap1.linux-foundation.org>
+Subject: - watchdog-mpc-watchdog-clean-up-and-locking.patch removed from -mm tree
+Date: Wed, 16 Jul 2008 14:36:27 -0700
+Message-ID: <200807162136.m6GLaRJW014206@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39085 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36180 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757198AbYGPVhS (ORCPT
+	by vger.kernel.org with ESMTP id S1757139AbYGPVhP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jul 2008 17:37:18 -0400
+	Wed, 16 Jul 2008 17:37:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     watchdog: mpcore watchdog: unlocked_ioctl and BKl work
+     watchdog: mpc watchdog: clean up and locking
 has been removed from the -mm tree.  Its filename was
-     watchdog-mpcore-watchdog-unlocked_ioctl-and-bkl-work.patch
+     watchdog-mpc-watchdog-clean-up-and-locking.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: watchdog: mpcore watchdog: unlocked_ioctl and BKl work
+Subject: watchdog: mpc watchdog: clean up and locking
 From: Alan Cox <alan@redhat.com>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/mpcore_wdt.c |   53 +++++++++++++++++++-------------
- 1 file changed, 32 insertions(+), 21 deletions(-)
+ drivers/watchdog/mpc5200_wdt.c |   20 ++++++++++------
+ drivers/watchdog/mpc83xx_wdt.c |   19 ++++++++-------
+ drivers/watchdog/mpc8xx_wdt.c  |   37 +++++++++++++++----------------
+ 3 files changed, 41 insertions(+), 35 deletions(-)
 
-diff -puN drivers/watchdog/mpcore_wdt.c~watchdog-mpcore-watchdog-unlocked_ioctl-and-bkl-work drivers/watchdog/mpcore_wdt.c
---- a/drivers/watchdog/mpcore_wdt.c~watchdog-mpcore-watchdog-unlocked_ioctl-and-bkl-work
-+++ a/drivers/watchdog/mpcore_wdt.c
-@@ -29,9 +29,9 @@
- #include <linux/init.h>
- #include <linux/interrupt.h>
- #include <linux/platform_device.h>
-+#include <linux/uaccess.h>
- 
- #include <asm/hardware/arm_twd.h>
+diff -puN drivers/watchdog/mpc5200_wdt.c~watchdog-mpc-watchdog-clean-up-and-locking drivers/watchdog/mpc5200_wdt.c
+--- a/drivers/watchdog/mpc5200_wdt.c~watchdog-mpc-watchdog-clean-up-and-locking
++++ a/drivers/watchdog/mpc5200_wdt.c
+@@ -4,8 +4,8 @@
+ #include <linux/watchdog.h>
+ #include <linux/io.h>
+ #include <linux/spinlock.h>
+-#include <asm/of_platform.h>
 -#include <asm/uaccess.h>
++#include <linux/of_platform.h>
++#include <linux/uaccess.h>
+ #include <asm/mpc52xx.h>
  
- struct mpcore_wdt {
- 	unsigned long	timer_alive;
-@@ -43,17 +43,20 @@ struct mpcore_wdt {
+ 
+@@ -57,7 +57,8 @@ static int mpc5200_wdt_start(struct mpc5
+ 	/* set timeout, with maximum prescaler */
+ 	out_be32(&wdt->regs->count, 0x0 | wdt->count);
+ 	/* enable watchdog */
+-	out_be32(&wdt->regs->mode, GPT_MODE_CE | GPT_MODE_WDT | GPT_MODE_MS_TIMER);
++	out_be32(&wdt->regs->mode, GPT_MODE_CE | GPT_MODE_WDT |
++						GPT_MODE_MS_TIMER);
+ 	spin_unlock(&wdt->io_lock);
+ 
+ 	return 0;
+@@ -66,7 +67,8 @@ static int mpc5200_wdt_ping(struct mpc52
+ {
+ 	spin_lock(&wdt->io_lock);
+ 	/* writing A5 to OCPW resets the watchdog */
+-	out_be32(&wdt->regs->mode, 0xA5000000 | (0xffffff & in_be32(&wdt->regs->mode)));
++	out_be32(&wdt->regs->mode, 0xA5000000 |
++				(0xffffff & in_be32(&wdt->regs->mode)));
+ 	spin_unlock(&wdt->io_lock);
+ 	return 0;
+ }
+@@ -92,8 +94,8 @@ static struct watchdog_info mpc5200_wdt_
+ 	.options	= WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING,
+ 	.identity	= "mpc5200 watchdog on GPT0",
+ };
+-static int mpc5200_wdt_ioctl(struct inode *inode, struct file *file,
+-		unsigned int cmd, unsigned long arg)
++static long mpc5200_wdt_ioctl(struct file *file, unsigned int cmd,
++							unsigned long arg)
+ {
+ 	struct mpc5200_wdt *wdt = file->private_data;
+ 	int __user *data = (int __user *)arg;
+@@ -103,7 +105,7 @@ static int mpc5200_wdt_ioctl(struct inod
+ 	switch (cmd) {
+ 	case WDIOC_GETSUPPORT:
+ 		ret = copy_to_user(data, &mpc5200_wdt_info,
+-			sizeof(mpc5200_wdt_info));
++						sizeof(mpc5200_wdt_info));
+ 		if (ret)
+ 			ret = -EFAULT;
+ 		break;
+@@ -135,6 +137,7 @@ static int mpc5200_wdt_ioctl(struct inod
+ 	}
+ 	return ret;
+ }
++
+ static int mpc5200_wdt_open(struct inode *inode, struct file *file)
+ {
+ 	/* /dev/watchdog can only be opened once */
+@@ -167,7 +170,8 @@ static const struct file_operations mpc5
  };
  
- static struct platform_device *mpcore_wdt_dev;
--
- extern unsigned int mpcore_timer_rate;
- 
- #define TIMER_MARGIN	60
- static int mpcore_margin = TIMER_MARGIN;
- module_param(mpcore_margin, int, 0);
--MODULE_PARM_DESC(mpcore_margin, "MPcore timer margin in seconds. (0<mpcore_margin<65536, default=" __MODULE_STRING(TIMER_MARGIN) ")");
-+MODULE_PARM_DESC(mpcore_margin,
-+	"MPcore timer margin in seconds. (0 < mpcore_margin < 65536, default="
-+				__MODULE_STRING(TIMER_MARGIN) ")");
- 
- static int nowayout = WATCHDOG_NOWAYOUT;
- module_param(nowayout, int, 0);
--MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started (default=" __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
-+MODULE_PARM_DESC(nowayout,
-+	"Watchdog cannot be stopped once started (default="
-+				__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
- 
- #define ONLY_TESTING	0
- static int mpcore_noboot = ONLY_TESTING;
-@@ -70,14 +73,12 @@ static irqreturn_t mpcore_wdt_fire(int i
- 
- 	/* Check it really was our interrupt */
- 	if (readl(wdt->base + TWD_WDOG_INTSTAT)) {
--		dev_printk(KERN_CRIT, wdt->dev, "Triggered - Reboot ignored.\n");
--
-+		dev_printk(KERN_CRIT, wdt->dev,
-+					"Triggered - Reboot ignored.\n");
- 		/* Clear the interrupt on the watchdog */
- 		writel(1, wdt->base + TWD_WDOG_INTSTAT);
--
- 		return IRQ_HANDLED;
- 	}
--
- 	return IRQ_NONE;
- }
- 
-@@ -96,22 +97,26 @@ static void mpcore_wdt_keepalive(struct 
- 	count = (mpcore_timer_rate / 256) * mpcore_margin;
- 
- 	/* Reload the counter */
-+	spin_lock(&wdt_lock);
- 	writel(count + wdt->perturb, wdt->base + TWD_WDOG_LOAD);
--
- 	wdt->perturb = wdt->perturb ? 0 : 1;
-+	spin_unlock(&wdt_lock);
- }
- 
- static void mpcore_wdt_stop(struct mpcore_wdt *wdt)
+ /* module operations */
+-static int mpc5200_wdt_probe(struct of_device *op, const struct of_device_id *match)
++static int mpc5200_wdt_probe(struct of_device *op,
++					const struct of_device_id *match)
  {
-+	spin_lock(&wdt_lock);
- 	writel(0x12345678, wdt->base + TWD_WDOG_DISABLE);
- 	writel(0x87654321, wdt->base + TWD_WDOG_DISABLE);
- 	writel(0x0, wdt->base + TWD_WDOG_CONTROL);
-+	spin_unlock(&wdt_lock);
- }
+ 	struct mpc5200_wdt *wdt;
+ 	int err;
+diff -puN drivers/watchdog/mpc83xx_wdt.c~watchdog-mpc-watchdog-clean-up-and-locking drivers/watchdog/mpc83xx_wdt.c
+--- a/drivers/watchdog/mpc83xx_wdt.c~watchdog-mpc-watchdog-clean-up-and-locking
++++ a/drivers/watchdog/mpc83xx_wdt.c
+@@ -22,8 +22,8 @@
+ #include <linux/platform_device.h>
+ #include <linux/module.h>
+ #include <linux/watchdog.h>
+-#include <asm/io.h>
+-#include <asm/uaccess.h>
++#include <linux/io.h>
++#include <linux/uaccess.h>
  
- static void mpcore_wdt_start(struct mpcore_wdt *wdt)
- {
- 	dev_printk(KERN_INFO, wdt->dev, "enabling watchdog.\n");
+ struct mpc83xx_wdt {
+ 	__be32 res0;
+@@ -42,11 +42,13 @@ static struct mpc83xx_wdt __iomem *wd_ba
  
-+	spin_lock(&wdt_lock);
- 	/* This loads the count register but does NOT start the count yet */
- 	mpcore_wdt_keepalive(wdt);
+ static u16 timeout = 0xffff;
+ module_param(timeout, ushort, 0);
+-MODULE_PARM_DESC(timeout, "Watchdog timeout in ticks. (0<timeout<65536, default=65535");
++MODULE_PARM_DESC(timeout,
++	"Watchdog timeout in ticks. (0<timeout<65536, default=65535");
  
-@@ -122,6 +127,7 @@ static void mpcore_wdt_start(struct mpco
- 		/* Enable watchdog - prescale=256, watchdog mode=1, enable=1 */
- 		writel(0x0000FF09, wdt->base + TWD_WDOG_CONTROL);
- 	}
-+	spin_unlock(&wdt_lock);
- }
+ static int reset = 1;
+ module_param(reset, bool, 0);
+-MODULE_PARM_DESC(reset, "Watchdog Interrupt/Reset Mode. 0 = interrupt, 1 = reset");
++MODULE_PARM_DESC(reset,
++	"Watchdog Interrupt/Reset Mode. 0 = interrupt, 1 = reset");
  
- static int mpcore_wdt_set_heartbeat(int t)
-@@ -164,10 +170,11 @@ static int mpcore_wdt_release(struct ino
- 	 *	Shut off the timer.
- 	 * 	Lock it in if it's a module and we set nowayout
- 	 */
--	if (wdt->expect_close == 42) {
-+	if (wdt->expect_close == 42)
- 		mpcore_wdt_stop(wdt);
--	} else {
--		dev_printk(KERN_CRIT, wdt->dev, "unexpected close, not stopping watchdog!\n");
-+	else {
-+		dev_printk(KERN_CRIT, wdt->dev,
-+				"unexpected close, not stopping watchdog!\n");
- 		mpcore_wdt_keepalive(wdt);
- 	}
- 	clear_bit(0, &wdt->timer_alive);
-@@ -175,7 +182,8 @@ static int mpcore_wdt_release(struct ino
+ /*
+  * We always prescale, but if someone really doesn't want to they can set this
+@@ -105,8 +107,8 @@ static int mpc83xx_wdt_release(struct in
  	return 0;
  }
  
--static ssize_t mpcore_wdt_write(struct file *file, const char *data, size_t len, loff_t *ppos)
-+static ssize_t mpcore_wdt_write(struct file *file, const char *data,
-+						size_t len, loff_t *ppos)
- {
- 	struct mpcore_wdt *wdt = file->private_data;
- 
-@@ -210,8 +218,8 @@ static struct watchdog_info ident = {
- 	.identity		= "MPcore Watchdog",
- };
- 
--static int mpcore_wdt_ioctl(struct inode *inode, struct file *file,
--			     unsigned int cmd, unsigned long arg)
-+static long mpcore_wdt_ioctl(struct file *file, unsigned int cmd,
+-static int mpc83xx_wdt_ioctl(struct inode *inode, struct file *file,
+-				unsigned int cmd, unsigned long arg)
++static long mpc83xx_wdt_ioctl(struct file *file, unsigned int cmd,
 +							unsigned long arg)
  {
- 	struct mpcore_wdt *wdt = file->private_data;
- 	int ret;
-@@ -301,7 +309,7 @@ static const struct file_operations mpco
+ 	void __user *argp = (void __user *)arg;
+ 	int __user *p = argp;
+@@ -136,7 +138,7 @@ static const struct file_operations mpc8
  	.owner		= THIS_MODULE,
  	.llseek		= no_llseek,
- 	.write		= mpcore_wdt_write,
--	.ioctl		= mpcore_wdt_ioctl,
-+	.unlocked_ioctl	= mpcore_wdt_ioctl,
- 	.open		= mpcore_wdt_open,
- 	.release	= mpcore_wdt_release,
+ 	.write		= mpc83xx_wdt_write,
+-	.ioctl		= mpc83xx_wdt_ioctl,
++	.unlocked_ioctl	= mpc83xx_wdt_ioctl,
+ 	.open		= mpc83xx_wdt_open,
+ 	.release	= mpc83xx_wdt_release,
  };
-@@ -349,14 +357,17 @@ static int __devinit mpcore_wdt_probe(st
- 	mpcore_wdt_miscdev.parent = &dev->dev;
- 	ret = misc_register(&mpcore_wdt_miscdev);
- 	if (ret) {
--		dev_printk(KERN_ERR, _dev, "cannot register miscdev on minor=%d (err=%d)\n",
--			   WATCHDOG_MINOR, ret);
-+		dev_printk(KERN_ERR, _dev,
-+			"cannot register miscdev on minor=%d (err=%d)\n",
-+							WATCHDOG_MINOR, ret);
- 		goto err_misc;
+@@ -161,8 +163,7 @@ static int __devinit mpc83xx_wdt_probe(s
+ 		goto err_out;
  	}
  
--	ret = request_irq(wdt->irq, mpcore_wdt_fire, IRQF_DISABLED, "mpcore_wdt", wdt);
-+	ret = request_irq(wdt->irq, mpcore_wdt_fire, IRQF_DISABLED,
-+							"mpcore_wdt", wdt);
- 	if (ret) {
--		dev_printk(KERN_ERR, _dev, "cannot register IRQ%d for watchdog\n", wdt->irq);
-+		dev_printk(KERN_ERR, _dev,
-+			"cannot register IRQ%d for watchdog\n", wdt->irq);
- 		goto err_irq;
- 	}
+-	wd_base = ioremap(r->start, sizeof (struct mpc83xx_wdt));
+-
++	wd_base = ioremap(r->start, sizeof(struct mpc83xx_wdt));
+ 	if (wd_base == NULL) {
+ 		ret = -ENOMEM;
+ 		goto err_out;
+diff -puN drivers/watchdog/mpc8xx_wdt.c~watchdog-mpc-watchdog-clean-up-and-locking drivers/watchdog/mpc8xx_wdt.c
+--- a/drivers/watchdog/mpc8xx_wdt.c~watchdog-mpc-watchdog-clean-up-and-locking
++++ a/drivers/watchdog/mpc8xx_wdt.c
+@@ -16,36 +16,35 @@
+ #include <linux/module.h>
+ #include <linux/watchdog.h>
+ #include <asm/8xx_immap.h>
+-#include <asm/uaccess.h>
+-#include <asm/io.h>
++#include <linux/uaccess.h>
++#include <linux/io.h>
+ #include <syslib/m8xx_wdt.h>
  
-@@ -415,7 +426,7 @@ static int __init mpcore_wdt_init(void)
- 	 */
- 	if (mpcore_wdt_set_heartbeat(mpcore_margin)) {
- 		mpcore_wdt_set_heartbeat(TIMER_MARGIN);
--		printk(KERN_INFO "mpcore_margin value must be 0<mpcore_margin<65536, using %d\n",
-+		printk(KERN_INFO "mpcore_margin value must be 0 < mpcore_margin < 65536, using %d\n",
- 			TIMER_MARGIN);
- 	}
+ static unsigned long wdt_opened;
+ static int wdt_status;
++static spinlock_t wdt_lock;
+ 
+ static void mpc8xx_wdt_handler_disable(void)
+ {
+ 	volatile uint __iomem *piscr;
+-	piscr = (uint *)&((immap_t*)IMAP_ADDR)->im_sit.sit_piscr;
++	piscr = (uint *)&((immap_t *)IMAP_ADDR)->im_sit.sit_piscr;
+ 
+ 	if (!m8xx_has_internal_rtc)
+ 		m8xx_wdt_stop_timer();
+ 	else
+ 		out_be32(piscr, in_be32(piscr) & ~(PISCR_PIE | PISCR_PTE));
+-
+ 	printk(KERN_NOTICE "mpc8xx_wdt: keep-alive handler deactivated\n");
+ }
+ 
+ static void mpc8xx_wdt_handler_enable(void)
+ {
+ 	volatile uint __iomem *piscr;
+-	piscr = (uint *)&((immap_t*)IMAP_ADDR)->im_sit.sit_piscr;
++	piscr = (uint *)&((immap_t *)IMAP_ADDR)->im_sit.sit_piscr;
+ 
+ 	if (!m8xx_has_internal_rtc)
+ 		m8xx_wdt_install_timer();
+ 	else
+ 		out_be32(piscr, in_be32(piscr) | PISCR_PIE | PISCR_PTE);
+-
+ 	printk(KERN_NOTICE "mpc8xx_wdt: keep-alive handler activated\n");
+ }
+ 
+@@ -53,37 +52,34 @@ static int mpc8xx_wdt_open(struct inode 
+ {
+ 	if (test_and_set_bit(0, &wdt_opened))
+ 		return -EBUSY;
+-
+ 	m8xx_wdt_reset();
+ 	mpc8xx_wdt_handler_disable();
+-
+ 	return nonseekable_open(inode, file);
+ }
+ 
+ static int mpc8xx_wdt_release(struct inode *inode, struct file *file)
+ {
+ 	m8xx_wdt_reset();
+-
+ #if !defined(CONFIG_WATCHDOG_NOWAYOUT)
+ 	mpc8xx_wdt_handler_enable();
+ #endif
+-
+ 	clear_bit(0, &wdt_opened);
+-
+ 	return 0;
+ }
+ 
+-static ssize_t mpc8xx_wdt_write(struct file *file, const char *data, size_t len,
+-				loff_t * ppos)
++static ssize_t mpc8xx_wdt_write(struct file *file, const char *data,
++						size_t len, loff_t *ppos)
+ {
+-	if (len)
++	if (len) {
++		spin_lock(&wdt_lock);
+ 		m8xx_wdt_reset();
+-
++		spin_unlock(&wdt_lock);
++	}
+ 	return len;
+ }
+ 
+-static int mpc8xx_wdt_ioctl(struct inode *inode, struct file *file,
+-			    unsigned int cmd, unsigned long arg)
++static long mpc8xx_wdt_ioctl(struct file *file,
++					unsigned int cmd, unsigned long arg)
+ {
+ 	int timeout;
+ 	static struct watchdog_info info = {
+@@ -112,15 +108,19 @@ static int mpc8xx_wdt_ioctl(struct inode
+ 		return -EOPNOTSUPP;
+ 
+ 	case WDIOC_KEEPALIVE:
++		spin_lock(&wdt_lock);
+ 		m8xx_wdt_reset();
+ 		wdt_status |= WDIOF_KEEPALIVEPING;
++		spin_unlock(&wdt_lock);
+ 		break;
+ 
+ 	case WDIOC_SETTIMEOUT:
+ 		return -EOPNOTSUPP;
+ 
+ 	case WDIOC_GETTIMEOUT:
++		spin_lock(&wdt_lock);
+ 		timeout = m8xx_wdt_get_timeout();
++		spin_unlock(&wdt_lock);
+ 		if (put_user(timeout, (int *)arg))
+ 			return -EFAULT;
+ 		break;
+@@ -136,7 +136,7 @@ static const struct file_operations mpc8
+ 	.owner = THIS_MODULE,
+ 	.llseek = no_llseek,
+ 	.write = mpc8xx_wdt_write,
+-	.ioctl = mpc8xx_wdt_ioctl,
++	.unlocked_ioctl = mpc8xx_wdt_ioctl,
+ 	.open = mpc8xx_wdt_open,
+ 	.release = mpc8xx_wdt_release,
+ };
+@@ -149,6 +149,7 @@ static struct miscdevice mpc8xx_wdt_misc
+ 
+ static int __init mpc8xx_wdt_init(void)
+ {
++	spin_lock_init(&wdt_lock);
+ 	return misc_register(&mpc8xx_wdt_miscdev);
+ }
  
 _
 
