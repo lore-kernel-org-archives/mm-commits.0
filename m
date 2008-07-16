@@ -1,135 +1,239 @@
 From: akpm@linux-foundation.org
-Subject: - watchdog-sbc8360-clean-up.patch removed from -mm tree
-Date: Wed, 16 Jul 2008 14:36:53 -0700
-Message-ID: <200807162136.m6GLarhr014251@imap1.linux-foundation.org>
+Subject: - watchdog-wafer5823wdt-clean-up-coding-style-switch-to-unlocked_ioctl.patch removed from -mm tree
+Date: Wed, 16 Jul 2008 14:37:19 -0700
+Message-ID: <200807162137.m6GLbJYC014371@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56640 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39196 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754328AbYGPVqk (ORCPT
+	by vger.kernel.org with ESMTP id S1754887AbYGPVqo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jul 2008 17:46:40 -0400
+	Wed, 16 Jul 2008 17:46:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     watchdog: sbc8360: clean up
+     watchdog: wafer5823wdt: Clean up, coding style, switch to unlocked_ioctl
 has been removed from the -mm tree.  Its filename was
-     watchdog-sbc8360-clean-up.patch
+     watchdog-wafer5823wdt-clean-up-coding-style-switch-to-unlocked_ioctl.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: watchdog: sbc8360: clean up
+Subject: watchdog: wafer5823wdt: Clean up, coding style, switch to unlocked_ioctl
 From: Alan Cox <alan@redhat.com>
-
-Needs a proper ioctl method adding and stuff
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/sbc8360.c |   30 ++++++++++++------------------
- 1 file changed, 12 insertions(+), 18 deletions(-)
+ drivers/watchdog/wafer5823wdt.c |   80 +++++++++++++++++-------------
+ 1 file changed, 46 insertions(+), 34 deletions(-)
 
-diff -puN drivers/watchdog/sbc8360.c~watchdog-sbc8360-clean-up drivers/watchdog/sbc8360.c
---- a/drivers/watchdog/sbc8360.c~watchdog-sbc8360-clean-up
-+++ a/drivers/watchdog/sbc8360.c
-@@ -48,13 +48,12 @@
+diff -puN drivers/watchdog/wafer5823wdt.c~watchdog-wafer5823wdt-clean-up-coding-style-switch-to-unlocked_ioctl drivers/watchdog/wafer5823wdt.c
+--- a/drivers/watchdog/wafer5823wdt.c~watchdog-wafer5823wdt-clean-up-coding-style-switch-to-unlocked_ioctl
++++ a/drivers/watchdog/wafer5823wdt.c
+@@ -36,8 +36,8 @@
+ #include <linux/reboot.h>
  #include <linux/init.h>
  #include <linux/spinlock.h>
- #include <linux/moduleparam.h>
+-#include <asm/io.h>
+-#include <asm/uaccess.h>
 +#include <linux/io.h>
 +#include <linux/uaccess.h>
  
--#include <asm/io.h>
--#include <asm/uaccess.h>
- #include <asm/system.h>
+ #define WATCHDOG_NAME "Wafer 5823 WDT"
+ #define PFX WATCHDOG_NAME ": "
+@@ -61,11 +61,15 @@ static int wdt_start = 0x443;
  
- static unsigned long sbc8360_is_open;
--static DEFINE_SPINLOCK(sbc8360_lock);
- static char expect_close;
+ static int timeout = WD_TIMO;  /* in seconds */
+ module_param(timeout, int, 0);
+-MODULE_PARM_DESC(timeout, "Watchdog timeout in seconds. 1<= timeout <=255, default=" __MODULE_STRING(WD_TIMO) ".");
++MODULE_PARM_DESC(timeout,
++		"Watchdog timeout in seconds. 1 <= timeout <= 255, default="
++				__MODULE_STRING(WD_TIMO) ".");
  
- #define PFX "sbc8360: "
-@@ -204,7 +203,8 @@ module_param(timeout, int, 0);
- MODULE_PARM_DESC(timeout, "Index into timeout table (0-63) (default=27 (60s))");
+ static int nowayout = WATCHDOG_NOWAYOUT;
  module_param(nowayout, int, 0);
- MODULE_PARM_DESC(nowayout,
--		 "Watchdog cannot be stopped once started (default=" __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
-+		 "Watchdog cannot be stopped once started (default="
+-MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started (default=" __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
++MODULE_PARM_DESC(nowayout,
++		"Watchdog cannot be stopped once started (default="
 +				__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
  
- /*
-  *	Kernel methods.
-@@ -232,8 +232,8 @@ static void sbc8360_ping(void)
+ static void wafwdt_ping(void)
+ {
+@@ -90,7 +94,8 @@ wafwdt_stop(void)
+ 	inb_p(wdt_stop);
  }
  
- /* Userspace pings kernel driver, or requests clean close */
--static ssize_t sbc8360_write(struct file *file, const char __user * buf,
--			     size_t count, loff_t * ppos)
-+static ssize_t sbc8360_write(struct file *file, const char __user *buf,
-+			     size_t count, loff_t *ppos)
+-static ssize_t wafwdt_write(struct file *file, const char __user *buf, size_t count, loff_t * ppos)
++static ssize_t wafwdt_write(struct file *file, const char __user *buf,
++						size_t count, loff_t *ppos)
  {
+ 	/* See if we got the magic character 'V' and reload the timer */
  	if (count) {
- 		if (!nowayout) {
-@@ -257,16 +257,12 @@ static ssize_t sbc8360_write(struct file
+@@ -100,7 +105,8 @@ static ssize_t wafwdt_write(struct file 
+ 			/* In case it was set long ago */
+ 			expect_close = 0;
  
- static int sbc8360_open(struct inode *inode, struct file *file)
+-			/* scan to see whether or not we got the magic character */
++			/* scan to see whether or not we got the magic
++			   character */
+ 			for (i = 0; i != count; i++) {
+ 				char c;
+ 				if (get_user(c, buf + i))
+@@ -109,27 +115,29 @@ static ssize_t wafwdt_write(struct file 
+ 					expect_close = 42;
+ 			}
+ 		}
+-		/* Well, anyhow someone wrote to us, we should return that favour */
++		/* Well, anyhow someone wrote to us, we should
++		   return that favour */
+ 		wafwdt_ping();
+ 	}
+ 	return count;
+ }
+ 
+-static int wafwdt_ioctl(struct inode *inode, struct file *file, unsigned int cmd,
+-	     unsigned long arg)
++static long wafwdt_ioctl(struct file *file, unsigned int cmd,
++							unsigned long arg)
  {
--	spin_lock(&sbc8360_lock);
--	if (test_and_set_bit(0, &sbc8360_is_open)) {
--		spin_unlock(&sbc8360_lock);
-+	if (test_and_set_bit(0, &sbc8360_is_open))
- 		return -EBUSY;
+ 	int new_timeout;
+ 	void __user *argp = (void __user *)arg;
+ 	int __user *p = argp;
+-	static struct watchdog_info ident = {
+-		.options = WDIOF_KEEPALIVEPING | WDIOF_SETTIMEOUT | WDIOF_MAGICCLOSE,
++	static const struct watchdog_info ident = {
++		.options = WDIOF_KEEPALIVEPING | WDIOF_SETTIMEOUT |
++							WDIOF_MAGICCLOSE,
+ 		.firmware_version = 1,
+ 		.identity = "Wafer 5823 WDT",
+ 	};
+ 
+ 	switch (cmd) {
+ 	case WDIOC_GETSUPPORT:
+-		if (copy_to_user(argp, &ident, sizeof (ident)))
++		if (copy_to_user(argp, &ident, sizeof(ident)))
+ 			return -EFAULT;
+ 		break;
+ 
+@@ -194,10 +202,11 @@ static int wafwdt_open(struct inode *ino
+ static int
+ wafwdt_close(struct inode *inode, struct file *file)
+ {
+-	if (expect_close == 42) {
++	if (expect_close == 42)
+ 		wafwdt_stop();
+-	} else {
+-		printk(KERN_CRIT PFX "WDT device closed unexpectedly.  WDT will not stop!\n");
++	else {
++		printk(KERN_CRIT PFX
++		    "WDT device closed unexpectedly.  WDT will not stop!\n");
+ 		wafwdt_ping();
+ 	}
+ 	clear_bit(0, &wafwdt_is_open);
+@@ -209,12 +218,11 @@ wafwdt_close(struct inode *inode, struct
+  *	Notifier for system down
+  */
+ 
+-static int wafwdt_notify_sys(struct notifier_block *this, unsigned long code, void *unused)
++static int wafwdt_notify_sys(struct notifier_block *this, unsigned long code,
++								void *unused)
+ {
+-	if (code == SYS_DOWN || code == SYS_HALT) {
+-		/* Turn the WDT off */
++	if (code == SYS_DOWN || code == SYS_HALT)
+ 		wafwdt_stop();
 -	}
- 	if (nowayout)
- 		__module_get(THIS_MODULE);
+ 	return NOTIFY_DONE;
+ }
  
- 	/* Activate and ping once to start the countdown */
--	spin_unlock(&sbc8360_lock);
- 	sbc8360_activate();
- 	sbc8360_ping();
- 	return nonseekable_open(inode, file);
-@@ -274,16 +270,14 @@ static int sbc8360_open(struct inode *in
- 
- static int sbc8360_close(struct inode *inode, struct file *file)
+@@ -226,7 +234,7 @@ static const struct file_operations wafw
+ 	.owner		= THIS_MODULE,
+ 	.llseek		= no_llseek,
+ 	.write		= wafwdt_write,
+-	.ioctl		= wafwdt_ioctl,
++	.unlocked_ioctl	= wafwdt_ioctl,
+ 	.open		= wafwdt_open,
+ 	.release	= wafwdt_close,
+ };
+@@ -250,25 +258,28 @@ static int __init wafwdt_init(void)
  {
--	spin_lock(&sbc8360_lock);
- 	if (expect_close == 42)
- 		outb(0, SBC8360_ENABLE);
- 	else
- 		printk(KERN_CRIT PFX
--		       "SBC8360 device closed unexpectedly.  SBC8360 will not stop!\n");
-+			"SBC8360 device closed unexpectedly.  SBC8360 will not stop!\n");
+ 	int ret;
  
- 	clear_bit(0, &sbc8360_is_open);
- 	expect_close = 0;
--	spin_unlock(&sbc8360_lock);
- 	return 0;
+-	printk(KERN_INFO "WDT driver for Wafer 5823 single board computer initialising.\n");
++	printk(KERN_INFO
++	  "WDT driver for Wafer 5823 single board computer initialising.\n");
+ 
+ 	if (timeout < 1 || timeout > 255) {
+ 		timeout = WD_TIMO;
+-		printk (KERN_INFO PFX "timeout value must be 1<=x<=255, using %d\n",
+-			timeout);
++		printk(KERN_INFO PFX
++			"timeout value must be 1 <= x <= 255, using %d\n",
++								timeout);
+ 	}
+ 
+ 	if (wdt_stop != wdt_start) {
+-		if(!request_region(wdt_stop, 1, "Wafer 5823 WDT")) {
+-			printk (KERN_ERR PFX "I/O address 0x%04x already in use\n",
+-			wdt_stop);
++		if (!request_region(wdt_stop, 1, "Wafer 5823 WDT")) {
++			printk(KERN_ERR PFX
++				"I/O address 0x%04x already in use\n",
++								wdt_stop);
+ 			ret = -EIO;
+ 			goto error;
+ 		}
+ 	}
+ 
+-	if(!request_region(wdt_start, 1, "Wafer 5823 WDT")) {
+-		printk (KERN_ERR PFX "I/O address 0x%04x already in use\n",
++	if (!request_region(wdt_start, 1, "Wafer 5823 WDT")) {
++		printk(KERN_ERR PFX "I/O address 0x%04x already in use\n",
+ 			wdt_start);
+ 		ret = -EIO;
+ 		goto error2;
+@@ -276,19 +287,20 @@ static int __init wafwdt_init(void)
+ 
+ 	ret = register_reboot_notifier(&wafwdt_notifier);
+ 	if (ret != 0) {
+-		printk (KERN_ERR PFX "cannot register reboot notifier (err=%d)\n",
+-			ret);
++		printk(KERN_ERR PFX
++			"cannot register reboot notifier (err=%d)\n", ret);
+ 		goto error3;
+ 	}
+ 
+ 	ret = misc_register(&wafwdt_miscdev);
+ 	if (ret != 0) {
+-		printk (KERN_ERR PFX "cannot register miscdev on minor=%d (err=%d)\n",
+-			WATCHDOG_MINOR, ret);
++		printk(KERN_ERR PFX
++			"cannot register miscdev on minor=%d (err=%d)\n",
++						WATCHDOG_MINOR, ret);
+ 		goto error4;
+ 	}
+ 
+-	printk (KERN_INFO PFX "initialized. timeout=%d sec (nowayout=%d)\n",
++	printk(KERN_INFO PFX "initialized. timeout=%d sec (nowayout=%d)\n",
+ 		timeout, nowayout);
+ 
+ 	return ret;
+@@ -307,7 +319,7 @@ static void __exit wafwdt_exit(void)
+ {
+ 	misc_deregister(&wafwdt_miscdev);
+ 	unregister_reboot_notifier(&wafwdt_notifier);
+-	if(wdt_stop != wdt_start)
++	if (wdt_stop != wdt_start)
+ 		release_region(wdt_stop, 1);
+ 	release_region(wdt_start, 1);
  }
- 
-@@ -382,13 +376,13 @@ static int __init sbc8360_init(void)
- 
- 	return 0;
- 
--      out_nomisc:
-+out_nomisc:
- 	unregister_reboot_notifier(&sbc8360_notifier);
--      out_noreboot:
-+out_noreboot:
- 	release_region(SBC8360_BASETIME, 1);
--      out_nobasetimereg:
-+out_nobasetimereg:
- 	release_region(SBC8360_ENABLE, 1);
--      out:
-+out:
- 	return res;
- }
- 
 _
 
 Patches currently in -mm which might be from alan@redhat.com are
