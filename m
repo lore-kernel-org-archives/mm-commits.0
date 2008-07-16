@@ -1,277 +1,260 @@
 From: akpm@linux-foundation.org
-Subject: - watchdog-it8712f-unlocked_ioctl.patch removed from -mm tree
-Date: Wed, 16 Jul 2008 14:36:13 -0700
-Message-ID: <200807162136.m6GLaD1s014173@imap1.linux-foundation.org>
+Subject: - watchdog-ib700wdt-clean-up-and-switch-to-unlocked_ioctl.patch removed from -mm tree
+Date: Wed, 16 Jul 2008 14:36:03 -0700
+Message-ID: <200807162136.m6GLa3jO014158@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48318 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52096 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754979AbYGPVkF (ORCPT
+	by vger.kernel.org with ESMTP id S1752919AbYGPVkZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jul 2008 17:40:05 -0400
+	Wed, 16 Jul 2008 17:40:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     watchdog: it8712f: unlocked_ioctl
+     watchdog: ib700wdt: clean up and switch to unlocked_ioctl
 has been removed from the -mm tree.  Its filename was
-     watchdog-it8712f-unlocked_ioctl.patch
+     watchdog-ib700wdt-clean-up-and-switch-to-unlocked_ioctl.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: watchdog: it8712f: unlocked_ioctl
+Subject: watchdog: ib700wdt: clean up and switch to unlocked_ioctl
 From: Alan Cox <alan@redhat.com>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/it8712f_wdt.c |   77 ++++++++++---------------------
- 1 file changed, 27 insertions(+), 50 deletions(-)
+ drivers/watchdog/ib700wdt.c |  103 +++++++++++++++++-----------------
+ 1 file changed, 52 insertions(+), 51 deletions(-)
 
-diff -puN drivers/watchdog/it8712f_wdt.c~watchdog-it8712f-unlocked_ioctl drivers/watchdog/it8712f_wdt.c
---- a/drivers/watchdog/it8712f_wdt.c~watchdog-it8712f-unlocked_ioctl
-+++ a/drivers/watchdog/it8712f_wdt.c
-@@ -30,9 +30,8 @@
- #include <linux/fs.h>
- #include <linux/pci.h>
- #include <linux/spinlock.h>
--
--#include <asm/uaccess.h>
+diff -puN drivers/watchdog/ib700wdt.c~watchdog-ib700wdt-clean-up-and-switch-to-unlocked_ioctl drivers/watchdog/ib700wdt.c
+--- a/drivers/watchdog/ib700wdt.c~watchdog-ib700wdt-clean-up-and-switch-to-unlocked_ioctl
++++ a/drivers/watchdog/ib700wdt.c
+@@ -42,8 +42,8 @@
+ #include <linux/moduleparam.h>
+ #include <linux/platform_device.h>
+ 
 -#include <asm/io.h>
-+#include <linux/uaccess.h>
+-#include <asm/uaccess.h>
 +#include <linux/io.h>
++#include <linux/uaccess.h>
+ #include <asm/system.h>
  
- #define NAME "it8712f_wdt"
+ static struct platform_device *ibwdt_platform_device;
+@@ -120,7 +120,9 @@ static int wd_margin = WD_TIMO;
  
-@@ -50,7 +49,7 @@ static int nowayout = WATCHDOG_NOWAYOUT;
+ static int nowayout = WATCHDOG_NOWAYOUT;
  module_param(nowayout, int, 0);
- MODULE_PARM_DESC(nowayout, "Disable watchdog shutdown on close");
+-MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started (default=" __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
++MODULE_PARM_DESC(nowayout,
++		"Watchdog cannot be stopped once started (default="
++				__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
  
--static struct semaphore it8712f_wdt_sem;
-+static unsigned long wdt_open;
- static unsigned expect_close;
- static spinlock_t io_lock;
- static unsigned char revision;
-@@ -86,22 +85,19 @@ static unsigned short address;
- #define WDT_OUT_PWROK	0x10
- #define WDT_OUT_KRST	0x40
  
--static int
--superio_inb(int reg)
-+static int superio_inb(int reg)
- {
- 	outb(reg, REG);
- 	return inb(VAL);
- }
- 
--static void
--superio_outb(int val, int reg)
-+static void superio_outb(int val, int reg)
- {
- 	outb(reg, REG);
- 	outb(val, VAL);
- }
- 
--static int
--superio_inw(int reg)
-+static int superio_inw(int reg)
- {
- 	int val;
- 	outb(reg++, REG);
-@@ -111,15 +107,13 @@ superio_inw(int reg)
- 	return val;
- }
- 
--static inline void
--superio_select(int ldn)
-+static inline void superio_select(int ldn)
- {
- 	outb(LDN, REG);
- 	outb(ldn, VAL);
- }
- 
--static inline void
--superio_enter(void)
-+static inline void superio_enter(void)
- {
- 	spin_lock(&io_lock);
- 	outb(0x87, REG);
-@@ -128,22 +122,19 @@ superio_enter(void)
- 	outb(0x55, REG);
- }
- 
--static inline void
--superio_exit(void)
-+static inline void superio_exit(void)
- {
- 	outb(0x02, REG);
- 	outb(0x02, VAL);
- 	spin_unlock(&io_lock);
- }
- 
--static inline void
--it8712f_wdt_ping(void)
-+static inline void it8712f_wdt_ping(void)
- {
- 	inb(address);
- }
- 
--static void
--it8712f_wdt_update_margin(void)
-+static void it8712f_wdt_update_margin(void)
- {
- 	int config = WDT_OUT_KRST | WDT_OUT_PWROK;
- 	int units = margin;
-@@ -165,8 +156,7 @@ it8712f_wdt_update_margin(void)
- 	superio_outb(units, WDT_TIMEOUT);
- }
- 
--static int
--it8712f_wdt_get_status(void)
-+static int it8712f_wdt_get_status(void)
- {
- 	if (superio_inb(WDT_CONTROL) & 0x01)
- 		return WDIOF_CARDRESET;
-@@ -174,8 +164,7 @@ it8712f_wdt_get_status(void)
- 		return 0;
- }
- 
--static void
--it8712f_wdt_enable(void)
-+static void it8712f_wdt_enable(void)
- {
- 	printk(KERN_DEBUG NAME ": enabling watchdog timer\n");
- 	superio_enter();
-@@ -190,8 +179,7 @@ it8712f_wdt_enable(void)
- 	it8712f_wdt_ping();
- }
- 
--static void
--it8712f_wdt_disable(void)
-+static void it8712f_wdt_disable(void)
- {
- 	printk(KERN_DEBUG NAME ": disabling watchdog timer\n");
- 
-@@ -207,8 +195,7 @@ it8712f_wdt_disable(void)
- 	superio_exit();
- }
- 
--static int
--it8712f_wdt_notify(struct notifier_block *this,
-+static int it8712f_wdt_notify(struct notifier_block *this,
- 		    unsigned long code, void *unused)
- {
- 	if (code == SYS_HALT || code == SYS_POWER_OFF)
-@@ -222,9 +209,8 @@ static struct notifier_block it8712f_wdt
- 	.notifier_call = it8712f_wdt_notify,
- };
+ /*
+@@ -165,8 +167,8 @@ ibwdt_set_heartbeat(int t)
+  *	/dev/watchdog handling
+  */
  
 -static ssize_t
--it8712f_wdt_write(struct file *file, const char __user *data,
--	size_t len, loff_t *ppos)
-+static ssize_t it8712f_wdt_write(struct file *file, const char __user *data,
-+					size_t len, loff_t *ppos)
+-ibwdt_write(struct file *file, const char __user *buf, size_t count, loff_t *ppos)
++static ssize_t ibwdt_write(struct file *file, const char __user *buf,
++						size_t count, loff_t *ppos)
  {
- 	/* check for a magic close character */
- 	if (len) {
-@@ -245,9 +231,8 @@ it8712f_wdt_write(struct file *file, con
- 	return len;
+ 	if (count) {
+ 		if (!nowayout) {
+@@ -188,77 +190,71 @@ ibwdt_write(struct file *file, const cha
+ 	return count;
  }
  
 -static int
--it8712f_wdt_ioctl(struct inode *inode, struct file *file,
--	unsigned int cmd, unsigned long arg)
-+static long it8712f_wdt_ioctl(struct file *file, unsigned int cmd,
-+							unsigned long arg)
+-ibwdt_ioctl(struct inode *inode, struct file *file, unsigned int cmd,
+-	  unsigned long arg)
++static long ibwdt_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
  {
+ 	int new_margin;
  	void __user *argp = (void __user *)arg;
  	int __user *p = argp;
-@@ -302,19 +287,16 @@ it8712f_wdt_ioctl(struct inode *inode, s
- 	}
- }
  
--static int
--it8712f_wdt_open(struct inode *inode, struct file *file)
-+static int it8712f_wdt_open(struct inode *inode, struct file *file)
- {
- 	/* only allow one at a time */
--	if (down_trylock(&it8712f_wdt_sem))
-+	if (test_and_set_bit(0, &wdt_open))
- 		return -EBUSY;
- 	it8712f_wdt_enable();
+ 	static struct watchdog_info ident = {
+-		.options = WDIOF_KEEPALIVEPING | WDIOF_SETTIMEOUT | WDIOF_MAGICCLOSE,
++		.options = WDIOF_KEEPALIVEPING | WDIOF_SETTIMEOUT
++							| WDIOF_MAGICCLOSE,
+ 		.firmware_version = 1,
+ 		.identity = "IB700 WDT",
+ 	};
+ 
+ 	switch (cmd) {
+ 	case WDIOC_GETSUPPORT:
+-	  if (copy_to_user(argp, &ident, sizeof(ident)))
+-	    return -EFAULT;
+-	  break;
++		if (copy_to_user(argp, &ident, sizeof(ident)))
++			return -EFAULT;
++		break;
+ 
+ 	case WDIOC_GETSTATUS:
+ 	case WDIOC_GETBOOTSTATUS:
+-	  return put_user(0, p);
++		return put_user(0, p);
+ 
+ 	case WDIOC_KEEPALIVE:
+-	  ibwdt_ping();
+-	  break;
++		ibwdt_ping();
++		break;
+ 
+ 	case WDIOC_SETTIMEOUT:
+-	  if (get_user(new_margin, p))
+-		  return -EFAULT;
+-	  if (ibwdt_set_heartbeat(new_margin))
+-		  return -EINVAL;
+-	  ibwdt_ping();
+-	  /* Fall */
++		if (get_user(new_margin, p))
++			return -EFAULT;
++		if (ibwdt_set_heartbeat(new_margin))
++			return -EINVAL;
++		ibwdt_ping();
++		/* Fall */
+ 
+ 	case WDIOC_GETTIMEOUT:
+-	  return put_user(wd_times[wd_margin], p);
++		return put_user(wd_times[wd_margin], p);
+ 
+ 	case WDIOC_SETOPTIONS:
+ 	{
+-	  int options, retval = -EINVAL;
++		int options, retval = -EINVAL;
+ 
+-	  if (get_user(options, p))
+-	    return -EFAULT;
++		if (get_user(options, p))
++			return -EFAULT;
+ 
+-	  if (options & WDIOS_DISABLECARD) {
+-	    ibwdt_disable();
+-	    retval = 0;
+-	  }
 -
- 	return nonseekable_open(inode, file);
- }
- 
--static int
--it8712f_wdt_release(struct inode *inode, struct file *file)
-+static int it8712f_wdt_release(struct inode *inode, struct file *file)
- {
- 	if (expect_close != 42) {
- 		printk(KERN_WARNING NAME
-@@ -324,7 +306,7 @@ it8712f_wdt_release(struct inode *inode,
- 		it8712f_wdt_disable();
+-	  if (options & WDIOS_ENABLECARD) {
+-	    ibwdt_ping();
+-	    retval = 0;
+-	  }
+-
+-	  return retval;
++		if (options & WDIOS_DISABLECARD) {
++			ibwdt_disable();
++			retval = 0;
++		}
++		if (options & WDIOS_ENABLECARD) {
++			ibwdt_ping();
++			retval = 0;
++		}
++		return retval;
  	}
- 	expect_close = 0;
--	up(&it8712f_wdt_sem);
-+	clear_bit(0, &wdt_open);
- 
+-
+ 	default:
+-	  return -ENOTTY;
++		return -ENOTTY;
+ 	}
  	return 0;
  }
-@@ -333,7 +315,7 @@ static const struct file_operations it87
- 	.owner = THIS_MODULE,
- 	.llseek = no_llseek,
- 	.write = it8712f_wdt_write,
--	.ioctl = it8712f_wdt_ioctl,
-+	.unlocked_ioctl = it8712f_wdt_ioctl,
- 	.open = it8712f_wdt_open,
- 	.release = it8712f_wdt_release,
+ 
+-static int
+-ibwdt_open(struct inode *inode, struct file *file)
++static int ibwdt_open(struct inode *inode, struct file *file)
+ {
+-	if (test_and_set_bit(0, &ibwdt_is_open)) {
++	if (test_and_set_bit(0, &ibwdt_is_open))
+ 		return -EBUSY;
+-	}
+ 	if (nowayout)
+ 		__module_get(THIS_MODULE);
+ 
+@@ -273,7 +269,8 @@ ibwdt_close(struct inode *inode, struct 
+ 	if (expect_close == 42) {
+ 		ibwdt_disable();
+ 	} else {
+-		printk(KERN_CRIT PFX "WDT device closed unexpectedly.  WDT will not stop!\n");
++		printk(KERN_CRIT PFX
++		     "WDT device closed unexpectedly.  WDT will not stop!\n");
+ 		ibwdt_ping();
+ 	}
+ 	clear_bit(0, &ibwdt_is_open);
+@@ -289,7 +286,7 @@ static const struct file_operations ibwd
+ 	.owner		= THIS_MODULE,
+ 	.llseek		= no_llseek,
+ 	.write		= ibwdt_write,
+-	.ioctl		= ibwdt_ioctl,
++	.unlocked_ioctl	= ibwdt_ioctl,
+ 	.open		= ibwdt_open,
+ 	.release	= ibwdt_close,
  };
-@@ -344,8 +326,7 @@ static struct miscdevice it8712f_wdt_mis
- 	.fops = &it8712f_wdt_fops,
- };
+@@ -310,21 +307,23 @@ static int __devinit ibwdt_probe(struct 
  
--static int __init
--it8712f_wdt_find(unsigned short *address)
-+static int __init it8712f_wdt_find(unsigned short *address)
+ #if WDT_START != WDT_STOP
+ 	if (!request_region(WDT_STOP, 1, "IB700 WDT")) {
+-		printk (KERN_ERR PFX "STOP method I/O %X is not available.\n", WDT_STOP);
++		printk(KERN_ERR PFX "STOP method I/O %X is not available.\n",
++								WDT_STOP);
+ 		res = -EIO;
+ 		goto out_nostopreg;
+ 	}
+ #endif
+ 
+ 	if (!request_region(WDT_START, 1, "IB700 WDT")) {
+-		printk (KERN_ERR PFX "START method I/O %X is not available.\n", WDT_START);
++		printk(KERN_ERR PFX "START method I/O %X is not available.\n",
++								WDT_START);
+ 		res = -EIO;
+ 		goto out_nostartreg;
+ 	}
+ 
+ 	res = misc_register(&ibwdt_miscdev);
+ 	if (res) {
+-		printk (KERN_ERR PFX "failed to register misc device\n");
++		printk(KERN_ERR PFX "failed to register misc device\n");
+ 		goto out_nomisc;
+ 	}
+ 	return 0;
+@@ -342,9 +341,9 @@ out_nostopreg:
+ static int __devexit ibwdt_remove(struct platform_device *dev)
  {
- 	int err = -ENODEV;
- 	int chip_type;
-@@ -387,8 +368,7 @@ exit:
- 	return err;
+ 	misc_deregister(&ibwdt_miscdev);
+-	release_region(WDT_START,1);
++	release_region(WDT_START, 1);
+ #if WDT_START != WDT_STOP
+-	release_region(WDT_STOP,1);
++	release_region(WDT_STOP, 1);
+ #endif
+ 	return 0;
  }
- 
--static int __init
--it8712f_wdt_init(void)
-+static int __init it8712f_wdt_init(void)
+@@ -369,13 +368,15 @@ static int __init ibwdt_init(void)
  {
- 	int err = 0;
+ 	int err;
  
-@@ -404,8 +384,6 @@ it8712f_wdt_init(void)
+-	printk(KERN_INFO PFX "WDT driver for IB700 single board computer initialising.\n");
++	printk(KERN_INFO PFX
++		"WDT driver for IB700 single board computer initialising.\n");
  
- 	it8712f_wdt_disable();
+ 	err = platform_driver_register(&ibwdt_driver);
+ 	if (err)
+ 		return err;
  
--	sema_init(&it8712f_wdt_sem, 1);
--
- 	err = register_reboot_notifier(&it8712f_wdt_notifier);
- 	if (err) {
- 		printk(KERN_ERR NAME ": unable to register reboot notifier\n");
-@@ -430,8 +408,7 @@ out:
- 	return err;
- }
- 
--static void __exit
--it8712f_wdt_exit(void)
-+static void __exit it8712f_wdt_exit(void)
- {
- 	misc_deregister(&it8712f_wdt_miscdev);
- 	unregister_reboot_notifier(&it8712f_wdt_notifier);
+-	ibwdt_platform_device = platform_device_register_simple(DRV_NAME, -1, NULL, 0);
++	ibwdt_platform_device = platform_device_register_simple(DRV_NAME,
++								-1, NULL, 0);
+ 	if (IS_ERR(ibwdt_platform_device)) {
+ 		err = PTR_ERR(ibwdt_platform_device);
+ 		goto unreg_platform_driver;
 _
 
 Patches currently in -mm which might be from alan@redhat.com are
