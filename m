@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - watchdog-ixp4xx_wdt-unlocked_ioctl.patch removed from -mm tree
-Date: Wed, 16 Jul 2008 14:36:19 -0700
-Message-ID: <200807162136.m6GLaJno014184@imap1.linux-foundation.org>
+Subject: - watchdog-wdt977-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch removed from -mm tree
+Date: Wed, 16 Jul 2008 14:37:25 -0700
+Message-ID: <200807162137.m6GLbPkC014381@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42995 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34124 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757864AbYGPVqq (ORCPT
+	by vger.kernel.org with ESMTP id S1756128AbYGPVqq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 16 Jul 2008 17:46:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,144 +15,365 @@ To: alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     watchdog: ixp4xx_wdt: unlocked_ioctl
+     watchdog: wdt977: clean up, coding style and switch to unlocked_ioctl
 has been removed from the -mm tree.  Its filename was
-     watchdog-ixp4xx_wdt-unlocked_ioctl.patch
+     watchdog-wdt977-clean-up-coding-style-and-switch-to-unlocked_ioctl.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: watchdog: ixp4xx_wdt: unlocked_ioctl
+Subject: watchdog: wdt977: clean up, coding style and switch to unlocked_ioctl
 From: Alan Cox <alan@redhat.com>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/ixp4xx_wdt.c |   41 +++++++++++++-------------------
- 1 file changed, 17 insertions(+), 24 deletions(-)
+ drivers/watchdog/wdt977.c |  148 ++++++++++++++++++------------------
+ 1 file changed, 74 insertions(+), 74 deletions(-)
 
-diff -puN drivers/watchdog/ixp4xx_wdt.c~watchdog-ixp4xx_wdt-unlocked_ioctl drivers/watchdog/ixp4xx_wdt.c
---- a/drivers/watchdog/ixp4xx_wdt.c~watchdog-ixp4xx_wdt-unlocked_ioctl
-+++ a/drivers/watchdog/ixp4xx_wdt.c
-@@ -30,40 +30,40 @@ static int nowayout = WATCHDOG_NOWAYOUT;
- static int heartbeat = 60;	/* (secs) Default is 1 minute */
- static unsigned long wdt_status;
- static unsigned long boot_status;
-+static spin_lock_t wdt_lock;
+diff -puN drivers/watchdog/wdt977.c~watchdog-wdt977-clean-up-coding-style-and-switch-to-unlocked_ioctl drivers/watchdog/wdt977.c
+--- a/drivers/watchdog/wdt977.c~watchdog-wdt977-clean-up-coding-style-and-switch-to-unlocked_ioctl
++++ a/drivers/watchdog/wdt977.c
+@@ -19,7 +19,8 @@
+  *      07-Jul-2003 Daniele Bellucci: Audit return code of misc_register in
+  *                                    nwwatchdog_init.
+  *      25-Oct-2005 Woody Suwalski: Convert addresses to #defs, add spinlocks
+- *				    remove limitiation to be used on Netwinders only
++ *				    remove limitiation to be used on
++ *				    Netwinders only
+  */
  
- #define WDT_TICK_RATE (IXP4XX_PERIPHERAL_BUS_CLOCK * 1000000UL)
+ #include <linux/module.h>
+@@ -33,11 +34,11 @@
+ #include <linux/watchdog.h>
+ #include <linux/notifier.h>
+ #include <linux/reboot.h>
++#include <linux/io.h>
++#include <linux/uaccess.h>
  
- #define	WDT_IN_USE		0
- #define	WDT_OK_TO_CLOSE		1
+-#include <asm/io.h>
+ #include <asm/system.h>
+ #include <asm/mach-types.h>
+-#include <asm/uaccess.h>
  
--static void
--wdt_enable(void)
-+static void wdt_enable(void)
+ #define WATCHDOG_VERSION  "0.04"
+ #define WATCHDOG_NAME     "Wdt977"
+@@ -45,7 +46,7 @@
+ #define DRIVER_VERSION    WATCHDOG_NAME " driver, v" WATCHDOG_VERSION "\n"
+ 
+ #define IO_INDEX_PORT	0x370		/* on some systems it can be 0x3F0 */
+-#define IO_DATA_PORT	(IO_INDEX_PORT+1)
++#define IO_DATA_PORT	(IO_INDEX_PORT + 1)
+ 
+ #define UNLOCK_DATA	0x87
+ #define LOCK_DATA	0xAA
+@@ -62,13 +63,16 @@ static	char expect_close;
+ static	DEFINE_SPINLOCK(spinlock);
+ 
+ module_param(timeout, int, 0);
+-MODULE_PARM_DESC(timeout,"Watchdog timeout in seconds (60..15300), default=" __MODULE_STRING(DEFAULT_TIMEOUT) ")");
++MODULE_PARM_DESC(timeout, "Watchdog timeout in seconds (60..15300), default="
++				__MODULE_STRING(DEFAULT_TIMEOUT) ")");
+ module_param(testmode, int, 0);
+-MODULE_PARM_DESC(testmode,"Watchdog testmode (1 = no reboot), default=0");
++MODULE_PARM_DESC(testmode, "Watchdog testmode (1 = no reboot), default=0");
+ 
+ static int nowayout = WATCHDOG_NOWAYOUT;
+ module_param(nowayout, int, 0);
+-MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started (default=" __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
++MODULE_PARM_DESC(nowayout,
++		"Watchdog cannot be stopped once started (default="
++				__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
+ 
+ /*
+  * Start the watchdog
+@@ -95,14 +99,16 @@ static int wdt977_start(void)
+ 	outb_p(0xF2, IO_INDEX_PORT);
+ 	outb_p(timeoutM, IO_DATA_PORT);
+ 	outb_p(0xF3, IO_INDEX_PORT);
+-	outb_p(0x00, IO_DATA_PORT);	/* another setting is 0E for kbd/mouse/LED */
++	outb_p(0x00, IO_DATA_PORT);	/* another setting is 0E for
++					   kbd/mouse/LED */
+ 	outb_p(0xF4, IO_INDEX_PORT);
+ 	outb_p(0x00, IO_DATA_PORT);
+ 
+-	/* at last select device Aux1 (dev=7) and set GP16 as a watchdog output */
+-	/* in test mode watch the bit 1 on F4 to indicate "triggered" */
+-	if (!testmode)
+-	{
++	/* At last select device Aux1 (dev=7) and set GP16 as a
++	 * watchdog output. In test mode watch the bit 1 on F4 to
++	 * indicate "triggered"
++	 */
++	if (!testmode) {
+ 		outb_p(DEVICE_REGISTER, IO_INDEX_PORT);
+ 		outb_p(0x07, IO_DATA_PORT);
+ 		outb_p(0xE6, IO_INDEX_PORT);
+@@ -147,7 +153,8 @@ static int wdt977_stop(void)
+ 	outb_p(0xF2, IO_INDEX_PORT);
+ 	outb_p(0x00, IO_DATA_PORT);
+ 
+-	/* at last select device Aux1 (dev=7) and set GP16 as a watchdog output */
++	/* at last select device Aux1 (dev=7) and set
++	   GP16 as a watchdog output */
+ 	outb_p(DEVICE_REGISTER, IO_INDEX_PORT);
+ 	outb_p(0x07, IO_DATA_PORT);
+ 	outb_p(0xE6, IO_INDEX_PORT);
+@@ -202,16 +209,18 @@ static int wdt977_set_timeout(int t)
+ 	tmrval = (t + 59) / 60;
+ 
+ 	if (machine_is_netwinder()) {
+-		/* we have a hw bug somewhere, so each 977 minute is actually only 30sec
+-		 *  this limits the max timeout to half of device max of 255 minutes...
++		/* we have a hw bug somewhere, so each 977 minute is actually
++		 * only 30sec. This limits the max timeout to half of device
++		 * max of 255 minutes...
+ 		 */
+ 		tmrval += tmrval;
+ 	}
+ 
+-	if ((tmrval < 1) || (tmrval > 255))
++	if (tmrval < 1 || tmrval > 255)
+ 		return -EINVAL;
+ 
+-	/* timeout is the timeout in seconds, timeoutM is the timeout in minutes) */
++	/* timeout is the timeout in seconds, timeoutM is
++	   the timeout in minutes) */
+ 	timeout = t;
+ 	timeoutM = tmrval;
+ 	return 0;
+@@ -243,7 +252,7 @@ static int wdt977_get_status(int *status
+ 
+ 	spin_unlock_irqrestore(&spinlock, flags);
+ 
+-	*status=0;
++	*status = 0;
+ 	if (new_status & 1)
+ 		*status |= WDIOF_CARDRESET;
+ 
+@@ -258,7 +267,7 @@ static int wdt977_get_status(int *status
+ static int wdt977_open(struct inode *inode, struct file *file)
  {
-+	spin_lock(&wdt_lock);
- 	*IXP4XX_OSWK = IXP4XX_WDT_KEY;
- 	*IXP4XX_OSWE = 0;
- 	*IXP4XX_OSWT = WDT_TICK_RATE * heartbeat;
- 	*IXP4XX_OSWE = IXP4XX_WDT_COUNT_ENABLE | IXP4XX_WDT_RESET_ENABLE;
- 	*IXP4XX_OSWK = 0;
-+	spin_unlock(&wdt_lock);
- }
- 
--static void
--wdt_disable(void)
-+static void wdt_disable(void)
- {
-+	spin_lock(&wdt_lock);
- 	*IXP4XX_OSWK = IXP4XX_WDT_KEY;
- 	*IXP4XX_OSWE = 0;
- 	*IXP4XX_OSWK = 0;
-+	spin_unlock(&wdt_lock);
- }
- 
--static int
--ixp4xx_wdt_open(struct inode *inode, struct file *file)
-+static int ixp4xx_wdt_open(struct inode *inode, struct file *file)
- {
- 	if (test_and_set_bit(WDT_IN_USE, &wdt_status))
+ 	/* If the watchdog is alive we don't need to start it again */
+-	if( test_and_set_bit(0,&timer_alive) )
++	if (test_and_set_bit(0, &timer_alive))
  		return -EBUSY;
  
- 	clear_bit(WDT_OK_TO_CLOSE, &wdt_status);
--
- 	wdt_enable();
--
- 	return nonseekable_open(inode, file);
- }
- 
-@@ -87,7 +87,6 @@ ixp4xx_wdt_write(struct file *file, cons
- 		}
- 		wdt_enable();
+ 	if (nowayout)
+@@ -274,13 +283,13 @@ static int wdt977_release(struct inode *
+ 	 *	Shut off the timer.
+ 	 * 	Lock it in if it's a module and we set nowayout
+ 	 */
+-	if (expect_close == 42)
+-	{
++	if (expect_close == 42) {
+ 		wdt977_stop();
+-		clear_bit(0,&timer_alive);
++		clear_bit(0, &timer_alive);
+ 	} else {
+ 		wdt977_keepalive();
+-		printk(KERN_CRIT PFX "Unexpected close, not stopping watchdog!\n");
++		printk(KERN_CRIT PFX
++			"Unexpected close, not stopping watchdog!\n");
  	}
--
- 	return len;
+ 	expect_close = 0;
+ 	return 0;
+@@ -301,17 +310,14 @@ static int wdt977_release(struct inode *
+ static ssize_t wdt977_write(struct file *file, const char __user *buf,
+ 			    size_t count, loff_t *ppos)
+ {
+-	if (count)
+-	{
+-		if (!nowayout)
+-		{
++	if (count) {
++		if (!nowayout) {
+ 			size_t i;
+ 
+ 			/* In case it was set long ago */
+ 			expect_close = 0;
+ 
+-			for (i = 0; i != count; i++)
+-			{
++			for (i = 0; i != count; i++) {
+ 				char c;
+ 				if (get_user(c, buf + i))
+ 					return -EFAULT;
+@@ -326,6 +332,14 @@ static ssize_t wdt977_write(struct file 
+ 	return count;
  }
  
-@@ -98,9 +97,8 @@ static struct watchdog_info ident = {
- };
++static const struct watchdog_info ident = {
++	.options =		WDIOF_SETTIMEOUT |
++				WDIOF_MAGICCLOSE |
++				WDIOF_KEEPALIVEPING,
++	.firmware_version =	1,
++	.identity =		WATCHDOG_NAME,
++};
++
+ /*
+  *      wdt977_ioctl:
+  *      @inode: inode of the device
+@@ -337,16 +351,8 @@ static ssize_t wdt977_write(struct file 
+  *      according to their available features.
+  */
  
- 
--static int
--ixp4xx_wdt_ioctl(struct inode *inode, struct file *file, unsigned int cmd,
--			unsigned long arg)
-+static long ixp4xx_wdt_ioctl(struct file *file, unsigned int cmd,
+-static struct watchdog_info ident = {
+-	.options =		WDIOF_SETTIMEOUT |
+-				WDIOF_MAGICCLOSE |
+-				WDIOF_KEEPALIVEPING,
+-	.firmware_version =	1,
+-	.identity =		WATCHDOG_NAME,
+-};
+-
+-static int wdt977_ioctl(struct inode *inode, struct file *file,
+-	unsigned int cmd, unsigned long arg)
++static long wdt977_ioctl(struct file *file, unsigned int cmd,
 +							unsigned long arg)
  {
- 	int ret = -ENOTTY;
- 	int time;
-@@ -145,16 +143,13 @@ ixp4xx_wdt_ioctl(struct inode *inode, st
- 	return ret;
+ 	int status;
+ 	int new_options, retval = -EINVAL;
+@@ -358,8 +364,7 @@ static int wdt977_ioctl(struct inode *in
+ 
+ 	uarg.i = (int __user *)arg;
+ 
+-	switch(cmd)
+-	{
++	switch (cmd) {
+ 	default:
+ 		return -ENOTTY;
+ 
+@@ -379,7 +384,7 @@ static int wdt977_ioctl(struct inode *in
+ 		return 0;
+ 
+ 	case WDIOC_SETOPTIONS:
+-		if (get_user (new_options, uarg.i))
++		if (get_user(new_options, uarg.i))
+ 			return -EFAULT;
+ 
+ 		if (new_options & WDIOS_DISABLECARD) {
+@@ -413,23 +418,21 @@ static int wdt977_ioctl(struct inode *in
+ static int wdt977_notify_sys(struct notifier_block *this, unsigned long code,
+ 	void *unused)
+ {
+-	if(code==SYS_DOWN || code==SYS_HALT)
++	if (code == SYS_DOWN || code == SYS_HALT)
+ 		wdt977_stop();
+ 	return NOTIFY_DONE;
  }
  
--static int
--ixp4xx_wdt_release(struct inode *inode, struct file *file)
-+static int ixp4xx_wdt_release(struct inode *inode, struct file *file)
- {
--	if (test_bit(WDT_OK_TO_CLOSE, &wdt_status)) {
-+	if (test_bit(WDT_OK_TO_CLOSE, &wdt_status))
- 		wdt_disable();
--	} else {
-+	else
- 		printk(KERN_CRIT "WATCHDOG: Device closed unexpectedly - "
- 					"timer will not stop\n");
--	}
--
- 	clear_bit(WDT_IN_USE, &wdt_status);
- 	clear_bit(WDT_OK_TO_CLOSE, &wdt_status);
- 
-@@ -167,7 +162,7 @@ static const struct file_operations ixp4
+-static const struct file_operations wdt977_fops=
+-{
++static const struct file_operations wdt977_fops = {
  	.owner		= THIS_MODULE,
  	.llseek		= no_llseek,
- 	.write		= ixp4xx_wdt_write,
--	.ioctl		= ixp4xx_wdt_ioctl,
-+	.unlocked_ioctl	= ixp4xx_wdt_ioctl,
- 	.open		= ixp4xx_wdt_open,
- 	.release	= ixp4xx_wdt_release,
+ 	.write		= wdt977_write,
+-	.ioctl		= wdt977_ioctl,
++	.unlocked_ioctl	= wdt977_ioctl,
+ 	.open		= wdt977_open,
+ 	.release	= wdt977_release,
  };
-@@ -191,14 +186,12 @@ static int __init ixp4xx_wdt_init(void)
  
- 		return -ENODEV;
+-static struct miscdevice wdt977_miscdev=
+-{
++static struct miscdevice wdt977_miscdev = {
+ 	.minor		= WATCHDOG_MINOR,
+ 	.name		= "watchdog",
+ 	.fops		= &wdt977_fops,
+@@ -443,51 +446,48 @@ static int __init wd977_init(void)
+ {
+ 	int rc;
+ 
+-	//if (!machine_is_netwinder())
+-	//	return -ENODEV;
+-
+ 	printk(KERN_INFO PFX DRIVER_VERSION);
+ 
+-	/* Check that the timeout value is within it's range ; if not reset to the default */
+-	if (wdt977_set_timeout(timeout))
+-	{
++	/* Check that the timeout value is within its range;
++	   if not reset to the default */
++	if (wdt977_set_timeout(timeout)) {
+ 		wdt977_set_timeout(DEFAULT_TIMEOUT);
+-		printk(KERN_INFO PFX "timeout value must be 60<timeout<15300, using %d\n",
+-			DEFAULT_TIMEOUT);
++		printk(KERN_INFO PFX
++		      "timeout value must be 60 < timeout < 15300, using %d\n",
++							DEFAULT_TIMEOUT);
  	}
--
-+	spin_lock_init(&wdt_lock);
-+	boot_status = (*IXP4XX_OSST & IXP4XX_OSST_TIMER_WARM_RESET) ?
-+			WDIOF_CARDRESET : 0;
- 	ret = misc_register(&ixp4xx_wdt_miscdev);
- 	if (ret == 0)
- 		printk("IXP4xx Watchdog Timer: heartbeat %d sec\n", heartbeat);
--
--	boot_status = (*IXP4XX_OSST & IXP4XX_OSST_TIMER_WARM_RESET) ?
--			WDIOF_CARDRESET : 0;
--
- 	return ret;
+ 
+ 	/* on Netwinder the IOports are already reserved by
+ 	 * arch/arm/mach-footbridge/netwinder-hw.c
+ 	 */
+-	if (!machine_is_netwinder())
+-	{
+-		if (!request_region(IO_INDEX_PORT, 2, WATCHDOG_NAME))
+-		{
+-			printk(KERN_ERR PFX "I/O address 0x%04x already in use\n",
+-				IO_INDEX_PORT);
++	if (!machine_is_netwinder()) {
++		if (!request_region(IO_INDEX_PORT, 2, WATCHDOG_NAME)) {
++			printk(KERN_ERR PFX
++				"I/O address 0x%04x already in use\n",
++								IO_INDEX_PORT);
+ 			rc = -EIO;
+ 			goto err_out;
+ 		}
+ 	}
+ 
+ 	rc = register_reboot_notifier(&wdt977_notifier);
+-	if (rc)
+-	{
+-		printk(KERN_ERR PFX "cannot register reboot notifier (err=%d)\n",
+-			rc);
++	if (rc) {
++		printk(KERN_ERR PFX
++			"cannot register reboot notifier (err=%d)\n", rc);
+ 		goto err_out_region;
+ 	}
+ 
+ 	rc = misc_register(&wdt977_miscdev);
+-	if (rc)
+-	{
+-		printk(KERN_ERR PFX "cannot register miscdev on minor=%d (err=%d)\n",
+-			wdt977_miscdev.minor, rc);
++	if (rc) {
++		printk(KERN_ERR PFX
++			"cannot register miscdev on minor=%d (err=%d)\n",
++						wdt977_miscdev.minor, rc);
+ 		goto err_out_reboot;
+ 	}
+ 
+-	printk(KERN_INFO PFX "initialized. timeout=%d sec (nowayout=%d, testmode=%i)\n",
+-		timeout, nowayout, testmode);
++	printk(KERN_INFO PFX
++		"initialized. timeout=%d sec (nowayout=%d, testmode=%i)\n",
++						timeout, nowayout, testmode);
+ 
+ 	return 0;
+ 
+@@ -495,7 +495,7 @@ err_out_reboot:
+ 	unregister_reboot_notifier(&wdt977_notifier);
+ err_out_region:
+ 	if (!machine_is_netwinder())
+-	        release_region(IO_INDEX_PORT,2);
++		release_region(IO_INDEX_PORT, 2);
+ err_out:
+ 	return rc;
+ }
+@@ -505,7 +505,7 @@ static void __exit wd977_exit(void)
+ 	wdt977_stop();
+ 	misc_deregister(&wdt977_miscdev);
+ 	unregister_reboot_notifier(&wdt977_notifier);
+-	release_region(IO_INDEX_PORT,2);
++	release_region(IO_INDEX_PORT, 2);
  }
  
+ module_init(wd977_init);
 _
 
 Patches currently in -mm which might be from alan@redhat.com are
