@@ -1,96 +1,226 @@
 From: akpm@linux-foundation.org
-Subject: - watchdog-ep93xx_wdt-unlocked_ioctl.patch removed from -mm tree
-Date: Wed, 16 Jul 2008 14:35:57 -0700
-Message-ID: <200807162135.m6GLZvPq014139@imap1.linux-foundation.org>
+Subject: - watchdog-eurotechwdt-unlocked_ioctl-code-lock-check-and-tidy.patch removed from -mm tree
+Date: Wed, 16 Jul 2008 14:35:59 -0700
+Message-ID: <200807162135.m6GLZxU1014144@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59455 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43090 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756900AbYGPVgr (ORCPT
+	by vger.kernel.org with ESMTP id S1756897AbYGPVgp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jul 2008 17:36:47 -0400
+	Wed, 16 Jul 2008 17:36:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     watchdog: ep93xx_wdt: unlocked_ioctl
+     watchdog: eurotechwdt: unlocked_ioctl, code lock check and tidy
 has been removed from the -mm tree.  Its filename was
-     watchdog-ep93xx_wdt-unlocked_ioctl.patch
+     watchdog-eurotechwdt-unlocked_ioctl-code-lock-check-and-tidy.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: watchdog: ep93xx_wdt: unlocked_ioctl
+Subject: watchdog: eurotechwdt: unlocked_ioctl, code lock check and tidy
 From: Alan Cox <alan@redhat.com>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/ep93xx_wdt.c |   17 +++++++++--------
- 1 file changed, 9 insertions(+), 8 deletions(-)
+ drivers/watchdog/eurotechwdt.c |   57 +++++++++++++++++++------------
+ 1 file changed, 36 insertions(+), 21 deletions(-)
 
-diff -puN drivers/watchdog/ep93xx_wdt.c~watchdog-ep93xx_wdt-unlocked_ioctl drivers/watchdog/ep93xx_wdt.c
---- a/drivers/watchdog/ep93xx_wdt.c~watchdog-ep93xx_wdt-unlocked_ioctl
-+++ a/drivers/watchdog/ep93xx_wdt.c
-@@ -28,9 +28,9 @@
- #include <linux/miscdevice.h>
- #include <linux/watchdog.h>
- #include <linux/timer.h>
+diff -puN drivers/watchdog/eurotechwdt.c~watchdog-eurotechwdt-unlocked_ioctl-code-lock-check-and-tidy drivers/watchdog/eurotechwdt.c
+--- a/drivers/watchdog/eurotechwdt.c~watchdog-eurotechwdt-unlocked_ioctl-code-lock-check-and-tidy
++++ a/drivers/watchdog/eurotechwdt.c
+@@ -56,14 +56,15 @@
+ #include <linux/notifier.h>
+ #include <linux/reboot.h>
+ #include <linux/init.h>
++#include <linux/io.h>
 +#include <linux/uaccess.h>
  
- #include <asm/hardware.h>
+-#include <asm/io.h>
 -#include <asm/uaccess.h>
+ #include <asm/system.h>
  
- #define WDT_VERSION	"0.3"
- #define PFX		"ep93xx_wdt: "
-@@ -136,9 +136,8 @@ static struct watchdog_info ident = {
- 	.identity = "EP93xx Watchdog",
- };
+ static unsigned long eurwdt_is_open;
+ static int eurwdt_timeout;
+ static char eur_expect_close;
++static spinlock_t eurwdt_lock;
  
--static int
--ep93xx_wdt_ioctl(struct inode *inode, struct file *file, unsigned int cmd,
--		 unsigned long arg)
-+static long ep93xx_wdt_ioctl(struct file *file,
+ /*
+  * You must set these - there is no sane way to probe for this board.
+@@ -78,7 +79,9 @@ static char *ev = "int";
+ 
+ static int nowayout = WATCHDOG_NOWAYOUT;
+ module_param(nowayout, int, 0);
+-MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started (default=" __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
++MODULE_PARM_DESC(nowayout,
++		"Watchdog cannot be stopped once started (default="
++				__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
+ 
+ /*
+  * Some symbolic names
+@@ -137,7 +140,8 @@ static void eurwdt_activate_timer(void)
+ {
+ 	eurwdt_disable_timer();
+ 	eurwdt_write_reg(WDT_CTRL_REG, 0x01);	/* activate the WDT */
+-	eurwdt_write_reg(WDT_OUTPIN_CFG, !strcmp("int", ev) ? WDT_EVENT_INT : WDT_EVENT_REBOOT);
++	eurwdt_write_reg(WDT_OUTPIN_CFG,
++		!strcmp("int", ev) ? WDT_EVENT_INT : WDT_EVENT_REBOOT);
+ 
+ 	/* Setting interrupt line */
+ 	if (irq == 2 || irq > 15 || irq < 0) {
+@@ -206,21 +210,21 @@ size_t count, loff_t *ppos)
+ 
+ 			for (i = 0; i != count; i++) {
+ 				char c;
+-				if(get_user(c, buf+i))
++				if (get_user(c, buf+i))
+ 					return -EFAULT;
+ 				if (c == 'V')
+ 					eur_expect_close = 42;
+ 			}
+ 		}
++		spin_lock(&eurwdt_lock);
+ 		eurwdt_ping();	/* the default timeout */
++		spin_unlock(&eurwdt_lock);
+ 	}
+-
+ 	return count;
+ }
+ 
+ /**
+  * eurwdt_ioctl:
+- * @inode: inode of the device
+  * @file: file handle to the device
+  * @cmd: watchdog command
+  * @arg: argument pointer
+@@ -229,13 +233,14 @@ size_t count, loff_t *ppos)
+  * according to their available features.
+  */
+ 
+-static int eurwdt_ioctl(struct inode *inode, struct file *file,
+-	unsigned int cmd, unsigned long arg)
++static long eurwdt_ioctl(struct file *file,
 +					unsigned int cmd, unsigned long arg)
  {
- 	int ret = -ENOTTY;
+ 	void __user *argp = (void __user *)arg;
+ 	int __user *p = argp;
+ 	static struct watchdog_info ident = {
+-		.options	  = WDIOF_KEEPALIVEPING | WDIOF_SETTIMEOUT | WDIOF_MAGICCLOSE,
++		.options	  = WDIOF_KEEPALIVEPING | WDIOF_SETTIMEOUT
++							| WDIOF_MAGICCLOSE,
+ 		.firmware_version = 1,
+ 		.identity	  = "WDT Eurotech CPU-1220/1410",
+ 	};
+@@ -243,7 +248,7 @@ static int eurwdt_ioctl(struct inode *in
+ 	int time;
+ 	int options, retval = -EINVAL;
  
-@@ -174,8 +173,8 @@ static int ep93xx_wdt_release(struct ino
- 	if (test_bit(WDT_OK_TO_CLOSE, &wdt_status))
- 		wdt_shutdown();
- 	else
--		printk(KERN_CRIT PFX "Device closed unexpectedly - "
--			"timer will not stop\n");
-+		printk(KERN_CRIT PFX
-+			"Device closed unexpectedly - timer will not stop\n");
+-	switch(cmd) {
++	switch (cmd) {
+ 	default:
+ 		return -ENOTTY;
  
- 	clear_bit(WDT_IN_USE, &wdt_status);
- 	clear_bit(WDT_OK_TO_CLOSE, &wdt_status);
-@@ -186,7 +185,7 @@ static int ep93xx_wdt_release(struct ino
- static const struct file_operations ep93xx_wdt_fops = {
- 	.owner		= THIS_MODULE,
- 	.write		= ep93xx_wdt_write,
--	.ioctl		= ep93xx_wdt_ioctl,
-+	.unlocked_ioctl	= ep93xx_wdt_ioctl,
- 	.open		= ep93xx_wdt_open,
- 	.release	= ep93xx_wdt_release,
+@@ -255,7 +260,9 @@ static int eurwdt_ioctl(struct inode *in
+ 		return put_user(0, p);
+ 
+ 	case WDIOC_KEEPALIVE:
++		spin_lock(&eurwdt_lock);
+ 		eurwdt_ping();
++		spin_unlock(&eurwdt_lock);
+ 		return 0;
+ 
+ 	case WDIOC_SETTIMEOUT:
+@@ -266,8 +273,10 @@ static int eurwdt_ioctl(struct inode *in
+ 		if (time < 0 || time > 255)
+ 			return -EINVAL;
+ 
++		spin_lock(&eurwdt_lock);
+ 		eurwdt_timeout = time;
+ 		eurwdt_set_timeout(time);
++		spin_unlock(&eurwdt_lock);
+ 		/* Fall */
+ 
+ 	case WDIOC_GETTIMEOUT:
+@@ -276,6 +285,7 @@ static int eurwdt_ioctl(struct inode *in
+ 	case WDIOC_SETOPTIONS:
+ 		if (get_user(options, p))
+ 			return -EFAULT;
++		spin_lock(&eurwdt_lock);
+ 		if (options & WDIOS_DISABLECARD) {
+ 			eurwdt_disable_timer();
+ 			retval = 0;
+@@ -285,6 +295,7 @@ static int eurwdt_ioctl(struct inode *in
+ 			eurwdt_ping();
+ 			retval = 0;
+ 		}
++		spin_unlock(&eurwdt_lock);
+ 		return retval;
+ 	}
+ }
+@@ -322,10 +333,11 @@ static int eurwdt_open(struct inode *ino
+ 
+ static int eurwdt_release(struct inode *inode, struct file *file)
+ {
+-	if (eur_expect_close == 42) {
++	if (eur_expect_close == 42)
+ 		eurwdt_disable_timer();
+-	} else {
+-		printk(KERN_CRIT "eurwdt: Unexpected close, not stopping watchdog!\n");
++	else {
++		printk(KERN_CRIT
++			"eurwdt: Unexpected close, not stopping watchdog!\n");
+ 		eurwdt_ping();
+ 	}
+ 	clear_bit(0, &eurwdt_is_open);
+@@ -362,11 +374,11 @@ static int eurwdt_notify_sys(struct noti
+ 
+ 
+ static const struct file_operations eurwdt_fops = {
+-	.owner	= THIS_MODULE,
+-	.llseek	= no_llseek,
+-	.write	= eurwdt_write,
+-	.ioctl	= eurwdt_ioctl,
+-	.open	= eurwdt_open,
++	.owner		= THIS_MODULE,
++	.llseek		= no_llseek,
++	.write		= eurwdt_write,
++	.unlocked_ioctl	= eurwdt_ioctl,
++	.open		= eurwdt_open,
+ 	.release	= eurwdt_release,
  };
-@@ -243,7 +242,9 @@ module_param(nowayout, int, 0);
- MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started");
  
- module_param(timeout, int, 0);
--MODULE_PARM_DESC(timeout, "Watchdog timeout in seconds. (1<=timeout<=3600, default=" __MODULE_STRING(WATCHDOG_TIMEOUT) ")");
-+MODULE_PARM_DESC(timeout,
-+	"Watchdog timeout in seconds. (1<=timeout<=3600, default="
-+				__MODULE_STRING(WATCHDOG_TIMEOUT) ")");
+@@ -419,7 +431,7 @@ static int __init eurwdt_init(void)
+ 	int ret;
  
- MODULE_AUTHOR("Ray Lehtiniemi <rayl@mail.com>,"
- 		"Alessandro Zummo <a.zummo@towertech.it>");
+ 	ret = request_irq(irq, eurwdt_interrupt, IRQF_DISABLED, "eurwdt", NULL);
+-	if(ret) {
++	if (ret) {
+ 		printk(KERN_ERR "eurwdt: IRQ %d is not free.\n", irq);
+ 		goto out;
+ 	}
+@@ -432,10 +444,13 @@ static int __init eurwdt_init(void)
+ 
+ 	ret = register_reboot_notifier(&eurwdt_notifier);
+ 	if (ret) {
+-		printk(KERN_ERR "eurwdt: can't register reboot notifier (err=%d)\n", ret);
++		printk(KERN_ERR
++		    "eurwdt: can't register reboot notifier (err=%d)\n", ret);
+ 		goto outreg;
+ 	}
+ 
++	spin_lock_init(&eurwdt_lock);
++
+ 	ret = misc_register(&eurwdt_miscdev);
+ 	if (ret) {
+ 		printk(KERN_ERR "eurwdt: can't misc_register on minor=%d\n",
 _
 
 Patches currently in -mm which might be from alan@redhat.com are
