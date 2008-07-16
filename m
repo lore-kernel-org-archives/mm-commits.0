@@ -1,287 +1,323 @@
 From: akpm@linux-foundation.org
-Subject: - watchdog-bfin-watchdog-cleanup-and-unlocked_ioctl.patch removed from -mm tree
-Date: Wed, 16 Jul 2008 14:36:15 -0700
-Message-ID: <200807162136.m6GLaFW0014176@imap1.linux-foundation.org>
+Subject: - watchdog-clean-up-and-check-advantech-watchdog.patch removed from -mm tree
+Date: Wed, 16 Jul 2008 14:35:43 -0700
+Message-ID: <200807162135.m6GLZhF1014116@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43281 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46008 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757283AbYGPVle (ORCPT
+	by vger.kernel.org with ESMTP id S1757288AbYGPVmD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jul 2008 17:41:34 -0400
+	Wed, 16 Jul 2008 17:42:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     watchdog: bfin: watchdog cleanup and unlocked_ioctl
+     watchdog: clean up and check advantech watchdog
 has been removed from the -mm tree.  Its filename was
-     watchdog-bfin-watchdog-cleanup-and-unlocked_ioctl.patch
+     watchdog-clean-up-and-check-advantech-watchdog.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: watchdog: bfin: watchdog cleanup and unlocked_ioctl
+Subject: watchdog: clean up and check advantech watchdog
 From: Alan Cox <alan@redhat.com>
 
-Scan, tidy and check for unlocked_ioctl
+Clean up the advantech watchdog code and inspect for BKL problems
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/bfin_wdt.c |  147 ++++++++++++++++------------------
- 1 file changed, 71 insertions(+), 76 deletions(-)
+ drivers/watchdog/advantechwdt.c |  133 +++++++++++++-----------------
+ 1 file changed, 61 insertions(+), 72 deletions(-)
 
-diff -puN drivers/watchdog/bfin_wdt.c~watchdog-bfin-watchdog-cleanup-and-unlocked_ioctl drivers/watchdog/bfin_wdt.c
---- a/drivers/watchdog/bfin_wdt.c~watchdog-bfin-watchdog-cleanup-and-unlocked_ioctl
-+++ a/drivers/watchdog/bfin_wdt.c
-@@ -25,7 +25,7 @@
- #include <linux/init.h>
- #include <linux/interrupt.h>
- #include <asm/blackfin.h>
--#include <asm/uaccess.h>
-+#include <linux/uaccess.h>
+diff -puN drivers/watchdog/advantechwdt.c~watchdog-clean-up-and-check-advantech-watchdog drivers/watchdog/advantechwdt.c
+--- a/drivers/watchdog/advantechwdt.c~watchdog-clean-up-and-check-advantech-watchdog
++++ a/drivers/watchdog/advantechwdt.c
+@@ -72,35 +72,35 @@ MODULE_PARM_DESC(wdt_start, "Advantech W
  
- #define stamp(fmt, args...) pr_debug("%s:%i: " fmt "\n", __func__, __LINE__, ## args)
- #define stampit() stamp("here i am")
-@@ -148,7 +148,8 @@ static int bfin_wdt_set_timeout(unsigned
- 		int run = bfin_wdt_running();
- 		bfin_wdt_stop();
- 		bfin_write_WDOG_CNT(cnt);
--		if (run) bfin_wdt_start();
-+		if (run)
-+			bfin_wdt_start();
- 	}
- 	spin_unlock_irqrestore(&bfin_wdt_spinlock, flags);
- 
-@@ -191,16 +192,15 @@ static int bfin_wdt_release(struct inode
- {
- 	stampit();
- 
--	if (expect_close == 42) {
-+	if (expect_close == 42)
- 		bfin_wdt_stop();
--	} else {
--		printk(KERN_CRIT PFX "Unexpected close, not stopping watchdog!\n");
-+	else {
-+		printk(KERN_CRIT PFX
-+			"Unexpected close, not stopping watchdog!\n");
- 		bfin_wdt_keepalive();
- 	}
--
- 	expect_close = 0;
- 	clear_bit(0, &open_check);
--
- 	return 0;
- }
- 
-@@ -214,7 +214,7 @@ static int bfin_wdt_release(struct inode
-  *	Pings the watchdog on write.
-  */
- static ssize_t bfin_wdt_write(struct file *file, const char __user *data,
--                              size_t len, loff_t *ppos)
-+						size_t len, loff_t *ppos)
- {
- 	stampit();
- 
-@@ -241,7 +241,6 @@ static ssize_t bfin_wdt_write(struct fil
- 
- /**
-  *	bfin_wdt_ioctl - Query Device
-- *	@inode: inode of device
-  *	@file: file handle of device
-  *	@cmd: watchdog command
-  *	@arg: argument
-@@ -249,8 +248,8 @@ static ssize_t bfin_wdt_write(struct fil
-  *	Query basic information from the device or ping it, as outlined by the
-  *	watchdog API.
-  */
--static int bfin_wdt_ioctl(struct inode *inode, struct file *file,
--                          unsigned int cmd, unsigned long arg)
-+static long bfin_wdt_ioctl(struct file *file,
-+				unsigned int cmd, unsigned long arg)
- {
- 	void __user *argp = (void __user *)arg;
- 	int __user *p = argp;
-@@ -258,59 +257,49 @@ static int bfin_wdt_ioctl(struct inode *
- 	stampit();
- 
- 	switch (cmd) {
--		default:
--			return -ENOTTY;
--
--		case WDIOC_GETSUPPORT:
--			if (copy_to_user(argp, &bfin_wdt_info, sizeof(bfin_wdt_info)))
--				return -EFAULT;
--			else
--				return 0;
--
--		case WDIOC_GETSTATUS:
--		case WDIOC_GETBOOTSTATUS:
--			return put_user(!!(_bfin_swrst & SWRST_RESET_WDOG), p);
--
--		case WDIOC_KEEPALIVE:
--			bfin_wdt_keepalive();
-+	case WDIOC_GETSUPPORT:
-+		if (copy_to_user(argp, &bfin_wdt_info, sizeof(bfin_wdt_info)))
-+			return -EFAULT;
-+		else
- 			return 0;
--
--		case WDIOC_SETTIMEOUT: {
--			int new_timeout;
--
--			if (get_user(new_timeout, p))
--				return -EFAULT;
--
--			if (bfin_wdt_set_timeout(new_timeout))
--				return -EINVAL;
-+	case WDIOC_GETSTATUS:
-+	case WDIOC_GETBOOTSTATUS:
-+		return put_user(!!(_bfin_swrst & SWRST_RESET_WDOG), p);
-+	case WDIOC_KEEPALIVE:
-+		bfin_wdt_keepalive();
-+		return 0;
-+	case WDIOC_SETTIMEOUT: {
-+		int new_timeout;
-+
-+		if (get_user(new_timeout, p))
-+			return -EFAULT;
-+		if (bfin_wdt_set_timeout(new_timeout))
-+			return -EINVAL;
-+	}
-+	/* Fall */
-+	case WDIOC_GETTIMEOUT:
-+		return put_user(timeout, p);
-+	case WDIOC_SETOPTIONS: {
-+		unsigned long flags;
-+		int options, ret = -EINVAL;
-+
-+		if (get_user(options, p))
-+			return -EFAULT;
-+
-+		spin_lock_irqsave(&bfin_wdt_spinlock, flags);
-+		if (options & WDIOS_DISABLECARD) {
-+			bfin_wdt_stop();
-+			ret = 0;
- 		}
--			/* Fall */
--		case WDIOC_GETTIMEOUT:
--			return put_user(timeout, p);
--
--		case WDIOC_SETOPTIONS: {
--			unsigned long flags;
--			int options, ret = -EINVAL;
--
--			if (get_user(options, p))
--				return -EFAULT;
--
--			spin_lock_irqsave(&bfin_wdt_spinlock, flags);
--
--			if (options & WDIOS_DISABLECARD) {
--				bfin_wdt_stop();
--				ret = 0;
--			}
--
--			if (options & WDIOS_ENABLECARD) {
--				bfin_wdt_start();
--				ret = 0;
--			}
--
--			spin_unlock_irqrestore(&bfin_wdt_spinlock, flags);
--
--			return ret;
-+		if (options & WDIOS_ENABLECARD) {
-+			bfin_wdt_start();
-+			ret = 0;
- 		}
-+		spin_unlock_irqrestore(&bfin_wdt_spinlock, flags);
-+		return ret;
-+	}
-+	default:
-+		return -ENOTTY;
- 	}
- }
- 
-@@ -323,8 +312,8 @@ static int bfin_wdt_ioctl(struct inode *
-  *	Handles specific events, such as turning off the watchdog during a
-  *	shutdown event.
-  */
--static int bfin_wdt_notify_sys(struct notifier_block *this, unsigned long code,
--                               void *unused)
-+static int bfin_wdt_notify_sys(struct notifier_block *this,
-+					unsigned long code, void *unused)
- {
- 	stampit();
- 
-@@ -379,12 +368,12 @@ static int bfin_wdt_resume(struct platfo
- #endif
- 
- static const struct file_operations bfin_wdt_fops = {
--	.owner    = THIS_MODULE,
--	.llseek   = no_llseek,
--	.write    = bfin_wdt_write,
--	.ioctl    = bfin_wdt_ioctl,
--	.open     = bfin_wdt_open,
--	.release  = bfin_wdt_release,
-+	.owner		= THIS_MODULE,
-+	.llseek		= no_llseek,
-+	.write    	= bfin_wdt_write,
-+	.unlocked_ioctl	= bfin_wdt_ioctl,
-+	.open		= bfin_wdt_open,
-+	.release	= bfin_wdt_release,
- };
- 
- static struct miscdevice bfin_wdt_miscdev = {
-@@ -396,8 +385,8 @@ static struct miscdevice bfin_wdt_miscde
- static struct watchdog_info bfin_wdt_info = {
- 	.identity = "Blackfin Watchdog",
- 	.options  = WDIOF_SETTIMEOUT |
--	            WDIOF_KEEPALIVEPING |
--	            WDIOF_MAGICCLOSE,
-+		    WDIOF_KEEPALIVEPING |
-+		    WDIOF_MAGICCLOSE,
- };
- 
- static struct notifier_block bfin_wdt_notifier = {
-@@ -416,14 +405,16 @@ static int __devinit bfin_wdt_probe(stru
- 
- 	ret = register_reboot_notifier(&bfin_wdt_notifier);
- 	if (ret) {
--		pr_devinit(KERN_ERR PFX "cannot register reboot notifier (err=%d)\n", ret);
-+		pr_devinit(KERN_ERR PFX
-+			"cannot register reboot notifier (err=%d)\n", ret);
- 		return ret;
- 	}
- 
- 	ret = misc_register(&bfin_wdt_miscdev);
- 	if (ret) {
--		pr_devinit(KERN_ERR PFX "cannot register miscdev on minor=%d (err=%d)\n",
--		       WATCHDOG_MINOR, ret);
-+		pr_devinit(KERN_ERR PFX
-+			"cannot register miscdev on minor=%d (err=%d)\n",
-+					WATCHDOG_MINOR, ret);
- 		unregister_reboot_notifier(&bfin_wdt_notifier);
- 		return ret;
- 	}
-@@ -516,7 +507,11 @@ MODULE_LICENSE("GPL");
- MODULE_ALIAS_MISCDEV(WATCHDOG_MINOR);
- 
- module_param(timeout, uint, 0);
--MODULE_PARM_DESC(timeout, "Watchdog timeout in seconds. (1<=timeout<=((2^32)/SCLK), default=" __MODULE_STRING(WATCHDOG_TIMEOUT) ")");
+ static int timeout = WATCHDOG_TIMEOUT;	/* in seconds */
+ module_param(timeout, int, 0);
+-MODULE_PARM_DESC(timeout, "Watchdog timeout in seconds. 1<= timeout <=63, default=" __MODULE_STRING(WATCHDOG_TIMEOUT) ".");
 +MODULE_PARM_DESC(timeout,
-+	"Watchdog timeout in seconds. (1<=timeout<=((2^32)/SCLK), default="
-+		__MODULE_STRING(WATCHDOG_TIMEOUT) ")");
++	"Watchdog timeout in seconds. 1<= timeout <=63, default="
++		__MODULE_STRING(WATCHDOG_TIMEOUT) ".");
  
+ static int nowayout = WATCHDOG_NOWAYOUT;
  module_param(nowayout, int, 0);
 -MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started (default=" __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
 +MODULE_PARM_DESC(nowayout,
 +	"Watchdog cannot be stopped once started (default="
 +		__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
+ 
+ /*
+  *	Watchdog Operations
+  */
+ 
+-static void
+-advwdt_ping(void)
++static void advwdt_ping(void)
+ {
+ 	/* Write a watchdog value */
+ 	outb_p(timeout, wdt_start);
+ }
+ 
+-static void
+-advwdt_disable(void)
++static void advwdt_disable(void)
+ {
+ 	inb_p(wdt_stop);
+ }
+ 
+-static int
+-advwdt_set_heartbeat(int t)
++static int advwdt_set_heartbeat(int t)
+ {
+-	if ((t < 1) || (t > 63))
++	if (t < 1 || t > 63)
+ 		return -EINVAL;
+-
+ 	timeout = t;
+ 	return 0;
+ }
+@@ -109,8 +109,8 @@ advwdt_set_heartbeat(int t)
+  *	/dev/watchdog handling
+  */
+ 
+-static ssize_t
+-advwdt_write(struct file *file, const char __user *buf, size_t count, loff_t *ppos)
++static ssize_t advwdt_write(struct file *file, const char __user *buf,
++						size_t count, loff_t *ppos)
+ {
+ 	if (count) {
+ 		if (!nowayout) {
+@@ -131,9 +131,7 @@ advwdt_write(struct file *file, const ch
+ 	return count;
+ }
+ 
+-static int
+-advwdt_ioctl(struct inode *inode, struct file *file, unsigned int cmd,
+-	  unsigned long arg)
++static long advwdt_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ {
+ 	int new_timeout;
+ 	void __user *argp = (void __user *)arg;
+@@ -146,57 +144,50 @@ advwdt_ioctl(struct inode *inode, struct
+ 
+ 	switch (cmd) {
+ 	case WDIOC_GETSUPPORT:
+-	  if (copy_to_user(argp, &ident, sizeof(ident)))
+-	    return -EFAULT;
+-	  break;
++	if (copy_to_user(argp, &ident, sizeof(ident)))
++		return -EFAULT;
++		break;
+ 
+ 	case WDIOC_GETSTATUS:
+ 	case WDIOC_GETBOOTSTATUS:
+-	  return put_user(0, p);
++		return put_user(0, p);
+ 
+ 	case WDIOC_KEEPALIVE:
+-	  advwdt_ping();
+-	  break;
++		advwdt_ping();
++		break;
+ 
+ 	case WDIOC_SETTIMEOUT:
+-	  if (get_user(new_timeout, p))
+-		  return -EFAULT;
+-	  if (advwdt_set_heartbeat(new_timeout))
+-		  return -EINVAL;
+-	  advwdt_ping();
+-	  /* Fall */
+-
++		if (get_user(new_timeout, p))
++			return -EFAULT;
++		if (advwdt_set_heartbeat(new_timeout))
++			return -EINVAL;
++		advwdt_ping();
++		/* Fall */
+ 	case WDIOC_GETTIMEOUT:
+-	  return put_user(timeout, p);
+-
++		return put_user(timeout, p);
+ 	case WDIOC_SETOPTIONS:
+ 	{
+-	  int options, retval = -EINVAL;
+-
+-	  if (get_user(options, p))
+-	    return -EFAULT;
++		int options, retval = -EINVAL;
+ 
+-	  if (options & WDIOS_DISABLECARD) {
+-	    advwdt_disable();
+-	    retval = 0;
+-	  }
+-
+-	  if (options & WDIOS_ENABLECARD) {
+-	    advwdt_ping();
+-	    retval = 0;
+-	  }
+-
+-	  return retval;
++		if (get_user(options, p))
++			return -EFAULT;
++		if (options & WDIOS_DISABLECARD) {
++			advwdt_disable();
++			retval = 0;
++		}
++		if (options & WDIOS_ENABLECARD) {
++			advwdt_ping();
++			retval = 0;
++		}
++		return retval;
+ 	}
+-
+ 	default:
+-	  return -ENOTTY;
++		return -ENOTTY;
+ 	}
+ 	return 0;
+ }
+ 
+-static int
+-advwdt_open(struct inode *inode, struct file *file)
++static int advwdt_open(struct inode *inode, struct file *file)
+ {
+ 	if (test_and_set_bit(0, &advwdt_is_open))
+ 		return -EBUSY;
+@@ -214,7 +205,8 @@ advwdt_close(struct inode *inode, struct
+ 	if (adv_expect_close == 42) {
+ 		advwdt_disable();
+ 	} else {
+-		printk(KERN_CRIT PFX "Unexpected close, not stopping watchdog!\n");
++		printk(KERN_CRIT PFX
++				"Unexpected close, not stopping watchdog!\n");
+ 		advwdt_ping();
+ 	}
+ 	clear_bit(0, &advwdt_is_open);
+@@ -230,7 +222,7 @@ static const struct file_operations advw
+ 	.owner		= THIS_MODULE,
+ 	.llseek		= no_llseek,
+ 	.write		= advwdt_write,
+-	.ioctl		= advwdt_ioctl,
++	.unlocked_ioctl	= advwdt_ioctl,
+ 	.open		= advwdt_open,
+ 	.release	= advwdt_close,
+ };
+@@ -245,23 +237,24 @@ static struct miscdevice advwdt_miscdev 
+  *	Init & exit routines
+  */
+ 
+-static int __devinit
+-advwdt_probe(struct platform_device *dev)
++static int __devinit advwdt_probe(struct platform_device *dev)
+ {
+ 	int ret;
+ 
+ 	if (wdt_stop != wdt_start) {
+ 		if (!request_region(wdt_stop, 1, WATCHDOG_NAME)) {
+-			printk (KERN_ERR PFX "I/O address 0x%04x already in use\n",
+-				wdt_stop);
++			printk (KERN_ERR PFX
++				"I/O address 0x%04x already in use\n",
++								wdt_stop);
+ 			ret = -EIO;
+ 			goto out;
+ 		}
+ 	}
+ 
+ 	if (!request_region(wdt_start, 1, WATCHDOG_NAME)) {
+-		printk (KERN_ERR PFX "I/O address 0x%04x already in use\n",
+-			wdt_start);
++		printk (KERN_ERR PFX
++				"I/O address 0x%04x already in use\n",
++								wdt_start);
+ 		ret = -EIO;
+ 		goto unreg_stop;
+ 	}
+@@ -269,20 +262,19 @@ advwdt_probe(struct platform_device *dev
+ 	/* Check that the heartbeat value is within it's range ; if not reset to the default */
+ 	if (advwdt_set_heartbeat(timeout)) {
+ 		advwdt_set_heartbeat(WATCHDOG_TIMEOUT);
+-		printk (KERN_INFO PFX "timeout value must be 1<=x<=63, using %d\n",
+-			timeout);
++		printk (KERN_INFO PFX
++			"timeout value must be 1<=x<=63, using %d\n", timeout);
+ 	}
+ 
+ 	ret = misc_register(&advwdt_miscdev);
+ 	if (ret != 0) {
+-		printk (KERN_ERR PFX "cannot register miscdev on minor=%d (err=%d)\n",
+-			WATCHDOG_MINOR, ret);
++		printk (KERN_ERR PFX
++			"cannot register miscdev on minor=%d (err=%d)\n",
++							WATCHDOG_MINOR, ret);
+ 		goto unreg_regions;
+ 	}
+-
+ 	printk (KERN_INFO PFX "initialized. timeout=%d sec (nowayout=%d)\n",
+ 		timeout, nowayout);
+-
+ out:
+ 	return ret;
+ unreg_regions:
+@@ -293,8 +285,7 @@ unreg_stop:
+ 	goto out;
+ }
+ 
+-static int __devexit
+-advwdt_remove(struct platform_device *dev)
++static int __devexit advwdt_remove(struct platform_device *dev)
+ {
+ 	misc_deregister(&advwdt_miscdev);
+ 	release_region(wdt_start,1);
+@@ -304,8 +295,7 @@ advwdt_remove(struct platform_device *de
+ 	return 0;
+ }
+ 
+-static void
+-advwdt_shutdown(struct platform_device *dev)
++static void advwdt_shutdown(struct platform_device *dev)
+ {
+ 	/* Turn the WDT off if we have a soft shutdown */
+ 	advwdt_disable();
+@@ -321,8 +311,7 @@ static struct platform_driver advwdt_dri
+ 	},
+ };
+ 
+-static int __init
+-advwdt_init(void)
++static int __init advwdt_init(void)
+ {
+ 	int err;
+ 
+@@ -332,7 +321,8 @@ advwdt_init(void)
+ 	if (err)
+ 		return err;
+ 
+-	advwdt_platform_device = platform_device_register_simple(DRV_NAME, -1, NULL, 0);
++	advwdt_platform_device = platform_device_register_simple(DRV_NAME,
++								-1, NULL, 0);
+ 	if (IS_ERR(advwdt_platform_device)) {
+ 		err = PTR_ERR(advwdt_platform_device);
+ 		goto unreg_platform_driver;
+@@ -345,8 +335,7 @@ unreg_platform_driver:
+ 	return err;
+ }
+ 
+-static void __exit
+-advwdt_exit(void)
++static void __exit advwdt_exit(void)
+ {
+ 	platform_device_unregister(advwdt_platform_device);
+ 	platform_driver_unregister(&advwdt_driver);
 _
 
 Patches currently in -mm which might be from alan@redhat.com are
