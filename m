@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + synclink_gt-improve-tiocoutq-accuracy.patch added to -mm tree
-Date: Thu, 17 Jul 2008 14:13:04 -0700
-Message-ID: <200807172113.m6HLD4b6006477@imap1.linux-foundation.org>
+Subject: + kvm-fix-build-error-of-arch-ia64-kvm.patch added to -mm tree
+Date: Thu, 17 Jul 2008 14:20:26 -0700
+Message-ID: <200807172120.m6HLKQC5006847@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54641 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48022 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760216AbYGQVNr (ORCPT
+	by vger.kernel.org with ESMTP id S1757386AbYGQVUd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Jul 2008 17:13:47 -0400
+	Thu, 17 Jul 2008 17:20:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: paulkf@microgate.com, alan@lxorguk.ukuu.org.uk
+Cc: tiwai@suse.de, avi@qumranet.com, tony.luck@intel.com, xiantao.zhang@intel.com
 
 
 The patch titled
-     synclink_gt: improve TIOCOUTQ accuracy
+     kvm: fix build error of arch/ia64/kvm/*
 has been added to the -mm tree.  Its filename is
-     synclink_gt-improve-tiocoutq-accuracy.patch
+     kvm-fix-build-error-of-arch-ia64-kvm.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,127 +34,72 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: synclink_gt: improve TIOCOUTQ accuracy
-From: Paul Fulghum <paulkf@microgate.com>
+Subject: kvm: fix build error of arch/ia64/kvm/*
+From: Takashi Iwai <tiwai@suse.de>
 
-Improve the accuracy of TIOCOUTQ value as implemented in chars_in_buffer()
-method by walking and counting tx DMA buffers, reading controller tx FIFO
-level and accounting for controller tx shift register.  The greatly
-improves application control of transmit latency at lower data rates.
+Fix calls of smp_call_function*() in arch/ia64/kvm for recent API
+changes.
 
-Signed-off-by: Paul Fulghum <paulkf@microgate.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+    CC [M]  arch/ia64/kvm/kvm-ia64.o
+  arch/ia64/kvm/kvm-ia64.c: In function 'handle_global_purge':
+  arch/ia64/kvm/kvm-ia64.c:398: error: too many arguments to function 'smp_call_function_single'
+  arch/ia64/kvm/kvm-ia64.c: In function 'kvm_vcpu_kick':
+  arch/ia64/kvm/kvm-ia64.c:1696: error: too many arguments to function 'smp_call_function_single'
+
+Signed-off-by: Takashi Iwai <tiwai@suse.de>
+Acked-by: Xiantao Zhang <xiantao.zhang@intel.com>
+Cc: Avi Kivity <avi@qumranet.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/synclink_gt.c |   59 +++++++++++++++++++++++++++++++++--
- 1 file changed, 57 insertions(+), 2 deletions(-)
+ arch/ia64/kvm/kvm-ia64.c |    4 ++--
+ arch/ia64/kvm/kvm_fw.c   |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/char/synclink_gt.c~synclink_gt-improve-tiocoutq-accuracy drivers/char/synclink_gt.c
---- a/drivers/char/synclink_gt.c~synclink_gt-improve-tiocoutq-accuracy
-+++ a/drivers/char/synclink_gt.c
-@@ -211,6 +211,7 @@ struct slgt_desc
- 	char *buf;          /* virtual  address of data buffer */
-     	unsigned int pdesc; /* physical address of this descriptor */
- 	dma_addr_t buf_dma_addr;
-+	unsigned short buf_count;
- };
+diff -puN arch/ia64/kvm/kvm-ia64.c~kvm-fix-build-error-of-arch-ia64-kvm arch/ia64/kvm/kvm-ia64.c
+--- a/arch/ia64/kvm/kvm-ia64.c~kvm-fix-build-error-of-arch-ia64-kvm
++++ a/arch/ia64/kvm/kvm-ia64.c
+@@ -398,7 +398,7 @@ static int handle_global_purge(struct kv
+ 		if (kvm->vcpus[i]->cpu != -1) {
+ 			call_data.vcpu = kvm->vcpus[i];
+ 			smp_call_function_single(kvm->vcpus[i]->cpu,
+-					vcpu_global_purge, &call_data, 0, 1);
++					vcpu_global_purge, &call_data, 1);
+ 		} else
+ 			printk(KERN_WARNING"kvm: Uninit vcpu received ipi!\n");
  
- #define set_desc_buffer(a,b) (a).pbuf = cpu_to_le32((unsigned int)(b))
-@@ -470,6 +471,7 @@ static void tx_start(struct slgt_info *i
- static void tx_stop(struct slgt_info *info);
- static void tx_set_idle(struct slgt_info *info);
- static unsigned int free_tbuf_count(struct slgt_info *info);
-+static unsigned int tbuf_bytes(struct slgt_info *info);
- static void reset_tbufs(struct slgt_info *info);
- static void tdma_reset(struct slgt_info *info);
- static void tdma_start(struct slgt_info *info);
-@@ -1400,10 +1402,12 @@ done:
- static int chars_in_buffer(struct tty_struct *tty)
- {
- 	struct slgt_info *info = tty->driver_data;
-+	int count;
- 	if (sanity_check(info, tty->name, "chars_in_buffer"))
- 		return 0;
--	DBGINFO(("%s chars_in_buffer()=%d\n", info->device_name, info->tx_count));
--	return info->tx_count;
-+	count = tbuf_bytes(info);
-+	DBGINFO(("%s chars_in_buffer()=%d\n", info->device_name, count));
-+	return count;
+@@ -1691,7 +1691,7 @@ void kvm_vcpu_kick(struct kvm_vcpu *vcpu
+ 		wake_up_interruptible(&vcpu->wq);
+ 
+ 	if (vcpu->guest_mode)
+-		smp_call_function_single(ipi_pcpu, vcpu_kick_intr, vcpu, 0, 0);
++		smp_call_function_single(ipi_pcpu, vcpu_kick_intr, vcpu, 0);
  }
  
- /*
-@@ -4702,6 +4706,56 @@ static unsigned int free_tbuf_count(stru
- }
- 
- /*
-+ * return number of bytes in unsent transmit DMA buffers
-+ * and the serial controller tx FIFO
-+ */
-+static unsigned int tbuf_bytes(struct slgt_info *info)
-+{
-+	unsigned int total_count = 0;
-+	unsigned int i = info->tbuf_current;
-+	unsigned int reg_value;
-+	unsigned int count;
-+	unsigned int active_buf_count = 0;
-+
-+	/*
-+	 * Add descriptor counts for all tx DMA buffers.
-+	 * If count is zero (cleared by DMA controller after read),
-+	 * the buffer is complete or is actively being read from.
-+	 *
-+	 * Record buf_count of last buffer with zero count starting
-+	 * from current ring position. buf_count is mirror
-+	 * copy of count and is not cleared by serial controller.
-+	 * If DMA controller is active, that buffer is actively
-+	 * being read so add to total.
-+	 */
-+	do {
-+		count = desc_count(info->tbufs[i]);
-+		if (count)
-+			total_count += count;
-+		else if (!total_count)
-+			active_buf_count = info->tbufs[i].buf_count;
-+		if (++i == info->tbuf_count)
-+			i = 0;
-+	} while (i != info->tbuf_current);
-+
-+	/* read tx DMA status register */
-+	reg_value = rd_reg32(info, TDCSR);
-+
-+	/* if tx DMA active, last zero count buffer is in use */
-+	if (reg_value & BIT0)
-+		total_count += active_buf_count;
-+
-+	/* add tx FIFO count = reg_value[15..8] */
-+	total_count += (reg_value >> 8) & 0xff;
-+
-+	/* if transmitter active add one byte for shift register */
-+	if (info->tx_active)
-+		total_count++;
-+
-+	return total_count;
-+}
-+
-+/*
-  * load transmit DMA buffer(s) with data
-  */
- static void tx_load(struct slgt_info *info, const char *buf, unsigned int size)
-@@ -4739,6 +4793,7 @@ static void tx_load(struct slgt_info *in
- 			set_desc_eof(*d, 0);
- 
- 		set_desc_count(*d, count);
-+		d->buf_count = count;
- 	}
- 
- 	info->tbuf_current = i;
+ int kvm_apic_set_irq(struct kvm_vcpu *vcpu, u8 vec, u8 trig)
+diff -puN arch/ia64/kvm/kvm_fw.c~kvm-fix-build-error-of-arch-ia64-kvm arch/ia64/kvm/kvm_fw.c
+--- a/arch/ia64/kvm/kvm_fw.c~kvm-fix-build-error-of-arch-ia64-kvm
++++ a/arch/ia64/kvm/kvm_fw.c
+@@ -130,7 +130,7 @@ static struct ia64_pal_retval pal_cache_
+ 	args.cache_type = gr29;
+ 	args.operation = gr30;
+ 	smp_call_function(remote_pal_cache_flush,
+-				(void *)&args, 1, 1);
++				(void *)&args, 1);
+ 	if (args.status != 0)
+ 		printk(KERN_ERR"pal_cache_flush error!,"
+ 				"status:0x%lx\n", args.status);
 _
 
-Patches currently in -mm which might be from paulkf@microgate.com are
+Patches currently in -mm which might be from tiwai@suse.de are
 
-synclink_gt-add-rx-dma-buffer-fill-level-control.patch
-synclink_gt-add-serial-bit-order-control.patch
-synclink_gt-improve-tiocoutq-accuracy.patch
-synclink_gt-improve-and-simplify-write-method.patch
+origin.patch
+linux-next.patch
+use-sysdev_class-in-schedc.patch
+use-sysdev_class-in-schedc-fix.patch
+kcalloc-remove-runtime-division.patch
+pnp-set-the-pnp_card-dma_mask-for-use-by-isapnp-cards.patch
+isa-set-24-bit-dma_mask-for-isa-devices.patch
+kvm-fix-build-error-of-arch-ia64-kvm.patch
 
