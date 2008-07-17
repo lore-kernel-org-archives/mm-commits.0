@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ath5k-flush-work.patch added to -mm tree
-Date: Wed, 16 Jul 2008 17:11:50 -0700
-Message-ID: <200807170011.m6H0BpHf020940@imap1.linux-foundation.org>
+Subject: + ath5k-suspend-resume-fixes.patch added to -mm tree
+Date: Wed, 16 Jul 2008 17:11:54 -0700
+Message-ID: <200807170011.m6H0BtgP020946@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42624 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56046 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752615AbYGQALy (ORCPT
+	by vger.kernel.org with ESMTP id S1751893AbYGQAL6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jul 2008 20:11:54 -0400
+	Wed, 16 Jul 2008 20:11:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com, mcgrof@gmail.com, mickflemm@gmail.com
+Cc: jirislaby@gmail.com, jbarnes@virtuousgeek.org, mcgrof@gmail.com, mickflemm@gmail.com
 
 
 The patch titled
-     ath5k: flush work
+     ath5k: suspend/resume fixes
 has been added to the -mm tree.  Its filename is
-     ath5k-flush-work.patch
+     ath5k-suspend-resume-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,140 +34,87 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ath5k: flush work
+Subject: ath5k: suspend/resume fixes
 From: Jiri Slaby <jirislaby@gmail.com>
 
-Make sure that the irq is not in progress after stop. This means
-two things:
-- ensure the intr setting register is set by flushing posted values
-- call synchronize_irq() after that
-
-Also flush stop tx write, inform callers of the tx stop about still
-pending transfers (unsuccessful stop) and finally don't wait another
-3ms in ath5k_rx_stop, since ath5k_hw_stop_rx_dma ensures transfer to
-be finished.
-
-Make sure all writes will be ordered in respect to locks by mmiowb().
+- free and re-request irq since it might have changed during suspend
+- disable and enable msi
+- don't set D0 state of the device, it's already done by the PCI layer
+- do restore_state before enable_device, it's safer
+- check ath5k_init return value
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Cc: Nick Kossifidis <mickflemm@gmail.com>
 Cc: Luis R. Rodriguez <mcgrof@gmail.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/ath5k/base.c |   13 +++++++++++--
- drivers/net/wireless/ath5k/hw.c   |    4 ++++
- 2 files changed, 15 insertions(+), 2 deletions(-)
+ drivers/net/wireless/ath5k/base.c |   26 +++++++++++++++++++++-----
+ 1 file changed, 21 insertions(+), 5 deletions(-)
 
-diff -puN drivers/net/wireless/ath5k/base.c~ath5k-flush-work drivers/net/wireless/ath5k/base.c
---- a/drivers/net/wireless/ath5k/base.c~ath5k-flush-work
+diff -puN drivers/net/wireless/ath5k/base.c~ath5k-suspend-resume-fixes drivers/net/wireless/ath5k/base.c
+--- a/drivers/net/wireless/ath5k/base.c~ath5k-suspend-resume-fixes
 +++ a/drivers/net/wireless/ath5k/base.c
-@@ -43,7 +43,9 @@
- #include <linux/version.h>
- #include <linux/module.h>
- #include <linux/delay.h>
-+#include <linux/hardirq.h>
- #include <linux/if.h>
-+#include <linux/io.h>
- #include <linux/netdevice.h>
- #include <linux/cache.h>
- #include <linux/pci.h>
-@@ -1249,6 +1251,7 @@ ath5k_txbuf_setup(struct ath5k_softc *sc
+@@ -592,6 +592,9 @@ ath5k_pci_suspend(struct pci_dev *pdev, 
+ 	ath5k_led_off(sc);
  
- 	txq->link = &ds->ds_link;
- 	ath5k_hw_tx_start(ah, txq->qnum);
-+	mmiowb();
- 	spin_unlock_bh(&txq->lock);
+ 	ath5k_stop_hw(sc);
++
++	free_irq(pdev->irq, sc);
++	pci_disable_msi(pdev);
+ 	pci_save_state(pdev);
+ 	pci_disable_device(pdev);
+ 	pci_set_power_state(pdev, PCI_D3hot);
+@@ -607,15 +610,12 @@ ath5k_pci_resume(struct pci_dev *pdev)
+ 	struct ath5k_hw *ah = sc->ah;
+ 	int i, err;
+ 
+-	err = pci_set_power_state(pdev, PCI_D0);
+-	if (err)
+-		return err;
++	pci_restore_state(pdev);
+ 
+ 	err = pci_enable_device(pdev);
+ 	if (err)
+ 		return err;
+ 
+-	pci_restore_state(pdev);
+ 	/*
+ 	 * Suspend/Resume resets the PCI configuration space, so we have to
+ 	 * re-disable the RETRY_TIMEOUT register (0x41) to keep
+@@ -623,7 +623,17 @@ ath5k_pci_resume(struct pci_dev *pdev)
+ 	 */
+ 	pci_write_config_byte(pdev, 0x41, 0);
+ 
+-	ath5k_init(sc);
++	pci_enable_msi(pdev);
++
++	err = request_irq(pdev->irq, ath5k_intr, IRQF_SHARED, "ath", sc);
++	if (err) {
++		ATH5K_ERR(sc, "request_irq failed\n");
++		goto err_msi;
++	}
++
++	err = ath5k_init(sc);
++	if (err)
++		goto err_irq;
+ 	ath5k_led_enable(sc);
+ 
+ 	/*
+@@ -637,6 +647,12 @@ ath5k_pci_resume(struct pci_dev *pdev)
+ 		ath5k_hw_reset_key(ah, i);
  
  	return 0;
-@@ -1583,7 +1586,6 @@ ath5k_rx_stop(struct ath5k_softc *sc)
- 	ath5k_hw_stop_pcu_recv(ah);	/* disable PCU */
- 	ath5k_hw_set_rx_filter(ah, 0);	/* clear recv filter */
- 	ath5k_hw_stop_rx_dma(ah);	/* disable DMA engine */
--	mdelay(3);			/* 3ms is long enough for 1 frame */
- 
- 	ath5k_debug_printrxbuffs(sc, ah);
- 
-@@ -2258,6 +2260,7 @@ ath5k_init(struct ath5k_softc *sc)
- 
- 	ret = 0;
- done:
-+	mmiowb();
- 	mutex_unlock(&sc->lock);
- 	return ret;
++err_irq:
++	free_irq(pdev->irq, sc);
++err_msi:
++	pci_disable_msi(pdev);
++	pci_disable_device(pdev);
++	return err;
  }
-@@ -2290,6 +2293,7 @@ ath5k_stop_locked(struct ath5k_softc *sc
- 	if (!test_bit(ATH_STAT_INVALID, sc->status)) {
- 		ath5k_led_off(sc);
- 		ath5k_hw_set_intr(ah, 0);
-+		synchronize_irq(sc->pdev->irq);
- 	}
- 	ath5k_txq_cleanup(sc);
- 	if (!test_bit(ATH_STAT_INVALID, sc->status)) {
-@@ -2339,6 +2343,7 @@ ath5k_stop_hw(struct ath5k_softc *sc)
- 		}
- 	}
- 	ath5k_txbuf_free(sc, sc->bbuf);
-+	mmiowb();
- 	mutex_unlock(&sc->lock);
+ #endif /* CONFIG_PM */
  
- 	del_timer_sync(&sc->calib_tim);
-@@ -2804,6 +2809,7 @@ ath5k_config_interface(struct ieee80211_
- 		/* XXX: assoc id is set to 0 for now, mac80211 doesn't have
- 		 * a clean way of letting us retrieve this yet. */
- 		ath5k_hw_set_associd(ah, ah->ah_bssid, 0);
-+		mmiowb();
- 	}
- 
- 	if (conf->changed & IEEE80211_IFCC_BEACON &&
-@@ -2992,6 +2998,7 @@ ath5k_set_key(struct ieee80211_hw *hw, e
- 	}
- 
- unlock:
-+	mmiowb();
- 	mutex_unlock(&sc->lock);
- 	return ret;
- }
-@@ -3065,8 +3072,10 @@ ath5k_beacon_update(struct ieee80211_hw 
- 	ret = ath5k_beacon_setup(sc, sc->bbuf);
- 	if (ret)
- 		sc->bbuf->skb = NULL;
--	else
-+	else {
- 		ath5k_beacon_config(sc);
-+		mmiowb();
-+	}
- 
- end:
- 	mutex_unlock(&sc->lock);
-diff -puN drivers/net/wireless/ath5k/hw.c~ath5k-flush-work drivers/net/wireless/ath5k/hw.c
---- a/drivers/net/wireless/ath5k/hw.c~ath5k-flush-work
-+++ a/drivers/net/wireless/ath5k/hw.c
-@@ -1440,6 +1440,7 @@ int ath5k_hw_stop_tx_dma(struct ath5k_hw
- 
- 		/* Stop queue */
- 		ath5k_hw_reg_write(ah, tx_queue, AR5K_CR);
-+		ath5k_hw_reg_read(ah, AR5K_CR);
- 	} else {
- 		/*
- 		 * Schedule TX disable and wait until queue is empty
-@@ -1456,6 +1457,8 @@ int ath5k_hw_stop_tx_dma(struct ath5k_hw
- 
- 		/* Clear register */
- 		ath5k_hw_reg_write(ah, 0, AR5K_QCU_TXD);
-+		if (pending)
-+			return -EBUSY;
- 	}
- 
- 	/* TODO: Check for success else return error */
-@@ -1716,6 +1719,7 @@ enum ath5k_int ath5k_hw_set_intr(struct 
- 
- 	/* ..re-enable interrupts */
- 	ath5k_hw_reg_write(ah, AR5K_IER_ENABLE, AR5K_IER);
-+	ath5k_hw_reg_read(ah, AR5K_IER);
- 
- 	return old_mask;
- }
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
