@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + byteorder-add-include-linux-byteorderh-to-define-endian-helpers.patch added to -mm tree
-Date: Thu, 17 Jul 2008 16:00:02 -0700
-Message-ID: <200807172300.m6HN020T011115@imap1.linux-foundation.org>
+Subject: + calgary-iommu-use-the-first-kernels-tce-tables-in-kdump-coding-style-fixes.patch added to -mm tree
+Date: Thu, 17 Jul 2008 16:16:49 -0700
+Message-ID: <200807172316.m6HNGnG9011920@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49224 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36711 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757392AbYGQXAe (ORCPT
+	by vger.kernel.org with ESMTP id S932327AbYGQXSi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Jul 2008 19:00:34 -0400
+	Thu, 17 Jul 2008 19:18:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com
+Cc: akpm@linux-foundation.org, chandru@in.ibm.com, mingo@elte.hu, muli@il.ibm.com, tglx@linutronix.de
 
 
 The patch titled
-     byteorder: add include/linux/byteorder.h to define endian helpers
+     calgary-iommu-use-the-first-kernels-tce-tables-in-kdump-coding-style-fixes
 has been added to the -mm tree.  Its filename is
-     byteorder-add-include-linux-byteorderh-to-define-endian-helpers.patch
+     calgary-iommu-use-the-first-kernels-tce-tables-in-kdump-coding-style-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,363 +34,217 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: byteorder: add include/linux/byteorder.h to define endian helpers
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: calgary-iommu-use-the-first-kernels-tce-tables-in-kdump-coding-style-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Chandru Siddalingappa <chandru@in.ibm.com>
+Cc: Muli Ben-Yehuda <muli@il.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/byteorder.h |  312 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 312 insertions(+)
+ arch/x86/kernel/pci-calgary_64.c |    2 +-
+ include/linux/crash_dump.h       |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN /dev/null include/linux/byteorder.h
---- /dev/null
-+++ a/include/linux/byteorder.h
-@@ -0,0 +1,312 @@
-+#ifndef _LINUX_BYTEORDER_H
-+#define _LINUX_BYTEORDER_H
-+
-+#include <linux/types.h>
-+#include <linux/swab.h>
-+
-+#if defined(__LITTLE_ENDIAN) && defined(__BIG_ENDIAN)
-+# error Fix asm/byteorder.h to define one endianness
-+#endif
-+
-+#if !defined(__LITTLE_ENDIAN) && !defined(__BIG_ENDIAN)
-+# error Fix asm/byteorder.h to define arch endianness
-+#endif
-+
-+#ifdef __LITTLE_ENDIAN
-+# undef __LITTLE_ENDIAN
-+# define __LITTLE_ENDIAN 1234
-+#endif
-+
-+#ifdef __BIG_ENDIAN
-+# undef __BIG_ENDIAN
-+# define __BIG_ENDIAN 4321
-+#endif
-+
-+#if defined(__LITTLE_ENDIAN) && !defined(__LITTLE_ENDIAN_BITFIELD)
-+# define __LITTLE_ENDIAN_BITFIELD
-+#endif
-+
-+#if defined(__BIG_ENDIAN) && !defined(__BIG_ENDIAN_BITFIELD)
-+# define __BIG_ENDIAN_BITFIELD
-+#endif
-+
-+#ifdef __LITTLE_ENDIAN
-+# define __le16_to_cpu(x) ((__force __u16)(__le16)(x))
-+# define __le32_to_cpu(x) ((__force __u32)(__le32)(x))
-+# define __le64_to_cpu(x) ((__force __u64)(__le64)(x))
-+# define __cpu_to_le16(x) ((__force __le16)(__u16)(x))
-+# define __cpu_to_le32(x) ((__force __le32)(__u32)(x))
-+# define __cpu_to_le64(x) ((__force __le64)(__u64)(x))
-+# define __le16_to_cpus(x) do {} while (0)
-+# define __le32_to_cpus(x) do {} while (0)
-+# define __le64_to_cpus(x) do {} while (0)
-+# define __cpu_to_le16s(x) do {} while (0)
-+# define __cpu_to_le32s(x) do {} while (0)
-+# define __cpu_to_le64s(x) do {} while (0)
-+
-+# define __be16_to_cpu(x) __swab16((__force __u16)(__be16)(x))
-+# define __be32_to_cpu(x) __swab32((__force __u32)(__be32)(x))
-+# define __be64_to_cpu(x) __swab64((__force __u64)(__be64)(x))
-+# define __cpu_to_be16(x) ((__force __be16)__swab16(x))
-+# define __cpu_to_be32(x) ((__force __be32)__swab32(x))
-+# define __cpu_to_be64(x) ((__force __be64)__swab64(x))
-+# define __be16_to_cpus(x) __swab16s(x)
-+# define __be32_to_cpus(x) __swab32s(x)
-+# define __be64_to_cpus(x) __swab64s(x)
-+# define __cpu_to_be16s(x) __swab16s(x)
-+# define __cpu_to_be32s(x) __swab32s(x)
-+# define __cpu_to_be64s(x) __swab64s(x)
-+#endif
-+
-+#ifdef __BIG_ENDIAN
-+# define __be16_to_cpu(x) ((__force __u16)(__be16)(x))
-+# define __be32_to_cpu(x) ((__force __u32)(__be32)(x))
-+# define __be64_to_cpu(x) ((__force __u64)(__be64)(x))
-+# define __cpu_to_be16(x) ((__force __be16)(__u16)(x))
-+# define __cpu_to_be32(x) ((__force __be32)(__u32)(x))
-+# define __cpu_to_be64(x) ((__force __be64)(__u64)(x))
-+# define __be16_to_cpus(x) do {} while (0)
-+# define __be32_to_cpus(x) do {} while (0)
-+# define __be64_to_cpus(x) do {} while (0)
-+# define __cpu_to_be16s(x) do {} while (0)
-+# define __cpu_to_be32s(x) do {} while (0)
-+# define __cpu_to_be64s(x) do {} while (0)
-+
-+# define __le16_to_cpu(x) __swab16((__force __u16)(__le16)(x))
-+# define __le32_to_cpu(x) __swab32((__force __u32)(__le32)(x))
-+# define __le64_to_cpu(x) __swab64((__force __u64)(__le64)(x))
-+# define __cpu_to_le16(x) ((__force __le16)__swab16(x))
-+# define __cpu_to_le32(x) ((__force __le32)__swab32(x))
-+# define __cpu_to_le64(x) ((__force __le64)__swab64(x))
-+# define __le16_to_cpus(x) __swab16s(x)
-+# define __le32_to_cpus(x) __swab32s(x)
-+# define __le64_to_cpus(x) __swab64s(x)
-+# define __cpu_to_le16s(x) __swab16s(x)
-+# define __cpu_to_le32s(x) __swab32s(x)
-+# define __cpu_to_le64s(x) __swab64s(x)
-+#endif
-+
-+/*
-+ * These helpers could be phased out over time as the base version
-+ * handles constant folding.
-+ */
-+#define __constant_htonl(x) __cpu_to_be32(x)
-+#define __constant_ntohl(x) __be32_to_cpu(x)
-+#define __constant_htons(x) __cpu_to_be16(x)
-+#define __constant_ntohs(x) __be16_to_cpu(x)
-+
-+#define __constant_le16_to_cpu(x) __le16_to_cpu(x)
-+#define __constant_le32_to_cpu(x) __le32_to_cpu(x)
-+#define __constant_le64_to_cpu(x) __le64_to_cpu(x)
-+#define __constant_be16_to_cpu(x) __be16_to_cpu(x)
-+#define __constant_be32_to_cpu(x) __be32_to_cpu(x)
-+#define __constant_be64_to_cpu(x) __be64_to_cpu(x)
-+
-+#define __constant_cpu_to_le16(x) __cpu_to_le16(x)
-+#define __constant_cpu_to_le32(x) __cpu_to_le32(x)
-+#define __constant_cpu_to_le64(x) __cpu_to_le64(x)
-+#define __constant_cpu_to_be16(x) __cpu_to_be16(x)
-+#define __constant_cpu_to_be32(x) __cpu_to_be32(x)
-+#define __constant_cpu_to_be64(x) __cpu_to_be64(x)
-+
-+static inline __u16 __le16_to_cpup(const __le16 *p)
-+{
-+#ifdef __LITTLE_ENDIAN
-+	return (__force __u16)*p;
-+#else
-+	return __swab16p((__force __u16 *)p);
-+#endif
-+}
-+
-+static inline __u32 __le32_to_cpup(const __le32 *p)
-+{
-+#ifdef __LITTLE_ENDIAN
-+	return (__force __u32)*p;
-+#else
-+	return __swab32p((__force __u32 *)p);
-+#endif
-+}
-+
-+static inline __u64 __le64_to_cpup(const __le64 *p)
-+{
-+#ifdef __LITTLE_ENDIAN
-+	return (__force __u64)*p;
-+#else
-+	return __swab64p((__force __u64 *)p);
-+#endif
-+}
-+
-+static inline __le16 __cpu_to_le16p(const __u16 *p)
-+{
-+#ifdef __LITTLE_ENDIAN
-+	return (__force __le16)*p;
-+#else
-+	return (__force __le16)__swab16p(p);
-+#endif
-+}
-+
-+static inline __le32 __cpu_to_le32p(const __u32 *p)
-+{
-+#ifdef __LITTLE_ENDIAN
-+	return (__force __le32)*p;
-+#else
-+	return (__force __le32)__swab32p(p);
-+#endif
-+}
-+
-+static inline __le64 __cpu_to_le64p(const __u64 *p)
-+{
-+#ifdef __LITTLE_ENDIAN
-+	return (__force __le64)*p;
-+#else
-+	return (__force __le64)__swab64p(p);
-+#endif
-+}
-+
-+static inline __u16 __be16_to_cpup(const __be16 *p)
-+{
-+#ifdef __BIG_ENDIAN
-+	return (__force __u16)*p;
-+#else
-+	return __swab16p((__force __u16 *)p);
-+#endif
-+}
-+
-+static inline __u32 __be32_to_cpup(const __be32 *p)
-+{
-+#ifdef __BIG_ENDIAN
-+	return (__force __u32)*p;
-+#else
-+	return __swab32p((__force __u32 *)p);
-+#endif
-+}
-+
-+static inline __u64 __be64_to_cpup(const __be64 *p)
-+{
-+#ifdef __BIG_ENDIAN
-+	return (__force __u64)*p;
-+#else
-+	return __swab64p((__force __u64 *)p);
-+#endif
-+}
-+
-+static inline __be16 __cpu_to_be16p(const __u16 *p)
-+{
-+#ifdef __BIG_ENDIAN
-+	return (__force __be16)*p;
-+#else
-+	return (__force __be16)__swab16p(p);
-+#endif
-+}
-+
-+static inline __be32 __cpu_to_be32p(const __u32 *p)
-+{
-+#ifdef __BIG_ENDIAN
-+	return (__force __be32)*p;
-+#else
-+	return (__force __be32)__swab32p(p);
-+#endif
-+}
-+
-+static inline __be64 __cpu_to_be64p(const __u64 *p)
-+{
-+#ifdef __BIG_ENDIAN
-+	return (__force __be64)*p;
-+#else
-+	return (__force __be64)__swab64p(p);
-+#endif
-+}
-+
-+#ifdef __KERNEL__
-+
-+# define le16_to_cpu __le16_to_cpu
-+# define le32_to_cpu __le32_to_cpu
-+# define le64_to_cpu __le64_to_cpu
-+# define be16_to_cpu __be16_to_cpu
-+# define be32_to_cpu __be32_to_cpu
-+# define be64_to_cpu __be64_to_cpu
-+# define cpu_to_le16 __cpu_to_le16
-+# define cpu_to_le32 __cpu_to_le32
-+# define cpu_to_le64 __cpu_to_le64
-+# define cpu_to_be16 __cpu_to_be16
-+# define cpu_to_be32 __cpu_to_be32
-+# define cpu_to_be64 __cpu_to_be64
-+
-+# define le16_to_cpup __le16_to_cpup
-+# define le32_to_cpup __le32_to_cpup
-+# define le64_to_cpup __le64_to_cpup
-+# define be16_to_cpup __be16_to_cpup
-+# define be32_to_cpup __be32_to_cpup
-+# define be64_to_cpup __be64_to_cpup
-+# define cpu_to_le16p __cpu_to_le16p
-+# define cpu_to_le32p __cpu_to_le32p
-+# define cpu_to_le64p __cpu_to_le64p
-+# define cpu_to_be16p __cpu_to_be16p
-+# define cpu_to_be32p __cpu_to_be32p
-+# define cpu_to_be64p __cpu_to_be64p
-+
-+# define le16_to_cpus __le16_to_cpus
-+# define le32_to_cpus __le32_to_cpus
-+# define le64_to_cpus __le64_to_cpus
-+# define be16_to_cpus __be16_to_cpus
-+# define be32_to_cpus __be32_to_cpus
-+# define be64_to_cpus __be64_to_cpus
-+# define cpu_to_le16s __cpu_to_le16s
-+# define cpu_to_le32s __cpu_to_le32s
-+# define cpu_to_le64s __cpu_to_le64s
-+# define cpu_to_be16s __cpu_to_be16s
-+# define cpu_to_be32s __cpu_to_be32s
-+# define cpu_to_be64s __cpu_to_be64s
-+
-+/*
-+ * They have to be macros in order to do the constant folding
-+ * correctly - if the argument passed into a inline function
-+ * it is no longer constant according to gcc..
-+ */
-+# undef ntohl
-+# undef ntohs
-+# undef htonl
-+# undef htons
-+
-+# define ___htonl(x) __cpu_to_be32(x)
-+# define ___htons(x) __cpu_to_be16(x)
-+# define ___ntohl(x) __be32_to_cpu(x)
-+# define ___ntohs(x) __be16_to_cpu(x)
-+
-+# define htonl(x) ___htonl(x)
-+# define ntohl(x) ___ntohl(x)
-+# define htons(x) ___htons(x)
-+# define ntohs(x) ___ntohs(x)
-+
-+static inline void le16_add_cpu(__le16 *var, u16 val)
-+{
-+	*var = cpu_to_le16(le16_to_cpup(var) + val);
-+}
-+
-+static inline void le32_add_cpu(__le32 *var, u32 val)
-+{
-+	*var = cpu_to_le32(le32_to_cpup(var) + val);
-+}
-+
-+static inline void le64_add_cpu(__le64 *var, u64 val)
-+{
-+	*var = cpu_to_le64(le64_to_cpup(var) + val);
-+}
-+
-+static inline void be16_add_cpu(__be16 *var, u16 val)
-+{
-+	*var = cpu_to_be16(be16_to_cpup(var) + val);
-+}
-+
-+static inline void be32_add_cpu(__be32 *var, u32 val)
-+{
-+	*var = cpu_to_be32(be32_to_cpup(var) + val);
-+}
-+
-+static inline void be64_add_cpu(__be64 *var, u64 val)
-+{
-+	*var = cpu_to_be64(be64_to_cpup(var) + val);
-+}
-+
-+#endif /* __KERNEL__ */
-+#endif /* _LINUX_BYTEORDER_H */
+diff -puN arch/x86/kernel/pci-calgary_64.c~calgary-iommu-use-the-first-kernels-tce-tables-in-kdump-coding-style-fixes arch/x86/kernel/pci-calgary_64.c
+--- a/arch/x86/kernel/pci-calgary_64.c~calgary-iommu-use-the-first-kernels-tce-tables-in-kdump-coding-style-fixes
++++ a/arch/x86/kernel/pci-calgary_64.c
+@@ -1439,7 +1439,7 @@ void __init detect_calgary(void)
+ 		return;
+ 	}
+ 
+-	max_pfn = is_kdump_kernel() ? saved_max_pfn : end_pfn ;
++	max_pfn = is_kdump_kernel() ? saved_max_pfn : end_pfn;
+ 	specified_table_size = determine_tce_table_size(max_pfn * PAGE_SIZE);
+ 
+ 	for (bus = 0; bus < MAX_PHB_BUS_NUM; bus++) {
+diff -puN include/linux/crash_dump.h~calgary-iommu-use-the-first-kernels-tce-tables-in-kdump-coding-style-fixes include/linux/crash_dump.h
+--- a/include/linux/crash_dump.h~calgary-iommu-use-the-first-kernels-tce-tables-in-kdump-coding-style-fixes
++++ a/include/linux/crash_dump.h
+@@ -24,7 +24,7 @@ extern struct proc_dir_entry *proc_vmcor
+ 
+ static inline int is_kdump_kernel(void)
+ {
+-	return (elfcorehdr_addr != ELFCORE_ADDR_MAX) ? 1 : 0 ;
++	return (elfcorehdr_addr != ELFCORE_ADDR_MAX) ? 1 : 0;
+ }
+ #else /* !CONFIG_CRASH_DUMP */
+ static inline int is_kdump_kernel(void) { return 0; }
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+arm-fix-fls-for-64-bit-arguments.patch
 linux-next.patch
-cifs-remove-global_extern-macro.patch
-mtd-diskonchipc-fix-sparse-endian-warnings.patch
-scsi-replace-remaining-__function__-occurrences.patch
-fusion-replace-remaining-__function__-occurrences.patch
-scsi-replace-__inline-with-inline.patch
-scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
-scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
-xfs-use-get_unaligned_-helpers.patch
-xtensa-replace-remaining-__function__-occurences.patch
-fs-ldm-use-get_unaligned_-helpers.patch
-include-use-get-put_unaligned_-helpers.patch
-lzo-use-get-put_unaligned_-helpers.patch
-asm-generic-int-ll64h-always-provide-__su64.patch
-olpc-olpc_batteryc-sparse-endian-annotations.patch
-ecryptfs-cryptoc-use-unaligned-byteorder-helpers.patch
-ecryptfs-inodec-mmapc-use-unaligned-byteorder-helpers.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-isdn-use-the-common-ascii-hex-helpers.patch
-net-use-the-common-ascii-hex-helpers.patch
-cris-use-the-common-ascii-hex-helpers.patch
-frv-use-the-common-ascii-hex-helpers.patch
-mips-use-the-common-ascii-hex-helpers.patch
-ppc-use-the-common-ascii-hex-helpers.patch
+next-remove-localversion.patch
+kvm-is-busted-on-ia64.patch
+drivers-mtd-nand-nandsimc-needs-div64h.patch
+pci-make-pci_register_driver-a-macro.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+ia64-improper-printk-format-in-acpi-cpufreq-checkpatch-fixes.patch
+git-jg-misc.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+bridge-send-correct-mtu-value-in-pmtu-checkpatch-fixes.patch
+sundance-set-carrier-status-on-link-change-events.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+use-sysdev_class-in-schedc-fix.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+git-unionfs.patch
+git-logfs-fixup.patch
+drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
+drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
+git-watchdog.patch
+git-xtensa.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-verify-the-page-links-and-memory-model.patch
+mspec-convert-nopfn-to-fault-fix.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+kill-generic_file_direct_io-checkpatch-fixes.patch
+use-generic_access_phys-for-dev-mem-mappings-fix.patch
+spufs-use-the-new-vm_ops-access-fix.patch
+fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
+page-flags-record-page-flag-overlays-explicitly-xen.patch
+mapping_set_error-add-unlikely.patch
+huge-page-private-reservation-review-cleanups-fix.patch
+vma-page-offset-has-no-callees-drop-it.patch
+sync_file_range_write-may-and-will-block-document-that-fix.patch
+vmallocinfo-add-numa-information-fix.patch
+hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
+hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
+hugetlb-override-default-huge-page-size-ia64-build.patch
+linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+bootmem-add-debugging-framework-fix.patch
+bootmem-clean-up-free_all_bootmem_core-fix.patch
+bootmem-free-reserve-helpers-fix.patch
+revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-v850-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-arm-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mips-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mtd-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fixes.patch
+mmu-notifiers-add-mm_take_all_locks-operation-checkpatch-fixes.patch
+mmu-notifier-core-checkpatch-fixes.patch
+mmu-notifier-core-fix.patch
+mmu-notifier-core-fix-2.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
+security-protect-legacy-applications-from-executing-with-insufficient-privilege-checkpatch-fixes.patch
+swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+seq_file-fix-bug-when-seq_read-reads-nothing-fix.patch
+exec-remove-some-includes-fix.patch
+inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-paccept-sys_ni.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-signalfd-fix.patch
+flag-parameters-eventfd-fix.patch
+flag-parameters-inotify_init-fix.patch
+flag-parameters-check-magic-constants-alpha.patch
+spi-au1550_spi-improve-pio-transfer-mode-checkpatch-fixes.patch
+gpio-gpio-driver-for-max7301-spi-gpio-expander-checkpatch-fixes.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
+sm501-fixup-allocation-code-to-be-64bit-resource-compliant-sm501-align-panel-fb-to-page_size-fix.patch
+lcd-add-platform_lcd-driver-fix.patch
+fsl-diu-fb-update-freescale-diu-driver-to-use-page_alloc_exact.patch
+fbdev-add-new-cobalt-lcd-framebuffer-driver.patch
+eink_apollofb-new-driver-for-apollo-eink-controller-cleanup.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
+ext3-handle-corrupted-orphan-list-at-mount-cleanup.patch
+ext3-handle-corrupted-orphan-list-at-mount-fix.patch
+ext3-handle-corrupted-orphan-list-at-mount-cleanup-fix.patch
+ext3-handle-deleting-corrupted-indirect-blocks-fix.patch
+jbd-dont-abort-if-flushing-file-data-failed-fix.patch
+reiserfs-convert-j_flush_sem-to-mutex.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
+cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-fix.patch
+cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-checkpatch-fixes.patch
+devcgroup-code-cleanup-fix.patch
+memcg-remove-refcnt-from-page_cgroup-fix-2.patch
+coredump-exit_mm-clear-mm-first-then-play-with-core_state-checkpatch-fixes.patch
+workqueues-make-get_online_cpus-useable-for-work-func-fix.patch
+ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
+fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
+block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
+getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
+edac-mpc85xx-fix-pci-ofdev-2nd-pass-checkpatch-fixes.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-s2io.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
+x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary-checkpatch-fixes.patch
+calgary-iommu-use-the-first-kernels-tce-tables-in-kdump-coding-style-fixes.patch
+tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
+memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
+memstick-use-fully-asynchronous-request-processing-fix.patch
+full-conversion-to-early_initcall-interface-remove-old-interface-cleanup.patch
+full-conversion-to-early_initcall-interface-remove-old-interface-fix.patch
 ppc-use-the-common-ascii-hex-helpers-fix.patch
-mn10300-use-the-common-ascii-hex-helpers.patch
-byteorder-add-a-new-include-linux-swabh-to-define-byteswapping-functions.patch
-byteorder-add-include-linux-byteorderh-to-define-endian-helpers.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+mm-introduce-get_user_pages_fast-fix.patch
+mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-fix.patch
+x86-lockless-get_user_pages_fast-fix-2.patch
+x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
+x86-lockless-get_user_pages_fast-fix-warning.patch
+vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
+define-page_file_cache-function-fix.patch
+vmscan-split-lru-lists-into-anon-file-sets-units-fix.patch
+unevictable-lru-infrastructure-fix.patch
+unevictable-lru-page-statistics-units-fix.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-3.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
+vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-fix.patch
+resource-add-resource_size-fix.patch
+resource-add-resource_type-and-ioresource_type_bits-fix.patch
+video-console-sticonrec-make-code-static-checkpatch-fixes.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
