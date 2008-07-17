@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + ath5k-kill-tasklets-on-shutdown.patch added to -mm tree
-Date: Wed, 16 Jul 2008 17:11:48 -0700
-Message-ID: <200807170011.m6H0BnKi020937@imap1.linux-foundation.org>
+Subject: + ath5k-fix-dma-operation.patch added to -mm tree
+Date: Wed, 16 Jul 2008 17:11:52 -0700
+Message-ID: <200807170011.m6H0Bqed020943@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34489 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34884 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751586AbYGQALv (ORCPT
+	by vger.kernel.org with ESMTP id S1752621AbYGQAL4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jul 2008 20:11:51 -0400
+	Wed, 16 Jul 2008 20:11:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jirislaby@gmail.com, mcgrof@gmail.com, mickflemm@gmail.com
 
 
 The patch titled
-     ath5k: kill tasklets on shutdown
+     ath5k: fix dma operation
 has been added to the -mm tree.  Its filename is
-     ath5k-kill-tasklets-on-shutdown.patch
+     ath5k-fix-dma-operation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,14 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ath5k: kill tasklets on shutdown
+Subject: ath5k: fix dma operation
 From: Jiri Slaby <jirislaby@gmail.com>
 
-Don't forget to kill tasklets on stop to not panic if they fire after
-freeing some structures.
+Don't sync
+- coherent mapping (descriptors)
+- before unmap, it's useless
+- (wrongly anyway -- for_cpu) beacon skb, it's just mapped,
+  so by the device yet
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Cc: Nick Kossifidis <mickflemm@gmail.com>
@@ -46,22 +49,51 @@ Cc: Luis R. Rodriguez <mcgrof@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/ath5k/base.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/net/wireless/ath5k/base.c |   11 -----------
+ 1 file changed, 11 deletions(-)
 
-diff -puN drivers/net/wireless/ath5k/base.c~ath5k-kill-tasklets-on-shutdown drivers/net/wireless/ath5k/base.c
---- a/drivers/net/wireless/ath5k/base.c~ath5k-kill-tasklets-on-shutdown
+diff -puN drivers/net/wireless/ath5k/base.c~ath5k-fix-dma-operation drivers/net/wireless/ath5k/base.c
+--- a/drivers/net/wireless/ath5k/base.c~ath5k-fix-dma-operation
 +++ a/drivers/net/wireless/ath5k/base.c
-@@ -2342,6 +2342,9 @@ ath5k_stop_hw(struct ath5k_softc *sc)
- 	mutex_unlock(&sc->lock);
+@@ -1704,10 +1704,6 @@ ath5k_tasklet_rx(unsigned long data)
+ 		skb = bf->skb;
+ 		ds = bf->desc;
  
- 	del_timer_sync(&sc->calib_tim);
-+	tasklet_kill(&sc->rxtq);
-+	tasklet_kill(&sc->txtq);
-+	tasklet_kill(&sc->restq);
+-		/* TODO only one segment */
+-		pci_dma_sync_single_for_cpu(sc->pdev, sc->desc_daddr,
+-				sc->desc_len, PCI_DMA_FROMDEVICE);
+-
+ 		/*
+ 		 * last buffer must not be freed to ensure proper hardware
+ 		 * function. When the hardware finishes also a packet next to
+@@ -1771,8 +1767,6 @@ ath5k_tasklet_rx(unsigned long data)
+ 				goto next;
+ 		}
+ accept:
+-		pci_dma_sync_single_for_cpu(sc->pdev, bf->skbaddr,
+-				rs.rs_datalen, PCI_DMA_FROMDEVICE);
+ 		pci_unmap_single(sc->pdev, bf->skbaddr, sc->rxbufsize,
+ 				PCI_DMA_FROMDEVICE);
+ 		bf->skb = NULL;
+@@ -1860,9 +1854,6 @@ ath5k_tx_processq(struct ath5k_softc *sc
+ 	list_for_each_entry_safe(bf, bf0, &txq->q, list) {
+ 		ds = bf->desc;
  
- 	return ret;
- }
+-		/* TODO only one segment */
+-		pci_dma_sync_single_for_cpu(sc->pdev, sc->desc_daddr,
+-				sc->desc_len, PCI_DMA_FROMDEVICE);
+ 		ret = sc->ah->ah_proc_tx_desc(sc->ah, ds, &ts);
+ 		if (unlikely(ret == -EINPROGRESS))
+ 			break;
+@@ -2035,8 +2026,6 @@ ath5k_beacon_send(struct ath5k_softc *sc
+ 		ATH5K_WARN(sc, "beacon queue %u didn't stop?\n", sc->bhalq);
+ 		/* NB: hw still stops DMA, so proceed */
+ 	}
+-	pci_dma_sync_single_for_cpu(sc->pdev, bf->skbaddr, bf->skb->len,
+-			PCI_DMA_TODEVICE);
+ 
+ 	ath5k_hw_put_tx_buf(ah, sc->bhalq, bf->daddr);
+ 	ath5k_hw_tx_start(ah, sc->bhalq);
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
