@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + olpc-olpc_batteryc-sparse-endian-annotations.patch added to -mm tree
-Date: Thu, 17 Jul 2008 14:06:29 -0700
-Message-ID: <200807172106.m6HL6TC3006218@imap1.linux-foundation.org>
+Subject: + ecryptfs-make-all-persistent-file-opens-delayed.patch added to -mm tree
+Date: Thu, 17 Jul 2008 14:10:47 -0700
+Message-ID: <200807172110.m6HLAmDv006435@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51452 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50090 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757832AbYGQVGi (ORCPT
+	by vger.kernel.org with ESMTP id S1758998AbYGQVLM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Jul 2008 17:06:38 -0400
+	Thu, 17 Jul 2008 17:11:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, dilinger@queued.net, dwmw2@infradead.org
+Cc: mhalcrow@us.ibm.com
 
 
 The patch titled
-     olpc: olpc_battery.c sparse endian annotations
+     eCryptfs: Make all persistent file opens delayed
 has been added to the -mm tree.  Its filename is
-     olpc-olpc_batteryc-sparse-endian-annotations.patch
+     ecryptfs-make-all-persistent-file-opens-delayed.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,109 +34,142 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: olpc: olpc_battery.c sparse endian annotations
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: eCryptfs: Make all persistent file opens delayed
+From: Michael Halcrow <mhalcrow@us.ibm.com>
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Andres Salomon <dilinger@queued.net>
-Cc: David Woodhouse <dwmw2@infradead.org>
+There is no good reason to immediately open the lower file, and that can
+cause problems with files that the user does not intend to immediately
+open, such as device nodes.
+
+This patch removes the persistent file open from the interpose step and
+pushes that to the locations where eCryptfs really does need the lower
+persistent file, such as just before reading or writing the metadata
+stored in the lower file header.
+
+Two functions are jumping to out_dput when they should just be jumping to
+out on error paths.  This patch also fixes these.
+
+Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/power/olpc_battery.c |   20 ++++++++------------
- 1 file changed, 8 insertions(+), 12 deletions(-)
+ fs/ecryptfs/ecryptfs_kernel.h |    2 --
+ fs/ecryptfs/file.c            |    4 ----
+ fs/ecryptfs/inode.c           |   27 +++++++++++++++++++++++----
+ fs/ecryptfs/main.c            |   16 ----------------
+ 4 files changed, 23 insertions(+), 26 deletions(-)
 
-diff -puN drivers/power/olpc_battery.c~olpc-olpc_batteryc-sparse-endian-annotations drivers/power/olpc_battery.c
---- a/drivers/power/olpc_battery.c~olpc-olpc_batteryc-sparse-endian-annotations
-+++ a/drivers/power/olpc_battery.c
-@@ -205,9 +205,9 @@ static int olpc_bat_get_property(struct 
- 				 union power_supply_propval *val)
- {
- 	int ret = 0;
--	int16_t ec_word;
-+	__be16 ec_word;
- 	uint8_t ec_byte;
--	uint64_t ser_buf;
-+	__be64 ser_buf;
+diff -puN fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-make-all-persistent-file-opens-delayed fs/ecryptfs/ecryptfs_kernel.h
+--- a/fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-make-all-persistent-file-opens-delayed
++++ a/fs/ecryptfs/ecryptfs_kernel.h
+@@ -235,7 +235,6 @@ struct ecryptfs_crypt_stat {
+ #define ECRYPTFS_METADATA_IN_XATTR  0x00000100
+ #define ECRYPTFS_VIEW_AS_ENCRYPTED  0x00000200
+ #define ECRYPTFS_KEY_SET            0x00000400
+-#define ECRYPTFS_DELAY_PERSISTENT   0x00000800
+ 	u32 flags;
+ 	unsigned int file_version;
+ 	size_t iv_bytes;
+@@ -576,7 +575,6 @@ struct ecryptfs_open_req {
+ };
  
- 	ret = olpc_ec_cmd(EC_BAT_STATUS, NULL, 0, &ec_byte, 1);
- 	if (ret)
-@@ -257,16 +257,14 @@ static int olpc_bat_get_property(struct 
- 		if (ret)
- 			return ret;
- 
--		ec_word = be16_to_cpu(ec_word);
--		val->intval = ec_word * 9760L / 32;
-+		val->intval = (int)be16_to_cpu(ec_word) * 9760L / 32;
- 		break;
- 	case POWER_SUPPLY_PROP_CURRENT_AVG:
- 		ret = olpc_ec_cmd(EC_BAT_CURRENT, NULL, 0, (void *)&ec_word, 2);
- 		if (ret)
- 			return ret;
- 
--		ec_word = be16_to_cpu(ec_word);
--		val->intval = ec_word * 15625L / 120;
-+		val->intval = (int)be16_to_cpu(ec_word) * 15625L / 120;
- 		break;
- 	case POWER_SUPPLY_PROP_CAPACITY:
- 		ret = olpc_ec_cmd(EC_BAT_SOC, NULL, 0, &ec_byte, 1);
-@@ -278,24 +276,22 @@ static int olpc_bat_get_property(struct 
- 		ret = olpc_ec_cmd(EC_BAT_TEMP, NULL, 0, (void *)&ec_word, 2);
- 		if (ret)
- 			return ret;
--		ec_word = be16_to_cpu(ec_word);
--		val->intval = ec_word * 100 / 256;
-+
-+		val->intval = (int)be16_to_cpu(ec_word) * 100 / 256;
- 		break;
- 	case POWER_SUPPLY_PROP_TEMP_AMBIENT:
- 		ret = olpc_ec_cmd(EC_AMB_TEMP, NULL, 0, (void *)&ec_word, 2);
- 		if (ret)
- 			return ret;
- 
--		ec_word = be16_to_cpu(ec_word);
--		val->intval = ec_word * 100 / 256;
-+		val->intval = (int)be16_to_cpu(ec_word) * 100 / 256;
- 		break;
- 	case POWER_SUPPLY_PROP_CHARGE_COUNTER:
- 		ret = olpc_ec_cmd(EC_BAT_ACR, NULL, 0, (void *)&ec_word, 2);
- 		if (ret)
- 			return ret;
- 
--		ec_word = be16_to_cpu(ec_word);
--		val->intval = ec_word * 6250 / 15;
-+		val->intval = (int)be16_to_cpu(ec_word) * 6250 / 15;
- 		break;
- 	case POWER_SUPPLY_PROP_SERIAL_NUMBER:
- 		ret = olpc_ec_cmd(EC_BAT_SERIAL, NULL, 0, (void *)&ser_buf, 8);
-_
-
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
-
-origin.patch
-linux-next.patch
-cifs-remove-global_extern-macro.patch
-scsi-replace-remaining-__function__-occurrences.patch
-fusion-replace-remaining-__function__-occurrences.patch
-scsi-replace-__inline-with-inline.patch
-scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
-scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
-xfs-use-get_unaligned_-helpers.patch
-xtensa-replace-remaining-__function__-occurences.patch
-fs-ldm-use-get_unaligned_-helpers.patch
-include-use-get-put_unaligned_-helpers.patch
-lzo-use-get-put_unaligned_-helpers.patch
-asm-generic-int-ll64h-always-provide-__su64.patch
-olpc-olpc_batteryc-sparse-endian-annotations.patch
-ecryptfs-cryptoc-use-unaligned-byteorder-helpers.patch
-ecryptfs-inodec-mmapc-use-unaligned-byteorder-helpers.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-isdn-use-the-common-ascii-hex-helpers.patch
-net-use-the-common-ascii-hex-helpers.patch
-cris-use-the-common-ascii-hex-helpers.patch
-frv-use-the-common-ascii-hex-helpers.patch
-mips-use-the-common-ascii-hex-helpers.patch
-ppc-use-the-common-ascii-hex-helpers.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-mn10300-use-the-common-ascii-hex-helpers.patch
-
+ #define ECRYPTFS_INTERPOSE_FLAG_D_ADD                 0x00000001
+-#define ECRYPTFS_INTERPOSE_FLAG_DELAY_PERSISTENT_FILE 0x00000002
+ int ecryptfs_interpose(struct dentry *hidden_dentry,
+ 		       struct dentry *this_dentry, struct super_block *sb,
+ 		       u32 flags);
+diff -puN fs/ecryptfs/file.c~ecryptfs-make-all-persistent-file-opens-delayed fs/ecryptfs/file.c
+--- a/fs/ecryptfs/file.c~ecryptfs-make-all-persistent-file-opens-delayed
++++ a/fs/ecryptfs/file.c
+@@ -200,10 +200,6 @@ static int ecryptfs_open(struct inode *i
+ 		goto out;
+ 	}
+ 	if (!ecryptfs_inode_to_private(inode)->lower_file) {
+-		BUG_ON(!(crypt_stat->flags & ECRYPTFS_DELAY_PERSISTENT));
+-		mutex_lock(&crypt_stat->cs_mutex);
+-		crypt_stat->flags &= ~(ECRYPTFS_ENCRYPTED);
+-		mutex_unlock(&crypt_stat->cs_mutex);
+ 		rc = ecryptfs_init_persistent_file(ecryptfs_dentry);
+ 		if (rc) {
+ 			printk(KERN_ERR "%s: Error attempting to initialize "
+diff -puN fs/ecryptfs/inode.c~ecryptfs-make-all-persistent-file-opens-delayed fs/ecryptfs/inode.c
+--- a/fs/ecryptfs/inode.c~ecryptfs-make-all-persistent-file-opens-delayed
++++ a/fs/ecryptfs/inode.c
+@@ -189,6 +189,16 @@ static int ecryptfs_initialize_file(stru
+ 				"context; rc = [%d]\n", rc);
+ 		goto out;
+ 	}
++	if (!ecryptfs_inode_to_private(ecryptfs_dentry->d_inode)->lower_file) {
++		rc = ecryptfs_init_persistent_file(ecryptfs_dentry);
++		if (rc) {
++			printk(KERN_ERR "%s: Error attempting to initialize "
++			       "the persistent file for the dentry with name "
++			       "[%s]; rc = [%d]\n", __func__,
++			       ecryptfs_dentry->d_name.name, rc);
++			goto out;
++		}
++	}
+ 	rc = ecryptfs_write_metadata(ecryptfs_dentry);
+ 	if (rc) {
+ 		printk(KERN_ERR "Error writing headers; rc = [%d]\n", rc);
+@@ -312,7 +322,7 @@ static struct dentry *ecryptfs_lookup(st
+ 				ECRYPTFS_INTERPOSE_FLAG_D_ADD);
+ 	if (rc) {
+ 		ecryptfs_printk(KERN_ERR, "Error interposing\n");
+-		goto out_dput;
++		goto out;
+ 	}
+ 	if (S_ISDIR(lower_inode->i_mode)) {
+ 		ecryptfs_printk(KERN_DEBUG, "Is a directory; returning\n");
+@@ -338,11 +348,21 @@ static struct dentry *ecryptfs_lookup(st
+ 		rc = -ENOMEM;
+ 		ecryptfs_printk(KERN_ERR,
+ 				"Cannot ecryptfs_kmalloc a page\n");
+-		goto out_dput;
++		goto out;
+ 	}
+ 	crypt_stat = &ecryptfs_inode_to_private(dentry->d_inode)->crypt_stat;
+ 	if (!(crypt_stat->flags & ECRYPTFS_POLICY_APPLIED))
+ 		ecryptfs_set_default_sizes(crypt_stat);
++	if (!ecryptfs_inode_to_private(dentry->d_inode)->lower_file) {
++		rc = ecryptfs_init_persistent_file(dentry);
++		if (rc) {
++			printk(KERN_ERR "%s: Error attempting to initialize "
++			       "the persistent file for the dentry with name "
++			       "[%s]; rc = [%d]\n", __func__,
++			       dentry->d_name.name, rc);
++			goto out;
++		}
++	}
+ 	rc = ecryptfs_read_and_validate_header_region(page_virt,
+ 						      dentry->d_inode);
+ 	if (rc) {
+@@ -538,8 +558,7 @@ ecryptfs_mknod(struct inode *dir, struct
+ 	rc = vfs_mknod(lower_dir_dentry->d_inode, lower_dentry, mode, dev);
+ 	if (rc || !lower_dentry->d_inode)
+ 		goto out;
+-	rc = ecryptfs_interpose(lower_dentry, dentry, dir->i_sb,
+-				ECRYPTFS_INTERPOSE_FLAG_DELAY_PERSISTENT_FILE);
++	rc = ecryptfs_interpose(lower_dentry, dentry, dir->i_sb, 0);
+ 	if (rc)
+ 		goto out;
+ 	fsstack_copy_attr_times(dir, lower_dir_dentry->d_inode);
+diff -puN fs/ecryptfs/main.c~ecryptfs-make-all-persistent-file-opens-delayed fs/ecryptfs/main.c
+--- a/fs/ecryptfs/main.c~ecryptfs-make-all-persistent-file-opens-delayed
++++ a/fs/ecryptfs/main.c
+@@ -201,22 +201,6 @@ int ecryptfs_interpose(struct dentry *lo
+ 	/* This size will be overwritten for real files w/ headers and
+ 	 * other metadata */
+ 	fsstack_copy_inode_size(inode, lower_inode);
+-	if (!(flags & ECRYPTFS_INTERPOSE_FLAG_DELAY_PERSISTENT_FILE)) {
+-		rc = ecryptfs_init_persistent_file(dentry);
+-		if (rc) {
+-			printk(KERN_ERR "%s: Error attempting to initialize "
+-			       "the persistent file for the dentry with name "
+-			       "[%s]; rc = [%d]\n", __func__,
+-			       dentry->d_name.name, rc);
+-			goto out;
+-		}
+-	} else {
+-		struct ecryptfs_inode_info *inode_info =
+-			ecryptfs_inode_to_private(dentry->d_inode);
