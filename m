@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + tracehook-job-control.patch added to -mm tree
-Date: Thu, 17 Jul 2008 01:31:01 -0700
-Message-ID: <200807170831.m6H8V1xA006998@imap1.linux-foundation.org>
+Subject: + tracehook-tracehook_consider_ignored_signal.patch added to -mm tree
+Date: Thu, 17 Jul 2008 01:30:53 -0700
+Message-ID: <200807170830.m6H8Ur0V006979@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34220 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49365 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753800AbYGQIic (ORCPT
+	by vger.kernel.org with ESMTP id S1754086AbYGQIjC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Jul 2008 04:38:32 -0400
+	Thu, 17 Jul 2008 04:39:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: roland@redhat.com, oleg@tv-sign.ru
 
 
 The patch titled
-     tracehook: job control
+     tracehook: tracehook_consider_ignored_signal
 has been added to the -mm tree.  Its filename is
-     tracehook-job-control.patch
+     tracehook-tracehook_consider_ignored_signal.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,91 +34,116 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tracehook: job control
+Subject: tracehook: tracehook_consider_ignored_signal
 From: Roland McGrath <roland@redhat.com>
 
-This defines the tracehook_notify_jctl() hook to formalize the ptrace
-effects on the job control notifications.  There is no change, only
-cleanup.
+This defines tracehook_consider_ignored_signal() has a fine-grained hook
+for deciding to prevent the normal short-circuit of sending an ignored
+signal, as ptrace does.  There is no change, only cleanup.
 
 Signed-off-by: Roland McGrath <roland@redhat.com>
 Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/tracehook.h |   20 ++++++++++++++++++++
- kernel/signal.c           |   10 +++++-----
- 2 files changed, 25 insertions(+), 5 deletions(-)
+ include/linux/tracehook.h |   19 +++++++++++++++++++
+ kernel/signal.c           |   27 ++++++++++++++++-----------
+ 2 files changed, 35 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/tracehook.h~tracehook-job-control include/linux/tracehook.h
---- a/include/linux/tracehook.h~tracehook-job-control
+diff -puN include/linux/tracehook.h~tracehook-tracehook_consider_ignored_signal include/linux/tracehook.h
+--- a/include/linux/tracehook.h~tracehook-tracehook_consider_ignored_signal
 +++ a/include/linux/tracehook.h
-@@ -451,4 +451,24 @@ static inline int tracehook_get_signal(s
- 	return 0;
+@@ -312,4 +312,23 @@ static inline void tracehook_signal_hand
+ 		ptrace_notify(SIGTRAP);
  }
  
 +/**
-+ * tracehook_notify_jctl - report about job control stop/continue
-+ * @notify:		nonzero if this is the last thread in the group to stop
-+ * @why:		%CLD_STOPPED or %CLD_CONTINUED
++ * tracehook_consider_ignored_signal - suppress short-circuit of ignored signal
++ * @task:		task receiving the signal
++ * @sig:		signal number being sent
++ * @handler:		%SIG_IGN or %SIG_DFL
 + *
-+ * This is called when we might call do_notify_parent_cldstop().
-+ * It's called when about to stop for job control; we are already in
-+ * %TASK_STOPPED state, about to call schedule().  It's also called when
-+ * a delayed %CLD_STOPPED or %CLD_CONTINUED report is ready to be made.
++ * Return zero iff tracing doesn't care to examine this ignored signal,
++ * so it can short-circuit normal delivery and never even get queued.
++ * Either @handler is %SIG_DFL and @sig's default is ignore, or it's %SIG_IGN.
 + *
-+ * Return nonzero to generate a %SIGCHLD with @why, which is
-+ * normal if @notify is nonzero.
-+ *
-+ * Called with no locks held.
++ * Called with @task->sighand->siglock held.
 + */
-+static inline int tracehook_notify_jctl(int notify, int why)
++static inline int tracehook_consider_ignored_signal(struct task_struct *task,
++						    int sig,
++						    void __user *handler)
 +{
-+	return notify || (current->ptrace & PT_PTRACED);
++	return (task_ptrace(task) & PT_PTRACED) != 0;
 +}
 +
  #endif	/* <linux/tracehook.h> */
-diff -puN kernel/signal.c~tracehook-job-control kernel/signal.c
---- a/kernel/signal.c~tracehook-job-control
+diff -puN kernel/signal.c~tracehook-tracehook_consider_ignored_signal kernel/signal.c
+--- a/kernel/signal.c~tracehook-tracehook_consider_ignored_signal
 +++ a/kernel/signal.c
-@@ -596,9 +596,6 @@ static int check_kill_permission(int sig
- 	return security_task_kill(t, info, sig, 0);
+@@ -22,6 +22,7 @@
+ #include <linux/ptrace.h>
+ #include <linux/signal.h>
+ #include <linux/signalfd.h>
++#include <linux/tracehook.h>
+ #include <linux/capability.h>
+ #include <linux/freezer.h>
+ #include <linux/pid_namespace.h>
+@@ -39,24 +40,21 @@
+ 
+ static struct kmem_cache *sigqueue_cachep;
+ 
+-static int __sig_ignored(struct task_struct *t, int sig)
++static void __user *sig_handler(struct task_struct *t, int sig)
+ {
+-	void __user *handler;
++	return t->sighand->action[sig - 1].sa.sa_handler;
++}
+ 
++static int sig_handler_ignored(void __user *handler, int sig)
++{
+ 	/* Is it explicitly or implicitly ignored? */
+-
+-	handler = t->sighand->action[sig - 1].sa.sa_handler;
+ 	return handler == SIG_IGN ||
+ 		(handler == SIG_DFL && sig_kernel_ignore(sig));
  }
  
--/* forward decl */
--static void do_notify_parent_cldstop(struct task_struct *tsk, int why);
--
- /*
-  * Handle magic process-wide effects of stop/continue signals. Unlike
-  * the signal actions, these happen immediately at signal-generation
-@@ -1605,7 +1602,7 @@ finish_stop(int stop_count)
- 	 * a group stop in progress and we are the last to stop,
- 	 * report to the parent.  When ptraced, every thread reports itself.
- 	 */
--	if (stop_count == 0 || (current->ptrace & PT_PTRACED)) {
-+	if (tracehook_notify_jctl(stop_count == 0, CLD_STOPPED)) {
- 		read_lock(&tasklist_lock);
- 		do_notify_parent_cldstop(current, CLD_STOPPED);
- 		read_unlock(&tasklist_lock);
-@@ -1741,6 +1738,9 @@ relock:
- 		signal->flags &= ~SIGNAL_CLD_MASK;
- 		spin_unlock_irq(&sighand->siglock);
+ static int sig_ignored(struct task_struct *t, int sig)
+ {
+-	/*
+-	 * Tracers always want to know about signals..
+-	 */
+-	if (t->ptrace & PT_PTRACED)
+-		return 0;
++	void __user *handler;
  
-+		if (unlikely(!tracehook_notify_jctl(1, why)))
-+			goto relock;
+ 	/*
+ 	 * Blocked signals are never ignored, since the
+@@ -66,7 +64,14 @@ static int sig_ignored(struct task_struc
+ 	if (sigismember(&t->blocked, sig) || sigismember(&t->real_blocked, sig))
+ 		return 0;
+ 
+-	return __sig_ignored(t, sig);
++	handler = sig_handler(t, sig);
++	if (!sig_handler_ignored(handler, sig))
++		return 0;
 +
- 		read_lock(&tasklist_lock);
- 		do_notify_parent_cldstop(current->group_leader, why);
- 		read_unlock(&tasklist_lock);
-@@ -1906,7 +1906,7 @@ void exit_signals(struct task_struct *ts
- out:
- 	spin_unlock_irq(&tsk->sighand->siglock);
++	/*
++	 * Tracers may want to know about even ignored signals.
++	 */
++	return !tracehook_consider_ignored_signal(t, sig, handler);
+ }
  
--	if (unlikely(group_stop)) {
-+	if (unlikely(group_stop) && tracehook_notify_jctl(1, CLD_STOPPED)) {
- 		read_lock(&tasklist_lock);
- 		do_notify_parent_cldstop(tsk, CLD_STOPPED);
- 		read_unlock(&tasklist_lock);
+ /*
+@@ -2298,7 +2303,7 @@ int do_sigaction(int sig, struct k_sigac
+ 		 *   (for example, SIGCHLD), shall cause the pending signal to
+ 		 *   be discarded, whether or not it is blocked"
+ 		 */
+-		if (__sig_ignored(t, sig)) {
++		if (sig_handler_ignored(sig_handler(t, sig), sig)) {
+ 			sigemptyset(&mask);
+ 			sigaddset(&mask, sig);
+ 			rm_from_queue_full(&mask, &t->signal->shared_pending);
 _
 
 Patches currently in -mm which might be from roland@redhat.com are
