@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + tracehook-death.patch added to -mm tree
-Date: Thu, 17 Jul 2008 01:31:03 -0700
-Message-ID: <200807170831.m6H8V3wF007003@imap1.linux-foundation.org>
+Subject: + tracehook-tracehook_tracer_task.patch added to -mm tree
+Date: Thu, 17 Jul 2008 01:30:47 -0700
+Message-ID: <200807170830.m6H8UlQO006970@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34911 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46547 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754133AbYGQIkV (ORCPT
+	by vger.kernel.org with ESMTP id S1754032AbYGQIkE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Jul 2008 04:40:21 -0400
+	Thu, 17 Jul 2008 04:40:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: roland@redhat.com, oleg@tv-sign.ru
 
 
 The patch titled
-     tracehook: death
+     tracehook: tracehook_tracer_task
 has been added to the -mm tree.  Its filename is
-     tracehook-death.patch
+     tracehook-tracehook_tracer_task.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,187 +34,162 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tracehook: death
+Subject: tracehook: tracehook_tracer_task
 From: Roland McGrath <roland@redhat.com>
 
-This moves the ptrace logic in task death (exit_notify) into tracehook.h
-inlines.  Some code is rearranged slightly to make things nicer.  There is
-no change, only cleanup.
-
-There is one hook called with the tasklist_lock write-locked, as ptrace
-needs.  There is also a new hook called after exit_state changes and
-without locks.  This is a better place for tracing work to be in the
-future, since it doesn't delay the whole system with locking.
+This adds the tracehook_tracer_task() hook to consolidate all forms of
+"Who is using ptrace on me?" logic.  This is used for "TracerPid:" in
+/proc and for permission checks.  We also clean up the selinux code the
+called an identical accessor.
 
 Signed-off-by: Roland McGrath <roland@redhat.com>
 Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h     |    2 -
- include/linux/tracehook.h |   52 ++++++++++++++++++++++++++++++++++++
- kernel/exit.c             |   28 ++++++-------------
- kernel/signal.c           |   10 ++++--
- 4 files changed, 70 insertions(+), 22 deletions(-)
+ fs/proc/array.c           |    9 +++++++--
+ fs/proc/base.c            |   13 +++++++++----
+ include/linux/tracehook.h |   18 ++++++++++++++++++
+ security/selinux/hooks.c  |   22 +++-------------------
+ 4 files changed, 37 insertions(+), 25 deletions(-)
 
-diff -puN include/linux/sched.h~tracehook-death include/linux/sched.h
---- a/include/linux/sched.h~tracehook-death
-+++ a/include/linux/sched.h
-@@ -1786,7 +1786,7 @@ extern int kill_pid_info_as_uid(int, str
- extern int kill_pgrp(struct pid *pid, int sig, int priv);
- extern int kill_pid(struct pid *pid, int sig, int priv);
- extern int kill_proc_info(int, struct siginfo *, pid_t);
--extern void do_notify_parent(struct task_struct *, int);
-+extern int do_notify_parent(struct task_struct *, int);
- extern void force_sig(int, struct task_struct *);
- extern void force_sig_specific(int, struct task_struct *);
- extern int send_sig(int, struct task_struct *, int);
-diff -puN include/linux/tracehook.h~tracehook-death include/linux/tracehook.h
---- a/include/linux/tracehook.h~tracehook-death
-+++ a/include/linux/tracehook.h
-@@ -471,4 +471,56 @@ static inline int tracehook_notify_jctl(
- 	return notify || (current->ptrace & PT_PTRACED);
- }
+diff -puN fs/proc/array.c~tracehook-tracehook_tracer_task fs/proc/array.c
+--- a/fs/proc/array.c~tracehook-tracehook_tracer_task
++++ a/fs/proc/array.c
+@@ -80,6 +80,7 @@
+ #include <linux/delayacct.h>
+ #include <linux/seq_file.h>
+ #include <linux/pid_namespace.h>
++#include <linux/tracehook.h>
  
-+/**
-+ * tracehook_notify_death - task is dead, ready to notify parent
-+ * @task:		@current task now exiting
-+ * @death_cookie:	value to pass to tracehook_report_death()
-+ * @group_dead:		nonzero if this was the last thread in the group to die
-+ *
-+ * Return the signal number to send our parent with do_notify_parent(), or
-+ * zero to send no signal and leave a zombie, or -1 to self-reap right now.
-+ *
-+ * Called with write_lock_irq(&tasklist_lock) held.
-+ */
-+static inline int tracehook_notify_death(struct task_struct *task,
-+					 void **death_cookie, int group_dead)
-+{
-+	if (task->exit_signal == -1)
-+		return task->ptrace ? SIGCHLD : -1;
-+
-+	/*
-+	 * If something other than our normal parent is ptracing us, then
-+	 * send it a SIGCHLD instead of honoring exit_signal.  exit_signal
-+	 * only has special meaning to our real parent.
-+	 */
-+	if (thread_group_empty(task) && !ptrace_reparented(task))
-+		return task->exit_signal;
-+
-+	return task->ptrace ? SIGCHLD : 0;
-+}
-+
-+/**
-+ * tracehook_report_death - task is dead and ready to be reaped
-+ * @task:		@current task now exiting
-+ * @signal:		signal number sent to parent, or 0 or -1
-+ * @death_cookie:	value passed back from tracehook_notify_death()
-+ * @group_dead:		nonzero if this was the last thread in the group to die
-+ *
-+ * Thread has just become a zombie or is about to self-reap.  If positive,
-+ * @signal is the signal number just sent to the parent (usually %SIGCHLD).
-+ * If @signal is -1, this thread will self-reap.  If @signal is 0, this is
-+ * a delayed_group_leader() zombie.  The @death_cookie was passed back by
-+ * tracehook_notify_death().
-+ *
-+ * If normal reaping is not inhibited, @task->exit_state might be changing
-+ * in parallel.
-+ *
-+ * Called without locks.
-+ */
-+static inline void tracehook_report_death(struct task_struct *task,
-+					  int signal, void *death_cookie,
-+					  int group_dead)
-+{
-+}
-+
- #endif	/* <linux/tracehook.h> */
-diff -puN kernel/exit.c~tracehook-death kernel/exit.c
---- a/kernel/exit.c~tracehook-death
-+++ a/kernel/exit.c
-@@ -885,7 +885,8 @@ static void forget_original_parent(struc
-  */
- static void exit_notify(struct task_struct *tsk, int group_dead)
- {
--	int state;
-+	int signal;
-+	void *cookie;
+ #include <asm/pgtable.h>
+ #include <asm/processor.h>
+@@ -168,8 +169,12 @@ static inline void task_state(struct seq
+ 	rcu_read_lock();
+ 	ppid = pid_alive(p) ?
+ 		task_tgid_nr_ns(rcu_dereference(p->real_parent), ns) : 0;
+-	tpid = pid_alive(p) && p->ptrace ?
+-		task_pid_nr_ns(rcu_dereference(p->parent), ns) : 0;
++	tpid = 0;
++	if (pid_alive(p)) {
++		struct task_struct *tracer = tracehook_tracer_task(p);
++		if (tracer)
++			tpid = task_pid_nr_ns(tracer, ns);
++	}
+ 	seq_printf(m,
+ 		"State:\t%s\n"
+ 		"Tgid:\t%d\n"
+diff -puN fs/proc/base.c~tracehook-tracehook_tracer_task fs/proc/base.c
+--- a/fs/proc/base.c~tracehook-tracehook_tracer_task
++++ a/fs/proc/base.c
+@@ -69,6 +69,7 @@
+ #include <linux/mount.h>
+ #include <linux/security.h>
+ #include <linux/ptrace.h>
++#include <linux/tracehook.h>
+ #include <linux/cgroup.h>
+ #include <linux/cpuset.h>
+ #include <linux/audit.h>
+@@ -231,10 +232,14 @@ static int check_mem_permission(struct t
+ 	 * If current is actively ptrace'ing, and would also be
+ 	 * permitted to freshly attach with ptrace now, permit it.
+ 	 */
+-	if (task->parent == current && (task->ptrace & PT_PTRACED) &&
+-	    task_is_stopped_or_traced(task) &&
+-	    ptrace_may_access(task, PTRACE_MODE_ATTACH))
+-		return 0;
++	if (task_is_stopped_or_traced(task)) {
++		int match;
++		rcu_read_lock();
++		match = (tracehook_tracer_task(task) == current);
++		rcu_read_unlock();
++		if (match && ptrace_may_access(task, PTRACE_MODE_ATTACH))
++			return 0;
++	}
  
  	/*
- 	 * This does two things:
-@@ -922,22 +923,11 @@ static void exit_notify(struct task_stru
- 	    !capable(CAP_KILL))
- 		tsk->exit_signal = SIGCHLD;
- 
--	/* If something other than our normal parent is ptracing us, then
--	 * send it a SIGCHLD instead of honoring exit_signal.  exit_signal
--	 * only has special meaning to our real parent.
--	 */
--	if (!task_detached(tsk) && thread_group_empty(tsk)) {
--		int signal = ptrace_reparented(tsk) ?
--				SIGCHLD : tsk->exit_signal;
--		do_notify_parent(tsk, signal);
--	} else if (tsk->ptrace) {
--		do_notify_parent(tsk, SIGCHLD);
--	}
--
--	state = EXIT_ZOMBIE;
--	if (task_detached(tsk) && likely(!tsk->ptrace))
--		state = EXIT_DEAD;
--	tsk->exit_state = state;
-+	signal = tracehook_notify_death(tsk, &cookie, group_dead);
-+	if (signal > 0)
-+		signal = do_notify_parent(tsk, signal);
-+
-+	tsk->exit_state = signal < 0 ? EXIT_DEAD : EXIT_ZOMBIE;
- 
- 	/* mt-exec, de_thread() is waiting for us */
- 	if (thread_group_leader(tsk) &&
-@@ -947,8 +937,10 @@ static void exit_notify(struct task_stru
- 
- 	write_unlock_irq(&tasklist_lock);
- 
-+	tracehook_report_death(tsk, signal, cookie, group_dead);
-+
- 	/* If the process is dead, release it - nobody will wait for it */
--	if (state == EXIT_DEAD)
-+	if (signal < 0)
- 		release_task(tsk);
+ 	 * Noone else is allowed.
+diff -puN include/linux/tracehook.h~tracehook-tracehook_tracer_task include/linux/tracehook.h
+--- a/include/linux/tracehook.h~tracehook-tracehook_tracer_task
++++ a/include/linux/tracehook.h
+@@ -73,6 +73,24 @@ static inline int tracehook_unsafe_exec(
  }
  
-diff -puN kernel/signal.c~tracehook-death kernel/signal.c
---- a/kernel/signal.c~tracehook-death
-+++ a/kernel/signal.c
-@@ -1326,9 +1326,11 @@ static inline void __wake_up_parent(stru
- /*
-  * Let a parent know about the death of a child.
-  * For a stopped/continued status change, use do_notify_parent_cldstop instead.
+ /**
++ * tracehook_tracer_task - return the task that is tracing the given task
++ * @tsk:		task to consider
 + *
-+ * Returns -1 if our parent ignored us and so we've switched to
-+ * self-reaping, or else @sig.
-  */
--
--void do_notify_parent(struct task_struct *tsk, int sig)
-+int do_notify_parent(struct task_struct *tsk, int sig)
- {
- 	struct siginfo info;
- 	unsigned long flags;
-@@ -1399,12 +1401,14 @@ void do_notify_parent(struct task_struct
- 		 */
- 		tsk->exit_signal = -1;
- 		if (psig->action[SIGCHLD-1].sa.sa_handler == SIG_IGN)
--			sig = 0;
-+			sig = -1;
- 	}
- 	if (valid_signal(sig) && sig > 0)
- 		__group_send_sig_info(sig, &info, tsk->parent);
- 	__wake_up_parent(tsk, tsk->parent);
- 	spin_unlock_irqrestore(&psig->siglock, flags);
++ * Returns NULL if noone is tracing @task, or the &struct task_struct
++ * pointer to its tracer.
++ *
++ * Must called under rcu_read_lock().  The pointer returned might be kept
++ * live only by RCU.  During exec, this may be called with task_lock()
++ * held on @task, still held from when tracehook_unsafe_exec() was called.
++ */
++static inline struct task_struct *tracehook_tracer_task(struct task_struct *tsk)
++{
++	if (task_ptrace(tsk) & PT_PTRACED)
++		return rcu_dereference(tsk->parent);
++	return NULL;
++}
 +
-+	return sig;
++/**
+  * tracehook_report_exec - a successful exec was completed
+  * @fmt:		&struct linux_binfmt that performed the exec
+  * @bprm:		&struct linux_binprm containing exec details
+diff -puN security/selinux/hooks.c~tracehook-tracehook_tracer_task security/selinux/hooks.c
+--- a/security/selinux/hooks.c~tracehook-tracehook_tracer_task
++++ a/security/selinux/hooks.c
+@@ -25,7 +25,7 @@
+ 
+ #include <linux/init.h>
+ #include <linux/kernel.h>
+-#include <linux/ptrace.h>
++#include <linux/tracehook.h>
+ #include <linux/errno.h>
+ #include <linux/sched.h>
+ #include <linux/security.h>
+@@ -1971,22 +1971,6 @@ static int selinux_vm_enough_memory(stru
+ 	return __vm_enough_memory(mm, pages, cap_sys_admin);
  }
  
- static void do_notify_parent_cldstop(struct task_struct *tsk, int why)
+-/**
+- * task_tracer_task - return the task that is tracing the given task
+- * @task:		task to consider
+- *
+- * Returns NULL if noone is tracing @task, or the &struct task_struct
+- * pointer to its tracer.
+- *
+- * Must be called under rcu_read_lock().
+- */
+-static struct task_struct *task_tracer_task(struct task_struct *task)
+-{
+-	if (task->ptrace & PT_PTRACED)
+-		return rcu_dereference(task->parent);
+-	return NULL;
+-}
+-
+ /* binprm security operations */
+ 
+ static int selinux_bprm_alloc_security(struct linux_binprm *bprm)
+@@ -2238,7 +2222,7 @@ static void selinux_bprm_apply_creds(str
+ 			u32 ptsid = 0;
+ 
+ 			rcu_read_lock();
+-			tracer = task_tracer_task(current);
++			tracer = tracehook_tracer_task(current);
+ 			if (likely(tracer != NULL)) {
+ 				sec = tracer->security;
+ 				ptsid = sec->sid;
+@@ -5247,7 +5231,7 @@ static int selinux_setprocattr(struct ta
+ 		   Otherwise, leave SID unchanged and fail. */
+ 		task_lock(p);
+ 		rcu_read_lock();
+-		tracer = task_tracer_task(p);
++		tracer = tracehook_tracer_task(p);
+ 		if (tracer != NULL) {
+ 			struct task_security_struct *ptsec = tracer->security;
+ 			u32 ptsid = ptsec->sid;
 _
 
 Patches currently in -mm which might be from roland@redhat.com are
