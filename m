@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ath5k-suspend-resume-fixes.patch added to -mm tree
-Date: Wed, 16 Jul 2008 17:11:54 -0700
-Message-ID: <200807170011.m6H0BtgP020946@imap1.linux-foundation.org>
+Subject: + mtd-jedec_probe-fix-sst-16-bit-chip-detection.patch added to -mm tree
+Date: Wed, 16 Jul 2008 17:13:32 -0700
+Message-ID: <200807170013.m6H0DWJ0021037@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56046 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55363 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751893AbYGQAL6 (ORCPT
+	by vger.kernel.org with ESMTP id S1752287AbYGQANv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jul 2008 20:11:58 -0400
+	Wed, 16 Jul 2008 20:13:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com, jbarnes@virtuousgeek.org, mcgrof@gmail.com, mickflemm@gmail.com
+Cc: anemo@mba.ocn.ne.jp, dwmw2@infradead.org, stable@kernel.org
 
 
 The patch titled
-     ath5k: suspend/resume fixes
+     mtd: jedec_probe: fix SST 16-bit chip detection
 has been added to the -mm tree.  Its filename is
-     ath5k-suspend-resume-fixes.patch
+     mtd-jedec_probe-fix-sst-16-bit-chip-detection.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,117 +34,73 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ath5k: suspend/resume fixes
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: mtd: jedec_probe: fix SST 16-bit chip detection
+From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
 
-- free and re-request irq since it might have changed during suspend
-- disable and enable msi
-- don't set D0 state of the device, it's already done by the PCI layer
-- do restore_state before enable_device, it's safer
-- check ath5k_init return value
+The unlock_addr rework in kernel 2.6.25 breaks 16-bit SST chips.  SST
+39LF160 and SST 39VF1601 are both 16-bit only chip (do not have BYTE# pin)
+and new uaddr value is not correct for them.  Add MTD_UADDR_0xAAAA_0x5555
+for those chips.  Tested with SST 39VF1601 chip.
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: Nick Kossifidis <mickflemm@gmail.com>
-Cc: Luis R. Rodriguez <mcgrof@gmail.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: <stable@kernel.org> [2.6.25.x, 2.6.26.x, subject to dwmw2 ack]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/ath5k/base.c |   26 +++++++++++++++++++++-----
- 1 file changed, 21 insertions(+), 5 deletions(-)
+ drivers/mtd/chips/jedec_probe.c |   14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
-diff -puN drivers/net/wireless/ath5k/base.c~ath5k-suspend-resume-fixes drivers/net/wireless/ath5k/base.c
---- a/drivers/net/wireless/ath5k/base.c~ath5k-suspend-resume-fixes
-+++ a/drivers/net/wireless/ath5k/base.c
-@@ -592,6 +592,9 @@ ath5k_pci_suspend(struct pci_dev *pdev, 
- 	ath5k_led_off(sc);
+diff -puN drivers/mtd/chips/jedec_probe.c~mtd-jedec_probe-fix-sst-16-bit-chip-detection drivers/mtd/chips/jedec_probe.c
+--- a/drivers/mtd/chips/jedec_probe.c~mtd-jedec_probe-fix-sst-16-bit-chip-detection
++++ a/drivers/mtd/chips/jedec_probe.c
+@@ -200,6 +200,7 @@ enum uaddr {
+ 	MTD_UADDR_0x0555_0x0AAA,
+ 	MTD_UADDR_0x5555_0x2AAA,
+ 	MTD_UADDR_0x0AAA_0x0555,
++	MTD_UADDR_0xAAAA_0x5555,
+ 	MTD_UADDR_DONT_CARE,		/* Requires an arbitrary address */
+ 	MTD_UADDR_UNNECESSARY,		/* Does not require any address */
+ };
+@@ -247,6 +248,11 @@ static const struct unlock_addr  unlock_
+ 		.addr2 = 0x0555
+ 	},
  
- 	ath5k_stop_hw(sc);
++	[MTD_UADDR_0xAAAA_0x5555] = {
++		.addr1 = 0xaaaa,
++		.addr2 = 0x5555
++	},
 +
-+	free_irq(pdev->irq, sc);
-+	pci_disable_msi(pdev);
- 	pci_save_state(pdev);
- 	pci_disable_device(pdev);
- 	pci_set_power_state(pdev, PCI_D3hot);
-@@ -607,15 +610,12 @@ ath5k_pci_resume(struct pci_dev *pdev)
- 	struct ath5k_hw *ah = sc->ah;
- 	int i, err;
- 
--	err = pci_set_power_state(pdev, PCI_D0);
--	if (err)
--		return err;
-+	pci_restore_state(pdev);
- 
- 	err = pci_enable_device(pdev);
- 	if (err)
- 		return err;
- 
--	pci_restore_state(pdev);
- 	/*
- 	 * Suspend/Resume resets the PCI configuration space, so we have to
- 	 * re-disable the RETRY_TIMEOUT register (0x41) to keep
-@@ -623,7 +623,17 @@ ath5k_pci_resume(struct pci_dev *pdev)
- 	 */
- 	pci_write_config_byte(pdev, 0x41, 0);
- 
--	ath5k_init(sc);
-+	pci_enable_msi(pdev);
-+
-+	err = request_irq(pdev->irq, ath5k_intr, IRQF_SHARED, "ath", sc);
-+	if (err) {
-+		ATH5K_ERR(sc, "request_irq failed\n");
-+		goto err_msi;
-+	}
-+
-+	err = ath5k_init(sc);
-+	if (err)
-+		goto err_irq;
- 	ath5k_led_enable(sc);
- 
- 	/*
-@@ -637,6 +647,12 @@ ath5k_pci_resume(struct pci_dev *pdev)
- 		ath5k_hw_reset_key(ah, i);
- 
- 	return 0;
-+err_irq:
-+	free_irq(pdev->irq, sc);
-+err_msi:
-+	pci_disable_msi(pdev);
-+	pci_disable_device(pdev);
-+	return err;
- }
- #endif /* CONFIG_PM */
- 
+ 	[MTD_UADDR_DONT_CARE] = {
+ 		.addr1 = 0x0000,      /* Doesn't matter which address */
+ 		.addr2 = 0x0000       /* is used - must be last entry */
+@@ -1461,8 +1467,8 @@ static const struct amd_flash_info jedec
+ 		.mfr_id		= MANUFACTURER_SST,     /* should be CFI */
+ 		.dev_id		= SST39LF160,
+ 		.name		= "SST 39LF160",
+-		.devtypes	= CFI_DEVICETYPE_X16|CFI_DEVICETYPE_X8,
+-		.uaddr		= MTD_UADDR_0x5555_0x2AAA,	/* ???? */
++		.devtypes	= CFI_DEVICETYPE_X16,
++		.uaddr		= MTD_UADDR_0xAAAA_0x5555,
+ 		.dev_size	= SIZE_2MiB,
+ 		.cmd_set	= P_ID_AMD_STD,
+ 		.nr_regions	= 2,
+@@ -1474,8 +1480,8 @@ static const struct amd_flash_info jedec
+ 		.mfr_id		= MANUFACTURER_SST,     /* should be CFI */
+ 		.dev_id		= SST39VF1601,
+ 		.name		= "SST 39VF1601",
+-		.devtypes	= CFI_DEVICETYPE_X16|CFI_DEVICETYPE_X8,
+-		.uaddr		= MTD_UADDR_0x5555_0x2AAA,	/* ???? */
++		.devtypes	= CFI_DEVICETYPE_X16,
++		.uaddr		= MTD_UADDR_0xAAAA_0x5555,
+ 		.dev_size	= SIZE_2MiB,
+ 		.cmd_set	= P_ID_AMD_STD,
+ 		.nr_regions	= 2,
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
 
 origin.patch
 linux-next.patch
-ath5k-fix-memory-corruption.patch
-ath5k-kill-tasklets-on-shutdown.patch
-ath5k-flush-work.patch
-ath5k-fix-dma-operation.patch
-ath5k-suspend-resume-fixes.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments.patch
-serial-z85c30-avoid-a-hang-at-console-switch-over.patch
-serial-dz11-avoid-a-hang-at-console-switch-over.patch
-vt-hold-console_sem-across-sysfs-operations.patch
-ip2-push-bkl-down-for-the-firmware-interface.patch
-rio-push-down-the-bkl-into-the-firmware-ioctl-handler.patch
-sx-push-bkl-down-into-the-firmware-ioctl-handler.patch
-ppdev-wrap-ioctl-handler-in-driver-and-push-lock-down.patch
-dsp56k-bkl-pushdown.patch
-char-mxser-ioctl-cleanup.patch
-char-mxser-globals-cleanup.patch
-char-mxser-update-documentation.patch
-char-mxser-prints-cleanup.patch
-char-mxser-remove-predefined-isa-support.patch
-char-mxser-various-cleanups.patch
-char-isicom-enable-disable-pci-device.patch
-ip2-fix-iielliscleanup-as-it-is-static-but-not-always-used.patch
-stallion-fix-the-istallion-drivers-putchar-and-break_ctl-ops.patch
-drivers-misc-phantom-note-pci.patch
-reiser4.patch
-shrink_slab-handle-bad-shrinkers.patch
+mtd-jedec_probe-fix-sst-16-bit-chip-detection.patch
 
