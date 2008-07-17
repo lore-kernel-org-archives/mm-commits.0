@@ -1,257 +1,397 @@
 From: akpm@linux-foundation.org
-Subject: + tracehook-tracehook_tracer_task.patch added to -mm tree
-Date: Thu, 17 Jul 2008 01:30:47 -0700
-Message-ID: <200807170830.m6H8UlQO006970@imap1.linux-foundation.org>
+Subject: - spi-add-spi-over-gpio-driver.patch removed from -mm tree
+Date: Thu, 17 Jul 2008 13:15:38 -0700
+Message-ID: <200807172015.m6HKFc72004042@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46547 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60677 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754032AbYGQIkE (ORCPT
+	by vger.kernel.org with ESMTP id S1752922AbYGQUQb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Jul 2008 04:40:04 -0400
+	Thu, 17 Jul 2008 16:16:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: roland@redhat.com, oleg@tv-sign.ru
+To: mb@bu3sch.de, david-b@pacbell.net, drzeus-mmc@drzeus.cx, piotr.skamruk@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tracehook: tracehook_tracer_task
-has been added to the -mm tree.  Its filename is
-     tracehook-tracehook_tracer_task.patch
+     spi: add SPI over GPIO driver
+has been removed from the -mm tree.  Its filename was
+     spi-add-spi-over-gpio-driver.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tracehook: tracehook_tracer_task
-From: Roland McGrath <roland@redhat.com>
+Subject: spi: add SPI over GPIO driver
+From: Michael Buesch <mb@bu3sch.de>
 
-This adds the tracehook_tracer_task() hook to consolidate all forms of
-"Who is using ptrace on me?" logic.  This is used for "TracerPid:" in
-/proc and for permission checks.  We also clean up the selinux code the
-called an identical accessor.
+This adds a driver that lets you drive an SPI bus over
+generic GPIO pins.
 
-Signed-off-by: Roland McGrath <roland@redhat.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Signed-off-by: Michael Buesch <mb@bu3sch.de>
+Cc: Piot Skamruk <piotr.skamruk@gmail.com>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Pierre Ossman <drzeus-mmc@drzeus.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/array.c           |    9 +++++++--
- fs/proc/base.c            |   13 +++++++++----
- include/linux/tracehook.h |   18 ++++++++++++++++++
- security/selinux/hooks.c  |   22 +++-------------------
- 4 files changed, 37 insertions(+), 25 deletions(-)
+ drivers/spi/Kconfig          |   13 +
+ drivers/spi/Makefile         |    1 
+ drivers/spi/spi_gpio.c       |  242 +++++++++++++++++++++++++++++++++
+ include/linux/spi/spi_gpio.h |   53 +++++++
+ 4 files changed, 309 insertions(+)
 
-diff -puN fs/proc/array.c~tracehook-tracehook_tracer_task fs/proc/array.c
---- a/fs/proc/array.c~tracehook-tracehook_tracer_task
-+++ a/fs/proc/array.c
-@@ -80,6 +80,7 @@
- #include <linux/delayacct.h>
- #include <linux/seq_file.h>
- #include <linux/pid_namespace.h>
-+#include <linux/tracehook.h>
+diff -puN drivers/spi/Kconfig~spi-add-spi-over-gpio-driver drivers/spi/Kconfig
+--- a/drivers/spi/Kconfig~spi-add-spi-over-gpio-driver
++++ a/drivers/spi/Kconfig
+@@ -100,6 +100,19 @@ config SPI_BUTTERFLY
+ 	  inexpensive battery powered microcontroller evaluation board.
+ 	  This same cable can be used to flash new firmware.
  
- #include <asm/pgtable.h>
- #include <asm/processor.h>
-@@ -168,8 +169,12 @@ static inline void task_state(struct seq
- 	rcu_read_lock();
- 	ppid = pid_alive(p) ?
- 		task_tgid_nr_ns(rcu_dereference(p->real_parent), ns) : 0;
--	tpid = pid_alive(p) && p->ptrace ?
--		task_pid_nr_ns(rcu_dereference(p->parent), ns) : 0;
-+	tpid = 0;
-+	if (pid_alive(p)) {
-+		struct task_struct *tracer = tracehook_tracer_task(p);
-+		if (tracer)
-+			tpid = task_pid_nr_ns(tracer, ns);
-+	}
- 	seq_printf(m,
- 		"State:\t%s\n"
- 		"Tgid:\t%d\n"
-diff -puN fs/proc/base.c~tracehook-tracehook_tracer_task fs/proc/base.c
---- a/fs/proc/base.c~tracehook-tracehook_tracer_task
-+++ a/fs/proc/base.c
-@@ -69,6 +69,7 @@
- #include <linux/mount.h>
- #include <linux/security.h>
- #include <linux/ptrace.h>
-+#include <linux/tracehook.h>
- #include <linux/cgroup.h>
- #include <linux/cpuset.h>
- #include <linux/audit.h>
-@@ -231,10 +232,14 @@ static int check_mem_permission(struct t
- 	 * If current is actively ptrace'ing, and would also be
- 	 * permitted to freshly attach with ptrace now, permit it.
- 	 */
--	if (task->parent == current && (task->ptrace & PT_PTRACED) &&
--	    task_is_stopped_or_traced(task) &&
--	    ptrace_may_access(task, PTRACE_MODE_ATTACH))
--		return 0;
-+	if (task_is_stopped_or_traced(task)) {
-+		int match;
-+		rcu_read_lock();
-+		match = (tracehook_tracer_task(task) == current);
-+		rcu_read_unlock();
-+		if (match && ptrace_may_access(task, PTRACE_MODE_ATTACH))
-+			return 0;
-+	}
- 
- 	/*
- 	 * Noone else is allowed.
-diff -puN include/linux/tracehook.h~tracehook-tracehook_tracer_task include/linux/tracehook.h
---- a/include/linux/tracehook.h~tracehook-tracehook_tracer_task
-+++ a/include/linux/tracehook.h
-@@ -73,6 +73,24 @@ static inline int tracehook_unsafe_exec(
- }
- 
- /**
-+ * tracehook_tracer_task - return the task that is tracing the given task
-+ * @tsk:		task to consider
++config SPI_GPIO
++	tristate "GPIO API based bitbanging SPI controller"
++	depends on SPI_MASTER && GENERIC_GPIO
++	select SPI_BITBANG
++	help
++	  This is a platform driver that can be used for bitbanging
++	  an SPI bus over GPIO pins.
++	  Select this, if you have any SPI device that is connected via
++	  GPIO pins.
++	  The module will be called spi_gpio.
++
++	  If unsure, say N.
++
+ config SPI_IMX
+ 	tristate "Freescale iMX SPI controller"
+ 	depends on ARCH_IMX && EXPERIMENTAL
+diff -puN drivers/spi/Makefile~spi-add-spi-over-gpio-driver drivers/spi/Makefile
+--- a/drivers/spi/Makefile~spi-add-spi-over-gpio-driver
++++ a/drivers/spi/Makefile
+@@ -16,6 +16,7 @@ obj-$(CONFIG_SPI_BFIN)			+= spi_bfin5xx.
+ obj-$(CONFIG_SPI_BITBANG)		+= spi_bitbang.o
+ obj-$(CONFIG_SPI_AU1550)		+= au1550_spi.o
+ obj-$(CONFIG_SPI_BUTTERFLY)		+= spi_butterfly.o
++obj-$(CONFIG_SPI_GPIO)			+= spi_gpio.o
+ obj-$(CONFIG_SPI_IMX)			+= spi_imx.o
+ obj-$(CONFIG_SPI_LM70_LLP)		+= spi_lm70llp.o
+ obj-$(CONFIG_SPI_PXA2XX)		+= pxa2xx_spi.o
+diff -puN /dev/null drivers/spi/spi_gpio.c
+--- /dev/null
++++ a/drivers/spi/spi_gpio.c
+@@ -0,0 +1,242 @@
++/*
++ * Bitbanging SPI bus driver using GPIO API
 + *
-+ * Returns NULL if noone is tracing @task, or the &struct task_struct
-+ * pointer to its tracer.
++ * Copyright (c) 2008 Piotr Skamruk
++ * Copyright (c) 2008 Michael Buesch
 + *
-+ * Must called under rcu_read_lock().  The pointer returned might be kept
-+ * live only by RCU.  During exec, this may be called with task_lock()
-+ * held on @task, still held from when tracehook_unsafe_exec() was called.
++ * based on spi_s3c2410_gpio.c
++ *   Copyright (c) 2006 Ben Dooks
++ *   Copyright (c) 2006 Simtec Electronics
++ * and on i2c-gpio.c
++ *   Copyright (C) 2007 Atmel Corporation
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
 + */
-+static inline struct task_struct *tracehook_tracer_task(struct task_struct *tsk)
++
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/delay.h>
++#include <linux/spinlock.h>
++#include <linux/workqueue.h>
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <linux/spi/spi.h>
++#include <linux/spi/spi_bitbang.h>
++#include <linux/spi/spi_gpio.h>
++#include <linux/gpio.h>
++
++
++struct spi_gpio {
++	struct spi_bitbang bitbang;
++	struct spi_gpio_platform_data *info;
++	struct platform_device *pdev;
++	struct spi_board_info bi;
++};
++
++
++static inline struct spi_gpio *spidev_to_sg(struct spi_device *dev)
 +{
-+	if (task_ptrace(tsk) & PT_PTRACED)
-+		return rcu_dereference(tsk->parent);
-+	return NULL;
++	return dev->controller_data;
 +}
 +
-+/**
-  * tracehook_report_exec - a successful exec was completed
-  * @fmt:		&struct linux_binfmt that performed the exec
-  * @bprm:		&struct linux_binprm containing exec details
-diff -puN security/selinux/hooks.c~tracehook-tracehook_tracer_task security/selinux/hooks.c
---- a/security/selinux/hooks.c~tracehook-tracehook_tracer_task
-+++ a/security/selinux/hooks.c
-@@ -25,7 +25,7 @@
- 
- #include <linux/init.h>
- #include <linux/kernel.h>
--#include <linux/ptrace.h>
-+#include <linux/tracehook.h>
- #include <linux/errno.h>
- #include <linux/sched.h>
- #include <linux/security.h>
-@@ -1971,22 +1971,6 @@ static int selinux_vm_enough_memory(stru
- 	return __vm_enough_memory(mm, pages, cap_sys_admin);
- }
- 
--/**
-- * task_tracer_task - return the task that is tracing the given task
-- * @task:		task to consider
-- *
-- * Returns NULL if noone is tracing @task, or the &struct task_struct
-- * pointer to its tracer.
-- *
-- * Must be called under rcu_read_lock().
-- */
--static struct task_struct *task_tracer_task(struct task_struct *task)
--{
--	if (task->ptrace & PT_PTRACED)
--		return rcu_dereference(task->parent);
--	return NULL;
--}
--
- /* binprm security operations */
- 
- static int selinux_bprm_alloc_security(struct linux_binprm *bprm)
-@@ -2238,7 +2222,7 @@ static void selinux_bprm_apply_creds(str
- 			u32 ptsid = 0;
- 
- 			rcu_read_lock();
--			tracer = task_tracer_task(current);
-+			tracer = tracehook_tracer_task(current);
- 			if (likely(tracer != NULL)) {
- 				sec = tracer->security;
- 				ptsid = sec->sid;
-@@ -5247,7 +5231,7 @@ static int selinux_setprocattr(struct ta
- 		   Otherwise, leave SID unchanged and fail. */
- 		task_lock(p);
- 		rcu_read_lock();
--		tracer = task_tracer_task(p);
-+		tracer = tracehook_tracer_task(p);
- 		if (tracer != NULL) {
- 			struct task_security_struct *ptsec = tracer->security;
- 			u32 ptsid = ptsec->sid;
++static inline void setsck(struct spi_device *dev, int val)
++{
++	struct spi_gpio *sp = spidev_to_sg(dev);
++	gpio_set_value(sp->info->pin_clk, val ? 1 : 0);
++}
++
++static inline void setmosi(struct spi_device *dev, int val)
++{
++	struct spi_gpio *sp = spidev_to_sg(dev);
++	gpio_set_value(sp->info->pin_mosi, val ? 1 : 0);
++}
++
++static inline u32 getmiso(struct spi_device *dev)
++{
++	struct spi_gpio *sp = spidev_to_sg(dev);
++	return gpio_get_value(sp->info->pin_miso) ? 1 : 0;
++}
++
++static inline void do_spidelay(struct spi_device *dev, unsigned nsecs)
++{
++	struct spi_gpio *sp = spidev_to_sg(dev);
++
++	if (!sp->info->no_spi_delay)
++		ndelay(nsecs);
++}
++
++#define spidelay(nsecs) do {					\
++	/* Steal the spi_device pointer from our caller.	\
++	 * The bitbang-API should probably get fixed here... */	\
++	do_spidelay(spi, nsecs);				\
++  } while (0)
++
++#define EXPAND_BITBANG_TXRX
++#include <linux/spi/spi_bitbang.h>
++
++static u32 spi_gpio_txrx_mode0(struct spi_device *spi,
++			       unsigned nsecs, u32 word, u8 bits)
++{
++	return bitbang_txrx_be_cpha0(spi, nsecs, 0, word, bits);
++}
++
++static u32 spi_gpio_txrx_mode1(struct spi_device *spi,
++			       unsigned nsecs, u32 word, u8 bits)
++{
++	return bitbang_txrx_be_cpha1(spi, nsecs, 0, word, bits);
++}
++
++static u32 spi_gpio_txrx_mode2(struct spi_device *spi,
++			       unsigned nsecs, u32 word, u8 bits)
++{
++	return bitbang_txrx_be_cpha0(spi, nsecs, 1, word, bits);
++}
++
++static u32 spi_gpio_txrx_mode3(struct spi_device *spi,
++			       unsigned nsecs, u32 word, u8 bits)
++{
++	return bitbang_txrx_be_cpha1(spi, nsecs, 1, word, bits);
++}
++
++static void spi_gpio_chipselect(struct spi_device *dev, int on)
++{
++	struct spi_gpio *sp = spidev_to_sg(dev);
++
++	if (sp->info->cs_activelow)
++		on = !on;
++	gpio_set_value(sp->info->pin_cs, on ? 1 : 0);
++}
++
++static int spi_gpio_probe(struct platform_device *pdev)
++{
++	struct spi_master *master;
++	struct spi_gpio_platform_data *pdata;
++	struct spi_gpio *sp;
++	struct spi_device *spidev;
++	int err;
++
++	pdata = pdev->dev.platform_data;
++	if (!pdata)
++		return -ENXIO;
++
++	err = -ENOMEM;
++	master = spi_alloc_master(&pdev->dev, sizeof(struct spi_gpio));
++	if (!master)
++		goto err_alloc_master;
++
++	sp = spi_master_get_devdata(master);
++	platform_set_drvdata(pdev, sp);
++	sp->info = pdata;
++
++	err = gpio_request(pdata->pin_clk, "spi_clock");
++	if (err)
++		goto err_request_clk;
++	err = gpio_request(pdata->pin_mosi, "spi_mosi");
++	if (err)
++		goto err_request_mosi;
++	err = gpio_request(pdata->pin_miso, "spi_miso");
++	if (err)
++		goto err_request_miso;
++	err = gpio_request(pdata->pin_cs, "spi_cs");
++	if (err)
++		goto err_request_cs;
++
++	sp->bitbang.master = spi_master_get(master);
++	sp->bitbang.master->bus_num = -1;
++	sp->bitbang.master->num_chipselect = 1;
++	sp->bitbang.chipselect = spi_gpio_chipselect;
++	sp->bitbang.txrx_word[SPI_MODE_0] = spi_gpio_txrx_mode0;
++	sp->bitbang.txrx_word[SPI_MODE_1] = spi_gpio_txrx_mode1;
++	sp->bitbang.txrx_word[SPI_MODE_2] = spi_gpio_txrx_mode2;
++	sp->bitbang.txrx_word[SPI_MODE_3] = spi_gpio_txrx_mode3;
++
++	gpio_direction_output(pdata->pin_clk, 0);
++	gpio_direction_output(pdata->pin_mosi, 0);
++	gpio_direction_output(pdata->pin_cs,
++			      pdata->cs_activelow ? 1 : 0);
++	gpio_direction_input(pdata->pin_miso);
++
++	err = spi_bitbang_start(&sp->bitbang);
++	if (err)
++		goto err_no_bitbang;
++	err = pdata->boardinfo_setup(&sp->bi, master,
++				     pdata->boardinfo_setup_data);
++	if (err)
++		goto err_bi_setup;
++	sp->bi.controller_data = sp;
++	spidev = spi_new_device(master, &sp->bi);
++	if (!spidev)
++		goto err_new_dev;
++
++	return 0;
++
++err_new_dev:
++err_bi_setup:
++	spi_bitbang_stop(&sp->bitbang);
++err_no_bitbang:
++	spi_master_put(sp->bitbang.master);
++	gpio_free(pdata->pin_cs);
++err_request_cs:
++	gpio_free(pdata->pin_miso);
++err_request_miso:
++	gpio_free(pdata->pin_mosi);
++err_request_mosi:
++	gpio_free(pdata->pin_clk);
++err_request_clk:
++	kfree(master);
++
++err_alloc_master:
++	return err;
++}
++
++static int __devexit spi_gpio_remove(struct platform_device *pdev)
++{
++	struct spi_gpio *sp;
++	struct spi_gpio_platform_data *pdata;
++
++	pdata = pdev->dev.platform_data;
++	sp = platform_get_drvdata(pdev);
++
++	gpio_free(pdata->pin_clk);
++	gpio_free(pdata->pin_mosi);
++	gpio_free(pdata->pin_miso);
++	gpio_free(pdata->pin_cs);
++	spi_bitbang_stop(&sp->bitbang);
++	spi_master_put(sp->bitbang.master);
++
++	return 0;
++}
++
++static struct platform_driver spi_gpio_driver = {
++	.driver		= {
++		.name	= "spi-gpio",
++		.owner	= THIS_MODULE,
++	},
++	.probe		= spi_gpio_probe,
++	.remove		= __devexit_p(spi_gpio_remove),
++};
++
++static int __init spi_gpio_init(void)
++{
++	int err;
++
++	err = platform_driver_register(&spi_gpio_driver);
++	if (err)
++		printk(KERN_ERR "spi-gpio: register failed: %d\n", err);
++
++	return err;
++}
++module_init(spi_gpio_init);
++
++static void __exit spi_gpio_exit(void)
++{
++	platform_driver_unregister(&spi_gpio_driver);
++}
++module_exit(spi_gpio_exit);
++
++MODULE_AUTHOR("Piot Skamruk <piotr.skamruk at gmail.com>");
++MODULE_AUTHOR("Michael Buesch");
++MODULE_DESCRIPTION("Platform independent GPIO bitbanging SPI driver");
++MODULE_LICENSE("GPL v2");
+diff -puN /dev/null include/linux/spi/spi_gpio.h
+--- /dev/null
++++ a/include/linux/spi/spi_gpio.h
+@@ -0,0 +1,53 @@
++/*
++ * spi_gpio interface to platform code
++ *
++ * Copyright (c) 2008 Piotr Skamruk
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++#ifndef _LINUX_SPI_SPI_GPIO
++#define _LINUX_SPI_SPI_GPIO
++
++#include <linux/types.h>
++#include <linux/spi/spi.h>
++
++
++/** struct spi_gpio_platform_data - Data definitions for a SPI-GPIO device.
++ * This structure holds information about a GPIO-based SPI device.
++ *
++ * @pin_clk: The GPIO pin number of the CLOCK pin.
++ *
++ * @pin_miso: The GPIO pin number of the MISO pin.
++ *
++ * @pin_mosi: The GPIO pin number of the MOSI pin.
++ *
++ * @pin_cs: The GPIO pin number of the CHIPSELECT pin.
++ *
++ * @cs_activelow: If true, the chip is selected when the CS line is low.
++ *
++ * @no_spi_delay: If true, no delay is done in the lowlevel bitbanging.
++ *                Note that doing no delay is not standards compliant,
++ *                but it might be needed to speed up transfers on some
++ *                slow embedded machines.
++ *
++ * @boardinfo_setup: This callback is called after the
++ *                   SPI master device was registered, but before the
++ *                   device is registered.
++ * @boardinfo_setup_data: Data argument passed to boardinfo_setup().
++ */
++struct spi_gpio_platform_data {
++	unsigned int pin_clk;
++	unsigned int pin_miso;
++	unsigned int pin_mosi;
++	unsigned int pin_cs;
++	bool cs_activelow;
++	bool no_spi_delay;
++	int (*boardinfo_setup)(struct spi_board_info *bi,
++			       struct spi_master *master,
++			       void *data);
++	void *boardinfo_setup_data;
++};
++
++#endif /* _LINUX_SPI_SPI_GPIO */
 _
 
-Patches currently in -mm which might be from roland@redhat.com are
+Patches currently in -mm which might be from mb@bu3sch.de are
 
 origin.patch
-execve-filename-document-and-export-via-auxiliary-vector.patch
-flag-parameters-paccept-fix.patch
-flag-parameters-paccept-fix-flag-parameters-arch-specific-sock_nonblock.patch
-posix-timers-timer_delete-remove-the-bogus-it_process-=-null-check.patch
-posix-timers-release_posix_timer-kill-the-bogus-put_task_struct-it_process.patch
-signals-collect_signal-remove-the-unneeded-sigismember-check.patch
-signals-collect_signal-simplify-the-still_pending-logic.patch
-__exit_signal-dont-take-rcu-lock.patch
-signals-dequeue_signal-dont-check-signal_group_exit-when-setting-signal_stop_dequeued.patch
-signals-do_signal_stop-kill-the-signal_unkillable-check.patch
-coredump-zap_threads-comments-use-while_each_thread.patch
-signals-make-siginfo_t-si_utime-si_sstime-report-times-in-user_hz-not-hz.patch
-kernel-signalc-change-vars-pid-and-tgid-types-to-pid_t.patch
-include-asm-ptraceh-userspace-headers-cleanup.patch
-ptrace-give-more-respect-to-sigkill.patch
-ptrace-simplify-ptrace_stop-sigkill_pending-path.patch
-ptrace-do_wait-reorganization.patch
-ptrace-ptrace-children-revamp.patch
-ptrace-do_wait-return-security_task_wait-error-code-in-place-of-echild.patch
-ptrace-fix-dangling-zombie-when-new-parent-ignores-children.patch
-introduce-pf_kthread-flag.patch
-kill-pf_borrowed_mm-in-favour-of-pf_kthread.patch
-coredump-zap_threads-must-skip-kernel-threads.patch
-coredump-elf_core_dump-skip-kernel-threads.patch
-coredump-turn-mm-core_startup_done-into-the-pointer-to-struct-core_state.patch
-coredump-move-mm-core_waiters-into-struct-core_state.patch
-coredump-simplify-core_state-nr_threads-calculation.patch
-coredump-turn-core_state-nr_threads-into-atomic_t.patch
-coredump-make-mm-core_state-visible-to-core_dump.patch
-coredump-construct-the-list-of-coredumping-threads-at-startup-time.patch
-coredump-elf_core_dump-use-core_state-dumper-list.patch
-coredump-elf_fdpic_core_dump-use-core_state-dumper-list.patch
-coredump-kill-mm-core_done.patch
-coredump-binfmt_elf_fdpic-dont-use-sub-threads-mm.patch
-coredump-exit_mm-clear-mm-first-then-play-with-core_state.patch
-coredump-exit_mm-clear-mm-first-then-play-with-core_state-checkpatch-fixes.patch
-tracehook-add-linux-tracehookh.patch
-tracehook-exec.patch
-tracehook-unexport-ptrace_notify.patch
-tracehook-exit.patch
-tracehook-clone.patch
-tracehook-vfork-done.patch
-tracehook-release_task.patch
-tracehook-tracehook_tracer_task.patch
-tracehook-tracehook_expect_breakpoints.patch
-tracehook-tracehook_signal_handler.patch
-tracehook-tracehook_consider_ignored_signal.patch
-tracehook-tracehook_consider_fatal_signal.patch
-tracehook-syscall.patch
-tracehook-get_signal_to_deliver.patch
-tracehook-job-control.patch
-tracehook-death.patch
-tracehook-force-signal_pending.patch
-tracehook-tif_notify_resume.patch
-tracehook-asm-syscallh.patch
-tracehook-config_have_arch_tracehook.patch
-tracehook-wait_task_inactive.patch
-task_current_syscall.patch
-proc-pid-syscall.patch
+linux-next.patch
+spi-add-spi-over-gpio-driver.patch
+gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support.patch
+gpio-add-bt8xxgpio-driver.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch
+gpiolib-allow-user-selection.patch
+gpiolib-allow-user-selection-update.patch
 
