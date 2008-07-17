@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + tracehook-syscall.patch added to -mm tree
-Date: Thu, 17 Jul 2008 01:30:57 -0700
-Message-ID: <200807170830.m6H8UvXc006986@imap1.linux-foundation.org>
+Subject: + tracehook-release_task.patch added to -mm tree
+Date: Thu, 17 Jul 2008 01:30:45 -0700
+Message-ID: <200807170830.m6H8UjZi006965@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47014 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42551 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753532AbYGQIbu (ORCPT
+	by vger.kernel.org with ESMTP id S1756228AbYGQIbf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Jul 2008 04:31:50 -0400
+	Thu, 17 Jul 2008 04:31:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: roland@redhat.com, oleg@tv-sign.ru
 
 
 The patch titled
-     tracehook: syscall
+     tracehook: release_task
 has been added to the -mm tree.  Its filename is
-     tracehook-syscall.patch
+     tracehook-release_task.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,101 +34,141 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tracehook: syscall
+Subject: tracehook: release_task
 From: Roland McGrath <roland@redhat.com>
 
-This adds standard tracehook.h inlines for arch code to call when
-TIF_SYSCALL_TRACE has been set.  This replaces having each arch implement
-the ptrace guts for its syscall tracing support.
+This moves the ptrace-related logic from release_task into tracehook.h and
+ptrace.h inlines.  It provides clean hooks both before and after locking
+tasklist_lock, for future tracing logic to do more cleanup without the
+lock.
+
+This also changes release_task() itself in the rare "zap_leader" case to
+set the leader to EXIT_DEAD before iterating.  This maintains the
+invariant that release_task() only ever handles a task in EXIT_DEAD.  This
+is a common-sense invariant that is already always true except in this one
+arcane case of zombie leader whose parent ignores SIGCHLD.
+
+This change is harmless and only costs one store in this one rare case. 
+It keeps the expected state more consisently sane, which is nicer when
+debugging weirdness in release_task().  It also lets some future code in
+the tracehook entry points rely on this invariant for bookkeeping.
 
 Signed-off-by: Roland McGrath <roland@redhat.com>
 Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/tracehook.h |   70 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 70 insertions(+)
+ include/linux/ptrace.h    |   13 +++++++++++++
+ include/linux/tracehook.h |   28 ++++++++++++++++++++++++++++
+ kernel/exit.c             |   21 +++++++++------------
+ 3 files changed, 50 insertions(+), 12 deletions(-)
 
-diff -puN include/linux/tracehook.h~tracehook-syscall include/linux/tracehook.h
---- a/include/linux/tracehook.h~tracehook-syscall
-+++ a/include/linux/tracehook.h
-@@ -66,6 +66,76 @@ static inline int tracehook_expect_break
- 	return (task_ptrace(task) & PT_PTRACED) != 0;
+diff -puN include/linux/ptrace.h~tracehook-release_task include/linux/ptrace.h
+--- a/include/linux/ptrace.h~tracehook-release_task
++++ a/include/linux/ptrace.h
+@@ -176,6 +176,19 @@ static inline void ptrace_init_task(stru
+ 	}
  }
  
-+/*
-+ * ptrace report for syscall entry and exit looks identical.
++/**
++ * ptrace_release_task - final ptrace-related cleanup of a zombie being reaped
++ * @task:	task in %EXIT_DEAD state
++ *
++ * Called with write_lock(&tasklist_lock) held.
 + */
-+static inline void ptrace_report_syscall(struct pt_regs *regs)
++static inline void ptrace_release_task(struct task_struct *task)
 +{
-+	int ptrace = task_ptrace(current);
++	BUG_ON(!list_empty(&task->ptraced));
++	ptrace_unlink(task);
++	BUG_ON(!list_empty(&task->ptrace_entry));
++}
 +
-+	if (!(ptrace & PT_PTRACED))
-+		return;
-+
-+	ptrace_notify(SIGTRAP | ((ptrace & PT_TRACESYSGOOD) ? 0x80 : 0));
-+
-+	/*
-+	 * this isn't the same as continuing with a signal, but it will do
-+	 * for normal use.  strace only continues with a signal if the
-+	 * stopping signal is not SIGTRAP.  -brl
-+	 */
-+	if (current->exit_code) {
-+		send_sig(current->exit_code, current, 1);
-+		current->exit_code = 0;
-+	}
+ #ifndef force_successful_syscall_return
+ /*
+  * System call handlers that, upon successful completion, need to return a
+diff -puN include/linux/tracehook.h~tracehook-release_task include/linux/tracehook.h
+--- a/include/linux/tracehook.h~tracehook-release_task
++++ a/include/linux/tracehook.h
+@@ -228,4 +228,32 @@ static inline void tracehook_report_vfor
+ 	ptrace_event(PT_TRACE_VFORK_DONE, PTRACE_EVENT_VFORK_DONE, pid);
+ }
+ 
++/**
++ * tracehook_prepare_release_task - task is being reaped, clean up tracing
++ * @task:		task in %EXIT_DEAD state
++ *
++ * This is called in release_task() just before @task gets finally reaped
++ * and freed.  This would be the ideal place to remove and clean up any
++ * tracing-related state for @task.
++ *
++ * Called with no locks held.
++ */
++static inline void tracehook_prepare_release_task(struct task_struct *task)
++{
 +}
 +
 +/**
-+ * tracehook_report_syscall_entry - task is about to attempt a system call
-+ * @regs:		user register state of current task
++ * tracehook_finish_release_task - task is being reaped, clean up tracing
++ * @task:		task in %EXIT_DEAD state
 + *
-+ * This will be called if %TIF_SYSCALL_TRACE has been set, when the
-+ * current task has just entered the kernel for a system call.
-+ * Full user register state is available here.  Changing the values
-+ * in @regs can affect the system call number and arguments to be tried.
-+ * It is safe to block here, preventing the system call from beginning.
++ * This is called in release_task() when @task is being in the middle of
++ * being reaped.  After this, there must be no tracing entanglements.
 + *
-+ * Returns zero normally, or nonzero if the calling arch code should abort
-+ * the system call.  That must prevent normal entry so no system call is
-+ * made.  If @task ever returns to user mode after this, its register state
-+ * is unspecified, but should be something harmless like an %ENOSYS error
-+ * return.
-+ *
-+ * Called without locks, just after entering kernel mode.
++ * Called with write_lock_irq(&tasklist_lock) held.
 + */
-+static inline __must_check int tracehook_report_syscall_entry(
-+	struct pt_regs *regs)
++static inline void tracehook_finish_release_task(struct task_struct *task)
 +{
-+	ptrace_report_syscall(regs);
-+	return 0;
++	ptrace_release_task(task);
 +}
 +
-+/**
-+ * tracehook_report_syscall_exit - task has just finished a system call
-+ * @regs:		user register state of current task
-+ * @step:		nonzero if simulating single-step or block-step
-+ *
-+ * This will be called if %TIF_SYSCALL_TRACE has been set, when the
-+ * current task has just finished an attempted system call.  Full
-+ * user register state is available here.  It is safe to block here,
-+ * preventing signals from being processed.
-+ *
-+ * If @step is nonzero, this report is also in lieu of the normal
-+ * trap that would follow the system call instruction because
-+ * user_enable_block_step() or user_enable_single_step() was used.
-+ * In this case, %TIF_SYSCALL_TRACE might not be set.
-+ *
-+ * Called without locks, just before checking for pending signals.
-+ */
-+static inline void tracehook_report_syscall_exit(struct pt_regs *regs, int step)
-+{
-+	ptrace_report_syscall(regs);
-+}
+ #endif	/* <linux/tracehook.h> */
+diff -puN kernel/exit.c~tracehook-release_task kernel/exit.c
+--- a/kernel/exit.c~tracehook-release_task
++++ a/kernel/exit.c
+@@ -163,27 +163,17 @@ static void delayed_put_task_struct(stru
+ 	put_task_struct(container_of(rhp, struct task_struct, rcu));
+ }
+ 
+-/*
+- * Do final ptrace-related cleanup of a zombie being reaped.
+- *
+- * Called with write_lock(&tasklist_lock) held.
+- */
+-static void ptrace_release_task(struct task_struct *p)
+-{
+-	BUG_ON(!list_empty(&p->ptraced));
+-	ptrace_unlink(p);
+-	BUG_ON(!list_empty(&p->ptrace_entry));
+-}
+ 
+ void release_task(struct task_struct * p)
+ {
+ 	struct task_struct *leader;
+ 	int zap_leader;
+ repeat:
++	tracehook_prepare_release_task(p);
+ 	atomic_dec(&p->user->processes);
+ 	proc_flush_task(p);
+ 	write_lock_irq(&tasklist_lock);
+-	ptrace_release_task(p);
++	tracehook_finish_release_task(p);
+ 	__exit_signal(p);
+ 
+ 	/*
+@@ -205,6 +195,13 @@ repeat:
+ 		 * that case.
+ 		 */
+ 		zap_leader = task_detached(leader);
 +
- /**
-  * tracehook_unsafe_exec - check for exec declared unsafe due to tracing
-  * @task:		current task doing exec
++		/*
++		 * This maintains the invariant that release_task()
++		 * only runs on a task in EXIT_DEAD, just for sanity.
++		 */
++		if (zap_leader)
++			leader->exit_state = EXIT_DEAD;
+ 	}
+ 
+ 	write_unlock_irq(&tasklist_lock);
 _
 
 Patches currently in -mm which might be from roland@redhat.com are
