@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + move-memory_read_from_buffer-from-fsh-to-stringh.patch added to -mm tree
-Date: Thu, 17 Jul 2008 16:29:00 -0700
-Message-ID: <200807172329.m6HNT0C9012505@imap1.linux-foundation.org>
+Subject: + modules-extend-initcall_debug-functionality-to-the-module-loader.patch added to -mm tree
+Date: Thu, 17 Jul 2008 16:32:14 -0700
+Message-ID: <200807172332.m6HNWHDh012713@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40654 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41749 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932519AbYGQX35 (ORCPT
+	by vger.kernel.org with ESMTP id S1759526AbYGQXc7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Jul 2008 19:29:57 -0400
+	Thu, 17 Jul 2008 19:32:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, James.Bottomley@hansenpartnership.com, geert@linux-m68k.org, lenb@kernel.org, robert.moore@intel.com, rui.zhang@intel.com, trenn@suse.de
+Cc: arjan@infradead.org, arjan@linux.intel.com, rusty@rustcorp.com.au
 
 
 The patch titled
-     move memory_read_from_buffer() from fs.h to string.h
+     modules: extend initcall_debug functionality to the module loader
 has been added to the -mm tree.  Its filename is
-     move-memory_read_from_buffer-from-fsh-to-stringh.patch
+     modules-extend-initcall_debug-functionality-to-the-module-loader.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,92 +34,101 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: move memory_read_from_buffer() from fs.h to string.h
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: modules: extend initcall_debug functionality to the module loader
+From: Arjan van de Ven <arjan@infradead.org>
 
-James Bottomley warns that inclusion of linux/fs.h in a low level
-driver was always a danger signal.  This patch moves
-memory_read_from_buffer() from fs.h to string.h and fixes includes in
-existing memory_read_from_buffer() users.
+The kernel has this really nice facility where if you put "initcall_debug"
+on the kernel commandline, it'll print which function it's going to
+execute just before calling an initcall, and then after the call completes
+it will
 
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: James Bottomley <James.Bottomley@hansenpartnership.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Zhang Rui <rui.zhang@intel.com>
-Cc: Bob Moore <robert.moore@intel.com>
-Cc: Thomas Renninger <trenn@suse.de>
-Cc: Len Brown <lenb@kernel.org>
+1) print if it had an error code
+
+2) checks for a few simple bugs (like leaving irqs off)
+and
+
+3) print how long the init call took in milliseconds.
+
+While trying to optimize the boot speed of my laptop, I have been loving
+number 3 to figure out what to optimize...  ...  and then I wished that
+the same thing was done for module loading.
+
+This patch makes the module loader use this exact same functionality; it's
+a logical extension in my view (since modules are just sort of late
+binding initcalls anyway) and so far I've found it quite useful in finding
+where things are too slow in my boot.
+
+Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/system.c       |    1 +
- drivers/zorro/zorro-sysfs.c |    1 -
- include/linux/fs.h          |    2 --
- include/linux/string.h      |    3 +++
- 4 files changed, 4 insertions(+), 3 deletions(-)
+ include/linux/init.h |    1 +
+ init/main.c          |    6 ++++--
+ kernel/module.c      |    2 +-
+ 3 files changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN drivers/acpi/system.c~move-memory_read_from_buffer-from-fsh-to-stringh drivers/acpi/system.c
---- a/drivers/acpi/system.c~move-memory_read_from_buffer-from-fsh-to-stringh
-+++ a/drivers/acpi/system.c
-@@ -26,6 +26,7 @@
- #include <linux/proc_fs.h>
- #include <linux/seq_file.h>
- #include <linux/init.h>
-+#include <linux/string.h>
- #include <asm/uaccess.h>
+diff -puN include/linux/init.h~modules-extend-initcall_debug-functionality-to-the-module-loader include/linux/init.h
+--- a/include/linux/init.h~modules-extend-initcall_debug-functionality-to-the-module-loader
++++ a/include/linux/init.h
+@@ -143,6 +143,7 @@ extern char __initdata boot_command_line
+ extern char *saved_command_line;
+ extern unsigned int reset_devices;
+ extern int initmem_now_dynamic;
++extern int do_one_initcall(initcall_t fn);
  
- #include <acpi/acpi_drivers.h>
-diff -puN drivers/zorro/zorro-sysfs.c~move-memory_read_from_buffer-from-fsh-to-stringh drivers/zorro/zorro-sysfs.c
---- a/drivers/zorro/zorro-sysfs.c~move-memory_read_from_buffer-from-fsh-to-stringh
-+++ a/drivers/zorro/zorro-sysfs.c
-@@ -15,7 +15,6 @@
- #include <linux/zorro.h>
- #include <linux/stat.h>
- #include <linux/string.h>
--#include <linux/fs.h>
+ /* used by init/main.c */
+ void setup_arch(char **);
+diff -puN init/main.c~modules-extend-initcall_debug-functionality-to-the-module-loader init/main.c
+--- a/init/main.c~modules-extend-initcall_debug-functionality-to-the-module-loader
++++ a/init/main.c
+@@ -694,7 +694,7 @@ asmlinkage void __init start_kernel(void
+ 	rest_init();
+ }
  
- #include "zorro.h"
+-static int __initdata initcall_debug;
++static int initcall_debug;
  
-diff -puN include/linux/fs.h~move-memory_read_from_buffer-from-fsh-to-stringh include/linux/fs.h
---- a/include/linux/fs.h~move-memory_read_from_buffer-from-fsh-to-stringh
-+++ a/include/linux/fs.h
-@@ -2020,8 +2020,6 @@ extern void simple_release_fs(struct vfs
+ static int __init initcall_debug_setup(char *str)
+ {
+@@ -703,7 +703,7 @@ static int __init initcall_debug_setup(c
+ }
+ __setup("initcall_debug", initcall_debug_setup);
  
- extern ssize_t simple_read_from_buffer(void __user *to, size_t count,
- 			loff_t *ppos, const void *from, size_t available);
--extern ssize_t memory_read_from_buffer(void *to, size_t count, loff_t *ppos,
--			const void *from, size_t available);
- 
- #ifdef CONFIG_MIGRATION
- extern int buffer_migrate_page(struct address_space *,
-diff -puN include/linux/string.h~move-memory_read_from_buffer-from-fsh-to-stringh include/linux/string.h
---- a/include/linux/string.h~move-memory_read_from_buffer-from-fsh-to-stringh
-+++ a/include/linux/string.h
-@@ -111,5 +111,8 @@ extern void argv_free(char **argv);
- 
- extern bool sysfs_streq(const char *s1, const char *s2);
- 
-+extern ssize_t memory_read_from_buffer(void *to, size_t count, loff_t *ppos,
-+			const void *from, size_t available);
+-static void __init do_one_initcall(initcall_t fn)
++int do_one_initcall(initcall_t fn)
+ {
+ 	int count = preempt_count();
+ 	ktime_t t0, t1, delta;
+@@ -743,6 +743,8 @@ static void __init do_one_initcall(initc
+ 		print_fn_descriptor_symbol(KERN_WARNING "initcall %s", fn);
+ 		printk(" returned with %s\n", msgbuf);
+ 	}
 +
- #endif
- #endif /* _LINUX_STRING_H_ */
++	return result;
+ }
+ 
+ 
+diff -puN kernel/module.c~modules-extend-initcall_debug-functionality-to-the-module-loader kernel/module.c
+--- a/kernel/module.c~modules-extend-initcall_debug-functionality-to-the-module-loader
++++ a/kernel/module.c
+@@ -2288,7 +2288,7 @@ sys_init_module(void __user *umod,
+ 
+ 	/* Start the module */
+ 	if (mod->init != NULL)
+-		ret = mod->init();
++		ret = do_one_initcall(mod->init);
+ 	if (ret < 0) {
+ 		/* Init routine failed: abort.  Try to protect us from
+                    buggy refcounters. */
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from arjan@infradead.org are
 
 origin.patch
-linux-next.patch
-ipr-use-memory_read_from_buffer.patch
-qla2xxx-use-memory_read_from_buffer.patch
-pm-hibernation-simplify-memory-bitmap.patch
-cris-use-simple_read_from_buffer.patch
-binfmt_misc-use-simple_read_from_buffer.patch
-aty-use-memory_read_from_buffer.patch
-ipc-use-simple_read_from_buffer.patch
-nwflash-use-simple_read_from_buffer.patch
-firmware-use-memory_read_from_buffer.patch
-dcdbas-use-memory_read_from_buffer.patch
-dell_rbu-use-memory_read_from_buffer.patch
-move-memory_read_from_buffer-from-fsh-to-stringh.patch
+git-unionfs.patch
+modules-extend-initcall_debug-functionality-to-the-module-loader.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments.patch
+list-debugging-use-warn_on-instead-of-bug.patch
+kallsyms-unify-32-and-64-bit-code.patch
 
