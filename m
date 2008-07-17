@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + calgary-iommu-use-the-first-kernels-tce-tables-in-kdump.patch added to -mm tree
-Date: Thu, 17 Jul 2008 16:16:47 -0700
-Message-ID: <200807172316.m6HNGmf1011917@imap1.linux-foundation.org>
+Subject: + pci-procc-sparse-endian-annotations.patch added to -mm tree
+Date: Thu, 17 Jul 2008 16:22:37 -0700
+Message-ID: <200807172322.m6HNMbS4012203@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45502 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36096 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753740AbYGQXUJ (ORCPT
+	by vger.kernel.org with ESMTP id S1758658AbYGQXXK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Jul 2008 19:20:09 -0400
+	Thu, 17 Jul 2008 19:23:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: chandru@in.ibm.com, mingo@elte.hu, muli@il.ibm.com, tglx@linutronix.de
+Cc: harvey.harrison@gmail.com
 
 
 The patch titled
-     calgary iommu: Use the first kernel's tce tables in kdump
+     pci: proc.c sparse endian annotations
 has been added to the -mm tree.  Its filename is
-     calgary-iommu-use-the-first-kernels-tce-tables-in-kdump.patch
+     pci-procc-sparse-endian-annotations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,200 +34,118 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: calgary iommu: Use the first kernel's tce tables in kdump
-From: Chandru Siddalingappa <chandru@in.ibm.com>
+Subject: pci: proc.c sparse endian annotations
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-kdump kernel fails to boot with calgary iommu and aacraid driver on a x366
-box.  The ongoing dma's of aacraid from the first kernel continue to exist
-until the driver is loaded in the kdump kernel.  Calgary is initialized
-prior to aacraid and creation of new tce tables causes wrong dma's to
-occur.  Here we try to get the tce tables of the first kernel in kdump
-kernel and use them.  While in the kdump kernel we do not allocate new tce
-tables but instead read the base addres register contents of calgary iommu
-and use the tables that the registers point to.  With these changes the
-kdump kernel and hence aacraid now boots normally.
+drivers/pci/proc.c:91:3: warning: cast from restricted __le16
+drivers/pci/proc.c:100:3: warning: cast from restricted __le32
+drivers/pci/proc.c:109:3: warning: cast from restricted __le16
+drivers/pci/proc.c:161:40: warning: cast to restricted __le16
+drivers/pci/proc.c:170:41: warning: cast to restricted __le32
+drivers/pci/proc.c:179:40: warning: cast to restricted __le16
 
-Signed-off-by: Chandru Siddalingappa <chandru@in.ibm.com>
-Acked-by: Muli Ben-Yehuda <muli@il.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/pci-calgary_64.c |   85 ++++++++++++++++++++++++++---
- include/linux/crash_dump.h       |    8 ++
- 2 files changed, 87 insertions(+), 6 deletions(-)
+ drivers/pci/proc.c |   18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN arch/x86/kernel/pci-calgary_64.c~calgary-iommu-use-the-first-kernels-tce-tables-in-kdump arch/x86/kernel/pci-calgary_64.c
---- a/arch/x86/kernel/pci-calgary_64.c~calgary-iommu-use-the-first-kernels-tce-tables-in-kdump
-+++ a/arch/x86/kernel/pci-calgary_64.c
-@@ -29,6 +29,7 @@
- #include <linux/mm.h>
- #include <linux/spinlock.h>
- #include <linux/string.h>
-+#include <linux/crash_dump.h>
- #include <linux/dma-mapping.h>
- #include <linux/bitops.h>
- #include <linux/pci_ids.h>
-@@ -168,6 +169,8 @@ static void calgary_dump_error_regs(stru
- static void calioc2_handle_quirks(struct iommu_table *tbl, struct pci_dev *dev);
- static void calioc2_tce_cache_blast(struct iommu_table *tbl);
- static void calioc2_dump_error_regs(struct iommu_table *tbl);
-+static void calgary_init_bitmap_from_tce_table(struct iommu_table *tbl);
-+static void get_tce_space_from_tar(void);
- 
- static struct cal_chipset_ops calgary_chip_ops = {
- 	.handle_quirks = calgary_handle_quirks,
-@@ -797,7 +800,11 @@ static int __init calgary_setup_tar(stru
- 
- 	tbl = pci_iommu(dev->bus);
- 	tbl->it_base = (unsigned long)bus_info[dev->bus->number].tce_space;
--	tce_free(tbl, 0, tbl->it_size);
-+
-+	if (is_kdump_kernel())
-+		calgary_init_bitmap_from_tce_table(tbl);
-+	else
-+		tce_free(tbl, 0, tbl->it_size);
- 
- 	if (is_calgary(dev->device))
- 		tbl->chip_ops = &calgary_chip_ops;
-@@ -1176,6 +1183,10 @@ static int __init calgary_init(void)
- 	if (ret)
- 		return ret;
- 
-+	/* Purely for kdump kernel case  */
-+	if (is_kdump_kernel())
-+		get_tce_space_from_tar();
-+
- 	do {
- 		dev = pci_get_device(PCI_VENDOR_ID_IBM, PCI_ANY_ID, dev);
- 		if (!dev)
-@@ -1234,6 +1245,23 @@ error:
- 	return ret;
- }
- 
-+/*
-+ * calgary_init_bitmap_from_tce_table():
-+ * Funtion for kdump case. In the second/kdump kernel initialize
-+ * the bitmap based on the tce table entries obtained from first kernel
-+ */
-+static void calgary_init_bitmap_from_tce_table(struct iommu_table *tbl)
-+{
-+	u64 *tp;
-+	unsigned int index;
-+	tp = ((u64 *)tbl->it_base);
-+	for (index = 0 ; index < tbl->it_size; index++) {
-+		if (*tp != 0x0)
-+			set_bit(index, tbl->it_map);
-+		tp++;
-+	}
-+}
-+
- static inline int __init determine_tce_table_size(u64 ram)
- {
- 	int ret;
-@@ -1318,12 +1346,50 @@ static int __init calgary_bus_has_device
- 	return (val != 0xffffffff);
- }
- 
-+/*
-+ * get_tce_space_from_tar():
-+ * Function for kdump case. Get the tce tables from first kernel
-+ * by reading the contents of the base adress register of calgary iommu
-+ */
-+static void get_tce_space_from_tar()
-+{
-+	int bus;
-+	void __iomem *target;
-+	unsigned long tce_space;
-+
-+	for (bus = 0; bus < MAX_PHB_BUS_NUM; bus++) {
-+		struct calgary_bus_info *info = &bus_info[bus];
-+		unsigned short pci_device;
-+		u32 val;
-+
-+		val = read_pci_config(bus, 0, 0, 0);
-+		pci_device = (val & 0xFFFF0000) >> 16;
-+
-+		if (!is_cal_pci_dev(pci_device))
-+			continue;
-+		if (info->translation_disabled)
-+			continue;
-+
-+		if (calgary_bus_has_devices(bus, pci_device) ||
-+			translate_empty_slots) {
-+			target = calgary_reg(bus_info[bus].bbar,
-+				tar_offset(bus));
-+			tce_space = be64_to_cpu(readq(target));
-+			tce_space = tce_space & TAR_SW_BITS;
-+
-+			tce_space = tce_space & (~specified_table_size);
-+			info->tce_space = (u64 *)__va(tce_space);
-+		}
-+	}
-+	return;
-+}
-+
- void __init detect_calgary(void)
- {
- 	int bus;
- 	void *tbl;
- 	int calgary_found = 0;
--	unsigned long ptr;
-+	unsigned long ptr, max_pfn;
- 	unsigned int offset, prev_offset;
- 	int ret;
- 
-@@ -1373,6 +1439,7 @@ void __init detect_calgary(void)
- 		return;
+diff -puN drivers/pci/proc.c~pci-procc-sparse-endian-annotations drivers/pci/proc.c
+--- a/drivers/pci/proc.c~pci-procc-sparse-endian-annotations
++++ a/drivers/pci/proc.c
+@@ -88,7 +88,7 @@ proc_bus_pci_read(struct file *file, cha
+ 	if ((pos & 3) && cnt > 2) {
+ 		unsigned short val;
+ 		pci_user_read_config_word(dev, pos, &val);
+-		__put_user(cpu_to_le16(val), (unsigned short __user *) buf);
++		__put_user(cpu_to_le16(val), (__le16 __user *) buf);
+ 		buf += 2;
+ 		pos += 2;
+ 		cnt -= 2;
+@@ -97,7 +97,7 @@ proc_bus_pci_read(struct file *file, cha
+ 	while (cnt >= 4) {
+ 		unsigned int val;
+ 		pci_user_read_config_dword(dev, pos, &val);
+-		__put_user(cpu_to_le32(val), (unsigned int __user *) buf);
++		__put_user(cpu_to_le32(val), (__le32 __user *) buf);
+ 		buf += 4;
+ 		pos += 4;
+ 		cnt -= 4;
+@@ -106,7 +106,7 @@ proc_bus_pci_read(struct file *file, cha
+ 	if (cnt >= 2) {
+ 		unsigned short val;
+ 		pci_user_read_config_word(dev, pos, &val);
+-		__put_user(cpu_to_le16(val), (unsigned short __user *) buf);
++		__put_user(cpu_to_le16(val), (__le16 __user *) buf);
+ 		buf += 2;
+ 		pos += 2;
+ 		cnt -= 2;
+@@ -156,8 +156,8 @@ proc_bus_pci_write(struct file *file, co
  	}
  
-+	max_pfn = is_kdump_kernel() ? saved_max_pfn : end_pfn ;
- 	specified_table_size = determine_tce_table_size(max_pfn * PAGE_SIZE);
- 
- 	for (bus = 0; bus < MAX_PHB_BUS_NUM; bus++) {
-@@ -1391,10 +1458,16 @@ void __init detect_calgary(void)
- 
- 		if (calgary_bus_has_devices(bus, pci_device) ||
- 		    translate_empty_slots) {
--			tbl = alloc_tce_table();
--			if (!tbl)
--				goto cleanup;
--			info->tce_space = tbl;
-+			/*
-+			 * If it is kdump kernel, find and use tce tables
-+			 * from first kernel, else allocate tce tables here
-+			 */
-+			if (!is_kdump_kernel()) {
-+				tbl = alloc_tce_table();
-+				if (!tbl)
-+					goto cleanup;
-+				info->tce_space = tbl;
-+			}
- 			calgary_found = 1;
- 		}
+ 	if ((pos & 3) && cnt > 2) {
+-		unsigned short val;
+-		__get_user(val, (unsigned short __user *) buf);
++		__le16 val;
++		__get_user(val, (__le16 __user *) buf);
+ 		pci_user_write_config_word(dev, pos, le16_to_cpu(val));
+ 		buf += 2;
+ 		pos += 2;
+@@ -165,8 +165,8 @@ proc_bus_pci_write(struct file *file, co
  	}
-diff -puN include/linux/crash_dump.h~calgary-iommu-use-the-first-kernels-tce-tables-in-kdump include/linux/crash_dump.h
---- a/include/linux/crash_dump.h~calgary-iommu-use-the-first-kernels-tce-tables-in-kdump
-+++ a/include/linux/crash_dump.h
-@@ -22,5 +22,13 @@ extern struct proc_dir_entry *proc_vmcor
  
- #define vmcore_elf_check_arch(x) (elf_check_arch(x) || vmcore_elf_check_arch_cross(x))
+ 	while (cnt >= 4) {
+-		unsigned int val;
+-		__get_user(val, (unsigned int __user *) buf);
++		__le32 val;
++		__get_user(val, (__le32 __user *) buf);
+ 		pci_user_write_config_dword(dev, pos, le32_to_cpu(val));
+ 		buf += 4;
+ 		pos += 4;
+@@ -174,8 +174,8 @@ proc_bus_pci_write(struct file *file, co
+ 	}
  
-+static inline int is_kdump_kernel(void)
-+{
-+	return (elfcorehdr_addr != ELFCORE_ADDR_MAX) ? 1 : 0 ;
-+}
-+#else /* !CONFIG_CRASH_DUMP */
-+static inline int is_kdump_kernel(void) { return 0; }
- #endif /* CONFIG_CRASH_DUMP */
-+
-+extern unsigned long saved_max_pfn;
- #endif /* LINUX_CRASHDUMP_H */
+ 	if (cnt >= 2) {
+-		unsigned short val;
+-		__get_user(val, (unsigned short __user *) buf);
++		__le16 val;
++		__get_user(val, (__le16 __user *) buf);
+ 		pci_user_write_config_word(dev, pos, le16_to_cpu(val));
+ 		buf += 2;
+ 		pos += 2;
 _
 
-Patches currently in -mm which might be from chandru@in.ibm.com are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
-calgary-iommu-use-the-first-kernels-tce-tables-in-kdump.patch
-calgary-iommu-use-the-first-kernels-tce-tables-in-kdump-coding-style-fixes.patch
+origin.patch
+linux-next.patch
+cifs-remove-global_extern-macro.patch
+mtd-diskonchipc-fix-sparse-endian-warnings.patch
+scsi-replace-remaining-__function__-occurrences.patch
+fusion-replace-remaining-__function__-occurrences.patch
+scsi-replace-__inline-with-inline.patch
+scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
+scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
+xfs-use-get_unaligned_-helpers.patch
+xtensa-replace-remaining-__function__-occurences.patch
+fs-ldm-use-get_unaligned_-helpers.patch
+include-use-get-put_unaligned_-helpers.patch
+lzo-use-get-put_unaligned_-helpers.patch
+asm-generic-int-ll64h-always-provide-__su64.patch
+olpc-olpc_batteryc-sparse-endian-annotations.patch
+ecryptfs-cryptoc-use-unaligned-byteorder-helpers.patch
+ecryptfs-inodec-mmapc-use-unaligned-byteorder-helpers.patch
+scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
+isdn-use-the-common-ascii-hex-helpers.patch
+net-use-the-common-ascii-hex-helpers.patch
+cris-use-the-common-ascii-hex-helpers.patch
+frv-use-the-common-ascii-hex-helpers.patch
+mips-use-the-common-ascii-hex-helpers.patch
+ppc-use-the-common-ascii-hex-helpers.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+mn10300-use-the-common-ascii-hex-helpers.patch
+byteorder-add-a-new-include-linux-swabh-to-define-byteswapping-functions.patch
+byteorder-add-include-linux-byteorderh-to-define-endian-helpers.patch
+pci-procc-sparse-endian-annotations.patch
 
