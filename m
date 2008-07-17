@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + tracehook-tif_notify_resume.patch added to -mm tree
-Date: Thu, 17 Jul 2008 01:31:07 -0700
-Message-ID: <200807170831.m6H8V702007009@imap1.linux-foundation.org>
+Subject: + proc-pid-syscall.patch added to -mm tree
+Date: Thu, 17 Jul 2008 01:31:18 -0700
+Message-ID: <200807170831.m6H8VIdZ007024@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35983 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59204 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753627AbYGQIcE (ORCPT
+	by vger.kernel.org with ESMTP id S1753426AbYGQIcZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Jul 2008 04:32:04 -0400
+	Thu, 17 Jul 2008 04:32:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: roland@redhat.com, oleg@tv-sign.ru
 
 
 The patch titled
-     tracehook: TIF_NOTIFY_RESUME
+     /proc/PID/syscall
 has been added to the -mm tree.  Its filename is
-     tracehook-tif_notify_resume.patch
+     proc-pid-syscall.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,74 +34,74 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tracehook: TIF_NOTIFY_RESUME
+Subject: /proc/PID/syscall
 From: Roland McGrath <roland@redhat.com>
 
-This adds tracehook.h inlines to enable a new arch feature in support of
-user debugging/tracing.  This is not used yet, but it lays the groundwork
-for a debugger to be able to wrangle a task that's possibly running,
-without interrupting its syscalls in progress.
-
-Each arch should define TIF_NOTIFY_RESUME, and in their entry.S code treat
-it much like TIF_SIGPENDING.  That is, it causes you to take the slow path
-when returning to user mode, where you get the full user-mode state
-accessible as for signal handling or ptrace.  The arch code should check
-TIF_NOTIFY_RESUME after handling TIF_SIGPENDING.  When it's set, clear it
-and then call tracehook_notify_resume().
-
-In future, tracing code will call set_notify_resume() when it wants to get
-a callback in tracehook_notify_resume().
+This adds /proc/PID/syscall and /proc/PID/task/TID/syscall magic files. 
+These use task_current_syscall() to show the task's current system call
+number and argument registers, stack pointer and PC.  For a task blocked
+but not in a syscall, the file shows "-1" in place of the syscall number,
+followed by only the SP and PC.  For a task that's not blocked, it shows
+"running".
 
 Signed-off-by: Roland McGrath <roland@redhat.com>
 Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/tracehook.h |   34 ++++++++++++++++++++++++++++++++++
- 1 file changed, 34 insertions(+)
+ fs/proc/base.c |   26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
 
-diff -puN include/linux/tracehook.h~tracehook-tif_notify_resume include/linux/tracehook.h
---- a/include/linux/tracehook.h~tracehook-tif_notify_resume
-+++ a/include/linux/tracehook.h
-@@ -537,4 +537,38 @@ static inline void tracehook_report_deat
- {
+diff -puN fs/proc/base.c~proc-pid-syscall fs/proc/base.c
+--- a/fs/proc/base.c~proc-pid-syscall
++++ a/fs/proc/base.c
+@@ -509,6 +509,26 @@ static int proc_pid_limits(struct task_s
+ 	return count;
  }
  
-+#ifdef TIF_NOTIFY_RESUME
-+/**
-+ * set_notify_resume - cause tracehook_notify_resume() to be called
-+ * @task:		task that will call tracehook_notify_resume()
-+ *
-+ * Calling this arranges that @task will call tracehook_notify_resume()
-+ * before returning to user mode.  If it's already running in user mode,
-+ * it will enter the kernel and call tracehook_notify_resume() soon.
-+ * If it's blocked, it will not be woken.
-+ */
-+static inline void set_notify_resume(struct task_struct *task)
++#ifdef CONFIG_HAVE_ARCH_TRACEHOOK
++static int proc_pid_syscall(struct task_struct *task, char *buffer)
 +{
-+	if (!test_and_set_tsk_thread_flag(task, TIF_NOTIFY_RESUME))
-+		kick_process(task);
-+}
++	long nr;
++	unsigned long args[6], sp, pc;
 +
-+/**
-+ * tracehook_notify_resume - report when about to return to user mode
-+ * @regs:		user-mode registers of @current task
-+ *
-+ * This is called when %TIF_NOTIFY_RESUME has been set.  Now we are
-+ * about to return to user mode, and the user state in @regs can be
-+ * inspected or adjusted.  The caller in arch code has cleared
-+ * %TIF_NOTIFY_RESUME before the call.  If the flag gets set again
-+ * asynchronously, this will be called again before we return to
-+ * user mode.
-+ *
-+ * Called without locks.
-+ */
-+static inline void tracehook_notify_resume(struct pt_regs *regs)
-+{
-+}
-+#endif	/* TIF_NOTIFY_RESUME */
++	if (task_current_syscall(task, &nr, args, 6, &sp, &pc))
++		return sprintf(buffer, "running\n");
 +
- #endif	/* <linux/tracehook.h> */
++	if (nr < 0)
++		return sprintf(buffer, "%ld 0x%lx 0x%lx\n", nr, sp, pc);
++
++	return sprintf(buffer,
++		       "%ld 0x%lx 0x%lx 0x%lx 0x%lx 0x%lx 0x%lx 0x%lx 0x%lx\n",
++		       nr,
++		       args[0], args[1], args[2], args[3], args[4], args[5],
++		       sp, pc);
++}
++#endif /* CONFIG_HAVE_ARCH_TRACEHOOK */
++
+ /************************************************************************/
+ /*                       Here the fs part begins                        */
+ /************************************************************************/
+@@ -2478,6 +2498,9 @@ static const struct pid_entry tgid_base_
+ #ifdef CONFIG_SCHED_DEBUG
+ 	REG("sched",      S_IRUGO|S_IWUSR, pid_sched),
+ #endif
++#ifdef CONFIG_HAVE_ARCH_TRACEHOOK
++	INF("syscall",    S_IRUSR, pid_syscall),
++#endif
+ 	INF("cmdline",    S_IRUGO, pid_cmdline),
+ 	ONE("stat",       S_IRUGO, tgid_stat),
+ 	ONE("statm",      S_IRUGO, pid_statm),
+@@ -2810,6 +2833,9 @@ static const struct pid_entry tid_base_s
+ #ifdef CONFIG_SCHED_DEBUG
+ 	REG("sched",     S_IRUGO|S_IWUSR, pid_sched),
+ #endif
++#ifdef CONFIG_HAVE_ARCH_TRACEHOOK
++	INF("syscall",   S_IRUSR, pid_syscall),
++#endif
+ 	INF("cmdline",   S_IRUGO, pid_cmdline),
+ 	ONE("stat",      S_IRUGO, tid_stat),
+ 	ONE("statm",     S_IRUGO, pid_statm),
 _
 
 Patches currently in -mm which might be from roland@redhat.com are
