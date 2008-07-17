@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + tracehook-tracehook_expect_breakpoints.patch added to -mm tree
-Date: Thu, 17 Jul 2008 01:30:49 -0700
-Message-ID: <200807170830.m6H8UnWt006973@imap1.linux-foundation.org>
+Subject: + tracehook-tracehook_consider_fatal_signal.patch added to -mm tree
+Date: Thu, 17 Jul 2008 01:30:55 -0700
+Message-ID: <200807170830.m6H8Utiv006982@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34870 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34012 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752999AbYGQIhY (ORCPT
+	by vger.kernel.org with ESMTP id S1753532AbYGQIh6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Jul 2008 04:37:24 -0400
+	Thu, 17 Jul 2008 04:37:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: roland@redhat.com, oleg@tv-sign.ru
 
 
 The patch titled
-     tracehook: tracehook_expect_breakpoints
+     tracehook: tracehook_consider_fatal_signal
 has been added to the -mm tree.  Its filename is
-     tracehook-tracehook_expect_breakpoints.patch
+     tracehook-tracehook_consider_fatal_signal.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,68 +34,80 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tracehook: tracehook_expect_breakpoints
+Subject: tracehook: tracehook_consider_fatal_signal
 From: Roland McGrath <roland@redhat.com>
 
-This adds tracehook_expect_breakpoints() as a formal hook for the nommu
-code to use for its, "Is text-poking likely?" check at mmap time.  This
-names the actual semantics the code means to test, and documents it.
+This defines tracehook_consider_fatal_signal() has a fine-grained hook for
+deciding to skip the special cases for a fatal signal, as ptrace does. 
+There is no change, only cleanup.
 
 Signed-off-by: Roland McGrath <roland@redhat.com>
 Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/tracehook.h |   15 +++++++++++++++
- mm/nommu.c                |    4 ++--
- 2 files changed, 17 insertions(+), 2 deletions(-)
+ include/linux/tracehook.h |   21 +++++++++++++++++++++
+ kernel/signal.c           |    9 +++++----
+ 2 files changed, 26 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/tracehook.h~tracehook-tracehook_expect_breakpoints include/linux/tracehook.h
---- a/include/linux/tracehook.h~tracehook-tracehook_expect_breakpoints
+diff -puN include/linux/tracehook.h~tracehook-tracehook_consider_fatal_signal include/linux/tracehook.h
+--- a/include/linux/tracehook.h~tracehook-tracehook_consider_fatal_signal
 +++ a/include/linux/tracehook.h
-@@ -52,6 +52,21 @@
- struct linux_binprm;
+@@ -331,4 +331,25 @@ static inline int tracehook_consider_ign
+ 	return (task_ptrace(task) & PT_PTRACED) != 0;
+ }
  
- /**
-+ * tracehook_expect_breakpoints - guess if task memory might be touched
-+ * @task:		current task, making a new mapping
++/**
++ * tracehook_consider_fatal_signal - suppress special handling of fatal signal
++ * @task:		task receiving the signal
++ * @sig:		signal number being sent
++ * @handler:		%SIG_DFL or %SIG_IGN
 + *
-+ * Return nonzero if @task is expected to want breakpoint insertion in
-+ * its memory at some point.  A zero return is no guarantee it won't
-+ * be done, but this is a hint that it's known to be likely.
++ * Return nonzero to prevent special handling of this termination signal.
++ * Normally @handler is %SIG_DFL.  It can be %SIG_IGN if @sig is ignored,
++ * in which case force_sig() is about to reset it to %SIG_DFL.
++ * When this returns zero, this signal might cause a quick termination
++ * that does not give the debugger a chance to intercept the signal.
 + *
-+ * May be called with @task->mm->mmap_sem held for writing.
++ * Called with or without @task->sighand->siglock held.
 + */
-+static inline int tracehook_expect_breakpoints(struct task_struct *task)
++static inline int tracehook_consider_fatal_signal(struct task_struct *task,
++						  int sig,
++						  void __user *handler)
 +{
 +	return (task_ptrace(task) & PT_PTRACED) != 0;
 +}
 +
-+/**
-  * tracehook_unsafe_exec - check for exec declared unsafe due to tracing
-  * @task:		current task doing exec
-  *
-diff -puN mm/nommu.c~tracehook-tracehook_expect_breakpoints mm/nommu.c
---- a/mm/nommu.c~tracehook-tracehook_expect_breakpoints
-+++ a/mm/nommu.c
-@@ -22,7 +22,7 @@
- #include <linux/pagemap.h>
- #include <linux/slab.h>
- #include <linux/vmalloc.h>
--#include <linux/ptrace.h>
-+#include <linux/tracehook.h>
- #include <linux/blkdev.h>
- #include <linux/backing-dev.h>
- #include <linux/mount.h>
-@@ -745,7 +745,7 @@ static unsigned long determine_vm_flags(
- 	 * it's being traced - otherwise breakpoints set in it may interfere
- 	 * with another untraced process
- 	 */
--	if ((flags & MAP_PRIVATE) && (current->ptrace & PT_PTRACED))
-+	if ((flags & MAP_PRIVATE) && tracehook_expect_breakpoints(current))
- 		vm_flags &= ~VM_MAYSHARE;
+ #endif	/* <linux/tracehook.h> */
+diff -puN kernel/signal.c~tracehook-tracehook_consider_fatal_signal kernel/signal.c
+--- a/kernel/signal.c~tracehook-tracehook_consider_fatal_signal
++++ a/kernel/signal.c
+@@ -300,12 +300,12 @@ flush_signal_handlers(struct task_struct
  
- 	return vm_flags;
+ int unhandled_signal(struct task_struct *tsk, int sig)
+ {
++	void __user *handler = tsk->sighand->action[sig-1].sa.sa_handler;
+ 	if (is_global_init(tsk))
+ 		return 1;
+-	if (tsk->ptrace & PT_PTRACED)
++	if (handler != SIG_IGN && handler != SIG_DFL)
+ 		return 0;
+-	return (tsk->sighand->action[sig-1].sa.sa_handler == SIG_IGN) ||
+-		(tsk->sighand->action[sig-1].sa.sa_handler == SIG_DFL);
++	return !tracehook_consider_fatal_signal(tsk, sig, handler);
+ }
+ 
+ 
+@@ -761,7 +761,8 @@ static void complete_signal(int sig, str
+ 	if (sig_fatal(p, sig) &&
+ 	    !(signal->flags & (SIGNAL_UNKILLABLE | SIGNAL_GROUP_EXIT)) &&
+ 	    !sigismember(&t->real_blocked, sig) &&
+-	    (sig == SIGKILL || !(t->ptrace & PT_PTRACED))) {
++	    (sig == SIGKILL ||
++	     !tracehook_consider_fatal_signal(t, sig, SIG_DFL))) {
+ 		/*
+ 		 * This signal will be fatal to the whole group.
+ 		 */
 _
 
 Patches currently in -mm which might be from roland@redhat.com are
