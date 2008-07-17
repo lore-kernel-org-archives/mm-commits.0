@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + tracehook-force-signal_pending.patch added to -mm tree
-Date: Thu, 17 Jul 2008 01:31:05 -0700
-Message-ID: <200807170831.m6H8V5gq007006@imap1.linux-foundation.org>
+Subject: + tracehook-config_have_arch_tracehook.patch added to -mm tree
+Date: Thu, 17 Jul 2008 01:31:12 -0700
+Message-ID: <200807170831.m6H8VCOA007015@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55091 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58581 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753425AbYGQIb5 (ORCPT
+	by vger.kernel.org with ESMTP id S1753532AbYGQIcC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Jul 2008 04:31:57 -0400
+	Thu, 17 Jul 2008 04:32:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: roland@redhat.com, oleg@tv-sign.ru
 
 
 The patch titled
-     tracehook: force signal_pending()
+     tracehook: CONFIG_HAVE_ARCH_TRACEHOOK
 has been added to the -mm tree.  Its filename is
-     tracehook-force-signal_pending.patch
+     tracehook-config_have_arch_tracehook.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,63 +34,56 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tracehook: force signal_pending()
+Subject: tracehook: CONFIG_HAVE_ARCH_TRACEHOOK
 From: Roland McGrath <roland@redhat.com>
 
-This defines a new hook tracehook_force_sigpending() that lets tracing
-code decide to force TIF_SIGPENDING on in recalc_sigpending().
+This adds the generic HAVE_ARCH_TRACEHOOK kconfig item.  Each arch should
+add to some Kconfig file:
 
-This is not used yet, so it compiles away to nothing for now.  It lays the
-groundwork for new tracing code that can interrupt a task synthetically
-without actually sending a signal.
+	select HAVE_ARCH_TRACEHOOK
+
+if the arch code uses all the latest hooks to enable newfangled tracing
+and debugging code.  The comment in arch/Kconfig lists all the
+prerequisite arch support.  When all these are available, setting
+HAVE_ARCH_TRACEHOOK will allow enabling any new features that depend on
+the modern arch interfaces.
 
 Signed-off-by: Roland McGrath <roland@redhat.com>
 Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/tracehook.h |   14 ++++++++++++++
- kernel/signal.c           |    4 +++-
- 2 files changed, 17 insertions(+), 1 deletion(-)
+ arch/Kconfig |   18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
-diff -puN include/linux/tracehook.h~tracehook-force-signal_pending include/linux/tracehook.h
---- a/include/linux/tracehook.h~tracehook-force-signal_pending
-+++ a/include/linux/tracehook.h
-@@ -423,6 +423,20 @@ static inline int tracehook_consider_fat
- }
+diff -puN arch/Kconfig~tracehook-config_have_arch_tracehook arch/Kconfig
+--- a/arch/Kconfig~tracehook-config_have_arch_tracehook
++++ a/arch/Kconfig
+@@ -59,6 +59,24 @@ config HAVE_KPROBES
+ config HAVE_KRETPROBES
+ 	def_bool n
  
- /**
-+ * tracehook_force_sigpending - let tracing force signal_pending(current) on
-+ *
-+ * Called when recomputing our signal_pending() flag.  Return nonzero
-+ * to force the signal_pending() flag on, so that tracehook_get_signal()
-+ * will be called before the next return to user mode.
-+ *
-+ * Called with @current->sighand->siglock held.
-+ */
-+static inline int tracehook_force_sigpending(void)
-+{
-+	return 0;
-+}
++#
++# An arch should select this if it provides all these things:
++#
++#	task_pt_regs()		in asm/processor.h or asm/ptrace.h
++#	arch_has_single_step()	if there is hardware single-step support
++#	arch_has_block_step()	if there is hardware block-step support
++#	arch_ptrace()		and not #define __ARCH_SYS_PTRACE
++#	compat_arch_ptrace()	and #define __ARCH_WANT_COMPAT_SYS_PTRACE
++#	asm/syscall.h		supplying asm-generic/syscall.h interface
++#	linux/regset.h		user_regset interfaces
++#	CORE_DUMP_USE_REGSET	#define'd in linux/elf.h
++#	TIF_SYSCALL_TRACE	calls tracehook_report_syscall_{entry,exit}
++#	TIF_NOTIFY_RESUME	calls tracehook_notify_resume()
++#	signal delivery		calls tracehook_signal_handler()
++#
++config HAVE_ARCH_TRACEHOOK
++	def_bool n
 +
-+/**
-  * tracehook_get_signal - deliver synthetic signal to traced task
-  * @task:		@current
-  * @regs:		task_pt_regs(@current)
-diff -puN kernel/signal.c~tracehook-force-signal_pending kernel/signal.c
---- a/kernel/signal.c~tracehook-force-signal_pending
-+++ a/kernel/signal.c
-@@ -134,7 +134,9 @@ void recalc_sigpending_and_wake(struct t
+ config HAVE_DMA_ATTRS
+ 	def_bool n
  
- void recalc_sigpending(void)
- {
--	if (!recalc_sigpending_tsk(current) && !freezing(current))
-+	if (unlikely(tracehook_force_sigpending()))
-+		set_thread_flag(TIF_SIGPENDING);
-+	else if (!recalc_sigpending_tsk(current) && !freezing(current))
- 		clear_thread_flag(TIF_SIGPENDING);
- 
- }
 _
 
 Patches currently in -mm which might be from roland@redhat.com are
