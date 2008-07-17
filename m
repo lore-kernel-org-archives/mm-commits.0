@@ -1,273 +1,245 @@
 From: akpm@linux-foundation.org
-Subject: - mpc83xx_wdt-add-support-for-mpc86xx-cpus.patch removed from -mm tree
-Date: Wed, 16 Jul 2008 14:37:35 -0700
-Message-ID: <200807162137.m6GLbZ3J014396@imap1.linux-foundation.org>
+Subject: + ath5k-fix-memory-corruption.patch added to -mm tree
+Date: Wed, 16 Jul 2008 17:11:39 -0700
+Message-ID: <200807170011.m6H0BhLr020934@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50148 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36947 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755731AbYGPVwc (ORCPT
+	by vger.kernel.org with ESMTP id S1751430AbYGQALu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jul 2008 17:52:32 -0400
+	Wed, 16 Jul 2008 20:11:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: avorontsov@ru.mvista.com, galak@kernel.crashing.org, wim@iguana.be, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: jirislaby@gmail.com, mcgrof@gmail.com, mickflemm@gmail.com
 
 
 The patch titled
-     mpc83xx_wdt: add support for MPC86xx CPUs
-has been removed from the -mm tree.  Its filename was
-     mpc83xx_wdt-add-support-for-mpc86xx-cpus.patch
+     ath5k: fix memory corruption
+has been added to the -mm tree.  Its filename is
+     ath5k-fix-memory-corruption.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
+find
+out what to do about this
+
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: mpc83xx_wdt: add support for MPC86xx CPUs
-From: Anton Vorontsov <avorontsov@ru.mvista.com>
+Subject: ath5k: fix memory corruption
+=46rom: Jiri Slaby <jirislaby@gmail.com>
 
-On MPC86xx the watchdog could be enabled only at power-on-reset, and could
-not be disabled afterwards.  We must ping the watchdog from the kernel
-until the userspace handles it.
+When signal is noisy, hardware can use all RX buffers and since the las=
+t
+entry in the list is self-linked, it overwrites the entry until we link
+new buffers.
 
-MPC83xx CPUs are only differ in a way that watchdog could be disabled
-once, but after it was enabled via software it becomes just the same as
-MPC86xx.
+Ensure that we don't free this last one until we are 100% sure that it
+is not used by the hardware anymore to not cause memory curruption as
+can be seen below.
 
-Thus, to support MPC86xx I added the kernel timer which pings the watchdog
-until the userspace opens it.
+This is done by checking next buffer in the list. Even after that we
+know that the hardware refetched the new link and proceeded further
+(the next buffer is ready) we can finally free the overwritten buffer.
 
-Since we implemented the timer, now we're able to implement proper
-handling for the CONFIG_WATCHDOG_NOWAYOUT case, for MPC83xx and MPC86xx.
+We discard it since the status in its descriptor is overwritten (OR-ed
+by new status) too.
 
-Also move the probe code into subsys_initcall, because we want start
-pinging the watchdog ASAP, and misc devices are available in
-subsys_initcall.
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D
+BUG kmalloc-4096: Poison overwritten
+-----------------------------------------------------------------------=
+------
 
-Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
-Cc: Kumar Gala <galak@kernel.crashing.org>
-Cc: Wim Van Sebroeck <wim@iguana.be>
+INFO: 0xffff810067419060-0xffff810067419667. First byte 0x8 instead of =
+0x6b
+INFO: Allocated in dev_alloc_skb+0x18/0x30 age=3D1118 cpu=3D1 pid=3D0
+INFO: Freed in skb_release_data+0x85/0xd0 age=3D1105 cpu=3D1 pid=3D3718
+INFO: Slab 0xffffe200019d0600 objects=3D7 used=3D0 fp=3D0xffff810067419=
+048 flags=3D0x40000000000020c3
+INFO: Object 0xffff810067419048 @offset=3D4168 fp=3D0xffff81006741c120
+
+Bytes b4 0xffff810067419038:  4f 0b 02 00 01 00 00 00 5a 5a 5a 5a 5a 5a=
+ 5a 5a O.......ZZZZZZZZ
+  Object 0xffff810067419048:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b=
+ 6b 6b kkkkkkkkkkkkkkkk
+  Object 0xffff810067419058:  6b 6b 6b 6b 6b 6b 6b 6b 08 42 30 00 00 0b=
+ 6b 80 kkkkkkkk.B0...k.
+  Object 0xffff810067419068:  f0 5d 00 4f 62 08 a3 64 00 0c 42 16 52 e4=
+ f0 5a 360].Ob.243d..B.R344360Z
+  Object 0xffff810067419078:  68 81 00 00 7b a5 b4 be 7d 3b 8f 53 cd d5=
+ de 12 h...{245264276};.S315325336.
+  Object 0xffff810067419088:  96 10 0b 89 48 54 23 41 0f 4e 2d b9 37 c3=
+ cb 29 ....HT#A.N-2717303313)
+  Object 0xffff810067419098:  d1 e0 de 14 8a 57 2a cc 3b 44 0d 78 7a 19=
+ 12 15 321340336..W*314;D.xz...
+  Object 0xffff8100674190a8:  a9 ec d4 35 a8 10 ec 8c 40 a7 06 0a 51 a7=
+ 48 bb 2513543245250.354.@247..Q247H273
+  Object 0xffff8100674190b8:  3e cf a1 c7 38 60 63 3f 51 15 c7 20 eb ba=
+ 65 30 >=CF=A13078`c?Q.307.353272e0
+ Redzone 0xffff81006741a048:  bb bb bb bb bb bb bb bb                  =
+       273273273273273273273273
+ Padding 0xffff81006741a088:  5a 5a 5a 5a 5a 5a 5a 5a                  =
+       ZZZZZZZZ
+Pid: 3297, comm: ath5k_pci Not tainted 2.6.26-rc8-mm1_64 #427
+
+Call Trace:
+ [<ffffffff802a7306>] print_trailer+0xf6/0x150
+ [<ffffffff802a7485>] check_bytes_and_report+0x125/0x180
+ [<ffffffff802a75dc>] check_object+0xac/0x260
+ [<ffffffff802a9308>] __slab_alloc+0x368/0x6d0
+ [<ffffffff80544f82>] ? wireless_send_event+0x142/0x310
+ [<ffffffff804b1bd4>] ? __alloc_skb+0x44/0x150
+ [<ffffffff80544f82>] ? wireless_send_event+0x142/0x310
+ [<ffffffff802aa853>] __kmalloc_track_caller+0xc3/0xf0
+ [<ffffffff804b1bfe>] __alloc_skb+0x6e/0x150
+[... stack snipped]
+
+=46IX kmalloc-4096: Restoring 0xffff810067419060-0xffff810067419667=3D0=
+x6b
+
+=46IX kmalloc-4096: Marking all objects used
+
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: Nick Kossifidis <mickflemm@gmail.com>
+Cc: Luis R. Rodriguez <mcgrof@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/Kconfig       |    4 -
- drivers/watchdog/mpc83xx_wdt.c |   80 +++++++++++++++++++++++++++----
- 2 files changed, 74 insertions(+), 10 deletions(-)
+ drivers/net/wireless/ath5k/base.c |   32 +++++++++++++++++++++-------
+ drivers/net/wireless/ath5k/base.h |    2 -
+ 2 files changed, 26 insertions(+), 8 deletions(-)
 
-diff -puN drivers/watchdog/Kconfig~mpc83xx_wdt-add-support-for-mpc86xx-cpus drivers/watchdog/Kconfig
---- a/drivers/watchdog/Kconfig~mpc83xx_wdt-add-support-for-mpc86xx-cpus
-+++ a/drivers/watchdog/Kconfig
-@@ -696,8 +696,8 @@ config 8xx_WDT
- 	depends on 8xx
- 
- config 83xx_WDT
--	tristate "MPC83xx Watchdog Timer"
--	depends on PPC_83xx
-+	tristate "MPC83xx/MPC86xx Watchdog Timer"
-+	depends on PPC_83xx || PPC_86xx
- 
- config MV64X60_WDT
- 	tristate "MV64X60 (Marvell Discovery) Watchdog Timer"
-diff -puN drivers/watchdog/mpc83xx_wdt.c~mpc83xx_wdt-add-support-for-mpc86xx-cpus drivers/watchdog/mpc83xx_wdt.c
---- a/drivers/watchdog/mpc83xx_wdt.c~mpc83xx_wdt-add-support-for-mpc86xx-cpus
-+++ a/drivers/watchdog/mpc83xx_wdt.c
-@@ -1,10 +1,12 @@
- /*
-- * mpc83xx_wdt.c - MPC83xx watchdog userspace interface
-+ * mpc83xx_wdt.c - MPC83xx/MPC86xx watchdog userspace interface
-  *
-  * Authors: Dave Updegraff <dave@cray.org>
-  * 	    Kumar Gala <galak@kernel.crashing.org>
-  * 		Attribution: from 83xx_wst: Florian Schirmer <jolt@tuxbox.org>
-  * 				..and from sc520_wdt
-+ * Copyright (c) 2008  MontaVista Software, Inc.
-+ *                     Anton Vorontsov <avorontsov@ru.mvista.com>
-  *
-  * Note: it appears that you can only actually ENABLE or DISABLE the thing
-  * once after POR. Once enabled, you cannot disable, and vice versa.
-@@ -18,6 +20,7 @@
- #include <linux/fs.h>
- #include <linux/init.h>
- #include <linux/kernel.h>
-+#include <linux/timer.h>
- #include <linux/miscdevice.h>
- #include <linux/of_platform.h>
- #include <linux/module.h>
-@@ -39,6 +42,11 @@ struct mpc83xx_wdt {
- 	u8 res2[0xF0];
- };
- 
-+struct mpc83xx_wdt_type {
-+	int prescaler;
-+	bool hw_enabled;
-+};
-+
- static struct mpc83xx_wdt __iomem *wd_base;
- 
- static u16 timeout = 0xffff;
-@@ -51,6 +59,11 @@ module_param(reset, bool, 0);
- MODULE_PARM_DESC(reset,
- 	"Watchdog Interrupt/Reset Mode. 0 = interrupt, 1 = reset");
- 
-+static int nowayout = WATCHDOG_NOWAYOUT;
-+module_param(nowayout, int, 0);
-+MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started "
-+		 "(default=" __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
-+
- /*
-  * We always prescale, but if someone really doesn't want to they can set this
-  * to 0
-@@ -70,6 +83,22 @@ static void mpc83xx_wdt_keepalive(void)
- 	spin_unlock(&wdt_spinlock);
- }
- 
-+static void mpc83xx_wdt_timer_ping(unsigned long arg);
-+static DEFINE_TIMER(wdt_timer, mpc83xx_wdt_timer_ping, 0, 0);
-+
-+static void mpc83xx_wdt_timer_ping(unsigned long arg)
-+{
-+	mpc83xx_wdt_keepalive();
-+	/* We're pinging it twice faster than needed, just to be sure. */
-+	mod_timer(&wdt_timer, jiffies + HZ * timeout_sec / 2);
-+}
-+
-+static void mpc83xx_wdt_pr_warn(const char *msg)
-+{
-+	pr_crit("mpc83xx_wdt: %s, expect the %s soon!\n", msg,
-+		reset ? "reset" : "machine check exception");
-+}
-+
- static ssize_t mpc83xx_wdt_write(struct file *file, const char __user *buf,
- 				 size_t count, loff_t *ppos)
- {
-@@ -85,7 +114,8 @@ static int mpc83xx_wdt_open(struct inode
- 		return -EBUSY;
- 
- 	/* Once we start the watchdog we can't stop it */
--	__module_get(THIS_MODULE);
-+	if (nowayout)
-+		__module_get(THIS_MODULE);
- 
- 	/* Good, fire up the show */
- 	if (prescale)
-@@ -97,13 +127,17 @@ static int mpc83xx_wdt_open(struct inode
- 
- 	out_be32(&wd_base->swcrr, tmp);
- 
-+	del_timer_sync(&wdt_timer);
-+
- 	return nonseekable_open(inode, file);
- }
- 
- static int mpc83xx_wdt_release(struct inode *inode, struct file *file)
- {
--	printk(KERN_CRIT "Unexpected close, not stopping watchdog!\n");
--	mpc83xx_wdt_keepalive();
-+	if (!nowayout)
-+		mpc83xx_wdt_timer_ping(0);
-+	else
-+		mpc83xx_wdt_pr_warn("watchdog closed");
- 	clear_bit(0, &wdt_is_open);
- 	return 0;
- }
-@@ -154,15 +188,25 @@ static int __devinit mpc83xx_wdt_probe(s
- 				       const struct of_device_id *match)
- {
+diff -puN drivers/net/wireless/ath5k/base.c~ath5k-fix-memory-corruption=
+ drivers/net/wireless/ath5k/base.c
+--- a/drivers/net/wireless/ath5k/base.c~ath5k-fix-memory-corruption
++++ a/drivers/net/wireless/ath5k/base.c
+@@ -1682,20 +1682,21 @@ ath5k_tasklet_rx(unsigned long data)
+ 	struct ath5k_rx_status rs =3D {};
+ 	struct sk_buff *skb;
+ 	struct ath5k_softc *sc =3D (void *)data;
+-	struct ath5k_buf *bf;
++	struct ath5k_buf *bf, *bf_last;
+ 	struct ath5k_desc *ds;
  	int ret;
-+	struct device_node *np = ofdev->node;
-+	struct mpc83xx_wdt_type *wdt_type = match->data;
- 	u32 freq = fsl_get_sys_freq();
-+	bool enabled;
- 
- 	if (!freq || freq == -1)
- 		return -EINVAL;
- 
--	wd_base = of_iomap(ofdev->node, 0);
-+	wd_base = of_iomap(np, 0);
- 	if (!wd_base)
- 		return -ENOMEM;
- 
-+	enabled = in_be32(&wd_base->swcrr) & SWCRR_SWEN;
-+	if (!enabled && wdt_type->hw_enabled) {
-+		pr_info("mpc83xx_wdt: could not be enabled in software\n");
-+		ret = -ENOSYS;
-+		goto err_unmap;
+ 	int hdrlen;
+ 	int pad;
+=20
+ 	spin_lock(&sc->rxbuflock);
++	if (list_empty(&sc->rxbuf)) {
++		ATH5K_WARN(sc, "empty rx buf pool\n");
++		goto unlock;
 +	}
-+
- 	ret = misc_register(&mpc83xx_wdt_miscdev);
- 	if (ret) {
- 		pr_err("cannot register miscdev on minor=%d (err=%d)\n",
-@@ -172,13 +216,21 @@ static int __devinit mpc83xx_wdt_probe(s
- 
- 	/* Calculate the timeout in seconds */
- 	if (prescale)
--		timeout_sec = (timeout * 0x10000) / freq;
-+		timeout_sec = (timeout * wdt_type->prescaler) / freq;
- 	else
- 		timeout_sec = timeout / freq;
- 
- 	pr_info("WDT driver for MPC83xx initialized. mode:%s timeout=%d "
- 		"(%d seconds)\n", reset ? "reset" : "interrupt", timeout,
- 		timeout_sec);
-+
-+	/*
-+	 * If the watchdog was previously enabled or we're running on
-+	 * MPC86xx, we should ping the wdt from the kernel until the
-+	 * userspace handles it.
-+	 */
-+	if (enabled)
-+		mpc83xx_wdt_timer_ping(0);
- 	return 0;
- err_unmap:
- 	iounmap(wd_base);
-@@ -187,6 +239,8 @@ err_unmap:
- 
- static int __devexit mpc83xx_wdt_remove(struct of_device *ofdev)
- {
-+	mpc83xx_wdt_pr_warn("watchdog removed");
-+	del_timer_sync(&wdt_timer);
- 	misc_deregister(&mpc83xx_wdt_miscdev);
- 	iounmap(wd_base);
- 
-@@ -196,6 +250,16 @@ static int __devexit mpc83xx_wdt_remove(
- static const struct of_device_id mpc83xx_wdt_match[] = {
- 	{
- 		.compatible = "mpc83xx_wdt",
-+		.data = &(struct mpc83xx_wdt_type) {
-+			.prescaler = 0x10000,
-+		},
-+	},
-+	{
-+		.compatible = "fsl,mpc8610-wdt",
-+		.data = &(struct mpc83xx_wdt_type) {
-+			.prescaler = 0x10000,
-+			.hw_enabled = true,
-+		},
- 	},
- 	{},
- };
-@@ -221,10 +285,10 @@ static void __exit mpc83xx_wdt_exit(void
- 	of_unregister_platform_driver(&mpc83xx_wdt_driver);
++	bf_last =3D list_entry(sc->rxbuf.prev, struct ath5k_buf, list);
+ 	do {
+ 		rxs.flag =3D 0;
+=20
+-		if (unlikely(list_empty(&sc->rxbuf))) {
+-			ATH5K_WARN(sc, "empty rx buf pool\n");
+-			break;
+-		}
+ 		bf =3D list_first_entry(&sc->rxbuf, struct ath5k_buf, list);
+ 		BUG_ON(bf->skb =3D=3D NULL);
+ 		skb =3D bf->skb;
+@@ -1705,8 +1706,24 @@ ath5k_tasklet_rx(unsigned long data)
+ 		pci_dma_sync_single_for_cpu(sc->pdev, sc->desc_daddr,
+ 				sc->desc_len, PCI_DMA_FROMDEVICE);
+=20
+-		if (unlikely(ds->ds_link =3D=3D bf->daddr)) /* this is the end */
+-			break;
++		/*
++		 * last buffer must not be freed to ensure proper hardware
++		 * function. When the hardware finishes also a packet next to
++		 * it, we are sure, it doesn't use it anymore and we can go on.
++		 */
++		if (bf_last =3D=3D bf)
++			bf->flags |=3D 1;
++		if (bf->flags) {
++			struct ath5k_buf *bf_next =3D list_entry(bf->list.next,
++					struct ath5k_buf, list);
++			ret =3D sc->ah->ah_proc_rx_desc(sc->ah, bf_next->desc,
++					&rs);
++			if (ret)
++				break;
++			bf->flags &=3D ~1;
++			/* skip the overwritten one (even status is martian) */
++			goto next;
++		}
+=20
+ 		ret =3D sc->ah->ah_proc_rx_desc(sc->ah, ds, &rs);
+ 		if (unlikely(ret =3D=3D -EINPROGRESS))
+@@ -1816,6 +1833,7 @@ accept:
+ next:
+ 		list_move_tail(&bf->list, &sc->rxbuf);
+ 	} while (ath5k_rxbuf_setup(sc, bf) =3D=3D 0);
++unlock:
+ 	spin_unlock(&sc->rxbuflock);
  }
- 
--module_init(mpc83xx_wdt_init);
-+subsys_initcall(mpc83xx_wdt_init);
- module_exit(mpc83xx_wdt_exit);
- 
- MODULE_AUTHOR("Dave Updegraff, Kumar Gala");
--MODULE_DESCRIPTION("Driver for watchdog timer in MPC83xx uProcessor");
-+MODULE_DESCRIPTION("Driver for watchdog timer in MPC83xx/MPC86xx uProcessors");
- MODULE_LICENSE("GPL");
- MODULE_ALIAS_MISCDEV(WATCHDOG_MINOR);
+=20
+diff -puN drivers/net/wireless/ath5k/base.h~ath5k-fix-memory-corruption=
+ drivers/net/wireless/ath5k/base.h
+--- a/drivers/net/wireless/ath5k/base.h~ath5k-fix-memory-corruption
++++ a/drivers/net/wireless/ath5k/base.h
+@@ -56,7 +56,7 @@
+=20
+ struct ath5k_buf {
+ 	struct list_head	list;
+-	unsigned int		flags;	/* tx descriptor flags */
++	unsigned int		flags;	/* rx descriptor flags */
+ 	struct ath5k_desc	*desc;	/* virtual addr of desc */
+ 	dma_addr_t		daddr;	/* physical addr of desc */
+ 	struct sk_buff		*skb;	/* skbuff for buf */
 _
 
-Patches currently in -mm which might be from avorontsov@ru.mvista.com are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
 origin.patch
 linux-next.patch
-git-watchdog.patch
-mpc8xxx_wdt-add-support-for-mpc8xx-watchdogs.patch
-powerpc-86xx-mpc8610_hpcd-add-watchdog-node.patch
-hgafb-convert-to-new-platform-driver-api-bugzilla-9689.patch
+ath5k-fix-memory-corruption.patch
+ath5k-kill-tasklets-on-shutdown.patch
+ath5k-flush-work.patch
+ath5k-fix-dma-operation.patch
+ath5k-suspend-resume-fixes.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments.patch
+serial-z85c30-avoid-a-hang-at-console-switch-over.patch
+serial-dz11-avoid-a-hang-at-console-switch-over.patch
+vt-hold-console_sem-across-sysfs-operations.patch
+ip2-push-bkl-down-for-the-firmware-interface.patch
+rio-push-down-the-bkl-into-the-firmware-ioctl-handler.patch
+sx-push-bkl-down-into-the-firmware-ioctl-handler.patch
+ppdev-wrap-ioctl-handler-in-driver-and-push-lock-down.patch
+dsp56k-bkl-pushdown.patch
+char-mxser-ioctl-cleanup.patch
+char-mxser-globals-cleanup.patch
+char-mxser-update-documentation.patch
+char-mxser-prints-cleanup.patch
+char-mxser-remove-predefined-isa-support.patch
+char-mxser-various-cleanups.patch
+char-isicom-enable-disable-pci-device.patch
+ip2-fix-iielliscleanup-as-it-is-static-but-not-always-used.patch
+stallion-fix-the-istallion-drivers-putchar-and-break_ctl-ops.patch
+drivers-misc-phantom-note-pci.patch
+reiser4.patch
+shrink_slab-handle-bad-shrinkers.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
