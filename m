@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + tracehook-get_signal_to_deliver.patch added to -mm tree
-Date: Thu, 17 Jul 2008 01:30:59 -0700
-Message-ID: <200807170830.m6H8Ux4L006989@imap1.linux-foundation.org>
+Subject: + tracehook-wait_task_inactive.patch added to -mm tree
+Date: Thu, 17 Jul 2008 01:31:14 -0700
+Message-ID: <200807170831.m6H8VEGO007018@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54765 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42649 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753940AbYGQIjd (ORCPT
+	by vger.kernel.org with ESMTP id S1753966AbYGQIkU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Jul 2008 04:39:33 -0400
+	Thu, 17 Jul 2008 04:40:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: roland@redhat.com, oleg@tv-sign.ru
 
 
 The patch titled
-     tracehook: get_signal_to_deliver
+     tracehook: wait_task_inactive
 has been added to the -mm tree.  Its filename is
-     tracehook-get_signal_to_deliver.patch
+     tracehook-wait_task_inactive.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,140 +34,164 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tracehook: get_signal_to_deliver
+Subject: tracehook: wait_task_inactive
 From: Roland McGrath <roland@redhat.com>
 
-This defines the tracehook_get_signal() hook to allow tracing code to slip
-in before normal signal dequeuing.  This lays the groundwork for new
-tracing features that can inject synthetic signals outside the normal
-queue or control the disposition of delivered signals.  The calling
-convention lets tracehook_get_signal() decide both exactly what will
-happen and what signal number to report in the handler/exit.
+This extends wait_task_inactive() with a new argument so it can be used in
+a "soft" mode where it will check for the task changing state unexpectedly
+and back off.  There is no change to existing callers.  This lays the
+groundwork to allow robust, noninvasive tracing that can try to sample a
+blocked thread but back off safely if it wakes up.
 
 Signed-off-by: Roland McGrath <roland@redhat.com>
 Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/tracehook.h |   29 +++++++++++++++++++++++++++
- kernel/signal.c           |   38 +++++++++++++++++++++++++-----------
- 2 files changed, 56 insertions(+), 11 deletions(-)
+ arch/ia64/kernel/perfmon.c |    4 ++--
+ include/linux/sched.h      |    8 ++++++--
+ kernel/kthread.c           |    2 +-
+ kernel/ptrace.c            |    2 +-
+ kernel/sched.c             |   29 +++++++++++++++++++++++++++--
+ 5 files changed, 37 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/tracehook.h~tracehook-get_signal_to_deliver include/linux/tracehook.h
---- a/include/linux/tracehook.h~tracehook-get_signal_to_deliver
-+++ a/include/linux/tracehook.h
-@@ -422,4 +422,33 @@ static inline int tracehook_consider_fat
- 	return (task_ptrace(task) & PT_PTRACED) != 0;
- }
+diff -puN arch/ia64/kernel/perfmon.c~tracehook-wait_task_inactive arch/ia64/kernel/perfmon.c
+--- a/arch/ia64/kernel/perfmon.c~tracehook-wait_task_inactive
++++ a/arch/ia64/kernel/perfmon.c
+@@ -2626,7 +2626,7 @@ pfm_task_incompatible(pfm_context_t *ctx
+ 	/*
+ 	 * make sure the task is off any CPU
+ 	 */
+-	wait_task_inactive(task);
++	wait_task_inactive(task, 0);
  
-+/**
-+ * tracehook_get_signal - deliver synthetic signal to traced task
-+ * @task:		@current
-+ * @regs:		task_pt_regs(@current)
-+ * @info:		details of synthetic signal
-+ * @return_ka:		sigaction for synthetic signal
-+ *
-+ * Return zero to check for a real pending signal normally.
-+ * Return -1 after releasing the siglock to repeat the check.
-+ * Return a signal number to induce an artifical signal delivery,
-+ * setting *@info and *@return_ka to specify its details and behavior.
-+ *
-+ * The @return_ka->sa_handler value controls the disposition of the
-+ * signal, no matter the signal number.  For %SIG_DFL, the return value
-+ * is a representative signal to indicate the behavior (e.g. %SIGTERM
-+ * for death, %SIGQUIT for core dump, %SIGSTOP for job control stop,
-+ * %SIGTSTP for stop unless in an orphaned pgrp), but the signal number
-+ * reported will be @info->si_signo instead.
-+ *
-+ * Called with @task->sighand->siglock held, before dequeuing pending signals.
-+ */
-+static inline int tracehook_get_signal(struct task_struct *task,
-+				       struct pt_regs *regs,
-+				       siginfo_t *info,
-+				       struct k_sigaction *return_ka)
+ 	/* more to come... */
+ 
+@@ -4774,7 +4774,7 @@ recheck:
+ 
+ 		UNPROTECT_CTX(ctx, flags);
+ 
+-		wait_task_inactive(task);
++		wait_task_inactive(task, 0);
+ 
+ 		PROTECT_CTX(ctx, flags);
+ 
+diff -puN include/linux/sched.h~tracehook-wait_task_inactive include/linux/sched.h
+--- a/include/linux/sched.h~tracehook-wait_task_inactive
++++ a/include/linux/sched.h
+@@ -1872,9 +1872,13 @@ extern void set_task_comm(struct task_st
+ extern char *get_task_comm(char *to, struct task_struct *tsk);
+ 
+ #ifdef CONFIG_SMP
+-extern void wait_task_inactive(struct task_struct * p);
++extern unsigned long wait_task_inactive(struct task_struct *, long match_state);
+ #else
+-#define wait_task_inactive(p)	do { } while (0)
++static inline unsigned long wait_task_inactive(struct task_struct *p,
++					       long match_state)
 +{
-+	return 0;
++	return 1;
 +}
-+
- #endif	/* <linux/tracehook.h> */
-diff -puN kernel/signal.c~tracehook-get_signal_to_deliver kernel/signal.c
---- a/kernel/signal.c~tracehook-get_signal_to_deliver
-+++ a/kernel/signal.c
-@@ -1754,17 +1754,33 @@ relock:
- 		    do_signal_stop(0))
- 			goto relock;
+ #endif
  
--		signr = dequeue_signal(current, &current->blocked, info);
--		if (!signr)
--			break; /* will return 0 */
-+		/*
-+		 * Tracing can induce an artifical signal and choose sigaction.
-+		 * The return value in @signr determines the default action,
-+		 * but @info->si_signo is the signal number we will report.
-+		 */
-+		signr = tracehook_get_signal(current, regs, info, return_ka);
-+		if (unlikely(signr < 0))
-+			goto relock;
-+		if (unlikely(signr != 0))
-+			ka = return_ka;
-+		else {
-+			signr = dequeue_signal(current, &current->blocked,
-+					       info);
+ #define next_task(p)	list_entry(rcu_dereference((p)->tasks.next), struct task_struct, tasks)
+diff -puN kernel/kthread.c~tracehook-wait_task_inactive kernel/kthread.c
+--- a/kernel/kthread.c~tracehook-wait_task_inactive
++++ a/kernel/kthread.c
+@@ -157,7 +157,7 @@ void kthread_bind(struct task_struct *k,
+ 		return;
+ 	}
+ 	/* Must have done schedule() in kthread() before we set_task_cpu */
+-	wait_task_inactive(k);
++	wait_task_inactive(k, 0);
+ 	set_task_cpu(k, cpu);
+ 	k->cpus_allowed = cpumask_of_cpu(cpu);
+ 	k->rt.nr_cpus_allowed = 1;
+diff -puN kernel/ptrace.c~tracehook-wait_task_inactive kernel/ptrace.c
+--- a/kernel/ptrace.c~tracehook-wait_task_inactive
++++ a/kernel/ptrace.c
+@@ -107,7 +107,7 @@ int ptrace_check_attach(struct task_stru
+ 	read_unlock(&tasklist_lock);
  
--		if (signr != SIGKILL) {
--			signr = ptrace_signal(signr, info, regs, cookie);
- 			if (!signr)
--				continue;
-+				break; /* will return 0 */
-+
-+			if (signr != SIGKILL) {
-+				signr = ptrace_signal(signr, info,
-+						      regs, cookie);
-+				if (!signr)
-+					continue;
-+			}
-+
-+			ka = &sighand->action[signr-1];
- 		}
+ 	if (!ret && !kill)
+-		wait_task_inactive(child);
++		ret = wait_task_inactive(child, TASK_TRACED) ? 0 : -ESRCH;
  
--		ka = &sighand->action[signr-1];
- 		if (ka->sa.sa_handler == SIG_IGN) /* Do nothing.  */
- 			continue;
- 		if (ka->sa.sa_handler != SIG_DFL) {
-@@ -1812,7 +1828,7 @@ relock:
- 				spin_lock_irq(&sighand->siglock);
- 			}
+ 	/* All systems go.. */
+ 	return ret;
+diff -puN kernel/sched.c~tracehook-wait_task_inactive kernel/sched.c
+--- a/kernel/sched.c~tracehook-wait_task_inactive
++++ a/kernel/sched.c
+@@ -1946,16 +1946,24 @@ migrate_task(struct task_struct *p, int 
+ /*
+  * wait_task_inactive - wait for a thread to unschedule.
+  *
++ * If @match_state is nonzero, it's the @p->state value just checked and
++ * not expected to change.  If it changes, i.e. @p might have woken up,
++ * then return zero.  When we succeed in waiting for @p to be off its CPU,
++ * we return a positive number (its total switch count).  If a second call
++ * a short while later returns the same number, the caller can be sure that
++ * @p has remained unscheduled the whole time.
++ *
+  * The caller must ensure that the task *will* unschedule sometime soon,
+  * else this function might spin for a *long* time. This function can't
+  * be called with interrupts off, or it may introduce deadlock with
+  * smp_call_function() if an IPI is sent by the same process we are
+  * waiting to become inactive.
+  */
+-void wait_task_inactive(struct task_struct *p)
++unsigned long wait_task_inactive(struct task_struct *p, long match_state)
+ {
+ 	unsigned long flags;
+ 	int running, on_rq;
++	unsigned long ncsw;
+ 	struct rq *rq;
  
--			if (likely(do_signal_stop(signr))) {
-+			if (likely(do_signal_stop(info->si_signo))) {
- 				/* It released the siglock.  */
- 				goto relock;
- 			}
-@@ -1833,7 +1849,7 @@ relock:
- 
- 		if (sig_kernel_coredump(signr)) {
- 			if (print_fatal_signals)
--				print_fatal_signal(regs, signr);
-+				print_fatal_signal(regs, info->si_signo);
- 			/*
- 			 * If it was able to dump core, this kills all
- 			 * other threads in the group and synchronizes with
-@@ -1842,13 +1858,13 @@ relock:
- 			 * first and our do_group_exit call below will use
- 			 * that value and ignore the one we pass it.
- 			 */
--			do_coredump((long)signr, signr, regs);
-+			do_coredump(info->si_signo, info->si_signo, regs);
- 		}
+ 	for (;;) {
+@@ -1978,8 +1986,11 @@ void wait_task_inactive(struct task_stru
+ 		 * return false if the runqueue has changed and p
+ 		 * is actually now running somewhere else!
+ 		 */
+-		while (task_running(rq, p))
++		while (task_running(rq, p)) {
++			if (match_state && unlikely(p->state != match_state))
++				return 0;
+ 			cpu_relax();
++		}
  
  		/*
- 		 * Death signals, no core dump.
+ 		 * Ok, time to look more closely! We need the rq
+@@ -1989,9 +2000,21 @@ void wait_task_inactive(struct task_stru
+ 		rq = task_rq_lock(p, &flags);
+ 		running = task_running(rq, p);
+ 		on_rq = p->se.on_rq;
++		ncsw = 0;
++		if (!match_state || p->state == match_state) {
++			ncsw = p->nivcsw + p->nvcsw;
++			if (unlikely(!ncsw))
++				ncsw = 1;
++		}
+ 		task_rq_unlock(rq, &flags);
+ 
+ 		/*
++		 * If it changed from the expected state, bail out now.
++		 */
++		if (unlikely(!ncsw))
++			break;
++
++		/*
+ 		 * Was it really running after all now that we
+ 		 * checked with the proper locks actually held?
+ 		 *
+@@ -2023,6 +2046,8 @@ void wait_task_inactive(struct task_stru
  		 */
--		do_group_exit(signr);
-+		do_group_exit(info->si_signo);
- 		/* NOTREACHED */
+ 		break;
  	}
- 	spin_unlock_irq(&sighand->siglock);
++
++	return ncsw;
+ }
+ 
+ /***
 _
 
 Patches currently in -mm which might be from roland@redhat.com are
