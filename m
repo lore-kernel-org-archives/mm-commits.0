@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + proc-pid-syscall.patch added to -mm tree
-Date: Thu, 17 Jul 2008 01:31:18 -0700
-Message-ID: <200807170831.m6H8VIdZ007024@imap1.linux-foundation.org>
+Subject: + tracehook-tracehook_signal_handler.patch added to -mm tree
+Date: Thu, 17 Jul 2008 01:30:51 -0700
+Message-ID: <200807170830.m6H8UpHn006976@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59204 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52162 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753426AbYGQIcZ (ORCPT
+	by vger.kernel.org with ESMTP id S1752858AbYGQIhG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Jul 2008 04:32:25 -0400
+	Thu, 17 Jul 2008 04:37:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: roland@redhat.com, oleg@tv-sign.ru
 
 
 The patch titled
-     /proc/PID/syscall
+     tracehook: tracehook_signal_handler
 has been added to the -mm tree.  Its filename is
-     proc-pid-syscall.patch
+     tracehook-tracehook_signal_handler.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,74 +34,52 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: /proc/PID/syscall
+Subject: tracehook: tracehook_signal_handler
 From: Roland McGrath <roland@redhat.com>
 
-This adds /proc/PID/syscall and /proc/PID/task/TID/syscall magic files. 
-These use task_current_syscall() to show the task's current system call
-number and argument registers, stack pointer and PC.  For a task blocked
-but not in a syscall, the file shows "-1" in place of the syscall number,
-followed by only the SP and PC.  For a task that's not blocked, it shows
-"running".
+This defines tracehook_signal_handler() as a hook for the arch signal
+handling code to call.  It gives ptrace the opportunity to stop for a
+pseudo-single-step trap immediately after signal handler setup is done.
 
 Signed-off-by: Roland McGrath <roland@redhat.com>
 Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |   26 ++++++++++++++++++++++++++
- 1 file changed, 26 insertions(+)
+ include/linux/tracehook.h |   23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
 
-diff -puN fs/proc/base.c~proc-pid-syscall fs/proc/base.c
---- a/fs/proc/base.c~proc-pid-syscall
-+++ a/fs/proc/base.c
-@@ -509,6 +509,26 @@ static int proc_pid_limits(struct task_s
- 	return count;
+diff -puN include/linux/tracehook.h~tracehook-tracehook_signal_handler include/linux/tracehook.h
+--- a/include/linux/tracehook.h~tracehook-tracehook_signal_handler
++++ a/include/linux/tracehook.h
+@@ -289,4 +289,27 @@ static inline void tracehook_finish_rele
+ 	ptrace_release_task(task);
  }
  
-+#ifdef CONFIG_HAVE_ARCH_TRACEHOOK
-+static int proc_pid_syscall(struct task_struct *task, char *buffer)
++/**
++ * tracehook_signal_handler - signal handler setup is complete
++ * @sig:		number of signal being delivered
++ * @info:		siginfo_t of signal being delivered
++ * @ka:			sigaction setting that chose the handler
++ * @regs:		user register state
++ * @stepping:		nonzero if debugger single-step or block-step in use
++ *
++ * Called by the arch code after a signal handler has been set up.
++ * Register and stack state reflects the user handler about to run.
++ * Signal mask changes have already been made.
++ *
++ * Called without locks, shortly before returning to user mode
++ * (or handling more signals).
++ */
++static inline void tracehook_signal_handler(int sig, siginfo_t *info,
++					    const struct k_sigaction *ka,
++					    struct pt_regs *regs, int stepping)
 +{
-+	long nr;
-+	unsigned long args[6], sp, pc;
-+
-+	if (task_current_syscall(task, &nr, args, 6, &sp, &pc))
-+		return sprintf(buffer, "running\n");
-+
-+	if (nr < 0)
-+		return sprintf(buffer, "%ld 0x%lx 0x%lx\n", nr, sp, pc);
-+
-+	return sprintf(buffer,
-+		       "%ld 0x%lx 0x%lx 0x%lx 0x%lx 0x%lx 0x%lx 0x%lx 0x%lx\n",
-+		       nr,
-+		       args[0], args[1], args[2], args[3], args[4], args[5],
-+		       sp, pc);
++	if (stepping)
++		ptrace_notify(SIGTRAP);
 +}
-+#endif /* CONFIG_HAVE_ARCH_TRACEHOOK */
 +
- /************************************************************************/
- /*                       Here the fs part begins                        */
- /************************************************************************/
-@@ -2478,6 +2498,9 @@ static const struct pid_entry tgid_base_
- #ifdef CONFIG_SCHED_DEBUG
- 	REG("sched",      S_IRUGO|S_IWUSR, pid_sched),
- #endif
-+#ifdef CONFIG_HAVE_ARCH_TRACEHOOK
-+	INF("syscall",    S_IRUSR, pid_syscall),
-+#endif
- 	INF("cmdline",    S_IRUGO, pid_cmdline),
- 	ONE("stat",       S_IRUGO, tgid_stat),
- 	ONE("statm",      S_IRUGO, pid_statm),
-@@ -2810,6 +2833,9 @@ static const struct pid_entry tid_base_s
- #ifdef CONFIG_SCHED_DEBUG
- 	REG("sched",     S_IRUGO|S_IWUSR, pid_sched),
- #endif
-+#ifdef CONFIG_HAVE_ARCH_TRACEHOOK
-+	INF("syscall",   S_IRUSR, pid_syscall),
-+#endif
- 	INF("cmdline",   S_IRUGO, pid_cmdline),
- 	ONE("stat",      S_IRUGO, tid_stat),
- 	ONE("statm",     S_IRUGO, pid_statm),
+ #endif	/* <linux/tracehook.h> */
 _
 
 Patches currently in -mm which might be from roland@redhat.com are
