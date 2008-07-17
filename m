@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + synclink_gt-add-serial-bit-order-control.patch added to -mm tree
-Date: Thu, 17 Jul 2008 14:13:01 -0700
-Message-ID: <200807172113.m6HLD2ON006474@imap1.linux-foundation.org>
+Subject: + synclink_gt-improve-and-simplify-write-method.patch added to -mm tree
+Date: Thu, 17 Jul 2008 14:13:07 -0700
+Message-ID: <200807172113.m6HLD7Dq006480@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44874 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58583 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760012AbYGQVNf (ORCPT
+	by vger.kernel.org with ESMTP id S1760221AbYGQVNk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Jul 2008 17:13:35 -0400
+	Thu, 17 Jul 2008 17:13:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: paulkf@microgate.com, alan@lxorguk.ukuu.org.uk
 
 
 The patch titled
-     synclink_gt: add serial bit order control
+     synclink_gt: improve and simplify write method
 has been added to the -mm tree.  Its filename is
-     synclink_gt-add-serial-bit-order-control.patch
+     synclink_gt-improve-and-simplify-write-method.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,44 +34,84 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: synclink_gt: add serial bit order control
+Subject: synclink_gt: improve and simplify write method
 From: Paul Fulghum <paulkf@microgate.com>
 
-Add control of hardware serial bit order between LSB first
-(default/standard) and MSB first.
+Improve write method by allowing multiple HDLC frames to be loaded into tx
+DMA buffer ring for continuous frame transmission.  This simplifies the
+transmit code by using the common procedures for all serial protocols.
 
 Signed-off-by: Paul Fulghum <paulkf@microgate.com>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/synclink_gt.c |    2 ++
- include/linux/synclink.h   |    1 +
- 2 files changed, 3 insertions(+)
+ drivers/char/synclink_gt.c |   38 ++++++++++-------------------------
+ 1 file changed, 11 insertions(+), 27 deletions(-)
 
-diff -puN drivers/char/synclink_gt.c~synclink_gt-add-serial-bit-order-control drivers/char/synclink_gt.c
---- a/drivers/char/synclink_gt.c~synclink_gt-add-serial-bit-order-control
+diff -puN drivers/char/synclink_gt.c~synclink_gt-improve-and-simplify-write-method drivers/char/synclink_gt.c
+--- a/drivers/char/synclink_gt.c~synclink_gt-improve-and-simplify-write-method
 +++ a/drivers/char/synclink_gt.c
-@@ -4443,6 +4443,8 @@ static void msc_set_vcr(struct slgt_info
- 		break;
+@@ -855,6 +855,7 @@ static int write(struct tty_struct *tty,
+ 	int ret = 0;
+ 	struct slgt_info *info = tty->driver_data;
+ 	unsigned long flags;
++	unsigned int bufs_needed;
+ 
+ 	if (sanity_check(info, tty->name, "write"))
+ 		goto cleanup;
+@@ -871,25 +872,16 @@ static int write(struct tty_struct *tty,
+ 	if (!count)
+ 		goto cleanup;
+ 
+-	if (info->params.mode == MGSL_MODE_RAW ||
+-	    info->params.mode == MGSL_MODE_MONOSYNC ||
+-	    info->params.mode == MGSL_MODE_BISYNC) {
+-		unsigned int bufs_needed = (count/DMABUFSIZE);
+-		unsigned int bufs_free = free_tbuf_count(info);
+-		if (count % DMABUFSIZE)
+-			++bufs_needed;
+-		if (bufs_needed > bufs_free)
+-			goto cleanup;
+-	} else {
+-		if (info->tx_active)
+-			goto cleanup;
+-		if (info->tx_count) {
+-			/* send accumulated data from send_char() calls */
+-			/* as frame and wait before accepting more data. */
+-			tx_load(info, info->tx_buf, info->tx_count);
+-			goto start;
+-		}
++	if (!info->tx_active && info->tx_count) {
++		/* send accumulated data from send_char() */
++		tx_load(info, info->tx_buf, info->tx_count);
++		goto start;
  	}
++	bufs_needed = (count/DMABUFSIZE);
++	if (count % DMABUFSIZE)
++		++bufs_needed;
++	if (bufs_needed > free_tbuf_count(info))
++		goto cleanup;
  
-+	if (info->if_mode & MGSL_INTERFACE_MSB_FIRST)
-+		val |= BIT4;
- 	if (info->signals & SerialSignal_DTR)
- 		val |= BIT3;
- 	if (info->signals & SerialSignal_RTS)
-diff -puN include/linux/synclink.h~synclink_gt-add-serial-bit-order-control include/linux/synclink.h
---- a/include/linux/synclink.h~synclink_gt-add-serial-bit-order-control
-+++ a/include/linux/synclink.h
-@@ -136,6 +136,7 @@
- #define MGSL_INTERFACE_RTS_EN   0x10
- #define MGSL_INTERFACE_LL       0x20
- #define MGSL_INTERFACE_RL       0x40
-+#define MGSL_INTERFACE_MSB_FIRST 0x80
+ 	ret = info->tx_count = count;
+ 	tx_load(info, buf, count);
+@@ -3963,15 +3955,7 @@ static void tdma_start(struct slgt_info 
  
- typedef struct _MGSL_PARAMS
- {
+ 	/* set 1st descriptor address */
+ 	wr_reg32(info, TDDAR, info->tbufs[info->tbuf_start].pdesc);
+-	switch(info->params.mode) {
+-	case MGSL_MODE_RAW:
+-	case MGSL_MODE_MONOSYNC:
+-	case MGSL_MODE_BISYNC:
+-		wr_reg32(info, TDCSR, BIT2 + BIT0); /* IRQ + DMA enable */
+-		break;
+-	default:
+-		wr_reg32(info, TDCSR, BIT0); /* DMA enable */
+-	}
++	wr_reg32(info, TDCSR, BIT2 + BIT0); /* IRQ + DMA enable */
+ }
+ 
+ static void tx_stop(struct slgt_info *info)
 _
 
 Patches currently in -mm which might be from paulkf@microgate.com are
