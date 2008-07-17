@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + ptrace-fix-dangling-zombie-when-new-parent-ignores-children.patch added to -mm tree
-Date: Thu, 17 Jul 2008 00:31:26 -0700
-Message-ID: <200807170731.m6H7VQx1004518@imap1.linux-foundation.org>
+Subject: + tracehook-add-linux-tracehookh.patch added to -mm tree
+Date: Thu, 17 Jul 2008 01:30:31 -0700
+Message-ID: <200807170830.m6H8UVIM006946@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56098 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41633 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760065AbYGQHbp (ORCPT
+	by vger.kernel.org with ESMTP id S1753173AbYGQIb0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Jul 2008 03:31:45 -0400
+	Thu, 17 Jul 2008 04:31:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: roland@redhat.com, oleg@tv-sign.ru
 
 
 The patch titled
-     ptrace: fix dangling zombie when new parent ignores children
+     tracehook: add linux/tracehook.h
 has been added to the -mm tree.  Its filename is
-     ptrace-fix-dangling-zombie-when-new-parent-ignores-children.patch
+     tracehook-add-linux-tracehookh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,80 +34,176 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ptrace: fix dangling zombie when new parent ignores children
+Subject: tracehook: add linux/tracehook.h
 From: Roland McGrath <roland@redhat.com>
 
-This fixes an arcane bug that we think was a regression introduced by
-commit b2b2cbc4b2a2f389442549399a993a8306420baf.  When a parent ignores
-SIGCHLD (or uses SA_NOCLDWAIT), its children would self-reap but they
-don't if it's using ptrace on them.  When the parent thread later exits
-and ceases to ptrace a child but leaves other live threads in the parent's
-thread group, any zombie children are left dangling.  The fix makes them
-self-reap then, as they would have done earlier if ptrace had not been in
-use.
+This patch series introduces the "tracehook" interface layer of inlines in
+<linux/tracehook.h>.  There are more details in the log entry for patch
+01/23 and in the header file comments inside that patch.  Most of these
+changes move code around with little or no change, and they should not
+break anything or change any behavior.
+
+This sets a new standard for uniform arch support to enable clean
+arch-independent implementations of new debugging and tracing stuff,
+denoted by CONFIG_HAVE_ARCH_TRACEHOOK.  Patch 20/23 adds that symbol to
+arch/Kconfig, with comments listing everything an arch has to do before
+setting "select HAVE_ARCH_TRACEHOOK".  These are elaborted a bit at:
+
+	http://sourceware.org/systemtap/wiki/utrace/arch/HowTo
+
+The new inlines that arch code must define or call have detailed kerneldoc
+comments in the generic header files that say what is required.
+
+No arch is obligated to do any work, and no arch's build should be broken
+by these changes.  There are several steps that each arch should take so
+it can set HAVE_ARCH_TRACEHOOK.  Most of these are simple.  Providing this
+support will let new things people add for doing debugging and tracing of
+user-level threads "just work" for your arch in the future.  For an arch
+that does not provide HAVE_ARCH_TRACEHOOK, some new options for such
+features will not be available for config.
+
+I have done some arch work and will submit this to the arch maintainers
+after the generic tracehook series settles in.  For now, that work is
+available in my GIT repositories, and in patch and mbox-of-patches form at
+http://people.redhat.com/roland/utrace/2.6-current/
+
+This paves the way for my "utrace" work, to be submitted later.  But it is
+not innately tied to that.  I hope that the tracehook series can go in
+soon regardless of what eventually does or doesn't go on top of it.  For
+anyone implementing any kind of new tracing/debugging plan, or just
+understanding all the context of the existing ptrace implementation,
+having tracehook.h makes things much easier to find and understand.
+
+
+This patch:
+
+This adds the new kernel-internal header file <linux/tracehook.h>.  This
+is not yet used at all.  The comments in the header introduce what the
+following series of patches is about.
+
+The aim is to formalize and consolidate all the places that the core
+kernel code and the arch code now ties into the ptrace implementation.
+
+These patches mostly don't cause any functional change.  They just move
+the details of ptrace logic out of core code into tracehook.h inlines,
+where they are mostly compiled away to the same as before.  All that
+changes is that everything is thoroughly documented and any future
+reworking of ptrace, or addition of something new, would not have to touch
+core code all over, just change the tracehook.h inlines.
+
+The new linux/ptrace.h inlines are used by the following patches in the
+new tracehook_*() inlines.  Using these helpers for the ptrace event stops
+makes it simple to change or disable the old ptrace implementation of
+these stops conditionally later.
 
 Signed-off-by: Roland McGrath <roland@redhat.com>
 Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |   26 ++++++++++++++++++++++++++
- 1 file changed, 26 insertions(+)
+ include/linux/ptrace.h    |   33 ++++++++++++++++++++++
+ include/linux/tracehook.h |   52 ++++++++++++++++++++++++++++++++++++
+ 2 files changed, 85 insertions(+)
 
-diff -puN kernel/exit.c~ptrace-fix-dangling-zombie-when-new-parent-ignores-children kernel/exit.c
---- a/kernel/exit.c~ptrace-fix-dangling-zombie-when-new-parent-ignores-children
-+++ a/kernel/exit.c
-@@ -698,6 +698,23 @@ static void exit_mm(struct task_struct *
- }
+diff -puN include/linux/ptrace.h~tracehook-add-linux-tracehookh include/linux/ptrace.h
+--- a/include/linux/ptrace.h~tracehook-add-linux-tracehookh
++++ a/include/linux/ptrace.h
+@@ -121,6 +121,39 @@ static inline void ptrace_unlink(struct 
+ int generic_ptrace_peekdata(struct task_struct *tsk, long addr, long data);
+ int generic_ptrace_pokedata(struct task_struct *tsk, long addr, long data);
  
- /*
-+ * Return nonzero if @parent's children should reap themselves.
++/**
++ * task_ptrace - return %PT_* flags that apply to a task
++ * @task:	pointer to &task_struct in question
 + *
-+ * Called with write_lock_irq(&tasklist_lock) held.
++ * Returns the %PT_* flags that apply to @task.
 + */
-+static int ignoring_children(struct task_struct *parent)
++static inline int task_ptrace(struct task_struct *task)
 +{
-+	int ret;
-+	struct sighand_struct *psig = parent->sighand;
-+	unsigned long flags;
-+	spin_lock_irqsave(&psig->siglock, flags);
-+	ret = (psig->action[SIGCHLD-1].sa.sa_handler == SIG_IGN ||
-+	       (psig->action[SIGCHLD-1].sa.sa_flags & SA_NOCLDWAIT));
-+	spin_unlock_irqrestore(&psig->siglock, flags);
-+	return ret;
++	return task->ptrace;
 +}
 +
++/**
++ * ptrace_event - possibly stop for a ptrace event notification
++ * @mask:	%PT_* bit to check in @current->ptrace
++ * @event:	%PTRACE_EVENT_* value to report if @mask is set
++ * @message:	value for %PTRACE_GETEVENTMSG to return
++ *
++ * This checks the @mask bit to see if ptrace wants stops for this event.
++ * If so we stop, reporting @event and @message to the ptrace parent.
++ *
++ * Returns nonzero if we did a ptrace notification, zero if not.
++ *
++ * Called without locks.
++ */
++static inline int ptrace_event(int mask, int event, unsigned long message)
++{
++	if (mask && likely(!(current->ptrace & mask)))
++		return 0;
++	current->ptrace_message = message;
++	ptrace_notify((event << 8) | SIGTRAP);
++	return 1;
++}
++
+ #ifndef force_successful_syscall_return
+ /*
+  * System call handlers that, upon successful completion, need to return a
+diff -puN /dev/null include/linux/tracehook.h
+--- /dev/null
++++ a/include/linux/tracehook.h
+@@ -0,0 +1,52 @@
 +/*
-  * Detach all tasks we were using ptrace on.
-  * Any that need to be release_task'd are put on the @dead list.
-  *
-@@ -706,6 +723,7 @@ static void exit_mm(struct task_struct *
- static void ptrace_exit(struct task_struct *parent, struct list_head *dead)
- {
- 	struct task_struct *p, *n;
-+	int ign = -1;
- 
- 	list_for_each_entry_safe(p, n, &parent->ptraced, ptrace_entry) {
- 		__ptrace_unlink(p);
-@@ -721,10 +739,18 @@ static void ptrace_exit(struct task_stru
- 		 * release_task() here because we already hold tasklist_lock.
- 		 *
- 		 * If it's our own child, there is no notification to do.
-+		 * But if our normal children self-reap, then this child
-+		 * was prevented by ptrace and we must reap it now.
- 		 */
- 		if (!task_detached(p) && thread_group_empty(p)) {
- 			if (!same_thread_group(p->real_parent, parent))
- 				do_notify_parent(p, p->exit_signal);
-+			else {
-+				if (ign < 0)
-+					ign = ignoring_children(parent);
-+				if (ign)
-+					p->exit_signal = -1;
-+			}
- 		}
- 
- 		if (task_detached(p)) {
++ * Tracing hooks
++ *
++ * Copyright (C) 2008 Red Hat, Inc.  All rights reserved.
++ *
++ * This copyrighted material is made available to anyone wishing to use,
++ * modify, copy, or redistribute it subject to the terms and conditions
++ * of the GNU General Public License v.2.
++ *
++ * This file defines hook entry points called by core code where
++ * user tracing/debugging support might need to do something.  These
++ * entry points are called tracehook_*().  Each hook declared below
++ * has a detailed kerneldoc comment giving the context (locking et
++ * al) from which it is called, and the meaning of its return value.
++ *
++ * Each function here typically has only one call site, so it is ok
++ * to have some nontrivial tracehook_*() inlines.  In all cases, the
++ * fast path when no tracing is enabled should be very short.
++ *
++ * The purpose of this file and the tracehook_* layer is to consolidate
++ * the interface that the kernel core and arch code uses to enable any
++ * user debugging or tracing facility (such as ptrace).  The interfaces
++ * here are carefully documented so that maintainers of core and arch
++ * code do not need to think about the implementation details of the
++ * tracing facilities.  Likewise, maintainers of the tracing code do not
++ * need to understand all the calling core or arch code in detail, just
++ * documented circumstances of each call, such as locking conditions.
++ *
++ * If the calling core code changes so that locking is different, then
++ * it is ok to change the interface documented here.  The maintainer of
++ * core code changing should notify the maintainers of the tracing code
++ * that they need to work out the change.
++ *
++ * Some tracehook_*() inlines take arguments that the current tracing
++ * implementations might not necessarily use.  These function signatures
++ * are chosen to pass in all the information that is on hand in the
++ * caller and might conceivably be relevant to a tracer, so that the
++ * core code won't have to be updated when tracing adds more features.
++ * If a call site changes so that some of those parameters are no longer
++ * already on hand without extra work, then the tracehook_* interface
++ * can change so there is no make-work burden on the core code.  The
++ * maintainer of core code changing should notify the maintainers of the
++ * tracing code that they need to work out the change.
++ */
++
++#ifndef _LINUX_TRACEHOOK_H
++#define _LINUX_TRACEHOOK_H	1
++
++#include <linux/sched.h>
++#include <linux/ptrace.h>
++
++#endif	/* <linux/tracehook.h> */
 _
 
 Patches currently in -mm which might be from roland@redhat.com are
@@ -149,4 +245,27 @@ coredump-kill-mm-core_done.patch
 coredump-binfmt_elf_fdpic-dont-use-sub-threads-mm.patch
 coredump-exit_mm-clear-mm-first-then-play-with-core_state.patch
 coredump-exit_mm-clear-mm-first-then-play-with-core_state-checkpatch-fixes.patch
+tracehook-add-linux-tracehookh.patch
+tracehook-exec.patch
+tracehook-unexport-ptrace_notify.patch
+tracehook-exit.patch
+tracehook-clone.patch
+tracehook-vfork-done.patch
+tracehook-release_task.patch
+tracehook-tracehook_tracer_task.patch
+tracehook-tracehook_expect_breakpoints.patch
+tracehook-tracehook_signal_handler.patch
+tracehook-tracehook_consider_ignored_signal.patch
+tracehook-tracehook_consider_fatal_signal.patch
+tracehook-syscall.patch
+tracehook-get_signal_to_deliver.patch
+tracehook-job-control.patch
+tracehook-death.patch
+tracehook-force-signal_pending.patch
+tracehook-tif_notify_resume.patch
+tracehook-asm-syscallh.patch
+tracehook-config_have_arch_tracehook.patch
+tracehook-wait_task_inactive.patch
+task_current_syscall.patch
+proc-pid-syscall.patch
 
