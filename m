@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fbdev-add-new-cobalt-lcd-framebuffer-driver-v3.patch added to -mm tree
-Date: Wed, 16 Jul 2008 17:32:01 -0700
-Message-ID: <200807170032.m6H0W234021728@imap1.linux-foundation.org>
+Subject: + drivers-char-remove-old-broken-cobalt-lcd-driver.patch added to -mm tree
+Date: Wed, 16 Jul 2008 17:32:28 -0700
+Message-ID: <200807170032.m6H0WSsT021743@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37827 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60408 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752305AbYGQAcR (ORCPT
+	by vger.kernel.org with ESMTP id S1752305AbYGQAcj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Jul 2008 20:32:17 -0400
+	Wed, 16 Jul 2008 20:32:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: yoichi_yuasa@tripeaks.co.jp, adaplas@pol.net, krzysztof.h1@poczta.fm, ralf@linux-mips.org
+Cc: yoichi_yuasa@tripeaks.co.jp, ralf@linux-mips.org
 
 
 The patch titled
-     add new Cobalt LCD framebuffer driver
+     drivers/char: remove old broken Cobalt LCD driver
 has been added to the -mm tree.  Its filename is
-     fbdev-add-new-cobalt-lcd-framebuffer-driver-v3.patch
+     drivers-char-remove-old-broken-cobalt-lcd-driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,106 +34,724 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: add new Cobalt LCD framebuffer driver
+Subject: drivers/char: remove old broken Cobalt LCD driver
 From: Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
 
-- fix read/write count boundary check.
-- add <include/uaccess.h>.
-- fix MODULE_AUTHOR.
+Remove old broken Cobalt LCD driver.
 
 Signed-off-by: Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
 Acked-by: Ralf Baechle <ralf@linux-mips.org>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/Kconfig        |    2 +-
- drivers/video/cobalt_lcdfb.c |   24 ++++++++++++++++++------
- 2 files changed, 19 insertions(+), 7 deletions(-)
+ drivers/char/Kconfig  |    7 
+ drivers/char/Makefile |    1 
+ drivers/char/lcd.c    |  516 ----------------------------------------
+ drivers/char/lcd.h    |  154 -----------
+ 4 files changed, 678 deletions(-)
 
-diff -puN drivers/video/Kconfig~fbdev-add-new-cobalt-lcd-framebuffer-driver-v3 drivers/video/Kconfig
---- a/drivers/video/Kconfig~fbdev-add-new-cobalt-lcd-framebuffer-driver-v3
-+++ a/drivers/video/Kconfig
-@@ -1989,7 +1989,7 @@ config FB_AM200EPD
+diff -puN drivers/char/Kconfig~drivers-char-remove-old-broken-cobalt-lcd-driver drivers/char/Kconfig
+--- a/drivers/char/Kconfig~drivers-char-remove-old-broken-cobalt-lcd-driver
++++ a/drivers/char/Kconfig
+@@ -884,13 +884,6 @@ config DS1302
  
- config FB_COBALT
- 	tristate "Cobalt server LCD frame buffer support"
--	depends on FB
-+	depends on FB && MIPS_COBALT
+ endif # RTC_LIB
  
- config FB_VIRTUAL
- 	tristate "Virtual Frame Buffer support (ONLY FOR TESTING!)"
-diff -puN drivers/video/cobalt_lcdfb.c~fbdev-add-new-cobalt-lcd-framebuffer-driver-v3 drivers/video/cobalt_lcdfb.c
---- a/drivers/video/cobalt_lcdfb.c~fbdev-add-new-cobalt-lcd-framebuffer-driver-v3
-+++ a/drivers/video/cobalt_lcdfb.c
-@@ -137,13 +137,16 @@ static ssize_t cobalt_lcdfb_read(struct 
- {
- 	char src[LCD_CHARS_MAX];
- 	unsigned long pos;
--	int len, retval;
-+	int len, retval = 0;
- 
- 	pos = *ppos;
--	if (pos >= LCD_CHARS_MAX)
-+	if (pos >= LCD_CHARS_MAX || count == 0)
- 		return 0;
- 
--	if (pos + count >= LCD_CHARS_MAX)
-+	if (count > LCD_CHARS_MAX)
-+		count = LCD_CHARS_MAX;
-+
-+	if (pos + count > LCD_CHARS_MAX)
- 		count = LCD_CHARS_MAX - pos;
- 
- 	for (len = 0; len < count; len++) {
-@@ -164,6 +167,9 @@ static ssize_t cobalt_lcdfb_read(struct 
- 			pos++;
- 	}
- 
-+	if (retval < 0 && signal_pending(current))
-+		return -ERESTARTSYS;
-+
- 	if (copy_to_user(buf, src, len))
- 		return -EFAULT;
- 
-@@ -177,13 +183,16 @@ static ssize_t cobalt_lcdfb_write(struct
- {
- 	char dst[LCD_CHARS_MAX];
- 	unsigned long pos;
--	int len, retval;
-+	int len, retval = 0;
- 
- 	pos = *ppos;
--	if (pos >= LCD_CHARS_MAX)
-+	if (pos >= LCD_CHARS_MAX || count == 0)
- 		return 0;
- 
--	if (pos + count >= LCD_CHARS_MAX)
-+	if (count > LCD_CHARS_MAX)
-+		count = LCD_CHARS_MAX;
-+
-+	if (pos + count > LCD_CHARS_MAX)
- 		count = LCD_CHARS_MAX - pos;
- 
- 	if (copy_from_user(dst, buf, count))
-@@ -207,6 +216,9 @@ static ssize_t cobalt_lcdfb_write(struct
- 			pos++;
- 	}
- 
-+	if (retval < 0 && signal_pending(current))
-+		return -ERESTARTSYS;
-+
- 	*ppos += len;
- 
- 	return len;
-_
-
-Patches currently in -mm which might be from yoichi_yuasa@tripeaks.co.jp are
-
-origin.patch
-linux-next.patch
-fbdev-add-new-cobalt-lcd-framebuffer-driver.patch
-fbdev-add-new-cobalt-lcd-framebuffer-driver-v3.patch
-drivers-char-remove-old-broken-cobalt-lcd-driver.patch
-
+-config COBALT_LCD
+-	bool "Support for Cobalt LCD"
+-	depends on MIPS_COBALT
+-	help
+-	  This option enables support for the LCD display and buttons found
+-	  on Cobalt systems through a misc device.
+-
+ config DTLK
+ 	tristate "Double Talk PC internal speech card support"
+ 	depends on ISA
+diff -puN drivers/char/Makefile~drivers-char-remove-old-broken-cobalt-lcd-driver drivers/char/Makefile
+--- a/drivers/char/Makefile~drivers-char-remove-old-broken-cobalt-lcd-driver
++++ a/drivers/char/Makefile
+@@ -88,7 +88,6 @@ obj-$(CONFIG_TOSHIBA)		+= toshiba.o
+ obj-$(CONFIG_I8K)		+= i8k.o
+ obj-$(CONFIG_DS1620)		+= ds1620.o
+ obj-$(CONFIG_HW_RANDOM)		+= hw_random/
+-obj-$(CONFIG_COBALT_LCD)	+= lcd.o
+ obj-$(CONFIG_PPDEV)		+= ppdev.o
+ obj-$(CONFIG_NWBUTTON)		+= nwbutton.o
+ obj-$(CONFIG_NWFLASH)		+= nwflash.o
+diff -puN drivers/char/lcd.c~drivers-char-remove-old-broken-cobalt-lcd-driver /dev/null
+--- a/drivers/char/lcd.c
++++ /dev/null
+@@ -1,516 +0,0 @@
+-/*
+- * LCD, LED and Button interface for Cobalt
+- *
+- * This file is subject to the terms and conditions of the GNU General Public
+- * License.  See the file "COPYING" in the main directory of this archive
+- * for more details.
+- *
+- * Copyright (C) 1996, 1997 by Andrew Bose
+- *
+- * Linux kernel version history:
+- *       March 2001: Ported from 2.0.34  by Liam Davies
+- *
+- */
+-#include <linux/types.h>
+-#include <linux/errno.h>
+-#include <linux/miscdevice.h>
+-#include <linux/slab.h>
+-#include <linux/ioport.h>
+-#include <linux/fcntl.h>
+-#include <linux/mc146818rtc.h>
+-#include <linux/netdevice.h>
+-#include <linux/sched.h>
+-#include <linux/smp_lock.h>
+-#include <linux/delay.h>
+-
+-#include <asm/io.h>
+-#include <asm/uaccess.h>
+-#include <asm/system.h>
+-
+-#include "lcd.h"
+-
+-static int lcd_ioctl(struct inode *inode, struct file *file,
+-		     unsigned int cmd, unsigned long arg);
+-
+-static unsigned int lcd_present = 1;
+-
+-/* used in arch/mips/cobalt/reset.c */
+-int led_state = 0;
+-
+-#if defined(CONFIG_TULIP) && 0
+-
+-#define MAX_INTERFACES	8
+-static linkcheck_func_t linkcheck_callbacks[MAX_INTERFACES];
+-static void *linkcheck_cookies[MAX_INTERFACES];
+-
+-int lcd_register_linkcheck_func(int iface_num, void *func, void *cookie)
+-{
+-	if (iface_num < 0 ||
+-	    iface_num >= MAX_INTERFACES ||
+-	    linkcheck_callbacks[iface_num] != NULL)
+-		return -1;
+-	linkcheck_callbacks[iface_num] = (linkcheck_func_t) func;
+-	linkcheck_cookies[iface_num] = cookie;
+-	return 0;
+-}
+-#endif
+-
+-static int lcd_ioctl(struct inode *inode, struct file *file,
+-		     unsigned int cmd, unsigned long arg)
+-{
+-	struct lcd_display button_display;
+-	unsigned long address, a;
+-
+-	switch (cmd) {
+-	case LCD_On:
+-		udelay(150);
+-		BusyCheck();
+-		LCDWriteInst(0x0F);
+-		break;
+-
+-	case LCD_Off:
+-		udelay(150);
+-		BusyCheck();
+-		LCDWriteInst(0x08);
+-		break;
+-
+-	case LCD_Reset:
+-		udelay(150);
+-		LCDWriteInst(0x3F);
+-		udelay(150);
+-		LCDWriteInst(0x3F);
+-		udelay(150);
+-		LCDWriteInst(0x3F);
+-		udelay(150);
+-		LCDWriteInst(0x3F);
+-		udelay(150);
+-		LCDWriteInst(0x01);
+-		udelay(150);
+-		LCDWriteInst(0x06);
+-		break;
+-
+-	case LCD_Clear:
+-		udelay(150);
+-		BusyCheck();
+-		LCDWriteInst(0x01);
+-		break;
+-
+-	case LCD_Cursor_Left:
+-		udelay(150);
+-		BusyCheck();
+-		LCDWriteInst(0x10);
+-		break;
+-
+-	case LCD_Cursor_Right:
+-		udelay(150);
+-		BusyCheck();
+-		LCDWriteInst(0x14);
+-		break;
+-
+-	case LCD_Cursor_Off:
+-		udelay(150);
+-		BusyCheck();
+-		LCDWriteInst(0x0C);
+-		break;
+-
+-	case LCD_Cursor_On:
+-		udelay(150);
+-		BusyCheck();
+-		LCDWriteInst(0x0F);
+-		break;
+-
+-	case LCD_Blink_Off:
+-		udelay(150);
+-		BusyCheck();
+-		LCDWriteInst(0x0E);
+-		break;
+-
+-	case LCD_Get_Cursor_Pos:{
+-			struct lcd_display display;
+-
+-			udelay(150);
+-			BusyCheck();
+-			display.cursor_address = (LCDReadInst);
+-			display.cursor_address =
+-			    (display.cursor_address & 0x07F);
+-			if (copy_to_user
+-			    ((struct lcd_display *) arg, &display,
+-			     sizeof(struct lcd_display)))
+-				return -EFAULT;
+-
+-			break;
+-		}
+-
+-
+-	case LCD_Set_Cursor_Pos:{
+-			struct lcd_display display;
+-
+-			if (copy_from_user
+-			    (&display, (struct lcd_display *) arg,
+-			     sizeof(struct lcd_display)))
+-				return -EFAULT;
+-
+-			a = (display.cursor_address | kLCD_Addr);
+-
+-			udelay(150);
+-			BusyCheck();
+-			LCDWriteInst(a);
+-
+-			break;
+-		}
+-
+-	case LCD_Get_Cursor:{
+-			struct lcd_display display;
+-
+-			udelay(150);
+-			BusyCheck();
+-			display.character = LCDReadData;
+-
+-			if (copy_to_user
+-			    ((struct lcd_display *) arg, &display,
+-			     sizeof(struct lcd_display)))
+-				return -EFAULT;
+-			udelay(150);
+-			BusyCheck();
+-			LCDWriteInst(0x10);
+-
+-			break;
+-		}
+-
+-	case LCD_Set_Cursor:{
+-			struct lcd_display display;
+-
+-			if (copy_from_user
+-			    (&display, (struct lcd_display *) arg,
+-			     sizeof(struct lcd_display)))
+-				return -EFAULT;
+-
+-			udelay(150);
+-			BusyCheck();
+-			LCDWriteData(display.character);
+-			udelay(150);
+-			BusyCheck();
+-			LCDWriteInst(0x10);
+-
+-			break;
+-		}
+-
+-
+-	case LCD_Disp_Left:
+-		udelay(150);
+-		BusyCheck();
+-		LCDWriteInst(0x18);
+-		break;
+-
+-	case LCD_Disp_Right:
+-		udelay(150);
+-		BusyCheck();
+-		LCDWriteInst(0x1C);
+-		break;
+-
+-	case LCD_Home:
+-		udelay(150);
+-		BusyCheck();
+-		LCDWriteInst(0x02);
+-		break;
+-
+-	case LCD_Write:{
+-			struct lcd_display display;
+-			unsigned int index;
+-
+-
+-			if (copy_from_user
+-			    (&display, (struct lcd_display *) arg,
+-			     sizeof(struct lcd_display)))
+-				return -EFAULT;
+-
+-			udelay(150);
+-			BusyCheck();
+-			LCDWriteInst(0x80);
+-			udelay(150);
+-			BusyCheck();
+-
+-			for (index = 0; index < (display.size1); index++) {
+-				udelay(150);
+-				BusyCheck();
+-				LCDWriteData(display.line1[index]);
+-				BusyCheck();
+-			}
+-
+-			udelay(150);
+-			BusyCheck();
+-			LCDWriteInst(0xC0);
+-			udelay(150);
+-			BusyCheck();
+-			for (index = 0; index < (display.size2); index++) {
+-				udelay(150);
+-				BusyCheck();
+-				LCDWriteData(display.line2[index]);
+-			}
+-
+-			break;
+-		}
+-
+-	case LCD_Read:{
+-			struct lcd_display display;
+-
+-			BusyCheck();
+-			for (address = kDD_R00; address <= kDD_R01;
+-			     address++) {
+-				a = (address | kLCD_Addr);
+-
+-				udelay(150);
+-				BusyCheck();
+-				LCDWriteInst(a);
+-				udelay(150);
+-				BusyCheck();
+-				display.line1[address] = LCDReadData;
+-			}
+-
+-			display.line1[0x27] = '\0';
+-
+-			for (address = kDD_R10; address <= kDD_R11;
+-			     address++) {
+-				a = (address | kLCD_Addr);
+-
+-				udelay(150);
+-				BusyCheck();
+-				LCDWriteInst(a);
+-
+-				udelay(150);
+-				BusyCheck();
+-				display.line2[address - 0x40] =
+-				    LCDReadData;
+-			}
+-
+-			display.line2[0x27] = '\0';
+-
+-			if (copy_to_user
+-			    ((struct lcd_display *) arg, &display,
+-			     sizeof(struct lcd_display)))
+-				return -EFAULT;
+-			break;
+-		}
+-
+-//  set all GPIO leds to led_display.leds
+-
+-	case LED_Set:{
+-			struct lcd_display led_display;
+-
+-
+-			if (copy_from_user
+-			    (&led_display, (struct lcd_display *) arg,
+-			     sizeof(struct lcd_display)))
+-				return -EFAULT;
+-
+-			led_state = led_display.leds;
+-			LEDSet(led_state);
+-
+-			break;
+-		}
+-
+-
+-//  set only bit led_display.leds
+-
+-	case LED_Bit_Set:{
+-			unsigned int i;
+-			int bit = 1;
+-			struct lcd_display led_display;
+-
+-
+-			if (copy_from_user
+-			    (&led_display, (struct lcd_display *) arg,
+-			     sizeof(struct lcd_display)))
+-				return -EFAULT;
+-
+-			for (i = 0; i < (int) led_display.leds; i++) {
+-				bit = 2 * bit;
+-			}
+-
+-			led_state = led_state | bit;
+-			LEDSet(led_state);
+-			break;
+-		}
+-
+-//  clear only bit led_display.leds
+-
+-	case LED_Bit_Clear:{
+-			unsigned int i;
+-			int bit = 1;
+-			struct lcd_display led_display;
+-
+-
+-			if (copy_from_user
+-			    (&led_display, (struct lcd_display *) arg,
+-			     sizeof(struct lcd_display)))
+-				return -EFAULT;
+-
+-			for (i = 0; i < (int) led_display.leds; i++) {
+-				bit = 2 * bit;
+-			}
+-
+-			led_state = led_state & ~bit;
+-			LEDSet(led_state);
+-			break;
+-		}
+-
+-
+-	case BUTTON_Read:{
+-			button_display.buttons = GPIRead;
+-			if (copy_to_user
+-			    ((struct lcd_display *) arg, &button_display,
+-			     sizeof(struct lcd_display)))
+-				return -EFAULT;
+-			break;
+-		}
+-
+-	case LINK_Check:{
+-			button_display.buttons =
+-			    *((volatile unsigned long *) (0xB0100060));
+-			if (copy_to_user
+-			    ((struct lcd_display *) arg, &button_display,
+-			     sizeof(struct lcd_display)))
+-				return -EFAULT;
+-			break;
+-		}
+-
+-	case LINK_Check_2:{
+-			int iface_num;
+-
+-			/* panel-utils should pass in the desired interface status is wanted for
+-			 * in "buttons" of the structure.  We will set this to non-zero if the
+-			 * link is in fact up for the requested interface.  --DaveM
+-			 */
+-			if (copy_from_user
+-			    (&button_display, (struct lcd_display *) arg,
+-			     sizeof(button_display)))
+-				return -EFAULT;
+-			iface_num = button_display.buttons;
+-#if defined(CONFIG_TULIP) && 0
+-			if (iface_num >= 0 &&
+-			    iface_num < MAX_INTERFACES &&
+-			    linkcheck_callbacks[iface_num] != NULL) {
+-				button_display.buttons =
+-				    linkcheck_callbacks[iface_num]
+-				    (linkcheck_cookies[iface_num]);
+-			} else
+-#endif
+-				button_display.buttons = 0;
+-
+-			if (__copy_to_user
+-			    ((struct lcd_display *) arg, &button_display,
+-			     sizeof(struct lcd_display)))
+-				return -EFAULT;
+-			break;
+-		}
+-
+-	default:
+-		return -EINVAL;
+-
+-	}
+-
+-	return 0;
+-
+-}
+-
+-static int lcd_open(struct inode *inode, struct file *file)
+-{
+-	cycle_kernel_lock();
+-
+-	if (!lcd_present)
+-		return -ENXIO;
+-	else
+-		return 0;
+-}
+-
+-/* Only RESET or NEXT counts as button pressed */
+-
+-static inline int button_pressed(void)
+-{
+-	unsigned long buttons = GPIRead;
+-
+-	if ((buttons == BUTTON_Next) || (buttons == BUTTON_Next_B)
+-	    || (buttons == BUTTON_Reset_B))
+-		return buttons;
+-	return 0;
+-}
+-
+-/* LED daemon sits on this and we wake him up once a key is pressed. */
+-
+-static int lcd_waiters = 0;
+-
+-static ssize_t lcd_read(struct file *file, char *buf,
+-		     size_t count, loff_t *ofs)
+-{
+-	long buttons_now;
+-
+-	if (lcd_waiters > 0)
+-		return -EINVAL;
+-
+-	lcd_waiters++;
+-	while (((buttons_now = (long) button_pressed()) == 0) &&
+-	       !(signal_pending(current))) {
+-		msleep_interruptible(2000);
+-	}
+-	lcd_waiters--;
+-
+-	if (signal_pending(current))
+-		return -ERESTARTSYS;
+-	return buttons_now;
+-}
+-
+-/*
+- *	The various file operations we support.
+- */
+-
+-static const struct file_operations lcd_fops = {
+-	.read = lcd_read,
+-	.ioctl = lcd_ioctl,
+-	.open = lcd_open,
+-};
+-
+-static struct miscdevice lcd_dev = {
+-	MISC_DYNAMIC_MINOR,
+-	"lcd",
+-	&lcd_fops
+-};
+-
+-static int lcd_init(void)
+-{
+-	int ret;
+-	unsigned long data;
+-
+-	pr_info("%s\n", LCD_DRIVER);
+-	ret = misc_register(&lcd_dev);
+-	if (ret) {
+-		printk(KERN_WARNING LCD "Unable to register misc device.\n");
+-		return ret;
+-	}
+-
+-	/* Check region? Naaah! Just snarf it up. */
+-/*	request_region(RTC_PORT(0), RTC_IO_EXTENT, "lcd");*/
+-
+-	udelay(150);
+-	data = LCDReadData;
+-	if ((data & 0x000000FF) == (0x00)) {
+-		lcd_present = 0;
+-		pr_info(LCD "LCD Not Present\n");
+-	} else {
+-		lcd_present = 1;
+-		WRITE_GAL(kGal_DevBank2PReg, kGal_DevBank2Cfg);
+-		WRITE_GAL(kGal_DevBank3PReg, kGal_DevBank3Cfg);
+-	}
+-
+-	return 0;
+-}
+-
+-static void __exit lcd_exit(void)
+-{
+-	misc_deregister(&lcd_dev);
+-}
+-
+-module_init(lcd_init);
+-module_exit(lcd_exit);
+-
+-MODULE_AUTHOR("Andrew Bose");
+-MODULE_LICENSE("GPL");
+diff -puN drivers/char/lcd.h~drivers-char-remove-old-broken-cobalt-lcd-driver /dev/null
+--- a/drivers/char/lcd.h
++++ /dev/null
+@@ -1,154 +0,0 @@
+-/*
+- * LED, LCD and Button panel driver for Cobalt
+- *
+- * This file is subject to the terms and conditions of the GNU General Public
+- * License.  See the file "COPYING" in the main directory of this archive
+- * for more details.
+- *
+- * Copyright (C) 1996, 1997 by Andrew Bose
+- *
+- * Linux kernel version history:
+- *       March 2001: Ported from 2.0.34  by Liam Davies
+- *
+- */
+-
+-// function headers
+-
+-#define LCD_CHARS_PER_LINE 40
+-#define MAX_IDLE_TIME 120
+-
+-struct lcd_display {
+-        unsigned buttons;
+-        int size1;
+-        int size2;
+-        unsigned char line1[LCD_CHARS_PER_LINE];
+-        unsigned char line2[LCD_CHARS_PER_LINE];
+-        unsigned char cursor_address;
+-        unsigned char character;
+-        unsigned char leds;
+-        unsigned char *RomImage;
+-};
+-
+-
+-
+-#define LCD_DRIVER	"Cobalt LCD Driver v2.10"
+-
+-#define LCD		"lcd: "
+-
+-#define kLCD_IR		0x0F000000
+-#define kLCD_DR		0x0F000010
+-#define kGPI		0x0D000000
+-#define kLED		0x0C000000
+-
+-#define kDD_R00         0x00
+-#define kDD_R01         0x27
+-#define kDD_R10         0x40
+-#define kDD_R11         0x67
+-
+-#define kLCD_Addr       0x00000080
+-
+-#define LCDTimeoutValue	0xfff
+-
+-
+-// Macros
+-
+-#define LCDWriteData(x)	outl((x << 24), kLCD_DR)
+-#define LCDWriteInst(x)	outl((x << 24), kLCD_IR)
+-
+-#define LCDReadData	(inl(kLCD_DR) >> 24)
+-#define LCDReadInst	(inl(kLCD_IR) >> 24)
+-
+-#define GPIRead		(inl(kGPI) >> 24)
+-
+-#define LEDSet(x)	outb((char)x, kLED)
+-
+-#define WRITE_GAL(x,y)	outl(y, 0x04000000 | (x))
+-#define BusyCheck()	while ((LCDReadInst & 0x80) == 0x80)
+-
+-
+-
+-/*
+- * Function command codes for io_ctl.
+- */
+-#define LCD_On			1
+-#define LCD_Off			2
+-#define LCD_Clear		3
+-#define LCD_Reset		4
+-#define LCD_Cursor_Left		5
+-#define LCD_Cursor_Right	6
+-#define LCD_Disp_Left		7
+-#define LCD_Disp_Right		8
+-#define LCD_Get_Cursor		9
+-#define LCD_Set_Cursor		10
+-#define LCD_Home		11
+-#define LCD_Read		12
+-#define LCD_Write		13
+-#define LCD_Cursor_Off		14
+-#define LCD_Cursor_On		15
+-#define LCD_Get_Cursor_Pos	16
+-#define LCD_Set_Cursor_Pos	17
+-#define LCD_Blink_Off           18
+-
+-#define LED_Set			40
+-#define LED_Bit_Set		41
+-#define LED_Bit_Clear		42
+-
+-
+-//  Button defs
+-#define BUTTON_Read             50
+-
+-
+-// Ethernet LINK check hackaroo
+-#define LINK_Check              90
+-#define LINK_Check_2		91
+-
+-//  Button patterns  _B - single layer lcd boards
+-
+-#define BUTTON_NONE               0x3F
+-#define BUTTON_NONE_B             0xFE
+-
+-#define BUTTON_Left               0x3B
+-#define BUTTON_Left_B             0xFA
+-
+-#define BUTTON_Right              0x37
+-#define BUTTON_Right_B            0xDE
+-
+-#define BUTTON_Up                 0x2F
+-#define BUTTON_Up_B               0xF6
+-
+-#define BUTTON_Down               0x1F
+-#define BUTTON_Down_B             0xEE
+-
+-#define BUTTON_Next               0x3D
+-#define BUTTON_Next_B             0x7E
+-
+-#define BUTTON_Enter              0x3E
+-#define BUTTON_Enter_B            0xBE
+-
+-#define BUTTON_Reset_B            0xFC
+-
+-
+-// debounce constants
+-
+-#define BUTTON_SENSE            160000
+-#define BUTTON_DEBOUNCE		5000
+-
+-
+-//  Galileo register stuff
+-
+-#define kGal_DevBank2Cfg        0x1466DB33
+-#define kGal_DevBank2PReg       0x464
+-#define kGal_DevBank3Cfg        0x146FDFFB
+-#define kGal_DevBank3PReg       0x468
+-
+-// Network
+-
+-#define kIPADDR			1
+-#define kNETMASK		2
+-#define kGATEWAY		3
+-#define kDNS			4
+-
+-#define kClassA			5
+-#define kClassB			6
+-#define kClassC			7
