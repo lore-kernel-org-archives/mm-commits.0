@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + tracehook-tracehook_consider_ignored_signal.patch added to -mm tree
-Date: Thu, 17 Jul 2008 01:30:53 -0700
-Message-ID: <200807170830.m6H8Ur0V006979@imap1.linux-foundation.org>
+Subject: + tracehook-get_signal_to_deliver.patch added to -mm tree
+Date: Thu, 17 Jul 2008 01:30:59 -0700
+Message-ID: <200807170830.m6H8Ux4L006989@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49365 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54765 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754086AbYGQIjC (ORCPT
+	by vger.kernel.org with ESMTP id S1753940AbYGQIjd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Jul 2008 04:39:02 -0400
+	Thu, 17 Jul 2008 04:39:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: roland@redhat.com, oleg@tv-sign.ru
 
 
 The patch titled
-     tracehook: tracehook_consider_ignored_signal
+     tracehook: get_signal_to_deliver
 has been added to the -mm tree.  Its filename is
-     tracehook-tracehook_consider_ignored_signal.patch
+     tracehook-get_signal_to_deliver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,116 +34,140 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tracehook: tracehook_consider_ignored_signal
+Subject: tracehook: get_signal_to_deliver
 From: Roland McGrath <roland@redhat.com>
 
-This defines tracehook_consider_ignored_signal() has a fine-grained hook
-for deciding to prevent the normal short-circuit of sending an ignored
-signal, as ptrace does.  There is no change, only cleanup.
+This defines the tracehook_get_signal() hook to allow tracing code to slip
+in before normal signal dequeuing.  This lays the groundwork for new
+tracing features that can inject synthetic signals outside the normal
+queue or control the disposition of delivered signals.  The calling
+convention lets tracehook_get_signal() decide both exactly what will
+happen and what signal number to report in the handler/exit.
 
 Signed-off-by: Roland McGrath <roland@redhat.com>
 Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/tracehook.h |   19 +++++++++++++++++++
- kernel/signal.c           |   27 ++++++++++++++++-----------
- 2 files changed, 35 insertions(+), 11 deletions(-)
+ include/linux/tracehook.h |   29 +++++++++++++++++++++++++++
+ kernel/signal.c           |   38 +++++++++++++++++++++++++-----------
+ 2 files changed, 56 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/tracehook.h~tracehook-tracehook_consider_ignored_signal include/linux/tracehook.h
---- a/include/linux/tracehook.h~tracehook-tracehook_consider_ignored_signal
+diff -puN include/linux/tracehook.h~tracehook-get_signal_to_deliver include/linux/tracehook.h
+--- a/include/linux/tracehook.h~tracehook-get_signal_to_deliver
 +++ a/include/linux/tracehook.h
-@@ -312,4 +312,23 @@ static inline void tracehook_signal_hand
- 		ptrace_notify(SIGTRAP);
+@@ -422,4 +422,33 @@ static inline int tracehook_consider_fat
+ 	return (task_ptrace(task) & PT_PTRACED) != 0;
  }
  
 +/**
-+ * tracehook_consider_ignored_signal - suppress short-circuit of ignored signal
-+ * @task:		task receiving the signal
-+ * @sig:		signal number being sent
-+ * @handler:		%SIG_IGN or %SIG_DFL
++ * tracehook_get_signal - deliver synthetic signal to traced task
++ * @task:		@current
++ * @regs:		task_pt_regs(@current)
++ * @info:		details of synthetic signal
++ * @return_ka:		sigaction for synthetic signal
 + *
-+ * Return zero iff tracing doesn't care to examine this ignored signal,
-+ * so it can short-circuit normal delivery and never even get queued.
-+ * Either @handler is %SIG_DFL and @sig's default is ignore, or it's %SIG_IGN.
++ * Return zero to check for a real pending signal normally.
++ * Return -1 after releasing the siglock to repeat the check.
++ * Return a signal number to induce an artifical signal delivery,
++ * setting *@info and *@return_ka to specify its details and behavior.
 + *
-+ * Called with @task->sighand->siglock held.
++ * The @return_ka->sa_handler value controls the disposition of the
++ * signal, no matter the signal number.  For %SIG_DFL, the return value
++ * is a representative signal to indicate the behavior (e.g. %SIGTERM
++ * for death, %SIGQUIT for core dump, %SIGSTOP for job control stop,
++ * %SIGTSTP for stop unless in an orphaned pgrp), but the signal number
++ * reported will be @info->si_signo instead.
++ *
++ * Called with @task->sighand->siglock held, before dequeuing pending signals.
 + */
-+static inline int tracehook_consider_ignored_signal(struct task_struct *task,
-+						    int sig,
-+						    void __user *handler)
++static inline int tracehook_get_signal(struct task_struct *task,
++				       struct pt_regs *regs,
++				       siginfo_t *info,
++				       struct k_sigaction *return_ka)
 +{
-+	return (task_ptrace(task) & PT_PTRACED) != 0;
++	return 0;
 +}
 +
  #endif	/* <linux/tracehook.h> */
-diff -puN kernel/signal.c~tracehook-tracehook_consider_ignored_signal kernel/signal.c
---- a/kernel/signal.c~tracehook-tracehook_consider_ignored_signal
+diff -puN kernel/signal.c~tracehook-get_signal_to_deliver kernel/signal.c
+--- a/kernel/signal.c~tracehook-get_signal_to_deliver
 +++ a/kernel/signal.c
-@@ -22,6 +22,7 @@
- #include <linux/ptrace.h>
- #include <linux/signal.h>
- #include <linux/signalfd.h>
-+#include <linux/tracehook.h>
- #include <linux/capability.h>
- #include <linux/freezer.h>
- #include <linux/pid_namespace.h>
-@@ -39,24 +40,21 @@
+@@ -1754,17 +1754,33 @@ relock:
+ 		    do_signal_stop(0))
+ 			goto relock;
  
- static struct kmem_cache *sigqueue_cachep;
+-		signr = dequeue_signal(current, &current->blocked, info);
+-		if (!signr)
+-			break; /* will return 0 */
++		/*
++		 * Tracing can induce an artifical signal and choose sigaction.
++		 * The return value in @signr determines the default action,
++		 * but @info->si_signo is the signal number we will report.
++		 */
++		signr = tracehook_get_signal(current, regs, info, return_ka);
++		if (unlikely(signr < 0))
++			goto relock;
++		if (unlikely(signr != 0))
++			ka = return_ka;
++		else {
++			signr = dequeue_signal(current, &current->blocked,
++					       info);
  
--static int __sig_ignored(struct task_struct *t, int sig)
-+static void __user *sig_handler(struct task_struct *t, int sig)
- {
--	void __user *handler;
-+	return t->sighand->action[sig - 1].sa.sa_handler;
-+}
- 
-+static int sig_handler_ignored(void __user *handler, int sig)
-+{
- 	/* Is it explicitly or implicitly ignored? */
--
--	handler = t->sighand->action[sig - 1].sa.sa_handler;
- 	return handler == SIG_IGN ||
- 		(handler == SIG_DFL && sig_kernel_ignore(sig));
- }
- 
- static int sig_ignored(struct task_struct *t, int sig)
- {
--	/*
--	 * Tracers always want to know about signals..
--	 */
--	if (t->ptrace & PT_PTRACED)
--		return 0;
-+	void __user *handler;
- 
- 	/*
- 	 * Blocked signals are never ignored, since the
-@@ -66,7 +64,14 @@ static int sig_ignored(struct task_struc
- 	if (sigismember(&t->blocked, sig) || sigismember(&t->real_blocked, sig))
- 		return 0;
- 
--	return __sig_ignored(t, sig);
-+	handler = sig_handler(t, sig);
-+	if (!sig_handler_ignored(handler, sig))
-+		return 0;
+-		if (signr != SIGKILL) {
+-			signr = ptrace_signal(signr, info, regs, cookie);
+ 			if (!signr)
+-				continue;
++				break; /* will return 0 */
 +
-+	/*
-+	 * Tracers may want to know about even ignored signals.
-+	 */
-+	return !tracehook_consider_ignored_signal(t, sig, handler);
- }
++			if (signr != SIGKILL) {
++				signr = ptrace_signal(signr, info,
++						      regs, cookie);
++				if (!signr)
++					continue;
++			}
++
++			ka = &sighand->action[signr-1];
+ 		}
  
- /*
-@@ -2298,7 +2303,7 @@ int do_sigaction(int sig, struct k_sigac
- 		 *   (for example, SIGCHLD), shall cause the pending signal to
- 		 *   be discarded, whether or not it is blocked"
+-		ka = &sighand->action[signr-1];
+ 		if (ka->sa.sa_handler == SIG_IGN) /* Do nothing.  */
+ 			continue;
+ 		if (ka->sa.sa_handler != SIG_DFL) {
+@@ -1812,7 +1828,7 @@ relock:
+ 				spin_lock_irq(&sighand->siglock);
+ 			}
+ 
+-			if (likely(do_signal_stop(signr))) {
++			if (likely(do_signal_stop(info->si_signo))) {
+ 				/* It released the siglock.  */
+ 				goto relock;
+ 			}
+@@ -1833,7 +1849,7 @@ relock:
+ 
+ 		if (sig_kernel_coredump(signr)) {
+ 			if (print_fatal_signals)
+-				print_fatal_signal(regs, signr);
++				print_fatal_signal(regs, info->si_signo);
+ 			/*
+ 			 * If it was able to dump core, this kills all
+ 			 * other threads in the group and synchronizes with
+@@ -1842,13 +1858,13 @@ relock:
+ 			 * first and our do_group_exit call below will use
+ 			 * that value and ignore the one we pass it.
+ 			 */
+-			do_coredump((long)signr, signr, regs);
++			do_coredump(info->si_signo, info->si_signo, regs);
+ 		}
+ 
+ 		/*
+ 		 * Death signals, no core dump.
  		 */
--		if (__sig_ignored(t, sig)) {
-+		if (sig_handler_ignored(sig_handler(t, sig), sig)) {
- 			sigemptyset(&mask);
- 			sigaddset(&mask, sig);
- 			rm_from_queue_full(&mask, &t->signal->shared_pending);
+-		do_group_exit(signr);
++		do_group_exit(info->si_signo);
+ 		/* NOTREACHED */
+ 	}
+ 	spin_unlock_irq(&sighand->siglock);
 _
 
 Patches currently in -mm which might be from roland@redhat.com are
