@@ -1,86 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: - memcg-handle-swap-cache-fix.patch removed from -mm tree
-Date: Thu, 17 Jul 2008 15:29:15 -0700
-Message-ID: <200807172229.m6HMTFB8009826@imap1.linux-foundation.org>
+Subject: + vmscan-second-chance-replacement-for-anonymous-pages-fix.patch added to -mm tree
+Date: Thu, 17 Jul 2008 15:34:32 -0700
+Message-ID: <200807172234.m6HMYWvq010049@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57601 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40782 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757857AbYGQW3p (ORCPT
+	by vger.kernel.org with ESMTP id S1759182AbYGQWfE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Jul 2008 18:29:45 -0400
+	Thu, 17 Jul 2008 18:35:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, ebiederm@xmission.com, hugh@veritas.com, kamezawa.hiroyu@jp.fujtsu.com, lizf@cn.fujitsu.com, menage@google.com, nishimura@mxp.nes.ne
+To: mm-commits@vger.kernel.org
+Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com
 
 
 The patch titled
-     memcg-handle-swap-cache fix
-has been removed from the -mm tree.  Its filename was
-     memcg-handle-swap-cache-fix.patch
+     vmscan-second-chance-replacement-for-anonymous-pages-fix
+has been added to the -mm tree.  Its filename is
+     vmscan-second-chance-replacement-for-anonymous-pages-fix.patch
 
-This patch was dropped because it was withdrawn
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-handle-swap-cache fix
+Subject: vmscan-second-chance-replacement-for-anonymous-pages-fix
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Now (-mm queue), SwapCache is handled by memcg.
-But Handling migration of swap-cache was wrong.
+Under memcg, active anon tend not to go to inactive anon.
+This will cause OOM in memcg easily when tons of anon was used at once.
+This check was lacked in split-lru.
 
-Fix to call uncharge() after ClearPageSwapCache() as
-__delete_from_swap_cache()(swap_state.c) does.
+This patch is a fix agaisnt
+vmscan-second-chance-replacement-for-anonymous-pages.patch
 
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujtsu.com>
-Tested-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
-Cc: Paul Menage <menage@google.com>
-Cc: David Rientjes <rientjes@google.com>
+Changelog: v1 -> v2:
+ - avoid adding "else".
+
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: Rik van Riel <riel@redhat.com>
+Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |   14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ mm/vmscan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/migrate.c~memcg-handle-swap-cache-fix mm/migrate.c
---- a/mm/migrate.c~memcg-handle-swap-cache-fix
-+++ a/mm/migrate.c
-@@ -358,10 +358,8 @@ static int migrate_page_move_mapping(str
- 	__inc_zone_page_state(newpage, NR_FILE_PAGES);
+diff -puN mm/vmscan.c~vmscan-second-chance-replacement-for-anonymous-pages-fix mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-second-chance-replacement-for-anonymous-pages-fix
++++ a/mm/vmscan.c
+@@ -1351,7 +1351,7 @@ static unsigned long shrink_zone(int pri
+ 	 * Even if we did not try to evict anon pages at all, we want to
+ 	 * rebalance the anon lru active/inactive ratio.
+ 	 */
+-	if (scan_global_lru(sc) && inactive_anon_is_low(zone))
++	if (!scan_global_lru(sc) || inactive_anon_is_low(zone))
+ 		shrink_active_list(SWAP_CLUSTER_MAX, zone, sc, priority, 0);
  
- 	write_unlock_irq(&mapping->tree_lock);
--	if (!PageSwapCache(newpage)) {
-+	if (!PageSwapCache(newpage))
- 		mem_cgroup_uncharge_cache_page(page);
--	} else
--		mem_cgroup_uncharge_page(page);
- 
- 	return 0;
- }
-@@ -399,7 +397,15 @@ static void migrate_page_copy(struct pag
-  	}
- 
- #ifdef CONFIG_SWAP
--	ClearPageSwapCache(page);
-+	if (PageSwapCache(page)) {
-+		ClearPageSwapCache(page);
-+		/*
-+		 * SwapCache is removed implicitly. Uncharge against swapcache
-+		 * should be called after ClearPageSwapCache() because
-+		 * mem_cgroup_uncharge_page checks the flag.
-+		 */
-+		mem_cgroup_uncharge_page(page);
-+	}
- #endif
- 	ClearPageActive(page);
- 	ClearPagePrivate(page);
+ 	throttle_vm_writeout(sc->gfp_mask);
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
@@ -111,8 +99,6 @@ memcg-remove-refcnt-from-page_cgroup-fix.patch
 memcg-remove-refcnt-from-page_cgroup-fix-2.patch
 memcg-remove-refcnt-from-page_cgroup-fix-memcg-fix-mem_cgroup_end_migration-race.patch
 memcg-remove-refcnt-from-page_cgroup-memcg-fix-shmem_unuse_inode-charging.patch
-memcg-handle-swap-cache-fix.patch
-memcg-handle-swap-cache-fix-shmem-page-migration-incorrectness-on-memcgroup.patch
 memcg-helper-function-for-relcaim-from-shmem.patch
 memcg-helper-function-for-relcaim-from-shmem-memcg-shmem_getpage-release-page-sooner.patch
 memcg-helper-function-for-relcaim-from-shmem-memcg-mem_cgroup_shrink_usage-css_put.patch
@@ -135,6 +121,7 @@ memrlimit-handle-attach_task-failure-add-can_attach-callback-update.patch
 mm-speculative-page-references-fix-migration_entry_wait-for-speculative-page-cache.patch
 define-page_file_cache-function-fix-splitlru-shmem_getpage-setpageswapbacked-sooner.patch
 vmscan-split-lru-lists-into-anon-file-sets-splitlru-memcg-swapbacked-pages-active.patch
+vmscan-second-chance-replacement-for-anonymous-pages-fix.patch
 unevictable-lru-infrastructure-putback_lru_page-unevictable-page-handling-rework.patch
 mlock-mlocked-pages-are-unevictable-fix-truncate-race-and-sevaral-comments.patch
 fix-double-unlock_page-in-2626-rc5-mm3-kernel-bug-at-mm-filemapc-575.patch
