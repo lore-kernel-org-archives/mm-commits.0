@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pci-procc-sparse-endian-annotations.patch added to -mm tree
-Date: Thu, 17 Jul 2008 16:22:37 -0700
-Message-ID: <200807172322.m6HNMbS4012203@imap1.linux-foundation.org>
+Subject: + move-memory_read_from_buffer-from-fsh-to-stringh.patch added to -mm tree
+Date: Thu, 17 Jul 2008 16:29:00 -0700
+Message-ID: <200807172329.m6HNT0C9012505@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36096 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40654 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758658AbYGQXXK (ORCPT
+	by vger.kernel.org with ESMTP id S932519AbYGQX35 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Jul 2008 19:23:10 -0400
+	Thu, 17 Jul 2008 19:29:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com
+Cc: akinobu.mita@gmail.com, James.Bottomley@hansenpartnership.com, geert@linux-m68k.org, lenb@kernel.org, robert.moore@intel.com, rui.zhang@intel.com, trenn@suse.de
 
 
 The patch titled
-     pci: proc.c sparse endian annotations
+     move memory_read_from_buffer() from fs.h to string.h
 has been added to the -mm tree.  Its filename is
-     pci-procc-sparse-endian-annotations.patch
+     move-memory_read_from_buffer-from-fsh-to-stringh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,118 +34,92 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pci: proc.c sparse endian annotations
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: move memory_read_from_buffer() from fs.h to string.h
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-drivers/pci/proc.c:91:3: warning: cast from restricted __le16
-drivers/pci/proc.c:100:3: warning: cast from restricted __le32
-drivers/pci/proc.c:109:3: warning: cast from restricted __le16
-drivers/pci/proc.c:161:40: warning: cast to restricted __le16
-drivers/pci/proc.c:170:41: warning: cast to restricted __le32
-drivers/pci/proc.c:179:40: warning: cast to restricted __le16
+James Bottomley warns that inclusion of linux/fs.h in a low level
+driver was always a danger signal.  This patch moves
+memory_read_from_buffer() from fs.h to string.h and fixes includes in
+existing memory_read_from_buffer() users.
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: James Bottomley <James.Bottomley@hansenpartnership.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Zhang Rui <rui.zhang@intel.com>
+Cc: Bob Moore <robert.moore@intel.com>
+Cc: Thomas Renninger <trenn@suse.de>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/proc.c |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ drivers/acpi/system.c       |    1 +
+ drivers/zorro/zorro-sysfs.c |    1 -
+ include/linux/fs.h          |    2 --
+ include/linux/string.h      |    3 +++
+ 4 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/pci/proc.c~pci-procc-sparse-endian-annotations drivers/pci/proc.c
---- a/drivers/pci/proc.c~pci-procc-sparse-endian-annotations
-+++ a/drivers/pci/proc.c
-@@ -88,7 +88,7 @@ proc_bus_pci_read(struct file *file, cha
- 	if ((pos & 3) && cnt > 2) {
- 		unsigned short val;
- 		pci_user_read_config_word(dev, pos, &val);
--		__put_user(cpu_to_le16(val), (unsigned short __user *) buf);
-+		__put_user(cpu_to_le16(val), (__le16 __user *) buf);
- 		buf += 2;
- 		pos += 2;
- 		cnt -= 2;
-@@ -97,7 +97,7 @@ proc_bus_pci_read(struct file *file, cha
- 	while (cnt >= 4) {
- 		unsigned int val;
- 		pci_user_read_config_dword(dev, pos, &val);
--		__put_user(cpu_to_le32(val), (unsigned int __user *) buf);
-+		__put_user(cpu_to_le32(val), (__le32 __user *) buf);
- 		buf += 4;
- 		pos += 4;
- 		cnt -= 4;
-@@ -106,7 +106,7 @@ proc_bus_pci_read(struct file *file, cha
- 	if (cnt >= 2) {
- 		unsigned short val;
- 		pci_user_read_config_word(dev, pos, &val);
--		__put_user(cpu_to_le16(val), (unsigned short __user *) buf);
-+		__put_user(cpu_to_le16(val), (__le16 __user *) buf);
- 		buf += 2;
- 		pos += 2;
- 		cnt -= 2;
-@@ -156,8 +156,8 @@ proc_bus_pci_write(struct file *file, co
- 	}
+diff -puN drivers/acpi/system.c~move-memory_read_from_buffer-from-fsh-to-stringh drivers/acpi/system.c
+--- a/drivers/acpi/system.c~move-memory_read_from_buffer-from-fsh-to-stringh
++++ a/drivers/acpi/system.c
+@@ -26,6 +26,7 @@
+ #include <linux/proc_fs.h>
+ #include <linux/seq_file.h>
+ #include <linux/init.h>
++#include <linux/string.h>
+ #include <asm/uaccess.h>
  
- 	if ((pos & 3) && cnt > 2) {
--		unsigned short val;
--		__get_user(val, (unsigned short __user *) buf);
-+		__le16 val;
-+		__get_user(val, (__le16 __user *) buf);
- 		pci_user_write_config_word(dev, pos, le16_to_cpu(val));
- 		buf += 2;
- 		pos += 2;
-@@ -165,8 +165,8 @@ proc_bus_pci_write(struct file *file, co
- 	}
+ #include <acpi/acpi_drivers.h>
+diff -puN drivers/zorro/zorro-sysfs.c~move-memory_read_from_buffer-from-fsh-to-stringh drivers/zorro/zorro-sysfs.c
+--- a/drivers/zorro/zorro-sysfs.c~move-memory_read_from_buffer-from-fsh-to-stringh
++++ a/drivers/zorro/zorro-sysfs.c
+@@ -15,7 +15,6 @@
+ #include <linux/zorro.h>
+ #include <linux/stat.h>
+ #include <linux/string.h>
+-#include <linux/fs.h>
  
- 	while (cnt >= 4) {
--		unsigned int val;
--		__get_user(val, (unsigned int __user *) buf);
-+		__le32 val;
-+		__get_user(val, (__le32 __user *) buf);
- 		pci_user_write_config_dword(dev, pos, le32_to_cpu(val));
- 		buf += 4;
- 		pos += 4;
-@@ -174,8 +174,8 @@ proc_bus_pci_write(struct file *file, co
- 	}
+ #include "zorro.h"
  
- 	if (cnt >= 2) {
--		unsigned short val;
--		__get_user(val, (unsigned short __user *) buf);
-+		__le16 val;
-+		__get_user(val, (__le16 __user *) buf);
- 		pci_user_write_config_word(dev, pos, le16_to_cpu(val));
- 		buf += 2;
- 		pos += 2;
+diff -puN include/linux/fs.h~move-memory_read_from_buffer-from-fsh-to-stringh include/linux/fs.h
+--- a/include/linux/fs.h~move-memory_read_from_buffer-from-fsh-to-stringh
++++ a/include/linux/fs.h
+@@ -2020,8 +2020,6 @@ extern void simple_release_fs(struct vfs
+ 
+ extern ssize_t simple_read_from_buffer(void __user *to, size_t count,
+ 			loff_t *ppos, const void *from, size_t available);
+-extern ssize_t memory_read_from_buffer(void *to, size_t count, loff_t *ppos,
+-			const void *from, size_t available);
+ 
+ #ifdef CONFIG_MIGRATION
+ extern int buffer_migrate_page(struct address_space *,
+diff -puN include/linux/string.h~move-memory_read_from_buffer-from-fsh-to-stringh include/linux/string.h
+--- a/include/linux/string.h~move-memory_read_from_buffer-from-fsh-to-stringh
++++ a/include/linux/string.h
+@@ -111,5 +111,8 @@ extern void argv_free(char **argv);
+ 
+ extern bool sysfs_streq(const char *s1, const char *s2);
+ 
++extern ssize_t memory_read_from_buffer(void *to, size_t count, loff_t *ppos,
++			const void *from, size_t available);
++
+ #endif
+ #endif /* _LINUX_STRING_H_ */
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 origin.patch
 linux-next.patch
-cifs-remove-global_extern-macro.patch
-mtd-diskonchipc-fix-sparse-endian-warnings.patch
-scsi-replace-remaining-__function__-occurrences.patch
-fusion-replace-remaining-__function__-occurrences.patch
-scsi-replace-__inline-with-inline.patch
-scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
-scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
-xfs-use-get_unaligned_-helpers.patch
-xtensa-replace-remaining-__function__-occurences.patch
-fs-ldm-use-get_unaligned_-helpers.patch
-include-use-get-put_unaligned_-helpers.patch
-lzo-use-get-put_unaligned_-helpers.patch
-asm-generic-int-ll64h-always-provide-__su64.patch
-olpc-olpc_batteryc-sparse-endian-annotations.patch
-ecryptfs-cryptoc-use-unaligned-byteorder-helpers.patch
-ecryptfs-inodec-mmapc-use-unaligned-byteorder-helpers.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-isdn-use-the-common-ascii-hex-helpers.patch
-net-use-the-common-ascii-hex-helpers.patch
-cris-use-the-common-ascii-hex-helpers.patch
-frv-use-the-common-ascii-hex-helpers.patch
-mips-use-the-common-ascii-hex-helpers.patch
-ppc-use-the-common-ascii-hex-helpers.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-mn10300-use-the-common-ascii-hex-helpers.patch
-byteorder-add-a-new-include-linux-swabh-to-define-byteswapping-functions.patch
-byteorder-add-include-linux-byteorderh-to-define-endian-helpers.patch
-pci-procc-sparse-endian-annotations.patch
+ipr-use-memory_read_from_buffer.patch
+qla2xxx-use-memory_read_from_buffer.patch
+pm-hibernation-simplify-memory-bitmap.patch
+cris-use-simple_read_from_buffer.patch
+binfmt_misc-use-simple_read_from_buffer.patch
+aty-use-memory_read_from_buffer.patch
+ipc-use-simple_read_from_buffer.patch
+nwflash-use-simple_read_from_buffer.patch
+firmware-use-memory_read_from_buffer.patch
+dcdbas-use-memory_read_from_buffer.patch
+dell_rbu-use-memory_read_from_buffer.patch
+move-memory_read_from_buffer-from-fsh-to-stringh.patch
 
