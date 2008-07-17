@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + tracehook-vfork-done.patch added to -mm tree
-Date: Thu, 17 Jul 2008 01:30:43 -0700
-Message-ID: <200807170830.m6H8Uh5f006962@imap1.linux-foundation.org>
+Subject: + tracehook-syscall.patch added to -mm tree
+Date: Thu, 17 Jul 2008 01:30:57 -0700
+Message-ID: <200807170830.m6H8UvXc006986@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35899 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47014 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756191AbYGQIbe (ORCPT
+	by vger.kernel.org with ESMTP id S1753532AbYGQIbu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Jul 2008 04:31:34 -0400
+	Thu, 17 Jul 2008 04:31:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: roland@redhat.com, oleg@tv-sign.ru
 
 
 The patch titled
-     tracehook: vfork-done
+     tracehook: syscall
 has been added to the -mm tree.  Its filename is
-     tracehook-vfork-done.patch
+     tracehook-syscall.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,62 +34,101 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tracehook: vfork-done
+Subject: tracehook: syscall
 From: Roland McGrath <roland@redhat.com>
 
-This moves the PTRACE_EVENT_VFORK_DONE tracing into a tracehook.h inline,
-tracehook_report_vfork_done().  The change has no effect, just clean-up.
+This adds standard tracehook.h inlines for arch code to call when
+TIF_SYSCALL_TRACE has been set.  This replaces having each arch implement
+the ptrace guts for its syscall tracing support.
 
 Signed-off-by: Roland McGrath <roland@redhat.com>
 Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/tracehook.h |   18 ++++++++++++++++++
- kernel/fork.c             |    5 +----
- 2 files changed, 19 insertions(+), 4 deletions(-)
+ include/linux/tracehook.h |   70 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 70 insertions(+)
 
-diff -puN include/linux/tracehook.h~tracehook-vfork-done include/linux/tracehook.h
---- a/include/linux/tracehook.h~tracehook-vfork-done
+diff -puN include/linux/tracehook.h~tracehook-syscall include/linux/tracehook.h
+--- a/include/linux/tracehook.h~tracehook-syscall
 +++ a/include/linux/tracehook.h
-@@ -210,4 +210,22 @@ static inline void tracehook_report_clon
- 		ptrace_event(0, trace, pid);
+@@ -66,6 +66,76 @@ static inline int tracehook_expect_break
+ 	return (task_ptrace(task) & PT_PTRACED) != 0;
  }
  
-+/**
-+ * tracehook_report_vfork_done - vfork parent's child has exited or exec'd
-+ * @child:		child task, already running
-+ * @pid:		new child's PID in the parent's namespace
-+ *
-+ * Called after a %CLONE_VFORK parent has waited for the child to complete.
-+ * The clone/vfork system call will return immediately after this.
-+ * The @child pointer may be invalid if a self-reaping child died and
-+ * tracehook_report_clone() took no action to prevent it from self-reaping.
-+ *
-+ * Called with no locks held.
++/*
++ * ptrace report for syscall entry and exit looks identical.
 + */
-+static inline void tracehook_report_vfork_done(struct task_struct *child,
-+					       pid_t pid)
++static inline void ptrace_report_syscall(struct pt_regs *regs)
 +{
-+	ptrace_event(PT_TRACE_VFORK_DONE, PTRACE_EVENT_VFORK_DONE, pid);
++	int ptrace = task_ptrace(current);
++
++	if (!(ptrace & PT_PTRACED))
++		return;
++
++	ptrace_notify(SIGTRAP | ((ptrace & PT_TRACESYSGOOD) ? 0x80 : 0));
++
++	/*
++	 * this isn't the same as continuing with a signal, but it will do
++	 * for normal use.  strace only continues with a signal if the
++	 * stopping signal is not SIGTRAP.  -brl
++	 */
++	if (current->exit_code) {
++		send_sig(current->exit_code, current, 1);
++		current->exit_code = 0;
++	}
 +}
 +
- #endif	/* <linux/tracehook.h> */
-diff -puN kernel/fork.c~tracehook-vfork-done kernel/fork.c
---- a/kernel/fork.c~tracehook-vfork-done
-+++ a/kernel/fork.c
-@@ -1434,10 +1434,7 @@ long do_fork(unsigned long clone_flags,
- 			freezer_do_not_count();
- 			wait_for_completion(&vfork);
- 			freezer_count();
--			if (unlikely (current->ptrace & PT_TRACE_VFORK_DONE)) {
--				current->ptrace_message = nr;
--				ptrace_notify ((PTRACE_EVENT_VFORK_DONE << 8) | SIGTRAP);
--			}
-+			tracehook_report_vfork_done(p, nr);
- 		}
- 	} else {
- 		nr = PTR_ERR(p);
++/**
++ * tracehook_report_syscall_entry - task is about to attempt a system call
++ * @regs:		user register state of current task
++ *
++ * This will be called if %TIF_SYSCALL_TRACE has been set, when the
++ * current task has just entered the kernel for a system call.
++ * Full user register state is available here.  Changing the values
++ * in @regs can affect the system call number and arguments to be tried.
++ * It is safe to block here, preventing the system call from beginning.
++ *
++ * Returns zero normally, or nonzero if the calling arch code should abort
++ * the system call.  That must prevent normal entry so no system call is
++ * made.  If @task ever returns to user mode after this, its register state
++ * is unspecified, but should be something harmless like an %ENOSYS error
++ * return.
++ *
++ * Called without locks, just after entering kernel mode.
++ */
++static inline __must_check int tracehook_report_syscall_entry(
++	struct pt_regs *regs)
++{
++	ptrace_report_syscall(regs);
++	return 0;
++}
++
++/**
++ * tracehook_report_syscall_exit - task has just finished a system call
++ * @regs:		user register state of current task
++ * @step:		nonzero if simulating single-step or block-step
++ *
++ * This will be called if %TIF_SYSCALL_TRACE has been set, when the
++ * current task has just finished an attempted system call.  Full
++ * user register state is available here.  It is safe to block here,
++ * preventing signals from being processed.
++ *
++ * If @step is nonzero, this report is also in lieu of the normal
++ * trap that would follow the system call instruction because
++ * user_enable_block_step() or user_enable_single_step() was used.
++ * In this case, %TIF_SYSCALL_TRACE might not be set.
++ *
++ * Called without locks, just before checking for pending signals.
++ */
++static inline void tracehook_report_syscall_exit(struct pt_regs *regs, int step)
++{
++	ptrace_report_syscall(regs);
++}
++
+ /**
+  * tracehook_unsafe_exec - check for exec declared unsafe due to tracing
+  * @task:		current task doing exec
 _
 
 Patches currently in -mm which might be from roland@redhat.com are
