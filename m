@@ -1,72 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: - ia64-improper-printk-format-in-acpi-cpufreq.patch removed from -mm tree
-Date: Fri, 18 Jul 2008 16:24:05 -0700
-Message-ID: <200807182324.m6INO5fl004166@imap1.linux-foundation.org>
+Subject: - kvm-fix-build-error-of-arch-ia64-kvm.patch removed from -mm tree
+Date: Fri, 18 Jul 2008 16:24:10 -0700
+Message-ID: <200807182324.m6INOAo2004172@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34164 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37384 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754476AbYGRXYj (ORCPT
+	by vger.kernel.org with ESMTP id S1757065AbYGRXYr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Jul 2008 19:24:39 -0400
+	Fri, 18 Jul 2008 19:24:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: den@openvz.org, tony.luck@intel.com, venkatesh.pallipadi@intel.com, mm-commits@vger.kernel.org
+To: tiwai@suse.de, avi@qumranet.com, tony.luck@intel.com, xiantao.zhang@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ia64: improper printk format in acpi-cpufreq
+     kvm: fix build error of arch/ia64/kvm/*
 has been removed from the -mm tree.  Its filename was
-     ia64-improper-printk-format-in-acpi-cpufreq.patch
+     kvm-fix-build-error-of-arch-ia64-kvm.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ia64: improper printk format in acpi-cpufreq
-From: "Denis V. Lunev" <den@openvz.org>
+Subject: kvm: fix build error of arch/ia64/kvm/*
+From: Takashi Iwai <tiwai@suse.de>
 
-When dprintk is enabled the following warnings are generated:
-arch/ia64/kernel/cpufreq/acpi-cpufreq.c: In function 'processor_set_pstate':
-arch/ia64/kernel/cpufreq/acpi-cpufreq.c:54: warning: format '%x' expects type 'unsigned int', but argument 3 has type 's64'
-arch/ia64/kernel/cpufreq/acpi-cpufreq.c: In function 'processor_get_pstate':
-arch/ia64/kernel/cpufreq/acpi-cpufreq.c:76: warning: format '%x' expects type 'unsigned int', but argument 2 has type 's64'
+Fix calls of smp_call_function*() in arch/ia64/kvm for recent API
+changes.
 
-Signed-off-by: Denis V. Lunev <den@openvz.org>
-Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: Tony Luck <tony.luck@intel.com>
+    CC [M]  arch/ia64/kvm/kvm-ia64.o
+  arch/ia64/kvm/kvm-ia64.c: In function 'handle_global_purge':
+  arch/ia64/kvm/kvm-ia64.c:398: error: too many arguments to function 'smp_call_function_single'
+  arch/ia64/kvm/kvm-ia64.c: In function 'kvm_vcpu_kick':
+  arch/ia64/kvm/kvm-ia64.c:1696: error: too many arguments to function 'smp_call_function_single'
+
+Signed-off-by: Takashi Iwai <tiwai@suse.de>
+Acked-by: Xiantao Zhang <xiantao.zhang@intel.com>
+Cc: Avi Kivity <avi@qumranet.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/cpufreq/acpi-cpufreq.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/ia64/kvm/kvm-ia64.c |    4 ++--
+ arch/ia64/kvm/kvm_fw.c   |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/ia64/kernel/cpufreq/acpi-cpufreq.c~ia64-improper-printk-format-in-acpi-cpufreq arch/ia64/kernel/cpufreq/acpi-cpufreq.c
---- a/arch/ia64/kernel/cpufreq/acpi-cpufreq.c~ia64-improper-printk-format-in-acpi-cpufreq
-+++ a/arch/ia64/kernel/cpufreq/acpi-cpufreq.c
-@@ -51,7 +51,7 @@ processor_set_pstate (
- 	retval = ia64_pal_set_pstate((u64)value);
+diff -puN arch/ia64/kvm/kvm-ia64.c~kvm-fix-build-error-of-arch-ia64-kvm arch/ia64/kvm/kvm-ia64.c
+--- a/arch/ia64/kvm/kvm-ia64.c~kvm-fix-build-error-of-arch-ia64-kvm
++++ a/arch/ia64/kvm/kvm-ia64.c
+@@ -398,7 +398,7 @@ static int handle_global_purge(struct kv
+ 		if (kvm->vcpus[i]->cpu != -1) {
+ 			call_data.vcpu = kvm->vcpus[i];
+ 			smp_call_function_single(kvm->vcpus[i]->cpu,
+-					vcpu_global_purge, &call_data, 0, 1);
++					vcpu_global_purge, &call_data, 1);
+ 		} else
+ 			printk(KERN_WARNING"kvm: Uninit vcpu received ipi!\n");
  
- 	if (retval) {
--		dprintk("Failed to set freq to 0x%x, with error 0x%x\n",
-+		dprintk("Failed to set freq to 0x%x, with error 0x%lx\n",
- 		        value, retval);
- 		return -ENODEV;
- 	}
-@@ -74,7 +74,7 @@ processor_get_pstate (
+@@ -1691,7 +1691,7 @@ void kvm_vcpu_kick(struct kvm_vcpu *vcpu
+ 		wake_up_interruptible(&vcpu->wq);
  
- 	if (retval)
- 		dprintk("Failed to get current freq with "
--		        "error 0x%x, idx 0x%x\n", retval, *value);
-+		        "error 0x%lx, idx 0x%x\n", retval, *value);
- 
- 	return (int)retval;
+ 	if (vcpu->guest_mode)
+-		smp_call_function_single(ipi_pcpu, vcpu_kick_intr, vcpu, 0, 0);
++		smp_call_function_single(ipi_pcpu, vcpu_kick_intr, vcpu, 0);
  }
+ 
+ int kvm_apic_set_irq(struct kvm_vcpu *vcpu, u8 vec, u8 trig)
+diff -puN arch/ia64/kvm/kvm_fw.c~kvm-fix-build-error-of-arch-ia64-kvm arch/ia64/kvm/kvm_fw.c
+--- a/arch/ia64/kvm/kvm_fw.c~kvm-fix-build-error-of-arch-ia64-kvm
++++ a/arch/ia64/kvm/kvm_fw.c
+@@ -130,7 +130,7 @@ static struct ia64_pal_retval pal_cache_
+ 	args.cache_type = gr29;
+ 	args.operation = gr30;
+ 	smp_call_function(remote_pal_cache_flush,
+-				(void *)&args, 1, 1);
++				(void *)&args, 1);
+ 	if (args.status != 0)
+ 		printk(KERN_ERR"pal_cache_flush error!,"
+ 				"status:0x%lx\n", args.status);
 _
 
-Patches currently in -mm which might be from den@openvz.org are
+Patches currently in -mm which might be from tiwai@suse.de are
 
+origin.patch
 linux-next.patch
-proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
+use-sysdev_class-in-schedc.patch
+use-sysdev_class-in-schedc-fix.patch
+kcalloc-remove-runtime-division.patch
+pnp-set-the-pnp_card-dma_mask-for-use-by-isapnp-cards.patch
+isa-set-24-bit-dma_mask-for-isa-devices.patch
 
