@@ -1,75 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: - synclink_gt-add-serial-bit-order-control.patch removed from -mm tree
-Date: Fri, 18 Jul 2008 16:24:47 -0700
-Message-ID: <200807182324.m6INOl8n004258@imap1.linux-foundation.org>
+Subject: - char-isicom-enable-disable-pci-device.patch removed from -mm tree
+Date: Fri, 18 Jul 2008 16:24:43 -0700
+Message-ID: <200807182324.m6INOh9h004227@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55574 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33606 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760978AbYGRXZa (ORCPT
+	by vger.kernel.org with ESMTP id S1758703AbYGRXZY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Jul 2008 19:25:30 -0400
+	Fri, 18 Jul 2008 19:25:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: paulkf@microgate.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, alan@lxorguk.ukuu.org.uk, prabhatg@cdotd.ernet.in, mm-commits@vger.kernel.org
 
 
 The patch titled
-     synclink_gt: add serial bit order control
+     char: isicom, enable/disable pci device
 has been removed from the -mm tree.  Its filename was
-     synclink_gt-add-serial-bit-order-control.patch
+     char-isicom-enable-disable-pci-device.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: synclink_gt: add serial bit order control
-From: Paul Fulghum <paulkf@microgate.com>
+Subject: char: isicom, enable/disable pci device
+From: Jiri Slaby <jirislaby@gmail.com>
 
-Add control of hardware serial bit order between LSB first
-(default/standard) and MSB first.
+Don't forget to enable and disable PCI devices.  The device might be unusable
+without that.
 
-Signed-off-by: Paul Fulghum <paulkf@microgate.com>
+Might fix http://bugzilla.kernel.org/show_bug.cgi?id=11067
+
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Prabhat Gupta <prabhatg@cdotd.ernet.in>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/synclink_gt.c |    2 ++
- include/linux/synclink.h   |    1 +
- 2 files changed, 3 insertions(+)
+ drivers/char/isicom.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN drivers/char/synclink_gt.c~synclink_gt-add-serial-bit-order-control drivers/char/synclink_gt.c
---- a/drivers/char/synclink_gt.c~synclink_gt-add-serial-bit-order-control
-+++ a/drivers/char/synclink_gt.c
-@@ -4443,6 +4443,8 @@ static void msc_set_vcr(struct slgt_info
- 		break;
- 	}
+diff -puN drivers/char/isicom.c~char-isicom-enable-disable-pci-device drivers/char/isicom.c
+--- a/drivers/char/isicom.c~char-isicom-enable-disable-pci-device
++++ a/drivers/char/isicom.c
+@@ -1736,6 +1736,12 @@ static int __devinit isicom_probe(struct
+ 	if (card_count >= BOARD_COUNT)
+ 		goto err;
  
-+	if (info->if_mode & MGSL_INTERFACE_MSB_FIRST)
-+		val |= BIT4;
- 	if (info->signals & SerialSignal_DTR)
- 		val |= BIT3;
- 	if (info->signals & SerialSignal_RTS)
-diff -puN include/linux/synclink.h~synclink_gt-add-serial-bit-order-control include/linux/synclink.h
---- a/include/linux/synclink.h~synclink_gt-add-serial-bit-order-control
-+++ a/include/linux/synclink.h
-@@ -136,6 +136,7 @@
- #define MGSL_INTERFACE_RTS_EN   0x10
- #define MGSL_INTERFACE_LL       0x20
- #define MGSL_INTERFACE_RL       0x40
-+#define MGSL_INTERFACE_MSB_FIRST 0x80
++	retval = pci_enable_device(pdev);
++	if (retval) {
++		dev_err(&pdev->dev, "failed to enable\n");
++		goto err;
++	}
++
+ 	dev_info(&pdev->dev, "ISI PCI Card(Device ID 0x%x)\n", ent->device);
  
- typedef struct _MGSL_PARAMS
- {
+ 	/* allot the first empty slot in the array */
+@@ -1790,6 +1796,7 @@ errunrr:
+ errdec:
+ 	board->base = 0;
+ 	card_count--;
++	pci_disable_device(pdev);
+ err:
+ 	return retval;
+ }
+@@ -1806,6 +1813,7 @@ static void __devexit isicom_remove(stru
+ 	pci_release_region(pdev, 3);
+ 	board->base = 0;
+ 	card_count--;
++	pci_disable_device(pdev);
+ }
+ 
+ static int __init isicom_init(void)
 _
 
-Patches currently in -mm which might be from paulkf@microgate.com are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
+origin.patch
 linux-next.patch
-synclink_gt-leave-transmitter-in-reset-state-after-configuration.patch
-synclink_gt-add-rx-dma-buffer-fill-level-control.patch
-synclink_gt-add-rx-dma-buffer-fill-level-control-fix-locking-in-error-path-of-rx-enable.patch
-synclink_gt-improve-tiocoutq-accuracy.patch
-synclink_gt-improve-and-simplify-write-method.patch
+ath5k-fix-memory-corruption.patch
+ath5k-kill-tasklets-on-shutdown.patch
+ath5k-flush-work.patch
+ath5k-fix-dma-operation.patch
+ath5k-suspend-resume-fixes.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments.patch
+serial-z85c30-avoid-a-hang-at-console-switch-over.patch
+serial-dz11-avoid-a-hang-at-console-switch-over.patch
+vt-hold-console_sem-across-sysfs-operations.patch
+ip2-push-bkl-down-for-the-firmware-interface.patch
+rio-push-down-the-bkl-into-the-firmware-ioctl-handler.patch
+sx-push-bkl-down-into-the-firmware-ioctl-handler.patch
+ppdev-wrap-ioctl-handler-in-driver-and-push-lock-down.patch
+dsp56k-bkl-pushdown.patch
+char-mxser-ioctl-cleanup.patch
+char-mxser-globals-cleanup.patch
+char-mxser-update-documentation.patch
+char-mxser-prints-cleanup.patch
+char-mxser-remove-predefined-isa-support.patch
+char-mxser-various-cleanups.patch
+ip2-fix-iielliscleanup-as-it-is-static-but-not-always-used.patch
+drivers-misc-phantom-note-pci.patch
+reiser4.patch
+shrink_slab-handle-bad-shrinkers.patch
 
