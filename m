@@ -1,163 +1,152 @@
 From: akpm@linux-foundation.org
-Subject: - ptrace-fix-dangling-zombie-when-new-parent-ignores-children.patch removed from -mm tree
-Date: Fri, 18 Jul 2008 16:24:41 -0700
-Message-ID: <200807182324.m6INOfvF004224@imap1.linux-foundation.org>
+Subject: - mpc8xxx_wdt-add-support-for-mpc8xx-watchdogs.patch removed from -mm tree
+Date: Fri, 18 Jul 2008 16:24:23 -0700
+Message-ID: <200807182324.m6INONCf004191@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37646 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57955 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757516AbYGRX2E (ORCPT
+	by vger.kernel.org with ESMTP id S1757623AbYGRX2L (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Jul 2008 19:28:04 -0400
+	Fri, 18 Jul 2008 19:28:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roland@redhat.com, oleg@tv-sign.ru, mm-commits@vger.kernel.org
+To: avorontsov@ru.mvista.com, galak@kernel.crashing.org, jochen@scram.de, wim@iguana.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ptrace: fix dangling zombie when new parent ignores children
+     mpc8xxx_wdt: add support for MPC8xx watchdogs
 has been removed from the -mm tree.  Its filename was
-     ptrace-fix-dangling-zombie-when-new-parent-ignores-children.patch
+     mpc8xxx_wdt-add-support-for-mpc8xx-watchdogs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ptrace: fix dangling zombie when new parent ignores children
-From: Roland McGrath <roland@redhat.com>
+Subject: mpc8xxx_wdt: add support for MPC8xx watchdogs
+From: Anton Vorontsov <avorontsov@ru.mvista.com>
 
-This fixes an arcane bug that we think was a regression introduced by
-commit b2b2cbc4b2a2f389442549399a993a8306420baf.  When a parent ignores
-SIGCHLD (or uses SA_NOCLDWAIT), its children would self-reap but they
-don't if it's using ptrace on them.  When the parent thread later exits
-and ceases to ptrace a child but leaves other live threads in the parent's
-thread group, any zombie children are left dangling.  The fix makes them
-self-reap then, as they would have done earlier if ptrace had not been in
-use.
+The mpc8xxx_wdt driver is using two registers: SWSRR to push magic
+numbers, and SWCRR to control the watchdog.  Both registers are available
+on the MPC8xx, and seem to have the same offsets and semantics as in
+MPC83xx/MPC86xx watchdogs.  The only difference is prescale value.  So
+this driver simply works on the MPC8xx CPUs.
 
-Signed-off-by: Roland McGrath <roland@redhat.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
+One quirk is needed for the MPC8xx, though.  It has small prescale value
+and slow CPU, so the watchdog resets board prior to the driver has time to
+load.  To solve this we should split initialization in two steps: start
+ping the watchdog early, and register the watchdog userspace interface
+later.
+
+MPC823 seem to be the first CPU in MPC8xx line, so we use fsl,mpc823-wdt
+compatible matching.
+
+Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
+Tested-by: Jochen Friedrich <jochen@scram.de>
+Cc: Kumar Gala <galak@kernel.crashing.org>
+Cc: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |   26 ++++++++++++++++++++++++++
- 1 file changed, 26 insertions(+)
+ drivers/watchdog/Kconfig       |    3 +-
+ drivers/watchdog/mpc8xxx_wdt.c |   44 +++++++++++++++++++++++--------
+ 2 files changed, 35 insertions(+), 12 deletions(-)
 
-diff -puN kernel/exit.c~ptrace-fix-dangling-zombie-when-new-parent-ignores-children kernel/exit.c
---- a/kernel/exit.c~ptrace-fix-dangling-zombie-when-new-parent-ignores-children
-+++ a/kernel/exit.c
-@@ -698,6 +698,23 @@ static void exit_mm(struct task_struct *
+diff -puN drivers/watchdog/Kconfig~mpc8xxx_wdt-add-support-for-mpc8xx-watchdogs drivers/watchdog/Kconfig
+--- a/drivers/watchdog/Kconfig~mpc8xxx_wdt-add-support-for-mpc8xx-watchdogs
++++ a/drivers/watchdog/Kconfig
+@@ -697,10 +697,11 @@ config 8xx_WDT
+ 
+ config 8xxx_WDT
+ 	tristate "MPC8xxx Platform Watchdog Timer"
+-	depends on PPC_83xx || PPC_86xx
++	depends on PPC_8xx || PPC_83xx || PPC_86xx
+ 	help
+ 	  This driver is for a SoC level watchdog that exists on some
+ 	  Freescale PowerPC processors. So far this driver supports:
++	  - MPC8xx watchdogs
+ 	  - MPC83xx watchdogs
+ 	  - MPC86xx watchdogs
+ 
+diff -puN drivers/watchdog/mpc8xxx_wdt.c~mpc8xxx_wdt-add-support-for-mpc8xx-watchdogs drivers/watchdog/mpc8xxx_wdt.c
+--- a/drivers/watchdog/mpc8xxx_wdt.c~mpc8xxx_wdt-add-support-for-mpc8xx-watchdogs
++++ a/drivers/watchdog/mpc8xxx_wdt.c
+@@ -1,5 +1,5 @@
+ /*
+- * mpc8xxx_wdt.c - MPC83xx/MPC86xx watchdog userspace interface
++ * mpc8xxx_wdt.c - MPC8xx/MPC83xx/MPC86xx watchdog userspace interface
+  *
+  * Authors: Dave Updegraff <dave@cray.org>
+  * 	    Kumar Gala <galak@kernel.crashing.org>
+@@ -207,13 +207,6 @@ static int __devinit mpc8xxx_wdt_probe(s
+ 		goto err_unmap;
+ 	}
+ 
+-	ret = misc_register(&mpc8xxx_wdt_miscdev);
+-	if (ret) {
+-		pr_err("cannot register miscdev on minor=%d (err=%d)\n",
+-			WATCHDOG_MINOR, ret);
+-		goto err_unmap;
+-	}
+-
+ 	/* Calculate the timeout in seconds */
+ 	if (prescale)
+ 		timeout_sec = (timeout * wdt_type->prescaler) / freq;
+@@ -234,6 +227,7 @@ static int __devinit mpc8xxx_wdt_probe(s
+ 	return 0;
+ err_unmap:
+ 	iounmap(wd_base);
++	wd_base = NULL;
+ 	return ret;
  }
  
- /*
-+ * Return nonzero if @parent's children should reap themselves.
-+ *
-+ * Called with write_lock_irq(&tasklist_lock) held.
+@@ -261,6 +255,12 @@ static const struct of_device_id mpc8xxx
+ 			.hw_enabled = true,
+ 		},
+ 	},
++	{
++		.compatible = "fsl,mpc823-wdt",
++		.data = &(struct mpc8xxx_wdt_type) {
++			.prescaler = 0x800,
++		},
++	},
+ 	{},
+ };
+ MODULE_DEVICE_TABLE(of, mpc8xxx_wdt_match);
+@@ -275,20 +275,42 @@ static struct of_platform_driver mpc8xxx
+ 	},
+ };
+ 
++/*
++ * We do wdt initialization in two steps: arch_initcall probes the wdt
++ * very early to start pinging the watchdog (misc devices are not yet
++ * available), and later module_init() just registers the misc device.
 + */
-+static int ignoring_children(struct task_struct *parent)
++static int __init mpc8xxx_wdt_init_late(void)
 +{
 +	int ret;
-+	struct sighand_struct *psig = parent->sighand;
-+	unsigned long flags;
-+	spin_lock_irqsave(&psig->siglock, flags);
-+	ret = (psig->action[SIGCHLD-1].sa.sa_handler == SIG_IGN ||
-+	       (psig->action[SIGCHLD-1].sa.sa_flags & SA_NOCLDWAIT));
-+	spin_unlock_irqrestore(&psig->siglock, flags);
-+	return ret;
-+}
 +
-+/*
-  * Detach all tasks we were using ptrace on.
-  * Any that need to be release_task'd are put on the @dead list.
-  *
-@@ -706,6 +723,7 @@ static void exit_mm(struct task_struct *
- static void ptrace_exit(struct task_struct *parent, struct list_head *dead)
++	if (!wd_base)
++		return -ENODEV;
++
++	ret = misc_register(&mpc8xxx_wdt_miscdev);
++	if (ret) {
++		pr_err("cannot register miscdev on minor=%d (err=%d)\n",
++			WATCHDOG_MINOR, ret);
++		return ret;
++	}
++	return 0;
++}
++module_init(mpc8xxx_wdt_init_late);
++
+ static int __init mpc8xxx_wdt_init(void)
  {
- 	struct task_struct *p, *n;
-+	int ign = -1;
+ 	return of_register_platform_driver(&mpc8xxx_wdt_driver);
+ }
++arch_initcall(mpc8xxx_wdt_init);
  
- 	list_for_each_entry_safe(p, n, &parent->ptraced, ptrace_entry) {
- 		__ptrace_unlink(p);
-@@ -721,10 +739,18 @@ static void ptrace_exit(struct task_stru
- 		 * release_task() here because we already hold tasklist_lock.
- 		 *
- 		 * If it's our own child, there is no notification to do.
-+		 * But if our normal children self-reap, then this child
-+		 * was prevented by ptrace and we must reap it now.
- 		 */
- 		if (!task_detached(p) && thread_group_empty(p)) {
- 			if (!same_thread_group(p->real_parent, parent))
- 				do_notify_parent(p, p->exit_signal);
-+			else {
-+				if (ign < 0)
-+					ign = ignoring_children(parent);
-+				if (ign)
-+					p->exit_signal = -1;
-+			}
- 		}
- 
- 		if (task_detached(p)) {
-_
-
-Patches currently in -mm which might be from roland@redhat.com are
-
-origin.patch
-markers-fix-duplicate-modpost-entry.patch
-linux-next.patch
-execve-filename-document-and-export-via-auxiliary-vector.patch
-flag-parameters-paccept-fix.patch
-flag-parameters-paccept-fix-flag-parameters-arch-specific-sock_nonblock.patch
-posix-timers-timer_delete-remove-the-bogus-it_process-=-null-check.patch
-posix-timers-release_posix_timer-kill-the-bogus-put_task_struct-it_process.patch
-signals-collect_signal-remove-the-unneeded-sigismember-check.patch
-signals-collect_signal-simplify-the-still_pending-logic.patch
-__exit_signal-dont-take-rcu-lock.patch
-signals-dequeue_signal-dont-check-signal_group_exit-when-setting-signal_stop_dequeued.patch
-signals-do_signal_stop-kill-the-signal_unkillable-check.patch
-coredump-zap_threads-comments-use-while_each_thread.patch
-signals-make-siginfo_t-si_utime-si_sstime-report-times-in-user_hz-not-hz.patch
-kernel-signalc-change-vars-pid-and-tgid-types-to-pid_t.patch
-include-asm-ptraceh-userspace-headers-cleanup.patch
-ptrace-give-more-respect-to-sigkill.patch
-ptrace-simplify-ptrace_stop-sigkill_pending-path.patch
-introduce-pf_kthread-flag.patch
-kill-pf_borrowed_mm-in-favour-of-pf_kthread.patch
-coredump-zap_threads-must-skip-kernel-threads.patch
-coredump-elf_core_dump-skip-kernel-threads.patch
-coredump-turn-mm-core_startup_done-into-the-pointer-to-struct-core_state.patch
-coredump-move-mm-core_waiters-into-struct-core_state.patch
-coredump-simplify-core_state-nr_threads-calculation.patch
-coredump-turn-core_state-nr_threads-into-atomic_t.patch
-coredump-make-mm-core_state-visible-to-core_dump.patch
-coredump-construct-the-list-of-coredumping-threads-at-startup-time.patch
-coredump-elf_core_dump-use-core_state-dumper-list.patch
-coredump-elf_fdpic_core_dump-use-core_state-dumper-list.patch
-coredump-kill-mm-core_done.patch
-coredump-binfmt_elf_fdpic-dont-use-sub-threads-mm.patch
-coredump-exit_mm-clear-mm-first-then-play-with-core_state.patch
-coredump-exit_mm-clear-mm-first-then-play-with-core_state-checkpatch-fixes.patch
-tracehook-add-linux-tracehookh.patch
-tracehook-exec.patch
-tracehook-unexport-ptrace_notify.patch
-tracehook-exit.patch
-tracehook-clone.patch
-tracehook-vfork-done.patch
-tracehook-release_task.patch
-tracehook-tracehook_tracer_task.patch
-tracehook-tracehook_expect_breakpoints.patch
-tracehook-tracehook_signal_handler.patch
-tracehook-tracehook_consider_ignored_signal.patch
-tracehook-tracehook_consider_fatal_signal.patch
-tracehook-syscall.patch
-tracehook-get_signal_to_deliver.patch
-tracehook-job-control.patch
-tracehook-death.patch
-tracehook-force-signal_pending.patch
-tracehook-tif_notify_resume.patch
-tracehook-asm-syscallh.patch
-tracehook-config_have_arch_tracehook.patch
-tracehook-wait_task_inactive.patch
-task_current_syscall.patch
-proc-pid-syscall.patch
-
+ static void __exit mpc8xxx_wdt_exit(void)
+ {
+ 	of_unregister_platform_driver(&mpc8xxx_wdt_driver);
+ }
