@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + spi-add-spi-over-gpio-driver.patch added to -mm tree
-Date: Fri, 18 Jul 2008 14:39:40 -0700
-Message-ID: <200807182139.m6ILdeXL032147@imap1.linux-foundation.org>
+Subject: + mmc-add-gpio-based-mmc-sd-driver.patch added to -mm tree
+Date: Fri, 18 Jul 2008 14:39:47 -0700
+Message-ID: <200807182139.m6ILdl0D032175@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42752 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51831 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751786AbYGRVkI (ORCPT
+	by vger.kernel.org with ESMTP id S1752201AbYGRVkK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Jul 2008 17:40:08 -0400
+	Fri, 18 Jul 2008 17:40:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mb@bu3sch.de, david-b@pacbell.net, drzeus-list@drzeus.cx
 
 
 The patch titled
-     spi: add SPI over GPIO driver
+     mmc: add GPIO-based MMC/SD driver
 has been added to the -mm tree.  Its filename is
-     spi-add-spi-over-gpio-driver.patch
+     mmc-add-gpio-based-mmc-sd-driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,16 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spi: add SPI over GPIO driver
+Subject: mmc: add GPIO-based MMC/SD driver
 From: Michael Buesch <mb@bu3sch.de>
 
-This adds a driver that lets you drive an SPI bus over generic GPIO pins.
+This driver hooks up the mmc_spi and spi_gpio modules so that MMC/SD cards
+can be used on a GPIO based bus by bitbanging the SPI protocol in
+software.
+
+This driver provides a sysfs interface to dynamically create and destroy
+GPIO-based MMC/SD card interfaces.  It also provides a platform device
+interface API.  See Documentation/gpiommc.txt for details.
 
 Signed-off-by: Michael Buesch <mb@bu3sch.de>
 Cc: David Brownell <david-b@pacbell.net>
@@ -45,388 +51,563 @@ Cc: Pierre Ossman <drzeus-list@drzeus.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS                  |    5 
- drivers/spi/Kconfig          |   13 +
- drivers/spi/Makefile         |    1 
- drivers/spi/spi_gpio.c       |  251 +++++++++++++++++++++++++++++++++
- include/linux/spi/spi_gpio.h |   67 ++++++++
- 5 files changed, 337 insertions(+)
+ Documentation/gpiommc.txt   |   96 +++++++++
+ MAINTAINERS                 |    5 
+ drivers/mmc/host/Kconfig    |   20 ++
+ drivers/mmc/host/Makefile   |    2 
+ drivers/mmc/host/gpiommc.c  |  328 ++++++++++++++++++++++++++++++++++
+ include/linux/mmc/gpiommc.h |   62 ++++++
+ 6 files changed, 512 insertions(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~spi-add-spi-over-gpio-driver MAINTAINERS
---- a/MAINTAINERS~spi-add-spi-over-gpio-driver
+diff -puN /dev/null Documentation/gpiommc.txt
+--- /dev/null
++++ a/Documentation/gpiommc.txt
+@@ -0,0 +1,96 @@
++GPIOMMC - Driver for an MMC/SD card on a bitbanging GPIO SPI bus
++================================================================
++
++The gpiommc module hooks up the mmc_spi and spi_gpio modules for running an
++MMC or SD card on GPIO pins.
++
++Two interfaces for registering a new MMC/SD card device are provided.
++A static platform-device based mechanism and a dynamic sysfs based interface.
++
++
++Registering devices via platform-device
++=======================================
++
++The platform-device interface is used for registering MMC/SD devices that are
++part of the hardware platform. This is most useful only for embedded machines
++with MMC/SD devices statically connected to the platform GPIO bus.
++
++The data structures are declared in <linux/mmc/gpiommc.h>
++
++To register a new device, define an instance of struct gpiommc_platform_data.
++This structure holds any information about how the device is hooked up to the
++GPIO pins and what hardware modes the device supports. See the docbook-style
++documentation in the header file for more information on the struct fields.
++
++Then allocate a new instance of a platform device by doing:
++
++	pdev = platform_device_alloc(GPIOMMC_PLATDEV_NAME, gpiommc_next_id());
++
++This will allocate the platform device data structures and hook it up to the
++gpiommc driver.
++Then add the gpiommc_platform_data to the platform device.
++
++	err = platform_device_add_data(pdev, pdata, sizeof(struct gpiommc_platform_data));
++
++You may free the local instance of struct gpiommc_platform_data now.
++Now simply register the platform device.
++
++	err = platform_device_add(pdev);
++
++Done. The gpiommc probe routine should be called and you should see a dmesg
++message for the added device.
++
++
++Registering devices via sysfs
++=============================
++
++MMC/SD cards connected via GPIO often are a pretty dynamic thing. For example
++selfmade hacks for soldering an MMC/SD card to standard GPIO pins on embedded
++hardware are a common situation.
++So we provide a dynamic interface to conveniently handle adding and removing
++devices from userspace, without the need to recompile the kernel.
++
++There are two sysfs files responsible for that:
++export ADD=/sys/bus/platform/drivers/gpiommc/add
++export REMOVE=/sys/bus/platform/drivers/gpiommc/remove
++
++To add a new device, simply echo the configuration string to the "add" file.
++The config string is composed out of the following elements:
++
++DEVNAME DIpin DOpin CLKpin CSpin SPIMODE MAXBUSSPEED NO_SPI_DELAY CSACTIVELOW
++
++DEVNAME is a unique name string for the device.
++DIpin is the SPI DI GPIO pin.
++DOpin is the SPI DO GPIO pin.
++CLKpin is the SPI CLOCK GPIO pin.
++CSpin is the SPI CHIPSELECT GPIO pin.
++SPIMODE is the hardware mode the device will run at. Can be 0-3.
++MAXBUSSPEED is the maximum bus speed in Hertz.
++NO_SPI_DELAY can be 1 or 0. If it is 1, then the lowlevel SPI delay
++will not be performed. This is not standards compliant, but may be required
++to gain reasonable speeds on embedded hardware.
++CSACTIVELOW can be 1 or 0. If it is 1, the chip is considered to be selected, if CS
++is at a logical 0.
++
++Note that the elements SPIMODE, MAXBUSSPEED and NO_SPI_DELAY are optional
++and can be omitted.
++SPIMODE will default to 0.
++MAXBUSSSPEED will default to 5Mhz.
++NO_SPI_DELAY will default to 0.
++CSACTIVELOW will default to 1.
++
++Example:
++
++	echo -n "my_device 5 4 3 7 0 1000000 1" > $ADD
++
++This will add a new device called "my_device" with the GPIO pins assigned as
++DI=5, DO=4, CLK=3, CS=7
++The hardware mode will be SPI_MODE_0.
++The maximum bus speed will be 1000000 Hz (1Mhz)
++And the explicit SPI delay at the lowlevel bitbang loop will be switched off.
++
++To remove a device, simply echo the device name string to the "remove" file.
++
++Example:
++
++	echo -n "my_device" > $REMOVE
+diff -puN MAINTAINERS~mmc-add-gpio-based-mmc-sd-driver MAINTAINERS
+--- a/MAINTAINERS~mmc-add-gpio-based-mmc-sd-driver
 +++ a/MAINTAINERS
-@@ -3866,6 +3866,11 @@ M:	dbrownell@users.sourceforge.net
- L:	spi-devel-general@lists.sourceforge.net
+@@ -1880,6 +1880,11 @@ L:	gigaset307x-common@lists.sourceforge.
+ W:	http://gigaset307x.sourceforge.net/
  S:	Maintained
  
-+SPI GPIO MASTER DRIVER
++GPIOMMC DRIVER
 +P:	Michael Buesch
 +M:	mb@bu3sch.de
 +S:	Maintained
 +
- SPU FILE SYSTEM
- P:	Jeremy Kerr
- M:	jk@ozlabs.org
-diff -puN drivers/spi/Kconfig~spi-add-spi-over-gpio-driver drivers/spi/Kconfig
---- a/drivers/spi/Kconfig~spi-add-spi-over-gpio-driver
-+++ a/drivers/spi/Kconfig
-@@ -100,6 +100,19 @@ config SPI_BUTTERFLY
- 	  inexpensive battery powered microcontroller evaluation board.
- 	  This same cable can be used to flash new firmware.
+ HARDWARE MONITORING
+ P:	Mark M. Hoffman
+ M:	mhoffman@lightlink.com
+diff -puN drivers/mmc/host/Kconfig~mmc-add-gpio-based-mmc-sd-driver drivers/mmc/host/Kconfig
+--- a/drivers/mmc/host/Kconfig~mmc-add-gpio-based-mmc-sd-driver
++++ a/drivers/mmc/host/Kconfig
+@@ -174,3 +174,23 @@ config MMC_SDRICOH_CS
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called sdricoh_cs.
  
-+config SPI_GPIO
-+	tristate "GPIO API based bitbanging SPI controller"
-+	depends on SPI_MASTER && GENERIC_GPIO
-+	select SPI_BITBANG
++config GPIOMMC
++	tristate "MMC/SD over GPIO-based SPI"
++	depends on MMC && MMC_SPI && SPI_GPIO
 +	help
-+	  This is a platform driver that can be used for bitbanging
-+	  an SPI bus over GPIO pins.
-+	  Select this, if you have any SPI device that is connected via
-+	  GPIO pins.
-+	  The module will be called spi_gpio.
++	  This driver hooks up the mmc_spi and spi_gpio modules so that
++	  MMC/SD cards can be used on a GPIO based bus by bitbanging
++	  the SPI protocol in software.
++
++	  This driver provides a sysfs interface to dynamically create
++	  and destroy GPIO-based MMC/SD card interfaces. It also provides
++	  a platform device interface API.
++	  See Documentation/gpiommc.txt for details.
++
++	  The module will be called gpiommc.
 +
 +	  If unsure, say N.
 +
- config SPI_IMX
- 	tristate "Freescale iMX SPI controller"
- 	depends on ARCH_IMX && EXPERIMENTAL
-diff -puN drivers/spi/Makefile~spi-add-spi-over-gpio-driver drivers/spi/Makefile
---- a/drivers/spi/Makefile~spi-add-spi-over-gpio-driver
-+++ a/drivers/spi/Makefile
-@@ -16,6 +16,7 @@ obj-$(CONFIG_SPI_BFIN)			+= spi_bfin5xx.
- obj-$(CONFIG_SPI_BITBANG)		+= spi_bitbang.o
- obj-$(CONFIG_SPI_AU1550)		+= au1550_spi.o
- obj-$(CONFIG_SPI_BUTTERFLY)		+= spi_butterfly.o
-+obj-$(CONFIG_SPI_GPIO)			+= spi_gpio.o
- obj-$(CONFIG_SPI_IMX)			+= spi_imx.o
- obj-$(CONFIG_SPI_LM70_LLP)		+= spi_lm70llp.o
- obj-$(CONFIG_SPI_PXA2XX)		+= pxa2xx_spi.o
-diff -puN /dev/null drivers/spi/spi_gpio.c
++config MMC_S3C
++	tristate "Samsung S3C SD/MMC Card Interface support"
++	depends on ARCH_S3C2410 && MMC
+diff -puN drivers/mmc/host/Makefile~mmc-add-gpio-based-mmc-sd-driver drivers/mmc/host/Makefile
+--- a/drivers/mmc/host/Makefile~mmc-add-gpio-based-mmc-sd-driver
++++ a/drivers/mmc/host/Makefile
+@@ -21,4 +21,4 @@ obj-$(CONFIG_MMC_TIFM_SD)	+= tifm_sd.o
+ obj-$(CONFIG_MMC_SPI)		+= mmc_spi.o
+ obj-$(CONFIG_MMC_S3C)   	+= s3cmci.o
+ obj-$(CONFIG_MMC_SDRICOH_CS)	+= sdricoh_cs.o
+-
++obj-$(CONFIG_GPIOMMC)		+= gpiommc.o
+diff -puN /dev/null drivers/mmc/host/gpiommc.c
 --- /dev/null
-+++ a/drivers/spi/spi_gpio.c
-@@ -0,0 +1,251 @@
++++ a/drivers/mmc/host/gpiommc.c
+@@ -0,0 +1,328 @@
 +/*
-+ * Bitbanging SPI bus driver using GPIO API
++ * Driver an MMC/SD card on a bitbanging GPIO SPI bus.
++ * This module hooks up the mmc_spi and spi_gpio modules and also
++ * provides a sysfs interface.
 + *
-+ * Copyright (c) 2008 Piotr Skamruk
-+ * Copyright (c) 2008 Michael Buesch
++ * Copyright 2008 Michael Buesch <mb@bu3sch.de>
 + *
-+ * based on spi_s3c2410_gpio.c
-+ *   Copyright (c) 2006 Ben Dooks
-+ *   Copyright (c) 2006 Simtec Electronics
-+ * and on i2c-gpio.c
-+ *   Copyright (C) 2007 Atmel Corporation
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
++ * Licensed under the GNU/GPL. See COPYING for details.
 + */
 +
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/delay.h>
-+#include <linux/spinlock.h>
-+#include <linux/workqueue.h>
-+#include <linux/module.h>
++#include <linux/mmc/gpiommc.h>
 +#include <linux/platform_device.h>
-+#include <linux/spi/spi.h>
-+#include <linux/spi/spi_bitbang.h>
++#include <linux/list.h>
++#include <linux/mutex.h>
 +#include <linux/spi/spi_gpio.h>
-+#include <linux/gpio.h>
-+#include <asm/atomic.h>
 +
 +
-+struct spi_gpio {
-+	struct spi_bitbang bitbang;
-+	struct spi_gpio_platform_data *info;
++#define PFX				"gpio-mmc: "
++#define GPIOMMC_MAX_NAMELEN_STR		__stringify(GPIOMMC_MAX_NAMELEN)
++
++struct gpiommc_device {
 +	struct platform_device *pdev;
-+	struct spi_board_info bi;
++	struct platform_device *spi_pdev;
++	struct spi_board_info boardinfo;
 +};
 +
 +
-+static inline struct spi_gpio *spidev_to_sg(struct spi_device *dev)
++MODULE_DESCRIPTION("GPIO based MMC driver");
++MODULE_AUTHOR("Michael Buesch");
++MODULE_LICENSE("GPL");
++
++
++static int gpiommc_boardinfo_setup(struct spi_board_info *bi,
++				   struct spi_master *master,
++				   void *data)
 +{
-+	return dev->controller_data;
++	struct gpiommc_device *d = data;
++	struct gpiommc_platform_data *pdata = d->pdev->dev.platform_data;
++
++	/* Bind the SPI master to the MMC-SPI host driver. */
++	strlcpy(bi->modalias, "mmc_spi", sizeof(bi->modalias));
++
++	bi->max_speed_hz = pdata->max_bus_speed;
++	bi->bus_num = master->bus_num;
++	bi->mode = pdata->mode;
++
++	return 0;
 +}
 +
-+static inline void setsck(struct spi_device *dev, int val)
++static int gpiommc_probe(struct platform_device *pdev)
 +{
-+	struct spi_gpio *sp = spidev_to_sg(dev);
-+	gpio_set_value(sp->info->pin_clk, val ? 1 : 0);
-+}
-+
-+static inline void setmosi(struct spi_device *dev, int val)
-+{
-+	struct spi_gpio *sp = spidev_to_sg(dev);
-+	gpio_set_value(sp->info->pin_mosi, val ? 1 : 0);
-+}
-+
-+static inline u32 getmiso(struct spi_device *dev)
-+{
-+	struct spi_gpio *sp = spidev_to_sg(dev);
-+	return gpio_get_value(sp->info->pin_miso) ? 1 : 0;
-+}
-+
-+static inline void do_spidelay(struct spi_device *dev, unsigned nsecs)
-+{
-+	struct spi_gpio *sp = spidev_to_sg(dev);
-+
-+	if (!sp->info->no_spi_delay)
-+		ndelay(nsecs);
-+}
-+
-+#define spidelay(nsecs) do {					\
-+	/* Steal the spi_device pointer from our caller.	\
-+	 * The bitbang-API should probably get fixed here... */	\
-+	do_spidelay(spi, nsecs);				\
-+  } while (0)
-+
-+#define EXPAND_BITBANG_TXRX
-+#include <linux/spi/spi_bitbang.h>
-+
-+static u32 spi_gpio_txrx_mode0(struct spi_device *spi,
-+			       unsigned nsecs, u32 word, u8 bits)
-+{
-+	return bitbang_txrx_be_cpha0(spi, nsecs, 0, word, bits);
-+}
-+
-+static u32 spi_gpio_txrx_mode1(struct spi_device *spi,
-+			       unsigned nsecs, u32 word, u8 bits)
-+{
-+	return bitbang_txrx_be_cpha1(spi, nsecs, 0, word, bits);
-+}
-+
-+static u32 spi_gpio_txrx_mode2(struct spi_device *spi,
-+			       unsigned nsecs, u32 word, u8 bits)
-+{
-+	return bitbang_txrx_be_cpha0(spi, nsecs, 1, word, bits);
-+}
-+
-+static u32 spi_gpio_txrx_mode3(struct spi_device *spi,
-+			       unsigned nsecs, u32 word, u8 bits)
-+{
-+	return bitbang_txrx_be_cpha1(spi, nsecs, 1, word, bits);
-+}
-+
-+static void spi_gpio_chipselect(struct spi_device *dev, int on)
-+{
-+	struct spi_gpio *sp = spidev_to_sg(dev);
-+
-+	if (sp->info->cs_activelow)
-+		on = !on;
-+	gpio_set_value(sp->info->pin_cs, on ? 1 : 0);
-+}
-+
-+static int spi_gpio_probe(struct platform_device *pdev)
-+{
-+	struct spi_master *master;
-+	struct spi_gpio_platform_data *pdata;
-+	struct spi_gpio *sp;
-+	struct spi_device *spidev;
++	struct gpiommc_platform_data *mmc_pdata = pdev->dev.platform_data;
++	struct spi_gpio_platform_data spi_pdata;
++	struct gpiommc_device *d;
 +	int err;
 +
-+	pdata = pdev->dev.platform_data;
-+	if (!pdata)
-+		return -ENXIO;
++	err = -ENXIO;
++	if (!mmc_pdata)
++		goto error;
 +
++	/* Allocate the GPIO-MMC device */
 +	err = -ENOMEM;
-+	master = spi_alloc_master(&pdev->dev, sizeof(struct spi_gpio));
-+	if (!master)
-+		goto err_alloc_master;
++	d = kzalloc(sizeof(*d), GFP_KERNEL);
++	if (!d)
++		goto error;
++	d->pdev = pdev;
 +
-+	sp = spi_master_get_devdata(master);
-+	platform_set_drvdata(pdev, sp);
-+	sp->info = pdata;
++	/* Create the SPI-GPIO device */
++	d->spi_pdev = platform_device_alloc(SPI_GPIO_PLATDEV_NAME,
++					    spi_gpio_next_id());
++	if (!d->spi_pdev)
++		goto err_free_d;
 +
-+	err = gpio_request(pdata->pin_clk, "spi_clock");
-+	if (err)
-+		goto err_request_clk;
-+	err = gpio_request(pdata->pin_mosi, "spi_mosi");
-+	if (err)
-+		goto err_request_mosi;
-+	err = gpio_request(pdata->pin_miso, "spi_miso");
-+	if (err)
-+		goto err_request_miso;
-+	err = gpio_request(pdata->pin_cs, "spi_cs");
-+	if (err)
-+		goto err_request_cs;
++	memset(&spi_pdata, 0, sizeof(spi_pdata));
++	spi_pdata.pin_clk = mmc_pdata->pins.gpio_clk;
++	spi_pdata.pin_miso = mmc_pdata->pins.gpio_do;
++	spi_pdata.pin_mosi = mmc_pdata->pins.gpio_di;
++	spi_pdata.pin_cs = mmc_pdata->pins.gpio_cs;
++	spi_pdata.cs_activelow = mmc_pdata->pins.cs_activelow;
++	spi_pdata.no_spi_delay = mmc_pdata->no_spi_delay;
++	spi_pdata.boardinfo_setup = gpiommc_boardinfo_setup;
++	spi_pdata.boardinfo_setup_data = d;
 +
-+	sp->bitbang.master = spi_master_get(master);
-+	sp->bitbang.master->bus_num = -1;
-+	sp->bitbang.master->num_chipselect = 1;
-+	sp->bitbang.chipselect = spi_gpio_chipselect;
-+	sp->bitbang.txrx_word[SPI_MODE_0] = spi_gpio_txrx_mode0;
-+	sp->bitbang.txrx_word[SPI_MODE_1] = spi_gpio_txrx_mode1;
-+	sp->bitbang.txrx_word[SPI_MODE_2] = spi_gpio_txrx_mode2;
-+	sp->bitbang.txrx_word[SPI_MODE_3] = spi_gpio_txrx_mode3;
-+
-+	gpio_direction_output(pdata->pin_clk, 0);
-+	gpio_direction_output(pdata->pin_mosi, 0);
-+	gpio_direction_output(pdata->pin_cs,
-+			      pdata->cs_activelow ? 1 : 0);
-+	gpio_direction_input(pdata->pin_miso);
-+
-+	err = spi_bitbang_start(&sp->bitbang);
++	err = platform_device_add_data(d->spi_pdev, &spi_pdata,
++				       sizeof(spi_pdata));
 +	if (err)
-+		goto err_no_bitbang;
-+	err = pdata->boardinfo_setup(&sp->bi, master,
-+				     pdata->boardinfo_setup_data);
++		goto err_free_pdev;
++	err = platform_device_add(d->spi_pdev);
 +	if (err)
-+		goto err_bi_setup;
-+	sp->bi.controller_data = sp;
-+	spidev = spi_new_device(master, &sp->bi);
-+	if (!spidev)
-+		goto err_new_dev;
++		goto err_free_pdata;
++	platform_set_drvdata(pdev, d);
++
++	printk(KERN_INFO PFX "MMC-Card \"%s\" "
++	       "attached to GPIO pins di=%u, do=%u, clk=%u, cs=%u\n",
++	       mmc_pdata->name, mmc_pdata->pins.gpio_di,
++	       mmc_pdata->pins.gpio_do,
++	       mmc_pdata->pins.gpio_clk,
++	       mmc_pdata->pins.gpio_cs);
 +
 +	return 0;
 +
-+err_new_dev:
-+err_bi_setup:
-+	spi_bitbang_stop(&sp->bitbang);
-+err_no_bitbang:
-+	spi_master_put(sp->bitbang.master);
-+	gpio_free(pdata->pin_cs);
-+err_request_cs:
-+	gpio_free(pdata->pin_miso);
-+err_request_miso:
-+	gpio_free(pdata->pin_mosi);
-+err_request_mosi:
-+	gpio_free(pdata->pin_clk);
-+err_request_clk:
-+	kfree(master);
-+
-+err_alloc_master:
++err_free_pdata:
++	kfree(d->spi_pdev->dev.platform_data);
++	d->spi_pdev->dev.platform_data = NULL;
++err_free_pdev:
++	platform_device_put(d->spi_pdev);
++err_free_d:
++	kfree(d);
++error:
 +	return err;
 +}
 +
-+static int __devexit spi_gpio_remove(struct platform_device *pdev)
++static int gpiommc_remove(struct platform_device *pdev)
 +{
-+	struct spi_gpio *sp;
-+	struct spi_gpio_platform_data *pdata;
++	struct gpiommc_device *d = platform_get_drvdata(pdev);
++	struct gpiommc_platform_data *pdata = d->pdev->dev.platform_data;
 +
-+	pdata = pdev->dev.platform_data;
-+	sp = platform_get_drvdata(pdev);
-+
-+	gpio_free(pdata->pin_clk);
-+	gpio_free(pdata->pin_mosi);
-+	gpio_free(pdata->pin_miso);
-+	gpio_free(pdata->pin_cs);
-+	spi_bitbang_stop(&sp->bitbang);
-+	spi_master_put(sp->bitbang.master);
++	platform_device_unregister(d->spi_pdev);
++	printk(KERN_INFO PFX "GPIO based MMC-Card \"%s\" removed\n", pdata->name);
++	platform_device_put(d->spi_pdev);
 +
 +	return 0;
 +}
 +
-+static struct platform_driver spi_gpio_driver = {
-+	.driver		= {
-+		.name	= SPI_GPIO_PLATDEV_NAME,
-+		.owner	= THIS_MODULE,
-+	},
-+	.probe		= spi_gpio_probe,
-+	.remove		= __devexit_p(spi_gpio_remove),
++/* Wrapper for the platform data with context data for the sysfs interface. */
++struct gpiommc_sysfs_platform_data {
++	struct gpiommc_platform_data p; /* Keep as first element */
++
++	/* The platform device that we allocated. */
++	struct platform_device *pdev;
++	/* gpiommc_sysfs_list */
++	struct list_head list;
 +};
 +
-+int spi_gpio_next_id(void)
++static LIST_HEAD(gpiommc_sysfs_list);
++static DEFINE_MUTEX(gpiommc_sysfs_mutex);
++
++static struct gpiommc_sysfs_platform_data *gpiommc_sysfs_find_dev(const char *name)
++{
++	struct gpiommc_sysfs_platform_data *pdata;
++
++	list_for_each_entry(pdata, &gpiommc_sysfs_list, list) {
++		if (strcmp(pdata->p.name, name) == 0)
++			return pdata;
++	}
++
++	return NULL;
++}
++
++static ssize_t gpiommc_add_store(struct device_driver *drv,
++				 const char *buf, size_t count)
++{
++	int res, err;
++	struct gpiommc_sysfs_platform_data pdata_local, *pdata;
++	struct platform_device *pdev;
++	unsigned int no_spi_delay = 0, mode = 0, csactivelow = 0;
++
++	mutex_lock(&gpiommc_sysfs_mutex);
++
++	pdata = &pdata_local;
++	memset(pdata, 0, sizeof(*pdata));
++
++	err = -EINVAL;
++	res = sscanf(buf, "%" GPIOMMC_MAX_NAMELEN_STR "s %u %u %u %u %u %u %u %u",
++		     pdata->p.name,
++		     &pdata->p.pins.gpio_di,
++		     &pdata->p.pins.gpio_do,
++		     &pdata->p.pins.gpio_clk,
++		     &pdata->p.pins.gpio_cs,
++		     &mode,
++		     &pdata->p.max_bus_speed,
++		     &no_spi_delay,
++		     &csactivelow);
++	pdata->p.mode = mode;
++	pdata->p.no_spi_delay = !!no_spi_delay;
++	pdata->p.pins.cs_activelow = !!csactivelow;
++	if (res < 9)
++		pdata->p.pins.cs_activelow = 1; /* Default: CS = activelow */
++	if (res < 8)
++		pdata->p.no_spi_delay = 0; /* Default: Delay turned on */
++	if (res < 7)
++		pdata->p.max_bus_speed = 5000000; /* Default: 5Mhz */
++	if (res < 6)
++		pdata->p.mode = 0; /* Default: SPI mode 0 */
++	if (res < 5 || res > 9)
++		goto out; /* First 5 args are mandatory. */
++
++	/* Convert mode so that the SPI subsystem does understand it. */
++	switch (pdata->p.mode) {
++	case 0:
++		pdata->p.mode = SPI_MODE_0;
++		break;
++	case 1:
++		pdata->p.mode = SPI_MODE_1;
++		break;
++	case 2:
++		pdata->p.mode = SPI_MODE_2;
++		break;
++	case 3:
++		pdata->p.mode = SPI_MODE_3;
++		break;
++	default:
++		goto out; /* Invalid mode */
++	}
++
++	err = -EEXIST;
++	if (gpiommc_sysfs_find_dev(pdata->p.name))
++		goto out;
++
++	err = -ENOMEM;
++	pdev = platform_device_alloc(GPIOMMC_PLATDEV_NAME, gpiommc_next_id());
++	if (!pdev)
++		goto out;
++
++	err = platform_device_add_data(pdev, pdata, sizeof(*pdata));
++	if (err)
++		goto err_free_pdev;
++	pdata = pdev->dev.platform_data;
++
++	err = platform_device_add(pdev);
++	if (err)
++		goto err_free_pdev;
++
++	pdata->pdev = pdev;
++	INIT_LIST_HEAD(&pdata->list);
++	list_add(&pdata->list, &gpiommc_sysfs_list);
++
++	err = 0;
++out:
++	mutex_unlock(&gpiommc_sysfs_mutex);
++
++	return err ? err : count;
++
++err_free_pdev:
++	platform_device_put(pdev);
++	goto out;
++}
++
++static ssize_t gpiommc_remove_store(struct device_driver *drv,
++				    const char *buf, size_t count)
++{
++	struct gpiommc_sysfs_platform_data *pdata;
++	int err;
++
++	mutex_lock(&gpiommc_sysfs_mutex);
++
++	err = -ENODEV;
++	pdata = gpiommc_sysfs_find_dev(buf);
++	if (!pdata)
++		goto out;
++
++	list_del(&pdata->list);
++	platform_device_unregister(pdata->pdev);
++
++out:
++	mutex_unlock(&gpiommc_sysfs_mutex);
++
++	return err ? err : count;
++}
++
++static DRIVER_ATTR(add, 0200,
++		   NULL, gpiommc_add_store);
++static DRIVER_ATTR(remove, 0200,
++		   NULL, gpiommc_remove_store);
++
++static struct platform_driver gpiommc_plat_driver = {
++	.probe	= gpiommc_probe,
++	.remove	= gpiommc_remove,
++	.driver	= {
++		.name	= GPIOMMC_PLATDEV_NAME,
++		.owner	= THIS_MODULE,
++	},
++};
++
++int gpiommc_next_id(void)
 +{
 +	static atomic_t counter = ATOMIC_INIT(-1);
 +
 +	return atomic_inc_return(&counter);
 +}
-+EXPORT_SYMBOL(spi_gpio_next_id);
++EXPORT_SYMBOL(gpiommc_next_id);
 +
-+static int __init spi_gpio_init(void)
++static int __init gpiommc_modinit(void)
 +{
 +	int err;
 +
-+	err = platform_driver_register(&spi_gpio_driver);
++	err = platform_driver_register(&gpiommc_plat_driver);
 +	if (err)
-+		printk(KERN_ERR "spi-gpio: register failed: %d\n", err);
++		return err;
++	err = driver_create_file(&gpiommc_plat_driver.driver,
++				 &driver_attr_add);
++	if (err)
++		goto err_drv_unreg;
++	err = driver_create_file(&gpiommc_plat_driver.driver,
++				 &driver_attr_remove);
++	if (err)
++		goto err_remove_add;
 +
++	return 0;
++
++err_remove_add:
++	driver_remove_file(&gpiommc_plat_driver.driver,
++			   &driver_attr_add);
++err_drv_unreg:
++	platform_driver_unregister(&gpiommc_plat_driver);
 +	return err;
 +}
-+module_init(spi_gpio_init);
++module_init(gpiommc_modinit);
 +
-+static void __exit spi_gpio_exit(void)
++static void __exit gpiommc_modexit(void)
 +{
-+	platform_driver_unregister(&spi_gpio_driver);
-+}
-+module_exit(spi_gpio_exit);
++	struct gpiommc_sysfs_platform_data *pdata, *pdata_tmp;
 +
-+MODULE_AUTHOR("Piot Skamruk <piotr.skamruk at gmail.com>");
-+MODULE_AUTHOR("Michael Buesch");
-+MODULE_DESCRIPTION("Platform independent GPIO bitbanging SPI driver");
-+MODULE_LICENSE("GPL v2");
-diff -puN /dev/null include/linux/spi/spi_gpio.h
++	driver_remove_file(&gpiommc_plat_driver.driver,
++			   &driver_attr_remove);
++	driver_remove_file(&gpiommc_plat_driver.driver,
++			   &driver_attr_add);
++
++	mutex_lock(&gpiommc_sysfs_mutex);
++	list_for_each_entry_safe(pdata, pdata_tmp, &gpiommc_sysfs_list, list) {
++		list_del(&pdata->list);
++		platform_device_unregister(pdata->pdev);
++	}
++	mutex_unlock(&gpiommc_sysfs_mutex);
++
++	platform_driver_unregister(&gpiommc_plat_driver);
++}
++module_exit(gpiommc_modexit);
+diff -puN /dev/null include/linux/mmc/gpiommc.h
 --- /dev/null
-+++ a/include/linux/spi/spi_gpio.h
-@@ -0,0 +1,67 @@
++++ a/include/linux/mmc/gpiommc.h
+@@ -0,0 +1,62 @@
 +/*
-+ * spi_gpio interface to platform code
++ * Device driver for MMC/SD cards driven over a GPIO bus.
 + *
-+ * Copyright (c) 2008 Piotr Skamruk
 + * Copyright (c) 2008 Michael Buesch
 + *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
++ * Licensed under the GNU/GPL version 2.
 + */
-+#ifndef _LINUX_SPI_SPI_GPIO
-+#define _LINUX_SPI_SPI_GPIO
++#ifndef LINUX_GPIOMMC_H_
++#define LINUX_GPIOMMC_H_
 +
 +#include <linux/types.h>
-+#include <linux/spi/spi.h>
 +
 +
-+/** struct spi_gpio_platform_data - Data definitions for a SPI-GPIO device.
-+ * This structure holds information about a GPIO-based SPI device.
-+ *
-+ * @pin_clk: The GPIO pin number of the CLOCK pin.
-+ *
-+ * @pin_miso: The GPIO pin number of the MISO pin.
-+ *
-+ * @pin_mosi: The GPIO pin number of the MOSI pin.
-+ *
-+ * @pin_cs: The GPIO pin number of the CHIPSELECT pin.
-+ *
-+ * @cs_activelow: If true, the chip is selected when the CS line is low.
-+ *
-+ * @no_spi_delay: If true, no delay is done in the lowlevel bitbanging.
-+ *                Note that doing no delay is not standards compliant,
-+ *                but it might be needed to speed up transfers on some
-+ *                slow embedded machines.
-+ *
-+ * @boardinfo_setup: This callback is called after the
-+ *                   SPI master device was registered, but before the
-+ *                   device is registered.
-+ * @boardinfo_setup_data: Data argument passed to boardinfo_setup().
++#define GPIOMMC_MAX_NAMELEN		15
++
++/** struct gpiommc_pins - Hardware pin assignments
++ * @gpio_di: The GPIO number of the DATA IN pin
++ * @gpio_do: The GPIO number of the DATA OUT pin
++ * @gpio_clk: The GPIO number of the CLOCK pin
++ * @gpio_cs: The GPIO number of the CHIPSELECT pin
++ * @cs_activelow: If true, the chip is considered selected if @gpio_cs is low.
 + */
-+struct spi_gpio_platform_data {
-+	unsigned int pin_clk;
-+	unsigned int pin_miso;
-+	unsigned int pin_mosi;
-+	unsigned int pin_cs;
++struct gpiommc_pins {
++	unsigned int gpio_di;
++	unsigned int gpio_do;
++	unsigned int gpio_clk;
++	unsigned int gpio_cs;
 +	bool cs_activelow;
-+	bool no_spi_delay;
-+	int (*boardinfo_setup)(struct spi_board_info *bi,
-+			       struct spi_master *master,
-+			       void *data);
-+	void *boardinfo_setup_data;
 +};
 +
-+/** SPI_GPIO_PLATDEV_NAME - The platform device name string.
-+ * The name string that has to be used for platform_device_alloc
-+ * when allocating a spi-gpio device.
++/** struct gpiommc_platform_data - Platform data for a MMC-over-SPI-GPIO device.
++ * @name: The unique name string of the device.
++ * @pins: The hardware pin assignments.
++ * @mode: The hardware mode. This is either SPI_MODE_0,
++ *        SPI_MODE_1, SPI_MODE_2 or SPI_MODE_3. See the SPI documentation.
++ * @no_spi_delay: Do not use delays in the lowlevel SPI bitbanging code.
++ *                This is not standards compliant, but may be required for some
++ *                embedded machines to gain reasonable speed.
++ * @max_bus_speed: The maximum speed of the SPI bus, in Hertz.
 + */
-+#define SPI_GPIO_PLATDEV_NAME	"spi-gpio"
++struct gpiommc_platform_data {
++	char name[GPIOMMC_MAX_NAMELEN + 1];
++	struct gpiommc_pins pins;
++	u8 mode;
++	bool no_spi_delay;
++	unsigned int max_bus_speed;
++};
 +
-+/** spi_gpio_next_id - Get another platform device ID number.
++/** GPIOMMC_PLATDEV_NAME - The platform device name string.
++ * The name string that has to be used for platform_device_alloc
++ * when allocating a gpiommc device.
++ */
++#define GPIOMMC_PLATDEV_NAME	"gpiommc"
++
++/** gpiommc_next_id - Get another platform device ID number.
 + * This returns the next platform device ID number that has to be used
 + * for platform_device_alloc. The ID is opaque and should not be used for
 + * anything else.
 + */
-+int spi_gpio_next_id(void);
++int gpiommc_next_id(void);
 +
-+#endif /* _LINUX_SPI_SPI_GPIO */
++#endif /* LINUX_GPIOMMC_H_ */
 _
 
 Patches currently in -mm which might be from mb@bu3sch.de are
@@ -441,5 +622,5 @@ gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch
 gpiolib-allow-user-selection.patch
 gpiolib-allow-user-selection-update.patch
 spi-add-spi-over-gpio-driver.patch
-add-gpio-based-mmc-sd-driver.patch
+mmc-add-gpio-based-mmc-sd-driver.patch
 
