@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: - resource-add-resource_size-fix.patch removed from -mm tree
-Date: Fri, 18 Jul 2008 15:25:29 -0700
-Message-ID: <200807182225.m6IMPTQp001673@imap1.linux-foundation.org>
+Subject: - resource-add-resource_type-and-ioresource_type_bits-fix.patch removed from -mm tree
+Date: Fri, 18 Jul 2008 15:25:33 -0700
+Message-ID: <200807182225.m6IMPXTo001679@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51713 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50887 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755425AbYGRW0T (ORCPT
+	by vger.kernel.org with ESMTP id S1755886AbYGRW01 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Jul 2008 18:26:19 -0400
+	Fri, 18 Jul 2008 18:26:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, damm@igel.co.jp, greg@kroah.com, magnus.damm@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     resource-add-resource_size-fix
+     resource-add-resource_type-and-ioresource_type_bits-fix
 has been removed from the -mm tree.  Its filename was
-     resource-add-resource_size-fix.patch
+     resource-add-resource_type-and-ioresource_type_bits-fix.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: resource-add-resource_size-fix
+Subject: resource-add-resource_type-and-ioresource_type_bits-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Greg KH <greg@kroah.com>
@@ -36,18 +36,18 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  include/linux/ioport.h |    3 ++-
  1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/ioport.h~resource-add-resource_size-fix include/linux/ioport.h
---- a/include/linux/ioport.h~resource-add-resource_size-fix
+diff -puN include/linux/ioport.h~resource-add-resource_type-and-ioresource_type_bits-fix include/linux/ioport.h
+--- a/include/linux/ioport.h~resource-add-resource_type-and-ioresource_type_bits-fix
 +++ a/include/linux/ioport.h
-@@ -118,7 +118,8 @@ extern int allocate_resource(struct reso
- int adjust_resource(struct resource *res, resource_size_t start,
- 		    resource_size_t size);
- resource_size_t resource_alignment(struct resource *res);
--static inline resource_size_t resource_size(struct resource *res)
-+
-+static inline resource_size_t resource_size(const struct resource *res)
+@@ -124,7 +124,8 @@ static inline resource_size_t resource_s
  {
  	return res->end - res->start + 1;
+ }
+-static inline unsigned long resource_type(struct resource *res)
++
++static inline unsigned long resource_type(const struct resource *res)
+ {
+ 	return res->flags & IORESOURCE_TYPE_BITS;
  }
 _
 
@@ -206,7 +206,6 @@ mlock-mlocked-pages-are-unevictable-fix-3.patch
 mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
 vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
 slb-drop-kmem-cache-argument-from-constructor-fix.patch
-resource-add-resource_size-fix.patch
 resource-add-resource_type-and-ioresource_type_bits-fix.patch
 video-console-sticonrec-make-code-static-checkpatch-fixes.patch
 reiser4.patch
