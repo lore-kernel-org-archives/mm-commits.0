@@ -1,38 +1,38 @@
 From: akpm@linux-foundation.org
-Subject: - ide-avoid-dma-on-the-stack-for-req_type_ata_pc.patch removed from -mm tree
-Date: Fri, 18 Jul 2008 16:24:20 -0700
-Message-ID: <200807182324.m6INOKL4004188@imap1.linux-foundation.org>
+Subject: - ide-use-the-dma-safe-check-for-req_type_ata_pc.patch removed from -mm tree
+Date: Fri, 18 Jul 2008 16:24:18 -0700
+Message-ID: <200807182324.m6INOIMV004184@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56256 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58514 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754863AbYGRX2j (ORCPT
+	by vger.kernel.org with ESMTP id S1754165AbYGRX3s (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Jul 2008 19:28:39 -0400
+	Fri, 18 Jul 2008 19:29:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: fujita.tomonori@lab.ntt.co.jp, James.Bottomley@HansenPartnership.com, bzolnier@gmail.com, htejun@gmail.com, jens.axboe@oracle.com, petkovbb@gmail.com, tsbogend@alpha.franken.de, mm-co
 
 
 The patch titled
-     ide: avoid DMA on the stack for REQ_TYPE_ATA_PC
+     ide: use the dma safe check for REQ_TYPE_ATA_PC
 has been removed from the -mm tree.  Its filename was
-     ide-avoid-dma-on-the-stack-for-req_type_ata_pc.patch
+     ide-use-the-dma-safe-check-for-req_type_ata_pc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ide: avoid DMA on the stack for REQ_TYPE_ATA_PC
+Subject: ide: use the dma safe check for REQ_TYPE_ATA_PC
 From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 
-Some REQ_TYPE_ATA_PC commands uses the stack buffers for DMA, which
-leads to memory corruption on a non-coherent platform.
+This uses the dma safe check for REQ_TYPE_ATA_PC. The dma safe check
+is used for only sg requests but it should be used for other non fs
+commands.
 
-With regard to alignment and padding, ide-cd has the the dma safe
-check for sg requests and REQ_TYPE_ATA_PC. This adds the stack buffer
-check to that check.
+This uses blk_queue_update_dma_pad to make the intention clear though
+ide don't use the blk APIs so it doesn't change anything.
 
 Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 Acked-by: Borislav Petkov <petkovbb@gmail.com>
@@ -44,31 +44,50 @@ Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ide/ide-cd.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/ide/ide-cd.c |   17 ++++++++++++-----
+ 1 file changed, 12 insertions(+), 5 deletions(-)
 
-diff -puN drivers/ide/ide-cd.c~ide-avoid-dma-on-the-stack-for-req_type_ata_pc drivers/ide/ide-cd.c
---- a/drivers/ide/ide-cd.c~ide-avoid-dma-on-the-stack-for-req_type_ata_pc
+diff -puN drivers/ide/ide-cd.c~ide-use-the-dma-safe-check-for-req_type_ata_pc drivers/ide/ide-cd.c
+--- a/drivers/ide/ide-cd.c~ide-use-the-dma-safe-check-for-req_type_ata_pc
 +++ a/drivers/ide/ide-cd.c
-@@ -1157,6 +1157,7 @@ static void cdrom_do_block_pc(ide_drive_
- 		struct request_queue *q = drive->queue;
- 		unsigned int alignment;
- 		unsigned long addr;
-+		unsigned long stack_mask = ~(THREAD_SIZE - 1);
+@@ -1159,10 +1159,15 @@ static void cdrom_do_block_pc(ide_drive_
+ 	info->dma = 0;
  
- 		if (rq->bio)
- 			addr = (unsigned long)bio_data(rq->bio);
-@@ -1174,6 +1175,10 @@ static void cdrom_do_block_pc(ide_drive_
- 		alignment = queue_dma_alignment(q) | q->dma_pad_mask;
- 		if (addr & alignment || rq->data_len & alignment)
- 			info->dma = 0;
+ 	/* sg request */
+-	if (rq->bio) {
+-		int mask = drive->queue->dma_alignment;
+-		unsigned long addr =
+-			(unsigned long)page_address(bio_page(rq->bio));
++	if (rq->bio || ((rq->cmd_type == REQ_TYPE_ATA_PC) && rq->data_len)) {
++		struct request_queue *q = drive->queue;
++		unsigned int alignment;
++		unsigned long addr;
 +
-+		if (!((addr & stack_mask) ^
-+		      ((unsigned long)current->stack & stack_mask)))
-+			info->dma = 0;
++		if (rq->bio)
++			addr = (unsigned long)bio_data(rq->bio);
++		else
++			addr = (unsigned long)rq->data;
+ 
+ 		info->dma = drive->using_dma;
+ 
+@@ -1172,7 +1177,8 @@ static void cdrom_do_block_pc(ide_drive_
+ 		 * NOTE! The "len" and "addr" checks should possibly have
+ 		 * separate masks.
+ 		 */
+-		if ((rq->data_len & 15) || (addr & mask))
++		alignment = queue_dma_alignment(q) | q->dma_pad_mask;
++		if (addr & alignment || rq->data_len & alignment)
+ 			info->dma = 0;
  	}
  }
+@@ -1854,6 +1860,7 @@ static int ide_cdrom_setup(ide_drive_t *
  
+ 	blk_queue_prep_rq(drive->queue, ide_cdrom_prep_fn);
+ 	blk_queue_dma_alignment(drive->queue, 31);
++	blk_queue_update_dma_pad(drive->queue, 15);
+ 	drive->queue->unplug_delay = (1 * HZ) / 1000;
+ 	if (!drive->queue->unplug_delay)
+ 		drive->queue->unplug_delay = 1;
 _
 
 Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
