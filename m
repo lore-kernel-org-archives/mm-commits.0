@@ -1,135 +1,445 @@
 From: akpm@linux-foundation.org
-Subject: - cpufreq-acpi-only-call-_ppc-after-cpufreq-acpi-init-funcs-got-called-already.patch removed from -mm tree
-Date: Thu, 17 Jul 2008 20:27:36 -0700
-Message-ID: <200807180327.m6I3RaGV021620@imap1.linux-foundation.org>
+Subject: + spi-add-spi-over-gpio-driver.patch added to -mm tree
+Date: Fri, 18 Jul 2008 14:39:40 -0700
+Message-ID: <200807182139.m6ILdeXL032147@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41743 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42752 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750908AbYGRD3b (ORCPT
+	by vger.kernel.org with ESMTP id S1751786AbYGRVkI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Jul 2008 23:29:31 -0400
+	Fri, 18 Jul 2008 17:40:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: trenn@suse.de, arekm@maven.pl, benh@kernel.crashing.org, davej@redhat.com, gnorton@novell.com, len.brown@intel.com, miguel@novell.com, mingo@elte.hu, sekharan@us.ibm.com, stable@kerne
+To: mm-commits@vger.kernel.org
+Cc: mb@bu3sch.de, david-b@pacbell.net, drzeus-list@drzeus.cx
 
 
 The patch titled
-     CPUFREQ ACPI: Only call _PPC after cpufreq ACPI init funcs got called already
-has been removed from the -mm tree.  Its filename was
-     cpufreq-acpi-only-call-_ppc-after-cpufreq-acpi-init-funcs-got-called-already.patch
+     spi: add SPI over GPIO driver
+has been added to the -mm tree.  Its filename is
+     spi-add-spi-over-gpio-driver.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: CPUFREQ ACPI: Only call _PPC after cpufreq ACPI init funcs got called already
-From: Thomas Renninger <trenn@suse.de>
+Subject: spi: add SPI over GPIO driver
+From: Michael Buesch <mb@bu3sch.de>
 
-Ingo Molnar provided a fix to not call _PPC at processor driver
-initialization time.  Git commit #e4233dec749a3519069d9390561b5636a75c7579
+This adds a driver that lets you drive an SPI bus over generic GPIO pins.
 
-But it can still happen that _PPC is called at processor driver
-initialization time.
-
-This patch should make sure that this is not possible anymore.
-
-Signed-off-by: Thomas Renninger <trenn@suse.de>
-Cc: Dave Jones <davej@redhat.com>
-Cc: Len Brown <len.brown@intel.com>
-Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: Chandra Seetharaman <sekharan@us.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Arkadiusz Miskiewicz <arekm@maven.pl>
-Cc: <gnorton@novell.com>
-Cc: <miguel@novell.com>
-Cc: <stable@kernel.org>		[2.6.25.x, 2.6.26.x]
+Signed-off-by: Michael Buesch <mb@bu3sch.de>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Pierre Ossman <drzeus-list@drzeus.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/cell/cbe_cpufreq_pmi.c |    6 ++++++
- drivers/acpi/processor_perflib.c              |   13 ++++++++++++-
- drivers/cpufreq/cpufreq.c                     |    3 +++
- include/linux/cpufreq.h                       |    1 +
- 4 files changed, 22 insertions(+), 1 deletion(-)
+ MAINTAINERS                  |    5 
+ drivers/spi/Kconfig          |   13 +
+ drivers/spi/Makefile         |    1 
+ drivers/spi/spi_gpio.c       |  251 +++++++++++++++++++++++++++++++++
+ include/linux/spi/spi_gpio.h |   67 ++++++++
+ 5 files changed, 337 insertions(+)
 
-diff -puN arch/powerpc/platforms/cell/cbe_cpufreq_pmi.c~cpufreq-acpi-only-call-_ppc-after-cpufreq-acpi-init-funcs-got-called-already arch/powerpc/platforms/cell/cbe_cpufreq_pmi.c
---- a/arch/powerpc/platforms/cell/cbe_cpufreq_pmi.c~cpufreq-acpi-only-call-_ppc-after-cpufreq-acpi-init-funcs-got-called-already
-+++ a/arch/powerpc/platforms/cell/cbe_cpufreq_pmi.c
-@@ -96,6 +96,12 @@ static int pmi_notifier(struct notifier_
- 	struct cpufreq_frequency_table *cbe_freqs;
- 	u8 node;
+diff -puN MAINTAINERS~spi-add-spi-over-gpio-driver MAINTAINERS
+--- a/MAINTAINERS~spi-add-spi-over-gpio-driver
++++ a/MAINTAINERS
+@@ -3866,6 +3866,11 @@ M:	dbrownell@users.sourceforge.net
+ L:	spi-devel-general@lists.sourceforge.net
+ S:	Maintained
  
-+	/* Should this really be called for CPUFREQ_ADJUST, CPUFREQ_INCOMPATIBLE
-+	 * and CPUFREQ_NOTIFY policy events?)
-+	 */
-+	if (event == CPUFREQ_START)
-+		return 0;
++SPI GPIO MASTER DRIVER
++P:	Michael Buesch
++M:	mb@bu3sch.de
++S:	Maintained
 +
- 	cbe_freqs = cpufreq_frequency_get_table(policy->cpu);
- 	node = cbe_cpu_to_node(policy->cpu);
+ SPU FILE SYSTEM
+ P:	Jeremy Kerr
+ M:	jk@ozlabs.org
+diff -puN drivers/spi/Kconfig~spi-add-spi-over-gpio-driver drivers/spi/Kconfig
+--- a/drivers/spi/Kconfig~spi-add-spi-over-gpio-driver
++++ a/drivers/spi/Kconfig
+@@ -100,6 +100,19 @@ config SPI_BUTTERFLY
+ 	  inexpensive battery powered microcontroller evaluation board.
+ 	  This same cable can be used to flash new firmware.
  
-diff -puN drivers/acpi/processor_perflib.c~cpufreq-acpi-only-call-_ppc-after-cpufreq-acpi-init-funcs-got-called-already drivers/acpi/processor_perflib.c
---- a/drivers/acpi/processor_perflib.c~cpufreq-acpi-only-call-_ppc-after-cpufreq-acpi-init-funcs-got-called-already
-+++ a/drivers/acpi/processor_perflib.c
-@@ -72,7 +72,13 @@ MODULE_PARM_DESC(ignore_ppc, "If the fre
- #define PPC_REGISTERED   1
- #define PPC_IN_USE       2
- 
--static int acpi_processor_ppc_status = 0;
-+/* ignore_ppc:
-+ * -1 -> cpufreq low level drivers not initialized -> _PSS, etc. not called yet
-+ *       ignore _PPC
-+ *  0 -> cpufreq low level drivers initialized -> consider _PPC values
-+ *  1 -> ignore _PPC totally -> forced by user through boot param
++config SPI_GPIO
++	tristate "GPIO API based bitbanging SPI controller"
++	depends on SPI_MASTER && GENERIC_GPIO
++	select SPI_BITBANG
++	help
++	  This is a platform driver that can be used for bitbanging
++	  an SPI bus over GPIO pins.
++	  Select this, if you have any SPI device that is connected via
++	  GPIO pins.
++	  The module will be called spi_gpio.
++
++	  If unsure, say N.
++
+ config SPI_IMX
+ 	tristate "Freescale iMX SPI controller"
+ 	depends on ARCH_IMX && EXPERIMENTAL
+diff -puN drivers/spi/Makefile~spi-add-spi-over-gpio-driver drivers/spi/Makefile
+--- a/drivers/spi/Makefile~spi-add-spi-over-gpio-driver
++++ a/drivers/spi/Makefile
+@@ -16,6 +16,7 @@ obj-$(CONFIG_SPI_BFIN)			+= spi_bfin5xx.
+ obj-$(CONFIG_SPI_BITBANG)		+= spi_bitbang.o
+ obj-$(CONFIG_SPI_AU1550)		+= au1550_spi.o
+ obj-$(CONFIG_SPI_BUTTERFLY)		+= spi_butterfly.o
++obj-$(CONFIG_SPI_GPIO)			+= spi_gpio.o
+ obj-$(CONFIG_SPI_IMX)			+= spi_imx.o
+ obj-$(CONFIG_SPI_LM70_LLP)		+= spi_lm70llp.o
+ obj-$(CONFIG_SPI_PXA2XX)		+= pxa2xx_spi.o
+diff -puN /dev/null drivers/spi/spi_gpio.c
+--- /dev/null
++++ a/drivers/spi/spi_gpio.c
+@@ -0,0 +1,251 @@
++/*
++ * Bitbanging SPI bus driver using GPIO API
++ *
++ * Copyright (c) 2008 Piotr Skamruk
++ * Copyright (c) 2008 Michael Buesch
++ *
++ * based on spi_s3c2410_gpio.c
++ *   Copyright (c) 2006 Ben Dooks
++ *   Copyright (c) 2006 Simtec Electronics
++ * and on i2c-gpio.c
++ *   Copyright (C) 2007 Atmel Corporation
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
 + */
-+static int acpi_processor_ppc_status = -1;
- 
- static int acpi_processor_ppc_notifier(struct notifier_block *nb,
- 				       unsigned long event, void *data)
-@@ -81,6 +87,11 @@ static int acpi_processor_ppc_notifier(s
- 	struct acpi_processor *pr;
- 	unsigned int ppc = 0;
- 
-+	if (event == CPUFREQ_START && ignore_ppc <= 0) {
-+		ignore_ppc = 0;
-+		return 0;
-+	}
 +
- 	if (ignore_ppc)
- 		return 0;
- 
-diff -puN drivers/cpufreq/cpufreq.c~cpufreq-acpi-only-call-_ppc-after-cpufreq-acpi-init-funcs-got-called-already drivers/cpufreq/cpufreq.c
---- a/drivers/cpufreq/cpufreq.c~cpufreq-acpi-only-call-_ppc-after-cpufreq-acpi-init-funcs-got-called-already
-+++ a/drivers/cpufreq/cpufreq.c
-@@ -825,6 +825,9 @@ static int cpufreq_add_dev(struct sys_de
- 	policy->user_policy.min = policy->cpuinfo.min_freq;
- 	policy->user_policy.max = policy->cpuinfo.max_freq;
- 
-+	blocking_notifier_call_chain(&cpufreq_policy_notifier_list,
-+				     CPUFREQ_START, policy);
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/delay.h>
++#include <linux/spinlock.h>
++#include <linux/workqueue.h>
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <linux/spi/spi.h>
++#include <linux/spi/spi_bitbang.h>
++#include <linux/spi/spi_gpio.h>
++#include <linux/gpio.h>
++#include <asm/atomic.h>
 +
- #ifdef CONFIG_SMP
- 
- #ifdef CONFIG_HOTPLUG_CPU
-diff -puN include/linux/cpufreq.h~cpufreq-acpi-only-call-_ppc-after-cpufreq-acpi-init-funcs-got-called-already include/linux/cpufreq.h
---- a/include/linux/cpufreq.h~cpufreq-acpi-only-call-_ppc-after-cpufreq-acpi-init-funcs-got-called-already
-+++ a/include/linux/cpufreq.h
-@@ -106,6 +106,7 @@ struct cpufreq_policy {
- #define CPUFREQ_ADJUST		(0)
- #define CPUFREQ_INCOMPATIBLE	(1)
- #define CPUFREQ_NOTIFY		(2)
-+#define CPUFREQ_START		(3)
- 
- #define CPUFREQ_SHARED_TYPE_NONE (0) /* None */
- #define CPUFREQ_SHARED_TYPE_HW	 (1) /* HW does needed coordination */
++
++struct spi_gpio {
++	struct spi_bitbang bitbang;
++	struct spi_gpio_platform_data *info;
++	struct platform_device *pdev;
++	struct spi_board_info bi;
++};
++
++
++static inline struct spi_gpio *spidev_to_sg(struct spi_device *dev)
++{
++	return dev->controller_data;
++}
++
++static inline void setsck(struct spi_device *dev, int val)
++{
++	struct spi_gpio *sp = spidev_to_sg(dev);
++	gpio_set_value(sp->info->pin_clk, val ? 1 : 0);
++}
++
++static inline void setmosi(struct spi_device *dev, int val)
++{
++	struct spi_gpio *sp = spidev_to_sg(dev);
++	gpio_set_value(sp->info->pin_mosi, val ? 1 : 0);
++}
++
++static inline u32 getmiso(struct spi_device *dev)
++{
++	struct spi_gpio *sp = spidev_to_sg(dev);
++	return gpio_get_value(sp->info->pin_miso) ? 1 : 0;
++}
++
++static inline void do_spidelay(struct spi_device *dev, unsigned nsecs)
++{
++	struct spi_gpio *sp = spidev_to_sg(dev);
++
++	if (!sp->info->no_spi_delay)
++		ndelay(nsecs);
++}
++
++#define spidelay(nsecs) do {					\
++	/* Steal the spi_device pointer from our caller.	\
++	 * The bitbang-API should probably get fixed here... */	\
++	do_spidelay(spi, nsecs);				\
++  } while (0)
++
++#define EXPAND_BITBANG_TXRX
++#include <linux/spi/spi_bitbang.h>
++
++static u32 spi_gpio_txrx_mode0(struct spi_device *spi,
++			       unsigned nsecs, u32 word, u8 bits)
++{
++	return bitbang_txrx_be_cpha0(spi, nsecs, 0, word, bits);
++}
++
++static u32 spi_gpio_txrx_mode1(struct spi_device *spi,
++			       unsigned nsecs, u32 word, u8 bits)
++{
++	return bitbang_txrx_be_cpha1(spi, nsecs, 0, word, bits);
++}
++
++static u32 spi_gpio_txrx_mode2(struct spi_device *spi,
++			       unsigned nsecs, u32 word, u8 bits)
++{
++	return bitbang_txrx_be_cpha0(spi, nsecs, 1, word, bits);
++}
++
++static u32 spi_gpio_txrx_mode3(struct spi_device *spi,
++			       unsigned nsecs, u32 word, u8 bits)
++{
++	return bitbang_txrx_be_cpha1(spi, nsecs, 1, word, bits);
++}
++
++static void spi_gpio_chipselect(struct spi_device *dev, int on)
++{
++	struct spi_gpio *sp = spidev_to_sg(dev);
++
++	if (sp->info->cs_activelow)
++		on = !on;
++	gpio_set_value(sp->info->pin_cs, on ? 1 : 0);
++}
++
++static int spi_gpio_probe(struct platform_device *pdev)
++{
++	struct spi_master *master;
++	struct spi_gpio_platform_data *pdata;
++	struct spi_gpio *sp;
++	struct spi_device *spidev;
++	int err;
++
++	pdata = pdev->dev.platform_data;
++	if (!pdata)
++		return -ENXIO;
++
++	err = -ENOMEM;
++	master = spi_alloc_master(&pdev->dev, sizeof(struct spi_gpio));
++	if (!master)
++		goto err_alloc_master;
++
++	sp = spi_master_get_devdata(master);
++	platform_set_drvdata(pdev, sp);
++	sp->info = pdata;
++
++	err = gpio_request(pdata->pin_clk, "spi_clock");
++	if (err)
++		goto err_request_clk;
++	err = gpio_request(pdata->pin_mosi, "spi_mosi");
++	if (err)
++		goto err_request_mosi;
++	err = gpio_request(pdata->pin_miso, "spi_miso");
++	if (err)
++		goto err_request_miso;
++	err = gpio_request(pdata->pin_cs, "spi_cs");
++	if (err)
++		goto err_request_cs;
++
++	sp->bitbang.master = spi_master_get(master);
++	sp->bitbang.master->bus_num = -1;
++	sp->bitbang.master->num_chipselect = 1;
++	sp->bitbang.chipselect = spi_gpio_chipselect;
++	sp->bitbang.txrx_word[SPI_MODE_0] = spi_gpio_txrx_mode0;
++	sp->bitbang.txrx_word[SPI_MODE_1] = spi_gpio_txrx_mode1;
++	sp->bitbang.txrx_word[SPI_MODE_2] = spi_gpio_txrx_mode2;
++	sp->bitbang.txrx_word[SPI_MODE_3] = spi_gpio_txrx_mode3;
++
++	gpio_direction_output(pdata->pin_clk, 0);
++	gpio_direction_output(pdata->pin_mosi, 0);
++	gpio_direction_output(pdata->pin_cs,
++			      pdata->cs_activelow ? 1 : 0);
++	gpio_direction_input(pdata->pin_miso);
++
++	err = spi_bitbang_start(&sp->bitbang);
++	if (err)
++		goto err_no_bitbang;
++	err = pdata->boardinfo_setup(&sp->bi, master,
++				     pdata->boardinfo_setup_data);
++	if (err)
++		goto err_bi_setup;
++	sp->bi.controller_data = sp;
++	spidev = spi_new_device(master, &sp->bi);
++	if (!spidev)
++		goto err_new_dev;
++
++	return 0;
++
++err_new_dev:
++err_bi_setup:
++	spi_bitbang_stop(&sp->bitbang);
++err_no_bitbang:
++	spi_master_put(sp->bitbang.master);
++	gpio_free(pdata->pin_cs);
++err_request_cs:
++	gpio_free(pdata->pin_miso);
++err_request_miso:
++	gpio_free(pdata->pin_mosi);
++err_request_mosi:
++	gpio_free(pdata->pin_clk);
++err_request_clk:
++	kfree(master);
++
++err_alloc_master:
++	return err;
++}
++
++static int __devexit spi_gpio_remove(struct platform_device *pdev)
++{
++	struct spi_gpio *sp;
++	struct spi_gpio_platform_data *pdata;
++
++	pdata = pdev->dev.platform_data;
++	sp = platform_get_drvdata(pdev);
++
++	gpio_free(pdata->pin_clk);
++	gpio_free(pdata->pin_mosi);
++	gpio_free(pdata->pin_miso);
++	gpio_free(pdata->pin_cs);
++	spi_bitbang_stop(&sp->bitbang);
++	spi_master_put(sp->bitbang.master);
++
++	return 0;
++}
++
++static struct platform_driver spi_gpio_driver = {
++	.driver		= {
++		.name	= SPI_GPIO_PLATDEV_NAME,
++		.owner	= THIS_MODULE,
++	},
++	.probe		= spi_gpio_probe,
++	.remove		= __devexit_p(spi_gpio_remove),
++};
++
++int spi_gpio_next_id(void)
++{
++	static atomic_t counter = ATOMIC_INIT(-1);
++
++	return atomic_inc_return(&counter);
++}
++EXPORT_SYMBOL(spi_gpio_next_id);
++
++static int __init spi_gpio_init(void)
++{
++	int err;
++
++	err = platform_driver_register(&spi_gpio_driver);
++	if (err)
++		printk(KERN_ERR "spi-gpio: register failed: %d\n", err);
++
++	return err;
++}
++module_init(spi_gpio_init);
++
++static void __exit spi_gpio_exit(void)
++{
++	platform_driver_unregister(&spi_gpio_driver);
++}
++module_exit(spi_gpio_exit);
++
++MODULE_AUTHOR("Piot Skamruk <piotr.skamruk at gmail.com>");
++MODULE_AUTHOR("Michael Buesch");
++MODULE_DESCRIPTION("Platform independent GPIO bitbanging SPI driver");
++MODULE_LICENSE("GPL v2");
+diff -puN /dev/null include/linux/spi/spi_gpio.h
+--- /dev/null
++++ a/include/linux/spi/spi_gpio.h
+@@ -0,0 +1,67 @@
++/*
++ * spi_gpio interface to platform code
++ *
++ * Copyright (c) 2008 Piotr Skamruk
++ * Copyright (c) 2008 Michael Buesch
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++#ifndef _LINUX_SPI_SPI_GPIO
++#define _LINUX_SPI_SPI_GPIO
++
++#include <linux/types.h>
++#include <linux/spi/spi.h>
++
++
++/** struct spi_gpio_platform_data - Data definitions for a SPI-GPIO device.
++ * This structure holds information about a GPIO-based SPI device.
++ *
++ * @pin_clk: The GPIO pin number of the CLOCK pin.
++ *
++ * @pin_miso: The GPIO pin number of the MISO pin.
++ *
++ * @pin_mosi: The GPIO pin number of the MOSI pin.
++ *
++ * @pin_cs: The GPIO pin number of the CHIPSELECT pin.
++ *
++ * @cs_activelow: If true, the chip is selected when the CS line is low.
++ *
++ * @no_spi_delay: If true, no delay is done in the lowlevel bitbanging.
++ *                Note that doing no delay is not standards compliant,
++ *                but it might be needed to speed up transfers on some
++ *                slow embedded machines.
++ *
++ * @boardinfo_setup: This callback is called after the
++ *                   SPI master device was registered, but before the
++ *                   device is registered.
++ * @boardinfo_setup_data: Data argument passed to boardinfo_setup().
++ */
++struct spi_gpio_platform_data {
++	unsigned int pin_clk;
++	unsigned int pin_miso;
++	unsigned int pin_mosi;
++	unsigned int pin_cs;
++	bool cs_activelow;
++	bool no_spi_delay;
++	int (*boardinfo_setup)(struct spi_board_info *bi,
++			       struct spi_master *master,
++			       void *data);
++	void *boardinfo_setup_data;
++};
++
++/** SPI_GPIO_PLATDEV_NAME - The platform device name string.
++ * The name string that has to be used for platform_device_alloc
++ * when allocating a spi-gpio device.
++ */
++#define SPI_GPIO_PLATDEV_NAME	"spi-gpio"
++
++/** spi_gpio_next_id - Get another platform device ID number.
++ * This returns the next platform device ID number that has to be used
++ * for platform_device_alloc. The ID is opaque and should not be used for
++ * anything else.
++ */
++int spi_gpio_next_id(void);
++
++#endif /* _LINUX_SPI_SPI_GPIO */
 _
 
-Patches currently in -mm which might be from trenn@suse.de are
+Patches currently in -mm which might be from mb@bu3sch.de are
 
+origin.patch
 linux-next.patch
-cpufreq-acpi-only-call-_ppc-after-cpufreq-acpi-init-funcs-got-called-already.patch
-move-memory_read_from_buffer-from-fsh-to-stringh.patch
+gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support.patch
+gpio-add-bt8xxgpio-driver.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch
+gpiolib-allow-user-selection.patch
+gpiolib-allow-user-selection-update.patch
+spi-add-spi-over-gpio-driver.patch
+add-gpio-based-mmc-sd-driver.patch
 
