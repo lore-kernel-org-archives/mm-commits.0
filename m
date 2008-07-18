@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + resource-add-resource_type-and-ioresource_type_bits.patch added to -mm tree
-Date: Fri, 18 Jul 2008 15:37:19 -0700
-Message-ID: <200807182237.m6IMbJtd002223@imap1.linux-foundation.org>
+Subject: + linux-next-fixup.patch added to -mm tree
+Date: Fri, 18 Jul 2008 15:58:32 -0700
+Message-ID: <200807182258.m6IMwWm6003043@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58060 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56454 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754075AbYGRWiK (ORCPT
+	by vger.kernel.org with ESMTP id S1752507AbYGRW6f (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Jul 2008 18:38:10 -0400
+	Fri, 18 Jul 2008 18:58:35 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m6IMwWtM009768
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Fri, 18 Jul 2008 15:58:33 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: damm@igel.co.jp, ben-linux@fluff.org, khali@linux-fr.org, lethal@linux-sh.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     resource: add resource_type() and IORESOURCE_TYPE_BITS
+     linux-next-fixup
 has been added to the -mm tree.  Its filename is
-     resource-add-resource_type-and-ioresource_type_bits.patch
+     linux-next-fixup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,127 +38,213 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: resource: add resource_type() and IORESOURCE_TYPE_BITS
-From: Magnus Damm <damm@igel.co.jp>
+Subject: linux-next-fixup
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Add resource_type() and IORESOURCE_TYPE_BITS.  They make it easier to add
-more resource types without having to rewrite tons of code.
-
-Signed-off-by: Magnus Damm <damm@igel.co.jp>
-Cc: Ben Dooks <ben-linux@fluff.org>
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/platform.c |   31 +++++++++++++++++--------------
- include/linux/ioport.h  |    7 ++++++-
- 2 files changed, 23 insertions(+), 15 deletions(-)
+ Makefile |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/base/platform.c~resource-add-resource_type-and-ioresource_type_bits drivers/base/platform.c
---- a/drivers/base/platform.c~resource-add-resource_type-and-ioresource_type_bits
-+++ a/drivers/base/platform.c
-@@ -42,10 +42,8 @@ struct resource *platform_get_resource(s
- 	for (i = 0; i < dev->num_resources; i++) {
- 		struct resource *r = &dev->resource[i];
+diff -puN Makefile~linux-next-fixup Makefile
+--- a/Makefile~linux-next-fixup
++++ a/Makefile
+@@ -1175,7 +1175,8 @@ clean: archclean $(clean-dirs)
+ 		\( -name '*.[oas]' -o -name '*.ko' -o -name '.*.cmd' \
+ 		-o -name '.*.d' -o -name '.*.tmp' -o -name '*.mod.c' \
+ 		-o -name '*.symtypes' -o -name 'modules.order' \
+-		-o -name 'Module.markers' \) \
++		-o -name 'Module.markers' \
++		-o -name '.tmp_*.o.*' \) \
+ 		-type f -print | xargs rm -f
  
--		if ((r->flags & (IORESOURCE_IO|IORESOURCE_MEM|
--				 IORESOURCE_IRQ|IORESOURCE_DMA)) == type)
--			if (num-- == 0)
--				return r;
-+		if (type == resource_type(r) && num-- == 0)
-+			return r;
- 	}
- 	return NULL;
- }
-@@ -78,10 +76,8 @@ struct resource *platform_get_resource_b
- 	for (i = 0; i < dev->num_resources; i++) {
- 		struct resource *r = &dev->resource[i];
- 
--		if ((r->flags & (IORESOURCE_IO|IORESOURCE_MEM|
--				 IORESOURCE_IRQ|IORESOURCE_DMA)) == type)
--			if (!strcmp(r->name, name))
--				return r;
-+		if (type == resource_type(r) && !strcmp(r->name, name))
-+			return r;
- 	}
- 	return NULL;
- }
-@@ -259,9 +255,9 @@ int platform_device_add(struct platform_
- 
- 		p = r->parent;
- 		if (!p) {
--			if (r->flags & IORESOURCE_MEM)
-+			if (resource_type(r) == IORESOURCE_MEM)
- 				p = &iomem_resource;
--			else if (r->flags & IORESOURCE_IO)
-+			else if (resource_type(r) == IORESOURCE_IO)
- 				p = &ioport_resource;
- 		}
- 
-@@ -282,9 +278,14 @@ int platform_device_add(struct platform_
- 		return ret;
- 
-  failed:
--	while (--i >= 0)
--		if (pdev->resource[i].flags & (IORESOURCE_MEM|IORESOURCE_IO))
--			release_resource(&pdev->resource[i]);
-+	while (--i >= 0) {
-+		struct resource *r = &pdev->resource[i];
-+		unsigned long type = resource_type(r);
-+
-+		if (type == IORESOURCE_MEM || type == IORESOURCE_IO)
-+			release_resource(r);
-+	}
-+
- 	return ret;
- }
- EXPORT_SYMBOL_GPL(platform_device_add);
-@@ -306,7 +307,9 @@ void platform_device_del(struct platform
- 
- 		for (i = 0; i < pdev->num_resources; i++) {
- 			struct resource *r = &pdev->resource[i];
--			if (r->flags & (IORESOURCE_MEM|IORESOURCE_IO))
-+			unsigned long type = resource_type(r);
-+
-+			if (type == IORESOURCE_MEM || type == IORESOURCE_IO)
- 				release_resource(r);
- 		}
- 	}
-diff -puN include/linux/ioport.h~resource-add-resource_type-and-ioresource_type_bits include/linux/ioport.h
---- a/include/linux/ioport.h~resource-add-resource_type-and-ioresource_type_bits
-+++ a/include/linux/ioport.h
-@@ -34,7 +34,8 @@ struct resource_list {
-  */
- #define IORESOURCE_BITS		0x000000ff	/* Bus-specific bits */
- 
--#define IORESOURCE_IO		0x00000100	/* Resource type */
-+#define IORESOURCE_TYPE_BITS	0x00000f00	/* Resource type */
-+#define IORESOURCE_IO		0x00000100
- #define IORESOURCE_MEM		0x00000200
- #define IORESOURCE_IRQ		0x00000400
- #define IORESOURCE_DMA		0x00000800
-@@ -122,6 +123,10 @@ static inline resource_size_t resource_s
- {
- 	return res->end - res->start + 1;
- }
-+static inline unsigned long resource_type(struct resource *res)
-+{
-+	return res->flags & IORESOURCE_TYPE_BITS;
-+}
- 
- /* Convenience shorthand with allocation */
- #define request_region(start,n,name)	__request_region(&ioport_resource, (start), (n), (name))
+ # mrproper - Delete all generated files, including .config
 _
 
-Patches currently in -mm which might be from damm@igel.co.jp are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+arm-fix-fls-for-64-bit-arguments.patch
 linux-next.patch
-sh_keysc-remove-request_mem_region-and-release_mem_region.patch
-video-superh-mobile-lcdc-driver.patch
-video-superh-mobile-lcdc-driver-update.patch
-resource-add-resource_size.patch
-resource-add-resource_type-and-ioresource_type_bits.patch
-resource-add-new-ioresource_clk-type-v2.patch
-i2c-sh_mobile-ioresource_clk-support.patch
+linux-next-fixup.patch
+next-remove-localversion.patch
+kvm-is-busted-on-ia64.patch
+drivers-mtd-nand-nandsimc-needs-div64h.patch
+pci-make-pci_register_driver-a-macro.patch
+git-acpi.patch
+git-dvb.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+git-hid.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+ia64-improper-printk-format-in-acpi-cpufreq-checkpatch-fixes.patch
+git-input.patch
+git-jg-misc.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+git-kvm.patch
+git-leds.patch
+git-async-tx.patch
+git-mtd.patch
+git-net.patch
+bridge-send-correct-mtu-value-in-pmtu-checkpatch-fixes.patch
+sundance-set-carrier-status-on-link-change-events.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+git-nfsd.patch
+use-sysdev_class-in-schedc-fix.patch
+git-sh.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+git-unionfs.patch
+git-logfs-fixup.patch
+drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
+drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
+git-watchdog.patch
+git-xtensa.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-verify-the-page-links-and-memory-model.patch
+mspec-convert-nopfn-to-fault-fix.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+kill-generic_file_direct_io-checkpatch-fixes.patch
+use-generic_access_phys-for-dev-mem-mappings-fix.patch
+spufs-use-the-new-vm_ops-access-fix.patch
+fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
+page-flags-record-page-flag-overlays-explicitly-xen.patch
+mapping_set_error-add-unlikely.patch
+huge-page-private-reservation-review-cleanups-fix.patch
+vma-page-offset-has-no-callees-drop-it.patch
+sync_file_range_write-may-and-will-block-document-that-fix.patch
+vmallocinfo-add-numa-information-fix.patch
+hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
+hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
+hugetlb-override-default-huge-page-size-ia64-build.patch
+linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+bootmem-add-debugging-framework-fix.patch
+bootmem-clean-up-free_all_bootmem_core-fix.patch
+bootmem-free-reserve-helpers-fix.patch
+revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-v850-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-arm-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mips-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mtd-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fixes.patch
+mmu-notifiers-add-mm_take_all_locks-operation-checkpatch-fixes.patch
+mmu-notifier-core-checkpatch-fixes.patch
+mmu-notifier-core-fix.patch
+mmu-notifier-core-fix-2.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
+security-protect-legacy-applications-from-executing-with-insufficient-privilege-checkpatch-fixes.patch
+swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+seq_file-fix-bug-when-seq_read-reads-nothing-fix.patch
+exec-remove-some-includes-fix.patch
+inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-paccept-sys_ni.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-signalfd-fix.patch
+flag-parameters-eventfd-fix.patch
+flag-parameters-inotify_init-fix.patch
+flag-parameters-check-magic-constants-alpha.patch
+spi-au1550_spi-improve-pio-transfer-mode-checkpatch-fixes.patch
+gpio-gpio-driver-for-max7301-spi-gpio-expander-checkpatch-fixes.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
+sm501-fixup-allocation-code-to-be-64bit-resource-compliant-sm501-align-panel-fb-to-page_size-fix.patch
+lcd-add-platform_lcd-driver-fix.patch
+fsl-diu-fb-update-freescale-diu-driver-to-use-page_alloc_exact.patch
+fbdev-add-new-cobalt-lcd-framebuffer-driver.patch
+eink_apollofb-new-driver-for-apollo-eink-controller-cleanup.patch
+fbcon-remove-stray-semicolons-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
+ext3-handle-corrupted-orphan-list-at-mount-cleanup.patch
+ext3-handle-corrupted-orphan-list-at-mount-fix.patch
+ext3-handle-corrupted-orphan-list-at-mount-cleanup-fix.patch
+ext3-handle-deleting-corrupted-indirect-blocks-fix.patch
+jbd-dont-abort-if-flushing-file-data-failed-fix.patch
+reiserfs-convert-j_flush_sem-to-mutex.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
+cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-fix.patch
+cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-checkpatch-fixes.patch
+devcgroup-code-cleanup-fix.patch
+memcg-remove-refcnt-from-page_cgroup-fix-2.patch
+coredump-exit_mm-clear-mm-first-then-play-with-core_state-checkpatch-fixes.patch
+workqueues-make-get_online_cpus-useable-for-work-func-fix.patch
+ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
+fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
+block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
+getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
+edac-mpc85xx-fix-pci-ofdev-2nd-pass-checkpatch-fixes.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-s2io.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
+x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary-checkpatch-fixes.patch
+calgary-iommu-use-the-first-kernels-tce-tables-in-kdump-coding-style-fixes.patch
+tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
+memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
+memstick-use-fully-asynchronous-request-processing-fix.patch
+full-conversion-to-early_initcall-interface-remove-old-interface-cleanup.patch
+full-conversion-to-early_initcall-interface-remove-old-interface-fix.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+mm-introduce-get_user_pages_fast-fix.patch
+mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-fix.patch
+x86-lockless-get_user_pages_fast-fix-2.patch
+x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
+x86-lockless-get_user_pages_fast-fix-warning.patch
+vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
+define-page_file_cache-function-fix.patch
+vmscan-split-lru-lists-into-anon-file-sets-units-fix.patch
+unevictable-lru-infrastructure-fix.patch
+unevictable-lru-page-statistics-units-fix.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-3.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
+vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-fix.patch
+video-console-sticonrec-make-code-static-checkpatch-fixes.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
