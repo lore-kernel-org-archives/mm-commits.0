@@ -1,250 +1,159 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-fixup.patch added to -mm tree
-Date: Fri, 18 Jul 2008 15:58:32 -0700
-Message-ID: <200807182258.m6IMwWm6003043@imap1.linux-foundation.org>
+Subject: - ia64-hp-sim-simserialc-adapt-to-new-tty-framework.patch removed from -mm tree
+Date: Fri, 18 Jul 2008 16:00:38 -0700
+Message-ID: <200807182300.m6IN0c0s003138@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56454 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40997 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752507AbYGRW6f (ORCPT
+	by vger.kernel.org with ESMTP id S1752932AbYGRXBG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Jul 2008 18:58:35 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m6IMwWtM009768
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 18 Jul 2008 15:58:33 -0700
+	Fri, 18 Jul 2008 19:01:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: kosaki.motohiro@jp.fujitsu.com, alan@redhat.com, gregkh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next-fixup
-has been added to the -mm tree.  Its filename is
-     linux-next-fixup.patch
+     ia64/hp/sim/simserial.c adapt to new tty framework
+has been removed from the -mm tree.  Its filename was
+     ia64-hp-sim-simserialc-adapt-to-new-tty-framework.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-fixup
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ia64/hp/sim/simserial.c adapt to new tty framework
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
+Recently, Alan Cox made cleanup tty widely.  But unfortunately it cause
+simserial build error.  This patch fixes it.
+
+  arch/ia64/hp/sim/simserial.c: In function 'rs_flush_buffer':
+  arch/ia64/hp/sim/simserial.c:357: error: 'struct tty_ldisc' has no member named 'write_wakeup'
+  arch/ia64/hp/sim/simserial.c:358: error: 'struct tty_ldisc' has no member named 'write_wakeup'
+  arch/ia64/hp/sim/simserial.c: In function 'rs_close':
+  arch/ia64/hp/sim/simserial.c:628: error: 'struct tty_ldisc' has no member named 'flush_buffer'
+  arch/ia64/hp/sim/simserial.c:628: error: 'struct tty_ldisc' has no member named 'flush_buffer'
+  arch/ia64/hp/sim/simserial.c: At top level:
+  arch/ia64/hp/sim/simserial.c:958: warning: initialization from incompatible pointer type
+
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Alan Cox <alan@redhat.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/ia64/hp/sim/simserial.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN Makefile~linux-next-fixup Makefile
---- a/Makefile~linux-next-fixup
-+++ a/Makefile
-@@ -1175,7 +1175,8 @@ clean: archclean $(clean-dirs)
- 		\( -name '*.[oas]' -o -name '*.ko' -o -name '.*.cmd' \
- 		-o -name '.*.d' -o -name '.*.tmp' -o -name '*.mod.c' \
- 		-o -name '*.symtypes' -o -name 'modules.order' \
--		-o -name 'Module.markers' \) \
-+		-o -name 'Module.markers' \
-+		-o -name '.tmp_*.o.*' \) \
- 		-type f -print | xargs rm -f
+diff -puN arch/ia64/hp/sim/simserial.c~ia64-hp-sim-simserialc-adapt-to-new-tty-framework arch/ia64/hp/sim/simserial.c
+--- a/arch/ia64/hp/sim/simserial.c~ia64-hp-sim-simserialc-adapt-to-new-tty-framework
++++ a/arch/ia64/hp/sim/simserial.c
+@@ -354,8 +354,8 @@ static void rs_flush_buffer(struct tty_s
+ 	wake_up_interruptible(&tty->write_wait);
  
- # mrproper - Delete all generated files, including .config
+ 	if ((tty->flags & (1 << TTY_DO_WRITE_WAKEUP)) &&
+-	    tty->ldisc.write_wakeup)
+-		(tty->ldisc.write_wakeup)(tty);
++	    tty->ldisc.ops->write_wakeup)
++		(tty->ldisc.ops->write_wakeup)(tty);
+ }
+ 
+ /*
+@@ -407,8 +407,9 @@ static void rs_unthrottle(struct tty_str
+ /*
+  * rs_break() --- routine which turns the break handling on or off
+  */
+-static void rs_break(struct tty_struct *tty, int break_state)
++static int rs_break(struct tty_struct *tty, int break_state)
+ {
++	return 0;
+ }
+ 
+ static int rs_ioctl(struct tty_struct *tty, struct file * file,
+@@ -625,7 +626,8 @@ static void rs_close(struct tty_struct *
+ 	shutdown(info);
+ 	if (tty->ops->flush_buffer)
+ 		tty->ops->flush_buffer(tty);
+-	if (tty->ldisc.flush_buffer) tty->ldisc.flush_buffer(tty);
++	if (tty->ldisc.ops->flush_buffer)
++		tty->ldisc.ops->flush_buffer(tty);
+ 	info->event = 0;
+ 	info->tty = NULL;
+ 	if (info->blocked_open) {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
-origin.patch
-arm-fix-fls-for-64-bit-arguments.patch
-linux-next.patch
-linux-next-fixup.patch
-next-remove-localversion.patch
-kvm-is-busted-on-ia64.patch
-drivers-mtd-nand-nandsimc-needs-div64h.patch
-pci-make-pci_register_driver-a-macro.patch
-git-acpi.patch
-git-dvb.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-git-hid.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-ia64-improper-printk-format-in-acpi-cpufreq-checkpatch-fixes.patch
-git-input.patch
-git-jg-misc.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-git-kvm.patch
-git-leds.patch
-git-async-tx.patch
-git-mtd.patch
-git-net.patch
-bridge-send-correct-mtu-value-in-pmtu-checkpatch-fixes.patch
-sundance-set-carrier-status-on-link-change-events.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-battery.patch
-git-nfsd.patch
-use-sysdev_class-in-schedc-fix.patch
-git-sh.patch
-drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
-git-unionfs.patch
-git-logfs-fixup.patch
-drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
-drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
-git-watchdog.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-verify-the-page-links-and-memory-model.patch
-mspec-convert-nopfn-to-fault-fix.patch
+adapt-drivers-base-topologyc-to-new-sysfs-api.patch
+ia64-hp-sim-simserialc-adapt-to-new-tty-framework.patch
+ahci-use-correct-type-for-cpu-flags.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers.patch
 page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
-kill-generic_file_direct_io-checkpatch-fixes.patch
-use-generic_access_phys-for-dev-mem-mappings-fix.patch
-spufs-use-the-new-vm_ops-access-fix.patch
-fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
-page-flags-record-page-flag-overlays-explicitly-xen.patch
-mapping_set_error-add-unlikely.patch
-huge-page-private-reservation-review-cleanups-fix.patch
-vma-page-offset-has-no-callees-drop-it.patch
-sync_file_range_write-may-and-will-block-document-that-fix.patch
-vmallocinfo-add-numa-information-fix.patch
-hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
-hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
-hugetlb-override-default-huge-page-size-ia64-build.patch
-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-bootmem-add-debugging-framework-fix.patch
-bootmem-clean-up-free_all_bootmem_core-fix.patch
-bootmem-free-reserve-helpers-fix.patch
-revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-v850-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-arm-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mips-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mtd-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fixes.patch
-mmu-notifiers-add-mm_take_all_locks-operation-checkpatch-fixes.patch
-mmu-notifier-core-checkpatch-fixes.patch
-mmu-notifier-core-fix.patch
-mmu-notifier-core-fix-2.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
-security-protect-legacy-applications-from-executing-with-insufficient-privilege-checkpatch-fixes.patch
-swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
-split-the-typecheck-macros-out-of-include-linux-kernelh.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
-remove-apparently-unused-fd1772h-header-file.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
-build-kernel-profileo-only-when-requested-cleanups.patch
-seq_file-fix-bug-when-seq_read-reads-nothing-fix.patch
-exec-remove-some-includes-fix.patch
-inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments.patch
-flag-parameters-paccept-fix.patch
-flag-parameters-paccept-sys_ni.patch
-flag-parameters-anon_inode_getfd-extension-fix.patch
-flag-parameters-signalfd-fix.patch
-flag-parameters-eventfd-fix.patch
-flag-parameters-inotify_init-fix.patch
-flag-parameters-check-magic-constants-alpha.patch
-spi-au1550_spi-improve-pio-transfer-mode-checkpatch-fixes.patch
-gpio-gpio-driver-for-max7301-spi-gpio-expander-checkpatch-fixes.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch
-drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
-atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
-sm501-fixup-allocation-code-to-be-64bit-resource-compliant-sm501-align-panel-fb-to-page_size-fix.patch
-lcd-add-platform_lcd-driver-fix.patch
-fsl-diu-fb-update-freescale-diu-driver-to-use-page_alloc_exact.patch
-fbdev-add-new-cobalt-lcd-framebuffer-driver.patch
-eink_apollofb-new-driver-for-apollo-eink-controller-cleanup.patch
-fbcon-remove-stray-semicolons-checkpatch-fixes.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
-ext3-handle-corrupted-orphan-list-at-mount-cleanup.patch
-ext3-handle-corrupted-orphan-list-at-mount-fix.patch
-ext3-handle-corrupted-orphan-list-at-mount-cleanup-fix.patch
-ext3-handle-deleting-corrupted-indirect-blocks-fix.patch
-jbd-dont-abort-if-flushing-file-data-failed-fix.patch
-reiserfs-convert-j_flush_sem-to-mutex.patch
-reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
-cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-fix.patch
-cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-checkpatch-fixes.patch
-devcgroup-code-cleanup-fix.patch
-memcg-remove-refcnt-from-page_cgroup-fix-2.patch
-coredump-exit_mm-clear-mm-first-then-play-with-core_state-checkpatch-fixes.patch
-workqueues-make-get_online_cpus-useable-for-work-func-fix.patch
-ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
-fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
-block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
-getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
-edac-mpc85xx-fix-pci-ofdev-2nd-pass-checkpatch-fixes.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-s2io.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
-x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary-checkpatch-fixes.patch
-calgary-iommu-use-the-first-kernels-tce-tables-in-kdump-coding-style-fixes.patch
-tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
-memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
-memstick-use-fully-asynchronous-request-processing-fix.patch
-full-conversion-to-early_initcall-interface-remove-old-interface-cleanup.patch
-full-conversion-to-early_initcall-interface-remove-old-interface-fix.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-mm-introduce-get_user_pages_fast-fix.patch
-mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-fix.patch
-x86-lockless-get_user_pages_fast-fix-2.patch
-x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
-x86-lockless-get_user_pages_fast-fix-warning.patch
-vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
-define-page_file_cache-function-fix.patch
-vmscan-split-lru-lists-into-anon-file-sets-units-fix.patch
+mm-hugetlbc-fix-duplicate-variable.patch
+page-flags-record-page-flag-overlays-explicitly.patch
+slub-record-page-flag-overlays-explicitly.patch
+slob-record-page-flag-overlays-explicitly.patch
+mm-create-sys-kernel-mm-fix.patch
+mm-make-config_migration-available-w-o-config_numa-fix.patch
+pm-schedule-sysrq-poweroff-on-boot-cpu-fix.patch
+call_usermodehelper-increase-reliability.patch
+cgroup-list_for_each-cleanup-v2.patch
+cgroup-anotate-two-variables-with-__read_mostly.patch
+devcgroup-code-cleanup-fix-fix.patch
+memcg-remove-refcnt-from-page_cgroup-fix-memcg-fix-mem_cgroup_end_migration-race.patch
+memcg-remove-refcnt-from-page_cgroup-memcg-fix-shmem_unuse_inode-charging.patch
+memcg-clean-up-checking-of-the-disabled-flag.patch
+memcg-clean-up-checking-of-the-disabled-flag-memcg-further-checking-of-disabled-flag.patch
+per-task-delay-accounting-update-document-and-getdelaysc-for-memory-reclaim.patch
+full-conversion-to-early_initcall-interface-remove-old-interface-fix-fix.patch
+full-conversion-to-early_initcall-interface-remove-old-interface-fix-fix-fix.patch
+relay-add-buffer-only-channels-useful-for-early-logging-fix.patch
+mm-speculative-page-references-fix-migration_entry_wait-for-speculative-page-cache.patch
+vmscan-use-an-indexed-array-for-lru-variables.patch
+swap-use-an-array-for-the-lru-pagevecs.patch
+define-page_file_cache-function-fix-splitlru-shmem_getpage-setpageswapbacked-sooner.patch
+vmscan-split-lru-lists-into-anon-file-sets-collect-lru-meminfo-statistics-from-correct-offset.patch
+vmscan-split-lru-lists-into-anon-file-sets-prevent-incorrect-oom-under-split_lru.patch
+vmscan-split-lru-lists-into-anon-file-sets-split_lru-fix-pagevec_move_tail-doesnt-treat-unevictable-page.patch
+vmscan-split-lru-lists-into-anon-file-sets-splitlru-memcg-swapbacked-pages-active.patch
+vmscan-split-lru-lists-into-anon-file-sets-splitlru-bdi_cap_swap_backed.patch
+vmscan-second-chance-replacement-for-anonymous-pages.patch
+vmscan-second-chance-replacement-for-anonymous-pages-fix.patch
+unevictable-lru-infrastructure.patch
 unevictable-lru-infrastructure-fix.patch
+unevictable-lru-infrastructure-remove-redundant-page-mapping-check.patch
+unevictable-lru-infrastructure-putback_lru_page-unevictable-page-handling-rework.patch
+unevictable-lru-infrastructure-kill-unnecessary-lock_page-in-vmscanc.patch
+unevictable-lru-infrastructure-revert-migration-change-of-unevictable-lru-infrastructure.patch
+unevictable-lru-page-statistics.patch
+unevictable-lru-page-statistics-fix-printk-in-show_free_areas.patch
 unevictable-lru-page-statistics-units-fix.patch
+shm_locked-pages-are-unevictable.patch
+shm_locked-pages-are-unevictable-revert-shm-change-of-shm_locked-pages-are-unevictable-patch.patch
+mlock-mlocked-pages-are-unevictable.patch
 mlock-mlocked-pages-are-unevictable-fix.patch
 mlock-mlocked-pages-are-unevictable-fix-fix.patch
 mlock-mlocked-pages-are-unevictable-fix-3.patch
+mlock-mlocked-pages-are-unevictable-fix-fix-munlock-page-table-walk-now-requires-mm.patch
+mlock-mlocked-pages-are-unevictable-restore-patch-failure-hunk-of-mlock-mlocked-pages-are-unevictablepatch.patch
+mlock-mlocked-pages-are-unevictable-fix-truncate-race-and-sevaral-comments.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+fix-double-unlock_page-in-2626-rc5-mm3-kernel-bug-at-mm-filemapc-575.patch
 mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
+vmstat-mlocked-pages-statistics.patch
+vmstat-mlocked-pages-statistics-fix-incorrect-mlocked-field-of-proc-meminfo.patch
+vmstat-mlocked-pages-statistics-fix.patch
+swap-cull-unevictable-pages-in-fault-path-fix.patch
+vmstat-unevictable-and-mlocked-pages-vm-events.patch
+restore-patch-failure-of-vmstat-unevictable-and-mlocked-pages-vm-eventspatch.patch
+vmscan-unevictable-lru-scan-sysctl.patch
 vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-fix.patch
-video-console-sticonrec-make-code-static-checkpatch-fixes.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+vmscan-unevictable-lru-scan-sysctl-add-sys_device-parameter.patch
+vmscam-kill-unused-lru-functions.patch
+make-mm-memoryc-print_bad_pte-static.patch
+mm-swapfilec-make-code-static.patch
+make-mm-rmapc-anon_vma_cachep-static.patch
 
