@@ -1,18 +1,18 @@
 From: akpm@linux-foundation.org
 Subject: + modules-extend-initcall_debug-functionality-to-the-module-loader.patch added to -mm tree
-Date: Thu, 17 Jul 2008 16:32:14 -0700
-Message-ID: <200807172332.m6HNWHDh012713@imap1.linux-foundation.org>
+Date: Thu, 17 Jul 2008 17:08:38 -0700
+Message-ID: <200807180008.m6I08cXA014153@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41749 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53584 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759526AbYGQXc7 (ORCPT
+	by vger.kernel.org with ESMTP id S1758787AbYGRAJO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Jul 2008 19:32:59 -0400
+	Thu, 17 Jul 2008 20:09:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: arjan@infradead.org, arjan@linux.intel.com, rusty@rustcorp.com.au
+Cc: arjan@linux.intel.com, rusty@rustcorp.com.au
 
 
 The patch titled
@@ -35,7 +35,7 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 Subject: modules: extend initcall_debug functionality to the module loader
-From: Arjan van de Ven <arjan@infradead.org>
+From: Arjan van de Ven <arjan@linux.intel.com>
 
 The kernel has this really nice facility where if you put "initcall_debug"
 on the kernel commandline, it'll print which function it's going to
@@ -123,12 +123,27 @@ diff -puN kernel/module.c~modules-extend-initcall_debug-functionality-to-the-mod
                     buggy refcounters. */
 _
 
-Patches currently in -mm which might be from arjan@infradead.org are
+Patches currently in -mm which might be from arjan@linux.intel.com are
 
 origin.patch
-git-unionfs.patch
+linux-next.patch
+via-velocity-fix-sleep-with-spinlock-bug-during-mtu-change.patch
 modules-extend-initcall_debug-functionality-to-the-module-loader.patch
+rename-warn-to-warning-to-clear-the-namespace.patch
 add-a-warn-macro-this-is-warn_on-printk-arguments.patch
-list-debugging-use-warn_on-instead-of-bug.patch
-kallsyms-unify-32-and-64-bit-code.patch
+kernel-irq-managec-replace-a-printk-warn_on-to-a-warn.patch
+example-use-of-warn.patch
+use-warn-in-kernel-irq-managec.patch
+use-warn-in-mm-vmallocc.patch
+use-warn-in-kernel-lockdepc.patch
+use-warn-in-kernel-irq-chipc.patch
+use-warn-in-arch-x86-mm-ioremapc.patch
+use-warn-in-arch-x86-mm-pageattrc.patch
+use-warn-in-arch-x86-kernel.patch
+use-warn-in-block.patch
+use-warn-in-drivers-base.patch
+use-warn-in-lib.patch
+use-warn-in-fs.patch
+usr-warn-in-fs-sysfs.patch
+use-warn-in-fs-proc.patch
 
