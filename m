@@ -1,174 +1,419 @@
 From: akpm@linux-foundation.org
-Subject: - stallion-fix-the-istallion-drivers-putchar-and-break_ctl-ops.patch removed from -mm tree
-Date: Fri, 18 Jul 2008 16:24:45 -0700
-Message-ID: <200807182324.m6INOju3004255@imap1.linux-foundation.org>
+Subject: - ptrace-do_wait-reorganization.patch removed from -mm tree
+Date: Fri, 18 Jul 2008 16:24:34 -0700
+Message-ID: <200807182324.m6INOYCd004205@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37130 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37828 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757604AbYGRXZi (ORCPT
+	by vger.kernel.org with ESMTP id S1757632AbYGRXZf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Jul 2008 19:25:38 -0400
+	Fri, 18 Jul 2008 19:25:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, alan@lxorguk.ukuu.org.uk, jirislaby@gmail.com, mm-commits@vger.kernel.org
+To: roland@redhat.com, oleg@tv-sign.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     stallion: fix the (i)Stallion driver's putchar() and break_ctl() ops
+     ptrace: do_wait reorganization
 has been removed from the -mm tree.  Its filename was
-     stallion-fix-the-istallion-drivers-putchar-and-break_ctl-ops.patch
+     ptrace-do_wait-reorganization.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: stallion: fix the (i)Stallion driver's putchar() and break_ctl() ops
-From: David Howells <dhowells@redhat.com>
+Subject: ptrace: do_wait reorganization
+From: Roland McGrath <roland@redhat.com>
 
-Fix the Stallion driver's putchar() and break_ctl() ops and iStallion's
-putchar() to return values.
+This breaks out the guts of do_wait into three subfunctions.  The control
+flow is less nonobvious without so much goto.  do_wait_thread and
+ptrace_do_wait contain the main work of the outer loop. 
+wait_consider_task contains the main work of the inner loop.
 
-Is it actually possible for putchar() or break_ctl() to be called with tty
-== NULL or can the check be discarded?
-
-Should stl_write() be returning 0 if tty->driver_data is NULL or tx.buf is
-NULL?  Is this even possible?
-
-I've made Stallion's functions return -EINVAL as stli_breakctl() if the checks
-fail.
-
-Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Jiri Slaby <jirislaby@gmail.com>
+Signed-off-by: Roland McGrath <roland@redhat.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/istallion.c |    5 +++--
- drivers/char/stallion.c  |   16 +++++++++-------
- 2 files changed, 12 insertions(+), 9 deletions(-)
+ kernel/exit.c |  215 ++++++++++++++++++++++++++++++------------------
+ 1 file changed, 135 insertions(+), 80 deletions(-)
 
-diff -puN drivers/char/istallion.c~stallion-fix-the-istallion-drivers-putchar-and-break_ctl-ops drivers/char/istallion.c
---- a/drivers/char/istallion.c~stallion-fix-the-istallion-drivers-putchar-and-break_ctl-ops
-+++ a/drivers/char/istallion.c
-@@ -598,7 +598,7 @@ static int	stli_parsebrd(struct stlconf 
- static int	stli_open(struct tty_struct *tty, struct file *filp);
- static void	stli_close(struct tty_struct *tty, struct file *filp);
- static int	stli_write(struct tty_struct *tty, const unsigned char *buf, int count);
--static void	stli_putchar(struct tty_struct *tty, unsigned char ch);
-+static int	stli_putchar(struct tty_struct *tty, unsigned char ch);
- static void	stli_flushchars(struct tty_struct *tty);
- static int	stli_writeroom(struct tty_struct *tty);
- static int	stli_charsinbuffer(struct tty_struct *tty);
-@@ -1333,7 +1333,7 @@ static int stli_write(struct tty_struct 
-  *	first them do the new ports.
+diff -puN kernel/exit.c~ptrace-do_wait-reorganization kernel/exit.c
+--- a/kernel/exit.c~ptrace-do_wait-reorganization
++++ a/kernel/exit.c
+@@ -1230,7 +1230,7 @@ static int wait_noreap_copyout(struct ta
+  * the lock and this task is uninteresting.  If we return nonzero, we have
+  * released the lock and the system call should return.
   */
- 
--static void stli_putchar(struct tty_struct *tty, unsigned char ch)
-+static int stli_putchar(struct tty_struct *tty, unsigned char ch)
+-static int wait_task_zombie(struct task_struct *p, int noreap,
++static int wait_task_zombie(struct task_struct *p, int options,
+ 			    struct siginfo __user *infop,
+ 			    int __user *stat_addr, struct rusage __user *ru)
  {
- 	if (tty != stli_txcooktty) {
- 		if (stli_txcooktty != NULL)
-@@ -1342,6 +1342,7 @@ static void stli_putchar(struct tty_stru
+@@ -1238,7 +1238,10 @@ static int wait_task_zombie(struct task_
+ 	int retval, status, traced;
+ 	pid_t pid = task_pid_vnr(p);
+ 
+-	if (unlikely(noreap)) {
++	if (!likely(options & WEXITED))
++		return 0;
++
++	if (unlikely(options & WNOWAIT)) {
+ 		uid_t uid = p->uid;
+ 		int exit_code = p->exit_code;
+ 		int why, status;
+@@ -1389,13 +1392,16 @@ static int wait_task_zombie(struct task_
+  * released the lock and the system call should return.
+  */
+ static int wait_task_stopped(struct task_struct *p,
+-			     int noreap, struct siginfo __user *infop,
++			     int options, struct siginfo __user *infop,
+ 			     int __user *stat_addr, struct rusage __user *ru)
+ {
+ 	int retval, exit_code, why;
+ 	uid_t uid = 0; /* unneeded, required by compiler */
+ 	pid_t pid;
+ 
++	if (!(p->ptrace & PT_PTRACED) && !(options & WUNTRACED))
++		return 0;
++
+ 	exit_code = 0;
+ 	spin_lock_irq(&p->sighand->siglock);
+ 
+@@ -1413,7 +1419,7 @@ static int wait_task_stopped(struct task
+ 	if (!exit_code)
+ 		goto unlock_sig;
+ 
+-	if (!noreap)
++	if (!unlikely(options & WNOWAIT))
+ 		p->exit_code = 0;
+ 
+ 	uid = p->uid;
+@@ -1434,7 +1440,7 @@ unlock_sig:
+ 	why = (p->ptrace & PT_PTRACED) ? CLD_TRAPPED : CLD_STOPPED;
+ 	read_unlock(&tasklist_lock);
+ 
+-	if (unlikely(noreap))
++	if (unlikely(options & WNOWAIT))
+ 		return wait_noreap_copyout(p, pid, uid,
+ 					   why, exit_code,
+ 					   infop, ru);
+@@ -1468,7 +1474,7 @@ unlock_sig:
+  * the lock and this task is uninteresting.  If we return nonzero, we have
+  * released the lock and the system call should return.
+  */
+-static int wait_task_continued(struct task_struct *p, int noreap,
++static int wait_task_continued(struct task_struct *p, int options,
+ 			       struct siginfo __user *infop,
+ 			       int __user *stat_addr, struct rusage __user *ru)
+ {
+@@ -1476,6 +1482,9 @@ static int wait_task_continued(struct ta
+ 	pid_t pid;
+ 	uid_t uid;
+ 
++	if (!unlikely(options & WCONTINUED))
++		return 0;
++
+ 	if (!(p->signal->flags & SIGNAL_STOP_CONTINUED))
+ 		return 0;
+ 
+@@ -1485,7 +1494,7 @@ static int wait_task_continued(struct ta
+ 		spin_unlock_irq(&p->sighand->siglock);
+ 		return 0;
  	}
+-	if (!noreap)
++	if (!unlikely(options & WNOWAIT))
+ 		p->signal->flags &= ~SIGNAL_STOP_CONTINUED;
+ 	spin_unlock_irq(&p->sighand->siglock);
  
- 	stli_txcookbuf[stli_txcooksize++] = ch;
-+	return 0;
+@@ -1511,89 +1520,137 @@ static int wait_task_continued(struct ta
+ 	return retval;
  }
  
- /*****************************************************************************/
-diff -puN drivers/char/stallion.c~stallion-fix-the-istallion-drivers-putchar-and-break_ctl-ops drivers/char/stallion.c
---- a/drivers/char/stallion.c~stallion-fix-the-istallion-drivers-putchar-and-break_ctl-ops
-+++ a/drivers/char/stallion.c
-@@ -1025,7 +1025,7 @@ static int stl_write(struct tty_struct *
- 
- /*****************************************************************************/
- 
--static void stl_putchar(struct tty_struct *tty, unsigned char ch)
-+static int stl_putchar(struct tty_struct *tty, unsigned char ch)
++/*
++ * Consider @p for a wait by @parent.
++ *
++ * -ECHILD should be in *@notask_error before the first call.
++ * Returns nonzero for a final return, when we have unlocked tasklist_lock.
++ * Returns zero if the search for a child should continue;
++ * then *@notask_error is 0 if @p is an eligible child, or still -ECHILD.
++ */
++static int wait_consider_task(struct task_struct *parent,
++			      struct task_struct *p, int *notask_error,
++			      enum pid_type type, struct pid *pid, int options,
++			      struct siginfo __user *infop,
++			      int __user *stat_addr, struct rusage __user *ru)
++{
++	int ret = eligible_child(type, pid, options, p);
++	if (ret <= 0)
++		return ret;
++
++	if (p->exit_state == EXIT_DEAD)
++		return 0;
++
++	/*
++	 * We don't reap group leaders with subthreads.
++	 */
++	if (p->exit_state == EXIT_ZOMBIE && !delay_group_leader(p))
++		return wait_task_zombie(p, options, infop, stat_addr, ru);
++
++	/*
++	 * It's stopped or running now, so it might
++	 * later continue, exit, or stop again.
++	 */
++	*notask_error = 0;
++
++	if (task_is_stopped_or_traced(p))
++		return wait_task_stopped(p, options, infop, stat_addr, ru);
++
++	return wait_task_continued(p, options, infop, stat_addr, ru);
++}
++
++/*
++ * Do the work of do_wait() for one thread in the group, @tsk.
++ *
++ * -ECHILD should be in *@notask_error before the first call.
++ * Returns nonzero for a final return, when we have unlocked tasklist_lock.
++ * Returns zero if the search for a child should continue; then
++ * *@notask_error is 0 if there were any eligible children, or still -ECHILD.
++ */
++static int do_wait_thread(struct task_struct *tsk, int *notask_error,
++			  enum pid_type type, struct pid *pid, int options,
++			  struct siginfo __user *infop, int __user *stat_addr,
++			  struct rusage __user *ru)
++{
++	struct task_struct *p;
++
++	list_for_each_entry(p, &tsk->children, sibling) {
++		int ret = wait_consider_task(tsk, p, notask_error,
++					     type, pid, options,
++					     infop, stat_addr, ru);
++		if (ret)
++			return ret;
++	}
++
++	return 0;
++}
++
++static int ptrace_do_wait(struct task_struct *tsk, int *notask_error,
++			  enum pid_type type, struct pid *pid, int options,
++			  struct siginfo __user *infop, int __user *stat_addr,
++			  struct rusage __user *ru)
++{
++	struct task_struct *p;
++
++	/*
++	 * If we never saw an eligile child, check for children stolen by
++	 * ptrace.  We don't leave -ECHILD in *@notask_error if there are any,
++	 * because we will eventually be allowed to wait for them again.
++	 */
++	if (!*notask_error)
++		return 0;
++
++	list_for_each_entry(p, &tsk->ptrace_children, ptrace_list) {
++		int ret = eligible_child(type, pid, options, p);
++		if (unlikely(ret < 0))
++			return ret;
++		if (ret) {
++			*notask_error = 0;
++			return 0;
++		}
++	}
++
++	return 0;
++}
++
+ static long do_wait(enum pid_type type, struct pid *pid, int options,
+ 		    struct siginfo __user *infop, int __user *stat_addr,
+ 		    struct rusage __user *ru)
  {
- 	struct stlport	*portp;
- 	unsigned int	len;
-@@ -1034,12 +1034,12 @@ static void stl_putchar(struct tty_struc
- 	pr_debug("stl_putchar(tty=%p,ch=%x)\n", tty, ch);
+ 	DECLARE_WAITQUEUE(wait, current);
+ 	struct task_struct *tsk;
+-	int flag, retval;
++	int retval;
  
- 	if (tty == NULL)
--		return;
-+		return -EINVAL;
- 	portp = tty->driver_data;
- 	if (portp == NULL)
--		return;
-+		return -EINVAL;
- 	if (portp->tx.buf == NULL)
--		return;
-+		return -EINVAL;
+ 	add_wait_queue(&current->signal->wait_chldexit,&wait);
+ repeat:
+-	/* If there is nothing that can match our critier just get out */
++	/*
++	 * If there is nothing that can match our critiera just get out.
++	 * We will clear @retval to zero if we see any child that might later
++	 * match our criteria, even if we are not able to reap it yet.
++	 */
+ 	retval = -ECHILD;
+ 	if ((type < PIDTYPE_MAX) && (!pid || hlist_empty(&pid->tasks[type])))
+ 		goto end;
  
- 	head = portp->tx.head;
- 	tail = portp->tx.tail;
-@@ -1053,6 +1053,7 @@ static void stl_putchar(struct tty_struc
- 			head = portp->tx.buf;
- 	}	
- 	portp->tx.head = head;
-+	return 0;
- }
+-	/*
+-	 * We will set this flag if we see any child that might later
+-	 * match our criteria, even if we are not able to reap it yet.
+-	 */
+-	flag = retval = 0;
+ 	current->state = TASK_INTERRUPTIBLE;
+ 	read_lock(&tasklist_lock);
+ 	tsk = current;
+ 	do {
+-		struct task_struct *p;
+-
+-		list_for_each_entry(p, &tsk->children, sibling) {
+-			int ret = eligible_child(type, pid, options, p);
+-			if (!ret)
+-				continue;
+-
+-			if (unlikely(ret < 0)) {
+-				retval = ret;
+-			} else if (task_is_stopped_or_traced(p)) {
+-				/*
+-				 * It's stopped now, so it might later
+-				 * continue, exit, or stop again.
+-				 */
+-				flag = 1;
+-				if (!(p->ptrace & PT_PTRACED) &&
+-				    !(options & WUNTRACED))
+-					continue;
+-
+-				retval = wait_task_stopped(p,
+-						(options & WNOWAIT), infop,
+-						stat_addr, ru);
+-			} else if (p->exit_state == EXIT_ZOMBIE &&
+-					!delay_group_leader(p)) {
+-				/*
+-				 * We don't reap group leaders with subthreads.
+-				 */
+-				if (!likely(options & WEXITED))
+-					continue;
+-				retval = wait_task_zombie(p,
+-						(options & WNOWAIT), infop,
+-						stat_addr, ru);
+-			} else if (p->exit_state != EXIT_DEAD) {
+-				/*
+-				 * It's running now, so it might later
+-				 * exit, stop, or stop and then continue.
+-				 */
+-				flag = 1;
+-				if (!unlikely(options & WCONTINUED))
+-					continue;
+-				retval = wait_task_continued(p,
+-						(options & WNOWAIT), infop,
+-						stat_addr, ru);
+-			}
+-			if (retval != 0) /* tasklist_lock released */
+-				goto end;
+-		}
+-		if (!flag) {
+-			list_for_each_entry(p, &tsk->ptrace_children,
+-								ptrace_list) {
+-				flag = eligible_child(type, pid, options, p);
+-				if (!flag)
+-					continue;
+-				if (likely(flag > 0))
+-					break;
+-				retval = flag;
+-				goto end;
+-			}
++		int tsk_result = do_wait_thread(tsk, &retval,
++						type, pid, options,
++						infop, stat_addr, ru);
++		if (!tsk_result)
++			tsk_result = ptrace_do_wait(tsk, &retval,
++						    type, pid, options,
++						    infop, stat_addr, ru);
++		if (tsk_result) {
++			/*
++			 * tasklist_lock is unlocked and we have a final result.
++			 */
++			retval = tsk_result;
++			goto end;
+ 		}
++
+ 		if (options & __WNOTHREAD)
+ 			break;
+ 		tsk = next_thread(tsk);
+@@ -1601,16 +1658,14 @@ repeat:
+ 	} while (tsk != current);
+ 	read_unlock(&tasklist_lock);
  
- /*****************************************************************************/
-@@ -1459,19 +1460,20 @@ static void stl_hangup(struct tty_struct
- 
- /*****************************************************************************/
- 
--static void stl_breakctl(struct tty_struct *tty, int state)
-+static int stl_breakctl(struct tty_struct *tty, int state)
- {
- 	struct stlport	*portp;
- 
- 	pr_debug("stl_breakctl(tty=%p,state=%d)\n", tty, state);
- 
- 	if (tty == NULL)
--		return;
-+		return -EINVAL;
- 	portp = tty->driver_data;
- 	if (portp == NULL)
--		return;
-+		return -EINVAL;
- 
- 	stl_sendbreak(portp, ((state == -1) ? 1 : 2));
-+	return 0;
- }
- 
- /*****************************************************************************/
+-	if (flag) {
+-		if (options & WNOHANG)
+-			goto end;
++	if (!retval && !(options & WNOHANG)) {
+ 		retval = -ERESTARTSYS;
+-		if (signal_pending(current))
+-			goto end;
+-		schedule();
+-		goto repeat;
++		if (!signal_pending(current)) {
++			schedule();
++			goto repeat;
++		}
+ 	}
+-	retval = -ECHILD;
++
+ end:
+ 	current->state = TASK_RUNNING;
+ 	remove_wait_queue(&current->signal->wait_chldexit,&wait);
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from roland@redhat.com are
 
 origin.patch
+markers-fix-duplicate-modpost-entry.patch
 linux-next.patch
-calgary-fix-a-comparison-warning-the-pci-calgary-64-driver.patch
-cifs-fix-range-check.patch
-sis-drm-fix-the-memory-allocator-if-the-sis-fb-is-built-as-a-module.patch
-sis-drm-fix-a-pointer-cast-warning.patch
-netfilter-fix-xt_times-time_mts-use-of-do_div.patch
-atm-fix-const-assignment-discard-warnings-in-the-atm-networking-driver.patch
-atm-fix-direct-casts-of-pointers-to-u32-in-the-interphase-driver.patch
-hysdn-remove-the-packed-attribute-from-poftimstamp_tag.patch
-sched-fix-inc_rt_tasks-to-not-declare-variable-rq-if-its-not-needed.patch
-git-unionfs.patch
-clocksource-fix-a-print-format-error-in-the-acpi-pm-clocksource-driver-and-check-range.patch
-pm-fix-try_to_freeze_taskss-use-of-do_div.patch
-mn10300-move-sg_dma_addresslen-to-asm-scatterlisth.patch
-inflate-refactor-inflate-malloc-code.patch
-inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
-pnpacpi-fix-pnpacpi_parse_irq_options-test-against-pnp_irq_nr.patch
-pnp-fix-the-fcpnp_driver-declaration-to-only-exist-if-config_pnp=y.patch
+execve-filename-document-and-export-via-auxiliary-vector.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-paccept-fix-flag-parameters-arch-specific-sock_nonblock.patch
+posix-timers-timer_delete-remove-the-bogus-it_process-=-null-check.patch
+posix-timers-release_posix_timer-kill-the-bogus-put_task_struct-it_process.patch
+signals-collect_signal-remove-the-unneeded-sigismember-check.patch
+signals-collect_signal-simplify-the-still_pending-logic.patch
+__exit_signal-dont-take-rcu-lock.patch
+signals-dequeue_signal-dont-check-signal_group_exit-when-setting-signal_stop_dequeued.patch
+signals-do_signal_stop-kill-the-signal_unkillable-check.patch
+coredump-zap_threads-comments-use-while_each_thread.patch
+signals-make-siginfo_t-si_utime-si_sstime-report-times-in-user_hz-not-hz.patch
+kernel-signalc-change-vars-pid-and-tgid-types-to-pid_t.patch
 include-asm-ptraceh-userspace-headers-cleanup.patch
+ptrace-give-more-respect-to-sigkill.patch
+ptrace-simplify-ptrace_stop-sigkill_pending-path.patch
+introduce-pf_kthread-flag.patch
+kill-pf_borrowed_mm-in-favour-of-pf_kthread.patch
+coredump-zap_threads-must-skip-kernel-threads.patch
+coredump-elf_core_dump-skip-kernel-threads.patch
+coredump-turn-mm-core_startup_done-into-the-pointer-to-struct-core_state.patch
+coredump-move-mm-core_waiters-into-struct-core_state.patch
+coredump-simplify-core_state-nr_threads-calculation.patch
+coredump-turn-core_state-nr_threads-into-atomic_t.patch
+coredump-make-mm-core_state-visible-to-core_dump.patch
+coredump-construct-the-list-of-coredumping-threads-at-startup-time.patch
+coredump-elf_core_dump-use-core_state-dumper-list.patch
 coredump-elf_fdpic_core_dump-use-core_state-dumper-list.patch
+coredump-kill-mm-core_done.patch
 coredump-binfmt_elf_fdpic-dont-use-sub-threads-mm.patch
 coredump-exit_mm-clear-mm-first-then-play-with-core_state.patch
 coredump-exit_mm-clear-mm-first-then-play-with-core_state-checkpatch-fixes.patch
-ip2-fix-iielliscleanup-as-it-is-static-but-not-always-used.patch
-tsacct-fix-bacct_add_tsks-use-of-do_div.patch
-frv-use-the-common-ascii-hex-helpers.patch
-mn10300-use-the-common-ascii-hex-helpers.patch
-mutex-subsystem-synchro-test-module.patch
+tracehook-add-linux-tracehookh.patch
+tracehook-exec.patch
+tracehook-unexport-ptrace_notify.patch
+tracehook-exit.patch
+tracehook-clone.patch
+tracehook-vfork-done.patch
+tracehook-release_task.patch
+tracehook-tracehook_tracer_task.patch
+tracehook-tracehook_expect_breakpoints.patch
+tracehook-tracehook_signal_handler.patch
+tracehook-tracehook_consider_ignored_signal.patch
+tracehook-tracehook_consider_fatal_signal.patch
+tracehook-syscall.patch
+tracehook-get_signal_to_deliver.patch
+tracehook-job-control.patch
+tracehook-death.patch
+tracehook-force-signal_pending.patch
+tracehook-tif_notify_resume.patch
+tracehook-asm-syscallh.patch
+tracehook-config_have_arch_tracehook.patch
+tracehook-wait_task_inactive.patch
+task_current_syscall.patch
+proc-pid-syscall.patch
 
