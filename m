@@ -1,149 +1,135 @@
 From: akpm@linux-foundation.org
-Subject: + modules-extend-initcall_debug-functionality-to-the-module-loader.patch added to -mm tree
-Date: Thu, 17 Jul 2008 17:08:38 -0700
-Message-ID: <200807180008.m6I08cXA014153@imap1.linux-foundation.org>
+Subject: - cpufreq-acpi-only-call-_ppc-after-cpufreq-acpi-init-funcs-got-called-already.patch removed from -mm tree
+Date: Thu, 17 Jul 2008 20:27:36 -0700
+Message-ID: <200807180327.m6I3RaGV021620@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53584 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41743 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758787AbYGRAJO (ORCPT
+	by vger.kernel.org with ESMTP id S1750908AbYGRD3b (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Jul 2008 20:09:14 -0400
+	Thu, 17 Jul 2008 23:29:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: arjan@linux.intel.com, rusty@rustcorp.com.au
+To: trenn@suse.de, arekm@maven.pl, benh@kernel.crashing.org, davej@redhat.com, gnorton@novell.com, len.brown@intel.com, miguel@novell.com, mingo@elte.hu, sekharan@us.ibm.com, stable@kerne
 
 
 The patch titled
-     modules: extend initcall_debug functionality to the module loader
-has been added to the -mm tree.  Its filename is
-     modules-extend-initcall_debug-functionality-to-the-module-loader.patch
+     CPUFREQ ACPI: Only call _PPC after cpufreq ACPI init funcs got called already
+has been removed from the -mm tree.  Its filename was
+     cpufreq-acpi-only-call-_ppc-after-cpufreq-acpi-init-funcs-got-called-already.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: modules: extend initcall_debug functionality to the module loader
-From: Arjan van de Ven <arjan@linux.intel.com>
+Subject: CPUFREQ ACPI: Only call _PPC after cpufreq ACPI init funcs got called already
+From: Thomas Renninger <trenn@suse.de>
 
-The kernel has this really nice facility where if you put "initcall_debug"
-on the kernel commandline, it'll print which function it's going to
-execute just before calling an initcall, and then after the call completes
-it will
+Ingo Molnar provided a fix to not call _PPC at processor driver
+initialization time.  Git commit #e4233dec749a3519069d9390561b5636a75c7579
 
-1) print if it had an error code
+But it can still happen that _PPC is called at processor driver
+initialization time.
 
-2) checks for a few simple bugs (like leaving irqs off)
-and
+This patch should make sure that this is not possible anymore.
 
-3) print how long the init call took in milliseconds.
-
-While trying to optimize the boot speed of my laptop, I have been loving
-number 3 to figure out what to optimize...  ...  and then I wished that
-the same thing was done for module loading.
-
-This patch makes the module loader use this exact same functionality; it's
-a logical extension in my view (since modules are just sort of late
-binding initcalls anyway) and so far I've found it quite useful in finding
-where things are too slow in my boot.
-
-Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+Cc: Dave Jones <davej@redhat.com>
+Cc: Len Brown <len.brown@intel.com>
+Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Chandra Seetharaman <sekharan@us.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Arkadiusz Miskiewicz <arekm@maven.pl>
+Cc: <gnorton@novell.com>
+Cc: <miguel@novell.com>
+Cc: <stable@kernel.org>		[2.6.25.x, 2.6.26.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/init.h |    1 +
- init/main.c          |    6 ++++--
- kernel/module.c      |    2 +-
- 3 files changed, 6 insertions(+), 3 deletions(-)
+ arch/powerpc/platforms/cell/cbe_cpufreq_pmi.c |    6 ++++++
+ drivers/acpi/processor_perflib.c              |   13 ++++++++++++-
+ drivers/cpufreq/cpufreq.c                     |    3 +++
+ include/linux/cpufreq.h                       |    1 +
+ 4 files changed, 22 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/init.h~modules-extend-initcall_debug-functionality-to-the-module-loader include/linux/init.h
---- a/include/linux/init.h~modules-extend-initcall_debug-functionality-to-the-module-loader
-+++ a/include/linux/init.h
-@@ -143,6 +143,7 @@ extern char __initdata boot_command_line
- extern char *saved_command_line;
- extern unsigned int reset_devices;
- extern int initmem_now_dynamic;
-+extern int do_one_initcall(initcall_t fn);
+diff -puN arch/powerpc/platforms/cell/cbe_cpufreq_pmi.c~cpufreq-acpi-only-call-_ppc-after-cpufreq-acpi-init-funcs-got-called-already arch/powerpc/platforms/cell/cbe_cpufreq_pmi.c
+--- a/arch/powerpc/platforms/cell/cbe_cpufreq_pmi.c~cpufreq-acpi-only-call-_ppc-after-cpufreq-acpi-init-funcs-got-called-already
++++ a/arch/powerpc/platforms/cell/cbe_cpufreq_pmi.c
+@@ -96,6 +96,12 @@ static int pmi_notifier(struct notifier_
+ 	struct cpufreq_frequency_table *cbe_freqs;
+ 	u8 node;
  
- /* used by init/main.c */
- void setup_arch(char **);
-diff -puN init/main.c~modules-extend-initcall_debug-functionality-to-the-module-loader init/main.c
---- a/init/main.c~modules-extend-initcall_debug-functionality-to-the-module-loader
-+++ a/init/main.c
-@@ -694,7 +694,7 @@ asmlinkage void __init start_kernel(void
- 	rest_init();
- }
- 
--static int __initdata initcall_debug;
-+static int initcall_debug;
- 
- static int __init initcall_debug_setup(char *str)
- {
-@@ -703,7 +703,7 @@ static int __init initcall_debug_setup(c
- }
- __setup("initcall_debug", initcall_debug_setup);
- 
--static void __init do_one_initcall(initcall_t fn)
-+int do_one_initcall(initcall_t fn)
- {
- 	int count = preempt_count();
- 	ktime_t t0, t1, delta;
-@@ -743,6 +743,8 @@ static void __init do_one_initcall(initc
- 		print_fn_descriptor_symbol(KERN_WARNING "initcall %s", fn);
- 		printk(" returned with %s\n", msgbuf);
- 	}
++	/* Should this really be called for CPUFREQ_ADJUST, CPUFREQ_INCOMPATIBLE
++	 * and CPUFREQ_NOTIFY policy events?)
++	 */
++	if (event == CPUFREQ_START)
++		return 0;
 +
-+	return result;
- }
+ 	cbe_freqs = cpufreq_frequency_get_table(policy->cpu);
+ 	node = cbe_cpu_to_node(policy->cpu);
  
+diff -puN drivers/acpi/processor_perflib.c~cpufreq-acpi-only-call-_ppc-after-cpufreq-acpi-init-funcs-got-called-already drivers/acpi/processor_perflib.c
+--- a/drivers/acpi/processor_perflib.c~cpufreq-acpi-only-call-_ppc-after-cpufreq-acpi-init-funcs-got-called-already
++++ a/drivers/acpi/processor_perflib.c
+@@ -72,7 +72,13 @@ MODULE_PARM_DESC(ignore_ppc, "If the fre
+ #define PPC_REGISTERED   1
+ #define PPC_IN_USE       2
  
-diff -puN kernel/module.c~modules-extend-initcall_debug-functionality-to-the-module-loader kernel/module.c
---- a/kernel/module.c~modules-extend-initcall_debug-functionality-to-the-module-loader
-+++ a/kernel/module.c
-@@ -2288,7 +2288,7 @@ sys_init_module(void __user *umod,
+-static int acpi_processor_ppc_status = 0;
++/* ignore_ppc:
++ * -1 -> cpufreq low level drivers not initialized -> _PSS, etc. not called yet
++ *       ignore _PPC
++ *  0 -> cpufreq low level drivers initialized -> consider _PPC values
++ *  1 -> ignore _PPC totally -> forced by user through boot param
++ */
++static int acpi_processor_ppc_status = -1;
  
- 	/* Start the module */
- 	if (mod->init != NULL)
--		ret = mod->init();
-+		ret = do_one_initcall(mod->init);
- 	if (ret < 0) {
- 		/* Init routine failed: abort.  Try to protect us from
-                    buggy refcounters. */
+ static int acpi_processor_ppc_notifier(struct notifier_block *nb,
+ 				       unsigned long event, void *data)
+@@ -81,6 +87,11 @@ static int acpi_processor_ppc_notifier(s
+ 	struct acpi_processor *pr;
+ 	unsigned int ppc = 0;
+ 
++	if (event == CPUFREQ_START && ignore_ppc <= 0) {
++		ignore_ppc = 0;
++		return 0;
++	}
++
+ 	if (ignore_ppc)
+ 		return 0;
+ 
+diff -puN drivers/cpufreq/cpufreq.c~cpufreq-acpi-only-call-_ppc-after-cpufreq-acpi-init-funcs-got-called-already drivers/cpufreq/cpufreq.c
+--- a/drivers/cpufreq/cpufreq.c~cpufreq-acpi-only-call-_ppc-after-cpufreq-acpi-init-funcs-got-called-already
++++ a/drivers/cpufreq/cpufreq.c
+@@ -825,6 +825,9 @@ static int cpufreq_add_dev(struct sys_de
+ 	policy->user_policy.min = policy->cpuinfo.min_freq;
+ 	policy->user_policy.max = policy->cpuinfo.max_freq;
+ 
++	blocking_notifier_call_chain(&cpufreq_policy_notifier_list,
++				     CPUFREQ_START, policy);
++
+ #ifdef CONFIG_SMP
+ 
+ #ifdef CONFIG_HOTPLUG_CPU
+diff -puN include/linux/cpufreq.h~cpufreq-acpi-only-call-_ppc-after-cpufreq-acpi-init-funcs-got-called-already include/linux/cpufreq.h
+--- a/include/linux/cpufreq.h~cpufreq-acpi-only-call-_ppc-after-cpufreq-acpi-init-funcs-got-called-already
++++ a/include/linux/cpufreq.h
+@@ -106,6 +106,7 @@ struct cpufreq_policy {
+ #define CPUFREQ_ADJUST		(0)
+ #define CPUFREQ_INCOMPATIBLE	(1)
+ #define CPUFREQ_NOTIFY		(2)
++#define CPUFREQ_START		(3)
+ 
+ #define CPUFREQ_SHARED_TYPE_NONE (0) /* None */
+ #define CPUFREQ_SHARED_TYPE_HW	 (1) /* HW does needed coordination */
 _
 
-Patches currently in -mm which might be from arjan@linux.intel.com are
+Patches currently in -mm which might be from trenn@suse.de are
 
-origin.patch
 linux-next.patch
-via-velocity-fix-sleep-with-spinlock-bug-during-mtu-change.patch
-modules-extend-initcall_debug-functionality-to-the-module-loader.patch
-rename-warn-to-warning-to-clear-the-namespace.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments.patch
-kernel-irq-managec-replace-a-printk-warn_on-to-a-warn.patch
-example-use-of-warn.patch
-use-warn-in-kernel-irq-managec.patch
-use-warn-in-mm-vmallocc.patch
-use-warn-in-kernel-lockdepc.patch
-use-warn-in-kernel-irq-chipc.patch
-use-warn-in-arch-x86-mm-ioremapc.patch
-use-warn-in-arch-x86-mm-pageattrc.patch
-use-warn-in-arch-x86-kernel.patch
-use-warn-in-block.patch
-use-warn-in-drivers-base.patch
-use-warn-in-lib.patch
-use-warn-in-fs.patch
-usr-warn-in-fs-sysfs.patch
-use-warn-in-fs-proc.patch
+cpufreq-acpi-only-call-_ppc-after-cpufreq-acpi-init-funcs-got-called-already.patch
+move-memory_read_from_buffer-from-fsh-to-stringh.patch
 
