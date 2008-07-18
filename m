@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + synclink_gt-add-rx-dma-buffer-fill-level-control-fix-locking-in-error-path-of-rx-enable.patch added to -mm tree
-Date: Fri, 18 Jul 2008 14:46:49 -0700
-Message-ID: <200807182146.m6ILknup032430@imap1.linux-foundation.org>
+Subject: + fbcon-remove-stray-semicolons.patch added to -mm tree
+Date: Fri, 18 Jul 2008 14:47:23 -0700
+Message-ID: <200807182147.m6ILlN2Z032509@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43046 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54813 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756499AbYGRVrE (ORCPT
+	by vger.kernel.org with ESMTP id S1758522AbYGRVr0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Jul 2008 17:47:04 -0400
+	Fri, 18 Jul 2008 17:47:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: paulkf@microgate.com, alan@lxorguk.ukuu.org.uk
+Cc: jbeulich@novell.com
 
 
 The patch titled
-     synclink_gt fix locking in error path of rx enable
+     fbcon: remove stray semicolons
 has been added to the -mm tree.  Its filename is
-     synclink_gt-add-rx-dma-buffer-fill-level-control-fix-locking-in-error-path-of-rx-enable.patch
+     fbcon-remove-stray-semicolons.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,44 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: synclink_gt fix locking in error path of rx enable
-From: Paul Fulghum <paulkf@microgate.com>
+Subject: fbcon: remove stray semicolons
+From: "Jan Beulich" <jbeulich@novell.com>
 
-Fix locking in error path of rx_enable() introduced by
-synclink_gt-add-rx-dma-buffer-fill-level-control patch.
-
-Signed-off-by: Paul Fulghum <paulkf@microgate.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Jan Beulich <jbeulich@novell.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/synclink_gt.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/video/console/fbcon.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/synclink_gt.c~synclink_gt-add-rx-dma-buffer-fill-level-control-fix-locking-in-error-path-of-rx-enable drivers/char/synclink_gt.c
---- a/drivers/char/synclink_gt.c~synclink_gt-add-rx-dma-buffer-fill-level-control-fix-locking-in-error-path-of-rx-enable
-+++ a/drivers/char/synclink_gt.c
-@@ -2693,8 +2693,10 @@ static int rx_enable(struct slgt_info *i
- 	 */
- 	rbuf_fill_level = ((unsigned int)enable) >> 16;
- 	if (rbuf_fill_level) {
--		if ((rbuf_fill_level > DMABUFSIZE) || (rbuf_fill_level % 4))
-+		if ((rbuf_fill_level > DMABUFSIZE) || (rbuf_fill_level % 4)) {
-+			spin_unlock_irqrestore(&info->lock, flags);
- 			return -EINVAL;
-+		}
- 		info->rbuf_fill_level = rbuf_fill_level;
- 		rx_stop(info); /* restart receiver to use new fill level */
- 	}
+diff -puN drivers/video/console/fbcon.h~fbcon-remove-stray-semicolons drivers/video/console/fbcon.h
+--- a/drivers/video/console/fbcon.h~fbcon-remove-stray-semicolons
++++ a/drivers/video/console/fbcon.h
+@@ -147,9 +147,9 @@ static inline int attr_col_ec(int shift,
+ }
+ 
+ #define attr_bgcol_ec(bgshift,vc,info)		\
+-	attr_col_ec(bgshift,vc,info,0);
++	attr_col_ec(bgshift,vc,info,0)
+ #define attr_fgcol_ec(fgshift,vc,info)		\
+-	attr_col_ec(fgshift,vc,info,1);
++	attr_col_ec(fgshift,vc,info,1)
+ 
+ /* Font */
+ #define REFCOUNT(fd)	(((int *)(fd))[-1])
 _
 
-Patches currently in -mm which might be from paulkf@microgate.com are
+Patches currently in -mm which might be from jbeulich@novell.com are
 
-n_hdlc-honor-o_nonblock-on-write.patch
-synclink_gt-leave-transmitter-in-reset-state-after-configuration.patch
-synclink_gt-add-rx-dma-buffer-fill-level-control.patch
-synclink_gt-add-rx-dma-buffer-fill-level-control-fix-locking-in-error-path-of-rx-enable.patch
-synclink_gt-add-serial-bit-order-control.patch
-synclink_gt-improve-tiocoutq-accuracy.patch
-synclink_gt-improve-and-simplify-write-method.patch
+origin.patch
+linux-next.patch
+acpi-fix-fadt-parsing.patch
+mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co.patch
+fbcon-remove-stray-semicolons.patch
 
