@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + i2c-sh_mobile-ioresource_clk-support.patch added to -mm tree
-Date: Fri, 18 Jul 2008 15:37:23 -0700
-Message-ID: <200807182237.m6IMbNpr002229@imap1.linux-foundation.org>
+Subject: + resource-add-new-ioresource_clk-type-v2.patch added to -mm tree
+Date: Fri, 18 Jul 2008 15:37:21 -0700
+Message-ID: <200807182237.m6IMbMPj002226@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54220 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59465 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753701AbYGRWiK (ORCPT
+	by vger.kernel.org with ESMTP id S1753422AbYGRWiK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 18 Jul 2008 18:38:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: damm@igel.co.jp, ben-linux@fluff.org, khali@linux-fr.org, lethal@linux-sh.or
 
 
 The patch titled
-     i2c-sh_mobile: IORESOURCE_CLK support
+     resource: add new IORESOURCE_CLK type V2
 has been added to the -mm tree.  Its filename is
-     i2c-sh_mobile-ioresource_clk-support.patch
+     resource-add-new-ioresource_clk-type-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,18 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: i2c-sh_mobile: IORESOURCE_CLK support
+Subject: resource: add new IORESOURCE_CLK type V2
 From: Magnus Damm <damm@igel.co.jp>
 
-Make the i2c-sh_mobile driver get the clock name from the struct resource
-with type IORESOURCE_CLK provided by the platform data.
+So far struct resource has been used with the types IORESOURCE_MEM,
+IORESOURCE_IO and IORESOUCE_IRQ to pass I/O and interrupt parameters to
+platform drivers.  This patch extends this with IORESOURCE_CLK which
+should be used to pass a clock string to the platform driver.  This string
+points out which specific clock that should be used with clk_get() for a
+certain driver instance.
+
+Using hard coded strings in the device driver won't do since we may have
+multiple instances of drivers that need to use different clocks.
 
 Signed-off-by: Magnus Damm <damm@igel.co.jp>
 Cc: Ben Dooks <ben-linux@fluff.org>
@@ -47,33 +54,42 @@ Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/i2c/busses/i2c-sh_mobile.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ include/linux/ioport.h |   17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
 
-diff -puN drivers/i2c/busses/i2c-sh_mobile.c~i2c-sh_mobile-ioresource_clk-support drivers/i2c/busses/i2c-sh_mobile.c
---- a/drivers/i2c/busses/i2c-sh_mobile.c~i2c-sh_mobile-ioresource_clk-support
-+++ a/drivers/i2c/busses/i2c-sh_mobile.c
-@@ -390,13 +390,19 @@ static int sh_mobile_i2c_probe(struct pl
- 	int size;
- 	int ret;
+diff -puN include/linux/ioport.h~resource-add-new-ioresource_clk-type-v2 include/linux/ioport.h
+--- a/include/linux/ioport.h~resource-add-new-ioresource_clk-type-v2
++++ a/include/linux/ioport.h
+@@ -34,20 +34,21 @@ struct resource_list {
+  */
+ #define IORESOURCE_BITS		0x000000ff	/* Bus-specific bits */
  
-+	res = platform_get_resource(dev, IORESOURCE_CLK, 0);
-+	if (res == NULL || res->name == NULL) {
-+		dev_err(&dev->dev, "cannot find CLK resource\n");
-+		return -ENOENT;
-+	}
-+
- 	pd = kzalloc(sizeof(struct sh_mobile_i2c_data), GFP_KERNEL);
- 	if (pd == NULL) {
- 		dev_err(&dev->dev, "cannot allocate private data\n");
- 		return -ENOMEM;
- 	}
+-#define IORESOURCE_TYPE_BITS	0x00000f00	/* Resource type */
++#define IORESOURCE_TYPE_BITS	0x00001f00	/* Resource type */
+ #define IORESOURCE_IO		0x00000100
+ #define IORESOURCE_MEM		0x00000200
+ #define IORESOURCE_IRQ		0x00000400
+ #define IORESOURCE_DMA		0x00000800
++#define IORESOURCE_CLK		0x00001000
  
--	pd->clk = clk_get(&dev->dev, "peripheral_clk");
-+	pd->clk = clk_get(&dev->dev, res->name);
- 	if (IS_ERR(pd->clk)) {
- 		dev_err(&dev->dev, "cannot get peripheral clock\n");
- 		ret = PTR_ERR(pd->clk);
+-#define IORESOURCE_PREFETCH	0x00001000	/* No side effects */
+-#define IORESOURCE_READONLY	0x00002000
+-#define IORESOURCE_CACHEABLE	0x00004000
+-#define IORESOURCE_RANGELENGTH	0x00008000
+-#define IORESOURCE_SHADOWABLE	0x00010000
++#define IORESOURCE_PREFETCH	0x00002000	/* No side effects */
++#define IORESOURCE_READONLY	0x00004000
++#define IORESOURCE_CACHEABLE	0x00008000
++#define IORESOURCE_RANGELENGTH	0x00010000
++#define IORESOURCE_SHADOWABLE	0x00020000
+ 
+-#define IORESOURCE_SIZEALIGN	0x00020000	/* size indicates alignment */
+-#define IORESOURCE_STARTALIGN	0x00040000	/* start field is alignment */
++#define IORESOURCE_SIZEALIGN	0x00040000	/* size indicates alignment */
++#define IORESOURCE_STARTALIGN	0x00080000	/* start field is alignment */
+ 
+ #define IORESOURCE_DISABLED	0x10000000
+ #define IORESOURCE_UNSET	0x20000000
 _
 
 Patches currently in -mm which might be from damm@igel.co.jp are
