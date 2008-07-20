@@ -1,112 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: - ide-use-the-dma-safe-check-for-req_type_ata_pc.patch removed from -mm tree
-Date: Fri, 18 Jul 2008 16:24:18 -0700
-Message-ID: <200807182324.m6INOIMV004184@imap1.linux-foundation.org>
+Subject: - coredump-binfmt_elf_fdpic-dont-use-sub-threads-mm.patch removed from -mm tree
+Date: Sun, 20 Jul 2008 11:57:47 -0700
+Message-ID: <200807201857.m6KIvlOc029380@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58514 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33309 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754165AbYGRX3s (ORCPT
+	by vger.kernel.org with ESMTP id S1751087AbYGTS6S (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Jul 2008 19:29:48 -0400
+	Sun, 20 Jul 2008 14:58:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fujita.tomonori@lab.ntt.co.jp, James.Bottomley@HansenPartnership.com, bzolnier@gmail.com, htejun@gmail.com, jens.axboe@oracle.com, petkovbb@gmail.com, tsbogend@alpha.franken.de, mm-co
+To: oleg@tv-sign.ru, dhowells@redhat.com, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ide: use the dma safe check for REQ_TYPE_ATA_PC
+     coredump: binfmt_elf_fdpic: don't use sub-thread's ->mm
 has been removed from the -mm tree.  Its filename was
-     ide-use-the-dma-safe-check-for-req_type_ata_pc.patch
+     coredump-binfmt_elf_fdpic-dont-use-sub-threads-mm.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was withdrawn
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ide: use the dma safe check for REQ_TYPE_ATA_PC
-From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Subject: coredump: binfmt_elf_fdpic: don't use sub-thread's ->mm
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-This uses the dma safe check for REQ_TYPE_ATA_PC. The dma safe check
-is used for only sg requests but it should be used for other non fs
-commands.
+Change binfmt_elf_fdpic.c:fill_prstatus() to use current->mm instead of
+p->mm.  They are equal, but with the next patch p->mm == NULL.
 
-This uses blk_queue_update_dma_pad to make the intention clear though
-ide don't use the blk APIs so it doesn't change anything.
-
-Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Acked-by: Borislav Petkov <petkovbb@gmail.com>
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Tejun Heo <htejun@gmail.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ide/ide-cd.c |   17 ++++++++++++-----
- 1 file changed, 12 insertions(+), 5 deletions(-)
+ fs/binfmt_elf_fdpic.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/ide/ide-cd.c~ide-use-the-dma-safe-check-for-req_type_ata_pc drivers/ide/ide-cd.c
---- a/drivers/ide/ide-cd.c~ide-use-the-dma-safe-check-for-req_type_ata_pc
-+++ a/drivers/ide/ide-cd.c
-@@ -1159,10 +1159,15 @@ static void cdrom_do_block_pc(ide_drive_
- 	info->dma = 0;
+diff -puN fs/binfmt_elf_fdpic.c~coredump-binfmt_elf_fdpic-dont-use-sub-threads-mm fs/binfmt_elf_fdpic.c
+--- a/fs/binfmt_elf_fdpic.c~coredump-binfmt_elf_fdpic-dont-use-sub-threads-mm
++++ a/fs/binfmt_elf_fdpic.c
+@@ -1379,8 +1379,8 @@ static void fill_prstatus(struct elf_prs
+ 	cputime_to_timeval(p->signal->cutime, &prstatus->pr_cutime);
+ 	cputime_to_timeval(p->signal->cstime, &prstatus->pr_cstime);
  
- 	/* sg request */
--	if (rq->bio) {
--		int mask = drive->queue->dma_alignment;
--		unsigned long addr =
--			(unsigned long)page_address(bio_page(rq->bio));
-+	if (rq->bio || ((rq->cmd_type == REQ_TYPE_ATA_PC) && rq->data_len)) {
-+		struct request_queue *q = drive->queue;
-+		unsigned int alignment;
-+		unsigned long addr;
-+
-+		if (rq->bio)
-+			addr = (unsigned long)bio_data(rq->bio);
-+		else
-+			addr = (unsigned long)rq->data;
- 
- 		info->dma = drive->using_dma;
- 
-@@ -1172,7 +1177,8 @@ static void cdrom_do_block_pc(ide_drive_
- 		 * NOTE! The "len" and "addr" checks should possibly have
- 		 * separate masks.
- 		 */
--		if ((rq->data_len & 15) || (addr & mask))
-+		alignment = queue_dma_alignment(q) | q->dma_pad_mask;
-+		if (addr & alignment || rq->data_len & alignment)
- 			info->dma = 0;
- 	}
+-	prstatus->pr_exec_fdpic_loadmap = p->mm->context.exec_fdpic_loadmap;
+-	prstatus->pr_interp_fdpic_loadmap = p->mm->context.interp_fdpic_loadmap;
++	prstatus->pr_exec_fdpic_loadmap = current->mm->context.exec_fdpic_loadmap;
++	prstatus->pr_interp_fdpic_loadmap = current->mm->context.interp_fdpic_loadmap;
  }
-@@ -1854,6 +1860,7 @@ static int ide_cdrom_setup(ide_drive_t *
  
- 	blk_queue_prep_rq(drive->queue, ide_cdrom_prep_fn);
- 	blk_queue_dma_alignment(drive->queue, 31);
-+	blk_queue_update_dma_pad(drive->queue, 15);
- 	drive->queue->unplug_delay = (1 * HZ) / 1000;
- 	if (!drive->queue->unplug_delay)
- 		drive->queue->unplug_delay = 1;
+ static int fill_psinfo(struct elf_prpsinfo *psinfo, struct task_struct *p,
 _
 
-Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
 origin.patch
 linux-next.patch
-add-a-helper-function-to-test-if-an-object-is-on-the-stack.patch
-ide-cd-use-the-new-object_is_in_stack-helper.patch
-block-blk-mapc-use-the-new-object_is_on_stack-helper.patch
-clean-up-duplicated-alloc-free_thread_info.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-s2io.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support-fix-2.patch
-x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary.patch
-x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary-checkpatch-fixes.patch
+migrate_timers-add-comment-use-spinlock_irq.patch
+pm-introduce-new-interfaces-schedule_work_on-and-queue_work_on.patch
+pm-introduce-new-interfaces-schedule_work_on-and-queue_work_on-cleanup.patch
+posix-timers-timer_delete-remove-the-bogus-it_process-=-null-check.patch
+posix-timers-release_posix_timer-kill-the-bogus-put_task_struct-it_process.patch
+signals-collect_signal-remove-the-unneeded-sigismember-check.patch
+signals-collect_signal-simplify-the-still_pending-logic.patch
+signals-change-collect_signal-to-return-void.patch
+__exit_signal-dont-take-rcu-lock.patch
+signals-dequeue_signal-dont-check-signal_group_exit-when-setting-signal_stop_dequeued.patch
+signals-do_signal_stop-kill-the-signal_unkillable-check.patch
+coredump-zap_threads-comments-use-while_each_thread.patch
+signals-make-siginfo_t-si_utime-si_sstime-report-times-in-user_hz-not-hz.patch
+kernel-signalc-change-vars-pid-and-tgid-types-to-pid_t.patch
+include-asm-ptraceh-userspace-headers-cleanup.patch
+ptrace-give-more-respect-to-sigkill.patch
+ptrace-simplify-ptrace_stop-sigkill_pending-path.patch
+introduce-pf_kthread-flag.patch
+kill-pf_borrowed_mm-in-favour-of-pf_kthread.patch
+coredump-zap_threads-must-skip-kernel-threads.patch
+coredump-elf_core_dump-skip-kernel-threads.patch
+coredump-turn-mm-core_startup_done-into-the-pointer-to-struct-core_state.patch
+coredump-move-mm-core_waiters-into-struct-core_state.patch
+coredump-simplify-core_state-nr_threads-calculation.patch
+coredump-turn-core_state-nr_threads-into-atomic_t.patch
+coredump-make-mm-core_state-visible-to-core_dump.patch
+coredump-construct-the-list-of-coredumping-threads-at-startup-time.patch
+coredump-elf_core_dump-use-core_state-dumper-list.patch
+coredump-elf_fdpic_core_dump-use-core_state-dumper-list.patch
+coredump-kill-mm-core_done.patch
+coredump-binfmt_elf_fdpic-dont-use-sub-threads-mm.patch
+coredump-exit_mm-clear-mm-first-then-play-with-core_state.patch
+coredump-exit_mm-clear-mm-first-then-play-with-core_state-checkpatch-fixes.patch
+workqueues-insert_work-use-list_head-instead-of-int-tail.patch
+workqueues-implement-flush_work.patch
+workqueues-schedule_on_each_cpu-use-flush_work.patch
+workqueues-make-get_online_cpus-useable-for-work-func.patch
+workqueues-make-get_online_cpus-useable-for-work-func-fix.patch
+s390-topology-dont-use-kthread-for-arch_reinit_sched_domains.patch
+workqueues-lockdep-annotations-for-flush_work.patch
+workqueues-queue_work-can-use-queue_work_on.patch
+workqueues-schedule_on_each_cpu-can-use-schedule_work_on.patch
+pidns-remove-now-unused-kill_proc-function.patch
+pidns-remove-now-unused-find_pid-function.patch
+pidns-remove-find_task_by_pid-unused-for-a-long-time.patch
+distinct-tgid-tid-i-o-statistics.patch
+tracehook-add-linux-tracehookh.patch
+tracehook-exec.patch
+tracehook-unexport-ptrace_notify.patch
+tracehook-exit.patch
+tracehook-clone.patch
+tracehook-vfork-done.patch
+tracehook-release_task.patch
+tracehook-tracehook_tracer_task.patch
+tracehook-tracehook_expect_breakpoints.patch
+tracehook-tracehook_signal_handler.patch
+tracehook-tracehook_consider_ignored_signal.patch
+tracehook-tracehook_consider_fatal_signal.patch
+tracehook-syscall.patch
+tracehook-get_signal_to_deliver.patch
+tracehook-job-control.patch
+tracehook-death.patch
+tracehook-force-signal_pending.patch
+tracehook-tif_notify_resume.patch
+tracehook-asm-syscallh.patch
+tracehook-config_have_arch_tracehook.patch
+tracehook-wait_task_inactive.patch
+task_current_syscall.patch
+proc-pid-syscall.patch
 
