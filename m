@@ -1,144 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: - synclink_gt-improve-tiocoutq-accuracy.patch removed from -mm tree
-Date: Mon, 21 Jul 2008 14:34:29 -0700
-Message-ID: <200807212134.m6LLYTj6025674@imap1.linux-foundation.org>
+Subject: - synclink_gt-improve-and-simplify-write-method.patch removed from -mm tree
+Date: Mon, 21 Jul 2008 14:34:31 -0700
+Message-ID: <200807212134.m6LLYVne025677@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39018 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46077 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752720AbYGUVfL (ORCPT
+	by vger.kernel.org with ESMTP id S1753185AbYGUVfM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 Jul 2008 17:35:11 -0400
+	Mon, 21 Jul 2008 17:35:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: paulkf@microgate.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     synclink_gt: improve TIOCOUTQ accuracy
+     synclink_gt: improve and simplify write method
 has been removed from the -mm tree.  Its filename was
-     synclink_gt-improve-tiocoutq-accuracy.patch
+     synclink_gt-improve-and-simplify-write-method.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: synclink_gt: improve TIOCOUTQ accuracy
+Subject: synclink_gt: improve and simplify write method
 From: Paul Fulghum <paulkf@microgate.com>
 
-Improve the accuracy of TIOCOUTQ value as implemented in chars_in_buffer()
-method by walking and counting tx DMA buffers, reading controller tx FIFO
-level and accounting for controller tx shift register.  The greatly
-improves application control of transmit latency at lower data rates.
+Improve write method by allowing multiple HDLC frames to be loaded into tx
+DMA buffer ring for continuous frame transmission.  This simplifies the
+transmit code by using the common procedures for all serial protocols.
 
 Signed-off-by: Paul Fulghum <paulkf@microgate.com>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/synclink_gt.c |   59 +++++++++++++++++++++++++++++++++--
- 1 file changed, 57 insertions(+), 2 deletions(-)
+ drivers/char/synclink_gt.c |   38 ++++++++++-------------------------
+ 1 file changed, 11 insertions(+), 27 deletions(-)
 
-diff -puN drivers/char/synclink_gt.c~synclink_gt-improve-tiocoutq-accuracy drivers/char/synclink_gt.c
---- a/drivers/char/synclink_gt.c~synclink_gt-improve-tiocoutq-accuracy
+diff -puN drivers/char/synclink_gt.c~synclink_gt-improve-and-simplify-write-method drivers/char/synclink_gt.c
+--- a/drivers/char/synclink_gt.c~synclink_gt-improve-and-simplify-write-method
 +++ a/drivers/char/synclink_gt.c
-@@ -211,6 +211,7 @@ struct slgt_desc
- 	char *buf;          /* virtual  address of data buffer */
-     	unsigned int pdesc; /* physical address of this descriptor */
- 	dma_addr_t buf_dma_addr;
-+	unsigned short buf_count;
- };
- 
- #define set_desc_buffer(a,b) (a).pbuf = cpu_to_le32((unsigned int)(b))
-@@ -470,6 +471,7 @@ static void tx_start(struct slgt_info *i
- static void tx_stop(struct slgt_info *info);
- static void tx_set_idle(struct slgt_info *info);
- static unsigned int free_tbuf_count(struct slgt_info *info);
-+static unsigned int tbuf_bytes(struct slgt_info *info);
- static void reset_tbufs(struct slgt_info *info);
- static void tdma_reset(struct slgt_info *info);
- static void tdma_start(struct slgt_info *info);
-@@ -1400,10 +1402,12 @@ done:
- static int chars_in_buffer(struct tty_struct *tty)
- {
+@@ -855,6 +855,7 @@ static int write(struct tty_struct *tty,
+ 	int ret = 0;
  	struct slgt_info *info = tty->driver_data;
-+	int count;
- 	if (sanity_check(info, tty->name, "chars_in_buffer"))
- 		return 0;
--	DBGINFO(("%s chars_in_buffer()=%d\n", info->device_name, info->tx_count));
--	return info->tx_count;
-+	count = tbuf_bytes(info);
-+	DBGINFO(("%s chars_in_buffer()=%d\n", info->device_name, count));
-+	return count;
- }
+ 	unsigned long flags;
++	unsigned int bufs_needed;
  
- /*
-@@ -4702,6 +4706,56 @@ static unsigned int free_tbuf_count(stru
- }
+ 	if (sanity_check(info, tty->name, "write"))
+ 		goto cleanup;
+@@ -871,25 +872,16 @@ static int write(struct tty_struct *tty,
+ 	if (!count)
+ 		goto cleanup;
  
- /*
-+ * return number of bytes in unsent transmit DMA buffers
-+ * and the serial controller tx FIFO
-+ */
-+static unsigned int tbuf_bytes(struct slgt_info *info)
-+{
-+	unsigned int total_count = 0;
-+	unsigned int i = info->tbuf_current;
-+	unsigned int reg_value;
-+	unsigned int count;
-+	unsigned int active_buf_count = 0;
-+
-+	/*
-+	 * Add descriptor counts for all tx DMA buffers.
-+	 * If count is zero (cleared by DMA controller after read),
-+	 * the buffer is complete or is actively being read from.
-+	 *
-+	 * Record buf_count of last buffer with zero count starting
-+	 * from current ring position. buf_count is mirror
-+	 * copy of count and is not cleared by serial controller.
-+	 * If DMA controller is active, that buffer is actively
-+	 * being read so add to total.
-+	 */
-+	do {
-+		count = desc_count(info->tbufs[i]);
-+		if (count)
-+			total_count += count;
-+		else if (!total_count)
-+			active_buf_count = info->tbufs[i].buf_count;
-+		if (++i == info->tbuf_count)
-+			i = 0;
-+	} while (i != info->tbuf_current);
-+
-+	/* read tx DMA status register */
-+	reg_value = rd_reg32(info, TDCSR);
-+
-+	/* if tx DMA active, last zero count buffer is in use */
-+	if (reg_value & BIT0)
-+		total_count += active_buf_count;
-+
-+	/* add tx FIFO count = reg_value[15..8] */
-+	total_count += (reg_value >> 8) & 0xff;
-+
-+	/* if transmitter active add one byte for shift register */
-+	if (info->tx_active)
-+		total_count++;
-+
-+	return total_count;
-+}
-+
-+/*
-  * load transmit DMA buffer(s) with data
-  */
- static void tx_load(struct slgt_info *info, const char *buf, unsigned int size)
-@@ -4739,6 +4793,7 @@ static void tx_load(struct slgt_info *in
- 			set_desc_eof(*d, 0);
- 
- 		set_desc_count(*d, count);
-+		d->buf_count = count;
+-	if (info->params.mode == MGSL_MODE_RAW ||
+-	    info->params.mode == MGSL_MODE_MONOSYNC ||
+-	    info->params.mode == MGSL_MODE_BISYNC) {
+-		unsigned int bufs_needed = (count/DMABUFSIZE);
+-		unsigned int bufs_free = free_tbuf_count(info);
+-		if (count % DMABUFSIZE)
+-			++bufs_needed;
+-		if (bufs_needed > bufs_free)
+-			goto cleanup;
+-	} else {
+-		if (info->tx_active)
+-			goto cleanup;
+-		if (info->tx_count) {
+-			/* send accumulated data from send_char() calls */
+-			/* as frame and wait before accepting more data. */
+-			tx_load(info, info->tx_buf, info->tx_count);
+-			goto start;
+-		}
++	if (!info->tx_active && info->tx_count) {
++		/* send accumulated data from send_char() */
++		tx_load(info, info->tx_buf, info->tx_count);
++		goto start;
  	}
++	bufs_needed = (count/DMABUFSIZE);
++	if (count % DMABUFSIZE)
++		++bufs_needed;
++	if (bufs_needed > free_tbuf_count(info))
++		goto cleanup;
  
- 	info->tbuf_current = i;
+ 	ret = info->tx_count = count;
+ 	tx_load(info, buf, count);
+@@ -3963,15 +3955,7 @@ static void tdma_start(struct slgt_info 
+ 
+ 	/* set 1st descriptor address */
+ 	wr_reg32(info, TDDAR, info->tbufs[info->tbuf_start].pdesc);
+-	switch(info->params.mode) {
+-	case MGSL_MODE_RAW:
+-	case MGSL_MODE_MONOSYNC:
+-	case MGSL_MODE_BISYNC:
+-		wr_reg32(info, TDCSR, BIT2 + BIT0); /* IRQ + DMA enable */
+-		break;
+-	default:
+-		wr_reg32(info, TDCSR, BIT0); /* DMA enable */
+-	}
++	wr_reg32(info, TDCSR, BIT2 + BIT0); /* IRQ + DMA enable */
+ }
+ 
+ static void tx_stop(struct slgt_info *info)
 _
 
 Patches currently in -mm which might be from paulkf@microgate.com are
