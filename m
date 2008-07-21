@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cpufreq-acpi-only-call-_ppc-after-cpufreq-acpi-init-funcs-got-called-already.patch added to -mm tree
-Date: Sun, 20 Jul 2008 23:39:15 -0700
-Message-ID: <200807210639.m6L6dF5L021708@imap1.linux-foundation.org>
+Subject: + lockd-trivial-sparse-endian-annotations.patch added to -mm tree
+Date: Sun, 20 Jul 2008 23:41:24 -0700
+Message-ID: <200807210641.m6L6fOFi021809@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52953 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34677 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753352AbYGUGj6 (ORCPT
+	by vger.kernel.org with ESMTP id S1756300AbYGUGle (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 Jul 2008 02:39:58 -0400
+	Mon, 21 Jul 2008 02:41:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: trenn@suse.de, andi@firstfloor.org, davej@codemonkey.org.uk, lenb@kernel.org, mingo@elte.hu, stable@kernel.org, venkatesh.pallipadi@intel.com
+Cc: harvey.harrison@gmail.com, bfields@fieldses.org
 
 
 The patch titled
-     cpufreq acpi: only call _PPC after cpufreq ACPI init funcs got called already
+     lockd: trivial sparse endian annotations
 has been added to the -mm tree.  Its filename is
-     cpufreq-acpi-only-call-_ppc-after-cpufreq-acpi-init-funcs-got-called-already.patch
+     lockd-trivial-sparse-endian-annotations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,121 +34,98 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpufreq acpi: only call _PPC after cpufreq ACPI init funcs got called already
-From: Thomas Renninger <trenn@suse.de>
+Subject: lockd: trivial sparse endian annotations
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Ingo Molnar provided a fix to not call _PPC at processor driver
-initialization time.  Git commit #e4233dec749a3519069d9390561b5636a75c7579
+fs/lockd/svcproc.c:115:11: warning: incorrect type in initializer (different base types)
+fs/lockd/svcproc.c:115:11:    expected int [signed] rc
+fs/lockd/svcproc.c:115:11:    got restricted __be32 [usertype] <noident>
+... and so on...
 
-But it can still happen that _PPC is called at processor driver
-initialization time.
-
-This patch should make sure that this is not possible anymore.  I am not
-sure whether this covers all necessary low level drivers, only powernow-kX
-and acpi-cpufreq seem to call this function, but it should be fine to test
-for ThinkPad users.
-
-Signed-off-by: Thomas Renninger <trenn@suse.de>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Dave Jones <davej@codemonkey.org.uk>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/cell/cbe_cpufreq_pmi.c |    6 ++++++
- drivers/acpi/processor_perflib.c              |   15 +++++++++++++--
- drivers/cpufreq/cpufreq.c                     |    3 +++
- include/linux/cpufreq.h                       |    1 +
- 4 files changed, 23 insertions(+), 2 deletions(-)
+ fs/lockd/svc4proc.c |    4 ++--
+ fs/lockd/svcproc.c  |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/powerpc/platforms/cell/cbe_cpufreq_pmi.c~cpufreq-acpi-only-call-_ppc-after-cpufreq-acpi-init-funcs-got-called-already arch/powerpc/platforms/cell/cbe_cpufreq_pmi.c
---- a/arch/powerpc/platforms/cell/cbe_cpufreq_pmi.c~cpufreq-acpi-only-call-_ppc-after-cpufreq-acpi-init-funcs-got-called-already
-+++ a/arch/powerpc/platforms/cell/cbe_cpufreq_pmi.c
-@@ -96,6 +96,12 @@ static int pmi_notifier(struct notifier_
- 	struct cpufreq_frequency_table *cbe_freqs;
- 	u8 node;
+diff -puN fs/lockd/svc4proc.c~lockd-trivial-sparse-endian-annotations fs/lockd/svc4proc.c
+--- a/fs/lockd/svc4proc.c~lockd-trivial-sparse-endian-annotations
++++ a/fs/lockd/svc4proc.c
+@@ -83,7 +83,7 @@ nlm4svc_proc_test(struct svc_rqst *rqstp
+ {
+ 	struct nlm_host	*host;
+ 	struct nlm_file	*file;
+-	int rc = rpc_success;
++	__be32 rc = rpc_success;
  
-+	/* Should this really be called for CPUFREQ_ADJUST, CPUFREQ_INCOMPATIBLE
-+	 * and CPUFREQ_NOTIFY policy events?)
-+	 */
-+	if (event == CPUFREQ_START)
-+		return 0;
-+
- 	cbe_freqs = cpufreq_frequency_get_table(policy->cpu);
- 	node = cbe_cpu_to_node(policy->cpu);
+ 	dprintk("lockd: TEST4        called\n");
+ 	resp->cookie = argp->cookie;
+@@ -116,7 +116,7 @@ nlm4svc_proc_lock(struct svc_rqst *rqstp
+ {
+ 	struct nlm_host	*host;
+ 	struct nlm_file	*file;
+-	int rc = rpc_success;
++	__be32 rc = rpc_success;
  
-diff -puN drivers/acpi/processor_perflib.c~cpufreq-acpi-only-call-_ppc-after-cpufreq-acpi-init-funcs-got-called-already drivers/acpi/processor_perflib.c
---- a/drivers/acpi/processor_perflib.c~cpufreq-acpi-only-call-_ppc-after-cpufreq-acpi-init-funcs-got-called-already
-+++ a/drivers/acpi/processor_perflib.c
-@@ -64,7 +64,13 @@ static DEFINE_MUTEX(performance_mutex);
-  * policy is adjusted accordingly.
-  */
+ 	dprintk("lockd: LOCK          called\n");
  
--static unsigned int ignore_ppc = 0;
-+/* ignore_ppc:
-+ * -1 -> cpufreq low level drivers not initialized -> _PSS, etc. not called yet
-+ *       ignore _PPC
-+ *  0 -> cpufreq low level drivers initialized -> consider _PPC values
-+ *  1 -> ignore _PPC totally -> forced by user through boot param
-+ */
-+static unsigned int ignore_ppc = -1;
- module_param(ignore_ppc, uint, 0644);
- MODULE_PARM_DESC(ignore_ppc, "If the frequency of your machine gets wrongly" \
- 		 "limited by BIOS, this should help");
-@@ -72,7 +78,7 @@ MODULE_PARM_DESC(ignore_ppc, "If the fre
- #define PPC_REGISTERED   1
- #define PPC_IN_USE       2
+diff -puN fs/lockd/svcproc.c~lockd-trivial-sparse-endian-annotations fs/lockd/svcproc.c
+--- a/fs/lockd/svcproc.c~lockd-trivial-sparse-endian-annotations
++++ a/fs/lockd/svcproc.c
+@@ -112,7 +112,7 @@ nlmsvc_proc_test(struct svc_rqst *rqstp,
+ {
+ 	struct nlm_host	*host;
+ 	struct nlm_file	*file;
+-	int rc = rpc_success;
++	__be32 rc = rpc_success;
  
--static int acpi_processor_ppc_status = 0;
-+static int acpi_processor_ppc_status;
+ 	dprintk("lockd: TEST          called\n");
+ 	resp->cookie = argp->cookie;
+@@ -146,7 +146,7 @@ nlmsvc_proc_lock(struct svc_rqst *rqstp,
+ {
+ 	struct nlm_host	*host;
+ 	struct nlm_file	*file;
+-	int rc = rpc_success;
++	__be32 rc = rpc_success;
  
- static int acpi_processor_ppc_notifier(struct notifier_block *nb,
- 				       unsigned long event, void *data)
-@@ -81,6 +87,11 @@ static int acpi_processor_ppc_notifier(s
- 	struct acpi_processor *pr;
- 	unsigned int ppc = 0;
+ 	dprintk("lockd: LOCK          called\n");
  
-+	if (event == CPUFREQ_START && ignore_ppc <= 0) {
-+		ignore_ppc = 0;
-+		return 0;
-+	}
-+
- 	if (ignore_ppc)
- 		return 0;
- 
-diff -puN drivers/cpufreq/cpufreq.c~cpufreq-acpi-only-call-_ppc-after-cpufreq-acpi-init-funcs-got-called-already drivers/cpufreq/cpufreq.c
---- a/drivers/cpufreq/cpufreq.c~cpufreq-acpi-only-call-_ppc-after-cpufreq-acpi-init-funcs-got-called-already
-+++ a/drivers/cpufreq/cpufreq.c
-@@ -825,6 +825,9 @@ static int cpufreq_add_dev(struct sys_de
- 	policy->user_policy.min = policy->cpuinfo.min_freq;
- 	policy->user_policy.max = policy->cpuinfo.max_freq;
- 
-+	blocking_notifier_call_chain(&cpufreq_policy_notifier_list,
-+				     CPUFREQ_START, policy);
-+
- #ifdef CONFIG_SMP
- 
- #ifdef CONFIG_HOTPLUG_CPU
-diff -puN include/linux/cpufreq.h~cpufreq-acpi-only-call-_ppc-after-cpufreq-acpi-init-funcs-got-called-already include/linux/cpufreq.h
---- a/include/linux/cpufreq.h~cpufreq-acpi-only-call-_ppc-after-cpufreq-acpi-init-funcs-got-called-already
-+++ a/include/linux/cpufreq.h
-@@ -106,6 +106,7 @@ struct cpufreq_policy {
- #define CPUFREQ_ADJUST		(0)
- #define CPUFREQ_INCOMPATIBLE	(1)
- #define CPUFREQ_NOTIFY		(2)
-+#define CPUFREQ_START		(3)
- 
- #define CPUFREQ_SHARED_TYPE_NONE (0) /* None */
- #define CPUFREQ_SHARED_TYPE_HW	 (1) /* HW does needed coordination */
 _
 
-Patches currently in -mm which might be from trenn@suse.de are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
+origin.patch
 linux-next.patch
-cpufreq-acpi-only-call-_ppc-after-cpufreq-acpi-init-funcs-got-called-already.patch
-acpi-cpufreq-cleanup-move-bailing-out-of-function-before-locking-the-mutex.patch
-move-memory_read_from_buffer-from-fsh-to-stringh.patch
+cifs-remove-global_extern-macro.patch
+mtd-diskonchipc-fix-sparse-endian-warnings.patch
+lockd-trivial-sparse-endian-annotations.patch
+pci-procc-sparse-endian-annotations.patch
+scsi-replace-remaining-__function__-occurrences.patch
+fusion-replace-remaining-__function__-occurrences.patch
+scsi-replace-__inline-with-inline.patch
+scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
+scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
+xfs-use-get_unaligned_-helpers.patch
+xtensa-replace-remaining-__function__-occurences.patch
+fs-ldm-use-get_unaligned_-helpers.patch
+include-use-get-put_unaligned_-helpers.patch
+lzo-use-get-put_unaligned_-helpers.patch
+asm-generic-int-ll64h-always-provide-__su64.patch
+olpc-olpc_batteryc-sparse-endian-annotations.patch
+ecryptfs-cryptoc-use-unaligned-byteorder-helpers.patch
+ecryptfs-inodec-mmapc-use-unaligned-byteorder-helpers.patch
+scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
+isdn-use-the-common-ascii-hex-helpers.patch
+net-use-the-common-ascii-hex-helpers.patch
+cris-use-the-common-ascii-hex-helpers.patch
+frv-use-the-common-ascii-hex-helpers.patch
+mips-use-the-common-ascii-hex-helpers.patch
+ppc-use-the-common-ascii-hex-helpers.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+mn10300-use-the-common-ascii-hex-helpers.patch
+byteorder-add-a-new-include-linux-swabh-to-define-byteswapping-functions.patch
+byteorder-add-include-linux-byteorderh-to-define-endian-helpers.patch
 
