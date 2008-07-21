@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + autofs4-reorganize-expire-pending-wait-function-calls.patch added to -mm tree
-Date: Sun, 20 Jul 2008 23:35:31 -0700
-Message-ID: <200807210635.m6L6ZV7a021582@imap1.linux-foundation.org>
+Subject: + autofs4-remove-unused-ioctls.patch added to -mm tree
+Date: Sun, 20 Jul 2008 23:35:33 -0700
+Message-ID: <200807210635.m6L6ZXl8021585@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41971 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48052 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752430AbYGUGfx (ORCPT
+	by vger.kernel.org with ESMTP id S1755541AbYGUGf4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 Jul 2008 02:35:53 -0400
+	Mon, 21 Jul 2008 02:35:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: raven@themaw.net, jmoyer@redhat.com
 
 
 The patch titled
-     autofs4: reorganize expire pending wait function calls
+     autofs4: remove unused ioctls
 has been added to the -mm tree.  Its filename is
-     autofs4-reorganize-expire-pending-wait-function-calls.patch
+     autofs4-remove-unused-ioctls.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,186 +34,153 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: autofs4: reorganize expire pending wait function calls
+Subject: autofs4: remove unused ioctls
 From: Ian Kent <raven@themaw.net>
 
-This patch re-orgnirzes the checking for and waiting on active expires and
-elininates redundant checks.
+The ioctls AUTOFS_IOC_TOGGLEREGHOST and AUTOFS_IOC_ASKREGHOST were added
+several years ago but what they were intended for has never been
+implemented (as far as I'm aware noone uses them) so remove them.
 
 Signed-off-by: Ian Kent <raven@themaw.net>
-Cc: Jeff Moyer <jmoyer@redhat.com>
+Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/autofs_i.h |    1 
- fs/autofs4/expire.c   |   29 +++++++++++++++
- fs/autofs4/root.c     |   75 +++++-----------------------------------
- 3 files changed, 40 insertions(+), 65 deletions(-)
+ fs/autofs4/root.c        |   68 -------------------------------------
+ fs/compat_ioctl.c        |    2 -
+ include/linux/auto_fs4.h |    2 -
+ 3 files changed, 1 insertion(+), 71 deletions(-)
 
-diff -puN fs/autofs4/autofs_i.h~autofs4-reorganize-expire-pending-wait-function-calls fs/autofs4/autofs_i.h
---- a/fs/autofs4/autofs_i.h~autofs4-reorganize-expire-pending-wait-function-calls
-+++ a/fs/autofs4/autofs_i.h
-@@ -163,6 +163,7 @@ void autofs4_free_ino(struct autofs_info
+diff -puN fs/autofs4/root.c~autofs4-remove-unused-ioctls fs/autofs4/root.c
+--- a/fs/autofs4/root.c~autofs4-remove-unused-ioctls
++++ a/fs/autofs4/root.c
+@@ -25,7 +25,6 @@ static int autofs4_dir_rmdir(struct inod
+ static int autofs4_dir_mkdir(struct inode *,struct dentry *,int);
+ static int autofs4_root_ioctl(struct inode *, struct file *,unsigned int,unsigned long);
+ static int autofs4_dir_open(struct inode *inode, struct file *file);
+-static int autofs4_root_readdir(struct file * filp, void * dirent, filldir_t filldir);
+ static struct dentry *autofs4_lookup(struct inode *,struct dentry *, struct nameidata *);
+ static void *autofs4_follow_link(struct dentry *, struct nameidata *);
  
- /* Expiration */
- int is_autofs4_dentry(struct dentry *);
-+int autofs4_expire_wait(struct dentry *dentry);
- int autofs4_expire_run(struct super_block *, struct vfsmount *,
- 			struct autofs_sb_info *,
- 			struct autofs_packet_expire __user *);
-diff -puN fs/autofs4/expire.c~autofs4-reorganize-expire-pending-wait-function-calls fs/autofs4/expire.c
---- a/fs/autofs4/expire.c~autofs4-reorganize-expire-pending-wait-function-calls
-+++ a/fs/autofs4/expire.c
-@@ -402,6 +402,35 @@ found:
- 	return expired;
+@@ -36,7 +35,7 @@ const struct file_operations autofs4_roo
+ 	.open		= dcache_dir_open,
+ 	.release	= dcache_dir_close,
+ 	.read		= generic_read_dir,
+-	.readdir	= autofs4_root_readdir,
++	.readdir	= dcache_readdir,
+ 	.ioctl		= autofs4_root_ioctl,
+ };
+ 
+@@ -71,28 +70,6 @@ const struct inode_operations autofs4_di
+ 	.rmdir		= autofs4_dir_rmdir,
+ };
+ 
+-static int autofs4_root_readdir(struct file *file, void *dirent,
+-				filldir_t filldir)
+-{
+-	struct autofs_sb_info *sbi = autofs4_sbi(file->f_path.dentry->d_sb);
+-	int oz_mode = autofs4_oz_mode(sbi);
+-
+-	DPRINTK("called, filp->f_pos = %lld", file->f_pos);
+-
+-	/*
+-	 * Don't set reghost flag if:
+-	 * 1) f_pos is larger than zero -- we've already been here.
+-	 * 2) we haven't even enabled reghosting in the 1st place.
+-	 * 3) this is the daemon doing a readdir
+-	 */
+-	if (oz_mode && file->f_pos == 0 && sbi->reghost_enabled)
+-		sbi->needs_reghost = 1;
+-
+-	DPRINTK("needs_reghost = %d", sbi->needs_reghost);
+-
+-	return dcache_readdir(file, dirent, filldir);
+-}
+-
+ static int autofs4_dir_open(struct inode *inode, struct file *file)
+ {
+ 	struct dentry *dentry = file->f_path.dentry;
+@@ -865,44 +842,6 @@ static inline int autofs4_get_protosubve
  }
  
-+int autofs4_expire_wait(struct dentry *dentry)
-+{
-+	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
-+	struct autofs_info *ino = autofs4_dentry_ino(dentry);
-+	int status;
-+
-+	/* Block on any pending expire */
-+	spin_lock(&sbi->fs_lock);
-+	if (ino->flags & AUTOFS_INF_EXPIRING) {
-+		spin_unlock(&sbi->fs_lock);
-+
-+		DPRINTK("waiting for expire %p name=%.*s",
-+			 dentry, dentry->d_name.len, dentry->d_name.name);
-+
-+		status = autofs4_wait(sbi, dentry, NFY_NONE);
-+		wait_for_completion(&ino->expire_complete);
-+
-+		DPRINTK("expire done status=%d", status);
-+
-+		if (d_unhashed(dentry))
-+			return -EAGAIN;
-+
-+		return status;
-+	}
-+	spin_unlock(&sbi->fs_lock);
-+
-+	return 0;
-+}
-+
- /* Perform an expiry operation */
- int autofs4_expire_run(struct super_block *sb,
- 		      struct vfsmount *mnt,
-diff -puN fs/autofs4/root.c~autofs4-reorganize-expire-pending-wait-function-calls fs/autofs4/root.c
---- a/fs/autofs4/root.c~autofs4-reorganize-expire-pending-wait-function-calls
-+++ a/fs/autofs4/root.c
-@@ -130,34 +130,6 @@ static int try_to_fill_dentry(struct den
- 	struct autofs_info *ino = autofs4_dentry_ino(dentry);
- 	int status;
+ /*
+- * Tells the daemon whether we need to reghost or not. Also, clears
+- * the reghost_needed flag.
+- */
+-static inline int autofs4_ask_reghost(struct autofs_sb_info *sbi, int __user *p)
+-{
+-	int status;
+-
+-	DPRINTK("returning %d", sbi->needs_reghost);
+-
+-	status = put_user(sbi->needs_reghost, p);
+-	if (status)
+-		return status;
+-
+-	sbi->needs_reghost = 0;
+-	return 0;
+-}
+-
+-/*
+- * Enable / Disable reghosting ioctl() operation
+- */
+-static inline int autofs4_toggle_reghost(struct autofs_sb_info *sbi, int __user *p)
+-{
+-	int status;
+-	int val;
+-
+-	status = get_user(val, p);
+-
+-	DPRINTK("reghost = %d", val);
+-
+-	if (status)
+-		return status;
+-
+-	/* turn on/off reghosting, with the val */
+-	sbi->reghost_enabled = val;
+-	return 0;
+-}
+-
+-/*
+ * Tells the daemon whether it can umount the autofs mount.
+ */
+ static inline int autofs4_ask_umount(struct vfsmount *mnt, int __user *p)
+@@ -966,11 +905,6 @@ static int autofs4_root_ioctl(struct ino
+ 	case AUTOFS_IOC_SETTIMEOUT:
+ 		return autofs4_get_set_timeout(sbi, p);
  
--	/* Block on any pending expiry here; invalidate the dentry
--           when expiration is done to trigger mount request with a new
--           dentry */
--	spin_lock(&sbi->fs_lock);
--	if (ino->flags & AUTOFS_INF_EXPIRING) {
--		spin_unlock(&sbi->fs_lock);
+-	case AUTOFS_IOC_TOGGLEREGHOST:
+-		return autofs4_toggle_reghost(sbi, p);
+-	case AUTOFS_IOC_ASKREGHOST:
+-		return autofs4_ask_reghost(sbi, p);
 -
--		DPRINTK("waiting for expire %p name=%.*s",
--			 dentry, dentry->d_name.len, dentry->d_name.name);
--
--		status = autofs4_wait(sbi, dentry, NFY_NONE);
--		wait_for_completion(&ino->expire_complete);
--
--		DPRINTK("expire done status=%d", status);
--
--		/*
--		 * If the directory still exists the mount request must
--		 * continue otherwise it can't be followed at the right
--		 * time during the walk.
--		 */
--		status = d_invalidate(dentry);
--		if (status != -EBUSY)
--			return -EAGAIN;
--
--		goto cont;
--	}
--	spin_unlock(&sbi->fs_lock);
--cont:
- 	DPRINTK("dentry=%p %.*s ino=%p",
- 		 dentry, dentry->d_name.len, dentry->d_name.name, dentry->d_inode);
+ 	case AUTOFS_IOC_ASKUMOUNT:
+ 		return autofs4_ask_umount(filp->f_path.mnt, p);
  
-@@ -254,22 +226,8 @@ static void *autofs4_follow_link(struct 
- 	}
+diff -puN fs/compat_ioctl.c~autofs4-remove-unused-ioctls fs/compat_ioctl.c
+--- a/fs/compat_ioctl.c~autofs4-remove-unused-ioctls
++++ a/fs/compat_ioctl.c
+@@ -2297,8 +2297,6 @@ COMPATIBLE_IOCTL(AUTOFS_IOC_PROTOVER)
+ COMPATIBLE_IOCTL(AUTOFS_IOC_EXPIRE)
+ COMPATIBLE_IOCTL(AUTOFS_IOC_EXPIRE_MULTI)
+ COMPATIBLE_IOCTL(AUTOFS_IOC_PROTOSUBVER)
+-COMPATIBLE_IOCTL(AUTOFS_IOC_ASKREGHOST)
+-COMPATIBLE_IOCTL(AUTOFS_IOC_TOGGLEREGHOST)
+ COMPATIBLE_IOCTL(AUTOFS_IOC_ASKUMOUNT)
+ /* Raw devices */
+ COMPATIBLE_IOCTL(RAW_SETBIND)
+diff -puN include/linux/auto_fs4.h~autofs4-remove-unused-ioctls include/linux/auto_fs4.h
+--- a/include/linux/auto_fs4.h~autofs4-remove-unused-ioctls
++++ a/include/linux/auto_fs4.h
+@@ -98,8 +98,6 @@ union autofs_v5_packet_union {
+ #define AUTOFS_IOC_EXPIRE_INDIRECT	AUTOFS_IOC_EXPIRE_MULTI
+ #define AUTOFS_IOC_EXPIRE_DIRECT	AUTOFS_IOC_EXPIRE_MULTI
+ #define AUTOFS_IOC_PROTOSUBVER		_IOR(0x93,0x67,int)
+-#define AUTOFS_IOC_ASKREGHOST           _IOR(0x93,0x68,int)
+-#define AUTOFS_IOC_TOGGLEREGHOST        _IOR(0x93,0x69,int)
+ #define AUTOFS_IOC_ASKUMOUNT		_IOR(0x93,0x70,int)
  
- 	/* If an expire request is pending everyone must wait. */
--	spin_lock(&sbi->fs_lock);
--	if (ino->flags & AUTOFS_INF_EXPIRING) {
--		spin_unlock(&sbi->fs_lock);
--
--		DPRINTK("waiting for active request %p name=%.*s",
--			dentry, dentry->d_name.len, dentry->d_name.name);
--
--		status = autofs4_wait(sbi, dentry, NFY_NONE);
--		wait_for_completion(&ino->expire_complete);
-+	autofs4_expire_wait(dentry);
  
--		DPRINTK("request done status=%d", status);
--
--		goto cont;
--	}
--	spin_unlock(&sbi->fs_lock);
--cont:
- 	/* We trigger a mount for almost all flags */
- 	lookup_type = nd->flags & (TRIGGER_FLAGS | TRIGGER_INTENTS);
- 	if (!(lookup_type || dentry->d_flags & DCACHE_AUTOFS_PENDING))
-@@ -338,6 +296,14 @@ static int autofs4_revalidate(struct den
- 			return 1;
- 
- 		/*
-+		 * If the directory has gone away due to an expire
-+		 * we have been called as ->d_revalidate() and so
-+		 * we need to return false and proceed to ->lookup().
-+		 */
-+		if (autofs4_expire_wait(dentry) == -EAGAIN)
-+			return 0;
-+
-+		/*
- 		 * A zero status is success otherwise we have a
- 		 * negative error code.
- 		 */
-@@ -345,15 +311,6 @@ static int autofs4_revalidate(struct den
- 		if (status == 0)
- 			return 1;
- 
--		/*
--		 * A status of EAGAIN here means that the dentry has gone
--		 * away while waiting for an expire to complete. If we are
--		 * racing with expire lookup will wait for it so this must
--		 * be a revalidate and we need to send it to lookup.
--		 */
--		if (status == -EAGAIN)
--			return 0;
--
- 		return status;
- 	}
- 	spin_unlock(&sbi->fs_lock);
-@@ -563,19 +520,7 @@ static struct dentry *autofs4_lookup(str
- 		 * so it must have been successful, so just wait for it.
- 		 */
- 		ino = autofs4_dentry_ino(expiring);
--		spin_lock(&sbi->fs_lock);
--		if (ino->flags & AUTOFS_INF_EXPIRING) {
--			spin_unlock(&sbi->fs_lock);
--			DPRINTK("wait for incomplete expire %p name=%.*s",
--				expiring, expiring->d_name.len,
--				expiring->d_name.name);
--			autofs4_wait(sbi, expiring, NFY_NONE);
--			wait_for_completion(&ino->expire_complete);
--			DPRINTK("request completed");
--			goto cont;
--		}
--		spin_unlock(&sbi->fs_lock);
--cont:
-+		autofs4_expire_wait(expiring);
- 		spin_lock(&sbi->lookup_lock);
- 		if (!list_empty(&ino->expiring))
- 			list_del_init(&ino->expiring);
 _
 
 Patches currently in -mm which might be from raven@themaw.net are
