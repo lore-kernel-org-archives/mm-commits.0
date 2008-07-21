@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + coredump-format_corename-fix-the-core_uses_pid-logic-checkpatch-fixes.patch added to -mm tree
-Date: Sun, 20 Jul 2008 18:38:05 -0700
-Message-ID: <200807210138.m6L1c5gH011151@imap1.linux-foundation.org>
+Subject: + tridentfb-remove-warning-message-that-cyblafb-driver-should-be-used.patch added to -mm tree
+Date: Sun, 20 Jul 2008 18:40:40 -0700
+Message-ID: <200807210140.m6L1eeAj011228@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54696 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44333 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754238AbYGUBid (ORCPT
+	by vger.kernel.org with ESMTP id S1755314AbYGUBlC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 20 Jul 2008 21:38:33 -0400
+	Sun, 20 Jul 2008 21:41:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, oleg@tv-sign.ru
+Cc: krzysztof.h1@wp.pl
 
 
 The patch titled
-     coredump-format_corename-fix-the-core_uses_pid-logic-checkpatch-fixes
+     tridentfb: remove warning message that cyblafb driver should be used
 has been added to the -mm tree.  Its filename is
-     coredump-format_corename-fix-the-core_uses_pid-logic-checkpatch-fixes.patch
+     tridentfb-remove-warning-message-that-cyblafb-driver-should-be-used.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,212 +34,80 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: coredump-format_corename-fix-the-core_uses_pid-logic-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: tridentfb: remove warning message that cyblafb driver should be used
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-ERROR: code indent should use tabs where possible
-#50: FILE: fs/exec.c:1490:
-+            && (core_uses_pid || nr_threads)) {$
+The tridentfb driver should handle now all chipsets handled by the cyblafb
+driver.  Remove the message which claims that support will be removed.
 
-total: 1 errors, 0 warnings, 36 lines checked
-
-./patches/coredump-format_corename-fix-the-core_uses_pid-logic.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/tridentfb.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN fs/exec.c~coredump-format_corename-fix-the-core_uses_pid-logic-checkpatch-fixes fs/exec.c
---- a/fs/exec.c~coredump-format_corename-fix-the-core_uses_pid-logic-checkpatch-fixes
-+++ a/fs/exec.c
-@@ -1487,7 +1487,7 @@ static int format_corename(char *corenam
- 	 * and core_uses_pid is set, then .%pid will be appended to
- 	 * the filename. Do not do this for piped commands. */
- 	if (!ispipe && !pid_in_pattern
--            && (core_uses_pid || nr_threads)) {
-+	    && (core_uses_pid || nr_threads)) {
- 		rc = snprintf(out_ptr, out_end - out_ptr,
- 			      ".%d", task_tgid_vnr(current));
- 		if (rc > out_end - out_ptr)
+diff -puN drivers/video/tridentfb.c~tridentfb-remove-warning-message-that-cyblafb-driver-should-be-used drivers/video/tridentfb.c
+--- a/drivers/video/tridentfb.c~tridentfb-remove-warning-message-that-cyblafb-driver-should-be-used
++++ a/drivers/video/tridentfb.c
+@@ -1359,10 +1359,6 @@ static int __devinit trident_pci_probe(s
+ 
+ 	chip_id = id->device;
+ 
+-	if (chip_id == CYBERBLADEi1)
+-		output("*** Please do use cyblafb, Cyberblade/i1 support "
+-		       "will soon be removed from tridentfb!\n");
+-
+ #ifndef CONFIG_FB_TRIDENT_ACCEL
+ 	noaccel = 1;
+ #endif
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
 origin.patch
-arm-fix-fls-for-64-bit-arguments.patch
-linux-next.patch
-linux-next-fixup.patch
-next-remove-localversion.patch
-kvm-is-busted-on-ia64.patch
-drivers-mtd-nand-nandsimc-needs-div64h.patch
-pci-make-pci_register_driver-a-macro.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-git-jg-misc.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-bridge-send-correct-mtu-value-in-pmtu-checkpatch-fixes.patch
-sundance-set-carrier-status-on-link-change-events.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-use-sysdev_class-in-schedc-fix.patch
-drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
-git-unionfs.patch
-git-logfs-git-rejects.patch
-git-logfs-fixup.patch
-drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
-drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-verify-the-page-links-and-memory-model.patch
-mspec-convert-nopfn-to-fault-fix.patch
-page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
-kill-generic_file_direct_io-checkpatch-fixes.patch
-use-generic_access_phys-for-dev-mem-mappings-fix.patch
-spufs-use-the-new-vm_ops-access-fix.patch
-fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
-page-flags-record-page-flag-overlays-explicitly-xen.patch
-mapping_set_error-add-unlikely.patch
-huge-page-private-reservation-review-cleanups-fix.patch
-vma-page-offset-has-no-callees-drop-it.patch
-sync_file_range_write-may-and-will-block-document-that-fix.patch
-vmallocinfo-add-numa-information-fix.patch
-hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
-hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
-hugetlb-override-default-huge-page-size-ia64-build.patch
-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-bootmem-add-debugging-framework-fix.patch
-bootmem-clean-up-free_all_bootmem_core-fix.patch
-bootmem-free-reserve-helpers-fix.patch
-revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-v850-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-arm-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mips-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mtd-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fixes.patch
-mmu-notifiers-add-mm_take_all_locks-operation-checkpatch-fixes.patch
-mmu-notifier-core-checkpatch-fixes.patch
-mmu-notifier-core-fix.patch
-mmu-notifier-core-fix-2.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
-security-protect-legacy-applications-from-executing-with-insufficient-privilege-checkpatch-fixes.patch
-swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
-split-the-typecheck-macros-out-of-include-linux-kernelh.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
-remove-apparently-unused-fd1772h-header-file.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
-build-kernel-profileo-only-when-requested-cleanups.patch
-seq_file-fix-bug-when-seq_read-reads-nothing-fix.patch
-exec-remove-some-includes-fix.patch
-inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments.patch
-flag-parameters-paccept-fix.patch
-flag-parameters-paccept-sys_ni.patch
-flag-parameters-anon_inode_getfd-extension-fix.patch
-flag-parameters-signalfd-fix.patch
-flag-parameters-eventfd-fix.patch
-flag-parameters-inotify_init-fix.patch
-flag-parameters-check-magic-constants-alpha.patch
-spi-au1550_spi-improve-pio-transfer-mode-checkpatch-fixes.patch
-gpio-gpio-driver-for-max7301-spi-gpio-expander-checkpatch-fixes.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch
-drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
-atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
-sm501-fixup-allocation-code-to-be-64bit-resource-compliant-sm501-align-panel-fb-to-page_size-fix.patch
-lcd-add-platform_lcd-driver-fix.patch
-fsl-diu-fb-update-freescale-diu-driver-to-use-page_alloc_exact.patch
-fbdev-add-new-cobalt-lcd-framebuffer-driver.patch
-eink_apollofb-new-driver-for-apollo-eink-controller-cleanup.patch
-fbcon-remove-stray-semicolons-checkpatch-fixes.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
-ext3-handle-corrupted-orphan-list-at-mount-cleanup.patch
-ext3-handle-corrupted-orphan-list-at-mount-fix.patch
-ext3-handle-corrupted-orphan-list-at-mount-cleanup-fix.patch
-ext3-handle-deleting-corrupted-indirect-blocks-fix.patch
-jbd-dont-abort-if-flushing-file-data-failed-fix.patch
-reiserfs-convert-j_flush_sem-to-mutex.patch
-reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
-cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-fix.patch
-cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-checkpatch-fixes.patch
-devcgroup-code-cleanup-fix.patch
-memcg-remove-refcnt-from-page_cgroup-fix-2.patch
-coredump-format_corename-fix-the-core_uses_pid-logic-checkpatch-fixes.patch
-workqueues-make-get_online_cpus-useable-for-work-func-fix.patch
-ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
-fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
-block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
-getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
-edac-mpc85xx-fix-pci-ofdev-2nd-pass-checkpatch-fixes.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-s2io.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
-x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary-checkpatch-fixes.patch
-calgary-iommu-use-the-first-kernels-tce-tables-in-kdump-coding-style-fixes.patch
-tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
-memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
-memstick-use-fully-asynchronous-request-processing-fix.patch
-full-conversion-to-early_initcall-interface-remove-old-interface-cleanup.patch
-full-conversion-to-early_initcall-interface-remove-old-interface-fix.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-mm-introduce-get_user_pages_fast-fix.patch
-mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-fix.patch
-x86-lockless-get_user_pages_fast-fix-2.patch
-x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
-x86-lockless-get_user_pages_fast-fix-warning.patch
-vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
-define-page_file_cache-function-fix.patch
-vmscan-split-lru-lists-into-anon-file-sets-units-fix.patch
-unevictable-lru-infrastructure-fix.patch
-unevictable-lru-page-statistics-units-fix.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-3.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
-vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-fix.patch
-video-console-sticonrec-make-code-static-checkpatch-fixes.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+tridentfb-replace-macros-with-functions.patch
+tridentfb-convert-fb_info-into-allocated-one.patch
+tridentfb-move-global-pseudo-palette-into-structure.patch
+tridentfb-move-global-chip_id-into-structure.patch
+tridentfb-move-global-flat-panel-variable-into-structure.patch
+tridentfb-convert-is_blade-and-is_xp-macros-into-functions.patch
+tridentfb-move-global-acceleration-hooks-into-structure.patch
+tridentfb-make-use-of-functions-and-constants-from-the-vgah.patch
+tridentfb-fix-timing-calculations.patch
+tridentfb-use-mmio-access-for-clock-setting.patch
+tridentfb-fix-clock-settings-for-older-trident-96xx-chips.patch
+tridentfb-improve-probe-function.patch
+tridentfb-improved-register-values-on-tgui-9680.patch
+tridentfb-add-tgui-9440-support.patch
+tridentfb-fix-unitialized-pseudo_palette.patch
+tridentfb-improve-check_var-function.patch
+tridentfb-preserve-memory-type-settings.patch
+tridentfb-fix-hi-color-modes-for-tgui-9440.patch
+tridentfb-add-acceleration-for-tgui-families.patch
+tridentfb-acceleration-code-improvements.patch
+tridentfb-acceleration-bug-fixes.patch
+tridentfb-various-pixclock-and-timing-improvements.patch
+tridentfb-acceleration-constants-change.patch
+tridentfb-source-code-improvements.patch
+tridentfb-fix-console-freeze-when-switching-from-x11.patch
+tridentfb-fix-224-color-logo-at-8-bpp.patch
+tridentfb-y-panning-fixes.patch
+tridentfb-blade3d-clock-fixes.patch
+tridentfb-add-imageblit-acceleration-for-blade3d-family.patch
+tridentfb-remove-warning-message-that-cyblafb-driver-should-be-used.patch
+amifb-test-virtual-screen-range-before-subtraction-on-unsigned.patch
+atafb-test-virtual-screen-range-before-subtraction-on-unsigned.patch
+fbcon-make-logo_height-a-local-variable.patch
+uvesafb-change-mode-parameter-to-mode_option.patch
+tridentfb-documentation-update.patch
+tdfxfb-add-mode_option-module-parameter.patch
+vga16fb-source-code-improvement.patch
+tdfxfb-remove-ypan-checks-done-by-a-higher-layer.patch
+vfb-only-enable-if-explicitly-requested-when-compiled-in.patch
+hgafb-convert-to-new-platform-driver-api-bugzilla-9689.patch
+skeletonfb-update-to-correct-platform-driver-usage.patch
+neofb-simplify-clock-calculation.patch
+neofb-drop-redundant-code.patch
+neofb-drop-the-xtimings-structure.patch
 
