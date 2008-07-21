@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + revert-to-unevictable-lru-infrastructure-kconfig-fixpatch.patch added to -mm tree
-Date: Sun, 20 Jul 2008 22:21:01 -0700
-Message-ID: <200807210521.m6L5L1sA018945@imap1.linux-foundation.org>
+Subject: + introduce-__get_user_pages.patch added to -mm tree
+Date: Sun, 20 Jul 2008 22:20:57 -0700
+Message-ID: <200807210520.m6L5KvEi018933@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48475 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50050 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932307AbYGUFWI (ORCPT
+	by vger.kernel.org with ESMTP id S1760621AbYGUFWH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 Jul 2008 01:22:08 -0400
+	Mon, 21 Jul 2008 01:22:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: kosaki.motohiro@jp.fujitsu.com, Lee.Schermerhorn@hp.com, hugh@veritas.com, l
 
 
 The patch titled
-     splitlru: revert to unevictable-lru-infrastructure-kconfig-fix.patch
+     splitlru: introduce __get_user_pages()
 has been added to the -mm tree.  Its filename is
-     revert-to-unevictable-lru-infrastructure-kconfig-fixpatch.patch
+     introduce-__get_user_pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,13 +34,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: splitlru: revert to unevictable-lru-infrastructure-kconfig-fix.patch
+Subject: splitlru: introduce __get_user_pages()
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-CONFIG_UNEVICTABLE_LRU automatically turn on CONFIG_PAGE_WALKER.  It
-causes a build error on nommu machines.
-
-Now, it is unnecessary because munlock was rewritten.
+New munlock processing need to GUP_FLAGS_IGNORE_VMA_PERMISSIONS.  because
+current get_user_pages() can't grab PROT_NONE pages theresore it cause
+PROT_NONE pages can't munlock.
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Li Zefan <lizf@cn.fujitsu.com>
@@ -50,52 +49,168 @@ Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |    1 -
- mm/Kconfig   |    5 -----
- mm/Makefile  |    2 +-
- 3 files changed, 1 insertion(+), 7 deletions(-)
+ mm/internal.h |    8 ++++++++
+ mm/memory.c   |   37 +++++++++++++++++++++++++++++++------
+ mm/nommu.c    |   42 +++++++++++++++++++++++++++++++-----------
+ 3 files changed, 70 insertions(+), 17 deletions(-)
 
-diff -puN init/Kconfig~revert-to-unevictable-lru-infrastructure-kconfig-fixpatch init/Kconfig
---- a/init/Kconfig~revert-to-unevictable-lru-infrastructure-kconfig-fixpatch
-+++ a/init/Kconfig
-@@ -803,7 +803,6 @@ source "arch/Kconfig"
- config PROC_PAGE_MONITOR
-  	default y
- 	depends on PROC_FS && MMU
--	select PAGE_WALKER
- 	bool "Enable /proc page monitoring" if EMBEDDED
-  	help
- 	  Various /proc files exist to monitor process memory utilization:
-diff -puN mm/Kconfig~revert-to-unevictable-lru-infrastructure-kconfig-fixpatch mm/Kconfig
---- a/mm/Kconfig~revert-to-unevictable-lru-infrastructure-kconfig-fixpatch
-+++ a/mm/Kconfig
-@@ -209,14 +209,9 @@ config VIRT_TO_BUS
- 	def_bool y
- 	depends on !ARCH_NO_VIRT_TO_BUS
+diff -puN mm/internal.h~introduce-__get_user_pages mm/internal.h
+--- a/mm/internal.h~introduce-__get_user_pages
++++ a/mm/internal.h
+@@ -216,4 +216,12 @@ static inline void mminit_validate_memmo
+ }
+ #endif /* CONFIG_SPARSEMEM */
  
--# automatically selected by UNEVICTABLE_LRU or PROC_PAGE_MONITOR
--config PAGE_WALKER
--	def_bool n
--
- config UNEVICTABLE_LRU
- 	bool "Add LRU list to track non-evictable pages"
- 	default y
--	select PAGE_WALKER
- 	help
- 	  Keeps unevictable pages off of the active and inactive pageout
- 	  lists, so kswapd will not waste CPU time or have its balancing
-diff -puN mm/Makefile~revert-to-unevictable-lru-infrastructure-kconfig-fixpatch mm/Makefile
---- a/mm/Makefile~revert-to-unevictable-lru-infrastructure-kconfig-fixpatch
-+++ a/mm/Makefile
-@@ -13,7 +13,7 @@ obj-y			:= bootmem.o filemap.o mempool.o
- 			   prio_tree.o util.o mmzone.o vmstat.o backing-dev.o \
- 			   page_isolation.o mm_init.o $(mmu-y)
++#define GUP_FLAGS_WRITE                  0x1
++#define GUP_FLAGS_FORCE                  0x2
++#define GUP_FLAGS_IGNORE_VMA_PERMISSIONS 0x4
++
++int __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
++		     unsigned long start, int len, int flags,
++		     struct page **pages, struct vm_area_struct **vmas);
++
+ #endif
+diff -puN mm/memory.c~introduce-__get_user_pages mm/memory.c
+--- a/mm/memory.c~introduce-__get_user_pages
++++ a/mm/memory.c
+@@ -1132,12 +1132,17 @@ static inline int use_zero_page(struct v
+ 	return !vma->vm_ops || !vma->vm_ops->fault;
+ }
  
--obj-$(CONFIG_PAGE_WALKER) += pagewalk.o
-+obj-$(CONFIG_PROC_PAGE_MONITOR) += pagewalk.o
- obj-$(CONFIG_BOUNCE)	+= bounce.o
- obj-$(CONFIG_SWAP)	+= page_io.o swap_state.o swapfile.o thrash.o
- obj-$(CONFIG_HAS_DMA)	+= dmapool.o
+-int get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
+-		unsigned long start, int len, int write, int force,
++
++
++int __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
++		     unsigned long start, int len, int flags,
+ 		struct page **pages, struct vm_area_struct **vmas)
+ {
+ 	int i;
+-	unsigned int vm_flags;
++	unsigned int vm_flags = 0;
++	int write = !!(flags & GUP_FLAGS_WRITE);
++	int force = !!(flags & GUP_FLAGS_FORCE);
++	int ignore = !!(flags & GUP_FLAGS_IGNORE_VMA_PERMISSIONS);
+ 
+ 	if (len <= 0)
+ 		return 0;
+@@ -1161,7 +1166,9 @@ int get_user_pages(struct task_struct *t
+ 			pud_t *pud;
+ 			pmd_t *pmd;
+ 			pte_t *pte;
+-			if (write) /* user gate pages are read-only */
++
++			/* user gate pages are read-only */
++			if (!ignore && write)
+ 				return i ? : -EFAULT;
+ 			if (pg > TASK_SIZE)
+ 				pgd = pgd_offset_k(pg);
+@@ -1193,8 +1200,9 @@ int get_user_pages(struct task_struct *t
+ 			continue;
+ 		}
+ 
+-		if (!vma || (vma->vm_flags & (VM_IO | VM_PFNMAP))
+-				|| !(vm_flags & vma->vm_flags))
++		if (!vma ||
++		    (vma->vm_flags & (VM_IO | VM_PFNMAP)) ||
++		    (!ignore && !(vm_flags & vma->vm_flags)))
+ 			return i ? : -EFAULT;
+ 
+ 		if (is_vm_hugetlb_page(vma)) {
+@@ -1269,6 +1277,23 @@ int get_user_pages(struct task_struct *t
+ 	} while (len);
+ 	return i;
+ }
++
++int get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
++		unsigned long start, int len, int write, int force,
++		struct page **pages, struct vm_area_struct **vmas)
++{
++	int flags = 0;
++
++	if (write)
++		flags |= GUP_FLAGS_WRITE;
++	if (force)
++		flags |= GUP_FLAGS_FORCE;
++
++	return __get_user_pages(tsk, mm,
++				start, len, flags,
++				pages, vmas);
++}
++
+ EXPORT_SYMBOL(get_user_pages);
+ 
+ pte_t *get_locked_pte(struct mm_struct *mm, unsigned long addr,
+diff -puN mm/nommu.c~introduce-__get_user_pages mm/nommu.c
+--- a/mm/nommu.c~introduce-__get_user_pages
++++ a/mm/nommu.c
+@@ -128,20 +128,16 @@ unsigned int kobjsize(const void *objp)
+ 	return PAGE_SIZE << compound_order(page);
+ }
+ 
+-/*
+- * get a list of pages in an address range belonging to the specified process
+- * and indicate the VMA that covers each page
+- * - this is potentially dodgy as we may end incrementing the page count of a
+- *   slab page or a secondary page from a compound page
+- * - don't permit access to VMAs that don't support it, such as I/O mappings
+- */
+-int get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
+-	unsigned long start, int len, int write, int force,
+-	struct page **pages, struct vm_area_struct **vmas)
++int __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
++		     unsigned long start, int len, int flags,
++		struct page **pages, struct vm_area_struct **vmas)
+ {
+ 	struct vm_area_struct *vma;
+ 	unsigned long vm_flags;
+ 	int i;
++	int write = !!(flags & GUP_FLAGS_WRITE);
++	int force = !!(flags & GUP_FLAGS_FORCE);
++	int ignore = !!(flags & GUP_FLAGS_IGNORE_VMA_PERMISSIONS);
+ 
+ 	/* calculate required read or write permissions.
+ 	 * - if 'force' is set, we only require the "MAY" flags.
+@@ -156,7 +152,7 @@ int get_user_pages(struct task_struct *t
+ 
+ 		/* protect what we can, including chardevs */
+ 		if (vma->vm_flags & (VM_IO | VM_PFNMAP) ||
+-		    !(vm_flags & vma->vm_flags))
++		    (!ignore && !(vm_flags & vma->vm_flags)))
+ 			goto finish_or_fault;
+ 
+ 		if (pages) {
+@@ -174,6 +170,30 @@ int get_user_pages(struct task_struct *t
+ finish_or_fault:
+ 	return i ? : -EFAULT;
+ }
++
++
++/*
++ * get a list of pages in an address range belonging to the specified process
++ * and indicate the VMA that covers each page
++ * - this is potentially dodgy as we may end incrementing the page count of a
++ *   slab page or a secondary page from a compound page
++ * - don't permit access to VMAs that don't support it, such as I/O mappings
++ */
++int get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
++	unsigned long start, int len, int write, int force,
++	struct page **pages, struct vm_area_struct **vmas)
++{
++	int flags = 0;
++
++	if (write)
++		flags |= GUP_FLAGS_WRITE;
++	if (force)
++		flags |= GUP_FLAGS_FORCE;
++
++	return __get_user_pages(tsk, mm,
++				start, len, flags,
++				pages, vmas);
++}
+ EXPORT_SYMBOL(get_user_pages);
+ 
+ DEFINE_RWLOCK(vmlist_lock);
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
