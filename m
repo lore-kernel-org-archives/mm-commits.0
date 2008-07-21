@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + tridentfb-remove-warning-message-that-cyblafb-driver-should-be-used.patch added to -mm tree
-Date: Sun, 20 Jul 2008 18:40:40 -0700
-Message-ID: <200807210140.m6L1eeAj011228@imap1.linux-foundation.org>
+Subject: + bluetooth-fix-oops-in-rfcomm-tty-code-v2.patch added to -mm tree
+Date: Sun, 20 Jul 2008 18:41:50 -0700
+Message-ID: <200807210141.m6L1foEh011246@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44333 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50300 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755314AbYGUBlC (ORCPT
+	by vger.kernel.org with ESMTP id S1756107AbYGUBmc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 20 Jul 2008 21:41:02 -0400
+	Sun, 20 Jul 2008 21:42:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: krzysztof.h1@wp.pl
+Cc: vegard.nossum@gmail.com, dwmw2@infradead.org, hidave.darkstar@gmail.com, kernel@nn7.de, marcel@holtmann.org, maxk@qualcomm.com
 
 
 The patch titled
-     tridentfb: remove warning message that cyblafb driver should be used
+     Bluetooth: fix oops in rfcomm tty code
 has been added to the -mm tree.  Its filename is
-     tridentfb-remove-warning-message-that-cyblafb-driver-should-be-used.patch
+     bluetooth-fix-oops-in-rfcomm-tty-code-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,80 +34,136 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tridentfb: remove warning message that cyblafb driver should be used
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: Bluetooth: fix oops in rfcomm tty code
+From: Vegard Nossum <vegard.nossum@gmail.com>
 
-The tridentfb driver should handle now all chipsets handled by the cyblafb
-driver.  Remove the message which claims that support will be removed.
+Soeren Sonnenburg reported:
+> this oops happened after a couple of s2ram cycles so it might be very
+> well crap. However I somehow triggered it by /etc/init.d/bluetooth
+> stop/start's which also call hid2hci maybe even a connection was about
+> to be established at that time. As I remember having seen a problem like
+> this before I thought I report it (even though I have a madwifi tainted
+> kernel).
+>
+> kobject_add_internal failed for rfcomm0 with -EEXIST, don't try to register things with the same name in the same directory.
 
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+It turns out that the following sequence of actions will reproduce the
+oops:
+
+  1. Create a new rfcomm device (using RFCOMMCREATEDEV ioctl)
+  2. (Try to) open the device
+  3. Release the rfcomm device (using RFCOMMRELEASEDEV ioctl)
+
+At this point, the "rfcomm?" tty is still in use, but the device is gone
+from the internal rfcomm list, so the device id can be reused.
+
+  4. Create a new rfcomm device with the same device id as before
+
+And now kobject will complain that the tty already exists.
+
+(See http://lkml.org/lkml/2008/7/13/89 for a reproducible test-case.)
+
+This patch attempts to correct this by only removing the device from the
+internal rfcomm list of devices at the final unregister, so that the id
+won't get reused until the device has been completely destructed.
+
+This should be safe as the RFCOMM_TTY_RELEASED bit will be set for the
+device and prevent the device from being reopened after it has been
+released.
+
+We also fix a race (which would lead to the same oops) by including the
+tty setup/teardown code in the rfcomm_dev_lock, the lock protecting the
+list of devices.
+
+Thanks to Dave Young for additional suggestions.
+
+Reviewed-by: Soeren Sonnenburg <kernel@nn7.de>
+Cc: Marcel Holtmann <marcel@holtmann.org>
+Cc: Maxim Krasnyansky <maxk@qualcomm.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Dave Young <hidave.darkstar@gmail.com>
+Signed-off-by: Vegard Nossum <vegard.nossum@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/tridentfb.c |    4 ----
- 1 file changed, 4 deletions(-)
+ net/bluetooth/rfcomm/tty.c |   27 ++++++++++++++-------------
+ 1 file changed, 14 insertions(+), 13 deletions(-)
 
-diff -puN drivers/video/tridentfb.c~tridentfb-remove-warning-message-that-cyblafb-driver-should-be-used drivers/video/tridentfb.c
---- a/drivers/video/tridentfb.c~tridentfb-remove-warning-message-that-cyblafb-driver-should-be-used
-+++ a/drivers/video/tridentfb.c
-@@ -1359,10 +1359,6 @@ static int __devinit trident_pci_probe(s
+diff -puN net/bluetooth/rfcomm/tty.c~bluetooth-fix-oops-in-rfcomm-tty-code-v2 net/bluetooth/rfcomm/tty.c
+--- a/net/bluetooth/rfcomm/tty.c~bluetooth-fix-oops-in-rfcomm-tty-code-v2
++++ a/net/bluetooth/rfcomm/tty.c
+@@ -96,9 +96,11 @@ static void rfcomm_dev_destruct(struct r
+ 	BT_DBG("dev %p dlc %p", dev, dlc);
  
- 	chip_id = id->device;
+ 	/* Refcount should only hit zero when called from rfcomm_dev_del()
+-	   which will have taken us off the list. Everything else are
+-	   refcounting bugs. */
+-	BUG_ON(!list_empty(&dev->list));
++	   which will have set the RFCOMM_TTY_RELEASED bit. Everything else
++	   are refcounting bugs. */
++	BUG_ON(!test_bit(RFCOMM_TTY_RELEASED, &dev->flags));
++
++	write_lock_bh(&rfcomm_dev_lock);
  
--	if (chip_id == CYBERBLADEi1)
--		output("*** Please do use cyblafb, Cyberblade/i1 support "
--		       "will soon be removed from tridentfb!\n");
+ 	rfcomm_dlc_lock(dlc);
+ 	/* Detach DLC if it's owned by this dev */
+@@ -108,8 +110,11 @@ static void rfcomm_dev_destruct(struct r
+ 
+ 	rfcomm_dlc_put(dlc);
+ 
++	list_del_init(&dev->list);
+ 	tty_unregister_device(rfcomm_tty_driver, dev->id);
+ 
++	write_unlock_bh(&rfcomm_dev_lock);
++
+ 	kfree(dev);
+ 
+ 	/* It's safe to call module_put() here because socket still
+@@ -127,10 +132,8 @@ static inline void rfcomm_dev_put(struct
+ 	/* The reason this isn't actually a race, as you no
+ 	   doubt have a little voice screaming at you in your
+ 	   head, is that the refcount should never actually
+-	   reach zero unless the device has already been taken
+-	   off the list, in rfcomm_dev_del(). And if that's not
+-	   true, we'll hit the BUG() in rfcomm_dev_destruct()
+-	   anyway. */
++	   reach zero unless we've already set the
++	   RFCOMM_TTY_RELEASED bit in rfcomm_dev_del(). */
+ 	if (atomic_dec_and_test(&dev->refcnt))
+ 		rfcomm_dev_destruct(dev);
+ }
+@@ -299,9 +302,8 @@ static int rfcomm_dev_add(struct rfcomm_
+ 	__module_get(THIS_MODULE);
+ 
+ out:
+-	write_unlock_bh(&rfcomm_dev_lock);
 -
- #ifndef CONFIG_FB_TRIDENT_ACCEL
- 	noaccel = 1;
- #endif
-_
-
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
-
-origin.patch
-tridentfb-replace-macros-with-functions.patch
-tridentfb-convert-fb_info-into-allocated-one.patch
-tridentfb-move-global-pseudo-palette-into-structure.patch
-tridentfb-move-global-chip_id-into-structure.patch
-tridentfb-move-global-flat-panel-variable-into-structure.patch
-tridentfb-convert-is_blade-and-is_xp-macros-into-functions.patch
-tridentfb-move-global-acceleration-hooks-into-structure.patch
-tridentfb-make-use-of-functions-and-constants-from-the-vgah.patch
-tridentfb-fix-timing-calculations.patch
-tridentfb-use-mmio-access-for-clock-setting.patch
-tridentfb-fix-clock-settings-for-older-trident-96xx-chips.patch
-tridentfb-improve-probe-function.patch
-tridentfb-improved-register-values-on-tgui-9680.patch
-tridentfb-add-tgui-9440-support.patch
-tridentfb-fix-unitialized-pseudo_palette.patch
-tridentfb-improve-check_var-function.patch
-tridentfb-preserve-memory-type-settings.patch
-tridentfb-fix-hi-color-modes-for-tgui-9440.patch
-tridentfb-add-acceleration-for-tgui-families.patch
-tridentfb-acceleration-code-improvements.patch
-tridentfb-acceleration-bug-fixes.patch
-tridentfb-various-pixclock-and-timing-improvements.patch
-tridentfb-acceleration-constants-change.patch
-tridentfb-source-code-improvements.patch
-tridentfb-fix-console-freeze-when-switching-from-x11.patch
-tridentfb-fix-224-color-logo-at-8-bpp.patch
-tridentfb-y-panning-fixes.patch
-tridentfb-blade3d-clock-fixes.patch
-tridentfb-add-imageblit-acceleration-for-blade3d-family.patch
-tridentfb-remove-warning-message-that-cyblafb-driver-should-be-used.patch
-amifb-test-virtual-screen-range-before-subtraction-on-unsigned.patch
-atafb-test-virtual-screen-range-before-subtraction-on-unsigned.patch
-fbcon-make-logo_height-a-local-variable.patch
-uvesafb-change-mode-parameter-to-mode_option.patch
-tridentfb-documentation-update.patch
-tdfxfb-add-mode_option-module-parameter.patch
-vga16fb-source-code-improvement.patch
-tdfxfb-remove-ypan-checks-done-by-a-higher-layer.patch
-vfb-only-enable-if-explicitly-requested-when-compiled-in.patch
-hgafb-convert-to-new-platform-driver-api-bugzilla-9689.patch
-skeletonfb-update-to-correct-platform-driver-usage.patch
-neofb-simplify-clock-calculation.patch
-neofb-drop-redundant-code.patch
-neofb-drop-the-xtimings-structure.patch
-
+ 	if (err < 0) {
++		write_unlock_bh(&rfcomm_dev_lock);
+ 		kfree(dev);
+ 		return err;
+ 	}
+@@ -311,6 +313,7 @@ out:
+ 	if (IS_ERR(dev->tty_dev)) {
+ 		err = PTR_ERR(dev->tty_dev);
+ 		list_del(&dev->list);
++		write_unlock_bh(&rfcomm_dev_lock);
+ 		kfree(dev);
+ 		return err;
+ 	}
+@@ -323,6 +326,8 @@ out:
+ 	if (device_create_file(dev->tty_dev, &dev_attr_channel) < 0)
+ 		BT_ERR("Failed to create channel attribute");
+ 
++	write_unlock_bh(&rfcomm_dev_lock);
++
+ 	return dev->id;
+ }
+ 
+@@ -335,10 +340,6 @@ static void rfcomm_dev_del(struct rfcomm
+ 	else
+ 		set_bit(RFCOMM_TTY_RELEASED, &dev->flags);
+ 
+-	write_lock_bh(&rfcomm_dev_lock);
+-	list_del_init(&dev->list);
+-	write_unlock_bh(&rfcomm_dev_lock);
