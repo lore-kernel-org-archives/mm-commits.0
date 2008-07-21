@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + bluetooth-fix-oops-in-rfcomm-tty-code-v2.patch added to -mm tree
-Date: Sun, 20 Jul 2008 18:41:50 -0700
-Message-ID: <200807210141.m6L1foEh011246@imap1.linux-foundation.org>
+Subject: + mm-more-likely-reclaim-madv_sequential-mappings.patch added to -mm tree
+Date: Sun, 20 Jul 2008 18:47:36 -0700
+Message-ID: <200807210147.m6L1laBH011505@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50300 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33301 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756107AbYGUBmc (ORCPT
+	by vger.kernel.org with ESMTP id S1756462AbYGUBsI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 20 Jul 2008 21:42:32 -0400
+	Sun, 20 Jul 2008 21:48:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vegard.nossum@gmail.com, dwmw2@infradead.org, hidave.darkstar@gmail.com, kernel@nn7.de, marcel@holtmann.org, maxk@qualcomm.com
+Cc: hannes@saeurebad.de, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com
 
 
 The patch titled
-     Bluetooth: fix oops in rfcomm tty code
+     mm: more likely reclaim MADV_SEQUENTIAL mappings
 has been added to the -mm tree.  Its filename is
-     bluetooth-fix-oops-in-rfcomm-tty-code-v2.patch
+     mm-more-likely-reclaim-madv_sequential-mappings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,136 +34,134 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Bluetooth: fix oops in rfcomm tty code
-From: Vegard Nossum <vegard.nossum@gmail.com>
+Subject: mm: more likely reclaim MADV_SEQUENTIAL mappings
+From: Johannes Weiner <hannes@saeurebad.de>
 
-Soeren Sonnenburg reported:
-> this oops happened after a couple of s2ram cycles so it might be very
-> well crap. However I somehow triggered it by /etc/init.d/bluetooth
-> stop/start's which also call hid2hci maybe even a connection was about
-> to be established at that time. As I remember having seen a problem like
-> this before I thought I report it (even though I have a madwifi tainted
-> kernel).
->
-> kobject_add_internal failed for rfcomm0 with -EEXIST, don't try to register things with the same name in the same directory.
+File pages accessed only once through sequential-read mappings between
+fault and scan time are perfect candidates for reclaim.
 
-It turns out that the following sequence of actions will reproduce the
-oops:
+This patch makes page_referenced() ignore these singular references and
+the pages stay on the inactive list where they likely fall victim to the
+next reclaim phase.
 
-  1. Create a new rfcomm device (using RFCOMMCREATEDEV ioctl)
-  2. (Try to) open the device
-  3. Release the rfcomm device (using RFCOMMRELEASEDEV ioctl)
+Already activated pages are still treated normally.  If they were accessed
+multiple times and therefor promoted to the active list, we probably want
+to keep them.
 
-At this point, the "rfcomm?" tty is still in use, but the device is gone
-from the internal rfcomm list, so the device id can be reused.
+Benchmarks show that big (relative to the system's memory) MADV_SEQUENTIAL
+mappings read sequentially cause much less kernel activity.  Especially
+less LRU moving-around because we never activate read-once pages in the
+first place just to demote them again.
 
-  4. Create a new rfcomm device with the same device id as before
+And leaving these perfect reclaim candidates on the inactive list makes
+it more likely for the real working set to survive the next reclaim
+scan.
 
-And now kobject will complain that the tty already exists.
+Benchmark graphs and the test-application can be found here:
 
-(See http://lkml.org/lkml/2008/7/13/89 for a reproducible test-case.)
+	http://hannes.saeurebad.de/madvseq/
 
-This patch attempts to correct this by only removing the device from the
-internal rfcomm list of devices at the final unregister, so that the id
-won't get reused until the device has been completely destructed.
-
-This should be safe as the RFCOMM_TTY_RELEASED bit will be set for the
-device and prevent the device from being reopened after it has been
-released.
-
-We also fix a race (which would lead to the same oops) by including the
-tty setup/teardown code in the rfcomm_dev_lock, the lock protecting the
-list of devices.
-
-Thanks to Dave Young for additional suggestions.
-
-Reviewed-by: Soeren Sonnenburg <kernel@nn7.de>
-Cc: Marcel Holtmann <marcel@holtmann.org>
-Cc: Maxim Krasnyansky <maxk@qualcomm.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Dave Young <hidave.darkstar@gmail.com>
-Signed-off-by: Vegard Nossum <vegard.nossum@gmail.com>
+Signed-off-by: Johannes Weiner <hannes@saeurebad.de>
+Signed-off-by: Rik van Riel <riel@redhat.com>
+Cc: "KOSAKI Motohiro" <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/bluetooth/rfcomm/tty.c |   27 ++++++++++++++-------------
- 1 file changed, 14 insertions(+), 13 deletions(-)
+ mm/rmap.c |   20 +++++++++++++++-----
+ 1 file changed, 15 insertions(+), 5 deletions(-)
 
-diff -puN net/bluetooth/rfcomm/tty.c~bluetooth-fix-oops-in-rfcomm-tty-code-v2 net/bluetooth/rfcomm/tty.c
---- a/net/bluetooth/rfcomm/tty.c~bluetooth-fix-oops-in-rfcomm-tty-code-v2
-+++ a/net/bluetooth/rfcomm/tty.c
-@@ -96,9 +96,11 @@ static void rfcomm_dev_destruct(struct r
- 	BT_DBG("dev %p dlc %p", dev, dlc);
+diff -puN mm/rmap.c~mm-more-likely-reclaim-madv_sequential-mappings mm/rmap.c
+--- a/mm/rmap.c~mm-more-likely-reclaim-madv_sequential-mappings
++++ a/mm/rmap.c
+@@ -323,8 +323,18 @@ static int page_referenced_one(struct pa
+ 		goto out_unmap;
+ 	}
  
- 	/* Refcount should only hit zero when called from rfcomm_dev_del()
--	   which will have taken us off the list. Everything else are
--	   refcounting bugs. */
--	BUG_ON(!list_empty(&dev->list));
-+	   which will have set the RFCOMM_TTY_RELEASED bit. Everything else
-+	   are refcounting bugs. */
-+	BUG_ON(!test_bit(RFCOMM_TTY_RELEASED, &dev->flags));
-+
-+	write_lock_bh(&rfcomm_dev_lock);
+-	if (ptep_clear_flush_young_notify(vma, address, pte))
+-		referenced++;
++	if (ptep_clear_flush_young_notify(vma, address, pte)) {
++		/*
++		 * If there was just one sequential access to the
++		 * page, ignore it.  Otherwise, mark_page_accessed()
++		 * will have promoted the page to the active list and
++		 * it should be kept.
++		 */
++		if (VM_SequentialReadHint(vma) && !PageActive(page))
++			ClearPageReferenced(page);
++		else
++			referenced++;
++	}
  
- 	rfcomm_dlc_lock(dlc);
- 	/* Detach DLC if it's owned by this dev */
-@@ -108,8 +110,11 @@ static void rfcomm_dev_destruct(struct r
+ 	/* Pretend the page is referenced if the task has the
+ 	   swap token and is in the middle of a page fault. */
+@@ -445,9 +455,6 @@ int page_referenced(struct page *page, i
+ {
+ 	int referenced = 0;
  
- 	rfcomm_dlc_put(dlc);
- 
-+	list_del_init(&dev->list);
- 	tty_unregister_device(rfcomm_tty_driver, dev->id);
- 
-+	write_unlock_bh(&rfcomm_dev_lock);
-+
- 	kfree(dev);
- 
- 	/* It's safe to call module_put() here because socket still
-@@ -127,10 +132,8 @@ static inline void rfcomm_dev_put(struct
- 	/* The reason this isn't actually a race, as you no
- 	   doubt have a little voice screaming at you in your
- 	   head, is that the refcount should never actually
--	   reach zero unless the device has already been taken
--	   off the list, in rfcomm_dev_del(). And if that's not
--	   true, we'll hit the BUG() in rfcomm_dev_destruct()
--	   anyway. */
-+	   reach zero unless we've already set the
-+	   RFCOMM_TTY_RELEASED bit in rfcomm_dev_del(). */
- 	if (atomic_dec_and_test(&dev->refcnt))
- 		rfcomm_dev_destruct(dev);
- }
-@@ -299,9 +302,8 @@ static int rfcomm_dev_add(struct rfcomm_
- 	__module_get(THIS_MODULE);
- 
- out:
--	write_unlock_bh(&rfcomm_dev_lock);
+-	if (TestClearPageReferenced(page))
+-		referenced++;
 -
- 	if (err < 0) {
-+		write_unlock_bh(&rfcomm_dev_lock);
- 		kfree(dev);
- 		return err;
+ 	if (page_mapped(page) && page->mapping) {
+ 		if (PageAnon(page))
+ 			referenced += page_referenced_anon(page, mem_cont);
+@@ -463,6 +470,9 @@ int page_referenced(struct page *page, i
+ 		}
  	}
-@@ -311,6 +313,7 @@ out:
- 	if (IS_ERR(dev->tty_dev)) {
- 		err = PTR_ERR(dev->tty_dev);
- 		list_del(&dev->list);
-+		write_unlock_bh(&rfcomm_dev_lock);
- 		kfree(dev);
- 		return err;
- 	}
-@@ -323,6 +326,8 @@ out:
- 	if (device_create_file(dev->tty_dev, &dev_attr_channel) < 0)
- 		BT_ERR("Failed to create channel attribute");
  
-+	write_unlock_bh(&rfcomm_dev_lock);
++	if (TestClearPageReferenced(page))
++		referenced++;
 +
- 	return dev->id;
- }
+ 	if (page_test_and_clear_young(page))
+ 		referenced++;
  
-@@ -335,10 +340,6 @@ static void rfcomm_dev_del(struct rfcomm
- 	else
- 		set_bit(RFCOMM_TTY_RELEASED, &dev->flags);
- 
--	write_lock_bh(&rfcomm_dev_lock);
--	list_del_init(&dev->list);
--	write_unlock_bh(&rfcomm_dev_lock);
+_
+
+Patches currently in -mm which might be from hannes@saeurebad.de are
+
+origin.patch
+linux-next.patch
+git-xtensa.patch
+mm-move-bootmem-descriptors-definition-to-a-single-place.patch
+mm-fix-free_all_bootmem_core-alignment-check.patch
+mm-normalize-internal-argument-passing-of-bootmem-data.patch
+mm-unexport-__alloc_bootmem_core.patch
+mm-drop-unneeded-pgdat-argument-from-free_area_init_node.patch
+hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed-fix.patch
+huge-page-private-reservation-review-cleanups.patch
+huge-page-private-reservation-review-cleanups-fix.patch
+mm-record-map_noreserve-status-on-vmas-and-fix-small-page-mprotect-reservations.patch
+hugetlb-move-reservation-region-support-earlier.patch
+hugetlb-allow-huge-page-mappings-to-be-created-without-reservations.patch
+hugetlb-allow-huge-page-mappings-to-be-created-without-reservations-cleanups.patch
+hugetlb-reservations-fix-hugetlb-map_private-reservations-across-vma-splits-v2.patch
+vma-page-offset-has-no-callees-drop-it.patch
+hugetlb-fix-race-when-reading-proc-meminfo.patch
+hugetlb-quota-is-not-freed-for-unused-reserved-private-huge-pages.patch
+linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+bootmem-reorder-code-to-match-new-bootmem-structure.patch
+revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+bootmem-clean-up-bootmemc-file-header.patch
+revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+bootmem-add-documentation-to-api-functions.patch
+revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+bootmem-add-debugging-framework.patch
+bootmem-add-debugging-framework-fix.patch
+bootmem-revisit-bitmap-size-calculations.patch
+bootmem-revisit-bootmem-descriptor-list-handling.patch
+bootmem-clean-up-free_all_bootmem_core.patch
+bootmem-clean-up-free_all_bootmem_core-fix.patch
+bootmem-clean-up-alloc_bootmem_core.patch
+bootmem-clean-up-alloc_bootmem_core-fix-new-alloc_bootmem_core.patch
+bootmem-free-reserve-helpers.patch
+bootmem-free-reserve-helpers-fix.patch
+revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+bootmem-factor-out-the-marking-of-a-pfn-range.patch
+bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
+bootmem-respect-goal-more-likely.patch
+bootmem-make-__alloc_bootmem_low_node-fall-back-to-other-nodes.patch
+bootmem-revisit-alloc_bootmem_section.patch
+bootmem-replace-node_boot_start-in-struct-bootmem_data.patch
+bootmem-replace-node_boot_start-in-struct-bootmem_data-fix.patch
+memory-hotplug-small-fixes-to-bootmem-freeing-for-memory-hotremove.patch
+mm-more-likely-reclaim-madv_sequential-mappings.patch
+
