@@ -1,159 +1,263 @@
 From: akpm@linux-foundation.org
-Subject: - bluetooth-fix-oops-in-rfcomm-tty-code-v2.patch removed from -mm tree
-Date: Sun, 20 Jul 2008 22:34:12 -0700
-Message-ID: <200807210534.m6L5YCSQ019427@imap1.linux-foundation.org>
+Subject: + autofs4-cleanup-redundant-readir-code.patch added to -mm tree
+Date: Sun, 20 Jul 2008 23:35:23 -0700
+Message-ID: <200807210635.m6L6ZN1h021565@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56048 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43368 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752774AbYGUFe6 (ORCPT
+	by vger.kernel.org with ESMTP id S1755537AbYGUGfs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 Jul 2008 01:34:58 -0400
+	Mon, 21 Jul 2008 02:35:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vegard.nossum@gmail.com, dwmw2@infradead.org, hidave.darkstar@gmail.com, kernel@nn7.de, marcel@holtmann.org, maxk@qualcomm.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: raven@themaw.net, jmoyer@redhat.com
 
 
 The patch titled
-     Bluetooth: fix oops in rfcomm tty code
-has been removed from the -mm tree.  Its filename was
-     bluetooth-fix-oops-in-rfcomm-tty-code-v2.patch
+     autofs4: cleanup redundant readir code
+has been added to the -mm tree.  Its filename is
+     autofs4-cleanup-redundant-readir-code.patch
 
-This patch was dropped because it was nacked
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Bluetooth: fix oops in rfcomm tty code
-From: Vegard Nossum <vegard.nossum@gmail.com>
+Subject: autofs4: cleanup redundant readir code
+From: Ian Kent <raven@themaw.net>
 
-Soeren Sonnenburg reported:
-> this oops happened after a couple of s2ram cycles so it might be very
-> well crap. However I somehow triggered it by /etc/init.d/bluetooth
-> stop/start's which also call hid2hci maybe even a connection was about
-> to be established at that time. As I remember having seen a problem like
-> this before I thought I report it (even though I have a madwifi tainted
-> kernel).
->
-> kobject_add_internal failed for rfcomm0 with -EEXIST, don't try to register things with the same name in the same directory.
+The mount triggering functionality of readdir and related functions is no
+longer used (and is quite broken as well).  The unused portions have been
+removed.
 
-It turns out that the following sequence of actions will reproduce the
-oops:
-
-  1. Create a new rfcomm device (using RFCOMMCREATEDEV ioctl)
-  2. (Try to) open the device
-  3. Release the rfcomm device (using RFCOMMRELEASEDEV ioctl)
-
-At this point, the "rfcomm?" tty is still in use, but the device is gone
-from the internal rfcomm list, so the device id can be reused.
-
-  4. Create a new rfcomm device with the same device id as before
-
-And now kobject will complain that the tty already exists.
-
-(See http://lkml.org/lkml/2008/7/13/89 for a reproducible test-case.)
-
-This patch attempts to correct this by only removing the device from the
-internal rfcomm list of devices at the final unregister, so that the id
-won't get reused until the device has been completely destructed.
-
-This should be safe as the RFCOMM_TTY_RELEASED bit will be set for the
-device and prevent the device from being reopened after it has been
-released.
-
-We also fix a race (which would lead to the same oops) by including the
-tty setup/teardown code in the rfcomm_dev_lock, the lock protecting the
-list of devices.
-
-Thanks to Dave Young for additional suggestions.
-
-Reviewed-by: Soeren Sonnenburg <kernel@nn7.de>
-Cc: Marcel Holtmann <marcel@holtmann.org>
-Cc: Maxim Krasnyansky <maxk@qualcomm.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Dave Young <hidave.darkstar@gmail.com>
-Signed-off-by: Vegard Nossum <vegard.nossum@gmail.com>
+Signed-off-by: Ian Kent <raven@themaw.net>
+Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/bluetooth/rfcomm/tty.c |   27 ++++++++++++++-------------
- 1 file changed, 14 insertions(+), 13 deletions(-)
+ fs/autofs4/root.c |  149 ++++----------------------------------------
+ 1 file changed, 16 insertions(+), 133 deletions(-)
 
-diff -puN net/bluetooth/rfcomm/tty.c~bluetooth-fix-oops-in-rfcomm-tty-code-v2 net/bluetooth/rfcomm/tty.c
---- a/net/bluetooth/rfcomm/tty.c~bluetooth-fix-oops-in-rfcomm-tty-code-v2
-+++ a/net/bluetooth/rfcomm/tty.c
-@@ -96,9 +96,11 @@ static void rfcomm_dev_destruct(struct r
- 	BT_DBG("dev %p dlc %p", dev, dlc);
+diff -puN fs/autofs4/root.c~autofs4-cleanup-redundant-readir-code fs/autofs4/root.c
+--- a/fs/autofs4/root.c~autofs4-cleanup-redundant-readir-code
++++ a/fs/autofs4/root.c
+@@ -25,8 +25,6 @@ static int autofs4_dir_rmdir(struct inod
+ static int autofs4_dir_mkdir(struct inode *,struct dentry *,int);
+ static int autofs4_root_ioctl(struct inode *, struct file *,unsigned int,unsigned long);
+ static int autofs4_dir_open(struct inode *inode, struct file *file);
+-static int autofs4_dir_close(struct inode *inode, struct file *file);
+-static int autofs4_dir_readdir(struct file * filp, void * dirent, filldir_t filldir);
+ static int autofs4_root_readdir(struct file * filp, void * dirent, filldir_t filldir);
+ static struct dentry *autofs4_lookup(struct inode *,struct dentry *, struct nameidata *);
+ static void *autofs4_follow_link(struct dentry *, struct nameidata *);
+@@ -44,9 +42,9 @@ const struct file_operations autofs4_roo
  
- 	/* Refcount should only hit zero when called from rfcomm_dev_del()
--	   which will have taken us off the list. Everything else are
--	   refcounting bugs. */
--	BUG_ON(!list_empty(&dev->list));
-+	   which will have set the RFCOMM_TTY_RELEASED bit. Everything else
-+	   are refcounting bugs. */
-+	BUG_ON(!test_bit(RFCOMM_TTY_RELEASED, &dev->flags));
-+
-+	write_lock_bh(&rfcomm_dev_lock);
+ const struct file_operations autofs4_dir_operations = {
+ 	.open		= autofs4_dir_open,
+-	.release	= autofs4_dir_close,
++	.release	= dcache_dir_close,
+ 	.read		= generic_read_dir,
+-	.readdir	= autofs4_dir_readdir,
++	.readdir	= dcache_readdir,
+ };
  
- 	rfcomm_dlc_lock(dlc);
- 	/* Detach DLC if it's owned by this dev */
-@@ -108,8 +110,11 @@ static void rfcomm_dev_destruct(struct r
- 
- 	rfcomm_dlc_put(dlc);
- 
-+	list_del_init(&dev->list);
- 	tty_unregister_device(rfcomm_tty_driver, dev->id);
- 
-+	write_unlock_bh(&rfcomm_dev_lock);
-+
- 	kfree(dev);
- 
- 	/* It's safe to call module_put() here because socket still
-@@ -127,10 +132,8 @@ static inline void rfcomm_dev_put(struct
- 	/* The reason this isn't actually a race, as you no
- 	   doubt have a little voice screaming at you in your
- 	   head, is that the refcount should never actually
--	   reach zero unless the device has already been taken
--	   off the list, in rfcomm_dev_del(). And if that's not
--	   true, we'll hit the BUG() in rfcomm_dev_destruct()
--	   anyway. */
-+	   reach zero unless we've already set the
-+	   RFCOMM_TTY_RELEASED bit in rfcomm_dev_del(). */
- 	if (atomic_dec_and_test(&dev->refcnt))
- 		rfcomm_dev_destruct(dev);
- }
-@@ -299,9 +302,8 @@ static int rfcomm_dev_add(struct rfcomm_
- 	__module_get(THIS_MODULE);
- 
- out:
--	write_unlock_bh(&rfcomm_dev_lock);
+ const struct inode_operations autofs4_indirect_root_inode_operations = {
+@@ -98,17 +96,7 @@ static int autofs4_root_readdir(struct f
+ static int autofs4_dir_open(struct inode *inode, struct file *file)
+ {
+ 	struct dentry *dentry = file->f_path.dentry;
+-	struct vfsmount *mnt = file->f_path.mnt;
+ 	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
+-	struct dentry *cursor;
+-	int status;
 -
- 	if (err < 0) {
-+		write_unlock_bh(&rfcomm_dev_lock);
- 		kfree(dev);
- 		return err;
- 	}
-@@ -311,6 +313,7 @@ out:
- 	if (IS_ERR(dev->tty_dev)) {
- 		err = PTR_ERR(dev->tty_dev);
- 		list_del(&dev->list);
-+		write_unlock_bh(&rfcomm_dev_lock);
- 		kfree(dev);
- 		return err;
- 	}
-@@ -323,6 +326,8 @@ out:
- 	if (device_create_file(dev->tty_dev, &dev_attr_channel) < 0)
- 		BT_ERR("Failed to create channel attribute");
+-	status = dcache_dir_open(inode, file);
+-	if (status)
+-		goto out;
+-
+-	cursor = file->private_data;
+-	cursor->d_fsdata = NULL;
  
-+	write_unlock_bh(&rfcomm_dev_lock);
-+
- 	return dev->id;
+ 	DPRINTK("file=%p dentry=%p %.*s",
+ 		file, dentry, dentry->d_name.len, dentry->d_name.name);
+@@ -116,129 +104,24 @@ static int autofs4_dir_open(struct inode
+ 	if (autofs4_oz_mode(sbi))
+ 		goto out;
+ 
+-	if (autofs4_ispending(dentry)) {
+-		DPRINTK("dentry busy");
+-		dcache_dir_close(inode, file);
+-		status = -EBUSY;
+-		goto out;
+-	}
+-
+-	status = -ENOENT;
+-	if (!d_mountpoint(dentry) && dentry->d_op && dentry->d_op->d_revalidate) {
+-		struct nameidata nd;
+-		int empty, ret;
+-
+-		/* In case there are stale directory dentrys from a failed mount */
+-		spin_lock(&dcache_lock);
+-		empty = list_empty(&dentry->d_subdirs);
++	/*
++	 * An empty directory in an autofs file system is always a
++	 * mount point. The daemon must have failed to mount this
++	 * during lookup so it doesn't exist. This can happen, for
++	 * example, if user space returns an incorrect status for a
++	 * mount request. Otherwise we're doing a readdir on the
++	 * autofs file system so just let the libfs routines handle
++	 * it.
++	 */
++	spin_lock(&dcache_lock);
++	if (!d_mountpoint(dentry) && __simple_empty(dentry)) {
+ 		spin_unlock(&dcache_lock);
+-
+-		if (!empty)
+-			d_invalidate(dentry);
+-
+-		nd.flags = LOOKUP_DIRECTORY;
+-		ret = (dentry->d_op->d_revalidate)(dentry, &nd);
+-
+-		if (ret <= 0) {
+-			if (ret < 0)
+-				status = ret;
+-			dcache_dir_close(inode, file);
+-			goto out;
+-		}
+-	}
+-
+-	if (d_mountpoint(dentry)) {
+-		struct file *fp = NULL;
+-		struct path fp_path = { .dentry = dentry, .mnt = mnt };
+-
+-		path_get(&fp_path);
+-
+-		if (!autofs4_follow_mount(&fp_path.mnt, &fp_path.dentry)) {
+-			path_put(&fp_path);
+-			dcache_dir_close(inode, file);
+-			goto out;
+-		}
+-
+-		fp = dentry_open(fp_path.dentry, fp_path.mnt, file->f_flags);
+-		status = PTR_ERR(fp);
+-		if (IS_ERR(fp)) {
+-			dcache_dir_close(inode, file);
+-			goto out;
+-		}
+-		cursor->d_fsdata = fp;
+-	}
+-	return 0;
+-out:
+-	return status;
+-}
+-
+-static int autofs4_dir_close(struct inode *inode, struct file *file)
+-{
+-	struct dentry *dentry = file->f_path.dentry;
+-	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
+-	struct dentry *cursor = file->private_data;
+-	int status = 0;
+-
+-	DPRINTK("file=%p dentry=%p %.*s",
+-		file, dentry, dentry->d_name.len, dentry->d_name.name);
+-
+-	if (autofs4_oz_mode(sbi))
+-		goto out;
+-
+-	if (autofs4_ispending(dentry)) {
+-		DPRINTK("dentry busy");
+-		status = -EBUSY;
+-		goto out;
+-	}
+-
+-	if (d_mountpoint(dentry)) {
+-		struct file *fp = cursor->d_fsdata;
+-		if (!fp) {
+-			status = -ENOENT;
+-			goto out;
+-		}
+-		filp_close(fp, current->files);
++		return -ENOENT;
+ 	}
+-out:
+-	dcache_dir_close(inode, file);
+-	return status;
+-}
+-
+-static int autofs4_dir_readdir(struct file *file, void *dirent, filldir_t filldir)
+-{
+-	struct dentry *dentry = file->f_path.dentry;
+-	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
+-	struct dentry *cursor = file->private_data;
+-	int status;
+-
+-	DPRINTK("file=%p dentry=%p %.*s",
+-		file, dentry, dentry->d_name.len, dentry->d_name.name);
+-
+-	if (autofs4_oz_mode(sbi))
+-		goto out;
+-
+-	if (autofs4_ispending(dentry)) {
+-		DPRINTK("dentry busy");
+-		return -EBUSY;
+-	}
+-
+-	if (d_mountpoint(dentry)) {
+-		struct file *fp = cursor->d_fsdata;
+-
+-		if (!fp)
+-			return -ENOENT;
+-
+-		if (!fp->f_op || !fp->f_op->readdir)
+-			goto out;
++	spin_unlock(&dcache_lock);
+ 
+-		status = vfs_readdir(fp, filldir, dirent);
+-		file->f_pos = fp->f_pos;
+-		if (status)
+-			autofs4_copy_atime(file, fp);
+-		return status;
+-	}
+ out:
+-	return dcache_readdir(file, dirent, filldir);
++	return dcache_dir_open(inode, file);
  }
  
-@@ -335,10 +340,6 @@ static void rfcomm_dev_del(struct rfcomm
- 	else
- 		set_bit(RFCOMM_TTY_RELEASED, &dev->flags);
- 
--	write_lock_bh(&rfcomm_dev_lock);
--	list_del_init(&dev->list);
--	write_unlock_bh(&rfcomm_dev_lock);
+ static int try_to_fill_dentry(struct dentry *dentry, int flags)
+_
+
+Patches currently in -mm which might be from raven@themaw.net are
+
+autofs4-dont-make-expiring-dentry-negative.patch
+autofs4-dont-make-expiring-dentry-negative-fix.patch
+autofs4-revert-redo-lookup-in-ttfd.patch
+autofs4-use-look-aside-list-for-lookups.patch
+autofs4-use-look-aside-list-for-lookups-autofs4-fix-symlink-name-allocation.patch
+autofs4-dont-release-directory-mutex-if-called-in-oz_mode.patch
+autofs4-use-lookup-intent-flags-to-trigger-mounts.patch
+autofs4-use-struct-qstr-in-waitqc.patch
+autofs4-fix-waitq-locking.patch
+autofs4-fix-pending-mount-race.patch
+autofs4-fix-pending-mount-race-fix.patch
+autofs4-check-kernel-communication-pipe-is-valid-for-write.patch
+autofs4-fix-waitq-memory-leak.patch
+autofs4-detect-invalid-direct-mount-requests.patch
+autofs4-indirect-dentry-must-almost-always-be-positive.patch
+autofs4-cleanup-redundant-readir-code.patch
+autofs4-fix-pending-checks.patch
+autofs4-fix-indirect-mount-pending-expire-race.patch
+autofs4-fix-direct-mount-pending-expire-race.patch
+autofs4-reorganize-expire-pending-wait-function-calls.patch
+autofs4-remove-unused-ioctls.patch
+
