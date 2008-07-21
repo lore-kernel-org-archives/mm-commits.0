@@ -1,18 +1,18 @@
 From: akpm@linux-foundation.org
 Subject: + rtc-at91rm9200-avoid-spurious-irqs.patch added to -mm tree
-Date: Sun, 20 Jul 2008 22:25:00 -0700
-Message-ID: <200807210525.m6L5P0ng019093@imap1.linux-foundation.org>
+Date: Sun, 20 Jul 2008 22:25:14 -0700
+Message-ID: <200807210525.m6L5PERM019102@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35780 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39015 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752726AbYGUFZQ (ORCPT
+	by vger.kernel.org with ESMTP id S1752667AbYGUFZc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 Jul 2008 01:25:16 -0400
+	Mon, 21 Jul 2008 01:25:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dbrownell@users.sourceforge.net, avictor.za@gmail.com, unruh@physics.ubc.ca
+Cc: dbrownell@users.sourceforge.net, avictor.za@gmail.com, stable@kernel.org, unruh@physics.ubc.ca
 
 
 The patch titled
@@ -51,6 +51,7 @@ they're not reported to userspace.
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Report-by: W Unruh <unruh@physics.ubc.ca>
 Cc: Andrew Victor <avictor.za@gmail.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
