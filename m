@@ -1,211 +1,269 @@
 From: akpm@linux-foundation.org
-Subject: - coredump-exit_mm-clear-mm-first-then-play-with-core_state.patch removed from -mm tree
-Date: Sun, 20 Jul 2008 11:57:59 -0700
-Message-ID: <200807201857.m6KIvxFR029386@imap1.linux-foundation.org>
+Subject: + rtc-rtc-s3c-update-irq-handling.patch added to -mm tree
+Date: Sun, 20 Jul 2008 18:27:01 -0700
+Message-ID: <200807210127.m6L1R1wx010785@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38337 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57166 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751214AbYGTS63 (ORCPT
+	by vger.kernel.org with ESMTP id S1756288AbYGUB2c (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 20 Jul 2008 14:58:29 -0400
+	Sun, 20 Jul 2008 21:28:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, dhowells@redhat.com, roland@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: ben-linux@fluff.org, a.zummo@towertech.it, david-b@pacbell.net
 
 
 The patch titled
-     coredump: exit_mm: clear ->mm first, then play with ->core_state
-has been removed from the -mm tree.  Its filename was
-     coredump-exit_mm-clear-mm-first-then-play-with-core_state.patch
+     rtc: rtc-s3c: update IRQ handling
+has been added to the -mm tree.  Its filename is
+     rtc-rtc-s3c-update-irq-handling.patch
 
-This patch was dropped because it was withdrawn
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: coredump: exit_mm: clear ->mm first, then play with ->core_state
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: rtc: rtc-s3c: update IRQ handling
+From: Ben Dooks <ben-linux@fluff.org>
 
-With the previous changes the sub-threads which participate in coredump do
-not need to have the valid ->mm when the coredump is in progress, now we
-can decouple exit_mm() from coredumping code.
+The rtc-s3c.c driver has been using its own ioctl() handling to deal with
+alarm and periodic interrupts to handle what should now be done with the
+rtc core code.
 
-Change exit_mm() to clear ->mm first, then play with mm->core_state.  This
-simplifies the code because we can avoid unlock/lock games with
-->mmap_sem, and more importantly this makes the coredumping process
-visible to oom_kill.  Currently the PF_EXITING task can sleep with ->mm !=
-NULL "unpredictably" long.
+Change to using the .irq_set_freq and .irq_set_state driver entries and
+remove the .ioctl handling.
 
-The patch moves the coredumping code to the new function for the readability.
-
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Roland McGrath <roland@redhat.com>
-Cc: David Howells <dhowells@redhat.com>
+Signed-off-by: Ben Dooks <ben-linux@fluff.org>
+Acked-by: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c     |    4 ++--
- kernel/exit.c |   47 +++++++++++++++++++++++++----------------------
- 2 files changed, 27 insertions(+), 24 deletions(-)
+ drivers/rtc/rtc-s3c.c |   83 +++++++---------------------------------
+ 1 file changed, 16 insertions(+), 67 deletions(-)
 
-diff -puN fs/exec.c~coredump-exit_mm-clear-mm-first-then-play-with-core_state fs/exec.c
---- a/fs/exec.c~coredump-exit_mm-clear-mm-first-then-play-with-core_state
-+++ a/fs/exec.c
-@@ -1637,8 +1637,8 @@ static void coredump_finish(struct mm_st
- 		next = curr->next;
- 		task = curr->task;
- 		/*
--		 * see exit_mm(), curr->task must not see
--		 * ->task == NULL before we read ->next.
-+		 * see exit_coredump(), curr->task must not
-+		 * see ->task == NULL before we read ->next.
- 		 */
- 		smp_mb();
- 		curr->task = NULL;
-diff -puN kernel/exit.c~coredump-exit_mm-clear-mm-first-then-play-with-core_state kernel/exit.c
---- a/kernel/exit.c~coredump-exit_mm-clear-mm-first-then-play-with-core_state
-+++ a/kernel/exit.c
-@@ -644,6 +644,28 @@ assign_new_owner:
- }
- #endif /* CONFIG_MM_OWNER */
+diff -puN drivers/rtc/rtc-s3c.c~rtc-rtc-s3c-update-irq-handling drivers/rtc/rtc-s3c.c
+--- a/drivers/rtc/rtc-s3c.c~rtc-rtc-s3c-update-irq-handling
++++ a/drivers/rtc/rtc-s3c.c
+@@ -36,10 +36,8 @@ static struct resource *s3c_rtc_mem;
+ static void __iomem *s3c_rtc_base;
+ static int s3c_rtc_alarmno = NO_IRQ;
+ static int s3c_rtc_tickno  = NO_IRQ;
+-static int s3c_rtc_freq    = 1;
  
-+static void exit_coredump(struct task_struct * tsk,
-+				struct core_state *core_state)
-+{
-+	struct core_thread self;
+ static DEFINE_SPINLOCK(s3c_rtc_pie_lock);
+-static unsigned int tick_count;
+ 
+ /* IRQ Handlers */
+ 
+@@ -55,7 +53,7 @@ static irqreturn_t s3c_rtc_tickirq(int i
+ {
+ 	struct rtc_device *rdev = id;
+ 
+-	rtc_update_irq(rdev, tick_count++, RTC_PF | RTC_IRQF);
++	rtc_update_irq(rdev, 1, RTC_PF | RTC_IRQF);
+ 	return IRQ_HANDLED;
+ }
+ 
+@@ -74,35 +72,37 @@ static void s3c_rtc_setaie(int to)
+ 	writeb(tmp, s3c_rtc_base + S3C2410_RTCALM);
+ }
+ 
+-static void s3c_rtc_setpie(int to)
++static int s3c_rtc_setpie(struct device *dev, int enabled)
+ {
+ 	unsigned int tmp;
+ 
+-	pr_debug("%s: pie=%d\n", __func__, to);
++	pr_debug("%s: pie=%d\n", __func__, enabled);
+ 
+ 	spin_lock_irq(&s3c_rtc_pie_lock);
+ 	tmp = readb(s3c_rtc_base + S3C2410_TICNT) & ~S3C2410_TICNT_ENABLE;
+ 
+-	if (to)
++	if (enabled)
+ 		tmp |= S3C2410_TICNT_ENABLE;
+ 
+ 	writeb(tmp, s3c_rtc_base + S3C2410_TICNT);
+ 	spin_unlock_irq(&s3c_rtc_pie_lock);
 +
-+	self.task = tsk;
-+	self.next = xchg(&core_state->dumper.next, &self);
-+	/*
-+	 * Implies mb(), the result of xchg() must be visible
-+	 * to core_state->dumper.
-+	 */
-+	if (atomic_dec_and_test(&core_state->nr_threads))
-+		complete(&core_state->startup);
++	return 0;
+ }
+ 
+-static void s3c_rtc_setfreq(int freq)
++static int s3c_rtc_setfreq(struct device *dev, int freq)
+ {
+ 	unsigned int tmp;
+ 
+ 	spin_lock_irq(&s3c_rtc_pie_lock);
+-	tmp = readb(s3c_rtc_base + S3C2410_TICNT) & S3C2410_TICNT_ENABLE;
+-
+-	s3c_rtc_freq = freq;
+ 
++	tmp = readb(s3c_rtc_base + S3C2410_TICNT) & S3C2410_TICNT_ENABLE;
+ 	tmp |= (128 / freq)-1;
+ 
+ 	writeb(tmp, s3c_rtc_base + S3C2410_TICNT);
+ 	spin_unlock_irq(&s3c_rtc_pie_lock);
 +
-+	for (;;) {
-+		set_task_state(tsk, TASK_UNINTERRUPTIBLE);
-+		if (!self.task) /* see coredump_finish() */
-+			break;
-+		schedule();
-+	}
-+	__set_task_state(tsk, TASK_RUNNING);
-+}
- /*
-  * Turn us into a lazy TLB process if we
-  * aren't already..
-@@ -665,28 +687,6 @@ static void exit_mm(struct task_struct *
- 	 */
- 	down_read(&mm->mmap_sem);
- 	core_state = mm->core_state;
--	if (core_state) {
--		struct core_thread self;
--		up_read(&mm->mmap_sem);
--
--		self.task = tsk;
--		self.next = xchg(&core_state->dumper.next, &self);
--		/*
--		 * Implies mb(), the result of xchg() must be visible
--		 * to core_state->dumper.
--		 */
--		if (atomic_dec_and_test(&core_state->nr_threads))
--			complete(&core_state->startup);
--
--		for (;;) {
--			set_task_state(tsk, TASK_UNINTERRUPTIBLE);
--			if (!self.task) /* see coredump_finish() */
--				break;
--			schedule();
--		}
--		__set_task_state(tsk, TASK_RUNNING);
--		down_read(&mm->mmap_sem);
++	return 0;
+ }
+ 
+ /* Time read/write */
+@@ -267,12 +267,7 @@ static int s3c_rtc_setalarm(struct devic
+ 
+ 	writeb(alrm_en, base + S3C2410_RTCALM);
+ 
+-	if (0) {
+-		alrm_en = readb(base + S3C2410_RTCALM);
+-		alrm_en &= ~S3C2410_RTCALM_ALMEN;
+-		writeb(alrm_en, base + S3C2410_RTCALM);
+-		disable_irq_wake(s3c_rtc_alarmno);
 -	}
- 	atomic_inc(&mm->mm_count);
- 	BUG_ON(mm != tsk->active_mm);
- 	/* more a memory barrier than a real lock */
-@@ -699,6 +699,9 @@ static void exit_mm(struct task_struct *
- 	task_unlock(tsk);
- 	mm_update_next_owner(mm);
- 	mmput(mm);
-+
-+	if (core_state)
-+		exit_coredump(tsk, core_state);
++	s3c_rtc_setaie(alrm->enabled);
+ 
+ 	if (alrm->enabled)
+ 		enable_irq_wake(s3c_rtc_alarmno);
+@@ -282,59 +277,12 @@ static int s3c_rtc_setalarm(struct devic
+ 	return 0;
  }
  
- static void
+-static int s3c_rtc_ioctl(struct device *dev,
+-			 unsigned int cmd, unsigned long arg)
+-{
+-	unsigned int ret = -ENOIOCTLCMD;
+-
+-	switch (cmd) {
+-	case RTC_AIE_OFF:
+-	case RTC_AIE_ON:
+-		s3c_rtc_setaie((cmd == RTC_AIE_ON) ? 1 : 0);
+-		ret = 0;
+-		break;
+-
+-	case RTC_PIE_OFF:
+-	case RTC_PIE_ON:
+-		tick_count = 0;
+-		s3c_rtc_setpie((cmd == RTC_PIE_ON) ? 1 : 0);
+-		ret = 0;
+-		break;
+-
+-	case RTC_IRQP_READ:
+-		ret = put_user(s3c_rtc_freq, (unsigned long __user *)arg);
+-		break;
+-
+-	case RTC_IRQP_SET:
+-		if (!is_power_of_2(arg)) {
+-			ret = -EINVAL;
+-			goto exit;
+-		}
+-
+-		pr_debug("s3c2410_rtc: setting frequency %ld\n", arg);
+-
+-		s3c_rtc_setfreq(arg);
+-		ret = 0;
+-		break;
+-
+-	case RTC_UIE_ON:
+-	case RTC_UIE_OFF:
+-		ret = -EINVAL;
+-	}
+-
+- exit:
+-	return ret;
+-}
+-
+ static int s3c_rtc_proc(struct device *dev, struct seq_file *seq)
+ {
+ 	unsigned int ticnt = readb(s3c_rtc_base + S3C2410_TICNT);
+ 
+ 	seq_printf(seq, "periodic_IRQ\t: %s\n",
+ 		     (ticnt & S3C2410_TICNT_ENABLE) ? "yes" : "no" );
+-
+-	seq_printf(seq, "periodic_freq\t: %d\n", s3c_rtc_freq);
+-
+ 	return 0;
+ }
+ 
+@@ -374,7 +322,7 @@ static void s3c_rtc_release(struct devic
+ 
+ 	/* do not clear AIE here, it may be needed for wake */
+ 
+-	s3c_rtc_setpie(0);
++	s3c_rtc_setpie(dev, 0);
+ 	free_irq(s3c_rtc_alarmno, rtc_dev);
+ 	free_irq(s3c_rtc_tickno, rtc_dev);
+ }
+@@ -382,11 +330,12 @@ static void s3c_rtc_release(struct devic
+ static const struct rtc_class_ops s3c_rtcops = {
+ 	.open		= s3c_rtc_open,
+ 	.release	= s3c_rtc_release,
+-	.ioctl		= s3c_rtc_ioctl,
+ 	.read_time	= s3c_rtc_gettime,
+ 	.set_time	= s3c_rtc_settime,
+ 	.read_alarm	= s3c_rtc_getalarm,
+ 	.set_alarm	= s3c_rtc_setalarm,
++	.irq_set_freq	= s3c_rtc_setfreq,
++	.irq_set_state	= s3c_rtc_setpie,
+ 	.proc	        = s3c_rtc_proc,
+ };
+ 
+@@ -437,7 +386,7 @@ static int s3c_rtc_remove(struct platfor
+ 	platform_set_drvdata(dev, NULL);
+ 	rtc_device_unregister(rtc);
+ 
+-	s3c_rtc_setpie(0);
++	s3c_rtc_setpie(&dev->dev, 0);
+ 	s3c_rtc_setaie(0);
+ 
+ 	iounmap(s3c_rtc_base);
+@@ -504,7 +453,7 @@ static int s3c_rtc_probe(struct platform
+  	pr_debug("s3c2410_rtc: RTCCON=%02x\n",
+ 		 readb(s3c_rtc_base + S3C2410_RTCCON));
+ 
+-	s3c_rtc_setfreq(s3c_rtc_freq);
++	s3c_rtc_setfreq(&pdev->dev, 1);
+ 
+ 	/* register RTC and exit */
+ 
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from ben-linux@fluff.org are
 
 origin.patch
 linux-next.patch
-migrate_timers-add-comment-use-spinlock_irq.patch
-pm-introduce-new-interfaces-schedule_work_on-and-queue_work_on.patch
-pm-introduce-new-interfaces-schedule_work_on-and-queue_work_on-cleanup.patch
-posix-timers-timer_delete-remove-the-bogus-it_process-=-null-check.patch
-posix-timers-release_posix_timer-kill-the-bogus-put_task_struct-it_process.patch
-signals-collect_signal-remove-the-unneeded-sigismember-check.patch
-signals-collect_signal-simplify-the-still_pending-logic.patch
-signals-change-collect_signal-to-return-void.patch
-__exit_signal-dont-take-rcu-lock.patch
-signals-dequeue_signal-dont-check-signal_group_exit-when-setting-signal_stop_dequeued.patch
-signals-do_signal_stop-kill-the-signal_unkillable-check.patch
-coredump-zap_threads-comments-use-while_each_thread.patch
-signals-make-siginfo_t-si_utime-si_sstime-report-times-in-user_hz-not-hz.patch
-kernel-signalc-change-vars-pid-and-tgid-types-to-pid_t.patch
-include-asm-ptraceh-userspace-headers-cleanup.patch
-ptrace-give-more-respect-to-sigkill.patch
-ptrace-simplify-ptrace_stop-sigkill_pending-path.patch
-introduce-pf_kthread-flag.patch
-kill-pf_borrowed_mm-in-favour-of-pf_kthread.patch
-coredump-zap_threads-must-skip-kernel-threads.patch
-coredump-elf_core_dump-skip-kernel-threads.patch
-coredump-turn-mm-core_startup_done-into-the-pointer-to-struct-core_state.patch
-coredump-move-mm-core_waiters-into-struct-core_state.patch
-coredump-simplify-core_state-nr_threads-calculation.patch
-coredump-turn-core_state-nr_threads-into-atomic_t.patch
-coredump-make-mm-core_state-visible-to-core_dump.patch
-coredump-construct-the-list-of-coredumping-threads-at-startup-time.patch
-coredump-elf_core_dump-use-core_state-dumper-list.patch
-coredump-elf_fdpic_core_dump-use-core_state-dumper-list.patch
-coredump-kill-mm-core_done.patch
-coredump-exit_mm-clear-mm-first-then-play-with-core_state.patch
-coredump-exit_mm-clear-mm-first-then-play-with-core_state-checkpatch-fixes.patch
-workqueues-insert_work-use-list_head-instead-of-int-tail.patch
-workqueues-implement-flush_work.patch
-workqueues-schedule_on_each_cpu-use-flush_work.patch
-workqueues-make-get_online_cpus-useable-for-work-func.patch
-workqueues-make-get_online_cpus-useable-for-work-func-fix.patch
-s390-topology-dont-use-kthread-for-arch_reinit_sched_domains.patch
-workqueues-lockdep-annotations-for-flush_work.patch
-workqueues-queue_work-can-use-queue_work_on.patch
-workqueues-schedule_on_each_cpu-can-use-schedule_work_on.patch
-pidns-remove-now-unused-kill_proc-function.patch
-pidns-remove-now-unused-find_pid-function.patch
-pidns-remove-find_task_by_pid-unused-for-a-long-time.patch
-distinct-tgid-tid-i-o-statistics.patch
-tracehook-add-linux-tracehookh.patch
-tracehook-exec.patch
-tracehook-unexport-ptrace_notify.patch
-tracehook-exit.patch
-tracehook-clone.patch
-tracehook-vfork-done.patch
-tracehook-release_task.patch
-tracehook-tracehook_tracer_task.patch
-tracehook-tracehook_expect_breakpoints.patch
-tracehook-tracehook_signal_handler.patch
-tracehook-tracehook_consider_ignored_signal.patch
-tracehook-tracehook_consider_fatal_signal.patch
-tracehook-syscall.patch
-tracehook-get_signal_to_deliver.patch
-tracehook-job-control.patch
-tracehook-death.patch
-tracehook-force-signal_pending.patch
-tracehook-tif_notify_resume.patch
-tracehook-asm-syscallh.patch
-tracehook-config_have_arch_tracehook.patch
-tracehook-wait_task_inactive.patch
-task_current_syscall.patch
-proc-pid-syscall.patch
+parport-fix-platform-driver-hotplug-coldplug.patch
+sm501-add-power-control-callback.patch
+sm501-add-gpiolib-support.patch
+sm501-gpio-dynamic-registration-for-pci-devices.patch
+sm501-gpio-i2c-support.patch
+sm501-fixes-for-akpms-comments-on-gpiolib-addition.patch
+mfd-sm501-build-fixes-when-config_mfd_sm501_gpio-unset.patch
+mfd-sm501-fix-gpio-number-calculation-for-upper-bank.patch
+rtc-rtc-s3c-update-irq-handling.patch
+sm501-add-inversion-controls-for-vbiasen-and-fpen.patch
+sm501-restructure-init-to-allow-only-1-fb-on-an-sm501.patch
+sm501-fixup-allocation-code-to-be-64bit-resource-compliant.patch
+sm501-fixup-allocation-code-to-be-64bit-resource-compliant-sm501-align-panel-fb-to-page_size.patch
+sm501-fixup-allocation-code-to-be-64bit-resource-compliant-sm501-align-panel-fb-to-page_size-fix.patch
+fb-add-support-for-the-ili9320-video-display-controller.patch
+fb-add-support-for-the-ili9320-video-display-controller-fix.patch
+lcd-add-lcd_device-to-check_fb-entry-in-lcd_ops.patch
+lcd-add-platform_lcd-driver.patch
+lcd-add-platform_lcd-driver-fix.patch
+lcd-add-platform_lcd-driver-fb-fix-platform_lcd-match-entry.patch
+resource-add-resource_size.patch
+resource-add-resource_type-and-ioresource_type_bits.patch
+resource-add-new-ioresource_clk-type-v2.patch
+i2c-sh_mobile-ioresource_clk-support.patch
 
