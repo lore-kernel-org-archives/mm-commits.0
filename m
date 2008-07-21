@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + autofs4-indirect-dentry-must-almost-always-be-positive.patch added to -mm tree
-Date: Sun, 20 Jul 2008 23:35:21 -0700
-Message-ID: <200807210635.m6L6ZL9f021560@imap1.linux-foundation.org>
+Subject: + autofs4-fix-indirect-mount-pending-expire-race.patch added to -mm tree
+Date: Sun, 20 Jul 2008 23:35:27 -0700
+Message-ID: <200807210635.m6L6ZRXu021571@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35119 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52823 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755270AbYGUGfq (ORCPT
+	by vger.kernel.org with ESMTP id S1755295AbYGUGft (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 Jul 2008 02:35:46 -0400
+	Mon, 21 Jul 2008 02:35:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: raven@themaw.net, jmoyer@redhat.com
 
 
 The patch titled
-     autofs4: indirect dentry must almost always be positive
+     autofs4: fix indirect mount pending expire race
 has been added to the -mm tree.  Its filename is
-     autofs4-indirect-dentry-must-almost-always-be-positive.patch
+     autofs4-fix-indirect-mount-pending-expire-race.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,94 +34,279 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: autofs4: indirect dentry must almost always be positive
+Subject: autofs4: fix indirect mount pending expire race
 From: Ian Kent <raven@themaw.net>
 
-We have been seeing mount requests comming to the automount daemon for
-keys of the form "<map key>/<non key directory>" which are lookups for
-invalid map keys.  But we can check for this in the kernel module and
-return a fail immediately, without having to send a request to the daemon.
+The selection of a dentry for expiration and the setting of the
+AUTOFS_INF_EXPIRING flag isn't done atomically which can lead to lookups
+walking into an expiring mount.
 
-It is possible to recognise these requests are invalid based on whether
-the request dentry is negative and its relation to the autofs file system
-root.
-
-For example, given the indirect multi-mount map entry:
-
-idm1  \
-    /mm1  <server>:/<path1>
-    /mm2  <server>:/<path2>
-
-For a request to mount idm1, IS_ROOT((idm1)->d_parent) will be always be
-true and the dentry may be negative.  But directories idm1/mm1 and
-idm1/mm2 will always be created as part of the mount request for idm1.  So
-any mount request within idm1 itself must have a positive dentry otherwise
-the map key is invalid.
-
-In version 4 these multi-mount entries are all mounted and umounted as a
-single request and in version 5 the directories idm1/mm1 and idm1/mm2 are
-created and an autofs fs mounted on them to act as a mount trigger so the
-above is also true.
-
-This also holds true for the autofs version 4 pseudo direct mount feature.
- When this feature is used without the "--ghost" option automount(8) will
-create internal submounts as we go down the map key paths which are
-essentially normal indirect mounts for which the above holds.  If the
-"--ghost" option is given the directories for map keys are created at
-daemon startup so valid map entries correspond to postive dentries in the
-autofs fs.
-
-autofs version 5 direct mount maps are similar except that the IS_ROOT
-check is not needed.  This has been addressed in a previous patch tittled
-"autofs4 - detect invalid direct mount requests".
-
-For example, given the direct multi-mount map entry:
-
-/test/dm1  \
-    /mm1  <server>:/<path1>
-    /mm2  <server>:/<path2>
-
-An autofs fs is mounted on /test/dm1 as a trigger mount and when a mount
-is triggered for /test/dm1, the multi-mount offset directories
-/test/dm1/mm1 and /test/dm1/mm2 are created and an autofs fs is mounted on
-them to act as mount triggers.  So valid direct mount requests must always
-have a positive dentry if they correspond to a valid map entry.
+What happens is that an expire is initiated by the daemon and a dentry is
+selected for expire but, since there is no lock held between the selection
+and setting of the expiring flag, a process may find the flag clear and
+continue walking into the mount tree at the same time the daemon attempts
+the expire it.
 
 Signed-off-by: Ian Kent <raven@themaw.net>
-Acked-by: Jeff Moyer <jmoyer@redhat.com>
+Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/waitq.c |   17 ++++++++++++++---
- 1 file changed, 14 insertions(+), 3 deletions(-)
+ fs/autofs4/autofs_i.h |   10 ++------
+ fs/autofs4/expire.c   |   46 ++++++++++++++++++++++++++++++----------
+ fs/autofs4/root.c     |   32 +++++++++++++++++++++++----
+ 3 files changed, 65 insertions(+), 23 deletions(-)
 
-diff -puN fs/autofs4/waitq.c~autofs4-indirect-dentry-must-almost-always-be-positive fs/autofs4/waitq.c
---- a/fs/autofs4/waitq.c~autofs4-indirect-dentry-must-almost-always-be-positive
-+++ a/fs/autofs4/waitq.c
-@@ -328,9 +328,20 @@ int autofs4_wait(struct autofs_sb_info *
- 	if (sbi->catatonic)
- 		return -ENOENT;
+diff -puN fs/autofs4/autofs_i.h~autofs4-fix-indirect-mount-pending-expire-race fs/autofs4/autofs_i.h
+--- a/fs/autofs4/autofs_i.h~autofs4-fix-indirect-mount-pending-expire-race
++++ a/fs/autofs4/autofs_i.h
+@@ -138,18 +138,14 @@ static inline int autofs4_oz_mode(struct
+ static inline int autofs4_ispending(struct dentry *dentry)
+ {
+ 	struct autofs_info *inf = autofs4_dentry_ino(dentry);
+-	int pending = 0;
  
--	if (!dentry->d_inode &&
--	    (sbi->type & (AUTOFS_TYPE_DIRECT | AUTOFS_TYPE_OFFSET)))
--		return -ENOENT;
-+	if (!dentry->d_inode) {
-+		/*
-+		 * A wait for a negative dentry is invalid for certain
-+		 * cases. A direct or offset mount "always" has its mount
-+		 * point directory created and so the request dentry must
-+		 * be positive or the map key doesn't exist. The situation
-+		 * is very similar for indirect mounts except only dentrys
-+		 * in the root of the autofs file system may be negative.
-+		 */
-+		if (sbi->type & (AUTOFS_TYPE_DIRECT|AUTOFS_TYPE_OFFSET))
-+			return -ENOENT;
-+		else if (!IS_ROOT(dentry->d_parent))
-+			return -ENOENT;
+ 	if (dentry->d_flags & DCACHE_AUTOFS_PENDING)
+ 		return 1;
+ 
+-	if (inf) {
+-		spin_lock(&inf->sbi->fs_lock);
+-		pending = inf->flags & AUTOFS_INF_EXPIRING;
+-		spin_unlock(&inf->sbi->fs_lock);
+-	}
++	if (inf->flags & AUTOFS_INF_EXPIRING)
++		return 1;
+ 
+-	return pending;
++	return 0;
+ }
+ 
+ static inline void autofs4_copy_atime(struct file *src, struct file *dst)
+diff -puN fs/autofs4/expire.c~autofs4-fix-indirect-mount-pending-expire-race fs/autofs4/expire.c
+--- a/fs/autofs4/expire.c~autofs4-fix-indirect-mount-pending-expire-race
++++ a/fs/autofs4/expire.c
+@@ -292,6 +292,8 @@ static struct dentry *autofs4_expire_ind
+ 	struct list_head *next;
+ 	int do_now = how & AUTOFS_EXP_IMMEDIATE;
+ 	int exp_leaves = how & AUTOFS_EXP_LEAVES;
++	struct autofs_info *ino;
++	unsigned int ino_count;
+ 
+ 	if (!root)
+ 		return NULL;
+@@ -316,6 +318,9 @@ static struct dentry *autofs4_expire_ind
+ 		dentry = dget(dentry);
+ 		spin_unlock(&dcache_lock);
+ 
++		spin_lock(&sbi->fs_lock);
++		ino = autofs4_dentry_ino(dentry);
++
+ 		/*
+ 		 * Case 1: (i) indirect mount or top level pseudo direct mount
+ 		 *	   (autofs-4.1).
+@@ -326,6 +331,11 @@ static struct dentry *autofs4_expire_ind
+ 			DPRINTK("checking mountpoint %p %.*s",
+ 				dentry, (int)dentry->d_name.len, dentry->d_name.name);
+ 
++			/* Path walk currently on this dentry? */
++			ino_count = atomic_read(&ino->count) + 2;
++			if (atomic_read(&dentry->d_count) > ino_count)
++				goto next;
++
+ 			/* Can we umount this guy */
+ 			if (autofs4_mount_busy(mnt, dentry))
+ 				goto next;
+@@ -343,23 +353,25 @@ static struct dentry *autofs4_expire_ind
+ 
+ 		/* Case 2: tree mount, expire iff entire tree is not busy */
+ 		if (!exp_leaves) {
+-			/* Lock the tree as we must expire as a whole */
+-			spin_lock(&sbi->fs_lock);
+-			if (!autofs4_tree_busy(mnt, dentry, timeout, do_now)) {
+-				struct autofs_info *inf = autofs4_dentry_ino(dentry);
++			/* Path walk currently on this dentry? */
++			ino_count = atomic_read(&ino->count) + 1;
++			if (atomic_read(&dentry->d_count) > ino_count)
++				goto next;
+ 
+-				/* Set this flag early to catch sys_chdir and the like */
+-				inf->flags |= AUTOFS_INF_EXPIRING;
+-				spin_unlock(&sbi->fs_lock);
++			if (!autofs4_tree_busy(mnt, dentry, timeout, do_now)) {
+ 				expired = dentry;
+ 				goto found;
+ 			}
+-			spin_unlock(&sbi->fs_lock);
+ 		/*
+ 		 * Case 3: pseudo direct mount, expire individual leaves
+ 		 *	   (autofs-4.1).
+ 		 */
+ 		} else {
++			/* Path walk currently on this dentry? */
++			ino_count = atomic_read(&ino->count) + 1;
++			if (atomic_read(&dentry->d_count) > ino_count)
++				goto next;
++
+ 			expired = autofs4_check_leaves(mnt, dentry, timeout, do_now);
+ 			if (expired) {
+ 				dput(dentry);
+@@ -367,6 +379,7 @@ static struct dentry *autofs4_expire_ind
+ 			}
+ 		}
+ next:
++		spin_unlock(&sbi->fs_lock);
+ 		dput(dentry);
+ 		spin_lock(&dcache_lock);
+ 		next = next->next;
+@@ -377,6 +390,9 @@ next:
+ found:
+ 	DPRINTK("returning %p %.*s",
+ 		expired, (int)expired->d_name.len, expired->d_name.name);
++	ino = autofs4_dentry_ino(expired);
++	ino->flags |= AUTOFS_INF_EXPIRING;
++	spin_unlock(&sbi->fs_lock);
+ 	spin_lock(&dcache_lock);
+ 	list_move(&expired->d_parent->d_subdirs, &expired->d_u.d_child);
+ 	spin_unlock(&dcache_lock);
+@@ -390,7 +406,9 @@ int autofs4_expire_run(struct super_bloc
+ 		      struct autofs_packet_expire __user *pkt_p)
+ {
+ 	struct autofs_packet_expire pkt;
++	struct autofs_info *ino;
+ 	struct dentry *dentry;
++	int ret = 0;
+ 
+ 	memset(&pkt,0,sizeof pkt);
+ 
+@@ -406,9 +424,14 @@ int autofs4_expire_run(struct super_bloc
+ 	dput(dentry);
+ 
+ 	if ( copy_to_user(pkt_p, &pkt, sizeof(struct autofs_packet_expire)) )
+-		return -EFAULT;
++		ret = -EFAULT;
+ 
+-	return 0;
++	spin_lock(&sbi->fs_lock);
++	ino = autofs4_dentry_ino(dentry);
++	ino->flags &= ~AUTOFS_INF_EXPIRING;
++	spin_unlock(&sbi->fs_lock);
++
++	return ret;
+ }
+ 
+ /* Call repeatedly until it returns -EAGAIN, meaning there's nothing
+@@ -433,9 +456,10 @@ int autofs4_expire_multi(struct super_bl
+ 
+ 		/* This is synchronous because it makes the daemon a
+                    little easier */
+-		ino->flags |= AUTOFS_INF_EXPIRING;
+ 		ret = autofs4_wait(sbi, dentry, NFY_EXPIRE);
++		spin_lock(&sbi->fs_lock);
+ 		ino->flags &= ~AUTOFS_INF_EXPIRING;
++		spin_unlock(&sbi->fs_lock);
+ 		dput(dentry);
+ 	}
+ 
+diff -puN fs/autofs4/root.c~autofs4-fix-indirect-mount-pending-expire-race fs/autofs4/root.c
+--- a/fs/autofs4/root.c~autofs4-fix-indirect-mount-pending-expire-race
++++ a/fs/autofs4/root.c
+@@ -133,7 +133,10 @@ static int try_to_fill_dentry(struct den
+ 	/* Block on any pending expiry here; invalidate the dentry
+            when expiration is done to trigger mount request with a new
+            dentry */
+-	if (ino && (ino->flags & AUTOFS_INF_EXPIRING)) {
++	spin_lock(&sbi->fs_lock);
++	if (ino->flags & AUTOFS_INF_EXPIRING) {
++		spin_unlock(&sbi->fs_lock);
++
+ 		DPRINTK("waiting for expire %p name=%.*s",
+ 			 dentry, dentry->d_name.len, dentry->d_name.name);
+ 
+@@ -149,8 +152,11 @@ static int try_to_fill_dentry(struct den
+ 		status = d_invalidate(dentry);
+ 		if (status != -EBUSY)
+ 			return -EAGAIN;
+-	}
+ 
++		goto cont;
 +	}
++	spin_unlock(&sbi->fs_lock);
++cont:
+ 	DPRINTK("dentry=%p %.*s ino=%p",
+ 		 dentry, dentry->d_name.len, dentry->d_name.name, dentry->d_inode);
  
- 	name = kmalloc(NAME_MAX + 1, GFP_KERNEL);
- 	if (!name)
+@@ -229,15 +235,21 @@ static void *autofs4_follow_link(struct 
+ 		goto done;
+ 
+ 	/* If an expire request is pending wait for it. */
+-	if (ino && (ino->flags & AUTOFS_INF_EXPIRING)) {
++	spin_lock(&sbi->fs_lock);
++	if (ino->flags & AUTOFS_INF_EXPIRING) {
++		spin_unlock(&sbi->fs_lock);
++
+ 		DPRINTK("waiting for active request %p name=%.*s",
+ 			dentry, dentry->d_name.len, dentry->d_name.name);
+ 
+ 		status = autofs4_wait(sbi, dentry, NFY_NONE);
+ 
+ 		DPRINTK("request done status=%d", status);
+-	}
+ 
++		goto cont;
++	}
++	spin_unlock(&sbi->fs_lock);
++cont:
+ 	/*
+ 	 * If the dentry contains directories then it is an
+ 	 * autofs multi-mount with no root mount offset. So
+@@ -292,8 +304,11 @@ static int autofs4_revalidate(struct den
+ 	int status = 1;
+ 
+ 	/* Pending dentry */
++	spin_lock(&sbi->fs_lock);
+ 	if (autofs4_ispending(dentry)) {
+ 		/* The daemon never causes a mount to trigger */
++		spin_unlock(&sbi->fs_lock);
++
+ 		if (oz_mode)
+ 			return 1;
+ 
+@@ -316,6 +331,7 @@ static int autofs4_revalidate(struct den
+ 
+ 		return status;
+ 	}
++	spin_unlock(&sbi->fs_lock);
+ 
+ 	/* Negative dentry.. invalidate if "old" */
+ 	if (dentry->d_inode == NULL)
+@@ -329,6 +345,7 @@ static int autofs4_revalidate(struct den
+ 		DPRINTK("dentry=%p %.*s, emptydir",
+ 			 dentry, dentry->d_name.len, dentry->d_name.name);
+ 		spin_unlock(&dcache_lock);
++
+ 		/* The daemon never causes a mount to trigger */
+ 		if (oz_mode)
+ 			return 1;
+@@ -521,13 +538,18 @@ static struct dentry *autofs4_lookup(str
+ 		 * so it must have been successful, so just wait for it.
+ 		 */
+ 		ino = autofs4_dentry_ino(expiring);
+-		while (ino && (ino->flags & AUTOFS_INF_EXPIRING)) {
++		spin_lock(&sbi->fs_lock);
++		if (ino->flags & AUTOFS_INF_EXPIRING) {
++			spin_unlock(&sbi->fs_lock);
+ 			DPRINTK("wait for incomplete expire %p name=%.*s",
+ 				expiring, expiring->d_name.len,
+ 				expiring->d_name.name);
+ 			autofs4_wait(sbi, expiring, NFY_NONE);
+ 			DPRINTK("request completed");
++			goto cont;
+ 		}
++		spin_unlock(&sbi->fs_lock);
++cont:
+ 		spin_lock(&sbi->lookup_lock);
+ 		if (!list_empty(&ino->expiring))
+ 			list_del_init(&ino->expiring);
 _
 
 Patches currently in -mm which might be from raven@themaw.net are
