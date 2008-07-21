@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-s3c-add-__devexit-and-__devinit-markers.patch added to -mm tree
-Date: Sun, 20 Jul 2008 18:28:09 -0700
-Message-ID: <200807210128.m6L1S94N010811@imap1.linux-foundation.org>
+Subject: + spi-add-spi-over-gpio-driver-v3.patch added to -mm tree
+Date: Sun, 20 Jul 2008 18:29:53 -0700
+Message-ID: <200807210129.m6L1TrMH010854@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55398 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58410 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755208AbYGUB3W (ORCPT
+	by vger.kernel.org with ESMTP id S1754385AbYGUBao (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 20 Jul 2008 21:29:22 -0400
+	Sun, 20 Jul 2008 21:30:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ben-linux@fluff.org, a.zummo@towertech.it, david-b@pacbell.net
+Cc: mb@bu3sch.de, david-b@pacbell.net, drzeus-list@drzeus.cx
 
 
 The patch titled
-     rtc: rtc-s3c: add __devexit and __devinit markers
+     spi-add-spi-over-gpio-driver-v3
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-s3c-add-__devexit-and-__devinit-markers.patch
+     spi-add-spi-over-gpio-driver-v3.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,79 +34,109 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: rtc-s3c: add __devexit and __devinit markers
-From: Ben Dooks <ben-linux@fluff.org>
+Subject: spi-add-spi-over-gpio-driver-v3
+From: Michael Buesch <mb@bu3sch.de>
 
-Add the relevant __devinit and __devexit attributes to the rtc-s3c driver.
+Simple spelling fixes since v2.
 
-Signed-off-by: Ben Dooks <ben-linux@fluff.org>
-Acked-by: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: Michael Buesch <mb@bu3sch.de>
 Cc: David Brownell <david-b@pacbell.net>
+Cc: Pierre Ossman <drzeus-list@drzeus.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-s3c.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ MAINTAINERS                  |   10 +++++-----
+ drivers/spi/Kconfig          |    2 +-
+ include/linux/spi/spi_gpio.h |   12 +++++++++---
+ 3 files changed, 15 insertions(+), 9 deletions(-)
 
-diff -puN drivers/rtc/rtc-s3c.c~rtc-rtc-s3c-add-__devexit-and-__devinit-markers drivers/rtc/rtc-s3c.c
---- a/drivers/rtc/rtc-s3c.c~rtc-rtc-s3c-add-__devexit-and-__devinit-markers
-+++ a/drivers/rtc/rtc-s3c.c
-@@ -430,7 +430,7 @@ static void s3c_rtc_enable(struct platfo
- 	}
- }
+diff -puN MAINTAINERS~spi-add-spi-over-gpio-driver-v3 MAINTAINERS
+--- a/MAINTAINERS~spi-add-spi-over-gpio-driver-v3
++++ a/MAINTAINERS
+@@ -3876,11 +3876,6 @@ M:	dbrownell@users.sourceforge.net
+ L:	spi-devel-general@lists.sourceforge.net
+ S:	Maintained
  
--static int s3c_rtc_remove(struct platform_device *dev)
-+static int __devexit s3c_rtc_remove(struct platform_device *dev)
- {
- 	struct rtc_device *rtc = platform_get_drvdata(dev);
+-SPI GPIO MASTER DRIVER
+-P:	Michael Buesch
+-M:	mb@bu3sch.de
+-S:	Maintained
+-
+ SPU FILE SYSTEM
+ P:	Jeremy Kerr
+ M:	jk@ozlabs.org
+@@ -3889,6 +3884,11 @@ L:	cbe-oss-dev@ozlabs.org
+ W:	http://www.ibm.com/developerworks/power/cell/
+ S:	Supported
  
-@@ -447,7 +447,7 @@ static int s3c_rtc_remove(struct platfor
- 	return 0;
- }
++SPI GPIO MASTER DRIVER
++P:	Michael Buesch
++M:	mb@bu3sch.de
++S:	Maintained
++
+ STABLE BRANCH:
+ P:	Greg Kroah-Hartman
+ M:	greg@kroah.com
+diff -puN drivers/spi/Kconfig~spi-add-spi-over-gpio-driver-v3 drivers/spi/Kconfig
+--- a/drivers/spi/Kconfig~spi-add-spi-over-gpio-driver-v3
++++ a/drivers/spi/Kconfig
+@@ -107,7 +107,7 @@ config SPI_GPIO
+ 	help
+ 	  This is a platform driver that can be used for bitbanging
+ 	  an SPI bus over GPIO pins.
+-	  Select this, if you have any SPI device that is connected via
++	  Select this if you have any SPI device that is connected via
+ 	  GPIO pins.
+ 	  The module will be called spi_gpio.
  
--static int s3c_rtc_probe(struct platform_device *pdev)
-+static int __devinit s3c_rtc_probe(struct platform_device *pdev)
- {
- 	struct rtc_device *rtc;
- 	struct resource *res;
-@@ -560,7 +560,7 @@ static int s3c_rtc_resume(struct platfor
+diff -puN include/linux/spi/spi_gpio.h~spi-add-spi-over-gpio-driver-v3 include/linux/spi/spi_gpio.h
+--- a/include/linux/spi/spi_gpio.h~spi-add-spi-over-gpio-driver-v3
++++ a/include/linux/spi/spi_gpio.h
+@@ -15,7 +15,9 @@
+ #include <linux/spi/spi.h>
  
- static struct platform_driver s3c2410_rtcdrv = {
- 	.probe		= s3c_rtc_probe,
--	.remove		= s3c_rtc_remove,
-+	.remove		= __devexit_p(s3c_rtc_remove),
- 	.suspend	= s3c_rtc_suspend,
- 	.resume		= s3c_rtc_resume,
- 	.driver		= {
+ 
+-/** struct spi_gpio_platform_data - Data definitions for a SPI-GPIO device.
++/**
++ * struct spi_gpio_platform_data - Data definitions for a SPI-GPIO device.
++ *
+  * This structure holds information about a GPIO-based SPI device.
+  *
+  * @pin_clk: The GPIO pin number of the CLOCK pin.
+@@ -51,13 +53,17 @@ struct spi_gpio_platform_data {
+ 	void *boardinfo_setup_data;
+ };
+ 
+-/** SPI_GPIO_PLATDEV_NAME - The platform device name string.
++/**
++ * SPI_GPIO_PLATDEV_NAME - The platform device name string.
++ *
+  * The name string that has to be used for platform_device_alloc
+  * when allocating a spi-gpio device.
+  */
+ #define SPI_GPIO_PLATDEV_NAME	"spi-gpio"
+ 
+-/** spi_gpio_next_id - Get another platform device ID number.
++/**
++ * spi_gpio_next_id - Get another platform device ID number.
++ *
+  * This returns the next platform device ID number that has to be used
+  * for platform_device_alloc. The ID is opaque and should not be used for
+  * anything else.
 _
 
-Patches currently in -mm which might be from ben-linux@fluff.org are
+Patches currently in -mm which might be from mb@bu3sch.de are
 
 origin.patch
 linux-next.patch
-parport-fix-platform-driver-hotplug-coldplug.patch
-sm501-add-power-control-callback.patch
-sm501-add-gpiolib-support.patch
-sm501-gpio-dynamic-registration-for-pci-devices.patch
-sm501-gpio-i2c-support.patch
-sm501-fixes-for-akpms-comments-on-gpiolib-addition.patch
-mfd-sm501-build-fixes-when-config_mfd_sm501_gpio-unset.patch
-mfd-sm501-fix-gpio-number-calculation-for-upper-bank.patch
-rtc-rtc-s3c-add-__devexit-and-__devinit-markers.patch
-rtc-rtc-s3c-update-irq-handling.patch
-sm501-add-inversion-controls-for-vbiasen-and-fpen.patch
-sm501-restructure-init-to-allow-only-1-fb-on-an-sm501.patch
-sm501-fixup-allocation-code-to-be-64bit-resource-compliant.patch
-sm501-fixup-allocation-code-to-be-64bit-resource-compliant-sm501-align-panel-fb-to-page_size.patch
-sm501-fixup-allocation-code-to-be-64bit-resource-compliant-sm501-align-panel-fb-to-page_size-fix.patch
-fb-add-support-for-the-ili9320-video-display-controller.patch
-fb-add-support-for-the-ili9320-video-display-controller-fix.patch
-lcd-add-lcd_device-to-check_fb-entry-in-lcd_ops.patch
-lcd-add-platform_lcd-driver.patch
-lcd-add-platform_lcd-driver-fix.patch
-lcd-add-platform_lcd-driver-fb-fix-platform_lcd-match-entry.patch
-resource-add-resource_size.patch
-resource-add-resource_type-and-ioresource_type_bits.patch
-resource-add-new-ioresource_clk-type-v2.patch
-i2c-sh_mobile-ioresource_clk-support.patch
+gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support.patch
+gpio-add-bt8xxgpio-driver.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch
+gpiolib-allow-user-selection.patch
+gpiolib-allow-user-selection-update.patch
+spi-add-spi-over-gpio-driver.patch
+spi-add-spi-over-gpio-driver-v3.patch
+mmc-add-gpio-based-mmc-sd-driver.patch
 
