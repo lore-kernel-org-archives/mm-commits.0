@@ -1,103 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: - execve-filename-document-and-export-via-auxiliary-vector.patch removed from -mm tree
-Date: Tue, 22 Jul 2008 14:32:09 -0700
-Message-ID: <200807222132.m6MLW9ML018690@imap1.linux-foundation.org>
+Subject: - proc-fix-proc-pagemap-some-more.patch removed from -mm tree
+Date: Tue, 22 Jul 2008 14:32:20 -0700
+Message-ID: <200807222132.m6MLWKw2018703@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34831 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59518 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754766AbYGVVdA (ORCPT
+	by vger.kernel.org with ESMTP id S1755579AbYGVVdF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jul 2008 17:33:00 -0400
+	Tue, 22 Jul 2008 17:33:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jreiser@BitWagon.com, benh@kernel.crashing.org, drepper@redhat.com, jakub@redhat.com, roland@redhat.com, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, snakebyte@gmx.de, stable@kernel.org, vegard.nossum@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     execve filename: document and export via auxiliary vector
+     proc: fix /proc/*/pagemap some more
 has been removed from the -mm tree.  Its filename was
-     execve-filename-document-and-export-via-auxiliary-vector.patch
+     proc-fix-proc-pagemap-some-more.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: execve filename: document and export via auxiliary vector
-From: John Reiser <jreiser@BitWagon.com>
+Subject: proc: fix /proc/*/pagemap some more
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-The Linux kernel puts the filename argument of execve() into the
-new address space.  Many developers are surprised to learn this.
-Those who know and could use it, object "But it's not documented."
-Those who want to use it dislike the expression
-  (char *)(1+ strlen(env[-1+ n_env]) + env[-1+ n_env])
-because it requires locating the last original environment variable,
-and assumes that the filename follows the characters.
+struct pagemap_walk was placed on stack, some hooks are initialized, the rest
+(->pgd_entry, ->pud_entry, ->pte_entry) are valid but junk.
 
-This patch documents the insertion of the filename, and makes it easier to
-find by adding a new tag AT_EXECFN in the ElfXX_auxv_t; see <elf.h>.
-
-In many cases readlink("/proc/self/exe",) gives the same answer.  But if all
-the original pages get unmapped, then the kernel erases the symlink for
-/proc/self/exe.  This can happen when a program decompressor does a good job
-of cleaning up after uncompressing directly to memory, so that the address
-space of the target program looks the same as if compression had never
-happened.  One example is http://upx.sourceforge.net .
-
-One notable use of the underlying concept (what path containED the executable)
-is glibc expanding $ORIGIN in DT_RUNPATH.  In practice for the near term, it
-may be a good idea for user-mode code to use both /proc/self/exe and AT_EXECFN
-as fall-back methods for each other.  /proc/self/exe can fail due to
-unmapping, AT_EXECFN can fail because it won't be present on non-new systems. 
-The auxvec or {AT_EXECFN}.d_val also can get overwritten, although in nearly
-all cases this would be the result of a bug.
-
-The runtime cost is one NEW_AUX_ENT using two words of stack space.  The
-underlying value is maintained already as bprm->exec; setup_arg_pages() in
-fs/exec.c slides it for stack_shift, etc.
-
-Signed-off-by: John Reiser <jreiser@BitWagon.com>
-Cc: Roland McGrath <roland@redhat.com>
-Cc: Jakub Jelinek <jakub@redhat.com>
-Cc: Ulrich Drepper <drepper@redhat.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Reported-by: Eric Sesterhenn <snakebyte@gmx.de>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: "Vegard Nossum" <vegard.nossum@gmail.com>
+Cc: <stable@kernel.org> [2.6.25.x, 2.6.26.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c        |    1 +
- include/linux/auxvec.h |    4 +++-
- 2 files changed, 4 insertions(+), 1 deletion(-)
+ fs/proc/task_mmu.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/binfmt_elf.c~execve-filename-document-and-export-via-auxiliary-vector fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~execve-filename-document-and-export-via-auxiliary-vector
-+++ a/fs/binfmt_elf.c
-@@ -204,6 +204,7 @@ create_elf_tables(struct linux_binprm *b
- 	NEW_AUX_ENT(AT_GID, tsk->gid);
- 	NEW_AUX_ENT(AT_EGID, tsk->egid);
-  	NEW_AUX_ENT(AT_SECURE, security_bprm_secureexec(bprm));
-+	NEW_AUX_ENT(AT_EXECFN, bprm->exec);
- 	if (k_platform) {
- 		NEW_AUX_ENT(AT_PLATFORM,
- 			    (elf_addr_t)(unsigned long)u_platform);
-diff -puN include/linux/auxvec.h~execve-filename-document-and-export-via-auxiliary-vector include/linux/auxvec.h
---- a/include/linux/auxvec.h~execve-filename-document-and-export-via-auxiliary-vector
-+++ a/include/linux/auxvec.h
-@@ -26,8 +26,10 @@
- 
- #define AT_SECURE 23   /* secure mode boolean */
- 
-+#define AT_EXECFN  31	/* filename of program */
- #ifdef __KERNEL__
--#define AT_VECTOR_SIZE_BASE (14 + 2) /* NEW_AUX_ENT entries in auxiliary table */
-+#define AT_VECTOR_SIZE_BASE 17 /* NEW_AUX_ENT entries in auxiliary table */
-+  /* number of "#define AT_.*" above, minus {AT_NULL, AT_IGNORE, AT_NOTELF} */
- #endif
- 
- #endif /* _LINUX_AUXVEC_H */
+diff -puN fs/proc/task_mmu.c~proc-fix-proc-pagemap-some-more fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~proc-fix-proc-pagemap-some-more
++++ a/fs/proc/task_mmu.c
+@@ -636,7 +636,7 @@ static ssize_t pagemap_read(struct file 
+ 	struct pagemapread pm;
+ 	int pagecount;
+ 	int ret = -ESRCH;
+-	struct mm_walk pagemap_walk;
++	struct mm_walk pagemap_walk = {};
+ 	unsigned long src;
+ 	unsigned long svpfn;
+ 	unsigned long start_vaddr;
 _
 
-Patches currently in -mm which might be from jreiser@BitWagon.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
 origin.patch
+linux-next.patch
+cifs-switch-to-seq_files.patch
+mpt-remove-unused-struct-mpt_proc_entry_t.patch
+move-proc_kmsg_operations-to-fs-proc-internalh.patch
+proc-always-do-release.patch
+proc-always-do-release-fix.patch
+proc-remove-pathetic-remount-code.patch
+proc-move-kconfig-to-fs-proc-kconfig.patch
+sysctl-allow-override-of-proc-sys-net-with-cap_net_admin.patch
+slb-drop-kmem-cache-argument-from-constructor.patch
+slb-drop-kmem-cache-argument-from-constructor-fix.patch
+use-warn-in-fs-proc.patch
+proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
+likely_prof-changed-to-use-proc_create.patch
+proc-remove-proc_root-from-drivers-likelyprof.patch
 
