@@ -1,74 +1,143 @@
 From: akpm@linux-foundation.org
-Subject: - mmc-sd-card-fix.patch removed from -mm tree
-Date: Tue, 22 Jul 2008 11:32:57 -0700
-Message-ID: <200807221832.m6MIWvaJ010695@imap1.linux-foundation.org>
+Subject: + ip2-avoid-add_timer-with-pending-timer.patch added to -mm tree
+Date: Tue, 22 Jul 2008 11:37:47 -0700
+Message-ID: <200807221837.m6MIblw1010988@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43299 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38006 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750855AbYGVSdI (ORCPT
+	by vger.kernel.org with ESMTP id S1751769AbYGVSh7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jul 2008 14:33:08 -0400
+	Tue, 22 Jul 2008 14:37:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: marek.vasut@gmail.com, drzeus@drzeus.cx, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akinobu.mita@gmail.com, alan@lxorguk.ukuu.org.uk, jirislaby@gmail.com, mhw@wittsend.com
 
 
 The patch titled
-     mmc: SD card fix
-has been removed from the -mm tree.  Its filename was
-     mmc-sd-card-fix.patch
+     ip2: avoid add_timer() with pending timer
+has been added to the -mm tree.  Its filename is
+     ip2-avoid-add_timer-with-pending-timer.patch
 
-This patch was dropped because it was nacked
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc: SD card fix
-From: Marek Vasut <marek.vasut@gmail.com>
+Subject: ip2: avoid add_timer() with pending timer
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-While I was tinkering with palmtx and preparing it for mainline, I
-noticed, that certain SD cards doesnt work (both Kingston - made by
-Toshiba).
+add_timer() is not suppose to be called when the timer is pending.  ip2
+driver attempts to avoid that condition by setting and resetting a flag
+(TimerOn) in timer function.  But there is some gap between add_timer()
+and setting TimerOn.
 
-I came across this
-http://kerneltrap.org/mailarchive/linux-kernel/2007/9/28/325179
-The person there had the same problem.
+This patch fix this problem by using mod_timer() and remove TimerOn which
+has been unnecessary by this change.
 
-This patch fixed it for me, but this solution isn't definitely correct. 
-Though it should point out what's the actual problem very well.
-
-Signed-off-by: Marek Vasut <marek.vasut@gmail.com>
-Cc: Pierre Ossman <drzeus@drzeus.cx>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Michael H. Warfield <mhw@wittsend.com>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmc/card.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/ip2/ip2main.c |   19 ++++---------------
+ 1 file changed, 4 insertions(+), 15 deletions(-)
 
-diff -puN include/linux/mmc/card.h~mmc-sd-card-fix include/linux/mmc/card.h
---- a/include/linux/mmc/card.h~mmc-sd-card-fix
-+++ a/include/linux/mmc/card.h
-@@ -85,7 +85,6 @@ struct mmc_card {
- 	struct mmc_host		*host;		/* the host this device belongs to */
- 	struct device		dev;		/* the device */
- 	unsigned int		rca;		/* relative card address of device */
--	unsigned int		type;		/* card type */
- #define MMC_TYPE_MMC		0		/* MMC card */
- #define MMC_TYPE_SD		1		/* SD card */
- #define MMC_TYPE_SDIO		2		/* SDIO card */
-@@ -98,6 +97,7 @@ struct mmc_card {
- 	u32			raw_cid[4];	/* raw card CID */
- 	u32			raw_csd[4];	/* raw card CSD */
- 	u32			raw_scr[2];	/* raw card SCR */
-+	unsigned int		type;		/* card type */
- 	struct mmc_cid		cid;		/* card identification */
- 	struct mmc_csd		csd;		/* card specific */
- 	struct mmc_ext_csd	ext_csd;	/* mmc v4 extended card specific */
+diff -puN drivers/char/ip2/ip2main.c~ip2-avoid-add_timer-with-pending-timer drivers/char/ip2/ip2main.c
+--- a/drivers/char/ip2/ip2main.c~ip2-avoid-add_timer-with-pending-timer
++++ a/drivers/char/ip2/ip2main.c
+@@ -249,7 +249,6 @@ static unsigned long bh_counter;
+  */
+ #define  POLL_TIMEOUT   (jiffies + 1)
+ static DEFINE_TIMER(PollTimer, ip2_poll, 0, 0);
+-static char  TimerOn;
+ 
+ #ifdef IP2DEBUG_TRACE
+ /* Trace (debug) buffer data */
+@@ -374,11 +373,7 @@ static void __exit ip2_cleanup_module(vo
+ 	int err;
+ 	int i;
+ 
+-	/* Stop poll timer if we had one. */
+-	if (TimerOn) {
+-		del_timer(&PollTimer);
+-		TimerOn = 0;
+-	}
++	del_timer_sync(&PollTimer);
+ 
+ 	/* Reset the boards we have. */
+ 	for (i = 0; i < IP2_MAX_BOARDS; i++)
+@@ -774,10 +769,8 @@ static int __init ip2_loadmain(void)
+ 		}
+ 		if (ip2config.irq[i] == CIR_POLL) {
+ retry:
+-			if (!TimerOn) {
+-				PollTimer.expires = POLL_TIMEOUT;
+-				add_timer(&PollTimer);
+-				TimerOn = 1;
++			if (!timer_pending(&PollTimer)) {
++				mod_timer(&PollTimer, POLL_TIMEOUT);
+ 				printk(KERN_INFO "IP2: polling\n");
+ 			}
+ 		} else {
+@@ -1283,16 +1276,12 @@ ip2_poll(unsigned long arg)
+ {
+ 	ip2trace (ITRC_NO_PORT, ITRC_INTR, 100, 0 );
+ 
+-	TimerOn = 0; // it's the truth but not checked in service
+-
+ 	// Just polled boards, IRQ = 0 will hit all non-interrupt boards.
+ 	// It will NOT poll boards handled by hard interrupts.
+ 	// The issue of queued BH interrupts is handled in ip2_interrupt().
+ 	ip2_polled_interrupt();
+ 
+-	PollTimer.expires = POLL_TIMEOUT;
+-	add_timer( &PollTimer );
+-	TimerOn = 1;
++	mod_timer(&PollTimer, POLL_TIMEOUT);
+ 
+ 	ip2trace (ITRC_NO_PORT, ITRC_INTR, ITRC_RETURN, 0 );
+ }
 _
 
-Patches currently in -mm which might be from marek.vasut@gmail.com are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
+origin.patch
+move-memory_read_from_buffer-from-fsh-to-stringh.patch
 linux-next.patch
-mmc-sd-card-fix.patch
+ipr-use-memory_read_from_buffer.patch
+qla2xxx-use-memory_read_from_buffer.patch
+qla2xxx-use-memory_read_from_buffer-fix.patch
+pm-hibernation-simplify-memory-bitmap.patch
+cris-use-simple_read_from_buffer.patch
+binfmt_misc-use-simple_read_from_buffer.patch
+aty-use-memory_read_from_buffer.patch
+aty-use-memory_read_from_buffer-fix.patch
+auxdisplay-small-cleanups.patch
+workqueues-do-cpu_up_canceled-if-cpu_up_prepare-fails.patch
+ipc-use-simple_read_from_buffer.patch
+nwflash-use-simple_read_from_buffer.patch
+char-merge-ip2main-and-ip2base.patch
+char-ip2-cleanup-globals.patch
+char-ip2-fix-sparse-warnings.patch
+char-ip2-init-deinit-cleanup.patch
+ip2-avoid-add_timer-with-pending-timer.patch
+firmware-use-memory_read_from_buffer.patch
+firmware-use-memory_read_from_buffer-fix.patch
+dcdbas-use-memory_read_from_buffer.patch
+dcdbas-use-memory_read_from_buffer-fix.patch
+dell_rbu-use-memory_read_from_buffer.patch
+dell_rbu-use-memory_read_from_buffer-fix.patch
 
