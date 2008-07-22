@@ -1,24 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + video-fb-cleanup-fb_major-usage.patch added to -mm tree
-Date: Tue, 22 Jul 2008 03:42:38 -0700
-Message-ID: <200807221042.m6MAgcFF024019@imap1.linux-foundation.org>
+Subject: + intel_agp-official-name-for-gm45-chipset.patch added to -mm tree
+Date: Tue, 22 Jul 2008 03:44:16 -0700
+Message-ID: <200807221044.m6MAiG6v024112@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55956 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34128 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754475AbYGVKni (ORCPT
+	by vger.kernel.org with ESMTP id S1753638AbYGVKok (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jul 2008 06:43:38 -0400
+	Tue, 22 Jul 2008 06:44:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: phdm@macqel.be, adaplas@pol.net, krzysztof.h1@poczta.fm
+Cc: zhenyu.z.wang@intel.com, airlied@linux.ie
 
 
 The patch titled
-     video/fb: cleanup FB_MAJOR usage
+     intel_agp: official name for GM45 chipset
 has been added to the -mm tree.  Its filename is
-     video-fb-cleanup-fb_major-usage.patch
+     intel_agp-official-name-for-gm45-chipset.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -26,71 +29,92 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
+find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: video/fb: cleanup FB_MAJOR usage
-From: Philippe De Muyter <phdm@macqel.be>
+Subject: intel_agp: official name for GM45 chipset
+=46rom: Zhenyu Wang <zhenyu.z.wang@intel.com>
 
-Currently, linux/major.h defines a GRAPHDEV_MAJOR (29) that nobody uses,
-and linux/fb.h defines the real FB_MAJOR (also 29), that only fbmem.c
-needs.  Drop GRAPHDEV_MAJOR from major.h, move FB_MAJOR definition from
-fb.h to major.h, and fix fbmem.c to use major.h's definition.
-
-Signed-off-by: Philippe De Muyter <phdm@macqel.be>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Signed-off-by: Zhenyu Wang <zhenyu.z.wang@intel.com>
+Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/fbmem.c |    1 +
- include/linux/fb.h    |    1 -
- include/linux/major.h |    2 +-
- 3 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/char/agp/intel-agp.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN drivers/video/fbmem.c~video-fb-cleanup-fb_major-usage drivers/video/fbmem.c
---- a/drivers/video/fbmem.c~video-fb-cleanup-fb_major-usage
-+++ a/drivers/video/fbmem.c
-@@ -35,6 +35,7 @@
- #include <linux/device.h>
- #include <linux/efi.h>
- #include <linux/fb.h>
-+#include <linux/major.h>
- 
- #include <asm/fb.h>
- 
-diff -puN include/linux/fb.h~video-fb-cleanup-fb_major-usage include/linux/fb.h
---- a/include/linux/fb.h~video-fb-cleanup-fb_major-usage
-+++ a/include/linux/fb.h
-@@ -8,7 +8,6 @@ struct dentry;
- 
- /* Definitions of frame buffers						*/
- 
--#define FB_MAJOR		29
- #define FB_MAX			32	/* sufficient for now */
- 
- /* ioctls
-diff -puN include/linux/major.h~video-fb-cleanup-fb_major-usage include/linux/major.h
---- a/include/linux/major.h~video-fb-cleanup-fb_major-usage
-+++ a/include/linux/major.h
-@@ -53,7 +53,7 @@
- #define STL_SIOMEMMAJOR		28
- #define ACSI_MAJOR		28
- #define AZTECH_CDROM_MAJOR	29
--#define GRAPHDEV_MAJOR		29   /* SparcLinux & Linux/68k /dev/fb */
-+#define FB_MAJOR		29   /* /dev/fb* framebuffers */
- #define CM206_CDROM_MAJOR	32
- #define IDE2_MAJOR		33
- #define IDE3_MAJOR		34
+diff -puN drivers/char/agp/intel-agp.c~intel_agp-official-name-for-gm45=
+-chipset drivers/char/agp/intel-agp.c
+--- a/drivers/char/agp/intel-agp.c~intel_agp-official-name-for-gm45-chi=
+pset
++++ a/drivers/char/agp/intel-agp.c
+@@ -32,8 +32,8 @@
+ #define PCI_DEVICE_ID_INTEL_Q35_IG          0x29B2
+ #define PCI_DEVICE_ID_INTEL_Q33_HB          0x29D0
+ #define PCI_DEVICE_ID_INTEL_Q33_IG          0x29D2
+-#define PCI_DEVICE_ID_INTEL_IGD_HB          0x2A40
+-#define PCI_DEVICE_ID_INTEL_IGD_IG          0x2A42
++#define PCI_DEVICE_ID_INTEL_GM45_HB         0x2A40
++#define PCI_DEVICE_ID_INTEL_GM45_IG         0x2A42
+ #define PCI_DEVICE_ID_INTEL_IGD_E_HB        0x2E00
+ #define PCI_DEVICE_ID_INTEL_IGD_E_IG        0x2E02
+ #define PCI_DEVICE_ID_INTEL_Q45_HB          0x2E10
+@@ -55,7 +55,7 @@
+ 		 agp_bridge->dev->device =3D=3D PCI_DEVICE_ID_INTEL_82965G_HB || \
+ 		 agp_bridge->dev->device =3D=3D PCI_DEVICE_ID_INTEL_82965GM_HB || \
+ 		 agp_bridge->dev->device =3D=3D PCI_DEVICE_ID_INTEL_82965GME_HB || \
+-		 agp_bridge->dev->device =3D=3D PCI_DEVICE_ID_INTEL_IGD_HB)
++		 agp_bridge->dev->device =3D=3D PCI_DEVICE_ID_INTEL_GM45_HB)
+=20
+ #define IS_G33 (agp_bridge->dev->device =3D=3D PCI_DEVICE_ID_INTEL_G33=
+_HB || \
+ 		agp_bridge->dev->device =3D=3D PCI_DEVICE_ID_INTEL_Q35_HB || \
+@@ -1182,7 +1182,7 @@ static unsigned long intel_i965_mask_mem
+ static void intel_i965_get_gtt_range(int *gtt_offset, int *gtt_size)
+ {
+ 	switch (agp_bridge->dev->device) {
+-	case PCI_DEVICE_ID_INTEL_IGD_HB:
++	case PCI_DEVICE_ID_INTEL_GM45_HB:
+ 	case PCI_DEVICE_ID_INTEL_IGD_E_HB:
+ 	case PCI_DEVICE_ID_INTEL_Q45_HB:
+ 	case PCI_DEVICE_ID_INTEL_G45_HB:
+@@ -2117,8 +2117,8 @@ static const struct intel_driver_descrip
+ 		NULL, &intel_g33_driver },
+ 	{ PCI_DEVICE_ID_INTEL_Q33_HB, PCI_DEVICE_ID_INTEL_Q33_IG, 0, "Q33",
+ 		NULL, &intel_g33_driver },
+-	{ PCI_DEVICE_ID_INTEL_IGD_HB, PCI_DEVICE_ID_INTEL_IGD_IG, 0,
+-	    "Intel Integrated Graphics Device", NULL, &intel_i965_driver },
++	{ PCI_DEVICE_ID_INTEL_GM45_HB, PCI_DEVICE_ID_INTEL_GM45_IG, 0,
++	    "Mobile Intel=AE GM45 Express", NULL, &intel_i965_driver },
+ 	{ PCI_DEVICE_ID_INTEL_IGD_E_HB, PCI_DEVICE_ID_INTEL_IGD_E_IG, 0,
+ 	    "Intel Integrated Graphics Device", NULL, &intel_i965_driver },
+ 	{ PCI_DEVICE_ID_INTEL_Q45_HB, PCI_DEVICE_ID_INTEL_Q45_IG, 0,
+@@ -2315,7 +2315,7 @@ static struct pci_device_id agp_intel_pc
+ 	ID(PCI_DEVICE_ID_INTEL_G33_HB),
+ 	ID(PCI_DEVICE_ID_INTEL_Q35_HB),
+ 	ID(PCI_DEVICE_ID_INTEL_Q33_HB),
+-	ID(PCI_DEVICE_ID_INTEL_IGD_HB),
++	ID(PCI_DEVICE_ID_INTEL_GM45_HB),
+ 	ID(PCI_DEVICE_ID_INTEL_IGD_E_HB),
+ 	ID(PCI_DEVICE_ID_INTEL_Q45_HB),
+ 	ID(PCI_DEVICE_ID_INTEL_G45_HB),
 _
 
-Patches currently in -mm which might be from phdm@macqel.be are
+Patches currently in -mm which might be from zhenyu.z.wang@intel.com ar=
+e
 
-origin.patch
-video-fb-cleanup-fb_major-usage.patch
+intel_agp-official-name-for-gm45-chipset.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
