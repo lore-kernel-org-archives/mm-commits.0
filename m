@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix-fix.patch added to -mm tree
-Date: Tue, 22 Jul 2008 16:38:32 -0700
-Message-ID: <200807222351.m6MNp6gG025214@imap1.linux-foundation.org>
+Subject: + drivers-mfd-tc6393xbc-doesnt-compile-on-i386.patch added to -mm tree
+Date: Tue, 22 Jul 2008 16:45:22 -0700
+Message-ID: <200807222357.m6MNvvQt025436@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36172 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49550 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753519AbYGVXv2 (ORCPT
+	by vger.kernel.org with ESMTP id S1752564AbYGVX6I (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jul 2008 19:51:28 -0400
+	Tue, 22 Jul 2008 19:58:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dbrownell@users.sourceforge.net, greg@kroah.com, mb@bu3sch.de, sfr@canb.auug.org.au
+Cc: akpm@linux-foundation.org, dbaryshkov@gmail.com, rmk@arm.linux.org.uk, sameo@openedhand.com
 
 
 The patch titled
-     gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix-fix
+     drivers/mfd/tc6393xb.c doesn't compile on i386
 has been added to the -mm tree.  Its filename is
-     gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix-fix.patch
+     drivers-mfd-tc6393xbc-doesnt-compile-on-i386.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,59 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix-fix
+Subject: drivers/mfd/tc6393xb.c doesn't compile on i386
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Greg KH <greg@kroah.com>
-Cc: Michael Buesch <mb@bu3sch.de>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+drivers/mfd/tc6393xb.c:93: error: field 'gpio' has incomplete type
+drivers/mfd/tc6393xb.c: In function 'tc6393xb_gpio_get':
+drivers/mfd/tc6393xb.c:171: warning: type defaults to 'int' in declaration of '__mptr'
+drivers/mfd/tc6393xb.c:171: warning: initialization from incompatible pointer type
+drivers/mfd/tc6393xb.c: In function '__tc6393xb_gpio_set':
+drivers/mfd/tc6393xb.c:181: warning: type defaults to 'int' in declaration of '__mptr'
+drivers/mfd/tc6393xb.c:181: warning: initialization from incompatible pointer type
+drivers/mfd/tc6393xb.c: In function 'tc6393xb_gpio_set':
+drivers/mfd/tc6393xb.c:196: warning: type defaults to 'int' in declaration of '__mptr'
+drivers/mfd/tc6393xb.c:196: warning: initialization from incompatible pointer type
+drivers/mfd/tc6393xb.c: In function 'tc6393xb_gpio_direction_input':
+drivers/mfd/tc6393xb.c:209: warning: type defaults to 'int' in declaration of '__mptr'
+drivers/mfd/tc6393xb.c:209: warning: initialization from incompatible pointer type
+drivers/mfd/tc6393xb.c: In function 'tc6393xb_gpio_direction_output':
+drivers/mfd/tc6393xb.c:227: warning: type defaults to 'int' in declaration of '__mptr'
+drivers/mfd/tc6393xb.c:227: warning: initialization from incompatible pointer type
+drivers/mfd/tc6393xb.c: In function 'tc6393xb_register_gpio':
+drivers/mfd/tc6393xb.c:254: error: implicit declaration of function 'gpiochip_add'
+drivers/mfd/tc6393xb.c: In function 'tc6393xb_attach_irq':
+drivers/mfd/tc6393xb.c:324: error: implicit declaration of function 'set_irq_flags'
+drivers/mfd/tc6393xb.c:324: error: 'IRQF_VALID' undeclared (first use in this function)
+drivers/mfd/tc6393xb.c:324: error: (Each undeclared identifier is reported only once
+drivers/mfd/tc6393xb.c:324: error: for each function it appears in.)
+drivers/mfd/tc6393xb.c:324: error: 'IRQF_PROBE' undeclared (first use in this function)
+drivers/mfd/tc6393xb.c:327: error: 'IRQT_FALLING' undeclared (first use in this function)
+drivers/mfd/tc6393xb.c: In function 'tc6393xb_probe':
+drivers/mfd/tc6393xb.c:481: error: implicit declaration of function 'gpiochip_remove'
+
+Something like this...
+
+Cc: Dmitry Baryshkov <dbaryshkov@gmail.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Samuel Ortiz <sameo@openedhand.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/gpiolib.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/mfd/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/gpio/gpiolib.c~gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix-fix drivers/gpio/gpiolib.c
---- a/drivers/gpio/gpiolib.c~gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix-fix
-+++ a/drivers/gpio/gpiolib.c
-@@ -453,7 +453,7 @@ int gpio_export(unsigned gpio, bool dire
- 	if (status == 0) {
- 		struct device	*dev;
- 
--		dev = device_create(&gpio_class, desc->chip->dev, NULL, desc,
-+		dev = device_create(&gpio_class, desc->chip->dev, 0, desc,
- 					"gpio%d", gpio);
- 		if (dev) {
- 			if (direction_may_change)
-@@ -537,7 +537,7 @@ static int gpiochip_export(struct gpio_c
- 
- 	/* use chip->base for the ID; it's already known to be unique */
- 	mutex_lock(&sysfs_lock);
--	dev = device_create(&gpio_class, chip->dev, NULL, chip, "gpiochip%d",
-+	dev = device_create(&gpio_class, chip->dev, 0, chip, "gpiochip%d",
- 				chip->base);
- 	if (dev) {
- 		status = sysfs_create_group(&dev->kobj,
+diff -puN drivers/mfd/Kconfig~drivers-mfd-tc6393xbc-doesnt-compile-on-i386 drivers/mfd/Kconfig
+--- a/drivers/mfd/Kconfig~drivers-mfd-tc6393xbc-doesnt-compile-on-i386
++++ a/drivers/mfd/Kconfig
+@@ -45,6 +45,7 @@ config HTC_PASIC3
+ config MFD_TC6393XB
+ 	bool "Support Toshiba TC6393XB"
+ 	depends on HAVE_GPIO_LIB
++	depends on ARM
+ 	select MFD_CORE
+ 	help
+ 	  Support for Toshiba Mobile IO Controller TC6393XB
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -79,6 +98,7 @@ linux-next-git-rejects.patch
 next-remove-localversion.patch
 drivers-mtd-nand-nandsimc-needs-div64h.patch
 pci-make-pci_register_driver-a-macro.patch
+drivers-mfd-tc6393xbc-doesnt-compile-on-i386.patch
 x86-pci-replace-dbg-with-pr_debug-fix.patch
 include-asm-generic-pgtable-nopmdh-macros-are-noxious-reason-435.patch
 i2c-renesas-highlander-fpga-smbus-support.patch
