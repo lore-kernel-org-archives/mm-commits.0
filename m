@@ -1,52 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - linux-next-fixup.patch removed from -mm tree
-Date: Tue, 22 Jul 2008 13:26:31 -0700
-Message-ID: <200807222026.m6MKQVk5015724@imap1.linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Tue, 22 Jul 2008 13:26:13 -0700
+Message-ID: <200807222026.m6MKQDhM015716@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41232 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44247 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751169AbYGVU0d (ORCPT
+	by vger.kernel.org with ESMTP id S1751207AbYGVU0V (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jul 2008 16:26:33 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m6MKQVNn030938
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 22 Jul 2008 13:26:32 -0700
+	Tue, 22 Jul 2008 16:26:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, sfr@canb.auug.org.au
 
 
 The patch titled
-     linux-next-fixup
-has been removed from the -mm tree.  Its filename was
-     linux-next-fixup.patch
+     linux-next-git-rejects
+has been added to the -mm tree.  Its filename is
+     linux-next-git-rejects.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-fixup
+Subject: linux-next-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ Makefile |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN Makefile~linux-next-fixup Makefile
---- a/Makefile~linux-next-fixup
+diff -puN Makefile~linux-next-git-rejects Makefile
+--- a/Makefile~linux-next-git-rejects
 +++ a/Makefile
-@@ -1175,7 +1175,8 @@ clean: archclean $(clean-dirs)
+@@ -1174,13 +1174,9 @@ clean: archclean $(clean-dirs)
+ 	@find . $(RCS_FIND_IGNORE) \
  		\( -name '*.[oas]' -o -name '*.ko' -o -name '.*.cmd' \
  		-o -name '.*.d' -o -name '.*.tmp' -o -name '*.mod.c' \
- 		-o -name '*.symtypes' -o -name 'modules.order' \
+-<<<<<<< HEAD:Makefile
+-		-o -name '*.symtypes' -o -name 'modules.order' \
 -		-o -name 'Module.markers' \) \
+-=======
+ 		-o -name '*.symtypes' -o -name 'modules.order'	\
 +		-o -name 'Module.markers' \
-+		-o -name '.tmp_*.o.*' \) \
+ 		-o -name '.tmp_*.o.*' \) \
+->>>>>>> FETCH_HEAD:Makefile
  		-type f -print | xargs rm -f
  
  # mrproper - Delete all generated files, including .config
