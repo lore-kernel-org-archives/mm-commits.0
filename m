@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-partitions-efi-convert-to-pr_debug.patch added to -mm tree
-Date: Mon, 21 Jul 2008 17:09:00 -0700
-Message-ID: <200807220009.m6M090QG032236@imap1.linux-foundation.org>
+Subject: + mm-speculative-page-references-fix-add_to_page_cache.patch added to -mm tree
+Date: Mon, 21 Jul 2008 17:10:27 -0700
+Message-ID: <200807220010.m6M0ASdf032284@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42530 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51055 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753226AbYGVAJh (ORCPT
+	by vger.kernel.org with ESMTP id S1754170AbYGVAKi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 Jul 2008 20:09:37 -0400
+	Mon, 21 Jul 2008 20:10:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tglx@linutronix.de, Matt_Domsch@dell.com
+Cc: hugh@veritas.com, npiggin@suse.de
 
 
 The patch titled
-     fs/partitions/efi: convert to pr_debug
+     speculative page references: fix add_to_page_cache
 has been added to the -mm tree.  Its filename is
-     fs-partitions-efi-convert-to-pr_debug.patch
+     mm-speculative-page-references-fix-add_to_page_cache.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,171 +34,257 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/partitions/efi: convert to pr_debug
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: speculative page references: fix add_to_page_cache
+From: Hugh Dickins <hugh@veritas.com>
 
-convert the local Dprintk() compile time debug printk wrappers to the
-generic pr_debug() wrapper.
+The speculative page references patch actually depends on another patch of
+Nick's which he hasn't supplied this time around: an atomic-avoiding
+__set_page_locked patch: see http://lkml.org/lkml/2007/11/10/5
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Matt Domsch <Matt_Domsch@dell.com>
+This showed up when shmem_unuse_inode's add_to_page_cache failed: the page
+was passed in locked and should remain locked, but speculative's
+add_to_page_cache had unlocked it already, so the subsequent unlock_page
+BUGged.  add_to_page_cache indeed should set and clear the page lock, but
+shmem/tmpfs needs an add_to_page_cache_locked entry point to avoid that.
+
+This fix patch below extracts and updates what's needed from Nick's
+original, including his comments, but leaving out the atomic-avoidance.
+
+(Do speculative page references actually need the page locked before it's
+entered into the page cache?  I'm not sure myself, suspect that if
+everywhere else handled PageUptodate and PageError correctly then it might
+not be necessary; but we're pretty sure there are gaps in that error
+handling, so I agree with Nick that we should lock before.  He may well be
+able to supply a stronger reason why it's necessary.)
+
+I apologize for not finding this sooner, my testing coverage weaker than
+I'd thought: only hit this in checking the swap priority patch.
+
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Acked-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/partitions/efi.c |   42 +++++++++++++++++-------------------------
- 1 file changed, 17 insertions(+), 25 deletions(-)
+ include/linux/pagemap.h |   18 +++++++++++++++++-
+ mm/filemap.c            |   19 +++++++++----------
+ mm/shmem.c              |    4 ++--
+ mm/swap_state.c         |    2 +-
+ 4 files changed, 29 insertions(+), 14 deletions(-)
 
-diff -puN fs/partitions/efi.c~fs-partitions-efi-convert-to-pr_debug fs/partitions/efi.c
---- a/fs/partitions/efi.c~fs-partitions-efi-convert-to-pr_debug
-+++ a/fs/partitions/efi.c
-@@ -95,13 +95,6 @@
- #include "check.h"
- #include "efi.h"
+diff -puN include/linux/pagemap.h~mm-speculative-page-references-fix-add_to_page_cache include/linux/pagemap.h
+--- a/include/linux/pagemap.h~mm-speculative-page-references-fix-add_to_page_cache
++++ a/include/linux/pagemap.h
+@@ -227,7 +227,7 @@ static inline struct page *read_mapping_
+ 	return read_cache_page(mapping, index, filler, data);
+ }
  
--#undef EFI_DEBUG
--#ifdef EFI_DEBUG
--#define Dprintk(x...) printk(KERN_DEBUG x)
--#else
--#define Dprintk(x...)
--#endif
--
- /* This allows a kernel command line option 'gpt' to override
-  * the test for invalid PMBR.  Not __initdata because reloading
-  * the partition tables happens after init too.
-@@ -305,10 +298,10 @@ is_gpt_valid(struct block_device *bdev, 
+-int add_to_page_cache(struct page *page, struct address_space *mapping,
++int add_to_page_cache_locked(struct page *page, struct address_space *mapping,
+ 				pgoff_t index, gfp_t gfp_mask);
+ int add_to_page_cache_lru(struct page *page, struct address_space *mapping,
+ 				pgoff_t index, gfp_t gfp_mask);
+@@ -235,6 +235,22 @@ extern void remove_from_page_cache(struc
+ extern void __remove_from_page_cache(struct page *page);
  
- 	/* Check the GUID Partition Table signature */
- 	if (le64_to_cpu((*gpt)->signature) != GPT_HEADER_SIGNATURE) {
--		Dprintk("GUID Partition Table Header signature is wrong:"
--			"%lld != %lld\n",
--			(unsigned long long)le64_to_cpu((*gpt)->signature),
--			(unsigned long long)GPT_HEADER_SIGNATURE);
-+		pr_debug("GUID Partition Table Header signature is wrong:"
-+			 "%lld != %lld\n",
-+			 (unsigned long long)le64_to_cpu((*gpt)->signature),
-+			 (unsigned long long)GPT_HEADER_SIGNATURE);
- 		goto fail;
- 	}
+ /*
++ * Like add_to_page_cache_locked, but used to add newly allocated pages:
++ * the page is new, so we can just run SetPageLocked() against it.
++ */
++static inline int add_to_page_cache(struct page *page,
++		struct address_space *mapping, pgoff_t offset, gfp_t gfp_mask)
++{
++	int error;
++
++	SetPageLocked(page);
++	error = add_to_page_cache_locked(page, mapping, offset, gfp_mask);
++	if (unlikely(error))
++		ClearPageLocked(page);
++	return error;
++}
++
++/*
+  * Return byte-offset into filesystem object for page.
+  */
+ static inline loff_t page_offset(struct page *page)
+diff -puN mm/filemap.c~mm-speculative-page-references-fix-add_to_page_cache mm/filemap.c
+--- a/mm/filemap.c~mm-speculative-page-references-fix-add_to_page_cache
++++ a/mm/filemap.c
+@@ -442,22 +442,23 @@ int filemap_write_and_wait_range(struct 
+ }
  
-@@ -318,9 +311,8 @@ is_gpt_valid(struct block_device *bdev, 
- 	crc = efi_crc32((const unsigned char *) (*gpt), le32_to_cpu((*gpt)->header_size));
+ /**
+- * add_to_page_cache - add newly allocated pagecache pages
++ * add_to_page_cache_locked - add newly allocated pagecache pages
+  * @page:	page to add
+  * @mapping:	the page's address_space
+  * @offset:	page index
+  * @gfp_mask:	page allocation mode
+  *
+- * This function is used to add newly allocated pagecache pages;
+- * the page is new, so we can just run SetPageLocked() against it.
+- * The other page state flags were set by rmqueue().
+- *
++ * This function is used to add a page to the pagecache. It must be locked.
+  * This function does not add the page to the LRU.  The caller must do that.
+  */
+-int add_to_page_cache(struct page *page, struct address_space *mapping,
++int add_to_page_cache_locked(struct page *page, struct address_space *mapping,
+ 		pgoff_t offset, gfp_t gfp_mask)
+ {
+-	int error = mem_cgroup_cache_charge(page, current->mm,
++	int error;
++
++	VM_BUG_ON(!PageLocked(page));
++
++	error = mem_cgroup_cache_charge(page, current->mm,
+ 					gfp_mask & ~__GFP_HIGHMEM);
+ 	if (error)
+ 		goto out;
+@@ -465,7 +466,6 @@ int add_to_page_cache(struct page *page,
+ 	error = radix_tree_preload(gfp_mask & ~__GFP_HIGHMEM);
+ 	if (error == 0) {
+ 		page_cache_get(page);
+-		SetPageLocked(page);
+ 		page->mapping = mapping;
+ 		page->index = offset;
  
- 	if (crc != origcrc) {
--		Dprintk
--		    ("GUID Partition Table Header CRC is wrong: %x != %x\n",
--		     crc, origcrc);
-+		pr_debug("GUID Partition Table Header CRC is wrong: %x != %x\n",
-+			 crc, origcrc);
- 		goto fail;
- 	}
- 	(*gpt)->header_crc32 = cpu_to_le32(origcrc);
-@@ -328,9 +320,9 @@ is_gpt_valid(struct block_device *bdev, 
- 	/* Check that the my_lba entry points to the LBA that contains
- 	 * the GUID Partition Table */
- 	if (le64_to_cpu((*gpt)->my_lba) != lba) {
--		Dprintk("GPT my_lba incorrect: %lld != %lld\n",
--			(unsigned long long)le64_to_cpu((*gpt)->my_lba),
--			(unsigned long long)lba);
-+		pr_debug("GPT my_lba incorrect: %lld != %lld\n",
-+			 (unsigned long long)le64_to_cpu((*gpt)->my_lba),
-+			 (unsigned long long)lba);
- 		goto fail;
- 	}
+@@ -476,7 +476,6 @@ int add_to_page_cache(struct page *page,
+ 			__inc_zone_page_state(page, NR_FILE_PAGES);
+ 		} else {
+ 			page->mapping = NULL;
+-			ClearPageLocked(page);
+ 			mem_cgroup_uncharge_cache_page(page);
+ 			page_cache_release(page);
+ 		}
+@@ -488,7 +487,7 @@ int add_to_page_cache(struct page *page,
+ out:
+ 	return error;
+ }
+-EXPORT_SYMBOL(add_to_page_cache);
++EXPORT_SYMBOL(add_to_page_cache_locked);
  
-@@ -339,15 +331,15 @@ is_gpt_valid(struct block_device *bdev, 
- 	 */
- 	lastlba = last_lba(bdev);
- 	if (le64_to_cpu((*gpt)->first_usable_lba) > lastlba) {
--		Dprintk("GPT: first_usable_lba incorrect: %lld > %lld\n",
--			(unsigned long long)le64_to_cpu((*gpt)->first_usable_lba),
--			(unsigned long long)lastlba);
-+		pr_debug("GPT: first_usable_lba incorrect: %lld > %lld\n",
-+			 (unsigned long long)le64_to_cpu((*gpt)->first_usable_lba),
-+			 (unsigned long long)lastlba);
- 		goto fail;
- 	}
- 	if (le64_to_cpu((*gpt)->last_usable_lba) > lastlba) {
--		Dprintk("GPT: last_usable_lba incorrect: %lld > %lld\n",
--			(unsigned long long)le64_to_cpu((*gpt)->last_usable_lba),
--			(unsigned long long)lastlba);
-+		pr_debug("GPT: last_usable_lba incorrect: %lld > %lld\n",
-+			 (unsigned long long)le64_to_cpu((*gpt)->last_usable_lba),
-+			 (unsigned long long)lastlba);
- 		goto fail;
- 	}
+ int add_to_page_cache_lru(struct page *page, struct address_space *mapping,
+ 				pgoff_t offset, gfp_t gfp_mask)
+diff -puN mm/shmem.c~mm-speculative-page-references-fix-add_to_page_cache mm/shmem.c
+--- a/mm/shmem.c~mm-speculative-page-references-fix-add_to_page_cache
++++ a/mm/shmem.c
+@@ -936,7 +936,7 @@ found:
+ 	spin_lock(&info->lock);
+ 	ptr = shmem_swp_entry(info, idx, NULL);
+ 	if (ptr && ptr->val == entry.val) {
+-		error = add_to_page_cache(page, inode->i_mapping,
++		error = add_to_page_cache_locked(page, inode->i_mapping,
+ 						idx, GFP_NOWAIT);
+ 		/* does mem_cgroup_uncharge_cache_page on error */
+ 	} else	/* we must compensate for our precharge above */
+@@ -1301,7 +1301,7 @@ repeat:
+ 			SetPageUptodate(filepage);
+ 			set_page_dirty(filepage);
+ 			swap_free(swap);
+-		} else if (!(error = add_to_page_cache(
++		} else if (!(error = add_to_page_cache_locked(
+ 				swappage, mapping, idx, GFP_NOWAIT))) {
+ 			info->flags |= SHMEM_PAGEIN;
+ 			shmem_swp_set(info, entry, 0);
+diff -puN mm/swap_state.c~mm-speculative-page-references-fix-add_to_page_cache mm/swap_state.c
+--- a/mm/swap_state.c~mm-speculative-page-references-fix-add_to_page_cache
++++ a/mm/swap_state.c
+@@ -64,7 +64,7 @@ void show_swap_cache_info(void)
+ }
  
-@@ -360,7 +352,7 @@ is_gpt_valid(struct block_device *bdev, 
- 			le32_to_cpu((*gpt)->sizeof_partition_entry));
- 
- 	if (crc != le32_to_cpu((*gpt)->partition_entry_array_crc32)) {
--		Dprintk("GUID Partitition Entry Array CRC check failed.\n");
-+		pr_debug("GUID Partitition Entry Array CRC check failed.\n");
- 		goto fail_ptes;
- 	}
- 
-@@ -616,7 +608,7 @@ efi_partition(struct parsed_partitions *
- 		return 0;
- 	}
- 
--	Dprintk("GUID Partition Table is valid!  Yea!\n");
-+	pr_debug("GUID Partition Table is valid!  Yea!\n");
- 
- 	for (i = 0; i < le32_to_cpu(gpt->num_partition_entries) && i < state->limit-1; i++) {
- 		if (!is_pte_valid(&ptes[i], last_lba(bdev)))
+ /*
+- * add_to_swap_cache resembles add_to_page_cache on swapper_space,
++ * add_to_swap_cache resembles add_to_page_cache_locked on swapper_space,
+  * but sets SwapCache flag and private instead of mapping and index.
+  */
+ int add_to_swap_cache(struct page *page, swp_entry_t entry, gfp_t gfp_mask)
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from hugh@veritas.com are
 
 origin.patch
-linux-next.patch
-adapt-drivers-base-topologyc-to-new-sysfs-api.patch
-x86-pci-replace-dbg-with-pr_debug.patch
-calgary-fix-a-comparison-warning-the-pci-calgary-64-driver.patch
-x86-remove-init_mm-export-as-planned-for-2626.patch
-add-time_is_after_jiffies-and-others-which-compare-with-jiffies.patch
-ntp-let-update_persistent_clock-sleep.patch
-migrate_timers-add-comment-use-spinlock_irq.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-timekeeping-fix-rounding-problem-during-clock-update.patch
-aes-x86_64-asm-implementation-optimization.patch
-ntp-fix-calculation-of-the-next-jiffie-to-trigger-rtc-sync.patch
-clocksource-fix-a-print-format-error-in-the-acpi-pm-clocksource-driver-and-check-range.patch
-add-a-helper-function-to-test-if-an-object-is-on-the-stack.patch
-inflate-refactor-inflate-malloc-code.patch
-inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
-generic-irqs-enable-polling-for-disabled-screaming-irqs.patch
-kernel-irq-managec-replace-a-printk-warn_on-to-a-warn.patch
-rtc-remove-and-clarify-unneeded-externs.patch
-gpiolib-allow-user-selection.patch
-gpiolib-allow-user-selection-update.patch
-posix-timers-timer_delete-remove-the-bogus-it_process-=-null-check.patch
-posix-timers-release_posix_timer-kill-the-bogus-put_task_struct-it_process.patch
-signals-make-siginfo_t-si_utime-si_sstime-report-times-in-user_hz-not-hz.patch
-fs-partitions-efi-convert-to-pr_debug.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support-fix-2.patch
-x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary.patch
-x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary-checkpatch-fixes.patch
-calgary-iommu-use-the-first-kernels-tce-tables-in-kdump.patch
-calgary-iommu-use-the-first-kernels-tce-tables-in-kdump-coding-style-fixes.patch
-kexec-jump.patch
-kexec-jump-save-restore-device-state.patch
-x86-implement-pte_special.patch
+ahci-use-correct-type-for-cpu-flags.patch
+git-unionfs.patch
+unionfs-fix-memory-leak.patch
+fsstack-fsstack_copy_inode_size-locking.patch
+mm-remove-nopfn-fix.patch
+access_process_vm-device-memory-infrastructure.patch
+use-generic_access_phys-for-dev-mem-mappings.patch
+use-generic_access_phys-for-dev-mem-mappings-fix.patch
+use-generic_access_phys-for-pci-mmap-on-x86.patch
+powerpc-ioremap_prot.patch
+spufs-use-the-new-vm_ops-access.patch
+spufs-use-the-new-vm_ops-access-fix.patch
+mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co.patch
+hugetlb-move-hugetlb_acct_memory.patch
+hugetlb-reserve-huge-pages-for-reliable-map_private-hugetlbfs-mappings-until-fork.patch
+hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed.patch
+hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed-fix.patch
+hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed-build-fix.patch
+hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed-align-faulting-address-to-a-hugepage-boundary-before-unmapping.patch
+huge-page-private-reservation-review-cleanups.patch
+huge-page-private-reservation-review-cleanups-fix.patch
+mm-record-map_noreserve-status-on-vmas-and-fix-small-page-mprotect-reservations.patch
+hugetlb-move-reservation-region-support-earlier.patch
+hugetlb-allow-huge-page-mappings-to-be-created-without-reservations.patch
+hugetlb-allow-huge-page-mappings-to-be-created-without-reservations-cleanups.patch
+hugetlb-reservations-fix-hugetlb-map_private-reservations-across-vma-splits-v2.patch
+vma-page-offset-has-no-callees-drop-it.patch
+generic_file_aio_read-cleanups.patch
+tmpfs-support-aio.patch
+hugetlb-fix-race-when-reading-proc-meminfo.patch
+hugetlb-quota-is-not-freed-for-unused-reserved-private-huge-pages.patch
+mmu-notifiers-add-list_del_init_rcu.patch
+mmu-notifiers-add-mm_take_all_locks-operation.patch
+mmu-notifiers-add-mm_take_all_locks-operation-checkpatch-fixes.patch
+mmu-notifier-core.patch
+mmu-notifier-core-fix.patch
+mmu-notifier-core-fix-2.patch
+security-remove-unused-forwards.patch
+exec-remove-some-includes.patch
+exec-remove-some-includes-fix.patch
+memcg-better-migration-handling.patch
+memcg-remove-refcnt-from-page_cgroup.patch
+memcg-remove-refcnt-from-page_cgroup-fix.patch
+memcg-remove-refcnt-from-page_cgroup-fix-2.patch
+memcg-remove-refcnt-from-page_cgroup-fix-memcg-fix-mem_cgroup_end_migration-race.patch
+memcg-remove-refcnt-from-page_cgroup-memcg-fix-shmem_unuse_inode-charging.patch
+memcg-helper-function-for-relcaim-from-shmem.patch
+memcg-helper-function-for-relcaim-from-shmem-memcg-shmem_getpage-release-page-sooner.patch
+memcg-helper-function-for-relcaim-from-shmem-memcg-mem_cgroup_shrink_usage-css_put.patch
+memcg-add-hints-for-branch.patch
+memcg-remove-a-redundant-check.patch
+memcg-clean-up-checking-of-the-disabled-flag-memcg-further-checking-of-disabled-flag.patch
+memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info-memrlimit-fix-mmap_sem-deadlock.patch
+memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info-memrlimit-fix-sleep-inside-sleeplock-in-mm_update_next_owner.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-memrlimit-improve-fork-and-error-handling.patch
+memrlimit-improve-error-handling.patch
+memrlimit-improve-error-handling-update.patch
+memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
+memrlimit-handle-attach_task-failure-add-can_attach-callback-update.patch
+full-conversion-to-early_initcall-interface-remove-old-interface-fix-fix-fix.patch
+mm-add-zap_vma_ptes-a-library-function-to-unmap-driver-ptes.patch
+gru-driver-v3-resource-management-unmap-driver-ptes-gru.patch
 x86-implement-pte_special-fix.patch
-mm-introduce-get_user_pages_fast.patch
-mm-introduce-get_user_pages_fast-fix.patch
-mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast.patch
-x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-fix.patch
-x86-lockless-get_user_pages_fast-fix-2.patch
-x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
-x86-lockless-get_user_pages_fast-fix-warning.patch
-dio-use-get_user_pages_fast.patch
-splice-use-get_user_pages_fast.patch
-x86-support-1gb-hugepages-with-get_user_pages_lockless.patch
-use-warn-in-kernel-irq-managec.patch
+mm-readahead-scan-lockless.patch
+radix-tree-add-gang_lookup_slot-gang_lookup_slot_tag.patch
+mm-speculative-page-references.patch
+mm-speculative-page-references-fix.patch
+mm-speculative-page-references-fix-fix.patch
+mm-speculative-page-references-fix-add_to_page_cache.patch
+mm-lockless-pagecache.patch
+mm-spinlock-tree_lock.patch
+powerpc-implement-pte_special.patch
+powerpc-implement-pte_special-update.patch
+powerpc-lockless-get_user_pages.patch
+define-page_file_cache-function-fix-splitlru-shmem_getpage-setpageswapbacked-sooner.patch
+vmscan-split-lru-lists-into-anon-file-sets-splitlru-memcg-swapbacked-pages-active.patch
+vmscan-split-lru-lists-into-anon-file-sets-splitlru-bdi_cap_swap_backed.patch
+mlock-mlocked-pages-are-unevictable-fix-4.patch
+introduce-__get_user_pages.patch
+split-lru-munlock-rework.patch
+revert-to-unevictable-lru-infrastructure-kconfig-fixpatch.patch
+vmstat-mlocked-pages-statistics-fix-incorrect-mlocked-field-of-proc-meminfo.patch
+vmscan-unevictable-lru-scan-sysctl-add-sys_device-parameter.patch
+prio_tree-debugging-patch.patch
 
