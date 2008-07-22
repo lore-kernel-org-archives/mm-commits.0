@@ -1,206 +1,240 @@
 From: akpm@linux-foundation.org
-Subject: - signals-introduce-kill_pid_ns_info.patch removed from -mm tree
-Date: Tue, 22 Jul 2008 11:43:40 -0700
-Message-ID: <200807221843.m6MIhenv011348@imap1.linux-foundation.org>
+Subject: - linux-next-fixup.patch removed from -mm tree
+Date: Tue, 22 Jul 2008 13:26:31 -0700
+Message-ID: <200807222026.m6MKQVk5015724@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38350 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41232 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751782AbYGVSoq (ORCPT
+	by vger.kernel.org with ESMTP id S1751169AbYGVU0d (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jul 2008 14:44:46 -0400
+	Tue, 22 Jul 2008 16:26:33 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m6MKQVNn030938
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 22 Jul 2008 13:26:32 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, daniel@hozac.com, oleg@tv-sign.ru, roland@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     signals: introduce kill_pid_ns_info
+     linux-next-fixup
 has been removed from the -mm tree.  Its filename was
-     signals-introduce-kill_pid_ns_info.patch
+     linux-next-fixup.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: signals: introduce kill_pid_ns_info
-From: Eric W. Biederman <ebiederm@xmission.com>
+Subject: linux-next-fixup
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Implement the basic helper function that walks all of the processes in a
-pid namespace and sends them all a signal.
-
-Both locations that could use this functions are also updated to use this
-function.
-
-I use find_ge_pid instead of for_each_process because it has a chance of
-not touching every process in the system.
-
-[daniel@hozac.com: Optimize away nr <= 1 check, against latest Linus tree]
-Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Signed-off-by: Daniel Hokka Zakrisson <daniel@hozac.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h  |    2 +
- kernel/pid_namespace.c |   17 ------------
- kernel/signal.c        |   52 ++++++++++++++++++++++++++++++---------
- 3 files changed, 43 insertions(+), 28 deletions(-)
+ Makefile |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/sched.h~signals-introduce-kill_pid_ns_info include/linux/sched.h
---- a/include/linux/sched.h~signals-introduce-kill_pid_ns_info
-+++ a/include/linux/sched.h
-@@ -1779,6 +1779,8 @@ extern void release_task(struct task_str
- extern int send_sig_info(int, struct siginfo *, struct task_struct *);
- extern int force_sigsegv(int, struct task_struct *);
- extern int force_sig_info(int, struct siginfo *, struct task_struct *);
-+extern int __kill_pid_ns_info(int sig, struct siginfo *info, struct pid_namespace *ns);
-+extern int kill_pid_ns_info(int sig, struct siginfo *info, struct pid_namespace *ns);
- extern int __kill_pgrp_info(int sig, struct siginfo *info, struct pid *pgrp);
- extern int kill_pid_info(int sig, struct siginfo *info, struct pid *pid);
- extern int kill_pid_info_as_uid(int, struct siginfo *, struct pid *, uid_t, uid_t, u32);
-diff -puN kernel/pid_namespace.c~signals-introduce-kill_pid_ns_info kernel/pid_namespace.c
---- a/kernel/pid_namespace.c~signals-introduce-kill_pid_ns_info
-+++ a/kernel/pid_namespace.c
-@@ -153,29 +153,14 @@ void free_pid_ns(struct kref *kref)
+diff -puN Makefile~linux-next-fixup Makefile
+--- a/Makefile~linux-next-fixup
++++ a/Makefile
+@@ -1175,7 +1175,8 @@ clean: archclean $(clean-dirs)
+ 		\( -name '*.[oas]' -o -name '*.ko' -o -name '.*.cmd' \
+ 		-o -name '.*.d' -o -name '.*.tmp' -o -name '*.mod.c' \
+ 		-o -name '*.symtypes' -o -name 'modules.order' \
+-		-o -name 'Module.markers' \) \
++		-o -name 'Module.markers' \
++		-o -name '.tmp_*.o.*' \) \
+ 		-type f -print | xargs rm -f
  
- void zap_pid_ns_processes(struct pid_namespace *pid_ns)
- {
--	int nr;
- 	int rc;
- 
- 	/*
- 	 * The last thread in the cgroup-init thread group is terminating.
- 	 * Find remaining pid_ts in the namespace, signal and wait for them
- 	 * to exit.
--	 *
--	 * Note:  This signals each threads in the namespace - even those that
--	 * 	  belong to the same thread group, To avoid this, we would have
--	 * 	  to walk the entire tasklist looking a processes in this
--	 * 	  namespace, but that could be unnecessarily expensive if the
--	 * 	  pid namespace has just a few processes. Or we need to
--	 * 	  maintain a tasklist for each pid namespace.
--	 *
- 	 */
--	read_lock(&tasklist_lock);
--	nr = next_pidmap(pid_ns, 1);
--	while (nr > 0) {
--		kill_proc_info(SIGKILL, SEND_SIG_PRIV, nr);
--		nr = next_pidmap(pid_ns, nr);
--	}
--	read_unlock(&tasklist_lock);
-+	kill_pid_ns_info(SIGKILL, SEND_SIG_PRIV, pid_ns);
- 
- 	do {
- 		clear_thread_flag(TIF_SIGPENDING);
-diff -puN kernel/signal.c~signals-introduce-kill_pid_ns_info kernel/signal.c
---- a/kernel/signal.c~signals-introduce-kill_pid_ns_info
-+++ a/kernel/signal.c
-@@ -1109,6 +1109,45 @@ out_unlock:
- }
- EXPORT_SYMBOL_GPL(kill_pid_info_as_uid);
- 
-+int __kill_pid_ns_info(int sig, struct siginfo *info, struct pid_namespace *ns)
-+{
-+	int retval = 0, count = 0;
-+	struct task_struct *p;
-+	struct pid *pid;
-+	int nr;
-+
-+	/* Since there isn't a pid namespace list of tasks use the closest
-+	 * approximation we have: find_ge_pid.
-+	 */
-+	nr = 1;
-+	while ((pid = find_ge_pid(nr + 1, ns))) {
-+		int err;
-+
-+		nr = pid_nr_ns(pid, ns);
-+		p = pid_task(pid, PIDTYPE_PID);
-+		if (!p || !thread_group_leader(p) ||
-+		    same_thread_group(p, current))
-+			continue;
-+
-+		err = group_send_sig_info(sig, info, p);
-+		++count;
-+		if (err != -EPERM)
-+			retval = err;
-+	}
-+	return count ? retval : -ESRCH;
-+}
-+
-+int kill_pid_ns_info(int sig, struct siginfo *info, struct pid_namespace *ns)
-+{
-+	int retval;
-+
-+	read_lock(&tasklist_lock);
-+	retval = __kill_pid_ns_info(sig, info, ns);
-+	read_unlock(&tasklist_lock);
-+
-+	return retval;
-+}
-+
- /*
-  * kill_something_info() interprets pid in interesting ways just like kill(2).
-  *
-@@ -1132,18 +1171,7 @@ static int kill_something_info(int sig, 
- 		ret = __kill_pgrp_info(sig, info,
- 				pid ? find_vpid(-pid) : task_pgrp(current));
- 	} else {
--		int retval = 0, count = 0;
--		struct task_struct * p;
--
--		for_each_process(p) {
--			if (p->pid > 1 && !same_thread_group(p, current)) {
--				int err = group_send_sig_info(sig, info, p);
--				++count;
--				if (err != -EPERM)
--					retval = err;
--			}
--		}
--		ret = count ? retval : -ESRCH;
-+		ret = __kill_pid_ns_info(sig, info, task_active_pid_ns(current));
- 	}
- 	read_unlock(&tasklist_lock);
- 
+ # mrproper - Delete all generated files, including .config
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+arm-fix-fls-for-64-bit-arguments.patch
 linux-next.patch
-generic-irqs-enable-polling-for-disabled-screaming-irqs.patch
-memcg-remove-refcnt-from-page_cgroup.patch
-memcg-remove-refcnt-from-page_cgroup-fix.patch
+linux-next-git-rejects.patch
+linux-next-fixup.patch
+next-remove-localversion.patch
+kvm-is-busted-on-ia64.patch
+drivers-mtd-nand-nandsimc-needs-div64h.patch
+pci-make-pci_register_driver-a-macro.patch
+git-acpi.patch
+git-dvb.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+git-hid.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+git-jg-misc.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+git-kvm.patch
+git-leds.patch
+git-async-tx.patch
+git-mtd.patch
+bridge-send-correct-mtu-value-in-pmtu-checkpatch-fixes.patch
+sundance-set-carrier-status-on-link-change-events.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+use-sysdev_class-in-schedc-fix.patch
+git-sh.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+scsi-gdthc-use-unaligned-access-helpers-checkpatch-fixes.patch
+git-unionfs.patch
+git-logfs-git-rejects.patch
+git-logfs-fixup.patch
+drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
+drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
+git-xtensa.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-verify-the-page-links-and-memory-model.patch
+mspec-convert-nopfn-to-fault-fix.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+kill-generic_file_direct_io-checkpatch-fixes.patch
+use-generic_access_phys-for-dev-mem-mappings-fix.patch
+spufs-use-the-new-vm_ops-access-fix.patch
+fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
+page-flags-record-page-flag-overlays-explicitly-xen.patch
+mapping_set_error-add-unlikely.patch
+huge-page-private-reservation-review-cleanups-fix.patch
+vma-page-offset-has-no-callees-drop-it.patch
+sync_file_range_write-may-and-will-block-document-that-fix.patch
+vmallocinfo-add-numa-information-fix.patch
+hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
+hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
+hugetlb-override-default-huge-page-size-ia64-build.patch
+linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+bootmem-add-debugging-framework-fix.patch
+bootmem-clean-up-free_all_bootmem_core-fix.patch
+bootmem-free-reserve-helpers-fix.patch
+revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-v850-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-arm-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mips-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mtd-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fixes.patch
+mmu-notifiers-add-mm_take_all_locks-operation-checkpatch-fixes.patch
+mmu-notifier-core-checkpatch-fixes.patch
+mmu-notifier-core-fix.patch
+mmu-notifier-core-fix-2.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
+security-protect-legacy-applications-from-executing-with-insufficient-privilege-checkpatch-fixes.patch
+swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+seq_file-fix-bug-when-seq_read-reads-nothing-fix.patch
+exec-remove-some-includes-fix.patch
+inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-paccept-sys_ni.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-signalfd-fix.patch
+flag-parameters-eventfd-fix.patch
+flag-parameters-inotify_init-fix.patch
+flag-parameters-check-magic-constants-alpha.patch
+spi-au1550_spi-improve-pio-transfer-mode-checkpatch-fixes.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
+sm501-fixup-allocation-code-to-be-64bit-resource-compliant-sm501-align-panel-fb-to-page_size-fix.patch
+lcd-add-platform_lcd-driver-fix.patch
+fsl-diu-fb-update-freescale-diu-driver-to-use-page_alloc_exact.patch
+fbdev-add-new-cobalt-lcd-framebuffer-driver.patch
+eink_apollofb-new-driver-for-apollo-eink-controller-cleanup.patch
+fbcon-remove-stray-semicolons-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
+ext3-handle-corrupted-orphan-list-at-mount-cleanup.patch
+ext3-handle-corrupted-orphan-list-at-mount-fix.patch
+ext3-handle-corrupted-orphan-list-at-mount-cleanup-fix.patch
+ext3-handle-deleting-corrupted-indirect-blocks-fix.patch
+jbd-dont-abort-if-flushing-file-data-failed-fix.patch
+reiserfs-convert-j_flush_sem-to-mutex.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
+cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-fix.patch
+cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-checkpatch-fixes.patch
+devcgroup-code-cleanup-fix.patch
 memcg-remove-refcnt-from-page_cgroup-fix-2.patch
-memcg-remove-refcnt-from-page_cgroup-fix-memcg-fix-mem_cgroup_end_migration-race.patch
-memcg-remove-refcnt-from-page_cgroup-memcg-fix-shmem_unuse_inode-charging.patch
-memcg-helper-function-for-relcaim-from-shmem.patch
-memcg-helper-function-for-relcaim-from-shmem-memcg-shmem_getpage-release-page-sooner.patch
-memcg-helper-function-for-relcaim-from-shmem-memcg-mem_cgroup_shrink_usage-css_put.patch
-memcg-add-hints-for-branch.patch
-memcg-remove-a-redundant-check.patch
-signals-introduce-kill_pid_ns_info.patch
+memcg-limit-change-shrink-usage-checkpatch-fixes.patch
 signals-introduce-kill_pid_ns_info-checkpatch-fixes.patch
-sysctl-check-for-bogus-modes.patch
-sysctl-allow-override-of-proc-sys-net-with-cap_net_admin.patch
-shrink-struct-pid-by-removing-padding-on-64-bit-builds.patch
-pidns-remove-now-unused-kill_proc-function.patch
-pidns-remove-now-unused-find_pid-function.patch
-pidns-remove-find_task_by_pid-unused-for-a-long-time.patch
-bsdacct-rename-acct_blbls-to-bsd_acct_struct.patch
-pidns-use-kzalloc-when-allocating-new-pid_namespace-struct.patch
-pidns-add-the-struct-bsd_acct_struct-pointer-on-pid_namespace-struct.patch
-bsdacct-truthify-a-comment-near-acct_process.patch
-bsdacct-make-check-timer-accept-a-bsd_acct_struct-argument.patch
-bsdacct-turn-the-acct_lock-from-on-the-struct-to-global.patch
-bsdacct-make-internal-code-work-with-passed-bsd_acct_struct-not-global.patch
-bsdacct-switch-from-global-bsd_acct_struct-instance-to-per-pidns-one.patch
-bsdacct-turn-acct-off-for-all-pidns-s-on-umount-time.patch
-bsdacct-account-dying-tasks-in-all-relevant-namespaces.patch
-kernel-kexecc-make-kimage_terminate-void.patch
-kexec-jump.patch
-kexec-jump-save-restore-device-state.patch
-proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
+coredump-format_corename-fix-the-core_uses_pid-logic-checkpatch-fixes.patch
+workqueues-make-get_online_cpus-useable-for-work-func-fix.patch
+ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
+fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
+block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
+getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
+edac-mpc85xx-fix-pci-ofdev-2nd-pass-checkpatch-fixes.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-s2io.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
+x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary-checkpatch-fixes.patch
+calgary-iommu-use-the-first-kernels-tce-tables-in-kdump-coding-style-fixes.patch
+tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
+memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
+memstick-use-fully-asynchronous-request-processing-fix.patch
+full-conversion-to-early_initcall-interface-remove-old-interface-cleanup.patch
+full-conversion-to-early_initcall-interface-remove-old-interface-fix.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+mm-introduce-get_user_pages_fast-fix.patch
+mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-fix.patch
+x86-lockless-get_user_pages_fast-fix-2.patch
+x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
+x86-lockless-get_user_pages_fast-fix-warning.patch
+mm-speculative-page-references-fix-add_to_page_cache-fix.patch
+vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
+define-page_file_cache-function-fix.patch
+vmscan-split-lru-lists-into-anon-file-sets-units-fix.patch
+unevictable-lru-infrastructure-fix.patch
+unevictable-lru-page-statistics-units-fix.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-3.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
+vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-fix.patch
+video-console-sticonrec-make-code-static-checkpatch-fixes.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
