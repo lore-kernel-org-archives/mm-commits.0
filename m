@@ -1,438 +1,275 @@
 From: akpm@linux-foundation.org
-Subject: - gpio-gpio-driver-for-max7301-spi-gpio-expander.patch removed from -mm tree
-Date: Tue, 22 Jul 2008 14:32:12 -0700
-Message-ID: <200807222132.m6MLWC8H018693@imap1.linux-foundation.org>
+Subject: - generic-irqs-enable-polling-for-disabled-screaming-irqs.patch removed from -mm tree
+Date: Tue, 22 Jul 2008 14:32:40 -0700
+Message-ID: <200807222132.m6MLWe0w018739@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50415 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38581 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753384AbYGVVdO (ORCPT
+	by vger.kernel.org with ESMTP id S1753437AbYGVVdh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jul 2008 17:33:14 -0400
+	Tue, 22 Jul 2008 17:33:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: j.beisert@pengutronix.de, dbrownell@users.sourceforge.net, g.liakhovetski@pengutronix.de, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: ebiederm@xmission.com, alan@lxorguk.ukuu.org.uk, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gpio: gpio driver for max7301 SPI GPIO expander
+     generic irqs: enable polling for disabled screaming irqs
 has been removed from the -mm tree.  Its filename was
-     gpio-gpio-driver-for-max7301-spi-gpio-expander.patch
+     generic-irqs-enable-polling-for-disabled-screaming-irqs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpio: gpio driver for max7301 SPI GPIO expander
-From: Juergen Beisert <j.beisert@pengutronix.de>
+Subject: generic irqs: enable polling for disabled screaming irqs
+From: Eric W. Biederman <ebiederm@xmission.com>
 
-Maxim's MAX7301 is an SPI GPIO expander with 28 GPIOs. Note: MAX7301's interrupt
-feature is not supported yet.
+When we disable a screaming irq we never see it again.  If the irq line is
+shared or if the driver half works this is a real pain.  So periodically poll
+the handlers for screaming interrupts.
 
-[akpm@linux-foundation.org: coding-style fixes]
-[g.liakhovetski@pengutronix.de: Fix inaccuracies in comments, check spi_setup()
-return code, mask off high byte in max7301_read()]
-Signed-off-by: Juergen Beisert <j.beisert@pengutronix.de>
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+I use a timer instead of the classic irq poll technique of working off the
+timer interrupt because when we use the local apic timers note_interrupt is
+never called (bug?).  Further on a system with dynamic ticks the timer
+interrupt might not even fire unless there is a timer telling it it needs to.
+
+I forced this case on my test system with an e1000 nic and my ssh session
+remained responsive despite the interrupt handler only being called every 10th
+of a second.
+
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/Kconfig        |    6 
- drivers/gpio/Makefile       |    1 
- drivers/gpio/max7301.c      |  339 ++++++++++++++++++++++++++++++++++
- include/linux/spi/max7301.h |    9 
- 4 files changed, 355 insertions(+)
+ kernel/irq/spurious.c |  147 +++++++++++++++++++++++++---------------
+ 1 file changed, 92 insertions(+), 55 deletions(-)
 
-diff -puN drivers/gpio/Kconfig~gpio-gpio-driver-for-max7301-spi-gpio-expander drivers/gpio/Kconfig
---- a/drivers/gpio/Kconfig~gpio-gpio-driver-for-max7301-spi-gpio-expander
-+++ a/drivers/gpio/Kconfig
-@@ -69,6 +69,12 @@ config GPIO_PCF857X
+diff -puN kernel/irq/spurious.c~generic-irqs-enable-polling-for-disabled-screaming-irqs kernel/irq/spurious.c
+--- a/kernel/irq/spurious.c~generic-irqs-enable-polling-for-disabled-screaming-irqs
++++ a/kernel/irq/spurious.c
+@@ -12,83 +12,118 @@
+ #include <linux/kallsyms.h>
+ #include <linux/interrupt.h>
+ #include <linux/moduleparam.h>
++#include <linux/timer.h>
  
- comment "SPI GPIO expanders:"
+ static int irqfixup __read_mostly;
  
-+config GPIO_MAX7301
-+	tristate "Maxim MAX7301 GPIO expander"
-+	depends on SPI_MASTER
-+	help
-+	  gpio driver for Maxim MAX7301 SPI GPIO expander.
++#define POLL_SPURIOUS_IRQ_INTERVAL (HZ/10)
++static void poll_spurious_irqs(unsigned long dummy);
++static DEFINE_TIMER(poll_spurious_irq_timer, poll_spurious_irqs, 0, 0);
 +
- config GPIO_MCP23S08
- 	tristate "Microchip MCP23S08 I/O expander"
- 	depends on SPI_MASTER
-diff -puN drivers/gpio/Makefile~gpio-gpio-driver-for-max7301-spi-gpio-expander drivers/gpio/Makefile
---- a/drivers/gpio/Makefile~gpio-gpio-driver-for-max7301-spi-gpio-expander
-+++ a/drivers/gpio/Makefile
-@@ -4,6 +4,7 @@ ccflags-$(CONFIG_DEBUG_GPIO)	+= -DDEBUG
+ /*
+  * Recovery handler for misrouted interrupts.
+  */
+-static int misrouted_irq(int irq)
++static int try_one_irq(int irq, struct irq_desc *desc)
+ {
+-	int i;
++	struct irqaction *action;
+ 	int ok = 0;
+ 	int work = 0;	/* Did we do work for a real IRQ */
  
- obj-$(CONFIG_HAVE_GPIO_LIB)	+= gpiolib.o
- 
-+obj-$(CONFIG_GPIO_MAX7301)	+= max7301.o
- obj-$(CONFIG_GPIO_MCP23S08)	+= mcp23s08.o
- obj-$(CONFIG_GPIO_PCA953X)	+= pca953x.o
- obj-$(CONFIG_GPIO_PCF857X)	+= pcf857x.o
-diff -puN /dev/null drivers/gpio/max7301.c
---- /dev/null
-+++ a/drivers/gpio/max7301.c
-@@ -0,0 +1,339 @@
-+/**
-+ * drivers/gpio/max7301.c
-+ *
-+ * Copyright (C) 2006 Juergen Beisert, Pengutronix
-+ * Copyright (C) 2008 Guennadi Liakhovetski, Pengutronix
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * The Maxim's MAX7301 device is an SPI driven GPIO expander. There are
-+ * 28 GPIOs. 8 of them can trigger an interrupt. See datasheet for more
-+ * details
-+ * Note:
-+ * - DIN must be stable at the rising edge of clock.
-+ * - when writing:
-+ *   - always clock in 16 clocks at once
-+ *   - at DIN: D15 first, D0 last
-+ *   - D0..D7 = databyte, D8..D14 = commandbyte
-+ *   - D15 = low -> write command
-+ * - when reading
-+ *   - always clock in 16 clocks at once
-+ *   - at DIN: D15 first, D0 last
-+ *   - D0..D7 = dummy, D8..D14 = register address
-+ *   - D15 = high -> read command
-+ *   - raise CS and assert it again
-+ *   - always clock in 16 clocks at once
-+ *   - at DOUT: D15 first, D0 last
-+ *   - D0..D7 contains the data from the first cycle
-+ *
-+ * The driver exports a standard gpiochip interface
-+ */
-+
-+#include <linux/init.h>
-+#include <linux/platform_device.h>
-+#include <linux/mutex.h>
-+#include <linux/spi/spi.h>
-+#include <linux/spi/max7301.h>
-+#include <linux/gpio.h>
-+
-+#define DRIVER_NAME "max7301"
-+
-+/*
-+ * Pin configurations, see MAX7301 datasheet page 6
-+ */
-+#define PIN_CONFIG_MASK 0x03
-+#define PIN_CONFIG_IN_PULLUP 0x03
-+#define PIN_CONFIG_IN_WO_PULLUP 0x02
-+#define PIN_CONFIG_OUT 0x01
-+
-+#define PIN_NUMBER 28
-+
-+
-+/*
-+ * Some registers must be read back to modify.
-+ * To save time we cache them here in memory
-+ */
-+struct max7301 {
-+	struct mutex	lock;
-+	u8		port_config[8];	/* field 0 is unused */
-+	u32		out_level;	/* cached output levels */
-+	struct gpio_chip chip;
-+	struct spi_device *spi;
-+};
-+
-+/**
-+ * max7301_write - Write a new register content
-+ * @spi: The SPI device
-+ * @reg: Register offset
-+ * @val: Value to write
-+ *
-+ * A write to the MAX7301 means one message with one transfer
-+ *
-+ * Returns 0 if successful or a negative value on error
-+ */
-+static int max7301_write(struct spi_device *spi, unsigned int reg, unsigned int val)
-+{
-+	u16 word = ((reg & 0x7F) << 8) | (val & 0xFF);
-+	return spi_write(spi, (const u8 *)&word, sizeof(word));
-+}
-+
-+/**
-+ * max7301_read - Read back register content
-+ * @spi: The SPI device
-+ * @reg: Register offset
-+ *
-+ * A read from the MAX7301 means two transfers; here, one message each
-+ *
-+ * Returns positive 8 bit value from device if successful or a
-+ * negative value on error
-+ */
-+static int max7301_read(struct spi_device *spi, unsigned int reg)
-+{
-+	int ret;
-+	u16 word;
-+
-+	word = 0x8000 | (reg << 8);
-+	ret = spi_write(spi, (const u8 *)&word, sizeof(word));
-+	if (ret)
-+		return ret;
-+	/*
-+	 * This relies on the fact, that a transfer with NULL tx_buf shifts out
-+	 * zero bytes (=NOOP for MAX7301)
-+	 */
-+	ret = spi_read(spi, (u8 *)&word, sizeof(word));
-+	if (ret)
-+		return ret;
-+	return word & 0xff;
-+}
-+
-+static int max7301_direction_input(struct gpio_chip *chip, unsigned offset)
-+{
-+	struct max7301 *ts = container_of(chip, struct max7301, chip);
-+	u8 *config;
-+	int ret;
-+
-+	/* First 4 pins are unused in the controller */
-+	offset += 4;
-+
-+	config = &ts->port_config[offset >> 2];
-+
-+	mutex_lock(&ts->lock);
-+
-+	/* Standard GPIO API doesn't support pull-ups, has to be extended.
-+	 * Hard-coding no pollup for now. */
-+	*config = (*config & ~(3 << (offset & 3))) | (1 << (offset & 3));
-+
-+	ret = max7301_write(ts->spi, 0x08 + (offset >> 2), *config);
-+
-+	mutex_unlock(&ts->lock);
-+
-+	return ret;
-+}
-+
-+static int __max7301_set(struct max7301 *ts, unsigned offset, int value)
-+{
-+	if (value) {
-+		ts->out_level |= 1 << offset;
-+		return max7301_write(ts->spi, 0x20 + offset, 0x01);
-+	} else {
-+		ts->out_level &= ~(1 << offset);
-+		return max7301_write(ts->spi, 0x20 + offset, 0x00);
+-	for (i = 1; i < NR_IRQS; i++) {
+-		struct irq_desc *desc = irq_desc + i;
+-		struct irqaction *action;
+-
+-		if (i == irq)	/* Already tried */
+-			continue;
+-
+-		spin_lock(&desc->lock);
+-		/* Already running on another processor */
+-		if (desc->status & IRQ_INPROGRESS) {
+-			/*
+-			 * Already running: If it is shared get the other
+-			 * CPU to go looking for our mystery interrupt too
+-			 */
+-			if (desc->action && (desc->action->flags & IRQF_SHARED))
+-				desc->status |= IRQ_PENDING;
+-			spin_unlock(&desc->lock);
+-			continue;
+-		}
+-		/* Honour the normal IRQ locking */
+-		desc->status |= IRQ_INPROGRESS;
+-		action = desc->action;
++	spin_lock(&desc->lock);
++	/* Already running on another processor */
++	if (desc->status & IRQ_INPROGRESS) {
++		/*
++		 * Already running: If it is shared get the other
++		 * CPU to go looking for our mystery interrupt too
++		 */
++		if (desc->action && (desc->action->flags & IRQF_SHARED))
++			desc->status |= IRQ_PENDING;
+ 		spin_unlock(&desc->lock);
++		return ok;
 +	}
-+}
-+
-+static int max7301_direction_output(struct gpio_chip *chip, unsigned offset,
-+				    int value)
-+{
-+	struct max7301 *ts = container_of(chip, struct max7301, chip);
-+	u8 *config;
-+	int ret;
-+
-+	/* First 4 pins are unused in the controller */
-+	offset += 4;
-+
-+	config = &ts->port_config[offset >> 2];
-+
-+	mutex_lock(&ts->lock);
-+
-+	*config = (*config & ~(3 << (offset & 3))) | (1 << (offset & 3));
-+
-+	ret = __max7301_set(ts, offset, value);
-+
-+	if (!ret)
-+		ret = max7301_write(ts->spi, 0x08 + (offset >> 2), *config);
-+
-+	mutex_unlock(&ts->lock);
-+
-+	return ret;
-+}
-+
-+static int max7301_get(struct gpio_chip *chip, unsigned offset)
-+{
-+	struct max7301 *ts = container_of(chip, struct max7301, chip);
-+	int config, level = -EINVAL;
-+
-+	/* First 4 pins are unused in the controller */
-+	offset += 4;
-+
-+	mutex_lock(&ts->lock);
-+
-+	config = (ts->port_config[offset >> 2] >> ((offset & 3) * 2)) & 3;
-+
-+	switch (config) {
-+	case 1:
-+		/* Output: return cached level */
-+		level =  !!(ts->out_level & (1 << offset));
-+		break;
-+	case 2:
-+	case 3:
-+		/* Input: read out */
-+		level = max7301_read(ts->spi, 0x20 + offset) & 0x01;
++	/* Honour the normal IRQ locking */
++	desc->status |= IRQ_INPROGRESS;
++	action = desc->action;
++	spin_unlock(&desc->lock);
+ 
+-		while (action) {
+-			/* Only shared IRQ handlers are safe to call */
+-			if (action->flags & IRQF_SHARED) {
+-				if (action->handler(i, action->dev_id) ==
+-						IRQ_HANDLED)
+-					ok = 1;
+-			}
+-			action = action->next;
++	while (action) {
++		/* Only shared IRQ handlers are safe to call */
++		if (action->flags & IRQF_SHARED) {
++			if (action->handler(irq, action->dev_id) ==
++				IRQ_HANDLED)
++				ok = 1;
+ 		}
+-		local_irq_disable();
+-		/* Now clean up the flags */
+-		spin_lock(&desc->lock);
+-		action = desc->action;
++		action = action->next;
 +	}
-+	mutex_unlock(&ts->lock);
-+
-+	return level;
-+}
-+
-+static void max7301_set(struct gpio_chip *chip, unsigned offset, int value)
-+{
-+	struct max7301 *ts = container_of(chip, struct max7301, chip);
-+
-+	/* First 4 pins are unused in the controller */
-+	offset += 4;
-+
-+	mutex_lock(&ts->lock);
-+
-+	__max7301_set(ts, offset, value);
-+
-+	mutex_unlock(&ts->lock);
-+}
-+
-+static int __devinit max7301_probe(struct spi_device *spi)
-+{
-+	struct max7301 *ts;
-+	struct max7301_platform_data *pdata;
-+	int i, ret;
-+
-+	pdata = spi->dev.platform_data;
-+	if (!pdata || !pdata->base)
-+		return -ENODEV;
-+
++	local_irq_disable();
++	/* Now clean up the flags */
++	spin_lock(&desc->lock);
++	action = desc->action;
+ 
 +	/*
-+	 * bits_per_word cannot be configured in platform data
++	 * While we were looking for a fixup someone queued a real
++	 * IRQ clashing with our walk:
 +	 */
-+	spi->bits_per_word = 16;
-+
-+	ret = spi_setup(spi);
-+	if (ret < 0)
-+		return ret;
-+
-+	ts = kzalloc(sizeof(struct max7301), GFP_KERNEL);
-+	if (!ts)
-+		return -ENOMEM;
-+
-+	mutex_init(&ts->lock);
-+
-+	dev_set_drvdata(&spi->dev, ts);
-+
-+	/* Power up the chip and disable IRQ output */
-+	max7301_write(spi, 0x04, 0x01);
-+
-+	ts->spi = spi;
-+
-+	ts->chip.label = DRIVER_NAME,
-+
-+	ts->chip.direction_input = max7301_direction_input;
-+	ts->chip.get = max7301_get;
-+	ts->chip.direction_output = max7301_direction_output;
-+	ts->chip.set = max7301_set;
-+
-+	ts->chip.base = pdata->base;
-+	ts->chip.ngpio = PIN_NUMBER;
-+	ts->chip.can_sleep = 1;
-+	ts->chip.dev = &spi->dev;
-+	ts->chip.owner = THIS_MODULE;
-+
-+	ret = gpiochip_add(&ts->chip);
-+	if (ret)
-+		goto exit_destroy;
-+
-+	/*
-+	 * tristate all pins in hardware and cache the
-+	 * register values for later use.
-+	 */
-+	for (i = 1; i < 8; i++) {
-+		int j;
-+		/* 0xAA means input with internal pullup disabled */
-+		max7301_write(spi, 0x08 + i, 0xAA);
-+		ts->port_config[i] = 0xAA;
-+		for (j = 0; j < 4; j++) {
-+			int idx = ts->chip.base + (i - 1) * 4 + j;
-+			ret = gpio_direction_input(idx);
-+			if (ret)
-+				goto exit_remove;
-+			gpio_free(idx);
-+		}
++	while ((desc->status & IRQ_PENDING) && action) {
+ 		/*
+-		 * While we were looking for a fixup someone queued a real
+-		 * IRQ clashing with our walk:
+-		 */
+-		while ((desc->status & IRQ_PENDING) && action) {
+-			/*
+-			 * Perform real IRQ processing for the IRQ we deferred
+-			 */
+-			work = 1;
+-			spin_unlock(&desc->lock);
+-			handle_IRQ_event(i, action);
+-			spin_lock(&desc->lock);
+-			desc->status &= ~IRQ_PENDING;
+-		}
+-		desc->status &= ~IRQ_INPROGRESS;
+-		/*
+-		 * If we did actual work for the real IRQ line we must let the
+-		 * IRQ controller clean up too
++		 * Perform real IRQ processing for the IRQ we deferred
+ 		 */
+-		if (work && desc->chip && desc->chip->end)
+-			desc->chip->end(i);
++		work = 1;
+ 		spin_unlock(&desc->lock);
++		handle_IRQ_event(irq, action);
++		spin_lock(&desc->lock);
++		desc->status &= ~IRQ_PENDING;
 +	}
-+	return ret;
++	desc->status &= ~IRQ_INPROGRESS;
++	/*
++	 * If we did actual work for the real IRQ line we must let the
++	 * IRQ controller clean up too
++	 */
++	if (work && desc->chip && desc->chip->end)
++		desc->chip->end(irq);
++	spin_unlock(&desc->lock);
 +
-+exit_remove:
-+	gpiochip_remove(&ts->chip);
-+exit_destroy:
-+	dev_set_drvdata(&spi->dev, NULL);
-+	mutex_destroy(&ts->lock);
-+	kfree(ts);
-+	return ret;
++	return ok;
++
 +}
 +
-+static int max7301_remove(struct spi_device *spi)
++static int misrouted_irq(int irq)
 +{
-+	struct max7301 *ts;
-+	int ret;
++	int i;
++	int ok = 0;
 +
-+	ts = dev_get_drvdata(&spi->dev);
-+	if (ts == NULL)
-+		return -ENODEV;
++ 	for (i = 1; i < NR_IRQS; i++) {
++		struct irq_desc *desc = irq_desc + i;
 +
-+	dev_set_drvdata(&spi->dev, NULL);
++		if (i == irq)	/* Already tried */
++			continue;
 +
-+	/* Power down the chip and disable IRQ output */
-+	max7301_write(spi, 0x04, 0x00);
-+
-+	ret = gpiochip_remove(&ts->chip);
-+	if (!ret) {
-+		mutex_destroy(&ts->lock);
-+		kfree(ts);
-+	} else
-+		dev_err(&spi->dev, "Failed to remove the GPIO controller: %d\n",
-+			ret);
-+
-+	return ret;
-+}
-+
-+static struct spi_driver max7301_driver = {
-+	.driver = {
-+		.name		= DRIVER_NAME,
-+		.owner		= THIS_MODULE,
-+	},
-+	.probe		= max7301_probe,
-+	.remove		= __devexit_p(max7301_remove),
-+};
-+
-+static int __init max7301_init(void)
++		if (try_one_irq(i, desc))
++			ok = 1;
+ 	}
+ 	/* So the caller can adjust the irq error counts */
+ 	return ok;
+ }
+ 
++static void poll_spurious_irqs(unsigned long dummy)
 +{
-+	return spi_register_driver(&max7301_driver);
++	int i;
++	for (i = 1; i < NR_IRQS; i++) {
++		struct irq_desc *desc = irq_desc + i;
++		unsigned int status;
++
++		/* Racy but it doesn't matter */
++		status = desc->status;
++		barrier();
++		if (!(status & IRQ_SPURIOUS_DISABLED))
++			continue;
++
++		try_one_irq(i, desc);
++	}
++
++	mod_timer(&poll_spurious_irq_timer, jiffies + POLL_SPURIOUS_IRQ_INTERVAL);
 +}
 +
-+static void __exit max7301_exit(void)
-+{
-+	spi_unregister_driver(&max7301_driver);
-+}
+ /*
+  * If 99,900 of the previous 100,000 interrupts have not been handled
+  * then assume that the IRQ is stuck in some manner. Drop a diagnostic
+@@ -212,6 +247,8 @@ void note_interrupt(unsigned int irq, st
+ 		desc->status |= IRQ_DISABLED | IRQ_SPURIOUS_DISABLED;
+ 		desc->depth++;
+ 		desc->chip->disable(irq);
 +
-+module_init(max7301_init);
-+module_exit(max7301_exit);
-+
-+MODULE_AUTHOR("Juergen Beisert");
-+MODULE_LICENSE("GPL v2");
-+MODULE_DESCRIPTION("MAX7301 SPI based GPIO-Expander");
-diff -puN /dev/null include/linux/spi/max7301.h
---- /dev/null
-+++ a/include/linux/spi/max7301.h
-@@ -0,0 +1,9 @@
-+#ifndef LINUX_SPI_MAX7301_H
-+#define LINUX_SPI_MAX7301_H
-+
-+struct max7301_platform_data {
-+	/* number assigned to the first GPIO */
-+	unsigned	base;
-+};
-+
-+#endif
++		mod_timer(&poll_spurious_irq_timer, jiffies + POLL_SPURIOUS_IRQ_INTERVAL);
+ 	}
+ 	desc->irqs_unhandled = 0;
+ }
 _
 
-Patches currently in -mm which might be from j.beisert@pengutronix.de are
+Patches currently in -mm which might be from ebiederm@xmission.com are
 
 origin.patch
-rtc-convert-the-pcf8583-driver-to-the-new-i2c-style-framework-with-device_ids.patch
+linux-next.patch
+memcg-remove-refcnt-from-page_cgroup.patch
+memcg-remove-refcnt-from-page_cgroup-fix.patch
+memcg-remove-refcnt-from-page_cgroup-fix-2.patch
+memcg-remove-refcnt-from-page_cgroup-fix-memcg-fix-mem_cgroup_end_migration-race.patch
+memcg-remove-refcnt-from-page_cgroup-memcg-fix-shmem_unuse_inode-charging.patch
+memcg-helper-function-for-relcaim-from-shmem.patch
+memcg-helper-function-for-relcaim-from-shmem-memcg-shmem_getpage-release-page-sooner.patch
+memcg-helper-function-for-relcaim-from-shmem-memcg-mem_cgroup_shrink_usage-css_put.patch
+memcg-add-hints-for-branch.patch
+memcg-remove-a-redundant-check.patch
+sysctl-check-for-bogus-modes.patch
+sysctl-allow-override-of-proc-sys-net-with-cap_net_admin.patch
+shrink-struct-pid-by-removing-padding-on-64-bit-builds.patch
+pidns-remove-now-unused-kill_proc-function.patch
+pidns-remove-now-unused-find_pid-function.patch
+pidns-remove-find_task_by_pid-unused-for-a-long-time.patch
+bsdacct-rename-acct_blbls-to-bsd_acct_struct.patch
+pidns-use-kzalloc-when-allocating-new-pid_namespace-struct.patch
+pidns-add-the-struct-bsd_acct_struct-pointer-on-pid_namespace-struct.patch
+bsdacct-truthify-a-comment-near-acct_process.patch
+bsdacct-make-check-timer-accept-a-bsd_acct_struct-argument.patch
+bsdacct-turn-the-acct_lock-from-on-the-struct-to-global.patch
+bsdacct-make-internal-code-work-with-passed-bsd_acct_struct-not-global.patch
+bsdacct-switch-from-global-bsd_acct_struct-instance-to-per-pidns-one.patch
+bsdacct-turn-acct-off-for-all-pidns-s-on-umount-time.patch
+bsdacct-account-dying-tasks-in-all-relevant-namespaces.patch
+kernel-kexecc-make-kimage_terminate-void.patch
+kexec-jump.patch
+kexec-jump-save-restore-device-state.patch
+proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
 
