@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + h8300-use-generic-show_mem.patch added to -mm tree
-Date: Tue, 22 Jul 2008 03:24:00 -0700
-Message-ID: <200807221024.m6MAO0cD023095@imap1.linux-foundation.org>
+Subject: + m68knommu-use-generic-show_mem.patch added to -mm tree
+Date: Tue, 22 Jul 2008 03:24:04 -0700
+Message-ID: <200807221024.m6MAO4wg023109@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52131 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54998 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753274AbYGVKYT (ORCPT
+	by vger.kernel.org with ESMTP id S1753253AbYGVKYQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jul 2008 06:24:19 -0400
+	Tue, 22 Jul 2008 06:24:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hannes@saeurebad.de, ysato@users.sourceforge.jp
+Cc: hannes@saeurebad.de, gerg@uclinux.org
 
 
 The patch titled
-     h8300: use generic show_mem()
+     m68knommu: use generic show_mem()
 has been added to the -mm tree.  Its filename is
-     h8300-use-generic-show_mem.patch
+     m68knommu-use-generic-show_mem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: h8300: use generic show_mem()
+Subject: m68knommu: use generic show_mem()
 From: Johannes Weiner <hannes@saeurebad.de>
 
 Remove arch-specific show_mem() in favor of the generic version.
@@ -48,20 +48,19 @@ where show_mem() calls show_free_areas(), which calls
 show_swap_cache_info().
 
 Signed-off-by: Johannes Weiner <hannes@saeurebad.de>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-
+Acked-by: Greg Ungerer <gerg@uclinux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/h8300/mm/init.c |   27 ---------------------------
+ arch/m68knommu/mm/init.c |   27 ---------------------------
  1 file changed, 27 deletions(-)
 
-diff -puN arch/h8300/mm/init.c~h8300-use-generic-show_mem arch/h8300/mm/init.c
---- a/arch/h8300/mm/init.c~h8300-use-generic-show_mem
-+++ a/arch/h8300/mm/init.c
-@@ -64,33 +64,6 @@ unsigned long empty_zero_page;
+diff -puN arch/m68knommu/mm/init.c~m68knommu-use-generic-show_mem arch/m68knommu/mm/init.c
+--- a/arch/m68knommu/mm/init.c~m68knommu-use-generic-show_mem
++++ a/arch/m68knommu/mm/init.c
+@@ -62,33 +62,6 @@ static unsigned long empty_bad_page;
  
- extern unsigned long rom_length;
+ unsigned long empty_zero_page;
  
 -void show_mem(void)
 -{
@@ -69,7 +68,7 @@ diff -puN arch/h8300/mm/init.c~h8300-use-generic-show_mem arch/h8300/mm/init.c
 -    int free = 0, total = 0, reserved = 0, shared = 0;
 -    int cached = 0;
 -
--    printk("\nMem-info:\n");
+-    printk(KERN_INFO "\nMem-info:\n");
 -    show_free_areas();
 -    i = max_mapnr;
 -    while (i-- > 0) {
@@ -83,11 +82,11 @@ diff -puN arch/h8300/mm/init.c~h8300-use-generic-show_mem arch/h8300/mm/init.c
 -	else
 -	    shared += page_count(mem_map+i) - 1;
 -    }
--    printk("%d pages of RAM\n",total);
--    printk("%d free pages\n",free);
--    printk("%d reserved pages\n",reserved);
--    printk("%d pages shared\n",shared);
--    printk("%d pages swap cached\n",cached);
+-    printk(KERN_INFO "%d pages of RAM\n",total);
+-    printk(KERN_INFO "%d free pages\n",free);
+-    printk(KERN_INFO "%d reserved pages\n",reserved);
+-    printk(KERN_INFO "%d pages shared\n",shared);
+-    printk(KERN_INFO "%d pages swap cached\n",cached);
 -}
 -
  extern unsigned long memory_start;
