@@ -1,252 +1,158 @@
 From: akpm@linux-foundation.org
-Subject: - signals-introduce-kill_pid_ns_info-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 22 Jul 2008 13:53:50 -0700
-Message-ID: <200807222053.m6MKroCT016754@imap1.linux-foundation.org>
+Subject: - mips-use-the-common-ascii-hex-helpers.patch removed from -mm tree
+Date: Tue, 22 Jul 2008 14:30:38 -0700
+Message-ID: <200807222130.m6MLUcxS018646@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48347 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42058 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755105AbYGVUzV (ORCPT
+	by vger.kernel.org with ESMTP id S1753437AbYGVVbS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jul 2008 16:55:21 -0400
+	Tue, 22 Jul 2008 17:31:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, daniel@hozac.com, ebiederm@xmission.com, oleg@tv-sign.ru, roland@redhat.com, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     signals-introduce-kill_pid_ns_info-checkpatch-fixes
+     mips: use the common ascii hex helpers
 has been removed from the -mm tree.  Its filename was
-     signals-introduce-kill_pid_ns_info-checkpatch-fixes.patch
+     mips-use-the-common-ascii-hex-helpers.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because that file just disappeared
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: signals-introduce-kill_pid_ns_info-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mips: use the common ascii hex helpers
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-WARNING: line over 80 characters
-#32: FILE: include/linux/sched.h:1782:
-+extern int __kill_pid_ns_info(int sig, struct siginfo *info, struct pid_namespace *ns);
-
-WARNING: line over 80 characters
-#33: FILE: include/linux/sched.h:1783:
-+extern int kill_pid_ns_info(int sig, struct siginfo *info, struct pid_namespace *ns);
-
-WARNING: line over 80 characters
-#136: FILE: kernel/signal.c:1174:
-+		ret = __kill_pid_ns_info(sig, info, task_active_pid_ns(current));
-
-total: 0 errors, 3 warnings, 102 lines checked
-
-./patches/signals-introduce-kill_pid_ns_info.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Daniel Hokka Zakrisson <daniel@hozac.com>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Roland McGrath <roland@redhat.com>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ arch/mips/kernel/gdb-stub.c |   24 +++++++++---------------
+ 1 file changed, 9 insertions(+), 15 deletions(-)
 
-diff -puN include/linux/sched.h~signals-introduce-kill_pid_ns_info-checkpatch-fixes include/linux/sched.h
---- a/include/linux/sched.h~signals-introduce-kill_pid_ns_info-checkpatch-fixes
-+++ a/include/linux/sched.h
-@@ -1779,8 +1779,10 @@ extern void release_task(struct task_str
- extern int send_sig_info(int, struct siginfo *, struct task_struct *);
- extern int force_sigsegv(int, struct task_struct *);
- extern int force_sig_info(int, struct siginfo *, struct task_struct *);
--extern int __kill_pid_ns_info(int sig, struct siginfo *info, struct pid_namespace *ns);
--extern int kill_pid_ns_info(int sig, struct siginfo *info, struct pid_namespace *ns);
-+extern int __kill_pid_ns_info(int sig, struct siginfo *info,
-+				struct pid_namespace *ns);
-+extern int kill_pid_ns_info(int sig, struct siginfo *info,
-+				struct pid_namespace *ns);
- extern int __kill_pgrp_info(int sig, struct siginfo *info, struct pid *pgrp);
- extern int kill_pid_info(int sig, struct siginfo *info, struct pid *pid);
- extern int kill_pid_info_as_uid(int, struct siginfo *, struct pid *, uid_t, uid_t, u32);
+diff -puN arch/mips/kernel/gdb-stub.c~mips-use-the-common-ascii-hex-helpers arch/mips/kernel/gdb-stub.c
+--- a/arch/mips/kernel/gdb-stub.c~mips-use-the-common-ascii-hex-helpers
++++ a/arch/mips/kernel/gdb-stub.c
+@@ -190,7 +190,6 @@ static char input_buffer[BUFMAX];
+ static char output_buffer[BUFMAX];
+ static int initialized;	/* !0 means we've been initialized */
+ static int kgdb_started;
+-static const char hexchars[]="0123456789abcdef";
+ 
+ /* Used to prevent crashes in memory access.  Note that they'll crash anyway if
+    we haven't set up fault handlers yet... */
+@@ -306,8 +305,8 @@ static void putpacket(char *buffer)
+ 		}
+ 
+ 		putDebugChar('#');
+-		putDebugChar(hexchars[checksum >> 4]);
+-		putDebugChar(hexchars[checksum & 0xf]);
++		putDebugChar(hex_asc_hi(checksum));
++		putDebugChar(hex_asc_lo(checksum));
+ 
+ 	}
+ 	while ((getDebugChar() & 0x7f) != '+');
+@@ -328,8 +327,7 @@ static unsigned char *mem2hex(char *mem,
+ 	while (count-- > 0) {
+ 		if (kgdb_read_byte(mem++, &ch) != 0)
+ 			return 0;
+-		*buf++ = hexchars[ch >> 4];
+-		*buf++ = hexchars[ch & 0xf];
++		buf = pack_hex_byte(buf, ch);
+ 	}
+ 
+ 	*buf = 0;
+@@ -812,14 +810,12 @@ void handle_exception(struct gdb_regs *r
+ 	 * Send trap type (converted to signal)
+ 	 */
+ 	*ptr++ = 'T';
+-	*ptr++ = hexchars[sigval >> 4];
+-	*ptr++ = hexchars[sigval & 0xf];
++	ptr = pack_hex_byte(ptr, sigval);
+ 
+ 	/*
+ 	 * Send Error PC
+ 	 */
+-	*ptr++ = hexchars[REG_EPC >> 4];
+-	*ptr++ = hexchars[REG_EPC & 0xf];
++	ptr = pack_hex_byte(ptr, REG_EPC);
+ 	*ptr++ = ':';
+ 	ptr = mem2hex((char *)&regs->cp0_epc, ptr, sizeof(long), 0);
+ 	*ptr++ = ';';
+@@ -827,8 +823,7 @@ void handle_exception(struct gdb_regs *r
+ 	/*
+ 	 * Send frame pointer
+ 	 */
+-	*ptr++ = hexchars[REG_FP >> 4];
+-	*ptr++ = hexchars[REG_FP & 0xf];
++	ptr = pack_hex_byte(ptr, REG_FP);
+ 	*ptr++ = ':';
+ 	ptr = mem2hex((char *)&regs->reg30, ptr, sizeof(long), 0);
+ 	*ptr++ = ';';
+@@ -836,8 +831,7 @@ void handle_exception(struct gdb_regs *r
+ 	/*
+ 	 * Send stack pointer
+ 	 */
+-	*ptr++ = hexchars[REG_SP >> 4];
+-	*ptr++ = hexchars[REG_SP & 0xf];
++	ptr = pack_hex_byte(ptr, REG_SP);
+ 	*ptr++ = ':';
+ 	ptr = mem2hex((char *)&regs->reg29, ptr, sizeof(long), 0);
+ 	*ptr++ = ';';
+@@ -856,8 +850,8 @@ void handle_exception(struct gdb_regs *r
+ 		{
+ 		case '?':
+ 			output_buffer[0] = 'S';
+-			output_buffer[1] = hexchars[sigval >> 4];
+-			output_buffer[2] = hexchars[sigval & 0xf];
++			output_buffer[1] = hex_asc_hi(sigval);
++			output_buffer[2] = hex_asc_lo(sigval);
+ 			output_buffer[3] = 0;
+ 			break;
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
 origin.patch
-arm-fix-fls-for-64-bit-arguments.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-drivers-mtd-nand-nandsimc-needs-div64h.patch
-pci-make-pci_register_driver-a-macro.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-git-jg-misc.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
+cifs-remove-global_extern-macro.patch
+input-ads7846c-remove-sparse-endian-warnings.patch
+input-ads7846c-sparse-lock-annotation.patch
 git-kvm.patch
-bridge-send-correct-mtu-value-in-pmtu-checkpatch-fixes.patch
-sundance-set-carrier-status-on-link-change-events.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+mtd-diskonchipc-fix-sparse-endian-warnings.patch
+lockd-trivial-sparse-endian-annotations.patch
+pci-procc-sparse-endian-annotations.patch
+scsi-replace-remaining-__function__-occurrences.patch
+fusion-replace-remaining-__function__-occurrences.patch
+scsi-replace-__inline-with-inline.patch
+scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
+scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
 scsi-gdthc-use-unaligned-access-helpers-checkpatch-fixes.patch
-git-unionfs.patch
-git-logfs-git-rejects.patch
-git-logfs-fixup.patch
-drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
-drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-verify-the-page-links-and-memory-model.patch
-mspec-convert-nopfn-to-fault-fix.patch
-page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
-kill-generic_file_direct_io-checkpatch-fixes.patch
-use-generic_access_phys-for-dev-mem-mappings-fix.patch
-spufs-use-the-new-vm_ops-access-fix.patch
-fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
-page-flags-record-page-flag-overlays-explicitly-xen.patch
-mapping_set_error-add-unlikely.patch
-huge-page-private-reservation-review-cleanups-fix.patch
-vma-page-offset-has-no-callees-drop-it.patch
-sync_file_range_write-may-and-will-block-document-that-fix.patch
-vmallocinfo-add-numa-information-fix.patch
-hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
-hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
-hugetlb-override-default-huge-page-size-ia64-build.patch
-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-bootmem-add-debugging-framework-fix.patch
-bootmem-clean-up-free_all_bootmem_core-fix.patch
-bootmem-free-reserve-helpers-fix.patch
-revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-v850-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-arm-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mips-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mtd-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fixes.patch
-mmu-notifiers-add-mm_take_all_locks-operation-checkpatch-fixes.patch
-mmu-notifier-core-checkpatch-fixes.patch
-mmu-notifier-core-fix.patch
-mmu-notifier-core-fix-2.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
-security-protect-legacy-applications-from-executing-with-insufficient-privilege-checkpatch-fixes.patch
-swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
-split-the-typecheck-macros-out-of-include-linux-kernelh.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
-remove-apparently-unused-fd1772h-header-file.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
-build-kernel-profileo-only-when-requested-cleanups.patch
-seq_file-fix-bug-when-seq_read-reads-nothing-fix.patch
-exec-remove-some-includes-fix.patch
-inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments.patch
-flag-parameters-paccept-fix.patch
-flag-parameters-paccept-sys_ni.patch
-flag-parameters-anon_inode_getfd-extension-fix.patch
-flag-parameters-signalfd-fix.patch
-flag-parameters-eventfd-fix.patch
-flag-parameters-inotify_init-fix.patch
-flag-parameters-check-magic-constants-alpha.patch
-spi-au1550_spi-improve-pio-transfer-mode-checkpatch-fixes.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch
-drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
-atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
-sm501-fixup-allocation-code-to-be-64bit-resource-compliant-sm501-align-panel-fb-to-page_size-fix.patch
-lcd-add-platform_lcd-driver-fix.patch
-fsl-diu-fb-update-freescale-diu-driver-to-use-page_alloc_exact.patch
-fbdev-add-new-cobalt-lcd-framebuffer-driver.patch
-eink_apollofb-new-driver-for-apollo-eink-controller-cleanup.patch
-fbcon-remove-stray-semicolons-checkpatch-fixes.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
-ext3-handle-corrupted-orphan-list-at-mount-cleanup.patch
-ext3-handle-corrupted-orphan-list-at-mount-fix.patch
-ext3-handle-corrupted-orphan-list-at-mount-cleanup-fix.patch
-ext3-handle-deleting-corrupted-indirect-blocks-fix.patch
-jbd-dont-abort-if-flushing-file-data-failed-fix.patch
-reiserfs-convert-j_flush_sem-to-mutex.patch
-reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
-cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-fix.patch
-cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-checkpatch-fixes.patch
-devcgroup-code-cleanup-fix.patch
-memcg-remove-refcnt-from-page_cgroup-fix-2.patch
-memcg-limit-change-shrink-usage-checkpatch-fixes.patch
-signals-introduce-kill_pid_ns_info-checkpatch-fixes.patch
-coredump-format_corename-fix-the-core_uses_pid-logic-checkpatch-fixes.patch
-workqueues-make-get_online_cpus-useable-for-work-func-fix.patch
-ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
-fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
-block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
-getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
-edac-mpc85xx-fix-pci-ofdev-2nd-pass-checkpatch-fixes.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-s2io.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
-x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary-checkpatch-fixes.patch
-calgary-iommu-use-the-first-kernels-tce-tables-in-kdump-coding-style-fixes.patch
-tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
-memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
-memstick-use-fully-asynchronous-request-processing-fix.patch
-full-conversion-to-early_initcall-interface-remove-old-interface-cleanup.patch
-full-conversion-to-early_initcall-interface-remove-old-interface-fix.patch
+xfs-use-get_unaligned_-helpers.patch
+xtensa-replace-remaining-__function__-occurences.patch
+fs-ldm-use-get_unaligned_-helpers.patch
+include-use-get-put_unaligned_-helpers.patch
+lzo-use-get-put_unaligned_-helpers.patch
+asm-generic-int-ll64h-always-provide-__su64.patch
+olpc-olpc_batteryc-sparse-endian-annotations.patch
+ecryptfs-cryptoc-use-unaligned-byteorder-helpers.patch
+ecryptfs-inodec-mmapc-use-unaligned-byteorder-helpers.patch
+markers-fix-sparse-integer-as-null-pointer-warning.patch
+scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
+isdn-use-the-common-ascii-hex-helpers.patch
+net-use-the-common-ascii-hex-helpers.patch
+cris-use-the-common-ascii-hex-helpers.patch
+frv-use-the-common-ascii-hex-helpers.patch
+mips-use-the-common-ascii-hex-helpers.patch
+ppc-use-the-common-ascii-hex-helpers.patch
 ppc-use-the-common-ascii-hex-helpers-fix.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-mm-introduce-get_user_pages_fast-fix.patch
-mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-fix.patch
-x86-lockless-get_user_pages_fast-fix-2.patch
-x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
-x86-lockless-get_user_pages_fast-fix-warning.patch
-mm-speculative-page-references-fix-add_to_page_cache-fix.patch
-vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
-define-page_file_cache-function-fix.patch
-vmscan-split-lru-lists-into-anon-file-sets-units-fix.patch
-unevictable-lru-infrastructure-fix.patch
-unevictable-lru-page-statistics-units-fix.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-3.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
-vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-fix.patch
-video-console-sticonrec-make-code-static-checkpatch-fixes.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+mn10300-use-the-common-ascii-hex-helpers.patch
+byteorder-add-a-new-include-linux-swabh-to-define-byteswapping-functions.patch
+byteorder-add-include-linux-byteorderh-to-define-endian-helpers.patch
 
