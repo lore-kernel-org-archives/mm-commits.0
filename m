@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ftrace-disable-function-tracing-bringing-up-new-cpu-fix.patch added to -mm tree
-Date: Tue, 22 Jul 2008 15:54:11 -0700
-Message-ID: <200807222306.m6MN6kmj022784@imap1.linux-foundation.org>
+Subject: + autofs4-use-lookup-intent-flags-to-trigger-mounts-fix.patch added to -mm tree
+Date: Tue, 22 Jul 2008 16:04:28 -0700
+Message-ID: <200807222317.m6MNH38r023166@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55214 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46820 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753657AbYGVXGw (ORCPT
+	by vger.kernel.org with ESMTP id S1755894AbYGVXRr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jul 2008 19:06:52 -0400
+	Tue, 22 Jul 2008 19:17:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, rostedt@goodmis.org
+Cc: akpm@linux-foundation.org, jmoyer@redhat.com, raven@themaw.net, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     ftrace-disable-function-tracing-bringing-up-new-cpu-fix
+     autofs4-use-lookup-intent-flags-to-trigger-mounts-fix
 has been added to the -mm tree.  Its filename is
-     ftrace-disable-function-tracing-bringing-up-new-cpu-fix.patch
+     autofs4-use-lookup-intent-flags-to-trigger-mounts-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,30 +34,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ftrace-disable-function-tracing-bringing-up-new-cpu-fix
+Subject: autofs4-use-lookup-intent-flags-to-trigger-mounts-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-kernel/trace/ftrace.c: At top level:
-kernel/trace/ftrace.c:154: warning: 'ftrace_disabled_count' defined but not used
+guess-n-giggle.
 
-Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Ian Kent <raven@themaw.net>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Jeff Moyer <jmoyer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/trace/ftrace.c |    1 -
- 1 file changed, 1 deletion(-)
+ fs/autofs4/root.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/trace/ftrace.c~ftrace-disable-function-tracing-bringing-up-new-cpu-fix kernel/trace/ftrace.c
---- a/kernel/trace/ftrace.c~ftrace-disable-function-tracing-bringing-up-new-cpu-fix
-+++ a/kernel/trace/ftrace.c
-@@ -151,7 +151,6 @@ static int __unregister_ftrace_function(
- 	return ret;
- }
+diff -puN fs/autofs4/root.c~autofs4-use-lookup-intent-flags-to-trigger-mounts-fix fs/autofs4/root.c
+--- a/fs/autofs4/root.c~autofs4-use-lookup-intent-flags-to-trigger-mounts-fix
++++ a/fs/autofs4/root.c
+@@ -32,7 +32,7 @@ static struct dentry *autofs4_lookup(str
+ static void *autofs4_follow_link(struct dentry *, struct nameidata *);
  
--static int ftrace_disabled_count;
- static int save_ftrace_enabled;
+ #define TRIGGER_FLAGS   (LOOKUP_CONTINUE | LOOKUP_DIRECTORY)
+-#define TRIGGER_INTENTS (LOOKUP_OPEN | LOOKUP_ACCESS | LOOKUP_CREATE)
++#define TRIGGER_INTENTS (LOOKUP_OPEN | LOOKUP_CREATE)
  
- void ftrace_disable(void)
+ const struct file_operations autofs4_root_operations = {
+ 	.open		= dcache_dir_open,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -150,6 +152,8 @@ flag-parameters-eventfd-fix.patch
 flag-parameters-inotify_init-fix.patch
 flag-parameters-check-magic-constants-alpha.patch
 spi-au1550_spi-improve-pio-transfer-mode-checkpatch-fixes.patch
+autofs4-use-lookup-intent-flags-to-trigger-mounts-fix.patch
+autofs4-use-struct-qstr-in-waitqc-fix.patch
 gpio-add-bt8xxgpio-driver-checkpatch-fixes.patch
 gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch
 gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch
