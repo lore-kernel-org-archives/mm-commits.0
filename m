@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + auxdisplay-small-cleanups.patch added to -mm tree
-Date: Tue, 22 Jul 2008 02:57:50 -0700
-Message-ID: <200807220957.m6M9voH6022043@imap1.linux-foundation.org>
+Subject: + make-u64-long-long-on-all-architectures.patch added to -mm tree
+Date: Tue, 22 Jul 2008 03:02:26 -0700
+Message-ID: <200807221002.m6MA2Qrs022237__11361.0576060184$1216721031$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49327 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58722 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752381AbYGVJ5x (ORCPT
+	by vger.kernel.org with ESMTP id S1753566AbYGVKC2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jul 2008 05:57:53 -0400
+	Tue, 22 Jul 2008 06:02:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, maxextreme@gmail.com
+Cc: matthew@wil.cx, linux-arch@vger.kernel.org, willy@linux.intel.com
 
 
 The patch titled
-     auxdisplay: small cleanups
+     Make u64 long long on all architectures
 has been added to the -mm tree.  Its filename is
-     auxdisplay-small-cleanups.patch
+     make-u64-long-long-on-all-architectures.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,79 +34,60 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: auxdisplay: small cleanups
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: Make u64 long long on all architectures
+From: Matthew Wilcox <matthew@wil.cx>
 
-- Use BUILD_BUG_ON for CFAG12864B_SIZE instead of runtime-check
+It is currently awkward to print a u64 type.  Some architectures use
+unsigned long while others use unsigned long long.  Since unsigned long
+long is 64-bit for all existing Linux architectures, change those that
+use long to use long long.  Note that this applies only within the
+kernel.  If u64 is being used in a C++ method definition, the symbol
+mangling would change.
 
-- Use get_zeroed_page()
-
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Miguel Ojeda Sandonis <maxextreme@gmail.com>
+Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
+Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/auxdisplay/cfag12864b.c |   13 ++-----------
- 1 file changed, 2 insertions(+), 11 deletions(-)
+ include/asm-generic/int-l64.h |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN drivers/auxdisplay/cfag12864b.c~auxdisplay-small-cleanups drivers/auxdisplay/cfag12864b.c
---- a/drivers/auxdisplay/cfag12864b.c~auxdisplay-small-cleanups
-+++ a/drivers/auxdisplay/cfag12864b.c
-@@ -336,16 +336,9 @@ static int __init cfag12864b_init(void)
- 			"ks0108 is not initialized\n");
- 		goto none;
- 	}
-+	BUILD_BUG_ON(PAGE_SIZE < CFAG12864B_SIZE);
+diff -puN include/asm-generic/int-l64.h~make-u64-long-long-on-all-architectures include/asm-generic/int-l64.h
+--- a/include/asm-generic/int-l64.h~make-u64-long-long-on-all-architectures
++++ a/include/asm-generic/int-l64.h
+@@ -23,8 +23,13 @@ typedef unsigned short __u16;
+ typedef __signed__ int __s32;
+ typedef unsigned int __u32;
  
--	if (PAGE_SIZE < CFAG12864B_SIZE) {
--		printk(KERN_ERR CFAG12864B_NAME ": ERROR: "
--			"page size (%i) < cfag12864b size (%i)\n",
--			(unsigned int)PAGE_SIZE, CFAG12864B_SIZE);
--		ret = -ENOMEM;
--		goto none;
--	}
--
--	cfag12864b_buffer = (unsigned char *) __get_free_page(GFP_KERNEL);
-+	cfag12864b_buffer = (unsigned char *) get_zeroed_page(GFP_KERNEL);
- 	if (cfag12864b_buffer == NULL) {
- 		printk(KERN_ERR CFAG12864B_NAME ": ERROR: "
- 			"can't get a free page\n");
-@@ -367,8 +360,6 @@ static int __init cfag12864b_init(void)
- 	if (cfag12864b_workqueue == NULL)
- 		goto cachealloced;
++#ifdef __KERNEL__
++typedef __signed__ long long __s64;
++typedef unsigned long long __u64;
++#else
+ typedef __signed__ long __s64;
+ typedef unsigned long __u64;
++#endif
  
--	memset(cfag12864b_buffer, 0, CFAG12864B_SIZE);
--
- 	cfag12864b_clear();
- 	cfag12864b_on();
+ #endif /* __ASSEMBLY__ */
  
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from matthew@wil.cx are
 
 origin.patch
-move-memory_read_from_buffer-from-fsh-to-stringh.patch
 linux-next.patch
-ipr-use-memory_read_from_buffer.patch
-qla2xxx-use-memory_read_from_buffer.patch
-qla2xxx-use-memory_read_from_buffer-fix.patch
-pm-hibernation-simplify-memory-bitmap.patch
-cris-use-simple_read_from_buffer.patch
-binfmt_misc-use-simple_read_from_buffer.patch
-aty-use-memory_read_from_buffer.patch
-aty-use-memory_read_from_buffer-fix.patch
-auxdisplay-small-cleanups.patch
-workqueue-proper-error-unwinding-in-cpu-hotplug-error-path.patch
-ipc-use-simple_read_from_buffer.patch
-nwflash-use-simple_read_from_buffer.patch
-char-merge-ip2main-and-ip2base.patch
-char-ip2-cleanup-globals.patch
-char-ip2-fix-sparse-warnings.patch
-char-ip2-init-deinit-cleanup.patch
-firmware-use-memory_read_from_buffer.patch
-firmware-use-memory_read_from_buffer-fix.patch
-dcdbas-use-memory_read_from_buffer.patch
-dcdbas-use-memory_read_from_buffer-fix.patch
-dell_rbu-use-memory_read_from_buffer.patch
-dell_rbu-use-memory_read_from_buffer-fix.patch
+parisc-fix-incomplete-header-guard.patch
+list-debugging-use-warn_on-instead-of-bug.patch
+reiserfs-convert-j_lock-to-mutex.patch
+reiserfs-convert-j_flush_sem-to-mutex.patch
+reiserfs-convert-j_commit_lock-to-mutex.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+ptrace-give-more-respect-to-sigkill.patch
+lockd-dont-return-eagain-for-a-permanent-error.patch
+locks-add-special-return-value-for-asynchronous-locks.patch
+locks-cleanup-code-duplication.patch
+locks-allow-lock-to-return-file_lock_deferred.patch
+fuse-nfs-export-special-lookups.patch
+fuse-lockd-support.patch
+make-u64-long-long-on-all-architectures.patch
+make-sure-nobodys-leaking-resources.patch
 
