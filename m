@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-input-build-fix.patch added to -mm tree
-Date: Tue, 22 Jul 2008 15:25:56 -0700
-Message-ID: <200807222238.m6MMcVC2021685@imap1.linux-foundation.org>
+Subject: + include-asm-generic-pgtable-nopmdh-macros-are-noxious-reason-435.patch added to -mm tree
+Date: Tue, 22 Jul 2008 15:36:23 -0700
+Message-ID: <200807222248.m6MMmvtD022044@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39039 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42376 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753319AbYGVWim (ORCPT
+	by vger.kernel.org with ESMTP id S1752730AbYGVWtb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jul 2008 18:38:42 -0400
+	Tue, 22 Jul 2008 18:49:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dtor@mail.ru
+Cc: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     git-input build fix
+     include/asm-generic/pgtable-nopmd.h: macros are noxious, reason #435
 has been added to the -mm tree.  Its filename is
-     git-input-build-fix.patch
+     include-asm-generic-pgtable-nopmdh-macros-are-noxious-reason-435.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,38 +34,45 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-input build fix
+Subject: include/asm-generic/pgtable-nopmd.h: macros are noxious, reason #435
 From: Andrew Morton <akpm@linux-foundation.org>
 
-i386 allnoconfig:
+arch/x86/mm/pgtable.c: In function 'pgd_mop_up_pmds':
+arch/x86/mm/pgtable.c:194: warning: unused variable 'pmd'
 
-In file included from drivers/input/serio/i8042.h:28,
-                 from drivers/input/serio/i8042.c:85:
-drivers/input/serio/i8042-x86ia64io.h: In function 'i8042_platform_init':
-drivers/input/serio/i8042-x86ia64io.h:634: error: 'i8042_dmi_nopnp_table' undeclared (first use in this function)
-drivers/input/serio/i8042-x86ia64io.h:634: error: (Each undeclared identifier is reported only once
-drivers/input/serio/i8042-x86ia64io.h:634: error: for each function it appears in.)
-drivers/input/serio/i8042-x86ia64io.h:635: error: 'i8042_nopnp' undeclared (first use in this function)
+Sigh.
 
-Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/serio/i8042-x86ia64io.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/asm-generic/pgtable-nopmd.h |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN drivers/input/serio/i8042-x86ia64io.h~git-input-build-fix drivers/input/serio/i8042-x86ia64io.h
---- a/drivers/input/serio/i8042-x86ia64io.h~git-input-build-fix
-+++ a/drivers/input/serio/i8042-x86ia64io.h
-@@ -630,7 +630,7 @@ static int __init i8042_platform_init(vo
- 	i8042_kbd_irq = I8042_MAP_IRQ(1);
- 	i8042_aux_irq = I8042_MAP_IRQ(12);
+diff -puN include/asm-generic/pgtable-nopmd.h~include-asm-generic-pgtable-nopmdh-macros-are-noxious-reason-435 include/asm-generic/pgtable-nopmd.h
+--- a/include/asm-generic/pgtable-nopmd.h~include-asm-generic-pgtable-nopmdh-macros-are-noxious-reason-435
++++ a/include/asm-generic/pgtable-nopmd.h
+@@ -5,6 +5,8 @@
  
--#if defined(__i386__) || defined(__x86_64__)
-+#if defined(CONFIG_PNP) && (defined(__i386__) || defined(__x86_64__))
- 	if (dmi_check_system(i8042_dmi_nopnp_table))
- 		i8042_nopnp = 1;
- #endif
+ #include <asm-generic/pgtable-nopud.h>
+ 
++struct mm_struct;
++
+ #define __PAGETABLE_PMD_FOLDED
+ 
+ /*
+@@ -54,7 +56,9 @@ static inline pmd_t * pmd_offset(pud_t *
+  * inside the pud, so has no extra memory associated with it.
+  */
+ #define pmd_alloc_one(mm, address)		NULL
+-#define pmd_free(mm, x)				do { } while (0)
++static inline void pmd_free(struct mm_struct *mm, pmd_t *pmd)
++{
++}
+ #define __pmd_free_tlb(tlb, x)			do { } while (0)
+ 
+ #undef  pmd_addr_end
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -77,6 +84,7 @@ linux-next-git-rejects.patch
 next-remove-localversion.patch
 drivers-mtd-nand-nandsimc-needs-div64h.patch
 pci-make-pci_register_driver-a-macro.patch
+include-asm-generic-pgtable-nopmdh-macros-are-noxious-reason-435.patch
 i2c-renesas-highlander-fpga-smbus-support.patch
 tick-schedc-suppress-needless-timer-reprogramming.patch
 git-input-build-fix.patch
