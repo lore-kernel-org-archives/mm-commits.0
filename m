@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + autofs4-use-lookup-intent-flags-to-trigger-mounts-fix.patch added to -mm tree
-Date: Tue, 22 Jul 2008 16:04:28 -0700
-Message-ID: <200807222317.m6MNH38r023166@imap1.linux-foundation.org>
+Subject: + gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix.patch added to -mm tree
+Date: Tue, 22 Jul 2008 16:15:25 -0700
+Message-ID: <200807222328.m6MNS0H2023900@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46820 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36012 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755894AbYGVXRr (ORCPT
+	by vger.kernel.org with ESMTP id S1758494AbYGVX2o (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jul 2008 19:17:47 -0400
+	Tue, 22 Jul 2008 19:28:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jmoyer@redhat.com, raven@themaw.net, viro@zeniv.linux.org.uk
+Cc: akpm@linux-foundation.org, dbrownell@users.sourceforge.net, greg@kroah.com, mb@bu3sch.de, sfr@canb.auug.org.au
 
 
 The patch titled
-     autofs4-use-lookup-intent-flags-to-trigger-mounts-fix
+     gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix
 has been added to the -mm tree.  Its filename is
-     autofs4-use-lookup-intent-flags-to-trigger-mounts-fix.patch
+     gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: autofs4-use-lookup-intent-flags-to-trigger-mounts-fix
+Subject: gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-guess-n-giggle.
-
-Cc: Ian Kent <raven@themaw.net>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Michael Buesch <mb@bu3sch.de>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/root.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/gpio/gpiolib.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/autofs4/root.c~autofs4-use-lookup-intent-flags-to-trigger-mounts-fix fs/autofs4/root.c
---- a/fs/autofs4/root.c~autofs4-use-lookup-intent-flags-to-trigger-mounts-fix
-+++ a/fs/autofs4/root.c
-@@ -32,7 +32,7 @@ static struct dentry *autofs4_lookup(str
- static void *autofs4_follow_link(struct dentry *, struct nameidata *);
+diff -puN drivers/gpio/gpiolib.c~gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix drivers/gpio/gpiolib.c
+--- a/drivers/gpio/gpiolib.c~gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix
++++ a/drivers/gpio/gpiolib.c
+@@ -453,8 +453,8 @@ int gpio_export(unsigned gpio, bool dire
+ 	if (status == 0) {
+ 		struct device	*dev;
  
- #define TRIGGER_FLAGS   (LOOKUP_CONTINUE | LOOKUP_DIRECTORY)
--#define TRIGGER_INTENTS (LOOKUP_OPEN | LOOKUP_ACCESS | LOOKUP_CREATE)
-+#define TRIGGER_INTENTS (LOOKUP_OPEN | LOOKUP_CREATE)
+-		dev = device_create_drvdata(&gpio_class, desc->chip->dev, 0,
+-				desc, "gpio%d", gpio);
++		dev = device_create(&gpio_class, desc->chip->dev, 0, desc,
++					"gpio%d", gpio);
+ 		if (dev) {
+ 			if (direction_may_change)
+ 				status = sysfs_create_group(&dev->kobj,
+@@ -537,8 +537,8 @@ static int gpiochip_export(struct gpio_c
  
- const struct file_operations autofs4_root_operations = {
- 	.open		= dcache_dir_open,
+ 	/* use chip->base for the ID; it's already known to be unique */
+ 	mutex_lock(&sysfs_lock);
+-	dev = device_create_drvdata(&gpio_class, chip->dev, 0, chip,
+-			"gpiochip%d", chip->base);
++	dev = device_create(&gpio_class, chip->dev, 0, chip, "gpiochip%d",
++				chip->base);
+ 	if (dev) {
+ 		status = sysfs_create_group(&dev->kobj,
+ 				&gpiochip_attr_group);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -153,7 +165,7 @@ flag-parameters-inotify_init-fix.patch
 flag-parameters-check-magic-constants-alpha.patch
 spi-au1550_spi-improve-pio-transfer-mode-checkpatch-fixes.patch
 autofs4-use-lookup-intent-flags-to-trigger-mounts-fix.patch
-autofs4-use-struct-qstr-in-waitqc-fix.patch
+gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix.patch
 gpio-add-bt8xxgpio-driver-checkpatch-fixes.patch
 gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch
 gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch
