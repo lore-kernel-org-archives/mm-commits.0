@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + input-ads7846c-remove-sparse-endian-warnings.patch added to -mm tree
-Date: Tue, 22 Jul 2008 03:40:26 -0700
-Message-ID: <200807221040.m6MAeQN6023969@imap1.linux-foundation.org>
+Subject: + input-ads7846c-sparse-lock-annotation.patch added to -mm tree
+Date: Tue, 22 Jul 2008 03:40:32 -0700
+Message-ID: <200807221040.m6MAeWC1023975@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59725 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45938 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753388AbYGVKlC (ORCPT
+	by vger.kernel.org with ESMTP id S1755303AbYGVKlS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jul 2008 06:41:02 -0400
+	Tue, 22 Jul 2008 06:41:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: harvey.harrison@gmail.com, dtor@mail.ru
 
 
 The patch titled
-     input: ads7846.c remove sparse endian warnings
+     input: ads7846.c sparse lock annotation
 has been added to the -mm tree.  Its filename is
-     input-ads7846c-remove-sparse-endian-warnings.patch
+     input-ads7846c-sparse-lock-annotation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,52 +34,29 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: input: ads7846.c remove sparse endian warnings
+Subject: input: ads7846.c sparse lock annotation
 From: Harvey Harrison <harvey.harrison@gmail.com>
-
-Also remove the temporary pointer and use ->rx_buf directly.
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/touchscreen/ads7846.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ drivers/input/touchscreen/ads7846.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/input/touchscreen/ads7846.c~input-ads7846c-remove-sparse-endian-warnings drivers/input/touchscreen/ads7846.c
---- a/drivers/input/touchscreen/ads7846.c~input-ads7846c-remove-sparse-endian-warnings
+diff -puN drivers/input/touchscreen/ads7846.c~input-ads7846c-sparse-lock-annotation drivers/input/touchscreen/ads7846.c
+--- a/drivers/input/touchscreen/ads7846.c~input-ads7846c-sparse-lock-annotation
 +++ a/drivers/input/touchscreen/ads7846.c
-@@ -633,19 +633,17 @@ static void ads7846_rx_val(void *ads)
- 	struct ads7846 *ts = ads;
- 	struct spi_message *m;
- 	struct spi_transfer *t;
--	u16 *rx_val;
- 	int val;
- 	int action;
- 	int status;
+@@ -739,6 +739,8 @@ static irqreturn_t ads7846_irq(int irq, 
  
- 	m = &ts->msg[ts->msg_idx];
- 	t = list_entry(m->transfers.prev, struct spi_transfer, transfer_list);
--	rx_val = t->rx_buf;
- 
- 	/* adjust:  on-wire is a must-ignore bit, a BE12 value, then padding;
- 	 * built from two 8 bit values written msb-first.
- 	 */
--	val = be16_to_cpu(*rx_val) >> 3;
-+	val = be16_to_cpup((__be16 *)t->rx_buf) >> 3;
- 
- 	action = ts->filter(ts->filter_data, ts->msg_idx, &val);
- 	switch (action) {
-@@ -659,7 +657,7 @@ static void ads7846_rx_val(void *ads)
- 		m = ts->last_msg;
- 		break;
- 	case ADS7846_FILTER_OK:
--		*rx_val = val;
-+		*(u16 *)t->rx_buf = val;
- 		ts->tc.ignore = 0;
- 		m = &ts->msg[++ts->msg_idx];
- 		break;
+ /* Must be called with ts->lock held */
+ static void ads7846_disable(struct ads7846 *ts)
++__acquires(&ts->lock)
++__releases(&ts->lock)
+ {
+ 	if (ts->disabled)
+ 		return;
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
