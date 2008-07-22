@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + char-ip2-fix-sparse-warnings.patch added to -mm tree
-Date: Tue, 22 Jul 2008 02:45:33 -0700
-Message-ID: <200807220945.m6M9jXQL021586@imap1.linux-foundation.org>
+Subject: + char-ip2-cleanup-globals.patch added to -mm tree
+Date: Tue, 22 Jul 2008 02:45:31 -0700
+Message-ID: <200807220945.m6M9jVU2021583@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33485 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44982 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752649AbYGVJpn (ORCPT
+	by vger.kernel.org with ESMTP id S1753176AbYGVJpl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jul 2008 05:45:43 -0400
+	Tue, 22 Jul 2008 05:45:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jirislaby@gmail.com, akinobu.mita@gmail.com, alan@lxorguk.ukuu.org.uk
 
 
 The patch titled
-     Char: ip2, fix sparse warnings
+     Char: ip2, cleanup globals
 has been added to the -mm tree.  Its filename is
-     char-ip2-fix-sparse-warnings.patch
+     char-ip2-cleanup-globals.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,8 +34,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Char: ip2, fix sparse warnings
+Subject: Char: ip2, cleanup globals
 From: Jiri Slaby <jirislaby@gmail.com>
+
+- do not init .bss zeroed data to zero again (by memset or
+  explicit assignment)
+- use char [] instead of char * for string constants
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
@@ -43,63 +47,60 @@ Cc: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ip2/ip2main.c |   14 +++++---------
- 1 file changed, 5 insertions(+), 9 deletions(-)
+ drivers/char/ip2/ip2main.c |   18 +++++++-----------
+ 1 file changed, 7 insertions(+), 11 deletions(-)
 
-diff -puN drivers/char/ip2/ip2main.c~char-ip2-fix-sparse-warnings drivers/char/ip2/ip2main.c
---- a/drivers/char/ip2/ip2main.c~char-ip2-fix-sparse-warnings
+diff -puN drivers/char/ip2/ip2main.c~char-ip2-cleanup-globals drivers/char/ip2/ip2main.c
+--- a/drivers/char/ip2/ip2main.c~char-ip2-cleanup-globals
 +++ a/drivers/char/ip2/ip2main.c
-@@ -375,9 +375,7 @@ have_requested_irq( char irq )
- /* handle subsequent installations of the driver. All memory allocated by the */
- /* driver should be returned since it may be unloaded from memory.            */
- /******************************************************************************/
--#ifdef MODULE
--void __exit
--ip2_cleanup_module(void)
-+static void __exit ip2_cleanup_module(void)
- {
- 	int err;
- 	int i;
-@@ -431,7 +429,8 @@ ip2_cleanup_module(void)
- 			ip2config.pci_dev[i] = NULL;
- 		}
- #endif
--		if ((pB = i2BoardPtrTable[i]) != 0 ) {
-+		pB = i2BoardPtrTable[i];
-+		if (pB != NULL) {
- 			kfree ( pB );
- 			i2BoardPtrTable[i] = NULL;
- 		}
-@@ -448,7 +447,6 @@ ip2_cleanup_module(void)
- #endif
- }
- module_exit(ip2_cleanup_module);
--#endif /* MODULE */
+@@ -150,12 +150,12 @@ static int ip2_read_proc(char *, char **
+ /*************/
  
- static const struct tty_operations ip2_ops = {
- 	.open            = ip2_open,
-@@ -1255,9 +1253,8 @@ ip2_polled_interrupt(void)
- {
- 	int i;
- 	i2eBordStrPtr  pB;
--	const int irq = 0;
+ /* String constants to identify ourselves */
+-static char *pcName    = "Computone IntelliPort Plus multiport driver";
+-static char *pcVersion = "1.2.14";
++static const char pcName[] = "Computone IntelliPort Plus multiport driver";
++static const char pcVersion[] = "1.2.14";
  
--	ip2trace (ITRC_NO_PORT, ITRC_INTR, 99, 1, irq );
-+	ip2trace(ITRC_NO_PORT, ITRC_INTR, 99, 1, 0);
+ /* String constants for port names */
+-static char *pcDriver_name   = "ip2";
+-static char *pcIpl    		 = "ip2ipl";
++static const char pcDriver_name[] = "ip2";
++static const char pcIpl[] = "ip2ipl";
  
- 	/* Service just the boards on the list using this irq */
- 	for( i = 0; i < i2nBoards; ++i ) {
-@@ -1266,9 +1263,8 @@ ip2_polled_interrupt(void)
- //		Only process those boards which match our IRQ.
- //			IRQ = 0 for polled boards, we won't poll "IRQ" boards
+ /***********************/
+ /* Function Prototypes */
+@@ -237,8 +237,8 @@ static const struct file_operations ip2_
+ 	.open		= ip2_ipl_open,
+ }; 
  
--		if ( pB && (pB->i2eUsingIrq == irq) ) {
-+		if (pB && pB->i2eUsingIrq == 0)
- 			ip2_irq_work(pB);
--		}
- 	}
+-static unsigned long irq_counter = 0;
+-static unsigned long bh_counter = 0;
++static unsigned long irq_counter;
++static unsigned long bh_counter;
  
- 	++irq_counter;
+ // Use immediate queue to service interrupts
+ #define USE_IQI
+@@ -286,7 +286,7 @@ MODULE_AUTHOR("Doug McNash");
+ MODULE_DESCRIPTION("Computone IntelliPort Plus Driver");
+ MODULE_LICENSE("GPL");
+ 
+-static int poll_only = 0;
++static int poll_only;
+ 
+ static int Eisa_irq;
+ static int Eisa_slot;
+@@ -615,10 +615,6 @@ static int ip2_loadmain(void)
+ 	/* Initialise the iiEllis subsystem. */
+ 	iiEllisInit();
+ 
+-	/* Initialize arrays. */
+-	memset( i2BoardPtrTable, 0, sizeof i2BoardPtrTable );
+-	memset( DevTable, 0, sizeof DevTable );
+-
+ 	/* Initialise all the boards we can find (up to the maximum). */
+ 	for ( i = 0; i < IP2_MAX_BOARDS; ++i ) {
+ 		switch ( ip2config.addr[i] ) { 
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
