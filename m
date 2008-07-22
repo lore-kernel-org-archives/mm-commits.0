@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + input-ads7846c-sparse-lock-annotation.patch added to -mm tree
-Date: Tue, 22 Jul 2008 03:40:32 -0700
-Message-ID: <200807221040.m6MAeWC1023975@imap1.linux-foundation.org>
+Subject: + video-fb-cleanup-fb_major-usage.patch added to -mm tree
+Date: Tue, 22 Jul 2008 03:42:38 -0700
+Message-ID: <200807221042.m6MAgcFF024019@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45938 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55956 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755303AbYGVKlS (ORCPT
+	by vger.kernel.org with ESMTP id S1754475AbYGVKni (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jul 2008 06:41:18 -0400
+	Tue, 22 Jul 2008 06:43:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, dtor@mail.ru
+Cc: phdm@macqel.be, adaplas@pol.net, krzysztof.h1@poczta.fm
 
 
 The patch titled
-     input: ads7846.c sparse lock annotation
+     video/fb: cleanup FB_MAJOR usage
 has been added to the -mm tree.  Its filename is
-     input-ads7846c-sparse-lock-annotation.patch
+     video-fb-cleanup-fb_major-usage.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,67 +34,63 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: input: ads7846.c sparse lock annotation
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: video/fb: cleanup FB_MAJOR usage
+From: Philippe De Muyter <phdm@macqel.be>
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Dmitry Torokhov <dtor@mail.ru>
+Currently, linux/major.h defines a GRAPHDEV_MAJOR (29) that nobody uses,
+and linux/fb.h defines the real FB_MAJOR (also 29), that only fbmem.c
+needs.  Drop GRAPHDEV_MAJOR from major.h, move FB_MAJOR definition from
+fb.h to major.h, and fix fbmem.c to use major.h's definition.
+
+Signed-off-by: Philippe De Muyter <phdm@macqel.be>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/touchscreen/ads7846.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/video/fbmem.c |    1 +
+ include/linux/fb.h    |    1 -
+ include/linux/major.h |    2 +-
+ 3 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/input/touchscreen/ads7846.c~input-ads7846c-sparse-lock-annotation drivers/input/touchscreen/ads7846.c
---- a/drivers/input/touchscreen/ads7846.c~input-ads7846c-sparse-lock-annotation
-+++ a/drivers/input/touchscreen/ads7846.c
-@@ -739,6 +739,8 @@ static irqreturn_t ads7846_irq(int irq, 
+diff -puN drivers/video/fbmem.c~video-fb-cleanup-fb_major-usage drivers/video/fbmem.c
+--- a/drivers/video/fbmem.c~video-fb-cleanup-fb_major-usage
++++ a/drivers/video/fbmem.c
+@@ -35,6 +35,7 @@
+ #include <linux/device.h>
+ #include <linux/efi.h>
+ #include <linux/fb.h>
++#include <linux/major.h>
  
- /* Must be called with ts->lock held */
- static void ads7846_disable(struct ads7846 *ts)
-+__acquires(&ts->lock)
-+__releases(&ts->lock)
- {
- 	if (ts->disabled)
- 		return;
+ #include <asm/fb.h>
+ 
+diff -puN include/linux/fb.h~video-fb-cleanup-fb_major-usage include/linux/fb.h
+--- a/include/linux/fb.h~video-fb-cleanup-fb_major-usage
++++ a/include/linux/fb.h
+@@ -8,7 +8,6 @@ struct dentry;
+ 
+ /* Definitions of frame buffers						*/
+ 
+-#define FB_MAJOR		29
+ #define FB_MAX			32	/* sufficient for now */
+ 
+ /* ioctls
+diff -puN include/linux/major.h~video-fb-cleanup-fb_major-usage include/linux/major.h
+--- a/include/linux/major.h~video-fb-cleanup-fb_major-usage
++++ a/include/linux/major.h
+@@ -53,7 +53,7 @@
+ #define STL_SIOMEMMAJOR		28
+ #define ACSI_MAJOR		28
+ #define AZTECH_CDROM_MAJOR	29
+-#define GRAPHDEV_MAJOR		29   /* SparcLinux & Linux/68k /dev/fb */
++#define FB_MAJOR		29   /* /dev/fb* framebuffers */
+ #define CM206_CDROM_MAJOR	32
+ #define IDE2_MAJOR		33
+ #define IDE3_MAJOR		34
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from phdm@macqel.be are
 
 origin.patch
-linux-next.patch
-cifs-remove-global_extern-macro.patch
-input-ads7846c-remove-sparse-endian-warnings.patch
-input-ads7846c-sparse-lock-annotation.patch
-mtd-diskonchipc-fix-sparse-endian-warnings.patch
-lockd-trivial-sparse-endian-annotations.patch
-pci-procc-sparse-endian-annotations.patch
-scsi-replace-remaining-__function__-occurrences.patch
-fusion-replace-remaining-__function__-occurrences.patch
-scsi-replace-__inline-with-inline.patch
-scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
-scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-scsi-gdthc-use-unaligned-access-helpers-checkpatch-fixes.patch
-xfs-use-get_unaligned_-helpers.patch
-xtensa-replace-remaining-__function__-occurences.patch
-fs-ldm-use-get_unaligned_-helpers.patch
-include-use-get-put_unaligned_-helpers.patch
-lzo-use-get-put_unaligned_-helpers.patch
-asm-generic-int-ll64h-always-provide-__su64.patch
-olpc-olpc_batteryc-sparse-endian-annotations.patch
-ecryptfs-cryptoc-use-unaligned-byteorder-helpers.patch
-ecryptfs-inodec-mmapc-use-unaligned-byteorder-helpers.patch
-markers-fix-sparse-integer-as-null-pointer-warning.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-isdn-use-the-common-ascii-hex-helpers.patch
-net-use-the-common-ascii-hex-helpers.patch
-cris-use-the-common-ascii-hex-helpers.patch
-frv-use-the-common-ascii-hex-helpers.patch
-mips-use-the-common-ascii-hex-helpers.patch
-ppc-use-the-common-ascii-hex-helpers.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-mn10300-use-the-common-ascii-hex-helpers.patch
-byteorder-add-a-new-include-linux-swabh-to-define-byteswapping-functions.patch
-byteorder-add-include-linux-byteorderh-to-define-endian-helpers.patch
+video-fb-cleanup-fb_major-usage.patch
 
