@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + m68knommu-use-generic-show_mem.patch added to -mm tree
-Date: Tue, 22 Jul 2008 03:24:04 -0700
-Message-ID: <200807221024.m6MAO4wg023109@imap1.linux-foundation.org>
+Subject: + m68k-use-generic-show_mem.patch added to -mm tree
+Date: Tue, 22 Jul 2008 03:24:06 -0700
+Message-ID: <200807221024.m6MAO6fq023112@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54998 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47228 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753253AbYGVKYQ (ORCPT
+	by vger.kernel.org with ESMTP id S1753292AbYGVKYW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jul 2008 06:24:16 -0400
+	Tue, 22 Jul 2008 06:24:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hannes@saeurebad.de, gerg@uclinux.org
+Cc: hannes@saeurebad.de, geert@linux-m68k.org, zippel@linux-m68k.org
 
 
 The patch titled
-     m68knommu: use generic show_mem()
+     m68k: use generic show_mem()
 has been added to the -mm tree.  Its filename is
-     m68knommu-use-generic-show_mem.patch
+     m68k-use-generic-show_mem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: m68knommu: use generic show_mem()
+Subject: m68k: use generic show_mem()
 From: Johannes Weiner <hannes@saeurebad.de>
 
 Remove arch-specific show_mem() in favor of the generic version.
@@ -48,50 +48,54 @@ where show_mem() calls show_free_areas(), which calls
 show_swap_cache_info().
 
 Signed-off-by: Johannes Weiner <hannes@saeurebad.de>
-Acked-by: Greg Ungerer <gerg@uclinux.org>
+Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68knommu/mm/init.c |   27 ---------------------------
- 1 file changed, 27 deletions(-)
+ arch/m68k/mm/init.c |   30 ------------------------------
+ 1 file changed, 30 deletions(-)
 
-diff -puN arch/m68knommu/mm/init.c~m68knommu-use-generic-show_mem arch/m68knommu/mm/init.c
---- a/arch/m68knommu/mm/init.c~m68knommu-use-generic-show_mem
-+++ a/arch/m68knommu/mm/init.c
-@@ -62,33 +62,6 @@ static unsigned long empty_bad_page;
- 
- unsigned long empty_zero_page;
+diff -puN arch/m68k/mm/init.c~m68k-use-generic-show_mem arch/m68k/mm/init.c
+--- a/arch/m68k/mm/init.c~m68k-use-generic-show_mem
++++ a/arch/m68k/mm/init.c
+@@ -69,36 +69,6 @@ void __init m68k_setup_node(int node)
+ void *empty_zero_page;
+ EXPORT_SYMBOL(empty_zero_page);
  
 -void show_mem(void)
 -{
--    unsigned long i;
--    int free = 0, total = 0, reserved = 0, shared = 0;
--    int cached = 0;
+-	pg_data_t *pgdat;
+-	int free = 0, total = 0, reserved = 0, shared = 0;
+-	int cached = 0;
+-	int i;
 -
--    printk(KERN_INFO "\nMem-info:\n");
--    show_free_areas();
--    i = max_mapnr;
--    while (i-- > 0) {
--	total++;
--	if (PageReserved(mem_map+i))
--	    reserved++;
--	else if (PageSwapCache(mem_map+i))
--	    cached++;
--	else if (!page_count(mem_map+i))
--	    free++;
--	else
--	    shared += page_count(mem_map+i) - 1;
--    }
--    printk(KERN_INFO "%d pages of RAM\n",total);
--    printk(KERN_INFO "%d free pages\n",free);
--    printk(KERN_INFO "%d reserved pages\n",reserved);
--    printk(KERN_INFO "%d pages shared\n",shared);
--    printk(KERN_INFO "%d pages swap cached\n",cached);
+-	printk("\nMem-info:\n");
+-	show_free_areas();
+-	for_each_online_pgdat(pgdat) {
+-		for (i = 0; i < pgdat->node_spanned_pages; i++) {
+-			struct page *page = pgdat->node_mem_map + i;
+-			total++;
+-			if (PageReserved(page))
+-				reserved++;
+-			else if (PageSwapCache(page))
+-				cached++;
+-			else if (!page_count(page))
+-				free++;
+-			else
+-				shared += page_count(page) - 1;
+-		}
+-	}
+-	printk("%d pages of RAM\n",total);
+-	printk("%d free pages\n",free);
+-	printk("%d reserved pages\n",reserved);
+-	printk("%d pages shared\n",shared);
+-	printk("%d pages swap cached\n",cached);
 -}
 -
- extern unsigned long memory_start;
- extern unsigned long memory_end;
+ extern void init_pointer_table(unsigned long ptable);
  
+ /* References to section boundaries */
 _
 
 Patches currently in -mm which might be from hannes@saeurebad.de are
