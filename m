@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-limit-change-shrink-usage-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 22 Jul 2008 01:45:52 -0700
-Message-ID: <200807220845.m6M8jqlS019302@imap1.linux-foundation.org>
+Subject: + memcg-limit-change-shrink-usage.patch added to -mm tree
+Date: Tue, 22 Jul 2008 01:45:50 -0700
+Message-ID: <200807220845.m6M8joGQ019299@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48634 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37120 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751767AbYGVIqu (ORCPT
+	by vger.kernel.org with ESMTP id S1752645AbYGVIqu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 22 Jul 2008 04:46:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, xemul@openvz.org
+Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com, menage@google.com, xemul@openvz.org
 
 
 The patch titled
-     memcg-limit-change-shrink-usage-checkpatch-fixes
+     memcg: limit change shrink usage
 has been added to the -mm tree.  Its filename is
-     memcg-limit-change-shrink-usage-checkpatch-fixes.patch
+     memcg-limit-change-shrink-usage.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,216 +34,161 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-limit-change-shrink-usage-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memcg: limit change shrink usage
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-ERROR: code indent should use tabs where possible
-#81: FILE: mm/memcontrol.c:934:
-+        switch (cft->private) {$
+Shrinking memory usage at limit change.
 
-total: 1 errors, 0 warnings, 72 lines checked
-
-./patches/memcg-limit-change-shrink-usage.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
+Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Acked-by: Pavel Emelyanov <xemul@openvz.org>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/controllers/memory.txt |    3 -
+ mm/memcontrol.c                      |   48 ++++++++++++++++++++++---
+ 2 files changed, 45 insertions(+), 6 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-limit-change-shrink-usage-checkpatch-fixes mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-limit-change-shrink-usage-checkpatch-fixes
-+++ a/mm/memcontrol.c
-@@ -931,7 +931,7 @@ static int mem_cgroup_write(struct cgrou
- 	unsigned long long val;
- 	int ret;
+diff -puN Documentation/controllers/memory.txt~memcg-limit-change-shrink-usage Documentation/controllers/memory.txt
+--- a/Documentation/controllers/memory.txt~memcg-limit-change-shrink-usage
++++ a/Documentation/controllers/memory.txt
+@@ -242,8 +242,7 @@ rmdir() if there are no tasks.
+ 1. Add support for accounting huge pages (as a separate controller)
+ 2. Make per-cgroup scanner reclaim not-shared pages first
+ 3. Teach controller to account for shared-pages
+-4. Start reclamation when the limit is lowered
+-5. Start reclamation in the background when the limit is
++4. Start reclamation in the background when the limit is
+    not yet hit but the usage is getting closer
  
--        switch (cft->private) {
-+	switch (cft->private) {
- 	case RES_LIMIT:
- 		/* This function does all necessary parse...reuse it */
- 		ret = res_counter_memparse_write_strategy(buffer, &val);
+ Summary
+diff -puN mm/memcontrol.c~memcg-limit-change-shrink-usage mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-limit-change-shrink-usage
++++ a/mm/memcontrol.c
+@@ -812,6 +812,30 @@ int mem_cgroup_shrink_usage(struct mm_st
+ 	return 0;
+ }
+ 
++int mem_cgroup_resize_limit(struct mem_cgroup *memcg, unsigned long long val)
++{
++
++	int retry_count = MEM_CGROUP_RECLAIM_RETRIES;
++	int progress;
++	int ret = 0;
++
++	while (res_counter_set_limit(&memcg->res, val)) {
++		if (signal_pending(current)) {
++			ret = -EINTR;
++			break;
++		}
++		if (!retry_count) {
++			ret = -EBUSY;
++			break;
++		}
++		progress = try_to_free_mem_cgroup_pages(memcg, GFP_KERNEL);
++		if (!progress)
++			retry_count--;
++	}
++	return ret;
++}
++
++
+ /*
+  * This routine traverse page_cgroup in given list and drop them all.
+  * *And* this routine doesn't reclaim page itself, just removes page_cgroup.
+@@ -896,13 +920,29 @@ static u64 mem_cgroup_read(struct cgroup
+ 	return res_counter_read_u64(&mem_cgroup_from_cont(cont)->res,
+ 				    cft->private);
+ }
+-
++/*
++ * The user of this function is...
++ * RES_LIMIT.
++ */
+ static int mem_cgroup_write(struct cgroup *cont, struct cftype *cft,
+ 			    const char *buffer)
+ {
+-	return res_counter_write(&mem_cgroup_from_cont(cont)->res,
+-				 cft->private, buffer,
+-				 res_counter_memparse_write_strategy);
++	struct mem_cgroup *memcg = mem_cgroup_from_cont(cont);
++	unsigned long long val;
++	int ret;
++
++        switch (cft->private) {
++	case RES_LIMIT:
++		/* This function does all necessary parse...reuse it */
++		ret = res_counter_memparse_write_strategy(buffer, &val);
++		if (!ret)
++			ret = mem_cgroup_resize_limit(memcg, val);
++		break;
++	default:
++		ret = -EINVAL; /* should be BUG() ? */
++		break;
++	}
++	return ret;
+ }
+ 
+ static int mem_cgroup_reset(struct cgroup *cont, unsigned int event)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
-origin.patch
-gpio-gpio-driver-for-max7301-spi-gpio-expander.patch
-arm-fix-fls-for-64-bit-arguments.patch
-linux-next.patch
-linux-next-fixup.patch
-next-remove-localversion.patch
-kvm-is-busted-on-ia64.patch
-drivers-mtd-nand-nandsimc-needs-div64h.patch
-pci-make-pci_register_driver-a-macro.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-git-jg-misc.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-bridge-send-correct-mtu-value-in-pmtu-checkpatch-fixes.patch
-sundance-set-carrier-status-on-link-change-events.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-use-sysdev_class-in-schedc-fix.patch
-drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
-git-unionfs.patch
-git-logfs-git-rejects.patch
-git-logfs-fixup.patch
-drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
-drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-verify-the-page-links-and-memory-model.patch
-mspec-convert-nopfn-to-fault-fix.patch
-page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
-kill-generic_file_direct_io-checkpatch-fixes.patch
-use-generic_access_phys-for-dev-mem-mappings-fix.patch
-spufs-use-the-new-vm_ops-access-fix.patch
-fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
+page-flags-record-page-flag-overlays-explicitly.patch
 page-flags-record-page-flag-overlays-explicitly-xen.patch
-mapping_set_error-add-unlikely.patch
-huge-page-private-reservation-review-cleanups-fix.patch
-vma-page-offset-has-no-callees-drop-it.patch
-sync_file_range_write-may-and-will-block-document-that-fix.patch
-vmallocinfo-add-numa-information-fix.patch
-hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
-hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
-hugetlb-override-default-huge-page-size-ia64-build.patch
-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-bootmem-add-debugging-framework-fix.patch
-bootmem-clean-up-free_all_bootmem_core-fix.patch
-bootmem-free-reserve-helpers-fix.patch
-revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-v850-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-arm-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mips-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mtd-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fixes.patch
-mmu-notifiers-add-mm_take_all_locks-operation-checkpatch-fixes.patch
-mmu-notifier-core-checkpatch-fixes.patch
-mmu-notifier-core-fix.patch
-mmu-notifier-core-fix-2.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
-security-protect-legacy-applications-from-executing-with-insufficient-privilege-checkpatch-fixes.patch
-swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
-split-the-typecheck-macros-out-of-include-linux-kernelh.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
-remove-apparently-unused-fd1772h-header-file.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
-build-kernel-profileo-only-when-requested-cleanups.patch
-seq_file-fix-bug-when-seq_read-reads-nothing-fix.patch
-exec-remove-some-includes-fix.patch
-inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments.patch
-flag-parameters-paccept-fix.patch
-flag-parameters-paccept-sys_ni.patch
-flag-parameters-anon_inode_getfd-extension-fix.patch
-flag-parameters-signalfd-fix.patch
-flag-parameters-eventfd-fix.patch
-flag-parameters-inotify_init-fix.patch
-flag-parameters-check-magic-constants-alpha.patch
-spi-au1550_spi-improve-pio-transfer-mode-checkpatch-fixes.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch
-drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
-atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
-sm501-fixup-allocation-code-to-be-64bit-resource-compliant-sm501-align-panel-fb-to-page_size-fix.patch
-lcd-add-platform_lcd-driver-fix.patch
-fsl-diu-fb-update-freescale-diu-driver-to-use-page_alloc_exact.patch
-fbdev-add-new-cobalt-lcd-framebuffer-driver.patch
-eink_apollofb-new-driver-for-apollo-eink-controller-cleanup.patch
-fbcon-remove-stray-semicolons-checkpatch-fixes.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
-ext3-handle-corrupted-orphan-list-at-mount-cleanup.patch
-ext3-handle-corrupted-orphan-list-at-mount-fix.patch
-ext3-handle-corrupted-orphan-list-at-mount-cleanup-fix.patch
-ext3-handle-deleting-corrupted-indirect-blocks-fix.patch
-jbd-dont-abort-if-flushing-file-data-failed-fix.patch
-reiserfs-convert-j_flush_sem-to-mutex.patch
-reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
+memory-hotplugallocate-usemap-on-the-section-with-pgdat-take-4.patch
+memory-hotplug-dont-calculate-vm_total_pages-twice-when-rebuilding-zonelists-in-online_pages.patch
+memory-hotplug-add-sysfs-removable-attribute-for-hotplug-memory-remove.patch
+mark-res_counter_charge_locked-with-__must_check.patch
+cgroup-files-clean-up-whitespace-in-struct-cftype.patch
+cgroup-files-add-write_string-cgroup-control-file-method.patch
+cgroup-files-move-the-release_agent-file-to-use-typed-handlers.patch
+cgroups-misc-cleanups-to-write_string-patchset.patch
+cgroup-files-move-notify_on_release-file-to-separate-write-handler.patch
+cgroup-files-turn-attach_task_by_pid-directly-into-a-cgroup-write-handler.patch
+cgroup-files-remove-cpuset_common_file_write.patch
+cgroup-files-convert-devcgroup_access_write-into-a-cgroup-write_string-handler.patch
+cgroup-files-convert-res_counter_write-to-be-a-cgroups-write_string-handler.patch
+cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup.patch
 cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-fix.patch
 cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-checkpatch-fixes.patch
-devcgroup-code-cleanup-fix.patch
+memcg-make-global-var-read_mostly.patch
+memcg-avoid-unnecessary-initialization.patch
+memcg-better-migration-handling.patch
+memcg-remove-refcnt-from-page_cgroup.patch
+memcg-remove-refcnt-from-page_cgroup-fix.patch
 memcg-remove-refcnt-from-page_cgroup-fix-2.patch
+memcg-remove-refcnt-from-page_cgroup-fix-memcg-fix-mem_cgroup_end_migration-race.patch
+memcg-remove-refcnt-from-page_cgroup-memcg-fix-shmem_unuse_inode-charging.patch
+memcg-helper-function-for-relcaim-from-shmem.patch
+memcg-helper-function-for-relcaim-from-shmem-memcg-shmem_getpage-release-page-sooner.patch
+memcg-helper-function-for-relcaim-from-shmem-memcg-mem_cgroup_shrink_usage-css_put.patch
+memcg-add-hints-for-branch.patch
+memcg-remove-a-redundant-check.patch
+memcg-clean-up-checking-of-the-disabled-flag.patch
+memcg-clean-up-checking-of-the-disabled-flag-memcg-further-checking-of-disabled-flag.patch
+res_counter-limit-change-support-ebusy.patch
+memcg-limit-change-shrink-usage.patch
 memcg-limit-change-shrink-usage-checkpatch-fixes.patch
-signals-introduce-kill_pid_ns_info-checkpatch-fixes.patch
-coredump-format_corename-fix-the-core_uses_pid-logic-checkpatch-fixes.patch
-workqueues-make-get_online_cpus-useable-for-work-func-fix.patch
-ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
-fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
-block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
-getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
-edac-mpc85xx-fix-pci-ofdev-2nd-pass-checkpatch-fixes.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-s2io.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
-x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary-checkpatch-fixes.patch
-calgary-iommu-use-the-first-kernels-tce-tables-in-kdump-coding-style-fixes.patch
-tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
-memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
-memstick-use-fully-asynchronous-request-processing-fix.patch
-full-conversion-to-early_initcall-interface-remove-old-interface-cleanup.patch
-full-conversion-to-early_initcall-interface-remove-old-interface-fix.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-mm-introduce-get_user_pages_fast-fix.patch
-mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-fix.patch
-x86-lockless-get_user_pages_fast-fix-2.patch
-x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
-x86-lockless-get_user_pages_fast-fix-warning.patch
-vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
-define-page_file_cache-function-fix.patch
-vmscan-split-lru-lists-into-anon-file-sets-units-fix.patch
-unevictable-lru-infrastructure-fix.patch
-unevictable-lru-page-statistics-units-fix.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-3.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
-vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-fix.patch
-video-console-sticonrec-make-code-static-checkpatch-fixes.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+memrlimit-add-memrlimit-controller-documentation.patch
+memrlimit-setup-the-memrlimit-controller.patch
+memrlimit-setup-the-memrlimit-controller-memrlimit-correct-mremap-and-move_vma-accounting.patch
+memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
+memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info-memrlimit-fix-mmap_sem-deadlock.patch
+memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info-memrlimit-fix-sleep-inside-sleeplock-in-mm_update_next_owner.patch
+memrlimit-add-memrlimit-controller-accounting-and-control.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-memrlimit-improve-fork-and-error-handling.patch
+memrlimit-improve-error-handling.patch
+memrlimit-improve-error-handling-update.patch
+memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
+memrlimit-handle-attach_task-failure-add-can_attach-callback-update.patch
+mm-speculative-page-references-fix-migration_entry_wait-for-speculative-page-cache.patch
+define-page_file_cache-function-fix-splitlru-shmem_getpage-setpageswapbacked-sooner.patch
+vmscan-split-lru-lists-into-anon-file-sets-splitlru-memcg-swapbacked-pages-active.patch
+vmscan-second-chance-replacement-for-anonymous-pages-fix.patch
+unevictable-lru-infrastructure-putback_lru_page-unevictable-page-handling-rework.patch
+mlock-mlocked-pages-are-unevictable-fix-truncate-race-and-sevaral-comments.patch
+fix-double-unlock_page-in-2626-rc5-mm3-kernel-bug-at-mm-filemapc-575.patch
+restore-patch-failure-of-vmstat-unevictable-and-mlocked-pages-vm-eventspatch.patch
 
