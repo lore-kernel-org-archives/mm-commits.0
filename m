@@ -1,148 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: + markers-use-rcu_barrier_sched-and-call_rcu_sched.patch added to -mm tree
-Date: Tue, 22 Jul 2008 11:22:45 -0700
-Message-ID: <200807221822.m6MIMjaj010244@imap1.linux-foundation.org>
+Subject: - mmc-sd-card-fix.patch removed from -mm tree
+Date: Tue, 22 Jul 2008 11:32:57 -0700
+Message-ID: <200807221832.m6MIWvaJ010695@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50094 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43299 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752275AbYGVSYD (ORCPT
+	by vger.kernel.org with ESMTP id S1750855AbYGVSdI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jul 2008 14:24:03 -0400
+	Tue, 22 Jul 2008 14:33:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: mathieu.desnoyers@polymtl.ca, mingo@elte.hu, paulmck@us.ibm.com
+To: marek.vasut@gmail.com, drzeus@drzeus.cx, mm-commits@vger.kernel.org
 
 
 The patch titled
-     markers: use rcu_barrier_sched() and call_rcu_sched()
-has been added to the -mm tree.  Its filename is
-     markers-use-rcu_barrier_sched-and-call_rcu_sched.patch
+     mmc: SD card fix
+has been removed from the -mm tree.  Its filename was
+     mmc-sd-card-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was nacked
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: markers: use rcu_barrier_sched() and call_rcu_sched()
-From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Subject: mmc: SD card fix
+From: Marek Vasut <marek.vasut@gmail.com>
 
-rcu_barrier_sched() and call_rcu_sched() were introduced in 2.6.26 for the
-Markers.  Change the marker code to use them.
+While I was tinkering with palmtx and preparing it for mainline, I
+noticed, that certain SD cards doesnt work (both Kingston - made by
+Toshiba).
 
-It can be seen as a fix since the marker code was using an ugly,
-temporary, #ifdef hack to work around CONFIG_PREEMPT_RCU.
+I came across this
+http://kerneltrap.org/mailarchive/linux-kernel/2007/9/28/325179
+The person there had the same problem.
 
-Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Acked-by: Paul McKenney <paulmck@us.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+This patch fixed it for me, but this solution isn't definitely correct. 
+Though it should point out what's the actual problem very well.
+
+Signed-off-by: Marek Vasut <marek.vasut@gmail.com>
+Cc: Pierre Ossman <drzeus@drzeus.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/marker.c |   25 ++++++++-----------------
- 1 file changed, 8 insertions(+), 17 deletions(-)
+ include/linux/mmc/card.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/marker.c~markers-use-rcu_barrier_sched-and-call_rcu_sched kernel/marker.c
---- a/kernel/marker.c~markers-use-rcu_barrier_sched-and-call_rcu_sched
-+++ a/kernel/marker.c
-@@ -441,7 +441,7 @@ static int remove_marker(const char *nam
- 	hlist_del(&e->hlist);
- 	/* Make sure the call_rcu has been executed */
- 	if (e->rcu_pending)
--		rcu_barrier();
-+		rcu_barrier_sched();
- 	kfree(e);
- 	return 0;
- }
-@@ -476,7 +476,7 @@ static int marker_set_format(struct mark
- 	hlist_del(&(*entry)->hlist);
- 	/* Make sure the call_rcu has been executed */
- 	if ((*entry)->rcu_pending)
--		rcu_barrier();
-+		rcu_barrier_sched();
- 	kfree(*entry);
- 	*entry = e;
- 	trace_mark(core_marker_format, "name %s format %s",
-@@ -655,7 +655,7 @@ int marker_probe_register(const char *na
- 	 * make sure it's executed now.
- 	 */
- 	if (entry->rcu_pending)
--		rcu_barrier();
-+		rcu_barrier_sched();
- 	old = marker_entry_add_probe(entry, probe, probe_private);
- 	if (IS_ERR(old)) {
- 		ret = PTR_ERR(old);
-@@ -670,10 +670,7 @@ int marker_probe_register(const char *na
- 	entry->rcu_pending = 1;
- 	/* write rcu_pending before calling the RCU callback */
- 	smp_wmb();
--#ifdef CONFIG_PREEMPT_RCU
--	synchronize_sched();	/* Until we have the call_rcu_sched() */
--#endif
--	call_rcu(&entry->rcu, free_old_closure);
-+	call_rcu_sched(&entry->rcu, free_old_closure);
- end:
- 	mutex_unlock(&markers_mutex);
- 	return ret;
-@@ -704,7 +701,7 @@ int marker_probe_unregister(const char *
- 	if (!entry)
- 		goto end;
- 	if (entry->rcu_pending)
--		rcu_barrier();
-+		rcu_barrier_sched();
- 	old = marker_entry_remove_probe(entry, probe, probe_private);
- 	mutex_unlock(&markers_mutex);
- 	marker_update_probes();		/* may update entry */
-@@ -716,10 +713,7 @@ int marker_probe_unregister(const char *
- 	entry->rcu_pending = 1;
- 	/* write rcu_pending before calling the RCU callback */
- 	smp_wmb();
--#ifdef CONFIG_PREEMPT_RCU
--	synchronize_sched();	/* Until we have the call_rcu_sched() */
--#endif
--	call_rcu(&entry->rcu, free_old_closure);
-+	call_rcu_sched(&entry->rcu, free_old_closure);
- 	remove_marker(name);	/* Ignore busy error message */
- 	ret = 0;
- end:
-@@ -786,7 +780,7 @@ int marker_probe_unregister_private_data
- 		goto end;
- 	}
- 	if (entry->rcu_pending)
--		rcu_barrier();
-+		rcu_barrier_sched();
- 	old = marker_entry_remove_probe(entry, NULL, probe_private);
- 	mutex_unlock(&markers_mutex);
- 	marker_update_probes();		/* may update entry */
-@@ -797,10 +791,7 @@ int marker_probe_unregister_private_data
- 	entry->rcu_pending = 1;
- 	/* write rcu_pending before calling the RCU callback */
- 	smp_wmb();
--#ifdef CONFIG_PREEMPT_RCU
--	synchronize_sched();	/* Until we have the call_rcu_sched() */
--#endif
--	call_rcu(&entry->rcu, free_old_closure);
-+	call_rcu_sched(&entry->rcu, free_old_closure);
- 	remove_marker(entry->name);	/* Ignore busy error message */
- end:
- 	mutex_unlock(&markers_mutex);
+diff -puN include/linux/mmc/card.h~mmc-sd-card-fix include/linux/mmc/card.h
+--- a/include/linux/mmc/card.h~mmc-sd-card-fix
++++ a/include/linux/mmc/card.h
+@@ -85,7 +85,6 @@ struct mmc_card {
+ 	struct mmc_host		*host;		/* the host this device belongs to */
+ 	struct device		dev;		/* the device */
+ 	unsigned int		rca;		/* relative card address of device */
+-	unsigned int		type;		/* card type */
+ #define MMC_TYPE_MMC		0		/* MMC card */
+ #define MMC_TYPE_SD		1		/* SD card */
+ #define MMC_TYPE_SDIO		2		/* SDIO card */
+@@ -98,6 +97,7 @@ struct mmc_card {
+ 	u32			raw_cid[4];	/* raw card CID */
+ 	u32			raw_csd[4];	/* raw card CSD */
+ 	u32			raw_scr[2];	/* raw card SCR */
++	unsigned int		type;		/* card type */
+ 	struct mmc_cid		cid;		/* card identification */
+ 	struct mmc_csd		csd;		/* card specific */
+ 	struct mmc_ext_csd	ext_csd;	/* mmc v4 extended card specific */
 _
 
-Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
+Patches currently in -mm which might be from marek.vasut@gmail.com are
 
-origin.patch
-markers-fix-duplicate-modpost-entry.patch
 linux-next.patch
-markers-use-rcu_barrier_sched-and-call_rcu_sched.patch
-markers-fix-sparse-integer-as-null-pointer-warning.patch
+mmc-sd-card-fix.patch
 
