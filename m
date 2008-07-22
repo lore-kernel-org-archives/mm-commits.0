@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mac80211-tx-use-dev_kfree_skb_any-for-beacon_get.patch added to -mm tree
-Date: Tue, 22 Jul 2008 01:28:52 -0700
-Message-ID: <200807220828.m6M8SqDc018648@imap1.linux-foundation.org>
+Subject: + mac80211-return-correct-error-return-from-ieee80211_wep_init.patch added to -mm tree
+Date: Tue, 22 Jul 2008 01:29:25 -0700
+Message-ID: <200807220829.m6M8TPen018670@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58221 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54816 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751669AbYGVIa1 (ORCPT
+	by vger.kernel.org with ESMTP id S1751830AbYGVIax (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jul 2008 04:30:27 -0400
+	Tue, 22 Jul 2008 04:30:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com, flamingice@sourmilk.net, johannes@sipsolutions.net, linville@tuxdriver.com
+Cc: jeremy@goop.org, flamingice@sourmilk.net, jirislaby@gmail.com, johannes@sipsolutions.net, linville@tuxdriver.com
 
 
 The patch titled
-     mac80211: tx, use dev_kfree_skb_any for beacon_get
+     mac80211: return correct error return from ieee80211_wep_init
 has been added to the -mm tree.  Its filename is
-     mac80211-tx-use-dev_kfree_skb_any-for-beacon_get.patch
+     mac80211-return-correct-error-return-from-ieee80211_wep_init.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,64 +34,66 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mac80211: tx, use dev_kfree_skb_any for beacon_get
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: mac80211: return correct error return from ieee80211_wep_init
+From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-Use dev_kfree_skb_any(); instead of dev_kfree_skb();, since
-ieee80211_beacon_get function might be called from atomic.  (It's in a
-fail path.)
+Return the proper error code rather than a hard-coded ENOMEM from
+ieee80211_wep_init.  Also, print the error code on failure.
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Signed-off-by: Jeremy Fitzhardinge <jeremy@goop.org>
+Cc: Jiri Slaby <jirislaby@gmail.com>
 Cc: Johannes Berg <johannes@sipsolutions.net>
 Cc: Michael Wu <flamingice@sourmilk.net>
 Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/mac80211/tx.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/mac80211/main.c |    4 ++--
+ net/mac80211/wep.c  |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN net/mac80211/tx.c~mac80211-tx-use-dev_kfree_skb_any-for-beacon_get net/mac80211/tx.c
---- a/net/mac80211/tx.c~mac80211-tx-use-dev_kfree_skb_any-for-beacon_get
-+++ a/net/mac80211/tx.c
-@@ -1931,7 +1931,7 @@ struct sk_buff *ieee80211_beacon_get(str
- 			       "no rate found\n",
- 			       wiphy_name(local->hw.wiphy));
- 		}
--		dev_kfree_skb(skb);
-+		dev_kfree_skb_any(skb);
- 		skb = NULL;
- 		goto out;
+diff -puN net/mac80211/main.c~mac80211-return-correct-error-return-from-ieee80211_wep_init net/mac80211/main.c
+--- a/net/mac80211/main.c~mac80211-return-correct-error-return-from-ieee80211_wep_init
++++ a/net/mac80211/main.c
+@@ -1731,8 +1731,8 @@ int ieee80211_register_hw(struct ieee802
+ 	result = ieee80211_wep_init(local);
+ 
+ 	if (result < 0) {
+-		printk(KERN_DEBUG "%s: Failed to initialize wep\n",
+-		       wiphy_name(local->hw.wiphy));
++		printk(KERN_DEBUG "%s: Failed to initialize wep: %d\n",
++		       wiphy_name(local->hw.wiphy), result);
+ 		goto fail_wep;
  	}
+ 
+diff -puN net/mac80211/wep.c~mac80211-return-correct-error-return-from-ieee80211_wep_init net/mac80211/wep.c
+--- a/net/mac80211/wep.c~mac80211-return-correct-error-return-from-ieee80211_wep_init
++++ a/net/mac80211/wep.c
+@@ -31,13 +31,13 @@ int ieee80211_wep_init(struct ieee80211_
+ 	local->wep_tx_tfm = crypto_alloc_blkcipher("ecb(arc4)", 0,
+ 						CRYPTO_ALG_ASYNC);
+ 	if (IS_ERR(local->wep_tx_tfm))
+-		return -ENOMEM;
++		return PTR_ERR(local->wep_tx_tfm);
+ 
+ 	local->wep_rx_tfm = crypto_alloc_blkcipher("ecb(arc4)", 0,
+ 						CRYPTO_ALG_ASYNC);
+ 	if (IS_ERR(local->wep_rx_tfm)) {
+ 		crypto_free_blkcipher(local->wep_tx_tfm);
+-		return -ENOMEM;
++		return PTR_ERR(local->wep_rx_tfm);
+ 	}
+ 
+ 	return 0;
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from jeremy@goop.org are
 
 origin.patch
-linux-next.patch
-ath5k-fix-memory-corruption.patch
-ath5k-kill-tasklets-on-shutdown.patch
-ath5k-flush-work.patch
-ath5k-fix-dma-operation.patch
-ath5k-suspend-resume-fixes.patch
-mac80211-tx-use-dev_kfree_skb_any-for-beacon_get.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments.patch
-serial-z85c30-avoid-a-hang-at-console-switch-over.patch
-serial-dz11-avoid-a-hang-at-console-switch-over.patch
-vt-hold-console_sem-across-sysfs-operations.patch
-ip2-push-bkl-down-for-the-firmware-interface.patch
-rio-push-down-the-bkl-into-the-firmware-ioctl-handler.patch
-sx-push-bkl-down-into-the-firmware-ioctl-handler.patch
-ppdev-wrap-ioctl-handler-in-driver-and-push-lock-down.patch
-dsp56k-bkl-pushdown.patch
-char-mxser-ioctl-cleanup.patch
-char-mxser-globals-cleanup.patch
-char-mxser-update-documentation.patch
-char-mxser-prints-cleanup.patch
-char-mxser-remove-predefined-isa-support.patch
-char-mxser-various-cleanups.patch
-ip2-fix-iielliscleanup-as-it-is-static-but-not-always-used.patch
-drivers-misc-phantom-note-pci.patch
-reiser4.patch
-shrink_slab-handle-bad-shrinkers.patch
+mac80211-return-correct-error-return-from-ieee80211_wep_init.patch
+mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co.patch
+page-flags-record-page-flag-overlays-explicitly.patch
+page-flags-record-page-flag-overlays-explicitly-xen.patch
+slub-record-page-flag-overlays-explicitly.patch
+slob-record-page-flag-overlays-explicitly.patch
 
