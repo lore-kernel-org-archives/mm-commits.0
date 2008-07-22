@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + include-asm-generic-pgtable-nopmdh-macros-are-noxious-reason-435.patch added to -mm tree
-Date: Tue, 22 Jul 2008 15:36:23 -0700
-Message-ID: <200807222248.m6MMmvtD022044@imap1.linux-foundation.org>
+Subject: + x86-pci-replace-dbg-with-pr_debug-fix.patch added to -mm tree
+Date: Tue, 22 Jul 2008 15:51:13 -0700
+Message-ID: <200807222303.m6MN3mrG022622@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42376 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36521 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752730AbYGVWtb (ORCPT
+	by vger.kernel.org with ESMTP id S1754565AbYGVXET (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jul 2008 18:49:31 -0400
+	Tue, 22 Jul 2008 19:04:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, bjorn.helgaas@hp.com, jbarnes@virtuousgeek.org, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     include/asm-generic/pgtable-nopmd.h: macros are noxious, reason #435
+     x86-pci-replace-dbg-with-pr_debug-fix
 has been added to the -mm tree.  Its filename is
-     include-asm-generic-pgtable-nopmdh-macros-are-noxious-reason-435.patch
+     x86-pci-replace-dbg-with-pr_debug-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,45 +34,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: include/asm-generic/pgtable-nopmd.h: macros are noxious, reason #435
+Subject: x86-pci-replace-dbg-with-pr_debug-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/x86/mm/pgtable.c: In function 'pgd_mop_up_pmds':
-arch/x86/mm/pgtable.c:194: warning: unused variable 'pmd'
-
-Sigh.
-
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/pgtable-nopmd.h |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ arch/x86/pci/i386.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/asm-generic/pgtable-nopmd.h~include-asm-generic-pgtable-nopmdh-macros-are-noxious-reason-435 include/asm-generic/pgtable-nopmd.h
---- a/include/asm-generic/pgtable-nopmd.h~include-asm-generic-pgtable-nopmdh-macros-are-noxious-reason-435
-+++ a/include/asm-generic/pgtable-nopmd.h
-@@ -5,6 +5,8 @@
- 
- #include <asm-generic/pgtable-nopud.h>
- 
-+struct mm_struct;
-+
- #define __PAGETABLE_PMD_FOLDED
- 
- /*
-@@ -54,7 +56,9 @@ static inline pmd_t * pmd_offset(pud_t *
-  * inside the pud, so has no extra memory associated with it.
-  */
- #define pmd_alloc_one(mm, address)		NULL
--#define pmd_free(mm, x)				do { } while (0)
-+static inline void pmd_free(struct mm_struct *mm, pmd_t *pmd)
-+{
-+}
- #define __pmd_free_tlb(tlb, x)			do { } while (0)
- 
- #undef  pmd_addr_end
+diff -puN arch/x86/pci/i386.c~x86-pci-replace-dbg-with-pr_debug-fix arch/x86/pci/i386.c
+--- a/arch/x86/pci/i386.c~x86-pci-replace-dbg-with-pr_debug-fix
++++ a/arch/x86/pci/i386.c
+@@ -166,7 +166,7 @@ static void __init pcibios_allocate_reso
+ 			else
+ 				disabled = !(command & PCI_COMMAND_MEMORY);
+ 			if (pass == disabled) {
+-				DBG("PCI: Resource %08lx-%08lx "
++				pr_warning("PCI: Resource %08lx-%08lx "
+ 				    "(f=%lx, d=%d, p=%d)\n",
+ 				    r->start, r->end, r->flags, disabled, pass);
+ 				pr = pci_find_parent_resource(dev, r);
+@@ -187,7 +187,7 @@ static void __init pcibios_allocate_reso
+ 				/* Turn the ROM off, leave the resource region,
+ 				 * but keep it unregistered. */
+ 				u32 reg;
+-				DBG("PCI: Switching off ROM of %s\n",
++				pr_warning("PCI: Switching off ROM of %s\n",
+ 					pci_name(dev));
+ 				r->flags &= ~IORESOURCE_ROM_ENABLE;
+ 				pci_read_config_dword(dev,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -84,6 +79,7 @@ linux-next-git-rejects.patch
 next-remove-localversion.patch
 drivers-mtd-nand-nandsimc-needs-div64h.patch
 pci-make-pci_register_driver-a-macro.patch
+x86-pci-replace-dbg-with-pr_debug-fix.patch
 include-asm-generic-pgtable-nopmdh-macros-are-noxious-reason-435.patch
 i2c-renesas-highlander-fpga-smbus-support.patch
 tick-schedc-suppress-needless-timer-reprogramming.patch
