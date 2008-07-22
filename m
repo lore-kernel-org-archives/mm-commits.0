@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
 Subject: + gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix.patch added to -mm tree
-Date: Tue, 22 Jul 2008 16:15:25 -0700
-Message-ID: <200807222328.m6MNS0H2023900@imap1.linux-foundation.org>
+Date: Tue, 22 Jul 2008 16:27:52 -0700
+Message-ID: <200807222340.m6MNeRxR024646@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36012 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48293 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758494AbYGVX2o (ORCPT
+	by vger.kernel.org with ESMTP id S1752073AbYGVXkr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jul 2008 19:28:44 -0400
+	Tue, 22 Jul 2008 19:40:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -56,7 +56,7 @@ diff -puN drivers/gpio/gpiolib.c~gpio-sysfs-interface-updated-gpio-linux-next-fi
  
 -		dev = device_create_drvdata(&gpio_class, desc->chip->dev, 0,
 -				desc, "gpio%d", gpio);
-+		dev = device_create(&gpio_class, desc->chip->dev, 0, desc,
++		dev = device_create(&gpio_class, desc->chip->dev, NULL, desc,
 +					"gpio%d", gpio);
  		if (dev) {
  			if (direction_may_change)
@@ -67,7 +67,7 @@ diff -puN drivers/gpio/gpiolib.c~gpio-sysfs-interface-updated-gpio-linux-next-fi
  	mutex_lock(&sysfs_lock);
 -	dev = device_create_drvdata(&gpio_class, chip->dev, 0, chip,
 -			"gpiochip%d", chip->base);
-+	dev = device_create(&gpio_class, chip->dev, 0, chip, "gpiochip%d",
++	dev = device_create(&gpio_class, chip->dev, NULL, chip, "gpiochip%d",
 +				chip->base);
  	if (dev) {
  		status = sysfs_create_group(&dev->kobj,
