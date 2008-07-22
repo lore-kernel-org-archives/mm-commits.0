@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mmapc-deinline-a-few-functions.patch added to -mm tree
-Date: Tue, 22 Jul 2008 02:35:32 -0700
-Message-ID: <200807220935.m6M9ZW3I021147@imap1.linux-foundation.org>
+Subject: + char-ip2-fix-sparse-warnings.patch added to -mm tree
+Date: Tue, 22 Jul 2008 02:45:33 -0700
+Message-ID: <200807220945.m6M9jXQL021586@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42943 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33485 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752108AbYGVJfi (ORCPT
+	by vger.kernel.org with ESMTP id S1752649AbYGVJpn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jul 2008 05:35:38 -0400
+	Tue, 22 Jul 2008 05:45:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vda.linux@googlemail.com, hugh@veritas.com
+Cc: jirislaby@gmail.com, akinobu.mita@gmail.com, alan@lxorguk.ukuu.org.uk
 
 
 The patch titled
-     mmap.c: deinline a few functions
+     Char: ip2, fix sparse warnings
 has been added to the -mm tree.  Its filename is
-     mmapc-deinline-a-few-functions.patch
+     char-ip2-fix-sparse-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,83 +34,106 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmap.c: deinline a few functions
-From: Denys Vlasenko <vda.linux@googlemail.com>
+Subject: Char: ip2, fix sparse warnings
+From: Jiri Slaby <jirislaby@gmail.com>
 
-__vma_link_file and expand_downwards functions are not small, yeat they
-are marked inline.  They probably had one callsite sometime in the past,
-but now they have more.  In order to prevent similar thing, I also
-deinlined expand_upwards, despite it having only pne callsite.  Nowadays
-gcc auto-inlines such static functions anyway.  In find_extend_vma, I
-removed one extra level of indirection.
-
-Patch is deliberately generated with -U $BIGNUM to make
-it easier to see that functions are big.
-
-Result:
-
-# size */*/mmap.o */vmlinux
-   text    data     bss     dec     hex filename
-   9514     188      16    9718    25f6 0.org/mm/mmap.o
-   9237     188      16    9441    24e1 deinline/mm/mmap.o
-6124402  858996  389480 7372878  70804e 0.org/vmlinux
-6124113  858996  389480 7372589  707f2d deinline/vmlinux
-
-Signed-off-by: Denys Vlasenko <vda.linux@googlemail.com>
-Cc: Hugh Dickins <hugh@veritas.com>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/char/ip2/ip2main.c |   14 +++++---------
+ 1 file changed, 5 insertions(+), 9 deletions(-)
 
-diff -puN mm/mmap.c~mmapc-deinline-a-few-functions mm/mmap.c
---- a/mm/mmap.c~mmapc-deinline-a-few-functions
-+++ a/mm/mmap.c
-@@ -411,7 +411,7 @@ void __vma_link_rb(struct mm_struct *mm,
- 	rb_insert_color(&vma->vm_rb, &mm->mm_rb);
- }
- 
--static inline void __vma_link_file(struct vm_area_struct *vma)
-+static void __vma_link_file(struct vm_area_struct *vma)
+diff -puN drivers/char/ip2/ip2main.c~char-ip2-fix-sparse-warnings drivers/char/ip2/ip2main.c
+--- a/drivers/char/ip2/ip2main.c~char-ip2-fix-sparse-warnings
++++ a/drivers/char/ip2/ip2main.c
+@@ -375,9 +375,7 @@ have_requested_irq( char irq )
+ /* handle subsequent installations of the driver. All memory allocated by the */
+ /* driver should be returned since it may be unloaded from memory.            */
+ /******************************************************************************/
+-#ifdef MODULE
+-void __exit
+-ip2_cleanup_module(void)
++static void __exit ip2_cleanup_module(void)
  {
- 	struct file * file;
- 
-@@ -1598,7 +1598,7 @@ out:
-  * vma is the last one with address > vma->vm_end.  Have to extend vma.
-  */
- #ifndef CONFIG_IA64
--static inline
-+static
+ 	int err;
+ 	int i;
+@@ -431,7 +429,8 @@ ip2_cleanup_module(void)
+ 			ip2config.pci_dev[i] = NULL;
+ 		}
  #endif
- int expand_upwards(struct vm_area_struct *vma, unsigned long address)
+-		if ((pB = i2BoardPtrTable[i]) != 0 ) {
++		pB = i2BoardPtrTable[i];
++		if (pB != NULL) {
+ 			kfree ( pB );
+ 			i2BoardPtrTable[i] = NULL;
+ 		}
+@@ -448,7 +447,6 @@ ip2_cleanup_module(void)
+ #endif
+ }
+ module_exit(ip2_cleanup_module);
+-#endif /* MODULE */
+ 
+ static const struct tty_operations ip2_ops = {
+ 	.open            = ip2_open,
+@@ -1255,9 +1253,8 @@ ip2_polled_interrupt(void)
  {
-@@ -1648,7 +1648,7 @@ int expand_upwards(struct vm_area_struct
- /*
-  * vma is the first one with address < vma->vm_start.  Have to extend vma.
-  */
--static inline int expand_downwards(struct vm_area_struct *vma,
-+static int expand_downwards(struct vm_area_struct *vma,
- 				   unsigned long address)
- {
- 	int error;
-@@ -1710,7 +1710,7 @@ find_extend_vma(struct mm_struct *mm, un
- 	vma = find_vma_prev(mm, addr, &prev);
- 	if (vma && (vma->vm_start <= addr))
- 		return vma;
--	if (!prev || expand_stack(prev, addr))
-+	if (expand_stack(prev, addr))
- 		return NULL;
- 	if (prev->vm_flags & VM_LOCKED) {
- 		int nr_pages = mlock_vma_pages_range(prev, addr, prev->vm_end);
+ 	int i;
+ 	i2eBordStrPtr  pB;
+-	const int irq = 0;
+ 
+-	ip2trace (ITRC_NO_PORT, ITRC_INTR, 99, 1, irq );
++	ip2trace(ITRC_NO_PORT, ITRC_INTR, 99, 1, 0);
+ 
+ 	/* Service just the boards on the list using this irq */
+ 	for( i = 0; i < i2nBoards; ++i ) {
+@@ -1266,9 +1263,8 @@ ip2_polled_interrupt(void)
+ //		Only process those boards which match our IRQ.
+ //			IRQ = 0 for polled boards, we won't poll "IRQ" boards
+ 
+-		if ( pB && (pB->i2eUsingIrq == irq) ) {
++		if (pB && pB->i2eUsingIrq == 0)
+ 			ip2_irq_work(pB);
+-		}
+ 	}
+ 
+ 	++irq_counter;
 _
 
-Patches currently in -mm which might be from vda.linux@googlemail.com are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
 origin.patch
 linux-next.patch
-aic7xxx-introduce-dont_generate_debug_code-keyword-in-aicasm-parser.patch
-aic7xxx-update-reg-files.patch
-aic7xxx-update-_shipped-files.patch
-mmapc-deinline-a-few-functions.patch
+ath5k-fix-memory-corruption.patch
+ath5k-kill-tasklets-on-shutdown.patch
+ath5k-flush-work.patch
+ath5k-fix-dma-operation.patch
+ath5k-suspend-resume-fixes.patch
+mac80211-tx-use-dev_kfree_skb_any-for-beacon_get.patch
+mac80211-return-correct-error-return-from-ieee80211_wep_init.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments.patch
+serial-z85c30-avoid-a-hang-at-console-switch-over.patch
+serial-dz11-avoid-a-hang-at-console-switch-over.patch
+vt-hold-console_sem-across-sysfs-operations.patch
+ip2-push-bkl-down-for-the-firmware-interface.patch
+rio-push-down-the-bkl-into-the-firmware-ioctl-handler.patch
+sx-push-bkl-down-into-the-firmware-ioctl-handler.patch
+ppdev-wrap-ioctl-handler-in-driver-and-push-lock-down.patch
+dsp56k-bkl-pushdown.patch
+char-mxser-ioctl-cleanup.patch
+char-mxser-globals-cleanup.patch
+char-mxser-update-documentation.patch
+char-mxser-prints-cleanup.patch
+char-mxser-remove-predefined-isa-support.patch
+char-mxser-various-cleanups.patch
+ip2-fix-iielliscleanup-as-it-is-static-but-not-always-used.patch
+char-merge-ip2main-and-ip2base.patch
+char-ip2-cleanup-globals.patch
+char-ip2-fix-sparse-warnings.patch
+char-ip2-init-deinit-cleanup.patch
+drivers-misc-phantom-note-pci.patch
+reiser4.patch
+shrink_slab-handle-bad-shrinkers.patch
 
