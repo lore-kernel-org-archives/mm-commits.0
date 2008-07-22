@@ -1,24 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + v4l-link-tuner-before-saa7134.patch added to -mm tree
-Date: Tue, 22 Jul 2008 02:06:49 -0700
-Message-ID: <200807220906.m6M96nV6020088@imap1.linux-foundation.org>
+Subject: + hid-apple_fn_keys-f5-and-f6.patch added to -mm tree
+Date: Tue, 22 Jul 2008 02:08:14 -0700
+Message-ID: <200807220908.m6M98EIL020178@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48162 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56809 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752437AbYGVJHa (ORCPT
+	by vger.kernel.org with ESMTP id S1752648AbYGVJIe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jul 2008 05:07:30 -0400
+	Tue, 22 Jul 2008 05:08:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: simon@fire.lp0.eu, mchehab@infradead.org
+Cc: rydberg@euromail.se, dtor@mail.ru, jikos@jikos.cz
 
 
 The patch titled
-     v4l: link tuner before saa7134
+     hid: apple_fn_keys F5 and F6
 has been added to the -mm tree.  Its filename is
-     v4l-link-tuner-before-saa7134.patch
+     hid-apple_fn_keys-f5-and-f6.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -26,44 +29,59 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
+find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: v4l: link tuner before saa7134
-From: Simon Arlott <simon@fire.lp0.eu>
+Subject: hid: apple_fn_keys F5 and F6
+=46rom: Henrik Rydberg <rydberg@euromail.se>
 
-If saa7134_init is run before v4l2_i2c_drv_init (tuner), then
-saa7134_board_init2 will try to set the tuner type for devices that don't
-exist yet.  This moves tuner to before all of the device-specific drivers
-so that it's loaded early enough on boot.
+In drivers/hid/hid-input.c, the apple_fn_keys translation table contain=
+s
+no entries for the F5 and F6 keys.  This patch maps the F5 and F6 keys =
+to
+KBDILLUMDOWN and KBDILLUMUP, respektively, which make them work as
+keyboard backlight control keys.
 
-Signed-off-by: Simon Arlott <simon@fire.lp0.eu>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+Cc: Jiri Kosina <jikos@jikos.cz>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/Makefile |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/hid/hid-input.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/media/video/Makefile~v4l-link-tuner-before-saa7134 drivers/media/video/Makefile
---- a/drivers/media/video/Makefile~v4l-link-tuner-before-saa7134
-+++ a/drivers/media/video/Makefile
-@@ -18,6 +18,8 @@ ifeq ($(CONFIG_VIDEO_V4L1_COMPAT),y)
-   obj-$(CONFIG_VIDEO_DEV) += v4l1-compat.o
- endif
- 
-+obj-$(CONFIG_VIDEO_TUNER) += tuner.o
-+
- obj-$(CONFIG_VIDEO_BT848) += bt8xx/
- obj-$(CONFIG_VIDEO_IR_I2C)  += ir-kbd-i2c.o
- obj-$(CONFIG_VIDEO_TVAUDIO) += tvaudio.o
-@@ -84,8 +86,6 @@ obj-$(CONFIG_VIDEO_HEXIUM_GEMINI) += hex
- obj-$(CONFIG_VIDEO_DPC) += dpc7146.o
- obj-$(CONFIG_TUNER_3036) += tuner-3036.o
- 
--obj-$(CONFIG_VIDEO_TUNER) += tuner.o
+diff -puN drivers/hid/hid-input.c~hid-apple_fn_keys-f5-and-f6 drivers/h=
+id/hid-input.c
+--- a/drivers/hid/hid-input.c~hid-apple_fn_keys-f5-and-f6
++++ a/drivers/hid/hid-input.c
+@@ -100,6 +100,8 @@ static struct hidinput_key_translation a
+ 	{ KEY_F2,       KEY_BRIGHTNESSUP,   APPLE_FLAG_FKEY },
+ 	{ KEY_F3,       KEY_FN_F5,          APPLE_FLAG_FKEY }, /* Expos=E9 */
+ 	{ KEY_F4,       KEY_FN_F4,          APPLE_FLAG_FKEY }, /* Dashboard *=
+/
++	{ KEY_F5,	KEY_KBDILLUMDOWN,   APPLE_FLAG_FKEY },
++	{ KEY_F6,	KEY_KBDILLUMUP,     APPLE_FLAG_FKEY },
+ 	{ KEY_F7,       KEY_PREVIOUSSONG,   APPLE_FLAG_FKEY },
+ 	{ KEY_F8,       KEY_PLAYPAUSE,      APPLE_FLAG_FKEY },
+ 	{ KEY_F9,       KEY_NEXTSONG,       APPLE_FLAG_FKEY },
+_
+
+Patches currently in -mm which might be from rydberg@euromail.se are
+
+hid-apple_fn_keys-f5-and-f6.patch
+input-bcm5974-055-smoother-motion-irq-simplification.patch
+
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
