@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cris-use-generic-show_mem.patch added to -mm tree
-Date: Tue, 22 Jul 2008 03:24:12 -0700
-Message-ID: <200807221024.m6MAOC5S023122@imap1.linux-foundation.org>
+Subject: + h8300-use-generic-show_mem.patch added to -mm tree
+Date: Tue, 22 Jul 2008 03:24:00 -0700
+Message-ID: <200807221024.m6MAO0cD023095@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35239 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52131 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753254AbYGVKYS (ORCPT
+	by vger.kernel.org with ESMTP id S1753274AbYGVKYT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jul 2008 06:24:18 -0400
+	Tue, 22 Jul 2008 06:24:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hannes@saeurebad.de, starvik@axis.com
+Cc: hannes@saeurebad.de, ysato@users.sourceforge.jp
 
 
 The patch titled
-     cris: use generic show_mem()
+     h8300: use generic show_mem()
 has been added to the -mm tree.  Its filename is
-     cris-use-generic-show_mem.patch
+     h8300-use-generic-show_mem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cris: use generic show_mem()
+Subject: h8300: use generic show_mem()
 From: Johannes Weiner <hannes@saeurebad.de>
 
 Remove arch-specific show_mem() in favor of the generic version.
@@ -48,53 +48,51 @@ where show_mem() calls show_free_areas(), which calls
 show_swap_cache_info().
 
 Signed-off-by: Johannes Weiner <hannes@saeurebad.de>
-Acked-by: Mikael Starvik <starvik@axis.com>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/mm/init.c |   30 ------------------------------
- 1 file changed, 30 deletions(-)
+ arch/h8300/mm/init.c |   27 ---------------------------
+ 1 file changed, 27 deletions(-)
 
-diff -puN arch/cris/mm/init.c~cris-use-generic-show_mem arch/cris/mm/init.c
---- a/arch/cris/mm/init.c~cris-use-generic-show_mem
-+++ a/arch/cris/mm/init.c
-@@ -19,36 +19,6 @@ unsigned long empty_zero_page;
- extern char _stext, _edata, _etext; /* From linkerscript */
- extern char __init_begin, __init_end;
+diff -puN arch/h8300/mm/init.c~h8300-use-generic-show_mem arch/h8300/mm/init.c
+--- a/arch/h8300/mm/init.c~h8300-use-generic-show_mem
++++ a/arch/h8300/mm/init.c
+@@ -64,33 +64,6 @@ unsigned long empty_zero_page;
  
--void 
--show_mem(void)
+ extern unsigned long rom_length;
+ 
+-void show_mem(void)
 -{
--	int i,free = 0,total = 0,cached = 0, reserved = 0, nonshared = 0;
--	int shared = 0;
+-    unsigned long i;
+-    int free = 0, total = 0, reserved = 0, shared = 0;
+-    int cached = 0;
 -
--	printk("\nMem-info:\n");
--	show_free_areas();
--	i = max_mapnr;
--	while (i-- > 0) {
--		total++;
--		if (PageReserved(mem_map+i))
--			reserved++;
--		else if (PageSwapCache(mem_map+i))
--			cached++;
--		else if (!page_count(mem_map+i))
--			free++;
--		else if (page_count(mem_map+i) == 1)
--			nonshared++;
--		else
--			shared += page_count(mem_map+i) - 1;
--	}
--	printk("%d pages of RAM\n",total);
--	printk("%d free pages\n",free);
--	printk("%d reserved pages\n",reserved);
--	printk("%d pages nonshared\n",nonshared);
--	printk("%d pages shared\n",shared);
--	printk("%d pages swap cached\n",cached);
+-    printk("\nMem-info:\n");
+-    show_free_areas();
+-    i = max_mapnr;
+-    while (i-- > 0) {
+-	total++;
+-	if (PageReserved(mem_map+i))
+-	    reserved++;
+-	else if (PageSwapCache(mem_map+i))
+-	    cached++;
+-	else if (!page_count(mem_map+i))
+-	    free++;
+-	else
+-	    shared += page_count(mem_map+i) - 1;
+-    }
+-    printk("%d pages of RAM\n",total);
+-    printk("%d free pages\n",free);
+-    printk("%d reserved pages\n",reserved);
+-    printk("%d pages shared\n",shared);
+-    printk("%d pages swap cached\n",cached);
 -}
 -
- void __init
- mem_init(void)
- {
+ extern unsigned long memory_start;
+ extern unsigned long memory_end;
+ 
 _
 
 Patches currently in -mm which might be from hannes@saeurebad.de are
