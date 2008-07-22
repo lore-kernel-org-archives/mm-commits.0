@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + clocksource-keep-track-of-original-clocksource-frequency.patch added to -mm tree
-Date: Tue, 22 Jul 2008 01:18:36 -0700
-Message-ID: <200807220818.m6M8Iaik018183@imap1.linux-foundation.org>
+Subject: + signals-introduce-kill_pid_ns_info-checkpatch-fixes.patch added to -mm tree
+Date: Tue, 22 Jul 2008 01:22:37 -0700
+Message-ID: <200807220822.m6M8MboP018421@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47821 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53106 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751309AbYGVITv (ORCPT
+	by vger.kernel.org with ESMTP id S1755224AbYGVIWz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jul 2008 04:19:51 -0400
+	Tue, 22 Jul 2008 04:22:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, zippel@linux-m68k.org
+Cc: akpm@linux-foundation.org, daniel@hozac.com, ebiederm@xmission.com, oleg@tv-sign.ru, roland@redhat.com
 
 
 The patch titled
-     clocksource: keep track of original clocksource frequency
+     signals-introduce-kill_pid_ns_info-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     clocksource-keep-track-of-original-clocksource-frequency.patch
+     signals-introduce-kill_pid_ns_info-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,116 +34,228 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: clocksource: keep track of original clocksource frequency
-From: John Stultz <johnstul@us.ibm.com>
+Subject: signals-introduce-kill_pid_ns_info-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The clocksource frequency is represented by
-clocksource->mult/2^(clocksource->shift).  Currently, when NTP makes
-adjustments to the clock frequency, they are made directly to the mult
-value.
+WARNING: line over 80 characters
+#32: FILE: include/linux/sched.h:1782:
++extern int __kill_pid_ns_info(int sig, struct siginfo *info, struct pid_namespace *ns);
 
-This has the drawback that once changed, we cannot know what the orignal
-mult value was, or how much adjustment has been applied.
+WARNING: line over 80 characters
+#33: FILE: include/linux/sched.h:1783:
++extern int kill_pid_ns_info(int sig, struct siginfo *info, struct pid_namespace *ns);
 
-This property causes problems in calculating proper ntp intervals when
-switching back and forth between clocksources.
+WARNING: line over 80 characters
+#136: FILE: kernel/signal.c:1174:
++		ret = __kill_pid_ns_info(sig, info, task_active_pid_ns(current));
 
-This patch separates the current mult value into a mult and mult_orig
-pair.  The mult_orig value stays constant, while the ntp clocksource
-adjustments are done only to the mult value.
+total: 0 errors, 3 warnings, 102 lines checked
 
-This allows for correct ntp interval calculation and additionally lays the
-groundwork for a new notion of time, what I'm calling the monotonic-raw
-time, which is introduced in a following patch.
+./patches/signals-introduce-kill_pid_ns_info.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
 
-Signed-off-by: John Stultz <johnstul@us.ibm.com>
-Signed-off-by: Roman Zippel <zippel@linux-m68k.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+Please run checkpatch prior to sending patches
+
+Cc: Daniel Hokka Zakrisson <daniel@hozac.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/clocksource.h |   11 +++++++----
- kernel/time/clocksource.c   |    3 +++
- kernel/time/jiffies.c       |    1 +
- 3 files changed, 11 insertions(+), 4 deletions(-)
+ include/linux/sched.h |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/clocksource.h~clocksource-keep-track-of-original-clocksource-frequency include/linux/clocksource.h
---- a/include/linux/clocksource.h~clocksource-keep-track-of-original-clocksource-frequency
-+++ a/include/linux/clocksource.h
-@@ -45,7 +45,8 @@ struct clocksource;
-  * @read:		returns a cycle value
-  * @mask:		bitmask for two's complement
-  *			subtraction of non 64 bit counters
-- * @mult:		cycle to nanosecond multiplier
-+ * @mult:		cycle to nanosecond multiplier (adjusted by NTP)
-+ * @mult_orig:		cycle to nanosecond multiplier (unadjusted by NTP)
-  * @shift:		cycle to nanosecond divisor (power of two)
-  * @flags:		flags describing special properties
-  * @vread:		vsyscall based read
-@@ -63,6 +64,7 @@ struct clocksource {
- 	cycle_t (*read)(void);
- 	cycle_t mask;
- 	u32 mult;
-+	u32 mult_orig;
- 	u32 shift;
- 	unsigned long flags;
- 	cycle_t (*vread)(void);
-@@ -201,16 +203,17 @@ static inline void clocksource_calculate
- {
- 	u64 tmp;
- 
--	/* XXX - All of this could use a whole lot of optimization */
-+	/* Do the ns -> cycle conversion first, using original mult */
- 	tmp = length_nsec;
- 	tmp <<= c->shift;
--	tmp += c->mult/2;
--	do_div(tmp, c->mult);
-+	tmp += c->mult_orig/2;
-+	do_div(tmp, c->mult_orig);
- 
- 	c->cycle_interval = (cycle_t)tmp;
- 	if (c->cycle_interval == 0)
- 		c->cycle_interval = 1;
- 
-+	/* Go back from cycles -> shifted ns, this time use ntp adjused mult */
- 	c->xtime_interval = (u64)c->cycle_interval * c->mult;
- }
- 
-diff -puN kernel/time/clocksource.c~clocksource-keep-track-of-original-clocksource-frequency kernel/time/clocksource.c
---- a/kernel/time/clocksource.c~clocksource-keep-track-of-original-clocksource-frequency
-+++ a/kernel/time/clocksource.c
-@@ -325,6 +325,9 @@ int clocksource_register(struct clocksou
- 	unsigned long flags;
- 	int ret;
- 
-+	/* save mult_orig on registration */
-+	c->mult_orig = c->mult;
-+
- 	spin_lock_irqsave(&clocksource_lock, flags);
- 	ret = clocksource_enqueue(c);
- 	if (!ret)
-diff -puN kernel/time/jiffies.c~clocksource-keep-track-of-original-clocksource-frequency kernel/time/jiffies.c
---- a/kernel/time/jiffies.c~clocksource-keep-track-of-original-clocksource-frequency
-+++ a/kernel/time/jiffies.c
-@@ -61,6 +61,7 @@ struct clocksource clocksource_jiffies =
- 	.read		= jiffies_read,
- 	.mask		= 0xffffffff, /*32bits*/
- 	.mult		= NSEC_PER_JIFFY << JIFFIES_SHIFT, /* details above */
-+	.mult_orig	= NSEC_PER_JIFFY << JIFFIES_SHIFT,
- 	.shift		= JIFFIES_SHIFT,
- };
- 
+diff -puN include/linux/sched.h~signals-introduce-kill_pid_ns_info-checkpatch-fixes include/linux/sched.h
+--- a/include/linux/sched.h~signals-introduce-kill_pid_ns_info-checkpatch-fixes
++++ a/include/linux/sched.h
+@@ -1779,8 +1779,10 @@ extern void release_task(struct task_str
+ extern int send_sig_info(int, struct siginfo *, struct task_struct *);
+ extern int force_sigsegv(int, struct task_struct *);
+ extern int force_sig_info(int, struct siginfo *, struct task_struct *);
+-extern int __kill_pid_ns_info(int sig, struct siginfo *info, struct pid_namespace *ns);
+-extern int kill_pid_ns_info(int sig, struct siginfo *info, struct pid_namespace *ns);
++extern int __kill_pid_ns_info(int sig, struct siginfo *info,
++				struct pid_namespace *ns);
++extern int kill_pid_ns_info(int sig, struct siginfo *info,
++				struct pid_namespace *ns);
+ extern int __kill_pgrp_info(int sig, struct siginfo *info, struct pid *pgrp);
+ extern int kill_pid_info(int sig, struct siginfo *info, struct pid *pid);
+ extern int kill_pid_info_as_uid(int, struct siginfo *, struct pid *, uid_t, uid_t, u32);
 _
 
-Patches currently in -mm which might be from johnstul@us.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-timekeeping-fix-rounding-problem-during-clock-update.patch
-clocksource-fix-a-print-format-error-in-the-acpi-pm-clocksource-driver-and-check-range.patch
-clocksource-keep-track-of-original-clocksource-frequency.patch
-clocksource-introduce-clocksource_forward_now.patch
-clocksource-introduce-clock_monotonic_raw.patch
-posix-timers-timer_delete-remove-the-bogus-it_process-=-null-check.patch
-posix-timers-release_posix_timer-kill-the-bogus-put_task_struct-it_process.patch
+gpio-gpio-driver-for-max7301-spi-gpio-expander.patch
+arm-fix-fls-for-64-bit-arguments.patch
+linux-next.patch
+linux-next-fixup.patch
+next-remove-localversion.patch
+kvm-is-busted-on-ia64.patch
+drivers-mtd-nand-nandsimc-needs-div64h.patch
+pci-make-pci_register_driver-a-macro.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+git-jg-misc.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+bridge-send-correct-mtu-value-in-pmtu-checkpatch-fixes.patch
+sundance-set-carrier-status-on-link-change-events.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+use-sysdev_class-in-schedc-fix.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+git-unionfs.patch
+git-logfs-git-rejects.patch
+git-logfs-fixup.patch
+drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
+drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
+git-xtensa.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-verify-the-page-links-and-memory-model.patch
+mspec-convert-nopfn-to-fault-fix.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+kill-generic_file_direct_io-checkpatch-fixes.patch
+use-generic_access_phys-for-dev-mem-mappings-fix.patch
+spufs-use-the-new-vm_ops-access-fix.patch
+fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
+page-flags-record-page-flag-overlays-explicitly-xen.patch
+mapping_set_error-add-unlikely.patch
+huge-page-private-reservation-review-cleanups-fix.patch
+vma-page-offset-has-no-callees-drop-it.patch
+sync_file_range_write-may-and-will-block-document-that-fix.patch
+vmallocinfo-add-numa-information-fix.patch
+hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
+hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
+hugetlb-override-default-huge-page-size-ia64-build.patch
+linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+bootmem-add-debugging-framework-fix.patch
+bootmem-clean-up-free_all_bootmem_core-fix.patch
+bootmem-free-reserve-helpers-fix.patch
+revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-v850-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-arm-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mips-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mtd-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fixes.patch
+mmu-notifiers-add-mm_take_all_locks-operation-checkpatch-fixes.patch
+mmu-notifier-core-checkpatch-fixes.patch
+mmu-notifier-core-fix.patch
+mmu-notifier-core-fix-2.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
+security-protect-legacy-applications-from-executing-with-insufficient-privilege-checkpatch-fixes.patch
+swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+seq_file-fix-bug-when-seq_read-reads-nothing-fix.patch
+exec-remove-some-includes-fix.patch
+inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-paccept-sys_ni.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-signalfd-fix.patch
+flag-parameters-eventfd-fix.patch
+flag-parameters-inotify_init-fix.patch
+flag-parameters-check-magic-constants-alpha.patch
+spi-au1550_spi-improve-pio-transfer-mode-checkpatch-fixes.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
+sm501-fixup-allocation-code-to-be-64bit-resource-compliant-sm501-align-panel-fb-to-page_size-fix.patch
+lcd-add-platform_lcd-driver-fix.patch
+fsl-diu-fb-update-freescale-diu-driver-to-use-page_alloc_exact.patch
+fbdev-add-new-cobalt-lcd-framebuffer-driver.patch
+eink_apollofb-new-driver-for-apollo-eink-controller-cleanup.patch
+fbcon-remove-stray-semicolons-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
+ext3-handle-corrupted-orphan-list-at-mount-cleanup.patch
+ext3-handle-corrupted-orphan-list-at-mount-fix.patch
+ext3-handle-corrupted-orphan-list-at-mount-cleanup-fix.patch
+ext3-handle-deleting-corrupted-indirect-blocks-fix.patch
+jbd-dont-abort-if-flushing-file-data-failed-fix.patch
+reiserfs-convert-j_flush_sem-to-mutex.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
+cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-fix.patch
+cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-checkpatch-fixes.patch
+devcgroup-code-cleanup-fix.patch
+memcg-remove-refcnt-from-page_cgroup-fix-2.patch
+signals-introduce-kill_pid_ns_info-checkpatch-fixes.patch
+coredump-format_corename-fix-the-core_uses_pid-logic-checkpatch-fixes.patch
+workqueues-make-get_online_cpus-useable-for-work-func-fix.patch
+ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
+fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
+block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
+getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
+edac-mpc85xx-fix-pci-ofdev-2nd-pass-checkpatch-fixes.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-s2io.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
+x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary-checkpatch-fixes.patch
+calgary-iommu-use-the-first-kernels-tce-tables-in-kdump-coding-style-fixes.patch
+tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
+memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
+memstick-use-fully-asynchronous-request-processing-fix.patch
+full-conversion-to-early_initcall-interface-remove-old-interface-cleanup.patch
+full-conversion-to-early_initcall-interface-remove-old-interface-fix.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+mm-introduce-get_user_pages_fast-fix.patch
+mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-fix.patch
+x86-lockless-get_user_pages_fast-fix-2.patch
+x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
+x86-lockless-get_user_pages_fast-fix-warning.patch
+vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
+define-page_file_cache-function-fix.patch
+vmscan-split-lru-lists-into-anon-file-sets-units-fix.patch
+unevictable-lru-infrastructure-fix.patch
+unevictable-lru-page-statistics-units-fix.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-3.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
+vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-fix.patch
+video-console-sticonrec-make-code-static-checkpatch-fixes.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
