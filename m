@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + documentation-update-codingstyle-tips-for-emacs-users-v2.patch added to -mm tree
-Date: Tue, 22 Jul 2008 03:12:06 -0700
-Message-ID: <200807221012.m6MAC62s022582@imap1.linux-foundation.org>
+Subject: + xtensa-use-generic-show_mem.patch added to -mm tree
+Date: Tue, 22 Jul 2008 03:23:44 -0700
+Message-ID: <200807221023.m6MANiG7023062@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53871 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59387 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752424AbYGVKNO (ORCPT
+	by vger.kernel.org with ESMTP id S1752232AbYGVKXt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jul 2008 06:13:14 -0400
+	Tue, 22 Jul 2008 06:23:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hannes@saeurebad.de, corbet@lwn.net, randy.dunlap@oracle.com
+Cc: hannes@saeurebad.de, chris@zankel.net
 
 
 The patch titled
-     documentation: update CodingStyle tips for Emacs users
+     xtensa: use generic show_mem()
 has been added to the -mm tree.  Its filename is
-     documentation-update-codingstyle-tips-for-emacs-users-v2.patch
+     xtensa-use-generic-show_mem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,72 +34,63 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: documentation: update CodingStyle tips for Emacs users
+Subject: xtensa: use generic show_mem()
 From: Johannes Weiner <hannes@saeurebad.de>
 
-Describe a setup that integrates better with Emacs' cc-mode and also fixes
-up the alignment of continuation lines to really only use tabs.
+Remove arch-specific show_mem() in favor of the generic version.
+
+This also removes the following redundant information display:
+
+	- free pages, printed by show_free_areas()
+	- pages in swapcache, printed by show_swap_cache_info()
+
+where show_mem() calls show_free_areas(), which calls
+show_swap_cache_info().
 
 Signed-off-by: Johannes Weiner <hannes@saeurebad.de>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Chris Zankel <chris@zankel.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/CodingStyle |   40 +++++++++++++++++++-----------------
- 1 file changed, 22 insertions(+), 18 deletions(-)
+ arch/xtensa/mm/init.c |   26 --------------------------
+ 1 file changed, 26 deletions(-)
 
-diff -puN Documentation/CodingStyle~documentation-update-codingstyle-tips-for-emacs-users-v2 Documentation/CodingStyle
---- a/Documentation/CodingStyle~documentation-update-codingstyle-tips-for-emacs-users-v2
-+++ a/Documentation/CodingStyle
-@@ -474,25 +474,29 @@ make a good program).
- So, you can either get rid of GNU emacs, or change it to use saner
- values.  To do the latter, you can stick the following in your .emacs file:
+diff -puN arch/xtensa/mm/init.c~xtensa-use-generic-show_mem arch/xtensa/mm/init.c
+--- a/arch/xtensa/mm/init.c~xtensa-use-generic-show_mem
++++ a/arch/xtensa/mm/init.c
+@@ -272,32 +272,6 @@ void free_initmem(void)
+ 	       (&__init_end - &__init_begin) >> 10);
+ }
  
--(defun linux-c-mode ()
--  "C mode with adjusted defaults for use with the Linux kernel."
--  (interactive)
--  (c-mode)
--  (c-set-style "K&R")
--  (setq tab-width 8)
--  (setq indent-tabs-mode t)
--  (setq c-basic-offset 8))
+-void show_mem(void)
+-{
+-	int i, free = 0, total = 0, reserved = 0;
+-	int shared = 0, cached = 0;
 -
--This will define the M-x linux-c-mode command.  When hacking on a
--module, if you put the string -*- linux-c -*- somewhere on the first
--two lines, this mode will be automatically invoked. Also, you may want
--to add
-+(defun c-lineup-arglist-tabs-only (ignored)
-+  "Line up argument lists by tabs, not spaces"
-+  (let* ((anchor (c-langelem-pos c-syntactic-element))
-+	 (column (c-langelem-2nd-pos c-syntactic-element))
-+	 (offset (- (1+ column) anchor))
-+	 (steps (floor offset c-basic-offset)))
-+    (* (max steps 1)
-+       c-basic-offset)))
-+
-+(add-hook 'c-mode-hook
-+          (lambda ()
-+            (let ((filename (buffer-file-name)))
-+              ;; Enable kernel mode for the appropriate files
-+              (when (and filename
-+                         (string-match "~/src/linux-trees" filename))
-+                (setq indent-tabs-mode t)
-+                (c-set-style "linux")
-+                (c-set-offset 'arglist-cont-nonempty
-+                              '(c-lineup-gcc-asm-reg
-+                                c-lineup-arglist-tabs-only))))))
- 
--(setq auto-mode-alist (cons '("/usr/src/linux.*/.*\\.[ch]$" . linux-c-mode)
--			auto-mode-alist))
+-	printk("Mem-info:\n");
+-	show_free_areas();
+-	i = max_mapnr;
+-	while (i-- > 0) {
+-		total++;
+-		if (PageReserved(mem_map+i))
+-			reserved++;
+-		else if (PageSwapCache(mem_map+i))
+-			cached++;
+-		else if (!page_count(mem_map + i))
+-			free++;
+-		else
+-			shared += page_count(mem_map + i) - 1;
+-	}
+-	printk("%d pages of RAM\n", total);
+-	printk("%d reserved pages\n", reserved);
+-	printk("%d pages shared\n", shared);
+-	printk("%d pages swap cached\n",cached);
+-	printk("%d free pages\n", free);
+-}
 -
--to your .emacs file if you want to have linux-c-mode switched on
--automagically when you edit source files under /usr/src/linux.
-+This will make emacs go better with the kernel coding style for C
-+files below ~/src/linux-trees.
+ struct kmem_cache *pgtable_cache __read_mostly;
  
- But even if you fail in getting emacs to do sane formatting, not
- everything is lost: use "indent".
+ static void pgd_ctor(void* addr)
 _
 
 Patches currently in -mm which might be from hannes@saeurebad.de are
@@ -151,4 +142,24 @@ bootmem-replace-node_boot_start-in-struct-bootmem_data-fix.patch
 memory-hotplug-small-fixes-to-bootmem-freeing-for-memory-hotremove.patch
 documentation-update-codingstyle-tips-for-emacs-users-v2.patch
 mm-more-likely-reclaim-madv_sequential-mappings.patch
+mm-print-swapcache-page-count-in-show_swap_cache_info.patch
+lib-generic-show_mem.patch
+alpha-use-generic-show_mem.patch
+avr32-use-generic-show_mem.patch
+blackfin-use-generic-show_mem.patch
+xtensa-use-generic-show_mem.patch
+x86-use-generic-show_mem.patch
+um-use-generic-show_mem.patch
+sparc64-use-generic-show_mem.patch
+sh-use-generic-show_mem.patch
+s390-use-generic-show_mem.patch
+powerpc-use-generic-show_mem.patch
+mn10300-use-generic-show_mem.patch
+h8300-use-generic-show_mem.patch
+mips-use-generic-show_mem.patch
+m68knommu-use-generic-show_mem.patch
+m68k-use-generic-show_mem.patch
+m32r-use-generic-show_mem.patch
+frv-use-generic-show_mem.patch
+cris-use-generic-show_mem.patch
 
