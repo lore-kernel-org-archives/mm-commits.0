@@ -1,82 +1,137 @@
 From: akpm@linux-foundation.org
-Subject: + hid-wellspring-device-quirks.patch added to -mm tree
-Date: Tue, 22 Jul 2008 02:09:17 -0700
-Message-ID: <200807220909.m6M99Ho8020199@imap1.linux-foundation.org>
+Subject: - markers-use-rcu_barrier_sched-and-call_rcu_sched.patch removed from -mm tree
+Date: Tue, 22 Jul 2008 02:14:22 -0700
+Message-ID: <200807220914.m6M9EMDq020389@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58276 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44077 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752880AbYGVJJb (ORCPT
+	by vger.kernel.org with ESMTP id S1752654AbYGVJT5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jul 2008 05:09:31 -0400
+	Tue, 22 Jul 2008 05:19:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: rydberg@euromail.se, dtor@mail.ru, jikos@jikos.cz
+To: mathieu.desnoyers@polymtl.ca, mingo@elte.hu, paulmck@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hid: wellspring device quirks
-has been added to the -mm tree.  Its filename is
-     hid-wellspring-device-quirks.patch
+     markers: use rcu_barrier_sched() and call_rcu_sched()
+has been removed from the -mm tree.  Its filename was
+     markers-use-rcu_barrier_sched-and-call_rcu_sched.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was nacked
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hid: wellspring device quirks
-From: Henrik Rydberg <rydberg@euromail.se>
+Subject: markers: use rcu_barrier_sched() and call_rcu_sched()
+From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-Add the HID_QUIRK_IGNORE_MOUSE quirk for the Apple USB multitouch devices
-based on BCM5974, aka Wellspring.  These devices will instead be picked up
-by the new bcm5974 driver.
+rcu_barrier_sched() and call_rcu_sched() were introduced in 2.6.26 for the
+Markers.  Change the marker code to use them.
 
-Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
-Cc: Jiri Kosina <jikos@jikos.cz>
-Cc: Dmitry Torokhov <dtor@mail.ru>
+It can be seen as a fix since the marker code was using an ugly,
+temporary, #ifdef hack to work around CONFIG_PREEMPT_RCU.
+
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Acked-by: Paul McKenney <paulmck@us.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hid/usbhid/hid-quirks.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ kernel/marker.c |   25 ++++++++-----------------
+ 1 file changed, 8 insertions(+), 17 deletions(-)
 
-diff -puN drivers/hid/usbhid/hid-quirks.c~hid-wellspring-device-quirks drivers/hid/usbhid/hid-quirks.c
---- a/drivers/hid/usbhid/hid-quirks.c~hid-wellspring-device-quirks
-+++ a/drivers/hid/usbhid/hid-quirks.c
-@@ -654,12 +654,12 @@ static const struct hid_blacklist {
- 	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_ALU_WIRELESS_ANSI, HID_QUIRK_APPLE_NUMLOCK_EMULATION | HID_QUIRK_APPLE_HAS_FN },
- 	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_ALU_WIRELESS_ISO, HID_QUIRK_APPLE_NUMLOCK_EMULATION | HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_APPLE_ISO_KEYBOARD },
- 	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_ALU_WIRELESS_JIS, HID_QUIRK_APPLE_NUMLOCK_EMULATION | HID_QUIRK_APPLE_HAS_FN },
--	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_WELLSPRING_ANSI, HID_QUIRK_APPLE_HAS_FN },
--	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_WELLSPRING_ISO, HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_APPLE_ISO_KEYBOARD },
--	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_WELLSPRING_JIS, HID_QUIRK_APPLE_HAS_FN },
--	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_WELLSPRING2_ANSI, HID_QUIRK_APPLE_HAS_FN },
--	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_WELLSPRING2_ISO, HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_APPLE_ISO_KEYBOARD },
--	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_WELLSPRING2_JIS, HID_QUIRK_APPLE_HAS_FN },
-+	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_WELLSPRING_ANSI, HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE },
-+	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_WELLSPRING_ISO, HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_APPLE_ISO_KEYBOARD | HID_QUIRK_IGNORE_MOUSE},
-+	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_WELLSPRING_JIS, HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE},
-+	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_WELLSPRING2_ANSI, HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE},
-+	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_WELLSPRING2_ISO, HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_APPLE_ISO_KEYBOARD | HID_QUIRK_IGNORE_MOUSE },
-+	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_WELLSPRING2_JIS, HID_QUIRK_APPLE_HAS_FN  | HID_QUIRK_IGNORE_MOUSE },
- 	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_FOUNTAIN_TP_ONLY, HID_QUIRK_APPLE_NUMLOCK_EMULATION | HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE },
- 	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_GEYSER1_TP_ONLY, HID_QUIRK_APPLE_NUMLOCK_EMULATION | HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE },
- 
+diff -puN kernel/marker.c~markers-use-rcu_barrier_sched-and-call_rcu_sched kernel/marker.c
+--- a/kernel/marker.c~markers-use-rcu_barrier_sched-and-call_rcu_sched
++++ a/kernel/marker.c
+@@ -441,7 +441,7 @@ static int remove_marker(const char *nam
+ 	hlist_del(&e->hlist);
+ 	/* Make sure the call_rcu has been executed */
+ 	if (e->rcu_pending)
+-		rcu_barrier();
++		rcu_barrier_sched();
+ 	kfree(e);
+ 	return 0;
+ }
+@@ -476,7 +476,7 @@ static int marker_set_format(struct mark
+ 	hlist_del(&(*entry)->hlist);
+ 	/* Make sure the call_rcu has been executed */
+ 	if ((*entry)->rcu_pending)
+-		rcu_barrier();
++		rcu_barrier_sched();
+ 	kfree(*entry);
+ 	*entry = e;
+ 	trace_mark(core_marker_format, "name %s format %s",
+@@ -655,7 +655,7 @@ int marker_probe_register(const char *na
+ 	 * make sure it's executed now.
+ 	 */
+ 	if (entry->rcu_pending)
+-		rcu_barrier();
++		rcu_barrier_sched();
+ 	old = marker_entry_add_probe(entry, probe, probe_private);
+ 	if (IS_ERR(old)) {
+ 		ret = PTR_ERR(old);
+@@ -670,10 +670,7 @@ int marker_probe_register(const char *na
+ 	entry->rcu_pending = 1;
+ 	/* write rcu_pending before calling the RCU callback */
+ 	smp_wmb();
+-#ifdef CONFIG_PREEMPT_RCU
+-	synchronize_sched();	/* Until we have the call_rcu_sched() */
+-#endif
+-	call_rcu(&entry->rcu, free_old_closure);
++	call_rcu_sched(&entry->rcu, free_old_closure);
+ end:
+ 	mutex_unlock(&markers_mutex);
+ 	return ret;
+@@ -704,7 +701,7 @@ int marker_probe_unregister(const char *
+ 	if (!entry)
+ 		goto end;
+ 	if (entry->rcu_pending)
+-		rcu_barrier();
++		rcu_barrier_sched();
+ 	old = marker_entry_remove_probe(entry, probe, probe_private);
+ 	mutex_unlock(&markers_mutex);
+ 	marker_update_probes();		/* may update entry */
+@@ -716,10 +713,7 @@ int marker_probe_unregister(const char *
+ 	entry->rcu_pending = 1;
+ 	/* write rcu_pending before calling the RCU callback */
+ 	smp_wmb();
+-#ifdef CONFIG_PREEMPT_RCU
+-	synchronize_sched();	/* Until we have the call_rcu_sched() */
+-#endif
+-	call_rcu(&entry->rcu, free_old_closure);
++	call_rcu_sched(&entry->rcu, free_old_closure);
+ 	remove_marker(name);	/* Ignore busy error message */
+ 	ret = 0;
+ end:
+@@ -786,7 +780,7 @@ int marker_probe_unregister_private_data
+ 		goto end;
+ 	}
+ 	if (entry->rcu_pending)
+-		rcu_barrier();
++		rcu_barrier_sched();
+ 	old = marker_entry_remove_probe(entry, NULL, probe_private);
+ 	mutex_unlock(&markers_mutex);
+ 	marker_update_probes();		/* may update entry */
+@@ -797,10 +791,7 @@ int marker_probe_unregister_private_data
+ 	entry->rcu_pending = 1;
+ 	/* write rcu_pending before calling the RCU callback */
+ 	smp_wmb();
+-#ifdef CONFIG_PREEMPT_RCU
+-	synchronize_sched();	/* Until we have the call_rcu_sched() */
+-#endif
+-	call_rcu(&entry->rcu, free_old_closure);
++	call_rcu_sched(&entry->rcu, free_old_closure);
+ 	remove_marker(entry->name);	/* Ignore busy error message */
+ end:
+ 	mutex_unlock(&markers_mutex);
 _
 
-Patches currently in -mm which might be from rydberg@euromail.se are
+Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
 
-hid-wellspring-device-quirks.patch
-hid-apple_fn_keys-f5-and-f6.patch
-input-bcm5974-055-smoother-motion-irq-simplification.patch
+origin.patch
+markers-fix-duplicate-modpost-entry.patch
+linux-next.patch
+markers-use-rcu_barrier_sched-and-call_rcu_sched.patch
 
