@@ -1,54 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - use-sysdev_class-in-schedc-fix.patch removed from -mm tree
-Date: Tue, 22 Jul 2008 13:40:58 -0700
-Message-ID: <200807222040.m6MKewfB016294@imap1.linux-foundation.org>
+Subject: - signals-introduce-kill_pid_ns_info-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 22 Jul 2008 13:53:50 -0700
+Message-ID: <200807222053.m6MKroCT016754@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33299 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48347 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753940AbYGVUlT (ORCPT
+	by vger.kernel.org with ESMTP id S1755105AbYGVUzV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jul 2008 16:41:19 -0400
+	Tue, 22 Jul 2008 16:55:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, Valdis.Kletnieks@vt.edu, mingo@elte.hu, sfr@canb.auug.org.au, tiwai@suse.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, daniel@hozac.com, ebiederm@xmission.com, oleg@tv-sign.ru, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     use-sysdev_class-in-schedc-fix
+     signals-introduce-kill_pid_ns_info-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     use-sysdev_class-in-schedc-fix.patch
+     signals-introduce-kill_pid_ns_info-checkpatch-fixes.patch
 
-This patch was dropped because 91b183a632657e12da86c0d9105173fcde283c17 wrecked it
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: use-sysdev_class-in-schedc-fix
+Subject: signals-introduce-kill_pid_ns_info-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: <Valdis.Kletnieks@vt.edu>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Takashi Iwai <tiwai@suse.de>
+WARNING: line over 80 characters
+#32: FILE: include/linux/sched.h:1782:
++extern int __kill_pid_ns_info(int sig, struct siginfo *info, struct pid_namespace *ns);
+
+WARNING: line over 80 characters
+#33: FILE: include/linux/sched.h:1783:
++extern int kill_pid_ns_info(int sig, struct siginfo *info, struct pid_namespace *ns);
+
+WARNING: line over 80 characters
+#136: FILE: kernel/signal.c:1174:
++		ret = __kill_pid_ns_info(sig, info, task_active_pid_ns(current));
+
+total: 0 errors, 3 warnings, 102 lines checked
+
+./patches/signals-introduce-kill_pid_ns_info.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Daniel Hokka Zakrisson <daniel@hozac.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/sched.h |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN kernel/sched.c~use-sysdev_class-in-schedc-fix kernel/sched.c
---- a/kernel/sched.c~use-sysdev_class-in-schedc-fix
-+++ a/kernel/sched.c
-@@ -7753,7 +7753,7 @@ static ssize_t sched_smt_power_savings_s
- {
- 	return sprintf(page, "%u\n", sched_smt_power_savings);
- }
--static ssize_t sched_smt_power_savings_store(struct sysdv_class *cls,
-+static ssize_t sched_smt_power_savings_store(struct sysdev_class *cls,
- 					     const char *buf, size_t count)
- {
- 	return sched_power_savings_store(buf, count, 1);
+diff -puN include/linux/sched.h~signals-introduce-kill_pid_ns_info-checkpatch-fixes include/linux/sched.h
+--- a/include/linux/sched.h~signals-introduce-kill_pid_ns_info-checkpatch-fixes
++++ a/include/linux/sched.h
+@@ -1779,8 +1779,10 @@ extern void release_task(struct task_str
+ extern int send_sig_info(int, struct siginfo *, struct task_struct *);
+ extern int force_sigsegv(int, struct task_struct *);
+ extern int force_sig_info(int, struct siginfo *, struct task_struct *);
+-extern int __kill_pid_ns_info(int sig, struct siginfo *info, struct pid_namespace *ns);
+-extern int kill_pid_ns_info(int sig, struct siginfo *info, struct pid_namespace *ns);
++extern int __kill_pid_ns_info(int sig, struct siginfo *info,
++				struct pid_namespace *ns);
++extern int kill_pid_ns_info(int sig, struct siginfo *info,
++				struct pid_namespace *ns);
+ extern int __kill_pgrp_info(int sig, struct siginfo *info, struct pid *pgrp);
+ extern int kill_pid_info(int sig, struct siginfo *info, struct pid *pid);
+ extern int kill_pid_info_as_uid(int, struct siginfo *, struct pid *, uid_t, uid_t, u32);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -68,8 +92,6 @@ git-kvm.patch
 bridge-send-correct-mtu-value-in-pmtu-checkpatch-fixes.patch
 sundance-set-carrier-status-on-link-change-events.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
-use-sysdev_class-in-schedc-fix.patch
-git-sh.patch
 drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
 scsi-gdthc-use-unaligned-access-helpers-checkpatch-fixes.patch
 git-unionfs.patch
