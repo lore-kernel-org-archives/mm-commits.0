@@ -1,18 +1,18 @@
 From: akpm@linux-foundation.org
-Subject: + slb-drop-kmem-cache-argument-from-constructor-reiser4.patch added to -mm tree
-Date: Tue, 22 Jul 2008 16:55:58 -0700
-Message-ID: <200807230008.m6N08XuY025822@imap1.linux-foundation.org>
+Subject: + reiser4-suid.patch added to -mm tree
+Date: Tue, 22 Jul 2008 16:57:59 -0700
+Message-ID: <200807230010.m6N0AY23025938@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58430 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38233 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750711AbYGWAIg (ORCPT
+	by vger.kernel.org with ESMTP id S1752365AbYGWAKg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jul 2008 20:08:36 -0400
+	Tue, 22 Jul 2008 20:10:36 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m6N08XPX018875
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m6N0AYfu019005
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 22 Jul 2008 17:08:34 -0700
+	for <mm-commits@vger.kernel.org>; Tue, 22 Jul 2008 17:10:35 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -20,9 +20,9 @@ Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     slb-drop-kmem-cache-argument-from-constructor-reiser4
+     reiser4-suid
 has been added to the -mm tree.  Its filename is
-     slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+     reiser4-suid.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,27 +38,27 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: slb-drop-kmem-cache-argument-from-constructor-reiser4
+Subject: reiser4-suid
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiser4/super_ops.c |    2 +-
+ fs/reiser4/plugin/file/cryptcompress.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/reiser4/super_ops.c~slb-drop-kmem-cache-argument-from-constructor-reiser4 fs/reiser4/super_ops.c
---- a/fs/reiser4/super_ops.c~slb-drop-kmem-cache-argument-from-constructor-reiser4
-+++ a/fs/reiser4/super_ops.c
-@@ -26,7 +26,7 @@ static struct dentry *reiser4_debugfs_ro
-  * Initialization function to be called when new page is allocated by reiser4
-  * inode cache. It is set on inode cache creation.
-  */
--static void init_once(struct kmem_cache *cache, void *obj)
-+static void init_once(void *obj)
- {
- 	struct reiser4_inode_object *info;
- 
+diff -puN fs/reiser4/plugin/file/cryptcompress.c~reiser4-suid fs/reiser4/plugin/file/cryptcompress.c
+--- a/fs/reiser4/plugin/file/cryptcompress.c~reiser4-suid
++++ a/fs/reiser4/plugin/file/cryptcompress.c
+@@ -2823,7 +2823,7 @@ ssize_t write_cryptcompress(struct file 
+ 	}
+   	if (unlikely(count == 0))
+ 		return 0;
+-	result = remove_suid(file->f_dentry);
++	result = file_remove_suid(file);
+ 	if (unlikely(result != 0)) {
+ 		context_set_commit_async(ctx);
+ 		return result;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -230,6 +230,7 @@ reiser4-tree_lock-fixes.patch
 reiser4-tree_lock-fixes-fix.patch
 reiser4-semaphore-fix.patch
 slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
 page-owner-tracking-leak-detector.patch
 nr_blockdev_pages-in_interrupt-warning.patch
 slab-leaks3-default-y.patch
