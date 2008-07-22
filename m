@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-use-generic-show_mem.patch added to -mm tree
-Date: Tue, 22 Jul 2008 03:23:56 -0700
-Message-ID: <200807221023.m6MANutQ023084@imap1.linux-foundation.org>
+Subject: + cris-use-generic-show_mem.patch added to -mm tree
+Date: Tue, 22 Jul 2008 03:24:12 -0700
+Message-ID: <200807221024.m6MAOC5S023122@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54235 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35239 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752232AbYGVKYD (ORCPT
+	by vger.kernel.org with ESMTP id S1753254AbYGVKYS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jul 2008 06:24:03 -0400
+	Tue, 22 Jul 2008 06:24:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hannes@saeurebad.de, benh@kernel.crashing.org, paulus@samba.org
+Cc: hannes@saeurebad.de, starvik@axis.com
 
 
 The patch titled
-     powerpc: use generic show_mem()
+     cris: use generic show_mem()
 has been added to the -mm tree.  Its filename is
-     powerpc-use-generic-show_mem.patch
+     cris-use-generic-show_mem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,76 +34,67 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: powerpc: use generic show_mem()
+Subject: cris: use generic show_mem()
 From: Johannes Weiner <hannes@saeurebad.de>
 
 Remove arch-specific show_mem() in favor of the generic version.
 
 This also removes the following redundant information display:
 
+	- free pages, printed by show_free_areas()
 	- pages in swapcache, printed by show_swap_cache_info()
 
 where show_mem() calls show_free_areas(), which calls
 show_swap_cache_info().
 
 Signed-off-by: Johannes Weiner <hannes@saeurebad.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
+Acked-by: Mikael Starvik <starvik@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/mem.c |   39 ---------------------------------------
- 1 file changed, 39 deletions(-)
+ arch/cris/mm/init.c |   30 ------------------------------
+ 1 file changed, 30 deletions(-)
 
-diff -puN arch/powerpc/mm/mem.c~powerpc-use-generic-show_mem arch/powerpc/mm/mem.c
---- a/arch/powerpc/mm/mem.c~powerpc-use-generic-show_mem
-+++ a/arch/powerpc/mm/mem.c
-@@ -186,45 +186,6 @@ walk_memory_resource(unsigned long start
- }
- EXPORT_SYMBOL_GPL(walk_memory_resource);
+diff -puN arch/cris/mm/init.c~cris-use-generic-show_mem arch/cris/mm/init.c
+--- a/arch/cris/mm/init.c~cris-use-generic-show_mem
++++ a/arch/cris/mm/init.c
+@@ -19,36 +19,6 @@ unsigned long empty_zero_page;
+ extern char _stext, _edata, _etext; /* From linkerscript */
+ extern char __init_begin, __init_end;
  
--void show_mem(void)
+-void 
+-show_mem(void)
 -{
--	unsigned long total = 0, reserved = 0;
--	unsigned long shared = 0, cached = 0;
--	unsigned long highmem = 0;
--	struct page *page;
--	pg_data_t *pgdat;
--	unsigned long i;
+-	int i,free = 0,total = 0,cached = 0, reserved = 0, nonshared = 0;
+-	int shared = 0;
 -
--	printk("Mem-info:\n");
+-	printk("\nMem-info:\n");
 -	show_free_areas();
--	for_each_online_pgdat(pgdat) {
--		unsigned long flags;
--		pgdat_resize_lock(pgdat, &flags);
--		for (i = 0; i < pgdat->node_spanned_pages; i++) {
--			if (!pfn_valid(pgdat->node_start_pfn + i))
--				continue;
--			page = pgdat_page_nr(pgdat, i);
--			total++;
--			if (PageHighMem(page))
--				highmem++;
--			if (PageReserved(page))
--				reserved++;
--			else if (PageSwapCache(page))
--				cached++;
--			else if (page_count(page))
--				shared += page_count(page) - 1;
--		}
--		pgdat_resize_unlock(pgdat, &flags);
+-	i = max_mapnr;
+-	while (i-- > 0) {
+-		total++;
+-		if (PageReserved(mem_map+i))
+-			reserved++;
+-		else if (PageSwapCache(mem_map+i))
+-			cached++;
+-		else if (!page_count(mem_map+i))
+-			free++;
+-		else if (page_count(mem_map+i) == 1)
+-			nonshared++;
+-		else
+-			shared += page_count(mem_map+i) - 1;
 -	}
--	printk("%ld pages of RAM\n", total);
--#ifdef CONFIG_HIGHMEM
--	printk("%ld pages of HIGHMEM\n", highmem);
--#endif
--	printk("%ld reserved pages\n", reserved);
--	printk("%ld pages shared\n", shared);
--	printk("%ld pages swap cached\n", cached);
+-	printk("%d pages of RAM\n",total);
+-	printk("%d free pages\n",free);
+-	printk("%d reserved pages\n",reserved);
+-	printk("%d pages nonshared\n",nonshared);
+-	printk("%d pages shared\n",shared);
+-	printk("%d pages swap cached\n",cached);
 -}
 -
- /*
-  * Initialize the bootmem system and give it all the memory we
-  * have available.  If we are using highmem, we only put the
+ void __init
+ mem_init(void)
+ {
 _
 
 Patches currently in -mm which might be from hannes@saeurebad.de are
