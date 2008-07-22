@@ -1,143 +1,206 @@
 From: akpm@linux-foundation.org
-Subject: + ip2-avoid-add_timer-with-pending-timer.patch added to -mm tree
-Date: Tue, 22 Jul 2008 11:37:47 -0700
-Message-ID: <200807221837.m6MIblw1010988@imap1.linux-foundation.org>
+Subject: - signals-introduce-kill_pid_ns_info.patch removed from -mm tree
+Date: Tue, 22 Jul 2008 11:43:40 -0700
+Message-ID: <200807221843.m6MIhenv011348@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38006 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38350 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751769AbYGVSh7 (ORCPT
+	by vger.kernel.org with ESMTP id S1751782AbYGVSoq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jul 2008 14:37:59 -0400
+	Tue, 22 Jul 2008 14:44:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, alan@lxorguk.ukuu.org.uk, jirislaby@gmail.com, mhw@wittsend.com
+To: ebiederm@xmission.com, daniel@hozac.com, oleg@tv-sign.ru, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ip2: avoid add_timer() with pending timer
-has been added to the -mm tree.  Its filename is
-     ip2-avoid-add_timer-with-pending-timer.patch
+     signals: introduce kill_pid_ns_info
+has been removed from the -mm tree.  Its filename was
+     signals-introduce-kill_pid_ns_info.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ip2: avoid add_timer() with pending timer
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: signals: introduce kill_pid_ns_info
+From: Eric W. Biederman <ebiederm@xmission.com>
 
-add_timer() is not suppose to be called when the timer is pending.  ip2
-driver attempts to avoid that condition by setting and resetting a flag
-(TimerOn) in timer function.  But there is some gap between add_timer()
-and setting TimerOn.
+Implement the basic helper function that walks all of the processes in a
+pid namespace and sends them all a signal.
 
-This patch fix this problem by using mod_timer() and remove TimerOn which
-has been unnecessary by this change.
+Both locations that could use this functions are also updated to use this
+function.
 
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Michael H. Warfield <mhw@wittsend.com>
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+I use find_ge_pid instead of for_each_process because it has a chance of
+not touching every process in the system.
+
+[daniel@hozac.com: Optimize away nr <= 1 check, against latest Linus tree]
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Signed-off-by: Daniel Hokka Zakrisson <daniel@hozac.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ip2/ip2main.c |   19 ++++---------------
- 1 file changed, 4 insertions(+), 15 deletions(-)
+ include/linux/sched.h  |    2 +
+ kernel/pid_namespace.c |   17 ------------
+ kernel/signal.c        |   52 ++++++++++++++++++++++++++++++---------
+ 3 files changed, 43 insertions(+), 28 deletions(-)
 
-diff -puN drivers/char/ip2/ip2main.c~ip2-avoid-add_timer-with-pending-timer drivers/char/ip2/ip2main.c
---- a/drivers/char/ip2/ip2main.c~ip2-avoid-add_timer-with-pending-timer
-+++ a/drivers/char/ip2/ip2main.c
-@@ -249,7 +249,6 @@ static unsigned long bh_counter;
-  */
- #define  POLL_TIMEOUT   (jiffies + 1)
- static DEFINE_TIMER(PollTimer, ip2_poll, 0, 0);
--static char  TimerOn;
+diff -puN include/linux/sched.h~signals-introduce-kill_pid_ns_info include/linux/sched.h
+--- a/include/linux/sched.h~signals-introduce-kill_pid_ns_info
++++ a/include/linux/sched.h
+@@ -1779,6 +1779,8 @@ extern void release_task(struct task_str
+ extern int send_sig_info(int, struct siginfo *, struct task_struct *);
+ extern int force_sigsegv(int, struct task_struct *);
+ extern int force_sig_info(int, struct siginfo *, struct task_struct *);
++extern int __kill_pid_ns_info(int sig, struct siginfo *info, struct pid_namespace *ns);
++extern int kill_pid_ns_info(int sig, struct siginfo *info, struct pid_namespace *ns);
+ extern int __kill_pgrp_info(int sig, struct siginfo *info, struct pid *pgrp);
+ extern int kill_pid_info(int sig, struct siginfo *info, struct pid *pid);
+ extern int kill_pid_info_as_uid(int, struct siginfo *, struct pid *, uid_t, uid_t, u32);
+diff -puN kernel/pid_namespace.c~signals-introduce-kill_pid_ns_info kernel/pid_namespace.c
+--- a/kernel/pid_namespace.c~signals-introduce-kill_pid_ns_info
++++ a/kernel/pid_namespace.c
+@@ -153,29 +153,14 @@ void free_pid_ns(struct kref *kref)
  
- #ifdef IP2DEBUG_TRACE
- /* Trace (debug) buffer data */
-@@ -374,11 +373,7 @@ static void __exit ip2_cleanup_module(vo
- 	int err;
- 	int i;
- 
--	/* Stop poll timer if we had one. */
--	if (TimerOn) {
--		del_timer(&PollTimer);
--		TimerOn = 0;
--	}
-+	del_timer_sync(&PollTimer);
- 
- 	/* Reset the boards we have. */
- 	for (i = 0; i < IP2_MAX_BOARDS; i++)
-@@ -774,10 +769,8 @@ static int __init ip2_loadmain(void)
- 		}
- 		if (ip2config.irq[i] == CIR_POLL) {
- retry:
--			if (!TimerOn) {
--				PollTimer.expires = POLL_TIMEOUT;
--				add_timer(&PollTimer);
--				TimerOn = 1;
-+			if (!timer_pending(&PollTimer)) {
-+				mod_timer(&PollTimer, POLL_TIMEOUT);
- 				printk(KERN_INFO "IP2: polling\n");
- 			}
- 		} else {
-@@ -1283,16 +1276,12 @@ ip2_poll(unsigned long arg)
+ void zap_pid_ns_processes(struct pid_namespace *pid_ns)
  {
- 	ip2trace (ITRC_NO_PORT, ITRC_INTR, 100, 0 );
+-	int nr;
+ 	int rc;
  
--	TimerOn = 0; // it's the truth but not checked in service
--
- 	// Just polled boards, IRQ = 0 will hit all non-interrupt boards.
- 	// It will NOT poll boards handled by hard interrupts.
- 	// The issue of queued BH interrupts is handled in ip2_interrupt().
- 	ip2_polled_interrupt();
+ 	/*
+ 	 * The last thread in the cgroup-init thread group is terminating.
+ 	 * Find remaining pid_ts in the namespace, signal and wait for them
+ 	 * to exit.
+-	 *
+-	 * Note:  This signals each threads in the namespace - even those that
+-	 * 	  belong to the same thread group, To avoid this, we would have
+-	 * 	  to walk the entire tasklist looking a processes in this
+-	 * 	  namespace, but that could be unnecessarily expensive if the
+-	 * 	  pid namespace has just a few processes. Or we need to
+-	 * 	  maintain a tasklist for each pid namespace.
+-	 *
+ 	 */
+-	read_lock(&tasklist_lock);
+-	nr = next_pidmap(pid_ns, 1);
+-	while (nr > 0) {
+-		kill_proc_info(SIGKILL, SEND_SIG_PRIV, nr);
+-		nr = next_pidmap(pid_ns, nr);
+-	}
+-	read_unlock(&tasklist_lock);
++	kill_pid_ns_info(SIGKILL, SEND_SIG_PRIV, pid_ns);
  
--	PollTimer.expires = POLL_TIMEOUT;
--	add_timer( &PollTimer );
--	TimerOn = 1;
-+	mod_timer(&PollTimer, POLL_TIMEOUT);
- 
- 	ip2trace (ITRC_NO_PORT, ITRC_INTR, ITRC_RETURN, 0 );
+ 	do {
+ 		clear_thread_flag(TIF_SIGPENDING);
+diff -puN kernel/signal.c~signals-introduce-kill_pid_ns_info kernel/signal.c
+--- a/kernel/signal.c~signals-introduce-kill_pid_ns_info
++++ a/kernel/signal.c
+@@ -1109,6 +1109,45 @@ out_unlock:
  }
+ EXPORT_SYMBOL_GPL(kill_pid_info_as_uid);
+ 
++int __kill_pid_ns_info(int sig, struct siginfo *info, struct pid_namespace *ns)
++{
++	int retval = 0, count = 0;
++	struct task_struct *p;
++	struct pid *pid;
++	int nr;
++
++	/* Since there isn't a pid namespace list of tasks use the closest
++	 * approximation we have: find_ge_pid.
++	 */
++	nr = 1;
++	while ((pid = find_ge_pid(nr + 1, ns))) {
++		int err;
++
++		nr = pid_nr_ns(pid, ns);
++		p = pid_task(pid, PIDTYPE_PID);
++		if (!p || !thread_group_leader(p) ||
++		    same_thread_group(p, current))
++			continue;
++
++		err = group_send_sig_info(sig, info, p);
++		++count;
++		if (err != -EPERM)
++			retval = err;
++	}
++	return count ? retval : -ESRCH;
++}
++
++int kill_pid_ns_info(int sig, struct siginfo *info, struct pid_namespace *ns)
++{
++	int retval;
++
++	read_lock(&tasklist_lock);
++	retval = __kill_pid_ns_info(sig, info, ns);
++	read_unlock(&tasklist_lock);
++
++	return retval;
++}
++
+ /*
+  * kill_something_info() interprets pid in interesting ways just like kill(2).
+  *
+@@ -1132,18 +1171,7 @@ static int kill_something_info(int sig, 
+ 		ret = __kill_pgrp_info(sig, info,
+ 				pid ? find_vpid(-pid) : task_pgrp(current));
+ 	} else {
+-		int retval = 0, count = 0;
+-		struct task_struct * p;
+-
+-		for_each_process(p) {
+-			if (p->pid > 1 && !same_thread_group(p, current)) {
+-				int err = group_send_sig_info(sig, info, p);
+-				++count;
+-				if (err != -EPERM)
+-					retval = err;
+-			}
+-		}
+-		ret = count ? retval : -ESRCH;
++		ret = __kill_pid_ns_info(sig, info, task_active_pid_ns(current));
+ 	}
+ 	read_unlock(&tasklist_lock);
+ 
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from ebiederm@xmission.com are
 
 origin.patch
-move-memory_read_from_buffer-from-fsh-to-stringh.patch
 linux-next.patch
-ipr-use-memory_read_from_buffer.patch
-qla2xxx-use-memory_read_from_buffer.patch
-qla2xxx-use-memory_read_from_buffer-fix.patch
-pm-hibernation-simplify-memory-bitmap.patch
-cris-use-simple_read_from_buffer.patch
-binfmt_misc-use-simple_read_from_buffer.patch
-aty-use-memory_read_from_buffer.patch
-aty-use-memory_read_from_buffer-fix.patch
-auxdisplay-small-cleanups.patch
-workqueues-do-cpu_up_canceled-if-cpu_up_prepare-fails.patch
-ipc-use-simple_read_from_buffer.patch
-nwflash-use-simple_read_from_buffer.patch
-char-merge-ip2main-and-ip2base.patch
-char-ip2-cleanup-globals.patch
-char-ip2-fix-sparse-warnings.patch
-char-ip2-init-deinit-cleanup.patch
-ip2-avoid-add_timer-with-pending-timer.patch
-firmware-use-memory_read_from_buffer.patch
-firmware-use-memory_read_from_buffer-fix.patch
-dcdbas-use-memory_read_from_buffer.patch
-dcdbas-use-memory_read_from_buffer-fix.patch
-dell_rbu-use-memory_read_from_buffer.patch
-dell_rbu-use-memory_read_from_buffer-fix.patch
+generic-irqs-enable-polling-for-disabled-screaming-irqs.patch
+memcg-remove-refcnt-from-page_cgroup.patch
+memcg-remove-refcnt-from-page_cgroup-fix.patch
+memcg-remove-refcnt-from-page_cgroup-fix-2.patch
+memcg-remove-refcnt-from-page_cgroup-fix-memcg-fix-mem_cgroup_end_migration-race.patch
+memcg-remove-refcnt-from-page_cgroup-memcg-fix-shmem_unuse_inode-charging.patch
+memcg-helper-function-for-relcaim-from-shmem.patch
+memcg-helper-function-for-relcaim-from-shmem-memcg-shmem_getpage-release-page-sooner.patch
+memcg-helper-function-for-relcaim-from-shmem-memcg-mem_cgroup_shrink_usage-css_put.patch
+memcg-add-hints-for-branch.patch
+memcg-remove-a-redundant-check.patch
+signals-introduce-kill_pid_ns_info.patch
+signals-introduce-kill_pid_ns_info-checkpatch-fixes.patch
+sysctl-check-for-bogus-modes.patch
+sysctl-allow-override-of-proc-sys-net-with-cap_net_admin.patch
+shrink-struct-pid-by-removing-padding-on-64-bit-builds.patch
+pidns-remove-now-unused-kill_proc-function.patch
+pidns-remove-now-unused-find_pid-function.patch
+pidns-remove-find_task_by_pid-unused-for-a-long-time.patch
+bsdacct-rename-acct_blbls-to-bsd_acct_struct.patch
+pidns-use-kzalloc-when-allocating-new-pid_namespace-struct.patch
+pidns-add-the-struct-bsd_acct_struct-pointer-on-pid_namespace-struct.patch
+bsdacct-truthify-a-comment-near-acct_process.patch
+bsdacct-make-check-timer-accept-a-bsd_acct_struct-argument.patch
+bsdacct-turn-the-acct_lock-from-on-the-struct-to-global.patch
+bsdacct-make-internal-code-work-with-passed-bsd_acct_struct-not-global.patch
+bsdacct-switch-from-global-bsd_acct_struct-instance-to-per-pidns-one.patch
+bsdacct-turn-acct-off-for-all-pidns-s-on-umount-time.patch
+bsdacct-account-dying-tasks-in-all-relevant-namespaces.patch
+kernel-kexecc-make-kimage_terminate-void.patch
+kexec-jump.patch
+kexec-jump-save-restore-device-state.patch
+proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
 
