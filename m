@@ -1,200 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: - gpio-pcf857x-add-lock-and-handle-more-chips.patch removed from -mm tree
-Date: Tue, 22 Jul 2008 14:32:15 -0700
-Message-ID: <200807222132.m6MLWF54018696@imap1.linux-foundation.org>
+Subject: - execve-filename-document-and-export-via-auxiliary-vector.patch removed from -mm tree
+Date: Tue, 22 Jul 2008 14:32:09 -0700
+Message-ID: <200807222132.m6MLW9ML018690@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60928 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34831 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753287AbYGVVc6 (ORCPT
+	by vger.kernel.org with ESMTP id S1754766AbYGVVdA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jul 2008 17:32:58 -0400
+	Tue, 22 Jul 2008 17:33:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: jreiser@BitWagon.com, benh@kernel.crashing.org, drepper@redhat.com, jakub@redhat.com, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gpio: pcf857x: add lock and handle more chips
+     execve filename: document and export via auxiliary vector
 has been removed from the -mm tree.  Its filename was
-     gpio-pcf857x-add-lock-and-handle-more-chips.patch
+     execve-filename-document-and-export-via-auxiliary-vector.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpio: pcf857x: add lock and handle more chips
-From: David Brownell <dbrownell@users.sourceforge.net>
+Subject: execve filename: document and export via auxiliary vector
+From: John Reiser <jreiser@BitWagon.com>
 
-Two small updates to the pcf857x driver: (a) the max732[89] chips are also
-second sources for the pcf8574/a, and (b) add a mutex to prevent trashing
-the cached state.  Adding the lock is effectively a bugfix, although it
-seems unlikely that anyone would have run into the issue it protects
-against.
+The Linux kernel puts the filename argument of execve() into the
+new address space.  Many developers are surprised to learn this.
+Those who know and could use it, object "But it's not documented."
+Those who want to use it dislike the expression
+  (char *)(1+ strlen(env[-1+ n_env]) + env[-1+ n_env])
+because it requires locating the last original environment variable,
+and assumes that the filename follows the characters.
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+This patch documents the insertion of the filename, and makes it easier to
+find by adding a new tag AT_EXECFN in the ElfXX_auxv_t; see <elf.h>.
+
+In many cases readlink("/proc/self/exe",) gives the same answer.  But if all
+the original pages get unmapped, then the kernel erases the symlink for
+/proc/self/exe.  This can happen when a program decompressor does a good job
+of cleaning up after uncompressing directly to memory, so that the address
+space of the target program looks the same as if compression had never
+happened.  One example is http://upx.sourceforge.net .
+
+One notable use of the underlying concept (what path containED the executable)
+is glibc expanding $ORIGIN in DT_RUNPATH.  In practice for the near term, it
+may be a good idea for user-mode code to use both /proc/self/exe and AT_EXECFN
+as fall-back methods for each other.  /proc/self/exe can fail due to
+unmapping, AT_EXECFN can fail because it won't be present on non-new systems. 
+The auxvec or {AT_EXECFN}.d_val also can get overwritten, although in nearly
+all cases this would be the result of a bug.
+
+The runtime cost is one NEW_AUX_ENT using two words of stack space.  The
+underlying value is maintained already as bprm->exec; setup_arg_pages() in
+fs/exec.c slides it for stack_shift, etc.
+
+Signed-off-by: John Reiser <jreiser@BitWagon.com>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: Jakub Jelinek <jakub@redhat.com>
+Cc: Ulrich Drepper <drepper@redhat.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/Kconfig   |    5 +++--
- drivers/gpio/pcf857x.c |   33 +++++++++++++++++++++++++++++----
- 2 files changed, 32 insertions(+), 6 deletions(-)
+ fs/binfmt_elf.c        |    1 +
+ include/linux/auxvec.h |    4 +++-
+ 2 files changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/gpio/Kconfig~gpio-pcf857x-add-lock-and-handle-more-chips drivers/gpio/Kconfig
---- a/drivers/gpio/Kconfig~gpio-pcf857x-add-lock-and-handle-more-chips
-+++ a/drivers/gpio/Kconfig
-@@ -45,7 +45,7 @@ config GPIO_PCA953X
- 	  will be called pca953x.
+diff -puN fs/binfmt_elf.c~execve-filename-document-and-export-via-auxiliary-vector fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~execve-filename-document-and-export-via-auxiliary-vector
++++ a/fs/binfmt_elf.c
+@@ -204,6 +204,7 @@ create_elf_tables(struct linux_binprm *b
+ 	NEW_AUX_ENT(AT_GID, tsk->gid);
+ 	NEW_AUX_ENT(AT_EGID, tsk->egid);
+  	NEW_AUX_ENT(AT_SECURE, security_bprm_secureexec(bprm));
++	NEW_AUX_ENT(AT_EXECFN, bprm->exec);
+ 	if (k_platform) {
+ 		NEW_AUX_ENT(AT_PLATFORM,
+ 			    (elf_addr_t)(unsigned long)u_platform);
+diff -puN include/linux/auxvec.h~execve-filename-document-and-export-via-auxiliary-vector include/linux/auxvec.h
+--- a/include/linux/auxvec.h~execve-filename-document-and-export-via-auxiliary-vector
++++ a/include/linux/auxvec.h
+@@ -26,8 +26,10 @@
  
- config GPIO_PCF857X
--	tristate "PCF857x, PCA857x, and PCA967x I2C GPIO expanders"
-+	tristate "PCF857x, PCA{85,96}7x, and MAX732[89] I2C GPIO expanders"
- 	depends on I2C
- 	help
- 	  Say yes here to provide access to most "quasi-bidirectional" I2C
-@@ -54,7 +54,8 @@ config GPIO_PCF857X
- 	  some of them.  Compatible models include:
+ #define AT_SECURE 23   /* secure mode boolean */
  
- 	  8 bits:   pcf8574, pcf8574a, pca8574, pca8574a,
--	            pca9670, pca9672, pca9674, pca9674a
-+	            pca9670, pca9672, pca9674, pca9674a,
-+	  	    max7328, max7329
++#define AT_EXECFN  31	/* filename of program */
+ #ifdef __KERNEL__
+-#define AT_VECTOR_SIZE_BASE (14 + 2) /* NEW_AUX_ENT entries in auxiliary table */
++#define AT_VECTOR_SIZE_BASE 17 /* NEW_AUX_ENT entries in auxiliary table */
++  /* number of "#define AT_.*" above, minus {AT_NULL, AT_IGNORE, AT_NOTELF} */
+ #endif
  
- 	  16 bits:  pcf8575, pcf8575c, pca8575,
- 	            pca9671, pca9673, pca9675
-diff -puN drivers/gpio/pcf857x.c~gpio-pcf857x-add-lock-and-handle-more-chips drivers/gpio/pcf857x.c
---- a/drivers/gpio/pcf857x.c~gpio-pcf857x-add-lock-and-handle-more-chips
-+++ a/drivers/gpio/pcf857x.c
-@@ -37,6 +37,8 @@ static const struct i2c_device_id pcf857
- 	{ "pca9671", 16 },
- 	{ "pca9673", 16 },
- 	{ "pca9675", 16 },
-+	{ "max7328", 8 },
-+	{ "max7329", 8 },
- 	{ }
- };
- MODULE_DEVICE_TABLE(i2c, pcf857x_id);
-@@ -56,6 +58,7 @@ MODULE_DEVICE_TABLE(i2c, pcf857x_id);
- struct pcf857x {
- 	struct gpio_chip	chip;
- 	struct i2c_client	*client;
-+	struct mutex		lock;		/* protect 'out' */
- 	unsigned		out;		/* software latch */
- };
- 
-@@ -66,9 +69,14 @@ struct pcf857x {
- static int pcf857x_input8(struct gpio_chip *chip, unsigned offset)
- {
- 	struct pcf857x	*gpio = container_of(chip, struct pcf857x, chip);
-+	int		status;
- 
-+	mutex_lock(&gpio->lock);
- 	gpio->out |= (1 << offset);
--	return i2c_smbus_write_byte(gpio->client, gpio->out);
-+	status = i2c_smbus_write_byte(gpio->client, gpio->out);
-+	mutex_unlock(&gpio->lock);
-+
-+	return status;
- }
- 
- static int pcf857x_get8(struct gpio_chip *chip, unsigned offset)
-@@ -84,12 +92,17 @@ static int pcf857x_output8(struct gpio_c
- {
- 	struct pcf857x	*gpio = container_of(chip, struct pcf857x, chip);
- 	unsigned	bit = 1 << offset;
-+	int		status;
- 
-+	mutex_lock(&gpio->lock);
- 	if (value)
- 		gpio->out |= bit;
- 	else
- 		gpio->out &= ~bit;
--	return i2c_smbus_write_byte(gpio->client, gpio->out);
-+	status = i2c_smbus_write_byte(gpio->client, gpio->out);
-+	mutex_unlock(&gpio->lock);
-+
-+	return status;
- }
- 
- static void pcf857x_set8(struct gpio_chip *chip, unsigned offset, int value)
-@@ -124,9 +137,14 @@ static int i2c_read_le16(struct i2c_clie
- static int pcf857x_input16(struct gpio_chip *chip, unsigned offset)
- {
- 	struct pcf857x	*gpio = container_of(chip, struct pcf857x, chip);
-+	int		status;
- 
-+	mutex_lock(&gpio->lock);
- 	gpio->out |= (1 << offset);
--	return i2c_write_le16(gpio->client, gpio->out);
-+	status = i2c_write_le16(gpio->client, gpio->out);
-+	mutex_unlock(&gpio->lock);
-+
-+	return status;
- }
- 
- static int pcf857x_get16(struct gpio_chip *chip, unsigned offset)
-@@ -142,12 +160,17 @@ static int pcf857x_output16(struct gpio_
- {
- 	struct pcf857x	*gpio = container_of(chip, struct pcf857x, chip);
- 	unsigned	bit = 1 << offset;
-+	int		status;
- 
-+	mutex_lock(&gpio->lock);
- 	if (value)
- 		gpio->out |= bit;
- 	else
- 		gpio->out &= ~bit;
--	return i2c_write_le16(gpio->client, gpio->out);
-+	status = i2c_write_le16(gpio->client, gpio->out);
-+	mutex_unlock(&gpio->lock);
-+
-+	return status;
- }
- 
- static void pcf857x_set16(struct gpio_chip *chip, unsigned offset, int value)
-@@ -173,6 +196,8 @@ static int pcf857x_probe(struct i2c_clie
- 	if (!gpio)
- 		return -ENOMEM;
- 
-+	mutex_init(&gpio->lock);
-+
- 	gpio->chip.base = pdata->gpio_base;
- 	gpio->chip.can_sleep = 1;
- 	gpio->chip.owner = THIS_MODULE;
+ #endif /* _LINUX_AUXVEC_H */
 _
 
-Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
+Patches currently in -mm which might be from jreiser@BitWagon.com are
 
 origin.patch
-linux-next.patch
-add-have_clk-to-kconfig-for-driver-dependencies.patch
-drivers-input-touchscreen-ads7846c-optimize-order-of-calculating-rt-in-ads7846_rx.patch
-pm-boot-time-suspend-selftest.patch
-pm-boot-time-suspend-selftest-vs-linux-next.patch
-pm-boot-time-suspend-selftest-update.patch
-drivers-power-fix-platform-driver-hotplug-coldplug.patch
-mfd-fix-platform-driver-hotplug-coldplug.patch
-parport-fix-platform-driver-hotplug-coldplug.patch
-spi-spi_mpc83xx-clockrate-fixes.patch
-xilinx_spi-test-below-0-on-unsigned-irq-in-xilinx_spi_probe.patch
-spi-kconfig-simplifications.patch
-spi-make-spi_board_infomodalias-a-char-array.patch
-spidev-bkl-removal.patch
-spi-au1550_spi-proper-platform-device.patch
-spi-au1550_spi-improve-pio-transfer-mode.patch
-spi-au1550_spi-improve-pio-transfer-mode-checkpatch-fixes.patch
-rtc-remove-bkl-for-ioctl.patch
-rtc-ds1305-ds1306-driver.patch
-rtc-ds1305-ds1306-driver-fix.patch
-rtc-bcd-codeshrink.patch
-rtc-rtc-omap-footprint-shrinkage.patch
-rtc-cmos-improve-hpet-irq-glue.patch
-rtc-at91rm9200-avoid-spurious-irqs.patch
-rtc-cmos-avoid-spurious-irqs.patch
-gpio-sysfs-interface-updated.patch
-gpio-sysfs-interface-updated-update.patch
-gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support.patch
-gpio-mcp23s08-handles-multiple-chips-per-chipselect.patch
-gpio-max732x-driver.patch
 
