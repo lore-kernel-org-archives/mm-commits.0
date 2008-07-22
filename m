@@ -1,137 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: - markers-use-rcu_barrier_sched-and-call_rcu_sched.patch removed from -mm tree
-Date: Tue, 22 Jul 2008 02:14:22 -0700
-Message-ID: <200807220914.m6M9EMDq020389@imap1.linux-foundation.org>
+Subject: + ide-cd-fix-oops-when-using-growisofs.patch added to -mm tree
+Date: Tue, 22 Jul 2008 02:25:47 -0700
+Message-ID: <200807220925.m6M9Pl3H020793@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44077 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49874 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752654AbYGVJT5 (ORCPT
+	by vger.kernel.org with ESMTP id S1751414AbYGVJ0S (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jul 2008 05:19:57 -0400
+	Tue, 22 Jul 2008 05:26:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mathieu.desnoyers@polymtl.ca, mingo@elte.hu, paulmck@us.ibm.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: jens.axboe@oracle.com, arnd@arndb.de, bzolnier@gmail.com, jack@suse.cz, mb@bu3sch.de, stable@kernel.org
 
 
 The patch titled
-     markers: use rcu_barrier_sched() and call_rcu_sched()
-has been removed from the -mm tree.  Its filename was
-     markers-use-rcu_barrier_sched-and-call_rcu_sched.patch
+     ide-cd: fix oops when using growisofs
+has been added to the -mm tree.  Its filename is
+     ide-cd-fix-oops-when-using-growisofs.patch
 
-This patch was dropped because it was nacked
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: markers: use rcu_barrier_sched() and call_rcu_sched()
-From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Subject: ide-cd: fix oops when using growisofs
+From: Jens Axboe <jens.axboe@oracle.com>
 
-rcu_barrier_sched() and call_rcu_sched() were introduced in 2.6.26 for the
-Markers.  Change the marker code to use them.
+cdrom_read_capacity() will blindly return the capacity from the device
+without sanity-checking it.  This later causes code in fs/buffer.c to
+oops.
 
-It can be seen as a fix since the marker code was using an ugly,
-temporary, #ifdef hack to work around CONFIG_PREEMPT_RCU.
+Fix this by checking that the device is telling us sensible things.
 
-Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Acked-by: Paul McKenney <paulmck@us.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Michael Buesch <mb@bu3sch.de>
+Tested-by: Jan Kara <jack@suse.cz>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/marker.c |   25 ++++++++-----------------
- 1 file changed, 8 insertions(+), 17 deletions(-)
+ drivers/ide/ide-cd.c |   26 +++++++++++++++++++++-----
+ 1 file changed, 21 insertions(+), 5 deletions(-)
 
-diff -puN kernel/marker.c~markers-use-rcu_barrier_sched-and-call_rcu_sched kernel/marker.c
---- a/kernel/marker.c~markers-use-rcu_barrier_sched-and-call_rcu_sched
-+++ a/kernel/marker.c
-@@ -441,7 +441,7 @@ static int remove_marker(const char *nam
- 	hlist_del(&e->hlist);
- 	/* Make sure the call_rcu has been executed */
- 	if (e->rcu_pending)
--		rcu_barrier();
-+		rcu_barrier_sched();
- 	kfree(e);
- 	return 0;
- }
-@@ -476,7 +476,7 @@ static int marker_set_format(struct mark
- 	hlist_del(&(*entry)->hlist);
- 	/* Make sure the call_rcu has been executed */
- 	if ((*entry)->rcu_pending)
--		rcu_barrier();
-+		rcu_barrier_sched();
- 	kfree(*entry);
- 	*entry = e;
- 	trace_mark(core_marker_format, "name %s format %s",
-@@ -655,7 +655,7 @@ int marker_probe_register(const char *na
- 	 * make sure it's executed now.
- 	 */
- 	if (entry->rcu_pending)
--		rcu_barrier();
-+		rcu_barrier_sched();
- 	old = marker_entry_add_probe(entry, probe, probe_private);
- 	if (IS_ERR(old)) {
- 		ret = PTR_ERR(old);
-@@ -670,10 +670,7 @@ int marker_probe_register(const char *na
- 	entry->rcu_pending = 1;
- 	/* write rcu_pending before calling the RCU callback */
- 	smp_wmb();
--#ifdef CONFIG_PREEMPT_RCU
--	synchronize_sched();	/* Until we have the call_rcu_sched() */
--#endif
--	call_rcu(&entry->rcu, free_old_closure);
-+	call_rcu_sched(&entry->rcu, free_old_closure);
- end:
- 	mutex_unlock(&markers_mutex);
- 	return ret;
-@@ -704,7 +701,7 @@ int marker_probe_unregister(const char *
- 	if (!entry)
- 		goto end;
- 	if (entry->rcu_pending)
--		rcu_barrier();
-+		rcu_barrier_sched();
- 	old = marker_entry_remove_probe(entry, probe, probe_private);
- 	mutex_unlock(&markers_mutex);
- 	marker_update_probes();		/* may update entry */
-@@ -716,10 +713,7 @@ int marker_probe_unregister(const char *
- 	entry->rcu_pending = 1;
- 	/* write rcu_pending before calling the RCU callback */
- 	smp_wmb();
--#ifdef CONFIG_PREEMPT_RCU
--	synchronize_sched();	/* Until we have the call_rcu_sched() */
--#endif
--	call_rcu(&entry->rcu, free_old_closure);
-+	call_rcu_sched(&entry->rcu, free_old_closure);
- 	remove_marker(name);	/* Ignore busy error message */
- 	ret = 0;
- end:
-@@ -786,7 +780,7 @@ int marker_probe_unregister_private_data
- 		goto end;
+diff -puN drivers/ide/ide-cd.c~ide-cd-fix-oops-when-using-growisofs drivers/ide/ide-cd.c
+--- a/drivers/ide/ide-cd.c~ide-cd-fix-oops-when-using-growisofs
++++ a/drivers/ide/ide-cd.c
+@@ -1311,13 +1311,29 @@ static int cdrom_read_capacity(ide_drive
+ 
+ 	stat = ide_cd_queue_pc(drive, cmd, 0, &capbuf, &len, sense, 0,
+ 			       REQ_QUIET);
+-	if (stat == 0) {
+-		*capacity = 1 + be32_to_cpu(capbuf.lba);
+-		*sectors_per_frame =
+-			be32_to_cpu(capbuf.blocklen) >> SECTOR_BITS;
++	if (stat)
++		return stat;
++
++	/*
++	 * Sanity check the given block size
++	 */
++	switch (capbuf.blocklen) {
++	case 512:
++	case 1024:
++	case 2048:
++	case 4096:
++		break;
++	default:
++		printk(KERN_ERR "ide-cd: weird block size %u\n",
++							capbuf.blocklen);
++		printk(KERN_ERR "ide-cd: default to 2kb block size\n");
++		capbuf.blocklen = 2048;
++		break;
  	}
- 	if (entry->rcu_pending)
--		rcu_barrier();
-+		rcu_barrier_sched();
- 	old = marker_entry_remove_probe(entry, NULL, probe_private);
- 	mutex_unlock(&markers_mutex);
- 	marker_update_probes();		/* may update entry */
-@@ -797,10 +791,7 @@ int marker_probe_unregister_private_data
- 	entry->rcu_pending = 1;
- 	/* write rcu_pending before calling the RCU callback */
- 	smp_wmb();
--#ifdef CONFIG_PREEMPT_RCU
--	synchronize_sched();	/* Until we have the call_rcu_sched() */
--#endif
--	call_rcu(&entry->rcu, free_old_closure);
-+	call_rcu_sched(&entry->rcu, free_old_closure);
- 	remove_marker(entry->name);	/* Ignore busy error message */
- end:
- 	mutex_unlock(&markers_mutex);
+ 
+-	return stat;
++	*capacity = 1 + be32_to_cpu(capbuf.lba);
++	*sectors_per_frame = be32_to_cpu(capbuf.blocklen) >> SECTOR_BITS;
++	return 0;
+ }
+ 
+ static int cdrom_read_tocentry(ide_drive_t *drive, int trackno, int msf_flag,
 _
 
-Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
+Patches currently in -mm which might be from jens.axboe@oracle.com are
 
 origin.patch
-markers-fix-duplicate-modpost-entry.patch
 linux-next.patch
-markers-use-rcu_barrier_sched-and-call_rcu_sched.patch
+cdrom-dont-check-cdc_play_audio-in-cdrom_count_tracks.patch
+ide-cd-fix-oops-when-using-growisofs.patch
+git-block.patch
+ide-cd-use-the-new-object_is_in_stack-helper.patch
+block-blk-mapc-use-the-new-object_is_on_stack-helper.patch
+i2o-handle-sysfs_create_link-failures.patch
+fs-partition-checkc-fix-return-value-warning.patch
+fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
+block-ioctlc-and-fs-partition-checkc.patch
+block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
+full-conversion-to-early_initcall-interface-remove-old-interface-fix.patch
+full-conversion-to-early_initcall-interface-remove-old-interface-fix-fix.patch
+full-conversion-to-early_initcall-interface-remove-old-interface-fix-fix-fix.patch
+x86-implement-pte_special.patch
+x86-implement-pte_special-fix.patch
+mm-introduce-get_user_pages_fast.patch
+mm-introduce-get_user_pages_fast-fix.patch
+mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast.patch
+x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-fix.patch
+x86-lockless-get_user_pages_fast-fix-2.patch
+x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
+x86-lockless-get_user_pages_fast-fix-warning.patch
+dio-use-get_user_pages_fast.patch
+splice-use-get_user_pages_fast.patch
+use-warn-in-block.patch
+reiser4.patch
 
