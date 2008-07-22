@@ -1,27 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + intel_agp-official-name-for-gm45-chipset.patch added to -mm tree
-Date: Tue, 22 Jul 2008 03:44:16 -0700
-Message-ID: <200807221044.m6MAiG6v024112@imap1.linux-foundation.org>
+Subject: + mmc-sd-card-fix.patch added to -mm tree
+Date: Tue, 22 Jul 2008 03:45:41 -0700
+Message-ID: <200807221045.m6MAjfS6024176@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34128 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57463 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753638AbYGVKok (ORCPT
+	by vger.kernel.org with ESMTP id S1754498AbYGVKqH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jul 2008 06:44:40 -0400
+	Tue, 22 Jul 2008 06:46:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: zhenyu.z.wang@intel.com, airlied@linux.ie
+Cc: marek.vasut@gmail.com, drzeus@drzeus.cx
 
 
 The patch titled
-     intel_agp: official name for GM45 chipset
+     mmc: SD card fix
 has been added to the -mm tree.  Its filename is
-     intel_agp-official-name-for-gm45-chipset.patch
+     mmc-sd-card-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -29,92 +26,59 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
-find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: intel_agp: official name for GM45 chipset
-=46rom: Zhenyu Wang <zhenyu.z.wang@intel.com>
+Subject: mmc: SD card fix
+From: Marek Vasut <marek.vasut@gmail.com>
 
-Signed-off-by: Zhenyu Wang <zhenyu.z.wang@intel.com>
-Cc: Dave Airlie <airlied@linux.ie>
+While I was tinkering with palmtx and preparing it for mainline, I
+noticed, that certain SD cards doesnt work (both Kingston - made by
+Toshiba).
+
+I came across this
+http://kerneltrap.org/mailarchive/linux-kernel/2007/9/28/325179
+The person there had the same problem.
+
+This patch fixed it for me, but this solution isn't definitely correct. 
+Though it should point out what's the actual problem very well.
+
+Signed-off-by: Marek Vasut <marek.vasut@gmail.com>
+Cc: Pierre Ossman <drzeus@drzeus.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/agp/intel-agp.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ include/linux/mmc/card.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/agp/intel-agp.c~intel_agp-official-name-for-gm45=
--chipset drivers/char/agp/intel-agp.c
---- a/drivers/char/agp/intel-agp.c~intel_agp-official-name-for-gm45-chi=
-pset
-+++ a/drivers/char/agp/intel-agp.c
-@@ -32,8 +32,8 @@
- #define PCI_DEVICE_ID_INTEL_Q35_IG          0x29B2
- #define PCI_DEVICE_ID_INTEL_Q33_HB          0x29D0
- #define PCI_DEVICE_ID_INTEL_Q33_IG          0x29D2
--#define PCI_DEVICE_ID_INTEL_IGD_HB          0x2A40
--#define PCI_DEVICE_ID_INTEL_IGD_IG          0x2A42
-+#define PCI_DEVICE_ID_INTEL_GM45_HB         0x2A40
-+#define PCI_DEVICE_ID_INTEL_GM45_IG         0x2A42
- #define PCI_DEVICE_ID_INTEL_IGD_E_HB        0x2E00
- #define PCI_DEVICE_ID_INTEL_IGD_E_IG        0x2E02
- #define PCI_DEVICE_ID_INTEL_Q45_HB          0x2E10
-@@ -55,7 +55,7 @@
- 		 agp_bridge->dev->device =3D=3D PCI_DEVICE_ID_INTEL_82965G_HB || \
- 		 agp_bridge->dev->device =3D=3D PCI_DEVICE_ID_INTEL_82965GM_HB || \
- 		 agp_bridge->dev->device =3D=3D PCI_DEVICE_ID_INTEL_82965GME_HB || \
--		 agp_bridge->dev->device =3D=3D PCI_DEVICE_ID_INTEL_IGD_HB)
-+		 agp_bridge->dev->device =3D=3D PCI_DEVICE_ID_INTEL_GM45_HB)
-=20
- #define IS_G33 (agp_bridge->dev->device =3D=3D PCI_DEVICE_ID_INTEL_G33=
-_HB || \
- 		agp_bridge->dev->device =3D=3D PCI_DEVICE_ID_INTEL_Q35_HB || \
-@@ -1182,7 +1182,7 @@ static unsigned long intel_i965_mask_mem
- static void intel_i965_get_gtt_range(int *gtt_offset, int *gtt_size)
- {
- 	switch (agp_bridge->dev->device) {
--	case PCI_DEVICE_ID_INTEL_IGD_HB:
-+	case PCI_DEVICE_ID_INTEL_GM45_HB:
- 	case PCI_DEVICE_ID_INTEL_IGD_E_HB:
- 	case PCI_DEVICE_ID_INTEL_Q45_HB:
- 	case PCI_DEVICE_ID_INTEL_G45_HB:
-@@ -2117,8 +2117,8 @@ static const struct intel_driver_descrip
- 		NULL, &intel_g33_driver },
- 	{ PCI_DEVICE_ID_INTEL_Q33_HB, PCI_DEVICE_ID_INTEL_Q33_IG, 0, "Q33",
- 		NULL, &intel_g33_driver },
--	{ PCI_DEVICE_ID_INTEL_IGD_HB, PCI_DEVICE_ID_INTEL_IGD_IG, 0,
--	    "Intel Integrated Graphics Device", NULL, &intel_i965_driver },
-+	{ PCI_DEVICE_ID_INTEL_GM45_HB, PCI_DEVICE_ID_INTEL_GM45_IG, 0,
-+	    "Mobile Intel=AE GM45 Express", NULL, &intel_i965_driver },
- 	{ PCI_DEVICE_ID_INTEL_IGD_E_HB, PCI_DEVICE_ID_INTEL_IGD_E_IG, 0,
- 	    "Intel Integrated Graphics Device", NULL, &intel_i965_driver },
- 	{ PCI_DEVICE_ID_INTEL_Q45_HB, PCI_DEVICE_ID_INTEL_Q45_IG, 0,
-@@ -2315,7 +2315,7 @@ static struct pci_device_id agp_intel_pc
- 	ID(PCI_DEVICE_ID_INTEL_G33_HB),
- 	ID(PCI_DEVICE_ID_INTEL_Q35_HB),
- 	ID(PCI_DEVICE_ID_INTEL_Q33_HB),
--	ID(PCI_DEVICE_ID_INTEL_IGD_HB),
-+	ID(PCI_DEVICE_ID_INTEL_GM45_HB),
- 	ID(PCI_DEVICE_ID_INTEL_IGD_E_HB),
- 	ID(PCI_DEVICE_ID_INTEL_Q45_HB),
- 	ID(PCI_DEVICE_ID_INTEL_G45_HB),
+diff -puN include/linux/mmc/card.h~mmc-sd-card-fix include/linux/mmc/card.h
+--- a/include/linux/mmc/card.h~mmc-sd-card-fix
++++ a/include/linux/mmc/card.h
+@@ -85,7 +85,6 @@ struct mmc_card {
+ 	struct mmc_host		*host;		/* the host this device belongs to */
+ 	struct device		dev;		/* the device */
+ 	unsigned int		rca;		/* relative card address of device */
+-	unsigned int		type;		/* card type */
+ #define MMC_TYPE_MMC		0		/* MMC card */
+ #define MMC_TYPE_SD		1		/* SD card */
+ #define MMC_TYPE_SDIO		2		/* SDIO card */
+@@ -98,6 +97,7 @@ struct mmc_card {
+ 	u32			raw_cid[4];	/* raw card CID */
+ 	u32			raw_csd[4];	/* raw card CSD */
+ 	u32			raw_scr[2];	/* raw card SCR */
++	unsigned int		type;		/* card type */
+ 	struct mmc_cid		cid;		/* card identification */
+ 	struct mmc_csd		csd;		/* card specific */
+ 	struct mmc_ext_csd	ext_csd;	/* mmc v4 extended card specific */
 _
 
-Patches currently in -mm which might be from zhenyu.z.wang@intel.com ar=
-e
+Patches currently in -mm which might be from marek.vasut@gmail.com are
 
-intel_agp-official-name-for-gm45-chipset.patch
+linux-next.patch
+mmc-sd-card-fix.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
