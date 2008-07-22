@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mips-use-generic-show_mem.patch added to -mm tree
-Date: Tue, 22 Jul 2008 03:24:02 -0700
-Message-ID: <200807221024.m6MAO2Zn023104@imap1.linux-foundation.org>
+Subject: + powerpc-use-generic-show_mem.patch added to -mm tree
+Date: Tue, 22 Jul 2008 03:23:56 -0700
+Message-ID: <200807221023.m6MANutQ023084@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41420 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54235 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753210AbYGVKYP (ORCPT
+	by vger.kernel.org with ESMTP id S1752232AbYGVKYD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jul 2008 06:24:15 -0400
+	Tue, 22 Jul 2008 06:24:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hannes@saeurebad.de, ralf@linux-mips.org
+Cc: hannes@saeurebad.de, benh@kernel.crashing.org, paulus@samba.org
 
 
 The patch titled
-     mips: use generic show_mem()
+     powerpc: use generic show_mem()
 has been added to the -mm tree.  Its filename is
-     mips-use-generic-show_mem.patch
+     powerpc-use-generic-show_mem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mips: use generic show_mem()
+Subject: powerpc: use generic show_mem()
 From: Johannes Weiner <hannes@saeurebad.de>
 
 Remove arch-specific show_mem() in favor of the generic version.
@@ -46,71 +46,64 @@ This also removes the following redundant information display:
 where show_mem() calls show_free_areas(), which calls
 show_swap_cache_info().
 
-And show_mem() does now actually print something on configurations
-with multiple nodes.
-
 Signed-off-by: Johannes Weiner <hannes@saeurebad.de>
-Acked-by: Ralf Baechle <ralf@linux-mips.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/mm/Makefile  |    3 +--
- arch/mips/mm/pgtable.c |   36 ------------------------------------
- 2 files changed, 1 insertion(+), 38 deletions(-)
+ arch/powerpc/mm/mem.c |   39 ---------------------------------------
+ 1 file changed, 39 deletions(-)
 
-diff -puN arch/mips/mm/Makefile~mips-use-generic-show_mem arch/mips/mm/Makefile
---- a/arch/mips/mm/Makefile~mips-use-generic-show_mem
-+++ a/arch/mips/mm/Makefile
-@@ -3,8 +3,7 @@
- #
+diff -puN arch/powerpc/mm/mem.c~powerpc-use-generic-show_mem arch/powerpc/mm/mem.c
+--- a/arch/powerpc/mm/mem.c~powerpc-use-generic-show_mem
++++ a/arch/powerpc/mm/mem.c
+@@ -186,45 +186,6 @@ walk_memory_resource(unsigned long start
+ }
+ EXPORT_SYMBOL_GPL(walk_memory_resource);
  
- obj-y				+= cache.o dma-default.o extable.o fault.o \
--				   init.o pgtable.o tlbex.o tlbex-fault.o \
--				   uasm.o page.o
-+				   init.o tlbex.o tlbex-fault.o uasm.o page.o
- 
- obj-$(CONFIG_32BIT)		+= ioremap.o pgtable-32.o
- obj-$(CONFIG_64BIT)		+= pgtable-64.o
-diff -puN arch/mips/mm/pgtable.c~mips-use-generic-show_mem /dev/null
---- a/arch/mips/mm/pgtable.c
-+++ /dev/null
-@@ -1,36 +0,0 @@
--#include <linux/kernel.h>
--#include <linux/mm.h>
--#include <linux/swap.h>
--
 -void show_mem(void)
 -{
--#ifndef CONFIG_NEED_MULTIPLE_NODES  /* XXX(hch): later.. */
--	int pfn, total = 0, reserved = 0;
--	int shared = 0, cached = 0;
--	int highmem = 0;
+-	unsigned long total = 0, reserved = 0;
+-	unsigned long shared = 0, cached = 0;
+-	unsigned long highmem = 0;
 -	struct page *page;
+-	pg_data_t *pgdat;
+-	unsigned long i;
 -
 -	printk("Mem-info:\n");
 -	show_free_areas();
--	pfn = max_mapnr;
--	while (pfn-- > 0) {
--		if (!pfn_valid(pfn))
--			continue;
--		page = pfn_to_page(pfn);
--		total++;
--		if (PageHighMem(page))
--			highmem++;
--		if (PageReserved(page))
--			reserved++;
--		else if (PageSwapCache(page))
--			cached++;
--		else if (page_count(page))
--			shared += page_count(page) - 1;
+-	for_each_online_pgdat(pgdat) {
+-		unsigned long flags;
+-		pgdat_resize_lock(pgdat, &flags);
+-		for (i = 0; i < pgdat->node_spanned_pages; i++) {
+-			if (!pfn_valid(pgdat->node_start_pfn + i))
+-				continue;
+-			page = pgdat_page_nr(pgdat, i);
+-			total++;
+-			if (PageHighMem(page))
+-				highmem++;
+-			if (PageReserved(page))
+-				reserved++;
+-			else if (PageSwapCache(page))
+-				cached++;
+-			else if (page_count(page))
+-				shared += page_count(page) - 1;
+-		}
+-		pgdat_resize_unlock(pgdat, &flags);
 -	}
--	printk("%d pages of RAM\n", total);
--	printk("%d pages of HIGHMEM\n", highmem);
--	printk("%d reserved pages\n", reserved);
--	printk("%d pages shared\n", shared);
--	printk("%d pages swap cached\n", cached);
+-	printk("%ld pages of RAM\n", total);
+-#ifdef CONFIG_HIGHMEM
+-	printk("%ld pages of HIGHMEM\n", highmem);
 -#endif
+-	printk("%ld reserved pages\n", reserved);
+-	printk("%ld pages shared\n", shared);
+-	printk("%ld pages swap cached\n", cached);
 -}
+-
+ /*
+  * Initialize the bootmem system and give it all the memory we
+  * have available.  If we are using highmem, we only put the
 _
 
 Patches currently in -mm which might be from hannes@saeurebad.de are
