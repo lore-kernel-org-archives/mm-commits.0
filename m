@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + xtensa-use-generic-show_mem.patch added to -mm tree
-Date: Tue, 22 Jul 2008 03:23:44 -0700
-Message-ID: <200807221023.m6MANiG7023062@imap1.linux-foundation.org>
+Subject: + avr32-use-generic-show_mem.patch added to -mm tree
+Date: Tue, 22 Jul 2008 03:23:40 -0700
+Message-ID: <200807221023.m6MANeRY023056@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59387 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40426 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752232AbYGVKXt (ORCPT
+	by vger.kernel.org with ESMTP id S1754624AbYGVKXr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jul 2008 06:23:49 -0400
+	Tue, 22 Jul 2008 06:23:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hannes@saeurebad.de, chris@zankel.net
+Cc: hannes@saeurebad.de, hskinnemoen@atmel.com
 
 
 The patch titled
-     xtensa: use generic show_mem()
+     avr32: use generic show_mem()
 has been added to the -mm tree.  Its filename is
-     xtensa-use-generic-show_mem.patch
+     avr32-use-generic-show_mem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: xtensa: use generic show_mem()
+Subject: avr32: use generic show_mem()
 From: Johannes Weiner <hannes@saeurebad.de>
 
 Remove arch-specific show_mem() in favor of the generic version.
@@ -42,55 +42,69 @@ Remove arch-specific show_mem() in favor of the generic version.
 This also removes the following redundant information display:
 
 	- free pages, printed by show_free_areas()
+	- pages in slabs, printed by show_free_areas()
 	- pages in swapcache, printed by show_swap_cache_info()
 
 where show_mem() calls show_free_areas(), which calls
 show_swap_cache_info().
 
 Signed-off-by: Johannes Weiner <hannes@saeurebad.de>
-Cc: Chris Zankel <chris@zankel.net>
+Acked-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/mm/init.c |   26 --------------------------
- 1 file changed, 26 deletions(-)
+ arch/avr32/mm/init.c |   39 ---------------------------------------
+ 1 file changed, 39 deletions(-)
 
-diff -puN arch/xtensa/mm/init.c~xtensa-use-generic-show_mem arch/xtensa/mm/init.c
---- a/arch/xtensa/mm/init.c~xtensa-use-generic-show_mem
-+++ a/arch/xtensa/mm/init.c
-@@ -272,32 +272,6 @@ void free_initmem(void)
- 	       (&__init_end - &__init_begin) >> 10);
- }
+diff -puN arch/avr32/mm/init.c~avr32-use-generic-show_mem arch/avr32/mm/init.c
+--- a/arch/avr32/mm/init.c~avr32-use-generic-show_mem
++++ a/arch/avr32/mm/init.c
+@@ -38,45 +38,6 @@ EXPORT_SYMBOL(empty_zero_page);
+  */
+ unsigned long mmu_context_cache = NO_CONTEXT;
  
 -void show_mem(void)
 -{
--	int i, free = 0, total = 0, reserved = 0;
--	int shared = 0, cached = 0;
+-	int total = 0, reserved = 0, cached = 0;
+-	int slab = 0, free = 0, shared = 0;
+-	pg_data_t *pgdat;
 -
 -	printk("Mem-info:\n");
 -	show_free_areas();
--	i = max_mapnr;
--	while (i-- > 0) {
--		total++;
--		if (PageReserved(mem_map+i))
--			reserved++;
--		else if (PageSwapCache(mem_map+i))
--			cached++;
--		else if (!page_count(mem_map + i))
--			free++;
--		else
--			shared += page_count(mem_map + i) - 1;
+-
+-	for_each_online_pgdat(pgdat) {
+-		struct page *page, *end;
+-
+-		page = pgdat->node_mem_map;
+-		end = page + pgdat->node_spanned_pages;
+-
+-		do {
+-			total++;
+-			if (PageReserved(page))
+-				reserved++;
+-			else if (PageSwapCache(page))
+-				cached++;
+-			else if (PageSlab(page))
+-				slab++;
+-			else if (!page_count(page))
+-				free++;
+-			else
+-				shared += page_count(page) - 1;
+-			page++;
+-		} while (page < end);
 -	}
--	printk("%d pages of RAM\n", total);
--	printk("%d reserved pages\n", reserved);
--	printk("%d pages shared\n", shared);
--	printk("%d pages swap cached\n",cached);
--	printk("%d free pages\n", free);
+-
+-	printk ("%d pages of RAM\n", total);
+-	printk ("%d free pages\n", free);
+-	printk ("%d reserved pages\n", reserved);
+-	printk ("%d slab pages\n", slab);
+-	printk ("%d pages shared\n", shared);
+-	printk ("%d pages swap cached\n", cached);
 -}
 -
- struct kmem_cache *pgtable_cache __read_mostly;
- 
- static void pgd_ctor(void* addr)
+ /*
+  * paging_init() sets up the page tables
+  *
 _
 
 Patches currently in -mm which might be from hannes@saeurebad.de are
