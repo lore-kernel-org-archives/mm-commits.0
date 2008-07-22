@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + workqueues-do-cpu_up_canceled-if-cpu_up_prepare-fails.patch added to -mm tree
-Date: Tue, 22 Jul 2008 03:29:25 -0700
-Message-ID: <200807221029.m6MATPB9023367@imap1.linux-foundation.org>
+Subject: + ipc-do-not-use-a-negative-value-to-re-enable-msgmni-automatic-recomputing.patch added to -mm tree
+Date: Tue, 22 Jul 2008 03:35:43 -0700
+Message-ID: <200807221035.m6MAZhQZ023705@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55752 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44902 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752712AbYGVK3i (ORCPT
+	by vger.kernel.org with ESMTP id S1755310AbYGVKgs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jul 2008 06:29:38 -0400
+	Tue, 22 Jul 2008 06:36:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, akinobu.mita@gmail.com
+Cc: Nadia.Derbey@bull.net, Solofo.Ramangalahy@bull.net
 
 
 The patch titled
-     workqueues: do CPU_UP_CANCELED if CPU_UP_PREPARE fails
+     ipc: do not use a negative value to re-enable msgmni automatic recomputing
 has been added to the -mm tree.  Its filename is
-     workqueues-do-cpu_up_canceled-if-cpu_up_prepare-fails.patch
+     ipc-do-not-use-a-negative-value-to-re-enable-msgmni-automatic-recomputing.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,147 +34,269 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: workqueues: do CPU_UP_CANCELED if CPU_UP_PREPARE fails
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: ipc: do not use a negative value to re-enable msgmni automatic recomputing
+From: Nadia.Derbey@bull.net
 
-The bug was pointed out by Akinobu Mita <akinobu.mita@gmail.com>, and this
-patch is based on his original patch.
+This patch proposes an alternative to the "magical
+positive-versus-negative number trick" Andrew complained about last week
+in http://lkml.org/lkml/2008/6/24/418.
 
-workqueue_cpu_callback(CPU_UP_PREPARE) expects that if it returns
-NOTIFY_BAD, _cpu_up() will send CPU_UP_CANCELED then.
+This had been introduced with the patches that scale msgmni to the amount
+of lowmem.  With these patches, msgmni has a registered notification
+routine that recomputes msgmni value upon memory add/remove or ipc
+namespace creation/ removal.
 
-However, this is not true since
+When msgmni is changed from user space (i.e.  value written to the proc
+file), that notification routine is unregistered, and the way to make it
+registered back is to write a negative value into the proc file.  This is
+the "magical positive-versus-negative number trick".
 
-	"cpu hotplug: cpu: deliver CPU_UP_CANCELED only to NOTIFY_OKed callbacks with CPU_UP_PREPARE"
-	commit: a0d8cdb652d35af9319a9e0fb7134de2a276c636
+To fix this, a new proc file is introduced: /proc/sys/kernel/auto_msgmni.
+This file acts as ON/OFF for msgmni automatic recomputing.
 
-The callback which has returned NOTIFY_BAD will not receive
-CPU_UP_CANCELED.  Change the code to fulfil the CPU_UP_CANCELED logic if
-CPU_UP_PREPARE fails.
+With this patch, the process is the following:
+1) kernel boots in "automatic recomputing mode"
+   /proc/sys/kernel/msgmni contains the value that has been computed (depends
+                           on lowmem)
+   /proc/sys/kernel/automatic_msgmni contains "1"
 
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Reported-by: Akinobu Mita <akinobu.mita@gmail.com>
+2) echo <val> > /proc/sys/kernel/msgmni
+   . sets msg_ctlmni to <val>
+   . de-activates automatic recomputing (i.e. if, say, some memory is added
+     msgmni won't be recomputed anymore)
+   . /proc/sys/kernel/automatic_msgmni now contains "0"
+
+3) echo "0" > /proc/sys/kernel/automatic_msgmni
+   . de-activates msgmni automatic recomputing
+     this has the same effect as 2) except that msg_ctlmni's value stays
+     blocked at its current value)
+
+3) echo "1" > /proc/sys/kernel/automatic_msgmni
+   . recomputes msgmni's value based on the current available memory size
+     and number of ipc namespaces
+   . re-activates automatic recomputing for msgmni.
+
+Signed-off-by: Nadia Derbey <Nadia.Derbey@bull.net>
+Cc: Solofo Ramangalahy <Solofo.Ramangalahy@bull.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/workqueue.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ include/linux/ipc_namespace.h |    3 -
+ ipc/ipc_sysctl.c              |   72 ++++++++++++++++++++++++++------
+ ipc/ipcns_notifier.c          |   20 ++++++--
+ 3 files changed, 76 insertions(+), 19 deletions(-)
 
-diff -puN kernel/workqueue.c~workqueues-do-cpu_up_canceled-if-cpu_up_prepare-fails kernel/workqueue.c
---- a/kernel/workqueue.c~workqueues-do-cpu_up_canceled-if-cpu_up_prepare-fails
-+++ a/kernel/workqueue.c
-@@ -911,6 +911,7 @@ static int __devinit workqueue_cpu_callb
- 	unsigned int cpu = (unsigned long)hcpu;
- 	struct cpu_workqueue_struct *cwq;
- 	struct workqueue_struct *wq;
-+	int ret = NOTIFY_OK;
+diff -puN include/linux/ipc_namespace.h~ipc-do-not-use-a-negative-value-to-re-enable-msgmni-automatic-recomputing include/linux/ipc_namespace.h
+--- a/include/linux/ipc_namespace.h~ipc-do-not-use-a-negative-value-to-re-enable-msgmni-automatic-recomputing
++++ a/include/linux/ipc_namespace.h
+@@ -36,6 +36,7 @@ struct ipc_namespace {
+ 	int		msg_ctlmni;
+ 	atomic_t	msg_bytes;
+ 	atomic_t	msg_hdrs;
++	int		auto_msgmni;
  
- 	action &= ~CPU_TASKS_FROZEN;
+ 	size_t		shm_ctlmax;
+ 	size_t		shm_ctlall;
+@@ -53,7 +54,7 @@ extern atomic_t nr_ipc_ns;
  
-@@ -918,7 +919,7 @@ static int __devinit workqueue_cpu_callb
- 	case CPU_UP_PREPARE:
- 		cpu_set(cpu, cpu_populated_map);
- 	}
--
-+undo:
- 	list_for_each_entry(wq, &workqueues, list) {
- 		cwq = per_cpu_ptr(wq->cpu_wq, cpu);
+ extern int register_ipcns_notifier(struct ipc_namespace *);
+ extern int cond_register_ipcns_notifier(struct ipc_namespace *);
+-extern int unregister_ipcns_notifier(struct ipc_namespace *);
++extern void unregister_ipcns_notifier(struct ipc_namespace *);
+ extern int ipcns_notify(unsigned long);
  
-@@ -928,7 +929,9 @@ static int __devinit workqueue_cpu_callb
- 				break;
- 			printk(KERN_ERR "workqueue [%s] for %i failed\n",
- 				wq->name, cpu);
--			return NOTIFY_BAD;
-+			action = CPU_UP_CANCELED;
-+			ret = NOTIFY_BAD;
-+			goto undo;
- 
- 		case CPU_ONLINE:
- 			start_workqueue_thread(cwq, cpu);
-@@ -948,7 +951,7 @@ static int __devinit workqueue_cpu_callb
- 		cpu_clear(cpu, cpu_populated_map);
- 	}
- 
--	return NOTIFY_OK;
-+	return ret;
+ #else /* CONFIG_SYSVIPC */
+diff -puN ipc/ipc_sysctl.c~ipc-do-not-use-a-negative-value-to-re-enable-msgmni-automatic-recomputing ipc/ipc_sysctl.c
+--- a/ipc/ipc_sysctl.c~ipc-do-not-use-a-negative-value-to-re-enable-msgmni-automatic-recomputing
++++ a/ipc/ipc_sysctl.c
+@@ -27,15 +27,17 @@ static void *get_ipc(ctl_table *table)
  }
  
- void __init init_workqueues(void)
+ /*
+- * Routine that is called when a tunable has successfully been changed by
+- * hand and it has a callback routine registered on the ipc namespace notifier
+- * chain: we don't want such tunables to be recomputed anymore upon memory
+- * add/remove or ipc namespace creation/removal.
+- * They can come back to a recomputable state by being set to a <0 value.
++ * Routine that is called when the file "auto_msgmni" has successfully been
++ * written.
++ * Two values are allowed:
++ * 0: unregister msgmni's callback routine from the ipc namespace notifier
++ *    chain. This means that msgmni won't be recomputed anymore upon memory
++ *    add/remove or ipc namespace creation/removal.
++ * 1: register back the callback routine.
+  */
+-static void tunable_set_callback(int val)
++static void ipc_auto_callback(int val)
+ {
+-	if (val >= 0)
++	if (!val)
+ 		unregister_ipcns_notifier(current->nsproxy->ipc_ns);
+ 	else {
+ 		/*
+@@ -71,7 +73,12 @@ static int proc_ipc_callback_dointvec(ct
+ 	rc = proc_dointvec(&ipc_table, write, filp, buffer, lenp, ppos);
+ 
+ 	if (write && !rc && lenp_bef == *lenp)
+-		tunable_set_callback(*((int *)(ipc_table.data)));
++		/*
++		 * Tunable has successfully been changed by hand. Disable its
++		 * automatic adjustment. This simply requires unregistering
++		 * the notifiers that trigger recalculation.
++		 */
++		unregister_ipcns_notifier(current->nsproxy->ipc_ns);
+ 
+ 	return rc;
+ }
+@@ -87,10 +94,39 @@ static int proc_ipc_doulongvec_minmax(ct
+ 					lenp, ppos);
+ }
+ 
++static int proc_ipcauto_dointvec_minmax(ctl_table *table, int write,
++	struct file *filp, void __user *buffer, size_t *lenp, loff_t *ppos)
++{
++	struct ctl_table ipc_table;
++	size_t lenp_bef = *lenp;
++	int oldval;
++	int rc;
++
++	memcpy(&ipc_table, table, sizeof(ipc_table));
++	ipc_table.data = get_ipc(table);
++	oldval = *((int *)(ipc_table.data));
++
++	rc = proc_dointvec_minmax(&ipc_table, write, filp, buffer, lenp, ppos);
++
++	if (write && !rc && lenp_bef == *lenp) {
++		int newval = *((int *)(ipc_table.data));
++		/*
++		 * The file "auto_msgmni" has correctly been set.
++		 * React by (un)registering the corresponding tunable, if the
++		 * value has changed.
++		 */
++		if (newval != oldval)
++			ipc_auto_callback(newval);
++	}
++
++	return rc;
++}
++
+ #else
+ #define proc_ipc_doulongvec_minmax NULL
+ #define proc_ipc_dointvec	   NULL
+ #define proc_ipc_callback_dointvec NULL
++#define proc_ipcauto_dointvec_minmax NULL
+ #endif
+ 
+ #ifdef CONFIG_SYSCTL_SYSCALL
+@@ -142,14 +178,11 @@ static int sysctl_ipc_registered_data(ct
+ 	rc = sysctl_ipc_data(table, name, nlen, oldval, oldlenp, newval,
+ 		newlen);
+ 
+-	if (newval && newlen && rc > 0) {
++	if (newval && newlen && rc > 0)
+ 		/*
+ 		 * Tunable has successfully been changed from userland
+ 		 */
+-		int *data = get_ipc(table);
+-
+-		tunable_set_callback(*data);
+-	}
++		unregister_ipcns_notifier(current->nsproxy->ipc_ns);
+ 
+ 	return rc;
+ }
+@@ -158,6 +191,9 @@ static int sysctl_ipc_registered_data(ct
+ #define sysctl_ipc_registered_data NULL
+ #endif
+ 
++static int zero;
++static int one = 1;
++
+ static struct ctl_table ipc_kern_table[] = {
+ 	{
+ 		.ctl_name	= KERN_SHMMAX,
+@@ -222,6 +258,16 @@ static struct ctl_table ipc_kern_table[]
+ 		.proc_handler	= proc_ipc_dointvec,
+ 		.strategy	= sysctl_ipc_data,
+ 	},
++	{
++		.ctl_name	= CTL_UNNUMBERED,
++		.procname	= "auto_msgmni",
++		.data		= &init_ipc_ns.auto_msgmni,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= proc_ipcauto_dointvec_minmax,
++		.extra1		= &zero,
++		.extra2		= &one,
++	},
+ 	{}
+ };
+ 
+diff -puN ipc/ipcns_notifier.c~ipc-do-not-use-a-negative-value-to-re-enable-msgmni-automatic-recomputing ipc/ipcns_notifier.c
+--- a/ipc/ipcns_notifier.c~ipc-do-not-use-a-negative-value-to-re-enable-msgmni-automatic-recomputing
++++ a/ipc/ipcns_notifier.c
+@@ -55,25 +55,35 @@ static int ipcns_callback(struct notifie
+ 
+ int register_ipcns_notifier(struct ipc_namespace *ns)
+ {
++	int rc;
++
+ 	memset(&ns->ipcns_nb, 0, sizeof(ns->ipcns_nb));
+ 	ns->ipcns_nb.notifier_call = ipcns_callback;
+ 	ns->ipcns_nb.priority = IPCNS_CALLBACK_PRI;
+-	return blocking_notifier_chain_register(&ipcns_chain, &ns->ipcns_nb);
++	rc = blocking_notifier_chain_register(&ipcns_chain, &ns->ipcns_nb);
++	if (!rc)
++		ns->auto_msgmni = 1;
++	return rc;
+ }
+ 
+ int cond_register_ipcns_notifier(struct ipc_namespace *ns)
+ {
++	int rc;
++
+ 	memset(&ns->ipcns_nb, 0, sizeof(ns->ipcns_nb));
+ 	ns->ipcns_nb.notifier_call = ipcns_callback;
+ 	ns->ipcns_nb.priority = IPCNS_CALLBACK_PRI;
+-	return blocking_notifier_chain_cond_register(&ipcns_chain,
++	rc = blocking_notifier_chain_cond_register(&ipcns_chain,
+ 							&ns->ipcns_nb);
++	if (!rc)
++		ns->auto_msgmni = 1;
++	return rc;
+ }
+ 
+-int unregister_ipcns_notifier(struct ipc_namespace *ns)
++void unregister_ipcns_notifier(struct ipc_namespace *ns)
+ {
+-	return blocking_notifier_chain_unregister(&ipcns_chain,
+-						&ns->ipcns_nb);
++	blocking_notifier_chain_unregister(&ipcns_chain, &ns->ipcns_nb);
++	ns->auto_msgmni = 0;
+ }
+ 
+ int ipcns_notify(unsigned long val)
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from Nadia.Derbey@bull.net are
 
-origin.patch
-linux-next.patch
-migrate_timers-add-comment-use-spinlock_irq.patch
-pm-introduce-new-interfaces-schedule_work_on-and-queue_work_on.patch
-pm-introduce-new-interfaces-schedule_work_on-and-queue_work_on-cleanup.patch
-posix-timers-timer_delete-remove-the-bogus-it_process-=-null-check.patch
-posix-timers-release_posix_timer-kill-the-bogus-put_task_struct-it_process.patch
-signals-collect_signal-remove-the-unneeded-sigismember-check.patch
-signals-collect_signal-simplify-the-still_pending-logic.patch
-signals-change-collect_signal-to-return-void.patch
-__exit_signal-dont-take-rcu-lock.patch
-signals-dequeue_signal-dont-check-signal_group_exit-when-setting-signal_stop_dequeued.patch
-signals-do_signal_stop-kill-the-signal_unkillable-check.patch
-coredump-zap_threads-comments-use-while_each_thread.patch
-signals-make-siginfo_t-si_utime-si_sstime-report-times-in-user_hz-not-hz.patch
-kernel-signalc-change-vars-pid-and-tgid-types-to-pid_t.patch
-signals-introduce-kill_pid_ns_info.patch
-signals-introduce-kill_pid_ns_info-checkpatch-fixes.patch
-include-asm-ptraceh-userspace-headers-cleanup.patch
-ptrace-give-more-respect-to-sigkill.patch
-ptrace-simplify-ptrace_stop-sigkill_pending-path.patch
-introduce-pf_kthread-flag.patch
-kill-pf_borrowed_mm-in-favour-of-pf_kthread.patch
-coredump-zap_threads-must-skip-kernel-threads.patch
-coredump-elf_core_dump-skip-kernel-threads.patch
-coredump-turn-mm-core_startup_done-into-the-pointer-to-struct-core_state.patch
-coredump-move-mm-core_waiters-into-struct-core_state.patch
-coredump-simplify-core_state-nr_threads-calculation.patch
-coredump-turn-core_state-nr_threads-into-atomic_t.patch
-coredump-make-mm-core_state-visible-to-core_dump.patch
-coredump-construct-the-list-of-coredumping-threads-at-startup-time.patch
-coredump-elf_core_dump-use-core_state-dumper-list.patch
-coredump-elf_fdpic_core_dump-use-core_state-dumper-list.patch
-coredump-kill-mm-core_done.patch
-coredump-format_corename-fix-the-core_uses_pid-logic.patch
-coredump-format_corename-fix-the-core_uses_pid-logic-checkpatch-fixes.patch
-workqueues-insert_work-use-list_head-instead-of-int-tail.patch
-workqueues-implement-flush_work.patch
-workqueues-schedule_on_each_cpu-use-flush_work.patch
-workqueues-make-get_online_cpus-useable-for-work-func.patch
-workqueues-make-get_online_cpus-useable-for-work-func-fix.patch
-s390-topology-dont-use-kthread-for-arch_reinit_sched_domains.patch
-workqueues-lockdep-annotations-for-flush_work.patch
-workqueues-queue_work-can-use-queue_work_on.patch
-workqueues-schedule_on_each_cpu-can-use-schedule_work_on.patch
-workqueues-do-cpu_up_canceled-if-cpu_up_prepare-fails.patch
-pidns-remove-now-unused-kill_proc-function.patch
-pidns-remove-now-unused-find_pid-function.patch
-pidns-remove-find_task_by_pid-unused-for-a-long-time.patch
-distinct-tgid-tid-i-o-statistics.patch
-tracehook-add-linux-tracehookh.patch
-tracehook-exec.patch
-tracehook-unexport-ptrace_notify.patch
-tracehook-exit.patch
-tracehook-clone.patch
-tracehook-vfork-done.patch
-tracehook-release_task.patch
-tracehook-tracehook_tracer_task.patch
-tracehook-tracehook_expect_breakpoints.patch
-tracehook-tracehook_signal_handler.patch
-tracehook-tracehook_consider_ignored_signal.patch
-tracehook-tracehook_consider_fatal_signal.patch
-tracehook-syscall.patch
-tracehook-get_signal_to_deliver.patch
-tracehook-job-control.patch
-tracehook-death.patch
-tracehook-force-signal_pending.patch
-tracehook-tif_notify_resume.patch
-tracehook-asm-syscallh.patch
-tracehook-config_have_arch_tracehook.patch
-tracehook-wait_task_inactive.patch
-task_current_syscall.patch
-proc-pid-syscall.patch
+idr-change-the-idr-structure.patch
+idr-rename-some-of-the-idr-apis-internal-routines.patch
+idr-fix-a-printk-call.patch
+idr-error-checking-factorization.patch
+idr-make-idr_get_new-rcu-safe.patch
+idr-make-idr_get_new-rcu-safe-fix.patch
+idr-make-idr_find-rcu-safe.patch
+idr-make-idr_remove-rcu-safe.patch
+ipc-call-idr_find-without-locking-in-ipc_lock.patch
+ipc-get-rid-of-ipc_lock_down.patch
+ipc-semc-convert-undo-structures-to-struct-list_head.patch
+ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-remove-unused-entries-from-struct-sem_queue.patch
+ipc-semc-convert-sem_arraysem_pending-to-struct-list_head.patch
+ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-rewrite-undo-list-locking.patch
+ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
+ipc-use-simple_read_from_buffer.patch
+ipc-do-not-use-a-negative-value-to-re-enable-msgmni-automatic-recomputing.patch
 
