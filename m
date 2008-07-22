@@ -1,275 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: - generic-irqs-enable-polling-for-disabled-screaming-irqs.patch removed from -mm tree
-Date: Tue, 22 Jul 2008 14:32:40 -0700
-Message-ID: <200807222132.m6MLWe0w018739@imap1.linux-foundation.org>
+Subject: - markers-fix-duplicate-modpost-entry.patch removed from -mm tree
+Date: Tue, 22 Jul 2008 14:32:27 -0700
+Message-ID: <200807222132.m6MLWROO018717@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38581 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50602 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753437AbYGVVdh (ORCPT
+	by vger.kernel.org with ESMTP id S1753652AbYGVVe3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jul 2008 17:33:37 -0400
+	Tue, 22 Jul 2008 17:34:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, alan@lxorguk.ukuu.org.uk, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: compudj@krystal.dyndns.org, mathieu.desnoyers@polymtl.ca, roland@redhat.com, stable@kernel.org, t-nishiie@np.css.fujitsu.com, wenji.huang@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     generic irqs: enable polling for disabled screaming irqs
+     markers: fix duplicate modpost entry
 has been removed from the -mm tree.  Its filename was
-     generic-irqs-enable-polling-for-disabled-screaming-irqs.patch
+     markers-fix-duplicate-modpost-entry.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: generic irqs: enable polling for disabled screaming irqs
-From: Eric W. Biederman <ebiederm@xmission.com>
+Subject: markers: fix duplicate modpost entry
+From: Mathieu Desnoyers <compudj@krystal.dyndns.org>
 
-When we disable a screaming irq we never see it again.  If the irq line is
-shared or if the driver half works this is a real pain.  So periodically poll
-the handlers for screaming interrupts.
+When a kernel was rebuilt, the previous Module.markers was not cleared. 
+It caused markers with different format strings to appear as duplicates
+when a markers was changed.  This problem is present since
+scripts/mod/modpost.c started to generate Module.markers, commit
+b2e3e658b344c6bcfb8fb694100ab2f2b5b2edb0
 
-I use a timer instead of the classic irq poll technique of working off the
-timer interrupt because when we use the local apic timers note_interrupt is
-never called (bug?).  Further on a system with dynamic ticks the timer
-interrupt might not even fire unless there is a timer telling it it needs to.
+It therefore applies to 2.6.25, 2.6.26 and linux-next.
 
-I forced this case on my test system with an e1000 nic and my ssh session
-remained responsive despite the interrupt handler only being called every 10th
-of a second.
+I merely merged the patches from Roland, Wenji and Takashi here.
 
-Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Credits to
+Roland McGrath <roland@redhat.com>
+Wenji Huang <wenji.huang@oracle.com>
+and
+Takashi Nishiie <t-nishiie@np.css.fujitsu.com>
+
+for providing the individual fixes.
+
+- Changelog :
+  - Integrated Takashi's Makefile modification to clear Module.markers upon
+    make clean.
+
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: Wenji Huang <wenji.huang@oracle.com>
+Cc: Takashi Nishiie <t-nishiie@np.css.fujitsu.com>
+Cc: <stable@kernel.org>		[2.6.25.x, 2.6.26.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/irq/spurious.c |  147 +++++++++++++++++++++++++---------------
- 1 file changed, 92 insertions(+), 55 deletions(-)
+ Makefile                 |    3 ++-
+ scripts/Makefile.modpost |    1 +
+ scripts/mod/modpost.c    |    3 ++-
+ 3 files changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN kernel/irq/spurious.c~generic-irqs-enable-polling-for-disabled-screaming-irqs kernel/irq/spurious.c
---- a/kernel/irq/spurious.c~generic-irqs-enable-polling-for-disabled-screaming-irqs
-+++ a/kernel/irq/spurious.c
-@@ -12,83 +12,118 @@
- #include <linux/kallsyms.h>
- #include <linux/interrupt.h>
- #include <linux/moduleparam.h>
-+#include <linux/timer.h>
+diff -puN Makefile~markers-fix-duplicate-modpost-entry Makefile
+--- a/Makefile~markers-fix-duplicate-modpost-entry
++++ a/Makefile
+@@ -1148,7 +1148,8 @@ clean: archclean $(clean-dirs)
+ 	@find . $(RCS_FIND_IGNORE) \
+ 		\( -name '*.[oas]' -o -name '*.ko' -o -name '.*.cmd' \
+ 		-o -name '.*.d' -o -name '.*.tmp' -o -name '*.mod.c' \
+-		-o -name '*.symtypes' -o -name 'modules.order' \) \
++		-o -name '*.symtypes' -o -name 'modules.order' \
++		-o -name 'Module.markers' \) \
+ 		-type f -print | xargs rm -f
  
- static int irqfixup __read_mostly;
+ # mrproper - Delete all generated files, including .config
+diff -puN scripts/Makefile.modpost~markers-fix-duplicate-modpost-entry scripts/Makefile.modpost
+--- a/scripts/Makefile.modpost~markers-fix-duplicate-modpost-entry
++++ a/scripts/Makefile.modpost
+@@ -101,6 +101,7 @@ quiet_cmd_kernel-mod = MODPOST $@
+       cmd_kernel-mod = $(modpost) $@
  
-+#define POLL_SPURIOUS_IRQ_INTERVAL (HZ/10)
-+static void poll_spurious_irqs(unsigned long dummy);
-+static DEFINE_TIMER(poll_spurious_irq_timer, poll_spurious_irqs, 0, 0);
-+
- /*
-  * Recovery handler for misrouted interrupts.
-  */
--static int misrouted_irq(int irq)
-+static int try_one_irq(int irq, struct irq_desc *desc)
- {
--	int i;
-+	struct irqaction *action;
- 	int ok = 0;
- 	int work = 0;	/* Did we do work for a real IRQ */
+ vmlinux.o: FORCE
++	@rm -fr $(kernelmarkersfile)
+ 	$(call cmd,kernel-mod)
  
--	for (i = 1; i < NR_IRQS; i++) {
--		struct irq_desc *desc = irq_desc + i;
--		struct irqaction *action;
--
--		if (i == irq)	/* Already tried */
--			continue;
--
--		spin_lock(&desc->lock);
--		/* Already running on another processor */
--		if (desc->status & IRQ_INPROGRESS) {
--			/*
--			 * Already running: If it is shared get the other
--			 * CPU to go looking for our mystery interrupt too
--			 */
--			if (desc->action && (desc->action->flags & IRQF_SHARED))
--				desc->status |= IRQ_PENDING;
--			spin_unlock(&desc->lock);
--			continue;
--		}
--		/* Honour the normal IRQ locking */
--		desc->status |= IRQ_INPROGRESS;
--		action = desc->action;
-+	spin_lock(&desc->lock);
-+	/* Already running on another processor */
-+	if (desc->status & IRQ_INPROGRESS) {
-+		/*
-+		 * Already running: If it is shared get the other
-+		 * CPU to go looking for our mystery interrupt too
-+		 */
-+		if (desc->action && (desc->action->flags & IRQF_SHARED))
-+			desc->status |= IRQ_PENDING;
- 		spin_unlock(&desc->lock);
-+		return ok;
-+	}
-+	/* Honour the normal IRQ locking */
-+	desc->status |= IRQ_INPROGRESS;
-+	action = desc->action;
-+	spin_unlock(&desc->lock);
- 
--		while (action) {
--			/* Only shared IRQ handlers are safe to call */
--			if (action->flags & IRQF_SHARED) {
--				if (action->handler(i, action->dev_id) ==
--						IRQ_HANDLED)
--					ok = 1;
--			}
--			action = action->next;
-+	while (action) {
-+		/* Only shared IRQ handlers are safe to call */
-+		if (action->flags & IRQF_SHARED) {
-+			if (action->handler(irq, action->dev_id) ==
-+				IRQ_HANDLED)
-+				ok = 1;
+ # Declare generated files as targets for modpost
+diff -puN scripts/mod/modpost.c~markers-fix-duplicate-modpost-entry scripts/mod/modpost.c
+--- a/scripts/mod/modpost.c~markers-fix-duplicate-modpost-entry
++++ a/scripts/mod/modpost.c
+@@ -1992,7 +1992,8 @@ static void read_markers(const char *fna
+ 			mod->skip = 1;
  		}
--		local_irq_disable();
--		/* Now clean up the flags */
--		spin_lock(&desc->lock);
--		action = desc->action;
-+		action = action->next;
-+	}
-+	local_irq_disable();
-+	/* Now clean up the flags */
-+	spin_lock(&desc->lock);
-+	action = desc->action;
  
-+	/*
-+	 * While we were looking for a fixup someone queued a real
-+	 * IRQ clashing with our walk:
-+	 */
-+	while ((desc->status & IRQ_PENDING) && action) {
- 		/*
--		 * While we were looking for a fixup someone queued a real
--		 * IRQ clashing with our walk:
--		 */
--		while ((desc->status & IRQ_PENDING) && action) {
--			/*
--			 * Perform real IRQ processing for the IRQ we deferred
--			 */
--			work = 1;
--			spin_unlock(&desc->lock);
--			handle_IRQ_event(i, action);
--			spin_lock(&desc->lock);
--			desc->status &= ~IRQ_PENDING;
--		}
--		desc->status &= ~IRQ_INPROGRESS;
--		/*
--		 * If we did actual work for the real IRQ line we must let the
--		 * IRQ controller clean up too
-+		 * Perform real IRQ processing for the IRQ we deferred
- 		 */
--		if (work && desc->chip && desc->chip->end)
--			desc->chip->end(i);
-+		work = 1;
- 		spin_unlock(&desc->lock);
-+		handle_IRQ_event(irq, action);
-+		spin_lock(&desc->lock);
-+		desc->status &= ~IRQ_PENDING;
-+	}
-+	desc->status &= ~IRQ_INPROGRESS;
-+	/*
-+	 * If we did actual work for the real IRQ line we must let the
-+	 * IRQ controller clean up too
-+	 */
-+	if (work && desc->chip && desc->chip->end)
-+		desc->chip->end(irq);
-+	spin_unlock(&desc->lock);
-+
-+	return ok;
-+
-+}
-+
-+static int misrouted_irq(int irq)
-+{
-+	int i;
-+	int ok = 0;
-+
-+ 	for (i = 1; i < NR_IRQS; i++) {
-+		struct irq_desc *desc = irq_desc + i;
-+
-+		if (i == irq)	/* Already tried */
-+			continue;
-+
-+		if (try_one_irq(i, desc))
-+			ok = 1;
+-		add_marker(mod, marker, fmt);
++		if (!mod->skip)
++			add_marker(mod, marker, fmt);
  	}
- 	/* So the caller can adjust the irq error counts */
- 	return ok;
- }
- 
-+static void poll_spurious_irqs(unsigned long dummy)
-+{
-+	int i;
-+	for (i = 1; i < NR_IRQS; i++) {
-+		struct irq_desc *desc = irq_desc + i;
-+		unsigned int status;
-+
-+		/* Racy but it doesn't matter */
-+		status = desc->status;
-+		barrier();
-+		if (!(status & IRQ_SPURIOUS_DISABLED))
-+			continue;
-+
-+		try_one_irq(i, desc);
-+	}
-+
-+	mod_timer(&poll_spurious_irq_timer, jiffies + POLL_SPURIOUS_IRQ_INTERVAL);
-+}
-+
- /*
-  * If 99,900 of the previous 100,000 interrupts have not been handled
-  * then assume that the IRQ is stuck in some manner. Drop a diagnostic
-@@ -212,6 +247,8 @@ void note_interrupt(unsigned int irq, st
- 		desc->status |= IRQ_DISABLED | IRQ_SPURIOUS_DISABLED;
- 		desc->depth++;
- 		desc->chip->disable(irq);
-+
-+		mod_timer(&poll_spurious_irq_timer, jiffies + POLL_SPURIOUS_IRQ_INTERVAL);
- 	}
- 	desc->irqs_unhandled = 0;
- }
+ 	return;
+ fail:
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from compudj@krystal.dyndns.org are
 
 origin.patch
-linux-next.patch
-memcg-remove-refcnt-from-page_cgroup.patch
-memcg-remove-refcnt-from-page_cgroup-fix.patch
-memcg-remove-refcnt-from-page_cgroup-fix-2.patch
-memcg-remove-refcnt-from-page_cgroup-fix-memcg-fix-mem_cgroup_end_migration-race.patch
-memcg-remove-refcnt-from-page_cgroup-memcg-fix-shmem_unuse_inode-charging.patch
-memcg-helper-function-for-relcaim-from-shmem.patch
-memcg-helper-function-for-relcaim-from-shmem-memcg-shmem_getpage-release-page-sooner.patch
-memcg-helper-function-for-relcaim-from-shmem-memcg-mem_cgroup_shrink_usage-css_put.patch
-memcg-add-hints-for-branch.patch
-memcg-remove-a-redundant-check.patch
-sysctl-check-for-bogus-modes.patch
-sysctl-allow-override-of-proc-sys-net-with-cap_net_admin.patch
-shrink-struct-pid-by-removing-padding-on-64-bit-builds.patch
-pidns-remove-now-unused-kill_proc-function.patch
-pidns-remove-now-unused-find_pid-function.patch
-pidns-remove-find_task_by_pid-unused-for-a-long-time.patch
-bsdacct-rename-acct_blbls-to-bsd_acct_struct.patch
-pidns-use-kzalloc-when-allocating-new-pid_namespace-struct.patch
-pidns-add-the-struct-bsd_acct_struct-pointer-on-pid_namespace-struct.patch
-bsdacct-truthify-a-comment-near-acct_process.patch
-bsdacct-make-check-timer-accept-a-bsd_acct_struct-argument.patch
-bsdacct-turn-the-acct_lock-from-on-the-struct-to-global.patch
-bsdacct-make-internal-code-work-with-passed-bsd_acct_struct-not-global.patch
-bsdacct-switch-from-global-bsd_acct_struct-instance-to-per-pidns-one.patch
-bsdacct-turn-acct-off-for-all-pidns-s-on-umount-time.patch
-bsdacct-account-dying-tasks-in-all-relevant-namespaces.patch
-kernel-kexecc-make-kimage_terminate-void.patch
-kexec-jump.patch
-kexec-jump-save-restore-device-state.patch
-proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
 
