@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pata_viac-add-flag-for-vx800-and-add-a-function-for-fixing-internal-bugs-for-via-chipsets.patch added to -mm tree
-Date: Tue, 22 Jul 2008 01:14:34 -0700
-Message-ID: <200807220814.m6M8EYoC017989@imap1.linux-foundation.org>
+Subject: + clocksource-introduce-clock_monotonic_raw.patch added to -mm tree
+Date: Tue, 22 Jul 2008 01:18:40 -0700
+Message-ID: <200807220818.m6M8Ietq018191@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56702 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34150 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751289AbYGVIP5 (ORCPT
+	by vger.kernel.org with ESMTP id S1751865AbYGVIT7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jul 2008 04:15:57 -0400
+	Tue, 22 Jul 2008 04:19:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: JosephChan@via.com.tw, alan@lxorguk.ukuu.org.uk, jeff@garzik.org, josephchan@via.com.tw, tj@kernel.org
+Cc: johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, zippel@linux-m68k.org
 
 
 The patch titled
-     pata_via.c: add flag for VX800 and add a function for fixing internal bugs for VIA chipsets
+     clocksource: introduce CLOCK_MONOTONIC_RAW
 has been added to the -mm tree.  Its filename is
-     pata_viac-add-flag-for-vx800-and-add-a-function-for-fixing-internal-bugs-for-via-chipsets.patch
+     clocksource-introduce-clock_monotonic_raw.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,122 +34,211 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pata_via.c: add flag for VX800 and add a function for fixing internal bugs for VIA chipsets
-From: <JosephChan@via.com.tw>
+Subject: clocksource: introduce CLOCK_MONOTONIC_RAW
+From: John Stultz <johnstul@us.ibm.com>
 
-Add flag VIA_SATA_PATA for vx800, VX800 uses the same
-chipset(0x0581/0x5324) as CX700, which has 1 PATA channel(Master/Slave)
-and 1 SATA channel(Master/Slave) Add function <via_ata_tf_load>.  This is
-to fix the internal bug of VIA chipsets, which will reset the device
-register after changing the IEN bit in CTL register
+In talking with Josip Loncaric, and his work on clock synchronization (see
+btime.sf.net), he mentioned that for really close synchronization, it is
+useful to have access to "hardware time", that is a notion of time that is
+not in any way adjusted by the clock slewing done to keep close time sync.
 
-Signed-off-by: Joseph Chan <josephchan@via.com.tw>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Part of the issue is if we are using the kernel's ntp adjusted
+representation of time in order to measure how we should correct time, we
+can run into what Paul McKenney aptly described as "Painting a road using
+the lines we're painting as the guide".
+
+I had been thinking of a similar problem, and was trying to come up with a
+way to give users access to a purely hardware based time representation
+that avoided users having to know the underlying frequency and mask values
+needed to deal with the wide variety of possible underlying hardware
+counters.
+
+My solution is to introduce CLOCK_MONOTONIC_RAW.  This exposes a
+nanosecond based time value, that increments starting at bootup and has no
+frequency adjustments made to it what so ever.
+
+The time is accessed from userspace via the posix_clock_gettime() syscall,
+passing CLOCK_MONOTONIC_RAW as the clock_id.
+
+Signed-off-by: John Stultz <johnstul@us.ibm.com>
+Signed-off-by: Roman Zippel <zippel@linux-m68k.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_via.c |   64 ++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 63 insertions(+), 1 deletion(-)
+ include/linux/clocksource.h |    3 ++
+ include/linux/time.h        |    2 +
+ kernel/posix-timers.c       |   15 +++++++++++
+ kernel/time/timekeeping.c   |   44 ++++++++++++++++++++++++++++++++++
+ 4 files changed, 64 insertions(+)
 
-diff -puN drivers/ata/pata_via.c~pata_viac-add-flag-for-vx800-and-add-a-function-for-fixing-internal-bugs-for-via-chipsets drivers/ata/pata_via.c
---- a/drivers/ata/pata_via.c~pata_viac-add-flag-for-vx800-and-add-a-function-for-fixing-internal-bugs-for-via-chipsets
-+++ a/drivers/ata/pata_via.c
-@@ -98,7 +98,8 @@ static const struct via_isa_bridge {
- 	u8 rev_max;
- 	u16 flags;
- } via_isa_bridges[] = {
--	{ "vx800",	PCI_DEVICE_ID_VIA_VX800,    0x00, 0x2f, VIA_UDMA_133 | VIA_BAD_AST },
-+	{ "vx800",	PCI_DEVICE_ID_VIA_VX800,    0x00, 0x2f, VIA_UDMA_133 |
-+	VIA_BAD_AST | VIA_SATA_PATA },
- 	{ "vt8237s",	PCI_DEVICE_ID_VIA_8237S,    0x00, 0x2f, VIA_UDMA_133 | VIA_BAD_AST },
- 	{ "vt8251",	PCI_DEVICE_ID_VIA_8251,     0x00, 0x2f, VIA_UDMA_133 | VIA_BAD_AST },
- 	{ "cx700",	PCI_DEVICE_ID_VIA_CX700,    0x00, 0x2f, VIA_UDMA_133 | VIA_BAD_AST | VIA_SATA_PATA },
-@@ -322,6 +323,65 @@ static void via_set_dmamode(struct ata_p
- 	via_do_set_mode(ap, adev, adev->dma_mode, tclock[mode], set_ast, udma[mode]);
+diff -puN include/linux/clocksource.h~clocksource-introduce-clock_monotonic_raw include/linux/clocksource.h
+--- a/include/linux/clocksource.h~clocksource-introduce-clock_monotonic_raw
++++ a/include/linux/clocksource.h
+@@ -79,6 +79,7 @@ struct clocksource {
+ 	/* timekeeping specific data, ignore */
+ 	cycle_t cycle_interval;
+ 	u64	xtime_interval;
++	u32	raw_interval;
+ 	/*
+ 	 * Second part is written at each timer interrupt
+ 	 * Keep it in a different cache line to dirty no
+@@ -87,6 +88,7 @@ struct clocksource {
+ 	cycle_t cycle_last ____cacheline_aligned_in_smp;
+ 	u64 xtime_nsec;
+ 	s64 error;
++	struct timespec raw_time;
+ 
+ #ifdef CONFIG_CLOCKSOURCE_WATCHDOG
+ 	/* Watchdog related data, used by the framework */
+@@ -215,6 +217,7 @@ static inline void clocksource_calculate
+ 
+ 	/* Go back from cycles -> shifted ns, this time use ntp adjused mult */
+ 	c->xtime_interval = (u64)c->cycle_interval * c->mult;
++	c->raw_interval = ((u64)c->cycle_interval * c->mult_orig) >> c->shift;
  }
  
-+/**
-+ *	via_ata_sff_tf_load - send taskfile registers to host controller
-+ *	@ap: Port to which output is sent
-+ *	@tf: ATA taskfile register set
-+ *
-+ *	Outputs ATA taskfile to standard ATA host controller.
-+ *
-+ *	Note: This is to fix the internal bug of via chipsets, which
-+ *  will reset the device register after changing the IEN bit on
-+ *  ctl register
+ 
+diff -puN include/linux/time.h~clocksource-introduce-clock_monotonic_raw include/linux/time.h
+--- a/include/linux/time.h~clocksource-introduce-clock_monotonic_raw
++++ a/include/linux/time.h
+@@ -117,6 +117,7 @@ extern int do_setitimer(int which, struc
+ extern unsigned int alarm_setitimer(unsigned int seconds);
+ extern int do_getitimer(int which, struct itimerval *value);
+ extern void getnstimeofday(struct timespec *tv);
++extern void getrawmonotonic(struct timespec *ts);
+ extern void getboottime(struct timespec *ts);
+ extern void monotonic_to_bootbased(struct timespec *ts);
+ 
+@@ -214,6 +215,7 @@ struct itimerval {
+ #define CLOCK_MONOTONIC			1
+ #define CLOCK_PROCESS_CPUTIME_ID	2
+ #define CLOCK_THREAD_CPUTIME_ID		3
++#define CLOCK_MONOTONIC_RAW		4
+ 
+ /*
+  * The IDs of various hardware clocks:
+diff -puN kernel/posix-timers.c~clocksource-introduce-clock_monotonic_raw kernel/posix-timers.c
+--- a/kernel/posix-timers.c~clocksource-introduce-clock_monotonic_raw
++++ a/kernel/posix-timers.c
+@@ -223,6 +223,15 @@ static int posix_ktime_get_ts(clockid_t 
+ }
+ 
+ /*
++ * Get monotonic time for posix timers
 + */
-+static void via_ata_tf_load(struct ata_port *ap, const struct ata_taskfile *tf)
++static int posix_get_monotonic_raw(clockid_t which_clock, struct timespec *tp)
 +{
-+	struct ata_ioports *ioaddr = &ap->ioaddr;
-+	unsigned int is_addr = tf->flags & ATA_TFLAG_ISADDR;
-+
-+	if (tf->ctl != ap->last_ctl) {
-+		iowrite8(tf->ctl, ioaddr->ctl_addr);
-+		iowrite8(tf->device, ioaddr->device_addr);
-+		ap->last_ctl = tf->ctl;
-+		ata_wait_idle(ap);
-+	}
-+
-+	if (is_addr && (tf->flags & ATA_TFLAG_LBA48)) {
-+		iowrite8(tf->hob_feature, ioaddr->feature_addr);
-+		iowrite8(tf->hob_nsect, ioaddr->nsect_addr);
-+		iowrite8(tf->hob_lbal, ioaddr->lbal_addr);
-+		iowrite8(tf->hob_lbam, ioaddr->lbam_addr);
-+		iowrite8(tf->hob_lbah, ioaddr->lbah_addr);
-+		VPRINTK("hob: feat 0x%X nsect 0x%X, lba 0x%X 0x%X 0x%X\n",
-+			tf->hob_feature,
-+			tf->hob_nsect,
-+			tf->hob_lbal,
-+			tf->hob_lbam,
-+			tf->hob_lbah);
-+	}
-+
-+	if (is_addr) {
-+		iowrite8(tf->feature, ioaddr->feature_addr);
-+		iowrite8(tf->nsect, ioaddr->nsect_addr);
-+		iowrite8(tf->lbal, ioaddr->lbal_addr);
-+		iowrite8(tf->lbam, ioaddr->lbam_addr);
-+		iowrite8(tf->lbah, ioaddr->lbah_addr);
-+		VPRINTK("feat 0x%X nsect 0x%X lba 0x%X 0x%X 0x%X\n",
-+			tf->feature,
-+			tf->nsect,
-+			tf->lbal,
-+			tf->lbam,
-+			tf->lbah);
-+	}
-+
-+	if (tf->flags & ATA_TFLAG_DEVICE) {
-+		iowrite8(tf->device, ioaddr->device_addr);
-+		VPRINTK("device 0x%X\n", tf->device);
-+	}
-+
-+	ata_wait_idle(ap);
++	getrawmonotonic(tp);
++	return 0;
 +}
 +
- static struct scsi_host_template via_sht = {
- 	ATA_BMDMA_SHT(DRV_NAME),
- };
-@@ -332,11 +392,13 @@ static struct ata_port_operations via_po
- 	.set_piomode	= via_set_piomode,
- 	.set_dmamode	= via_set_dmamode,
- 	.prereset	= via_pre_reset,
-+	.sff_tf_load = via_ata_tf_load,
- };
++/*
+  * Initialize everything, well, just everything in Posix clocks/timers ;)
+  */
+ static __init int init_posix_timers(void)
+@@ -235,9 +244,15 @@ static __init int init_posix_timers(void
+ 		.clock_get = posix_ktime_get_ts,
+ 		.clock_set = do_posix_clock_nosettime,
+ 	};
++	struct k_clock clock_monotonic_raw = {
++		.clock_getres = hrtimer_get_res,
++		.clock_get = posix_get_monotonic_raw,
++		.clock_set = do_posix_clock_nosettime,
++	};
  
- static struct ata_port_operations via_port_ops_noirq = {
- 	.inherits	= &via_port_ops,
- 	.sff_data_xfer	= ata_sff_data_xfer_noirq,
-+	.sff_tf_load = via_ata_tf_load,
- };
+ 	register_posix_clock(CLOCK_REALTIME, &clock_realtime);
+ 	register_posix_clock(CLOCK_MONOTONIC, &clock_monotonic);
++	register_posix_clock(CLOCK_MONOTONIC_RAW, &clock_monotonic_raw);
+ 
+ 	posix_timers_cache = kmem_cache_create("posix_timers_cache",
+ 					sizeof (struct k_itimer), 0, SLAB_PANIC,
+diff -puN kernel/time/timekeeping.c~clocksource-introduce-clock_monotonic_raw kernel/time/timekeeping.c
+--- a/kernel/time/timekeeping.c~clocksource-introduce-clock_monotonic_raw
++++ a/kernel/time/timekeeping.c
+@@ -75,6 +75,9 @@ static void clocksource_forward_now(void
+ 
+ 	nsec = cyc2ns(clock, cycle_delta);
+ 	timespec_add_ns(&xtime, nsec);
++
++	nsec = ((s64)cycle_delta * clock->mult_orig) >> clock->shift;
++	clock->raw_time.tv_nsec += nsec;
+ }
  
  /**
+@@ -183,6 +186,8 @@ static void change_clocksource(void)
+ 
+ 	clocksource_forward_now();
+ 
++	new->raw_time = clock->raw_time;
++
+ 	clock = new;
+ 	clock->cycle_last = 0;
+ 	clock->cycle_last = clocksource_read(new);
+@@ -205,6 +210,39 @@ static inline void change_clocksource(vo
+ #endif
+ 
+ /**
++ * getrawmonotonic - Returns the raw monotonic time in a timespec
++ * @ts:		pointer to the timespec to be set
++ *
++ * Returns the raw monotonic time (completely un-modified by ntp)
++ */
++void getrawmonotonic(struct timespec *ts)
++{
++	unsigned long seq;
++	s64 nsecs;
++	cycle_t cycle_now, cycle_delta;
++
++	do {
++		seq = read_seqbegin(&xtime_lock);
++
++		/* read clocksource: */
++		cycle_now = clocksource_read(clock);
++
++		/* calculate the delta since the last update_wall_time: */
++		cycle_delta = (cycle_now - clock->cycle_last) & clock->mask;
++
++		/* convert to nanoseconds: */
++		nsecs = ((s64)cycle_delta * clock->mult_orig) >> clock->shift;
++
++		*ts = clock->raw_time;
++
++	} while (read_seqretry(&xtime_lock, seq));
++
++	timespec_add_ns(ts, nsecs);
++}
++EXPORT_SYMBOL(getrawmonotonic);
++
++
++/**
+  * timekeeping_valid_for_hres - Check if timekeeping is suitable for hres
+  */
+ int timekeeping_valid_for_hres(void)
+@@ -466,6 +504,12 @@ void update_wall_time(void)
+ 			second_overflow();
+ 		}
+ 
++		clock->raw_time.tv_nsec += clock->raw_interval;
++		if (clock->raw_time.tv_nsec >= NSEC_PER_SEC) {
++			clock->raw_time.tv_nsec -= NSEC_PER_SEC;
++			clock->raw_time.tv_sec++;
++		}
++
+ 		/* accumulate error between NTP and clock interval */
+ 		clock->error += tick_length;
+ 		clock->error -= clock->xtime_interval << (NTP_SCALE_SHIFT - clock->shift);
 _
 
-Patches currently in -mm which might be from JosephChan@via.com.tw are
+Patches currently in -mm which might be from johnstul@us.ibm.com are
 
-sata_viac-add-support-for-vt8251-fix-the-internal-chips-issue-and.patch
-pata_viac-add-flag-for-vx800-and-add-a-function-for-fixing-internal-bugs-for-via-chipsets.patch
+origin.patch
+timekeeping-fix-rounding-problem-during-clock-update.patch
+clocksource-fix-a-print-format-error-in-the-acpi-pm-clocksource-driver-and-check-range.patch
+clocksource-keep-track-of-original-clocksource-frequency.patch
+clocksource-introduce-clocksource_forward_now.patch
+clocksource-introduce-clock_monotonic_raw.patch
+posix-timers-timer_delete-remove-the-bogus-it_process-=-null-check.patch
+posix-timers-release_posix_timer-kill-the-bogus-put_task_struct-it_process.patch
 
