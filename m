@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + frv-use-generic-show_mem.patch added to -mm tree
-Date: Tue, 22 Jul 2008 03:24:10 -0700
-Message-ID: <200807221024.m6MAOAi0023118@imap1.linux-foundation.org>
+Subject: + m32r-use-generic-show_mem.patch added to -mm tree
+Date: Tue, 22 Jul 2008 03:24:08 -0700
+Message-ID: <200807221024.m6MAO8MS023115@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50330 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41498 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753296AbYGVKYc (ORCPT
+	by vger.kernel.org with ESMTP id S1753239AbYGVKYV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jul 2008 06:24:32 -0400
+	Tue, 22 Jul 2008 06:24:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hannes@saeurebad.de, dhowells@redhat.com
+Cc: hannes@saeurebad.de, takata@linux-m32r.org
 
 
 The patch titled
-     frv: use generic show_mem()
+     m32r: use generic show_mem()
 has been added to the -mm tree.  Its filename is
-     frv-use-generic-show_mem.patch
+     m32r-use-generic-show_mem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,66 +34,73 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: frv: use generic show_mem()
+Subject: m32r: use generic show_mem()
 From: Johannes Weiner <hannes@saeurebad.de>
 
 Remove arch-specific show_mem() in favor of the generic version.
 
 This also removes the following redundant information display:
 
-	- free pages, printed by show_free_areas()
+	- free swap pages, printed by show_swap_cache_info()
+	- pages in swapcache, printed by show_swap_cache_info()
 
-where show_mem() calls show_free_areas().
+where show_mem() calls show_free_areas(), which calls
+show_swap_cache_info().
 
 Signed-off-by: Johannes Weiner <hannes@saeurebad.de>
-Acked-by: David Howells <dhowells@redhat.com>
+Cc: Hirokazu Takata <takata@linux-m32r.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/mm/init.c |   31 -------------------------------
- 1 file changed, 31 deletions(-)
+ arch/m32r/mm/init.c |   36 ------------------------------------
+ 1 file changed, 36 deletions(-)
 
-diff -puN arch/frv/mm/init.c~frv-use-generic-show_mem arch/frv/mm/init.c
---- a/arch/frv/mm/init.c~frv-use-generic-show_mem
-+++ a/arch/frv/mm/init.c
-@@ -63,37 +63,6 @@ EXPORT_SYMBOL(empty_zero_page);
+diff -puN arch/m32r/mm/init.c~m32r-use-generic-show_mem arch/m32r/mm/init.c
+--- a/arch/m32r/mm/init.c~m32r-use-generic-show_mem
++++ a/arch/m32r/mm/init.c
+@@ -36,42 +36,6 @@ pgd_t swapper_pg_dir[1024];
  
- /*****************************************************************************/
- /*
-- *
-- */
+ DEFINE_PER_CPU(struct mmu_gather, mmu_gathers);
+ 
 -void show_mem(void)
 -{
+-	int total = 0, reserved = 0;
+-	int shared = 0, cached = 0;
+-	int highmem = 0;
+-	struct page *page;
+-	pg_data_t *pgdat;
 -	unsigned long i;
--	int free = 0, total = 0, reserved = 0, shared = 0;
 -
--	printk("\nMem-info:\n");
+-	printk("Mem-info:\n");
 -	show_free_areas();
--	i = max_mapnr;
--	while (i-- > 0) {
--		struct page *page = &mem_map[i];
--
--		total++;
--		if (PageReserved(page))
--			reserved++;
--		else if (!page_count(page))
--			free++;
--		else
--			shared += page_count(page) - 1;
+-	printk("Free swap:       %6ldkB\n",nr_swap_pages<<(PAGE_SHIFT-10));
+-	for_each_online_pgdat(pgdat) {
+-		unsigned long flags;
+-		pgdat_resize_lock(pgdat, &flags);
+-		for (i = 0; i < pgdat->node_spanned_pages; ++i) {
+-			page = pgdat_page_nr(pgdat, i);
+-			total++;
+-			if (PageHighMem(page))
+-				highmem++;
+-			if (PageReserved(page))
+-				reserved++;
+-			else if (PageSwapCache(page))
+-				cached++;
+-			else if (page_count(page))
+-				shared += page_count(page) - 1;
+-		}
+-		pgdat_resize_unlock(pgdat, &flags);
 -	}
--
--	printk("%d pages of RAM\n",total);
--	printk("%d free pages\n",free);
+-	printk("%d pages of RAM\n", total);
+-	printk("%d pages of HIGHMEM\n",highmem);
 -	printk("%d reserved pages\n",reserved);
 -	printk("%d pages shared\n",shared);
+-	printk("%d pages swap cached\n",cached);
+-}
 -
--} /* end show_mem() */
--
--/*****************************************************************************/
--/*
-  * paging_init() continues the virtual memory environment setup which
-  * was begun by the code in arch/head.S.
-  * The parameters are pointers to where to stick the starting and ending
+ /*
+  * Cache of MMU context last used.
+  */
 _
 
 Patches currently in -mm which might be from hannes@saeurebad.de are
