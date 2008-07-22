@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86-pci-replace-dbg-with-pr_debug-fix.patch added to -mm tree
-Date: Tue, 22 Jul 2008 15:51:13 -0700
-Message-ID: <200807222303.m6MN3mrG022622@imap1.linux-foundation.org>
+Subject: + ftrace-disable-function-tracing-bringing-up-new-cpu-fix.patch added to -mm tree
+Date: Tue, 22 Jul 2008 15:54:11 -0700
+Message-ID: <200807222306.m6MN6kmj022784@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36521 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55214 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754565AbYGVXET (ORCPT
+	by vger.kernel.org with ESMTP id S1753657AbYGVXGw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jul 2008 19:04:19 -0400
+	Tue, 22 Jul 2008 19:06:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, bjorn.helgaas@hp.com, jbarnes@virtuousgeek.org, mingo@elte.hu, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, rostedt@goodmis.org
 
 
 The patch titled
-     x86-pci-replace-dbg-with-pr_debug-fix
+     ftrace-disable-function-tracing-bringing-up-new-cpu-fix
 has been added to the -mm tree.  Its filename is
-     x86-pci-replace-dbg-with-pr_debug-fix.patch
+     ftrace-disable-function-tracing-bringing-up-new-cpu-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86-pci-replace-dbg-with-pr_debug-fix
+Subject: ftrace-disable-function-tracing-bringing-up-new-cpu-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+kernel/trace/ftrace.c: At top level:
+kernel/trace/ftrace.c:154: warning: 'ftrace_disabled_count' defined but not used
+
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/pci/i386.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/trace/ftrace.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN arch/x86/pci/i386.c~x86-pci-replace-dbg-with-pr_debug-fix arch/x86/pci/i386.c
---- a/arch/x86/pci/i386.c~x86-pci-replace-dbg-with-pr_debug-fix
-+++ a/arch/x86/pci/i386.c
-@@ -166,7 +166,7 @@ static void __init pcibios_allocate_reso
- 			else
- 				disabled = !(command & PCI_COMMAND_MEMORY);
- 			if (pass == disabled) {
--				DBG("PCI: Resource %08lx-%08lx "
-+				pr_warning("PCI: Resource %08lx-%08lx "
- 				    "(f=%lx, d=%d, p=%d)\n",
- 				    r->start, r->end, r->flags, disabled, pass);
- 				pr = pci_find_parent_resource(dev, r);
-@@ -187,7 +187,7 @@ static void __init pcibios_allocate_reso
- 				/* Turn the ROM off, leave the resource region,
- 				 * but keep it unregistered. */
- 				u32 reg;
--				DBG("PCI: Switching off ROM of %s\n",
-+				pr_warning("PCI: Switching off ROM of %s\n",
- 					pci_name(dev));
- 				r->flags &= ~IORESOURCE_ROM_ENABLE;
- 				pci_read_config_dword(dev,
+diff -puN kernel/trace/ftrace.c~ftrace-disable-function-tracing-bringing-up-new-cpu-fix kernel/trace/ftrace.c
+--- a/kernel/trace/ftrace.c~ftrace-disable-function-tracing-bringing-up-new-cpu-fix
++++ a/kernel/trace/ftrace.c
+@@ -151,7 +151,6 @@ static int __unregister_ftrace_function(
+ 	return ret;
+ }
+ 
+-static int ftrace_disabled_count;
+ static int save_ftrace_enabled;
+ 
+ void ftrace_disable(void)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -99,6 +89,7 @@ drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
 drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
 git-xtensa.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
+ftrace-disable-function-tracing-bringing-up-new-cpu-fix.patch
 mm-verify-the-page-links-and-memory-model.patch
 mspec-convert-nopfn-to-fault-fix.patch
 page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
