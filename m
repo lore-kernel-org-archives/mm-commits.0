@@ -1,67 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Tue, 22 Jul 2008 13:26:13 -0700
-Message-ID: <200807222026.m6MKQDhM015716@imap1.linux-foundation.org>
+Subject: - kvm-is-busted-on-ia64.patch removed from -mm tree
+Date: Tue, 22 Jul 2008 13:27:05 -0700
+Message-ID: <200807222027.m6MKR5j6015739@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44247 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39731 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751207AbYGVU0V (ORCPT
+	by vger.kernel.org with ESMTP id S1751058AbYGVU1J (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jul 2008 16:26:21 -0400
+	Tue, 22 Jul 2008 16:27:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, sfr@canb.auug.org.au
+To: akpm@linux-foundation.org, avi@qumranet.com, xiantao.zhang@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     kvm is busted on ia64
+has been removed from the -mm tree.  Its filename was
+     kvm-is-busted-on-ia64.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
+Subject: kvm is busted on ia64
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+/usr/src/devel/arch/ia64/kvm/../../../virt/kvm/ioapic.c: In function `ioapic_inj_nmi':
+/usr/src/devel/arch/ia64/kvm/../../../virt/kvm/ioapic.c:151: error: implicit declaration of function `kvm_inject_nmi'
+
+Cc: Xiantao Zhang <xiantao.zhang@intel.com>
+Cc: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ arch/ia64/Kconfig |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN Makefile~linux-next-git-rejects Makefile
---- a/Makefile~linux-next-git-rejects
-+++ a/Makefile
-@@ -1174,13 +1174,9 @@ clean: archclean $(clean-dirs)
- 	@find . $(RCS_FIND_IGNORE) \
- 		\( -name '*.[oas]' -o -name '*.ko' -o -name '.*.cmd' \
- 		-o -name '.*.d' -o -name '.*.tmp' -o -name '*.mod.c' \
--<<<<<<< HEAD:Makefile
--		-o -name '*.symtypes' -o -name 'modules.order' \
--		-o -name 'Module.markers' \) \
--=======
- 		-o -name '*.symtypes' -o -name 'modules.order'	\
-+		-o -name 'Module.markers' \
- 		-o -name '.tmp_*.o.*' \) \
-->>>>>>> FETCH_HEAD:Makefile
- 		-type f -print | xargs rm -f
- 
- # mrproper - Delete all generated files, including .config
+diff -puN arch/ia64/Kconfig~kvm-is-busted-on-ia64 arch/ia64/Kconfig
+--- a/arch/ia64/Kconfig~kvm-is-busted-on-ia64
++++ a/arch/ia64/Kconfig
+@@ -20,7 +20,6 @@ config IA64
+ 	select HAVE_KPROBES
+ 	select HAVE_KRETPROBES
+ 	select HAVE_DMA_ATTRS
+-	select HAVE_KVM
+ 	default y
+ 	help
+ 	  The Itanium Processor Family is Intel's 64-bit successor to
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -70,7 +57,6 @@ origin.patch
 arm-fix-fls-for-64-bit-arguments.patch
 linux-next.patch
 linux-next-git-rejects.patch
-linux-next-fixup.patch
 next-remove-localversion.patch
 kvm-is-busted-on-ia64.patch
 drivers-mtd-nand-nandsimc-needs-div64h.patch
