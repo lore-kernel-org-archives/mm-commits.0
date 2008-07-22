@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + clocksource-introduce-clocksource_forward_now.patch added to -mm tree
-Date: Tue, 22 Jul 2008 01:18:38 -0700
-Message-ID: <200807220818.m6M8IcW3018186@imap1.linux-foundation.org>
+Subject: + clocksource-keep-track-of-original-clocksource-frequency.patch added to -mm tree
+Date: Tue, 22 Jul 2008 01:18:36 -0700
+Message-ID: <200807220818.m6M8Iaik018183@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57954 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47821 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751629AbYGVIT4 (ORCPT
+	by vger.kernel.org with ESMTP id S1751309AbYGVITv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jul 2008 04:19:56 -0400
+	Tue, 22 Jul 2008 04:19:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: zippel@linux-m68k.org, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de
+Cc: johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, zippel@linux-m68k.org
 
 
 The patch titled
-     clocksource: introduce clocksource_forward_now()
+     clocksource: keep track of original clocksource frequency
 has been added to the -mm tree.  Its filename is
-     clocksource-introduce-clocksource_forward_now.patch
+     clocksource-keep-track-of-original-clocksource-frequency.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,214 +34,116 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: clocksource: introduce clocksource_forward_now()
-From: Roman Zippel <zippel@linux-m68k.org>
+Subject: clocksource: keep track of original clocksource frequency
+From: John Stultz <johnstul@us.ibm.com>
 
-To keep the raw monotonic patch simple first introduce
-clocksource_forward_now(), which takes care of the offset since the last
-update_wall_time() call and adds it to the clock, so there is no need
-anymore to deal with it explicitly at various places, which need to make
-significant changes to the clock.
-This is also gets rid of the timekeeping_suspend_nsecs, instead of
-waiting until resume, the value is accumulated during suspend. In the end
-there is only a single user of __get_nsec_offset() left, so I integrated
-it back to getnstimeofday().
+The clocksource frequency is represented by
+clocksource->mult/2^(clocksource->shift).  Currently, when NTP makes
+adjustments to the clock frequency, they are made directly to the mult
+value.
 
+This has the drawback that once changed, we cannot know what the orignal
+mult value was, or how much adjustment has been applied.
+
+This property causes problems in calculating proper ntp intervals when
+switching back and forth between clocksources.
+
+This patch separates the current mult value into a mult and mult_orig
+pair.  The mult_orig value stays constant, while the ntp clocksource
+adjustments are done only to the mult value.
+
+This allows for correct ntp interval calculation and additionally lays the
+groundwork for a new notion of time, what I'm calling the monotonic-raw
+time, which is introduced in a following patch.
+
+Signed-off-by: John Stultz <johnstul@us.ibm.com>
 Signed-off-by: Roman Zippel <zippel@linux-m68k.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: John Stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/timekeeping.c |   71 ++++++++++++++++--------------------
- 1 file changed, 33 insertions(+), 38 deletions(-)
+ include/linux/clocksource.h |   11 +++++++----
+ kernel/time/clocksource.c   |    3 +++
+ kernel/time/jiffies.c       |    1 +
+ 3 files changed, 11 insertions(+), 4 deletions(-)
 
-diff -puN kernel/time/timekeeping.c~clocksource-introduce-clocksource_forward_now kernel/time/timekeeping.c
---- a/kernel/time/timekeeping.c~clocksource-introduce-clocksource_forward_now
-+++ a/kernel/time/timekeeping.c
-@@ -58,27 +58,23 @@ struct clocksource *clock;
- 
- #ifdef CONFIG_GENERIC_TIME
- /**
-- * __get_nsec_offset - Returns nanoseconds since last call to periodic_hook
-+ * clocksource_forward_now - update clock to the current time
-  *
-- * private function, must hold xtime_lock lock when being
-- * called. Returns the number of nanoseconds since the
-- * last call to update_wall_time() (adjusted by NTP scaling)
-+ * Forward the current clock to update its state since the last call to
-+ * update_wall_time(). This is useful before significant clock changes,
-+ * as it avoids having to deal with this time offset explicitly.
-  */
--static inline s64 __get_nsec_offset(void)
-+static void clocksource_forward_now(void)
- {
- 	cycle_t cycle_now, cycle_delta;
--	s64 ns_offset;
-+	s64 nsec;
- 
--	/* read clocksource: */
- 	cycle_now = clocksource_read(clock);
--
--	/* calculate the delta since the last update_wall_time: */
- 	cycle_delta = (cycle_now - clock->cycle_last) & clock->mask;
-+	clock->cycle_last = cycle_now;
- 
--	/* convert to nanoseconds: */
--	ns_offset = cyc2ns(clock, cycle_delta);
--
--	return ns_offset;
-+	nsec = cyc2ns(clock, cycle_delta);
-+	timespec_add_ns(&xtime, nsec);
- }
- 
- /**
-@@ -89,6 +85,7 @@ static inline s64 __get_nsec_offset(void
-  */
- void getnstimeofday(struct timespec *ts)
- {
-+	cycle_t cycle_now, cycle_delta;
- 	unsigned long seq;
- 	s64 nsecs;
- 
-@@ -96,7 +93,15 @@ void getnstimeofday(struct timespec *ts)
- 		seq = read_seqbegin(&xtime_lock);
- 
- 		*ts = xtime;
--		nsecs = __get_nsec_offset();
-+
-+		/* read clocksource: */
-+		cycle_now = clocksource_read(clock);
-+
-+		/* calculate the delta since the last update_wall_time: */
-+		cycle_delta = (cycle_now - clock->cycle_last) & clock->mask;
-+
-+		/* convert to nanoseconds: */
-+		nsecs = cyc2ns(clock, cycle_delta);
- 
- 	} while (read_seqretry(&xtime_lock, seq));
- 
-@@ -129,22 +134,22 @@ EXPORT_SYMBOL(do_gettimeofday);
-  */
- int do_settimeofday(struct timespec *tv)
- {
-+	struct timespec ts_delta;
+diff -puN include/linux/clocksource.h~clocksource-keep-track-of-original-clocksource-frequency include/linux/clocksource.h
+--- a/include/linux/clocksource.h~clocksource-keep-track-of-original-clocksource-frequency
++++ a/include/linux/clocksource.h
+@@ -45,7 +45,8 @@ struct clocksource;
+  * @read:		returns a cycle value
+  * @mask:		bitmask for two's complement
+  *			subtraction of non 64 bit counters
+- * @mult:		cycle to nanosecond multiplier
++ * @mult:		cycle to nanosecond multiplier (adjusted by NTP)
++ * @mult_orig:		cycle to nanosecond multiplier (unadjusted by NTP)
+  * @shift:		cycle to nanosecond divisor (power of two)
+  * @flags:		flags describing special properties
+  * @vread:		vsyscall based read
+@@ -63,6 +64,7 @@ struct clocksource {
+ 	cycle_t (*read)(void);
+ 	cycle_t mask;
+ 	u32 mult;
++	u32 mult_orig;
+ 	u32 shift;
  	unsigned long flags;
--	time_t wtm_sec, sec = tv->tv_sec;
--	long wtm_nsec, nsec = tv->tv_nsec;
- 
- 	if ((unsigned long)tv->tv_nsec >= NSEC_PER_SEC)
- 		return -EINVAL;
- 
- 	write_seqlock_irqsave(&xtime_lock, flags);
- 
--	nsec -= __get_nsec_offset();
-+	clocksource_forward_now();
-+
-+	ts_delta.tv_sec = tv->tv_sec - xtime.tv_sec;
-+	ts_delta.tv_nsec = tv->tv_nsec - xtime.tv_nsec;
-+	wall_to_monotonic = timespec_sub(wall_to_monotonic, ts_delta);
- 
--	wtm_sec  = wall_to_monotonic.tv_sec + (xtime.tv_sec - sec);
--	wtm_nsec = wall_to_monotonic.tv_nsec + (xtime.tv_nsec - nsec);
-+	xtime = *tv;
- 
--	set_normalized_timespec(&xtime, sec, nsec);
--	set_normalized_timespec(&wall_to_monotonic, wtm_sec, wtm_nsec);
- 	update_xtime_cache(0);
- 
- 	clock->error = 0;
-@@ -170,22 +175,17 @@ EXPORT_SYMBOL(do_settimeofday);
- static void change_clocksource(void)
+ 	cycle_t (*vread)(void);
+@@ -201,16 +203,17 @@ static inline void clocksource_calculate
  {
- 	struct clocksource *new;
--	cycle_t now;
--	u64 nsec;
+ 	u64 tmp;
  
- 	new = clocksource_get_next();
+-	/* XXX - All of this could use a whole lot of optimization */
++	/* Do the ns -> cycle conversion first, using original mult */
+ 	tmp = length_nsec;
+ 	tmp <<= c->shift;
+-	tmp += c->mult/2;
+-	do_div(tmp, c->mult);
++	tmp += c->mult_orig/2;
++	do_div(tmp, c->mult_orig);
  
- 	if (clock == new)
- 		return;
+ 	c->cycle_interval = (cycle_t)tmp;
+ 	if (c->cycle_interval == 0)
+ 		c->cycle_interval = 1;
  
--	new->cycle_last = 0;
--	now = clocksource_read(new);
--	nsec =  __get_nsec_offset();
--	timespec_add_ns(&xtime, nsec);
-+	clocksource_forward_now();
- 
- 	clock = new;
--	clock->cycle_last = now;
--
-+	clock->cycle_last = 0;
-+	clock->cycle_last = clocksource_read(new);
- 	clock->error = 0;
- 	clock->xtime_nsec = 0;
- 	clocksource_calculate_interval(clock, NTP_INTERVAL_LENGTH);
-@@ -200,8 +200,8 @@ static void change_clocksource(void)
- 	 */
++	/* Go back from cycles -> shifted ns, this time use ntp adjused mult */
+ 	c->xtime_interval = (u64)c->cycle_interval * c->mult;
  }
- #else
-+static inline void clocksource_forward_now(void) { }
- static inline void change_clocksource(void) { }
--static inline s64 __get_nsec_offset(void) { return 0; }
- #endif
  
- /**
-@@ -265,8 +265,6 @@ void __init timekeeping_init(void)
- static int timekeeping_suspended;
- /* time in seconds when suspend began */
- static unsigned long timekeeping_suspend_time;
--/* xtime offset when we went into suspend */
--static s64 timekeeping_suspend_nsecs;
+diff -puN kernel/time/clocksource.c~clocksource-keep-track-of-original-clocksource-frequency kernel/time/clocksource.c
+--- a/kernel/time/clocksource.c~clocksource-keep-track-of-original-clocksource-frequency
++++ a/kernel/time/clocksource.c
+@@ -325,6 +325,9 @@ int clocksource_register(struct clocksou
+ 	unsigned long flags;
+ 	int ret;
  
- /**
-  * timekeeping_resume - Resumes the generic timekeeping subsystem.
-@@ -292,8 +290,6 @@ static int timekeeping_resume(struct sys
- 		wall_to_monotonic.tv_sec -= sleep_length;
- 		total_sleep_time += sleep_length;
- 	}
--	/* Make sure that we have the correct xtime reference */
--	timespec_add_ns(&xtime, timekeeping_suspend_nsecs);
- 	update_xtime_cache(0);
- 	/* re-base the last cycle value */
- 	clock->cycle_last = 0;
-@@ -319,8 +315,7 @@ static int timekeeping_suspend(struct sy
- 	timekeeping_suspend_time = read_persistent_clock();
++	/* save mult_orig on registration */
++	c->mult_orig = c->mult;
++
+ 	spin_lock_irqsave(&clocksource_lock, flags);
+ 	ret = clocksource_enqueue(c);
+ 	if (!ret)
+diff -puN kernel/time/jiffies.c~clocksource-keep-track-of-original-clocksource-frequency kernel/time/jiffies.c
+--- a/kernel/time/jiffies.c~clocksource-keep-track-of-original-clocksource-frequency
++++ a/kernel/time/jiffies.c
+@@ -61,6 +61,7 @@ struct clocksource clocksource_jiffies =
+ 	.read		= jiffies_read,
+ 	.mask		= 0xffffffff, /*32bits*/
+ 	.mult		= NSEC_PER_JIFFY << JIFFIES_SHIFT, /* details above */
++	.mult_orig	= NSEC_PER_JIFFY << JIFFIES_SHIFT,
+ 	.shift		= JIFFIES_SHIFT,
+ };
  
- 	write_seqlock_irqsave(&xtime_lock, flags);
--	/* Get the current xtime offset */
--	timekeeping_suspend_nsecs = __get_nsec_offset();
-+	clocksource_forward_now();
- 	timekeeping_suspended = 1;
- 	write_sequnlock_irqrestore(&xtime_lock, flags);
- 
-@@ -461,10 +456,10 @@ void update_wall_time(void)
- 	 */
- 	while (offset >= clock->cycle_interval) {
- 		/* accumulate one interval */
--		clock->xtime_nsec += clock->xtime_interval;
--		clock->cycle_last += clock->cycle_interval;
- 		offset -= clock->cycle_interval;
-+		clock->cycle_last += clock->cycle_interval;
- 
-+		clock->xtime_nsec += clock->xtime_interval;
- 		if (clock->xtime_nsec >= (u64)NSEC_PER_SEC << clock->shift) {
- 			clock->xtime_nsec -= (u64)NSEC_PER_SEC << clock->shift;
- 			xtime.tv_sec++;
 _
 
-Patches currently in -mm which might be from zippel@linux-m68k.org are
+Patches currently in -mm which might be from johnstul@us.ibm.com are
 
-linux-next.patch
-ntp-let-update_persistent_clock-sleep.patch
+origin.patch
 timekeeping-fix-rounding-problem-during-clock-update.patch
-ntp-fix-calculation-of-the-next-jiffie-to-trigger-rtc-sync.patch
+clocksource-fix-a-print-format-error-in-the-acpi-pm-clocksource-driver-and-check-range.patch
 clocksource-keep-track-of-original-clocksource-frequency.patch
 clocksource-introduce-clocksource_forward_now.patch
 clocksource-introduce-clock_monotonic_raw.patch
-hfs-convert-bitmap_lock-in-a-mutex.patch
-hfs-convert-extents_lock-in-a-mutex.patch
-hfsplus-convert-the-extents_lock-in-a-mutex.patch
-affs-convert-s_bmlock-into-a-mutex.patch
+posix-timers-timer_delete-remove-the-bogus-it_process-=-null-check.patch
+posix-timers-release_posix_timer-kill-the-bogus-put_task_struct-it_process.patch
 
