@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix.patch added to -mm tree
-Date: Tue, 22 Jul 2008 16:27:52 -0700
-Message-ID: <200807222340.m6MNeRxR024646@imap1.linux-foundation.org>
+Subject: + gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix-fix.patch added to -mm tree
+Date: Tue, 22 Jul 2008 16:38:32 -0700
+Message-ID: <200807222351.m6MNp6gG025214@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48293 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36172 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752073AbYGVXkr (ORCPT
+	by vger.kernel.org with ESMTP id S1753519AbYGVXv2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jul 2008 19:40:47 -0400
+	Tue, 22 Jul 2008 19:51:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, dbrownell@users.sourceforge.net, greg@kroah.com, 
 
 
 The patch titled
-     gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix
+     gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix-fix
 has been added to the -mm tree.  Its filename is
-     gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix.patch
+     gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,44 +34,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix
+Subject: gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Greg KH <greg@kroah.com>
 Cc: Michael Buesch <mb@bu3sch.de>
 Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/gpiolib.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/gpio/gpiolib.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/gpio/gpiolib.c~gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix drivers/gpio/gpiolib.c
---- a/drivers/gpio/gpiolib.c~gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix
+diff -puN drivers/gpio/gpiolib.c~gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix-fix drivers/gpio/gpiolib.c
+--- a/drivers/gpio/gpiolib.c~gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix-fix
 +++ a/drivers/gpio/gpiolib.c
-@@ -453,8 +453,8 @@ int gpio_export(unsigned gpio, bool dire
+@@ -453,7 +453,7 @@ int gpio_export(unsigned gpio, bool dire
  	if (status == 0) {
  		struct device	*dev;
  
--		dev = device_create_drvdata(&gpio_class, desc->chip->dev, 0,
--				desc, "gpio%d", gpio);
-+		dev = device_create(&gpio_class, desc->chip->dev, NULL, desc,
-+					"gpio%d", gpio);
+-		dev = device_create(&gpio_class, desc->chip->dev, NULL, desc,
++		dev = device_create(&gpio_class, desc->chip->dev, 0, desc,
+ 					"gpio%d", gpio);
  		if (dev) {
  			if (direction_may_change)
- 				status = sysfs_create_group(&dev->kobj,
-@@ -537,8 +537,8 @@ static int gpiochip_export(struct gpio_c
+@@ -537,7 +537,7 @@ static int gpiochip_export(struct gpio_c
  
  	/* use chip->base for the ID; it's already known to be unique */
  	mutex_lock(&sysfs_lock);
--	dev = device_create_drvdata(&gpio_class, chip->dev, 0, chip,
--			"gpiochip%d", chip->base);
-+	dev = device_create(&gpio_class, chip->dev, NULL, chip, "gpiochip%d",
-+				chip->base);
+-	dev = device_create(&gpio_class, chip->dev, NULL, chip, "gpiochip%d",
++	dev = device_create(&gpio_class, chip->dev, 0, chip, "gpiochip%d",
+ 				chip->base);
  	if (dev) {
  		status = sysfs_create_group(&dev->kobj,
- 				&gpiochip_attr_group);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -166,6 +162,7 @@ flag-parameters-check-magic-constants-alpha.patch
 spi-au1550_spi-improve-pio-transfer-mode-checkpatch-fixes.patch
 autofs4-use-lookup-intent-flags-to-trigger-mounts-fix.patch
 gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix.patch
+gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix-fix.patch
 gpio-add-bt8xxgpio-driver-checkpatch-fixes.patch
 gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch
 gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch
