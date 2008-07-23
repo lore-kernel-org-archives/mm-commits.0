@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + arch-x86-pci-i386c-fix-printk-warnings.patch added to -mm tree
-Date: Tue, 22 Jul 2008 17:16:25 -0700
-Message-ID: <200807230029.m6N0T0ur026634@imap1.linux-foundation.org>
+Subject: + dma-mapping-add-the-device-argument-to-dma_mapping_error-sdhci-fix.patch added to -mm tree
+Date: Tue, 22 Jul 2008 17:23:16 -0700
+Message-ID: <200807230035.m6N0ZpIk026935@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33538 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40385 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750877AbYGWA30 (ORCPT
+	by vger.kernel.org with ESMTP id S1751263AbYGWAg0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jul 2008 20:29:26 -0400
+	Tue, 22 Jul 2008 20:36:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, fujita.tomonori@lab.ntt.co.jp
 
 
 The patch titled
-     arch/x86/pci/i386.c: fix printk warnings
+     dma-mapping-add-the-device-argument-to-dma_mapping_error-sdhci-fix
 has been added to the -mm tree.  Its filename is
-     arch-x86-pci-i386c-fix-printk-warnings.patch
+     dma-mapping-add-the-device-argument-to-dma_mapping_error-sdhci-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,37 +34,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/x86/pci/i386.c: fix printk warnings
+Subject: dma-mapping-add-the-device-argument-to-dma_mapping_error-sdhci-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/x86/pci/i386.c: In function 'pcibios_allocate_resources':
-arch/x86/pci/i386.c:169: warning: format '%08lx' expects type 'long unsigned int', but argument 2 has type 'resource_size_t'
-arch/x86/pci/i386.c:169: warning: format '%08lx' expects type 'long unsigned int', but argument 3 has type 'resource_size_t'
+this patch is killing me.
 
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/pci/i386.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/mmc/host/sdhci.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/pci/i386.c~arch-x86-pci-i386c-fix-printk-warnings arch/x86/pci/i386.c
---- a/arch/x86/pci/i386.c~arch-x86-pci-i386c-fix-printk-warnings
-+++ a/arch/x86/pci/i386.c
-@@ -167,8 +167,10 @@ static void __init pcibios_allocate_reso
- 				disabled = !(command & PCI_COMMAND_MEMORY);
- 			if (pass == disabled) {
- 				pr_warning("PCI: Resource %08lx-%08lx "
--				    "(f=%lx, d=%d, p=%d)\n",
--				    r->start, r->end, r->flags, disabled, pass);
-+					"(f=%lx, d=%d, p=%d)\n",
-+					(unsigned long)r->start,
-+					(unsigned long)r->end,
-+					r->flags, disabled, pass);
- 				pr = pci_find_parent_resource(dev, r);
- 				if (!pr || request_resource(pr, r) < 0) {
- 					printk(KERN_ERR "PCI: Cannot allocate "
+diff -puN drivers/mmc/host/sdhci.c~dma-mapping-add-the-device-argument-to-dma_mapping_error-sdhci-fix drivers/mmc/host/sdhci.c
+--- a/drivers/mmc/host/sdhci.c~dma-mapping-add-the-device-argument-to-dma_mapping_error-sdhci-fix
++++ a/drivers/mmc/host/sdhci.c
+@@ -360,7 +360,7 @@ static int sdhci_adma_table_pre(struct s
+ 
+ 	host->align_addr = dma_map_single(mmc_dev(host->mmc),
+ 		host->align_buffer, 128 * 4, direction);
+-	if (dma_mapping_error(host->align_addr))
++	if (dma_mapping_error(mmc_dev(host->mmc), host->align_addr))
+ 		goto fail;
+ 	BUG_ON(host->align_addr & 0x3);
+ 
+@@ -461,7 +461,7 @@ static int sdhci_adma_table_pre(struct s
+ 
+ 	host->adma_addr = dma_map_single(mmc_dev(host->mmc),
+ 		host->adma_desc, (128 * 2 + 1) * 4, DMA_TO_DEVICE);
+-	if (dma_mapping_error(host->align_addr))
++	if (dma_mapping_error(mmc_dev(host->mmc), host->align_addr))
+ 		goto unmap_entries;
+ 	BUG_ON(host->adma_addr & 0x3);
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -205,6 +207,7 @@ dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error-s2io.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac.patch
 dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sdhci-fix.patch
 x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary-checkpatch-fixes.patch
 calgary-iommu-use-the-first-kernels-tce-tables-in-kdump-coding-style-fixes.patch
 tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
