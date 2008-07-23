@@ -1,108 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - bootmem-add-debugging-framework-fix.patch removed from -mm tree
-Date: Wed, 23 Jul 2008 16:08:14 -0700
-Message-ID: <200807232320.m6NNKpKK017349@imap1.linux-foundation.org>
+Subject: - bootmem-clean-up-free_all_bootmem_core-fix.patch removed from -mm tree
+Date: Wed, 23 Jul 2008 16:08:42 -0700
+Message-ID: <200807232321.m6NNLJgA017370@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46468 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38671 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756502AbYGWXU4 (ORCPT
+	by vger.kernel.org with ESMTP id S1754271AbYGWXVl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jul 2008 19:20:56 -0400
+	Wed, 23 Jul 2008 19:21:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@saeurebad.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, andi@firstfloor.org, hannes@saeurebad.de, mingo@elte.hu, yhlu.kernel@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bootmem-add-debugging-framework-fix
+     bootmem-clean-up-free_all_bootmem_core-fix
 has been removed from the -mm tree.  Its filename was
-     bootmem-add-debugging-framework-fix.patch
+     bootmem-clean-up-free_all_bootmem_core-fix.patch
 
-This patch was dropped because it was folded into bootmem-add-debugging-framework.patch
+This patch was dropped because it was folded into bootmem-clean-up-free_all_bootmem_core.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bootmem-add-debugging-framework-fix
+Subject: bootmem-clean-up-free_all_bootmem_core-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-mm/bootmem.c: In function 'init_bootmem_core':
-mm/bootmem.c:123: warning: format '%d' expects type 'int', but argument 3 has type 'long int'
 mm/bootmem.c: In function 'free_all_bootmem_core':
-mm/bootmem.c:220: warning: format '%d' expects type 'int', but argument 3 has type 'long int'
-mm/bootmem.c: In function 'free_bootmem_core':
-mm/bootmem.c:279: warning: format '%d' expects type 'int', but argument 3 has type 'long int'
-mm/bootmem.c: In function 'reserve_bootmem_core':
-mm/bootmem.c:388: warning: format '%d' expects type 'int', but argument 3 has type 'long int'
-mm/bootmem.c: In function 'alloc_bootmem_core':
-mm/bootmem.c:485: warning: format '%d' expects type 'int', but argument 3 has type 'long int'
-mm/bootmem.c:596: warning: format '%d' expects type 'int', but argument 3 has type 'long int'
+mm/bootmem.c:163: warning: format '%d' expects type 'int', but argument 3 has type 'long int'
 
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Johannes Weiner <hannes@saeurebad.de>
+Cc: Yinghai Lu <yhlu.kernel@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/bootmem.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ mm/bootmem.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/bootmem.c~bootmem-add-debugging-framework-fix mm/bootmem.c
---- a/mm/bootmem.c~bootmem-add-debugging-framework-fix
+diff -puN mm/bootmem.c~bootmem-clean-up-free_all_bootmem_core-fix mm/bootmem.c
+--- a/mm/bootmem.c~bootmem-clean-up-free_all_bootmem_core-fix
 +++ a/mm/bootmem.c
-@@ -120,7 +120,7 @@ static unsigned long __init init_bootmem
- 	mapsize = get_mapsize(bdata);
- 	memset(bdata->node_bootmem_map, 0xff, mapsize);
+@@ -160,7 +160,7 @@ static unsigned long __init free_all_boo
+ 	 */
+ 	aligned = !(start & (BITS_PER_LONG - 1));
  
--	bdebug("nid=%d start=%lx map=%lx end=%lx mapsize=%lx\n",
-+	bdebug("nid=%td start=%lx map=%lx end=%lx mapsize=%lx\n",
- 		bdata - bootmem_node_data, start, mapstart, end, mapsize);
+-	bdebug("nid=%d start=%lx end=%lx aligned=%d\n",
++	bdebug("nid=%td start=%lx end=%lx aligned=%d\n",
+ 		bdata - bootmem_node_data, start, end, aligned);
  
- 	return mapsize;
-@@ -217,7 +217,7 @@ static unsigned long __init free_all_boo
- 	count += i;
- 	bdata->node_bootmem_map = NULL;
- 
--	bdebug("nid=%d released=%lx\n", bdata - bootmem_node_data, count);
-+	bdebug("nid=%td released=%lx\n", bdata - bootmem_node_data, count);
- 
- 	return count;
- }
-@@ -276,7 +276,7 @@ static void __init free_bootmem_core(boo
- 	if (eidx > bdata->node_low_pfn - PFN_DOWN(bdata->node_boot_start))
- 		eidx = bdata->node_low_pfn - PFN_DOWN(bdata->node_boot_start);
- 
--	bdebug("nid=%d start=%lx end=%lx\n", bdata - bootmem_node_data,
-+	bdebug("nid=%td start=%lx end=%lx\n", bdata - bootmem_node_data,
- 		sidx + PFN_DOWN(bdata->node_boot_start),
- 		eidx + PFN_DOWN(bdata->node_boot_start));
- 
-@@ -385,7 +385,7 @@ static void __init reserve_bootmem_core(
- 	if (eidx > bdata->node_low_pfn - PFN_DOWN(bdata->node_boot_start))
- 		eidx = bdata->node_low_pfn - PFN_DOWN(bdata->node_boot_start);
- 
--	bdebug("nid=%d start=%lx end=%lx flags=%x\n",
-+	bdebug("nid=%td start=%lx end=%lx flags=%x\n",
- 		bdata - bootmem_node_data,
- 		sidx + PFN_DOWN(bdata->node_boot_start),
- 		eidx + PFN_DOWN(bdata->node_boot_start),
-@@ -483,7 +483,7 @@ alloc_bootmem_core(struct bootmem_data *
- 	if (!bdata->node_bootmem_map)
- 		return NULL;
- 
--	bdebug("nid=%d size=%lx [%lu pages] align=%lx goal=%lx limit=%lx\n",
-+	bdebug("nid=%td size=%lx [%lu pages] align=%lx goal=%lx limit=%lx\n",
- 		bdata - bootmem_node_data, size, PAGE_ALIGN(size) >> PAGE_SHIFT,
- 		align, goal, limit);
- 
-@@ -594,7 +594,7 @@ found:
- 		ret = phys_to_virt(start * PAGE_SIZE + node_boot_start);
- 	}
- 
--	bdebug("nid=%d start=%lx end=%lx\n",
-+	bdebug("nid=%td start=%lx end=%lx\n",
- 		bdata - bootmem_node_data,
- 		start + PFN_DOWN(bdata->node_boot_start),
- 		start + areasize + PFN_DOWN(bdata->node_boot_start));
+ 	while (start < end) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -124,7 +73,7 @@ vmallocinfo-add-numa-information.patch
 hugetlb-modular-state-for-hugetlb-page-size.patch
 hugetlb-multiple-hstates-for-multiple-page-sizes.patch
 bootmem-add-debugging-framework.patch
-bootmem-add-debugging-framework-fix.patch
+bootmem-clean-up-free_all_bootmem_core.patch
 bootmem-clean-up-free_all_bootmem_core-fix.patch
 bootmem-free-reserve-helpers-fix.patch
 revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
