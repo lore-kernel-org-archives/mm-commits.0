@@ -1,24 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + ath5k-fix-beacon-update-deadlock.patch added to -mm tree
-Date: Wed, 23 Jul 2008 12:25:59 -0700
-Message-ID: <200807231926.m6NJPxJA007925@imap1.linux-foundation.org>
+Subject: + set_irq_wake-fix-return-code-and-wake-status-tracking.patch added to -mm tree
+Date: Wed, 23 Jul 2008 12:52:29 -0700
+Message-ID: <200807231952.m6NJqTm1008908@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37562 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58314 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752649AbYGWT1b (ORCPT
+	by vger.kernel.org with ESMTP id S1752759AbYGWTxR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jul 2008 15:27:31 -0400
+	Wed, 23 Jul 2008 15:53:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com, johannes@sipsolutions.net, linville@tuxdriver.com, mcgrof@gmail.com, me@bobcopeland.com, mickflemm@gmail.com
+Cc: Uwe.Kleine-Koenig@digi.com, dbrownell@users.sourceforge.net, mingo@elte.hu, rmk@arm.linux.org.uk, tglx@linutronix.de
 
 
 The patch titled
-     ath5k: fix beacon-update deadlock
+     set_irq_wake: fix return code and wake status tracking
 has been added to the -mm tree.  Its filename is
-     ath5k-fix-beacon-update-deadlock.patch
+     set_irq_wake-fix-return-code-and-wake-status-tracking.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -26,96 +29,120 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
+find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: ath5k: fix beacon-update deadlock
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: set_irq_wake: fix return code and wake status tracking
+=46rom: Uwe Kleine-K=F6nig <Uwe.Kleine-Koenig@digi.com>
 
-Commit 9d139c810a2aa17365cc548d0cd2a189d8433c65 introduced AA deadlock --
-ath5k_config_interface(); holds sc->lock and it calls
-ath5k_beacon_update(); which tries to grab the lock again.
+Since 15a647eba94c3da27ccc666bea72e7cca06b2d19 set_irq_wake returned
+-ENXIO if another device had it already enabled.  Zero is the right val=
+ue
+to return in this case.  Moreover the change to desc->status was not
+reverted if desc->chip->set_wake returned an error.
 
-Don't grab the lock in beacon update, since only caller is config iface
-for now.
-
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: Johannes Berg <johannes@sipsolutions.net>
-Cc: John W. Linville <linville@tuxdriver.com>
-Cc: Nick Kossifidis <mickflemm@gmail.com>
-Cc: Luis R. Rodriguez <mcgrof@gmail.com>
-Cc: "Bob Copeland" <me@bobcopeland.com>
+Signed-off-by: Uwe Kleine-K=F6nig <Uwe.Kleine-Koenig@digi.com>
+Acked-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/ath5k/base.c |    4 ----
- 1 file changed, 4 deletions(-)
+ kernel/irq/manage.c |   39 +++++++++++++++++++++++++++------------
+ 1 file changed, 27 insertions(+), 12 deletions(-)
 
-diff -puN drivers/net/wireless/ath5k/base.c~ath5k-fix-beacon-update-deadlock drivers/net/wireless/ath5k/base.c
---- a/drivers/net/wireless/ath5k/base.c~ath5k-fix-beacon-update-deadlock
-+++ a/drivers/net/wireless/ath5k/base.c
-@@ -3065,8 +3065,6 @@ ath5k_beacon_update(struct ieee80211_hw 
- 
- 	ath5k_debug_dump_skb(sc, skb, "BC  ", 1);
- 
--	mutex_lock(&sc->lock);
--
- 	if (sc->opmode != IEEE80211_IF_TYPE_IBSS) {
- 		ret = -EIO;
- 		goto end;
-@@ -3081,9 +3079,7 @@ ath5k_beacon_update(struct ieee80211_hw 
- 		ath5k_beacon_config(sc);
- 		mmiowb();
+diff -puN kernel/irq/manage.c~set_irq_wake-fix-return-code-and-wake-sta=
+tus-tracking kernel/irq/manage.c
+--- a/kernel/irq/manage.c~set_irq_wake-fix-return-code-and-wake-status-=
+tracking
++++ a/kernel/irq/manage.c
+@@ -224,6 +224,17 @@ void enable_irq(unsigned int irq)
+ }
+ EXPORT_SYMBOL(enable_irq);
+=20
++int set_irq_wake_real(unsigned int irq, unsigned int on)
++{
++	struct irq_desc *desc =3D irq_desc + irq;
++	int ret =3D -ENXIO;
++
++	if (desc->chip->set_wake)
++		ret =3D desc->chip->set_wake(irq, on);
++
++	return ret;
++}
++
+ /**
+  *	set_irq_wake - control irq power management wakeup
+  *	@irq:	interrupt to control
+@@ -240,30 +251,34 @@ int set_irq_wake(unsigned int irq, unsig
+ {
+ 	struct irq_desc *desc =3D irq_desc + irq;
+ 	unsigned long flags;
+-	int ret =3D -ENXIO;
+-	int (*set_wake)(unsigned, unsigned) =3D desc->chip->set_wake;
++	int ret =3D 0;
+=20
+ 	/* wakeup-capable irqs can be shared between drivers that
+ 	 * don't need to have the same sleep mode behaviors.
+ 	 */
+ 	spin_lock_irqsave(&desc->lock, flags);
+ 	if (on) {
+-		if (desc->wake_depth++ =3D=3D 0)
+-			desc->status |=3D IRQ_WAKEUP;
+-		else
+-			set_wake =3D NULL;
++		if (desc->wake_depth++ =3D=3D 0) {
++			ret =3D set_irq_wake_real(irq, on);
++			if (ret)
++				desc->wake_depth =3D 0;
++			else
++				desc->status |=3D IRQ_WAKEUP;
++		}
+ 	} else {
+ 		if (desc->wake_depth =3D=3D 0) {
+ 			printk(KERN_WARNING "Unbalanced IRQ %d "
+ 					"wake disable\n", irq);
+ 			WARN_ON(1);
+-		} else if (--desc->wake_depth =3D=3D 0)
+-			desc->status &=3D ~IRQ_WAKEUP;
+-		else
+-			set_wake =3D NULL;
++		} else if (--desc->wake_depth =3D=3D 0) {
++			ret =3D set_irq_wake_real(irq, on);
++			if (ret)
++				desc->wake_depth =3D 1;
++			else
++				desc->status &=3D ~IRQ_WAKEUP;
++		}
  	}
--
- end:
--	mutex_unlock(&sc->lock);
+-	if (set_wake)
+-		ret =3D desc->chip->set_wake(irq, on);
++
+ 	spin_unlock_irqrestore(&desc->lock, flags);
  	return ret;
  }
- 
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from Uwe.Kleine-Koenig@digi.com=
+ are
 
 origin.patch
 linux-next.patch
-ath5k-fix-memory-corruption.patch
-ath5k-kill-tasklets-on-shutdown.patch
-ath5k-flush-work.patch
-ath5k-fix-dma-operation.patch
-ath5k-suspend-resume-fixes.patch
-ath5k-fix-beacon-update-deadlock.patch
-ath5k-mask-out-unneeded-interrupts.patch
-ath5k-unify-resets.patch
-mac80211-tx-use-dev_kfree_skb_any-for-beacon_get.patch
-mac80211-return-correct-error-return-from-ieee80211_wep_init.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments.patch
-serial-z85c30-avoid-a-hang-at-console-switch-over.patch
-serial-dz11-avoid-a-hang-at-console-switch-over.patch
-vt-hold-console_sem-across-sysfs-operations.patch
-ip2-push-bkl-down-for-the-firmware-interface.patch
-rio-push-down-the-bkl-into-the-firmware-ioctl-handler.patch
-sx-push-bkl-down-into-the-firmware-ioctl-handler.patch
-ppdev-wrap-ioctl-handler-in-driver-and-push-lock-down.patch
-dsp56k-bkl-pushdown.patch
-char-mxser-ioctl-cleanup.patch
-char-mxser-globals-cleanup.patch
-char-mxser-update-documentation.patch
-char-mxser-prints-cleanup.patch
-char-mxser-remove-predefined-isa-support.patch
-char-mxser-various-cleanups.patch
-ip2-fix-iielliscleanup-as-it-is-static-but-not-always-used.patch
-char-merge-ip2main-and-ip2base.patch
-char-ip2-cleanup-globals.patch
-char-ip2-fix-sparse-warnings.patch
-char-ip2-init-deinit-cleanup.patch
-ip2-avoid-add_timer-with-pending-timer.patch
-drivers-misc-phantom-note-pci.patch
-reiser4.patch
-shrink_slab-handle-bad-shrinkers.patch
+handle-failure-of-irqchip-set_type-in-setup_irq.patch
+handle-failure-of-irqchip-set_type-in-setup_irq-update.patch
+set_irq_wake-fix-return-code-and-wake-status-tracking.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
