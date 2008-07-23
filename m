@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlb-override-default-huge-page-size-non-const-fix.patch added to -mm tree
-Date: Tue, 22 Jul 2008 21:31:02 -0700
-Message-ID: <200807230431.m6N4V2ZU002739@imap1.linux-foundation.org>
+Subject: + hugetlb-override-default-huge-page-size-non-const-fix-fix.patch added to -mm tree
+Date: Tue, 22 Jul 2008 21:31:21 -0700
+Message-ID: <200807230431.m6N4VLej002743@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47470 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42508 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752234AbYGWEbI (ORCPT
+	by vger.kernel.org with ESMTP id S1752207AbYGWEb0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jul 2008 00:31:08 -0400
+	Wed, 23 Jul 2008 00:31:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de
+Cc: akpm@linux-foundation.org, npiggin@suse.de
 
 
 The patch titled
-     hugetlb: override default huge page size non-const fix
+     hugetlb-override-default-huge-page-size-non-const-fix-fix
 has been added to the -mm tree.  Its filename is
-     hugetlb-override-default-huge-page-size-non-const-fix.patch
+     hugetlb-override-default-huge-page-size-non-const-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,117 +34,220 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlb: override default huge page size non-const fix
-From: Nick Piggin <npiggin@suse.de>
+Subject: hugetlb-override-default-huge-page-size-non-const-fix-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-If HPAGE_SIZE is not constant (eg.  on ia64), then the initialiser does
-not work.  Fix this by making default_hstate_size == 0, then if it isn't
-set from the cmdline, hugetlb_init will still do the right thing and set
-up the default hstate as (the now initialized) HPAGE_SIZE.
-
-Signed-off-by: Nick Piggin <npiggin@suse.de>
+Cc: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  mm/hugetlb.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/hugetlb.c~hugetlb-override-default-huge-page-size-non-const-fix mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-override-default-huge-page-size-non-const-fix
+diff -puN mm/hugetlb.c~hugetlb-override-default-huge-page-size-non-const-fix-fix mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-override-default-huge-page-size-non-const-fix-fix
 +++ a/mm/hugetlb.c
 @@ -34,7 +34,7 @@ struct hstate hstates[HUGE_MAX_HSTATE];
  /* for command line parsing */
  static struct hstate * __initdata parsed_hstate;
  static unsigned long __initdata default_hstate_max_huge_pages;
--static unsigned long __initdata default_hstate_size = HPAGE_SIZE;
-+static unsigned long __initdata default_hstate_size = 0;
+-static unsigned long __initdata default_hstate_size = 0;
++static unsigned long __initdata default_hstate_size;
  
  #define for_each_hstate(h) \
  	for ((h) = hstates; (h) < &hstates[max_hstate]; (h)++)
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+arm-fix-fls-for-64-bit-arguments.patch
+linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+drivers-mtd-nand-nandsimc-needs-div64h.patch
+pci-make-pci_register_driver-a-macro.patch
+drivers-mfd-tc6393xbc-doesnt-compile-on-i386.patch
+x86-pci-replace-dbg-with-pr_debug-fix.patch
+x86-pci-replace-dbg-with-pr_debug-fix-2.patch
+include-asm-generic-pgtable-nopmdh-macros-are-noxious-reason-435.patch
+arch-x86-pci-i386c-fix-printk-warnings.patch
+arch-x86-kernel-genx2apic_uv_xc-warning-fix.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+git-input-build-fix.patch
+git-jg-misc.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
 git-kvm.patch
-mspec-convert-nopfn-to-fault.patch
+bridge-send-correct-mtu-value-in-pmtu-checkpatch-fixes.patch
+sundance-set-carrier-status-on-link-change-events.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+scsi-gdthc-use-unaligned-access-helpers-checkpatch-fixes.patch
+git-logfs-git-rejects.patch
+git-logfs-fixup.patch
+drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
+drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
+git-xtensa.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+ftrace-disable-function-tracing-bringing-up-new-cpu-fix.patch
+mm-verify-the-page-links-and-memory-model.patch
 mspec-convert-nopfn-to-fault-fix.patch
-mm-remove-nopfn.patch
-mm-remove-nopfn-fix.patch
-mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co.patch
-hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed-build-fix.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+kill-generic_file_direct_io-checkpatch-fixes.patch
+use-generic_access_phys-for-dev-mem-mappings-fix.patch
+spufs-use-the-new-vm_ops-access-fix.patch
+fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
+page-flags-record-page-flag-overlays-explicitly-xen.patch
+mapping_set_error-add-unlikely.patch
+huge-page-private-reservation-review-cleanups-fix.patch
 vma-page-offset-has-no-callees-drop-it.patch
-hugetlb-factor-out-prep_new_huge_page.patch
-hugetlb-modular-state-for-hugetlb-page-size.patch
+sync_file_range_write-may-and-will-block-document-that-fix.patch
+vmallocinfo-add-numa-information-fix.patch
 hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
-hugetlb-multiple-hstates-for-multiple-page-sizes.patch
 hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
-hugetlbfs-per-mount-huge-page-sizes.patch
-hugetlb-new-sysfs-interface.patch
-hugetlb-new-sysfs-interface-fix-2.patch
-hugetlb-abstract-numa-round-robin-selection.patch
-mm-introduce-non-panic-alloc_bootmem.patch
-mm-export-prep_compound_page-to-mm.patch
-hugetlb-support-larger-than-max_order.patch
-hugetlb-support-boot-allocate-different-sizes.patch
-hugetlb-printk-cleanup.patch
-hugetlb-introduce-pud_huge.patch
-hugetlb-introduce-pud_huge-s390-fix.patch
-x86-support-gb-hugepages-on-64-bit.patch
-x86-add-hugepagesz-option-on-64-bit.patch
-hugetlb-override-default-huge-page-size.patch
-hugetlb-override-default-huge-page-size-non-const-fix.patch
+hugetlb-override-default-huge-page-size-non-const-fix-fix.patch
 hugetlb-override-default-huge-page-size-ia64-build.patch
-hugetlb-allow-arch-overried-hugepage-allocation.patch
-powerpc-function-to-allocate-gigantic-hugepages.patch
-powerpc-scan-device-tree-for-gigantic-pages.patch
-powerpc-define-support-for-16g-hugepages.patch
-fs-check-for-statfs-overflow.patch
-powerpc-support-multiple-hugepage-sizes.patch
-mmu-notifiers-add-list_del_init_rcu.patch
-mmu-notifiers-add-mm_take_all_locks-operation.patch
+linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+bootmem-add-debugging-framework-fix.patch
+bootmem-clean-up-free_all_bootmem_core-fix.patch
+bootmem-free-reserve-helpers-fix.patch
+revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-v850-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-arm-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mips-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mtd-fix.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fixes.patch
 mmu-notifiers-add-mm_take_all_locks-operation-checkpatch-fixes.patch
-mmu-notifier-core.patch
+mmu-notifier-core-checkpatch-fixes.patch
 mmu-notifier-core-fix.patch
 mmu-notifier-core-fix-2.patch
-x86-implement-pte_special.patch
-x86-implement-pte_special-fix.patch
-mm-introduce-get_user_pages_fast.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
+security-protect-legacy-applications-from-executing-with-insufficient-privilege-checkpatch-fixes.patch
+swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+seq_file-fix-bug-when-seq_read-reads-nothing-fix.patch
+exec-remove-some-includes-fix.patch
+inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-paccept-sys_ni.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-signalfd-fix.patch
+flag-parameters-eventfd-fix.patch
+flag-parameters-inotify_init-fix.patch
+flag-parameters-check-magic-constants-alpha.patch
+spi-au1550_spi-improve-pio-transfer-mode-checkpatch-fixes.patch
+autofs4-use-lookup-intent-flags-to-trigger-mounts-fix.patch
+gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix.patch
+gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix-fix.patch
+gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix-fix-fix.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
+sm501-fixup-allocation-code-to-be-64bit-resource-compliant-sm501-align-panel-fb-to-page_size-fix.patch
+lcd-add-platform_lcd-driver-fix.patch
+fsl-diu-fb-update-freescale-diu-driver-to-use-page_alloc_exact.patch
+fbdev-add-new-cobalt-lcd-framebuffer-driver.patch
+eink_apollofb-new-driver-for-apollo-eink-controller-cleanup.patch
+eink_apollofb-new-driver-for-apollo-eink-controller-fix.patch
+eink_apollofb-new-driver-for-apollo-eink-controller-fix-fix-2.patch
+fbcon-remove-stray-semicolons-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
+ext3-handle-corrupted-orphan-list-at-mount-cleanup.patch
+ext3-handle-corrupted-orphan-list-at-mount-fix.patch
+ext3-handle-corrupted-orphan-list-at-mount-cleanup-fix.patch
+ext3-handle-deleting-corrupted-indirect-blocks-fix.patch
+jbd-dont-abort-if-flushing-file-data-failed-fix.patch
+reiserfs-convert-j_flush_sem-to-mutex.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
+cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-fix.patch
+cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-checkpatch-fixes.patch
+devcgroup-code-cleanup-fix.patch
+memcg-remove-refcnt-from-page_cgroup-fix-2.patch
+memcg-limit-change-shrink-usage-checkpatch-fixes.patch
+coredump-format_corename-fix-the-core_uses_pid-logic-checkpatch-fixes.patch
+workqueues-make-get_online_cpus-useable-for-work-func-fix.patch
+ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
+fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
+block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
+getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
+edac-mpc85xx-fix-pci-ofdev-2nd-pass-checkpatch-fixes.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-s2io.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sdhci-fix.patch
+x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary-checkpatch-fixes.patch
+tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
+memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
+memstick-use-fully-asynchronous-request-processing-fix.patch
+full-conversion-to-early_initcall-interface-remove-old-interface-cleanup.patch
+full-conversion-to-early_initcall-interface-remove-old-interface-fix.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
 mm-introduce-get_user_pages_fast-fix.patch
 mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast.patch
 x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
 x86-lockless-get_user_pages_fast-fix.patch
 x86-lockless-get_user_pages_fast-fix-2.patch
 x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
 x86-lockless-get_user_pages_fast-fix-warning.patch
-dio-use-get_user_pages_fast.patch
-splice-use-get_user_pages_fast.patch
-x86-support-1gb-hugepages-with-get_user_pages_lockless.patch
-mm-readahead-scan-lockless.patch
-radix-tree-add-gang_lookup_slot-gang_lookup_slot_tag.patch
-mm-speculative-page-references.patch
-mm-speculative-page-references-fix.patch
-mm-speculative-page-references-fix-add_to_page_cache.patch
 mm-speculative-page-references-fix-add_to_page_cache-fix.patch
-mm-lockless-pagecache.patch
-mm-spinlock-tree_lock.patch
-powerpc-implement-pte_special.patch
-powerpc-implement-pte_special-update.patch
-powerpc-lockless-get_user_pages.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
 vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
-vmscan-split-lru-lists-into-anon-file-sets-splitlru-bdi_cap_swap_backed.patch
-mlock-mlocked-pages-are-unevictable.patch
+define-page_file_cache-function-fix.patch
+vmscan-split-lru-lists-into-anon-file-sets-units-fix.patch
+unevictable-lru-infrastructure-fix.patch
+unevictable-lru-page-statistics-units-fix.patch
 mlock-mlocked-pages-are-unevictable-fix.patch
 mlock-mlocked-pages-are-unevictable-fix-fix.patch
 mlock-mlocked-pages-are-unevictable-fix-3.patch
-mlock-mlocked-pages-are-unevictable-fix-fix-munlock-page-table-walk-now-requires-mm.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
 mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
-fix-double-unlock_page-in-2626-rc5-mm3-kernel-bug-at-mm-filemapc-575.patch
-vmstat-mlocked-pages-statistics.patch
-vmstat-mlocked-pages-statistics-fix-incorrect-mlocked-field-of-proc-meminfo.patch
+vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-fix-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
+slb-drop-kmem-cache-argument-from-constructor-ubifs.patch
+video-console-sticonrec-make-code-static-checkpatch-fixes.patch
 reiser4.patch
-likeliness-accounting-change-and-cleanup.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
