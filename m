@@ -1,85 +1,261 @@
 From: akpm@linux-foundation.org
-Subject: - uml-fix-boot-crash.patch removed from -mm tree
-Date: Wed, 23 Jul 2008 14:02:51 -0700
-Message-ID: <200807232102.m6NL2pDS011794@imap1.linux-foundation.org>
+Subject: - rtc-marvell-soc-rtc-driver.patch removed from -mm tree
+Date: Wed, 23 Jul 2008 14:02:48 -0700
+Message-ID: <200807232102.m6NL2mOd011789@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33977 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52105 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754363AbYGWVDH (ORCPT
+	by vger.kernel.org with ESMTP id S1754356AbYGWVDF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jul 2008 17:03:07 -0400
+	Wed, 23 Jul 2008 17:03:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, jdike@linux.intel.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: saeed@marvell.com, a.zummo@towertech.it, buytenh@marvell.com, david-b@pacbell.net, nico@marvell.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: fix boot crash
+     rtc: Marvell SoC RTC driver
 has been removed from the -mm tree.  Its filename was
-     uml-fix-boot-crash.patch
+     rtc-marvell-soc-rtc-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: fix boot crash
-From: Jeff Dike <jdike@addtoit.com>
+Subject: rtc: Marvell SoC RTC driver
+From: Saeed Bishara <saeed@marvell.com>
 
-My copying of linux/init.h didn't go far enough.  The definition of __used
-singled out gcc minor version 3, but didn't care what the major version
-was.  This broke when unit-at-a-time was added and gcc started throwing
-out initcalls.
+Driver for the on-chip RTC found in some of Marvell's SoCs
+such as the Kirkwood 88F6281 and 88F6192 devices.
 
-This results in an early boot crash when ptrace tries to initialize a
-process with an empty, uninitialized register set.
-
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Saeed Bishara <saeed@marvell.com>
+Signed-off-by: Lennert Buytenhek <buytenh@marvell.com>
+Signed-off-by: Nicolas Pitre <nico@marvell.com>
+Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/init.h |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/rtc/Kconfig  |   10 ++
+ drivers/rtc/Makefile |    1 
+ drivers/rtc/rtc-mv.c |  176 +++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 187 insertions(+)
 
-diff -puN arch/um/include/init.h~uml-fix-boot-crash arch/um/include/init.h
---- a/arch/um/include/init.h~uml-fix-boot-crash
-+++ a/arch/um/include/init.h
-@@ -45,6 +45,8 @@ typedef void (*exitcall_t)(void);
- # define __section(S) __attribute__ ((__section__(#S)))
- #endif
+diff -puN drivers/rtc/Kconfig~rtc-marvell-soc-rtc-driver drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-marvell-soc-rtc-driver
++++ a/drivers/rtc/Kconfig
+@@ -583,4 +583,14 @@ config RTC_DRV_PPC
+ 	 the RTC. This exposes that functionality through the generic RTC
+ 	 class.
  
-+#if __GNUC__ == 3
++config RTC_DRV_MV
++	tristate "Marvell SoC RTC"
++	help
++	  If you say yes here you will get support for the in-chip RTC
++	  that can be found in some of Marvell's SoC devices, such as
++	  the Kirkwood 88F6281 and 88F6192.
 +
- #if __GNUC_MINOR__ >= 3
- # define __used			__attribute__((__used__))
- #else
-@@ -52,6 +54,12 @@ typedef void (*exitcall_t)(void);
- #endif
- 
- #else
-+#if __GNUC__ == 4
-+# define __used			__attribute__((__used__))
-+#endif
-+#endif
++	  This driver can also be built as a module. If so, the module
++	  will be called rtc-mv.
 +
-+#else
- #include <linux/compiler.h>
- #endif
- /* These are for everybody (although not all archs will actually
+ endif # RTC_CLASS
+diff -puN drivers/rtc/Makefile~rtc-marvell-soc-rtc-driver drivers/rtc/Makefile
+--- a/drivers/rtc/Makefile~rtc-marvell-soc-rtc-driver
++++ a/drivers/rtc/Makefile
+@@ -40,6 +40,7 @@ obj-$(CONFIG_RTC_DRV_M48T59)	+= rtc-m48t
+ obj-$(CONFIG_RTC_DRV_M48T86)	+= rtc-m48t86.o
+ obj-$(CONFIG_RTC_DRV_MAX6900)	+= rtc-max6900.o
+ obj-$(CONFIG_RTC_DRV_MAX6902)	+= rtc-max6902.o
++obj-$(CONFIG_RTC_DRV_MV)	+= rtc-mv.o
+ obj-$(CONFIG_RTC_DRV_OMAP)	+= rtc-omap.o
+ obj-$(CONFIG_RTC_DRV_PCF8563)	+= rtc-pcf8563.o
+ obj-$(CONFIG_RTC_DRV_PCF8583)	+= rtc-pcf8583.o
+diff -puN /dev/null drivers/rtc/rtc-mv.c
+--- /dev/null
++++ a/drivers/rtc/rtc-mv.c
+@@ -0,0 +1,176 @@
++/*
++ * Driver for the RTC in Marvell SoCs.
++ *
++ * This file is licensed under the terms of the GNU General Public
++ * License version 2.  This program is licensed "as is" without any
++ * warranty of any kind, whether express or implied.
++ */
++
++#include <linux/bcd.h>
++#include <linux/init.h>
++#include <linux/kernel.h>
++#include <linux/rtc.h>
++#include <linux/io.h>
++#include <linux/platform_device.h>
++
++#define DRV_VERSION "0.1"
++
++#define RTC_TIME_REG_OFFS	0
++#define RTC_SECONDS_OFFS	0
++#define RTC_MINUTES_OFFS	8
++#define RTC_HOURS_OFFS		16
++#define RTC_WDAY_OFFS		24
++#define RTC_HOURS_12H_MODE		(1 << 22) /* 12 hours mode */
++
++#define RTC_DATE_REG_OFFS	4
++#define RTC_MDAY_OFFS		0
++#define RTC_MONTH_OFFS		8
++#define RTC_YEAR_OFFS		16
++
++
++struct rtc_plat_data {
++	struct rtc_device *rtc;
++	void __iomem *ioaddr;
++};
++
++static int mv_rtc_set_time(struct device *dev, struct rtc_time *tm)
++{
++	struct rtc_plat_data *pdata = dev_get_drvdata(dev);
++	void __iomem *ioaddr = pdata->ioaddr;
++	u32	rtc_reg;
++
++	rtc_reg = (BIN2BCD(tm->tm_sec) << RTC_SECONDS_OFFS) |
++		(BIN2BCD(tm->tm_min) << RTC_MINUTES_OFFS) |
++		(BIN2BCD(tm->tm_hour) << RTC_HOURS_OFFS) |
++		(BIN2BCD(tm->tm_wday) << RTC_WDAY_OFFS);
++
++	writel(rtc_reg, ioaddr + RTC_TIME_REG_OFFS);
++
++	rtc_reg = (BIN2BCD(tm->tm_mday) << RTC_MDAY_OFFS) |
++		(BIN2BCD(tm->tm_mon + 1) << RTC_MONTH_OFFS) |
++		(BIN2BCD(tm->tm_year % 100) << RTC_YEAR_OFFS);
++
++	writel(rtc_reg, ioaddr + RTC_DATE_REG_OFFS);
++	return 0;
++}
++
++static int mv_rtc_read_time(struct device *dev, struct rtc_time *tm)
++{
++	struct rtc_plat_data *pdata = dev_get_drvdata(dev);
++	void __iomem *ioaddr = pdata->ioaddr;
++	u32	rtc_time, rtc_date;
++	unsigned int year, month, day, hour, minute, second, wday;
++
++	rtc_time = readl(ioaddr + RTC_TIME_REG_OFFS);
++	rtc_date = readl(ioaddr + RTC_DATE_REG_OFFS);
++
++	second = rtc_time & 0x7f;
++	minute = (rtc_time >> RTC_MINUTES_OFFS) & 0x7f;
++	hour = (rtc_time >> RTC_HOURS_OFFS) & 0x3f; /* assume 24 hours mode */
++	wday = (rtc_time >> RTC_WDAY_OFFS) & 0x7;
++
++	day = rtc_date & 0x3f;
++	month = (rtc_date >> RTC_MONTH_OFFS) & 0x3f;
++	year = (rtc_date >> RTC_YEAR_OFFS) & 0xff;
++
++	tm->tm_sec = BCD2BIN(second);
++	tm->tm_min = BCD2BIN(minute);
++	tm->tm_hour = BCD2BIN(hour);
++	tm->tm_mday = BCD2BIN(day);
++	tm->tm_wday = BCD2BIN(wday);
++	tm->tm_mon = BCD2BIN(month) - 1;
++	/* hw counts from year 2000, but tm_year is relative to 1900 */
++	tm->tm_year = BCD2BIN(year) + 100;
++
++	if (rtc_valid_tm(tm) < 0) {
++		dev_err(dev, "retrieved date/time is not valid.\n");
++		rtc_time_to_tm(0, tm);
++	}
++	return 0;
++}
++
++static const struct rtc_class_ops mv_rtc_ops = {
++	.read_time	= mv_rtc_read_time,
++	.set_time	= mv_rtc_set_time,
++};
++
++static int __devinit mv_rtc_probe(struct platform_device *pdev)
++{
++	struct rtc_device *rtc;
++	struct resource *res;
++	struct rtc_plat_data *pdata = NULL;
++	void __iomem *ioaddr = NULL;
++	resource_size_t size;
++	u32 rtc_time;
++
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (!res)
++		return -ENODEV;
++
++	pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
++	if (!pdata)
++		return -ENOMEM;
++
++	size = res->end - res->start + 1;
++	if (!devm_request_mem_region(&pdev->dev, res->start, size,
++				     pdev->name))
++		return -EBUSY;
++
++	ioaddr = devm_ioremap(&pdev->dev, res->start, size);
++	if (!ioaddr)
++		return -ENOMEM;
++
++	pdata->ioaddr = ioaddr;
++
++	/* make sure the 24 hours mode is enabled */
++	rtc_time = readl(ioaddr + RTC_TIME_REG_OFFS);
++	if (rtc_time & RTC_HOURS_12H_MODE) {
++		dev_err(&pdev->dev, "12 Hours mode not supported.\n");
++		return -EBUSY;
++	}
++
++	rtc = rtc_device_register(pdev->name, &pdev->dev,
++				  &mv_rtc_ops, THIS_MODULE);
++	if (IS_ERR(rtc))
++		return PTR_ERR(rtc);
++
++	pdata->rtc = rtc;
++	platform_set_drvdata(pdev, pdata);
++	return 0;
++}
++
++static int __devexit mv_rtc_remove(struct platform_device *pdev)
++{
++	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
++
++	rtc_device_unregister(pdata->rtc);
++	return 0;
++}
++
++static struct platform_driver mv_rtc_driver = {
++	.probe		= mv_rtc_probe,
++	.remove		= __devexit_p(mv_rtc_remove),
++	.driver		= {
++		.name	= "rtc-mv",
++		.owner	= THIS_MODULE,
++	},
++};
++
++static __init int mv_init(void)
++{
++	return platform_driver_register(&mv_rtc_driver);
++}
++
++static __exit void mv_exit(void)
++{
++	platform_driver_unregister(&mv_rtc_driver);
++}
++
++module_init(mv_init);
++module_exit(mv_exit);
++
++MODULE_AUTHOR("Saeed Bishara <saeed@marvell.com>");
++MODULE_DESCRIPTION("Marvell RTC driver");
++MODULE_LICENSE("GPL");
++MODULE_VERSION(DRV_VERSION);
++MODULE_ALIAS("platform:rtc-mv");
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from saeed@marvell.com are
 
 origin.patch
-linux-next.patch
-arch-um-kernel-irqc-clean-up-some-functions.patch
-arch-um-kernel-memc-remove-arch_validate.patch
-uml-make-several-more-things-static.patch
-kernel-call-constructors-uml-fix-1.patch
-kernel-call-constructors-uml-fix-2.patch
-mm-print-swapcache-page-count-in-show_swap_cache_info.patch
-lib-generic-show_mem.patch
-um-use-generic-show_mem.patch
+git-orion.patch
 
