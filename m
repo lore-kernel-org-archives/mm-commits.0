@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + gru-driver-v3-hardware-data-structures-fix-fix.patch added to -mm tree
-Date: Tue, 22 Jul 2008 23:29:59 -0700
-Message-ID: <200807230629.m6N6TxY8006938@imap1.linux-foundation.org>
+Subject: + drivers-net-wireless-iwlwifi-iwl-ledc-printk-fix.patch added to -mm tree
+Date: Tue, 22 Jul 2008 23:50:04 -0700
+Message-ID: <200807230650.m6N6o4k2007618@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35989 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48181 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750721AbYGWGaD (ORCPT
+	by vger.kernel.org with ESMTP id S1750873AbYGWGuY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jul 2008 02:30:03 -0400
+	Wed, 23 Jul 2008 02:50:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, steiner@sgi.com, tony.luck@intel.com
+Cc: akpm@linux-foundation.org, linville@tuxdriver.com, tomas.winkler@intel.com, yi.zhu@intel.com
 
 
 The patch titled
-     gru-driver-v3-hardware-data-structures-fix-fix
+     drivers/net/wireless/iwlwifi/iwl-led.c: printk fix
 has been added to the -mm tree.  Its filename is
-     gru-driver-v3-hardware-data-structures-fix-fix.patch
+     drivers-net-wireless-iwlwifi-iwl-ledc-printk-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,29 +34,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gru-driver-v3-hardware-data-structures-fix-fix
+Subject: drivers/net/wireless/iwlwifi/iwl-led.c: printk fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Jack Steiner <steiner@sgi.com>
+ia64:
+
+drivers/net/wireless/iwlwifi/iwl-led.c: In function `iwl_get_blink_rate':
+drivers/net/wireless/iwlwifi/iwl-led.c:271: warning: long long int format, s64 arg (arg 6)
+drivers/net/wireless/iwlwifi/iwl-led.c:271: warning: long long int format, u64 arg (arg 7)
+
+We do not know what type the architecture uses to impement u64 and s64,
+hence we must cast the variables for printing.
+
+Cc: Tomas Winkler <tomas.winkler@intel.com>
+Cc: John W. Linville <linville@tuxdriver.com>
+Cc: Zhu Yi <yi.zhu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/mm/hugetlbpage.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/wireless/iwlwifi/iwl-led.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN arch/ia64/mm/hugetlbpage.c~gru-driver-v3-hardware-data-structures-fix-fix arch/ia64/mm/hugetlbpage.c
---- a/arch/ia64/mm/hugetlbpage.c~gru-driver-v3-hardware-data-structures-fix-fix
-+++ a/arch/ia64/mm/hugetlbpage.c
-@@ -13,7 +13,7 @@
- #include <linux/mm.h>
- #include <linux/hugetlb.h>
- #include <linux/pagemap.h>
--#include <linux/modulel.h>
-+#include <linux/module.h>
- #include <linux/slab.h>
- #include <linux/sysctl.h>
- #include <linux/log2.h>
+diff -puN drivers/net/wireless/iwlwifi/iwl-led.c~drivers-net-wireless-iwlwifi-iwl-ledc-printk-fix drivers/net/wireless/iwlwifi/iwl-led.c
+--- a/drivers/net/wireless/iwlwifi/iwl-led.c~drivers-net-wireless-iwlwifi-iwl-ledc-printk-fix
++++ a/drivers/net/wireless/iwlwifi/iwl-led.c
+@@ -268,7 +268,9 @@ static int iwl_get_blink_rate(struct iwl
+ 	if (tpt < 0) /* wrapparound */
+ 		tpt = -tpt;
+ 
+-	IWL_DEBUG_LED("tpt %lld current_tpt %lld\n", tpt, current_tpt);
++	IWL_DEBUG_LED("tpt %lld current_tpt %llu\n",
++		(long long)tpt,
++		(unsigned long long)current_tpt);
+ 	priv->led_tpt = current_tpt;
+ 
+ 	if (!priv->allow_blinking)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -253,4 +265,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
+drivers-net-wireless-iwlwifi-iwl-ledc-printk-fix.patch
 
