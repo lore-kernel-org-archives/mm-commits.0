@@ -1,68 +1,47 @@
 From: akpm@linux-foundation.org
-Subject: - mmu-notifiers-add-mm_take_all_locks-operation-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 23 Jul 2008 16:17:50 -0700
-Message-ID: <200807232330.m6NNUSqh017748@imap1.linux-foundation.org>
+Subject: - mmu-notifier-core-fix.patch removed from -mm tree
+Date: Wed, 23 Jul 2008 16:18:16 -0700
+Message-ID: <200807232330.m6NNUrq2017832@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34680 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33496 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754565AbYGWXcA (ORCPT
+	by vger.kernel.org with ESMTP id S1754597AbYGWXcM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jul 2008 19:32:00 -0400
+	Wed, 23 Jul 2008 19:32:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, aliguori@us.ibm.com, andrea@qumranet.com, avi@qumranet.com, chrisw@redhat.com, cl@linux-foundation.org, dada1@cosmosbay.com, holt@sg
 
 
 The patch titled
-     mmu-notifiers-add-mm_take_all_locks-operation-checkpatch-fixes
+     mmu-notifier-core-fix
 has been removed from the -mm tree.  Its filename was
-     mmu-notifiers-add-mm_take_all_locks-operation-checkpatch-fixes.patch
+     mmu-notifier-core-fix.patch
 
-This patch was dropped because it was folded into mmu-notifiers-add-mm_take_all_locks-operation.patch
+This patch was dropped because it was folded into mmu-notifier-core.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmu-notifiers-add-mm_take_all_locks-operation-checkpatch-fixes
+Subject: mmu-notifier-core-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: code indent should use tabs where possible
-#209: FILE: mm/mmap.c:2358:
-+                if (vma->anon_vma)$
-
-ERROR: code indent should use tabs where possible
-#210: FILE: mm/mmap.c:2359:
-+                        vm_lock_anon_vma(vma->anon_vma);$
-
-ERROR: code indent should use tabs where possible
-#211: FILE: mm/mmap.c:2360:
-+                if (vma->vm_file && vma->vm_file->f_mapping)$
-
-ERROR: code indent should use tabs where possible
-#212: FILE: mm/mmap.c:2361:
-+                        vm_lock_mapping(vma->vm_file->f_mapping);$
-
-total: 4 errors, 0 warnings, 191 lines checked
-
-./patches/mmu-notifiers-add-mm_take_all_locks-operation.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
+mm/filemap_xip.c: In function '__xip_unmap':
+mm/filemap_xip.c:191: error: implicit declaration of function 'ptep_clear_flush_notify'
+mm/filemap_xip.c:191: error: incompatible types in assignment
 
 Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
 Cc: Andrea Arcangeli <andrea@qumranet.com>
 Cc: Anthony Liguori <aliguori@us.ibm.com>
 Cc: Avi Kivity <avi@qumranet.com>
 Cc: Chris Wright <chrisw@redhat.com>
-Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Christoph Lameter <clameter@sgi.com>
 Cc: Eric Dumazet <dada1@cosmosbay.com>
 Cc: Hugh Dickins <hugh@veritas.com>
 Cc: Izik Eidus <izike@qumranet.com>
 Cc: Jack Steiner <steiner@sgi.com>
 Cc: Kanoj Sarcar <kanojsarcar@yahoo.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: Marcelo Tosatti <marcelo@kvack.org>
 Cc: Nick Piggin <npiggin@suse.de>
 Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
@@ -74,27 +53,20 @@ Cc: Steve Wise <swise@opengridcomputing.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/filemap_xip.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/mmap.c~mmu-notifiers-add-mm_take_all_locks-operation-checkpatch-fixes mm/mmap.c
---- a/mm/mmap.c~mmu-notifiers-add-mm_take_all_locks-operation-checkpatch-fixes
-+++ a/mm/mmap.c
-@@ -2356,10 +2356,10 @@ int mm_take_all_locks(struct mm_struct *
- 	for (vma = mm->mmap; vma; vma = vma->vm_next) {
- 		if (signal_pending(current))
- 			goto out_unlock;
--                if (vma->anon_vma)
--                        vm_lock_anon_vma(vma->anon_vma);
--                if (vma->vm_file && vma->vm_file->f_mapping)
--                        vm_lock_mapping(vma->vm_file->f_mapping);
-+		if (vma->anon_vma)
-+			vm_lock_anon_vma(vma->anon_vma);
-+		if (vma->vm_file && vma->vm_file->f_mapping)
-+			vm_lock_mapping(vma->vm_file->f_mapping);
- 	}
- 	ret = 0;
- 
+diff -puN mm/filemap_xip.c~mmu-notifier-core-fix mm/filemap_xip.c
+--- a/mm/filemap_xip.c~mmu-notifier-core-fix
++++ a/mm/filemap_xip.c
+@@ -13,6 +13,7 @@
+ #include <linux/module.h>
+ #include <linux/uio.h>
+ #include <linux/rmap.h>
++#include <linux/mmu_notifier.h>
+ #include <linux/sched.h>
+ #include <asm/tlbflush.h>
+ #include <asm/io.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -121,8 +93,7 @@ bootmem-free-reserve-helpers.patch
 bootmem-factor-out-the-marking-of-a-pfn-range.patch
 page_align-correctly-handle-64-bit-values-on-32-bit-architectures.patch
 mmu-notifiers-add-mm_take_all_locks-operation.patch
-mmu-notifiers-add-mm_take_all_locks-operation-checkpatch-fixes.patch
-mmu-notifier-core-checkpatch-fixes.patch
+mmu-notifier-core.patch
 mmu-notifier-core-fix.patch
 mmu-notifier-core-fix-2.patch
 security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
