@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-net-wireless-iwlwifi-iwl-ledc-printk-fix.patch added to -mm tree
-Date: Tue, 22 Jul 2008 23:50:04 -0700
-Message-ID: <200807230650.m6N6o4k2007618@imap1.linux-foundation.org>
+Subject: + dma-mapping-add-the-device-argument-to-dma_mapping_error-infiniband.patch added to -mm tree
+Date: Wed, 23 Jul 2008 00:01:34 -0700
+Message-ID: <200807230701.m6N71Ylj007989@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48181 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42258 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750873AbYGWGuY (ORCPT
+	by vger.kernel.org with ESMTP id S1750747AbYGWHD1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jul 2008 02:50:24 -0400
+	Wed, 23 Jul 2008 03:03:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, linville@tuxdriver.com, tomas.winkler@intel.com, yi.zhu@intel.com
+Cc: akpm@linux-foundation.org, andi@firstfloor.org, avi@qumranet.com, davem@davemloft.net, fujita.tomonori@lab.ntt.co.jp, mingo@elte.hu, muli@il.ibm.com, tglx@linutronix.de
 
 
 The patch titled
-     drivers/net/wireless/iwlwifi/iwl-led.c: printk fix
+     dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc-fix
 has been added to the -mm tree.  Its filename is
-     drivers-net-wireless-iwlwifi-iwl-ledc-printk-fix.patch
+     dma-mapping-add-the-device-argument-to-dma_mapping_error-infiniband.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/net/wireless/iwlwifi/iwl-led.c: printk fix
+Subject: dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ia64:
+In file included from include/linux/sunrpc/svc_rdma.h:47,
+                 from net/sunrpc/xprtrdma/svc_rdma.c:47:
+include/rdma/ib_verbs.h: In function `ib_dma_mapping_error':
+include/rdma/ib_verbs.h:1637: warning: passing arg 1 of `dma_mapping_error' makes integer from pointer without a cast
+include/rdma/ib_verbs.h:1637: error: too many arguments to function `dma_mapping_error'
 
-drivers/net/wireless/iwlwifi/iwl-led.c: In function `iwl_get_blink_rate':
-drivers/net/wireless/iwlwifi/iwl-led.c:271: warning: long long int format, s64 arg (arg 6)
-drivers/net/wireless/iwlwifi/iwl-led.c:271: warning: long long int format, u64 arg (arg 7)
-
-We do not know what type the architecture uses to impement u64 and s64,
-hence we must cast the variables for printing.
-
-Cc: Tomas Winkler <tomas.winkler@intel.com>
-Cc: John W. Linville <linville@tuxdriver.com>
-Cc: Zhu Yi <yi.zhu@intel.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Avi Kivity <avi@qumranet.com>
+Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Muli Ben-Yehuda <muli@il.ibm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/iwlwifi/iwl-led.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ include/asm-sparc/dma-mapping_64.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/wireless/iwlwifi/iwl-led.c~drivers-net-wireless-iwlwifi-iwl-ledc-printk-fix drivers/net/wireless/iwlwifi/iwl-led.c
---- a/drivers/net/wireless/iwlwifi/iwl-led.c~drivers-net-wireless-iwlwifi-iwl-ledc-printk-fix
-+++ a/drivers/net/wireless/iwlwifi/iwl-led.c
-@@ -268,7 +268,9 @@ static int iwl_get_blink_rate(struct iwl
- 	if (tpt < 0) /* wrapparound */
- 		tpt = -tpt;
+diff -puN include/asm-sparc/dma-mapping_64.h~dma-mapping-add-the-device-argument-to-dma_mapping_error-infiniband include/asm-sparc/dma-mapping_64.h
+--- a/include/asm-sparc/dma-mapping_64.h~dma-mapping-add-the-device-argument-to-dma_mapping_error-infiniband
++++ a/include/asm-sparc/dma-mapping_64.h
+@@ -135,7 +135,7 @@ static inline void dma_sync_sg_for_devic
+ 	/* No flushing needed to sync cpu writes to the device.  */
+ }
  
--	IWL_DEBUG_LED("tpt %lld current_tpt %lld\n", tpt, current_tpt);
-+	IWL_DEBUG_LED("tpt %lld current_tpt %llu\n",
-+		(long long)tpt,
-+		(unsigned long long)current_tpt);
- 	priv->led_tpt = current_tpt;
- 
- 	if (!priv->allow_blinking)
+-static inline int dma_mapping_error(dma_addr_t dma_addr)
++static inline int dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
+ {
+ 	return (dma_addr == DMA_ERROR_CODE);
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -101,6 +100,7 @@ git-logfs-git-rejects.patch
 git-logfs-fixup.patch
 drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
 drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
+drivers-net-wireless-iwlwifi-iwl-ledc-printk-fix.patch
 git-xtensa.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
 ftrace-disable-function-tracing-bringing-up-new-cpu-fix.patch
@@ -214,6 +214,7 @@ dma-mapping-add-the-device-argument-to-dma_mapping_error-s2io.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac.patch
 dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error-sdhci-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-infiniband.patch
 x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary-checkpatch-fixes.patch
 tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
 memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
@@ -265,5 +266,4 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
-drivers-net-wireless-iwlwifi-iwl-ledc-printk-fix.patch
 
