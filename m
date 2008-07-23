@@ -1,52 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: - page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix.patch removed from -mm tree
-Date: Wed, 23 Jul 2008 16:12:58 -0700
-Message-ID: <200807232325.m6NNPZZZ017534__45392.7471106455$1216855614$gmane$org@imap1.linux-foundation.org>
+Subject: - page_align-correctly-handle-64-bit-values-on-32-bit-architectures-arm-fix.patch removed from -mm tree
+Date: Wed, 23 Jul 2008 16:13:00 -0700
+Message-ID: <200807232325.m6NNPbaM017539@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57450 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51269 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755027AbYGWXZi (ORCPT
+	by vger.kernel.org with ESMTP id S1755027AbYGWXZj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jul 2008 19:25:38 -0400
+	Wed, 23 Jul 2008 19:25:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, linux-arch@vger.kernel.org, paulus@samba.org, righi.andrea@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, righi.andrea@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix
+     page_align-correctly-handle-64-bit-values-on-32-bit-architectures-arm-fix
 has been removed from the -mm tree.  Its filename was
-     page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix.patch
+     page_align-correctly-handle-64-bit-values-on-32-bit-architectures-arm-fix.patch
 
 This patch was dropped because it was folded into page_align-correctly-handle-64-bit-values-on-32-bit-architectures.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix
+Subject: page_align-correctly-handle-64-bit-values-on-32-bit-architectures-arm-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: <linux-arch@vger.kernel.org>
 Cc: Andrea Righi <righi.andrea@gmail.com>
-Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/boot/page.h |    3 +++
- 1 file changed, 3 insertions(+)
+ arch/arm/kernel/module.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/powerpc/boot/page.h~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix arch/powerpc/boot/page.h
---- a/arch/powerpc/boot/page.h~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix
-+++ a/arch/powerpc/boot/page.h
-@@ -28,4 +28,7 @@
- /* align addr on a size boundary - adjust address up if needed */
- #define _ALIGN(addr,size)     _ALIGN_UP(addr,size)
- 
-+/* to align the pointer to the (next) page boundary */
-+#define PAGE_ALIGN(addr)	_ALIGN(addr, PAGE_SIZE)
-+
- #endif				/* _PPC_BOOT_PAGE_H */
+diff -puN arch/arm/kernel/module.c~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-arm-fix arch/arm/kernel/module.c
+--- a/arch/arm/kernel/module.c~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-arm-fix
++++ a/arch/arm/kernel/module.c
+@@ -13,6 +13,7 @@
+ #include <linux/module.h>
+ #include <linux/moduleloader.h>
+ #include <linux/kernel.h>
++#include <linux/mm.h>
+ #include <linux/elf.h>
+ #include <linux/vmalloc.h>
+ #include <linux/slab.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -72,7 +70,6 @@ bootmem-clean-up-free_all_bootmem_core.patch
 bootmem-free-reserve-helpers.patch
 bootmem-factor-out-the-marking-of-a-pfn-range.patch
 page_align-correctly-handle-64-bit-values-on-32-bit-architectures.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix.patch
 page_align-correctly-handle-64-bit-values-on-32-bit-architectures-arm-fix.patch
 page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mips-fix.patch
 page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb.patch
