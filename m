@@ -1,88 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: - pm-introduce-new-interfaces-schedule_work_on-and-queue_work_on-cleanup.patch removed from -mm tree
-Date: Wed, 23 Jul 2008 16:22:43 -0700
-Message-ID: <200807232335.m6NNZLPb017969@imap1.linux-foundation.org>
+Subject: - pm-acpi-hibernation-utilize-hardware-signaturepatch-causes-build-error.patch removed from -mm tree
+Date: Wed, 23 Jul 2008 16:23:42 -0700
+Message-ID: <200807232336.m6NNaJVC018072@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42409 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53826 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754462AbYGWXgN (ORCPT
+	by vger.kernel.org with ESMTP id S1754227AbYGWXgg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jul 2008 19:36:13 -0400
+	Wed, 23 Jul 2008 19:36:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, harbour@sfinx.od.ua, pavel@ucw.cz, rjw@sisk.pl, rui.zhang@intel.com, mm-commits@vger.kernel.org
+To: shaohua.li@intel.com, Valdis.Kletnieks@vt.edu, andi@firstfloor.org, lenb@kernel.org, pavel@ucw.cz, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pm-introduce-new-interfaces-schedule_work_on-and-queue_work_on-cleanup
+     pm-acpi-hibernation-utilize-hardware-signature.patch causes build error
 has been removed from the -mm tree.  Its filename was
-     pm-introduce-new-interfaces-schedule_work_on-and-queue_work_on-cleanup.patch
+     pm-acpi-hibernation-utilize-hardware-signaturepatch-causes-build-error.patch
 
-This patch was dropped because it was folded into pm-introduce-new-interfaces-schedule_work_on-and-queue_work_on.patch
+This patch was dropped because it was folded into pm-acpi-hibernation-utilize-hardware-signature.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pm-introduce-new-interfaces-schedule_work_on-and-queue_work_on-cleanup
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: pm-acpi-hibernation-utilize-hardware-signature.patch causes build error
+From: Shaohua Li <shaohua.li@intel.com>
 
-The comment above __queue_work() is wrong, we don't need to disable
-preemtion.
+On Sun, 2008-07-13 at 04:44 -0400, Valdis.Kletnieks@vt.edu wrote:
+> Patch pm-acpi-hibernation-utilize-hardware-signature.patch in the 07/11 mmotm
+> causes a link error:
+>
+>   LD      .tmp_vmlinux1
+> arch/x86/kernel/built-in.o: In function `acpi_sleep_setup':
+> sleep.c:(.init.text+0x6854): undefined reference to `acpi_no_s4_hw_signature'
+>
+> Not at all surprising, since the patch doesn't actually include a body
+> for the function, only references.  Did a (hopefully) previous patch that
+> added the body get lost along the way?
+this should fix it.
 
-What it actually means is: the caller of __queue_work() must ensure
-we can't race with CPU_DEAD, but preempt_disable() can't help for
-queue_work_on(). CPU can die even before preempt_disable().
-
-Remove preempt_disable() and update the comment.
-
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Zhang Rui <rui.zhang@intel.com>
-Cc: Rus <harbour@sfinx.od.ua>
+Reported-by: <Valdis.Kletnieks@vt.edu>
+Cc: Shaohua Li <shaohua.li@intel.com>
 Cc: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Len Brown <lenb@kernel.org>
 Cc: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/workqueue.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ arch/x86/kernel/acpi/sleep.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN kernel/workqueue.c~pm-introduce-new-interfaces-schedule_work_on-and-queue_work_on-cleanup kernel/workqueue.c
---- a/kernel/workqueue.c~pm-introduce-new-interfaces-schedule_work_on-and-queue_work_on-cleanup
-+++ a/kernel/workqueue.c
-@@ -140,7 +140,6 @@ static void insert_work(struct cpu_workq
- 	wake_up(&cwq->more_work);
- }
- 
--/* Preempt must be disabled. */
- static void __queue_work(struct cpu_workqueue_struct *cwq,
- 			 struct work_struct *work)
- {
-@@ -183,7 +182,8 @@ EXPORT_SYMBOL_GPL(queue_work);
-  *
-  * Returns 0 if @work was already on a queue, non-zero otherwise.
-  *
-- * We queue the work to a specific CPU
-+ * We queue the work to a specific CPU, the caller must ensure it
-+ * can't go away.
-  */
- int
- queue_work_on(int cpu, struct workqueue_struct *wq, struct work_struct *work)
-@@ -192,9 +192,7 @@ queue_work_on(int cpu, struct workqueue_
- 
- 	if (!test_and_set_bit(WORK_STRUCT_PENDING, work_data_bits(work))) {
- 		BUG_ON(!list_empty(&work->entry));
--		preempt_disable();
- 		__queue_work(wq_per_cpu(wq, cpu), work);
--		preempt_enable();
- 		ret = 1;
- 	}
- 	return ret;
+diff -puN arch/x86/kernel/acpi/sleep.c~pm-acpi-hibernation-utilize-hardware-signaturepatch-causes-build-error arch/x86/kernel/acpi/sleep.c
+--- a/arch/x86/kernel/acpi/sleep.c~pm-acpi-hibernation-utilize-hardware-signaturepatch-causes-build-error
++++ a/arch/x86/kernel/acpi/sleep.c
+@@ -150,8 +150,10 @@ static int __init acpi_sleep_setup(char 
+ 			acpi_realmode_flags |= 2;
+ 		if (strncmp(str, "s3_beep", 7) == 0)
+ 			acpi_realmode_flags |= 4;
++#ifdef CONFIG_HIBERNATION
+ 		if (strncmp(str, "s4_nohwsig", 10) == 0)
+ 			acpi_no_s4_hw_signature();
++#endif
+ 		if (strncmp(str, "old_ordering", 12) == 0)
+ 			acpi_old_suspend_ordering();
+ 		str = strchr(str, ',');
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from shaohua.li@intel.com are
 
 origin.patch
-pm-introduce-new-interfaces-schedule_work_on-and-queue_work_on.patch
-pm-introduce-new-interfaces-schedule_work_on-and-queue_work_on-cleanup.patch
+pm-acpi-hibernation-utilize-hardware-signature.patch
+pm-acpi-hibernation-utilize-hardware-signaturepatch-causes-build-error.patch
 
