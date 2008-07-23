@@ -1,114 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: - sync_file_range_write-may-and-will-block-document-that-fix.patch removed from -mm tree
-Date: Wed, 23 Jul 2008 16:00:25 -0700
-Message-ID: <200807232313.m6NND3XY016933@imap1.linux-foundation.org>
+Subject: - hugetlb-allow-huge-page-mappings-to-be-created-without-reservations-cleanups.patch removed from -mm tree
+Date: Wed, 23 Jul 2008 16:00:05 -0700
+Message-ID: <200807232312.m6NNCgE2016921@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58205 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53074 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754002AbYGWXNH (ORCPT
+	by vger.kernel.org with ESMTP id S1754048AbYGWXNJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jul 2008 19:13:07 -0400
+	Wed, 23 Jul 2008 19:13:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, pavel@suse.cz, mm-commits@vger.kernel.org
+To: apw@shadowen.org, agl@us.ibm.com, hannes@saeurebad.de, hugh@veritas.com, mel@csn.ul.ie, mtk.manpages@googlemail.com, wli@holomorphy.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sync_file_range_write-may-and-will-block-document-that-fix
+     huge page MAP_NORESERVE review cleanups
 has been removed from the -mm tree.  Its filename was
-     sync_file_range_write-may-and-will-block-document-that-fix.patch
+     hugetlb-allow-huge-page-mappings-to-be-created-without-reservations-cleanups.patch
 
-This patch was dropped because it was folded into sync_file_range_write-may-and-will-block-document-that.patch
+This patch was dropped because it was folded into hugetlb-allow-huge-page-mappings-to-be-created-without-reservations.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sync_file_range_write-may-and-will-block-document-that-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: huge page MAP_NORESERVE review cleanups
+From: Andy Whitcroft <apw@shadowen.org>
 
-Cc: Pavel Machek <pavel@suse.cz>
+Use the new encapsulated huge page offset helper.
+
+Signed-off-by: Andy Whitcroft <apw@shadowen.org>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Adam Litke <agl@us.ibm.com>
+Cc: Johannes Weiner <hannes@saeurebad.de>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: William Lee Irwin III <wli@holomorphy.com>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/sync.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/hugetlb.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN fs/sync.c~sync_file_range_write-may-and-will-block-document-that-fix fs/sync.c
---- a/fs/sync.c~sync_file_range_write-may-and-will-block-document-that-fix
-+++ a/fs/sync.c
-@@ -139,8 +139,8 @@ asmlinkage long sys_fdatasync(unsigned i
-  * before performing the write.
-  *
-  * SYNC_FILE_RANGE_WRITE: initiate writeout of all those dirty pages in the
-- * range which are not presently under writeback. Notice that even this this
-- *  may and will block if you attempt to write more than request queue size.
-+ * range which are not presently under writeback. Note that this may block for
-+ * significant periods due to exhaustion of disk request structures.
-  *
-  * SYNC_FILE_RANGE_WAIT_AFTER: wait upon writeout of all pages in the range
-  * after performing the write.
+diff -puN mm/hugetlb.c~hugetlb-allow-huge-page-mappings-to-be-created-without-reservations-cleanups mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-allow-huge-page-mappings-to-be-created-without-reservations-cleanups
++++ a/mm/hugetlb.c
+@@ -738,8 +738,7 @@ static int vma_needs_reservation(struct 
+ 	struct inode *inode = mapping->host;
+ 
+ 	if (vma->vm_flags & VM_SHARED) {
+-		unsigned long idx = ((addr - vma->vm_start) >> HPAGE_SHIFT) +
+-				(vma->vm_pgoff >> (HPAGE_SHIFT - PAGE_SHIFT));
++		pgoff_t idx = vma_pagecache_offset(vma, addr);
+ 		return region_chg(&inode->i_mapping->private_list,
+ 							idx, idx + 1);
+ 
+@@ -757,8 +756,7 @@ static void vma_commit_reservation(struc
+ 	struct inode *inode = mapping->host;
+ 
+ 	if (vma->vm_flags & VM_SHARED) {
+-		unsigned long idx = ((addr - vma->vm_start) >> HPAGE_SHIFT) +
+-				(vma->vm_pgoff >> (HPAGE_SHIFT - PAGE_SHIFT));
++		pgoff_t idx = vma_pagecache_offset(vma, addr);
+ 		region_add(&inode->i_mapping->private_list, idx, idx + 1);
+ 	}
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from apw@shadowen.org are
 
 origin.patch
+mm-add-a-basic-debugging-framework-for-memory-initialisation.patch
 mm-verify-the-page-links-and-memory-model.patch
-mspec-convert-nopfn-to-fault.patch
-page-allocator-inlnie-some-__alloc_pages-wrappers.patch
-kill-generic_file_direct_io.patch
-use-generic_access_phys-for-dev-mem-mappings.patch
-spufs-use-the-new-vm_ops-access.patch
-fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries.patch
+mm-make-defensive-checks-around-pfn-values-registered-for-memory-usage.patch
+mm-print-out-the-zonelists-on-request-for-manual-verification.patch
+add-a-helper-function-to-test-if-an-object-is-on-the-stack.patch
+mm-move-bootmem-descriptors-definition-to-a-single-place.patch
+mm-fix-free_all_bootmem_core-alignment-check.patch
+mm-normalize-internal-argument-passing-of-bootmem-data.patch
+mm-unexport-__alloc_bootmem_core.patch
+buddy-clarify-comments-describing-buddy-merge.patch
 page-flags-record-page-flag-overlays-explicitly.patch
-mapping_set_error-add-unlikely.patch
+slub-record-page-flag-overlays-explicitly.patch
+slob-record-page-flag-overlays-explicitly.patch
+hugetlb-move-hugetlb_acct_memory.patch
+hugetlb-reserve-huge-pages-for-reliable-map_private-hugetlbfs-mappings-until-fork.patch
+hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed.patch
 huge-page-private-reservation-review-cleanups.patch
+mm-record-map_noreserve-status-on-vmas-and-fix-small-page-mprotect-reservations.patch
+hugetlb-move-reservation-region-support-earlier.patch
+hugetlb-allow-huge-page-mappings-to-be-created-without-reservations.patch
+hugetlb-allow-huge-page-mappings-to-be-created-without-reservations-cleanups.patch
+hugetlb-reservations-fix-hugetlb-map_private-reservations-across-vma-splits-v2.patch
 vma-page-offset-has-no-callees-drop-it.patch
-sync_file_range_write-may-and-will-block-document-that.patch
-sync_file_range_write-may-and-will-block-document-that-fix.patch
-vmallocinfo-add-numa-information-fix.patch
-hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
-hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
-hugetlb-override-default-huge-page-size-non-const-fix-fix.patch
-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-bootmem-add-debugging-framework-fix.patch
-bootmem-clean-up-free_all_bootmem_core-fix.patch
-bootmem-free-reserve-helpers-fix.patch
-revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-v850-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-arm-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mips-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mtd-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fixes.patch
-mmu-notifiers-add-mm_take_all_locks-operation-checkpatch-fixes.patch
-mmu-notifier-core-checkpatch-fixes.patch
-mmu-notifier-core-fix.patch
-mmu-notifier-core-fix-2.patch
-security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
-security-protect-legacy-applications-from-executing-with-insufficient-privilege-checkpatch-fixes.patch
-swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
-flag-parameters-paccept-fix.patch
-flag-parameters-paccept-sys_ni.patch
-flag-parameters-anon_inode_getfd-extension-fix.patch
-flag-parameters-signalfd-fix.patch
-flag-parameters-eventfd-fix.patch
-flag-parameters-inotify_init-fix.patch
-flag-parameters-check-magic-constants-alpha.patch
-spi-au1550_spi-improve-pio-transfer-mode-checkpatch-fixes.patch
-autofs4-use-lookup-intent-flags-to-trigger-mounts-fix.patch
-rtc-cmos-improve-hpet-irq-glue-build-fix.patch
-drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
-atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
-sm501-fixup-allocation-code-to-be-64bit-resource-compliant-sm501-align-panel-fb-to-page_size-fix.patch
-lcd-add-platform_lcd-driver-fix.patch
-fsl-diu-fb-update-freescale-diu-driver-to-use-page_alloc_exact.patch
-fbdev-add-new-cobalt-lcd-framebuffer-driver.patch
-fbcon-remove-stray-semicolons-checkpatch-fixes.patch
+hugetlb-fix-race-when-reading-proc-meminfo.patch
+hugetlb-fix-a-hugepage-reservation-check-for-map_shared.patch
+hugetlb-quota-is-not-freed-for-unused-reserved-private-huge-pages.patch
+memory-hotplugallocate-usemap-on-the-section-with-pgdat-take-4.patch
+memory-hotplug-small-fixes-to-bootmem-freeing-for-memory-hotremove.patch
+memory-hotplug-dont-calculate-vm_total_pages-twice-when-rebuilding-zonelists-in-online_pages.patch
+checkpatch-version-020.patch
+checkpatch-return-is-not-a-function-parentheses-for-casts-are-ok-too.patch
+checkpatch-types-some-types-may-also-be-identifiers.patch
+checkpatch-add-a-checkpatch-warning-for-new-uses-of-__initcall.patch
+checkpatch-possible-types-__asm__-is-never-a-type.patch
+checkpatch-comment-detection-ignore-macro-continuation-when-detecting-associated-comments.patch
+checkpatch-types-unary-goto-introduces-unary-context.patch
+checkpatch-macros-fix-statement-counting-block-end-detection.patch
+checkpatch-trailing-statement-indent-fix-end-of-statement-location.patch
+checkpatch-allow-printk-strings-to-exceed-80-characters-to-maintain-their-searchability.patch
+checkpatch-switch-report-trailing-statements-on-case-and-default.patch
+checkpatch-check-spacing-for-square-brackets.patch
+checkpatch-toughen-trailing-if-statement-checks-and-extend-them-to-while-and-for.patch
+checkpatch-condition-loop-indent-checks.patch
+checkpatch-usb_free_urb-can-take-null.patch
+checkpatch-correct-spelling-in-kfree-checks.patch
+checkpatch-allow-for-type-modifiers-on-multiple-declarations.patch
+checkpatch-improve-type-matcher-debug.patch
+checkpatch-possible-modifiers-are-not-being-correctly-matched.patch
+checkpatch-macro-complexity-checks-are-meaningless-in-linker-scripts.patch
+checkpatch-handle-return-types-of-pointers-to-functions.patch
+checkpatch-possible-types-known-modifiers-cannot-be-types.patch
+checkpatch-possible-modifiers-handle-multiple-modifiers-and-trailing.patch
+checkpatch-add-checks-for-question-mark-and-colon-spacing.patch
+checkpatch-variants-move-the-main-unary-binary-operators-to-use-variants.patch
+checkpatch-complex-macros-need-to-ignore-comments.patch
+checkpatch-types-cannot-start-mid-word-for-pointer-tests.patch
+checkpatch-version-021.patch
 
