@@ -1,65 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - security-protect-legacy-applications-from-executing-with-insufficient-privilege-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 23 Jul 2008 16:20:42 -0700
-Message-ID: <200807232333.m6NNXJWJ017884@imap1.linux-foundation.org>
+Subject: - swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch removed from -mm tree
+Date: Wed, 23 Jul 2008 16:21:09 -0700
+Message-ID: <200807232333.m6NNXk61017887@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46663 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51114 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755343AbYGWXeO (ORCPT
+	by vger.kernel.org with ESMTP id S1753958AbYGWXe2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jul 2008 19:34:14 -0400
+	Wed, 23 Jul 2008 19:34:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, morgan@kernel.org, serue@us.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, pavel@suse.cz, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     security-protect-legacy-applications-from-executing-with-insufficient-privilege-checkpatch-fixes
+     swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix
 has been removed from the -mm tree.  Its filename was
-     security-protect-legacy-applications-from-executing-with-insufficient-privilege-checkpatch-fixes.patch
+     swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
 
-This patch was dropped because it was folded into security-protect-legacy-applications-from-executing-with-insufficient-privilege.patch
+This patch was dropped because it was folded into swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: security-protect-legacy-applications-from-executing-with-insufficient-privilege-checkpatch-fixes
+Subject: swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: return is not a function, parentheses are not required
-#113: FILE: security/commoncap.c:263:
-+	return (bprm->cap_effective ? ret : 0);
+Clarify the text a little.
 
-total: 1 errors, 0 warnings, 180 lines checked
-
-./patches/security-protect-legacy-applications-from-executing-with-insufficient-privilege.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Andrew G. Morgan <morgan@kernel.org>
-Cc: Serge Hallyn <serue@us.ibm.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Pavel Machek <pavel@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/commoncap.c |    2 +-
+ kernel/printk.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/binfmts.h~security-protect-legacy-applications-from-executing-with-insufficient-privilege-checkpatch-fixes include/linux/binfmts.h
-diff -puN security/commoncap.c~security-protect-legacy-applications-from-executing-with-insufficient-privilege-checkpatch-fixes security/commoncap.c
---- a/security/commoncap.c~security-protect-legacy-applications-from-executing-with-insufficient-privilege-checkpatch-fixes
-+++ a/security/commoncap.c
-@@ -258,7 +258,7 @@ static inline int cap_from_disk(struct v
- 	 * do not have enough capabilities, we return an error if they are
- 	 * missing some "forced" (aka file-permitted) capabilities.
- 	 */
--	return (bprm->cap_effective ? ret : 0);
-+	return bprm->cap_effective ? ret : 0;
+diff -puN kernel/printk.c~swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix kernel/printk.c
+--- a/kernel/printk.c~swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix
++++ a/kernel/printk.c
+@@ -933,7 +933,7 @@ void suspend_console(void)
+ {
+ 	if (!console_suspend_enabled)
+ 		return;
+-	printk("Suspending console(s) (no_console_suspend to debug?)\n");
++	printk("Suspending console(s) (use no_console_suspend to debug)\n");
+ 	acquire_console_sem();
+ 	console_suspended = 1;
  }
- 
- /* Locate any VFS capabilities: */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -88,8 +77,8 @@ page_align-correctly-handle-64-bit-values-on-32-bit-architectures.patch
 mmu-notifiers-add-mm_take_all_locks-operation.patch
 mmu-notifier-core.patch
 security-protect-legacy-applications-from-executing-with-insufficient-privilege.patch
-security-protect-legacy-applications-from-executing-with-insufficient-privilege-checkpatch-fixes.patch
 security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
+swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option.patch
 swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
 flag-parameters-paccept-fix.patch
 flag-parameters-paccept-sys_ni.patch
