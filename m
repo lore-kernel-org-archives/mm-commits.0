@@ -1,141 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: - flag-parameters-paccept-fix-flag-parameters-arch-specific-sock_nonblock.patch removed from -mm tree
-Date: Wed, 23 Jul 2008 16:27:06 -0700
-Message-ID: <200807232339.m6NNdhRM018144@imap1.linux-foundation.org>
+Subject: - flag-parameters-paccept-sys_ni.patch removed from -mm tree
+Date: Wed, 23 Jul 2008 16:28:15 -0700
+Message-ID: <200807232340.m6NNerLL018269@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48815 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34575 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754647AbYGWXkG (ORCPT
+	by vger.kernel.org with ESMTP id S1755152AbYGWXlM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jul 2008 19:40:06 -0400
+	Wed, 23 Jul 2008 19:41:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: drepper@redhat.com, davidel@xmailserver.org, kyle@mcmartin.ca, mtk.manpages@googlemail.com, roland@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davidel@xmailserver.org, drepper@redhat.com, linux-arch@vger.kernel.org, mtk.manpages@googlemail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     flag parameters: arch-specific SOCK_NONBLOCK
+     flag-parameters-paccept-sys_ni
 has been removed from the -mm tree.  Its filename was
-     flag-parameters-paccept-fix-flag-parameters-arch-specific-sock_nonblock.patch
+     flag-parameters-paccept-sys_ni.patch
 
 This patch was dropped because it was folded into flag-parameters-paccept.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: flag parameters: arch-specific SOCK_NONBLOCK
-From: Ulrich Drepper <drepper@redhat.com>
+Subject: flag-parameters-paccept-sys_ni
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The value of O_NONBLOCK clashes on Alpha dn PARISC with the bits used for
-socket types.  Therefore we cannot define SOCK_NONBLOCK as O_NONBLOCK on
-these platforms.  This patch adds support for an arch-specific
-SOCK_NONBLOCK value which doesn't add costs for other architectures.
-
-Signed-off-by: Ulrich Drepper <drepper@redhat.com>
+Cc: <linux-arch@vger.kernel.org>
 Cc: Davide Libenzi <davidel@xmailserver.org>
 Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
 Cc: Ulrich Drepper <drepper@redhat.com>
-Cc: Roland McGrath <roland@redhat.com>
-Acked-by: Kyle McMartin <kyle@mcmartin.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-alpha/socket.h  |    5 +++++
- include/asm-parisc/socket.h |    5 +++++
- net/socket.c                |    9 +++++++++
- 3 files changed, 19 insertions(+)
+ kernel/sys_ni.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/asm-alpha/socket.h~flag-parameters-paccept-fix-flag-parameters-arch-specific-sock_nonblock include/asm-alpha/socket.h
---- a/include/asm-alpha/socket.h~flag-parameters-paccept-fix-flag-parameters-arch-specific-sock_nonblock
-+++ a/include/asm-alpha/socket.h
-@@ -62,4 +62,9 @@
- 
- #define SO_MARK			36
- 
-+/* O_NONBLOCK clashes with the bits used for socket types.  Therefore we
-+ * have to define SOCK_NONBLOCK to a different value here.
-+ */
-+#define SOCK_NONBLOCK	0x40000000
-+
- #endif /* _ASM_SOCKET_H */
-diff -puN include/asm-parisc/socket.h~flag-parameters-paccept-fix-flag-parameters-arch-specific-sock_nonblock include/asm-parisc/socket.h
---- a/include/asm-parisc/socket.h~flag-parameters-paccept-fix-flag-parameters-arch-specific-sock_nonblock
-+++ a/include/asm-parisc/socket.h
-@@ -54,4 +54,9 @@
- 
- #define SO_MARK			0x401f
- 
-+/* O_NONBLOCK clashes with the bits used for socket types.  Therefore we
-+ * have to define SOCK_NONBLOCK to a different value here.
-+ */
-+#define SOCK_NONBLOCK   0x40000000
-+
- #endif /* _ASM_SOCKET_H */
-diff -puN include/linux/net.h~flag-parameters-paccept-fix-flag-parameters-arch-specific-sock_nonblock include/linux/net.h
-diff -puN net/socket.c~flag-parameters-paccept-fix-flag-parameters-arch-specific-sock_nonblock net/socket.c
---- a/net/socket.c~flag-parameters-paccept-fix-flag-parameters-arch-specific-sock_nonblock
-+++ a/net/socket.c
-@@ -1226,6 +1226,9 @@ asmlinkage long sys_socket(int family, i
- 		return -EINVAL;
- 	type &= SOCK_TYPE_MASK;
- 
-+	if (SOCK_NONBLOCK != O_NONBLOCK && (flags & SOCK_NONBLOCK))
-+		flags = (flags & ~SOCK_NONBLOCK) | O_NONBLOCK;
-+
- 	retval = sock_create(family, type, protocol, &sock);
- 	if (retval < 0)
- 		goto out;
-@@ -1260,6 +1263,9 @@ asmlinkage long sys_socketpair(int famil
- 		return -EINVAL;
- 	type &= SOCK_TYPE_MASK;
- 
-+	if (SOCK_NONBLOCK != O_NONBLOCK && (flags & SOCK_NONBLOCK))
-+		flags = (flags & ~SOCK_NONBLOCK) | O_NONBLOCK;
-+
- 	/*
- 	 * Obtain the first socket and check if the underlying protocol
- 	 * supports the socketpair call.
-@@ -1425,6 +1431,9 @@ long do_accept(int fd, struct sockaddr _
- 	if (flags & ~SOCK_CLOEXEC)
- 		return -EINVAL;
- 
-+	if (SOCK_NONBLOCK != O_NONBLOCK && (flags & SOCK_NONBLOCK))
-+		flags = (flags & ~SOCK_NONBLOCK) | O_NONBLOCK;
-+
- 	sock = sockfd_lookup_light(fd, &err, &fput_needed);
- 	if (!sock)
- 		goto out;
+diff -puN kernel/sys_ni.c~flag-parameters-paccept-sys_ni kernel/sys_ni.c
+--- a/kernel/sys_ni.c~flag-parameters-paccept-sys_ni
++++ a/kernel/sys_ni.c
+@@ -31,6 +31,7 @@ cond_syscall(sys_socketpair);
+ cond_syscall(sys_bind);
+ cond_syscall(sys_listen);
+ cond_syscall(sys_accept);
++cond_syscall(sys_paccept);
+ cond_syscall(sys_connect);
+ cond_syscall(sys_getsockname);
+ cond_syscall(sys_getpeername);
 _
 
-Patches currently in -mm which might be from drepper@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-flag-parameters-socket-and-socketpair.patch
+mm-verify-the-page-links-and-memory-model.patch
+mspec-convert-nopfn-to-fault.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers.patch
+kill-generic_file_direct_io.patch
+use-generic_access_phys-for-dev-mem-mappings.patch
+spufs-use-the-new-vm_ops-access.patch
+fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries.patch
+page-flags-record-page-flag-overlays-explicitly.patch
+mapping_set_error-add-unlikely.patch
+huge-page-private-reservation-review-cleanups.patch
+vma-page-offset-has-no-callees-drop-it.patch
+sync_file_range_write-may-and-will-block-document-that.patch
+vmallocinfo-add-numa-information.patch
+hugetlb-modular-state-for-hugetlb-page-size.patch
+hugetlb-multiple-hstates-for-multiple-page-sizes.patch
+bootmem-add-debugging-framework.patch
+bootmem-clean-up-free_all_bootmem_core.patch
+bootmem-free-reserve-helpers.patch
+bootmem-factor-out-the-marking-of-a-pfn-range.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures.patch
+mmu-notifiers-add-mm_take_all_locks-operation.patch
+mmu-notifier-core.patch
+security-protect-legacy-applications-from-executing-with-insufficient-privilege.patch
+security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
+swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option.patch
 flag-parameters-paccept.patch
-flag-parameters-paccept-fix-flag-parameters-arch-specific-sock_nonblock.patch
-flag-parameters-paccept-flag-parameters-paccept-w-out-set_restore_sigmask.patch
 flag-parameters-paccept-sys_ni.patch
-flag-parameters-anon_inode_getfd-extension.patch
 flag-parameters-anon_inode_getfd-extension-fix.patch
-flag-parameters-signalfd.patch
 flag-parameters-signalfd-fix.patch
-flag-parameters-eventfd.patch
 flag-parameters-eventfd-fix.patch
-flag-parameters-timerfd_create.patch
-flag-parameters-epoll_create.patch
-flag-parameters-dup2.patch
-flag-parameters-pipe.patch
-flag-parameters-inotify_init.patch
 flag-parameters-inotify_init-fix.patch
-flag-parametersi-nonblock-in-anon_inode_getfd.patch
-flag-parameters-nonblock-in-socket-and-socketpair.patch
-flag-parameters-nonblock-in-signalfd.patch
-flag-parameters-nonblock-in-eventfd.patch
-flag-parameters-nonblock-in-timerfd_create.patch
-flag-parameters-nonblock-in-pipe.patch
-flag-parameters-nonblock-in-inotify_init.patch
-flag-parameters-check-magic-constants.patch
 flag-parameters-check-magic-constants-alpha.patch
-flag-parameters-add-on-remove-epoll_create-size-param.patch
+spi-au1550_spi-improve-pio-transfer-mode-checkpatch-fixes.patch
+autofs4-use-lookup-intent-flags-to-trigger-mounts-fix.patch
+rtc-cmos-improve-hpet-irq-glue-build-fix.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
+sm501-fixup-allocation-code-to-be-64bit-resource-compliant-sm501-align-panel-fb-to-page_size-fix.patch
+lcd-add-platform_lcd-driver-fix.patch
+fsl-diu-fb-update-freescale-diu-driver-to-use-page_alloc_exact.patch
+fbdev-add-new-cobalt-lcd-framebuffer-driver.patch
+fbcon-remove-stray-semicolons-checkpatch-fixes.patch
 
