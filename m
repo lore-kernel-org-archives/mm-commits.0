@@ -1,72 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch removed from -mm tree
-Date: Wed, 23 Jul 2008 15:52:50 -0700
-Message-ID: <200807232305.m6NN5R4B016599@imap1.linux-foundation.org>
+Subject: - kill-generic_file_direct_io-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 23 Jul 2008 15:53:40 -0700
+Message-ID: <200807232306.m6NN6HAN016685@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53061 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50247 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753928AbYGWXFl (ORCPT
+	by vger.kernel.org with ESMTP id S1753091AbYGWXG1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jul 2008 19:05:41 -0400
+	Wed, 23 Jul 2008 19:06:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, mel@csn.ul.ie, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hch@lst.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     page-allocator-inlnie-some-__alloc_pages-wrappers-fix
+     kill-generic_file_direct_io-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+     kill-generic_file_direct_io-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into page-allocator-inlnie-some-__alloc_pages-wrappers.patch
+This patch was dropped because it was folded into kill-generic_file_direct_io.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page-allocator-inlnie-some-__alloc_pages-wrappers-fix
+Subject: kill-generic_file_direct_io-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: "__alloc_pages_internal" [net/sunrpc/xprtrdma/svcrdma.ko] undefined!
-ERROR: "__alloc_pages_internal" [net/sunrpc/sunrpc.ko] undefined!
-ERROR: "__alloc_pages_internal" [net/sunrpc/auth_gss/auth_rpcgss.ko] undefined!
-ERROR: "__alloc_pages_internal" [net/ipv6/ipv6.ko] undefined!
-ERROR: "__alloc_pages_internal" [net/core/pktgen.ko] undefined!
-ERROR: "__alloc_pages_internal" [fs/xfs/xfs.ko] undefined!
-ERROR: "__alloc_pages_internal" [fs/reiser4/reiser4.ko] undefined!
-ERROR: "__alloc_pages_internal" [fs/ocfs2/cluster/ocfs2_nodemanager.ko] undefined!
-ERROR: "__alloc_pages_internal" [fs/ntfs/ntfs.ko] undefined!
-ERROR: "__alloc_pages_internal" [fs/nfs/nfs.ko] undefined!
-ERROR: "__alloc_pages_internal" [fs/ncpfs/ncpfs.ko] undefined!
-ERROR: "__alloc_pages_internal" [fs/isofs/isofs.ko] undefined!
-ERROR: "__alloc_pages_internal" [fs/gfs2/gfs2.ko] undefined!
-ERROR: "__alloc_pages_internal" [fs/fuse/fuse.ko] undefined!
-ERROR: "__alloc_pages_internal" [fs/dlm/dlm.ko] undefined!
-ERROR: "__alloc_pages_internal" [drivers/virtio/virtio_balloon.ko] undefined!
-ERROR: "__alloc_pages_internal" [drivers/scsi/st.ko] undefined!
-ERROR: "__alloc_pages_internal" [drivers/scsi/sg.ko] undefined!
-...
+ERROR: code indent should use tabs where possible
+#60: FILE: mm/filemap.c:2020:
++       ^Iif (mapping_mapped(mapping))$
 
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+total: 1 errors, 0 warnings, 151 lines checked
+
+./patches/kill-generic_file_direct_io.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/filemap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~page-allocator-inlnie-some-__alloc_pages-wrappers-fix mm/page_alloc.c
---- a/mm/page_alloc.c~page-allocator-inlnie-some-__alloc_pages-wrappers-fix
-+++ a/mm/page_alloc.c
-@@ -1632,6 +1632,7 @@ nopage:
- got_pg:
- 	return page;
- }
-+EXPORT_SYMBOL(__alloc_pages_internal);
+diff -puN mm/filemap.c~kill-generic_file_direct_io-checkpatch-fixes mm/filemap.c
+--- a/mm/filemap.c~kill-generic_file_direct_io-checkpatch-fixes
++++ a/mm/filemap.c
+@@ -2020,7 +2020,7 @@ generic_file_direct_write(struct kiocb *
+ 	 */
+ 	write_len = iov_length(iov, *nr_segs);
+ 	end = (pos + write_len - 1) >> PAGE_CACHE_SHIFT;
+-       	if (mapping_mapped(mapping))
++	if (mapping_mapped(mapping))
+ 		unmap_mapping_range(mapping, pos, write_len, 0);
  
- /*
-  * Common helper functions.
+ 	written = filemap_write_and_wait(mapping);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -75,7 +66,7 @@ origin.patch
 mm-verify-the-page-links-and-memory-model.patch
 mspec-convert-nopfn-to-fault.patch
 page-allocator-inlnie-some-__alloc_pages-wrappers.patch
-page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+kill-generic_file_direct_io.patch
 kill-generic_file_direct_io-checkpatch-fixes.patch
 use-generic_access_phys-for-dev-mem-mappings-fix.patch
 spufs-use-the-new-vm_ops-access-fix.patch
