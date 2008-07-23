@@ -1,35 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: - mmu-notifier-core-fix.patch removed from -mm tree
-Date: Wed, 23 Jul 2008 16:18:16 -0700
-Message-ID: <200807232330.m6NNUrq2017832@imap1.linux-foundation.org>
+Subject: - mmu-notifier-core-fix-2.patch removed from -mm tree
+Date: Wed, 23 Jul 2008 16:18:19 -0700
+Message-ID: <200807232330.m6NNUuYd017836@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33496 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43794 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754597AbYGWXcM (ORCPT
+	by vger.kernel.org with ESMTP id S1754625AbYGWXcT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jul 2008 19:32:12 -0400
+	Wed, 23 Jul 2008 19:32:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, aliguori@us.ibm.com, andrea@qumranet.com, avi@qumranet.com, chrisw@redhat.com, cl@linux-foundation.org, dada1@cosmosbay.com, holt@sg
 
 
 The patch titled
-     mmu-notifier-core-fix
+     mmu-notifier-core-fix-2
 has been removed from the -mm tree.  Its filename was
-     mmu-notifier-core-fix.patch
+     mmu-notifier-core-fix-2.patch
 
 This patch was dropped because it was folded into mmu-notifier-core.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmu-notifier-core-fix
+Subject: mmu-notifier-core-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-mm/filemap_xip.c: In function '__xip_unmap':
-mm/filemap_xip.c:191: error: implicit declaration of function 'ptep_clear_flush_notify'
-mm/filemap_xip.c:191: error: incompatible types in assignment
+mm/mmu_notifier.c: In function '__mmu_notifier_clear_flush_young':
+mm/mmu_notifier.c:92: error: implicit declaration of function 'hlist_for_each_entry_rcu'
+mm/mmu_notifier.c:92: error: 'hlist' undeclared (first use in this function)
+mm/mmu_notifier.c:92: error: (Each undeclared identifier is reported only once
+mm/mmu_notifier.c:92: error: for each function it appears in.)
+mm/mmu_notifier.c:92: error: expected ';' before '{' token
+mm/mmu_notifier.c: In function '__mmu_notifier_invalidate_page':
+mm/mmu_notifier.c:108: error: 'hlist' undeclared (first use in this function)
+mm/mmu_notifier.c:108: error: expected ';' before '{' token
+mm/mmu_notifier.c: In function '__mmu_notifier_invalidate_range_start':
+mm/mmu_notifier.c:122: error: 'hlist' undeclared (first use in this function)
+mm/mmu_notifier.c:122: error: expected ';' before '{' token
+mm/mmu_notifier.c: In function '__mmu_notifier_invalidate_range_end':
+mm/mmu_notifier.c:136: error: 'hlist' undeclared (first use in this function)
+mm/mmu_notifier.c:136: error: expected ';' before '{' token
+mm/mmu_notifier.c: In function 'mmu_notifier_unregister':
+mm/mmu_notifier.c:247: error: implicit declaration of function 'hlist_del_rcu'
 
 Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
 Cc: Andrea Arcangeli <andrea@qumranet.com>
@@ -53,20 +67,20 @@ Cc: Steve Wise <swise@opengridcomputing.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap_xip.c |    1 +
+ mm/mmu_notifier.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN mm/filemap_xip.c~mmu-notifier-core-fix mm/filemap_xip.c
---- a/mm/filemap_xip.c~mmu-notifier-core-fix
-+++ a/mm/filemap_xip.c
-@@ -13,6 +13,7 @@
+diff -puN mm/mmu_notifier.c~mmu-notifier-core-fix-2 mm/mmu_notifier.c
+--- a/mm/mmu_notifier.c~mmu-notifier-core-fix-2
++++ a/mm/mmu_notifier.c
+@@ -9,6 +9,7 @@
+  *  the COPYING file in the top-level directory.
+  */
+ 
++#include <linux/rculist.h>
+ #include <linux/mmu_notifier.h>
  #include <linux/module.h>
- #include <linux/uio.h>
- #include <linux/rmap.h>
-+#include <linux/mmu_notifier.h>
- #include <linux/sched.h>
- #include <asm/tlbflush.h>
- #include <asm/io.h>
+ #include <linux/mm.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -94,7 +108,6 @@ bootmem-factor-out-the-marking-of-a-pfn-range.patch
 page_align-correctly-handle-64-bit-values-on-32-bit-architectures.patch
 mmu-notifiers-add-mm_take_all_locks-operation.patch
 mmu-notifier-core.patch
-mmu-notifier-core-fix.patch
 mmu-notifier-core-fix-2.patch
 security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
 security-protect-legacy-applications-from-executing-with-insufficient-privilege-checkpatch-fixes.patch
