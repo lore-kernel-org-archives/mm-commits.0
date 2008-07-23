@@ -1,27 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + set_irq_wake-fix-return-code-and-wake-status-tracking.patch added to -mm tree
-Date: Wed, 23 Jul 2008 12:52:29 -0700
-Message-ID: <200807231952.m6NJqTm1008908@imap1.linux-foundation.org>
+Subject: + cdc-acm-dont-unlock-acm-mutex-on-error-path.patch added to -mm tree
+Date: Wed, 23 Jul 2008 12:55:11 -0700
+Message-ID: <200807231955.m6NJtBMo008976@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58314 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49723 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752759AbYGWTxR (ORCPT
+	by vger.kernel.org with ESMTP id S1752768AbYGWTz2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jul 2008 15:53:17 -0400
+	Wed, 23 Jul 2008 15:55:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Uwe.Kleine-Koenig@digi.com, dbrownell@users.sourceforge.net, mingo@elte.hu, rmk@arm.linux.org.uk, tglx@linutronix.de
+Cc: adobriyan@gmail.com, andrei.popa@i-neo.ro, greg@kroah.com, stable@kernel.org
 
 
 The patch titled
-     set_irq_wake: fix return code and wake status tracking
+     cdc-acm: don't unlock acm->mutex on error path
 has been added to the -mm tree.  Its filename is
-     set_irq_wake-fix-return-code-and-wake-status-tracking.patch
+     cdc-acm-dont-unlock-acm-mutex-on-error-path.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -29,120 +26,70 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
-find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: set_irq_wake: fix return code and wake status tracking
-=46rom: Uwe Kleine-K=F6nig <Uwe.Kleine-Koenig@digi.com>
+Subject: cdc-acm: don't unlock acm->mutex on error path
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-Since 15a647eba94c3da27ccc666bea72e7cca06b2d19 set_irq_wake returned
--ENXIO if another device had it already enabled.  Zero is the right val=
-ue
-to return in this case.  Moreover the change to desc->status was not
-reverted if desc->chip->set_wake returned an error.
+On Wed, Jul 23, 2008 at 03:52:36PM +0300, Andrei Popa wrote:
+> I installed gnokii-0.6.22-r2 and gave the command "gnokii --identify"
+> and the kernel oopsed:
+>
+> BUG: unable to handle kernel NULL pointer dereference at 00000458
+> IP: [<c0444b52>] mutex_unlock+0x0/0xb
+>  [<c03830ae>] acm_tty_open+0x4c/0x214
 
-Signed-off-by: Uwe Kleine-K=F6nig <Uwe.Kleine-Koenig@digi.com>
-Acked-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Tested-by: Andrei Popa <andrei.popa@i-neo.ro>
+Cc: Greg KH <greg@kroah.com>
+Cc: <stable@kernel.org>		[2.6.25.x, 2.6.26.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/irq/manage.c |   39 +++++++++++++++++++++++++++------------
- 1 file changed, 27 insertions(+), 12 deletions(-)
+ drivers/usb/class/cdc-acm.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/irq/manage.c~set_irq_wake-fix-return-code-and-wake-sta=
-tus-tracking kernel/irq/manage.c
---- a/kernel/irq/manage.c~set_irq_wake-fix-return-code-and-wake-status-=
-tracking
-+++ a/kernel/irq/manage.c
-@@ -224,6 +224,17 @@ void enable_irq(unsigned int irq)
- }
- EXPORT_SYMBOL(enable_irq);
-=20
-+int set_irq_wake_real(unsigned int irq, unsigned int on)
-+{
-+	struct irq_desc *desc =3D irq_desc + irq;
-+	int ret =3D -ENXIO;
-+
-+	if (desc->chip->set_wake)
-+		ret =3D desc->chip->set_wake(irq, on);
-+
-+	return ret;
-+}
-+
- /**
-  *	set_irq_wake - control irq power management wakeup
-  *	@irq:	interrupt to control
-@@ -240,30 +251,34 @@ int set_irq_wake(unsigned int irq, unsig
- {
- 	struct irq_desc *desc =3D irq_desc + irq;
- 	unsigned long flags;
--	int ret =3D -ENXIO;
--	int (*set_wake)(unsigned, unsigned) =3D desc->chip->set_wake;
-+	int ret =3D 0;
-=20
- 	/* wakeup-capable irqs can be shared between drivers that
- 	 * don't need to have the same sleep mode behaviors.
- 	 */
- 	spin_lock_irqsave(&desc->lock, flags);
- 	if (on) {
--		if (desc->wake_depth++ =3D=3D 0)
--			desc->status |=3D IRQ_WAKEUP;
--		else
--			set_wake =3D NULL;
-+		if (desc->wake_depth++ =3D=3D 0) {
-+			ret =3D set_irq_wake_real(irq, on);
-+			if (ret)
-+				desc->wake_depth =3D 0;
-+			else
-+				desc->status |=3D IRQ_WAKEUP;
-+		}
- 	} else {
- 		if (desc->wake_depth =3D=3D 0) {
- 			printk(KERN_WARNING "Unbalanced IRQ %d "
- 					"wake disable\n", irq);
- 			WARN_ON(1);
--		} else if (--desc->wake_depth =3D=3D 0)
--			desc->status &=3D ~IRQ_WAKEUP;
--		else
--			set_wake =3D NULL;
-+		} else if (--desc->wake_depth =3D=3D 0) {
-+			ret =3D set_irq_wake_real(irq, on);
-+			if (ret)
-+				desc->wake_depth =3D 1;
-+			else
-+				desc->status &=3D ~IRQ_WAKEUP;
-+		}
- 	}
--	if (set_wake)
--		ret =3D desc->chip->set_wake(irq, on);
-+
- 	spin_unlock_irqrestore(&desc->lock, flags);
- 	return ret;
- }
+diff -puN drivers/usb/class/cdc-acm.c~cdc-acm-dont-unlock-acm-mutex-on-error-path drivers/usb/class/cdc-acm.c
+--- a/drivers/usb/class/cdc-acm.c~cdc-acm-dont-unlock-acm-mutex-on-error-path
++++ a/drivers/usb/class/cdc-acm.c
+@@ -595,8 +595,8 @@ static int acm_tty_open(struct tty_struc
+ 	tasklet_schedule(&acm->urb_task);
+ 
+ done:
+-err_out:
+ 	mutex_unlock(&acm->mutex);
++err_out:
+ 	mutex_unlock(&open_mutex);
+ 	return rv;
+ 
 _
 
-Patches currently in -mm which might be from Uwe.Kleine-Koenig@digi.com=
- are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
 origin.patch
 linux-next.patch
-handle-failure-of-irqchip-set_type-in-setup_irq.patch
-handle-failure-of-irqchip-set_type-in-setup_irq-update.patch
-set_irq_wake-fix-return-code-and-wake-status-tracking.patch
+cifs-switch-to-seq_files.patch
+mpt-remove-unused-struct-mpt_proc_entry_t.patch
+move-proc_kmsg_operations-to-fs-proc-internalh.patch
+proc-always-do-release.patch
+proc-always-do-release-fix.patch
+proc-remove-pathetic-remount-code.patch
+proc-move-kconfig-to-fs-proc-kconfig.patch
+sysctl-allow-override-of-proc-sys-net-with-cap_net_admin.patch
+slb-drop-kmem-cache-argument-from-constructor.patch
+slb-drop-kmem-cache-argument-from-constructor-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-fix-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
+slb-drop-kmem-cache-argument-from-constructor-ubifs.patch
+use-warn-in-fs-proc.patch
+proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
+likely_prof-changed-to-use-proc_create.patch
+proc-remove-proc_root-from-drivers-likelyprof.patch
+cdc-acm-dont-unlock-acm-mutex-on-error-path.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
