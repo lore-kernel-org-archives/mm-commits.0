@@ -1,52 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - flag-parameters-check-magic-constants-alpha.patch removed from -mm tree
-Date: Wed, 23 Jul 2008 16:31:09 -0700
-Message-ID: <200807232343.m6NNhkKf018362@imap1.linux-foundation.org>
+Subject: - spi-au1550_spi-improve-pio-transfer-mode-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 23 Jul 2008 16:31:46 -0700
+Message-ID: <200807232344.m6NNiN7b018374@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39703 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51291 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754748AbYGWXoF (ORCPT
+	by vger.kernel.org with ESMTP id S1754498AbYGWXoc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jul 2008 19:44:05 -0400
+	Wed, 23 Jul 2008 19:44:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davidel@xmailserver.org, drepper@redhat.com, mtk.manpages@googlemail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dbrownell@users.sourceforge.net, jan.nikitenko@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     flag-parameters-check-magic-constants-alpha
+     spi-au1550_spi-improve-pio-transfer-mode-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     flag-parameters-check-magic-constants-alpha.patch
+     spi-au1550_spi-improve-pio-transfer-mode-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into flag-parameters-check-magic-constants.patch
+This patch was dropped because it was folded into spi-au1550_spi-improve-pio-transfer-mode.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: flag-parameters-check-magic-constants-alpha
+Subject: spi-au1550_spi-improve-pio-transfer-mode-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Davide Libenzi <davidel@xmailserver.org>
-Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
-Cc: Ulrich Drepper <drepper@redhat.com>
+ERROR: code indent should use tabs where possible
+#46: FILE: drivers/spi/au1550_spi.c:603:
++^I^I^I ^I| PSC_SPIEVNT_SD))$
+
+total: 1 errors, 0 warnings, 108 lines checked
+
+./patches/spi-au1550_spi-improve-pio-transfer-mode.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Jan Nikitenko <jan.nikitenko@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/socket.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/spi/au1550_spi.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN net/socket.c~flag-parameters-check-magic-constants-alpha net/socket.c
---- a/net/socket.c~flag-parameters-check-magic-constants-alpha
-+++ a/net/socket.c
-@@ -1224,7 +1224,6 @@ asmlinkage long sys_socket(int family, i
+diff -puN drivers/spi/au1550_spi.c~spi-au1550_spi-improve-pio-transfer-mode-checkpatch-fixes drivers/spi/au1550_spi.c
+--- a/drivers/spi/au1550_spi.c~spi-au1550_spi-improve-pio-transfer-mode-checkpatch-fixes
++++ a/drivers/spi/au1550_spi.c
+@@ -600,7 +600,7 @@ static irqreturn_t au1550_spi_pio_irq_ca
  
- 	/* Check the SOCK_* constants for consistency.  */
- 	BUILD_BUG_ON(SOCK_CLOEXEC != O_CLOEXEC);
--	BUILD_BUG_ON(SOCK_NONBLOCK != O_NONBLOCK);
- 	BUILD_BUG_ON((SOCK_MAX | SOCK_TYPE_MASK) != SOCK_TYPE_MASK);
- 	BUILD_BUG_ON(SOCK_CLOEXEC & SOCK_TYPE_MASK);
- 	BUILD_BUG_ON(SOCK_NONBLOCK & SOCK_TYPE_MASK);
+ 	if ((evnt & (PSC_SPIEVNT_MM | PSC_SPIEVNT_RO
+ 				| PSC_SPIEVNT_RU | PSC_SPIEVNT_TO
+-			 	| PSC_SPIEVNT_SD))
++				| PSC_SPIEVNT_SD))
+ 			!= 0) {
+ 		/*
+ 		 * due to an error we consider transfer as done,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -83,7 +95,7 @@ flag-parameters-signalfd.patch
 flag-parameters-eventfd.patch
 flag-parameters-inotify_init.patch
 flag-parameters-check-magic-constants.patch
-flag-parameters-check-magic-constants-alpha.patch
+spi-au1550_spi-improve-pio-transfer-mode.patch
 spi-au1550_spi-improve-pio-transfer-mode-checkpatch-fixes.patch
 autofs4-use-lookup-intent-flags-to-trigger-mounts-fix.patch
 rtc-cmos-improve-hpet-irq-glue-build-fix.patch
