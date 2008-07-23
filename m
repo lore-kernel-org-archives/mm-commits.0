@@ -1,70 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - huge-page-private-reservation-review-cleanups-fix.patch removed from -mm tree
-Date: Wed, 23 Jul 2008 15:59:21 -0700
-Message-ID: <200807232311.m6NNBwo6016908@imap1.linux-foundation.org>
+Subject: - sync_file_range_write-may-and-will-block-document-that-fix.patch removed from -mm tree
+Date: Wed, 23 Jul 2008 16:00:25 -0700
+Message-ID: <200807232313.m6NND3XY016933@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49578 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58205 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753974AbYGWXMu (ORCPT
+	by vger.kernel.org with ESMTP id S1754002AbYGWXNH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jul 2008 19:12:50 -0400
+	Wed, 23 Jul 2008 19:13:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, agl@us.ibm.com, apw@shadowen.org, hannes@saeurebad.de, hugh@veritas.com, mel@csn.ul.ie, mtk.manpages@googlemail.com, wli@holomorphy.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, pavel@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     huge-page-private-reservation-review-cleanups-fix
+     sync_file_range_write-may-and-will-block-document-that-fix
 has been removed from the -mm tree.  Its filename was
-     huge-page-private-reservation-review-cleanups-fix.patch
+     sync_file_range_write-may-and-will-block-document-that-fix.patch
 
-This patch was dropped because it was folded into huge-page-private-reservation-review-cleanups.patch
+This patch was dropped because it was folded into sync_file_range_write-may-and-will-block-document-that.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: huge-page-private-reservation-review-cleanups-fix
+Subject: sync_file_range_write-may-and-will-block-document-that-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Make things static.
-
-Cc: Adam Litke <agl@us.ibm.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Johannes Weiner <hannes@saeurebad.de>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
-Cc: William Lee Irwin III <wli@holomorphy.com>
+Cc: Pavel Machek <pavel@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ fs/sync.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/hugetlb.c~huge-page-private-reservation-review-cleanups-fix mm/hugetlb.c
---- a/mm/hugetlb.c~huge-page-private-reservation-review-cleanups-fix
-+++ a/mm/hugetlb.c
-@@ -44,7 +44,8 @@ static DEFINE_SPINLOCK(hugetlb_lock);
-  * Convert the address within this vma to the page offset within
-  * the mapping, in base page units.
-  */
--pgoff_t vma_page_offset(struct vm_area_struct *vma, unsigned long address)
-+static pgoff_t vma_page_offset(struct vm_area_struct *vma,
-+				unsigned long address)
- {
- 	return ((address - vma->vm_start) >> PAGE_SHIFT) +
- 					(vma->vm_pgoff >> PAGE_SHIFT);
-@@ -54,7 +55,8 @@ pgoff_t vma_page_offset(struct vm_area_s
-  * Convert the address within this vma to the page offset within
-  * the mapping, in pagecache page units; huge pages here.
-  */
--pgoff_t vma_pagecache_offset(struct vm_area_struct *vma, unsigned long address)
-+static pgoff_t vma_pagecache_offset(struct vm_area_struct *vma,
-+					unsigned long address)
- {
- 	return ((address - vma->vm_start) >> HPAGE_SHIFT) +
- 			(vma->vm_pgoff >> (HPAGE_SHIFT - PAGE_SHIFT));
+diff -puN fs/sync.c~sync_file_range_write-may-and-will-block-document-that-fix fs/sync.c
+--- a/fs/sync.c~sync_file_range_write-may-and-will-block-document-that-fix
++++ a/fs/sync.c
+@@ -139,8 +139,8 @@ asmlinkage long sys_fdatasync(unsigned i
+  * before performing the write.
+  *
+  * SYNC_FILE_RANGE_WRITE: initiate writeout of all those dirty pages in the
+- * range which are not presently under writeback. Notice that even this this
+- *  may and will block if you attempt to write more than request queue size.
++ * range which are not presently under writeback. Note that this may block for
++ * significant periods due to exhaustion of disk request structures.
+  *
+  * SYNC_FILE_RANGE_WAIT_AFTER: wait upon writeout of all pages in the range
+  * after performing the write.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -80,8 +63,8 @@ fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries.patch
 page-flags-record-page-flag-overlays-explicitly.patch
 mapping_set_error-add-unlikely.patch
 huge-page-private-reservation-review-cleanups.patch
-huge-page-private-reservation-review-cleanups-fix.patch
 vma-page-offset-has-no-callees-drop-it.patch
+sync_file_range_write-may-and-will-block-document-that.patch
 sync_file_range_write-may-and-will-block-document-that-fix.patch
 vmallocinfo-add-numa-information-fix.patch
 hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
