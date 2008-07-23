@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + eink_apollofb-new-driver-for-apollo-eink-controller-fix.patch added to -mm tree
-Date: Tue, 22 Jul 2008 17:36:05 -0700
-Message-ID: <200807230048.m6N0mepA027345@imap1.linux-foundation.org>
+Subject: + eink_apollofb-new-driver-for-apollo-eink-controller-fix-fix-2.patch added to -mm tree
+Date: Tue, 22 Jul 2008 17:36:47 -0700
+Message-ID: <200807230049.m6N0nMBb027438@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54331 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41525 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750983AbYGWAst (ORCPT
+	by vger.kernel.org with ESMTP id S1752165AbYGWAt2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jul 2008 20:48:49 -0400
+	Tue, 22 Jul 2008 20:49:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, adaplas@pol.net, jekhor@gmail.com, krzysztof.h1@p
 
 
 The patch titled
-     eink_apollofb-new-driver-for-apollo-eink-controller-fix
+     eink_apollofb-new-driver-for-apollo-eink-controller-fix-fix-2
 has been added to the -mm tree.  Its filename is
-     eink_apollofb-new-driver-for-apollo-eink-controller-fix.patch
+     eink_apollofb-new-driver-for-apollo-eink-controller-fix-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,13 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: eink_apollofb-new-driver-for-apollo-eink-controller-fix
+Subject: eink_apollofb-new-driver-for-apollo-eink-controller-fix-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-kconfig uses tabs
+i386:
+
+drivers/video/eink_apollofb.c:36:32: error: asm/arch/regs-gpio.h: No such file or directory
+drivers/video/eink_apollofb.c:37:26: error: asm/hardware.h: No such file or directory
 
 Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
@@ -45,39 +48,20 @@ Cc: Yauhen Kharuzhy <jekhor@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/Kconfig |   16 ++++++++--------
- linux/eink_apollofb.h |    0 
- 2 files changed, 8 insertions(+), 8 deletions(-)
+ drivers/video/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/video/Kconfig~eink_apollofb-new-driver-for-apollo-eink-controller-fix drivers/video/Kconfig
---- a/drivers/video/Kconfig~eink_apollofb-new-driver-for-apollo-eink-controller-fix
+diff -puN drivers/video/Kconfig~eink_apollofb-new-driver-for-apollo-eink-controller-fix-fix-2 drivers/video/Kconfig
+--- a/drivers/video/Kconfig~eink_apollofb-new-driver-for-apollo-eink-controller-fix-fix-2
 +++ a/drivers/video/Kconfig
-@@ -719,14 +719,14 @@ config FB_N411
-          Hecuba form using the n411 devkit.
- 
+@@ -721,6 +721,7 @@ config FB_N411
  config FB_EINK_APOLLO
--       tristate "Apollo eInk display controller support"
--       depends on EXPERIMENTAL && FB && MMU
--       select FB_SYS_FILLRECT
--       select FB_SYS_COPYAREA
--       select FB_SYS_IMAGEBLIT
--       select FB_SYS_FOPS
--       select FB_DEFERRED_IO
--       help
-+	tristate "Apollo eInk display controller support"
-+	depends on EXPERIMENTAL && FB && MMU
-+	select FB_SYS_FILLRECT
-+	select FB_SYS_COPYAREA
-+	select FB_SYS_IMAGEBLIT
-+	select FB_SYS_FOPS
-+	select FB_DEFERRED_IO
-+	help
- 	 This enables support for Apollo eInk display controller.
- 	 Includes support of deferred IO and 2-bit grayscale mode.
- 
-diff -puN drivers/video/Makefile~eink_apollofb-new-driver-for-apollo-eink-controller-fix drivers/video/Makefile
-diff -puN drivers/video/eink_apollofb.c~eink_apollofb-new-driver-for-apollo-eink-controller-fix drivers/video/eink_apollofb.c
-diff -puN include/linux/eink_apollofb.h~eink_apollofb-new-driver-for-apollo-eink-controller-fix include/linux/eink_apollofb.h
+ 	tristate "Apollo eInk display controller support"
+ 	depends on EXPERIMENTAL && FB && MMU
++	depends on ARM
+ 	select FB_SYS_FILLRECT
+ 	select FB_SYS_COPYAREA
+ 	select FB_SYS_IMAGEBLIT
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -187,6 +171,7 @@ fsl-diu-fb-update-freescale-diu-driver-to-use-page_alloc_exact.patch
 fbdev-add-new-cobalt-lcd-framebuffer-driver.patch
 eink_apollofb-new-driver-for-apollo-eink-controller-cleanup.patch
 eink_apollofb-new-driver-for-apollo-eink-controller-fix.patch
+eink_apollofb-new-driver-for-apollo-eink-controller-fix-fix-2.patch
 fbcon-remove-stray-semicolons-checkpatch-fixes.patch
 jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
 jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
