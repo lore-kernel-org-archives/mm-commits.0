@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + dma-mapping-add-the-device-argument-to-dma_mapping_error-ibmvscsi.patch added to -mm tree
-Date: Wed, 23 Jul 2008 02:35:50 -0700
-Message-ID: <200807230935.m6N9Zo5E013605@imap1.linux-foundation.org>
+Subject: + sched-fix-hrtick-generic-ipi-dependency.patch added to -mm tree
+Date: Wed, 23 Jul 2008 02:47:32 -0700
+Message-ID: <200807230947.m6N9lWu5014030@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59239 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45026 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751772AbYGWJhh (ORCPT
+	by vger.kernel.org with ESMTP id S1751704AbYGWJuB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jul 2008 05:37:37 -0400
+	Wed, 23 Jul 2008 05:50:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, andi@firstfloor.org, avi@qumranet.com, fujita.tomonori@lab.ntt.co.jp, mingo@elte.hu, muli@il.ibm.com, tglx@linutronix.de
+Cc: mingo@elte.hu, a.p.zijlstra@chello.nl, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com, tglx@linutronix.de
 
 
 The patch titled
-     dma-mapping-add-the-device-argument-to-dma_mapping_error-ibmvscsi
+     sched: fix hrtick & generic-ipi dependency
 has been added to the -mm tree.  Its filename is
-     dma-mapping-add-the-device-argument-to-dma_mapping_error-ibmvscsi.patch
+     sched-fix-hrtick-generic-ipi-dependency.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,245 +34,176 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dma-mapping-add-the-device-argument-to-dma_mapping_error-ibmvscsi
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: sched: fix hrtick & generic-ipi dependency
+From: Ingo Molnar <mingo@elte.hu>
 
-Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: Muli Ben-Yehuda <muli@il.ibm.com>
-Cc: Andi Kleen <andi@firstfloor.org>
+Andrew Morton reported this s390 allmodconfig build failure:
+
+kernel/built-in.o: In function `hrtick_start_fair':
+sched.c:(.text+0x69c6): undefined reference to `__smp_call_function_single'
+
+The reason is that s390 is not a generic-ipi SMP platform yet, while the
+hrtick code relies on it.  Fix the dependency.
+
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Avi Kivity <avi@qumranet.com>
-
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/ibmvscsi/ibmvfc.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/Kconfig.hz |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/scsi/ibmvscsi/ibmvfc.c~dma-mapping-add-the-device-argument-to-dma_mapping_error-ibmvscsi drivers/scsi/ibmvscsi/ibmvfc.c
---- a/drivers/scsi/ibmvscsi/ibmvfc.c~dma-mapping-add-the-device-argument-to-dma_mapping_error-ibmvscsi
-+++ a/drivers/scsi/ibmvscsi/ibmvfc.c
-@@ -3525,7 +3525,7 @@ static int ibmvfc_init_crq(struct ibmvfc
- 	crq->msg_token = dma_map_single(dev, crq->msgs,
- 					PAGE_SIZE, DMA_BIDIRECTIONAL);
+diff -puN kernel/Kconfig.hz~sched-fix-hrtick-generic-ipi-dependency kernel/Kconfig.hz
+--- a/kernel/Kconfig.hz~sched-fix-hrtick-generic-ipi-dependency
++++ a/kernel/Kconfig.hz
+@@ -55,4 +55,4 @@ config HZ
+ 	default 1000 if HZ_1000
  
--	if (dma_mapping_error(crq->msg_token))
-+	if (dma_mapping_error(dev, crq->msg_token))
- 		goto map_failed;
- 
- 	retrc = rc = plpar_hcall_norets(H_REG_CRQ, vdev->unit_address,
-@@ -3618,7 +3618,7 @@ static int ibmvfc_alloc_mem(struct ibmvf
- 					    async_q->size * sizeof(*async_q->msgs),
- 					    DMA_BIDIRECTIONAL);
- 
--	if (dma_mapping_error(async_q->msg_token)) {
-+	if (dma_mapping_error(dev, async_q->msg_token)) {
- 		dev_err(dev, "Failed to map async queue\n");
- 		goto free_async_crq;
- 	}
+ config SCHED_HRTICK
+-	def_bool HIGH_RES_TIMERS
++	def_bool HIGH_RES_TIMERS && USE_GENERIC_SMP_HELPERS
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mingo@elte.hu are
 
 origin.patch
-arm-fix-fls-for-64-bit-arguments.patch
+hpet-clarify-maintainer-entry.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-drivers-mtd-nand-nandsimc-needs-div64h.patch
-pci-make-pci_register_driver-a-macro.patch
-drivers-mfd-tc6393xbc-doesnt-compile-on-i386.patch
 arch-mips-kernel-stacktracec-heiko-cant-type.patch
+x86-pci-replace-dbg-with-pr_debug.patch
 x86-pci-replace-dbg-with-pr_debug-fix.patch
 x86-pci-replace-dbg-with-pr_debug-fix-2.patch
+calgary-fix-a-comparison-warning-the-pci-calgary-64-driver.patch
+x86-remove-init_mm-export-as-planned-for-2626.patch
 include-asm-generic-pgtable-nopmdh-macros-are-noxious-reason-435.patch
 arch-x86-pci-i386c-fix-printk-warnings.patch
 arch-x86-kernel-genx2apic_uv_xc-warning-fix.patch
-drm-fix-sparc64-build.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-git-input-build-fix.patch
-git-jg-misc.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
+calgary-iommu-use-the-first-kernels-tce-tables-in-kdumppatch-removed-from-mm-tree.patch
+migrate_timers-add-comment-use-spinlock_irq.patch
 git-kvm.patch
-bridge-send-correct-mtu-value-in-pmtu-checkpatch-fixes.patch
-sundance-set-carrier-status-on-link-change-events.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
-scsi-gdthc-use-unaligned-access-helpers-checkpatch-fixes.patch
-git-logfs-git-rejects.patch
-git-logfs-fixup.patch
-drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
-drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
-drivers-net-wireless-iwlwifi-iwl-ledc-printk-fix.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-ftrace-disable-function-tracing-bringing-up-new-cpu-fix.patch
+git-net.patch
+firmware-fix-memmap-printk-format-warnings.patch
+netfilter-conntrack_helper-needs-to-include-rculisth.patch
+aes-x86_64-asm-implementation-optimization.patch
+cpufreq-acpi-only-call-_ppc-after-cpufreq-acpi-init-funcs-got-called-already.patch
+acpi-cpufreq-cleanup-move-bailing-out-of-function-before-locking-the-mutex.patch
+clocksource-fix-a-print-format-error-in-the-acpi-pm-clocksource-driver-and-check-range.patch
+clocksource-keep-track-of-original-clocksource-frequency.patch
+clocksource-introduce-clocksource_forward_now.patch
+clocksource-introduce-clock_monotonic_raw.patch
+mm-add-a-basic-debugging-framework-for-memory-initialisation.patch
+mm-add-a-basic-debugging-framework-for-memory-initialisation-fix.patch
 mm-verify-the-page-links-and-memory-model.patch
-mspec-convert-nopfn-to-fault-fix.patch
-page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
-kill-generic_file_direct_io-checkpatch-fixes.patch
-use-generic_access_phys-for-dev-mem-mappings-fix.patch
-spufs-use-the-new-vm_ops-access-fix.patch
-fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
-page-flags-record-page-flag-overlays-explicitly-xen.patch
-mapping_set_error-add-unlikely.patch
-huge-page-private-reservation-review-cleanups-fix.patch
-vma-page-offset-has-no-callees-drop-it.patch
-sync_file_range_write-may-and-will-block-document-that-fix.patch
-vmallocinfo-add-numa-information-fix.patch
-hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
-hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
-hugetlb-override-default-huge-page-size-non-const-fix-fix.patch
+mm-make-defensive-checks-around-pfn-values-registered-for-memory-usage.patch
+mm-print-out-the-zonelists-on-request-for-manual-verification.patch
+add-a-helper-function-to-test-if-an-object-is-on-the-stack.patch
+mm-move-bootmem-descriptors-definition-to-a-single-place.patch
+mm-fix-free_all_bootmem_core-alignment-check.patch
+mm-normalize-internal-argument-passing-of-bootmem-data.patch
+mm-unexport-__alloc_bootmem_core.patch
 linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
 revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+bootmem-clean-up-bootmemc-file-header.patch
 revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
 revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
-bootmem-add-debugging-framework-fix.patch
+bootmem-clean-up-free_all_bootmem_core.patch
 bootmem-clean-up-free_all_bootmem_core-fix.patch
+bootmem-free-reserve-helpers.patch
 bootmem-free-reserve-helpers-fix.patch
 revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+bootmem-factor-out-the-marking-of-a-pfn-range.patch
 bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-v850-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-arm-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mips-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-dvb.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mtd-fix.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fixes.patch
-mmu-notifiers-add-mm_take_all_locks-operation-checkpatch-fixes.patch
-mmu-notifier-core-checkpatch-fixes.patch
-mmu-notifier-core-fix.patch
-mmu-notifier-core-fix-2.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
-security-protect-legacy-applications-from-executing-with-insufficient-privilege-checkpatch-fixes.patch
-swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option-fix.patch
+bootmem-respect-goal-more-likely.patch
+bootmem-make-__alloc_bootmem_low_node-fall-back-to-other-nodes.patch
+mmu-notifiers-add-list_del_init_rcu.patch
+pm-boot-time-suspend-selftest.patch
+pm-boot-time-suspend-selftest-vs-linux-next.patch
+pm-boot-time-suspend-selftest-update.patch
 split-the-typecheck-macros-out-of-include-linux-kernelh.patch
 locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
 locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
-remove-apparently-unused-fd1772h-header-file.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+introduce-have_efficient_unaligned_access-kconfig-symbol.patch
+build-kernel-profileo-only-when-requested.patch
 build-kernel-profileo-only-when-requested-cleanups.patch
-seq_file-fix-bug-when-seq_read-reads-nothing-fix.patch
-exec-remove-some-includes-fix.patch
+inflate-refactor-inflate-malloc-code.patch
 inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
-drivers-misc-hpiloc-needs-config_pci.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments.patch
-flag-parameters-paccept-fix.patch
-flag-parameters-paccept-sys_ni.patch
-flag-parameters-anon_inode_getfd-extension-fix.patch
-flag-parameters-signalfd-fix.patch
-flag-parameters-eventfd-fix.patch
-flag-parameters-inotify_init-fix.patch
-flag-parameters-check-magic-constants-alpha.patch
-spi-au1550_spi-improve-pio-transfer-mode-checkpatch-fixes.patch
-autofs4-use-lookup-intent-flags-to-trigger-mounts-fix.patch
-rtc-cmos-improve-hpet-irq-glue-build-fix.patch
-gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix.patch
-gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix-fix.patch
-gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix-fix-fix.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch
-drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
-atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
-sm501-fixup-allocation-code-to-be-64bit-resource-compliant-sm501-align-panel-fb-to-page_size-fix.patch
-lcd-add-platform_lcd-driver-fix.patch
-fsl-diu-fb-update-freescale-diu-driver-to-use-page_alloc_exact.patch
-fbdev-add-new-cobalt-lcd-framebuffer-driver.patch
-eink_apollofb-new-driver-for-apollo-eink-controller-cleanup.patch
-eink_apollofb-new-driver-for-apollo-eink-controller-fix.patch
-eink_apollofb-new-driver-for-apollo-eink-controller-fix-fix-2.patch
-fbcon-remove-stray-semicolons-checkpatch-fixes.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
-ext3-handle-corrupted-orphan-list-at-mount-cleanup.patch
-ext3-handle-corrupted-orphan-list-at-mount-fix.patch
-ext3-handle-corrupted-orphan-list-at-mount-cleanup-fix.patch
-ext3-handle-deleting-corrupted-indirect-blocks-fix.patch
-jbd-dont-abort-if-flushing-file-data-failed-fix.patch
-reiserfs-convert-j_flush_sem-to-mutex.patch
-reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
-cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-fix.patch
-cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-checkpatch-fixes.patch
-devcgroup-code-cleanup-fix.patch
-memcg-remove-refcnt-from-page_cgroup-fix-2.patch
-memcg-limit-change-shrink-usage-checkpatch-fixes.patch
-coredump-format_corename-fix-the-core_uses_pid-logic-checkpatch-fixes.patch
+handle-failure-of-irqchip-set_type-in-setup_irq.patch
+handle-failure-of-irqchip-set_type-in-setup_irq-update.patch
+kernel-irq-managec-replace-a-printk-warn_on-to-a-warn.patch
+rtc-remove-and-clarify-unneeded-externs.patch
+gpiolib-allow-user-selection.patch
+gpiolib-allow-user-selection-update.patch
+signals-make-siginfo_t-si_utime-si_sstime-report-times-in-user_hz-not-hz.patch
+ptrace-give-more-respect-to-sigkill.patch
+workqueues-make-get_online_cpus-useable-for-work-func.patch
 workqueues-make-get_online_cpus-useable-for-work-func-fix.patch
-ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
-fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
-block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
-getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
-edac-mpc85xx-fix-pci-ofdev-2nd-pass-checkpatch-fixes.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
+s390-topology-dont-use-kthread-for-arch_reinit_sched_domains.patch
+markers-use-rcu_barrier_sched-and-call_rcu_sched.patch
+accounting-account-for-user-time-when-updating-memory-integrals.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-s2io.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support.patch
 dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sdhci-fix.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support-fix-2.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error-infiniband.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error-more-sparc.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-ibmvscsi.patch
+x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary.patch
 x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary-checkpatch-fixes.patch
-tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
-memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
-memstick-use-fully-asynchronous-request-processing-fix.patch
-full-conversion-to-early_initcall-interface-remove-old-interface-cleanup.patch
-full-conversion-to-early_initcall-interface-remove-old-interface-fix.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-gru-driver-v3-hardware-data-structures-fix.patch
-gru-driver-v3-hardware-data-structures-fix-fix.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+kexec-jump.patch
+kexec-jump-save-restore-device-state.patch
+x86-implement-pte_special.patch
+x86-implement-pte_special-fix.patch
+mm-introduce-get_user_pages_fast.patch
 mm-introduce-get_user_pages_fast-fix.patch
 mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast.patch
 x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
 x86-lockless-get_user_pages_fast-fix.patch
 x86-lockless-get_user_pages_fast-fix-2.patch
 x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
 x86-lockless-get_user_pages_fast-fix-warning.patch
-mm-speculative-page-references-fix-add_to_page_cache-fix.patch
-vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
-define-page_file_cache-function-fix.patch
-vmscan-split-lru-lists-into-anon-file-sets-units-fix.patch
-unevictable-lru-infrastructure-fix.patch
-unevictable-lru-page-statistics-units-fix.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-3.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
-introduce-__get_user_pages-fix.patch
-vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-fix-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
-slb-drop-kmem-cache-argument-from-constructor-ubifs.patch
-video-console-sticonrec-make-code-static-checkpatch-fixes.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-ibmvscsi.patch
+dio-use-get_user_pages_fast.patch
+splice-use-get_user_pages_fast.patch
+x86-support-1gb-hugepages-with-get_user_pages_lockless.patch
+use-warn-in-kernel-irq-managec.patch
+use-warn-in-kernel-lockdepc.patch
+use-warn-in-kernel-irq-chipc.patch
+use-warn-in-arch-x86-mm-ioremapc.patch
+use-warn-in-arch-x86-mm-pageattrc.patch
+use-warn-in-arch-x86-kernel.patch
+tracehook-add-linux-tracehookh.patch
+tracehook-exec.patch
+tracehook-unexport-ptrace_notify.patch
+tracehook-exit.patch
+tracehook-clone.patch
+tracehook-vfork-done.patch
+tracehook-release_task.patch
+tracehook-tracehook_tracer_task.patch
+tracehook-tracehook_expect_breakpoints.patch
+tracehook-tracehook_signal_handler.patch
+tracehook-tracehook_consider_ignored_signal.patch
+tracehook-tracehook_consider_fatal_signal.patch
+tracehook-syscall.patch
+tracehook-get_signal_to_deliver.patch
+tracehook-job-control.patch
+tracehook-death.patch
+tracehook-force-signal_pending.patch
+tracehook-tif_notify_resume.patch
+tracehook-asm-syscallh.patch
+tracehook-config_have_arch_tracehook.patch
+tracehook-wait_task_inactive.patch
+task_current_syscall.patch
+proc-pid-syscall.patch
+mm-print-swapcache-page-count-in-show_swap_cache_info.patch
+lib-generic-show_mem.patch
+x86-use-generic-show_mem.patch
+detect-atomic-counter-underflows.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+likely-profiling-disable-ftrace.patch
+sched-fix-hrtick-generic-ipi-dependency.patch
 
