@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + reiser4-suid.patch added to -mm tree
-Date: Tue, 22 Jul 2008 16:57:59 -0700
-Message-ID: <200807230010.m6N0AY23025938@imap1.linux-foundation.org>
+Subject: + gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix-fix-fix.patch added to -mm tree
+Date: Tue, 22 Jul 2008 17:01:50 -0700
+Message-ID: <200807230014.m6N0EPVL026106@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38233 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35490 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752365AbYGWAKg (ORCPT
+	by vger.kernel.org with ESMTP id S1752866AbYGWAOq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Jul 2008 20:10:36 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m6N0AYfu019005
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 22 Jul 2008 17:10:35 -0700
+	Tue, 22 Jul 2008 20:14:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, dbrownell@users.sourceforge.net, greg@kroah.com, mb@bu3sch.de, sfr@canb.auug.org.au
 
 
 The patch titled
-     reiser4-suid
+     gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix-fix-fix
 has been added to the -mm tree.  Its filename is
-     reiser4-suid.patch
+     gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,27 +34,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: reiser4-suid
+Subject: gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Cc: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Greg KH <greg@kroah.com>
+Cc: Michael Buesch <mb@bu3sch.de>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiser4/plugin/file/cryptcompress.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/gpio/gpiolib.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/reiser4/plugin/file/cryptcompress.c~reiser4-suid fs/reiser4/plugin/file/cryptcompress.c
---- a/fs/reiser4/plugin/file/cryptcompress.c~reiser4-suid
-+++ a/fs/reiser4/plugin/file/cryptcompress.c
-@@ -2823,7 +2823,7 @@ ssize_t write_cryptcompress(struct file 
- 	}
-   	if (unlikely(count == 0))
- 		return 0;
--	result = remove_suid(file->f_dentry);
-+	result = file_remove_suid(file);
- 	if (unlikely(result != 0)) {
- 		context_set_commit_async(ctx);
- 		return result;
+diff -puN drivers/gpio/gpiolib.c~gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix-fix-fix drivers/gpio/gpiolib.c
+--- a/drivers/gpio/gpiolib.c~gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix-fix-fix
++++ a/drivers/gpio/gpiolib.c
+@@ -453,8 +453,8 @@ int gpio_export(unsigned gpio, bool dire
+ 	if (status == 0) {
+ 		struct device	*dev;
+ 
+-		dev = device_create(&gpio_class, desc->chip->dev, 0, desc,
+-					"gpio%d", gpio);
++		dev = device_create(&gpio_class, desc->chip->dev, MKDEV(0, 0),
++					desc, "gpio%d", gpio);
+ 		if (dev) {
+ 			if (direction_may_change)
+ 				status = sysfs_create_group(&dev->kobj,
+@@ -537,8 +537,8 @@ static int gpiochip_export(struct gpio_c
+ 
+ 	/* use chip->base for the ID; it's already known to be unique */
+ 	mutex_lock(&sysfs_lock);
+-	dev = device_create(&gpio_class, chip->dev, 0, chip, "gpiochip%d",
+-				chip->base);
++	dev = device_create(&gpio_class, chip->dev, MKDEV(0, 0), chip,
++				"gpiochip%d", chip->base);
+ 	if (dev) {
+ 		status = sysfs_create_group(&dev->kobj,
+ 				&gpiochip_attr_group);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -154,6 +167,7 @@ spi-au1550_spi-improve-pio-transfer-mode-checkpatch-fixes.patch
 autofs4-use-lookup-intent-flags-to-trigger-mounts-fix.patch
 gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix.patch
 gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix-fix.patch
+gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix-fix-fix.patch
 gpio-add-bt8xxgpio-driver-checkpatch-fixes.patch
 gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch
 gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch
