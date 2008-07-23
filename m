@@ -1,53 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - flag-parameters-signalfd-fix.patch removed from -mm tree
-Date: Wed, 23 Jul 2008 16:29:08 -0700
-Message-ID: <200807232341.m6NNfjv6018301@imap1.linux-foundation.org>
+Subject: - flag-parameters-inotify_init-fix.patch removed from -mm tree
+Date: Wed, 23 Jul 2008 16:30:15 -0700
+Message-ID: <200807232342.m6NNgqlr018332@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44979 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58517 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754402AbYGWXmc (ORCPT
+	by vger.kernel.org with ESMTP id S1755419AbYGWXng (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jul 2008 19:42:32 -0400
+	Wed, 23 Jul 2008 19:43:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davidel@xmailserver.org, drepper@redhat.com, mtk.manpages@googlemail.com, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davidel@xmailserver.org, drepper@redhat.com, linux-arch@vger.kernel.org, mtk.manpages@googlemail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     flag-parameters-signalfd-fix
+     flag-parameters-inotify_init-fix
 has been removed from the -mm tree.  Its filename was
-     flag-parameters-signalfd-fix.patch
+     flag-parameters-inotify_init-fix.patch
 
-This patch was dropped because it was folded into flag-parameters-signalfd.patch
+This patch was dropped because it was folded into flag-parameters-inotify_init.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: flag-parameters-signalfd-fix
+Subject: flag-parameters-inotify_init-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
+CONFIG_INOTIFY=n:
+
+arch/x86/kernel/built-in.o: In function `sys_call_table':
+: undefined reference to `sys_inotify_init1'
+
+Cc: <linux-arch@vger.kernel.org>
 Cc: Davide Libenzi <davidel@xmailserver.org>
 Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
 Cc: Ulrich Drepper <drepper@redhat.com>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  kernel/sys_ni.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN kernel/sys_ni.c~flag-parameters-signalfd-fix kernel/sys_ni.c
---- a/kernel/sys_ni.c~flag-parameters-signalfd-fix
+diff -puN kernel/sys_ni.c~flag-parameters-inotify_init-fix kernel/sys_ni.c
+--- a/kernel/sys_ni.c~flag-parameters-inotify_init-fix
 +++ a/kernel/sys_ni.c
-@@ -156,6 +156,7 @@ cond_syscall(sys_ioprio_get);
- 
- /* New file descriptors */
- cond_syscall(sys_signalfd);
-+cond_syscall(sys_signalfd4);
- cond_syscall(compat_sys_signalfd);
- cond_syscall(sys_timerfd_create);
- cond_syscall(sys_timerfd_settime);
+@@ -96,6 +96,7 @@ cond_syscall(sys_keyctl);
+ cond_syscall(compat_sys_keyctl);
+ cond_syscall(compat_sys_socketcall);
+ cond_syscall(sys_inotify_init);
++cond_syscall(sys_inotify_init1);
+ cond_syscall(sys_inotify_add_watch);
+ cond_syscall(sys_inotify_rm_watch);
+ cond_syscall(sys_migrate_pages);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -81,8 +86,8 @@ swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option.patch
 flag-parameters-paccept.patch
 flag-parameters-anon_inode_getfd-extension.patch
 flag-parameters-signalfd.patch
-flag-parameters-signalfd-fix.patch
-flag-parameters-eventfd-fix.patch
+flag-parameters-eventfd.patch
+flag-parameters-inotify_init.patch
 flag-parameters-inotify_init-fix.patch
 flag-parameters-check-magic-constants-alpha.patch
 spi-au1550_spi-improve-pio-transfer-mode-checkpatch-fixes.patch
