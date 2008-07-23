@@ -1,78 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: - hid-apple_fn_keys-f5-and-f6.patch removed from -mm tree
-Date: Wed, 23 Jul 2008 14:02:29 -0700
-Message-ID: <200807232102.m6NL2TEs011770@imap1.linux-foundation.org>
+Subject: - uml-fix-boot-crash.patch removed from -mm tree
+Date: Wed, 23 Jul 2008 14:02:51 -0700
+Message-ID: <200807232102.m6NL2pDS011794@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33069 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33977 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754281AbYGWVCu (ORCPT
+	by vger.kernel.org with ESMTP id S1754363AbYGWVDH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jul 2008 17:02:50 -0400
+	Wed, 23 Jul 2008 17:03:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rydberg@euromail.se, dtor@mail.ru, jikos@jikos.cz, mm-commits@vger.kernel.org
+To: jdike@addtoit.com, jdike@linux.intel.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hid: apple_fn_keys F5 and F6
+     uml: fix boot crash
 has been removed from the -mm tree.  Its filename was
-     hid-apple_fn_keys-f5-and-f6.patch
+     uml-fix-boot-crash.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hid: apple_fn_keys F5 and F6
-=46rom: Henrik Rydberg <rydberg@euromail.se>
+Subject: uml: fix boot crash
+From: Jeff Dike <jdike@addtoit.com>
 
-In drivers/hid/hid-input.c, the apple_fn_keys translation table contain=
-s
-no entries for the F5 and F6 keys.  This patch maps the F5 and F6 keys =
-to
-KBDILLUMDOWN and KBDILLUMUP, respektively, which make them work as
-keyboard backlight control keys.
+My copying of linux/init.h didn't go far enough.  The definition of __used
+singled out gcc minor version 3, but didn't care what the major version
+was.  This broke when unit-at-a-time was added and gcc started throwing
+out initcalls.
 
-Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
-Cc: Jiri Kosina <jikos@jikos.cz>
-Cc: Dmitry Torokhov <dtor@mail.ru>
+This results in an early boot crash when ptrace tries to initialize a
+process with an empty, uninitialized register set.
+
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hid/hid-input.c |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/um/include/init.h |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN drivers/hid/hid-input.c~hid-apple_fn_keys-f5-and-f6 drivers/h=
-id/hid-input.c
---- a/drivers/hid/hid-input.c~hid-apple_fn_keys-f5-and-f6
-+++ a/drivers/hid/hid-input.c
-@@ -100,6 +100,8 @@ static struct hidinput_key_translation a
- 	{ KEY_F2,       KEY_BRIGHTNESSUP,   APPLE_FLAG_FKEY },
- 	{ KEY_F3,       KEY_FN_F5,          APPLE_FLAG_FKEY }, /* Expos=E9 */
- 	{ KEY_F4,       KEY_FN_F4,          APPLE_FLAG_FKEY }, /* Dashboard *=
-/
-+	{ KEY_F5,	KEY_KBDILLUMDOWN,   APPLE_FLAG_FKEY },
-+	{ KEY_F6,	KEY_KBDILLUMUP,     APPLE_FLAG_FKEY },
- 	{ KEY_F7,       KEY_PREVIOUSSONG,   APPLE_FLAG_FKEY },
- 	{ KEY_F8,       KEY_PLAYPAUSE,      APPLE_FLAG_FKEY },
- 	{ KEY_F9,       KEY_NEXTSONG,       APPLE_FLAG_FKEY },
+diff -puN arch/um/include/init.h~uml-fix-boot-crash arch/um/include/init.h
+--- a/arch/um/include/init.h~uml-fix-boot-crash
++++ a/arch/um/include/init.h
+@@ -45,6 +45,8 @@ typedef void (*exitcall_t)(void);
+ # define __section(S) __attribute__ ((__section__(#S)))
+ #endif
+ 
++#if __GNUC__ == 3
++
+ #if __GNUC_MINOR__ >= 3
+ # define __used			__attribute__((__used__))
+ #else
+@@ -52,6 +54,12 @@ typedef void (*exitcall_t)(void);
+ #endif
+ 
+ #else
++#if __GNUC__ == 4
++# define __used			__attribute__((__used__))
++#endif
++#endif
++
++#else
+ #include <linux/compiler.h>
+ #endif
+ /* These are for everybody (although not all archs will actually
 _
 
-Patches currently in -mm which might be from rydberg@euromail.se are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
 origin.patch
 linux-next.patch
-hid-wellspring-device-quirks.patch
-input-bcm5974-055-smoother-motion-irq-simplification.patch
+arch-um-kernel-irqc-clean-up-some-functions.patch
+arch-um-kernel-memc-remove-arch_validate.patch
+uml-make-several-more-things-static.patch
+kernel-call-constructors-uml-fix-1.patch
+kernel-call-constructors-uml-fix-2.patch
+mm-print-swapcache-page-count-in-show_swap_cache_info.patch
+lib-generic-show_mem.patch
+um-use-generic-show_mem.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
