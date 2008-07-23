@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ath5k-mask-out-unneeded-interrupts.patch added to -mm tree
-Date: Wed, 23 Jul 2008 12:26:02 -0700
-Message-ID: <200807231926.m6NJQ2Uo007934@imap1.linux-foundation.org>
+Subject: + ath5k-fix-beacon-update-deadlock.patch added to -mm tree
+Date: Wed, 23 Jul 2008 12:25:59 -0700
+Message-ID: <200807231926.m6NJPxJA007925@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45086 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37562 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752759AbYGWT0e (ORCPT
+	by vger.kernel.org with ESMTP id S1752649AbYGWT1b (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jul 2008 15:26:34 -0400
+	Wed, 23 Jul 2008 15:27:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com, mcgrof@gmail.com, me@bobcopeland.com, mickflemm@gmail.com
+Cc: jirislaby@gmail.com, johannes@sipsolutions.net, linville@tuxdriver.com, mcgrof@gmail.com, me@bobcopeland.com, mickflemm@gmail.com
 
 
 The patch titled
-     ath5k: mask out unneeded interrupts
+     ath5k: fix beacon-update deadlock
 has been added to the -mm tree.  Its filename is
-     ath5k-mask-out-unneeded-interrupts.patch
+     ath5k-fix-beacon-update-deadlock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,50 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ath5k: mask out unneeded interrupts
+Subject: ath5k: fix beacon-update deadlock
 From: Jiri Slaby <jirislaby@gmail.com>
 
-Mask out previously demanded interrupt flags because we set new ones. 
-Don't allow mixing them after switch from sta to ibss and vice versa.
+Commit 9d139c810a2aa17365cc548d0cd2a189d8433c65 introduced AA deadlock --
+ath5k_config_interface(); holds sc->lock and it calls
+ath5k_beacon_update(); which tries to grab the lock again.
+
+Don't grab the lock in beacon update, since only caller is config iface
+for now.
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: Johannes Berg <johannes@sipsolutions.net>
+Cc: John W. Linville <linville@tuxdriver.com>
 Cc: Nick Kossifidis <mickflemm@gmail.com>
 Cc: Luis R. Rodriguez <mcgrof@gmail.com>
 Cc: "Bob Copeland" <me@bobcopeland.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/ath5k/base.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/net/wireless/ath5k/base.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN drivers/net/wireless/ath5k/base.c~ath5k-mask-out-unneeded-interrupts drivers/net/wireless/ath5k/base.c
---- a/drivers/net/wireless/ath5k/base.c~ath5k-mask-out-unneeded-interrupts
+diff -puN drivers/net/wireless/ath5k/base.c~ath5k-fix-beacon-update-deadlock drivers/net/wireless/ath5k/base.c
+--- a/drivers/net/wireless/ath5k/base.c~ath5k-fix-beacon-update-deadlock
 +++ a/drivers/net/wireless/ath5k/base.c
-@@ -2175,6 +2175,7 @@ ath5k_beacon_config(struct ath5k_softc *
+@@ -3065,8 +3065,6 @@ ath5k_beacon_update(struct ieee80211_hw 
  
- 	ath5k_hw_set_intr(ah, 0);
- 	sc->bmisscount = 0;
-+	sc->imask &= ~(AR5K_INT_BMISS | AR5K_INT_SWBA);
+ 	ath5k_debug_dump_skb(sc, skb, "BC  ", 1);
  
- 	if (sc->opmode == IEEE80211_IF_TYPE_STA) {
- 		sc->imask |= AR5K_INT_BMISS;
+-	mutex_lock(&sc->lock);
+-
+ 	if (sc->opmode != IEEE80211_IF_TYPE_IBSS) {
+ 		ret = -EIO;
+ 		goto end;
+@@ -3081,9 +3079,7 @@ ath5k_beacon_update(struct ieee80211_hw 
+ 		ath5k_beacon_config(sc);
+ 		mmiowb();
+ 	}
+-
+ end:
+-	mutex_unlock(&sc->lock);
+ 	return ret;
+ }
+ 
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
