@@ -1,39 +1,47 @@
 From: akpm@linux-foundation.org
-Subject: - hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 23 Jul 2008 16:02:09 -0700
-Message-ID: <200807232314.m6NNEkDV016980@imap1.linux-foundation.org>
+Subject: - hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 23 Jul 2008 16:02:39 -0700
+Message-ID: <200807232315.m6NNFGRe017025@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45128 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47886 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753976AbYGWXPR (ORCPT
+	by vger.kernel.org with ESMTP id S1755208AbYGWXPp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jul 2008 19:15:17 -0400
+	Wed, 23 Jul 2008 19:15:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, agl@us.ibm.com, ak@suse.de, nacc@us.ibm.com, npiggin@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes
+     hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
+     hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into hugetlb-modular-state-for-hugetlb-page-size.patch
+This patch was dropped because it was folded into hugetlb-multiple-hstates-for-multiple-page-sizes.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes
+Subject: hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: space prohibited between function name and open parenthesis '('
-#55: FILE: arch/ia64/mm/hugetlbpage.c:27:
-+huge_pte_alloc (struct mm_struct *mm, unsigned long addr, unsigned long sz)
+ERROR: do not initialise statics to 0 or NULL
+#105: FILE: mm/hugetlb.c:28:
++static int max_hstate = 0;
 
-total: 0 errors, 1 warnings, 1445 lines checked
+ERROR: do not initialise statics to 0 or NULL
+#110: FILE: mm/hugetlb.c:33:
++static struct hstate * __initdata parsed_hstate = NULL;
 
-./patches/hugetlb-modular-state-for-hugetlb-page-size.patch has style problems, please review.  If any of these errors
+ERROR: do not initialise statics to 0 or NULL
+#111: FILE: mm/hugetlb.c:34:
++static unsigned long __initdata default_hstate_max_huge_pages = 0;
+
+total: 3 errors, 0 warnings, 279 lines checked
+
+./patches/hugetlb-multiple-hstates-for-multiple-page-sizes.patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
@@ -46,21 +54,29 @@ Cc: Nishanth Aravamudan <nacc@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/mm/hugetlbpage.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/hugetlb.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/ia64/mm/hugetlbpage.c~hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes arch/ia64/mm/hugetlbpage.c
---- a/arch/ia64/mm/hugetlbpage.c~hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes
-+++ a/arch/ia64/mm/hugetlbpage.c
-@@ -24,7 +24,7 @@
- unsigned int hpage_shift=HPAGE_SHIFT_DEFAULT;
+diff -puN mm/hugetlb.c~hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes
++++ a/mm/hugetlb.c
+@@ -25,13 +25,13 @@ const unsigned long hugetlb_zero = 0, hu
+ static gfp_t htlb_alloc_mask = GFP_HIGHUSER;
+ unsigned long hugepages_treat_as_movable;
  
- pte_t *
--huge_pte_alloc (struct mm_struct *mm, unsigned long addr, unsigned long sz)
-+huge_pte_alloc(struct mm_struct *mm, unsigned long addr, unsigned long sz)
- {
- 	unsigned long taddr = htlbpage_to_page(addr);
- 	pgd_t *pgd;
+-static int max_hstate = 0;
++static int max_hstate;
+ unsigned int default_hstate_idx;
+ struct hstate hstates[HUGE_MAX_HSTATE];
+ 
+ /* for command line parsing */
+-static struct hstate * __initdata parsed_hstate = NULL;
+-static unsigned long __initdata default_hstate_max_huge_pages = 0;
++static struct hstate * __initdata parsed_hstate;
++static unsigned long __initdata default_hstate_max_huge_pages;
+ 
+ #define for_each_hstate(h) \
+ 	for ((h) = hstates; (h) < &hstates[max_hstate]; (h)++)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -80,7 +96,7 @@ vma-page-offset-has-no-callees-drop-it.patch
 sync_file_range_write-may-and-will-block-document-that.patch
 vmallocinfo-add-numa-information.patch
 hugetlb-modular-state-for-hugetlb-page-size.patch
-hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
+hugetlb-multiple-hstates-for-multiple-page-sizes.patch
 hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
 hugetlb-override-default-huge-page-size-non-const-fix-fix.patch
 linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
