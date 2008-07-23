@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + gru-driver-v3-hardware-data-structures-fix.patch added to -mm tree
-Date: Tue, 22 Jul 2008 23:20:46 -0700
-Message-ID: <200807230620.m6N6KkOd006604@imap1.linux-foundation.org>
+Subject: + gru-driver-v3-hardware-data-structures-fix-fix.patch added to -mm tree
+Date: Tue, 22 Jul 2008 23:29:59 -0700
+Message-ID: <200807230629.m6N6TxY8006938@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42561 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35989 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750951AbYGWGVX (ORCPT
+	by vger.kernel.org with ESMTP id S1750721AbYGWGaD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jul 2008 02:21:23 -0400
+	Wed, 23 Jul 2008 02:30:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, steiner@sgi.com, tony.luck@intel.com
 
 
 The patch titled
-     gru-driver-v3-hardware-data-structures: export hpage_shift
+     gru-driver-v3-hardware-data-structures-fix-fix
 has been added to the -mm tree.  Its filename is
-     gru-driver-v3-hardware-data-structures-fix.patch
+     gru-driver-v3-hardware-data-structures-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,29 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gru-driver-v3-hardware-data-structures: export hpage_shift
+Subject: gru-driver-v3-hardware-data-structures-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: "hpage_shift" [drivers/misc/sgi-gru/gru.ko] undefined!                   
-
-Cc: Jack Steiner <steiner@sgi.com>
 Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Jack Steiner <steiner@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/mm/hugetlbpage.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ arch/ia64/mm/hugetlbpage.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/ia64/mm/hugetlbpage.c~gru-driver-v3-hardware-data-structures-fix arch/ia64/mm/hugetlbpage.c
---- a/arch/ia64/mm/hugetlbpage.c~gru-driver-v3-hardware-data-structures-fix
+diff -puN arch/ia64/mm/hugetlbpage.c~gru-driver-v3-hardware-data-structures-fix-fix arch/ia64/mm/hugetlbpage.c
+--- a/arch/ia64/mm/hugetlbpage.c~gru-driver-v3-hardware-data-structures-fix-fix
 +++ a/arch/ia64/mm/hugetlbpage.c
-@@ -13,6 +13,7 @@
+@@ -13,7 +13,7 @@
  #include <linux/mm.h>
  #include <linux/hugetlb.h>
  #include <linux/pagemap.h>
-+#include <linux/modulel.h>
+-#include <linux/modulel.h>
++#include <linux/module.h>
  #include <linux/slab.h>
  #include <linux/sysctl.h>
  #include <linux/log2.h>
-@@ -21,7 +22,8 @@
- #include <asm/tlb.h>
- #include <asm/tlbflush.h>
- 
--unsigned int hpage_shift=HPAGE_SHIFT_DEFAULT;
-+unsigned int hpage_shift = HPAGE_SHIFT_DEFAULT;
-+EXPORT_SYMBOL(hpage_shift);
- 
- pte_t *
- huge_pte_alloc(struct mm_struct *mm, unsigned long addr, unsigned long sz)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -221,6 +210,7 @@ full-conversion-to-early_initcall-interface-remove-old-interface-cleanup.patch
 full-conversion-to-early_initcall-interface-remove-old-interface-fix.patch
 ppc-use-the-common-ascii-hex-helpers-fix.patch
 gru-driver-v3-hardware-data-structures-fix.patch
+gru-driver-v3-hardware-data-structures-fix-fix.patch
 gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
 mm-introduce-get_user_pages_fast-fix.patch
 mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
