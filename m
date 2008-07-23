@@ -1,67 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: - calgary-iommu-use-the-first-kernels-tce-tables-in-kdump-coding-style-fixes.patch removed from -mm tree
-Date: Tue, 22 Jul 2008 21:01:44 -0700
-Message-ID: <200807230401.m6N41iGw001684@imap1.linux-foundation.org>
+Subject: + slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch added to -mm tree
+Date: Tue, 22 Jul 2008 21:04:08 -0700
+Message-ID: <200807230404.m6N448Ze001790@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54342 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45249 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751784AbYGWEDi (ORCPT
+	by vger.kernel.org with ESMTP id S1751974AbYGWEFX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jul 2008 00:03:38 -0400
+	Wed, 23 Jul 2008 00:05:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, chandru@in.ibm.com, mingo@elte.hu, muli@il.ibm.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, adobriyan@gmail.com, cl@linux-foundation.org, ezk@cs.sunysb.edu, joern@logfs.org, kniht@linux.vnet.ibm.com, mpm@selenic.com, nickpiggin@yahoo.com.au, penberg@cs.helsinki.fi
 
 
 The patch titled
-     calgary-iommu-use-the-first-kernels-tce-tables-in-kdump-coding-style-fixes
-has been removed from the -mm tree.  Its filename was
-     calgary-iommu-use-the-first-kernels-tce-tables-in-kdump-coding-style-fixes.patch
+     slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs
+has been added to the -mm tree.  Its filename is
+     slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: calgary-iommu-use-the-first-kernels-tce-tables-in-kdump-coding-style-fixes
+Subject: slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Chandru Siddalingappa <chandru@in.ibm.com>
-Cc: Muli Ben-Yehuda <muli@il.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Erez Zadok <ezk@cs.sunysb.edu>
+Cc: Jon Tollefson <kniht@linux.vnet.ibm.com>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: Joern Engel <joern@logfs.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/pci-calgary_64.c |    2 +-
- include/linux/crash_dump.h       |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ fs/logfs/inode.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/pci-calgary_64.c~calgary-iommu-use-the-first-kernels-tce-tables-in-kdump-coding-style-fixes arch/x86/kernel/pci-calgary_64.c
---- a/arch/x86/kernel/pci-calgary_64.c~calgary-iommu-use-the-first-kernels-tce-tables-in-kdump-coding-style-fixes
-+++ a/arch/x86/kernel/pci-calgary_64.c
-@@ -1439,7 +1439,7 @@ void __init detect_calgary(void)
- 		return;
- 	}
- 
--	max_pfn = is_kdump_kernel() ? saved_max_pfn : end_pfn ;
-+	max_pfn = is_kdump_kernel() ? saved_max_pfn : end_pfn;
- 	specified_table_size = determine_tce_table_size(max_pfn * PAGE_SIZE);
- 
- 	for (bus = 0; bus < MAX_PHB_BUS_NUM; bus++) {
-diff -puN include/linux/crash_dump.h~calgary-iommu-use-the-first-kernels-tce-tables-in-kdump-coding-style-fixes include/linux/crash_dump.h
---- a/include/linux/crash_dump.h~calgary-iommu-use-the-first-kernels-tce-tables-in-kdump-coding-style-fixes
-+++ a/include/linux/crash_dump.h
-@@ -24,7 +24,7 @@ extern struct proc_dir_entry *proc_vmcor
- 
- static inline int is_kdump_kernel(void)
- {
--	return (elfcorehdr_addr != ELFCORE_ADDR_MAX) ? 1 : 0 ;
-+	return (elfcorehdr_addr != ELFCORE_ADDR_MAX) ? 1 : 0;
+diff -puN fs/logfs/inode.c~slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs fs/logfs/inode.c
+--- a/fs/logfs/inode.c~slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs
++++ a/fs/logfs/inode.c
+@@ -541,7 +541,7 @@ struct inode *logfs_new_inode(struct ino
+ 	return inode;
  }
- #else /* !CONFIG_CRASH_DUMP */
- static inline int is_kdump_kernel(void) { return 0; }
+ 
+-static void logfs_init_once(struct kmem_cache *cachep, void *_li)
++static void logfs_init_once(void *_li)
+ {
+ 	struct logfs_inode *li = _li;
+ 	int i;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -207,7 +208,6 @@ dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac.patch
 dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error-sdhci-fix.patch
 x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary-checkpatch-fixes.patch
-calgary-iommu-use-the-first-kernels-tce-tables-in-kdump-coding-style-fixes.patch
 tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
 memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
 memstick-use-fully-asynchronous-request-processing-fix.patch
@@ -235,6 +235,7 @@ mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
 vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
 slb-drop-kmem-cache-argument-from-constructor-fix.patch
 slb-drop-kmem-cache-argument-from-constructor-fix-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
 video-console-sticonrec-make-code-static-checkpatch-fixes.patch
 reiser4.patch
 reiser4-tree_lock-fixes.patch
