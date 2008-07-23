@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + arch-mips-kernel-stacktracec-heiko-cant-type.patch added to -mm tree
-Date: Wed, 23 Jul 2008 00:58:13 -0700
-Message-ID: <200807230758.m6N7wDpr009972@imap1.linux-foundation.org>
+Subject: + a.patch added to -mm tree
+Date: Wed, 23 Jul 2008 01:53:52 -0700
+Message-ID: <200807230853.m6N8rq6j012005@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54877 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32867 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750951AbYGWIAZ (ORCPT
+	by vger.kernel.org with ESMTP id S1751104AbYGWIxz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jul 2008 04:00:25 -0400
+	Wed, 23 Jul 2008 04:53:55 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m6N8rq1J014113
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Wed, 23 Jul 2008 01:53:53 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, heiko.carstens@de.ibm.com, mingo@elte.hu, ralf@linux-mips.org, sfr@canb.auug.org.au
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     arch/mips/kernel/stacktrace.c: Heiko can't type
+     a
 has been added to the -mm tree.  Its filename is
-     arch-mips-kernel-stacktracec-heiko-cant-type.patch
+     a.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +38,27 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/mips/kernel/stacktrace.c: Heiko can't type
+Subject: a
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/kernel/stacktrace.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/nommu.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN arch/mips/kernel/stacktrace.c~arch-mips-kernel-stacktracec-heiko-cant-type arch/mips/kernel/stacktrace.c
---- a/arch/mips/kernel/stacktrace.c~arch-mips-kernel-stacktracec-heiko-cant-type
-+++ a/arch/mips/kernel/stacktrace.c
-@@ -7,7 +7,7 @@
-  */
- #include <linux/sched.h>
- #include <linux/stacktrace.h>
--#include <linux/module.h
-+#include <linux/module.h>
- #include <asm/stacktrace.h>
+diff -puN mm/nommu.c~a mm/nommu.c
+--- a/mm/nommu.c~a
++++ a/mm/nommu.c
+@@ -34,6 +34,8 @@
+ #include <asm/tlb.h>
+ #include <asm/tlbflush.h>
  
- /*
++#include "internal.h"
++
+ void *high_memory;
+ struct page *mem_map;
+ unsigned long max_mapnr;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -71,6 +71,7 @@ next-remove-localversion.patch
 drivers-mtd-nand-nandsimc-needs-div64h.patch
 pci-make-pci_register_driver-a-macro.patch
 drivers-mfd-tc6393xbc-doesnt-compile-on-i386.patch
+arch-mips-kernel-stacktracec-heiko-cant-type.patch
 x86-pci-replace-dbg-with-pr_debug-fix.patch
 x86-pci-replace-dbg-with-pr_debug-fix-2.patch
 include-asm-generic-pgtable-nopmdh-macros-are-noxious-reason-435.patch
@@ -236,6 +237,7 @@ mlock-mlocked-pages-are-unevictable-fix.patch
 mlock-mlocked-pages-are-unevictable-fix-fix.patch
 mlock-mlocked-pages-are-unevictable-fix-3.patch
 mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
+a.patch
 vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
 slb-drop-kmem-cache-argument-from-constructor-fix.patch
 slb-drop-kmem-cache-argument-from-constructor-fix-fix.patch
@@ -260,5 +262,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
-arch-mips-kernel-stacktracec-heiko-cant-type.patch
+introduce-__get_user_pages-fix.patch
 
