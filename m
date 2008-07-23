@@ -1,35 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + make-u64-long-long-on-all-architectures-fix.patch added to -mm tree
-Date: Tue, 22 Jul 2008 21:55:07 -0700
-Message-ID: <200807230455.m6N4t7cU003626@imap1.linux-foundation.org>
+Subject: - make-u64-long-long-on-all-architectures-fix.patch removed from -mm tree
+Date: Tue, 22 Jul 2008 21:55:21 -0700
+Message-ID: <200807230455.m6N4tLcx003631__48018.8889465809$1216789007$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41580 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46281 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752435AbYGWEzL (ORCPT
+	by vger.kernel.org with ESMTP id S1752647AbYGWEzY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jul 2008 00:55:11 -0400
+	Wed, 23 Jul 2008 00:55:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, linux-arch@vger.kernel.org, matthew@wil.cx, willy@linux.intel.com
+To: akpm@linux-foundation.org, linux-arch@vger.kernel.org, matthew@wil.cx, willy@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
      make-u64-long-long-on-all-architectures-fix
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      make-u64-long-long-on-all-architectures-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into make-u64-long-long-on-all-architectures.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -243,6 +233,7 @@ reiser4-tree_lock-fixes-fix.patch
 reiser4-semaphore-fix.patch
 slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
 reiser4-suid.patch
+make-u64-long-long-on-all-architectures.patch
 make-u64-long-long-on-all-architectures-fix.patch
 page-owner-tracking-leak-detector.patch
 nr_blockdev_pages-in_interrupt-warning.patch
