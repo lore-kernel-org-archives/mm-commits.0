@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch added to -mm tree
-Date: Tue, 22 Jul 2008 21:04:08 -0700
-Message-ID: <200807230404.m6N448Ze001790@imap1.linux-foundation.org>
+Subject: + slb-drop-kmem-cache-argument-from-constructor-ubifs.patch added to -mm tree
+Date: Tue, 22 Jul 2008 21:05:51 -0700
+Message-ID: <200807230405.m6N45p0X001839@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45249 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49845 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751974AbYGWEFX (ORCPT
+	by vger.kernel.org with ESMTP id S1751404AbYGWEGi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jul 2008 00:05:23 -0400
+	Wed, 23 Jul 2008 00:06:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, adobriyan@gmail.com, cl@linux-foundation.org, ezk@cs.sunysb.edu, joern@logfs.org, kniht@linux.vnet.ibm.com, mpm@selenic.com, nickpiggin@yahoo.com.au, penberg@cs.helsinki.fi
+Cc: akpm@linux-foundation.org, Artem.Bityutskiy@nokia.com, adobriyan@gmail.com, cl@linux-foundation.org, kniht@linux.vnet.ibm.com, mpm@selenic.com, nickpiggin@yahoo.com.au, penberg@cs.helsinki.fi
 
 
 The patch titled
-     slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs
+     slb-drop-kmem-cache-argument-from-constructor-ubifs
 has been added to the -mm tree.  Its filename is
-     slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
+     slb-drop-kmem-cache-argument-from-constructor-ubifs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs
+Subject: slb-drop-kmem-cache-argument-from-constructor-ubifs
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: Erez Zadok <ezk@cs.sunysb.edu>
 Cc: Jon Tollefson <kniht@linux.vnet.ibm.com>
 Cc: Matt Mackall <mpm@selenic.com>
 Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Cc: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: Joern Engel <joern@logfs.org>
+Cc: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/logfs/inode.c |    2 +-
+ fs/ubifs/super.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/logfs/inode.c~slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs fs/logfs/inode.c
---- a/fs/logfs/inode.c~slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs
-+++ a/fs/logfs/inode.c
-@@ -541,7 +541,7 @@ struct inode *logfs_new_inode(struct ino
- 	return inode;
- }
- 
--static void logfs_init_once(struct kmem_cache *cachep, void *_li)
-+static void logfs_init_once(void *_li)
+diff -puN fs/ubifs/super.c~slb-drop-kmem-cache-argument-from-constructor-ubifs fs/ubifs/super.c
+--- a/fs/ubifs/super.c~slb-drop-kmem-cache-argument-from-constructor-ubifs
++++ a/fs/ubifs/super.c
+@@ -1843,7 +1843,7 @@ static struct file_system_type ubifs_fs_
+ /*
+  * Inode slab cache constructor.
+  */
+-static void inode_slab_ctor(struct kmem_cache *cachep, void *obj)
++static void inode_slab_ctor(void *obj)
  {
- 	struct logfs_inode *li = _li;
- 	int i;
+ 	struct ubifs_inode *ui = obj;
+ 	inode_init_once(&ui->vfs_inode);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -236,6 +235,7 @@ vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
 slb-drop-kmem-cache-argument-from-constructor-fix.patch
 slb-drop-kmem-cache-argument-from-constructor-fix-fix.patch
 slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
+slb-drop-kmem-cache-argument-from-constructor-ubifs.patch
 video-console-sticonrec-make-code-static-checkpatch-fixes.patch
 reiser4.patch
 reiser4-tree_lock-fixes.patch
