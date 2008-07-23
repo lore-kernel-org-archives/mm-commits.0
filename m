@@ -1,55 +1,162 @@
 From: akpm@linux-foundation.org
-Subject: - page_align-xtensa-fix-implicit-declaration-of-function-page_align.patch removed from -mm tree
-Date: Wed, 23 Jul 2008 16:13:23 -0700
-Message-ID: <200807232326.m6NNQ0ni017655@imap1.linux-foundation.org>
+Subject: - page_align-fix-implicit-declarations-of-function-page_align-in-various-drivers.patch removed from -mm tree
+Date: Wed, 23 Jul 2008 16:15:19 -0700
+Message-ID: <200807232327.m6NNRuvK017686@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57670 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56799 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754504AbYGWX0c (ORCPT
+	by vger.kernel.org with ESMTP id S1753293AbYGWX23 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jul 2008 19:26:32 -0400
+	Wed, 23 Jul 2008 19:28:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: righi.andrea@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     page_align: xtensa: fix implicit declaration of function 'PAGE_ALIGN'
+     page_align: fix implicit declarations of function 'PAGE_ALIGN' in various drivers
 has been removed from the -mm tree.  Its filename was
-     page_align-xtensa-fix-implicit-declaration-of-function-page_align.patch
+     page_align-fix-implicit-declarations-of-function-page_align-in-various-drivers.patch
 
 This patch was dropped because it was folded into page_align-correctly-handle-64-bit-values-on-32-bit-architectures.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page_align: xtensa: fix implicit declaration of function 'PAGE_ALIGN'
+Subject: page_align: fix implicit declarations of function 'PAGE_ALIGN' in various drivers
 From: Andrea Righi <righi.andrea@gmail.com>
 
 Signed-off-by: Andrea Righi <righi.andrea@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/kernel/setup.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/ieee1394/iso.c           |    1 +
+ drivers/net/mlx4/eq.c            |    1 +
+ drivers/pcmcia/electra_cf.c      |    1 +
+ drivers/scsi/sun_esp.c           |    1 +
+ drivers/video/acornfb.c          |    1 +
+ drivers/video/imxfb.c            |    1 +
+ drivers/video/omap/dispc.c       |    1 +
+ drivers/video/omap/omapfb_main.c |    1 +
+ drivers/video/pxafb.c            |    1 +
+ drivers/video/sa1100fb.c         |    1 +
+ 10 files changed, 10 insertions(+)
 
-diff -puN arch/xtensa/kernel/setup.c~page_align-xtensa-fix-implicit-declaration-of-function-page_align arch/xtensa/kernel/setup.c
---- a/arch/xtensa/kernel/setup.c~page_align-xtensa-fix-implicit-declaration-of-function-page_align
-+++ a/arch/xtensa/kernel/setup.c
-@@ -16,6 +16,7 @@
+diff -puN drivers/ieee1394/iso.c~page_align-fix-implicit-declarations-of-function-page_align-in-various-drivers drivers/ieee1394/iso.c
+--- a/drivers/ieee1394/iso.c~page_align-fix-implicit-declarations-of-function-page_align-in-various-drivers
++++ a/drivers/ieee1394/iso.c
+@@ -11,6 +11,7 @@
  
- #include <linux/errno.h>
- #include <linux/init.h>
+ #include <linux/pci.h>
+ #include <linux/sched.h>
 +#include <linux/mm.h>
- #include <linux/proc_fs.h>
- #include <linux/screen_info.h>
- #include <linux/bootmem.h>
+ #include <linux/slab.h>
+ 
+ #include "hosts.h"
+diff -puN drivers/net/mlx4/eq.c~page_align-fix-implicit-declarations-of-function-page_align-in-various-drivers drivers/net/mlx4/eq.c
+--- a/drivers/net/mlx4/eq.c~page_align-fix-implicit-declarations-of-function-page_align-in-various-drivers
++++ a/drivers/net/mlx4/eq.c
+@@ -33,6 +33,7 @@
+ 
+ #include <linux/init.h>
+ #include <linux/interrupt.h>
++#include <linux/mm.h>
+ #include <linux/dma-mapping.h>
+ 
+ #include <linux/mlx4/cmd.h>
+diff -puN drivers/pcmcia/electra_cf.c~page_align-fix-implicit-declarations-of-function-page_align-in-various-drivers drivers/pcmcia/electra_cf.c
+--- a/drivers/pcmcia/electra_cf.c~page_align-fix-implicit-declarations-of-function-page_align-in-various-drivers
++++ a/drivers/pcmcia/electra_cf.c
+@@ -28,6 +28,7 @@
+ #include <linux/init.h>
+ #include <linux/delay.h>
+ #include <linux/interrupt.h>
++#include <linux/mm.h>
+ #include <linux/vmalloc.h>
+ #include <linux/of_platform.h>
+ 
+diff -puN drivers/scsi/sun_esp.c~page_align-fix-implicit-declarations-of-function-page_align-in-various-drivers drivers/scsi/sun_esp.c
+--- a/drivers/scsi/sun_esp.c~page_align-fix-implicit-declarations-of-function-page_align-in-various-drivers
++++ a/drivers/scsi/sun_esp.c
+@@ -7,6 +7,7 @@
+ #include <linux/types.h>
+ #include <linux/delay.h>
+ #include <linux/module.h>
++#include <linux/mm.h>
+ #include <linux/init.h>
+ 
+ #include <asm/irq.h>
+diff -puN drivers/video/acornfb.c~page_align-fix-implicit-declarations-of-function-page_align-in-various-drivers drivers/video/acornfb.c
+--- a/drivers/video/acornfb.c~page_align-fix-implicit-declarations-of-function-page_align-in-various-drivers
++++ a/drivers/video/acornfb.c
+@@ -23,6 +23,7 @@
+ #include <linux/string.h>
+ #include <linux/ctype.h>
+ #include <linux/slab.h>
++#include <linux/mm.h>
+ #include <linux/init.h>
+ #include <linux/fb.h>
+ #include <linux/platform_device.h>
+diff -puN drivers/video/imxfb.c~page_align-fix-implicit-declarations-of-function-page_align-in-various-drivers drivers/video/imxfb.c
+--- a/drivers/video/imxfb.c~page_align-fix-implicit-declarations-of-function-page_align-in-various-drivers
++++ a/drivers/video/imxfb.c
+@@ -24,6 +24,7 @@
+ #include <linux/string.h>
+ #include <linux/interrupt.h>
+ #include <linux/slab.h>
++#include <linux/mm.h>
+ #include <linux/fb.h>
+ #include <linux/delay.h>
+ #include <linux/init.h>
+diff -puN drivers/video/omap/dispc.c~page_align-fix-implicit-declarations-of-function-page_align-in-various-drivers drivers/video/omap/dispc.c
+--- a/drivers/video/omap/dispc.c~page_align-fix-implicit-declarations-of-function-page_align-in-various-drivers
++++ a/drivers/video/omap/dispc.c
+@@ -20,6 +20,7 @@
+  */
+ #include <linux/kernel.h>
+ #include <linux/dma-mapping.h>
++#include <linux/mm.h>
+ #include <linux/vmalloc.h>
+ #include <linux/clk.h>
+ #include <linux/io.h>
+diff -puN drivers/video/omap/omapfb_main.c~page_align-fix-implicit-declarations-of-function-page_align-in-various-drivers drivers/video/omap/omapfb_main.c
+--- a/drivers/video/omap/omapfb_main.c~page_align-fix-implicit-declarations-of-function-page_align-in-various-drivers
++++ a/drivers/video/omap/omapfb_main.c
+@@ -25,6 +25,7 @@
+  * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+  */
+ #include <linux/platform_device.h>
++#include <linux/mm.h>
+ #include <linux/uaccess.h>
+ 
+ #include <asm/mach-types.h>
+diff -puN drivers/video/pxafb.c~page_align-fix-implicit-declarations-of-function-page_align-in-various-drivers drivers/video/pxafb.c
+--- a/drivers/video/pxafb.c~page_align-fix-implicit-declarations-of-function-page_align-in-various-drivers
++++ a/drivers/video/pxafb.c
+@@ -30,6 +30,7 @@
+ #include <linux/string.h>
+ #include <linux/interrupt.h>
+ #include <linux/slab.h>
++#include <linux/mm.h>
+ #include <linux/fb.h>
+ #include <linux/delay.h>
+ #include <linux/init.h>
+diff -puN drivers/video/sa1100fb.c~page_align-fix-implicit-declarations-of-function-page_align-in-various-drivers drivers/video/sa1100fb.c
+--- a/drivers/video/sa1100fb.c~page_align-fix-implicit-declarations-of-function-page_align-in-various-drivers
++++ a/drivers/video/sa1100fb.c
+@@ -167,6 +167,7 @@
+ #include <linux/string.h>
+ #include <linux/interrupt.h>
+ #include <linux/slab.h>
++#include <linux/mm.h>
+ #include <linux/fb.h>
+ #include <linux/delay.h>
+ #include <linux/init.h>
 _
 
 Patches currently in -mm which might be from righi.andrea@gmail.com are
 
 page_align-correctly-handle-64-bit-values-on-32-bit-architectures.patch
-page_align-xtensa-fix-implicit-declaration-of-function-page_align.patch
 page_align-fix-implicit-declarations-of-function-page_align-in-various-drivers.patch
 
