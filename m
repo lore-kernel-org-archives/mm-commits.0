@@ -1,44 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - a.patch removed from -mm tree
-Date: Wed, 23 Jul 2008 01:54:08 -0700
-Message-ID: <200807230854.m6N8s8wu012080@imap1.linux-foundation.org>
+Subject: + introduce-__get_user_pages-fix.patch added to -mm tree
+Date: Wed, 23 Jul 2008 01:54:29 -0700
+Message-ID: <200807230854.m6N8sT7Z012083@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57975 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35164 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751140AbYGWIyL (ORCPT
+	by vger.kernel.org with ESMTP id S1754782AbYGWIzg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jul 2008 04:54:11 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m6N8s9PK014128
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 23 Jul 2008 01:54:10 -0700
+	Wed, 23 Jul 2008 04:55:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, Lee.Schermerhorn@hp.com, hugh@veritas.com, kosaki.motohiro@jp.fujitsu.com, lizf@cn.fujitsu.com, riel@redhat.com
 
 
 The patch titled
-     a
-has been removed from the -mm tree.  Its filename was
-     a.patch
+     introduce-__get_user_pages-fix
+has been added to the -mm tree.  Its filename is
+     introduce-__get_user_pages-fix.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: a
+Subject: introduce-__get_user_pages-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
+mm/nommu.c: In function `__get_user_pages':
+mm/nommu.c:138: error: `GUP_FLAGS_WRITE' undeclared (first use in this function)
+mm/nommu.c:138: error: (Each undeclared identifier is reported only once
+mm/nommu.c:138: error: for each function it appears in.)
+mm/nommu.c:139: error: `GUP_FLAGS_FORCE' undeclared (first use in this function)
+mm/nommu.c:140: error: `GUP_FLAGS_IGNORE_VMA_PERMISSIONS' undeclared (first use in this function)
+mm/nommu.c: In function `get_user_pages':
+mm/nommu.c:189: error: `GUP_FLAGS_WRITE' undeclared (first use in this function)
+mm/nommu.c:191: error: `GUP_FLAGS_FORCE' undeclared (first use in this function)
+
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  mm/nommu.c |    2 ++
  1 file changed, 2 insertions(+)
 
-diff -puN mm/nommu.c~a mm/nommu.c
---- a/mm/nommu.c~a
+diff -puN mm/nommu.c~introduce-__get_user_pages-fix mm/nommu.c
+--- a/mm/nommu.c~introduce-__get_user_pages-fix
 +++ a/mm/nommu.c
 @@ -34,6 +34,8 @@
  #include <asm/tlb.h>
@@ -227,7 +248,7 @@ mlock-mlocked-pages-are-unevictable-fix.patch
 mlock-mlocked-pages-are-unevictable-fix-fix.patch
 mlock-mlocked-pages-are-unevictable-fix-3.patch
 mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
-a.patch
+introduce-__get_user_pages-fix.patch
 vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
 slb-drop-kmem-cache-argument-from-constructor-fix.patch
 slb-drop-kmem-cache-argument-from-constructor-fix-fix.patch
@@ -252,5 +273,4 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
-introduce-__get_user_pages-fix.patch
 
