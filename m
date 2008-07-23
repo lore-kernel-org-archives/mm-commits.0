@@ -1,41 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: - bootmem-free-reserve-helpers-fix.patch removed from -mm tree
-Date: Wed, 23 Jul 2008 16:09:42 -0700
-Message-ID: <200807232322.m6NNMK9P017396@imap1.linux-foundation.org>
+Subject: - bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch removed from -mm tree
+Date: Wed, 23 Jul 2008 16:11:06 -0700
+Message-ID: <200807232323.m6NNNhWw017431@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49126 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49976 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754363AbYGWXWi (ORCPT
+	by vger.kernel.org with ESMTP id S1754481AbYGWXYC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jul 2008 19:22:38 -0400
+	Wed, 23 Jul 2008 19:24:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, andi@firstfloor.org, hannes@saeurebad.de, mingo@elte.hu, yhlu.kernel@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bootmem-free-reserve-helpers-fix
+     bootmem-factor-out-the-marking-of-a-pfn-range-fix
 has been removed from the -mm tree.  Its filename was
-     bootmem-free-reserve-helpers-fix.patch
+     bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
 
-This patch was dropped because it was folded into bootmem-free-reserve-helpers.patch
+This patch was dropped because it was folded into bootmem-factor-out-the-marking-of-a-pfn-range.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bootmem-free-reserve-helpers-fix
+Subject: bootmem-factor-out-the-marking-of-a-pfn-range-fix
 From: Andrew Morton <akpm@linux-foundation.org>
-
-mm/bootmem.c: In function '__free':
-mm/bootmem.c:233: warning: format '%d' expects type 'int', but argument 3 has type 'long int'
-mm/bootmem.c: In function '__reserve':
-mm/bootmem.c:248: warning: format '%d' expects type 'int', but argument 3 has type 'long int'
-mm/bootmem.c: In function 'free_bootmem_core':
-mm/bootmem.c:270: warning: unused variable 'i'
-mm/bootmem.c: In function 'reserve_bootmem_core':
-mm/bootmem.c:401: warning: 'return' with a value, in function returning void
-mm/bootmem.c:380: warning: unused variable 'i'
 
 Cc: Andi Kleen <andi@firstfloor.org>
 Cc: Ingo Molnar <mingo@elte.hu>
@@ -44,30 +34,21 @@ Cc: Yinghai Lu <yhlu.kernel@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/bootmem.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/bootmem.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/bootmem.c~bootmem-free-reserve-helpers-fix mm/bootmem.c
---- a/mm/bootmem.c~bootmem-free-reserve-helpers-fix
+diff -puN mm/bootmem.c~bootmem-factor-out-the-marking-of-a-pfn-range-fix mm/bootmem.c
+--- a/mm/bootmem.c~bootmem-factor-out-the-marking-of-a-pfn-range-fix
 +++ a/mm/bootmem.c
-@@ -230,7 +230,7 @@ static void __init __free(bootmem_data_t
+@@ -272,7 +272,7 @@ static int __init mark_bootmem_node(boot
  {
- 	unsigned long idx;
+ 	unsigned long sidx, eidx;
  
--	bdebug("nid=%d start=%lx end=%lx\n", bdata - bootmem_node_data,
-+	bdebug("nid=%td start=%lx end=%lx\n", bdata - bootmem_node_data,
- 		sidx + PFN_DOWN(bdata->node_boot_start),
- 		eidx + PFN_DOWN(bdata->node_boot_start));
+-	bdebug("nid=%d start=%lx end=%lx reserve=%d flags=%x\n",
++	bdebug("nid=%td start=%lx end=%lx reserve=%d flags=%x\n",
+ 		bdata - bootmem_node_data, start, end, reserve, flags);
  
-@@ -245,7 +245,7 @@ static int __init __reserve(bootmem_data
- 	unsigned long idx;
- 	int exclusive = flags & BOOTMEM_EXCLUSIVE;
- 
--	bdebug("nid=%d start=%lx end=%lx flags=%x\n",
-+	bdebug("nid=%td start=%lx end=%lx flags=%x\n",
- 		bdata - bootmem_node_data,
- 		sidx + PFN_DOWN(bdata->node_boot_start),
- 		eidx + PFN_DOWN(bdata->node_boot_start),
+ 	BUG_ON(start < PFN_DOWN(bdata->node_boot_start));
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -91,8 +72,7 @@ hugetlb-multiple-hstates-for-multiple-page-sizes.patch
 bootmem-add-debugging-framework.patch
 bootmem-clean-up-free_all_bootmem_core.patch
 bootmem-free-reserve-helpers.patch
-bootmem-free-reserve-helpers-fix.patch
-revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+bootmem-factor-out-the-marking-of-a-pfn-range.patch
 bootmem-factor-out-the-marking-of-a-pfn-range-fix.patch
 page_align-correctly-handle-64-bit-values-on-32-bit-architectures-fix.patch
 page_align-correctly-handle-64-bit-values-on-32-bit-architectures-v850-fix.patch
