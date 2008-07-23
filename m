@@ -1,67 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: - lcd-add-platform_lcd-driver-fb-fix-platform_lcd-match-entry.patch removed from -mm tree
-Date: Wed, 23 Jul 2008 16:39:46 -0700
-Message-ID: <200807232352.m6NNqNBA018783@imap1.linux-foundation.org>
+Subject: - fbdev-add-new-cobalt-lcd-framebuffer-driver-v3.patch removed from -mm tree
+Date: Wed, 23 Jul 2008 16:40:32 -0700
+Message-ID: <200807232353.m6NNr9CW018808@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49547 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55312 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754601AbYGWXxI (ORCPT
+	by vger.kernel.org with ESMTP id S1754629AbYGWXxX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jul 2008 19:53:08 -0400
+	Wed, 23 Jul 2008 19:53:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ben-linux@fluff.org, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: yoichi_yuasa@tripeaks.co.jp, adaplas@pol.net, krzysztof.h1@poczta.fm, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     FB: Fix platform_lcd match entry
+     add new Cobalt LCD framebuffer driver
 has been removed from the -mm tree.  Its filename was
-     lcd-add-platform_lcd-driver-fb-fix-platform_lcd-match-entry.patch
+     fbdev-add-new-cobalt-lcd-framebuffer-driver-v3.patch
 
-This patch was dropped because it was folded into lcd-add-platform_lcd-driver.patch
+This patch was dropped because it was folded into fbdev-add-new-cobalt-lcd-framebuffer-driver.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: FB: Fix platform_lcd match entry
-From: Ben Dooks <ben-linux@fluff.org>
+Subject: add new Cobalt LCD framebuffer driver
+From: Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
 
-The platform_lcd driver was matching against the framebuffer device entry, and
-not the framebuffer's parent device.
+- fix read/write count boundary check.
+- add <include/uaccess.h>.
+- fix MODULE_AUTHOR.
 
-Signed-off-by: Ben Dooks <ben-linux@fluff.org>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Signed-off-by: Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
+Acked-by: Ralf Baechle <ralf@linux-mips.org>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/platform_lcd.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/Kconfig        |    2 +-
+ drivers/video/cobalt_lcdfb.c |   24 ++++++++++++++++++------
+ 2 files changed, 19 insertions(+), 7 deletions(-)
 
-diff -puN drivers/video/backlight/platform_lcd.c~lcd-add-platform_lcd-driver-fb-fix-platform_lcd-match-entry drivers/video/backlight/platform_lcd.c
---- a/drivers/video/backlight/platform_lcd.c~lcd-add-platform_lcd-driver-fb-fix-platform_lcd-match-entry
-+++ a/drivers/video/backlight/platform_lcd.c
-@@ -62,7 +62,7 @@ static int platform_lcd_match(struct lcd
- 	if (pdata->match_fb)
- 		return pdata->match_fb(pdata, info);
+diff -puN drivers/video/Kconfig~fbdev-add-new-cobalt-lcd-framebuffer-driver-v3 drivers/video/Kconfig
+--- a/drivers/video/Kconfig~fbdev-add-new-cobalt-lcd-framebuffer-driver-v3
++++ a/drivers/video/Kconfig
+@@ -1989,7 +1989,7 @@ config FB_AM200EPD
  
--	return plcd->us->parent == info->dev;
-+	return plcd->us->parent == info->device;
- }
+ config FB_COBALT
+ 	tristate "Cobalt server LCD frame buffer support"
+-	depends on FB
++	depends on FB && MIPS_COBALT
  
- static struct lcd_ops platform_lcd_ops = {
+ config FB_VIRTUAL
+ 	tristate "Virtual Frame Buffer support (ONLY FOR TESTING!)"
+diff -puN drivers/video/cobalt_lcdfb.c~fbdev-add-new-cobalt-lcd-framebuffer-driver-v3 drivers/video/cobalt_lcdfb.c
+--- a/drivers/video/cobalt_lcdfb.c~fbdev-add-new-cobalt-lcd-framebuffer-driver-v3
++++ a/drivers/video/cobalt_lcdfb.c
+@@ -137,13 +137,16 @@ static ssize_t cobalt_lcdfb_read(struct 
+ {
+ 	char src[LCD_CHARS_MAX];
+ 	unsigned long pos;
+-	int len, retval;
++	int len, retval = 0;
+ 
+ 	pos = *ppos;
+-	if (pos >= LCD_CHARS_MAX)
++	if (pos >= LCD_CHARS_MAX || count == 0)
+ 		return 0;
+ 
+-	if (pos + count >= LCD_CHARS_MAX)
++	if (count > LCD_CHARS_MAX)
++		count = LCD_CHARS_MAX;
++
++	if (pos + count > LCD_CHARS_MAX)
+ 		count = LCD_CHARS_MAX - pos;
+ 
+ 	for (len = 0; len < count; len++) {
+@@ -164,6 +167,9 @@ static ssize_t cobalt_lcdfb_read(struct 
+ 			pos++;
+ 	}
+ 
++	if (retval < 0 && signal_pending(current))
++		return -ERESTARTSYS;
++
+ 	if (copy_to_user(buf, src, len))
+ 		return -EFAULT;
+ 
+@@ -177,13 +183,16 @@ static ssize_t cobalt_lcdfb_write(struct
+ {
+ 	char dst[LCD_CHARS_MAX];
+ 	unsigned long pos;
+-	int len, retval;
++	int len, retval = 0;
+ 
+ 	pos = *ppos;
+-	if (pos >= LCD_CHARS_MAX)
++	if (pos >= LCD_CHARS_MAX || count == 0)
+ 		return 0;
+ 
+-	if (pos + count >= LCD_CHARS_MAX)
++	if (count > LCD_CHARS_MAX)
++		count = LCD_CHARS_MAX;
++
++	if (pos + count > LCD_CHARS_MAX)
+ 		count = LCD_CHARS_MAX - pos;
+ 
+ 	if (copy_from_user(dst, buf, count))
+@@ -207,6 +216,9 @@ static ssize_t cobalt_lcdfb_write(struct
+ 			pos++;
+ 	}
+ 
++	if (retval < 0 && signal_pending(current))
++		return -ERESTARTSYS;
++
+ 	*ppos += len;
+ 
+ 	return len;
 _
 
-Patches currently in -mm which might be from ben-linux@fluff.org are
+Patches currently in -mm which might be from yoichi_yuasa@tripeaks.co.jp are
 
 origin.patch
-rtc-rtc-s3c-add-__devexit-and-__devinit-markers.patch
-rtc-rtc-s3c-update-irq-handling.patch
-sm501-add-inversion-controls-for-vbiasen-and-fpen.patch
-sm501-restructure-init-to-allow-only-1-fb-on-an-sm501.patch
-sm501-fixup-allocation-code-to-be-64bit-resource-compliant.patch
-fb-add-support-for-the-ili9320-video-display-controller.patch
-lcd-add-lcd_device-to-check_fb-entry-in-lcd_ops.patch
-lcd-add-platform_lcd-driver.patch
-lcd-add-platform_lcd-driver-fb-fix-platform_lcd-match-entry.patch
+rtc-vr41xx-add-irq_set_freq-and-irq_set_state.patch
+fbdev-add-new-cobalt-lcd-framebuffer-driver.patch
+fbdev-add-new-cobalt-lcd-framebuffer-driver-v3.patch
+drivers-char-remove-old-broken-cobalt-lcd-driver.patch
 
