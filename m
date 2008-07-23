@@ -1,50 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: - flag-parameters-eventfd-fix.patch removed from -mm tree
-Date: Wed, 23 Jul 2008 16:29:37 -0700
-Message-ID: <200807232342.m6NNgFbv018322@imap1.linux-foundation.org>
+Subject: - flag-parameters-check-magic-constants-alpha.patch removed from -mm tree
+Date: Wed, 23 Jul 2008 16:31:09 -0700
+Message-ID: <200807232343.m6NNhkKf018362@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39968 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39703 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754730AbYGWXnZ (ORCPT
+	by vger.kernel.org with ESMTP id S1754748AbYGWXoF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jul 2008 19:43:25 -0400
+	Wed, 23 Jul 2008 19:44:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davidel@xmailserver.org, drepper@redhat.com, mtk.manpages@googlemail.com, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davidel@xmailserver.org, drepper@redhat.com, mtk.manpages@googlemail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     flag-parameters-eventfd-fix
+     flag-parameters-check-magic-constants-alpha
 has been removed from the -mm tree.  Its filename was
-     flag-parameters-eventfd-fix.patch
+     flag-parameters-check-magic-constants-alpha.patch
 
-This patch was dropped because it was folded into flag-parameters-eventfd.patch
+This patch was dropped because it was folded into flag-parameters-check-magic-constants.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: flag-parameters-eventfd-fix
+Subject: flag-parameters-check-magic-constants-alpha
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Davide Libenzi <davidel@xmailserver.org>
 Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
 Cc: Ulrich Drepper <drepper@redhat.com>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys_ni.c |    1 +
- 1 file changed, 1 insertion(+)
+ net/socket.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN kernel/sys_ni.c~flag-parameters-eventfd-fix kernel/sys_ni.c
---- a/kernel/sys_ni.c~flag-parameters-eventfd-fix
-+++ a/kernel/sys_ni.c
-@@ -164,3 +164,4 @@ cond_syscall(sys_timerfd_gettime);
- cond_syscall(compat_sys_timerfd_settime);
- cond_syscall(compat_sys_timerfd_gettime);
- cond_syscall(sys_eventfd);
-+cond_syscall(sys_eventfd2);
+diff -puN net/socket.c~flag-parameters-check-magic-constants-alpha net/socket.c
+--- a/net/socket.c~flag-parameters-check-magic-constants-alpha
++++ a/net/socket.c
+@@ -1224,7 +1224,6 @@ asmlinkage long sys_socket(int family, i
+ 
+ 	/* Check the SOCK_* constants for consistency.  */
+ 	BUILD_BUG_ON(SOCK_CLOEXEC != O_CLOEXEC);
+-	BUILD_BUG_ON(SOCK_NONBLOCK != O_NONBLOCK);
+ 	BUILD_BUG_ON((SOCK_MAX | SOCK_TYPE_MASK) != SOCK_TYPE_MASK);
+ 	BUILD_BUG_ON(SOCK_CLOEXEC & SOCK_TYPE_MASK);
+ 	BUILD_BUG_ON(SOCK_NONBLOCK & SOCK_TYPE_MASK);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -79,8 +81,8 @@ flag-parameters-paccept.patch
 flag-parameters-anon_inode_getfd-extension.patch
 flag-parameters-signalfd.patch
 flag-parameters-eventfd.patch
-flag-parameters-eventfd-fix.patch
-flag-parameters-inotify_init-fix.patch
+flag-parameters-inotify_init.patch
+flag-parameters-check-magic-constants.patch
 flag-parameters-check-magic-constants-alpha.patch
 spi-au1550_spi-improve-pio-transfer-mode-checkpatch-fixes.patch
 autofs4-use-lookup-intent-flags-to-trigger-mounts-fix.patch
