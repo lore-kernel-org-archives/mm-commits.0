@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-misc-hpiloc-needs-config_pci.patch added to -mm tree
-Date: Wed, 23 Jul 2008 00:47:37 -0700
-Message-ID: <200807230747.m6N7lbeE009593@imap1.linux-foundation.org>
+Subject: + arch-mips-kernel-stacktracec-heiko-cant-type.patch added to -mm tree
+Date: Wed, 23 Jul 2008 00:58:13 -0700
+Message-ID: <200807230758.m6N7wDpr009972@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40820 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54877 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751492AbYGWHsR (ORCPT
+	by vger.kernel.org with ESMTP id S1750951AbYGWIAZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jul 2008 03:48:17 -0400
+	Wed, 23 Jul 2008 04:00:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, david.altobelli@hp.com, gregkh@suse.de
+Cc: akpm@linux-foundation.org, heiko.carstens@de.ibm.com, mingo@elte.hu, ralf@linux-mips.org, sfr@canb.auug.org.au
 
 
 The patch titled
-     drivers/misc/hpilo.c needs CONFIG_PCI
+     arch/mips/kernel/stacktrace.c: Heiko can't type
 has been added to the -mm tree.  Its filename is
-     drivers-misc-hpiloc-needs-config_pci.patch
+     arch-mips-kernel-stacktracec-heiko-cant-type.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,37 +34,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/misc/hpilo.c needs CONFIG_PCI
+Subject: arch/mips/kernel/stacktrace.c: Heiko can't type
 From: Andrew Morton <akpm@linux-foundation.org>
 
-m68k allmodconfig:
-
-drivers/misc/hpilo.c: In function 'ilo_ccb_close':
-drivers/misc/hpilo.c:225: error: implicit declaration of function 'pci_free_consistent'
-drivers/misc/hpilo.c: In function 'ilo_ccb_open':
-drivers/misc/hpilo.c:244: error: implicit declaration of function 'pci_alloc_consistent'
-drivers/misc/hpilo.c:245: warning: assignment makes pointer from integer without a cast
-
-Cc: David Altobelli <david.altobelli@hp.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ arch/mips/kernel/stacktrace.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/misc/Makefile~drivers-misc-hpiloc-needs-config_pci drivers/misc/Makefile
-diff -puN drivers/misc/Kconfig~drivers-misc-hpiloc-needs-config_pci drivers/misc/Kconfig
---- a/drivers/misc/Kconfig~drivers-misc-hpiloc-needs-config_pci
-+++ a/drivers/misc/Kconfig
-@@ -437,6 +437,7 @@ config SGI_XP
+diff -puN arch/mips/kernel/stacktrace.c~arch-mips-kernel-stacktracec-heiko-cant-type arch/mips/kernel/stacktrace.c
+--- a/arch/mips/kernel/stacktrace.c~arch-mips-kernel-stacktracec-heiko-cant-type
++++ a/arch/mips/kernel/stacktrace.c
+@@ -7,7 +7,7 @@
+  */
+ #include <linux/sched.h>
+ #include <linux/stacktrace.h>
+-#include <linux/module.h
++#include <linux/module.h>
+ #include <asm/stacktrace.h>
  
- config HP_ILO
- 	tristate "Channel interface driver for HP iLO/iLO2 processor"
-+	depends on PCI
- 	default n
- 	help
- 	  The channel interface driver allows applications to communicate
+ /*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -153,6 +147,7 @@ build-kernel-profileo-only-when-requested-cleanups.patch
 seq_file-fix-bug-when-seq_read-reads-nothing-fix.patch
 exec-remove-some-includes-fix.patch
 inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
+drivers-misc-hpiloc-needs-config_pci.patch
 add-a-warn-macro-this-is-warn_on-printk-arguments.patch
 flag-parameters-paccept-fix.patch
 flag-parameters-paccept-sys_ni.patch
@@ -265,5 +260,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
-drivers-misc-hpiloc-needs-config_pci.patch
+arch-mips-kernel-stacktracec-heiko-cant-type.patch
 
