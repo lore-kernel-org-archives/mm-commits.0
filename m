@@ -1,146 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: - fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch removed from -mm tree
-Date: Wed, 23 Jul 2008 15:56:55 -0700
-Message-ID: <200807232309.m6NN9Wdg016751@imap1.linux-foundation.org>
+Subject: - page-flags-record-page-flag-overlays-explicitly-xen.patch removed from -mm tree
+Date: Wed, 23 Jul 2008 15:57:20 -0700
+Message-ID: <200807232309.m6NN9vYK016761@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38543 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36330 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753928AbYGWXJ7 (ORCPT
+	by vger.kernel.org with ESMTP id S1750799AbYGWXKo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jul 2008 19:09:59 -0400
+	Wed, 23 Jul 2008 19:10:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bfields@fieldses.org, dgc@sgi.com, k-makita@np.css.fujitsu.com, neilb@suse.de, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, apw@shadowen.org, cl@linux-foundation.org, jeremy@goop.org, kamezawa.hiroyu@jp.fujitsu.com, mpm@selenic.com, nickpiggin@yahoo.com.au, penberg@cs.helsinki.fi
 
 
 The patch titled
-     fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix
+     page-flags-record-page-flag-overlays-explicitly-xen
 has been removed from the -mm tree.  Its filename was
-     fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
+     page-flags-record-page-flag-overlays-explicitly-xen.patch
 
-This patch was dropped because it was folded into fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries.patch
+This patch was dropped because it was folded into page-flags-record-page-flag-overlays-explicitly.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix
+Subject: page-flags-record-page-flag-overlays-explicitly-xen
 From: Andrew Morton <akpm@linux-foundation.org>
 
-- fix comments.
-
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: David Chinner <dgc@sgi.com>
-Cc: Kentaro Makita <k-makita@np.css.fujitsu.com>
-Cc: Neil Brown <neilb@suse.de>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dcache.c        |   39 +++++++++++++++++----------------------
- include/linux/fs.h |    1 +
- 2 files changed, 18 insertions(+), 22 deletions(-)
+ include/linux/page-flags.h |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN fs/dcache.c~fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix fs/dcache.c
---- a/fs/dcache.c~fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix
-+++ a/fs/dcache.c
-@@ -122,8 +122,7 @@ static void dentry_iput(struct dentry * 
- }
+diff -puN include/linux/page-flags.h~page-flags-record-page-flag-overlays-explicitly-xen include/linux/page-flags.h
+--- a/include/linux/page-flags.h~page-flags-record-page-flag-overlays-explicitly-xen
++++ a/include/linux/page-flags.h
+@@ -103,6 +103,7 @@ enum pageflags {
  
- /*
-- * Following dentry_lru_(add|add_tail|del|del_init) is must
-- * called with dcache_lock held.
-+ * dentry_lru_(add|add_tail|del|del_init) must be called with dcache_lock held.
-  */
- static void dentry_lru_add(struct dentry *dentry)
- {
-@@ -248,7 +247,7 @@ repeat:
- unhash_it:
- 	__d_drop(dentry);
- kill_it:
--	/* if dentry was on d_lru list delete it from there */
-+	/* if dentry was on the d_lru list delete it from there */
- 	dentry_lru_del(dentry);
- 	dentry = d_kill(dentry);
- 	if (dentry)
-@@ -471,11 +470,11 @@ restart:
- 			BUG_ON(dentry->d_sb != sb);
+ 	/* XEN */
+ 	PG_pinned = PG_owner_priv_1,
++	PG_savepinned = PG_dirty,
+ };
  
- 			spin_lock(&dentry->d_lock);
--		/*
--		 * If we are honouring the DCACHE_REFERENCED flag and the
--		 * dentry has this flag set, don't free it. Clear the flag
--		 * and put it back on the LRU
--		 */
-+			/*
-+			 * If we are honouring the DCACHE_REFERENCED flag and
-+			 * the dentry has this flag set, don't free it. Clear
-+			 * the flag and put it back on the LRU.
-+			 */
- 			if ((flags & DCACHE_REFERENCED)
- 				&& (dentry->d_flags & DCACHE_REFERENCED)) {
- 				dentry->d_flags &= ~DCACHE_REFERENCED;
-@@ -504,10 +503,10 @@ restart:
- 			continue;
- 		}
- 		prune_one_dentry(dentry);
--		/* dentry->d_lock is dropped in prune_one_dentry() */
-+		/* dentry->d_lock was dropped in prune_one_dentry() */
- 		cond_resched_lock(&dcache_lock);
- 	}
--	if ((count == NULL) && (!list_empty(&sb->s_dentry_lru)))
-+	if (count == NULL && !list_empty(&sb->s_dentry_lru))
- 		goto restart;
- 	if (count != NULL)
- 		*count = cnt;
-@@ -518,17 +517,13 @@ restart:
- 
- /**
-  * prune_dcache - shrink the dcache
-- * @count: number of entries to try and free
-+ * @count: number of entries to try to free
-  *
-- * Shrink the dcache. This is done when we need
-- * more memory, or simply when we need to unmount
-- * something (at which point we need to unuse
-- * all dentries).
-+ * Shrink the dcache. This is done when we need more memory, or simply when we
-+ * need to unmount something (at which point we need to unuse all dentries).
-  *
-- * This function may fail to free any resources if
-- * all the dentries are in use.
-+ * This function may fail to free any resources if all the dentries are in use.
-  */
-- 
- static void prune_dcache(int count)
- {
- 	struct super_block *sb;
-@@ -551,10 +546,10 @@ restart:
- 			continue;
- 		sb->s_count++;
- 		/* Now, we reclaim unused dentrins with fairness.
--		 * we reclaim them same percentage on each superblocks.
--		 * we calculate number of dentries to scan on this sb
--		 * based on following way, but impelementation is arranged
--		 * to avoid overflow.
-+		 * We reclaim them same percentage from each superblock.
-+		 * We calculate number of dentries to scan on this sb
-+		 * as follows, but the implementation is arranged to avoid
-+		 * overflows:
- 		 * number of dentries to scan on this sb =
- 		 * count * (number of dentries on this sb /
- 		 * number of dentries in the machine)
-diff -puN include/linux/fs.h~fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix include/linux/fs.h
---- a/include/linux/fs.h~fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix
-+++ a/include/linux/fs.h
-@@ -1067,6 +1067,7 @@ struct super_block {
- 	struct list_head	s_more_io;	/* parked for more writeback */
- 	struct hlist_head	s_anon;		/* anonymous dentries for (nfs) exporting */
- 	struct list_head	s_files;
-+	/* s_dentry_lru and s_nr_dentry_unused are protected by dcache_lock */
- 	struct list_head	s_dentry_lru;	/* unused dentry lru */
- 	int			s_nr_dentry_unused;	/* # of dentry on lru */
- 
+ #ifndef __GENERATING_BOUNDS_H
+@@ -162,8 +163,8 @@ PAGEFLAG(LRU, lru) __CLEARPAGEFLAG(LRU, 
+ PAGEFLAG(Active, active) __CLEARPAGEFLAG(Active, active)
+ __PAGEFLAG(Slab, slab)
+ PAGEFLAG(Checked, checked)		/* Used by some filesystems */
+-PAGEFLAG(Pinned, pinned) TESTSCFLAG(Pinned, pinned) /* Xen */
+-PAGEFLAG(SavePinned, dirty);					/* Xen */
++PAGEFLAG(Pinned, pinned) TESTSCFLAG(Pinned, pinned)	/* Xen */
++PAGEFLAG(SavePinned, savepinned);			/* Xen */
+ PAGEFLAG(Reserved, reserved) __CLEARPAGEFLAG(Reserved, reserved)
+ PAGEFLAG(Private, private) __CLEARPAGEFLAG(Private, private)
+ 	__SETPAGEFLAG(Private, private)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -153,7 +75,7 @@ kill-generic_file_direct_io.patch
 use-generic_access_phys-for-dev-mem-mappings.patch
 spufs-use-the-new-vm_ops-access.patch
 fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries.patch
-fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
+page-flags-record-page-flag-overlays-explicitly.patch
 page-flags-record-page-flag-overlays-explicitly-xen.patch
 mapping_set_error-add-unlikely.patch
 huge-page-private-reservation-review-cleanups-fix.patch
