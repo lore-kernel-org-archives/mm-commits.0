@@ -1,106 +1,308 @@
 From: akpm@linux-foundation.org
-Subject: - w1-documentation-w1-masters-ds2490-update.patch removed from -mm tree
-Date: Wed, 23 Jul 2008 11:36:32 -0700
-Message-ID: <200807231836.m6NIaWp7005855@imap1.linux-foundation.org>
+Subject: + ath5k-unify-resets.patch added to -mm tree
+Date: Wed, 23 Jul 2008 12:26:04 -0700
+Message-ID: <200807231926.m6NJQ4Bc007937@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52660 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53478 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755487AbYGWSh3 (ORCPT
+	by vger.kernel.org with ESMTP id S1753091AbYGWT0g (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jul 2008 14:37:29 -0400
+	Wed, 23 Jul 2008 15:26:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david@fries.net, johnpol@2ka.mipt.ru, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: jirislaby@gmail.com, mcgrof@gmail.com, me@bobcopeland.com, mickflemm@gmail.com
 
 
 The patch titled
-     w1: Documentation/w1/masters/ds2490 update
-has been removed from the -mm tree.  Its filename was
-     w1-documentation-w1-masters-ds2490-update.patch
+     ath5k: unify resets
+has been added to the -mm tree.  Its filename is
+     ath5k-unify-resets.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: w1: Documentation/w1/masters/ds2490 update
-From: David Fries <david@fries.net>
+Subject: ath5k: unify resets
+From: Jiri Slaby <jirislaby@gmail.com>
 
-Provide some additional details about the status of the driver and the
-ds2490 hardware.
+There were 3 code copy and pastes of reset.  Unify the resets and place in
+separate function.
 
-Signed-off-by: David Fries <david@fries.net>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: Nick Kossifidis <mickflemm@gmail.com>
+Cc: Luis R. Rodriguez <mcgrof@gmail.com>
+Cc: "Bob Copeland" <me@bobcopeland.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/w1/masters/ds2490 |   52 ++++++++++++++++++++++++++++++
- 1 file changed, 52 insertions(+)
+ drivers/net/wireless/ath5k/base.c |  124 +++++++++-------------------
+ 1 file changed, 42 insertions(+), 82 deletions(-)
 
-diff -puN Documentation/w1/masters/ds2490~w1-documentation-w1-masters-ds2490-update Documentation/w1/masters/ds2490
---- a/Documentation/w1/masters/ds2490~w1-documentation-w1-masters-ds2490-update
-+++ a/Documentation/w1/masters/ds2490
-@@ -16,3 +16,55 @@ which allows to build USB <-> W1 bridges
- DS9490(R) is a USB <-> W1 bus master device
- which has 0x81 family ID integrated chip and DS2490
- low-level operational chip.
+diff -puN drivers/net/wireless/ath5k/base.c~ath5k-unify-resets drivers/net/wireless/ath5k/base.c
+--- a/drivers/net/wireless/ath5k/base.c~ath5k-unify-resets
++++ a/drivers/net/wireless/ath5k/base.c
+@@ -165,7 +165,8 @@ static struct pci_driver ath5k_pci_drive
+  * Prototypes - MAC 802.11 stack related functions
+  */
+ static int ath5k_tx(struct ieee80211_hw *hw, struct sk_buff *skb);
+-static int ath5k_reset(struct ieee80211_hw *hw);
++static int ath5k_reset(struct ath5k_softc *sc, bool stop, bool change_channel);
++static int ath5k_reset_wake(struct ath5k_softc *sc);
+ static int ath5k_start(struct ieee80211_hw *hw);
+ static void ath5k_stop(struct ieee80211_hw *hw);
+ static int ath5k_add_interface(struct ieee80211_hw *hw,
+@@ -989,9 +990,6 @@ ath5k_getchannels(struct ieee80211_hw *h
+ static int
+ ath5k_chan_set(struct ath5k_softc *sc, struct ieee80211_channel *chan)
+ {
+-	struct ath5k_hw *ah = sc->ah;
+-	int ret;
+-
+ 	ATH5K_DBG(sc, ATH5K_DEBUG_RESET, "(%u MHz) -> (%u MHz)\n",
+ 		sc->curchan->center_freq, chan->center_freq);
+ 
+@@ -1007,41 +1005,7 @@ ath5k_chan_set(struct ath5k_softc *sc, s
+ 		 * hardware at the new frequency, and then re-enable
+ 		 * the relevant bits of the h/w.
+ 		 */
+-		ath5k_hw_set_intr(ah, 0);	/* disable interrupts */
+-		ath5k_txq_cleanup(sc);		/* clear pending tx frames */
+-		ath5k_rx_stop(sc);		/* turn off frame recv */
+-		ret = ath5k_hw_reset(ah, sc->opmode, sc->curchan, true);
+-		if (ret) {
+-			ATH5K_ERR(sc, "%s: unable to reset channel "
+-				"(%u Mhz)\n", __func__, chan->center_freq);
+-			return ret;
+-		}
+-
+-		ath5k_hw_set_txpower_limit(sc->ah, 0);
+-
+-		/*
+-		 * Re-enable rx framework.
+-		 */
+-		ret = ath5k_rx_start(sc);
+-		if (ret) {
+-			ATH5K_ERR(sc, "%s: unable to restart recv logic\n",
+-					__func__);
+-			return ret;
+-		}
+-
+-		/*
+-		 * Change channels and update the h/w rate map
+-		 * if we're switching; e.g. 11a to 11b/g.
+-		 *
+-		 * XXX needed?
+-		 */
+-/*		ath5k_chan_change(sc, chan); */
+-
+-		ath5k_beacon_config(sc);
+-		/*
+-		 * Re-enable interrupts.
+-		 */
+-		ath5k_hw_set_intr(ah, sc->imask);
++		return ath5k_reset(sc, true, true);
+ 	}
+ 
+ 	return 0;
+@@ -2228,36 +2192,13 @@ ath5k_init(struct ath5k_softc *sc)
+ 	 */
+ 	sc->curchan = sc->hw->conf.channel;
+ 	sc->curband = &sc->sbands[sc->curchan->band];
+-	ret = ath5k_hw_reset(sc->ah, sc->opmode, sc->curchan, false);
+-	if (ret) {
+-		ATH5K_ERR(sc, "unable to reset hardware: %d\n", ret);
+-		goto done;
+-	}
+-	/*
+-	 * This is needed only to setup initial state
+-	 * but it's best done after a reset.
+-	 */
+-	ath5k_hw_set_txpower_limit(sc->ah, 0);
+-
+-	/*
+-	 * Setup the hardware after reset: the key cache
+-	 * is filled as needed and the receive engine is
+-	 * set going.  Frame transmit is handled entirely
+-	 * in the frame output path; there's nothing to do
+-	 * here except setup the interrupt mask.
+-	 */
+-	ret = ath5k_rx_start(sc);
+-	if (ret)
+-		goto done;
+-
+-	/*
+-	 * Enable interrupts.
+-	 */
+ 	sc->imask = AR5K_INT_RX | AR5K_INT_TX | AR5K_INT_RXEOL |
+ 		AR5K_INT_RXORN | AR5K_INT_FATAL | AR5K_INT_GLOBAL |
+ 		AR5K_INT_MIB;
++	ret = ath5k_reset(sc, false, false);
++	if (ret)
++		goto done;
+ 
+-	ath5k_hw_set_intr(sc->ah, sc->imask);
+ 	/* Set ack to be sent at low bit-rates */
+ 	ath5k_hw_set_ack_bitrate_high(sc->ah, false);
+ 
+@@ -2457,7 +2398,7 @@ ath5k_tasklet_reset(unsigned long data)
+ {
+ 	struct ath5k_softc *sc = (void *)data;
+ 
+-	ath5k_reset(sc->hw);
++	ath5k_reset_wake(sc);
+ }
+ 
+ /*
+@@ -2480,7 +2421,7 @@ ath5k_calibrate(unsigned long data)
+ 		 * to load new gain values.
+ 		 */
+ 		ATH5K_DBG(sc, ATH5K_DEBUG_RESET, "calibration, resetting\n");
+-		ath5k_reset(sc->hw);
++		ath5k_reset_wake(sc);
+ 	}
+ 	if (ath5k_hw_phy_calibrate(ah, sc->curchan))
+ 		ATH5K_ERR(sc, "calibration of channel %u failed\n",
+@@ -2681,48 +2622,67 @@ ath5k_tx(struct ieee80211_hw *hw, struct
+ }
+ 
+ static int
+-ath5k_reset(struct ieee80211_hw *hw)
++ath5k_reset(struct ath5k_softc *sc, bool stop, bool change_channel)
+ {
+-	struct ath5k_softc *sc = hw->priv;
+ 	struct ath5k_hw *ah = sc->ah;
+ 	int ret;
+ 
+ 	ATH5K_DBG(sc, ATH5K_DEBUG_RESET, "resetting\n");
+ 
+-	ath5k_hw_set_intr(ah, 0);
+-	ath5k_txq_cleanup(sc);
+-	ath5k_rx_stop(sc);
+-
++	if (stop) {
++		ath5k_hw_set_intr(ah, 0);
++		ath5k_txq_cleanup(sc);
++		ath5k_rx_stop(sc);
++	}
+ 	ret = ath5k_hw_reset(ah, sc->opmode, sc->curchan, true);
+-	if (unlikely(ret)) {
++	if (ret) {
+ 		ATH5K_ERR(sc, "can't reset hardware (%d)\n", ret);
+ 		goto err;
+ 	}
 +
-+Notes and limitations.
-+- The weak pullup current is a minimum of 0.9mA and maximum of 6.0mA.
-+- The 5V strong pullup is supported with a minimum of 5.9mA and a
-+  maximum of 30.4 mA.  (From DS2490.pdf)
-+- While the ds2490 supports a hardware search the code doesn't take
-+  advantage of it (in tested case it only returned first device).
-+- The hardware will detect when devices are attached to the bus on the
-+  next bus (reset?) operation, however only a message is printed as
-+  the core w1 code doesn't make use of the information.  Connecting
-+  one device tends to give multiple new device notifications.
-+- The number of USB bus transactions could be reduced if w1_reset_send
-+  was added to the API.  The name is just a suggestion.  It would take
-+  a write buffer and a read buffer (along with sizes) as arguments.
-+  The ds2490 block I/O command supports reset, write buffer, read
-+  buffer, and strong pullup all in one command, instead of the current
-+  1 reset bus, 2 write the match rom command and slave rom id, 3 block
-+  write and read data.  The write buffer needs to have the match rom
-+  command and slave rom id prepended to the front of the requested
-+  write buffer, both of which are known to the driver. =20
-+- The hardware supports normal, flexible, and overdrive bus
-+  communication speeds, but only the normal is supported.
-+- The registered w1_bus_master functions don't define error
-+  conditions.  If a bus search is in progress and the ds2490 is
-+  removed it can produce a good amount of error output before the bus
-+  search finishes.
-+- The hardware supports detecting some error conditions, such as
-+  short, alarming presence on reset, and no presence on reset, but the
-+  driver doesn't query those values.
-+- The ds2490 specification doesn't cover short bulk in reads in
-+  detail, but my observation is if fewer bytes are requested than are
-+  available, the bulk read will return an error and the hardware will
-+  clear the entire bulk in buffer.  It would be possible to read the
-+  maximum buffer size to not run into this error condition, only extra
-+  bytes in the buffer is a logic error in the driver.  The code should
-+  should match reads and writes as well as data sizes.  Reads and
-+  writes are serialized and the status verifies that the chip is idle
-+  (and data is available) before the read is executed, so it should
-+  not happen.
-+- Running x86_64 2.6.24 UHCI under qemu 0.9.0 under x86_64 2.6.22-rc6
-+  with a OHCI controller, ds2490 running in the guest would operate
-+  normally the first time the module was loaded after qemu attached
-+  the ds2490 hardware, but if the module was unloaded, then reloaded
-+  most of the time one of the bulk out or in, and usually the bulk in
-+  would fail.  qemu sets a 50ms timeout and the bulk in would timeout
-+  even when the status shows data available.  A bulk out write would
-+  show a successful completion, but the ds2490 status register would
-+  show 0 bytes written.  Detaching qemu from the ds2490 hardware and
-+  reattaching would clear the problem.  usbmon output in the guest and
-+  host did not explain the problem.  My guess is a bug in either qemu
-+  or the host OS and more likely the host OS.
-+-- 03-06-2008 David Fries <David@Fries.net>
++	/*
++	 * This is needed only to setup initial state
++	 * but it's best done after a reset.
++	 */
+ 	ath5k_hw_set_txpower_limit(sc->ah, 0);
+ 
+ 	ret = ath5k_rx_start(sc);
+-	if (unlikely(ret)) {
++	if (ret) {
+ 		ATH5K_ERR(sc, "can't start recv logic\n");
+ 		goto err;
+ 	}
++
+ 	/*
+-	 * We may be doing a reset in response to an ioctl
+-	 * that changes the channel so update any state that
+-	 * might change as a result.
++	 * Change channels and update the h/w rate map if we're switching;
++	 * e.g. 11a to 11b/g.
++	 *
++	 * We may be doing a reset in response to an ioctl that changes the
++	 * channel so update any state that might change as a result.
+ 	 *
+ 	 * XXX needed?
+ 	 */
+ /*	ath5k_chan_change(sc, c); */
+-	ath5k_beacon_config(sc);
+-	/* intrs are started by ath5k_beacon_config */
+ 
+-	ieee80211_wake_queues(hw);
++	ath5k_beacon_config(sc);
++	/* intrs are enabled by ath5k_beacon_config */
+ 
+ 	return 0;
+ err:
+ 	return ret;
+ }
+ 
++static int
++ath5k_reset_wake(struct ath5k_softc *sc)
++{
++	int ret;
++
++	ret = ath5k_reset(sc, true, true);
++	if (!ret)
++		ieee80211_wake_queues(sc->hw);
++
++	return ret;
++}
++
+ static int ath5k_start(struct ieee80211_hw *hw)
+ {
+ 	return ath5k_init(hw->priv);
+@@ -2831,7 +2791,7 @@ ath5k_config_interface(struct ieee80211_
+ 
+ 	mutex_unlock(&sc->lock);
+ 
+-	return ath5k_reset(hw);
++	return ath5k_reset_wake(sc);
+ unlock:
+ 	mutex_unlock(&sc->lock);
+ 	return ret;
 _
 
-Patches currently in -mm which might be from david@fries.net are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
-w1-documentation-w1-masters-ds2490-update.patch
+origin.patch
+linux-next.patch
+ath5k-fix-memory-corruption.patch
+ath5k-kill-tasklets-on-shutdown.patch
+ath5k-flush-work.patch
+ath5k-fix-dma-operation.patch
+ath5k-suspend-resume-fixes.patch
+ath5k-fix-beacon-update-deadlock.patch
+ath5k-mask-out-unneeded-interrupts.patch
+ath5k-unify-resets.patch
+mac80211-tx-use-dev_kfree_skb_any-for-beacon_get.patch
+mac80211-return-correct-error-return-from-ieee80211_wep_init.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments.patch
+serial-z85c30-avoid-a-hang-at-console-switch-over.patch
+serial-dz11-avoid-a-hang-at-console-switch-over.patch
+vt-hold-console_sem-across-sysfs-operations.patch
+ip2-push-bkl-down-for-the-firmware-interface.patch
+rio-push-down-the-bkl-into-the-firmware-ioctl-handler.patch
+sx-push-bkl-down-into-the-firmware-ioctl-handler.patch
+ppdev-wrap-ioctl-handler-in-driver-and-push-lock-down.patch
+dsp56k-bkl-pushdown.patch
+char-mxser-ioctl-cleanup.patch
+char-mxser-globals-cleanup.patch
+char-mxser-update-documentation.patch
+char-mxser-prints-cleanup.patch
+char-mxser-remove-predefined-isa-support.patch
+char-mxser-various-cleanups.patch
+ip2-fix-iielliscleanup-as-it-is-static-but-not-always-used.patch
+char-merge-ip2main-and-ip2base.patch
+char-ip2-cleanup-globals.patch
+char-ip2-fix-sparse-warnings.patch
+char-ip2-init-deinit-cleanup.patch
+ip2-avoid-add_timer-with-pending-timer.patch
+drivers-misc-phantom-note-pci.patch
+reiser4.patch
+shrink_slab-handle-bad-shrinkers.patch
 
