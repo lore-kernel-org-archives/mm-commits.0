@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + dma-mapping-add-the-device-argument-to-dma_mapping_error-more-sparc.patch added to -mm tree
-Date: Wed, 23 Jul 2008 00:10:48 -0700
-Message-ID: <200807230710.m6N7Amhb008310@imap1.linux-foundation.org>
+Subject: + drm-fix-sparc64-build.patch added to -mm tree
+Date: Wed, 23 Jul 2008 00:21:56 -0700
+Message-ID: <200807230721.m6N7Lu5C008711@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49549 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49779 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750711AbYGWHNI (ORCPT
+	by vger.kernel.org with ESMTP id S1750988AbYGWHWE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jul 2008 03:13:08 -0400
+	Wed, 23 Jul 2008 03:22:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, andi@firstfloor.org, avi@qumranet.com, davem@davemloft.net, fujita.tomonori@lab.ntt.co.jp, mingo@elte.hu, muli@il.ibm.com, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, airlied@linux.ie, davem@davemloft.net
 
 
 The patch titled
-     dma-mapping-add-the-device-argument-to-dma_mapping_error-more-sparc
+     drm: fix sparc64 build
 has been added to the -mm tree.  Its filename is
-     dma-mapping-add-the-device-argument-to-dma_mapping_error-more-sparc.patch
+     drm-fix-sparc64-build.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dma-mapping-add-the-device-argument-to-dma_mapping_error-more-sparc
+Subject: drm: fix sparc64 build
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Avi Kivity <avi@qumranet.com>
-Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Muli Ben-Yehuda <muli@il.ibm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+drivers/gpu/drm/drm_memory.c: In function `drm_core_ioremap_wc':
+drivers/gpu/drm/drm_memory.c:172: error: implicit declaration of function `ioremap_wc'
+drivers/gpu/drm/drm_memory.c:172: warning: assignment makes pointer from integer without a cast
+
 Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-sparc/pci_64.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/asm-sparc/io.h |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN include/asm-sparc/pci_64.h~dma-mapping-add-the-device-argument-to-dma_mapping_error-more-sparc include/asm-sparc/pci_64.h
---- a/include/asm-sparc/pci_64.h~dma-mapping-add-the-device-argument-to-dma_mapping_error-more-sparc
-+++ a/include/asm-sparc/pci_64.h
-@@ -143,7 +143,7 @@ extern int pci_dma_supported(struct pci_
- static inline int pci_dma_mapping_error(struct pci_dev *pdev,
- 					dma_addr_t dma_addr)
- {
--	return dma_mapping_error(dma_addr);
-+	return dma_mapping_error(&pdev->dev, dma_addr);
- }
- 
- #ifdef CONFIG_PCI
+diff -puN include/asm-sparc/io.h~drm-fix-sparc64-build include/asm-sparc/io.h
+--- a/include/asm-sparc/io.h~drm-fix-sparc64-build
++++ a/include/asm-sparc/io.h
+@@ -5,4 +5,7 @@
+ #else
+ #include <asm-sparc/io_32.h>
+ #endif
++
++#define ioremap_wc ioremap_nocache
++
+ #endif
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -261,4 +259,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
+drm-fix-sparc64-build.patch
 
