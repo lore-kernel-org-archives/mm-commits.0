@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + dma-mapping-add-the-device-argument-to-dma_mapping_error-infiniband.patch added to -mm tree
-Date: Wed, 23 Jul 2008 00:01:34 -0700
-Message-ID: <200807230701.m6N71Ylj007989@imap1.linux-foundation.org>
+Subject: + dma-mapping-add-the-device-argument-to-dma_mapping_error-more-sparc.patch added to -mm tree
+Date: Wed, 23 Jul 2008 00:10:48 -0700
+Message-ID: <200807230710.m6N7Amhb008310@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42258 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49549 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750747AbYGWHD1 (ORCPT
+	by vger.kernel.org with ESMTP id S1750711AbYGWHNI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jul 2008 03:03:27 -0400
+	Wed, 23 Jul 2008 03:13:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, andi@firstfloor.org, avi@qumranet.com, davem@dave
 
 
 The patch titled
-     dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc-fix
+     dma-mapping-add-the-device-argument-to-dma_mapping_error-more-sparc
 has been added to the -mm tree.  Its filename is
-     dma-mapping-add-the-device-argument-to-dma_mapping_error-infiniband.patch
+     dma-mapping-add-the-device-argument-to-dma_mapping_error-more-sparc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,14 +34,8 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc-fix
+Subject: dma-mapping-add-the-device-argument-to-dma_mapping_error-more-sparc
 From: Andrew Morton <akpm@linux-foundation.org>
-
-In file included from include/linux/sunrpc/svc_rdma.h:47,
-                 from net/sunrpc/xprtrdma/svc_rdma.c:47:
-include/rdma/ib_verbs.h: In function `ib_dma_mapping_error':
-include/rdma/ib_verbs.h:1637: warning: passing arg 1 of `dma_mapping_error' makes integer from pointer without a cast
-include/rdma/ib_verbs.h:1637: error: too many arguments to function `dma_mapping_error'
 
 Cc: Andi Kleen <andi@firstfloor.org>
 Cc: Avi Kivity <avi@qumranet.com>
@@ -53,21 +47,21 @@ Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-sparc/dma-mapping_64.h |    2 +-
+ include/asm-sparc/pci_64.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/asm-sparc/dma-mapping_64.h~dma-mapping-add-the-device-argument-to-dma_mapping_error-infiniband include/asm-sparc/dma-mapping_64.h
---- a/include/asm-sparc/dma-mapping_64.h~dma-mapping-add-the-device-argument-to-dma_mapping_error-infiniband
-+++ a/include/asm-sparc/dma-mapping_64.h
-@@ -135,7 +135,7 @@ static inline void dma_sync_sg_for_devic
- 	/* No flushing needed to sync cpu writes to the device.  */
+diff -puN include/asm-sparc/pci_64.h~dma-mapping-add-the-device-argument-to-dma_mapping_error-more-sparc include/asm-sparc/pci_64.h
+--- a/include/asm-sparc/pci_64.h~dma-mapping-add-the-device-argument-to-dma_mapping_error-more-sparc
++++ a/include/asm-sparc/pci_64.h
+@@ -143,7 +143,7 @@ extern int pci_dma_supported(struct pci_
+ static inline int pci_dma_mapping_error(struct pci_dev *pdev,
+ 					dma_addr_t dma_addr)
+ {
+-	return dma_mapping_error(dma_addr);
++	return dma_mapping_error(&pdev->dev, dma_addr);
  }
  
--static inline int dma_mapping_error(dma_addr_t dma_addr)
-+static inline int dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
- {
- 	return (dma_addr == DMA_ERROR_CODE);
- }
+ #ifdef CONFIG_PCI
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -215,6 +209,7 @@ dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac.patch
 dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error-sdhci-fix.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error-infiniband.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-more-sparc.patch
 x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary-checkpatch-fixes.patch
 tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
 memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
