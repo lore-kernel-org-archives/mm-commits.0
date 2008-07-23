@@ -1,63 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fixes.patch removed from -mm tree
-Date: Wed, 23 Jul 2008 16:13:09 -0700
-Message-ID: <200807232325.m6NNPkqI017626__7834.94009306214$1216855621$gmane$org@imap1.linux-foundation.org>
+Subject: - page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mtd-fix.patch removed from -mm tree
+Date: Wed, 23 Jul 2008 16:13:07 -0700
+Message-ID: <200807232325.m6NNPiBS017556@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39911 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44952 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754990AbYGWXZs (ORCPT
+	by vger.kernel.org with ESMTP id S1755171AbYGWXZq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jul 2008 19:25:48 -0400
+	Wed, 23 Jul 2008 19:25:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, linux-arch@vger.kernel.org, righi.andrea@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, righi.andrea@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fixes
+     page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mtd-fix
 has been removed from the -mm tree.  Its filename was
-     page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fixes.patch
+     page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mtd-fix.patch
 
 This patch was dropped because it was folded into page_align-correctly-handle-64-bit-values-on-32-bit-architectures.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fixes
+Subject: page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mtd-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: <linux-arch@vger.kernel.org>
+drivers/mtd/maps/uclinux.c: In function `uclinux_mtd_init':
+drivers/mtd/maps/uclinux.c:62: error: implicit declaration of function `PAGE_ALIGN'
+
 Cc: Andrea Righi <righi.andrea@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/suspend.c    |    1 +
- arch/powerpc/lib/code-patching.c |    1 +
- 2 files changed, 2 insertions(+)
+ drivers/mtd/maps/uclinux.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/powerpc/kernel/suspend.c~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fixes arch/powerpc/kernel/suspend.c
---- a/arch/powerpc/kernel/suspend.c~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fixes
-+++ a/arch/powerpc/kernel/suspend.c
-@@ -7,6 +7,7 @@
-  * Copyright (c) 2001 Patrick Mochel <mochel@osdl.org>
-  */
- 
-+#include <linux/mm.h>
- #include <asm/page.h>
- 
- /* References to section boundaries */
-diff -puN arch/powerpc/lib/code-patching.c~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fixes arch/powerpc/lib/code-patching.c
---- a/arch/powerpc/lib/code-patching.c~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fixes
-+++ a/arch/powerpc/lib/code-patching.c
-@@ -10,6 +10,7 @@
- #include <linux/kernel.h>
- #include <linux/vmalloc.h>
+diff -puN drivers/mtd/maps/uclinux.c~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mtd-fix drivers/mtd/maps/uclinux.c
+--- a/drivers/mtd/maps/uclinux.c~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mtd-fix
++++ a/drivers/mtd/maps/uclinux.c
+@@ -13,6 +13,7 @@
  #include <linux/init.h>
+ #include <linux/kernel.h>
+ #include <linux/fs.h>
 +#include <linux/mm.h>
- #include <asm/page.h>
- #include <asm/code-patching.h>
- 
+ #include <linux/major.h>
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/map.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -83,6 +73,7 @@ bootmem-clean-up-free_all_bootmem_core.patch
 bootmem-free-reserve-helpers.patch
 bootmem-factor-out-the-marking-of-a-pfn-range.patch
 page_align-correctly-handle-64-bit-values-on-32-bit-architectures.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-mtd-fix.patch
 page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fixes.patch
 mmu-notifiers-add-mm_take_all_locks-operation-checkpatch-fixes.patch
 mmu-notifier-core-checkpatch-fixes.patch
