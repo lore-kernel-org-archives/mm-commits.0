@@ -1,53 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - flag-parameters-paccept-sys_ni.patch removed from -mm tree
-Date: Wed, 23 Jul 2008 16:28:15 -0700
-Message-ID: <200807232340.m6NNerLL018269@imap1.linux-foundation.org>
+Subject: - flag-parameters-anon_inode_getfd-extension-fix.patch removed from -mm tree
+Date: Wed, 23 Jul 2008 16:28:45 -0700
+Message-ID: <200807232341.m6NNfMhY018288@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34575 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37264 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755152AbYGWXlM (ORCPT
+	by vger.kernel.org with ESMTP id S1753956AbYGWXl6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jul 2008 19:41:12 -0400
+	Wed, 23 Jul 2008 19:41:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davidel@xmailserver.org, drepper@redhat.com, linux-arch@vger.kernel.org, mtk.manpages@googlemail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davidel@xmailserver.org, drepper@redhat.com, mtk.manpages@googlemail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     flag-parameters-paccept-sys_ni
+     flag-parameters-anon_inode_getfd-extension kvm fix
 has been removed from the -mm tree.  Its filename was
-     flag-parameters-paccept-sys_ni.patch
+     flag-parameters-anon_inode_getfd-extension-fix.patch
 
-This patch was dropped because it was folded into flag-parameters-paccept.patch
+This patch was dropped because it was folded into flag-parameters-anon_inode_getfd-extension.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: flag-parameters-paccept-sys_ni
+Subject: flag-parameters-anon_inode_getfd-extension kvm fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: <linux-arch@vger.kernel.org>
 Cc: Davide Libenzi <davidel@xmailserver.org>
 Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
 Cc: Ulrich Drepper <drepper@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys_ni.c |    1 +
- 1 file changed, 1 insertion(+)
+ virt/kvm/kvm_main.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/sys_ni.c~flag-parameters-paccept-sys_ni kernel/sys_ni.c
---- a/kernel/sys_ni.c~flag-parameters-paccept-sys_ni
-+++ a/kernel/sys_ni.c
-@@ -31,6 +31,7 @@ cond_syscall(sys_socketpair);
- cond_syscall(sys_bind);
- cond_syscall(sys_listen);
- cond_syscall(sys_accept);
-+cond_syscall(sys_paccept);
- cond_syscall(sys_connect);
- cond_syscall(sys_getsockname);
- cond_syscall(sys_getpeername);
+diff -puN virt/kvm/kvm_main.c~flag-parameters-anon_inode_getfd-extension-fix virt/kvm/kvm_main.c
+--- a/virt/kvm/kvm_main.c~flag-parameters-anon_inode_getfd-extension-fix
++++ a/virt/kvm/kvm_main.c
+@@ -902,7 +902,7 @@ static const struct file_operations kvm_
+  */
+ static int create_vcpu_fd(struct kvm_vcpu *vcpu)
+ {
+-	int fd = anon_inode_getfd("kvm-vcpu", &kvm_vcpu_fops, vcpu);
++	int fd = anon_inode_getfd("kvm-vcpu", &kvm_vcpu_fops, vcpu, 0);
+ 	if (fd < 0)
+ 		kvm_put_kvm(vcpu->kvm);
+ 	return fd;
+@@ -1261,7 +1261,7 @@ static int kvm_dev_ioctl_create_vm(void)
+ 	kvm = kvm_create_vm();
+ 	if (IS_ERR(kvm))
+ 		return PTR_ERR(kvm);
+-	fd = anon_inode_getfd("kvm-vm", &kvm_vm_fops, kvm);
++	fd = anon_inode_getfd("kvm-vm", &kvm_vm_fops, kvm, 0);
+ 	if (fd < 0)
+ 		kvm_put_kvm(kvm);
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -79,7 +88,7 @@ security-protect-legacy-applications-from-executing-with-insufficient-privilege.
 security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
 swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option.patch
 flag-parameters-paccept.patch
-flag-parameters-paccept-sys_ni.patch
+flag-parameters-anon_inode_getfd-extension.patch
 flag-parameters-anon_inode_getfd-extension-fix.patch
 flag-parameters-signalfd-fix.patch
 flag-parameters-eventfd-fix.patch
