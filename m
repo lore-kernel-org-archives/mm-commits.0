@@ -1,85 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - pm-schedule-sysrq-poweroff-on-boot-cpu-fix.patch removed from -mm tree
-Date: Wed, 23 Jul 2008 16:23:14 -0700
-Message-ID: <200807232335.m6NNZpMS018049@imap1.linux-foundation.org>
+Subject: - handle-failure-of-irqchip-set_type-in-setup_irq-update.patch removed from -mm tree
+Date: Wed, 23 Jul 2008 16:24:31 -0700
+Message-ID: <200807232337.m6NNb8wH018089@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36258 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49127 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754960AbYGWXgn (ORCPT
+	by vger.kernel.org with ESMTP id S1754764AbYGWXhW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jul 2008 19:36:43 -0400
+	Wed, 23 Jul 2008 19:37:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kosaki.motohiro@jp.fujitsu.com, harbour@sfinx.od.ua, pavel@ucw.cz, rjw@sisk.pl, rui.zhang@intel.com, mm-commits@vger.kernel.org
+To: Uwe.Kleine-Koenig@digi.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pm-schedule-sysrq-poweroff-on-boot-cpu fix
+     handle-failure-of-irqchip-set_type-in-setup_irq update
 has been removed from the -mm tree.  Its filename was
-     pm-schedule-sysrq-poweroff-on-boot-cpu-fix.patch
+     handle-failure-of-irqchip-set_type-in-setup_irq-update.patch
 
-This patch was dropped because it was folded into pm-schedule-sysrq-poweroff-on-boot-cpu.patch
+This patch was dropped because it was folded into handle-failure-of-irq=
+chip-set_type-in-setup_irq.patch
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: pm-schedule-sysrq-poweroff-on-boot-cpu fix
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: handle-failure-of-irqchip-set_type-in-setup_irq update
+=46rom: Uwe Kleine-K=F6nig <Uwe.Kleine-Koenig@digi.com>
 
-My IA64 machine can't build on today's mmotm(Jul 13).
-So, below patch is necessary, I think.
+This uses the new feature of printk introduced in
+0fe1ef24f7bd0020f29ffe287dfdb9ead33ca0b2.
 
-----------------------------------------------------
-Against: mmotm, Jul 13
-Applies after: pm-schedule-sysrq-poweroff-on-boot-cpu.patch
+The actual output is unchanged.
 
-Now, handle_poweroff() use cpu_online_map variable.
-So cpumask.h sould be included.
-Otherwise it cause following build error on ia64 (I guess also sevaral othor platfom).
-
-	kernel/power/poweroff.c: In function 'handle_poweroff':
-	kernel/power/poweroff.c:29: error: implicit declaration of function 'first_cpu'
-	kernel/power/poweroff.c:29: error: 'cpu_online_map' undeclared (first use in this function)
-	kernel/power/poweroff.c:29: error: (Each undeclared identifier is reported only once
-	kernel/power/poweroff.c:29: error: for each function it appears in.)
-	make[2]: *** [kernel/power/poweroff.o] Error 1
-	make[1]: *** [kernel/power] Error 2
-
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Zhang Rui <rui.zhang@intel.com>
-Cc: Rus <harbour@sfinx.od.ua>
-Cc: Rafael J. Wysocki <rjw@sisk.pl>
-Acked-by: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Uwe Kleine-K=F6nig <Uwe.Kleine-Koenig@digi.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/poweroff.c |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/irq/manage.c |   11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
 
-diff -puN kernel/power/poweroff.c~pm-schedule-sysrq-poweroff-on-boot-cpu-fix kernel/power/poweroff.c
---- a/kernel/power/poweroff.c~pm-schedule-sysrq-poweroff-on-boot-cpu-fix
-+++ a/kernel/power/poweroff.c
-@@ -10,6 +10,7 @@
- #include <linux/pm.h>
- #include <linux/workqueue.h>
- #include <linux/reboot.h>
-+#include <linux/cpumask.h>
- 
- /*
-  * When the user hits Sys-Rq o to power down the machine this is the
-_
-
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
-
-page-allocator-inlnie-some-__alloc_pages-wrappers.patch
-mm-hugetlbc-fix-duplicate-variable.patch
-page-flags-record-page-flag-overlays-explicitly.patch
-slub-record-page-flag-overlays-explicitly.patch
-slob-record-page-flag-overlays-explicitly.patch
-mm-create-sys-kernel-mm.patch
-mm-make-config_migration-available-w-o-config_numa.patch
-mm-fix-ever-decreasing-swap-priority.patch
-pm-schedule-sysrq-poweroff-on-boot-cpu.patch
-pm-schedule-sysrq-poweroff-on-boot-cpu-fix.patch
-
+diff -puN kernel/irq/manage.c~handle-failure-of-irqchip-set_type-in-set=
+up_irq-update kernel/irq/manage.c
+--- a/kernel/irq/manage.c~handle-failure-of-irqchip-set_type-in-setup_i=
+rq-update
++++ a/kernel/irq/manage.c
+@@ -317,14 +317,9 @@ static int __irq_set_trigger(struct irq_
+=20
+ 	ret =3D chip->set_type(irq, flags & IRQF_TRIGGER_MASK);
+=20
+-	if (ret) {
+-		char buf[100];
