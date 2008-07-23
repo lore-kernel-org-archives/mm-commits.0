@@ -1,63 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: - remove-the-oss-trident-driver-fix.patch removed from -mm tree
-Date: Wed, 23 Jul 2008 16:25:05 -0700
-Message-ID: <200807232337.m6NNbgWs018093@imap1.linux-foundation.org>
+Subject: - flag-parameters-paccept-fix.patch removed from -mm tree
+Date: Wed, 23 Jul 2008 16:26:13 -0700
+Message-ID: <200807232338.m6NNcprT018121@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41801 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43004 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753865AbYGWXjB (ORCPT
+	by vger.kernel.org with ESMTP id S1754527AbYGWXjK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jul 2008 19:39:01 -0400
+	Wed, 23 Jul 2008 19:39:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: muli@il.ibm.com, bunk@stusta.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davidel@xmailserver.org, drepper@redhat.com, mtk.manpages@googlemail.com, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     remove the OSS trident driver fix
+     flag-parameters-paccept-fix
 has been removed from the -mm tree.  Its filename was
-     remove-the-oss-trident-driver-fix.patch
+     flag-parameters-paccept-fix.patch
 
-This patch was dropped because it was folded into remove-the-oss-trident-driver.patch
+This patch was dropped because it was folded into flag-parameters-paccept.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: remove the OSS trident driver fix
-From: Muli Ben-Yehuda <muli@il.ibm.com>
+Subject: flag-parameters-paccept-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Signed-off-by: Muli Ben-Yehuda <muli@il.ibm.com>
-Cc: Adrian Bunk <bunk@stusta.de>
+Make it compile...
+
+Cc: Davide Libenzi <davidel@xmailserver.org>
+Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
+Cc: Ulrich Drepper <drepper@redhat.com>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- CREDITS |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ net/compat.c |    2 +-
+ net/socket.c |    3 ++-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN CREDITS~remove-the-oss-trident-driver-fix CREDITS
---- a/CREDITS~remove-the-oss-trident-driver-fix
-+++ a/CREDITS
-@@ -317,6 +317,14 @@ S: 2322 37th Ave SW
- S: Seattle, Washington 98126-2010
- S: USA
- 
-+N: Muli Ben-Yehuda
-+E: mulix@mulix.org
-+E: muli@il.ibm.com
-+W: http://www.mulix.org
-+D: trident OSS sound driver, x86-64 dma-ops and Calgary IOMMU,
-+D: KVM and Xen bits and other misc. hackery.
-+S: Haifa, Israel
-+
- N: Johannes Berg
- E: johannes@sipsolutions.net
- W: http://johannes.sipsolutions.net/
+diff -puN net/compat.c~flag-parameters-paccept-fix net/compat.c
+--- a/net/compat.c~flag-parameters-paccept-fix
++++ a/net/compat.c
+@@ -769,7 +769,7 @@ asmlinkage long compat_sys_paccept(int f
+ 		if (sigmask) {
+ 			memcpy(&current->saved_sigmask, &sigsaved,
+ 			       sizeof(sigsaved));
+-			set_thread_flag(TIF_RESTORE_SIGMASK);
++			set_restore_sigmask();
+ 		}
+ 	} else if (sigmask)
+ 		sigprocmask(SIG_SETMASK, &sigsaved, NULL);
+diff -puN net/socket.c~flag-parameters-paccept-fix net/socket.c
+--- a/net/socket.c~flag-parameters-paccept-fix
++++ a/net/socket.c
+@@ -63,6 +63,7 @@
+ #include <linux/file.h>
+ #include <linux/net.h>
+ #include <linux/interrupt.h>
++#include <linux/thread_info.h>
+ #include <linux/rcupdate.h>
+ #include <linux/netdevice.h>
+ #include <linux/proc_fs.h>
+@@ -1524,7 +1525,7 @@ asmlinkage long sys_paccept(int fd, stru
+ 		if (sigmask) {
+ 			memcpy(&current->saved_sigmask, &sigsaved,
+ 			       sizeof(sigsaved));
+-			set_thread_flag(TIF_RESTORE_SIGMASK);
++			set_restore_sigmask();
+ 		}
+ 	} else if (sigmask)
+ 		sigprocmask(SIG_SETMASK, &sigsaved, NULL);
 _
 
-Patches currently in -mm which might be from muli@il.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-remove-the-oss-trident-driver.patch
-remove-the-oss-trident-driver-fix.patch
+mm-verify-the-page-links-and-memory-model.patch
+mspec-convert-nopfn-to-fault.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers.patch
+kill-generic_file_direct_io.patch
+use-generic_access_phys-for-dev-mem-mappings.patch
+spufs-use-the-new-vm_ops-access.patch
+fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries.patch
+page-flags-record-page-flag-overlays-explicitly.patch
+mapping_set_error-add-unlikely.patch
+huge-page-private-reservation-review-cleanups.patch
+vma-page-offset-has-no-callees-drop-it.patch
+sync_file_range_write-may-and-will-block-document-that.patch
+vmallocinfo-add-numa-information.patch
+hugetlb-modular-state-for-hugetlb-page-size.patch
+hugetlb-multiple-hstates-for-multiple-page-sizes.patch
+bootmem-add-debugging-framework.patch
+bootmem-clean-up-free_all_bootmem_core.patch
+bootmem-free-reserve-helpers.patch
+bootmem-factor-out-the-marking-of-a-pfn-range.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures.patch
+mmu-notifiers-add-mm_take_all_locks-operation.patch
+mmu-notifier-core.patch
+security-protect-legacy-applications-from-executing-with-insufficient-privilege.patch
+security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
+swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option.patch
+flag-parameters-paccept.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-paccept-sys_ni.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-signalfd-fix.patch
+flag-parameters-eventfd-fix.patch
+flag-parameters-inotify_init-fix.patch
+flag-parameters-check-magic-constants-alpha.patch
+spi-au1550_spi-improve-pio-transfer-mode-checkpatch-fixes.patch
+autofs4-use-lookup-intent-flags-to-trigger-mounts-fix.patch
+rtc-cmos-improve-hpet-irq-glue-build-fix.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
+sm501-fixup-allocation-code-to-be-64bit-resource-compliant-sm501-align-panel-fb-to-page_size-fix.patch
+lcd-add-platform_lcd-driver-fix.patch
+fsl-diu-fb-update-freescale-diu-driver-to-use-page_alloc_exact.patch
+fbdev-add-new-cobalt-lcd-framebuffer-driver.patch
+fbcon-remove-stray-semicolons-checkpatch-fixes.patch
 
