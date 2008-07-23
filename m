@@ -1,63 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: - mmu-notifier-core-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 23 Jul 2008 16:18:12 -0700
-Message-ID: <200807232330.m6NNUoGL017829@imap1.linux-foundation.org>
+Subject: - mmu-notifiers-add-mm_take_all_locks-operation-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 23 Jul 2008 16:17:50 -0700
+Message-ID: <200807232330.m6NNUSqh017748@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37002 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34680 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751061AbYGWXbV (ORCPT
+	by vger.kernel.org with ESMTP id S1754565AbYGWXcA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jul 2008 19:31:21 -0400
+	Wed, 23 Jul 2008 19:32:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andrea@qumranet.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, aliguori@us.ibm.com, andrea@qumranet.com, avi@qumranet.com, chrisw@redhat.com, cl@linux-foundation.org, dada1@cosmosbay.com, holt@sg
 
 
 The patch titled
-     mmu-notifier-core-checkpatch-fixes
+     mmu-notifiers-add-mm_take_all_locks-operation-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     mmu-notifier-core-checkpatch-fixes.patch
+     mmu-notifiers-add-mm_take_all_locks-operation-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into mmu-notifier-core.patch
+This patch was dropped because it was folded into mmu-notifiers-add-mm_take_all_locks-operation.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmu-notifier-core-checkpatch-fixes
+Subject: mmu-notifiers-add-mm_take_all_locks-operation-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: "foo * bar" should be "foo *bar"
-#854: FILE: mm/mmu_notifier.c:147:
-+	struct mmu_notifier_mm * mmu_notifier_mm;
+ERROR: code indent should use tabs where possible
+#209: FILE: mm/mmap.c:2358:
++                if (vma->anon_vma)$
 
-total: 1 errors, 0 warnings, 860 lines checked
+ERROR: code indent should use tabs where possible
+#210: FILE: mm/mmap.c:2359:
++                        vm_lock_anon_vma(vma->anon_vma);$
 
-./patches/mmu-notifier-core.patch has style problems, please review.  If any of these errors
+ERROR: code indent should use tabs where possible
+#211: FILE: mm/mmap.c:2360:
++                if (vma->vm_file && vma->vm_file->f_mapping)$
+
+ERROR: code indent should use tabs where possible
+#212: FILE: mm/mmap.c:2361:
++                        vm_lock_mapping(vma->vm_file->f_mapping);$
+
+total: 4 errors, 0 warnings, 191 lines checked
+
+./patches/mmu-notifiers-add-mm_take_all_locks-operation.patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
 Please run checkpatch prior to sending patches
 
+Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
 Cc: Andrea Arcangeli <andrea@qumranet.com>
+Cc: Anthony Liguori <aliguori@us.ibm.com>
+Cc: Avi Kivity <avi@qumranet.com>
+Cc: Chris Wright <chrisw@redhat.com>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Eric Dumazet <dada1@cosmosbay.com>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Izik Eidus <izike@qumranet.com>
+Cc: Jack Steiner <steiner@sgi.com>
+Cc: Kanoj Sarcar <kanojsarcar@yahoo.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Marcelo Tosatti <marcelo@kvack.org>
+Cc: Nick Piggin <npiggin@suse.de>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Robin Holt <holt@sgi.com>
+Cc: Roland Dreier <rdreier@cisco.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Steve Wise <swise@opengridcomputing.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmu_notifier.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/mmap.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN mm/mmu_notifier.c~mmu-notifier-core-checkpatch-fixes mm/mmu_notifier.c
---- a/mm/mmu_notifier.c~mmu-notifier-core-checkpatch-fixes
-+++ a/mm/mmu_notifier.c
-@@ -144,7 +144,7 @@ static int do_mmu_notifier_register(stru
- 				    struct mm_struct *mm,
- 				    int take_mmap_sem)
- {
--	struct mmu_notifier_mm * mmu_notifier_mm;
-+	struct mmu_notifier_mm *mmu_notifier_mm;
- 	int ret;
+diff -puN mm/mmap.c~mmu-notifiers-add-mm_take_all_locks-operation-checkpatch-fixes mm/mmap.c
+--- a/mm/mmap.c~mmu-notifiers-add-mm_take_all_locks-operation-checkpatch-fixes
++++ a/mm/mmap.c
+@@ -2356,10 +2356,10 @@ int mm_take_all_locks(struct mm_struct *
+ 	for (vma = mm->mmap; vma; vma = vma->vm_next) {
+ 		if (signal_pending(current))
+ 			goto out_unlock;
+-                if (vma->anon_vma)
+-                        vm_lock_anon_vma(vma->anon_vma);
+-                if (vma->vm_file && vma->vm_file->f_mapping)
+-                        vm_lock_mapping(vma->vm_file->f_mapping);
++		if (vma->anon_vma)
++			vm_lock_anon_vma(vma->anon_vma);
++		if (vma->vm_file && vma->vm_file->f_mapping)
++			vm_lock_mapping(vma->vm_file->f_mapping);
+ 	}
+ 	ret = 0;
  
- 	BUG_ON(atomic_read(&mm->mm_users) <= 0);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -84,7 +121,7 @@ bootmem-free-reserve-helpers.patch
 bootmem-factor-out-the-marking-of-a-pfn-range.patch
 page_align-correctly-handle-64-bit-values-on-32-bit-architectures.patch
 mmu-notifiers-add-mm_take_all_locks-operation.patch
-mmu-notifier-core.patch
+mmu-notifiers-add-mm_take_all_locks-operation-checkpatch-fixes.patch
 mmu-notifier-core-checkpatch-fixes.patch
 mmu-notifier-core-fix.patch
 mmu-notifier-core-fix-2.patch
