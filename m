@@ -1,60 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - hugetlb-override-default-huge-page-size-ia64-build.patch removed from -mm tree
-Date: Tue, 22 Jul 2008 21:31:26 -0700
-Message-ID: <200807230431.m6N4VQLu002748@imap1.linux-foundation.org>
+Subject: + make-u64-long-long-on-all-architectures-fix.patch added to -mm tree
+Date: Tue, 22 Jul 2008 21:55:07 -0700
+Message-ID: <200807230455.m6N4t7cU003626@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44140 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41580 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752316AbYGWEbb (ORCPT
+	by vger.kernel.org with ESMTP id S1752435AbYGWEzL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jul 2008 00:31:31 -0400
+	Wed, 23 Jul 2008 00:55:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, npiggin@suse.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, linux-arch@vger.kernel.org, matthew@wil.cx, willy@linux.intel.com
 
 
 The patch titled
-     hugetlb-override-default-huge-page-size-ia64-build
-has been removed from the -mm tree.  Its filename was
-     hugetlb-override-default-huge-page-size-ia64-build.patch
+     make-u64-long-long-on-all-architectures-fix
+has been added to the -mm tree.  Its filename is
+     make-u64-long-long-on-all-architectures-fix.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlb-override-default-huge-page-size-ia64-build
+Subject: make-u64-long-long-on-all-architectures-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Nick Piggin <npiggin@suse.de>
+Do u64 and s64 too.
+
+Cc: <linux-arch@vger.kernel.org>
+Cc: Matthew Wilcox <matthew@wil.cx>
+Cc: Matthew Wilcox <willy@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ include/asm-generic/int-l64.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/hugetlb.c~hugetlb-override-default-huge-page-size-ia64-build mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-override-default-huge-page-size-ia64-build
-+++ a/mm/hugetlb.c
-@@ -34,7 +34,7 @@ struct hstate hstates[HUGE_MAX_HSTATE];
- /* for command line parsing */
- static struct hstate * __initdata parsed_hstate;
- static unsigned long __initdata default_hstate_max_huge_pages;
--static unsigned long __initdata default_hstate_size = HPAGE_SIZE;
-+static unsigned long __initdata default_hstate_size;
+diff -puN include/asm-generic/int-l64.h~make-u64-long-long-on-all-architectures-fix include/asm-generic/int-l64.h
+--- a/include/asm-generic/int-l64.h~make-u64-long-long-on-all-architectures-fix
++++ a/include/asm-generic/int-l64.h
+@@ -46,8 +46,8 @@ typedef unsigned short u16;
+ typedef signed int s32;
+ typedef unsigned int u32;
  
- #define for_each_hstate(h) \
- 	for ((h) = hstates; (h) < &hstates[max_hstate]; (h)++)
-@@ -1289,6 +1289,8 @@ static int __init hugetlb_init(void)
- {
- 	BUILD_BUG_ON(HPAGE_SHIFT == 0);
+-typedef signed long s64;
+-typedef unsigned long u64;
++typedef signed long long s64;
++typedef unsigned long long u64;
  
-+	default_hstate_size = HPAGE_SIZE;
-+
- 	if (!size_to_hstate(default_hstate_size)) {
- 		default_hstate_size = HPAGE_SIZE;
- 		if (!size_to_hstate(default_hstate_size))
+ #define S8_C(x)  x
+ #define U8_C(x)  x ## U
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -106,7 +113,6 @@ vmallocinfo-add-numa-information-fix.patch
 hugetlb-modular-state-for-hugetlb-page-size-checkpatch-fixes.patch
 hugetlb-multiple-hstates-for-multiple-page-sizes-checkpatch-fixes.patch
 hugetlb-override-default-huge-page-size-non-const-fix-fix.patch
-hugetlb-override-default-huge-page-size-ia64-build.patch
 linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
 revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
 revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
@@ -237,6 +243,7 @@ reiser4-tree_lock-fixes-fix.patch
 reiser4-semaphore-fix.patch
 slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
 reiser4-suid.patch
+make-u64-long-long-on-all-architectures-fix.patch
 page-owner-tracking-leak-detector.patch
 nr_blockdev_pages-in_interrupt-warning.patch
 slab-leaks3-default-y.patch
