@@ -1,56 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - page_align-correctly-handle-64-bit-values-on-32-bit-architectures-v850-fix.patch removed from -mm tree
-Date: Wed, 23 Jul 2008 16:12:54 -0700
-Message-ID: <200807232325.m6NNPVc4017528@imap1.linux-foundation.org>
+Subject: - page_align-correctly-handle-64-bit-values-on-32-bit-architectures-fix.patch removed from -mm tree
+Date: Wed, 23 Jul 2008 16:12:50 -0700
+Message-ID: <200807232325.m6NNPSWo017524@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44427 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35009 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754415AbYGWXZd (ORCPT
+	by vger.kernel.org with ESMTP id S1754633AbYGWXZa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jul 2008 19:25:33 -0400
+	Wed, 23 Jul 2008 19:25:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, linux-arch@vger.kernel.org, righi.andrea@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, righi.andrea@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     page_align-correctly-handle-64-bit-values-on-32-bit-architectures-v850-fix
+     page_align-correctly-handle-64-bit-values-on-32-bit-architectures-fix
 has been removed from the -mm tree.  Its filename was
-     page_align-correctly-handle-64-bit-values-on-32-bit-architectures-v850-fix.patch
+     page_align-correctly-handle-64-bit-values-on-32-bit-architectures-fix.patch
 
 This patch was dropped because it was folded into page_align-correctly-handle-64-bit-values-on-32-bit-architectures.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page_align-correctly-handle-64-bit-values-on-32-bit-architectures-v850-fix
+Subject: page_align-correctly-handle-64-bit-values-on-32-bit-architectures-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix v850, even though remove-the-v850-port.patch is in the pipeline.
+drivers/media/video/uvc/uvc_queue.c: In function 'uvc_alloc_buffers':
+drivers/media/video/uvc/uvc_queue.c:100: error: implicit declaration of function 'PAGE_ALIGN'
 
-Cc: <linux-arch@vger.kernel.org>
 Cc: Andrea Righi <righi.andrea@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-v850/page.h |    4 ----
- 1 file changed, 4 deletions(-)
+ drivers/media/video/uvc/uvc_queue.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/asm-v850/page.h~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-v850-fix include/asm-v850/page.h
---- a/include/asm-v850/page.h~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-v850-fix
-+++ a/include/asm-v850/page.h
-@@ -94,10 +94,6 @@ typedef unsigned long pgprot_t;
- #endif /* !__ASSEMBLY__ */
+diff -puN drivers/media/video/uvc/uvc_queue.c~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-fix drivers/media/video/uvc/uvc_queue.c
+--- a/drivers/media/video/uvc/uvc_queue.c~page_align-correctly-handle-64-bit-values-on-32-bit-architectures-fix
++++ a/drivers/media/video/uvc/uvc_queue.c
+@@ -13,6 +13,7 @@
  
- 
--/* to align the pointer to the (next) page boundary */
--#define PAGE_ALIGN(addr)	(((addr) + PAGE_SIZE - 1) & PAGE_MASK)
--
--
- /* No current v850 processor has virtual memory.  */
- #define __virt_to_phys(addr)	(addr)
- #define __phys_to_virt(addr)	(addr)
+ #include <linux/kernel.h>
+ #include <linux/version.h>
++#include <linux/mm.h>
+ #include <linux/list.h>
+ #include <linux/module.h>
+ #include <linux/usb.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -76,6 +73,7 @@ bootmem-clean-up-free_all_bootmem_core.patch
 bootmem-free-reserve-helpers.patch
 bootmem-factor-out-the-marking-of-a-pfn-range.patch
 page_align-correctly-handle-64-bit-values-on-32-bit-architectures.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures-fix.patch
 page_align-correctly-handle-64-bit-values-on-32-bit-architectures-v850-fix.patch
 page_align-correctly-handle-64-bit-values-on-32-bit-architectures-powerpc-fix.patch
 page_align-correctly-handle-64-bit-values-on-32-bit-architectures-arm-fix.patch
