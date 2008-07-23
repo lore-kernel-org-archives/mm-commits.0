@@ -1,93 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: - autofs4-dont-make-expiring-dentry-negative-fix.patch removed from -mm tree
-Date: Wed, 23 Jul 2008 16:32:48 -0700
-Message-ID: <200807232345.m6NNjPBE018429@imap1.linux-foundation.org>
+Subject: - autofs4-use-lookup-intent-flags-to-trigger-mounts-fix.patch removed from -mm tree
+Date: Wed, 23 Jul 2008 16:33:35 -0700
+Message-ID: <200807232346.m6NNkDJ7018529@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60072 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42563 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756839AbYGWXp3 (ORCPT
+	by vger.kernel.org with ESMTP id S1756736AbYGWXqr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jul 2008 19:45:29 -0400
+	Wed, 23 Jul 2008 19:46:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: raven@themaw.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jmoyer@redhat.com, raven@themaw.net, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     autofs4: don't make expiring dentry negative fix
+     autofs4-use-lookup-intent-flags-to-trigger-mounts-fix
 has been removed from the -mm tree.  Its filename was
-     autofs4-dont-make-expiring-dentry-negative-fix.patch
+     autofs4-use-lookup-intent-flags-to-trigger-mounts-fix.patch
 
-This patch was dropped because it was folded into autofs4-dont-make-expiring-dentry-negative.patch
+This patch was dropped because it was folded into autofs4-use-lookup-intent-flags-to-trigger-mounts.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: autofs4: don't make expiring dentry negative fix
-From: Ian Kent <raven@themaw.net>
+Subject: autofs4-use-lookup-intent-flags-to-trigger-mounts-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The correction to not make a dentry negative has an error.  Currently
-->lookup() checks if an expire is in progress and removes the entry from
-the list, before the expire is complete so if more than one process is
-performing a lookup at this time only one will wait for expire completion.
- We need to not remove the list entry until after waiting for expire
-completion.
+guess-n-giggle.
 
-Signed-off-by: Ian Kent <raven@themaw.net>
+Cc: Ian Kent <raven@themaw.net>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Jeff Moyer <jmoyer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/root.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ fs/autofs4/root.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/autofs4/root.c~autofs4-dont-make-expiring-dentry-negative-fix fs/autofs4/root.c
---- a/fs/autofs4/root.c~autofs4-dont-make-expiring-dentry-negative-fix
+diff -puN fs/autofs4/root.c~autofs4-use-lookup-intent-flags-to-trigger-mounts-fix fs/autofs4/root.c
+--- a/fs/autofs4/root.c~autofs4-use-lookup-intent-flags-to-trigger-mounts-fix
 +++ a/fs/autofs4/root.c
-@@ -555,7 +555,6 @@ static struct dentry *autofs4_lookup_exp
- 			goto next;
+@@ -32,7 +32,7 @@ static struct dentry *autofs4_lookup(str
+ static void *autofs4_follow_link(struct dentry *, struct nameidata *);
  
- 		if (d_unhashed(dentry)) {
--			list_del_init(&ino->expiring);
- 			dget(dentry);
- 			spin_unlock(&dentry->d_lock);
- 			spin_unlock(&sbi->lookup_lock);
-@@ -606,6 +605,10 @@ static struct dentry *autofs4_lookup(str
- 			autofs4_wait(sbi, expiring, NFY_NONE);
- 			DPRINTK("request completed");
- 		}
-+		spin_lock(&sbi->lookup_lock);
-+		if (!list_empty(&ino->expiring))
-+			list_del_init(&ino->expiring);
-+		spin_unlock(&sbi->lookup_lock);
- 		dput(expiring);
- 	}
+ #define TRIGGER_FLAGS   (LOOKUP_CONTINUE | LOOKUP_DIRECTORY)
+-#define TRIGGER_INTENTS (LOOKUP_OPEN | LOOKUP_ACCESS | LOOKUP_CREATE)
++#define TRIGGER_INTENTS (LOOKUP_OPEN | LOOKUP_CREATE)
  
+ const struct file_operations autofs4_root_operations = {
+ 	.open		= dcache_dir_open,
 _
 
-Patches currently in -mm which might be from raven@themaw.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-autofs4-dont-make-expiring-dentry-negative.patch
-autofs4-dont-make-expiring-dentry-negative-fix.patch
-autofs4-revert-redo-lookup-in-ttfd.patch
-autofs4-use-look-aside-list-for-lookups.patch
-autofs4-use-look-aside-list-for-lookups-autofs4-fix-symlink-name-allocation.patch
-autofs4-dont-release-directory-mutex-if-called-in-oz_mode.patch
+origin.patch
+mm-verify-the-page-links-and-memory-model.patch
+mspec-convert-nopfn-to-fault.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers.patch
+kill-generic_file_direct_io.patch
+use-generic_access_phys-for-dev-mem-mappings.patch
+spufs-use-the-new-vm_ops-access.patch
+fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries.patch
+page-flags-record-page-flag-overlays-explicitly.patch
+mapping_set_error-add-unlikely.patch
+huge-page-private-reservation-review-cleanups.patch
+vma-page-offset-has-no-callees-drop-it.patch
+sync_file_range_write-may-and-will-block-document-that.patch
+vmallocinfo-add-numa-information.patch
+hugetlb-modular-state-for-hugetlb-page-size.patch
+hugetlb-multiple-hstates-for-multiple-page-sizes.patch
+bootmem-add-debugging-framework.patch
+bootmem-clean-up-free_all_bootmem_core.patch
+bootmem-free-reserve-helpers.patch
+bootmem-factor-out-the-marking-of-a-pfn-range.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures.patch
+mmu-notifiers-add-mm_take_all_locks-operation.patch
+mmu-notifier-core.patch
+security-protect-legacy-applications-from-executing-with-insufficient-privilege.patch
+security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
+swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option.patch
+flag-parameters-paccept.patch
+flag-parameters-anon_inode_getfd-extension.patch
+flag-parameters-signalfd.patch
+flag-parameters-eventfd.patch
+flag-parameters-inotify_init.patch
+flag-parameters-check-magic-constants.patch
+spi-au1550_spi-improve-pio-transfer-mode.patch
 autofs4-use-lookup-intent-flags-to-trigger-mounts.patch
 autofs4-use-lookup-intent-flags-to-trigger-mounts-fix.patch
-autofs4-use-struct-qstr-in-waitqc.patch
-autofs4-fix-waitq-locking.patch
-autofs4-fix-pending-mount-race.patch
-autofs4-fix-pending-mount-race-fix.patch
-autofs4-check-kernel-communication-pipe-is-valid-for-write.patch
-autofs4-fix-waitq-memory-leak.patch
-autofs4-detect-invalid-direct-mount-requests.patch
-autofs4-indirect-dentry-must-almost-always-be-positive.patch
-autofs4-cleanup-redundant-readir-code.patch
-autofs4-fix-pending-checks.patch
-autofs4-fix-indirect-mount-pending-expire-race.patch
-autofs4-fix-direct-mount-pending-expire-race.patch
-autofs4-fix-direct-mount-pending-expire-race-correction.patch
-autofs4-reorganize-expire-pending-wait-function-calls.patch
-autofs4-remove-unused-ioctls.patch
+rtc-cmos-improve-hpet-irq-glue-build-fix.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
+sm501-fixup-allocation-code-to-be-64bit-resource-compliant-sm501-align-panel-fb-to-page_size-fix.patch
+lcd-add-platform_lcd-driver-fix.patch
+fsl-diu-fb-update-freescale-diu-driver-to-use-page_alloc_exact.patch
+fbdev-add-new-cobalt-lcd-framebuffer-driver.patch
+fbcon-remove-stray-semicolons-checkpatch-fixes.patch
 
