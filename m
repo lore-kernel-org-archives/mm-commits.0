@@ -1,75 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: - atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 23 Jul 2008 16:38:18 -0700
-Message-ID: <200807232350.m6NNouGg018737@imap1.linux-foundation.org>
+Subject: - sm501-fixup-allocation-code-to-be-64bit-resource-compliant-sm501-align-panel-fb-to-page_size-fix.patch removed from -mm tree
+Date: Wed, 23 Jul 2008 16:38:43 -0700
+Message-ID: <200807232351.m6NNpKnX018752@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56282 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59290 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753570AbYGWXvP (ORCPT
+	by vger.kernel.org with ESMTP id S1753972AbYGWXvy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jul 2008 19:51:15 -0400
+	Wed, 23 Jul 2008 19:51:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, adaplas@pol.net, hskinnemoen@atmel.com, krzysztof.h1@poczta.fm, linux@maxim.org.za, nicolas.ferre@atmel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ben-linux@fluff.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes
+     sm501-fixup-allocation-code-to-be-64bit-resource-compliant-sm501-align-panel-fb-to-page_size-fix
 has been removed from the -mm tree.  Its filename was
-     atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
+     sm501-fixup-allocation-code-to-be-64bit-resource-compliant-sm501-align-panel-fb-to-page_size-fix.patch
 
-This patch was dropped because it was folded into atmel_lcdfb-avoid-division-by-zero.patch
+This patch was dropped because it was folded into sm501-fixup-allocation-code-to-be-64bit-resource-compliant.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes
+Subject: sm501-fixup-allocation-code-to-be-64bit-resource-compliant-sm501-align-panel-fb-to-page_size-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: line over 80 characters
-#32: FILE: drivers/video/atmel_lcdfb.c:259:
-+static const struct fb_videomode *atmel_lcdfb_choose_mode(struct fb_var_screeninfo *var,
-
-WARNING: braces {} are not necessary for single statement blocks
-#40: FILE: drivers/video/atmel_lcdfb.c:267:
-+	if (fbmode) {
-+		fb_videomode_to_var(var, fbmode);
-+	}
-
-total: 0 errors, 2 warnings, 66 lines checked
-
-./patches/atmel_lcdfb-avoid-division-by-zero.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
-Cc: Andrew Victor <linux@maxim.org.za>
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
-Cc: Nicolas Ferre <nicolas.ferre@atmel.com>
+Cc: Ben Dooks <ben-linux@fluff.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/atmel_lcdfb.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/video/sm501fb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/atmel_lcdfb.c~atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes drivers/video/atmel_lcdfb.c
---- a/drivers/video/atmel_lcdfb.c~atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes
-+++ a/drivers/video/atmel_lcdfb.c
-@@ -264,9 +264,8 @@ static const struct fb_videomode *atmel_
+diff -puN drivers/video/sm501fb.c~sm501-fixup-allocation-code-to-be-64bit-resource-compliant-sm501-align-panel-fb-to-page_size-fix drivers/video/sm501fb.c
+--- a/drivers/video/sm501fb.c~sm501-fixup-allocation-code-to-be-64bit-resource-compliant-sm501-align-panel-fb-to-page_size-fix
++++ a/drivers/video/sm501fb.c
+@@ -164,7 +164,7 @@ static int sm501_alloc_mem(struct sm501f
  
- 	fb_var_to_videomode(&varfbmode, var);
- 	fbmode = fb_find_nearest_mode(&varfbmode, &info->modelist);
--	if (fbmode) {
-+	if (fbmode)
- 		fb_videomode_to_var(var, fbmode);
--	}
- 	return fbmode;
- }
+ 		/* round down, some programs such as directfb do not draw
+ 		 * 0,0 correctly unless the start is aligned to a page start.
+-		*/
++		 */
  
+ 		if (ptr > 0)
+ 			ptr &= ~(PAGE_SIZE - 1);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -111,7 +87,7 @@ autofs4-use-lookup-intent-flags-to-trigger-mounts.patch
 rtc-cmos-improve-hpet-irq-glue.patch
 drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed.patch
 atmel_lcdfb-avoid-division-by-zero.patch
-atmel_lcdfb-avoid-division-by-zero-checkpatch-fixes.patch
+sm501-fixup-allocation-code-to-be-64bit-resource-compliant.patch
 sm501-fixup-allocation-code-to-be-64bit-resource-compliant-sm501-align-panel-fb-to-page_size-fix.patch
 lcd-add-platform_lcd-driver-fix.patch
 fsl-diu-fb-update-freescale-diu-driver-to-use-page_alloc_exact.patch
