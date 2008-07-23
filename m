@@ -1,61 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlb-override-default-huge-page-size-non-const-fix-fix.patch added to -mm tree
-Date: Tue, 22 Jul 2008 21:31:21 -0700
-Message-ID: <200807230431.m6N4VLej002743@imap1.linux-foundation.org>
+Subject: - hugetlb-override-default-huge-page-size-ia64-build.patch removed from -mm tree
+Date: Tue, 22 Jul 2008 21:31:26 -0700
+Message-ID: <200807230431.m6N4VQLu002748@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42508 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44140 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752207AbYGWEb0 (ORCPT
+	by vger.kernel.org with ESMTP id S1752316AbYGWEbb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jul 2008 00:31:26 -0400
+	Wed, 23 Jul 2008 00:31:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, npiggin@suse.de
+To: akpm@linux-foundation.org, npiggin@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hugetlb-override-default-huge-page-size-non-const-fix-fix
-has been added to the -mm tree.  Its filename is
-     hugetlb-override-default-huge-page-size-non-const-fix-fix.patch
+     hugetlb-override-default-huge-page-size-ia64-build
+has been removed from the -mm tree.  Its filename was
+     hugetlb-override-default-huge-page-size-ia64-build.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlb-override-default-huge-page-size-non-const-fix-fix
+Subject: hugetlb-override-default-huge-page-size-ia64-build
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/hugetlb.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN mm/hugetlb.c~hugetlb-override-default-huge-page-size-non-const-fix-fix mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-override-default-huge-page-size-non-const-fix-fix
+diff -puN mm/hugetlb.c~hugetlb-override-default-huge-page-size-ia64-build mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-override-default-huge-page-size-ia64-build
 +++ a/mm/hugetlb.c
 @@ -34,7 +34,7 @@ struct hstate hstates[HUGE_MAX_HSTATE];
  /* for command line parsing */
  static struct hstate * __initdata parsed_hstate;
  static unsigned long __initdata default_hstate_max_huge_pages;
--static unsigned long __initdata default_hstate_size = 0;
+-static unsigned long __initdata default_hstate_size = HPAGE_SIZE;
 +static unsigned long __initdata default_hstate_size;
  
  #define for_each_hstate(h) \
  	for ((h) = hstates; (h) < &hstates[max_hstate]; (h)++)
+@@ -1289,6 +1289,8 @@ static int __init hugetlb_init(void)
+ {
+ 	BUILD_BUG_ON(HPAGE_SHIFT == 0);
+ 
++	default_hstate_size = HPAGE_SIZE;
++
+ 	if (!size_to_hstate(default_hstate_size)) {
+ 		default_hstate_size = HPAGE_SIZE;
+ 		if (!size_to_hstate(default_hstate_size))
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
