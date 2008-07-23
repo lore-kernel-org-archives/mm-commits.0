@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cdc-acm-dont-unlock-acm-mutex-on-error-path.patch added to -mm tree
-Date: Wed, 23 Jul 2008 12:55:11 -0700
-Message-ID: <200807231955.m6NJtBMo008976@imap1.linux-foundation.org>
+Subject: + maintainers-mention-lockd-and-sunrpc-in-nfs-entries.patch added to -mm tree
+Date: Wed, 23 Jul 2008 12:57:50 -0700
+Message-ID: <200807231957.m6NJvob4009100@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49723 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52544 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752768AbYGWTz2 (ORCPT
+	by vger.kernel.org with ESMTP id S1753083AbYGWT6H (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jul 2008 15:55:28 -0400
+	Wed, 23 Jul 2008 15:58:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@gmail.com, andrei.popa@i-neo.ro, greg@kroah.com, stable@kernel.org
+Cc: bfields@fieldses.org, bfields@citi.umich.edu, trond.myklebust@fys.uio.no
 
 
 The patch titled
-     cdc-acm: don't unlock acm->mutex on error path
+     MAINTAINERS: mention lockd and sunrpc in nfs entries
 has been added to the -mm tree.  Its filename is
-     cdc-acm-dont-unlock-acm-mutex-on-error-path.patch
+     maintainers-mention-lockd-and-sunrpc-in-nfs-entries.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,62 +34,53 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cdc-acm: don't unlock acm->mutex on error path
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: MAINTAINERS: mention lockd and sunrpc in nfs entries
+From: "J. Bruce Fields" <bfields@fieldses.org>
 
-On Wed, Jul 23, 2008 at 03:52:36PM +0300, Andrei Popa wrote:
-> I installed gnokii-0.6.22-r2 and gave the command "gnokii --identify"
-> and the kernel oopsed:
->
-> BUG: unable to handle kernel NULL pointer dereference at 00000458
-> IP: [<c0444b52>] mutex_unlock+0x0/0xb
->  [<c03830ae>] acm_tty_open+0x4c/0x214
+The actual division of labor is a little vague in some of the common
+code, but if the patches get to one of us then we can sort it out.
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Tested-by: Andrei Popa <andrei.popa@i-neo.ro>
-Cc: Greg KH <greg@kroah.com>
-Cc: <stable@kernel.org>		[2.6.25.x, 2.6.26.x]
+Signed-off-by: J. Bruce Fields <bfields@citi.umich.edu>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/class/cdc-acm.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/usb/class/cdc-acm.c~cdc-acm-dont-unlock-acm-mutex-on-error-path drivers/usb/class/cdc-acm.c
---- a/drivers/usb/class/cdc-acm.c~cdc-acm-dont-unlock-acm-mutex-on-error-path
-+++ a/drivers/usb/class/cdc-acm.c
-@@ -595,8 +595,8 @@ static int acm_tty_open(struct tty_struc
- 	tasklet_schedule(&acm->urb_task);
+diff -puN MAINTAINERS~maintainers-mention-lockd-and-sunrpc-in-nfs-entries MAINTAINERS
+--- a/MAINTAINERS~maintainers-mention-lockd-and-sunrpc-in-nfs-entries
++++ a/MAINTAINERS
+@@ -2443,7 +2443,7 @@ L:	kernel-janitors@vger.kernel.org
+ W:	http://www.kerneljanitors.org/
+ S:	Maintained
  
- done:
--err_out:
- 	mutex_unlock(&acm->mutex);
-+err_out:
- 	mutex_unlock(&open_mutex);
- 	return rv;
+-KERNEL NFSD
++KERNEL NFSD, SUNRPC, AND LOCKD SERVERS
+ P:	J. Bruce Fields
+ M:	bfields@fieldses.org
+ P:	Neil Brown
+@@ -3069,7 +3069,7 @@ M:	ja@ssi.bg
+ L:	netdev@vger.kernel.org
+ S:	Maintained
  
+-NFS CLIENT
++NFS, SUNRPC, AND LOCKD CLIENTS
+ P:	Trond Myklebust
+ M:	Trond.Myklebust@netapp.com
+ L:	linux-nfs@vger.kernel.org
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from bfields@fieldses.org are
 
-origin.patch
-linux-next.patch
-cifs-switch-to-seq_files.patch
-mpt-remove-unused-struct-mpt_proc_entry_t.patch
-move-proc_kmsg_operations-to-fs-proc-internalh.patch
-proc-always-do-release.patch
-proc-always-do-release-fix.patch
-proc-remove-pathetic-remount-code.patch
-proc-move-kconfig-to-fs-proc-kconfig.patch
-sysctl-allow-override-of-proc-sys-net-with-cap_net_admin.patch
-slb-drop-kmem-cache-argument-from-constructor.patch
-slb-drop-kmem-cache-argument-from-constructor-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-fix-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
-slb-drop-kmem-cache-argument-from-constructor-ubifs.patch
-use-warn-in-fs-proc.patch
-proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
-likely_prof-changed-to-use-proc_create.patch
-proc-remove-proc_root-from-drivers-likelyprof.patch
-cdc-acm-dont-unlock-acm-mutex-on-error-path.patch
+lockd-trivial-sparse-endian-annotations.patch
+maintainers-mention-lockd-and-sunrpc-in-nfs-entries.patch
+fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries.patch
+fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
+lockd-dont-return-eagain-for-a-permanent-error.patch
+locks-add-special-return-value-for-asynchronous-locks.patch
+locks-cleanup-code-duplication.patch
+locks-allow-lock-to-return-file_lock_deferred.patch
+fuse-nfs-export-special-lookups.patch
+fuse-lockd-support.patch
 
