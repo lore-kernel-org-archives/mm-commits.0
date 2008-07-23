@@ -1,65 +1,146 @@
 From: akpm@linux-foundation.org
-Subject: - spufs-use-the-new-vm_ops-access-fix.patch removed from -mm tree
-Date: Wed, 23 Jul 2008 15:55:56 -0700
-Message-ID: <200807232308.m6NN8YCo016742@imap1.linux-foundation.org>
+Subject: - fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch removed from -mm tree
+Date: Wed, 23 Jul 2008 15:56:55 -0700
+Message-ID: <200807232309.m6NN9Wdg016751@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55857 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38543 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753765AbYGWXJC (ORCPT
+	by vger.kernel.org with ESMTP id S1753928AbYGWXJ7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jul 2008 19:09:02 -0400
+	Wed, 23 Jul 2008 19:09:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, airlied@linux.ie, arnd@arndb.de, benh@kernel.crashing.org, hugh@veritas.com, paulus@samba.org, riel@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, bfields@fieldses.org, dgc@sgi.com, k-makita@np.css.fujitsu.com, neilb@suse.de, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spufs-use-the-new-vm_ops-access-fix
+     fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix
 has been removed from the -mm tree.  Its filename was
-     spufs-use-the-new-vm_ops-access-fix.patch
+     fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
 
-This patch was dropped because it was folded into spufs-use-the-new-vm_ops-access.patch
+This patch was dropped because it was folded into fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spufs-use-the-new-vm_ops-access-fix
+Subject: fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Dave Airlie <airlied@linux.ie>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Rik van Riel <riel@redhat.com>
+- fix comments.
+
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: David Chinner <dgc@sgi.com>
+Cc: Kentaro Makita <k-makita@np.css.fujitsu.com>
+Cc: Neil Brown <neilb@suse.de>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/cell/spufs/file.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/dcache.c        |   39 +++++++++++++++++----------------------
+ include/linux/fs.h |    1 +
+ 2 files changed, 18 insertions(+), 22 deletions(-)
 
-diff -puN arch/powerpc/platforms/cell/spufs/file.c~spufs-use-the-new-vm_ops-access-fix arch/powerpc/platforms/cell/spufs/file.c
---- a/arch/powerpc/platforms/cell/spufs/file.c~spufs-use-the-new-vm_ops-access-fix
-+++ a/arch/powerpc/platforms/cell/spufs/file.c
-@@ -288,7 +288,7 @@ spufs_mem_mmap_fault(struct vm_area_stru
- 	return VM_FAULT_NOPAGE;
+diff -puN fs/dcache.c~fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix fs/dcache.c
+--- a/fs/dcache.c~fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix
++++ a/fs/dcache.c
+@@ -122,8 +122,7 @@ static void dentry_iput(struct dentry * 
  }
  
--static int spufs_mem_mmep_access(struct vm_area_struct *vma,
-+static int spufs_mem_mmap_access(struct vm_area_struct *vma,
- 				unsigned long address,
- 				void *buf, int len, int write)
+ /*
+- * Following dentry_lru_(add|add_tail|del|del_init) is must
+- * called with dcache_lock held.
++ * dentry_lru_(add|add_tail|del|del_init) must be called with dcache_lock held.
+  */
+ static void dentry_lru_add(struct dentry *dentry)
  {
-@@ -313,7 +313,7 @@ static int spufs_mem_mmep_access(struct 
+@@ -248,7 +247,7 @@ repeat:
+ unhash_it:
+ 	__d_drop(dentry);
+ kill_it:
+-	/* if dentry was on d_lru list delete it from there */
++	/* if dentry was on the d_lru list delete it from there */
+ 	dentry_lru_del(dentry);
+ 	dentry = d_kill(dentry);
+ 	if (dentry)
+@@ -471,11 +470,11 @@ restart:
+ 			BUG_ON(dentry->d_sb != sb);
  
- static struct vm_operations_struct spufs_mem_mmap_vmops = {
- 	.fault = spufs_mem_mmap_fault,
--	.access = spufs_mem_mmep_access,
-+	.access = spufs_mem_mmap_access,
- };
+ 			spin_lock(&dentry->d_lock);
+-		/*
+-		 * If we are honouring the DCACHE_REFERENCED flag and the
+-		 * dentry has this flag set, don't free it. Clear the flag
+-		 * and put it back on the LRU
+-		 */
++			/*
++			 * If we are honouring the DCACHE_REFERENCED flag and
++			 * the dentry has this flag set, don't free it. Clear
++			 * the flag and put it back on the LRU.
++			 */
+ 			if ((flags & DCACHE_REFERENCED)
+ 				&& (dentry->d_flags & DCACHE_REFERENCED)) {
+ 				dentry->d_flags &= ~DCACHE_REFERENCED;
+@@ -504,10 +503,10 @@ restart:
+ 			continue;
+ 		}
+ 		prune_one_dentry(dentry);
+-		/* dentry->d_lock is dropped in prune_one_dentry() */
++		/* dentry->d_lock was dropped in prune_one_dentry() */
+ 		cond_resched_lock(&dcache_lock);
+ 	}
+-	if ((count == NULL) && (!list_empty(&sb->s_dentry_lru)))
++	if (count == NULL && !list_empty(&sb->s_dentry_lru))
+ 		goto restart;
+ 	if (count != NULL)
+ 		*count = cnt;
+@@ -518,17 +517,13 @@ restart:
  
- static int spufs_mem_mmap(struct file *file, struct vm_area_struct *vma)
+ /**
+  * prune_dcache - shrink the dcache
+- * @count: number of entries to try and free
++ * @count: number of entries to try to free
+  *
+- * Shrink the dcache. This is done when we need
+- * more memory, or simply when we need to unmount
+- * something (at which point we need to unuse
+- * all dentries).
++ * Shrink the dcache. This is done when we need more memory, or simply when we
++ * need to unmount something (at which point we need to unuse all dentries).
+  *
+- * This function may fail to free any resources if
+- * all the dentries are in use.
++ * This function may fail to free any resources if all the dentries are in use.
+  */
+- 
+ static void prune_dcache(int count)
+ {
+ 	struct super_block *sb;
+@@ -551,10 +546,10 @@ restart:
+ 			continue;
+ 		sb->s_count++;
+ 		/* Now, we reclaim unused dentrins with fairness.
+-		 * we reclaim them same percentage on each superblocks.
+-		 * we calculate number of dentries to scan on this sb
+-		 * based on following way, but impelementation is arranged
+-		 * to avoid overflow.
++		 * We reclaim them same percentage from each superblock.
++		 * We calculate number of dentries to scan on this sb
++		 * as follows, but the implementation is arranged to avoid
++		 * overflows:
+ 		 * number of dentries to scan on this sb =
+ 		 * count * (number of dentries on this sb /
+ 		 * number of dentries in the machine)
+diff -puN include/linux/fs.h~fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix include/linux/fs.h
+--- a/include/linux/fs.h~fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix
++++ a/include/linux/fs.h
+@@ -1067,6 +1067,7 @@ struct super_block {
+ 	struct list_head	s_more_io;	/* parked for more writeback */
+ 	struct hlist_head	s_anon;		/* anonymous dentries for (nfs) exporting */
+ 	struct list_head	s_files;
++	/* s_dentry_lru and s_nr_dentry_unused are protected by dcache_lock */
+ 	struct list_head	s_dentry_lru;	/* unused dentry lru */
+ 	int			s_nr_dentry_unused;	/* # of dentry on lru */
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -71,7 +152,7 @@ page-allocator-inlnie-some-__alloc_pages-wrappers.patch
 kill-generic_file_direct_io.patch
 use-generic_access_phys-for-dev-mem-mappings.patch
 spufs-use-the-new-vm_ops-access.patch
-spufs-use-the-new-vm_ops-access-fix.patch
+fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries.patch
 fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries-fix.patch
 page-flags-record-page-flag-overlays-explicitly-xen.patch
 mapping_set_error-add-unlikely.patch
