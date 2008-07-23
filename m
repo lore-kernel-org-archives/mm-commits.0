@@ -1,91 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: - fbcon-remove-stray-semicolons-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 23 Jul 2008 16:40:57 -0700
-Message-ID: <200807232353.m6NNrYXS018811@imap1.linux-foundation.org>
+Subject: - security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch removed from -mm tree
+Date: Wed, 23 Jul 2008 16:44:38 -0700
+Message-ID: <200807232357.m6NNvGcf019002@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58742 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48043 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754428AbYGWXxh (ORCPT
+	by vger.kernel.org with ESMTP id S1754209AbYGWX5c (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jul 2008 19:53:37 -0400
+	Wed, 23 Jul 2008 19:57:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jbeulich@novell.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, morgan@kernel.org, serue@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fbcon-remove-stray-semicolons-checkpatch-fixes
+     security-protect-legacy-apps-from-insufficient-privilege-cleanup
 has been removed from the -mm tree.  Its filename was
-     fbcon-remove-stray-semicolons-checkpatch-fixes.patch
+     security-protect-legacy-apps-from-insufficient-privilege-cleanup.patch
 
-This patch was dropped because it was folded into fbcon-remove-stray-semicolons.patch
+This patch was dropped because it was folded into security-protect-legacy-applications-from-executing-with-insufficient-privilege.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbcon-remove-stray-semicolons-checkpatch-fixes
+Subject: security-protect-legacy-apps-from-insufficient-privilege-cleanup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: space required after that ',' (ctx:VxV)
-#18: FILE: drivers/video/console/fbcon.h:150:
-+	attr_col_ec(bgshift,vc,info,0)
- 	                   ^
-
-ERROR: space required after that ',' (ctx:VxV)
-#18: FILE: drivers/video/console/fbcon.h:150:
-+	attr_col_ec(bgshift,vc,info,0)
- 	                      ^
-
-ERROR: space required after that ',' (ctx:VxV)
-#18: FILE: drivers/video/console/fbcon.h:150:
-+	attr_col_ec(bgshift,vc,info,0)
- 	                           ^
-
-ERROR: space required after that ',' (ctx:VxV)
-#21: FILE: drivers/video/console/fbcon.h:152:
-+	attr_col_ec(fgshift,vc,info,1)
- 	                   ^
-
-ERROR: space required after that ',' (ctx:VxV)
-#21: FILE: drivers/video/console/fbcon.h:152:
-+	attr_col_ec(fgshift,vc,info,1)
- 	                      ^
-
-ERROR: space required after that ',' (ctx:VxV)
-#21: FILE: drivers/video/console/fbcon.h:152:
-+	attr_col_ec(fgshift,vc,info,1)
- 	                           ^
-
-total: 6 errors, 0 warnings, 11 lines checked
-
-./patches/fbcon-remove-stray-semicolons.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Cc: Jan Beulich <jbeulich@novell.com>
+Cc: Andrew G. Morgan <morgan@kernel.org>
+Cc: Serge Hallyn <serue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/console/fbcon.h |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ security/commoncap.c |   32 +++++++++++++++-----------------
+ 1 file changed, 15 insertions(+), 17 deletions(-)
 
-diff -puN drivers/video/console/fbcon.h~fbcon-remove-stray-semicolons-checkpatch-fixes drivers/video/console/fbcon.h
---- a/drivers/video/console/fbcon.h~fbcon-remove-stray-semicolons-checkpatch-fixes
-+++ a/drivers/video/console/fbcon.h
-@@ -146,10 +146,8 @@ static inline int attr_col_ec(int shift,
- 	return is_fg ? fg : bg;
- }
+diff -puN security/commoncap.c~security-protect-legacy-apps-from-insufficient-privilege-cleanup security/commoncap.c
+--- a/security/commoncap.c~security-protect-legacy-apps-from-insufficient-privilege-cleanup
++++ a/security/commoncap.c
+@@ -228,30 +228,28 @@ static inline int cap_from_disk(struct v
+ 	ret = 0;
  
--#define attr_bgcol_ec(bgshift,vc,info)		\
--	attr_col_ec(bgshift,vc,info,0)
--#define attr_fgcol_ec(fgshift,vc,info)		\
--	attr_col_ec(fgshift,vc,info,1)
-+#define attr_bgcol_ec(bgshift, vc, info) attr_col_ec(bgshift, vc, info, 0)
-+#define attr_fgcol_ec(fgshift, vc, info) attr_col_ec(fgshift, vc, info, 1)
+ 	CAP_FOR_EACH_U32(i) {
++		__u32 value_cpu;
++
+ 		if (i >= tocopy) {
+ 			/*
+ 			 * Legacy capability sets have no upper bits
+ 			 */
+ 			bprm->cap_post_exec_permitted.cap[i] = 0;
+-		} else {
+-			__u32 value_cpu;
++			continue;
++		}
++		/*
++		 * pP' = (X & fP) | (pI & fI)
++		 */
++		value_cpu = le32_to_cpu(caps->data[i].permitted);
++		bprm->cap_post_exec_permitted.cap[i] =
++			(current->cap_bset.cap[i] & value_cpu) |
++			(current->cap_inheritable.cap[i] &
++				le32_to_cpu(caps->data[i].inheritable));
++		if (value_cpu & ~bprm->cap_post_exec_permitted.cap[i]) {
+ 			/*
+-			 * pP' = (X & fP) | (pI & fI)
++			 * insufficient to execute correctly
+ 			 */
+-			value_cpu = le32_to_cpu(caps->data[i].permitted);
+-			bprm->cap_post_exec_permitted.cap[i] = (
+-					current->cap_bset.cap[i] & value_cpu
+-				) | (
+-					current->cap_inheritable.cap[i] &
+-					le32_to_cpu(caps->data[i].inheritable)
+-				);
+-			if (value_cpu &
+-			    ~bprm->cap_post_exec_permitted.cap[i]) {
+-				/*
+-				 * insufficient to execute correctly
+-				 */
+-				ret = -EPERM;
+-			}
++			ret = -EPERM;
+ 		}
+ 	}
  
- /* Font */
- #define REFCOUNT(fd)	(((int *)(fd))[-1])
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -132,5 +130,4 @@ lcd-add-platform_lcd-driver.patch
 fsl-diu-fb-update-freescale-diu-driver-to-use-page_alloc_exact.patch
 fbdev-add-new-cobalt-lcd-framebuffer-driver.patch
 fbcon-remove-stray-semicolons.patch
-fbcon-remove-stray-semicolons-checkpatch-fixes.patch
 
