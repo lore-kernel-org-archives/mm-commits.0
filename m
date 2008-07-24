@@ -1,68 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - flag-parameters-eventfd.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:27:20 -0700
-Message-ID: <200807242327.m6ONRKOP011157@imap1.linux-foundation.org>
+Subject: - flag-parameters-socket-and-socketpair.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:27:06 -0700
+Message-ID: <200807242327.m6ONR6QG011139@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40489 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53131 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756674AbYGXX3G (ORCPT
+	by vger.kernel.org with ESMTP id S1756672AbYGXX3F (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:29:06 -0400
+	Thu, 24 Jul 2008 19:29:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: drepper@redhat.com, davidel@xmailserver.org, linux-arch@vger.kernel.org, mtk.manpages@googlemail.com, mm-commits@vger.kernel.org
+To: drepper@redhat.com, davem@davemloft.net, davidel@xmailserver.org, mtk.manpages@googlemail.com, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     flag parameters: eventfd
+     flag parameters: socket and socketpair
 has been removed from the -mm tree.  Its filename was
-     flag-parameters-eventfd.patch
+     flag-parameters-socket-and-socketpair.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: flag parameters: eventfd
+Subject: flag parameters: socket and socketpair
 From: Ulrich Drepper <drepper@redhat.com>
 
-This patch adds the new eventfd2 syscall.  It extends the old eventfd
-syscall by one parameter which is meant to hold a flag value.  In this
-patch the only flag support is EFD_CLOEXEC which causes the close-on-exec
-flag for the returned file descriptor to be set.
+This patch adds support for flag values which are ORed to the type passwd
+to socket and socketpair.  The additional code is minimal.  The flag
+values in this implementation can and must match the O_* flags.  This
+avoids overhead in the conversion.
 
-A new name EFD_CLOEXEC is introduced which in this implementation must
-have the same value as O_CLOEXEC.
-
-The following test must be adjusted for architectures other than x86 and
-x86-64 and in case the syscall numbers changed.
+The internal functions sock_alloc_fd and sock_map_fd get a new parameters
+and all callers are changed.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #include <fcntl.h>
 #include <stdio.h>
 #include <unistd.h>
-#include <sys/syscall.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
 
-#ifndef __NR_eventfd2
-# ifdef __x86_64__
-#  define __NR_eventfd2 290
-# elif defined __i386__
-#  define __NR_eventfd2 328
-# else
-#  error "need __NR_eventfd2"
-# endif
-#endif
+#define PORT 57392
 
-#define EFD_CLOEXEC O_CLOEXEC
+/* For Linux these must be the same.  */
+#define SOCK_CLOEXEC O_CLOEXEC
 
 int
 main (void)
 {
-  int fd = syscall (__NR_eventfd2, 1, 0);
+  int fd;
+  fd = socket (PF_INET, SOCK_STREAM, 0);
   if (fd == -1)
     {
-      puts ("eventfd2(0) failed");
+      puts ("socket(0) failed");
       return 1;
     }
   int coe = fcntl (fd, F_GETFD);
@@ -73,15 +65,15 @@ main (void)
     }
   if (coe & FD_CLOEXEC)
     {
-      puts ("eventfd2(0) sets close-on-exec flag");
+      puts ("socket(0) set close-on-exec flag");
       return 1;
     }
   close (fd);
 
-  fd = syscall (__NR_eventfd2, 1, EFD_CLOEXEC);
+  fd = socket (PF_INET, SOCK_STREAM|SOCK_CLOEXEC, 0);
   if (fd == -1)
     {
-      puts ("eventfd2(EFD_CLOEXEC) failed");
+      puts ("socket(SOCK_CLOEXEC) failed");
       return 1;
     }
   coe = fcntl (fd, F_GETFD);
@@ -92,10 +84,53 @@ main (void)
     }
   if ((coe & FD_CLOEXEC) == 0)
     {
-      puts ("eventfd2(EFD_CLOEXEC) does not set close-on-exec flag");
+      puts ("socket(SOCK_CLOEXEC) does not set close-on-exec flag");
       return 1;
     }
   close (fd);
+
+  int fds[2];
+  if (socketpair (PF_UNIX, SOCK_STREAM, 0, fds) == -1)
+    {
+      puts ("socketpair(0) failed");
+      return 1;
+    }
+  for (int i = 0; i < 2; ++i)
+    {
+      coe = fcntl (fds[i], F_GETFD);
+      if (coe == -1)
+        {
+          puts ("fcntl failed");
+          return 1;
+        }
+      if (coe & FD_CLOEXEC)
+        {
+          printf ("socketpair(0) set close-on-exec flag for fds[%d]\n", i);
+          return 1;
+        }
+      close (fds[i]);
+    }
+
+  if (socketpair (PF_UNIX, SOCK_STREAM|SOCK_CLOEXEC, 0, fds) == -1)
+    {
+      puts ("socketpair(SOCK_CLOEXEC) failed");
+      return 1;
+    }
+  for (int i = 0; i < 2; ++i)
+    {
+      coe = fcntl (fds[i], F_GETFD);
+      if (coe == -1)
+        {
+          puts ("fcntl failed");
+          return 1;
+        }
+      if ((coe & FD_CLOEXEC) == 0)
+        {
+          printf ("socketpair(SOCK_CLOEXEC) does not set close-on-exec flag for fds[%d]\n", i);
+          return 1;
+        }
+      close (fds[i]);
+    }
 
   puts ("OK");
 
@@ -103,135 +138,183 @@ main (void)
 }
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-[akpm@linux-foundation.org: add sys_ni stub]
 Signed-off-by: Ulrich Drepper <drepper@redhat.com>
 Acked-by: Davide Libenzi <davidel@xmailserver.org>
 Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
-Cc: <linux-arch@vger.kernel.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/ia32/ia32entry.S          |    1 +
- arch/x86/kernel/syscall_table_32.S |    1 +
- fs/eventfd.c                       |   13 +++++++++++--
- include/asm-x86/unistd_32.h        |    1 +
- include/asm-x86/unistd_64.h        |    2 ++
- include/linux/eventfd.h            |    6 ++++++
- include/linux/syscalls.h           |    1 +
- kernel/sys_ni.c                    |    1 +
- 8 files changed, 24 insertions(+), 2 deletions(-)
+ include/asm-mips/socket.h |    7 +++++++
+ include/linux/net.h       |    9 ++++++++-
+ net/9p/trans_fd.c         |    2 +-
+ net/sctp/socket.c         |    2 +-
+ net/socket.c              |   28 ++++++++++++++++++++--------
+ 5 files changed, 37 insertions(+), 11 deletions(-)
 
-diff -puN arch/x86/ia32/ia32entry.S~flag-parameters-eventfd arch/x86/ia32/ia32entry.S
---- a/arch/x86/ia32/ia32entry.S~flag-parameters-eventfd
-+++ a/arch/x86/ia32/ia32entry.S
-@@ -744,4 +744,5 @@ ia32_sys_call_table:
- 	.quad compat_sys_timerfd_settime	/* 325 */
- 	.quad compat_sys_timerfd_gettime
- 	.quad compat_sys_signalfd4
-+	.quad sys_eventfd2
- ia32_syscall_end:
-diff -puN arch/x86/kernel/syscall_table_32.S~flag-parameters-eventfd arch/x86/kernel/syscall_table_32.S
---- a/arch/x86/kernel/syscall_table_32.S~flag-parameters-eventfd
-+++ a/arch/x86/kernel/syscall_table_32.S
-@@ -327,3 +327,4 @@ ENTRY(sys_call_table)
- 	.long sys_timerfd_settime	/* 325 */
- 	.long sys_timerfd_gettime
- 	.long sys_signalfd4
-+	.long sys_eventfd2
-diff -puN fs/eventfd.c~flag-parameters-eventfd fs/eventfd.c
---- a/fs/eventfd.c~flag-parameters-eventfd
-+++ a/fs/eventfd.c
-@@ -198,11 +198,14 @@ struct file *eventfd_fget(int fd)
- 	return file;
- }
+diff -puN include/asm-mips/socket.h~flag-parameters-socket-and-socketpair include/asm-mips/socket.h
+--- a/include/asm-mips/socket.h~flag-parameters-socket-and-socketpair
++++ a/include/asm-mips/socket.h
+@@ -102,6 +102,13 @@ enum sock_type {
+ };
  
--asmlinkage long sys_eventfd(unsigned int count)
-+asmlinkage long sys_eventfd2(unsigned int count, int flags)
+ #define SOCK_MAX (SOCK_PACKET + 1)
++/* Mask which covers at least up to SOCK_MASK-1.  The
++ *  * remaining bits are used as flags. */
++#define SOCK_TYPE_MASK 0xf
++
++/* Flags for socket, socketpair, paccept */
++#define SOCK_CLOEXEC	O_CLOEXEC
++#define SOCK_NONBLOCK	O_NONBLOCK
+ 
+ #define ARCH_HAS_SOCKET_TYPES 1
+ 
+diff -puN include/linux/net.h~flag-parameters-socket-and-socketpair include/linux/net.h
+--- a/include/linux/net.h~flag-parameters-socket-and-socketpair
++++ a/include/linux/net.h
+@@ -20,6 +20,7 @@
+ 
+ #include <linux/wait.h>
+ #include <linux/socket.h>
++#include <linux/fcntl.h>	/* For O_CLOEXEC */
+ #include <asm/socket.h>
+ 
+ struct poll_table_struct;
+@@ -94,6 +95,12 @@ enum sock_type {
+ };
+ 
+ #define SOCK_MAX (SOCK_PACKET + 1)
++/* Mask which covers at least up to SOCK_MASK-1.  The
++ * remaining bits are used as flags. */
++#define SOCK_TYPE_MASK 0xf
++
++/* Flags for socket, socketpair, paccept */
++#define SOCK_CLOEXEC	O_CLOEXEC
+ 
+ #endif /* ARCH_HAS_SOCKET_TYPES */
+ 
+@@ -208,7 +215,7 @@ extern int   	     sock_sendmsg(struct s
+ 				  size_t len);
+ extern int	     sock_recvmsg(struct socket *sock, struct msghdr *msg,
+ 				  size_t size, int flags);
+-extern int 	     sock_map_fd(struct socket *sock);
++extern int 	     sock_map_fd(struct socket *sock, int flags);
+ extern struct socket *sockfd_lookup(int fd, int *err);
+ #define		     sockfd_put(sock) fput(sock->file)
+ extern int	     net_ratelimit(void);
+diff -puN net/9p/trans_fd.c~flag-parameters-socket-and-socketpair net/9p/trans_fd.c
+--- a/net/9p/trans_fd.c~flag-parameters-socket-and-socketpair
++++ a/net/9p/trans_fd.c
+@@ -1285,7 +1285,7 @@ static int p9_socket_open(struct p9_tran
+ 	int fd, ret;
+ 
+ 	csocket->sk->sk_allocation = GFP_NOIO;
+-	fd = sock_map_fd(csocket);
++	fd = sock_map_fd(csocket, 0);
+ 	if (fd < 0) {
+ 		P9_EPRINTK(KERN_ERR, "p9_socket_open: failed to map fd\n");
+ 		return fd;
+diff -puN net/sctp/socket.c~flag-parameters-socket-and-socketpair net/sctp/socket.c
+--- a/net/sctp/socket.c~flag-parameters-socket-and-socketpair
++++ a/net/sctp/socket.c
+@@ -3910,7 +3910,7 @@ static int sctp_getsockopt_peeloff(struc
+ 		goto out;
+ 
+ 	/* Map the socket to an unused fd that can be returned to the user.  */
+-	retval = sock_map_fd(newsock);
++	retval = sock_map_fd(newsock, 0);
+ 	if (retval < 0) {
+ 		sock_release(newsock);
+ 		goto out;
+diff -puN net/socket.c~flag-parameters-socket-and-socketpair net/socket.c
+--- a/net/socket.c~flag-parameters-socket-and-socketpair
++++ a/net/socket.c
+@@ -349,11 +349,11 @@ static struct dentry_operations sockfs_d
+  *	but we take care of internal coherence yet.
+  */
+ 
+-static int sock_alloc_fd(struct file **filep)
++static int sock_alloc_fd(struct file **filep, int flags)
  {
  	int fd;
- 	struct eventfd_ctx *ctx;
  
-+	if (flags & ~EFD_CLOEXEC)
-+		return -EINVAL;
-+
- 	ctx = kmalloc(sizeof(*ctx), GFP_KERNEL);
- 	if (!ctx)
- 		return -ENOMEM;
-@@ -214,9 +217,15 @@ asmlinkage long sys_eventfd(unsigned int
- 	 * When we call this, the initialization must be complete, since
- 	 * anon_inode_getfd() will install the fd.
- 	 */
--	fd = anon_inode_getfd("[eventfd]", &eventfd_fops, ctx, 0);
-+	fd = anon_inode_getfd("[eventfd]", &eventfd_fops, ctx,
-+			      flags & O_CLOEXEC);
- 	if (fd < 0)
- 		kfree(ctx);
- 	return fd;
+-	fd = get_unused_fd();
++	fd = get_unused_fd_flags(flags);
+ 	if (likely(fd >= 0)) {
+ 		struct file *file = get_empty_filp();
+ 
+@@ -396,10 +396,10 @@ static int sock_attach_fd(struct socket 
+ 	return 0;
  }
  
-+asmlinkage long sys_eventfd(unsigned int count)
-+{
-+	return sys_eventfd2(count, 0);
-+}
+-int sock_map_fd(struct socket *sock)
++int sock_map_fd(struct socket *sock, int flags)
+ {
+ 	struct file *newfile;
+-	int fd = sock_alloc_fd(&newfile);
++	int fd = sock_alloc_fd(&newfile, flags);
+ 
+ 	if (likely(fd >= 0)) {
+ 		int err = sock_attach_fd(sock, newfile);
+@@ -1218,12 +1218,18 @@ asmlinkage long sys_socket(int family, i
+ {
+ 	int retval;
+ 	struct socket *sock;
++	int flags;
 +
-diff -puN include/asm-x86/unistd_32.h~flag-parameters-eventfd include/asm-x86/unistd_32.h
---- a/include/asm-x86/unistd_32.h~flag-parameters-eventfd
-+++ a/include/asm-x86/unistd_32.h
-@@ -333,6 +333,7 @@
- #define __NR_timerfd_settime	325
- #define __NR_timerfd_gettime	326
- #define __NR_signalfd4		327
-+#define __NR_eventfd2		328
++	flags = type & ~SOCK_TYPE_MASK;
++	if (flags & ~SOCK_CLOEXEC)
++		return -EINVAL;
++	type &= SOCK_TYPE_MASK;
  
- #ifdef __KERNEL__
+ 	retval = sock_create(family, type, protocol, &sock);
+ 	if (retval < 0)
+ 		goto out;
  
-diff -puN include/asm-x86/unistd_64.h~flag-parameters-eventfd include/asm-x86/unistd_64.h
---- a/include/asm-x86/unistd_64.h~flag-parameters-eventfd
-+++ a/include/asm-x86/unistd_64.h
-@@ -643,6 +643,8 @@ __SYSCALL(__NR_timerfd_gettime, sys_time
- __SYSCALL(__NR_paccept, sys_paccept)
- #define __NR_signalfd4				289
- __SYSCALL(__NR_signalfd4, sys_signalfd4)
-+#define __NR_eventfd2				290
-+__SYSCALL(__NR_eventfd2, sys_eventfd2)
+-	retval = sock_map_fd(sock);
++	retval = sock_map_fd(sock, flags & O_CLOEXEC);
+ 	if (retval < 0)
+ 		goto out_release;
  
- 
- #ifndef __NO_STUBS
-diff -puN include/linux/eventfd.h~flag-parameters-eventfd include/linux/eventfd.h
---- a/include/linux/eventfd.h~flag-parameters-eventfd
-+++ a/include/linux/eventfd.h
-@@ -10,6 +10,12 @@
- 
- #ifdef CONFIG_EVENTFD
- 
-+/* For O_CLOEXEC */
-+#include <linux/fcntl.h>
+@@ -1246,6 +1252,12 @@ asmlinkage long sys_socketpair(int famil
+ 	struct socket *sock1, *sock2;
+ 	int fd1, fd2, err;
+ 	struct file *newfile1, *newfile2;
++	int flags;
 +
-+/* Flags for eventfd2.  */
-+#define EFD_CLOEXEC O_CLOEXEC
-+
- struct file *eventfd_fget(int fd);
- int eventfd_signal(struct file *file, int n);
++	flags = type & ~SOCK_TYPE_MASK;
++	if (flags & ~SOCK_CLOEXEC)
++		return -EINVAL;
++	type &= SOCK_TYPE_MASK;
  
-diff -puN include/linux/syscalls.h~flag-parameters-eventfd include/linux/syscalls.h
---- a/include/linux/syscalls.h~flag-parameters-eventfd
-+++ a/include/linux/syscalls.h
-@@ -617,6 +617,7 @@ asmlinkage long sys_timerfd_settime(int 
- 				    struct itimerspec __user *otmr);
- asmlinkage long sys_timerfd_gettime(int ufd, struct itimerspec __user *otmr);
- asmlinkage long sys_eventfd(unsigned int count);
-+asmlinkage long sys_eventfd2(unsigned int count, int flags);
- asmlinkage long sys_fallocate(int fd, int mode, loff_t offset, loff_t len);
+ 	/*
+ 	 * Obtain the first socket and check if the underlying protocol
+@@ -1264,13 +1276,13 @@ asmlinkage long sys_socketpair(int famil
+ 	if (err < 0)
+ 		goto out_release_both;
  
- int kernel_execve(const char *filename, char *const argv[], char *const envp[]);
-diff -puN kernel/sys_ni.c~flag-parameters-eventfd kernel/sys_ni.c
---- a/kernel/sys_ni.c~flag-parameters-eventfd
-+++ a/kernel/sys_ni.c
-@@ -164,3 +164,4 @@ cond_syscall(sys_timerfd_gettime);
- cond_syscall(compat_sys_timerfd_settime);
- cond_syscall(compat_sys_timerfd_gettime);
- cond_syscall(sys_eventfd);
-+cond_syscall(sys_eventfd2);
+-	fd1 = sock_alloc_fd(&newfile1);
++	fd1 = sock_alloc_fd(&newfile1, flags & O_CLOEXEC);
+ 	if (unlikely(fd1 < 0)) {
+ 		err = fd1;
+ 		goto out_release_both;
+ 	}
+ 
+-	fd2 = sock_alloc_fd(&newfile2);
++	fd2 = sock_alloc_fd(&newfile2, flags & O_CLOEXEC);
+ 	if (unlikely(fd2 < 0)) {
+ 		err = fd2;
+ 		put_filp(newfile1);
+@@ -1426,7 +1438,7 @@ asmlinkage long sys_accept(int fd, struc
+ 	 */
+ 	__module_get(newsock->ops->owner);
+ 
+-	newfd = sock_alloc_fd(&newfile);
++	newfd = sock_alloc_fd(&newfile, 0);
+ 	if (unlikely(newfd < 0)) {
+ 		err = newfd;
+ 		sock_release(newsock);
 _
 
 Patches currently in -mm which might be from drepper@redhat.com are
