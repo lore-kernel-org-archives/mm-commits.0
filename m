@@ -1,197 +1,305 @@
 From: akpm@linux-foundation.org
-Subject: - hugetlb-support-boot-allocate-different-sizes.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:23:16 -0700
-Message-ID: <200807242323.m6ONNGbi010647@imap1.linux-foundation.org>
+Subject: - hugetlb-move-reservation-region-support-earlier.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:22:32 -0700
+Message-ID: <200807242322.m6ONMWKu010572@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37036 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39138 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754134AbYGXXX0 (ORCPT
+	by vger.kernel.org with ESMTP id S1754116AbYGXXX0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 24 Jul 2008 19:23:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, abh@cray.com, agl@us.ibm.com, ak@suse.de, nacc@us.ibm.com, mm-commits@vger.kernel.org
+To: apw@shadowen.org, agl@us.ibm.com, hannes@saeurebad.de, hugh@veritas.com, mel@csn.ul.ie, mtk.manpages@googlemail.com, wli@holomorphy.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hugetlb: support boot allocate different sizes
+     hugetlb: move reservation region support earlier
 has been removed from the -mm tree.  Its filename was
-     hugetlb-support-boot-allocate-different-sizes.patch
+     hugetlb-move-reservation-region-support-earlier.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlb: support boot allocate different sizes
-From: Nick Piggin <npiggin@suse.de>
+Subject: hugetlb: move reservation region support earlier
+From: Andy Whitcroft <apw@shadowen.org>
 
-Make some infrastructure changes to allow boot-time allocation of
-different hugepage page sizes.
+The following patch will require use of the reservation regions support. 
+Move this earlier in the file.  No changes have been made to this code.
 
-- move all basic hstate initialisation into hugetlb_add_hstate
-- create a new function hugetlb_hstate_alloc_pages() to do the
-  actual initial page allocations. Call this function early in
-  order to allocate giant pages from bootmem.
-- Check for multiple hugepages= parameters
-
+Signed-off-by: Andy Whitcroft <apw@shadowen.org>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Acked-by: Adam Litke <agl@us.ibm.com>
-Acked-by: Nishanth Aravamudan <nacc@us.ibm.com>
-Acked-by: Andrew Hastings <abh@cray.com>
-Signed-off-by: Andi Kleen <ak@suse.de>
-Signed-off-by: Nick Piggin <npiggin@suse.de>
+Cc: Johannes Weiner <hannes@saeurebad.de>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: William Lee Irwin III <wli@holomorphy.com>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   39 ++++++++++++++++++++++++++++++---------
- 1 file changed, 30 insertions(+), 9 deletions(-)
+ mm/hugetlb.c |  246 ++++++++++++++++++++++++-------------------------
+ 1 file changed, 125 insertions(+), 121 deletions(-)
 
-diff -puN mm/hugetlb.c~hugetlb-support-boot-allocate-different-sizes mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-support-boot-allocate-different-sizes
+diff -puN mm/hugetlb.c~hugetlb-move-reservation-region-support-earlier mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-move-reservation-region-support-earlier
 +++ a/mm/hugetlb.c
-@@ -981,15 +981,10 @@ static void __init gather_bootmem_preall
- 	}
- }
+@@ -41,6 +41,131 @@ static int hugetlb_next_nid;
+ static DEFINE_SPINLOCK(hugetlb_lock);
  
--static void __init hugetlb_init_one_hstate(struct hstate *h)
-+static void __init hugetlb_hstate_alloc_pages(struct hstate *h)
- {
- 	unsigned long i;
- 
--	for (i = 0; i < MAX_NUMNODES; ++i)
--		INIT_LIST_HEAD(&h->hugepage_freelists[i]);
--
--	h->hugetlb_next_nid = first_node(node_online_map);
--
- 	for (i = 0; i < h->max_huge_pages; ++i) {
- 		if (h->order >= MAX_ORDER) {
- 			if (!alloc_bootmem_huge_page(h))
-@@ -997,7 +992,7 @@ static void __init hugetlb_init_one_hsta
- 		} else if (!alloc_fresh_huge_page(h))
- 			break;
- 	}
--	h->max_huge_pages = h->free_huge_pages = h->nr_huge_pages = i;
-+	h->max_huge_pages = i;
- }
- 
- static void __init hugetlb_init_hstates(void)
-@@ -1005,7 +1000,9 @@ static void __init hugetlb_init_hstates(
- 	struct hstate *h;
- 
- 	for_each_hstate(h) {
--		hugetlb_init_one_hstate(h);
-+		/* oversize hugepages were init'ed in early boot */
-+		if (h->order < MAX_ORDER)
-+			hugetlb_hstate_alloc_pages(h);
- 	}
- }
- 
-@@ -1301,6 +1298,8 @@ module_init(hugetlb_init);
- void __init hugetlb_add_hstate(unsigned order)
- {
- 	struct hstate *h;
-+	unsigned long i;
+ /*
++ * Region tracking -- allows tracking of reservations and instantiated pages
++ *                    across the pages in a mapping.
++ */
++struct file_region {
++	struct list_head link;
++	long from;
++	long to;
++};
 +
- 	if (size_to_hstate(PAGE_SIZE << order)) {
- 		printk(KERN_WARNING "hugepagesz= specified twice, ignoring\n");
- 		return;
-@@ -1310,15 +1309,21 @@ void __init hugetlb_add_hstate(unsigned 
- 	h = &hstates[max_hstate++];
- 	h->order = order;
- 	h->mask = ~((1ULL << (order + PAGE_SHIFT)) - 1);
-+	h->nr_huge_pages = 0;
-+	h->free_huge_pages = 0;
-+	for (i = 0; i < MAX_NUMNODES; ++i)
-+		INIT_LIST_HEAD(&h->hugepage_freelists[i]);
-+	h->hugetlb_next_nid = first_node(node_online_map);
- 	snprintf(h->name, HSTATE_NAME_LEN, "hugepages-%lukB",
- 					huge_page_size(h)/1024);
--	hugetlb_init_one_hstate(h);
++static long region_add(struct list_head *head, long f, long t)
++{
++	struct file_region *rg, *nrg, *trg;
 +
- 	parsed_hstate = h;
- }
- 
- static int __init hugetlb_setup(char *s)
- {
- 	unsigned long *mhp;
-+	static unsigned long *last_mhp;
- 
- 	/*
- 	 * !max_hstate means we haven't parsed a hugepagesz= parameter yet,
-@@ -1329,9 +1334,25 @@ static int __init hugetlb_setup(char *s)
- 	else
- 		mhp = &parsed_hstate->max_huge_pages;
- 
-+	if (mhp == last_mhp) {
-+		printk(KERN_WARNING "hugepages= specified twice without "
-+			"interleaving hugepagesz=, ignoring\n");
-+		return 1;
++	/* Locate the region we are either in or before. */
++	list_for_each_entry(rg, head, link)
++		if (f <= rg->to)
++			break;
++
++	/* Round our left edge to the current segment if it encloses us. */
++	if (f > rg->from)
++		f = rg->from;
++
++	/* Check for and consume any regions we now overlap with. */
++	nrg = rg;
++	list_for_each_entry_safe(rg, trg, rg->link.prev, link) {
++		if (&rg->link == head)
++			break;
++		if (rg->from > t)
++			break;
++
++		/* If this area reaches higher then extend our area to
++		 * include it completely.  If this is not the first area
++		 * which we intend to reuse, free it. */
++		if (rg->to > t)
++			t = rg->to;
++		if (rg != nrg) {
++			list_del(&rg->link);
++			kfree(rg);
++		}
++	}
++	nrg->from = f;
++	nrg->to = t;
++	return 0;
++}
++
++static long region_chg(struct list_head *head, long f, long t)
++{
++	struct file_region *rg, *nrg;
++	long chg = 0;
++
++	/* Locate the region we are before or in. */
++	list_for_each_entry(rg, head, link)
++		if (f <= rg->to)
++			break;
++
++	/* If we are below the current region then a new region is required.
++	 * Subtle, allocate a new region at the position but make it zero
++	 * size such that we can guarantee to record the reservation. */
++	if (&rg->link == head || t < rg->from) {
++		nrg = kmalloc(sizeof(*nrg), GFP_KERNEL);
++		if (!nrg)
++			return -ENOMEM;
++		nrg->from = f;
++		nrg->to   = f;
++		INIT_LIST_HEAD(&nrg->link);
++		list_add(&nrg->link, rg->link.prev);
++
++		return t - f;
 +	}
 +
- 	if (sscanf(s, "%lu", mhp) <= 0)
- 		*mhp = 0;
- 
-+	/*
-+	 * Global state is always initialized later in hugetlb_init.
-+	 * But we need to allocate >= MAX_ORDER hstates here early to still
-+	 * use the bootmem allocator.
-+	 */
-+	if (max_hstate && parsed_hstate->order >= MAX_ORDER)
-+		hugetlb_hstate_alloc_pages(parsed_hstate);
++	/* Round our left edge to the current segment if it encloses us. */
++	if (f > rg->from)
++		f = rg->from;
++	chg = t - f;
 +
-+	last_mhp = mhp;
++	/* Check for and consume any regions we now overlap with. */
++	list_for_each_entry(rg, rg->link.prev, link) {
++		if (&rg->link == head)
++			break;
++		if (rg->from > t)
++			return chg;
 +
- 	return 1;
++		/* We overlap with this area, if it extends futher than
++		 * us then we must extend ourselves.  Account for its
++		 * existing reservation. */
++		if (rg->to > t) {
++			chg += rg->to - t;
++			t = rg->to;
++		}
++		chg -= rg->to - rg->from;
++	}
++	return chg;
++}
++
++static long region_truncate(struct list_head *head, long end)
++{
++	struct file_region *rg, *trg;
++	long chg = 0;
++
++	/* Locate the region we are either in or before. */
++	list_for_each_entry(rg, head, link)
++		if (end <= rg->to)
++			break;
++	if (&rg->link == head)
++		return 0;
++
++	/* If we are in the middle of a region then adjust it. */
++	if (end > rg->from) {
++		chg = rg->to - end;
++		rg->to = end;
++		rg = list_entry(rg->link.next, typeof(*rg), link);
++	}
++
++	/* Drop any remaining regions. */
++	list_for_each_entry_safe(rg, trg, rg->link.prev, link) {
++		if (&rg->link == head)
++			break;
++		chg += rg->to - rg->from;
++		list_del(&rg->link);
++		kfree(rg);
++	}
++	return chg;
++}
++
++/*
+  * Convert the address within this vma to the page offset within
+  * the mapping, in base page units.
+  */
+@@ -1429,127 +1554,6 @@ void hugetlb_change_protection(struct vm
+ 	flush_tlb_range(vma, start, end);
  }
- __setup("hugepages=", hugetlb_setup);
-_
-
-Patches currently in -mm which might be from npiggin@suse.de are
-
-origin.patch
-linux-next.patch
-mmu-notifiers-add-list_del_init_rcu.patch
-mmu-notifiers-add-mm_take_all_locks-operation.patch
-mmu-notifier-core.patch
-x86-implement-pte_special.patch
-x86-implement-pte_special-fix.patch
-mm-introduce-get_user_pages_fast.patch
-mm-introduce-get_user_pages_fast-fix.patch
-mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast.patch
-x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-fix.patch
-x86-lockless-get_user_pages_fast-fix-2.patch
-x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
-x86-lockless-get_user_pages_fast-fix-warning.patch
-dio-use-get_user_pages_fast.patch
-splice-use-get_user_pages_fast.patch
-x86-support-1gb-hugepages-with-get_user_pages_lockless.patch
-mm-readahead-scan-lockless.patch
-radix-tree-add-gang_lookup_slot-gang_lookup_slot_tag.patch
-mm-speculative-page-references.patch
-mm-speculative-page-references-fix.patch
-mm-speculative-page-references-fix-add_to_page_cache.patch
-mm-speculative-page-references-fix-add_to_page_cache-fix.patch
-mm-lockless-pagecache.patch
-mm-spinlock-tree_lock.patch
-powerpc-implement-pte_special.patch
-powerpc-implement-pte_special-update.patch
-powerpc-lockless-get_user_pages.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
-vmscan-split-lru-lists-into-anon-file-sets-splitlru-bdi_cap_swap_backed.patch
-mlock-mlocked-pages-are-unevictable.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-3.patch
-mlock-mlocked-pages-are-unevictable-fix-fix-munlock-page-table-walk-now-requires-mm.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
-fix-double-unlock_page-in-2626-rc5-mm3-kernel-bug-at-mm-filemapc-575.patch
-vmstat-mlocked-pages-statistics.patch
-vmstat-mlocked-pages-statistics-fix-incorrect-mlocked-field-of-proc-meminfo.patch
-reiser4.patch
-likeliness-accounting-change-and-cleanup.patch
-
+ 
+-struct file_region {
+-	struct list_head link;
+-	long from;
+-	long to;
+-};
+-
+-static long region_add(struct list_head *head, long f, long t)
+-{
+-	struct file_region *rg, *nrg, *trg;
+-
+-	/* Locate the region we are either in or before. */
+-	list_for_each_entry(rg, head, link)
+-		if (f <= rg->to)
+-			break;
+-
+-	/* Round our left edge to the current segment if it encloses us. */
+-	if (f > rg->from)
+-		f = rg->from;
+-
+-	/* Check for and consume any regions we now overlap with. */
+-	nrg = rg;
+-	list_for_each_entry_safe(rg, trg, rg->link.prev, link) {
+-		if (&rg->link == head)
+-			break;
+-		if (rg->from > t)
+-			break;
+-
+-		/* If this area reaches higher then extend our area to
+-		 * include it completely.  If this is not the first area
+-		 * which we intend to reuse, free it. */
+-		if (rg->to > t)
+-			t = rg->to;
+-		if (rg != nrg) {
+-			list_del(&rg->link);
+-			kfree(rg);
+-		}
+-	}
+-	nrg->from = f;
+-	nrg->to = t;
+-	return 0;
+-}
+-
+-static long region_chg(struct list_head *head, long f, long t)
+-{
+-	struct file_region *rg, *nrg;
+-	long chg = 0;
+-
+-	/* Locate the region we are before or in. */
+-	list_for_each_entry(rg, head, link)
+-		if (f <= rg->to)
+-			break;
+-
+-	/* If we are below the current region then a new region is required.
+-	 * Subtle, allocate a new region at the position but make it zero
+-	 * size such that we can guarantee to record the reservation. */
+-	if (&rg->link == head || t < rg->from) {
+-		nrg = kmalloc(sizeof(*nrg), GFP_KERNEL);
+-		if (!nrg)
+-			return -ENOMEM;
+-		nrg->from = f;
+-		nrg->to   = f;
+-		INIT_LIST_HEAD(&nrg->link);
+-		list_add(&nrg->link, rg->link.prev);
+-
+-		return t - f;
+-	}
+-
+-	/* Round our left edge to the current segment if it encloses us. */
+-	if (f > rg->from)
+-		f = rg->from;
+-	chg = t - f;
+-
+-	/* Check for and consume any regions we now overlap with. */
+-	list_for_each_entry(rg, rg->link.prev, link) {
+-		if (&rg->link == head)
+-			break;
+-		if (rg->from > t)
+-			return chg;
+-
+-		/* We overlap with this area, if it extends futher than
+-		 * us then we must extend ourselves.  Account for its
+-		 * existing reservation. */
+-		if (rg->to > t) {
+-			chg += rg->to - t;
+-			t = rg->to;
+-		}
+-		chg -= rg->to - rg->from;
+-	}
+-	return chg;
+-}
+-
+-static long region_truncate(struct list_head *head, long end)
+-{
+-	struct file_region *rg, *trg;
+-	long chg = 0;
+-
+-	/* Locate the region we are either in or before. */
+-	list_for_each_entry(rg, head, link)
+-		if (end <= rg->to)
+-			break;
+-	if (&rg->link == head)
+-		return 0;
+-
+-	/* If we are in the middle of a region then adjust it. */
+-	if (end > rg->from) {
+-		chg = rg->to - end;
+-		rg->to = end;
+-		rg = list_entry(rg->link.next, typeof(*rg), link);
+-	}
+-
+-	/* Drop any remaining regions. */
+-	list_for_each_entry_safe(rg, trg, rg->link.prev, link) {
+-		if (&rg->link == head)
+-			break;
+-		chg += rg->to - rg->from;
+-		list_del(&rg->link);
+-		kfree(rg);
+-	}
+-	return chg;
+-}
