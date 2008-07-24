@@ -1,145 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: - mspec-convert-nopfn-to-fault.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:21:20 -0700
-Message-ID: <200807242321.m6ONLKZ2010392@imap1.linux-foundation.org>
+Subject: - move-memory_read_from_buffer-from-fsh-to-stringh.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:19:56 -0700
+Message-ID: <200807242319.m6ONJueK010290@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47474 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60505 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752972AbYGXXV3 (ORCPT
+	by vger.kernel.org with ESMTP id S1753166AbYGXXVd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:21:29 -0400
+	Thu, 24 Jul 2008 19:21:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, jes@sgi.com, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, James.Bottomley@hansenpartnership.com, geert@linux-m68k.org, lenb@kernel.org, robert.moore@intel.com, rui.zhang@intel.com, trenn@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mspec: convert nopfn to fault
+     move memory_read_from_buffer() from fs.h to string.h
 has been removed from the -mm tree.  Its filename was
-     mspec-convert-nopfn-to-fault.patch
+     move-memory_read_from_buffer-from-fsh-to-stringh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mspec: convert nopfn to fault
-From: Nick Piggin <npiggin@suse.de>
+Subject: move memory_read_from_buffer() from fs.h to string.h
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-[akpm@linux-foundation.org: remove unused variable]
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Acked-by: Jes Sorensen <jes@sgi.com>
+James Bottomley warns that inclusion of linux/fs.h in a low level
+driver was always a danger signal.  This patch moves
+memory_read_from_buffer() from fs.h to string.h and fixes includes in
+existing memory_read_from_buffer() users.
+
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: James Bottomley <James.Bottomley@hansenpartnership.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Zhang Rui <rui.zhang@intel.com>
+Cc: Bob Moore <robert.moore@intel.com>
+Cc: Thomas Renninger <trenn@suse.de>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mspec.c |   23 ++++++++++++++---------
- 1 file changed, 14 insertions(+), 9 deletions(-)
+ drivers/acpi/system.c       |    1 +
+ drivers/zorro/zorro-sysfs.c |    1 -
+ include/linux/fs.h          |    2 --
+ include/linux/string.h      |    3 +++
+ 4 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/char/mspec.c~mspec-convert-nopfn-to-fault drivers/char/mspec.c
---- a/drivers/char/mspec.c~mspec-convert-nopfn-to-fault
-+++ a/drivers/char/mspec.c
-@@ -193,25 +193,23 @@ mspec_close(struct vm_area_struct *vma)
- }
+diff -puN drivers/acpi/system.c~move-memory_read_from_buffer-from-fsh-to-stringh drivers/acpi/system.c
+--- a/drivers/acpi/system.c~move-memory_read_from_buffer-from-fsh-to-stringh
++++ a/drivers/acpi/system.c
+@@ -26,6 +26,7 @@
+ #include <linux/proc_fs.h>
+ #include <linux/seq_file.h>
+ #include <linux/init.h>
++#include <linux/string.h>
+ #include <asm/uaccess.h>
  
- /*
-- * mspec_nopfn
-+ * mspec_fault
-  *
-  * Creates a mspec page and maps it to user space.
-  */
--static unsigned long
--mspec_nopfn(struct vm_area_struct *vma, unsigned long address)
-+static int
-+mspec_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
- {
- 	unsigned long paddr, maddr;
- 	unsigned long pfn;
--	int index;
-+	pgoff_t index = vmf->pgoff;
- 	struct vma_data *vdata = vma->vm_private_data;
+ #include <acpi/acpi_drivers.h>
+diff -puN drivers/zorro/zorro-sysfs.c~move-memory_read_from_buffer-from-fsh-to-stringh drivers/zorro/zorro-sysfs.c
+--- a/drivers/zorro/zorro-sysfs.c~move-memory_read_from_buffer-from-fsh-to-stringh
++++ a/drivers/zorro/zorro-sysfs.c
+@@ -15,7 +15,6 @@
+ #include <linux/zorro.h>
+ #include <linux/stat.h>
+ #include <linux/string.h>
+-#include <linux/fs.h>
  
--	BUG_ON(address < vdata->vm_start || address >= vdata->vm_end);
--	index = (address - vdata->vm_start) >> PAGE_SHIFT;
- 	maddr = (volatile unsigned long) vdata->maddr[index];
- 	if (maddr == 0) {
- 		maddr = uncached_alloc_page(numa_node_id(), 1);
- 		if (maddr == 0)
--			return NOPFN_OOM;
-+			return VM_FAULT_OOM;
+ #include "zorro.h"
  
- 		spin_lock(&vdata->lock);
- 		if (vdata->maddr[index] == 0) {
-@@ -231,13 +229,20 @@ mspec_nopfn(struct vm_area_struct *vma, 
+diff -puN include/linux/fs.h~move-memory_read_from_buffer-from-fsh-to-stringh include/linux/fs.h
+--- a/include/linux/fs.h~move-memory_read_from_buffer-from-fsh-to-stringh
++++ a/include/linux/fs.h
+@@ -2006,8 +2006,6 @@ extern void simple_release_fs(struct vfs
  
- 	pfn = paddr >> PAGE_SHIFT;
+ extern ssize_t simple_read_from_buffer(void __user *to, size_t count,
+ 			loff_t *ppos, const void *from, size_t available);
+-extern ssize_t memory_read_from_buffer(void *to, size_t count, loff_t *ppos,
+-			const void *from, size_t available);
  
--	return pfn;
-+	/*
-+	 * vm_insert_pfn can fail with -EBUSY, but in that case it will
-+	 * be because another thread has installed the pte first, so it
-+	 * is no problem.
-+	 */
-+	vm_insert_pfn(vma, (unsigned long)vmf->virtual_address, pfn);
+ #ifdef CONFIG_MIGRATION
+ extern int buffer_migrate_page(struct address_space *,
+diff -puN include/linux/string.h~move-memory_read_from_buffer-from-fsh-to-stringh include/linux/string.h
+--- a/include/linux/string.h~move-memory_read_from_buffer-from-fsh-to-stringh
++++ a/include/linux/string.h
+@@ -111,5 +111,8 @@ extern void argv_free(char **argv);
+ 
+ extern bool sysfs_streq(const char *s1, const char *s2);
+ 
++extern ssize_t memory_read_from_buffer(void *to, size_t count, loff_t *ppos,
++			const void *from, size_t available);
 +
-+	return VM_FAULT_NOPAGE;
- }
- 
- static struct vm_operations_struct mspec_vm_ops = {
- 	.open = mspec_open,
- 	.close = mspec_close,
--	.nopfn = mspec_nopfn
-+	.fault = mspec_fault,
- };
- 
- /*
+ #endif
+ #endif /* _LINUX_STRING_H_ */
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 origin.patch
 linux-next.patch
-mmu-notifiers-add-list_del_init_rcu.patch
-mmu-notifiers-add-mm_take_all_locks-operation.patch
-mmu-notifier-core.patch
-x86-implement-pte_special.patch
-x86-implement-pte_special-fix.patch
-mm-introduce-get_user_pages_fast.patch
-mm-introduce-get_user_pages_fast-fix.patch
-mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast.patch
-x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-fix.patch
-x86-lockless-get_user_pages_fast-fix-2.patch
-x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
-x86-lockless-get_user_pages_fast-fix-warning.patch
-dio-use-get_user_pages_fast.patch
-splice-use-get_user_pages_fast.patch
-x86-support-1gb-hugepages-with-get_user_pages_lockless.patch
-mm-readahead-scan-lockless.patch
-radix-tree-add-gang_lookup_slot-gang_lookup_slot_tag.patch
-mm-speculative-page-references.patch
-mm-speculative-page-references-fix.patch
-mm-speculative-page-references-fix-add_to_page_cache.patch
-mm-speculative-page-references-fix-add_to_page_cache-fix.patch
-mm-lockless-pagecache.patch
-mm-spinlock-tree_lock.patch
-powerpc-implement-pte_special.patch
-powerpc-implement-pte_special-update.patch
-powerpc-lockless-get_user_pages.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
-vmscan-split-lru-lists-into-anon-file-sets-splitlru-bdi_cap_swap_backed.patch
-mlock-mlocked-pages-are-unevictable.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-3.patch
-mlock-mlocked-pages-are-unevictable-fix-fix-munlock-page-table-walk-now-requires-mm.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
-fix-double-unlock_page-in-2626-rc5-mm3-kernel-bug-at-mm-filemapc-575.patch
-vmstat-mlocked-pages-statistics.patch
-vmstat-mlocked-pages-statistics-fix-incorrect-mlocked-field-of-proc-meminfo.patch
-reiser4.patch
-likeliness-accounting-change-and-cleanup.patch
+ipr-use-memory_read_from_buffer.patch
+qla2xxx-use-memory_read_from_buffer.patch
+qla2xxx-use-memory_read_from_buffer-fix.patch
+workqueues-do-cpu_up_canceled-if-cpu_up_prepare-fails.patch
+ipc-use-simple_read_from_buffer.patch
+nwflash-use-simple_read_from_buffer.patch
+char-merge-ip2main-and-ip2base.patch
+char-ip2-cleanup-globals.patch
+char-ip2-fix-sparse-warnings.patch
+char-ip2-init-deinit-cleanup.patch
+ip2-avoid-add_timer-with-pending-timer.patch
+firmware-use-memory_read_from_buffer.patch
+firmware-use-memory_read_from_buffer-fix.patch
+dcdbas-use-memory_read_from_buffer.patch
+dcdbas-use-memory_read_from_buffer-fix.patch
+dell_rbu-use-memory_read_from_buffer.patch
+dell_rbu-use-memory_read_from_buffer-fix.patch
 
