@@ -1,249 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: - spi-kconfig-simplifications.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:28:28 -0700
-Message-ID: <200807242328.m6ONSSDq011265@imap1.linux-foundation.org>
+Subject: - vt-hold-console_sem-across-sysfs-operations.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:28:40 -0700
+Message-ID: <200807242328.m6ONSe98011291@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53278 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37499 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756535AbYGXX2i (ORCPT
+	by vger.kernel.org with ESMTP id S1756618AbYGXX2v (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:28:38 -0400
+	Thu, 24 Jul 2008 19:28:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@crashcourse.ca, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, alan@lxorguk.ukuu.org.uk, aris@ruivo.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SPI Kconfig simplifications
+     vt: hold console_sem across sysfs operations
 has been removed from the -mm tree.  Its filename was
-     spi-kconfig-simplifications.patch
+     vt-hold-console_sem-across-sysfs-operations.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: SPI Kconfig simplifications
-From: "Robert P. J. Day" <rpjday@crashcourse.ca>
+Subject: vt: hold console_sem across sysfs operations
+From: Jiri Slaby <jirislaby@gmail.com>
 
-Use "if SPI_MASTER" to remove numerous dependencies.
+Hold console sem while creating/destroying sysfs files.  Serialisation is
+so far done by BKL held in tty release_dev and chrdev_open, but no other
+locks are held in open path.
 
-[dbrownell@users.sourceforge.net: remove a couple now-needless EXPERIMENTAL dependencies too]
-Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Aristeu Rozanski <aris@ruivo.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/Kconfig |   45 +++++++++++++++++++++---------------------
- 1 file changed, 23 insertions(+), 22 deletions(-)
+ drivers/char/vt.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/spi/Kconfig~spi-kconfig-simplifications drivers/spi/Kconfig
---- a/drivers/spi/Kconfig~spi-kconfig-simplifications
-+++ a/drivers/spi/Kconfig
-@@ -49,25 +49,26 @@ config SPI_MASTER
- 	  controller and the protocol drivers for the SPI slave chips
- 	  that are connected.
- 
-+if SPI_MASTER
-+
- comment "SPI Master Controller Drivers"
--	depends on SPI_MASTER
- 
- config SPI_ATMEL
- 	tristate "Atmel SPI Controller"
--	depends on (ARCH_AT91 || AVR32) && SPI_MASTER
-+	depends on (ARCH_AT91 || AVR32)
- 	help
- 	  This selects a driver for the Atmel SPI Controller, present on
- 	  many AT32 (AVR32) and AT91 (ARM) chips.
- 
- config SPI_BFIN
- 	tristate "SPI controller driver for ADI Blackfin5xx"
--	depends on SPI_MASTER && BLACKFIN
-+	depends on BLACKFIN
- 	help
- 	  This is the SPI controller master driver for Blackfin 5xx processor.
- 
- config SPI_AU1550
- 	tristate "Au1550/Au12x0 SPI Controller"
--	depends on SPI_MASTER && (SOC_AU1550 || SOC_AU1200) && EXPERIMENTAL
-+	depends on (SOC_AU1550 || SOC_AU1200) && EXPERIMENTAL
- 	select SPI_BITBANG
- 	help
- 	  If you say yes to this option, support will be included for the
-@@ -78,7 +79,6 @@ config SPI_AU1550
- 
- config SPI_BITBANG
- 	tristate "Bitbanging SPI master"
--	depends on SPI_MASTER && EXPERIMENTAL
- 	help
- 	  With a few GPIO pins, your system can bitbang the SPI protocol.
- 	  Select this to get SPI support through I/O pins (GPIO, parallel
-@@ -92,7 +92,7 @@ config SPI_BITBANG
- 
- config SPI_BUTTERFLY
- 	tristate "Parallel port adapter for AVR Butterfly (DEVELOPMENT)"
--	depends on SPI_MASTER && PARPORT && EXPERIMENTAL
-+	depends on PARPORT
- 	select SPI_BITBANG
- 	help
- 	  This uses a custom parallel port cable to connect to an AVR
-@@ -102,14 +102,14 @@ config SPI_BUTTERFLY
- 
- config SPI_IMX
- 	tristate "Freescale iMX SPI controller"
--	depends on SPI_MASTER && ARCH_IMX && EXPERIMENTAL
-+	depends on ARCH_IMX && EXPERIMENTAL
- 	help
- 	  This enables using the Freescale iMX SPI controller in master
- 	  mode.
- 
- config SPI_LM70_LLP
- 	tristate "Parallel port adapter for LM70 eval board (DEVELOPMENT)"
--	depends on SPI_MASTER && PARPORT && EXPERIMENTAL
-+	depends on PARPORT && EXPERIMENTAL
- 	select SPI_BITBANG
- 	help
- 	  This driver supports the NS LM70 LLP Evaluation Board,
-@@ -118,14 +118,14 @@ config SPI_LM70_LLP
- 
- config SPI_MPC52xx_PSC
- 	tristate "Freescale MPC52xx PSC SPI controller"
--	depends on SPI_MASTER && PPC_MPC52xx && EXPERIMENTAL
-+	depends on PPC_MPC52xx && EXPERIMENTAL
- 	help
- 	  This enables using the Freescale MPC52xx Programmable Serial
- 	  Controller in master SPI mode.
- 
- config SPI_MPC83xx
- 	tristate "Freescale MPC83xx/QUICC Engine SPI controller"
--	depends on SPI_MASTER && (PPC_83xx || QUICC_ENGINE) && EXPERIMENTAL
-+	depends on (PPC_83xx || QUICC_ENGINE) && EXPERIMENTAL
- 	help
- 	  This enables using the Freescale MPC83xx and QUICC Engine SPI
- 	  controllers in master mode.
-@@ -137,21 +137,21 @@ config SPI_MPC83xx
- 
- config SPI_OMAP_UWIRE
- 	tristate "OMAP1 MicroWire"
--	depends on SPI_MASTER && ARCH_OMAP1
-+	depends on ARCH_OMAP1
- 	select SPI_BITBANG
- 	help
- 	  This hooks up to the MicroWire controller on OMAP1 chips.
- 
- config SPI_OMAP24XX
- 	tristate "McSPI driver for OMAP24xx/OMAP34xx"
--	depends on SPI_MASTER && (ARCH_OMAP24XX || ARCH_OMAP34XX)
-+	depends on ARCH_OMAP24XX || ARCH_OMAP34XX
- 	help
- 	  SPI master controller for OMAP24xx/OMAP34xx Multichannel SPI
- 	  (McSPI) modules.
- 
- config SPI_PXA2XX
- 	tristate "PXA2xx SSP SPI master"
--	depends on SPI_MASTER && ARCH_PXA && EXPERIMENTAL
-+	depends on ARCH_PXA && EXPERIMENTAL
- 	select PXA_SSP
- 	help
- 	  This enables using a PXA2xx SSP port as a SPI master controller.
-@@ -160,14 +160,14 @@ config SPI_PXA2XX
- 
- config SPI_S3C24XX
- 	tristate "Samsung S3C24XX series SPI"
--	depends on SPI_MASTER && ARCH_S3C2410 && EXPERIMENTAL
-+	depends on ARCH_S3C2410 && EXPERIMENTAL
- 	select SPI_BITBANG
- 	help
- 	  SPI driver for Samsung S3C24XX series ARM SoCs
- 
- config SPI_S3C24XX_GPIO
- 	tristate "Samsung S3C24XX series SPI by GPIO"
--	depends on SPI_MASTER && ARCH_S3C2410 && EXPERIMENTAL
-+	depends on ARCH_S3C2410 && EXPERIMENTAL
- 	select SPI_BITBANG
- 	help
- 	  SPI driver for Samsung S3C24XX series ARM SoCs using
-@@ -177,20 +177,20 @@ config SPI_S3C24XX_GPIO
- 
- config SPI_SH_SCI
- 	tristate "SuperH SCI SPI controller"
--	depends on SPI_MASTER && SUPERH
-+	depends on SUPERH
- 	select SPI_BITBANG
- 	help
- 	  SPI driver for SuperH SCI blocks.
- 
- config SPI_TXX9
- 	tristate "Toshiba TXx9 SPI controller"
--	depends on SPI_MASTER && GENERIC_GPIO && CPU_TX49XX
-+	depends on GENERIC_GPIO && CPU_TX49XX
- 	help
- 	  SPI driver for Toshiba TXx9 MIPS SoCs
- 
- config SPI_XILINX
- 	tristate "Xilinx SPI controller"
--	depends on SPI_MASTER && XILINX_VIRTEX && EXPERIMENTAL
-+	depends on XILINX_VIRTEX && EXPERIMENTAL
- 	select SPI_BITBANG
- 	help
- 	  This exposes the SPI controller IP from the Xilinx EDK.
-@@ -207,11 +207,10 @@ config SPI_XILINX
- # being probably the most widely used ones.
- #
- comment "SPI Protocol Masters"
--	depends on SPI_MASTER
- 
- config SPI_AT25
- 	tristate "SPI EEPROMs from most vendors"
--	depends on SPI_MASTER && SYSFS
-+	depends on SYSFS
- 	help
- 	  Enable this driver to get read/write support to most SPI EEPROMs,
- 	  after you configure the board init code to know about each eeprom
-@@ -222,7 +221,7 @@ config SPI_AT25
- 
- config SPI_SPIDEV
- 	tristate "User mode SPI device driver support"
--	depends on SPI_MASTER && EXPERIMENTAL
-+	depends on EXPERIMENTAL
- 	help
- 	  This supports user mode SPI protocol drivers.
- 
-@@ -231,7 +230,7 @@ config SPI_SPIDEV
- 
- config SPI_TLE62X0
- 	tristate "Infineon TLE62X0 (for power switching)"
--	depends on SPI_MASTER && SYSFS
-+	depends on SYSFS
- 	help
- 	  SPI driver for Infineon TLE62X0 series line driver chips,
- 	  such as the TLE6220, TLE6230 and TLE6240.  This provides a
-@@ -242,6 +241,8 @@ config SPI_TLE62X0
- # Add new SPI protocol masters in alphabetical order above this line
- #
- 
-+endif # SPI_MASTER
-+
- # (slave support would go here)
- 
- endif # SPI
+diff -puN drivers/char/vt.c~vt-hold-console_sem-across-sysfs-operations drivers/char/vt.c
+--- a/drivers/char/vt.c~vt-hold-console_sem-across-sysfs-operations
++++ a/drivers/char/vt.c
+@@ -2749,8 +2749,8 @@ static int con_open(struct tty_struct *t
+ 				tty->termios->c_iflag |= IUTF8;
+ 			else
+ 				tty->termios->c_iflag &= ~IUTF8;
+-			release_console_sem();
+ 			vcs_make_sysfs(tty);
++			release_console_sem();
+ 			return ret;
+ 		}
+ 	}
+@@ -2775,8 +2775,8 @@ static void con_close(struct tty_struct 
+ 		if (vc)
+ 			vc->vc_tty = NULL;
+ 		tty->driver_data = NULL;
+-		release_console_sem();
+ 		vcs_remove_sysfs(tty);
++		release_console_sem();
+ 		mutex_unlock(&tty_mutex);
+ 		/*
+ 		 * tty_mutex is released, but we still hold BKL, so there is
 _
 
-Patches currently in -mm which might be from rpjday@crashcourse.ca are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
 origin.patch
-linux-next.patch
-kbuild-remove-final-references-to-deprecated-unreferenced-topdir.patch
-m32r-remove-the-unused-nohighmem-option.patch
-xtensa-warn-about-including-asm-rwsemh-directly.patch
-xtensa-use-newer-__spin_lock_unlocked-macro.patch
-remove-apparently-unused-fd1772h-header-file.patch
-init-delete-hard-coded-setting-and-testing-of-build_cramdisk.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
-lists-remove-a-redundant-conditional-definition-of-list_add.patch
-inith-remove-obsolete-content-from.patch
-pty-remove-unused-unix98_pty_count-options.patch
+ath5k-fix-memory-corruption.patch
+ath5k-kill-tasklets-on-shutdown.patch
+ath5k-flush-work.patch
+ath5k-fix-dma-operation.patch
+ath5k-suspend-resume-fixes.patch
+ath5k-fix-beacon-update-deadlock.patch
+ath5k-mask-out-unneeded-interrupts.patch
+ath5k-unify-resets.patch
+mac80211-tx-use-dev_kfree_skb_any-for-beacon_get.patch
+mac80211-return-correct-error-return-from-ieee80211_wep_init.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments.patch
+ip2-push-bkl-down-for-the-firmware-interface.patch
+rio-push-down-the-bkl-into-the-firmware-ioctl-handler.patch
+sx-push-bkl-down-into-the-firmware-ioctl-handler.patch
+ppdev-wrap-ioctl-handler-in-driver-and-push-lock-down.patch
+dsp56k-bkl-pushdown.patch
+char-mxser-ioctl-cleanup.patch
+char-mxser-globals-cleanup.patch
+char-mxser-update-documentation.patch
+char-mxser-prints-cleanup.patch
+char-mxser-remove-predefined-isa-support.patch
+char-mxser-various-cleanups.patch
+ip2-fix-iielliscleanup-as-it-is-static-but-not-always-used.patch
+char-merge-ip2main-and-ip2base.patch
+char-ip2-cleanup-globals.patch
+char-ip2-fix-sparse-warnings.patch
+char-ip2-init-deinit-cleanup.patch
+ip2-avoid-add_timer-with-pending-timer.patch
+drivers-misc-phantom-note-pci.patch
+reiser4.patch
+shrink_slab-handle-bad-shrinkers.patch
 
