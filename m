@@ -1,503 +1,530 @@
 From: akpm@linux-foundation.org
-Subject: - hugetlb-new-sysfs-interface.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:23:04 -0700
-Message-ID: <200807242323.m6ONN4Na010624@imap1.linux-foundation.org>
+Subject: - hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:22:25 -0700
+Message-ID: <200807242322.m6ONMPZr010561@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36100 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37059 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753952AbYGXXXQ (ORCPT
+	by vger.kernel.org with ESMTP id S1753952AbYGXXXM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:23:16 -0400
+	Thu, 24 Jul 2008 19:23:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, dave@linux.vnet.ibm.com, gregkh@suse.de, nacc@us.ibm.com, mm-commits@vger.kernel.org
+To: mel@csn.ul.ie, agl@us.ibm.com, apw@shadowen.org, hugh@veritas.com, npiggin@suse.de, wli@holomorphy.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hugetlb: new sysfs interface
+     hugetlb: guarantee that COW faults for a process that called mmap(MAP_PRIVATE) on hugetlbfs will succeed
 has been removed from the -mm tree.  Its filename was
-     hugetlb-new-sysfs-interface.patch
+     hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlb: new sysfs interface
-From: Nick Piggin <npiggin@suse.de>
+Subject: hugetlb: guarantee that COW faults for a process that called mmap(MAP_PRIVATE) on hugetlbfs will succeed
+From: Mel Gorman <mel@csn.ul.ie>
 
-Provide new hugepages user APIs that are more suited to multiple hstates
-in sysfs.  There is a new directory, /sys/kernel/hugepages.  Underneath
-that directory there will be a directory per-supported hugepage size,
-e.g.:
+After patch 2 in this series, a process that successfully calls mmap() for
+a MAP_PRIVATE mapping will be guaranteed to successfully fault until a
+process calls fork().  At that point, the next write fault from the parent
+could fail due to COW if the child still has a reference.
 
-/sys/kernel/hugepages/hugepages-64kB
-/sys/kernel/hugepages/hugepages-16384kB
-/sys/kernel/hugepages/hugepages-16777216kB
+We only reserve pages for the parent but a copy must be made to avoid
+leaking data from the parent to the child after fork().  Reserves could be
+taken for both parent and child at fork time to guarantee faults but if
+the mapping is large it is highly likely we will not have sufficient pages
+for the reservation, and it is common to fork only to exec() immediatly
+after.  A failure here would be very undesirable.
 
-corresponding to 64k, 16m and 16g respectively.  Within each
-hugepages-size directory there are a number of files, corresponding to the
-tracked counters in the hstate, e.g.:
+Note that the current behaviour of mainline with MAP_PRIVATE pages is
+pretty bad.  The following situation is allowed to occur today.
 
-/sys/kernel/hugepages/hugepages-64/nr_hugepages
-/sys/kernel/hugepages/hugepages-64/nr_overcommit_hugepages
-/sys/kernel/hugepages/hugepages-64/free_hugepages
-/sys/kernel/hugepages/hugepages-64/resv_hugepages
-/sys/kernel/hugepages/hugepages-64/surplus_hugepages
+1. Process calls mmap(MAP_PRIVATE)
+2. Process calls mlock() to fault all pages and makes sure it succeeds
+3. Process forks()
+4. Process writes to MAP_PRIVATE mapping while child still exists
+5. If the COW fails at this point, the process gets SIGKILLed even though it
+   had taken care to ensure the pages existed
 
-Of these files, the first two are read-write and the latter three are
-read-only.  The size of the hugepage being manipulated is trivially
-deducible from the enclosing directory and is always expressed in kB (to
-match meminfo).
+This patch improves the situation by guaranteeing the reliability of the
+process that successfully calls mmap().  When the parent performs COW, it
+will try to satisfy the allocation without using reserves.  If that fails
+the parent will steal the page leaving any children without a page. 
+Faults from the child after that point will result in failure.  If the
+child COW happens first, an attempt will be made to allocate the page
+without reserves and the child will get SIGKILLed on failure.
 
-[dave@linux.vnet.ibm.com: fix build]
-[nacc@us.ibm.com: hugetlb: hang off of /sys/kernel/mm rather than /sys/kernel]
-[nacc@us.ibm.com: hugetlb: remove CONFIG_SYSFS dependency]
-Acked-by: Greg Kroah-Hartman <gregkh@suse.de>
-Signed-off-by: Nishanth Aravamudan <nacc@us.ibm.com>
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: Dave Hansen <dave@linux.vnet.ibm.com>
-Signed-off-by: Nishanth Aravamudan <nacc@us.ibm.com>
+To summarise the new behaviour:
+
+1. If the original mapper performs COW on a private mapping with multiple
+   references, it will attempt to allocate a hugepage from the pool or
+   the buddy allocator without using the existing reserves. On fail, VMAs
+   mapping the same area are traversed and the page being COW'd is unmapped
+   where found. It will then steal the original page as the last mapper in
+   the normal way.
+
+2. The VMAs the pages were unmapped from are flagged to note that pages
+   with data no longer exist. Future no-page faults on those VMAs will
+   terminate the process as otherwise it would appear that data was corrupted.
+   A warning is printed to the console that this situation occured.
+
+2. If the child performs COW first, it will attempt to satisfy the COW
+   from the pool if there are enough pages or via the buddy allocator if
+   overcommit is allowed and the buddy allocator can satisfy the request. If
+   it fails, the child will be killed.
+
+If the pool is large enough, existing applications will not notice that
+the reserves were a factor.  Existing applications depending on the
+no-reserves been set are unlikely to exist as for much of the history of
+hugetlbfs, pages were prefaulted at mmap(), allocating the pages at that
+point or failing the mmap().
+
+[npiggin@suse.de: fix CONFIG_HUGETLB=n build]
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Acked-by: Adam Litke <agl@us.ibm.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: William Lee Irwin III <wli@holomorphy.com>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-kernel-mm-hugepages |   15 
- Documentation/vm/hugetlbpage.txt                    |   23 
- include/linux/hugetlb.h                             |    2 
- mm/hugetlb.c                                        |  288 +++++++---
- 4 files changed, 262 insertions(+), 66 deletions(-)
+ fs/hugetlbfs/inode.c    |    2 
+ include/linux/hugetlb.h |    8 -
+ mm/hugetlb.c            |  201 ++++++++++++++++++++++++++++++++++----
+ mm/memory.c             |    2 
+ 4 files changed, 190 insertions(+), 23 deletions(-)
 
-diff -puN /dev/null Documentation/ABI/testing/sysfs-kernel-mm-hugepages
---- /dev/null
-+++ a/Documentation/ABI/testing/sysfs-kernel-mm-hugepages
-@@ -0,0 +1,15 @@
-+What:		/sys/kernel/mm/hugepages/
-+Date:		June 2008
-+Contact:	Nishanth Aravamudan <nacc@us.ibm.com>, hugetlb maintainers
-+Description:
-+		/sys/kernel/mm/hugepages/ contains a number of subdirectories
-+		of the form hugepages-<size>kB, where <size> is the page size
-+		of the hugepages supported by the kernel/CPU combination.
-+
-+		Under these directories are a number of files:
-+			nr_hugepages
-+			nr_overcommit_hugepages
-+			free_hugepages
-+			surplus_hugepages
-+			resv_hugepages
-+		See Documentation/vm/hugetlbpage.txt for details.
-diff -puN Documentation/vm/hugetlbpage.txt~hugetlb-new-sysfs-interface Documentation/vm/hugetlbpage.txt
---- a/Documentation/vm/hugetlbpage.txt~hugetlb-new-sysfs-interface
-+++ a/Documentation/vm/hugetlbpage.txt
-@@ -95,6 +95,29 @@ this condition holds, however, no more s
- allowed on the system until one of the two sysctls are increased
- sufficiently, or the surplus huge pages go out of use and are freed.
+diff -puN fs/hugetlbfs/inode.c~hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed fs/hugetlbfs/inode.c
+--- a/fs/hugetlbfs/inode.c~hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed
++++ a/fs/hugetlbfs/inode.c
+@@ -441,7 +441,7 @@ hugetlb_vmtruncate_list(struct prio_tree
+ 			v_offset = 0;
  
-+With support for multiple hugepage pools at run-time available, much of
-+the hugepage userspace interface has been duplicated in sysfs. The above
-+information applies to the default hugepage size (which will be
-+controlled by the proc interfaces for backwards compatibility). The root
-+hugepage control directory is
-+
-+	/sys/kernel/mm/hugepages
-+
-+For each hugepage size supported by the running kernel, a subdirectory
-+will exist, of the form
-+
-+	hugepages-${size}kB
-+
-+Inside each of these directories, the same set of files will exist:
-+
-+	nr_hugepages
-+	nr_overcommit_hugepages
-+	free_hugepages
-+	resv_hugepages
-+	surplus_hugepages
-+
-+which function as described above for the default hugepage-sized case.
-+
- If the user applications are going to request hugepages using mmap system
- call, then it is required that system administrator mount a file system of
- type hugetlbfs:
-diff -puN include/linux/hugetlb.h~hugetlb-new-sysfs-interface include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~hugetlb-new-sysfs-interface
-+++ a/include/linux/hugetlb.h
-@@ -164,6 +164,7 @@ unsigned long hugetlb_get_unmapped_area(
- 
- #ifdef CONFIG_HUGETLB_PAGE
- 
-+#define HSTATE_NAME_LEN 32
- /* Defines one hugetlb page size */
- struct hstate {
- 	int hugetlb_next_nid;
-@@ -179,6 +180,7 @@ struct hstate {
- 	unsigned int nr_huge_pages_node[MAX_NUMNODES];
- 	unsigned int free_huge_pages_node[MAX_NUMNODES];
- 	unsigned int surplus_huge_pages_node[MAX_NUMNODES];
-+	char name[HSTATE_NAME_LEN];
- };
- 
- void __init hugetlb_add_hstate(unsigned order);
-diff -puN mm/hugetlb.c~hugetlb-new-sysfs-interface mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-new-sysfs-interface
-+++ a/mm/hugetlb.c
-@@ -14,6 +14,7 @@
- #include <linux/mempolicy.h>
- #include <linux/cpuset.h>
- #include <linux/mutex.h>
-+#include <linux/sysfs.h>
- 
- #include <asm/page.h>
- #include <asm/pgtable.h>
-@@ -942,72 +943,6 @@ static void __init report_hugepages(void
+ 		__unmap_hugepage_range(vma,
+-				vma->vm_start + v_offset, vma->vm_end);
++				vma->vm_start + v_offset, vma->vm_end, NULL);
  	}
  }
  
--static int __init hugetlb_init(void)
--{
--	BUILD_BUG_ON(HPAGE_SHIFT == 0);
--
--	if (!size_to_hstate(HPAGE_SIZE)) {
--		hugetlb_add_hstate(HUGETLB_PAGE_ORDER);
--		parsed_hstate->max_huge_pages = default_hstate_max_huge_pages;
--	}
--	default_hstate_idx = size_to_hstate(HPAGE_SIZE) - hstates;
--
--	hugetlb_init_hstates();
--
--	report_hugepages();
--
--	return 0;
--}
--module_init(hugetlb_init);
--
--/* Should be called on processing a hugepagesz=... option */
--void __init hugetlb_add_hstate(unsigned order)
--{
--	struct hstate *h;
--	if (size_to_hstate(PAGE_SIZE << order)) {
--		printk(KERN_WARNING "hugepagesz= specified twice, ignoring\n");
--		return;
--	}
--	BUG_ON(max_hstate >= HUGE_MAX_HSTATE);
--	BUG_ON(order == 0);
--	h = &hstates[max_hstate++];
--	h->order = order;
--	h->mask = ~((1ULL << (order + PAGE_SHIFT)) - 1);
--	hugetlb_init_one_hstate(h);
--	parsed_hstate = h;
--}
--
--static int __init hugetlb_setup(char *s)
--{
--	unsigned long *mhp;
--
--	/*
--	 * !max_hstate means we haven't parsed a hugepagesz= parameter yet,
--	 * so this hugepages= parameter goes to the "default hstate".
--	 */
--	if (!max_hstate)
--		mhp = &default_hstate_max_huge_pages;
--	else
--		mhp = &parsed_hstate->max_huge_pages;
--
--	if (sscanf(s, "%lu", mhp) <= 0)
--		*mhp = 0;
--
--	return 1;
--}
--__setup("hugepages=", hugetlb_setup);
--
--static unsigned int cpuset_mems_nr(unsigned int *array)
--{
--	int node;
--	unsigned int nr = 0;
--
--	for_each_node_mask(node, cpuset_current_mems_allowed)
--		nr += array[node];
--
--	return nr;
--}
--
- #ifdef CONFIG_SYSCTL
- #ifdef CONFIG_HIGHMEM
- static void try_to_free_low(struct hstate *h, unsigned long count)
-@@ -1105,6 +1040,227 @@ out:
- 	return ret;
+diff -puN include/linux/hugetlb.h~hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed
++++ a/include/linux/hugetlb.h
+@@ -23,8 +23,10 @@ int hugetlb_overcommit_handler(struct ct
+ int hugetlb_treat_movable_handler(struct ctl_table *, int, struct file *, void __user *, size_t *, loff_t *);
+ int copy_hugetlb_page_range(struct mm_struct *, struct mm_struct *, struct vm_area_struct *);
+ int follow_hugetlb_page(struct mm_struct *, struct vm_area_struct *, struct page **, struct vm_area_struct **, unsigned long *, int *, int, int);
+-void unmap_hugepage_range(struct vm_area_struct *, unsigned long, unsigned long);
+-void __unmap_hugepage_range(struct vm_area_struct *, unsigned long, unsigned long);
++void unmap_hugepage_range(struct vm_area_struct *,
++			unsigned long, unsigned long, struct page *);
++void __unmap_hugepage_range(struct vm_area_struct *,
++			unsigned long, unsigned long, struct page *);
+ int hugetlb_prefault(struct address_space *, struct vm_area_struct *);
+ int hugetlb_report_meminfo(char *);
+ int hugetlb_report_node_meminfo(int, char *);
+@@ -74,7 +76,7 @@ static inline unsigned long hugetlb_tota
+ #define follow_huge_addr(mm, addr, write)	ERR_PTR(-EINVAL)
+ #define copy_hugetlb_page_range(src, dst, vma)	({ BUG(); 0; })
+ #define hugetlb_prefault(mapping, vma)		({ BUG(); 0; })
+-#define unmap_hugepage_range(vma, start, end)	BUG()
++#define unmap_hugepage_range(vma, start, end, page)	BUG()
+ #define hugetlb_report_meminfo(buf)		0
+ #define hugetlb_report_node_meminfo(n, buf)	0
+ #define follow_huge_pmd(mm, addr, pmd, write)	NULL
+diff -puN mm/hugetlb.c~hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed
++++ a/mm/hugetlb.c
+@@ -40,6 +40,9 @@ static int hugetlb_next_nid;
+  */
+ static DEFINE_SPINLOCK(hugetlb_lock);
+ 
++#define HPAGE_RESV_OWNER    (1UL << (BITS_PER_LONG - 1))
++#define HPAGE_RESV_UNMAPPED (1UL << (BITS_PER_LONG - 2))
++#define HPAGE_RESV_MASK (HPAGE_RESV_OWNER | HPAGE_RESV_UNMAPPED)
+ /*
+  * These helpers are used to track how many pages are reserved for
+  * faults in a MAP_PRIVATE mapping. Only the process that called mmap()
+@@ -54,17 +57,32 @@ static unsigned long vma_resv_huge_pages
+ {
+ 	VM_BUG_ON(!is_vm_hugetlb_page(vma));
+ 	if (!(vma->vm_flags & VM_SHARED))
+-		return (unsigned long)vma->vm_private_data;
++		return (unsigned long)vma->vm_private_data & ~HPAGE_RESV_MASK;
+ 	return 0;
  }
  
-+#define HSTATE_ATTR_RO(_name) \
-+	static struct kobj_attribute _name##_attr = __ATTR_RO(_name)
-+
-+#define HSTATE_ATTR(_name) \
-+	static struct kobj_attribute _name##_attr = \
-+		__ATTR(_name, 0644, _name##_show, _name##_store)
-+
-+static struct kobject *hugepages_kobj;
-+static struct kobject *hstate_kobjs[HUGE_MAX_HSTATE];
-+
-+static struct hstate *kobj_to_hstate(struct kobject *kobj)
-+{
-+	int i;
-+	for (i = 0; i < HUGE_MAX_HSTATE; i++)
-+		if (hstate_kobjs[i] == kobj)
-+			return &hstates[i];
-+	BUG();
-+	return NULL;
+ static void set_vma_resv_huge_pages(struct vm_area_struct *vma,
+ 							unsigned long reserve)
+ {
++	unsigned long flags;
+ 	VM_BUG_ON(!is_vm_hugetlb_page(vma));
+ 	VM_BUG_ON(vma->vm_flags & VM_SHARED);
+ 
+-	vma->vm_private_data = (void *)reserve;
++	flags = (unsigned long)vma->vm_private_data & HPAGE_RESV_MASK;
++	vma->vm_private_data = (void *)(reserve | flags);
 +}
 +
-+static ssize_t nr_hugepages_show(struct kobject *kobj,
-+					struct kobj_attribute *attr, char *buf)
++static void set_vma_resv_flags(struct vm_area_struct *vma, unsigned long flags)
 +{
-+	struct hstate *h = kobj_to_hstate(kobj);
-+	return sprintf(buf, "%lu\n", h->nr_huge_pages);
-+}
-+static ssize_t nr_hugepages_store(struct kobject *kobj,
-+		struct kobj_attribute *attr, const char *buf, size_t count)
-+{
-+	int err;
-+	unsigned long input;
-+	struct hstate *h = kobj_to_hstate(kobj);
-+
-+	err = strict_strtoul(buf, 10, &input);
-+	if (err)
-+		return 0;
-+
-+	h->max_huge_pages = set_max_huge_pages(h, input);
-+
-+	return count;
-+}
-+HSTATE_ATTR(nr_hugepages);
-+
-+static ssize_t nr_overcommit_hugepages_show(struct kobject *kobj,
-+					struct kobj_attribute *attr, char *buf)
-+{
-+	struct hstate *h = kobj_to_hstate(kobj);
-+	return sprintf(buf, "%lu\n", h->nr_overcommit_huge_pages);
-+}
-+static ssize_t nr_overcommit_hugepages_store(struct kobject *kobj,
-+		struct kobj_attribute *attr, const char *buf, size_t count)
-+{
-+	int err;
-+	unsigned long input;
-+	struct hstate *h = kobj_to_hstate(kobj);
-+
-+	err = strict_strtoul(buf, 10, &input);
-+	if (err)
-+		return 0;
-+
-+	spin_lock(&hugetlb_lock);
-+	h->nr_overcommit_huge_pages = input;
-+	spin_unlock(&hugetlb_lock);
-+
-+	return count;
-+}
-+HSTATE_ATTR(nr_overcommit_hugepages);
-+
-+static ssize_t free_hugepages_show(struct kobject *kobj,
-+					struct kobj_attribute *attr, char *buf)
-+{
-+	struct hstate *h = kobj_to_hstate(kobj);
-+	return sprintf(buf, "%lu\n", h->free_huge_pages);
-+}
-+HSTATE_ATTR_RO(free_hugepages);
-+
-+static ssize_t resv_hugepages_show(struct kobject *kobj,
-+					struct kobj_attribute *attr, char *buf)
-+{
-+	struct hstate *h = kobj_to_hstate(kobj);
-+	return sprintf(buf, "%lu\n", h->resv_huge_pages);
-+}
-+HSTATE_ATTR_RO(resv_hugepages);
-+
-+static ssize_t surplus_hugepages_show(struct kobject *kobj,
-+					struct kobj_attribute *attr, char *buf)
-+{
-+	struct hstate *h = kobj_to_hstate(kobj);
-+	return sprintf(buf, "%lu\n", h->surplus_huge_pages);
-+}
-+HSTATE_ATTR_RO(surplus_hugepages);
-+
-+static struct attribute *hstate_attrs[] = {
-+	&nr_hugepages_attr.attr,
-+	&nr_overcommit_hugepages_attr.attr,
-+	&free_hugepages_attr.attr,
-+	&resv_hugepages_attr.attr,
-+	&surplus_hugepages_attr.attr,
-+	NULL,
-+};
-+
-+static struct attribute_group hstate_attr_group = {
-+	.attrs = hstate_attrs,
-+};
-+
-+static int __init hugetlb_sysfs_add_hstate(struct hstate *h)
-+{
-+	int retval;
-+
-+	hstate_kobjs[h - hstates] = kobject_create_and_add(h->name,
-+							hugepages_kobj);
-+	if (!hstate_kobjs[h - hstates])
-+		return -ENOMEM;
-+
-+	retval = sysfs_create_group(hstate_kobjs[h - hstates],
-+							&hstate_attr_group);
-+	if (retval)
-+		kobject_put(hstate_kobjs[h - hstates]);
-+
-+	return retval;
++	unsigned long reserveflags = (unsigned long)vma->vm_private_data;
++	VM_BUG_ON(!is_vm_hugetlb_page(vma));
++	vma->vm_private_data = (void *)(reserveflags | flags);
 +}
 +
-+static void __init hugetlb_sysfs_init(void)
++static int is_vma_resv_set(struct vm_area_struct *vma, unsigned long flag)
 +{
-+	struct hstate *h;
-+	int err;
++	VM_BUG_ON(!is_vm_hugetlb_page(vma));
++	return ((unsigned long)vma->vm_private_data & flag) != 0;
+ }
+ 
+ /* Decrement the reserved pages in the hugepage pool by one */
+@@ -78,14 +96,18 @@ static void decrement_hugepage_resv_vma(
+ 		 * Only the process that called mmap() has reserves for
+ 		 * private mappings.
+ 		 */
+-		if (vma_resv_huge_pages(vma)) {
++		if (is_vma_resv_set(vma, HPAGE_RESV_OWNER)) {
++			unsigned long flags, reserve;
+ 			resv_huge_pages--;
++			flags = (unsigned long)vma->vm_private_data &
++							HPAGE_RESV_MASK;
+ 			reserve = (unsigned long)vma->vm_private_data - 1;
+-			vma->vm_private_data = (void *)reserve;
++			vma->vm_private_data = (void *)(reserve | flags);
+ 		}
+ 	}
+ }
+ 
++/* Reset counters to 0 and clear all HPAGE_RESV_* flags */
+ void reset_vma_resv_huge_pages(struct vm_area_struct *vma)
+ {
+ 	VM_BUG_ON(!is_vm_hugetlb_page(vma));
+@@ -153,7 +175,7 @@ static struct page *dequeue_huge_page(vo
+ }
+ 
+ static struct page *dequeue_huge_page_vma(struct vm_area_struct *vma,
+-				unsigned long address)
++				unsigned long address, int avoid_reserve)
+ {
+ 	int nid;
+ 	struct page *page = NULL;
+@@ -173,6 +195,10 @@ static struct page *dequeue_huge_page_vm
+ 			free_huge_pages - resv_huge_pages == 0)
+ 		return NULL;
+ 
++	/* If reserves cannot be used, ensure enough pages are in the pool */
++	if (avoid_reserve && free_huge_pages - resv_huge_pages == 0)
++		return NULL;
 +
-+	hugepages_kobj = kobject_create_and_add("hugepages", mm_kobj);
-+	if (!hugepages_kobj)
-+		return;
+ 	for_each_zone_zonelist_nodemask(zone, z, zonelist,
+ 						MAX_NR_ZONES - 1, nodemask) {
+ 		nid = zone_to_nid(zone);
+@@ -183,7 +209,9 @@ static struct page *dequeue_huge_page_vm
+ 			list_del(&page->lru);
+ 			free_huge_pages--;
+ 			free_huge_pages_node[nid]--;
+-			decrement_hugepage_resv_vma(vma);
 +
-+	for_each_hstate(h) {
-+		err = hugetlb_sysfs_add_hstate(h);
-+		if (err)
-+			printk(KERN_ERR "Hugetlb: Unable to add hstate %s",
-+								h->name);
-+	}
-+}
++			if (!avoid_reserve)
++				decrement_hugepage_resv_vma(vma);
+ 
+ 			break;
+ 		}
+@@ -534,7 +562,7 @@ static void return_unused_surplus_pages(
+ }
+ 
+ static struct page *alloc_huge_page(struct vm_area_struct *vma,
+-				    unsigned long addr)
++				    unsigned long addr, int avoid_reserve)
+ {
+ 	struct page *page;
+ 	struct address_space *mapping = vma->vm_file->f_mapping;
+@@ -546,14 +574,15 @@ static struct page *alloc_huge_page(stru
+ 	 * will not have accounted against quota. Check that the quota can be
+ 	 * made before satisfying the allocation
+ 	 */
+-	if (!vma_has_private_reserves(vma)) {
++	if (!(vma->vm_flags & VM_SHARED) &&
++			!is_vma_resv_set(vma, HPAGE_RESV_OWNER)) {
+ 		chg = 1;
+ 		if (hugetlb_get_quota(inode->i_mapping, chg))
+ 			return ERR_PTR(-ENOSPC);
+ 	}
+ 
+ 	spin_lock(&hugetlb_lock);
+-	page = dequeue_huge_page_vma(vma, addr);
++	page = dequeue_huge_page_vma(vma, addr, avoid_reserve);
+ 	spin_unlock(&hugetlb_lock);
+ 
+ 	if (!page) {
+@@ -909,7 +938,7 @@ nomem:
+ }
+ 
+ void __unmap_hugepage_range(struct vm_area_struct *vma, unsigned long start,
+-			    unsigned long end)
++			    unsigned long end, struct page *ref_page)
+ {
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	unsigned long address;
+@@ -937,6 +966,27 @@ void __unmap_hugepage_range(struct vm_ar
+ 		if (huge_pmd_unshare(mm, &address, ptep))
+ 			continue;
+ 
++		/*
++		 * If a reference page is supplied, it is because a specific
++		 * page is being unmapped, not a range. Ensure the page we
++		 * are about to unmap is the actual page of interest.
++		 */
++		if (ref_page) {
++			pte = huge_ptep_get(ptep);
++			if (huge_pte_none(pte))
++				continue;
++			page = pte_page(pte);
++			if (page != ref_page)
++				continue;
 +
-+static void __exit hugetlb_exit(void)
++			/*
++			 * Mark the VMA as having unmapped its page so that
++			 * future faults in this VMA will fail rather than
++			 * looking like data was lost
++			 */
++			set_vma_resv_flags(vma, HPAGE_RESV_UNMAPPED);
++		}
++
+ 		pte = huge_ptep_get_and_clear(mm, address, ptep);
+ 		if (huge_pte_none(pte))
+ 			continue;
+@@ -955,7 +1005,7 @@ void __unmap_hugepage_range(struct vm_ar
+ }
+ 
+ void unmap_hugepage_range(struct vm_area_struct *vma, unsigned long start,
+-			  unsigned long end)
++			  unsigned long end, struct page *ref_page)
+ {
+ 	/*
+ 	 * It is undesirable to test vma->vm_file as it should be non-null
+@@ -967,19 +1017,68 @@ void unmap_hugepage_range(struct vm_area
+ 	 */
+ 	if (vma->vm_file) {
+ 		spin_lock(&vma->vm_file->f_mapping->i_mmap_lock);
+-		__unmap_hugepage_range(vma, start, end);
++		__unmap_hugepage_range(vma, start, end, ref_page);
+ 		spin_unlock(&vma->vm_file->f_mapping->i_mmap_lock);
+ 	}
+ }
+ 
++/*
++ * This is called when the original mapper is failing to COW a MAP_PRIVATE
++ * mappping it owns the reserve page for. The intention is to unmap the page
++ * from other VMAs and let the children be SIGKILLed if they are faulting the
++ * same region.
++ */
++int unmap_ref_private(struct mm_struct *mm,
++					struct vm_area_struct *vma,
++					struct page *page,
++					unsigned long address)
 +{
-+	struct hstate *h;
-+
-+	for_each_hstate(h) {
-+		kobject_put(hstate_kobjs[h - hstates]);
-+	}
-+
-+	kobject_put(hugepages_kobj);
-+}
-+module_exit(hugetlb_exit);
-+
-+static int __init hugetlb_init(void)
-+{
-+	BUILD_BUG_ON(HPAGE_SHIFT == 0);
-+
-+	if (!size_to_hstate(HPAGE_SIZE)) {
-+		hugetlb_add_hstate(HUGETLB_PAGE_ORDER);
-+		parsed_hstate->max_huge_pages = default_hstate_max_huge_pages;
-+	}
-+	default_hstate_idx = size_to_hstate(HPAGE_SIZE) - hstates;
-+
-+	hugetlb_init_hstates();
-+
-+	report_hugepages();
-+
-+	hugetlb_sysfs_init();
-+
-+	return 0;
-+}
-+module_init(hugetlb_init);
-+
-+/* Should be called on processing a hugepagesz=... option */
-+void __init hugetlb_add_hstate(unsigned order)
-+{
-+	struct hstate *h;
-+	if (size_to_hstate(PAGE_SIZE << order)) {
-+		printk(KERN_WARNING "hugepagesz= specified twice, ignoring\n");
-+		return;
-+	}
-+	BUG_ON(max_hstate >= HUGE_MAX_HSTATE);
-+	BUG_ON(order == 0);
-+	h = &hstates[max_hstate++];
-+	h->order = order;
-+	h->mask = ~((1ULL << (order + PAGE_SHIFT)) - 1);
-+	snprintf(h->name, HSTATE_NAME_LEN, "hugepages-%lukB",
-+					huge_page_size(h)/1024);
-+	hugetlb_init_one_hstate(h);
-+	parsed_hstate = h;
-+}
-+
-+static int __init hugetlb_setup(char *s)
-+{
-+	unsigned long *mhp;
++	struct vm_area_struct *iter_vma;
++	struct address_space *mapping;
++	struct prio_tree_iter iter;
++	pgoff_t pgoff;
 +
 +	/*
-+	 * !max_hstate means we haven't parsed a hugepagesz= parameter yet,
-+	 * so this hugepages= parameter goes to the "default hstate".
++	 * vm_pgoff is in PAGE_SIZE units, hence the different calculation
++	 * from page cache lookup which is in HPAGE_SIZE units.
 +	 */
-+	if (!max_hstate)
-+		mhp = &default_hstate_max_huge_pages;
-+	else
-+		mhp = &parsed_hstate->max_huge_pages;
++	address = address & huge_page_mask(hstate_vma(vma));
++	pgoff = ((address - vma->vm_start) >> PAGE_SHIFT)
++		+ (vma->vm_pgoff >> PAGE_SHIFT);
++	mapping = (struct address_space *)page_private(page);
 +
-+	if (sscanf(s, "%lu", mhp) <= 0)
-+		*mhp = 0;
++	vma_prio_tree_foreach(iter_vma, &iter, &mapping->i_mmap, pgoff, pgoff) {
++		/* Do not unmap the current VMA */
++		if (iter_vma == vma)
++			continue;
++
++		/*
++		 * Unmap the page from other VMAs without their own reserves.
++		 * They get marked to be SIGKILLed if they fault in these
++		 * areas. This is because a future no-page fault on this VMA
++		 * could insert a zeroed page instead of the data existing
++		 * from the time of fork. This would look like data corruption
++		 */
++		if (!is_vma_resv_set(iter_vma, HPAGE_RESV_OWNER))
++			unmap_hugepage_range(iter_vma,
++				address, address + HPAGE_SIZE,
++				page);
++	}
 +
 +	return 1;
 +}
-+__setup("hugepages=", hugetlb_setup);
 +
-+static unsigned int cpuset_mems_nr(unsigned int *array)
+ static int hugetlb_cow(struct mm_struct *mm, struct vm_area_struct *vma,
+-			unsigned long address, pte_t *ptep, pte_t pte)
++			unsigned long address, pte_t *ptep, pte_t pte,
++			struct page *pagecache_page)
+ {
+ 	struct page *old_page, *new_page;
+ 	int avoidcopy;
++	int outside_reserve = 0;
+ 
+ 	old_page = pte_page(pte);
+ 
++retry_avoidcopy:
+ 	/* If no-one else is actually using this page, avoid the copy
+ 	 * and just make the page writable */
+ 	avoidcopy = (page_count(old_page) == 1);
+@@ -988,11 +1087,43 @@ static int hugetlb_cow(struct mm_struct 
+ 		return 0;
+ 	}
+ 
++	/*
++	 * If the process that created a MAP_PRIVATE mapping is about to
++	 * perform a COW due to a shared page count, attempt to satisfy
++	 * the allocation without using the existing reserves. The pagecache
++	 * page is used to determine if the reserve at this address was
++	 * consumed or not. If reserves were used, a partial faulted mapping
++	 * at the time of fork() could consume its reserves on COW instead
++	 * of the full address range.
++	 */
++	if (!(vma->vm_flags & VM_SHARED) &&
++			is_vma_resv_set(vma, HPAGE_RESV_OWNER) &&
++			old_page != pagecache_page)
++		outside_reserve = 1;
++
+ 	page_cache_get(old_page);
+-	new_page = alloc_huge_page(vma, address);
++	new_page = alloc_huge_page(vma, address, outside_reserve);
+ 
+ 	if (IS_ERR(new_page)) {
+ 		page_cache_release(old_page);
++
++		/*
++		 * If a process owning a MAP_PRIVATE mapping fails to COW,
++		 * it is due to references held by a child and an insufficient
++		 * huge page pool. To guarantee the original mappers
++		 * reliability, unmap the page from child processes. The child
++		 * may get SIGKILLed if it later faults.
++		 */
++		if (outside_reserve) {
++			BUG_ON(huge_pte_none(pte));
++			if (unmap_ref_private(mm, vma, old_page, address)) {
++				BUG_ON(page_count(old_page) != 1);
++				BUG_ON(huge_pte_none(pte));
++				goto retry_avoidcopy;
++			}
++			WARN_ON_ONCE(1);
++		}
++
+ 		return -PTR_ERR(new_page);
+ 	}
+ 
+@@ -1015,6 +1146,20 @@ static int hugetlb_cow(struct mm_struct 
+ 	return 0;
+ }
+ 
++/* Return the pagecache page at a given address within a VMA */
++static struct page *hugetlbfs_pagecache_page(struct vm_area_struct *vma,
++			unsigned long address)
 +{
-+	int node;
-+	unsigned int nr = 0;
++	struct address_space *mapping;
++	unsigned long idx;
 +
-+	for_each_node_mask(node, cpuset_current_mems_allowed)
-+		nr += array[node];
++	mapping = vma->vm_file->f_mapping;
++	idx = ((address - vma->vm_start) >> HPAGE_SHIFT)
++		+ (vma->vm_pgoff >> (HPAGE_SHIFT - PAGE_SHIFT));
 +
-+	return nr;
++	return find_lock_page(mapping, idx);
 +}
 +
- int hugetlb_sysctl_handler(struct ctl_table *table, int write,
- 			   struct file *file, void __user *buffer,
- 			   size_t *length, loff_t *ppos)
+ static int hugetlb_no_page(struct mm_struct *mm, struct vm_area_struct *vma,
+ 			unsigned long address, pte_t *ptep, int write_access)
+ {
+@@ -1025,6 +1170,18 @@ static int hugetlb_no_page(struct mm_str
+ 	struct address_space *mapping;
+ 	pte_t new_pte;
+ 
++	/*
++	 * Currently, we are forced to kill the process in the event the
++	 * original mapper has unmapped pages from the child due to a failed
++	 * COW. Warn that such a situation has occured as it may not be obvious
++	 */
++	if (is_vma_resv_set(vma, HPAGE_RESV_UNMAPPED)) {
++		printk(KERN_WARNING
++			"PID %d killed due to inadequate hugepage pool\n",
++			current->pid);
++		return ret;
++	}
++
+ 	mapping = vma->vm_file->f_mapping;
+ 	idx = ((address - vma->vm_start) >> HPAGE_SHIFT)
+ 		+ (vma->vm_pgoff >> (HPAGE_SHIFT - PAGE_SHIFT));
+@@ -1039,7 +1196,7 @@ retry:
+ 		size = i_size_read(mapping->host) >> HPAGE_SHIFT;
+ 		if (idx >= size)
+ 			goto out;
+-		page = alloc_huge_page(vma, address);
++		page = alloc_huge_page(vma, address, 0);
+ 		if (IS_ERR(page)) {
+ 			ret = -PTR_ERR(page);
+ 			goto out;
+@@ -1081,7 +1238,7 @@ retry:
+ 
+ 	if (write_access && !(vma->vm_flags & VM_SHARED)) {
+ 		/* Optimization, do the COW without a second fault */
+-		ret = hugetlb_cow(mm, vma, address, ptep, new_pte);
++		ret = hugetlb_cow(mm, vma, address, ptep, new_pte, page);
+ 	}
+ 
+ 	spin_unlock(&mm->page_table_lock);
+@@ -1126,8 +1283,15 @@ int hugetlb_fault(struct mm_struct *mm, 
+ 	spin_lock(&mm->page_table_lock);
+ 	/* Check for a racing update before calling hugetlb_cow */
+ 	if (likely(pte_same(entry, huge_ptep_get(ptep))))
+-		if (write_access && !pte_write(entry))
+-			ret = hugetlb_cow(mm, vma, address, ptep, entry);
++		if (write_access && !pte_write(entry)) {
++			struct page *page;
++			page = hugetlbfs_pagecache_page(vma, address);
++			ret = hugetlb_cow(mm, vma, address, ptep, entry, page);
++			if (page) {
++				unlock_page(page);
++				put_page(page);
++			}
++		}
+ 	spin_unlock(&mm->page_table_lock);
+ 	mutex_unlock(&hugetlb_instantiation_mutex);
+ 
+@@ -1371,6 +1535,7 @@ int hugetlb_reserve_pages(struct inode *
+ 	else {
+ 		chg = to - from;
+ 		set_vma_resv_huge_pages(vma, chg);
++		set_vma_resv_flags(vma, HPAGE_RESV_OWNER);
+ 	}
+ 
+ 	if (chg < 0)
+diff -puN mm/memory.c~hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed mm/memory.c
+--- a/mm/memory.c~hugetlb-guarantee-that-cow-faults-for-a-process-that-called-mmapmap_private-on-hugetlbfs-will-succeed
++++ a/mm/memory.c
+@@ -901,7 +901,7 @@ unsigned long unmap_vmas(struct mmu_gath
+ 			}
+ 
+ 			if (unlikely(is_vm_hugetlb_page(vma))) {
+-				unmap_hugepage_range(vma, start, end);
++				unmap_hugepage_range(vma, start, end, NULL);
+ 				zap_work -= (end - start) /
+ 						(HPAGE_SIZE / PAGE_SIZE);
+ 				start = end;
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from mel@csn.ul.ie are
 
 origin.patch
-linux-next.patch
-mmu-notifiers-add-list_del_init_rcu.patch
-mmu-notifiers-add-mm_take_all_locks-operation.patch
-mmu-notifier-core.patch
-x86-implement-pte_special.patch
-x86-implement-pte_special-fix.patch
-mm-introduce-get_user_pages_fast.patch
-mm-introduce-get_user_pages_fast-fix.patch
-mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast.patch
-x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-fix.patch
-x86-lockless-get_user_pages_fast-fix-2.patch
-x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
-x86-lockless-get_user_pages_fast-fix-warning.patch
-dio-use-get_user_pages_fast.patch
-splice-use-get_user_pages_fast.patch
-x86-support-1gb-hugepages-with-get_user_pages_lockless.patch
-mm-readahead-scan-lockless.patch
-radix-tree-add-gang_lookup_slot-gang_lookup_slot_tag.patch
-mm-speculative-page-references.patch
-mm-speculative-page-references-fix.patch
-mm-speculative-page-references-fix-add_to_page_cache.patch
-mm-speculative-page-references-fix-add_to_page_cache-fix.patch
-mm-lockless-pagecache.patch
-mm-spinlock-tree_lock.patch
-powerpc-implement-pte_special.patch
-powerpc-implement-pte_special-update.patch
-powerpc-lockless-get_user_pages.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
-vmscan-split-lru-lists-into-anon-file-sets-splitlru-bdi_cap_swap_backed.patch
-mlock-mlocked-pages-are-unevictable.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-3.patch
-mlock-mlocked-pages-are-unevictable-fix-fix-munlock-page-table-walk-now-requires-mm.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
-fix-double-unlock_page-in-2626-rc5-mm3-kernel-bug-at-mm-filemapc-575.patch
-vmstat-mlocked-pages-statistics.patch
-vmstat-mlocked-pages-statistics-fix-incorrect-mlocked-field-of-proc-meminfo.patch
-reiser4.patch
-likeliness-accounting-change-and-cleanup.patch
+page-owner-tracking-leak-detector.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
 
