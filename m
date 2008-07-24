@@ -1,211 +1,305 @@
 From: akpm@linux-foundation.org
-Subject: - flag-parameters-nonblock-in-pipe.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:27:54 -0700
-Message-ID: <200807242327.m6ONRsDo011201@imap1.linux-foundation.org>
+Subject: - autofs4-fix-indirect-mount-pending-expire-race.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:29:44 -0700
+Message-ID: <200807242329.m6ONTi9N011407@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43198 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39655 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756733AbYGXX3X (ORCPT
+	by vger.kernel.org with ESMTP id S1755977AbYGXXaF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:29:23 -0400
+	Thu, 24 Jul 2008 19:30:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: drepper@redhat.com, davidel@xmailserver.org, mtk.manpages@googlemail.com, mm-commits@vger.kernel.org
+To: raven@themaw.net, jmoyer@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     flag parameters: NONBLOCK in pipe
+     autofs4: fix indirect mount pending expire race
 has been removed from the -mm tree.  Its filename was
-     flag-parameters-nonblock-in-pipe.patch
+     autofs4-fix-indirect-mount-pending-expire-race.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: flag parameters: NONBLOCK in pipe
-From: Ulrich Drepper <drepper@redhat.com>
+Subject: autofs4: fix indirect mount pending expire race
+From: Ian Kent <raven@themaw.net>
 
-This patch adds O_NONBLOCK support to pipe2.  It is minimally more involved
-than the patches for eventfd et.al but still trivial.  The interfaces of the
-create_write_pipe and create_read_pipe helper functions were changed and the
-one other caller as well.
+The selection of a dentry for expiration and the setting of the
+AUTOFS_INF_EXPIRING flag isn't done atomically which can lead to lookups
+walking into an expiring mount.
 
-The following test must be adjusted for architectures other than x86 and
-x86-64 and in case the syscall numbers changed.
+What happens is that an expire is initiated by the daemon and a dentry is
+selected for expire but, since there is no lock held between the selection
+and setting of the expiring flag, a process may find the flag clear and
+continue walking into the mount tree at the same time the daemon attempts
+the expire it.
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#include <fcntl.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <sys/syscall.h>
-
-#ifndef __NR_pipe2
-# ifdef __x86_64__
-#  define __NR_pipe2 293
-# elif defined __i386__
-#  define __NR_pipe2 331
-# else
-#  error "need __NR_pipe2"
-# endif
-#endif
-
-int
-main (void)
-{
-  int fds[2];
-  if (syscall (__NR_pipe2, fds, 0) == -1)
-    {
-      puts ("pipe2(0) failed");
-      return 1;
-    }
-  for (int i = 0; i < 2; ++i)
-    {
-      int fl = fcntl (fds[i], F_GETFL);
-      if (fl == -1)
-        {
-          puts ("fcntl failed");
-          return 1;
-        }
-      if (fl & O_NONBLOCK)
-        {
-          printf ("pipe2(0) set non-blocking mode for fds[%d]\n", i);
-          return 1;
-        }
-      close (fds[i]);
-    }
-
-  if (syscall (__NR_pipe2, fds, O_NONBLOCK) == -1)
-    {
-      puts ("pipe2(O_NONBLOCK) failed");
-      return 1;
-    }
-  for (int i = 0; i < 2; ++i)
-    {
-      int fl = fcntl (fds[i], F_GETFL);
-      if (fl == -1)
-        {
-          puts ("fcntl failed");
-          return 1;
-        }
-      if ((fl & O_NONBLOCK) == 0)
-        {
-          printf ("pipe2(O_NONBLOCK) does not set non-blocking mode for fds[%d]\n", i);
-          return 1;
-        }
-      close (fds[i]);
-    }
-
-  puts ("OK");
-
-  return 0;
-}
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Signed-off-by: Ulrich Drepper <drepper@redhat.com>
-Acked-by: Davide Libenzi <davidel@xmailserver.org>
-Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
+Signed-off-by: Ian Kent <raven@themaw.net>
+Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/pipe.c          |   14 +++++++-------
- include/linux/fs.h |    4 ++--
- kernel/kmod.c      |    4 ++--
- 3 files changed, 11 insertions(+), 11 deletions(-)
+ fs/autofs4/autofs_i.h |   10 ++------
+ fs/autofs4/expire.c   |   46 ++++++++++++++++++++++++++++++----------
+ fs/autofs4/root.c     |   32 +++++++++++++++++++++++----
+ 3 files changed, 65 insertions(+), 23 deletions(-)
 
-diff -puN fs/pipe.c~flag-parameters-nonblock-in-pipe fs/pipe.c
---- a/fs/pipe.c~flag-parameters-nonblock-in-pipe
-+++ a/fs/pipe.c
-@@ -950,7 +950,7 @@ fail_inode:
- 	return NULL;
+diff -puN fs/autofs4/autofs_i.h~autofs4-fix-indirect-mount-pending-expire-race fs/autofs4/autofs_i.h
+--- a/fs/autofs4/autofs_i.h~autofs4-fix-indirect-mount-pending-expire-race
++++ a/fs/autofs4/autofs_i.h
+@@ -138,18 +138,14 @@ static inline int autofs4_oz_mode(struct
+ static inline int autofs4_ispending(struct dentry *dentry)
+ {
+ 	struct autofs_info *inf = autofs4_dentry_ino(dentry);
+-	int pending = 0;
+ 
+ 	if (dentry->d_flags & DCACHE_AUTOFS_PENDING)
+ 		return 1;
+ 
+-	if (inf) {
+-		spin_lock(&inf->sbi->fs_lock);
+-		pending = inf->flags & AUTOFS_INF_EXPIRING;
+-		spin_unlock(&inf->sbi->fs_lock);
+-	}
++	if (inf->flags & AUTOFS_INF_EXPIRING)
++		return 1;
+ 
+-	return pending;
++	return 0;
  }
  
--struct file *create_write_pipe(void)
-+struct file *create_write_pipe(int flags)
+ static inline void autofs4_copy_atime(struct file *src, struct file *dst)
+diff -puN fs/autofs4/expire.c~autofs4-fix-indirect-mount-pending-expire-race fs/autofs4/expire.c
+--- a/fs/autofs4/expire.c~autofs4-fix-indirect-mount-pending-expire-race
++++ a/fs/autofs4/expire.c
+@@ -292,6 +292,8 @@ static struct dentry *autofs4_expire_ind
+ 	struct list_head *next;
+ 	int do_now = how & AUTOFS_EXP_IMMEDIATE;
+ 	int exp_leaves = how & AUTOFS_EXP_LEAVES;
++	struct autofs_info *ino;
++	unsigned int ino_count;
+ 
+ 	if (!root)
+ 		return NULL;
+@@ -316,6 +318,9 @@ static struct dentry *autofs4_expire_ind
+ 		dentry = dget(dentry);
+ 		spin_unlock(&dcache_lock);
+ 
++		spin_lock(&sbi->fs_lock);
++		ino = autofs4_dentry_ino(dentry);
++
+ 		/*
+ 		 * Case 1: (i) indirect mount or top level pseudo direct mount
+ 		 *	   (autofs-4.1).
+@@ -326,6 +331,11 @@ static struct dentry *autofs4_expire_ind
+ 			DPRINTK("checking mountpoint %p %.*s",
+ 				dentry, (int)dentry->d_name.len, dentry->d_name.name);
+ 
++			/* Path walk currently on this dentry? */
++			ino_count = atomic_read(&ino->count) + 2;
++			if (atomic_read(&dentry->d_count) > ino_count)
++				goto next;
++
+ 			/* Can we umount this guy */
+ 			if (autofs4_mount_busy(mnt, dentry))
+ 				goto next;
+@@ -343,23 +353,25 @@ static struct dentry *autofs4_expire_ind
+ 
+ 		/* Case 2: tree mount, expire iff entire tree is not busy */
+ 		if (!exp_leaves) {
+-			/* Lock the tree as we must expire as a whole */
+-			spin_lock(&sbi->fs_lock);
+-			if (!autofs4_tree_busy(mnt, dentry, timeout, do_now)) {
+-				struct autofs_info *inf = autofs4_dentry_ino(dentry);
++			/* Path walk currently on this dentry? */
++			ino_count = atomic_read(&ino->count) + 1;
++			if (atomic_read(&dentry->d_count) > ino_count)
++				goto next;
+ 
+-				/* Set this flag early to catch sys_chdir and the like */
+-				inf->flags |= AUTOFS_INF_EXPIRING;
+-				spin_unlock(&sbi->fs_lock);
++			if (!autofs4_tree_busy(mnt, dentry, timeout, do_now)) {
+ 				expired = dentry;
+ 				goto found;
+ 			}
+-			spin_unlock(&sbi->fs_lock);
+ 		/*
+ 		 * Case 3: pseudo direct mount, expire individual leaves
+ 		 *	   (autofs-4.1).
+ 		 */
+ 		} else {
++			/* Path walk currently on this dentry? */
++			ino_count = atomic_read(&ino->count) + 1;
++			if (atomic_read(&dentry->d_count) > ino_count)
++				goto next;
++
+ 			expired = autofs4_check_leaves(mnt, dentry, timeout, do_now);
+ 			if (expired) {
+ 				dput(dentry);
+@@ -367,6 +379,7 @@ static struct dentry *autofs4_expire_ind
+ 			}
+ 		}
+ next:
++		spin_unlock(&sbi->fs_lock);
+ 		dput(dentry);
+ 		spin_lock(&dcache_lock);
+ 		next = next->next;
+@@ -377,6 +390,9 @@ next:
+ found:
+ 	DPRINTK("returning %p %.*s",
+ 		expired, (int)expired->d_name.len, expired->d_name.name);
++	ino = autofs4_dentry_ino(expired);
++	ino->flags |= AUTOFS_INF_EXPIRING;
++	spin_unlock(&sbi->fs_lock);
+ 	spin_lock(&dcache_lock);
+ 	list_move(&expired->d_parent->d_subdirs, &expired->d_u.d_child);
+ 	spin_unlock(&dcache_lock);
+@@ -390,7 +406,9 @@ int autofs4_expire_run(struct super_bloc
+ 		      struct autofs_packet_expire __user *pkt_p)
  {
- 	int err;
- 	struct inode *inode;
-@@ -983,7 +983,7 @@ struct file *create_write_pipe(void)
- 		goto err_dentry;
- 	f->f_mapping = inode->i_mapping;
+ 	struct autofs_packet_expire pkt;
++	struct autofs_info *ino;
+ 	struct dentry *dentry;
++	int ret = 0;
  
--	f->f_flags = O_WRONLY;
-+	f->f_flags = O_WRONLY | (flags & O_NONBLOCK);
- 	f->f_version = 0;
+ 	memset(&pkt,0,sizeof pkt);
  
- 	return f;
-@@ -1007,7 +1007,7 @@ void free_write_pipe(struct file *f)
- 	put_filp(f);
+@@ -406,9 +424,14 @@ int autofs4_expire_run(struct super_bloc
+ 	dput(dentry);
+ 
+ 	if ( copy_to_user(pkt_p, &pkt, sizeof(struct autofs_packet_expire)) )
+-		return -EFAULT;
++		ret = -EFAULT;
+ 
+-	return 0;
++	spin_lock(&sbi->fs_lock);
++	ino = autofs4_dentry_ino(dentry);
++	ino->flags &= ~AUTOFS_INF_EXPIRING;
++	spin_unlock(&sbi->fs_lock);
++
++	return ret;
  }
  
--struct file *create_read_pipe(struct file *wrf)
-+struct file *create_read_pipe(struct file *wrf, int flags)
- {
- 	struct file *f = get_empty_filp();
- 	if (!f)
-@@ -1019,7 +1019,7 @@ struct file *create_read_pipe(struct fil
- 	f->f_mapping = wrf->f_path.dentry->d_inode->i_mapping;
+ /* Call repeatedly until it returns -EAGAIN, meaning there's nothing
+@@ -433,9 +456,10 @@ int autofs4_expire_multi(struct super_bl
  
- 	f->f_pos = 0;
--	f->f_flags = O_RDONLY;
-+	f->f_flags = O_RDONLY | (flags & O_NONBLOCK);
- 	f->f_op = &read_pipe_fops;
- 	f->f_mode = FMODE_READ;
- 	f->f_version = 0;
-@@ -1033,13 +1033,13 @@ int do_pipe_flags(int *fd, int flags)
- 	int error;
- 	int fdw, fdr;
+ 		/* This is synchronous because it makes the daemon a
+                    little easier */
+-		ino->flags |= AUTOFS_INF_EXPIRING;
+ 		ret = autofs4_wait(sbi, dentry, NFY_EXPIRE);
++		spin_lock(&sbi->fs_lock);
+ 		ino->flags &= ~AUTOFS_INF_EXPIRING;
++		spin_unlock(&sbi->fs_lock);
+ 		dput(dentry);
+ 	}
  
--	if (flags & ~O_CLOEXEC)
-+	if (flags & ~(O_CLOEXEC | O_NONBLOCK))
- 		return -EINVAL;
+diff -puN fs/autofs4/root.c~autofs4-fix-indirect-mount-pending-expire-race fs/autofs4/root.c
+--- a/fs/autofs4/root.c~autofs4-fix-indirect-mount-pending-expire-race
++++ a/fs/autofs4/root.c
+@@ -133,7 +133,10 @@ static int try_to_fill_dentry(struct den
+ 	/* Block on any pending expiry here; invalidate the dentry
+            when expiration is done to trigger mount request with a new
+            dentry */
+-	if (ino && (ino->flags & AUTOFS_INF_EXPIRING)) {
++	spin_lock(&sbi->fs_lock);
++	if (ino->flags & AUTOFS_INF_EXPIRING) {
++		spin_unlock(&sbi->fs_lock);
++
+ 		DPRINTK("waiting for expire %p name=%.*s",
+ 			 dentry, dentry->d_name.len, dentry->d_name.name);
  
--	fw = create_write_pipe();
-+	fw = create_write_pipe(flags);
- 	if (IS_ERR(fw))
- 		return PTR_ERR(fw);
--	fr = create_read_pipe(fw);
-+	fr = create_read_pipe(fw, flags);
- 	error = PTR_ERR(fr);
- 	if (IS_ERR(fr))
- 		goto err_write_pipe;
-diff -puN include/linux/fs.h~flag-parameters-nonblock-in-pipe include/linux/fs.h
---- a/include/linux/fs.h~flag-parameters-nonblock-in-pipe
-+++ a/include/linux/fs.h
-@@ -1778,8 +1778,8 @@ static inline void allow_write_access(st
- }
- extern int do_pipe(int *);
- extern int do_pipe_flags(int *, int);
--extern struct file *create_read_pipe(struct file *f);
--extern struct file *create_write_pipe(void);
-+extern struct file *create_read_pipe(struct file *f, int flags);
-+extern struct file *create_write_pipe(int flags);
- extern void free_write_pipe(struct file *);
+@@ -149,8 +152,11 @@ static int try_to_fill_dentry(struct den
+ 		status = d_invalidate(dentry);
+ 		if (status != -EBUSY)
+ 			return -EAGAIN;
+-	}
  
- extern struct file *do_filp_open(int dfd, const char *pathname,
-diff -puN kernel/kmod.c~flag-parameters-nonblock-in-pipe kernel/kmod.c
---- a/kernel/kmod.c~flag-parameters-nonblock-in-pipe
-+++ a/kernel/kmod.c
-@@ -417,12 +417,12 @@ int call_usermodehelper_stdinpipe(struct
- {
- 	struct file *f;
++		goto cont;
++	}
++	spin_unlock(&sbi->fs_lock);
++cont:
+ 	DPRINTK("dentry=%p %.*s ino=%p",
+ 		 dentry, dentry->d_name.len, dentry->d_name.name, dentry->d_inode);
  
--	f = create_write_pipe();
-+	f = create_write_pipe(0);
- 	if (IS_ERR(f))
- 		return PTR_ERR(f);
- 	*filp = f;
+@@ -229,15 +235,21 @@ static void *autofs4_follow_link(struct 
+ 		goto done;
  
--	f = create_read_pipe(f);
-+	f = create_read_pipe(f, 0);
- 	if (IS_ERR(f)) {
- 		free_write_pipe(*filp);
- 		return PTR_ERR(f);
+ 	/* If an expire request is pending wait for it. */
+-	if (ino && (ino->flags & AUTOFS_INF_EXPIRING)) {
++	spin_lock(&sbi->fs_lock);
++	if (ino->flags & AUTOFS_INF_EXPIRING) {
++		spin_unlock(&sbi->fs_lock);
++
+ 		DPRINTK("waiting for active request %p name=%.*s",
+ 			dentry, dentry->d_name.len, dentry->d_name.name);
+ 
+ 		status = autofs4_wait(sbi, dentry, NFY_NONE);
+ 
+ 		DPRINTK("request done status=%d", status);
+-	}
+ 
++		goto cont;
++	}
++	spin_unlock(&sbi->fs_lock);
++cont:
+ 	/*
+ 	 * If the dentry contains directories then it is an
+ 	 * autofs multi-mount with no root mount offset. So
+@@ -292,8 +304,11 @@ static int autofs4_revalidate(struct den
+ 	int status = 1;
+ 
+ 	/* Pending dentry */
++	spin_lock(&sbi->fs_lock);
+ 	if (autofs4_ispending(dentry)) {
+ 		/* The daemon never causes a mount to trigger */
++		spin_unlock(&sbi->fs_lock);
++
+ 		if (oz_mode)
+ 			return 1;
+ 
+@@ -316,6 +331,7 @@ static int autofs4_revalidate(struct den
+ 
+ 		return status;
+ 	}
++	spin_unlock(&sbi->fs_lock);
+ 
+ 	/* Negative dentry.. invalidate if "old" */
+ 	if (dentry->d_inode == NULL)
+@@ -329,6 +345,7 @@ static int autofs4_revalidate(struct den
+ 		DPRINTK("dentry=%p %.*s, emptydir",
+ 			 dentry, dentry->d_name.len, dentry->d_name.name);
+ 		spin_unlock(&dcache_lock);
++
+ 		/* The daemon never causes a mount to trigger */
+ 		if (oz_mode)
+ 			return 1;
+@@ -521,13 +538,18 @@ static struct dentry *autofs4_lookup(str
+ 		 * so it must have been successful, so just wait for it.
+ 		 */
+ 		ino = autofs4_dentry_ino(expiring);
+-		while (ino && (ino->flags & AUTOFS_INF_EXPIRING)) {
++		spin_lock(&sbi->fs_lock);
++		if (ino->flags & AUTOFS_INF_EXPIRING) {
++			spin_unlock(&sbi->fs_lock);
+ 			DPRINTK("wait for incomplete expire %p name=%.*s",
+ 				expiring, expiring->d_name.len,
+ 				expiring->d_name.name);
+ 			autofs4_wait(sbi, expiring, NFY_NONE);
+ 			DPRINTK("request completed");
++			goto cont;
+ 		}
++		spin_unlock(&sbi->fs_lock);
++cont:
+ 		spin_lock(&sbi->lookup_lock);
+ 		if (!list_empty(&ino->expiring))
+ 			list_del_init(&ino->expiring);
 _
 
-Patches currently in -mm which might be from drepper@redhat.com are
+Patches currently in -mm which might be from raven@themaw.net are
 
 origin.patch
-linux-next.patch
 
