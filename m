@@ -1,95 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - ecryptfs-string-copy-cleanup.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:28:55 -0700
-Message-ID: <200807242328.m6ONSt3N011319@imap1.linux-foundation.org>
+Subject: - tridentfb-acceleration-bug-fixes.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:31:19 -0700
+Message-ID: <200807242331.m6ONVJRQ011617@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51528 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60168 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756066AbYGXX3M (ORCPT
+	by vger.kernel.org with ESMTP id S1756538AbYGXXbV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:29:12 -0400
+	Thu, 24 Jul 2008 19:31:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mszeredi@suse.cz, mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
+To: krzysztof.h1@wp.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ecryptfs: string copy cleanup
+     tridentfb: acceleration bug fixes
 has been removed from the -mm tree.  Its filename was
-     ecryptfs-string-copy-cleanup.patch
+     tridentfb-acceleration-bug-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ecryptfs: string copy cleanup
-From: Miklos Szeredi <mszeredi@suse.cz>
+Subject: tridentfb: acceleration bug fixes
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Clean up overcomplicated string copy, which also gets rid of this
-bogus warning:
+This patch fixes two problems when acceleration is enabled:
 
-fs/ecryptfs/main.c: In function 'ecryptfs_parse_options':
-include/asm/arch/string_32.h:75: warning: array subscript is above array bounds
+ - bit for bitblt direction is corrected
+   so scrolling down works as expected on 3DImage chips
 
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Cc: Michael Halcrow <mhalcrow@us.ibm.com>
+ - initialization of acceleration is done later
+   this helps with initial console malfuntion (on Blade3D
+   chips) well documented here:
+   http://marc.info/?l=linux-fbdev-users&m=111386953124478&w=2
+
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/main.c |   18 ++++++------------
- 1 file changed, 6 insertions(+), 12 deletions(-)
+ drivers/video/tridentfb.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN fs/ecryptfs/main.c~ecryptfs-string-copy-cleanup fs/ecryptfs/main.c
---- a/fs/ecryptfs/main.c~ecryptfs-string-copy-cleanup
-+++ a/fs/ecryptfs/main.c
-@@ -301,7 +301,6 @@ static int ecryptfs_parse_options(struct
- 	char *cipher_name_dst;
- 	char *cipher_name_src;
- 	char *cipher_key_bytes_src;
--	int cipher_name_len;
+diff -puN drivers/video/tridentfb.c~tridentfb-acceleration-bug-fixes drivers/video/tridentfb.c
+--- a/drivers/video/tridentfb.c~tridentfb-acceleration-bug-fixes
++++ a/drivers/video/tridentfb.c
+@@ -395,7 +395,7 @@ static void image_fill_rect(struct tride
+ static void image_copy_rect(struct tridentfb_par *par,
+ 			    u32 x1, u32 y1, u32 x2, u32 y2, u32 w, u32 h)
+ {
+-	int direction = 2;
++	int direction = 0x4;
+ 	u32 s1 = point(x1, y1);
+ 	u32 s2 = point(x1 + w - 1, y1 + h - 1);
+ 	u32 d1 = point(x2, y2);
+@@ -1075,10 +1075,6 @@ static int tridentfb_set_par(struct fb_i
+ 	/* enable GE for text acceleration */
+ 	write3X4(par, GraphEngReg, 0x80);
  
- 	if (!options) {
- 		rc = -EINVAL;
-@@ -382,17 +381,12 @@ static int ecryptfs_parse_options(struct
- 		goto out;
- 	}
- 	if (!cipher_name_set) {
--		cipher_name_len = strlen(ECRYPTFS_DEFAULT_CIPHER);
--		if (unlikely(cipher_name_len
--			     >= ECRYPTFS_MAX_CIPHER_NAME_SIZE)) {
--			rc = -EINVAL;
--			BUG();
--			goto out;
--		}
--		memcpy(mount_crypt_stat->global_default_cipher_name,
--		       ECRYPTFS_DEFAULT_CIPHER, cipher_name_len);
--		mount_crypt_stat->global_default_cipher_name[cipher_name_len]
--		    = '\0';
-+		int cipher_name_len = strlen(ECRYPTFS_DEFAULT_CIPHER);
-+
-+		BUG_ON(cipher_name_len >= ECRYPTFS_MAX_CIPHER_NAME_SIZE);
-+
-+		strcpy(mount_crypt_stat->global_default_cipher_name,
-+		       ECRYPTFS_DEFAULT_CIPHER);
- 	}
- 	if (!cipher_key_bytes_set) {
- 		mount_crypt_stat->global_default_cipher_key_size = 0;
-_
-
-Patches currently in -mm which might be from mszeredi@suse.cz are
-
-origin.patch
-linux-next.patch
-git-unprivileged-mounts.patch
-lockd-dont-return-eagain-for-a-permanent-error.patch
-locks-add-special-return-value-for-asynchronous-locks.patch
-locks-cleanup-code-duplication.patch
-locks-allow-lock-to-return-file_lock_deferred.patch
-fuse-prepare-lookup-for-nfs-export.patch
-fuse-add-export-operations.patch
-fuse-add-fuse_lookup_name-helper.patch
-fuse-nfs-export-special-lookups.patch
-fuse-lockd-support.patch
-
+-#ifdef CONFIG_FB_TRIDENT_ACCEL
+-	par->init_accel(par, info->var.xres_virtual, bpp);
+-#endif
