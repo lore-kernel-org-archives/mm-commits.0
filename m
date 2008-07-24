@@ -1,104 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: - tridentfb-move-global-pseudo-palette-into-structure.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:30:43 -0700
-Message-ID: <200807242330.m6ONUhWk011532@imap1.linux-foundation.org>
+Subject: - 8250-fix-break-handling-for-intel-82571.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:28:07 -0700
+Message-ID: <200807242328.m6ONS7Ih011228@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41852 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51932 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756951AbYGXXau (ORCPT
+	by vger.kernel.org with ESMTP id S1756711AbYGXX3Y (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:30:50 -0400
+	Thu, 24 Jul 2008 19:29:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: krzysztof.h1@wp.pl, adaplas@pol.net, mm-commits@vger.kernel.org
+To: arozansk@redhat.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tridentfb: move global pseudo palette into structure
+     8250: fix break handling for Intel 82571
 has been removed from the -mm tree.  Its filename was
-     tridentfb-move-global-pseudo-palette-into-structure.patch
+     8250-fix-break-handling-for-intel-82571.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tridentfb: move global pseudo palette into structure
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: 8250: fix break handling for Intel 82571
+From: Aristeu Rozanski <arozansk@redhat.com>
 
-This patch moves pseudo palette int tridentfb_par structure and removes global
-default_var.
+Intel 82571 has a "Serial Over LAN" feature that doesn't properly
+implements the receiving of break characters.  When a break is received,
+it doesn't set UART_LSR_DR and unless another character is received, the
+break won't be received by the application.
 
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Signed-off-by: Aristeu Rozanski <arozansk@redhat.com>
+Acked-by: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/tridentfb.c |   21 +++++++--------------
- 1 file changed, 7 insertions(+), 14 deletions(-)
+ drivers/serial/8250.c |   17 ++++++++++++++---
+ 1 file changed, 14 insertions(+), 3 deletions(-)
 
-diff -puN drivers/video/tridentfb.c~tridentfb-move-global-pseudo-palette-into-structure drivers/video/tridentfb.c
---- a/drivers/video/tridentfb.c~tridentfb-move-global-pseudo-palette-into-structure
-+++ a/drivers/video/tridentfb.c
-@@ -28,16 +28,12 @@
+diff -puN drivers/serial/8250.c~8250-fix-break-handling-for-intel-82571 drivers/serial/8250.c
+--- a/drivers/serial/8250.c~8250-fix-break-handling-for-intel-82571
++++ a/drivers/serial/8250.c
+@@ -1293,7 +1293,18 @@ receive_chars(struct uart_8250_port *up,
+ 	char flag;
  
- struct tridentfb_par {
- 	void __iomem *io_virt;	/* iospace virtual memory address */
-+	u32 pseudo_pal[16];
- };
+ 	do {
+-		ch = serial_inp(up, UART_RX);
++		if (likely(lsr & UART_LSR_DR))
++			ch = serial_inp(up, UART_RX);
++		else
++			/*
++			 * Intel 82571 has a Serial Over Lan device that will
++			 * set UART_LSR_BI without setting UART_LSR_DR when
++			 * it receives a break. To avoid reading from the
++			 * receive buffer without UART_LSR_DR bit set, we
++			 * just force the read character to be 0
++			 */
++			ch = 0;
++
+ 		flag = TTY_NORMAL;
+ 		up->port.icount.rx++;
  
- static unsigned char eng_oper;	/* engine operation... */
- static struct fb_ops tridentfb_ops;
+@@ -1342,7 +1353,7 @@ receive_chars(struct uart_8250_port *up,
  
--/* FIXME:kmalloc these 3 instead */
--static u32 pseudo_pal[16];
--
--static struct fb_var_screeninfo default_var;
--
- static struct fb_fix_screeninfo tridentfb_fix = {
- 	.id = "Trident",
- 	.type = FB_TYPE_PACKED_PIXELS,
-@@ -1340,9 +1336,7 @@ static int __devinit trident_pci_probe(s
- #ifdef CONFIG_FB_TRIDENT_ACCEL
- 	info->flags |= FBINFO_HWACCEL_COPYAREA | FBINFO_HWACCEL_FILLRECT;
- #endif
--	info->pseudo_palette = pseudo_pal;
--
--	if (!fb_find_mode(&default_var, info,
-+	if (!fb_find_mode(&info->var, info,
- 			  mode_option, NULL, 0, NULL, bpp)) {
- 		err = -EINVAL;
- 		goto out_unmap2;
-@@ -1352,11 +1346,10 @@ static int __devinit trident_pci_probe(s
- 		goto out_unmap2;
+ ignore_char:
+ 		lsr = serial_inp(up, UART_LSR);
+-	} while ((lsr & UART_LSR_DR) && (max_count-- > 0));
++	} while ((lsr & (UART_LSR_DR | UART_LSR_BI)) && (max_count-- > 0));
+ 	spin_unlock(&up->port.lock);
+ 	tty_flip_buffer_push(tty);
+ 	spin_lock(&up->port.lock);
+@@ -1425,7 +1436,7 @@ serial8250_handle_port(struct uart_8250_
  
- 	if (defaultaccel && acc)
--		default_var.accel_flags |= FB_ACCELF_TEXT;
-+		info->var.accel_flags |= FB_ACCELF_TEXT;
- 	else
--		default_var.accel_flags &= ~FB_ACCELF_TEXT;
--	default_var.activate |= FB_ACTIVATE_NOW;
--	info->var = default_var;
-+		info->var.accel_flags &= ~FB_ACCELF_TEXT;
-+	info->var.activate |= FB_ACTIVATE_NOW;
- 	info->device = &dev->dev;
- 	if (register_framebuffer(info) < 0) {
- 		printk(KERN_ERR "tridentfb: could not register Trident framebuffer\n");
-@@ -1365,8 +1358,8 @@ static int __devinit trident_pci_probe(s
- 		goto out_unmap2;
- 	}
- 	output("fb%d: %s frame buffer device %dx%d-%dbpp\n",
--	   info->node, info->fix.id, default_var.xres,
--	   default_var.yres, default_var.bits_per_pixel);
-+	   info->node, info->fix.id, info->var.xres,
-+	   info->var.yres, info->var.bits_per_pixel);
+ 	DEBUG_INTR("status = %x...", status);
  
- 	pci_set_drvdata(dev, info);
- 	return 0;
+-	if (status & UART_LSR_DR)
++	if (status & (UART_LSR_DR | UART_LSR_BI))
+ 		receive_chars(up, &status);
+ 	check_modem_status(up);
+ 	if (status & UART_LSR_THRE)
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from arozansk@redhat.com are
 
 origin.patch
 
