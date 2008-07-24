@@ -1,158 +1,154 @@
 From: akpm@linux-foundation.org
-Subject: - x86-support-gb-hugepages-on-64-bit.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:23:22 -0700
-Message-ID: <200807242323.m6ONNMFh010659@imap1.linux-foundation.org>
+Subject: - powerpc-scan-device-tree-for-gigantic-pages.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:23:32 -0700
+Message-ID: <200807242323.m6ONNWxH010683@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40565 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34745 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754231AbYGXXXk (ORCPT
+	by vger.kernel.org with ESMTP id S1754352AbYGXXXn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:23:40 -0400
+	Thu, 24 Jul 2008 19:23:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, agl@us.ibm.com, ak@suse.de, mm-commits@vger.kernel.org
+To: npiggin@suse.de, agl@us.ibm.com, kniht@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86: support GB hugepages on 64-bit
+     powerpc: scan device tree for gigantic pages
 has been removed from the -mm tree.  Its filename was
-     x86-support-gb-hugepages-on-64-bit.patch
+     powerpc-scan-device-tree-for-gigantic-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: support GB hugepages on 64-bit
+Subject: powerpc: scan device tree for gigantic pages
 From: Nick Piggin <npiggin@suse.de>
 
+The 16G huge pages have to be reserved in the HMC prior to boot.  The
+location of the pages are placed in the device tree.  This patch adds code
+to scan the device tree during very early boot and save these page
+locations until hugetlbfs is ready for them.
+
 Acked-by: Adam Litke <agl@us.ibm.com>
-Signed-off-by: Andi Kleen <ak@suse.de>
+Signed-off-by: Jon Tollefson <kniht@linux.vnet.ibm.com>
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/hugetlbpage.c |   33 ++++++++++++++++++++++-----------
- 1 file changed, 22 insertions(+), 11 deletions(-)
+ arch/powerpc/mm/hash_utils_64.c  |   44 ++++++++++++++++++++++++++++-
+ arch/powerpc/mm/hugetlbpage.c    |   16 ++++++++++
+ include/asm-powerpc/mmu-hash64.h |    2 +
+ 3 files changed, 61 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86/mm/hugetlbpage.c~x86-support-gb-hugepages-on-64-bit arch/x86/mm/hugetlbpage.c
---- a/arch/x86/mm/hugetlbpage.c~x86-support-gb-hugepages-on-64-bit
-+++ a/arch/x86/mm/hugetlbpage.c
-@@ -134,9 +134,14 @@ pte_t *huge_pte_alloc(struct mm_struct *
- 	pgd = pgd_offset(mm, addr);
- 	pud = pud_alloc(mm, pgd, addr);
- 	if (pud) {
--		if (pud_none(*pud))
--			huge_pmd_share(mm, addr, pud);
--		pte = (pte_t *) pmd_alloc(mm, pud, addr);
-+		if (sz == PUD_SIZE) {
-+			pte = (pte_t *)pud;
-+		} else {
-+			BUG_ON(sz != PMD_SIZE);
-+			if (pud_none(*pud))
-+				huge_pmd_share(mm, addr, pud);
-+			pte = (pte_t *) pmd_alloc(mm, pud, addr);
-+		}
- 	}
- 	BUG_ON(pte && !pte_none(*pte) && !pte_huge(*pte));
+diff -puN arch/powerpc/mm/hash_utils_64.c~powerpc-scan-device-tree-for-gigantic-pages arch/powerpc/mm/hash_utils_64.c
+--- a/arch/powerpc/mm/hash_utils_64.c~powerpc-scan-device-tree-for-gigantic-pages
++++ a/arch/powerpc/mm/hash_utils_64.c
+@@ -68,6 +68,7 @@
  
-@@ -152,8 +157,11 @@ pte_t *huge_pte_offset(struct mm_struct 
- 	pgd = pgd_offset(mm, addr);
- 	if (pgd_present(*pgd)) {
- 		pud = pud_offset(pgd, addr);
--		if (pud_present(*pud))
-+		if (pud_present(*pud)) {
-+			if (pud_large(*pud))
-+				return (pte_t *)pud;
- 			pmd = pmd_offset(pud, addr);
-+		}
- 	}
- 	return (pte_t *) pmd;
- }
-@@ -216,7 +224,7 @@ int pmd_huge(pmd_t pmd)
+ #define KB (1024)
+ #define MB (1024*KB)
++#define GB (1024L*MB)
  
- int pud_huge(pud_t pud)
- {
--	return 0;
-+	return !!(pud_val(pud) & _PAGE_PSE);
+ /*
+  * Note:  pte   --> Linux PTE
+@@ -329,6 +330,44 @@ static int __init htab_dt_scan_page_size
+ 	return 0;
  }
  
- struct page *
-@@ -252,6 +260,7 @@ static unsigned long hugetlb_get_unmappe
- 		unsigned long addr, unsigned long len,
- 		unsigned long pgoff, unsigned long flags)
++/* Scan for 16G memory blocks that have been set aside for huge pages
++ * and reserve those blocks for 16G huge pages.
++ */
++static int __init htab_dt_scan_hugepage_blocks(unsigned long node,
++					const char *uname, int depth,
++					void *data) {
++	char *type = of_get_flat_dt_prop(node, "device_type", NULL);
++	unsigned long *addr_prop;
++	u32 *page_count_prop;
++	unsigned int expected_pages;
++	long unsigned int phys_addr;
++	long unsigned int block_size;
++
++	/* We are scanning "memory" nodes only */
++	if (type == NULL || strcmp(type, "memory") != 0)
++		return 0;
++
++	/* This property is the log base 2 of the number of virtual pages that
++	 * will represent this memory block. */
++	page_count_prop = of_get_flat_dt_prop(node, "ibm,expected#pages", NULL);
++	if (page_count_prop == NULL)
++		return 0;
++	expected_pages = (1 << page_count_prop[0]);
++	addr_prop = of_get_flat_dt_prop(node, "reg", NULL);
++	if (addr_prop == NULL)
++		return 0;
++	phys_addr = addr_prop[0];
++	block_size = addr_prop[1];
++	if (block_size != (16 * GB))
++		return 0;
++	printk(KERN_INFO "Huge page(16GB) memory: "
++			"addr = 0x%lX size = 0x%lX pages = %d\n",
++			phys_addr, block_size, expected_pages);
++	lmb_reserve(phys_addr, block_size * expected_pages);
++	add_gpage(phys_addr, block_size, expected_pages);
++	return 0;
++}
++
+ static void __init htab_init_page_sizes(void)
  {
-+	struct hstate *h = hstate_file(file);
- 	struct mm_struct *mm = current->mm;
- 	struct vm_area_struct *vma;
- 	unsigned long start_addr;
-@@ -264,7 +273,7 @@ static unsigned long hugetlb_get_unmappe
- 	}
+ 	int rc;
+@@ -418,7 +457,10 @@ static void __init htab_init_page_sizes(
+ 	       );
  
- full_search:
--	addr = ALIGN(start_addr, HPAGE_SIZE);
-+	addr = ALIGN(start_addr, huge_page_size(h));
- 
- 	for (vma = find_vma(mm, addr); ; vma = vma->vm_next) {
- 		/* At this point:  (!vma || addr < vma->vm_end). */
-@@ -286,7 +295,7 @@ full_search:
- 		}
- 		if (addr + mm->cached_hole_size < vma->vm_start)
- 		        mm->cached_hole_size = vma->vm_start - addr;
--		addr = ALIGN(vma->vm_end, HPAGE_SIZE);
-+		addr = ALIGN(vma->vm_end, huge_page_size(h));
- 	}
+ #ifdef CONFIG_HUGETLB_PAGE
+-	/* Init large page size. Currently, we pick 16M or 1M depending
++	/* Reserve 16G huge page memory sections for huge pages */
++	of_scan_flat_dt(htab_dt_scan_hugepage_blocks, NULL);
++
++/* Init large page size. Currently, we pick 16M or 1M depending
+ 	 * on what is available
+ 	 */
+ 	if (mmu_psize_defs[MMU_PAGE_16M].shift)
+diff -puN arch/powerpc/mm/hugetlbpage.c~powerpc-scan-device-tree-for-gigantic-pages arch/powerpc/mm/hugetlbpage.c
+--- a/arch/powerpc/mm/hugetlbpage.c~powerpc-scan-device-tree-for-gigantic-pages
++++ a/arch/powerpc/mm/hugetlbpage.c
+@@ -110,6 +110,22 @@ pmd_t *hpmd_alloc(struct mm_struct *mm, 
  }
+ #endif
  
-@@ -294,6 +303,7 @@ static unsigned long hugetlb_get_unmappe
- 		unsigned long addr0, unsigned long len,
- 		unsigned long pgoff, unsigned long flags)
- {
-+	struct hstate *h = hstate_file(file);
- 	struct mm_struct *mm = current->mm;
- 	struct vm_area_struct *vma, *prev_vma;
- 	unsigned long base = mm->mmap_base, addr = addr0;
-@@ -314,7 +324,7 @@ try_again:
- 		goto fail;
++/* Build list of addresses of gigantic pages.  This function is used in early
++ * boot before the buddy or bootmem allocator is setup.
++ */
++void add_gpage(unsigned long addr, unsigned long page_size,
++	unsigned long number_of_pages)
++{
++	if (!addr)
++		return;
++	while (number_of_pages > 0) {
++		gpage_freearray[nr_gpages] = addr;
++		nr_gpages++;
++		number_of_pages--;
++		addr += page_size;
++	}
++}
++
+ /* Moves the gigantic page addresses from the temporary list to the
+  * huge_boot_pages list.  */
+ int alloc_bootmem_huge_page(struct hstate *h)
+diff -puN include/asm-powerpc/mmu-hash64.h~powerpc-scan-device-tree-for-gigantic-pages include/asm-powerpc/mmu-hash64.h
+--- a/include/asm-powerpc/mmu-hash64.h~powerpc-scan-device-tree-for-gigantic-pages
++++ a/include/asm-powerpc/mmu-hash64.h
+@@ -281,6 +281,8 @@ extern int htab_bolt_mapping(unsigned lo
+ 			     unsigned long pstart, unsigned long mode,
+ 			     int psize, int ssize);
+ extern void set_huge_psize(int psize);
++extern void add_gpage(unsigned long addr, unsigned long page_size,
++			  unsigned long number_of_pages);
+ extern void demote_segment_4k(struct mm_struct *mm, unsigned long addr);
  
- 	/* either no address requested or cant fit in requested address hole */
--	addr = (mm->free_area_cache - len) & HPAGE_MASK;
-+	addr = (mm->free_area_cache - len) & huge_page_mask(h);
- 	do {
- 		/*
- 		 * Lookup failure means no vma is above this address,
-@@ -345,7 +355,7 @@ try_again:
- 		        largest_hole = vma->vm_start - addr;
- 
- 		/* try just below the current vma->vm_start */
--		addr = (vma->vm_start - len) & HPAGE_MASK;
-+		addr = (vma->vm_start - len) & huge_page_mask(h);
- 	} while (len <= vma->vm_start);
- 
- fail:
-@@ -383,10 +393,11 @@ unsigned long
- hugetlb_get_unmapped_area(struct file *file, unsigned long addr,
- 		unsigned long len, unsigned long pgoff, unsigned long flags)
- {
-+	struct hstate *h = hstate_file(file);
- 	struct mm_struct *mm = current->mm;
- 	struct vm_area_struct *vma;
- 
--	if (len & ~HPAGE_MASK)
-+	if (len & ~huge_page_mask(h))
- 		return -EINVAL;
- 	if (len > TASK_SIZE)
- 		return -ENOMEM;
-@@ -398,7 +409,7 @@ hugetlb_get_unmapped_area(struct file *f
- 	}
- 
- 	if (addr) {
--		addr = ALIGN(addr, HPAGE_SIZE);
-+		addr = ALIGN(addr, huge_page_size(h));
- 		vma = find_vma(mm, addr);
- 		if (TASK_SIZE - len >= addr &&
- 		    (!vma || addr + len <= vma->vm_start))
+ extern void htab_initialize(void);
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
