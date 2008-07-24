@@ -1,60 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: - fbcon-bgcolor-fix.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:33:19 -0700
-Message-ID: <200807242333.m6ONXJtA011918@imap1.linux-foundation.org>
+Subject: - checkpatch-allow-for-type-modifiers-on-multiple-declarations.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:33:34 -0700
+Message-ID: <200807242333.m6ONXYTl011939@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43251 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50900 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756010AbYGXXd0 (ORCPT
+	by vger.kernel.org with ESMTP id S1756860AbYGXXdm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:33:26 -0400
+	Thu, 24 Jul 2008 19:33:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: stefano.stabellini@eu.citrix.com, adaplas@pol.net, krzysztof.h1@poczta.fm, mm-commits@vger.kernel.org
+To: apw@shadowen.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fbcon: bgcolor fix
+     checkpatch: allow for type modifiers on multiple declarations
 has been removed from the -mm tree.  Its filename was
-     fbcon-bgcolor-fix.patch
+     checkpatch-allow-for-type-modifiers-on-multiple-declarations.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbcon: bgcolor fix
-From: Stefano Stabellini <stefano.stabellini@eu.citrix.com>
+Subject: checkpatch: allow for type modifiers on multiple declarations
+From: Andy Whitcroft <apw@shadowen.org>
 
-The fourth bit of the background color is the blink property bit, not the
-intensity bit, as for the foreground color.  Therefore it shouldn't be
-included in the background color.
+Allow for type modifiers mid declaration on multiple declarations:
 
-Signed-off-by: Stefano Stabellini <stefano.stabellini@eu.citrix.com>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+	struct mxser_mstatus ms, __user *msu = argp;
+
+Reported by Jiri Slaby.
+
+Signed-off-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/console/fbcon.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/checkpatch.pl |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN drivers/video/console/fbcon.h~fbcon-bgcolor-fix drivers/video/console/fbcon.h
---- a/drivers/video/console/fbcon.h~fbcon-bgcolor-fix
-+++ a/drivers/video/console/fbcon.h
-@@ -92,7 +92,7 @@ struct fbcon_ops {
- #define attr_fgcol(fgshift,s)    \
- 	(((s) >> (fgshift)) & 0x0f)
- #define attr_bgcol(bgshift,s)    \
--	(((s) >> (bgshift)) & 0x0f)
-+	(((s) >> (bgshift)) & 0x07)
+diff -puN scripts/checkpatch.pl~checkpatch-allow-for-type-modifiers-on-multiple-declarations scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-allow-for-type-modifiers-on-multiple-declarations
++++ a/scripts/checkpatch.pl
+@@ -721,6 +721,10 @@ sub annotate_values {
+ 			print "DECLARE($1)\n" if ($dbg_values > 1);
+ 			$type = 'T';
  
- /* Monochrome */
- #define attr_bold(s) \
++		} elsif ($cur =~ /^($Modifier)\s*/) {
++			print "MODIFIER($1)\n" if ($dbg_values > 1);
++			$type = 'T';
++
+ 		} elsif ($cur =~ /^(\#\s*define\s*$Ident)(\(?)/o) {
+ 			print "DEFINE($1,$2)\n" if ($dbg_values > 1);
+ 			$av_preprocessor = 1;
 _
 
-Patches currently in -mm which might be from stefano.stabellini@eu.citrix.com are
+Patches currently in -mm which might be from apw@shadowen.org are
 
 origin.patch
+x86-implement-pte_special.patch
+x86-implement-pte_special-fix.patch
+mm-introduce-get_user_pages_fast.patch
+mm-introduce-get_user_pages_fast-fix.patch
+mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast.patch
+x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-fix.patch
+x86-lockless-get_user_pages_fast-fix-2.patch
+x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
+x86-lockless-get_user_pages_fast-fix-warning.patch
+dio-use-get_user_pages_fast.patch
+splice-use-get_user_pages_fast.patch
+page-owner-tracking-leak-detector.patch
 
