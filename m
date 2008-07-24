@@ -1,216 +1,171 @@
 From: akpm@linux-foundation.org
-Subject: - mm-remove-nopfn.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:21:42 -0700
-Message-ID: <200807242321.m6ONLgU0010416@imap1.linux-foundation.org>
+Subject: - mm-vmstatc-proper-externs.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:21:35 -0700
+Message-ID: <200807242321.m6ONLZnD010404@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36058 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38039 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752585AbYGXXVu (ORCPT
+	by vger.kernel.org with ESMTP id S1754019AbYGXXVr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:21:50 -0400
+	Thu, 24 Jul 2008 19:21:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, hugh@veritas.com, mm-commits@vger.kernel.org
+To: bunk@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: remove nopfn
+     mm/vmstat.c: proper externs
 has been removed from the -mm tree.  Its filename was
-     mm-remove-nopfn.patch
+     mm-vmstatc-proper-externs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: remove nopfn
-From: Nick Piggin <npiggin@suse.de>
+Subject: mm/vmstat.c: proper externs
+From: Adrian Bunk <bunk@kernel.org>
 
-There are no users of nopfn in the tree. Remove it.
+This patch adds proper extern declarations for five variables in
+include/linux/vmstat.h
 
-[hugh@veritas.com: fix build error]
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    9 -----
- mm/memory.c        |   67 ++++---------------------------------------
- 2 files changed, 7 insertions(+), 69 deletions(-)
+ fs/proc/proc_misc.c    |    4 ----
+ include/linux/vmstat.h |    6 ++++++
+ kernel/sysctl.c        |    2 +-
+ mm/vmstat.c            |    1 +
+ 4 files changed, 8 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/mm.h~mm-remove-nopfn include/linux/mm.h
---- a/include/linux/mm.h~mm-remove-nopfn
-+++ a/include/linux/mm.h
-@@ -166,8 +166,6 @@ struct vm_operations_struct {
- 	void (*open)(struct vm_area_struct * area);
- 	void (*close)(struct vm_area_struct * area);
- 	int (*fault)(struct vm_area_struct *vma, struct vm_fault *vmf);
--	unsigned long (*nopfn)(struct vm_area_struct *area,
--			unsigned long address);
- 
- 	/* notification that a previously read-only page is about to become
- 	 * writable, if an error is returned it will cause a SIGBUS */
-@@ -675,13 +673,6 @@ static inline int page_mapped(struct pag
+diff -puN fs/proc/proc_misc.c~mm-vmstatc-proper-externs fs/proc/proc_misc.c
+--- a/fs/proc/proc_misc.c~mm-vmstatc-proper-externs
++++ a/fs/proc/proc_misc.c
+@@ -232,7 +232,6 @@ static int meminfo_read_proc(char *page,
+ #undef K
  }
  
+-extern const struct seq_operations fragmentation_op;
+ static int fragmentation_open(struct inode *inode, struct file *file)
+ {
+ 	(void)inode;
+@@ -246,7 +245,6 @@ static const struct file_operations frag
+ 	.release	= seq_release,
+ };
+ 
+-extern const struct seq_operations pagetypeinfo_op;
+ static int pagetypeinfo_open(struct inode *inode, struct file *file)
+ {
+ 	return seq_open(file, &pagetypeinfo_op);
+@@ -259,7 +257,6 @@ static const struct file_operations page
+ 	.release	= seq_release,
+ };
+ 
+-extern const struct seq_operations zoneinfo_op;
+ static int zoneinfo_open(struct inode *inode, struct file *file)
+ {
+ 	return seq_open(file, &zoneinfo_op);
+@@ -356,7 +353,6 @@ static const struct file_operations proc
+ 	.release	= seq_release,
+ };
+ 
+-extern const struct seq_operations vmstat_op;
+ static int vmstat_open(struct inode *inode, struct file *file)
+ {
+ 	return seq_open(file, &vmstat_op);
+diff -puN include/linux/vmstat.h~mm-vmstatc-proper-externs include/linux/vmstat.h
+--- a/include/linux/vmstat.h~mm-vmstatc-proper-externs
++++ a/include/linux/vmstat.h
+@@ -44,6 +44,12 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
+ 		NR_VM_EVENT_ITEMS
+ };
+ 
++extern const struct seq_operations fragmentation_op;
++extern const struct seq_operations pagetypeinfo_op;
++extern const struct seq_operations zoneinfo_op;
++extern const struct seq_operations vmstat_op;
++extern int sysctl_stat_interval;
++
+ #ifdef CONFIG_VM_EVENT_COUNTERS
  /*
-- * Error return values for the *_nopfn functions
-- */
--#define NOPFN_SIGBUS	((unsigned long) -1)
--#define NOPFN_OOM	((unsigned long) -2)
--#define NOPFN_REFAULT	((unsigned long) -3)
--
--/*
-  * Different kinds of faults, as returned by handle_mm_fault().
-  * Used to decide whether a process gets delivered SIGBUS or
-  * just gets major/minor fault counters bumped up.
-diff -puN mm/memory.c~mm-remove-nopfn mm/memory.c
---- a/mm/memory.c~mm-remove-nopfn
-+++ a/mm/memory.c
-@@ -1058,11 +1058,9 @@ static inline int use_zero_page(struct v
- 	if (vma->vm_flags & (VM_LOCKED | VM_SHARED))
- 		return 0;
- 	/*
--	 * And if we have a fault or a nopfn routine, it's not an
--	 * anonymous region.
-+	 * And if we have a fault routine, it's not an anonymous region.
- 	 */
--	return !vma->vm_ops ||
--		(!vma->vm_ops->fault && !vma->vm_ops->nopfn);
-+	return !vma->vm_ops || !vma->vm_ops->fault;
- }
+  * Light weight per cpu counter implementation.
+diff -puN kernel/sysctl.c~mm-vmstatc-proper-externs kernel/sysctl.c
+--- a/kernel/sysctl.c~mm-vmstatc-proper-externs
++++ a/kernel/sysctl.c
+@@ -43,6 +43,7 @@
+ #include <linux/limits.h>
+ #include <linux/dcache.h>
+ #include <linux/syscalls.h>
++#include <linux/vmstat.h>
+ #include <linux/nfs_fs.h>
+ #include <linux/acpi.h>
+ #include <linux/reboot.h>
+@@ -80,7 +81,6 @@ extern int sysctl_drop_caches;
+ extern int percpu_pagelist_fraction;
+ extern int compat_log;
+ extern int maps_protect;
+-extern int sysctl_stat_interval;
+ extern int latencytop_enabled;
+ extern int sysctl_nr_open_min, sysctl_nr_open_max;
+ #ifdef CONFIG_RCU_TORTURE_TEST
+diff -puN mm/vmstat.c~mm-vmstatc-proper-externs mm/vmstat.c
+--- a/mm/vmstat.c~mm-vmstatc-proper-externs
++++ a/mm/vmstat.c
+@@ -13,6 +13,7 @@
+ #include <linux/err.h>
+ #include <linux/module.h>
+ #include <linux/cpu.h>
++#include <linux/vmstat.h>
+ #include <linux/sched.h>
  
- int get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
-@@ -1338,6 +1336,11 @@ out:
-  *
-  * This function should only be called from a vm_ops->fault handler, and
-  * in that case the handler should return NULL.
-+ *
-+ * vma cannot be a COW mapping.
-+ *
-+ * As this is called only for pages that do not currently exist, we
-+ * do not need to flush old virtual caches or the TLB.
-  */
- int vm_insert_pfn(struct vm_area_struct *vma, unsigned long addr,
- 			unsigned long pfn)
-@@ -2501,59 +2504,6 @@ static int do_linear_fault(struct mm_str
- 	return __do_fault(mm, vma, address, pmd, pgoff, flags, orig_pte);
- }
- 
--
--/*
-- * do_no_pfn() tries to create a new page mapping for a page without
-- * a struct_page backing it
-- *
-- * As this is called only for pages that do not currently exist, we
-- * do not need to flush old virtual caches or the TLB.
-- *
-- * We enter with non-exclusive mmap_sem (to exclude vma changes,
-- * but allow concurrent faults), and pte mapped but not yet locked.
-- * We return with mmap_sem still held, but pte unmapped and unlocked.
-- *
-- * It is expected that the ->nopfn handler always returns the same pfn
-- * for a given virtual mapping.
-- *
-- * Mark this `noinline' to prevent it from bloating the main pagefault code.
-- */
--static noinline int do_no_pfn(struct mm_struct *mm, struct vm_area_struct *vma,
--		     unsigned long address, pte_t *page_table, pmd_t *pmd,
--		     int write_access)
--{
--	spinlock_t *ptl;
--	pte_t entry;
--	unsigned long pfn;
--
--	pte_unmap(page_table);
--	BUG_ON(!(vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)));
--	BUG_ON((vma->vm_flags & VM_PFNMAP) && is_cow_mapping(vma->vm_flags));
--
--	pfn = vma->vm_ops->nopfn(vma, address & PAGE_MASK);
--
--	BUG_ON((vma->vm_flags & VM_MIXEDMAP) && pfn_valid(pfn));
--
--	if (unlikely(pfn == NOPFN_OOM))
--		return VM_FAULT_OOM;
--	else if (unlikely(pfn == NOPFN_SIGBUS))
--		return VM_FAULT_SIGBUS;
--	else if (unlikely(pfn == NOPFN_REFAULT))
--		return 0;
--
--	page_table = pte_offset_map_lock(mm, pmd, address, &ptl);
--
--	/* Only go through if we didn't race with anybody else... */
--	if (pte_none(*page_table)) {
--		entry = pfn_pte(pfn, vma->vm_page_prot);
--		if (write_access)
--			entry = maybe_mkwrite(pte_mkdirty(entry), vma);
--		set_pte_at(mm, address, page_table, entry);
--	}
--	pte_unmap_unlock(page_table, ptl);
--	return 0;
--}
--
- /*
-  * Fault of a previously existing named mapping. Repopulate the pte
-  * from the encoded file_pte if possible. This enables swappable
-@@ -2614,9 +2564,6 @@ static inline int handle_pte_fault(struc
- 				if (likely(vma->vm_ops->fault))
- 					return do_linear_fault(mm, vma, address,
- 						pte, pmd, write_access, entry);
--				if (unlikely(vma->vm_ops->nopfn))
--					return do_no_pfn(mm, vma, address, pte,
--							 pmd, write_access);
- 			}
- 			return do_anonymous_page(mm, vma, address,
- 						 pte, pmd, write_access);
+ #ifdef CONFIG_VM_EVENT_COUNTERS
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from bunk@kernel.org are
 
 origin.patch
 linux-next.patch
-mmu-notifiers-add-list_del_init_rcu.patch
-mmu-notifiers-add-mm_take_all_locks-operation.patch
-mmu-notifier-core.patch
-x86-implement-pte_special.patch
-x86-implement-pte_special-fix.patch
-mm-introduce-get_user_pages_fast.patch
-mm-introduce-get_user_pages_fast-fix.patch
-mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast.patch
-x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-fix.patch
-x86-lockless-get_user_pages_fast-fix-2.patch
-x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
-x86-lockless-get_user_pages_fast-fix-warning.patch
-dio-use-get_user_pages_fast.patch
-splice-use-get_user_pages_fast.patch
-x86-support-1gb-hugepages-with-get_user_pages_lockless.patch
-mm-readahead-scan-lockless.patch
-radix-tree-add-gang_lookup_slot-gang_lookup_slot_tag.patch
-mm-speculative-page-references.patch
-mm-speculative-page-references-fix.patch
-mm-speculative-page-references-fix-add_to_page_cache.patch
-mm-speculative-page-references-fix-add_to_page_cache-fix.patch
-mm-lockless-pagecache.patch
-mm-spinlock-tree_lock.patch
-powerpc-implement-pte_special.patch
-powerpc-implement-pte_special-update.patch
-powerpc-lockless-get_user_pages.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
-vmscan-split-lru-lists-into-anon-file-sets-splitlru-bdi_cap_swap_backed.patch
-mlock-mlocked-pages-are-unevictable.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-3.patch
-mlock-mlocked-pages-are-unevictable-fix-fix-munlock-page-table-walk-now-requires-mm.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
-fix-double-unlock_page-in-2626-rc5-mm3-kernel-bug-at-mm-filemapc-575.patch
-vmstat-mlocked-pages-statistics.patch
-vmstat-mlocked-pages-statistics-fix-incorrect-mlocked-field-of-proc-meminfo.patch
+m32r-remove-the-unused-nohighmem-option.patch
+if-0-ses_match_host.patch
+git-xtensa.patch
+init-do_mountsc-should-include-linux-initrdh.patch
+build-kernel-profileo-only-when-requested.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+asm-generic-int-ll64h-always-provide-__su64.patch
+remove-some-more-tipar-bits.patch
+include-linux-kernelh-userspace-header-cleanup.patch
+minix-remove-no_truncate-code.patch
+jbd-unexport-journal_update_superblock.patch
+coda-remove-coda_fs_old_api.patch
+fat-dirc-switch-to-struct-__fat_dirent.patch
+remove-the-in-kernel-struct-dirent64.patch
+remove-unused-include-linux-direnths.patch
+include-asm-ptraceh-userspace-headers-cleanup.patch
+pty-remove-unused-unix98_pty_count-options.patch
+proper-extern-for-mwave_s_mdd.patch
+if-0-hpet_unregister.patch
+unexport-proc_clear_tty.patch
+move-proc_kmsg_operations-to-fs-proc-internalh.patch
+proper-pidhashmap_init-prototypes.patch
+unexport-uts_sem.patch
+parport-sharec-proper-externs.patch
+tpm_biosc-make-2-structs-static.patch
+drm-make-drm_minors_cleanup-static.patch
+make-cgroup_seqfile_release-static.patch
+make-pnp_add_card_id-static.patch
+make-parport_cs_release-static.patch
+make-mm-sparsec-make-a-function-static.patch
+mm-allocpercpuc-make-4-functions-static.patch
+make-mm-memoryc-print_bad_pte-static.patch
+mm-swapfilec-make-code-static.patch
+make-mm-rmapc-anon_vma_cachep-static.patch
+drivers-char-rtcc-make-2-functions-static.patch
+make-init-do_mountsc-root_device_name-static.patch
+make-macfb_setup-static.patch
+video-console-sticonrec-make-code-static.patch
+video-console-sticonrec-make-code-static-checkpatch-fixes.patch
+video-stifbc-make-2-functions-static.patch
 reiser4.patch
-likeliness-accounting-change-and-cleanup.patch
 
