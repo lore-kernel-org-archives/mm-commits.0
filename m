@@ -1,58 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: - atyfb-fix-a-cast.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:32:37 -0700
-Message-ID: <200807242332.m6ONWbuj011851@imap1.linux-foundation.org>
+Subject: - atyfb-remove-dead-code.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:32:28 -0700
+Message-ID: <200807242332.m6ONWSqq011839@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60850 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59745 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756814AbYGXXcp (ORCPT
+	by vger.kernel.org with ESMTP id S1756539AbYGXXcj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:32:45 -0400
+	Thu, 24 Jul 2008 19:32:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: syrjala@sci.fi, adaplas@pol.net, krzysztof.h1@poczta.fm, mm-commits@vger.kernel.org
+To: olaf@aepfle.de, adaplas@pol.net, krzysztof.h1@poczta.fm, syrjala@sci.fi, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atyfb: fix a cast
+     atyfb: remove dead code
 has been removed from the -mm tree.  Its filename was
-     atyfb-fix-a-cast.patch
+     atyfb-remove-dead-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atyfb: fix a cast
-From: Ville Syrjala <syrjala@sci.fi>
+Subject: atyfb: remove dead code
+From: Olaf Hering <olaf@aepfle.de>
 
-The argument to iounmap() is void __iomem *. Fix the cast.
+Remove dead code.  This will slightly change the behaviour of the driver
+on systems that support backlight control.  Previously they would just
+turn the backlight off using the backlight control but now the generic LCD
+code will also turn off the LCD using the POWER_MANAGEMENT register.
 
+Signed-off-by: Olaf Hering <olaf@aepfle.de>
 Signed-off-by: Ville Syrjala <syrjala@sci.fi>
 Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/aty/atyfb_base.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/aty/atyfb_base.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN drivers/video/aty/atyfb_base.c~atyfb-fix-a-cast drivers/video/aty/atyfb_base.c
---- a/drivers/video/aty/atyfb_base.c~atyfb-fix-a-cast
+diff -puN drivers/video/aty/atyfb_base.c~atyfb-remove-dead-code drivers/video/aty/atyfb_base.c
+--- a/drivers/video/aty/atyfb_base.c~atyfb-remove-dead-code
 +++ a/drivers/video/aty/atyfb_base.c
-@@ -3335,7 +3335,7 @@ static int __devinit init_from_bios(stru
- 		PRINTKE("no BIOS frequency table found, use parameters\n");
- 		ret = -ENXIO;
- 	}
--	iounmap((void* __iomem )bios_base);
-+	iounmap((void __iomem *)bios_base);
+@@ -2709,8 +2709,7 @@ static int atyfb_blank(int blank, struct
+ 	if (par->lock_blank || par->asleep)
+ 		return 0;
  
- 	return ret;
- }
+-#ifdef CONFIG_FB_ATY_BACKLIGHT
+-#elif defined(CONFIG_FB_ATY_GENERIC_LCD)
++#ifdef CONFIG_FB_ATY_GENERIC_LCD
+ 	if (par->lcd_table && blank > FB_BLANK_NORMAL &&
+ 	    (aty_ld_lcd(LCD_GEN_CNTL, par) & LCD_ON)) {
+ 		u32 pm = aty_ld_lcd(POWER_MANAGEMENT, par);
+@@ -2739,8 +2738,7 @@ static int atyfb_blank(int blank, struct
+ 	}
+ 	aty_st_le32(CRTC_GEN_CNTL, gen_cntl, par);
+ 
+-#ifdef CONFIG_FB_ATY_BACKLIGHT
+-#elif defined(CONFIG_FB_ATY_GENERIC_LCD)
++#ifdef CONFIG_FB_ATY_GENERIC_LCD
+ 	if (par->lcd_table && blank <= FB_BLANK_NORMAL &&
+ 	    (aty_ld_lcd(LCD_GEN_CNTL, par) & LCD_ON)) {
+ 		u32 pm = aty_ld_lcd(POWER_MANAGEMENT, par);
 _
 
-Patches currently in -mm which might be from syrjala@sci.fi are
+Patches currently in -mm which might be from olaf@aepfle.de are
 
 origin.patch
+keep-track-of-network-interface-renaming.patch
 
