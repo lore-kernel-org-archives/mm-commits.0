@@ -1,104 +1,150 @@
 From: akpm@linux-foundation.org
-Subject: - x86-add-hugepagesz-option-on-64-bit.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:23:24 -0700
-Message-ID: <200807242323.m6ONNOi5010662@imap1.linux-foundation.org>
+Subject: - hugetlb-support-boot-allocate-different-sizes.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:23:16 -0700
+Message-ID: <200807242323.m6ONNGbi010647@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47433 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37036 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754137AbYGXXX2 (ORCPT
+	by vger.kernel.org with ESMTP id S1754134AbYGXXX0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:23:28 -0400
+	Thu, 24 Jul 2008 19:23:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, ak@suse.de, mm-commits@vger.kernel.org
+To: npiggin@suse.de, abh@cray.com, agl@us.ibm.com, ak@suse.de, nacc@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86: add hugepagesz option on 64-bit
+     hugetlb: support boot allocate different sizes
 has been removed from the -mm tree.  Its filename was
-     x86-add-hugepagesz-option-on-64-bit.patch
+     hugetlb-support-boot-allocate-different-sizes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: add hugepagesz option on 64-bit
+Subject: hugetlb: support boot allocate different sizes
 From: Nick Piggin <npiggin@suse.de>
 
-Add an hugepagesz=...  option similar to IA64, PPC etc.  to x86-64.
+Make some infrastructure changes to allow boot-time allocation of
+different hugepage page sizes.
 
-This finally allows to select GB pages for hugetlbfs in x86 now that all
-the infrastructure is in place.
+- move all basic hstate initialisation into hugetlb_add_hstate
+- create a new function hugetlb_hstate_alloc_pages() to do the
+  actual initial page allocations. Call this function early in
+  order to allocate giant pages from bootmem.
+- Check for multiple hugepages= parameters
 
+Acked-by: Adam Litke <agl@us.ibm.com>
+Acked-by: Nishanth Aravamudan <nacc@us.ibm.com>
+Acked-by: Andrew Hastings <abh@cray.com>
 Signed-off-by: Andi Kleen <ak@suse.de>
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |   11 +++++++++--
- arch/x86/mm/hugetlbpage.c           |   17 +++++++++++++++++
- include/asm-x86/page.h              |    2 ++
- 3 files changed, 28 insertions(+), 2 deletions(-)
+ mm/hugetlb.c |   39 ++++++++++++++++++++++++++++++---------
+ 1 file changed, 30 insertions(+), 9 deletions(-)
 
-diff -puN Documentation/kernel-parameters.txt~x86-add-hugepagesz-option-on-64-bit Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~x86-add-hugepagesz-option-on-64-bit
-+++ a/Documentation/kernel-parameters.txt
-@@ -774,8 +774,15 @@ and is between 256 and 4096 characters. 
- 	hisax=		[HW,ISDN]
- 			See Documentation/isdn/README.HiSax.
+diff -puN mm/hugetlb.c~hugetlb-support-boot-allocate-different-sizes mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-support-boot-allocate-different-sizes
++++ a/mm/hugetlb.c
+@@ -981,15 +981,10 @@ static void __init gather_bootmem_preall
+ 	}
+ }
  
--	hugepages=	[HW,X86-32,IA-64] Maximal number of HugeTLB pages.
--	hugepagesz=	[HW,IA-64,PPC] The size of the HugeTLB pages.
-+	hugepages=	[HW,X86-32,IA-64] HugeTLB pages to allocate at boot.
-+	hugepagesz=	[HW,IA-64,PPC,X86-64] The size of the HugeTLB pages.
-+			On x86 this option can be specified multiple times
-+			interleaved with hugepages= to reserve huge pages
-+			of different sizes. Valid pages sizes on x86-64
-+			are 2M (when the CPU supports "pse") and 1G (when the
-+			CPU supports the "pdpe1gb" cpuinfo flag)
-+			Note that 1GB pages can only be allocated at boot time
-+			using hugepages= and not freed afterwards.
+-static void __init hugetlb_init_one_hstate(struct hstate *h)
++static void __init hugetlb_hstate_alloc_pages(struct hstate *h)
+ {
+ 	unsigned long i;
  
- 	i8042.direct	[HW] Put keyboard port into non-translated mode
- 	i8042.dumbkbd	[HW] Pretend that controller can only read data from
-diff -puN arch/x86/mm/hugetlbpage.c~x86-add-hugepagesz-option-on-64-bit arch/x86/mm/hugetlbpage.c
---- a/arch/x86/mm/hugetlbpage.c~x86-add-hugepagesz-option-on-64-bit
-+++ a/arch/x86/mm/hugetlbpage.c
-@@ -425,3 +425,20 @@ hugetlb_get_unmapped_area(struct file *f
+-	for (i = 0; i < MAX_NUMNODES; ++i)
+-		INIT_LIST_HEAD(&h->hugepage_freelists[i]);
+-
+-	h->hugetlb_next_nid = first_node(node_online_map);
+-
+ 	for (i = 0; i < h->max_huge_pages; ++i) {
+ 		if (h->order >= MAX_ORDER) {
+ 			if (!alloc_bootmem_huge_page(h))
+@@ -997,7 +992,7 @@ static void __init hugetlb_init_one_hsta
+ 		} else if (!alloc_fresh_huge_page(h))
+ 			break;
+ 	}
+-	h->max_huge_pages = h->free_huge_pages = h->nr_huge_pages = i;
++	h->max_huge_pages = i;
+ }
  
- #endif /*HAVE_ARCH_HUGETLB_UNMAPPED_AREA*/
+ static void __init hugetlb_init_hstates(void)
+@@ -1005,7 +1000,9 @@ static void __init hugetlb_init_hstates(
+ 	struct hstate *h;
  
-+#ifdef CONFIG_X86_64
-+static __init int setup_hugepagesz(char *opt)
-+{
-+	unsigned long ps = memparse(opt, &opt);
-+	if (ps == PMD_SIZE) {
-+		hugetlb_add_hstate(PMD_SHIFT - PAGE_SHIFT);
-+	} else if (ps == PUD_SIZE && cpu_has_gbpages) {
-+		hugetlb_add_hstate(PUD_SHIFT - PAGE_SHIFT);
-+	} else {
-+		printk(KERN_ERR "hugepagesz: Unsupported page size %lu M\n",
-+			ps >> 20);
-+		return 0;
-+	}
-+	return 1;
-+}
-+__setup("hugepagesz=", setup_hugepagesz);
-+#endif
-diff -puN include/asm-x86/page.h~x86-add-hugepagesz-option-on-64-bit include/asm-x86/page.h
---- a/include/asm-x86/page.h~x86-add-hugepagesz-option-on-64-bit
-+++ a/include/asm-x86/page.h
-@@ -32,6 +32,8 @@
- #define HPAGE_MASK		(~(HPAGE_SIZE - 1))
- #define HUGETLB_PAGE_ORDER	(HPAGE_SHIFT - PAGE_SHIFT)
+ 	for_each_hstate(h) {
+-		hugetlb_init_one_hstate(h);
++		/* oversize hugepages were init'ed in early boot */
++		if (h->order < MAX_ORDER)
++			hugetlb_hstate_alloc_pages(h);
+ 	}
+ }
  
-+#define HUGE_MAX_HSTATE 2
+@@ -1301,6 +1298,8 @@ module_init(hugetlb_init);
+ void __init hugetlb_add_hstate(unsigned order)
+ {
+ 	struct hstate *h;
++	unsigned long i;
 +
- /* to align the pointer to the (next) page boundary */
- #define PAGE_ALIGN(addr)	(((addr)+PAGE_SIZE-1)&PAGE_MASK)
+ 	if (size_to_hstate(PAGE_SIZE << order)) {
+ 		printk(KERN_WARNING "hugepagesz= specified twice, ignoring\n");
+ 		return;
+@@ -1310,15 +1309,21 @@ void __init hugetlb_add_hstate(unsigned 
+ 	h = &hstates[max_hstate++];
+ 	h->order = order;
+ 	h->mask = ~((1ULL << (order + PAGE_SHIFT)) - 1);
++	h->nr_huge_pages = 0;
++	h->free_huge_pages = 0;
++	for (i = 0; i < MAX_NUMNODES; ++i)
++		INIT_LIST_HEAD(&h->hugepage_freelists[i]);
++	h->hugetlb_next_nid = first_node(node_online_map);
+ 	snprintf(h->name, HSTATE_NAME_LEN, "hugepages-%lukB",
+ 					huge_page_size(h)/1024);
+-	hugetlb_init_one_hstate(h);
++
+ 	parsed_hstate = h;
+ }
  
+ static int __init hugetlb_setup(char *s)
+ {
+ 	unsigned long *mhp;
++	static unsigned long *last_mhp;
+ 
+ 	/*
+ 	 * !max_hstate means we haven't parsed a hugepagesz= parameter yet,
+@@ -1329,9 +1334,25 @@ static int __init hugetlb_setup(char *s)
+ 	else
+ 		mhp = &parsed_hstate->max_huge_pages;
+ 
++	if (mhp == last_mhp) {
++		printk(KERN_WARNING "hugepages= specified twice without "
++			"interleaving hugepagesz=, ignoring\n");
++		return 1;
++	}
++
+ 	if (sscanf(s, "%lu", mhp) <= 0)
+ 		*mhp = 0;
+ 
++	/*
++	 * Global state is always initialized later in hugetlb_init.
++	 * But we need to allocate >= MAX_ORDER hstates here early to still
++	 * use the bootmem allocator.
++	 */
++	if (max_hstate && parsed_hstate->order >= MAX_ORDER)
++		hugetlb_hstate_alloc_pages(parsed_hstate);
++
++	last_mhp = mhp;
++
+ 	return 1;
+ }
+ __setup("hugepages=", hugetlb_setup);
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
