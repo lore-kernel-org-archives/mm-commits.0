@@ -1,217 +1,173 @@
 From: akpm@linux-foundation.org
-Subject: - add-have_clk-to-kconfig-for-driver-dependencies.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:20:14 -0700
-Message-ID: <200807242320.m6ONKEru010329@imap1.linux-foundation.org>
+Subject: - mm-make-defensive-checks-around-pfn-values-registered-for-memory-usage.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:20:33 -0700
+Message-ID: <200807242320.m6ONKXPU010344@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43579 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58881 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751270AbYGXXUn (ORCPT
+	by vger.kernel.org with ESMTP id S1752022AbYGXXVC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:20:43 -0400
+	Thu, 24 Jul 2008 19:21:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dbrownell@users.sourceforge.net, benh@kernel.crashing.org, hskinnemoen@atmel.com, lethal@linux-sh.org, paulus@samba.org, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: mel@csn.ul.ie, apw@shadowen.org, cl@linux-foundation.org, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add HAVE_CLK to Kconfig, for driver dependencies
+     mm: make defensive checks around PFN values registered for memory usage
 has been removed from the -mm tree.  Its filename was
-     add-have_clk-to-kconfig-for-driver-dependencies.patch
+     mm-make-defensive-checks-around-pfn-values-registered-for-memory-usage.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: add HAVE_CLK to Kconfig, for driver dependencies
-From: David Brownell <dbrownell@users.sourceforge.net>
+Subject: mm: make defensive checks around PFN values registered for memory usage
+From: Mel Gorman <mel@csn.ul.ie>
 
-Flag platforms as HAVE_CLK (or not) in Kconfig, based on whether they
-support <linux/clk.h> calls, so that otherwise portable drivers which need
-those calls can list that dependency.
+There are a number of different views to how much memory is currently active. 
+There is the arch-independent zone-sizing view, the bootmem allocator and
+memory models view.
 
-Something like this is a prerequisite for merging the musb_hdrc driver,
-currently used on platforms including Davinci, OMAP2430, OMAP3xx ...  and
-the discrete TUSB6010 chip, which doesn't have a natural platform
-dependency.  (Used with OMAP 2420 in current Nokia N8x0 tablets.)
+Architectures register this information at different times and is not
+necessarily in sync particularly with respect to some SPARSEMEM limitations. 
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Acked-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Paul Mundt <lethal@linux-sh.org>
+This patch introduces mminit_validate_memmodel_limits() which is able to
+validate and correct PFN ranges with respect to the memory model.  It is only
+SPARSEMEM that currently validates itself.
+
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/Kconfig         |    7 +++++++
- arch/arm/Kconfig     |   13 +++++++++++++
- arch/avr32/Kconfig   |    1 +
- arch/powerpc/Kconfig |    1 +
- arch/sh/Kconfig      |    1 +
- 5 files changed, 23 insertions(+)
+ mm/bootmem.c    |    1 +
+ mm/internal.h   |   12 ++++++++++++
+ mm/page_alloc.c |    2 ++
+ mm/sparse.c     |   37 +++++++++++++++++++++++++++++--------
+ 4 files changed, 44 insertions(+), 8 deletions(-)
 
-diff -puN arch/Kconfig~add-have_clk-to-kconfig-for-driver-dependencies arch/Kconfig
---- a/arch/Kconfig~add-have_clk-to-kconfig-for-driver-dependencies
-+++ a/arch/Kconfig
-@@ -42,3 +42,10 @@ config HAVE_DMA_ATTRS
+diff -puN mm/bootmem.c~mm-make-defensive-checks-around-pfn-values-registered-for-memory-usage mm/bootmem.c
+--- a/mm/bootmem.c~mm-make-defensive-checks-around-pfn-values-registered-for-memory-usage
++++ a/mm/bootmem.c
+@@ -91,6 +91,7 @@ static unsigned long __init init_bootmem
+ 	bootmem_data_t *bdata = pgdat->bdata;
+ 	unsigned long mapsize;
  
- config USE_GENERIC_SMP_HELPERS
- 	def_bool n
++	mminit_validate_memmodel_limits(&start, &end);
+ 	bdata->node_bootmem_map = phys_to_virt(PFN_PHYS(mapstart));
+ 	bdata->node_boot_start = PFN_PHYS(start);
+ 	bdata->node_low_pfn = end;
+diff -puN mm/internal.h~mm-make-defensive-checks-around-pfn-values-registered-for-memory-usage mm/internal.h
+--- a/mm/internal.h~mm-make-defensive-checks-around-pfn-values-registered-for-memory-usage
++++ a/mm/internal.h
+@@ -98,4 +98,16 @@ static inline void mminit_verify_page_li
+ {
+ }
+ #endif /* CONFIG_DEBUG_MEMORY_INIT */
 +
-+config HAVE_CLK
-+	def_bool n
-+	help
-+	  The <linux/clk.h> calls support software clock gating and
-+	  thus are a key power management tool on many systems.
++/* mminit_validate_memmodel_limits is independent of CONFIG_DEBUG_MEMORY_INIT */
++#if defined(CONFIG_SPARSEMEM)
++extern void mminit_validate_memmodel_limits(unsigned long *start_pfn,
++				unsigned long *end_pfn);
++#else
++static inline void mminit_validate_memmodel_limits(unsigned long *start_pfn,
++				unsigned long *end_pfn)
++{
++}
++#endif /* CONFIG_SPARSEMEM */
 +
-diff -puN arch/arm/Kconfig~add-have_clk-to-kconfig-for-driver-dependencies arch/arm/Kconfig
---- a/arch/arm/Kconfig~add-have_clk-to-kconfig-for-driver-dependencies
-+++ a/arch/arm/Kconfig
-@@ -198,12 +198,14 @@ choice
- config ARCH_AAEC2000
- 	bool "Agilent AAEC-2000 based"
- 	select ARM_AMBA
-+	select HAVE_CLK
- 	help
- 	  This enables support for systems based on the Agilent AAEC-2000
+ #endif
+diff -puN mm/page_alloc.c~mm-make-defensive-checks-around-pfn-values-registered-for-memory-usage mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-make-defensive-checks-around-pfn-values-registered-for-memory-usage
++++ a/mm/page_alloc.c
+@@ -3536,6 +3536,8 @@ void __init add_active_range(unsigned in
+ 			nid, start_pfn, end_pfn,
+ 			nr_nodemap_entries, MAX_ACTIVE_REGIONS);
  
- config ARCH_INTEGRATOR
- 	bool "ARM Ltd. Integrator family"
- 	select ARM_AMBA
-+	select HAVE_CLK
- 	select ICST525
- 	help
- 	  Support for ARM's Integrator platform.
-@@ -211,6 +213,7 @@ config ARCH_INTEGRATOR
- config ARCH_REALVIEW
- 	bool "ARM Ltd. RealView family"
- 	select ARM_AMBA
-+	select HAVE_CLK
- 	select ICST307
- 	select GENERIC_TIME
- 	select GENERIC_CLOCKEVENTS
-@@ -221,6 +224,7 @@ config ARCH_VERSATILE
- 	bool "ARM Ltd. Versatile family"
- 	select ARM_AMBA
- 	select ARM_VIC
-+	select HAVE_CLK
- 	select ICST307
- 	select GENERIC_TIME
- 	select GENERIC_CLOCKEVENTS
-@@ -262,6 +266,8 @@ config ARCH_EP93XX
- 	select ARM_AMBA
- 	select ARM_VIC
- 	select GENERIC_GPIO
-+	select HAVE_CLK
-+	select HAVE_CLK
- 	select HAVE_GPIO_LIB
- 	help
- 	  This enables support for the Cirrus EP93xx series of CPUs.
-@@ -381,6 +387,7 @@ config ARCH_NS9XXX
- 	select GENERIC_GPIO
- 	select GENERIC_TIME
- 	select GENERIC_CLOCKEVENTS
-+	select HAVE_CLK
- 	help
- 	  Say Y here if you intend to run this kernel on a NetSilicon NS9xxx
- 	  System.
-@@ -430,6 +437,7 @@ config ARCH_ORION5X
++	mminit_validate_memmodel_limits(&start_pfn, &end_pfn);
++
+ 	/* Merge with existing active regions if possible */
+ 	for (i = 0; i < nr_nodemap_entries; i++) {
+ 		if (early_node_map[i].nid != nid)
+diff -puN mm/sparse.c~mm-make-defensive-checks-around-pfn-values-registered-for-memory-usage mm/sparse.c
+--- a/mm/sparse.c~mm-make-defensive-checks-around-pfn-values-registered-for-memory-usage
++++ a/mm/sparse.c
+@@ -12,6 +12,7 @@
+ #include <asm/dma.h>
+ #include <asm/pgalloc.h>
+ #include <asm/pgtable.h>
++#include "internal.h"
  
- config ARCH_PNX4008
- 	bool "Philips Nexperia PNX4008 Mobile"
-+	select HAVE_CLK
- 	help
- 	  This enables support for Philips PNX4008 mobile platform.
+ /*
+  * Permanent SPARSEMEM data:
+@@ -147,22 +148,41 @@ static inline int sparse_early_nid(struc
+ 	return (section->section_mem_map >> SECTION_NID_SHIFT);
+ }
  
-@@ -438,6 +446,7 @@ config ARCH_PXA
- 	depends on MMU
- 	select ARCH_MTD_XIP
- 	select GENERIC_GPIO
-+	select HAVE_CLK
- 	select HAVE_GPIO_LIB
- 	select GENERIC_TIME
- 	select GENERIC_CLOCKEVENTS
-@@ -468,6 +477,7 @@ config ARCH_SA1100
- 	select GENERIC_GPIO
- 	select GENERIC_TIME
- 	select GENERIC_CLOCKEVENTS
-+	select HAVE_CLK
- 	select TICK_ONESHOT
- 	select HAVE_GPIO_LIB
- 	help
-@@ -476,6 +486,7 @@ config ARCH_SA1100
- config ARCH_S3C2410
- 	bool "Samsung S3C2410, S3C2412, S3C2413, S3C2440, S3C2442, S3C2443"
- 	select GENERIC_GPIO
-+	select HAVE_CLK
- 	help
- 	  Samsung S3C2410X CPU based systems, such as the Simtec Electronics
- 	  BAST (<http://www.simtec.co.uk/products/EB110ITX/>), the IPAQ 1940 or
-@@ -503,12 +514,14 @@ config ARCH_DAVINCI
- 	select GENERIC_TIME
- 	select GENERIC_CLOCKEVENTS
- 	select GENERIC_GPIO
-+	select HAVE_CLK
- 	help
- 	  Support for TI's DaVinci platform.
+-/* Record a memory area against a node. */
+-void __init memory_present(int nid, unsigned long start, unsigned long end)
++/* Validate the physical addressing limitations of the model */
++void __meminit mminit_validate_memmodel_limits(unsigned long *start_pfn,
++						unsigned long *end_pfn)
+ {
+-	unsigned long max_arch_pfn = 1UL << (MAX_PHYSMEM_BITS-PAGE_SHIFT);
+-	unsigned long pfn;
++	unsigned long max_sparsemem_pfn = 1UL << (MAX_PHYSMEM_BITS-PAGE_SHIFT);
  
- config ARCH_OMAP
- 	bool "TI OMAP"
- 	select GENERIC_GPIO
-+	select HAVE_CLK
- 	select HAVE_GPIO_LIB
- 	select GENERIC_TIME
- 	select GENERIC_CLOCKEVENTS
-diff -puN arch/avr32/Kconfig~add-have_clk-to-kconfig-for-driver-dependencies arch/avr32/Kconfig
---- a/arch/avr32/Kconfig~add-have_clk-to-kconfig-for-driver-dependencies
-+++ a/arch/avr32/Kconfig
-@@ -10,6 +10,7 @@ config AVR32
- 	# With EMBEDDED=n, we get lots of stuff automatically selected
- 	# that we usually don't need on AVR32.
- 	select EMBEDDED
-+	select HAVE_CLK
- 	select HAVE_OPROFILE
- 	select HAVE_KPROBES
- 	help
-diff -puN arch/powerpc/Kconfig~add-have_clk-to-kconfig-for-driver-dependencies arch/powerpc/Kconfig
---- a/arch/powerpc/Kconfig~add-have_clk-to-kconfig-for-driver-dependencies
-+++ a/arch/powerpc/Kconfig
-@@ -843,6 +843,7 @@ source "crypto/Kconfig"
- config PPC_CLOCK
- 	bool
- 	default n
-+	select HAVE_CLK
+ 	/*
+ 	 * Sanity checks - do not allow an architecture to pass
+ 	 * in larger pfns than the maximum scope of sparsemem:
+ 	 */
+-	if (start >= max_arch_pfn)
+-		return;
+-	if (end >= max_arch_pfn)
+-		end = max_arch_pfn;
++	if (*start_pfn > max_sparsemem_pfn) {
++		mminit_dprintk(MMINIT_WARNING, "pfnvalidation",
++			"Start of range %lu -> %lu exceeds SPARSEMEM max %lu\n",
++			*start_pfn, *end_pfn, max_sparsemem_pfn);
++		WARN_ON_ONCE(1);
++		*start_pfn = max_sparsemem_pfn;
++		*end_pfn = max_sparsemem_pfn;
++	}
++
++	if (*end_pfn > max_sparsemem_pfn) {
++		mminit_dprintk(MMINIT_WARNING, "pfnvalidation",
++			"End of range %lu -> %lu exceeds SPARSEMEM max %lu\n",
++			*start_pfn, *end_pfn, max_sparsemem_pfn);
++		WARN_ON_ONCE(1);
++		*end_pfn = max_sparsemem_pfn;
++	}
++}
++
++/* Record a memory area against a node. */
++void __init memory_present(int nid, unsigned long start, unsigned long end)
++{
++	unsigned long pfn;
  
- config PPC_LIB_RHEAP
- 	bool
-diff -puN arch/sh/Kconfig~add-have_clk-to-kconfig-for-driver-dependencies arch/sh/Kconfig
---- a/arch/sh/Kconfig~add-have_clk-to-kconfig-for-driver-dependencies
-+++ a/arch/sh/Kconfig
-@@ -8,6 +8,7 @@ mainmenu "Linux/SuperH Kernel Configurat
- config SUPERH
- 	def_bool y
- 	select EMBEDDED
-+	select HAVE_CLK
- 	select HAVE_IDE
- 	select HAVE_OPROFILE
- 	help
+ 	start &= PAGE_SECTION_MASK;
++	mminit_validate_memmodel_limits(&start, &end);
+ 	for (pfn = start; pfn < end; pfn += PAGES_PER_SECTION) {
+ 		unsigned long section = pfn_to_section_nr(pfn);
+ 		struct mem_section *ms;
+@@ -187,6 +207,7 @@ unsigned long __init node_memmap_size_by
+ 	unsigned long pfn;
+ 	unsigned long nr_pages = 0;
+ 
++	mminit_validate_memmodel_limits(&start_pfn, &end_pfn);
+ 	for (pfn = start_pfn; pfn < end_pfn; pfn += PAGES_PER_SECTION) {
+ 		if (nid != early_pfn_to_nid(pfn))
+ 			continue;
 _
 
-Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
+Patches currently in -mm which might be from mel@csn.ul.ie are
 
 origin.patch
-linux-next.patch
-drivers-power-fix-platform-driver-hotplug-coldplug.patch
-mfd-fix-platform-driver-hotplug-coldplug.patch
-parport-fix-platform-driver-hotplug-coldplug.patch
-gpio-sysfs-interface-updated.patch
-gpio-sysfs-interface-updated-update.patch
-gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support.patch
-gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix.patch
-gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix-fix.patch
-gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix-fix-fix.patch
-gpio-mcp23s08-handles-multiple-chips-per-chipselect.patch
-gpio-max732x-driver.patch
+page-owner-tracking-leak-detector.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
 
