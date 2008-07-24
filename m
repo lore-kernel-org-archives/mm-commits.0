@@ -1,108 +1,166 @@
 From: akpm@linux-foundation.org
-Subject: - hugetlb-printk-cleanup.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:23:18 -0700
-Message-ID: <200807242323.m6ONNIcn010650@imap1.linux-foundation.org>
+Subject: - tmpfs-support-aio.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:22:45 -0700
+Message-ID: <200807242322.m6ONMjI9010587@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34183 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42064 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754594AbYGXXYD (ORCPT
+	by vger.kernel.org with ESMTP id S1754782AbYGXXYI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:24:03 -0400
+	Thu, 24 Jul 2008 19:24:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, agl@us.ibm.com, ak@suse.de, nacc@us.ibm.com, mm-commits@vger.kernel.org
+To: hugh@veritas.com, hans-christoph.rohland@sap.com, leg@google.com, pbadari@us.ibm.com, zach.brown@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hugetlb: printk cleanup
+     tmpfs: support aio
 has been removed from the -mm tree.  Its filename was
-     hugetlb-printk-cleanup.patch
+     tmpfs-support-aio.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlb: printk cleanup
-From: Nick Piggin <npiggin@suse.de>
+Subject: tmpfs: support aio
+From: Hugh Dickins <hugh@veritas.com>
 
-- Reword sentence to clarify meaning with multiple options
-- Add support for using GB prefixes for the page size
-- Add extra printk to delayed > MAX_ORDER allocation code
+We have a request for tmpfs to support the AIO interface: easily done, no
+more than replacing the old shmem_file_read by shmem_file_aio_read,
+cribbed from generic_file_aio_read.  (In 2.6.25 its write side was already
+changed to use generic_file_aio_write.)
 
-Acked-by: Adam Litke <agl@us.ibm.com>
-Acked-by: Nishanth Aravamudan <nacc@us.ibm.com>
-Signed-off-by: Andi Kleen <ak@suse.de>
-Signed-off-by: Nick Piggin <npiggin@suse.de>
+Incorporate cleanups from Andrew Morton and Harvey Harrison.
+
+Tests out fine with LTP's ltp-aiodio.sh, given hacks (not included) to
+support O_DIRECT.  tmpfs cannot honestly support O_DIRECT: its
+cache-avoiding-IO nature is at odds with direct IO-avoiding-cache.
+
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Tested-by: Lawrence Greenfield <leg@google.com>
+Cc: Christoph Rohland <hans-christoph.rohland@sap.com>
+Cc: Badari Pulavarty <pbadari@us.ibm.com>
+Cc: Zach Brown <zach.brown@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   20 ++++++++++++++++----
- 1 file changed, 16 insertions(+), 4 deletions(-)
+ mm/shmem.c |   53 +++++++++++++++++++++++++++++++--------------------
+ 1 file changed, 33 insertions(+), 20 deletions(-)
 
-diff -puN mm/hugetlb.c~hugetlb-printk-cleanup mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-printk-cleanup
-+++ a/mm/hugetlb.c
-@@ -1006,15 +1006,27 @@ static void __init hugetlb_init_hstates(
- 	}
+diff -puN mm/shmem.c~tmpfs-support-aio mm/shmem.c
+--- a/mm/shmem.c~tmpfs-support-aio
++++ a/mm/shmem.c
+@@ -1690,26 +1690,38 @@ static void do_shmem_file_read(struct fi
+ 	file_accessed(filp);
  }
  
-+static char * __init memfmt(char *buf, unsigned long n)
-+{
-+	if (n >= (1UL << 30))
-+		sprintf(buf, "%lu GB", n >> 30);
-+	else if (n >= (1UL << 20))
-+		sprintf(buf, "%lu MB", n >> 20);
-+	else
-+		sprintf(buf, "%lu KB", n >> 10);
-+	return buf;
-+}
-+
- static void __init report_hugepages(void)
+-static ssize_t shmem_file_read(struct file *filp, char __user *buf, size_t count, loff_t *ppos)
++static ssize_t shmem_file_aio_read(struct kiocb *iocb,
++		const struct iovec *iov, unsigned long nr_segs, loff_t pos)
  {
- 	struct hstate *h;
- 
- 	for_each_hstate(h) {
--		printk(KERN_INFO "Total HugeTLB memory allocated, "
--				"%ld %dMB pages\n",
--				h->free_huge_pages,
--				1 << (h->order + PAGE_SHIFT - 20));
-+		char buf[32];
-+		printk(KERN_INFO "HugeTLB registered %s page size, "
-+				 "pre-allocated %ld pages\n",
-+			memfmt(buf, huge_page_size(h)),
-+			h->free_huge_pages);
- 	}
+-	read_descriptor_t desc;
+-
+-	if ((ssize_t) count < 0)
+-		return -EINVAL;
+-	if (!access_ok(VERIFY_WRITE, buf, count))
+-		return -EFAULT;
+-	if (!count)
+-		return 0;
+-
+-	desc.written = 0;
+-	desc.count = count;
+-	desc.arg.buf = buf;
+-	desc.error = 0;
+-
+-	do_shmem_file_read(filp, ppos, &desc, file_read_actor);
+-	if (desc.written)
+-		return desc.written;
+-	return desc.error;
++	struct file *filp = iocb->ki_filp;
++	ssize_t retval;
++	unsigned long seg;
++	size_t count;
++	loff_t *ppos = &iocb->ki_pos;
++
++	retval = generic_segment_checks(iov, &nr_segs, &count, VERIFY_WRITE);
++	if (retval)
++		return retval;
++
++	for (seg = 0; seg < nr_segs; seg++) {
++		read_descriptor_t desc;
++
++		desc.written = 0;
++		desc.arg.buf = iov[seg].iov_base;
++		desc.count = iov[seg].iov_len;
++		if (desc.count == 0)
++			continue;
++		desc.error = 0;
++		do_shmem_file_read(filp, ppos, &desc, file_read_actor);
++		retval += desc.written;
++		if (desc.error) {
++			retval = retval ?: desc.error;
++			break;
++		}
++		if (desc.count > 0)
++			break;
++	}
++	return retval;
  }
  
+ static int shmem_statfs(struct dentry *dentry, struct kstatfs *buf)
+@@ -2369,8 +2381,9 @@ static const struct file_operations shme
+ 	.mmap		= shmem_mmap,
+ #ifdef CONFIG_TMPFS
+ 	.llseek		= generic_file_llseek,
+-	.read		= shmem_file_read,
++	.read		= do_sync_read,
+ 	.write		= do_sync_write,
++	.aio_read	= shmem_file_aio_read,
+ 	.aio_write	= generic_file_aio_write,
+ 	.fsync		= simple_sync_file,
+ 	.splice_read	= generic_file_splice_read,
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from hugh@veritas.com are
 
 origin.patch
-linux-next.patch
+ahci-use-correct-type-for-cpu-flags.patch
+git-unionfs.patch
 mmu-notifiers-add-list_del_init_rcu.patch
 mmu-notifiers-add-mm_take_all_locks-operation.patch
 mmu-notifier-core.patch
-x86-implement-pte_special.patch
+exec-remove-some-includes.patch
+exec-remove-some-includes-fix.patch
+memcg-better-migration-handling.patch
+memcg-remove-refcnt-from-page_cgroup.patch
+memcg-remove-refcnt-from-page_cgroup-fix.patch
+memcg-remove-refcnt-from-page_cgroup-fix-2.patch
+memcg-remove-refcnt-from-page_cgroup-fix-memcg-fix-mem_cgroup_end_migration-race.patch
+memcg-remove-refcnt-from-page_cgroup-memcg-fix-shmem_unuse_inode-charging.patch
+memcg-helper-function-for-relcaim-from-shmem.patch
+memcg-helper-function-for-relcaim-from-shmem-memcg-shmem_getpage-release-page-sooner.patch
+memcg-helper-function-for-relcaim-from-shmem-memcg-mem_cgroup_shrink_usage-css_put.patch
+memcg-add-hints-for-branch.patch
+memcg-remove-a-redundant-check.patch
+memcg-clean-up-checking-of-the-disabled-flag-memcg-further-checking-of-disabled-flag.patch
+memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info-memrlimit-fix-mmap_sem-deadlock.patch
+memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info-memrlimit-fix-sleep-inside-sleeplock-in-mm_update_next_owner.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-memrlimit-improve-fork-and-error-handling.patch
+memrlimit-improve-error-handling.patch
+memrlimit-improve-error-handling-update.patch
+memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
+memrlimit-handle-attach_task-failure-add-can_attach-callback-update.patch
+full-conversion-to-early_initcall-interface-remove-old-interface-fix-fix-fix.patch
+mm-add-zap_vma_ptes-a-library-function-to-unmap-driver-ptes.patch
+gru-driver-v3-resource-management-unmap-driver-ptes-gru.patch
 x86-implement-pte_special-fix.patch
-mm-introduce-get_user_pages_fast.patch
-mm-introduce-get_user_pages_fast-fix.patch
-mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast.patch
-x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-fix.patch
-x86-lockless-get_user_pages_fast-fix-2.patch
-x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
-x86-lockless-get_user_pages_fast-fix-warning.patch
-dio-use-get_user_pages_fast.patch
-splice-use-get_user_pages_fast.patch
-x86-support-1gb-hugepages-with-get_user_pages_lockless.patch
 mm-readahead-scan-lockless.patch
 radix-tree-add-gang_lookup_slot-gang_lookup_slot_tag.patch
 mm-speculative-page-references.patch
 mm-speculative-page-references-fix.patch
+mm-speculative-page-references-fix-fix.patch
 mm-speculative-page-references-fix-add_to_page_cache.patch
 mm-speculative-page-references-fix-add_to_page_cache-fix.patch
 mm-lockless-pagecache.patch
@@ -110,19 +168,17 @@ mm-spinlock-tree_lock.patch
 powerpc-implement-pte_special.patch
 powerpc-implement-pte_special-update.patch
 powerpc-lockless-get_user_pages.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
+define-page_file_cache-function-fix-splitlru-shmem_getpage-setpageswapbacked-sooner.patch
+vmscan-split-lru-lists-into-anon-file-sets-splitlru-memcg-swapbacked-pages-active.patch
 vmscan-split-lru-lists-into-anon-file-sets-splitlru-bdi_cap_swap_backed.patch
-mlock-mlocked-pages-are-unevictable.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-3.patch
-mlock-mlocked-pages-are-unevictable-fix-fix-munlock-page-table-walk-now-requires-mm.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
-fix-double-unlock_page-in-2626-rc5-mm3-kernel-bug-at-mm-filemapc-575.patch
-vmstat-mlocked-pages-statistics.patch
+mlock-mlocked-pages-are-unevictable-fix-4.patch
+introduce-__get_user_pages.patch
+introduce-__get_user_pages-fix.patch
+split-lru-munlock-rework.patch
+revert-to-unevictable-lru-infrastructure-kconfig-fixpatch.patch
 vmstat-mlocked-pages-statistics-fix-incorrect-mlocked-field-of-proc-meminfo.patch
-reiser4.patch
-likeliness-accounting-change-and-cleanup.patch
+vmscan-unevictable-lru-scan-sysctl-add-sys_device-parameter.patch
+mmapc-deinline-a-few-functions.patch
+mm-print-swapcache-page-count-in-show_swap_cache_info.patch
+prio_tree-debugging-patch.patch
 
