@@ -1,131 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: - fs-check-for-statfs-overflow.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:23:36 -0700
-Message-ID: <200807242323.m6ONNaIf010691@imap1.linux-foundation.org>
+Subject: - hugetlb-quota-is-not-freed-for-unused-reserved-private-huge-pages.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:23:43 -0700
+Message-ID: <200807242323.m6ONNhqk010707@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41141 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33413 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754477AbYGXXXy (ORCPT
+	by vger.kernel.org with ESMTP id S1754863AbYGXXYM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:23:54 -0400
+	Thu, 24 Jul 2008 19:24:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, kniht@linux.vnet.ibm.com, nacc@us.ibm.com, mm-commits@vger.kernel.org
+To: agl@us.ibm.com, apw@shadowen.org, hannes@saeurebad.de, hugh@veritas.com, mel@csn.ul.ie, wli@holomorphy.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs: check for statfs overflow
+     hugetlb: quota is not freed for unused reserved private huge pages
 has been removed from the -mm tree.  Its filename was
-     fs-check-for-statfs-overflow.patch
+     hugetlb-quota-is-not-freed-for-unused-reserved-private-huge-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs: check for statfs overflow
-From: Nick Piggin <npiggin@suse.de>
+Subject: hugetlb: quota is not freed for unused reserved private huge pages
+From: Adam Litke <agl@us.ibm.com>
 
-Adds a check for an overflow in the filesystem size so if someone is
-checking with statfs() on a 16G blocksize hugetlbfs in a 32bit binary that
-it will report back EOVERFLOW instead of a size of 0.
+With shared reservations (and now also with private reservations), we reserve
+huge pages at mmap time.  We also account for the mapping against fs quota to
+prevent a reservation from being preempted by quota exhaustion.
 
-Acked-by: Nishanth Aravamudan <nacc@us.ibm.com>
-Signed-off-by: Jon Tollefson <kniht@linux.vnet.ibm.com>
-Signed-off-by: Nick Piggin <npiggin@suse.de>
+When testing with the libhugetlbfs test suite, I found a problem with quota
+accounting.  FS quota for allocated pages is handled correctly but we are not
+releasing quota for private pages that were reserved but never allocated.  Do
+this in hugetlb_vm_op_close() at the same time as unused page reservations are
+released.
+
+Signed-off-by: Adam Litke <agl@us.ibm.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Johannes Weiner <hannes@saeurebad.de>
+Cc: William Lee Irwin III <wli@holomorphy.com>
+Cc: Hugh Dickins <hugh@veritas.com>
+Acked-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/compat.c |    8 ++++----
- fs/open.c   |    3 ++-
- 2 files changed, 6 insertions(+), 5 deletions(-)
+ mm/hugetlb.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN fs/compat.c~fs-check-for-statfs-overflow fs/compat.c
---- a/fs/compat.c~fs-check-for-statfs-overflow
-+++ a/fs/compat.c
-@@ -197,8 +197,8 @@ static int put_compat_statfs(struct comp
- {
- 	
- 	if (sizeof ubuf->f_blocks == 4) {
--		if ((kbuf->f_blocks | kbuf->f_bfree | kbuf->f_bavail) &
--		    0xffffffff00000000ULL)
-+		if ((kbuf->f_blocks | kbuf->f_bfree | kbuf->f_bavail |
-+		     kbuf->f_bsize | kbuf->f_frsize) & 0xffffffff00000000ULL)
- 			return -EOVERFLOW;
- 		/* f_files and f_ffree may be -1; it's okay
- 		 * to stuff that into 32 bits */
-@@ -271,8 +271,8 @@ out:
- static int put_compat_statfs64(struct compat_statfs64 __user *ubuf, struct kstatfs *kbuf)
- {
- 	if (sizeof ubuf->f_blocks == 4) {
--		if ((kbuf->f_blocks | kbuf->f_bfree | kbuf->f_bavail) &
--		    0xffffffff00000000ULL)
-+		if ((kbuf->f_blocks | kbuf->f_bfree | kbuf->f_bavail |
-+		     kbuf->f_bsize | kbuf->f_frsize) & 0xffffffff00000000ULL)
- 			return -EOVERFLOW;
- 		/* f_files and f_ffree may be -1; it's okay
- 		 * to stuff that into 32 bits */
-diff -puN fs/open.c~fs-check-for-statfs-overflow fs/open.c
---- a/fs/open.c~fs-check-for-statfs-overflow
-+++ a/fs/open.c
-@@ -64,7 +64,8 @@ static int vfs_statfs_native(struct dent
- 		memcpy(buf, &st, sizeof(st));
- 	else {
- 		if (sizeof buf->f_blocks == 4) {
--			if ((st.f_blocks | st.f_bfree | st.f_bavail) &
-+			if ((st.f_blocks | st.f_bfree | st.f_bavail |
-+			     st.f_bsize | st.f_frsize) &
- 			    0xffffffff00000000ULL)
- 				return -EOVERFLOW;
- 			/*
+diff -puN mm/hugetlb.c~hugetlb-quota-is-not-freed-for-unused-reserved-private-huge-pages mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-quota-is-not-freed-for-unused-reserved-private-huge-pages
++++ a/mm/hugetlb.c
+@@ -1562,8 +1562,10 @@ static void hugetlb_vm_op_close(struct v
+ 
+ 		kref_put(&reservations->refs, resv_map_release);
+ 
+-		if (reserve)
++		if (reserve) {
+ 			hugetlb_acct_memory(h, -reserve);
++			hugetlb_put_quota(vma->vm_file->f_mapping, reserve);
++		}
+ 	}
+ }
+ 
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from agl@us.ibm.com are
 
 origin.patch
-linux-next.patch
-mmu-notifiers-add-list_del_init_rcu.patch
-mmu-notifiers-add-mm_take_all_locks-operation.patch
-mmu-notifier-core.patch
-x86-implement-pte_special.patch
-x86-implement-pte_special-fix.patch
-mm-introduce-get_user_pages_fast.patch
-mm-introduce-get_user_pages_fast-fix.patch
-mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast.patch
-x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-fix.patch
-x86-lockless-get_user_pages_fast-fix-2.patch
-x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
-x86-lockless-get_user_pages_fast-fix-warning.patch
-dio-use-get_user_pages_fast.patch
-splice-use-get_user_pages_fast.patch
-x86-support-1gb-hugepages-with-get_user_pages_lockless.patch
-mm-readahead-scan-lockless.patch
-radix-tree-add-gang_lookup_slot-gang_lookup_slot_tag.patch
-mm-speculative-page-references.patch
-mm-speculative-page-references-fix.patch
-mm-speculative-page-references-fix-add_to_page_cache.patch
-mm-speculative-page-references-fix-add_to_page_cache-fix.patch
-mm-lockless-pagecache.patch
-mm-spinlock-tree_lock.patch
-powerpc-implement-pte_special.patch
-powerpc-implement-pte_special-update.patch
-powerpc-lockless-get_user_pages.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
-vmscan-split-lru-lists-into-anon-file-sets-splitlru-bdi_cap_swap_backed.patch
-mlock-mlocked-pages-are-unevictable.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-3.patch
-mlock-mlocked-pages-are-unevictable-fix-fix-munlock-page-table-walk-now-requires-mm.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
-fix-double-unlock_page-in-2626-rc5-mm3-kernel-bug-at-mm-filemapc-575.patch
-vmstat-mlocked-pages-statistics.patch
-vmstat-mlocked-pages-statistics-fix-incorrect-mlocked-field-of-proc-meminfo.patch
-reiser4.patch
-likeliness-accounting-change-and-cleanup.patch
 
