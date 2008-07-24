@@ -1,140 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: - mm-print-out-the-zonelists-on-request-for-manual-verification.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:20:39 -0700
-Message-ID: <200807242320.m6ONKd5E010347@imap1.linux-foundation.org>
+Subject: - add-a-helper-function-to-test-if-an-object-is-on-the-stack.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:20:44 -0700
+Message-ID: <200807242320.m6ONKilT010352@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59513 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50196 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752865AbYGXXVI (ORCPT
+	by vger.kernel.org with ESMTP id S1752943AbYGXXVS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:21:08 -0400
+	Thu, 24 Jul 2008 19:21:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mel@csn.ul.ie, apw@shadowen.org, cl@linux-foundation.org, mingo@elte.hu, mm-commits@vger.kernel.org
+To: fujita.tomonori@lab.ntt.co.jp, apw@shadowen.org, cl@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: print out the zonelists on request for manual verification
+     add a helper function to test if an object is on the stack
 has been removed from the -mm tree.  Its filename was
-     mm-print-out-the-zonelists-on-request-for-manual-verification.patch
+     add-a-helper-function-to-test-if-an-object-is-on-the-stack.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: print out the zonelists on request for manual verification
-From: Mel Gorman <mel@csn.ul.ie>
+Subject: add a helper function to test if an object is on the stack
+From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 
-This patch prints out the zonelists during boot for manual verification by the
-user if the mminit_loglevel is MMINIT_VERIFY or higher.
+lib/debugobjects.c has a function to test if an object is on the stack. 
+The block layer and ide needs it (they need to avoid DMA from/to stack
+buffers).  This patch moves the function to include/linux/sched.h so that
+everyone can use it.
 
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+lib/debugobjects.c uses current->stack but this patch uses a
+task_stack_page() accessor, which is a preferable way to access the stack.
+
+Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 Cc: Christoph Lameter <cl@linux-foundation.org>
 Cc: Andy Whitcroft <apw@shadowen.org>
 Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h   |    5 +++++
- mm/mm_init.c    |   45 +++++++++++++++++++++++++++++++++++++++++++++
- mm/page_alloc.c |    1 +
- 3 files changed, 51 insertions(+)
+ include/linux/sched.h |    7 +++++++
+ lib/debugobjects.c    |    4 +---
+ 2 files changed, 8 insertions(+), 3 deletions(-)
 
-diff -puN mm/internal.h~mm-print-out-the-zonelists-on-request-for-manual-verification mm/internal.h
---- a/mm/internal.h~mm-print-out-the-zonelists-on-request-for-manual-verification
-+++ a/mm/internal.h
-@@ -81,6 +81,7 @@ do { \
- extern void mminit_verify_pageflags_layout(void);
- extern void mminit_verify_page_links(struct page *page,
- 		enum zone_type zone, unsigned long nid, unsigned long pfn);
-+extern void mminit_verify_zonelist(void);
+diff -puN include/linux/sched.h~add-a-helper-function-to-test-if-an-object-is-on-the-stack include/linux/sched.h
+--- a/include/linux/sched.h~add-a-helper-function-to-test-if-an-object-is-on-the-stack
++++ a/include/linux/sched.h
+@@ -1973,6 +1973,13 @@ static inline unsigned long *end_of_stac
  
- #else
+ #endif
  
-@@ -97,6 +98,10 @@ static inline void mminit_verify_page_li
- 		enum zone_type zone, unsigned long nid, unsigned long pfn)
- {
- }
-+
-+static inline void mminit_verify_zonelist(void)
++static inline int object_is_on_stack(void *obj)
 +{
-+}
- #endif /* CONFIG_DEBUG_MEMORY_INIT */
- 
- /* mminit_validate_memmodel_limits is independent of CONFIG_DEBUG_MEMORY_INIT */
-diff -puN mm/mm_init.c~mm-print-out-the-zonelists-on-request-for-manual-verification mm/mm_init.c
---- a/mm/mm_init.c~mm-print-out-the-zonelists-on-request-for-manual-verification
-+++ a/mm/mm_init.c
-@@ -11,6 +11,51 @@
- 
- int __meminitdata mminit_loglevel;
- 
-+/* The zonelists are simply reported, validation is manual. */
-+void mminit_verify_zonelist(void)
-+{
-+	int nid;
++	void *stack = task_stack_page(current);
 +
-+	if (mminit_loglevel < MMINIT_VERIFY)
-+		return;
-+
-+	for_each_online_node(nid) {
-+		pg_data_t *pgdat = NODE_DATA(nid);
-+		struct zone *zone;
-+		struct zoneref *z;
-+		struct zonelist *zonelist;
-+		int i, listid, zoneid;
-+
-+		BUG_ON(MAX_ZONELISTS > 2);
-+		for (i = 0; i < MAX_ZONELISTS * MAX_NR_ZONES; i++) {
-+
-+			/* Identify the zone and nodelist */
-+			zoneid = i % MAX_NR_ZONES;
-+			listid = i / MAX_NR_ZONES;
-+			zonelist = &pgdat->node_zonelists[listid];
-+			zone = &pgdat->node_zones[zoneid];
-+			if (!populated_zone(zone))
-+				continue;
-+
-+			/* Print information about the zonelist */
-+			printk(KERN_DEBUG "mminit::zonelist %s %d:%s = ",
-+				listid > 0 ? "thisnode" : "general", nid,
-+				zone->name);
-+
-+			/* Iterate the zonelist */
-+			for_each_zone_zonelist(zone, z, zonelist, zoneid) {
-+#ifdef CONFIG_NUMA
-+				printk(KERN_CONT "%d:%s ",
-+					zone->node, zone->name);
-+#else
-+				printk(KERN_CONT "0:%s ", zone->name);
-+#endif /* CONFIG_NUMA */
-+			}
-+			printk(KERN_CONT "\n");
-+		}
-+	}
++	return (obj >= stack) && (obj < (stack + THREAD_SIZE));
 +}
 +
- void __init mminit_verify_pageflags_layout(void)
- {
- 	int shift, width;
-diff -puN mm/page_alloc.c~mm-print-out-the-zonelists-on-request-for-manual-verification mm/page_alloc.c
---- a/mm/page_alloc.c~mm-print-out-the-zonelists-on-request-for-manual-verification
-+++ a/mm/page_alloc.c
-@@ -2352,6 +2352,7 @@ void build_all_zonelists(void)
+ extern void thread_info_cache_init(void);
  
- 	if (system_state == SYSTEM_BOOTING) {
- 		__build_all_zonelists(NULL);
-+		mminit_verify_zonelist();
- 		cpuset_init_current_mems_allowed();
- 	} else {
- 		/* we have to stop all cpus to guarantee there is no user
+ /* set thread flags in other task's structures
+diff -puN lib/debugobjects.c~add-a-helper-function-to-test-if-an-object-is-on-the-stack lib/debugobjects.c
+--- a/lib/debugobjects.c~add-a-helper-function-to-test-if-an-object-is-on-the-stack
++++ a/lib/debugobjects.c
+@@ -226,15 +226,13 @@ debug_object_fixup(int (*fixup)(void *ad
+ 
+ static void debug_object_is_on_stack(void *addr, int onstack)
+ {
+-	void *stack = current->stack;
+ 	int is_on_stack;
+ 	static int limit;
+ 
+ 	if (limit > 4)
+ 		return;
+ 
+-	is_on_stack = (addr >= stack && addr < (stack + THREAD_SIZE));
+-
++	is_on_stack = object_is_on_stack(addr);
+ 	if (is_on_stack == onstack)
+ 		return;
+ 
 _
 
-Patches currently in -mm which might be from mel@csn.ul.ie are
+Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
 
 origin.patch
-page-owner-tracking-leak-detector.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
+linux-next.patch
+ide-cd-use-the-new-object_is_in_stack-helper.patch
+block-blk-mapc-use-the-new-object_is_on_stack-helper.patch
+clean-up-duplicated-alloc-free_thread_info.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-s2io.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support-fix-2.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sdhci-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-infiniband.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-more-sparc.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-ibmvscsi.patch
+x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary.patch
+x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary-checkpatch-fixes.patch
 
