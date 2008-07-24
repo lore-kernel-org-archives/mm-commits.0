@@ -1,37 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: - mm-fix-free_all_bootmem_core-alignment-check.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:21:02 -0700
-Message-ID: <200807242321.m6ONL2xB010380@imap1.linux-foundation.org>
+Subject: - mm-unexport-__alloc_bootmem_core.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:21:14 -0700
+Message-ID: <200807242321.m6ONLE2Y010387@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38489 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52540 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753179AbYGXXVh (ORCPT
+	by vger.kernel.org with ESMTP id S1753915AbYGXXVn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:21:37 -0400
+	Thu, 24 Jul 2008 19:21:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hannes@saeurebad.de, apw@shadowen.org, cl@linux-foundation.org, mel@csn.ul.ie, mingo@elte.hu, yhlu.kernel@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: fix free_all_bootmem_core alignment check
+     mm: unexport __alloc_bootmem_core()
 has been removed from the -mm tree.  Its filename was
-     mm-fix-free_all_bootmem_core-alignment-check.patch
+     mm-unexport-__alloc_bootmem_core.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: fix free_all_bootmem_core alignment check
+Subject: mm: unexport __alloc_bootmem_core()
 From: Johannes Weiner <hannes@saeurebad.de>
 
-The check for node_boot_start is bogus because we start freeing at the
-corresponding pfn.  So check if the pfn is properly aligned instead in a more
-readable way and adjust the documentation.
-
-Also remove an unneeded accounting variable.
+This function has no external callers, so unexport it.  Also fix its naming
+inconsistency.
 
 Signed-off-by: Johannes Weiner <hannes@saeurebad.de>
 Cc: Ingo Molnar <mingo@elte.hu>
@@ -39,68 +36,104 @@ Cc: Yinghai Lu <yhlu.kernel@gmail.com>
 Cc: Christoph Lameter <cl@linux-foundation.org>
 Cc: Mel Gorman <mel@csn.ul.ie>
 Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/bootmem.c |   21 ++++++++++-----------
- 1 file changed, 10 insertions(+), 11 deletions(-)
+ include/linux/bootmem.h |    5 -----
+ mm/bootmem.c            |   24 ++++++++++++------------
+ 2 files changed, 12 insertions(+), 17 deletions(-)
 
-diff -puN mm/bootmem.c~mm-fix-free_all_bootmem_core-alignment-check mm/bootmem.c
---- a/mm/bootmem.c~mm-fix-free_all_bootmem_core-alignment-check
+diff -puN include/linux/bootmem.h~mm-unexport-__alloc_bootmem_core include/linux/bootmem.h
+--- a/include/linux/bootmem.h~mm-unexport-__alloc_bootmem_core
++++ a/include/linux/bootmem.h
+@@ -56,11 +56,6 @@ extern void *__alloc_bootmem_low_node(pg
+ 				      unsigned long size,
+ 				      unsigned long align,
+ 				      unsigned long goal);
+-extern void *__alloc_bootmem_core(struct bootmem_data *bdata,
+-				  unsigned long size,
+-				  unsigned long align,
+-				  unsigned long goal,
+-				  unsigned long limit);
+ 
+ /*
+  * flags for reserve_bootmem (also if CONFIG_HAVE_ARCH_BOOTMEM_NODE,
+diff -puN mm/bootmem.c~mm-unexport-__alloc_bootmem_core mm/bootmem.c
+--- a/mm/bootmem.c~mm-unexport-__alloc_bootmem_core
 +++ a/mm/bootmem.c
-@@ -377,7 +377,7 @@ static unsigned long __init free_all_boo
- 	struct page *page;
- 	unsigned long pfn;
- 	bootmem_data_t *bdata = pgdat->bdata;
--	unsigned long i, count, total = 0;
-+	unsigned long i, count;
- 	unsigned long idx;
- 	unsigned long *map; 
- 	int gofast = 0;
-@@ -389,10 +389,13 @@ static unsigned long __init free_all_boo
- 	pfn = PFN_DOWN(bdata->node_boot_start);
- 	idx = bdata->node_low_pfn - pfn;
- 	map = bdata->node_bootmem_map;
--	/* Check physaddr is O(LOG2(BITS_PER_LONG)) page aligned */
--	if (bdata->node_boot_start == 0 ||
--	    ffs(bdata->node_boot_start) - PAGE_SHIFT > ffs(BITS_PER_LONG))
-+	/*
-+	 * Check if we are aligned to BITS_PER_LONG pages.  If so, we might
-+	 * be able to free page orders of that size at once.
-+	 */
-+	if (!(pfn & (BITS_PER_LONG-1)))
- 		gofast = 1;
-+
- 	for (i = 0; i < idx; ) {
- 		unsigned long v = ~map[i / BITS_PER_LONG];
+@@ -234,9 +234,9 @@ static void __init free_bootmem_core(boo
+  *
+  * NOTE:  This function is _not_ reentrant.
+  */
+-void * __init
+-__alloc_bootmem_core(struct bootmem_data *bdata, unsigned long size,
+-	      unsigned long align, unsigned long goal, unsigned long limit)
++static void * __init
++alloc_bootmem_core(struct bootmem_data *bdata, unsigned long size,
++		unsigned long align, unsigned long goal, unsigned long limit)
+ {
+ 	unsigned long areasize, preferred;
+ 	unsigned long i, start = 0, incr, eidx, end_pfn;
+@@ -245,7 +245,7 @@ __alloc_bootmem_core(struct bootmem_data
+ 	void *node_bootmem_map;
  
-@@ -420,23 +423,19 @@ static unsigned long __init free_all_boo
- 		}
- 		pfn += BITS_PER_LONG;
+ 	if (!size) {
+-		printk("__alloc_bootmem_core(): zero-sized request\n");
++		printk("alloc_bootmem_core(): zero-sized request\n");
+ 		BUG();
  	}
--	total += count;
+ 	BUG_ON(align & (align-1));
+@@ -512,7 +512,7 @@ void * __init __alloc_bootmem_nopanic(un
+ 	void *ptr;
  
- 	/*
- 	 * Now free the allocator bitmap itself, it's not
- 	 * needed anymore:
- 	 */
- 	page = virt_to_page(bdata->node_bootmem_map);
--	count = 0;
- 	idx = (get_mapsize(bdata) + PAGE_SIZE-1) >> PAGE_SHIFT;
--	for (i = 0; i < idx; i++, page++) {
-+	for (i = 0; i < idx; i++, page++)
- 		__free_pages_bootmem(page, 0);
--		count++;
--	}
--	total += count;
-+	count += i;
- 	bdata->node_bootmem_map = NULL;
+ 	list_for_each_entry(bdata, &bdata_list, list) {
+-		ptr = __alloc_bootmem_core(bdata, size, align, goal, 0);
++		ptr = alloc_bootmem_core(bdata, size, align, goal, 0);
+ 		if (ptr)
+ 			return ptr;
+ 	}
+@@ -540,7 +540,7 @@ void * __init __alloc_bootmem_node(pg_da
+ {
+ 	void *ptr;
  
--	return total;
-+	return count;
+-	ptr = __alloc_bootmem_core(pgdat->bdata, size, align, goal, 0);
++	ptr = alloc_bootmem_core(pgdat->bdata, size, align, goal, 0);
+ 	if (ptr)
+ 		return ptr;
+ 
+@@ -559,8 +559,8 @@ void * __init alloc_bootmem_section(unsi
+ 	goal = PFN_PHYS(pfn);
+ 	limit = PFN_PHYS(section_nr_to_pfn(section_nr + 1)) - 1;
+ 	pgdat = NODE_DATA(early_pfn_to_nid(pfn));
+-	ptr = __alloc_bootmem_core(pgdat->bdata, size, SMP_CACHE_BYTES, goal,
+-				   limit);
++	ptr = alloc_bootmem_core(pgdat->bdata, size, SMP_CACHE_BYTES, goal,
++				limit);
+ 
+ 	if (!ptr)
+ 		return NULL;
+@@ -589,8 +589,8 @@ void * __init __alloc_bootmem_low(unsign
+ 	void *ptr;
+ 
+ 	list_for_each_entry(bdata, &bdata_list, list) {
+-		ptr = __alloc_bootmem_core(bdata, size, align, goal,
+-						ARCH_LOW_ADDRESS_LIMIT);
++		ptr = alloc_bootmem_core(bdata, size, align, goal,
++					ARCH_LOW_ADDRESS_LIMIT);
+ 		if (ptr)
+ 			return ptr;
+ 	}
+@@ -606,6 +606,6 @@ void * __init __alloc_bootmem_low(unsign
+ void * __init __alloc_bootmem_low_node(pg_data_t *pgdat, unsigned long size,
+ 				       unsigned long align, unsigned long goal)
+ {
+-	return __alloc_bootmem_core(pgdat->bdata, size, align, goal,
+-				    ARCH_LOW_ADDRESS_LIMIT);
++	return alloc_bootmem_core(pgdat->bdata, size, align, goal,
++				ARCH_LOW_ADDRESS_LIMIT);
  }
- 
- unsigned long __init init_bootmem_node(pg_data_t *pgdat, unsigned long freepfn,
 _
 
 Patches currently in -mm which might be from hannes@saeurebad.de are
