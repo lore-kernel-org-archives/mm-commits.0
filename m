@@ -1,168 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: - mm-make-config_migration-available-w-o-config_numa.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:24:46 -0700
-Message-ID: <200807242324.m6ONOk9s010811@imap1.linux-foundation.org>
+Subject: - memory-hotplug-small-fixes-to-bootmem-freeing-for-memory-hotremove.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:24:35 -0700
+Message-ID: <200807242324.m6ONOZfb010794@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38619 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51424 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755463AbYGXXYz (ORCPT
+	by vger.kernel.org with ESMTP id S1755546AbYGXXZR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:24:55 -0400
+	Thu, 24 Jul 2008 19:25:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gerald.schaefer@de.ibm.com, cl@linux-foundation.org, heiko.carstens@de.ibm.com, kosaki.motohiro@jp.fujitsu.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
+To: y-goto@jp.fujitsu.com, apw@shadowen.org, hannes@saeurebad.de, pbadari@us.ibm.com, yhlu.kernel@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: make CONFIG_MIGRATION available w/o CONFIG_NUMA
+     memory hotplug: small fixes to bootmem freeing for memory hotremove
 has been removed from the -mm tree.  Its filename was
-     mm-make-config_migration-available-w-o-config_numa.patch
+     memory-hotplug-small-fixes-to-bootmem-freeing-for-memory-hotremove.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: make CONFIG_MIGRATION available w/o CONFIG_NUMA
-From: Gerald Schaefer <gerald.schaefer@de.ibm.com>
+Subject: memory hotplug: small fixes to bootmem freeing for memory hotremove
+From: Yasunori Goto <y-goto@jp.fujitsu.com>
 
-We'd like to support CONFIG_MEMORY_HOTREMOVE on s390, which depends on
-CONFIG_MIGRATION.  So far, CONFIG_MIGRATION is only available with NUMA
-support.
+- Change some naming
+  * Magic -> types
+  * MIX_INFO -> MIX_SECTION_INFO
+  * Change definition of bootmem type from direct hex value
 
-This patch makes CONFIG_MIGRATION selectable for architectures that define
-ARCH_ENABLE_MEMORY_HOTREMOVE.  When MIGRATION is enabled w/o NUMA, the
-kernel won't compile because migrate_vmas() does not know about
-vm_ops->migrate() and vma_migratable() does not know about policy_zone. 
-To fix this, those two functions can be restricted to '#ifdef CONFIG_NUMA'
-because they are not being used w/o NUMA.  vma_migratable() is moved over
-from migrate.h to mempolicy.h.
+- __free_pages_bootmem() becomes __meminit.
 
-[kosaki.motohiro@jp.fujitsu.com: build fix]
-Acked-by: Christoph Lameter <cl@linux-foundation.org>
-Signed-off-by: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Signed-off-by: KOSAKI Motorhiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: Badari Pulavarty <pbadari@us.ibm.com>
+Cc: Yinghai Lu <yhlu.kernel@gmail.com>
+Cc: Johannes Weiner <hannes@saeurebad.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mempolicy.h |   19 +++++++++++++++++++
- include/linux/migrate.h   |   21 ---------------------
- mm/Kconfig                |    2 +-
- mm/migrate.c              |    2 +-
- 4 files changed, 21 insertions(+), 23 deletions(-)
+ include/linux/memory_hotplug.h |    8 ++++----
+ mm/memory_hotplug.c            |   12 ++++++------
+ mm/page_alloc.c                |    2 +-
+ 3 files changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/mempolicy.h~mm-make-config_migration-available-w-o-config_numa include/linux/mempolicy.h
---- a/include/linux/mempolicy.h~mm-make-config_migration-available-w-o-config_numa
-+++ a/include/linux/mempolicy.h
-@@ -59,6 +59,7 @@ enum {
- #include <linux/rbtree.h>
- #include <linux/spinlock.h>
- #include <linux/nodemask.h>
-+#include <linux/pagemap.h>
- 
- struct mm_struct;
- 
-@@ -220,6 +221,24 @@ extern int mpol_parse_str(char *str, str
- extern int mpol_to_str(char *buffer, int maxlen, struct mempolicy *pol,
- 			int no_context);
- #endif
-+
-+/* Check if a vma is migratable */
-+static inline int vma_migratable(struct vm_area_struct *vma)
-+{
-+	if (vma->vm_flags & (VM_IO|VM_HUGETLB|VM_PFNMAP|VM_RESERVED))
-+		return 0;
-+	/*
-+	 * Migration allocates pages in the highest zone. If we cannot
-+	 * do so then migration (at least from node to node) is not
-+	 * possible.
-+	 */
-+	if (vma->vm_file &&
-+		gfp_zone(mapping_gfp_mask(vma->vm_file->f_mapping))
-+								< policy_zone)
-+			return 0;
-+	return 1;
-+}
-+
- #else
- 
- struct mempolicy {};
-diff -puN include/linux/migrate.h~mm-make-config_migration-available-w-o-config_numa include/linux/migrate.h
---- a/include/linux/migrate.h~mm-make-config_migration-available-w-o-config_numa
-+++ a/include/linux/migrate.h
-@@ -3,28 +3,10 @@
- 
- #include <linux/mm.h>
- #include <linux/mempolicy.h>
--#include <linux/pagemap.h>
- 
- typedef struct page *new_page_t(struct page *, unsigned long private, int **);
- 
- #ifdef CONFIG_MIGRATION
--/* Check if a vma is migratable */
--static inline int vma_migratable(struct vm_area_struct *vma)
--{
--	if (vma->vm_flags & (VM_IO|VM_HUGETLB|VM_PFNMAP|VM_RESERVED))
--		return 0;
--	/*
--	 * Migration allocates pages in the highest zone. If we cannot
--	 * do so then migration (at least from node to node) is not
--	 * possible.
--	 */
--	if (vma->vm_file &&
--		gfp_zone(mapping_gfp_mask(vma->vm_file->f_mapping))
--								< policy_zone)
--			return 0;
--	return 1;
--}
--
- extern int isolate_lru_page(struct page *p, struct list_head *pagelist);
- extern int putback_lru_pages(struct list_head *l);
- extern int migrate_page(struct address_space *,
-@@ -39,9 +21,6 @@ extern int migrate_vmas(struct mm_struct
- 		const nodemask_t *from, const nodemask_t *to,
- 		unsigned long flags);
- #else
--static inline int vma_migratable(struct vm_area_struct *vma)
--					{ return 0; }
--
- static inline int isolate_lru_page(struct page *p, struct list_head *list)
- 					{ return -ENOSYS; }
- static inline int putback_lru_pages(struct list_head *l) { return 0; }
-diff -puN mm/Kconfig~mm-make-config_migration-available-w-o-config_numa mm/Kconfig
---- a/mm/Kconfig~mm-make-config_migration-available-w-o-config_numa
-+++ a/mm/Kconfig
-@@ -174,7 +174,7 @@ config SPLIT_PTLOCK_CPUS
- config MIGRATION
- 	bool "Page migration"
- 	def_bool y
--	depends on NUMA
-+	depends on NUMA || ARCH_ENABLE_MEMORY_HOTREMOVE
- 	help
- 	  Allows the migration of the physical location of pages of processes
- 	  while the virtual addresses are not changed. This is useful for
-diff -puN mm/migrate.c~mm-make-config_migration-available-w-o-config_numa mm/migrate.c
---- a/mm/migrate.c~mm-make-config_migration-available-w-o-config_numa
-+++ a/mm/migrate.c
-@@ -1071,7 +1071,6 @@ out2:
- 	mmput(mm);
- 	return err;
- }
--#endif
+diff -puN include/linux/memory_hotplug.h~memory-hotplug-small-fixes-to-bootmem-freeing-for-memory-hotremove include/linux/memory_hotplug.h
+--- a/include/linux/memory_hotplug.h~memory-hotplug-small-fixes-to-bootmem-freeing-for-memory-hotremove
++++ a/include/linux/memory_hotplug.h
+@@ -13,12 +13,12 @@ struct mem_section;
+ #ifdef CONFIG_MEMORY_HOTPLUG
  
  /*
-  * Call migration functions in the vma_ops that may prepare
-@@ -1093,3 +1092,4 @@ int migrate_vmas(struct mm_struct *mm, c
-  	}
-  	return err;
+- * Magic number for free bootmem.
++ * Types for free bootmem.
+  * The normal smallest mapcount is -1. Here is smaller value than it.
+  */
+-#define SECTION_INFO		0xfffffffe
+-#define MIX_INFO		0xfffffffd
+-#define NODE_INFO		0xfffffffc
++#define SECTION_INFO		(-1 - 1)
++#define MIX_SECTION_INFO	(-1 - 2)
++#define NODE_INFO		(-1 - 3)
+ 
+ /*
+  * pgdat resizing functions
+diff -puN mm/memory_hotplug.c~memory-hotplug-small-fixes-to-bootmem-freeing-for-memory-hotremove mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~memory-hotplug-small-fixes-to-bootmem-freeing-for-memory-hotremove
++++ a/mm/memory_hotplug.c
+@@ -62,9 +62,9 @@ static void release_memory_resource(stru
+ 
+ #ifdef CONFIG_MEMORY_HOTPLUG_SPARSE
+ #ifndef CONFIG_SPARSEMEM_VMEMMAP
+-static void get_page_bootmem(unsigned long info,  struct page *page, int magic)
++static void get_page_bootmem(unsigned long info,  struct page *page, int type)
+ {
+-	atomic_set(&page->_mapcount, magic);
++	atomic_set(&page->_mapcount, type);
+ 	SetPagePrivate(page);
+ 	set_page_private(page, info);
+ 	atomic_inc(&page->_count);
+@@ -72,10 +72,10 @@ static void get_page_bootmem(unsigned lo
+ 
+ void put_page_bootmem(struct page *page)
+ {
+-	int magic;
++	int type;
+ 
+-	magic = atomic_read(&page->_mapcount);
+-	BUG_ON(magic >= -1);
++	type = atomic_read(&page->_mapcount);
++	BUG_ON(type >= -1);
+ 
+ 	if (atomic_dec_return(&page->_count) == 1) {
+ 		ClearPagePrivate(page);
+@@ -119,7 +119,7 @@ static void register_page_bootmem_info_s
+ 	mapsize = PAGE_ALIGN(usemap_size()) >> PAGE_SHIFT;
+ 
+ 	for (i = 0; i < mapsize; i++, page++)
+-		get_page_bootmem(section_nr, page, MIX_INFO);
++		get_page_bootmem(section_nr, page, MIX_SECTION_INFO);
+ 
  }
-+#endif
+ 
+diff -puN mm/page_alloc.c~memory-hotplug-small-fixes-to-bootmem-freeing-for-memory-hotremove mm/page_alloc.c
+--- a/mm/page_alloc.c~memory-hotplug-small-fixes-to-bootmem-freeing-for-memory-hotremove
++++ a/mm/page_alloc.c
+@@ -533,7 +533,7 @@ static void __free_pages_ok(struct page 
+ /*
+  * permit the bootmem allocator to evade page validation on high-order frees
+  */
+-void __free_pages_bootmem(struct page *page, unsigned int order)
++void __meminit __free_pages_bootmem(struct page *page, unsigned int order)
+ {
+ 	if (order == 0) {
+ 		__ClearPageReserved(page);
 _
 
-Patches currently in -mm which might be from gerald.schaefer@de.ibm.com are
+Patches currently in -mm which might be from y-goto@jp.fujitsu.com are
 
 origin.patch
 
