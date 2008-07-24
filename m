@@ -1,156 +1,399 @@
 From: akpm@linux-foundation.org
-Subject: - use-generic_access_phys-for-dev-mem-mappings.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:21:47 -0700
-Message-ID: <200807242321.m6ONLlIs010422@imap1.linux-foundation.org>
+Subject: - hugetlb-multiple-hstates-for-multiple-page-sizes.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:23:00 -0700
+Message-ID: <200807242323.m6ONN0hr010612@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36584 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55461 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753434AbYGXXXG (ORCPT
+	by vger.kernel.org with ESMTP id S1751552AbYGXXXK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:23:06 -0400
+	Thu, 24 Jul 2008 19:23:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: riel@redhat.com, airlied@linux.ie, arnd@arndb.de, benh@kernel.crashing.org, hugh@veritas.com, paulus@samba.org, mm-commits@vger.kernel.org
+To: npiggin@suse.de, agl@us.ibm.com, ak@suse.de, nacc@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     use generic_access_phys for /dev/mem mappings
+     hugetlb: multiple hstates for multiple page sizes
 has been removed from the -mm tree.  Its filename was
-     use-generic_access_phys-for-dev-mem-mappings.patch
+     hugetlb-multiple-hstates-for-multiple-page-sizes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: use generic_access_phys for /dev/mem mappings
-From: Rik van Riel <riel@redhat.com>
+Subject: hugetlb: multiple hstates for multiple page sizes
+From: Nick Piggin <npiggin@suse.de>
 
-Use generic_access_phys as the access_process_vm access function for
-/dev/mem mappings.  This makes it possible to debug the X server.
+Add basic support for more than one hstate in hugetlbfs.  This is the key
+to supporting multiple hugetlbfs page sizes at once.
 
-[akpm@linux-foundation.org: repair all the architectures which broke]
-Signed-off-by: Rik van Riel <riel@redhat.com>
-Cc: Benjamin Herrensmidt <benh@kernel.crashing.org>
-Cc: Dave Airlie <airlied@linux.ie>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
+- Rather than a single hstate, we now have an array, with an iterator
+- default_hstate continues to be the struct hstate which we use by default
+- Add functions for architectures to register new hstates
+
+[akpm@linux-foundation.org: coding-style fixes]
+Acked-by: Adam Litke <agl@us.ibm.com>
+Acked-by: Nishanth Aravamudan <nacc@us.ibm.com>
+Signed-off-by: Andi Kleen <ak@suse.de>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/pci/i386.c |    1 +
- drivers/char/mem.c  |    5 ++++-
- 2 files changed, 5 insertions(+), 1 deletion(-)
+ include/linux/hugetlb.h |   19 ++++
+ kernel/sysctl.c         |    8 +-
+ mm/hugetlb.c            |  148 +++++++++++++++++++++++++++++++-------
+ 3 files changed, 142 insertions(+), 33 deletions(-)
 
-diff -puN arch/x86/pci/i386.c~use-generic_access_phys-for-dev-mem-mappings arch/x86/pci/i386.c
---- a/arch/x86/pci/i386.c~use-generic_access_phys-for-dev-mem-mappings
-+++ a/arch/x86/pci/i386.c
-@@ -280,6 +280,7 @@ static void pci_track_mmap_page_range(st
- static struct vm_operations_struct pci_mmap_ops = {
- 	.open  = pci_track_mmap_page_range,
- 	.close = pci_unmap_page_range,
-+	.access = generic_access_phys,
+diff -puN include/linux/hugetlb.h~hugetlb-multiple-hstates-for-multiple-page-sizes include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~hugetlb-multiple-hstates-for-multiple-page-sizes
++++ a/include/linux/hugetlb.h
+@@ -36,8 +36,6 @@ int hugetlb_reserve_pages(struct inode *
+ 						struct vm_area_struct *vma);
+ void hugetlb_unreserve_pages(struct inode *inode, long offset, long freed);
+ 
+-extern unsigned long max_huge_pages;
+-extern unsigned long sysctl_overcommit_huge_pages;
+ extern unsigned long hugepages_treat_as_movable;
+ extern const unsigned long hugetlb_zero, hugetlb_infinity;
+ extern int sysctl_hugetlb_shm_group;
+@@ -181,7 +179,17 @@ struct hstate {
+ 	unsigned int surplus_huge_pages_node[MAX_NUMNODES];
  };
  
- int pci_mmap_page_range(struct pci_dev *dev, struct vm_area_struct *vma,
-diff -puN drivers/char/mem.c~use-generic_access_phys-for-dev-mem-mappings drivers/char/mem.c
---- a/drivers/char/mem.c~use-generic_access_phys-for-dev-mem-mappings
-+++ a/drivers/char/mem.c
-@@ -327,7 +327,10 @@ static void mmap_mem_close(struct vm_are
- 
- static struct vm_operations_struct mmap_mem_ops = {
- 	.open  = mmap_mem_open,
--	.close = mmap_mem_close
-+	.close = mmap_mem_close,
-+#ifdef CONFIG_HAVE_IOREMAP_PROT
-+	.access = generic_access_phys
+-extern struct hstate default_hstate;
++void __init hugetlb_add_hstate(unsigned order);
++struct hstate *size_to_hstate(unsigned long size);
++
++#ifndef HUGE_MAX_HSTATE
++#define HUGE_MAX_HSTATE 1
 +#endif
- };
++
++extern struct hstate hstates[HUGE_MAX_HSTATE];
++extern unsigned int default_hstate_idx;
++
++#define default_hstate (hstates[default_hstate_idx])
  
- static int mmap_mem(struct file * file, struct vm_area_struct * vma)
+ static inline struct hstate *hstate_vma(struct vm_area_struct *vma)
+ {
+@@ -230,6 +238,11 @@ static inline unsigned int blocks_per_hu
+ 
+ #include <asm/hugetlb.h>
+ 
++static inline struct hstate *page_hstate(struct page *page)
++{
++	return size_to_hstate(PAGE_SIZE << compound_order(page));
++}
++
+ #else
+ struct hstate {};
+ #define hstate_file(f) NULL
+diff -puN kernel/sysctl.c~hugetlb-multiple-hstates-for-multiple-page-sizes kernel/sysctl.c
+--- a/kernel/sysctl.c~hugetlb-multiple-hstates-for-multiple-page-sizes
++++ a/kernel/sysctl.c
+@@ -947,7 +947,7 @@ static struct ctl_table vm_table[] = {
+ #ifdef CONFIG_HUGETLB_PAGE
+ 	 {
+ 		.procname	= "nr_hugepages",
+-		.data		= &max_huge_pages,
++		.data		= NULL,
+ 		.maxlen		= sizeof(unsigned long),
+ 		.mode		= 0644,
+ 		.proc_handler	= &hugetlb_sysctl_handler,
+@@ -973,10 +973,12 @@ static struct ctl_table vm_table[] = {
+ 	{
+ 		.ctl_name	= CTL_UNNUMBERED,
+ 		.procname	= "nr_overcommit_hugepages",
+-		.data		= &sysctl_overcommit_huge_pages,
+-		.maxlen		= sizeof(sysctl_overcommit_huge_pages),
++		.data		= NULL,
++		.maxlen		= sizeof(unsigned long),
+ 		.mode		= 0644,
+ 		.proc_handler	= &hugetlb_overcommit_handler,
++		.extra1		= (void *)&hugetlb_zero,
++		.extra2		= (void *)&hugetlb_infinity,
+ 	},
+ #endif
+ 	{
+diff -puN mm/hugetlb.c~hugetlb-multiple-hstates-for-multiple-page-sizes mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-multiple-hstates-for-multiple-page-sizes
++++ a/mm/hugetlb.c
+@@ -22,12 +22,19 @@
+ #include "internal.h"
+ 
+ const unsigned long hugetlb_zero = 0, hugetlb_infinity = ~0UL;
+-unsigned long max_huge_pages;
+-unsigned long sysctl_overcommit_huge_pages;
+ static gfp_t htlb_alloc_mask = GFP_HIGHUSER;
+ unsigned long hugepages_treat_as_movable;
+ 
+-struct hstate default_hstate;
++static int max_hstate;
++unsigned int default_hstate_idx;
++struct hstate hstates[HUGE_MAX_HSTATE];
++
++/* for command line parsing */
++static struct hstate * __initdata parsed_hstate;
++static unsigned long __initdata default_hstate_max_huge_pages;
++
++#define for_each_hstate(h) \
++	for ((h) = hstates; (h) < &hstates[max_hstate]; (h)++)
+ 
+ /*
+  * Protects updates to hugepage_freelists, nr_huge_pages, and free_huge_pages
+@@ -454,13 +461,24 @@ static void update_and_free_page(struct 
+ 	__free_pages(page, huge_page_order(h));
+ }
+ 
++struct hstate *size_to_hstate(unsigned long size)
++{
++	struct hstate *h;
++
++	for_each_hstate(h) {
++		if (huge_page_size(h) == size)
++			return h;
++	}
++	return NULL;
++}
++
+ static void free_huge_page(struct page *page)
+ {
+ 	/*
+ 	 * Can't pass hstate in here because it is called from the
+ 	 * compound page destructor.
+ 	 */
+-	struct hstate *h = &default_hstate;
++	struct hstate *h = page_hstate(page);
+ 	int nid = page_to_nid(page);
+ 	struct address_space *mapping;
+ 
+@@ -887,39 +905,94 @@ static struct page *alloc_huge_page(stru
+ 	return page;
+ }
+ 
+-static int __init hugetlb_init(void)
++static void __init hugetlb_init_one_hstate(struct hstate *h)
+ {
+ 	unsigned long i;
+-	struct hstate *h = &default_hstate;
+-
+-	if (HPAGE_SHIFT == 0)
+-		return 0;
+-
+-	if (!h->order) {
+-		h->order = HPAGE_SHIFT - PAGE_SHIFT;
+-		h->mask = HPAGE_MASK;
+-	}
+ 
+ 	for (i = 0; i < MAX_NUMNODES; ++i)
+ 		INIT_LIST_HEAD(&h->hugepage_freelists[i]);
+ 
+ 	h->hugetlb_next_nid = first_node(node_online_map);
+ 
+-	for (i = 0; i < max_huge_pages; ++i) {
++	for (i = 0; i < h->max_huge_pages; ++i) {
+ 		if (!alloc_fresh_huge_page(h))
+ 			break;
+ 	}
+-	max_huge_pages = h->free_huge_pages = h->nr_huge_pages = i;
+-	printk(KERN_INFO "Total HugeTLB memory allocated, %ld\n",
+-			h->free_huge_pages);
++	h->max_huge_pages = h->free_huge_pages = h->nr_huge_pages = i;
++}
++
++static void __init hugetlb_init_hstates(void)
++{
++	struct hstate *h;
++
++	for_each_hstate(h) {
++		hugetlb_init_one_hstate(h);
++	}
++}
++
++static void __init report_hugepages(void)
++{
++	struct hstate *h;
++
++	for_each_hstate(h) {
++		printk(KERN_INFO "Total HugeTLB memory allocated, "
++				"%ld %dMB pages\n",
++				h->free_huge_pages,
++				1 << (h->order + PAGE_SHIFT - 20));
++	}
++}
++
++static int __init hugetlb_init(void)
++{
++	BUILD_BUG_ON(HPAGE_SHIFT == 0);
++
++	if (!size_to_hstate(HPAGE_SIZE)) {
++		hugetlb_add_hstate(HUGETLB_PAGE_ORDER);
++		parsed_hstate->max_huge_pages = default_hstate_max_huge_pages;
++	}
++	default_hstate_idx = size_to_hstate(HPAGE_SIZE) - hstates;
++
++	hugetlb_init_hstates();
++
++	report_hugepages();
++
+ 	return 0;
+ }
+ module_init(hugetlb_init);
+ 
++/* Should be called on processing a hugepagesz=... option */
++void __init hugetlb_add_hstate(unsigned order)
++{
++	struct hstate *h;
++	if (size_to_hstate(PAGE_SIZE << order)) {
++		printk(KERN_WARNING "hugepagesz= specified twice, ignoring\n");
++		return;
++	}
++	BUG_ON(max_hstate >= HUGE_MAX_HSTATE);
++	BUG_ON(order == 0);
++	h = &hstates[max_hstate++];
++	h->order = order;
++	h->mask = ~((1ULL << (order + PAGE_SHIFT)) - 1);
++	hugetlb_init_one_hstate(h);
++	parsed_hstate = h;
++}
++
+ static int __init hugetlb_setup(char *s)
+ {
+-	if (sscanf(s, "%lu", &max_huge_pages) <= 0)
+-		max_huge_pages = 0;
++	unsigned long *mhp;
++
++	/*
++	 * !max_hstate means we haven't parsed a hugepagesz= parameter yet,
++	 * so this hugepages= parameter goes to the "default hstate".
++	 */
++	if (!max_hstate)
++		mhp = &default_hstate_max_huge_pages;
++	else
++		mhp = &parsed_hstate->max_huge_pages;
++
++	if (sscanf(s, "%lu", mhp) <= 0)
++		*mhp = 0;
++
+ 	return 1;
+ }
+ __setup("hugepages=", hugetlb_setup);
+@@ -950,7 +1023,7 @@ static void try_to_free_low(struct hstat
+ 			if (PageHighMem(page))
+ 				continue;
+ 			list_del(&page->lru);
+-			update_and_free_page(page);
++			update_and_free_page(h, page);
+ 			h->free_huge_pages--;
+ 			h->free_huge_pages_node[page_to_nid(page)]--;
+ 		}
+@@ -963,10 +1036,9 @@ static inline void try_to_free_low(struc
+ #endif
+ 
+ #define persistent_huge_pages(h) (h->nr_huge_pages - h->surplus_huge_pages)
+-static unsigned long set_max_huge_pages(unsigned long count)
++static unsigned long set_max_huge_pages(struct hstate *h, unsigned long count)
+ {
+ 	unsigned long min_count, ret;
+-	struct hstate *h = &default_hstate;
+ 
+ 	/*
+ 	 * Increase the pool size
+@@ -1037,8 +1109,19 @@ int hugetlb_sysctl_handler(struct ctl_ta
+ 			   struct file *file, void __user *buffer,
+ 			   size_t *length, loff_t *ppos)
+ {
++	struct hstate *h = &default_hstate;
++	unsigned long tmp;
++
++	if (!write)
++		tmp = h->max_huge_pages;
++
++	table->data = &tmp;
++	table->maxlen = sizeof(unsigned long);
+ 	proc_doulongvec_minmax(table, write, file, buffer, length, ppos);
+-	max_huge_pages = set_max_huge_pages(max_huge_pages);
++
++	if (write)
++		h->max_huge_pages = set_max_huge_pages(h, tmp);
++
+ 	return 0;
+ }
+ 
+@@ -1059,10 +1142,21 @@ int hugetlb_overcommit_handler(struct ct
+ 			size_t *length, loff_t *ppos)
+ {
+ 	struct hstate *h = &default_hstate;
++	unsigned long tmp;
++
++	if (!write)
++		tmp = h->nr_overcommit_huge_pages;
++
++	table->data = &tmp;
++	table->maxlen = sizeof(unsigned long);
+ 	proc_doulongvec_minmax(table, write, file, buffer, length, ppos);
+-	spin_lock(&hugetlb_lock);
+-	h->nr_overcommit_huge_pages = sysctl_overcommit_huge_pages;
+-	spin_unlock(&hugetlb_lock);
++
++	if (write) {
++		spin_lock(&hugetlb_lock);
++		h->nr_overcommit_huge_pages = tmp;
++		spin_unlock(&hugetlb_lock);
++	}
++
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from riel@redhat.com are
+Patches currently in -mm which might be from npiggin@suse.de are
 
 origin.patch
-ntp-let-update_persistent_clock-sleep.patch
+linux-next.patch
 mmu-notifiers-add-list_del_init_rcu.patch
 mmu-notifiers-add-mm_take_all_locks-operation.patch
 mmu-notifier-core.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-idr-change-the-idr-structure.patch
-idr-rename-some-of-the-idr-apis-internal-routines.patch
-idr-fix-a-printk-call.patch
-idr-error-checking-factorization.patch
-idr-make-idr_get_new-rcu-safe.patch
-idr-make-idr_get_new-rcu-safe-fix.patch
-idr-make-idr_find-rcu-safe.patch
-idr-make-idr_remove-rcu-safe.patch
-ipc-call-idr_find-without-locking-in-ipc_lock.patch
-ipc-get-rid-of-ipc_lock_down.patch
-mm-speculative-page-references-fix-migration_entry_wait-for-speculative-page-cache.patch
+x86-implement-pte_special.patch
+x86-implement-pte_special-fix.patch
+mm-introduce-get_user_pages_fast.patch
+mm-introduce-get_user_pages_fast-fix.patch
+mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast.patch
+x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-fix.patch
+x86-lockless-get_user_pages_fast-fix-2.patch
+x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
+x86-lockless-get_user_pages_fast-fix-warning.patch
+dio-use-get_user_pages_fast.patch
+splice-use-get_user_pages_fast.patch
+x86-support-1gb-hugepages-with-get_user_pages_lockless.patch
+mm-readahead-scan-lockless.patch
+radix-tree-add-gang_lookup_slot-gang_lookup_slot_tag.patch
+mm-speculative-page-references.patch
+mm-speculative-page-references-fix.patch
+mm-speculative-page-references-fix-add_to_page_cache.patch
+mm-speculative-page-references-fix-add_to_page_cache-fix.patch
+mm-lockless-pagecache.patch
+mm-spinlock-tree_lock.patch
+powerpc-implement-pte_special.patch
+powerpc-implement-pte_special-update.patch
+powerpc-lockless-get_user_pages.patch
 vmscan-move-isolate_lru_page-to-vmscanc.patch
 vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
-vmscan-use-an-indexed-array-for-lru-variables.patch
-swap-use-an-array-for-the-lru-pagevecs.patch
-vmscan-free-swap-space-on-swap-in-activation.patch
-define-page_file_cache-function.patch
-define-page_file_cache-function-fix.patch
-define-page_file_cache-function-fix-splitlru-shmem_getpage-setpageswapbacked-sooner.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-vmscan-split-lru-lists-into-anon-file-sets-collect-lru-meminfo-statistics-from-correct-offset.patch
-vmscan-split-lru-lists-into-anon-file-sets-prevent-incorrect-oom-under-split_lru.patch
-vmscan-split-lru-lists-into-anon-file-sets-split_lru-fix-pagevec_move_tail-doesnt-treat-unevictable-page.patch
-vmscan-split-lru-lists-into-anon-file-sets-splitlru-memcg-swapbacked-pages-active.patch
 vmscan-split-lru-lists-into-anon-file-sets-splitlru-bdi_cap_swap_backed.patch
-vmscan-split-lru-lists-into-anon-file-sets-units-fix.patch
-vmscan-second-chance-replacement-for-anonymous-pages.patch
-vmscan-second-chance-replacement-for-anonymous-pages-fix.patch
-vmscan-second-chance-replacement-for-anonymous-pages-memcg-lru-scan-fix.patch
-vmscan-fix-pagecache-reclaim-referenced-bit-check.patch
-vmscan-add-newly-swapped-in-pages-to-the-inactive-list.patch
-more-aggressively-use-lumpy-reclaim.patch
-pageflag-helpers-for-configed-out-flags.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-infrastructure-fix.patch
-unevictable-lru-infrastructure-kconfig-fix.patch
-unevictable-lru-infrastructure-remove-redundant-page-mapping-check.patch
-unevictable-lru-infrastructure-kill-unnecessary-lock_page-in-vmscanc.patch
-unevictable-lru-infrastructure-revert-migration-change-of-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-unevictable-lru-page-statistics-fix-printk-in-show_free_areas.patch
-unevictable-lru-page-statistics-units-fix.patch
-ramfs-and-ram-disk-pages-are-unevictable.patch
-ramfs-and-ram-disk-pages-are-unevictable-undo-the-brdc-part.patch
-shm_locked-pages-are-unevictable.patch
-shm_locked-pages-are-unevictable-revert-shm-change-of-shm_locked-pages-are-unevictable-patch.patch
 mlock-mlocked-pages-are-unevictable.patch
 mlock-mlocked-pages-are-unevictable-fix.patch
 mlock-mlocked-pages-are-unevictable-fix-fix.patch
 mlock-mlocked-pages-are-unevictable-fix-3.patch
 mlock-mlocked-pages-are-unevictable-fix-fix-munlock-page-table-walk-now-requires-mm.patch
-mlock-mlocked-pages-are-unevictable-restore-patch-failure-hunk-of-mlock-mlocked-pages-are-unevictablepatch.patch
-mlock-downgrade-mmap-sem-while-populating-mlocked-regions.patch
 mmap-handle-mlocked-pages-during-map-remap-unmap.patch
 mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
 fix-double-unlock_page-in-2626-rc5-mm3-kernel-bug-at-mm-filemapc-575.patch
-introduce-__get_user_pages.patch
-introduce-__get_user_pages-fix.patch
-split-lru-munlock-rework.patch
-revert-to-unevictable-lru-infrastructure-kconfig-fixpatch.patch
 vmstat-mlocked-pages-statistics.patch
 vmstat-mlocked-pages-statistics-fix-incorrect-mlocked-field-of-proc-meminfo.patch
-swap-cull-unevictable-pages-in-fault-path.patch
-swap-cull-unevictable-pages-in-fault-path-fix.patch
-vmstat-unevictable-and-mlocked-pages-vm-events.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
-vmscan-unevictable-lru-scan-sysctl-add-sys_device-parameter.patch
-mlock-count-attempts-to-free-mlocked-page.patch
-doc-unevictable-lru-and-mlocked-pages-documentation.patch
-vmscam-kill-unused-lru-functions.patch
-mm-more-likely-reclaim-madv_sequential-mappings.patch
-make-mm-rmapc-anon_vma_cachep-static.patch
+reiser4.patch
+likeliness-accounting-change-and-cleanup.patch
 
