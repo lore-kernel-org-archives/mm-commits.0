@@ -1,70 +1,181 @@
 From: akpm@linux-foundation.org
-Subject: - mm-export-prep_compound_page-to-mm.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:23:11 -0700
-Message-ID: <200807242323.m6ONNBmr010638@imap1.linux-foundation.org>
+Subject: - powerpc-define-support-for-16g-hugepages.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:23:34 -0700
+Message-ID: <200807242323.m6ONNYxS010686@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39923 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33717 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753499AbYGXXXf (ORCPT
+	by vger.kernel.org with ESMTP id S1754477AbYGXXXq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:23:35 -0400
+	Thu, 24 Jul 2008 19:23:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, agl@us.ibm.com, ak@suse.de, mm-commits@vger.kernel.org
+To: npiggin@suse.de, kniht@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: export prep_compound_page to mm
+     powerpc: define support for 16G hugepages
 has been removed from the -mm tree.  Its filename was
-     mm-export-prep_compound_page-to-mm.patch
+     powerpc-define-support-for-16g-hugepages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: export prep_compound_page to mm
+Subject: powerpc: define support for 16G hugepages
 From: Nick Piggin <npiggin@suse.de>
 
-hugetlb will need to get compound pages from bootmem to handle the case of
-them being greater than or equal to MAX_ORDER.  Export the constructor
-function needed for this.
+The huge page size is defined for 16G pages.  If a hugepagesz of 16G is
+specified at boot-time then it becomes the huge page size instead of the
+default 16M.
 
-Acked-by: Adam Litke <agl@us.ibm.com>
-Signed-off-by: Andi Kleen <ak@suse.de>
+The change in pgtable-64K.h is to the macro pte_iterate_hashed_subpages to
+make the increment to va (the 1 being shifted) be a long so that it is not
+shifted to 0.  Otherwise it would create an infinite loop when the shift
+value is for a 16G page (when base page size is 64K).
+
+Signed-off-by: Jon Tollefson <kniht@linux.vnet.ibm.com>
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h   |    2 ++
- mm/page_alloc.c |    2 +-
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ arch/powerpc/mm/hugetlbpage.c     |   62 +++++++++++++++++++---------
+ include/asm-powerpc/pgtable-64k.h |    2 
+ 2 files changed, 45 insertions(+), 19 deletions(-)
 
-diff -puN mm/internal.h~mm-export-prep_compound_page-to-mm mm/internal.h
---- a/mm/internal.h~mm-export-prep_compound_page-to-mm
-+++ a/mm/internal.h
-@@ -16,6 +16,8 @@
- void free_pgtables(struct mmu_gather *tlb, struct vm_area_struct *start_vma,
- 		unsigned long floor, unsigned long ceiling);
+diff -puN arch/powerpc/mm/hugetlbpage.c~powerpc-define-support-for-16g-hugepages arch/powerpc/mm/hugetlbpage.c
+--- a/arch/powerpc/mm/hugetlbpage.c~powerpc-define-support-for-16g-hugepages
++++ a/arch/powerpc/mm/hugetlbpage.c
+@@ -24,8 +24,9 @@
+ #include <asm/cputable.h>
+ #include <asm/spu.h>
  
-+extern void prep_compound_page(struct page *page, unsigned long order);
+-#define HPAGE_SHIFT_64K	16
+-#define HPAGE_SHIFT_16M	24
++#define PAGE_SHIFT_64K	16
++#define PAGE_SHIFT_16M	24
++#define PAGE_SHIFT_16G	34
+ 
+ #define NUM_LOW_AREAS	(0x100000000UL >> SID_SHIFT)
+ #define NUM_HIGH_AREAS	(PGTABLE_RANGE >> HTLB_AREA_SHIFT)
+@@ -95,7 +96,7 @@ static int __hugepte_alloc(struct mm_str
+ static inline
+ pmd_t *hpmd_offset(pud_t *pud, unsigned long addr)
+ {
+-	if (HPAGE_SHIFT == HPAGE_SHIFT_64K)
++	if (HPAGE_SHIFT == PAGE_SHIFT_64K)
+ 		return pmd_offset(pud, addr);
+ 	else
+ 		return (pmd_t *) pud;
+@@ -103,7 +104,7 @@ pmd_t *hpmd_offset(pud_t *pud, unsigned 
+ static inline
+ pmd_t *hpmd_alloc(struct mm_struct *mm, pud_t *pud, unsigned long addr)
+ {
+-	if (HPAGE_SHIFT == HPAGE_SHIFT_64K)
++	if (HPAGE_SHIFT == PAGE_SHIFT_64K)
+ 		return pmd_alloc(mm, pud, addr);
+ 	else
+ 		return (pmd_t *) pud;
+@@ -260,7 +261,7 @@ static void hugetlb_free_pud_range(struc
+ 			continue;
+ 		hugetlb_free_pmd_range(tlb, pud, addr, next, floor, ceiling);
+ #else
+-		if (HPAGE_SHIFT == HPAGE_SHIFT_64K) {
++		if (HPAGE_SHIFT == PAGE_SHIFT_64K) {
+ 			if (pud_none_or_clear_bad(pud))
+ 				continue;
+ 			hugetlb_free_pmd_range(tlb, pud, addr, next, floor, ceiling);
+@@ -592,20 +593,40 @@ void set_huge_psize(int psize)
+ {
+ 	/* Check that it is a page size supported by the hardware and
+ 	 * that it fits within pagetable limits. */
+-	if (mmu_psize_defs[psize].shift && mmu_psize_defs[psize].shift < SID_SHIFT &&
++	if (mmu_psize_defs[psize].shift &&
++		mmu_psize_defs[psize].shift < SID_SHIFT_1T &&
+ 		(mmu_psize_defs[psize].shift > MIN_HUGEPTE_SHIFT ||
+-			mmu_psize_defs[psize].shift == HPAGE_SHIFT_64K)) {
++		 mmu_psize_defs[psize].shift == PAGE_SHIFT_64K ||
++		 mmu_psize_defs[psize].shift == PAGE_SHIFT_16G)) {
++		/* Return if huge page size is the same as the
++		 * base page size. */
++		if (mmu_psize_defs[psize].shift == PAGE_SHIFT)
++			return;
 +
- static inline void set_page_count(struct page *page, int v)
- {
- 	atomic_set(&page->_count, v);
-diff -puN mm/page_alloc.c~mm-export-prep_compound_page-to-mm mm/page_alloc.c
---- a/mm/page_alloc.c~mm-export-prep_compound_page-to-mm
-+++ a/mm/page_alloc.c
-@@ -264,7 +264,7 @@ static void free_compound_page(struct pa
- 	__free_pages_ok(page, compound_order(page));
- }
+ 		HPAGE_SHIFT = mmu_psize_defs[psize].shift;
+ 		mmu_huge_psize = psize;
+-#ifdef CONFIG_PPC_64K_PAGES
+-		hugepte_shift = (PMD_SHIFT-HPAGE_SHIFT);
+-#else
+-		if (HPAGE_SHIFT == HPAGE_SHIFT_64K)
+-			hugepte_shift = (PMD_SHIFT-HPAGE_SHIFT);
+-		else
+-			hugepte_shift = (PUD_SHIFT-HPAGE_SHIFT);
+-#endif
  
--static void prep_compound_page(struct page *page, unsigned long order)
-+void prep_compound_page(struct page *page, unsigned long order)
- {
- 	int i;
- 	int nr_pages = 1 << order;
++		switch (HPAGE_SHIFT) {
++		case PAGE_SHIFT_64K:
++		    /* We only allow 64k hpages with 4k base page,
++		     * which was checked above, and always put them
++		     * at the PMD */
++		    hugepte_shift = PMD_SHIFT;
++		    break;
++		case PAGE_SHIFT_16M:
++		    /* 16M pages can be at two different levels
++		     * of pagestables based on base page size */
++		    if (PAGE_SHIFT == PAGE_SHIFT_64K)
++			    hugepte_shift = PMD_SHIFT;
++		    else /* 4k base page */
++			    hugepte_shift = PUD_SHIFT;
++		    break;
++		case PAGE_SHIFT_16G:
++		    /* 16G pages are always at PGD level */
++		    hugepte_shift = PGDIR_SHIFT;
++		    break;
++		}
++		hugepte_shift -= HPAGE_SHIFT;
+ 	} else
+ 		HPAGE_SHIFT = 0;
+ }
+@@ -621,17 +642,22 @@ static int __init hugepage_setup_sz(char
+ 	shift = __ffs(size);
+ 	switch (shift) {
+ #ifndef CONFIG_PPC_64K_PAGES
+-	case HPAGE_SHIFT_64K:
++	case PAGE_SHIFT_64K:
+ 		mmu_psize = MMU_PAGE_64K;
+ 		break;
+ #endif
+-	case HPAGE_SHIFT_16M:
++	case PAGE_SHIFT_16M:
+ 		mmu_psize = MMU_PAGE_16M;
+ 		break;
++	case PAGE_SHIFT_16G:
++		mmu_psize = MMU_PAGE_16G;
++		break;
+ 	}
+ 
+-	if (mmu_psize >=0 && mmu_psize_defs[mmu_psize].shift)
++	if (mmu_psize >= 0 && mmu_psize_defs[mmu_psize].shift) {
+ 		set_huge_psize(mmu_psize);
++		hugetlb_add_hstate(shift - PAGE_SHIFT);
++	}
+ 	else
+ 		printk(KERN_WARNING "Invalid huge page size specified(%llu)\n", size);
+ 
+diff -puN include/asm-powerpc/pgtable-64k.h~powerpc-define-support-for-16g-hugepages include/asm-powerpc/pgtable-64k.h
+--- a/include/asm-powerpc/pgtable-64k.h~powerpc-define-support-for-16g-hugepages
++++ a/include/asm-powerpc/pgtable-64k.h
+@@ -138,7 +138,7 @@ static inline struct subpage_prot_table 
+                 unsigned __split = (psize == MMU_PAGE_4K ||                 \
+ 				    psize == MMU_PAGE_64K_AP);              \
+                 shift = mmu_psize_defs[psize].shift;                        \
+-	        for (index = 0; va < __end; index++, va += (1 << shift)) {  \
++		for (index = 0; va < __end; index++, va += (1L << shift)) { \
+ 		        if (!__split || __rpte_sub_valid(rpte, index)) do { \
+ 
+ #define pte_iterate_hashed_end() } while(0); } } while(0)
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
