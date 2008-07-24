@@ -1,121 +1,150 @@
 From: akpm@linux-foundation.org
-Subject: - arch-um-kernel-irqc-clean-up-some-functions.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:25:50 -0700
-Message-ID: <200807242325.m6ONPo35010922@imap1.linux-foundation.org>
+Subject: - pm-acpi-hibernation-utilize-hardware-signature.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:25:36 -0700
+Message-ID: <200807242325.m6ONPa6G010897@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45327 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35684 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755751AbYGXX0A (ORCPT
+	by vger.kernel.org with ESMTP id S1755670AbYGXXZz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:26:00 -0400
+	Thu, 24 Jul 2008 19:25:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xiyou.wangcong@gmail.com, jdike@addtoit.com, wangcong@zeuux.org, mm-commits@vger.kernel.org
+To: shaohua.li@intel.com, Valdis.Kletnieks@vt.edu, andi@firstfloor.org, lenb@kernel.org, pavel@ucw.cz, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arch/um/kernel/irq.c: clean up some functions
+     pm: acpi hibernation: utilize hardware signature
 has been removed from the -mm tree.  Its filename was
-     arch-um-kernel-irqc-clean-up-some-functions.patch
+     pm-acpi-hibernation-utilize-hardware-signature.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/um/kernel/irq.c: clean up some functions
-From: WANG Cong <xiyou.wangcong@gmail.com>
+Subject: pm: acpi hibernation: utilize hardware signature
+From: Shaohua Li <shaohua.li@intel.com>
 
-Make activate_fd() and free_irq_by_irq_and_dev() static.  Remove
-init_aio_irq() since it has no users.
+ACPI defines a hardware signature.  BIOS calculates the signature according to
+hardware configure and if hardware changes while hibernated, the signature
+will change.  In that case, S4 resume should fail.
 
-Cc: Jeff Dike <jdike@addtoit.com>
-Signed-off-by: WANG Cong <wangcong@zeuux.org>
+Still, there may be systems on which this mechanism does not work correctly,
+so it is better to provide a workaround for them.  For this reason, add a new
+switch to the acpi_sleep= command line argument allowing one to disable
+hardware signature checking.
+
+[shaohua.li@intel.com: build fix]
+Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Len Brown <lenb@kernel.org>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+Cc: <Valdis.Kletnieks@vt.edu>
+Cc: Shaohua Li <shaohua.li@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/irq_kern.h |    2 --
- arch/um/include/irq_user.h |    2 --
- arch/um/kernel/irq.c       |   35 ++---------------------------------
- 3 files changed, 2 insertions(+), 37 deletions(-)
+ Documentation/kernel-parameters.txt |    4 +++-
+ arch/x86/kernel/acpi/sleep.c        |    4 ++++
+ drivers/acpi/sleep/main.c           |   22 ++++++++++++++++++++++
+ include/linux/acpi.h                |    1 +
+ 4 files changed, 30 insertions(+), 1 deletion(-)
 
-diff -puN arch/um/include/irq_kern.h~arch-um-kernel-irqc-clean-up-some-functions arch/um/include/irq_kern.h
---- a/arch/um/include/irq_kern.h~arch-um-kernel-irqc-clean-up-some-functions
-+++ a/arch/um/include/irq_kern.h
-@@ -13,8 +13,6 @@ extern int um_request_irq(unsigned int i
- 			  irq_handler_t handler,
- 			  unsigned long irqflags,  const char * devname,
- 			  void *dev_id);
--extern int init_aio_irq(int irq, char *name,
--			irq_handler_t handler);
+diff -puN Documentation/kernel-parameters.txt~pm-acpi-hibernation-utilize-hardware-signature Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~pm-acpi-hibernation-utilize-hardware-signature
++++ a/Documentation/kernel-parameters.txt
+@@ -148,10 +148,12 @@ and is between 256 and 4096 characters. 
+ 			default: 0
  
- #endif
+ 	acpi_sleep=	[HW,ACPI] Sleep options
+-			Format: { s3_bios, s3_mode, s3_beep, old_ordering }
++			Format: { s3_bios, s3_mode, s3_beep, s4_nohwsig, old_ordering }
+ 			See Documentation/power/video.txt for s3_bios and s3_mode.
+ 			s3_beep is for debugging; it makes the PC's speaker beep
+ 			as soon as the kernel's real-mode entry point is called.
++			s4_nohwsig prevents ACPI hardware signature from being
++			used during resume from hibernation.
+ 			old_ordering causes the ACPI 1.0 ordering of the _PTS
+ 			control method, wrt putting devices into low power
+ 			states, to be enforced (the ACPI 2.0 ordering of _PTS is
+diff -puN arch/x86/kernel/acpi/sleep.c~pm-acpi-hibernation-utilize-hardware-signature arch/x86/kernel/acpi/sleep.c
+--- a/arch/x86/kernel/acpi/sleep.c~pm-acpi-hibernation-utilize-hardware-signature
++++ a/arch/x86/kernel/acpi/sleep.c
+@@ -150,6 +150,10 @@ static int __init acpi_sleep_setup(char 
+ 			acpi_realmode_flags |= 2;
+ 		if (strncmp(str, "s3_beep", 7) == 0)
+ 			acpi_realmode_flags |= 4;
++#ifdef CONFIG_HIBERNATION
++		if (strncmp(str, "s4_nohwsig", 10) == 0)
++			acpi_no_s4_hw_signature();
++#endif
+ 		if (strncmp(str, "old_ordering", 12) == 0)
+ 			acpi_old_suspend_ordering();
+ 		str = strchr(str, ',');
+diff -puN drivers/acpi/sleep/main.c~pm-acpi-hibernation-utilize-hardware-signature drivers/acpi/sleep/main.c
+--- a/drivers/acpi/sleep/main.c~pm-acpi-hibernation-utilize-hardware-signature
++++ a/drivers/acpi/sleep/main.c
+@@ -283,6 +283,15 @@ static struct platform_suspend_ops acpi_
+ #endif /* CONFIG_SUSPEND */
  
-diff -puN arch/um/include/irq_user.h~arch-um-kernel-irqc-clean-up-some-functions arch/um/include/irq_user.h
---- a/arch/um/include/irq_user.h~arch-um-kernel-irqc-clean-up-some-functions
-+++ a/arch/um/include/irq_user.h
-@@ -21,8 +21,6 @@ struct irq_fd {
- enum { IRQ_READ, IRQ_WRITE };
- 
- extern void sigio_handler(int sig, struct uml_pt_regs *regs);
--extern int activate_fd(int irq, int fd, int type, void *dev_id);
--extern void free_irq_by_irq_and_dev(unsigned int irq, void *dev_id);
- extern void free_irq_by_fd(int fd);
- extern void reactivate_fd(int fd, int irqnum);
- extern void deactivate_fd(int fd, int irqnum);
-diff -puN arch/um/kernel/irq.c~arch-um-kernel-irqc-clean-up-some-functions arch/um/kernel/irq.c
---- a/arch/um/kernel/irq.c~arch-um-kernel-irqc-clean-up-some-functions
-+++ a/arch/um/kernel/irq.c
-@@ -102,7 +102,7 @@ void sigio_handler(int sig, struct uml_p
- 
- static DEFINE_SPINLOCK(irq_lock);
- 
--int activate_fd(int irq, int fd, int type, void *dev_id)
-+static int activate_fd(int irq, int fd, int type, void *dev_id)
+ #ifdef CONFIG_HIBERNATION
++static unsigned long s4_hardware_signature;
++static struct acpi_table_facs *facs;
++static bool nosigcheck;
++
++void __init acpi_no_s4_hw_signature(void)
++{
++	nosigcheck = true;
++}
++
+ static int acpi_hibernation_begin(void)
  {
- 	struct pollfd *tmp_pfd;
- 	struct irq_fd *new_fd, *irq_fd;
-@@ -216,7 +216,7 @@ static int same_irq_and_dev(struct irq_f
- 	return ((irq->irq == data->irq) && (irq->id == data->dev));
+ 	acpi_target_sleep_state = ACPI_STATE_S4;
+@@ -316,6 +325,12 @@ static void acpi_hibernation_leave(void)
+ 	acpi_enable();
+ 	/* Reprogram control registers and execute _BFS */
+ 	acpi_leave_sleep_state_prep(ACPI_STATE_S4);
++	/* Check the hardware signature */
++	if (facs && s4_hardware_signature != facs->hardware_signature) {
++		printk(KERN_EMERG "ACPI: Hardware changed while hibernated, "
++			"cannot resume!\n");
++		panic("ACPI S4 hardware signature mismatch");
++	}
  }
  
--void free_irq_by_irq_and_dev(unsigned int irq, void *dev)
-+static void free_irq_by_irq_and_dev(unsigned int irq, void *dev)
- {
- 	struct irq_and_dev data = ((struct irq_and_dev) { .irq  = irq,
- 							  .dev  = dev });
-@@ -403,37 +403,6 @@ void __init init_IRQ(void)
+ static void acpi_pm_enable_gpes(void)
+@@ -544,6 +559,13 @@ int __init acpi_sleep_init(void)
+ 			&acpi_hibernation_ops_old : &acpi_hibernation_ops);
+ 		sleep_states[ACPI_STATE_S4] = 1;
+ 		printk(" S4");
++		if (!nosigcheck) {
++			acpi_get_table_by_index(ACPI_TABLE_INDEX_FACS,
++				(struct acpi_table_header **)&facs);
++			if (facs)
++				s4_hardware_signature =
++					facs->hardware_signature;
++		}
  	}
- }
+ #endif
+ 	status = acpi_get_sleep_type_data(ACPI_STATE_S5, &type_a, &type_b);
+diff -puN include/linux/acpi.h~pm-acpi-hibernation-utilize-hardware-signature include/linux/acpi.h
+--- a/include/linux/acpi.h~pm-acpi-hibernation-utilize-hardware-signature
++++ a/include/linux/acpi.h
+@@ -236,6 +236,7 @@ int acpi_check_mem_region(resource_size_
+ 		      const char *name);
  
--int init_aio_irq(int irq, char *name, irq_handler_t handler)
--{
--	int fds[2], err;
--
--	err = os_pipe(fds, 1, 1);
--	if (err) {
--		printk(KERN_ERR "init_aio_irq - os_pipe failed, err = %d\n",
--		       -err);
--		goto out;
--	}
--
--	err = um_request_irq(irq, fds[0], IRQ_READ, handler,
--			     IRQF_DISABLED | IRQF_SAMPLE_RANDOM, name,
--			     (void *) (long) fds[0]);
--	if (err) {
--		printk(KERN_ERR "init_aio_irq - : um_request_irq failed, "
--		       "err = %d\n",
--		       err);
--		goto out_close;
--	}
--
--	err = fds[1];
--	goto out;
--
-- out_close:
--	os_close_file(fds[0]);
--	os_close_file(fds[1]);
-- out:
--	return err;
--}
+ #ifdef CONFIG_PM_SLEEP
++void __init acpi_no_s4_hw_signature(void);
+ void __init acpi_old_suspend_ordering(void);
+ #endif /* CONFIG_PM_SLEEP */
+ #else	/* CONFIG_ACPI */
+_
+
+Patches currently in -mm which might be from shaohua.li@intel.com are
+
+origin.patch
+linux-next.patch
+
