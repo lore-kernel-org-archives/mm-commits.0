@@ -1,198 +1,287 @@
 From: akpm@linux-foundation.org
-Subject: - mapping_set_error-add-unlikely.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:22:13 -0700
-Message-ID: <200807242322.m6ONMDx6010548@imap1.linux-foundation.org>
+Subject: - mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:21:54 -0700
+Message-ID: <200807242321.m6ONLsoi010435@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56782 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54125 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752659AbYGXXWQ (ORCPT
+	by vger.kernel.org with ESMTP id S1752097AbYGXXWK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:22:16 -0400
+	Thu, 24 Jul 2008 19:22:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, guichaz@gmail.com, mm-commits@vger.kernel.org
+To: jbeulich@novell.com, benh@kernel.crashing.org, cl@linux-foundation.org, davem@davemloft.net, hugh@veritas.com, jeremy@goop.org, lethal@linux-sh.org, npiggin@suse.de, paulus@samba.org
 
 
 The patch titled
-     mapping_set_error: add unlikely()
+     mm: remove double indirection on tlb parameter to free_pgd_range() & Co
 has been removed from the -mm tree.  Its filename was
-     mapping_set_error-add-unlikely.patch
+     mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mapping_set_error: add unlikely()
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm: remove double indirection on tlb parameter to free_pgd_range() & Co
+From: "Jan Beulich" <jbeulich@novell.com>
 
-This is called on a per-page basis and in the vast majority of cases
-`error' is zero.
+The double indirection here is not needed anywhere and hence (at least)
+confusing.
 
-Cc: Guillaume Chazarain <guichaz@gmail.com>
+Signed-off-by: Jan Beulich <jbeulich@novell.com>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Nick Piggin <npiggin@suse.de>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Acked-by: Jeremy Fitzhardinge <jeremy@goop.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/ia64/mm/hugetlbpage.c    |    2 +-
+ arch/powerpc/mm/hugetlbpage.c |    8 ++++----
+ fs/exec.c                     |    4 ++--
+ include/asm-ia64/hugetlb.h    |    2 +-
+ include/asm-powerpc/hugetlb.h |    2 +-
+ include/asm-sh/hugetlb.h      |    2 +-
+ include/asm-sparc/hugetlb.h   |    2 +-
+ include/asm-x86/hugetlb.h     |    2 +-
+ include/linux/mm.h            |    4 +---
+ mm/internal.h                 |    3 +++
+ mm/memory.c                   |   10 ++++++----
+ mm/mmap.c                     |    6 ++++--
+ 12 files changed, 26 insertions(+), 21 deletions(-)
 
-diff -puN include/linux/pagemap.h~mapping_set_error-add-unlikely include/linux/pagemap.h
---- a/include/linux/pagemap.h~mapping_set_error-add-unlikely
-+++ a/include/linux/pagemap.h
-@@ -22,7 +22,7 @@
+diff -puN arch/ia64/mm/hugetlbpage.c~mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co arch/ia64/mm/hugetlbpage.c
+--- a/arch/ia64/mm/hugetlbpage.c~mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co
++++ a/arch/ia64/mm/hugetlbpage.c
+@@ -112,7 +112,7 @@ follow_huge_pmd(struct mm_struct *mm, un
+ 	return NULL;
+ }
  
- static inline void mapping_set_error(struct address_space *mapping, int error)
+-void hugetlb_free_pgd_range(struct mmu_gather **tlb,
++void hugetlb_free_pgd_range(struct mmu_gather *tlb,
+ 			unsigned long addr, unsigned long end,
+ 			unsigned long floor, unsigned long ceiling)
  {
--	if (error) {
-+	if (unlikely(error)) {
- 		if (error == -ENOSPC)
- 			set_bit(AS_ENOSPC, &mapping->flags);
- 		else
+diff -puN arch/powerpc/mm/hugetlbpage.c~mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co arch/powerpc/mm/hugetlbpage.c
+--- a/arch/powerpc/mm/hugetlbpage.c~mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co
++++ a/arch/powerpc/mm/hugetlbpage.c
+@@ -255,7 +255,7 @@ static void hugetlb_free_pud_range(struc
+  *
+  * Must be called with pagetable lock held.
+  */
+-void hugetlb_free_pgd_range(struct mmu_gather **tlb,
++void hugetlb_free_pgd_range(struct mmu_gather *tlb,
+ 			    unsigned long addr, unsigned long end,
+ 			    unsigned long floor, unsigned long ceiling)
+ {
+@@ -315,13 +315,13 @@ void hugetlb_free_pgd_range(struct mmu_g
+ 		return;
+ 
+ 	start = addr;
+-	pgd = pgd_offset((*tlb)->mm, addr);
++	pgd = pgd_offset(tlb->mm, addr);
+ 	do {
+-		BUG_ON(get_slice_psize((*tlb)->mm, addr) != mmu_huge_psize);
++		BUG_ON(get_slice_psize(tlb->mm, addr) != mmu_huge_psize);
+ 		next = pgd_addr_end(addr, end);
+ 		if (pgd_none_or_clear_bad(pgd))
+ 			continue;
+-		hugetlb_free_pud_range(*tlb, pgd, addr, next, floor, ceiling);
++		hugetlb_free_pud_range(tlb, pgd, addr, next, floor, ceiling);
+ 	} while (pgd++, addr = next, addr != end);
+ }
+ 
+diff -puN fs/exec.c~mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co fs/exec.c
+--- a/fs/exec.c~mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co
++++ a/fs/exec.c
+@@ -541,7 +541,7 @@ static int shift_arg_pages(struct vm_are
+ 		/*
+ 		 * when the old and new regions overlap clear from new_end.
+ 		 */
+-		free_pgd_range(&tlb, new_end, old_end, new_end,
++		free_pgd_range(tlb, new_end, old_end, new_end,
+ 			vma->vm_next ? vma->vm_next->vm_start : 0);
+ 	} else {
+ 		/*
+@@ -550,7 +550,7 @@ static int shift_arg_pages(struct vm_are
+ 		 * have constraints on va-space that make this illegal (IA64) -
+ 		 * for the others its just a little faster.
+ 		 */
+-		free_pgd_range(&tlb, old_start, old_end, new_end,
++		free_pgd_range(tlb, old_start, old_end, new_end,
+ 			vma->vm_next ? vma->vm_next->vm_start : 0);
+ 	}
+ 	tlb_finish_mmu(tlb, new_end, old_end);
+diff -puN include/asm-ia64/hugetlb.h~mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co include/asm-ia64/hugetlb.h
+--- a/include/asm-ia64/hugetlb.h~mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co
++++ a/include/asm-ia64/hugetlb.h
+@@ -4,7 +4,7 @@
+ #include <asm/page.h>
+ 
+ 
+-void hugetlb_free_pgd_range(struct mmu_gather **tlb, unsigned long addr,
++void hugetlb_free_pgd_range(struct mmu_gather *tlb, unsigned long addr,
+ 			    unsigned long end, unsigned long floor,
+ 			    unsigned long ceiling);
+ 
+diff -puN include/asm-powerpc/hugetlb.h~mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co include/asm-powerpc/hugetlb.h
+--- a/include/asm-powerpc/hugetlb.h~mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co
++++ a/include/asm-powerpc/hugetlb.h
+@@ -7,7 +7,7 @@
+ int is_hugepage_only_range(struct mm_struct *mm, unsigned long addr,
+ 			   unsigned long len);
+ 
+-void hugetlb_free_pgd_range(struct mmu_gather **tlb, unsigned long addr,
++void hugetlb_free_pgd_range(struct mmu_gather *tlb, unsigned long addr,
+ 			    unsigned long end, unsigned long floor,
+ 			    unsigned long ceiling);
+ 
+diff -puN include/asm-sh/hugetlb.h~mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co include/asm-sh/hugetlb.h
+--- a/include/asm-sh/hugetlb.h~mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co
++++ a/include/asm-sh/hugetlb.h
+@@ -26,7 +26,7 @@ static inline int prepare_hugepage_range
+ static inline void hugetlb_prefault_arch_hook(struct mm_struct *mm) {
+ }
+ 
+-static inline void hugetlb_free_pgd_range(struct mmu_gather **tlb,
++static inline void hugetlb_free_pgd_range(struct mmu_gather *tlb,
+ 					  unsigned long addr, unsigned long end,
+ 					  unsigned long floor,
+ 					  unsigned long ceiling)
+diff -puN include/asm-sparc/hugetlb.h~mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co include/asm-sparc/hugetlb.h
+--- a/include/asm-sparc/hugetlb.h~mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co
++++ a/include/asm-sparc/hugetlb.h
+@@ -31,7 +31,7 @@ static inline int prepare_hugepage_range
+ 	return 0;
+ }
+ 
+-static inline void hugetlb_free_pgd_range(struct mmu_gather **tlb,
++static inline void hugetlb_free_pgd_range(struct mmu_gather *tlb,
+ 					  unsigned long addr, unsigned long end,
+ 					  unsigned long floor,
+ 					  unsigned long ceiling)
+diff -puN include/asm-x86/hugetlb.h~mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co include/asm-x86/hugetlb.h
+--- a/include/asm-x86/hugetlb.h~mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co
++++ a/include/asm-x86/hugetlb.h
+@@ -26,7 +26,7 @@ static inline int prepare_hugepage_range
+ static inline void hugetlb_prefault_arch_hook(struct mm_struct *mm) {
+ }
+ 
+-static inline void hugetlb_free_pgd_range(struct mmu_gather **tlb,
++static inline void hugetlb_free_pgd_range(struct mmu_gather *tlb,
+ 					  unsigned long addr, unsigned long end,
+ 					  unsigned long floor,
+ 					  unsigned long ceiling)
+diff -puN include/linux/mm.h~mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co include/linux/mm.h
+--- a/include/linux/mm.h~mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co
++++ a/include/linux/mm.h
+@@ -769,10 +769,8 @@ struct mm_walk {
+ 
+ int walk_page_range(unsigned long addr, unsigned long end,
+ 		struct mm_walk *walk);
+-void free_pgd_range(struct mmu_gather **tlb, unsigned long addr,
++void free_pgd_range(struct mmu_gather *tlb, unsigned long addr,
+ 		unsigned long end, unsigned long floor, unsigned long ceiling);
+-void free_pgtables(struct mmu_gather **tlb, struct vm_area_struct *start_vma,
+-		unsigned long floor, unsigned long ceiling);
+ int copy_page_range(struct mm_struct *dst, struct mm_struct *src,
+ 			struct vm_area_struct *vma);
+ void unmap_mapping_range(struct address_space *mapping,
+diff -puN mm/internal.h~mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co mm/internal.h
+--- a/mm/internal.h~mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co
++++ a/mm/internal.h
+@@ -13,6 +13,9 @@
+ 
+ #include <linux/mm.h>
+ 
++void free_pgtables(struct mmu_gather *tlb, struct vm_area_struct *start_vma,
++		unsigned long floor, unsigned long ceiling);
++
+ static inline void set_page_count(struct page *page, int v)
+ {
+ 	atomic_set(&page->_count, v);
+diff -puN mm/memory.c~mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co mm/memory.c
+--- a/mm/memory.c~mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co
++++ a/mm/memory.c
+@@ -61,6 +61,8 @@
+ #include <linux/swapops.h>
+ #include <linux/elf.h>
+ 
++#include "internal.h"
++
+ #ifndef CONFIG_NEED_MULTIPLE_NODES
+ /* use the per-pgdat data instead for discontigmem - mbligh */
+ unsigned long max_mapnr;
+@@ -211,7 +213,7 @@ static inline void free_pud_range(struct
+  *
+  * Must be called with pagetable lock held.
+  */
+-void free_pgd_range(struct mmu_gather **tlb,
++void free_pgd_range(struct mmu_gather *tlb,
+ 			unsigned long addr, unsigned long end,
+ 			unsigned long floor, unsigned long ceiling)
+ {
+@@ -262,16 +264,16 @@ void free_pgd_range(struct mmu_gather **
+ 		return;
+ 
+ 	start = addr;
+-	pgd = pgd_offset((*tlb)->mm, addr);
++	pgd = pgd_offset(tlb->mm, addr);
+ 	do {
+ 		next = pgd_addr_end(addr, end);
+ 		if (pgd_none_or_clear_bad(pgd))
+ 			continue;
+-		free_pud_range(*tlb, pgd, addr, next, floor, ceiling);
++		free_pud_range(tlb, pgd, addr, next, floor, ceiling);
+ 	} while (pgd++, addr = next, addr != end);
+ }
+ 
+-void free_pgtables(struct mmu_gather **tlb, struct vm_area_struct *vma,
++void free_pgtables(struct mmu_gather *tlb, struct vm_area_struct *vma,
+ 		unsigned long floor, unsigned long ceiling)
+ {
+ 	while (vma) {
+diff -puN mm/mmap.c~mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co mm/mmap.c
+--- a/mm/mmap.c~mm-remove-double-indirection-on-tlb-parameter-to-free_pgd_range-co
++++ a/mm/mmap.c
+@@ -32,6 +32,8 @@
+ #include <asm/tlb.h>
+ #include <asm/mmu_context.h>
+ 
++#include "internal.h"
++
+ #ifndef arch_mmap_check
+ #define arch_mmap_check(addr, len, flags)	(0)
+ #endif
+@@ -1763,7 +1765,7 @@ static void unmap_region(struct mm_struc
+ 	update_hiwater_rss(mm);
+ 	unmap_vmas(&tlb, vma, start, end, &nr_accounted, NULL);
+ 	vm_unacct_memory(nr_accounted);
+-	free_pgtables(&tlb, vma, prev? prev->vm_end: FIRST_USER_ADDRESS,
++	free_pgtables(tlb, vma, prev? prev->vm_end: FIRST_USER_ADDRESS,
+ 				 next? next->vm_start: 0);
+ 	tlb_finish_mmu(tlb, start, end);
+ }
+@@ -2063,7 +2065,7 @@ void exit_mmap(struct mm_struct *mm)
+ 	/* Use -1 here to ensure all VMAs in the mm are unmapped */
+ 	end = unmap_vmas(&tlb, vma, 0, -1, &nr_accounted, NULL);
+ 	vm_unacct_memory(nr_accounted);
+-	free_pgtables(&tlb, vma, FIRST_USER_ADDRESS, 0);
++	free_pgtables(tlb, vma, FIRST_USER_ADDRESS, 0);
+ 	tlb_finish_mmu(tlb, 0, end);
+ 
+ 	/*
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jbeulich@novell.com are
 
 origin.patch
-arm-fix-fls-for-64-bit-arguments.patch
 linux-next.patch
-linux-next-rejects.patch
-next-remove-localversion.patch
-drivers-mtd-nand-nandsimc-needs-div64h.patch
-pci-make-pci_register_driver-a-macro.patch
-drivers-mfd-tc6393xbc-doesnt-compile-on-i386.patch
-x86-pci-replace-dbg-with-pr_debug-fix.patch
-x86-pci-replace-dbg-with-pr_debug-fix-2.patch
-include-asm-generic-pgtable-nopmdh-macros-are-noxious-reason-435.patch
-arch-x86-pci-i386c-fix-printk-warnings.patch
-drm-fix-sparc64-build.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-git-jg-misc.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-bridge-send-correct-mtu-value-in-pmtu-checkpatch-fixes.patch
-sundance-set-carrier-status-on-link-change-events.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
-scsi-gdthc-use-unaligned-access-helpers-checkpatch-fixes.patch
-git-unionfs.patch
-git-logfs-git-rejects.patch
-git-logfs-fixup.patch
-drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
-drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
-drivers-net-wireless-iwlwifi-iwl-ledc-printk-fix.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-ftrace-disable-function-tracing-bringing-up-new-cpu-fix.patch
-mmu-notifiers-add-mm_take_all_locks-operation.patch
-mmu-notifier-core.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-split-the-typecheck-macros-out-of-include-linux-kernelh.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
-remove-apparently-unused-fd1772h-header-file.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
-build-kernel-profileo-only-when-requested-cleanups.patch
-seq_file-fix-bug-when-seq_read-reads-nothing-fix.patch
-exec-remove-some-includes-fix.patch
-inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
-drivers-misc-hpiloc-needs-config_pci.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments.patch
-gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix.patch
-gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix-fix.patch
-gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix-fix-fix.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch
-eink_apollofb-new-driver-for-apollo-eink-controller-cleanup.patch
-eink_apollofb-new-driver-for-apollo-eink-controller-fix.patch
-eink_apollofb-new-driver-for-apollo-eink-controller-fix-fix-2.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
-ext3-handle-corrupted-orphan-list-at-mount-cleanup.patch
-ext3-handle-corrupted-orphan-list-at-mount-fix.patch
-ext3-handle-corrupted-orphan-list-at-mount-cleanup-fix.patch
-ext3-handle-deleting-corrupted-indirect-blocks-fix.patch
-jbd-dont-abort-if-flushing-file-data-failed-fix.patch
-reiserfs-convert-j_flush_sem-to-mutex.patch
-reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
-cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-fix.patch
-cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-checkpatch-fixes.patch
-devcgroup-code-cleanup-fix.patch
-memcg-remove-refcnt-from-page_cgroup-fix-2.patch
-memcg-limit-change-shrink-usage-checkpatch-fixes.patch
-coredump-format_corename-fix-the-core_uses_pid-logic-checkpatch-fixes.patch
-workqueues-make-get_online_cpus-useable-for-work-func-fix.patch
-ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
-fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
-block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
-getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
-edac-mpc85xx-fix-pci-ofdev-2nd-pass-checkpatch-fixes.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-s2io.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sdhci-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-infiniband.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-more-sparc.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-ibmvscsi.patch
-x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary-checkpatch-fixes.patch
-tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
-memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
-memstick-use-fully-asynchronous-request-processing-fix.patch
-full-conversion-to-early_initcall-interface-remove-old-interface-cleanup.patch
-full-conversion-to-early_initcall-interface-remove-old-interface-fix.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-gru-driver-v3-hardware-data-structures-fix.patch
-gru-driver-v3-hardware-data-structures-fix-fix.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-mm-introduce-get_user_pages_fast-fix.patch
-mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-fix.patch
-x86-lockless-get_user_pages_fast-fix-2.patch
-x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
-x86-lockless-get_user_pages_fast-fix-warning.patch
-mm-speculative-page-references-fix-add_to_page_cache-fix.patch
-vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
-define-page_file_cache-function-fix.patch
-vmscan-split-lru-lists-into-anon-file-sets-units-fix.patch
-unevictable-lru-infrastructure-fix.patch
-unevictable-lru-page-statistics-units-fix.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-3.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
-introduce-__get_user_pages-fix.patch
-vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-fix-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
-slb-drop-kmem-cache-argument-from-constructor-ubifs.patch
-video-console-sticonrec-make-code-static-checkpatch-fixes.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
 
