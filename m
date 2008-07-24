@@ -1,305 +1,209 @@
 From: akpm@linux-foundation.org
-Subject: - autofs4-fix-indirect-mount-pending-expire-race.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:29:44 -0700
-Message-ID: <200807242329.m6ONTi9N011407@imap1.linux-foundation.org>
+Subject: - tridentfb-add-imageblit-acceleration-for-blade3d-family.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:31:35 -0700
+Message-ID: <200807242331.m6ONVZAp011646@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39655 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45542 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755977AbYGXXaF (ORCPT
+	by vger.kernel.org with ESMTP id S1756743AbYGXXbh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:30:05 -0400
+	Thu, 24 Jul 2008 19:31:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: raven@themaw.net, jmoyer@redhat.com, mm-commits@vger.kernel.org
+To: krzysztof.h1@wp.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     autofs4: fix indirect mount pending expire race
+     tridentfb: add imageblit acceleration for Blade3D family
 has been removed from the -mm tree.  Its filename was
-     autofs4-fix-indirect-mount-pending-expire-race.patch
+     tridentfb-add-imageblit-acceleration-for-blade3d-family.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: autofs4: fix indirect mount pending expire race
-From: Ian Kent <raven@themaw.net>
+Subject: tridentfb: add imageblit acceleration for Blade3D family
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-The selection of a dentry for expiration and the setting of the
-AUTOFS_INF_EXPIRING flag isn't done atomically which can lead to lookups
-walking into an expiring mount.
+Add imageblit acceleration for the Blade3D family of cores.  The code is
+based on code from the cyblafb driver.
 
-What happens is that an expire is initiated by the daemon and a dentry is
-selected for expire but, since there is no lock held between the selection
-and setting of the expiring flag, a process may find the flag clear and
-continue walking into the mount tree at the same time the daemon attempts
-the expire it.
+It is a step toward assimilating back the cyblafb driver into the
+tridentfb driver.  The cyblafb driver handles a subfamily of the Trident
+Blade3d cores.
 
-Signed-off-by: Ian Kent <raven@themaw.net>
-Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/autofs_i.h |   10 ++------
- fs/autofs4/expire.c   |   46 ++++++++++++++++++++++++++++++----------
- fs/autofs4/root.c     |   32 +++++++++++++++++++++++----
- 3 files changed, 65 insertions(+), 23 deletions(-)
+ drivers/video/tridentfb.c |   79 ++++++++++++++++++++++++++++++++++--
+ include/video/trident.h   |    1 
+ 2 files changed, 77 insertions(+), 3 deletions(-)
 
-diff -puN fs/autofs4/autofs_i.h~autofs4-fix-indirect-mount-pending-expire-race fs/autofs4/autofs_i.h
---- a/fs/autofs4/autofs_i.h~autofs4-fix-indirect-mount-pending-expire-race
-+++ a/fs/autofs4/autofs_i.h
-@@ -138,18 +138,14 @@ static inline int autofs4_oz_mode(struct
- static inline int autofs4_ispending(struct dentry *dentry)
- {
- 	struct autofs_info *inf = autofs4_dentry_ino(dentry);
--	int pending = 0;
+diff -puN drivers/video/tridentfb.c~tridentfb-add-imageblit-acceleration-for-blade3d-family drivers/video/tridentfb.c
+--- a/drivers/video/tridentfb.c~tridentfb-add-imageblit-acceleration-for-blade3d-family
++++ a/drivers/video/tridentfb.c
+@@ -35,11 +35,12 @@ struct tridentfb_par {
+ 		(struct tridentfb_par *par, u32, u32, u32, u32, u32, u32);
+ 	void (*copy_rect)
+ 		(struct tridentfb_par *par, u32, u32, u32, u32, u32, u32);
++	void (*image_blit)
++		(struct tridentfb_par *par, const char*,
++		 u32, u32, u32, u32, u32, u32);
+ 	unsigned char eng_oper;	/* engine operation... */
+ };
  
- 	if (dentry->d_flags & DCACHE_AUTOFS_PENDING)
- 		return 1;
- 
--	if (inf) {
--		spin_lock(&inf->sbi->fs_lock);
--		pending = inf->flags & AUTOFS_INF_EXPIRING;
--		spin_unlock(&inf->sbi->fs_lock);
--	}
-+	if (inf->flags & AUTOFS_INF_EXPIRING)
-+		return 1;
- 
--	return pending;
-+	return 0;
+-static struct fb_ops tridentfb_ops;
+-
+ static struct fb_fix_screeninfo tridentfb_fix = {
+ 	.id = "Trident",
+ 	.type = FB_TYPE_PACKED_PIXELS,
+@@ -212,6 +213,21 @@ static void blade_fill_rect(struct tride
+ 	writemmr(par, DST2, point(x + w - 1, y + h - 1));
  }
  
- static inline void autofs4_copy_atime(struct file *src, struct file *dst)
-diff -puN fs/autofs4/expire.c~autofs4-fix-indirect-mount-pending-expire-race fs/autofs4/expire.c
---- a/fs/autofs4/expire.c~autofs4-fix-indirect-mount-pending-expire-race
-+++ a/fs/autofs4/expire.c
-@@ -292,6 +292,8 @@ static struct dentry *autofs4_expire_ind
- 	struct list_head *next;
- 	int do_now = how & AUTOFS_EXP_IMMEDIATE;
- 	int exp_leaves = how & AUTOFS_EXP_LEAVES;
-+	struct autofs_info *ino;
-+	unsigned int ino_count;
- 
- 	if (!root)
- 		return NULL;
-@@ -316,6 +318,9 @@ static struct dentry *autofs4_expire_ind
- 		dentry = dget(dentry);
- 		spin_unlock(&dcache_lock);
- 
-+		spin_lock(&sbi->fs_lock);
-+		ino = autofs4_dentry_ino(dentry);
++static void blade_image_blit(struct tridentfb_par *par, const char *data,
++			     u32 x, u32 y, u32 w, u32 h, u32 c, u32 b)
++{
++	unsigned size = ((w + 31) >> 5) * h;
 +
- 		/*
- 		 * Case 1: (i) indirect mount or top level pseudo direct mount
- 		 *	   (autofs-4.1).
-@@ -326,6 +331,11 @@ static struct dentry *autofs4_expire_ind
- 			DPRINTK("checking mountpoint %p %.*s",
- 				dentry, (int)dentry->d_name.len, dentry->d_name.name);
- 
-+			/* Path walk currently on this dentry? */
-+			ino_count = atomic_read(&ino->count) + 2;
-+			if (atomic_read(&dentry->d_count) > ino_count)
-+				goto next;
++	writemmr(par, COLOR, c);
++	writemmr(par, BGCOLOR, b);
++	writemmr(par, CMD, 0xa0000000 | 3 << 19);
 +
- 			/* Can we umount this guy */
- 			if (autofs4_mount_busy(mnt, dentry))
- 				goto next;
-@@ -343,23 +353,25 @@ static struct dentry *autofs4_expire_ind
- 
- 		/* Case 2: tree mount, expire iff entire tree is not busy */
- 		if (!exp_leaves) {
--			/* Lock the tree as we must expire as a whole */
--			spin_lock(&sbi->fs_lock);
--			if (!autofs4_tree_busy(mnt, dentry, timeout, do_now)) {
--				struct autofs_info *inf = autofs4_dentry_ino(dentry);
-+			/* Path walk currently on this dentry? */
-+			ino_count = atomic_read(&ino->count) + 1;
-+			if (atomic_read(&dentry->d_count) > ino_count)
-+				goto next;
- 
--				/* Set this flag early to catch sys_chdir and the like */
--				inf->flags |= AUTOFS_INF_EXPIRING;
--				spin_unlock(&sbi->fs_lock);
-+			if (!autofs4_tree_busy(mnt, dentry, timeout, do_now)) {
- 				expired = dentry;
- 				goto found;
- 			}
--			spin_unlock(&sbi->fs_lock);
- 		/*
- 		 * Case 3: pseudo direct mount, expire individual leaves
- 		 *	   (autofs-4.1).
- 		 */
- 		} else {
-+			/* Path walk currently on this dentry? */
-+			ino_count = atomic_read(&ino->count) + 1;
-+			if (atomic_read(&dentry->d_count) > ino_count)
-+				goto next;
++	writemmr(par, DST1, point(x, y));
++	writemmr(par, DST2, point(x + w - 1, y + h - 1));
 +
- 			expired = autofs4_check_leaves(mnt, dentry, timeout, do_now);
- 			if (expired) {
- 				dput(dentry);
-@@ -367,6 +379,7 @@ static struct dentry *autofs4_expire_ind
- 			}
- 		}
- next:
-+		spin_unlock(&sbi->fs_lock);
- 		dput(dentry);
- 		spin_lock(&dcache_lock);
- 		next = next->next;
-@@ -377,6 +390,9 @@ next:
- found:
- 	DPRINTK("returning %p %.*s",
- 		expired, (int)expired->d_name.len, expired->d_name.name);
-+	ino = autofs4_dentry_ino(expired);
-+	ino->flags |= AUTOFS_INF_EXPIRING;
-+	spin_unlock(&sbi->fs_lock);
- 	spin_lock(&dcache_lock);
- 	list_move(&expired->d_parent->d_subdirs, &expired->d_u.d_child);
- 	spin_unlock(&dcache_lock);
-@@ -390,7 +406,9 @@ int autofs4_expire_run(struct super_bloc
- 		      struct autofs_packet_expire __user *pkt_p)
++	memcpy(par->io_virt + 0x10000, data, 4 * size);
++}
++
+ static void blade_copy_rect(struct tridentfb_par *par,
+ 			    u32 x1, u32 y1, u32 x2, u32 y2, u32 w, u32 h)
  {
- 	struct autofs_packet_expire pkt;
-+	struct autofs_info *ino;
- 	struct dentry *dentry;
-+	int ret = 0;
- 
- 	memset(&pkt,0,sizeof pkt);
- 
-@@ -406,9 +424,14 @@ int autofs4_expire_run(struct super_bloc
- 	dput(dentry);
- 
- 	if ( copy_to_user(pkt_p, &pkt, sizeof(struct autofs_packet_expire)) )
--		return -EFAULT;
-+		ret = -EFAULT;
- 
--	return 0;
-+	spin_lock(&sbi->fs_lock);
-+	ino = autofs4_dentry_ino(dentry);
-+	ino->flags &= ~AUTOFS_INF_EXPIRING;
-+	spin_unlock(&sbi->fs_lock);
-+
-+	return ret;
+@@ -497,6 +513,36 @@ static void tridentfb_fillrect(struct fb
+ 		       fr->height, col, fr->rop);
  }
  
- /* Call repeatedly until it returns -EAGAIN, meaning there's nothing
-@@ -433,9 +456,10 @@ int autofs4_expire_multi(struct super_bl
- 
- 		/* This is synchronous because it makes the daemon a
-                    little easier */
--		ino->flags |= AUTOFS_INF_EXPIRING;
- 		ret = autofs4_wait(sbi, dentry, NFY_EXPIRE);
-+		spin_lock(&sbi->fs_lock);
- 		ino->flags &= ~AUTOFS_INF_EXPIRING;
-+		spin_unlock(&sbi->fs_lock);
- 		dput(dentry);
- 	}
- 
-diff -puN fs/autofs4/root.c~autofs4-fix-indirect-mount-pending-expire-race fs/autofs4/root.c
---- a/fs/autofs4/root.c~autofs4-fix-indirect-mount-pending-expire-race
-+++ a/fs/autofs4/root.c
-@@ -133,7 +133,10 @@ static int try_to_fill_dentry(struct den
- 	/* Block on any pending expiry here; invalidate the dentry
-            when expiration is done to trigger mount request with a new
-            dentry */
--	if (ino && (ino->flags & AUTOFS_INF_EXPIRING)) {
-+	spin_lock(&sbi->fs_lock);
-+	if (ino->flags & AUTOFS_INF_EXPIRING) {
-+		spin_unlock(&sbi->fs_lock);
++static void tridentfb_imageblit(struct fb_info *info,
++				const struct fb_image *img)
++{
++	struct tridentfb_par *par = info->par;
++	int col, bgcol;
 +
- 		DPRINTK("waiting for expire %p name=%.*s",
- 			 dentry, dentry->d_name.len, dentry->d_name.name);
- 
-@@ -149,8 +152,11 @@ static int try_to_fill_dentry(struct den
- 		status = d_invalidate(dentry);
- 		if (status != -EBUSY)
- 			return -EAGAIN;
--	}
- 
-+		goto cont;
++	if ((info->flags & FBINFO_HWACCEL_DISABLED) || img->depth != 1) {
++		cfb_imageblit(info, img);
++		return;
 +	}
-+	spin_unlock(&sbi->fs_lock);
-+cont:
- 	DPRINTK("dentry=%p %.*s ino=%p",
- 		 dentry, dentry->d_name.len, dentry->d_name.name, dentry->d_inode);
- 
-@@ -229,15 +235,21 @@ static void *autofs4_follow_link(struct 
- 		goto done;
- 
- 	/* If an expire request is pending wait for it. */
--	if (ino && (ino->flags & AUTOFS_INF_EXPIRING)) {
-+	spin_lock(&sbi->fs_lock);
-+	if (ino->flags & AUTOFS_INF_EXPIRING) {
-+		spin_unlock(&sbi->fs_lock);
-+
- 		DPRINTK("waiting for active request %p name=%.*s",
- 			dentry, dentry->d_name.len, dentry->d_name.name);
- 
- 		status = autofs4_wait(sbi, dentry, NFY_NONE);
- 
- 		DPRINTK("request done status=%d", status);
--	}
- 
-+		goto cont;
++	if (info->var.bits_per_pixel == 8) {
++		col = img->fg_color;
++		col |= col << 8;
++		col |= col << 16;
++		bgcol = img->bg_color;
++		bgcol |= bgcol << 8;
++		bgcol |= bgcol << 16;
++	} else {
++		col = ((u32 *)(info->pseudo_palette))[img->fg_color];
++		bgcol = ((u32 *)(info->pseudo_palette))[img->bg_color];
 +	}
-+	spin_unlock(&sbi->fs_lock);
-+cont:
- 	/*
- 	 * If the dentry contains directories then it is an
- 	 * autofs multi-mount with no root mount offset. So
-@@ -292,8 +304,11 @@ static int autofs4_revalidate(struct den
- 	int status = 1;
- 
- 	/* Pending dentry */
-+	spin_lock(&sbi->fs_lock);
- 	if (autofs4_ispending(dentry)) {
- 		/* The daemon never causes a mount to trigger */
-+		spin_unlock(&sbi->fs_lock);
 +
- 		if (oz_mode)
- 			return 1;
- 
-@@ -316,6 +331,7 @@ static int autofs4_revalidate(struct den
- 
- 		return status;
- 	}
-+	spin_unlock(&sbi->fs_lock);
- 
- 	/* Negative dentry.. invalidate if "old" */
- 	if (dentry->d_inode == NULL)
-@@ -329,6 +345,7 @@ static int autofs4_revalidate(struct den
- 		DPRINTK("dentry=%p %.*s, emptydir",
- 			 dentry, dentry->d_name.len, dentry->d_name.name);
- 		spin_unlock(&dcache_lock);
++	par->wait_engine(par);
++	if (par->image_blit)
++		par->image_blit(par, img->data, img->dx, img->dy,
++				img->width, img->height, col, bgcol);
++	else
++		cfb_imageblit(info, img);
++}
 +
- 		/* The daemon never causes a mount to trigger */
- 		if (oz_mode)
- 			return 1;
-@@ -521,13 +538,18 @@ static struct dentry *autofs4_lookup(str
- 		 * so it must have been successful, so just wait for it.
- 		 */
- 		ino = autofs4_dentry_ino(expiring);
--		while (ino && (ino->flags & AUTOFS_INF_EXPIRING)) {
-+		spin_lock(&sbi->fs_lock);
-+		if (ino->flags & AUTOFS_INF_EXPIRING) {
-+			spin_unlock(&sbi->fs_lock);
- 			DPRINTK("wait for incomplete expire %p name=%.*s",
- 				expiring, expiring->d_name.len,
- 				expiring->d_name.name);
- 			autofs4_wait(sbi, expiring, NFY_NONE);
- 			DPRINTK("request completed");
-+			goto cont;
- 		}
-+		spin_unlock(&sbi->fs_lock);
-+cont:
- 		spin_lock(&sbi->lookup_lock);
- 		if (!list_empty(&ino->expiring))
- 			list_del_init(&ino->expiring);
+ static void tridentfb_copyarea(struct fb_info *info,
+ 			       const struct fb_copyarea *ca)
+ {
+@@ -522,6 +568,7 @@ static int tridentfb_sync(struct fb_info
+ #else
+ #define tridentfb_fillrect cfb_fillrect
+ #define tridentfb_copyarea cfb_copyarea
++#define tridentfb_imageblit cfb_imageblit
+ #endif /* CONFIG_FB_TRIDENT_ACCEL */
+ 
+ /*
+@@ -1285,7 +1332,7 @@ static struct fb_ops tridentfb_ops = {
+ 	.fb_set_par = tridentfb_set_par,
+ 	.fb_fillrect = tridentfb_fillrect,
+ 	.fb_copyarea = tridentfb_copyarea,
+-	.fb_imageblit = cfb_imageblit,
++	.fb_imageblit = tridentfb_imageblit,
+ #ifdef CONFIG_FB_TRIDENT_ACCEL
+ 	.fb_sync = tridentfb_sync,
+ #endif
+@@ -1369,6 +1416,7 @@ static int __devinit trident_pci_probe(s
+ 		default_par->wait_engine = blade_wait_engine;
+ 		default_par->fill_rect = blade_fill_rect;
+ 		default_par->copy_rect = blade_copy_rect;
++		default_par->image_blit = blade_image_blit;
+ 		tridentfb_fix.accel = FB_ACCEL_TRIDENT_BLADE3D;
+ 	} else if (chip3D) {			/* 3DImage family left */
+ 		default_par->init_accel = image_init_accel;
+@@ -1446,6 +1494,29 @@ static int __devinit trident_pci_probe(s
+ 	} else
+ 		info->flags |= FBINFO_HWACCEL_DISABLED;
+ 
++	info->pixmap.addr = kmalloc(4096, GFP_KERNEL);
++	if (!info->pixmap.addr) {
++		err = -ENOMEM;
++		goto out_unmap2;
++	}
++
++	info->pixmap.size = 4096;
++	info->pixmap.buf_align = 4;
++	info->pixmap.scan_align = 1;
++	info->pixmap.access_align = 32;
++	info->pixmap.flags = FB_PIXMAP_SYSTEM;
++
++	if (default_par->image_blit) {
++		info->flags |= FBINFO_HWACCEL_IMAGEBLIT;
++		info->pixmap.scan_align = 4;
++	}
++
++	if (noaccel) {
++		printk(KERN_DEBUG "disabling acceleration\n");
++		info->flags |= FBINFO_HWACCEL_DISABLED;
++		info->pixmap.scan_align = 1;
++	}
++
+ 	if (!fb_find_mode(&info->var, info,
+ 			  mode_option, NULL, 0, NULL, bpp)) {
+ 		err = -EINVAL;
+@@ -1471,6 +1542,7 @@ static int __devinit trident_pci_probe(s
+ 	return 0;
+ 
+ out_unmap2:
++	kfree(info->pixmap.addr);
+ 	if (info->screen_base)
+ 		iounmap(info->screen_base);
+ 	release_mem_region(tridentfb_fix.smem_start, tridentfb_fix.smem_len);
+@@ -1494,6 +1566,7 @@ static void __devexit trident_pci_remove
+ 	release_mem_region(tridentfb_fix.smem_start, tridentfb_fix.smem_len);
+ 	release_mem_region(tridentfb_fix.mmio_start, tridentfb_fix.mmio_len);
+ 	pci_set_drvdata(dev, NULL);
++	kfree(info->pixmap.addr);
+ 	framebuffer_release(info);
+ }
+ 
+diff -puN include/video/trident.h~tridentfb-add-imageblit-acceleration-for-blade3d-family include/video/trident.h
+--- a/include/video/trident.h~tridentfb-add-imageblit-acceleration-for-blade3d-family
++++ a/include/video/trident.h
+@@ -135,6 +135,7 @@
+ #define CMD	0x2144
+ #define ROP	0x2148
+ #define COLOR	0x2160
++#define BGCOLOR	0x2164
+ #define SRC1	0x2100
+ #define SRC2	0x2104
+ #define DST1	0x2108
 _
 
-Patches currently in -mm which might be from raven@themaw.net are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
 origin.patch
 
