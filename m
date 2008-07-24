@@ -1,246 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: - flag-parameters-add-on-remove-epoll_create-size-param.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:28:02 -0700
-Message-ID: <200807242328.m6ONS2u7011221__24499.9628783718$1216942316$gmane$org@imap1.linux-foundation.org>
+Subject: - serial-8250_gscc-add-module_license.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:28:05 -0700
+Message-ID: <200807242328.m6ONS57j011225@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55198 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57968 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756213AbYGXX3Y (ORCPT
+	by vger.kernel.org with ESMTP id S1755992AbYGXX3X (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:29:24 -0400
+	Thu, 24 Jul 2008 19:29:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: drepper@redhat.com, davidel@xmailserver.org, linux-arch@vger.kernel.org, mtk.manpages@googlemail.com, mm-commits@vger.kernel.org
+To: bunk@kernel.org, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     flag parameters add-on: remove epoll_create size param
+     serial/8250_gsc.c: add MODULE_LICENSE
 has been removed from the -mm tree.  Its filename was
-     flag-parameters-add-on-remove-epoll_create-size-param.patch
+     serial-8250_gscc-add-module_license.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: flag parameters add-on: remove epoll_create size param
-From: Ulrich Drepper <drepper@redhat.com>
+Subject: serial/8250_gsc.c: add MODULE_LICENSE
+From: Adrian Bunk <bunk@kernel.org>
 
-Remove the size parameter from the new epoll_create syscall and renames the
-syscall itself.  The updated test program follows.
+This patch adds the missing MODULE_LICENSE("GPL").
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#include <fcntl.h>
-#include <stdio.h>
-#include <time.h>
-#include <unistd.h>
-#include <sys/syscall.h>
-
-#ifndef __NR_epoll_create2
-# ifdef __x86_64__
-#  define __NR_epoll_create2 291
-# elif defined __i386__
-#  define __NR_epoll_create2 329
-# else
-#  error "need __NR_epoll_create2"
-# endif
-#endif
-
-#define EPOLL_CLOEXEC O_CLOEXEC
-
-int
-main (void)
-{
-  int fd = syscall (__NR_epoll_create2, 0);
-  if (fd == -1)
-    {
-      puts ("epoll_create2(0) failed");
-      return 1;
-    }
-  int coe = fcntl (fd, F_GETFD);
-  if (coe == -1)
-    {
-      puts ("fcntl failed");
-      return 1;
-    }
-  if (coe & FD_CLOEXEC)
-    {
-      puts ("epoll_create2(0) set close-on-exec flag");
-      return 1;
-    }
-  close (fd);
-
-  fd = syscall (__NR_epoll_create2, EPOLL_CLOEXEC);
-  if (fd == -1)
-    {
-      puts ("epoll_create2(EPOLL_CLOEXEC) failed");
-      return 1;
-    }
-  coe = fcntl (fd, F_GETFD);
-  if (coe == -1)
-    {
-      puts ("fcntl failed");
-      return 1;
-    }
-  if ((coe & FD_CLOEXEC) == 0)
-    {
-      puts ("epoll_create2(EPOLL_CLOEXEC) set close-on-exec flag");
-      return 1;
-    }
-  close (fd);
-
-  puts ("OK");
-
-  return 0;
-}
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Signed-off-by: Ulrich Drepper <drepper@redhat.com>
-Acked-by: Davide Libenzi <davidel@xmailserver.org>
-Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
-Cc: <linux-arch@vger.kernel.org>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Acked-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/ia32/ia32entry.S          |    2 +-
- arch/x86/kernel/syscall_table_32.S |    2 +-
- fs/eventpoll.c                     |   18 ++++++++++--------
- include/asm-x86/unistd_32.h        |    2 +-
- include/asm-x86/unistd_64.h        |    4 ++--
- include/linux/eventpoll.h          |    2 +-
- include/linux/syscalls.h           |    2 +-
- 7 files changed, 17 insertions(+), 15 deletions(-)
+ drivers/serial/8250_gsc.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN arch/x86/ia32/ia32entry.S~flag-parameters-add-on-remove-epoll_create-size-param arch/x86/ia32/ia32entry.S
---- a/arch/x86/ia32/ia32entry.S~flag-parameters-add-on-remove-epoll_create-size-param
-+++ a/arch/x86/ia32/ia32entry.S
-@@ -745,7 +745,7 @@ ia32_sys_call_table:
- 	.quad compat_sys_timerfd_gettime
- 	.quad compat_sys_signalfd4
- 	.quad sys_eventfd2
--	.quad sys_epoll_create2
-+	.quad sys_epoll_create1
- 	.quad sys_dup3			/* 330 */
- 	.quad sys_pipe2
- 	.quad sys_inotify_init1
-diff -puN arch/x86/kernel/syscall_table_32.S~flag-parameters-add-on-remove-epoll_create-size-param arch/x86/kernel/syscall_table_32.S
---- a/arch/x86/kernel/syscall_table_32.S~flag-parameters-add-on-remove-epoll_create-size-param
-+++ a/arch/x86/kernel/syscall_table_32.S
-@@ -328,7 +328,7 @@ ENTRY(sys_call_table)
- 	.long sys_timerfd_gettime
- 	.long sys_signalfd4
- 	.long sys_eventfd2
--	.long sys_epoll_create2
-+	.long sys_epoll_create1
- 	.long sys_dup3			/* 330 */
- 	.long sys_pipe2
- 	.long sys_inotify_init1
-diff -puN fs/eventpoll.c~flag-parameters-add-on-remove-epoll_create-size-param fs/eventpoll.c
---- a/fs/eventpoll.c~flag-parameters-add-on-remove-epoll_create-size-param
-+++ a/fs/eventpoll.c
-@@ -1046,7 +1046,7 @@ retry:
-  * RB tree. With the current implementation, the "size" parameter is ignored
-  * (besides sanity checks).
-  */
--asmlinkage long sys_epoll_create2(int size, int flags)
-+asmlinkage long sys_epoll_create1(int flags)
- {
- 	int error, fd = -1;
- 	struct eventpoll *ep;
-@@ -1058,14 +1058,13 @@ asmlinkage long sys_epoll_create2(int si
- 		return -EINVAL;
- 
- 	DNPRINTK(3, (KERN_INFO "[%p] eventpoll: sys_epoll_create(%d)\n",
--		     current, size));
-+		     current, flags));
- 
- 	/*
--	 * Sanity check on the size parameter, and create the internal data
--	 * structure ( "struct eventpoll" ).
-+	 * Create the internal data structure ( "struct eventpoll" ).
- 	 */
--	error = -EINVAL;
--	if (size <= 0 || (error = ep_alloc(&ep)) < 0) {
-+	error = ep_alloc(&ep);
-+	if (error < 0) {
- 		fd = error;
- 		goto error_return;
- 	}
-@@ -1081,14 +1080,17 @@ asmlinkage long sys_epoll_create2(int si
- 
- error_return:
- 	DNPRINTK(3, (KERN_INFO "[%p] eventpoll: sys_epoll_create(%d) = %d\n",
--		     current, size, fd));
-+		     current, flags, fd));
- 
- 	return fd;
+diff -puN drivers/serial/8250_gsc.c~serial-8250_gscc-add-module_license drivers/serial/8250_gsc.c
+--- a/drivers/serial/8250_gsc.c~serial-8250_gscc-add-module_license
++++ a/drivers/serial/8250_gsc.c
+@@ -119,3 +119,5 @@ int __init probe_serial_gsc(void)
  }
  
- asmlinkage long sys_epoll_create(int size)
- {
--	return sys_epoll_create2(size, 0);
-+	if (size < 0)
-+		return -EINVAL;
+ module_init(probe_serial_gsc);
 +
-+	return sys_epoll_create1(0);
- }
- 
- /*
-diff -puN include/asm-x86/unistd_32.h~flag-parameters-add-on-remove-epoll_create-size-param include/asm-x86/unistd_32.h
---- a/include/asm-x86/unistd_32.h~flag-parameters-add-on-remove-epoll_create-size-param
-+++ a/include/asm-x86/unistd_32.h
-@@ -334,7 +334,7 @@
- #define __NR_timerfd_gettime	326
- #define __NR_signalfd4		327
- #define __NR_eventfd2		328
--#define __NR_epoll_create2	329
-+#define __NR_epoll_create1	329
- #define __NR_dup3		330
- #define __NR_pipe2		331
- #define __NR_inotify_init1	332
-diff -puN include/asm-x86/unistd_64.h~flag-parameters-add-on-remove-epoll_create-size-param include/asm-x86/unistd_64.h
---- a/include/asm-x86/unistd_64.h~flag-parameters-add-on-remove-epoll_create-size-param
-+++ a/include/asm-x86/unistd_64.h
-@@ -645,8 +645,8 @@ __SYSCALL(__NR_paccept, sys_paccept)
- __SYSCALL(__NR_signalfd4, sys_signalfd4)
- #define __NR_eventfd2				290
- __SYSCALL(__NR_eventfd2, sys_eventfd2)
--#define __NR_epoll_create2			291
--__SYSCALL(__NR_epoll_create2, sys_epoll_create2)
-+#define __NR_epoll_create1			291
-+__SYSCALL(__NR_epoll_create1, sys_epoll_create1)
- #define __NR_dup3				292
- __SYSCALL(__NR_dup3, sys_dup3)
- #define __NR_pipe2				293
-diff -puN include/linux/eventpoll.h~flag-parameters-add-on-remove-epoll_create-size-param include/linux/eventpoll.h
---- a/include/linux/eventpoll.h~flag-parameters-add-on-remove-epoll_create-size-param
-+++ a/include/linux/eventpoll.h
-@@ -18,7 +18,7 @@
- #include <linux/fcntl.h>
- #include <linux/types.h>
- 
--/* Flags for epoll_create2.  */
-+/* Flags for epoll_create1.  */
- #define EPOLL_CLOEXEC O_CLOEXEC
- 
- /* Valid opcodes to issue to sys_epoll_ctl() */
-diff -puN include/linux/syscalls.h~flag-parameters-add-on-remove-epoll_create-size-param include/linux/syscalls.h
---- a/include/linux/syscalls.h~flag-parameters-add-on-remove-epoll_create-size-param
-+++ a/include/linux/syscalls.h
-@@ -431,7 +431,7 @@ asmlinkage long sys_poll(struct pollfd _
- asmlinkage long sys_select(int n, fd_set __user *inp, fd_set __user *outp,
- 			fd_set __user *exp, struct timeval __user *tvp);
- asmlinkage long sys_epoll_create(int size);
--asmlinkage long sys_epoll_create2(int size, int flags);
-+asmlinkage long sys_epoll_create1(int flags);
- asmlinkage long sys_epoll_ctl(int epfd, int op, int fd,
- 				struct epoll_event __user *event);
- asmlinkage long sys_epoll_wait(int epfd, struct epoll_event __user *events,
++MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from drepper@redhat.com are
+Patches currently in -mm which might be from bunk@kernel.org are
 
 origin.patch
 linux-next.patch
+m32r-remove-the-unused-nohighmem-option.patch
+if-0-ses_match_host.patch
+git-xtensa.patch
+init-do_mountsc-should-include-linux-initrdh.patch
+build-kernel-profileo-only-when-requested.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+asm-generic-int-ll64h-always-provide-__su64.patch
+remove-some-more-tipar-bits.patch
+include-linux-kernelh-userspace-header-cleanup.patch
+minix-remove-no_truncate-code.patch
+jbd-unexport-journal_update_superblock.patch
+coda-remove-coda_fs_old_api.patch
+fat-dirc-switch-to-struct-__fat_dirent.patch
+remove-the-in-kernel-struct-dirent64.patch
+remove-unused-include-linux-direnths.patch
+include-asm-ptraceh-userspace-headers-cleanup.patch
+pty-remove-unused-unix98_pty_count-options.patch
+proper-extern-for-mwave_s_mdd.patch
+if-0-hpet_unregister.patch
+unexport-proc_clear_tty.patch
+move-proc_kmsg_operations-to-fs-proc-internalh.patch
+proper-pidhashmap_init-prototypes.patch
+unexport-uts_sem.patch
+parport-sharec-proper-externs.patch
+tpm_biosc-make-2-structs-static.patch
+drm-make-drm_minors_cleanup-static.patch
+make-cgroup_seqfile_release-static.patch
+make-pnp_add_card_id-static.patch
+make-parport_cs_release-static.patch
+make-mm-sparsec-make-a-function-static.patch
+mm-allocpercpuc-make-4-functions-static.patch
+make-mm-memoryc-print_bad_pte-static.patch
+mm-swapfilec-make-code-static.patch
+make-mm-rmapc-anon_vma_cachep-static.patch
+drivers-char-rtcc-make-2-functions-static.patch
+make-init-do_mountsc-root_device_name-static.patch
+make-macfb_setup-static.patch
+video-console-sticonrec-make-code-static.patch
+video-console-sticonrec-make-code-static-checkpatch-fixes.patch
+video-stifbc-make-2-functions-static.patch
+reiser4.patch
 
