@@ -1,223 +1,328 @@
 From: akpm@linux-foundation.org
-Subject: - neofb-drop-the-xtimings-structure.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:33:14 -0700
-Message-ID: <200807242333.m6ONXExK011912@imap1.linux-foundation.org>
+Subject: - autofs4-dont-make-expiring-dentry-negative.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:29:05 -0700
+Message-ID: <200807242329.m6ONT5WD011342@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58176 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52843 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756771AbYGXXdQ (ORCPT
+	by vger.kernel.org with ESMTP id S1756539AbYGXX3K (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:33:16 -0400
+	Thu, 24 Jul 2008 19:29:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: krzysztof.h1@wp.pl, mm-commits@vger.kernel.org
+To: raven@themaw.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     neofb: drop the xtimings structure
+     autofs4: don't make expiring dentry negative
 has been removed from the -mm tree.  Its filename was
-     neofb-drop-the-xtimings-structure.patch
+     autofs4-dont-make-expiring-dentry-negative.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: neofb: drop the xtimings structure
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: autofs4: don't make expiring dentry negative
+From: Ian Kent <raven@themaw.net>
 
-Remove the xtimings structure which only stored some values to be used
-later (mostly once).  Calculate and use these values in places they are
-needed.
+Correct the error of making a positive dentry negative after it has been
+instantiated.
 
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+The code that makes this error attempts to re-use the dentry from a
+concurrent expire and mount to resolve a race and the dentry used for the
+lookup must be negative for mounts to trigger in the required cases.  The
+fact is that the dentry doesn't need to be re-used because all that is
+needed is to preserve the flag that indicates an expire is still
+incomplete at the time of the mount request.
+
+This change uses the the dentry to check the flag and wait for the expire
+to complete then discards it instead of attempting to re-use it.
+
+Signed-off-by: Ian Kent <raven@themaw.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/neofb.c    |   88 ++++++++++++++++---------------------
- include/video/neomagic.h |   17 -------
- 2 files changed, 40 insertions(+), 65 deletions(-)
+ fs/autofs4/autofs_i.h |    6 +-
+ fs/autofs4/inode.c    |    6 +-
+ fs/autofs4/root.c     |  118 +++++++++++++++-------------------------
+ 3 files changed, 52 insertions(+), 78 deletions(-)
 
-diff -puN drivers/video/neofb.c~neofb-drop-the-xtimings-structure drivers/video/neofb.c
---- a/drivers/video/neofb.c~neofb-drop-the-xtimings-structure
-+++ a/drivers/video/neofb.c
-@@ -259,15 +259,20 @@ static void neoCalcVCLK(const struct fb_
-  */
+diff -puN fs/autofs4/autofs_i.h~autofs4-dont-make-expiring-dentry-negative fs/autofs4/autofs_i.h
+--- a/fs/autofs4/autofs_i.h~autofs4-dont-make-expiring-dentry-negative
++++ a/fs/autofs4/autofs_i.h
+@@ -52,7 +52,7 @@ struct autofs_info {
  
- static int vgaHWInit(const struct fb_var_screeninfo *var,
--		     const struct fb_info *info,
--		     struct neofb_par *par, struct xtimings *timings)
-+		     struct neofb_par *par)
+ 	int		flags;
+ 
+-	struct list_head rehash;
++	struct list_head expiring;
+ 
+ 	struct autofs_sb_info *sbi;
+ 	unsigned long last_used;
+@@ -112,8 +112,8 @@ struct autofs_sb_info {
+ 	struct mutex wq_mutex;
+ 	spinlock_t fs_lock;
+ 	struct autofs_wait_queue *queues; /* Wait queue pointer */
+-	spinlock_t rehash_lock;
+-	struct list_head rehash_list;
++	spinlock_t lookup_lock;
++	struct list_head expiring_list;
+ };
+ 
+ static inline struct autofs_sb_info *autofs4_sbi(struct super_block *sb)
+diff -puN fs/autofs4/inode.c~autofs4-dont-make-expiring-dentry-negative fs/autofs4/inode.c
+--- a/fs/autofs4/inode.c~autofs4-dont-make-expiring-dentry-negative
++++ a/fs/autofs4/inode.c
+@@ -47,7 +47,7 @@ struct autofs_info *autofs4_init_ino(str
+ 	ino->dentry = NULL;
+ 	ino->size = 0;
+ 
+-	INIT_LIST_HEAD(&ino->rehash);
++	INIT_LIST_HEAD(&ino->expiring);
+ 
+ 	ino->last_used = jiffies;
+ 	atomic_set(&ino->count, 0);
+@@ -338,8 +338,8 @@ int autofs4_fill_super(struct super_bloc
+ 	mutex_init(&sbi->wq_mutex);
+ 	spin_lock_init(&sbi->fs_lock);
+ 	sbi->queues = NULL;
+-	spin_lock_init(&sbi->rehash_lock);
+-	INIT_LIST_HEAD(&sbi->rehash_list);
++	spin_lock_init(&sbi->lookup_lock);
++	INIT_LIST_HEAD(&sbi->expiring_list);
+ 	s->s_blocksize = 1024;
+ 	s->s_blocksize_bits = 10;
+ 	s->s_magic = AUTOFS_SUPER_MAGIC;
+diff -puN fs/autofs4/root.c~autofs4-dont-make-expiring-dentry-negative fs/autofs4/root.c
+--- a/fs/autofs4/root.c~autofs4-dont-make-expiring-dentry-negative
++++ a/fs/autofs4/root.c
+@@ -493,10 +493,10 @@ void autofs4_dentry_release(struct dentr
+ 		struct autofs_sb_info *sbi = autofs4_sbi(de->d_sb);
+ 
+ 		if (sbi) {
+-			spin_lock(&sbi->rehash_lock);
+-			if (!list_empty(&inf->rehash))
+-				list_del(&inf->rehash);
+-			spin_unlock(&sbi->rehash_lock);
++			spin_lock(&sbi->lookup_lock);
++			if (!list_empty(&inf->expiring))
++				list_del(&inf->expiring);
++			spin_unlock(&sbi->lookup_lock);
+ 		}
+ 
+ 		inf->dentry = NULL;
+@@ -518,7 +518,7 @@ static struct dentry_operations autofs4_
+ 	.d_release	= autofs4_dentry_release,
+ };
+ 
+-static struct dentry *autofs4_lookup_unhashed(struct autofs_sb_info *sbi, struct dentry *parent, struct qstr *name)
++static struct dentry *autofs4_lookup_expiring(struct autofs_sb_info *sbi, struct dentry *parent, struct qstr *name)
  {
-+	int hsync_end = var->xres + var->right_margin + var->hsync_len;
-+	int htotal = (hsync_end + var->left_margin) >> 3;
-+	int vsync_start = var->yres + var->lower_margin;
-+	int vsync_end = vsync_start + var->vsync_len;
-+	int vtotal = vsync_end + var->upper_margin;
+ 	unsigned int len = name->len;
+ 	unsigned int hash = name->hash;
+@@ -526,14 +526,14 @@ static struct dentry *autofs4_lookup_unh
+ 	struct list_head *p, *head;
+ 
+ 	spin_lock(&dcache_lock);
+-	spin_lock(&sbi->rehash_lock);
+-	head = &sbi->rehash_list;
++	spin_lock(&sbi->lookup_lock);
++	head = &sbi->expiring_list;
+ 	list_for_each(p, head) {
+ 		struct autofs_info *ino;
+ 		struct dentry *dentry;
+ 		struct qstr *qstr;
+ 
+-		ino = list_entry(p, struct autofs_info, rehash);
++		ino = list_entry(p, struct autofs_info, expiring);
+ 		dentry = ino->dentry;
+ 
+ 		spin_lock(&dentry->d_lock);
+@@ -555,33 +555,16 @@ static struct dentry *autofs4_lookup_unh
+ 			goto next;
+ 
+ 		if (d_unhashed(dentry)) {
+-			struct inode *inode = dentry->d_inode;
+-
+-			ino = autofs4_dentry_ino(dentry);
+-			list_del_init(&ino->rehash);
+ 			dget(dentry);
+-			/*
+-			 * Make the rehashed dentry negative so the VFS
+-			 * behaves as it should.
+-			 */
+-			if (inode) {
+-				dentry->d_inode = NULL;
+-				list_del_init(&dentry->d_alias);
+-				spin_unlock(&dentry->d_lock);
+-				spin_unlock(&sbi->rehash_lock);
+-				spin_unlock(&dcache_lock);
+-				iput(inode);
+-				return dentry;
+-			}
+ 			spin_unlock(&dentry->d_lock);
+-			spin_unlock(&sbi->rehash_lock);
++			spin_unlock(&sbi->lookup_lock);
+ 			spin_unlock(&dcache_lock);
+ 			return dentry;
+ 		}
+ next:
+ 		spin_unlock(&dentry->d_lock);
+ 	}
+-	spin_unlock(&sbi->rehash_lock);
++	spin_unlock(&sbi->lookup_lock);
+ 	spin_unlock(&dcache_lock);
+ 
+ 	return NULL;
+@@ -591,7 +574,7 @@ next:
+ static struct dentry *autofs4_lookup(struct inode *dir, struct dentry *dentry, struct nameidata *nd)
+ {
+ 	struct autofs_sb_info *sbi;
+-	struct dentry *unhashed;
++	struct dentry *expiring;
+ 	int oz_mode;
+ 
+ 	DPRINTK("name = %.*s",
+@@ -607,44 +590,44 @@ static struct dentry *autofs4_lookup(str
+ 	DPRINTK("pid = %u, pgrp = %u, catatonic = %d, oz_mode = %d",
+ 		 current->pid, task_pgrp_nr(current), sbi->catatonic, oz_mode);
+ 
+-	unhashed = autofs4_lookup_unhashed(sbi, dentry->d_parent, &dentry->d_name);
+-	if (!unhashed) {
+-		/*
+-		 * Mark the dentry incomplete but don't hash it. We do this
+-		 * to serialize our inode creation operations (symlink and
+-		 * mkdir) which prevents deadlock during the callback to
+-		 * the daemon. Subsequent user space lookups for the same
+-		 * dentry are placed on the wait queue while the daemon
+-		 * itself is allowed passage unresticted so the create
+-		 * operation itself can then hash the dentry. Finally,
+-		 * we check for the hashed dentry and return the newly
+-		 * hashed dentry.
+-		 */
+-		dentry->d_op = &autofs4_root_dentry_operations;
+-
+-		dentry->d_fsdata = NULL;
+-		d_instantiate(dentry, NULL);
+-	} else {
+-		struct autofs_info *ino = autofs4_dentry_ino(unhashed);
+-		DPRINTK("rehash %p with %p", dentry, unhashed);
++	expiring = autofs4_lookup_expiring(sbi, dentry->d_parent, &dentry->d_name);
++	if (expiring) {
++		struct autofs_info *ino = autofs4_dentry_ino(expiring);
+ 		/*
+ 		 * If we are racing with expire the request might not
+ 		 * be quite complete but the directory has been removed
+ 		 * so it must have been successful, so just wait for it.
+-		 * We need to ensure the AUTOFS_INF_EXPIRING flag is clear
+-		 * before continuing as revalidate may fail when calling
+-		 * try_to_fill_dentry (returning EAGAIN) if we don't.
+ 		 */
+ 		while (ino && (ino->flags & AUTOFS_INF_EXPIRING)) {
+ 			DPRINTK("wait for incomplete expire %p name=%.*s",
+-				unhashed, unhashed->d_name.len,
+-				unhashed->d_name.name);
+-			autofs4_wait(sbi, unhashed, NFY_NONE);
++				expiring, expiring->d_name.len,
++				expiring->d_name.name);
++			autofs4_wait(sbi, expiring, NFY_NONE);
+ 			DPRINTK("request completed");
+ 		}
+-		dentry = unhashed;
++		spin_lock(&sbi->lookup_lock);
++		if (!list_empty(&ino->expiring))
++			list_del_init(&ino->expiring);
++		spin_unlock(&sbi->lookup_lock);
++		dput(expiring);
+ 	}
+ 
++	/*
++	 * Mark the dentry incomplete but don't hash it. We do this
++	 * to serialize our inode creation operations (symlink and
++	 * mkdir) which prevents deadlock during the callback to
++	 * the daemon. Subsequent user space lookups for the same
++	 * dentry are placed on the wait queue while the daemon
++	 * itself is allowed passage unresticted so the create
++	 * operation itself can then hash the dentry. Finally,
++	 * we check for the hashed dentry and return the newly
++	 * hashed dentry.
++	 */
++	dentry->d_op = &autofs4_root_dentry_operations;
 +
- 	par->MiscOutReg = 0x23;
++	dentry->d_fsdata = NULL;
++	d_instantiate(dentry, NULL);
++
+ 	if (!oz_mode) {
+ 		spin_lock(&dentry->d_lock);
+ 		dentry->d_flags |= DCACHE_AUTOFS_PENDING;
+@@ -668,8 +651,6 @@ static struct dentry *autofs4_lookup(str
+ 			if (sigismember (sigset, SIGKILL) ||
+ 			    sigismember (sigset, SIGQUIT) ||
+ 			    sigismember (sigset, SIGINT)) {
+-			    if (unhashed)
+-				dput(unhashed);
+ 			    return ERR_PTR(-ERESTARTNOINTR);
+ 			}
+ 		}
+@@ -699,15 +680,9 @@ static struct dentry *autofs4_lookup(str
+ 		else
+ 			dentry = ERR_PTR(-ENOENT);
  
--	if (!(timings->sync & FB_SYNC_HOR_HIGH_ACT))
-+	if (!(var->sync & FB_SYNC_HOR_HIGH_ACT))
- 		par->MiscOutReg |= 0x40;
- 
--	if (!(timings->sync & FB_SYNC_VERT_HIGH_ACT))
-+	if (!(var->sync & FB_SYNC_VERT_HIGH_ACT))
- 		par->MiscOutReg |= 0x80;
- 
- 	/*
-@@ -282,25 +287,25 @@ static int vgaHWInit(const struct fb_var
- 	/*
- 	 * CRTC Controller
- 	 */
--	par->CRTC[0] = (timings->HTotal >> 3) - 5;
--	par->CRTC[1] = (timings->HDisplay >> 3) - 1;
--	par->CRTC[2] = (timings->HDisplay >> 3) - 1;
--	par->CRTC[3] = (((timings->HTotal >> 3) - 1) & 0x1F) | 0x80;
--	par->CRTC[4] = (timings->HSyncStart >> 3);
--	par->CRTC[5] = ((((timings->HTotal >> 3) - 1) & 0x20) << 2)
--	    | (((timings->HSyncEnd >> 3)) & 0x1F);
--	par->CRTC[6] = (timings->VTotal - 2) & 0xFF;
--	par->CRTC[7] = (((timings->VTotal - 2) & 0x100) >> 8)
--	    | (((timings->VDisplay - 1) & 0x100) >> 7)
--	    | ((timings->VSyncStart & 0x100) >> 6)
--	    | (((timings->VDisplay - 1) & 0x100) >> 5)
--	    | 0x10 | (((timings->VTotal - 2) & 0x200) >> 4)
--	    | (((timings->VDisplay - 1) & 0x200) >> 3)
--	    | ((timings->VSyncStart & 0x200) >> 2);
-+	par->CRTC[0] = htotal - 5;
-+	par->CRTC[1] = (var->xres >> 3) - 1;
-+	par->CRTC[2] = (var->xres >> 3) - 1;
-+	par->CRTC[3] = ((htotal - 1) & 0x1F) | 0x80;
-+	par->CRTC[4] = ((var->xres + var->right_margin) >> 3);
-+	par->CRTC[5] = (((htotal - 1) & 0x20) << 2)
-+	    | (((hsync_end >> 3)) & 0x1F);
-+	par->CRTC[6] = (vtotal - 2) & 0xFF;
-+	par->CRTC[7] = (((vtotal - 2) & 0x100) >> 8)
-+	    | (((var->yres - 1) & 0x100) >> 7)
-+	    | ((vsync_start & 0x100) >> 6)
-+	    | (((var->yres - 1) & 0x100) >> 5)
-+	    | 0x10 | (((vtotal - 2) & 0x200) >> 4)
-+	    | (((var->yres - 1) & 0x200) >> 3)
-+	    | ((vsync_start & 0x200) >> 2);
- 	par->CRTC[8] = 0x00;
--	par->CRTC[9] = (((timings->VDisplay - 1) & 0x200) >> 4) | 0x40;
-+	par->CRTC[9] = (((var->yres - 1) & 0x200) >> 4) | 0x40;
- 
--	if (timings->dblscan)
-+	if (var->vmode & FB_VMODE_DOUBLE)
- 		par->CRTC[9] |= 0x80;
- 
- 	par->CRTC[10] = 0x00;
-@@ -309,13 +314,13 @@ static int vgaHWInit(const struct fb_var
- 	par->CRTC[13] = 0x00;
- 	par->CRTC[14] = 0x00;
- 	par->CRTC[15] = 0x00;
--	par->CRTC[16] = timings->VSyncStart & 0xFF;
--	par->CRTC[17] = (timings->VSyncEnd & 0x0F) | 0x20;
--	par->CRTC[18] = (timings->VDisplay - 1) & 0xFF;
-+	par->CRTC[16] = vsync_start & 0xFF;
-+	par->CRTC[17] = (vsync_end & 0x0F) | 0x20;
-+	par->CRTC[18] = (var->yres - 1) & 0xFF;
- 	par->CRTC[19] = var->xres_virtual >> 4;
- 	par->CRTC[20] = 0x00;
--	par->CRTC[21] = (timings->VDisplay - 1) & 0xFF;
--	par->CRTC[22] = (timings->VTotal - 1) & 0xFF;
-+	par->CRTC[21] = (var->yres - 1) & 0xFF;
-+	par->CRTC[22] = (vtotal - 1) & 0xFF;
- 	par->CRTC[23] = 0xC3;
- 	par->CRTC[24] = 0xFF;
- 
-@@ -736,11 +741,11 @@ neofb_check_var(struct fb_var_screeninfo
- static int neofb_set_par(struct fb_info *info)
- {
- 	struct neofb_par *par = info->par;
--	struct xtimings timings;
- 	unsigned char temp;
- 	int i, clock_hi = 0;
- 	int lcd_stretch;
- 	int hoffset, voffset;
-+	int vsync_start, vtotal;
- 
- 	DBG("neofb_set_par");
- 
-@@ -748,28 +753,15 @@ static int neofb_set_par(struct fb_info 
- 
- 	vgaHWProtect(1);	/* Blank the screen */
- 
--	timings.dblscan = info->var.vmode & FB_VMODE_DOUBLE;
--	timings.interlaced = info->var.vmode & FB_VMODE_INTERLACED;
--	timings.HDisplay = info->var.xres;
--	timings.HSyncStart = timings.HDisplay + info->var.right_margin;
--	timings.HSyncEnd = timings.HSyncStart + info->var.hsync_len;
--	timings.HTotal = timings.HSyncEnd + info->var.left_margin;
--	timings.VDisplay = info->var.yres;
--	timings.VSyncStart = timings.VDisplay + info->var.lower_margin;
--	timings.VSyncEnd = timings.VSyncStart + info->var.vsync_len;
--	timings.VTotal = timings.VSyncEnd + info->var.upper_margin;
--	timings.sync = info->var.sync;
--	timings.pixclock = PICOS2KHZ(info->var.pixclock);
+-		if (unhashed)
+-			dput(unhashed);
 -
--	if (timings.pixclock < 1)
--		timings.pixclock = 1;
-+	vsync_start = info->var.yres + info->var.lower_margin;
-+	vtotal = vsync_start + info->var.vsync_len + info->var.upper_margin;
+ 		return dentry;
+ 	}
  
- 	/*
- 	 * This will allocate the datastructure and initialize all of the
- 	 * generic VGA registers.
- 	 */
- 
--	if (vgaHWInit(&info->var, info, par, &timings))
-+	if (vgaHWInit(&info->var, par))
- 		return -EINVAL;
- 
- 	/*
-@@ -808,10 +800,10 @@ static int neofb_set_par(struct fb_info 
- 	par->ExtCRTDispAddr = 0x10;
- 
- 	/* Vertical Extension */
--	par->VerticalExt = (((timings.VTotal - 2) & 0x400) >> 10)
--	    | (((timings.VDisplay - 1) & 0x400) >> 9)
--	    | (((timings.VSyncStart) & 0x400) >> 8)
--	    | (((timings.VSyncStart) & 0x400) >> 7);
-+	par->VerticalExt = (((vtotal - 2) & 0x400) >> 10)
-+	    | (((info->var.yres - 1) & 0x400) >> 9)
-+	    | (((vsync_start) & 0x400) >> 8)
-+	    | (((vsync_start) & 0x400) >> 7);
- 
- 	/* Fast write bursts on unless disabled. */
- 	if (par->pci_burst)
-@@ -972,7 +964,7 @@ static int neofb_set_par(struct fb_info 
- 	 * Calculate the VCLK that most closely matches the requested dot
- 	 * clock.
- 	 */
--	neoCalcVCLK(info, par, timings.pixclock);
-+	neoCalcVCLK(info, par, PICOS2KHZ(info->var.pixclock));
- 
- 	/* Since we program the clocks ourselves, always use VCLK3. */
- 	par->MiscOutReg |= 0x0C;
-diff -puN include/video/neomagic.h~neofb-drop-the-xtimings-structure include/video/neomagic.h
---- a/include/video/neomagic.h~neofb-drop-the-xtimings-structure
-+++ a/include/video/neomagic.h
-@@ -90,23 +90,6 @@
- #define PCI_CHIP_NM2360 0x0006
- #define PCI_CHIP_NM2380 0x0016
- 
+-	if (unhashed)
+-		return dentry;
 -
--struct xtimings {
--	unsigned int pixclock;
--	unsigned int HDisplay;
--	unsigned int HSyncStart;
--	unsigned int HSyncEnd;
--	unsigned int HTotal;
--	unsigned int VDisplay;
--	unsigned int VSyncStart;
--	unsigned int VSyncEnd;
--	unsigned int VTotal;
--	unsigned int sync;
--	int dblscan;
--	int interlaced;
--};
--
+ 	return NULL;
+ }
+ 
+@@ -769,9 +744,8 @@ static int autofs4_dir_symlink(struct in
+  * that the file no longer exists. However, doing that means that the
+  * VFS layer can turn the dentry into a negative dentry.  We don't want
+  * this, because the unlink is probably the result of an expire.
+- * We simply d_drop it and add it to a rehash candidates list in the
+- * super block, which allows the dentry lookup to reuse it retaining
+- * the flags, such as expire in progress, in case we're racing with expire.
++ * We simply d_drop it and add it to a expiring list in the super block,
++ * which allows the dentry lookup to check for an incomplete expire.
+  *
+  * If a process is blocked on the dentry waiting for the expire to finish,
+  * it will invalidate the dentry and try to mount with a new one.
+@@ -801,9 +775,9 @@ static int autofs4_dir_unlink(struct ino
+ 	dir->i_mtime = CURRENT_TIME;
+ 
+ 	spin_lock(&dcache_lock);
+-	spin_lock(&sbi->rehash_lock);
+-	list_add(&ino->rehash, &sbi->rehash_list);
+-	spin_unlock(&sbi->rehash_lock);
++	spin_lock(&sbi->lookup_lock);
++	list_add(&ino->expiring, &sbi->expiring_list);
++	spin_unlock(&sbi->lookup_lock);
+ 	spin_lock(&dentry->d_lock);
+ 	__d_drop(dentry);
+ 	spin_unlock(&dentry->d_lock);
+@@ -829,9 +803,9 @@ static int autofs4_dir_rmdir(struct inod
+ 		spin_unlock(&dcache_lock);
+ 		return -ENOTEMPTY;
+ 	}
+-	spin_lock(&sbi->rehash_lock);
+-	list_add(&ino->rehash, &sbi->rehash_list);
+-	spin_unlock(&sbi->rehash_lock);
++	spin_lock(&sbi->lookup_lock);
++	list_add(&ino->expiring, &sbi->expiring_list);
++	spin_unlock(&sbi->lookup_lock);
+ 	spin_lock(&dentry->d_lock);
+ 	__d_drop(dentry);
+ 	spin_unlock(&dentry->d_lock);
+_
+
+Patches currently in -mm which might be from raven@themaw.net are
+
+origin.patch
+
