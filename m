@@ -1,49 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: - linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch removed from -mm tree
-Date: Wed, 23 Jul 2008 17:54:33 -0700
-Message-ID: <200807240054.m6O0sXGY021286@imap1.linux-foundation.org>
+Subject: - revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch removed from -mm tree
+Date: Wed, 23 Jul 2008 17:54:43 -0700
+Message-ID: <200807240054.m6O0sh42021296@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35021 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59830 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750878AbYGXAyy (ORCPT
+	by vger.kernel.org with ESMTP id S1751027AbYGXAzC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jul 2008 20:54:54 -0400
+	Wed, 23 Jul 2008 20:55:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, bwalle@suse.de, hannes@saeurebad.de, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next: revert "bootmem: add return value to reserve_bootmem_node()"
+     revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node
 has been removed from the -mm tree.  Its filename was
-     linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+     revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next: revert "bootmem: add return value to reserve_bootmem_node()"
+Subject: revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node
 From: Andrew Morton <akpm@linux-foundation.org>
-
-Revert
-
-commit 91d48fc80f22817332170082e10de60a75851640
-Author: Bernhard Walle <bwalle@suse.de>
-Date:   Sun Jun 8 15:46:29 2008 +0200
-
-    bootmem: add return value to reserve_bootmem_node()
-    
-    This patch changes the function reserve_bootmem_node() from void to int,
-    returning -ENOMEM if the allocation fails.
-    
-    Signed-off-by: Bernhard Walle <bwalle@suse.de>
-    Signed-off-by: Ingo Molnar <mingo@elte.hu>
-
-since it trashes the bootmem rewrite in -mm.
-
-Please merge memory management patches via the -mm tree.
 
 Cc: Johannes Weiner <hannes@saeurebad.de>
 Cc: Bernhard Walle <bwalle@suse.de>
@@ -52,44 +34,43 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  include/linux/bootmem.h |    2 +-
- mm/bootmem.c            |    6 ++----
- 2 files changed, 3 insertions(+), 5 deletions(-)
+ mm/bootmem.c            |    5 +++--
+ 2 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/bootmem.h~linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node include/linux/bootmem.h
---- a/include/linux/bootmem.h~linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node
+diff -puN include/linux/bootmem.h~revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node include/linux/bootmem.h
+--- a/include/linux/bootmem.h~revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node
 +++ a/include/linux/bootmem.h
-@@ -97,7 +97,7 @@ extern unsigned long init_bootmem_node(p
- 				       unsigned long freepfn,
- 				       unsigned long startpfn,
- 				       unsigned long endpfn);
--extern int reserve_bootmem_node(pg_data_t *pgdat,
-+extern void reserve_bootmem_node(pg_data_t *pgdat,
+@@ -67,7 +67,7 @@ extern void free_bootmem(unsigned long a
+ #define BOOTMEM_DEFAULT		0
+ #define BOOTMEM_EXCLUSIVE	(1<<0)
+ 
+-extern void reserve_bootmem_node(pg_data_t *pgdat,
++extern int reserve_bootmem_node(pg_data_t *pgdat,
  				 unsigned long physaddr,
  				 unsigned long size,
  				 int flags);
-diff -puN mm/bootmem.c~linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node mm/bootmem.c
---- a/mm/bootmem.c~linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node
+diff -puN mm/bootmem.c~revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node mm/bootmem.c
+--- a/mm/bootmem.c~revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node
 +++ a/mm/bootmem.c
-@@ -442,17 +442,15 @@ unsigned long __init init_bootmem_node(p
- 	return init_bootmem_core(pgdat->bdata, freepfn, startpfn, endpfn);
+@@ -323,15 +323,16 @@ static void __init reserve_bootmem_core(
+ 	}
  }
  
--int __init reserve_bootmem_node(pg_data_t *pgdat, unsigned long physaddr,
-+void __init reserve_bootmem_node(pg_data_t *pgdat, unsigned long physaddr,
+-void __init reserve_bootmem_node(pg_data_t *pgdat, unsigned long physaddr,
++int __init reserve_bootmem_node(pg_data_t *pgdat, unsigned long physaddr,
  				 unsigned long size, int flags)
  {
  	int ret;
  
  	ret = can_reserve_bootmem_core(pgdat->bdata, physaddr, size, flags);
  	if (ret < 0)
--		return -ENOMEM;
-+		return;
+-		return;
++		return -ENOMEM;
  	reserve_bootmem_core(pgdat->bdata, physaddr, size, flags);
--
--	return 0;
++	return 0;
  }
  
- void __init free_bootmem_node(pg_data_t *pgdat, unsigned long physaddr,
+ #ifndef CONFIG_HAVE_ARCH_BOOTMEM_NODE
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -169,7 +150,6 @@ drivers-net-wireless-iwlwifi-iwl-ledc-printk-fix.patch
 git-xtensa.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
 ftrace-disable-function-tracing-bringing-up-new-cpu-fix.patch
-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
 revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
 revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
 revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
