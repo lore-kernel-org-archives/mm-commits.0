@@ -1,42 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: - mm-make-defensive-checks-around-pfn-values-registered-for-memory-usage.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:20:33 -0700
-Message-ID: <200807242320.m6ONKXPU010344@imap1.linux-foundation.org>
+Subject: - mm-print-out-the-zonelists-on-request-for-manual-verification.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:20:39 -0700
+Message-ID: <200807242320.m6ONKd5E010347@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58881 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59513 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752022AbYGXXVC (ORCPT
+	by vger.kernel.org with ESMTP id S1752865AbYGXXVI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:21:02 -0400
+	Thu, 24 Jul 2008 19:21:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mel@csn.ul.ie, apw@shadowen.org, cl@linux-foundation.org, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: make defensive checks around PFN values registered for memory usage
+     mm: print out the zonelists on request for manual verification
 has been removed from the -mm tree.  Its filename was
-     mm-make-defensive-checks-around-pfn-values-registered-for-memory-usage.patch
+     mm-print-out-the-zonelists-on-request-for-manual-verification.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: make defensive checks around PFN values registered for memory usage
+Subject: mm: print out the zonelists on request for manual verification
 From: Mel Gorman <mel@csn.ul.ie>
 
-There are a number of different views to how much memory is currently active. 
-There is the arch-independent zone-sizing view, the bootmem allocator and
-memory models view.
-
-Architectures register this information at different times and is not
-necessarily in sync particularly with respect to some SPARSEMEM limitations. 
-
-This patch introduces mminit_validate_memmodel_limits() which is able to
-validate and correct PFN ranges with respect to the memory model.  It is only
-SPARSEMEM that currently validates itself.
+This patch prints out the zonelists during boot for manual verification by the
+user if the mminit_loglevel is MMINIT_VERIFY or higher.
 
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
 Cc: Christoph Lameter <cl@linux-foundation.org>
@@ -45,124 +37,99 @@ Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/bootmem.c    |    1 +
- mm/internal.h   |   12 ++++++++++++
- mm/page_alloc.c |    2 ++
- mm/sparse.c     |   37 +++++++++++++++++++++++++++++--------
- 4 files changed, 44 insertions(+), 8 deletions(-)
+ mm/internal.h   |    5 +++++
+ mm/mm_init.c    |   45 +++++++++++++++++++++++++++++++++++++++++++++
+ mm/page_alloc.c |    1 +
+ 3 files changed, 51 insertions(+)
 
-diff -puN mm/bootmem.c~mm-make-defensive-checks-around-pfn-values-registered-for-memory-usage mm/bootmem.c
---- a/mm/bootmem.c~mm-make-defensive-checks-around-pfn-values-registered-for-memory-usage
-+++ a/mm/bootmem.c
-@@ -91,6 +91,7 @@ static unsigned long __init init_bootmem
- 	bootmem_data_t *bdata = pgdat->bdata;
- 	unsigned long mapsize;
- 
-+	mminit_validate_memmodel_limits(&start, &end);
- 	bdata->node_bootmem_map = phys_to_virt(PFN_PHYS(mapstart));
- 	bdata->node_boot_start = PFN_PHYS(start);
- 	bdata->node_low_pfn = end;
-diff -puN mm/internal.h~mm-make-defensive-checks-around-pfn-values-registered-for-memory-usage mm/internal.h
---- a/mm/internal.h~mm-make-defensive-checks-around-pfn-values-registered-for-memory-usage
+diff -puN mm/internal.h~mm-print-out-the-zonelists-on-request-for-manual-verification mm/internal.h
+--- a/mm/internal.h~mm-print-out-the-zonelists-on-request-for-manual-verification
 +++ a/mm/internal.h
-@@ -98,4 +98,16 @@ static inline void mminit_verify_page_li
+@@ -81,6 +81,7 @@ do { \
+ extern void mminit_verify_pageflags_layout(void);
+ extern void mminit_verify_page_links(struct page *page,
+ 		enum zone_type zone, unsigned long nid, unsigned long pfn);
++extern void mminit_verify_zonelist(void);
+ 
+ #else
+ 
+@@ -97,6 +98,10 @@ static inline void mminit_verify_page_li
+ 		enum zone_type zone, unsigned long nid, unsigned long pfn)
  {
  }
++
++static inline void mminit_verify_zonelist(void)
++{
++}
  #endif /* CONFIG_DEBUG_MEMORY_INIT */
+ 
+ /* mminit_validate_memmodel_limits is independent of CONFIG_DEBUG_MEMORY_INIT */
+diff -puN mm/mm_init.c~mm-print-out-the-zonelists-on-request-for-manual-verification mm/mm_init.c
+--- a/mm/mm_init.c~mm-print-out-the-zonelists-on-request-for-manual-verification
++++ a/mm/mm_init.c
+@@ -11,6 +11,51 @@
+ 
+ int __meminitdata mminit_loglevel;
+ 
++/* The zonelists are simply reported, validation is manual. */
++void mminit_verify_zonelist(void)
++{
++	int nid;
 +
-+/* mminit_validate_memmodel_limits is independent of CONFIG_DEBUG_MEMORY_INIT */
-+#if defined(CONFIG_SPARSEMEM)
-+extern void mminit_validate_memmodel_limits(unsigned long *start_pfn,
-+				unsigned long *end_pfn);
++	if (mminit_loglevel < MMINIT_VERIFY)
++		return;
++
++	for_each_online_node(nid) {
++		pg_data_t *pgdat = NODE_DATA(nid);
++		struct zone *zone;
++		struct zoneref *z;
++		struct zonelist *zonelist;
++		int i, listid, zoneid;
++
++		BUG_ON(MAX_ZONELISTS > 2);
++		for (i = 0; i < MAX_ZONELISTS * MAX_NR_ZONES; i++) {
++
++			/* Identify the zone and nodelist */
++			zoneid = i % MAX_NR_ZONES;
++			listid = i / MAX_NR_ZONES;
++			zonelist = &pgdat->node_zonelists[listid];
++			zone = &pgdat->node_zones[zoneid];
++			if (!populated_zone(zone))
++				continue;
++
++			/* Print information about the zonelist */
++			printk(KERN_DEBUG "mminit::zonelist %s %d:%s = ",
++				listid > 0 ? "thisnode" : "general", nid,
++				zone->name);
++
++			/* Iterate the zonelist */
++			for_each_zone_zonelist(zone, z, zonelist, zoneid) {
++#ifdef CONFIG_NUMA
++				printk(KERN_CONT "%d:%s ",
++					zone->node, zone->name);
 +#else
-+static inline void mminit_validate_memmodel_limits(unsigned long *start_pfn,
-+				unsigned long *end_pfn)
-+{
++				printk(KERN_CONT "0:%s ", zone->name);
++#endif /* CONFIG_NUMA */
++			}
++			printk(KERN_CONT "\n");
++		}
++	}
 +}
-+#endif /* CONFIG_SPARSEMEM */
 +
- #endif
-diff -puN mm/page_alloc.c~mm-make-defensive-checks-around-pfn-values-registered-for-memory-usage mm/page_alloc.c
---- a/mm/page_alloc.c~mm-make-defensive-checks-around-pfn-values-registered-for-memory-usage
-+++ a/mm/page_alloc.c
-@@ -3536,6 +3536,8 @@ void __init add_active_range(unsigned in
- 			nid, start_pfn, end_pfn,
- 			nr_nodemap_entries, MAX_ACTIVE_REGIONS);
- 
-+	mminit_validate_memmodel_limits(&start_pfn, &end_pfn);
-+
- 	/* Merge with existing active regions if possible */
- 	for (i = 0; i < nr_nodemap_entries; i++) {
- 		if (early_node_map[i].nid != nid)
-diff -puN mm/sparse.c~mm-make-defensive-checks-around-pfn-values-registered-for-memory-usage mm/sparse.c
---- a/mm/sparse.c~mm-make-defensive-checks-around-pfn-values-registered-for-memory-usage
-+++ a/mm/sparse.c
-@@ -12,6 +12,7 @@
- #include <asm/dma.h>
- #include <asm/pgalloc.h>
- #include <asm/pgtable.h>
-+#include "internal.h"
- 
- /*
-  * Permanent SPARSEMEM data:
-@@ -147,22 +148,41 @@ static inline int sparse_early_nid(struc
- 	return (section->section_mem_map >> SECTION_NID_SHIFT);
- }
- 
--/* Record a memory area against a node. */
--void __init memory_present(int nid, unsigned long start, unsigned long end)
-+/* Validate the physical addressing limitations of the model */
-+void __meminit mminit_validate_memmodel_limits(unsigned long *start_pfn,
-+						unsigned long *end_pfn)
+ void __init mminit_verify_pageflags_layout(void)
  {
--	unsigned long max_arch_pfn = 1UL << (MAX_PHYSMEM_BITS-PAGE_SHIFT);
--	unsigned long pfn;
-+	unsigned long max_sparsemem_pfn = 1UL << (MAX_PHYSMEM_BITS-PAGE_SHIFT);
+ 	int shift, width;
+diff -puN mm/page_alloc.c~mm-print-out-the-zonelists-on-request-for-manual-verification mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-print-out-the-zonelists-on-request-for-manual-verification
++++ a/mm/page_alloc.c
+@@ -2352,6 +2352,7 @@ void build_all_zonelists(void)
  
- 	/*
- 	 * Sanity checks - do not allow an architecture to pass
- 	 * in larger pfns than the maximum scope of sparsemem:
- 	 */
--	if (start >= max_arch_pfn)
--		return;
--	if (end >= max_arch_pfn)
--		end = max_arch_pfn;
-+	if (*start_pfn > max_sparsemem_pfn) {
-+		mminit_dprintk(MMINIT_WARNING, "pfnvalidation",
-+			"Start of range %lu -> %lu exceeds SPARSEMEM max %lu\n",
-+			*start_pfn, *end_pfn, max_sparsemem_pfn);
-+		WARN_ON_ONCE(1);
-+		*start_pfn = max_sparsemem_pfn;
-+		*end_pfn = max_sparsemem_pfn;
-+	}
-+
-+	if (*end_pfn > max_sparsemem_pfn) {
-+		mminit_dprintk(MMINIT_WARNING, "pfnvalidation",
-+			"End of range %lu -> %lu exceeds SPARSEMEM max %lu\n",
-+			*start_pfn, *end_pfn, max_sparsemem_pfn);
-+		WARN_ON_ONCE(1);
-+		*end_pfn = max_sparsemem_pfn;
-+	}
-+}
-+
-+/* Record a memory area against a node. */
-+void __init memory_present(int nid, unsigned long start, unsigned long end)
-+{
-+	unsigned long pfn;
- 
- 	start &= PAGE_SECTION_MASK;
-+	mminit_validate_memmodel_limits(&start, &end);
- 	for (pfn = start; pfn < end; pfn += PAGES_PER_SECTION) {
- 		unsigned long section = pfn_to_section_nr(pfn);
- 		struct mem_section *ms;
-@@ -187,6 +207,7 @@ unsigned long __init node_memmap_size_by
- 	unsigned long pfn;
- 	unsigned long nr_pages = 0;
- 
-+	mminit_validate_memmodel_limits(&start_pfn, &end_pfn);
- 	for (pfn = start_pfn; pfn < end_pfn; pfn += PAGES_PER_SECTION) {
- 		if (nid != early_pfn_to_nid(pfn))
- 			continue;
+ 	if (system_state == SYSTEM_BOOTING) {
+ 		__build_all_zonelists(NULL);
++		mminit_verify_zonelist();
+ 		cpuset_init_current_mems_allowed();
+ 	} else {
+ 		/* we have to stop all cpus to guarantee there is no user
 _
 
 Patches currently in -mm which might be from mel@csn.ul.ie are
