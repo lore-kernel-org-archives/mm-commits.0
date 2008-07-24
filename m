@@ -1,197 +1,263 @@
 From: akpm@linux-foundation.org
-Subject: - tridentfb-acceleration-constants-change.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:31:23 -0700
-Message-ID: <200807242331.m6ONVNk9011623@imap1.linux-foundation.org>
+Subject: - autofs4-fix-direct-mount-pending-expire-race.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:29:46 -0700
+Message-ID: <200807242329.m6ONTknj011410@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36210 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42650 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756591AbYGXXbZ (ORCPT
+	by vger.kernel.org with ESMTP id S1756815AbYGXXaI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:31:25 -0400
+	Thu, 24 Jul 2008 19:30:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: krzysztof.h1@wp.pl, mm-commits@vger.kernel.org
+To: raven@themaw.net, jmoyer@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tridentfb: acceleration constants change
+     autofs4: fix direct mount pending expire race
 has been removed from the -mm tree.  Its filename was
-     tridentfb-acceleration-constants-change.patch
+     autofs4-fix-direct-mount-pending-expire-race.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tridentfb: acceleration constants change
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: autofs4: fix direct mount pending expire race
+From: Ian Kent <raven@themaw.net>
 
-This patch replaces deprecated constant FB_ACCELF_TEXT with
-FBINFO_HWACCEL_DISABLED and adds constants for Trident families of
-accelerators.
+For direct and offset type mounts that are covered by another mount we
+cannot check the AUTOFS_INF_EXPIRING flag during a path walk which leads
+to lookups walking into an expiring mount while it is being expired.
 
-The FBINFO_HWACCEL_DISABLED is correctly used so noaccel parameter works
-now.
+For example, for the direct multi-mount map entry with a couple of
+offsets:
 
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+/race/mm1  /      <server1>:/<path1>
+           /om1   <server2>:/<path2>
+           /om2   <server1>:/<path3>
+
+an autofs trigger mount is mounted on /race/mm1 and when accessed it is
+over mounted and trigger mounts made for /race/mm1/om1 and /race/mm1/om2. 
+So it isn't possible for path walks to see the expiring flag at all and
+they happily walk into the file system while it is expiring.
+
+When expiring these mounts follow_down() must stop at the autofs mount and
+all processes must block in the ->follow_link() method (except the daemon)
+until the expire is complete.  This is done by decrementing the d_mounted
+field of the autofs trigger mount root dentry until the expire is
+completed.  In ->follow_link() all processes wait on the expire and the
+mount following is completed for the daemon until the expire is complete.
+
+Signed-off-by: Ian Kent <raven@themaw.net>
+Cc: Jeff Moyer <jmoyer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/tridentfb.c |   45 ++++++++++++++++++++++++------------
- include/linux/fb.h        |    4 +++
- 2 files changed, 35 insertions(+), 14 deletions(-)
+ fs/autofs4/autofs_i.h |    3 +
+ fs/autofs4/expire.c   |   16 +++++++-
+ fs/autofs4/root.c     |   72 +++++++++++++++++++++++++++-------------
+ 3 files changed, 65 insertions(+), 26 deletions(-)
 
-diff -puN drivers/video/tridentfb.c~tridentfb-acceleration-constants-change drivers/video/tridentfb.c
---- a/drivers/video/tridentfb.c~tridentfb-acceleration-constants-change
-+++ a/drivers/video/tridentfb.c
-@@ -499,6 +499,10 @@ static void tridentfb_fillrect(struct fb
- 	struct tridentfb_par *par = info->par;
- 	int col;
+diff -puN fs/autofs4/autofs_i.h~autofs4-fix-direct-mount-pending-expire-race fs/autofs4/autofs_i.h
+--- a/fs/autofs4/autofs_i.h~autofs4-fix-direct-mount-pending-expire-race
++++ a/fs/autofs4/autofs_i.h
+@@ -52,6 +52,8 @@ struct autofs_info {
  
-+	if (info->flags & FBINFO_HWACCEL_DISABLED) {
-+		cfb_fillrect(info, fr);
-+		return;
-+	}
- 	if (info->var.bits_per_pixel == 8) {
- 		col = fr->color;
- 		col |= col << 8;
-@@ -516,6 +520,10 @@ static void tridentfb_copyarea(struct fb
- {
- 	struct tridentfb_par *par = info->par;
+ 	int		flags;
  
-+	if (info->flags & FBINFO_HWACCEL_DISABLED) {
-+		cfb_copyarea(info, ca);
-+		return;
-+	}
- 	par->wait_engine(par);
- 	par->copy_rect(par, ca->sx, ca->sy, ca->dx, ca->dy,
- 		       ca->width, ca->height);
-@@ -525,7 +533,8 @@ static int tridentfb_sync(struct fb_info
- {
- 	struct tridentfb_par *par = info->par;
- 
--	par->wait_engine(par);
-+	if (!(info->flags & FBINFO_HWACCEL_DISABLED))
-+		par->wait_engine(par);
- 	return 0;
- }
- #else
-@@ -855,8 +864,9 @@ static int tridentfb_check_var(struct fb
- 	if (var->yres_virtual > 0xffff)
- 		return -EINVAL;
- 	line_length = var->xres_virtual * bpp / 8;
--#ifdef CONFIG_FB_TRIDENT_ACCEL
--	if (!is3Dchip(par->chip_id)) {
++	struct completion expire_complete;
 +
-+	if (!is3Dchip(par->chip_id) &&
-+	    !(info->flags & FBINFO_HWACCEL_DISABLED)) {
- 		/* acceleration requires line length to be power of 2 */
- 		if (line_length <= 512)
- 			var->xres_virtual = 512 * 8 / bpp;
-@@ -873,7 +883,7 @@ static int tridentfb_check_var(struct fb
+ 	struct list_head active;
+ 	struct list_head expiring;
  
- 		line_length = var->xres_virtual * bpp / 8;
+@@ -69,6 +71,7 @@ struct autofs_info {
+ };
+ 
+ #define AUTOFS_INF_EXPIRING	(1<<0) /* dentry is in the process of expiring */
++#define AUTOFS_INF_MOUNTPOINT	(1<<1) /* mountpoint status for direct expire */
+ 
+ struct autofs_wait_queue {
+ 	wait_queue_head_t queue;
+diff -puN fs/autofs4/expire.c~autofs4-fix-direct-mount-pending-expire-race fs/autofs4/expire.c
+--- a/fs/autofs4/expire.c~autofs4-fix-direct-mount-pending-expire-race
++++ a/fs/autofs4/expire.c
+@@ -259,13 +259,15 @@ static struct dentry *autofs4_expire_dir
+ 	now = jiffies;
+ 	timeout = sbi->exp_timeout;
+ 
+-	/* Lock the tree as we must expire as a whole */
+ 	spin_lock(&sbi->fs_lock);
+ 	if (!autofs4_direct_busy(mnt, root, timeout, do_now)) {
+ 		struct autofs_info *ino = autofs4_dentry_ino(root);
+-
+-		/* Set this flag early to catch sys_chdir and the like */
++		if (d_mountpoint(root)) {
++			ino->flags |= AUTOFS_INF_MOUNTPOINT;
++			root->d_mounted--;
++		}
+ 		ino->flags |= AUTOFS_INF_EXPIRING;
++		init_completion(&ino->expire_complete);
+ 		spin_unlock(&sbi->fs_lock);
+ 		return root;
  	}
--#endif
+@@ -392,6 +394,7 @@ found:
+ 		expired, (int)expired->d_name.len, expired->d_name.name);
+ 	ino = autofs4_dentry_ino(expired);
+ 	ino->flags |= AUTOFS_INF_EXPIRING;
++	init_completion(&ino->expire_complete);
+ 	spin_unlock(&sbi->fs_lock);
+ 	spin_lock(&dcache_lock);
+ 	list_move(&expired->d_parent->d_subdirs, &expired->d_u.d_child);
+@@ -429,6 +432,7 @@ int autofs4_expire_run(struct super_bloc
+ 	spin_lock(&sbi->fs_lock);
+ 	ino = autofs4_dentry_ino(dentry);
+ 	ino->flags &= ~AUTOFS_INF_EXPIRING;
++	complete_all(&ino->expire_complete);
+ 	spin_unlock(&sbi->fs_lock);
+ 
+ 	return ret;
+@@ -457,8 +461,14 @@ int autofs4_expire_multi(struct super_bl
+ 		/* This is synchronous because it makes the daemon a
+                    little easier */
+ 		ret = autofs4_wait(sbi, dentry, NFY_EXPIRE);
 +
- 	if (var->yres > var->yres_virtual)
- 		var->yres_virtual = var->yres;
- 	if (line_length * var->yres_virtual > info->fix.smem_len)
-@@ -1190,9 +1200,9 @@ static int tridentfb_set_par(struct fb_i
- 		set_number_of_lines(par, info->var.yres);
- 	info->fix.line_length = info->var.xres_virtual * bpp / 8;
- 	set_lwidth(par, info->fix.line_length / 8);
--#ifdef CONFIG_FB_TRIDENT_ACCEL
--	par->init_accel(par, info->var.xres_virtual, bpp);
--#endif
-+
-+	if (!(info->flags & FBINFO_HWACCEL_DISABLED))
-+		par->init_accel(par, info->var.xres_virtual, bpp);
- 
- 	info->fix.visual = (bpp == 8) ? FB_VISUAL_PSEUDOCOLOR : FB_VISUAL_TRUECOLOR;
- 	info->cmap.len = (bpp == 8) ? 256 : 16;
-@@ -1326,6 +1336,9 @@ static int __devinit trident_pci_probe(s
- 		output("*** Please do use cyblafb, Cyberblade/i1 support "
- 		       "will soon be removed from tridentfb!\n");
- 
-+#ifndef CONFIG_FB_TRIDENT_ACCEL
-+	noaccel = 1;
-+#endif
- 
- 	/* If PCI id is 0x9660 then further detect chip type */
- 
-@@ -1370,21 +1383,25 @@ static int __devinit trident_pci_probe(s
- 		default_par->wait_engine = xp_wait_engine;
- 		default_par->fill_rect = xp_fill_rect;
- 		default_par->copy_rect = xp_copy_rect;
-+		tridentfb_fix.accel = FB_ACCEL_TRIDENT_BLADEXP;
- 	} else if (is_blade(chip_id)) {
- 		default_par->init_accel = blade_init_accel;
- 		default_par->wait_engine = blade_wait_engine;
- 		default_par->fill_rect = blade_fill_rect;
- 		default_par->copy_rect = blade_copy_rect;
-+		tridentfb_fix.accel = FB_ACCEL_TRIDENT_BLADE3D;
- 	} else if (chip3D) {			/* 3DImage family left */
- 		default_par->init_accel = image_init_accel;
- 		default_par->wait_engine = image_wait_engine;
- 		default_par->fill_rect = image_fill_rect;
- 		default_par->copy_rect = image_copy_rect;
-+		tridentfb_fix.accel = FB_ACCEL_TRIDENT_3DIMAGE;
- 	} else { 				/* TGUI 9440/96XX family */
- 		default_par->init_accel = tgui_init_accel;
- 		default_par->wait_engine = xp_wait_engine;
- 		default_par->fill_rect = tgui_fill_rect;
- 		default_par->copy_rect = tgui_copy_rect;
-+		tridentfb_fix.accel = FB_ACCEL_TRIDENT_TGUI;
+ 		spin_lock(&sbi->fs_lock);
++		if (ino->flags & AUTOFS_INF_MOUNTPOINT) {
++			sb->s_root->d_mounted++;
++			ino->flags &= ~AUTOFS_INF_MOUNTPOINT;
++		}
+ 		ino->flags &= ~AUTOFS_INF_EXPIRING;
++		complete_all(&ino->expire_complete);
+ 		spin_unlock(&sbi->fs_lock);
+ 		dput(dentry);
  	}
+diff -puN fs/autofs4/root.c~autofs4-fix-direct-mount-pending-expire-race fs/autofs4/root.c
+--- a/fs/autofs4/root.c~autofs4-fix-direct-mount-pending-expire-race
++++ a/fs/autofs4/root.c
+@@ -141,6 +141,7 @@ static int try_to_fill_dentry(struct den
+ 			 dentry, dentry->d_name.len, dentry->d_name.name);
  
- 	default_par->chip_id = chip_id;
-@@ -1441,9 +1458,13 @@ static int __devinit trident_pci_probe(s
- 	info->pseudo_palette = default_par->pseudo_pal;
+ 		status = autofs4_wait(sbi, dentry, NFY_NONE);
++		wait_for_completion(&ino->expire_complete);
  
- 	info->flags = FBINFO_DEFAULT | FBINFO_HWACCEL_YPAN;
--#ifdef CONFIG_FB_TRIDENT_ACCEL
--	info->flags |= FBINFO_HWACCEL_COPYAREA | FBINFO_HWACCEL_FILLRECT;
--#endif
-+	if (!noaccel && default_par->init_accel) {
-+		info->flags &= ~FBINFO_HWACCEL_DISABLED;
-+		info->flags |= FBINFO_HWACCEL_COPYAREA;
-+		info->flags |= FBINFO_HWACCEL_FILLRECT;
-+	} else
-+		info->flags |= FBINFO_HWACCEL_DISABLED;
+ 		DPRINTK("expire done status=%d", status);
+ 
+@@ -227,14 +228,32 @@ static void *autofs4_follow_link(struct 
+ 	DPRINTK("dentry=%p %.*s oz_mode=%d nd->flags=%d",
+ 		dentry, dentry->d_name.len, dentry->d_name.name, oz_mode,
+ 		nd->flags);
+-
+-	/* If it's our master or we shouldn't trigger a mount we're done */
+-	lookup_type = nd->flags & (TRIGGER_FLAGS | TRIGGER_INTENTS);
+-	if (oz_mode ||
+-	    !(lookup_type || dentry->d_flags & DCACHE_AUTOFS_PENDING))
++	/*
++	 * For an expire of a covered direct or offset mount we need
++	 * to beeak out of follow_down() at the autofs mount trigger
++	 * (d_mounted--), so we can see the expiring flag, and manage
++	 * the blocking and following here until the expire is completed.
++	 */
++	if (oz_mode) {
++		spin_lock(&sbi->fs_lock);
++		if (ino->flags & AUTOFS_INF_EXPIRING) {
++			spin_unlock(&sbi->fs_lock);
++			/* Follow down to our covering mount. */
++			if (!follow_down(&nd->path.mnt, &nd->path.dentry))
++				goto done;
++			/*
++			 * We shouldn't need to do this but we have no way
++			 * of knowing what may have been done so try a follow
++			 * just in case.
++			 */
++			autofs4_follow_mount(&nd->path.mnt, &nd->path.dentry);
++			goto done;
++		}
++		spin_unlock(&sbi->fs_lock);
+ 		goto done;
++	}
+ 
+-	/* If an expire request is pending wait for it. */
++	/* If an expire request is pending everyone must wait. */
+ 	spin_lock(&sbi->fs_lock);
+ 	if (ino->flags & AUTOFS_INF_EXPIRING) {
+ 		spin_unlock(&sbi->fs_lock);
+@@ -243,6 +262,7 @@ static void *autofs4_follow_link(struct 
+ 			dentry, dentry->d_name.len, dentry->d_name.name);
+ 
+ 		status = autofs4_wait(sbi, dentry, NFY_NONE);
++		wait_for_completion(&ino->expire_complete);
+ 
+ 		DPRINTK("request done status=%d", status);
+ 
+@@ -250,10 +270,15 @@ static void *autofs4_follow_link(struct 
+ 	}
+ 	spin_unlock(&sbi->fs_lock);
+ cont:
++	/* We trigger a mount for almost all flags */
++	lookup_type = nd->flags & (TRIGGER_FLAGS | TRIGGER_INTENTS);
++	if (!(lookup_type || dentry->d_flags & DCACHE_AUTOFS_PENDING))
++		goto done;
 +
- 	if (!fb_find_mode(&info->var, info,
- 			  mode_option, NULL, 0, NULL, bpp)) {
- 		err = -EINVAL;
-@@ -1453,10 +1474,6 @@ static int __devinit trident_pci_probe(s
- 	if (err < 0)
- 		goto out_unmap2;
+ 	/*
+-	 * If the dentry contains directories then it is an
+-	 * autofs multi-mount with no root mount offset. So
+-	 * don't try to mount it again.
++	 * If the dentry contains directories then it is an autofs
++	 * multi-mount with no root mount offset. So don't try to
++	 * mount it again.
+ 	 */
+ 	spin_lock(&dcache_lock);
+ 	if (dentry->d_flags & DCACHE_AUTOFS_PENDING ||
+@@ -264,22 +289,22 @@ cont:
+ 		if (status)
+ 			goto out_error;
  
--	if (!noaccel && default_par->init_accel)
--		info->var.accel_flags |= FB_ACCELF_TEXT;
--	else
--		info->var.accel_flags &= ~FB_ACCELF_TEXT;
- 	info->var.activate |= FB_ACTIVATE_NOW;
- 	info->device = &dev->dev;
- 	if (register_framebuffer(info) < 0) {
-diff -puN include/linux/fb.h~tridentfb-acceleration-constants-change include/linux/fb.h
---- a/include/linux/fb.h~tridentfb-acceleration-constants-change
-+++ a/include/linux/fb.h
-@@ -120,6 +120,10 @@ struct dentry;
- #define FB_ACCEL_XGI_VOLARI_V	47	/* XGI Volari V3XT, V5, V8      */
- #define FB_ACCEL_XGI_VOLARI_Z	48	/* XGI Volari Z7                */
- #define FB_ACCEL_OMAP1610	49	/* TI OMAP16xx                  */
-+#define FB_ACCEL_TRIDENT_TGUI	50	/* Trident TGUI			*/
-+#define FB_ACCEL_TRIDENT_3DIMAGE 51	/* Trident 3DImage		*/
-+#define FB_ACCEL_TRIDENT_BLADE3D 52	/* Trident Blade3D		*/
-+#define FB_ACCEL_TRIDENT_BLADEXP 53	/* Trident BladeXP		*/
- #define FB_ACCEL_NEOMAGIC_NM2070 90	/* NeoMagic NM2070              */
- #define FB_ACCEL_NEOMAGIC_NM2090 91	/* NeoMagic NM2090              */
- #define FB_ACCEL_NEOMAGIC_NM2093 92	/* NeoMagic NM2093              */
+-		/*
+-		 * The mount succeeded but if there is no root mount
+-		 * it must be an autofs multi-mount with no root offset
+-		 * so we don't need to follow the mount.
+-		 */
+-		if (d_mountpoint(dentry)) {
+-			if (!autofs4_follow_mount(&nd->path.mnt,
+-						  &nd->path.dentry)) {
+-				status = -ENOENT;
+-				goto out_error;
+-			}
+-		}
+-
+-		goto done;
++		goto follow;
+ 	}
+ 	spin_unlock(&dcache_lock);
++follow:
++	/*
++	 * If there is no root mount it must be an autofs
++	 * multi-mount with no root offset so we don't need
++	 * to follow it.
++	 */
++	if (d_mountpoint(dentry)) {
++		if (!autofs4_follow_mount(&nd->path.mnt,
++					  &nd->path.dentry)) {
++			status = -ENOENT;
++			goto out_error;
++		}
++	}
+ 
+ done:
+ 	return NULL;
+@@ -545,6 +570,7 @@ static struct dentry *autofs4_lookup(str
+ 				expiring, expiring->d_name.len,
+ 				expiring->d_name.name);
+ 			autofs4_wait(sbi, expiring, NFY_NONE);
++			wait_for_completion(&ino->expire_complete);
+ 			DPRINTK("request completed");
+ 			goto cont;
+ 		}
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from raven@themaw.net are
 
 origin.patch
 
