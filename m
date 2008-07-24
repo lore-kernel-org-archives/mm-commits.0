@@ -1,115 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-at91rm9200-avoid-spurious-irqs.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:30:30 -0700
-Message-ID: <200807242330.m6ONUUAY011513@imap1.linux-foundation.org>
+Subject: - tridentfb-fix-hi-color-modes-for-tgui-9440.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:31:13 -0700
+Message-ID: <200807242331.m6ONVDAm011604@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55069 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36473 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756955AbYGXXau (ORCPT
+	by vger.kernel.org with ESMTP id S1756751AbYGXXbP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:30:50 -0400
+	Thu, 24 Jul 2008 19:31:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dbrownell@users.sourceforge.net, avictor.za@gmail.com, stable@kernel.org, unruh@physics.ubc.ca, mm-commits@vger.kernel.org
+To: krzysztof.h1@wp.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc-at91rm9200: avoid spurious irqs
+     tridentfb: fix hi-color modes for TGUI 9440
 has been removed from the -mm tree.  Its filename was
-     rtc-at91rm9200-avoid-spurious-irqs.patch
+     tridentfb-fix-hi-color-modes-for-tgui-9440.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-at91rm9200: avoid spurious irqs
-From: David Brownell <dbrownell@users.sourceforge.net>
+Subject: tridentfb: fix hi-color modes for TGUI 9440
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-This fixes kernel http://bugzilla.kernel.org/show_bug.cgi?id=11112 (bogus
-RTC update IRQs reported) for rtc-at91rm9200 by scrubbing old IRQ status
-before enabling IRQs.
+The TGUI 9440 requires doubling clock for 16bpp (hi-color) modes.
 
-It also removes nonfunctional periodic IRQ support from this driver;
-only update IRQs are reported, or provided by the hardware.
+The patch also moves back enable_mmio() call to the right position.
 
-I suspect some other RTCs probably have versions of #11112; it's easy to
-overlook, since most non-RTC drivers don't care about spurious IRQs:
-they're not reported to userspace.
-
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Report-by: W Unruh <unruh@physics.ubc.ca>
-Cc: Andrew Victor <avictor.za@gmail.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-at91rm9200.c |   16 ++++++----------
- 1 file changed, 6 insertions(+), 10 deletions(-)
+ drivers/video/tridentfb.c |   22 ++++++++++++----------
+ 1 file changed, 12 insertions(+), 10 deletions(-)
 
-diff -puN drivers/rtc/rtc-at91rm9200.c~rtc-at91rm9200-avoid-spurious-irqs drivers/rtc/rtc-at91rm9200.c
---- a/drivers/rtc/rtc-at91rm9200.c~rtc-at91rm9200-avoid-spurious-irqs
-+++ a/drivers/rtc/rtc-at91rm9200.c
-@@ -171,8 +171,10 @@ static int at91_rtc_setalarm(struct devi
- 		| BIN2BCD(tm.tm_mday) << 24
- 		| AT91_RTC_DATEEN | AT91_RTC_MTHEN);
+diff -puN drivers/video/tridentfb.c~tridentfb-fix-hi-color-modes-for-tgui-9440 drivers/video/tridentfb.c
+--- a/drivers/video/tridentfb.c~tridentfb-fix-hi-color-modes-for-tgui-9440
++++ a/drivers/video/tridentfb.c
+@@ -835,6 +835,8 @@ static int tridentfb_check_var(struct fb
+ 	/* check color depth */
+ 	if (bpp == 24)
+ 		bpp = var->bits_per_pixel = 32;
++	if (par->chip_id == TGUI9440 && bpp == 32)
++		return -EINVAL;
+ 	/* check whether resolution fits on panel and in memory */
+ 	if (par->flatpanel && nativex && var->xres > nativex)
+ 		return -EINVAL;
+@@ -881,7 +883,7 @@ static int tridentfb_check_var(struct fb
  
--	if (alrm->enabled)
-+	if (alrm->enabled) {
-+		at91_sys_write(AT91_RTC_SCCR, AT91_RTC_ALARM);
- 		at91_sys_write(AT91_RTC_IER, AT91_RTC_ALARM);
+ 	switch (par->chip_id) {
+ 	case TGUI9440:
+-		ramdac = 90000;
++		ramdac = (bpp >= 16) ? 45000 : 90000;
+ 		break;
+ 	case CYBER9320:
+ 	case TGUI9660:
+@@ -1081,12 +1083,6 @@ static int tridentfb_set_par(struct fb_i
+ 	if (par->chip_id != TGUI9440)
+ 		write3X4(par, PCIReg, read3X4(par, PCIReg) | 0x06);
+ 
+-	/* convert from picoseconds to kHz */
+-	vclk = PICOS2KHZ(info->var.pixclock);
+-	if (bpp == 32)
+-		vclk *= 2;
+-	set_vclk(par, vclk);
+-
+ 	vga_mm_wseq(par->io_virt, 0, 3);
+ 	vga_mm_wseq(par->io_virt, 1, 1); /* set char clock 8 dots wide */
+ 	/* enable 4 maps because needed in chain4 mode */
+@@ -1094,10 +1090,16 @@ static int tridentfb_set_par(struct fb_i
+ 	vga_mm_wseq(par->io_virt, 3, 0);
+ 	vga_mm_wseq(par->io_virt, 4, 0x0E); /* memory mode enable bitmaps ?? */
+ 
++	/* convert from picoseconds to kHz */
++	vclk = PICOS2KHZ(info->var.pixclock);
++
+ 	/* divide clock by 2 if 32bpp chain4 mode display and CPU path */
+ 	tmp = read3CE(par, MiscExtFunc) & 0xF0;
+-	if (bpp == 32)
++	if (bpp == 32 || (par->chip_id == TGUI9440 && bpp == 16)) {
+ 		tmp |= 8;
++		vclk *= 2;
 +	}
++	set_vclk(par, vclk);
+ 	write3CE(par, MiscExtFunc, tmp | 0x12);
+ 	write3CE(par, 0x5, 0x40);	/* no CGA compat, allow 256 col */
+ 	write3CE(par, 0x6, 0x05);	/* graphics mode */
+@@ -1361,6 +1363,8 @@ static int __devinit trident_pci_probe(s
+ 	tridentfb_fix.smem_start = pci_resource_start(dev, 0);
+ 	tridentfb_fix.smem_len = get_memsize(default_par);
  
- 	pr_debug("%s(): %4d-%02d-%02d %02d:%02d:%02d\n", __func__,
- 		at91_alarm_year, tm.tm_mon, tm.tm_mday, tm.tm_hour,
-@@ -191,28 +193,22 @@ static int at91_rtc_ioctl(struct device 
++	enable_mmio();
++
+ 	if (!request_mem_region(tridentfb_fix.smem_start, tridentfb_fix.smem_len, "tridentfb")) {
+ 		debug("request_mem_region failed!\n");
+ 		disable_mmio(info->par);
+@@ -1368,8 +1372,6 @@ static int __devinit trident_pci_probe(s
+ 		goto out_unmap1;
+ 	}
  
- 	pr_debug("%s(): cmd=%08x, arg=%08lx.\n", __func__, cmd, arg);
- 
-+	/* important:  scrub old status before enabling IRQs */
- 	switch (cmd) {
- 	case RTC_AIE_OFF:	/* alarm off */
- 		at91_sys_write(AT91_RTC_IDR, AT91_RTC_ALARM);
- 		break;
- 	case RTC_AIE_ON:	/* alarm on */
-+		at91_sys_write(AT91_RTC_SCCR, AT91_RTC_ALARM);
- 		at91_sys_write(AT91_RTC_IER, AT91_RTC_ALARM);
- 		break;
- 	case RTC_UIE_OFF:	/* update off */
--	case RTC_PIE_OFF:	/* periodic off */
- 		at91_sys_write(AT91_RTC_IDR, AT91_RTC_SECEV);
- 		break;
- 	case RTC_UIE_ON:	/* update on */
--	case RTC_PIE_ON:	/* periodic on */
-+		at91_sys_write(AT91_RTC_SCCR, AT91_RTC_SECEV);
- 		at91_sys_write(AT91_RTC_IER, AT91_RTC_SECEV);
- 		break;
--	case RTC_IRQP_READ:	/* read periodic alarm frequency */
--		ret = put_user(AT91_RTC_FREQ, (unsigned long *) arg);
--		break;
--	case RTC_IRQP_SET:	/* set periodic alarm frequency */
--		if (arg != AT91_RTC_FREQ)
--			ret = -EINVAL;
--		break;
- 	default:
- 		ret = -ENOIOCTLCMD;
- 		break;
-_
-
-Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
-
-origin.patch
-linux-next.patch
-drivers-power-fix-platform-driver-hotplug-coldplug.patch
-mfd-fix-platform-driver-hotplug-coldplug.patch
-parport-fix-platform-driver-hotplug-coldplug.patch
-gpio-sysfs-interface-updated.patch
-gpio-sysfs-interface-updated-update.patch
-gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support.patch
-gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix.patch
-gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix-fix.patch
-gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix-fix-fix.patch
-gpio-mcp23s08-handles-multiple-chips-per-chipselect.patch
-gpio-max732x-driver.patch
-
+-	enable_mmio();
