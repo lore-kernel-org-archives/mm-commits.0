@@ -1,76 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch removed from -mm tree
-Date: Wed, 23 Jul 2008 17:55:05 -0700
-Message-ID: <200807240055.m6O0t5TQ021339@imap1.linux-foundation.org>
+Subject: - git-input-build-fix.patch removed from -mm tree
+Date: Wed, 23 Jul 2008 20:40:16 -0700
+Message-ID: <200807240340.m6O3eGfp026927@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56144 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34977 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751021AbYGXAz2 (ORCPT
+	by vger.kernel.org with ESMTP id S1750878AbYGXDkX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jul 2008 20:55:28 -0400
+	Wed, 23 Jul 2008 23:40:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bwalle@suse.de, hannes@saeurebad.de, mingo@elte.hu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dtor@mail.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node
+     git-input build fix
 has been removed from the -mm tree.  Its filename was
-     revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+     git-input-build-fix.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node
+Subject: git-input build fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Johannes Weiner <hannes@saeurebad.de>
-Cc: Bernhard Walle <bwalle@suse.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+i386 allnoconfig:
+
+In file included from drivers/input/serio/i8042.h:28,
+                 from drivers/input/serio/i8042.c:85:
+drivers/input/serio/i8042-x86ia64io.h: In function 'i8042_platform_init':
+drivers/input/serio/i8042-x86ia64io.h:634: error: 'i8042_dmi_nopnp_table' undeclared (first use in this function)
+drivers/input/serio/i8042-x86ia64io.h:634: error: (Each undeclared identifier is reported only once
+drivers/input/serio/i8042-x86ia64io.h:634: error: for each function it appears in.)
+drivers/input/serio/i8042-x86ia64io.h:635: error: 'i8042_nopnp' undeclared (first use in this function)
+
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bootmem.h |    2 +-
- mm/bootmem.c            |    5 ++---
- 2 files changed, 3 insertions(+), 4 deletions(-)
+ drivers/input/serio/i8042-x86ia64io.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/bootmem.h~revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node include/linux/bootmem.h
---- a/include/linux/bootmem.h~revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node
-+++ a/include/linux/bootmem.h
-@@ -65,7 +65,7 @@ extern void free_bootmem(unsigned long a
- #define BOOTMEM_DEFAULT		0
- #define BOOTMEM_EXCLUSIVE	(1<<0)
+diff -puN drivers/input/serio/i8042-x86ia64io.h~git-input-build-fix drivers/input/serio/i8042-x86ia64io.h
+--- a/drivers/input/serio/i8042-x86ia64io.h~git-input-build-fix
++++ a/drivers/input/serio/i8042-x86ia64io.h
+@@ -630,7 +630,7 @@ static int __init i8042_platform_init(vo
+ 	i8042_kbd_irq = I8042_MAP_IRQ(1);
+ 	i8042_aux_irq = I8042_MAP_IRQ(12);
  
--extern int reserve_bootmem_node(pg_data_t *pgdat,
-+extern void reserve_bootmem_node(pg_data_t *pgdat,
- 				 unsigned long physaddr,
- 				 unsigned long size,
- 				 int flags);
-diff -puN mm/bootmem.c~revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node mm/bootmem.c
---- a/mm/bootmem.c~revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node
-+++ a/mm/bootmem.c
-@@ -412,16 +412,15 @@ static void __init reserve_bootmem_core(
-  *
-  * Only physical pages that actually reside on @pgdat are marked.
-  */
--int __init reserve_bootmem_node(pg_data_t *pgdat, unsigned long physaddr,
-+void __init reserve_bootmem_node(pg_data_t *pgdat, unsigned long physaddr,
- 				 unsigned long size, int flags)
- {
- 	int ret;
- 
- 	ret = can_reserve_bootmem_core(pgdat->bdata, physaddr, size, flags);
- 	if (ret < 0)
--		return -ENOMEM;
-+		return;
- 	reserve_bootmem_core(pgdat->bdata, physaddr, size, flags);
--	return 0;
- }
- 
- #ifndef CONFIG_HAVE_ARCH_BOOTMEM_NODE
+-#if defined(__i386__) || defined(__x86_64__)
++#if defined(CONFIG_PNP) && (defined(__i386__) || defined(__x86_64__))
+ 	if (dmi_check_system(i8042_dmi_nopnp_table))
+ 		i8042_nopnp = 1;
+ #endif
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -96,8 +81,6 @@ bootmem-clean-up-free_all_bootmem_core.patch
 bootmem-free-reserve-helpers.patch
 bootmem-factor-out-the-marking-of-a-pfn-range.patch
 page_align-correctly-handle-64-bit-values-on-32-bit-architectures.patch
-mmu-notifiers-add-mm_take_all_locks-operation.patch
-mmu-notifier-core.patch
 security-protect-legacy-applications-from-executing-with-insufficient-privilege.patch
 swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option.patch
 flag-parameters-paccept.patch
@@ -133,12 +116,20 @@ arch-x86-kernel-genx2apic_uv_xc-warning-fix.patch
 drm-fix-sparc64-build.patch
 i2c-renesas-highlander-fpga-smbus-support.patch
 tick-schedc-suppress-needless-timer-reprogramming.patch
+git-input.patch
 git-input-build-fix.patch
 git-jg-misc.patch
 documentation-build-source-files-in-documentation-sub-dir-disable.patch
+git-kvm.patch
+git-leds.patch
+git-mtd.patch
 bridge-send-correct-mtu-value-in-pmtu-checkpatch-fixes.patch
 sundance-set-carrier-status-on-link-change-events.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+git-nfsd.patch
+git-pci-current.patch
+git-sh.patch
 drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
 scsi-gdthc-use-unaligned-access-helpers-checkpatch-fixes.patch
 git-unionfs.patch
@@ -150,7 +141,8 @@ drivers-net-wireless-iwlwifi-iwl-ledc-printk-fix.patch
 git-xtensa.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
 ftrace-disable-function-tracing-bringing-up-new-cpu-fix.patch
-revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+mmu-notifiers-add-mm_take_all_locks-operation.patch
+mmu-notifier-core.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 vm-dont-run-touch_buffer-during-buffercache-lookups.patch
 split-the-typecheck-macros-out-of-include-linux-kernelh.patch
