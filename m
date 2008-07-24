@@ -1,65 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: - checkpatch-possible-modifiers-are-not-being-correctly-matched.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:26:38 -0700
-Message-ID: <200807242326.m6ONQcuL010997@imap1.linux-foundation.org>
+Subject: - checkpatch-handle-return-types-of-pointers-to-functions.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:26:42 -0700
+Message-ID: <200807242326.m6ONQgct011007@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54690 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34942 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755906AbYGXX0q (ORCPT
+	by vger.kernel.org with ESMTP id S1755884AbYGXX0u (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:26:46 -0400
+	Thu, 24 Jul 2008 19:26:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: apw@shadowen.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     checkpatch: possible modifiers are not being correctly matched
+     checkpatch: handle return types of pointers to functions
 has been removed from the -mm tree.  Its filename was
-     checkpatch-possible-modifiers-are-not-being-correctly-matched.patch
+     checkpatch-handle-return-types-of-pointers-to-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: possible modifiers are not being correctly matched
+Subject: checkpatch: handle return types of pointers to functions
 From: Andy Whitcroft <apw@shadowen.org>
 
-Although we are finding the added modifier in the declaration below
-we are not correctly matching it as a type.  Fix the declaration.
+Make sure we correctly mark the return type of the pointer to a function
+declaration.
 
-    static void __ref *vmem_alloc_pages(unsigned int order)
-    {
-    }
+    const void *(*sb_tag)(struct sysfs_tag_info *info);
 
 Signed-off-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ scripts/checkpatch.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-possible-modifiers-are-not-being-correctly-matched scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-possible-modifiers-are-not-being-correctly-matched
+diff -puN scripts/checkpatch.pl~checkpatch-handle-return-types-of-pointers-to-functions scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-handle-return-types-of-pointers-to-functions
 +++ a/scripts/checkpatch.pl
-@@ -168,12 +168,11 @@ our @modifierList = (
- );
+@@ -715,7 +715,7 @@ sub annotate_values {
+ 				$av_preprocessor = 0;
+ 			}
  
- sub build_types {
--	my $mods = "(?:  \n" . join("|\n  ", @modifierList) . "\n)";
--	my $all = "(?:  \n" . join("|\n  ", @typeList) . "\n)";
-+	my $mods = "(?x:  \n" . join("|\n  ", @modifierList) . "\n)";
-+	my $all = "(?x:  \n" . join("|\n  ", @typeList) . "\n)";
- 	$Modifier	= qr{(?:$Attribute|$Sparse|$mods)};
- 	$NonptrType	= qr{
--			(?:const\s+)?
--			(?:$mods\s+)?
-+			(?:$Modifier\s+|const\s+)*
- 			(?:
- 				(?:typeof|__typeof__)\s*\(\s*\**\s*$Ident\s*\)|
- 				(?:${all}\b)
+-		} elsif ($cur =~ /^($Type)\s*(?:$Ident|,|\))/) {
++		} elsif ($cur =~ /^($Type)\s*(?:$Ident|,|\)|\()/) {
+ 			print "DECLARE($1)\n" if ($dbg_values > 1);
+ 			$type = 'T';
+ 
 _
 
 Patches currently in -mm which might be from apw@shadowen.org are
