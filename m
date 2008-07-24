@@ -1,122 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: - tridentfb-fix-timing-calculations.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:30:55 -0700
-Message-ID: <200807242330.m6ONUtY3011562@imap1.linux-foundation.org>
+Subject: - tridentfb-fix-clock-settings-for-older-trident-96xx-chips.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:30:59 -0700
+Message-ID: <200807242330.m6ONUxNl011570@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33368 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47088 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756373AbYGXXa6 (ORCPT
+	by vger.kernel.org with ESMTP id S1756012AbYGXXbB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:30:58 -0400
+	Thu, 24 Jul 2008 19:31:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: krzysztof.h1@wp.pl, adaplas@pol.net, mm-commits@vger.kernel.org
+To: krzysztof.h1@wp.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tridentfb: fix timing calculations
+     tridentfb: fix clock settings for older Trident 96XX chips
 has been removed from the -mm tree.  Its filename was
-     tridentfb-fix-timing-calculations.patch
+     tridentfb-fix-clock-settings-for-older-trident-96xx-chips.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tridentfb: fix timing calculations
+Subject: tridentfb: fix clock settings for older Trident 96XX chips
 From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Fix broken timings calculations. This patch helps with following
-problems:
- - no left part of screen visible (up to half of the screen)
- - monitor's frequencies are not the ones intended for selected modes
- - if mode with resoultion y > 1024 is selected at least once then
-   all modes with y < 1024 are "out of sync" (no display)
+The Xorg code shows that Trident models 9660, 9680 and 9682 require a
+different clock setting method.  Add the second clock setting method for older
+models.
 
 Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/tridentfb.c |   35 ++++++++++++++++++-----------------
- 1 file changed, 18 insertions(+), 17 deletions(-)
+ drivers/video/tridentfb.c |   31 +++++++++++++++++++++++--------
+ 1 file changed, 23 insertions(+), 8 deletions(-)
 
-diff -puN drivers/video/tridentfb.c~tridentfb-fix-timing-calculations drivers/video/tridentfb.c
---- a/drivers/video/tridentfb.c~tridentfb-fix-timing-calculations
+diff -puN drivers/video/tridentfb.c~tridentfb-fix-clock-settings-for-older-trident-96xx-chips drivers/video/tridentfb.c
+--- a/drivers/video/tridentfb.c~tridentfb-fix-clock-settings-for-older-trident-96xx-chips
 +++ a/drivers/video/tridentfb.c
-@@ -886,20 +886,19 @@ static int tridentfb_set_par(struct fb_i
+@@ -85,6 +85,11 @@ MODULE_PARM_DESC(fp, "Define if flatpane
+ module_param(crt, int, 0);
+ MODULE_PARM_DESC(crt, "Define if CRT is connected");
  
- 	debug("enter\n");
- 	hdispend = var->xres / 8 - 1;
--	hsyncstart = (var->xres + var->right_margin) / 8;
--	hsyncend = var->hsync_len / 8;
--	htotal =
--		(var->xres + var->left_margin + var->right_margin +
--		 var->hsync_len) / 8 - 10;
--	hblankstart = hdispend + 1;
--	hblankend = htotal + 5;
-+	hsyncstart = (var->xres + var->right_margin) / 8 - 1;
-+	hsyncend = (var->xres + var->right_margin + var->hsync_len) / 8 - 1;
-+	htotal = (var->xres + var->left_margin + var->right_margin +
-+		  var->hsync_len) / 8 - 5;
-+	hblankstart = hdispend + 2;
-+	hblankend = htotal + 3;
++static int is_oldclock(int id)
++{
++	return (id == TGUI9660);
++}
++
+ static int is_blade(int id)
+ {
+ 	return	(id == BLADE3D) ||
+@@ -659,23 +664,33 @@ static void set_screen_start(struct trid
+ static void set_vclk(struct tridentfb_par *par, unsigned long freq)
+ {
+ 	int m, n, k;
+-	unsigned long f, fi, d, di;
+-	unsigned char lo = 0, hi = 0;
++	unsigned long fi, d, di;
++	unsigned char best_m = 0, best_n = 0, best_k = 0;
++	unsigned char hi, lo;
  
- 	vdispend = var->yres - 1;
- 	vsyncstart = var->yres + var->lower_margin;
--	vsyncend = var->vsync_len;
--	vtotal = var->upper_margin + vsyncstart + vsyncend - 2;
--	vblankstart = var->yres;
--	vblankend = vtotal + 2;
-+	vsyncend = vsyncstart + var->vsync_len;
-+	vtotal = var->upper_margin + vsyncend - 2;
-+	vblankstart = vdispend + 2;
-+	vblankend = vtotal;
- 
- 	crtc_unlock(par);
- 	write3CE(par, CyberControl, 8);
-@@ -930,7 +929,7 @@ static int tridentfb_set_par(struct fb_i
- 	write3X4(par, VGA_CRTC_V_SYNC_START, vsyncstart & 0xFF);
- 	write3X4(par, VGA_CRTC_V_SYNC_END, (vsyncend & 0x0F));
- 	write3X4(par, VGA_CRTC_V_BLANK_START, vblankstart & 0xFF);
--	write3X4(par, VGA_CRTC_V_BLANK_END, 0 /* p->vblankend & 0xFF */);
-+	write3X4(par, VGA_CRTC_V_BLANK_END, vblankend & 0xFF);
- 
- 	/* horizontal timing values */
- 	write3X4(par, VGA_CRTC_H_TOTAL, htotal & 0xFF);
-@@ -939,7 +938,7 @@ static int tridentfb_set_par(struct fb_i
- 	write3X4(par, VGA_CRTC_H_SYNC_END,
- 		 (hsyncend & 0x1F) | ((hblankend & 0x20) << 2));
- 	write3X4(par, VGA_CRTC_H_BLANK_START, hblankstart & 0xFF);
--	write3X4(par, VGA_CRTC_H_BLANK_END, 0 /* (p->hblankend & 0x1F) */);
-+	write3X4(par, VGA_CRTC_H_BLANK_END, hblankend & 0x1F);
- 
- 	/* higher bits of vertical timing values */
- 	tmp = 0x10;
-@@ -953,16 +952,18 @@ static int tridentfb_set_par(struct fb_i
- 	if (vsyncstart & 0x200) tmp |= 0x80;
- 	write3X4(par, VGA_CRTC_OVERFLOW, tmp);
- 
--	tmp = read3X4(par, CRTHiOrd) | 0x08;	/* line compare bit 10 */
-+	tmp = read3X4(par, CRTHiOrd) & 0x07;
-+	tmp |= 0x08;	/* line compare bit 10 */
- 	if (vtotal & 0x400) tmp |= 0x80;
- 	if (vblankstart & 0x400) tmp |= 0x40;
- 	if (vsyncstart & 0x400) tmp |= 0x20;
- 	if (vdispend & 0x400) tmp |= 0x10;
- 	write3X4(par, CRTHiOrd, tmp);
- 
--	tmp = 0;
--	if (htotal & 0x800) tmp |= 0x800 >> 11;
--	if (hblankstart & 0x800) tmp |= 0x800 >> 7;
-+	tmp = (htotal >> 8) & 0x01;
-+	tmp |= (hdispend >> 7) & 0x02;
-+	tmp |= (hsyncstart >> 5) & 0x08;
-+	tmp |= (hblankstart >> 4) & 0x10;
- 	write3X4(par, HorizOverflow, tmp);
- 
- 	tmp = 0x40;
+ 	d = 20000;
+-	for (k = 2; k >= 0; k--)
+-		for (m = 0; m < 63; m++)
+-			for (n = 0; n < 128; n++) {
++	for (k = 1; k >= 0; k--)
++		for (m = 0; m < 32; m++)
++			for (n = 0; n < 122; n++) {
+ 				fi = ((14318l * (n + 8)) / (m + 2)) >> k;
+ 				if ((di = abs(fi - freq)) < d) {
+ 					d = di;
+-					f = fi;
+-					lo = n;
+-					hi = (k << 6) | m;
++					best_n = n;
++					best_m = m;
++					best_k = k;
+ 				}
+ 				if (fi > freq)
+ 					break;
+ 			}
++
++	if (is_oldclock(par->chip_id)) {
++		lo = best_n | (best_m << 7);
++		hi = (best_m >> 1) | (best_k << 4);
++	} else {
++		lo = best_n;
++		hi = best_m | (best_k << 6);
++	}
++
+ 	if (is3Dchip(par->chip_id)) {
+ 		vga_mm_wseq(par->io_virt, ClockHigh, hi);
+ 		vga_mm_wseq(par->io_virt, ClockLow, lo);
 _
 
 Patches currently in -mm which might be from krzysztof.h1@wp.pl are
