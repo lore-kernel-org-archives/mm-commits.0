@@ -1,196 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: - kill-generic_file_direct_io.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:21:40 -0700
-Message-ID: <200807242321.m6ONLeF2010413@imap1.linux-foundation.org>
+Subject: - mm-hugetlbc-fix-duplicate-variable.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:21:38 -0700
+Message-ID: <200807242321.m6ONLcB6010407@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53892 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44950 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753778AbYGXXVv (ORCPT
+	by vger.kernel.org with ESMTP id S1753307AbYGXXVv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 24 Jul 2008 19:21:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hch@lst.de, mm-commits@vger.kernel.org
+To: bunk@kernel.org, kosaki.motohiro@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kill generic_file_direct_IO()
+     mm/hugetlb.c: fix duplicate variable
 has been removed from the -mm tree.  Its filename was
-     kill-generic_file_direct_io.patch
+     mm-hugetlbc-fix-duplicate-variable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kill generic_file_direct_IO()
-From: Christoph Hellwig <hch@lst.de>
+Subject: mm/hugetlb.c: fix duplicate variable
+From: Adrian Bunk <bunk@kernel.org>
 
-generic_file_direct_IO is a common helper around the invocation of
-->direct_IO.  But there's almost nothing shared between the read and write
-side, so we're better off without this helper.
+It's confusing that set_max_huge_pages() contained two different
+variables named "ret", and although the code works correctly this should
+be fixed.
 
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+The inner of the two variables can simply be removed.
+
+Spotted by sparse.
+
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc:  "KOSAKI Motohiro" <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |  117 +++++++++++++++++++++----------------------------
- 1 file changed, 51 insertions(+), 66 deletions(-)
+ mm/hugetlb.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN mm/filemap.c~kill-generic_file_direct_io mm/filemap.c
---- a/mm/filemap.c~kill-generic_file_direct_io
-+++ a/mm/filemap.c
-@@ -42,9 +42,6 @@
+diff -puN mm/hugetlb.c~mm-hugetlbc-fix-duplicate-variable mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlbc-fix-duplicate-variable
++++ a/mm/hugetlb.c
+@@ -603,7 +603,6 @@ static unsigned long set_max_huge_pages(
+ 	}
  
- #include <asm/mman.h>
- 
--static ssize_t
--generic_file_direct_IO(int rw, struct kiocb *iocb, const struct iovec *iov,
--	loff_t offset, unsigned long nr_segs);
- 
- /*
-  * Shared mappings implemented 30.11.1994. It's not fully working yet,
-@@ -1205,8 +1202,11 @@ generic_file_aio_read(struct kiocb *iocb
- 			goto out; /* skip atime */
- 		size = i_size_read(inode);
- 		if (pos < size) {
--			retval = generic_file_direct_IO(READ, iocb,
--						iov, pos, nr_segs);
-+			retval = filemap_write_and_wait(mapping);
-+			if (!retval) {
-+				retval = mapping->a_ops->direct_IO(READ, iocb,
-+							iov, pos, nr_segs);
-+			}
- 			if (retval > 0)
- 				*ppos = pos + retval;
- 		}
-@@ -2004,11 +2004,55 @@ generic_file_direct_write(struct kiocb *
- 	struct address_space *mapping = file->f_mapping;
- 	struct inode	*inode = mapping->host;
- 	ssize_t		written;
-+	size_t		write_len;
-+	pgoff_t		end;
- 
- 	if (count != ocount)
- 		*nr_segs = iov_shorten((struct iovec *)iov, *nr_segs, count);
- 
--	written = generic_file_direct_IO(WRITE, iocb, iov, pos, *nr_segs);
-+	/*
-+	 * Unmap all mmappings of the file up-front.
-+	 *
-+	 * This will cause any pte dirty bits to be propagated into the
-+	 * pageframes for the subsequent filemap_write_and_wait().
-+	 */
-+	write_len = iov_length(iov, *nr_segs);
-+	end = (pos + write_len - 1) >> PAGE_CACHE_SHIFT;
-+	if (mapping_mapped(mapping))
-+		unmap_mapping_range(mapping, pos, write_len, 0);
-+
-+	written = filemap_write_and_wait(mapping);
-+	if (written)
-+		goto out;
-+
-+	/*
-+	 * After a write we want buffered reads to be sure to go to disk to get
-+	 * the new data.  We invalidate clean cached page from the region we're
-+	 * about to write.  We do this *before* the write so that we can return
-+	 * -EIO without clobbering -EIOCBQUEUED from ->direct_IO().
-+	 */
-+	if (mapping->nrpages) {
-+		written = invalidate_inode_pages2_range(mapping,
-+					pos >> PAGE_CACHE_SHIFT, end);
-+		if (written)
-+			goto out;
-+	}
-+
-+	written = mapping->a_ops->direct_IO(WRITE, iocb, iov, pos, *nr_segs);
-+
-+	/*
-+	 * Finally, try again to invalidate clean pages which might have been
-+	 * cached by non-direct readahead, or faulted in by get_user_pages()
-+	 * if the source of the write was an mmap'ed region of the file
-+	 * we're writing.  Either one is a pretty crazy thing to do,
-+	 * so we don't support it 100%.  If this invalidation
-+	 * fails, tough, the write still worked...
-+	 */
-+	if (mapping->nrpages) {
-+		invalidate_inode_pages2_range(mapping,
-+					      pos >> PAGE_CACHE_SHIFT, end);
-+	}
-+
- 	if (written > 0) {
- 		loff_t end = pos + written;
- 		if (end > i_size_read(inode) && !S_ISBLK(inode->i_mode)) {
-@@ -2024,6 +2068,7 @@ generic_file_direct_write(struct kiocb *
- 	 * i_mutex is held, which protects generic_osync_inode() from
- 	 * livelocking.  AIO O_DIRECT ops attempt to sync metadata here.
- 	 */
-+out:
- 	if ((written >= 0 || written == -EIOCBQUEUED) &&
- 	    ((file->f_flags & O_SYNC) || IS_SYNC(inode))) {
- 		int err = generic_osync_inode(inode, mapping, OSYNC_METADATA);
-@@ -2511,66 +2556,6 @@ ssize_t generic_file_aio_write(struct ki
- }
- EXPORT_SYMBOL(generic_file_aio_write);
- 
--/*
-- * Called under i_mutex for writes to S_ISREG files.   Returns -EIO if something
-- * went wrong during pagecache shootdown.
-- */
--static ssize_t
--generic_file_direct_IO(int rw, struct kiocb *iocb, const struct iovec *iov,
--	loff_t offset, unsigned long nr_segs)
--{
--	struct file *file = iocb->ki_filp;
--	struct address_space *mapping = file->f_mapping;
--	ssize_t retval;
--	size_t write_len;
--	pgoff_t end = 0; /* silence gcc */
--
--	/*
--	 * If it's a write, unmap all mmappings of the file up-front.  This
--	 * will cause any pte dirty bits to be propagated into the pageframes
--	 * for the subsequent filemap_write_and_wait().
--	 */
--	if (rw == WRITE) {
--		write_len = iov_length(iov, nr_segs);
--		end = (offset + write_len - 1) >> PAGE_CACHE_SHIFT;
--	       	if (mapping_mapped(mapping))
--			unmap_mapping_range(mapping, offset, write_len, 0);
--	}
--
--	retval = filemap_write_and_wait(mapping);
--	if (retval)
--		goto out;
--
--	/*
--	 * After a write we want buffered reads to be sure to go to disk to get
--	 * the new data.  We invalidate clean cached page from the region we're
--	 * about to write.  We do this *before* the write so that we can return
--	 * -EIO without clobbering -EIOCBQUEUED from ->direct_IO().
--	 */
--	if (rw == WRITE && mapping->nrpages) {
--		retval = invalidate_inode_pages2_range(mapping,
--					offset >> PAGE_CACHE_SHIFT, end);
--		if (retval)
--			goto out;
--	}
--
--	retval = mapping->a_ops->direct_IO(rw, iocb, iov, offset, nr_segs);
--
--	/*
--	 * Finally, try again to invalidate clean pages which might have been
--	 * cached by non-direct readahead, or faulted in by get_user_pages()
--	 * if the source of the write was an mmap'ed region of the file
--	 * we're writing.  Either one is a pretty crazy thing to do,
--	 * so we don't support it 100%.  If this invalidation
--	 * fails, tough, the write still worked...
--	 */
--	if (rw == WRITE && mapping->nrpages) {
--		invalidate_inode_pages2_range(mapping, offset >> PAGE_CACHE_SHIFT, end);
--	}
--out:
--	return retval;
--}
+ 	while (count > persistent_huge_pages) {
+-		int ret;
+ 		/*
+ 		 * If this allocation races such that we no longer need the
+ 		 * page, free_huge_page will handle it by freeing the page
+_
+
+Patches currently in -mm which might be from bunk@kernel.org are
+
+origin.patch
+linux-next.patch
+m32r-remove-the-unused-nohighmem-option.patch
+if-0-ses_match_host.patch
+git-xtensa.patch
+init-do_mountsc-should-include-linux-initrdh.patch
+build-kernel-profileo-only-when-requested.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+asm-generic-int-ll64h-always-provide-__su64.patch
+remove-some-more-tipar-bits.patch
+include-linux-kernelh-userspace-header-cleanup.patch
+minix-remove-no_truncate-code.patch
+jbd-unexport-journal_update_superblock.patch
+coda-remove-coda_fs_old_api.patch
+fat-dirc-switch-to-struct-__fat_dirent.patch
+remove-the-in-kernel-struct-dirent64.patch
+remove-unused-include-linux-direnths.patch
+include-asm-ptraceh-userspace-headers-cleanup.patch
+pty-remove-unused-unix98_pty_count-options.patch
+proper-extern-for-mwave_s_mdd.patch
+if-0-hpet_unregister.patch
+unexport-proc_clear_tty.patch
+move-proc_kmsg_operations-to-fs-proc-internalh.patch
+proper-pidhashmap_init-prototypes.patch
+unexport-uts_sem.patch
+parport-sharec-proper-externs.patch
+tpm_biosc-make-2-structs-static.patch
+drm-make-drm_minors_cleanup-static.patch
+make-cgroup_seqfile_release-static.patch
+make-pnp_add_card_id-static.patch
+make-parport_cs_release-static.patch
+make-mm-sparsec-make-a-function-static.patch
+mm-allocpercpuc-make-4-functions-static.patch
+make-mm-memoryc-print_bad_pte-static.patch
+mm-swapfilec-make-code-static.patch
+make-mm-rmapc-anon_vma_cachep-static.patch
+drivers-char-rtcc-make-2-functions-static.patch
+make-init-do_mountsc-root_device_name-static.patch
+make-macfb_setup-static.patch
+video-console-sticonrec-make-code-static.patch
+video-console-sticonrec-make-code-static-checkpatch-fixes.patch
+video-stifbc-make-2-functions-static.patch
+reiser4.patch
+
