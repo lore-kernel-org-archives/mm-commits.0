@@ -1,130 +1,288 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-bcd-codeshrink.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:30:11 -0700
-Message-ID: <200807242330.m6ONUB1q011471@imap1.linux-foundation.org>
+Subject: - spi-au1550_spi-proper-platform-device.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:28:35 -0700
+Message-ID: <200807242328.m6ONSZpv011277@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34746 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59562 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756780AbYGXXah (ORCPT
+	by vger.kernel.org with ESMTP id S1756186AbYGXX3v (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:30:37 -0400
+	Thu, 24 Jul 2008 19:29:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david-b@pacbell.net, a.zummo@towertech.it, bunk@kernel.org, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: mano@roarinelk.homelinux.net, dbrownell@users.sourceforge.net, jan.nikitenko@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc: BCD codeshrink
+     spi: au1550_spi: proper platform device
 has been removed from the -mm tree.  Its filename was
-     rtc-bcd-codeshrink.patch
+     spi-au1550_spi-proper-platform-device.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: BCD codeshrink
-From: David Brownell <david-b@pacbell.net>
+Subject: spi: au1550_spi: proper platform device
+From: Manuel Lauss <mano@roarinelk.homelinux.net>
 
-This updates <linux/bcd.h> to define the key routines as constant
-functions, which the macros will then call.  Newer code can now call
-bcd2bin() instead of SCREAMING BCD2BIN() TO THE FOUR WINDS.
+Remove the Au1550 resource table and instead extract MMIO/IRQ/DMA
+resources from platform resource information like any well-behaved
+platform driver.
 
-This lets each driver shrink their codespace by using N function calls to
-a single (global) copy of those routines, instead of N inlined copies of
-these functions per driver.
-
-These routines aren't used in speed-critical code.  Almost all callers are
-in the RTC framework.  Typical per-driver savings is near 300 bytes.
-
+Signed-off-by: Manuel Lauss <mano@roarinelk.homelinux.net>
+Signed-off-by: Jan Nikitenko <jan.nikitenko@gmail.com>
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Acked-by: Adrian Bunk <bunk@kernel.org>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bcd.h |    9 +++++++--
- lib/Makefile        |    2 +-
- lib/bcd.c           |   14 ++++++++++++++
- 3 files changed, 22 insertions(+), 3 deletions(-)
+ drivers/spi/au1550_spi.c                  |  136 ++++++++++----------
+ include/asm-mips/mach-au1x00/au1550_spi.h |    1 
+ 2 files changed, 73 insertions(+), 64 deletions(-)
 
-diff -puN include/linux/bcd.h~rtc-bcd-codeshrink include/linux/bcd.h
---- a/include/linux/bcd.h~rtc-bcd-codeshrink
-+++ a/include/linux/bcd.h
-@@ -10,8 +10,13 @@
- #ifndef _BCD_H
- #define _BCD_H
+diff -puN drivers/spi/au1550_spi.c~spi-au1550_spi-proper-platform-device drivers/spi/au1550_spi.c
+--- a/drivers/spi/au1550_spi.c~spi-au1550_spi-proper-platform-device
++++ a/drivers/spi/au1550_spi.c
+@@ -26,6 +26,7 @@
+ #include <linux/errno.h>
+ #include <linux/device.h>
+ #include <linux/platform_device.h>
++#include <linux/resource.h>
+ #include <linux/spi/spi.h>
+ #include <linux/spi/spi_bitbang.h>
+ #include <linux/dma-mapping.h>
+@@ -81,6 +82,7 @@ struct au1550_spi {
+ 	struct spi_master *master;
+ 	struct device *dev;
+ 	struct au1550_spi_info *pdata;
++	struct resource *ioarea;
+ };
  
--#define BCD2BIN(val)	(((val) & 0x0f) + ((val)>>4)*10)
--#define BIN2BCD(val)	((((val)/10)<<4) + (val)%10)
-+#include <linux/compiler.h>
+ 
+@@ -96,6 +98,8 @@ static dbdev_tab_t au1550_spi_mem_dbdev 
+ 	.dev_intpolarity	= 0
+ };
+ 
++static int ddma_memid;	/* id to above mem dma device */
 +
-+unsigned bcd2bin(unsigned char val) __attribute_const__;
-+unsigned char bin2bcd(unsigned val) __attribute_const__;
+ static void au1550_spi_bits_handlers_set(struct au1550_spi *hw, int bpw);
+ 
+ 
+@@ -732,6 +736,7 @@ static int __init au1550_spi_probe(struc
+ {
+ 	struct au1550_spi *hw;
+ 	struct spi_master *master;
++	struct resource *r;
+ 	int err = 0;
+ 
+ 	master = spi_alloc_master(&pdev->dev, sizeof(struct au1550_spi));
+@@ -753,76 +758,64 @@ static int __init au1550_spi_probe(struc
+ 		goto err_no_pdata;
+ 	}
+ 
+-	platform_set_drvdata(pdev, hw);
+-
+-	init_completion(&hw->master_done);
++	r = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
++	if (!r) {
++		dev_err(&pdev->dev, "no IRQ\n");
++		err = -ENODEV;
++		goto err_no_iores;
++	}
++	hw->irq = r->start;
+ 
+-	hw->bitbang.master = hw->master;
+-	hw->bitbang.setup_transfer = au1550_spi_setupxfer;
+-	hw->bitbang.chipselect = au1550_spi_chipsel;
+-	hw->bitbang.master->setup = au1550_spi_setup;
+-	hw->bitbang.txrx_bufs = au1550_spi_txrx_bufs;
++	hw->usedma = 0;
++	r = platform_get_resource(pdev, IORESOURCE_DMA, 0);
++	if (r) {
++		hw->dma_tx_id = r->start;
++		r = platform_get_resource(pdev, IORESOURCE_DMA, 1);
++		if (r) {
++			hw->dma_rx_id = r->start;
++			if (usedma && ddma_memid) {
++				if (pdev->dev.dma_mask == NULL)
++					dev_warn(&pdev->dev, "no dma mask\n");
++				else
++					hw->usedma = 1;
++			}
++		}
++	}
+ 
+-	switch (hw->pdata->bus_num) {
+-	case 0:
+-		hw->irq = AU1550_PSC0_INT;
+-		hw->regs = (volatile psc_spi_t *)PSC0_BASE_ADDR;
+-		hw->dma_rx_id = DSCR_CMD0_PSC0_RX;
+-		hw->dma_tx_id = DSCR_CMD0_PSC0_TX;
+-		break;
+-	case 1:
+-		hw->irq = AU1550_PSC1_INT;
+-		hw->regs = (volatile psc_spi_t *)PSC1_BASE_ADDR;
+-		hw->dma_rx_id = DSCR_CMD0_PSC1_RX;
+-		hw->dma_tx_id = DSCR_CMD0_PSC1_TX;
+-		break;
+-	case 2:
+-		hw->irq = AU1550_PSC2_INT;
+-		hw->regs = (volatile psc_spi_t *)PSC2_BASE_ADDR;
+-		hw->dma_rx_id = DSCR_CMD0_PSC2_RX;
+-		hw->dma_tx_id = DSCR_CMD0_PSC2_TX;
+-		break;
+-	case 3:
+-		hw->irq = AU1550_PSC3_INT;
+-		hw->regs = (volatile psc_spi_t *)PSC3_BASE_ADDR;
+-		hw->dma_rx_id = DSCR_CMD0_PSC3_RX;
+-		hw->dma_tx_id = DSCR_CMD0_PSC3_TX;
+-		break;
+-	default:
+-		dev_err(&pdev->dev, "Wrong bus_num of SPI\n");
+-		err = -ENOENT;
+-		goto err_no_pdata;
++	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (!r) {
++		dev_err(&pdev->dev, "no mmio resource\n");
++		err = -ENODEV;
++		goto err_no_iores;
+ 	}
+ 
+-	if (request_mem_region((unsigned long)hw->regs, sizeof(psc_spi_t),
+-			pdev->name) == NULL) {
++	hw->ioarea = request_mem_region(r->start, sizeof(psc_spi_t),
++					pdev->name);
++	if (!hw->ioarea) {
+ 		dev_err(&pdev->dev, "Cannot reserve iomem region\n");
+ 		err = -ENXIO;
+ 		goto err_no_iores;
+ 	}
+ 
+-
+-	if (usedma) {
+-		if (pdev->dev.dma_mask == NULL)
+-			dev_warn(&pdev->dev, "no dma mask\n");
+-		else
+-			hw->usedma = 1;
++	hw->regs = (psc_spi_t __iomem *)ioremap(r->start, sizeof(psc_spi_t));
++	if (!hw->regs) {
++		dev_err(&pdev->dev, "cannot ioremap\n");
++		err = -ENXIO;
++		goto err_ioremap;
+ 	}
+ 
+-	if (hw->usedma) {
+-		/*
+-		 * create memory device with 8 bits dev_devwidth
+-		 * needed for proper byte ordering to spi fifo
+-		 */
+-		int memid = au1xxx_ddma_add_device(&au1550_spi_mem_dbdev);
+-		if (!memid) {
+-			dev_err(&pdev->dev,
+-				"Cannot create dma 8 bit mem device\n");
+-			err = -ENXIO;
+-			goto err_dma_add_dev;
+-		}
++	platform_set_drvdata(pdev, hw);
 +
-+#define BCD2BIN(val)	bcd2bin(val)
-+#define BIN2BCD(val)	bin2bcd(val)
- 
- /* backwards compat */
- #define BCD_TO_BIN(val) ((val)=BCD2BIN(val))
-diff -puN lib/Makefile~rtc-bcd-codeshrink lib/Makefile
---- a/lib/Makefile~rtc-bcd-codeshrink
-+++ a/lib/Makefile
-@@ -18,7 +18,7 @@ lib-$(CONFIG_SMP) += cpumask.o
- 
- lib-y	+= kobject.o kref.o klist.o
- 
--obj-y += div64.o sort.o parser.o halfmd4.o debug_locks.o random32.o \
-+obj-y += bcd.o div64.o sort.o parser.o halfmd4.o debug_locks.o random32.o \
- 	 bust_spinlocks.o hexdump.o kasprintf.o bitmap.o scatterlist.o
- 
- ifeq ($(CONFIG_DEBUG_KOBJECT),y)
-diff -puN /dev/null lib/bcd.c
---- /dev/null
-+++ a/lib/bcd.c
-@@ -0,0 +1,14 @@
-+#include <linux/bcd.h>
-+#include <linux/module.h>
++	init_completion(&hw->master_done);
 +
-+unsigned bcd2bin(unsigned char val)
-+{
-+	return (val & 0x0f) + (val >> 4) * 10;
-+}
-+EXPORT_SYMBOL(bcd2bin);
++	hw->bitbang.master = hw->master;
++	hw->bitbang.setup_transfer = au1550_spi_setupxfer;
++	hw->bitbang.chipselect = au1550_spi_chipsel;
++	hw->bitbang.master->setup = au1550_spi_setup;
++	hw->bitbang.txrx_bufs = au1550_spi_txrx_bufs;
+ 
+-		hw->dma_tx_ch = au1xxx_dbdma_chan_alloc(memid,
++	if (hw->usedma) {
++		hw->dma_tx_ch = au1xxx_dbdma_chan_alloc(ddma_memid,
+ 			hw->dma_tx_id, NULL, (void *)hw);
+ 		if (hw->dma_tx_ch == 0) {
+ 			dev_err(&pdev->dev,
+@@ -841,7 +834,7 @@ static int __init au1550_spi_probe(struc
+ 
+ 
+ 		hw->dma_rx_ch = au1xxx_dbdma_chan_alloc(hw->dma_rx_id,
+-			memid, NULL, (void *)hw);
++			ddma_memid, NULL, (void *)hw);
+ 		if (hw->dma_rx_ch == 0) {
+ 			dev_err(&pdev->dev,
+ 				"Cannot allocate rx dma channel\n");
+@@ -874,7 +867,7 @@ static int __init au1550_spi_probe(struc
+ 		goto err_no_irq;
+ 	}
+ 
+-	master->bus_num = hw->pdata->bus_num;
++	master->bus_num = pdev->id;
+ 	master->num_chipselect = hw->pdata->num_chipselect;
+ 
+ 	/*
+@@ -924,8 +917,11 @@ err_no_txdma_descr:
+ 		au1xxx_dbdma_chan_free(hw->dma_tx_ch);
+ 
+ err_no_txdma:
+-err_dma_add_dev:
+-	release_mem_region((unsigned long)hw->regs, sizeof(psc_spi_t));
++	iounmap((void __iomem *)hw->regs);
 +
-+unsigned char bin2bcd(unsigned val)
-+{
-+	return ((val / 10) << 4) + val % 10;
-+}
-+EXPORT_SYMBOL(bin2bcd);
++err_ioremap:
++	release_resource(hw->ioarea);
++	kfree(hw->ioarea);
+ 
+ err_no_iores:
+ err_no_pdata:
+@@ -944,7 +940,9 @@ static int __exit au1550_spi_remove(stru
+ 
+ 	spi_bitbang_stop(&hw->bitbang);
+ 	free_irq(hw->irq, hw);
+-	release_mem_region((unsigned long)hw->regs, sizeof(psc_spi_t));
++	iounmap((void __iomem *)hw->regs);
++	release_resource(hw->ioarea);
++	kfree(hw->ioarea);
+ 
+ 	if (hw->usedma) {
+ 		au1550_spi_dma_rxtmp_free(hw);
+@@ -971,12 +969,24 @@ static struct platform_driver au1550_spi
+ 
+ static int __init au1550_spi_init(void)
+ {
++	/*
++	 * create memory device with 8 bits dev_devwidth
++	 * needed for proper byte ordering to spi fifo
++	 */
++	if (usedma) {
++		ddma_memid = au1xxx_ddma_add_device(&au1550_spi_mem_dbdev);
++		if (!ddma_memid)
++			printk(KERN_ERR "au1550-spi: cannot add memory"
++					"dbdma device\n");
++	}
+ 	return platform_driver_probe(&au1550_spi_drv, au1550_spi_probe);
+ }
+ module_init(au1550_spi_init);
+ 
+ static void __exit au1550_spi_exit(void)
+ {
++	if (usedma && ddma_memid)
++		au1xxx_ddma_del_device(ddma_memid);
+ 	platform_driver_unregister(&au1550_spi_drv);
+ }
+ module_exit(au1550_spi_exit);
+diff -puN include/asm-mips/mach-au1x00/au1550_spi.h~spi-au1550_spi-proper-platform-device include/asm-mips/mach-au1x00/au1550_spi.h
+--- a/include/asm-mips/mach-au1x00/au1550_spi.h~spi-au1550_spi-proper-platform-device
++++ a/include/asm-mips/mach-au1x00/au1550_spi.h
+@@ -6,7 +6,6 @@
+ #define _AU1550_SPI_H_
+ 
+ struct au1550_spi_info {
+-	s16 bus_num;		/* defines which PSC and IRQ to use */
+ 	u32 mainclk_hz;		/* main input clock frequency of PSC */
+ 	u16 num_chipselect;	/* number of chipselects supported */
+ 	void (*activate_cs)(struct au1550_spi_info *spi, int cs, int polarity);
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from mano@roarinelk.homelinux.net are
 
 origin.patch
 linux-next.patch
-ntp-let-update_persistent_clock-sleep.patch
-jffs2-summary-allocation-dont-use-vmalloc.patch
-sm501-add-gpiolib-support.patch
-sm501-gpio-dynamic-registration-for-pci-devices.patch
-sm501-gpio-i2c-support.patch
-rtc-rtc-rs5c372-smbus-conversion-support.patch
-rtc-rtc-rs5c732-add-support-for-ricoh-r2025s-d-rtc.patch
-gpio-sysfs-interface-updated-update.patch
-gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support.patch
-gpio-mcp23s08-handles-multiple-chips-per-chipselect.patch
-gpio-add-bt8xxgpio-driver.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch
-gpiolib-allow-user-selection.patch
-gpiolib-allow-user-selection-update.patch
-spi-add-spi-over-gpio-driver.patch
-spi-add-spi-over-gpio-driver-v3.patch
-mmc-add-gpio-based-mmc-sd-driver.patch
-mmc-add-gpio-based-mmc-sd-driver-v3.patch
-mmc-add-gpio-based-mmc-sd-driver-v3-fix-for-configfs-api-change.patch
-mmc-add-gpio-based-mmc-sd-driver-add-documentation-abi-testing-configfs-gpiommc.patch
-mmc-add-gpio-based-mmc-sd-driver-add-locking.patch
 
