@@ -1,169 +1,152 @@
 From: akpm@linux-foundation.org
-Subject: - spi-au1550_spi-improve-pio-transfer-mode.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:28:38 -0700
-Message-ID: <200807242328.m6ONScTb011288@imap1.linux-foundation.org>
+Subject: - ecryptfs-inodec-mmapc-use-unaligned-byteorder-helpers.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:28:59 -0700
+Message-ID: <200807242328.m6ONSxXq011325@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49790 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57960 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756590AbYGXX2q (ORCPT
+	by vger.kernel.org with ESMTP id S1756629AbYGXX3D (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:28:46 -0400
+	Thu, 24 Jul 2008 19:29:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jan.nikitenko@gmail.com, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spi: au1550_spi: improve pio transfer mode
+     ecryptfs: inode.c mmap.c use unaligned byteorder helpers
 has been removed from the -mm tree.  Its filename was
-     spi-au1550_spi-improve-pio-transfer-mode.patch
+     ecryptfs-inodec-mmapc-use-unaligned-byteorder-helpers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spi: au1550_spi: improve pio transfer mode
-From: Jan Nikitenko <jan.nikitenko@gmail.com>
+Subject: ecryptfs: inode.c mmap.c use unaligned byteorder helpers
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Improve PIO transfer mode of au1550 spi controller by continuing of spi
-transfer, instead of aborting transfer when transmit underflow interrupt
-occurrs.
+Fixe sparse warnings:
+fs/ecryptfs/inode.c:368:15: warning: cast to restricted __be64
+fs/ecryptfs/mmap.c:385:12: warning: incorrect type in assignment (different base types)
+fs/ecryptfs/mmap.c:385:12:    expected unsigned long long [unsigned] [assigned] [usertype] file_size
+fs/ecryptfs/mmap.c:385:12:    got restricted __be64 [usertype] <noident>
+fs/ecryptfs/mmap.c:428:12: warning: incorrect type in assignment (different base types)
+fs/ecryptfs/mmap.c:428:12:    expected unsigned long long [unsigned] [assigned] [usertype] file_size
+fs/ecryptfs/mmap.c:428:12:    got restricted __be64 [usertype] <noident>
 
-Verified by oscilloscope that the spi clock pauses on trasmit underflow,
-so transfer continuation is perfectly valid even though au1550 datasheet
-says that on tx underflow zeroes will be transfered.
-
-Also make some error messages more specific.
-
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Jan Nikitenko <jan.nikitenko@gmail.com>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/au1550_spi.c |   69 ++++++++++++++++++++++++++-----------
- 1 file changed, 49 insertions(+), 20 deletions(-)
+ fs/ecryptfs/inode.c |    4 ++--
+ fs/ecryptfs/mmap.c  |   11 +++--------
+ 2 files changed, 5 insertions(+), 10 deletions(-)
 
-diff -puN drivers/spi/au1550_spi.c~spi-au1550_spi-improve-pio-transfer-mode drivers/spi/au1550_spi.c
---- a/drivers/spi/au1550_spi.c~spi-au1550_spi-improve-pio-transfer-mode
-+++ a/drivers/spi/au1550_spi.c
-@@ -484,9 +484,13 @@ static irqreturn_t au1550_spi_dma_irq_ca
- 		au1xxx_dbdma_reset(hw->dma_tx_ch);
- 		au1550_spi_reset_fifos(hw);
+diff -puN fs/ecryptfs/inode.c~ecryptfs-inodec-mmapc-use-unaligned-byteorder-helpers fs/ecryptfs/inode.c
+--- a/fs/ecryptfs/inode.c~ecryptfs-inodec-mmapc-use-unaligned-byteorder-helpers
++++ a/fs/ecryptfs/inode.c
+@@ -31,6 +31,7 @@
+ #include <linux/mount.h>
+ #include <linux/crypto.h>
+ #include <linux/fs_stack.h>
++#include <asm/unaligned.h>
+ #include "ecryptfs_kernel.h"
  
--		dev_err(hw->dev,
--			"Unexpected SPI error: event=0x%x stat=0x%x!\n",
--			evnt, stat);
-+		if (evnt == PSC_SPIEVNT_RO)
-+			dev_err(hw->dev,
-+				"dma transfer: receive FIFO overflow!\n");
-+		else
-+			dev_err(hw->dev,
-+				"dma transfer: unexpected SPI error "
-+				"(event=0x%x stat=0x%x)!\n", evnt, stat);
- 
- 		complete(&hw->master_done);
- 		return IRQ_HANDLED;
-@@ -596,17 +600,17 @@ static irqreturn_t au1550_spi_pio_irq_ca
- 
- 	if ((evnt & (PSC_SPIEVNT_MM | PSC_SPIEVNT_RO
- 				| PSC_SPIEVNT_RU | PSC_SPIEVNT_TO
--				| PSC_SPIEVNT_TU | PSC_SPIEVNT_SD))
-+				| PSC_SPIEVNT_SD))
- 			!= 0) {
--		dev_err(hw->dev,
--			"Unexpected SPI error: event=0x%x stat=0x%x!\n",
--			evnt, stat);
- 		/*
- 		 * due to an error we consider transfer as done,
- 		 * so mask all events until before next transfer start
- 		 */
- 		au1550_spi_mask_ack_all(hw);
- 		au1550_spi_reset_fifos(hw);
-+		dev_err(hw->dev,
-+			"pio transfer: unexpected SPI error "
-+			"(event=0x%x stat=0x%x)!\n", evnt, stat);
- 		complete(&hw->master_done);
- 		return IRQ_HANDLED;
+ static struct dentry *lock_parent(struct dentry *dentry)
+@@ -364,8 +365,7 @@ static struct dentry *ecryptfs_lookup(st
+ 		else
+ 			file_size = i_size_read(lower_dentry->d_inode);
+ 	} else {
+-		memcpy(&file_size, page_virt, sizeof(file_size));
+-		file_size = be64_to_cpu(file_size);
++		file_size = get_unaligned_be64(page_virt);
  	}
-@@ -620,27 +624,50 @@ static irqreturn_t au1550_spi_pio_irq_ca
- 		stat = hw->regs->psc_spistat;
- 		au_sync();
+ 	i_size_write(dentry->d_inode, (loff_t)file_size);
+ 	kmem_cache_free(ecryptfs_header_cache_2, page_virt);
+diff -puN fs/ecryptfs/mmap.c~ecryptfs-inodec-mmapc-use-unaligned-byteorder-helpers fs/ecryptfs/mmap.c
+--- a/fs/ecryptfs/mmap.c~ecryptfs-inodec-mmapc-use-unaligned-byteorder-helpers
++++ a/fs/ecryptfs/mmap.c
+@@ -32,6 +32,7 @@
+ #include <linux/file.h>
+ #include <linux/crypto.h>
+ #include <linux/scatterlist.h>
++#include <asm/unaligned.h>
+ #include "ecryptfs_kernel.h"
  
--		if ((stat & PSC_SPISTAT_RE) == 0 && hw->rx_count < hw->len) {
-+		/*
-+		 * Take care to not let the Rx FIFO overflow.
-+		 *
-+		 * We only write a byte if we have read one at least. Initially,
-+		 * the write fifo is full, so we should read from the read fifo
-+		 * first.
-+		 * In case we miss a word from the read fifo, we should get a
-+		 * RO event and should back out.
-+		 */
-+		if (!(stat & PSC_SPISTAT_RE) && hw->rx_count < hw->len) {
- 			hw->rx_word(hw);
--			/* ack the receive request event */
--			hw->regs->psc_spievent = PSC_SPIEVNT_RR;
--			au_sync();
- 			busy = 1;
--		}
+ /**
+@@ -372,7 +373,6 @@ out:
+  */
+ static int ecryptfs_write_inode_size_to_header(struct inode *ecryptfs_inode)
+ {
+-	u64 file_size;
+ 	char *file_size_virt;
+ 	int rc;
  
--		if ((stat & PSC_SPISTAT_TF) == 0 && hw->tx_count < hw->len) {
--			hw->tx_word(hw);
--			/* ack the transmit request event */
--			hw->regs->psc_spievent = PSC_SPIEVNT_TR;
--			au_sync();
--			busy = 1;
-+			if (!(stat & PSC_SPISTAT_TF) && hw->tx_count < hw->len)
-+				hw->tx_word(hw);
- 		}
- 	} while (busy);
+@@ -381,9 +381,7 @@ static int ecryptfs_write_inode_size_to_
+ 		rc = -ENOMEM;
+ 		goto out;
+ 	}
+-	file_size = (u64)i_size_read(ecryptfs_inode);
+-	file_size = cpu_to_be64(file_size);
+-	memcpy(file_size_virt, &file_size, sizeof(u64));
++	put_unaligned_be64(i_size_read(ecryptfs_inode), file_size_virt);
+ 	rc = ecryptfs_write_lower(ecryptfs_inode, file_size_virt, 0,
+ 				  sizeof(u64));
+ 	kfree(file_size_virt);
+@@ -403,7 +401,6 @@ static int ecryptfs_write_inode_size_to_
+ 	struct dentry *lower_dentry =
+ 		ecryptfs_inode_to_private(ecryptfs_inode)->lower_file->f_dentry;
+ 	struct inode *lower_inode = lower_dentry->d_inode;
+-	u64 file_size;
+ 	int rc;
  
--	evnt = hw->regs->psc_spievent;
-+	hw->regs->psc_spievent = PSC_SPIEVNT_RR | PSC_SPIEVNT_TR;
- 	au_sync();
- 
--	if (hw->rx_count >= hw->len || (evnt & PSC_SPIEVNT_MD) != 0) {
-+	/*
-+	 * Restart the SPI transmission in case of a transmit underflow.
-+	 * This seems to work despite the notes in the Au1550 data book
-+	 * of Figure 8-4 with flowchart for SPI master operation:
-+	 *
-+	 * """Note 1: An XFR Error Interrupt occurs, unless masked,
-+	 * for any of the following events: Tx FIFO Underflow,
-+	 * Rx FIFO Overflow, or Multiple-master Error
-+	 *    Note 2: In case of a Tx Underflow Error, all zeroes are
-+	 * transmitted."""
-+	 *
-+	 * By simply restarting the spi transfer on Tx Underflow Error,
-+	 * we assume that spi transfer was paused instead of zeroes
-+	 * transmittion mentioned in the Note 2 of Au1550 data book.
-+	 */
-+	if (evnt & PSC_SPIEVNT_TU) {
-+		hw->regs->psc_spievent = PSC_SPIEVNT_TU | PSC_SPIEVNT_MD;
-+		au_sync();
-+		hw->regs->psc_spipcr = PSC_SPIPCR_MS;
-+		au_sync();
-+	}
-+
-+	if (hw->rx_count >= hw->len) {
- 		/* transfer completed successfully */
- 		au1550_spi_mask_ack_all(hw);
- 		complete(&hw->master_done);
-@@ -729,6 +756,8 @@ static void __init au1550_spi_setup_psc_
- 		stat = hw->regs->psc_spistat;
- 		au_sync();
- 	} while ((stat & PSC_SPISTAT_DR) == 0);
-+
-+	au1550_spi_reset_fifos(hw);
- }
- 
- 
+ 	if (!lower_inode->i_op->getxattr || !lower_inode->i_op->setxattr) {
+@@ -424,9 +421,7 @@ static int ecryptfs_write_inode_size_to_
+ 					   xattr_virt, PAGE_CACHE_SIZE);
+ 	if (size < 0)
+ 		size = 8;
+-	file_size = (u64)i_size_read(ecryptfs_inode);
+-	file_size = cpu_to_be64(file_size);
+-	memcpy(xattr_virt, &file_size, sizeof(u64));
++	put_unaligned_be64(i_size_read(ecryptfs_inode), xattr_virt);
+ 	rc = lower_inode->i_op->setxattr(lower_dentry, ECRYPTFS_XATTR_NAME,
+ 					 xattr_virt, size, 0);
+ 	mutex_unlock(&lower_inode->i_mutex);
 _
 
-Patches currently in -mm which might be from jan.nikitenko@gmail.com are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
 origin.patch
+linux-next.patch
+cifs-remove-global_extern-macro.patch
+input-ads7846c-sparse-lock-annotation.patch
+mtd-diskonchipc-fix-sparse-endian-warnings.patch
+scsi-replace-remaining-__function__-occurrences.patch
+fusion-replace-remaining-__function__-occurrences.patch
+scsi-replace-__inline-with-inline.patch
+scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
+scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+scsi-gdthc-use-unaligned-access-helpers-checkpatch-fixes.patch
+xfs-use-get_unaligned_-helpers.patch
+xtensa-replace-remaining-__function__-occurences.patch
+fs-ldm-use-get_unaligned_-helpers.patch
+include-use-get-put_unaligned_-helpers.patch
+lzo-use-get-put_unaligned_-helpers.patch
+asm-generic-int-ll64h-always-provide-__su64.patch
+olpc-olpc_batteryc-sparse-endian-annotations.patch
+markers-fix-sparse-integer-as-null-pointer-warning.patch
+scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
+isdn-use-the-common-ascii-hex-helpers.patch
+net-use-the-common-ascii-hex-helpers.patch
+cris-use-the-common-ascii-hex-helpers.patch
+frv-use-the-common-ascii-hex-helpers.patch
+ppc-use-the-common-ascii-hex-helpers.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+mn10300-use-the-common-ascii-hex-helpers.patch
+byteorder-add-a-new-include-linux-swabh-to-define-byteswapping-functions.patch
+byteorder-add-include-linux-byteorderh-to-define-endian-helpers.patch
 
