@@ -1,179 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: - handle-failure-of-irqchip-set_type-in-setup_irq.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:26:02 -0700
-Message-ID: <200807242326.m6ONQ2XI010940@imap1.linux-foundation.org>
+Subject: - checkpatch-variants-move-the-main-unary-binary-operators-to-use-variants.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:26:51 -0700
+Message-ID: <200807242326.m6ONQp0l011019@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46431 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39314 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753974AbYGXX01 (ORCPT
+	by vger.kernel.org with ESMTP id S1755883AbYGXX07 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:26:27 -0400
+	Thu, 24 Jul 2008 19:26:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Uwe.Kleine-Koenig@digi.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: apw@shadowen.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     generic irqs: handle failure of irqchip->set_type in setup_irq
+     checkpatch: variants -- move the main unary/binary operators to use variants
 has been removed from the -mm tree.  Its filename was
-     handle-failure-of-irqchip-set_type-in-setup_irq.patch
+     checkpatch-variants-move-the-main-unary-binary-operators-to-use-variants.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: generic irqs: handle failure of irqchip->set_type in setup_irq
-=46rom: Uwe Kleine-K=F6nig <Uwe.Kleine-Koenig@digi.com>
+Subject: checkpatch: variants -- move the main unary/binary operators to use variants
+From: Andy Whitcroft <apw@shadowen.org>
 
-set_type returns an int indicating success or failure, but up to now
-setup_irq ignores that.
+Now that we have a variants system, move to using that to carry the
+unary/binary designation for +, -, &, and *.
 
-In my case this resulted in a machine hang:
-
-gpio-keys requested IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING, but
-arm/ns9xxx can only trigger on one direction so set_type didn't touch
-the configuration which happens do default to a level sensitiveness and
-returned -EINVAL.  setup_irq ignored that and unmasked the irq.  This
-resulted in an endless triggering of the gpio-key interrupt service
-routine which effectively killed the machine.
-
-With this patch applied setup_irq propagates the error to the caller.
-
-Note that before in the case
-
-	chip && !chip->set_type && !chip->name
-
-a NULL pointer was feed to printk.  This is fixed, too.
-
-Signed-off-by: Uwe Kleine-K=F6nig <Uwe.Kleine-Koenig@digi.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/irq/manage.c |   64 +++++++++++++++++++++++++++---------------
- 1 file changed, 42 insertions(+), 22 deletions(-)
+ scripts/checkpatch.pl |   36 ++++++++++++++++++------------------
+ 1 file changed, 18 insertions(+), 18 deletions(-)
 
-diff -puN kernel/irq/manage.c~handle-failure-of-irqchip-set_type-in-set=
-up_irq kernel/irq/manage.c
---- a/kernel/irq/manage.c~handle-failure-of-irqchip-set_type-in-setup_i=
-rq
-+++ a/kernel/irq/manage.c
-@@ -308,6 +308,30 @@ void compat_irq_chip_set_default_handler
- 		desc->handle_irq =3D NULL;
- }
-=20
-+static int __irq_set_trigger(struct irq_chip *chip, unsigned int irq,
-+		unsigned long flags)
-+{
-+	int ret;
+diff -puN scripts/checkpatch.pl~checkpatch-variants-move-the-main-unary-binary-operators-to-use-variants scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-variants-move-the-main-unary-binary-operators-to-use-variants
++++ a/scripts/checkpatch.pl
+@@ -858,6 +858,19 @@ sub annotate_values {
+ 			print "CLOSE($1)\n" if ($dbg_values > 1);
+ 			$type = 'N';
+ 
++		} elsif ($cur =~ /^(-(?![->])|\+(?!\+)|\*|\&(?!\&))/o) {
++			my $variant;
 +
-+	if (!chip || !chip->set_type) {
-+		/*
-+		 * IRQF_TRIGGER_* but the PIC does not support multiple
-+		 * flow-types?
-+		 */
-+		pr_warning("No set_type function for IRQ %d (%s)\n", irq,
-+				chip ? (chip->name ? : "unknown") : "unknown");
-+		return 0;
-+	}
-+
-+	ret =3D chip->set_type(irq, flags & IRQF_TRIGGER_MASK);
-+
-+	if (ret)
-+		pr_err("setting flow type for irq %u failed (%pF)\n",
-+				irq, chip->set_type);
-+
-+	return ret;
-+}
-+
- /*
-  * Internal function to register an irqaction - typically used to
-  * allocate special interrupts that are part of the architecture.
-@@ -319,6 +343,7 @@ int setup_irq(unsigned int irq, struct i
- 	const char *old_name =3D NULL;
- 	unsigned long flags;
- 	int shared =3D 0;
-+	int ret;
-=20
- 	if (irq >=3D NR_IRQS)
- 		return -EINVAL;
-@@ -376,35 +401,23 @@ int setup_irq(unsigned int irq, struct i
- 		shared =3D 1;
- 	}
-=20
--	*p =3D new;
--
--	/* Exclude IRQ from balancing */
--	if (new->flags & IRQF_NOBALANCING)
--		desc->status |=3D IRQ_NO_BALANCING;
--
- 	if (!shared) {
- 		irq_chip_set_defaults(desc->chip);
-=20
--#if defined(CONFIG_IRQ_PER_CPU)
--		if (new->flags & IRQF_PERCPU)
--			desc->status |=3D IRQ_PER_CPU;
--#endif
--
- 		/* Setup the type (level, edge polarity) if configured: */
- 		if (new->flags & IRQF_TRIGGER_MASK) {
--			if (desc->chip->set_type)
--				desc->chip->set_type(irq,
--						new->flags & IRQF_TRIGGER_MASK);
--			else
--				/*
--				 * IRQF_TRIGGER_* but the PIC does not support
--				 * multiple flow-types?
--				 */
--				printk(KERN_WARNING "No IRQF_TRIGGER set_type "
--				       "function for IRQ %d (%s)\n", irq,
--				       desc->chip->name);
-+			ret =3D __irq_set_trigger(desc->chip, irq, new->flags);
-+
-+			if (ret) {
-+				spin_unlock_irqrestore(&desc->lock, flags);
-+				return ret;
++			print "OPV($1)\n" if ($dbg_values > 1);
++			if ($type eq 'V') {
++				$variant = 'B';
++			} else {
++				$variant = 'U';
 +			}
- 		} else
- 			compat_irq_chip_set_default_handler(desc);
-+#if defined(CONFIG_IRQ_PER_CPU)
-+		if (new->flags & IRQF_PERCPU)
-+			desc->status |=3D IRQ_PER_CPU;
-+#endif
-=20
- 		desc->status &=3D ~(IRQ_AUTODETECT | IRQ_WAITING |
- 				  IRQ_INPROGRESS | IRQ_SPURIOUS_DISABLED);
-@@ -423,6 +436,13 @@ int setup_irq(unsigned int irq, struct i
- 		/* Set default affinity mask once everything is setup */
- 		irq_select_affinity(irq);
- 	}
 +
-+	*p =3D new;
++			substr($var, length($res), 1, $variant);
++			$type = 'N';
 +
-+	/* Exclude IRQ from balancing */
-+	if (new->flags & IRQF_NOBALANCING)
-+		desc->status |=3D IRQ_NO_BALANCING;
-+
- 	/* Reset broken irq detection when installing new handler */
- 	desc->irq_count =3D 0;
- 	desc->irqs_unhandled =3D 0;
+ 		} elsif ($cur =~ /^($Operators)/o) {
+ 			print "OP($1)\n" if ($dbg_values > 1);
+ 			if ($1 ne '++' && $1 ne '--') {
+@@ -1573,22 +1586,8 @@ sub process {
+ 				my $ptr = substr($blank, 0, $off) . "^";
+ 				my $hereptr = "$hereline$ptr\n";
+ 
+-				# Classify operators into binary, unary, or
+-				# definitions (* only) where they have more
+-				# than one mode.
++				# Pull out the value of this operator.
+ 				my $op_type = substr($curr_values, $off + 1, 1);
+-				my $op_left = substr($curr_values, $off, 1);
+-				my $is_unary;
+-				if ($op_type eq 'T') {
+-					$is_unary = 2;
+-				} elsif ($op_left eq 'V') {
+-					$is_unary = 0;
+-				} else {
+-					$is_unary = 1;
+-				}
+-				#if ($op eq '-' || $op eq '&' || $op eq '*') {
+-				#	print "UNARY: <$op_left$op_type $is_unary $a:$op:$c> <$ca:$op:$cc> <$unary_ctx>\n";
+-				#}
+ 
+ 				# Get the full operator variant.
+ 				my $opv = $op . substr($curr_vars, $off, 1);
+@@ -1625,18 +1624,19 @@ sub process {
+ 					}
+ 
+ 				# '*' as part of a type definition -- reported already.
+-				} elsif ($op eq '*' && $is_unary == 2) {
++				} elsif ($opv eq '*_') {
+ 					#warn "'*' is part of type\n";
+ 
+ 				# unary operators should have a space before and
+ 				# none after.  May be left adjacent to another
+ 				# unary operator, or a cast
+ 				} elsif ($op eq '!' || $op eq '~' ||
+-				         ($is_unary && ($op eq '*' || $op eq '-' || $op eq '&'))) {
++					 $opv eq '*U' || $opv eq '-U' ||
++					 $opv eq '&U') {
+ 					if ($ctx !~ /[WEBC]x./ && $ca !~ /(?:\)|!|~|\*|-|\&|\||\+\+|\-\-|\{)$/) {
+ 						ERROR("space required before that '$op' $at\n" . $hereptr);
+ 					}
+-					if ($op  eq '*' && $cc =~/\s*const\b/) {
++					if ($op eq '*' && $cc =~/\s*const\b/) {
+ 						# A unary '*' may be const
+ 
+ 					} elsif ($ctx =~ /.xW/) {
 _
 
-Patches currently in -mm which might be from Uwe.Kleine-Koenig@digi.com=
- are
+Patches currently in -mm which might be from apw@shadowen.org are
 
 origin.patch
-linux-next.patch
+x86-implement-pte_special.patch
+x86-implement-pte_special-fix.patch
+mm-introduce-get_user_pages_fast.patch
+mm-introduce-get_user_pages_fast-fix.patch
+mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast.patch
+x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-fix.patch
+x86-lockless-get_user_pages_fast-fix-2.patch
+x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
+x86-lockless-get_user_pages_fast-fix-warning.patch
+dio-use-get_user_pages_fast.patch
+splice-use-get_user_pages_fast.patch
+page-owner-tracking-leak-detector.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
