@@ -1,371 +1,255 @@
 From: akpm@linux-foundation.org
-Subject: - cgroups-traffic-control-cgroups-subsystem.patch removed from -mm tree
-Date: Wed, 23 Jul 2008 17:22:20 -0700
-Message-ID: <200807240022.m6O0MKBw020074@imap1.linux-foundation.org>
+Subject: + linux-next-fixup.patch added to -mm tree
+Date: Wed, 23 Jul 2008 17:53:24 -0700
+Message-ID: <200807240053.m6O0rOYZ021265@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44010 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43219 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754625AbYGXAXR (ORCPT
+	by vger.kernel.org with ESMTP id S1750739AbYGXAx1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jul 2008 20:23:17 -0400
+	Wed, 23 Jul 2008 20:53:27 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m6O0rOVp010122
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Wed, 23 Jul 2008 17:53:25 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ranjitm@google.com, balbir@in.ibm.com, clg@fr.ibm.com, davem@davemloft.net, ebiederm@xmission.com, kaber@trash.net, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     cgroups: traffic control cgroups subsystem
-has been removed from the -mm tree.  Its filename was
-     cgroups-traffic-control-cgroups-subsystem.patch
+     linux-next-fixup
+has been added to the -mm tree.  Its filename is
+     linux-next-fixup.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: traffic control cgroups subsystem
-From: Ranjit Manomohan <ranjitm@google.com>
+Subject: linux-next-fixup
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This patch provides a simple resource controller (cgroup_tc) based on the
-cgroups infrastructure to manage network traffic.  The cgroup_tc resource
-controller can be used to schedule and shape traffic belonging to the
-task(s) in a particular cgroup.
-
-The implementation consists of two parts:
-
-1) A resource controller (cgroup_tc) that is used to associate packets
-   from a particular task belonging to a cgroup with a traffic control
-   class id ( tc_classid).  This tc_classid is propagated to all sockets
-   created by tasks in the cgroup and will be used for classifying packets
-   at the link layer.
-
-2) A modified traffic control classifier (cls_flow) that can classify
-   packets based on the tc_classid field in the socket to specific
-   destination classes.
-
-An example of the use of this resource controller would be to limit the
-traffic from all tasks from a file_server cgroup to 100Mbps.  We could
-achieve this by doing:
-
-# make a cgroup of file transfer processes and assign it a uniqe classid
-# of 0x10 - this will be used lated to direct packets.
-mkdir -p /dev/cgroup
-mount -t cgroup tc -otc /dev/cgroup
-mkdir /dev/cgroup/file_transfer
-echo 0x10 > /dev/cgroup/file_transfer/tc.classid
-echo $PID_OF_FILE_XFER_PROCESS > /dev/cgroup/file_transfer/tasks
-
-# Now create a HTB class that rate limits traffic to 100mbits and attach
-# a filter to direct all traffic from cgroup file_transfer to this new class.
-tc qdisc add dev eth0 root handle 1: htb
-tc class add dev eth0 parent 1: classid 1:10 htb rate 100mbit ceil 100mbit
-tc filter add dev eth0 parent 1: handle 800 protocol ip prio 1 flow map key cgroup-classid baseclass 1:10
-
-Signed-off-by: Ranjit Manomohan <ranjitm@google.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Patrick McHardy <kaber@trash.net>
-Cc: Paul Menage <menage@google.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Cedric Le Goater <clg@fr.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Paul Menage <menage@google.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Rohit Seth <rohitseth@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cgroup_subsys.h |    6 +
- include/linux/cgroup_tc.h     |   20 +++++
- include/linux/pkt_cls.h       |    1 
- include/net/sock.h            |    3 
- init/Kconfig                  |   11 +++
- kernel/Makefile               |    1 
- kernel/tc_cgroup.c            |  108 ++++++++++++++++++++++++++++++++
- net/sched/cls_flow.c          |   18 +++++
- net/socket.c                  |    5 +
- 9 files changed, 172 insertions(+), 1 deletion(-)
+ fs/pipe.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/cgroup_subsys.h~cgroups-traffic-control-cgroups-subsystem include/linux/cgroup_subsys.h
---- a/include/linux/cgroup_subsys.h~cgroups-traffic-control-cgroups-subsystem
-+++ a/include/linux/cgroup_subsys.h
-@@ -48,3 +48,9 @@ SUBSYS(devices)
- #endif
+diff -puN fs/pipe.c~linux-next-fixup fs/pipe.c
+--- a/fs/pipe.c~linux-next-fixup
++++ a/fs/pipe.c
+@@ -985,7 +985,7 @@ struct file *create_read_pipe(struct fil
  
- /* */
-+
-+#ifdef CONFIG_CGROUP_TC
-+SUBSYS(tc)
-+#endif
-+
-+/* */
-diff -puN /dev/null include/linux/cgroup_tc.h
---- /dev/null
-+++ a/include/linux/cgroup_tc.h
-@@ -0,0 +1,20 @@
-+#ifndef __LINUX_CGROUP_TC_H
-+#define __LINUX_CGROUP_TC_H
-+
-+/* Interface to obtain tasks cgroup identifier. */
-+
-+#include <linux/cgroup.h>
-+#include <linux/skbuff.h>
-+#include <net/sock.h>
-+
-+#ifdef CONFIG_CGROUP_TC
-+
-+void cgroup_tc_set_sock_classid(struct sock *sk);
-+
-+#else
-+
-+#define cgroup_tc_set_sock_classid(sk)
-+
-+#endif /* CONFIG_CGROUP_TC */
-+
-+#endif /* __LINUX_CGROUP_TC_H */
-diff -puN include/linux/pkt_cls.h~cgroups-traffic-control-cgroups-subsystem include/linux/pkt_cls.h
---- a/include/linux/pkt_cls.h~cgroups-traffic-control-cgroups-subsystem
-+++ a/include/linux/pkt_cls.h
-@@ -349,6 +349,7 @@ enum
- 	FLOW_KEY_SKUID,
- 	FLOW_KEY_SKGID,
- 	FLOW_KEY_VLAN_TAG,
-+	FLOW_KEY_CGROUP_CLASSID,
- 	__FLOW_KEY_MAX,
- };
+ 	f->f_pos = 0;
+ 	f->f_flags = O_RDONLY | (flags & O_NONBLOCK);
+-	f->f_op = &read_pipe_fops;
++	f->f_op = &read_pipefifo_fops;
+ 	f->f_mode = FMODE_READ;
+ 	f->f_version = 0;
  
-diff -puN include/net/sock.h~cgroups-traffic-control-cgroups-subsystem include/net/sock.h
---- a/include/net/sock.h~cgroups-traffic-control-cgroups-subsystem
-+++ a/include/net/sock.h
-@@ -271,6 +271,9 @@ struct sock {
- 	int			sk_write_pending;
- 	void			*sk_security;
- 	__u32			sk_mark;
-+#ifdef CONFIG_CGROUP_TC
-+	__u32			sk_cgroup_classid;
-+#endif
- 	/* XXX 4 bytes hole on 64 bit */
- 	void			(*sk_state_change)(struct sock *sk);
- 	void			(*sk_data_ready)(struct sock *sk, int bytes);
-diff -puN init/Kconfig~cgroups-traffic-control-cgroups-subsystem init/Kconfig
---- a/init/Kconfig~cgroups-traffic-control-cgroups-subsystem
-+++ a/init/Kconfig
-@@ -290,6 +290,17 @@ config CGROUP_DEBUG
- 
- 	  Say N if unsure
- 
-+config CGROUP_TC
-+	bool "Traffic control cgroup subsystem"
-+	depends on CGROUPS
-+	default n
-+	help
-+	  This option enables a simple cgroup subsystem that
-+	  allows network traffic to be classified based on the
-+	  cgroup of the task originating the traffic.
-+
-+	  Say N if unsure
-+
- config CGROUP_NS
-         bool "Namespace cgroup subsystem"
-         depends on CGROUPS
-diff -puN kernel/Makefile~cgroups-traffic-control-cgroups-subsystem kernel/Makefile
---- a/kernel/Makefile~cgroups-traffic-control-cgroups-subsystem
-+++ a/kernel/Makefile
-@@ -54,6 +54,7 @@ obj-$(CONFIG_CGROUPS) += cgroup.o
- obj-$(CONFIG_CGROUP_DEBUG) += cgroup_debug.o
- obj-$(CONFIG_CPUSETS) += cpuset.o
- obj-$(CONFIG_CGROUP_NS) += ns_cgroup.o
-+obj-$(CONFIG_CGROUP_TC) += tc_cgroup.o
- obj-$(CONFIG_UTS_NS) += utsname.o
- obj-$(CONFIG_USER_NS) += user_namespace.o
- obj-$(CONFIG_PID_NS) += pid_namespace.o
-diff -puN /dev/null kernel/tc_cgroup.c
---- /dev/null
-+++ a/kernel/tc_cgroup.c
-@@ -0,0 +1,108 @@
-+/*
-+ * tc_cgroup.c - traffic control cgroup subsystem
-+ *
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/cgroup.h>
-+#include <linux/fs.h>
-+#include <linux/slab.h>
-+#include <linux/cgroup_tc.h>
-+
-+struct tc_cgroup {
-+	struct cgroup_subsys_state css;
-+	unsigned int classid;
-+};
-+
-+struct cgroup_subsys tc_subsys;
-+
-+static inline struct tc_cgroup *cgroup_to_tc(
-+		struct cgroup *cgroup)
-+{
-+	return container_of(cgroup_subsys_state(cgroup, tc_subsys_id),
-+			    struct tc_cgroup, css);
-+}
-+
-+static int cgroup_tc_classid(struct task_struct *tsk)
-+{
-+	int tc_classid;
-+
-+	rcu_read_lock();
-+	tc_classid =  container_of(task_subsys_state(tsk, tc_subsys_id),
-+					 struct tc_cgroup, css)->classid;
-+	rcu_read_unlock();
-+	return tc_classid;
-+}
-+
-+void cgroup_tc_set_sock_classid(struct sock *sk)
-+{
-+	if (sk)
-+		sk->sk_cgroup_classid = cgroup_tc_classid(current);
-+}
-+
-+static struct cgroup_subsys_state *tc_create(struct cgroup_subsys *ss,
-+						struct cgroup *cgroup)
-+{
-+	struct tc_cgroup *tc_cgroup;
-+
-+	tc_cgroup = kzalloc(sizeof(*tc_cgroup), GFP_KERNEL);
-+
-+	if (!tc_cgroup)
-+		return ERR_PTR(-ENOMEM);
-+
-+	/* Copy parent's class id if present */
-+	if (cgroup->parent)
-+		tc_cgroup->classid = cgroup_to_tc(cgroup->parent)->classid;
-+
-+	return &tc_cgroup->css;
-+}
-+
-+static void tc_destroy(struct cgroup_subsys *ss,
-+			struct cgroup *cgroup)
-+{
-+	kfree(cgroup_to_tc(cgroup));
-+}
-+
-+static int tc_write_u64(struct cgroup *cgrp, struct cftype *cft, u64 val)
-+{
-+	struct tc_cgroup *tc = cgroup_to_tc(cgrp);
-+
-+	cgroup_lock();
-+	if (cgroup_is_removed(cgrp)) {
-+		cgroup_unlock();
-+		return -ENODEV;
-+	}
-+
-+	tc->classid = (unsigned int) (val & 0xffffffff);
-+	cgroup_unlock();
-+	return 0;
-+}
-+
-+static u64 tc_read_u64(struct cgroup *cont, struct cftype *cft)
-+{
-+	struct tc_cgroup *tc = cgroup_to_tc(cont);
-+	return tc->classid;
-+}
-+
-+static struct cftype tc_files[] = {
-+	{
-+		.name = "classid",
-+		.read_u64 = tc_read_u64,
-+		.write_u64 = tc_write_u64,
-+	}
-+};
-+
-+static int tc_populate(struct cgroup_subsys *ss, struct cgroup *cont)
-+{
-+	int err;
-+	err = cgroup_add_files(cont, ss, tc_files, ARRAY_SIZE(tc_files));
-+	return err;
-+}
-+
-+struct cgroup_subsys tc_subsys = {
-+	.name = "tc",
-+	.create = tc_create,
-+	.destroy  = tc_destroy,
-+	.populate = tc_populate,
-+	.subsys_id = tc_subsys_id,
-+};
-diff -puN net/sched/cls_flow.c~cgroups-traffic-control-cgroups-subsystem net/sched/cls_flow.c
---- a/net/sched/cls_flow.c~cgroups-traffic-control-cgroups-subsystem
-+++ a/net/sched/cls_flow.c
-@@ -280,6 +280,15 @@ static u32 flow_get_vlan_tag(const struc
- 	return tag & VLAN_VID_MASK;
- }
- 
-+static u32 flow_get_cgroup_classid(const struct sk_buff *skb)
-+{
-+#ifdef CONFIG_CGROUP_TC
-+	if (skb->sk)
-+		return skb->sk->sk_cgroup_classid;
-+#endif
-+	return 0;
-+}
-+
- static u32 flow_key_get(const struct sk_buff *skb, int key)
- {
- 	switch (key) {
-@@ -317,6 +326,8 @@ static u32 flow_key_get(const struct sk_
- 		return flow_get_skgid(skb);
- 	case FLOW_KEY_VLAN_TAG:
- 		return flow_get_vlan_tag(skb);
-+	case FLOW_KEY_CGROUP_CLASSID:
-+		return flow_get_cgroup_classid(skb);
- 	default:
- 		WARN_ON(1);
- 		return 0;
-@@ -359,7 +370,12 @@ static int flow_classify(struct sk_buff 
- 			classid %= f->divisor;
- 
- 		res->class   = 0;
--		res->classid = TC_H_MAKE(f->baseclass, f->baseclass + classid);
-+
-+		if (key == FLOW_KEY_CGROUP_CLASSID)
-+			res->classid = TC_H_MAKE(f->baseclass, classid);
-+		else
-+			res->classid = TC_H_MAKE(f->baseclass,
-+						 f->baseclass + classid);
- 
- 		r = tcf_exts_exec(skb, &f->exts, res);
- 		if (r < 0)
-diff -puN net/socket.c~cgroups-traffic-control-cgroups-subsystem net/socket.c
---- a/net/socket.c~cgroups-traffic-control-cgroups-subsystem
-+++ a/net/socket.c
-@@ -94,6 +94,7 @@
- 
- #include <net/sock.h>
- #include <linux/netfilter.h>
-+#include <linux/cgroup_tc.h>
- 
- static int sock_no_open(struct inode *irrelevant, struct file *dontcare);
- static ssize_t sock_aio_read(struct kiocb *iocb, const struct iovec *iov,
-@@ -1171,6 +1172,8 @@ static int __sock_create(struct net *net
- 	if (err < 0)
- 		goto out_module_put;
- 
-+	cgroup_tc_set_sock_classid(sock->sk);
-+
- 	/*
- 	 * Now to bump the refcnt of the [loadable] module that owns this
- 	 * socket at sock_release time we decrement its refcnt.
-@@ -1445,6 +1448,8 @@ asmlinkage long sys_accept(int fd, struc
- 	if (err < 0)
- 		goto out_fd;
- 
-+	cgroup_tc_set_sock_classid(newsock->sk);
-+
- 	if (upeer_sockaddr) {
- 		if (newsock->ops->getname(newsock, (struct sockaddr *)&address,
- 					  &len, 2) < 0) {
 _
 
-Patches currently in -mm which might be from ranjitm@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-cgroups-traffic-control-cgroups-subsystem.patch
+origin.patch
+mm-verify-the-page-links-and-memory-model.patch
+mspec-convert-nopfn-to-fault.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers.patch
+kill-generic_file_direct_io.patch
+use-generic_access_phys-for-dev-mem-mappings.patch
+spufs-use-the-new-vm_ops-access.patch
+fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries.patch
+page-flags-record-page-flag-overlays-explicitly.patch
+mapping_set_error-add-unlikely.patch
+huge-page-private-reservation-review-cleanups.patch
+vma-page-offset-has-no-callees-drop-it.patch
+sync_file_range_write-may-and-will-block-document-that.patch
+vmallocinfo-add-numa-information.patch
+hugetlb-modular-state-for-hugetlb-page-size.patch
+hugetlb-multiple-hstates-for-multiple-page-sizes.patch
+bootmem-add-debugging-framework.patch
+bootmem-clean-up-free_all_bootmem_core.patch
+bootmem-free-reserve-helpers.patch
+bootmem-factor-out-the-marking-of-a-pfn-range.patch
+page_align-correctly-handle-64-bit-values-on-32-bit-architectures.patch
+mmu-notifiers-add-mm_take_all_locks-operation.patch
+mmu-notifier-core.patch
+security-protect-legacy-applications-from-executing-with-insufficient-privilege.patch
+swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option.patch
+flag-parameters-paccept.patch
+flag-parameters-anon_inode_getfd-extension.patch
+flag-parameters-signalfd.patch
+flag-parameters-eventfd.patch
+flag-parameters-inotify_init.patch
+flag-parameters-check-magic-constants.patch
+spi-au1550_spi-improve-pio-transfer-mode.patch
+autofs4-use-lookup-intent-flags-to-trigger-mounts.patch
+rtc-cmos-improve-hpet-irq-glue.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed.patch
+atmel_lcdfb-avoid-division-by-zero.patch
+sm501-fixup-allocation-code-to-be-64bit-resource-compliant.patch
+lcd-add-platform_lcd-driver.patch
+fsl-diu-fb-update-freescale-diu-driver-to-use-page_alloc_exact.patch
+fbdev-add-new-cobalt-lcd-framebuffer-driver.patch
+fbcon-remove-stray-semicolons.patch
+arm-fix-fls-for-64-bit-arguments.patch
+linux-next.patch
+linux-next-git-rejects.patch
+linux-next-fixup.patch
+next-remove-localversion.patch
+drivers-mtd-nand-nandsimc-needs-div64h.patch
+pci-make-pci_register_driver-a-macro.patch
+drivers-mfd-tc6393xbc-doesnt-compile-on-i386.patch
+arch-mips-kernel-stacktracec-heiko-cant-type.patch
+x86-pci-replace-dbg-with-pr_debug-fix.patch
+x86-pci-replace-dbg-with-pr_debug-fix-2.patch
+include-asm-generic-pgtable-nopmdh-macros-are-noxious-reason-435.patch
+arch-x86-pci-i386c-fix-printk-warnings.patch
+arch-x86-kernel-genx2apic_uv_xc-warning-fix.patch
+drm-fix-sparc64-build.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+git-input-build-fix.patch
+git-jg-misc.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+bridge-send-correct-mtu-value-in-pmtu-checkpatch-fixes.patch
+sundance-set-carrier-status-on-link-change-events.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+scsi-gdthc-use-unaligned-access-helpers-checkpatch-fixes.patch
+git-unionfs.patch
+git-logfs-git-rejects.patch
+git-logfs-fixup.patch
+drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
+drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
+drivers-net-wireless-iwlwifi-iwl-ledc-printk-fix.patch
+git-xtensa.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+ftrace-disable-function-tracing-bringing-up-new-cpu-fix.patch
+linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+seq_file-fix-bug-when-seq_read-reads-nothing-fix.patch
+exec-remove-some-includes-fix.patch
+inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
+drivers-misc-hpiloc-needs-config_pci.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments.patch
+gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix.patch
+gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix-fix.patch
+gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix-fix-fix.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch
+eink_apollofb-new-driver-for-apollo-eink-controller-cleanup.patch
+eink_apollofb-new-driver-for-apollo-eink-controller-fix.patch
+eink_apollofb-new-driver-for-apollo-eink-controller-fix-fix-2.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
+ext3-handle-corrupted-orphan-list-at-mount-cleanup.patch
+ext3-handle-corrupted-orphan-list-at-mount-fix.patch
+ext3-handle-corrupted-orphan-list-at-mount-cleanup-fix.patch
+ext3-handle-deleting-corrupted-indirect-blocks-fix.patch
+jbd-dont-abort-if-flushing-file-data-failed-fix.patch
+reiserfs-convert-j_flush_sem-to-mutex.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
+cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-fix.patch
+cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-checkpatch-fixes.patch
+devcgroup-code-cleanup-fix.patch
+memcg-remove-refcnt-from-page_cgroup-fix-2.patch
+memcg-limit-change-shrink-usage-checkpatch-fixes.patch
+coredump-format_corename-fix-the-core_uses_pid-logic-checkpatch-fixes.patch
+workqueues-make-get_online_cpus-useable-for-work-func-fix.patch
+ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
+fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
+block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
+getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
+edac-mpc85xx-fix-pci-ofdev-2nd-pass-checkpatch-fixes.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-s2io.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sdhci-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-infiniband.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-more-sparc.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-ibmvscsi.patch
+x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary-checkpatch-fixes.patch
+tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
+memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
+memstick-use-fully-asynchronous-request-processing-fix.patch
+full-conversion-to-early_initcall-interface-remove-old-interface-cleanup.patch
+full-conversion-to-early_initcall-interface-remove-old-interface-fix.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+gru-driver-v3-hardware-data-structures-fix.patch
+gru-driver-v3-hardware-data-structures-fix-fix.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+mm-introduce-get_user_pages_fast-fix.patch
+mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-fix.patch
+x86-lockless-get_user_pages_fast-fix-2.patch
+x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
+x86-lockless-get_user_pages_fast-fix-warning.patch
+mm-speculative-page-references-fix-add_to_page_cache-fix.patch
+vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
+define-page_file_cache-function-fix.patch
+vmscan-split-lru-lists-into-anon-file-sets-units-fix.patch
+unevictable-lru-infrastructure-fix.patch
+unevictable-lru-page-statistics-units-fix.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-3.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
+introduce-__get_user_pages-fix.patch
+vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-fix-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
+slb-drop-kmem-cache-argument-from-constructor-ubifs.patch
+video-console-sticonrec-make-code-static-checkpatch-fixes.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
