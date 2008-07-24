@@ -1,174 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: - atmel_lcdfb-fifo-underflow-management.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:32:00 -0700
-Message-ID: <200807242332.m6ONW07H011694@imap1.linux-foundation.org>
+Subject: - neofb-simplify-clock-calculation.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:33:10 -0700
+Message-ID: <200807242333.m6ONXAjo011906@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46275 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40991 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755940AbYGXXcM (ORCPT
+	by vger.kernel.org with ESMTP id S1755491AbYGXXdM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:32:12 -0400
+	Thu, 24 Jul 2008 19:33:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nicolas.ferre@atmel.com, hskinnemoen@atmel.com, linux@maxim.org.za, mm-commits@vger.kernel.org
+To: krzysztof.h1@wp.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atmel_lcdfb: FIFO underflow management
+     neofb: simplify clock calculation
 has been removed from the -mm tree.  Its filename was
-     atmel_lcdfb-fifo-underflow-management.patch
+     neofb-simplify-clock-calculation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atmel_lcdfb: FIFO underflow management
-From: Nicolas Ferre <nicolas.ferre@atmel.com>
+Subject: neofb: simplify clock calculation
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Manage atmel_lcdfb FIFO underflow
+There is nothing to gain by converting value in kHz to fixed point MHz. 
+Just calculate everything in kHz.
 
-Resetting the LCD and DMA allows to fix screen shifting after a FIFO
-underflow.  It follows reset sequence from errata "LCD Screen Shifting
-After a Reset".
+A reorder of the loop allows reducing number of iterations (check if
+frequency is not too high already).
 
-Signed-off-by: Nicolas Ferre <nicolas.ferre@atmel.com>
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Cc: Andrew Victor <linux@maxim.org.za>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/atmel_lcdfb.c |   57 +++++++++++++++++++++++++++++++++-
- include/video/atmel_lcdc.h  |    1 
- 2 files changed, 57 insertions(+), 1 deletion(-)
+ drivers/video/neofb.c |   32 ++++++++++++++------------------
+ 1 file changed, 14 insertions(+), 18 deletions(-)
 
-diff -puN drivers/video/atmel_lcdfb.c~atmel_lcdfb-fifo-underflow-management drivers/video/atmel_lcdfb.c
---- a/drivers/video/atmel_lcdfb.c~atmel_lcdfb-fifo-underflow-management
-+++ a/drivers/video/atmel_lcdfb.c
-@@ -379,6 +379,35 @@ static int atmel_lcdfb_check_var(struct 
- 	return 0;
- }
- 
-+/*
-+ * LCD reset sequence
-+ */
-+static void atmel_lcdfb_reset(struct atmel_lcdfb_info *sinfo)
-+{
-+	might_sleep();
-+
-+	/* LCD power off */
-+	lcdc_writel(sinfo, ATMEL_LCDC_PWRCON, sinfo->guard_time << ATMEL_LCDC_GUARDT_OFFSET);
-+
-+	/* wait for the LCDC core to become idle */
-+	while (lcdc_readl(sinfo, ATMEL_LCDC_PWRCON) & ATMEL_LCDC_BUSY)
-+		msleep(10);
-+
-+	/* DMA disable */
-+	lcdc_writel(sinfo, ATMEL_LCDC_DMACON, 0);
-+
-+	/* wait for DMA engine to become idle */
-+	while (lcdc_readl(sinfo, ATMEL_LCDC_DMACON) & ATMEL_LCDC_DMABUSY)
-+		msleep(10);
-+
-+	/* LCD power on */
-+	lcdc_writel(sinfo, ATMEL_LCDC_PWRCON,
-+		(sinfo->guard_time << ATMEL_LCDC_GUARDT_OFFSET) | ATMEL_LCDC_PWR);
-+
-+	/* DMA enable */
-+	lcdc_writel(sinfo, ATMEL_LCDC_DMACON, sinfo->default_dmacon);
-+}
-+
- /**
-  *      atmel_lcdfb_set_par - Alters the hardware state.
-  *      @info: frame buffer structure that represents a single frame buffer
-@@ -401,6 +430,8 @@ static int atmel_lcdfb_set_par(struct fb
- 	unsigned long clk_value_khz;
- 	unsigned long bits_per_line;
- 
-+	might_sleep();
-+
- 	dev_dbg(info->device, "%s:\n", __func__);
- 	dev_dbg(info->device, "  * resolution: %ux%u (%ux%u virtual)\n",
- 		 info->var.xres, info->var.yres,
-@@ -511,6 +542,8 @@ static int atmel_lcdfb_set_par(struct fb
- 
- 	/* Disable all interrupts */
- 	lcdc_writel(sinfo, ATMEL_LCDC_IDR, ~0UL);
-+	/* Enable FIFO & DMA errors */
-+	lcdc_writel(sinfo, ATMEL_LCDC_IER, ATMEL_LCDC_UFLWI | ATMEL_LCDC_OWRI | ATMEL_LCDC_MERI);
- 
- 	/* ...wait for DMA engine to become idle... */
- 	while (lcdc_readl(sinfo, ATMEL_LCDC_DMACON) & ATMEL_LCDC_DMABUSY)
-@@ -645,10 +678,26 @@ static irqreturn_t atmel_lcdfb_interrupt
- 	u32 status;
- 
- 	status = lcdc_readl(sinfo, ATMEL_LCDC_ISR);
--	lcdc_writel(sinfo, ATMEL_LCDC_IDR, status);
-+	if (status & ATMEL_LCDC_UFLWI) {
-+		dev_warn(info->device, "FIFO underflow %#x\n", status);
-+		/* reset DMA and FIFO to avoid screen shifting */
-+		schedule_work(&sinfo->task);
-+	}
-+	lcdc_writel(sinfo, ATMEL_LCDC_ICR, status);
- 	return IRQ_HANDLED;
- }
- 
-+/*
-+ * LCD controller task (to reset the LCD)
-+ */
-+static void atmel_lcdfb_task(struct work_struct *work)
-+{
-+	struct atmel_lcdfb_info *sinfo =
-+		container_of(work, struct atmel_lcdfb_info, task);
-+
-+	atmel_lcdfb_reset(sinfo);
-+}
-+
- static int __init atmel_lcdfb_init_fbinfo(struct atmel_lcdfb_info *sinfo)
+diff -puN drivers/video/neofb.c~neofb-simplify-clock-calculation drivers/video/neofb.c
+--- a/drivers/video/neofb.c~neofb-simplify-clock-calculation
++++ a/drivers/video/neofb.c
+@@ -201,7 +201,6 @@ static int neoFindMode(int xres, int yre
+  *
+  * Determine the closest clock frequency to the one requested.
+  */
+-#define REF_FREQ 0xe517		/* 14.31818 in 20.12 fixed point */
+ #define MAX_N 127
+ #define MAX_D 31
+ #define MAX_F 1
+@@ -211,27 +210,24 @@ static void neoCalcVCLK(const struct fb_
  {
- 	struct fb_info *info = sinfo->info;
-@@ -824,6 +873,10 @@ static int __init atmel_lcdfb_probe(stru
- 		goto unmap_mmio;
- 	}
+ 	int n, d, f;
+ 	int n_best = 0, d_best = 0, f_best = 0;
+-	long f_best_diff = (0x7ffff << 12);	/* 20.12 */
+-	long f_target = (freq << 12) / 1000;	/* 20.12 */
++	long f_best_diff = 0x7ffff;
  
-+	/* Some operations on the LCDC might sleep and
-+	 * require a preemptible task context */
-+	INIT_WORK(&sinfo->task, atmel_lcdfb_task);
+ 	for (f = 0; f <= MAX_F; f++)
+-		for (n = 0; n <= MAX_N; n++)
+-			for (d = 0; d <= MAX_D; d++) {
+-				long f_out;	/* 20.12 */
+-				long f_diff;	/* 20.12 */
+-
+-				f_out =
+-				    ((((n + 1) << 12) / ((d +
+-							  1) *
+-							 (1 << f))) >> 12)
+-				    * REF_FREQ;
+-				f_diff = abs(f_out - f_target);
+-				if (f_diff < f_best_diff) {
++		for (d = 0; d <= MAX_D; d++)
++			for (n = 0; n <= MAX_N; n++) {
++				long f_out;
++				long f_diff;
 +
- 	ret = atmel_lcdfb_init_fbinfo(sinfo);
- 	if (ret < 0) {
- 		dev_err(dev, "init fbinfo failed: %d\n", ret);
-@@ -866,6 +919,7 @@ static int __init atmel_lcdfb_probe(stru
- free_cmap:
- 	fb_dealloc_cmap(&info->cmap);
- unregister_irqs:
-+	cancel_work_sync(&sinfo->task);
- 	free_irq(sinfo->irq_base, info);
- unmap_mmio:
- 	exit_backlight(sinfo);
-@@ -903,6 +957,7 @@ static int __exit atmel_lcdfb_remove(str
- 	if (!sinfo)
- 		return 0;
++				f_out = ((14318 * (n + 1)) / (d + 1)) >> f;
++				f_diff = abs(f_out - freq);
++				if (f_diff <= f_best_diff) {
+ 					f_best_diff = f_diff;
+ 					n_best = n;
+ 					d_best = d;
+ 					f_best = f;
+ 				}
++				if (f_out > freq)
++					break;
+ 			}
  
-+	cancel_work_sync(&sinfo->task);
- 	exit_backlight(sinfo);
- 	if (sinfo->atmel_lcdfb_power_control)
- 		sinfo->atmel_lcdfb_power_control(0);
-diff -puN include/video/atmel_lcdc.h~atmel_lcdfb-fifo-underflow-management include/video/atmel_lcdc.h
---- a/include/video/atmel_lcdc.h~atmel_lcdfb-fifo-underflow-management
-+++ a/include/video/atmel_lcdc.h
-@@ -37,6 +37,7 @@ struct atmel_lcdfb_info {
- 	struct fb_info		*info;
- 	void __iomem		*mmio;
- 	unsigned long		irq_base;
-+	struct work_struct	task;
+ 	if (info->fix.accel == FB_ACCEL_NEOMAGIC_NM2200 ||
+@@ -248,11 +244,11 @@ static void neoCalcVCLK(const struct fb_
+ 	par->VCLK3Denominator = d_best;
  
- 	unsigned int		guard_time;
- 	struct platform_device	*pdev;
+ #ifdef NEOFB_DEBUG
+-	printk("neoVCLK: f:%d NumLow=%d NumHi=%d Den=%d Df=%d\n",
+-	       f_target >> 12,
++	printk(KERN_DEBUG "neoVCLK: f:%ld NumLow=%d NumHi=%d Den=%d Df=%ld\n",
++	       freq,
+ 	       par->VCLK3NumeratorLow,
+ 	       par->VCLK3NumeratorHigh,
+-	       par->VCLK3Denominator, f_best_diff >> 12);
++	       par->VCLK3Denominator, f_best_diff);
+ #endif
+ }
+ 
 _
 
-Patches currently in -mm which might be from nicolas.ferre@atmel.com are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
 origin.patch
 
