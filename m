@@ -1,170 +1,166 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-vr41xx-add-irq_set_freq-and-irq_set_state.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:30:34 -0700
-Message-ID: <200807242330.m6ONUYMn011519@imap1.linux-foundation.org>
+Subject: - tridentfb-move-global-chip_id-into-structure.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:30:45 -0700
+Message-ID: <200807242330.m6ONUjPP011536@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55587 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38941 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756531AbYGXXay (ORCPT
+	by vger.kernel.org with ESMTP id S1756484AbYGXXas (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:30:54 -0400
+	Thu, 24 Jul 2008 19:30:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yoichi_yuasa@tripeaks.co.jp, a.zummo@towertech.it, david-b@pacbell.net, ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: krzysztof.h1@wp.pl, adaplas@pol.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc-vr41xx: add irq_set_freq() and irq_set_state()
+     tridentfb: move global chip_id into structure
 has been removed from the -mm tree.  Its filename was
-     rtc-vr41xx-add-irq_set_freq-and-irq_set_state.patch
+     tridentfb-move-global-chip_id-into-structure.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-vr41xx: add irq_set_freq() and irq_set_state()
-From: Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
+Subject: tridentfb: move global chip_id into structure
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Implement the ioctls RTC_PIE_ON, RTC_PIE_OFF, RTC_IRQP_SET and
-RTC_IRQP_READ in the standard RTC way.
+This patch moves the chip_id into tridentfb_par structure and removes global
+chip_id related constants.
 
-Thanks Dave for noticing it.
+It also bumps version of the driver to 0.7.9
 
-Signed-off-by: Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-vr41xx.c |   65 +++++++++++++++++++------------------
- 1 file changed, 34 insertions(+), 31 deletions(-)
+ drivers/video/tridentfb.c |   27 +++++++++++++--------------
+ 1 file changed, 13 insertions(+), 14 deletions(-)
 
-diff -puN drivers/rtc/rtc-vr41xx.c~rtc-vr41xx-add-irq_set_freq-and-irq_set_state drivers/rtc/rtc-vr41xx.c
---- a/drivers/rtc/rtc-vr41xx.c~rtc-vr41xx-add-irq_set_freq-and-irq_set_state
-+++ a/drivers/rtc/rtc-vr41xx.c
-@@ -1,7 +1,7 @@
- /*
-  *  Driver for NEC VR4100 series Real Time Clock unit.
-  *
-- *  Copyright (C) 2003-2006  Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
-+ *  Copyright (C) 2003-2008  Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
-  *
-  *  This program is free software; you can redistribute it and/or modify
-  *  it under the terms of the GNU General Public License as published by
-@@ -34,7 +34,7 @@
+diff -puN drivers/video/tridentfb.c~tridentfb-move-global-chip_id-into-structure drivers/video/tridentfb.c
+--- a/drivers/video/tridentfb.c~tridentfb-move-global-chip_id-into-structure
++++ a/drivers/video/tridentfb.c
+@@ -24,11 +24,12 @@
+ #include <linux/delay.h>
+ #include <video/trident.h>
  
- MODULE_AUTHOR("Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>");
- MODULE_DESCRIPTION("NEC VR4100 series RTC driver");
--MODULE_LICENSE("GPL");
-+MODULE_LICENSE("GPL v2");
+-#define VERSION		"0.7.8-NEWAPI"
++#define VERSION		"0.7.9-NEWAPI"
  
- /* RTC 1 registers */
- #define ETIMELREG		0x00
-@@ -82,7 +82,6 @@ static unsigned long epoch = 1970;	/* Ja
- 
- static DEFINE_SPINLOCK(rtc_lock);
- static char rtc_name[] = "RTC";
--static unsigned long periodic_frequency;
- static unsigned long periodic_count;
- static unsigned int alarm_enabled;
- static int aie_irq = -1;
-@@ -207,10 +206,37 @@ static int vr41xx_rtc_set_alarm(struct d
- 	return 0;
- }
- 
--static int vr41xx_rtc_ioctl(struct device *dev, unsigned int cmd, unsigned long arg)
-+static int vr41xx_rtc_irq_set_freq(struct device *dev, int freq)
- {
- 	unsigned long count;
- 
-+	count = RTC_FREQUENCY;
-+	do_div(count, freq);
-+
-+	periodic_count = count;
-+
-+	spin_lock_irq(&rtc_lock);
-+
-+	rtc1_write(RTCL1LREG, count);
-+	rtc1_write(RTCL1HREG, count >> 16);
-+
-+	spin_unlock_irq(&rtc_lock);
-+
-+	return 0;
-+}
-+
-+static int vr41xx_rtc_irq_set_state(struct device *dev, int enabled)
-+{
-+	if (enabled)
-+		enable_irq(pie_irq);
-+	else
-+		disable_irq(pie_irq);
-+
-+	return 0;
-+}
-+
-+static int vr41xx_rtc_ioctl(struct device *dev, unsigned int cmd, unsigned long arg)
-+{
- 	switch (cmd) {
- 	case RTC_AIE_ON:
- 		spin_lock_irq(&rtc_lock);
-@@ -232,33 +258,6 @@ static int vr41xx_rtc_ioctl(struct devic
- 
- 		spin_unlock_irq(&rtc_lock);
- 		break;
--	case RTC_PIE_ON:
--		enable_irq(pie_irq);
--		break;
--	case RTC_PIE_OFF:
--		disable_irq(pie_irq);
--		break;
--	case RTC_IRQP_READ:
--		return put_user(periodic_frequency, (unsigned long __user *)arg);
--		break;
--	case RTC_IRQP_SET:
--		if (arg > MAX_PERIODIC_RATE)
--			return -EINVAL;
--
--		periodic_frequency = arg;
--
--		count = RTC_FREQUENCY;
--		do_div(count, arg);
--
--		periodic_count = count;
--
--		spin_lock_irq(&rtc_lock);
--
--		rtc1_write(RTCL1LREG, count);
--		rtc1_write(RTCL1HREG, count >> 16);
--
--		spin_unlock_irq(&rtc_lock);
--		break;
- 	case RTC_EPOCH_READ:
- 		return put_user(epoch, (unsigned long __user *)arg);
- 	case RTC_EPOCH_SET:
-@@ -309,6 +308,8 @@ static const struct rtc_class_ops vr41xx
- 	.set_time	= vr41xx_rtc_set_time,
- 	.read_alarm	= vr41xx_rtc_read_alarm,
- 	.set_alarm	= vr41xx_rtc_set_alarm,
-+	.irq_set_freq	= vr41xx_rtc_irq_set_freq,
-+	.irq_set_state	= vr41xx_rtc_irq_set_state,
+ struct tridentfb_par {
+ 	void __iomem *io_virt;	/* iospace virtual memory address */
+ 	u32 pseudo_pal[16];
++	int chip_id;
  };
  
- static int __devinit rtc_probe(struct platform_device *pdev)
-@@ -346,6 +347,8 @@ static int __devinit rtc_probe(struct pl
- 		goto err_iounmap_all;
+ static unsigned char eng_oper;	/* engine operation... */
+@@ -42,9 +43,6 @@ static struct fb_fix_screeninfo tridentf
+ 	.accel = FB_ACCEL_NONE,
+ };
+ 
+-static int chip_id;
+-
+-static int defaultaccel;
+ static int displaytype;
+ 
+ /* defaults which are normally overriden by user values */
+@@ -79,9 +77,6 @@ module_param(nativex, int, 0);
+ module_param(fp, int, 0);
+ module_param(crt, int, 0);
+ 
+-static int chip3D;
+-static int chipcyber;
+-
+ static int is3Dchip(int id)
+ {
+ 	return ((id == BLADE3D) || (id == CYBERBLADEE4) ||
+@@ -658,7 +653,7 @@ static void set_lwidth(struct tridentfb_
+ /* For resolutions smaller than FP resolution stretch */
+ static void screen_stretch(struct tridentfb_par *par)
+ {
+-	if (chip_id != CYBERBLADEXPAi1)
++	if (par->chip_id != CYBERBLADEXPAi1)
+ 		write3CE(par, BiosReg, 0);
+ 	else
+ 		write3CE(par, BiosReg, 8);
+@@ -706,7 +701,7 @@ static void set_vclk(struct tridentfb_pa
+ 				if (fi > freq)
+ 					break;
+ 			}
+-	if (chip3D) {
++	if (is3Dchip(par->chip_id)) {
+ 		write3C4(par, ClockHigh, hi);
+ 		write3C4(par, ClockLow, lo);
+ 	} else {
+@@ -739,7 +734,7 @@ static unsigned int __devinit get_displa
+ {
+ 	if (fp)
+ 		return DISPLAY_FP;
+-	if (crt || !chipcyber)
++	if (crt || !iscyber(par->chip_id))
+ 		return DISPLAY_CRT;
+ 	return (read3CE(par, FPConfig) & 0x10) ? DISPLAY_FP : DISPLAY_CRT;
+ }
+@@ -754,7 +749,7 @@ static unsigned int __devinit get_memsiz
+ 	if (memsize)
+ 		k = memsize * Kb;
+ 	else
+-		switch (chip_id) {
++		switch (par->chip_id) {
+ 		case CYBER9525DVD:
+ 			k = 2560 * Kb;
+ 			break;
+@@ -1034,7 +1029,7 @@ static int tridentfb_set_par(struct fb_i
+ 	write3X4(par, PixelBusReg, tmp);
+ 
+ 	tmp = 0x10;
+-	if (chipcyber)
++	if (iscyber(par->chip_id))
+ 		tmp |= 0x20;
+ 	write3X4(par, DRAMControl, tmp);	/* both IO, linear enable */
+ 
+@@ -1062,7 +1057,7 @@ static int tridentfb_set_par(struct fb_i
+ 	write3CE(par, 0x6, 0x05);	/* graphics mode */
+ 	write3CE(par, 0x7, 0x0F);	/* planes? */
+ 
+-	if (chip_id == CYBERBLADEXPAi1) {
++	if (par->chip_id == CYBERBLADEXPAi1) {
+ 		/* This fixes snow-effect in 32 bpp */
+ 		write3X4(par, CRTHSyncStart, 0x84);
+ 	}
+@@ -1217,6 +1212,9 @@ static int __devinit trident_pci_probe(s
+ 	unsigned char revision;
+ 	struct fb_info *info;
+ 	struct tridentfb_par *default_par;
++	int defaultaccel;
++	int chip3D;
++	int chip_id;
+ 
+ 	err = pci_enable_device(dev);
+ 	if (err)
+@@ -1269,7 +1267,6 @@ static int __devinit trident_pci_probe(s
  	}
  
-+	rtc->max_user_freq = MAX_PERIODIC_RATE;
-+
- 	spin_lock_irq(&rtc_lock);
+ 	chip3D = is3Dchip(chip_id);
+-	chipcyber = iscyber(chip_id);
  
- 	rtc1_write(ECMPLREG, 0);
+ 	if (is_xp(chip_id)) {
+ 		acc = &accel_xp;
+@@ -1279,6 +1276,8 @@ static int __devinit trident_pci_probe(s
+ 		acc = &accel_image;
+ 	}
+ 
++	default_par->chip_id = chip_id;
++
+ 	/* acceleration is on by default for 3D chips */
+ 	defaultaccel = chip3D && !noaccel;
+ 
 _
 
-Patches currently in -mm which might be from yoichi_yuasa@tripeaks.co.jp are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
 origin.patch
 
