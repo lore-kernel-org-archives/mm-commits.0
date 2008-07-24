@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: - revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch removed from -mm tree
-Date: Wed, 23 Jul 2008 17:54:43 -0700
-Message-ID: <200807240054.m6O0sh42021296@imap1.linux-foundation.org>
+Subject: - revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch removed from -mm tree
+Date: Wed, 23 Jul 2008 17:54:49 -0700
+Message-ID: <200807240054.m6O0snET021299@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59830 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54816 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751027AbYGXAzC (ORCPT
+	by vger.kernel.org with ESMTP id S1751027AbYGXAzJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jul 2008 20:55:02 -0400
+	Wed, 23 Jul 2008 20:55:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, bwalle@suse.de, hannes@saeurebad.de, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node
+     revert revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node
 has been removed from the -mm tree.  Its filename was
-     revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
+     revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node
+Subject: revert revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Johannes Weiner <hannes@saeurebad.de>
@@ -34,40 +34,40 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  include/linux/bootmem.h |    2 +-
- mm/bootmem.c            |    5 +++--
- 2 files changed, 4 insertions(+), 3 deletions(-)
+ mm/bootmem.c            |    5 ++---
+ 2 files changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/bootmem.h~revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node include/linux/bootmem.h
---- a/include/linux/bootmem.h~revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node
+diff -puN include/linux/bootmem.h~revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node include/linux/bootmem.h
+--- a/include/linux/bootmem.h~revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node
 +++ a/include/linux/bootmem.h
 @@ -67,7 +67,7 @@ extern void free_bootmem(unsigned long a
  #define BOOTMEM_DEFAULT		0
  #define BOOTMEM_EXCLUSIVE	(1<<0)
  
--extern void reserve_bootmem_node(pg_data_t *pgdat,
-+extern int reserve_bootmem_node(pg_data_t *pgdat,
+-extern int reserve_bootmem_node(pg_data_t *pgdat,
++extern void reserve_bootmem_node(pg_data_t *pgdat,
  				 unsigned long physaddr,
  				 unsigned long size,
  				 int flags);
-diff -puN mm/bootmem.c~revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node mm/bootmem.c
---- a/mm/bootmem.c~revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node
+diff -puN mm/bootmem.c~revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node mm/bootmem.c
+--- a/mm/bootmem.c~revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node
 +++ a/mm/bootmem.c
-@@ -323,15 +323,16 @@ static void __init reserve_bootmem_core(
+@@ -319,16 +319,15 @@ static void __init reserve_bootmem_core(
  	}
  }
  
--void __init reserve_bootmem_node(pg_data_t *pgdat, unsigned long physaddr,
-+int __init reserve_bootmem_node(pg_data_t *pgdat, unsigned long physaddr,
+-int __init reserve_bootmem_node(pg_data_t *pgdat, unsigned long physaddr,
++void __init reserve_bootmem_node(pg_data_t *pgdat, unsigned long physaddr,
  				 unsigned long size, int flags)
  {
  	int ret;
  
  	ret = can_reserve_bootmem_core(pgdat->bdata, physaddr, size, flags);
  	if (ret < 0)
--		return;
-+		return -ENOMEM;
+-		return -ENOMEM;
++		return;
  	reserve_bootmem_core(pgdat->bdata, physaddr, size, flags);
-+	return 0;
+-	return 0;
  }
  
  #ifndef CONFIG_HAVE_ARCH_BOOTMEM_NODE
@@ -150,7 +150,6 @@ drivers-net-wireless-iwlwifi-iwl-ledc-printk-fix.patch
 git-xtensa.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
 ftrace-disable-function-tracing-bringing-up-new-cpu-fix.patch
-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
 revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
 revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
 revert-revert-revert-revert-linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
