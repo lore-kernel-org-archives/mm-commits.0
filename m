@@ -1,130 +1,174 @@
 From: akpm@linux-foundation.org
-Subject: - powerpc-function-to-allocate-gigantic-hugepages.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:23:30 -0700
-Message-ID: <200807242323.m6ONNUEe010678@imap1.linux-foundation.org>
+Subject: - bootmem-add-debugging-framework.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:23:52 -0700
+Message-ID: <200807242323.m6ONNq1t010724@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54500 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44921 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754039AbYGXXXl (ORCPT
+	by vger.kernel.org with ESMTP id S1754649AbYGXXX5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:23:41 -0400
+	Thu, 24 Jul 2008 19:23:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, agl@us.ibm.com, kniht@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: hannes@saeurebad.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     powerpc: function to allocate gigantic hugepages
+     bootmem: add debugging framework
 has been removed from the -mm tree.  Its filename was
-     powerpc-function-to-allocate-gigantic-hugepages.patch
+     bootmem-add-debugging-framework.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: powerpc: function to allocate gigantic hugepages
-From: Nick Piggin <npiggin@suse.de>
+Subject: bootmem: add debugging framework
+From: Johannes Weiner <hannes@saeurebad.de>
 
-The 16G page locations have been saved during early boot in an array.  The
-alloc_bootmem_huge_page() function adds a page from here to the
-huge_boot_pages list.
+Introduce the bootmem_debug kernel parameter that enables very verbose
+diagnostics regarding all range operations of bootmem as well as the
+initialization and release of nodes.
 
-Acked-by: Adam Litke <agl@us.ibm.com>
-Signed-off-by: Jon Tollefson <kniht@linux.vnet.ibm.com>
-Signed-off-by: Nick Piggin <npiggin@suse.de>
+[akpm@linux-foundation.org: fix printk warnings]
+Signed-off-by: Johannes Weiner <hannes@saeurebad.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/hugetlbpage.c |   21 +++++++++++++++++++++
- 1 file changed, 21 insertions(+)
+ mm/bootmem.c |   51 ++++++++++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 44 insertions(+), 7 deletions(-)
 
-diff -puN arch/powerpc/mm/hugetlbpage.c~powerpc-function-to-allocate-gigantic-hugepages arch/powerpc/mm/hugetlbpage.c
---- a/arch/powerpc/mm/hugetlbpage.c~powerpc-function-to-allocate-gigantic-hugepages
-+++ a/arch/powerpc/mm/hugetlbpage.c
-@@ -29,6 +29,12 @@
+diff -puN mm/bootmem.c~bootmem-add-debugging-framework mm/bootmem.c
+--- a/mm/bootmem.c~bootmem-add-debugging-framework
++++ a/mm/bootmem.c
+@@ -34,6 +34,22 @@ unsigned long saved_max_pfn;
  
- #define NUM_LOW_AREAS	(0x100000000UL >> SID_SHIFT)
- #define NUM_HIGH_AREAS	(PGTABLE_RANGE >> HTLB_AREA_SHIFT)
-+#define MAX_NUMBER_GPAGES	1024
+ bootmem_data_t bootmem_node_data[MAX_NUMNODES] __initdata;
+ 
++static int bootmem_debug;
 +
-+/* Tracks the 16G pages after the device tree is scanned and before the
-+ * huge_boot_pages list is ready.  */
-+static unsigned long gpage_freearray[MAX_NUMBER_GPAGES];
-+static unsigned nr_gpages;
- 
- unsigned int hugepte_shift;
- #define PTRS_PER_HUGEPTE	(1 << hugepte_shift)
-@@ -104,6 +110,21 @@ pmd_t *hpmd_alloc(struct mm_struct *mm, 
- }
- #endif
- 
-+/* Moves the gigantic page addresses from the temporary list to the
-+ * huge_boot_pages list.  */
-+int alloc_bootmem_huge_page(struct hstate *h)
++static int __init bootmem_debug_setup(char *buf)
 +{
-+	struct huge_bootmem_page *m;
-+	if (nr_gpages == 0)
-+		return 0;
-+	m = phys_to_virt(gpage_freearray[--nr_gpages]);
-+	gpage_freearray[nr_gpages] = 0;
-+	list_add(&m->list, &huge_boot_pages);
-+	m->hstate = h;
-+	return 1;
++	bootmem_debug = 1;
++	return 0;
 +}
++early_param("bootmem_debug", bootmem_debug_setup);
 +
++#define bdebug(fmt, args...) ({				\
++	if (unlikely(bootmem_debug))			\
++		printk(KERN_INFO			\
++			"bootmem::%s " fmt,		\
++			__FUNCTION__, ## args);		\
++})
 +
- /* Modelled after find_linux_pte() */
- pte_t *huge_pte_offset(struct mm_struct *mm, unsigned long addr)
- {
+ /*
+  * Given an initialised bdata, it returns the size of the boot bitmap
+  */
+@@ -104,6 +120,9 @@ static unsigned long __init init_bootmem
+ 	mapsize = get_mapsize(bdata);
+ 	memset(bdata->node_bootmem_map, 0xff, mapsize);
+ 
++	bdebug("nid=%td start=%lx map=%lx end=%lx mapsize=%lx\n",
++		bdata - bootmem_node_data, start, mapstart, end, mapsize);
++
+ 	return mapsize;
+ }
+ 
+@@ -198,6 +217,8 @@ static unsigned long __init free_all_boo
+ 	count += i;
+ 	bdata->node_bootmem_map = NULL;
+ 
++	bdebug("nid=%td released=%lx\n", bdata - bootmem_node_data, count);
++
+ 	return count;
+ }
+ 
+@@ -255,6 +276,10 @@ static void __init free_bootmem_core(boo
+ 	if (eidx > bdata->node_low_pfn - PFN_DOWN(bdata->node_boot_start))
+ 		eidx = bdata->node_low_pfn - PFN_DOWN(bdata->node_boot_start);
+ 
++	bdebug("nid=%td start=%lx end=%lx\n", bdata - bootmem_node_data,
++		sidx + PFN_DOWN(bdata->node_boot_start),
++		eidx + PFN_DOWN(bdata->node_boot_start));
++
+ 	for (i = sidx; i < eidx; i++) {
+ 		if (unlikely(!test_and_clear_bit(i, bdata->node_bootmem_map)))
+ 			BUG();
+@@ -360,13 +385,16 @@ static void __init reserve_bootmem_core(
+ 	if (eidx > bdata->node_low_pfn - PFN_DOWN(bdata->node_boot_start))
+ 		eidx = bdata->node_low_pfn - PFN_DOWN(bdata->node_boot_start);
+ 
+-	for (i = sidx; i < eidx; i++) {
+-		if (test_and_set_bit(i, bdata->node_bootmem_map)) {
+-#ifdef CONFIG_DEBUG_BOOTMEM
+-			printk("hm, page %08lx reserved twice.\n", i*PAGE_SIZE);
+-#endif
+-		}
+-	}
++	bdebug("nid=%td start=%lx end=%lx flags=%x\n",
++		bdata - bootmem_node_data,
++		sidx + PFN_DOWN(bdata->node_boot_start),
++		eidx + PFN_DOWN(bdata->node_boot_start),
++		flags);
++
++	for (i = sidx; i < eidx; i++)
++		if (test_and_set_bit(i, bdata->node_bootmem_map))
++			bdebug("hm, page %lx reserved twice.\n",
++				PFN_DOWN(bdata->node_boot_start) + i);
+ }
+ 
+ /**
+@@ -455,6 +483,10 @@ alloc_bootmem_core(struct bootmem_data *
+ 	if (!bdata->node_bootmem_map)
+ 		return NULL;
+ 
++	bdebug("nid=%td size=%lx [%lu pages] align=%lx goal=%lx limit=%lx\n",
++		bdata - bootmem_node_data, size, PAGE_ALIGN(size) >> PAGE_SHIFT,
++		align, goal, limit);
++
+ 	/* bdata->node_boot_start is supposed to be (12+6)bits alignment on x86_64 ? */
+ 	node_boot_start = bdata->node_boot_start;
+ 	node_bootmem_map = bdata->node_bootmem_map;
+@@ -562,6 +594,11 @@ found:
+ 		ret = phys_to_virt(start * PAGE_SIZE + node_boot_start);
+ 	}
+ 
++	bdebug("nid=%td start=%lx end=%lx\n",
++		bdata - bootmem_node_data,
++		start + PFN_DOWN(bdata->node_boot_start),
++		start + areasize + PFN_DOWN(bdata->node_boot_start));
++
+ 	/*
+ 	 * Reserve the area now:
+ 	 */
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from hannes@saeurebad.de are
 
 origin.patch
 linux-next.patch
-mmu-notifiers-add-list_del_init_rcu.patch
-mmu-notifiers-add-mm_take_all_locks-operation.patch
-mmu-notifier-core.patch
-x86-implement-pte_special.patch
-x86-implement-pte_special-fix.patch
-mm-introduce-get_user_pages_fast.patch
-mm-introduce-get_user_pages_fast-fix.patch
-mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast.patch
-x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-fix.patch
-x86-lockless-get_user_pages_fast-fix-2.patch
-x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
-x86-lockless-get_user_pages_fast-fix-warning.patch
-dio-use-get_user_pages_fast.patch
-splice-use-get_user_pages_fast.patch
-x86-support-1gb-hugepages-with-get_user_pages_lockless.patch
-mm-readahead-scan-lockless.patch
-radix-tree-add-gang_lookup_slot-gang_lookup_slot_tag.patch
-mm-speculative-page-references.patch
-mm-speculative-page-references-fix.patch
-mm-speculative-page-references-fix-add_to_page_cache.patch
-mm-speculative-page-references-fix-add_to_page_cache-fix.patch
-mm-lockless-pagecache.patch
-mm-spinlock-tree_lock.patch
-powerpc-implement-pte_special.patch
-powerpc-implement-pte_special-update.patch
-powerpc-lockless-get_user_pages.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
-vmscan-split-lru-lists-into-anon-file-sets-splitlru-bdi_cap_swap_backed.patch
-mlock-mlocked-pages-are-unevictable.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-3.patch
-mlock-mlocked-pages-are-unevictable-fix-fix-munlock-page-table-walk-now-requires-mm.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
-fix-double-unlock_page-in-2626-rc5-mm3-kernel-bug-at-mm-filemapc-575.patch
-vmstat-mlocked-pages-statistics.patch
-vmstat-mlocked-pages-statistics-fix-incorrect-mlocked-field-of-proc-meminfo.patch
-reiser4.patch
-likeliness-accounting-change-and-cleanup.patch
+git-xtensa.patch
+documentation-update-codingstyle-tips-for-emacs-users-v2.patch
+mm-more-likely-reclaim-madv_sequential-mappings.patch
+mm-print-swapcache-page-count-in-show_swap_cache_info.patch
+lib-generic-show_mem.patch
+alpha-use-generic-show_mem.patch
+avr32-use-generic-show_mem.patch
+blackfin-use-generic-show_mem.patch
+xtensa-use-generic-show_mem.patch
+x86-use-generic-show_mem.patch
+um-use-generic-show_mem.patch
+sparc64-use-generic-show_mem.patch
+sh-use-generic-show_mem.patch
+s390-use-generic-show_mem.patch
+powerpc-use-generic-show_mem.patch
+mn10300-use-generic-show_mem.patch
+h8300-use-generic-show_mem.patch
+mips-use-generic-show_mem.patch
+m68knommu-use-generic-show_mem.patch
+m68k-use-generic-show_mem.patch
+m32r-use-generic-show_mem.patch
+frv-use-generic-show_mem.patch
+cris-use-generic-show_mem.patch
 
