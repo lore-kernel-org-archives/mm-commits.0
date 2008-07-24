@@ -1,171 +1,196 @@
 From: akpm@linux-foundation.org
-Subject: - mm-vmstatc-proper-externs.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:21:35 -0700
-Message-ID: <200807242321.m6ONLZnD010404@imap1.linux-foundation.org>
+Subject: - kill-generic_file_direct_io.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:21:40 -0700
+Message-ID: <200807242321.m6ONLeF2010413@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38039 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53892 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754019AbYGXXVr (ORCPT
+	by vger.kernel.org with ESMTP id S1753778AbYGXXVv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:21:47 -0400
+	Thu, 24 Jul 2008 19:21:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, mm-commits@vger.kernel.org
+To: hch@lst.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm/vmstat.c: proper externs
+     kill generic_file_direct_IO()
 has been removed from the -mm tree.  Its filename was
-     mm-vmstatc-proper-externs.patch
+     kill-generic_file_direct_io.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/vmstat.c: proper externs
-From: Adrian Bunk <bunk@kernel.org>
+Subject: kill generic_file_direct_IO()
+From: Christoph Hellwig <hch@lst.de>
 
-This patch adds proper extern declarations for five variables in
-include/linux/vmstat.h
+generic_file_direct_IO is a common helper around the invocation of
+->direct_IO.  But there's almost nothing shared between the read and write
+side, so we're better off without this helper.
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/proc_misc.c    |    4 ----
- include/linux/vmstat.h |    6 ++++++
- kernel/sysctl.c        |    2 +-
- mm/vmstat.c            |    1 +
- 4 files changed, 8 insertions(+), 5 deletions(-)
+ mm/filemap.c |  117 +++++++++++++++++++++----------------------------
+ 1 file changed, 51 insertions(+), 66 deletions(-)
 
-diff -puN fs/proc/proc_misc.c~mm-vmstatc-proper-externs fs/proc/proc_misc.c
---- a/fs/proc/proc_misc.c~mm-vmstatc-proper-externs
-+++ a/fs/proc/proc_misc.c
-@@ -232,7 +232,6 @@ static int meminfo_read_proc(char *page,
- #undef K
- }
+diff -puN mm/filemap.c~kill-generic_file_direct_io mm/filemap.c
+--- a/mm/filemap.c~kill-generic_file_direct_io
++++ a/mm/filemap.c
+@@ -42,9 +42,6 @@
  
--extern const struct seq_operations fragmentation_op;
- static int fragmentation_open(struct inode *inode, struct file *file)
- {
- 	(void)inode;
-@@ -246,7 +245,6 @@ static const struct file_operations frag
- 	.release	= seq_release,
- };
+ #include <asm/mman.h>
  
--extern const struct seq_operations pagetypeinfo_op;
- static int pagetypeinfo_open(struct inode *inode, struct file *file)
- {
- 	return seq_open(file, &pagetypeinfo_op);
-@@ -259,7 +257,6 @@ static const struct file_operations page
- 	.release	= seq_release,
- };
+-static ssize_t
+-generic_file_direct_IO(int rw, struct kiocb *iocb, const struct iovec *iov,
+-	loff_t offset, unsigned long nr_segs);
  
--extern const struct seq_operations zoneinfo_op;
- static int zoneinfo_open(struct inode *inode, struct file *file)
- {
- 	return seq_open(file, &zoneinfo_op);
-@@ -356,7 +353,6 @@ static const struct file_operations proc
- 	.release	= seq_release,
- };
- 
--extern const struct seq_operations vmstat_op;
- static int vmstat_open(struct inode *inode, struct file *file)
- {
- 	return seq_open(file, &vmstat_op);
-diff -puN include/linux/vmstat.h~mm-vmstatc-proper-externs include/linux/vmstat.h
---- a/include/linux/vmstat.h~mm-vmstatc-proper-externs
-+++ a/include/linux/vmstat.h
-@@ -44,6 +44,12 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
- 		NR_VM_EVENT_ITEMS
- };
- 
-+extern const struct seq_operations fragmentation_op;
-+extern const struct seq_operations pagetypeinfo_op;
-+extern const struct seq_operations zoneinfo_op;
-+extern const struct seq_operations vmstat_op;
-+extern int sysctl_stat_interval;
-+
- #ifdef CONFIG_VM_EVENT_COUNTERS
  /*
-  * Light weight per cpu counter implementation.
-diff -puN kernel/sysctl.c~mm-vmstatc-proper-externs kernel/sysctl.c
---- a/kernel/sysctl.c~mm-vmstatc-proper-externs
-+++ a/kernel/sysctl.c
-@@ -43,6 +43,7 @@
- #include <linux/limits.h>
- #include <linux/dcache.h>
- #include <linux/syscalls.h>
-+#include <linux/vmstat.h>
- #include <linux/nfs_fs.h>
- #include <linux/acpi.h>
- #include <linux/reboot.h>
-@@ -80,7 +81,6 @@ extern int sysctl_drop_caches;
- extern int percpu_pagelist_fraction;
- extern int compat_log;
- extern int maps_protect;
--extern int sysctl_stat_interval;
- extern int latencytop_enabled;
- extern int sysctl_nr_open_min, sysctl_nr_open_max;
- #ifdef CONFIG_RCU_TORTURE_TEST
-diff -puN mm/vmstat.c~mm-vmstatc-proper-externs mm/vmstat.c
---- a/mm/vmstat.c~mm-vmstatc-proper-externs
-+++ a/mm/vmstat.c
-@@ -13,6 +13,7 @@
- #include <linux/err.h>
- #include <linux/module.h>
- #include <linux/cpu.h>
-+#include <linux/vmstat.h>
- #include <linux/sched.h>
+  * Shared mappings implemented 30.11.1994. It's not fully working yet,
+@@ -1205,8 +1202,11 @@ generic_file_aio_read(struct kiocb *iocb
+ 			goto out; /* skip atime */
+ 		size = i_size_read(inode);
+ 		if (pos < size) {
+-			retval = generic_file_direct_IO(READ, iocb,
+-						iov, pos, nr_segs);
++			retval = filemap_write_and_wait(mapping);
++			if (!retval) {
++				retval = mapping->a_ops->direct_IO(READ, iocb,
++							iov, pos, nr_segs);
++			}
+ 			if (retval > 0)
+ 				*ppos = pos + retval;
+ 		}
+@@ -2004,11 +2004,55 @@ generic_file_direct_write(struct kiocb *
+ 	struct address_space *mapping = file->f_mapping;
+ 	struct inode	*inode = mapping->host;
+ 	ssize_t		written;
++	size_t		write_len;
++	pgoff_t		end;
  
- #ifdef CONFIG_VM_EVENT_COUNTERS
-_
-
-Patches currently in -mm which might be from bunk@kernel.org are
-
-origin.patch
-linux-next.patch
-m32r-remove-the-unused-nohighmem-option.patch
-if-0-ses_match_host.patch
-git-xtensa.patch
-init-do_mountsc-should-include-linux-initrdh.patch
-build-kernel-profileo-only-when-requested.patch
-build-kernel-profileo-only-when-requested-cleanups.patch
-asm-generic-int-ll64h-always-provide-__su64.patch
-remove-some-more-tipar-bits.patch
-include-linux-kernelh-userspace-header-cleanup.patch
-minix-remove-no_truncate-code.patch
-jbd-unexport-journal_update_superblock.patch
-coda-remove-coda_fs_old_api.patch
-fat-dirc-switch-to-struct-__fat_dirent.patch
-remove-the-in-kernel-struct-dirent64.patch
-remove-unused-include-linux-direnths.patch
-include-asm-ptraceh-userspace-headers-cleanup.patch
-pty-remove-unused-unix98_pty_count-options.patch
-proper-extern-for-mwave_s_mdd.patch
-if-0-hpet_unregister.patch
-unexport-proc_clear_tty.patch
-move-proc_kmsg_operations-to-fs-proc-internalh.patch
-proper-pidhashmap_init-prototypes.patch
-unexport-uts_sem.patch
-parport-sharec-proper-externs.patch
-tpm_biosc-make-2-structs-static.patch
-drm-make-drm_minors_cleanup-static.patch
-make-cgroup_seqfile_release-static.patch
-make-pnp_add_card_id-static.patch
-make-parport_cs_release-static.patch
-make-mm-sparsec-make-a-function-static.patch
-mm-allocpercpuc-make-4-functions-static.patch
-make-mm-memoryc-print_bad_pte-static.patch
-mm-swapfilec-make-code-static.patch
-make-mm-rmapc-anon_vma_cachep-static.patch
-drivers-char-rtcc-make-2-functions-static.patch
-make-init-do_mountsc-root_device_name-static.patch
-make-macfb_setup-static.patch
-video-console-sticonrec-make-code-static.patch
-video-console-sticonrec-make-code-static-checkpatch-fixes.patch
-video-stifbc-make-2-functions-static.patch
-reiser4.patch
-
+ 	if (count != ocount)
+ 		*nr_segs = iov_shorten((struct iovec *)iov, *nr_segs, count);
+ 
+-	written = generic_file_direct_IO(WRITE, iocb, iov, pos, *nr_segs);
++	/*
++	 * Unmap all mmappings of the file up-front.
++	 *
++	 * This will cause any pte dirty bits to be propagated into the
++	 * pageframes for the subsequent filemap_write_and_wait().
++	 */
++	write_len = iov_length(iov, *nr_segs);
++	end = (pos + write_len - 1) >> PAGE_CACHE_SHIFT;
++	if (mapping_mapped(mapping))
++		unmap_mapping_range(mapping, pos, write_len, 0);
++
++	written = filemap_write_and_wait(mapping);
++	if (written)
++		goto out;
++
++	/*
++	 * After a write we want buffered reads to be sure to go to disk to get
++	 * the new data.  We invalidate clean cached page from the region we're
++	 * about to write.  We do this *before* the write so that we can return
++	 * -EIO without clobbering -EIOCBQUEUED from ->direct_IO().
++	 */
++	if (mapping->nrpages) {
++		written = invalidate_inode_pages2_range(mapping,
++					pos >> PAGE_CACHE_SHIFT, end);
++		if (written)
++			goto out;
++	}
++
++	written = mapping->a_ops->direct_IO(WRITE, iocb, iov, pos, *nr_segs);
++
++	/*
++	 * Finally, try again to invalidate clean pages which might have been
++	 * cached by non-direct readahead, or faulted in by get_user_pages()
++	 * if the source of the write was an mmap'ed region of the file
++	 * we're writing.  Either one is a pretty crazy thing to do,
++	 * so we don't support it 100%.  If this invalidation
++	 * fails, tough, the write still worked...
++	 */
++	if (mapping->nrpages) {
++		invalidate_inode_pages2_range(mapping,
++					      pos >> PAGE_CACHE_SHIFT, end);
++	}
++
+ 	if (written > 0) {
+ 		loff_t end = pos + written;
+ 		if (end > i_size_read(inode) && !S_ISBLK(inode->i_mode)) {
+@@ -2024,6 +2068,7 @@ generic_file_direct_write(struct kiocb *
+ 	 * i_mutex is held, which protects generic_osync_inode() from
+ 	 * livelocking.  AIO O_DIRECT ops attempt to sync metadata here.
+ 	 */
++out:
+ 	if ((written >= 0 || written == -EIOCBQUEUED) &&
+ 	    ((file->f_flags & O_SYNC) || IS_SYNC(inode))) {
+ 		int err = generic_osync_inode(inode, mapping, OSYNC_METADATA);
+@@ -2511,66 +2556,6 @@ ssize_t generic_file_aio_write(struct ki
+ }
+ EXPORT_SYMBOL(generic_file_aio_write);
+ 
+-/*
+- * Called under i_mutex for writes to S_ISREG files.   Returns -EIO if something
+- * went wrong during pagecache shootdown.
+- */
+-static ssize_t
+-generic_file_direct_IO(int rw, struct kiocb *iocb, const struct iovec *iov,
+-	loff_t offset, unsigned long nr_segs)
+-{
+-	struct file *file = iocb->ki_filp;
+-	struct address_space *mapping = file->f_mapping;
+-	ssize_t retval;
+-	size_t write_len;
+-	pgoff_t end = 0; /* silence gcc */
+-
+-	/*
+-	 * If it's a write, unmap all mmappings of the file up-front.  This
+-	 * will cause any pte dirty bits to be propagated into the pageframes
+-	 * for the subsequent filemap_write_and_wait().
+-	 */
+-	if (rw == WRITE) {
+-		write_len = iov_length(iov, nr_segs);
+-		end = (offset + write_len - 1) >> PAGE_CACHE_SHIFT;
+-	       	if (mapping_mapped(mapping))
+-			unmap_mapping_range(mapping, offset, write_len, 0);
+-	}
+-
+-	retval = filemap_write_and_wait(mapping);
+-	if (retval)
+-		goto out;
+-
+-	/*
+-	 * After a write we want buffered reads to be sure to go to disk to get
+-	 * the new data.  We invalidate clean cached page from the region we're
+-	 * about to write.  We do this *before* the write so that we can return
+-	 * -EIO without clobbering -EIOCBQUEUED from ->direct_IO().
+-	 */
+-	if (rw == WRITE && mapping->nrpages) {
+-		retval = invalidate_inode_pages2_range(mapping,
+-					offset >> PAGE_CACHE_SHIFT, end);
+-		if (retval)
+-			goto out;
+-	}
+-
+-	retval = mapping->a_ops->direct_IO(rw, iocb, iov, offset, nr_segs);
+-
+-	/*
+-	 * Finally, try again to invalidate clean pages which might have been
+-	 * cached by non-direct readahead, or faulted in by get_user_pages()
+-	 * if the source of the write was an mmap'ed region of the file
+-	 * we're writing.  Either one is a pretty crazy thing to do,
+-	 * so we don't support it 100%.  If this invalidation
+-	 * fails, tough, the write still worked...
+-	 */
+-	if (rw == WRITE && mapping->nrpages) {
+-		invalidate_inode_pages2_range(mapping, offset >> PAGE_CACHE_SHIFT, end);
+-	}
+-out:
+-	return retval;
+-}
