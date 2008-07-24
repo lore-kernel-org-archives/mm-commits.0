@@ -1,159 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: - flag-parameters-nonblock-in-signalfd.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:27:45 -0700
-Message-ID: <200807242327.m6ONRjOF011184@imap1.linux-foundation.org>
+Subject: - autofs4-revert-redo-lookup-in-ttfd.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:29:08 -0700
+Message-ID: <200807242329.m6ONT8qp011349@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47830 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49920 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756681AbYGXX3G (ORCPT
+	by vger.kernel.org with ESMTP id S1756689AbYGXX3M (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:29:06 -0400
+	Thu, 24 Jul 2008 19:29:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: drepper@redhat.com, davidel@xmailserver.org, mtk.manpages@googlemail.com, mm-commits@vger.kernel.org
+To: raven@themaw.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     flag parameters: NONBLOCK in signalfd
+     autofs4: revert - redo lookup in ttfd
 has been removed from the -mm tree.  Its filename was
-     flag-parameters-nonblock-in-signalfd.patch
+     autofs4-revert-redo-lookup-in-ttfd.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: flag parameters: NONBLOCK in signalfd
-From: Ulrich Drepper <drepper@redhat.com>
+Subject: autofs4: revert - redo lookup in ttfd
+From: Ian Kent <raven@themaw.net>
 
-This patch adds support for the SFD_NONBLOCK flag to signalfd4.  The
-additional changes needed are minimal.
+This patch series enables the use of a single dentry for lookups prior to
+the dentry being hashed and so we no longer need to redo the lookup.  This
+patch reverts the patch of commit
+033790449ba9c4dcf8478a87693d33df625c23b5.
 
-The following test must be adjusted for architectures other than x86 and
-x86-64 and in case the syscall numbers changed.
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#include <fcntl.h>
-#include <signal.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <sys/syscall.h>
-
-#ifndef __NR_signalfd4
-# ifdef __x86_64__
-#  define __NR_signalfd4 289
-# elif defined __i386__
-#  define __NR_signalfd4 327
-# else
-#  error "need __NR_signalfd4"
-# endif
-#endif
-
-#define SFD_NONBLOCK O_NONBLOCK
-
-int
-main (void)
-{
-  sigset_t ss;
-  sigemptyset (&ss);
-  sigaddset (&ss, SIGUSR1);
-  int fd = syscall (__NR_signalfd4, -1, &ss, 8, 0);
-  if (fd == -1)
-    {
-      puts ("signalfd4(0) failed");
-      return 1;
-    }
-  int fl = fcntl (fd, F_GETFL);
-  if (fl == -1)
-    {
-      puts ("fcntl failed");
-      return 1;
-    }
-  if (fl & O_NONBLOCK)
-    {
-      puts ("signalfd4(0) set non-blocking mode");
-      return 1;
-    }
-  close (fd);
-
-  fd = syscall (__NR_signalfd4, -1, &ss, 8, SFD_NONBLOCK);
-  if (fd == -1)
-    {
-      puts ("signalfd4(SFD_NONBLOCK) failed");
-      return 1;
-    }
-  fl = fcntl (fd, F_GETFL);
-  if (fl == -1)
-    {
-      puts ("fcntl failed");
-      return 1;
-    }
-  if ((fl & O_NONBLOCK) == 0)
-    {
-      puts ("signalfd4(SFD_NONBLOCK) does not set non-blocking mode");
-      return 1;
-    }
-  close (fd);
-
-  puts ("OK");
-
-  return 0;
-}
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Signed-off-by: Ulrich Drepper <drepper@redhat.com>
-Acked-by: Davide Libenzi <davidel@xmailserver.org>
-Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
+Signed-off-by: Ian Kent <raven@themaw.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/signalfd.c            |    4 ++--
- include/linux/signalfd.h |    3 ++-
- 2 files changed, 4 insertions(+), 3 deletions(-)
+ fs/autofs4/root.c |   21 ---------------------
+ 1 file changed, 21 deletions(-)
 
-diff -puN fs/signalfd.c~flag-parameters-nonblock-in-signalfd fs/signalfd.c
---- a/fs/signalfd.c~flag-parameters-nonblock-in-signalfd
-+++ a/fs/signalfd.c
-@@ -211,7 +211,7 @@ asmlinkage long sys_signalfd4(int ufd, s
- 	sigset_t sigmask;
- 	struct signalfd_ctx *ctx;
+diff -puN fs/autofs4/root.c~autofs4-revert-redo-lookup-in-ttfd fs/autofs4/root.c
+--- a/fs/autofs4/root.c~autofs4-revert-redo-lookup-in-ttfd
++++ a/fs/autofs4/root.c
+@@ -242,7 +242,6 @@ static int try_to_fill_dentry(struct den
+ {
+ 	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
+ 	struct autofs_info *ino = autofs4_dentry_ino(dentry);
+-	struct dentry *new;
+ 	int status;
  
--	if (flags & ~SFD_CLOEXEC)
-+	if (flags & ~(SFD_CLOEXEC | SFD_NONBLOCK))
- 		return -EINVAL;
+ 	/* Block on any pending expiry here; invalidate the dentry
+@@ -320,26 +319,6 @@ static int try_to_fill_dentry(struct den
+ 	dentry->d_flags &= ~DCACHE_AUTOFS_PENDING;
+ 	spin_unlock(&dentry->d_lock);
  
- 	if (sizemask != sizeof(sigset_t) ||
-@@ -232,7 +232,7 @@ asmlinkage long sys_signalfd4(int ufd, s
- 		 * anon_inode_getfd() will install the fd.
- 		 */
- 		ufd = anon_inode_getfd("[signalfd]", &signalfd_fops, ctx,
--				       flags & O_CLOEXEC);
-+				       flags & (O_CLOEXEC | O_NONBLOCK));
- 		if (ufd < 0)
- 			kfree(ctx);
- 	} else {
-diff -puN include/linux/signalfd.h~flag-parameters-nonblock-in-signalfd include/linux/signalfd.h
---- a/include/linux/signalfd.h~flag-parameters-nonblock-in-signalfd
-+++ a/include/linux/signalfd.h
-@@ -8,11 +8,12 @@
- #ifndef _LINUX_SIGNALFD_H
- #define _LINUX_SIGNALFD_H
- 
--/* For O_CLOEXEC */
-+/* For O_CLOEXEC and O_NONBLOCK */
- #include <linux/fcntl.h>
- 
- /* Flags for signalfd4.  */
- #define SFD_CLOEXEC O_CLOEXEC
-+#define SFD_NONBLOCK O_NONBLOCK
- 
- struct signalfd_siginfo {
- 	__u32 ssi_signo;
-_
-
-Patches currently in -mm which might be from drepper@redhat.com are
-
-origin.patch
-linux-next.patch
-
+-	/*
+-	 * The dentry that is passed in from lookup may not be the one
+-	 * we end up using, as mkdir can create a new one.  If this
+-	 * happens, and another process tries the lookup at the same time,
+-	 * it will set the PENDING flag on this new dentry, but add itself
+-	 * to our waitq.  Then, if after the lookup succeeds, the first
+-	 * process that requested the mount performs another lookup of the
+-	 * same directory, it will show up as still pending!  So, we need
+-	 * to redo the lookup here and clear pending on that dentry.
+-	 */
+-	if (d_unhashed(dentry)) {
+-		new = d_lookup(dentry->d_parent, &dentry->d_name);
+-		if (new) {
+-			spin_lock(&new->d_lock);
+-			new->d_flags &= ~DCACHE_AUTOFS_PENDING;
+-			spin_unlock(&new->d_lock);
+-			dput(new);
+-		}
+-	}
