@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - atyfb-use-a-pci-device-id-table.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:32:33 -0700
-Message-ID: <200807242332.m6ONWXVd011845@imap1.linux-foundation.org>
+Subject: - atyfb-report-probe-errors.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:32:35 -0700
+Message-ID: <200807242332.m6ONWZMv011848@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45655 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38907 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756689AbYGXXcp (ORCPT
+	by vger.kernel.org with ESMTP id S1756832AbYGXXcp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 24 Jul 2008 19:32:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,19 +15,19 @@ To: syrjala@sci.fi, adaplas@pol.net, krzysztof.h1@poczta.fm, mm-commits@vger.ker
 
 
 The patch titled
-     atyfb: use a PCI device ID table
+     atyfb: report probe errors
 has been removed from the -mm tree.  Its filename was
-     atyfb-use-a-pci-device-id-table.patch
+     atyfb-report-probe-errors.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atyfb: use a PCI device ID table
+Subject: atyfb: report probe errors
 From: Ville Syrjala <syrjala@sci.fi>
 
-Convert atyfb to use a PCI device ID table.
+Properly propagate errors to the probe function.
 
 Signed-off-by: Ville Syrjala <syrjala@sci.fi>
 Cc: "Antonino A. Daplas" <adaplas@pol.net>
@@ -35,109 +35,64 @@ Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/aty/atyfb_base.c |   73 +++++++++++++++++++++++--------
- 1 file changed, 55 insertions(+), 18 deletions(-)
+ drivers/video/aty/atyfb_base.c |   15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
 
-diff -puN drivers/video/aty/atyfb_base.c~atyfb-use-a-pci-device-id-table drivers/video/aty/atyfb_base.c
---- a/drivers/video/aty/atyfb_base.c~atyfb-use-a-pci-device-id-table
+diff -puN drivers/video/aty/atyfb_base.c~atyfb-report-probe-errors drivers/video/aty/atyfb_base.c
+--- a/drivers/video/aty/atyfb_base.c~atyfb-report-probe-errors
 +++ a/drivers/video/aty/atyfb_base.c
-@@ -3418,14 +3418,7 @@ static int __devinit atyfb_pci_probe(str
- 	struct fb_info *info;
- 	struct resource *rp;
- 	struct atyfb_par *par;
--	int i, rc = -ENOMEM;
--
--	for (i = ARRAY_SIZE(aty_chips) - 1; i >= 0; i--)
--		if (pdev->device == aty_chips[i].pci_id)
--			break;
--
--	if (i < 0)
--		return -ENODEV;
-+	int rc = -ENOMEM;
+@@ -2231,6 +2231,7 @@ static int __devinit aty_init(struct fb_
+ 	const char *ramname = NULL, *xtal;
+ 	int gtb_memsize, has_var = 0;
+ 	struct fb_var_screeninfo var;
++	int ret;
  
- 	/* Enable device in PCI config */
- 	if (pci_enable_device(pdev)) {
-@@ -3456,7 +3449,7 @@ static int __devinit atyfb_pci_probe(str
- 	par = info->par;
- 	info->fix = atyfb_fix;
- 	info->device = &pdev->dev;
--	par->pci_id = aty_chips[i].pci_id;
-+	par->pci_id = pdev->device;
- 	par->res_start = res_start;
- 	par->res_size = res_size;
- 	par->irq = pdev->irq;
-@@ -3655,18 +3648,62 @@ static void __devexit atyfb_pci_remove(s
- 	atyfb_remove(info);
+ 	init_waitqueue_head(&par->vblank.wait);
+ 	spin_lock_init(&par->int_lock);
+@@ -2612,7 +2613,8 @@ static int __devinit aty_init(struct fb_
+ 			var.yres_virtual = var.yres;
+ 	}
+ 
+-	if (atyfb_check_var(&var, info)) {
++	ret = atyfb_check_var(&var, info);
++	if (ret) {
+ 		PRINTKE("can't set default video mode\n");
+ 		goto aty_init_exit;
+ 	}
+@@ -2623,10 +2625,12 @@ static int __devinit aty_init(struct fb_
+ #endif /* CONFIG_FB_ATY_CT */
+ 	info->var = var;
+ 
+-	if (fb_alloc_cmap(&info->cmap, 256, 0) < 0)
++	ret = fb_alloc_cmap(&info->cmap, 256, 0);
++	if (ret < 0)
+ 		goto aty_init_exit;
+ 
+-	if (register_framebuffer(info) < 0) {
++	ret = register_framebuffer(info);
++	if (ret < 0) {
+ 		fb_dealloc_cmap(&info->cmap);
+ 		goto aty_init_exit;
+ 	}
+@@ -2652,7 +2656,7 @@ aty_init_exit:
+ 	    par->mtrr_aper = -1;
+ 	}
+ #endif
+-	return -1;
++	return ret;
  }
  
--/*
-- * This driver uses its own matching table. That will be more difficult
-- * to fix, so for now, we just match against any ATI ID and let the
-- * probe() function find out what's up. That also mean we don't have
-- * a module ID table though.
-- */
- static struct pci_device_id atyfb_pci_tbl[] = {
--	{ PCI_VENDOR_ID_ATI, PCI_ANY_ID, PCI_ANY_ID, PCI_ANY_ID,
--	  PCI_BASE_CLASS_DISPLAY << 16, 0xff0000, 0 },
--	{ 0, }
-+#ifdef CONFIG_FB_ATY_GX
-+	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64GX) },
-+	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64CX) },
-+#endif /* CONFIG_FB_ATY_GX */
-+
-+#ifdef CONFIG_FB_ATY_CT
-+	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64CT) },
-+	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64ET) },
-+
-+	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64LT) },
-+
-+	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64VT) },
-+	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64GT) },
-+
-+	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64VU) },
-+	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64GU) },
-+
-+	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64LG) },
-+
-+	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64VV) },
-+
-+	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64GV) },
-+	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64GW) },
-+	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64GY) },
-+	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64GZ) },
-+
-+	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64GB) },
-+	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64GD) },
-+	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64GI) },
-+	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64GP) },
-+	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64GQ) },
-+
-+	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64LB) },
-+	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64LD) },
-+	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64LI) },
-+	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64LP) },
-+	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64LQ) },
-+
-+	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64GM) },
-+	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64GN) },
-+	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64GO) },
-+	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64GL) },
-+	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64GR) },
-+	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64GS) },
-+
-+	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64LM) },
-+	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64LN) },
-+	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64LR) },
-+	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64LS) },
-+#endif /* CONFIG_FB_ATY_CT */
-+	{ }
- };
+ static void aty_resume_chip(struct fb_info *info)
+@@ -3467,7 +3471,8 @@ static int __devinit atyfb_pci_probe(str
+ 	pci_set_drvdata(pdev, info);
  
-+MODULE_DEVICE_TABLE(pci, atyfb_pci_tbl);
-+
- static struct pci_driver atyfb_driver = {
- 	.name		= "atyfb",
- 	.id_table	= atyfb_pci_tbl,
+ 	/* Init chip & register framebuffer */
+-	if (aty_init(info))
++	rc = aty_init(info);
++	if (rc)
+ 		goto err_release_io;
+ 
+ #ifdef __sparc__
 _
 
 Patches currently in -mm which might be from syrjala@sci.fi are
