@@ -1,77 +1,211 @@
 From: akpm@linux-foundation.org
-Subject: - tridentfb-blade3d-clock-fixes.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:31:33 -0700
-Message-ID: <200807242331.m6ONVXwL011643@imap1.linux-foundation.org>
+Subject: - flag-parameters-nonblock-in-pipe.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:27:54 -0700
+Message-ID: <200807242327.m6ONRsDo011201@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47377 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43198 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756120AbYGXXbf (ORCPT
+	by vger.kernel.org with ESMTP id S1756733AbYGXX3X (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:31:35 -0400
+	Thu, 24 Jul 2008 19:29:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: krzysztof.h1@wp.pl, mm-commits@vger.kernel.org
+To: drepper@redhat.com, davidel@xmailserver.org, mtk.manpages@googlemail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tridentfb: Blade3D clock fixes
+     flag parameters: NONBLOCK in pipe
 has been removed from the -mm tree.  Its filename was
-     tridentfb-blade3d-clock-fixes.patch
+     flag-parameters-nonblock-in-pipe.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tridentfb: Blade3D clock fixes
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: flag parameters: NONBLOCK in pipe
+From: Ulrich Drepper <drepper@redhat.com>
 
-This patch fixes following problems:
-- does not allow the m parameter to reach 0 as
-  it locks the graphics core (power cycle needed)
-- for the newer chips (with new clock registers)
-  does not allow of n / m ratio below 4 as it gives
-  unstable image on the Blade3D core
-- extend shift parameter (k) range  to 2 for the newer
-  chips to cope with the n /m >= 4 limit at low resolution
-  (bandwidth) modes
-- prefer modes with higher n / m ratio (higher k values)
+This patch adds O_NONBLOCK support to pipe2.  It is minimally more involved
+than the patches for eventfd et.al but still trivial.  The interfaces of the
+create_write_pipe and create_read_pipe helper functions were changed and the
+one other caller as well.
 
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+The following test must be adjusted for architectures other than x86 and
+x86-64 and in case the syscall numbers changed.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#include <fcntl.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <sys/syscall.h>
+
+#ifndef __NR_pipe2
+# ifdef __x86_64__
+#  define __NR_pipe2 293
+# elif defined __i386__
+#  define __NR_pipe2 331
+# else
+#  error "need __NR_pipe2"
+# endif
+#endif
+
+int
+main (void)
+{
+  int fds[2];
+  if (syscall (__NR_pipe2, fds, 0) == -1)
+    {
+      puts ("pipe2(0) failed");
+      return 1;
+    }
+  for (int i = 0; i < 2; ++i)
+    {
+      int fl = fcntl (fds[i], F_GETFL);
+      if (fl == -1)
+        {
+          puts ("fcntl failed");
+          return 1;
+        }
+      if (fl & O_NONBLOCK)
+        {
+          printf ("pipe2(0) set non-blocking mode for fds[%d]\n", i);
+          return 1;
+        }
+      close (fds[i]);
+    }
+
+  if (syscall (__NR_pipe2, fds, O_NONBLOCK) == -1)
+    {
+      puts ("pipe2(O_NONBLOCK) failed");
+      return 1;
+    }
+  for (int i = 0; i < 2; ++i)
+    {
+      int fl = fcntl (fds[i], F_GETFL);
+      if (fl == -1)
+        {
+          puts ("fcntl failed");
+          return 1;
+        }
+      if ((fl & O_NONBLOCK) == 0)
+        {
+          printf ("pipe2(O_NONBLOCK) does not set non-blocking mode for fds[%d]\n", i);
+          return 1;
+        }
+      close (fds[i]);
+    }
+
+  puts ("OK");
+
+  return 0;
+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Signed-off-by: Ulrich Drepper <drepper@redhat.com>
+Acked-by: Davide Libenzi <davidel@xmailserver.org>
+Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/tridentfb.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ fs/pipe.c          |   14 +++++++-------
+ include/linux/fs.h |    4 ++--
+ kernel/kmod.c      |    4 ++--
+ 3 files changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN drivers/video/tridentfb.c~tridentfb-blade3d-clock-fixes drivers/video/tridentfb.c
---- a/drivers/video/tridentfb.c~tridentfb-blade3d-clock-fixes
-+++ a/drivers/video/tridentfb.c
-@@ -672,15 +672,16 @@ static void set_vclk(struct tridentfb_pa
- 	unsigned long fi, d, di;
- 	unsigned char best_m = 0, best_n = 0, best_k = 0;
- 	unsigned char hi, lo;
-+	unsigned char shift = !is_oldclock(par->chip_id) ? 2 : 1;
+diff -puN fs/pipe.c~flag-parameters-nonblock-in-pipe fs/pipe.c
+--- a/fs/pipe.c~flag-parameters-nonblock-in-pipe
++++ a/fs/pipe.c
+@@ -950,7 +950,7 @@ fail_inode:
+ 	return NULL;
+ }
  
- 	d = 20000;
--	for (k = 1; k >= 0; k--)
--		for (m = 0; m < 32; m++) {
--			n = 2 * (m + 2) - 8;
-+	for (k = shift; k >= 0; k--)
-+		for (m = 1; m < 32; m++) {
-+			n = ((m + 2) << shift) - 8;
- 			for (n = (n < 0 ? 0 : n); n < 122; n++) {
- 				fi = ((14318l * (n + 8)) / (m + 2)) >> k;
- 				di = abs(fi - freq);
--				if (di <= d) {
-+				if (di < d || (di == d && k == best_k)) {
- 					d = di;
- 					best_n = n;
- 					best_m = m;
+-struct file *create_write_pipe(void)
++struct file *create_write_pipe(int flags)
+ {
+ 	int err;
+ 	struct inode *inode;
+@@ -983,7 +983,7 @@ struct file *create_write_pipe(void)
+ 		goto err_dentry;
+ 	f->f_mapping = inode->i_mapping;
+ 
+-	f->f_flags = O_WRONLY;
++	f->f_flags = O_WRONLY | (flags & O_NONBLOCK);
+ 	f->f_version = 0;
+ 
+ 	return f;
+@@ -1007,7 +1007,7 @@ void free_write_pipe(struct file *f)
+ 	put_filp(f);
+ }
+ 
+-struct file *create_read_pipe(struct file *wrf)
++struct file *create_read_pipe(struct file *wrf, int flags)
+ {
+ 	struct file *f = get_empty_filp();
+ 	if (!f)
+@@ -1019,7 +1019,7 @@ struct file *create_read_pipe(struct fil
+ 	f->f_mapping = wrf->f_path.dentry->d_inode->i_mapping;
+ 
+ 	f->f_pos = 0;
+-	f->f_flags = O_RDONLY;
++	f->f_flags = O_RDONLY | (flags & O_NONBLOCK);
+ 	f->f_op = &read_pipe_fops;
+ 	f->f_mode = FMODE_READ;
+ 	f->f_version = 0;
+@@ -1033,13 +1033,13 @@ int do_pipe_flags(int *fd, int flags)
+ 	int error;
+ 	int fdw, fdr;
+ 
+-	if (flags & ~O_CLOEXEC)
++	if (flags & ~(O_CLOEXEC | O_NONBLOCK))
+ 		return -EINVAL;
+ 
+-	fw = create_write_pipe();
++	fw = create_write_pipe(flags);
+ 	if (IS_ERR(fw))
+ 		return PTR_ERR(fw);
+-	fr = create_read_pipe(fw);
++	fr = create_read_pipe(fw, flags);
+ 	error = PTR_ERR(fr);
+ 	if (IS_ERR(fr))
+ 		goto err_write_pipe;
+diff -puN include/linux/fs.h~flag-parameters-nonblock-in-pipe include/linux/fs.h
+--- a/include/linux/fs.h~flag-parameters-nonblock-in-pipe
++++ a/include/linux/fs.h
+@@ -1778,8 +1778,8 @@ static inline void allow_write_access(st
+ }
+ extern int do_pipe(int *);
+ extern int do_pipe_flags(int *, int);
+-extern struct file *create_read_pipe(struct file *f);
+-extern struct file *create_write_pipe(void);
++extern struct file *create_read_pipe(struct file *f, int flags);
++extern struct file *create_write_pipe(int flags);
+ extern void free_write_pipe(struct file *);
+ 
+ extern struct file *do_filp_open(int dfd, const char *pathname,
+diff -puN kernel/kmod.c~flag-parameters-nonblock-in-pipe kernel/kmod.c
+--- a/kernel/kmod.c~flag-parameters-nonblock-in-pipe
++++ a/kernel/kmod.c
+@@ -417,12 +417,12 @@ int call_usermodehelper_stdinpipe(struct
+ {
+ 	struct file *f;
+ 
+-	f = create_write_pipe();
++	f = create_write_pipe(0);
+ 	if (IS_ERR(f))
+ 		return PTR_ERR(f);
+ 	*filp = f;
+ 
+-	f = create_read_pipe(f);
++	f = create_read_pipe(f, 0);
+ 	if (IS_ERR(f)) {
+ 		free_write_pipe(*filp);
+ 		return PTR_ERR(f);
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from drepper@redhat.com are
 
 origin.patch
+linux-next.patch
 
