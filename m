@@ -1,84 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: - checkpatch-improve-type-matcher-debug.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:26:36 -0700
-Message-ID: <200807242326.m6ONQaQN010993@imap1.linux-foundation.org>
+Subject: - checkpatch-trailing-statement-indent-fix-end-of-statement-location.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:26:24 -0700
+Message-ID: <200807242326.m6ONQOYU010975@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53931 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49965 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755897AbYGXX0o (ORCPT
+	by vger.kernel.org with ESMTP id S1755883AbYGXX0c (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:26:44 -0400
+	Thu, 24 Jul 2008 19:26:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: apw@shadowen.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     checkpatch: improve type matcher debug
+     checkpatch: trailing statement indent: fix end of statement location
 has been removed from the -mm tree.  Its filename was
-     checkpatch-improve-type-matcher-debug.patch
+     checkpatch-trailing-statement-indent-fix-end-of-statement-location.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: improve type matcher debug
+Subject: checkpatch: trailing statement indent: fix end of statement location
 From: Andy Whitcroft <apw@shadowen.org>
 
-Improve type matcher debug so we can see what it does match.  As part
-of this move us to to using the common debug framework.
+Fix end of statement location.  Where the last line of the statement is
+replaced we are miss reporting the newly added replacement an incorrectly
+indented trailing statement for the negative context.  We are also
+incorrectly reporting negative statements generally.
 
 Signed-off-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+ scripts/checkpatch.pl |   15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-improve-type-matcher-debug scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-improve-type-matcher-debug
+diff -puN scripts/checkpatch.pl~checkpatch-trailing-statement-indent-fix-end-of-statement-location scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-trailing-statement-indent-fix-end-of-statement-location
 +++ a/scripts/checkpatch.pl
-@@ -17,7 +17,6 @@ my $quiet = 0;
- my $tree = 1;
- my $chk_signoff = 1;
- my $chk_patch = 1;
--my $tst_type = 0;
- my $tst_only;
- my $emacs = 0;
- my $terse = 0;
-@@ -44,7 +43,6 @@ GetOptions(
- 	'summary-file!'	=> \$summary_file,
+@@ -1249,17 +1249,22 @@ sub process {
+ 			my $pre_ctx = "$1$2";
  
- 	'debug=s'	=> \%debug,
--	'test-type!'	=> \$tst_type,
- 	'test-only=s'	=> \$tst_only,
- ) or exit;
+ 			my ($level, @ctx) = ctx_statement_level($linenr, $realcnt, 0);
+-			my $ctx_ln = $linenr + $#ctx + 1;
+ 			my $ctx_cnt = $realcnt - $#ctx - 1;
+ 			my $ctx = join("\n", @ctx);
  
-@@ -67,6 +65,7 @@ if ($#ARGV < 0) {
+-			##warn "realcnt<$realcnt> ctx_cnt<$ctx_cnt>\n";
++			my $ctx_ln = $linenr;
++			my $ctx_skip = $realcnt;
  
- my $dbg_values = 0;
- my $dbg_possible = 0;
-+my $dbg_type = 0;
- for my $key (keys %debug) {
- 	eval "\${dbg_$key} = '$debug{$key}';"
- }
-@@ -1307,8 +1306,12 @@ sub process {
- 		if ($line=~/^[^\+]/) {next;}
+-			# Skip over any removed lines in the context following statement.
+-			while (defined($lines[$ctx_ln - 1]) && $lines[$ctx_ln - 1] =~ /^-/) {
++			while ($ctx_skip > $ctx_cnt || ($ctx_skip == $ctx_cnt &&
++					defined $lines[$ctx_ln - 1] &&
++					$lines[$ctx_ln - 1] =~ /^-/)) {
++				##print "SKIP<$ctx_skip> CNT<$ctx_cnt>\n";
++				$ctx_skip-- if (!defined $lines[$ctx_ln - 1] || $lines[$ctx_ln - 1] !~ /^-/);
+ 				$ctx_ln++;
+ 			}
+-			##warn "pre<$pre_ctx>\nline<$line>\nctx<$ctx>\nnext<$lines[$ctx_ln - 1]>\n";
++
++			##print "realcnt<$realcnt> ctx_cnt<$ctx_cnt>\n";
++			##print "pre<$pre_ctx>\nline<$line>\nctx<$ctx>\nnext<$lines[$ctx_ln - 1]>\n";
  
- # TEST: allow direct testing of the type matcher.
--		if ($tst_type && $line =~ /^.$Declare$/) {
--			ERROR("TEST: is type $Declare\n" . $herecurr);
-+		if ($dbg_type) {
-+			if ($line =~ /^.\s*$Declare\s*$/) {
-+				ERROR("TEST: is type\n" . $herecurr);
-+			} elsif ($dbg_type > 1 && $line =~ /^.+($Declare)/) {
-+				ERROR("TEST: is not type ($1 is)\n". $herecurr);
-+			}
- 			next;
- 		}
- 
+ 			if ($ctx !~ /{\s*/ && defined($lines[$ctx_ln -1]) && $lines[$ctx_ln - 1] =~ /^\+\s*{/) {
+ 				ERROR("that open brace { should be on the previous line\n" .
 _
 
 Patches currently in -mm which might be from apw@shadowen.org are
