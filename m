@@ -1,111 +1,142 @@
 From: akpm@linux-foundation.org
-Subject: - sm501-add-inversion-controls-for-vbiasen-and-fpen.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:32:45 -0700
-Message-ID: <200807242332.m6ONWjb6011863@imap1.linux-foundation.org>
+Subject: - sm501-fixup-allocation-code-to-be-64bit-resource-compliant.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:32:49 -0700
+Message-ID: <200807242332.m6ONWnbE011869@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50593 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37434 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756427AbYGXXdU (ORCPT
+	by vger.kernel.org with ESMTP id S1756847AbYGXXdY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:33:20 -0400
+	Thu, 24 Jul 2008 19:33:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ben-linux@fluff.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sm501: add inversion controls for VBIASEN and FPEN
+     sm501: fixup allocation code to be 64bit resource compliant
 has been removed from the -mm tree.  Its filename was
-     sm501-add-inversion-controls-for-vbiasen-and-fpen.patch
+     sm501-fixup-allocation-code-to-be-64bit-resource-compliant.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sm501: add inversion controls for VBIASEN and FPEN
+Subject: sm501: fixup allocation code to be 64bit resource compliant
 From: Ben Dooks <ben-linux@fluff.org>
 
-Add flags to allow the driver to invert the sense of both VBIASEN and FPEN
-signals comming from the SM501.
+As pointed out by Andrew Morton, we have a problem when setting the 64bit
+resources option.  Alter the allocation routines to remove the need to use
+the start and end fields, use the proper HEAD_PANEL/HEAD_CRT and update
+the comments.
 
+Note, we also fix the bug where we failed to check the size of the
+CRT memory allocation.
+
+[akpm@linux-foundation.org: cleanup]
 Signed-off-by: Ben Dooks <ben-linux@fluff.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/sm501fb.c |   26 ++++++++++++++++++++++----
- include/linux/sm501.h   |    2 ++
- 2 files changed, 24 insertions(+), 4 deletions(-)
+ drivers/video/sm501fb.c |   53 ++++++++++++++++++++++++++++++--------
+ 1 file changed, 42 insertions(+), 11 deletions(-)
 
-diff -puN drivers/video/sm501fb.c~sm501-add-inversion-controls-for-vbiasen-and-fpen drivers/video/sm501fb.c
---- a/drivers/video/sm501fb.c~sm501-add-inversion-controls-for-vbiasen-and-fpen
+diff -puN drivers/video/sm501fb.c~sm501-fixup-allocation-code-to-be-64bit-resource-compliant drivers/video/sm501fb.c
+--- a/drivers/video/sm501fb.c~sm501-fixup-allocation-code-to-be-64bit-resource-compliant
 +++ a/drivers/video/sm501fb.c
-@@ -663,15 +663,25 @@ static void sm501fb_panel_power(struct s
- 		sm501fb_sync_regs(fbi);
- 		mdelay(10);
+@@ -48,10 +48,15 @@ enum sm501_controller {
+ 	HEAD_PANEL	= 1,
+ };
  
-+		/* VBIASEN */
-+
- 		if (!(pd->flags & SM501FB_FLAG_PANEL_NO_VBIASEN)) {
--			control |= SM501_DC_PANEL_CONTROL_BIAS;	/* VBIASEN */
-+			if (pd->flags & SM501FB_FLAG_PANEL_INV_VBIASEN)
-+				control &= ~SM501_DC_PANEL_CONTROL_BIAS;
-+			else
-+				control |= SM501_DC_PANEL_CONTROL_BIAS;
-+
- 			writel(control, ctrl_reg);
- 			sm501fb_sync_regs(fbi);
- 			mdelay(10);
- 		}
+-/* SM501 memory address */
++/* SM501 memory address.
++ *
++ * This structure is used to track memory usage within the SM501 framebuffer
++ * allocation. The sm_addr field is stored as an offset as it is often used
++ * against both the physical and mapped addresses.
++ */
+ struct sm501_mem {
+ 	unsigned long	 size;
+-	unsigned long	 sm_addr;
++	unsigned long	 sm_addr;	/* offset from base of sm501 fb. */
+ 	void __iomem	*k_addr;
+ };
  
- 		if (!(pd->flags & SM501FB_FLAG_PANEL_NO_FPEN)) {
--			control |= SM501_DC_PANEL_CONTROL_FPEN;
-+			if (pd->flags & SM501FB_FLAG_PANEL_INV_FPEN)
-+				control &= ~SM501_DC_PANEL_CONTROL_FPEN;
-+			else
-+				control |= SM501_DC_PANEL_CONTROL_FPEN;
-+
- 			writel(control, ctrl_reg);
- 			sm501fb_sync_regs(fbi);
- 			mdelay(10);
-@@ -679,14 +689,22 @@ static void sm501fb_panel_power(struct s
- 	} else if (!to && (control & SM501_DC_PANEL_CONTROL_VDD) != 0) {
- 		/* disable panel power */
- 		if (!(pd->flags & SM501FB_FLAG_PANEL_NO_FPEN)) {
--			control &= ~SM501_DC_PANEL_CONTROL_FPEN;
-+			if (pd->flags & SM501FB_FLAG_PANEL_INV_FPEN)
-+				control |= SM501_DC_PANEL_CONTROL_FPEN;
-+			else
-+				control &= ~SM501_DC_PANEL_CONTROL_FPEN;
-+
- 			writel(control, ctrl_reg);
- 			sm501fb_sync_regs(fbi);
- 			mdelay(10);
- 		}
+@@ -142,37 +147,63 @@ static inline void sm501fb_sync_regs(str
+ static int sm501_alloc_mem(struct sm501fb_info *inf, struct sm501_mem *mem,
+ 			   unsigned int why, size_t size)
+ {
+-	unsigned int ptr = 0;
+-	unsigned int end;
++	struct sm501fb_par *par;
+ 	struct fb_info *fbi;
++	unsigned int ptr;
++	unsigned int end;
  
- 		if (!(pd->flags & SM501FB_FLAG_PANEL_NO_VBIASEN)) {
--			control &= ~SM501_DC_PANEL_CONTROL_BIAS;
-+			if (pd->flags & SM501FB_FLAG_PANEL_INV_VBIASEN)
-+				control |= SM501_DC_PANEL_CONTROL_BIAS;
-+			else
-+				control &= ~SM501_DC_PANEL_CONTROL_BIAS;
-+
- 			writel(control, ctrl_reg);
- 			sm501fb_sync_regs(fbi);
- 			mdelay(10);
-diff -puN include/linux/sm501.h~sm501-add-inversion-controls-for-vbiasen-and-fpen include/linux/sm501.h
---- a/include/linux/sm501.h~sm501-add-inversion-controls-for-vbiasen-and-fpen
-+++ a/include/linux/sm501.h
-@@ -73,6 +73,8 @@ extern unsigned long sm501_gpio_get(stru
- #define SM501FB_FLAG_USE_HWACCEL	(1<<3)
- #define SM501FB_FLAG_PANEL_NO_FPEN	(1<<4)
- #define SM501FB_FLAG_PANEL_NO_VBIASEN	(1<<5)
-+#define SM501FB_FLAG_PANEL_INV_FPEN	(1<<6)
-+#define SM501FB_FLAG_PANEL_INV_VBIASEN	(1<<7)
+ 	switch (why) {
+ 	case SM501_MEMF_CURSOR:
+ 		ptr = inf->fbmem_len - size;
+-		inf->fbmem_len = ptr;
++		inf->fbmem_len = ptr;	/* adjust available memory. */
+ 		break;
  
- struct sm501_platdata_fbsub {
- 	struct fb_videomode	*def_mode;
+ 	case SM501_MEMF_PANEL:
+ 		ptr = inf->fbmem_len - size;
+-		fbi = inf->fb[0];
++		fbi = inf->fb[HEAD_CRT];
++
++		/* round down, some programs such as directfb do not draw
++		 * 0,0 correctly unless the start is aligned to a page start.
++		 */
++
++		if (ptr > 0)
++			ptr &= ~(PAGE_SIZE - 1);
+ 
+ 		if (fbi && ptr < fbi->fix.smem_len)
+ 			return -ENOMEM;
+ 
++		if (ptr < 0)
++			return -ENOMEM;
++
+ 		break;
+ 
+ 	case SM501_MEMF_CRT:
+ 		ptr = 0;
++
++		/* check to see if we have panel memory allocated
++		 * which would put an limit on available memory. */
++
++		fbi = inf->fb[HEAD_PANEL];
++		if (fbi) {
++			par = fbi->par;
++			end = par->screen.k_addr ? par->screen.sm_addr : inf->fbmem_len;
++		} else
++			end = inf->fbmem_len;
++
++		if ((ptr + size) > end)
++			return -ENOMEM;
++
+ 		break;
+ 
+ 	case SM501_MEMF_ACCEL:
+-		fbi = inf->fb[0];
++		fbi = inf->fb[HEAD_CRT];
+ 		ptr = fbi ? fbi->fix.smem_len : 0;
+ 
+-		fbi = inf->fb[1];
+-		if (fbi)
+-			end = (fbi->fix.smem_start - inf->fbmem_res->start);
+-		else
++		fbi = inf->fb[HEAD_PANEL];
++		if (fbi) {
++			par = fbi->par;
++			end = par->screen.sm_addr;
++		} else
+ 			end = inf->fbmem_len;
+ 
+ 		if ((ptr + size) > end)
 _
 
 Patches currently in -mm which might be from ben-linux@fluff.org are
