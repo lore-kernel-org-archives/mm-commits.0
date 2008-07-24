@@ -1,75 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: - checkpatch-trailing-statement-indent-fix-end-of-statement-location.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:26:24 -0700
-Message-ID: <200807242326.m6ONQOYU010975@imap1.linux-foundation.org>
+Subject: - checkpatch-condition-loop-indent-checks.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:26:32 -0700
+Message-ID: <200807242326.m6ONQWT1010987@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49965 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42106 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755883AbYGXX0c (ORCPT
+	by vger.kernel.org with ESMTP id S1755853AbYGXX0k (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:26:32 -0400
+	Thu, 24 Jul 2008 19:26:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: apw@shadowen.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     checkpatch: trailing statement indent: fix end of statement location
+     checkpatch: condition/loop indent checks
 has been removed from the -mm tree.  Its filename was
-     checkpatch-trailing-statement-indent-fix-end-of-statement-location.patch
+     checkpatch-condition-loop-indent-checks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: trailing statement indent: fix end of statement location
+Subject: checkpatch: condition/loop indent checks
 From: Andy Whitcroft <apw@shadowen.org>
 
-Fix end of statement location.  Where the last line of the statement is
-replaced we are miss reporting the newly added replacement an incorrectly
-indented trailing statement for the negative context.  We are also
-incorrectly reporting negative statements generally.
+Check to see if the block/statement which a condition or loop introduces
+is indented correctly.
 
 Signed-off-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
+ scripts/checkpatch.pl |   59 +++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 55 insertions(+), 4 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-trailing-statement-indent-fix-end-of-statement-location scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-trailing-statement-indent-fix-end-of-statement-location
+diff -puN scripts/checkpatch.pl~checkpatch-condition-loop-indent-checks scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-condition-loop-indent-checks
 +++ a/scripts/checkpatch.pl
-@@ -1249,17 +1249,22 @@ sub process {
- 			my $pre_ctx = "$1$2";
+@@ -1167,10 +1167,10 @@ sub process {
+ 		}
  
- 			my ($level, @ctx) = ctx_statement_level($linenr, $realcnt, 0);
--			my $ctx_ln = $linenr + $#ctx + 1;
- 			my $ctx_cnt = $realcnt - $#ctx - 1;
- 			my $ctx = join("\n", @ctx);
+ # Check for potential 'bare' types
+-		my ($stat, $cond);
++		my ($stat, $cond, $line_nr_next, $remain_next);
+ 		if ($realcnt && $line =~ /.\s*\S/) {
+-			($stat, $cond) = ctx_statement_block($linenr,
+-								$realcnt, 0);
++			($stat, $cond, $line_nr_next, $remain_next) =
++				ctx_statement_block($linenr, $realcnt, 0);
+ 			$stat =~ s/\n./\n /g;
+ 			$cond =~ s/\n./\n /g;
  
--			##warn "realcnt<$realcnt> ctx_cnt<$ctx_cnt>\n";
-+			my $ctx_ln = $linenr;
-+			my $ctx_skip = $realcnt;
+@@ -1712,7 +1712,8 @@ sub process {
+ 			ERROR("space required before the open parenthesis '('\n" . $herecurr);
+ 		}
  
--			# Skip over any removed lines in the context following statement.
--			while (defined($lines[$ctx_ln - 1]) && $lines[$ctx_ln - 1] =~ /^-/) {
-+			while ($ctx_skip > $ctx_cnt || ($ctx_skip == $ctx_cnt &&
-+					defined $lines[$ctx_ln - 1] &&
-+					$lines[$ctx_ln - 1] =~ /^-/)) {
-+				##print "SKIP<$ctx_skip> CNT<$ctx_cnt>\n";
-+				$ctx_skip-- if (!defined $lines[$ctx_ln - 1] || $lines[$ctx_ln - 1] !~ /^-/);
- 				$ctx_ln++;
+-# Check for illegal assignment in if conditional.
++# Check for illegal assignment in if conditional -- and check for trailing
++# statements after the conditional.
+ 		if ($line =~ /\b(?:if|while|for)\s*\(/ && $line !~ /^.\s*#/) {
+ 			my ($s, $c) = ($stat, $cond);
+ 
+@@ -1732,6 +1733,56 @@ sub process {
  			}
--			##warn "pre<$pre_ctx>\nline<$line>\nctx<$ctx>\nnext<$lines[$ctx_ln - 1]>\n";
-+
-+			##print "realcnt<$realcnt> ctx_cnt<$ctx_cnt>\n";
-+			##print "pre<$pre_ctx>\nline<$line>\nctx<$ctx>\nnext<$lines[$ctx_ln - 1]>\n";
+ 		}
  
- 			if ($ctx !~ /{\s*/ && defined($lines[$ctx_ln -1]) && $lines[$ctx_ln - 1] =~ /^\+\s*{/) {
- 				ERROR("that open brace { should be on the previous line\n" .
++# Check relative indent for conditionals and blocks.
++		if ($line =~ /\b(?:(?:if|while|for)\s*\(|do\b)/ && $line !~ /^.\s*#/ && $line !~ /\}\s*while\s*/) {
++			my ($s, $c) = ($stat, $cond);
++
++			substr($s, 0, length($c), '');
++
++			# Make sure we remove the line prefixes as we have
++			# none on the first line, and are going to readd them
++			# where necessary.
++			$s =~ s/\n./\n/gs;
++
++			# We want to check the first line inside the block
++			# starting at the end of the conditional, so remove:
++			#  1) any blank line termination
++			#  2) any opening brace { on end of the line
++			#  3) any do (...) {
++			my $continuation = 0;
++			my $check = 0;
++			$s =~ s/^.*\bdo\b//;
++			$s =~ s/^\s*{//;
++			if ($s =~ s/^\s*\\//) {
++				$continuation = 1;
++			}
++			if ($s =~ s/^\s*\n//) {
++				$check = 1;
++			}
++
++			# Also ignore a loop construct at the end of a
++			# preprocessor statement.
++			if (($prevline =~ /^.\s*#\s*define\s/ ||
++			    $prevline =~ /\\\s*$/) && $continuation == 0) {
++				$check = 0;
++			}
++
++			# Ignore the current line if its is a preprocessor
++			# line.
++			if ($s =~ /^\s*#\s*/) {
++				$check = 0;
++			}
++
++			my (undef, $sindent) = line_stats("+" . $s);
++
++			##print "line<$line> prevline<$prevline> indent<$indent> sindent<$sindent> check<$check> continuation<$continuation> s<$s>\n";
++
++			if ($check && (($sindent % 8) != 0 ||
++			    ($sindent <= $indent && $s ne ''))) {
++				WARN("suspect code indent for conditional statements\n" . $herecurr);
++			}
++		}
++
+ # Check for bitwise tests written as boolean
+ 		if ($line =~ /
+ 			(?:
 _
 
 Patches currently in -mm which might be from apw@shadowen.org are
