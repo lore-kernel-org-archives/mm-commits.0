@@ -1,87 +1,141 @@
 From: akpm@linux-foundation.org
-Subject: - bootmem-revisit-alloc_bootmem_section.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:24:13 -0700
-Message-ID: <200807242324.m6ONOD8D010764@imap1.linux-foundation.org>
+Subject: - bootmem-free-reserve-helpers.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:24:04 -0700
+Message-ID: <200807242324.m6ONO40H010748@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43485 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37092 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751287AbYGXXYV (ORCPT
+	by vger.kernel.org with ESMTP id S1754902AbYGXXYY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:24:21 -0400
+	Thu, 24 Jul 2008 19:24:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@saeurebad.de, y-goto@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: hannes@saeurebad.de, andi@firstfloor.org, mingo@elte.hu, yhlu.kernel@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bootmem: revisit alloc_bootmem_section
+     bootmem: free/reserve helpers
 has been removed from the -mm tree.  Its filename was
-     bootmem-revisit-alloc_bootmem_section.patch
+     bootmem-free-reserve-helpers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bootmem: revisit alloc_bootmem_section
+Subject: bootmem: free/reserve helpers
 From: Johannes Weiner <hannes@saeurebad.de>
 
-Since alloc_bootmem_core does no goal-fallback anymore and just returns
-NULL if the allocation fails, we might now use it in alloc_bootmem_section
-without all the fixup code for a misplaced allocation.
+Factor out the common operation of marking a range on the bitmap.
 
-Also, the limit can be the first PFN of the next section as the semantics
-is that the limit is _above_ the allocated region, not within.
-
+[akpm@linux-foundation.org: fix various warnings]
 Signed-off-by: Johannes Weiner <hannes@saeurebad.de>
-Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Yinghai Lu <yhlu.kernel@gmail.com>
+Cc: Andi Kleen <andi@firstfloor.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/bootmem.c |   27 ++++++---------------------
- 1 file changed, 6 insertions(+), 21 deletions(-)
+ mm/bootmem.c |   65 ++++++++++++++++++++++++++++++++-----------------
+ 1 file changed, 43 insertions(+), 22 deletions(-)
 
-diff -puN mm/bootmem.c~bootmem-revisit-alloc_bootmem_section mm/bootmem.c
---- a/mm/bootmem.c~bootmem-revisit-alloc_bootmem_section
+diff -puN mm/bootmem.c~bootmem-free-reserve-helpers mm/bootmem.c
+--- a/mm/bootmem.c~bootmem-free-reserve-helpers
 +++ a/mm/bootmem.c
-@@ -632,30 +632,15 @@ void * __init __alloc_bootmem_node(pg_da
- void * __init alloc_bootmem_section(unsigned long size,
- 				    unsigned long section_nr)
- {
--	void *ptr;
--	unsigned long limit, goal, start_nr, end_nr, pfn;
--	struct pglist_data *pgdat;
-+	bootmem_data_t *bdata;
-+	unsigned long pfn, goal, limit;
- 
- 	pfn = section_nr_to_pfn(section_nr);
--	goal = PFN_PHYS(pfn);
--	limit = PFN_PHYS(section_nr_to_pfn(section_nr + 1)) - 1;
--	pgdat = NODE_DATA(early_pfn_to_nid(pfn));
--	ptr = alloc_bootmem_core(pgdat->bdata, size, SMP_CACHE_BYTES, goal,
--				limit);
--
--	if (!ptr)
--		return NULL;
--
--	start_nr = pfn_to_section_nr(PFN_DOWN(__pa(ptr)));
--	end_nr = pfn_to_section_nr(PFN_DOWN(__pa(ptr) + size));
--	if (start_nr != section_nr || end_nr != section_nr) {
--		printk(KERN_WARNING "alloc_bootmem failed on section %ld.\n",
--		       section_nr);
--		free_bootmem_node(pgdat, __pa(ptr), size);
--		ptr = NULL;
--	}
-+	goal = pfn << PAGE_SHIFT;
-+	limit = section_nr_to_pfn(section_nr + 1) << PAGE_SHIFT;
-+	bdata = &bootmem_node_data[early_pfn_to_nid(pfn)];
- 
--	return ptr;
-+	return alloc_bootmem_core(bdata, size, SMP_CACHE_BYTES, goal, limit);
+@@ -225,6 +225,44 @@ unsigned long __init free_all_bootmem(vo
+ 	return free_all_bootmem_core(NODE_DATA(0)->bdata);
  }
- #endif
  
++static void __init __free(bootmem_data_t *bdata,
++			unsigned long sidx, unsigned long eidx)
++{
++	unsigned long idx;
++
++	bdebug("nid=%td start=%lx end=%lx\n", bdata - bootmem_node_data,
++		sidx + PFN_DOWN(bdata->node_boot_start),
++		eidx + PFN_DOWN(bdata->node_boot_start));
++
++	for (idx = sidx; idx < eidx; idx++)
++		if (!test_and_clear_bit(idx, bdata->node_bootmem_map))
++			BUG();
++}
++
++static int __init __reserve(bootmem_data_t *bdata, unsigned long sidx,
++			unsigned long eidx, int flags)
++{
++	unsigned long idx;
++	int exclusive = flags & BOOTMEM_EXCLUSIVE;
++
++	bdebug("nid=%td start=%lx end=%lx flags=%x\n",
++		bdata - bootmem_node_data,
++		sidx + PFN_DOWN(bdata->node_boot_start),
++		eidx + PFN_DOWN(bdata->node_boot_start),
++		flags);
++
++	for (idx = sidx; idx < eidx; idx++)
++		if (test_and_set_bit(idx, bdata->node_bootmem_map)) {
++			if (exclusive) {
++				__free(bdata, sidx, idx);
++				return -EBUSY;
++			}
++			bdebug("silent double reserve of PFN %lx\n",
++				idx + PFN_DOWN(bdata->node_boot_start));
++		}
++	return 0;
++}
++
+ static void __init free_bootmem_core(bootmem_data_t *bdata, unsigned long addr,
+ 				     unsigned long size)
+ {
+@@ -258,14 +296,7 @@ static void __init free_bootmem_core(boo
+ 	if (eidx > bdata->node_low_pfn - PFN_DOWN(bdata->node_boot_start))
+ 		eidx = bdata->node_low_pfn - PFN_DOWN(bdata->node_boot_start);
+ 
+-	bdebug("nid=%td start=%lx end=%lx\n", bdata - bootmem_node_data,
+-		sidx + PFN_DOWN(bdata->node_boot_start),
+-		eidx + PFN_DOWN(bdata->node_boot_start));
+-
+-	for (i = sidx; i < eidx; i++) {
+-		if (unlikely(!test_and_clear_bit(i, bdata->node_bootmem_map)))
+-			BUG();
+-	}
++	__free(bdata, sidx, eidx);
+ }
+ 
+ /**
+@@ -367,16 +398,7 @@ static void __init reserve_bootmem_core(
+ 	if (eidx > bdata->node_low_pfn - PFN_DOWN(bdata->node_boot_start))
+ 		eidx = bdata->node_low_pfn - PFN_DOWN(bdata->node_boot_start);
+ 
+-	bdebug("nid=%td start=%lx end=%lx flags=%x\n",
+-		bdata - bootmem_node_data,
+-		sidx + PFN_DOWN(bdata->node_boot_start),
+-		eidx + PFN_DOWN(bdata->node_boot_start),
+-		flags);
+-
+-	for (i = sidx; i < eidx; i++)
+-		if (test_and_set_bit(i, bdata->node_bootmem_map))
+-			bdebug("hm, page %lx reserved twice.\n",
+-				PFN_DOWN(bdata->node_boot_start) + i);
++	return __reserve(bdata, sidx, eidx, flags);
+ }
+ 
+ /**
+@@ -511,10 +533,9 @@ find_block:
+ 		/*
+ 		 * Reserve the area now:
+ 		 */
+-		for (i = PFN_DOWN(start_off) + merge;
+-				i < PFN_UP(end_off); i++)
+-			if (test_and_set_bit(i, bdata->node_bootmem_map))
+-				BUG();
++		if (__reserve(bdata, PFN_DOWN(start_off) + merge,
++				PFN_UP(end_off), BOOTMEM_EXCLUSIVE))
++			BUG();
+ 
+ 		region = phys_to_virt(bdata->node_boot_start + start_off);
+ 		memset(region, 0, size);
 _
 
 Patches currently in -mm which might be from hannes@saeurebad.de are
