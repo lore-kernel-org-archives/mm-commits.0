@@ -1,78 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: - hugetlb-factor-out-prep_new_huge_page.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:22:55 -0700
-Message-ID: <200807242322.m6ONMtMo010606@imap1.linux-foundation.org>
+Subject: - mm-introduce-non-panic-alloc_bootmem.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:23:09 -0700
+Message-ID: <200807242323.m6ONN9KE010631@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44670 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40915 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753368AbYGXXXE (ORCPT
+	by vger.kernel.org with ESMTP id S1753458AbYGXXXN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:23:04 -0400
+	Thu, 24 Jul 2008 19:23:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, agl@us.ibm.com, ak@suse.de, nacc@us.ibm.com, mm-commits@vger.kernel.org
+To: npiggin@suse.de, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hugetlb: factor out prep_new_huge_page
+     mm: introduce non panic alloc_bootmem
 has been removed from the -mm tree.  Its filename was
-     hugetlb-factor-out-prep_new_huge_page.patch
+     mm-introduce-non-panic-alloc_bootmem.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlb: factor out prep_new_huge_page
+Subject: mm: introduce non panic alloc_bootmem
 From: Nick Piggin <npiggin@suse.de>
 
-Needed to avoid code duplication in follow up patches.
+Straight forward variant of the existing __alloc_bootmem_node, only
+subsequent patch when allocating giant hugepages at boot -- don't want to
+panic if we can't allocate as many as the user asked for.
 
-Acked-by: Adam Litke <agl@us.ibm.com>
-Acked-by: Nishanth Aravamudan <nacc@us.ibm.com>
 Signed-off-by: Andi Kleen <ak@suse.de>
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   17 +++++++++++------
- 1 file changed, 11 insertions(+), 6 deletions(-)
+ include/linux/bootmem.h |    4 ++++
+ mm/bootmem.c            |   12 ++++++++++++
+ 2 files changed, 16 insertions(+)
 
-diff -puN mm/hugetlb.c~hugetlb-factor-out-prep_new_huge_page mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-factor-out-prep_new_huge_page
-+++ a/mm/hugetlb.c
-@@ -513,6 +513,16 @@ static int adjust_pool_surplus(int delta
- 	return ret;
+diff -puN include/linux/bootmem.h~mm-introduce-non-panic-alloc_bootmem include/linux/bootmem.h
+--- a/include/linux/bootmem.h~mm-introduce-non-panic-alloc_bootmem
++++ a/include/linux/bootmem.h
+@@ -89,6 +89,10 @@ extern void *__alloc_bootmem_node(pg_dat
+ 				  unsigned long size,
+ 				  unsigned long align,
+ 				  unsigned long goal);
++extern void *__alloc_bootmem_node_nopanic(pg_data_t *pgdat,
++				  unsigned long size,
++				  unsigned long align,
++				  unsigned long goal);
+ extern unsigned long init_bootmem_node(pg_data_t *pgdat,
+ 				       unsigned long freepfn,
+ 				       unsigned long startpfn,
+diff -puN mm/bootmem.c~mm-introduce-non-panic-alloc_bootmem mm/bootmem.c
+--- a/mm/bootmem.c~mm-introduce-non-panic-alloc_bootmem
++++ a/mm/bootmem.c
+@@ -578,6 +578,18 @@ void * __init alloc_bootmem_section(unsi
  }
+ #endif
  
-+static void prep_new_huge_page(struct page *page, int nid)
++void * __init __alloc_bootmem_node_nopanic(pg_data_t *pgdat, unsigned long size,
++				   unsigned long align, unsigned long goal)
 +{
-+	set_compound_page_dtor(page, free_huge_page);
-+	spin_lock(&hugetlb_lock);
-+	nr_huge_pages++;
-+	nr_huge_pages_node[nid]++;
-+	spin_unlock(&hugetlb_lock);
-+	put_page(page); /* free it into the hugepage allocator */
++	void *ptr;
++
++	ptr = alloc_bootmem_core(pgdat->bdata, size, align, goal, 0);
++	if (ptr)
++		return ptr;
++
++	return __alloc_bootmem_nopanic(size, align, goal);
 +}
 +
- static struct page *alloc_fresh_huge_page_node(int nid)
- {
- 	struct page *page;
-@@ -526,12 +536,7 @@ static struct page *alloc_fresh_huge_pag
- 			__free_pages(page, HUGETLB_PAGE_ORDER);
- 			return NULL;
- 		}
--		set_compound_page_dtor(page, free_huge_page);
--		spin_lock(&hugetlb_lock);
--		nr_huge_pages++;
--		nr_huge_pages_node[nid]++;
--		spin_unlock(&hugetlb_lock);
--		put_page(page); /* free it into the hugepage allocator */
-+		prep_new_huge_page(page, nid);
- 	}
- 
- 	return page;
+ #ifndef ARCH_LOW_ADDRESS_LIMIT
+ #define ARCH_LOW_ADDRESS_LIMIT	0xffffffffUL
+ #endif
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
