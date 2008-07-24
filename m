@@ -1,177 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: - ecryptfs-cryptoc-use-unaligned-byteorder-helpers.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:28:57 -0700
-Message-ID: <200807242328.m6ONSv4j011322@imap1.linux-foundation.org>
+Subject: - ecryptfs-propagate-key-errors-up-at-mount-time.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:28:53 -0700
+Message-ID: <200807242328.m6ONSrDb011313@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56301 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52809 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757174AbYGXXe3 (ORCPT
+	by vger.kernel.org with ESMTP id S1756872AbYGXXen (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:34:29 -0400
+	Thu, 24 Jul 2008 19:34:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
+To: sandeen@redhat.com, jtluka@redhat.com, mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ecryptfs: crypto.c use unaligned byteorder helpers
+     ecryptfs: propagate key errors up at mount time
 has been removed from the -mm tree.  Its filename was
-     ecryptfs-cryptoc-use-unaligned-byteorder-helpers.patch
+     ecryptfs-propagate-key-errors-up-at-mount-time.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ecryptfs: crypto.c use unaligned byteorder helpers
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: ecryptfs: propagate key errors up at mount time
+From: Eric Sandeen <sandeen@redhat.com>
 
-Fixes the following sparse warnings:
-fs/ecryptfs/crypto.c:1036:8: warning: cast to restricted __be32
-fs/ecryptfs/crypto.c:1038:8: warning: cast to restricted __be32
-fs/ecryptfs/crypto.c:1077:10: warning: cast to restricted __be32
-fs/ecryptfs/crypto.c:1103:6: warning: incorrect type in assignment (different base types)
-fs/ecryptfs/crypto.c:1105:6: warning: incorrect type in assignment (different base types)
-fs/ecryptfs/crypto.c:1124:8: warning: incorrect type in assignment (different base types)
-fs/ecryptfs/crypto.c:1241:21: warning: incorrect type in assignment (different base types)
-fs/ecryptfs/crypto.c:1244:30: warning: incorrect type in assignment (different base types)
-fs/ecryptfs/crypto.c:1414:23: warning: cast to restricted __be32
-fs/ecryptfs/crypto.c:1417:32: warning: cast to restricted __be16
+Mounting with invalid key signatures should probably fail, if they were
+specifically requested but not available.
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Michael Halcrow <mhalcrow@us.ibm.com>
+Also fix case checks in process_request_key_err() for the right sign of
+the errnos, as spotted by Jan Tluka.
+
+Signed-off-by: Eric Sandeen <sandeen@redhat.com>
+Reviewed-by: Jan Tluka <jtluka@redhat.com>
+Acked-by: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/crypto.c |   37 ++++++++++++++-----------------------
- 1 file changed, 14 insertions(+), 23 deletions(-)
+ fs/ecryptfs/keystore.c |    9 ++++-----
+ fs/ecryptfs/main.c     |    4 ++--
+ 2 files changed, 6 insertions(+), 7 deletions(-)
 
-diff -puN fs/ecryptfs/crypto.c~ecryptfs-cryptoc-use-unaligned-byteorder-helpers fs/ecryptfs/crypto.c
---- a/fs/ecryptfs/crypto.c~ecryptfs-cryptoc-use-unaligned-byteorder-helpers
-+++ a/fs/ecryptfs/crypto.c
-@@ -33,6 +33,7 @@
- #include <linux/crypto.h>
- #include <linux/file.h>
- #include <linux/scatterlist.h>
-+#include <asm/unaligned.h>
- #include "ecryptfs_kernel.h"
+diff -puN fs/ecryptfs/keystore.c~ecryptfs-propagate-key-errors-up-at-mount-time fs/ecryptfs/keystore.c
+--- a/fs/ecryptfs/keystore.c~ecryptfs-propagate-key-errors-up-at-mount-time
++++ a/fs/ecryptfs/keystore.c
+@@ -44,15 +44,15 @@ static int process_request_key_err(long 
+ 	int rc = 0;
  
- static int
-@@ -1032,10 +1033,8 @@ static int contains_ecryptfs_marker(char
- {
- 	u32 m_1, m_2;
- 
--	memcpy(&m_1, data, 4);
--	m_1 = be32_to_cpu(m_1);
--	memcpy(&m_2, (data + 4), 4);
--	m_2 = be32_to_cpu(m_2);
-+	m_1 = get_unaligned_be32(data);
-+	m_2 = get_unaligned_be32(data + 4);
- 	if ((m_1 ^ MAGIC_ECRYPTFS_MARKER) == m_2)
- 		return 1;
- 	ecryptfs_printk(KERN_DEBUG, "m_1 = [0x%.8x]; m_2 = [0x%.8x]; "
-@@ -1073,8 +1072,7 @@ static int ecryptfs_process_flags(struct
- 	int i;
- 	u32 flags;
- 
--	memcpy(&flags, page_virt, 4);
--	flags = be32_to_cpu(flags);
-+	flags = get_unaligned_be32(page_virt);
- 	for (i = 0; i < ((sizeof(ecryptfs_flag_map)
- 			  / sizeof(struct ecryptfs_flag_map_elem))); i++)
- 		if (flags & ecryptfs_flag_map[i].file_flag) {
-@@ -1100,11 +1098,9 @@ static void write_ecryptfs_marker(char *
- 
- 	get_random_bytes(&m_1, (MAGIC_ECRYPTFS_MARKER_SIZE_BYTES / 2));
- 	m_2 = (m_1 ^ MAGIC_ECRYPTFS_MARKER);
--	m_1 = cpu_to_be32(m_1);
--	memcpy(page_virt, &m_1, (MAGIC_ECRYPTFS_MARKER_SIZE_BYTES / 2));
--	m_2 = cpu_to_be32(m_2);
--	memcpy(page_virt + (MAGIC_ECRYPTFS_MARKER_SIZE_BYTES / 2), &m_2,
--	       (MAGIC_ECRYPTFS_MARKER_SIZE_BYTES / 2));
-+	put_unaligned_be32(m_1, page_virt);
-+	page_virt += (MAGIC_ECRYPTFS_MARKER_SIZE_BYTES / 2);
-+	put_unaligned_be32(m_2, page_virt);
- 	(*written) = MAGIC_ECRYPTFS_MARKER_SIZE_BYTES;
+ 	switch (err_code) {
+-	case ENOKEY:
++	case -ENOKEY:
+ 		ecryptfs_printk(KERN_WARNING, "No key\n");
+ 		rc = -ENOENT;
+ 		break;
+-	case EKEYEXPIRED:
++	case -EKEYEXPIRED:
+ 		ecryptfs_printk(KERN_WARNING, "Key expired\n");
+ 		rc = -ETIME;
+ 		break;
+-	case EKEYREVOKED:
++	case -EKEYREVOKED:
+ 		ecryptfs_printk(KERN_WARNING, "Key revoked\n");
+ 		rc = -EINVAL;
+ 		break;
+@@ -963,8 +963,7 @@ int ecryptfs_keyring_auth_tok_for_sig(st
+ 	if (!(*auth_tok_key) || IS_ERR(*auth_tok_key)) {
+ 		printk(KERN_ERR "Could not find key with description: [%s]\n",
+ 		       sig);
+-		process_request_key_err(PTR_ERR(*auth_tok_key));
+-		rc = -EINVAL;
++		rc = process_request_key_err(PTR_ERR(*auth_tok_key));
+ 		goto out;
+ 	}
+ 	(*auth_tok) = ecryptfs_get_key_payload_data(*auth_tok_key);
+diff -puN fs/ecryptfs/main.c~ecryptfs-propagate-key-errors-up-at-mount-time fs/ecryptfs/main.c
+--- a/fs/ecryptfs/main.c~ecryptfs-propagate-key-errors-up-at-mount-time
++++ a/fs/ecryptfs/main.c
+@@ -248,10 +248,11 @@ static int ecryptfs_init_global_auth_tok
+ 			       "session keyring for sig specified in mount "
+ 			       "option: [%s]\n", global_auth_tok->sig);
+ 			global_auth_tok->flags |= ECRYPTFS_AUTH_TOK_INVALID;
+-			rc = 0;
++			goto out;
+ 		} else
+ 			global_auth_tok->flags &= ~ECRYPTFS_AUTH_TOK_INVALID;
+ 	}
++out:
+ 	return rc;
  }
  
-@@ -1121,8 +1117,7 @@ write_ecryptfs_flags(char *page_virt, st
- 			flags |= ecryptfs_flag_map[i].file_flag;
- 	/* Version is in top 8 bits of the 32-bit flag vector */
- 	flags |= ((((u8)crypt_stat->file_version) << 24) & 0xFF000000);
--	flags = cpu_to_be32(flags);
--	memcpy(page_virt, &flags, 4);
-+	put_unaligned_be32(flags, page_virt);
- 	(*written) = 4;
+@@ -416,7 +417,6 @@ static int ecryptfs_parse_options(struct
+ 		printk(KERN_WARNING "One or more global auth toks could not "
+ 		       "properly register; rc = [%d]\n", rc);
+ 	}
+-	rc = 0;
+ out:
+ 	return rc;
  }
- 
-@@ -1238,11 +1233,9 @@ ecryptfs_write_header_metadata(char *vir
- 	num_header_extents_at_front =
- 		(u16)(crypt_stat->num_header_bytes_at_front
- 		      / crypt_stat->extent_size);
--	header_extent_size = cpu_to_be32(header_extent_size);
--	memcpy(virt, &header_extent_size, 4);
-+	put_unaligned_be32(header_extent_size, virt);
- 	virt += 4;
--	num_header_extents_at_front = cpu_to_be16(num_header_extents_at_front);
--	memcpy(virt, &num_header_extents_at_front, 2);
-+	put_unaligned_be16(num_header_extents_at_front, virt);
- 	(*written) = 6;
- }
- 
-@@ -1410,15 +1403,13 @@ static int parse_header_metadata(struct 
- 	u32 header_extent_size;
- 	u16 num_header_extents_at_front;
- 
--	memcpy(&header_extent_size, virt, sizeof(u32));
--	header_extent_size = be32_to_cpu(header_extent_size);
--	virt += sizeof(u32);
--	memcpy(&num_header_extents_at_front, virt, sizeof(u16));
--	num_header_extents_at_front = be16_to_cpu(num_header_extents_at_front);
-+	header_extent_size = get_unaligned_be32(virt);
-+	virt += sizeof(__be32);
-+	num_header_extents_at_front = get_unaligned_be16(virt);
- 	crypt_stat->num_header_bytes_at_front =
- 		(((size_t)num_header_extents_at_front
- 		  * (size_t)header_extent_size));
--	(*bytes_read) = (sizeof(u32) + sizeof(u16));
-+	(*bytes_read) = (sizeof(__be32) + sizeof(__be16));
- 	if ((validate_header_size == ECRYPTFS_VALIDATE_HEADER_SIZE)
- 	    && (crypt_stat->num_header_bytes_at_front
- 		< ECRYPTFS_MINIMUM_HEADER_EXTENT_SIZE)) {
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from sandeen@redhat.com are
 
 origin.patch
 linux-next.patch
-cifs-remove-global_extern-macro.patch
-input-ads7846c-sparse-lock-annotation.patch
-mtd-diskonchipc-fix-sparse-endian-warnings.patch
-scsi-replace-remaining-__function__-occurrences.patch
-fusion-replace-remaining-__function__-occurrences.patch
-scsi-replace-__inline-with-inline.patch
-scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
-scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-scsi-gdthc-use-unaligned-access-helpers-checkpatch-fixes.patch
-xfs-use-get_unaligned_-helpers.patch
-xtensa-replace-remaining-__function__-occurences.patch
-fs-ldm-use-get_unaligned_-helpers.patch
-include-use-get-put_unaligned_-helpers.patch
-lzo-use-get-put_unaligned_-helpers.patch
-asm-generic-int-ll64h-always-provide-__su64.patch
-olpc-olpc_batteryc-sparse-endian-annotations.patch
-markers-fix-sparse-integer-as-null-pointer-warning.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-isdn-use-the-common-ascii-hex-helpers.patch
-net-use-the-common-ascii-hex-helpers.patch
-cris-use-the-common-ascii-hex-helpers.patch
-frv-use-the-common-ascii-hex-helpers.patch
-ppc-use-the-common-ascii-hex-helpers.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-mn10300-use-the-common-ascii-hex-helpers.patch
-byteorder-add-a-new-include-linux-swabh-to-define-byteswapping-functions.patch
-byteorder-add-include-linux-byteorderh-to-define-endian-helpers.patch
+find-dynamic-stack-allocations-in-checkstackpl.patch
+fix-checkstackpl-arch-detection.patch
 
