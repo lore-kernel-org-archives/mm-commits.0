@@ -1,162 +1,418 @@
 From: akpm@linux-foundation.org
-Subject: - flag-parameters-timerfd_create.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:27:23 -0700
-Message-ID: <200807242327.m6ONRNjt011160@imap1.linux-foundation.org>
+Subject: - ecryptfs-privileged-kthread-for-lower-file-opens.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:28:48 -0700
+Message-ID: <200807242328.m6ONSm3f011307@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40539 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46249 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756240AbYGXX3Z (ORCPT
+	by vger.kernel.org with ESMTP id S1756813AbYGXX3m (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:29:25 -0400
+	Thu, 24 Jul 2008 19:29:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: drepper@redhat.com, davidel@xmailserver.org, mtk.manpages@googlemail.com, mm-commits@vger.kernel.org
+To: mhalcrow@us.ibm.com, sandeen@redhat.com, serue@us.ibm.com, shaggy@austin.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     flag parameters: timerfd_create
+     eCryptfs: Privileged kthread for lower file opens
 has been removed from the -mm tree.  Its filename was
-     flag-parameters-timerfd_create.patch
+     ecryptfs-privileged-kthread-for-lower-file-opens.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: flag parameters: timerfd_create
-From: Ulrich Drepper <drepper@redhat.com>
+Subject: eCryptfs: Privileged kthread for lower file opens
+From: Michael Halcrow <mhalcrow@us.ibm.com>
 
-The timerfd_create syscall already has a flags parameter.  It just is
-unused so far.  This patch changes this by introducing the TFD_CLOEXEC
-flag to set the close-on-exec flag for the returned file descriptor.
+eCryptfs would really like to have read-write access to all files in the
+lower filesystem.  Right now, the persistent lower file may be opened
+read-only if the attempt to open it read-write fails.  One way to keep
+from having to do that is to have a privileged kthread that can open the
+lower persistent file on behalf of the user opening the eCryptfs file;
+this patch implements this functionality.
 
-A new name TFD_CLOEXEC is introduced which in this implementation must
-have the same value as O_CLOEXEC.
+This patch will properly allow a less-privileged user to open the eCryptfs
+file, followed by a more-privileged user opening the eCryptfs file, with
+the first user only being able to read and the second user being able to
+both read and write.  eCryptfs currently does this wrong; it will wind up
+calling vfs_write() on a file that was opened read-only.  This is fixed in
+this patch.
 
-The following test must be adjusted for architectures other than x86 and
-x86-64 and in case the syscall numbers changed.
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#include <fcntl.h>
-#include <stdio.h>
-#include <time.h>
-#include <unistd.h>
-#include <sys/syscall.h>
-
-#ifndef __NR_timerfd_create
-# ifdef __x86_64__
-#  define __NR_timerfd_create 283
-# elif defined __i386__
-#  define __NR_timerfd_create 322
-# else
-#  error "need __NR_timerfd_create"
-# endif
-#endif
-
-#define TFD_CLOEXEC O_CLOEXEC
-
-int
-main (void)
-{
-  int fd = syscall (__NR_timerfd_create, CLOCK_REALTIME, 0);
-  if (fd == -1)
-    {
-      puts ("timerfd_create(0) failed");
-      return 1;
-    }
-  int coe = fcntl (fd, F_GETFD);
-  if (coe == -1)
-    {
-      puts ("fcntl failed");
-      return 1;
-    }
-  if (coe & FD_CLOEXEC)
-    {
-      puts ("timerfd_create(0) set close-on-exec flag");
-      return 1;
-    }
-  close (fd);
-
-  fd = syscall (__NR_timerfd_create, CLOCK_REALTIME, TFD_CLOEXEC);
-  if (fd == -1)
-    {
-      puts ("timerfd_create(TFD_CLOEXEC) failed");
-      return 1;
-    }
-  coe = fcntl (fd, F_GETFD);
-  if (coe == -1)
-    {
-      puts ("fcntl failed");
-      return 1;
-    }
-  if ((coe & FD_CLOEXEC) == 0)
-    {
-      puts ("timerfd_create(TFD_CLOEXEC) set close-on-exec flag");
-      return 1;
-    }
-  close (fd);
-
-  puts ("OK");
-
-  return 0;
-}
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Signed-off-by: Ulrich Drepper <drepper@redhat.com>
-Acked-by: Davide Libenzi <davidel@xmailserver.org>
-Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
+Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
+Cc: Dave Kleikamp <shaggy@austin.ibm.com>
+Cc: Serge Hallyn <serue@us.ibm.com>
+Cc: Eric Sandeen <sandeen@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/timerfd.c            |    5 +++--
- include/linux/timerfd.h |    5 +++++
- 2 files changed, 8 insertions(+), 2 deletions(-)
+ fs/ecryptfs/Makefile          |    2 
+ fs/ecryptfs/ecryptfs_kernel.h |   19 ++
+ fs/ecryptfs/file.c            |    7 +
+ fs/ecryptfs/kthread.c         |  203 ++++++++++++++++++++++++++++++++
+ fs/ecryptfs/main.c            |   42 +++---
+ 5 files changed, 251 insertions(+), 22 deletions(-)
 
-diff -puN fs/timerfd.c~flag-parameters-timerfd_create fs/timerfd.c
---- a/fs/timerfd.c~flag-parameters-timerfd_create
-+++ a/fs/timerfd.c
-@@ -184,7 +184,7 @@ asmlinkage long sys_timerfd_create(int c
- 	int ufd;
- 	struct timerfd_ctx *ctx;
+diff -puN fs/ecryptfs/Makefile~ecryptfs-privileged-kthread-for-lower-file-opens fs/ecryptfs/Makefile
+--- a/fs/ecryptfs/Makefile~ecryptfs-privileged-kthread-for-lower-file-opens
++++ a/fs/ecryptfs/Makefile
+@@ -4,4 +4,4 @@
  
--	if (flags)
-+	if (flags & ~TFD_CLOEXEC)
- 		return -EINVAL;
- 	if (clockid != CLOCK_MONOTONIC &&
- 	    clockid != CLOCK_REALTIME)
-@@ -198,7 +198,8 @@ asmlinkage long sys_timerfd_create(int c
- 	ctx->clockid = clockid;
- 	hrtimer_init(&ctx->tmr, clockid, HRTIMER_MODE_ABS);
+ obj-$(CONFIG_ECRYPT_FS) += ecryptfs.o
  
--	ufd = anon_inode_getfd("[timerfd]", &timerfd_fops, ctx, 0);
-+	ufd = anon_inode_getfd("[timerfd]", &timerfd_fops, ctx,
-+			       flags & O_CLOEXEC);
- 	if (ufd < 0)
- 		kfree(ctx);
+-ecryptfs-objs := dentry.o file.o inode.o main.o super.o mmap.o read_write.o crypto.o keystore.o messaging.o netlink.o miscdev.o debug.o
++ecryptfs-objs := dentry.o file.o inode.o main.o super.o mmap.o read_write.o crypto.o keystore.o messaging.o netlink.o miscdev.o kthread.o debug.o
+diff -puN fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-privileged-kthread-for-lower-file-opens fs/ecryptfs/ecryptfs_kernel.h
+--- a/fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-privileged-kthread-for-lower-file-opens
++++ a/fs/ecryptfs/ecryptfs_kernel.h
+@@ -559,6 +559,20 @@ extern struct kmem_cache *ecryptfs_key_r
+ extern struct kmem_cache *ecryptfs_key_sig_cache;
+ extern struct kmem_cache *ecryptfs_global_auth_tok_cache;
+ extern struct kmem_cache *ecryptfs_key_tfm_cache;
++extern struct kmem_cache *ecryptfs_open_req_cache;
++
++struct ecryptfs_open_req {
++#define ECRYPTFS_REQ_PROCESSED 0x00000001
++#define ECRYPTFS_REQ_DROPPED   0x00000002
++#define ECRYPTFS_REQ_ZOMBIE    0x00000004
++	u32 flags;
++	struct file **lower_file;
++	struct dentry *lower_dentry;
++	struct vfsmount *lower_mnt;
++	wait_queue_head_t wait;
++	struct mutex mux;
++	struct list_head kthread_ctl_list;
++};
  
-diff -puN include/linux/timerfd.h~flag-parameters-timerfd_create include/linux/timerfd.h
---- a/include/linux/timerfd.h~flag-parameters-timerfd_create
-+++ a/include/linux/timerfd.h
-@@ -8,9 +8,14 @@
- #ifndef _LINUX_TIMERFD_H
- #define _LINUX_TIMERFD_H
+ int ecryptfs_interpose(struct dentry *hidden_dentry,
+ 		       struct dentry *this_dentry, struct super_block *sb,
+@@ -690,5 +704,10 @@ void ecryptfs_msg_ctx_alloc_to_free(stru
+ int
+ ecryptfs_spawn_daemon(struct ecryptfs_daemon **daemon, uid_t euid,
+ 		      struct user_namespace *user_ns, struct pid *pid);
++int ecryptfs_init_kthread(void);
++void ecryptfs_destroy_kthread(void);
++int ecryptfs_privileged_open(struct file **lower_file,
++			     struct dentry *lower_dentry,
++			     struct vfsmount *lower_mnt);
  
-+/* For O_CLOEXEC */
-+#include <linux/fcntl.h>
+ #endif /* #ifndef ECRYPTFS_KERNEL_H */
+diff -puN fs/ecryptfs/file.c~ecryptfs-privileged-kthread-for-lower-file-opens fs/ecryptfs/file.c
+--- a/fs/ecryptfs/file.c~ecryptfs-privileged-kthread-for-lower-file-opens
++++ a/fs/ecryptfs/file.c
+@@ -192,6 +192,13 @@ static int ecryptfs_open(struct inode *i
+ 				      | ECRYPTFS_ENCRYPTED);
+ 	}
+ 	mutex_unlock(&crypt_stat->cs_mutex);
++	if ((ecryptfs_inode_to_private(inode)->lower_file->f_flags & O_RDONLY)
++	    && !(file->f_flags & O_RDONLY)) {
++		rc = -EPERM;
++		printk(KERN_WARNING "%s: Lower persistent file is RO; eCryptfs "
++		       "file must hence be opened RO\n", __func__);
++		goto out;
++	}
+ 	ecryptfs_set_file_lower(
+ 		file, ecryptfs_inode_to_private(inode)->lower_file);
+ 	if (S_ISDIR(ecryptfs_dentry->d_inode->i_mode)) {
+diff -puN /dev/null fs/ecryptfs/kthread.c
+--- /dev/null
++++ a/fs/ecryptfs/kthread.c
+@@ -0,0 +1,203 @@
++/**
++ * eCryptfs: Linux filesystem encryption layer
++ *
++ * Copyright (C) 2008 International Business Machines Corp.
++ *   Author(s): Michael A. Halcrow <mahalcro@us.ibm.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation; either version 2 of the
++ * License, or (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
++ * 02111-1307, USA.
++ */
++
++#include <linux/kthread.h>
++#include <linux/freezer.h>
++#include <linux/wait.h>
++#include <linux/mount.h>
++#include "ecryptfs_kernel.h"
++
++struct kmem_cache *ecryptfs_open_req_cache;
++
++static struct ecryptfs_kthread_ctl {
++#define ECRYPTFS_KTHREAD_ZOMBIE 0x00000001
++	u32 flags;
++	struct mutex mux;
++	struct list_head req_list;
++	wait_queue_head_t wait;
++} ecryptfs_kthread_ctl;
++
++static struct task_struct *ecryptfs_kthread;
++
++/**
++ * ecryptfs_threadfn
++ * @ignored: ignored
++ *
++ * The eCryptfs kernel thread that has the responsibility of getting
++ * the lower persistent file with RW permissions.
++ *
++ * Returns zero on success; non-zero otherwise
++ */
++static int ecryptfs_threadfn(void *ignored)
++{
++	set_freezable();
++	while (1)  {
++		struct ecryptfs_open_req *req;
++
++		wait_event_freezable(
++			ecryptfs_kthread_ctl.wait,
++			(!list_empty(&ecryptfs_kthread_ctl.req_list)
++			 || kthread_should_stop()));
++		mutex_lock(&ecryptfs_kthread_ctl.mux);
++		if (ecryptfs_kthread_ctl.flags & ECRYPTFS_KTHREAD_ZOMBIE) {
++			mutex_unlock(&ecryptfs_kthread_ctl.mux);
++			goto out;
++		}
++		while (!list_empty(&ecryptfs_kthread_ctl.req_list)) {
++			req = list_first_entry(&ecryptfs_kthread_ctl.req_list,
++					       struct ecryptfs_open_req,
++					       kthread_ctl_list);
++			mutex_lock(&req->mux);
++			list_del(&req->kthread_ctl_list);
++			if (!(req->flags & ECRYPTFS_REQ_ZOMBIE)) {
++				dget(req->lower_dentry);
++				mntget(req->lower_mnt);
++				(*req->lower_file) = dentry_open(
++					req->lower_dentry, req->lower_mnt,
++					(O_RDWR | O_LARGEFILE));
++				req->flags |= ECRYPTFS_REQ_PROCESSED;
++			}
++			wake_up(&req->wait);
++			mutex_unlock(&req->mux);
++		}
++		mutex_unlock(&ecryptfs_kthread_ctl.mux);
++	}
++out:
++	return 0;
++}
++
++int ecryptfs_init_kthread(void)
++{
++	int rc = 0;
++
++	mutex_init(&ecryptfs_kthread_ctl.mux);
++	init_waitqueue_head(&ecryptfs_kthread_ctl.wait);
++	INIT_LIST_HEAD(&ecryptfs_kthread_ctl.req_list);
++	ecryptfs_kthread = kthread_run(&ecryptfs_threadfn, NULL,
++				       "ecryptfs-kthread");
++	if (IS_ERR(ecryptfs_kthread)) {
++		rc = PTR_ERR(ecryptfs_kthread);
++		printk(KERN_ERR "%s: Failed to create kernel thread; rc = [%d]"
++		       "\n", __func__, rc);
++	}
++	return rc;
++}
++
++void ecryptfs_destroy_kthread(void)
++{
++	struct ecryptfs_open_req *req;
++
++	mutex_lock(&ecryptfs_kthread_ctl.mux);
++	ecryptfs_kthread_ctl.flags |= ECRYPTFS_KTHREAD_ZOMBIE;
++	list_for_each_entry(req, &ecryptfs_kthread_ctl.req_list,
++			    kthread_ctl_list) {
++		mutex_lock(&req->mux);
++		req->flags |= ECRYPTFS_REQ_ZOMBIE;
++		wake_up(&req->wait);
++		mutex_unlock(&req->mux);
++	}
++	mutex_unlock(&ecryptfs_kthread_ctl.mux);
++	kthread_stop(ecryptfs_kthread);
++	wake_up(&ecryptfs_kthread_ctl.wait);
++}
++
++/**
++ * ecryptfs_privileged_open
++ * @lower_file: Result of dentry_open by root on lower dentry
++ * @lower_dentry: Lower dentry for file to open
++ * @lower_mnt: Lower vfsmount for file to open
++ *
++ * This function gets a r/w file opened againt the lower dentry.
++ *
++ * Returns zero on success; non-zero otherwise
++ */
++int ecryptfs_privileged_open(struct file **lower_file,
++			     struct dentry *lower_dentry,
++			     struct vfsmount *lower_mnt)
++{
++	struct ecryptfs_open_req *req;
++	int rc = 0;
++
++	/* Corresponding dput() and mntput() are done when the
++	 * persistent file is fput() when the eCryptfs inode is
++	 * destroyed. */
++	dget(lower_dentry);
++	mntget(lower_mnt);
++	(*lower_file) = dentry_open(lower_dentry, lower_mnt,
++				    (O_RDWR | O_LARGEFILE));
++	if (!IS_ERR(*lower_file))
++		goto out;
++	req = kmem_cache_alloc(ecryptfs_open_req_cache, GFP_KERNEL);
++	if (!req) {
++		rc = -ENOMEM;
++		goto out;
++	}
++	mutex_init(&req->mux);
++	req->lower_file = lower_file;
++	req->lower_dentry = lower_dentry;
++	req->lower_mnt = lower_mnt;
++	init_waitqueue_head(&req->wait);
++	req->flags = 0;
++	mutex_lock(&ecryptfs_kthread_ctl.mux);
++	if (ecryptfs_kthread_ctl.flags & ECRYPTFS_KTHREAD_ZOMBIE) {
++		rc = -EIO;
++		mutex_unlock(&ecryptfs_kthread_ctl.mux);
++		printk(KERN_ERR "%s: We are in the middle of shutting down; "
++		       "aborting privileged request to open lower file\n",
++			__func__);
++		goto out_free;
++	}
++	list_add_tail(&req->kthread_ctl_list, &ecryptfs_kthread_ctl.req_list);
++	mutex_unlock(&ecryptfs_kthread_ctl.mux);
++	wake_up(&ecryptfs_kthread_ctl.wait);
++	wait_event(req->wait, (req->flags != 0));
++	mutex_lock(&req->mux);
++	BUG_ON(req->flags == 0);
++	if (req->flags & ECRYPTFS_REQ_DROPPED
++	    || req->flags & ECRYPTFS_REQ_ZOMBIE) {
++		rc = -EIO;
++		printk(KERN_WARNING "%s: Privileged open request dropped\n",
++		       __func__);
++		goto out_unlock;
++	}
++	if (IS_ERR(*req->lower_file)) {
++		rc = PTR_ERR(*req->lower_file);
++		dget(lower_dentry);
++		mntget(lower_mnt);
++		(*lower_file) = dentry_open(lower_dentry, lower_mnt,
++					    (O_RDONLY | O_LARGEFILE));
++		if (IS_ERR(*lower_file)) {
++			rc = PTR_ERR(*req->lower_file);
++			(*lower_file) = NULL;
++			printk(KERN_WARNING "%s: Error attempting privileged "
++			       "open of lower file with either RW or RO "
++			       "perms; rc = [%d]. Giving up.\n",
++			       __func__, rc);
++		}
++	}
++out_unlock:
++	mutex_unlock(&req->mux);
++out_free:
++	kmem_cache_free(ecryptfs_open_req_cache, req);
++out:
++	return rc;
++}
+diff -puN fs/ecryptfs/main.c~ecryptfs-privileged-kthread-for-lower-file-opens fs/ecryptfs/main.c
+--- a/fs/ecryptfs/main.c~ecryptfs-privileged-kthread-for-lower-file-opens
++++ a/fs/ecryptfs/main.c
+@@ -130,26 +130,12 @@ static int ecryptfs_init_persistent_file
+ 			ecryptfs_dentry_to_lower_mnt(ecryptfs_dentry);
  
-+/* Flags for timerfd_settime.  */
- #define TFD_TIMER_ABSTIME (1 << 0)
+ 		lower_dentry = ecryptfs_dentry_to_lower(ecryptfs_dentry);
+-		/* Corresponding dput() and mntput() are done when the
+-		 * persistent file is fput() when the eCryptfs inode
+-		 * is destroyed. */
+-		dget(lower_dentry);
+-		mntget(lower_mnt);
+-		inode_info->lower_file = dentry_open(lower_dentry,
+-						     lower_mnt,
+-						     (O_RDWR | O_LARGEFILE));
+-		if (IS_ERR(inode_info->lower_file)) {
+-			dget(lower_dentry);
+-			mntget(lower_mnt);
+-			inode_info->lower_file = dentry_open(lower_dentry,
+-							     lower_mnt,
+-							     (O_RDONLY
+-							      | O_LARGEFILE));
+-		}
+-		if (IS_ERR(inode_info->lower_file)) {
++		rc = ecryptfs_privileged_open(&inode_info->lower_file,
++						     lower_dentry, lower_mnt);
++		if (rc || IS_ERR(inode_info->lower_file)) {
+ 			printk(KERN_ERR "Error opening lower persistent file "
+-			       "for lower_dentry [0x%p] and lower_mnt [0x%p]\n",
+-			       lower_dentry, lower_mnt);
++			       "for lower_dentry [0x%p] and lower_mnt [0x%p]; "
++			       "rc = [%d]\n", lower_dentry, lower_mnt, rc);
+ 			rc = PTR_ERR(inode_info->lower_file);
+ 			inode_info->lower_file = NULL;
+ 		}
+@@ -679,6 +665,11 @@ static struct ecryptfs_cache_info {
+ 		.name = "ecryptfs_key_tfm_cache",
+ 		.size = sizeof(struct ecryptfs_key_tfm),
+ 	},
++	{
++		.cache = &ecryptfs_open_req_cache,
++		.name = "ecryptfs_open_req_cache",
++		.size = sizeof(struct ecryptfs_open_req),
++	},
+ };
  
-+/* Flags for timerfd_create.  */
-+#define TFD_CLOEXEC O_CLOEXEC
- 
- 
- #endif /* _LINUX_TIMERFD_H */
+ static void ecryptfs_free_kmem_caches(void)
+@@ -795,11 +786,17 @@ static int __init ecryptfs_init(void)
+ 		printk(KERN_ERR "sysfs registration failed\n");
+ 		goto out_unregister_filesystem;
+ 	}
++	rc = ecryptfs_init_kthread();
++	if (rc) {
++		printk(KERN_ERR "%s: kthread initialization failed; "
++		       "rc = [%d]\n", __func__, rc);
++		goto out_do_sysfs_unregistration;
++	}
+ 	rc = ecryptfs_init_messaging(ecryptfs_transport);
+ 	if (rc) {
+-		ecryptfs_printk(KERN_ERR, "Failure occured while attempting to "
++		printk(KERN_ERR "Failure occured while attempting to "
+ 				"initialize the eCryptfs netlink socket\n");
+-		goto out_do_sysfs_unregistration;
++		goto out_destroy_kthread;
+ 	}
+ 	rc = ecryptfs_init_crypto();
+ 	if (rc) {
+@@ -814,6 +811,8 @@ static int __init ecryptfs_init(void)
+ 	goto out;
+ out_release_messaging:
+ 	ecryptfs_release_messaging(ecryptfs_transport);
++out_destroy_kthread:
++	ecryptfs_destroy_kthread();
+ out_do_sysfs_unregistration:
+ 	do_sysfs_unregistration();
+ out_unregister_filesystem:
+@@ -833,6 +832,7 @@ static void __exit ecryptfs_exit(void)
+ 		printk(KERN_ERR "Failure whilst attempting to destroy crypto; "
+ 		       "rc = [%d]\n", rc);
+ 	ecryptfs_release_messaging(ecryptfs_transport);
++	ecryptfs_destroy_kthread();
+ 	do_sysfs_unregistration();
+ 	unregister_filesystem(&ecryptfs_fs_type);
+ 	ecryptfs_free_kmem_caches();
 _
 
-Patches currently in -mm which might be from drepper@redhat.com are
+Patches currently in -mm which might be from mhalcrow@us.ibm.com are
 
 origin.patch
-linux-next.patch
+git-unionfs.patch
+tpm-use-correct-data-types-for-sizes-in-tpm_write-and-tpm_read.patch
+notify_change-callers-must-hold-i_mutex.patch
 
