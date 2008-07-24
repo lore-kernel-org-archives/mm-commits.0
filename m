@@ -1,365 +1,290 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-cmos-avoid-spurious-irqs.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:30:32 -0700
-Message-ID: <200807242330.m6ONUWlo011516@imap1.linux-foundation.org>
+Subject: - autofs4-use-struct-qstr-in-waitqc.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:29:20 -0700
+Message-ID: <200807242329.m6ONTKc6011367@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48067 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60793 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756956AbYGXXav (ORCPT
+	by vger.kernel.org with ESMTP id S1756245AbYGXX3j (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:30:51 -0400
+	Thu, 24 Jul 2008 19:29:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dbrownell@users.sourceforge.net, avictor.za@gmail.com, stable@kernel.org, unruh@physics.ubc.ca, mm-commits@vger.kernel.org
+To: jmoyer@redhat.com, raven@themaw.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc-cmos: avoid spurious irqs
+     autofs4: use struct qstr in waitq.c
 has been removed from the -mm tree.  Its filename was
-     rtc-cmos-avoid-spurious-irqs.patch
+     autofs4-use-struct-qstr-in-waitqc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-cmos: avoid spurious irqs
-From: David Brownell <dbrownell@users.sourceforge.net>
+Subject: autofs4: use struct qstr in waitq.c
+From: Jeff Moyer <jmoyer@redhat.com>
 
-This fixes kernel http://bugzilla.kernel.org/show_bug.cgi?id=11112 (bogus
-RTC update IRQs reported) for rtc-cmos, in two ways:
+The autofs_wait_queue already contains all of the fields of the
+struct qstr, so change it into a qstr.
 
-  - When HPET is stealing the IRQs, use the first IRQ to grab
-    the seconds counter which will be monitored (instead of
-    using whatever was previously in that memory);
+This patch, from Jeff Moyer, has been modified a liitle by myself.
 
-  - In sane IRQ handling modes, scrub out old IRQ status before
-    enabling IRQs.
-
-That latter is done by tightening up IRQ handling for rtc-cmos everywhere,
-also ensuring that when HPET is used it's the only thing triggering IRQ
-reports to userspace; net object shrink.
-
-Also fix a bogus HPET message related to its RTC emulation.
-
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Report-by: W Unruh <unruh@physics.ubc.ca>
-Cc: Andrew Victor <avictor.za@gmail.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
+Signed-off-by: Ian Kent <raven@themaw.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/hpet.c |   10 +-
- drivers/rtc/rtc-cmos.c |  140 +++++++++++++++++----------------------
- 2 files changed, 70 insertions(+), 80 deletions(-)
+ fs/autofs4/autofs_i.h |    4 -
+ fs/autofs4/waitq.c    |   86 ++++++++++++++++++++--------------------
+ 2 files changed, 46 insertions(+), 44 deletions(-)
 
-diff -puN arch/x86/kernel/hpet.c~rtc-cmos-avoid-spurious-irqs arch/x86/kernel/hpet.c
---- a/arch/x86/kernel/hpet.c~rtc-cmos-avoid-spurious-irqs
-+++ a/arch/x86/kernel/hpet.c
-@@ -468,7 +468,7 @@ void hpet_disable(void)
- #define RTC_NUM_INTS		1
- 
- static unsigned long hpet_rtc_flags;
--static unsigned long hpet_prev_update_sec;
-+static int hpet_prev_update_sec;
- static struct rtc_time hpet_alarm_time;
- static unsigned long hpet_pie_count;
- static unsigned long hpet_t1_cmp;
-@@ -575,6 +575,9 @@ int hpet_set_rtc_irq_bit(unsigned long b
- 
- 	hpet_rtc_flags |= bit_mask;
- 
-+	if ((bit_mask & RTC_UIE) && !(oldbits & RTC_UIE))
-+		hpet_prev_update_sec = -1;
-+
- 	if (!oldbits)
- 		hpet_rtc_timer_init();
- 
-@@ -652,7 +655,7 @@ static void hpet_rtc_timer_reinit(void)
- 		if (hpet_rtc_flags & RTC_PIE)
- 			hpet_pie_count += lost_ints;
- 		if (printk_ratelimit())
--			printk(KERN_WARNING "rtc: lost %d interrupts\n",
-+			printk(KERN_WARNING "hpet1: lost %d rtc interrupts\n",
- 				lost_ints);
+diff -puN fs/autofs4/autofs_i.h~autofs4-use-struct-qstr-in-waitqc fs/autofs4/autofs_i.h
+--- a/fs/autofs4/autofs_i.h~autofs4-use-struct-qstr-in-waitqc
++++ a/fs/autofs4/autofs_i.h
+@@ -75,9 +75,7 @@ struct autofs_wait_queue {
+ 	struct autofs_wait_queue *next;
+ 	autofs_wqt_t wait_queue_token;
+ 	/* We use the following to see what we are waiting for */
+-	unsigned int hash;
+-	unsigned int len;
+-	char *name;
++	struct qstr name;
+ 	u32 dev;
+ 	u64 ino;
+ 	uid_t uid;
+diff -puN fs/autofs4/waitq.c~autofs4-use-struct-qstr-in-waitqc fs/autofs4/waitq.c
+--- a/fs/autofs4/waitq.c~autofs4-use-struct-qstr-in-waitqc
++++ a/fs/autofs4/waitq.c
+@@ -36,8 +36,10 @@ void autofs4_catatonic_mode(struct autof
+ 	while (wq) {
+ 		nwq = wq->next;
+ 		wq->status = -ENOENT; /* Magic is gone - report failure */
+-		kfree(wq->name);
+-		wq->name = NULL;
++		if (wq->name.name) {
++			kfree(wq->name.name);
++			wq->name.name = NULL;
++		}
+ 		wake_up_interruptible(&wq->queue);
+ 		wq = nwq;
  	}
- }
-@@ -670,7 +673,8 @@ irqreturn_t hpet_rtc_interrupt(int irq, 
+@@ -92,7 +94,7 @@ static void autofs4_notify_daemon(struct
+ 	size_t pktsz;
  
- 	if (hpet_rtc_flags & RTC_UIE &&
- 	    curr_time.tm_sec != hpet_prev_update_sec) {
--		rtc_int_flag = RTC_UF;
-+		if (hpet_prev_update_sec >= 0)
-+			rtc_int_flag = RTC_UF;
- 		hpet_prev_update_sec = curr_time.tm_sec;
- 	}
+ 	DPRINTK("wait id = 0x%08lx, name = %.*s, type=%d",
+-		wq->wait_queue_token, wq->len, wq->name, type);
++		wq->wait_queue_token, wq->name.len, wq->name.name, type);
  
-diff -puN drivers/rtc/rtc-cmos.c~rtc-cmos-avoid-spurious-irqs drivers/rtc/rtc-cmos.c
---- a/drivers/rtc/rtc-cmos.c~rtc-cmos-avoid-spurious-irqs
-+++ a/drivers/rtc/rtc-cmos.c
-@@ -235,11 +235,56 @@ static int cmos_read_alarm(struct device
- 	return 0;
- }
+ 	memset(&pkt,0,sizeof pkt); /* For security reasons */
  
-+static void cmos_checkintr(struct cmos_rtc *cmos, unsigned char rtc_control)
-+{
-+	unsigned char	rtc_intr;
-+
-+	/* NOTE after changing RTC_xIE bits we always read INTR_FLAGS;
-+	 * allegedly some older rtcs need that to handle irqs properly
-+	 */
-+	rtc_intr = CMOS_READ(RTC_INTR_FLAGS);
-+
-+	if (is_hpet_enabled())
-+		return;
-+
-+	rtc_intr &= (rtc_control & RTC_IRQMASK) | RTC_IRQF;
-+	if (is_intr(rtc_intr))
-+		rtc_update_irq(cmos->rtc, 1, rtc_intr);
-+}
-+
-+static void cmos_irq_enable(struct cmos_rtc *cmos, unsigned char mask)
-+{
-+	unsigned char	rtc_control;
-+
-+	/* flush any pending IRQ status, notably for update irqs,
-+	 * before we enable new IRQs
-+	 */
-+	rtc_control = CMOS_READ(RTC_CONTROL);
-+	cmos_checkintr(cmos, rtc_control);
-+
-+	rtc_control |= mask;
-+	CMOS_WRITE(rtc_control, RTC_CONTROL);
-+	hpet_set_rtc_irq_bit(mask);
-+
-+	cmos_checkintr(cmos, rtc_control);
-+}
-+
-+static void cmos_irq_disable(struct cmos_rtc *cmos, unsigned char mask)
-+{
-+	unsigned char	rtc_control;
-+
-+	rtc_control = CMOS_READ(RTC_CONTROL);
-+	rtc_control &= ~mask;
-+	CMOS_WRITE(rtc_control, RTC_CONTROL);
-+	hpet_mask_rtc_irq_bit(mask);
-+
-+	cmos_checkintr(cmos, rtc_control);
-+}
-+
- static int cmos_set_alarm(struct device *dev, struct rtc_wkalrm *t)
- {
- 	struct cmos_rtc	*cmos = dev_get_drvdata(dev);
- 	unsigned char	mon, mday, hrs, min, sec;
--	unsigned char	rtc_control, rtc_intr;
+@@ -107,9 +109,9 @@ static void autofs4_notify_daemon(struct
+ 		pktsz = sizeof(*mp);
  
- 	if (!is_valid_irq(cmos->irq))
- 		return -EIO;
-@@ -266,15 +311,7 @@ static int cmos_set_alarm(struct device 
- 	spin_lock_irq(&rtc_lock);
- 
- 	/* next rtc irq must not be from previous alarm setting */
--	rtc_control = CMOS_READ(RTC_CONTROL);
--	rtc_control &= ~RTC_AIE;
--	CMOS_WRITE(rtc_control, RTC_CONTROL);
--	hpet_mask_rtc_irq_bit(RTC_AIE);
--
--	rtc_intr = CMOS_READ(RTC_INTR_FLAGS);
--	rtc_intr &= (rtc_control & RTC_IRQMASK) | RTC_IRQF;
--	if (is_intr(rtc_intr))
--		rtc_update_irq(cmos->rtc, 1, rtc_intr);
-+	cmos_irq_disable(cmos, RTC_AIE);
- 
- 	/* update alarm */
- 	CMOS_WRITE(hrs, RTC_HOURS_ALARM);
-@@ -293,16 +330,8 @@ static int cmos_set_alarm(struct device 
- 	 */
- 	hpet_set_alarm_time(t->time.tm_hour, t->time.tm_min, t->time.tm_sec);
- 
--	if (t->enabled) {
--		rtc_control |= RTC_AIE;
--		CMOS_WRITE(rtc_control, RTC_CONTROL);
--		hpet_set_rtc_irq_bit(RTC_AIE);
--
--		rtc_intr = CMOS_READ(RTC_INTR_FLAGS);
--		rtc_intr &= (rtc_control & RTC_IRQMASK) | RTC_IRQF;
--		if (is_intr(rtc_intr))
--			rtc_update_irq(cmos->rtc, 1, rtc_intr);
--	}
-+	if (t->enabled)
-+		cmos_irq_enable(cmos, RTC_AIE);
- 
- 	spin_unlock_irq(&rtc_lock);
- 
-@@ -335,28 +364,17 @@ static int cmos_irq_set_freq(struct devi
- static int cmos_irq_set_state(struct device *dev, int enabled)
- {
- 	struct cmos_rtc	*cmos = dev_get_drvdata(dev);
--	unsigned char	rtc_control, rtc_intr;
- 	unsigned long	flags;
- 
- 	if (!is_valid_irq(cmos->irq))
- 		return -ENXIO;
- 
- 	spin_lock_irqsave(&rtc_lock, flags);
--	rtc_control = CMOS_READ(RTC_CONTROL);
--
--	if (enabled) {
--		rtc_control |= RTC_PIE;
--		hpet_set_rtc_irq_bit(RTC_PIE);
--	} else {
--		rtc_control &= ~RTC_PIE;
--		hpet_mask_rtc_irq_bit(RTC_PIE);
--	}
--	CMOS_WRITE(rtc_control, RTC_CONTROL);
- 
--	rtc_intr = CMOS_READ(RTC_INTR_FLAGS);
--	rtc_intr &= (rtc_control & RTC_IRQMASK) | RTC_IRQF;
--	if (is_intr(rtc_intr))
--		rtc_update_irq(cmos->rtc, 1, rtc_intr);
-+	if (enabled)
-+		cmos_irq_enable(cmos, RTC_PIE);
-+	else
-+		cmos_irq_disable(cmos, RTC_PIE);
- 
- 	spin_unlock_irqrestore(&rtc_lock, flags);
- 	return 0;
-@@ -368,7 +386,6 @@ static int
- cmos_rtc_ioctl(struct device *dev, unsigned int cmd, unsigned long arg)
- {
- 	struct cmos_rtc	*cmos = dev_get_drvdata(dev);
--	unsigned char	rtc_control, rtc_intr;
- 	unsigned long	flags;
- 
- 	switch (cmd) {
-@@ -385,32 +402,20 @@ cmos_rtc_ioctl(struct device *dev, unsig
- 	}
- 
- 	spin_lock_irqsave(&rtc_lock, flags);
--	rtc_control = CMOS_READ(RTC_CONTROL);
- 	switch (cmd) {
- 	case RTC_AIE_OFF:	/* alarm off */
--		rtc_control &= ~RTC_AIE;
--		hpet_mask_rtc_irq_bit(RTC_AIE);
-+		cmos_irq_disable(cmos, RTC_AIE);
- 		break;
- 	case RTC_AIE_ON:	/* alarm on */
--		rtc_control |= RTC_AIE;
--		hpet_set_rtc_irq_bit(RTC_AIE);
-+		cmos_irq_enable(cmos, RTC_AIE);
- 		break;
- 	case RTC_UIE_OFF:	/* update off */
--		rtc_control &= ~RTC_UIE;
--		hpet_mask_rtc_irq_bit(RTC_UIE);
-+		cmos_irq_disable(cmos, RTC_UIE);
- 		break;
- 	case RTC_UIE_ON:	/* update on */
--		rtc_control |= RTC_UIE;
--		hpet_set_rtc_irq_bit(RTC_UIE);
-+		cmos_irq_enable(cmos, RTC_UIE);
+ 		mp->wait_queue_token = wq->wait_queue_token;
+-		mp->len = wq->len;
+-		memcpy(mp->name, wq->name, wq->len);
+-		mp->name[wq->len] = '\0';
++		mp->len = wq->name.len;
++		memcpy(mp->name, wq->name.name, wq->name.len);
++		mp->name[wq->name.len] = '\0';
  		break;
  	}
--	CMOS_WRITE(rtc_control, RTC_CONTROL);
--
--	rtc_intr = CMOS_READ(RTC_INTR_FLAGS);
--	rtc_intr &= (rtc_control & RTC_IRQMASK) | RTC_IRQF;
--	if (is_intr(rtc_intr))
--		rtc_update_irq(cmos->rtc, 1, rtc_intr);
--
- 	spin_unlock_irqrestore(&rtc_lock, flags);
- 	return 0;
- }
-@@ -571,7 +576,6 @@ static irqreturn_t cmos_interrupt(int ir
- 	 * alarm woke the system.
- 	 */
- 	if (irqstat & RTC_AIE) {
--		rtc_control = CMOS_READ(RTC_CONTROL);
- 		rtc_control &= ~RTC_AIE;
- 		CMOS_WRITE(rtc_control, RTC_CONTROL);
- 		hpet_mask_rtc_irq_bit(RTC_AIE);
-@@ -685,17 +689,10 @@ cmos_do_probe(struct device *dev, struct
- 	hpet_set_periodic_freq(cmos_rtc.rtc->irq_freq);
- 	CMOS_WRITE(RTC_REF_CLCK_32KHZ | 0x06, RTC_FREQ_SELECT);
+ 	case autofs_ptype_expire_multi:
+@@ -119,9 +121,9 @@ static void autofs4_notify_daemon(struct
+ 		pktsz = sizeof(*ep);
  
--	/* disable irqs.
--	 *
--	 * NOTE after changing RTC_xIE bits we always read INTR_FLAGS;
--	 * allegedly some older rtcs need that to handle irqs properly
--	 */
--	rtc_control = CMOS_READ(RTC_CONTROL);
--	rtc_control &= ~(RTC_PIE | RTC_AIE | RTC_UIE);
--	CMOS_WRITE(rtc_control, RTC_CONTROL);
--	hpet_mask_rtc_irq_bit(RTC_PIE | RTC_AIE | RTC_UIE);
-+	/* disable irqs */
-+	cmos_irq_disable(&cmos_rtc, RTC_PIE | RTC_AIE | RTC_UIE);
- 
--	CMOS_READ(RTC_INTR_FLAGS);
-+	rtc_control = CMOS_READ(RTC_CONTROL);
- 
- 	spin_unlock_irq(&rtc_lock);
- 
-@@ -768,15 +765,8 @@ cleanup0:
- 
- static void cmos_do_shutdown(void)
- {
--	unsigned char	rtc_control;
--
- 	spin_lock_irq(&rtc_lock);
--	rtc_control = CMOS_READ(RTC_CONTROL);
--	rtc_control &= ~RTC_IRQMASK;
--	CMOS_WRITE(rtc_control, RTC_CONTROL);
--	hpet_mask_rtc_irq_bit(RTC_IRQMASK);
--
--	CMOS_READ(RTC_INTR_FLAGS);
-+	cmos_irq_disable(&cmos_rtc, RTC_IRQMASK);
- 	spin_unlock_irq(&rtc_lock);
- }
- 
-@@ -817,7 +807,6 @@ static int cmos_suspend(struct device *d
- 	spin_lock_irq(&rtc_lock);
- 	cmos->suspend_ctrl = tmp = CMOS_READ(RTC_CONTROL);
- 	if (tmp & (RTC_PIE|RTC_AIE|RTC_UIE)) {
--		unsigned char	irqstat;
- 		unsigned char	mask;
- 
- 		if (do_wake)
-@@ -828,10 +817,7 @@ static int cmos_suspend(struct device *d
- 		CMOS_WRITE(tmp, RTC_CONTROL);
- 		hpet_mask_rtc_irq_bit(mask);
- 
--		irqstat = CMOS_READ(RTC_INTR_FLAGS);
--		irqstat &= (tmp & RTC_IRQMASK) | RTC_IRQF;
--		if (is_intr(irqstat))
--			rtc_update_irq(cmos->rtc, 1, irqstat);
-+		cmos_checkintr(cmos, tmp);
+ 		ep->wait_queue_token = wq->wait_queue_token;
+-		ep->len = wq->len;
+-		memcpy(ep->name, wq->name, wq->len);
+-		ep->name[wq->len] = '\0';
++		ep->len = wq->name.len;
++		memcpy(ep->name, wq->name.name, wq->name.len);
++		ep->name[wq->name.len] = '\0';
+ 		break;
  	}
- 	spin_unlock_irq(&rtc_lock);
+ 	/*
+@@ -138,9 +140,9 @@ static void autofs4_notify_daemon(struct
+ 		pktsz = sizeof(*packet);
  
-@@ -875,7 +861,7 @@ static int cmos_resume(struct device *de
+ 		packet->wait_queue_token = wq->wait_queue_token;
+-		packet->len = wq->len;
+-		memcpy(packet->name, wq->name, wq->len);
+-		packet->name[wq->len] = '\0';
++		packet->len = wq->name.len;
++		memcpy(packet->name, wq->name.name, wq->name.len);
++		packet->name[wq->name.len] = '\0';
+ 		packet->dev = wq->dev;
+ 		packet->ino = wq->ino;
+ 		packet->uid = wq->uid;
+@@ -191,15 +193,15 @@ static int autofs4_getpath(struct autofs
+ }
  
- 			mask = CMOS_READ(RTC_INTR_FLAGS);
- 			mask &= (tmp & RTC_IRQMASK) | RTC_IRQF;
--			if (!is_intr(mask))
-+			if (!is_hpet_enabled() || !is_intr(mask))
+ static struct autofs_wait_queue *
+-autofs4_find_wait(struct autofs_sb_info *sbi,
+-		  char *name, unsigned int hash, unsigned int len)
++autofs4_find_wait(struct autofs_sb_info *sbi, struct qstr *qstr)
+ {
+ 	struct autofs_wait_queue *wq;
+ 
+ 	for (wq = sbi->queues; wq; wq = wq->next) {
+-		if (wq->hash == hash &&
+-		    wq->len == len &&
+-		    wq->name && !memcmp(wq->name, name, len))
++		if (wq->name.hash == qstr->hash &&
++		    wq->name.len == qstr->len &&
++		    wq->name.name &&
++			 !memcmp(wq->name.name, qstr->name, qstr->len))
+ 			break;
+ 	}
+ 	return wq;
+@@ -210,9 +212,8 @@ int autofs4_wait(struct autofs_sb_info *
+ {
+ 	struct autofs_info *ino;
+ 	struct autofs_wait_queue *wq;
++	struct qstr qstr;
+ 	char *name;
+-	unsigned int len = 0;
+-	unsigned int hash = 0;
+ 	int status, type;
+ 
+ 	/* In catatonic mode, we don't wait for nobody */
+@@ -225,22 +226,23 @@ int autofs4_wait(struct autofs_sb_info *
+ 
+ 	/* If this is a direct mount request create a dummy name */
+ 	if (IS_ROOT(dentry) && (sbi->type & AUTOFS_TYPE_DIRECT))
+-		len = sprintf(name, "%p", dentry);
++		qstr.len = sprintf(name, "%p", dentry);
+ 	else {
+-		len = autofs4_getpath(sbi, dentry, &name);
+-		if (!len) {
++		qstr.len = autofs4_getpath(sbi, dentry, &name);
++		if (!qstr.len) {
+ 			kfree(name);
+ 			return -ENOENT;
+ 		}
+ 	}
+-	hash = full_name_hash(name, len);
++	qstr.name = name;
++	qstr.hash = full_name_hash(name, qstr.len);
+ 
+ 	if (mutex_lock_interruptible(&sbi->wq_mutex)) {
+-		kfree(name);
++		kfree(qstr.name);
+ 		return -EINTR;
+ 	}
+ 
+-	wq = autofs4_find_wait(sbi, name, hash, len);
++	wq = autofs4_find_wait(sbi, &qstr);
+ 	ino = autofs4_dentry_ino(dentry);
+ 	if (!wq && ino && notify == NFY_NONE) {
+ 		/*
+@@ -254,10 +256,10 @@ int autofs4_wait(struct autofs_sb_info *
+ 			mutex_unlock(&sbi->wq_mutex);
+ 			schedule_timeout_interruptible(HZ/10);
+ 			if (mutex_lock_interruptible(&sbi->wq_mutex)) {
+-				kfree(name);
++				kfree(qstr.name);
+ 				return -EINTR;
+ 			}
+-			wq = autofs4_find_wait(sbi, name, hash, len);
++			wq = autofs4_find_wait(sbi, &qstr);
+ 			if (wq)
  				break;
+ 		}
+@@ -268,7 +270,7 @@ int autofs4_wait(struct autofs_sb_info *
+ 		 * return status of the wait.
+ 		 */
+ 		if (!wq) {
+-			kfree(name);
++			kfree(qstr.name);
+ 			mutex_unlock(&sbi->wq_mutex);
+ 			return 0;
+ 		}
+@@ -278,7 +280,7 @@ int autofs4_wait(struct autofs_sb_info *
+ 		/* Create a new wait queue */
+ 		wq = kmalloc(sizeof(struct autofs_wait_queue),GFP_KERNEL);
+ 		if (!wq) {
+-			kfree(name);
++			kfree(qstr.name);
+ 			mutex_unlock(&sbi->wq_mutex);
+ 			return -ENOMEM;
+ 		}
+@@ -289,9 +291,7 @@ int autofs4_wait(struct autofs_sb_info *
+ 		wq->next = sbi->queues;
+ 		sbi->queues = wq;
+ 		init_waitqueue_head(&wq->queue);
+-		wq->hash = hash;
+-		wq->name = name;
+-		wq->len = len;
++		memcpy(&wq->name, &qstr, sizeof(struct qstr));
+ 		wq->dev = autofs4_get_dev(sbi);
+ 		wq->ino = autofs4_get_ino(sbi);
+ 		wq->uid = current->uid;
+@@ -319,16 +319,18 @@ int autofs4_wait(struct autofs_sb_info *
+ 		}
  
- 			/* force one-shot behavior if HPET blocked
+ 		DPRINTK("new wait id = 0x%08lx, name = %.*s, nfy=%d\n",
+-			(unsigned long) wq->wait_queue_token, wq->len, wq->name, notify);
++			(unsigned long) wq->wait_queue_token, wq->name.len,
++			wq->name.name, notify);
+ 
+ 		/* autofs4_notify_daemon() may block */
+ 		autofs4_notify_daemon(sbi, wq, type);
+ 	} else {
+ 		atomic_inc(&wq->wait_ctr);
+ 		mutex_unlock(&sbi->wq_mutex);
+-		kfree(name);
++		kfree(qstr.name);
+ 		DPRINTK("existing wait id = 0x%08lx, name = %.*s, nfy=%d",
+-			(unsigned long) wq->wait_queue_token, wq->len, wq->name, notify);
++			(unsigned long) wq->wait_queue_token, wq->name.len,
++			wq->name.name, notify);
+ 	}
+ 
+ 	/* wq->name is NULL if and only if the lock is already released */
+@@ -336,11 +338,13 @@ int autofs4_wait(struct autofs_sb_info *
+ 	if (sbi->catatonic) {
+ 		/* We might have slept, so check again for catatonic mode */
+ 		wq->status = -ENOENT;
+-		kfree(wq->name);
+-		wq->name = NULL;
++		if (wq->name.name) {
++			kfree(wq->name.name);
++			wq->name.name = NULL;
++		}
+ 	}
+ 
+-	if (wq->name) {
++	if (wq->name.name) {
+ 		/* Block all but "shutdown" signals while waiting */
+ 		sigset_t oldset;
+ 		unsigned long irqflags;
+@@ -351,7 +355,7 @@ int autofs4_wait(struct autofs_sb_info *
+ 		recalc_sigpending();
+ 		spin_unlock_irqrestore(&current->sighand->siglock, irqflags);
+ 
+-		wait_event_interruptible(wq->queue, wq->name == NULL);
++		wait_event_interruptible(wq->queue, wq->name.name == NULL);
+ 
+ 		spin_lock_irqsave(&current->sighand->siglock, irqflags);
+ 		current->blocked = oldset;
+@@ -388,8 +392,8 @@ int autofs4_wait_release(struct autofs_s
+ 
+ 	*wql = wq->next;	/* Unlink from chain */
+ 	mutex_unlock(&sbi->wq_mutex);
+-	kfree(wq->name);
+-	wq->name = NULL;	/* Do not wait on this queue */
++	kfree(wq->name.name);
++	wq->name.name = NULL;	/* Do not wait on this queue */
+ 
+ 	wq->status = status;
+ 
 _
 
-Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
+Patches currently in -mm which might be from jmoyer@redhat.com are
 
 origin.patch
-linux-next.patch
-drivers-power-fix-platform-driver-hotplug-coldplug.patch
-mfd-fix-platform-driver-hotplug-coldplug.patch
-parport-fix-platform-driver-hotplug-coldplug.patch
-gpio-sysfs-interface-updated.patch
-gpio-sysfs-interface-updated-update.patch
-gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support.patch
-gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix.patch
-gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix-fix.patch
-gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix-fix-fix.patch
-gpio-mcp23s08-handles-multiple-chips-per-chipselect.patch
-gpio-max732x-driver.patch
 
