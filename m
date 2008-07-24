@@ -1,101 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: - spi-make-spi_board_infomodalias-a-char-array.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:28:30 -0700
-Message-ID: <200807242328.m6ONSUQP011268@imap1.linux-foundation.org>
+Subject: - mm-remove-mm_init-compilation-dependency-on-config_debug_memory_init.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:22:51 -0700
+Message-ID: <200807242322.m6ONMprE010600@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59169 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40548 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756539AbYGXX2j (ORCPT
+	by vger.kernel.org with ESMTP id S1756426AbYGXX2j (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 24 Jul 2008 19:28:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: grant.likely@secretlab.ca, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: nacc@us.ibm.com, mel@csn.ul.ie, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spi: make spi_board_info.modalias a char array
+     mm: remove mm_init compilation dependency on CONFIG_DEBUG_MEMORY_INIT
 has been removed from the -mm tree.  Its filename was
-     spi-make-spi_board_infomodalias-a-char-array.patch
+     mm-remove-mm_init-compilation-dependency-on-config_debug_memory_init.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spi: make spi_board_info.modalias a char array
-From: Grant Likely <grant.likely@secretlab.ca>
+Subject: mm: remove mm_init compilation dependency on CONFIG_DEBUG_MEMORY_INIT
+From: Nishanth Aravamudan <nacc@us.ibm.com>
 
-Currently, 'modalias' in the spi_device structure is a 'const char *'. 
-The spi_new_device() function fills in the modalias value from a passed in
-spi_board_info data block.  Since it is a pointer copy, the new spi_device
-remains dependent on the spi_board_info structure after the new spi_device
-is registered (no other fields in spi_device directly depend on the
-spi_board_info structure; all of the other data is copied).
+Towards the end of putting all core mm initialization in mm_init.c, I
+plan on putting the creation of a mm kobject in a function in that file.
+However, the file is currently only compiled if CONFIG_DEBUG_MEMORY_INIT
+is set. Remove this dependency, but put the code under an #ifdef on the
+same config option. This should result in no functional changes.
 
-This causes a problem when dynamically propulating the list of attached
-SPI devices.  For example, in arch/powerpc, the list of SPI devices can be
-populated from data in the device tree.  With the current code, the device
-tree adapter must kmalloc() a new spi_board_info structure for each new
-SPI device it finds in the device tree, and there is no simple mechanism
-in place for keeping track of these allocations.
-
-This patch changes modalias from a 'const char *' to a fixed char array. 
-By copying the modalias string instead of referencing it, the dependency
-on the spi_board_info structure is eliminated and an outside caller does
-not need to maintain a separate spi_board_info allocation for each device.
-
-If searched through the code to the best of my ability for any references
-to modalias which may be affected by this change and haven't found
-anything.  It has been tested with the lite5200b platform in arch/powerpc.
-
-[dbrownell@users.sourceforge.net: cope with linux-next changes: KOBJ_NAME_LEN obliterated, etc]
-Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Nishanth Aravamudan <nacc@us.ibm.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi.c       |    4 +++-
- include/linux/spi/spi.h |    2 +-
- 2 files changed, 4 insertions(+), 2 deletions(-)
+ mm/Makefile  |    3 +--
+ mm/mm_init.c |    2 ++
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/spi/spi.c~spi-make-spi_board_infomodalias-a-char-array drivers/spi/spi.c
---- a/drivers/spi/spi.c~spi-make-spi_board_infomodalias-a-char-array
-+++ a/drivers/spi/spi.c
-@@ -218,6 +218,8 @@ struct spi_device *spi_new_device(struct
- 	if (!spi_master_get(master))
- 		return NULL;
+diff -puN mm/Makefile~mm-remove-mm_init-compilation-dependency-on-config_debug_memory_init mm/Makefile
+--- a/mm/Makefile~mm-remove-mm_init-compilation-dependency-on-config_debug_memory_init
++++ a/mm/Makefile
+@@ -11,7 +11,7 @@ obj-y			:= bootmem.o filemap.o mempool.o
+ 			   maccess.o page_alloc.o page-writeback.o pdflush.o \
+ 			   readahead.o swap.o truncate.o vmscan.o \
+ 			   prio_tree.o util.o mmzone.o vmstat.o backing-dev.o \
+-			   page_isolation.o $(mmu-y)
++			   page_isolation.o mm_init.o $(mmu-y)
  
-+	WARN_ON(strlen(chip->modalias) >= sizeof(proxy->modalias));
-+
- 	proxy = kzalloc(sizeof *proxy, GFP_KERNEL);
- 	if (!proxy) {
- 		dev_err(dev, "can't alloc dev for cs%d\n",
-@@ -229,7 +231,7 @@ struct spi_device *spi_new_device(struct
- 	proxy->max_speed_hz = chip->max_speed_hz;
- 	proxy->mode = chip->mode;
- 	proxy->irq = chip->irq;
--	proxy->modalias = chip->modalias;
-+	strlcpy(proxy->modalias, chip->modalias, sizeof(proxy->modalias));
+ obj-$(CONFIG_PROC_PAGE_MONITOR) += pagewalk.o
+ obj-$(CONFIG_BOUNCE)	+= bounce.o
+@@ -26,7 +26,6 @@ obj-$(CONFIG_TMPFS_POSIX_ACL) += shmem_a
+ obj-$(CONFIG_TINY_SHMEM) += tiny-shmem.o
+ obj-$(CONFIG_SLOB) += slob.o
+ obj-$(CONFIG_SLAB) += slab.o
+-obj-$(CONFIG_DEBUG_MEMORY_INIT) += mm_init.o
+ obj-$(CONFIG_SLUB) += slub.o
+ obj-$(CONFIG_MEMORY_HOTPLUG) += memory_hotplug.o
+ obj-$(CONFIG_FS_XIP) += filemap_xip.o
+diff -puN mm/mm_init.c~mm-remove-mm_init-compilation-dependency-on-config_debug_memory_init mm/mm_init.c
+--- a/mm/mm_init.c~mm-remove-mm_init-compilation-dependency-on-config_debug_memory_init
++++ a/mm/mm_init.c
+@@ -9,6 +9,7 @@
+ #include <linux/init.h>
+ #include "internal.h"
  
- 	snprintf(proxy->dev.bus_id, sizeof proxy->dev.bus_id,
- 			"%s.%u", master->dev.bus_id,
-diff -puN include/linux/spi/spi.h~spi-make-spi_board_infomodalias-a-char-array include/linux/spi/spi.h
---- a/include/linux/spi/spi.h~spi-make-spi_board_infomodalias-a-char-array
-+++ a/include/linux/spi/spi.h
-@@ -82,7 +82,7 @@ struct spi_device {
- 	int			irq;
- 	void			*controller_state;
- 	void			*controller_data;
--	const char		*modalias;
-+	char			modalias[32];
++#ifdef CONFIG_DEBUG_MEMORY_INIT
+ int __meminitdata mminit_loglevel;
  
- 	/*
- 	 * likely need more hooks for more protocol options affecting how
+ /* The zonelists are simply reported, validation is manual. */
+@@ -132,3 +133,4 @@ static __init int set_mminit_loglevel(ch
+ 	return 0;
+ }
+ early_param("mminit_loglevel", set_mminit_loglevel);
++#endif /* CONFIG_DEBUG_MEMORY_INIT */
 _
 
-Patches currently in -mm which might be from grant.likely@secretlab.ca are
+Patches currently in -mm which might be from nacc@us.ibm.com are
 
 origin.patch
+ixj-push-bkl-into-driver-and-wrap-ioctls.patch
 
