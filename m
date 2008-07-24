@@ -1,147 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: - bootmem-add-debugging-framework.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:23:52 -0700
-Message-ID: <200807242323.m6ONNq1t010724@imap1.linux-foundation.org>
+Subject: - bootmem-revisit-bitmap-size-calculations.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:23:54 -0700
+Message-ID: <200807242323.m6ONNsMT010727@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44921 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49728 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754649AbYGXXX5 (ORCPT
+	by vger.kernel.org with ESMTP id S1753120AbYGXXX6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:23:57 -0400
+	Thu, 24 Jul 2008 19:23:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hannes@saeurebad.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bootmem: add debugging framework
+     bootmem: revisit bitmap size calculations
 has been removed from the -mm tree.  Its filename was
-     bootmem-add-debugging-framework.patch
+     bootmem-revisit-bitmap-size-calculations.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bootmem: add debugging framework
+Subject: bootmem: revisit bitmap size calculations
 From: Johannes Weiner <hannes@saeurebad.de>
 
-Introduce the bootmem_debug kernel parameter that enables very verbose
-diagnostics regarding all range operations of bootmem as well as the
-initialization and release of nodes.
+Reincarnate get_mapsize as bootmap_bytes and implement
+bootmem_bootmap_pages on top of it.
 
-[akpm@linux-foundation.org: fix printk warnings]
+Adjust users of these helpers and make free_all_bootmem_core use
+bootmem_bootmap_pages instead of open-coding it.
+
 Signed-off-by: Johannes Weiner <hannes@saeurebad.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/bootmem.c |   51 ++++++++++++++++++++++++++++++++++++++++++-------
- 1 file changed, 44 insertions(+), 7 deletions(-)
+ mm/bootmem.c |   27 +++++++++------------------
+ 1 file changed, 9 insertions(+), 18 deletions(-)
 
-diff -puN mm/bootmem.c~bootmem-add-debugging-framework mm/bootmem.c
---- a/mm/bootmem.c~bootmem-add-debugging-framework
+diff -puN mm/bootmem.c~bootmem-revisit-bitmap-size-calculations mm/bootmem.c
+--- a/mm/bootmem.c~bootmem-revisit-bitmap-size-calculations
 +++ a/mm/bootmem.c
-@@ -34,6 +34,22 @@ unsigned long saved_max_pfn;
+@@ -50,17 +50,11 @@ early_param("bootmem_debug", bootmem_deb
+ 			__FUNCTION__, ## args);		\
+ })
  
- bootmem_data_t bootmem_node_data[MAX_NUMNODES] __initdata;
+-/*
+- * Given an initialised bdata, it returns the size of the boot bitmap
+- */
+-static unsigned long __init get_mapsize(bootmem_data_t *bdata)
++static unsigned long __init bootmap_bytes(unsigned long pages)
+ {
+-	unsigned long mapsize;
+-	unsigned long start = PFN_DOWN(bdata->node_boot_start);
+-	unsigned long end = bdata->node_low_pfn;
++	unsigned long bytes = (pages + 7) / 8;
  
-+static int bootmem_debug;
-+
-+static int __init bootmem_debug_setup(char *buf)
-+{
-+	bootmem_debug = 1;
-+	return 0;
-+}
-+early_param("bootmem_debug", bootmem_debug_setup);
-+
-+#define bdebug(fmt, args...) ({				\
-+	if (unlikely(bootmem_debug))			\
-+		printk(KERN_INFO			\
-+			"bootmem::%s " fmt,		\
-+			__FUNCTION__, ## args);		\
-+})
-+
- /*
-  * Given an initialised bdata, it returns the size of the boot bitmap
-  */
-@@ -104,6 +120,9 @@ static unsigned long __init init_bootmem
- 	mapsize = get_mapsize(bdata);
- 	memset(bdata->node_bootmem_map, 0xff, mapsize);
- 
-+	bdebug("nid=%td start=%lx map=%lx end=%lx mapsize=%lx\n",
-+		bdata - bootmem_node_data, start, mapstart, end, mapsize);
-+
- 	return mapsize;
- }
- 
-@@ -198,6 +217,8 @@ static unsigned long __init free_all_boo
- 	count += i;
- 	bdata->node_bootmem_map = NULL;
- 
-+	bdebug("nid=%td released=%lx\n", bdata - bootmem_node_data, count);
-+
- 	return count;
- }
- 
-@@ -255,6 +276,10 @@ static void __init free_bootmem_core(boo
- 	if (eidx > bdata->node_low_pfn - PFN_DOWN(bdata->node_boot_start))
- 		eidx = bdata->node_low_pfn - PFN_DOWN(bdata->node_boot_start);
- 
-+	bdebug("nid=%td start=%lx end=%lx\n", bdata - bootmem_node_data,
-+		sidx + PFN_DOWN(bdata->node_boot_start),
-+		eidx + PFN_DOWN(bdata->node_boot_start));
-+
- 	for (i = sidx; i < eidx; i++) {
- 		if (unlikely(!test_and_clear_bit(i, bdata->node_bootmem_map)))
- 			BUG();
-@@ -360,13 +385,16 @@ static void __init reserve_bootmem_core(
- 	if (eidx > bdata->node_low_pfn - PFN_DOWN(bdata->node_boot_start))
- 		eidx = bdata->node_low_pfn - PFN_DOWN(bdata->node_boot_start);
- 
--	for (i = sidx; i < eidx; i++) {
--		if (test_and_set_bit(i, bdata->node_bootmem_map)) {
--#ifdef CONFIG_DEBUG_BOOTMEM
--			printk("hm, page %08lx reserved twice.\n", i*PAGE_SIZE);
--#endif
--		}
--	}
-+	bdebug("nid=%td start=%lx end=%lx flags=%x\n",
-+		bdata - bootmem_node_data,
-+		sidx + PFN_DOWN(bdata->node_boot_start),
-+		eidx + PFN_DOWN(bdata->node_boot_start),
-+		flags);
-+
-+	for (i = sidx; i < eidx; i++)
-+		if (test_and_set_bit(i, bdata->node_bootmem_map))
-+			bdebug("hm, page %lx reserved twice.\n",
-+				PFN_DOWN(bdata->node_boot_start) + i);
+-	mapsize = ((end - start) + 7) / 8;
+-	return ALIGN(mapsize, sizeof(long));
++	return ALIGN(bytes, sizeof(long));
  }
  
  /**
-@@ -455,6 +483,10 @@ alloc_bootmem_core(struct bootmem_data *
- 	if (!bdata->node_bootmem_map)
- 		return NULL;
+@@ -69,13 +63,9 @@ static unsigned long __init get_mapsize(
+  */
+ unsigned long __init bootmem_bootmap_pages(unsigned long pages)
+ {
+-	unsigned long mapsize;
+-
+-	mapsize = (pages+7)/8;
+-	mapsize = (mapsize + ~PAGE_MASK) & PAGE_MASK;
+-	mapsize >>= PAGE_SHIFT;
++	unsigned long bytes = bootmap_bytes(pages);
  
-+	bdebug("nid=%td size=%lx [%lu pages] align=%lx goal=%lx limit=%lx\n",
-+		bdata - bootmem_node_data, size, PAGE_ALIGN(size) >> PAGE_SHIFT,
-+		align, goal, limit);
-+
- 	/* bdata->node_boot_start is supposed to be (12+6)bits alignment on x86_64 ? */
- 	node_boot_start = bdata->node_boot_start;
- 	node_bootmem_map = bdata->node_bootmem_map;
-@@ -562,6 +594,11 @@ found:
- 		ret = phys_to_virt(start * PAGE_SIZE + node_boot_start);
- 	}
+-	return mapsize;
++	return PAGE_ALIGN(bytes) >> PAGE_SHIFT;
+ }
  
-+	bdebug("nid=%td start=%lx end=%lx\n",
-+		bdata - bootmem_node_data,
-+		start + PFN_DOWN(bdata->node_boot_start),
-+		start + areasize + PFN_DOWN(bdata->node_boot_start));
-+
- 	/*
- 	 * Reserve the area now:
+ /*
+@@ -117,7 +107,7 @@ static unsigned long __init init_bootmem
+ 	 * Initially all pages are reserved - setup_arch() has to
+ 	 * register free RAM areas explicitly.
  	 */
+-	mapsize = get_mapsize(bdata);
++	mapsize = bootmap_bytes(end - start);
+ 	memset(bdata->node_bootmem_map, 0xff, mapsize);
+ 
+ 	bdebug("nid=%td start=%lx map=%lx end=%lx mapsize=%lx\n",
+@@ -160,7 +150,7 @@ static unsigned long __init free_all_boo
+ 	struct page *page;
+ 	unsigned long pfn;
+ 	unsigned long i, count;
+-	unsigned long idx;
++	unsigned long idx, pages;
+ 	unsigned long *map;
+ 	int gofast = 0;
+ 
+@@ -211,7 +201,8 @@ static unsigned long __init free_all_boo
+ 	 * needed anymore:
+ 	 */
+ 	page = virt_to_page(bdata->node_bootmem_map);
+-	idx = (get_mapsize(bdata) + PAGE_SIZE-1) >> PAGE_SHIFT;
++	pages = bdata->node_low_pfn - PFN_DOWN(bdata->node_boot_start);
++	idx = bootmem_bootmap_pages(pages);
+ 	for (i = 0; i < idx; i++, page++)
+ 		__free_pages_bootmem(page, 0);
+ 	count += i;
 _
 
 Patches currently in -mm which might be from hannes@saeurebad.de are
