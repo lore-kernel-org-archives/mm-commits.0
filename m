@@ -1,108 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: - pm-remove-remaining-obsolete-definitions-from-pmh.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:25:19 -0700
-Message-ID: <200807242325.m6ONPJB0010870@imap1.linux-foundation.org>
+Subject: - pm-add-new-pm_event-codes-for-runtime-power-transitions.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:25:26 -0700
+Message-ID: <200807242325.m6ONPQt0010879@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48328 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42752 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755558AbYGXXZZ (ORCPT
+	by vger.kernel.org with ESMTP id S1753054AbYGXXZi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:25:25 -0400
+	Thu, 24 Jul 2008 19:25:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rjw@sisk.pl, pavel@suse.cz, mm-commits@vger.kernel.org
+To: stern@rowland.harvard.edu, pavel@ucw.cz, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pm: remove remaining obsolete definitions from pm.h
+     pm: add new PM_EVENT codes for runtime power transitions
 has been removed from the -mm tree.  Its filename was
-     pm-remove-remaining-obsolete-definitions-from-pmh.patch
+     pm-add-new-pm_event-codes-for-runtime-power-transitions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pm: remove remaining obsolete definitions from pm.h
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: pm: add new PM_EVENT codes for runtime power transitions
+From: Alan Stern <stern@rowland.harvard.edu>
 
-Remove the remaining obsolete definitions from include/linux/pm.h and move
-the definitions of PM_SUSPEND and PM_RESUME to the header of h3600 which
-is the only user of them.
+This patch (as1112) adds some new PM_EVENT_* codes for use by kernel
+subsystems.  They describe runtime power-state transitions of the sort already
+implemented by the USB subsystem.
 
+Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Acked-by: Pavel Machek <pavel@suse.cz>
+Acked-by: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-arm/arch-sa1100/h3600.h |    5 ++
- include/linux/pm.h                  |   46 --------------------------
- 2 files changed, 5 insertions(+), 46 deletions(-)
+ include/linux/pm.h |   39 ++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 36 insertions(+), 3 deletions(-)
 
-diff -puN include/asm-arm/arch-sa1100/h3600.h~pm-remove-remaining-obsolete-definitions-from-pmh include/asm-arm/arch-sa1100/h3600.h
---- a/include/asm-arm/arch-sa1100/h3600.h~pm-remove-remaining-obsolete-definitions-from-pmh
-+++ a/include/asm-arm/arch-sa1100/h3600.h
-@@ -23,6 +23,11 @@
- #ifndef _INCLUDE_H3600_H_
- #define _INCLUDE_H3600_H_
- 
-+typedef int __bitwise pm_request_t;
-+
-+#define PM_SUSPEND	((__force pm_request_t) 1)	/* enter D1-D3 */
-+#define PM_RESUME	((__force pm_request_t) 2)	/* enter D0 */
-+
- /* generalized support for H3xxx series Compaq Pocket PC's */
- #define machine_is_h3xxx() (machine_is_h3100() || machine_is_h3600() || machine_is_h3800())
- 
-diff -puN include/linux/pm.h~pm-remove-remaining-obsolete-definitions-from-pmh include/linux/pm.h
---- a/include/linux/pm.h~pm-remove-remaining-obsolete-definitions-from-pmh
+diff -puN include/linux/pm.h~pm-add-new-pm_event-codes-for-runtime-power-transitions include/linux/pm.h
+--- a/include/linux/pm.h~pm-add-new-pm_event-codes-for-runtime-power-transitions
 +++ a/include/linux/pm.h
-@@ -26,52 +26,6 @@
- #include <asm/errno.h>
+@@ -245,6 +245,21 @@ struct pm_ext_ops {
+  * RECOVER	Creation of a hibernation image or restoration of the main
+  *		memory contents from a hibernation image has failed, call
+  *		->thaw() and ->complete() for all devices.
++ *
++ * The following PM_EVENT_ messages are defined for internal use by
++ * kernel subsystems.  They are never issued by the PM core.
++ *
++ * USER_SUSPEND		Manual selective suspend was issued by userspace.
++ *
++ * USER_RESUME		Manual selective resume was issued by userspace.
++ *
++ * REMOTE_WAKEUP	Remote-wakeup request was received from the device.
++ *
++ * AUTO_SUSPEND		Automatic (device idle) runtime suspend was
++ *			initiated by the subsystem.
++ *
++ * AUTO_RESUME		Automatic (device needed) runtime resume was
++ *			requested by a driver.
+  */
  
- /*
-- * Power management requests... these are passed to pm_send_all() and friends.
-- *
-- * these functions are old and deprecated, see below.
-- */
--typedef int __bitwise pm_request_t;
+ #define PM_EVENT_ON		0x0000
+@@ -256,9 +271,18 @@ struct pm_ext_ops {
+ #define PM_EVENT_THAW		0x0020
+ #define PM_EVENT_RESTORE	0x0040
+ #define PM_EVENT_RECOVER	0x0080
++#define PM_EVENT_USER		0x0100
++#define PM_EVENT_REMOTE		0x0200
++#define PM_EVENT_AUTO		0x0400
++
++#define PM_EVENT_SLEEP		(PM_EVENT_SUSPEND | PM_EVENT_HIBERNATE)
++#define PM_EVENT_USER_SUSPEND	(PM_EVENT_USER | PM_EVENT_SUSPEND)
++#define PM_EVENT_USER_RESUME	(PM_EVENT_USER | PM_EVENT_RESUME)
++#define PM_EVENT_REMOTE_WAKEUP	(PM_EVENT_REMOTE | PM_EVENT_RESUME)
++#define PM_EVENT_AUTO_SUSPEND	(PM_EVENT_AUTO | PM_EVENT_SUSPEND)
++#define PM_EVENT_AUTO_RESUME	(PM_EVENT_AUTO | PM_EVENT_RESUME)
+ 
+-#define PM_EVENT_SLEEP	(PM_EVENT_SUSPEND | PM_EVENT_HIBERNATE)
 -
--#define PM_SUSPEND	((__force pm_request_t) 1)	/* enter D1-D3 */
--#define PM_RESUME	((__force pm_request_t) 2)	/* enter D0 */
--
--
--/*
-- * Device types... these are passed to pm_register
-- */
--typedef int __bitwise pm_dev_t;
--
--#define PM_UNKNOWN_DEV	((__force pm_dev_t) 0)	/* generic */
--#define PM_SYS_DEV	((__force pm_dev_t) 1)	/* system device (fan, KB controller, ...) */
--#define PM_PCI_DEV	((__force pm_dev_t) 2)	/* PCI device */
--#define PM_USB_DEV	((__force pm_dev_t) 3)	/* USB device */
--#define PM_SCSI_DEV	((__force pm_dev_t) 4)	/* SCSI device */
--#define PM_ISA_DEV	((__force pm_dev_t) 5)	/* ISA device */
--#define	PM_MTD_DEV	((__force pm_dev_t) 6)	/* Memory Technology Device */
--
--/*
-- * System device hardware ID (PnP) values
-- */
--enum
--{
--	PM_SYS_UNKNOWN = 0x00000000, /* generic */
--	PM_SYS_KBC =	 0x41d00303, /* keyboard controller */
--	PM_SYS_COM =	 0x41d00500, /* serial port */
--	PM_SYS_IRDA =	 0x41d00510, /* IRDA controller */
--	PM_SYS_FDC =	 0x41d00700, /* floppy controller */
--	PM_SYS_VGA =	 0x41d00900, /* VGA controller */
--	PM_SYS_PCMCIA =	 0x41d00e00, /* PCMCIA controller */
--};
--
--/*
-- * Device identifier
-- */
--#define PM_PCI_ID(dev) ((dev)->bus->number << 16 | (dev)->devfn)
--
--/* Functions above this comment are list-based old-style power
-- * management. Please avoid using them.  */
++#define PMSG_ON		((struct pm_message){ .event = PM_EVENT_ON, })
+ #define PMSG_FREEZE	((struct pm_message){ .event = PM_EVENT_FREEZE, })
+ #define PMSG_QUIESCE	((struct pm_message){ .event = PM_EVENT_QUIESCE, })
+ #define PMSG_SUSPEND	((struct pm_message){ .event = PM_EVENT_SUSPEND, })
+@@ -267,7 +291,16 @@ struct pm_ext_ops {
+ #define PMSG_THAW	((struct pm_message){ .event = PM_EVENT_THAW, })
+ #define PMSG_RESTORE	((struct pm_message){ .event = PM_EVENT_RESTORE, })
+ #define PMSG_RECOVER	((struct pm_message){ .event = PM_EVENT_RECOVER, })
+-#define PMSG_ON		((struct pm_message){ .event = PM_EVENT_ON, })
++#define PMSG_USER_SUSPEND	((struct pm_messge) \
++					{ .event = PM_EVENT_USER_SUSPEND, })
++#define PMSG_USER_RESUME	((struct pm_messge) \
++					{ .event = PM_EVENT_USER_RESUME, })
++#define PMSG_REMOTE_RESUME	((struct pm_messge) \
++					{ .event = PM_EVENT_REMOTE_RESUME, })
++#define PMSG_AUTO_SUSPEND	((struct pm_messge) \
++					{ .event = PM_EVENT_AUTO_SUSPEND, })
++#define PMSG_AUTO_RESUME		((struct pm_messge) \
++					{ .event = PM_EVENT_AUTO_RESUME, })
+ 
+ /**
+  * Device power management states
+_
+
+Patches currently in -mm which might be from stern@rowland.harvard.edu are
+
+origin.patch
+linux-next.patch
+
