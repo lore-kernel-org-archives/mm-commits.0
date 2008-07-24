@@ -1,311 +1,646 @@
 From: akpm@linux-foundation.org
-Subject: - mm-drop-unneeded-pgdat-argument-from-free_area_init_node.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:22:15 -0700
-Message-ID: <200807242322.m6ONMFRZ010551@imap1.linux-foundation.org>
+Subject: - fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:22:00 -0700
+Message-ID: <200807242322.m6ONM0GI010441@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33284 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42043 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752929AbYGXXWU (ORCPT
+	by vger.kernel.org with ESMTP id S1752919AbYGXXWV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:22:20 -0400
+	Thu, 24 Jul 2008 19:22:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@saeurebad.de, mm-commits@vger.kernel.org
+To: k-makita@np.css.fujitsu.com, bfields@fieldses.org, dgc@sgi.com, neilb@suse.de, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: drop unneeded pgdat argument from free_area_init_node()
+     fix soft lock up at NFS mount via per-SB LRU-list of unused dentries
 has been removed from the -mm tree.  Its filename was
-     mm-drop-unneeded-pgdat-argument-from-free_area_init_node.patch
+     fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: drop unneeded pgdat argument from free_area_init_node()
-From: Johannes Weiner <hannes@saeurebad.de>
+Subject: fix soft lock up at NFS mount via per-SB LRU-list of unused dentries
+From: Kentaro Makita <k-makita@np.css.fujitsu.com>
 
-free_area_init_node() gets passed in the node id as well as the node
-descriptor.  This is redundant as the function can trivially get the node
-descriptor itself by means of NODE_DATA() and the node's id.
+[Summary]
 
-I checked all the users and NODE_DATA() seems to be usable everywhere
-from where this function is called.
+ Split LRU-list of unused dentries to one per superblock to avoid soft
+ lock up during NFS mounts and remounting of any filesystem.
 
-Signed-off-by: Johannes Weiner <hannes@saeurebad.de>
+ Previously I posted here:
+ http://lkml.org/lkml/2008/3/5/590
+
+[Descriptions]
+
+- background
+
+  dentry_unused is a list of dentries which are not referenced. 
+  dentry_unused grows up when references on directories or files are
+  released.  This list can be very long if there is huge free memory.
+
+- the problem
+
+  When shrink_dcache_sb() is called, it scans all dentry_unused linearly
+  under spin_lock(), and if dentry->d_sb is differnt from given
+  superblock, scan next dentry.  This scan costs very much if there are
+  many entries, and very ineffective if there are many superblocks.
+
+  IOW, When we need to shrink unused dentries on one dentry, but scans
+  unused dentries on all superblocks in the system.  For example, we scan
+  500 dentries to unmount a filesystem, but scans 1,000,000 or more unused
+  dentries on other superblocks.
+
+  In our case , At mounting NFS*, shrink_dcache_sb() is called to shrink
+  unused dentries on NFS, but scans 100,000,000 unused dentries on
+  superblocks in the system such as local ext3 filesystems.  I hear NFS
+  mounting took 1 min on some system in use.
+
+* : NFS uses virtual filesystem in rpc layer, so NFS is affected by
+  this problem.
+
+  100,000,000 is possible number on large systems.
+
+  Per-superblock LRU of unused dentried can reduce the cost in
+  reasonable manner.
+
+- How to fix
+
+  I found this problem is solved by David Chinner's "Per-superblock
+  unused dentry LRU lists V3"(1), so I rebase it and add some fix to
+  reclaim with fairness, which is in Andrew Morton's comments(2).
+
+  1) http://lkml.org/lkml/2006/5/25/318
+  2) http://lkml.org/lkml/2006/5/25/320
+
+  Split LRU-list of unused dentries to each superblocks.  Then, NFS
+  mounting will check dentries under a superblock instead of all.  But
+  this spliting will break LRU of dentry-unused.  So, I've attempted to
+  make reclaim unused dentrins with fairness by calculate number of
+  dentries to scan on this sb based on following way
+
+  number of dentries to scan on this sb =
+  count * (number of dentries on this sb / number of dentries in the machine)
+
+- ToDo
+ - I have to measuring performance number and do stress tests.
+
+ - When unmount occurs during prune_dcache(), scanning on same
+  superblock, It is unable to reach next superblock because it is gone
+  away.  We restart scannig superblock from first one, it causes
+  unfairness of reclaim unused dentries on first superblock.  But I think
+  this happens very rarely.
+
+- Test Results
+
+  Result on 6GB boxes with excessive unused dentries.
+
+Without patch:
+
+$ cat /proc/sys/fs/dentry-state
+10181835        10180203        45      0       0       0
+# mount -t nfs 10.124.60.70:/work/kernel-src nfs
+real    0m1.830s
+user    0m0.001s
+sys     0m1.653s
+
+ With this patch:
+$ cat /proc/sys/fs/dentry-state
+10236610        10234751        45      0       0       0
+# mount -t nfs 10.124.60.70:/work/kernel-src nfs
+real    0m0.106s
+user    0m0.002s
+sys     0m0.032s
+
+[akpm@linux-foundation.org: fix comments]
+Signed-off-by: Kentaro Makita <k-makita@np.css.fujitsu.com>
+Cc: Neil Brown <neilb@suse.de>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: David Chinner <dgc@sgi.com>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/mm/numa.c         |    2 +-
- arch/arm/mm/init.c           |    2 +-
- arch/avr32/mm/init.c         |    2 +-
- arch/cris/arch-v10/mm/init.c |    2 +-
- arch/cris/arch-v32/mm/init.c |    2 +-
- arch/m32r/mm/discontig.c     |    3 +--
- arch/m32r/mm/init.c          |    2 +-
- arch/m68k/mm/motorola.c      |    2 +-
- arch/m68k/mm/sun3mmu.c       |    2 +-
- arch/parisc/mm/init.c        |    2 +-
- arch/sparc/mm/srmmu.c        |    3 +--
- arch/sparc/mm/sun4c.c        |    3 +--
- arch/v850/kernel/setup.c     |    3 +--
- include/linux/mm.h           |    5 ++---
- mm/memory_hotplug.c          |    2 +-
- mm/page_alloc.c              |   11 ++++++-----
- 16 files changed, 22 insertions(+), 26 deletions(-)
+ fs/dcache.c        |  333 +++++++++++++++++++++++--------------------
+ fs/super.c         |    1 
+ include/linux/fs.h |    4 
+ 3 files changed, 184 insertions(+), 154 deletions(-)
 
-diff -puN arch/alpha/mm/numa.c~mm-drop-unneeded-pgdat-argument-from-free_area_init_node arch/alpha/mm/numa.c
---- a/arch/alpha/mm/numa.c~mm-drop-unneeded-pgdat-argument-from-free_area_init_node
-+++ a/arch/alpha/mm/numa.c
-@@ -313,7 +313,7 @@ void __init paging_init(void)
- 			zones_size[ZONE_DMA] = dma_local_pfn;
- 			zones_size[ZONE_NORMAL] = (end_pfn - start_pfn) - dma_local_pfn;
- 		}
--		free_area_init_node(nid, NODE_DATA(nid), zones_size, start_pfn, NULL);
-+		free_area_init_node(nid, zones_size, start_pfn, NULL);
- 	}
+diff -puN fs/dcache.c~fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries fs/dcache.c
+--- a/fs/dcache.c~fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries
++++ a/fs/dcache.c
+@@ -61,7 +61,6 @@ static struct kmem_cache *dentry_cache _
+ static unsigned int d_hash_mask __read_mostly;
+ static unsigned int d_hash_shift __read_mostly;
+ static struct hlist_head *dentry_hashtable __read_mostly;
+-static LIST_HEAD(dentry_unused);
  
- 	/* Initialize the kernel's ZERO_PGE. */
-diff -puN arch/arm/mm/init.c~mm-drop-unneeded-pgdat-argument-from-free_area_init_node arch/arm/mm/init.c
---- a/arch/arm/mm/init.c~mm-drop-unneeded-pgdat-argument-from-free_area_init_node
-+++ a/arch/arm/mm/init.c
-@@ -284,7 +284,7 @@ bootmem_init_node(int node, int initrd_n
- 	 */
- 	arch_adjust_zones(node, zone_size, zhole_size);
- 
--	free_area_init_node(node, pgdat, zone_size, start_pfn, zhole_size);
-+	free_area_init_node(node, zone_size, start_pfn, zhole_size);
- 
- 	return end_pfn;
- }
-diff -puN arch/avr32/mm/init.c~mm-drop-unneeded-pgdat-argument-from-free_area_init_node arch/avr32/mm/init.c
---- a/arch/avr32/mm/init.c~mm-drop-unneeded-pgdat-argument-from-free_area_init_node
-+++ a/arch/avr32/mm/init.c
-@@ -129,7 +129,7 @@ void __init paging_init(void)
- 		printk("Node %u: start_pfn = 0x%lx, low = 0x%lx\n",
- 		       nid, start_pfn, low);
- 
--		free_area_init_node(nid, pgdat, zones_size, start_pfn, NULL);
-+		free_area_init_node(nid, zones_size, start_pfn, NULL);
- 
- 		printk("Node %u: mem_map starts at %p\n",
- 		       pgdat->node_id, pgdat->node_mem_map);
-diff -puN arch/cris/arch-v10/mm/init.c~mm-drop-unneeded-pgdat-argument-from-free_area_init_node arch/cris/arch-v10/mm/init.c
---- a/arch/cris/arch-v10/mm/init.c~mm-drop-unneeded-pgdat-argument-from-free_area_init_node
-+++ a/arch/cris/arch-v10/mm/init.c
-@@ -182,7 +182,7 @@ paging_init(void)
- 	 * mem_map page array.
- 	 */
- 
--	free_area_init_node(0, &contig_page_data, zones_size, PAGE_OFFSET >> PAGE_SHIFT, 0);
-+	free_area_init_node(0, zones_size, PAGE_OFFSET >> PAGE_SHIFT, 0);
+ /* Statistics gathering. */
+ struct dentry_stat_t dentry_stat = {
+@@ -96,14 +95,6 @@ static void d_free(struct dentry *dentry
+ 		call_rcu(&dentry->d_u.d_rcu, d_callback);
  }
  
- /* Initialize remaps of some I/O-ports. It is important that this
-diff -puN arch/cris/arch-v32/mm/init.c~mm-drop-unneeded-pgdat-argument-from-free_area_init_node arch/cris/arch-v32/mm/init.c
---- a/arch/cris/arch-v32/mm/init.c~mm-drop-unneeded-pgdat-argument-from-free_area_init_node
-+++ a/arch/cris/arch-v32/mm/init.c
-@@ -162,7 +162,7 @@ paging_init(void)
- 	 * substantially higher than 0, like us (we start at PAGE_OFFSET). This
- 	 * saves space in the mem_map page array.
- 	 */
--	free_area_init_node(0, &contig_page_data, zones_size, PAGE_OFFSET >> PAGE_SHIFT, 0);
-+	free_area_init_node(0, zones_size, PAGE_OFFSET >> PAGE_SHIFT, 0);
- 
- 	mem_map = contig_page_data.node_mem_map;
- }
-diff -puN arch/m32r/mm/discontig.c~mm-drop-unneeded-pgdat-argument-from-free_area_init_node arch/m32r/mm/discontig.c
---- a/arch/m32r/mm/discontig.c~mm-drop-unneeded-pgdat-argument-from-free_area_init_node
-+++ a/arch/m32r/mm/discontig.c
-@@ -147,8 +147,7 @@ unsigned long __init zone_sizes_init(voi
- 		zholes_size[ZONE_DMA] = mp->holes;
- 		holes += zholes_size[ZONE_DMA];
- 
--		free_area_init_node(nid, NODE_DATA(nid), zones_size,
--			start_pfn, zholes_size);
-+		free_area_init_node(nid, zones_size, start_pfn, zholes_size);
- 	}
- 
- 	/*
-diff -puN arch/m32r/mm/init.c~mm-drop-unneeded-pgdat-argument-from-free_area_init_node arch/m32r/mm/init.c
---- a/arch/m32r/mm/init.c~mm-drop-unneeded-pgdat-argument-from-free_area_init_node
-+++ a/arch/m32r/mm/init.c
-@@ -123,7 +123,7 @@ unsigned long __init zone_sizes_init(voi
- 	start_pfn = __MEMORY_START >> PAGE_SHIFT;
- #endif /* CONFIG_MMU */
- 
--	free_area_init_node(0, NODE_DATA(0), zones_size, start_pfn, 0);
-+	free_area_init_node(0, zones_size, start_pfn, 0);
- 
- 	return 0;
- }
-diff -puN arch/m68k/mm/motorola.c~mm-drop-unneeded-pgdat-argument-from-free_area_init_node arch/m68k/mm/motorola.c
---- a/arch/m68k/mm/motorola.c~mm-drop-unneeded-pgdat-argument-from-free_area_init_node
-+++ a/arch/m68k/mm/motorola.c
-@@ -296,7 +296,7 @@ void __init paging_init(void)
- #endif
- 	for (i = 0; i < m68k_num_memory; i++) {
- 		zones_size[ZONE_DMA] = m68k_memory[i].size >> PAGE_SHIFT;
--		free_area_init_node(i, pg_data_map + i, zones_size,
-+		free_area_init_node(i, zones_size,
- 				    m68k_memory[i].addr >> PAGE_SHIFT, NULL);
- 	}
- }
-diff -puN arch/m68k/mm/sun3mmu.c~mm-drop-unneeded-pgdat-argument-from-free_area_init_node arch/m68k/mm/sun3mmu.c
---- a/arch/m68k/mm/sun3mmu.c~mm-drop-unneeded-pgdat-argument-from-free_area_init_node
-+++ a/arch/m68k/mm/sun3mmu.c
-@@ -94,7 +94,7 @@ void __init paging_init(void)
- 
- 	/* I really wish I knew why the following change made things better...  -- Sam */
- /*	free_area_init(zones_size); */
--	free_area_init_node(0, NODE_DATA(0), zones_size,
-+	free_area_init_node(0, zones_size,
- 			    (__pa(PAGE_OFFSET) >> PAGE_SHIFT) + 1, NULL);
- 
- 
-diff -puN arch/parisc/mm/init.c~mm-drop-unneeded-pgdat-argument-from-free_area_init_node arch/parisc/mm/init.c
---- a/arch/parisc/mm/init.c~mm-drop-unneeded-pgdat-argument-from-free_area_init_node
-+++ a/arch/parisc/mm/init.c
-@@ -887,7 +887,7 @@ void __init paging_init(void)
- 		}
- #endif
- 
--		free_area_init_node(i, NODE_DATA(i), zones_size,
-+		free_area_init_node(i, zones_size,
- 				pmem_ranges[i].start_pfn, NULL);
- 	}
- }
-diff -puN arch/sparc/mm/srmmu.c~mm-drop-unneeded-pgdat-argument-from-free_area_init_node arch/sparc/mm/srmmu.c
---- a/arch/sparc/mm/srmmu.c~mm-drop-unneeded-pgdat-argument-from-free_area_init_node
-+++ a/arch/sparc/mm/srmmu.c
-@@ -1352,8 +1352,7 @@ void __init srmmu_paging_init(void)
- 		zones_size[ZONE_HIGHMEM] = npages;
- 		zholes_size[ZONE_HIGHMEM] = npages - calc_highpages();
- 
--		free_area_init_node(0, &contig_page_data, zones_size,
--				    pfn_base, zholes_size);
-+		free_area_init_node(0, zones_size, pfn_base, zholes_size);
- 	}
- }
- 
-diff -puN arch/sparc/mm/sun4c.c~mm-drop-unneeded-pgdat-argument-from-free_area_init_node arch/sparc/mm/sun4c.c
---- a/arch/sparc/mm/sun4c.c~mm-drop-unneeded-pgdat-argument-from-free_area_init_node
-+++ a/arch/sparc/mm/sun4c.c
-@@ -2123,8 +2123,7 @@ void __init sun4c_paging_init(void)
- 		zones_size[ZONE_HIGHMEM] = npages;
- 		zholes_size[ZONE_HIGHMEM] = npages - calc_highpages();
- 
--		free_area_init_node(0, &contig_page_data, zones_size,
--				    pfn_base, zholes_size);
-+		free_area_init_node(0, zones_size, pfn_base, zholes_size);
- 	}
- 
- 	cnt = 0;
-diff -puN arch/v850/kernel/setup.c~mm-drop-unneeded-pgdat-argument-from-free_area_init_node arch/v850/kernel/setup.c
---- a/arch/v850/kernel/setup.c~mm-drop-unneeded-pgdat-argument-from-free_area_init_node
-+++ a/arch/v850/kernel/setup.c
-@@ -295,8 +295,7 @@ init_mem_alloc (unsigned long ram_start,
- #error MAX_ORDER is too large for given PAGE_OFFSET (use CONFIG_FORCE_MAX_ZONEORDER to change it)
- #endif
- 	NODE_DATA(0)->node_mem_map = NULL;
--	free_area_init_node (0, NODE_DATA(0), zones_size,
--			     ADDR_TO_PAGE (PAGE_OFFSET), 0);
-+	free_area_init_node(0, zones_size, ADDR_TO_PAGE (PAGE_OFFSET), 0);
- }
- 
- 
-diff -puN include/linux/mm.h~mm-drop-unneeded-pgdat-argument-from-free_area_init_node include/linux/mm.h
---- a/include/linux/mm.h~mm-drop-unneeded-pgdat-argument-from-free_area_init_node
-+++ a/include/linux/mm.h
-@@ -962,9 +962,8 @@ static inline void pgtable_page_dtor(str
- 		NULL: pte_offset_kernel(pmd, address))
- 
- extern void free_area_init(unsigned long * zones_size);
--extern void free_area_init_node(int nid, pg_data_t *pgdat,
--	unsigned long * zones_size, unsigned long zone_start_pfn, 
--	unsigned long *zholes_size);
-+extern void free_area_init_node(int nid, unsigned long * zones_size,
-+		unsigned long zone_start_pfn, unsigned long *zholes_size);
- #ifdef CONFIG_ARCH_POPULATES_NODE_MAP
+-static void dentry_lru_remove(struct dentry *dentry)
+-{
+-	if (!list_empty(&dentry->d_lru)) {
+-		list_del_init(&dentry->d_lru);
+-		dentry_stat.nr_unused--;
+-	}
+-}
+-
  /*
-  * With CONFIG_ARCH_POPULATES_NODE_MAP set, an architecture may initialise its
-diff -puN mm/memory_hotplug.c~mm-drop-unneeded-pgdat-argument-from-free_area_init_node mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-drop-unneeded-pgdat-argument-from-free_area_init_node
-+++ a/mm/memory_hotplug.c
-@@ -455,7 +455,7 @@ static pg_data_t *hotadd_new_pgdat(int n
- 	/* we can use NODE_DATA(nid) from here */
- 
- 	/* init node's zones as empty zones, we don't have any present pages.*/
--	free_area_init_node(nid, pgdat, zones_size, start_pfn, zholes_size);
-+	free_area_init_node(nid, zones_size, start_pfn, zholes_size);
- 
- 	return pgdat;
- }
-diff -puN mm/page_alloc.c~mm-drop-unneeded-pgdat-argument-from-free_area_init_node mm/page_alloc.c
---- a/mm/page_alloc.c~mm-drop-unneeded-pgdat-argument-from-free_area_init_node
-+++ a/mm/page_alloc.c
-@@ -3461,10 +3461,11 @@ static void __init_refok alloc_node_mem_
- #endif /* CONFIG_FLAT_NODE_MEM_MAP */
+  * Release the dentry's inode, using the filesystem
+  * d_iput() operation if defined.
+@@ -130,6 +121,41 @@ static void dentry_iput(struct dentry * 
+ 	}
  }
  
--void __paginginit free_area_init_node(int nid, struct pglist_data *pgdat,
--		unsigned long *zones_size, unsigned long node_start_pfn,
--		unsigned long *zholes_size)
-+void __paginginit free_area_init_node(int nid, unsigned long *zones_size,
-+		unsigned long node_start_pfn, unsigned long *zholes_size)
- {
-+	pg_data_t *pgdat = NODE_DATA(nid);
++/*
++ * dentry_lru_(add|add_tail|del|del_init) must be called with dcache_lock held.
++ */
++static void dentry_lru_add(struct dentry *dentry)
++{
++	list_add(&dentry->d_lru, &dentry->d_sb->s_dentry_lru);
++	dentry->d_sb->s_nr_dentry_unused++;
++	dentry_stat.nr_unused++;
++}
 +
- 	pgdat->node_id = nid;
- 	pgdat->node_start_pfn = node_start_pfn;
- 	calculate_node_totalpages(pgdat, zones_size, zholes_size);
-@@ -3961,7 +3962,7 @@ void __init free_area_init_nodes(unsigne
- 	setup_nr_node_ids();
- 	for_each_online_node(nid) {
- 		pg_data_t *pgdat = NODE_DATA(nid);
--		free_area_init_node(nid, pgdat, NULL,
-+		free_area_init_node(nid, NULL,
- 				find_min_pfn_for_node(nid), NULL);
- 
- 		/* Any memory on that node */
-@@ -4032,7 +4033,7 @@ EXPORT_SYMBOL(contig_page_data);
- 
- void __init free_area_init(unsigned long *zones_size)
++static void dentry_lru_add_tail(struct dentry *dentry)
++{
++	list_add_tail(&dentry->d_lru, &dentry->d_sb->s_dentry_lru);
++	dentry->d_sb->s_nr_dentry_unused++;
++	dentry_stat.nr_unused++;
++}
++
++static void dentry_lru_del(struct dentry *dentry)
++{
++	if (!list_empty(&dentry->d_lru)) {
++		list_del(&dentry->d_lru);
++		dentry->d_sb->s_nr_dentry_unused--;
++		dentry_stat.nr_unused--;
++	}
++}
++
++static void dentry_lru_del_init(struct dentry *dentry)
++{
++	if (likely(!list_empty(&dentry->d_lru))) {
++		list_del_init(&dentry->d_lru);
++		dentry->d_sb->s_nr_dentry_unused--;
++		dentry_stat.nr_unused--;
++	}
++}
++
+ /**
+  * d_kill - kill dentry and return parent
+  * @dentry: dentry to kill
+@@ -212,8 +238,7 @@ repeat:
+ 		goto kill_it;
+   	if (list_empty(&dentry->d_lru)) {
+   		dentry->d_flags |= DCACHE_REFERENCED;
+-  		list_add(&dentry->d_lru, &dentry_unused);
+-  		dentry_stat.nr_unused++;
++		dentry_lru_add(dentry);
+   	}
+  	spin_unlock(&dentry->d_lock);
+ 	spin_unlock(&dcache_lock);
+@@ -222,7 +247,8 @@ repeat:
+ unhash_it:
+ 	__d_drop(dentry);
+ kill_it:
+-	dentry_lru_remove(dentry);
++	/* if dentry was on the d_lru list delete it from there */
++	dentry_lru_del(dentry);
+ 	dentry = d_kill(dentry);
+ 	if (dentry)
+ 		goto repeat;
+@@ -290,7 +316,7 @@ int d_invalidate(struct dentry * dentry)
+ static inline struct dentry * __dget_locked(struct dentry *dentry)
  {
--	free_area_init_node(0, NODE_DATA(0), zones_size,
-+	free_area_init_node(0, zones_size,
- 			__pa(PAGE_OFFSET) >> PAGE_SHIFT, NULL);
+ 	atomic_inc(&dentry->d_count);
+-	dentry_lru_remove(dentry);
++	dentry_lru_del_init(dentry);
+ 	return dentry;
  }
  
+@@ -406,133 +432,167 @@ static void prune_one_dentry(struct dent
+ 
+ 		if (dentry->d_op && dentry->d_op->d_delete)
+ 			dentry->d_op->d_delete(dentry);
+-		dentry_lru_remove(dentry);
++		dentry_lru_del_init(dentry);
+ 		__d_drop(dentry);
+ 		dentry = d_kill(dentry);
+ 		spin_lock(&dcache_lock);
+ 	}
+ }
+ 
+-/**
+- * prune_dcache - shrink the dcache
+- * @count: number of entries to try and free
+- * @sb: if given, ignore dentries for other superblocks
+- *         which are being unmounted.
+- *
+- * Shrink the dcache. This is done when we need
+- * more memory, or simply when we need to unmount
+- * something (at which point we need to unuse
+- * all dentries).
+- *
+- * This function may fail to free any resources if
+- * all the dentries are in use.
++/*
++ * Shrink the dentry LRU on a given superblock.
++ * @sb   : superblock to shrink dentry LRU.
++ * @count: If count is NULL, we prune all dentries on superblock.
++ * @flags: If flags is non-zero, we need to do special processing based on
++ * which flags are set. This means we don't need to maintain multiple
++ * similar copies of this loop.
+  */
+- 
+-static void prune_dcache(int count, struct super_block *sb)
++static void __shrink_dcache_sb(struct super_block *sb, int *count, int flags)
+ {
+-	spin_lock(&dcache_lock);
+-	for (; count ; count--) {
+-		struct dentry *dentry;
+-		struct list_head *tmp;
+-		struct rw_semaphore *s_umount;
++	LIST_HEAD(referenced);
++	LIST_HEAD(tmp);
++	struct dentry *dentry;
++	int cnt = 0;
+ 
+-		cond_resched_lock(&dcache_lock);
++	BUG_ON(!sb);
++	BUG_ON((flags & DCACHE_REFERENCED) && count == NULL);
++	spin_lock(&dcache_lock);
++	if (count != NULL)
++		/* called from prune_dcache() and shrink_dcache_parent() */
++		cnt = *count;
++restart:
++	if (count == NULL)
++		list_splice_init(&sb->s_dentry_lru, &tmp);
++	else {
++		while (!list_empty(&sb->s_dentry_lru)) {
++			dentry = list_entry(sb->s_dentry_lru.prev,
++					struct dentry, d_lru);
++			BUG_ON(dentry->d_sb != sb);
+ 
+-		tmp = dentry_unused.prev;
+-		if (sb) {
+-			/* Try to find a dentry for this sb, but don't try
+-			 * too hard, if they aren't near the tail they will
+-			 * be moved down again soon
++			spin_lock(&dentry->d_lock);
++			/*
++			 * If we are honouring the DCACHE_REFERENCED flag and
++			 * the dentry has this flag set, don't free it. Clear
++			 * the flag and put it back on the LRU.
+ 			 */
+-			int skip = count;
+-			while (skip && tmp != &dentry_unused &&
+-			    list_entry(tmp, struct dentry, d_lru)->d_sb != sb) {
+-				skip--;
+-				tmp = tmp->prev;
++			if ((flags & DCACHE_REFERENCED)
++				&& (dentry->d_flags & DCACHE_REFERENCED)) {
++				dentry->d_flags &= ~DCACHE_REFERENCED;
++				list_move_tail(&dentry->d_lru, &referenced);
++				spin_unlock(&dentry->d_lock);
++			} else {
++				list_move_tail(&dentry->d_lru, &tmp);
++				spin_unlock(&dentry->d_lock);
++				cnt--;
++				if (!cnt)
++					break;
+ 			}
+ 		}
+-		if (tmp == &dentry_unused)
+-			break;
+-		list_del_init(tmp);
+-		prefetch(dentry_unused.prev);
+- 		dentry_stat.nr_unused--;
+-		dentry = list_entry(tmp, struct dentry, d_lru);
+-
+- 		spin_lock(&dentry->d_lock);
++	}
++	while (!list_empty(&tmp)) {
++		dentry = list_entry(tmp.prev, struct dentry, d_lru);
++		dentry_lru_del_init(dentry);
++		spin_lock(&dentry->d_lock);
+ 		/*
+ 		 * We found an inuse dentry which was not removed from
+-		 * dentry_unused because of laziness during lookup.  Do not free
+-		 * it - just keep it off the dentry_unused list.
++		 * the LRU because of laziness during lookup.  Do not free
++		 * it - just keep it off the LRU list.
+ 		 */
+- 		if (atomic_read(&dentry->d_count)) {
+- 			spin_unlock(&dentry->d_lock);
++		if (atomic_read(&dentry->d_count)) {
++			spin_unlock(&dentry->d_lock);
+ 			continue;
+ 		}
+-		/* If the dentry was recently referenced, don't free it. */
+-		if (dentry->d_flags & DCACHE_REFERENCED) {
+-			dentry->d_flags &= ~DCACHE_REFERENCED;
+- 			list_add(&dentry->d_lru, &dentry_unused);
+- 			dentry_stat.nr_unused++;
+- 			spin_unlock(&dentry->d_lock);
++		prune_one_dentry(dentry);
++		/* dentry->d_lock was dropped in prune_one_dentry() */
++		cond_resched_lock(&dcache_lock);
++	}
++	if (count == NULL && !list_empty(&sb->s_dentry_lru))
++		goto restart;
++	if (count != NULL)
++		*count = cnt;
++	if (!list_empty(&referenced))
++		list_splice(&referenced, &sb->s_dentry_lru);
++	spin_unlock(&dcache_lock);
++}
++
++/**
++ * prune_dcache - shrink the dcache
++ * @count: number of entries to try to free
++ *
++ * Shrink the dcache. This is done when we need more memory, or simply when we
++ * need to unmount something (at which point we need to unuse all dentries).
++ *
++ * This function may fail to free any resources if all the dentries are in use.
++ */
++static void prune_dcache(int count)
++{
++	struct super_block *sb;
++	int w_count;
++	int unused = dentry_stat.nr_unused;
++	int prune_ratio;
++	int pruned;
++
++	if (unused == 0 || count == 0)
++		return;
++	spin_lock(&dcache_lock);
++restart:
++	if (count >= unused)
++		prune_ratio = 1;
++	else
++		prune_ratio = unused / count;
++	spin_lock(&sb_lock);
++	list_for_each_entry(sb, &super_blocks, s_list) {
++		if (sb->s_nr_dentry_unused == 0)
+ 			continue;
+-		}
+-		/*
+-		 * If the dentry is not DCACHED_REFERENCED, it is time
+-		 * to remove it from the dcache, provided the super block is
+-		 * NULL (which means we are trying to reclaim memory)
+-		 * or this dentry belongs to the same super block that
+-		 * we want to shrink.
++		sb->s_count++;
++		/* Now, we reclaim unused dentrins with fairness.
++		 * We reclaim them same percentage from each superblock.
++		 * We calculate number of dentries to scan on this sb
++		 * as follows, but the implementation is arranged to avoid
++		 * overflows:
++		 * number of dentries to scan on this sb =
++		 * count * (number of dentries on this sb /
++		 * number of dentries in the machine)
+ 		 */
++		spin_unlock(&sb_lock);
++		if (prune_ratio != 1)
++			w_count = (sb->s_nr_dentry_unused / prune_ratio) + 1;
++		else
++			w_count = sb->s_nr_dentry_unused;
++		pruned = w_count;
+ 		/*
+-		 * If this dentry is for "my" filesystem, then I can prune it
+-		 * without taking the s_umount lock (I already hold it).
+-		 */
+-		if (sb && dentry->d_sb == sb) {
+-			prune_one_dentry(dentry);
+-			continue;
+-		}
+-		/*
+-		 * ...otherwise we need to be sure this filesystem isn't being
+-		 * unmounted, otherwise we could race with
+-		 * generic_shutdown_super(), and end up holding a reference to
+-		 * an inode while the filesystem is unmounted.
+-		 * So we try to get s_umount, and make sure s_root isn't NULL.
+-		 * (Take a local copy of s_umount to avoid a use-after-free of
+-		 * `dentry').
++		 * We need to be sure this filesystem isn't being unmounted,
++		 * otherwise we could race with generic_shutdown_super(), and
++		 * end up holding a reference to an inode while the filesystem
++		 * is unmounted.  So we try to get s_umount, and make sure
++		 * s_root isn't NULL.
+ 		 */
+-		s_umount = &dentry->d_sb->s_umount;
+-		if (down_read_trylock(s_umount)) {
+-			if (dentry->d_sb->s_root != NULL) {
+-				prune_one_dentry(dentry);
+-				up_read(s_umount);
+-				continue;
++		if (down_read_trylock(&sb->s_umount)) {
++			if ((sb->s_root != NULL) &&
++			    (!list_empty(&sb->s_dentry_lru))) {
++				spin_unlock(&dcache_lock);
++				__shrink_dcache_sb(sb, &w_count,
++						DCACHE_REFERENCED);
++				pruned -= w_count;
++				spin_lock(&dcache_lock);
+ 			}
+-			up_read(s_umount);
++			up_read(&sb->s_umount);
+ 		}
+-		spin_unlock(&dentry->d_lock);
++		spin_lock(&sb_lock);
++		count -= pruned;
+ 		/*
+-		 * Insert dentry at the head of the list as inserting at the
+-		 * tail leads to a cycle.
++		 * restart only when sb is no longer on the list and
++		 * we have more work to do.
+ 		 */
+- 		list_add(&dentry->d_lru, &dentry_unused);
+-		dentry_stat.nr_unused++;
++		if (__put_super_and_need_restart(sb) && count > 0) {
++			spin_unlock(&sb_lock);
++			goto restart;
++		}
+ 	}
++	spin_unlock(&sb_lock);
+ 	spin_unlock(&dcache_lock);
+ }
+ 
+-/*
+- * Shrink the dcache for the specified super block.
+- * This allows us to unmount a device without disturbing
+- * the dcache for the other devices.
+- *
+- * This implementation makes just two traversals of the
+- * unused list.  On the first pass we move the selected
+- * dentries to the most recent end, and on the second
+- * pass we free them.  The second pass must restart after
+- * each dput(), but since the target dentries are all at
+- * the end, it's really just a single traversal.
+- */
+-
+ /**
+  * shrink_dcache_sb - shrink dcache for a superblock
+  * @sb: superblock
+@@ -541,44 +601,9 @@ static void prune_dcache(int count, stru
+  * is used to free the dcache before unmounting a file
+  * system
+  */
+-
+ void shrink_dcache_sb(struct super_block * sb)
+ {
+-	struct list_head *tmp, *next;
+-	struct dentry *dentry;
+-
+-	/*
+-	 * Pass one ... move the dentries for the specified
+-	 * superblock to the most recent end of the unused list.
+-	 */
+-	spin_lock(&dcache_lock);
+-	list_for_each_prev_safe(tmp, next, &dentry_unused) {
+-		dentry = list_entry(tmp, struct dentry, d_lru);
+-		if (dentry->d_sb != sb)
+-			continue;
+-		list_move_tail(tmp, &dentry_unused);
+-	}
+-
+-	/*
+-	 * Pass two ... free the dentries for this superblock.
+-	 */
+-repeat:
+-	list_for_each_prev_safe(tmp, next, &dentry_unused) {
+-		dentry = list_entry(tmp, struct dentry, d_lru);
+-		if (dentry->d_sb != sb)
+-			continue;
+-		dentry_stat.nr_unused--;
+-		list_del_init(tmp);
+-		spin_lock(&dentry->d_lock);
+-		if (atomic_read(&dentry->d_count)) {
+-			spin_unlock(&dentry->d_lock);
+-			continue;
+-		}
+-		prune_one_dentry(dentry);
+-		cond_resched_lock(&dcache_lock);
+-		goto repeat;
+-	}
+-	spin_unlock(&dcache_lock);
++	__shrink_dcache_sb(sb, NULL, 0);
+ }
+ 
+ /*
+@@ -595,7 +620,7 @@ static void shrink_dcache_for_umount_sub
+ 
+ 	/* detach this root from the system */
+ 	spin_lock(&dcache_lock);
+-	dentry_lru_remove(dentry);
++	dentry_lru_del_init(dentry);
+ 	__d_drop(dentry);
+ 	spin_unlock(&dcache_lock);
+ 
+@@ -609,7 +634,7 @@ static void shrink_dcache_for_umount_sub
+ 			spin_lock(&dcache_lock);
+ 			list_for_each_entry(loop, &dentry->d_subdirs,
+ 					    d_u.d_child) {
+-				dentry_lru_remove(loop);
++				dentry_lru_del_init(loop);
+ 				__d_drop(loop);
+ 				cond_resched_lock(&dcache_lock);
+ 			}
+@@ -791,14 +816,13 @@ resume:
+ 		struct dentry *dentry = list_entry(tmp, struct dentry, d_u.d_child);
+ 		next = tmp->next;
+ 
+-		dentry_lru_remove(dentry);
++		dentry_lru_del_init(dentry);
+ 		/* 
+ 		 * move only zero ref count dentries to the end 
+ 		 * of the unused list for prune_dcache
+ 		 */
+ 		if (!atomic_read(&dentry->d_count)) {
+-			list_add_tail(&dentry->d_lru, &dentry_unused);
+-			dentry_stat.nr_unused++;
++			dentry_lru_add_tail(dentry);
+ 			found++;
+ 		}
+ 
+@@ -840,10 +864,11 @@ out:
+  
+ void shrink_dcache_parent(struct dentry * parent)
+ {
++	struct super_block *sb = parent->d_sb;
+ 	int found;
+ 
+ 	while ((found = select_parent(parent)) != 0)
+-		prune_dcache(found, parent->d_sb);
++		__shrink_dcache_sb(sb, &found, 0);
+ }
+ 
+ /*
+@@ -863,7 +888,7 @@ static int shrink_dcache_memory(int nr, 
+ 	if (nr) {
+ 		if (!(gfp_mask & __GFP_FS))
+ 			return -1;
+-		prune_dcache(nr, NULL);
++		prune_dcache(nr);
+ 	}
+ 	return (dentry_stat.nr_unused / 100) * sysctl_vfs_cache_pressure;
+ }
+@@ -1215,7 +1240,7 @@ struct dentry *d_splice_alias(struct ino
+  * rcu_read_lock() and rcu_read_unlock() are used to disable preemption while
+  * lookup is going on.
+  *
+- * dentry_unused list is not updated even if lookup finds the required dentry
++ * The dentry unused LRU is not updated even if lookup finds the required dentry
+  * in there. It is updated in places such as prune_dcache, shrink_dcache_sb,
+  * select_parent and __dget_locked. This laziness saves lookup from dcache_lock
+  * acquisition.
+diff -puN fs/super.c~fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries fs/super.c
+--- a/fs/super.c~fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries
++++ a/fs/super.c
+@@ -70,6 +70,7 @@ static struct super_block *alloc_super(s
+ 		INIT_LIST_HEAD(&s->s_instances);
+ 		INIT_HLIST_HEAD(&s->s_anon);
+ 		INIT_LIST_HEAD(&s->s_inodes);
++		INIT_LIST_HEAD(&s->s_dentry_lru);
+ 		init_rwsem(&s->s_umount);
+ 		mutex_init(&s->s_lock);
+ 		lockdep_set_class(&s->s_umount, &type->s_umount_key);
+diff -puN include/linux/fs.h~fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries include/linux/fs.h
+--- a/include/linux/fs.h~fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries
++++ a/include/linux/fs.h
+@@ -1025,6 +1025,7 @@ extern int send_sigurg(struct fown_struc
+ extern struct list_head super_blocks;
+ extern spinlock_t sb_lock;
+ 
++#define sb_entry(list)  list_entry((list), struct super_block, s_list)
+ #define S_BIAS (1<<30)
+ struct super_block {
+ 	struct list_head	s_list;		/* Keep this first */
+@@ -1058,6 +1059,9 @@ struct super_block {
+ 	struct list_head	s_more_io;	/* parked for more writeback */
+ 	struct hlist_head	s_anon;		/* anonymous dentries for (nfs) exporting */
+ 	struct list_head	s_files;
++	/* s_dentry_lru and s_nr_dentry_unused are protected by dcache_lock */
++	struct list_head	s_dentry_lru;	/* unused dentry lru */
++	int			s_nr_dentry_unused;	/* # of dentry on lru */
+ 
+ 	struct block_device	*s_bdev;
+ 	struct mtd_info		*s_mtd;
 _
 
-Patches currently in -mm which might be from hannes@saeurebad.de are
+Patches currently in -mm which might be from k-makita@np.css.fujitsu.com are
 
 origin.patch
-linux-next.patch
-git-xtensa.patch
-documentation-update-codingstyle-tips-for-emacs-users-v2.patch
-mm-more-likely-reclaim-madv_sequential-mappings.patch
-mm-print-swapcache-page-count-in-show_swap_cache_info.patch
-lib-generic-show_mem.patch
-alpha-use-generic-show_mem.patch
-avr32-use-generic-show_mem.patch
-blackfin-use-generic-show_mem.patch
-xtensa-use-generic-show_mem.patch
-x86-use-generic-show_mem.patch
-um-use-generic-show_mem.patch
-sparc64-use-generic-show_mem.patch
-sh-use-generic-show_mem.patch
-s390-use-generic-show_mem.patch
-powerpc-use-generic-show_mem.patch
-mn10300-use-generic-show_mem.patch
-h8300-use-generic-show_mem.patch
-mips-use-generic-show_mem.patch
-m68knommu-use-generic-show_mem.patch
-m68k-use-generic-show_mem.patch
-m32r-use-generic-show_mem.patch
-frv-use-generic-show_mem.patch
-cris-use-generic-show_mem.patch
+vfs-fix-coding-style-in-dcachec.patch
+vfs-add-cond_resched_lock-while-scanning-dentry-lru-lists.patch
 
