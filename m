@@ -1,64 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-fixup.patch added to -mm tree
-Date: Wed, 23 Jul 2008 17:53:24 -0700
-Message-ID: <200807240053.m6O0rOYZ021265@imap1.linux-foundation.org>
+Subject: - linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch removed from -mm tree
+Date: Wed, 23 Jul 2008 17:54:33 -0700
+Message-ID: <200807240054.m6O0sXGY021286@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43219 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35021 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750739AbYGXAx1 (ORCPT
+	by vger.kernel.org with ESMTP id S1750878AbYGXAyy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 Jul 2008 20:53:27 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m6O0rOVp010122
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 23 Jul 2008 17:53:25 -0700
+	Wed, 23 Jul 2008 20:54:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, bwalle@suse.de, hannes@saeurebad.de, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next-fixup
-has been added to the -mm tree.  Its filename is
-     linux-next-fixup.patch
+     linux-next: revert "bootmem: add return value to reserve_bootmem_node()"
+has been removed from the -mm tree.  Its filename was
+     linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-fixup
+Subject: linux-next: revert "bootmem: add return value to reserve_bootmem_node()"
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Revert
+
+commit 91d48fc80f22817332170082e10de60a75851640
+Author: Bernhard Walle <bwalle@suse.de>
+Date:   Sun Jun 8 15:46:29 2008 +0200
+
+    bootmem: add return value to reserve_bootmem_node()
+    
+    This patch changes the function reserve_bootmem_node() from void to int,
+    returning -ENOMEM if the allocation fails.
+    
+    Signed-off-by: Bernhard Walle <bwalle@suse.de>
+    Signed-off-by: Ingo Molnar <mingo@elte.hu>
+
+since it trashes the bootmem rewrite in -mm.
+
+Please merge memory management patches via the -mm tree.
+
+Cc: Johannes Weiner <hannes@saeurebad.de>
+Cc: Bernhard Walle <bwalle@suse.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/pipe.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/bootmem.h |    2 +-
+ mm/bootmem.c            |    6 ++----
+ 2 files changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN fs/pipe.c~linux-next-fixup fs/pipe.c
---- a/fs/pipe.c~linux-next-fixup
-+++ a/fs/pipe.c
-@@ -985,7 +985,7 @@ struct file *create_read_pipe(struct fil
+diff -puN include/linux/bootmem.h~linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node include/linux/bootmem.h
+--- a/include/linux/bootmem.h~linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node
++++ a/include/linux/bootmem.h
+@@ -97,7 +97,7 @@ extern unsigned long init_bootmem_node(p
+ 				       unsigned long freepfn,
+ 				       unsigned long startpfn,
+ 				       unsigned long endpfn);
+-extern int reserve_bootmem_node(pg_data_t *pgdat,
++extern void reserve_bootmem_node(pg_data_t *pgdat,
+ 				 unsigned long physaddr,
+ 				 unsigned long size,
+ 				 int flags);
+diff -puN mm/bootmem.c~linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node mm/bootmem.c
+--- a/mm/bootmem.c~linux-next-revert-bootmem-add-return-value-to-reserve_bootmem_node
++++ a/mm/bootmem.c
+@@ -442,17 +442,15 @@ unsigned long __init init_bootmem_node(p
+ 	return init_bootmem_core(pgdat->bdata, freepfn, startpfn, endpfn);
+ }
  
- 	f->f_pos = 0;
- 	f->f_flags = O_RDONLY | (flags & O_NONBLOCK);
--	f->f_op = &read_pipe_fops;
-+	f->f_op = &read_pipefifo_fops;
- 	f->f_mode = FMODE_READ;
- 	f->f_version = 0;
+-int __init reserve_bootmem_node(pg_data_t *pgdat, unsigned long physaddr,
++void __init reserve_bootmem_node(pg_data_t *pgdat, unsigned long physaddr,
+ 				 unsigned long size, int flags)
+ {
+ 	int ret;
  
+ 	ret = can_reserve_bootmem_core(pgdat->bdata, physaddr, size, flags);
+ 	if (ret < 0)
+-		return -ENOMEM;
++		return;
+ 	reserve_bootmem_core(pgdat->bdata, physaddr, size, flags);
+-
+-	return 0;
+ }
+ 
+ void __init free_bootmem_node(pg_data_t *pgdat, unsigned long physaddr,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
