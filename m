@@ -1,55 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: - tridentfb-improve-probe-function.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:31:01 -0700
-Message-ID: <200807242331.m6ONV1oJ011574@imap1.linux-foundation.org>
+Subject: - rtc-at91rm9200-avoid-spurious-irqs.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:30:30 -0700
+Message-ID: <200807242330.m6ONUUAY011513@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55869 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55069 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756643AbYGXXbD (ORCPT
+	by vger.kernel.org with ESMTP id S1756955AbYGXXau (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:31:03 -0400
+	Thu, 24 Jul 2008 19:30:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: krzysztof.h1@wp.pl, mm-commits@vger.kernel.org
+To: dbrownell@users.sourceforge.net, avictor.za@gmail.com, stable@kernel.org, unruh@physics.ubc.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tridentfb: improve probe function
+     rtc-at91rm9200: avoid spurious irqs
 has been removed from the -mm tree.  Its filename was
-     tridentfb-improve-probe-function.patch
+     rtc-at91rm9200-avoid-spurious-irqs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tridentfb: improve probe function
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: rtc-at91rm9200: avoid spurious irqs
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-Add missing release of allocated fb_info structure and move enable_mmio() to
-fix error path.
+This fixes kernel http://bugzilla.kernel.org/show_bug.cgi?id=11112 (bogus
+RTC update IRQs reported) for rtc-at91rm9200 by scrubbing old IRQ status
+before enabling IRQs.
 
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+It also removes nonfunctional periodic IRQ support from this driver;
+only update IRQs are reported, or provided by the hardware.
+
+I suspect some other RTCs probably have versions of #11112; it's easy to
+overlook, since most non-RTC drivers don't care about spurious IRQs:
+they're not reported to userspace.
+
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Report-by: W Unruh <unruh@physics.ubc.ca>
+Cc: Andrew Victor <avictor.za@gmail.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/tridentfb.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/rtc/rtc-at91rm9200.c |   16 ++++++----------
+ 1 file changed, 6 insertions(+), 10 deletions(-)
 
-diff -puN drivers/video/tridentfb.c~tridentfb-improve-probe-function drivers/video/tridentfb.c
---- a/drivers/video/tridentfb.c~tridentfb-improve-probe-function
-+++ a/drivers/video/tridentfb.c
-@@ -1287,6 +1287,7 @@ static int __devinit trident_pci_probe(s
+diff -puN drivers/rtc/rtc-at91rm9200.c~rtc-at91rm9200-avoid-spurious-irqs drivers/rtc/rtc-at91rm9200.c
+--- a/drivers/rtc/rtc-at91rm9200.c~rtc-at91rm9200-avoid-spurious-irqs
++++ a/drivers/rtc/rtc-at91rm9200.c
+@@ -171,8 +171,10 @@ static int at91_rtc_setalarm(struct devi
+ 		| BIN2BCD(tm.tm_mday) << 24
+ 		| AT91_RTC_DATEEN | AT91_RTC_MTHEN);
  
- 	if (!request_mem_region(tridentfb_fix.mmio_start, tridentfb_fix.mmio_len, "tridentfb")) {
- 		debug("request_region failed!\n");
-+		framebuffer_release(info);
- 		return -1;
- 	}
+-	if (alrm->enabled)
++	if (alrm->enabled) {
++		at91_sys_write(AT91_RTC_SCCR, AT91_RTC_ALARM);
+ 		at91_sys_write(AT91_RTC_IER, AT91_RTC_ALARM);
++	}
  
-@@ -1299,8 +1300,6 @@ static int __devinit trident_pci_probe(s
- 		goto out_unmap1;
- 	}
+ 	pr_debug("%s(): %4d-%02d-%02d %02d:%02d:%02d\n", __func__,
+ 		at91_alarm_year, tm.tm_mon, tm.tm_mday, tm.tm_hour,
+@@ -191,28 +193,22 @@ static int at91_rtc_ioctl(struct device 
  
--	enable_mmio();
+ 	pr_debug("%s(): cmd=%08x, arg=%08lx.\n", __func__, cmd, arg);
+ 
++	/* important:  scrub old status before enabling IRQs */
+ 	switch (cmd) {
+ 	case RTC_AIE_OFF:	/* alarm off */
+ 		at91_sys_write(AT91_RTC_IDR, AT91_RTC_ALARM);
+ 		break;
+ 	case RTC_AIE_ON:	/* alarm on */
++		at91_sys_write(AT91_RTC_SCCR, AT91_RTC_ALARM);
+ 		at91_sys_write(AT91_RTC_IER, AT91_RTC_ALARM);
+ 		break;
+ 	case RTC_UIE_OFF:	/* update off */
+-	case RTC_PIE_OFF:	/* periodic off */
+ 		at91_sys_write(AT91_RTC_IDR, AT91_RTC_SECEV);
+ 		break;
+ 	case RTC_UIE_ON:	/* update on */
+-	case RTC_PIE_ON:	/* periodic on */
++		at91_sys_write(AT91_RTC_SCCR, AT91_RTC_SECEV);
+ 		at91_sys_write(AT91_RTC_IER, AT91_RTC_SECEV);
+ 		break;
+-	case RTC_IRQP_READ:	/* read periodic alarm frequency */
+-		ret = put_user(AT91_RTC_FREQ, (unsigned long *) arg);
+-		break;
+-	case RTC_IRQP_SET:	/* set periodic alarm frequency */
+-		if (arg != AT91_RTC_FREQ)
+-			ret = -EINVAL;
+-		break;
+ 	default:
+ 		ret = -ENOIOCTLCMD;
+ 		break;
+_
+
+Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
+
+origin.patch
+linux-next.patch
+drivers-power-fix-platform-driver-hotplug-coldplug.patch
+mfd-fix-platform-driver-hotplug-coldplug.patch
+parport-fix-platform-driver-hotplug-coldplug.patch
+gpio-sysfs-interface-updated.patch
+gpio-sysfs-interface-updated-update.patch
+gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support.patch
+gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix.patch
+gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix-fix.patch
+gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix-fix-fix.patch
+gpio-mcp23s08-handles-multiple-chips-per-chipselect.patch
+gpio-max732x-driver.patch
+
