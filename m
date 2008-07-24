@@ -1,251 +1,970 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-remove-bkl-for-ioctl.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:30:03 -0700
-Message-ID: <200807242330.m6ONU3kA011456@imap1.linux-foundation.org>
+Subject: - rtc-ds1305-ds1306-driver.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:30:09 -0700
+Message-ID: <200807242330.m6ONU9ts011468@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33684 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50891 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756929AbYGXXac (ORCPT
+	by vger.kernel.org with ESMTP id S1756505AbYGXXai (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:30:32 -0400
+	Thu, 24 Jul 2008 19:30:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david-b@pacbell.net, a.zummo@towertech.it, alan@lxorguk.ukuu.org.uk, corbet@lwn.net, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: david-b@pacbell.net, a.zummo@towertech.it, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc: remove BKL for ioctl()
+     rtc: ds1305/ds1306 driver
 has been removed from the -mm tree.  Its filename was
-     rtc-remove-bkl-for-ioctl.patch
+     rtc-ds1305-ds1306-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: remove BKL for ioctl()
+Subject: rtc: ds1305/ds1306 driver
 From: David Brownell <david-b@pacbell.net>
 
-Remove implicit use of BKL in ioctl() from the RTC framework.
+Support the Dallas/Maxim DS1305 and DS1306 RTC chips.  These use SPI, and
+support alarms, NVRAM, and a trickle charger for use when their backup
+power supply is a supercap or rechargeable cell.
 
-Instead, the rtc->ops_lock is used.  That's the same lock that already
-protects the RTC operations when they're issued through the exported
-rtc_*() calls in drivers/rtc/interface.c ...  making this a bugfix, not
-just a cleanup, since both ioctl calls and set_alarm() need to update IRQ
-enable flags and that implies a common lock (which RTC drivers as a rule
-do not provide on their own).
-
-A new comment at the declaration of "struct rtc_class_ops" summarizes
-current locking rules.  It's not clear to me that the exceptions listed
-there should exist ...  if not, those are pre-existing problems which can
-be fixed in a patch that doesn't relate to BKL removal.
+This basic driver doesn't yet support suspend/resume or wakealarms.
 
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Acked-by: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-dev.c |   58 ++++++++++++++++++++++++++--------------
- include/linux/rtc.h   |   17 +++++++++++
- 2 files changed, 55 insertions(+), 20 deletions(-)
+ drivers/rtc/Kconfig        |   10 
+ drivers/rtc/Makefile       |    1 
+ drivers/rtc/rtc-ds1305.c   |  847 +++++++++++++++++++++++++++++++++++
+ include/linux/spi/ds1305.h |   35 +
+ 4 files changed, 893 insertions(+)
 
-diff -puN drivers/rtc/rtc-dev.c~rtc-remove-bkl-for-ioctl drivers/rtc/rtc-dev.c
---- a/drivers/rtc/rtc-dev.c~rtc-remove-bkl-for-ioctl
-+++ a/drivers/rtc/rtc-dev.c
-@@ -209,7 +209,7 @@ static unsigned int rtc_dev_poll(struct 
- 	return (data != 0) ? (POLLIN | POLLRDNORM) : 0;
- }
+diff -puN drivers/rtc/Kconfig~rtc-ds1305-ds1306-driver drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-ds1305-ds1306-driver
++++ a/drivers/rtc/Kconfig
+@@ -282,6 +282,16 @@ config RTC_DRV_M41T94
+ 	  This driver can also be built as a module. If so, the module
+ 	  will be called rtc-m41t94.
  
--static int rtc_dev_ioctl(struct inode *inode, struct file *file,
-+static long rtc_dev_ioctl(struct file *file,
- 		unsigned int cmd, unsigned long arg)
- {
- 	int err = 0;
-@@ -219,6 +219,10 @@ static int rtc_dev_ioctl(struct inode *i
- 	struct rtc_wkalrm alarm;
- 	void __user *uarg = (void __user *) arg;
- 
-+	err = mutex_lock_interruptible(&rtc->ops_lock);
-+	if (err)
-+		return -EBUSY;
++config RTC_DRV_DS1305
++	tristate "Dallas/Maxim DS1305/DS1306"
++	help
++	  Select this driver to get support for the Dallas/Maxim DS1305
++	  and DS1306 real time clock chips.  These support a trickle
++	  charger, alarms, and NVRAM in addition to the clock.
 +
- 	/* check that the calling task has appropriate permissions
- 	 * for certain ioctls. doing this check here is useful
- 	 * to avoid duplicate code in each driver.
-@@ -227,26 +231,31 @@ static int rtc_dev_ioctl(struct inode *i
- 	case RTC_EPOCH_SET:
- 	case RTC_SET_TIME:
- 		if (!capable(CAP_SYS_TIME))
--			return -EACCES;
-+			err = -EACCES;
- 		break;
- 
- 	case RTC_IRQP_SET:
- 		if (arg > rtc->max_user_freq && !capable(CAP_SYS_RESOURCE))
--			return -EACCES;
-+			err = -EACCES;
- 		break;
- 
- 	case RTC_PIE_ON:
- 		if (rtc->irq_freq > rtc->max_user_freq &&
- 				!capable(CAP_SYS_RESOURCE))
--			return -EACCES;
-+			err = -EACCES;
- 		break;
- 	}
- 
-+	if (err)
-+		goto done;
++	  This driver can also be built as a module. If so, the module
++	  will be called rtc-ds1305.
 +
- 	/* try the driver's ioctl interface */
- 	if (ops->ioctl) {
- 		err = ops->ioctl(rtc->dev.parent, cmd, arg);
--		if (err != -ENOIOCTLCMD)
-+		if (err != -ENOIOCTLCMD) {
-+			mutex_unlock(&rtc->ops_lock);
- 			return err;
-+		}
- 	}
- 
- 	/* if the driver does not provide the ioctl interface
-@@ -265,15 +274,19 @@ static int rtc_dev_ioctl(struct inode *i
- 
- 	switch (cmd) {
- 	case RTC_ALM_READ:
-+		mutex_unlock(&rtc->ops_lock);
-+
- 		err = rtc_read_alarm(rtc, &alarm);
- 		if (err < 0)
- 			return err;
- 
- 		if (copy_to_user(uarg, &alarm.time, sizeof(tm)))
--			return -EFAULT;
--		break;
-+			err = -EFAULT;
-+		return err;
- 
- 	case RTC_ALM_SET:
-+		mutex_unlock(&rtc->ops_lock);
-+
- 		if (copy_from_user(&alarm.time, uarg, sizeof(tm)))
- 			return -EFAULT;
- 
-@@ -321,24 +334,26 @@ static int rtc_dev_ioctl(struct inode *i
- 			}
- 		}
- 
--		err = rtc_set_alarm(rtc, &alarm);
--		break;
-+		return rtc_set_alarm(rtc, &alarm);
- 
- 	case RTC_RD_TIME:
-+		mutex_unlock(&rtc->ops_lock);
-+
- 		err = rtc_read_time(rtc, &tm);
- 		if (err < 0)
- 			return err;
- 
- 		if (copy_to_user(uarg, &tm, sizeof(tm)))
--			return -EFAULT;
--		break;
-+			err = -EFAULT;
-+		return err;
- 
- 	case RTC_SET_TIME:
-+		mutex_unlock(&rtc->ops_lock);
-+
- 		if (copy_from_user(&tm, uarg, sizeof(tm)))
- 			return -EFAULT;
- 
--		err = rtc_set_time(rtc, &tm);
--		break;
-+		return rtc_set_time(rtc, &tm);
- 
- 	case RTC_PIE_ON:
- 		err = rtc_irq_set_state(rtc, NULL, 1);
-@@ -376,34 +391,37 @@ static int rtc_dev_ioctl(struct inode *i
- 		break;
- #endif
- 	case RTC_WKALM_SET:
-+		mutex_unlock(&rtc->ops_lock);
- 		if (copy_from_user(&alarm, uarg, sizeof(alarm)))
- 			return -EFAULT;
- 
--		err = rtc_set_alarm(rtc, &alarm);
--		break;
-+		return rtc_set_alarm(rtc, &alarm);
- 
- 	case RTC_WKALM_RD:
-+		mutex_unlock(&rtc->ops_lock);
- 		err = rtc_read_alarm(rtc, &alarm);
- 		if (err < 0)
- 			return err;
- 
- 		if (copy_to_user(uarg, &alarm, sizeof(alarm)))
--			return -EFAULT;
--		break;
-+			err = -EFAULT;
-+		return err;
- 
- #ifdef CONFIG_RTC_INTF_DEV_UIE_EMUL
- 	case RTC_UIE_OFF:
- 		clear_uie(rtc);
--		return 0;
-+		break;
- 
- 	case RTC_UIE_ON:
--		return set_uie(rtc);
-+		err = set_uie(rtc);
- #endif
- 	default:
- 		err = -ENOTTY;
- 		break;
- 	}
- 
-+done:
-+	mutex_unlock(&rtc->ops_lock);
- 	return err;
- }
- 
-@@ -432,7 +450,7 @@ static const struct file_operations rtc_
- 	.llseek		= no_llseek,
- 	.read		= rtc_dev_read,
- 	.poll		= rtc_dev_poll,
--	.ioctl		= rtc_dev_ioctl,
-+	.unlocked_ioctl	= rtc_dev_ioctl,
- 	.open		= rtc_dev_open,
- 	.release	= rtc_dev_release,
- 	.fasync		= rtc_dev_fasync,
-diff -puN include/linux/rtc.h~rtc-remove-bkl-for-ioctl include/linux/rtc.h
---- a/include/linux/rtc.h~rtc-remove-bkl-for-ioctl
-+++ a/include/linux/rtc.h
-@@ -115,6 +115,23 @@ extern void rtc_time_to_tm(unsigned long
- 
- extern struct class *rtc_class;
- 
+ config RTC_DRV_MAX6902
+ 	tristate "Maxim MAX6902"
+ 	help
+diff -puN drivers/rtc/Makefile~rtc-ds1305-ds1306-driver drivers/rtc/Makefile
+--- a/drivers/rtc/Makefile~rtc-ds1305-ds1306-driver
++++ a/drivers/rtc/Makefile
+@@ -24,6 +24,7 @@ obj-$(CONFIG_RTC_DRV_BFIN)	+= rtc-bfin.o
+ obj-$(CONFIG_RTC_DRV_CMOS)	+= rtc-cmos.o
+ obj-$(CONFIG_RTC_DRV_DS1216)	+= rtc-ds1216.o
+ obj-$(CONFIG_RTC_DRV_DS1302)	+= rtc-ds1302.o
++obj-$(CONFIG_RTC_DRV_DS1305)	+= rtc-ds1305.o
+ obj-$(CONFIG_RTC_DRV_DS1307)	+= rtc-ds1307.o
+ obj-$(CONFIG_RTC_DRV_DS1374)	+= rtc-ds1374.o
+ obj-$(CONFIG_RTC_DRV_DS1511)	+= rtc-ds1511.o
+diff -puN /dev/null drivers/rtc/rtc-ds1305.c
+--- /dev/null
++++ a/drivers/rtc/rtc-ds1305.c
+@@ -0,0 +1,847 @@
 +/*
-+ * For these RTC methods the device parameter is the physical device
-+ * on whatever bus holds the hardware (I2C, Platform, SPI, etc), which
-+ * was passed to rtc_device_register().  Its driver_data normally holds
-+ * device state, including the rtc_device pointer for the RTC.
++ * rtc-ds1305.c -- driver for DS1305 and DS1306 SPI RTC chips
 + *
-+ * Most of these methods are called with rtc_device.ops_lock held,
-+ * through the rtc_*(struct rtc_device *, ...) calls.
++ * Copyright (C) 2008 David Brownell
 + *
-+ * The (current) exceptions are mostly filesystem hooks:
-+ *   - the proc() hook for procfs
-+ *   - non-ioctl() chardev hooks:  open(), release(), read_callback()
-+ *   - periodic irq calls:  irq_set_state(), irq_set_freq()
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
 + *
-+ * REVISIT those periodic irq calls *do* have ops_lock when they're
-+ * issued through ioctl() ...
 + */
- struct rtc_class_ops {
- 	int (*open)(struct device *);
- 	void (*release)(struct device *);
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/bcd.h>
++#include <linux/rtc.h>
++#include <linux/workqueue.h>
++
++#include <linux/spi/spi.h>
++#include <linux/spi/ds1305.h>
++
++
++/*
++ * Registers ... mask DS1305_WRITE into register address to write,
++ * otherwise you're reading it.  All non-bitmask values are BCD.
++ */
++#define DS1305_WRITE		0x80
++
++
++/* RTC date/time ... the main special cases are that we:
++ *  - Need fancy "hours" encoding in 12hour mode
++ *  - Don't rely on the "day-of-week" field (or tm_wday)
++ *  - Are a 21st-century clock (2000 <= year < 2100)
++ */
++#define DS1305_RTC_LEN		7		/* bytes for RTC regs */
++
++#define DS1305_SEC		0x00		/* register addresses */
++#define DS1305_MIN		0x01
++#define DS1305_HOUR		0x02
++#	define DS1305_HR_12		0x40	/* set == 12 hr mode */
++#	define DS1305_HR_PM		0x20	/* set == PM (12hr mode) */
++#define DS1305_WDAY		0x03
++#define DS1305_MDAY		0x04
++#define DS1305_MON		0x05
++#define DS1305_YEAR		0x06
++
++
++/* The two alarms have only sec/min/hour/wday fields (ALM_LEN).
++ * DS1305_ALM_DISABLE disables a match field (some combos are bad).
++ *
++ * NOTE that since we don't use WDAY, we limit ourselves to alarms
++ * only one day into the future (vs potentially up to a week).
++ *
++ * NOTE ALSO that while we could generate once-a-second IRQs (UIE), we
++ * don't currently support them.  We'd either need to do it only when
++ * no alarm is pending (not the standard model), or to use the second
++ * alarm (implying that this is a DS1305 not DS1306, *and* that either
++ * it's wired up a second IRQ we know, or that INTCN is set)
++ */
++#define DS1305_ALM_LEN		4		/* bytes for ALM regs */
++#define DS1305_ALM_DISABLE	0x80
++
++#define DS1305_ALM0(r)		(0x07 + (r))	/* register addresses */
++#define DS1305_ALM1(r)		(0x0b + (r))
++
++
++/* three control registers */
++#define DS1305_CONTROL_LEN	3		/* bytes of control regs */
++
++#define DS1305_CONTROL		0x0f		/* register addresses */
++#	define DS1305_nEOSC		0x80	/* low enables oscillator */
++#	define DS1305_WP		0x40	/* write protect */
++#	define DS1305_INTCN		0x04	/* clear == only int0 used */
++#	define DS1306_1HZ		0x04	/* enable 1Hz output */
++#	define DS1305_AEI1		0x02	/* enable ALM1 IRQ */
++#	define DS1305_AEI0		0x01	/* enable ALM0 IRQ */
++#define DS1305_STATUS		0x10
++/* status has just AEIx bits, mirrored as IRQFx */
++#define DS1305_TRICKLE		0x11
++/* trickle bits are defined in <linux/spi/ds1305.h> */
++
++/* a bunch of NVRAM */
++#define DS1305_NVRAM_LEN	96		/* bytes of NVRAM */
++
++#define DS1305_NVRAM		0x20		/* register addresses */
++
++
++struct ds1305 {
++	struct spi_device	*spi;
++	struct rtc_device	*rtc;
++
++	struct work_struct	work;
++
++	unsigned long		flags;
++#define FLAG_EXITING	0
++
++	bool			hr12;
++	u8			ctrl[DS1305_CONTROL_LEN];
++};
++
++
++/*----------------------------------------------------------------------*/
++
++/*
++ * Utilities ...  tolerate 12-hour AM/PM notation in case of non-Linux
++ * software (like a bootloader) which may require it.
++ */
++
++static unsigned bcd2hour(u8 bcd)
++{
++	if (bcd & DS1305_HR_12) {
++		unsigned	hour = 0;
++
++		bcd &= ~DS1305_HR_12;
++		if (bcd & DS1305_HR_PM) {
++			hour = 12;
++			bcd &= ~DS1305_HR_PM;
++		}
++		hour += BCD2BIN(bcd);
++		return hour - 1;
++	}
++	return BCD2BIN(bcd);
++}
++
++static u8 hour2bcd(bool hr12, int hour)
++{
++	if (hr12) {
++		hour++;
++		if (hour <= 12)
++			return DS1305_HR_12 | BIN2BCD(hour);
++		hour -= 12;
++		return DS1305_HR_12 | DS1305_HR_PM | BIN2BCD(hour);
++	}
++	return BIN2BCD(hour);
++}
++
++/*----------------------------------------------------------------------*/
++
++/*
++ * Interface to RTC framework
++ */
++
++#ifdef CONFIG_RTC_INTF_DEV
++
++/*
++ * Context: caller holds rtc->ops_lock (to protect ds1305->ctrl)
++ */
++static int ds1305_ioctl(struct device *dev, unsigned cmd, unsigned long arg)
++{
++	struct ds1305	*ds1305 = dev_get_drvdata(dev);
++	u8		buf[2];
++	int		status = -ENOIOCTLCMD;
++
++	buf[0] = DS1305_WRITE | DS1305_CONTROL;
++	buf[1] = ds1305->ctrl[0];
++
++	switch (cmd) {
++	case RTC_AIE_OFF:
++		status = 0;
++		if (!(buf[1] & DS1305_AEI0))
++			goto done;
++		buf[1] &= ~DS1305_AEI0;
++		break;
++
++	case RTC_AIE_ON:
++		status = 0;
++		if (ds1305->ctrl[0] & DS1305_AEI0)
++			goto done;
++		buf[1] |= DS1305_AEI0;
++		break;
++	}
++	if (status == 0) {
++		status = spi_write_then_read(ds1305->spi, buf, sizeof buf,
++				NULL, 0);
++		if (status >= 0)
++			ds1305->ctrl[0] = buf[1];
++	}
++
++done:
++	return status;
++}
++
++#else
++#define ds1305_ioctl	NULL
++#endif
++
++/*
++ * Get/set of date and time is pretty normal.
++ */
++
++static int ds1305_get_time(struct device *dev, struct rtc_time *time)
++{
++	struct ds1305	*ds1305 = dev_get_drvdata(dev);
++	u8		addr = DS1305_SEC;
++	u8		buf[DS1305_RTC_LEN];
++	int		status;
++
++	/* Use write-then-read to get all the date/time registers
++	 * since dma from stack is nonportable
++	 */
++	status = spi_write_then_read(ds1305->spi, &addr, sizeof addr,
++			buf, sizeof buf);
++	if (status < 0)
++		return status;
++
++	dev_vdbg(dev, "%s: %02x %02x %02x, %02x %02x %02x %02x\n",
++		"read", buf[0], buf[1], buf[2], buf[3],
++		buf[4], buf[5], buf[6]);
++
++	/* Decode the registers */
++	time->tm_sec = BCD2BIN(buf[DS1305_SEC]);
++	time->tm_min = BCD2BIN(buf[DS1305_MIN]);
++	time->tm_hour = bcd2hour(buf[DS1305_HOUR]);
++	time->tm_wday = buf[DS1305_WDAY] - 1;
++	time->tm_mday = BCD2BIN(buf[DS1305_MDAY]);
++	time->tm_mon = BCD2BIN(buf[DS1305_MON]) - 1;
++	time->tm_year = BCD2BIN(buf[DS1305_YEAR]) + 100;
++
++	dev_vdbg(dev, "%s secs=%d, mins=%d, "
++		"hours=%d, mday=%d, mon=%d, year=%d, wday=%d\n",
++		"read", time->tm_sec, time->tm_min,
++		time->tm_hour, time->tm_mday,
++		time->tm_mon, time->tm_year, time->tm_wday);
++
++	/* Time may not be set */
++	return rtc_valid_tm(time);
++}
++
++static int ds1305_set_time(struct device *dev, struct rtc_time *time)
++{
++	struct ds1305	*ds1305 = dev_get_drvdata(dev);
++	u8		buf[1 + DS1305_RTC_LEN];
++	u8		*bp = buf;
++
++	dev_vdbg(dev, "%s secs=%d, mins=%d, "
++		"hours=%d, mday=%d, mon=%d, year=%d, wday=%d\n",
++		"write", time->tm_sec, time->tm_min,
++		time->tm_hour, time->tm_mday,
++		time->tm_mon, time->tm_year, time->tm_wday);
++
++	/* Write registers starting at the first time/date address. */
++	*bp++ = DS1305_WRITE | DS1305_SEC;
++
++	*bp++ = BIN2BCD(time->tm_sec);
++	*bp++ = BIN2BCD(time->tm_min);
++	*bp++ = hour2bcd(ds1305->hr12, time->tm_hour);
++	*bp++ = (time->tm_wday < 7) ? (time->tm_wday + 1) : 1;
++	*bp++ = BIN2BCD(time->tm_mday);
++	*bp++ = BIN2BCD(time->tm_mon + 1);
++	*bp++ = BIN2BCD(time->tm_year - 100);
++
++	dev_dbg(dev, "%s: %02x %02x %02x, %02x %02x %02x %02x\n",
++		"write", buf[1], buf[2], buf[3],
++		buf[4], buf[5], buf[6], buf[7]);
++
++	/* use write-then-read since dma from stack is nonportable */
++	return spi_write_then_read(ds1305->spi, buf, sizeof buf,
++			NULL, 0);
++}
++
++/*
++ * Get/set of alarm is a bit funky:
++ *
++ * - First there's the inherent raciness of getting the (partitioned)
++ *   status of an alarm that could trigger while we're reading parts
++ *   of that status.
++ *
++ * - Second there's its limited range (we could increase it a bit by
++ *   relying on WDAY), which means it will easily roll over.
++ *
++ * - Third there's the choice of two alarms and alarm signals.
++ *   Here we use ALM0 and expect that nINT0 (open drain) is used;
++ *   that's the only real option for DS1306 runtime alarms, and is
++ *   natural on DS1305.
++ *
++ * - Fourth, there's also ALM1, and a second interrupt signal:
++ *     + On DS1305 ALM1 uses nINT1 (when INTCN=1) else nINT0;
++ *     + On DS1306 ALM1 only uses INT1 (an active high pulse)
++ *       and it won't work when VCC1 is active.
++ *
++ *   So to be most general, we should probably set both alarms to the
++ *   same value, letting ALM1 be the wakeup event source on DS1306
++ *   and handling several wiring options on DS1305.
++ *
++ * - Fifth, we support the polled mode (as well as possible; why not?)
++ *   even when no interrupt line is wired to an IRQ.
++ */
++
++/*
++ * Context: caller holds rtc->ops_lock (to protect ds1305->ctrl)
++ */
++static int ds1305_get_alarm(struct device *dev, struct rtc_wkalrm *alm)
++{
++	struct ds1305	*ds1305 = dev_get_drvdata(dev);
++	struct spi_device *spi = ds1305->spi;
++	u8		addr;
++	int		status;
++	u8		buf[DS1305_ALM_LEN];
++
++	/* Refresh control register cache BEFORE reading ALM0 registers,
++	 * since reading alarm registers acks any pending IRQ.  That
++	 * makes returning "pending" status a bit of a lie, but that bit
++	 * of EFI status is at best fragile anyway (given IRQ handlers).
++	 */
++	addr = DS1305_CONTROL;
++	status = spi_write_then_read(spi, &addr, sizeof addr,
++			ds1305->ctrl, sizeof ds1305->ctrl);
++	if (status < 0)
++		return status;
++
++	alm->enabled = !!(ds1305->ctrl[0] & DS1305_AEI0);
++	alm->pending = !!(ds1305->ctrl[1] & DS1305_AEI0);
++
++	/* get and check ALM0 registers */
++	addr = DS1305_ALM0(DS1305_SEC);
++	status = spi_write_then_read(spi, &addr, sizeof addr,
++			buf, sizeof buf);
++	if (status < 0)
++		return status;
++
++	dev_vdbg(dev, "%s: %02x %02x %02x %02x\n",
++		"alm0 read", buf[DS1305_SEC], buf[DS1305_MIN],
++		buf[DS1305_HOUR], buf[DS1305_WDAY]);
++
++	if ((DS1305_ALM_DISABLE & buf[DS1305_SEC])
++			|| (DS1305_ALM_DISABLE & buf[DS1305_MIN])
++			|| (DS1305_ALM_DISABLE & buf[DS1305_HOUR]))
++		return -EIO;
++
++	/* Stuff these values into alm->time and let RTC framework code
++	 * fill in the rest ... and also handle rollover to tomorrow when
++	 * that's needed.
++	 */
++	alm->time.tm_sec = BCD2BIN(buf[DS1305_SEC]);
++	alm->time.tm_min = BCD2BIN(buf[DS1305_MIN]);
++	alm->time.tm_hour = bcd2hour(buf[DS1305_HOUR]);
++	alm->time.tm_mday = -1;
++	alm->time.tm_mon = -1;
++	alm->time.tm_year = -1;
++	/* next three fields are unused by Linux */
++	alm->time.tm_wday = -1;
++	alm->time.tm_mday = -1;
++	alm->time.tm_isdst = -1;
++
++	return 0;
++}
++
++/*
++ * Context: caller holds rtc->ops_lock (to protect ds1305->ctrl)
++ */
++static int ds1305_set_alarm(struct device *dev, struct rtc_wkalrm *alm)
++{
++	struct ds1305	*ds1305 = dev_get_drvdata(dev);
++	struct spi_device *spi = ds1305->spi;
++	unsigned long	now, later;
++	struct rtc_time	tm;
++	int		status;
++	u8		buf[1 + DS1305_ALM_LEN];
++
++	/* convert desired alarm to time_t */
++	status = rtc_tm_to_time(&alm->time, &later);
++	if (status < 0)
++		return status;
++
++	/* Read current time as time_t */
++	status = ds1305_get_time(dev, &tm);
++	if (status < 0)
++		return status;
++	status = rtc_tm_to_time(&tm, &now);
++	if (status < 0)
++		return status;
++
++	/* make sure alarm fires within the next 24 hours */
++	if (later <= now)
++		return -EINVAL;
++	if ((later - now) > 24 * 60 * 60)
++		return -EDOM;
++
++	/* disable alarm if needed */
++	if (ds1305->ctrl[0] & DS1305_AEI0) {
++		ds1305->ctrl[0] &= ~DS1305_AEI0;
++
++		buf[0] = DS1305_WRITE | DS1305_CONTROL;
++		buf[1] = ds1305->ctrl[0];
++		status = spi_write_then_read(ds1305->spi, buf, 2, NULL, 0);
++		if (status < 0)
++			return status;
++	}
++
++	/* write alarm */
++	buf[0] = DS1305_WRITE | DS1305_ALM0(DS1305_SEC);
++	buf[1 + DS1305_SEC] = BIN2BCD(alm->time.tm_sec);
++	buf[1 + DS1305_MIN] = BIN2BCD(alm->time.tm_min);
++	buf[1 + DS1305_HOUR] = hour2bcd(ds1305->hr12, alm->time.tm_hour);
++	buf[1 + DS1305_WDAY] = DS1305_ALM_DISABLE;
++
++	dev_dbg(dev, "%s: %02x %02x %02x %02x\n",
++		"alm0 write", buf[1 + DS1305_SEC], buf[1 + DS1305_MIN],
++		buf[1 + DS1305_HOUR], buf[1 + DS1305_WDAY]);
++
++	status = spi_write_then_read(spi, buf, sizeof buf, NULL, 0);
++	if (status < 0)
++		return status;
++
++	/* enable alarm if requested */
++	if (alm->enabled) {
++		ds1305->ctrl[0] |= DS1305_AEI0;
++
++		buf[0] = DS1305_WRITE | DS1305_CONTROL;
++		buf[1] = ds1305->ctrl[0];
++		status = spi_write_then_read(ds1305->spi, buf, 2, NULL, 0);
++	}
++
++	return status;
++}
++
++#ifdef CONFIG_PROC_FS
++
++static int ds1305_proc(struct device *dev, struct seq_file *seq)
++{
++	struct ds1305	*ds1305 = dev_get_drvdata(dev);
++	char		*diodes = "no";
++	char		*resistors = "";
++
++	/* ctrl[2] is treated as read-only; no locking needed */
++	if ((ds1305->ctrl[2] & 0xf0) == DS1305_TRICKLE_MAGIC) {
++		switch (ds1305->ctrl[2] & 0x0c) {
++		case DS1305_TRICKLE_DS2:
++			diodes = "2 diodes, ";
++			break;
++		case DS1305_TRICKLE_DS1:
++			diodes = "1 diode, ";
++			break;
++		default:
++			goto done;
++		}
++		switch (ds1305->ctrl[2] & 0x03) {
++		case DS1305_TRICKLE_2K:
++			resistors = "2k Ohm";
++			break;
++		case DS1305_TRICKLE_4K:
++			resistors = "4k Ohm";
++			break;
++		case DS1305_TRICKLE_8K:
++			resistors = "8k Ohm";
++			break;
++		default:
++			diodes = "no";
++			break;
++		}
++	}
++
++done:
++	return seq_printf(seq,
++			"trickle_charge\t: %s%s\n",
++			diodes, resistors);
++}
++
++#else
++#define ds1305_proc	NULL
++#endif
++
++static const struct rtc_class_ops ds1305_ops = {
++	.ioctl		= ds1305_ioctl,
++	.read_time	= ds1305_get_time,
++	.set_time	= ds1305_set_time,
++	.read_alarm	= ds1305_get_alarm,
++	.set_alarm	= ds1305_set_alarm,
++	.proc		= ds1305_proc,
++};
++
++static void ds1305_work(struct work_struct *work)
++{
++	struct ds1305	*ds1305 = container_of(work, struct ds1305, work);
++	struct mutex	*lock = &ds1305->rtc->ops_lock;
++	struct spi_device *spi = ds1305->spi;
++	u8		buf[3];
++	int		status;
++
++	/* lock to protect ds1305->ctrl */
++	mutex_lock(lock);
++
++	/* Disable the IRQ, and clear its status ... for now, we "know"
++	 * that if more than one alarm is active, they're in sync.
++	 * Note that reading ALM data registers also clears IRQ status.
++	 */
++	ds1305->ctrl[0] &= ~(DS1305_AEI1 | DS1305_AEI0);
++	ds1305->ctrl[1] = 0;
++
++	buf[0] = DS1305_WRITE | DS1305_CONTROL;
++	buf[1] = ds1305->ctrl[0];
++	buf[2] = 0;
++
++	status = spi_write_then_read(spi, buf, sizeof buf,
++			NULL, 0);
++	if (status < 0)
++		dev_dbg(&spi->dev, "clear irq --> %d\n", status);
++
++	mutex_unlock(lock);
++
++	if (!test_bit(FLAG_EXITING, &ds1305->flags))
++		enable_irq(spi->irq);
++
++	/* rtc_update_irq() requires an IRQ-disabled context */
++	local_irq_disable();
++	rtc_update_irq(ds1305->rtc, 1, RTC_AF | RTC_IRQF);
++	local_irq_enable();
++}
++
++/*
++ * This "real" IRQ handler hands off to a workqueue mostly to allow
++ * mutex locking for ds1305->ctrl ... unlike I2C, we could issue async
++ * I/O requests in IRQ context (to clear the IRQ status).
++ */
++static irqreturn_t ds1305_irq(int irq, void *p)
++{
++	struct ds1305		*ds1305 = p;
++
++	disable_irq(irq);
++	schedule_work(&ds1305->work);
++	return IRQ_HANDLED;
++}
++
++/*----------------------------------------------------------------------*/
++
++/*
++ * Interface for NVRAM
++ */
++
++static void msg_init(struct spi_message *m, struct spi_transfer *x,
++		u8 *addr, size_t count, char *tx, char *rx)
++{
++	spi_message_init(m);
++	memset(x, 0, 2 * sizeof(*x));
++
++	x->tx_buf = addr;
++	x->len = 1;
++	spi_message_add_tail(x, m);
++
++	x++;
++
++	x->tx_buf = tx;
++	x->rx_buf = rx;
++	x->len = count;
++	spi_message_add_tail(x, m);
++}
++
++static ssize_t
++ds1305_nvram_read(struct kobject *kobj, struct bin_attribute *attr,
++		char *buf, loff_t off, size_t count)
++{
++	struct spi_device	*spi;
++	u8			addr;
++	struct spi_message	m;
++	struct spi_transfer	x[2];
++	int			status;
++
++	spi = container_of(kobj, struct spi_device, dev.kobj);
++
++	if (unlikely(off >= DS1305_NVRAM_LEN))
++		return 0;
++	if (count >= DS1305_NVRAM_LEN)
++		count = DS1305_NVRAM_LEN;
++	if ((off + count) > DS1305_NVRAM_LEN)
++		count = DS1305_NVRAM_LEN - off;
++	if (unlikely(!count))
++		return count;
++
++	addr = DS1305_NVRAM + off;
++	msg_init(&m, x, &addr, count, NULL, buf);
++
++	status = spi_sync(spi, &m);
++	if (status < 0)
++		dev_err(&spi->dev, "nvram %s error %d\n", "read", status);
++	return (status < 0) ? status : count;
++}
++
++static ssize_t
++ds1305_nvram_write(struct kobject *kobj, struct bin_attribute *attr,
++		char *buf, loff_t off, size_t count)
++{
++	struct spi_device	*spi;
++	u8			addr;
++	struct spi_message	m;
++	struct spi_transfer	x[2];
++	int			status;
++
++	spi = container_of(kobj, struct spi_device, dev.kobj);
++
++	if (unlikely(off >= DS1305_NVRAM_LEN))
++		return -EFBIG;
++	if (count >= DS1305_NVRAM_LEN)
++		count = DS1305_NVRAM_LEN;
++	if ((off + count) > DS1305_NVRAM_LEN)
++		count = DS1305_NVRAM_LEN - off;
++	if (unlikely(!count))
++		return count;
++
++	addr = (DS1305_WRITE | DS1305_NVRAM) + off;
++	msg_init(&m, x, &addr, count, buf, NULL);
++
++	status = spi_sync(spi, &m);
++	if (status < 0)
++		dev_err(&spi->dev, "nvram %s error %d\n", "write", status);
++	return (status < 0) ? status : count;
++}
++
++static struct bin_attribute nvram = {
++	.attr.name	= "nvram",
++	.attr.mode	= S_IRUGO | S_IWUSR,
++	.attr.owner	= THIS_MODULE,
++	.read		= ds1305_nvram_read,
++	.write		= ds1305_nvram_write,
++	.size		= DS1305_NVRAM_LEN,
++};
++
++/*----------------------------------------------------------------------*/
++
++/*
++ * Interface to SPI stack
++ */
++
++static int __devinit ds1305_probe(struct spi_device *spi)
++{
++	struct ds1305			*ds1305;
++	struct rtc_device		*rtc;
++	int				status;
++	u8				addr, value;
++	struct ds1305_platform_data	*pdata = spi->dev.platform_data;
++	bool				write_ctrl = false;
++
++	/* Sanity check board setup data.  This may be hooked up
++	 * in 3wire mode, but we don't care.  Note that unless
++	 * there's an inverter in place, this needs SPI_CS_HIGH!
++	 */
++	if ((spi->bits_per_word && spi->bits_per_word != 8)
++			|| (spi->max_speed_hz > 2000000)
++			|| !(spi->mode & SPI_CPHA))
++		return -EINVAL;
++
++	/* set up driver data */
++	ds1305 = kzalloc(sizeof *ds1305, GFP_KERNEL);
++	if (!ds1305)
++		return -ENOMEM;
++	ds1305->spi = spi;
++	spi_set_drvdata(spi, ds1305);
++
++	/* read and cache control registers */
++	addr = DS1305_CONTROL;
++	status = spi_write_then_read(spi, &addr, sizeof addr,
++			ds1305->ctrl, sizeof ds1305->ctrl);
++	if (status < 0) {
++		dev_dbg(&spi->dev, "can't %s, %d\n",
++				"read", status);
++		goto fail0;
++	}
++
++	dev_dbg(&spi->dev, "ctrl %s: %02x %02x %02x\n",
++			"read", ds1305->ctrl[0],
++			ds1305->ctrl[1], ds1305->ctrl[2]);
++
++	/* Sanity check register values ... partially compensating for the
++	 * fact that SPI has no device handshake.  A pullup on MISO would
++	 * make these tests fail; but not all systems will have one.  If
++	 * some register is neither 0x00 nor 0xff, a chip is likely there.
++	 */
++	if ((ds1305->ctrl[0] & 0x38) != 0 || (ds1305->ctrl[1] & 0xfc) != 0) {
++		dev_dbg(&spi->dev, "RTC chip is not present\n");
++		status = -ENODEV;
++		goto fail0;
++	}
++	if (ds1305->ctrl[2] == 0)
++		dev_dbg(&spi->dev, "chip may not be present\n");
++
++	/* enable writes if needed ... if we were paranoid it would
++	 * make sense to enable them only when absolutely necessary.
++	 */
++	if (ds1305->ctrl[0] & DS1305_WP) {
++		u8		buf[2];
++
++		ds1305->ctrl[0] &= ~DS1305_WP;
++
++		buf[0] = DS1305_WRITE | DS1305_CONTROL;
++		buf[1] = ds1305->ctrl[0];
++		status = spi_write_then_read(spi, buf, sizeof buf, NULL, 0);
++
++		dev_dbg(&spi->dev, "clear WP --> %d\n", status);
++		if (status < 0)
++			goto fail0;
++	}
++
++	/* on DS1305, maybe start oscillator; like most low power
++	 * oscillators, it may take a second to stabilize
++	 */
++	if (ds1305->ctrl[0] & DS1305_nEOSC) {
++		ds1305->ctrl[0] &= ~DS1305_nEOSC;
++		write_ctrl = true;
++		dev_warn(&spi->dev, "SET TIME!\n");
++	}
++
++	/* ack any pending IRQs */
++	if (ds1305->ctrl[1]) {
++		ds1305->ctrl[1] = 0;
++		write_ctrl = true;
++	}
++
++	/* this may need one-time (re)init */
++	if (pdata) {
++		/* maybe enable trickle charge */
++		if (((ds1305->ctrl[2] & 0xf0) != DS1305_TRICKLE_MAGIC)) {
++			ds1305->ctrl[2] = DS1305_TRICKLE_MAGIC
++						| pdata->trickle;
++			write_ctrl = true;
++		}
++
++		/* on DS1306, configure 1 Hz signal */
++		if (pdata->is_ds1306) {
++			if (pdata->en_1hz) {
++				if (!(ds1305->ctrl[0] & DS1306_1HZ)) {
++					ds1305->ctrl[0] |= DS1306_1HZ;
++					write_ctrl = true;
++				}
++			} else {
++				if (ds1305->ctrl[0] & DS1306_1HZ) {
++					ds1305->ctrl[0] &= ~DS1306_1HZ;
++					write_ctrl = true;
++				}
++			}
++		}
++	}
++
++	if (write_ctrl) {
++		u8		buf[4];
++
++		buf[0] = DS1305_WRITE | DS1305_CONTROL;
++		buf[1] = ds1305->ctrl[0];
++		buf[2] = ds1305->ctrl[1];
++		buf[3] = ds1305->ctrl[2];
++		status = spi_write_then_read(spi, buf, sizeof buf, NULL, 0);
++		if (status < 0) {
++			dev_dbg(&spi->dev, "can't %s, %d\n",
++					"write", status);
++			goto fail0;
++		}
++
++		dev_dbg(&spi->dev, "ctrl %s: %02x %02x %02x\n",
++				"write", ds1305->ctrl[0],
++				ds1305->ctrl[1], ds1305->ctrl[2]);
++	}
++
++	/* see if non-Linux software set up AM/PM mode */
++	addr = DS1305_HOUR;
++	status = spi_write_then_read(spi, &addr, sizeof addr,
++				&value, sizeof value);
++	if (status < 0) {
++		dev_dbg(&spi->dev, "read HOUR --> %d\n", status);
++		goto fail0;
++	}
++
++	ds1305->hr12 = (DS1305_HR_12 & value) != 0;
++	if (ds1305->hr12)
++		dev_dbg(&spi->dev, "AM/PM\n");
++
++	/* register RTC ... from here on, ds1305->ctrl needs locking */
++	rtc = rtc_device_register("ds1305", &spi->dev,
++			&ds1305_ops, THIS_MODULE);
++	if (IS_ERR(rtc)) {
++		status = PTR_ERR(rtc);
++		dev_dbg(&spi->dev, "register rtc --> %d\n", status);
++		goto fail0;
++	}
++	ds1305->rtc = rtc;
++
++	/* Maybe set up alarm IRQ; be ready to handle it triggering right
++	 * away.  NOTE that we don't share this.  The signal is active low,
++	 * and we can't ack it before a SPI message delay.  We temporarily
++	 * disable the IRQ until it's acked, which lets us work with more
++	 * IRQ trigger modes (not all IRQ controllers can do falling edge).
++	 */
++	if (spi->irq) {
++		INIT_WORK(&ds1305->work, ds1305_work);
++		status = request_irq(spi->irq, ds1305_irq,
++				0, dev_name(&rtc->dev), ds1305);
++		if (status < 0) {
++			dev_dbg(&spi->dev, "request_irq %d --> %d\n",
++					spi->irq, status);
++			goto fail1;
++		}
++	}
++
++	/* export NVRAM */
++	status = sysfs_create_bin_file(&spi->dev.kobj, &nvram);
++	if (status < 0) {
++		dev_dbg(&spi->dev, "register nvram --> %d\n", status);
++		goto fail2;
++	}
++
++	return 0;
++
++fail2:
++	free_irq(spi->irq, ds1305);
++fail1:
++	rtc_device_unregister(rtc);
++fail0:
++	kfree(ds1305);
++	return status;
++}
++
++static int __devexit ds1305_remove(struct spi_device *spi)
++{
++	struct ds1305	*ds1305 = spi_get_drvdata(spi);
++
++	sysfs_remove_bin_file(&spi->dev.kobj, &nvram);
++
++	/* carefully shut down irq and workqueue, if present */
++	if (spi->irq) {
++		set_bit(FLAG_EXITING, &ds1305->flags);
++		free_irq(spi->irq, ds1305);
++		flush_scheduled_work();
++	}
++
++	rtc_device_unregister(ds1305->rtc);
++	spi_set_drvdata(spi, NULL);
++	kfree(ds1305);
++	return 0;
++}
++
++static struct spi_driver ds1305_driver = {
++	.driver.name	= "rtc-ds1305",
++	.driver.owner	= THIS_MODULE,
++	.probe		= ds1305_probe,
++	.remove		= __devexit_p(ds1305_remove),
++	/* REVISIT add suspend/resume */
++};
++
++static int __init ds1305_init(void)
++{
++	return spi_register_driver(&ds1305_driver);
++}
++module_init(ds1305_init);
++
++static void __exit ds1305_exit(void)
++{
++	spi_unregister_driver(&ds1305_driver);
++}
++module_exit(ds1305_exit);
++
++MODULE_DESCRIPTION("RTC driver for DS1305 and DS1306 chips");
++MODULE_LICENSE("GPL");
+diff -puN /dev/null include/linux/spi/ds1305.h
+--- /dev/null
++++ a/include/linux/spi/ds1305.h
+@@ -0,0 +1,35 @@
++#ifndef __LINUX_SPI_DS1305_H
++#define __LINUX_SPI_DS1305_H
++
++/*
++ * One-time configuration for ds1305 and ds1306 RTC chips.
++ *
++ * Put a pointer to this in spi_board_info.platform_data if you want to
++ * be sure that Linux (re)initializes this as needed ... after losing
++ * backup power, and potentially on the first boot.
++ */
++struct ds1305_platform_data {
++
++	/* Trickle charge configuration:  it's OK to leave out the MAGIC
++	 * bitmask; mask in either DS1 or DS2, and then one of 2K/4k/8K.
++	 */
++#define DS1305_TRICKLE_MAGIC	0xa0
++#define DS1305_TRICKLE_DS2	0x08	/* two diodes */
++#define DS1305_TRICKLE_DS1	0x04	/* one diode */
++#define DS1305_TRICKLE_2K	0x01	/* 2 KOhm resistance */
++#define DS1305_TRICKLE_4K	0x02	/* 4 KOhm resistance */
++#define DS1305_TRICKLE_8K	0x03	/* 8 KOhm resistance */
++	u8	trickle;
++
++	/* set only on ds1306 parts */
++	bool	is_ds1306;
++
++	/* ds1306 only:  enable 1 Hz output */
++	bool	en_1hz;
++
++	/* REVISIT:  the driver currently expects nINT0 to be wired
++	 * as the alarm IRQ.  ALM1 may also need to be set up ...
++	 */
++};
++
++#endif /* __LINUX_SPI_DS1305_H */
 _
 
 Patches currently in -mm which might be from david-b@pacbell.net are
