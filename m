@@ -1,78 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: - checkpatch-types-cannot-start-mid-word-for-pointer-tests.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:26:55 -0700
-Message-ID: <200807242326.m6ONQt1c011029@imap1.linux-foundation.org>
+Subject: - binfmt_misc-use-simple_read_from_buffer.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:27:04 -0700
+Message-ID: <200807242327.m6ONR4bO011136@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58037 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47800 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755916AbYGXX1D (ORCPT
+	by vger.kernel.org with ESMTP id S1755885AbYGXX1H (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:27:03 -0400
+	Thu, 24 Jul 2008 19:27:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: apw@shadowen.org, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     checkpatch: types cannot start mid word for pointer tests
+     binfmt_misc: use simple_read_from_buffer()
 has been removed from the -mm tree.  Its filename was
-     checkpatch-types-cannot-start-mid-word-for-pointer-tests.patch
+     binfmt_misc-use-simple_read_from_buffer.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: types cannot start mid word for pointer tests
-From: Andy Whitcroft <apw@shadowen.org>
+Subject: binfmt_misc: use simple_read_from_buffer()
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-When checking spacing for pointer checks the type cannot start in the
-middle of a word, ie. this is not 'int * bar':
-
-	x = fooint * bar;
-
-Signed-off-by: Andy Whitcroft <apw@shadowen.org>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/binfmt_misc.c |   20 +++-----------------
+ 1 file changed, 3 insertions(+), 17 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-types-cannot-start-mid-word-for-pointer-tests scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-types-cannot-start-mid-word-for-pointer-tests
-+++ a/scripts/checkpatch.pl
-@@ -1435,11 +1435,11 @@ sub process {
- 			ERROR("\"(foo $1 )\" should be \"(foo $1)\"\n" .
- 				$herecurr);
+diff -puN fs/binfmt_misc.c~binfmt_misc-use-simple_read_from_buffer fs/binfmt_misc.c
+--- a/fs/binfmt_misc.c~binfmt_misc-use-simple_read_from_buffer
++++ a/fs/binfmt_misc.c
+@@ -27,6 +27,7 @@
+ #include <linux/namei.h>
+ #include <linux/mount.h>
+ #include <linux/syscalls.h>
++#include <linux/fs.h>
  
--		} elsif ($line =~ m{$NonptrType(\*+)(?:\s+(?:$Attribute|$Sparse))?\s+[A-Za-z\d_]+}) {
-+		} elsif ($line =~ m{\b$NonptrType(\*+)(?:\s+(?:$Attribute|$Sparse))?\s+[A-Za-z\d_]+}) {
- 			ERROR("\"foo$1 bar\" should be \"foo $1bar\"\n" .
- 				$herecurr);
+ #include <asm/uaccess.h>
  
--		} elsif ($line =~ m{$NonptrType\s+(\*+)(?!\s+(?:$Attribute|$Sparse))\s+[A-Za-z\d_]+}) {
-+		} elsif ($line =~ m{\b$NonptrType\s+(\*+)(?!\s+(?:$Attribute|$Sparse))\s+[A-Za-z\d_]+}) {
- 			ERROR("\"foo $1 bar\" should be \"foo $1bar\"\n" .
- 				$herecurr);
- 		}
+@@ -535,31 +536,16 @@ static ssize_t
+ bm_entry_read(struct file * file, char __user * buf, size_t nbytes, loff_t *ppos)
+ {
+ 	Node *e = file->f_path.dentry->d_inode->i_private;
+-	loff_t pos = *ppos;
+ 	ssize_t res;
+ 	char *page;
+-	int len;
+ 
+ 	if (!(page = (char*) __get_free_page(GFP_KERNEL)))
+ 		return -ENOMEM;
+ 
+ 	entry_status(e, page);
+-	len = strlen(page);
+ 
+-	res = -EINVAL;
+-	if (pos < 0)
+-		goto out;
+-	res = 0;
+-	if (pos >= len)
+-		goto out;
+-	if (len < pos + nbytes)
+-		nbytes = len - pos;
+-	res = -EFAULT;
+-	if (copy_to_user(buf, page + pos, nbytes))
+-		goto out;
+-	*ppos = pos + nbytes;
+-	res = nbytes;
+-out:
++	res = simple_read_from_buffer(buf, nbytes, ppos, page, strlen(page));
++
+ 	free_page((unsigned long) page);
+ 	return res;
+ }
 _
 
-Patches currently in -mm which might be from apw@shadowen.org are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 origin.patch
-x86-implement-pte_special.patch
-x86-implement-pte_special-fix.patch
-mm-introduce-get_user_pages_fast.patch
-mm-introduce-get_user_pages_fast-fix.patch
-mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast.patch
-x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-fix.patch
-x86-lockless-get_user_pages_fast-fix-2.patch
-x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
-x86-lockless-get_user_pages_fast-fix-warning.patch
-dio-use-get_user_pages_fast.patch
-splice-use-get_user_pages_fast.patch
-page-owner-tracking-leak-detector.patch
+linux-next.patch
+ipr-use-memory_read_from_buffer.patch
+qla2xxx-use-memory_read_from_buffer.patch
+qla2xxx-use-memory_read_from_buffer-fix.patch
+workqueues-do-cpu_up_canceled-if-cpu_up_prepare-fails.patch
+ipc-use-simple_read_from_buffer.patch
+nwflash-use-simple_read_from_buffer.patch
+char-merge-ip2main-and-ip2base.patch
+char-ip2-cleanup-globals.patch
+char-ip2-fix-sparse-warnings.patch
+char-ip2-init-deinit-cleanup.patch
+ip2-avoid-add_timer-with-pending-timer.patch
+firmware-use-memory_read_from_buffer.patch
+firmware-use-memory_read_from_buffer-fix.patch
+dcdbas-use-memory_read_from_buffer.patch
+dcdbas-use-memory_read_from_buffer-fix.patch
+dell_rbu-use-memory_read_from_buffer.patch
+dell_rbu-use-memory_read_from_buffer-fix.patch
 
