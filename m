@@ -1,231 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-convert-the-pcf8583-driver-to-the-new-i2c-style-framework-with-device_ids.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:30:15 -0700
-Message-ID: <200807242330.m6ONUFeV011481@imap1.linux-foundation.org>
+Subject: - tridentfb-fix-timing-calculations.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:30:55 -0700
+Message-ID: <200807242330.m6ONUtY3011562@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38449 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33368 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756818AbYGXXar (ORCPT
+	by vger.kernel.org with ESMTP id S1756373AbYGXXa6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:30:47 -0400
+	Thu, 24 Jul 2008 19:30:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: w.sang@pengutronix.de, a.zummo@towertech.it, david-b@pacbell.net, j.beisert@pengutronix.de, khali@linux-fr.org, mm-commits@vger.kernel.org
+To: krzysztof.h1@wp.pl, adaplas@pol.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc: convert the PCF8583 driver to the new I2C style framework with device_ids
+     tridentfb: fix timing calculations
 has been removed from the -mm tree.  Its filename was
-     rtc-convert-the-pcf8583-driver-to-the-new-i2c-style-framework-with-device_ids.patch
+     tridentfb-fix-timing-calculations.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: convert the PCF8583 driver to the new I2C style framework with device_ids
-From: Wolfram Sang <w.sang@pengutronix.de>
+Subject: tridentfb: fix timing calculations
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Convert the PCF8583 driver to the new I2C style framework with device_ids
+Fix broken timings calculations. This patch helps with following
+problems:
+ - no left part of screen visible (up to half of the screen)
+ - monitor's frequencies are not the ones intended for selected modes
+ - if mode with resoultion y > 1024 is selected at least once then
+   all modes with y < 1024 are "out of sync" (no display)
 
-Signed-off-by: Juergen Beisert <j.beisert@pengutronix.de>
-Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
-Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
-Cc: David Brownell <david-b@pacbell.net>
-Acked-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-pcf8583.c |  129 ++++++++++--------------------------
- 1 file changed, 39 insertions(+), 90 deletions(-)
+ drivers/video/tridentfb.c |   35 ++++++++++++++++++-----------------
+ 1 file changed, 18 insertions(+), 17 deletions(-)
 
-diff -puN drivers/rtc/rtc-pcf8583.c~rtc-convert-the-pcf8583-driver-to-the-new-i2c-style-framework-with-device_ids drivers/rtc/rtc-pcf8583.c
---- a/drivers/rtc/rtc-pcf8583.c~rtc-convert-the-pcf8583-driver-to-the-new-i2c-style-framework-with-device_ids
-+++ a/drivers/rtc/rtc-pcf8583.c
-@@ -2,6 +2,7 @@
-  *  drivers/rtc/rtc-pcf8583.c
-  *
-  *  Copyright (C) 2000 Russell King
-+ *  Copyright (C) 2008 Wolfram Sang & Juergen Beisert, Pengutronix
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License version 2 as
-@@ -14,7 +15,6 @@
- #include <linux/module.h>
- #include <linux/i2c.h>
- #include <linux/slab.h>
--#include <linux/string.h>
- #include <linux/rtc.h>
- #include <linux/init.h>
- #include <linux/errno.h>
-@@ -27,7 +27,6 @@ struct rtc_mem {
- };
+diff -puN drivers/video/tridentfb.c~tridentfb-fix-timing-calculations drivers/video/tridentfb.c
+--- a/drivers/video/tridentfb.c~tridentfb-fix-timing-calculations
++++ a/drivers/video/tridentfb.c
+@@ -886,20 +886,19 @@ static int tridentfb_set_par(struct fb_i
  
- struct pcf8583 {
--	struct i2c_client client;
- 	struct rtc_device *rtc;
- 	unsigned char ctrl;
- };
-@@ -40,10 +39,6 @@ struct pcf8583 {
- #define CTRL_ALARM	0x02
- #define CTRL_TIMER	0x01
+ 	debug("enter\n");
+ 	hdispend = var->xres / 8 - 1;
+-	hsyncstart = (var->xres + var->right_margin) / 8;
+-	hsyncend = var->hsync_len / 8;
+-	htotal =
+-		(var->xres + var->left_margin + var->right_margin +
+-		 var->hsync_len) / 8 - 10;
+-	hblankstart = hdispend + 1;
+-	hblankend = htotal + 5;
++	hsyncstart = (var->xres + var->right_margin) / 8 - 1;
++	hsyncend = (var->xres + var->right_margin + var->hsync_len) / 8 - 1;
++	htotal = (var->xres + var->left_margin + var->right_margin +
++		  var->hsync_len) / 8 - 5;
++	hblankstart = hdispend + 2;
++	hblankend = htotal + 3;
  
--static const unsigned short normal_i2c[] = { 0x50, I2C_CLIENT_END };
--
--/* Module parameters */
--I2C_CLIENT_INSMOD;
+ 	vdispend = var->yres - 1;
+ 	vsyncstart = var->yres + var->lower_margin;
+-	vsyncend = var->vsync_len;
+-	vtotal = var->upper_margin + vsyncstart + vsyncend - 2;
+-	vblankstart = var->yres;
+-	vblankend = vtotal + 2;
++	vsyncend = vsyncstart + var->vsync_len;
++	vtotal = var->upper_margin + vsyncend - 2;
++	vblankstart = vdispend + 2;
++	vblankend = vtotal;
  
- static struct i2c_driver pcf8583_driver;
+ 	crtc_unlock(par);
+ 	write3CE(par, CyberControl, 8);
+@@ -930,7 +929,7 @@ static int tridentfb_set_par(struct fb_i
+ 	write3X4(par, VGA_CRTC_V_SYNC_START, vsyncstart & 0xFF);
+ 	write3X4(par, VGA_CRTC_V_SYNC_END, (vsyncend & 0x0F));
+ 	write3X4(par, VGA_CRTC_V_BLANK_START, vblankstart & 0xFF);
+-	write3X4(par, VGA_CRTC_V_BLANK_END, 0 /* p->vblankend & 0xFF */);
++	write3X4(par, VGA_CRTC_V_BLANK_END, vblankend & 0xFF);
  
-@@ -269,106 +264,60 @@ static const struct rtc_class_ops pcf858
- 	.set_time	= pcf8583_rtc_set_time,
- };
+ 	/* horizontal timing values */
+ 	write3X4(par, VGA_CRTC_H_TOTAL, htotal & 0xFF);
+@@ -939,7 +938,7 @@ static int tridentfb_set_par(struct fb_i
+ 	write3X4(par, VGA_CRTC_H_SYNC_END,
+ 		 (hsyncend & 0x1F) | ((hblankend & 0x20) << 2));
+ 	write3X4(par, VGA_CRTC_H_BLANK_START, hblankstart & 0xFF);
+-	write3X4(par, VGA_CRTC_H_BLANK_END, 0 /* (p->hblankend & 0x1F) */);
++	write3X4(par, VGA_CRTC_H_BLANK_END, hblankend & 0x1F);
  
--static int pcf8583_probe(struct i2c_adapter *adap, int addr, int kind);
--
--static int pcf8583_attach(struct i2c_adapter *adap)
--{
--	return i2c_probe(adap, &addr_data, pcf8583_probe);
--}
--
--static int pcf8583_detach(struct i2c_client *client)
--{
--	int err;
--	struct pcf8583 *pcf = i2c_get_clientdata(client);
--	struct rtc_device *rtc = pcf->rtc;
--
--	if (rtc)
--		rtc_device_unregister(rtc);
--
--	if ((err = i2c_detach_client(client)))
--		return err;
--
--	kfree(pcf);
--	return 0;
--}
--
--static struct i2c_driver pcf8583_driver = {
--	.driver = {
--		.name	= "pcf8583",
--	},
--	.id		= I2C_DRIVERID_PCF8583,
--	.attach_adapter	= pcf8583_attach,
--	.detach_client	= pcf8583_detach,
--};
--
--static int pcf8583_probe(struct i2c_adapter *adap, int addr, int kind)
-+static int pcf8583_probe(struct i2c_client *client,
-+				const struct i2c_device_id *id)
- {
--	struct pcf8583 *pcf;
--	struct i2c_client *client;
--	struct rtc_device *rtc;
--	unsigned char buf[1], ad[1] = { 0 };
-+	struct pcf8583 *pcf8583;
- 	int err;
--	struct i2c_msg msgs[2] = {
--		{
--			.addr = addr,
--			.flags = 0,
--			.len = 1,
--			.buf = ad,
--		}, {
--			.addr = addr,
--			.flags = I2C_M_RD,
--			.len = 1,
--			.buf = buf,
--		}
--	};
+ 	/* higher bits of vertical timing values */
+ 	tmp = 0x10;
+@@ -953,16 +952,18 @@ static int tridentfb_set_par(struct fb_i
+ 	if (vsyncstart & 0x200) tmp |= 0x80;
+ 	write3X4(par, VGA_CRTC_OVERFLOW, tmp);
  
--	if (!i2c_check_functionality(adap, I2C_FUNC_I2C))
--		return 0;
-+	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C))
-+		return -ENODEV;
+-	tmp = read3X4(par, CRTHiOrd) | 0x08;	/* line compare bit 10 */
++	tmp = read3X4(par, CRTHiOrd) & 0x07;
++	tmp |= 0x08;	/* line compare bit 10 */
+ 	if (vtotal & 0x400) tmp |= 0x80;
+ 	if (vblankstart & 0x400) tmp |= 0x40;
+ 	if (vsyncstart & 0x400) tmp |= 0x20;
+ 	if (vdispend & 0x400) tmp |= 0x10;
+ 	write3X4(par, CRTHiOrd, tmp);
  
--	pcf = kzalloc(sizeof(*pcf), GFP_KERNEL);
--	if (!pcf)
-+	pcf8583 = kzalloc(sizeof(struct pcf8583), GFP_KERNEL);
-+	if (!pcf8583)
- 		return -ENOMEM;
+-	tmp = 0;
+-	if (htotal & 0x800) tmp |= 0x800 >> 11;
+-	if (hblankstart & 0x800) tmp |= 0x800 >> 7;
++	tmp = (htotal >> 8) & 0x01;
++	tmp |= (hdispend >> 7) & 0x02;
++	tmp |= (hsyncstart >> 5) & 0x08;
++	tmp |= (hblankstart >> 4) & 0x10;
+ 	write3X4(par, HorizOverflow, tmp);
  
--	client = &pcf->client;
-+	pcf8583->rtc = rtc_device_register(pcf8583_driver.driver.name,
-+			&client->dev, &pcf8583_rtc_ops, THIS_MODULE);
- 
--	client->addr		= addr;
--	client->adapter	= adap;
--	client->driver	= &pcf8583_driver;
--
--	strlcpy(client->name, pcf8583_driver.driver.name, I2C_NAME_SIZE);
--
--	if (i2c_transfer(client->adapter, msgs, 2) != 2) {
--		err = -EIO;
-+	if (IS_ERR(pcf8583->rtc)) {
-+		err = PTR_ERR(pcf8583->rtc);
- 		goto exit_kfree;
- 	}
- 
--	err = i2c_attach_client(client);
--
--	if (err)
--		goto exit_kfree;
--
--	rtc = rtc_device_register(pcf8583_driver.driver.name, &client->dev,
--				  &pcf8583_rtc_ops, THIS_MODULE);
-+	i2c_set_clientdata(client, pcf8583);
-+	return 0;
- 
--	if (IS_ERR(rtc)) {
--		err = PTR_ERR(rtc);
--		goto exit_detach;
--	}
-+exit_kfree:
-+	kfree(pcf8583);
-+	return err;
-+}
- 
--	pcf->rtc = rtc;
--	i2c_set_clientdata(client, pcf);
--	set_ctrl(client, buf[0]);
-+static int __devexit pcf8583_remove(struct i2c_client *client)
-+{
-+	struct pcf8583 *pcf8583 = i2c_get_clientdata(client);
- 
-+	if (pcf8583->rtc)
-+		rtc_device_unregister(pcf8583->rtc);
-+	kfree(pcf8583);
- 	return 0;
-+}
- 
--exit_detach:
--	i2c_detach_client(client);
--
--exit_kfree:
--	kfree(pcf);
-+static const struct i2c_device_id pcf8583_id[] = {
-+	{ "pcf8583", 0 },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(i2c, pcf8583_id);
- 
--	return err;
--}
-+static struct i2c_driver pcf8583_driver = {
-+	.driver = {
-+		.name	= "pcf8583",
-+		.owner	= THIS_MODULE,
-+	},
-+	.probe		= pcf8583_probe,
-+	.remove		= __devexit_p(pcf8583_remove),
-+	.id_table	= pcf8583_id,
-+};
- 
- static __init int pcf8583_init(void)
- {
+ 	tmp = 0x40;
 _
 
-Patches currently in -mm which might be from w.sang@pengutronix.de are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
 origin.patch
 
