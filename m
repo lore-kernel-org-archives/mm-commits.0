@@ -1,96 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - arch-x86-kernel-genx2apic_uv_xc-warning-fix.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 15:25:10 -0700
-Message-ID: <200807242225.m6OMPAs3008326@imap1.linux-foundation.org>
+Subject: - linux-next-fixup.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:14:22 -0700
+Message-ID: <200807242314.m6ONEM3N010093@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52082 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50453 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752357AbYGXWZ2 (ORCPT
+	by vger.kernel.org with ESMTP id S1755339AbYGXXO5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 18:25:28 -0400
+	Thu, 24 Jul 2008 19:14:57 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m6ONENT3030373
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Thu, 24 Jul 2008 16:14:24 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mingo@elte.hu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arch/x86/kernel/genx2apic_uv_x.c: warning fix
+     linux-next-fixup
 has been removed from the -mm tree.  Its filename was
-     arch-x86-kernel-genx2apic_uv_xc-warning-fix.patch
+     linux-next-fixup.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/x86/kernel/genx2apic_uv_x.c: warning fix
+Subject: linux-next-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/x86/kernel/genx2apic_uv_x.c:198: warning: initialization from incompatible pointer type
-
-Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/genx2apic_uv_x.c |    2 +-
+ fs/pipe.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/genx2apic_uv_x.c~arch-x86-kernel-genx2apic_uv_xc-warning-fix arch/x86/kernel/genx2apic_uv_x.c
---- a/arch/x86/kernel/genx2apic_uv_x.c~arch-x86-kernel-genx2apic_uv_xc-warning-fix
-+++ a/arch/x86/kernel/genx2apic_uv_x.c
-@@ -153,7 +153,7 @@ static unsigned int get_apic_id(unsigned
- 	return id;
- }
+diff -puN fs/pipe.c~linux-next-fixup fs/pipe.c
+--- a/fs/pipe.c~linux-next-fixup
++++ a/fs/pipe.c
+@@ -985,7 +985,7 @@ struct file *create_read_pipe(struct fil
  
--static long set_apic_id(unsigned int id)
-+static unsigned long set_apic_id(unsigned int id)
- {
- 	unsigned long x;
+ 	f->f_pos = 0;
+ 	f->f_flags = O_RDONLY | (flags & O_NONBLOCK);
+-	f->f_op = &read_pipe_fops;
++	f->f_op = &read_pipefifo_fops;
+ 	f->f_mode = FMODE_READ;
+ 	f->f_version = 0;
  
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-mm-verify-the-page-links-and-memory-model.patch
-mspec-convert-nopfn-to-fault.patch
-page-allocator-inlnie-some-__alloc_pages-wrappers.patch
-kill-generic_file_direct_io.patch
-use-generic_access_phys-for-dev-mem-mappings.patch
-spufs-use-the-new-vm_ops-access.patch
-fix-soft-lock-up-at-nfs-mount-by-per-sb-lru-list-of-unused-dentries.patch
-page-flags-record-page-flag-overlays-explicitly.patch
-mapping_set_error-add-unlikely.patch
-huge-page-private-reservation-review-cleanups.patch
-vma-page-offset-has-no-callees-drop-it.patch
-sync_file_range_write-may-and-will-block-document-that.patch
-vmallocinfo-add-numa-information.patch
-hugetlb-modular-state-for-hugetlb-page-size.patch
-hugetlb-multiple-hstates-for-multiple-page-sizes.patch
-bootmem-add-debugging-framework.patch
-bootmem-clean-up-free_all_bootmem_core.patch
-bootmem-free-reserve-helpers.patch
-bootmem-factor-out-the-marking-of-a-pfn-range.patch
-page_align-correctly-handle-64-bit-values-on-32-bit-architectures.patch
-security-protect-legacy-applications-from-executing-with-insufficient-privilege.patch
-swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option.patch
-flag-parameters-paccept.patch
-flag-parameters-anon_inode_getfd-extension.patch
-flag-parameters-signalfd.patch
-flag-parameters-eventfd.patch
-flag-parameters-inotify_init.patch
-flag-parameters-check-magic-constants.patch
-spi-au1550_spi-improve-pio-transfer-mode.patch
-autofs4-use-lookup-intent-flags-to-trigger-mounts.patch
-rtc-cmos-improve-hpet-irq-glue.patch
-drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed.patch
-atmel_lcdfb-avoid-division-by-zero.patch
-sm501-fixup-allocation-code-to-be-64bit-resource-compliant.patch
-lcd-add-platform_lcd-driver.patch
-fsl-diu-fb-update-freescale-diu-driver-to-use-page_alloc_exact.patch
-fbdev-add-new-cobalt-lcd-framebuffer-driver.patch
-fbcon-remove-stray-semicolons.patch
 arm-fix-fls-for-64-bit-arguments.patch
 linux-next.patch
 linux-next-fixup.patch
@@ -99,18 +62,27 @@ drivers-mtd-nand-nandsimc-needs-div64h.patch
 pci-make-pci_register_driver-a-macro.patch
 drivers-mfd-tc6393xbc-doesnt-compile-on-i386.patch
 arch-mips-kernel-stacktracec-heiko-cant-type.patch
+git-acpi.patch
 x86-pci-replace-dbg-with-pr_debug-fix.patch
 x86-pci-replace-dbg-with-pr_debug-fix-2.patch
 include-asm-generic-pgtable-nopmdh-macros-are-noxious-reason-435.patch
 arch-x86-pci-i386c-fix-printk-warnings.patch
+git-arm-master.patch
+git-cifs.patch
 drm-fix-sparc64-build.patch
 i2c-renesas-highlander-fpga-smbus-support.patch
 tick-schedc-suppress-needless-timer-reprogramming.patch
+git-input.patch
 git-jg-misc.patch
 documentation-build-source-files-in-documentation-sub-dir-disable.patch
+git-kvm.patch
+git-mtd.patch
 bridge-send-correct-mtu-value-in-pmtu-checkpatch-fixes.patch
 sundance-set-carrier-status-on-link-change-events.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+git-nfsd.patch
+git-sh.patch
 drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
 scsi-gdthc-use-unaligned-access-helpers-checkpatch-fixes.patch
 git-unionfs.patch
