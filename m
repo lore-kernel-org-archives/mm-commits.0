@@ -1,54 +1,184 @@
 From: akpm@linux-foundation.org
-Subject: - linux-next-fixup.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:14:22 -0700
-Message-ID: <200807242314.m6ONEM3N010093@imap1.linux-foundation.org>
+Subject: + linux-next-rejects.patch added to -mm tree
+Date: Thu, 24 Jul 2008 16:16:06 -0700
+Message-ID: <200807242316.m6ONG6X3010132@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50453 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59727 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755339AbYGXXO5 (ORCPT
+	by vger.kernel.org with ESMTP id S1755852AbYGXXQf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:14:57 -0400
+	Thu, 24 Jul 2008 19:16:35 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m6ONENT3030373
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m6ONG6OP030458
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 24 Jul 2008 16:14:24 -0700
+	for <mm-commits@vger.kernel.org>; Thu, 24 Jul 2008 16:16:07 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     linux-next-fixup
-has been removed from the -mm tree.  Its filename was
-     linux-next-fixup.patch
+     linux-next-rejects
+has been added to the -mm tree.  Its filename is
+     linux-next-rejects.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-fixup
+Subject: linux-next-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/pipe.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/ide/ide-cd.c    |   11 -----------
+ drivers/ide/ide-probe.c |   28 ----------------------------
+ include/linux/mlx4/qp.h |    6 ------
+ 3 files changed, 45 deletions(-)
 
-diff -puN fs/pipe.c~linux-next-fixup fs/pipe.c
---- a/fs/pipe.c~linux-next-fixup
-+++ a/fs/pipe.c
-@@ -985,7 +985,7 @@ struct file *create_read_pipe(struct fil
+diff -puN drivers/ide/ide-cd.c~linux-next-rejects drivers/ide/ide-cd.c
+--- a/drivers/ide/ide-cd.c~linux-next-rejects
++++ a/drivers/ide/ide-cd.c
+@@ -1318,28 +1318,17 @@ static int cdrom_read_capacity(ide_drive
+ 	 * Sanity check the given block size
+ 	 */
+ 	switch (capbuf.blocklen) {
+-<<<<<<< HEAD:drivers/ide/ide-cd.c
+ 	case __constant_cpu_to_be32(512):
+ 	case __constant_cpu_to_be32(1024):
+ 	case __constant_cpu_to_be32(2048):
+ 	case __constant_cpu_to_be32(4096):
+-=======
+-	case 512:
+-	case 1024:
+-	case 2048:
+-	case 4096:
+->>>>>>> FETCH_HEAD:drivers/ide/ide-cd.c
+ 		break;
+ 	default:
+ 		printk(KERN_ERR "%s: weird block size %u\n",
+ 			drive->name, capbuf.blocklen);
+ 		printk(KERN_ERR "%s: default to 2kb block size\n",
+ 			drive->name);
+-<<<<<<< HEAD:drivers/ide/ide-cd.c
+ 		capbuf.blocklen = __constant_cpu_to_be32(2048);
+-=======
+-		capbuf.blocklen = 2048;
+->>>>>>> FETCH_HEAD:drivers/ide/ide-cd.c
+ 		break;
+ 	}
  
- 	f->f_pos = 0;
- 	f->f_flags = O_RDONLY | (flags & O_NONBLOCK);
--	f->f_op = &read_pipe_fops;
-+	f->f_op = &read_pipefifo_fops;
- 	f->f_mode = FMODE_READ;
- 	f->f_version = 0;
+diff -puN drivers/ide/ide-probe.c~linux-next-rejects drivers/ide/ide-probe.c
+--- a/drivers/ide/ide-probe.c~linux-next-rejects
++++ a/drivers/ide/ide-probe.c
+@@ -153,11 +153,7 @@ static inline void do_identify (ide_driv
+ 	if (strstr(m, "E X A B Y T E N E S T"))
+ 		goto err_misc;
  
+-<<<<<<< HEAD:drivers/ide/ide-probe.c
+-	printk(KERN_INFO "%s: %s, ", drive->name, id->model);
+-=======
+ 	printk(KERN_INFO "%s: %s, ", drive->name, m);
+->>>>>>> FETCH_HEAD:drivers/ide/ide-probe.c
+ 
+ 	drive->present = 1;
+ 	drive->dead = 0;
+@@ -166,26 +162,15 @@ static inline void do_identify (ide_driv
+ 	 * Check for an ATAPI device
+ 	 */
+ 	if (cmd == WIN_PIDENTIFY) {
+-<<<<<<< HEAD:drivers/ide/ide-probe.c
+-		u8 type = (id->config >> 8) & 0x1f;
+-=======
+ 		u8 type = (id[ATA_ID_CONFIG] >> 8) & 0x1f;
+->>>>>>> FETCH_HEAD:drivers/ide/ide-probe.c
+ 
+ 		printk(KERN_CONT "ATAPI ");
+ 		switch (type) {
+ 			case ide_floppy:
+-<<<<<<< HEAD:drivers/ide/ide-probe.c
+-				if (!strstr(id->model, "CD-ROM")) {
+-					if (!strstr(id->model, "oppy") &&
+-					    !strstr(id->model, "poyp") &&
+-					    !strstr(id->model, "ZIP"))
+-=======
+ 				if (!strstr(m, "CD-ROM")) {
+ 					if (!strstr(m, "oppy") &&
+ 					    !strstr(m, "poyp") &&
+ 					    !strstr(m, "ZIP"))
+->>>>>>> FETCH_HEAD:drivers/ide/ide-probe.c
+ 						printk(KERN_CONT "cdrom or floppy?, assuming ");
+ 					if (drive->media != ide_cdrom) {
+ 						printk(KERN_CONT "FLOPPY");
+@@ -199,12 +184,7 @@ static inline void do_identify (ide_driv
+ 				drive->removable = 1;
+ #ifdef CONFIG_PPC
+ 				/* kludge for Apple PowerBook internal zip */
+-<<<<<<< HEAD:drivers/ide/ide-probe.c
+-				if (!strstr(id->model, "CD-ROM") &&
+-				    strstr(id->model, "ZIP")) {
+-=======
+ 				if (!strstr(m, "CD-ROM") && strstr(m, "ZIP")) {
+->>>>>>> FETCH_HEAD:drivers/ide/ide-probe.c
+ 					printk(KERN_CONT "FLOPPY");
+ 					type = ide_floppy;
+ 					break;
+@@ -244,11 +224,7 @@ static inline void do_identify (ide_driv
+ 	drive->media = ide_disk;
+ 
+ 	printk(KERN_CONT "%s DISK drive\n",
+-<<<<<<< HEAD:drivers/ide/ide-probe.c
+-		(id->config == 0x848a) ? "CFA" : "ATA");
+-=======
+ 		(id[ATA_ID_CONFIG] == 0x848a) ? "CFA" : "ATA");
+->>>>>>> FETCH_HEAD:drivers/ide/ide-probe.c
+ 
+ 	return;
+ 
+@@ -546,12 +522,8 @@ static void enable_nest (ide_drive_t *dr
+ 	const struct ide_tp_ops *tp_ops = hwif->tp_ops;
+ 	u8 stat;
+ 
+-<<<<<<< HEAD:drivers/ide/ide-probe.c
+-	printk(KERN_INFO "%s: enabling %s -- ", hwif->name, drive->id->model);
+-=======
+ 	printk(KERN_INFO "%s: enabling %s -- ",
+ 		hwif->name, (char *)&drive->id[ATA_ID_PROD]);
+->>>>>>> FETCH_HEAD:drivers/ide/ide-probe.c
+ 
+ 	SELECT_DRIVE(drive);
+ 	msleep(50);
+diff -puN fs/pipe.c~linux-next-rejects fs/pipe.c
+diff -puN include/linux/mlx4/qp.h~linux-next-rejects include/linux/mlx4/qp.h
+--- a/include/linux/mlx4/qp.h~linux-next-rejects
++++ a/include/linux/mlx4/qp.h
+@@ -264,13 +264,7 @@ struct mlx4_wqe_fmr_ext_seg {
+ 
+ struct mlx4_wqe_local_inval_seg {
+ 	__be32			flags;
+-<<<<<<< HEAD:include/linux/mlx4/qp.h
+-	u32			reserved1;
+ 	__be32			mem_key;
+-	u32			reserved2[2];
+-=======
+-	__be32			mem_key;
+->>>>>>> FETCH_HEAD:include/linux/mlx4/qp.h
+ 	__be32			guest_id;
+ 	__be64			pa;
+ };
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -56,7 +186,7 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 arm-fix-fls-for-64-bit-arguments.patch
 linux-next.patch
-linux-next-fixup.patch
+linux-next-rejects.patch
 next-remove-localversion.patch
 drivers-mtd-nand-nandsimc-needs-div64h.patch
 pci-make-pci_register_driver-a-macro.patch
