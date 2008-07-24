@@ -1,101 +1,159 @@
 From: akpm@linux-foundation.org
-Subject: - sa1100fb-convert-ctrlr_sem-in-a-mutex.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:31:48 -0700
-Message-ID: <200807242331.m6ONVmGe011667@imap1.linux-foundation.org>
+Subject: - flag-parameters-nonblock-in-signalfd.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:27:45 -0700
+Message-ID: <200807242327.m6ONRjOF011184@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49681 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47830 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755823AbYGXXbv (ORCPT
+	by vger.kernel.org with ESMTP id S1756681AbYGXX3G (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:31:51 -0400
+	Thu, 24 Jul 2008 19:29:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matthias@kaehlcke.net, mm-commits@vger.kernel.org
+To: drepper@redhat.com, davidel@xmailserver.org, mtk.manpages@googlemail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sa1100fb: convert ctrlr_sem in a mutex
+     flag parameters: NONBLOCK in signalfd
 has been removed from the -mm tree.  Its filename was
-     sa1100fb-convert-ctrlr_sem-in-a-mutex.patch
+     flag-parameters-nonblock-in-signalfd.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sa1100fb: convert ctrlr_sem in a mutex
-From: Matthias Kaehlcke <matthias@kaehlcke.net>
+Subject: flag parameters: NONBLOCK in signalfd
+From: Ulrich Drepper <drepper@redhat.com>
 
-The semaphore ctrlr_sem is used as a mutex.  Convert it to the mutex API
+This patch adds support for the SFD_NONBLOCK flag to signalfd4.  The
+additional changes needed are minimal.
 
-Signed-off-by: Matthias Kaehlcke <matthias@kaehlcke.net>
+The following test must be adjusted for architectures other than x86 and
+x86-64 and in case the syscall numbers changed.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#include <fcntl.h>
+#include <signal.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <sys/syscall.h>
+
+#ifndef __NR_signalfd4
+# ifdef __x86_64__
+#  define __NR_signalfd4 289
+# elif defined __i386__
+#  define __NR_signalfd4 327
+# else
+#  error "need __NR_signalfd4"
+# endif
+#endif
+
+#define SFD_NONBLOCK O_NONBLOCK
+
+int
+main (void)
+{
+  sigset_t ss;
+  sigemptyset (&ss);
+  sigaddset (&ss, SIGUSR1);
+  int fd = syscall (__NR_signalfd4, -1, &ss, 8, 0);
+  if (fd == -1)
+    {
+      puts ("signalfd4(0) failed");
+      return 1;
+    }
+  int fl = fcntl (fd, F_GETFL);
+  if (fl == -1)
+    {
+      puts ("fcntl failed");
+      return 1;
+    }
+  if (fl & O_NONBLOCK)
+    {
+      puts ("signalfd4(0) set non-blocking mode");
+      return 1;
+    }
+  close (fd);
+
+  fd = syscall (__NR_signalfd4, -1, &ss, 8, SFD_NONBLOCK);
+  if (fd == -1)
+    {
+      puts ("signalfd4(SFD_NONBLOCK) failed");
+      return 1;
+    }
+  fl = fcntl (fd, F_GETFL);
+  if (fl == -1)
+    {
+      puts ("fcntl failed");
+      return 1;
+    }
+  if ((fl & O_NONBLOCK) == 0)
+    {
+      puts ("signalfd4(SFD_NONBLOCK) does not set non-blocking mode");
+      return 1;
+    }
+  close (fd);
+
+  puts ("OK");
+
+  return 0;
+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Signed-off-by: Ulrich Drepper <drepper@redhat.com>
+Acked-by: Davide Libenzi <davidel@xmailserver.org>
+Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/sa1100fb.c |    7 ++++---
- drivers/video/sa1100fb.h |    2 +-
- 2 files changed, 5 insertions(+), 4 deletions(-)
+ fs/signalfd.c            |    4 ++--
+ include/linux/signalfd.h |    3 ++-
+ 2 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/video/sa1100fb.c~sa1100fb-convert-ctrlr_sem-in-a-mutex drivers/video/sa1100fb.c
---- a/drivers/video/sa1100fb.c~sa1100fb-convert-ctrlr_sem-in-a-mutex
-+++ a/drivers/video/sa1100fb.c
-@@ -175,6 +175,7 @@
- #include <linux/cpufreq.h>
- #include <linux/platform_device.h>
- #include <linux/dma-mapping.h>
-+#include <linux/mutex.h>
+diff -puN fs/signalfd.c~flag-parameters-nonblock-in-signalfd fs/signalfd.c
+--- a/fs/signalfd.c~flag-parameters-nonblock-in-signalfd
++++ a/fs/signalfd.c
+@@ -211,7 +211,7 @@ asmlinkage long sys_signalfd4(int ufd, s
+ 	sigset_t sigmask;
+ 	struct signalfd_ctx *ctx;
  
- #include <asm/hardware.h>
- #include <asm/io.h>
-@@ -1108,7 +1109,7 @@ static void set_ctrlr_state(struct sa110
- {
- 	u_int old_state;
+-	if (flags & ~SFD_CLOEXEC)
++	if (flags & ~(SFD_CLOEXEC | SFD_NONBLOCK))
+ 		return -EINVAL;
  
--	down(&fbi->ctrlr_sem);
-+	mutex_lock(&fbi->ctrlr_lock);
+ 	if (sizemask != sizeof(sigset_t) ||
+@@ -232,7 +232,7 @@ asmlinkage long sys_signalfd4(int ufd, s
+ 		 * anon_inode_getfd() will install the fd.
+ 		 */
+ 		ufd = anon_inode_getfd("[signalfd]", &signalfd_fops, ctx,
+-				       flags & O_CLOEXEC);
++				       flags & (O_CLOEXEC | O_NONBLOCK));
+ 		if (ufd < 0)
+ 			kfree(ctx);
+ 	} else {
+diff -puN include/linux/signalfd.h~flag-parameters-nonblock-in-signalfd include/linux/signalfd.h
+--- a/include/linux/signalfd.h~flag-parameters-nonblock-in-signalfd
++++ a/include/linux/signalfd.h
+@@ -8,11 +8,12 @@
+ #ifndef _LINUX_SIGNALFD_H
+ #define _LINUX_SIGNALFD_H
  
- 	old_state = fbi->state;
+-/* For O_CLOEXEC */
++/* For O_CLOEXEC and O_NONBLOCK */
+ #include <linux/fcntl.h>
  
-@@ -1193,7 +1194,7 @@ static void set_ctrlr_state(struct sa110
- 		}
- 		break;
- 	}
--	up(&fbi->ctrlr_sem);
-+	mutex_unlock(&fbi->ctrlr_lock);
- }
+ /* Flags for signalfd4.  */
+ #define SFD_CLOEXEC O_CLOEXEC
++#define SFD_NONBLOCK O_NONBLOCK
  
- /*
-@@ -1445,7 +1446,7 @@ static struct sa1100fb_info * __init sa1
- 
- 	init_waitqueue_head(&fbi->ctrlr_wait);
- 	INIT_WORK(&fbi->task, sa1100fb_task);
--	init_MUTEX(&fbi->ctrlr_sem);
-+	mutex_init(&fbi->ctrlr_lock);
- 
- 	return fbi;
- }
-diff -puN drivers/video/sa1100fb.h~sa1100fb-convert-ctrlr_sem-in-a-mutex drivers/video/sa1100fb.h
---- a/drivers/video/sa1100fb.h~sa1100fb-convert-ctrlr_sem-in-a-mutex
-+++ a/drivers/video/sa1100fb.h
-@@ -100,7 +100,7 @@ struct sa1100fb_info {
- 
- 	volatile u_char		state;
- 	volatile u_char		task_state;
--	struct semaphore	ctrlr_sem;
-+	struct mutex		ctrlr_lock;
- 	wait_queue_head_t	ctrlr_wait;
- 	struct work_struct	task;
- 
+ struct signalfd_siginfo {
+ 	__u32 ssi_signo;
 _
 
-Patches currently in -mm which might be from matthias@kaehlcke.net are
+Patches currently in -mm which might be from drepper@redhat.com are
 
 origin.patch
 linux-next.patch
-hfs-convert-bitmap_lock-in-a-mutex.patch
-hfs-convert-extents_lock-in-a-mutex.patch
-hfsplus-convert-the-extents_lock-in-a-mutex.patch
-ata-over-ethernet-convert-emsgs_sema-in-a-completion.patch
-affs-convert-s_bmlock-into-a-mutex.patch
 
