@@ -1,212 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: - neofb-drop-redundant-code.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:33:12 -0700
-Message-ID: <200807242333.m6ONXC1r011909@imap1.linux-foundation.org>
+Subject: - tridentfb-documentation-update.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:32:07 -0700
+Message-ID: <200807242332.m6ONW7ES011798@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33828 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50851 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756452AbYGXXdO (ORCPT
+	by vger.kernel.org with ESMTP id S1756756AbYGXXcJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:33:14 -0400
+	Thu, 24 Jul 2008 19:32:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: krzysztof.h1@wp.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     neofb: drop redundant code
+     tridentfb: documentation update
 has been removed from the -mm tree.  Its filename was
-     neofb-drop-redundant-code.patch
+     tridentfb-documentation-update.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: neofb: drop redundant code
+Subject: tridentfb: documentation update
 From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Drop structure which is only set but never read.  Drop variables which are
-only set and never read.  Convert one long switch into two shorter ones.
-
-Add cpu_relax() in busy waiting loop.
+Make the tridentfb documentation closer to current state of the tridentfb
+driver.  Fix also some formatting.
 
 Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/neofb.c |   95 +++++++++-------------------------------
- 1 file changed, 22 insertions(+), 73 deletions(-)
+ Documentation/fb/tridentfb.txt |   46 ++++++++++++++++++++-----------
+ 1 file changed, 31 insertions(+), 15 deletions(-)
 
-diff -puN drivers/video/neofb.c~neofb-drop-redundant-code drivers/video/neofb.c
---- a/drivers/video/neofb.c~neofb-drop-redundant-code
-+++ a/drivers/video/neofb.c
-@@ -479,7 +479,8 @@ static inline int neo2200_sync(struct fb
- {
- 	struct neofb_par *par = info->par;
+diff -puN Documentation/fb/tridentfb.txt~tridentfb-documentation-update Documentation/fb/tridentfb.txt
+--- a/Documentation/fb/tridentfb.txt~tridentfb-documentation-update
++++ a/Documentation/fb/tridentfb.txt
+@@ -3,11 +3,25 @@ Tridentfb is a framebuffer driver for so
+ The following list of chips is thought to be supported although not all are
+ tested:
  
--	while (readl(&par->neo2200->bltStat) & 1);
-+	while (readl(&par->neo2200->bltStat) & 1)
-+		cpu_relax();
- 	return 0;
- }
- 
-@@ -587,34 +588,14 @@ static int
- neofb_check_var(struct fb_var_screeninfo *var, struct fb_info *info)
- {
- 	struct neofb_par *par = info->par;
--	unsigned int pixclock = var->pixclock;
--	struct xtimings timings;
- 	int memlen, vramlen;
- 	int mode_ok = 0;
- 
- 	DBG("neofb_check_var");
- 
--	if (!pixclock)
--		pixclock = 10000;	/* 10ns = 100MHz */
--	timings.pixclock = 1000000000 / pixclock;
--	if (timings.pixclock < 1)
--		timings.pixclock = 1;
+-those from the Image series with Cyber in their names - accelerated
+-those with Blade in their names (Blade3D,CyberBlade...) - accelerated
+-the newer CyberBladeXP family  - nonaccelerated
 -
--	if (timings.pixclock > par->maxClock)
-+	if (PICOS2KHZ(var->pixclock) > par->maxClock)
- 		return -EINVAL;
+-Only PCI/AGP based cards are supported, none of the older Tridents.
++those from the TGUI series 9440/96XX and with Cyber in their names
++those from the Image series and with Cyber in their names
++those with Blade in their names (Blade3D,CyberBlade...)
++the newer CyberBladeXP family
++
++All families are accelerated. Only PCI/AGP based cards are supported,
++none of the older Tridents.
++The driver supports 8, 16 and 32 bits per pixel depths.
++The TGUI family requires a line length to be power of 2 if acceleration
++is enabled. This means that range of possible resolutions and bpp is
++limited comparing to the range if acceleration is disabled (see list
++of parameters below).
++
++Known bugs:
++1. The driver randomly locks up on 3DImage975 chip with acceleration
++   enabled. The same happens in X11 (Xorg).
++2. The ramdac speeds require some more fine tuning. It is possible to
++   switch resolution which the chip does not support at some depths for
++   older chips.
  
--	timings.dblscan = var->vmode & FB_VMODE_DOUBLE;
--	timings.interlaced = var->vmode & FB_VMODE_INTERLACED;
--	timings.HDisplay = var->xres;
--	timings.HSyncStart = timings.HDisplay + var->right_margin;
--	timings.HSyncEnd = timings.HSyncStart + var->hsync_len;
--	timings.HTotal = timings.HSyncEnd + var->left_margin;
--	timings.VDisplay = var->yres;
--	timings.VSyncStart = timings.VDisplay + var->lower_margin;
--	timings.VSyncEnd = timings.VSyncStart + var->vsync_len;
--	timings.VTotal = timings.VSyncEnd + var->upper_margin;
--	timings.sync = var->sync;
--
- 	/* Is the mode larger than the LCD panel? */
- 	if (par->internal_display &&
-             ((var->xres > par->NeoPanelWidth) ||
-@@ -1923,9 +1904,6 @@ static int __devinit neo_init_hw(struct 
- 	int maxClock = 65000;
- 	int CursorMem = 1024;
- 	int CursorOff = 0x100;
--	int linearSize = 1024;
--	int maxWidth = 1024;
--	int maxHeight = 1024;
+ How to use it?
+ ==============
+@@ -17,12 +31,11 @@ video=tridentfb
  
- 	DBG("neo_init_hw");
+ The parameters for tridentfb are concatenated with a ':' as in this example.
  
-@@ -1944,81 +1922,52 @@ static int __devinit neo_init_hw(struct 
- 	case FB_ACCEL_NEOMAGIC_NM2070:
- 		videoRam = 896;
- 		maxClock = 65000;
--		CursorMem = 2048;
--		CursorOff = 0x100;
--		linearSize = 1024;
--		maxWidth = 1024;
--		maxHeight = 1024;
- 		break;
- 	case FB_ACCEL_NEOMAGIC_NM2090:
- 	case FB_ACCEL_NEOMAGIC_NM2093:
--		videoRam = 1152;
--		maxClock = 80000;
--		CursorMem = 2048;
--		CursorOff = 0x100;
--		linearSize = 2048;
--		maxWidth = 1024;
--		maxHeight = 1024;
--		break;
- 	case FB_ACCEL_NEOMAGIC_NM2097:
- 		videoRam = 1152;
- 		maxClock = 80000;
--		CursorMem = 1024;
--		CursorOff = 0x100;
--		linearSize = 2048;
--		maxWidth = 1024;
--		maxHeight = 1024;
- 		break;
- 	case FB_ACCEL_NEOMAGIC_NM2160:
- 		videoRam = 2048;
- 		maxClock = 90000;
--		CursorMem = 1024;
--		CursorOff = 0x100;
--		linearSize = 2048;
--		maxWidth = 1024;
--		maxHeight = 1024;
- 		break;
- 	case FB_ACCEL_NEOMAGIC_NM2200:
- 		videoRam = 2560;
- 		maxClock = 110000;
--		CursorMem = 1024;
--		CursorOff = 0x1000;
--		linearSize = 4096;
--		maxWidth = 1280;
--		maxHeight = 1024;	/* ???? */
--
--		par->neo2200 = (Neo2200 __iomem *) par->mmio_vbase;
- 		break;
- 	case FB_ACCEL_NEOMAGIC_NM2230:
- 		videoRam = 3008;
- 		maxClock = 110000;
--		CursorMem = 1024;
--		CursorOff = 0x1000;
--		linearSize = 4096;
--		maxWidth = 1280;
--		maxHeight = 1024;	/* ???? */
--
--		par->neo2200 = (Neo2200 __iomem *) par->mmio_vbase;
- 		break;
- 	case FB_ACCEL_NEOMAGIC_NM2360:
- 		videoRam = 4096;
- 		maxClock = 110000;
--		CursorMem = 1024;
--		CursorOff = 0x1000;
--		linearSize = 4096;
--		maxWidth = 1280;
--		maxHeight = 1024;	/* ???? */
--
--		par->neo2200 = (Neo2200 __iomem *) par->mmio_vbase;
- 		break;
- 	case FB_ACCEL_NEOMAGIC_NM2380:
- 		videoRam = 6144;
- 		maxClock = 110000;
-+		break;
-+	}
-+	switch (info->fix.accel) {
-+	case FB_ACCEL_NEOMAGIC_NM2070:
-+	case FB_ACCEL_NEOMAGIC_NM2090:
-+	case FB_ACCEL_NEOMAGIC_NM2093:
-+		CursorMem = 2048;
-+		CursorOff = 0x100;
-+		break;
-+	case FB_ACCEL_NEOMAGIC_NM2097:
-+	case FB_ACCEL_NEOMAGIC_NM2160:
-+		CursorMem = 1024;
-+		CursorOff = 0x100;
-+		break;
-+	case FB_ACCEL_NEOMAGIC_NM2200:
-+	case FB_ACCEL_NEOMAGIC_NM2230:
-+	case FB_ACCEL_NEOMAGIC_NM2360:
-+	case FB_ACCEL_NEOMAGIC_NM2380:
- 		CursorMem = 1024;
- 		CursorOff = 0x1000;
--		linearSize = 8192;
--		maxWidth = 1280;
--		maxHeight = 1024;	/* ???? */
+-video=tridentfb:800x600,bpp=16,noaccel
++video=tridentfb:800x600-16@75,noaccel
  
- 		par->neo2200 = (Neo2200 __iomem *) par->mmio_vbase;
- 		break;
-@@ -2032,7 +1981,7 @@ static int __devinit neo_init_hw(struct 
- */
- 	par->maxClock = maxClock;
- 	par->cursorOff = CursorOff;
--	return ((videoRam * 1024));
-+	return videoRam * 1024;
- }
+ The second level parameters that tridentfb understands are:
  
+ noaccel - turns off acceleration (when it doesn't work for your card)
+-accel - force text acceleration (for boards which by default are noacceled)
  
+ fp	- use flat panel related stuff
+ crt 	- assume monitor is present instead of fp
+@@ -31,21 +44,24 @@ center 	- for flat panels and resolution
+ 	  image, otherwise use
+ stretch
+ 
+-memsize - integer value in Kb, use if your card's memory size is misdetected.
++memsize - integer value in KB, use if your card's memory size is misdetected.
+ 	  look at the driver output to see what it says when initializing.
+-memdiff - integer value in Kb,should be nonzero if your card reports
+-	  more memory than it actually has.For instance mine is 192K less than
++
++memdiff - integer value in KB, should be nonzero if your card reports
++	  more memory than it actually has. For instance mine is 192K less than
+ 	  detection says in all three BIOS selectable situations 2M, 4M, 8M.
+ 	  Only use if your video memory is taken from main memory hence of
+-	  configurable size.Otherwise use memsize.
+-	  If in some modes which barely fit the memory you see garbage at the bottom
+-	  this might help by not letting change to that mode anymore.
++	  configurable size. Otherwise use memsize.
++	  If in some modes which barely fit the memory you see garbage
++	  at the bottom this might help by not letting change to that mode
++	  anymore.
+ 
+ nativex - the width in pixels of the flat panel.If you know it (usually 1024
+ 	  800 or 1280) and it is not what the driver seems to detect use it.
+ 
+-bpp  - bits per pixel (8,16 or 32)
+-mode - a mode name like 800x600 (as described in Documentation/fb/modedb.txt)
++bpp	- bits per pixel (8,16 or 32)
++mode	- a mode name like 800x600-8@75 as described in
++	  Documentation/fb/modedb.txt
+ 
+ Using insane values for the above parameters will probably result in driver
+ misbehaviour so take care(for instance memsize=12345678 or memdiff=23784 or
 _
 
 Patches currently in -mm which might be from krzysztof.h1@wp.pl are
