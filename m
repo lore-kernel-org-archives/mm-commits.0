@@ -1,56 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - checkpatch-return-is-not-a-function-parentheses-for-casts-are-ok-too.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:26:09 -0700
-Message-ID: <200807242326.m6ONQ9Pl010949@imap1.linux-foundation.org>
+Subject: - checkpatch-types-unary-goto-introduces-unary-context.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:26:20 -0700
+Message-ID: <200807242326.m6ONQKRp010968@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41053 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33815 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755074AbYGXX0R (ORCPT
+	by vger.kernel.org with ESMTP id S1755871AbYGXX02 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:26:17 -0400
+	Thu, 24 Jul 2008 19:26:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: apw@shadowen.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     checkpatch: return is not a function -- parentheses for casts are ok too
+     checkpatch: types: unary -- goto introduces unary context
 has been removed from the -mm tree.  Its filename was
-     checkpatch-return-is-not-a-function-parentheses-for-casts-are-ok-too.patch
+     checkpatch-types-unary-goto-introduces-unary-context.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: return is not a function -- parentheses for casts are ok too
+Subject: checkpatch: types: unary -- goto introduces unary context
 From: Andy Whitcroft <apw@shadowen.org>
 
-Casts require parentheses so it is possible to have something like this:
+When we see a goto we enter unary context.  For example:
 
-	return (int)(*a);
-
-This miss trips the complexity function.  Ensure that the two separate
-parenthesised sections are not coelesced.
+	goto *h;
 
 Signed-off-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    1 +
- 1 file changed, 1 insertion(+)
+ scripts/checkpatch.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-return-is-not-a-function-parentheses-for-casts-are-ok-too scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-return-is-not-a-function-parentheses-for-casts-are-ok-too
+diff -puN scripts/checkpatch.pl~checkpatch-types-unary-goto-introduces-unary-context scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-types-unary-goto-introduces-unary-context
 +++ a/scripts/checkpatch.pl
-@@ -1670,6 +1670,7 @@ sub process {
- 			my $value = $2;
+@@ -780,7 +780,7 @@ sub annotate_values {
+ 			$av_pending = 'N';
+ 			$type = 'N';
  
- 			# Flatten any parentheses and braces
-+			$value =~ s/\)\(/\) \(/g;
- 			while ($value =~ s/\([^\(\)]*\)/1/) {
- 			}
+-		} elsif ($cur =~/^(return|case|else)/o) {
++		} elsif ($cur =~/^(return|case|else|goto)/o) {
+ 			print "KEYWORD($1)\n" if ($dbg_values > 1);
+ 			$type = 'N';
  
 _
 
