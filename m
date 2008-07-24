@@ -1,111 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: - add-a-helper-function-to-test-if-an-object-is-on-the-stack.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:20:44 -0700
-Message-ID: <200807242320.m6ONKilT010352@imap1.linux-foundation.org>
+Subject: - remove-is_tty.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:20:09 -0700
+Message-ID: <200807242320.m6ONK9g9010325@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50196 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40012 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752943AbYGXXVS (ORCPT
+	by vger.kernel.org with ESMTP id S1752543AbYGXXV2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:21:18 -0400
+	Thu, 24 Jul 2008 19:21:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fujita.tomonori@lab.ntt.co.jp, apw@shadowen.org, cl@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: bunk@kernel.org, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add a helper function to test if an object is on the stack
+     remove is_tty()
 has been removed from the -mm tree.  Its filename was
-     add-a-helper-function-to-test-if-an-object-is-on-the-stack.patch
+     remove-is_tty.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: add a helper function to test if an object is on the stack
-From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Subject: remove is_tty()
+From: Adrian Bunk <bunk@kernel.org>
 
-lib/debugobjects.c has a function to test if an object is on the stack. 
-The block layer and ide needs it (they need to avoid DMA from/to stack
-buffers).  This patch moves the function to include/linux/sched.h so that
-everyone can use it.
+This patch removes the no longer used is_tty().
 
-lib/debugobjects.c uses current->stack but this patch uses a
-task_stack_page() accessor, which is a preferable way to access the stack.
-
-Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Acked-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    7 +++++++
- lib/debugobjects.c    |    4 +---
- 2 files changed, 8 insertions(+), 3 deletions(-)
+ drivers/char/tty_io.c |   13 -------------
+ 1 file changed, 13 deletions(-)
 
-diff -puN include/linux/sched.h~add-a-helper-function-to-test-if-an-object-is-on-the-stack include/linux/sched.h
---- a/include/linux/sched.h~add-a-helper-function-to-test-if-an-object-is-on-the-stack
-+++ a/include/linux/sched.h
-@@ -1973,6 +1973,13 @@ static inline unsigned long *end_of_stac
+diff -puN drivers/char/tty_io.c~remove-is_tty drivers/char/tty_io.c
+--- a/drivers/char/tty_io.c~remove-is_tty
++++ a/drivers/char/tty_io.c
+@@ -1119,19 +1119,6 @@ int tty_hung_up_p(struct file *filp)
  
- #endif
+ EXPORT_SYMBOL(tty_hung_up_p);
  
-+static inline int object_is_on_stack(void *obj)
-+{
-+	void *stack = task_stack_page(current);
-+
-+	return (obj >= stack) && (obj < (stack + THREAD_SIZE));
-+}
-+
- extern void thread_info_cache_init(void);
- 
- /* set thread flags in other task's structures
-diff -puN lib/debugobjects.c~add-a-helper-function-to-test-if-an-object-is-on-the-stack lib/debugobjects.c
---- a/lib/debugobjects.c~add-a-helper-function-to-test-if-an-object-is-on-the-stack
-+++ a/lib/debugobjects.c
-@@ -226,15 +226,13 @@ debug_object_fixup(int (*fixup)(void *ad
- 
- static void debug_object_is_on_stack(void *addr, int onstack)
- {
--	void *stack = current->stack;
- 	int is_on_stack;
- 	static int limit;
- 
- 	if (limit > 4)
- 		return;
- 
--	is_on_stack = (addr >= stack && addr < (stack + THREAD_SIZE));
+-/**
+- *	is_tty	-	checker whether file is a TTY
+- *	@filp:		file handle that may be a tty
+- *
+- *	Check if the file handle is a tty handle.
+- */
 -
-+	is_on_stack = object_is_on_stack(addr);
- 	if (is_on_stack == onstack)
- 		return;
- 
+-int is_tty(struct file *filp)
+-{
+-	return filp->f_op->read == tty_read
+-		|| filp->f_op->read == hung_up_tty_read;
+-}
+-
+ static void session_clear_tty(struct pid *session)
+ {
+ 	struct task_struct *p;
 _
 
-Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
+Patches currently in -mm which might be from bunk@kernel.org are
 
 origin.patch
 linux-next.patch
-ide-cd-use-the-new-object_is_in_stack-helper.patch
-block-blk-mapc-use-the-new-object_is_on_stack-helper.patch
-clean-up-duplicated-alloc-free_thread_info.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-s2io.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support-fix-2.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sdhci-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-infiniband.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-more-sparc.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-ibmvscsi.patch
-x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary.patch
-x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary-checkpatch-fixes.patch
+m32r-remove-the-unused-nohighmem-option.patch
+if-0-ses_match_host.patch
+git-xtensa.patch
+init-do_mountsc-should-include-linux-initrdh.patch
+build-kernel-profileo-only-when-requested.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+asm-generic-int-ll64h-always-provide-__su64.patch
+remove-some-more-tipar-bits.patch
+include-linux-kernelh-userspace-header-cleanup.patch
+minix-remove-no_truncate-code.patch
+jbd-unexport-journal_update_superblock.patch
+coda-remove-coda_fs_old_api.patch
+fat-dirc-switch-to-struct-__fat_dirent.patch
+remove-the-in-kernel-struct-dirent64.patch
+remove-unused-include-linux-direnths.patch
+include-asm-ptraceh-userspace-headers-cleanup.patch
+pty-remove-unused-unix98_pty_count-options.patch
+proper-extern-for-mwave_s_mdd.patch
+if-0-hpet_unregister.patch
+unexport-proc_clear_tty.patch
+move-proc_kmsg_operations-to-fs-proc-internalh.patch
+proper-pidhashmap_init-prototypes.patch
+unexport-uts_sem.patch
+parport-sharec-proper-externs.patch
+tpm_biosc-make-2-structs-static.patch
+drm-make-drm_minors_cleanup-static.patch
+make-cgroup_seqfile_release-static.patch
+make-pnp_add_card_id-static.patch
+make-parport_cs_release-static.patch
+make-mm-sparsec-make-a-function-static.patch
+mm-allocpercpuc-make-4-functions-static.patch
+make-mm-memoryc-print_bad_pte-static.patch
+mm-swapfilec-make-code-static.patch
+make-mm-rmapc-anon_vma_cachep-static.patch
+drivers-char-rtcc-make-2-functions-static.patch
+make-init-do_mountsc-root_device_name-static.patch
+make-macfb_setup-static.patch
+video-console-sticonrec-make-code-static.patch
+video-console-sticonrec-make-code-static-checkpatch-fixes.patch
+video-stifbc-make-2-functions-static.patch
+reiser4.patch
 
