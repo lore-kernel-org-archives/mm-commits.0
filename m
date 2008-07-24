@@ -1,60 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:25:10 -0700
-Message-ID: <200807242325.m6ONPAZe010855@imap1.linux-foundation.org>
+Subject: - gigaset-gigaset_isowbuf_getbytes-may-return-signed-unnoticed.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:25:01 -0700
+Message-ID: <200807242325.m6ONP1se010838@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47729 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38425 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754258AbYGXXZQ (ORCPT
+	by vger.kernel.org with ESMTP id S1755544AbYGXXZM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:25:16 -0400
+	Thu, 24 Jul 2008 19:25:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pavel@suse.cz, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: tilman@imap.cc, 12o3l@tiscali.nl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     swsusp: provide users with a hint about the no_console_suspend option
+     gigaset: gigaset_isowbuf_getbytes() may return signed unnoticed
 has been removed from the -mm tree.  Its filename was
-     swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option.patch
+     gigaset-gigaset_isowbuf_getbytes-may-return-signed-unnoticed.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: swsusp: provide users with a hint about the no_console_suspend option
-From: Pavel Machek <pavel@suse.cz>
+Subject: gigaset: gigaset_isowbuf_getbytes() may return signed unnoticed
+From: Tilman Schmidt <tilman@imap.cc>
 
-Tell the user about the no_console_suspend option, so that we don't have to
-tell each bug reporter personally.
+ifd->offset is unsigned.  gigaset_isowbuf_getbytes() may return signed
+unnoticed.  Revised version of patch originally submitted by Roel Kluin
+<12o3l@tiscali.nl>.
 
-[akpm@linux-foundation.org: clarify the text a little]
-Signed-off-by: Pavel Machek <pavel@suse.cz>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Signed-off-by: Tilman Schmidt <tilman@imap.cc>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/isdn/gigaset/bas-gigaset.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN kernel/printk.c~swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option kernel/printk.c
---- a/kernel/printk.c~swsusp-provide-users-with-a-hint-about-the-no_console_suspend-option
-+++ a/kernel/printk.c
-@@ -933,7 +933,7 @@ void suspend_console(void)
- {
- 	if (!console_suspend_enabled)
- 		return;
--	printk("Suspending console(s)\n");
-+	printk("Suspending console(s) (use no_console_suspend to debug)\n");
- 	acquire_console_sem();
- 	console_suspended = 1;
- }
+diff -puN drivers/isdn/gigaset/bas-gigaset.c~gigaset-gigaset_isowbuf_getbytes-may-return-signed-unnoticed drivers/isdn/gigaset/bas-gigaset.c
+--- a/drivers/isdn/gigaset/bas-gigaset.c~gigaset-gigaset_isowbuf_getbytes-may-return-signed-unnoticed
++++ a/drivers/isdn/gigaset/bas-gigaset.c
+@@ -1050,10 +1050,9 @@ static int submit_iso_write_urb(struct i
+ 		}
+ 
+ 		/* retrieve block of data to send */
+-		ifd->offset = gigaset_isowbuf_getbytes(ubc->isooutbuf,
+-						       ifd->length);
+-		if (ifd->offset < 0) {
+-			if (ifd->offset == -EBUSY) {
++		rc = gigaset_isowbuf_getbytes(ubc->isooutbuf, ifd->length);
++		if (rc < 0) {
++			if (rc == -EBUSY) {
+ 				gig_dbg(DEBUG_ISO,
+ 					"%s: buffer busy at frame %d",
+ 					__func__, nframe);
+@@ -1062,11 +1061,12 @@ static int submit_iso_write_urb(struct i
+ 			} else {
+ 				dev_err(ucx->bcs->cs->dev,
+ 					"%s: buffer error %d at frame %d\n",
+-					__func__, ifd->offset, nframe);
+-				return ifd->offset;
++					__func__, rc, nframe);
++				return rc;
+ 			}
+ 			break;
+ 		}
++		ifd->offset = rc;
+ 		ucx->limit = ubc->isooutbuf->nextread;
+ 		ifd->status = 0;
+ 		ifd->actual_length = 0;
 _
 
-Patches currently in -mm which might be from pavel@suse.cz are
+Patches currently in -mm which might be from tilman@imap.cc are
 
 origin.patch
-linux-next.patch
 
