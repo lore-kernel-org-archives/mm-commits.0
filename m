@@ -1,74 +1,146 @@
 From: akpm@linux-foundation.org
-Subject: - atyfb-remove-dead-code.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:32:28 -0700
-Message-ID: <200807242332.m6ONWSqq011839@imap1.linux-foundation.org>
+Subject: - atyfb-use-a-pci-device-id-table.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:32:33 -0700
+Message-ID: <200807242332.m6ONWXVd011845@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59745 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45655 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756539AbYGXXcj (ORCPT
+	by vger.kernel.org with ESMTP id S1756689AbYGXXcp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:32:39 -0400
+	Thu, 24 Jul 2008 19:32:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: olaf@aepfle.de, adaplas@pol.net, krzysztof.h1@poczta.fm, syrjala@sci.fi, mm-commits@vger.kernel.org
+To: syrjala@sci.fi, adaplas@pol.net, krzysztof.h1@poczta.fm, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atyfb: remove dead code
+     atyfb: use a PCI device ID table
 has been removed from the -mm tree.  Its filename was
-     atyfb-remove-dead-code.patch
+     atyfb-use-a-pci-device-id-table.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atyfb: remove dead code
-From: Olaf Hering <olaf@aepfle.de>
+Subject: atyfb: use a PCI device ID table
+From: Ville Syrjala <syrjala@sci.fi>
 
-Remove dead code.  This will slightly change the behaviour of the driver
-on systems that support backlight control.  Previously they would just
-turn the backlight off using the backlight control but now the generic LCD
-code will also turn off the LCD using the POWER_MANAGEMENT register.
+Convert atyfb to use a PCI device ID table.
 
-Signed-off-by: Olaf Hering <olaf@aepfle.de>
 Signed-off-by: Ville Syrjala <syrjala@sci.fi>
 Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/aty/atyfb_base.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ drivers/video/aty/atyfb_base.c |   73 +++++++++++++++++++++++--------
+ 1 file changed, 55 insertions(+), 18 deletions(-)
 
-diff -puN drivers/video/aty/atyfb_base.c~atyfb-remove-dead-code drivers/video/aty/atyfb_base.c
---- a/drivers/video/aty/atyfb_base.c~atyfb-remove-dead-code
+diff -puN drivers/video/aty/atyfb_base.c~atyfb-use-a-pci-device-id-table drivers/video/aty/atyfb_base.c
+--- a/drivers/video/aty/atyfb_base.c~atyfb-use-a-pci-device-id-table
 +++ a/drivers/video/aty/atyfb_base.c
-@@ -2709,8 +2709,7 @@ static int atyfb_blank(int blank, struct
- 	if (par->lock_blank || par->asleep)
- 		return 0;
+@@ -3418,14 +3418,7 @@ static int __devinit atyfb_pci_probe(str
+ 	struct fb_info *info;
+ 	struct resource *rp;
+ 	struct atyfb_par *par;
+-	int i, rc = -ENOMEM;
+-
+-	for (i = ARRAY_SIZE(aty_chips) - 1; i >= 0; i--)
+-		if (pdev->device == aty_chips[i].pci_id)
+-			break;
+-
+-	if (i < 0)
+-		return -ENODEV;
++	int rc = -ENOMEM;
  
--#ifdef CONFIG_FB_ATY_BACKLIGHT
--#elif defined(CONFIG_FB_ATY_GENERIC_LCD)
-+#ifdef CONFIG_FB_ATY_GENERIC_LCD
- 	if (par->lcd_table && blank > FB_BLANK_NORMAL &&
- 	    (aty_ld_lcd(LCD_GEN_CNTL, par) & LCD_ON)) {
- 		u32 pm = aty_ld_lcd(POWER_MANAGEMENT, par);
-@@ -2739,8 +2738,7 @@ static int atyfb_blank(int blank, struct
- 	}
- 	aty_st_le32(CRTC_GEN_CNTL, gen_cntl, par);
+ 	/* Enable device in PCI config */
+ 	if (pci_enable_device(pdev)) {
+@@ -3456,7 +3449,7 @@ static int __devinit atyfb_pci_probe(str
+ 	par = info->par;
+ 	info->fix = atyfb_fix;
+ 	info->device = &pdev->dev;
+-	par->pci_id = aty_chips[i].pci_id;
++	par->pci_id = pdev->device;
+ 	par->res_start = res_start;
+ 	par->res_size = res_size;
+ 	par->irq = pdev->irq;
+@@ -3655,18 +3648,62 @@ static void __devexit atyfb_pci_remove(s
+ 	atyfb_remove(info);
+ }
  
--#ifdef CONFIG_FB_ATY_BACKLIGHT
--#elif defined(CONFIG_FB_ATY_GENERIC_LCD)
-+#ifdef CONFIG_FB_ATY_GENERIC_LCD
- 	if (par->lcd_table && blank <= FB_BLANK_NORMAL &&
- 	    (aty_ld_lcd(LCD_GEN_CNTL, par) & LCD_ON)) {
- 		u32 pm = aty_ld_lcd(POWER_MANAGEMENT, par);
+-/*
+- * This driver uses its own matching table. That will be more difficult
+- * to fix, so for now, we just match against any ATI ID and let the
+- * probe() function find out what's up. That also mean we don't have
+- * a module ID table though.
+- */
+ static struct pci_device_id atyfb_pci_tbl[] = {
+-	{ PCI_VENDOR_ID_ATI, PCI_ANY_ID, PCI_ANY_ID, PCI_ANY_ID,
+-	  PCI_BASE_CLASS_DISPLAY << 16, 0xff0000, 0 },
+-	{ 0, }
++#ifdef CONFIG_FB_ATY_GX
++	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64GX) },
++	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64CX) },
++#endif /* CONFIG_FB_ATY_GX */
++
++#ifdef CONFIG_FB_ATY_CT
++	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64CT) },
++	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64ET) },
++
++	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64LT) },
++
++	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64VT) },
++	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64GT) },
++
++	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64VU) },
++	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64GU) },
++
++	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64LG) },
++
++	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64VV) },
++
++	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64GV) },
++	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64GW) },
++	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64GY) },
++	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64GZ) },
++
++	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64GB) },
++	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64GD) },
++	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64GI) },
++	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64GP) },
++	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64GQ) },
++
++	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64LB) },
++	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64LD) },
++	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64LI) },
++	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64LP) },
++	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64LQ) },
++
++	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64GM) },
++	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64GN) },
++	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64GO) },
++	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64GL) },
++	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64GR) },
++	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64GS) },
++
++	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64LM) },
++	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64LN) },
++	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64LR) },
++	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_CHIP_MACH64LS) },
++#endif /* CONFIG_FB_ATY_CT */
++	{ }
+ };
+ 
++MODULE_DEVICE_TABLE(pci, atyfb_pci_tbl);
++
+ static struct pci_driver atyfb_driver = {
+ 	.name		= "atyfb",
+ 	.id_table	= atyfb_pci_tbl,
 _
 
-Patches currently in -mm which might be from olaf@aepfle.de are
+Patches currently in -mm which might be from syrjala@sci.fi are
 
 origin.patch
-keep-track-of-network-interface-renaming.patch
 
