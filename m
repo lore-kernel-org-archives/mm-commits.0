@@ -1,77 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - checkpatch-toughen-trailing-if-statement-checks-and-extend-them-to-while-and-for.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:26:30 -0700
-Message-ID: <200807242326.m6ONQUjU010984@imap1.linux-foundation.org>
+Subject: - checkpatch-types-cannot-start-mid-word-for-pointer-tests.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:26:55 -0700
+Message-ID: <200807242326.m6ONQt1c011029@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34317 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58037 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755832AbYGXX0i (ORCPT
+	by vger.kernel.org with ESMTP id S1755916AbYGXX1D (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:26:38 -0400
+	Thu, 24 Jul 2008 19:27:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: apw@shadowen.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     checkpatch: toughen trailing if statement checks and extend them to while and for
+     checkpatch: types cannot start mid word for pointer tests
 has been removed from the -mm tree.  Its filename was
-     checkpatch-toughen-trailing-if-statement-checks-and-extend-them-to-while-and-for.patch
+     checkpatch-types-cannot-start-mid-word-for-pointer-tests.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: toughen trailing if statement checks and extend them to while and for
+Subject: checkpatch: types cannot start mid word for pointer tests
 From: Andy Whitcroft <apw@shadowen.org>
 
-Extend the trailing statement checks to report a trailing semi-colon ';'
-as we really want it on the next line and indented so it is really really
-obvious.  Also extend the tests to include while and for.
+When checking spacing for pointer checks the type cannot start in the
+middle of a word, ie. this is not 'int * bar':
+
+	x = fooint * bar;
 
 Signed-off-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ scripts/checkpatch.pl |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-toughen-trailing-if-statement-checks-and-extend-them-to-while-and-for scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-toughen-trailing-if-statement-checks-and-extend-them-to-while-and-for
+diff -puN scripts/checkpatch.pl~checkpatch-types-cannot-start-mid-word-for-pointer-tests scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-types-cannot-start-mid-word-for-pointer-tests
 +++ a/scripts/checkpatch.pl
-@@ -1269,8 +1269,8 @@ sub process {
- 				$ctx_ln++;
- 			}
+@@ -1435,11 +1435,11 @@ sub process {
+ 			ERROR("\"(foo $1 )\" should be \"(foo $1)\"\n" .
+ 				$herecurr);
  
--			##print "realcnt<$realcnt> ctx_cnt<$ctx_cnt>\n";
--			##print "pre<$pre_ctx>\nline<$line>\nctx<$ctx>\nnext<$lines[$ctx_ln - 1]>\n";
-+			#print "realcnt<$realcnt> ctx_cnt<$ctx_cnt>\n";
-+			#print "pre<$pre_ctx>\nline<$line>\nctx<$ctx>\nnext<$lines[$ctx_ln - 1]>\n";
+-		} elsif ($line =~ m{$NonptrType(\*+)(?:\s+(?:$Attribute|$Sparse))?\s+[A-Za-z\d_]+}) {
++		} elsif ($line =~ m{\b$NonptrType(\*+)(?:\s+(?:$Attribute|$Sparse))?\s+[A-Za-z\d_]+}) {
+ 			ERROR("\"foo$1 bar\" should be \"foo $1bar\"\n" .
+ 				$herecurr);
  
- 			if ($ctx !~ /{\s*/ && defined($lines[$ctx_ln -1]) && $lines[$ctx_ln - 1] =~ /^\+\s*{/) {
- 				ERROR("that open brace { should be on the previous line\n" .
-@@ -1713,7 +1713,7 @@ sub process {
+-		} elsif ($line =~ m{$NonptrType\s+(\*+)(?!\s+(?:$Attribute|$Sparse))\s+[A-Za-z\d_]+}) {
++		} elsif ($line =~ m{\b$NonptrType\s+(\*+)(?!\s+(?:$Attribute|$Sparse))\s+[A-Za-z\d_]+}) {
+ 			ERROR("\"foo $1 bar\" should be \"foo $1bar\"\n" .
+ 				$herecurr);
  		}
- 
- # Check for illegal assignment in if conditional.
--		if ($line =~ /\bif\s*\(/) {
-+		if ($line =~ /\b(?:if|while|for)\s*\(/ && $line !~ /^.\s*#/) {
- 			my ($s, $c) = ($stat, $cond);
- 
- 			if ($c =~ /\bif\s*\(.*[^<>!=]=[^=].*/) {
-@@ -1725,8 +1725,8 @@ sub process {
- 			substr($s, 0, length($c), '');
- 			$s =~ s/\n.*//g;
- 			$s =~ s/$;//g; 	# Remove any comments
--			if (length($c) && $s !~ /^\s*({|;|)\s*\\*\s*$/ &&
--			    $c !~ /^.\s*\#\s*if/)
-+			if (length($c) && $s !~ /^\s*{?\s*\\*\s*$/ &&
-+			    $c !~ /}\s*while\s*/)
- 			{
- 				ERROR("trailing statements should be on next line\n" . $herecurr);
- 			}
 _
 
 Patches currently in -mm which might be from apw@shadowen.org are
