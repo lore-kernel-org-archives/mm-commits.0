@@ -1,59 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - alpha-remove-the-unused-alpha_core_agp-option.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:25:07 -0700
-Message-ID: <200807242325.m6ONP7be010852@imap1.linux-foundation.org>
+Subject: - remove-include-asm-h8300-keyboardh.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:25:04 -0700
+Message-ID: <200807242325.m6ONP4jo010847@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53053 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54522 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755563AbYGXXZ0 (ORCPT
+	by vger.kernel.org with ESMTP id S1755559AbYGXXZ0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 24 Jul 2008 19:25:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, ink@jurassic.park.msu.ru, rpjday@crashcourse.ca, rth@twiddle.net, mm-commits@vger.kernel.org
+To: bunk@kernel.org, ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     alpha: remove the unused ALPHA_CORE_AGP option
+     remove include/asm-h8300/keyboard.h
 has been removed from the -mm tree.  Its filename was
-     alpha-remove-the-unused-alpha_core_agp-option.patch
+     remove-include-asm-h8300-keyboardh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: alpha: remove the unused ALPHA_CORE_AGP option
+Subject: remove include/asm-h8300/keyboard.h
 From: Adrian Bunk <bunk@kernel.org>
 
-The real option is named AGP_ALPHA_CORE.
+This patch removes the unused include/asm-h8300/keyboard.h
 
-Reviewed-by: Robert P. J. Day <rpjday@crashcourse.ca>
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Acked-by: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/Kconfig |    5 -----
- 1 file changed, 5 deletions(-)
+ include/asm-h8300/keyboard.h |   24 ------------------------
+ 1 file changed, 24 deletions(-)
 
-diff -puN arch/alpha/Kconfig~alpha-remove-the-unused-alpha_core_agp-option arch/alpha/Kconfig
---- a/arch/alpha/Kconfig~alpha-remove-the-unused-alpha_core_agp-option
-+++ a/arch/alpha/Kconfig
-@@ -333,11 +333,6 @@ config PCI_SYSCALL
- config IOMMU_HELPER
- 	def_bool PCI
- 
--config ALPHA_CORE_AGP
--	bool
--	depends on ALPHA_GENERIC || ALPHA_TITAN || ALPHA_MARVEL
--	default y
+diff -puN include/asm-h8300/keyboard.h~remove-include-asm-h8300-keyboardh /dev/null
+--- a/include/asm-h8300/keyboard.h
++++ /dev/null
+@@ -1,24 +0,0 @@
+-/*
+- *  linux/include/asm-h8300/keyboard.h
+- *  Created 04 Dec 2001 by Khaled Hassounah <khassounah@mediumware.net>
+- *  This file contains the Dragonball architecture specific keyboard definitions
+- */
 -
- config ALPHA_NONAME
- 	bool
- 	depends on ALPHA_BOOK1 || ALPHA_NONAME_CH
+-#ifndef _H8300_KEYBOARD_H
+-#define _H8300_KEYBOARD_H
+-
+-
+-/* dummy i.e. no real keyboard */
+-#define kbd_setkeycode(x...)	(-ENOSYS)
+-#define kbd_getkeycode(x...)	(-ENOSYS)
+-#define kbd_translate(x...)	(0)
+-#define kbd_unexpected_up(x...)	(1)
+-#define kbd_leds(x...)		do {;} while (0)
+-#define kbd_init_hw(x...)	do {;} while (0)
+-#define kbd_enable_irq(x...)	do {;} while (0)
+-#define kbd_disable_irq(x...)	do {;} while (0)
+-
+-#endif  /* _H8300_KEYBOARD_H */
+-
+-
+-
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
