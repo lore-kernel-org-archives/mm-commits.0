@@ -1,261 +1,278 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-add-support-for-st-m41t94-spi-rtc.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:30:06 -0700
-Message-ID: <200807242330.m6ONU634011462@imap1.linux-foundation.org>
+Subject: - rtc-remove-bkl-for-ioctl.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:30:03 -0700
+Message-ID: <200807242330.m6ONU3kA011456@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49764 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33684 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756901AbYGXXa1 (ORCPT
+	by vger.kernel.org with ESMTP id S1756929AbYGXXac (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:30:27 -0400
+	Thu, 24 Jul 2008 19:30:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Kim.Heino@bluegiga.com, a.zummo@towertech.it, david-b@pacbell.net, mm-commits@vger.kernel.org
+To: david-b@pacbell.net, a.zummo@towertech.it, alan@lxorguk.ukuu.org.uk, corbet@lwn.net, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc: add support for ST M41T94 SPI RTC
+     rtc: remove BKL for ioctl()
 has been removed from the -mm tree.  Its filename was
-     rtc-add-support-for-st-m41t94-spi-rtc.patch
+     rtc-remove-bkl-for-ioctl.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: add support for ST M41T94 SPI RTC
-From: "Kim B. Heino" <Kim.Heino@bluegiga.com>
+Subject: rtc: remove BKL for ioctl()
+From: David Brownell <david-b@pacbell.net>
 
-This patch adds kernel driver for M41T94 RTC chip connected via SPI.
-I've tested it on two different AT91-based hardwares.
+Remove implicit use of BKL in ioctl() from the RTC framework.
 
-This is third revision of the patch: some comments made by
-Alessandro Zummo fixed.
+Instead, the rtc->ops_lock is used.  That's the same lock that already
+protects the RTC operations when they're issued through the exported
+rtc_*() calls in drivers/rtc/interface.c ...  making this a bugfix, not
+just a cleanup, since both ioctl calls and set_alarm() need to update IRQ
+enable flags and that implies a common lock (which RTC drivers as a rule
+do not provide on their own).
 
-Revision two added support for century bit and fixes.
+A new comment at the declaration of "struct rtc_class_ops" summarizes
+current locking rules.  It's not clear to me that the exceptions listed
+there should exist ...  if not, those are pre-existing problems which can
+be fixed in a patch that doesn't relate to BKL removal.
 
-Signed-off-by: Kim B. Heino <Kim.Heino@bluegiga.com>
-Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
-Cc: David Brownell <david-b@pacbell.net>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Acked-by: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig      |    9 +
- drivers/rtc/Makefile     |    1 
- drivers/rtc/rtc-m41t94.c |  173 +++++++++++++++++++++++++++++++++++++
- 3 files changed, 183 insertions(+)
+ drivers/rtc/rtc-dev.c |   58 ++++++++++++++++++++++++++--------------
+ include/linux/rtc.h   |   17 +++++++++++
+ 2 files changed, 55 insertions(+), 20 deletions(-)
 
-diff -puN drivers/rtc/Kconfig~rtc-add-support-for-st-m41t94-spi-rtc drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-add-support-for-st-m41t94-spi-rtc
-+++ a/drivers/rtc/Kconfig
-@@ -273,6 +273,15 @@ comment "SPI RTC drivers"
+diff -puN drivers/rtc/rtc-dev.c~rtc-remove-bkl-for-ioctl drivers/rtc/rtc-dev.c
+--- a/drivers/rtc/rtc-dev.c~rtc-remove-bkl-for-ioctl
++++ a/drivers/rtc/rtc-dev.c
+@@ -209,7 +209,7 @@ static unsigned int rtc_dev_poll(struct 
+ 	return (data != 0) ? (POLLIN | POLLRDNORM) : 0;
+ }
  
- if SPI_MASTER
+-static int rtc_dev_ioctl(struct inode *inode, struct file *file,
++static long rtc_dev_ioctl(struct file *file,
+ 		unsigned int cmd, unsigned long arg)
+ {
+ 	int err = 0;
+@@ -219,6 +219,10 @@ static int rtc_dev_ioctl(struct inode *i
+ 	struct rtc_wkalrm alarm;
+ 	void __user *uarg = (void __user *) arg;
  
-+config RTC_DRV_M41T94
-+	tristate "ST M41T94"
-+	help
-+	  If you say yes here you will get support for the
-+	  ST M41T94 SPI RTC chip.
++	err = mutex_lock_interruptible(&rtc->ops_lock);
++	if (err)
++		return -EBUSY;
 +
-+	  This driver can also be built as a module. If so, the module
-+	  will be called rtc-m41t94.
+ 	/* check that the calling task has appropriate permissions
+ 	 * for certain ioctls. doing this check here is useful
+ 	 * to avoid duplicate code in each driver.
+@@ -227,26 +231,31 @@ static int rtc_dev_ioctl(struct inode *i
+ 	case RTC_EPOCH_SET:
+ 	case RTC_SET_TIME:
+ 		if (!capable(CAP_SYS_TIME))
+-			return -EACCES;
++			err = -EACCES;
+ 		break;
+ 
+ 	case RTC_IRQP_SET:
+ 		if (arg > rtc->max_user_freq && !capable(CAP_SYS_RESOURCE))
+-			return -EACCES;
++			err = -EACCES;
+ 		break;
+ 
+ 	case RTC_PIE_ON:
+ 		if (rtc->irq_freq > rtc->max_user_freq &&
+ 				!capable(CAP_SYS_RESOURCE))
+-			return -EACCES;
++			err = -EACCES;
+ 		break;
+ 	}
+ 
++	if (err)
++		goto done;
 +
- config RTC_DRV_MAX6902
- 	tristate "Maxim MAX6902"
- 	help
-diff -puN drivers/rtc/Makefile~rtc-add-support-for-st-m41t94-spi-rtc drivers/rtc/Makefile
---- a/drivers/rtc/Makefile~rtc-add-support-for-st-m41t94-spi-rtc
-+++ a/drivers/rtc/Makefile
-@@ -34,6 +34,7 @@ obj-$(CONFIG_RTC_DRV_EP93XX)	+= rtc-ep93
- obj-$(CONFIG_RTC_DRV_FM3130)	+= rtc-fm3130.o
- obj-$(CONFIG_RTC_DRV_ISL1208)	+= rtc-isl1208.o
- obj-$(CONFIG_RTC_DRV_M41T80)	+= rtc-m41t80.o
-+obj-$(CONFIG_RTC_DRV_M41T94)	+= rtc-m41t94.o
- obj-$(CONFIG_RTC_DRV_M48T59)	+= rtc-m48t59.o
- obj-$(CONFIG_RTC_DRV_M48T86)	+= rtc-m48t86.o
- obj-$(CONFIG_RTC_DRV_MAX6900)	+= rtc-max6900.o
-diff -puN /dev/null drivers/rtc/rtc-m41t94.c
---- /dev/null
-+++ a/drivers/rtc/rtc-m41t94.c
-@@ -0,0 +1,173 @@
+ 	/* try the driver's ioctl interface */
+ 	if (ops->ioctl) {
+ 		err = ops->ioctl(rtc->dev.parent, cmd, arg);
+-		if (err != -ENOIOCTLCMD)
++		if (err != -ENOIOCTLCMD) {
++			mutex_unlock(&rtc->ops_lock);
+ 			return err;
++		}
+ 	}
+ 
+ 	/* if the driver does not provide the ioctl interface
+@@ -265,15 +274,19 @@ static int rtc_dev_ioctl(struct inode *i
+ 
+ 	switch (cmd) {
+ 	case RTC_ALM_READ:
++		mutex_unlock(&rtc->ops_lock);
++
+ 		err = rtc_read_alarm(rtc, &alarm);
+ 		if (err < 0)
+ 			return err;
+ 
+ 		if (copy_to_user(uarg, &alarm.time, sizeof(tm)))
+-			return -EFAULT;
+-		break;
++			err = -EFAULT;
++		return err;
+ 
+ 	case RTC_ALM_SET:
++		mutex_unlock(&rtc->ops_lock);
++
+ 		if (copy_from_user(&alarm.time, uarg, sizeof(tm)))
+ 			return -EFAULT;
+ 
+@@ -321,24 +334,26 @@ static int rtc_dev_ioctl(struct inode *i
+ 			}
+ 		}
+ 
+-		err = rtc_set_alarm(rtc, &alarm);
+-		break;
++		return rtc_set_alarm(rtc, &alarm);
+ 
+ 	case RTC_RD_TIME:
++		mutex_unlock(&rtc->ops_lock);
++
+ 		err = rtc_read_time(rtc, &tm);
+ 		if (err < 0)
+ 			return err;
+ 
+ 		if (copy_to_user(uarg, &tm, sizeof(tm)))
+-			return -EFAULT;
+-		break;
++			err = -EFAULT;
++		return err;
+ 
+ 	case RTC_SET_TIME:
++		mutex_unlock(&rtc->ops_lock);
++
+ 		if (copy_from_user(&tm, uarg, sizeof(tm)))
+ 			return -EFAULT;
+ 
+-		err = rtc_set_time(rtc, &tm);
+-		break;
++		return rtc_set_time(rtc, &tm);
+ 
+ 	case RTC_PIE_ON:
+ 		err = rtc_irq_set_state(rtc, NULL, 1);
+@@ -376,34 +391,37 @@ static int rtc_dev_ioctl(struct inode *i
+ 		break;
+ #endif
+ 	case RTC_WKALM_SET:
++		mutex_unlock(&rtc->ops_lock);
+ 		if (copy_from_user(&alarm, uarg, sizeof(alarm)))
+ 			return -EFAULT;
+ 
+-		err = rtc_set_alarm(rtc, &alarm);
+-		break;
++		return rtc_set_alarm(rtc, &alarm);
+ 
+ 	case RTC_WKALM_RD:
++		mutex_unlock(&rtc->ops_lock);
+ 		err = rtc_read_alarm(rtc, &alarm);
+ 		if (err < 0)
+ 			return err;
+ 
+ 		if (copy_to_user(uarg, &alarm, sizeof(alarm)))
+-			return -EFAULT;
+-		break;
++			err = -EFAULT;
++		return err;
+ 
+ #ifdef CONFIG_RTC_INTF_DEV_UIE_EMUL
+ 	case RTC_UIE_OFF:
+ 		clear_uie(rtc);
+-		return 0;
++		break;
+ 
+ 	case RTC_UIE_ON:
+-		return set_uie(rtc);
++		err = set_uie(rtc);
+ #endif
+ 	default:
+ 		err = -ENOTTY;
+ 		break;
+ 	}
+ 
++done:
++	mutex_unlock(&rtc->ops_lock);
+ 	return err;
+ }
+ 
+@@ -432,7 +450,7 @@ static const struct file_operations rtc_
+ 	.llseek		= no_llseek,
+ 	.read		= rtc_dev_read,
+ 	.poll		= rtc_dev_poll,
+-	.ioctl		= rtc_dev_ioctl,
++	.unlocked_ioctl	= rtc_dev_ioctl,
+ 	.open		= rtc_dev_open,
+ 	.release	= rtc_dev_release,
+ 	.fasync		= rtc_dev_fasync,
+diff -puN include/linux/rtc.h~rtc-remove-bkl-for-ioctl include/linux/rtc.h
+--- a/include/linux/rtc.h~rtc-remove-bkl-for-ioctl
++++ a/include/linux/rtc.h
+@@ -115,6 +115,23 @@ extern void rtc_time_to_tm(unsigned long
+ 
+ extern struct class *rtc_class;
+ 
 +/*
-+ * Driver for ST M41T94 SPI RTC
++ * For these RTC methods the device parameter is the physical device
++ * on whatever bus holds the hardware (I2C, Platform, SPI, etc), which
++ * was passed to rtc_device_register().  Its driver_data normally holds
++ * device state, including the rtc_device pointer for the RTC.
 + *
-+ * Copyright (C) 2008 Kim B. Heino
++ * Most of these methods are called with rtc_device.ops_lock held,
++ * through the rtc_*(struct rtc_device *, ...) calls.
 + *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
++ * The (current) exceptions are mostly filesystem hooks:
++ *   - the proc() hook for procfs
++ *   - non-ioctl() chardev hooks:  open(), release(), read_callback()
++ *   - periodic irq calls:  irq_set_state(), irq_set_freq()
++ *
++ * REVISIT those periodic irq calls *do* have ops_lock when they're
++ * issued through ioctl() ...
 + */
-+
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/platform_device.h>
-+#include <linux/rtc.h>
-+#include <linux/spi/spi.h>
-+#include <linux/bcd.h>
-+
-+#define M41T94_REG_SECONDS	0x01
-+#define M41T94_REG_MINUTES	0x02
-+#define M41T94_REG_HOURS	0x03
-+#define M41T94_REG_WDAY		0x04
-+#define M41T94_REG_DAY		0x05
-+#define M41T94_REG_MONTH	0x06
-+#define M41T94_REG_YEAR		0x07
-+#define M41T94_REG_HT		0x0c
-+
-+#define M41T94_BIT_HALT		0x40
-+#define M41T94_BIT_STOP		0x80
-+#define M41T94_BIT_CB		0x40
-+#define M41T94_BIT_CEB		0x80
-+
-+static int m41t94_set_time(struct device *dev, struct rtc_time *tm)
-+{
-+	struct spi_device *spi = to_spi_device(dev);
-+	u8 buf[8]; /* write cmd + 7 registers */
-+
-+	dev_dbg(dev, "%s secs=%d, mins=%d, "
-+		"hours=%d, mday=%d, mon=%d, year=%d, wday=%d\n",
-+		"write", tm->tm_sec, tm->tm_min,
-+		tm->tm_hour, tm->tm_mday,
-+		tm->tm_mon, tm->tm_year, tm->tm_wday);
-+
-+	buf[0] = 0x80 | M41T94_REG_SECONDS; /* write time + date */
-+	buf[M41T94_REG_SECONDS] = BIN2BCD(tm->tm_sec);
-+	buf[M41T94_REG_MINUTES] = BIN2BCD(tm->tm_min);
-+	buf[M41T94_REG_HOURS]   = BIN2BCD(tm->tm_hour);
-+	buf[M41T94_REG_WDAY]    = BIN2BCD(tm->tm_wday + 1);
-+	buf[M41T94_REG_DAY]     = BIN2BCD(tm->tm_mday);
-+	buf[M41T94_REG_MONTH]   = BIN2BCD(tm->tm_mon + 1);
-+
-+	buf[M41T94_REG_HOURS] |= M41T94_BIT_CEB;
-+	if (tm->tm_year >= 100)
-+		buf[M41T94_REG_HOURS] |= M41T94_BIT_CB;
-+	buf[M41T94_REG_YEAR] = BIN2BCD(tm->tm_year % 100);
-+
-+	return spi_write(spi, buf, 8);
-+}
-+
-+static int m41t94_read_time(struct device *dev, struct rtc_time *tm)
-+{
-+	struct spi_device *spi = to_spi_device(dev);
-+	u8 buf[2];
-+	int ret, hour;
-+
-+	/* clear halt update bit */
-+	ret = spi_w8r8(spi, M41T94_REG_HT);
-+	if (ret < 0)
-+		return ret;
-+	if (ret & M41T94_BIT_HALT) {
-+		buf[0] = 0x80 | M41T94_REG_HT;
-+		buf[1] = ret & ~M41T94_BIT_HALT;
-+		spi_write(spi, buf, 2);
-+	}
-+
-+	/* clear stop bit */
-+	ret = spi_w8r8(spi, M41T94_REG_SECONDS);
-+	if (ret < 0)
-+		return ret;
-+	if (ret & M41T94_BIT_STOP) {
-+		buf[0] = 0x80 | M41T94_REG_SECONDS;
-+		buf[1] = ret & ~M41T94_BIT_STOP;
-+		spi_write(spi, buf, 2);
-+	}
-+
-+	tm->tm_sec  = BCD2BIN(spi_w8r8(spi, M41T94_REG_SECONDS));
-+	tm->tm_min  = BCD2BIN(spi_w8r8(spi, M41T94_REG_MINUTES));
-+	hour = spi_w8r8(spi, M41T94_REG_HOURS);
-+	tm->tm_hour = BCD2BIN(hour & 0x3f);
-+	tm->tm_wday = BCD2BIN(spi_w8r8(spi, M41T94_REG_WDAY)) - 1;
-+	tm->tm_mday = BCD2BIN(spi_w8r8(spi, M41T94_REG_DAY));
-+	tm->tm_mon  = BCD2BIN(spi_w8r8(spi, M41T94_REG_MONTH)) - 1;
-+	tm->tm_year = BCD2BIN(spi_w8r8(spi, M41T94_REG_YEAR));
-+	if ((hour & M41T94_BIT_CB) || !(hour & M41T94_BIT_CEB))
-+		tm->tm_year += 100;
-+
-+	dev_dbg(dev, "%s secs=%d, mins=%d, "
-+		"hours=%d, mday=%d, mon=%d, year=%d, wday=%d\n",
-+		"read", tm->tm_sec, tm->tm_min,
-+		tm->tm_hour, tm->tm_mday,
-+		tm->tm_mon, tm->tm_year, tm->tm_wday);
-+
-+	/* initial clock setting can be undefined */
-+	return rtc_valid_tm(tm);
-+}
-+
-+static const struct rtc_class_ops m41t94_rtc_ops = {
-+	.read_time	= m41t94_read_time,
-+	.set_time	= m41t94_set_time,
-+};
-+
-+static struct spi_driver m41t94_driver;
-+
-+static int __devinit m41t94_probe(struct spi_device *spi)
-+{
-+	struct rtc_device *rtc;
-+	int res;
-+
-+	spi->bits_per_word = 8;
-+	spi_setup(spi);
-+
-+	res = spi_w8r8(spi, M41T94_REG_SECONDS);
-+	if (res < 0) {
-+		dev_err(&spi->dev, "not found.\n");
-+		return res;
-+	}
-+
-+	rtc = rtc_device_register(m41t94_driver.driver.name,
-+		&spi->dev, &m41t94_rtc_ops, THIS_MODULE);
-+	if (IS_ERR(rtc))
-+		return PTR_ERR(rtc);
-+
-+	dev_set_drvdata(&spi->dev, rtc);
-+
-+	return 0;
-+}
-+
-+static int __devexit m41t94_remove(struct spi_device *spi)
-+{
-+	struct rtc_device *rtc = platform_get_drvdata(spi);
-+
-+	if (rtc)
-+		rtc_device_unregister(rtc);
-+
-+	return 0;
-+}
-+
-+static struct spi_driver m41t94_driver = {
-+	.driver = {
-+		.name	= "rtc-m41t94",
-+		.bus	= &spi_bus_type,
-+		.owner	= THIS_MODULE,
-+	},
-+	.probe	= m41t94_probe,
-+	.remove = __devexit_p(m41t94_remove),
-+};
-+
-+static __init int m41t94_init(void)
-+{
-+	return spi_register_driver(&m41t94_driver);
-+}
-+
-+module_init(m41t94_init);
-+
-+static __exit void m41t94_exit(void)
-+{
-+	spi_unregister_driver(&m41t94_driver);
-+}
-+
-+module_exit(m41t94_exit);
-+
-+MODULE_AUTHOR("Kim B. Heino <Kim.Heino@bluegiga.com>");
-+MODULE_DESCRIPTION("Driver for ST M41T94 SPI RTC");
-+MODULE_LICENSE("GPL");
+ struct rtc_class_ops {
+ 	int (*open)(struct device *);
+ 	void (*release)(struct device *);
 _
 
-Patches currently in -mm which might be from Kim.Heino@bluegiga.com are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
 origin.patch
+linux-next.patch
+ntp-let-update_persistent_clock-sleep.patch
+jffs2-summary-allocation-dont-use-vmalloc.patch
+sm501-add-gpiolib-support.patch
+sm501-gpio-dynamic-registration-for-pci-devices.patch
+sm501-gpio-i2c-support.patch
+rtc-rtc-rs5c372-smbus-conversion-support.patch
+rtc-rtc-rs5c732-add-support-for-ricoh-r2025s-d-rtc.patch
+gpio-sysfs-interface-updated-update.patch
+gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support.patch
+gpio-mcp23s08-handles-multiple-chips-per-chipselect.patch
+gpio-add-bt8xxgpio-driver.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch
+gpiolib-allow-user-selection.patch
+gpiolib-allow-user-selection-update.patch
+spi-add-spi-over-gpio-driver.patch
+spi-add-spi-over-gpio-driver-v3.patch
+mmc-add-gpio-based-mmc-sd-driver.patch
+mmc-add-gpio-based-mmc-sd-driver-v3.patch
+mmc-add-gpio-based-mmc-sd-driver-v3-fix-for-configfs-api-change.patch
+mmc-add-gpio-based-mmc-sd-driver-add-documentation-abi-testing-configfs-gpiommc.patch
+mmc-add-gpio-based-mmc-sd-driver-add-locking.patch
 
