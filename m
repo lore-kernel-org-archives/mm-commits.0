@@ -1,290 +1,230 @@
 From: akpm@linux-foundation.org
-Subject: - autofs4-use-struct-qstr-in-waitqc.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:29:20 -0700
-Message-ID: <200807242329.m6ONTKc6011367@imap1.linux-foundation.org>
+Subject: - tridentfb-convert-fb_info-into-allocated-one.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:30:41 -0700
+Message-ID: <200807242330.m6ONUfWD011528@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60793 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35745 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756245AbYGXX3j (ORCPT
+	by vger.kernel.org with ESMTP id S1756342AbYGXXap (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:29:39 -0400
+	Thu, 24 Jul 2008 19:30:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jmoyer@redhat.com, raven@themaw.net, mm-commits@vger.kernel.org
+To: krzysztof.h1@wp.pl, adaplas@pol.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     autofs4: use struct qstr in waitq.c
+     tridentfb: convert fb_info into allocated one
 has been removed from the -mm tree.  Its filename was
-     autofs4-use-struct-qstr-in-waitqc.patch
+     tridentfb-convert-fb_info-into-allocated-one.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: autofs4: use struct qstr in waitq.c
-From: Jeff Moyer <jmoyer@redhat.com>
+Subject: tridentfb: convert fb_info into allocated one
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-The autofs_wait_queue already contains all of the fields of the
-struct qstr, so change it into a qstr.
+This patch converts fb_info structure from global variable to allocatable one.
 
-This patch, from Jeff Moyer, has been modified a liitle by myself.
+The global default_par is moved into function variable.
 
-Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
-Signed-off-by: Ian Kent <raven@themaw.net>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/autofs_i.h |    4 -
- fs/autofs4/waitq.c    |   86 ++++++++++++++++++++--------------------
- 2 files changed, 46 insertions(+), 44 deletions(-)
+ drivers/video/tridentfb.c |   82 ++++++++++++++++++++----------------
+ 1 file changed, 46 insertions(+), 36 deletions(-)
 
-diff -puN fs/autofs4/autofs_i.h~autofs4-use-struct-qstr-in-waitqc fs/autofs4/autofs_i.h
---- a/fs/autofs4/autofs_i.h~autofs4-use-struct-qstr-in-waitqc
-+++ a/fs/autofs4/autofs_i.h
-@@ -75,9 +75,7 @@ struct autofs_wait_queue {
- 	struct autofs_wait_queue *next;
- 	autofs_wqt_t wait_queue_token;
- 	/* We use the following to see what we are waiting for */
--	unsigned int hash;
--	unsigned int len;
--	char *name;
-+	struct qstr name;
- 	u32 dev;
- 	u64 ino;
- 	uid_t uid;
-diff -puN fs/autofs4/waitq.c~autofs4-use-struct-qstr-in-waitqc fs/autofs4/waitq.c
---- a/fs/autofs4/waitq.c~autofs4-use-struct-qstr-in-waitqc
-+++ a/fs/autofs4/waitq.c
-@@ -36,8 +36,10 @@ void autofs4_catatonic_mode(struct autof
- 	while (wq) {
- 		nwq = wq->next;
- 		wq->status = -ENOENT; /* Magic is gone - report failure */
--		kfree(wq->name);
--		wq->name = NULL;
-+		if (wq->name.name) {
-+			kfree(wq->name.name);
-+			wq->name.name = NULL;
-+		}
- 		wake_up_interruptible(&wq->queue);
- 		wq = nwq;
+diff -puN drivers/video/tridentfb.c~tridentfb-convert-fb_info-into-allocated-one drivers/video/tridentfb.c
+--- a/drivers/video/tridentfb.c~tridentfb-convert-fb_info-into-allocated-one
++++ a/drivers/video/tridentfb.c
+@@ -33,10 +33,7 @@ struct tridentfb_par {
+ static unsigned char eng_oper;	/* engine operation... */
+ static struct fb_ops tridentfb_ops;
+ 
+-static struct tridentfb_par default_par;
+-
+ /* FIXME:kmalloc these 3 instead */
+-static struct fb_info fb_info;
+ static u32 pseudo_pal[16];
+ 
+ static struct fb_var_screeninfo default_var;
+@@ -1217,16 +1214,23 @@ static struct fb_ops tridentfb_ops = {
+ 	.fb_imageblit = cfb_imageblit,
+ };
+ 
+-static int __devinit trident_pci_probe(struct pci_dev * dev,
+-				       const struct pci_device_id * id)
++static int __devinit trident_pci_probe(struct pci_dev *dev,
++				       const struct pci_device_id *id)
+ {
+ 	int err;
+ 	unsigned char revision;
++	struct fb_info *info;
++	struct tridentfb_par *default_par;
+ 
+ 	err = pci_enable_device(dev);
+ 	if (err)
+ 		return err;
+ 
++	info = framebuffer_alloc(sizeof(struct tridentfb_par), &dev->dev);
++	if (!info)
++		return -ENOMEM;
++	default_par = info->par;
++
+ 	chip_id = id->device;
+ 
+ 	if (chip_id == CYBERBLADEi1)
+@@ -1282,8 +1286,6 @@ static int __devinit trident_pci_probe(s
+ 	/* acceleration is on by default for 3D chips */
+ 	defaultaccel = chip3D && !noaccel;
+ 
+-	fb_info.par = &default_par;
+-
+ 	/* setup MMIO region */
+ 	tridentfb_fix.mmio_start = pci_resource_start(dev, 1);
+ 	tridentfb_fix.mmio_len = chip3D ? 0x20000 : 0x10000;
+@@ -1293,9 +1295,10 @@ static int __devinit trident_pci_probe(s
+ 		return -1;
  	}
-@@ -92,7 +94,7 @@ static void autofs4_notify_daemon(struct
- 	size_t pktsz;
  
- 	DPRINTK("wait id = 0x%08lx, name = %.*s, type=%d",
--		wq->wait_queue_token, wq->len, wq->name, type);
-+		wq->wait_queue_token, wq->name.len, wq->name.name, type);
+-	default_par.io_virt = ioremap_nocache(tridentfb_fix.mmio_start, tridentfb_fix.mmio_len);
++	default_par->io_virt = ioremap_nocache(tridentfb_fix.mmio_start,
++					       tridentfb_fix.mmio_len);
  
- 	memset(&pkt,0,sizeof pkt); /* For security reasons */
+-	if (!default_par.io_virt) {
++	if (!default_par->io_virt) {
+ 		debug("ioremap failed\n");
+ 		err = -1;
+ 		goto out_unmap1;
+@@ -1305,46 +1308,46 @@ static int __devinit trident_pci_probe(s
  
-@@ -107,9 +109,9 @@ static void autofs4_notify_daemon(struct
- 		pktsz = sizeof(*mp);
+ 	/* setup framebuffer memory */
+ 	tridentfb_fix.smem_start = pci_resource_start(dev, 0);
+-	tridentfb_fix.smem_len = get_memsize(&default_par);
++	tridentfb_fix.smem_len = get_memsize(default_par);
  
- 		mp->wait_queue_token = wq->wait_queue_token;
--		mp->len = wq->len;
--		memcpy(mp->name, wq->name, wq->len);
--		mp->name[wq->len] = '\0';
-+		mp->len = wq->name.len;
-+		memcpy(mp->name, wq->name.name, wq->name.len);
-+		mp->name[wq->name.len] = '\0';
- 		break;
+ 	if (!request_mem_region(tridentfb_fix.smem_start, tridentfb_fix.smem_len, "tridentfb")) {
+ 		debug("request_mem_region failed!\n");
+-		disable_mmio(fb_info.par);
++		disable_mmio(info->par);
+ 		err = -1;
+ 		goto out_unmap1;
  	}
- 	case autofs_ptype_expire_multi:
-@@ -119,9 +121,9 @@ static void autofs4_notify_daemon(struct
- 		pktsz = sizeof(*ep);
  
- 		ep->wait_queue_token = wq->wait_queue_token;
--		ep->len = wq->len;
--		memcpy(ep->name, wq->name, wq->len);
--		ep->name[wq->len] = '\0';
-+		ep->len = wq->name.len;
-+		memcpy(ep->name, wq->name.name, wq->name.len);
-+		ep->name[wq->name.len] = '\0';
- 		break;
+-	fb_info.screen_base = ioremap_nocache(tridentfb_fix.smem_start,
+-					      tridentfb_fix.smem_len);
++	info->screen_base = ioremap_nocache(tridentfb_fix.smem_start,
++					    tridentfb_fix.smem_len);
+ 
+-	if (!fb_info.screen_base) {
++	if (!info->screen_base) {
+ 		debug("ioremap failed\n");
+ 		err = -1;
+ 		goto out_unmap2;
  	}
- 	/*
-@@ -138,9 +140,9 @@ static void autofs4_notify_daemon(struct
- 		pktsz = sizeof(*packet);
  
- 		packet->wait_queue_token = wq->wait_queue_token;
--		packet->len = wq->len;
--		memcpy(packet->name, wq->name, wq->len);
--		packet->name[wq->len] = '\0';
-+		packet->len = wq->name.len;
-+		memcpy(packet->name, wq->name.name, wq->name.len);
-+		packet->name[wq->name.len] = '\0';
- 		packet->dev = wq->dev;
- 		packet->ino = wq->ino;
- 		packet->uid = wq->uid;
-@@ -191,15 +193,15 @@ static int autofs4_getpath(struct autofs
+ 	output("%s board found\n", pci_name(dev));
+-	displaytype = get_displaytype(&default_par);
++	displaytype = get_displaytype(default_par);
+ 
+ 	if (flatpanel)
+-		nativex = get_nativex(&default_par);
++		nativex = get_nativex(default_par);
+ 
+-	fb_info.fix = tridentfb_fix;
+-	fb_info.fbops = &tridentfb_ops;
++	info->fix = tridentfb_fix;
++	info->fbops = &tridentfb_ops;
+ 
+ 
+-	fb_info.flags = FBINFO_DEFAULT | FBINFO_HWACCEL_YPAN;
++	info->flags = FBINFO_DEFAULT | FBINFO_HWACCEL_YPAN;
+ #ifdef CONFIG_FB_TRIDENT_ACCEL
+-	fb_info.flags |= FBINFO_HWACCEL_COPYAREA | FBINFO_HWACCEL_FILLRECT;
++	info->flags |= FBINFO_HWACCEL_COPYAREA | FBINFO_HWACCEL_FILLRECT;
+ #endif
+-	fb_info.pseudo_palette = pseudo_pal;
++	info->pseudo_palette = pseudo_pal;
+ 
+-	if (!fb_find_mode(&default_var, &fb_info,
++	if (!fb_find_mode(&default_var, info,
+ 			  mode_option, NULL, 0, NULL, bpp)) {
+ 		err = -EINVAL;
+ 		goto out_unmap2;
+ 	}
+-	err = fb_alloc_cmap(&fb_info.cmap, 256, 0);
++	err = fb_alloc_cmap(&info->cmap, 256, 0);
+ 	if (err < 0)
+ 		goto out_unmap2;
+ 
+@@ -1353,39 +1356,46 @@ static int __devinit trident_pci_probe(s
+ 	else
+ 		default_var.accel_flags &= ~FB_ACCELF_TEXT;
+ 	default_var.activate |= FB_ACTIVATE_NOW;
+-	fb_info.var = default_var;
+-	fb_info.device = &dev->dev;
+-	if (register_framebuffer(&fb_info) < 0) {
++	info->var = default_var;
++	info->device = &dev->dev;
++	if (register_framebuffer(info) < 0) {
+ 		printk(KERN_ERR "tridentfb: could not register Trident framebuffer\n");
+-		fb_dealloc_cmap(&fb_info.cmap);
++		fb_dealloc_cmap(&info->cmap);
+ 		err = -EINVAL;
+ 		goto out_unmap2;
+ 	}
+ 	output("fb%d: %s frame buffer device %dx%d-%dbpp\n",
+-	   fb_info.node, fb_info.fix.id, default_var.xres,
++	   info->node, info->fix.id, default_var.xres,
+ 	   default_var.yres, default_var.bits_per_pixel);
++
++	pci_set_drvdata(dev, info);
+ 	return 0;
+ 
+ out_unmap2:
+-	if (fb_info.screen_base)
+-		iounmap(fb_info.screen_base);
++	if (info->screen_base)
++		iounmap(info->screen_base);
+ 	release_mem_region(tridentfb_fix.smem_start, tridentfb_fix.smem_len);
+-	disable_mmio(fb_info.par);
++	disable_mmio(info->par);
+ out_unmap1:
+-	if (default_par.io_virt)
+-		iounmap(default_par.io_virt);
++	if (default_par->io_virt)
++		iounmap(default_par->io_virt);
+ 	release_mem_region(tridentfb_fix.mmio_start, tridentfb_fix.mmio_len);
++	framebuffer_release(info);
+ 	return err;
  }
  
- static struct autofs_wait_queue *
--autofs4_find_wait(struct autofs_sb_info *sbi,
--		  char *name, unsigned int hash, unsigned int len)
-+autofs4_find_wait(struct autofs_sb_info *sbi, struct qstr *qstr)
+ static void __devexit trident_pci_remove(struct pci_dev *dev)
  {
- 	struct autofs_wait_queue *wq;
+-	struct tridentfb_par *par = (struct tridentfb_par*)fb_info.par;
+-	unregister_framebuffer(&fb_info);
++	struct fb_info *info = pci_get_drvdata(dev);
++	struct tridentfb_par *par = info->par;
++
++	unregister_framebuffer(info);
+ 	iounmap(par->io_virt);
+-	iounmap(fb_info.screen_base);
++	iounmap(info->screen_base);
+ 	release_mem_region(tridentfb_fix.smem_start, tridentfb_fix.smem_len);
+ 	release_mem_region(tridentfb_fix.mmio_start, tridentfb_fix.mmio_len);
++	pci_set_drvdata(dev, NULL);
++	framebuffer_release(info);
+ }
  
- 	for (wq = sbi->queues; wq; wq = wq->next) {
--		if (wq->hash == hash &&
--		    wq->len == len &&
--		    wq->name && !memcmp(wq->name, name, len))
-+		if (wq->name.hash == qstr->hash &&
-+		    wq->name.len == qstr->len &&
-+		    wq->name.name &&
-+			 !memcmp(wq->name.name, qstr->name, qstr->len))
- 			break;
- 	}
- 	return wq;
-@@ -210,9 +212,8 @@ int autofs4_wait(struct autofs_sb_info *
- {
- 	struct autofs_info *ino;
- 	struct autofs_wait_queue *wq;
-+	struct qstr qstr;
- 	char *name;
--	unsigned int len = 0;
--	unsigned int hash = 0;
- 	int status, type;
- 
- 	/* In catatonic mode, we don't wait for nobody */
-@@ -225,22 +226,23 @@ int autofs4_wait(struct autofs_sb_info *
- 
- 	/* If this is a direct mount request create a dummy name */
- 	if (IS_ROOT(dentry) && (sbi->type & AUTOFS_TYPE_DIRECT))
--		len = sprintf(name, "%p", dentry);
-+		qstr.len = sprintf(name, "%p", dentry);
- 	else {
--		len = autofs4_getpath(sbi, dentry, &name);
--		if (!len) {
-+		qstr.len = autofs4_getpath(sbi, dentry, &name);
-+		if (!qstr.len) {
- 			kfree(name);
- 			return -ENOENT;
- 		}
- 	}
--	hash = full_name_hash(name, len);
-+	qstr.name = name;
-+	qstr.hash = full_name_hash(name, qstr.len);
- 
- 	if (mutex_lock_interruptible(&sbi->wq_mutex)) {
--		kfree(name);
-+		kfree(qstr.name);
- 		return -EINTR;
- 	}
- 
--	wq = autofs4_find_wait(sbi, name, hash, len);
-+	wq = autofs4_find_wait(sbi, &qstr);
- 	ino = autofs4_dentry_ino(dentry);
- 	if (!wq && ino && notify == NFY_NONE) {
- 		/*
-@@ -254,10 +256,10 @@ int autofs4_wait(struct autofs_sb_info *
- 			mutex_unlock(&sbi->wq_mutex);
- 			schedule_timeout_interruptible(HZ/10);
- 			if (mutex_lock_interruptible(&sbi->wq_mutex)) {
--				kfree(name);
-+				kfree(qstr.name);
- 				return -EINTR;
- 			}
--			wq = autofs4_find_wait(sbi, name, hash, len);
-+			wq = autofs4_find_wait(sbi, &qstr);
- 			if (wq)
- 				break;
- 		}
-@@ -268,7 +270,7 @@ int autofs4_wait(struct autofs_sb_info *
- 		 * return status of the wait.
- 		 */
- 		if (!wq) {
--			kfree(name);
-+			kfree(qstr.name);
- 			mutex_unlock(&sbi->wq_mutex);
- 			return 0;
- 		}
-@@ -278,7 +280,7 @@ int autofs4_wait(struct autofs_sb_info *
- 		/* Create a new wait queue */
- 		wq = kmalloc(sizeof(struct autofs_wait_queue),GFP_KERNEL);
- 		if (!wq) {
--			kfree(name);
-+			kfree(qstr.name);
- 			mutex_unlock(&sbi->wq_mutex);
- 			return -ENOMEM;
- 		}
-@@ -289,9 +291,7 @@ int autofs4_wait(struct autofs_sb_info *
- 		wq->next = sbi->queues;
- 		sbi->queues = wq;
- 		init_waitqueue_head(&wq->queue);
--		wq->hash = hash;
--		wq->name = name;
--		wq->len = len;
-+		memcpy(&wq->name, &qstr, sizeof(struct qstr));
- 		wq->dev = autofs4_get_dev(sbi);
- 		wq->ino = autofs4_get_ino(sbi);
- 		wq->uid = current->uid;
-@@ -319,16 +319,18 @@ int autofs4_wait(struct autofs_sb_info *
- 		}
- 
- 		DPRINTK("new wait id = 0x%08lx, name = %.*s, nfy=%d\n",
--			(unsigned long) wq->wait_queue_token, wq->len, wq->name, notify);
-+			(unsigned long) wq->wait_queue_token, wq->name.len,
-+			wq->name.name, notify);
- 
- 		/* autofs4_notify_daemon() may block */
- 		autofs4_notify_daemon(sbi, wq, type);
- 	} else {
- 		atomic_inc(&wq->wait_ctr);
- 		mutex_unlock(&sbi->wq_mutex);
--		kfree(name);
-+		kfree(qstr.name);
- 		DPRINTK("existing wait id = 0x%08lx, name = %.*s, nfy=%d",
--			(unsigned long) wq->wait_queue_token, wq->len, wq->name, notify);
-+			(unsigned long) wq->wait_queue_token, wq->name.len,
-+			wq->name.name, notify);
- 	}
- 
- 	/* wq->name is NULL if and only if the lock is already released */
-@@ -336,11 +338,13 @@ int autofs4_wait(struct autofs_sb_info *
- 	if (sbi->catatonic) {
- 		/* We might have slept, so check again for catatonic mode */
- 		wq->status = -ENOENT;
--		kfree(wq->name);
--		wq->name = NULL;
-+		if (wq->name.name) {
-+			kfree(wq->name.name);
-+			wq->name.name = NULL;
-+		}
- 	}
- 
--	if (wq->name) {
-+	if (wq->name.name) {
- 		/* Block all but "shutdown" signals while waiting */
- 		sigset_t oldset;
- 		unsigned long irqflags;
-@@ -351,7 +355,7 @@ int autofs4_wait(struct autofs_sb_info *
- 		recalc_sigpending();
- 		spin_unlock_irqrestore(&current->sighand->siglock, irqflags);
- 
--		wait_event_interruptible(wq->queue, wq->name == NULL);
-+		wait_event_interruptible(wq->queue, wq->name.name == NULL);
- 
- 		spin_lock_irqsave(&current->sighand->siglock, irqflags);
- 		current->blocked = oldset;
-@@ -388,8 +392,8 @@ int autofs4_wait_release(struct autofs_s
- 
- 	*wql = wq->next;	/* Unlink from chain */
- 	mutex_unlock(&sbi->wq_mutex);
--	kfree(wq->name);
--	wq->name = NULL;	/* Do not wait on this queue */
-+	kfree(wq->name.name);
-+	wq->name.name = NULL;	/* Do not wait on this queue */
- 
- 	wq->status = status;
- 
+ /* List of boards that we are trying to support */
 _
 
-Patches currently in -mm which might be from jmoyer@redhat.com are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
 origin.patch
 
