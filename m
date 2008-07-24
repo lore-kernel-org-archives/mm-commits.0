@@ -1,249 +1,428 @@
 From: akpm@linux-foundation.org
-Subject: - flag-parameters-inotify_init.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:27:35 -0700
-Message-ID: <200807242327.m6ONRZ9M011172__42680.4562951022$1216942453$gmane$org@imap1.linux-foundation.org>
+Subject: - autofs4-use-look-aside-list-for-lookups.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:29:10 -0700
+Message-ID: <200807242329.m6ONTATn011353@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32958 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52474 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756734AbYGXX3X (ORCPT
+	by vger.kernel.org with ESMTP id S1756706AbYGXX3O (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:29:23 -0400
+	Thu, 24 Jul 2008 19:29:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: drepper@redhat.com, davidel@xmailserver.org, linux-arch@vger.kernel.org, mtk.manpages@googlemail.com, mm-commits@vger.kernel.org
+To: raven@themaw.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     flag parameters: inotify_init
+     autofs4: use look aside list for lookups
 has been removed from the -mm tree.  Its filename was
-     flag-parameters-inotify_init.patch
+     autofs4-use-look-aside-list-for-lookups.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: flag parameters: inotify_init
-From: Ulrich Drepper <drepper@redhat.com>
+Subject: autofs4: use look aside list for lookups
+From: Ian Kent <raven@themaw.net>
 
-This patch introduces the new syscall inotify_init1 (note: the 1 stands for
-the one parameter the syscall takes, as opposed to no parameter before).  The
-values accepted for this parameter are function-specific and defined in the
-inotify.h header.  Here the values must match the O_* flags, though.  In this
-patch CLOEXEC support is introduced.
+A while ago a patch to resolve a deadlock during directory creation was
+merged.  This delayed the hashing of lookup dentrys until the ->mkdir()
+(or ->symlink()) operation completed to ensure we always went through
+->lookup() instead of also having processes go through ->revalidate() so
+our VFS locking remained consistent.
 
-The following test must be adjusted for architectures other than x86 and
-x86-64 and in case the syscall numbers changed.
+Now we are seeing a couple of side affects of that change in situations
+with heavy mount activity.
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#include <fcntl.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <sys/syscall.h>
+Two cases have been identified:
 
-#ifndef __NR_inotify_init1
-# ifdef __x86_64__
-#  define __NR_inotify_init1 294
-# elif defined __i386__
-#  define __NR_inotify_init1 332
-# else
-#  error "need __NR_inotify_init1"
-# endif
-#endif
+1) When a mount request is triggered, due to the delayed hashing, the
+   directory created by user space for the mount point doesn't have the
+   DCACHE_AUTOFS_PENDING flag set.  In the case of an autofs multi-mount
+   where a tree of mount point directories are created this can lead to
+   the path walk continuing rather than the dentry being sent to the wait
+   queue to wait for request completion.  This is because, if the pending
+   flag isn't set, the criteria for deciding this is a mount in progress
+   fails to hold, namely that the dentry is not a mount point and has no
+   subdirectories.
 
-#define IN_CLOEXEC O_CLOEXEC
+2) A mount request dentry is initially created negative and unhashed. 
+   It remains this way until the ->mkdir() callback completes.  Since it
+   is unhashed a fresh dentry is used when the user space mount request
+   creates the mount point directory.  This leaves the original dentry
+   negative and unhashed.  But revalidate has no way to tell the VFS that
+   the dentry has changed, other than to force another ->lookup() by
+   returning false, which is at best wastefull and at worst not possible. 
+   This results in an -ENOENT return from the original path walk when in
+   fact the mount succeeded.
 
-int
-main (void)
-{
-  int fd;
-  fd = syscall (__NR_inotify_init1, 0);
-  if (fd == -1)
-    {
-      puts ("inotify_init1(0) failed");
-      return 1;
-    }
-  int coe = fcntl (fd, F_GETFD);
-  if (coe == -1)
-    {
-      puts ("fcntl failed");
-      return 1;
-    }
-  if (coe & FD_CLOEXEC)
-    {
-      puts ("inotify_init1(0) set close-on-exit");
-      return 1;
-    }
-  close (fd);
+To resolve this we need to ensure that the same dentry is used in all
+calls to ->lookup() during the course of a mount request.  This patch
+achieves that by adding the initial dentry to a look aside list and
+removes it at ->mkdir() or ->symlink() completion (or when the dentry is
+released), since these are the only create operations autofs4 supports.
 
-  fd = syscall (__NR_inotify_init1, IN_CLOEXEC);
-  if (fd == -1)
-    {
-      puts ("inotify_init1(IN_CLOEXEC) failed");
-      return 1;
-    }
-  coe = fcntl (fd, F_GETFD);
-  if (coe == -1)
-    {
-      puts ("fcntl failed");
-      return 1;
-    }
-  if ((coe & FD_CLOEXEC) == 0)
-    {
-      puts ("inotify_init1(O_CLOEXEC) does not set close-on-exit");
-      return 1;
-    }
-  close (fd);
-
-  puts ("OK");
-
-  return 0;
-}
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-[akpm@linux-foundation.org: add sys_ni stub]
-Signed-off-by: Ulrich Drepper <drepper@redhat.com>
-Acked-by: Davide Libenzi <davidel@xmailserver.org>
-Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
-Cc: <linux-arch@vger.kernel.org>
+Signed-off-by: Ian Kent <raven@themaw.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/ia32/ia32entry.S          |    1 +
- arch/x86/kernel/syscall_table_32.S |    1 +
- fs/inotify_user.c                  |   12 ++++++++++--
- include/asm-x86/unistd_32.h        |    1 +
- include/asm-x86/unistd_64.h        |    2 ++
- include/linux/inotify.h            |    5 +++++
- include/linux/syscalls.h           |    1 +
- kernel/sys_ni.c                    |    1 +
- 8 files changed, 22 insertions(+), 2 deletions(-)
+ fs/autofs4/autofs_i.h |    2 
+ fs/autofs4/inode.c    |   25 +++--
+ fs/autofs4/root.c     |  169 ++++++++++++++++++++++++++++++++--------
+ 3 files changed, 156 insertions(+), 40 deletions(-)
 
-diff -puN arch/x86/ia32/ia32entry.S~flag-parameters-inotify_init arch/x86/ia32/ia32entry.S
---- a/arch/x86/ia32/ia32entry.S~flag-parameters-inotify_init
-+++ a/arch/x86/ia32/ia32entry.S
-@@ -748,4 +748,5 @@ ia32_sys_call_table:
- 	.quad sys_epoll_create2
- 	.quad sys_dup3			/* 330 */
- 	.quad sys_pipe2
-+	.quad sys_inotify_init1
- ia32_syscall_end:
-diff -puN arch/x86/kernel/syscall_table_32.S~flag-parameters-inotify_init arch/x86/kernel/syscall_table_32.S
---- a/arch/x86/kernel/syscall_table_32.S~flag-parameters-inotify_init
-+++ a/arch/x86/kernel/syscall_table_32.S
-@@ -331,3 +331,4 @@ ENTRY(sys_call_table)
- 	.long sys_epoll_create2
- 	.long sys_dup3			/* 330 */
- 	.long sys_pipe2
-+	.long sys_inotify_init1
-diff -puN fs/inotify_user.c~flag-parameters-inotify_init fs/inotify_user.c
---- a/fs/inotify_user.c~flag-parameters-inotify_init
-+++ a/fs/inotify_user.c
-@@ -566,7 +566,7 @@ static const struct inotify_operations i
- 	.destroy_watch	= free_inotify_user_watch,
+diff -puN fs/autofs4/autofs_i.h~autofs4-use-look-aside-list-for-lookups fs/autofs4/autofs_i.h
+--- a/fs/autofs4/autofs_i.h~autofs4-use-look-aside-list-for-lookups
++++ a/fs/autofs4/autofs_i.h
+@@ -52,6 +52,7 @@ struct autofs_info {
+ 
+ 	int		flags;
+ 
++	struct list_head active;
+ 	struct list_head expiring;
+ 
+ 	struct autofs_sb_info *sbi;
+@@ -113,6 +114,7 @@ struct autofs_sb_info {
+ 	spinlock_t fs_lock;
+ 	struct autofs_wait_queue *queues; /* Wait queue pointer */
+ 	spinlock_t lookup_lock;
++	struct list_head active_list;
+ 	struct list_head expiring_list;
  };
  
--asmlinkage long sys_inotify_init(void)
-+asmlinkage long sys_inotify_init1(int flags)
+diff -puN fs/autofs4/inode.c~autofs4-use-look-aside-list-for-lookups fs/autofs4/inode.c
+--- a/fs/autofs4/inode.c~autofs4-use-look-aside-list-for-lookups
++++ a/fs/autofs4/inode.c
+@@ -24,8 +24,10 @@
+ 
+ static void ino_lnkfree(struct autofs_info *ino)
  {
- 	struct inotify_device *dev;
- 	struct inotify_handle *ih;
-@@ -574,7 +574,10 @@ asmlinkage long sys_inotify_init(void)
- 	struct file *filp;
- 	int fd, ret;
- 
--	fd = get_unused_fd();
-+	if (flags & ~IN_CLOEXEC)
-+		return -EINVAL;
-+
-+	fd = get_unused_fd_flags(flags & O_CLOEXEC);
- 	if (fd < 0)
- 		return fd;
- 
-@@ -638,6 +641,11 @@ out_put_fd:
- 	return ret;
+-	kfree(ino->u.symlink);
+-	ino->u.symlink = NULL;
++	if (ino->u.symlink) {
++		kfree(ino->u.symlink);
++		ino->u.symlink = NULL;
++	}
  }
  
-+asmlinkage long sys_inotify_init(void)
+ struct autofs_info *autofs4_init_ino(struct autofs_info *ino,
+@@ -41,16 +43,18 @@ struct autofs_info *autofs4_init_ino(str
+ 	if (ino == NULL)
+ 		return NULL;
+ 
+-	ino->flags = 0;
+-	ino->mode = mode;
+-	ino->inode = NULL;
+-	ino->dentry = NULL;
+-	ino->size = 0;
+-
+-	INIT_LIST_HEAD(&ino->expiring);
++	if (!reinit) {
++		ino->flags = 0;
++		ino->inode = NULL;
++		ino->dentry = NULL;
++		ino->size = 0;
++		INIT_LIST_HEAD(&ino->active);
++		INIT_LIST_HEAD(&ino->expiring);
++		atomic_set(&ino->count, 0);
++	}
+ 
++	ino->mode = mode;
+ 	ino->last_used = jiffies;
+-	atomic_set(&ino->count, 0);
+ 
+ 	ino->sbi = sbi;
+ 
+@@ -339,6 +343,7 @@ int autofs4_fill_super(struct super_bloc
+ 	spin_lock_init(&sbi->fs_lock);
+ 	sbi->queues = NULL;
+ 	spin_lock_init(&sbi->lookup_lock);
++	INIT_LIST_HEAD(&sbi->active_list);
+ 	INIT_LIST_HEAD(&sbi->expiring_list);
+ 	s->s_blocksize = 1024;
+ 	s->s_blocksize_bits = 10;
+diff -puN fs/autofs4/root.c~autofs4-use-look-aside-list-for-lookups fs/autofs4/root.c
+--- a/fs/autofs4/root.c~autofs4-use-look-aside-list-for-lookups
++++ a/fs/autofs4/root.c
+@@ -473,6 +473,8 @@ void autofs4_dentry_release(struct dentr
+ 
+ 		if (sbi) {
+ 			spin_lock(&sbi->lookup_lock);
++			if (!list_empty(&inf->active))
++				list_del(&inf->active);
+ 			if (!list_empty(&inf->expiring))
+ 				list_del(&inf->expiring);
+ 			spin_unlock(&sbi->lookup_lock);
+@@ -497,6 +499,58 @@ static struct dentry_operations autofs4_
+ 	.d_release	= autofs4_dentry_release,
+ };
+ 
++static struct dentry *autofs4_lookup_active(struct autofs_sb_info *sbi, struct dentry *parent, struct qstr *name)
 +{
-+	return sys_inotify_init1(0);
++	unsigned int len = name->len;
++	unsigned int hash = name->hash;
++	const unsigned char *str = name->name;
++	struct list_head *p, *head;
++
++	spin_lock(&dcache_lock);
++	spin_lock(&sbi->lookup_lock);
++	head = &sbi->active_list;
++	list_for_each(p, head) {
++		struct autofs_info *ino;
++		struct dentry *dentry;
++		struct qstr *qstr;
++
++		ino = list_entry(p, struct autofs_info, active);
++		dentry = ino->dentry;
++
++		spin_lock(&dentry->d_lock);
++
++		/* Already gone? */
++		if (atomic_read(&dentry->d_count) == 0)
++			goto next;
++
++		qstr = &dentry->d_name;
++
++		if (dentry->d_name.hash != hash)
++			goto next;
++		if (dentry->d_parent != parent)
++			goto next;
++
++		if (qstr->len != len)
++			goto next;
++		if (memcmp(qstr->name, str, len))
++			goto next;
++
++		if (d_unhashed(dentry)) {
++			dget(dentry);
++			spin_unlock(&dentry->d_lock);
++			spin_unlock(&sbi->lookup_lock);
++			spin_unlock(&dcache_lock);
++			return dentry;
++		}
++next:
++		spin_unlock(&dentry->d_lock);
++	}
++	spin_unlock(&sbi->lookup_lock);
++	spin_unlock(&dcache_lock);
++
++	return NULL;
 +}
 +
- asmlinkage long sys_inotify_add_watch(int fd, const char __user *path, u32 mask)
+ static struct dentry *autofs4_lookup_expiring(struct autofs_sb_info *sbi, struct dentry *parent, struct qstr *name)
  {
- 	struct inode *inode;
-diff -puN include/asm-x86/unistd_32.h~flag-parameters-inotify_init include/asm-x86/unistd_32.h
---- a/include/asm-x86/unistd_32.h~flag-parameters-inotify_init
-+++ a/include/asm-x86/unistd_32.h
-@@ -337,6 +337,7 @@
- #define __NR_epoll_create2	329
- #define __NR_dup3		330
- #define __NR_pipe2		331
-+#define __NR_inotify_init1	332
+ 	unsigned int len = name->len;
+@@ -553,7 +607,8 @@ next:
+ static struct dentry *autofs4_lookup(struct inode *dir, struct dentry *dentry, struct nameidata *nd)
+ {
+ 	struct autofs_sb_info *sbi;
+-	struct dentry *expiring;
++	struct autofs_info *ino;
++	struct dentry *expiring, *unhashed;
+ 	int oz_mode;
  
- #ifdef __KERNEL__
+ 	DPRINTK("name = %.*s",
+@@ -571,12 +626,12 @@ static struct dentry *autofs4_lookup(str
  
-diff -puN include/asm-x86/unistd_64.h~flag-parameters-inotify_init include/asm-x86/unistd_64.h
---- a/include/asm-x86/unistd_64.h~flag-parameters-inotify_init
-+++ a/include/asm-x86/unistd_64.h
-@@ -651,6 +651,8 @@ __SYSCALL(__NR_epoll_create2, sys_epoll_
- __SYSCALL(__NR_dup3, sys_dup3)
- #define __NR_pipe2				293
- __SYSCALL(__NR_pipe2, sys_pipe2)
-+#define __NR_inotify_init1			294
-+__SYSCALL(__NR_inotify_init1, sys_inotify_init1)
+ 	expiring = autofs4_lookup_expiring(sbi, dentry->d_parent, &dentry->d_name);
+ 	if (expiring) {
+-		struct autofs_info *ino = autofs4_dentry_ino(expiring);
+ 		/*
+ 		 * If we are racing with expire the request might not
+ 		 * be quite complete but the directory has been removed
+ 		 * so it must have been successful, so just wait for it.
+ 		 */
++		ino = autofs4_dentry_ino(expiring);
+ 		while (ino && (ino->flags & AUTOFS_INF_EXPIRING)) {
+ 			DPRINTK("wait for incomplete expire %p name=%.*s",
+ 				expiring, expiring->d_name.len,
+@@ -591,21 +646,41 @@ static struct dentry *autofs4_lookup(str
+ 		dput(expiring);
+ 	}
  
+-	/*
+-	 * Mark the dentry incomplete but don't hash it. We do this
+-	 * to serialize our inode creation operations (symlink and
+-	 * mkdir) which prevents deadlock during the callback to
+-	 * the daemon. Subsequent user space lookups for the same
+-	 * dentry are placed on the wait queue while the daemon
+-	 * itself is allowed passage unresticted so the create
+-	 * operation itself can then hash the dentry. Finally,
+-	 * we check for the hashed dentry and return the newly
+-	 * hashed dentry.
+-	 */
+-	dentry->d_op = &autofs4_root_dentry_operations;
++	unhashed = autofs4_lookup_active(sbi, dentry->d_parent, &dentry->d_name);
++	if (unhashed)
++		dentry = unhashed;
++	else {
++		/*
++		 * Mark the dentry incomplete but don't hash it. We do this
++		 * to serialize our inode creation operations (symlink and
++		 * mkdir) which prevents deadlock during the callback to
++		 * the daemon. Subsequent user space lookups for the same
++		 * dentry are placed on the wait queue while the daemon
++		 * itself is allowed passage unresticted so the create
++		 * operation itself can then hash the dentry. Finally,
++		 * we check for the hashed dentry and return the newly
++		 * hashed dentry.
++		 */
++		dentry->d_op = &autofs4_root_dentry_operations;
  
- #ifndef __NO_STUBS
-diff -puN include/linux/inotify.h~flag-parameters-inotify_init include/linux/inotify.h
---- a/include/linux/inotify.h~flag-parameters-inotify_init
-+++ a/include/linux/inotify.h
-@@ -7,6 +7,8 @@
- #ifndef _LINUX_INOTIFY_H
- #define _LINUX_INOTIFY_H
- 
-+/* For O_CLOEXEC */
-+#include <linux/fcntl.h>
- #include <linux/types.h>
- 
- /*
-@@ -63,6 +65,9 @@ struct inotify_event {
- 			 IN_MOVED_TO | IN_DELETE | IN_CREATE | IN_DELETE_SELF | \
- 			 IN_MOVE_SELF)
- 
-+/* Flags for sys_inotify_init1.  */
-+#define IN_CLOEXEC O_CLOEXEC
+-	dentry->d_fsdata = NULL;
+-	d_instantiate(dentry, NULL);
++		/*
++		 * And we need to ensure that the same dentry is used for
++		 * all following lookup calls until it is hashed so that
++		 * the dentry flags are persistent throughout the request.
++		 */
++		ino = autofs4_init_ino(NULL, sbi, 0555);
++		if (!ino)
++			return ERR_PTR(-ENOMEM);
 +
- #ifdef __KERNEL__
++		dentry->d_fsdata = ino;
++		ino->dentry = dentry;
++
++		spin_lock(&sbi->lookup_lock);
++		list_add(&ino->active, &sbi->active_list);
++		spin_unlock(&sbi->lookup_lock);
++
++		d_instantiate(dentry, NULL);
++	}
  
- #include <linux/dcache.h>
-diff -puN include/linux/syscalls.h~flag-parameters-inotify_init include/linux/syscalls.h
---- a/include/linux/syscalls.h~flag-parameters-inotify_init
-+++ a/include/linux/syscalls.h
-@@ -547,6 +547,7 @@ asmlinkage long sys_get_mempolicy(int __
- 				unsigned long addr, unsigned long flags);
+ 	if (!oz_mode) {
+ 		spin_lock(&dentry->d_lock);
+@@ -630,12 +705,16 @@ static struct dentry *autofs4_lookup(str
+ 			if (sigismember (sigset, SIGKILL) ||
+ 			    sigismember (sigset, SIGQUIT) ||
+ 			    sigismember (sigset, SIGINT)) {
++			    if (unhashed)
++				dput(unhashed);
+ 			    return ERR_PTR(-ERESTARTNOINTR);
+ 			}
+ 		}
+-		spin_lock(&dentry->d_lock);
+-		dentry->d_flags &= ~DCACHE_AUTOFS_PENDING;
+-		spin_unlock(&dentry->d_lock);
++		if (!oz_mode) {
++			spin_lock(&dentry->d_lock);
++			dentry->d_flags &= ~DCACHE_AUTOFS_PENDING;
++			spin_unlock(&dentry->d_lock);
++		}
+ 	}
  
- asmlinkage long sys_inotify_init(void);
-+asmlinkage long sys_inotify_init1(int flags);
- asmlinkage long sys_inotify_add_watch(int fd, const char __user *path,
- 					u32 mask);
- asmlinkage long sys_inotify_rm_watch(int fd, u32 wd);
-diff -puN kernel/sys_ni.c~flag-parameters-inotify_init kernel/sys_ni.c
---- a/kernel/sys_ni.c~flag-parameters-inotify_init
-+++ a/kernel/sys_ni.c
-@@ -96,6 +96,7 @@ cond_syscall(sys_keyctl);
- cond_syscall(compat_sys_keyctl);
- cond_syscall(compat_sys_socketcall);
- cond_syscall(sys_inotify_init);
-+cond_syscall(sys_inotify_init1);
- cond_syscall(sys_inotify_add_watch);
- cond_syscall(sys_inotify_rm_watch);
- cond_syscall(sys_migrate_pages);
+ 	/*
+@@ -659,9 +738,15 @@ static struct dentry *autofs4_lookup(str
+ 		else
+ 			dentry = ERR_PTR(-ENOENT);
+ 
++		if (unhashed)
++			dput(unhashed);
++
+ 		return dentry;
+ 	}
+ 
++	if (unhashed)
++		return unhashed;
++
+ 	return NULL;
+ }
+ 
+@@ -682,20 +767,30 @@ static int autofs4_dir_symlink(struct in
+ 		return -EACCES;
+ 
+ 	ino = autofs4_init_ino(ino, sbi, S_IFLNK | 0555);
+-	if (ino == NULL)
+-		return -ENOSPC;
++	if (!ino)
++		return -ENOMEM;
+ 
+-	ino->size = strlen(symname);
+-	ino->u.symlink = cp = kmalloc(ino->size + 1, GFP_KERNEL);
++	spin_lock(&sbi->lookup_lock);
++	if (!list_empty(&ino->active))
++		list_del_init(&ino->active);
++	spin_unlock(&sbi->lookup_lock);
+ 
+-	if (cp == NULL) {
+-		kfree(ino);
+-		return -ENOSPC;
++	cp = kmalloc(ino->size + 1, GFP_KERNEL);
++	if (!cp) {
++		if (!dentry->d_fsdata)
++			kfree(ino);
++		return -ENOMEM;
+ 	}
+ 
+ 	strcpy(cp, symname);
+ 
+ 	inode = autofs4_get_inode(dir->i_sb, ino);
++	if (!inode) {
++		kfree(cp);
++		if (!dentry->d_fsdata)
++			kfree(ino);
++		return -ENOMEM;
++	}
+ 	d_add(dentry, inode);
+ 
+ 	if (dir == dir->i_sb->s_root->d_inode)
+@@ -711,6 +806,8 @@ static int autofs4_dir_symlink(struct in
+ 		atomic_inc(&p_ino->count);
+ 	ino->inode = inode;
+ 
++	ino->size = strlen(symname);
++	ino->u.symlink = cp;
+ 	dir->i_mtime = CURRENT_TIME;
+ 
+ 	return 0;
+@@ -755,7 +852,8 @@ static int autofs4_dir_unlink(struct ino
+ 
+ 	spin_lock(&dcache_lock);
+ 	spin_lock(&sbi->lookup_lock);
+-	list_add(&ino->expiring, &sbi->expiring_list);
++	if (list_empty(&ino->expiring))
++		list_add(&ino->expiring, &sbi->expiring_list);
+ 	spin_unlock(&sbi->lookup_lock);
+ 	spin_lock(&dentry->d_lock);
+ 	__d_drop(dentry);
+@@ -783,7 +881,8 @@ static int autofs4_dir_rmdir(struct inod
+ 		return -ENOTEMPTY;
+ 	}
+ 	spin_lock(&sbi->lookup_lock);
+-	list_add(&ino->expiring, &sbi->expiring_list);
++	if (list_empty(&ino->expiring))
++		list_add(&ino->expiring, &sbi->expiring_list);
+ 	spin_unlock(&sbi->lookup_lock);
+ 	spin_lock(&dentry->d_lock);
+ 	__d_drop(dentry);
+@@ -819,10 +918,20 @@ static int autofs4_dir_mkdir(struct inod
+ 		dentry, dentry->d_name.len, dentry->d_name.name);
+ 
+ 	ino = autofs4_init_ino(ino, sbi, S_IFDIR | 0555);
+-	if (ino == NULL)
+-		return -ENOSPC;
++	if (!ino)
++		return -ENOMEM;
++
++	spin_lock(&sbi->lookup_lock);
++	if (!list_empty(&ino->active))
++		list_del_init(&ino->active);
++	spin_unlock(&sbi->lookup_lock);
+ 
+ 	inode = autofs4_get_inode(dir->i_sb, ino);
++	if (!inode) {
++		if (!dentry->d_fsdata)
++			kfree(ino);
++		return -ENOMEM;
++	}
+ 	d_add(dentry, inode);
+ 
+ 	if (dir == dir->i_sb->s_root->d_inode)
 _
 
-Patches currently in -mm which might be from drepper@redhat.com are
+Patches currently in -mm which might be from raven@themaw.net are
 
 origin.patch
-linux-next.patch
 
