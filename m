@@ -1,120 +1,246 @@
 From: akpm@linux-foundation.org
-Subject: - autofs4-indirect-dentry-must-almost-always-be-positive.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:29:36 -0700
-Message-ID: <200807242329.m6ONTaVC011394@imap1.linux-foundation.org>
+Subject: - flag-parameters-add-on-remove-epoll_create-size-param.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:28:02 -0700
+Message-ID: <200807242328.m6ONS2u7011221__24499.9628783718$1216942316$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43928 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55198 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756450AbYGXX35 (ORCPT
+	by vger.kernel.org with ESMTP id S1756213AbYGXX3Y (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:29:57 -0400
+	Thu, 24 Jul 2008 19:29:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: raven@themaw.net, jmoyer@redhat.com, mm-commits@vger.kernel.org
+To: drepper@redhat.com, davidel@xmailserver.org, linux-arch@vger.kernel.org, mtk.manpages@googlemail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     autofs4: indirect dentry must almost always be positive
+     flag parameters add-on: remove epoll_create size param
 has been removed from the -mm tree.  Its filename was
-     autofs4-indirect-dentry-must-almost-always-be-positive.patch
+     flag-parameters-add-on-remove-epoll_create-size-param.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: autofs4: indirect dentry must almost always be positive
-From: Ian Kent <raven@themaw.net>
+Subject: flag parameters add-on: remove epoll_create size param
+From: Ulrich Drepper <drepper@redhat.com>
 
-We have been seeing mount requests comming to the automount daemon for
-keys of the form "<map key>/<non key directory>" which are lookups for
-invalid map keys.  But we can check for this in the kernel module and
-return a fail immediately, without having to send a request to the daemon.
+Remove the size parameter from the new epoll_create syscall and renames the
+syscall itself.  The updated test program follows.
 
-It is possible to recognise these requests are invalid based on whether
-the request dentry is negative and its relation to the autofs file system
-root.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#include <fcntl.h>
+#include <stdio.h>
+#include <time.h>
+#include <unistd.h>
+#include <sys/syscall.h>
 
-For example, given the indirect multi-mount map entry:
+#ifndef __NR_epoll_create2
+# ifdef __x86_64__
+#  define __NR_epoll_create2 291
+# elif defined __i386__
+#  define __NR_epoll_create2 329
+# else
+#  error "need __NR_epoll_create2"
+# endif
+#endif
 
-idm1  \
-    /mm1  <server>:/<path1>
-    /mm2  <server>:/<path2>
+#define EPOLL_CLOEXEC O_CLOEXEC
 
-For a request to mount idm1, IS_ROOT((idm1)->d_parent) will be always be
-true and the dentry may be negative.  But directories idm1/mm1 and
-idm1/mm2 will always be created as part of the mount request for idm1.  So
-any mount request within idm1 itself must have a positive dentry otherwise
-the map key is invalid.
+int
+main (void)
+{
+  int fd = syscall (__NR_epoll_create2, 0);
+  if (fd == -1)
+    {
+      puts ("epoll_create2(0) failed");
+      return 1;
+    }
+  int coe = fcntl (fd, F_GETFD);
+  if (coe == -1)
+    {
+      puts ("fcntl failed");
+      return 1;
+    }
+  if (coe & FD_CLOEXEC)
+    {
+      puts ("epoll_create2(0) set close-on-exec flag");
+      return 1;
+    }
+  close (fd);
 
-In version 4 these multi-mount entries are all mounted and umounted as a
-single request and in version 5 the directories idm1/mm1 and idm1/mm2 are
-created and an autofs fs mounted on them to act as a mount trigger so the
-above is also true.
+  fd = syscall (__NR_epoll_create2, EPOLL_CLOEXEC);
+  if (fd == -1)
+    {
+      puts ("epoll_create2(EPOLL_CLOEXEC) failed");
+      return 1;
+    }
+  coe = fcntl (fd, F_GETFD);
+  if (coe == -1)
+    {
+      puts ("fcntl failed");
+      return 1;
+    }
+  if ((coe & FD_CLOEXEC) == 0)
+    {
+      puts ("epoll_create2(EPOLL_CLOEXEC) set close-on-exec flag");
+      return 1;
+    }
+  close (fd);
 
-This also holds true for the autofs version 4 pseudo direct mount feature.
- When this feature is used without the "--ghost" option automount(8) will
-create internal submounts as we go down the map key paths which are
-essentially normal indirect mounts for which the above holds.  If the
-"--ghost" option is given the directories for map keys are created at
-daemon startup so valid map entries correspond to postive dentries in the
-autofs fs.
+  puts ("OK");
 
-autofs version 5 direct mount maps are similar except that the IS_ROOT
-check is not needed.  This has been addressed in a previous patch tittled
-"autofs4 - detect invalid direct mount requests".
+  return 0;
+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-For example, given the direct multi-mount map entry:
-
-/test/dm1  \
-    /mm1  <server>:/<path1>
-    /mm2  <server>:/<path2>
-
-An autofs fs is mounted on /test/dm1 as a trigger mount and when a mount
-is triggered for /test/dm1, the multi-mount offset directories
-/test/dm1/mm1 and /test/dm1/mm2 are created and an autofs fs is mounted on
-them to act as mount triggers.  So valid direct mount requests must always
-have a positive dentry if they correspond to a valid map entry.
-
-Signed-off-by: Ian Kent <raven@themaw.net>
-Acked-by: Jeff Moyer <jmoyer@redhat.com>
+Signed-off-by: Ulrich Drepper <drepper@redhat.com>
+Acked-by: Davide Libenzi <davidel@xmailserver.org>
+Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
+Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/waitq.c |   17 ++++++++++++++---
- 1 file changed, 14 insertions(+), 3 deletions(-)
+ arch/x86/ia32/ia32entry.S          |    2 +-
+ arch/x86/kernel/syscall_table_32.S |    2 +-
+ fs/eventpoll.c                     |   18 ++++++++++--------
+ include/asm-x86/unistd_32.h        |    2 +-
+ include/asm-x86/unistd_64.h        |    4 ++--
+ include/linux/eventpoll.h          |    2 +-
+ include/linux/syscalls.h           |    2 +-
+ 7 files changed, 17 insertions(+), 15 deletions(-)
 
-diff -puN fs/autofs4/waitq.c~autofs4-indirect-dentry-must-almost-always-be-positive fs/autofs4/waitq.c
---- a/fs/autofs4/waitq.c~autofs4-indirect-dentry-must-almost-always-be-positive
-+++ a/fs/autofs4/waitq.c
-@@ -328,9 +328,20 @@ int autofs4_wait(struct autofs_sb_info *
- 	if (sbi->catatonic)
- 		return -ENOENT;
+diff -puN arch/x86/ia32/ia32entry.S~flag-parameters-add-on-remove-epoll_create-size-param arch/x86/ia32/ia32entry.S
+--- a/arch/x86/ia32/ia32entry.S~flag-parameters-add-on-remove-epoll_create-size-param
++++ a/arch/x86/ia32/ia32entry.S
+@@ -745,7 +745,7 @@ ia32_sys_call_table:
+ 	.quad compat_sys_timerfd_gettime
+ 	.quad compat_sys_signalfd4
+ 	.quad sys_eventfd2
+-	.quad sys_epoll_create2
++	.quad sys_epoll_create1
+ 	.quad sys_dup3			/* 330 */
+ 	.quad sys_pipe2
+ 	.quad sys_inotify_init1
+diff -puN arch/x86/kernel/syscall_table_32.S~flag-parameters-add-on-remove-epoll_create-size-param arch/x86/kernel/syscall_table_32.S
+--- a/arch/x86/kernel/syscall_table_32.S~flag-parameters-add-on-remove-epoll_create-size-param
++++ a/arch/x86/kernel/syscall_table_32.S
+@@ -328,7 +328,7 @@ ENTRY(sys_call_table)
+ 	.long sys_timerfd_gettime
+ 	.long sys_signalfd4
+ 	.long sys_eventfd2
+-	.long sys_epoll_create2
++	.long sys_epoll_create1
+ 	.long sys_dup3			/* 330 */
+ 	.long sys_pipe2
+ 	.long sys_inotify_init1
+diff -puN fs/eventpoll.c~flag-parameters-add-on-remove-epoll_create-size-param fs/eventpoll.c
+--- a/fs/eventpoll.c~flag-parameters-add-on-remove-epoll_create-size-param
++++ a/fs/eventpoll.c
+@@ -1046,7 +1046,7 @@ retry:
+  * RB tree. With the current implementation, the "size" parameter is ignored
+  * (besides sanity checks).
+  */
+-asmlinkage long sys_epoll_create2(int size, int flags)
++asmlinkage long sys_epoll_create1(int flags)
+ {
+ 	int error, fd = -1;
+ 	struct eventpoll *ep;
+@@ -1058,14 +1058,13 @@ asmlinkage long sys_epoll_create2(int si
+ 		return -EINVAL;
  
--	if (!dentry->d_inode &&
--	    (sbi->type & (AUTOFS_TYPE_DIRECT | AUTOFS_TYPE_OFFSET)))
--		return -ENOENT;
-+	if (!dentry->d_inode) {
-+		/*
-+		 * A wait for a negative dentry is invalid for certain
-+		 * cases. A direct or offset mount "always" has its mount
-+		 * point directory created and so the request dentry must
-+		 * be positive or the map key doesn't exist. The situation
-+		 * is very similar for indirect mounts except only dentrys
-+		 * in the root of the autofs file system may be negative.
-+		 */
-+		if (sbi->type & (AUTOFS_TYPE_DIRECT|AUTOFS_TYPE_OFFSET))
-+			return -ENOENT;
-+		else if (!IS_ROOT(dentry->d_parent))
-+			return -ENOENT;
-+	}
+ 	DNPRINTK(3, (KERN_INFO "[%p] eventpoll: sys_epoll_create(%d)\n",
+-		     current, size));
++		     current, flags));
  
- 	name = kmalloc(NAME_MAX + 1, GFP_KERNEL);
- 	if (!name)
+ 	/*
+-	 * Sanity check on the size parameter, and create the internal data
+-	 * structure ( "struct eventpoll" ).
++	 * Create the internal data structure ( "struct eventpoll" ).
+ 	 */
+-	error = -EINVAL;
+-	if (size <= 0 || (error = ep_alloc(&ep)) < 0) {
++	error = ep_alloc(&ep);
++	if (error < 0) {
+ 		fd = error;
+ 		goto error_return;
+ 	}
+@@ -1081,14 +1080,17 @@ asmlinkage long sys_epoll_create2(int si
+ 
+ error_return:
+ 	DNPRINTK(3, (KERN_INFO "[%p] eventpoll: sys_epoll_create(%d) = %d\n",
+-		     current, size, fd));
++		     current, flags, fd));
+ 
+ 	return fd;
+ }
+ 
+ asmlinkage long sys_epoll_create(int size)
+ {
+-	return sys_epoll_create2(size, 0);
++	if (size < 0)
++		return -EINVAL;
++
++	return sys_epoll_create1(0);
+ }
+ 
+ /*
+diff -puN include/asm-x86/unistd_32.h~flag-parameters-add-on-remove-epoll_create-size-param include/asm-x86/unistd_32.h
+--- a/include/asm-x86/unistd_32.h~flag-parameters-add-on-remove-epoll_create-size-param
++++ a/include/asm-x86/unistd_32.h
+@@ -334,7 +334,7 @@
+ #define __NR_timerfd_gettime	326
+ #define __NR_signalfd4		327
+ #define __NR_eventfd2		328
+-#define __NR_epoll_create2	329
++#define __NR_epoll_create1	329
+ #define __NR_dup3		330
+ #define __NR_pipe2		331
+ #define __NR_inotify_init1	332
+diff -puN include/asm-x86/unistd_64.h~flag-parameters-add-on-remove-epoll_create-size-param include/asm-x86/unistd_64.h
+--- a/include/asm-x86/unistd_64.h~flag-parameters-add-on-remove-epoll_create-size-param
++++ a/include/asm-x86/unistd_64.h
+@@ -645,8 +645,8 @@ __SYSCALL(__NR_paccept, sys_paccept)
+ __SYSCALL(__NR_signalfd4, sys_signalfd4)
+ #define __NR_eventfd2				290
+ __SYSCALL(__NR_eventfd2, sys_eventfd2)
+-#define __NR_epoll_create2			291
+-__SYSCALL(__NR_epoll_create2, sys_epoll_create2)
++#define __NR_epoll_create1			291
++__SYSCALL(__NR_epoll_create1, sys_epoll_create1)
+ #define __NR_dup3				292
+ __SYSCALL(__NR_dup3, sys_dup3)
+ #define __NR_pipe2				293
+diff -puN include/linux/eventpoll.h~flag-parameters-add-on-remove-epoll_create-size-param include/linux/eventpoll.h
+--- a/include/linux/eventpoll.h~flag-parameters-add-on-remove-epoll_create-size-param
++++ a/include/linux/eventpoll.h
+@@ -18,7 +18,7 @@
+ #include <linux/fcntl.h>
+ #include <linux/types.h>
+ 
+-/* Flags for epoll_create2.  */
++/* Flags for epoll_create1.  */
+ #define EPOLL_CLOEXEC O_CLOEXEC
+ 
+ /* Valid opcodes to issue to sys_epoll_ctl() */
+diff -puN include/linux/syscalls.h~flag-parameters-add-on-remove-epoll_create-size-param include/linux/syscalls.h
+--- a/include/linux/syscalls.h~flag-parameters-add-on-remove-epoll_create-size-param
++++ a/include/linux/syscalls.h
+@@ -431,7 +431,7 @@ asmlinkage long sys_poll(struct pollfd _
+ asmlinkage long sys_select(int n, fd_set __user *inp, fd_set __user *outp,
+ 			fd_set __user *exp, struct timeval __user *tvp);
+ asmlinkage long sys_epoll_create(int size);
+-asmlinkage long sys_epoll_create2(int size, int flags);
++asmlinkage long sys_epoll_create1(int flags);
+ asmlinkage long sys_epoll_ctl(int epfd, int op, int fd,
+ 				struct epoll_event __user *event);
+ asmlinkage long sys_epoll_wait(int epfd, struct epoll_event __user *events,
 _
 
-Patches currently in -mm which might be from raven@themaw.net are
+Patches currently in -mm which might be from drepper@redhat.com are
 
 origin.patch
+linux-next.patch
 
