@@ -1,385 +1,170 @@
 From: akpm@linux-foundation.org
-Subject: - tridentfb-make-use-of-functions-and-constants-from-the-vgah.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:30:53 -0700
-Message-ID: <200807242330.m6ONUrxm011559@imap1.linux-foundation.org>
+Subject: - rtc-vr41xx-add-irq_set_freq-and-irq_set_state.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:30:34 -0700
+Message-ID: <200807242330.m6ONUYMn011519@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56015 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55587 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756120AbYGXXa4 (ORCPT
+	by vger.kernel.org with ESMTP id S1756531AbYGXXay (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:30:56 -0400
+	Thu, 24 Jul 2008 19:30:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: krzysztof.h1@wp.pl, adaplas@pol.net, mm-commits@vger.kernel.org
+To: yoichi_yuasa@tripeaks.co.jp, a.zummo@towertech.it, david-b@pacbell.net, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tridentfb: make use of functions and constants from the vga.h
+     rtc-vr41xx: add irq_set_freq() and irq_set_state()
 has been removed from the -mm tree.  Its filename was
-     tridentfb-make-use-of-functions-and-constants-from-the-vgah.patch
+     rtc-vr41xx-add-irq_set_freq-and-irq_set_state.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tridentfb: make use of functions and constants from the vga.h
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: rtc-vr41xx: add irq_set_freq() and irq_set_state()
+From: Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
 
-Make use of functions and constants from the vga.h header to compact the code
-and make it more readable.
+Implement the ioctls RTC_PIE_ON, RTC_PIE_OFF, RTC_IRQP_SET and
+RTC_IRQP_READ in the standard RTC way.
 
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Thanks Dave for noticing it.
+
+Signed-off-by: Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/tridentfb.c |  144 +++++++++++++++---------------------
- include/video/trident.h   |   26 ------
- 2 files changed, 61 insertions(+), 109 deletions(-)
+ drivers/rtc/rtc-vr41xx.c |   65 +++++++++++++++++++------------------
+ 1 file changed, 34 insertions(+), 31 deletions(-)
 
-diff -puN drivers/video/tridentfb.c~tridentfb-make-use-of-functions-and-constants-from-the-vgah drivers/video/tridentfb.c
---- a/drivers/video/tridentfb.c~tridentfb-make-use-of-functions-and-constants-from-the-vgah
-+++ a/drivers/video/tridentfb.c
-@@ -22,6 +22,7 @@
- #include <linux/pci.h>
+diff -puN drivers/rtc/rtc-vr41xx.c~rtc-vr41xx-add-irq_set_freq-and-irq_set_state drivers/rtc/rtc-vr41xx.c
+--- a/drivers/rtc/rtc-vr41xx.c~rtc-vr41xx-add-irq_set_freq-and-irq_set_state
++++ a/drivers/rtc/rtc-vr41xx.c
+@@ -1,7 +1,7 @@
+ /*
+  *  Driver for NEC VR4100 series Real Time Clock unit.
+  *
+- *  Copyright (C) 2003-2006  Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
++ *  Copyright (C) 2003-2008  Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
+  *
+  *  This program is free software; you can redistribute it and/or modify
+  *  it under the terms of the GNU General Public License as published by
+@@ -34,7 +34,7 @@
  
- #include <linux/delay.h>
-+#include <video/vga.h>
- #include <video/trident.h>
+ MODULE_AUTHOR("Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>");
+ MODULE_DESCRIPTION("NEC VR4100 series RTC driver");
+-MODULE_LICENSE("GPL");
++MODULE_LICENSE("GPL v2");
  
- #define VERSION		"0.7.9-NEWAPI"
-@@ -149,8 +150,6 @@ static int iscyber(int id)
- 	}
+ /* RTC 1 registers */
+ #define ETIMELREG		0x00
+@@ -82,7 +82,6 @@ static unsigned long epoch = 1970;	/* Ja
+ 
+ static DEFINE_SPINLOCK(rtc_lock);
+ static char rtc_name[] = "RTC";
+-static unsigned long periodic_frequency;
+ static unsigned long periodic_count;
+ static unsigned int alarm_enabled;
+ static int aie_irq = -1;
+@@ -207,10 +206,37 @@ static int vr41xx_rtc_set_alarm(struct d
+ 	return 0;
  }
  
--#define CRT 0x3D0		/* CRTC registers offset for color display */
--
- static inline void t_outb(struct tridentfb_par *p, u8 val, u16 reg)
+-static int vr41xx_rtc_ioctl(struct device *dev, unsigned int cmd, unsigned long arg)
++static int vr41xx_rtc_irq_set_freq(struct device *dev, int freq)
  {
- 	fb_writeb(val, p->io_virt + reg);
-@@ -525,60 +524,41 @@ static void tridentfb_copyarea(struct fb
+ 	unsigned long count;
  
- static inline unsigned char read3X4(struct tridentfb_par *par, int reg)
- {
--	writeb(reg, par->io_virt + CRT + 4);
--	return readb(par->io_virt + CRT + 5);
-+	return vga_mm_rcrt(par->io_virt, reg);
- }
++	count = RTC_FREQUENCY;
++	do_div(count, freq);
++
++	periodic_count = count;
++
++	spin_lock_irq(&rtc_lock);
++
++	rtc1_write(RTCL1LREG, count);
++	rtc1_write(RTCL1HREG, count >> 16);
++
++	spin_unlock_irq(&rtc_lock);
++
++	return 0;
++}
++
++static int vr41xx_rtc_irq_set_state(struct device *dev, int enabled)
++{
++	if (enabled)
++		enable_irq(pie_irq);
++	else
++		disable_irq(pie_irq);
++
++	return 0;
++}
++
++static int vr41xx_rtc_ioctl(struct device *dev, unsigned int cmd, unsigned long arg)
++{
+ 	switch (cmd) {
+ 	case RTC_AIE_ON:
+ 		spin_lock_irq(&rtc_lock);
+@@ -232,33 +258,6 @@ static int vr41xx_rtc_ioctl(struct devic
  
- static inline void write3X4(struct tridentfb_par *par, int reg,
- 			    unsigned char val)
- {
--	writeb(reg, par->io_virt + CRT + 4);
--	writeb(val, par->io_virt + CRT + 5);
--}
--
--static inline unsigned char read3C4(struct tridentfb_par *par, int reg)
--{
--	t_outb(par, reg, 0x3C4);
--	return t_inb(par, 0x3C5);
--}
--
--static inline void write3C4(struct tridentfb_par *par, int reg,
--			    unsigned char val)
--{
--	t_outb(par, reg, 0x3C4);
--	t_outb(par, val, 0x3C5);
-+	vga_mm_wcrt(par->io_virt, reg, val);
- }
- 
--static inline unsigned char read3CE(struct tridentfb_par *par, int reg)
-+static inline unsigned char read3CE(struct tridentfb_par *par,
-+				    unsigned char reg)
- {
--	t_outb(par, reg, 0x3CE);
--	return t_inb(par, 0x3CF);
-+	return vga_mm_rgfx(par->io_virt, reg);
- }
- 
- static inline void writeAttr(struct tridentfb_par *par, int reg,
- 			     unsigned char val)
- {
--	fb_readb(par->io_virt + CRT + 0x0A);	/* flip-flop to index */
--	t_outb(par, reg, 0x3C0);
--	t_outb(par, val, 0x3C0);
-+	fb_readb(par->io_virt + VGA_IS1_RC);	/* flip-flop to index */
-+	vga_mm_wattr(par->io_virt, reg, val);
- }
- 
- static inline void write3CE(struct tridentfb_par *par, int reg,
- 			    unsigned char val)
- {
--	t_outb(par, reg, 0x3CE);
--	t_outb(par, val, 0x3CF);
-+	vga_mm_wgfx(par->io_virt, reg, val);
- }
- 
- static void enable_mmio(void)
- {
- 	/* Goto New Mode */
--	outb(0x0B, 0x3C4);
--	inb(0x3C5);
-+	vga_io_rseq(0x0B);
- 
- 	/* Unprotect registers */
--	outb(NewMode1, 0x3C4);
--	outb(0x80, 0x3C5);
-+	vga_io_wseq(NewMode1, 0x80);
- 
- 	/* Enable MMIO */
- 	outb(PCIReg, 0x3D4);
-@@ -588,12 +568,10 @@ static void enable_mmio(void)
- static void disable_mmio(struct tridentfb_par *par)
- {
- 	/* Goto New Mode */
--	t_outb(par, 0x0B, 0x3C4);
--	t_inb(par, 0x3C5);
-+	vga_mm_rseq(par->io_virt, 0x0B);
- 
- 	/* Unprotect registers */
--	t_outb(par, NewMode1, 0x3C4);
--	t_outb(par, 0x80, 0x3C5);
-+	vga_mm_wseq(par->io_virt, NewMode1, 0x80);
- 
- 	/* Disable MMIO */
- 	t_outb(par, PCIReg, 0x3D4);
-@@ -602,7 +580,8 @@ static void disable_mmio(struct tridentf
- 
- static void crtc_unlock(struct tridentfb_par *par)
- {
--	write3X4(par, CRTVSyncEnd, read3X4(par, CRTVSyncEnd) & 0x7F);
-+	write3X4(par, VGA_CRTC_V_SYNC_END,
-+		 read3X4(par, VGA_CRTC_V_SYNC_END) & 0x7F);
- }
- 
- /*  Return flat panel's maximum x resolution */
-@@ -641,7 +620,7 @@ static int __devinit get_nativex(struct 
- /* Set pitch */
- static void set_lwidth(struct tridentfb_par *par, int width)
- {
--	write3X4(par, Offset, width & 0xFF);
-+	write3X4(par, VGA_CRTC_OFFSET, width & 0xFF);
- 	write3X4(par, AddColReg,
- 		 (read3X4(par, AddColReg) & 0xCF) | ((width & 0x300) >> 4));
- }
-@@ -668,8 +647,8 @@ static void screen_center(struct trident
- static void set_screen_start(struct tridentfb_par *par, int base)
- {
- 	u8 tmp;
--	write3X4(par, StartAddrLow, base & 0xFF);
--	write3X4(par, StartAddrHigh, (base & 0xFF00) >> 8);
-+	write3X4(par, VGA_CRTC_START_LO, base & 0xFF);
-+	write3X4(par, VGA_CRTC_START_HI, (base & 0xFF00) >> 8);
- 	tmp = read3X4(par, CRTCModuleTest) & 0xDF;
- 	write3X4(par, CRTCModuleTest, tmp | ((base & 0x10000) >> 11));
- 	tmp = read3X4(par, CRTHiOrd) & 0xF8;
-@@ -698,8 +677,8 @@ static void set_vclk(struct tridentfb_pa
- 					break;
- 			}
- 	if (is3Dchip(par->chip_id)) {
--		write3C4(par, ClockHigh, hi);
--		write3C4(par, ClockLow, lo);
-+		vga_mm_wseq(par->io_virt, ClockHigh, hi);
-+		vga_mm_wseq(par->io_virt, ClockLow, lo);
- 	} else {
- 		outb(lo, 0x43C8);
- 		outb(hi, 0x43C9);
-@@ -782,7 +761,7 @@ static unsigned int __devinit get_memsiz
- 				break;
- 			case 0x0E:		/* XP */
- 
--				tmp2 = read3C4(par, 0xC1);
-+				tmp2 = vga_mm_rseq(par->io_virt, 0xC1);
- 				switch (tmp2) {
- 				case 0x00:
- 					k = 20 * Mb;
-@@ -931,7 +910,7 @@ static int tridentfb_set_par(struct fb_i
- 		 * than requested resolution decide whether
- 		 * we stretch or center
- 		 */
--		t_outb(par, 0xEB, 0x3C2);
-+		t_outb(par, 0xEB, VGA_MIS_W);
- 
- 		shadowmode_on(par);
- 
-@@ -941,26 +920,26 @@ static int tridentfb_set_par(struct fb_i
- 			screen_stretch(par);
- 
- 	} else {
--		t_outb(par, 0x2B, 0x3C2);
-+		t_outb(par, 0x2B, VGA_MIS_W);
- 		write3CE(par, CyberControl, 8);
- 	}
- 
- 	/* vertical timing values */
--	write3X4(par, CRTVTotal, vtotal & 0xFF);
--	write3X4(par, CRTVDispEnd, vdispend & 0xFF);
--	write3X4(par, CRTVSyncStart, vsyncstart & 0xFF);
--	write3X4(par, CRTVSyncEnd, (vsyncend & 0x0F));
--	write3X4(par, CRTVBlankStart, vblankstart & 0xFF);
--	write3X4(par, CRTVBlankEnd, 0 /* p->vblankend & 0xFF */);
-+	write3X4(par, VGA_CRTC_V_TOTAL, vtotal & 0xFF);
-+	write3X4(par, VGA_CRTC_V_DISP_END, vdispend & 0xFF);
-+	write3X4(par, VGA_CRTC_V_SYNC_START, vsyncstart & 0xFF);
-+	write3X4(par, VGA_CRTC_V_SYNC_END, (vsyncend & 0x0F));
-+	write3X4(par, VGA_CRTC_V_BLANK_START, vblankstart & 0xFF);
-+	write3X4(par, VGA_CRTC_V_BLANK_END, 0 /* p->vblankend & 0xFF */);
- 
- 	/* horizontal timing values */
--	write3X4(par, CRTHTotal, htotal & 0xFF);
--	write3X4(par, CRTHDispEnd, hdispend & 0xFF);
--	write3X4(par, CRTHSyncStart, hsyncstart & 0xFF);
--	write3X4(par, CRTHSyncEnd,
-+	write3X4(par, VGA_CRTC_H_TOTAL, htotal & 0xFF);
-+	write3X4(par, VGA_CRTC_H_DISP, hdispend & 0xFF);
-+	write3X4(par, VGA_CRTC_H_SYNC_START, hsyncstart & 0xFF);
-+	write3X4(par, VGA_CRTC_H_SYNC_END,
- 		 (hsyncend & 0x1F) | ((hblankend & 0x20) << 2));
--	write3X4(par, CRTHBlankStart, hblankstart & 0xFF);
--	write3X4(par, CRTHBlankEnd, 0 /* (p->hblankend & 0x1F) */);
-+	write3X4(par, VGA_CRTC_H_BLANK_START, hblankstart & 0xFF);
-+	write3X4(par, VGA_CRTC_H_BLANK_END, 0 /* (p->hblankend & 0x1F) */);
- 
- 	/* higher bits of vertical timing values */
- 	tmp = 0x10;
-@@ -972,7 +951,7 @@ static int tridentfb_set_par(struct fb_i
- 	if (vtotal & 0x200) tmp |= 0x20;
- 	if (vdispend & 0x200) tmp |= 0x40;
- 	if (vsyncstart & 0x200) tmp |= 0x80;
--	write3X4(par, CRTOverflow, tmp);
-+	write3X4(par, VGA_CRTC_OVERFLOW, tmp);
- 
- 	tmp = read3X4(par, CRTHiOrd) | 0x08;	/* line compare bit 10 */
- 	if (vtotal & 0x400) tmp |= 0x80;
-@@ -989,11 +968,11 @@ static int tridentfb_set_par(struct fb_i
- 	tmp = 0x40;
- 	if (vblankstart & 0x200) tmp |= 0x20;
- //FIXME	if (info->var.vmode & FB_VMODE_DOUBLE) tmp |= 0x80;  /* double scan for 200 line modes */
--	write3X4(par, CRTMaxScanLine, tmp);
-+	write3X4(par, VGA_CRTC_MAX_SCAN, tmp);
- 
--	write3X4(par, CRTLineCompare, 0xFF);
--	write3X4(par, CRTPRowScan, 0);
--	write3X4(par, CRTModeControl, 0xC3);
-+	write3X4(par, VGA_CRTC_LINE_COMPARE, 0xFF);
-+	write3X4(par, VGA_CRTC_PRESET_ROW, 0);
-+	write3X4(par, VGA_CRTC_MODE, 0xC3);
- 
- 	write3X4(par, LinearAddReg, 0x20);	/* enable linear addressing */
- 
-@@ -1041,12 +1020,12 @@ static int tridentfb_set_par(struct fb_i
- 		vclk *= 2;
- 	set_vclk(par, vclk);
- 
--	write3C4(par, 0, 3);
--	write3C4(par, 1, 1);		/* set char clock 8 dots wide */
-+	vga_mm_wseq(par->io_virt, 0, 3);
-+	vga_mm_wseq(par->io_virt, 1, 1); /* set char clock 8 dots wide */
- 	/* enable 4 maps because needed in chain4 mode */
--	write3C4(par, 2, 0x0F);
--	write3C4(par, 3, 0);
--	write3C4(par, 4, 0x0E);	/* memory mode enable bitmaps ?? */
-+	vga_mm_wseq(par->io_virt, 2, 0x0F);
-+	vga_mm_wseq(par->io_virt, 3, 0);
-+	vga_mm_wseq(par->io_virt, 4, 0x0E); /* memory mode enable bitmaps ?? */
- 
- 	/* divide clock by 2 if 32bpp chain4 mode display and CPU path */
- 	write3CE(par, MiscExtFunc, (bpp == 32) ? 0x1A : 0x12);
-@@ -1056,7 +1035,7 @@ static int tridentfb_set_par(struct fb_i
- 
- 	if (par->chip_id == CYBERBLADEXPAi1) {
- 		/* This fixes snow-effect in 32 bpp */
--		write3X4(par, CRTHSyncStart, 0x84);
-+		write3X4(par, VGA_CRTC_H_SYNC_START, 0x84);
- 	}
- 
- 	/* graphics mode and support 256 color modes */
-@@ -1067,8 +1046,8 @@ static int tridentfb_set_par(struct fb_i
- 	/* colors */
- 	for (tmp = 0; tmp < 0x10; tmp++)
- 		writeAttr(par, tmp, tmp);
--	fb_readb(par->io_virt + CRT + 0x0A);	/* flip-flop to index */
--	t_outb(par, 0x20, 0x3C0);		/* enable attr */
-+	fb_readb(par->io_virt + VGA_IS1_RC);	/* flip-flop to index */
-+	t_outb(par, 0x20, VGA_ATT_W);		/* enable attr */
- 
- 	switch (bpp) {
- 	case 8:
-@@ -1086,13 +1065,13 @@ static int tridentfb_set_par(struct fb_i
+ 		spin_unlock_irq(&rtc_lock);
  		break;
+-	case RTC_PIE_ON:
+-		enable_irq(pie_irq);
+-		break;
+-	case RTC_PIE_OFF:
+-		disable_irq(pie_irq);
+-		break;
+-	case RTC_IRQP_READ:
+-		return put_user(periodic_frequency, (unsigned long __user *)arg);
+-		break;
+-	case RTC_IRQP_SET:
+-		if (arg > MAX_PERIODIC_RATE)
+-			return -EINVAL;
+-
+-		periodic_frequency = arg;
+-
+-		count = RTC_FREQUENCY;
+-		do_div(count, arg);
+-
+-		periodic_count = count;
+-
+-		spin_lock_irq(&rtc_lock);
+-
+-		rtc1_write(RTCL1LREG, count);
+-		rtc1_write(RTCL1HREG, count >> 16);
+-
+-		spin_unlock_irq(&rtc_lock);
+-		break;
+ 	case RTC_EPOCH_READ:
+ 		return put_user(epoch, (unsigned long __user *)arg);
+ 	case RTC_EPOCH_SET:
+@@ -309,6 +308,8 @@ static const struct rtc_class_ops vr41xx
+ 	.set_time	= vr41xx_rtc_set_time,
+ 	.read_alarm	= vr41xx_rtc_read_alarm,
+ 	.set_alarm	= vr41xx_rtc_set_alarm,
++	.irq_set_freq	= vr41xx_rtc_irq_set_freq,
++	.irq_set_state	= vr41xx_rtc_irq_set_state,
+ };
+ 
+ static int __devinit rtc_probe(struct platform_device *pdev)
+@@ -346,6 +347,8 @@ static int __devinit rtc_probe(struct pl
+ 		goto err_iounmap_all;
  	}
  
--	t_inb(par, 0x3C8);
--	t_inb(par, 0x3C6);
--	t_inb(par, 0x3C6);
--	t_inb(par, 0x3C6);
--	t_inb(par, 0x3C6);
--	t_outb(par, tmp, 0x3C6);
--	t_inb(par, 0x3C8);
-+	t_inb(par, VGA_PEL_IW);
-+	t_inb(par, VGA_PEL_MSK);
-+	t_inb(par, VGA_PEL_MSK);
-+	t_inb(par, VGA_PEL_MSK);
-+	t_inb(par, VGA_PEL_MSK);
-+	t_outb(par, tmp, VGA_PEL_MSK);
-+	t_inb(par, VGA_PEL_IW);
++	rtc->max_user_freq = MAX_PERIODIC_RATE;
++
+ 	spin_lock_irq(&rtc_lock);
  
- 	if (par->flatpanel)
- 		set_number_of_lines(par, info->var.yres);
-@@ -1116,12 +1095,12 @@ static int tridentfb_setcolreg(unsigned 
- 		return 1;
- 
- 	if (bpp == 8) {
--		t_outb(par, 0xFF, 0x3C6);
--		t_outb(par, regno, 0x3C8);
-+		t_outb(par, 0xFF, VGA_PEL_MSK);
-+		t_outb(par, regno, VGA_PEL_IW);
- 
--		t_outb(par, red >> 10, 0x3C9);
--		t_outb(par, green >> 10, 0x3C9);
--		t_outb(par, blue >> 10, 0x3C9);
-+		t_outb(par, red >> 10, VGA_PEL_D);
-+		t_outb(par, green >> 10, VGA_PEL_D);
-+		t_outb(par, blue >> 10, VGA_PEL_D);
- 
- 	} else if (regno < 16) {
- 		if (bpp == 16) {	/* RGB 565 */
-@@ -1232,8 +1211,7 @@ static int __devinit trident_pci_probe(s
- 	/* If PCI id is 0x9660 then further detect chip type */
- 
- 	if (chip_id == TGUI9660) {
--		outb(RevisionID, 0x3C4);
--		revision = inb(0x3C5);
-+		revision = vga_io_rseq(RevisionID);
- 
- 		switch (revision) {
- 		case 0x22:
-diff -puN include/video/trident.h~tridentfb-make-use-of-functions-and-constants-from-the-vgah include/video/trident.h
---- a/include/video/trident.h~tridentfb-make-use-of-functions-and-constants-from-the-vgah
-+++ a/include/video/trident.h
-@@ -63,33 +63,7 @@
- #define SKey 0x37
- #define SPKey 0x57
- 
--/* 0x3x4 */
--#define CRTHTotal	0x00
--#define CRTHDispEnd	0x01
--#define CRTHBlankStart	0x02
--#define CRTHBlankEnd	0x03
--#define CRTHSyncStart	0x04
--#define CRTHSyncEnd	0x05
--
--#define CRTVTotal	0x06
--#define CRTVDispEnd	0x12
--#define CRTVBlankStart	0x15
--#define CRTVBlankEnd	0x16
--#define CRTVSyncStart	0x10
--#define CRTVSyncEnd	0x11
--
--#define CRTOverflow	0x07
--#define CRTPRowScan	0x08
--#define CRTMaxScanLine	0x09
--#define CRTModeControl	0x17
--#define CRTLineCompare	0x18
+ 	rtc1_write(ECMPLREG, 0);
+_
+
+Patches currently in -mm which might be from yoichi_yuasa@tripeaks.co.jp are
+
+origin.patch
+
