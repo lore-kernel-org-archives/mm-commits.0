@@ -1,73 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - fbdev-xoffset-yoffset-and-yres-are-unsigned.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:32:26 -0700
-Message-ID: <200807242332.m6ONWQ5I011834@imap1.linux-foundation.org>
+Subject: - atafb-test-virtual-screen-range-before-subtraction-on-unsigned.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:31:56 -0700
+Message-ID: <200807242331.m6ONVuLJ011687@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34500 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54788 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756236AbYGXXch (ORCPT
+	by vger.kernel.org with ESMTP id S1756503AbYGXXcS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:32:37 -0400
+	Thu, 24 Jul 2008 19:32:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: syrjala@sci.fi, adaplas@pol.net, krzysztof.h1@poczta.fm, mm-commits@vger.kernel.org
+To: 12o3l@tiscali.nl, adaplas@pol.net, geert@linux-m68k.org, krzysztof.h1@wp.pl, tim@physik3.uni-rostock.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fbdev: xoffset, yoffset and yres are unsigned
+     atafb: test virtual screen range before subtraction on unsigned
 has been removed from the -mm tree.  Its filename was
-     fbdev-xoffset-yoffset-and-yres-are-unsigned.patch
+     atafb-test-virtual-screen-range-before-subtraction-on-unsigned.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbdev: xoffset, yoffset and yres are unsigned
-From: Ville Syrjala <syrjala@sci.fi>
+Subject: atafb: test virtual screen range before subtraction on unsigned
+From: Roel Kluin <12o3l@tiscali.nl>
 
-The xoffset, yoffset and yres members of fb_var_screeninfo are __u32. 
-Make them unsigned in the code as well.
+dx and dy are u32's, so the test should occur before the subtraction
 
-Signed-off-by: Ville Syrjala <syrjala@sci.fi>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Signed-off-by: Roel Kluin <12o3l@tiscali.nl>
+Cc: Tim Schmielau <tim@physik3.uni-rostock.de>
+Cc: Krzysztof Helt <krzysztof.h1@wp.pl>
+Cc: Antonino Daplas <adaplas@pol.net>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/fbmem.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ drivers/video/atafb.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/fbmem.c~fbdev-xoffset-yoffset-and-yres-are-unsigned drivers/video/fbmem.c
---- a/drivers/video/fbmem.c~fbdev-xoffset-yoffset-and-yres-are-unsigned
-+++ a/drivers/video/fbmem.c
-@@ -848,9 +848,8 @@ int
- fb_pan_display(struct fb_info *info, struct fb_var_screeninfo *var)
- {
- 	struct fb_fix_screeninfo *fix = &info->fix;
--        int xoffset = var->xoffset;
--        int yoffset = var->yoffset;
--        int err = 0, yres = info->var.yres;
-+	unsigned int yres = info->var.yres;
-+	int err = 0;
+diff -puN drivers/video/atafb.c~atafb-test-virtual-screen-range-before-subtraction-on-unsigned drivers/video/atafb.c
+--- a/drivers/video/atafb.c~atafb-test-virtual-screen-range-before-subtraction-on-unsigned
++++ a/drivers/video/atafb.c
+@@ -2593,13 +2593,16 @@ static void atafb_copyarea(struct fb_inf
+ 	width = x2 - dx;
+ 	height = y2 - dy;
  
- 	if (var->yoffset > 0) {
- 		if (var->vmode & FB_VMODE_YWRAP) {
-@@ -866,8 +865,8 @@ fb_pan_display(struct fb_info *info, str
- 				 (var->xoffset % fix->xpanstep)))
- 		err = -EINVAL;
++	if (area->sx + dx < area->dx || area->sy + dy < area->dy)
++		return;
++
+ 	/* update sx,sy */
+ 	sx = area->sx + (dx - area->dx);
+ 	sy = area->sy + (dy - area->dy);
  
--        if (err || !info->fbops->fb_pan_display || xoffset < 0 ||
--	    yoffset < 0 || var->yoffset + yres > info->var.yres_virtual ||
-+	if (err || !info->fbops->fb_pan_display ||
-+	    var->yoffset + yres > info->var.yres_virtual ||
- 	    var->xoffset + info->var.xres > info->var.xres_virtual)
- 		return -EINVAL;
+ 	/* the source must be completely inside the virtual screen */
+-	if (sx < 0 || sy < 0 || (sx + width) > info->var.xres_virtual ||
+-	    (sy + height) > info->var.yres_virtual)
++	if (sx + width > info->var.xres_virtual ||
++			sy + height > info->var.yres_virtual)
+ 		return;
  
+ 	if (dy > sy || (dy == sy && dx > sx)) {
 _
 
-Patches currently in -mm which might be from syrjala@sci.fi are
+Patches currently in -mm which might be from 12o3l@tiscali.nl are
 
 origin.patch
+asic3-platform_get_irq-may-return-signed-unnoticed.patch
+likeliness-accounting-change-and-cleanup.patch
+likely_prof-update-to-test_and_set_bit_lock-clear_bit_unlock.patch
 
