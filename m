@@ -1,294 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: - bootmem-add-documentation-to-api-functions.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:23:50 -0700
-Message-ID: <200807242323.m6ONNo0i010719@imap1.linux-foundation.org>
+Subject: - bootmem-revisit-bootmem-descriptor-list-handling.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:23:56 -0700
+Message-ID: <200807242323.m6ONNurv010730@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53713 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50488 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754519AbYGXXXy (ORCPT
+	by vger.kernel.org with ESMTP id S1754096AbYGXXYB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:23:54 -0400
+	Thu, 24 Jul 2008 19:24:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hannes@saeurebad.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bootmem: add documentation to API functions
+     bootmem: revisit bootmem descriptor list handling
 has been removed from the -mm tree.  Its filename was
-     bootmem-add-documentation-to-api-functions.patch
+     bootmem-revisit-bootmem-descriptor-list-handling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bootmem: add documentation to API functions
+Subject: bootmem: revisit bootmem descriptor list handling
 From: Johannes Weiner <hannes@saeurebad.de>
+
+link_bootmem handles an insertion of a new descriptor into the sorted list
+in more or less three explicit branches; empty list, insert in between and
+append.  These cases can be expressed implicite.
+
+Also mark the sorted list as initdata as it can be thrown away after boot
+as well.
 
 Signed-off-by: Johannes Weiner <hannes@saeurebad.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/bootmem.c |  150 ++++++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 149 insertions(+), 1 deletion(-)
+ mm/bootmem.c |   23 ++++++++++-------------
+ 1 file changed, 10 insertions(+), 13 deletions(-)
 
-diff -puN mm/bootmem.c~bootmem-add-documentation-to-api-functions mm/bootmem.c
---- a/mm/bootmem.c~bootmem-add-documentation-to-api-functions
+diff -puN mm/bootmem.c~bootmem-revisit-bootmem-descriptor-list-handling mm/bootmem.c
+--- a/mm/bootmem.c~bootmem-revisit-bootmem-descriptor-list-handling
 +++ a/mm/bootmem.c
-@@ -47,7 +47,10 @@ static unsigned long __init get_mapsize(
- 	return ALIGN(mapsize, sizeof(long));
- }
+@@ -23,7 +23,6 @@ unsigned long max_low_pfn;
+ unsigned long min_low_pfn;
+ unsigned long max_pfn;
  
--/* return the number of _pages_ that will be allocated for the boot bitmap */
-+/**
-+ * bootmem_bootmap_pages - calculate bitmap size in pages
-+ * @pages: number of pages the bitmap has to represent
-+ */
- unsigned long __init bootmem_bootmap_pages(unsigned long pages)
- {
- 	unsigned long mapsize;
-@@ -104,12 +107,28 @@ static unsigned long __init init_bootmem
- 	return mapsize;
- }
+-static LIST_HEAD(bdata_list);
+ #ifdef CONFIG_CRASH_DUMP
+ /*
+  * If we have booted due to a crash, max_pfn will be a very low value. We need
+@@ -34,6 +33,8 @@ unsigned long saved_max_pfn;
  
-+/**
-+ * init_bootmem_node - register a node as boot memory
-+ * @pgdat: node to register
-+ * @freepfn: pfn where the bitmap for this node is to be placed
-+ * @startpfn: first pfn on the node
-+ * @endpfn: first pfn after the node
-+ *
-+ * Returns the number of bytes needed to hold the bitmap for this node.
-+ */
- unsigned long __init init_bootmem_node(pg_data_t *pgdat, unsigned long freepfn,
- 				unsigned long startpfn, unsigned long endpfn)
- {
- 	return init_bootmem_core(pgdat->bdata, freepfn, startpfn, endpfn);
- }
+ bootmem_data_t bootmem_node_data[MAX_NUMNODES] __initdata;
  
-+/**
-+ * init_bootmem - register boot memory
-+ * @start: pfn where the bitmap is to be placed
-+ * @pages: number of available physical pages
-+ *
-+ * Returns the number of bytes needed to hold the bitmap.
-+ */
- unsigned long __init init_bootmem(unsigned long start, unsigned long pages)
- {
- 	max_low_pfn = pages;
-@@ -182,12 +201,23 @@ static unsigned long __init free_all_boo
- 	return count;
- }
++static struct list_head bdata_list __initdata = LIST_HEAD_INIT(bdata_list);
++
+ static int bootmem_debug;
  
-+/**
-+ * free_all_bootmem_node - release a node's free pages to the buddy allocator
-+ * @pgdat: node to be released
-+ *
-+ * Returns the number of pages actually released.
-+ */
- unsigned long __init free_all_bootmem_node(pg_data_t *pgdat)
+ static int __init bootmem_debug_setup(char *buf)
+@@ -73,20 +74,16 @@ unsigned long __init bootmem_bootmap_pag
+  */
+ static void __init link_bootmem(bootmem_data_t *bdata)
  {
- 	register_page_bootmem_info_node(pgdat);
- 	return free_all_bootmem_core(pgdat->bdata);
- }
+-	bootmem_data_t *ent;
++	struct list_head *iter;
  
-+/**
-+ * free_all_bootmem - release free pages to the buddy allocator
-+ *
-+ * Returns the number of pages actually released.
-+ */
- unsigned long __init free_all_bootmem(void)
- {
- 	return free_all_bootmem_core(NODE_DATA(0)->bdata);
-@@ -231,12 +261,32 @@ static void __init free_bootmem_core(boo
+-	if (list_empty(&bdata_list)) {
+-		list_add(&bdata->list, &bdata_list);
+-		return;
+-	}
+-	/* insert in order */
+-	list_for_each_entry(ent, &bdata_list, list) {
+-		if (bdata->node_boot_start < ent->node_boot_start) {
+-			list_add_tail(&bdata->list, &ent->list);
+-			return;
+-		}
++	list_for_each(iter, &bdata_list) {
++		bootmem_data_t *ent;
++
++		ent = list_entry(iter, bootmem_data_t, list);
++		if (bdata->node_boot_start < ent->node_boot_start)
++			break;
  	}
+-	list_add_tail(&bdata->list, &bdata_list);
++	list_add_tail(&bdata->list, iter);
  }
  
-+/**
-+ * free_bootmem_node - mark a page range as usable
-+ * @pgdat: node the range resides on
-+ * @physaddr: starting address of the range
-+ * @size: size of the range in bytes
-+ *
-+ * Partial pages will be considered reserved and left as they are.
-+ *
-+ * Only physical pages that actually reside on @pgdat are marked.
-+ */
- void __init free_bootmem_node(pg_data_t *pgdat, unsigned long physaddr,
- 			      unsigned long size)
- {
- 	free_bootmem_core(pgdat->bdata, physaddr, size);
- }
- 
-+/**
-+ * free_bootmem - mark a page range as usable
-+ * @addr: starting address of the range
-+ * @size: size of the range in bytes
-+ *
-+ * Partial pages will be considered reserved and left as they are.
-+ *
-+ * All physical pages within the range are marked, no matter what
-+ * node they reside on.
-+ */
- void __init free_bootmem(unsigned long addr, unsigned long size)
- {
- 	bootmem_data_t *bdata;
-@@ -319,6 +369,17 @@ static void __init reserve_bootmem_core(
- 	}
- }
- 
-+/**
-+ * reserve_bootmem_node - mark a page range as reserved
-+ * @pgdat: node the range resides on
-+ * @physaddr: starting address of the range
-+ * @size: size of the range in bytes
-+ * @flags: reservation flags (see linux/bootmem.h)
-+ *
-+ * Partial pages will be reserved.
-+ *
-+ * Only physical pages that actually reside on @pgdat are marked.
-+ */
- int __init reserve_bootmem_node(pg_data_t *pgdat, unsigned long physaddr,
- 				 unsigned long size, int flags)
- {
-@@ -332,6 +393,17 @@ int __init reserve_bootmem_node(pg_data_
- }
- 
- #ifndef CONFIG_HAVE_ARCH_BOOTMEM_NODE
-+/**
-+ * reserve_bootmem - mark a page range as usable
-+ * @addr: starting address of the range
-+ * @size: size of the range in bytes
-+ * @flags: reservation flags (see linux/bootmem.h)
-+ *
-+ * Partial pages will be reserved.
-+ *
-+ * All physical pages within the range are marked, no matter what
-+ * node they reside on.
-+ */
- int __init reserve_bootmem(unsigned long addr, unsigned long size,
- 			    int flags)
- {
-@@ -500,6 +572,19 @@ found:
- 	return ret;
- }
- 
-+/**
-+ * __alloc_bootmem_nopanic - allocate boot memory without panicking
-+ * @size: size of the request in bytes
-+ * @align: alignment of the region
-+ * @goal: preferred starting address of the region
-+ *
-+ * The goal is dropped if it can not be satisfied and the allocation will
-+ * fall back to memory below @goal.
-+ *
-+ * Allocation may happen on any node in the system.
-+ *
-+ * Returns NULL on failure.
-+ */
- void * __init __alloc_bootmem_nopanic(unsigned long size, unsigned long align,
- 				      unsigned long goal)
- {
-@@ -514,6 +599,19 @@ void * __init __alloc_bootmem_nopanic(un
- 	return NULL;
- }
- 
-+/**
-+ * __alloc_bootmem - allocate boot memory
-+ * @size: size of the request in bytes
-+ * @align: alignment of the region
-+ * @goal: preferred starting address of the region
-+ *
-+ * The goal is dropped if it can not be satisfied and the allocation will
-+ * fall back to memory below @goal.
-+ *
-+ * Allocation may happen on any node in the system.
-+ *
-+ * The function panics if the request can not be satisfied.
-+ */
- void * __init __alloc_bootmem(unsigned long size, unsigned long align,
- 			      unsigned long goal)
- {
-@@ -529,6 +627,21 @@ void * __init __alloc_bootmem(unsigned l
- 	return NULL;
- }
- 
-+/**
-+ * __alloc_bootmem_node - allocate boot memory from a specific node
-+ * @pgdat: node to allocate from
-+ * @size: size of the request in bytes
-+ * @align: alignment of the region
-+ * @goal: preferred starting address of the region
-+ *
-+ * The goal is dropped if it can not be satisfied and the allocation will
-+ * fall back to memory below @goal.
-+ *
-+ * Allocation may fall back to any node in the system if the specified node
-+ * can not hold the requested memory.
-+ *
-+ * The function panics if the request can not be satisfied.
-+ */
- void * __init __alloc_bootmem_node(pg_data_t *pgdat, unsigned long size,
- 				   unsigned long align, unsigned long goal)
- {
-@@ -542,6 +655,13 @@ void * __init __alloc_bootmem_node(pg_da
- }
- 
- #ifdef CONFIG_SPARSEMEM
-+/**
-+ * alloc_bootmem_section - allocate boot memory from a specific section
-+ * @size: size of the request in bytes
-+ * @section_nr: sparse map section to allocate from
-+ *
-+ * Return NULL on failure.
-+ */
- void * __init alloc_bootmem_section(unsigned long size,
- 				    unsigned long section_nr)
- {
-@@ -588,6 +708,19 @@ void * __init __alloc_bootmem_node_nopan
- #define ARCH_LOW_ADDRESS_LIMIT	0xffffffffUL
- #endif
- 
-+/**
-+ * __alloc_bootmem_low - allocate low boot memory
-+ * @size: size of the request in bytes
-+ * @align: alignment of the region
-+ * @goal: preferred starting address of the region
-+ *
-+ * The goal is dropped if it can not be satisfied and the allocation will
-+ * fall back to memory below @goal.
-+ *
-+ * Allocation may happen on any node in the system.
-+ *
-+ * The function panics if the request can not be satisfied.
-+ */
- void * __init __alloc_bootmem_low(unsigned long size, unsigned long align,
- 				  unsigned long goal)
- {
-@@ -609,6 +742,21 @@ void * __init __alloc_bootmem_low(unsign
- 	return NULL;
- }
- 
-+/**
-+ * __alloc_bootmem_low_node - allocate low boot memory from a specific node
-+ * @pgdat: node to allocate from
-+ * @size: size of the request in bytes
-+ * @align: alignment of the region
-+ * @goal: preferred starting address of the region
-+ *
-+ * The goal is dropped if it can not be satisfied and the allocation will
-+ * fall back to memory below @goal.
-+ *
-+ * Allocation may fall back to any node in the system if the specified node
-+ * can not hold the requested memory.
-+ *
-+ * The function panics if the request can not be satisfied.
-+ */
- void * __init __alloc_bootmem_low_node(pg_data_t *pgdat, unsigned long size,
- 				       unsigned long align, unsigned long goal)
- {
+ /*
 _
 
 Patches currently in -mm which might be from hannes@saeurebad.de are
