@@ -1,92 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: - cris-use-simple_read_from_buffer.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:25:48 -0700
-Message-ID: <200807242325.m6ONPmUU010914@imap1.linux-foundation.org>
+Subject: - mn10300-move-sg_dma_addresslen-to-asm-scatterlisth.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 16:25:43 -0700
+Message-ID: <200807242325.m6ONPhXj010906@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33894 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56829 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755670AbYGXXZ5 (ORCPT
+	by vger.kernel.org with ESMTP id S1755784AbYGXX0M (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:25:57 -0400
+	Thu, 24 Jul 2008 19:26:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, jesper.nilsson@axis.com, starvik@axis.com, mm-commits@vger.kernel.org
+To: bunk@kernel.org, dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cris: use simple_read_from_buffer()
+     mn10300: move sg_dma_{address,len}() to asm/scatterlist.h
 has been removed from the -mm tree.  Its filename was
-     cris-use-simple_read_from_buffer.patch
+     mn10300-move-sg_dma_addresslen-to-asm-scatterlisth.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cris: use simple_read_from_buffer()
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: mn10300: move sg_dma_{address,len}() to asm/scatterlist.h
+From: Adrian Bunk <bunk@kernel.org>
 
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Mikael Starvik <starvik@axis.com>
-Cc: Jesper Nilsson <jesper.nilsson@axis.com>
+mn10300 was the only architecture where sg_dma_{address,len}() were not
+in asm/scatterlist.h, and it's not a big surprise that this caused a
+compile error somewhere:
+
+/home/bunk/linux/kernel-2.6/git/linux-2.6/drivers/media/video/videobuf-dma-sg.c: In function `videobuf_dma_map':
+/home/bunk/linux/kernel-2.6/git/linux-2.6/drivers/media/video/videobuf-dma-sg.c:238: error: implicit declaration of function 'sg_dma_address'
+
+Acked-by: David Howells <dhowells@redhat.com>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/kernel/profile.c |   17 +++++++----------
- 1 file changed, 7 insertions(+), 10 deletions(-)
+ include/asm-mn10300/pci.h         |    9 ---------
+ include/asm-mn10300/scatterlist.h |    9 +++++++++
+ 2 files changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN arch/cris/kernel/profile.c~cris-use-simple_read_from_buffer arch/cris/kernel/profile.c
---- a/arch/cris/kernel/profile.c~cris-use-simple_read_from_buffer
-+++ a/arch/cris/kernel/profile.c
-@@ -35,19 +35,16 @@ read_cris_profile(struct file *file, cha
- 		  size_t count, loff_t *ppos)
- {
- 	unsigned long p = *ppos;
-+	ssize_t ret;
+diff -puN include/asm-mn10300/pci.h~mn10300-move-sg_dma_addresslen-to-asm-scatterlisth include/asm-mn10300/pci.h
+--- a/include/asm-mn10300/pci.h~mn10300-move-sg_dma_addresslen-to-asm-scatterlisth
++++ a/include/asm-mn10300/pci.h
+@@ -74,15 +74,6 @@ struct pci_dev;
+ /* This is always fine. */
+ #define pci_dac_dma_supported(pci_dev, mask)	(0)
  
--	if (p > SAMPLE_BUFFER_SIZE)
--		return 0;
-+	ret = simple_read_from_buffer(buf, count, ppos, sample_buffer,
-+						SAMPLE_BUFFER_SIZE);
-+	if (ret < 0)
-+		return ret;
- 
--	if (p + count > SAMPLE_BUFFER_SIZE)
--		count = SAMPLE_BUFFER_SIZE - p;
--	if (copy_to_user(buf, sample_buffer + p,count))
--		return -EFAULT;
-+	memset(sample_buffer + p, 0, ret);
- 
--	memset(sample_buffer + p, 0, count);
--	*ppos += count;
+-/*
+- * These macros should be used after a pci_map_sg call has been done
+- * to get bus addresses of each of the SG entries and their lengths.
+- * You should only work with the number of sg entries pci_map_sg
+- * returns.
+- */
+-#define sg_dma_address(sg)	((sg)->dma_address)
+-#define sg_dma_len(sg)		((sg)->length)
 -
--	return count;
-+	return ret;
- }
+ /* Return the index of the PCI controller for device. */
+ static inline int pci_controller_num(struct pci_dev *dev)
+ {
+diff -puN include/asm-mn10300/scatterlist.h~mn10300-move-sg_dma_addresslen-to-asm-scatterlisth include/asm-mn10300/scatterlist.h
+--- a/include/asm-mn10300/scatterlist.h~mn10300-move-sg_dma_addresslen-to-asm-scatterlisth
++++ a/include/asm-mn10300/scatterlist.h
+@@ -43,4 +43,13 @@ struct scatterlist {
  
- static ssize_t
+ #define ISA_DMA_THRESHOLD (0x00ffffff)
+ 
++/*
++ * These macros should be used after a pci_map_sg call has been done
++ * to get bus addresses of each of the SG entries and their lengths.
++ * You should only work with the number of sg entries pci_map_sg
++ * returns.
++ */
++#define sg_dma_address(sg)	((sg)->dma_address)
++#define sg_dma_len(sg)		((sg)->length)
++
+ #endif /* _ASM_SCATTERLIST_H */
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from bunk@kernel.org are
 
 origin.patch
 linux-next.patch
-ipr-use-memory_read_from_buffer.patch
-qla2xxx-use-memory_read_from_buffer.patch
-qla2xxx-use-memory_read_from_buffer-fix.patch
-workqueues-do-cpu_up_canceled-if-cpu_up_prepare-fails.patch
-ipc-use-simple_read_from_buffer.patch
-nwflash-use-simple_read_from_buffer.patch
-char-merge-ip2main-and-ip2base.patch
-char-ip2-cleanup-globals.patch
-char-ip2-fix-sparse-warnings.patch
-char-ip2-init-deinit-cleanup.patch
-ip2-avoid-add_timer-with-pending-timer.patch
-firmware-use-memory_read_from_buffer.patch
-firmware-use-memory_read_from_buffer-fix.patch
-dcdbas-use-memory_read_from_buffer.patch
-dcdbas-use-memory_read_from_buffer-fix.patch
-dell_rbu-use-memory_read_from_buffer.patch
-dell_rbu-use-memory_read_from_buffer-fix.patch
+m32r-remove-the-unused-nohighmem-option.patch
+if-0-ses_match_host.patch
+git-xtensa.patch
+init-do_mountsc-should-include-linux-initrdh.patch
+build-kernel-profileo-only-when-requested.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+asm-generic-int-ll64h-always-provide-__su64.patch
+remove-some-more-tipar-bits.patch
+include-linux-kernelh-userspace-header-cleanup.patch
+minix-remove-no_truncate-code.patch
+jbd-unexport-journal_update_superblock.patch
+coda-remove-coda_fs_old_api.patch
+fat-dirc-switch-to-struct-__fat_dirent.patch
+remove-the-in-kernel-struct-dirent64.patch
+remove-unused-include-linux-direnths.patch
+include-asm-ptraceh-userspace-headers-cleanup.patch
+pty-remove-unused-unix98_pty_count-options.patch
+proper-extern-for-mwave_s_mdd.patch
+if-0-hpet_unregister.patch
+unexport-proc_clear_tty.patch
+move-proc_kmsg_operations-to-fs-proc-internalh.patch
+proper-pidhashmap_init-prototypes.patch
+unexport-uts_sem.patch
+parport-sharec-proper-externs.patch
+tpm_biosc-make-2-structs-static.patch
+drm-make-drm_minors_cleanup-static.patch
+make-cgroup_seqfile_release-static.patch
+make-pnp_add_card_id-static.patch
+make-parport_cs_release-static.patch
+make-mm-sparsec-make-a-function-static.patch
+mm-allocpercpuc-make-4-functions-static.patch
+make-mm-memoryc-print_bad_pte-static.patch
+mm-swapfilec-make-code-static.patch
+make-mm-rmapc-anon_vma_cachep-static.patch
+drivers-char-rtcc-make-2-functions-static.patch
+make-init-do_mountsc-root_device_name-static.patch
+make-macfb_setup-static.patch
+video-console-sticonrec-make-code-static.patch
+video-console-sticonrec-make-code-static-checkpatch-fixes.patch
+video-stifbc-make-2-functions-static.patch
+reiser4.patch
 
