@@ -1,74 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: - idr-change-the-idr-structure.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 16:00:33 -0700
-Message-ID: <200807252300.m6PN0XJg003596@imap1.linux-foundation.org>
+Subject: - idr-make-idr_remove-rcu-safe.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 16:00:47 -0700
+Message-ID: <200807252300.m6PN0ln4003618@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50718 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42704 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752412AbYGYXCK (ORCPT
+	by vger.kernel.org with ESMTP id S1752680AbYGYXCM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:02:10 -0400
+	Fri, 25 Jul 2008 19:02:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: Nadia.Derbey@bull.net, jim.houston@comcast.net, manfred@colorfullife.com, paulmck@us.ibm.com, peifferp@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     idr: change the idr structure
+     idr: make idr_remove rcu-safe
 has been removed from the -mm tree.  Its filename was
-     idr-change-the-idr-structure.patch
+     idr-make-idr_remove-rcu-safe.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: idr: change the idr structure
+Subject: idr: make idr_remove rcu-safe
 From: Nadia Derbey <Nadia.Derbey@bull.net>
 
-After scalability problems have been detected when using the sysV ipcs, I have
-proposed to use an RCU based implementation of the IDR api instead (see
-threads http://lkml.org/lkml/2008/4/11/212 and
-http://lkml.org/lkml/2008/4/29/295).
-
-This resulted in many people asking to convert the idr API and make it rcu
-safe (because most of the code was duplicated and thus unmaintanable and
-unreviewable).
-
-So here is a first attempt.
-
-The important change wrt to the idr API itself is during idr removes: idr
-layers are freed after a grace period, instead of being moved to the free
-list.
-
-The important change wrt to ipcs, is that idr_find() can now be called
-locklessly inside a rcu read critical section.
-
-Here are the results I've got for the pmsg test sent by Manfred: 
-
-   2.6.25-rc3-mm1   2.6.25-rc3-mm1+   2.6.25-mm1   Patched 2.6.25-mm1
-1         1168441           1064021       876000               947488
-2         1094264            921059      1549592              1730685
-3         2082520           1738165      1694370              2324880
-4         2079929           1695521       404553              2400408
-5         2898758            406566       391283              3246580
-6         2921417            261275       263249              3752148
-7         3308761            126056       191742              4243142
-8         3329456            100129       141722              4275780
-
-1st column: stock 2.6.25-rc3-mm1
-2nd column: 2.6.25-rc3-mm1 + ipc patches (store ipcs into idrs)
-3nd column: stock 2.6.25-mm1
-4th column: 2.6.25-mm1 + this pacth series.
-
-
-
-
-This patch:
-
-Add an rcu_head to the idr_layer structure in order to free it after a grace
-period.
+Introduce the free_layer() routine: it is the one that actually frees memory
+after a grace period has elapsed.
 
 Signed-off-by: Nadia Derbey <Nadia.Derbey@bull.net>
 Reviewed-by: "Paul E. McKenney" <paulmck@us.ibm.com>
@@ -79,28 +39,138 @@ Acked-by: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/idr.h |    2 ++
- 1 file changed, 2 insertions(+)
+ lib/idr.c |   57 +++++++++++++++++++++++++++++++++++++++-------------
+ 1 file changed, 43 insertions(+), 14 deletions(-)
 
-diff -puN include/linux/idr.h~idr-change-the-idr-structure include/linux/idr.h
---- a/include/linux/idr.h~idr-change-the-idr-structure
-+++ a/include/linux/idr.h
-@@ -15,6 +15,7 @@
- #include <linux/types.h>
- #include <linux/bitops.h>
- #include <linux/init.h>
-+#include <linux/rcupdate.h>
+diff -puN lib/idr.c~idr-make-idr_remove-rcu-safe lib/idr.c
+--- a/lib/idr.c~idr-make-idr_remove-rcu-safe
++++ a/lib/idr.c
+@@ -52,6 +52,19 @@ static struct idr_layer *get_from_free_l
+ 	return(p);
+ }
  
- #if BITS_PER_LONG == 32
- # define IDR_BITS 5
-@@ -51,6 +52,7 @@ struct idr_layer {
- 	unsigned long		 bitmap; /* A zero bit means "space here" */
- 	struct idr_layer	*ary[1<<IDR_BITS];
- 	int			 count;	 /* When zero, we can release it */
-+	struct rcu_head		 rcu_head;
- };
++static void idr_layer_rcu_free(struct rcu_head *head)
++{
++	struct idr_layer *layer;
++
++	layer = container_of(head, struct idr_layer, rcu_head);
++	kmem_cache_free(idr_layer_cache, layer);
++}
++
++static inline void free_layer(struct idr_layer *p)
++{
++	call_rcu(&p->rcu_head, idr_layer_rcu_free);
++}
++
+ /* only called when idp->lock is held */
+ static void __move_to_free_list(struct idr *idp, struct idr_layer *p)
+ {
+@@ -331,6 +344,7 @@ static void sub_remove(struct idr *idp, 
+ 	struct idr_layer *p = idp->top;
+ 	struct idr_layer **pa[MAX_LEVEL];
+ 	struct idr_layer ***paa = &pa[0];
++	struct idr_layer *to_free;
+ 	int n;
  
- struct idr {
+ 	*paa = NULL;
+@@ -346,13 +360,18 @@ static void sub_remove(struct idr *idp, 
+ 	n = id & IDR_MASK;
+ 	if (likely(p != NULL && test_bit(n, &p->bitmap))){
+ 		__clear_bit(n, &p->bitmap);
+-		p->ary[n] = NULL;
++		rcu_assign_pointer(p->ary[n], NULL);
++		to_free = NULL;
+ 		while(*paa && ! --((**paa)->count)){
+-			move_to_free_list(idp, **paa);
++			if (to_free)
++				free_layer(to_free);
++			to_free = **paa;
+ 			**paa-- = NULL;
+ 		}
+ 		if (!*paa)
+ 			idp->layers = 0;
++		if (to_free)
++			free_layer(to_free);
+ 	} else
+ 		idr_remove_warning(id);
+ }
+@@ -365,22 +384,34 @@ static void sub_remove(struct idr *idp, 
+ void idr_remove(struct idr *idp, int id)
+ {
+ 	struct idr_layer *p;
++	struct idr_layer *to_free;
+ 
+ 	/* Mask off upper bits we don't use for the search. */
+ 	id &= MAX_ID_MASK;
+ 
+ 	sub_remove(idp, (idp->layers - 1) * IDR_BITS, id);
+ 	if (idp->top && idp->top->count == 1 && (idp->layers > 1) &&
+-	    idp->top->ary[0]) {  // We can drop a layer
+-
++	    idp->top->ary[0]) {
++		/*
++		 * Single child at leftmost slot: we can shrink the tree.
++		 * This level is not needed anymore since when layers are
++		 * inserted, they are inserted at the top of the existing
++		 * tree.
++		 */
++		to_free = idp->top;
+ 		p = idp->top->ary[0];
+-		idp->top->bitmap = idp->top->count = 0;
+-		move_to_free_list(idp, idp->top);
+-		idp->top = p;
++		rcu_assign_pointer(idp->top, p);
+ 		--idp->layers;
++		to_free->bitmap = to_free->count = 0;
++		free_layer(to_free);
+ 	}
+ 	while (idp->id_free_cnt >= IDR_FREE_MAX) {
+ 		p = get_from_free_list(idp);
++		/*
++		 * Note: we don't call the rcu callback here, since the only
++		 * layers that fall into the freelist are those that have been
++		 * preallocated.
++		 */
+ 		kmem_cache_free(idr_layer_cache, p);
+ 	}
+ 	return;
+@@ -421,15 +452,13 @@ void idr_remove_all(struct idr *idp)
+ 
+ 		id += 1 << n;
+ 		while (n < fls(id)) {
+-			if (p) {
+-				memset(p, 0, sizeof *p);
+-				move_to_free_list(idp, p);
+-			}
++			if (p)
++				free_layer(p);
+ 			n += IDR_BITS;
+ 			p = *--paa;
+ 		}
+ 	}
+-	idp->top = NULL;
++	rcu_assign_pointer(idp->top, NULL);
+ 	idp->layers = 0;
+ }
+ EXPORT_SYMBOL(idr_remove_all);
+@@ -546,7 +575,7 @@ EXPORT_SYMBOL(idr_for_each);
+  * A -ENOENT return indicates that @id was not found.
+  * A -EINVAL return indicates that @id was not within valid constraints.
+  *
+- * The caller must serialize vs idr_find(), idr_get_new(), and idr_remove().
++ * The caller must serialize with writers.
+  */
+ void *idr_replace(struct idr *idp, void *ptr, int id)
+ {
+@@ -572,7 +601,7 @@ void *idr_replace(struct idr *idp, void 
+ 		return ERR_PTR(-ENOENT);
+ 
+ 	old_p = p->ary[n];
+-	p->ary[n] = ptr;
++	rcu_assign_pointer(p->ary[n], ptr);
+ 
+ 	return old_p;
+ }
 _
 
 Patches currently in -mm which might be from Nadia.Derbey@bull.net are
