@@ -1,162 +1,219 @@
 From: akpm@linux-foundation.org
-Subject: - build-kernel-profileo-only-when-requested-cleanups.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 15:54:34 -0700
-Message-ID: <200807252254.m6PMsYkB002834@imap1.linux-foundation.org>
+Subject: - build-kernel-profileo-only-when-requested.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 15:54:32 -0700
+Message-ID: <200807252254.m6PMsW0r002831@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37974 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37627 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752593AbYGYWy4 (ORCPT
+	by vger.kernel.org with ESMTP id S1752512AbYGYWyx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 18:54:56 -0400
+	Fri, 25 Jul 2008 18:54:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bunk@kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org
+To: bunk@kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     build-kernel-profileo-only-when-requested-cleanups
+     build kernel/profile.o only when requested
 has been removed from the -mm tree.  Its filename was
-     build-kernel-profileo-only-when-requested-cleanups.patch
+     build-kernel-profileo-only-when-requested.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: build-kernel-profileo-only-when-requested-cleanups
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: build kernel/profile.o only when requested
+From: Adrian Bunk <bunk@kernel.org>
 
-Cc: Adrian Bunk <bunk@kernel.org>
+Build kernel/profile.o only if CONFIG_PROFILING is enabled.
+
+This makes CONFIG_PROFILING=n kernels smaller.
+
+As a bonus, some profile_tick() calls and one branch from schedule() are
+now eliminated with CONFIG_PROFILING=n (but I doubt these are
+measurable effects).
+
+This patch changes the effects of CONFIG_PROFILING=n, but I don't think
+having more than two choices would be the better choice.
+
+This patch also adds the name of the first parameter to the prototypes
+of profile_{hits,tick}() since I anyway had to add them for the dummy
+functions.
+
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/profile.h |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ include/linux/profile.h |   56 ++++++++++++++++++++++++++------------
+ kernel/Makefile         |    3 +-
+ kernel/profile.c        |    4 --
+ 3 files changed, 41 insertions(+), 22 deletions(-)
 
-diff -puN include/linux/profile.h~build-kernel-profileo-only-when-requested-cleanups include/linux/profile.h
---- a/include/linux/profile.h~build-kernel-profileo-only-when-requested-cleanups
+diff -puN include/linux/profile.h~build-kernel-profileo-only-when-requested include/linux/profile.h
+--- a/include/linux/profile.h~build-kernel-profileo-only-when-requested
 +++ a/include/linux/profile.h
-@@ -18,9 +18,11 @@ struct pt_regs;
+@@ -8,8 +8,6 @@
+ 
+ #include <asm/errno.h>
+ 
+-extern int prof_on __read_mostly;
+-
+ #define CPU_PROFILING	1
+ #define SCHED_PROFILING	2
+ #define SLEEP_PROFILING	3
+@@ -19,14 +17,29 @@ struct proc_dir_entry;
+ struct pt_regs;
  struct notifier_block;
  
- #if defined(CONFIG_PROFILING) && defined(CONFIG_PROC_FS)
--void create_prof_cpu_mask(struct proc_dir_entry *);
-+void create_prof_cpu_mask(struct proc_dir_entry *de);
- #else
--#define create_prof_cpu_mask(x)			do { (void)(x); } while (0)
-+static inline void create_prof_cpu_mask(struct proc_dir_entry *de)
-+{
-+}
- #endif
++#if defined(CONFIG_PROFILING) && defined(CONFIG_PROC_FS)
++void create_prof_cpu_mask(struct proc_dir_entry *);
++#else
++#define create_prof_cpu_mask(x)			do { (void)(x); } while (0)
++#endif
++
++enum profile_type {
++	PROFILE_TASK_EXIT,
++	PROFILE_MUNMAP
++};
++
++#ifdef CONFIG_PROFILING
++
++extern int prof_on __read_mostly;
++
+ /* init basic kernel profiler */
+ void __init profile_init(void);
+-void profile_tick(int);
++void profile_tick(int type);
  
- enum profile_type {
+ /*
+  * Add multiple profiler hits to a given address:
+  */
+-void profile_hits(int, void *ip, unsigned int nr_hits);
++void profile_hits(int type, void *ip, unsigned int nr_hits);
+ 
+ /*
+  * Single profiler hit:
+@@ -40,19 +53,6 @@ static inline void profile_hit(int type,
+ 		profile_hits(type, ip, 1);
+ }
+ 
+-#ifdef CONFIG_PROC_FS
+-void create_prof_cpu_mask(struct proc_dir_entry *);
+-#else
+-#define create_prof_cpu_mask(x)			do { (void)(x); } while (0)
+-#endif
+-
+-enum profile_type {
+-	PROFILE_TASK_EXIT,
+-	PROFILE_MUNMAP
+-};
+-
+-#ifdef CONFIG_PROFILING
+-
+ struct task_struct;
+ struct mm_struct;
+ 
+@@ -80,6 +80,28 @@ struct pt_regs;
+ 
+ #else
+ 
++#define prof_on 0
++
++static inline void profile_init(void)
++{
++	return;
++}
++
++static inline void profile_tick(int type)
++{
++	return;
++}
++
++static inline void profile_hits(int type, void *ip, unsigned int nr_hits)
++{
++	return;
++}
++
++static inline void profile_hit(int type, void *ip)
++{
++	return;
++}
++
+ static inline int task_handoff_register(struct notifier_block * n)
+ {
+ 	return -ENOSYS;
+diff -puN kernel/Makefile~build-kernel-profileo-only-when-requested kernel/Makefile
+--- a/kernel/Makefile~build-kernel-profileo-only-when-requested
++++ a/kernel/Makefile
+@@ -2,7 +2,7 @@
+ # Makefile for the linux kernel.
+ #
+ 
+-obj-y     = sched.o fork.o exec_domain.o panic.o printk.o profile.o \
++obj-y     = sched.o fork.o exec_domain.o panic.o printk.o \
+ 	    cpu.o exit.o itimer.o time.o softirq.o resource.o \
+ 	    sysctl.o capability.o ptrace.o timer.o user.o \
+ 	    signal.o sys.o kmod.o workqueue.o pid.o \
+@@ -24,6 +24,7 @@ CFLAGS_REMOVE_sched_clock.o = -pg
+ CFLAGS_REMOVE_sched.o = -mno-spe -pg
+ endif
+ 
++obj-$(CONFIG_PROFILING) += profile.o
+ obj-$(CONFIG_SYSCTL_SYSCALL_CHECK) += sysctl_check.o
+ obj-$(CONFIG_STACKTRACE) += stacktrace.o
+ obj-y += time/
+diff -puN kernel/profile.c~build-kernel-profileo-only-when-requested kernel/profile.c
+--- a/kernel/profile.c~build-kernel-profileo-only-when-requested
++++ a/kernel/profile.c
+@@ -112,8 +112,6 @@ void __init profile_init(void)
+ 
+ /* Profile event notifications */
+ 
+-#ifdef CONFIG_PROFILING
+-
+ static BLOCKING_NOTIFIER_HEAD(task_exit_notifier);
+ static ATOMIC_NOTIFIER_HEAD(task_free_notifier);
+ static BLOCKING_NOTIFIER_HEAD(munmap_notifier);
+@@ -203,8 +201,6 @@ void unregister_timer_hook(int (*hook)(s
+ }
+ EXPORT_SYMBOL_GPL(unregister_timer_hook);
+ 
+-#endif /* CONFIG_PROFILING */
+-
+ 
+ #ifdef CONFIG_SMP
+ /*
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from bunk@kernel.org are
 
 origin.patch
-seq_file-fix-bug-when-seq_read-reads-nothing.patch
 uninline-arch_pick_mmap_layout.patch
+include-video-atmel_lcdch-must-include-linux-workqueueh.patch
 linux-next.patch
-linux-next-fixups.patch
-linux-next-rejects.patch
-next-remove-localversion.patch
-drivers-mtd-nand-nandsimc-needs-div64h.patch
-pci-make-pci_register_driver-a-macro.patch
-drivers-mfd-tc6393xbc-doesnt-compile-on-i386.patch
-x86-pci-replace-dbg-with-pr_debug-fix.patch
-x86-pci-replace-dbg-with-pr_debug-fix-2.patch
-include-asm-generic-pgtable-nopmdh-macros-are-noxious-reason-435.patch
-arch-x86-pci-i386c-fix-printk-warnings.patch
-drm-fix-sparc64-build.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-git-jg-misc.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-bridge-send-correct-mtu-value-in-pmtu-checkpatch-fixes.patch
-sundance-set-carrier-status-on-link-change-events.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
-scsi-gdthc-use-unaligned-access-helpers-checkpatch-fixes.patch
-git-unionfs.patch
-git-logfs-git-rejects.patch
-git-logfs-fixup.patch
-drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
-drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
-drivers-net-wireless-iwlwifi-iwl-ledc-printk-fix.patch
+m32r-remove-the-unused-nohighmem-option.patch
+if-0-ses_match_host.patch
 git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-ftrace-disable-function-tracing-bringing-up-new-cpu-fix.patch
-mmu-notifiers-add-mm_take_all_locks-operation.patch
-mmu-notifier-core.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-eink_apollofb-new-driver-for-apollo-eink-controller-cleanup.patch
-eink_apollofb-new-driver-for-apollo-eink-controller-fix.patch
-eink_apollofb-new-driver-for-apollo-eink-controller-fix-fix-2.patch
-getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-s2io.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sdhci-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-infiniband.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-more-sparc.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-ibmvscsi.patch
-x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary-checkpatch-fixes.patch
-tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
-memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
-memstick-use-fully-asynchronous-request-processing-fix.patch
-full-conversion-to-early_initcall-interface-remove-old-interface-cleanup.patch
-full-conversion-to-early_initcall-interface-remove-old-interface-fix.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-gru-driver-v3-hardware-data-structures-fix.patch
-gru-driver-v3-hardware-data-structures-fix-fix.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-mm-introduce-get_user_pages_fast-fix.patch
-mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-fix.patch
-x86-lockless-get_user_pages_fast-fix-2.patch
-x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
-x86-lockless-get_user_pages_fast-fix-warning.patch
-mm-speculative-page-references-fix-add_to_page_cache-fix.patch
-vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
-define-page_file_cache-function-fix.patch
-vmscan-split-lru-lists-into-anon-file-sets-units-fix.patch
-unevictable-lru-infrastructure-fix.patch
-unevictable-lru-page-statistics-units-fix.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-3.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
-introduce-__get_user_pages-fix.patch
-vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-fix-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
-slb-drop-kmem-cache-argument-from-constructor-ubifs.patch
+include-linux-kernelh-userspace-header-cleanup.patch
+parport-sharec-proper-externs.patch
+tpm_biosc-make-2-structs-static.patch
+drm-make-drm_minors_cleanup-static.patch
+make-cgroup_seqfile_release-static.patch
+make-pnp_add_card_id-static.patch
+make-parport_cs_release-static.patch
+make-mm-sparsec-make-a-function-static.patch
+mm-allocpercpuc-make-4-functions-static.patch
+make-mm-memoryc-print_bad_pte-static.patch
+mm-swapfilec-make-code-static.patch
+make-mm-rmapc-anon_vma_cachep-static.patch
+drivers-char-rtcc-make-2-functions-static.patch
+make-init-do_mountsc-root_device_name-static.patch
+make-macfb_setup-static.patch
+video-console-sticonrec-make-code-static.patch
 video-console-sticonrec-make-code-static-checkpatch-fixes.patch
+video-stifbc-make-2-functions-static.patch
 reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
 
