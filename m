@@ -1,213 +1,143 @@
 From: akpm@linux-foundation.org
-Subject: - fuse-nfs-export-special-lookups.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 16:03:42 -0700
-Message-ID: <200807252303.m6PN3g4Q003974@imap1.linux-foundation.org>
+Subject: - fat-use-same-logic-in-fat_search_long-and-__fat_readdir.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 15:57:31 -0700
+Message-ID: <200807252257.m6PMvVRT003195@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56222 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59563 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754104AbYGYXFM (ORCPT
+	by vger.kernel.org with ESMTP id S1751545AbYGYXG2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:05:12 -0400
+	Fri, 25 Jul 2008 19:06:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mszeredi@suse.cz, bfields@fieldses.org, hch@lst.de, matthew@wil.cx, teigland@redhat.com, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
+To: hirofumi@mail.parknet.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fuse: nfs export special lookups
+     fat: use same logic in fat_search_long() and __fat_readdir()
 has been removed from the -mm tree.  Its filename was
-     fuse-nfs-export-special-lookups.patch
+     fat-use-same-logic-in-fat_search_long-and-__fat_readdir.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fuse: nfs export special lookups
-From: Miklos Szeredi <mszeredi@suse.cz>
+Subject: fat: use same logic in fat_search_long() and __fat_readdir()
+From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 
-Implement the get_parent export operation by sending a LOOKUP request with
-".." as the name.
+This uses uses stack for shortname, and uses __getname() for longname in
+fat_search_long() and __fat_readdir().  By this, it removes unneeded
+__getname() for shortname.
 
-Implement looking up an inode by node ID after it has been evicted from
-the cache.  This is done by seding a LOOKUP request with "." as the name
-(for all file types, not just directories).
-
-The filesystem can set the FUSE_EXPORT_SUPPORT flag in the INIT reply, to
-indicate that it supports these special lookups.
-
-Thanks to John Muir for the original implementation of this feature.
-
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: Matthew Wilcox <matthew@wil.cx>
-Cc: David Teigland <teigland@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
+Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fuse/fuse_i.h     |    6 +++
- fs/fuse/inode.c      |   66 +++++++++++++++++++++++++++++++++++++++--
- include/linux/fuse.h |    3 +
- 3 files changed, 72 insertions(+), 3 deletions(-)
+ fs/fat/dir.c |   42 ++++++++++++++++++++++++++----------------
+ 1 file changed, 26 insertions(+), 16 deletions(-)
 
-diff -puN fs/fuse/fuse_i.h~fuse-nfs-export-special-lookups fs/fuse/fuse_i.h
---- a/fs/fuse/fuse_i.h~fuse-nfs-export-special-lookups
-+++ a/fs/fuse/fuse_i.h
-@@ -363,6 +363,9 @@ struct fuse_conn {
- 	/** Do not send separate SETATTR request before open(O_TRUNC)  */
- 	unsigned atomic_o_trunc : 1;
- 
-+	/** Filesystem supports NFS exporting.  Only set in INIT */
-+	unsigned export_support : 1;
-+
- 	/*
- 	 * The following bitfields are only for optimization purposes
- 	 * and hence races in setting them will not cause malfunction
-@@ -473,6 +476,9 @@ struct inode *fuse_iget(struct super_blo
- 			int generation, struct fuse_attr *attr,
- 			u64 attr_valid, u64 attr_version);
- 
-+int fuse_lookup_name(struct super_block *sb, u64 nodeid, struct qstr *name,
-+		     struct fuse_entry_out *outarg, struct inode **inode);
-+
- /**
-  * Send FORGET command
-  */
-diff -puN fs/fuse/inode.c~fuse-nfs-export-special-lookups fs/fuse/inode.c
---- a/fs/fuse/inode.c~fuse-nfs-export-special-lookups
-+++ a/fs/fuse/inode.c
-@@ -562,6 +562,7 @@ struct fuse_inode_handle
- static struct dentry *fuse_get_dentry(struct super_block *sb,
- 				      struct fuse_inode_handle *handle)
- {
-+	struct fuse_conn *fc = get_fuse_conn_super(sb);
- 	struct inode *inode;
- 	struct dentry *entry;
- 	int err = -ESTALE;
-@@ -570,8 +571,27 @@ static struct dentry *fuse_get_dentry(st
- 		goto out_err;
- 
- 	inode = ilookup5(sb, handle->nodeid, fuse_inode_eq, &handle->nodeid);
--	if (!inode)
--		goto out_err;
-+	if (!inode) {
-+		struct fuse_entry_out outarg;
-+		struct qstr name;
-+
-+		if (!fc->export_support)
-+			goto out_err;
-+
-+		name.len = 1;
-+		name.name = ".";
-+		err = fuse_lookup_name(sb, handle->nodeid, &name, &outarg,
-+				       &inode);
-+		if (err && err != -ENOENT)
-+			goto out_err;
-+		if (err || !inode) {
-+			err = -ESTALE;
-+			goto out_err;
-+		}
-+		err = -EIO;
-+		if (get_node_id(inode) != handle->nodeid)
-+			goto out_iput;
-+	}
- 	err = -ESTALE;
- 	if (inode->i_generation != handle->generation)
- 		goto out_iput;
-@@ -659,11 +679,46 @@ static struct dentry *fuse_fh_to_parent(
- 	return fuse_get_dentry(sb, &parent);
+diff -puN fs/fat/dir.c~fat-use-same-logic-in-fat_search_long-and-__fat_readdir fs/fat/dir.c
+--- a/fs/fat/dir.c~fat-use-same-logic-in-fat_search_long-and-__fat_readdir
++++ a/fs/fat/dir.c
+@@ -325,6 +325,19 @@ parse_long:
  }
  
-+static struct dentry *fuse_get_parent(struct dentry *child)
-+{
-+	struct inode *child_inode = child->d_inode;
-+	struct fuse_conn *fc = get_fuse_conn(child_inode);
-+	struct inode *inode;
-+	struct dentry *parent;
-+	struct fuse_entry_out outarg;
-+	struct qstr name;
-+	int err;
+ /*
++ * Maximum buffer size of short name.
++ * [(MSDOS_NAME + '.') * max one char + nul]
++ * For msdos style, ['.' (hidden) + MSDOS_NAME + '.' + nul]
++ */
++#define FAT_MAX_SHORT_SIZE	((MSDOS_NAME + 1) * NLS_MAX_CHARSET_SIZE + 1)
++/*
++ * Maximum buffer size of unicode chars from slots.
++ * [(max longname slots * 13 (size in a slot) + nul) * sizeof(wchar_t)]
++ */
++#define FAT_MAX_UNI_CHARS	((MSDOS_SLOTS - 1) * 13 + 1)
++#define FAT_MAX_UNI_SIZE	(FAT_MAX_UNI_CHARS * sizeof(wchar_t))
 +
-+	if (!fc->export_support)
-+		return ERR_PTR(-ESTALE);
-+
-+	name.len = 2;
-+	name.name = "..";
-+	err = fuse_lookup_name(child_inode->i_sb, get_node_id(child_inode),
-+			       &name, &outarg, &inode);
-+	if (err && err != -ENOENT)
-+		return ERR_PTR(err);
-+	if (err || !inode)
-+		return ERR_PTR(-ESTALE);
-+
-+	parent = d_alloc_anon(inode);
-+	if (!parent) {
-+		iput(inode);
-+		return ERR_PTR(-ENOMEM);
-+	}
-+	if (get_node_id(inode) != FUSE_ROOT_ID) {
-+		parent->d_op = &fuse_dentry_operations;
-+		fuse_invalidate_entry_cache(parent);
-+	}
-+
-+	return parent;
-+}
- 
- static const struct export_operations fuse_export_operations = {
- 	.fh_to_dentry	= fuse_fh_to_dentry,
- 	.fh_to_parent	= fuse_fh_to_parent,
- 	.encode_fh	= fuse_encode_fh,
-+	.get_parent	= fuse_get_parent,
- };
- 
- static const struct super_operations fuse_super_operations = {
-@@ -695,6 +750,11 @@ static void process_init_reply(struct fu
- 				fc->no_lock = 1;
- 			if (arg->flags & FUSE_ATOMIC_O_TRUNC)
- 				fc->atomic_o_trunc = 1;
-+			if (arg->minor >= 9) {
-+				/* LOOKUP has dependency on proto version */
-+				if (arg->flags & FUSE_EXPORT_SUPPORT)
-+					fc->export_support = 1;
-+			}
- 			if (arg->flags & FUSE_BIG_WRITES)
- 				fc->big_writes = 1;
- 		} else {
-@@ -721,7 +781,7 @@ static void fuse_send_init(struct fuse_c
- 	arg->minor = FUSE_KERNEL_MINOR_VERSION;
- 	arg->max_readahead = fc->bdi.ra_pages * PAGE_CACHE_SIZE;
- 	arg->flags |= FUSE_ASYNC_READ | FUSE_POSIX_LOCKS | FUSE_ATOMIC_O_TRUNC |
--		FUSE_BIG_WRITES;
-+		FUSE_EXPORT_SUPPORT | FUSE_BIG_WRITES;
- 	req->in.h.opcode = FUSE_INIT;
- 	req->in.numargs = 1;
- 	req->in.args[0].size = sizeof(*arg);
-diff -puN include/linux/fuse.h~fuse-nfs-export-special-lookups include/linux/fuse.h
---- a/include/linux/fuse.h~fuse-nfs-export-special-lookups
-+++ a/include/linux/fuse.h
-@@ -104,11 +104,14 @@ struct fuse_file_lock {
- 
- /**
-  * INIT request/reply flags
-+ *
-+ * FUSE_EXPORT_SUPPORT: filesystem handles lookups of "." and ".."
++/*
+  * Return values: negative -> error, 0 -> not found, positive -> found,
+  * value is the total amount of slots, including the shortname entry.
   */
- #define FUSE_ASYNC_READ		(1 << 0)
- #define FUSE_POSIX_LOCKS	(1 << 1)
- #define FUSE_FILE_OPS		(1 << 2)
- #define FUSE_ATOMIC_O_TRUNC	(1 << 3)
-+#define FUSE_EXPORT_SUPPORT	(1 << 4)
- #define FUSE_BIG_WRITES		(1 << 5)
+@@ -340,15 +353,11 @@ int fat_search_long(struct inode *inode,
+ 	wchar_t bufuname[14];
+ 	wchar_t *unicode = NULL;
+ 	unsigned char work[MSDOS_NAME];
+-	unsigned char *bufname = NULL;
++	unsigned char bufname[FAT_MAX_SHORT_SIZE];
+ 	unsigned short opt_shortname = sbi->options.shortname;
+ 	loff_t cpos = 0;
+ 	int chl, i, j, last_u, err, len;
  
- /**
+-	bufname = __getname();
+-	if (!bufname)
+-		return -ENOMEM;
+-
+ 	err = -ENOENT;
+ 	while (1) {
+ 		if (fat_get_entry(inode, &cpos, &bh, &de) == -1)
+@@ -414,14 +423,17 @@ parse_record:
+ 
+ 		/* Compare shortname */
+ 		bufuname[last_u] = 0x0000;
+-		len = fat_uni_to_x8(sbi, bufuname, bufname, PATH_MAX);
++		len = fat_uni_to_x8(sbi, bufuname, bufname, sizeof(bufname));
+ 		if (fat_name_match(sbi, name, name_len, bufname, len))
+ 			goto found;
+ 
+ 		if (nr_slots) {
++			void *longname = unicode + FAT_MAX_UNI_CHARS;
++			int size = PATH_MAX - FAT_MAX_UNI_SIZE;
++
+ 			/* Compare longname */
+-			len = fat_uni_to_x8(sbi, unicode, bufname, PATH_MAX);
+-			if (fat_name_match(sbi, name, name_len, bufname, len))
++			len = fat_uni_to_x8(sbi, unicode, longname, size);
++			if (fat_name_match(sbi, name, name_len, longname, len))
+ 				goto found;
+ 		}
+ 	}
+@@ -435,8 +447,6 @@ found:
+ 	sinfo->i_pos = fat_make_i_pos(sb, sinfo->bh, sinfo->de);
+ 	err = 0;
+ end_of_dir:
+-	if (bufname)
+-		__putname(bufname);
+ 	if (unicode)
+ 		__putname(unicode);
+ 
+@@ -466,7 +476,8 @@ static int __fat_readdir(struct inode *i
+ 	unsigned char nr_slots;
+ 	wchar_t bufuname[14];
+ 	wchar_t *unicode = NULL;
+-	unsigned char c, work[MSDOS_NAME], bufname[56], *ptname = bufname;
++	unsigned char c, work[MSDOS_NAME];
++	unsigned char bufname[FAT_MAX_SHORT_SIZE], *ptname = bufname;
+ 	unsigned short opt_shortname = sbi->options.shortname;
+ 	int isvfat = sbi->options.isvfat;
+ 	int nocase = sbi->options.nocase;
+@@ -620,11 +631,10 @@ parse_record:
+ 	fill_name = bufname;
+ 	fill_len = i;
+ 	if (!short_only && nr_slots) {
+-		/* convert the unicode long name. 261 is maximum size
+-		 * of unicode buffer. (13 * slots + nul) */
+-		void *longname = unicode + 261;
+-		int buf_size = PATH_MAX - (261 * sizeof(unicode[0]));
+-		int long_len = fat_uni_to_x8(sbi, unicode, longname, buf_size);
++		void *longname = unicode + FAT_MAX_UNI_CHARS;
++		int long_len, size = PATH_MAX - FAT_MAX_UNI_SIZE;
++
++		long_len = fat_uni_to_x8(sbi, unicode, longname, size);
+ 
+ 		if (!both) {
+ 			fill_name = longname;
 _
 
-Patches currently in -mm which might be from mszeredi@suse.cz are
+Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
 
 origin.patch
 linux-next.patch
-git-unprivileged-mounts.patch
 
