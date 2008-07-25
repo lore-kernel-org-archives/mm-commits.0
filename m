@@ -1,118 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: - edac-mpc85xx-fix-pci-ofdev-2nd-pass-checkpatch-fixes.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 17:37:18 -0700
-Message-ID: <200807250037.m6P0bIKX014626@imap1.linux-foundation.org>
+Subject: - idr-make-idr_get_new-rcu-safe-fix.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 17:32:21 -0700
+Message-ID: <200807250032.m6P0WLq2014429@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59409 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50933 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753024AbYGYAhi (ORCPT
+	by vger.kernel.org with ESMTP id S1752712AbYGYAnk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 20:37:38 -0400
+	Thu, 24 Jul 2008 20:43:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, djiang@mvista.com, dougthompson@xmission.com, mm-commits@vger.kernel.org
+To: Nadia.Derbey@bull.net, jim.houston@comcast.net, manfred@colorfullife.com, paulmck@linux.vnet.ibm.com, peifferp@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     edac-mpc85xx-fix-pci-ofdev-2nd-pass-checkpatch-fixes
+     Remove useless calls to INIT_RCU_HEAD in the idr code
 has been removed from the -mm tree.  Its filename was
-     edac-mpc85xx-fix-pci-ofdev-2nd-pass-checkpatch-fixes.patch
+     idr-make-idr_get_new-rcu-safe-fix.patch
 
-This patch was dropped because it was folded into edac-mpc85xx-fix-pci-ofdev-2nd-pass.patch
+This patch was dropped because it was folded into idr-make-idr_get_new-rcu-safe.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: edac-mpc85xx-fix-pci-ofdev-2nd-pass-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Remove useless calls to INIT_RCU_HEAD in the idr code
+From: Nadia Derbey <Nadia.Derbey@bull.net>
 
-ERROR: code indent should use tabs where possible
-#42: FILE: drivers/edac/mpc85xx_edac.c:216:
-+ ^Idev_set_drvdata(&op->dev, pci);$
+This is a trivial patch that removes unneeded calls to INIT_RCU_HEAD() in the
+idr api code.
 
-ERROR: code indent should use tabs where possible
-#43: FILE: drivers/edac/mpc85xx_edac.c:217:
-+ ^Ipci->dev = &op->dev;$
-
-ERROR: code indent should use tabs where possible
-#69: FILE: drivers/edac/mpc85xx_edac.c:238:
-+ ^I^I^I^I     r.end - r.start + 1, pdata->name)) {$
-
-total: 3 errors, 0 warnings, 154 lines checked
-
-./patches/edac-mpc85xx-fix-pci-ofdev-2nd-pass.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Dave Jiang <djiang@mvista.com>
-Cc: Doug Thompson <dougthompson@xmission.com>
+Signed-off-by: Nadia Derbey <Nadia.Derbey@bull.net>
+Acked-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Cc: Manfred Spraul <manfred@colorfullife.com>
+Cc: Jim Houston <jim.houston@comcast.net>
+Cc: Pierre Peiffer <peifferp@gmail.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/mpc85xx_edac.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ lib/idr.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN drivers/edac/mpc85xx_edac.c~edac-mpc85xx-fix-pci-ofdev-2nd-pass-checkpatch-fixes drivers/edac/mpc85xx_edac.c
---- a/drivers/edac/mpc85xx_edac.c~edac-mpc85xx-fix-pci-ofdev-2nd-pass-checkpatch-fixes
-+++ a/drivers/edac/mpc85xx_edac.c
-@@ -213,8 +213,8 @@ static int __devinit mpc85xx_pci_err_pro
- 	pdata = pci->pvt_info;
- 	pdata->name = "mpc85xx_pci_err";
- 	pdata->irq = NO_IRQ;
-- 	dev_set_drvdata(&op->dev, pci);
-- 	pci->dev = &op->dev;
-+	dev_set_drvdata(&op->dev, pci);
-+	pci->dev = &op->dev;
- 	pci->mod_name = EDAC_MOD_STR;
- 	pci->ctl_name = pdata->name;
- 	pci->dev_name = op->dev.bus_id;
-@@ -235,7 +235,7 @@ static int __devinit mpc85xx_pci_err_pro
- 	r.start += 0xe00;
- 
- 	if (!devm_request_mem_region(&op->dev, r.start,
-- 				     r.end - r.start + 1, pdata->name)) {
-+					r.end - r.start + 1, pdata->name)) {
- 		printk(KERN_ERR "%s: Error while requesting mem region\n",
- 		       __func__);
- 		res = -EBUSY;
+diff -puN lib/idr.c~idr-make-idr_get_new-rcu-safe-fix lib/idr.c
+--- a/lib/idr.c~idr-make-idr_get_new-rcu-safe-fix
++++ a/lib/idr.c
+@@ -172,7 +172,6 @@ static int sub_alloc(struct idr *idp, in
+ 			new = get_from_free_list(idp);
+ 			if (!new)
+ 				return -1;
+-			INIT_RCU_HEAD(&new->rcu_head);
+ 			rcu_assign_pointer(p->ary[m], new);
+ 			p->count++;
+ 		}
+@@ -198,7 +197,6 @@ build_up:
+ 	if (unlikely(!p)) {
+ 		if (!(p = get_from_free_list(idp)))
+ 			return -1;
+-		INIT_RCU_HEAD(&p->rcu_head);
+ 		layers = 1;
+ 	}
+ 	/*
+@@ -226,7 +224,6 @@ build_up:
+ 		}
+ 		new->ary[0] = p;
+ 		new->count = 1;
+-		INIT_RCU_HEAD(&new->rcu_head);
+ 		if (p->bitmap == IDR_FULL)
+ 			__set_bit(0, &new->bitmap);
+ 		p = new;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from Nadia.Derbey@bull.net are
 
-origin.patch
-split-the-typecheck-macros-out-of-include-linux-kernelh.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
-remove-apparently-unused-fd1772h-header-file.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm.patch
-build-kernel-profileo-only-when-requested-cleanups.patch
-seq_file-fix-bug-when-seq_read-reads-nothing.patch
-exec-remove-some-includes.patch
-inflate-refactor-inflate-malloc-code.patch
-drivers-misc-hpiloc-needs-config_pci.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments.patch
-gpio-sysfs-interface-updated.patch
-gpio-add-bt8xxgpio-driver.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction.patch
-ext3-handle-corrupted-orphan-list-at-mount.patch
-ext3-handle-deleting-corrupted-indirect-blocks.patch
-jbd-dont-abort-if-flushing-file-data-failed.patch
-reiserfs-convert-j_flush_sem-to-mutex.patch
-reiserfs-convert-j_commit_lock-to-mutex.patch
-quota-move-function-macros-from-quotah-to-quotaopsh.patch
-cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup.patch
-devcgroup-code-cleanup.patch
-memcg-remove-refcnt-from-page_cgroup.patch
-memcg-limit-change-shrink-usage.patch
-coredump-format_corename-fix-the-core_uses_pid-logic.patch
-workqueues-make-get_online_cpus-useable-for-work-func.patch
+idr-change-the-idr-structure.patch
+idr-rename-some-of-the-idr-apis-internal-routines.patch
+idr-fix-a-printk-call.patch
+idr-error-checking-factorization.patch
+idr-make-idr_get_new-rcu-safe.patch
+idr-make-idr_get_new-rcu-safe-fix.patch
+idr-make-idr_find-rcu-safe.patch
+idr-make-idr_remove-rcu-safe.patch
+ipc-call-idr_find-without-locking-in-ipc_lock.patch
+ipc-get-rid-of-ipc_lock_down.patch
 ipc-semc-convert-undo-structures-to-struct-list_head.patch
+ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-remove-unused-entries-from-struct-sem_queue.patch
 ipc-semc-convert-sem_arraysem_pending-to-struct-list_head.patch
+ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
 ipc-semc-rewrite-undo-list-locking.patch
-fs-partition-checkc-fix-return-value-warning.patch
-block-ioctlc-and-fs-partition-checkc.patch
-edac-mpc85xx-fix-pci-ofdev-2nd-pass.patch
-edac-mpc85xx-fix-pci-ofdev-2nd-pass-checkpatch-fixes.patch
+ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
+ipc-use-simple_read_from_buffer.patch
+ipc-do-not-use-a-negative-value-to-re-enable-msgmni-automatic-recomputing.patch
 
