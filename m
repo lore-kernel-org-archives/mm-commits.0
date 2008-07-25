@@ -1,199 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: - sm501-gpio-i2c-support.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 15:55:42 -0700
-Message-ID: <200807252255.m6PMtgdX002998@imap1.linux-foundation.org>
+Subject: - ext3-correct-mount-option-parsing-to-detect-when-quota-options-can-be-changed.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 15:56:23 -0700
+Message-ID: <200807252256.m6PMuNZO003082@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33205 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54903 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753384AbYGYW44 (ORCPT
+	by vger.kernel.org with ESMTP id S1753502AbYGYW46 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 18:56:56 -0400
+	Fri, 25 Jul 2008 18:56:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ben-linux@fluff.org, apatard@mandriva.com, david-b@pacbell.net, mm-commits@vger.kernel.org
+To: jack@suse.cz, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sm501: gpio I2C support
+     ext3: correct mount option parsing to detect when quota options can be changed
 has been removed from the -mm tree.  Its filename was
-     sm501-gpio-i2c-support.patch
+     ext3-correct-mount-option-parsing-to-detect-when-quota-options-can-be-changed.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sm501: gpio I2C support
-From: Ben Dooks <ben-linux@fluff.org>
+Subject: ext3: correct mount option parsing to detect when quota options can be changed
+From: Jan Kara <jack@suse.cz>
 
-Add support for adding the GPIO based I2C resources.
+We should not allow user to change quota mount options when quota is just
+suspended.  I would make mount options and internal quota state inconsistent. 
+Also we should not allow user to change quota format when quota is turned on. 
+On the other hand we can just silently ignore when some option is set to the
+value it already has (mount does this on remount).
 
-Signed-off-by: Ben Dooks <ben-linux@fluff.org>
-Cc: Arnaud Patard <apatard@mandriva.com>
-Cc: David Brownell <david-b@pacbell.net>
+Cc: <linux-ext4@vger.kernel.org>
+Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/sm501.c   |   76 +++++++++++++++++++++++++++++++++++++++-
- include/linux/sm501.h |   10 ++++-
- 2 files changed, 84 insertions(+), 2 deletions(-)
+ fs/ext3/super.c |   29 ++++++++++++++++++++++-------
+ 1 file changed, 22 insertions(+), 7 deletions(-)
 
-diff -puN drivers/mfd/sm501.c~sm501-gpio-i2c-support drivers/mfd/sm501.c
---- a/drivers/mfd/sm501.c~sm501-gpio-i2c-support
-+++ a/drivers/mfd/sm501.c
-@@ -20,6 +20,7 @@
- #include <linux/platform_device.h>
- #include <linux/pci.h>
- #include <linux/gpio.h>
-+#include <linux/i2c-gpio.h>
- 
- #include <linux/sm501.h>
- #include <linux/sm501-regs.h>
-@@ -1086,6 +1087,11 @@ static void sm501_gpio_remove(struct sm5
- 		dev_err(sm->dev, "cannot remove high chip, cannot tidy up\n");
- }
- 
-+static int sm501_gpio_pin2nr(struct sm501_devdata *sm, unsigned int pin)
-+{
-+	struct sm501_gpio *gpio = &sm->gpio;
-+	return pin + (pin < 32) ? gpio->low.gpio.base : gpio->high.gpio.base;
-+}
- #else
- static int sm501_register_gpio(struct sm501_devdata *sm)
- {
-@@ -1095,8 +1101,66 @@ static int sm501_register_gpio(struct sm
- static void sm501_gpio_remove(struct sm501_devdata *sm)
- {
- }
-+
-+static int sm501_gpio_pin2nr(struct sm501_devdata *sm, unsigned int pin)
-+{
-+	return -1;
-+}
+diff -puN fs/ext3/super.c~ext3-correct-mount-option-parsing-to-detect-when-quota-options-can-be-changed fs/ext3/super.c
+--- a/fs/ext3/super.c~ext3-correct-mount-option-parsing-to-detect-when-quota-options-can-be-changed
++++ a/fs/ext3/super.c
+@@ -842,7 +842,7 @@ static int parse_options (char *options,
+ 	int data_opt = 0;
+ 	int option;
+ #ifdef CONFIG_QUOTA
+-	int qtype;
++	int qtype, qfmt;
+ 	char *qname;
  #endif
  
-+static int sm501_register_gpio_i2c_instance(struct sm501_devdata *sm,
-+					    struct sm501_platdata_gpio_i2c *iic)
-+{
-+	struct i2c_gpio_platform_data *icd;
-+	struct platform_device *pdev;
-+
-+	pdev = sm501_create_subdev(sm, "i2c-gpio", 0,
-+				   sizeof(struct i2c_gpio_platform_data));
-+	if (!pdev)
-+		return -ENOMEM;
-+
-+	icd = pdev->dev.platform_data;
-+
-+	/* We keep the pin_sda and pin_scl fields relative in case the
-+	 * same platform data is passed to >1 SM501.
-+	 */
-+
-+	icd->sda_pin = sm501_gpio_pin2nr(sm, iic->pin_sda);
-+	icd->scl_pin = sm501_gpio_pin2nr(sm, iic->pin_scl);
-+	icd->timeout = iic->timeout;
-+	icd->udelay = iic->udelay;
-+
-+	/* note, we can't use either of the pin numbers, as the i2c-gpio
-+	 * driver uses the platform.id field to generate the bus number
-+	 * to register with the i2c core; The i2c core doesn't have enough
-+	 * entries to deal with anything we currently use.
-+	*/
-+
-+	pdev->id = iic->bus_num;
-+
-+	dev_info(sm->dev, "registering i2c-%d: sda=%d (%d), scl=%d (%d)\n",
-+		 iic->bus_num,
-+		 icd->sda_pin, iic->pin_sda, icd->scl_pin, iic->pin_scl);
-+
-+	return sm501_register_device(sm, pdev);
-+}
-+
-+static int sm501_register_gpio_i2c(struct sm501_devdata *sm,
-+				   struct sm501_platdata *pdata)
-+{
-+	struct sm501_platdata_gpio_i2c *iic = pdata->gpio_i2c;
-+	int index;
-+	int ret;
-+
-+	for (index = 0; index < pdata->gpio_i2c_nr; index++, iic++) {
-+		ret = sm501_register_gpio_i2c_instance(sm, iic);
-+		if (ret < 0)
-+			return ret;
-+	}
-+
-+	return 0;
-+}
-+
- /* sm501_dbg_regs
-  *
-  * Debug attribute to attach to parent device to show core registers
-@@ -1204,6 +1268,7 @@ static unsigned int sm501_mem_local[] = 
- static int sm501_init_dev(struct sm501_devdata *sm)
- {
- 	struct sm501_initdata *idata;
-+	struct sm501_platdata *pdata;
- 	resource_size_t mem_avail;
- 	unsigned long dramctrl;
- 	unsigned long devid;
-@@ -1242,7 +1307,9 @@ static int sm501_init_dev(struct sm501_d
- 
- 	/* check to see if we have some device initialisation */
- 
--	idata = sm->platdata ? sm->platdata->init : NULL;
-+	pdata = sm->platdata;
-+	idata = pdata ? pdata->init : NULL;
-+
- 	if (idata) {
- 		sm501_init_regs(sm, idata);
- 
-@@ -1254,6 +1321,13 @@ static int sm501_init_dev(struct sm501_d
- 			sm501_register_gpio(sm);
- 	}
- 
-+	if (pdata->gpio_i2c != NULL && pdata->gpio_i2c_nr > 0) {
-+		if (!sm->gpio.registered)
-+			dev_err(sm->dev, "no gpio registered for i2c gpio.\n");
-+		else
-+			sm501_register_gpio_i2c(sm, pdata);
-+	}
-+
- 	ret = sm501_check_clocks(sm);
- 	if (ret) {
- 		dev_err(sm->dev, "M1X and M clocks sourced from different "
-diff -puN include/linux/sm501.h~sm501-gpio-i2c-support include/linux/sm501.h
---- a/include/linux/sm501.h~sm501-gpio-i2c-support
-+++ a/include/linux/sm501.h
-@@ -86,11 +86,19 @@ struct sm501_platdata_fb {
- 	struct sm501_platdata_fbsub	*fb_pnl;
- };
- 
--/* gpio i2c */
-+/* gpio i2c
-+ *
-+ * Note, we have to pass in the bus number, as the number used will be
-+ * passed to the i2c-gpio driver's platform_device.id, subsequently used
-+ * to register the i2c bus.
-+*/
- 
- struct sm501_platdata_gpio_i2c {
-+	unsigned int		bus_num;
- 	unsigned int		pin_sda;
- 	unsigned int		pin_scl;
-+	int			udelay;
-+	int			timeout;
- };
- 
- /* sm501_initdata
+@@ -1018,7 +1018,9 @@ static int parse_options (char *options,
+ 		case Opt_grpjquota:
+ 			qtype = GRPQUOTA;
+ set_qf_name:
+-			if (sb_any_quota_enabled(sb)) {
++			if ((sb_any_quota_enabled(sb) ||
++			     sb_any_quota_suspended(sb)) &&
++			    !sbi->s_qf_names[qtype]) {
+ 				printk(KERN_ERR
+ 					"EXT3-fs: Cannot change journaled "
+ 					"quota options when quota turned on.\n");
+@@ -1056,7 +1058,9 @@ set_qf_name:
+ 		case Opt_offgrpjquota:
+ 			qtype = GRPQUOTA;
+ clear_qf_name:
+-			if (sb_any_quota_enabled(sb)) {
++			if ((sb_any_quota_enabled(sb) ||
++			     sb_any_quota_suspended(sb)) &&
++			    sbi->s_qf_names[qtype]) {
+ 				printk(KERN_ERR "EXT3-fs: Cannot change "
+ 					"journaled quota options when "
+ 					"quota turned on.\n");
+@@ -1069,10 +1073,20 @@ clear_qf_name:
+ 			sbi->s_qf_names[qtype] = NULL;
+ 			break;
+ 		case Opt_jqfmt_vfsold:
+-			sbi->s_jquota_fmt = QFMT_VFS_OLD;
+-			break;
++			qfmt = QFMT_VFS_OLD;
++			goto set_qf_format;
+ 		case Opt_jqfmt_vfsv0:
+-			sbi->s_jquota_fmt = QFMT_VFS_V0;
++			qfmt = QFMT_VFS_V0;
++set_qf_format:
++			if ((sb_any_quota_enabled(sb) ||
++			     sb_any_quota_suspended(sb)) &&
++			    sbi->s_jquota_fmt != qfmt) {
++				printk(KERN_ERR "EXT3-fs: Cannot change "
++					"journaled quota options when "
++					"quota turned on.\n");
++				return 0;
++			}
++			sbi->s_jquota_fmt = qfmt;
+ 			break;
+ 		case Opt_quota:
+ 		case Opt_usrquota:
+@@ -1084,7 +1098,8 @@ clear_qf_name:
+ 			set_opt(sbi->s_mount_opt, GRPQUOTA);
+ 			break;
+ 		case Opt_noquota:
+-			if (sb_any_quota_enabled(sb)) {
++			if (sb_any_quota_enabled(sb) ||
++			    sb_any_quota_suspended(sb)) {
+ 				printk(KERN_ERR "EXT3-fs: Cannot change quota "
+ 					"options when quota turned on.\n");
+ 				return 0;
 _
 
-Patches currently in -mm which might be from ben-linux@fluff.org are
+Patches currently in -mm which might be from jack@suse.cz are
 
 origin.patch
-linux-next.patch
-resource-add-resource_size.patch
-resource-add-resource_type-and-ioresource_type_bits.patch
-resource-add-new-ioresource_clk-type-v2.patch
-i2c-sh_mobile-ioresource_clk-support.patch
 
