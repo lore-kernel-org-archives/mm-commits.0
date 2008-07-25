@@ -1,165 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: - coredump-simplify-core_state-nr_threads-calculation.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 15:59:56 -0700
-Message-ID: <200807252259.m6PMxuFH003438@imap1.linux-foundation.org>
+Subject: - pty-remove-unused-unix98_pty_count-options.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 16:01:05 -0700
+Message-ID: <200807252301.m6PN151w003681@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58758 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49734 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755029AbYGYXGv (ORCPT
+	by vger.kernel.org with ESMTP id S1754894AbYGYXHI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:06:51 -0400
+	Fri, 25 Jul 2008 19:07:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, roland@redhat.com, mm-commits@vger.kernel.org
+To: bunk@kernel.org, davem@davemloft.net, rpjday@crashcourse.ca, ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     coredump: simplify core_state->nr_threads calculation
+     pty: remove unused UNIX98_PTY_COUNT options
 has been removed from the -mm tree.  Its filename was
-     coredump-simplify-core_state-nr_threads-calculation.patch
+     pty-remove-unused-unix98_pty_count-options.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: coredump: simplify core_state->nr_threads calculation
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: pty: remove unused UNIX98_PTY_COUNT options
+From: Adrian Bunk <bunk@kernel.org>
 
-Change zap_process() to return int instead of incrementing
-mm->core_state->nr_threads directly.  Change zap_threads() to set
-mm->core_state only on success.
+The h8300 and sparc options somehow survived when the code stopped using
+CONFIG_UNIX98_PTY_COUNT.
 
-This patch restores the original size of .text, and more importantly now
-->nr_threads is used in two places only.
-
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Roland McGrath <roland@redhat.com>
+Reviewed-by: Robert P. J. Day <rpjday@crashcourse.ca>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |   33 ++++++++++++++++-----------------
- 1 file changed, 16 insertions(+), 17 deletions(-)
+ arch/h8300/Kconfig |   14 --------------
+ arch/sparc/Kconfig |   14 --------------
+ 2 files changed, 28 deletions(-)
 
-diff -puN fs/exec.c~coredump-simplify-core_state-nr_threads-calculation fs/exec.c
---- a/fs/exec.c~coredump-simplify-core_state-nr_threads-calculation
-+++ a/fs/exec.c
-@@ -1502,9 +1502,10 @@ out:
- 	return ispipe;
- }
+diff -puN arch/h8300/Kconfig~pty-remove-unused-unix98_pty_count-options arch/h8300/Kconfig
+--- a/arch/h8300/Kconfig~pty-remove-unused-unix98_pty_count-options
++++ a/arch/h8300/Kconfig
+@@ -203,20 +203,6 @@ config UNIX98_PTYS
+ 	  Read the instructions in <file:Documentation/Changes> pertaining to
+ 	  pseudo terminals. It's safe to say N.
  
--static void zap_process(struct task_struct *start)
-+static int zap_process(struct task_struct *start)
- {
- 	struct task_struct *t;
-+	int nr = 0;
- 
- 	start->signal->flags = SIGNAL_GROUP_EXIT;
- 	start->signal->group_stop_count = 0;
-@@ -1512,31 +1513,33 @@ static void zap_process(struct task_stru
- 	t = start;
- 	do {
- 		if (t != current && t->mm) {
--			t->mm->core_state->nr_threads++;
- 			sigaddset(&t->pending.signal, SIGKILL);
- 			signal_wake_up(t, 1);
-+			nr++;
- 		}
- 	} while_each_thread(start, t);
-+
-+	return nr;
- }
- 
- static inline int zap_threads(struct task_struct *tsk, struct mm_struct *mm,
--				int exit_code)
-+				struct core_state *core_state, int exit_code)
- {
- 	struct task_struct *g, *p;
- 	unsigned long flags;
--	int err = -EAGAIN;
-+	int nr = -EAGAIN;
- 
- 	spin_lock_irq(&tsk->sighand->siglock);
- 	if (!signal_group_exit(tsk->signal)) {
-+		mm->core_state = core_state;
- 		tsk->signal->group_exit_code = exit_code;
--		zap_process(tsk);
--		err = 0;
-+		nr = zap_process(tsk);
- 	}
- 	spin_unlock_irq(&tsk->sighand->siglock);
--	if (err)
--		return err;
-+	if (unlikely(nr < 0))
-+		return nr;
- 
--	if (atomic_read(&mm->mm_users) == mm->core_state->nr_threads + 1)
-+	if (atomic_read(&mm->mm_users) == nr + 1)
- 		goto done;
- 	/*
- 	 * We should find and kill all tasks which use this mm, and we should
-@@ -1579,7 +1582,7 @@ static inline int zap_threads(struct tas
- 			if (p->mm) {
- 				if (unlikely(p->mm == mm)) {
- 					lock_task_sighand(p, &flags);
--					zap_process(p);
-+					nr += zap_process(p);
- 					unlock_task_sighand(p, &flags);
- 				}
- 				break;
-@@ -1588,7 +1591,8 @@ static inline int zap_threads(struct tas
- 	}
- 	rcu_read_unlock();
- done:
--	return mm->core_state->nr_threads;
-+	core_state->nr_threads = nr;
-+	return nr;
- }
- 
- static int coredump_wait(int exit_code)
-@@ -1601,12 +1605,7 @@ static int coredump_wait(int exit_code)
- 
- 	init_completion(&mm->core_done);
- 	init_completion(&core_state.startup);
--	core_state.nr_threads = 0;
--	mm->core_state = &core_state;
+-config UNIX98_PTY_COUNT
+-	int "Maximum number of Unix98 PTYs in use (0-2048)"
+-	depends on UNIX98_PTYS
+-	default "256"
+-	help
+-	  The maximum number of Unix98 PTYs that can be used at any one time.
+-	  The default is 256, and should be enough for desktop systems. Server
+-	  machines which support incoming telnet/rlogin/ssh connections and/or
+-	  serve several X terminals may want to increase this: every incoming
+-	  connection and every xterm uses up one PTY.
 -
--	core_waiters = zap_threads(tsk, mm, exit_code);
--	if (core_waiters < 0)
--		mm->core_state = NULL;
-+	core_waiters = zap_threads(tsk, mm, &core_state, exit_code);
- 	up_write(&mm->mmap_sem);
+-	  When not in use, each additional set of 256 PTYs occupy
+-	  approximately 8 KB of kernel memory on 32-bit architectures.
+-
+ source "drivers/char/pcmcia/Kconfig"
  
- 	if (unlikely(core_waiters < 0))
+ source "drivers/serial/Kconfig"
+diff -puN arch/sparc/Kconfig~pty-remove-unused-unix98_pty_count-options arch/sparc/Kconfig
+--- a/arch/sparc/Kconfig~pty-remove-unused-unix98_pty_count-options
++++ a/arch/sparc/Kconfig
+@@ -298,20 +298,6 @@ config UNIX98_PTYS
+ 	  Read the instructions in <file:Documentation/Changes> pertaining to
+ 	  pseudo terminals. It's safe to say N.
+ 
+-config UNIX98_PTY_COUNT
+-	int "Maximum number of Unix98 PTYs in use (0-2048)"
+-	depends on UNIX98_PTYS
+-	default "256"
+-	help
+-	  The maximum number of Unix98 PTYs that can be used at any one time.
+-	  The default is 256, and should be enough for desktop systems. Server
+-	  machines which support incoming telnet/rlogin/ssh connections and/or
+-	  serve several X terminals may want to increase this: every incoming
+-	  connection and every xterm uses up one PTY.
+-
+-	  When not in use, each additional set of 256 PTYs occupy
+-	  approximately 8 KB of kernel memory on 32-bit architectures.
+-
+ endmenu
+ 
+ source "fs/Kconfig"
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from bunk@kernel.org are
 
 origin.patch
+uninline-arch_pick_mmap_layout.patch
+include-video-atmel_lcdch-must-include-linux-workqueueh.patch
 linux-next.patch
-migrate_timers-add-comment-use-spinlock_irq.patch
-tracehook-add-linux-tracehookh.patch
-tracehook-exec.patch
-tracehook-unexport-ptrace_notify.patch
-tracehook-exit.patch
-tracehook-clone.patch
-tracehook-vfork-done.patch
-tracehook-release_task.patch
-tracehook-tracehook_tracer_task.patch
-tracehook-tracehook_expect_breakpoints.patch
-tracehook-tracehook_signal_handler.patch
-tracehook-tracehook_consider_ignored_signal.patch
-tracehook-tracehook_consider_fatal_signal.patch
-tracehook-syscall.patch
-tracehook-get_signal_to_deliver.patch
-tracehook-job-control.patch
-tracehook-death.patch
-tracehook-force-signal_pending.patch
-tracehook-tif_notify_resume.patch
-tracehook-asm-syscallh.patch
-tracehook-config_have_arch_tracehook.patch
-tracehook-wait_task_inactive.patch
-task_current_syscall.patch
-proc-pid-syscall.patch
+m32r-remove-the-unused-nohighmem-option.patch
+if-0-ses_match_host.patch
+git-xtensa.patch
+include-linux-kernelh-userspace-header-cleanup.patch
+parport-sharec-proper-externs.patch
+tpm_biosc-make-2-structs-static.patch
+drm-make-drm_minors_cleanup-static.patch
+make-cgroup_seqfile_release-static.patch
+make-pnp_add_card_id-static.patch
+make-parport_cs_release-static.patch
+make-mm-sparsec-make-a-function-static.patch
+mm-allocpercpuc-make-4-functions-static.patch
+make-mm-memoryc-print_bad_pte-static.patch
+mm-swapfilec-make-code-static.patch
+make-mm-rmapc-anon_vma_cachep-static.patch
+drivers-char-rtcc-make-2-functions-static.patch
+make-init-do_mountsc-root_device_name-static.patch
+make-macfb_setup-static.patch
+video-console-sticonrec-make-code-static.patch
+video-console-sticonrec-make-code-static-checkpatch-fixes.patch
+video-stifbc-make-2-functions-static.patch
+reiser4.patch
 
