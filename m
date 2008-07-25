@@ -1,56 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 17:19:31 -0700
-Message-ID: <200807250019.m6P0JVPT013796@imap1.linux-foundation.org>
+Subject: - quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 17:19:34 -0700
+Message-ID: <200807250019.m6P0JYHi013799@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49150 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34164 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752873AbYGYATf (ORCPT
+	by vger.kernel.org with ESMTP id S1752915AbYGYATi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 20:19:35 -0400
+	Thu, 24 Jul 2008 20:19:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, jack@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     quota-move-function-macros-from-quotah-to-quotaopsh jfs fix
+     quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix
 has been removed from the -mm tree.  Its filename was
-     quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
+     quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
 
 This patch was dropped because it was folded into quota-move-function-macros-from-quotah-to-quotaopsh.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: quota-move-function-macros-from-quotah-to-quotaopsh jfs fix
+Subject: quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
-
-fs/jfs/super.c: In function 'jfs_quota_read':
-fs/jfs/super.c:631: error: implicit declaration of function 'sb_dqopt'
-fs/jfs/super.c:631: error: invalid type argument of '->'
-fs/jfs/super.c: In function 'jfs_quota_write':
-fs/jfs/super.c:676: error: invalid type argument of '->'
 
 Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jfs/super.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/reiserfs/super.c |    1 +
+ fs/ufs/super.c      |    1 +
+ 2 files changed, 2 insertions(+)
 
-diff -puN fs/jfs/super.c~quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix fs/jfs/super.c
---- a/fs/jfs/super.c~quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix
-+++ a/fs/jfs/super.c
+diff -puN fs/reiserfs/super.c~quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix fs/reiserfs/super.c
+--- a/fs/reiserfs/super.c~quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix
++++ a/fs/reiserfs/super.c
 @@ -22,6 +22,7 @@
- #include <linux/parser.h>
- #include <linux/completion.h>
- #include <linux/vfs.h>
+ #include <linux/blkdev.h>
+ #include <linux/buffer_head.h>
+ #include <linux/exportfs.h>
 +#include <linux/quotaops.h>
+ #include <linux/vfs.h>
+ #include <linux/mnt_namespace.h>
  #include <linux/mount.h>
- #include <linux/moduleparam.h>
- #include <linux/kthread.h>
+diff -puN fs/ufs/super.c~quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix fs/ufs/super.c
+--- a/fs/ufs/super.c~quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix
++++ a/fs/ufs/super.c
+@@ -76,6 +76,7 @@
+ 
+ #include <linux/errno.h>
+ #include <linux/fs.h>
++#include <linux/quotaops.h>
+ #include <linux/slab.h>
+ #include <linux/time.h>
+ #include <linux/stat.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -75,7 +81,6 @@ jbd-dont-abort-if-flushing-file-data-failed.patch
 reiserfs-convert-j_flush_sem-to-mutex.patch
 reiserfs-convert-j_commit_lock-to-mutex.patch
 quota-move-function-macros-from-quotah-to-quotaopsh.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
 quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
 cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-fix.patch
 cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-checkpatch-fixes.patch
