@@ -1,101 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: - ixj-push-bkl-into-driver-and-wrap-ioctls.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 16:01:28 -0700
-Message-ID: <200807252301.m6PN1Swf003711@imap1.linux-foundation.org>
+Subject: - reiserfs-convert-j_lock-to-mutex.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 15:57:14 -0700
+Message-ID: <200807252257.m6PMvE8L003165@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35582 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46187 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755694AbYGYXHq (ORCPT
+	by vger.kernel.org with ESMTP id S1752086AbYGYXHp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:07:46 -0400
+	Fri, 25 Jul 2008 19:07:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, domen@coderock.org, nacc@us.ibm.com, mm-commits@vger.kernel.org
+To: jeffm@suse.com, chris.mason@oracle.com, edward.shishkin@gmail.com, matthew@wil.cx, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ixj: push BKL into driver and wrap ioctls
+     reiserfs: convert j_lock to mutex
 has been removed from the -mm tree.  Its filename was
-     ixj-push-bkl-into-driver-and-wrap-ioctls.patch
+     reiserfs-convert-j_lock-to-mutex.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ixj: push BKL into driver and wrap ioctls
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: reiserfs: convert j_lock to mutex
+From: Jeff Mahoney <jeffm@suse.com>
 
-Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Nishanth Aravamudan <nacc@us.ibm.com>
-Cc: Domen Puncer <domen@coderock.org>
+j_lock is a semaphore but uses it as if it were a mutex.  This patch converts
+it to a mutex.
+
+Signed-off-by: Jeff Mahoney <jeffm@suse.com>
+Cc: Matthew Wilcox <matthew@wil.cx>
+Cc: Chris Mason <chris.mason@oracle.com>
+Cc: Edward Shishkin <edward.shishkin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/telephony/ixj.c |   17 +++++++++++++----
- 1 file changed, 13 insertions(+), 4 deletions(-)
+ fs/reiserfs/journal.c          |    6 +++---
+ include/linux/reiserfs_fs_sb.h |    2 +-
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/telephony/ixj.c~ixj-push-bkl-into-driver-and-wrap-ioctls drivers/telephony/ixj.c
---- a/drivers/telephony/ixj.c~ixj-push-bkl-into-driver-and-wrap-ioctls
-+++ a/drivers/telephony/ixj.c
-@@ -6095,15 +6095,15 @@ static int capabilities_check(IXJ *j, st
- 	return retval;
+diff -puN fs/reiserfs/journal.c~reiserfs-convert-j_lock-to-mutex fs/reiserfs/journal.c
+--- a/fs/reiserfs/journal.c~reiserfs-convert-j_lock-to-mutex
++++ a/fs/reiserfs/journal.c
+@@ -558,13 +558,13 @@ static inline void insert_journal_hash(s
+ static inline void lock_journal(struct super_block *p_s_sb)
+ {
+ 	PROC_INFO_INC(p_s_sb, journal.lock_journal);
+-	down(&SB_JOURNAL(p_s_sb)->j_lock);
++	mutex_lock(&SB_JOURNAL(p_s_sb)->j_mutex);
  }
  
--static int ixj_ioctl(struct inode *inode, struct file *file_p, unsigned int cmd, unsigned long arg)
-+static long do_ixj_ioctl(struct file *file_p, unsigned int cmd, unsigned long arg)
+ /* unlock the current transaction */
+ static inline void unlock_journal(struct super_block *p_s_sb)
  {
- 	IXJ_TONE ti;
- 	IXJ_FILTER jf;
- 	IXJ_FILTER_RAW jfr;
- 	void __user *argp = (void __user *)arg;
--
--	unsigned int raise, mant;
-+	struct inode *inode = file_p->f_path.dentry->d_inode;
- 	unsigned int minor = iminor(inode);
-+	unsigned int raise, mant;
- 	int board = NUM(inode);
- 
- 	IXJ *j = get_ixj(NUM(inode));
-@@ -6661,6 +6661,15 @@ static int ixj_ioctl(struct inode *inode
- 	return retval;
+-	up(&SB_JOURNAL(p_s_sb)->j_lock);
++	mutex_unlock(&SB_JOURNAL(p_s_sb)->j_mutex);
  }
  
-+static long ixj_ioctl(struct file *file_p, unsigned int cmd, unsigned long arg)
-+{
-+	long ret;
-+	lock_kernel();
-+	ret = do_ixj_ioctl(file_p, cmd, arg);
-+	unlock_kernel();
-+	return ret;
-+}
-+
- static int ixj_fasync(int fd, struct file *file_p, int mode)
- {
- 	IXJ *j = get_ixj(NUM(file_p->f_path.dentry->d_inode));
-@@ -6674,7 +6683,7 @@ static const struct file_operations ixj_
-         .read           = ixj_enhanced_read,
-         .write          = ixj_enhanced_write,
-         .poll           = ixj_poll,
--        .ioctl          = ixj_ioctl,
-+        .unlocked_ioctl = ixj_ioctl,
-         .release        = ixj_release,
-         .fasync         = ixj_fasync
- };
+ static inline void get_journal_list(struct reiserfs_journal_list *jl)
+@@ -2837,7 +2837,7 @@ int journal_init(struct super_block *p_s
+ 	journal->j_last = NULL;
+ 	journal->j_first = NULL;
+ 	init_waitqueue_head(&(journal->j_join_wait));
+-	sema_init(&journal->j_lock, 1);
++	mutex_init(&journal->j_mutex);
+ 	sema_init(&journal->j_flush_sem, 1);
+ 
+ 	journal->j_trans_id = 10;
+diff -puN include/linux/reiserfs_fs_sb.h~reiserfs-convert-j_lock-to-mutex include/linux/reiserfs_fs_sb.h
+--- a/include/linux/reiserfs_fs_sb.h~reiserfs-convert-j_lock-to-mutex
++++ a/include/linux/reiserfs_fs_sb.h
+@@ -193,7 +193,7 @@ struct reiserfs_journal {
+ 	struct buffer_head *j_header_bh;
+ 
+ 	time_t j_trans_start_time;	/* time this transaction started */
+-	struct semaphore j_lock;
++	struct mutex j_mutex;
+ 	struct semaphore j_flush_sem;
+ 	wait_queue_head_t j_join_wait;	/* wait for current transaction to finish before starting new one */
+ 	atomic_t j_jlock;	/* lock for j_join_wait */
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from jeffm@suse.com are
 
 origin.patch
-hugetlb-fix-config_sysctl=n-build.patch
-add-time_is_after_jiffies-and-others-which-compare-with-jiffies.patch
-pata_viac-add-flag-for-vx800-and-add-a-function-for-fixing-internal-bugs-for-via-chipsets.patch
-pnp-set-the-pnp_card-dma_mask-for-use-by-isapnp-cards.patch
-isa-set-24-bit-dma_mask-for-isa-devices.patch
-char-merge-ip2main-and-ip2base.patch
-char-ip2-cleanup-globals.patch
-char-ip2-fix-sparse-warnings.patch
-char-ip2-init-deinit-cleanup.patch
-ip2-avoid-add_timer-with-pending-timer.patch
 
