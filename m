@@ -1,83 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: - unexport-uts_sem.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 16:02:42 -0700
-Message-ID: <200807252302.m6PN2gkS003846@imap1.linux-foundation.org>
+Subject: - quota-cleanup-loop-in-sync_dquots.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 15:57:50 -0700
+Message-ID: <200807252257.m6PMvojp003226@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32911 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44104 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754564AbYGYXGg (ORCPT
+	by vger.kernel.org with ESMTP id S1753608AbYGYXGd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:06:36 -0400
+	Fri, 25 Jul 2008 19:06:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, davem@davemloft.net, mm-commits@vger.kernel.org
+To: jack@suse.cz, vegard.nossum@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     unexport uts_sem
+     quota: cleanup loop in sync_dquots()
 has been removed from the -mm tree.  Its filename was
-     unexport-uts_sem.patch
+     quota-cleanup-loop-in-sync_dquots.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: unexport uts_sem
-From: Adrian Bunk <bunk@kernel.org>
+Subject: quota: cleanup loop in sync_dquots()
+From: Jan Kara <jack@suse.cz>
 
-With the removal of the Solaris binary emulation the export of
-uts_sem became unused.
+Make loop in sync_dquots() checking whether there's something to write
+more readable, remove useless variable and macro info_any_dirty() which
+is used only in this place.
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Acked-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: "Vegard Nossum" <vegard.nossum@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c |    2 --
- 1 file changed, 2 deletions(-)
+ fs/quota.c            |   18 ++++++++++++------
+ include/linux/quota.h |    2 --
+ 2 files changed, 12 insertions(+), 8 deletions(-)
 
-diff -puN kernel/sys.c~unexport-uts_sem kernel/sys.c
---- a/kernel/sys.c~unexport-uts_sem
-+++ a/kernel/sys.c
-@@ -1343,8 +1343,6 @@ EXPORT_SYMBOL(in_egroup_p);
+diff -puN fs/quota.c~quota-cleanup-loop-in-sync_dquots fs/quota.c
+--- a/fs/quota.c~quota-cleanup-loop-in-sync_dquots
++++ a/fs/quota.c
+@@ -186,7 +186,7 @@ static void quota_sync_sb(struct super_b
  
- DECLARE_RWSEM(uts_sem);
- 
--EXPORT_SYMBOL(uts_sem);
--
- asmlinkage long sys_newuname(struct new_utsname __user * name)
+ void sync_dquots(struct super_block *sb, int type)
  {
- 	int errno = 0;
+-	int cnt, dirty;
++	int cnt;
+ 
+ 	if (sb) {
+ 		if (sb->s_qcop->quota_sync)
+@@ -198,11 +198,17 @@ void sync_dquots(struct super_block *sb,
+ restart:
+ 	list_for_each_entry(sb, &super_blocks, s_list) {
+ 		/* This test just improves performance so it needn't be reliable... */
+-		for (cnt = 0, dirty = 0; cnt < MAXQUOTAS; cnt++)
+-			if ((type == cnt || type == -1) && sb_has_quota_enabled(sb, cnt)
+-			    && info_any_dirty(&sb_dqopt(sb)->info[cnt]))
+-				dirty = 1;
+-		if (!dirty)
++		for (cnt = 0; cnt < MAXQUOTAS; cnt++) {
++			if (type != -1 && type != cnt)
++				continue;
++			if (!sb_has_quota_enabled(sb, cnt))
++				continue;
++			if (!info_dirty(&sb_dqopt(sb)->info[cnt]) &&
++			    list_empty(&sb_dqopt(sb)->info[cnt].dqi_dirty_list))
++				continue;
++			break;
++		}
++		if (cnt == MAXQUOTAS)
+ 			continue;
+ 		sb->s_count++;
+ 		spin_unlock(&sb_lock);
+diff -puN include/linux/quota.h~quota-cleanup-loop-in-sync_dquots include/linux/quota.h
+--- a/include/linux/quota.h~quota-cleanup-loop-in-sync_dquots
++++ a/include/linux/quota.h
+@@ -224,8 +224,6 @@ struct super_block;
+ 
+ extern void mark_info_dirty(struct super_block *sb, int type);
+ #define info_dirty(info) test_bit(DQF_INFO_DIRTY_B, &(info)->dqi_flags)
+-#define info_any_dquot_dirty(info) (!list_empty(&(info)->dqi_dirty_list))
+-#define info_any_dirty(info) (info_dirty(info) || info_any_dquot_dirty(info))
+ 
+ #define sb_dqopt(sb) (&(sb)->s_dquot)
+ #define sb_dqinfo(sb, type) (sb_dqopt(sb)->info+(type))
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from jack@suse.cz are
 
 origin.patch
-uninline-arch_pick_mmap_layout.patch
-include-video-atmel_lcdch-must-include-linux-workqueueh.patch
-linux-next.patch
-m32r-remove-the-unused-nohighmem-option.patch
-if-0-ses_match_host.patch
-git-xtensa.patch
-include-linux-kernelh-userspace-header-cleanup.patch
-parport-sharec-proper-externs.patch
-tpm_biosc-make-2-structs-static.patch
-drm-make-drm_minors_cleanup-static.patch
-make-cgroup_seqfile_release-static.patch
-make-pnp_add_card_id-static.patch
-make-parport_cs_release-static.patch
-make-mm-sparsec-make-a-function-static.patch
-mm-allocpercpuc-make-4-functions-static.patch
-make-mm-memoryc-print_bad_pte-static.patch
-mm-swapfilec-make-code-static.patch
-make-mm-rmapc-anon_vma_cachep-static.patch
-drivers-char-rtcc-make-2-functions-static.patch
-make-init-do_mountsc-root_device_name-static.patch
-make-macfb_setup-static.patch
-video-console-sticonrec-make-code-static.patch
-video-console-sticonrec-make-code-static-checkpatch-fixes.patch
-video-stifbc-make-2-functions-static.patch
-reiser4.patch
 
