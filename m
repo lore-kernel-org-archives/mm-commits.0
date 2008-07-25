@@ -1,244 +1,373 @@
 From: akpm@linux-foundation.org
-Subject: - cgroup-files-convert-devcgroup_access_write-into-a-cgroup-write_string-handler.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 15:58:23 -0700
-Message-ID: <200807252258.m6PMwNwd003285@imap1.linux-foundation.org>
+Subject: - memcg-better-migration-handling.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 15:58:40 -0700
+Message-ID: <200807252258.m6PMweIM003308@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41903 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38248 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754703AbYGYW7U (ORCPT
+	by vger.kernel.org with ESMTP id S1752564AbYGYW7b (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 18:59:20 -0400
+	Fri, 25 Jul 2008 18:59:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: menage@google.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, pj@sgi.com, serue@us.ibm.com, xemul@openvz.org, mm-commits@vger.kernel.org
+To: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, cl@linux-foundation.org, hugh@veritas.com, lizf@cn.fujitsu.com, xemul@openvz.org, yamamoto@valinux.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cgroup files: convert devcgroup_access_write() into a cgroup write_string() handler
+     memcg: better migration handling
 has been removed from the -mm tree.  Its filename was
-     cgroup-files-convert-devcgroup_access_write-into-a-cgroup-write_string-handler.patch
+     memcg-better-migration-handling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroup files: convert devcgroup_access_write() into a cgroup write_string() handler
-From: Paul Menage <menage@google.com>
+Subject: memcg: better migration handling
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-This patch converts devcgroup_access_write() from a raw file handler
-into a handler for the cgroup write_string() method. This allows some
-boilerplate copying/locking/checking to be removed and simplifies the
-cleanup path, since these functions are performed by the cgroups
-framework before calling the handler.
+This patch changes page migration under memory controller to use a
+different algorithm.  (thanks to Christoph for new idea.)
 
-Signed-off-by: Paul Menage <menage@google.com>
-Cc: Paul Jackson <pj@sgi.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
+Before:
+ - page_cgroup is migrated from an old page to a new page.
+After:
+ - a new page is accounted , no reuse of page_cgroup.
+
+Pros:
+
+ - We can avoid compliated lock depndencies and races in migration.
+
+Cons:
+
+ - new param to mem_cgroup_charge_common().
+
+ - mem_cgroup_getref() is added for handling ref_cnt ping-pong.
+
+This version simplifies complicated lock dependency in page migraiton
+under memory resource controller.
+
+  new refcnt sequence is following.
+
+a mapped page:
+  prepage_migration() ..... +1 to NEW page
+  try_to_unmap()      ..... all refs to OLD page is gone.
+  move_pages()        ..... +1 to NEW page if page cache.
+  remap...            ..... all refs from *map* is added to NEW one.
+  end_migration()     ..... -1 to New page.
+
+  page's mapcount + (page_is_cache) refs are added to NEW one.
+
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Balbir Singh <balbir@in.ibm.com>
-Acked-by: Serge Hallyn <serue@us.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
+Cc: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Christoph Lameter <cl@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/device_cgroup.c |  103 ++++++++++++++-----------------------
- 1 file changed, 39 insertions(+), 64 deletions(-)
+ include/linux/memcontrol.h |   11 +--
+ mm/memcontrol.c            |  128 +++++++++++++++++------------------
+ mm/migrate.c               |   22 ++++--
+ 3 files changed, 86 insertions(+), 75 deletions(-)
 
-diff -puN security/device_cgroup.c~cgroup-files-convert-devcgroup_access_write-into-a-cgroup-write_string-handler security/device_cgroup.c
---- a/security/device_cgroup.c~cgroup-files-convert-devcgroup_access_write-into-a-cgroup-write_string-handler
-+++ a/security/device_cgroup.c
-@@ -59,6 +59,11 @@ static inline struct dev_cgroup *cgroup_
- 	return css_to_devcgroup(cgroup_subsys_state(cgroup, devices_subsys_id));
+diff -puN include/linux/memcontrol.h~memcg-better-migration-handling include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-better-migration-handling
++++ a/include/linux/memcontrol.h
+@@ -50,9 +50,10 @@ extern struct mem_cgroup *mem_cgroup_fro
+ #define mm_match_cgroup(mm, cgroup)	\
+ 	((cgroup) == mem_cgroup_from_task((mm)->owner))
+ 
+-extern int mem_cgroup_prepare_migration(struct page *page);
++extern int
++mem_cgroup_prepare_migration(struct page *page, struct page *newpage);
+ extern void mem_cgroup_end_migration(struct page *page);
+-extern void mem_cgroup_page_migration(struct page *page, struct page *newpage);
++extern int mem_cgroup_getref(struct page *page);
+ 
+ /*
+  * For memory reclaim.
+@@ -112,7 +113,8 @@ static inline int task_in_mem_cgroup(str
+ 	return 1;
  }
  
-+static inline struct dev_cgroup *task_devcgroup(struct task_struct *task)
-+{
-+	return css_to_devcgroup(task_subsys_state(task, devices_subsys_id));
+-static inline int mem_cgroup_prepare_migration(struct page *page)
++static inline int
++mem_cgroup_prepare_migration(struct page *page, struct page *newpage)
+ {
+ 	return 0;
+ }
+@@ -121,8 +123,7 @@ static inline void mem_cgroup_end_migrat
+ {
+ }
+ 
+-static inline void
+-mem_cgroup_page_migration(struct page *page, struct page *newpage)
++static inline void mem_cgroup_getref(struct page *page)
+ {
+ }
+ 
+diff -puN mm/memcontrol.c~memcg-better-migration-handling mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-better-migration-handling
++++ a/mm/memcontrol.c
+@@ -524,7 +524,8 @@ unsigned long mem_cgroup_isolate_pages(u
+  * < 0 if the cgroup is over its limit
+  */
+ static int mem_cgroup_charge_common(struct page *page, struct mm_struct *mm,
+-				gfp_t gfp_mask, enum charge_type ctype)
++				gfp_t gfp_mask, enum charge_type ctype,
++				struct mem_cgroup *memcg)
+ {
+ 	struct mem_cgroup *mem;
+ 	struct page_cgroup *pc;
+@@ -569,16 +570,21 @@ retry:
+ 	 * thread group leader migrates. It's possible that mm is not
+ 	 * set, if so charge the init_mm (happens for pagecache usage).
+ 	 */
+-	if (!mm)
+-		mm = &init_mm;
++	if (!memcg) {
++		if (!mm)
++			mm = &init_mm;
+ 
+-	rcu_read_lock();
+-	mem = mem_cgroup_from_task(rcu_dereference(mm->owner));
+-	/*
+-	 * For every charge from the cgroup, increment reference count
+-	 */
+-	css_get(&mem->css);
+-	rcu_read_unlock();
++		rcu_read_lock();
++		mem = mem_cgroup_from_task(rcu_dereference(mm->owner));
++		/*
++		 * For every charge from the cgroup, increment reference count
++		 */
++		css_get(&mem->css);
++		rcu_read_unlock();
++	} else {
++		mem = memcg;
++		css_get(&memcg->css);
++	}
+ 
+ 	while (res_counter_charge(&mem->res, PAGE_SIZE)) {
+ 		if (!(gfp_mask & __GFP_WAIT))
+@@ -648,7 +654,7 @@ err:
+ int mem_cgroup_charge(struct page *page, struct mm_struct *mm, gfp_t gfp_mask)
+ {
+ 	return mem_cgroup_charge_common(page, mm, gfp_mask,
+-				MEM_CGROUP_CHARGE_TYPE_MAPPED);
++				MEM_CGROUP_CHARGE_TYPE_MAPPED, NULL);
+ }
+ 
+ int mem_cgroup_cache_charge(struct page *page, struct mm_struct *mm,
+@@ -657,7 +663,22 @@ int mem_cgroup_cache_charge(struct page 
+ 	if (!mm)
+ 		mm = &init_mm;
+ 	return mem_cgroup_charge_common(page, mm, gfp_mask,
+-				MEM_CGROUP_CHARGE_TYPE_CACHE);
++				MEM_CGROUP_CHARGE_TYPE_CACHE, NULL);
 +}
 +
- struct cgroup_subsys devices_subsys;
- 
- static int devcgroup_can_attach(struct cgroup_subsys *ss,
-@@ -312,10 +317,10 @@ static int may_access_whitelist(struct d
-  * when adding a new allow rule to a device whitelist, the rule
-  * must be allowed in the parent device
-  */
--static int parent_has_perm(struct cgroup *childcg,
-+static int parent_has_perm(struct dev_cgroup *childcg,
- 				  struct dev_whitelist_item *wh)
- {
--	struct cgroup *pcg = childcg->parent;
-+	struct cgroup *pcg = childcg->css.cgroup->parent;
- 	struct dev_cgroup *parent;
- 	int ret;
- 
-@@ -341,39 +346,18 @@ static int parent_has_perm(struct cgroup
-  * new access is only allowed if you're in the top-level cgroup, or your
-  * parent cgroup has the access you're asking for.
-  */
--static ssize_t devcgroup_access_write(struct cgroup *cgroup, struct cftype *cft,
--				struct file *file, const char __user *userbuf,
--				size_t nbytes, loff_t *ppos)
--{
--	struct cgroup *cur_cgroup;
--	struct dev_cgroup *devcgroup, *cur_devcgroup;
--	int filetype = cft->private;
--	char *buffer, *b;
-+static int devcgroup_update_access(struct dev_cgroup *devcgroup,
-+				   int filetype, const char *buffer)
++int mem_cgroup_getref(struct page *page)
 +{
-+	struct dev_cgroup *cur_devcgroup;
-+	const char *b;
- 	int retval = 0, count;
- 	struct dev_whitelist_item wh;
- 
- 	if (!capable(CAP_SYS_ADMIN))
- 		return -EPERM;
- 
--	devcgroup = cgroup_to_devcgroup(cgroup);
--	cur_cgroup = task_cgroup(current, devices_subsys.subsys_id);
--	cur_devcgroup = cgroup_to_devcgroup(cur_cgroup);
--
--	buffer = kmalloc(nbytes+1, GFP_KERNEL);
--	if (!buffer)
--		return -ENOMEM;
--
--	if (copy_from_user(buffer, userbuf, nbytes)) {
--		retval = -EFAULT;
--		goto out1;
--	}
--	buffer[nbytes] = 0;	/* nul-terminate */
--
--	cgroup_lock();
--	if (cgroup_is_removed(cgroup)) {
--		retval = -ENODEV;
--		goto out2;
--	}
-+	cur_devcgroup = task_devcgroup(current);
- 
- 	memset(&wh, 0, sizeof(wh));
- 	b = buffer;
-@@ -392,14 +376,11 @@ static ssize_t devcgroup_access_write(st
- 		wh.type = DEV_CHAR;
- 		break;
- 	default:
--		retval = -EINVAL;
--		goto out2;
-+		return -EINVAL;
- 	}
- 	b++;
--	if (!isspace(*b)) {
--		retval = -EINVAL;
--		goto out2;
--	}
-+	if (!isspace(*b))
-+		return -EINVAL;
- 	b++;
- 	if (*b == '*') {
- 		wh.major = ~0;
-@@ -411,13 +392,10 @@ static ssize_t devcgroup_access_write(st
- 			b++;
- 		}
- 	} else {
--		retval = -EINVAL;
--		goto out2;
--	}
--	if (*b != ':') {
--		retval = -EINVAL;
--		goto out2;
-+		return -EINVAL;
- 	}
-+	if (*b != ':')
-+		return -EINVAL;
- 	b++;
- 
- 	/* read minor */
-@@ -431,13 +409,10 @@ static ssize_t devcgroup_access_write(st
- 			b++;
- 		}
- 	} else {
--		retval = -EINVAL;
--		goto out2;
--	}
--	if (!isspace(*b)) {
--		retval = -EINVAL;
--		goto out2;
-+		return -EINVAL;
- 	}
-+	if (!isspace(*b))
-+		return -EINVAL;
- 	for (b++, count = 0; count < 3; count++, b++) {
- 		switch (*b) {
- 		case 'r':
-@@ -454,8 +429,7 @@ static ssize_t devcgroup_access_write(st
- 			count = 3;
- 			break;
- 		default:
--			retval = -EINVAL;
--			goto out2;
-+			return -EINVAL;
- 		}
- 	}
- 
-@@ -463,38 +437,39 @@ handle:
- 	retval = 0;
- 	switch (filetype) {
- 	case DEVCG_ALLOW:
--		if (!parent_has_perm(cgroup, &wh))
--			retval = -EPERM;
--		else
--			retval = dev_whitelist_add(devcgroup, &wh);
--		break;
-+		if (!parent_has_perm(devcgroup, &wh))
-+			return -EPERM;
-+		return dev_whitelist_add(devcgroup, &wh);
- 	case DEVCG_DENY:
- 		dev_whitelist_rm(devcgroup, &wh);
- 		break;
- 	default:
--		retval = -EINVAL;
--		goto out2;
-+		return -EINVAL;
- 	}
++	struct page_cgroup *pc;
++
++	if (mem_cgroup_subsys.disabled)
++		return 0;
++
++	lock_page_cgroup(page);
++	pc = page_get_page_cgroup(page);
++	VM_BUG_ON(!pc);
++	pc->ref_cnt++;
++	unlock_page_cgroup(page);
 +	return 0;
-+}
- 
--	if (retval == 0)
--		retval = nbytes;
--
--out2:
-+static int devcgroup_access_write(struct cgroup *cgrp, struct cftype *cft,
-+				  const char *buffer)
-+{
-+	int retval;
-+	if (!cgroup_lock_live_group(cgrp))
-+		return -ENODEV;
-+	retval = devcgroup_update_access(cgroup_to_devcgroup(cgrp),
-+					 cft->private, buffer);
- 	cgroup_unlock();
--out1:
--	kfree(buffer);
- 	return retval;
  }
  
- static struct cftype dev_cgroup_files[] = {
- 	{
- 		.name = "allow",
--		.write  = devcgroup_access_write,
-+		.write_string  = devcgroup_access_write,
- 		.private = DEVCG_ALLOW,
- 	},
- 	{
- 		.name = "deny",
--		.write = devcgroup_access_write,
-+		.write_string = devcgroup_access_write,
- 		.private = DEVCG_DENY,
- 	},
- 	{
+ /*
+@@ -707,65 +728,39 @@ unlock:
+ }
+ 
+ /*
+- * Returns non-zero if a page (under migration) has valid page_cgroup member.
+- * Refcnt of page_cgroup is incremented.
++ * Before starting migration, account against new page.
+  */
+-int mem_cgroup_prepare_migration(struct page *page)
++int mem_cgroup_prepare_migration(struct page *page, struct page *newpage)
+ {
+ 	struct page_cgroup *pc;
++	struct mem_cgroup *mem = NULL;
++	enum charge_type ctype = MEM_CGROUP_CHARGE_TYPE_MAPPED;
++	int ret = 0;
+ 
+ 	if (mem_cgroup_subsys.disabled)
+ 		return 0;
+ 
+ 	lock_page_cgroup(page);
+ 	pc = page_get_page_cgroup(page);
+-	if (pc)
+-		pc->ref_cnt++;
++	if (pc) {
++		mem = pc->mem_cgroup;
++		css_get(&mem->css);
++		if (pc->flags & PAGE_CGROUP_FLAG_CACHE)
++			ctype = MEM_CGROUP_CHARGE_TYPE_CACHE;
++	}
+ 	unlock_page_cgroup(page);
+-	return pc != NULL;
+-}
+-
+-void mem_cgroup_end_migration(struct page *page)
+-{
+-	mem_cgroup_uncharge_page(page);
++	if (mem) {
++		ret = mem_cgroup_charge_common(newpage, NULL, GFP_KERNEL,
++			ctype, mem);
++		css_put(&mem->css);
++	}
++	return ret;
+ }
+ 
+-/*
+- * We know both *page* and *newpage* are now not-on-LRU and PG_locked.
+- * And no race with uncharge() routines because page_cgroup for *page*
+- * has extra one reference by mem_cgroup_prepare_migration.
+- */
+-void mem_cgroup_page_migration(struct page *page, struct page *newpage)
++/* remove redundant charge */
++void mem_cgroup_end_migration(struct page *newpage)
+ {
+-	struct page_cgroup *pc;
+-	struct mem_cgroup_per_zone *mz;
+-	unsigned long flags;
+-
+-	lock_page_cgroup(page);
+-	pc = page_get_page_cgroup(page);
+-	if (!pc) {
+-		unlock_page_cgroup(page);
+-		return;
+-	}
+-
+-	mz = page_cgroup_zoneinfo(pc);
+-	spin_lock_irqsave(&mz->lru_lock, flags);
+-	__mem_cgroup_remove_list(mz, pc);
+-	spin_unlock_irqrestore(&mz->lru_lock, flags);
+-
+-	page_assign_page_cgroup(page, NULL);
+-	unlock_page_cgroup(page);
+-
+-	pc->page = newpage;
+-	lock_page_cgroup(newpage);
+-	page_assign_page_cgroup(newpage, pc);
+-
+-	mz = page_cgroup_zoneinfo(pc);
+-	spin_lock_irqsave(&mz->lru_lock, flags);
+-	__mem_cgroup_add_list(mz, pc);
+-	spin_unlock_irqrestore(&mz->lru_lock, flags);
+-
+-	unlock_page_cgroup(newpage);
++	mem_cgroup_uncharge_page(newpage);
+ }
+ 
+ /*
+@@ -795,12 +790,19 @@ static void mem_cgroup_force_empty_list(
+ 		page = pc->page;
+ 		get_page(page);
+ 		spin_unlock_irqrestore(&mz->lru_lock, flags);
+-		mem_cgroup_uncharge_page(page);
+-		put_page(page);
+-		if (--count <= 0) {
+-			count = FORCE_UNCHARGE_BATCH;
++		/*
++		 * Check if this page is on LRU. !LRU page can be found
++		 * if it's under page migration.
++		 */
++		if (PageLRU(page)) {
++			mem_cgroup_uncharge_page(page);
++			put_page(page);
++			if (--count <= 0) {
++				count = FORCE_UNCHARGE_BATCH;
++				cond_resched();
++			}
++		} else
+ 			cond_resched();
+-		}
+ 		spin_lock_irqsave(&mz->lru_lock, flags);
+ 	}
+ 	spin_unlock_irqrestore(&mz->lru_lock, flags);
+diff -puN mm/migrate.c~memcg-better-migration-handling mm/migrate.c
+--- a/mm/migrate.c~memcg-better-migration-handling
++++ a/mm/migrate.c
+@@ -358,6 +358,10 @@ static int migrate_page_move_mapping(str
+ 	__inc_zone_page_state(newpage, NR_FILE_PAGES);
+ 
+ 	write_unlock_irq(&mapping->tree_lock);
++	if (!PageSwapCache(newpage)) {
++		mem_cgroup_uncharge_page(page);
++		mem_cgroup_getref(newpage);
++	}
+ 
+ 	return 0;
+ }
+@@ -611,7 +615,6 @@ static int move_to_new_page(struct page 
+ 		rc = fallback_migrate_page(mapping, newpage, page);
+ 
+ 	if (!rc) {
+-		mem_cgroup_page_migration(page, newpage);
+ 		remove_migration_ptes(page, newpage);
+ 	} else
+ 		newpage->mapping = NULL;
+@@ -641,6 +644,14 @@ static int unmap_and_move(new_page_t get
+ 		/* page was freed from under us. So we are done. */
+ 		goto move_newpage;
+ 
++	charge = mem_cgroup_prepare_migration(page, newpage);
++	if (charge == -ENOMEM) {
++		rc = -ENOMEM;
++		goto move_newpage;
++	}
++	/* prepare cgroup just returns 0 or -ENOMEM */
++	BUG_ON(charge);
++
+ 	rc = -EAGAIN;
+ 	if (TestSetPageLocked(page)) {
+ 		if (!force)
+@@ -692,19 +703,14 @@ static int unmap_and_move(new_page_t get
+ 		goto rcu_unlock;
+ 	}
+ 
+-	charge = mem_cgroup_prepare_migration(page);
+ 	/* Establish migration ptes or remove ptes */
+ 	try_to_unmap(page, 1);
+ 
+ 	if (!page_mapped(page))
+ 		rc = move_to_new_page(newpage, page);
+ 
+-	if (rc) {
++	if (rc)
+ 		remove_migration_ptes(page, page);
+-		if (charge)
+-			mem_cgroup_end_migration(page);
+-	} else if (charge)
+- 		mem_cgroup_end_migration(newpage);
+ rcu_unlock:
+ 	if (rcu_locked)
+ 		rcu_read_unlock();
+@@ -725,6 +731,8 @@ unlock:
+ 	}
+ 
+ move_newpage:
++	if (!charge)
++		mem_cgroup_end_migration(newpage);
+ 	/*
+ 	 * Move the new page to the LRU. If migration was not successful
+ 	 * then this will free the page.
 _
 
-Patches currently in -mm which might be from menage@google.com are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
 origin.patch
 memrlimit-add-memrlimit-controller-documentation.patch
@@ -248,6 +377,13 @@ memrlimit-add-memrlimit-controller-accounting-and-control.patch
 memrlimit-improve-error-handling.patch
 memrlimit-improve-error-handling-update.patch
 memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
-make-cgroup_seqfile_release-static.patch
-add-a-refcount-check-in-dput.patch
+mm-speculative-page-references-fix-migration_entry_wait-for-speculative-page-cache.patch
+define-page_file_cache-function-fix-splitlru-shmem_getpage-setpageswapbacked-sooner.patch
+vmscan-split-lru-lists-into-anon-file-sets-splitlru-memcg-swapbacked-pages-active.patch
+vmscan-second-chance-replacement-for-anonymous-pages-fix.patch
+vmscan-second-chance-replacement-for-anonymous-pages-memcg-lru-scan-fix.patch
+unevictable-lru-infrastructure-putback_lru_page-unevictable-page-handling-rework.patch
+mlock-mlocked-pages-are-unevictable-fix-truncate-race-and-sevaral-comments.patch
+fix-double-unlock_page-in-2626-rc5-mm3-kernel-bug-at-mm-filemapc-575.patch
+restore-patch-failure-of-vmstat-unevictable-and-mlocked-pages-vm-eventspatch.patch
 
