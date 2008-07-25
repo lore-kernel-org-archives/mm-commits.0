@@ -1,40 +1,42 @@
 From: akpm@linux-foundation.org
-Subject: - posix-timers-release_posix_timer-kill-the-bogus-put_task_struct-it_process.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 15:59:18 -0700
-Message-ID: <200807252259.m6PMxIf4003368@imap1.linux-foundation.org>
+Subject: - posix-timers-timer_delete-remove-the-bogus-it_process-=-null-check.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 15:59:15 -0700
+Message-ID: <200807252259.m6PMxF5f003365@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54784 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44994 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757909AbYGYXNN (ORCPT
+	by vger.kernel.org with ESMTP id S1757905AbYGYXNM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:13:13 -0400
+	Fri, 25 Jul 2008 19:13:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: oleg@tv-sign.ru, johnstul@us.ibm.com, roland@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     posix timers: release_posix_timer: kill the bogus put_task_struct(->it_process);
+     posix timers: timer_delete: remove the bogus "->it_process != NULL" check
 has been removed from the -mm tree.  Its filename was
-     posix-timers-release_posix_timer-kill-the-bogus-put_task_struct-it_process.patch
+     posix-timers-timer_delete-remove-the-bogus-it_process-=-null-check.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: posix timers: release_posix_timer: kill the bogus put_task_struct(->it_process);
+Subject: posix timers: timer_delete: remove the bogus "->it_process != NULL" check
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-release_posix_timer() can't be called with ->it_process != NULL.  Once
-sys_timer_create() sets ->it_process it must not call
-release_posix_timer(), otherwise we can race with another thread doing
-sys_timer_delete(), this timer is visible to idr_find() and unlocked.
+sys_timer_delete() and itimer_delete() check "timer->it_process != NULL",
+this looks completely bogus.  ->it_process == NULL means that this timer
+is already under destruction or it is not fully initialized, this must not
+happen.
 
-The same is true for two other callers (actually, for any possible
-caller), sys_timer_delete() and itimer_delete().  They must clear
-->it_process before unlock_timer() + release_posix_timer().
+	sys_timer_delete: the timer is locked, and lock_timer() can't succeed
+	if ->it_process == NULL.
+
+	itimer_delete: it is called by exit_itimers() when there are no other
+	threads which can play with signal_struct->posix_timers.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Acked-by: Roland McGrath <roland@redhat.com>
@@ -44,22 +46,44 @@ Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/posix-timers.c |    3 ---
- 1 file changed, 3 deletions(-)
+ kernel/posix-timers.c |   18 ++++++++----------
+ 1 file changed, 8 insertions(+), 10 deletions(-)
 
-diff -puN kernel/posix-timers.c~posix-timers-release_posix_timer-kill-the-bogus-put_task_struct-it_process kernel/posix-timers.c
---- a/kernel/posix-timers.c~posix-timers-release_posix_timer-kill-the-bogus-put_task_struct-it_process
+diff -puN kernel/posix-timers.c~posix-timers-timer_delete-remove-the-bogus-it_process-=-null-check kernel/posix-timers.c
+--- a/kernel/posix-timers.c~posix-timers-timer_delete-remove-the-bogus-it_process-=-null-check
 +++ a/kernel/posix-timers.c
-@@ -449,9 +449,6 @@ static void release_posix_timer(struct k
- 		spin_unlock_irqrestore(&idr_lock, flags);
- 	}
- 	sigqueue_free(tmr->sigq);
--	if (unlikely(tmr->it_process) &&
--	    tmr->it_sigev_notify == (SIGEV_SIGNAL|SIGEV_THREAD_ID))
--		put_task_struct(tmr->it_process);
- 	kmem_cache_free(posix_timers_cache, tmr);
+@@ -856,11 +856,10 @@ retry_delete:
+ 	 * This keeps any tasks waiting on the spin lock from thinking
+ 	 * they got something (see the lock code above).
+ 	 */
+-	if (timer->it_process) {
+-		if (timer->it_sigev_notify == (SIGEV_SIGNAL|SIGEV_THREAD_ID))
+-			put_task_struct(timer->it_process);
+-		timer->it_process = NULL;
+-	}
++	if (timer->it_sigev_notify == (SIGEV_SIGNAL|SIGEV_THREAD_ID))
++		put_task_struct(timer->it_process);
++	timer->it_process = NULL;
++
+ 	unlock_timer(timer, flags);
+ 	release_posix_timer(timer, IT_ID_SET);
+ 	return 0;
+@@ -885,11 +884,10 @@ retry_delete:
+ 	 * This keeps any tasks waiting on the spin lock from thinking
+ 	 * they got something (see the lock code above).
+ 	 */
+-	if (timer->it_process) {
+-		if (timer->it_sigev_notify == (SIGEV_SIGNAL|SIGEV_THREAD_ID))
+-			put_task_struct(timer->it_process);
+-		timer->it_process = NULL;
+-	}
++	if (timer->it_sigev_notify == (SIGEV_SIGNAL|SIGEV_THREAD_ID))
++		put_task_struct(timer->it_process);
++	timer->it_process = NULL;
++
+ 	unlock_timer(timer, flags);
+ 	release_posix_timer(timer, IT_ID_SET);
  }
- 
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
