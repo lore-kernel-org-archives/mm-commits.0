@@ -1,73 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 16:39:40 -0700
-Message-ID: <200807252339.m6PNdeNi005470@imap1.linux-foundation.org>
+Subject: - dma-mapping-add-the-device-argument-to-dma_mapping_error-sdhci-fix.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 16:39:52 -0700
+Message-ID: <200807252339.m6PNdqER005488@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58860 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54804 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752622AbYGYXjp (ORCPT
+	by vger.kernel.org with ESMTP id S1752381AbYGYXj4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:39:45 -0400
+	Fri, 25 Jul 2008 19:39:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, benh@kernel.crashing.org, fujita.tomonori@lab.ntt.co.jp, paulus@samba.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, fujita.tomonori@lab.ntt.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac
+     dma-mapping-add-the-device-argument-to-dma_mapping_error-sdhci-fix
 has been removed from the -mm tree.  Its filename was
-     dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac.patch
+     dma-mapping-add-the-device-argument-to-dma_mapping_error-sdhci-fix.patch
 
 This patch was dropped because it was folded into dma-mapping-add-the-device-argument-to-dma_mapping_error.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac
+Subject: dma-mapping-add-the-device-argument-to-dma_mapping_error-sdhci-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Is this right?
+this patch is killing me.
 
 Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/pasemi_mac.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/mmc/host/sdhci.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/net/pasemi_mac.c~dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac drivers/net/pasemi_mac.c
---- a/drivers/net/pasemi_mac.c~dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac
-+++ a/drivers/net/pasemi_mac.c
-@@ -650,7 +650,7 @@ static void pasemi_mac_replenish_rx_ring
- 				     mac->bufsz - LOCAL_SKB_ALIGN,
- 				     PCI_DMA_FROMDEVICE);
+diff -puN drivers/mmc/host/sdhci.c~dma-mapping-add-the-device-argument-to-dma_mapping_error-sdhci-fix drivers/mmc/host/sdhci.c
+--- a/drivers/mmc/host/sdhci.c~dma-mapping-add-the-device-argument-to-dma_mapping_error-sdhci-fix
++++ a/drivers/mmc/host/sdhci.c
+@@ -360,7 +360,7 @@ static int sdhci_adma_table_pre(struct s
  
--		if (unlikely(mac->dma_pdev, dma_mapping_error(dma))) {
-+		if (unlikely(pci_dma_mapping_error(mac->dma_pdev, dma))) {
- 			dev_kfree_skb_irq(info->skb);
- 			break;
- 		}
-@@ -1519,7 +1519,7 @@ static int pasemi_mac_start_tx(struct sk
- 	map[0] = pci_map_single(mac->dma_pdev, skb->data, skb_headlen(skb),
- 				PCI_DMA_TODEVICE);
- 	map_size[0] = skb_headlen(skb);
--	if (dma_mapping_error(mac->dma_pdev, map[0]))
-+	if (pci_dma_mapping_error(mac->dma_pdev, map[0]))
- 		goto out_err_nolock;
+ 	host->align_addr = dma_map_single(mmc_dev(host->mmc),
+ 		host->align_buffer, 128 * 4, direction);
+-	if (dma_mapping_error(host->align_addr))
++	if (dma_mapping_error(mmc_dev(host->mmc), host->align_addr))
+ 		goto fail;
+ 	BUG_ON(host->align_addr & 0x3);
  
- 	for (i = 0; i < nfrags; i++) {
-@@ -1529,7 +1529,7 @@ static int pasemi_mac_start_tx(struct sk
- 					frag->page_offset, frag->size,
- 					PCI_DMA_TODEVICE);
- 		map_size[i+1] = frag->size;
--		if (dma_mapping_error(mac->dma_pdev, map[i+1])) {
-+		if (pci_dma_mapping_error(mac->dma_pdev, map[i+1])) {
- 			nfrags = i;
- 			goto out_err_nolock;
- 		}
+@@ -461,7 +461,7 @@ static int sdhci_adma_table_pre(struct s
+ 
+ 	host->adma_addr = dma_map_single(mmc_dev(host->mmc),
+ 		host->adma_desc, (128 * 2 + 1) * 4, DMA_TO_DEVICE);
+-	if (dma_mapping_error(host->align_addr))
++	if (dma_mapping_error(mmc_dev(host->mmc), host->align_addr))
+ 		goto unmap_entries;
+ 	BUG_ON(host->adma_addr & 0x3);
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -75,8 +64,6 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 uninline-arch_pick_mmap_layout.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error-sdhci-fix.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error-infiniband.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error-more-sparc.patch
