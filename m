@@ -1,477 +1,209 @@
 From: akpm@linux-foundation.org
-Subject: - clean-up-duplicated-alloc-free_thread_info.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 15:54:46 -0700
-Message-ID: <200807252254.m6PMskDK002852@imap1.linux-foundation.org>
+Subject: - call_usermodehelper-increase-reliability.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 15:54:41 -0700
+Message-ID: <200807252254.m6PMsfca002846@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40941 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59660 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752674AbYGYWzf (ORCPT
+	by vger.kernel.org with ESMTP id S1752623AbYGYWze (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 18:55:35 -0400
+	Fri, 25 Jul 2008 18:55:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fujita.tomonori@lab.ntt.co.jp, linux-arch@vger.kernel.org, penberg@cs.helsinki.fi, rmk+kernel@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: kosaki.motohiro@jp.fujitsu.com, andi@firstfloor.org, jeremy@xensource.com, lizf@cn.fujitsu.com, menage@google.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     clean up duplicated alloc/free_thread_info
+     call_usermodehelper(): increase reliability
 has been removed from the -mm tree.  Its filename was
-     clean-up-duplicated-alloc-free_thread_info.patch
+     call_usermodehelper-increase-reliability.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: clean up duplicated alloc/free_thread_info
-From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Subject: call_usermodehelper(): increase reliability
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-We duplicate alloc/free_thread_info defines on many platforms (the
-majority uses __get_free_pages/free_pages).  This patch defines common
-defines and removes these duplicated defines. 
-__HAVE_ARCH_THREAD_INFO_ALLOCATOR is introduced for platforms that do
-something different.
+Presently call_usermodehelper_setup() uses GFP_ATOMIC.  but it can return
+NULL _very_ easily.
 
-Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Acked-by: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: <linux-arch@vger.kernel.org>
+GFP_ATOMIC is needed only when we can't sleep.  and, GFP_KERNEL is robust
+and better.
+
+thus, I add gfp_mask argument to call_usermodehelper_setup().
+
+So, its callers pass the gfp_t as below:
+
+call_usermodehelper() and call_usermodehelper_keys():
+	depend on 'wait' argument.
+call_usermodehelper_pipe():
+	always GFP_KERNEL because always run under process context.
+orderly_poweroff():
+	pass to GFP_ATOMIC because may run under interrupt context.
+
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: "Paul Menage" <menage@google.com>
+Reviewed-by: Li Zefan <lizf@cn.fujitsu.com>
+Acked-by: Jeremy Fitzhardinge <jeremy@xensource.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Andi Kleen <andi@firstfloor.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-alpha/thread_info.h     |    4 +---
- include/asm-arm/thread_info.h       |   13 -------------
- include/asm-avr32/thread_info.h     |    4 ----
- include/asm-blackfin/thread_info.h  |    5 +----
- include/asm-cris/thread_info.h      |    2 ++
- include/asm-frv/thread_info.h       |    2 ++
- include/asm-h8300/thread_info.h     |    5 +----
- include/asm-ia64/thread_info.h      |    2 ++
- include/asm-m32r/thread_info.h      |    2 ++
- include/asm-m68k/thread_info.h      |    8 +-------
- include/asm-m68knommu/thread_info.h |    4 ----
- include/asm-mips/thread_info.h      |    2 ++
- include/asm-mn10300/thread_info.h   |    2 ++
- include/asm-parisc/thread_info.h    |   10 +++-------
- include/asm-powerpc/thread_info.h   |   14 +++-----------
- include/asm-s390/thread_info.h      |    5 +----
- include/asm-sh/thread_info.h        |    2 ++
- include/asm-sparc/thread_info_32.h  |    2 ++
- include/asm-sparc/thread_info_64.h  |    2 ++
- include/asm-um/thread_info.h        |   16 +---------------
- include/asm-x86/thread_info.h       |    2 ++
- include/asm-xtensa/thread_info.h    |    5 +----
- kernel/fork.c                       |   17 +++++++++++++++++
- 23 files changed, 50 insertions(+), 80 deletions(-)
+ include/linux/kmod.h |   11 +++++++----
+ kernel/kmod.c        |    9 +++++----
+ kernel/sys.c         |    2 +-
+ 3 files changed, 13 insertions(+), 9 deletions(-)
 
-diff -puN include/asm-alpha/thread_info.h~clean-up-duplicated-alloc-free_thread_info include/asm-alpha/thread_info.h
---- a/include/asm-alpha/thread_info.h~clean-up-duplicated-alloc-free_thread_info
-+++ a/include/asm-alpha/thread_info.h
-@@ -50,10 +50,8 @@ register struct thread_info *__current_t
- #define current_thread_info()  __current_thread_info
- 
- /* Thread information allocation.  */
-+#define THREAD_SIZE_ORDER 1
- #define THREAD_SIZE (2*PAGE_SIZE)
--#define alloc_thread_info(tsk) \
--  ((struct thread_info *) __get_free_pages(GFP_KERNEL,1))
--#define free_thread_info(ti) free_pages((unsigned long) (ti), 1)
- 
- #endif /* __ASSEMBLY__ */
- 
-diff -puN include/asm-arm/thread_info.h~clean-up-duplicated-alloc-free_thread_info include/asm-arm/thread_info.h
---- a/include/asm-arm/thread_info.h~clean-up-duplicated-alloc-free_thread_info
-+++ a/include/asm-arm/thread_info.h
-@@ -97,19 +97,6 @@ static inline struct thread_info *curren
- 	return (struct thread_info *)(sp & ~(THREAD_SIZE - 1));
- }
- 
--/* thread information allocation */
--#ifdef CONFIG_DEBUG_STACK_USAGE
--#define alloc_thread_info(tsk) \
--	((struct thread_info *)__get_free_pages(GFP_KERNEL | __GFP_ZERO, \
--		THREAD_SIZE_ORDER))
--#else
--#define alloc_thread_info(tsk) \
--	((struct thread_info *)__get_free_pages(GFP_KERNEL, THREAD_SIZE_ORDER))
--#endif
--
--#define free_thread_info(info) \
--	free_pages((unsigned long)info, THREAD_SIZE_ORDER);
--
- #define thread_saved_pc(tsk)	\
- 	((unsigned long)(pc_pointer(task_thread_info(tsk)->cpu_context.pc)))
- #define thread_saved_fp(tsk)	\
-diff -puN include/asm-avr32/thread_info.h~clean-up-duplicated-alloc-free_thread_info include/asm-avr32/thread_info.h
---- a/include/asm-avr32/thread_info.h~clean-up-duplicated-alloc-free_thread_info
-+++ a/include/asm-avr32/thread_info.h
-@@ -61,10 +61,6 @@ static inline struct thread_info *curren
- 	return (struct thread_info *)addr;
- }
- 
--/* thread information allocation */
--#define alloc_thread_info(ti) \
--	((struct thread_info *) __get_free_pages(GFP_KERNEL, THREAD_SIZE_ORDER))
--#define free_thread_info(ti) free_pages((unsigned long)(ti), 1)
- #define get_thread_info(ti) get_task_struct((ti)->task)
- #define put_thread_info(ti) put_task_struct((ti)->task)
- 
-diff -puN include/asm-blackfin/thread_info.h~clean-up-duplicated-alloc-free_thread_info include/asm-blackfin/thread_info.h
---- a/include/asm-blackfin/thread_info.h~clean-up-duplicated-alloc-free_thread_info
-+++ a/include/asm-blackfin/thread_info.h
-@@ -42,6 +42,7 @@
- /*
-  * Size of kernel stack for each process. This must be a power of 2...
+diff -puN include/linux/kmod.h~call_usermodehelper-increase-reliability include/linux/kmod.h
+--- a/include/linux/kmod.h~call_usermodehelper-increase-reliability
++++ a/include/linux/kmod.h
+@@ -19,6 +19,7 @@
+  *      Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
   */
-+#define THREAD_SIZE_ORDER	1
- #define THREAD_SIZE		8192	/* 2 pages */
  
- #ifndef __ASSEMBLY__
-@@ -94,10 +95,6 @@ static inline struct thread_info *curren
- 	return (struct thread_info *)((long)ti & ~((long)THREAD_SIZE-1));
- }
++#include <linux/gfp.h>
+ #include <linux/stddef.h>
+ #include <linux/errno.h>
+ #include <linux/compiler.h>
+@@ -41,8 +42,8 @@ struct file;
+ struct subprocess_info;
  
--/* thread information allocation */
--#define alloc_thread_info(tsk) ((struct thread_info *) \
--				__get_free_pages(GFP_KERNEL, 1))
--#define free_thread_info(ti)	free_pages((unsigned long) (ti), 1)
- #endif				/* __ASSEMBLY__ */
+ /* Allocate a subprocess_info structure */
+-struct subprocess_info *call_usermodehelper_setup(char *path,
+-						  char **argv, char **envp);
++struct subprocess_info *call_usermodehelper_setup(char *path, char **argv,
++						  char **envp, gfp_t gfp_mask);
  
- /*
-diff -puN include/asm-cris/thread_info.h~clean-up-duplicated-alloc-free_thread_info include/asm-cris/thread_info.h
---- a/include/asm-cris/thread_info.h~clean-up-duplicated-alloc-free_thread_info
-+++ a/include/asm-cris/thread_info.h
-@@ -11,6 +11,8 @@
+ /* Set various pieces of state into the subprocess_info structure */
+ void call_usermodehelper_setkeys(struct subprocess_info *info,
+@@ -69,8 +70,9 @@ static inline int
+ call_usermodehelper(char *path, char **argv, char **envp, enum umh_wait wait)
+ {
+ 	struct subprocess_info *info;
++	gfp_t gfp_mask = (wait == UMH_NO_WAIT) ? GFP_ATOMIC : GFP_KERNEL;
  
- #ifdef __KERNEL__
+-	info = call_usermodehelper_setup(path, argv, envp);
++	info = call_usermodehelper_setup(path, argv, envp, gfp_mask);
+ 	if (info == NULL)
+ 		return -ENOMEM;
+ 	return call_usermodehelper_exec(info, wait);
+@@ -81,8 +83,9 @@ call_usermodehelper_keys(char *path, cha
+ 			 struct key *session_keyring, enum umh_wait wait)
+ {
+ 	struct subprocess_info *info;
++	gfp_t gfp_mask = (wait == UMH_NO_WAIT) ? GFP_ATOMIC : GFP_KERNEL;
  
-+#define __HAVE_ARCH_THREAD_INFO_ALLOCATOR
-+
- #ifndef __ASSEMBLY__
- #include <asm/types.h>
- #include <asm/processor.h>
-diff -puN include/asm-frv/thread_info.h~clean-up-duplicated-alloc-free_thread_info include/asm-frv/thread_info.h
---- a/include/asm-frv/thread_info.h~clean-up-duplicated-alloc-free_thread_info
-+++ a/include/asm-frv/thread_info.h
-@@ -82,6 +82,8 @@ register struct thread_info *__current_t
+-	info = call_usermodehelper_setup(path, argv, envp);
++	info = call_usermodehelper_setup(path, argv, envp, gfp_mask);
+ 	if (info == NULL)
+ 		return -ENOMEM;
  
- #define current_thread_info() ({ __current_thread_info; })
- 
-+#define __HAVE_ARCH_THREAD_INFO_ALLOCATOR
-+
- /* thread information allocation */
- #ifdef CONFIG_DEBUG_STACK_USAGE
- #define alloc_thread_info(tsk)					\
-diff -puN include/asm-h8300/thread_info.h~clean-up-duplicated-alloc-free_thread_info include/asm-h8300/thread_info.h
---- a/include/asm-h8300/thread_info.h~clean-up-duplicated-alloc-free_thread_info
-+++ a/include/asm-h8300/thread_info.h
-@@ -49,6 +49,7 @@ struct thread_info {
- /*
-  * Size of kernel stack for each process. This must be a power of 2...
+diff -puN kernel/kmod.c~call_usermodehelper-increase-reliability kernel/kmod.c
+--- a/kernel/kmod.c~call_usermodehelper-increase-reliability
++++ a/kernel/kmod.c
+@@ -352,16 +352,17 @@ static inline void register_pm_notifier_
+  * @path: path to usermode executable
+  * @argv: arg vector for process
+  * @envp: environment for process
++ * @gfp_mask: gfp mask for memory allocation
+  *
+  * Returns either %NULL on allocation failure, or a subprocess_info
+  * structure.  This should be passed to call_usermodehelper_exec to
+  * exec the process and free the structure.
   */
-+#define THREAD_SIZE_ORDER	1
- #define THREAD_SIZE		8192	/* 2 pages */
+-struct subprocess_info *call_usermodehelper_setup(char *path,
+-						  char **argv, char **envp)
++struct subprocess_info *call_usermodehelper_setup(char *path, char **argv,
++						  char **envp, gfp_t gfp_mask)
+ {
+ 	struct subprocess_info *sub_info;
+-	sub_info = kzalloc(sizeof(struct subprocess_info),  GFP_ATOMIC);
++	sub_info = kzalloc(sizeof(struct subprocess_info), gfp_mask);
+ 	if (!sub_info)
+ 		goto out;
  
+@@ -494,7 +495,7 @@ int call_usermodehelper_pipe(char *path,
+ 	struct subprocess_info *sub_info;
+ 	int ret;
  
-@@ -65,10 +66,6 @@ static inline struct thread_info *curren
- 	return ti;
- }
+-	sub_info = call_usermodehelper_setup(path, argv, envp);
++	sub_info = call_usermodehelper_setup(path, argv, envp, GFP_KERNEL);
+ 	if (sub_info == NULL)
+ 		return -ENOMEM;
  
--/* thread information allocation */
--#define alloc_thread_info(tsk) ((struct thread_info *) \
--				__get_free_pages(GFP_KERNEL, 1))
--#define free_thread_info(ti)	free_pages((unsigned long) (ti), 1)
- #endif /* __ASSEMBLY__ */
+diff -puN kernel/sys.c~call_usermodehelper-increase-reliability kernel/sys.c
+--- a/kernel/sys.c~call_usermodehelper-increase-reliability
++++ a/kernel/sys.c
+@@ -1795,7 +1795,7 @@ int orderly_poweroff(bool force)
+ 		goto out;
+ 	}
  
- /*
-diff -puN include/asm-ia64/thread_info.h~clean-up-duplicated-alloc-free_thread_info include/asm-ia64/thread_info.h
---- a/include/asm-ia64/thread_info.h~clean-up-duplicated-alloc-free_thread_info
-+++ a/include/asm-ia64/thread_info.h
-@@ -54,6 +54,8 @@ struct thread_info {
- 	},					\
- }
- 
-+#define __HAVE_ARCH_THREAD_INFO_ALLOCATOR
-+
- #ifndef ASM_OFFSETS_C
- /* how to get the thread information struct from C */
- #define current_thread_info()	((struct thread_info *) ((char *) current + IA64_TASK_SIZE))
-diff -puN include/asm-m32r/thread_info.h~clean-up-duplicated-alloc-free_thread_info include/asm-m32r/thread_info.h
---- a/include/asm-m32r/thread_info.h~clean-up-duplicated-alloc-free_thread_info
-+++ a/include/asm-m32r/thread_info.h
-@@ -94,6 +94,8 @@ static inline struct thread_info *curren
- 	return ti;
- }
- 
-+#define __HAVE_ARCH_THREAD_INFO_ALLOCATOR
-+
- /* thread information allocation */
- #ifdef CONFIG_DEBUG_STACK_USAGE
- #define alloc_thread_info(tsk)					\
-diff -puN include/asm-m68k/thread_info.h~clean-up-duplicated-alloc-free_thread_info include/asm-m68k/thread_info.h
---- a/include/asm-m68k/thread_info.h~clean-up-duplicated-alloc-free_thread_info
-+++ a/include/asm-m68k/thread_info.h
-@@ -25,13 +25,7 @@ struct thread_info {
- }
- 
- /* THREAD_SIZE should be 8k, so handle differently for 4k and 8k machines */
--#if PAGE_SHIFT == 13 /* 8k machines */
--#define alloc_thread_info(tsk)   ((struct thread_info *)__get_free_pages(GFP_KERNEL,0))
--#define free_thread_info(ti)  free_pages((unsigned long)(ti),0)
--#else /* otherwise assume 4k pages */
--#define alloc_thread_info(tsk)   ((struct thread_info *)__get_free_pages(GFP_KERNEL,1))
--#define free_thread_info(ti)  free_pages((unsigned long)(ti),1)
--#endif /* PAGE_SHIFT == 13 */
-+#define THREAD_SIZE_ORDER (13 - PAGE_SHIFT)
- 
- #define init_thread_info	(init_task.thread.info)
- #define init_stack		(init_thread_union.stack)
-diff -puN include/asm-m68knommu/thread_info.h~clean-up-duplicated-alloc-free_thread_info include/asm-m68knommu/thread_info.h
---- a/include/asm-m68knommu/thread_info.h~clean-up-duplicated-alloc-free_thread_info
-+++ a/include/asm-m68knommu/thread_info.h
-@@ -71,10 +71,6 @@ static inline struct thread_info *curren
- 	return ti;
- }
- 
--/* thread information allocation */
--#define alloc_thread_info(tsk) ((struct thread_info *) \
--				__get_free_pages(GFP_KERNEL, THREAD_SIZE_ORDER))
--#define free_thread_info(ti)	free_pages((unsigned long) (ti), THREAD_SIZE_ORDER)
- #endif /* __ASSEMBLY__ */
- 
- #define	PREEMPT_ACTIVE	0x4000000
-diff -puN include/asm-mips/thread_info.h~clean-up-duplicated-alloc-free_thread_info include/asm-mips/thread_info.h
---- a/include/asm-mips/thread_info.h~clean-up-duplicated-alloc-free_thread_info
-+++ a/include/asm-mips/thread_info.h
-@@ -82,6 +82,8 @@ register struct thread_info *__current_t
- #define THREAD_SIZE (PAGE_SIZE << THREAD_SIZE_ORDER)
- #define THREAD_MASK (THREAD_SIZE - 1UL)
- 
-+#define __HAVE_ARCH_THREAD_INFO_ALLOCATOR
-+
- #ifdef CONFIG_DEBUG_STACK_USAGE
- #define alloc_thread_info(tsk)					\
- ({								\
-diff -puN include/asm-mn10300/thread_info.h~clean-up-duplicated-alloc-free_thread_info include/asm-mn10300/thread_info.h
---- a/include/asm-mn10300/thread_info.h~clean-up-duplicated-alloc-free_thread_info
-+++ a/include/asm-mn10300/thread_info.h
-@@ -112,6 +112,8 @@ static inline unsigned long current_stac
- 	return sp;
- }
- 
-+#define __HAVE_ARCH_THREAD_INFO_ALLOCATOR
-+
- /* thread information allocation */
- #ifdef CONFIG_DEBUG_STACK_USAGE
- #define alloc_thread_info(tsk) kzalloc(THREAD_SIZE, GFP_KERNEL)
-diff -puN include/asm-parisc/thread_info.h~clean-up-duplicated-alloc-free_thread_info include/asm-parisc/thread_info.h
---- a/include/asm-parisc/thread_info.h~clean-up-duplicated-alloc-free_thread_info
-+++ a/include/asm-parisc/thread_info.h
-@@ -34,15 +34,11 @@ struct thread_info {
- 
- /* thread information allocation */
- 
--#define THREAD_ORDER            2
-+#define THREAD_SIZE_ORDER            2
- /* Be sure to hunt all references to this down when you change the size of
-  * the kernel stack */
--#define THREAD_SIZE             (PAGE_SIZE << THREAD_ORDER)
--#define THREAD_SHIFT            (PAGE_SHIFT + THREAD_ORDER)
--
--#define alloc_thread_info(tsk) ((struct thread_info *) \
--			__get_free_pages(GFP_KERNEL, THREAD_ORDER))
--#define free_thread_info(ti)    free_pages((unsigned long) (ti), THREAD_ORDER)
-+#define THREAD_SIZE             (PAGE_SIZE << THREAD_SIZE_ORDER)
-+#define THREAD_SHIFT            (PAGE_SHIFT + THREAD_SIZE_ORDER)
- 
- /* how to get the thread information struct from C */
- #define current_thread_info()	((struct thread_info *)mfctl(30))
-diff -puN include/asm-powerpc/thread_info.h~clean-up-duplicated-alloc-free_thread_info include/asm-powerpc/thread_info.h
---- a/include/asm-powerpc/thread_info.h~clean-up-duplicated-alloc-free_thread_info
-+++ a/include/asm-powerpc/thread_info.h
-@@ -66,20 +66,12 @@ struct thread_info {
- 
- #if THREAD_SHIFT >= PAGE_SHIFT
- 
--#define THREAD_ORDER	(THREAD_SHIFT - PAGE_SHIFT)
--
--#ifdef CONFIG_DEBUG_STACK_USAGE
--#define alloc_thread_info(tsk)	\
--	((struct thread_info *)__get_free_pages(GFP_KERNEL | \
--		__GFP_ZERO, THREAD_ORDER))
--#else
--#define alloc_thread_info(tsk)	\
--	((struct thread_info *)__get_free_pages(GFP_KERNEL, THREAD_ORDER))
--#endif
--#define free_thread_info(ti)	free_pages((unsigned long)ti, THREAD_ORDER)
-+#define THREAD_SIZE_ORDER	(THREAD_SHIFT - PAGE_SHIFT)
- 
- #else /* THREAD_SHIFT < PAGE_SHIFT */
- 
-+#define __HAVE_ARCH_THREAD_INFO_ALLOCATOR
-+
- extern struct thread_info *alloc_thread_info(struct task_struct *tsk);
- extern void free_thread_info(struct thread_info *ti);
- 
-diff -puN include/asm-s390/thread_info.h~clean-up-duplicated-alloc-free_thread_info include/asm-s390/thread_info.h
---- a/include/asm-s390/thread_info.h~clean-up-duplicated-alloc-free_thread_info
-+++ a/include/asm-s390/thread_info.h
-@@ -78,10 +78,7 @@ static inline struct thread_info *curren
- 	return (struct thread_info *)((*(unsigned long *) __LC_KERNEL_STACK)-THREAD_SIZE);
- }
- 
--/* thread information allocation */
--#define alloc_thread_info(tsk) ((struct thread_info *) \
--	__get_free_pages(GFP_KERNEL,THREAD_ORDER))
--#define free_thread_info(ti) free_pages((unsigned long) (ti),THREAD_ORDER)
-+#define THREAD_SIZE_ORDER THREAD_ORDER
- 
- #endif
- 
-diff -puN include/asm-sh/thread_info.h~clean-up-duplicated-alloc-free_thread_info include/asm-sh/thread_info.h
---- a/include/asm-sh/thread_info.h~clean-up-duplicated-alloc-free_thread_info
-+++ a/include/asm-sh/thread_info.h
-@@ -92,6 +92,8 @@ static inline struct thread_info *curren
- 	return ti;
- }
- 
-+#define __HAVE_ARCH_THREAD_INFO_ALLOCATOR
-+
- /* thread information allocation */
- #ifdef CONFIG_DEBUG_STACK_USAGE
- #define alloc_thread_info(ti)	kzalloc(THREAD_SIZE, GFP_KERNEL)
-diff -puN include/asm-sparc/thread_info_32.h~clean-up-duplicated-alloc-free_thread_info include/asm-sparc/thread_info_32.h
---- a/include/asm-sparc/thread_info_32.h~clean-up-duplicated-alloc-free_thread_info
-+++ a/include/asm-sparc/thread_info_32.h
-@@ -86,6 +86,8 @@ register struct thread_info *current_thr
- #define THREAD_INFO_ORDER  1
- #endif
- 
-+#define __HAVE_ARCH_THREAD_INFO_ALLOCATOR
-+
- BTFIXUPDEF_CALL(struct thread_info *, alloc_thread_info, void)
- #define alloc_thread_info(tsk) BTFIXUP_CALL(alloc_thread_info)()
- 
-diff -puN include/asm-sparc/thread_info_64.h~clean-up-duplicated-alloc-free_thread_info include/asm-sparc/thread_info_64.h
---- a/include/asm-sparc/thread_info_64.h~clean-up-duplicated-alloc-free_thread_info
-+++ a/include/asm-sparc/thread_info_64.h
-@@ -155,6 +155,8 @@ register struct thread_info *current_thr
- #define __THREAD_INFO_ORDER	0
- #endif /* PAGE_SHIFT == 13 */
- 
-+#define __HAVE_ARCH_THREAD_INFO_ALLOCATOR
-+
- #ifdef CONFIG_DEBUG_STACK_USAGE
- #define alloc_thread_info(tsk)					\
- ({								\
-diff -puN include/asm-um/thread_info.h~clean-up-duplicated-alloc-free_thread_info include/asm-um/thread_info.h
---- a/include/asm-um/thread_info.h~clean-up-duplicated-alloc-free_thread_info
-+++ a/include/asm-um/thread_info.h
-@@ -53,21 +53,7 @@ static inline struct thread_info *curren
- 	return ti;
- }
- 
--#ifdef CONFIG_DEBUG_STACK_USAGE
--
--#define alloc_thread_info(tsk) \
--	((struct thread_info *) __get_free_pages(GFP_KERNEL | __GFP_ZERO, \
--						 CONFIG_KERNEL_STACK_ORDER))
--#else
--
--/* thread information allocation */
--#define alloc_thread_info(tsk) \
--	((struct thread_info *) __get_free_pages(GFP_KERNEL, \
--						 CONFIG_KERNEL_STACK_ORDER))
--#endif
--
--#define free_thread_info(ti) \
--	free_pages((unsigned long)(ti),CONFIG_KERNEL_STACK_ORDER)
-+#define THREAD_SIZE_ORDER CONFIG_KERNEL_STACK_ORDER
- 
- #endif
- 
-diff -puN include/asm-x86/thread_info.h~clean-up-duplicated-alloc-free_thread_info include/asm-x86/thread_info.h
---- a/include/asm-x86/thread_info.h~clean-up-duplicated-alloc-free_thread_info
-+++ a/include/asm-x86/thread_info.h
-@@ -152,6 +152,8 @@ struct thread_info {
- #define THREAD_FLAGS GFP_KERNEL
- #endif
- 
-+#define __HAVE_ARCH_THREAD_INFO_ALLOCATOR
-+
- #define alloc_thread_info(tsk)						\
- 	((struct thread_info *)__get_free_pages(THREAD_FLAGS, THREAD_ORDER))
- 
-diff -puN include/asm-xtensa/thread_info.h~clean-up-duplicated-alloc-free_thread_info include/asm-xtensa/thread_info.h
---- a/include/asm-xtensa/thread_info.h~clean-up-duplicated-alloc-free_thread_info
-+++ a/include/asm-xtensa/thread_info.h
-@@ -111,10 +111,6 @@ static inline struct thread_info *curren
- 	return ti;
- }
- 
--/* thread information allocation */
--#define alloc_thread_info(tsk) ((struct thread_info *) __get_free_pages(GFP_KERNEL,1))
--#define free_thread_info(ti) free_pages((unsigned long) (ti), 1)
--
- #else /* !__ASSEMBLY__ */
- 
- /* how to get the thread information struct from ASM */
-@@ -160,6 +156,7 @@ static inline struct thread_info *curren
- #define TS_USEDFPU		0x0001	/* FPU was used by this task this quantum (SMP) */
- 
- #define THREAD_SIZE 8192	//(2*PAGE_SIZE)
-+#define THREAD_SIZE_ORDER 1
- 
- #endif	/* __KERNEL__ */
- #endif	/* _XTENSA_THREAD_INFO */
-diff -puN kernel/fork.c~clean-up-duplicated-alloc-free_thread_info kernel/fork.c
---- a/kernel/fork.c~clean-up-duplicated-alloc-free_thread_info
-+++ a/kernel/fork.c
-@@ -93,6 +93,23 @@ int nr_processes(void)
- static struct kmem_cache *task_struct_cachep;
- #endif
- 
-+#ifndef __HAVE_ARCH_THREAD_INFO_ALLOCATOR
-+static inline struct thread_info *alloc_thread_info(struct task_struct *tsk)
-+{
-+#ifdef CONFIG_DEBUG_STACK_USAGE
-+	gfp_t mask = GFP_KERNEL | __GFP_ZERO;
-+#else
-+	gfp_t mask = GFP_KERNEL;
-+#endif
-+	return (struct thread_info *)__get_free_pages(mask, THREAD_SIZE_ORDER);
-+}
-+
-+static inline void free_thread_info(struct thread_info *ti)
-+{
-+	free_pages((unsigned long)ti, THREAD_SIZE_ORDER);
-+}
-+#endif
-+
- /* SLAB cache for signal_struct structures (tsk->signal) */
- static struct kmem_cache *signal_cachep;
- 
+-	info = call_usermodehelper_setup(argv[0], argv, envp);
++	info = call_usermodehelper_setup(argv[0], argv, envp, GFP_ATOMIC);
+ 	if (info == NULL) {
+ 		argv_free(argv);
+ 		goto out;
 _
 
-Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
 origin.patch
-ide-cd-use-the-new-object_is_in_stack-helper.patch
-block-blk-mapc-use-the-new-object_is_on_stack-helper.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-s2io.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support-fix-2.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sdhci-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-infiniband.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-more-sparc.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-ibmvscsi.patch
-x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary.patch
-x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary-checkpatch-fixes.patch
+full-conversion-to-early_initcall-interface-remove-old-interface-fix-fix.patch
+full-conversion-to-early_initcall-interface-remove-old-interface-fix-fix-fix.patch
+relay-add-buffer-only-channels-useful-for-early-logging-fix.patch
+mm-speculative-page-references-fix-migration_entry_wait-for-speculative-page-cache.patch
+vmscan-use-an-indexed-array-for-lru-variables.patch
+swap-use-an-array-for-the-lru-pagevecs.patch
+define-page_file_cache-function-fix-splitlru-shmem_getpage-setpageswapbacked-sooner.patch
+vmscan-split-lru-lists-into-anon-file-sets-collect-lru-meminfo-statistics-from-correct-offset.patch
+vmscan-split-lru-lists-into-anon-file-sets-prevent-incorrect-oom-under-split_lru.patch
+vmscan-split-lru-lists-into-anon-file-sets-split_lru-fix-pagevec_move_tail-doesnt-treat-unevictable-page.patch
+vmscan-split-lru-lists-into-anon-file-sets-splitlru-memcg-swapbacked-pages-active.patch
+vmscan-split-lru-lists-into-anon-file-sets-splitlru-bdi_cap_swap_backed.patch
+vmscan-second-chance-replacement-for-anonymous-pages.patch
+vmscan-second-chance-replacement-for-anonymous-pages-fix.patch
+vmscan-second-chance-replacement-for-anonymous-pages-memcg-lru-scan-fix.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-infrastructure-fix.patch
+unevictable-lru-infrastructure-remove-redundant-page-mapping-check.patch
+unevictable-lru-infrastructure-putback_lru_page-unevictable-page-handling-rework.patch
+unevictable-lru-infrastructure-kill-unnecessary-lock_page-in-vmscanc.patch
+unevictable-lru-infrastructure-revert-migration-change-of-unevictable-lru-infrastructure.patch
+unevictable-lru-page-statistics.patch
+unevictable-lru-page-statistics-fix-printk-in-show_free_areas.patch
+unevictable-lru-page-statistics-units-fix.patch
+shm_locked-pages-are-unevictable.patch
+shm_locked-pages-are-unevictable-revert-shm-change-of-shm_locked-pages-are-unevictable-patch.patch
+mlock-mlocked-pages-are-unevictable.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-3.patch
+mlock-mlocked-pages-are-unevictable-fix-fix-munlock-page-table-walk-now-requires-mm.patch
+mlock-mlocked-pages-are-unevictable-restore-patch-failure-hunk-of-mlock-mlocked-pages-are-unevictablepatch.patch
+mlock-mlocked-pages-are-unevictable-fix-truncate-race-and-sevaral-comments.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
+fix-double-unlock_page-in-2626-rc5-mm3-kernel-bug-at-mm-filemapc-575.patch
+introduce-__get_user_pages.patch
+introduce-__get_user_pages-fix.patch
+split-lru-munlock-rework.patch
+revert-to-unevictable-lru-infrastructure-kconfig-fixpatch.patch
+vmstat-mlocked-pages-statistics.patch
+vmstat-mlocked-pages-statistics-fix-incorrect-mlocked-field-of-proc-meminfo.patch
+vmstat-mlocked-pages-statistics-fix.patch
+swap-cull-unevictable-pages-in-fault-path-fix.patch
+vmstat-unevictable-and-mlocked-pages-vm-events.patch
+restore-patch-failure-of-vmstat-unevictable-and-mlocked-pages-vm-eventspatch.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
+vmscan-unevictable-lru-scan-sysctl-add-sys_device-parameter.patch
+vmscam-kill-unused-lru-functions.patch
+mm-more-likely-reclaim-madv_sequential-mappings.patch
+make-mm-memoryc-print_bad_pte-static.patch
+mm-swapfilec-make-code-static.patch
+make-mm-rmapc-anon_vma_cachep-static.patch
 
