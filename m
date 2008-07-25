@@ -1,108 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - move-proc_kmsg_operations-to-fs-proc-internalh.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 16:02:09 -0700
-Message-ID: <200807252302.m6PN29k9003801@imap1.linux-foundation.org>
+Subject: - idr-fix-a-printk-call.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 16:00:39 -0700
+Message-ID: <200807252300.m6PN0dop003603@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37563 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37742 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752877AbYGYXCr (ORCPT
+	by vger.kernel.org with ESMTP id S1753352AbYGYXCw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:02:47 -0400
+	Fri, 25 Jul 2008 19:02:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, adobriyan@gmail.com, mm-commits@vger.kernel.org
+To: Nadia.Derbey@bull.net, jim.houston@comcast.net, manfred@colorfullife.com, paulmck@us.ibm.com, peifferp@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     move proc_kmsg_operations to fs/proc/internal.h
+     idr: fix a printk call
 has been removed from the -mm tree.  Its filename was
-     move-proc_kmsg_operations-to-fs-proc-internalh.patch
+     idr-fix-a-printk-call.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: move proc_kmsg_operations to fs/proc/internal.h
-From: Adrian Bunk <bunk@kernel.org>
+Subject: idr: fix a printk call
+From: Nadia Derbey <Nadia.Derbey@bull.net>
 
-This patch moves the extern of struct proc_kmsg_operations to
-fs/proc/internal.h and adds an #include "internal.h" to fs/proc/kmsg.c
-so that the latter sees the former.
+Fix the incomplete printk call.
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Signed-off-by: Nadia Derbey <Nadia.Derbey@bull.net>
+Reviewed-by: "Paul E. McKenney" <paulmck@us.ibm.com>
+Cc: Manfred Spraul <manfred@colorfullife.com>
+Cc: Jim Houston <jim.houston@comcast.net>
+Cc: Pierre Peiffer <peifferp@gmail.com>
+Acked-by: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/internal.h      |    1 +
- fs/proc/kmsg.c          |    2 ++
- include/linux/proc_fs.h |    1 -
- 3 files changed, 3 insertions(+), 1 deletion(-)
+ lib/idr.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/proc/internal.h~move-proc_kmsg_operations-to-fs-proc-internalh fs/proc/internal.h
---- a/fs/proc/internal.h~move-proc_kmsg_operations-to-fs-proc-internalh
-+++ a/fs/proc/internal.h
-@@ -63,6 +63,7 @@ extern const struct file_operations proc
- extern const struct file_operations proc_clear_refs_operations;
- extern const struct file_operations proc_pagemap_operations;
- extern const struct file_operations proc_net_operations;
-+extern const struct file_operations proc_kmsg_operations;
- extern const struct inode_operations proc_net_inode_operations;
+diff -puN lib/idr.c~idr-fix-a-printk-call lib/idr.c
+--- a/lib/idr.c~idr-fix-a-printk-call
++++ a/lib/idr.c
+@@ -326,7 +326,8 @@ EXPORT_SYMBOL(idr_get_new);
  
- void free_proc_entry(struct proc_dir_entry *de);
-diff -puN fs/proc/kmsg.c~move-proc_kmsg_operations-to-fs-proc-internalh fs/proc/kmsg.c
---- a/fs/proc/kmsg.c~move-proc_kmsg_operations-to-fs-proc-internalh
-+++ a/fs/proc/kmsg.c
-@@ -15,6 +15,8 @@
- #include <asm/uaccess.h>
- #include <asm/io.h>
+ static void idr_remove_warning(int id)
+ {
+-	printk("idr_remove called for id=%d which is not allocated.\n", id);
++	printk(KERN_WARNING
++		"idr_remove called for id=%d which is not allocated.\n", id);
+ 	dump_stack();
+ }
  
-+#include "internal.h"
-+
- extern wait_queue_head_t log_wait;
- 
- extern int do_syslog(int type, char __user *bug, int count);
-diff -puN include/linux/proc_fs.h~move-proc_kmsg_operations-to-fs-proc-internalh include/linux/proc_fs.h
---- a/include/linux/proc_fs.h~move-proc_kmsg_operations-to-fs-proc-internalh
-+++ a/include/linux/proc_fs.h
-@@ -138,7 +138,6 @@ extern int proc_readdir(struct file *, v
- extern struct dentry *proc_lookup(struct inode *, struct dentry *, struct nameidata *);
- 
- extern const struct file_operations proc_kcore_operations;
--extern const struct file_operations proc_kmsg_operations;
- extern const struct file_operations ppc_htab_operations;
- 
- extern int pid_ns_prepare_proc(struct pid_namespace *ns);
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from Nadia.Derbey@bull.net are
 
 origin.patch
-uninline-arch_pick_mmap_layout.patch
-include-video-atmel_lcdch-must-include-linux-workqueueh.patch
-linux-next.patch
-m32r-remove-the-unused-nohighmem-option.patch
-if-0-ses_match_host.patch
-git-xtensa.patch
-include-linux-kernelh-userspace-header-cleanup.patch
-parport-sharec-proper-externs.patch
-tpm_biosc-make-2-structs-static.patch
-drm-make-drm_minors_cleanup-static.patch
-make-cgroup_seqfile_release-static.patch
-make-pnp_add_card_id-static.patch
-make-parport_cs_release-static.patch
-make-mm-sparsec-make-a-function-static.patch
-mm-allocpercpuc-make-4-functions-static.patch
-make-mm-memoryc-print_bad_pte-static.patch
-mm-swapfilec-make-code-static.patch
-make-mm-rmapc-anon_vma_cachep-static.patch
-drivers-char-rtcc-make-2-functions-static.patch
-make-init-do_mountsc-root_device_name-static.patch
-make-macfb_setup-static.patch
-video-console-sticonrec-make-code-static.patch
-video-console-sticonrec-make-code-static-checkpatch-fixes.patch
-video-stifbc-make-2-functions-static.patch
-reiser4.patch
 
