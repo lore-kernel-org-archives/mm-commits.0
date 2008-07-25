@@ -1,94 +1,221 @@
 From: akpm@linux-foundation.org
-Subject: - ip2-push-bkl-down-for-the-firmware-interface.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 16:01:19 -0700
-Message-ID: <200807252301.m6PN1Js5003697@imap1.linux-foundation.org>
+Subject: - mwave-ioctl-bkl-pushdown.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 16:01:21 -0700
+Message-ID: <200807252301.m6PN1LtW003700@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45370 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35708 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752842AbYGYXCM (ORCPT
+	by vger.kernel.org with ESMTP id S1753012AbYGYXCS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:02:12 -0400
+	Fri, 25 Jul 2008 19:02:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jirislaby@gmail.com, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, snakebyte@gmx.de, yani.ioannou@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ip2: push BKL down for the firmware interface
+     mwave: ioctl BKL pushdown
 has been removed from the -mm tree.  Its filename was
-     ip2-push-bkl-down-for-the-firmware-interface.patch
+     mwave-ioctl-bkl-pushdown.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ip2: push BKL down for the firmware interface
+Subject: mwave: ioctl BKL pushdown
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-(The tty side is already done)
+Push the BKL down to the point it wraps the actual mwave method handlers
 
 Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Jiri Slaby <jirislaby@gmail.com>
+Cc: Eric Sesterhenn <snakebyte@gmx.de>
+Cc: Yani Ioannou <yani.ioannou@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ip2/ip2main.c |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ drivers/char/mwave/mwavedd.c |   39 +++++++++++++++++++++++----------
+ 1 file changed, 28 insertions(+), 11 deletions(-)
 
-diff -puN drivers/char/ip2/ip2main.c~ip2-push-bkl-down-for-the-firmware-interface drivers/char/ip2/ip2main.c
---- a/drivers/char/ip2/ip2main.c~ip2-push-bkl-down-for-the-firmware-interface
-+++ a/drivers/char/ip2/ip2main.c
-@@ -203,7 +203,7 @@ static int set_serial_info(i2ChanStrPtr,
+diff -puN drivers/char/mwave/mwavedd.c~mwave-ioctl-bkl-pushdown drivers/char/mwave/mwavedd.c
+--- a/drivers/char/mwave/mwavedd.c~mwave-ioctl-bkl-pushdown
++++ a/drivers/char/mwave/mwavedd.c
+@@ -86,8 +86,8 @@ module_param(mwave_uart_io, int, 0);
  
- static ssize_t ip2_ipl_read(struct file *, char __user *, size_t, loff_t *);
- static ssize_t ip2_ipl_write(struct file *, const char __user *, size_t, loff_t *);
--static int ip2_ipl_ioctl(struct inode *, struct file *, UINT, ULONG);
-+static long ip2_ipl_ioctl(struct file *, UINT, ULONG);
- static int ip2_ipl_open(struct inode *, struct file *);
+ static int mwave_open(struct inode *inode, struct file *file);
+ static int mwave_close(struct inode *inode, struct file *file);
+-static int mwave_ioctl(struct inode *inode, struct file *filp,
+-                       unsigned int iocmd, unsigned long ioarg);
++static long mwave_ioctl(struct file *filp, unsigned int iocmd,
++							unsigned long ioarg);
  
- static int DumpTraceBuffer(char __user *, int);
-@@ -236,7 +236,7 @@ static const struct file_operations ip2_
- 	.owner		= THIS_MODULE,
- 	.read		= ip2_ipl_read,
- 	.write		= ip2_ipl_write,
--	.ioctl		= ip2_ipl_ioctl,
-+	.unlocked_ioctl	= ip2_ipl_ioctl,
- 	.open		= ip2_ipl_open,
- }; 
+ MWAVE_DEVICE_DATA mwave_s_mdd;
  
-@@ -2845,10 +2845,10 @@ ip2_ipl_write(struct file *pFile, const 
- /*                                                                            */
- /*                                                                            */
- /******************************************************************************/
--static int
--ip2_ipl_ioctl ( struct inode *pInode, struct file *pFile, UINT cmd, ULONG arg )
-+static long
-+ip2_ipl_ioctl (struct file *pFile, UINT cmd, ULONG arg )
- {
--	unsigned int iplminor = iminor(pInode);
-+	unsigned int iplminor = iminor(pFile->f_path.dentry->d_inode);
- 	int rc = 0;
- 	void __user *argp = (void __user *)arg;
- 	ULONG __user *pIndex = argp;
-@@ -2859,6 +2859,8 @@ ip2_ipl_ioctl ( struct inode *pInode, st
- 	printk (KERN_DEBUG "IP2IPL: ioctl cmd %d, arg %ld\n", cmd, arg );
- #endif
- 
-+	lock_kernel();
-+
- 	switch ( iplminor ) {
- 	case 0:	    // IPL device
- 		rc = -EINVAL;
-@@ -2919,6 +2921,7 @@ ip2_ipl_ioctl ( struct inode *pInode, st
- 		rc = -ENODEV;
- 		break;
- 	}
-+	unlock_kernel();
- 	return rc;
+@@ -119,16 +119,16 @@ static int mwave_close(struct inode *ino
+ 	return retval;
  }
  
+-static int mwave_ioctl(struct inode *inode, struct file *file,
+-                       unsigned int iocmd, unsigned long ioarg)
++static long mwave_ioctl(struct file *file, unsigned int iocmd,
++							unsigned long ioarg)
+ {
+ 	unsigned int retval = 0;
+ 	pMWAVE_DEVICE_DATA pDrvData = &mwave_s_mdd;
+ 	void __user *arg = (void __user *)ioarg;
+ 
+-	PRINTK_5(TRACE_MWAVE,
+-		"mwavedd::mwave_ioctl, entry inode %p file %p cmd %x arg %x\n",
+-		 inode,  file, iocmd, (int) ioarg);
++	PRINTK_4(TRACE_MWAVE,
++		"mwavedd::mwave_ioctl, entry file %p cmd %x arg %x\n",
++		file, iocmd, (int) ioarg);
+ 
+ 	switch (iocmd) {
+ 
+@@ -136,7 +136,9 @@ static int mwave_ioctl(struct inode *ino
+ 			PRINTK_1(TRACE_MWAVE,
+ 				"mwavedd::mwave_ioctl, IOCTL_MW_RESET"
+ 				" calling tp3780I_ResetDSP\n");
++			lock_kernel();
+ 			retval = tp3780I_ResetDSP(&pDrvData->rBDData);
++			unlock_kernel();
+ 			PRINTK_2(TRACE_MWAVE,
+ 				"mwavedd::mwave_ioctl, IOCTL_MW_RESET"
+ 				" retval %x from tp3780I_ResetDSP\n",
+@@ -147,7 +149,9 @@ static int mwave_ioctl(struct inode *ino
+ 			PRINTK_1(TRACE_MWAVE,
+ 				"mwavedd::mwave_ioctl, IOCTL_MW_RUN"
+ 				" calling tp3780I_StartDSP\n");
++			lock_kernel();
+ 			retval = tp3780I_StartDSP(&pDrvData->rBDData);
++			unlock_kernel();
+ 			PRINTK_2(TRACE_MWAVE,
+ 				"mwavedd::mwave_ioctl, IOCTL_MW_RUN"
+ 				" retval %x from tp3780I_StartDSP\n",
+@@ -161,8 +165,10 @@ static int mwave_ioctl(struct inode *ino
+ 				"mwavedd::mwave_ioctl,"
+ 				" IOCTL_MW_DSP_ABILITIES calling"
+ 				" tp3780I_QueryAbilities\n");
++			lock_kernel();
+ 			retval = tp3780I_QueryAbilities(&pDrvData->rBDData,
+ 					&rAbilities);
++			unlock_kernel();
+ 			PRINTK_2(TRACE_MWAVE,
+ 				"mwavedd::mwave_ioctl, IOCTL_MW_DSP_ABILITIES"
+ 				" retval %x from tp3780I_QueryAbilities\n",
+@@ -193,11 +199,13 @@ static int mwave_ioctl(struct inode *ino
+ 				"mwavedd::mwave_ioctl IOCTL_MW_READ_DATA,"
+ 				" size %lx, ioarg %lx pusBuffer %p\n",
+ 				rReadData.ulDataLength, ioarg, pusBuffer);
++			lock_kernel();
+ 			retval = tp3780I_ReadWriteDspDStore(&pDrvData->rBDData,
+ 					iocmd,
+ 					pusBuffer,
+ 					rReadData.ulDataLength,
+ 					rReadData.usDspAddress);
++			unlock_kernel();
+ 		}
+ 			break;
+ 	
+@@ -215,10 +223,12 @@ static int mwave_ioctl(struct inode *ino
+ 				" size %lx, ioarg %lx pusBuffer %p\n",
+ 				rReadData.ulDataLength / 2, ioarg,
+ 				pusBuffer);
++			lock_kernel();
+ 			retval = tp3780I_ReadWriteDspDStore(&pDrvData->rBDData,
+ 				iocmd, pusBuffer,
+ 				rReadData.ulDataLength / 2,
+ 				rReadData.usDspAddress);
++			unlock_kernel();
+ 		}
+ 			break;
+ 	
+@@ -236,10 +246,12 @@ static int mwave_ioctl(struct inode *ino
+ 				" size %lx, ioarg %lx pusBuffer %p\n",
+ 				rWriteData.ulDataLength, ioarg,
+ 				pusBuffer);
++			lock_kernel();
+ 			retval = tp3780I_ReadWriteDspDStore(&pDrvData->rBDData,
+ 					iocmd, pusBuffer,
+ 					rWriteData.ulDataLength,
+ 					rWriteData.usDspAddress);
++			unlock_kernel();
+ 		}
+ 			break;
+ 	
+@@ -257,10 +269,12 @@ static int mwave_ioctl(struct inode *ino
+ 				" size %lx, ioarg %lx pusBuffer %p\n",
+ 				rWriteData.ulDataLength, ioarg,
+ 				pusBuffer);
++			lock_kernel();
+ 			retval = tp3780I_ReadWriteDspIStore(&pDrvData->rBDData,
+ 					iocmd, pusBuffer,
+ 					rWriteData.ulDataLength,
+ 					rWriteData.usDspAddress);
++			unlock_kernel();
+ 		}
+ 			break;
+ 	
+@@ -281,8 +295,10 @@ static int mwave_ioctl(struct inode *ino
+ 						ipcnum);
+ 				return -EINVAL;
+ 			}
++			lock_kernel();
+ 			pDrvData->IPCs[ipcnum].bIsHere = FALSE;
+ 			pDrvData->IPCs[ipcnum].bIsEnabled = TRUE;
++			unlock_kernel();
+ 	
+ 			PRINTK_2(TRACE_MWAVE,
+ 				"mwavedd::mwave_ioctl IOCTL_MW_REGISTER_IPC"
+@@ -307,6 +323,7 @@ static int mwave_ioctl(struct inode *ino
+ 				return -EINVAL;
+ 			}
+ 	
++			lock_kernel();
+ 			if (pDrvData->IPCs[ipcnum].bIsEnabled == TRUE) {
+ 				DECLARE_WAITQUEUE(wait, current);
+ 
+@@ -347,6 +364,7 @@ static int mwave_ioctl(struct inode *ino
+ 					" processing\n",
+ 					ipcnum);
+ 			}
++			unlock_kernel();
+ 		}
+ 			break;
+ 	
+@@ -365,19 +383,18 @@ static int mwave_ioctl(struct inode *ino
+ 						ipcnum);
+ 				return -EINVAL;
+ 			}
++			lock_kernel();
+ 			if (pDrvData->IPCs[ipcnum].bIsEnabled == TRUE) {
+ 				pDrvData->IPCs[ipcnum].bIsEnabled = FALSE;
+ 				if (pDrvData->IPCs[ipcnum].bIsHere == TRUE) {
+ 					wake_up_interruptible(&pDrvData->IPCs[ipcnum].ipc_wait_queue);
+ 				}
+ 			}
++			unlock_kernel();
+ 		}
+ 			break;
+ 	
+ 		default:
+-			PRINTK_ERROR(KERN_ERR_MWAVE "mwavedd::mwave_ioctl:"
+-					" Error: Unrecognized iocmd %x\n",
+-					iocmd);
+ 			return -ENOTTY;
+ 			break;
+ 	} /* switch */
+@@ -460,7 +477,7 @@ static const struct file_operations mwav
+ 	.owner		= THIS_MODULE,
+ 	.read		= mwave_read,
+ 	.write		= mwave_write,
+-	.ioctl		= mwave_ioctl,
++	.unlocked_ioctl	= mwave_ioctl,
+ 	.open		= mwave_open,
+ 	.release	= mwave_close
+ };
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
