@@ -1,224 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: - sx-push-bkl-down-into-the-firmware-ioctl-handler.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 16:01:26 -0700
-Message-ID: <200807252301.m6PN1Q1w003708@imap1.linux-foundation.org>
+Subject: - list-debugging-use-warn_on-instead-of-bug.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 15:55:28 -0700
+Message-ID: <200807252255.m6PMtSwv002980@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56336 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47761 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754468AbYGYXHC (ORCPT
+	by vger.kernel.org with ESMTP id S1754448AbYGYXHQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:07:02 -0400
+	Fri, 25 Jul 2008 19:07:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jirislaby@gmail.com, mm-commits@vger.kernel.org
+To: davej@redhat.com, arjan@infradead.org, matthew@wil.cx, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sx: push BKL down into the firmware ioctl handler
+     list debugging: use WARN() instead of BUG()
 has been removed from the -mm tree.  Its filename was
-     sx-push-bkl-down-into-the-firmware-ioctl-handler.patch
+     list-debugging-use-warn_on-instead-of-bug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sx: push BKL down into the firmware ioctl handler
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: list debugging: use WARN() instead of BUG()
+From: Dave Jones <davej@redhat.com>
 
-Also fix the capability checking for firmware load.
+Arjan noted that the list_head debugging is BUG'ing when it detects
+corruption.  By causing the box to panic immediately, we're possibly
+losing some bug reports.  Changing this to a WARN() should mean we at the
+least start seeing reports collected at kerneloops.org
 
-Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Jiri Slaby <jirislaby@gmail.com>
+Signed-off-by: Dave Jones <davej@redhat.com>
+Cc: Matthew Wilcox <matthew@wil.cx>
+Cc: Arjan van de Ven <arjan@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/sx.c |   73 +++++++++++++++++++++++++-------------------
- 1 file changed, 43 insertions(+), 30 deletions(-)
+ lib/list_debug.c |   36 ++++++++++++++----------------------
+ 1 file changed, 14 insertions(+), 22 deletions(-)
 
-diff -puN drivers/char/sx.c~sx-push-bkl-down-into-the-firmware-ioctl-handler drivers/char/sx.c
---- a/drivers/char/sx.c~sx-push-bkl-down-into-the-firmware-ioctl-handler
-+++ a/drivers/char/sx.c
-@@ -286,8 +286,8 @@ static void sx_close(void *ptr);
- static int sx_chars_in_buffer(void *ptr);
- static int sx_init_board(struct sx_board *board);
- static int sx_init_portstructs(int nboards, int nports);
--static int sx_fw_ioctl(struct inode *inode, struct file *filp,
--		unsigned int cmd, unsigned long arg);
-+static long sx_fw_ioctl(struct file *filp, unsigned int cmd,
-+						unsigned long arg);
- static int sx_init_drivers(void);
- 
- static struct tty_driver *sx_driver;
-@@ -396,7 +396,7 @@ static struct real_driver sx_real_driver
- 
- static const struct file_operations sx_fw_fops = {
- 	.owner = THIS_MODULE,
--	.ioctl = sx_fw_ioctl,
-+	.unlocked_ioctl = sx_fw_ioctl,
- };
- 
- static struct miscdevice sx_fw_device = {
-@@ -1686,10 +1686,10 @@ static int do_memtest_w(struct sx_board 
- }
- #endif
- 
--static int sx_fw_ioctl(struct inode *inode, struct file *filp,
--		unsigned int cmd, unsigned long arg)
-+static long sx_fw_ioctl(struct file *filp, unsigned int cmd,
-+							unsigned long arg)
+diff -puN lib/list_debug.c~list-debugging-use-warn_on-instead-of-bug lib/list_debug.c
+--- a/lib/list_debug.c~list-debugging-use-warn_on-instead-of-bug
++++ a/lib/list_debug.c
+@@ -20,18 +20,14 @@ void __list_add(struct list_head *new,
+ 			      struct list_head *prev,
+ 			      struct list_head *next)
  {
--	int rc = 0;
-+	long rc = 0;
- 	int __user *descr = (int __user *)arg;
- 	int i;
- 	static struct sx_board *board = NULL;
-@@ -1699,13 +1699,10 @@ static int sx_fw_ioctl(struct inode *ino
- 
- 	func_enter();
- 
--#if 0
--	/* Removed superuser check: Sysops can use the permissions on the device
--	   file to restrict access. Recommendation: Root only. (root.root 600) */
--	if (!capable(CAP_SYS_ADMIN)) {
-+	if (!capable(CAP_SYS_RAWIO))
- 		return -EPERM;
+-	if (unlikely(next->prev != prev)) {
+-		printk(KERN_ERR "list_add corruption. next->prev should be "
+-			"prev (%p), but was %p. (next=%p).\n",
+-			prev, next->prev, next);
+-		BUG();
 -	}
--#endif
-+
-+	lock_kernel();
- 
- 	sx_dprintk(SX_DEBUG_FIRMWARE, "IOCTL %x: %lx\n", cmd, arg);
- 
-@@ -1720,19 +1717,23 @@ static int sx_fw_ioctl(struct inode *ino
- 		for (i = 0; i < SX_NBOARDS; i++)
- 			sx_dprintk(SX_DEBUG_FIRMWARE, "<%x> ", boards[i].flags);
- 		sx_dprintk(SX_DEBUG_FIRMWARE, "\n");
-+		unlock_kernel();
- 		return -EIO;
- 	}
- 
- 	switch (cmd) {
- 	case SXIO_SET_BOARD:
- 		sx_dprintk(SX_DEBUG_FIRMWARE, "set board to %ld\n", arg);
-+		rc = -EIO;
- 		if (arg >= SX_NBOARDS)
--			return -EIO;
-+			break;
- 		sx_dprintk(SX_DEBUG_FIRMWARE, "not out of range\n");
- 		if (!(boards[arg].flags & SX_BOARD_PRESENT))
--			return -EIO;
-+			break;
- 		sx_dprintk(SX_DEBUG_FIRMWARE, ".. and present!\n");
- 		board = &boards[arg];
-+		rc = 0;
-+		/* FIXME: And this does ... nothing?? */
- 		break;
- 	case SXIO_GET_TYPE:
- 		rc = -ENOENT;	/* If we manage to miss one, return error. */
-@@ -1746,7 +1747,7 @@ static int sx_fw_ioctl(struct inode *ino
- 			rc = SX_TYPE_SI;
- 		if (IS_EISA_BOARD(board))
- 			rc = SX_TYPE_SI;
--		sx_dprintk(SX_DEBUG_FIRMWARE, "returning type= %d\n", rc);
-+		sx_dprintk(SX_DEBUG_FIRMWARE, "returning type= %ld\n", rc);
- 		break;
- 	case SXIO_DO_RAMTEST:
- 		if (sx_initialized)	/* Already initialized: better not ramtest the board.  */
-@@ -1760,19 +1761,26 @@ static int sx_fw_ioctl(struct inode *ino
- 			rc = do_memtest(board, 0, 0x7ff8);
- 			/* if (!rc) rc = do_memtest_w (board, 0, 0x7ff8); */
- 		}
--		sx_dprintk(SX_DEBUG_FIRMWARE, "returning memtest result= %d\n",
--			   rc);
-+		sx_dprintk(SX_DEBUG_FIRMWARE,
-+				"returning memtest result= %ld\n", rc);
- 		break;
- 	case SXIO_DOWNLOAD:
--		if (sx_initialized)	/* Already initialized */
--			return -EEXIST;
--		if (!sx_reset(board))
--			return -EIO;
-+		if (sx_initialized) {/* Already initialized */
-+			rc = -EEXIST;
-+			break;
-+		}
-+		if (!sx_reset(board)) {
-+			rc = -EIO;
-+			break;
-+		}
- 		sx_dprintk(SX_DEBUG_INIT, "reset the board...\n");
- 
- 		tmp = kmalloc(SX_CHUNK_SIZE, GFP_USER);
--		if (!tmp)
--			return -ENOMEM;
-+		if (!tmp) {
-+			rc = -ENOMEM;
-+			break;
-+		}
-+		/* FIXME: check returns */
- 		get_user(nbytes, descr++);
- 		get_user(offset, descr++);
- 		get_user(data, descr++);
-@@ -1782,7 +1790,8 @@ static int sx_fw_ioctl(struct inode *ino
- 						(i + SX_CHUNK_SIZE > nbytes) ?
- 						nbytes - i : SX_CHUNK_SIZE)) {
- 					kfree(tmp);
--					return -EFAULT;
-+					rc = -EFAULT;
-+					break;
- 				}
- 				memcpy_toio(board->base2 + offset + i, tmp,
- 						(i + SX_CHUNK_SIZE > nbytes) ?
-@@ -1798,13 +1807,17 @@ static int sx_fw_ioctl(struct inode *ino
- 		rc = sx_nports;
- 		break;
- 	case SXIO_INIT:
--		if (sx_initialized)	/* Already initialized */
--			return -EEXIST;
-+		if (sx_initialized) {	/* Already initialized */
-+			rc = -EEXIST;
-+			break;
-+		}
- 		/* This is not allowed until all boards are initialized... */
- 		for (i = 0; i < SX_NBOARDS; i++) {
- 			if ((boards[i].flags & SX_BOARD_PRESENT) &&
--				!(boards[i].flags & SX_BOARD_INITIALIZED))
--				return -EIO;
-+				!(boards[i].flags & SX_BOARD_INITIALIZED)) {
-+				rc = -EIO;
-+				break;
-+			}
- 		}
- 		for (i = 0; i < SX_NBOARDS; i++)
- 			if (!(boards[i].flags & SX_BOARD_PRESENT))
-@@ -1832,10 +1845,10 @@ static int sx_fw_ioctl(struct inode *ino
- 		rc = sx_nports;
- 		break;
- 	default:
--		printk(KERN_WARNING "Unknown ioctl on firmware device (%x).\n",
--				cmd);
-+		rc = -ENOTTY;
- 		break;
- 	}
-+	unlock_kernel();
- 	func_exit();
- 	return rc;
- }
+-	if (unlikely(prev->next != next)) {
+-		printk(KERN_ERR "list_add corruption. prev->next should be "
+-			"next (%p), but was %p. (prev=%p).\n",
+-			next, prev->next, prev);
+-		BUG();
+-	}
++	WARN(next->prev != prev,
++		"list_add corruption. next->prev should be "
++		"prev (%p), but was %p. (next=%p).\n",
++		prev, next->prev, next);
++	WARN(prev->next != next,
++		"list_add corruption. prev->next should be "
++		"next (%p), but was %p. (prev=%p).\n",
++		next, prev->next, prev);
+ 	next->prev = new;
+ 	new->next = next;
+ 	new->prev = prev;
+@@ -47,16 +43,12 @@ EXPORT_SYMBOL(__list_add);
+  */
+ void list_del(struct list_head *entry)
+ {
+-	if (unlikely(entry->prev->next != entry)) {
+-		printk(KERN_ERR "list_del corruption. prev->next should be %p, "
+-				"but was %p\n", entry, entry->prev->next);
+-		BUG();
+-	}
+-	if (unlikely(entry->next->prev != entry)) {
+-		printk(KERN_ERR "list_del corruption. next->prev should be %p, "
+-				"but was %p\n", entry, entry->next->prev);
+-		BUG();
+-	}
++	WARN(entry->prev->next != entry,
++		"list_del corruption. prev->next should be %p, "
++		"but was %p\n", entry, entry->prev->next);
++	WARN(entry->next->prev != entry,
++		"list_del corruption. next->prev should be %p, "
++		"but was %p\n", entry, entry->next->prev);
+ 	__list_del(entry->prev, entry->next);
+ 	entry->next = LIST_POISON1;
+ 	entry->prev = LIST_POISON2;
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from davej@redhat.com are
 
 origin.patch
-hugetlb-fix-config_sysctl=n-build.patch
-add-time_is_after_jiffies-and-others-which-compare-with-jiffies.patch
-pata_viac-add-flag-for-vx800-and-add-a-function-for-fixing-internal-bugs-for-via-chipsets.patch
-pnp-set-the-pnp_card-dma_mask-for-use-by-isapnp-cards.patch
-isa-set-24-bit-dma_mask-for-isa-devices.patch
-char-merge-ip2main-and-ip2base.patch
-char-ip2-cleanup-globals.patch
-char-ip2-fix-sparse-warnings.patch
-char-ip2-init-deinit-cleanup.patch
-ip2-avoid-add_timer-with-pending-timer.patch
+x86-remove-init_mm-export-as-planned-for-2626.patch
 
