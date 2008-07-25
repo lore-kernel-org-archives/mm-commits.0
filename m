@@ -1,78 +1,147 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-power-fix-platform-driver-hotplug-coldplug.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 15:54:59 -0700
-Message-ID: <200807252255.m6PMsxtE002864@imap1.linux-foundation.org>
+Subject: - add-a-warn-macro-this-is-warn_on-printk-arguments.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 15:55:22 -0700
+Message-ID: <200807252255.m6PMtMwH002971@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56654 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43040 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752897AbYGYWzt (ORCPT
+	by vger.kernel.org with ESMTP id S1753003AbYGYWzy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 18:55:49 -0400
+	Fri, 25 Jul 2008 18:55:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kay.sievers@vrfy.org, dbrownell@users.sourceforge.net, greg@kroah.com, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: arjan@linux.intel.com, greg@kroah.com, jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/power: fix platform driver hotplug/coldplug
+     Add a WARN() macro; this is WARN_ON() + printk arguments
 has been removed from the -mm tree.  Its filename was
-     drivers-power-fix-platform-driver-hotplug-coldplug.patch
+     add-a-warn-macro-this-is-warn_on-printk-arguments.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/power: fix platform driver hotplug/coldplug
-From: Kay Sievers <kay.sievers@vrfy.org>
+Subject: Add a WARN() macro; this is WARN_ON() + printk arguments
+From: Arjan van de Ven <arjan@linux.intel.com>
 
-Since 43cc71eed1250755986da4c0f9898f9a635cb3bf ("platform: prefix MODALIAS
-with "platform:"), the platform modalias is prefixed with "platform:". 
-Add MODULE_ALIAS() to the hotpluggable "power" drivers drivers, to
-re-enable auto loading.
+Add a WARN() macro that acts like WARN_ON(), with the added feature that it
+takes a printk like argument that is printed as part of the warning message.
 
-[dbrownell@users.sourceforge.net: one was missing]
-Signed-off-by: Kay Sievers <kay.sievers@vrfy.org>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+[akpm@linux-foundation.org: fix printk arguments]
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
 Cc: Greg KH <greg@kroah.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/power/ds2760_battery.c |    2 ++
- drivers/power/pda_power.c      |    2 ++
- 2 files changed, 4 insertions(+)
+ include/asm-generic/bug.h |   22 ++++++++++++++++++++++
+ kernel/panic.c            |   22 ++++++++++++++++++++++
+ 2 files changed, 44 insertions(+)
 
-diff -puN drivers/power/ds2760_battery.c~drivers-power-fix-platform-driver-hotplug-coldplug drivers/power/ds2760_battery.c
---- a/drivers/power/ds2760_battery.c~drivers-power-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/power/ds2760_battery.c
-@@ -433,6 +433,8 @@ static int ds2760_battery_resume(struct 
+diff -puN include/asm-generic/bug.h~add-a-warn-macro-this-is-warn_on-printk-arguments include/asm-generic/bug.h
+--- a/include/asm-generic/bug.h~add-a-warn-macro-this-is-warn_on-printk-arguments
++++ a/include/asm-generic/bug.h
+@@ -34,9 +34,14 @@ struct bug_entry {
+ #ifndef __WARN
+ #ifndef __ASSEMBLY__
+ extern void warn_on_slowpath(const char *file, const int line);
++extern void warn_slowpath(const char *file, const int line,
++		const char *fmt, ...) __attribute__((format(printf, 3, 4)));
+ #define WANT_WARN_ON_SLOWPATH
+ #endif
+ #define __WARN() warn_on_slowpath(__FILE__, __LINE__)
++#define __WARN_printf(arg...) warn_slowpath(__FILE__, __LINE__, arg)
++#else
++#define __WARN_printf(arg...) __WARN()
+ #endif
  
- #endif /* CONFIG_PM */
+ #ifndef WARN_ON
+@@ -48,6 +53,15 @@ extern void warn_on_slowpath(const char 
+ })
+ #endif
  
-+MODULE_ALIAS("platform:ds2760-battery");
++#ifndef WARN
++#define WARN(condition, format...) ({						\
++	int __ret_warn_on = !!(condition);				\
++	if (unlikely(__ret_warn_on))					\
++		__WARN_printf(format);					\
++	unlikely(__ret_warn_on);					\
++})
++#endif
 +
- static struct platform_driver ds2760_battery_driver = {
- 	.driver = {
- 		.name = "ds2760-battery",
-diff -puN drivers/power/pda_power.c~drivers-power-fix-platform-driver-hotplug-coldplug drivers/power/pda_power.c
---- a/drivers/power/pda_power.c~drivers-power-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/power/pda_power.c
-@@ -362,6 +362,8 @@ static int pda_power_resume(struct platf
- #define pda_power_resume NULL
- #endif /* CONFIG_PM */
- 
-+MODULE_ALIAS("platform:pda-power");
+ #else /* !CONFIG_BUG */
+ #ifndef HAVE_ARCH_BUG
+ #define BUG()
+@@ -63,6 +77,14 @@ extern void warn_on_slowpath(const char 
+ 	unlikely(__ret_warn_on);					\
+ })
+ #endif
 +
- static struct platform_driver pda_power_pdrv = {
- 	.driver = {
- 		.name = "pda-power",
++#ifndef WARN
++#define WARN(condition, format...) ({					\
++	int __ret_warn_on = !!(condition);				\
++	unlikely(__ret_warn_on);					\
++})
++#endif
++
+ #endif
+ 
+ #define WARN_ON_ONCE(condition)	({				\
+diff -puN kernel/panic.c~add-a-warn-macro-this-is-warn_on-printk-arguments kernel/panic.c
+--- a/kernel/panic.c~add-a-warn-macro-this-is-warn_on-printk-arguments
++++ a/kernel/panic.c
+@@ -318,6 +318,28 @@ void warn_on_slowpath(const char *file, 
+ 	add_taint(TAINT_WARN);
+ }
+ EXPORT_SYMBOL(warn_on_slowpath);
++
++
++void warn_slowpath(const char *file, int line, const char *fmt, ...)
++{
++	va_list args;
++	char function[KSYM_SYMBOL_LEN];
++	unsigned long caller = (unsigned long)__builtin_return_address(0);
++	sprint_symbol(function, caller);
++
++	printk(KERN_WARNING "------------[ cut here ]------------\n");
++	printk(KERN_WARNING "WARNING: at %s:%d %s()\n", file,
++		line, function);
++	va_start(args, fmt);
++	vprintk(fmt, args);
++	va_end(args);
++
++	print_modules();
++	dump_stack();
++	print_oops_end_marker();
++	add_taint(TAINT_WARN);
++}
++EXPORT_SYMBOL(warn_slowpath);
+ #endif
+ 
+ #ifdef CONFIG_CC_STACKPROTECTOR
 _
 
-Patches currently in -mm which might be from kay.sievers@vrfy.org are
+Patches currently in -mm which might be from arjan@linux.intel.com are
 
 origin.patch
 linux-next.patch
+via-velocity-fix-sleep-with-spinlock-bug-during-mtu-change.patch
+modules-extend-initcall_debug-functionality-to-the-module-loader.patch
+use-warn-in-kernel-irq-managec.patch
+use-warn-in-mm-vmallocc.patch
+use-warn-in-kernel-lockdepc.patch
+use-warn-in-kernel-irq-chipc.patch
+use-warn-in-arch-x86-mm-ioremapc.patch
+use-warn-in-arch-x86-mm-pageattrc.patch
+use-warn-in-arch-x86-kernel.patch
+use-warn-in-block.patch
 use-warn-in-drivers-base.patch
+use-warn-in-lib.patch
+use-warn-in-fs.patch
+usr-warn-in-fs-sysfs.patch
+use-warn-in-fs-proc.patch
 
