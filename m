@@ -1,145 +1,140 @@
 From: akpm@linux-foundation.org
-Subject: - list_for_each_rcu-must-die-networking.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 15:54:31 -0700
-Message-ID: <200807252254.m6PMsVd5002828@imap1.linux-foundation.org>
+Subject: - remove-apparently-unused-fd1772h-header-file.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 15:54:17 -0700
+Message-ID: <200807252254.m6PMsHOI002800@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53965 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40341 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751689AbYGYWyp (ORCPT
+	by vger.kernel.org with ESMTP id S1752308AbYGYWyc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 18:54:45 -0400
+	Fri, 25 Jul 2008 18:54:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: paulmck@linux.vnet.ibm.com, davem@davemloft.net, mm-commits@vger.kernel.org
+To: rpjday@crashcourse.ca, akpm@linux-foundation.org, bunk@stusta.de, spyro@f2s.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     list_for_each_rcu must die: networking
+     Remove apparently unused fd1772.h header file.
 has been removed from the -mm tree.  Its filename was
-     list_for_each_rcu-must-die-networking.patch
+     remove-apparently-unused-fd1772h-header-file.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: list_for_each_rcu must die: networking
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Subject: Remove apparently unused fd1772.h header file.
+From: "Robert P. J. Day" <rpjday@crashcourse.ca>
 
-All uses of list_for_each_rcu() can be profitably replaced by the
-easier-to-use list_for_each_entry_rcu().  This patch makes this change for
-networking, in preparation for removing the list_for_each_rcu() API
-entirely.
+This header file has been unused for quite some time, and the
+corresponding source files appear to have been removed back in commit
+99eb8a550d.
 
-Acked-by: David S. Miller <davem@davemloft.net>
-Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+commit 99eb8a550dbccc0e1f6c7e866fe421810e0585f6
+Author: Adrian Bunk <bunk@stusta.de>
+Date:   Tue Jul 31 00:38:19 2007 -0700
+
+    Remove the arm26 port
+
+    The arm26 port has been in a state where it was far from even compiling
+    for quite some time.
+
+    Ian Molton agreed with the removal.
+
+    Signed-off-by: Adrian Bunk <bunk@stusta.de>
+    Cc: Ian Molton <spyro@f2s.com>
+    Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+    Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+
+Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
+Cc: Adrian Bunk <bunk@stusta.de>
+Cc: Ian Molton <spyro@f2s.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/802/psnap.c     |    4 +---
- net/ipv4/af_inet.c  |    9 +++------
- net/ipv6/af_inet6.c |    9 +++------
- 3 files changed, 7 insertions(+), 15 deletions(-)
+ include/linux/fd1772.h |   80 ---------------------------------------
+ 1 file changed, 80 deletions(-)
 
-diff -puN net/802/psnap.c~list_for_each_rcu-must-die-networking net/802/psnap.c
---- a/net/802/psnap.c~list_for_each_rcu-must-die-networking
-+++ a/net/802/psnap.c
-@@ -31,11 +31,9 @@ static struct llc_sap *snap_sap;
-  */
- static struct datalink_proto *find_snap_client(unsigned char *desc)
- {
--	struct list_head *entry;
- 	struct datalink_proto *proto = NULL, *p;
- 
--	list_for_each_rcu(entry, &snap_list) {
--		p = list_entry(entry, struct datalink_proto, node);
-+	list_for_each_entry_rcu(p, &snap_list, node) {
- 		if (!memcmp(p->type, desc, 5)) {
- 			proto = p;
- 			break;
-diff -puN net/ipv4/af_inet.c~list_for_each_rcu-must-die-networking net/ipv4/af_inet.c
---- a/net/ipv4/af_inet.c~list_for_each_rcu-must-die-networking
-+++ a/net/ipv4/af_inet.c
-@@ -264,7 +264,6 @@ static inline int inet_netns_ok(struct n
- static int inet_create(struct net *net, struct socket *sock, int protocol)
- {
- 	struct sock *sk;
--	struct list_head *p;
- 	struct inet_protosw *answer;
- 	struct inet_sock *inet;
- 	struct proto *answer_prot;
-@@ -281,13 +280,12 @@ static int inet_create(struct net *net, 
- 	sock->state = SS_UNCONNECTED;
- 
- 	/* Look for the requested type/protocol pair. */
--	answer = NULL;
- lookup_protocol:
- 	err = -ESOCKTNOSUPPORT;
- 	rcu_read_lock();
--	list_for_each_rcu(p, &inetsw[sock->type]) {
--		answer = list_entry(p, struct inet_protosw, list);
-+	list_for_each_entry_rcu(answer, &inetsw[sock->type], list) {
- 
-+		err = 0;
- 		/* Check the non-wild match. */
- 		if (protocol == answer->protocol) {
- 			if (protocol != IPPROTO_IP)
-@@ -302,10 +300,9 @@ lookup_protocol:
- 				break;
- 		}
- 		err = -EPROTONOSUPPORT;
--		answer = NULL;
- 	}
- 
--	if (unlikely(answer == NULL)) {
-+	if (unlikely(err)) {
- 		if (try_loading_module < 2) {
- 			rcu_read_unlock();
- 			/*
-diff -puN net/ipv6/af_inet6.c~list_for_each_rcu-must-die-networking net/ipv6/af_inet6.c
---- a/net/ipv6/af_inet6.c~list_for_each_rcu-must-die-networking
-+++ a/net/ipv6/af_inet6.c
-@@ -83,7 +83,6 @@ static int inet6_create(struct net *net,
- 	struct inet_sock *inet;
- 	struct ipv6_pinfo *np;
- 	struct sock *sk;
--	struct list_head *p;
- 	struct inet_protosw *answer;
- 	struct proto *answer_prot;
- 	unsigned char answer_flags;
-@@ -97,13 +96,12 @@ static int inet6_create(struct net *net,
- 		build_ehash_secret();
- 
- 	/* Look for the requested type/protocol pair. */
--	answer = NULL;
- lookup_protocol:
- 	err = -ESOCKTNOSUPPORT;
- 	rcu_read_lock();
--	list_for_each_rcu(p, &inetsw6[sock->type]) {
--		answer = list_entry(p, struct inet_protosw, list);
-+	list_for_each_entry_rcu(answer, &inetsw6[sock->type], list) {
- 
-+		err = 0;
- 		/* Check the non-wild match. */
- 		if (protocol == answer->protocol) {
- 			if (protocol != IPPROTO_IP)
-@@ -118,10 +116,9 @@ lookup_protocol:
- 				break;
- 		}
- 		err = -EPROTONOSUPPORT;
--		answer = NULL;
- 	}
- 
--	if (!answer) {
-+	if (err) {
- 		if (try_loading_module < 2) {
- 			rcu_read_unlock();
- 			/*
-_
-
-Patches currently in -mm which might be from paulmck@linux.vnet.ibm.com are
-
-origin.patch
-linux-next.patch
-
+diff -puN include/linux/fd1772.h~remove-apparently-unused-fd1772h-header-file /dev/null
+--- a/include/linux/fd1772.h
++++ /dev/null
+@@ -1,80 +0,0 @@
+-#ifndef _LINUX_FD1772REG_H
+-#define _LINUX_FD1772REG_H
+-
+-/*
+-** WD1772 stuff - originally from the M68K Linux
+- * Modified for Archimedes by Dave Gilbert (gilbertd@cs.man.ac.uk)
+- */
+-
+-/* register codes */
+-
+-#define FDC1772SELREG_STP   (0x80)   /* command/status register */
+-#define FDC1772SELREG_TRA   (0x82)   /* track register */
+-#define FDC1772SELREG_SEC   (0x84)   /* sector register */
+-#define FDC1772SELREG_DTA   (0x86)   /* data register */
+-
+-/* register names for FDC1772_READ/WRITE macros */
+-
+-#define FDC1772REG_CMD         0
+-#define FDC1772REG_STATUS      0
+-#define FDC1772REG_TRACK       2
+-#define FDC1772REG_SECTOR      4
+-#define FDC1772REG_DATA                6
+-
+-/* command opcodes */
+-
+-#define FDC1772CMD_RESTORE  (0x00)   /*  -                   */
+-#define FDC1772CMD_SEEK     (0x10)   /*   |                  */
+-#define FDC1772CMD_STEP     (0x20)   /*   |  TYP 1 Commands  */
+-#define FDC1772CMD_STIN     (0x40)   /*   |                  */
+-#define FDC1772CMD_STOT     (0x60)   /*  -                   */
+-#define FDC1772CMD_RDSEC    (0x80)   /*  -   TYP 2 Commands  */
+-#define FDC1772CMD_WRSEC    (0xa0)   /*  -          "        */
+-#define FDC1772CMD_RDADR    (0xc0)   /*  -                   */
+-#define FDC1772CMD_RDTRA    (0xe0)   /*   |  TYP 3 Commands  */
+-#define FDC1772CMD_WRTRA    (0xf0)   /*  -                   */
+-#define FDC1772CMD_FORCI    (0xd0)   /*  -   TYP 4 Command   */
+-
+-/* command modifier bits */
+-
+-#define FDC1772CMDADD_SR6   (0x00)   /* step rate settings */
+-#define FDC1772CMDADD_SR12  (0x01)
+-#define FDC1772CMDADD_SR2   (0x02)
+-#define FDC1772CMDADD_SR3   (0x03)
+-#define FDC1772CMDADD_V     (0x04)   /* verify */
+-#define FDC1772CMDADD_H     (0x08)   /* wait for spin-up */
+-#define FDC1772CMDADD_U     (0x10)   /* update track register */
+-#define FDC1772CMDADD_M     (0x10)   /* multiple sector access */
+-#define FDC1772CMDADD_E     (0x04)   /* head settling flag */
+-#define FDC1772CMDADD_P     (0x02)   /* precompensation */
+-#define FDC1772CMDADD_A0    (0x01)   /* DAM flag */
+-
+-/* status register bits */
+-
+-#define        FDC1772STAT_MOTORON     (0x80)   /* motor on */
+-#define        FDC1772STAT_WPROT       (0x40)   /* write protected (FDC1772CMD_WR*) */
+-#define        FDC1772STAT_SPINUP      (0x20)   /* motor speed stable (Type I) */
+-#define        FDC1772STAT_DELDAM      (0x20)   /* sector has deleted DAM (Type II+III) */
+-#define        FDC1772STAT_RECNF       (0x10)   /* record not found */
+-#define        FDC1772STAT_CRC         (0x08)   /* CRC error */
+-#define        FDC1772STAT_TR00        (0x04)   /* Track 00 flag (Type I) */
+-#define        FDC1772STAT_LOST        (0x04)   /* Lost Data (Type II+III) */
+-#define        FDC1772STAT_IDX         (0x02)   /* Index status (Type I) */
+-#define        FDC1772STAT_DRQ         (0x02)   /* DRQ status (Type II+III) */
+-#define        FDC1772STAT_BUSY        (0x01)   /* FDC1772 is busy */
+-
+-
+-/* PSG Port A Bit Nr 0 .. Side Sel .. 0 -> Side 1  1 -> Side 2 */
+-#define DSKSIDE     (0x01)
+-        
+-#define DSKDRVNONE  (0x06)
+-#define DSKDRV0     (0x02)
+-#define DSKDRV1     (0x04)
+-
+-/* step rates */
+-#define        FDC1772STEP_6   0x00
+-#define        FDC1772STEP_12  0x01
+-#define        FDC1772STEP_2   0x02
+-#define        FDC1772STEP_3   0x03
