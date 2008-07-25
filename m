@@ -1,67 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: - reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 17:19:07 -0700
-Message-ID: <200807250019.m6P0J8c9013778@imap1.linux-foundation.org>
+Subject: - quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 17:19:31 -0700
+Message-ID: <200807250019.m6P0JVPT013796@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49403 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49150 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752863AbYGYATY (ORCPT
+	by vger.kernel.org with ESMTP id S1752873AbYGYATf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 20:19:24 -0400
+	Thu, 24 Jul 2008 20:19:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, chris.mason@oracle.com, edward.shishkin@gmail.com, jeffm@suse.com, matthew@wil.cx, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jack@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes
+     quota-move-function-macros-from-quotah-to-quotaopsh jfs fix
 has been removed from the -mm tree.  Its filename was
-     reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+     quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
 
-This patch was dropped because it was folded into reiserfs-convert-j_commit_lock-to-mutex.patch
+This patch was dropped because it was folded into quota-move-function-macros-from-quotah-to-quotaopsh.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes
+Subject: quota-move-function-macros-from-quotah-to-quotaopsh jfs fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: Use #include <linux/uaccess.h> instead of <asm/uaccess.h>
-#40: FILE: fs/reiserfs/journal.c:53:
-+#include <asm/uaccess.h>
+fs/jfs/super.c: In function 'jfs_quota_read':
+fs/jfs/super.c:631: error: implicit declaration of function 'sb_dqopt'
+fs/jfs/super.c:631: error: invalid type argument of '->'
+fs/jfs/super.c: In function 'jfs_quota_write':
+fs/jfs/super.c:676: error: invalid type argument of '->'
 
-total: 0 errors, 1 warnings, 83 lines checked
-
-./patches/reiserfs-convert-j_commit_lock-to-mutex.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Chris Mason <chris.mason@oracle.com>
-Cc: Edward Shishkin <edward.shishkin@gmail.com>
-Cc: Jeff Mahoney <jeffm@suse.com>
-Cc: Matthew Wilcox <matthew@wil.cx>
+Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/journal.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/jfs/super.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/reiserfs/journal.c~reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes fs/reiserfs/journal.c
---- a/fs/reiserfs/journal.c~reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes
-+++ a/fs/reiserfs/journal.c
-@@ -49,8 +49,8 @@
- #include <linux/writeback.h>
- #include <linux/blkdev.h>
- #include <linux/backing-dev.h>
-+#include <linux/uaccess.h>
- 
--#include <asm/uaccess.h>
- #include <asm/system.h>
- 
- /* gets a struct reiserfs_journal_list * from a list head */
+diff -puN fs/jfs/super.c~quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix fs/jfs/super.c
+--- a/fs/jfs/super.c~quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix
++++ a/fs/jfs/super.c
+@@ -22,6 +22,7 @@
+ #include <linux/parser.h>
+ #include <linux/completion.h>
+ #include <linux/vfs.h>
++#include <linux/quotaops.h>
+ #include <linux/mount.h>
+ #include <linux/moduleparam.h>
+ #include <linux/kthread.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -85,7 +74,7 @@ ext3-handle-deleting-corrupted-indirect-blocks.patch
 jbd-dont-abort-if-flushing-file-data-failed.patch
 reiserfs-convert-j_flush_sem-to-mutex.patch
 reiserfs-convert-j_commit_lock-to-mutex.patch
-reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+quota-move-function-macros-from-quotah-to-quotaopsh.patch
 quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
 quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
 cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-fix.patch
