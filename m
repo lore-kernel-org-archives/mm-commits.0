@@ -1,196 +1,233 @@
 From: akpm@linux-foundation.org
-Subject: - efirtc-push-down-the-bkl.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 16:01:16 -0700
-Message-ID: <200807252301.m6PN1GHn003693@imap1.linux-foundation.org>
+Subject: - char-mxser-prints-cleanup.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 16:01:46 -0700
+Message-ID: <200807252301.m6PN1kCQ003735@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56121 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51548 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753140AbYGYXCl (ORCPT
+	by vger.kernel.org with ESMTP id S1753202AbYGYXC1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:02:41 -0400
+	Fri, 25 Jul 2008 19:02:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, joe@perches.com, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     efirtc: push down the BKL
+     Char: mxser, prints cleanup
 has been removed from the -mm tree.  Its filename was
-     efirtc-push-down-the-bkl.patch
+     char-mxser-prints-cleanup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: efirtc: push down the BKL
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: Char: mxser, prints cleanup
+From: Jiri Slaby <jirislaby@gmail.com>
 
-Push it down as far as the EFI method calls.  Someone who knows EFI can do
-the other bits.  Also fix another wrong unknown ioctl return.
+- use dev_* for printing in pci probe function
+- move ISA p[rints directly into isa find function, do not postpone it.
+  Remove macros bound to it then.
+- prepend some prints by "mxser: " to know what it belongs to
 
-Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Joe Perches <joe@perches.com>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Acked-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/efirtc.c |   35 +++++++++++++++++++----------------
- 1 file changed, 19 insertions(+), 16 deletions(-)
+ drivers/char/mxser.c |   80 ++++++++++++++++++-----------------------
+ 1 file changed, 37 insertions(+), 43 deletions(-)
 
-diff -puN drivers/char/efirtc.c~efirtc-push-down-the-bkl drivers/char/efirtc.c
---- a/drivers/char/efirtc.c~efirtc-push-down-the-bkl
-+++ a/drivers/char/efirtc.c
-@@ -37,8 +37,9 @@
- #include <linux/rtc.h>
- #include <linux/proc_fs.h>
- #include <linux/efi.h>
-+#include <linux/smp_lock.h>
-+#include <linux/uaccess.h>
+diff -puN drivers/char/mxser.c~char-mxser-prints-cleanup drivers/char/mxser.c
+--- a/drivers/char/mxser.c~char-mxser-prints-cleanup
++++ a/drivers/char/mxser.c
+@@ -55,11 +55,6 @@
+ #define MXSER_PORTS		(MXSER_BOARDS * MXSER_PORTS_PER_BOARD)
+ #define MXSER_ISR_PASS_LIMIT	100
  
--#include <asm/uaccess.h>
- #include <asm/system.h>
- 
- #define EFI_RTC_VERSION		"0.4"
-@@ -51,8 +52,8 @@
- 
- static DEFINE_SPINLOCK(efi_rtc_lock);
- 
--static int efi_rtc_ioctl(struct inode *inode, struct file *file,
--		     unsigned int cmd, unsigned long arg);
-+static long efi_rtc_ioctl(struct file *file, unsigned int cmd,
-+							unsigned long arg);
- 
- #define is_leap(year) \
-           ((year) % 4 == 0 && ((year) % 100 != 0 || (year) % 400 == 0))
-@@ -146,9 +147,8 @@ convert_from_efi_time(efi_time_t *eft, s
- 	}
- }
- 
--static int
--efi_rtc_ioctl(struct inode *inode, struct file *file, unsigned int cmd,
--		     unsigned long arg)
-+static long efi_rtc_ioctl(struct file *file, unsigned int cmd,
-+							unsigned long arg)
- {
- 
- 	efi_status_t	status;
-@@ -175,13 +175,13 @@ efi_rtc_ioctl(struct inode *inode, struc
- 			return -EINVAL;
- 
- 		case RTC_RD_TIME:
+-#define	MXSER_ERR_IOADDR	-1
+-#define	MXSER_ERR_IRQ		-2
+-#define	MXSER_ERR_IRQ_CONFLIT	-3
+-#define	MXSER_ERR_VECTOR	-4
 -
-+			lock_kernel();
- 			spin_lock_irqsave(&efi_rtc_lock, flags);
+ /*CheckIsMoxaMust return value*/
+ #define MOXA_OTHER_UART		0x00
+ #define MOXA_MUST_MU150_HWID	0x01
+@@ -2481,7 +2476,8 @@ static int __devinit mxser_initbrd(struc
+ 	unsigned int i;
+ 	int retval;
  
- 			status = efi.get_time(&eft, &cap);
+-	printk(KERN_INFO "max. baud rate = %d bps.\n", brd->ports[0].max_baud);
++	printk(KERN_INFO "mxser: max. baud rate = %d bps\n",
++			brd->ports[0].max_baud);
  
- 			spin_unlock_irqrestore(&efi_rtc_lock,flags);
--
-+			unlock_kernel();
- 			if (status != EFI_SUCCESS) {
- 				/* should never happen */
- 				printk(KERN_ERR "efitime: can't read time\n");
-@@ -203,11 +203,13 @@ efi_rtc_ioctl(struct inode *inode, struc
- 
- 			convert_to_efi_time(&wtime, &eft);
- 
-+			lock_kernel();
- 			spin_lock_irqsave(&efi_rtc_lock, flags);
- 
- 			status = efi.set_time(&eft);
- 
- 			spin_unlock_irqrestore(&efi_rtc_lock,flags);
-+			unlock_kernel();
- 
- 			return status == EFI_SUCCESS ? 0 : -EINVAL;
- 
-@@ -223,6 +225,7 @@ efi_rtc_ioctl(struct inode *inode, struc
- 
- 			convert_to_efi_time(&wtime, &eft);
- 
-+			lock_kernel();
- 			spin_lock_irqsave(&efi_rtc_lock, flags);
- 			/*
- 			 * XXX Fixme:
-@@ -233,16 +236,19 @@ efi_rtc_ioctl(struct inode *inode, struc
- 			status = efi.set_wakeup_time((efi_bool_t)enabled, &eft);
- 
- 			spin_unlock_irqrestore(&efi_rtc_lock,flags);
-+			unlock_kernel();
- 
- 			return status == EFI_SUCCESS ? 0 : -EINVAL;
- 
- 		case RTC_WKALM_RD:
- 
-+			lock_kernel();
- 			spin_lock_irqsave(&efi_rtc_lock, flags);
- 
- 			status = efi.get_wakeup_time((efi_bool_t *)&enabled, (efi_bool_t *)&pending, &eft);
- 
- 			spin_unlock_irqrestore(&efi_rtc_lock,flags);
-+			unlock_kernel();
- 
- 			if (status != EFI_SUCCESS) return -EINVAL;
- 
-@@ -256,7 +262,7 @@ efi_rtc_ioctl(struct inode *inode, struc
- 			return copy_to_user(&ewp->time, &wtime,
- 					    sizeof(struct rtc_time)) ? -EFAULT : 0;
+ 	for (i = 0; i < brd->info->nports; i++) {
+ 		info = &brd->ports[i];
+@@ -2564,28 +2560,32 @@ static int __init mxser_get_ISA_conf(int
+ 		irq = regs[9] & 0xF000;
+ 		irq = irq | (irq >> 4);
+ 		if (irq != (regs[9] & 0xFF00))
+-			return MXSER_ERR_IRQ_CONFLIT;
++			goto err_irqconflict;
+ 	} else if (brd->info->nports == 4) {
+ 		irq = regs[9] & 0xF000;
+ 		irq = irq | (irq >> 4);
+ 		irq = irq | (irq >> 8);
+ 		if (irq != regs[9])
+-			return MXSER_ERR_IRQ_CONFLIT;
++			goto err_irqconflict;
+ 	} else if (brd->info->nports == 8) {
+ 		irq = regs[9] & 0xF000;
+ 		irq = irq | (irq >> 4);
+ 		irq = irq | (irq >> 8);
+ 		if ((irq != regs[9]) || (irq != regs[10]))
+-			return MXSER_ERR_IRQ_CONFLIT;
++			goto err_irqconflict;
  	}
--	return -EINVAL;
-+	return -ENOTTY;
+ 
+-	if (!irq)
+-		return MXSER_ERR_IRQ;
++	if (!irq) {
++		printk(KERN_ERR "mxser: interrupt number unset\n");
++		return -EIO;
++	}
+ 	brd->irq = ((int)(irq & 0xF000) >> 12);
+ 	for (i = 0; i < 8; i++)
+ 		brd->ports[i].ioaddr = (int) regs[i + 1] & 0xFFF8;
+-	if ((regs[12] & 0x80) == 0)
+-		return MXSER_ERR_VECTOR;
++	if ((regs[12] & 0x80) == 0) {
++		printk(KERN_ERR "mxser: invalid interrupt vector\n");
++		return -EIO;
++	}
+ 	brd->vector = (int)regs[11];	/* interrupt vector */
+ 	if (id == 1)
+ 		brd->vector_mask = 0x00FF;
+@@ -2612,13 +2612,26 @@ static int __init mxser_get_ISA_conf(int
+ 	else
+ 		brd->uart_type = PORT_16450;
+ 	if (!request_region(brd->ports[0].ioaddr, 8 * brd->info->nports,
+-			"mxser(IO)"))
+-		return MXSER_ERR_IOADDR;
++			"mxser(IO)")) {
++		printk(KERN_ERR "mxser: can't request ports I/O region: "
++				"0x%.8lx-0x%.8lx\n",
++				brd->ports[0].ioaddr, brd->ports[0].ioaddr +
++				8 * brd->info->nports - 1);
++		return -EIO;
++	}
+ 	if (!request_region(brd->vector, 1, "mxser(vector)")) {
+ 		release_region(brd->ports[0].ioaddr, 8 * brd->info->nports);
+-		return MXSER_ERR_VECTOR;
++		printk(KERN_ERR "mxser: can't request interrupt vector region: "
++				"0x%.8lx-0x%.8lx\n",
++				brd->ports[0].ioaddr, brd->ports[0].ioaddr +
++				8 * brd->info->nports - 1);
++		return -EIO;
+ 	}
+ 	return brd->info->nports;
++
++err_irqconflict:
++	printk(KERN_ERR "mxser: invalid interrupt number\n");
++	return -EIO;
  }
  
- /*
-@@ -265,8 +271,7 @@ efi_rtc_ioctl(struct inode *inode, struc
-  *	up things on a close.
-  */
+ static int __devinit mxser_probe(struct pci_dev *pdev,
+@@ -2635,20 +2648,20 @@ static int __devinit mxser_probe(struct 
+ 			break;
  
--static int
--efi_rtc_open(struct inode *inode, struct file *file)
-+static int efi_rtc_open(struct inode *inode, struct file *file)
- {
- 	/*
- 	 * nothing special to do here
-@@ -277,8 +282,7 @@ efi_rtc_open(struct inode *inode, struct
- 	return 0;
- }
+ 	if (i >= MXSER_BOARDS) {
+-		printk(KERN_ERR "Too many Smartio/Industio family boards found "
+-			"(maximum %d), board not configured\n", MXSER_BOARDS);
++		dev_err(&pdev->dev, "too many boards found (maximum %d), board "
++				"not configured\n", MXSER_BOARDS);
+ 		goto err;
+ 	}
  
--static int
--efi_rtc_close(struct inode *inode, struct file *file)
-+static int efi_rtc_close(struct inode *inode, struct file *file)
- {
- 	return 0;
- }
-@@ -289,13 +293,12 @@ efi_rtc_close(struct inode *inode, struc
+ 	brd = &mxser_boards[i];
+ 	brd->idx = i * MXSER_PORTS_PER_BOARD;
+-	printk(KERN_INFO "Found MOXA %s board (BusNo=%d, DevNo=%d)\n",
++	dev_info(&pdev->dev, "found MOXA %s board (BusNo=%d, DevNo=%d)\n",
+ 		mxser_cards[ent->driver_data].name,
+ 		pdev->bus->number, PCI_SLOT(pdev->devfn));
  
- static const struct file_operations efi_rtc_fops = {
- 	.owner		= THIS_MODULE,
--	.ioctl		= efi_rtc_ioctl,
-+	.unlocked_ioctl	= efi_rtc_ioctl,
- 	.open		= efi_rtc_open,
- 	.release	= efi_rtc_close,
- };
+ 	retval = pci_enable_device(pdev);
+ 	if (retval) {
+-		printk(KERN_ERR "Moxa SmartI/O PCI enable fail !\n");
++		dev_err(&pdev->dev, "PCI enable failed\n");
+ 		goto err;
+ 	}
  
--static struct miscdevice efi_rtc_dev=
--{
-+static struct miscdevice efi_rtc_dev= {
- 	EFI_RTC_MINOR,
- 	"efirtc",
- 	&efi_rtc_fops
+@@ -2798,33 +2811,14 @@ static int __init mxser_module_init(void
+ 
+ 			brd = &mxser_boards[m];
+ 			retval = mxser_get_ISA_conf(cap, brd);
+-
+-			if (retval != 0)
+-				printk(KERN_INFO "Found MOXA %s board "
+-					"(CAP=0x%x)\n",
+-					brd->info->name, ioaddr[b]);
+-
+ 			if (retval <= 0) {
+-				if (retval == MXSER_ERR_IRQ)
+-					printk(KERN_ERR "Invalid interrupt "
+-						"number, board not "
+-						"configured\n");
+-				else if (retval == MXSER_ERR_IRQ_CONFLIT)
+-					printk(KERN_ERR "Invalid interrupt "
+-						"number, board not "
+-						"configured\n");
+-				else if (retval == MXSER_ERR_VECTOR)
+-					printk(KERN_ERR "Invalid interrupt "
+-						"vector, board not "
+-						"configured\n");
+-				else if (retval == MXSER_ERR_IOADDR)
+-					printk(KERN_ERR "Invalid I/O address, "
+-						"board not configured\n");
+-
+ 				brd->info = NULL;
+ 				continue;
+ 			}
+ 
++			printk(KERN_INFO "mxser: found MOXA %s board "
++				"(CAP=0x%x)\n",	brd->info->name, ioaddr[b]);
++
+ 			/* mxser_initbrd will hook ISR. */
+ 			if (mxser_initbrd(brd, NULL) < 0) {
+ 				brd->info = NULL;
+@@ -2841,7 +2835,7 @@ static int __init mxser_module_init(void
+ 
+ 	retval = pci_register_driver(&mxser_driver);
+ 	if (retval) {
+-		printk(KERN_ERR "Can't register pci driver\n");
++		printk(KERN_ERR "mxser: can't register pci driver\n");
+ 		if (!m) {
+ 			retval = -ENODEV;
+ 			goto err_unr;
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
 origin.patch
-hugetlb-fix-config_sysctl=n-build.patch
-add-time_is_after_jiffies-and-others-which-compare-with-jiffies.patch
-pata_viac-add-flag-for-vx800-and-add-a-function-for-fixing-internal-bugs-for-via-chipsets.patch
-pnp-set-the-pnp_card-dma_mask-for-use-by-isapnp-cards.patch
-isa-set-24-bit-dma_mask-for-isa-devices.patch
+ath5k-fix-memory-corruption.patch
+ath5k-kill-tasklets-on-shutdown.patch
+ath5k-flush-work.patch
+ath5k-fix-dma-operation.patch
+ath5k-suspend-resume-fixes.patch
+ath5k-fix-beacon-update-deadlock.patch
+ath5k-mask-out-unneeded-interrupts.patch
+ath5k-unify-resets.patch
+mac80211-tx-use-dev_kfree_skb_any-for-beacon_get.patch
+mac80211-return-correct-error-return-from-ieee80211_wep_init.patch
+ip2-fix-iielliscleanup-as-it-is-static-but-not-always-used.patch
 char-merge-ip2main-and-ip2base.patch
 char-ip2-cleanup-globals.patch
 char-ip2-fix-sparse-warnings.patch
 char-ip2-init-deinit-cleanup.patch
 ip2-avoid-add_timer-with-pending-timer.patch
+char-ds1286-eliminate-busy-waiting.patch
+reiser4.patch
+shrink_slab-handle-bad-shrinkers.patch
 
