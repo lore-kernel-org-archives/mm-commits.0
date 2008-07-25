@@ -1,230 +1,130 @@
 From: akpm@linux-foundation.org
-Subject: - fuse-add-fuse_lookup_name-helper.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 16:03:40 -0700
-Message-ID: <200807252303.m6PN3evf003971@imap1.linux-foundation.org>
+Subject: - coredump-make-mm-core_state-visible-to-core_dump.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 15:59:58 -0700
+Message-ID: <200807252259.m6PMxwpE003444@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45914 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57262 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754309AbYGYXGp (ORCPT
+	by vger.kernel.org with ESMTP id S1754894AbYGYXGt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:06:45 -0400
+	Fri, 25 Jul 2008 19:06:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mszeredi@suse.cz, hch@lst.de, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fuse: add fuse_lookup_name() helper
+     coredump: make mm->core_state visible to ->core_dump()
 has been removed from the -mm tree.  Its filename was
-     fuse-add-fuse_lookup_name-helper.patch
+     coredump-make-mm-core_state-visible-to-core_dump.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fuse: add fuse_lookup_name() helper
-From: Miklos Szeredi <mszeredi@suse.cz>
+Subject: coredump: make mm->core_state visible to ->core_dump()
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Add a new helper function which sends a LOOKUP request with the supplied
-name.  This will be used by the next patch to send special LOOKUP requests
-with "." and ".." as the name.
+Move the "struct core_state core_state" from coredump_wait() to
+do_coredump(), this makes mm->core_state visible to binfmt->core_dump().
 
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Cc: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Acked-by: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fuse/dir.c |  117 +++++++++++++++++++++++++++++++-----------------
- 1 file changed, 77 insertions(+), 40 deletions(-)
+ fs/exec.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN fs/fuse/dir.c~fuse-add-fuse_lookup_name-helper fs/fuse/dir.c
---- a/fs/fuse/dir.c~fuse-add-fuse_lookup_name-helper
-+++ a/fs/fuse/dir.c
-@@ -112,18 +112,16 @@ static void fuse_invalidate_entry(struct
- 	fuse_invalidate_entry_cache(entry);
+diff -puN fs/exec.c~coredump-make-mm-core_state-visible-to-core_dump fs/exec.c
+--- a/fs/exec.c~coredump-make-mm-core_state-visible-to-core_dump
++++ a/fs/exec.c
+@@ -1595,17 +1595,16 @@ done:
+ 	return nr;
  }
  
--static void fuse_lookup_init(struct fuse_req *req, struct inode *dir,
--			     struct dentry *entry,
-+static void fuse_lookup_init(struct fuse_conn *fc, struct fuse_req *req,
-+			     u64 nodeid, struct qstr *name,
- 			     struct fuse_entry_out *outarg)
+-static int coredump_wait(int exit_code)
++static int coredump_wait(int exit_code, struct core_state *core_state)
  {
--	struct fuse_conn *fc = get_fuse_conn(dir);
--
- 	memset(outarg, 0, sizeof(struct fuse_entry_out));
- 	req->in.h.opcode = FUSE_LOOKUP;
--	req->in.h.nodeid = get_node_id(dir);
-+	req->in.h.nodeid = nodeid;
- 	req->in.numargs = 1;
--	req->in.args[0].size = entry->d_name.len + 1;
--	req->in.args[0].value = entry->d_name.name;
-+	req->in.args[0].size = name->len + 1;
-+	req->in.args[0].value = name->name;
- 	req->out.numargs = 1;
- 	if (fc->minor < 9)
- 		req->out.args[0].size = FUSE_COMPAT_ENTRY_OUT_SIZE;
-@@ -189,7 +187,8 @@ static int fuse_dentry_revalidate(struct
- 		attr_version = fuse_get_attr_version(fc);
+ 	struct task_struct *tsk = current;
+ 	struct mm_struct *mm = tsk->mm;
+-	struct core_state core_state;
+ 	struct completion *vfork_done;
+ 	int core_waiters;
  
- 		parent = dget_parent(entry);
--		fuse_lookup_init(req, parent->d_inode, entry, &outarg);
-+		fuse_lookup_init(fc, req, get_node_id(parent->d_inode),
-+				 &entry->d_name, &outarg);
- 		request_send(fc, req);
- 		dput(parent);
- 		err = req->out.h.error;
-@@ -255,73 +254,111 @@ static struct dentry *fuse_d_add_directo
- 	return d_splice_alias(inode, entry);
- }
+ 	init_completion(&mm->core_done);
+-	init_completion(&core_state.startup);
+-	core_waiters = zap_threads(tsk, mm, &core_state, exit_code);
++	init_completion(&core_state->startup);
++	core_waiters = zap_threads(tsk, mm, core_state, exit_code);
+ 	up_write(&mm->mmap_sem);
  
--static struct dentry *fuse_lookup(struct inode *dir, struct dentry *entry,
--				  struct nameidata *nd)
-+int fuse_lookup_name(struct super_block *sb, u64 nodeid, struct qstr *name,
-+		     struct fuse_entry_out *outarg, struct inode **inode)
- {
--	int err;
--	struct fuse_entry_out outarg;
--	struct inode *inode = NULL;
--	struct dentry *newent;
--	struct fuse_conn *fc = get_fuse_conn(dir);
-+	struct fuse_conn *fc = get_fuse_conn_super(sb);
- 	struct fuse_req *req;
- 	struct fuse_req *forget_req;
- 	u64 attr_version;
-+	int err;
- 
--	if (entry->d_name.len > FUSE_NAME_MAX)
--		return ERR_PTR(-ENAMETOOLONG);
-+	*inode = NULL;
-+	err = -ENAMETOOLONG;
-+	if (name->len > FUSE_NAME_MAX)
-+		goto out;
- 
- 	req = fuse_get_req(fc);
-+	err = PTR_ERR(req);
- 	if (IS_ERR(req))
--		return ERR_CAST(req);
-+		goto out;
- 
- 	forget_req = fuse_get_req(fc);
-+	err = PTR_ERR(forget_req);
- 	if (IS_ERR(forget_req)) {
- 		fuse_put_request(fc, req);
--		return ERR_CAST(forget_req);
-+		goto out;
+ 	if (unlikely(core_waiters < 0))
+@@ -1622,8 +1621,7 @@ static int coredump_wait(int exit_code)
  	}
  
- 	attr_version = fuse_get_attr_version(fc);
- 
--	fuse_lookup_init(req, dir, entry, &outarg);
-+	fuse_lookup_init(fc, req, nodeid, name, outarg);
- 	request_send(fc, req);
- 	err = req->out.h.error;
- 	fuse_put_request(fc, req);
- 	/* Zero nodeid is same as -ENOENT, but with valid timeout */
--	if (!err && outarg.nodeid &&
--	    (invalid_nodeid(outarg.nodeid) ||
--	     !fuse_valid_type(outarg.attr.mode)))
--		err = -EIO;
--	if (!err && outarg.nodeid) {
--		inode = fuse_iget(dir->i_sb, outarg.nodeid, outarg.generation,
--				  &outarg.attr, entry_attr_timeout(&outarg),
--				  attr_version);
--		if (!inode) {
--			fuse_send_forget(fc, forget_req, outarg.nodeid, 1);
--			return ERR_PTR(-ENOMEM);
--		}
-+	if (err || !outarg->nodeid)
-+		goto out_put_forget;
-+
-+	err = -EIO;
-+	if (!outarg->nodeid)
-+		goto out_put_forget;
-+	if (!fuse_valid_type(outarg->attr.mode))
-+		goto out_put_forget;
-+
-+	*inode = fuse_iget(sb, outarg->nodeid, outarg->generation,
-+			   &outarg->attr, entry_attr_timeout(outarg),
-+			   attr_version);
-+	err = -ENOMEM;
-+	if (!*inode) {
-+		fuse_send_forget(fc, forget_req, outarg->nodeid, 1);
-+		goto out;
- 	}
-+	err = 0;
-+
-+ out_put_forget:
- 	fuse_put_request(fc, forget_req);
--	if (err && err != -ENOENT)
--		return ERR_PTR(err);
-+ out:
-+	return err;
-+}
-+
-+static struct dentry *fuse_lookup(struct inode *dir, struct dentry *entry,
-+				  struct nameidata *nd)
-+{
-+	int err;
-+	struct fuse_entry_out outarg;
-+	struct inode *inode;
-+	struct dentry *newent;
-+	struct fuse_conn *fc = get_fuse_conn(dir);
-+	bool outarg_valid = true;
-+
-+	err = fuse_lookup_name(dir->i_sb, get_node_id(dir), &entry->d_name,
-+			       &outarg, &inode);
-+	if (err == -ENOENT) {
-+		outarg_valid = false;
-+		err = 0;
-+	}
-+	if (err)
-+		goto out_err;
-+
-+	err = -EIO;
-+	if (inode && get_node_id(inode) == FUSE_ROOT_ID)
-+		goto out_iput;
- 
- 	if (inode && S_ISDIR(inode->i_mode)) {
- 		mutex_lock(&fc->inst_mutex);
- 		newent = fuse_d_add_directory(entry, inode);
- 		mutex_unlock(&fc->inst_mutex);
--		if (IS_ERR(newent)) {
--			iput(inode);
--			return newent;
--		}
--	} else
-+		err = PTR_ERR(newent);
-+		if (IS_ERR(newent))
-+			goto out_iput;
-+	} else {
- 		newent = d_splice_alias(inode, entry);
-+	}
- 
- 	entry = newent ? newent : entry;
- 	entry->d_op = &fuse_dentry_operations;
--	if (!err)
-+	if (outarg_valid)
- 		fuse_change_entry_timeout(entry, &outarg);
- 	else
- 		fuse_invalidate_entry_cache(entry);
-+
- 	return newent;
-+
-+ out_iput:
-+	iput(inode);
-+ out_err:
-+	return ERR_PTR(err);
+ 	if (core_waiters)
+-		wait_for_completion(&core_state.startup);
+-	mm->core_state = NULL;
++		wait_for_completion(&core_state->startup);
+ fail:
+ 	return core_waiters;
  }
+@@ -1679,6 +1677,7 @@ int get_dumpable(struct mm_struct *mm)
  
- /*
+ int do_coredump(long signr, int exit_code, struct pt_regs * regs)
+ {
++	struct core_state core_state;
+ 	char corename[CORENAME_MAX_SIZE + 1];
+ 	struct mm_struct *mm = current->mm;
+ 	struct linux_binfmt * binfmt;
+@@ -1717,7 +1716,7 @@ int do_coredump(long signr, int exit_cod
+ 		current->fsuid = 0;	/* Dump root private */
+ 	}
+ 
+-	retval = coredump_wait(exit_code);
++	retval = coredump_wait(exit_code, &core_state);
+ 	if (retval < 0)
+ 		goto fail;
+ 
+@@ -1812,6 +1811,7 @@ fail_unlock:
+ 
+ 	current->fsuid = fsuid;
+ 	complete_all(&mm->core_done);
++	mm->core_state = NULL;
+ fail:
+ 	return retval;
+ }
 _
 
-Patches currently in -mm which might be from mszeredi@suse.cz are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
 origin.patch
 linux-next.patch
-git-unprivileged-mounts.patch
+migrate_timers-add-comment-use-spinlock_irq.patch
+tracehook-add-linux-tracehookh.patch
+tracehook-exec.patch
+tracehook-unexport-ptrace_notify.patch
+tracehook-exit.patch
+tracehook-clone.patch
+tracehook-vfork-done.patch
+tracehook-release_task.patch
+tracehook-tracehook_tracer_task.patch
+tracehook-tracehook_expect_breakpoints.patch
+tracehook-tracehook_signal_handler.patch
+tracehook-tracehook_consider_ignored_signal.patch
+tracehook-tracehook_consider_fatal_signal.patch
+tracehook-syscall.patch
+tracehook-get_signal_to_deliver.patch
+tracehook-job-control.patch
+tracehook-death.patch
+tracehook-force-signal_pending.patch
+tracehook-tif_notify_resume.patch
+tracehook-asm-syscallh.patch
+tracehook-config_have_arch_tracehook.patch
+tracehook-wait_task_inactive.patch
+task_current_syscall.patch
+proc-pid-syscall.patch
 
