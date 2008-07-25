@@ -1,117 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: - posix-timers-timer_delete-remove-the-bogus-it_process-=-null-check.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 15:59:15 -0700
-Message-ID: <200807252259.m6PMxF5f003365@imap1.linux-foundation.org>
+Subject: - spi-add-spi-over-gpio-driver-v3.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 16:29:32 -0700
+Message-ID: <200807252329.m6PNTWP6005086@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44994 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36693 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757905AbYGYXNM (ORCPT
+	by vger.kernel.org with ESMTP id S1753511AbYGYX3w (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:13:12 -0400
+	Fri, 25 Jul 2008 19:29:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, johnstul@us.ibm.com, roland@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mb@bu3sch.de, david-b@pacbell.net, drzeus-list@drzeus.cx, mm-commits@vger.kernel.org
 
 
 The patch titled
-     posix timers: timer_delete: remove the bogus "->it_process != NULL" check
+     spi-add-spi-over-gpio-driver-v3
 has been removed from the -mm tree.  Its filename was
-     posix-timers-timer_delete-remove-the-bogus-it_process-=-null-check.patch
+     spi-add-spi-over-gpio-driver-v3.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was folded into spi-add-spi-over-gpio-driver.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: posix timers: timer_delete: remove the bogus "->it_process != NULL" check
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: spi-add-spi-over-gpio-driver-v3
+From: Michael Buesch <mb@bu3sch.de>
 
-sys_timer_delete() and itimer_delete() check "timer->it_process != NULL",
-this looks completely bogus.  ->it_process == NULL means that this timer
-is already under destruction or it is not fully initialized, this must not
-happen.
+Simple spelling fixes since v2.
 
-	sys_timer_delete: the timer is locked, and lock_timer() can't succeed
-	if ->it_process == NULL.
-
-	itimer_delete: it is called by exit_itimers() when there are no other
-	threads which can play with signal_struct->posix_timers.
-
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Acked-by: Roland McGrath <roland@redhat.com>
-Cc: john stultz <johnstul@us.ibm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Roland McGrath <roland@redhat.com>
+Signed-off-by: Michael Buesch <mb@bu3sch.de>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Pierre Ossman <drzeus-list@drzeus.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/posix-timers.c |   18 ++++++++----------
- 1 file changed, 8 insertions(+), 10 deletions(-)
+ MAINTAINERS                  |   10 +++++-----
+ drivers/spi/Kconfig          |    2 +-
+ include/linux/spi/spi_gpio.h |   12 +++++++++---
+ 3 files changed, 15 insertions(+), 9 deletions(-)
 
-diff -puN kernel/posix-timers.c~posix-timers-timer_delete-remove-the-bogus-it_process-=-null-check kernel/posix-timers.c
---- a/kernel/posix-timers.c~posix-timers-timer_delete-remove-the-bogus-it_process-=-null-check
-+++ a/kernel/posix-timers.c
-@@ -856,11 +856,10 @@ retry_delete:
- 	 * This keeps any tasks waiting on the spin lock from thinking
- 	 * they got something (see the lock code above).
- 	 */
--	if (timer->it_process) {
--		if (timer->it_sigev_notify == (SIGEV_SIGNAL|SIGEV_THREAD_ID))
--			put_task_struct(timer->it_process);
--		timer->it_process = NULL;
--	}
-+	if (timer->it_sigev_notify == (SIGEV_SIGNAL|SIGEV_THREAD_ID))
-+		put_task_struct(timer->it_process);
-+	timer->it_process = NULL;
-+
- 	unlock_timer(timer, flags);
- 	release_posix_timer(timer, IT_ID_SET);
- 	return 0;
-@@ -885,11 +884,10 @@ retry_delete:
- 	 * This keeps any tasks waiting on the spin lock from thinking
- 	 * they got something (see the lock code above).
- 	 */
--	if (timer->it_process) {
--		if (timer->it_sigev_notify == (SIGEV_SIGNAL|SIGEV_THREAD_ID))
--			put_task_struct(timer->it_process);
--		timer->it_process = NULL;
--	}
-+	if (timer->it_sigev_notify == (SIGEV_SIGNAL|SIGEV_THREAD_ID))
-+		put_task_struct(timer->it_process);
-+	timer->it_process = NULL;
-+
- 	unlock_timer(timer, flags);
- 	release_posix_timer(timer, IT_ID_SET);
- }
+diff -puN drivers/spi/Kconfig~spi-add-spi-over-gpio-driver-v3 drivers/spi/Kconfig
+--- a/drivers/spi/Kconfig~spi-add-spi-over-gpio-driver-v3
++++ a/drivers/spi/Kconfig
+@@ -107,7 +107,7 @@ config SPI_GPIO
+ 	help
+ 	  This is a platform driver that can be used for bitbanging
+ 	  an SPI bus over GPIO pins.
+-	  Select this, if you have any SPI device that is connected via
++	  Select this if you have any SPI device that is connected via
+ 	  GPIO pins.
+ 	  The module will be called spi_gpio.
+ 
+diff -puN include/linux/spi/spi_gpio.h~spi-add-spi-over-gpio-driver-v3 include/linux/spi/spi_gpio.h
+--- a/include/linux/spi/spi_gpio.h~spi-add-spi-over-gpio-driver-v3
++++ a/include/linux/spi/spi_gpio.h
+@@ -15,7 +15,9 @@
+ #include <linux/spi/spi.h>
+ 
+ 
+-/** struct spi_gpio_platform_data - Data definitions for a SPI-GPIO device.
++/**
++ * struct spi_gpio_platform_data - Data definitions for a SPI-GPIO device.
++ *
+  * This structure holds information about a GPIO-based SPI device.
+  *
+  * @pin_clk: The GPIO pin number of the CLOCK pin.
+@@ -51,13 +53,17 @@ struct spi_gpio_platform_data {
+ 	void *boardinfo_setup_data;
+ };
+ 
+-/** SPI_GPIO_PLATDEV_NAME - The platform device name string.
++/**
++ * SPI_GPIO_PLATDEV_NAME - The platform device name string.
++ *
+  * The name string that has to be used for platform_device_alloc
+  * when allocating a spi-gpio device.
+  */
+ #define SPI_GPIO_PLATDEV_NAME	"spi-gpio"
+ 
+-/** spi_gpio_next_id - Get another platform device ID number.
++/**
++ * spi_gpio_next_id - Get another platform device ID number.
++ *
+  * This returns the next platform device ID number that has to be used
+  * for platform_device_alloc. The ID is opaque and should not be used for
+  * anything else.
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from mb@bu3sch.de are
 
 origin.patch
-linux-next.patch
-migrate_timers-add-comment-use-spinlock_irq.patch
-tracehook-add-linux-tracehookh.patch
-tracehook-exec.patch
-tracehook-unexport-ptrace_notify.patch
-tracehook-exit.patch
-tracehook-clone.patch
-tracehook-vfork-done.patch
-tracehook-release_task.patch
-tracehook-tracehook_tracer_task.patch
-tracehook-tracehook_expect_breakpoints.patch
-tracehook-tracehook_signal_handler.patch
-tracehook-tracehook_consider_ignored_signal.patch
-tracehook-tracehook_consider_fatal_signal.patch
-tracehook-syscall.patch
-tracehook-get_signal_to_deliver.patch
-tracehook-job-control.patch
-tracehook-death.patch
-tracehook-force-signal_pending.patch
-tracehook-tif_notify_resume.patch
-tracehook-asm-syscallh.patch
-tracehook-config_have_arch_tracehook.patch
-tracehook-wait_task_inactive.patch
-task_current_syscall.patch
-proc-pid-syscall.patch
+spi-add-spi-over-gpio-driver.patch
+spi-add-spi-over-gpio-driver-v3.patch
+mmc-add-gpio-based-mmc-sd-driver.patch
+mmc-add-gpio-based-mmc-sd-driver-v3.patch
+mmc-add-gpio-based-mmc-sd-driver-v3-fix-for-configfs-api-change.patch
+mmc-add-gpio-based-mmc-sd-driver-add-documentation-abi-testing-configfs-gpiommc.patch
+mmc-add-gpio-based-mmc-sd-driver-add-locking.patch
 
