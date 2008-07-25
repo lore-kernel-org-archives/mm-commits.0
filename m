@@ -1,89 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: - if-0-hpet_unregister.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 16:01:13 -0700
-Message-ID: <200807252301.m6PN1Dn1003690@imap1.linux-foundation.org>
+Subject: - elf-use-elf_core_eflags-for-kcore-elf-header-flags.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 16:01:08 -0700
+Message-ID: <200807252301.m6PN18BQ003684@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60980 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45557 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750943AbYGYXB7 (ORCPT
+	by vger.kernel.org with ESMTP id S1750943AbYGYXB6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:01:59 -0400
+	Fri, 25 Jul 2008 19:01:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, clemens@ladisch.de, mm-commits@vger.kernel.org
+To: edgar.iglesias@axis.com, edgar@axis.com, ralf@linux-mips.org, starvik@axis.com, ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     #if 0 hpet_unregister()
+     elf: use ELF_CORE_EFLAGS for kcore ELF header flags
 has been removed from the -mm tree.  Its filename was
-     if-0-hpet_unregister.patch
+     elf-use-elf_core_eflags-for-kcore-elf-header-flags.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: #if 0 hpet_unregister()
-From: Adrian Bunk <bunk@kernel.org>
+Subject: elf: use ELF_CORE_EFLAGS for kcore ELF header flags
+From: "Edgar E. Iglesias" <edgar.iglesias@axis.com>
 
-This patch #if 0's the unused hpet_unregister().
+ELF_CORE_EFLAGS is already used by the binfmt_elf coredumper to set correct
+arch specific ELF header flags on coredumps.  Use it for kcore dumps as well. 
+At the moment, this affects the CRIS and the H8300 arch.
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Acked-by: Clemens Ladisch <clemens@ladisch.de>
+Signed-off-by: Edgar E. Iglesias <edgar@axis.com>
+Cc: Mikael Starvik <starvik@axis.com>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/hpet.c |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/proc/kcore.c         |   10 +++++-----
+ include/asm-h8300/elf.h |    4 ++--
+ 2 files changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN drivers/char/hpet.c~if-0-hpet_unregister drivers/char/hpet.c
---- a/drivers/char/hpet.c~if-0-hpet_unregister
-+++ a/drivers/char/hpet.c
-@@ -623,6 +623,7 @@ static inline int hpet_tpcheck(struct hp
- 	return -ENXIO;
- }
+diff -puN fs/proc/kcore.c~elf-use-elf_core_eflags-for-kcore-elf-header-flags fs/proc/kcore.c
+--- a/fs/proc/kcore.c~elf-use-elf_core_eflags-for-kcore-elf-header-flags
++++ a/fs/proc/kcore.c
+@@ -23,6 +23,10 @@
  
-+#if 0
- int hpet_unregister(struct hpet_task *tp)
+ #define CORE_STR "CORE"
+ 
++#ifndef ELF_CORE_EFLAGS
++#define ELF_CORE_EFLAGS	0
++#endif
++
+ static int open_kcore(struct inode * inode, struct file * filp)
  {
- 	struct hpet_dev *devp;
-@@ -652,6 +653,7 @@ int hpet_unregister(struct hpet_task *tp
+ 	return capable(CAP_SYS_RAWIO) ? 0 : -EPERM;
+@@ -164,11 +168,7 @@ static void elf_kcore_store_hdr(char *bu
+ 	elf->e_entry	= 0;
+ 	elf->e_phoff	= sizeof(struct elfhdr);
+ 	elf->e_shoff	= 0;
+-#if defined(CONFIG_H8300)
+-	elf->e_flags	= ELF_FLAGS;
+-#else
+-	elf->e_flags	= 0;
+-#endif
++	elf->e_flags	= ELF_CORE_EFLAGS;
+ 	elf->e_ehsize	= sizeof(struct elfhdr);
+ 	elf->e_phentsize= sizeof(struct elf_phdr);
+ 	elf->e_phnum	= nphdr;
+diff -puN include/asm-h8300/elf.h~elf-use-elf_core_eflags-for-kcore-elf-header-flags include/asm-h8300/elf.h
+--- a/include/asm-h8300/elf.h~elf-use-elf_core_eflags-for-kcore-elf-header-flags
++++ a/include/asm-h8300/elf.h
+@@ -26,10 +26,10 @@ typedef unsigned long elf_fpregset_t;
+ #define ELF_DATA	ELFDATA2MSB
+ #define ELF_ARCH	EM_H8_300
+ #if defined(__H8300H__)
+-#define ELF_FLAGS       0x810000
++#define ELF_CORE_EFLAGS 0x810000
+ #endif
+ #if defined(__H8300S__)
+-#define ELF_FLAGS       0x820000
++#define ELF_CORE_EFLAGS 0x820000
+ #endif
  
- 	return 0;
- }
-+#endif  /*  0  */
- 
- static ctl_table hpet_table[] = {
- 	{
+ #define ELF_PLAT_INIT(_r)	_r->er1 = 0
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from edgar.iglesias@axis.com are
 
 origin.patch
-uninline-arch_pick_mmap_layout.patch
-include-video-atmel_lcdch-must-include-linux-workqueueh.patch
-linux-next.patch
-m32r-remove-the-unused-nohighmem-option.patch
-if-0-ses_match_host.patch
-git-xtensa.patch
-include-linux-kernelh-userspace-header-cleanup.patch
-parport-sharec-proper-externs.patch
-tpm_biosc-make-2-structs-static.patch
-drm-make-drm_minors_cleanup-static.patch
-make-cgroup_seqfile_release-static.patch
-make-pnp_add_card_id-static.patch
-make-parport_cs_release-static.patch
-make-mm-sparsec-make-a-function-static.patch
-mm-allocpercpuc-make-4-functions-static.patch
-make-mm-memoryc-print_bad_pte-static.patch
-mm-swapfilec-make-code-static.patch
-make-mm-rmapc-anon_vma_cachep-static.patch
-drivers-char-rtcc-make-2-functions-static.patch
-make-init-do_mountsc-root_device_name-static.patch
-make-macfb_setup-static.patch
-video-console-sticonrec-make-code-static.patch
-video-console-sticonrec-make-code-static-checkpatch-fixes.patch
-video-stifbc-make-2-functions-static.patch
-reiser4.patch
 
