@@ -1,82 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 16:46:27 -0700
-Message-ID: <200807252346.m6PNkRCf005785@imap1.linux-foundation.org>
+Subject: - memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 16:46:52 -0700
+Message-ID: <200807252346.m6PNkrXY005788@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53133 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34717 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751820AbYGYXrP (ORCPT
+	by vger.kernel.org with ESMTP id S1751923AbYGYXrZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:47:15 -0400
+	Fri, 25 Jul 2008 19:47:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, kjhall@us.ibm.com, marcin_obara@users.sourceforge.net, tpm@selhorst.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, oakad@yahoo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes
+     memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
+     memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into tpm-increase-size-of-internal-tpm-response-buffers.patch
+This patch was dropped because it was folded into memstick-allow-set_param-method-to-return-an-error-code.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes
+Subject: memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: do not use assignment in if condition
-#291: FILE: drivers/char/tpm/tpm.c:910:
-+	if ((len = tpm_transmit(chip, data, TPM_INTERNAL_RESULT_SIZE)) <=
+ERROR: space required before the open parenthesis '('
+#127: FILE: drivers/memstick/host/jmb38x_ms.c:663:
++	switch(param) {
 
-ERROR: do not use assignment in if condition
-#305: FILE: drivers/char/tpm/tpm.c:925:
-+	if ((len = tpm_transmit(chip, data, TPM_INTERNAL_RESULT_SIZE)) <=
+total: 1 errors, 0 warnings, 199 lines checked
 
-total: 2 errors, 0 warnings, 285 lines checked
-
-./patches/tpm-increase-size-of-internal-tpm-response-buffers.patch has style problems, please review.  If any of these errors
+./patches/memstick-allow-set_param-method-to-return-an-error-code.patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
 Please run checkpatch prior to sending patches
 
-Cc: Kylene Jo Hall <kjhall@us.ibm.com>
-Cc: Marcel Selhorst <tpm@selhorst.net>
-Cc: Marcin Obara <marcin_obara@users.sourceforge.net>
+Cc: Alex Dubov <oakad@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tpm/tpm.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/memstick/host/jmb38x_ms.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/tpm/tpm.c~tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes drivers/char/tpm/tpm.c
---- a/drivers/char/tpm/tpm.c~tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes
-+++ a/drivers/char/tpm/tpm.c
-@@ -907,8 +907,8 @@ ssize_t tpm_show_caps_1_2(struct device 
- 	data[TPM_CAP_IDX] = TPM_CAP_PROP;
- 	data[TPM_CAP_SUBCAP_IDX] = TPM_CAP_PROP_MANUFACTURER;
+diff -puN drivers/memstick/host/jmb38x_ms.c~memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes drivers/memstick/host/jmb38x_ms.c
+--- a/drivers/memstick/host/jmb38x_ms.c~memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes
++++ a/drivers/memstick/host/jmb38x_ms.c
+@@ -660,7 +660,7 @@ static int jmb38x_ms_set_param(struct me
+ 	unsigned int clock_ctl = CLOCK_CONTROL_40MHZ, clock_delay = 0;
+ 	int rc = 0;
  
--	if ((len = tpm_transmit(chip, data, TPM_INTERNAL_RESULT_SIZE)) <=
--	    TPM_ERROR_SIZE) {
-+	len = tpm_transmit(chip, data, TPM_INTERNAL_RESULT_SIZE);
-+	if (len <= TPM_ERROR_SIZE) {
- 		dev_dbg(chip->dev, "A TPM error (%d) occurred "
- 			"attempting to determine the manufacturer\n",
- 			be32_to_cpu(*((__be32 *) (data + TPM_RET_CODE_IDX))));
-@@ -922,8 +922,8 @@ ssize_t tpm_show_caps_1_2(struct device 
- 	memcpy(data, cap_version, sizeof(cap_version));
- 	data[CAP_VERSION_IDX] = CAP_VERSION_1_2;
- 
--	if ((len = tpm_transmit(chip, data, TPM_INTERNAL_RESULT_SIZE)) <=
--	    TPM_ERROR_SIZE) {
-+	len = tpm_transmit(chip, data, TPM_INTERNAL_RESULT_SIZE);
-+	if (len <= TPM_ERROR_SIZE) {
- 		dev_err(chip->dev, "A TPM error (%d) occurred "
- 			"attempting to determine the 1.2 version\n",
- 			be32_to_cpu(*((__be32 *) (data + TPM_RET_CODE_IDX))));
+-	switch(param) {
++	switch (param) {
+ 	case MEMSTICK_POWER:
+ 		if (value == MEMSTICK_POWER_ON) {
+ 			rc = jmb38x_ms_reset(host);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -86,7 +67,7 @@ uninline-arch_pick_mmap_layout.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error.patch
 x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary.patch
 tpm-increase-size-of-internal-tpm-response-buffers.patch
-tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
+memstick-allow-set_param-method-to-return-an-error-code.patch
 memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
 memstick-use-fully-asynchronous-request-processing-fix.patch
 full-conversion-to-early_initcall-interface-remove-old-interface-cleanup.patch
