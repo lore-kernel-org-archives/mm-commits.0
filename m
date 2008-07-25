@@ -1,95 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: - idr-make-idr_get_new-rcu-safe-fix.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 17:32:21 -0700
-Message-ID: <200807250032.m6P0WLq2014429@imap1.linux-foundation.org>
+Subject: + mfd-dont-use-memzero.patch added to -mm tree
+Date: Thu, 24 Jul 2008 23:24:53 -0700
+Message-ID: <200807250624.m6P6Orc9026929@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50933 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35175 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752712AbYGYAnk (ORCPT
+	by vger.kernel.org with ESMTP id S1751396AbYGYGZN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 20:43:40 -0400
+	Fri, 25 Jul 2008 02:25:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Nadia.Derbey@bull.net, jim.houston@comcast.net, manfred@colorfullife.com, paulmck@linux.vnet.ibm.com, peifferp@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, dbaryshkov@gmail.com, rmk+kernel@arm.linux.org.uk, spyro@f2s.com
 
 
 The patch titled
-     Remove useless calls to INIT_RCU_HEAD in the idr code
-has been removed from the -mm tree.  Its filename was
-     idr-make-idr_get_new-rcu-safe-fix.patch
+     mfd: don't use memzero
+has been added to the -mm tree.  Its filename is
+     mfd-dont-use-memzero.patch
 
-This patch was dropped because it was folded into idr-make-idr_get_new-rcu-safe.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Remove useless calls to INIT_RCU_HEAD in the idr code
-From: Nadia Derbey <Nadia.Derbey@bull.net>
+Subject: mfd: don't use memzero
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This is a trivial patch that removes unneeded calls to INIT_RCU_HEAD() in the
-idr api code.
+For it doesn't exist on i386.
 
-Signed-off-by: Nadia Derbey <Nadia.Derbey@bull.net>
-Acked-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Cc: Manfred Spraul <manfred@colorfullife.com>
-Cc: Jim Houston <jim.houston@comcast.net>
-Cc: Pierre Peiffer <peifferp@gmail.com>
-Cc: Rik van Riel <riel@redhat.com>
+Cc: Ian Molton <spyro@f2s.com>
+Cc: Dmitry Baryshkov <dbaryshkov@gmail.com>
+Cc: Russell King <rmk+kernel@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/idr.c |    3 ---
- 1 file changed, 3 deletions(-)
+ drivers/mfd/mfd-core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/idr.c~idr-make-idr_get_new-rcu-safe-fix lib/idr.c
---- a/lib/idr.c~idr-make-idr_get_new-rcu-safe-fix
-+++ a/lib/idr.c
-@@ -172,7 +172,6 @@ static int sub_alloc(struct idr *idp, in
- 			new = get_from_free_list(idp);
- 			if (!new)
- 				return -1;
--			INIT_RCU_HEAD(&new->rcu_head);
- 			rcu_assign_pointer(p->ary[m], new);
- 			p->count++;
- 		}
-@@ -198,7 +197,6 @@ build_up:
- 	if (unlikely(!p)) {
- 		if (!(p = get_from_free_list(idp)))
- 			return -1;
--		INIT_RCU_HEAD(&p->rcu_head);
- 		layers = 1;
- 	}
- 	/*
-@@ -226,7 +224,6 @@ build_up:
- 		}
- 		new->ary[0] = p;
- 		new->count = 1;
--		INIT_RCU_HEAD(&new->rcu_head);
- 		if (p->bitmap == IDR_FULL)
- 			__set_bit(0, &new->bitmap);
- 		p = new;
+diff -puN drivers/mfd/mfd-core.c~mfd-dont-use-memzero drivers/mfd/mfd-core.c
+--- a/drivers/mfd/mfd-core.c~mfd-dont-use-memzero
++++ a/drivers/mfd/mfd-core.c
+@@ -36,7 +36,7 @@ static int mfd_add_device(struct platfor
+ 	if (ret)
+ 		goto fail_device;
+ 
+-	memzero(res, sizeof(res));
++	memset(res, 0, sizeof(res));
+ 	for (r = 0; r < cell->num_resources; r++) {
+ 		res[r].name = cell->resources[r].name;
+ 		res[r].flags = cell->resources[r].flags;
 _
 
-Patches currently in -mm which might be from Nadia.Derbey@bull.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-idr-change-the-idr-structure.patch
-idr-rename-some-of-the-idr-apis-internal-routines.patch
-idr-fix-a-printk-call.patch
-idr-error-checking-factorization.patch
-idr-make-idr_get_new-rcu-safe.patch
-idr-make-idr_get_new-rcu-safe-fix.patch
-idr-make-idr_find-rcu-safe.patch
-idr-make-idr_remove-rcu-safe.patch
-ipc-call-idr_find-without-locking-in-ipc_lock.patch
-ipc-get-rid-of-ipc_lock_down.patch
+origin.patch
+mfd-dont-use-memzero.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+seq_file-fix-bug-when-seq_read-reads-nothing.patch
+exec-remove-some-includes.patch
+inflate-refactor-inflate-malloc-code.patch
+drivers-misc-hpiloc-needs-config_pci.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments.patch
+gpio-sysfs-interface-updated.patch
+gpio-add-bt8xxgpio-driver.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction.patch
+ext3-handle-corrupted-orphan-list-at-mount.patch
+ext3-handle-deleting-corrupted-indirect-blocks.patch
+jbd-dont-abort-if-flushing-file-data-failed.patch
+reiserfs-convert-j_flush_sem-to-mutex.patch
+reiserfs-convert-j_commit_lock-to-mutex.patch
+quota-move-function-macros-from-quotah-to-quotaopsh.patch
+cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup.patch
+devcgroup-code-cleanup.patch
+memcg-remove-refcnt-from-page_cgroup.patch
+memcg-limit-change-shrink-usage.patch
+coredump-format_corename-fix-the-core_uses_pid-logic.patch
+workqueues-make-get_online_cpus-useable-for-work-func.patch
 ipc-semc-convert-undo-structures-to-struct-list_head.patch
-ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-remove-unused-entries-from-struct-sem_queue.patch
 ipc-semc-convert-sem_arraysem_pending-to-struct-list_head.patch
-ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
 ipc-semc-rewrite-undo-list-locking.patch
-ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
-ipc-use-simple_read_from_buffer.patch
-ipc-do-not-use-a-negative-value-to-re-enable-msgmni-automatic-recomputing.patch
+fs-partition-checkc-fix-return-value-warning.patch
+block-ioctlc-and-fs-partition-checkc.patch
+edac-mpc85xx-fix-pci-ofdev-2nd-pass.patch
 
