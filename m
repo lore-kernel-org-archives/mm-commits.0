@@ -1,118 +1,230 @@
 From: akpm@linux-foundation.org
-Subject: - reiserfs-convert-j_flush_sem-to-mutex.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 15:57:17 -0700
-Message-ID: <200807252257.m6PMvHka003172@imap1.linux-foundation.org>
+Subject: - quota-implement-sending-information-via-netlink-about-user-below-quota.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 15:57:55 -0700
+Message-ID: <200807252257.m6PMvt7e003237@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50498 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58404 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756445AbYGYW6l (ORCPT
+	by vger.kernel.org with ESMTP id S1751670AbYGYW6k (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 18:58:41 -0400
+	Fri, 25 Jul 2008 18:58:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeffm@suse.com, chris.mason@oracle.com, edward.shishkin@gmail.com, matthew@wil.cx, mm-commits@vger.kernel.org
+To: jack@suse.cz, slava@nsys.by, mm-commits@vger.kernel.org
 
 
 The patch titled
-     reiserfs: convert j_flush_sem to mutex
+     quota: implement sending information via netlink about user below quota
 has been removed from the -mm tree.  Its filename was
-     reiserfs-convert-j_flush_sem-to-mutex.patch
+     quota-implement-sending-information-via-netlink-about-user-below-quota.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: reiserfs: convert j_flush_sem to mutex
-From: Jeff Mahoney <jeffm@suse.com>
+Subject: quota: implement sending information via netlink about user below quota
+From: Jan Kara <jack@suse.cz>
 
-j_flush_sem is a semaphore but uses it as if it were a mutex.  This patch
-converts it to a mutex.
+Sometimes it may be useful for userspace to know (e.g.  for some hosting
+guys) that some user stopped exceeding his hardlimit or softlimit in
+quotas.  Implement sending of such events to userspace via quota netlink
+protocol so that they don't have to poll for such events.  Based on idea
+and initial implementation by Vladislav Bogdanov.
 
-[akpm@linux-foundation.org: fix mutex_trylock retval treatment]
-Signed-off-by: Jeff Mahoney <jeffm@suse.com>
-Cc: Matthew Wilcox <matthew@wil.cx>
-Cc: Chris Mason <chris.mason@oracle.com>
-Cc: Edward Shishkin <edward.shishkin@gmail.com>
+Cc: Vladislav Bogdanov <slava@nsys.by>
+Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/journal.c          |   14 +++++++-------
- include/linux/reiserfs_fs_sb.h |    2 +-
- 2 files changed, 8 insertions(+), 8 deletions(-)
+ fs/dquot.c            |   60 ++++++++++++++++++++++++++++++++++++----
+ include/linux/quota.h |    4 ++
+ 2 files changed, 58 insertions(+), 6 deletions(-)
 
-diff -puN fs/reiserfs/journal.c~reiserfs-convert-j_flush_sem-to-mutex fs/reiserfs/journal.c
---- a/fs/reiserfs/journal.c~reiserfs-convert-j_flush_sem-to-mutex
-+++ a/fs/reiserfs/journal.c
-@@ -1411,8 +1411,8 @@ static int flush_journal_list(struct sup
+diff -puN fs/dquot.c~quota-implement-sending-information-via-netlink-about-user-below-quota fs/dquot.c
+--- a/fs/dquot.c~quota-implement-sending-information-via-netlink-about-user-below-quota
++++ a/fs/dquot.c
+@@ -889,7 +889,10 @@ static void print_warning(struct dquot *
+ 	char *msg = NULL;
+ 	struct tty_struct *tty;
  
- 	/* if flushall == 0, the lock is already held */
- 	if (flushall) {
--		down(&journal->j_flush_sem);
--	} else if (!down_trylock(&journal->j_flush_sem)) {
-+		mutex_lock(&journal->j_flush_mutex);
-+	} else if (mutex_trylock(&journal->j_flush_mutex)) {
- 		BUG();
- 	}
+-	if (!need_print_warning(dquot))
++	if (warntype == QUOTA_NL_IHARDBELOW ||
++	    warntype == QUOTA_NL_ISOFTBELOW ||
++	    warntype == QUOTA_NL_BHARDBELOW ||
++	    warntype == QUOTA_NL_BSOFTBELOW || !need_print_warning(dquot))
+ 		return;
  
-@@ -1642,7 +1642,7 @@ static int flush_journal_list(struct sup
- 	jl->j_state = 0;
- 	put_journal_list(s, jl);
- 	if (flushall)
--		up(&journal->j_flush_sem);
-+		mutex_unlock(&journal->j_flush_mutex);
- 	put_fs_excl();
- 	return err;
- }
-@@ -1772,12 +1772,12 @@ static int kupdate_transactions(struct s
- 	struct reiserfs_journal *journal = SB_JOURNAL(s);
- 	chunk.nr = 0;
- 
--	down(&journal->j_flush_sem);
-+	mutex_lock(&journal->j_flush_mutex);
- 	if (!journal_list_still_alive(s, orig_trans_id)) {
- 		goto done;
- 	}
- 
--	/* we've got j_flush_sem held, nobody is going to delete any
-+	/* we've got j_flush_mutex held, nobody is going to delete any
- 	 * of these lists out from underneath us
- 	 */
- 	while ((num_trans && transactions_flushed < num_trans) ||
-@@ -1812,7 +1812,7 @@ static int kupdate_transactions(struct s
- 	}
- 
-       done:
--	up(&journal->j_flush_sem);
-+	mutex_unlock(&journal->j_flush_mutex);
- 	return ret;
+ 	mutex_lock(&tty_mutex);
+@@ -1097,6 +1100,35 @@ static int check_bdq(struct dquot *dquot
+ 	return QUOTA_OK;
  }
  
-@@ -2838,7 +2838,7 @@ int journal_init(struct super_block *p_s
- 	journal->j_first = NULL;
- 	init_waitqueue_head(&(journal->j_join_wait));
- 	mutex_init(&journal->j_mutex);
--	sema_init(&journal->j_flush_sem, 1);
-+	mutex_init(&journal->j_flush_mutex);
++static int info_idq_free(struct dquot *dquot, ulong inodes)
++{
++	if (test_bit(DQ_FAKE_B, &dquot->dq_flags) ||
++	    dquot->dq_dqb.dqb_curinodes <= dquot->dq_dqb.dqb_isoftlimit)
++		return QUOTA_NL_NOWARN;
++
++	if (dquot->dq_dqb.dqb_curinodes - inodes <= dquot->dq_dqb.dqb_isoftlimit)
++		return QUOTA_NL_ISOFTBELOW;
++	if (dquot->dq_dqb.dqb_curinodes >= dquot->dq_dqb.dqb_ihardlimit &&
++	    dquot->dq_dqb.dqb_curinodes - inodes < dquot->dq_dqb.dqb_ihardlimit)
++		return QUOTA_NL_IHARDBELOW;
++	return QUOTA_NL_NOWARN;
++}
++
++static int info_bdq_free(struct dquot *dquot, qsize_t space)
++{
++	if (test_bit(DQ_FAKE_B, &dquot->dq_flags) ||
++	    toqb(dquot->dq_dqb.dqb_curspace) <= dquot->dq_dqb.dqb_bsoftlimit)
++		return QUOTA_NL_NOWARN;
++
++	if (toqb(dquot->dq_dqb.dqb_curspace - space) <=
++	    dquot->dq_dqb.dqb_bsoftlimit)
++		return QUOTA_NL_BSOFTBELOW;
++	if (toqb(dquot->dq_dqb.dqb_curspace) >= dquot->dq_dqb.dqb_bhardlimit &&
++	    toqb(dquot->dq_dqb.dqb_curspace - space) <
++						dquot->dq_dqb.dqb_bhardlimit)
++		return QUOTA_NL_BHARDBELOW;
++	return QUOTA_NL_NOWARN;
++}
+ /*
+  *	Initialize quota pointers in inode
+  *	Transaction must be started at entry
+@@ -1284,6 +1316,7 @@ warn_put_all:
+ int dquot_free_space(struct inode *inode, qsize_t number)
+ {
+ 	unsigned int cnt;
++	char warntype[MAXQUOTAS];
  
- 	journal->j_trans_id = 10;
- 	journal->j_mount_id = 10;
-diff -puN include/linux/reiserfs_fs_sb.h~reiserfs-convert-j_flush_sem-to-mutex include/linux/reiserfs_fs_sb.h
---- a/include/linux/reiserfs_fs_sb.h~reiserfs-convert-j_flush_sem-to-mutex
-+++ a/include/linux/reiserfs_fs_sb.h
-@@ -194,7 +194,7 @@ struct reiserfs_journal {
+ 	/* First test before acquiring mutex - solves deadlocks when we
+          * re-enter the quota code and are already holding the mutex */
+@@ -1292,6 +1325,7 @@ out_sub:
+ 		inode_sub_bytes(inode, number);
+ 		return QUOTA_OK;
+ 	}
++
+ 	down_read(&sb_dqopt(inode->i_sb)->dqptr_sem);
+ 	/* Now recheck reliably when holding dqptr_sem */
+ 	if (IS_NOQUOTA(inode)) {
+@@ -1302,6 +1336,7 @@ out_sub:
+ 	for (cnt = 0; cnt < MAXQUOTAS; cnt++) {
+ 		if (inode->i_dquot[cnt] == NODQUOT)
+ 			continue;
++		warntype[cnt] = info_bdq_free(inode->i_dquot[cnt], number);
+ 		dquot_decr_space(inode->i_dquot[cnt], number);
+ 	}
+ 	inode_sub_bytes(inode, number);
+@@ -1310,6 +1345,7 @@ out_sub:
+ 	for (cnt = 0; cnt < MAXQUOTAS; cnt++)
+ 		if (inode->i_dquot[cnt])
+ 			mark_dquot_dirty(inode->i_dquot[cnt]);
++	flush_warnings(inode->i_dquot, warntype);
+ 	up_read(&sb_dqopt(inode->i_sb)->dqptr_sem);
+ 	return QUOTA_OK;
+ }
+@@ -1320,11 +1356,13 @@ out_sub:
+ int dquot_free_inode(const struct inode *inode, unsigned long number)
+ {
+ 	unsigned int cnt;
++	char warntype[MAXQUOTAS];
  
- 	time_t j_trans_start_time;	/* time this transaction started */
- 	struct mutex j_mutex;
--	struct semaphore j_flush_sem;
-+	struct mutex j_flush_mutex;
- 	wait_queue_head_t j_join_wait;	/* wait for current transaction to finish before starting new one */
- 	atomic_t j_jlock;	/* lock for j_join_wait */
- 	int j_list_bitmap_index;	/* number of next list bitmap to use */
+ 	/* First test before acquiring mutex - solves deadlocks when we
+          * re-enter the quota code and are already holding the mutex */
+ 	if (IS_NOQUOTA(inode))
+ 		return QUOTA_OK;
++
+ 	down_read(&sb_dqopt(inode->i_sb)->dqptr_sem);
+ 	/* Now recheck reliably when holding dqptr_sem */
+ 	if (IS_NOQUOTA(inode)) {
+@@ -1335,6 +1373,7 @@ int dquot_free_inode(const struct inode 
+ 	for (cnt = 0; cnt < MAXQUOTAS; cnt++) {
+ 		if (inode->i_dquot[cnt] == NODQUOT)
+ 			continue;
++		warntype[cnt] = info_idq_free(inode->i_dquot[cnt], number);
+ 		dquot_decr_inodes(inode->i_dquot[cnt], number);
+ 	}
+ 	spin_unlock(&dq_data_lock);
+@@ -1342,6 +1381,7 @@ int dquot_free_inode(const struct inode 
+ 	for (cnt = 0; cnt < MAXQUOTAS; cnt++)
+ 		if (inode->i_dquot[cnt])
+ 			mark_dquot_dirty(inode->i_dquot[cnt]);
++	flush_warnings(inode->i_dquot, warntype);
+ 	up_read(&sb_dqopt(inode->i_sb)->dqptr_sem);
+ 	return QUOTA_OK;
+ }
+@@ -1359,7 +1399,8 @@ int dquot_transfer(struct inode *inode, 
+ 	struct dquot *transfer_to[MAXQUOTAS];
+ 	int cnt, ret = NO_QUOTA, chuid = (iattr->ia_valid & ATTR_UID) && inode->i_uid != iattr->ia_uid,
+ 	    chgid = (iattr->ia_valid & ATTR_GID) && inode->i_gid != iattr->ia_gid;
+-	char warntype[MAXQUOTAS];
++	char warntype_to[MAXQUOTAS];
++	char warntype_from_inodes[MAXQUOTAS], warntype_from_space[MAXQUOTAS];
+ 
+ 	/* First test before acquiring mutex - solves deadlocks when we
+          * re-enter the quota code and are already holding the mutex */
+@@ -1368,7 +1409,7 @@ int dquot_transfer(struct inode *inode, 
+ 	/* Clear the arrays */
+ 	for (cnt = 0; cnt < MAXQUOTAS; cnt++) {
+ 		transfer_to[cnt] = transfer_from[cnt] = NODQUOT;
+-		warntype[cnt] = QUOTA_NL_NOWARN;
++		warntype_to[cnt] = QUOTA_NL_NOWARN;
+ 	}
+ 	down_write(&sb_dqopt(inode->i_sb)->dqptr_sem);
+ 	/* Now recheck reliably when holding dqptr_sem */
+@@ -1400,8 +1441,9 @@ int dquot_transfer(struct inode *inode, 
+ 		if (transfer_to[cnt] == NODQUOT)
+ 			continue;
+ 		transfer_from[cnt] = inode->i_dquot[cnt];
+-		if (check_idq(transfer_to[cnt], 1, warntype+cnt) == NO_QUOTA ||
+-		    check_bdq(transfer_to[cnt], space, 0, warntype+cnt) == NO_QUOTA)
++		if (check_idq(transfer_to[cnt], 1, warntype_to + cnt) ==
++		    NO_QUOTA || check_bdq(transfer_to[cnt], space, 0,
++		    warntype_to + cnt) == NO_QUOTA)
+ 			goto warn_put_all;
+ 	}
+ 
+@@ -1417,6 +1459,10 @@ int dquot_transfer(struct inode *inode, 
+ 
+ 		/* Due to IO error we might not have transfer_from[] structure */
+ 		if (transfer_from[cnt]) {
++			warntype_from_inodes[cnt] =
++				info_idq_free(transfer_from[cnt], 1);
++			warntype_from_space[cnt] =
++				info_bdq_free(transfer_from[cnt], space);
+ 			dquot_decr_inodes(transfer_from[cnt], 1);
+ 			dquot_decr_space(transfer_from[cnt], space);
+ 		}
+@@ -1436,7 +1482,9 @@ warn_put_all:
+ 		if (transfer_to[cnt])
+ 			mark_dquot_dirty(transfer_to[cnt]);
+ 	}
+-	flush_warnings(transfer_to, warntype);
++	flush_warnings(transfer_to, warntype_to);
++	flush_warnings(transfer_from, warntype_from_inodes);
++	flush_warnings(transfer_from, warntype_from_space);
+ 	
+ 	for (cnt = 0; cnt < MAXQUOTAS; cnt++) {
+ 		if (ret == QUOTA_OK && transfer_from[cnt] != NODQUOT)
+diff -puN include/linux/quota.h~quota-implement-sending-information-via-netlink-about-user-below-quota include/linux/quota.h
+--- a/include/linux/quota.h~quota-implement-sending-information-via-netlink-about-user-below-quota
++++ a/include/linux/quota.h
+@@ -135,6 +135,10 @@ struct if_dqinfo {
+ #define QUOTA_NL_BHARDWARN 4		/* Block hardlimit reached */
+ #define QUOTA_NL_BSOFTLONGWARN 5	/* Block grace time expired */
+ #define QUOTA_NL_BSOFTWARN 6		/* Block softlimit reached */
++#define QUOTA_NL_IHARDBELOW 7		/* Usage got below inode hardlimit */
++#define QUOTA_NL_ISOFTBELOW 8		/* Usage got below inode softlimit */
++#define QUOTA_NL_BHARDBELOW 9		/* Usage got below block hardlimit */
++#define QUOTA_NL_BSOFTBELOW 10		/* Usage got below block softlimit */
+ 
+ enum {
+ 	QUOTA_NL_C_UNSPEC,
 _
 
-Patches currently in -mm which might be from jeffm@suse.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
 origin.patch
 
