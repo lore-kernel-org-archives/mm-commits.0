@@ -1,127 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: - memrlimit-handle-attach_task-failure-add-can_attach-callback-update.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 17:29:52 -0700
-Message-ID: <200807250029.m6P0TqQc014228@imap1.linux-foundation.org>
+Subject: - coredump-format_corename-fix-the-core_uses_pid-logic-checkpatch-fixes.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 17:31:25 -0700
+Message-ID: <200807250031.m6P0VPU7014309@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55184 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37265 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756686AbYGYAaw (ORCPT
+	by vger.kernel.org with ESMTP id S1752799AbYGYAbl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 20:30:52 -0400
+	Thu, 24 Jul 2008 20:31:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: balbir@linux.vnet.ibm.com, hugh@veritas.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, rientjes@google.com, skumar@linux.vnet.ibm.com, vgoyal@redhat.com
+To: akpm@linux-foundation.org, oleg@tv-sign.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memrlimit handle attach_task() failure, add can_attach() callback (update)
+     coredump-format_corename-fix-the-core_uses_pid-logic-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     memrlimit-handle-attach_task-failure-add-can_attach-callback-update.patch
+     coredump-format_corename-fix-the-core_uses_pid-logic-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
+This patch was dropped because it was folded into coredump-format_corename-fix-the-core_uses_pid-logic.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memrlimit handle attach_task() failure, add can_attach() callback (update)
-From: Balbir Singh <balbir@linux.vnet.ibm.com>
+Subject: coredump-format_corename-fix-the-core_uses_pid-logic-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Changelog v2->v1
+ERROR: code indent should use tabs where possible
+#50: FILE: fs/exec.c:1490:
++            && (core_uses_pid || nr_threads)) {$
 
-1. Rename res_counter_add_check() to res_counter_can_add()
+total: 1 errors, 0 warnings, 36 lines checked
 
-Making the first argument (struct res_counter *) a constant pointer causes
-the compiler to spew out warnings in spin_(un)lock_irq* routines, since
-we now pass address from a constant pointer to the lock routines.
+./patches/coredump-format_corename-fix-the-core_uses_pid-logic.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
 
-This patch fixes a task migration problem reported by Kamezawa-San. This
-patch should fix all issues with migraiton, except for a rare condition
-documented in memrlimit_cgroup_move_task(). To fix that problem, we
-would need to add transaction properties to cgroups.
+Please run checkpatch prior to sending patches
 
-The problem reported was that migrating to a group that did not have
-sufficient limits to accept an incoming task caused a kernel warning.
-
-Steps to reproduce
-
-% mkdir /dev/cgroup/memrlimit/group_01
-% mkdir /dev/cgroup/memrlimit/group_02
-% echo 1G > /dev/cgroup/memrlimit/group_01/memrlimit.limit_in_bytes
-% echo 0 >  /dev/cgroup/memrlimit/group_02/memrlimit.limit_in_bytes
-% echo $$ > /dev/cgroup/memrlimit/group_01/tasks
-% echo $$ > /dev/cgroup/memrlimit/group_02/tasks
-% exit
-
-memrlimit does the right thing by not moving the charges to group_02,
-but the task is still put into g2 (since we did not use can_attach to
-fail migration). Once in g2, when we echo the task to the root cgroup,
-it tries to uncharge the cost of the task from g2. g2 does not have
-any charge associated with the task, hence we get a warning.
-
-Reviewed-by: <kamezawa.hiroyu@jp.fujitsu.com>
-Signed-off-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: Sudhir Kumar <skumar@linux.vnet.ibm.com>
-Cc: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
-Cc: Paul Menage <menage@google.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/res_counter.h |    2 +-
- mm/memrlimitcgroup.c        |    3 +--
- 2 files changed, 2 insertions(+), 3 deletions(-)
+ fs/exec.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/res_counter.h~memrlimit-handle-attach_task-failure-add-can_attach-callback-update include/linux/res_counter.h
---- a/include/linux/res_counter.h~memrlimit-handle-attach_task-failure-add-can_attach-callback-update
-+++ a/include/linux/res_counter.h
-@@ -178,7 +178,7 @@ static inline int res_counter_set_limit(
-  * Add the value val to the resource counter and check if we are
-  * still under the limit.
-  */
--static inline bool res_counter_add_check(struct res_counter *cnt,
-+static inline bool res_counter_can_add(struct res_counter *cnt,
- 						unsigned long val)
- {
- 	bool ret = false;
-diff -puN mm/memrlimitcgroup.c~memrlimit-handle-attach_task-failure-add-can_attach-callback-update mm/memrlimitcgroup.c
---- a/mm/memrlimitcgroup.c~memrlimit-handle-attach_task-failure-add-can_attach-callback-update
-+++ a/mm/memrlimitcgroup.c
-@@ -176,8 +176,7 @@ static int memrlimit_cgroup_can_move_tas
- 
- 	memrcg = memrlimit_cgroup_from_cgrp(cgrp);
- 
--	if (!res_counter_add_check(&memrcg->as_res,
--				(mm->total_vm << PAGE_SHIFT)))
-+	if (!res_counter_can_add(&memrcg->as_res, (mm->total_vm << PAGE_SHIFT)))
- 		ret = -ENOMEM;
- out:
- 	rcu_read_unlock();
+diff -puN fs/exec.c~coredump-format_corename-fix-the-core_uses_pid-logic-checkpatch-fixes fs/exec.c
+--- a/fs/exec.c~coredump-format_corename-fix-the-core_uses_pid-logic-checkpatch-fixes
++++ a/fs/exec.c
+@@ -1487,7 +1487,7 @@ static int format_corename(char *corenam
+ 	 * and core_uses_pid is set, then .%pid will be appended to
+ 	 * the filename. Do not do this for piped commands. */
+ 	if (!ispipe && !pid_in_pattern
+-            && (core_uses_pid || nr_threads)) {
++	    && (core_uses_pid || nr_threads)) {
+ 		rc = snprintf(out_ptr, out_end - out_ptr,
+ 			      ".%d", task_tgid_vnr(current));
+ 		if (rc > out_end - out_ptr)
 _
 
-Patches currently in -mm which might be from balbir@linux.vnet.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-cgroup-use-read-lock-to-guard-find_existing_css_set.patch
-mark-res_counter_charge_locked-with-__must_check.patch
-memcg-make-global-var-read_mostly.patch
-memcg-avoid-unnecessary-initialization.patch
-memcg-clean-up-checking-of-the-disabled-flag.patch
-res_counter-limit-change-support-ebusy.patch
+origin.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+seq_file-fix-bug-when-seq_read-reads-nothing.patch
+exec-remove-some-includes.patch
+inflate-refactor-inflate-malloc-code.patch
+drivers-misc-hpiloc-needs-config_pci.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments.patch
+gpio-sysfs-interface-updated.patch
+gpio-add-bt8xxgpio-driver.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction.patch
+ext3-handle-corrupted-orphan-list-at-mount.patch
+ext3-handle-deleting-corrupted-indirect-blocks.patch
+jbd-dont-abort-if-flushing-file-data-failed.patch
+reiserfs-convert-j_flush_sem-to-mutex.patch
+reiserfs-convert-j_commit_lock-to-mutex.patch
+quota-move-function-macros-from-quotah-to-quotaopsh.patch
+cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup.patch
+devcgroup-code-cleanup.patch
+memcg-remove-refcnt-from-page_cgroup.patch
 memcg-limit-change-shrink-usage.patch
-memrlimit-add-memrlimit-controller-documentation.patch
-memrlimit-setup-the-memrlimit-controller.patch
-memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
-memrlimit-add-memrlimit-controller-accounting-and-control.patch
-memrlimit-improve-error-handling.patch
-memrlimit-improve-error-handling-update.patch
-memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
-memrlimit-handle-attach_task-failure-add-can_attach-callback-update.patch
-distinct-tgid-tid-i-o-statistics.patch
-per-task-delay-accounting-add-memory-reclaim-delay.patch
-per-task-delay-accounting-update-document-and-getdelaysc-for-memory-reclaim.patch
+coredump-format_corename-fix-the-core_uses_pid-logic.patch
+coredump-format_corename-fix-the-core_uses_pid-logic-checkpatch-fixes.patch
+workqueues-make-get_online_cpus-useable-for-work-func-fix.patch
+ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
+fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
+block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
+getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
+edac-mpc85xx-fix-pci-ofdev-2nd-pass-checkpatch-fixes.patch
 
