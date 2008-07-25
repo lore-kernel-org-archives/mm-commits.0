@@ -1,66 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - dma-mapping-add-the-device-argument-to-dma_mapping_error-ibmvscsi.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 16:44:30 -0700
-Message-ID: <200807252344.m6PNiUcR005663@imap1.linux-foundation.org>
+Subject: - x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary-checkpatch-fixes.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 16:45:00 -0700
+Message-ID: <200807252345.m6PNj0no005666@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56004 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40051 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751307AbYGYXpu (ORCPT
+	by vger.kernel.org with ESMTP id S1752583AbYGYXqW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:45:50 -0400
+	Fri, 25 Jul 2008 19:46:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andi@firstfloor.org, avi@qumranet.com, fujita.tomonori@lab.ntt.co.jp, mingo@elte.hu, muli@il.ibm.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alexisb@us.ibm.com, fujita.tomonori@lab.ntt.co.jp, mingo@elte.hu, muli@il.ibm.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dma-mapping-add-the-device-argument-to-dma_mapping_error-ibmvscsi
+     dma-mapping-x86-per-device-dma_mapping_ops-support-x86-calgary-fix-handling-of-devces-that-arent-behind-the-calgary-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     dma-mapping-add-the-device-argument-to-dma_mapping_error-ibmvscsi.patch
+     x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into dma-mapping-add-the-device-argument-to-dma_mapping_error.patch
+This patch was dropped because it was folded into x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dma-mapping-add-the-device-argument-to-dma_mapping_error-ibmvscsi
+Subject: dma-mapping-x86-per-device-dma_mapping_ops-support-x86-calgary-fix-handling-of-devces-that-arent-behind-the-calgary-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: Muli Ben-Yehuda <muli@il.ibm.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Avi Kivity <avi@qumranet.com>
+ERROR: space required before the open parenthesis '('
+#133: FILE: arch/x86/kernel/pci-calgary_64.c:1206:
++		if(translation_enabled(tbl))
 
+total: 1 errors, 0 warnings, 157 lines checked
+
+./patches/dma-mapping-x86-per-device-dma_mapping_ops-support-x86-calgary-fix-handling-of-devces-that-arent-behind-the-calgary.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Alexis Bruemmer <alexisb@us.ibm.com>
+Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Muli Ben-Yehuda <muli@il.ibm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/ibmvscsi/ibmvfc.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/x86/kernel/pci-calgary_64.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/scsi/ibmvscsi/ibmvfc.c~dma-mapping-add-the-device-argument-to-dma_mapping_error-ibmvscsi drivers/scsi/ibmvscsi/ibmvfc.c
---- a/drivers/scsi/ibmvscsi/ibmvfc.c~dma-mapping-add-the-device-argument-to-dma_mapping_error-ibmvscsi
-+++ a/drivers/scsi/ibmvscsi/ibmvfc.c
-@@ -3525,7 +3525,7 @@ static int ibmvfc_init_crq(struct ibmvfc
- 	crq->msg_token = dma_map_single(dev, crq->msgs,
- 					PAGE_SIZE, DMA_BIDIRECTIONAL);
+diff -puN arch/x86/kernel/pci-calgary_64.c~x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary-checkpatch-fixes arch/x86/kernel/pci-calgary_64.c
+--- a/arch/x86/kernel/pci-calgary_64.c~x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary-checkpatch-fixes
++++ a/arch/x86/kernel/pci-calgary_64.c
+@@ -1203,7 +1203,7 @@ static int __init calgary_init(void)
  
--	if (dma_mapping_error(crq->msg_token))
-+	if (dma_mapping_error(dev, crq->msg_token))
- 		goto map_failed;
+ 		tbl = find_iommu_table(&dev->dev);
  
- 	retrc = rc = plpar_hcall_norets(H_REG_CRQ, vdev->unit_address,
-@@ -3618,7 +3618,7 @@ static int ibmvfc_alloc_mem(struct ibmvf
- 					    async_q->size * sizeof(*async_q->msgs),
- 					    DMA_BIDIRECTIONAL);
- 
--	if (dma_mapping_error(async_q->msg_token)) {
-+	if (dma_mapping_error(dev, async_q->msg_token)) {
- 		dev_err(dev, "Failed to map async queue\n");
- 		goto free_async_crq;
+-		if(translation_enabled(tbl))
++		if (translation_enabled(tbl))
+ 			dev->dev.archdata.dma_ops = &calgary_dma_ops;
  	}
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -68,7 +69,7 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 uninline-arch_pick_mmap_layout.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-ibmvscsi.patch
+x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary.patch
 x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary-checkpatch-fixes.patch
 tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
 memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
