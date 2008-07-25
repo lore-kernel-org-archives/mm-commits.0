@@ -1,191 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: - build-kernel-profileo-only-when-requested.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 15:54:32 -0700
-Message-ID: <200807252254.m6PMsW0r002831@imap1.linux-foundation.org>
+Subject: - remove-some-more-tipar-bits.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 15:54:39 -0700
+Message-ID: <200807252254.m6PMsdBg002840@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37627 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35335 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752512AbYGYWyx (ORCPT
+	by vger.kernel.org with ESMTP id S1752539AbYGYWzR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 18:54:53 -0400
+	Fri, 25 Jul 2008 18:55:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org
+To: bunk@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     build kernel/profile.o only when requested
+     remove some more tipar bits
 has been removed from the -mm tree.  Its filename was
-     build-kernel-profileo-only-when-requested.patch
+     remove-some-more-tipar-bits.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: build kernel/profile.o only when requested
+Subject: remove some more tipar bits
 From: Adrian Bunk <bunk@kernel.org>
 
-Build kernel/profile.o only if CONFIG_PROFILING is enabled.
-
-This makes CONFIG_PROFILING=n kernels smaller.
-
-As a bonus, some profile_tick() calls and one branch from schedule() are
-now eliminated with CONFIG_PROFILING=n (but I doubt these are
-measurable effects).
-
-This patch changes the effects of CONFIG_PROFILING=n, but I don't think
-having more than two choices would be the better choice.
-
-This patch also adds the name of the first parameter to the prototypes
-of profile_{hits,tick}() since I anyway had to add them for the dummy
-functions.
+Some bits were missed when the tipar driver was removed.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/profile.h |   56 ++++++++++++++++++++++++++------------
- kernel/Makefile         |    3 +-
- kernel/profile.c        |    4 --
- 3 files changed, 41 insertions(+), 22 deletions(-)
+ Documentation/00-INDEX              |    2 --
+ Documentation/kernel-parameters.txt |    7 -------
+ drivers/char/Makefile               |    1 -
+ 3 files changed, 10 deletions(-)
 
-diff -puN include/linux/profile.h~build-kernel-profileo-only-when-requested include/linux/profile.h
---- a/include/linux/profile.h~build-kernel-profileo-only-when-requested
-+++ a/include/linux/profile.h
-@@ -8,8 +8,6 @@
+diff -puN Documentation/00-INDEX~remove-some-more-tipar-bits Documentation/00-INDEX
+--- a/Documentation/00-INDEX~remove-some-more-tipar-bits
++++ a/Documentation/00-INDEX
+@@ -361,8 +361,6 @@ telephony/
+ 	- directory with info on telephony (e.g. voice over IP) support.
+ time_interpolators.txt
+ 	- info on time interpolators.
+-tipar.txt
+-	- information about Parallel link cable for Texas Instruments handhelds.
+ tty.txt
+ 	- guide to the locking policies of the tty layer.
+ uml/
+diff -puN Documentation/kernel-parameters.txt~remove-some-more-tipar-bits Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~remove-some-more-tipar-bits
++++ a/Documentation/kernel-parameters.txt
+@@ -2159,13 +2159,6 @@ and is between 256 and 4096 characters. 
+ 			<deci-seconds>: poll all this frequency
+ 			0: no polling (default)
  
- #include <asm/errno.h>
- 
--extern int prof_on __read_mostly;
+-	tipar.timeout=	[HW,PPT]
+-			Set communications timeout in tenths of a second
+-			(default 15).
 -
- #define CPU_PROFILING	1
- #define SCHED_PROFILING	2
- #define SLEEP_PROFILING	3
-@@ -19,14 +17,29 @@ struct proc_dir_entry;
- struct pt_regs;
- struct notifier_block;
- 
-+#if defined(CONFIG_PROFILING) && defined(CONFIG_PROC_FS)
-+void create_prof_cpu_mask(struct proc_dir_entry *);
-+#else
-+#define create_prof_cpu_mask(x)			do { (void)(x); } while (0)
-+#endif
-+
-+enum profile_type {
-+	PROFILE_TASK_EXIT,
-+	PROFILE_MUNMAP
-+};
-+
-+#ifdef CONFIG_PROFILING
-+
-+extern int prof_on __read_mostly;
-+
- /* init basic kernel profiler */
- void __init profile_init(void);
--void profile_tick(int);
-+void profile_tick(int type);
- 
- /*
-  * Add multiple profiler hits to a given address:
-  */
--void profile_hits(int, void *ip, unsigned int nr_hits);
-+void profile_hits(int type, void *ip, unsigned int nr_hits);
- 
- /*
-  * Single profiler hit:
-@@ -40,19 +53,6 @@ static inline void profile_hit(int type,
- 		profile_hits(type, ip, 1);
- }
- 
--#ifdef CONFIG_PROC_FS
--void create_prof_cpu_mask(struct proc_dir_entry *);
--#else
--#define create_prof_cpu_mask(x)			do { (void)(x); } while (0)
--#endif
+-	tipar.delay=	[HW,PPT]
+-			Set inter-bit delay in microseconds (default 10).
 -
--enum profile_type {
--	PROFILE_TASK_EXIT,
--	PROFILE_MUNMAP
--};
--
--#ifdef CONFIG_PROFILING
--
- struct task_struct;
- struct mm_struct;
+ 	tmscsim=	[HW,SCSI]
+ 			See comment before function dc390_setup() in
+ 			drivers/scsi/tmscsim.c.
+diff -puN drivers/char/Makefile~remove-some-more-tipar-bits drivers/char/Makefile
+--- a/drivers/char/Makefile~remove-some-more-tipar-bits
++++ a/drivers/char/Makefile
+@@ -63,7 +63,6 @@ obj-$(CONFIG_BRIQ_PANEL)	+= briq_panel.o
+ obj-$(CONFIG_BFIN_OTP)		+= bfin-otp.o
  
-@@ -80,6 +80,28 @@ struct pt_regs;
+ obj-$(CONFIG_PRINTER)		+= lp.o
+-obj-$(CONFIG_TIPAR)		+= tipar.o
  
- #else
+ obj-$(CONFIG_APM_EMULATION)	+= apm-emulation.o
  
-+#define prof_on 0
-+
-+static inline void profile_init(void)
-+{
-+	return;
-+}
-+
-+static inline void profile_tick(int type)
-+{
-+	return;
-+}
-+
-+static inline void profile_hits(int type, void *ip, unsigned int nr_hits)
-+{
-+	return;
-+}
-+
-+static inline void profile_hit(int type, void *ip)
-+{
-+	return;
-+}
-+
- static inline int task_handoff_register(struct notifier_block * n)
- {
- 	return -ENOSYS;
-diff -puN kernel/Makefile~build-kernel-profileo-only-when-requested kernel/Makefile
---- a/kernel/Makefile~build-kernel-profileo-only-when-requested
-+++ a/kernel/Makefile
-@@ -2,7 +2,7 @@
- # Makefile for the linux kernel.
- #
- 
--obj-y     = sched.o fork.o exec_domain.o panic.o printk.o profile.o \
-+obj-y     = sched.o fork.o exec_domain.o panic.o printk.o \
- 	    cpu.o exit.o itimer.o time.o softirq.o resource.o \
- 	    sysctl.o capability.o ptrace.o timer.o user.o \
- 	    signal.o sys.o kmod.o workqueue.o pid.o \
-@@ -24,6 +24,7 @@ CFLAGS_REMOVE_sched_clock.o = -pg
- CFLAGS_REMOVE_sched.o = -mno-spe -pg
- endif
- 
-+obj-$(CONFIG_PROFILING) += profile.o
- obj-$(CONFIG_SYSCTL_SYSCALL_CHECK) += sysctl_check.o
- obj-$(CONFIG_STACKTRACE) += stacktrace.o
- obj-y += time/
-diff -puN kernel/profile.c~build-kernel-profileo-only-when-requested kernel/profile.c
---- a/kernel/profile.c~build-kernel-profileo-only-when-requested
-+++ a/kernel/profile.c
-@@ -112,8 +112,6 @@ void __init profile_init(void)
- 
- /* Profile event notifications */
- 
--#ifdef CONFIG_PROFILING
--
- static BLOCKING_NOTIFIER_HEAD(task_exit_notifier);
- static ATOMIC_NOTIFIER_HEAD(task_free_notifier);
- static BLOCKING_NOTIFIER_HEAD(munmap_notifier);
-@@ -203,8 +201,6 @@ void unregister_timer_hook(int (*hook)(s
- }
- EXPORT_SYMBOL_GPL(unregister_timer_hook);
- 
--#endif /* CONFIG_PROFILING */
--
- 
- #ifdef CONFIG_SMP
- /*
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
