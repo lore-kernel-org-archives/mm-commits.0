@@ -1,134 +1,133 @@
 From: akpm@linux-foundation.org
-Subject: - full-conversion-to-early_initcall-interface-remove-old-interface-cleanup.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 16:48:51 -0700
-Message-ID: <200807252348.m6PNmpKb005857@imap1.linux-foundation.org>
+Subject: - full-conversion-to-early_initcall-interface-remove-old-interface-fix-fix.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 16:48:56 -0700
+Message-ID: <200807252348.m6PNmvew005863@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34064 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34047 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751286AbYGYXti (ORCPT
+	by vger.kernel.org with ESMTP id S1751479AbYGYXtt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:49:38 -0400
+	Fri, 25 Jul 2008 19:49:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, eduard.munteanu@linux360.ro, tzanussi@gmail.com, mm-commits@vger.kernel.org
+To: kosaki.motohiro@jp.fujitsu.com, eduard.munteanu@linux360.ro, jens.axboe@oracle.com, tzanussi@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     full-conversion-to-early_initcall-interface-remove-old-interface-cleanup
+     smp.c: fix build error
 has been removed from the -mm tree.  Its filename was
-     full-conversion-to-early_initcall-interface-remove-old-interface-cleanup.patch
+     full-conversion-to-early_initcall-interface-remove-old-interface-fix-fix.patch
 
 This patch was dropped because it was folded into full-conversion-to-early_initcall-interface-remove-old-interface.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: full-conversion-to-early_initcall-interface-remove-old-interface-cleanup
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: smp.c: fix build error
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Somewhat more kernely coding style.
+Against: mmotm
+Patch name: full-conversion-to-early_initcall-interface-remove-old-interface-fix-fix.patch
+Applies after: full-conversion-to-early_initcall-interface-remove-old-interface-fix.patch
 
-Cc: Eduard - Gabriel Munteanu <eduard.munteanu@linux360.ro>
+--------------------------------
+
+Now, init_call_single_data() is static function.
+then redundant declaration cause build error as below.
+
+     kernel/smp.c:36: error: static declaration of ‘init_call_single_data’ follows non-static declaration
+     include/linux/smp.h:77: error: previous declaration of ‘init_call_single_data’ was here
+     kernel/smp.c:47: warning: initialization from incompatible pointer type
+     make[1]: *** [kernel/smp.o] error 1
+
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Acked-by: Eduard - Gabriel Munteanu <eduard.munteanu@linux360.ro>
 Cc: Tom Zanussi <tzanussi@gmail.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c      |    1 -
- kernel/softirq.c    |    1 -
- kernel/softlockup.c |    2 --
- 3 files changed, 4 deletions(-)
+ include/linux/smp.h |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN kernel/sched.c~full-conversion-to-early_initcall-interface-remove-old-interface-cleanup kernel/sched.c
---- a/kernel/sched.c~full-conversion-to-early_initcall-interface-remove-old-interface-cleanup
-+++ a/kernel/sched.c
-@@ -6397,7 +6397,6 @@ static int __init migration_init(void)
- 
- 	return err;
- }
--
- early_initcall(migration_init);
+diff -puN include/linux/smp.h~full-conversion-to-early_initcall-interface-remove-old-interface-fix-fix include/linux/smp.h
+--- a/include/linux/smp.h~full-conversion-to-early_initcall-interface-remove-old-interface-fix-fix
++++ a/include/linux/smp.h
+@@ -74,15 +74,10 @@ void __smp_call_function_single(int cpui
+ #ifdef CONFIG_USE_GENERIC_SMP_HELPERS
+ void generic_smp_call_function_single_interrupt(void);
+ void generic_smp_call_function_interrupt(void);
+-void init_call_single_data(void);
+ void ipi_call_lock(void);
+ void ipi_call_unlock(void);
+ void ipi_call_lock_irq(void);
+ void ipi_call_unlock_irq(void);
+-#else
+-static inline void init_call_single_data(void)
+-{
+-}
  #endif
  
-diff -puN kernel/softirq.c~full-conversion-to-early_initcall-interface-remove-old-interface-cleanup kernel/softirq.c
---- a/kernel/softirq.c~full-conversion-to-early_initcall-interface-remove-old-interface-cleanup
-+++ a/kernel/softirq.c
-@@ -651,7 +651,6 @@ static __init int spawn_ksoftirqd(void)
- 	register_cpu_notifier(&cpu_nfb);
- 	return 0;
- }
--
- early_initcall(spawn_ksoftirqd);
- 
- #ifdef CONFIG_SMP
-diff -puN kernel/softlockup.c~full-conversion-to-early_initcall-interface-remove-old-interface-cleanup kernel/softlockup.c
---- a/kernel/softlockup.c~full-conversion-to-early_initcall-interface-remove-old-interface-cleanup
-+++ a/kernel/softlockup.c
-@@ -367,6 +367,4 @@ static int __init spawn_softlockup_task(
- 
- 	return 0;
- }
--
- early_initcall(spawn_softlockup_task);
--
+ /*
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
 origin.patch
-uninline-arch_pick_mmap_layout.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error.patch
-x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary.patch
-tpm-increase-size-of-internal-tpm-response-buffers.patch
-memstick-allow-set_param-method-to-return-an-error-code.patch
-memstick-use-fully-asynchronous-request-processing.patch
 full-conversion-to-early_initcall-interface-remove-old-interface.patch
-full-conversion-to-early_initcall-interface-remove-old-interface-cleanup.patch
-full-conversion-to-early_initcall-interface-remove-old-interface-fix.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-gru-driver-v3-hardware-data-structures-fix.patch
-gru-driver-v3-hardware-data-structures-fix-fix.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-mm-introduce-get_user_pages_fast-fix.patch
-mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-fix.patch
-x86-lockless-get_user_pages_fast-fix-2.patch
-x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
-x86-lockless-get_user_pages_fast-fix-warning.patch
-mm-speculative-page-references-fix-add_to_page_cache-fix.patch
-vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
-define-page_file_cache-function-fix.patch
-vmscan-split-lru-lists-into-anon-file-sets-units-fix.patch
+full-conversion-to-early_initcall-interface-remove-old-interface-fix-fix.patch
+full-conversion-to-early_initcall-interface-remove-old-interface-fix-fix-fix.patch
+relay-add-buffer-only-channels-useful-for-early-logging-fix.patch
+mm-speculative-page-references-fix-migration_entry_wait-for-speculative-page-cache.patch
+vmscan-use-an-indexed-array-for-lru-variables.patch
+swap-use-an-array-for-the-lru-pagevecs.patch
+define-page_file_cache-function-fix-splitlru-shmem_getpage-setpageswapbacked-sooner.patch
+vmscan-split-lru-lists-into-anon-file-sets-collect-lru-meminfo-statistics-from-correct-offset.patch
+vmscan-split-lru-lists-into-anon-file-sets-prevent-incorrect-oom-under-split_lru.patch
+vmscan-split-lru-lists-into-anon-file-sets-split_lru-fix-pagevec_move_tail-doesnt-treat-unevictable-page.patch
+vmscan-split-lru-lists-into-anon-file-sets-splitlru-memcg-swapbacked-pages-active.patch
+vmscan-split-lru-lists-into-anon-file-sets-splitlru-bdi_cap_swap_backed.patch
+vmscan-second-chance-replacement-for-anonymous-pages.patch
+vmscan-second-chance-replacement-for-anonymous-pages-fix.patch
+vmscan-second-chance-replacement-for-anonymous-pages-memcg-lru-scan-fix.patch
+unevictable-lru-infrastructure.patch
 unevictable-lru-infrastructure-fix.patch
+unevictable-lru-infrastructure-remove-redundant-page-mapping-check.patch
+unevictable-lru-infrastructure-putback_lru_page-unevictable-page-handling-rework.patch
+unevictable-lru-infrastructure-kill-unnecessary-lock_page-in-vmscanc.patch
+unevictable-lru-infrastructure-revert-migration-change-of-unevictable-lru-infrastructure.patch
+unevictable-lru-page-statistics.patch
+unevictable-lru-page-statistics-fix-printk-in-show_free_areas.patch
 unevictable-lru-page-statistics-units-fix.patch
+shm_locked-pages-are-unevictable.patch
+shm_locked-pages-are-unevictable-revert-shm-change-of-shm_locked-pages-are-unevictable-patch.patch
+mlock-mlocked-pages-are-unevictable.patch
 mlock-mlocked-pages-are-unevictable-fix.patch
 mlock-mlocked-pages-are-unevictable-fix-fix.patch
 mlock-mlocked-pages-are-unevictable-fix-3.patch
+mlock-mlocked-pages-are-unevictable-fix-fix-munlock-page-table-walk-now-requires-mm.patch
+mlock-mlocked-pages-are-unevictable-restore-patch-failure-hunk-of-mlock-mlocked-pages-are-unevictablepatch.patch
+mlock-mlocked-pages-are-unevictable-fix-truncate-race-and-sevaral-comments.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
 mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
+fix-double-unlock_page-in-2626-rc5-mm3-kernel-bug-at-mm-filemapc-575.patch
+introduce-__get_user_pages.patch
 introduce-__get_user_pages-fix.patch
+split-lru-munlock-rework.patch
+revert-to-unevictable-lru-infrastructure-kconfig-fixpatch.patch
+vmstat-mlocked-pages-statistics.patch
+vmstat-mlocked-pages-statistics-fix-incorrect-mlocked-field-of-proc-meminfo.patch
+vmstat-mlocked-pages-statistics-fix.patch
+swap-cull-unevictable-pages-in-fault-path-fix.patch
+vmstat-unevictable-and-mlocked-pages-vm-events.patch
+restore-patch-failure-of-vmstat-unevictable-and-mlocked-pages-vm-eventspatch.patch
+vmscan-unevictable-lru-scan-sysctl.patch
 vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-fix-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
-slb-drop-kmem-cache-argument-from-constructor-ubifs.patch
-video-console-sticonrec-make-code-static-checkpatch-fixes.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+vmscan-unevictable-lru-scan-sysctl-add-sys_device-parameter.patch
+vmscam-kill-unused-lru-functions.patch
+mm-more-likely-reclaim-madv_sequential-mappings.patch
+make-mm-memoryc-print_bad_pte-static.patch
+mm-swapfilec-make-code-static.patch
+make-mm-rmapc-anon_vma_cachep-static.patch
 
