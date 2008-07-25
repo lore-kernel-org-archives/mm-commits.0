@@ -1,114 +1,251 @@
 From: akpm@linux-foundation.org
-Subject: - coredump-elf_core_dump-skip-kernel-threads.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 15:59:52 -0700
-Message-ID: <200807252259.m6PMxqhp003427@imap1.linux-foundation.org>
+Subject: - fuse-add-export-operations.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 16:03:38 -0700
+Message-ID: <200807252303.m6PN3c2M003968@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53866 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42082 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754881AbYGYXGt (ORCPT
+	by vger.kernel.org with ESMTP id S1754766AbYGYXGr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:06:49 -0400
+	Fri, 25 Jul 2008 19:06:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, roland@redhat.com, mm-commits@vger.kernel.org
+To: mszeredi@suse.cz, hch@lst.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     coredump: elf_core_dump: skip kernel threads
+     fuse: add export operations
 has been removed from the -mm tree.  Its filename was
-     coredump-elf_core_dump-skip-kernel-threads.patch
+     fuse-add-export-operations.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: coredump: elf_core_dump: skip kernel threads
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: fuse: add export operations
+From: Miklos Szeredi <mszeredi@suse.cz>
 
-linux_binfmt->core_dump() runs before the process does exit_aio(), this
-means that we can hit the kernel thread which shares the same ->mm. 
-Afaics, nothing really bad can happen, but perhaps it makes sense to fix
-this minor bug.
+Implement export_operations, to allow fuse filesystems to be exported to
+NFS.  This feature has been in the out-of-tree fuse module, and is widely
+used and tested.
 
-It is sad we have to iterate over all threads in system and use
-GFP_ATOMIC.  Hopefully we can kill theses ugly do_each_thread()s, but this
-needs some nontrivial changes in mm_struct and do_coredump.
+It has not been originally merged into mainline, because doing the NFS
+export in userspace was thought to be a cleaner and more efficient way of
+doing it, than through the kernel.
 
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Roland McGrath <roland@redhat.com>
+While that is true, it would also have involved a lot of duplicated effort
+at reimplementing NFS exporting (all the different versions of the
+protocol).  This effort was unfortunately not undertaken by anyone, so we
+are left with doing it the easy but less efficient way.
+
+If this feature goes in, the out-of-tree fuse module can go away,
+which would have several advantages:
+
+  - not having to maintain two versions
+  - less confusion for users
+  - no bugs due to kernel API changes
+
+Comment from hch:
+ - Use the same fh_type values as XFS, since we use the same fh encoding.
+
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c       |    6 ++++++
- fs/binfmt_elf_fdpic.c |    3 +++
- 2 files changed, 9 insertions(+)
+ fs/fuse/dir.c    |    4 -
+ fs/fuse/fuse_i.h |    4 +
+ fs/fuse/inode.c  |  115 +++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 121 insertions(+), 2 deletions(-)
 
-diff -puN fs/binfmt_elf.c~coredump-elf_core_dump-skip-kernel-threads fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~coredump-elf_core_dump-skip-kernel-threads
-+++ a/fs/binfmt_elf.c
-@@ -1520,6 +1520,9 @@ static int fill_note_info(struct elfhdr 
- 	rcu_read_lock();
- 	do_each_thread(g, p)
- 		if (p->mm == dump_task->mm) {
-+			if (p->flags & PF_KTHREAD)
-+				continue;
+diff -puN fs/fuse/dir.c~fuse-add-export-operations fs/fuse/dir.c
+--- a/fs/fuse/dir.c~fuse-add-export-operations
++++ a/fs/fuse/dir.c
+@@ -97,7 +97,7 @@ void fuse_invalidate_attr(struct inode *
+  * timeout is unknown (unlink, rmdir, rename and in some cases
+  * lookup)
+  */
+-static void fuse_invalidate_entry_cache(struct dentry *entry)
++void fuse_invalidate_entry_cache(struct dentry *entry)
+ {
+ 	fuse_dentry_settime(entry, 0);
+ }
+@@ -225,7 +225,7 @@ static int invalid_nodeid(u64 nodeid)
+ 	return !nodeid || nodeid == FUSE_ROOT_ID;
+ }
+ 
+-static struct dentry_operations fuse_dentry_operations = {
++struct dentry_operations fuse_dentry_operations = {
+ 	.d_revalidate	= fuse_dentry_revalidate,
+ };
+ 
+diff -puN fs/fuse/fuse_i.h~fuse-add-export-operations fs/fuse/fuse_i.h
+--- a/fs/fuse/fuse_i.h~fuse-add-export-operations
++++ a/fs/fuse/fuse_i.h
+@@ -464,6 +464,8 @@ static inline u64 get_node_id(struct ino
+ /** Device operations */
+ extern const struct file_operations fuse_dev_operations;
+ 
++extern struct dentry_operations fuse_dentry_operations;
 +
- 			t = kzalloc(offsetof(struct elf_thread_core_info,
- 					     notes[info->thread_notes]),
- 				    GFP_ATOMIC);
-@@ -1724,6 +1727,9 @@ static int fill_note_info(struct elfhdr 
- 		rcu_read_lock();
- 		do_each_thread(g, p)
- 			if (current->mm == p->mm && current != p) {
-+				if (p->flags & PF_KTHREAD)
-+					continue;
+ /**
+  * Get a filled in inode
+  */
+@@ -604,6 +606,8 @@ void fuse_abort_conn(struct fuse_conn *f
+  */
+ void fuse_invalidate_attr(struct inode *inode);
+ 
++void fuse_invalidate_entry_cache(struct dentry *entry);
 +
- 				ets = kzalloc(sizeof(*ets), GFP_ATOMIC);
- 				if (!ets) {
- 					rcu_read_unlock();
-diff -puN fs/binfmt_elf_fdpic.c~coredump-elf_core_dump-skip-kernel-threads fs/binfmt_elf_fdpic.c
---- a/fs/binfmt_elf_fdpic.c~coredump-elf_core_dump-skip-kernel-threads
-+++ a/fs/binfmt_elf_fdpic.c
-@@ -1626,6 +1626,9 @@ static int elf_fdpic_core_dump(long sign
- 		rcu_read_lock();
- 		do_each_thread(g,p)
- 			if (current->mm == p->mm && current != p) {
-+				if (p->flags & PF_KTHREAD)
-+					continue;
+ /**
+  * Acquire reference to fuse_conn
+  */
+diff -puN fs/fuse/inode.c~fuse-add-export-operations fs/fuse/inode.c
+--- a/fs/fuse/inode.c~fuse-add-export-operations
++++ a/fs/fuse/inode.c
+@@ -18,6 +18,7 @@
+ #include <linux/statfs.h>
+ #include <linux/random.h>
+ #include <linux/sched.h>
++#include <linux/exportfs.h>
+ 
+ MODULE_AUTHOR("Miklos Szeredi <miklos@szeredi.hu>");
+ MODULE_DESCRIPTION("Filesystem in Userspace");
+@@ -552,6 +553,119 @@ static struct inode *get_root_inode(stru
+ 	return fuse_iget(sb, 1, 0, &attr, 0, 0);
+ }
+ 
++struct fuse_inode_handle
++{
++	u64 nodeid;
++	u32 generation;
++};
 +
- 				tmp = kzalloc(sizeof(*tmp), GFP_ATOMIC);
- 				if (!tmp) {
- 					rcu_read_unlock();
++static struct dentry *fuse_get_dentry(struct super_block *sb,
++				      struct fuse_inode_handle *handle)
++{
++	struct inode *inode;
++	struct dentry *entry;
++	int err = -ESTALE;
++
++	if (handle->nodeid == 0)
++		goto out_err;
++
++	inode = ilookup5(sb, handle->nodeid, fuse_inode_eq, &handle->nodeid);
++	if (!inode)
++		goto out_err;
++	err = -ESTALE;
++	if (inode->i_generation != handle->generation)
++		goto out_iput;
++
++	entry = d_alloc_anon(inode);
++	err = -ENOMEM;
++	if (!entry)
++		goto out_iput;
++
++	if (get_node_id(inode) != FUSE_ROOT_ID) {
++		entry->d_op = &fuse_dentry_operations;
++		fuse_invalidate_entry_cache(entry);
++	}
++
++	return entry;
++
++ out_iput:
++	iput(inode);
++ out_err:
++	return ERR_PTR(err);
++}
++
++static int fuse_encode_fh(struct dentry *dentry, u32 *fh, int *max_len,
++			   int connectable)
++{
++	struct inode *inode = dentry->d_inode;
++	bool encode_parent = connectable && !S_ISDIR(inode->i_mode);
++	int len = encode_parent ? 6 : 3;
++	u64 nodeid;
++	u32 generation;
++
++	if (*max_len < len)
++		return  255;
++
++	nodeid = get_fuse_inode(inode)->nodeid;
++	generation = inode->i_generation;
++
++	fh[0] = (u32)(nodeid >> 32);
++	fh[1] = (u32)(nodeid & 0xffffffff);
++	fh[2] = generation;
++
++	if (encode_parent) {
++		struct inode *parent;
++
++		spin_lock(&dentry->d_lock);
++		parent = dentry->d_parent->d_inode;
++		nodeid = get_fuse_inode(parent)->nodeid;
++		generation = parent->i_generation;
++		spin_unlock(&dentry->d_lock);
++
++		fh[3] = (u32)(nodeid >> 32);
++		fh[4] = (u32)(nodeid & 0xffffffff);
++		fh[5] = generation;
++	}
++
++	*max_len = len;
++	return encode_parent ? 0x82 : 0x81;
++}
++
++static struct dentry *fuse_fh_to_dentry(struct super_block *sb,
++		struct fid *fid, int fh_len, int fh_type)
++{
++	struct fuse_inode_handle handle;
++
++	if ((fh_type != 0x81 && fh_type != 0x82) || fh_len < 3)
++		return NULL;
++
++	handle.nodeid = (u64) fid->raw[0] << 32;
++	handle.nodeid |= (u64) fid->raw[1];
++	handle.generation = fid->raw[2];
++	return fuse_get_dentry(sb, &handle);
++}
++
++static struct dentry *fuse_fh_to_parent(struct super_block *sb,
++		struct fid *fid, int fh_len, int fh_type)
++{
++	struct fuse_inode_handle parent;
++
++	if (fh_type != 0x82 || fh_len < 6)
++		return NULL;
++
++	parent.nodeid = (u64) fid->raw[3] << 32;
++	parent.nodeid |= (u64) fid->raw[4];
++	parent.generation = fid->raw[5];
++	return fuse_get_dentry(sb, &parent);
++}
++
++
++static const struct export_operations fuse_export_operations = {
++	.fh_to_dentry	= fuse_fh_to_dentry,
++	.fh_to_parent	= fuse_fh_to_parent,
++	.encode_fh	= fuse_encode_fh,
++};
++
+ static const struct super_operations fuse_super_operations = {
+ 	.alloc_inode    = fuse_alloc_inode,
+ 	.destroy_inode  = fuse_destroy_inode,
+@@ -652,6 +766,7 @@ static int fuse_fill_super(struct super_
+ 	sb->s_magic = FUSE_SUPER_MAGIC;
+ 	sb->s_op = &fuse_super_operations;
+ 	sb->s_maxbytes = MAX_LFS_FILESIZE;
++	sb->s_export_op = &fuse_export_operations;
+ 
+ 	file = fget(d.fd);
+ 	if (!file)
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from mszeredi@suse.cz are
 
 origin.patch
 linux-next.patch
-migrate_timers-add-comment-use-spinlock_irq.patch
-tracehook-add-linux-tracehookh.patch
-tracehook-exec.patch
-tracehook-unexport-ptrace_notify.patch
-tracehook-exit.patch
-tracehook-clone.patch
-tracehook-vfork-done.patch
-tracehook-release_task.patch
-tracehook-tracehook_tracer_task.patch
-tracehook-tracehook_expect_breakpoints.patch
-tracehook-tracehook_signal_handler.patch
-tracehook-tracehook_consider_ignored_signal.patch
-tracehook-tracehook_consider_fatal_signal.patch
-tracehook-syscall.patch
-tracehook-get_signal_to_deliver.patch
-tracehook-job-control.patch
-tracehook-death.patch
-tracehook-force-signal_pending.patch
-tracehook-tif_notify_resume.patch
-tracehook-asm-syscallh.patch
-tracehook-config_have_arch_tracehook.patch
-tracehook-wait_task_inactive.patch
-task_current_syscall.patch
-proc-pid-syscall.patch
+git-unprivileged-mounts.patch
 
