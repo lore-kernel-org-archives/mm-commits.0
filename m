@@ -1,168 +1,150 @@
 From: akpm@linux-foundation.org
-Subject: - cgroups-misc-cleanups-to-write_string-patchset.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 15:58:15 -0700
-Message-ID: <200807252258.m6PMwF4M003272@imap1.linux-foundation.org>
+Subject: - coredump-construct-the-list-of-coredumping-threads-at-startup-time.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 16:00:00 -0700
+Message-ID: <200807252300.m6PN00eG003447@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47062 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48338 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755426AbYGYXHQ (ORCPT
+	by vger.kernel.org with ESMTP id S1755088AbYGYXGv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:07:16 -0400
+	Fri, 25 Jul 2008 19:06:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: menage@google.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, pj@sgi.com, serue@us.ibm.com, xemul@openvz.org, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cgroups: misc cleanups to write_string patchset
+     coredump: construct the list of coredumping threads at startup time
 has been removed from the -mm tree.  Its filename was
-     cgroups-misc-cleanups-to-write_string-patchset.patch
+     coredump-construct-the-list-of-coredumping-threads-at-startup-time.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: misc cleanups to write_string patchset
-From: Paul Menage <menage@google.com>
+Subject: coredump: construct the list of coredumping threads at startup time
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-This patch contains cleanups suggested by reviewers for the recent
-write_string() patchset:
+binfmt->core_dump() has to iterate over the all threads in system in order
+to find the coredumping threads and construct the list using the
+GFP_ATOMIC allocations.
 
-- pair cgroup_lock_live_group() with cgroup_unlock() in cgroup.c for
-  clarity, rather than directly unlocking cgroup_mutex.
+With this patch each thread allocates the list node on exit_mm()'s stack and
+adds itself to the list.
 
-- make the return type of cgroup_lock_live_group() a bool
+This allows us to do further changes:
 
-- use a #define'd constant for the local buffer size in read/write functions
+	- simplify ->core_dump()
 
-Signed-off-by: Paul Menage <menage@google.com>
-Cc: Paul Jackson <pj@sgi.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Acked-by: Serge Hallyn <serue@us.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+	- change exit_mm() to clear ->mm first, then wait for ->core_done.
+	  this makes the coredumping process visible to oom_kill
+
+	- kill mm->core_done
+
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Acked-by: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cgroup.h |    4 ++--
- kernel/cgroup.c        |   21 ++++++++++++---------
- 2 files changed, 14 insertions(+), 11 deletions(-)
+ fs/exec.c                |    2 ++
+ include/linux/mm_types.h |    6 ++++++
+ kernel/exit.c            |   15 ++++++++++++---
+ 3 files changed, 20 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/cgroup.h~cgroups-misc-cleanups-to-write_string-patchset include/linux/cgroup.h
---- a/include/linux/cgroup.h~cgroups-misc-cleanups-to-write_string-patchset
-+++ a/include/linux/cgroup.h
-@@ -21,11 +21,13 @@
- struct cgroupfs_root;
- struct cgroup_subsys;
- struct inode;
-+struct cgroup;
+diff -puN fs/exec.c~coredump-construct-the-list-of-coredumping-threads-at-startup-time fs/exec.c
+--- a/fs/exec.c~coredump-construct-the-list-of-coredumping-threads-at-startup-time
++++ a/fs/exec.c
+@@ -1604,6 +1604,8 @@ static int coredump_wait(int exit_code, 
  
- extern int cgroup_init_early(void);
- extern int cgroup_init(void);
- extern void cgroup_init_smp(void);
- extern void cgroup_lock(void);
-+extern bool cgroup_lock_live_group(struct cgroup *cgrp);
- extern void cgroup_unlock(void);
- extern void cgroup_fork(struct task_struct *p);
- extern void cgroup_fork_callbacks(struct task_struct *p);
-@@ -295,8 +297,6 @@ int cgroup_add_files(struct cgroup *cgrp
+ 	init_completion(&mm->core_done);
+ 	init_completion(&core_state->startup);
++	core_state->dumper.task = tsk;
++	core_state->dumper.next = NULL;
+ 	core_waiters = zap_threads(tsk, mm, core_state, exit_code);
+ 	up_write(&mm->mmap_sem);
  
- int cgroup_is_removed(const struct cgroup *cgrp);
+diff -puN include/linux/mm_types.h~coredump-construct-the-list-of-coredumping-threads-at-startup-time include/linux/mm_types.h
+--- a/include/linux/mm_types.h~coredump-construct-the-list-of-coredumping-threads-at-startup-time
++++ a/include/linux/mm_types.h
+@@ -159,8 +159,14 @@ struct vm_area_struct {
+ #endif
+ };
  
--int cgroup_lock_live_group(struct cgroup *cgrp);
--
- int cgroup_path(const struct cgroup *cgrp, char *buf, int buflen);
- 
- int cgroup_task_count(const struct cgroup *cgrp);
-diff -puN kernel/cgroup.c~cgroups-misc-cleanups-to-write_string-patchset kernel/cgroup.c
---- a/kernel/cgroup.c~cgroups-misc-cleanups-to-write_string-patchset
-+++ a/kernel/cgroup.c
-@@ -1329,10 +1329,10 @@ enum cgroup_filetype {
-  * cgroup_lock_live_group - take cgroup_mutex and check that cgrp is alive.
-  * @cgrp: the cgroup to be checked for liveness
-  *
-- * Returns true (with lock held) on success, or false (with no lock
-- * held) on failure.
-+ * On success, returns true; the lock should be later released with
-+ * cgroup_unlock(). On failure returns false with no lock held.
-  */
--int cgroup_lock_live_group(struct cgroup *cgrp)
-+bool cgroup_lock_live_group(struct cgroup *cgrp)
- {
- 	mutex_lock(&cgroup_mutex);
- 	if (cgroup_is_removed(cgrp)) {
-@@ -1349,7 +1349,7 @@ static int cgroup_release_agent_write(st
- 	if (!cgroup_lock_live_group(cgrp))
- 		return -ENODEV;
- 	strcpy(cgrp->root->release_agent_path, buffer);
--	mutex_unlock(&cgroup_mutex);
-+	cgroup_unlock();
- 	return 0;
- }
- 
-@@ -1360,16 +1360,19 @@ static int cgroup_release_agent_show(str
- 		return -ENODEV;
- 	seq_puts(seq, cgrp->root->release_agent_path);
- 	seq_putc(seq, '\n');
--	mutex_unlock(&cgroup_mutex);
-+	cgroup_unlock();
- 	return 0;
- }
- 
-+/* A buffer size big enough for numbers or short strings */
-+#define CGROUP_LOCAL_BUFFER_SIZE 64
++struct core_thread {
++	struct task_struct *task;
++	struct core_thread *next;
++};
 +
- static ssize_t cgroup_write_X64(struct cgroup *cgrp, struct cftype *cft,
- 				struct file *file,
- 				const char __user *userbuf,
- 				size_t nbytes, loff_t *unused_ppos)
- {
--	char buffer[64];
-+	char buffer[CGROUP_LOCAL_BUFFER_SIZE];
- 	int retval = 0;
- 	char *end;
+ struct core_state {
+ 	atomic_t nr_threads;
++	struct core_thread dumper;
+ 	struct completion startup;
+ };
  
-@@ -1403,7 +1406,7 @@ static ssize_t cgroup_write_string(struc
- 				   const char __user *userbuf,
- 				   size_t nbytes, loff_t *unused_ppos)
+diff -puN kernel/exit.c~coredump-construct-the-list-of-coredumping-threads-at-startup-time kernel/exit.c
+--- a/kernel/exit.c~coredump-construct-the-list-of-coredumping-threads-at-startup-time
++++ a/kernel/exit.c
+@@ -664,6 +664,7 @@ assign_new_owner:
+ static void exit_mm(struct task_struct * tsk)
  {
--	char local_buffer[64];
-+	char local_buffer[CGROUP_LOCAL_BUFFER_SIZE];
- 	int retval = 0;
- 	size_t max_bytes = cft->max_write_len;
- 	char *buffer = local_buffer;
-@@ -1518,7 +1521,7 @@ static ssize_t cgroup_read_u64(struct cg
- 			       char __user *buf, size_t nbytes,
- 			       loff_t *ppos)
- {
--	char tmp[64];
-+	char tmp[CGROUP_LOCAL_BUFFER_SIZE];
- 	u64 val = cft->read_u64(cgrp, cft);
- 	int len = sprintf(tmp, "%llu\n", (unsigned long long) val);
+ 	struct mm_struct *mm = tsk->mm;
++	struct core_state *core_state;
  
-@@ -1530,7 +1533,7 @@ static ssize_t cgroup_read_s64(struct cg
- 			       char __user *buf, size_t nbytes,
- 			       loff_t *ppos)
- {
--	char tmp[64];
-+	char tmp[CGROUP_LOCAL_BUFFER_SIZE];
- 	s64 val = cft->read_s64(cgrp, cft);
- 	int len = sprintf(tmp, "%lld\n", (long long) val);
+ 	mm_release(tsk, mm);
+ 	if (!mm)
+@@ -676,11 +677,19 @@ static void exit_mm(struct task_struct *
+ 	 * group with ->mm != NULL.
+ 	 */
+ 	down_read(&mm->mmap_sem);
+-	if (mm->core_state) {
++	core_state = mm->core_state;
++	if (core_state) {
++		struct core_thread self;
+ 		up_read(&mm->mmap_sem);
  
+-		if (atomic_dec_and_test(&mm->core_state->nr_threads))
+-			complete(&mm->core_state->startup);
++		self.task = tsk;
++		self.next = xchg(&core_state->dumper.next, &self);
++		/*
++		 * Implies mb(), the result of xchg() must be visible
++		 * to core_state->dumper.
++		 */
++		if (atomic_dec_and_test(&core_state->nr_threads))
++			complete(&core_state->startup);
+ 
+ 		wait_for_completion(&mm->core_done);
+ 		down_read(&mm->mmap_sem);
 _
 
-Patches currently in -mm which might be from menage@google.com are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
 origin.patch
-memrlimit-add-memrlimit-controller-documentation.patch
-memrlimit-setup-the-memrlimit-controller.patch
-memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
-memrlimit-add-memrlimit-controller-accounting-and-control.patch
-memrlimit-improve-error-handling.patch
-memrlimit-improve-error-handling-update.patch
-memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
-make-cgroup_seqfile_release-static.patch
-add-a-refcount-check-in-dput.patch
+linux-next.patch
+migrate_timers-add-comment-use-spinlock_irq.patch
+tracehook-add-linux-tracehookh.patch
+tracehook-exec.patch
+tracehook-unexport-ptrace_notify.patch
+tracehook-exit.patch
+tracehook-clone.patch
+tracehook-vfork-done.patch
+tracehook-release_task.patch
+tracehook-tracehook_tracer_task.patch
+tracehook-tracehook_expect_breakpoints.patch
+tracehook-tracehook_signal_handler.patch
+tracehook-tracehook_consider_ignored_signal.patch
+tracehook-tracehook_consider_fatal_signal.patch
+tracehook-syscall.patch
+tracehook-get_signal_to_deliver.patch
+tracehook-job-control.patch
+tracehook-death.patch
+tracehook-force-signal_pending.patch
+tracehook-tif_notify_resume.patch
+tracehook-asm-syscallh.patch
+tracehook-config_have_arch_tracehook.patch
+tracehook-wait_task_inactive.patch
+task_current_syscall.patch
+proc-pid-syscall.patch
 
