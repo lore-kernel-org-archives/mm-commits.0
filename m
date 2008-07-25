@@ -1,104 +1,184 @@
 From: akpm@linux-foundation.org
-Subject: - kernel-signalc-change-vars-pid-and-tgid-types-to-pid_t.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 15:59:36 -0700
-Message-ID: <200807252259.m6PMxajx003403@imap1.linux-foundation.org>
+Subject: - coredump-elf_core_dump-use-core_state-dumper-list.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 16:00:02 -0700
+Message-ID: <200807252300.m6PN02ie003545@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51629 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41729 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752087AbYGYXAh (ORCPT
+	by vger.kernel.org with ESMTP id S1752573AbYGYXAv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:00:37 -0400
+	Fri, 25 Jul 2008 19:00:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gustavo@las.ic.unicamp.br, oleg@tv-sign.ru, roland@redhat.com, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kernel/signal.c: change vars pid and tgid types to pid_t
+     coredump: elf_core_dump: use core_state->dumper list
 has been removed from the -mm tree.  Its filename was
-     kernel-signalc-change-vars-pid-and-tgid-types-to-pid_t.patch
+     coredump-elf_core_dump-use-core_state-dumper-list.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel/signal.c: change vars pid and tgid types to pid_t
-From: Gustavo Fernando Padovan <gustavo@las.ic.unicamp.br>
+Subject: coredump: elf_core_dump: use core_state->dumper list
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Change the type of pid and tgid variables from int to the POSIX type
-pid_t.
+Kill the nasty rcu_read_lock() + do_each_thread() loop, use the list
+encoded in mm->core_state instead, s/GFP_ATOMIC/GFP_KERNEL/.
 
-Signed-off-by: Gustavo F. Padovan <gustavo@las.ic.unicamp.br>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Roland McGrath <roland@redhat.com>
+This patch allows futher cleanups in binfmt_elf.c, in particular we can
+kill the parallel info->threads list.
+
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Acked-by: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ fs/binfmt_elf.c |   77 +++++++++++++++++++---------------------------
+ 1 file changed, 32 insertions(+), 45 deletions(-)
 
-diff -puN kernel/signal.c~kernel-signalc-change-vars-pid-and-tgid-types-to-pid_t kernel/signal.c
---- a/kernel/signal.c~kernel-signalc-change-vars-pid-and-tgid-types-to-pid_t
-+++ a/kernel/signal.c
-@@ -1116,7 +1116,7 @@ EXPORT_SYMBOL_GPL(kill_pid_info_as_uid);
-  * is probably wrong.  Should make it like BSD or SYSV.
-  */
+diff -puN fs/binfmt_elf.c~coredump-elf_core_dump-use-core_state-dumper-list fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~coredump-elf_core_dump-use-core_state-dumper-list
++++ a/fs/binfmt_elf.c
+@@ -1478,7 +1478,7 @@ static int fill_note_info(struct elfhdr 
+ 	const struct user_regset_view *view = task_user_regset_view(dump_task);
+ 	struct elf_thread_core_info *t;
+ 	struct elf_prpsinfo *psinfo;
+-	struct task_struct *g, *p;
++	struct core_thread *ct;
+ 	unsigned int i;
  
--static int kill_something_info(int sig, struct siginfo *info, int pid)
-+static int kill_something_info(int sig, struct siginfo *info, pid_t pid)
- {
- 	int ret;
+ 	info->size = 0;
+@@ -1517,34 +1517,26 @@ static int fill_note_info(struct elfhdr 
+ 	/*
+ 	 * Allocate a structure for each thread.
+ 	 */
+-	rcu_read_lock();
+-	do_each_thread(g, p)
+-		if (p->mm == dump_task->mm) {
+-			if (p->flags & PF_KTHREAD)
+-				continue;
+-
+-			t = kzalloc(offsetof(struct elf_thread_core_info,
+-					     notes[info->thread_notes]),
+-				    GFP_ATOMIC);
+-			if (unlikely(!t)) {
+-				rcu_read_unlock();
+-				return 0;
+-			}
+-			t->task = p;
+-			if (p == dump_task || !info->thread) {
+-				t->next = info->thread;
+-				info->thread = t;
+-			} else {
+-				/*
+-				 * Make sure to keep the original task at
+-				 * the head of the list.
+-				 */
+-				t->next = info->thread->next;
+-				info->thread->next = t;
+-			}
++	for (ct = &dump_task->mm->core_state->dumper; ct; ct = ct->next) {
++		t = kzalloc(offsetof(struct elf_thread_core_info,
++				     notes[info->thread_notes]),
++			    GFP_KERNEL);
++		if (unlikely(!t))
++			return 0;
++
++		t->task = ct->task;
++		if (ct->task == dump_task || !info->thread) {
++			t->next = info->thread;
++			info->thread = t;
++		} else {
++			/*
++			 * Make sure to keep the original task at
++			 * the head of the list.
++			 */
++			t->next = info->thread->next;
++			info->thread->next = t;
+ 		}
+-	while_each_thread(g, p);
+-	rcu_read_unlock();
++	}
  
-@@ -2184,7 +2184,7 @@ sys_rt_sigtimedwait(const sigset_t __use
- }
+ 	/*
+ 	 * Now fill in each thread's information.
+@@ -1691,7 +1683,6 @@ static int fill_note_info(struct elfhdr 
+ {
+ #define	NUM_NOTES	6
+ 	struct list_head *t;
+-	struct task_struct *g, *p;
  
- asmlinkage long
--sys_kill(int pid, int sig)
-+sys_kill(pid_t pid, int sig)
- {
- 	struct siginfo info;
+ 	info->notes = NULL;
+ 	info->prstatus = NULL;
+@@ -1723,23 +1714,19 @@ static int fill_note_info(struct elfhdr 
  
-@@ -2197,7 +2197,7 @@ sys_kill(int pid, int sig)
- 	return kill_something_info(sig, &info, pid);
- }
- 
--static int do_tkill(int tgid, int pid, int sig)
-+static int do_tkill(pid_t tgid, pid_t pid, int sig)
- {
- 	int error;
- 	struct siginfo info;
-@@ -2243,7 +2243,7 @@ static int do_tkill(int tgid, int pid, i
-  *  exists but it's not belonging to the target process anymore. This
-  *  method solves the problem of threads exiting and PIDs getting reused.
-  */
--asmlinkage long sys_tgkill(int tgid, int pid, int sig)
-+asmlinkage long sys_tgkill(pid_t tgid, pid_t pid, int sig)
- {
- 	/* This is only valid for single tasks */
- 	if (pid <= 0 || tgid <= 0)
-@@ -2256,7 +2256,7 @@ asmlinkage long sys_tgkill(int tgid, int
-  *  Send a signal to only one task, even if it's a CLONE_THREAD task.
-  */
- asmlinkage long
--sys_tkill(int pid, int sig)
-+sys_tkill(pid_t pid, int sig)
- {
- 	/* This is only valid for single tasks */
- 	if (pid <= 0)
-@@ -2266,7 +2266,7 @@ sys_tkill(int pid, int sig)
- }
- 
- asmlinkage long
--sys_rt_sigqueueinfo(int pid, int sig, siginfo_t __user *uinfo)
-+sys_rt_sigqueueinfo(pid_t pid, int sig, siginfo_t __user *uinfo)
- {
- 	siginfo_t info;
+ 	info->thread_status_size = 0;
+ 	if (signr) {
++		struct core_thread *ct;
+ 		struct elf_thread_status *ets;
+-		rcu_read_lock();
+-		do_each_thread(g, p)
+-			if (current->mm == p->mm && current != p) {
+-				if (p->flags & PF_KTHREAD)
+-					continue;
+-
+-				ets = kzalloc(sizeof(*ets), GFP_ATOMIC);
+-				if (!ets) {
+-					rcu_read_unlock();
+-					return 0;
+-				}
+-				ets->thread = p;
+-				list_add(&ets->list, &info->thread_list);
+-			}
+-		while_each_thread(g, p);
+-		rcu_read_unlock();
++
++		for (ct = current->mm->core_state->dumper.next;
++						ct; ct = ct->next) {
++			ets = kzalloc(sizeof(*ets), GFP_KERNEL);
++			if (!ets)
++				return 0;
++
++			ets->thread = ct->task;
++			list_add(&ets->list, &info->thread_list);
++		}
++
+ 		list_for_each(t, &info->thread_list) {
+ 			int sz;
  
 _
 
-Patches currently in -mm which might be from gustavo@las.ic.unicamp.br are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
 origin.patch
+linux-next.patch
+migrate_timers-add-comment-use-spinlock_irq.patch
+tracehook-add-linux-tracehookh.patch
+tracehook-exec.patch
+tracehook-unexport-ptrace_notify.patch
+tracehook-exit.patch
+tracehook-clone.patch
+tracehook-vfork-done.patch
+tracehook-release_task.patch
+tracehook-tracehook_tracer_task.patch
+tracehook-tracehook_expect_breakpoints.patch
+tracehook-tracehook_signal_handler.patch
+tracehook-tracehook_consider_ignored_signal.patch
+tracehook-tracehook_consider_fatal_signal.patch
+tracehook-syscall.patch
+tracehook-get_signal_to_deliver.patch
+tracehook-job-control.patch
+tracehook-death.patch
+tracehook-force-signal_pending.patch
+tracehook-tif_notify_resume.patch
+tracehook-asm-syscallh.patch
+tracehook-config_have_arch_tracehook.patch
+tracehook-wait_task_inactive.patch
+task_current_syscall.patch
+proc-pid-syscall.patch
 
