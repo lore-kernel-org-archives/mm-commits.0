@@ -1,109 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: - memcg-remove-refcnt-from-page_cgroup-fix-2.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 17:24:08 -0700
-Message-ID: <200807250024.m6P0O88S013986@imap1.linux-foundation.org>
+Subject: - memcg-helper-function-for-relcaim-from-shmem-memcg-shmem_getpage-release-page-sooner.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 17:25:22 -0700
+Message-ID: <200807250025.m6P0PM6e014009@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35754 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34521 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751500AbYGYAYj (ORCPT
+	by vger.kernel.org with ESMTP id S1751942AbYGYAZp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 20:24:39 -0400
+	Thu, 24 Jul 2008 20:25:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, balbir@in.ibm.com, ebiederm@xmission.com, hugh@veritas.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, rientjes@google.com, ser
+To: hugh@veritas.com, balbir@in.ibm.com, ebiederm@xmission.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, rientjes@google.com, xemul@openvz.org, yamamoto@val
 
 
 The patch titled
-     memcg-remove-refcnt-from-page_cgroup-fix-2
+     From: Hugh Dickins <hugh@veritas.com>
 has been removed from the -mm tree.  Its filename was
-     memcg-remove-refcnt-from-page_cgroup-fix-2.patch
+     memcg-helper-function-for-relcaim-from-shmem-memcg-shmem_getpage-release-page-sooner.patch
 
-This patch was dropped because it was folded into memcg-remove-refcnt-from-page_cgroup.patch
+This patch was dropped because it was folded into memcg-helper-function-for-relcaim-from-shmem.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-remove-refcnt-from-page_cgroup-fix-2
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: From: Hugh Dickins <hugh@veritas.com>
 
-mm/shmem.c: In function 'shmem_getpage':
-mm/shmem.c:1369: warning: 'ret' may be used uninitialized in this function
 
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+No big deal, but since mem_cgroup_shrink_usage doesn't require a page to
+operate upon, page_cache_release the swappage before calling it, so it's
+not pinned across the reclaim.
+
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Paul Menage <menage@google.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
 Cc: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
-Cc: "Serge E. Hallyn" <serue@us.ibm.com>
+Cc: Paul Menage <menage@google.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/shmem.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN mm/shmem.c~memcg-remove-refcnt-from-page_cgroup-fix-2 mm/shmem.c
---- a/mm/shmem.c~memcg-remove-refcnt-from-page_cgroup-fix-2
+diff -puN mm/shmem.c~memcg-helper-function-for-relcaim-from-shmem-memcg-shmem_getpage-release-page-sooner mm/shmem.c
+--- a/mm/shmem.c~memcg-helper-function-for-relcaim-from-shmem-memcg-shmem_getpage-release-page-sooner
 +++ a/mm/shmem.c
-@@ -1396,7 +1396,8 @@ repeat:
- 				swap = *entry;
- 				shmem_swp_unmap(entry);
+@@ -1315,16 +1315,14 @@ repeat:
+ 			shmem_swp_unmap(entry);
+ 			spin_unlock(&info->lock);
+ 			unlock_page(swappage);
++			page_cache_release(swappage);
+ 			if (error == -ENOMEM) {
+ 				/* allow reclaim from this memory cgroup */
+ 				error = mem_cgroup_shrink_usage(current->mm,
+-					gfp & ~__GFP_HIGHMEM);
+-				if (error) {
+-					page_cache_release(swappage);
++								gfp);
++				if (error)
+ 					goto failed;
+-				}
  			}
--			if (error || swap.val)
-+			ret = error || swap.val;
-+			if (ret)
- 				mem_cgroup_uncharge_cache_page(filepage);
- 			else
- 				ret = add_to_page_cache_lru(filepage, mapping,
-@@ -1405,7 +1406,7 @@ repeat:
- 			 * At add_to_page_cache_lru() failure, uncharge will
- 			 * be done automatically.
- 			 */
--			if (error || swap.val || ret) {
-+			if (ret) {
- 				spin_unlock(&info->lock);
- 				page_cache_release(filepage);
- 				shmem_unacct_blocks(info->flags, 1);
+-			page_cache_release(swappage);
+ 			goto repeat;
+ 		}
+ 	} else if (sgp == SGP_READ && !filepage) {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hugh@veritas.com are
 
 origin.patch
-split-the-typecheck-macros-out-of-include-linux-kernelh.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
-remove-apparently-unused-fd1772h-header-file.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm.patch
-build-kernel-profileo-only-when-requested-cleanups.patch
-seq_file-fix-bug-when-seq_read-reads-nothing.patch
 exec-remove-some-includes.patch
-inflate-refactor-inflate-malloc-code.patch
-drivers-misc-hpiloc-needs-config_pci.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments.patch
-gpio-sysfs-interface-updated.patch
-gpio-add-bt8xxgpio-driver.patch
-jbd-fix-race-between-free-buffer-and-commit-trasanction.patch
-ext3-handle-corrupted-orphan-list-at-mount.patch
-ext3-handle-deleting-corrupted-indirect-blocks.patch
-jbd-dont-abort-if-flushing-file-data-failed.patch
-reiserfs-convert-j_flush_sem-to-mutex.patch
-reiserfs-convert-j_commit_lock-to-mutex.patch
-quota-move-function-macros-from-quotah-to-quotaopsh.patch
-cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup.patch
-devcgroup-code-cleanup.patch
+memcg-better-migration-handling.patch
 memcg-remove-refcnt-from-page_cgroup.patch
-memcg-remove-refcnt-from-page_cgroup-fix-2.patch
-memcg-limit-change-shrink-usage-checkpatch-fixes.patch
-coredump-format_corename-fix-the-core_uses_pid-logic-checkpatch-fixes.patch
-workqueues-make-get_online_cpus-useable-for-work-func-fix.patch
-ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
-ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
-fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
-block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
-getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
-edac-mpc85xx-fix-pci-ofdev-2nd-pass-checkpatch-fixes.patch
+memcg-helper-function-for-relcaim-from-shmem.patch
+memcg-helper-function-for-relcaim-from-shmem-memcg-shmem_getpage-release-page-sooner.patch
+memcg-helper-function-for-relcaim-from-shmem-memcg-mem_cgroup_shrink_usage-css_put.patch
+memcg-add-hints-for-branch.patch
+memcg-remove-a-redundant-check.patch
+memcg-clean-up-checking-of-the-disabled-flag-memcg-further-checking-of-disabled-flag.patch
+memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info-memrlimit-fix-mmap_sem-deadlock.patch
+memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info-memrlimit-fix-sleep-inside-sleeplock-in-mm_update_next_owner.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-memrlimit-improve-fork-and-error-handling.patch
+memrlimit-improve-error-handling.patch
+memrlimit-improve-error-handling-update.patch
+memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
+memrlimit-handle-attach_task-failure-add-can_attach-callback-update.patch
 
