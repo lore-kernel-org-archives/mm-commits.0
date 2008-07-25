@@ -1,167 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: - devcgroup-relax-white-list-protection-down-to-rcu.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 15:58:30 -0700
-Message-ID: <200807252258.m6PMwUfr003296@imap1.linux-foundation.org>
+Subject: - memcg-avoid-unnecessary-initialization.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 15:58:37 -0700
+Message-ID: <200807252258.m6PMwbEf003305@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59108 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45369 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752785AbYGYW7X (ORCPT
+	by vger.kernel.org with ESMTP id S1752985AbYGYW7O (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 18:59:23 -0400
+	Fri, 25 Jul 2008 18:59:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xemul@openvz.org, balbir@in.ibm.com, menage@google.com, paulmck@us.ibm.com, serue@us.ibm.com, mm-commits@vger.kernel.org
+To: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com, lizf@cn.fujitsu.com, xemul@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     devcgroup: relax white-list protection down to RCU
+     memcg: avoid unnecessary initialization
 has been removed from the -mm tree.  Its filename was
-     devcgroup-relax-white-list-protection-down-to-rcu.patch
+     memcg-avoid-unnecessary-initialization.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: devcgroup: relax white-list protection down to RCU
-From: Pavel Emelyanov <xemul@openvz.org>
+Subject: memcg: avoid unnecessary initialization
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Currently this list is protected with a simple spinlock, even for reading
-from one.  This is OK, but can be better.
+* remove over-killing initialization (in fast path)
+* makeing the condition for PAGE_CGROUP_FLAG_ACTIVE be more obvious.
 
-Actually I want it to be better very much, since after replacing the
-OpenVZ device permissions engine with the cgroup-based one I noticed, that
-we set 12 default device permissions for each newly created container (for
-/dev/null, full, terminals, ect devices), and people sometimes have up to
-20 perms more, so traversing the ~30-40 elements list under a spinlock
-doesn't seem very good.
-
-Here's the RCU protection for white-list - dev_whitelist_item-s are added
-and removed under the devcg->lock, but are looked up in permissions
-checking under the rcu_read_lock.
-
-Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
-Acked-by: Serge Hallyn <serue@us.ibm.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Paul Menage <menage@google.com>
-Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
+Signed-off-by: KAMEAZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Reviewed-by: Li Zefan <lizf@cn.fujitsu.com>
+Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Acked-by: Pavel Emelyanov <xemul@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/device_cgroup.c |   35 ++++++++++++++++++++++-------------
- 1 file changed, 22 insertions(+), 13 deletions(-)
+ mm/memcontrol.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-diff -puN security/device_cgroup.c~devcgroup-relax-white-list-protection-down-to-rcu security/device_cgroup.c
---- a/security/device_cgroup.c~devcgroup-relax-white-list-protection-down-to-rcu
-+++ a/security/device_cgroup.c
-@@ -41,6 +41,7 @@ struct dev_whitelist_item {
- 	short type;
- 	short access;
- 	struct list_head list;
-+	struct rcu_head rcu;
- };
+diff -puN mm/memcontrol.c~memcg-avoid-unnecessary-initialization mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-avoid-unnecessary-initialization
++++ a/mm/memcontrol.c
+@@ -296,7 +296,7 @@ static void __mem_cgroup_remove_list(str
+ 		MEM_CGROUP_ZSTAT(mz, MEM_CGROUP_ZSTAT_INACTIVE) -= 1;
  
- struct dev_cgroup {
-@@ -133,11 +134,19 @@ static int dev_whitelist_add(struct dev_
- 	}
- 
- 	if (whcopy != NULL)
--		list_add_tail(&whcopy->list, &dev_cgroup->whitelist);
-+		list_add_tail_rcu(&whcopy->list, &dev_cgroup->whitelist);
- 	spin_unlock(&dev_cgroup->lock);
- 	return 0;
+ 	mem_cgroup_charge_statistics(pc->mem_cgroup, pc->flags, false);
+-	list_del_init(&pc->lru);
++	list_del(&pc->lru);
  }
  
-+static void whitelist_item_free(struct rcu_head *rcu)
-+{
-+	struct dev_whitelist_item *item;
-+
-+	item = container_of(rcu, struct dev_whitelist_item, rcu);
-+	kfree(item);
-+}
-+
- /*
-  * called under cgroup_lock()
-  * since the list is visible to other tasks, we need the spinlock also
-@@ -161,8 +170,8 @@ static void dev_whitelist_rm(struct dev_
- remove:
- 		walk->access &= ~wh->access;
- 		if (!walk->access) {
--			list_del(&walk->list);
--			kfree(walk);
-+			list_del_rcu(&walk->list);
-+			call_rcu(&walk->rcu, whitelist_item_free);
- 		}
+ static void __mem_cgroup_add_list(struct mem_cgroup_per_zone *mz,
+@@ -559,7 +559,7 @@ retry:
  	}
- 	spin_unlock(&dev_cgroup->lock);
-@@ -269,15 +278,15 @@ static int devcgroup_seq_read(struct cgr
- 	struct dev_whitelist_item *wh;
- 	char maj[MAJMINLEN], min[MAJMINLEN], acc[ACCLEN];
+ 	unlock_page_cgroup(page);
  
--	spin_lock(&devcgroup->lock);
--	list_for_each_entry(wh, &devcgroup->whitelist, list) {
-+	rcu_read_lock();
-+	list_for_each_entry_rcu(wh, &devcgroup->whitelist, list) {
- 		set_access(acc, wh->access);
- 		set_majmin(maj, wh->major);
- 		set_majmin(min, wh->minor);
- 		seq_printf(m, "%c %s:%s %s\n", type_to_char(wh->type),
- 			   maj, min, acc);
- 	}
--	spin_unlock(&devcgroup->lock);
-+	rcu_read_unlock();
+-	pc = kmem_cache_zalloc(page_cgroup_cache, gfp_mask);
++	pc = kmem_cache_alloc(page_cgroup_cache, gfp_mask);
+ 	if (pc == NULL)
+ 		goto err;
  
- 	return 0;
- }
-@@ -510,8 +519,8 @@ int devcgroup_inode_permission(struct in
- 	if (!dev_cgroup)
- 		return 0;
+@@ -606,9 +606,14 @@ retry:
+ 	pc->ref_cnt = 1;
+ 	pc->mem_cgroup = mem;
+ 	pc->page = page;
+-	pc->flags = PAGE_CGROUP_FLAG_ACTIVE;
++	/*
++	 * If a page is accounted as a page cache, insert to inactive list.
++	 * If anon, insert to active list.
++	 */
+ 	if (ctype == MEM_CGROUP_CHARGE_TYPE_CACHE)
+ 		pc->flags = PAGE_CGROUP_FLAG_CACHE;
++	else
++		pc->flags = PAGE_CGROUP_FLAG_ACTIVE;
  
--	spin_lock(&dev_cgroup->lock);
--	list_for_each_entry(wh, &dev_cgroup->whitelist, list) {
-+	rcu_read_lock();
-+	list_for_each_entry_rcu(wh, &dev_cgroup->whitelist, list) {
- 		if (wh->type & DEV_ALL)
- 			goto acc_check;
- 		if ((wh->type & DEV_BLOCK) && !S_ISBLK(inode->i_mode))
-@@ -527,10 +536,10 @@ acc_check:
- 			continue;
- 		if ((mask & MAY_READ) && !(wh->access & ACC_READ))
- 			continue;
--		spin_unlock(&dev_cgroup->lock);
-+		rcu_read_unlock();
- 		return 0;
- 	}
--	spin_unlock(&dev_cgroup->lock);
-+	rcu_read_unlock();
- 
- 	return -EPERM;
- }
-@@ -545,7 +554,7 @@ int devcgroup_inode_mknod(int mode, dev_
- 	if (!dev_cgroup)
- 		return 0;
- 
--	spin_lock(&dev_cgroup->lock);
-+	rcu_read_lock();
- 	list_for_each_entry(wh, &dev_cgroup->whitelist, list) {
- 		if (wh->type & DEV_ALL)
- 			goto acc_check;
-@@ -560,9 +569,9 @@ int devcgroup_inode_mknod(int mode, dev_
- acc_check:
- 		if (!(wh->access & ACC_MKNOD))
- 			continue;
--		spin_unlock(&dev_cgroup->lock);
-+		rcu_read_unlock();
- 		return 0;
- 	}
--	spin_unlock(&dev_cgroup->lock);
-+	rcu_read_unlock();
- 	return -EPERM;
- }
+ 	lock_page_cgroup(page);
+ 	if (page_get_page_cgroup(page)) {
 _
 
-Patches currently in -mm which might be from xemul@openvz.org are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
 origin.patch
 memrlimit-add-memrlimit-controller-documentation.patch
@@ -171,5 +89,13 @@ memrlimit-add-memrlimit-controller-accounting-and-control.patch
 memrlimit-improve-error-handling.patch
 memrlimit-improve-error-handling-update.patch
 memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
-reiser4.patch
+mm-speculative-page-references-fix-migration_entry_wait-for-speculative-page-cache.patch
+define-page_file_cache-function-fix-splitlru-shmem_getpage-setpageswapbacked-sooner.patch
+vmscan-split-lru-lists-into-anon-file-sets-splitlru-memcg-swapbacked-pages-active.patch
+vmscan-second-chance-replacement-for-anonymous-pages-fix.patch
+vmscan-second-chance-replacement-for-anonymous-pages-memcg-lru-scan-fix.patch
+unevictable-lru-infrastructure-putback_lru_page-unevictable-page-handling-rework.patch
+mlock-mlocked-pages-are-unevictable-fix-truncate-race-and-sevaral-comments.patch
+fix-double-unlock_page-in-2626-rc5-mm3-kernel-bug-at-mm-filemapc-575.patch
+restore-patch-failure-of-vmstat-unevictable-and-mlocked-pages-vm-eventspatch.patch
 
