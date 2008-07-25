@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - __exit_signal-dont-take-rcu-lock.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 15:59:25 -0700
-Message-ID: <200807252259.m6PMxPGv003388@imap1.linux-foundation.org>
+Subject: - coredump-zap_threads-must-skip-kernel-threads.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 15:59:50 -0700
+Message-ID: <200807252259.m6PMxogr003423@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35550 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41276 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754760AbYGYXGr (ORCPT
+	by vger.kernel.org with ESMTP id S1754537AbYGYXGr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 25 Jul 2008 19:06:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,48 +15,50 @@ To: oleg@tv-sign.ru, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     __exit_signal: don't take rcu lock
+     coredump: zap_threads() must skip kernel threads
 has been removed from the -mm tree.  Its filename was
-     __exit_signal-dont-take-rcu-lock.patch
+     coredump-zap_threads-must-skip-kernel-threads.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: __exit_signal: don't take rcu lock
+Subject: coredump: zap_threads() must skip kernel threads
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-There is no reason for rcu_read_lock() in __exit_signal().  tsk->sighand
-can only be changed if tsk does exec, obviously this is not possible.
+The main loop in zap_threads() must skip kthreads which may use the same
+mm.  Otherwise we "kill" this thread erroneously (for example, it can not
+fork or exec after that), and the coredumping task stucks in the
+TASK_UNINTERRUPTIBLE state forever because of the wrong ->core_waiters
+count.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    2 --
- 1 file changed, 2 deletions(-)
+ fs/exec.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN kernel/exit.c~__exit_signal-dont-take-rcu-lock kernel/exit.c
---- a/kernel/exit.c~__exit_signal-dont-take-rcu-lock
-+++ a/kernel/exit.c
-@@ -85,7 +85,6 @@ static void __exit_signal(struct task_st
- 	BUG_ON(!sig);
- 	BUG_ON(!atomic_read(&sig->count));
- 
--	rcu_read_lock();
- 	sighand = rcu_dereference(tsk->sighand);
- 	spin_lock(&sighand->siglock);
- 
-@@ -136,7 +135,6 @@ static void __exit_signal(struct task_st
- 	tsk->signal = NULL;
- 	tsk->sighand = NULL;
- 	spin_unlock(&sighand->siglock);
--	rcu_read_unlock();
- 
- 	__cleanup_sighand(sighand);
- 	clear_tsk_thread_flag(tsk,TIF_SIGPENDING);
+diff -puN fs/exec.c~coredump-zap_threads-must-skip-kernel-threads fs/exec.c
+--- a/fs/exec.c~coredump-zap_threads-must-skip-kernel-threads
++++ a/fs/exec.c
+@@ -1574,11 +1574,12 @@ static inline int zap_threads(struct tas
+ 	for_each_process(g) {
+ 		if (g == tsk->group_leader)
+ 			continue;
+-
++		if (g->flags & PF_KTHREAD)
++			continue;
+ 		p = g;
+ 		do {
+ 			if (p->mm) {
+-				if (p->mm == mm) {
++				if (unlikely(p->mm == mm)) {
+ 					lock_task_sighand(p, &flags);
+ 					zap_process(p);
+ 					unlock_task_sighand(p, &flags);
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
