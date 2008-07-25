@@ -1,125 +1,215 @@
 From: akpm@linux-foundation.org
-Subject: - include-use-get-put_unaligned_-helpers.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 15:54:07 -0700
-Message-ID: <200807252254.m6PMs7Pb002785@imap1.linux-foundation.org>
+Subject: - split-the-typecheck-macros-out-of-include-linux-kernelh.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 15:54:01 -0700
+Message-ID: <200807252254.m6PMs11X002770@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33890 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41940 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752162AbYGYWyZ (ORCPT
+	by vger.kernel.org with ESMTP id S1750974AbYGYWyU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 18:54:25 -0400
+	Fri, 25 Jul 2008 18:54:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, linville@tuxdriver.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mingo@elte.hu, rostedt@goodmis.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     include: use get/put_unaligned_* helpers
+     split the typecheck macros out of include/linux/kernel.h
 has been removed from the -mm tree.  Its filename was
-     include-use-get-put_unaligned_-helpers.patch
+     split-the-typecheck-macros-out-of-include-linux-kernelh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: include: use get/put_unaligned_* helpers
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: split the typecheck macros out of include/linux/kernel.h
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: "John W. Linville" <linville@tuxdriver.com>
+Needed to fix up a recursive include snafu in
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/reiserfs_fs.h      |    4 ++--
- include/linux/smb_fs.h           |   19 +++++++------------
- include/net/ieee80211_radiotap.h |    2 +-
- 3 files changed, 10 insertions(+), 15 deletions(-)
+ include/linux/kernel.h    |   21 +--------------------
+ include/linux/typecheck.h |   24 ++++++++++++++++++++++++
+ 2 files changed, 25 insertions(+), 20 deletions(-)
 
-diff -puN include/linux/reiserfs_fs.h~include-use-get-put_unaligned_-helpers include/linux/reiserfs_fs.h
---- a/include/linux/reiserfs_fs.h~include-use-get-put_unaligned_-helpers
-+++ a/include/linux/reiserfs_fs.h
-@@ -526,8 +526,8 @@ struct item_head {
- ** p is the array of __u32, i is the index into the array, v is the value
- ** to store there.
- */
--#define get_block_num(p, i) le32_to_cpu(get_unaligned((p) + (i)))
--#define put_block_num(p, i, v) put_unaligned(cpu_to_le32(v), (p) + (i))
-+#define get_block_num(p, i) get_unaligned_le32((p) + (i))
-+#define put_block_num(p, i, v) put_unaligned_le32((v), (p) + (i))
+diff -puN include/linux/kernel.h~split-the-typecheck-macros-out-of-include-linux-kernelh include/linux/kernel.h
+--- a/include/linux/kernel.h~split-the-typecheck-macros-out-of-include-linux-kernelh
++++ a/include/linux/kernel.h
+@@ -14,6 +14,7 @@
+ #include <linux/compiler.h>
+ #include <linux/bitops.h>
+ #include <linux/log2.h>
++#include <linux/typecheck.h>
+ #include <asm/byteorder.h>
+ #include <asm/bug.h>
  
- //
- // in old version uniqueness field shows key type
-diff -puN include/linux/smb_fs.h~include-use-get-put_unaligned_-helpers include/linux/smb_fs.h
---- a/include/linux/smb_fs.h~include-use-get-put_unaligned_-helpers
-+++ a/include/linux/smb_fs.h
-@@ -43,18 +43,13 @@ static inline struct smb_inode_info *SMB
- }
+@@ -441,26 +442,6 @@ static inline char *pack_hex_byte(char *
+ 	const typeof( ((type *)0)->member ) *__mptr = (ptr);	\
+ 	(type *)( (char *)__mptr - offsetof(type,member) );})
  
- /* macro names are short for word, double-word, long value (?) */
--#define WVAL(buf,pos) \
--	(le16_to_cpu(get_unaligned((__le16 *)((u8 *)(buf) + (pos)))))
--#define DVAL(buf,pos) \
--	(le32_to_cpu(get_unaligned((__le32 *)((u8 *)(buf) + (pos)))))
--#define LVAL(buf,pos) \
--	(le64_to_cpu(get_unaligned((__le64 *)((u8 *)(buf) + (pos)))))
--#define WSET(buf,pos,val) \
--	put_unaligned(cpu_to_le16((u16)(val)), (__le16 *)((u8 *)(buf) + (pos)))
--#define DSET(buf,pos,val) \
--	put_unaligned(cpu_to_le32((u32)(val)), (__le32 *)((u8 *)(buf) + (pos)))
--#define LSET(buf,pos,val) \
--	put_unaligned(cpu_to_le64((u64)(val)), (__le64 *)((u8 *)(buf) + (pos)))
-+#define WVAL(buf, pos) (get_unaligned_le16((u8 *)(buf) + (pos)))
-+#define DVAL(buf, pos) (get_unaligned_le32((u8 *)(buf) + (pos)))
-+#define LVAL(buf, pos) (get_unaligned_le64((u8 *)(buf) + (pos)))
+-/*
+- * Check at compile time that something is of a particular type.
+- * Always evaluates to 1 so you may use it easily in comparisons.
+- */
+-#define typecheck(type,x) \
+-({	type __dummy; \
+-	typeof(x) __dummy2; \
+-	(void)(&__dummy == &__dummy2); \
+-	1; \
+-})
+-
+-/*
+- * Check at compile time that 'function' is a certain type, or is a pointer
+- * to that type (needs to use typedef for the function type.)
+- */
+-#define typecheck_fn(type,function) \
+-({	typeof(type) __tmp = function; \
+-	(void)__tmp; \
+-})
+-
+ struct sysinfo;
+ extern int do_sysinfo(struct sysinfo *info);
+ 
+diff -puN /dev/null include/linux/typecheck.h
+--- /dev/null
++++ a/include/linux/typecheck.h
+@@ -0,0 +1,24 @@
++#ifndef TYPECHECK_H_INCLUDED
++#define TYPECHECK_H_INCLUDED
 +
-+#define WSET(buf, pos, val) put_unaligned_le16((val), (u8 *)(buf) + (pos))
-+#define DSET(buf, pos, val) put_unaligned_le32((val), (u8 *)(buf) + (pos))
-+#define LSET(buf, pos, val) put_unaligned_le64((val), (u8 *)(buf) + (pos))
- 
- /* where to find the base of the SMB packet proper */
- #define smb_base(buf) ((u8 *)(((u8 *)(buf))+4))
-diff -puN include/net/ieee80211_radiotap.h~include-use-get-put_unaligned_-helpers include/net/ieee80211_radiotap.h
---- a/include/net/ieee80211_radiotap.h~include-use-get-put_unaligned_-helpers
-+++ a/include/net/ieee80211_radiotap.h
-@@ -262,7 +262,7 @@ static inline int ieee80211_get_radiotap
- 	struct ieee80211_radiotap_header *hdr =
- 		(struct ieee80211_radiotap_header *)data;
- 
--	return le16_to_cpu(get_unaligned(&hdr->it_len));
-+	return get_unaligned_le16(&hdr->it_len);
- }
- 
- #endif				/* IEEE80211_RADIOTAP_H */
++/*
++ * Check at compile time that something is of a particular type.
++ * Always evaluates to 1 so you may use it easily in comparisons.
++ */
++#define typecheck(type,x) \
++({	type __dummy; \
++	typeof(x) __dummy2; \
++	(void)(&__dummy == &__dummy2); \
++	1; \
++})
++
++/*
++ * Check at compile time that 'function' is a certain type, or is a pointer
++ * to that type (needs to use typedef for the function type.)
++ */
++#define typecheck_fn(type,function) \
++({	typeof(type) __tmp = function; \
++	(void)__tmp; \
++})
++
++#endif		/* TYPECHECK_H_INCLUDED */
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+seq_file-fix-bug-when-seq_read-reads-nothing.patch
+uninline-arch_pick_mmap_layout.patch
 linux-next.patch
-cifs-remove-global_extern-macro.patch
-input-ads7846c-sparse-lock-annotation.patch
-mtd-diskonchipc-fix-sparse-endian-warnings.patch
-scsi-replace-remaining-__function__-occurrences.patch
-fusion-replace-remaining-__function__-occurrences.patch
-scsi-replace-__inline-with-inline.patch
-scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
-scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
+linux-next-fixups.patch
+linux-next-rejects.patch
+next-remove-localversion.patch
+drivers-mtd-nand-nandsimc-needs-div64h.patch
+pci-make-pci_register_driver-a-macro.patch
+drivers-mfd-tc6393xbc-doesnt-compile-on-i386.patch
+x86-pci-replace-dbg-with-pr_debug-fix.patch
+x86-pci-replace-dbg-with-pr_debug-fix-2.patch
+include-asm-generic-pgtable-nopmdh-macros-are-noxious-reason-435.patch
+arch-x86-pci-i386c-fix-printk-warnings.patch
+drm-fix-sparc64-build.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+git-jg-misc.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+bridge-send-correct-mtu-value-in-pmtu-checkpatch-fixes.patch
+sundance-set-carrier-status-on-link-change-events.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
 scsi-gdthc-use-unaligned-access-helpers-checkpatch-fixes.patch
-xfs-use-get_unaligned_-helpers.patch
-xtensa-replace-remaining-__function__-occurences.patch
-olpc-olpc_batteryc-sparse-endian-annotations.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-isdn-use-the-common-ascii-hex-helpers.patch
-net-use-the-common-ascii-hex-helpers.patch
-cris-use-the-common-ascii-hex-helpers.patch
-frv-use-the-common-ascii-hex-helpers.patch
-ppc-use-the-common-ascii-hex-helpers.patch
+git-unionfs.patch
+git-logfs-git-rejects.patch
+git-logfs-fixup.patch
+drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
+drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
+drivers-net-wireless-iwlwifi-iwl-ledc-printk-fix.patch
+git-xtensa.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+ftrace-disable-function-tracing-bringing-up-new-cpu-fix.patch
+mmu-notifiers-add-mm_take_all_locks-operation.patch
+mmu-notifier-core.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+eink_apollofb-new-driver-for-apollo-eink-controller-cleanup.patch
+eink_apollofb-new-driver-for-apollo-eink-controller-fix.patch
+eink_apollofb-new-driver-for-apollo-eink-controller-fix-fix-2.patch
+getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-s2io.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sdhci-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-infiniband.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-more-sparc.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-ibmvscsi.patch
+x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary-checkpatch-fixes.patch
+tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
+memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
+memstick-use-fully-asynchronous-request-processing-fix.patch
+full-conversion-to-early_initcall-interface-remove-old-interface-cleanup.patch
+full-conversion-to-early_initcall-interface-remove-old-interface-fix.patch
 ppc-use-the-common-ascii-hex-helpers-fix.patch
-mn10300-use-the-common-ascii-hex-helpers.patch
-byteorder-add-a-new-include-linux-swabh-to-define-byteswapping-functions.patch
-byteorder-add-include-linux-byteorderh-to-define-endian-helpers.patch
-byteorder-add-include-linux-byteorderh-to-define-endian-helpers-update.patch
+gru-driver-v3-hardware-data-structures-fix.patch
+gru-driver-v3-hardware-data-structures-fix-fix.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+mm-introduce-get_user_pages_fast-fix.patch
+mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-fix.patch
+x86-lockless-get_user_pages_fast-fix-2.patch
+x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
+x86-lockless-get_user_pages_fast-fix-warning.patch
+mm-speculative-page-references-fix-add_to_page_cache-fix.patch
+vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
+define-page_file_cache-function-fix.patch
+vmscan-split-lru-lists-into-anon-file-sets-units-fix.patch
+unevictable-lru-infrastructure-fix.patch
+unevictable-lru-page-statistics-units-fix.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-3.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
+introduce-__get_user_pages-fix.patch
+vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-fix-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
+slb-drop-kmem-cache-argument-from-constructor-ubifs.patch
+video-console-sticonrec-make-code-static-checkpatch-fixes.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
