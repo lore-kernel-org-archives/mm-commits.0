@@ -1,126 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: - gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 17:13:53 -0700
-Message-ID: <200807250013.m6P0DrbR013521@imap1.linux-foundation.org>
+Subject: - gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix-fix.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 17:13:59 -0700
+Message-ID: <200807250013.m6P0DxaX013529@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36127 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56904 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752487AbYGYAOp (ORCPT
+	by vger.kernel.org with ESMTP id S1752491AbYGYAOr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 20:14:45 -0400
+	Thu, 24 Jul 2008 20:14:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david-b@pacbell.net, dbrownell@users.sourceforge.net, mb@bu3sch.de, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dbrownell@users.sourceforge.net, greg@kroah.com, mb@bu3sch.de, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gpio: linux-next fixes for sysfs support
+     gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix-fix
 has been removed from the -mm tree.  Its filename was
-     gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support.patch
+     gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix-fix.patch
 
 This patch was dropped because it was folded into gpio-sysfs-interface-updated.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpio: linux-next fixes for sysfs support
-From: David Brownell <david-b@pacbell.net>
+Subject: gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Cope with some backwards-incompatible driver model API changes
-now in the linux-next tree:
-
- - device_create() is going away, even for drivers using it safely,
-   in favor of device_create_drvdata().
- - class->devices is gone, but testing class->p serves the same
-   purpose (non-null when class is usable with driver model calls).
- - class_find_device() needs a new argument #2 (NULL)
-
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Greg KH <greg@kroah.com>
 Cc: Michael Buesch <mb@bu3sch.de>
 Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/gpiolib.c |   16 +++++++---------
- 1 file changed, 7 insertions(+), 9 deletions(-)
+ drivers/gpio/gpiolib.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/gpio/gpiolib.c~gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support drivers/gpio/gpiolib.c
---- a/drivers/gpio/gpiolib.c~gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support
+diff -puN drivers/gpio/gpiolib.c~gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix-fix drivers/gpio/gpiolib.c
+--- a/drivers/gpio/gpiolib.c~gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix-fix
 +++ a/drivers/gpio/gpiolib.c
-@@ -429,7 +429,7 @@ int gpio_export(unsigned gpio, bool dire
- 	int			status = -EINVAL;
- 
- 	/* can't export until sysfs is available ... */
--	if (!gpio_class.devices.next) {
-+	if (!gpio_class.p) {
- 		pr_debug("%s: called too early!\n", __func__);
- 		return -ENOENT;
- 	}
-@@ -453,10 +453,9 @@ int gpio_export(unsigned gpio, bool dire
+@@ -453,7 +453,7 @@ int gpio_export(unsigned gpio, bool dire
  	if (status == 0) {
  		struct device	*dev;
  
--		dev = device_create(&gpio_class, desc->chip->dev, 0,
--				"gpio%d", gpio);
-+		dev = device_create_drvdata(&gpio_class, desc->chip->dev, 0,
-+				desc, "gpio%d", gpio);
+-		dev = device_create(&gpio_class, desc->chip->dev, NULL, desc,
++		dev = device_create(&gpio_class, desc->chip->dev, 0, desc,
+ 					"gpio%d", gpio);
  		if (dev) {
--			dev_set_drvdata(dev, desc);
  			if (direction_may_change)
- 				status = sysfs_create_group(&dev->kobj,
- 						&gpio_attr_group);
-@@ -506,7 +505,7 @@ void gpio_unexport(unsigned gpio)
- 	if (test_bit(FLAG_EXPORT, &desc->flags)) {
- 		struct device	*dev = NULL;
- 
--		dev = class_find_device(&gpio_class, desc, match_export);
-+		dev = class_find_device(&gpio_class, NULL, desc, match_export);
- 		if (dev) {
- 			clear_bit(FLAG_EXPORT, &desc->flags);
- 			put_device(dev);
-@@ -533,15 +532,14 @@ static int gpiochip_export(struct gpio_c
- 	 * export this later, in gpiolib_sysfs_init() ... here we just
- 	 * verify that _some_ field of gpio_class got initialized.
- 	 */
--	if (!gpio_class.devices.next)
-+	if (!gpio_class.p)
- 		return 0;
+@@ -537,7 +537,7 @@ static int gpiochip_export(struct gpio_c
  
  	/* use chip->base for the ID; it's already known to be unique */
  	mutex_lock(&sysfs_lock);
--	dev = device_create(&gpio_class, chip->dev, 0,
-+	dev = device_create_drvdata(&gpio_class, chip->dev, 0, chip,
- 			"gpiochip%d", chip->base);
+-	dev = device_create(&gpio_class, chip->dev, NULL, chip, "gpiochip%d",
++	dev = device_create(&gpio_class, chip->dev, 0, chip, "gpiochip%d",
+ 				chip->base);
  	if (dev) {
--		dev_set_drvdata(dev, chip);
  		status = sysfs_create_group(&dev->kobj,
- 				&gpiochip_attr_group);
- 	} else
-@@ -572,7 +570,7 @@ static void gpiochip_unexport(struct gpi
- 	struct device		*dev;
- 
- 	mutex_lock(&sysfs_lock);
--	dev = class_find_device(&gpio_class, chip, match_export);
-+	dev = class_find_device(&gpio_class, NULL, chip, match_export);
- 	if (dev) {
- 		put_device(dev);
- 		device_unregister(dev);
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-sm501-add-gpiolib-support.patch
-sm501-gpio-dynamic-registration-for-pci-devices.patch
-sm501-gpio-i2c-support.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+seq_file-fix-bug-when-seq_read-reads-nothing.patch
+exec-remove-some-includes.patch
+inflate-refactor-inflate-malloc-code.patch
+drivers-misc-hpiloc-needs-config_pci.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments.patch
 gpio-sysfs-interface-updated.patch
-gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support.patch
-gpio-mcp23s08-handles-multiple-chips-per-chipselect.patch
-gpio-add-bt8xxgpio-driver.patch
+gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix-fix.patch
+gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix-fix-fix.patch
 gpio-add-bt8xxgpio-driver-checkpatch-fixes.patch
 gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch
 gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch
-gpiolib-allow-user-selection.patch
-gpiolib-allow-user-selection-update.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
+ext3-handle-corrupted-orphan-list-at-mount-cleanup.patch
+ext3-handle-corrupted-orphan-list-at-mount-fix.patch
+ext3-handle-corrupted-orphan-list-at-mount-cleanup-fix.patch
+ext3-handle-deleting-corrupted-indirect-blocks-fix.patch
+jbd-dont-abort-if-flushing-file-data-failed-fix.patch
+reiserfs-convert-j_flush_sem-to-mutex.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
+cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-fix.patch
+cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-checkpatch-fixes.patch
+devcgroup-code-cleanup-fix.patch
+memcg-remove-refcnt-from-page_cgroup-fix-2.patch
+memcg-limit-change-shrink-usage-checkpatch-fixes.patch
+coredump-format_corename-fix-the-core_uses_pid-logic-checkpatch-fixes.patch
+workqueues-make-get_online_cpus-useable-for-work-func-fix.patch
+ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
+fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
+block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
+getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
+edac-mpc85xx-fix-pci-ofdev-2nd-pass-checkpatch-fixes.patch
 
