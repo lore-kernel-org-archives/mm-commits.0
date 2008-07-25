@@ -1,150 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: - jbd-dont-abort-if-flushing-file-data-failed.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 15:56:52 -0700
-Message-ID: <200807252256.m6PMuq0J003125@imap1.linux-foundation.org>
+Subject: - isofs-fix-minor-filesystem-corruption-take-3.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 15:56:56 -0700
+Message-ID: <200807252256.m6PMuuQ7003135@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32768 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46091 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755569AbYGYW51 (ORCPT
+	by vger.kernel.org with ESMTP id S1755651AbYGYW5h (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 18:57:27 -0400
+	Fri, 25 Jul 2008 18:57:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hidehiro.kawai.ez@hitachi.com, jack@suse.cz, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
+To: adam.greenblatt@gmail.com, penberg@cs.helsinki.fi, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     jbd: don't abort if flushing file data failed
+     isofs: fix minor filesystem corruption
 has been removed from the -mm tree.  Its filename was
-     jbd-dont-abort-if-flushing-file-data-failed.patch
+     isofs-fix-minor-filesystem-corruption-take-3.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: jbd: don't abort if flushing file data failed
-From: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
+Subject: isofs: fix minor filesystem corruption
+From: Adam Greenblatt <adam.greenblatt@gmail.com>
 
-In ordered mode, the current jbd aborts the journal if a file data buffer
-has an error.  But this behavior is unintended, and we found that it has
-been adopted accidentally.
+Some iso9660 images contain files with rockridge data that is either
+incorrect or incompletely parsed.  Prior to commit
+f2966632a134e865db3c819346a1dc7d96e05309 ("[PATCH] rock: handle directory
+overflows") (included with kernel 2.6.13) the kernel ignored the rockridge
+data for these files, while still allowing the files to be accessed under
+their non-rockridge names.  That commit inadvertently changed things so
+that files with invalid rockridge data could not be accessed at all.  (I
+ran across the problem when comparing some old CDs with hard disk copies I
+had made long ago under kernel 2.4: a few of the files on the hard disk
+copies were no longer visible on the CDs.)
 
-This patch undoes it and just calls printk() instead of aborting the
-journal.  Additionally, set AS_EIO into the address_space object of the
-failed buffer which is submitted by journal_do_submit_data() so that
-fsync() can get -EIO.
+This change reverts to the pre-2.6.13 behavior.
 
-Missing error checkings are also added to inform errors on file data
-buffers to the user.  The following buffers are targeted.
-
-  (a) the buffer which has already been written out by pdflush
-  (b) the buffer which has been unlocked before scanned in the
-      t_locked_list loop
-
-[akpm@linux-foundation.org: improve grammar in a printk]
-Signed-off-by: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
-Acked-by: Jan Kara <jack@suse.cz>
-Cc: <linux-ext4@vger.kernel.org>
+Signed-off-by: Adam Greenblatt <adam.greenblatt@gmail.com>
+Reviewed-by: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: <stable@kernel.org>		[2.6.25.x, 2.6.26.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jbd/commit.c |   35 ++++++++++++++++++++++++++++-------
- 1 file changed, 28 insertions(+), 7 deletions(-)
+ fs/isofs/rock.c |   22 ++++++++++++++++++++--
+ 1 file changed, 20 insertions(+), 2 deletions(-)
 
-diff -puN fs/jbd/commit.c~jbd-dont-abort-if-flushing-file-data-failed fs/jbd/commit.c
---- a/fs/jbd/commit.c~jbd-dont-abort-if-flushing-file-data-failed
-+++ a/fs/jbd/commit.c
-@@ -185,7 +185,7 @@ static void journal_do_submit_data(struc
- /*
-  *  Submit all the data buffers to disk
-  */
--static void journal_submit_data_buffers(journal_t *journal,
-+static int journal_submit_data_buffers(journal_t *journal,
- 				transaction_t *commit_transaction)
- {
- 	struct journal_head *jh;
-@@ -193,6 +193,7 @@ static void journal_submit_data_buffers(
- 	int locked;
- 	int bufs = 0;
- 	struct buffer_head **wbuf = journal->j_wbuf;
-+	int err = 0;
+diff -puN fs/isofs/rock.c~isofs-fix-minor-filesystem-corruption-take-3 fs/isofs/rock.c
+--- a/fs/isofs/rock.c~isofs-fix-minor-filesystem-corruption-take-3
++++ a/fs/isofs/rock.c
+@@ -209,6 +209,11 @@ repeat:
  
- 	/*
- 	 * Whenever we unlock the journal and sleep, things can get added
-@@ -266,6 +267,8 @@ write_out_data:
- 			put_bh(bh);
- 		} else {
- 			BUFFER_TRACE(bh, "writeout complete: unfile");
-+			if (unlikely(!buffer_uptodate(bh)))
-+				err = -EIO;
- 			__journal_unfile_buffer(jh);
- 			jbd_unlock_bh_state(bh);
- 			if (locked)
-@@ -284,6 +287,8 @@ write_out_data:
- 	}
- 	spin_unlock(&journal->j_list_lock);
- 	journal_do_submit_data(wbuf, bufs);
-+
-+	return err;
- }
+ 	while (rs.len > 2) { /* There may be one byte for padding somewhere */
+ 		rr = (struct rock_ridge *)rs.chr;
++		/*
++		 * Ignore rock ridge info if rr->len is out of range, but
++		 * don't return -EIO because that would make the file
++		 * invisible.
++		 */
+ 		if (rr->len < 3)
+ 			goto out;	/* Something got screwed up here */
+ 		sig = isonum_721(rs.chr);
+@@ -216,8 +221,12 @@ repeat:
+ 			goto eio;
+ 		rs.chr += rr->len;
+ 		rs.len -= rr->len;
++		/*
++		 * As above, just ignore the rock ridge info if rr->len
++		 * is bogus.
++		 */
+ 		if (rs.len < 0)
+-			goto eio;	/* corrupted isofs */
++			goto out;	/* Something got screwed up here */
  
- /*
-@@ -423,8 +428,7 @@ void journal_commit_transaction(journal_
- 	 * Now start flushing things to disk, in the order they appear
- 	 * on the transaction lists.  Data blocks go first.
- 	 */
--	err = 0;
--	journal_submit_data_buffers(journal, commit_transaction);
-+	err = journal_submit_data_buffers(journal, commit_transaction);
+ 		switch (sig) {
+ 		case SIG('R', 'R'):
+@@ -307,6 +316,11 @@ parse_rock_ridge_inode_internal(struct i
+ repeat:
+ 	while (rs.len > 2) { /* There may be one byte for padding somewhere */
+ 		rr = (struct rock_ridge *)rs.chr;
++		/*
++		 * Ignore rock ridge info if rr->len is out of range, but
++		 * don't return -EIO because that would make the file
++		 * invisible.
++		 */
+ 		if (rr->len < 3)
+ 			goto out;	/* Something got screwed up here */
+ 		sig = isonum_721(rs.chr);
+@@ -314,8 +328,12 @@ repeat:
+ 			goto eio;
+ 		rs.chr += rr->len;
+ 		rs.len -= rr->len;
++		/*
++		 * As above, just ignore the rock ridge info if rr->len
++		 * is bogus.
++		 */
+ 		if (rs.len < 0)
+-			goto eio;	/* corrupted isofs */
++			goto out;	/* Something got screwed up here */
  
- 	/*
- 	 * Wait for all previously submitted IO to complete.
-@@ -439,10 +443,21 @@ void journal_commit_transaction(journal_
- 		if (buffer_locked(bh)) {
- 			spin_unlock(&journal->j_list_lock);
- 			wait_on_buffer(bh);
--			if (unlikely(!buffer_uptodate(bh)))
--				err = -EIO;
- 			spin_lock(&journal->j_list_lock);
- 		}
-+		if (unlikely(!buffer_uptodate(bh))) {
-+			if (TestSetPageLocked(bh->b_page)) {
-+				spin_unlock(&journal->j_list_lock);
-+				lock_page(bh->b_page);
-+				spin_lock(&journal->j_list_lock);
-+			}
-+			if (bh->b_page->mapping)
-+				set_bit(AS_EIO, &bh->b_page->mapping->flags);
-+
-+			unlock_page(bh->b_page);
-+			SetPageError(bh->b_page);
-+			err = -EIO;
-+		}
- 		if (!inverted_lock(journal, bh)) {
- 			put_bh(bh);
- 			spin_lock(&journal->j_list_lock);
-@@ -461,8 +476,14 @@ void journal_commit_transaction(journal_
- 	}
- 	spin_unlock(&journal->j_list_lock);
- 
--	if (err)
--		journal_abort(journal, err);
-+	if (err) {
-+		char b[BDEVNAME_SIZE];
-+
-+		printk(KERN_WARNING
-+			"JBD: Detected IO errors while flushing file data "
-+			"on %s\n", bdevname(journal->j_fs_dev, b));
-+		err = 0;
-+	}
- 
- 	journal_write_revoke_records(journal, commit_transaction);
- 
+ 		switch (sig) {
+ #ifndef CONFIG_ZISOFS		/* No flag for SF or ZF */
 _
 
-Patches currently in -mm which might be from hidehiro.kawai.ez@hitachi.com are
+Patches currently in -mm which might be from adam.greenblatt@gmail.com are
 
 origin.patch
 
