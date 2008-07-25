@@ -1,381 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: - ipc-semc-convert-undo-structures-to-struct-list_head.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 16:00:52 -0700
-Message-ID: <200807252300.m6PN0qFF003630@imap1.linux-foundation.org>
+Subject: - workqueues-lockdep-annotations-for-flush_work.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 16:00:23 -0700
+Message-ID: <200807252300.m6PN0NM1003579@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43600 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35197 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755506AbYGYXHU (ORCPT
+	by vger.kernel.org with ESMTP id S1755123AbYGYXHT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:07:20 -0400
+	Fri, 25 Jul 2008 19:07:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: manfred@colorfullife.com, Nadia.Derbey@bull.net, peifferp@gmail.com, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, jarkao2@o2.pl, johannes@sipsolutions.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ipc/sem.c: convert undo structures to struct list_head
+     workqueues: lockdep annotations for flush_work()
 has been removed from the -mm tree.  Its filename was
-     ipc-semc-convert-undo-structures-to-struct-list_head.patch
+     workqueues-lockdep-annotations-for-flush_work.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ipc/sem.c: convert undo structures to struct list_head
-From: Manfred Spraul <manfred@colorfullife.com>
+Subject: workqueues: lockdep annotations for flush_work()
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-The undo structures contain two linked lists, the attached patch replaces
-them with generic struct list_head lists.
+Add lockdep annotations to flush_work() and update the comment.
 
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
-Cc: Nadia Derbey <Nadia.Derbey@bull.net>
-Cc: Pierre Peiffer <peifferp@gmail.com>
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Jarek Poplawski <jarkao2@o2.pl>
+Acked-by: Johannes Berg <johannes@sipsolutions.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sem.h |   12 +--
- ipc/sem.c           |  161 ++++++++++++++++++++++--------------------
- 2 files changed, 94 insertions(+), 79 deletions(-)
+ kernel/workqueue.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN include/linux/sem.h~ipc-semc-convert-undo-structures-to-struct-list_head include/linux/sem.h
---- a/include/linux/sem.h~ipc-semc-convert-undo-structures-to-struct-list_head
-+++ a/include/linux/sem.h
-@@ -95,7 +95,7 @@ struct sem_array {
- 	struct sem		*sem_base;	/* ptr to first semaphore in array */
- 	struct sem_queue	*sem_pending;	/* pending operations to be processed */
- 	struct sem_queue	**sem_pending_last; /* last pending operation */
--	struct sem_undo		*undo;		/* undo requests on this array */
-+	struct list_head	list_id;	/* undo requests on this array */
- 	unsigned long		sem_nsems;	/* no. of semaphores in array */
- };
- 
-@@ -118,8 +118,8 @@ struct sem_queue {
-  * when the process exits.
-  */
- struct sem_undo {
--	struct sem_undo *	proc_next;	/* next entry on this process */
--	struct sem_undo *	id_next;	/* next entry on this semaphore set */
-+	struct list_head	list_proc;	/* per-process list: all undos from one process */
-+	struct list_head	list_id;	/* per semaphore array list: all undos for one array */
- 	int			semid;		/* semaphore set identifier */
- 	short *			semadj;		/* array of adjustments, one per semaphore */
- };
-@@ -128,9 +128,9 @@ struct sem_undo {
-  * that may be shared among all a CLONE_SYSVSEM task group.
-  */ 
- struct sem_undo_list {
--	atomic_t	refcnt;
--	spinlock_t	lock;
--	struct sem_undo	*proc_list;
-+	atomic_t		refcnt;
-+	spinlock_t		lock;
-+	struct list_head	list_proc;
- };
- 
- struct sysv_sem {
-diff -puN ipc/sem.c~ipc-semc-convert-undo-structures-to-struct-list_head ipc/sem.c
---- a/ipc/sem.c~ipc-semc-convert-undo-structures-to-struct-list_head
-+++ a/ipc/sem.c
-@@ -274,7 +274,7 @@ static int newary(struct ipc_namespace *
- 	sma->sem_base = (struct sem *) &sma[1];
- 	/* sma->sem_pending = NULL; */
- 	sma->sem_pending_last = &sma->sem_pending;
--	/* sma->undo = NULL; */
-+	INIT_LIST_HEAD(&sma->list_id);
- 	sma->sem_nsems = nsems;
- 	sma->sem_ctime = get_seconds();
- 	sem_unlock(sma);
-@@ -536,7 +536,8 @@ static void freeary(struct ipc_namespace
- 	 * (They will be freed without any further action in exit_sem()
- 	 * or during the next semop.)
- 	 */
--	for (un = sma->undo; un; un = un->id_next)
-+	assert_spin_locked(&sma->sem_perm.lock);
-+	list_for_each_entry(un, &sma->list_id, list_id)
- 		un->semid = -1;
- 
- 	/* Wake up all pending processes and let them fail with EIDRM. */
-@@ -763,9 +764,12 @@ static int semctl_main(struct ipc_namesp
- 
- 		for (i = 0; i < nsems; i++)
- 			sma->sem_base[i].semval = sem_io[i];
--		for (un = sma->undo; un; un = un->id_next)
-+
-+		assert_spin_locked(&sma->sem_perm.lock);
-+		list_for_each_entry(un, &sma->list_id, list_id) {
- 			for (i = 0; i < nsems; i++)
- 				un->semadj[i] = 0;
-+		}
- 		sma->sem_ctime = get_seconds();
- 		/* maybe some queued-up processes were waiting for this */
- 		update_queue(sma);
-@@ -797,12 +801,15 @@ static int semctl_main(struct ipc_namesp
- 	{
- 		int val = arg.val;
- 		struct sem_undo *un;
-+
- 		err = -ERANGE;
- 		if (val > SEMVMX || val < 0)
- 			goto out_unlock;
- 
--		for (un = sma->undo; un; un = un->id_next)
-+		assert_spin_locked(&sma->sem_perm.lock);
-+		list_for_each_entry(un, &sma->list_id, list_id)
- 			un->semadj[semnum] = 0;
-+
- 		curr->semval = val;
- 		curr->sempid = task_tgid_vnr(current);
- 		sma->sem_ctime = get_seconds();
-@@ -952,6 +959,8 @@ static inline int get_undo_list(struct s
- 			return -ENOMEM;
- 		spin_lock_init(&undo_list->lock);
- 		atomic_set(&undo_list->refcnt, 1);
-+		INIT_LIST_HEAD(&undo_list->list_proc);
-+
- 		current->sysvsem.undo_list = undo_list;
- 	}
- 	*undo_listp = undo_list;
-@@ -960,25 +969,30 @@ static inline int get_undo_list(struct s
- 
- static struct sem_undo *lookup_undo(struct sem_undo_list *ulp, int semid)
- {
--	struct sem_undo **last, *un;
-+	struct sem_undo *walk, *tmp;
- 
--	last = &ulp->proc_list;
--	un = *last;
--	while(un != NULL) {
--		if(un->semid==semid)
--			break;
--		if(un->semid==-1) {
--			*last=un->proc_next;
--			kfree(un);
--		} else {
--			last=&un->proc_next;
-+	assert_spin_locked(&ulp->lock);
-+	list_for_each_entry_safe(walk, tmp, &ulp->list_proc, list_proc) {
-+		if (walk->semid == semid)
-+			return walk;
-+		if (walk->semid == -1) {
-+			list_del(&walk->list_proc);
-+			kfree(walk);
- 		}
--		un=*last;
- 	}
--	return un;
-+	return NULL;
- }
- 
--static struct sem_undo *find_undo(struct ipc_namespace *ns, int semid)
-+/**
-+ * find_alloc_undo - Lookup (and if not present create) undo array
-+ * @ns: namespace
-+ * @semid: semaphore array id
+diff -puN kernel/workqueue.c~workqueues-lockdep-annotations-for-flush_work kernel/workqueue.c
+--- a/kernel/workqueue.c~workqueues-lockdep-annotations-for-flush_work
++++ a/kernel/workqueue.c
+@@ -427,6 +427,8 @@ EXPORT_SYMBOL_GPL(flush_workqueue);
+  * flush_work - block until a work_struct's callback has terminated
+  * @work: the work which is to be flushed
+  *
++ * Returns false if @work has already terminated.
 + *
-+ * The function looks up (and if not present creates) the undo structure.
-+ * The size of the undo structure depends on the size of the semaphore
-+ * array, thus the alloc path is not that straightforward.
-+ */
-+static struct sem_undo *find_alloc_undo(struct ipc_namespace *ns, int semid)
- {
- 	struct sem_array *sma;
- 	struct sem_undo_list *ulp;
-@@ -997,6 +1011,7 @@ static struct sem_undo *find_undo(struct
- 		goto out;
+  * It is expected that, prior to calling flush_work(), the caller has
+  * arranged for the work to not be requeued, otherwise it doesn't make
+  * sense to use this function.
+@@ -442,6 +444,9 @@ int flush_work(struct work_struct *work)
+ 	if (!cwq)
+ 		return 0;
  
- 	/* no undo structure around - allocate one. */
-+	/* step 1: figure out the size of the semaphore array */
- 	sma = sem_lock_check(ns, semid);
- 	if (IS_ERR(sma))
- 		return ERR_PTR(PTR_ERR(sma));
-@@ -1004,15 +1019,19 @@ static struct sem_undo *find_undo(struct
- 	nsems = sma->sem_nsems;
- 	sem_getref_and_unlock(sma);
- 
-+	/* step 2: allocate new undo structure */
- 	new = kzalloc(sizeof(struct sem_undo) + sizeof(short)*nsems, GFP_KERNEL);
- 	if (!new) {
- 		sem_putref(sma);
- 		return ERR_PTR(-ENOMEM);
- 	}
--	new->semadj = (short *) &new[1];
--	new->semid = semid;
- 
-+	/* step 3: Acquire the lock on the undo list pointer */
- 	spin_lock(&ulp->lock);
++	lock_acquire(&cwq->wq->lockdep_map, 0, 0, 0, 2, _THIS_IP_);
++	lock_release(&cwq->wq->lockdep_map, 1, _THIS_IP_);
 +
-+	/* step 4: check for races: someone else allocated the undo struct,
-+	 *         semaphore array was destroyed.
-+	 */
- 	un = lookup_undo(ulp, semid);
- 	if (un) {
- 		spin_unlock(&ulp->lock);
-@@ -1028,13 +1047,17 @@ static struct sem_undo *find_undo(struct
- 		un = ERR_PTR(-EIDRM);
- 		goto out;
- 	}
--	new->proc_next = ulp->proc_list;
--	ulp->proc_list = new;
--	new->id_next = sma->undo;
--	sma->undo = new;
-+	/* step 5: initialize & link new undo structure */
-+	new->semadj = (short *) &new[1];
-+	new->semid = semid;
-+	assert_spin_locked(&ulp->lock);
-+	list_add(&new->list_proc, &ulp->list_proc);
-+	assert_spin_locked(&sma->sem_perm.lock);
-+	list_add(&new->list_id, &sma->list_id);
-+
- 	sem_unlock(sma);
--	un = new;
- 	spin_unlock(&ulp->lock);
-+	un = new;
- out:
- 	return un;
- }
-@@ -1090,9 +1113,8 @@ asmlinkage long sys_semtimedop(int semid
- 			alter = 1;
- 	}
- 
--retry_undos:
- 	if (undos) {
--		un = find_undo(ns, semid);
-+		un = find_alloc_undo(ns, semid);
- 		if (IS_ERR(un)) {
- 			error = PTR_ERR(un);
- 			goto out_free;
-@@ -1107,14 +1129,14 @@ retry_undos:
- 	}
- 
- 	/*
--	 * semid identifiers are not unique - find_undo may have
-+	 * semid identifiers are not unique - find_alloc_undo may have
- 	 * allocated an undo structure, it was invalidated by an RMID
--	 * and now a new array with received the same id. Check and retry.
-+	 * and now a new array with received the same id. Check and fail.
- 	 */
--	if (un && un->semid == -1) {
--		sem_unlock(sma);
--		goto retry_undos;
--	}
-+	error = -EIDRM;
-+	if (un && un->semid == -1)
-+		goto out_unlock_free;
-+
- 	error = -EFBIG;
- 	if (max >= sma->sem_nsems)
- 		goto out_unlock_free;
-@@ -1243,56 +1265,44 @@ int copy_semundo(unsigned long clone_fla
-  */
- void exit_sem(struct task_struct *tsk)
- {
--	struct sem_undo_list *undo_list;
--	struct sem_undo *u, **up;
--	struct ipc_namespace *ns;
-+	struct sem_undo_list *ulp;
-+	struct sem_undo *un, *tmp;
- 
--	undo_list = tsk->sysvsem.undo_list;
--	if (!undo_list)
-+	ulp = tsk->sysvsem.undo_list;
-+	if (!ulp)
- 		return;
- 	tsk->sysvsem.undo_list = NULL;
- 
--	if (!atomic_dec_and_test(&undo_list->refcnt))
-+	if (!atomic_dec_and_test(&ulp->refcnt))
- 		return;
- 
--	ns = tsk->nsproxy->ipc_ns;
--	/* There's no need to hold the semundo list lock, as current
--         * is the last task exiting for this undo list.
--	 */
--	for (up = &undo_list->proc_list; (u = *up); *up = u->proc_next, kfree(u)) {
-+	spin_lock(&ulp->lock);
-+
-+	list_for_each_entry_safe(un, tmp, &ulp->list_proc, list_proc) {
- 		struct sem_array *sma;
--		int nsems, i;
--		struct sem_undo *un, **unp;
--		int semid;
--	       
--		semid = u->semid;
--
--		if(semid == -1)
--			continue;
--		sma = sem_lock(ns, semid);
-+		int i;
-+
-+		if (un->semid == -1)
-+			goto free;
-+
-+		sma = sem_lock(tsk->nsproxy->ipc_ns, un->semid);
- 		if (IS_ERR(sma))
--			continue;
-+			goto free;
- 
--		if (u->semid == -1)
--			goto next_entry;
-+		if (un->semid == -1)
-+			goto unlock_free;
- 
--		BUG_ON(sem_checkid(sma, u->semid));
-+		BUG_ON(sem_checkid(sma, un->semid));
- 
--		/* remove u from the sma->undo list */
--		for (unp = &sma->undo; (un = *unp); unp = &un->id_next) {
--			if (u == un)
--				goto found;
--		}
--		printk ("exit_sem undo list error id=%d\n", u->semid);
--		goto next_entry;
--found:
--		*unp = un->id_next;
--		/* perform adjustments registered in u */
--		nsems = sma->sem_nsems;
--		for (i = 0; i < nsems; i++) {
-+		/* remove un from sma->list_id */
-+		assert_spin_locked(&sma->sem_perm.lock);
-+		list_del(&un->list_id);
-+
-+		/* perform adjustments registered in un */
-+		for (i = 0; i < sma->sem_nsems; i++) {
- 			struct sem * semaphore = &sma->sem_base[i];
--			if (u->semadj[i]) {
--				semaphore->semval += u->semadj[i];
-+			if (un->semadj[i]) {
-+				semaphore->semval += un->semadj[i];
- 				/*
- 				 * Range checks of the new semaphore value,
- 				 * not defined by sus:
-@@ -1316,10 +1326,15 @@ found:
- 		sma->sem_otime = get_seconds();
- 		/* maybe some queued-up processes were waiting for this */
- 		update_queue(sma);
--next_entry:
-+unlock_free:
- 		sem_unlock(sma);
-+free:
-+		assert_spin_locked(&ulp->lock);
-+		list_del(&un->list_proc);
-+		kfree(un);
- 	}
--	kfree(undo_list);
-+	spin_unlock(&ulp->lock);
-+	kfree(ulp);
- }
- 
- #ifdef CONFIG_PROC_FS
+ 	prev = NULL;
+ 	spin_lock_irq(&cwq->lock);
+ 	if (!list_empty(&work->entry)) {
 _
 
-Patches currently in -mm which might be from manfred@colorfullife.com are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
 origin.patch
-repeatable-slab-corruption-with-ltp-msgctl08.patch
-mm-debug-dump-pageframes-on-bad_page.patch
-slab-leaks3-default-y.patch
+linux-next.patch
+migrate_timers-add-comment-use-spinlock_irq.patch
+tracehook-add-linux-tracehookh.patch
+tracehook-exec.patch
+tracehook-unexport-ptrace_notify.patch
+tracehook-exit.patch
+tracehook-clone.patch
+tracehook-vfork-done.patch
+tracehook-release_task.patch
+tracehook-tracehook_tracer_task.patch
+tracehook-tracehook_expect_breakpoints.patch
+tracehook-tracehook_signal_handler.patch
+tracehook-tracehook_consider_ignored_signal.patch
+tracehook-tracehook_consider_fatal_signal.patch
+tracehook-syscall.patch
+tracehook-get_signal_to_deliver.patch
+tracehook-job-control.patch
+tracehook-death.patch
+tracehook-force-signal_pending.patch
+tracehook-tif_notify_resume.patch
+tracehook-asm-syscallh.patch
+tracehook-config_have_arch_tracehook.patch
+tracehook-wait_task_inactive.patch
+task_current_syscall.patch
+proc-pid-syscall.patch
 
