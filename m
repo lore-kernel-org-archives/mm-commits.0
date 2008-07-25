@@ -1,197 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: - jbd-eliminate-duplicated-code-in-revocation-table-init-destroy-functions.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 15:56:27 -0700
-Message-ID: <200807252256.m6PMuRxr003089@imap1.linux-foundation.org>
+Subject: - workqueues-queue_work-can-use-queue_work_on.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 16:00:25 -0700
+Message-ID: <200807252300.m6PN0P39003584@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49782 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46648 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754570AbYGYXGh (ORCPT
+	by vger.kernel.org with ESMTP id S1754295AbYGYXGe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:06:37 -0400
+	Fri, 25 Jul 2008 19:06:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: duaneg@dghda.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     jbd: eliminate duplicated code in revocation table init/destroy functions
+     workqueues: queue_work() can use queue_work_on()
 has been removed from the -mm tree.  Its filename was
-     jbd-eliminate-duplicated-code-in-revocation-table-init-destroy-functions.patch
+     workqueues-queue_work-can-use-queue_work_on.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: jbd: eliminate duplicated code in revocation table init/destroy functions
-From: "Duane Griffin" <duaneg@dghda.com>
+Subject: workqueues: queue_work() can use queue_work_on()
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-The revocation table initialisation/destruction code is repeated for each
-of the two revocation tables stored in the journal.  Refactoring the
-duplicated code into functions is tidier, simplifies the logic in
-initialisation in particular, and slightly reduces the code size.
+queue_work() can use queue_work_on() to avoid the code duplication.
 
-There should not be any functional change.
-
-Signed-off-by: Duane Griffin <duaneg@dghda.com>
-Cc: <linux-ext4@vger.kernel.org>
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jbd/revoke.c |  127 ++++++++++++++++++----------------------------
- 1 file changed, 51 insertions(+), 76 deletions(-)
+ kernel/workqueue.c |   11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
 
-diff -puN fs/jbd/revoke.c~jbd-eliminate-duplicated-code-in-revocation-table-init-destroy-functions fs/jbd/revoke.c
---- a/fs/jbd/revoke.c~jbd-eliminate-duplicated-code-in-revocation-table-init-destroy-functions
-+++ a/fs/jbd/revoke.c
-@@ -195,109 +195,84 @@ void journal_destroy_revoke_caches(void)
- 	revoke_table_cache = NULL;
+diff -puN kernel/workqueue.c~workqueues-queue_work-can-use-queue_work_on kernel/workqueue.c
+--- a/kernel/workqueue.c~workqueues-queue_work-can-use-queue_work_on
++++ a/kernel/workqueue.c
+@@ -159,14 +159,11 @@ static void __queue_work(struct cpu_work
+  */
+ int queue_work(struct workqueue_struct *wq, struct work_struct *work)
+ {
+-	int ret = 0;
++	int ret;
++
++	ret = queue_work_on(get_cpu(), wq, work);
++	put_cpu();
+ 
+-	if (!test_and_set_bit(WORK_STRUCT_PENDING, work_data_bits(work))) {
+-		BUG_ON(!list_empty(&work->entry));
+-		__queue_work(wq_per_cpu(wq, get_cpu()), work);
+-		put_cpu();
+-		ret = 1;
+-	}
+ 	return ret;
  }
- 
--/* Initialise the revoke table for a given journal to a given size. */
--
--int journal_init_revoke(journal_t *journal, int hash_size)
-+static struct jbd_revoke_table_s *journal_init_revoke_table(int hash_size)
- {
--	int shift, tmp;
-+	int shift = 0;
-+	int tmp = hash_size;
-+	struct jbd_revoke_table_s *table;
- 
--	J_ASSERT (journal->j_revoke_table[0] == NULL);
-+	table = kmem_cache_alloc(revoke_table_cache, GFP_KERNEL);
-+	if (!table)
-+		goto out;
- 
--	shift = 0;
--	tmp = hash_size;
- 	while((tmp >>= 1UL) != 0UL)
- 		shift++;
- 
--	journal->j_revoke_table[0] = kmem_cache_alloc(revoke_table_cache, GFP_KERNEL);
--	if (!journal->j_revoke_table[0])
--		return -ENOMEM;
--	journal->j_revoke = journal->j_revoke_table[0];
--
--	/* Check that the hash_size is a power of two */
--	J_ASSERT(is_power_of_2(hash_size));
--
--	journal->j_revoke->hash_size = hash_size;
--
--	journal->j_revoke->hash_shift = shift;
--
--	journal->j_revoke->hash_table =
-+	table->hash_size = hash_size;
-+	table->hash_shift = shift;
-+	table->hash_table =
- 		kmalloc(hash_size * sizeof(struct list_head), GFP_KERNEL);
--	if (!journal->j_revoke->hash_table) {
--		kmem_cache_free(revoke_table_cache, journal->j_revoke_table[0]);
--		journal->j_revoke = NULL;
--		return -ENOMEM;
-+	if (!table->hash_table) {
-+		kmem_cache_free(revoke_table_cache, table);
-+		table = NULL;
-+		goto out;
- 	}
- 
- 	for (tmp = 0; tmp < hash_size; tmp++)
--		INIT_LIST_HEAD(&journal->j_revoke->hash_table[tmp]);
-+		INIT_LIST_HEAD(&table->hash_table[tmp]);
-+
-+out:
-+	return table;
-+}
-+
-+static void journal_destroy_revoke_table(struct jbd_revoke_table_s *table)
-+{
-+	int i;
-+	struct list_head *hash_list;
- 
--	journal->j_revoke_table[1] = kmem_cache_alloc(revoke_table_cache, GFP_KERNEL);
--	if (!journal->j_revoke_table[1]) {
--		kfree(journal->j_revoke_table[0]->hash_table);
--		kmem_cache_free(revoke_table_cache, journal->j_revoke_table[0]);
--		return -ENOMEM;
-+	for (i = 0; i < table->hash_size; i++) {
-+		hash_list = &table->hash_table[i];
-+		J_ASSERT(list_empty(hash_list));
- 	}
- 
--	journal->j_revoke = journal->j_revoke_table[1];
-+	kfree(table->hash_table);
-+	kmem_cache_free(revoke_table_cache, table);
-+}
- 
--	/* Check that the hash_size is a power of two */
-+/* Initialise the revoke table for a given journal to a given size. */
-+int journal_init_revoke(journal_t *journal, int hash_size)
-+{
-+	J_ASSERT(journal->j_revoke_table[0] == NULL);
- 	J_ASSERT(is_power_of_2(hash_size));
- 
--	journal->j_revoke->hash_size = hash_size;
-+	journal->j_revoke_table[0] = journal_init_revoke_table(hash_size);
-+	if (!journal->j_revoke_table[0])
-+		goto fail0;
- 
--	journal->j_revoke->hash_shift = shift;
-+	journal->j_revoke_table[1] = journal_init_revoke_table(hash_size);
-+	if (!journal->j_revoke_table[1])
-+		goto fail1;
- 
--	journal->j_revoke->hash_table =
--		kmalloc(hash_size * sizeof(struct list_head), GFP_KERNEL);
--	if (!journal->j_revoke->hash_table) {
--		kfree(journal->j_revoke_table[0]->hash_table);
--		kmem_cache_free(revoke_table_cache, journal->j_revoke_table[0]);
--		kmem_cache_free(revoke_table_cache, journal->j_revoke_table[1]);
--		journal->j_revoke = NULL;
--		return -ENOMEM;
--	}
--
--	for (tmp = 0; tmp < hash_size; tmp++)
--		INIT_LIST_HEAD(&journal->j_revoke->hash_table[tmp]);
-+	journal->j_revoke = journal->j_revoke_table[1];
- 
- 	spin_lock_init(&journal->j_revoke_lock);
- 
- 	return 0;
--}
- 
--/* Destoy a journal's revoke table.  The table must already be empty! */
-+fail1:
-+	journal_destroy_revoke_table(journal->j_revoke_table[0]);
-+fail0:
-+	return -ENOMEM;
-+}
- 
-+/* Destroy a journal's revoke table.  The table must already be empty! */
- void journal_destroy_revoke(journal_t *journal)
- {
--	struct jbd_revoke_table_s *table;
--	struct list_head *hash_list;
--	int i;
--
--	table = journal->j_revoke_table[0];
--	if (!table)
--		return;
--
--	for (i=0; i<table->hash_size; i++) {
--		hash_list = &table->hash_table[i];
--		J_ASSERT (list_empty(hash_list));
--	}
--
--	kfree(table->hash_table);
--	kmem_cache_free(revoke_table_cache, table);
--	journal->j_revoke = NULL;
--
--	table = journal->j_revoke_table[1];
--	if (!table)
--		return;
--
--	for (i=0; i<table->hash_size; i++) {
--		hash_list = &table->hash_table[i];
--		J_ASSERT (list_empty(hash_list));
--	}
+ EXPORT_SYMBOL_GPL(queue_work);
+_
+
+Patches currently in -mm which might be from oleg@tv-sign.ru are
+
+origin.patch
+linux-next.patch
+migrate_timers-add-comment-use-spinlock_irq.patch
+tracehook-add-linux-tracehookh.patch
+tracehook-exec.patch
+tracehook-unexport-ptrace_notify.patch
+tracehook-exit.patch
+tracehook-clone.patch
+tracehook-vfork-done.patch
+tracehook-release_task.patch
+tracehook-tracehook_tracer_task.patch
+tracehook-tracehook_expect_breakpoints.patch
+tracehook-tracehook_signal_handler.patch
+tracehook-tracehook_consider_ignored_signal.patch
+tracehook-tracehook_consider_fatal_signal.patch
+tracehook-syscall.patch
+tracehook-get_signal_to_deliver.patch
+tracehook-job-control.patch
+tracehook-death.patch
+tracehook-force-signal_pending.patch
+tracehook-tif_notify_resume.patch
+tracehook-asm-syscallh.patch
+tracehook-config_have_arch_tracehook.patch
+tracehook-wait_task_inactive.patch
+task_current_syscall.patch
+proc-pid-syscall.patch
+
