@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + include-video-atmel_lcdch-must-include-linux-workqueueh.patch added to -mm tree
-Date: Fri, 25 Jul 2008 14:46:44 -0700
-Message-ID: <200807252146.m6PLkijR032763@imap1.linux-foundation.org>
+Subject: + pm-selftest-rtc-paranoia.patch added to -mm tree
+Date: Fri, 25 Jul 2008 14:50:49 -0700
+Message-ID: <200807252150.m6PLonRP000463@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39148 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54497 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751825AbYGYVrV (ORCPT
+	by vger.kernel.org with ESMTP id S1750934AbYGYVu6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 17:47:21 -0400
+	Fri, 25 Jul 2008 17:50:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org
+Cc: dbrownell@users.sourceforge.net
 
 
 The patch titled
-     include/video/atmel_lcdc.h must #include <linux/workqueue.h>
+     pm selftest:  rtc paranoia
 has been added to the -mm tree.  Its filename is
-     include-video-atmel_lcdch-must-include-linux-workqueueh.patch
+     pm-selftest-rtc-paranoia.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,81 +34,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: include/video/atmel_lcdc.h must #include <linux/workqueue.h>
-From: Adrian Bunk <bunk@kernel.org>
+Subject: pm selftest:  rtc paranoia
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-This patch fixes the following compile error caused by
-commit d22579b837358cbef12ccca5adaf7e93ae09ab7a
-(atmel_lcdfb: FIFO underflow management):
+Cope with a quirk of some RTCs (notably ACPI ones) which aren't guaranteed
+to implement oneshot behavior when they woke the system from sleeep:
+forcibly disable the alarm, just in case.
 
-In file included from /home/bunk/linux/kernel-2.6/git/linux-2.6/arch/avr32/boards/atstk1000/atstk1004.c:21:
-/home/bunk/linux/kernel-2.6/git/linux-2.6/include/video/atmel_lcdc.h:40: error: field 'task' has incomplete type
-
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/video/atmel_lcdc.h |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/power/main.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN include/video/atmel_lcdc.h~include-video-atmel_lcdch-must-include-linux-workqueueh include/video/atmel_lcdc.h
---- a/include/video/atmel_lcdc.h~include-video-atmel_lcdch-must-include-linux-workqueueh
-+++ a/include/video/atmel_lcdc.h
-@@ -22,6 +22,7 @@
- #ifndef __ATMEL_LCDC_H__
- #define __ATMEL_LCDC_H__
+diff -puN kernel/power/main.c~pm-selftest-rtc-paranoia kernel/power/main.c
+--- a/kernel/power/main.c~pm-selftest-rtc-paranoia
++++ a/kernel/power/main.c
+@@ -635,6 +635,13 @@ static void __init test_wakealarm(struct
+ 	}
+ 	if (status < 0)
+ 		printk(err_suspend, status);
++
++	/* Some platforms can't detect that the alarm triggered the
++	 * wakeup, or (accordingly) disable it after it afterwards.
++	 * It's supposed to give oneshot behavior; cope.
++	 */
++	alm.enabled = false;
++	rtc_set_alarm(rtc, &alm);
+ }
  
-+#include <linux/workqueue.h>
- 
- /* Way LCD wires are connected to the chip:
-  * Some Atmel chips use BGR color mode (instead of standard RGB)
+ static int __init has_wakealarm(struct device *dev, void *name_ptr)
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
 
 origin.patch
-init-do_mountsc-should-include-linux-initrdh.patch
-build-kernel-profileo-only-when-requested.patch
-build-kernel-profileo-only-when-requested-cleanups.patch
-asm-generic-int-ll64h-always-provide-__su64.patch
-remove-some-more-tipar-bits.patch
-minix-remove-no_truncate-code.patch
-jbd-unexport-journal_update_superblock.patch
-coda-remove-coda_fs_old_api.patch
-fat-dirc-switch-to-struct-__fat_dirent.patch
-remove-the-in-kernel-struct-dirent64.patch
-remove-unused-include-linux-direnths.patch
-include-asm-ptraceh-userspace-headers-cleanup.patch
-pty-remove-unused-unix98_pty_count-options.patch
-proper-extern-for-mwave_s_mdd.patch
-if-0-hpet_unregister.patch
-unexport-proc_clear_tty.patch
-move-proc_kmsg_operations-to-fs-proc-internalh.patch
-proper-pidhashmap_init-prototypes.patch
-unexport-uts_sem.patch
-uninline-arch_pick_mmap_layout.patch
-include-video-atmel_lcdch-must-include-linux-workqueueh.patch
+drivers-power-fix-platform-driver-hotplug-coldplug.patch
+mfd-fix-platform-driver-hotplug-coldplug.patch
+parport-fix-platform-driver-hotplug-coldplug.patch
+gpio-sysfs-interface-updated.patch
+gpio-mcp23s08-handles-multiple-chips-per-chipselect.patch
+gpio-max732x-driver.patch
+pm-selftest-rtc-paranoia.patch
 linux-next.patch
-m32r-remove-the-unused-nohighmem-option.patch
-if-0-ses_match_host.patch
-git-xtensa.patch
-include-linux-kernelh-userspace-header-cleanup.patch
-parport-sharec-proper-externs.patch
-tpm_biosc-make-2-structs-static.patch
-drm-make-drm_minors_cleanup-static.patch
-make-cgroup_seqfile_release-static.patch
-make-pnp_add_card_id-static.patch
-make-parport_cs_release-static.patch
-make-mm-sparsec-make-a-function-static.patch
-mm-allocpercpuc-make-4-functions-static.patch
-make-mm-memoryc-print_bad_pte-static.patch
-mm-swapfilec-make-code-static.patch
-make-mm-rmapc-anon_vma_cachep-static.patch
-drivers-char-rtcc-make-2-functions-static.patch
-make-init-do_mountsc-root_device_name-static.patch
-make-macfb_setup-static.patch
-video-console-sticonrec-make-code-static.patch
-video-console-sticonrec-make-code-static-checkpatch-fixes.patch
-video-stifbc-make-2-functions-static.patch
-reiser4.patch
 
