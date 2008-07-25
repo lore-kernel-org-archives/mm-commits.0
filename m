@@ -1,82 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: - markers-fix-sparse-integer-as-null-pointer-warning.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 16:02:40 -0700
-Message-ID: <200807252302.m6PN2eAj003843@imap1.linux-foundation.org>
+Subject: - ata-over-ethernet-convert-emsgs_sema-in-a-completion.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 16:02:35 -0700
+Message-ID: <200807252302.m6PN2Zjt003837@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42131 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43341 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753410AbYGYXDR (ORCPT
+	by vger.kernel.org with ESMTP id S1753422AbYGYXDJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:03:17 -0400
+	Fri, 25 Jul 2008 19:03:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, mathieu.desnoyers@polymtl.ca, mm-commits@vger.kernel.org
+To: matthias@kaehlcke.net, ecashin@coraid.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     markers: fix sparse integer as NULL pointer warning
+     aoe: convert emsgs_sema into a completion
 has been removed from the -mm tree.  Its filename was
-     markers-fix-sparse-integer-as-null-pointer-warning.patch
+     ata-over-ethernet-convert-emsgs_sema-in-a-completion.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: markers: fix sparse integer as NULL pointer warning
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: aoe: convert emsgs_sema into a completion
+From: Matthias Kaehlcke <matthias@kaehlcke.net>
 
-kernel/trace/trace_sysprof.c:164:20: warning: Using plain integer as NULL pointer
+ATA over Ethernet: The semaphore emsgs_sema is used for signalling an
+event, convert it in a completion.
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Signed-off-by: Matthias Kaehlcke <matthias@kaehlcke.net>
+Cc: "Ed L. Cashin" <ecashin@coraid.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/trace/trace_sysprof.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/block/aoe/aoechr.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN kernel/trace/trace_sysprof.c~markers-fix-sparse-integer-as-null-pointer-warning kernel/trace/trace_sysprof.c
---- a/kernel/trace/trace_sysprof.c~markers-fix-sparse-integer-as-null-pointer-warning
-+++ a/kernel/trace/trace_sysprof.c
-@@ -161,7 +161,7 @@ static void timer_notify(struct pt_regs 
- 		__trace_special(tr, data, 2, regs->ip, 0);
+diff -puN drivers/block/aoe/aoechr.c~ata-over-ethernet-convert-emsgs_sema-in-a-completion drivers/block/aoe/aoechr.c
+--- a/drivers/block/aoe/aoechr.c~ata-over-ethernet-convert-emsgs_sema-in-a-completion
++++ a/drivers/block/aoe/aoechr.c
+@@ -6,6 +6,7 @@
  
- 		while (i < sample_max_depth) {
--			frame.next_fp = 0;
-+			frame.next_fp = NULL;
- 			frame.return_address = 0;
- 			if (!copy_stack_frame(fp, &frame))
- 				break;
+ #include <linux/hdreg.h>
+ #include <linux/blkdev.h>
++#include <linux/completion.h>
+ #include <linux/delay.h>
+ #include <linux/smp_lock.h>
+ #include "aoe.h"
+@@ -36,7 +37,7 @@ struct ErrMsg {
+ 
+ static struct ErrMsg emsgs[NMSG];
+ static int emsgs_head_idx, emsgs_tail_idx;
+-static struct semaphore emsgs_sema;
++static struct completion emsgs_comp;
+ static spinlock_t emsgs_lock;
+ static int nblocked_emsgs_readers;
+ static struct class *aoe_class;
+@@ -141,7 +142,7 @@ bail:		spin_unlock_irqrestore(&emsgs_loc
+ 	spin_unlock_irqrestore(&emsgs_lock, flags);
+ 
+ 	if (nblocked_emsgs_readers)
+-		up(&emsgs_sema);
++		complete(&emsgs_comp);
+ }
+ 
+ static ssize_t
+@@ -221,7 +222,7 @@ aoechr_read(struct file *filp, char __us
+ 
+ 		spin_unlock_irqrestore(&emsgs_lock, flags);
+ 
+-		n = down_interruptible(&emsgs_sema);
++		n = wait_for_completion_interruptible(&emsgs_comp);
+ 
+ 		spin_lock_irqsave(&emsgs_lock, flags);
+ 
+@@ -269,7 +270,7 @@ aoechr_init(void)
+ 		printk(KERN_ERR "aoe: can't register char device\n");
+ 		return n;
+ 	}
+-	sema_init(&emsgs_sema, 0);
++	init_completion(&emsgs_comp);
+ 	spin_lock_init(&emsgs_lock);
+ 	aoe_class = class_create(THIS_MODULE, "aoe");
+ 	if (IS_ERR(aoe_class)) {
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from matthias@kaehlcke.net are
 
 origin.patch
 linux-next.patch
-cifs-remove-global_extern-macro.patch
-input-ads7846c-sparse-lock-annotation.patch
-mtd-diskonchipc-fix-sparse-endian-warnings.patch
-scsi-replace-remaining-__function__-occurrences.patch
-fusion-replace-remaining-__function__-occurrences.patch
-scsi-replace-__inline-with-inline.patch
-scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
-scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-scsi-gdthc-use-unaligned-access-helpers-checkpatch-fixes.patch
-xfs-use-get_unaligned_-helpers.patch
-xtensa-replace-remaining-__function__-occurences.patch
-olpc-olpc_batteryc-sparse-endian-annotations.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-isdn-use-the-common-ascii-hex-helpers.patch
-net-use-the-common-ascii-hex-helpers.patch
-cris-use-the-common-ascii-hex-helpers.patch
-frv-use-the-common-ascii-hex-helpers.patch
-ppc-use-the-common-ascii-hex-helpers.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-mn10300-use-the-common-ascii-hex-helpers.patch
-byteorder-add-a-new-include-linux-swabh-to-define-byteswapping-functions.patch
-byteorder-add-include-linux-byteorderh-to-define-endian-helpers.patch
-byteorder-add-include-linux-byteorderh-to-define-endian-helpers-update.patch
+affs-convert-s_bmlock-into-a-mutex.patch
 
