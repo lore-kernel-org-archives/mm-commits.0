@@ -1,90 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: - ext3-validate-directory-entry-data-before-use-v5.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 15:56:54 -0700
-Message-ID: <200807252256.m6PMusZv003132__19292.6530646675$1217026728$gmane$org@imap1.linux-foundation.org>
+Subject: - kallsyms-unify-32-and-64-bit-code.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 15:55:31 -0700
+Message-ID: <200807252255.m6PMtVFR002983@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54371 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58946 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754854AbYGYW5Z (ORCPT
+	by vger.kernel.org with ESMTP id S1755603AbYGYW5h (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 18:57:25 -0400
+	Fri, 25 Jul 2008 18:57:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: duaneg@dghda.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
+To: vegard.nossum@gmail.com, arjan@infradead.org, heiko.carstens@de.ibm.com, randy.dunlap@oracle.com, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext3: validate directory entry data before use
+     kallsyms: unify 32- and 64-bit code
 has been removed from the -mm tree.  Its filename was
-     ext3-validate-directory-entry-data-before-use-v5.patch
+     kallsyms-unify-32-and-64-bit-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext3: validate directory entry data before use
-From: "Duane Griffin" <duaneg@dghda.com>
+Subject: kallsyms: unify 32- and 64-bit code
+From: Vegard Nossum <vegard.nossum@gmail.com>
 
-ext3_dx_find_entry uses ext3_next_entry without verifying that the entry
-is valid.  If its rec_len == 0 this causes an infinite loop.  Refactor the
-loop to check the validity of entries before checking whether they match
-and moving onto the next one.
+Use the %p format string which already accounts for the padding you need
+with a pointer type on a particular architecture.
 
-There are other uses of ext3_next_entry in this file which also look
-problematic.  They should be reviewed and fixed if/when we have a
-test-case that triggers them.
+Also replace the macro with a static inline function to match the rest of
+the file.
 
-This patch fixes the first case (image hdb.25.softlockup.gz) reported in
-http://bugzilla.kernel.org/show_bug.cgi?id=10882.
-
-Signed-off-by: Duane Griffin <duaneg@dghda.com>
-Cc: <linux-ext4@vger.kernel.org>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Arjan van de Ven <arjan@infradead.org>
+Signed-off-by: Vegard Nossum <vegard.nossum@gmail.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/namei.c |   22 ++++++++++++----------
- 1 file changed, 12 insertions(+), 10 deletions(-)
+ include/linux/kallsyms.h |   19 ++++++-------------
+ 1 file changed, 6 insertions(+), 13 deletions(-)
 
-diff -puN fs/ext3/namei.c~ext3-validate-directory-entry-data-before-use-v5 fs/ext3/namei.c
---- a/fs/ext3/namei.c~ext3-validate-directory-entry-data-before-use-v5
-+++ a/fs/ext3/namei.c
-@@ -991,19 +991,21 @@ static struct buffer_head * ext3_dx_find
- 		de = (struct ext3_dir_entry_2 *) bh->b_data;
- 		top = (struct ext3_dir_entry_2 *) ((char *) de + sb->s_blocksize -
- 				       EXT3_DIR_REC_LEN(0));
--		for (; de < top; de = ext3_next_entry(de))
--		if (ext3_match (namelen, name, de)) {
--			if (!ext3_check_dir_entry("ext3_find_entry",
--						  dir, de, bh,
--				  (block<<EXT3_BLOCK_SIZE_BITS(sb))
--					  +((char *)de - bh->b_data))) {
--				brelse (bh);
-+		for (; de < top; de = ext3_next_entry(de)) {
-+			int off = (block << EXT3_BLOCK_SIZE_BITS(sb))
-+				  + ((char *) de - bh->b_data);
-+
-+			if (!ext3_check_dir_entry(__func__, dir, de, bh, off)) {
-+				brelse(bh);
- 				*err = ERR_BAD_DX_DIR;
- 				goto errout;
- 			}
--			*res_dir = de;
--			dx_release (frames);
--			return bh;
-+
-+			if (ext3_match(namelen, name, de)) {
-+				*res_dir = de;
-+				dx_release(frames);
-+				return bh;
-+			}
- 		}
- 		brelse (bh);
- 		/* Check to see if we should continue to search */
+diff -puN include/linux/kallsyms.h~kallsyms-unify-32-and-64-bit-code include/linux/kallsyms.h
+--- a/include/linux/kallsyms.h~kallsyms-unify-32-and-64-bit-code
++++ a/include/linux/kallsyms.h
+@@ -6,6 +6,7 @@
+ #define _LINUX_KALLSYMS_H
+ 
+ #include <linux/errno.h>
++#include <linux/kernel.h>
+ #include <linux/stddef.h>
+ 
+ #define KSYM_NAME_LEN 128
+@@ -105,18 +106,10 @@ static inline void print_fn_descriptor_s
+ 	print_symbol(fmt, (unsigned long)addr);
+ }
+ 
+-#ifndef CONFIG_64BIT
+-#define print_ip_sym(ip)		\
+-do {					\
+-	printk("[<%08lx>]", ip);	\
+-	print_symbol(" %s\n", ip);	\
+-} while(0)
+-#else
+-#define print_ip_sym(ip)		\
+-do {					\
+-	printk("[<%016lx>]", ip);	\
+-	print_symbol(" %s\n", ip);	\
+-} while(0)
+-#endif
++static inline void print_ip_sym(unsigned long ip)
++{
++	printk("[<%p>]", (void *) ip);
++	print_symbol(" %s\n", ip);
++}
+ 
+ #endif /*_LINUX_KALLSYMS_H*/
 _
 
-Patches currently in -mm which might be from duaneg@dghda.com are
+Patches currently in -mm which might be from vegard.nossum@gmail.com are
 
 origin.patch
+linux-next.patch
+parisc-fix-incomplete-header-guard.patch
 
