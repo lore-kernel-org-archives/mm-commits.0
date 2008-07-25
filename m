@@ -1,129 +1,157 @@
 From: akpm@linux-foundation.org
-Subject: - remove-unused-include-linux-direnths.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 15:57:39 -0700
-Message-ID: <200807252257.m6PMvdDf003207@imap1.linux-foundation.org>
+Subject: - quota-convert-macros-to-inline-functions.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 15:57:54 -0700
+Message-ID: <200807252257.m6PMvslM003234@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56822 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43589 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756560AbYGYW6U (ORCPT
+	by vger.kernel.org with ESMTP id S1756653AbYGYW6Z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 18:58:20 -0400
+	Fri, 25 Jul 2008 18:58:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: jack@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     remove unused #include <linux/dirent.h>'s
+     quota: convert macros to inline functions
 has been removed from the -mm tree.  Its filename was
-     remove-unused-include-linux-direnths.patch
+     quota-convert-macros-to-inline-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: remove unused #include <linux/dirent.h>'s
-From: Adrian Bunk <bunk@kernel.org>
+Subject: quota: convert macros to inline functions
+From: Jan Kara <jack@suse.cz>
 
-Remove some unused #include <linux/dirent.h>'s.
-
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/kernel/linux32.c |    1 -
- fs/compat_ioctl.c          |    1 -
- fs/smbfs/cache.c           |    1 -
- fs/smbfs/proc.c            |    1 -
- include/linux/nfsd/nfsd.h  |    1 -
- 5 files changed, 5 deletions(-)
+ include/linux/quota.h    |    5 ++
+ include/linux/quotaops.h |   65 +++++++++++++++++++++++++++----------
+ 2 files changed, 53 insertions(+), 17 deletions(-)
 
-diff -puN arch/mips/kernel/linux32.c~remove-unused-include-linux-direnths arch/mips/kernel/linux32.c
---- a/arch/mips/kernel/linux32.c~remove-unused-include-linux-direnths
-+++ a/arch/mips/kernel/linux32.c
-@@ -11,7 +11,6 @@
- #include <linux/file.h>
- #include <linux/smp_lock.h>
- #include <linux/highuid.h>
--#include <linux/dirent.h>
- #include <linux/resource.h>
- #include <linux/highmem.h>
- #include <linux/time.h>
-diff -puN fs/compat_ioctl.c~remove-unused-include-linux-direnths fs/compat_ioctl.c
---- a/fs/compat_ioctl.c~remove-unused-include-linux-direnths
-+++ a/fs/compat_ioctl.c
-@@ -25,7 +25,6 @@
- #include <linux/slab.h>
- #include <linux/raid/md.h>
- #include <linux/kd.h>
--#include <linux/dirent.h>
- #include <linux/route.h>
- #include <linux/in6.h>
- #include <linux/ipv6_route.h>
-diff -puN fs/smbfs/cache.c~remove-unused-include-linux-direnths fs/smbfs/cache.c
---- a/fs/smbfs/cache.c~remove-unused-include-linux-direnths
-+++ a/fs/smbfs/cache.c
-@@ -13,7 +13,6 @@
- #include <linux/errno.h>
- #include <linux/kernel.h>
- #include <linux/mm.h>
--#include <linux/dirent.h>
- #include <linux/smb_fs.h>
- #include <linux/pagemap.h>
- #include <linux/net.h>
-diff -puN fs/smbfs/proc.c~remove-unused-include-linux-direnths fs/smbfs/proc.c
---- a/fs/smbfs/proc.c~remove-unused-include-linux-direnths
-+++ a/fs/smbfs/proc.c
-@@ -16,7 +16,6 @@
- #include <linux/stat.h>
- #include <linux/fcntl.h>
- #include <linux/dcache.h>
--#include <linux/dirent.h>
- #include <linux/nls.h>
- #include <linux/smp_lock.h>
- #include <linux/net.h>
-diff -puN include/linux/nfsd/nfsd.h~remove-unused-include-linux-direnths include/linux/nfsd/nfsd.h
---- a/include/linux/nfsd/nfsd.h~remove-unused-include-linux-direnths
-+++ a/include/linux/nfsd/nfsd.h
-@@ -12,7 +12,6 @@
+diff -puN include/linux/quota.h~quota-convert-macros-to-inline-functions include/linux/quota.h
+--- a/include/linux/quota.h~quota-convert-macros-to-inline-functions
++++ a/include/linux/quota.h
+@@ -223,7 +223,10 @@ struct super_block;
+ #define DQF_INFO_DIRTY (1 << DQF_INFO_DIRTY_B)	/* Is info dirty? */
  
- #include <linux/types.h>
- #include <linux/unistd.h>
--#include <linux/dirent.h>
+ extern void mark_info_dirty(struct super_block *sb, int type);
+-#define info_dirty(info) test_bit(DQF_INFO_DIRTY_B, &(info)->dqi_flags)
++static inline int info_dirty(struct mem_dqinfo *info)
++{
++	return test_bit(DQF_INFO_DIRTY_B, &info->dqi_flags);
++}
+ 
+ struct dqstats {
+ 	int lookups;
+diff -puN include/linux/quotaops.h~quota-convert-macros-to-inline-functions include/linux/quotaops.h
+--- a/include/linux/quotaops.h~quota-convert-macros-to-inline-functions
++++ a/include/linux/quotaops.h
+@@ -11,10 +11,12 @@
+ #define _LINUX_QUOTAOPS_
+ 
+ #include <linux/smp_lock.h>
+-
  #include <linux/fs.h>
- #include <linux/posix_acl.h>
- #include <linux/mount.h>
+ 
+-#define sb_dqopt(sb) (&(sb)->s_dquot)
++static inline struct quota_info *sb_dqopt(struct super_block *sb)
++{
++	return &sb->s_dquot;
++}
+ 
+ #if defined(CONFIG_QUOTA)
+ 
+@@ -54,24 +56,40 @@ void vfs_dq_drop(struct inode *inode);
+ int vfs_dq_transfer(struct inode *inode, struct iattr *iattr);
+ int vfs_dq_quota_on_remount(struct super_block *sb);
+ 
+-#define sb_dqinfo(sb, type) (sb_dqopt(sb)->info+(type))
++static inline struct mem_dqinfo *sb_dqinfo(struct super_block *sb, int type)
++{
++	return sb_dqopt(sb)->info + type;
++}
+ 
+ /*
+  * Functions for checking status of quota
+  */
+ 
+-#define sb_has_quota_enabled(sb, type) ((type)==USRQUOTA ? \
+-	(sb_dqopt(sb)->flags & DQUOT_USR_ENABLED) : (sb_dqopt(sb)->flags & DQUOT_GRP_ENABLED))
++static inline int sb_has_quota_enabled(struct super_block *sb, int type)
++{
++	if (type == USRQUOTA)
++		return sb_dqopt(sb)->flags & DQUOT_USR_ENABLED;
++	return sb_dqopt(sb)->flags & DQUOT_GRP_ENABLED;
++}
+ 
+-#define sb_any_quota_enabled(sb) (sb_has_quota_enabled(sb, USRQUOTA) | \
+-				  sb_has_quota_enabled(sb, GRPQUOTA))
++static inline int sb_any_quota_enabled(struct super_block *sb)
++{
++	return sb_has_quota_enabled(sb, USRQUOTA) ||
++		sb_has_quota_enabled(sb, GRPQUOTA);
++}
+ 
+-#define sb_has_quota_suspended(sb, type) \
+-	((type) == USRQUOTA ? (sb_dqopt(sb)->flags & DQUOT_USR_SUSPENDED) : \
+-			      (sb_dqopt(sb)->flags & DQUOT_GRP_SUSPENDED))
++static inline int sb_has_quota_suspended(struct super_block *sb, int type)
++{
++	if (type == USRQUOTA)
++		return sb_dqopt(sb)->flags & DQUOT_USR_SUSPENDED;
++	return sb_dqopt(sb)->flags & DQUOT_GRP_SUSPENDED;
++}
+ 
+-#define sb_any_quota_suspended(sb) (sb_has_quota_suspended(sb, USRQUOTA) | \
+-				  sb_has_quota_suspended(sb, GRPQUOTA))
++static inline int sb_any_quota_suspended(struct super_block *sb)
++{
++	return sb_has_quota_suspended(sb, USRQUOTA) ||
++		sb_has_quota_suspended(sb, GRPQUOTA);
++}
+ 
+ /*
+  * Operations supported for diskquotas.
+@@ -180,10 +198,25 @@ static inline int vfs_dq_off(struct supe
+ 
+ #else
+ 
+-#define sb_has_quota_enabled(sb, type) 0
+-#define sb_any_quota_enabled(sb) 0
+-#define sb_has_quota_suspended(sb, type) 0
+-#define sb_any_quota_suspended(sb) 0
++static inline int sb_has_quota_enabled(struct super_block *sb, int type)
++{
++	return 0;
++}
++
++static inline int sb_any_quota_enabled(struct super_block *sb)
++{
++	return 0;
++}
++
++static inline int sb_has_quota_suspended(struct super_block *sb, int type)
++{
++	return 0;
++}
++
++static inline int sb_any_quota_suspended(struct super_block *sb)
++{
++	return 0;
++}
+ 
+ /*
+  * NO-OP when quota not configured.
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from jack@suse.cz are
 
 origin.patch
-uninline-arch_pick_mmap_layout.patch
-include-video-atmel_lcdch-must-include-linux-workqueueh.patch
-linux-next.patch
-m32r-remove-the-unused-nohighmem-option.patch
-if-0-ses_match_host.patch
-git-xtensa.patch
-include-linux-kernelh-userspace-header-cleanup.patch
-parport-sharec-proper-externs.patch
-tpm_biosc-make-2-structs-static.patch
-drm-make-drm_minors_cleanup-static.patch
-make-cgroup_seqfile_release-static.patch
-make-pnp_add_card_id-static.patch
-make-parport_cs_release-static.patch
-make-mm-sparsec-make-a-function-static.patch
-mm-allocpercpuc-make-4-functions-static.patch
-make-mm-memoryc-print_bad_pte-static.patch
-mm-swapfilec-make-code-static.patch
-make-mm-rmapc-anon_vma_cachep-static.patch
-drivers-char-rtcc-make-2-functions-static.patch
-make-init-do_mountsc-root_device_name-static.patch
-make-macfb_setup-static.patch
-video-console-sticonrec-make-code-static.patch
-video-console-sticonrec-make-code-static-checkpatch-fixes.patch
-video-stifbc-make-2-functions-static.patch
-reiser4.patch
 
