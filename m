@@ -1,81 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: - jbd-unexport-journal_update_superblock.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 15:56:44 -0700
-Message-ID: <200807252256.m6PMuixp003113__34492.5092686482$1217027287$gmane$org@imap1.linux-foundation.org>
+Subject: - __exit_signal-dont-take-rcu-lock.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 15:59:25 -0700
+Message-ID: <200807252259.m6PMxPGv003388@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50725 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35550 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754309AbYGYXGg (ORCPT
+	by vger.kernel.org with ESMTP id S1754760AbYGYXGr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:06:36 -0400
+	Fri, 25 Jul 2008 19:06:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     jbd: unexport journal_update_superblock
+     __exit_signal: don't take rcu lock
 has been removed from the -mm tree.  Its filename was
-     jbd-unexport-journal_update_superblock.patch
+     __exit_signal-dont-take-rcu-lock.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: jbd: unexport journal_update_superblock
-From: Adrian Bunk <bunk@kernel.org>
+Subject: __exit_signal: don't take rcu lock
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Remove the unused EXPORT_SYMBOL(journal_update_superblock).
+There is no reason for rcu_read_lock() in __exit_signal().  tsk->sighand
+can only be changed if tsk does exec, obviously this is not possible.
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: <linux-ext4@vger.kernel.org>
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jbd/journal.c |    1 -
- 1 file changed, 1 deletion(-)
+ kernel/exit.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN fs/jbd/journal.c~jbd-unexport-journal_update_superblock fs/jbd/journal.c
---- a/fs/jbd/journal.c~jbd-unexport-journal_update_superblock
-+++ a/fs/jbd/journal.c
-@@ -68,7 +68,6 @@ EXPORT_SYMBOL(journal_set_features);
- EXPORT_SYMBOL(journal_create);
- EXPORT_SYMBOL(journal_load);
- EXPORT_SYMBOL(journal_destroy);
--EXPORT_SYMBOL(journal_update_superblock);
- EXPORT_SYMBOL(journal_abort);
- EXPORT_SYMBOL(journal_errno);
- EXPORT_SYMBOL(journal_ack_err);
+diff -puN kernel/exit.c~__exit_signal-dont-take-rcu-lock kernel/exit.c
+--- a/kernel/exit.c~__exit_signal-dont-take-rcu-lock
++++ a/kernel/exit.c
+@@ -85,7 +85,6 @@ static void __exit_signal(struct task_st
+ 	BUG_ON(!sig);
+ 	BUG_ON(!atomic_read(&sig->count));
+ 
+-	rcu_read_lock();
+ 	sighand = rcu_dereference(tsk->sighand);
+ 	spin_lock(&sighand->siglock);
+ 
+@@ -136,7 +135,6 @@ static void __exit_signal(struct task_st
+ 	tsk->signal = NULL;
+ 	tsk->sighand = NULL;
+ 	spin_unlock(&sighand->siglock);
+-	rcu_read_unlock();
+ 
+ 	__cleanup_sighand(sighand);
+ 	clear_tsk_thread_flag(tsk,TIF_SIGPENDING);
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
 origin.patch
-uninline-arch_pick_mmap_layout.patch
-include-video-atmel_lcdch-must-include-linux-workqueueh.patch
 linux-next.patch
-m32r-remove-the-unused-nohighmem-option.patch
-if-0-ses_match_host.patch
-git-xtensa.patch
-include-linux-kernelh-userspace-header-cleanup.patch
-parport-sharec-proper-externs.patch
-tpm_biosc-make-2-structs-static.patch
-drm-make-drm_minors_cleanup-static.patch
-make-cgroup_seqfile_release-static.patch
-make-pnp_add_card_id-static.patch
-make-parport_cs_release-static.patch
-make-mm-sparsec-make-a-function-static.patch
-mm-allocpercpuc-make-4-functions-static.patch
-make-mm-memoryc-print_bad_pte-static.patch
-mm-swapfilec-make-code-static.patch
-make-mm-rmapc-anon_vma_cachep-static.patch
-drivers-char-rtcc-make-2-functions-static.patch
-make-init-do_mountsc-root_device_name-static.patch
-make-macfb_setup-static.patch
-video-console-sticonrec-make-code-static.patch
-video-console-sticonrec-make-code-static-checkpatch-fixes.patch
-video-stifbc-make-2-functions-static.patch
-reiser4.patch
+migrate_timers-add-comment-use-spinlock_irq.patch
+tracehook-add-linux-tracehookh.patch
+tracehook-exec.patch
+tracehook-unexport-ptrace_notify.patch
+tracehook-exit.patch
+tracehook-clone.patch
+tracehook-vfork-done.patch
+tracehook-release_task.patch
+tracehook-tracehook_tracer_task.patch
+tracehook-tracehook_expect_breakpoints.patch
+tracehook-tracehook_signal_handler.patch
+tracehook-tracehook_consider_ignored_signal.patch
+tracehook-tracehook_consider_fatal_signal.patch
+tracehook-syscall.patch
+tracehook-get_signal_to_deliver.patch
+tracehook-job-control.patch
+tracehook-death.patch
+tracehook-force-signal_pending.patch
+tracehook-tif_notify_resume.patch
+tracehook-asm-syscallh.patch
+tracehook-config_have_arch_tracehook.patch
+tracehook-wait_task_inactive.patch
+task_current_syscall.patch
+proc-pid-syscall.patch
 
