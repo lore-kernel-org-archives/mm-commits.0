@@ -1,99 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: - mm-speculative-page-references-fix-fix.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 16:55:34 -0700
-Message-ID: <200807252355.m6PNtYpg006090@imap1.linux-foundation.org>
+Subject: - slb-drop-kmem-cache-argument-from-constructor-fix.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 16:59:40 -0700
+Message-ID: <200807252359.m6PNxem8006268@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38763 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43058 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753190AbYGYX5Q (ORCPT
+	by vger.kernel.org with ESMTP id S1752538AbYGZAAW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:57:16 -0400
+	Fri, 25 Jul 2008 20:00:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nickpiggin@yahoo.com.au, a.p.zijlstra@chello.nl, benh@kernel.crashing.org, hugh@veritas.com, jeff@garzik.org, paulmck@us.ibm.com, paulus@samba.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, adobriyan@gmail.com, cl@linux-foundation.org, kniht@linux.vnet.ibm.com, mpm@selenic.com, nickpiggin@yahoo.com.au, penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-speculative-page-references-fix-fix
+     slb-drop-kmem-cache-argument-from-constructor-fix
 has been removed from the -mm tree.  Its filename was
-     mm-speculative-page-references-fix-fix.patch
+     slb-drop-kmem-cache-argument-from-constructor-fix.patch
 
-This patch was dropped because it was folded into mm-speculative-page-references.patch
+This patch was dropped because it was folded into slb-drop-kmem-cache-argument-from-constructor.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-speculative-page-references-fix-fix
-From: Nick Piggin <nickpiggin@yahoo.com.au>
+Subject: slb-drop-kmem-cache-argument-from-constructor-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-free_it obviously should be below the unlock_page.
-
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Jon Tollefson <kniht@linux.vnet.ibm.com>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Matt Mackall <mpm@selenic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ arch/powerpc/mm/hugetlbpage.c |    9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
 
-diff -puN mm/vmscan.c~mm-speculative-page-references-fix-fix mm/vmscan.c
---- a/mm/vmscan.c~mm-speculative-page-references-fix-fix
-+++ a/mm/vmscan.c
-@@ -391,7 +391,7 @@ static pageout_t pageout(struct page *pa
+diff -puN arch/powerpc/mm/hugetlbpage.c~slb-drop-kmem-cache-argument-from-constructor-fix arch/powerpc/mm/hugetlbpage.c
+--- a/arch/powerpc/mm/hugetlbpage.c~slb-drop-kmem-cache-argument-from-constructor-fix
++++ a/arch/powerpc/mm/hugetlbpage.c
+@@ -113,7 +113,7 @@ static inline pte_t *hugepte_offset(huge
+ static int __hugepte_alloc(struct mm_struct *mm, hugepd_t *hpdp,
+ 			   unsigned long address, unsigned int psize)
+ {
+-	pte_t *new = kmem_cache_alloc(huge_pgtable_cache(psize),
++	pte_t *new = kmem_cache_zalloc(huge_pgtable_cache(psize),
+ 				      GFP_KERNEL|__GFP_REPEAT);
+ 
+ 	if (! new)
+@@ -730,11 +730,6 @@ static int __init hugepage_setup_sz(char
  }
+ __setup("hugepagesz=", hugepage_setup_sz);
  
- /*
-- * Save as remove_mapping, but if the page is removed from the mapping, it
-+ * Same as remove_mapping, but if the page is removed from the mapping, it
-  * gets returned with a refcount of 0.
-  */
- static int __remove_mapping(struct address_space *mapping, struct page *page)
-@@ -619,6 +619,13 @@ static unsigned long shrink_page_list(st
- 				if (put_page_testzero(page))
- 					goto free_it;
- 				else {
-+					/*
-+					 * rare race with speculative reference.
-+					 * the speculative reference will free
-+					 * this page shortly, so we may
-+					 * increment nr_reclaimed here (and
-+					 * leave it off the LRU).
-+					 */
- 					nr_reclaimed++;
- 					continue;
- 				}
-@@ -628,8 +635,8 @@ static unsigned long shrink_page_list(st
- 		if (!mapping || !__remove_mapping(mapping, page))
- 			goto keep_locked;
- 
--free_it:
- 		unlock_page(page);
-+free_it:
- 		nr_reclaimed++;
- 		if (!pagevec_add(&freed_pvec, page)) {
- 			__pagevec_free(&freed_pvec);
+-static void zero_ctor(void *addr)
+-{
+-	memset(addr, 0, HUGEPTE_TABLE_SIZE);
+-}
+-
+ static int __init hugetlbpage_init(void)
+ {
+ 	unsigned int psize;
+@@ -756,7 +751,7 @@ static int __init hugetlbpage_init(void)
+ 						HUGEPTE_TABLE_SIZE(psize),
+ 						HUGEPTE_TABLE_SIZE(psize),
+ 						0,
+-						zero_ctor);
++						NULL);
+ 			if (!huge_pgtable_cache(psize))
+ 				panic("hugetlbpage_init(): could not create %s"\
+ 				      "\n", HUGEPTE_CACHE_NAME(psize));
 _
 
-Patches currently in -mm which might be from nickpiggin@yahoo.com.au are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+uninline-arch_pick_mmap_layout.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error.patch
+x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary.patch
+tpm-increase-size-of-internal-tpm-response-buffers.patch
+memstick-allow-set_param-method-to-return-an-error-code.patch
+memstick-use-fully-asynchronous-request-processing.patch
+full-conversion-to-early_initcall-interface-remove-old-interface.patch
+mm-introduce-get_user_pages_fast.patch
+x86-lockless-get_user_pages_fast.patch
 mm-speculative-page-references.patch
-mm-speculative-page-references-fix-fix.patch
-mm-speculative-page-references-hugh-fix3.patch
-mm-speculative-page-references-fix-migration_entry_wait-for-speculative-page-cache.patch
-ramfs-and-ram-disk-pages-are-unevictable-undo-the-brdc-part.patch
-mlock-mlocked-pages-are-unevictable-restore-patch-failure-hunk-of-mlock-mlocked-pages-are-unevictablepatch.patch
 slb-drop-kmem-cache-argument-from-constructor.patch
 slb-drop-kmem-cache-argument-from-constructor-fix.patch
 slb-drop-kmem-cache-argument-from-constructor-fix-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
 slb-drop-kmem-cache-argument-from-constructor-ubifs.patch
-powerpc-hugetlb-pgtable-cache-access-cleanup.patch
+video-console-sticonrec-make-code-static-checkpatch-fixes.patch
+reiser4.patch
 reiser4-tree_lock-fixes.patch
 reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
