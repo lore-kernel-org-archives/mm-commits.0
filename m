@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + signalfd-fix-undefined-reference-to-compat_sys_signalfd4.patch added to -mm tree
-Date: Fri, 25 Jul 2008 05:22:59 -0700
-Message-ID: <200807251222.m6PCMxqA010352@imap1.linux-foundation.org>
+Subject: + mm-hugetlbc-fix-build-failure.patch added to -mm tree
+Date: Fri, 25 Jul 2008 05:22:57 -0700
+Message-ID: <200807251222.m6PCMvqL010349@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34378 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50857 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750943AbYGYMXS (ORCPT
+	by vger.kernel.org with ESMTP id S1752480AbYGYMXZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 08:23:18 -0400
+	Fri, 25 Jul 2008 08:23:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mingo@elte.hu
 
 
 The patch titled
-     signalfd: fix undefined reference to `compat_sys_signalfd4'
+     mm/hugetlb.c: fix build failure
 has been added to the -mm tree.  Its filename is
-     signalfd-fix-undefined-reference-to-compat_sys_signalfd4.patch
+     mm-hugetlbc-fix-build-failure.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,63 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: signalfd: fix undefined reference to `compat_sys_signalfd4'
+Subject: mm/hugetlb.c: fix build failure
 From: Ingo Molnar <mingo@elte.hu>
 
-fix:
 
-arch/x86/ia32/built-in.o: In function `ia32_sys_call_table':
-(.rodata+0xa38): undefined reference to `compat_sys_signalfd4'
+on !CONFIG_SYSCTL on x86 with latest -git i get:
 
-on !CONFIG_SIGNALFD.
+     mm/hugetlb.c: In function 'decrement_hugepage_resv_vma':
+     mm/hugetlb.c:83: error: 'reserve' undeclared (first use in this function)
+     mm/hugetlb.c:83: error: (Each undeclared identifier is reported only once
+     mm/hugetlb.c:83: error: for each function it appears in.)
 
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys_ni.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/hugetlb.c |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN kernel/sys_ni.c~signalfd-fix-undefined-reference-to-compat_sys_signalfd4 kernel/sys_ni.c
---- a/kernel/sys_ni.c~signalfd-fix-undefined-reference-to-compat_sys_signalfd4
-+++ a/kernel/sys_ni.c
-@@ -160,6 +160,7 @@ cond_syscall(sys_ioprio_get);
- cond_syscall(sys_signalfd);
- cond_syscall(sys_signalfd4);
- cond_syscall(compat_sys_signalfd);
-+cond_syscall(compat_sys_signalfd4);
- cond_syscall(sys_timerfd_create);
- cond_syscall(sys_timerfd_settime);
- cond_syscall(sys_timerfd_gettime);
+diff -puN mm/hugetlb.c~mm-hugetlbc-fix-build-failure mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlbc-fix-build-failure
++++ a/mm/hugetlb.c
+@@ -1026,6 +1026,17 @@ static void __init report_hugepages(void
+ 	}
+ }
+ 
++static unsigned int cpuset_mems_nr(unsigned int *array)
++{
++	int node;
++	unsigned int nr = 0;
++
++	for_each_node_mask(node, cpuset_current_mems_allowed)
++		nr += array[node];
++
++	return nr;
++}
++
+ #ifdef CONFIG_SYSCTL
+ #ifdef CONFIG_HIGHMEM
+ static void try_to_free_low(struct hstate *h, unsigned long count)
+@@ -1375,17 +1386,6 @@ static int __init hugetlb_default_setup(
+ }
+ __setup("default_hugepagesz=", hugetlb_default_setup);
+ 
+-static unsigned int cpuset_mems_nr(unsigned int *array)
+-{
+-	int node;
+-	unsigned int nr = 0;
+-
+-	for_each_node_mask(node, cpuset_current_mems_allowed)
+-		nr += array[node];
+-
+-	return nr;
+-}
+-
+ int hugetlb_sysctl_handler(struct ctl_table *table, int write,
+ 			   struct file *file, void __user *buffer,
+ 			   size_t *length, loff_t *ppos)
 _
 
 Patches currently in -mm which might be from mingo@elte.hu are
