@@ -1,79 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - proc-remove-pathetic-remount-code.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 16:02:13 -0700
-Message-ID: <200807252302.m6PN2D6C003807@imap1.linux-foundation.org>
+Subject: - shrink-struct-pid-by-removing-padding-on-64-bit-builds.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 16:02:26 -0700
+Message-ID: <200807252302.m6PN2Q5P003825@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41911 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46033 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753211AbYGYXCp (ORCPT
+	by vger.kernel.org with ESMTP id S1753386AbYGYXC4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:02:45 -0400
+	Fri, 25 Jul 2008 19:02:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, mm-commits@vger.kernel.org
+To: richard@rsk.demon.co.uk, ebiederm@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     proc: remove pathetic remount code
+     shrink struct pid by removing padding on 64 bit builds
 has been removed from the -mm tree.  Its filename was
-     proc-remove-pathetic-remount-code.patch
+     shrink-struct-pid-by-removing-padding-on-64-bit-builds.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc: remove pathetic remount code
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: shrink struct pid by removing padding on 64 bit builds
+From: Richard Kennedy <richard@rsk.demon.co.uk>
 
-MS_RMT_MASK will unmask changes in do_remount_sb() anyway.
+When struct pid is built on a 64 bit platform gcc has to insert padding to
+maintain the correct alignment, by simply reordering its members the
+memory usage shrinks from 88 bytes to 80.
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+I've successfully run with this patch on my desktop AMD64 machine.
+
+There are no significant kernel size changes to a default config.X86_64
+on the latest git v2.6.26-rc1
+
+   text    data     bss     dec     hex filename
+5404828  976760  734280 7115868  6c945c vmlinux
+5404811  976760  734280 7115851  6c944b vmlinux.pid-patch
+
+Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/inode.c |    7 -------
- 1 file changed, 7 deletions(-)
+ include/linux/pid.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/proc/inode.c~proc-remove-pathetic-remount-code fs/proc/inode.c
---- a/fs/proc/inode.c~proc-remove-pathetic-remount-code
-+++ a/fs/proc/inode.c
-@@ -111,19 +111,12 @@ int __init proc_init_inodecache(void)
- 	return 0;
- }
- 
--static int proc_remount(struct super_block *sb, int *flags, char *data)
--{
--	*flags |= MS_NODIRATIME;
--	return 0;
--}
--
- static const struct super_operations proc_sops = {
- 	.alloc_inode	= proc_alloc_inode,
- 	.destroy_inode	= proc_destroy_inode,
- 	.drop_inode	= generic_delete_inode,
- 	.delete_inode	= proc_delete_inode,
- 	.statfs		= simple_statfs,
--	.remount_fs	= proc_remount,
+diff -puN include/linux/pid.h~shrink-struct-pid-by-removing-padding-on-64-bit-builds include/linux/pid.h
+--- a/include/linux/pid.h~shrink-struct-pid-by-removing-padding-on-64-bit-builds
++++ a/include/linux/pid.h
+@@ -57,10 +57,10 @@ struct upid {
+ struct pid
+ {
+ 	atomic_t count;
++	unsigned int level;
+ 	/* lists of tasks that use this pid */
+ 	struct hlist_head tasks[PIDTYPE_MAX];
+ 	struct rcu_head rcu;
+-	unsigned int level;
+ 	struct upid numbers[1];
  };
  
- static void __pde_users_dec(struct proc_dir_entry *pde)
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from richard@rsk.demon.co.uk are
 
 origin.patch
-linux-next.patch
-mpt-remove-unused-struct-mpt_proc_entry_t.patch
-cdc-acm-dont-unlock-acm-mutex-on-error-path.patch
-slb-drop-kmem-cache-argument-from-constructor.patch
-slb-drop-kmem-cache-argument-from-constructor-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-fix-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
-slb-drop-kmem-cache-argument-from-constructor-ubifs.patch
-use-warn-in-fs-proc.patch
-proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
-likely_prof-changed-to-use-proc_create.patch
-proc-remove-proc_root-from-drivers-likelyprof.patch
 
