@@ -1,77 +1,238 @@
 From: akpm@linux-foundation.org
-Subject: - cpuset-code-cleanup-for-started_after.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 15:59:11 -0700
-Message-ID: <200807252259.m6PMxBxB003359@imap1.linux-foundation.org>
+Subject: - reiserfs-correct-mount-option-parsing-to-detect-when-quota-options-can-be-changed.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 15:57:12 -0700
+Message-ID: <200807252257.m6PMvCAr003162__36494.8994284079$1217027294$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36579 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38518 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754690AbYGYXGq (ORCPT
+	by vger.kernel.org with ESMTP id S1754537AbYGYXGj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:06:46 -0400
+	Fri, 25 Jul 2008 19:06:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: laijs@cn.fujitsu.com, menage@google.com, pj@sgi.com, mm-commits@vger.kernel.org
+To: jack@suse.cz, reiserfs-devel@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cpuset: code-cleanup for started_after
+     reiserfs: correct mount option parsing to detect when quota options can be changed
 has been removed from the -mm tree.  Its filename was
-     cpuset-code-cleanup-for-started_after.patch
+     reiserfs-correct-mount-option-parsing-to-detect-when-quota-options-can-be-changed.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpuset: code-cleanup for started_after
-From: Lai Jiangshan <laijs@cn.fujitsu.com>
+Subject: reiserfs: correct mount option parsing to detect when quota options can be changed
+From: Jan Kara <jack@suse.cz>
 
-cgroup(cgroup_scan_tasks) will initialize heap->gt for us.  This patch
-removes started_after() and its helper-function.
+We should not allow user to change quota mount options when quota is just
+suspended.  It would make mount options and internal quota state inconsistent.
 
-Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
-Acked-by: Paul Menage <menage@google.com>
-Cc: Paul Jackson <pj@sgi.com>
+Also we should not allow user to change quota format when quota is turned on. 
+On the other hand we can just silently ignore when some option is set to the
+value it already has (some mount versions do this on remount).  Finally, we
+should not discard current quota options if parsing of mount options fails.
+
+Cc: <reiserfs-devel@vger.kernel.org>
+Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpuset.c |   37 ++++++-------------------------------
- 1 file changed, 6 insertions(+), 31 deletions(-)
+ fs/reiserfs/super.c |   83 ++++++++++++++++++++++++++++++------------
+ 1 file changed, 60 insertions(+), 23 deletions(-)
 
-diff -puN kernel/cpuset.c~cpuset-code-cleanup-for-started_after kernel/cpuset.c
---- a/kernel/cpuset.c~cpuset-code-cleanup-for-started_after
-+++ a/kernel/cpuset.c
-@@ -709,36 +709,6 @@ done:
- 	/* Don't kfree(dattr) -- partition_sched_domains() does that. */
+diff -puN fs/reiserfs/super.c~reiserfs-correct-mount-option-parsing-to-detect-when-quota-options-can-be-changed fs/reiserfs/super.c
+--- a/fs/reiserfs/super.c~reiserfs-correct-mount-option-parsing-to-detect-when-quota-options-can-be-changed
++++ a/fs/reiserfs/super.c
+@@ -876,7 +876,9 @@ static int reiserfs_parse_options(struct
+ 				     mount options were selected. */
+ 				  unsigned long *blocks,	/* strtol-ed from NNN of resize=NNN */
+ 				  char **jdev_name,
+-				  unsigned int *commit_max_age)
++				  unsigned int *commit_max_age,
++				  char **qf_names,
++				  unsigned int *qfmt)
+ {
+ 	int c;
+ 	char *arg = NULL;
+@@ -992,7 +994,9 @@ static int reiserfs_parse_options(struct
+ 		if (c == 'u' || c == 'g') {
+ 			int qtype = c == 'u' ? USRQUOTA : GRPQUOTA;
+ 
+-			if (sb_any_quota_enabled(s)) {
++			if ((sb_any_quota_enabled(s) ||
++			     sb_any_quota_suspended(s)) &&
++			    (!*arg != !REISERFS_SB(s)->s_qf_names[qtype])) {
+ 				reiserfs_warning(s,
+ 						 "reiserfs_parse_options: cannot change journaled quota options when quota turned on.");
+ 				return 0;
+@@ -1011,30 +1015,39 @@ static int reiserfs_parse_options(struct
+ 							 "reiserfs_parse_options: quotafile must be on filesystem root.");
+ 					return 0;
+ 				}
+-				REISERFS_SB(s)->s_qf_names[qtype] =
++				qf_names[qtype] =
+ 				    kmalloc(strlen(arg) + 1, GFP_KERNEL);
+-				if (!REISERFS_SB(s)->s_qf_names[qtype]) {
++				if (!qf_names[qtype]) {
+ 					reiserfs_warning(s,
+ 							 "reiserfs_parse_options: not enough memory for storing quotafile name.");
+ 					return 0;
+ 				}
+-				strcpy(REISERFS_SB(s)->s_qf_names[qtype], arg);
++				strcpy(qf_names[qtype], arg);
+ 				*mount_options |= 1 << REISERFS_QUOTA;
+ 			} else {
+-				kfree(REISERFS_SB(s)->s_qf_names[qtype]);
+-				REISERFS_SB(s)->s_qf_names[qtype] = NULL;
++				if (qf_names[qtype] !=
++				    REISERFS_SB(s)->s_qf_names[qtype])
++					kfree(qf_names[qtype]);
++				qf_names[qtype] = NULL;
+ 			}
+ 		}
+ 		if (c == 'f') {
+ 			if (!strcmp(arg, "vfsold"))
+-				REISERFS_SB(s)->s_jquota_fmt = QFMT_VFS_OLD;
++				*qfmt = QFMT_VFS_OLD;
+ 			else if (!strcmp(arg, "vfsv0"))
+-				REISERFS_SB(s)->s_jquota_fmt = QFMT_VFS_V0;
++				*qfmt = QFMT_VFS_V0;
+ 			else {
+ 				reiserfs_warning(s,
+ 						 "reiserfs_parse_options: unknown quota format specified.");
+ 				return 0;
+ 			}
++			if ((sb_any_quota_enabled(s) ||
++			     sb_any_quota_suspended(s)) &&
++			    *qfmt != REISERFS_SB(s)->s_jquota_fmt) {
++				reiserfs_warning(s,
++						 "reiserfs_parse_options: cannot change journaled quota options when quota turned on.");
++				return 0;
++			}
+ 		}
+ #else
+ 		if (c == 'u' || c == 'g' || c == 'f') {
+@@ -1046,9 +1059,8 @@ static int reiserfs_parse_options(struct
+ 	}
+ 
+ #ifdef CONFIG_QUOTA
+-	if (!REISERFS_SB(s)->s_jquota_fmt
+-	    && (REISERFS_SB(s)->s_qf_names[USRQUOTA]
+-		|| REISERFS_SB(s)->s_qf_names[GRPQUOTA])) {
++	if (!REISERFS_SB(s)->s_jquota_fmt && !*qfmt
++	    && (qf_names[USRQUOTA] || qf_names[GRPQUOTA])) {
+ 		reiserfs_warning(s,
+ 				 "reiserfs_parse_options: journaled quota format not specified.");
+ 		return 0;
+@@ -1130,6 +1142,21 @@ static void handle_attrs(struct super_bl
+ 	}
  }
  
--static inline int started_after_time(struct task_struct *t1,
--				     struct timespec *time,
--				     struct task_struct *t2)
--{
--	int start_diff = timespec_compare(&t1->start_time, time);
--	if (start_diff > 0) {
--		return 1;
--	} else if (start_diff < 0) {
--		return 0;
--	} else {
--		/*
--		 * Arbitrarily, if two processes started at the same
--		 * time, we'll say that the lower pointer value
--		 * started first. Note that t2 may have exited by now
--		 * so this may not be a valid pointer any longer, but
--		 * that's fine - it still serves to distinguish
--		 * between two tasks started (effectively)
--		 * simultaneously.
--		 */
--		return t1 > t2;
--	}
--}
--
--static inline int started_after(void *p1, void *p2)
--{
--	struct task_struct *t1 = p1;
--	struct task_struct *t2 = p2;
--	return started_after_time(t1, &t2->start_time, t2);
--}
++#ifdef CONFIG_QUOTA
++static void handle_quota_files(struct super_block *s, char **qf_names,
++			       unsigned int *qfmt)
++{
++	int i;
++
++	for (i = 0; i < MAXQUOTAS; i++) {
++		if (qf_names[i] != REISERFS_SB(s)->s_qf_names[i])
++			kfree(REISERFS_SB(s)->s_qf_names[i]);
++		REISERFS_SB(s)->s_qf_names[i] = qf_names[i];
++	}
++	REISERFS_SB(s)->s_jquota_fmt = *qfmt;
++}
++#endif
++
+ static int reiserfs_remount(struct super_block *s, int *mount_flags, char *arg)
+ {
+ 	struct reiserfs_super_block *rs;
+@@ -1141,23 +1168,30 @@ static int reiserfs_remount(struct super
+ 	struct reiserfs_journal *journal = SB_JOURNAL(s);
+ 	char *new_opts = kstrdup(arg, GFP_KERNEL);
+ 	int err;
++	char *qf_names[MAXQUOTAS];
++	unsigned int qfmt = 0;
+ #ifdef CONFIG_QUOTA
+ 	int i;
++
++	memcpy(qf_names, REISERFS_SB(s)->s_qf_names, sizeof(qf_names));
+ #endif
+ 
+ 	rs = SB_DISK_SUPER_BLOCK(s);
+ 
+ 	if (!reiserfs_parse_options
+-	    (s, arg, &mount_options, &blocks, NULL, &commit_max_age)) {
++	    (s, arg, &mount_options, &blocks, NULL, &commit_max_age,
++	    qf_names, &qfmt)) {
+ #ifdef CONFIG_QUOTA
+-		for (i = 0; i < MAXQUOTAS; i++) {
+-			kfree(REISERFS_SB(s)->s_qf_names[i]);
+-			REISERFS_SB(s)->s_qf_names[i] = NULL;
+-		}
++		for (i = 0; i < MAXQUOTAS; i++)
++			if (qf_names[i] != REISERFS_SB(s)->s_qf_names[i])
++				kfree(qf_names[i]);
+ #endif
+ 		err = -EINVAL;
+ 		goto out_err;
+ 	}
++#ifdef CONFIG_QUOTA
++	handle_quota_files(s, qf_names, &qfmt);
++#endif
+ 
+ 	handle_attrs(s);
+ 
+@@ -1570,6 +1604,8 @@ static int reiserfs_fill_super(struct su
+ 	char *jdev_name;
+ 	struct reiserfs_sb_info *sbi;
+ 	int errval = -EINVAL;
++	char *qf_names[MAXQUOTAS] = {};
++	unsigned int qfmt = 0;
+ 
+ 	save_mount_options(s, data);
+ 
+@@ -1597,9 +1633,12 @@ static int reiserfs_fill_super(struct su
+ 	jdev_name = NULL;
+ 	if (reiserfs_parse_options
+ 	    (s, (char *)data, &(sbi->s_mount_opt), &blocks, &jdev_name,
+-	     &commit_max_age) == 0) {
++	     &commit_max_age, qf_names, &qfmt) == 0) {
+ 		goto error;
+ 	}
++#ifdef CONFIG_QUOTA
++	handle_quota_files(s, qf_names, &qfmt);
++#endif
+ 
+ 	if (blocks) {
+ 		SWARN(silent, s, "jmacd-7: reiserfs_fill_super: resize option "
+@@ -1819,7 +1858,7 @@ static int reiserfs_fill_super(struct su
+ 
+ 	return (0);
+ 
+-      error:
++error:
+ 	if (jinit_done) {	/* kill the commit thread, free journal ram */
+ 		journal_release_error(NULL, s);
+ 	}
+@@ -1830,10 +1869,8 @@ static int reiserfs_fill_super(struct su
+ #ifdef CONFIG_QUOTA
+ 	{
+ 		int j;
+-		for (j = 0; j < MAXQUOTAS; j++) {
+-			kfree(sbi->s_qf_names[j]);
+-			sbi->s_qf_names[j] = NULL;
+-		}
++		for (j = 0; j < MAXQUOTAS; j++)
++			kfree(qf_names[j]);
+ 	}
+ #endif
+ 	kfree(sbi);
+_
+
+Patches currently in -mm which might be from jack@suse.cz are
+
+origin.patch
+
