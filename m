@@ -1,79 +1,132 @@
 From: akpm@linux-foundation.org
-Subject: - proc-always-do-release-fix.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 17:35:43 -0700
-Message-ID: <200807250035.m6P0Zhs1014499@imap1.linux-foundation.org>
+Subject: - edac-i5100-cleanup-fix.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 17:36:55 -0700
+Message-ID: <200807250036.m6P0atpm014528@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40097 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48400 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753108AbYGYAfq (ORCPT
+	by vger.kernel.org with ESMTP id S1752848AbYGYAg6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 20:35:46 -0400
+	Thu, 24 Jul 2008 20:36:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: ajones@riverbed.com, dougthompson@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     proc-always-do-release fix
+     drivers/edac: i5100 cleanup addendum
 has been removed from the -mm tree.  Its filename was
-     proc-always-do-release-fix.patch
+     edac-i5100-cleanup-fix.patch
 
-This patch was dropped because it was folded into proc-always-do-release.patch
+This patch was dropped because it was folded into edac-i5100-cleanup.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc-always-do-release fix
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: drivers/edac: i5100 cleanup addendum
+From: Arthur Jones <ajones@riverbed.com>
 
-Don't add ->release'less PDEs into openers list.
+This follow-on cleanup patch fixes the following compiler warnings found
+by Andrew Morton:
 
-This fixes possible call to NULL if ->release is not needed for some reason.
+drivers/edac/i5100_edac.c:258: warning: function declaration isn't a prototype
+drivers/edac/i5100_edac.c:263: warning: function declaration isn't a prototype
+drivers/edac/i5100_edac.c: In function 'i5100_ctl_page_to_phys':
+drivers/edac/i5100_edac.c:372: warning: left shift count >= width of type
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+The i5100_ctl_page_to_phys was not used, it will be
+re-added when the controller -> cpu address space
+translations work.
+
+Signed-off-by: Arthur Jones <ajones@riverbed.com>
+Cc: Doug Thompson <dougthompson@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/generic.c |    3 +--
- fs/proc/inode.c   |    2 +-
- 2 files changed, 2 insertions(+), 3 deletions(-)
+ drivers/edac/i5100_edac.c |   39 ++----------------------------------
+ 1 file changed, 3 insertions(+), 36 deletions(-)
 
-diff -puN fs/proc/generic.c~proc-always-do-release-fix fs/proc/generic.c
---- a/fs/proc/generic.c~proc-always-do-release-fix
-+++ a/fs/proc/generic.c
-@@ -797,8 +797,7 @@ continue_removing:
- 		pdeo = list_first_entry(&de->pde_openers, struct pde_opener, lh);
- 		list_del(&pdeo->lh);
- 		spin_unlock(&de->pde_unload_lock);
--		if (pdeo->release)
--			pdeo->release(pdeo->inode, pdeo->file);
-+		pdeo->release(pdeo->inode, pdeo->file);
- 		kfree(pdeo);
- 		spin_lock(&de->pde_unload_lock);
- 	}
-diff -puN fs/proc/inode.c~proc-always-do-release-fix fs/proc/inode.c
---- a/fs/proc/inode.c~proc-always-do-release-fix
-+++ a/fs/proc/inode.c
-@@ -360,7 +360,7 @@ static int proc_reg_open(struct inode *i
- 		rv = open(inode, file);
+diff -puN drivers/edac/i5100_edac.c~edac-i5100-cleanup-fix drivers/edac/i5100_edac.c
+--- a/drivers/edac/i5100_edac.c~edac-i5100-cleanup-fix
++++ a/drivers/edac/i5100_edac.c
+@@ -254,12 +254,12 @@ static inline u32 i5100_recmema_dm_buf_i
+ 	return i5100_nrecmema_dm_buf_id(a);
+ }
  
- 	spin_lock(&pde->pde_unload_lock);
--	if (rv == 0) {
-+	if (rv == 0 && release) {
- 		/* To know what to release. */
- 		pdeo->inode = inode;
- 		pdeo->file = file;
+-static inline u32 i5100_recmemb_cas(a)
++static inline u32 i5100_recmemb_cas(u32 a)
+ {
+ 	return i5100_nrecmemb_cas(a);
+ }
+ 
+-static inline u32 i5100_recmemb_ras(a)
++static inline u32 i5100_recmemb_ras(u32 a)
+ {
+ 	return i5100_nrecmemb_ras(a);
+ }
+@@ -339,39 +339,6 @@ static int i5100_rank_to_slot(const stru
+ 	return -1;
+ }
+ 
+-/*
+- * The processor bus memory addresses are broken into three
+- * pieces, whereas the controller addresses are contiguous.
+- *
+- * here we map from the controller address space to the
+- * processor address space:
+- *
+- *    Processor Address Space
+- * +-----------------------------+
+- * |                             |
+- * |  "high" memory addresses    |
+- * |                             |
+- * +-----------------------------+ <- 4GB on the i5100
+- * |                             |
+- * |  other non-memory addresses |
+- * |                             |
+- * +-----------------------------+ <- top of low memory
+- * |                             |
+- * | "low" memory addresses      |
+- * |                             |
+- * +-----------------------------+
+- */
+-static unsigned long i5100_ctl_page_to_phys(struct mem_ctl_info *mci,
+-					    unsigned long cntlr_addr)
+-{
+-	const struct i5100_priv *priv = mci->pvt_info;
+-
+-	if (cntlr_addr < priv->tolm)
+-		return cntlr_addr;
+-
+-	return (1UL << 32) + (cntlr_addr - priv->tolm);
+-}
+-
+ static const char *i5100_err_msg(unsigned err)
+ {
+ 	static const char *merrs[] = {
+@@ -912,7 +879,7 @@ static int __devinit i5100_init_one(stru
+ 	mci->mod_ver = "not versioned";
+ 	mci->ctl_name = "i5100";
+ 	mci->dev_name = pci_name(pdev);
+-	mci->ctl_page_to_phys = i5100_ctl_page_to_phys;
++	mci->ctl_page_to_phys = NULL;
+ 
+ 	mci->edac_check = i5100_check_error;
+ 
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from ajones@riverbed.com are
 
-origin.patch
-move-proc_kmsg_operations-to-fs-proc-internalh.patch
-proc-always-do-release.patch
-proc-always-do-release-fix.patch
-proc-remove-pathetic-remount-code.patch
-proc-move-kconfig-to-fs-proc-kconfig.patch
-sysctl-allow-override-of-proc-sys-net-with-cap_net_admin.patch
+edac-i5100-new-intel-chipset-driver.patch
+edac-i5100-fix-missing-bits.patch
+edac-i5100-fix-enable-ecc-hardware.patch
+edac-i5100-fix-unmask-ecc-bits.patch
+edac-i5100-cleanup.patch
+edac-i5100-cleanup-fix.patch
+edac-core-fix-to-use-dynamic-kobject.patch
+edac-core-fix-workq-timer.patch
+edac-core-fix-redundant-sysfs-controls-to-parameters.patch
+edac-core-fix-static-to-dynamic-kset.patch
+edac-core-fix-added-newline-to-sysfs-dimm-labels.patch
 
