@@ -1,131 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: - atmel_lcdfb-avoid-division-by-zero.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 16:32:43 -0700
-Message-ID: <200807242332.m6ONWh5U011860@imap1.linux-foundation.org>
+Subject: - locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 17:09:40 -0700
+Message-ID: <200807250009.m6P09eUc013332@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39591 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49875 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753944AbYGXXfR (ORCPT
+	by vger.kernel.org with ESMTP id S1752146AbYGYAKl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 19:35:17 -0400
+	Thu, 24 Jul 2008 20:10:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nicolas.ferre@atmel.com, adaplas@pol.net, hskinnemoen@atmel.com, krzysztof.h1@poczta.fm, linux@maxim.org.za, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mingo@elte.hu, rostedt@goodmis.org, srostedt@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atmel_lcdfb: avoid division by zero
+     locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix
 has been removed from the -mm tree.  Its filename was
-     atmel_lcdfb-avoid-division-by-zero.patch
+     locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was folded into locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atmel_lcdfb: avoid division by zero
-From: Nicolas Ferre <nicolas.ferre@atmel.com>
+Subject: locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Avoid division by zero in  atmel_lcdfb_check_var() function.
-
-If pixclock is not specified while passing a var structure in
-the check_var() funtion, a division by zero occurs (when
-translating pixclock to KHz).
-
-This patch adds a checking of this value and try to choose a
-video mode in the modelist.
-
-The mode found in the probe function in added to the modelist.
-
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Nicolas Ferre <nicolas.ferre@atmel.com>
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Cc: Andrew Victor <linux@maxim.org.za>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Steven Rostedt <srostedt@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/atmel_lcdfb.c |   35 ++++++++++++++++++++++++++++++++++
- 1 file changed, 35 insertions(+)
+ include/linux/irqflags.h |    2 ++
+ include/linux/spinlock.h |    1 +
+ 2 files changed, 3 insertions(+)
 
-diff -puN drivers/video/atmel_lcdfb.c~atmel_lcdfb-avoid-division-by-zero drivers/video/atmel_lcdfb.c
---- a/drivers/video/atmel_lcdfb.c~atmel_lcdfb-avoid-division-by-zero
-+++ a/drivers/video/atmel_lcdfb.c
-@@ -256,6 +256,20 @@ static int atmel_lcdfb_alloc_video_memor
- 	return 0;
- }
+diff -puN include/linux/irqflags.h~locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix include/linux/irqflags.h
+--- a/include/linux/irqflags.h~locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix
++++ a/include/linux/irqflags.h
+@@ -11,6 +11,8 @@
+ #ifndef _LINUX_TRACE_IRQFLAGS_H
+ #define _LINUX_TRACE_IRQFLAGS_H
  
-+static const struct fb_videomode *atmel_lcdfb_choose_mode(struct fb_var_screeninfo *var,
-+						     struct fb_info *info)
-+{
-+	struct fb_videomode varfbmode;
-+	const struct fb_videomode *fbmode = NULL;
++#include <linux/typecheck.h>
 +
-+	fb_var_to_videomode(&varfbmode, var);
-+	fbmode = fb_find_nearest_mode(&varfbmode, &info->modelist);
-+	if (fbmode)
-+		fb_videomode_to_var(var, fbmode);
-+	return fbmode;
-+}
-+
-+
- /**
-  *      atmel_lcdfb_check_var - Validates a var passed in.
-  *      @var: frame buffer variable screen structure
-@@ -289,6 +303,15 @@ static int atmel_lcdfb_check_var(struct 
- 	clk_value_khz = clk_get_rate(sinfo->lcdc_clk) / 1000;
+ #ifdef CONFIG_TRACE_IRQFLAGS
+   extern void trace_softirqs_on(unsigned long ip);
+   extern void trace_softirqs_off(unsigned long ip);
+diff -puN include/linux/spinlock.h~locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix include/linux/spinlock.h
+--- a/include/linux/spinlock.h~locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix
++++ a/include/linux/spinlock.h
+@@ -46,6 +46,7 @@
+  *  linux/spinlock.h:     builds the final spin_*() APIs.
+  */
  
- 	dev_dbg(dev, "%s:\n", __func__);
-+
-+	if (!(var->pixclock && var->bits_per_pixel)) {
-+		/* choose a suitable mode if possible */
-+		if (!atmel_lcdfb_choose_mode(var, info)) {
-+			dev_err(dev, "needed value not specified\n");
-+			return -EINVAL;
-+		}
-+	}
-+
- 	dev_dbg(dev, "  resolution: %ux%u\n", var->xres, var->yres);
- 	dev_dbg(dev, "  pixclk:     %lu KHz\n", PICOS2KHZ(var->pixclock));
- 	dev_dbg(dev, "  bpp:        %u\n", var->bits_per_pixel);
-@@ -299,6 +322,13 @@ static int atmel_lcdfb_check_var(struct 
- 		return -EINVAL;
- 	}
- 
-+	/* Do not allow to have real resoulution larger than virtual */
-+	if (var->xres > var->xres_virtual)
-+		var->xres_virtual = var->xres;
-+
-+	if (var->yres > var->yres_virtual)
-+		var->yres_virtual = var->yres;
-+
- 	/* Force same alignment for each line */
- 	var->xres = (var->xres + 3) & ~3UL;
- 	var->xres_virtual = (var->xres_virtual + 3) & ~3UL;
-@@ -740,6 +770,7 @@ static int __init atmel_lcdfb_probe(stru
- 	struct fb_info *info;
- 	struct atmel_lcdfb_info *sinfo;
- 	struct atmel_lcdfb_info *pdata_sinfo;
-+	struct fb_videomode fbmode;
- 	struct resource *regs = NULL;
- 	struct resource *map = NULL;
- 	int ret;
-@@ -906,6 +937,10 @@ static int __init atmel_lcdfb_probe(stru
- 		goto free_cmap;
- 	}
- 
-+	/* add selected videomode to modelist */
-+	fb_var_to_videomode(&fbmode, &info->var);
-+	fb_add_videomode(&fbmode, &info->modelist);
-+
- 	/* Power up the LCDC screen */
- 	if (sinfo->atmel_lcdfb_power_control)
- 		sinfo->atmel_lcdfb_power_control(1);
++#include <linux/typecheck.h>
+ #include <linux/preempt.h>
+ #include <linux/linkage.h>
+ #include <linux/compiler.h>
 _
 
-Patches currently in -mm which might be from nicolas.ferre@atmel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+seq_file-fix-bug-when-seq_read-reads-nothing-fix.patch
+exec-remove-some-includes-fix.patch
+inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
+drivers-misc-hpiloc-needs-config_pci.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments.patch
+gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix.patch
+gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix-fix.patch
+gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix-fix-fix.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
+ext3-handle-corrupted-orphan-list-at-mount-cleanup.patch
+ext3-handle-corrupted-orphan-list-at-mount-fix.patch
+ext3-handle-corrupted-orphan-list-at-mount-cleanup-fix.patch
+ext3-handle-deleting-corrupted-indirect-blocks-fix.patch
+jbd-dont-abort-if-flushing-file-data-failed-fix.patch
+reiserfs-convert-j_flush_sem-to-mutex.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
+cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-fix.patch
+cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-checkpatch-fixes.patch
+devcgroup-code-cleanup-fix.patch
+memcg-remove-refcnt-from-page_cgroup-fix-2.patch
+memcg-limit-change-shrink-usage-checkpatch-fixes.patch
+coredump-format_corename-fix-the-core_uses_pid-logic-checkpatch-fixes.patch
+workqueues-make-get_online_cpus-useable-for-work-func-fix.patch
+ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
+fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
+block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
+getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
+edac-mpc85xx-fix-pci-ofdev-2nd-pass-checkpatch-fixes.patch
 
