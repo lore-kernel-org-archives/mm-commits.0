@@ -1,31 +1,43 @@
 From: akpm@linux-foundation.org
-Subject: - dma-mapping-add-the-device-argument-to-dma_mapping_error-more-sparc.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 16:39:58 -0700
-Message-ID: <200807252339.m6PNdwTv005494@imap1.linux-foundation.org>
+Subject: - dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 16:39:46 -0700
+Message-ID: <200807252339.m6PNdk6A005482@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53241 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54912 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754141AbYGYXk0 (ORCPT
+	by vger.kernel.org with ESMTP id S1753909AbYGYXlG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:40:26 -0400
+	Fri, 25 Jul 2008 19:41:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andi@firstfloor.org, avi@qumranet.com, davem@davemloft.net, fujita.tomonori@lab.ntt.co.jp, mingo@elte.hu, muli@il.ibm.com, tglx@linutronix.de, mm-commits@vge
+To: akpm@linux-foundation.org, andi@firstfloor.org, avi@qumranet.com, fujita.tomonori@lab.ntt.co.jp, mingo@elte.hu, muli@il.ibm.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dma-mapping-add-the-device-argument-to-dma_mapping_error-more-sparc
+     dma-mapping-x86-per-device-dma_mapping_ops-support-fix
 has been removed from the -mm tree.  Its filename was
-     dma-mapping-add-the-device-argument-to-dma_mapping_error-more-sparc.patch
+     dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
 
 This patch was dropped because it was folded into dma-mapping-add-the-device-argument-to-dma_mapping_error.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dma-mapping-add-the-device-argument-to-dma_mapping_error-more-sparc
+Subject: dma-mapping-x86-per-device-dma_mapping_ops-support-fix
 From: Andrew Morton <akpm@linux-foundation.org>
+
+In file included from include/linux/dma-mapping.h:52,
+                 from include/linux/dmaengine.h:29,
+                 from include/linux/skbuff.h:29,
+                 from include/linux/netlink.h:155,
+                 from include/linux/genetlink.h:4,
+                 from include/net/genetlink.h:4,
+                 from include/linux/taskstats_kern.h:12,
+                 from include/linux/delayacct.h:21,
+                 from fs/proc/array.c:80:
+include/asm/dma-mapping.h: In function 'dma_mapping_error':
+include/asm/dma-mapping.h:78: warning: unused variable 'ops'
 
 Cc: Andi Kleen <andi@firstfloor.org>
 Cc: Avi Kivity <avi@qumranet.com>
@@ -33,25 +45,28 @@ Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Muli Ben-Yehuda <muli@il.ibm.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-sparc/pci_64.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/asm-x86/dma-mapping.h |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN include/asm-sparc/pci_64.h~dma-mapping-add-the-device-argument-to-dma_mapping_error-more-sparc include/asm-sparc/pci_64.h
---- a/include/asm-sparc/pci_64.h~dma-mapping-add-the-device-argument-to-dma_mapping_error-more-sparc
-+++ a/include/asm-sparc/pci_64.h
-@@ -143,7 +143,7 @@ extern int pci_dma_supported(struct pci_
- static inline int pci_dma_mapping_error(struct pci_dev *pdev,
- 					dma_addr_t dma_addr)
+diff -puN include/asm-x86/dma-mapping.h~dma-mapping-x86-per-device-dma_mapping_ops-support-fix include/asm-x86/dma-mapping.h
+--- a/include/asm-x86/dma-mapping.h~dma-mapping-x86-per-device-dma_mapping_ops-support-fix
++++ a/include/asm-x86/dma-mapping.h
+@@ -74,11 +74,10 @@ static inline struct dma_mapping_ops *ge
+ /* Make sure we keep the same behaviour */
+ static inline int dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
  {
--	return dma_mapping_error(dma_addr);
-+	return dma_mapping_error(&pdev->dev, dma_addr);
- }
+-	struct dma_mapping_ops *ops = get_dma_ops(dev);
+-
+ #ifdef CONFIG_X86_32
+ 	return 0;
+ #else
++	struct dma_mapping_ops *ops = get_dma_ops(dev);
+ 	if (ops->mapping_error)
+ 		return ops->mapping_error(dev, dma_addr);
  
- #ifdef CONFIG_PCI
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -59,6 +74,9 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 uninline-arch_pick_mmap_layout.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sdhci-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-infiniband.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error-more-sparc.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error-ibmvscsi.patch
 x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary-checkpatch-fixes.patch
