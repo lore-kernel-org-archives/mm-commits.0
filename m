@@ -1,266 +1,252 @@
 From: akpm@linux-foundation.org
-Subject: - coda-remove-coda_fs_old_api.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 15:56:58 -0700
-Message-ID: <200807252256.m6PMuwQ4003138@imap1.linux-foundation.org>
+Subject: - proc-always-do-release.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 16:02:11 -0700
+Message-ID: <200807252302.m6PN2BlI003804@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47546 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46971 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754936AbYGYXGu (ORCPT
+	by vger.kernel.org with ESMTP id S1754581AbYGYXGi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:06:50 -0400
+	Fri, 25 Jul 2008 19:06:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, jaharkes@cs.cmu.edu, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     coda: remove CODA_FS_OLD_API
+     proc: always do ->release
 has been removed from the -mm tree.  Its filename was
-     coda-remove-coda_fs_old_api.patch
+     proc-always-do-release.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: coda: remove CODA_FS_OLD_API
-From: Adrian Bunk <bunk@kernel.org>
+Subject: proc: always do ->release
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-While fixing CONFIG_ leakages to the userspace kernel headers I ran into
-CODA_FS_OLD_API.
+Current two-stage scheme of removing PDE emphasizes one bug in proc:
 
-After five years, are there still people using the old API left? 
-Especially considering that you have to choose at compile time which API
-to support in the kernel (and distributions tend to offer the new API for
-some time).
+		open
+				rmmod
+				remove_proc_entry
+		close
 
-Jan: "The old API can definitely go.  Around the time the new
-      interface went in there were some non-Coda userspace file system
-      implementations that took a while longer to convert to the new API,
-      but by now they all switched to the new interface or in some cases
-      to a FUSE-based solution."
+->release won't be called because ->proc_fops were cleared.  In simple
+cases it's small memory leak.
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Acked-by: Jan Harkes <jaharkes@cs.cmu.edu>
+For every ->open, ->release has to be done.  List of openers is introduced
+which is traversed at remove_proc_entry() if neeeded.
+
+Discussions with Al long ago (sigh).
+
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/Kconfig           |   14 -------------
- fs/coda/coda_linux.c |    6 +----
- fs/coda/psdev.c      |    4 ---
- fs/coda/upcall.c     |   15 --------------
- include/linux/coda.h |   43 -----------------------------------------
- 5 files changed, 3 insertions(+), 79 deletions(-)
+ fs/proc/generic.c       |   14 +++++++
+ fs/proc/inode.c         |   74 +++++++++++++++++++++++++++++++++++---
+ fs/proc/internal.h      |    7 +++
+ include/linux/proc_fs.h |    1 
+ 4 files changed, 92 insertions(+), 4 deletions(-)
 
-diff -puN fs/Kconfig~coda-remove-coda_fs_old_api fs/Kconfig
---- a/fs/Kconfig~coda-remove-coda_fs_old_api
-+++ a/fs/Kconfig
-@@ -2093,20 +2093,6 @@ config CODA_FS
- 	  To compile the coda client support as a module, choose M here: the
- 	  module will be called coda.
+diff -puN fs/proc/generic.c~proc-always-do-release fs/proc/generic.c
+--- a/fs/proc/generic.c~proc-always-do-release
++++ a/fs/proc/generic.c
+@@ -597,6 +597,7 @@ static struct proc_dir_entry *__proc_cre
+ 	ent->pde_users = 0;
+ 	spin_lock_init(&ent->pde_unload_lock);
+ 	ent->pde_unload_completion = NULL;
++	INIT_LIST_HEAD(&ent->pde_openers);
+  out:
+ 	return ent;
+ }
+@@ -789,6 +790,19 @@ void remove_proc_entry(const char *name,
+ 	spin_unlock(&de->pde_unload_lock);
  
--config CODA_FS_OLD_API
--	bool "Use 96-bit Coda file identifiers"
--	depends on CODA_FS
--	help
--	  A new kernel-userspace API had to be introduced for Coda v6.0
--	  to support larger 128-bit file identifiers as needed by the
--	  new realms implementation.
--
--	  However this new API is not backward compatible with older
--	  clients. If you really need to run the old Coda userspace
--	  cache manager then say Y.
--
--	  For most cases you probably want to say N.
--
- config AFS_FS
- 	tristate "Andrew File System support (AFS) (EXPERIMENTAL)"
- 	depends on INET && EXPERIMENTAL
-diff -puN fs/coda/coda_linux.c~coda-remove-coda_fs_old_api fs/coda/coda_linux.c
---- a/fs/coda/coda_linux.c~coda-remove-coda_fs_old_api
-+++ a/fs/coda/coda_linux.c
-@@ -28,11 +28,9 @@ int coda_fake_statfs;
- char * coda_f2s(struct CodaFid *f)
+ continue_removing:
++	spin_lock(&de->pde_unload_lock);
++	while (!list_empty(&de->pde_openers)) {
++		struct pde_opener *pdeo;
++
++		pdeo = list_first_entry(&de->pde_openers, struct pde_opener, lh);
++		list_del(&pdeo->lh);
++		spin_unlock(&de->pde_unload_lock);
++		pdeo->release(pdeo->inode, pdeo->file);
++		kfree(pdeo);
++		spin_lock(&de->pde_unload_lock);
++	}
++	spin_unlock(&de->pde_unload_lock);
++
+ 	if (S_ISDIR(de->mode))
+ 		parent->nlink--;
+ 	de->nlink = 0;
+diff -puN fs/proc/inode.c~proc-always-do-release fs/proc/inode.c
+--- a/fs/proc/inode.c~proc-always-do-release
++++ a/fs/proc/inode.c
+@@ -126,12 +126,17 @@ static const struct super_operations pro
+ 	.remount_fs	= proc_remount,
+ };
+ 
+-static void pde_users_dec(struct proc_dir_entry *pde)
++static void __pde_users_dec(struct proc_dir_entry *pde)
  {
- 	static char s[60];
--#ifdef CONFIG_CODA_FS_OLD_API
-- 	sprintf(s, "(%08x.%08x.%08x)", f->opaque[0], f->opaque[1], f->opaque[2]);
--#else
+-	spin_lock(&pde->pde_unload_lock);
+ 	pde->pde_users--;
+ 	if (pde->pde_unload_completion && pde->pde_users == 0)
+ 		complete(pde->pde_unload_completion);
++}
 +
-  	sprintf(s, "(%08x.%08x.%08x.%08x)", f->opaque[0], f->opaque[1], f->opaque[2], f->opaque[3]);
--#endif
-+
- 	return s;
++static void pde_users_dec(struct proc_dir_entry *pde)
++{
++	spin_lock(&pde->pde_unload_lock);
++	__pde_users_dec(pde);
+ 	spin_unlock(&pde->pde_unload_lock);
  }
  
-diff -puN fs/coda/psdev.c~coda-remove-coda_fs_old_api fs/coda/psdev.c
---- a/fs/coda/psdev.c~coda-remove-coda_fs_old_api
-+++ a/fs/coda/psdev.c
-@@ -378,11 +378,7 @@ MODULE_AUTHOR("Jan Harkes, Peter J. Braa
- MODULE_DESCRIPTION("Coda Distributed File System VFS interface");
- MODULE_ALIAS_CHARDEV_MAJOR(CODA_PSDEV_MAJOR);
- MODULE_LICENSE("GPL");
--#ifdef CONFIG_CODA_FS_OLD_API
--MODULE_VERSION("5.3.21");
--#else
- MODULE_VERSION("6.6");
--#endif
- 
- static int __init init_coda(void)
- {
-diff -puN fs/coda/upcall.c~coda-remove-coda_fs_old_api fs/coda/upcall.c
---- a/fs/coda/upcall.c~coda-remove-coda_fs_old_api
-+++ a/fs/coda/upcall.c
-@@ -52,12 +52,8 @@ static void *alloc_upcall(int opcode, in
-         inp->ih.opcode = opcode;
- 	inp->ih.pid = current->pid;
- 	inp->ih.pgid = task_pgrp_nr(current);
--#ifdef CONFIG_CODA_FS_OLD_API
--	memset(&inp->ih.cred, 0, sizeof(struct coda_cred));
--	inp->ih.cred.cr_fsuid = current->fsuid;
--#else
- 	inp->ih.uid = current->fsuid;
--#endif
+@@ -318,36 +323,97 @@ static int proc_reg_open(struct inode *i
+ 	struct proc_dir_entry *pde = PDE(inode);
+ 	int rv = 0;
+ 	int (*open)(struct inode *, struct file *);
++	int (*release)(struct inode *, struct file *);
++	struct pde_opener *pdeo;
 +
- 	return (void*)inp;
++	/*
++	 * What for, you ask? Well, we can have open, rmmod, remove_proc_entry
++	 * sequence. ->release won't be called because ->proc_fops will be
++	 * cleared. Depending on complexity of ->release, consequences vary.
++	 *
++	 * We can't wait for mercy when close will be done for real, it's
++	 * deadlockable: rmmod foo </proc/foo . So, we're going to do ->release
++	 * by hand in remove_proc_entry(). For this, save opener's credentials
++	 * for later.
++	 */
++	pdeo = kmalloc(sizeof(struct pde_opener), GFP_KERNEL);
++	if (!pdeo)
++		return -ENOMEM;
+ 
+ 	spin_lock(&pde->pde_unload_lock);
+ 	if (!pde->proc_fops) {
+ 		spin_unlock(&pde->pde_unload_lock);
++		kfree(pdeo);
+ 		return rv;
+ 	}
+ 	pde->pde_users++;
+ 	open = pde->proc_fops->open;
++	release = pde->proc_fops->release;
+ 	spin_unlock(&pde->pde_unload_lock);
+ 
+ 	if (open)
+ 		rv = open(inode, file);
+ 
+-	pde_users_dec(pde);
++	spin_lock(&pde->pde_unload_lock);
++	if (rv == 0 && release) {
++		/* To know what to release. */
++		pdeo->inode = inode;
++		pdeo->file = file;
++		/* Strictly for "too late" ->release in proc_reg_release(). */
++		pdeo->release = release;
++		list_add(&pdeo->lh, &pde->pde_openers);
++	} else
++		kfree(pdeo);
++	__pde_users_dec(pde);
++	spin_unlock(&pde->pde_unload_lock);
+ 	return rv;
  }
  
-@@ -166,20 +162,11 @@ int venus_close(struct super_block *sb, 
- 	union inputArgs *inp;
- 	union outputArgs *outp;
- 	int insize, outsize, error;
--#ifdef CONFIG_CODA_FS_OLD_API
--	struct coda_cred cred = { 0, };
--	cred.cr_fsuid = uid;
--#endif
- 	
- 	insize = SIZE(release);
- 	UPARG(CODA_CLOSE);
- 	
--#ifdef CONFIG_CODA_FS_OLD_API
--	memcpy(&(inp->ih.cred), &cred, sizeof(cred));
--#else
- 	inp->ih.uid = uid;
--#endif
--	
-         inp->coda_close.VFid = *fid;
-         inp->coda_close.flags = flags;
++static struct pde_opener *find_pde_opener(struct proc_dir_entry *pde,
++					struct inode *inode, struct file *file)
++{
++	struct pde_opener *pdeo;
++
++	list_for_each_entry(pdeo, &pde->pde_openers, lh) {
++		if (pdeo->inode == inode && pdeo->file == file)
++			return pdeo;
++	}
++	return NULL;
++}
++
+ static int proc_reg_release(struct inode *inode, struct file *file)
+ {
+ 	struct proc_dir_entry *pde = PDE(inode);
+ 	int rv = 0;
+ 	int (*release)(struct inode *, struct file *);
++	struct pde_opener *pdeo;
  
-diff -puN include/linux/coda.h~coda-remove-coda_fs_old_api include/linux/coda.h
---- a/include/linux/coda.h~coda-remove-coda_fs_old_api
-+++ a/include/linux/coda.h
-@@ -199,28 +199,6 @@ typedef u_int32_t vuid_t;
- typedef u_int32_t vgid_t;
- #endif /*_VUID_T_ */
+ 	spin_lock(&pde->pde_unload_lock);
++	pdeo = find_pde_opener(pde, inode, file);
+ 	if (!pde->proc_fops) {
+-		spin_unlock(&pde->pde_unload_lock);
++		/*
++		 * Can't simply exit, __fput() will think that everything is OK,
++		 * and move on to freeing struct file. remove_proc_entry() will
++		 * find slacker in opener's list and will try to do non-trivial
++		 * things with struct file. Therefore, remove opener from list.
++		 *
++		 * But if opener is removed from list, who will ->release it?
++		 */
++		if (pdeo) {
++			list_del(&pdeo->lh);
++			spin_unlock(&pde->pde_unload_lock);
++			rv = pdeo->release(inode, file);
++			kfree(pdeo);
++		} else
++			spin_unlock(&pde->pde_unload_lock);
+ 		return rv;
+ 	}
+ 	pde->pde_users++;
+ 	release = pde->proc_fops->release;
++	if (pdeo) {
++		list_del(&pdeo->lh);
++		kfree(pdeo);
++	}
+ 	spin_unlock(&pde->pde_unload_lock);
  
--#ifdef CONFIG_CODA_FS_OLD_API
--struct CodaFid {
--	u_int32_t opaque[3];
--};
--
--static __inline__ ino_t  coda_f2i(struct CodaFid *fid)
--{
--	if ( ! fid ) 
--		return 0; 
--	if (fid->opaque[1] == 0xfffffffe || fid->opaque[1] == 0xffffffff)
--		return ((fid->opaque[0] << 20) | (fid->opaque[2] & 0xfffff));
--	else
--		return (fid->opaque[2] + (fid->opaque[1]<<10) + (fid->opaque[0]<<20));
--}
--
--struct coda_cred {
--    vuid_t cr_uid, cr_euid, cr_suid, cr_fsuid; /* Real, efftve, set, fs uid*/
--    vgid_t cr_groupid, cr_egid, cr_sgid, cr_fsgid; /* same for groups */
--};
--
--#else /* not defined(CONFIG_CODA_FS_OLD_API) */
--
- struct CodaFid {
- 	u_int32_t opaque[4];
- };
-@@ -228,8 +206,6 @@ struct CodaFid {
- #define coda_f2i(fid)\
- 	(fid ? (fid->opaque[3] ^ (fid->opaque[2]<<10) ^ (fid->opaque[1]<<20) ^ fid->opaque[0]) : 0)
- 
--#endif
--
- #ifndef _VENUS_VATTR_T_
- #define _VENUS_VATTR_T_
- /*
-@@ -313,15 +289,7 @@ struct coda_statfs {
- 
- #define CIOC_KERNEL_VERSION _IOWR('c', 10, size_t)
- 
--#if 0
--#define CODA_KERNEL_VERSION 0 /* don't care about kernel version number */
--#define CODA_KERNEL_VERSION 1 /* The old venus 4.6 compatible interface */
--#endif
--#ifdef CONFIG_CODA_FS_OLD_API
--#define CODA_KERNEL_VERSION 2 /* venus_lookup got an extra parameter */
--#else
- #define CODA_KERNEL_VERSION 3 /* 128-bit file identifiers */
--#endif
- 
- /*
-  *        Venus <-> Coda  RPC arguments
-@@ -329,16 +297,9 @@ struct coda_statfs {
- struct coda_in_hdr {
-     u_int32_t opcode;
-     u_int32_t unique;	    /* Keep multiple outstanding msgs distinct */
--#ifdef CONFIG_CODA_FS_OLD_API
--    u_int16_t pid;	    /* Common to all */
--    u_int16_t pgid;	    /* Common to all */
--    u_int16_t sid;          /* Common to all */
--    struct coda_cred cred;  /* Common to all */
--#else
-     pid_t pid;
-     pid_t pgid;
-     vuid_t uid;
--#endif
+ 	if (release)
+diff -puN fs/proc/internal.h~proc-always-do-release fs/proc/internal.h
+--- a/fs/proc/internal.h~proc-always-do-release
++++ a/fs/proc/internal.h
+@@ -89,3 +89,10 @@ struct dentry *proc_lookup_de(struct pro
+ 		struct dentry *dentry);
+ int proc_readdir_de(struct proc_dir_entry *de, struct file *filp, void *dirent,
+ 		filldir_t filldir);
++
++struct pde_opener {
++	struct inode *inode;
++	struct file *file;
++	int (*release)(struct inode *, struct file *);
++	struct list_head lh;
++};
+diff -puN include/linux/proc_fs.h~proc-always-do-release include/linux/proc_fs.h
+--- a/include/linux/proc_fs.h~proc-always-do-release
++++ a/include/linux/proc_fs.h
+@@ -79,6 +79,7 @@ struct proc_dir_entry {
+ 	int pde_users;	/* number of callers into module in progress */
+ 	spinlock_t pde_unload_lock; /* proc_fops checks and pde_users bumps */
+ 	struct completion *pde_unload_completion;
++	struct list_head pde_openers;	/* who did ->open, but not ->release */
  };
  
- /* Really important that opcode and unique are 1st two fields! */
-@@ -613,11 +574,7 @@ struct coda_vget_out {
- /* CODA_PURGEUSER is a venus->kernel call */
- struct coda_purgeuser_out {
-     struct coda_out_hdr oh;
--#ifdef CONFIG_CODA_FS_OLD_API
--    struct coda_cred cred;
--#else
-     vuid_t uid;
--#endif
- };
- 
- /* coda_zapfile: */
+ struct kcore_list {
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
 origin.patch
-uninline-arch_pick_mmap_layout.patch
-include-video-atmel_lcdch-must-include-linux-workqueueh.patch
 linux-next.patch
-m32r-remove-the-unused-nohighmem-option.patch
-if-0-ses_match_host.patch
-git-xtensa.patch
-include-linux-kernelh-userspace-header-cleanup.patch
-parport-sharec-proper-externs.patch
-tpm_biosc-make-2-structs-static.patch
-drm-make-drm_minors_cleanup-static.patch
-make-cgroup_seqfile_release-static.patch
-make-pnp_add_card_id-static.patch
-make-parport_cs_release-static.patch
-make-mm-sparsec-make-a-function-static.patch
-mm-allocpercpuc-make-4-functions-static.patch
-make-mm-memoryc-print_bad_pte-static.patch
-mm-swapfilec-make-code-static.patch
-make-mm-rmapc-anon_vma_cachep-static.patch
-drivers-char-rtcc-make-2-functions-static.patch
-make-init-do_mountsc-root_device_name-static.patch
-make-macfb_setup-static.patch
-video-console-sticonrec-make-code-static.patch
-video-console-sticonrec-make-code-static-checkpatch-fixes.patch
-video-stifbc-make-2-functions-static.patch
-reiser4.patch
+mpt-remove-unused-struct-mpt_proc_entry_t.patch
+cdc-acm-dont-unlock-acm-mutex-on-error-path.patch
+slb-drop-kmem-cache-argument-from-constructor.patch
+slb-drop-kmem-cache-argument-from-constructor-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-fix-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
+slb-drop-kmem-cache-argument-from-constructor-ubifs.patch
+use-warn-in-fs-proc.patch
+proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
+likely_prof-changed-to-use-proc_create.patch
+proc-remove-proc_root-from-drivers-likelyprof.patch
 
