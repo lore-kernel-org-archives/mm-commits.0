@@ -1,33 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 17:15:08 -0700
-Message-ID: <200807250015.m6P0F8sk013567@imap1.linux-foundation.org>
+Subject: - gpio-add-bt8xxgpio-driver-checkpatch-fixes.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 17:15:01 -0700
+Message-ID: <200807250015.m6P0F239013558@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53916 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56575 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752564AbYGYAPZ (ORCPT
+	by vger.kernel.org with ESMTP id S1752547AbYGYAPT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 20:15:25 -0400
+	Thu, 24 Jul 2008 20:15:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, david-b@pacbell.net, mb@bu3sch.de, mchehab@infradead.org, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup
+     gpio-add-bt8xxgpio-driver-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch
+     gpio-add-bt8xxgpio-driver-checkpatch-fixes.patch
 
 This patch was dropped because it was folded into gpio-add-bt8xxgpio-driver.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup
+Subject: gpio-add-bt8xxgpio-driver-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Be conventional.
+WARNING: line over 80 characters
+#157: FILE: drivers/gpio/bt8xxgpio.c:7:
++    Please do _only_ contact the people listed _above_ with issues related to this driver.
+
+WARNING: line over 80 characters
+#158: FILE: drivers/gpio/bt8xxgpio.c:8:
++    All the other people listed below are not related to this driver. Their names
+
+WARNING: Use #include <linux/gpio.h> instead of <asm/gpio.h>
+#199: FILE: drivers/gpio/bt8xxgpio.c:49:
++#include <asm/gpio.h>
+
+ERROR: space required after that ',' (ctx:VxV)
+#221: FILE: drivers/gpio/bt8xxgpio.c:71:
++#define bgwrite(dat,adr)    writel((dat), bg->mmio+(adr))
+                    ^
+
+WARNING: line over 80 characters
+#227: FILE: drivers/gpio/bt8xxgpio.c:77:
++MODULE_PARM_DESC(gpiobase, "The GPIO number base. -1 means dynamic, which is the default.");
+
+ERROR: space required after that ',' (ctx:VxV)
+#403: FILE: drivers/gpio/bt8xxgpio.c:253:
++	release_mem_region(pci_resource_start(pdev,0),
+ 	                                          ^
+
+ERROR: space required after that ',' (ctx:VxV)
+#404: FILE: drivers/gpio/bt8xxgpio.c:254:
++			   pci_resource_len(pdev,0));
+ 			                        ^
+
+total: 3 errors, 4 warnings, 453 lines checked
+
+./patches/gpio-add-bt8xxgpio-driver.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
 
 Cc: David Brownell <david-b@pacbell.net>
 Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
@@ -36,33 +73,47 @@ Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/bt8xxgpio.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/gpio/bt8xxgpio.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/gpio/bt8xxgpio.c~gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup drivers/gpio/bt8xxgpio.c
---- a/drivers/gpio/bt8xxgpio.c~gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup
+diff -puN Documentation/bt8xxgpio.txt~gpio-add-bt8xxgpio-driver-checkpatch-fixes Documentation/bt8xxgpio.txt
+diff -puN MAINTAINERS~gpio-add-bt8xxgpio-driver-checkpatch-fixes MAINTAINERS
+diff -puN drivers/gpio/Kconfig~gpio-add-bt8xxgpio-driver-checkpatch-fixes drivers/gpio/Kconfig
+diff -puN drivers/gpio/Makefile~gpio-add-bt8xxgpio-driver-checkpatch-fixes drivers/gpio/Makefile
+diff -puN drivers/gpio/bt8xxgpio.c~gpio-add-bt8xxgpio-driver-checkpatch-fixes drivers/gpio/bt8xxgpio.c
+--- a/drivers/gpio/bt8xxgpio.c~gpio-add-bt8xxgpio-driver-checkpatch-fixes
 +++ a/drivers/gpio/bt8xxgpio.c
-@@ -308,6 +308,9 @@ static int bt8xxgpio_resume(struct pci_d
+@@ -46,7 +46,7 @@
+ #include <linux/module.h>
+ #include <linux/pci.h>
+ #include <linux/spinlock.h>
+-#include <asm/gpio.h>
++#include <linux/gpio.h>
  
- 	return 0;
- }
-+#else
-+#define bt8xxgpio_suspend NULL
-+#define bt8xxgpio_resume NULL
- #endif /* CONFIG_PM */
- 
- static struct pci_device_id bt8xxgpio_pci_tbl[] = {
-@@ -324,10 +327,8 @@ static struct pci_driver bt8xxgpio_pci_d
- 	.id_table	= bt8xxgpio_pci_tbl,
- 	.probe		= bt8xxgpio_probe,
- 	.remove		= bt8xxgpio_remove,
--#ifdef CONFIG_PM
- 	.suspend	= bt8xxgpio_suspend,
- 	.resume		= bt8xxgpio_resume,
--#endif
+ /* Steal the hardware definitions from the bttv driver. */
+ #include "../media/video/bt8xx/bt848.h"
+@@ -68,8 +68,8 @@ struct bt8xxgpio {
+ #endif
  };
  
- static int bt8xxgpio_init(void)
+-#define bgwrite(dat,adr)    writel((dat), bg->mmio+(adr))
+-#define bgread(adr)         readl(bg->mmio+(adr))
++#define bgwrite(dat, adr)	writel((dat), bg->mmio+(adr))
++#define bgread(adr)		readl(bg->mmio+(adr))
+ 
+ 
+ static int modparam_gpiobase = -1/* dynamic */;
+@@ -250,8 +250,8 @@ static void bt8xxgpio_remove(struct pci_
+ 	bgwrite(0x0, BT848_GPIO_OUT_EN);
+ 
+ 	iounmap(bg->mmio);
+-	release_mem_region(pci_resource_start(pdev,0),
+-			   pci_resource_len(pdev,0));
++	release_mem_region(pci_resource_start(pdev, 0),
++			   pci_resource_len(pdev, 0));
+ 	pci_disable_device(pdev);
+ 
+ 	pci_set_drvdata(pdev, NULL);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -80,6 +131,8 @@ drivers-misc-hpiloc-needs-config_pci.patch
 add-a-warn-macro-this-is-warn_on-printk-arguments.patch
 gpio-sysfs-interface-updated.patch
 gpio-add-bt8xxgpio-driver.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes.patch
+gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch
 gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch
 jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
 jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
