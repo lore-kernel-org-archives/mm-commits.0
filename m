@@ -1,135 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - markers-use-rcu_barrier_sched-and-call_rcu_sched.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 16:02:37 -0700
-Message-ID: <200807252302.m6PN2bTZ003840@imap1.linux-foundation.org>
+Subject: - reiserfs-remove-double-definitions-of-xattr-macros.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 15:57:21 -0700
+Message-ID: <200807252257.m6PMvLJ3003178@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35046 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48282 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753564AbYGYXD3 (ORCPT
+	by vger.kernel.org with ESMTP id S1753508AbYGYXDm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:03:29 -0400
+	Fri, 25 Jul 2008 19:03:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mathieu.desnoyers@polymtl.ca, mingo@elte.hu, paulmck@us.ibm.com, mm-commits@vger.kernel.org
+To: shen@cn.fujitsu.com, cmm@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     markers: use rcu_barrier_sched() and call_rcu_sched()
+     reiserfs: remove double definitions of xattr macros
 has been removed from the -mm tree.  Its filename was
-     markers-use-rcu_barrier_sched-and-call_rcu_sched.patch
+     reiserfs-remove-double-definitions-of-xattr-macros.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: markers: use rcu_barrier_sched() and call_rcu_sched()
-From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Subject: reiserfs: remove double definitions of xattr macros
+From: Shen Feng <shen@cn.fujitsu.com>
 
-rcu_barrier_sched() and call_rcu_sched() were introduced in 2.6.26 for the
-Markers.  Change the marker code to use them.
+remove the definitions of macros:
+XATTR_SECURITY_PREFIX
+XATTR_TRUSTED_PREFIX
+XATTR_USER_PREFIX
+since they are defined in linux/xattr.h
 
-It can be seen as a fix since the marker code was using an ugly,
-temporary, #ifdef hack to work around CONFIG_PREEMPT_RCU.
-
-Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Acked-by: Paul McKenney <paulmck@us.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Shen Feng <shen@cn.fujitsu.com>
+Signed-off-by: Mingming Cao <cmm@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/marker.c |   25 ++++++++-----------------
- 1 file changed, 8 insertions(+), 17 deletions(-)
+ fs/reiserfs/xattr_security.c |    2 --
+ fs/reiserfs/xattr_trusted.c  |    2 --
+ fs/reiserfs/xattr_user.c     |    2 --
+ 3 files changed, 6 deletions(-)
 
-diff -puN kernel/marker.c~markers-use-rcu_barrier_sched-and-call_rcu_sched kernel/marker.c
---- a/kernel/marker.c~markers-use-rcu_barrier_sched-and-call_rcu_sched
-+++ a/kernel/marker.c
-@@ -441,7 +441,7 @@ static int remove_marker(const char *nam
- 	hlist_del(&e->hlist);
- 	/* Make sure the call_rcu has been executed */
- 	if (e->rcu_pending)
--		rcu_barrier();
-+		rcu_barrier_sched();
- 	kfree(e);
- 	return 0;
- }
-@@ -476,7 +476,7 @@ static int marker_set_format(struct mark
- 	hlist_del(&(*entry)->hlist);
- 	/* Make sure the call_rcu has been executed */
- 	if ((*entry)->rcu_pending)
--		rcu_barrier();
-+		rcu_barrier_sched();
- 	kfree(*entry);
- 	*entry = e;
- 	trace_mark(core_marker_format, "name %s format %s",
-@@ -655,7 +655,7 @@ int marker_probe_register(const char *na
- 	 * make sure it's executed now.
- 	 */
- 	if (entry->rcu_pending)
--		rcu_barrier();
-+		rcu_barrier_sched();
- 	old = marker_entry_add_probe(entry, probe, probe_private);
- 	if (IS_ERR(old)) {
- 		ret = PTR_ERR(old);
-@@ -670,10 +670,7 @@ int marker_probe_register(const char *na
- 	entry->rcu_pending = 1;
- 	/* write rcu_pending before calling the RCU callback */
- 	smp_wmb();
--#ifdef CONFIG_PREEMPT_RCU
--	synchronize_sched();	/* Until we have the call_rcu_sched() */
--#endif
--	call_rcu(&entry->rcu, free_old_closure);
-+	call_rcu_sched(&entry->rcu, free_old_closure);
- end:
- 	mutex_unlock(&markers_mutex);
- 	return ret;
-@@ -704,7 +701,7 @@ int marker_probe_unregister(const char *
- 	if (!entry)
- 		goto end;
- 	if (entry->rcu_pending)
--		rcu_barrier();
-+		rcu_barrier_sched();
- 	old = marker_entry_remove_probe(entry, probe, probe_private);
- 	mutex_unlock(&markers_mutex);
- 	marker_update_probes();		/* may update entry */
-@@ -716,10 +713,7 @@ int marker_probe_unregister(const char *
- 	entry->rcu_pending = 1;
- 	/* write rcu_pending before calling the RCU callback */
- 	smp_wmb();
--#ifdef CONFIG_PREEMPT_RCU
--	synchronize_sched();	/* Until we have the call_rcu_sched() */
--#endif
--	call_rcu(&entry->rcu, free_old_closure);
-+	call_rcu_sched(&entry->rcu, free_old_closure);
- 	remove_marker(name);	/* Ignore busy error message */
- 	ret = 0;
- end:
-@@ -786,7 +780,7 @@ int marker_probe_unregister_private_data
- 		goto end;
- 	}
- 	if (entry->rcu_pending)
--		rcu_barrier();
-+		rcu_barrier_sched();
- 	old = marker_entry_remove_probe(entry, NULL, probe_private);
- 	mutex_unlock(&markers_mutex);
- 	marker_update_probes();		/* may update entry */
-@@ -797,10 +791,7 @@ int marker_probe_unregister_private_data
- 	entry->rcu_pending = 1;
- 	/* write rcu_pending before calling the RCU callback */
- 	smp_wmb();
--#ifdef CONFIG_PREEMPT_RCU
--	synchronize_sched();	/* Until we have the call_rcu_sched() */
--#endif
--	call_rcu(&entry->rcu, free_old_closure);
-+	call_rcu_sched(&entry->rcu, free_old_closure);
- 	remove_marker(entry->name);	/* Ignore busy error message */
- end:
- 	mutex_unlock(&markers_mutex);
-_
-
-Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
-
-origin.patch
-linux-next.patch
-
+diff -puN fs/reiserfs/xattr_security.c~reiserfs-remove-double-definitions-of-xattr-macros fs/reiserfs/xattr_security.c
+--- a/fs/reiserfs/xattr_security.c~reiserfs-remove-double-definitions-of-xattr-macros
++++ a/fs/reiserfs/xattr_security.c
+@@ -6,8 +6,6 @@
+ #include <linux/reiserfs_xattr.h>
+ #include <asm/uaccess.h>
+ 
+-#define XATTR_SECURITY_PREFIX "security."
+-
+ static int
+ security_get(struct inode *inode, const char *name, void *buffer, size_t size)
+ {
+diff -puN fs/reiserfs/xattr_trusted.c~reiserfs-remove-double-definitions-of-xattr-macros fs/reiserfs/xattr_trusted.c
+--- a/fs/reiserfs/xattr_trusted.c~reiserfs-remove-double-definitions-of-xattr-macros
++++ a/fs/reiserfs/xattr_trusted.c
+@@ -7,8 +7,6 @@
+ #include <linux/reiserfs_xattr.h>
+ #include <asm/uaccess.h>
+ 
+-#define XATTR_TRUSTED_PREFIX "trusted."
+-
+ static int
+ trusted_get(struct inode *inode, const char *name, void *buffer, size_t size)
+ {
+diff -puN fs/reiserfs/xattr_user.c~reiserfs-remove-double-definitions-of-xattr-macros fs/reiserfs/xattr_user.c
+--- a/fs/reiserfs/xattr_user.c~reiserfs-remove-double-definitions-of-xattr-macros
++++ a/fs/reiserfs/xattr_user.c
+@@ -10,8 +10,6 @@
+ # include <linux/reiserfs_acl.h>
+ #endif
+ 
+-#define XATTR_USER_PREFIX "user."
