@@ -1,279 +1,164 @@
 From: akpm@linux-foundation.org
-Subject: - ipc-semc-convert-sem_arraysem_pending-to-struct-list_head.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 16:00:56 -0700
-Message-ID: <200807252300.m6PN0uV5003643@imap1.linux-foundation.org>
+Subject: - drivers-misc-hpiloc-needs-config_pci.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 15:55:17 -0700
+Message-ID: <200807252255.m6PMtHeL002965@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56755 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53930 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755570AbYGYXHU (ORCPT
+	by vger.kernel.org with ESMTP id S1755053AbYGYXHS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:07:20 -0400
+	Fri, 25 Jul 2008 19:07:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: manfred@colorfullife.com, Nadia.Derbey@bull.net, peifferp@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, david.altobelli@hp.com, gregkh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ipc/sem.c: convert sem_array.sem_pending to struct list_head
+     drivers/misc/hpilo.c needs CONFIG_PCI
 has been removed from the -mm tree.  Its filename was
-     ipc-semc-convert-sem_arraysem_pending-to-struct-list_head.patch
+     drivers-misc-hpiloc-needs-config_pci.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ipc/sem.c: convert sem_array.sem_pending to struct list_head
-From: Manfred Spraul <manfred@colorfullife.com>
+Subject: drivers/misc/hpilo.c needs CONFIG_PCI
+From: Andrew Morton <akpm@linux-foundation.org>
 
-sem_array.sem_pending is a double linked list, the attached patch converts
-it to struct list_head.
+m68k allmodconfig:
 
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
-Reviewed-by: Nadia Derbey <Nadia.Derbey@bull.net>
-Cc: Pierre Peiffer <peifferp@gmail.com>
+drivers/misc/hpilo.c: In function 'ilo_ccb_close':
+drivers/misc/hpilo.c:225: error: implicit declaration of function 'pci_free_consistent'
+drivers/misc/hpilo.c: In function 'ilo_ccb_open':
+drivers/misc/hpilo.c:244: error: implicit declaration of function 'pci_alloc_consistent'
+drivers/misc/hpilo.c:245: warning: assignment makes pointer from integer without a cast
+
+Cc: David Altobelli <david.altobelli@hp.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sem.h |   12 ++---
- ipc/sem.c           |   92 +++++++++++++++---------------------------
- 2 files changed, 40 insertions(+), 64 deletions(-)
+ drivers/misc/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/sem.h~ipc-semc-convert-sem_arraysem_pending-to-struct-list_head include/linux/sem.h
---- a/include/linux/sem.h~ipc-semc-convert-sem_arraysem_pending-to-struct-list_head
-+++ a/include/linux/sem.h
-@@ -93,21 +93,19 @@ struct sem_array {
- 	time_t			sem_otime;	/* last semop time */
- 	time_t			sem_ctime;	/* last change time */
- 	struct sem		*sem_base;	/* ptr to first semaphore in array */
--	struct sem_queue	*sem_pending;	/* pending operations to be processed */
--	struct sem_queue	**sem_pending_last; /* last pending operation */
-+	struct list_head	sem_pending;	/* pending operations to be processed */
- 	struct list_head	list_id;	/* undo requests on this array */
- 	unsigned long		sem_nsems;	/* no. of semaphores in array */
- };
+diff -puN drivers/misc/Kconfig~drivers-misc-hpiloc-needs-config_pci drivers/misc/Kconfig
+--- a/drivers/misc/Kconfig~drivers-misc-hpiloc-needs-config_pci
++++ a/drivers/misc/Kconfig
+@@ -436,6 +436,7 @@ config SGI_XP
  
- /* One queue for each sleeping process in the system. */
- struct sem_queue {
--	struct sem_queue *	next;	 /* next entry in the queue */
--	struct sem_queue **	prev;	 /* previous entry in the queue, *(q->prev) == q */
--	struct task_struct*	sleeper; /* this process */
--	struct sem_undo *	undo;	 /* undo structure */
-+	struct list_head	list;	 /* queue of pending operations */
-+	struct task_struct	*sleeper; /* this process */
-+	struct sem_undo		*undo;	 /* undo structure */
- 	int    			pid;	 /* process id of requesting process */
- 	int    			status;	 /* completion status of operation */
--	struct sembuf *		sops;	 /* array of pending operations */
-+	struct sembuf		*sops;	 /* array of pending operations */
- 	int			nsops;	 /* number of operations */
- 	int			alter;   /* does the operation alter the array? */
- };
-diff -puN ipc/sem.c~ipc-semc-convert-sem_arraysem_pending-to-struct-list_head ipc/sem.c
---- a/ipc/sem.c~ipc-semc-convert-sem_arraysem_pending-to-struct-list_head
-+++ a/ipc/sem.c
-@@ -272,8 +272,7 @@ static int newary(struct ipc_namespace *
- 	ns->used_sems += nsems;
- 
- 	sma->sem_base = (struct sem *) &sma[1];
--	/* sma->sem_pending = NULL; */
--	sma->sem_pending_last = &sma->sem_pending;
-+	INIT_LIST_HEAD(&sma->sem_pending);
- 	INIT_LIST_HEAD(&sma->list_id);
- 	sma->sem_nsems = nsems;
- 	sma->sem_ctime = get_seconds();
-@@ -331,38 +330,6 @@ asmlinkage long sys_semget(key_t key, in
- 	return ipcget(ns, &sem_ids(ns), &sem_ops, &sem_params);
- }
- 
--/* Manage the doubly linked list sma->sem_pending as a FIFO:
-- * insert new queue elements at the tail sma->sem_pending_last.
-- */
--static inline void append_to_queue (struct sem_array * sma,
--				    struct sem_queue * q)
--{
--	*(q->prev = sma->sem_pending_last) = q;
--	*(sma->sem_pending_last = &q->next) = NULL;
--}
--
--static inline void prepend_to_queue (struct sem_array * sma,
--				     struct sem_queue * q)
--{
--	q->next = sma->sem_pending;
--	*(q->prev = &sma->sem_pending) = q;
--	if (q->next)
--		q->next->prev = &q->next;
--	else /* sma->sem_pending_last == &sma->sem_pending */
--		sma->sem_pending_last = &q->next;
--}
--
--static inline void remove_from_queue (struct sem_array * sma,
--				      struct sem_queue * q)
--{
--	*(q->prev) = q->next;
--	if (q->next)
--		q->next->prev = q->prev;
--	else /* sma->sem_pending_last == &q->next */
--		sma->sem_pending_last = q->prev;
--	q->prev = NULL; /* mark as removed */
--}
--
- /*
-  * Determine whether a sequence of semaphore operations would succeed
-  * all at once. Return 0 if yes, 1 if need to sleep, else return error code.
-@@ -438,16 +405,15 @@ static void update_queue (struct sem_arr
- 	int error;
- 	struct sem_queue * q;
- 
--	q = sma->sem_pending;
--	while(q) {
-+	q = list_entry(sma->sem_pending.next, struct sem_queue, list);
-+	while (&q->list != &sma->sem_pending) {
- 		error = try_atomic_semop(sma, q->sops, q->nsops,
- 					 q->undo, q->pid);
- 
- 		/* Does q->sleeper still need to sleep? */
- 		if (error <= 0) {
- 			struct sem_queue *n;
--			remove_from_queue(sma,q);
--			q->status = IN_WAKEUP;
-+
- 			/*
- 			 * Continue scanning. The next operation
- 			 * that must be checked depends on the type of the
-@@ -458,11 +424,26 @@ static void update_queue (struct sem_arr
- 			 *   for semaphore values to become 0.
- 			 * - if the operation didn't modify the array,
- 			 *   then just continue.
-+			 * The order of list_del() and reading ->next
-+			 * is crucial: In the former case, the list_del()
-+			 * must be done first [because we might be the
-+			 * first entry in ->sem_pending], in the latter
-+			 * case the list_del() must be done last
-+			 * [because the list is invalid after the list_del()]
- 			 */
--			if (q->alter)
--				n = sma->sem_pending;
--			else
--				n = q->next;
-+			if (q->alter) {
-+				list_del(&q->list);
-+				n = list_entry(sma->sem_pending.next,
-+						struct sem_queue, list);
-+			} else {
-+				n = list_entry(q->list.next, struct sem_queue,
-+						list);
-+				list_del(&q->list);
-+			}
-+
-+			/* wake up the waiting thread */
-+			q->status = IN_WAKEUP;
-+
- 			wake_up_process(q->sleeper);
- 			/* hands-off: q will disappear immediately after
- 			 * writing q->status.
-@@ -471,7 +452,7 @@ static void update_queue (struct sem_arr
- 			q->status = error;
- 			q = n;
- 		} else {
--			q = q->next;
-+			q = list_entry(q->list.next, struct sem_queue, list);
- 		}
- 	}
- }
-@@ -491,7 +472,7 @@ static int count_semncnt (struct sem_arr
- 	struct sem_queue * q;
- 
- 	semncnt = 0;
--	for (q = sma->sem_pending; q; q = q->next) {
-+	list_for_each_entry(q, &sma->sem_pending, list) {
- 		struct sembuf * sops = q->sops;
- 		int nsops = q->nsops;
- 		int i;
-@@ -503,13 +484,14 @@ static int count_semncnt (struct sem_arr
- 	}
- 	return semncnt;
- }
-+
- static int count_semzcnt (struct sem_array * sma, ushort semnum)
- {
- 	int semzcnt;
- 	struct sem_queue * q;
- 
- 	semzcnt = 0;
--	for (q = sma->sem_pending; q; q = q->next) {
-+	list_for_each_entry(q, &sma->sem_pending, list) {
- 		struct sembuf * sops = q->sops;
- 		int nsops = q->nsops;
- 		int i;
-@@ -529,7 +511,7 @@ static int count_semzcnt (struct sem_arr
- static void freeary(struct ipc_namespace *ns, struct kern_ipc_perm *ipcp)
- {
- 	struct sem_undo *un;
--	struct sem_queue *q;
-+	struct sem_queue *q, *t;
- 	struct sem_array *sma = container_of(ipcp, struct sem_array, sem_perm);
- 
- 	/* Invalidate the existing undo structures for this semaphore set.
-@@ -541,17 +523,14 @@ static void freeary(struct ipc_namespace
- 		un->semid = -1;
- 
- 	/* Wake up all pending processes and let them fail with EIDRM. */
--	q = sma->sem_pending;
--	while(q) {
--		struct sem_queue *n;
--		/* lazy remove_from_queue: we are killing the whole queue */
--		q->prev = NULL;
--		n = q->next;
-+
-+	list_for_each_entry_safe(q, t, &sma->sem_pending, list) {
-+		list_del(&q->list);
-+
- 		q->status = IN_WAKEUP;
- 		wake_up_process(q->sleeper); /* doesn't sleep */
- 		smp_wmb();
- 		q->status = -EIDRM;	/* hands-off q */
--		q = n;
- 	}
- 
- 	/* Remove the semaphore set from the IDR */
-@@ -1166,9 +1145,9 @@ asmlinkage long sys_semtimedop(int semid
- 	queue.pid = task_tgid_vnr(current);
- 	queue.alter = alter;
- 	if (alter)
--		append_to_queue(sma ,&queue);
-+		list_add_tail(&queue.list, &sma->sem_pending);
- 	else
--		prepend_to_queue(sma ,&queue);
-+		list_add(&queue.list, &sma->sem_pending);
- 
- 	queue.status = -EINTR;
- 	queue.sleeper = current;
-@@ -1194,7 +1173,6 @@ asmlinkage long sys_semtimedop(int semid
- 
- 	sma = sem_lock(ns, semid);
- 	if (IS_ERR(sma)) {
--		BUG_ON(queue.prev != NULL);
- 		error = -EIDRM;
- 		goto out_free;
- 	}
-@@ -1212,7 +1190,7 @@ asmlinkage long sys_semtimedop(int semid
- 	 */
- 	if (timeout && jiffies_left == 0)
- 		error = -EAGAIN;
--	remove_from_queue(sma,&queue);
-+	list_del(&queue.list);
- 	goto out_unlock_free;
- 
- out_unlock_free:
+ config HP_ILO
+ 	tristate "Channel interface driver for HP iLO/iLO2 processor"
++	depends on PCI
+ 	default n
+ 	help
+ 	  The channel interface driver allows applications to communicate
 _
 
-Patches currently in -mm which might be from manfred@colorfullife.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-repeatable-slab-corruption-with-ltp-msgctl08.patch
-mm-debug-dump-pageframes-on-bad_page.patch
+seq_file-fix-bug-when-seq_read-reads-nothing.patch
+uninline-arch_pick_mmap_layout.patch
+linux-next.patch
+linux-next-fixups.patch
+linux-next-rejects.patch
+next-remove-localversion.patch
+drivers-mtd-nand-nandsimc-needs-div64h.patch
+pci-make-pci_register_driver-a-macro.patch
+drivers-mfd-tc6393xbc-doesnt-compile-on-i386.patch
+x86-pci-replace-dbg-with-pr_debug-fix.patch
+x86-pci-replace-dbg-with-pr_debug-fix-2.patch
+include-asm-generic-pgtable-nopmdh-macros-are-noxious-reason-435.patch
+arch-x86-pci-i386c-fix-printk-warnings.patch
+drm-fix-sparc64-build.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+git-jg-misc.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+bridge-send-correct-mtu-value-in-pmtu-checkpatch-fixes.patch
+sundance-set-carrier-status-on-link-change-events.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+scsi-gdthc-use-unaligned-access-helpers-checkpatch-fixes.patch
+git-unionfs.patch
+git-logfs-git-rejects.patch
+git-logfs-fixup.patch
+drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
+drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
+drivers-net-wireless-iwlwifi-iwl-ledc-printk-fix.patch
+git-xtensa.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+ftrace-disable-function-tracing-bringing-up-new-cpu-fix.patch
+mmu-notifiers-add-mm_take_all_locks-operation.patch
+mmu-notifier-core.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+eink_apollofb-new-driver-for-apollo-eink-controller-cleanup.patch
+eink_apollofb-new-driver-for-apollo-eink-controller-fix.patch
+eink_apollofb-new-driver-for-apollo-eink-controller-fix-fix-2.patch
+getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-s2io.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-sdhci-fix.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-infiniband.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-more-sparc.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-ibmvscsi.patch
+x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary-checkpatch-fixes.patch
+tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
+memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
+memstick-use-fully-asynchronous-request-processing-fix.patch
+full-conversion-to-early_initcall-interface-remove-old-interface-cleanup.patch
+full-conversion-to-early_initcall-interface-remove-old-interface-fix.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+gru-driver-v3-hardware-data-structures-fix.patch
+gru-driver-v3-hardware-data-structures-fix-fix.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+mm-introduce-get_user_pages_fast-fix.patch
+mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
+x86-lockless-get_user_pages_fast-fix.patch
+x86-lockless-get_user_pages_fast-fix-2.patch
+x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
+x86-lockless-get_user_pages_fast-fix-warning.patch
+mm-speculative-page-references-fix-add_to_page_cache-fix.patch
+vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
+define-page_file_cache-function-fix.patch
+vmscan-split-lru-lists-into-anon-file-sets-units-fix.patch
+unevictable-lru-infrastructure-fix.patch
+unevictable-lru-page-statistics-units-fix.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-3.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
+introduce-__get_user_pages-fix.patch
+vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-fix-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
+slb-drop-kmem-cache-argument-from-constructor-ubifs.patch
+video-console-sticonrec-make-code-static-checkpatch-fixes.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
 slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
