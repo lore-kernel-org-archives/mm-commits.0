@@ -1,144 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: - char-mxser-ioctl-cleanup.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 16:01:40 -0700
-Message-ID: <200807252301.m6PN1e44003726@imap1.linux-foundation.org>
+Subject: - idr-make-idr_get_new-rcu-safe.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 16:00:43 -0700
+Message-ID: <200807252300.m6PN0h0B003612@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39199 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50676 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753177AbYGYXC0 (ORCPT
+	by vger.kernel.org with ESMTP id S1753047AbYGYXCa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:02:26 -0400
+	Fri, 25 Jul 2008 19:02:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, alan@redhat.com, mm-commits@vger.kernel.org
+To: Nadia.Derbey@bull.net, jim.houston@comcast.net, manfred@colorfullife.com, paulmck@us.ibm.com, peifferp@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: mxser, ioctl cleanup
+     idr: make idr_get_new* rcu-safe
 has been removed from the -mm tree.  Its filename was
-     char-mxser-ioctl-cleanup.patch
+     idr-make-idr_get_new-rcu-safe.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Char: mxser, ioctl cleanup
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: idr: make idr_get_new* rcu-safe
+From: Nadia Derbey <Nadia.Derbey@bull.net>
 
-- remove break ctl from ioctl handler, it's never reached, since
-  tty_ops->break_ctl is defined (mxser break handling is done in software)
-- mark MOXA_GET_MAJOR as deprecated
-- fix TIOCGICOUNT (some retval non-checks of put_user). Use copy_to_user
-  to whole structure instead.
+Make the idr_get_new* routines rcu-safe.
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Acked-by: Alan Cox <alan@redhat.com>
+Signed-off-by: Nadia Derbey <Nadia.Derbey@bull.net>
+Reviewed-by: "Paul E. McKenney" <paulmck@us.ibm.com>
+Cc: Manfred Spraul <manfred@colorfullife.com>
+Cc: Jim Houston <jim.houston@comcast.net>
+Cc: Pierre Peiffer <peifferp@gmail.com>
+Acked-by: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mxser.c |   42 ++++++++++++++++++-----------------------
- 1 file changed, 19 insertions(+), 23 deletions(-)
+ lib/idr.c |   14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
-diff -puN drivers/char/mxser.c~char-mxser-ioctl-cleanup drivers/char/mxser.c
---- a/drivers/char/mxser.c~char-mxser-ioctl-cleanup
-+++ a/drivers/char/mxser.c
-@@ -16,7 +16,6 @@
-  *	Fed through a cleanup, indent and remove of non 2.6 code by Alan Cox
-  *	<alan@redhat.com>. The original 1.8 code is available on www.moxa.com.
-  *	- Fixed x86_64 cleanness
-- *	- Fixed sleep with spinlock held in mxser_send_break
-  */
+diff -puN lib/idr.c~idr-make-idr_get_new-rcu-safe lib/idr.c
+--- a/lib/idr.c~idr-make-idr_get_new-rcu-safe
++++ a/lib/idr.c
+@@ -6,6 +6,8 @@
+  * Modified by George Anzinger to reuse immediately and to use
+  * find bit instructions.  Also removed _irq on spinlocks.
+  *
++ * Modified by Nadia Derbey to make it RCU safe.
++ *
+  * Small id to pointer translation service.
+  *
+  * It uses a radix tree like structure as a sparse array indexed
+@@ -96,7 +98,7 @@ static void idr_mark_full(struct idr_lay
+  * @gfp_mask:	memory allocation flags
+  *
+  * This function should be called prior to locking and calling the
+- * following function.  It preallocates enough memory to satisfy
++ * idr_get_new* functions. It preallocates enough memory to satisfy
+  * the worst possible allocation.
+  *
+  * If the system is REALLY out of memory this function returns 0,
+@@ -170,7 +172,7 @@ static int sub_alloc(struct idr *idp, in
+ 			new = get_from_free_list(idp);
+ 			if (!new)
+ 				return -1;
+-			p->ary[m] = new;
++			rcu_assign_pointer(p->ary[m], new);
+ 			p->count++;
+ 		}
+ 		pa[l--] = p;
+@@ -226,7 +228,7 @@ build_up:
+ 			__set_bit(0, &new->bitmap);
+ 		p = new;
+ 	}
+-	idp->top = p;
++	rcu_assign_pointer(idp->top, p);
+ 	idp->layers = layers;
+ 	v = sub_alloc(idp, &id, pa);
+ 	if (v == IDR_NEED_TO_GROW)
+@@ -245,7 +247,8 @@ static int idr_get_new_above_int(struct 
+ 		 * Successfully found an empty slot.  Install the user
+ 		 * pointer and mark the slot full.
+ 		 */
+-		pa[0]->ary[id & IDR_MASK] = (struct idr_layer *)ptr;
++		rcu_assign_pointer(pa[0]->ary[id & IDR_MASK],
++				(struct idr_layer *)ptr);
+ 		pa[0]->count++;
+ 		idr_mark_full(pa, id);
+ 	}
+@@ -710,7 +713,8 @@ int ida_get_new_above(struct ida *ida, i
+ 			return -EAGAIN;
  
- #include <linux/module.h>
-@@ -1634,6 +1633,8 @@ static int mxser_ioctl_special(unsigned 
+ 		memset(bitmap, 0, sizeof(struct ida_bitmap));
+-		pa[0]->ary[idr_id & IDR_MASK] = (void *)bitmap;
++		rcu_assign_pointer(pa[0]->ary[idr_id & IDR_MASK],
++				(void *)bitmap);
+ 		pa[0]->count++;
+ 	}
  
- 	switch (cmd) {
- 	case MOXA_GET_MAJOR:
-+		printk(KERN_WARNING "mxser: '%s' uses deprecated ioctl %x, fix "
-+				"your userspace\n", current->comm, cmd);
- 		return put_user(ttymajor, (int __user *)argp);
- 
- 	case MOXA_CHKPORTENABLE:
-@@ -1804,7 +1805,6 @@ static int mxser_ioctl(struct tty_struct
- {
- 	struct mxser_port *info = tty->driver_data;
- 	struct async_icount cnow;
--	struct serial_icounter_struct __user *p_cuser;
- 	unsigned long flags;
- 	void __user *argp = (void __user *)arg;
- 	int retval;
-@@ -1884,30 +1884,26 @@ static int mxser_ioctl(struct tty_struct
- 	 * NB: both 1->0 and 0->1 transitions are counted except for
- 	 *     RI where only 0->1 is counted.
- 	 */
--	case TIOCGICOUNT:
-+	case TIOCGICOUNT: {
-+		struct serial_icounter_struct icnt = { 0 };
- 		spin_lock_irqsave(&info->slock, flags);
- 		cnow = info->icount;
- 		spin_unlock_irqrestore(&info->slock, flags);
--		p_cuser = argp;
--		if (put_user(cnow.frame, &p_cuser->frame))
--			return -EFAULT;
--		if (put_user(cnow.brk, &p_cuser->brk))
--			return -EFAULT;
--		if (put_user(cnow.overrun, &p_cuser->overrun))
--			return -EFAULT;
--		if (put_user(cnow.buf_overrun, &p_cuser->buf_overrun))
--			return -EFAULT;
--		if (put_user(cnow.parity, &p_cuser->parity))
--			return -EFAULT;
--		if (put_user(cnow.rx, &p_cuser->rx))
--			return -EFAULT;
--		if (put_user(cnow.tx, &p_cuser->tx))
--			return -EFAULT;
--		put_user(cnow.cts, &p_cuser->cts);
--		put_user(cnow.dsr, &p_cuser->dsr);
--		put_user(cnow.rng, &p_cuser->rng);
--		put_user(cnow.dcd, &p_cuser->dcd);
--		return 0;
-+
-+		icnt.frame = cnow.frame;
-+		icnt.brk = cnow.brk;
-+		icnt.overrun = cnow.overrun;
-+		icnt.buf_overrun = cnow.buf_overrun;
-+		icnt.parity = cnow.parity;
-+		icnt.rx = cnow.rx;
-+		icnt.tx = cnow.tx;
-+		icnt.cts = cnow.cts;
-+		icnt.dsr = cnow.dsr;
-+		icnt.rng = cnow.rng;
-+		icnt.dcd = cnow.dcd;
-+
-+		return copy_to_user(argp, &icnt, sizeof(icnt)) ? -EFAULT : 0;
-+	}
- 	case MOXA_HighSpeedOn:
- 		return put_user(info->baud_base != 115200 ? 1 : 0, (int __user *)argp);
- 	case MOXA_SDS_RSTICOUNTER:
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from Nadia.Derbey@bull.net are
 
 origin.patch
-ath5k-fix-memory-corruption.patch
-ath5k-kill-tasklets-on-shutdown.patch
-ath5k-flush-work.patch
-ath5k-fix-dma-operation.patch
-ath5k-suspend-resume-fixes.patch
-ath5k-fix-beacon-update-deadlock.patch
-ath5k-mask-out-unneeded-interrupts.patch
-ath5k-unify-resets.patch
-mac80211-tx-use-dev_kfree_skb_any-for-beacon_get.patch
-mac80211-return-correct-error-return-from-ieee80211_wep_init.patch
-ip2-fix-iielliscleanup-as-it-is-static-but-not-always-used.patch
-char-merge-ip2main-and-ip2base.patch
-char-ip2-cleanup-globals.patch
-char-ip2-fix-sparse-warnings.patch
-char-ip2-init-deinit-cleanup.patch
-ip2-avoid-add_timer-with-pending-timer.patch
-char-ds1286-eliminate-busy-waiting.patch
-reiser4.patch
-shrink_slab-handle-bad-shrinkers.patch
 
