@@ -1,124 +1,152 @@
 From: akpm@linux-foundation.org
-Subject: - remove-the-in-kernel-struct-dirent64.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 15:57:37 -0700
-Message-ID: <200807252257.m6PMvbvO003204@imap1.linux-foundation.org>
+Subject: - kill-pf_borrowed_mm-in-favour-of-pf_kthread.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 15:59:48 -0700
+Message-ID: <200807252259.m6PMxmQX003420@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52055 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48825 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754962AbYGYXGu (ORCPT
+	by vger.kernel.org with ESMTP id S1755112AbYGYXGw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:06:50 -0400
+	Fri, 25 Jul 2008 19:06:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, hirofumi@mail.parknet.co.jp, hpa@kernel.org, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     remove the in-kernel struct dirent{,64}
+     kill PF_BORROWED_MM in favour of PF_KTHREAD
 has been removed from the -mm tree.  Its filename was
-     remove-the-in-kernel-struct-dirent64.patch
+     kill-pf_borrowed_mm-in-favour-of-pf_kthread.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: remove the in-kernel struct dirent{,64}
-From: Adrian Bunk <bunk@kernel.org>
+Subject: kill PF_BORROWED_MM in favour of PF_KTHREAD
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-The kernel struct dirent{,64} were different from the ones in
-userspace.
+Kill PF_BORROWED_MM.  Change use_mm/unuse_mm to not play with ->flags, and
+do s/PF_BORROWED_MM/PF_KTHREAD/ for a couple of other users.
 
-Even worse, we exported the kernel ones to userspace.
+No functional changes yet.  But this allows us to do further
+fixes/cleanups.
 
-But after the fat usages are fixed we can remove the conflicting
-kernel versions.
+oom_kill/ptrace/etc often check "p->mm != NULL" to filter out the
+kthreads, this is wrong because of use_mm().  The problem with
+PF_BORROWED_MM is that we need task_lock() to avoid races.  With this
+patch we can check PF_KTHREAD directly, or use a simple lockless helper:
 
-Reviewed-by: H. Peter Anvin <hpa@kernel.org>
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+	/* The result must not be dereferenced !!! */
+	struct mm_struct *__get_task_mm(struct task_struct *tsk)
+	{
+		if (tsk->flags & PF_KTHREAD)
+			return NULL;
+		return tsk->mm;
+	}
+
+Note also ecard_task().  It runs with ->mm != NULL, but it's the kernel
+thread without PF_BORROWED_MM.
+
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/Kbuild   |    1 -
- include/linux/dirent.h |   20 --------------------
- 2 files changed, 21 deletions(-)
+ fs/aio.c              |    2 --
+ include/linux/sched.h |    3 +--
+ kernel/fork.c         |    4 ++--
+ 3 files changed, 3 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/Kbuild~remove-the-in-kernel-struct-dirent64 include/linux/Kbuild
---- a/include/linux/Kbuild~remove-the-in-kernel-struct-dirent64
-+++ a/include/linux/Kbuild
-@@ -189,7 +189,6 @@ unifdef-y += connector.h
- unifdef-y += cuda.h
- unifdef-y += cyclades.h
- unifdef-y += dccp.h
--unifdef-y += dirent.h
- unifdef-y += dlm.h
- unifdef-y += dlm_plock.h
- unifdef-y += edd.h
-diff -puN include/linux/dirent.h~remove-the-in-kernel-struct-dirent64 include/linux/dirent.h
---- a/include/linux/dirent.h~remove-the-in-kernel-struct-dirent64
-+++ a/include/linux/dirent.h
-@@ -1,23 +1,6 @@
- #ifndef _LINUX_DIRENT_H
- #define _LINUX_DIRENT_H
+diff -puN fs/aio.c~kill-pf_borrowed_mm-in-favour-of-pf_kthread fs/aio.c
+--- a/fs/aio.c~kill-pf_borrowed_mm-in-favour-of-pf_kthread
++++ a/fs/aio.c
+@@ -586,7 +586,6 @@ static void use_mm(struct mm_struct *mm)
+ 	struct task_struct *tsk = current;
  
--struct dirent {
--	long		d_ino;
--	__kernel_off_t	d_off;
--	unsigned short	d_reclen;
--	char		d_name[256]; /* We must not include limits.h! */
--};
--
--struct dirent64 {
--	__u64		d_ino;
--	__s64		d_off;
--	unsigned short	d_reclen;
--	unsigned char	d_type;
--	char		d_name[256];
--};
--
--#ifdef __KERNEL__
--
- struct linux_dirent64 {
- 	u64		d_ino;
- 	s64		d_off;
-@@ -26,7 +9,4 @@ struct linux_dirent64 {
- 	char		d_name[0];
- };
+ 	task_lock(tsk);
+-	tsk->flags |= PF_BORROWED_MM;
+ 	active_mm = tsk->active_mm;
+ 	atomic_inc(&mm->mm_count);
+ 	tsk->mm = mm;
+@@ -610,7 +609,6 @@ static void unuse_mm(struct mm_struct *m
+ 	struct task_struct *tsk = current;
  
--#endif	/* __KERNEL__ */
--
--
- #endif
+ 	task_lock(tsk);
+-	tsk->flags &= ~PF_BORROWED_MM;
+ 	tsk->mm = NULL;
+ 	/* active_mm is still 'mm' */
+ 	enter_lazy_tlb(mm, tsk);
+diff -puN include/linux/sched.h~kill-pf_borrowed_mm-in-favour-of-pf_kthread include/linux/sched.h
+--- a/include/linux/sched.h~kill-pf_borrowed_mm-in-favour-of-pf_kthread
++++ a/include/linux/sched.h
+@@ -1483,7 +1483,6 @@ static inline void put_task_struct(struc
+ #define PF_EXITING	0x00000004	/* getting shut down */
+ #define PF_EXITPIDONE	0x00000008	/* pi exit done on shut down */
+ #define PF_VCPU		0x00000010	/* I'm a virtual CPU */
+-#define PF_KTHREAD	0x00000020	/* I am a kernel thread */
+ #define PF_FORKNOEXEC	0x00000040	/* forked but didn't exec */
+ #define PF_SUPERPRIV	0x00000100	/* used super-user privileges */
+ #define PF_DUMPCORE	0x00000200	/* dumped core */
+@@ -1497,7 +1496,7 @@ static inline void put_task_struct(struc
+ #define PF_KSWAPD	0x00040000	/* I am kswapd */
+ #define PF_SWAPOFF	0x00080000	/* I am in swapoff */
+ #define PF_LESS_THROTTLE 0x00100000	/* Throttle me less: I clean memory */
+-#define PF_BORROWED_MM	0x00200000	/* I am a kthread doing use_mm */
++#define PF_KTHREAD	0x00200000	/* I am a kernel thread */
+ #define PF_RANDOMIZE	0x00400000	/* randomize virtual address space */
+ #define PF_SWAPWRITE	0x00800000	/* Allowed to write to swap */
+ #define PF_SPREAD_PAGE	0x01000000	/* Spread page cache over cpuset */
+diff -puN kernel/fork.c~kill-pf_borrowed_mm-in-favour-of-pf_kthread kernel/fork.c
+--- a/kernel/fork.c~kill-pf_borrowed_mm-in-favour-of-pf_kthread
++++ a/kernel/fork.c
+@@ -474,7 +474,7 @@ EXPORT_SYMBOL_GPL(mmput);
+ /**
+  * get_task_mm - acquire a reference to the task's mm
+  *
+- * Returns %NULL if the task has no mm.  Checks PF_BORROWED_MM (meaning
++ * Returns %NULL if the task has no mm.  Checks PF_KTHREAD (meaning
+  * this kernel workthread has transiently adopted a user mm with use_mm,
+  * to do its AIO) is not set and if so returns a reference to it, after
+  * bumping up the use count.  User must release the mm via mmput()
+@@ -487,7 +487,7 @@ struct mm_struct *get_task_mm(struct tas
+ 	task_lock(task);
+ 	mm = task->mm;
+ 	if (mm) {
+-		if (task->flags & PF_BORROWED_MM)
++		if (task->flags & PF_KTHREAD)
+ 			mm = NULL;
+ 		else
+ 			atomic_inc(&mm->mm_users);
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
 origin.patch
-uninline-arch_pick_mmap_layout.patch
-include-video-atmel_lcdch-must-include-linux-workqueueh.patch
 linux-next.patch
-m32r-remove-the-unused-nohighmem-option.patch
-if-0-ses_match_host.patch
-git-xtensa.patch
-include-linux-kernelh-userspace-header-cleanup.patch
-parport-sharec-proper-externs.patch
-tpm_biosc-make-2-structs-static.patch
-drm-make-drm_minors_cleanup-static.patch
-make-cgroup_seqfile_release-static.patch
-make-pnp_add_card_id-static.patch
-make-parport_cs_release-static.patch
-make-mm-sparsec-make-a-function-static.patch
-mm-allocpercpuc-make-4-functions-static.patch
-make-mm-memoryc-print_bad_pte-static.patch
-mm-swapfilec-make-code-static.patch
-make-mm-rmapc-anon_vma_cachep-static.patch
-drivers-char-rtcc-make-2-functions-static.patch
-make-init-do_mountsc-root_device_name-static.patch
-make-macfb_setup-static.patch
-video-console-sticonrec-make-code-static.patch
-video-console-sticonrec-make-code-static-checkpatch-fixes.patch
-video-stifbc-make-2-functions-static.patch
-reiser4.patch
+migrate_timers-add-comment-use-spinlock_irq.patch
+tracehook-add-linux-tracehookh.patch
+tracehook-exec.patch
+tracehook-unexport-ptrace_notify.patch
+tracehook-exit.patch
+tracehook-clone.patch
+tracehook-vfork-done.patch
+tracehook-release_task.patch
+tracehook-tracehook_tracer_task.patch
+tracehook-tracehook_expect_breakpoints.patch
+tracehook-tracehook_signal_handler.patch
+tracehook-tracehook_consider_ignored_signal.patch
+tracehook-tracehook_consider_fatal_signal.patch
+tracehook-syscall.patch
+tracehook-get_signal_to_deliver.patch
+tracehook-job-control.patch
+tracehook-death.patch
+tracehook-force-signal_pending.patch
+tracehook-tif_notify_resume.patch
+tracehook-asm-syscallh.patch
+tracehook-config_have_arch_tracehook.patch
+tracehook-wait_task_inactive.patch
+task_current_syscall.patch
+proc-pid-syscall.patch
 
