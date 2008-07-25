@@ -1,288 +1,139 @@
 From: akpm@linux-foundation.org
-Subject: - bsdacct-switch-from-global-bsd_acct_struct-instance-to-per-pidns-one.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 16:03:01 -0700
-Message-ID: <200807252303.m6PN31wl003877@imap1.linux-foundation.org>
+Subject: - cgroup-files-add-write_string-cgroup-control-file-method.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 15:58:11 -0700
+Message-ID: <200807252258.m6PMwBxZ003266@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43531 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57670 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755100AbYGYXGv (ORCPT
+	by vger.kernel.org with ESMTP id S1754881AbYGYXHL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:06:51 -0400
+	Fri, 25 Jul 2008 19:07:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xemul@openvz.org, balbir@in.ibm.com, ebiederm@xmission.com, mm-commits@vger.kernel.org
+To: menage@google.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, pj@sgi.com, serue@us.ibm.com, xemul@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bsdacct: switch from global bsd_acct_struct instance to per-pidns one
+     cgroup files: add write_string cgroup control file method
 has been removed from the -mm tree.  Its filename was
-     bsdacct-switch-from-global-bsd_acct_struct-instance-to-per-pidns-one.patch
+     cgroup-files-add-write_string-cgroup-control-file-method.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bsdacct: switch from global bsd_acct_struct instance to per-pidns one
-From: Pavel Emelyanov <xemul@openvz.org>
+Subject: cgroup files: add write_string cgroup control file method
+From: Paul Menage <menage@google.com>
 
-Allocate the structure on the first call to sys_acct().  After this each
-namespace, that ordered the accounting, will live with this structure till
-its own death.
+This patch adds a write_string() method for cgroups control files. The
+semantics are that a buffer is copied from userspace to kernelspace
+and the handler function invoked on that buffer.  The buffer is
+guaranteed to be nul-terminated, and no longer than max_write_len
+(defaulting to 64 bytes if unspecified). Later patches will convert
+existing raw file write handlers in control group subsystems to use
+this method.
 
-Two notes
-- routines, that close the accounting on fs umount time use
-  the init_pid_ns's acct by now;
-- accounting routine accounts to dying task's namespace
-  (also by now).
-
-Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: Paul Menage <menage@google.com>
+Cc: Paul Jackson <pj@sgi.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
+Acked-by: Balbir Singh <balbir@in.ibm.com>
+Acked-by: Serge Hallyn <serue@us.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/acct.h   |    3 +
- kernel/acct.c          |   84 ++++++++++++++++++++++++++++++---------
- kernel/pid_namespace.c |    2 
- 3 files changed, 71 insertions(+), 18 deletions(-)
+ include/linux/cgroup.h |   14 ++++++++++++++
+ kernel/cgroup.c        |   35 +++++++++++++++++++++++++++++++++++
+ 2 files changed, 49 insertions(+)
 
-diff -puN include/linux/acct.h~bsdacct-switch-from-global-bsd_acct_struct-instance-to-per-pidns-one include/linux/acct.h
---- a/include/linux/acct.h~bsdacct-switch-from-global-bsd_acct_struct-instance-to-per-pidns-one
-+++ a/include/linux/acct.h
-@@ -120,17 +120,20 @@ struct acct_v3
- struct vfsmount;
- struct super_block;
- struct pacct_struct;
-+struct pid_namespace;
- extern void acct_auto_close_mnt(struct vfsmount *m);
- extern void acct_auto_close(struct super_block *sb);
- extern void acct_init_pacct(struct pacct_struct *pacct);
- extern void acct_collect(long exitcode, int group_dead);
- extern void acct_process(void);
-+extern void acct_exit_ns(struct pid_namespace *);
- #else
- #define acct_auto_close_mnt(x)	do { } while (0)
- #define acct_auto_close(x)	do { } while (0)
- #define acct_init_pacct(x)	do { } while (0)
- #define acct_collect(x,y)	do { } while (0)
- #define acct_process()		do { } while (0)
-+#define acct_exit_ns(ns)	do { } while (0)
- #endif
+diff -puN include/linux/cgroup.h~cgroup-files-add-write_string-cgroup-control-file-method include/linux/cgroup.h
+--- a/include/linux/cgroup.h~cgroup-files-add-write_string-cgroup-control-file-method
++++ a/include/linux/cgroup.h
+@@ -205,6 +205,13 @@ struct cftype {
+ 	 * subsystem, followed by a period */
+ 	char name[MAX_CFTYPE_NAME];
+ 	int private;
++
++	/*
++	 * If non-zero, defines the maximum length of string that can
++	 * be passed to write_string; defaults to 64
++	 */
++	size_t max_write_len;
++
+ 	int (*open)(struct inode *inode, struct file *file);
+ 	ssize_t (*read)(struct cgroup *cgrp, struct cftype *cft,
+ 			struct file *file,
+@@ -249,6 +256,13 @@ struct cftype {
+ 	int (*write_s64)(struct cgroup *cgrp, struct cftype *cft, s64 val);
  
- /*
-diff -puN kernel/acct.c~bsdacct-switch-from-global-bsd_acct_struct-instance-to-per-pidns-one kernel/acct.c
---- a/kernel/acct.c~bsdacct-switch-from-global-bsd_acct_struct-instance-to-per-pidns-one
-+++ a/kernel/acct.c
-@@ -93,8 +93,6 @@ struct bsd_acct_struct {
- 
- static DEFINE_SPINLOCK(acct_lock);
- 
--static struct bsd_acct_struct acct_globals __cacheline_aligned;
--
- /*
-  * Called whenever the timer says to check the free space.
-  */
-@@ -176,7 +174,8 @@ out:
-  *
-  * NOTE: acct_lock MUST be held on entry and exit.
-  */
--static void acct_file_reopen(struct bsd_acct_struct *acct, struct file *file)
-+static void acct_file_reopen(struct bsd_acct_struct *acct, struct file *file,
-+		struct pid_namespace *ns)
- {
- 	struct file *old_acct = NULL;
- 	struct pid_namespace *old_ns = NULL;
-@@ -188,10 +187,11 @@ static void acct_file_reopen(struct bsd_
- 		acct->active = 0;
- 		acct->needcheck = 0;
- 		acct->file = NULL;
-+		acct->ns = NULL;
- 	}
- 	if (file) {
- 		acct->file = file;
--		acct->ns = get_pid_ns(task_active_pid_ns(current));
-+		acct->ns = ns;
- 		acct->needcheck = 0;
- 		acct->active = 1;
- 		/* It's been deleted if it was used before so this is safe */
-@@ -204,7 +204,6 @@ static void acct_file_reopen(struct bsd_
- 		spin_unlock(&acct_lock);
- 		do_acct_process(acct, old_ns, old_acct);
- 		filp_close(old_acct, NULL);
--		put_pid_ns(old_ns);
- 		spin_lock(&acct_lock);
- 	}
+ 	/*
++	 * write_string() is passed a nul-terminated kernelspace
++	 * buffer of maximum length determined by max_write_len.
++	 * Returns 0 or -ve error code.
++	 */
++	int (*write_string)(struct cgroup *cgrp, struct cftype *cft,
++			    const char *buffer);
++	/*
+ 	 * trigger() callback can be used to get some kick from the
+ 	 * userspace, when the actual string written is not important
+ 	 * at all. The private field can be used to determine the
+diff -puN kernel/cgroup.c~cgroup-files-add-write_string-cgroup-control-file-method kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroup-files-add-write_string-cgroup-control-file-method
++++ a/kernel/cgroup.c
+@@ -1363,6 +1363,39 @@ static ssize_t cgroup_write_X64(struct c
+ 	return retval;
  }
-@@ -213,6 +212,8 @@ static int acct_on(char *name)
- {
- 	struct file *file;
- 	int error;
-+	struct pid_namespace *ns;
-+	struct bsd_acct_struct *acct = NULL;
  
- 	/* Difference from BSD - they don't do O_APPEND */
- 	file = filp_open(name, O_WRONLY|O_APPEND|O_LARGEFILE, 0);
-@@ -229,18 +230,34 @@ static int acct_on(char *name)
- 		return -EIO;
- 	}
- 
-+	ns = task_active_pid_ns(current);
-+	if (ns->bacct == NULL) {
-+		acct = kzalloc(sizeof(struct bsd_acct_struct), GFP_KERNEL);
-+		if (acct == NULL) {
-+			filp_close(file, NULL);
++static ssize_t cgroup_write_string(struct cgroup *cgrp, struct cftype *cft,
++				   struct file *file,
++				   const char __user *userbuf,
++				   size_t nbytes, loff_t *unused_ppos)
++{
++	char local_buffer[64];
++	int retval = 0;
++	size_t max_bytes = cft->max_write_len;
++	char *buffer = local_buffer;
++
++	if (!max_bytes)
++		max_bytes = sizeof(local_buffer) - 1;
++	if (nbytes >= max_bytes)
++		return -E2BIG;
++	/* Allocate a dynamic buffer if we need one */
++	if (nbytes >= sizeof(local_buffer)) {
++		buffer = kmalloc(nbytes + 1, GFP_KERNEL);
++		if (buffer == NULL)
 +			return -ENOMEM;
-+		}
 +	}
++	if (nbytes && copy_from_user(buffer, userbuf, nbytes))
++		return -EFAULT;
 +
- 	error = security_acct(file);
- 	if (error) {
-+		kfree(acct);
- 		filp_close(file, NULL);
- 		return error;
- 	}
- 
- 	spin_lock(&acct_lock);
-+	if (ns->bacct == NULL) {
-+		ns->bacct = acct;
-+		acct = NULL;
-+	}
-+
- 	mnt_pin(file->f_path.mnt);
--	acct_file_reopen(&acct_globals, file);
-+	acct_file_reopen(ns->bacct, file, ns);
- 	spin_unlock(&acct_lock);
- 
- 	mntput(file->f_path.mnt); /* it's pinned, now give up active reference */
-+	kfree(acct);
- 
- 	return 0;
- }
-@@ -270,10 +287,16 @@ asmlinkage long sys_acct(const char __us
- 		error = acct_on(tmp);
- 		putname(tmp);
- 	} else {
-+		struct bsd_acct_struct *acct;
-+
-+		acct = task_active_pid_ns(current)->bacct;
-+		if (acct == NULL)
-+			return 0;
-+
- 		error = security_acct(NULL);
- 		if (!error) {
- 			spin_lock(&acct_lock);
--			acct_file_reopen(&acct_globals, NULL);
-+			acct_file_reopen(acct, NULL, NULL);
- 			spin_unlock(&acct_lock);
- 		}
- 	}
-@@ -289,9 +312,15 @@ asmlinkage long sys_acct(const char __us
-  */
- void acct_auto_close_mnt(struct vfsmount *m)
- {
-+	struct bsd_acct_struct *acct;
-+
-+	acct = init_pid_ns.bacct;
-+	if (acct == NULL)
-+		return;
-+
- 	spin_lock(&acct_lock);
--	if (acct_globals.file && acct_globals.file->f_path.mnt == m)
--		acct_file_reopen(&acct_globals, NULL);
-+	if (acct->file && acct->file->f_path.mnt == m)
-+		acct_file_reopen(acct, NULL, NULL);
- 	spin_unlock(&acct_lock);
- }
- 
-@@ -304,10 +333,29 @@ void acct_auto_close_mnt(struct vfsmount
-  */
- void acct_auto_close(struct super_block *sb)
- {
-+	struct bsd_acct_struct *acct;
-+
-+	acct = init_pid_ns.bacct;
-+	if (acct == NULL)
-+		return;
-+
- 	spin_lock(&acct_lock);
--	if (acct_globals.file &&
--	    acct_globals.file->f_path.mnt->mnt_sb == sb) {
--		acct_file_reopen(&acct_globals, NULL);
-+	if (acct->file && acct->file->f_path.mnt->mnt_sb == sb)
-+		acct_file_reopen(acct, NULL, NULL);
-+	spin_unlock(&acct_lock);
++	buffer[nbytes] = 0;     /* nul-terminate */
++	strstrip(buffer);
++	retval = cft->write_string(cgrp, cft, buffer);
++	if (!retval)
++		retval = nbytes;
++	if (buffer != local_buffer)
++		kfree(buffer);
++	return retval;
 +}
 +
-+void acct_exit_ns(struct pid_namespace *ns)
-+{
-+	struct bsd_acct_struct *acct;
-+
-+	spin_lock(&acct_lock);
-+	acct = ns->bacct;
-+	if (acct != NULL) {
-+		if (acct->file != NULL)
-+			acct_file_reopen(acct, NULL, NULL);
-+
-+		kfree(acct);
- 	}
- 	spin_unlock(&acct_lock);
- }
-@@ -587,25 +635,25 @@ void acct_collect(long exitcode, int gro
- void acct_process(void)
- {
- 	struct file *file = NULL;
--	struct pid_namespace *ns;
-+	struct pid_namespace *ns = task_active_pid_ns(current);
-+	struct bsd_acct_struct *acct;
- 
-+	acct = ns->bacct;
- 	/*
- 	 * accelerate the common fastpath:
- 	 */
--	if (!acct_globals.file)
-+	if (!acct || !acct->file)
- 		return;
- 
- 	spin_lock(&acct_lock);
--	file = acct_globals.file;
-+	file = acct->file;
- 	if (unlikely(!file)) {
- 		spin_unlock(&acct_lock);
- 		return;
- 	}
- 	get_file(file);
--	ns = get_pid_ns(acct_globals.ns);
- 	spin_unlock(&acct_lock);
- 
--	do_acct_process(&acct_globals, ns, file);
-+	do_acct_process(acct, ns, file);
- 	fput(file);
--	put_pid_ns(ns);
- }
-diff -puN kernel/pid_namespace.c~bsdacct-switch-from-global-bsd_acct_struct-instance-to-per-pidns-one kernel/pid_namespace.c
---- a/kernel/pid_namespace.c~bsdacct-switch-from-global-bsd_acct_struct-instance-to-per-pidns-one
-+++ a/kernel/pid_namespace.c
-@@ -12,6 +12,7 @@
- #include <linux/pid_namespace.h>
- #include <linux/syscalls.h>
- #include <linux/err.h>
-+#include <linux/acct.h>
- 
- #define BITS_PER_PAGE		(PAGE_SIZE*8)
- 
-@@ -181,6 +182,7 @@ void zap_pid_ns_processes(struct pid_nam
- 
- 	/* Child reaper for the pid namespace is going away */
- 	pid_ns->child_reaper = NULL;
-+	acct_exit_ns(pid_ns);
- 	return;
- }
- 
+ static ssize_t cgroup_common_file_write(struct cgroup *cgrp,
+ 					   struct cftype *cft,
+ 					   struct file *file,
+@@ -1440,6 +1473,8 @@ static ssize_t cgroup_file_write(struct 
+ 		return cft->write(cgrp, cft, file, buf, nbytes, ppos);
+ 	if (cft->write_u64 || cft->write_s64)
+ 		return cgroup_write_X64(cgrp, cft, file, buf, nbytes, ppos);
++	if (cft->write_string)
++		return cgroup_write_string(cgrp, cft, file, buf, nbytes, ppos);
+ 	if (cft->trigger) {
+ 		int ret = cft->trigger(cgrp, (unsigned int)cft->private);
+ 		return ret ? ret : nbytes;
 _
 
-Patches currently in -mm which might be from xemul@openvz.org are
+Patches currently in -mm which might be from menage@google.com are
 
 origin.patch
 memrlimit-add-memrlimit-controller-documentation.patch
@@ -292,5 +143,6 @@ memrlimit-add-memrlimit-controller-accounting-and-control.patch
 memrlimit-improve-error-handling.patch
 memrlimit-improve-error-handling-update.patch
 memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
-reiser4.patch
+make-cgroup_seqfile_release-static.patch
+add-a-refcount-check-in-dput.patch
 
