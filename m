@@ -1,170 +1,237 @@
 From: akpm@linux-foundation.org
-Subject: - arm-fix-fls-for-64-bit-arguments.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 16:04:16 -0700
-Message-ID: <200807252304.m6PN4GB4004034@imap1.linux-foundation.org>
+Subject: - locks-add-special-return-value-for-asynchronous-locks.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 16:03:29 -0700
+Message-ID: <200807252303.m6PN3T3g003956@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39494 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38532 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754178AbYGYXFS (ORCPT
+	by vger.kernel.org with ESMTP id S1752863AbYGYXFF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:05:18 -0400
+	Fri, 25 Jul 2008 19:05:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, khc@pm.waw.pl, nickolay@protei.ru, stable@kernel.org, mm-commits@vger.kernel.org
+To: mszeredi@suse.cz, bfields@fieldses.org, hch@lst.de, matthew@wil.cx, teigland@redhat.com, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arm: fix fls() for 64-bit arguments
+     locks: add special return value for asynchronous locks
 has been removed from the -mm tree.  Its filename was
-     arm-fix-fls-for-64-bit-arguments.patch
+     locks-add-special-return-value-for-asynchronous-locks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arm: fix fls() for 64-bit arguments
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: locks: add special return value for asynchronous locks
+From: Miklos Szeredi <mszeredi@suse.cz>
 
-arm's fls() is implemented as a macro, causing it to misbehave when passed
-64-bit arguments.  Fix.
+Use a special error value FILE_LOCK_DEFERRED to mean that a locking
+operation returned asynchronously.  This is returned by
 
-Cc: Nickolay Vinogradov <nickolay@protei.ru>
-Tested-by: Krzysztof Halasa <khc@pm.waw.pl>
-Cc: <stable@kernel.org>
+  posix_lock_file() for sleeping locks to mean that the lock has been
+  queued on the block list, and will be woken up when it might become
+  available and needs to be retried (either fl_lmops->fl_notify() is
+  called or fl_wait is woken up).
+
+  f_op->lock() to mean either the above, or that the filesystem will
+  call back with fl_lmops->fl_grant() when the result of the locking
+  operation is known.  The filesystem can do this for sleeping as well
+  as non-sleeping locks.
+
+This is to make sure, that return values of -EAGAIN and -EINPROGRESS by
+filesystems are not mistaken to mean an asynchronous locking.
+
+This also makes error handling in fs/locks.c and lockd/svclock.c slightly
+cleaner.
+
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: Matthew Wilcox <matthew@wil.cx>
+Cc: David Teigland <teigland@redhat.com>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-arm/bitops.h |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ fs/dlm/plock.c     |    2 +-
+ fs/lockd/svclock.c |   13 ++++---------
+ fs/locks.c         |   28 ++++++++++++++--------------
+ include/linux/fs.h |    6 ++++++
+ 4 files changed, 25 insertions(+), 24 deletions(-)
 
-diff -puN include/asm-arm/bitops.h~arm-fix-fls-for-64-bit-arguments include/asm-arm/bitops.h
---- a/include/asm-arm/bitops.h~arm-fix-fls-for-64-bit-arguments
-+++ a/include/asm-arm/bitops.h
-@@ -277,9 +277,16 @@ static inline int constant_fls(int x)
-  * the clz instruction for much better code efficiency.
-  */
+diff -puN fs/dlm/plock.c~locks-add-special-return-value-for-asynchronous-locks fs/dlm/plock.c
+--- a/fs/dlm/plock.c~locks-add-special-return-value-for-asynchronous-locks
++++ a/fs/dlm/plock.c
+@@ -116,7 +116,7 @@ int dlm_posix_lock(dlm_lockspace_t *lock
+ 	if (xop->callback == NULL)
+ 		wait_event(recv_wq, (op->done != 0));
+ 	else {
+-		rv = -EINPROGRESS;
++		rv = FILE_LOCK_DEFERRED;
+ 		goto out;
+ 	}
  
--#define fls(x) \
-+#define __fls(x) \
- 	( __builtin_constant_p(x) ? constant_fls(x) : \
- 	  ({ int __r; asm("clz\t%0, %1" : "=r"(__r) : "r"(x) : "cc"); 32-__r; }) )
+diff -puN fs/lockd/svclock.c~locks-add-special-return-value-for-asynchronous-locks fs/lockd/svclock.c
+--- a/fs/lockd/svclock.c~locks-add-special-return-value-for-asynchronous-locks
++++ a/fs/lockd/svclock.c
+@@ -418,8 +418,8 @@ nlmsvc_lock(struct svc_rqst *rqstp, stru
+ 			goto out;
+ 		case -EAGAIN:
+ 			ret = nlm_lck_denied;
+-			break;
+-		case -EINPROGRESS:
++			goto out;
++		case FILE_LOCK_DEFERRED:
+ 			if (wait)
+ 				break;
+ 			/* Filesystem lock operation is in progress
+@@ -434,10 +434,6 @@ nlmsvc_lock(struct svc_rqst *rqstp, stru
+ 			goto out;
+ 	}
+ 
+-	ret = nlm_lck_denied;
+-	if (!wait)
+-		goto out;
+-
+ 	ret = nlm_lck_blocked;
+ 
+ 	/* Append to list of blocked */
+@@ -507,7 +503,7 @@ nlmsvc_testlock(struct svc_rqst *rqstp, 
+ 	}
+ 
+ 	error = vfs_test_lock(file->f_file, &lock->fl);
+-	if (error == -EINPROGRESS) {
++	if (error == FILE_LOCK_DEFERRED) {
+ 		ret = nlmsvc_defer_lock_rqst(rqstp, block);
+ 		goto out;
+ 	}
+@@ -731,8 +727,7 @@ nlmsvc_grant_blocked(struct nlm_block *b
+ 	switch (error) {
+ 	case 0:
+ 		break;
+-	case -EAGAIN:
+-	case -EINPROGRESS:
++	case FILE_LOCK_DEFERRED:
+ 		dprintk("lockd: lock still blocked error %d\n", error);
+ 		nlmsvc_insert_block(block, NLM_NEVER);
+ 		nlmsvc_release_block(block);
+diff -puN fs/locks.c~locks-add-special-return-value-for-asynchronous-locks fs/locks.c
+--- a/fs/locks.c~locks-add-special-return-value-for-asynchronous-locks
++++ a/fs/locks.c
+@@ -779,8 +779,10 @@ find_conflict:
+ 		if (!flock_locks_conflict(request, fl))
+ 			continue;
+ 		error = -EAGAIN;
+-		if (request->fl_flags & FL_SLEEP)
+-			locks_insert_block(fl, request);
++		if (!(request->fl_flags & FL_SLEEP))
++			goto out;
++		error = FILE_LOCK_DEFERRED;
++		locks_insert_block(fl, request);
+ 		goto out;
+ 	}
+ 	if (request->fl_flags & FL_ACCESS)
+@@ -836,7 +838,7 @@ static int __posix_lock_file(struct inod
+ 			error = -EDEADLK;
+ 			if (posix_locks_deadlock(request, fl))
+ 				goto out;
+-			error = -EAGAIN;
++			error = FILE_LOCK_DEFERRED;
+ 			locks_insert_block(fl, request);
+ 			goto out;
+   		}
+@@ -1035,7 +1037,7 @@ int posix_lock_file_wait(struct file *fi
+ 	might_sleep ();
+ 	for (;;) {
+ 		error = posix_lock_file(filp, fl, NULL);
+-		if ((error != -EAGAIN) || !(fl->fl_flags & FL_SLEEP))
++		if (error != FILE_LOCK_DEFERRED)
+ 			break;
+ 		error = wait_event_interruptible(fl->fl_wait, !fl->fl_next);
+ 		if (!error)
+@@ -1107,9 +1109,7 @@ int locks_mandatory_area(int read_write,
+ 
+ 	for (;;) {
+ 		error = __posix_lock_file(inode, &fl, NULL);
+-		if (error != -EAGAIN)
+-			break;
+-		if (!(fl.fl_flags & FL_SLEEP))
++		if (error != FILE_LOCK_DEFERRED)
+ 			break;
+ 		error = wait_event_interruptible(fl.fl_wait, !fl.fl_next);
+ 		if (!error) {
+@@ -1531,7 +1531,7 @@ int flock_lock_file_wait(struct file *fi
+ 	might_sleep();
+ 	for (;;) {
+ 		error = flock_lock_file(filp, fl);
+-		if ((error != -EAGAIN) || !(fl->fl_flags & FL_SLEEP))
++		if (error != FILE_LOCK_DEFERRED)
+ 			break;
+ 		error = wait_event_interruptible(fl->fl_wait, !fl->fl_next);
+ 		if (!error)
+@@ -1716,17 +1716,17 @@ out:
+  * fl_grant is set. Callers expecting ->lock() to return asynchronously
+  * will only use F_SETLK, not F_SETLKW; they will set FL_SLEEP if (and only if)
+  * the request is for a blocking lock. When ->lock() does return asynchronously,
+- * it must return -EINPROGRESS, and call ->fl_grant() when the lock
++ * it must return FILE_LOCK_DEFERRED, and call ->fl_grant() when the lock
+  * request completes.
+  * If the request is for non-blocking lock the file system should return
+- * -EINPROGRESS then try to get the lock and call the callback routine with
+- * the result. If the request timed out the callback routine will return a
++ * FILE_LOCK_DEFERRED then try to get the lock and call the callback routine
++ * with the result. If the request timed out the callback routine will return a
+  * nonzero return code and the file system should release the lock. The file
+  * system is also responsible to keep a corresponding posix lock when it
+  * grants a lock so the VFS can find out which locks are locally held and do
+  * the correct lock cleanup when required.
+  * The underlying filesystem must not drop the kernel lock or call
+- * ->fl_grant() before returning to the caller with a -EINPROGRESS
++ * ->fl_grant() before returning to the caller with a FILE_LOCK_DEFERRED
+  * return code.
+  */
+ int vfs_lock_file(struct file *filp, unsigned int cmd, struct file_lock *fl, struct file_lock *conf)
+@@ -1804,7 +1804,7 @@ again:
+ 	else {
+ 		for (;;) {
+ 			error = posix_lock_file(filp, file_lock, NULL);
+-			if (error != -EAGAIN || cmd == F_SETLK)
++			if (error != FILE_LOCK_DEFERRED)
+ 				break;
+ 			error = wait_event_interruptible(file_lock->fl_wait,
+ 					!file_lock->fl_next);
+@@ -1941,7 +1941,7 @@ again:
+ 	else {
+ 		for (;;) {
+ 			error = posix_lock_file(filp, file_lock, NULL);
+-			if (error != -EAGAIN || cmd == F_SETLK64)
++			if (error != FILE_LOCK_DEFERRED)
+ 				break;
+ 			error = wait_event_interruptible(file_lock->fl_wait,
+ 					!file_lock->fl_next);
+diff -puN include/linux/fs.h~locks-add-special-return-value-for-asynchronous-locks include/linux/fs.h
+--- a/include/linux/fs.h~locks-add-special-return-value-for-asynchronous-locks
++++ a/include/linux/fs.h
+@@ -886,6 +886,12 @@ static inline int file_check_writeable(s
+ #define FL_SLEEP	128	/* A blocking lock */
+ 
+ /*
++ * Special return value from posix_lock_file() and vfs_lock_file() for
++ * asynchronous locking.
++ */
++#define FILE_LOCK_DEFERRED 1
 +
-+/* Implement fls() in C so that 64-bit args are suitably truncated */
-+static inline int fls(int x)
-+{
-+	return __fls(x);
-+}
-+
- #define ffs(x) ({ unsigned long __t = (x); fls(__t & -__t); })
- #define __ffs(x) (ffs(x) - 1)
- #define ffz(x) __ffs( ~(x) )
++/*
+  * The POSIX file lock owner is determined by
+  * the "struct files_struct" in the thread group
+  * (or NULL for no owner - BSD locks).
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mszeredi@suse.cz are
 
 origin.patch
-seq_file-fix-bug-when-seq_read-reads-nothing.patch
-uninline-arch_pick_mmap_layout.patch
 linux-next.patch
-linux-next-fixups.patch
-linux-next-rejects.patch
-next-remove-localversion.patch
-drivers-mtd-nand-nandsimc-needs-div64h.patch
-pci-make-pci_register_driver-a-macro.patch
-drivers-mfd-tc6393xbc-doesnt-compile-on-i386.patch
-x86-pci-replace-dbg-with-pr_debug-fix.patch
-x86-pci-replace-dbg-with-pr_debug-fix-2.patch
-include-asm-generic-pgtable-nopmdh-macros-are-noxious-reason-435.patch
-arch-x86-pci-i386c-fix-printk-warnings.patch
-drm-fix-sparc64-build.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-git-jg-misc.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-bridge-send-correct-mtu-value-in-pmtu-checkpatch-fixes.patch
-sundance-set-carrier-status-on-link-change-events.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
-scsi-gdthc-use-unaligned-access-helpers-checkpatch-fixes.patch
-git-unionfs.patch
-git-logfs-git-rejects.patch
-git-logfs-fixup.patch
-drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
-drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
-drivers-net-wireless-iwlwifi-iwl-ledc-printk-fix.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-ftrace-disable-function-tracing-bringing-up-new-cpu-fix.patch
-mmu-notifiers-add-mm_take_all_locks-operation.patch
-mmu-notifier-core.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-eink_apollofb-new-driver-for-apollo-eink-controller-cleanup.patch
-eink_apollofb-new-driver-for-apollo-eink-controller-fix.patch
-eink_apollofb-new-driver-for-apollo-eink-controller-fix-fix-2.patch
-getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-s2io.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sdhci-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-infiniband.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-more-sparc.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-ibmvscsi.patch
-x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary-checkpatch-fixes.patch
-tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
-memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
-memstick-use-fully-asynchronous-request-processing-fix.patch
-full-conversion-to-early_initcall-interface-remove-old-interface-cleanup.patch
-full-conversion-to-early_initcall-interface-remove-old-interface-fix.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-gru-driver-v3-hardware-data-structures-fix.patch
-gru-driver-v3-hardware-data-structures-fix-fix.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-mm-introduce-get_user_pages_fast-fix.patch
-mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-fix.patch
-x86-lockless-get_user_pages_fast-fix-2.patch
-x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
-x86-lockless-get_user_pages_fast-fix-warning.patch
-mm-speculative-page-references-fix-add_to_page_cache-fix.patch
-vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
-define-page_file_cache-function-fix.patch
-vmscan-split-lru-lists-into-anon-file-sets-units-fix.patch
-unevictable-lru-infrastructure-fix.patch
-unevictable-lru-page-statistics-units-fix.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-3.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
-introduce-__get_user_pages-fix.patch
-vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-fix-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
-slb-drop-kmem-cache-argument-from-constructor-ubifs.patch
-video-console-sticonrec-make-code-static-checkpatch-fixes.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+git-unprivileged-mounts.patch
 
