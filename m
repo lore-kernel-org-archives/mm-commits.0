@@ -1,95 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - workqueues-do-cpu_up_canceled-if-cpu_up_prepare-fails.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 16:00:29 -0700
-Message-ID: <200807252300.m6PN0TNU003590@imap1.linux-foundation.org>
+Subject: - workqueues-schedule_on_each_cpu-use-flush_work.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 16:00:15 -0700
+Message-ID: <200807252300.m6PN0Ftp003569@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53783 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53703 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751706AbYGYXBC (ORCPT
+	by vger.kernel.org with ESMTP id S1752810AbYGYXBK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:01:02 -0400
+	Fri, 25 Jul 2008 19:01:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, akinobu.mita@gmail.com, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, jarkao2@gmail.com, maxk@qualcomm.com, peterz@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     workqueues: do CPU_UP_CANCELED if CPU_UP_PREPARE fails
+     workqueues: schedule_on_each_cpu: use flush_work()
 has been removed from the -mm tree.  Its filename was
-     workqueues-do-cpu_up_canceled-if-cpu_up_prepare-fails.patch
+     workqueues-schedule_on_each_cpu-use-flush_work.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: workqueues: do CPU_UP_CANCELED if CPU_UP_PREPARE fails
+Subject: workqueues: schedule_on_each_cpu: use flush_work()
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-The bug was pointed out by Akinobu Mita <akinobu.mita@gmail.com>, and this
-patch is based on his original patch.
-
-workqueue_cpu_callback(CPU_UP_PREPARE) expects that if it returns
-NOTIFY_BAD, _cpu_up() will send CPU_UP_CANCELED then.
-
-However, this is not true since
-
-	"cpu hotplug: cpu: deliver CPU_UP_CANCELED only to NOTIFY_OKed callbacks with CPU_UP_PREPARE"
-	commit: a0d8cdb652d35af9319a9e0fb7134de2a276c636
-
-The callback which has returned NOTIFY_BAD will not receive
-CPU_UP_CANCELED.  Change the code to fulfil the CPU_UP_CANCELED logic if
-CPU_UP_PREPARE fails.
+Change schedule_on_each_cpu() to use flush_work() instead of
+flush_workqueue(), this way we don't wait for other work_struct's which
+can be queued meanwhile.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Reported-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Jarek Poplawski <jarkao2@gmail.com>
+Cc: Max Krasnyansky <maxk@qualcomm.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/workqueue.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ kernel/workqueue.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN kernel/workqueue.c~workqueues-do-cpu_up_canceled-if-cpu_up_prepare-fails kernel/workqueue.c
---- a/kernel/workqueue.c~workqueues-do-cpu_up_canceled-if-cpu_up_prepare-fails
+diff -puN kernel/workqueue.c~workqueues-schedule_on_each_cpu-use-flush_work kernel/workqueue.c
+--- a/kernel/workqueue.c~workqueues-schedule_on_each_cpu-use-flush_work
 +++ a/kernel/workqueue.c
-@@ -911,6 +911,7 @@ static int __devinit workqueue_cpu_callb
- 	unsigned int cpu = (unsigned long)hcpu;
- 	struct cpu_workqueue_struct *cwq;
- 	struct workqueue_struct *wq;
-+	int ret = NOTIFY_OK;
- 
- 	action &= ~CPU_TASKS_FROZEN;
- 
-@@ -918,7 +919,7 @@ static int __devinit workqueue_cpu_callb
- 	case CPU_UP_PREPARE:
- 		cpu_set(cpu, cpu_populated_map);
+@@ -690,7 +690,8 @@ int schedule_on_each_cpu(work_func_t fun
+ 		set_bit(WORK_STRUCT_PENDING, work_data_bits(work));
+ 		__queue_work(per_cpu_ptr(keventd_wq->cpu_wq, cpu), work);
  	}
--
-+undo:
- 	list_for_each_entry(wq, &workqueues, list) {
- 		cwq = per_cpu_ptr(wq->cpu_wq, cpu);
- 
-@@ -928,7 +929,9 @@ static int __devinit workqueue_cpu_callb
- 				break;
- 			printk(KERN_ERR "workqueue [%s] for %i failed\n",
- 				wq->name, cpu);
--			return NOTIFY_BAD;
-+			action = CPU_UP_CANCELED;
-+			ret = NOTIFY_BAD;
-+			goto undo;
- 
- 		case CPU_ONLINE:
- 			start_workqueue_thread(cwq, cpu);
-@@ -948,7 +951,7 @@ static int __devinit workqueue_cpu_callb
- 		cpu_clear(cpu, cpu_populated_map);
- 	}
- 
--	return NOTIFY_OK;
-+	return ret;
- }
- 
- void __init init_workqueues(void)
+-	flush_workqueue(keventd_wq);
++	for_each_online_cpu(cpu)
++		flush_work(per_cpu_ptr(works, cpu));
+ 	put_online_cpus();
+ 	free_percpu(works);
+ 	return 0;
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
