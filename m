@@ -1,176 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: - cgroup-files-turn-attach_task_by_pid-directly-into-a-cgroup-write-handler.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 15:58:19 -0700
-Message-ID: <200807252258.m6PMwJs8003279@imap1.linux-foundation.org>
+Subject: - devcgroup-code-cleanup.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 15:58:33 -0700
+Message-ID: <200807252258.m6PMwXKv003299@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44277 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38942 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751361AbYGYW74 (ORCPT
+	by vger.kernel.org with ESMTP id S1752087AbYGYW74 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 25 Jul 2008 18:59:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: menage@google.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, pj@sgi.com, serue@us.ibm.com, xemul@openvz.org, mm-commits@vger.kernel.org
+To: lizf@cn.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, menage@google.com, serue@us.ibm.com, xemul@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cgroup files: turn attach_task_by_pid directly into a cgroup write handler
+     devcgroup: code cleanup
 has been removed from the -mm tree.  Its filename was
-     cgroup-files-turn-attach_task_by_pid-directly-into-a-cgroup-write-handler.patch
+     devcgroup-code-cleanup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroup files: turn attach_task_by_pid directly into a cgroup write handler
-From: Paul Menage <menage@google.com>
+Subject: devcgroup: code cleanup
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-This patch changes attach_task_by_pid() to take a u64 rather than a
-string; as a result it can be called directly as a control groups
-write_u64 handler, and cgroup_common_file_write() can be removed.
+- clean up set_majmin()
+- use simple_strtoul() to parse major/minor
 
-Signed-off-by: Paul Menage <menage@google.com>
-Cc: Paul Jackson <pj@sgi.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: Balbir Singh <balbir@in.ibm.com>
+[akpm@linux-foundation.org: fix simple_strtoul() usage]
+[kosaki.motohiro@jp.fujitsu.com: fix warnings]
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Acked-by: Serge Hallyn <serue@us.ibm.com>
 Cc: Serge Hallyn <serue@us.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Paul Menage <menage@google.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |   80 ++++++++--------------------------------------
- 1 file changed, 14 insertions(+), 66 deletions(-)
+ security/device_cgroup.c |   22 ++++++++--------------
+ 1 file changed, 8 insertions(+), 14 deletions(-)
 
-diff -puN kernel/cgroup.c~cgroup-files-turn-attach_task_by_pid-directly-into-a-cgroup-write-handler kernel/cgroup.c
---- a/kernel/cgroup.c~cgroup-files-turn-attach_task_by_pid-directly-into-a-cgroup-write-handler
-+++ a/kernel/cgroup.c
-@@ -504,10 +504,6 @@ static struct css_set *find_css_set(
-  * knows that the cgroup won't be removed, as cgroup_rmdir()
-  * needs that mutex.
-  *
-- * The cgroup_common_file_write handler for operations that modify
-- * the cgroup hierarchy holds cgroup_mutex across the entire operation,
-- * single threading all such cgroup modifications across the system.
-- *
-  * The fork and exit callbacks cgroup_fork() and cgroup_exit(), don't
-  * (usually) take cgroup_mutex.  These are the two most performance
-  * critical pieces of code here.  The exception occurs on cgroup_exit(),
-@@ -1279,18 +1275,14 @@ int cgroup_attach_task(struct cgroup *cg
- }
+diff -puN security/device_cgroup.c~devcgroup-code-cleanup security/device_cgroup.c
+--- a/security/device_cgroup.c~devcgroup-code-cleanup
++++ a/security/device_cgroup.c
+@@ -202,7 +202,7 @@ static struct cgroup_subsys_state *devcg
+ 		}
+ 		wh->minor = wh->major = ~0;
+ 		wh->type = DEV_ALL;
+-		wh->access = ACC_MKNOD | ACC_READ | ACC_WRITE;
++		wh->access = ACC_MASK;
+ 		list_add(&wh->list, &dev_cgroup->whitelist);
+ 	} else {
+ 		parent_dev_cgroup = cgroup_to_devcgroup(parent_cgroup);
+@@ -264,11 +264,10 @@ static char type_to_char(short type)
  
- /*
-- * Attach task with pid 'pid' to cgroup 'cgrp'. Call with
-- * cgroup_mutex, may take task_lock of task
-+ * Attach task with pid 'pid' to cgroup 'cgrp'. Call with cgroup_mutex
-+ * held. May take task_lock of task
-  */
--static int attach_task_by_pid(struct cgroup *cgrp, char *pidbuf)
-+static int attach_task_by_pid(struct cgroup *cgrp, u64 pid)
+ static void set_majmin(char *str, unsigned m)
  {
--	pid_t pid;
- 	struct task_struct *tsk;
- 	int ret;
- 
--	if (sscanf(pidbuf, "%d", &pid) != 1)
--		return -EIO;
--
- 	if (pid) {
- 		rcu_read_lock();
- 		tsk = find_task_by_vpid(pid);
-@@ -1316,6 +1308,16 @@ static int attach_task_by_pid(struct cgr
- 	return ret;
+-	memset(str, 0, MAJMINLEN);
+ 	if (m == ~0)
+-		sprintf(str, "*");
++		strcpy(str, "*");
+ 	else
+-		snprintf(str, MAJMINLEN, "%u", m);
++		sprintf(str, "%u", m);
  }
  
-+static int cgroup_tasks_write(struct cgroup *cgrp, struct cftype *cft, u64 pid)
-+{
-+	int ret;
-+	if (!cgroup_lock_live_group(cgrp))
-+		return -ENODEV;
-+	ret = attach_task_by_pid(cgrp, pid);
-+	cgroup_unlock();
-+	return ret;
-+}
-+
- /* The various types of files and directories in a cgroup file system */
- enum cgroup_filetype {
- 	FILE_ROOT,
-@@ -1434,60 +1436,6 @@ static ssize_t cgroup_write_string(struc
- 	return retval;
- }
- 
--static ssize_t cgroup_common_file_write(struct cgroup *cgrp,
--					   struct cftype *cft,
--					   struct file *file,
--					   const char __user *userbuf,
--					   size_t nbytes, loff_t *unused_ppos)
--{
--	enum cgroup_filetype type = cft->private;
--	char *buffer;
--	int retval = 0;
--
--	if (nbytes >= PATH_MAX)
--		return -E2BIG;
--
--	/* +1 for nul-terminator */
--	buffer = kmalloc(nbytes + 1, GFP_KERNEL);
--	if (buffer == NULL)
--		return -ENOMEM;
--
--	if (copy_from_user(buffer, userbuf, nbytes)) {
--		retval = -EFAULT;
--		goto out1;
--	}
--	buffer[nbytes] = 0;	/* nul-terminate */
--	strstrip(buffer);	/* strip -just- trailing whitespace */
--
--	mutex_lock(&cgroup_mutex);
--
--	/*
--	 * This was already checked for in cgroup_file_write(), but
--	 * check again now we're holding cgroup_mutex.
--	 */
--	if (cgroup_is_removed(cgrp)) {
--		retval = -ENODEV;
--		goto out2;
--	}
--
--	switch (type) {
--	case FILE_TASKLIST:
--		retval = attach_task_by_pid(cgrp, buffer);
--		break;
--	default:
--		retval = -EINVAL;
--		goto out2;
--	}
--
--	if (retval == 0)
--		retval = nbytes;
--out2:
--	mutex_unlock(&cgroup_mutex);
--out1:
--	kfree(buffer);
--	return retval;
--}
--
- static ssize_t cgroup_file_write(struct file *file, const char __user *buf,
- 						size_t nbytes, loff_t *ppos)
+ static int devcgroup_seq_read(struct cgroup *cgroup, struct cftype *cft,
+@@ -360,6 +359,7 @@ static int devcgroup_update_access(struc
  {
-@@ -2265,7 +2213,7 @@ static struct cftype files[] = {
- 		.name = "tasks",
- 		.open = cgroup_tasks_open,
- 		.read = cgroup_tasks_read,
--		.write = cgroup_common_file_write,
-+		.write_u64 = cgroup_tasks_write,
- 		.release = cgroup_tasks_release,
- 		.private = FILE_TASKLIST,
- 	},
+ 	struct dev_cgroup *cur_devcgroup;
+ 	const char *b;
++	char *endp;
+ 	int retval = 0, count;
+ 	struct dev_whitelist_item wh;
+ 
+@@ -395,11 +395,8 @@ static int devcgroup_update_access(struc
+ 		wh.major = ~0;
+ 		b++;
+ 	} else if (isdigit(*b)) {
+-		wh.major = 0;
+-		while (isdigit(*b)) {
+-			wh.major = wh.major*10+(*b-'0');
+-			b++;
+-		}
++		wh.major = simple_strtoul(b, &endp, 10);
++		b = endp;
+ 	} else {
+ 		return -EINVAL;
+ 	}
+@@ -412,11 +409,8 @@ static int devcgroup_update_access(struc
+ 		wh.minor = ~0;
+ 		b++;
+ 	} else if (isdigit(*b)) {
+-		wh.minor = 0;
+-		while (isdigit(*b)) {
+-			wh.minor = wh.minor*10+(*b-'0');
+-			b++;
+-		}
++		wh.minor = simple_strtoul(b, &endp, 10);
++		b = endp;
+ 	} else {
+ 		return -EINVAL;
+ 	}
 _
 
-Patches currently in -mm which might be from menage@google.com are
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
 origin.patch
+linux-next.patch
 memrlimit-add-memrlimit-controller-documentation.patch
 memrlimit-setup-the-memrlimit-controller.patch
 memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
@@ -178,6 +119,8 @@ memrlimit-add-memrlimit-controller-accounting-and-control.patch
 memrlimit-improve-error-handling.patch
 memrlimit-improve-error-handling-update.patch
 memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
-make-cgroup_seqfile_release-static.patch
-add-a-refcount-check-in-dput.patch
+introduce-__get_user_pages.patch
+introduce-__get_user_pages-fix.patch
+split-lru-munlock-rework.patch
+revert-to-unevictable-lru-infrastructure-kconfig-fixpatch.patch
 
