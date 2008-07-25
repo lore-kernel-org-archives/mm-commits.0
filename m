@@ -1,99 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: - mm-speculative-page-references-fix.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 16:55:30 -0700
-Message-ID: <200807252355.m6PNtUSC006087@imap1.linux-foundation.org>
+Subject: - mm-speculative-page-references-fix-fix.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 16:55:34 -0700
+Message-ID: <200807252355.m6PNtYpg006090@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45843 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38763 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752779AbYGYX4v (ORCPT
+	by vger.kernel.org with ESMTP id S1753190AbYGYX5Q (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:56:51 -0400
+	Fri, 25 Jul 2008 19:57:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, a.p.zijlstra@chello.nl, benh@kernel.crashing.org, hugh@veritas.com, jeff@garzik.org, paulmck@us.ibm.com, paulus@samba.org, mm-commits@vger.kernel.org
+To: nickpiggin@yahoo.com.au, a.p.zijlstra@chello.nl, benh@kernel.crashing.org, hugh@veritas.com, jeff@garzik.org, paulmck@us.ibm.com, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-speculative-page-references fix
+     mm-speculative-page-references-fix-fix
 has been removed from the -mm tree.  Its filename was
-     mm-speculative-page-references-fix.patch
+     mm-speculative-page-references-fix-fix.patch
 
 This patch was dropped because it was folded into mm-speculative-page-references.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-speculative-page-references fix
-From: Nick Piggin <npiggin@suse.de>
+Subject: mm-speculative-page-references-fix-fix
+From: Nick Piggin <nickpiggin@yahoo.com.au>
 
-As per the comment here, we can only use that shortcut if rcu_read_lock
-disabled preemption.  It would be somewhat annoying to have to put
-preempt_disable/preempt_enable around all callers in order to support
-this, but preempt RCU isn't going to be hugely performance critical
-anyway (and actually it actively trades performance for fewer preempt
-off sections), so it can use the slightly slower path quite happily.
+free_it obviously should be below the unlock_page.
 
 Cc: Jeff Garzik <jeff@garzik.org>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Paul Mackerras <paulus@samba.org>
 Cc: Hugh Dickins <hugh@veritas.com>
 Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
-Reviewed-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmscan.c |   11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/pagemap.h~mm-speculative-page-references-fix include/linux/pagemap.h
---- a/include/linux/pagemap.h~mm-speculative-page-references-fix
-+++ a/include/linux/pagemap.h
-@@ -112,7 +112,7 @@ static inline int page_cache_get_specula
- {
- 	VM_BUG_ON(in_interrupt());
+diff -puN mm/vmscan.c~mm-speculative-page-references-fix-fix mm/vmscan.c
+--- a/mm/vmscan.c~mm-speculative-page-references-fix-fix
++++ a/mm/vmscan.c
+@@ -391,7 +391,7 @@ static pageout_t pageout(struct page *pa
+ }
  
--#ifndef CONFIG_SMP
-+#if !defined(CONFIG_SMP) && defined(CONFIG_CLASSIC_RCU)
- # ifdef CONFIG_PREEMPT
- 	VM_BUG_ON(!in_atomic());
- # endif
+ /*
+- * Save as remove_mapping, but if the page is removed from the mapping, it
++ * Same as remove_mapping, but if the page is removed from the mapping, it
+  * gets returned with a refcount of 0.
+  */
+ static int __remove_mapping(struct address_space *mapping, struct page *page)
+@@ -619,6 +619,13 @@ static unsigned long shrink_page_list(st
+ 				if (put_page_testzero(page))
+ 					goto free_it;
+ 				else {
++					/*
++					 * rare race with speculative reference.
++					 * the speculative reference will free
++					 * this page shortly, so we may
++					 * increment nr_reclaimed here (and
++					 * leave it off the LRU).
++					 */
+ 					nr_reclaimed++;
+ 					continue;
+ 				}
+@@ -628,8 +635,8 @@ static unsigned long shrink_page_list(st
+ 		if (!mapping || !__remove_mapping(mapping, page))
+ 			goto keep_locked;
+ 
+-free_it:
+ 		unlock_page(page);
++free_it:
+ 		nr_reclaimed++;
+ 		if (!pagevec_add(&freed_pvec, page)) {
+ 			__pagevec_free(&freed_pvec);
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from nickpiggin@yahoo.com.au are
 
 origin.patch
-x86-implement-pte_special.patch
-x86-implement-pte_special-fix.patch
-mm-introduce-get_user_pages_fast.patch
-x86-lockless-get_user_pages_fast.patch
-dio-use-get_user_pages_fast.patch
-splice-use-get_user_pages_fast.patch
-x86-support-1gb-hugepages-with-get_user_pages_lockless.patch
-mm-readahead-scan-lockless.patch
-radix-tree-add-gang_lookup_slot-gang_lookup_slot_tag.patch
 mm-speculative-page-references.patch
-mm-speculative-page-references-fix.patch
-mm-speculative-page-references-fix-add_to_page_cache.patch
-mm-speculative-page-references-fix-add_to_page_cache-fix.patch
-mm-lockless-pagecache.patch
-mm-spinlock-tree_lock.patch
-powerpc-implement-pte_special.patch
-powerpc-implement-pte_special-update.patch
-powerpc-lockless-get_user_pages.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
-vmscan-split-lru-lists-into-anon-file-sets-splitlru-bdi_cap_swap_backed.patch
-mlock-mlocked-pages-are-unevictable.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-3.patch
-mlock-mlocked-pages-are-unevictable-fix-fix-munlock-page-table-walk-now-requires-mm.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
-fix-double-unlock_page-in-2626-rc5-mm3-kernel-bug-at-mm-filemapc-575.patch
-vmstat-mlocked-pages-statistics.patch
-vmstat-mlocked-pages-statistics-fix-incorrect-mlocked-field-of-proc-meminfo.patch
-reiser4.patch
-likeliness-accounting-change-and-cleanup.patch
+mm-speculative-page-references-fix-fix.patch
+mm-speculative-page-references-hugh-fix3.patch
+mm-speculative-page-references-fix-migration_entry_wait-for-speculative-page-cache.patch
+ramfs-and-ram-disk-pages-are-unevictable-undo-the-brdc-part.patch
+mlock-mlocked-pages-are-unevictable-restore-patch-failure-hunk-of-mlock-mlocked-pages-are-unevictablepatch.patch
+slb-drop-kmem-cache-argument-from-constructor.patch
+slb-drop-kmem-cache-argument-from-constructor-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-fix-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
+slb-drop-kmem-cache-argument-from-constructor-ubifs.patch
+powerpc-hugetlb-pgtable-cache-access-cleanup.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
 
