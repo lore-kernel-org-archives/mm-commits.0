@@ -1,115 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: - workqueues-insert_work-use-list_head-instead-of-int-tail.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 16:00:10 -0700
-Message-ID: <200807252300.m6PN0A1A003563@imap1.linux-foundation.org>
+Subject: - workqueues-do-cpu_up_canceled-if-cpu_up_prepare-fails.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 16:00:29 -0700
+Message-ID: <200807252300.m6PN0TNU003590@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53268 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53783 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751810AbYGYXBE (ORCPT
+	by vger.kernel.org with ESMTP id S1751706AbYGYXBC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:01:04 -0400
+	Fri, 25 Jul 2008 19:01:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, jarkao2@gmail.com, maxk@qualcomm.com, peterz@infradead.org, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, akinobu.mita@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     workqueues: insert_work: use "list_head *" instead of "int tail"
+     workqueues: do CPU_UP_CANCELED if CPU_UP_PREPARE fails
 has been removed from the -mm tree.  Its filename was
-     workqueues-insert_work-use-list_head-instead-of-int-tail.patch
+     workqueues-do-cpu_up_canceled-if-cpu_up_prepare-fails.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: workqueues: insert_work: use "list_head *" instead of "int tail"
+Subject: workqueues: do CPU_UP_CANCELED if CPU_UP_PREPARE fails
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-insert_work() inserts the new work_struct before or after cwq->worklist,
-depending on the "int tail" parameter. Change it to accept "list_head *"
-instead, this shrinks .text a bit and allows us to insert the barrier
-after specific work_struct.
+The bug was pointed out by Akinobu Mita <akinobu.mita@gmail.com>, and this
+patch is based on his original patch.
+
+workqueue_cpu_callback(CPU_UP_PREPARE) expects that if it returns
+NOTIFY_BAD, _cpu_up() will send CPU_UP_CANCELED then.
+
+However, this is not true since
+
+	"cpu hotplug: cpu: deliver CPU_UP_CANCELED only to NOTIFY_OKed callbacks with CPU_UP_PREPARE"
+	commit: a0d8cdb652d35af9319a9e0fb7134de2a276c636
+
+The callback which has returned NOTIFY_BAD will not receive
+CPU_UP_CANCELED.  Change the code to fulfil the CPU_UP_CANCELED logic if
+CPU_UP_PREPARE fails.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Jarek Poplawski <jarkao2@gmail.com>
-Cc: Max Krasnyansky <maxk@qualcomm.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
+Reported-by: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/workqueue.c |   17 +++++++----------
- 1 file changed, 7 insertions(+), 10 deletions(-)
+ kernel/workqueue.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN kernel/workqueue.c~workqueues-insert_work-use-list_head-instead-of-int-tail kernel/workqueue.c
---- a/kernel/workqueue.c~workqueues-insert_work-use-list_head-instead-of-int-tail
+diff -puN kernel/workqueue.c~workqueues-do-cpu_up_canceled-if-cpu_up_prepare-fails kernel/workqueue.c
+--- a/kernel/workqueue.c~workqueues-do-cpu_up_canceled-if-cpu_up_prepare-fails
 +++ a/kernel/workqueue.c
-@@ -125,7 +125,7 @@ struct cpu_workqueue_struct *get_wq_data
- }
+@@ -911,6 +911,7 @@ static int __devinit workqueue_cpu_callb
+ 	unsigned int cpu = (unsigned long)hcpu;
+ 	struct cpu_workqueue_struct *cwq;
+ 	struct workqueue_struct *wq;
++	int ret = NOTIFY_OK;
  
- static void insert_work(struct cpu_workqueue_struct *cwq,
--				struct work_struct *work, int tail)
-+			struct work_struct *work, struct list_head *head)
- {
- 	set_wq_data(work, cwq);
- 	/*
-@@ -133,10 +133,7 @@ static void insert_work(struct cpu_workq
- 	 * result of list_add() below, see try_to_grab_pending().
- 	 */
- 	smp_wmb();
--	if (tail)
--		list_add_tail(&work->entry, &cwq->worklist);
--	else
--		list_add(&work->entry, &cwq->worklist);
-+	list_add_tail(&work->entry, head);
- 	wake_up(&cwq->more_work);
- }
+ 	action &= ~CPU_TASKS_FROZEN;
  
-@@ -146,7 +143,7 @@ static void __queue_work(struct cpu_work
- 	unsigned long flags;
- 
- 	spin_lock_irqsave(&cwq->lock, flags);
--	insert_work(cwq, work, 1);
-+	insert_work(cwq, work, &cwq->worklist);
- 	spin_unlock_irqrestore(&cwq->lock, flags);
- }
- 
-@@ -361,14 +358,14 @@ static void wq_barrier_func(struct work_
- }
- 
- static void insert_wq_barrier(struct cpu_workqueue_struct *cwq,
--					struct wq_barrier *barr, int tail)
-+			struct wq_barrier *barr, struct list_head *head)
- {
- 	INIT_WORK(&barr->work, wq_barrier_func);
- 	__set_bit(WORK_STRUCT_PENDING, work_data_bits(&barr->work));
- 
- 	init_completion(&barr->done);
- 
--	insert_work(cwq, &barr->work, tail);
-+	insert_work(cwq, &barr->work, head);
- }
- 
- static int flush_cpu_workqueue(struct cpu_workqueue_struct *cwq)
-@@ -388,7 +385,7 @@ static int flush_cpu_workqueue(struct cp
- 		active = 0;
- 		spin_lock_irq(&cwq->lock);
- 		if (!list_empty(&cwq->worklist) || cwq->current_work != NULL) {
--			insert_wq_barrier(cwq, &barr, 1);
-+			insert_wq_barrier(cwq, &barr, &cwq->worklist);
- 			active = 1;
- 		}
- 		spin_unlock_irq(&cwq->lock);
-@@ -473,7 +470,7 @@ static void wait_on_cpu_work(struct cpu_
- 
- 	spin_lock_irq(&cwq->lock);
- 	if (unlikely(cwq->current_work == work)) {
--		insert_wq_barrier(cwq, &barr, 0);
-+		insert_wq_barrier(cwq, &barr, cwq->worklist.next);
- 		running = 1;
+@@ -918,7 +919,7 @@ static int __devinit workqueue_cpu_callb
+ 	case CPU_UP_PREPARE:
+ 		cpu_set(cpu, cpu_populated_map);
  	}
- 	spin_unlock_irq(&cwq->lock);
+-
++undo:
+ 	list_for_each_entry(wq, &workqueues, list) {
+ 		cwq = per_cpu_ptr(wq->cpu_wq, cpu);
+ 
+@@ -928,7 +929,9 @@ static int __devinit workqueue_cpu_callb
+ 				break;
+ 			printk(KERN_ERR "workqueue [%s] for %i failed\n",
+ 				wq->name, cpu);
+-			return NOTIFY_BAD;
++			action = CPU_UP_CANCELED;
++			ret = NOTIFY_BAD;
++			goto undo;
+ 
+ 		case CPU_ONLINE:
+ 			start_workqueue_thread(cwq, cpu);
+@@ -948,7 +951,7 @@ static int __devinit workqueue_cpu_callb
+ 		cpu_clear(cpu, cpu_populated_map);
+ 	}
+ 
+-	return NOTIFY_OK;
++	return ret;
+ }
+ 
+ void __init init_workqueues(void)
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
