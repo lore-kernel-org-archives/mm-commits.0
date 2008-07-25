@@ -1,108 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: - quota-move-function-macros-from-quotah-to-quotaopsh-fix.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 17:19:37 -0700
-Message-ID: <200807250019.m6P0Jc0Y013802@imap1.linux-foundation.org>
+Subject: - jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 17:16:10 -0700
+Message-ID: <200807250016.m6P0GACK013606@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46637 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32835 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752951AbYGYATm (ORCPT
+	by vger.kernel.org with ESMTP id S1751270AbYGYAVm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 20:19:42 -0400
+	Thu, 24 Jul 2008 20:21:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vegard.nossum@gmail.com, arjenpool@gmail.com, jack@suse.cz, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, cmm@us.ibm.com, jack@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     quota-move-function-macros-from-quotah-to-quotaopsh fix
+     jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     quota-move-function-macros-from-quotah-to-quotaopsh-fix.patch
+     jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into quota-move-function-macros-from-quotah-to-quotaopsh.patch
+This patch was dropped because it was folded into jbd-fix-race-between-free-buffer-and-commit-trasanction.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: quota-move-function-macros-from-quotah-to-quotaopsh fix
-From: Vegard Nossum <vegard.nossum@gmail.com>
+Subject: jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-On Wed, Jun 11, 2008 at 8:08 PM,  <arjenpool@gmail.com> wrote:
-> Today i`ve tried to compile a linux-2.6.26-rc5-mm2 kernel obtained with the
-> Ketchup tool.
->
-> It got halfway interupted with the following error messages:
->
-> CC [M] fs/xfs/support/debug.o
->  CC [M] fs/xfs/support/uuid.o
->  LD [M] fs/xfs/xfs.o
->  CC fs/quota.o
-> fs/quota.c: In function 'quota_sync_sb':
-> fs/quota.c:174: error: implicit declaration of function 'sb_dqopt'
+ERROR: code indent should use tabs where possible
+#94: FILE: fs/jbd/transaction.c:1751:
++ ^I/*$
 
-It seems that this definition is needed regardless of CONFIG_QUOTA.
+total: 1 errors, 0 warnings, 93 lines checked
 
-I'm attaching a patch that fixes it for me. I'm not 100% it's the right
-thing.
+./patches/jbd-fix-race-between-free-buffer-and-commit-trasanction.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
 
-Vegard
+Please run checkpatch prior to sending patches
 
-From 5fc276129d8a3e2a70980104cc374bdc0d61afa3 Mon Sep 17 00:00:00 2001
-Date: Wed, 11 Jun 2008 21:58:32 +0200
-Subject: [PATCH] fs: fix build breakage
-
-The patch
-
-| commit 9651a656c9fbf3e8183b5eb21740edc1eb9ca16b
-| Author: Jan Kara <jack@suse.cz>
-| Date:   Thu Jun 5 19:53:42 2008 +0000
-|
-|     quota-move-function-macros-from-quotah-to-quotaopsh
-|
-
-causes the build to break for CONFIG_QUOTA=n.
-
-Reviewed-by: Arjen Pool <arjenpool@gmail.com>
 Cc: Jan Kara <jack@suse.cz>
-Signed-off-by: Vegard Nossum <vegard.nossum@gmail.com>
+Cc: Mingming Cao <cmm@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/quotaops.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/jbd/transaction.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/quotaops.h~quota-move-function-macros-from-quotah-to-quotaopsh-fix include/linux/quotaops.h
---- a/include/linux/quotaops.h~quota-move-function-macros-from-quotah-to-quotaopsh-fix
-+++ a/include/linux/quotaops.h
-@@ -14,6 +14,8 @@
+diff -puN fs/jbd/transaction.c~jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes fs/jbd/transaction.c
+--- a/fs/jbd/transaction.c~jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes
++++ a/fs/jbd/transaction.c
+@@ -1748,7 +1748,7 @@ int journal_try_to_free_buffers(journal_
  
- #include <linux/fs.h>
+ 	ret = try_to_free_buffers(page);
  
-+#define sb_dqopt(sb) (&(sb)->s_dquot)
-+
- #if defined(CONFIG_QUOTA)
- 
- /*
-@@ -52,7 +54,6 @@ void vfs_dq_drop(struct inode *inode);
- int vfs_dq_transfer(struct inode *inode, struct iattr *iattr);
- int vfs_dq_quota_on_remount(struct super_block *sb);
- 
--#define sb_dqopt(sb) (&(sb)->s_dquot)
- #define sb_dqinfo(sb, type) (sb_dqopt(sb)->info+(type))
- 
- /*
+- 	/*
++	/*
+ 	 * There are a number of places where journal_try_to_free_buffers()
+ 	 * could race with journal_commit_transaction(), the later still
+ 	 * holds the reference to the buffers to free while processing them.
 _
 
-Patches currently in -mm which might be from vegard.nossum@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-kallsyms-fix-potential-overflow-in-binary-search.patch
-kallsyms-unify-32-and-64-bit-code.patch
-quota-cleanup-loop-in-sync_dquots.patch
-quota-move-function-macros-from-quotah-to-quotaopsh.patch
-quota-move-function-macros-from-quotah-to-quotaopsh-fix.patch
-workqueues-make-get_online_cpus-useable-for-work-func.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+seq_file-fix-bug-when-seq_read-reads-nothing.patch
+exec-remove-some-includes.patch
+inflate-refactor-inflate-malloc-code.patch
+drivers-misc-hpiloc-needs-config_pci.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments.patch
+gpio-sysfs-interface-updated.patch
+gpio-add-bt8xxgpio-driver.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
+ext3-handle-corrupted-orphan-list-at-mount-cleanup.patch
+ext3-handle-corrupted-orphan-list-at-mount-fix.patch
+ext3-handle-corrupted-orphan-list-at-mount-cleanup-fix.patch
+ext3-handle-deleting-corrupted-indirect-blocks-fix.patch
+jbd-dont-abort-if-flushing-file-data-failed-fix.patch
+reiserfs-convert-j_flush_sem-to-mutex.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix.patch
+quota-move-function-macros-from-quotah-to-quotaopsh-jfs-fix-fix.patch
+cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-fix.patch
+cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-checkpatch-fixes.patch
+devcgroup-code-cleanup-fix.patch
+memcg-remove-refcnt-from-page_cgroup-fix-2.patch
+memcg-limit-change-shrink-usage-checkpatch-fixes.patch
+coredump-format_corename-fix-the-core_uses_pid-logic-checkpatch-fixes.patch
 workqueues-make-get_online_cpus-useable-for-work-func-fix.patch
-s390-topology-dont-use-kthread-for-arch_reinit_sched_domains.patch
-taskstats-remove-initialization-of-static-per-cpu-variable.patch
+ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
+fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
+block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
+getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
+edac-mpc85xx-fix-pci-ofdev-2nd-pass-checkpatch-fixes.patch
 
