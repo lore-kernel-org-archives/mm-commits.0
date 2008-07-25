@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - coredump-zap_threads-must-skip-kernel-threads.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 15:59:50 -0700
-Message-ID: <200807252259.m6PMxogr003423@imap1.linux-foundation.org>
+Subject: - signals-collect_signal-remove-the-unneeded-sigismember-check.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 15:59:20 -0700
+Message-ID: <200807252259.m6PMxKI1003376@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41276 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42287 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754537AbYGYXGr (ORCPT
+	by vger.kernel.org with ESMTP id S1754810AbYGYXGr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 25 Jul 2008 19:06:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,50 +15,45 @@ To: oleg@tv-sign.ru, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     coredump: zap_threads() must skip kernel threads
+     signals: collect_signal: remove the unneeded sigismember() check
 has been removed from the -mm tree.  Its filename was
-     coredump-zap_threads-must-skip-kernel-threads.patch
+     signals-collect_signal-remove-the-unneeded-sigismember-check.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: coredump: zap_threads() must skip kernel threads
+Subject: signals: collect_signal: remove the unneeded sigismember() check
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-The main loop in zap_threads() must skip kthreads which may use the same
-mm.  Otherwise we "kill" this thread erroneously (for example, it can not
-fork or exec after that), and the coredumping task stucks in the
-TASK_UNINTERRUPTIBLE state forever because of the wrong ->core_waiters
-count.
+collect_signal() checks sigismember(&list->signal, sig), this is not
+needed.  This "sig" was just found by next_signal(), so it must be valid.
+
+We have a (completely broken) call to ->notifier in between, but it must
+not play with sigpending->signal bits or unlock ->siglock.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Roland McGrath <roland@redhat.com>
+Acked-by: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ kernel/signal.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN fs/exec.c~coredump-zap_threads-must-skip-kernel-threads fs/exec.c
---- a/fs/exec.c~coredump-zap_threads-must-skip-kernel-threads
-+++ a/fs/exec.c
-@@ -1574,11 +1574,12 @@ static inline int zap_threads(struct tas
- 	for_each_process(g) {
- 		if (g == tsk->group_leader)
- 			continue;
+diff -puN kernel/signal.c~signals-collect_signal-remove-the-unneeded-sigismember-check kernel/signal.c
+--- a/kernel/signal.c~signals-collect_signal-remove-the-unneeded-sigismember-check
++++ a/kernel/signal.c
+@@ -343,9 +343,6 @@ static int collect_signal(int sig, struc
+ 	struct sigqueue *q, *first = NULL;
+ 	int still_pending = 0;
+ 
+-	if (unlikely(!sigismember(&list->signal, sig)))
+-		return 0;
 -
-+		if (g->flags & PF_KTHREAD)
-+			continue;
- 		p = g;
- 		do {
- 			if (p->mm) {
--				if (p->mm == mm) {
-+				if (unlikely(p->mm == mm)) {
- 					lock_task_sighand(p, &flags);
- 					zap_process(p);
- 					unlock_task_sighand(p, &flags);
+ 	/*
+ 	 * Collect the siginfo appropriate to this signal.  Check if
+ 	 * there is another siginfo for the same signal.
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
