@@ -1,82 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - full-conversion-to-early_initcall-interface-remove-old-interface-fix-fix.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 16:48:56 -0700
-Message-ID: <200807252348.m6PNmvew005863@imap1.linux-foundation.org>
+Subject: - full-conversion-to-early_initcall-interface-remove-old-interface-fix-fix-fix.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 16:48:59 -0700
+Message-ID: <200807252348.m6PNmxRX005866@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34047 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54091 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751479AbYGYXtt (ORCPT
+	by vger.kernel.org with ESMTP id S1751704AbYGYXty (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:49:49 -0400
+	Fri, 25 Jul 2008 19:49:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kosaki.motohiro@jp.fujitsu.com, eduard.munteanu@linux360.ro, jens.axboe@oracle.com, tzanussi@gmail.com, mm-commits@vger.kernel.org
+To: kosaki.motohiro@jp.fujitsu.com, eduard.munteanu@linux360.ro, hugh@veritas.com, jens.axboe@oracle.com, tzanussi@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     smp.c: fix build error
+     init_call_single_data makes int
 has been removed from the -mm tree.  Its filename was
-     full-conversion-to-early_initcall-interface-remove-old-interface-fix-fix.patch
+     full-conversion-to-early_initcall-interface-remove-old-interface-fix-fix-fix.patch
 
 This patch was dropped because it was folded into full-conversion-to-early_initcall-interface-remove-old-interface.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: smp.c: fix build error
+Subject: init_call_single_data makes int
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Against: mmotm
-Patch name: full-conversion-to-early_initcall-interface-remove-old-interface-fix-fix.patch
-Applies after: full-conversion-to-early_initcall-interface-remove-old-interface-fix.patch
+Patch title: full-conversion-to-early_initcall-interface-remove-old-interface-fix-fix-fix.patch
+Against: mmotm Jul 14
+Applies after: full-conversion-to-early_initcall-interface-remove-old-interface-fix-fix.patch
 
---------------------------------
+Now, init_call_single_data is early init function.
+then, its return type should be int.
 
-Now, init_call_single_data() is static function.
-then redundant declaration cause build error as below.
-
-     kernel/smp.c:36: error: static declaration of ‘init_call_single_data’ follows non-static declaration
-     include/linux/smp.h:77: error: previous declaration of ‘init_call_single_data’ was here
-     kernel/smp.c:47: warning: initialization from incompatible pointer type
-     make[1]: *** [kernel/smp.o] error 1
+   kernel/smp.c:47: warning: initialization from incompatible pointer type
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Acked-by: Eduard - Gabriel Munteanu <eduard.munteanu@linux360.ro>
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Cc: Eduard - Gabriel Munteanu <eduard.munteanu@linux360.ro>
 Cc: Tom Zanussi <tzanussi@gmail.com>
 Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/smp.h |    5 -----
- 1 file changed, 5 deletions(-)
+ kernel/smp.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/smp.h~full-conversion-to-early_initcall-interface-remove-old-interface-fix-fix include/linux/smp.h
---- a/include/linux/smp.h~full-conversion-to-early_initcall-interface-remove-old-interface-fix-fix
-+++ a/include/linux/smp.h
-@@ -74,15 +74,10 @@ void __smp_call_function_single(int cpui
- #ifdef CONFIG_USE_GENERIC_SMP_HELPERS
- void generic_smp_call_function_single_interrupt(void);
- void generic_smp_call_function_interrupt(void);
--void init_call_single_data(void);
- void ipi_call_lock(void);
- void ipi_call_unlock(void);
- void ipi_call_lock_irq(void);
- void ipi_call_unlock_irq(void);
--#else
--static inline void init_call_single_data(void)
--{
--}
- #endif
+diff -puN kernel/smp.c~full-conversion-to-early_initcall-interface-remove-old-interface-fix-fix-fix kernel/smp.c
+--- a/kernel/smp.c~full-conversion-to-early_initcall-interface-remove-old-interface-fix-fix-fix
++++ a/kernel/smp.c
+@@ -33,7 +33,7 @@ struct call_single_queue {
+ 	spinlock_t lock;
+ };
  
- /*
+-static void __cpuinit init_call_single_data(void)
++static int __cpuinit init_call_single_data(void)
+ {
+ 	int i;
+ 
+@@ -43,6 +43,7 @@ static void __cpuinit init_call_single_d
+ 		spin_lock_init(&q->lock);
+ 		INIT_LIST_HEAD(&q->list);
+ 	}
++	return 0;
+ }
+ early_initcall(init_call_single_data);
+ 
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
 origin.patch
 full-conversion-to-early_initcall-interface-remove-old-interface.patch
-full-conversion-to-early_initcall-interface-remove-old-interface-fix-fix.patch
 full-conversion-to-early_initcall-interface-remove-old-interface-fix-fix-fix.patch
 relay-add-buffer-only-channels-useful-for-early-logging-fix.patch
 mm-speculative-page-references-fix-migration_entry_wait-for-speculative-page-cache.patch
