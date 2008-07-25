@@ -1,258 +1,203 @@
 From: akpm@linux-foundation.org
-Subject: - cgroup-files-move-the-release_agent-file-to-use-typed-handlers.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 15:58:14 -0700
-Message-ID: <200807252258.m6PMwECK003269@imap1.linux-foundation.org>
+Subject: - cgroup-files-convert-res_counter_write-to-be-a-cgroups-write_string-handler.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 15:58:25 -0700
+Message-ID: <200807252258.m6PMwP7a003290@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46778 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59678 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752799AbYGYW7R (ORCPT
+	by vger.kernel.org with ESMTP id S1754116AbYGYW7R (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 25 Jul 2008 18:59:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: menage@google.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, pj@sgi.com, serue@us.ibm.com, xemul@openvz.org, mm-commits@vger.kernel.org
+To: menage@google.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, pj@sgi.com, serue@us.ibm.com, xemul@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cgroup files: move the release_agent file to use typed handlers
+     cgroup files: convert res_counter_write() to be a cgroups write_string() handler
 has been removed from the -mm tree.  Its filename was
-     cgroup-files-move-the-release_agent-file-to-use-typed-handlers.patch
+     cgroup-files-convert-res_counter_write-to-be-a-cgroups-write_string-handler.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroup files: move the release_agent file to use typed handlers
+Subject: cgroup files: convert res_counter_write() to be a cgroups write_string() handler
 From: Paul Menage <menage@google.com>
 
-Adds cgroup_release_agent_write() and cgroup_release_agent_show()
-methods to handle writing/reading the path to a cgroup hierarchy's
-release agent. As a result, cgroup_common_file_read() is now unnecessary.
+Currently res_counter_write() is a raw file handler even though it's
+ultimately taking a number, since in some cases it wants to
+pre-process the string when converting it to a number.
 
-As part of the change, a previously-tolerated race in
-cgroup_release_agent() is avoided by copying the current
-release_agent_path prior to calling call_usermode_helper().
+This patch converts res_counter_write() from a raw file handler to a
+write_string() handler; this allows some of the boilerplate
+copying/locking/checking to be removed, and simplies the cleanup path,
+since these functions are now performed by the cgroups framework.
 
+[lizf@cn.fujitsu.com: build fix]
 Signed-off-by: Paul Menage <menage@google.com>
 Cc: Paul Jackson <pj@sgi.com>
 Cc: Pavel Emelyanov <xemul@openvz.org>
 Cc: Balbir Singh <balbir@in.ibm.com>
-Acked-by: Serge Hallyn <serue@us.ibm.com>
+Cc: Serge Hallyn <serue@us.ibm.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cgroup.h |    2 
- kernel/cgroup.c        |  125 +++++++++++++++++----------------------
- 2 files changed, 59 insertions(+), 68 deletions(-)
+ include/linux/res_counter.h |   11 +++++--
+ kernel/res_counter.c        |   48 ++++++++++++++--------------------
+ mm/memcontrol.c             |   24 +++--------------
+ 3 files changed, 34 insertions(+), 49 deletions(-)
 
-diff -puN include/linux/cgroup.h~cgroup-files-move-the-release_agent-file-to-use-typed-handlers include/linux/cgroup.h
---- a/include/linux/cgroup.h~cgroup-files-move-the-release_agent-file-to-use-typed-handlers
-+++ a/include/linux/cgroup.h
-@@ -295,6 +295,8 @@ int cgroup_add_files(struct cgroup *cgrp
- 
- int cgroup_is_removed(const struct cgroup *cgrp);
- 
-+int cgroup_lock_live_group(struct cgroup *cgrp);
+diff -puN include/linux/res_counter.h~cgroup-files-convert-res_counter_write-to-be-a-cgroups-write_string-handler include/linux/res_counter.h
+--- a/include/linux/res_counter.h~cgroup-files-convert-res_counter_write-to-be-a-cgroups-write_string-handler
++++ a/include/linux/res_counter.h
+@@ -63,9 +63,14 @@ u64 res_counter_read_u64(struct res_coun
+ ssize_t res_counter_read(struct res_counter *counter, int member,
+ 		const char __user *buf, size_t nbytes, loff_t *pos,
+ 		int (*read_strategy)(unsigned long long val, char *s));
+-ssize_t res_counter_write(struct res_counter *counter, int member,
+-		const char __user *buf, size_t nbytes, loff_t *pos,
+-		int (*write_strategy)(char *buf, unsigned long long *val));
 +
- int cgroup_path(const struct cgroup *cgrp, char *buf, int buflen);
- 
- int cgroup_task_count(const struct cgroup *cgrp);
-diff -puN kernel/cgroup.c~cgroup-files-move-the-release_agent-file-to-use-typed-handlers kernel/cgroup.c
---- a/kernel/cgroup.c~cgroup-files-move-the-release_agent-file-to-use-typed-handlers
-+++ a/kernel/cgroup.c
-@@ -89,11 +89,7 @@ struct cgroupfs_root {
- 	/* Hierarchy-specific flags */
- 	unsigned long flags;
- 
--	/* The path to use for release notifications. No locking
--	 * between setting and use - so if userspace updates this
--	 * while child cgroups exist, you could miss a
--	 * notification. We ensure that it's always a valid
--	 * NUL-terminated string */
-+	/* The path to use for release notifications. */
- 	char release_agent_path[PATH_MAX];
- };
- 
-@@ -1329,6 +1325,45 @@ enum cgroup_filetype {
- 	FILE_RELEASE_AGENT,
- };
- 
-+/**
-+ * cgroup_lock_live_group - take cgroup_mutex and check that cgrp is alive.
-+ * @cgrp: the cgroup to be checked for liveness
-+ *
-+ * Returns true (with lock held) on success, or false (with no lock
-+ * held) on failure.
-+ */
-+int cgroup_lock_live_group(struct cgroup *cgrp)
-+{
-+	mutex_lock(&cgroup_mutex);
-+	if (cgroup_is_removed(cgrp)) {
-+		mutex_unlock(&cgroup_mutex);
-+		return false;
-+	}
-+	return true;
-+}
++typedef int (*write_strategy_fn)(const char *buf, unsigned long long *val);
 +
-+static int cgroup_release_agent_write(struct cgroup *cgrp, struct cftype *cft,
-+				      const char *buffer)
-+{
-+	BUILD_BUG_ON(sizeof(cgrp->root->release_agent_path) < PATH_MAX);
-+	if (!cgroup_lock_live_group(cgrp))
-+		return -ENODEV;
-+	strcpy(cgrp->root->release_agent_path, buffer);
-+	mutex_unlock(&cgroup_mutex);
-+	return 0;
-+}
++int res_counter_memparse_write_strategy(const char *buf,
++					unsigned long long *res);
 +
-+static int cgroup_release_agent_show(struct cgroup *cgrp, struct cftype *cft,
-+				     struct seq_file *seq)
-+{
-+	if (!cgroup_lock_live_group(cgrp))
-+		return -ENODEV;
-+	seq_puts(seq, cgrp->root->release_agent_path);
-+	seq_putc(seq, '\n');
-+	mutex_unlock(&cgroup_mutex);
-+	return 0;
-+}
-+
- static ssize_t cgroup_write_X64(struct cgroup *cgrp, struct cftype *cft,
- 				struct file *file,
- 				const char __user *userbuf,
-@@ -1443,10 +1478,6 @@ static ssize_t cgroup_common_file_write(
- 		else
- 			clear_bit(CGRP_NOTIFY_ON_RELEASE, &cgrp->flags);
- 		break;
--	case FILE_RELEASE_AGENT:
--		BUILD_BUG_ON(sizeof(cgrp->root->release_agent_path) < PATH_MAX);
--		strcpy(cgrp->root->release_agent_path, buffer);
--		break;
- 	default:
- 		retval = -EINVAL;
- 		goto out2;
-@@ -1506,49 +1537,6 @@ static ssize_t cgroup_read_s64(struct cg
- 	return simple_read_from_buffer(buf, nbytes, ppos, tmp, len);
++int res_counter_write(struct res_counter *counter, int member,
++		      const char *buffer, write_strategy_fn write_strategy);
+ 
+ /*
+  * the field descriptors. one for each member of res_counter
+diff -puN kernel/res_counter.c~cgroup-files-convert-res_counter_write-to-be-a-cgroups-write_string-handler kernel/res_counter.c
+--- a/kernel/res_counter.c~cgroup-files-convert-res_counter_write-to-be-a-cgroups-write_string-handler
++++ a/kernel/res_counter.c
+@@ -13,6 +13,7 @@
+ #include <linux/slab.h>
+ #include <linux/res_counter.h>
+ #include <linux/uaccess.h>
++#include <linux/mm.h>
+ 
+ void res_counter_init(struct res_counter *counter)
+ {
+@@ -102,44 +103,37 @@ u64 res_counter_read_u64(struct res_coun
+ 	return *res_counter_member(counter, member);
  }
  
--static ssize_t cgroup_common_file_read(struct cgroup *cgrp,
--					  struct cftype *cft,
--					  struct file *file,
--					  char __user *buf,
--					  size_t nbytes, loff_t *ppos)
--{
--	enum cgroup_filetype type = cft->private;
--	char *page;
--	ssize_t retval = 0;
--	char *s;
--
--	if (!(page = (char *)__get_free_page(GFP_KERNEL)))
--		return -ENOMEM;
--
--	s = page;
--
--	switch (type) {
--	case FILE_RELEASE_AGENT:
--	{
--		struct cgroupfs_root *root;
--		size_t n;
--		mutex_lock(&cgroup_mutex);
--		root = cgrp->root;
--		n = strnlen(root->release_agent_path,
--			    sizeof(root->release_agent_path));
--		n = min(n, (size_t) PAGE_SIZE);
--		strncpy(s, root->release_agent_path, n);
--		mutex_unlock(&cgroup_mutex);
--		s += n;
--		break;
--	}
--	default:
--		retval = -EINVAL;
+-ssize_t res_counter_write(struct res_counter *counter, int member,
+-		const char __user *userbuf, size_t nbytes, loff_t *pos,
+-		int (*write_strategy)(char *st_buf, unsigned long long *val))
++int res_counter_memparse_write_strategy(const char *buf,
++					unsigned long long *res)
+ {
+-	int ret;
+-	char *buf, *end;
+-	unsigned long flags;
+-	unsigned long long tmp, *val;
++	char *end;
++	/* FIXME - make memparse() take const char* args */
++	*res = memparse((char *)buf, &end);
++	if (*end != '\0')
++		return -EINVAL;
+ 
+-	buf = kmalloc(nbytes + 1, GFP_KERNEL);
+-	ret = -ENOMEM;
+-	if (buf == NULL)
 -		goto out;
--	}
--	*s++ = '\n';
 -
--	retval = simple_read_from_buffer(buf, nbytes, ppos, page, s - page);
+-	buf[nbytes] = '\0';
+-	ret = -EFAULT;
+-	if (copy_from_user(buf, userbuf, nbytes))
+-		goto out_free;
++	*res = PAGE_ALIGN(*res);
++	return 0;
++}
+ 
+-	ret = -EINVAL;
++int res_counter_write(struct res_counter *counter, int member,
++		      const char *buf, write_strategy_fn write_strategy)
++{
++	char *end;
++	unsigned long flags;
++	unsigned long long tmp, *val;
+ 
+-	strstrip(buf);
+ 	if (write_strategy) {
+-		if (write_strategy(buf, &tmp)) {
+-			goto out_free;
+-		}
++		if (write_strategy(buf, &tmp))
++			return -EINVAL;
+ 	} else {
+ 		tmp = simple_strtoull(buf, &end, 10);
+ 		if (*end != '\0')
+-			goto out_free;
++			return -EINVAL;
+ 	}
+ 	spin_lock_irqsave(&counter->lock, flags);
+ 	val = res_counter_member(counter, member);
+ 	*val = tmp;
+ 	spin_unlock_irqrestore(&counter->lock, flags);
+-	ret = nbytes;
+-out_free:
+-	kfree(buf);
 -out:
--	free_page((unsigned long)page);
--	return retval;
+-	return ret;
++	return 0;
+ }
+diff -puN mm/memcontrol.c~cgroup-files-convert-res_counter_write-to-be-a-cgroups-write_string-handler mm/memcontrol.c
+--- a/mm/memcontrol.c~cgroup-files-convert-res_counter_write-to-be-a-cgroups-write_string-handler
++++ a/mm/memcontrol.c
+@@ -838,32 +838,18 @@ out:
+ 	return ret;
+ }
+ 
+-static int mem_cgroup_write_strategy(char *buf, unsigned long long *tmp)
+-{
+-	*tmp = memparse(buf, &buf);
+-	if (*buf != '\0')
+-		return -EINVAL;
+-
+-	/*
+-	 * Round up the value to the closest page size
+-	 */
+-	*tmp = ((*tmp + PAGE_SIZE - 1) >> PAGE_SHIFT) << PAGE_SHIFT;
+-	return 0;
 -}
 -
- static ssize_t cgroup_file_read(struct file *file, char __user *buf,
- 				   size_t nbytes, loff_t *ppos)
+ static u64 mem_cgroup_read(struct cgroup *cont, struct cftype *cft)
  {
-@@ -1606,6 +1594,7 @@ int cgroup_seqfile_release(struct inode 
+ 	return res_counter_read_u64(&mem_cgroup_from_cont(cont)->res,
+ 				    cft->private);
+ }
  
- static struct file_operations cgroup_seqfile_operations = {
- 	.read = seq_read,
-+	.write = cgroup_file_write,
- 	.llseek = seq_lseek,
- 	.release = cgroup_seqfile_release,
- };
-@@ -2283,8 +2272,9 @@ static struct cftype files[] = {
+-static ssize_t mem_cgroup_write(struct cgroup *cont, struct cftype *cft,
+-				struct file *file, const char __user *userbuf,
+-				size_t nbytes, loff_t *ppos)
++static int mem_cgroup_write(struct cgroup *cont, struct cftype *cft,
++			    const char *buffer)
+ {
+ 	return res_counter_write(&mem_cgroup_from_cont(cont)->res,
+-				cft->private, userbuf, nbytes, ppos,
+-				mem_cgroup_write_strategy);
++				 cft->private, buffer,
++				 res_counter_memparse_write_strategy);
+ }
  
- static struct cftype cft_release_agent = {
- 	.name = "release_agent",
--	.read = cgroup_common_file_read,
--	.write = cgroup_common_file_write,
-+	.read_seq_string = cgroup_release_agent_show,
-+	.write_string = cgroup_release_agent_write,
-+	.max_write_len = PATH_MAX,
- 	.private = FILE_RELEASE_AGENT,
- };
- 
-@@ -3111,27 +3101,24 @@ static void cgroup_release_agent(struct 
- 	while (!list_empty(&release_list)) {
- 		char *argv[3], *envp[3];
- 		int i;
--		char *pathbuf;
-+		char *pathbuf = NULL, *agentbuf = NULL;
- 		struct cgroup *cgrp = list_entry(release_list.next,
- 						    struct cgroup,
- 						    release_list);
- 		list_del_init(&cgrp->release_list);
- 		spin_unlock(&release_list_lock);
- 		pathbuf = kmalloc(PAGE_SIZE, GFP_KERNEL);
--		if (!pathbuf) {
--			spin_lock(&release_list_lock);
--			continue;
--		}
--
--		if (cgroup_path(cgrp, pathbuf, PAGE_SIZE) < 0) {
--			kfree(pathbuf);
--			spin_lock(&release_list_lock);
--			continue;
--		}
-+		if (!pathbuf)
-+			goto continue_free;
-+		if (cgroup_path(cgrp, pathbuf, PAGE_SIZE) < 0)
-+			goto continue_free;
-+		agentbuf = kstrdup(cgrp->root->release_agent_path, GFP_KERNEL);
-+		if (!agentbuf)
-+			goto continue_free;
- 
- 		i = 0;
--		argv[i++] = cgrp->root->release_agent_path;
--		argv[i++] = (char *)pathbuf;
-+		argv[i++] = agentbuf;
-+		argv[i++] = pathbuf;
- 		argv[i] = NULL;
- 
- 		i = 0;
-@@ -3145,8 +3132,10 @@ static void cgroup_release_agent(struct 
- 		 * be a slow process */
- 		mutex_unlock(&cgroup_mutex);
- 		call_usermodehelper(argv[0], argv, envp, UMH_WAIT_EXEC);
--		kfree(pathbuf);
- 		mutex_lock(&cgroup_mutex);
-+ continue_free:
-+		kfree(pathbuf);
-+		kfree(agentbuf);
- 		spin_lock(&release_list_lock);
- 	}
- 	spin_unlock(&release_list_lock);
+ static int mem_cgroup_reset(struct cgroup *cont, unsigned int event)
+@@ -940,7 +926,7 @@ static struct cftype mem_cgroup_files[] 
+ 	{
+ 		.name = "limit_in_bytes",
+ 		.private = RES_LIMIT,
+-		.write = mem_cgroup_write,
++		.write_string = mem_cgroup_write,
+ 		.read_u64 = mem_cgroup_read,
+ 	},
+ 	{
 _
 
 Patches currently in -mm which might be from menage@google.com are
