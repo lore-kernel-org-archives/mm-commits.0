@@ -1,130 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: - introduce-pf_kthread-flag.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 15:59:46 -0700
-Message-ID: <200807252259.m6PMxkwE003416@imap1.linux-foundation.org>
+Subject: - kernel-signalc-change-vars-pid-and-tgid-types-to-pid_t.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 15:59:36 -0700
+Message-ID: <200807252259.m6PMxajx003403@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35273 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51629 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751784AbYGYXAe (ORCPT
+	by vger.kernel.org with ESMTP id S1752087AbYGYXAh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:00:34 -0400
+	Fri, 25 Jul 2008 19:00:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, roland@redhat.com, mm-commits@vger.kernel.org
+To: gustavo@las.ic.unicamp.br, oleg@tv-sign.ru, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     introduce PF_KTHREAD flag
+     kernel/signal.c: change vars pid and tgid types to pid_t
 has been removed from the -mm tree.  Its filename was
-     introduce-pf_kthread-flag.patch
+     kernel-signalc-change-vars-pid-and-tgid-types-to-pid_t.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: introduce PF_KTHREAD flag
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: kernel/signal.c: change vars pid and tgid types to pid_t
+From: Gustavo Fernando Padovan <gustavo@las.ic.unicamp.br>
 
-Introduce the new PF_KTHREAD flag to mark the kernel threads.  It is set
-by INIT_TASK() and copied to the forked childs (we could set it in
-kthreadd() along with PF_NOFREEZE instead).
+Change the type of pid and tgid variables from int to the POSIX type
+pid_t.
 
-daemonize() was changed as well.  In that case testing of PF_KTHREAD is
-racy, but daemonize() is hopeless anyway.
-
-This flag is cleared in do_execve(), before search_binary_handler(). 
-Probably not the best place, we can do this in exec_mmap() or in
-start_thread(), or clear it along with PF_FORKNOEXEC.  But I think this
-doesn't matter in practice, and if do_execve() fails kthread should die
-soon.
-
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Signed-off-by: Gustavo F. Padovan <gustavo@las.ic.unicamp.br>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c                 |    1 +
- include/linux/init_task.h |    2 +-
- include/linux/sched.h     |    1 +
- kernel/exit.c             |    2 +-
- 4 files changed, 4 insertions(+), 2 deletions(-)
+ kernel/signal.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN fs/exec.c~introduce-pf_kthread-flag fs/exec.c
---- a/fs/exec.c~introduce-pf_kthread-flag
-+++ a/fs/exec.c
-@@ -1326,6 +1326,7 @@ int do_execve(char * filename,
- 	if (retval < 0)
- 		goto out;
+diff -puN kernel/signal.c~kernel-signalc-change-vars-pid-and-tgid-types-to-pid_t kernel/signal.c
+--- a/kernel/signal.c~kernel-signalc-change-vars-pid-and-tgid-types-to-pid_t
++++ a/kernel/signal.c
+@@ -1116,7 +1116,7 @@ EXPORT_SYMBOL_GPL(kill_pid_info_as_uid);
+  * is probably wrong.  Should make it like BSD or SYSV.
+  */
  
-+	current->flags &= ~PF_KTHREAD;
- 	retval = search_binary_handler(bprm,regs);
- 	if (retval >= 0) {
- 		/* execve success */
-diff -puN include/linux/init_task.h~introduce-pf_kthread-flag include/linux/init_task.h
---- a/include/linux/init_task.h~introduce-pf_kthread-flag
-+++ a/include/linux/init_task.h
-@@ -122,7 +122,7 @@ extern struct group_info init_groups;
- 	.state		= 0,						\
- 	.stack		= &init_thread_info,				\
- 	.usage		= ATOMIC_INIT(2),				\
--	.flags		= 0,						\
-+	.flags		= PF_KTHREAD,					\
- 	.lock_depth	= -1,						\
- 	.prio		= MAX_PRIO-20,					\
- 	.static_prio	= MAX_PRIO-20,					\
-diff -puN include/linux/sched.h~introduce-pf_kthread-flag include/linux/sched.h
---- a/include/linux/sched.h~introduce-pf_kthread-flag
-+++ a/include/linux/sched.h
-@@ -1483,6 +1483,7 @@ static inline void put_task_struct(struc
- #define PF_EXITING	0x00000004	/* getting shut down */
- #define PF_EXITPIDONE	0x00000008	/* pi exit done on shut down */
- #define PF_VCPU		0x00000010	/* I'm a virtual CPU */
-+#define PF_KTHREAD	0x00000020	/* I am a kernel thread */
- #define PF_FORKNOEXEC	0x00000040	/* forked but didn't exec */
- #define PF_SUPERPRIV	0x00000100	/* used super-user privileges */
- #define PF_DUMPCORE	0x00000200	/* dumped core */
-diff -puN kernel/exit.c~introduce-pf_kthread-flag kernel/exit.c
---- a/kernel/exit.c~introduce-pf_kthread-flag
-+++ a/kernel/exit.c
-@@ -430,7 +430,7 @@ void daemonize(const char *name, ...)
- 	 * We don't want to have TIF_FREEZE set if the system-wide hibernation
- 	 * or suspend transition begins right now.
- 	 */
--	current->flags |= PF_NOFREEZE;
-+	current->flags |= (PF_NOFREEZE | PF_KTHREAD);
+-static int kill_something_info(int sig, struct siginfo *info, int pid)
++static int kill_something_info(int sig, struct siginfo *info, pid_t pid)
+ {
+ 	int ret;
  
- 	if (current->nsproxy != &init_nsproxy) {
- 		get_nsproxy(&init_nsproxy);
+@@ -2184,7 +2184,7 @@ sys_rt_sigtimedwait(const sigset_t __use
+ }
+ 
+ asmlinkage long
+-sys_kill(int pid, int sig)
++sys_kill(pid_t pid, int sig)
+ {
+ 	struct siginfo info;
+ 
+@@ -2197,7 +2197,7 @@ sys_kill(int pid, int sig)
+ 	return kill_something_info(sig, &info, pid);
+ }
+ 
+-static int do_tkill(int tgid, int pid, int sig)
++static int do_tkill(pid_t tgid, pid_t pid, int sig)
+ {
+ 	int error;
+ 	struct siginfo info;
+@@ -2243,7 +2243,7 @@ static int do_tkill(int tgid, int pid, i
+  *  exists but it's not belonging to the target process anymore. This
+  *  method solves the problem of threads exiting and PIDs getting reused.
+  */
+-asmlinkage long sys_tgkill(int tgid, int pid, int sig)
++asmlinkage long sys_tgkill(pid_t tgid, pid_t pid, int sig)
+ {
+ 	/* This is only valid for single tasks */
+ 	if (pid <= 0 || tgid <= 0)
+@@ -2256,7 +2256,7 @@ asmlinkage long sys_tgkill(int tgid, int
+  *  Send a signal to only one task, even if it's a CLONE_THREAD task.
+  */
+ asmlinkage long
+-sys_tkill(int pid, int sig)
++sys_tkill(pid_t pid, int sig)
+ {
+ 	/* This is only valid for single tasks */
+ 	if (pid <= 0)
+@@ -2266,7 +2266,7 @@ sys_tkill(int pid, int sig)
+ }
+ 
+ asmlinkage long
+-sys_rt_sigqueueinfo(int pid, int sig, siginfo_t __user *uinfo)
++sys_rt_sigqueueinfo(pid_t pid, int sig, siginfo_t __user *uinfo)
+ {
+ 	siginfo_t info;
+ 
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from gustavo@las.ic.unicamp.br are
 
 origin.patch
-linux-next.patch
-migrate_timers-add-comment-use-spinlock_irq.patch
-tracehook-add-linux-tracehookh.patch
-tracehook-exec.patch
-tracehook-unexport-ptrace_notify.patch
-tracehook-exit.patch
-tracehook-clone.patch
-tracehook-vfork-done.patch
-tracehook-release_task.patch
-tracehook-tracehook_tracer_task.patch
-tracehook-tracehook_expect_breakpoints.patch
-tracehook-tracehook_signal_handler.patch
-tracehook-tracehook_consider_ignored_signal.patch
-tracehook-tracehook_consider_fatal_signal.patch
-tracehook-syscall.patch
-tracehook-get_signal_to_deliver.patch
-tracehook-job-control.patch
-tracehook-death.patch
-tracehook-force-signal_pending.patch
-tracehook-tif_notify_resume.patch
-tracehook-asm-syscallh.patch
-tracehook-config_have_arch_tracehook.patch
-tracehook-wait_task_inactive.patch
-task_current_syscall.patch
-proc-pid-syscall.patch
 
