@@ -1,144 +1,168 @@
 From: akpm@linux-foundation.org
-Subject: - dsp56k-bkl-pushdown.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 16:01:35 -0700
-Message-ID: <200807252301.m6PN1ZKk003720@imap1.linux-foundation.org>
+Subject: - cgroups-misc-cleanups-to-write_string-patchset.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 15:58:15 -0700
+Message-ID: <200807252258.m6PMwF4M003272@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45210 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47062 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754766AbYGYXHD (ORCPT
+	by vger.kernel.org with ESMTP id S1755426AbYGYXHQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:07:03 -0400
+	Fri, 25 Jul 2008 19:07:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jirislaby@gmail.com, mm-commits@vger.kernel.org
+To: menage@google.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, pj@sgi.com, serue@us.ibm.com, xemul@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dsp56k: BKL pushdown
+     cgroups: misc cleanups to write_string patchset
 has been removed from the -mm tree.  Its filename was
-     dsp56k-bkl-pushdown.patch
+     cgroups-misc-cleanups-to-write_string-patchset.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dsp56k: BKL pushdown
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: cgroups: misc cleanups to write_string patchset
+From: Paul Menage <menage@google.com>
 
-Push the BKL down into the driver ioctl methods
+This patch contains cleanups suggested by reviewers for the recent
+write_string() patchset:
 
-Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Jiri Slaby <jirislaby@gmail.com>
+- pair cgroup_lock_live_group() with cgroup_unlock() in cgroup.c for
+  clarity, rather than directly unlocking cgroup_mutex.
+
+- make the return type of cgroup_lock_live_group() a bool
+
+- use a #define'd constant for the local buffer size in read/write functions
+
+Signed-off-by: Paul Menage <menage@google.com>
+Cc: Paul Jackson <pj@sgi.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Acked-by: Serge Hallyn <serue@us.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/dsp56k.c |   20 ++++++++++++++------
- 1 file changed, 14 insertions(+), 6 deletions(-)
+ include/linux/cgroup.h |    4 ++--
+ kernel/cgroup.c        |   21 ++++++++++++---------
+ 2 files changed, 14 insertions(+), 11 deletions(-)
 
-diff -puN drivers/char/dsp56k.c~dsp56k-bkl-pushdown drivers/char/dsp56k.c
---- a/drivers/char/dsp56k.c~dsp56k-bkl-pushdown
-+++ a/drivers/char/dsp56k.c
-@@ -36,10 +36,10 @@
- #include <linux/smp_lock.h>
- #include <linux/firmware.h>
- #include <linux/platform_device.h>
-+#include <linux/uaccess.h>	/* For put_user and get_user */
+diff -puN include/linux/cgroup.h~cgroups-misc-cleanups-to-write_string-patchset include/linux/cgroup.h
+--- a/include/linux/cgroup.h~cgroups-misc-cleanups-to-write_string-patchset
++++ a/include/linux/cgroup.h
+@@ -21,11 +21,13 @@
+ struct cgroupfs_root;
+ struct cgroup_subsys;
+ struct inode;
++struct cgroup;
  
- #include <asm/atarihw.h>
- #include <asm/traps.h>
--#include <asm/uaccess.h>	/* For put_user and get_user */
+ extern int cgroup_init_early(void);
+ extern int cgroup_init(void);
+ extern void cgroup_init_smp(void);
+ extern void cgroup_lock(void);
++extern bool cgroup_lock_live_group(struct cgroup *cgrp);
+ extern void cgroup_unlock(void);
+ extern void cgroup_fork(struct task_struct *p);
+ extern void cgroup_fork_callbacks(struct task_struct *p);
+@@ -295,8 +297,6 @@ int cgroup_add_files(struct cgroup *cgrp
  
- #include <asm/dsp56k.h>
+ int cgroup_is_removed(const struct cgroup *cgrp);
  
-@@ -303,8 +303,8 @@ static ssize_t dsp56k_write(struct file 
- 	}
+-int cgroup_lock_live_group(struct cgroup *cgrp);
+-
+ int cgroup_path(const struct cgroup *cgrp, char *buf, int buflen);
+ 
+ int cgroup_task_count(const struct cgroup *cgrp);
+diff -puN kernel/cgroup.c~cgroups-misc-cleanups-to-write_string-patchset kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroups-misc-cleanups-to-write_string-patchset
++++ a/kernel/cgroup.c
+@@ -1329,10 +1329,10 @@ enum cgroup_filetype {
+  * cgroup_lock_live_group - take cgroup_mutex and check that cgrp is alive.
+  * @cgrp: the cgroup to be checked for liveness
+  *
+- * Returns true (with lock held) on success, or false (with no lock
+- * held) on failure.
++ * On success, returns true; the lock should be later released with
++ * cgroup_unlock(). On failure returns false with no lock held.
+  */
+-int cgroup_lock_live_group(struct cgroup *cgrp)
++bool cgroup_lock_live_group(struct cgroup *cgrp)
+ {
+ 	mutex_lock(&cgroup_mutex);
+ 	if (cgroup_is_removed(cgrp)) {
+@@ -1349,7 +1349,7 @@ static int cgroup_release_agent_write(st
+ 	if (!cgroup_lock_live_group(cgrp))
+ 		return -ENODEV;
+ 	strcpy(cgrp->root->release_agent_path, buffer);
+-	mutex_unlock(&cgroup_mutex);
++	cgroup_unlock();
+ 	return 0;
  }
  
--static int dsp56k_ioctl(struct inode *inode, struct file *file,
--			unsigned int cmd, unsigned long arg)
-+static long dsp56k_ioctl(struct file *file, unsigned int cmd,
-+							unsigned long arg)
- {
- 	int dev = iminor(inode) & 0x0f;
- 	void __user *argp = (void __user *)arg;
-@@ -331,8 +331,9 @@ static int dsp56k_ioctl(struct inode *in
- 			if (len > DSP56K_MAX_BINARY_LENGTH) {
- 				return -EINVAL;
- 			}
--    
-+			lock_kernel();
- 			r = dsp56k_upload(bin, len);
-+			unlock_kernel();
- 			if (r < 0) {
- 				return r;
- 			}
-@@ -342,12 +343,16 @@ static int dsp56k_ioctl(struct inode *in
- 		case DSP56K_SET_TX_WSIZE:
- 			if (arg > 4 || arg < 1)
- 				return -EINVAL;
-+			lock_kernel();
- 			dsp56k.tx_wsize = (int) arg;
-+			unlock_kernel();
- 			break;
- 		case DSP56K_SET_RX_WSIZE:
- 			if (arg > 4 || arg < 1)
- 				return -EINVAL;
-+			lock_kernel();
- 			dsp56k.rx_wsize = (int) arg;
-+			unlock_kernel();
- 			break;
- 		case DSP56K_HOST_FLAGS:
- 		{
-@@ -359,6 +364,7 @@ static int dsp56k_ioctl(struct inode *in
- 			if(get_user(out, &hf->out) < 0)
- 				return -EFAULT;
+@@ -1360,16 +1360,19 @@ static int cgroup_release_agent_show(str
+ 		return -ENODEV;
+ 	seq_puts(seq, cgrp->root->release_agent_path);
+ 	seq_putc(seq, '\n');
+-	mutex_unlock(&cgroup_mutex);
++	cgroup_unlock();
+ 	return 0;
+ }
  
-+			lock_kernel();
- 			if ((dir & 0x1) && (out & 0x1))
- 				dsp56k_host_interface.icr |= DSP56K_ICR_HF0;
- 			else if (dir & 0x1)
-@@ -373,14 +379,16 @@ static int dsp56k_ioctl(struct inode *in
- 			if (dsp56k_host_interface.icr & DSP56K_ICR_HF1) status |= 0x2;
- 			if (dsp56k_host_interface.isr & DSP56K_ISR_HF2) status |= 0x4;
- 			if (dsp56k_host_interface.isr & DSP56K_ISR_HF3) status |= 0x8;
--
-+			unlock_kernel();
- 			return put_user(status, &hf->status);
- 		}
- 		case DSP56K_HOST_CMD:
- 			if (arg > 31 || arg < 0)
- 				return -EINVAL;
-+			lock_kernel();
- 			dsp56k_host_interface.cvr = (u_char)((arg & DSP56K_CVR_HV_MASK) |
- 							     DSP56K_CVR_HC);
-+			unlock_kernel();
- 			break;
- 		default:
- 			return -EINVAL;
-@@ -472,7 +480,7 @@ static const struct file_operations dsp5
- 	.owner		= THIS_MODULE,
- 	.read		= dsp56k_read,
- 	.write		= dsp56k_write,
--	.ioctl		= dsp56k_ioctl,
-+	.unlocked_ioctl	= dsp56k_ioctl,
- 	.open		= dsp56k_open,
- 	.release	= dsp56k_release,
- };
++/* A buffer size big enough for numbers or short strings */
++#define CGROUP_LOCAL_BUFFER_SIZE 64
++
+ static ssize_t cgroup_write_X64(struct cgroup *cgrp, struct cftype *cft,
+ 				struct file *file,
+ 				const char __user *userbuf,
+ 				size_t nbytes, loff_t *unused_ppos)
+ {
+-	char buffer[64];
++	char buffer[CGROUP_LOCAL_BUFFER_SIZE];
+ 	int retval = 0;
+ 	char *end;
+ 
+@@ -1403,7 +1406,7 @@ static ssize_t cgroup_write_string(struc
+ 				   const char __user *userbuf,
+ 				   size_t nbytes, loff_t *unused_ppos)
+ {
+-	char local_buffer[64];
++	char local_buffer[CGROUP_LOCAL_BUFFER_SIZE];
+ 	int retval = 0;
+ 	size_t max_bytes = cft->max_write_len;
+ 	char *buffer = local_buffer;
+@@ -1518,7 +1521,7 @@ static ssize_t cgroup_read_u64(struct cg
+ 			       char __user *buf, size_t nbytes,
+ 			       loff_t *ppos)
+ {
+-	char tmp[64];
++	char tmp[CGROUP_LOCAL_BUFFER_SIZE];
+ 	u64 val = cft->read_u64(cgrp, cft);
+ 	int len = sprintf(tmp, "%llu\n", (unsigned long long) val);
+ 
+@@ -1530,7 +1533,7 @@ static ssize_t cgroup_read_s64(struct cg
+ 			       char __user *buf, size_t nbytes,
+ 			       loff_t *ppos)
+ {
+-	char tmp[64];
++	char tmp[CGROUP_LOCAL_BUFFER_SIZE];
+ 	s64 val = cft->read_s64(cgrp, cft);
+ 	int len = sprintf(tmp, "%lld\n", (long long) val);
+ 
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from menage@google.com are
 
 origin.patch
-hugetlb-fix-config_sysctl=n-build.patch
-add-time_is_after_jiffies-and-others-which-compare-with-jiffies.patch
-pata_viac-add-flag-for-vx800-and-add-a-function-for-fixing-internal-bugs-for-via-chipsets.patch
-pnp-set-the-pnp_card-dma_mask-for-use-by-isapnp-cards.patch
-isa-set-24-bit-dma_mask-for-isa-devices.patch
-char-merge-ip2main-and-ip2base.patch
-char-ip2-cleanup-globals.patch
-char-ip2-fix-sparse-warnings.patch
-char-ip2-init-deinit-cleanup.patch
-ip2-avoid-add_timer-with-pending-timer.patch
+memrlimit-add-memrlimit-controller-documentation.patch
+memrlimit-setup-the-memrlimit-controller.patch
+memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
+memrlimit-add-memrlimit-controller-accounting-and-control.patch
+memrlimit-improve-error-handling.patch
+memrlimit-improve-error-handling-update.patch
+memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
+make-cgroup_seqfile_release-static.patch
+add-a-refcount-check-in-dput.patch
 
