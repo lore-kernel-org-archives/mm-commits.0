@@ -1,72 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: - cpuset-dont-pass-empty-cpumasks-to-partition_sched_domains.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 15:59:09 -0700
-Message-ID: <200807252259.m6PMx94E003356@imap1.linux-foundation.org>
+Subject: - quota-fix-possible-infinite-loop-in-quota-code.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 15:57:46 -0700
+Message-ID: <200807252257.m6PMvk0r003216@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49446 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49971 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754782AbYGYXGr (ORCPT
+	by vger.kernel.org with ESMTP id S1754914AbYGYXGu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:06:47 -0400
+	Fri, 25 Jul 2008 19:06:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: laijs@cn.fujitsu.com, menage@google.com, pj@sgi.com, mm-commits@vger.kernel.org
+To: jack@suse.cz, dingdinghua85@gmail.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cpuset: don't pass empty cpumasks to partition_sched_domains()
+     quota: fix possible infinite loop in quota code
 has been removed from the -mm tree.  Its filename was
-     cpuset-dont-pass-empty-cpumasks-to-partition_sched_domains.patch
+     quota-fix-possible-infinite-loop-in-quota-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpuset: don't pass empty cpumasks to partition_sched_domains()
-From: Lai Jiangshan <laijs@cn.fujitsu.com>
+Subject: quota: fix possible infinite loop in quota code
+From: Jan Kara <jack@suse.cz>
 
-I create lots of empty cpusets(empty cpumasks) and turn off the
-"sched_load_balance" in top cpuset.
+When quota structure is going to be dropped and it is dirty, quota code tries
+to write it.  If the write fails for some reason (e.  g.  transaction cannot
+be started because the journal is aborted), we try writing again and again and
+again...  Fix the problem by clearing the dirty bit even if the write failed.
 
-I found that all these empty cpumasks are passed to
-partition_sched_domains() in rebuild_sched_domains(), it's very
-time-consuming for partition_sched_domains() and it's not need.
+(akpm: for 2.6.27, 2.6.26.x and 2.6.25.x)
 
-It also reduce memory consumed and some works in rebuild_sched_domains()
-too.
-
-Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
-Acked-by: Paul Menage <menage@google.com>
-Cc: Paul Jackson <pj@sgi.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
+Reviewed-by: dingdinghua <dingdinghua85@gmail.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpuset.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ fs/dquot.c |   16 +++++++++++++++-
+ 1 file changed, 15 insertions(+), 1 deletion(-)
 
-diff -puN kernel/cpuset.c~cpuset-dont-pass-empty-cpumasks-to-partition_sched_domains kernel/cpuset.c
---- a/kernel/cpuset.c~cpuset-dont-pass-empty-cpumasks-to-partition_sched_domains
-+++ a/kernel/cpuset.c
-@@ -610,8 +610,13 @@ void rebuild_sched_domains(void)
- 	while (__kfifo_get(q, (void *)&cp, sizeof(cp))) {
- 		struct cgroup *cont;
- 		struct cpuset *child;   /* scans child cpusets of cp */
+diff -puN fs/dquot.c~quota-fix-possible-infinite-loop-in-quota-code fs/dquot.c
+--- a/fs/dquot.c~quota-fix-possible-infinite-loop-in-quota-code
++++ a/fs/dquot.c
+@@ -562,6 +562,8 @@ static struct shrinker dqcache_shrinker 
+  */
+ static void dqput(struct dquot *dquot)
+ {
++	int ret;
 +
-+		if (cpus_empty(cp->cpus_allowed))
-+			continue;
-+
- 		if (is_sched_load_balance(cp))
- 			csa[csn++] = cp;
-+
- 		list_for_each_entry(cont, &cp->css.cgroup->children, sibling) {
- 			child = cgroup_cs(cont);
- 			__kfifo_put(q, (void *)&child, sizeof(cp));
+ 	if (!dquot)
+ 		return;
+ #ifdef __DQUOT_PARANOIA
+@@ -594,7 +596,19 @@ we_slept:
+ 	if (test_bit(DQ_ACTIVE_B, &dquot->dq_flags) && dquot_dirty(dquot)) {
+ 		spin_unlock(&dq_list_lock);
+ 		/* Commit dquot before releasing */
+-		dquot->dq_sb->dq_op->write_dquot(dquot);
++		ret = dquot->dq_sb->dq_op->write_dquot(dquot);
++		if (ret < 0) {
++			printk(KERN_ERR "VFS: cannot write quota structure on "
++				"device %s (error %d). Quota may get out of "
++				"sync!\n", dquot->dq_sb->s_id, ret);
++			/*
++			 * We clear dirty bit anyway, so that we avoid
++			 * infinite loop here
++			 */
++			spin_lock(&dq_list_lock);
++			clear_dquot_dirty(dquot);
++			spin_unlock(&dq_list_lock);
++		}
+ 		goto we_slept;
+ 	}
+ 	/* Clear flag in case dquot was inactive (something bad happened) */
 _
 
-Patches currently in -mm which might be from laijs@cn.fujitsu.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
 origin.patch
-linux-next.patch
 
