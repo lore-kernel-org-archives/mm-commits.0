@@ -1,86 +1,134 @@
 From: akpm@linux-foundation.org
-Subject: - workqueues-make-get_online_cpus-useable-for-work-func-fix.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 17:31:44 -0700
-Message-ID: <200807250031.m6P0Viqh014323@imap1.linux-foundation.org>
+Subject: - ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 17:32:39 -0700
+Message-ID: <200807250032.m6P0WdCv014438@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39331 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36081 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752632AbYGYAch (ORCPT
+	by vger.kernel.org with ESMTP id S1752977AbYGYAdO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 20:32:37 -0400
+	Thu, 24 Jul 2008 20:33:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ego@in.ibm.com, heiko.carstens@de.ibm.com, maxk@qualcomm.com, menage@google.com, mingo@elte.hu, oleg@tv-sign.ru, peterz@infradead.org, pj@sgi.com, schwidefs
+To: akpm@linux-foundation.org, Nadia.Derbey@bull.net, manfred@colorfullife.com, peifferp@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     workqueues-make-get_online_cpus-useable-for-work-func-fix
+     ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     workqueues-make-get_online_cpus-useable-for-work-func-fix.patch
+     ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into workqueues-make-get_online_cpus-useable-for-work-func.patch
+This patch was dropped because it was folded into ipc-semc-convert-undo-structures-to-struct-list_head.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: workqueues-make-get_online_cpus-useable-for-work-func-fix
+Subject: ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix CONFIG_SMP=n.
+WARNING: line over 80 characters
+#26: FILE: include/linux/sem.h:98:
++	struct list_head	list_id;	/* undo requests on this array */
 
-Cc: Gautham R Shenoy <ego@in.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Max Krasnyansky <maxk@qualcomm.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Paul Jackson <pj@sgi.com>
-Cc: Paul Menage <menage@google.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Vegard Nossum <vegard.nossum@gmail.com>
+WARNING: line over 80 characters
+#36: FILE: include/linux/sem.h:121:
++	struct list_head	list_proc;	/* per-process list: all undos from one process */
+
+WARNING: line over 80 characters
+#37: FILE: include/linux/sem.h:122:
++	struct list_head	list_id;	/* per semaphore array list: all undos for one array */
+
+ERROR: spaces required around that '==' (ctx:VxV)
+#135: FILE: ipc/sem.c:976:
++		if(walk->semid==semid)
+ 		              ^
+
+ERROR: space required before the open parenthesis '('
+#135: FILE: ipc/sem.c:976:
++		if(walk->semid==semid)
+
+ERROR: spaces required around that '==' (ctx:VxO)
+#137: FILE: ipc/sem.c:978:
++		if(walk->semid==-1) {
+ 		              ^
+
+ERROR: space required before that '-' (ctx:OxV)
+#137: FILE: ipc/sem.c:978:
++		if(walk->semid==-1) {
+ 		                ^
+
+ERROR: space required before the open parenthesis '('
+#137: FILE: ipc/sem.c:978:
++		if(walk->semid==-1) {
+
+ERROR: spaces required around that '=' (ctx:VxW)
+#258: FILE: ipc/sem.c:1271:
++	ulp= tsk->sysvsem.undo_list;
+ 	   ^
+
+ERROR: code indent should use tabs where possible
+#285: FILE: ipc/sem.c:1282:
++  ^I^Istruct sem_array *sma;$
+
+ERROR: space required before the open parenthesis '('
+#288: FILE: ipc/sem.c:1285:
++		if(un->semid == -1)
+
+total: 8 errors, 3 warnings, 308 lines checked
+
+./patches/ipc-semc-convert-undo-structures-to-struct-list_head.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Manfred Spraul <manfred@colorfullife.com>
+Cc: Nadia Derbey <Nadia.Derbey@bull.net>
+Cc: Pierre Peiffer <peifferp@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cpu.h |   15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+ ipc/sem.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/cpu.h~workqueues-make-get_online_cpus-useable-for-work-func-fix include/linux/cpu.h
---- a/include/linux/cpu.h~workqueues-make-get_online_cpus-useable-for-work-func-fix
-+++ a/include/linux/cpu.h
-@@ -69,10 +69,11 @@ static inline void unregister_cpu_notifi
- #endif
+diff -puN ipc/sem.c~ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes ipc/sem.c
+--- a/ipc/sem.c~ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes
++++ a/ipc/sem.c
+@@ -973,9 +973,9 @@ static struct sem_undo *lookup_undo(stru
  
- int cpu_up(unsigned int cpu);
--
- extern void cpu_hotplug_init(void);
-+extern void cpu_maps_update_begin(void);
-+extern void cpu_maps_update_done(void);
+ 	assert_spin_locked(&ulp->lock);
+ 	list_for_each_entry_safe(walk, tmp, &ulp->list_proc, list_proc) {
+-		if(walk->semid==semid)
++		if (walk->semid == semid)
+ 			return walk;
+-		if(walk->semid==-1) {
++		if (walk->semid == -1) {
+ 			list_del(&walk->list_proc);
+ 			kfree(walk);
+ 		}
+@@ -1268,7 +1268,7 @@ void exit_sem(struct task_struct *tsk)
+ 	struct sem_undo_list *ulp;
+ 	struct sem_undo *un, *tmp;
  
--#else
-+#else	/* CONFIG_SMP */
+-	ulp= tsk->sysvsem.undo_list;
++	ulp = tsk->sysvsem.undo_list;
+ 	if (!ulp)
+ 		return;
+ 	tsk->sysvsem.undo_list = NULL;
+@@ -1279,10 +1279,10 @@ void exit_sem(struct task_struct *tsk)
+ 	spin_lock(&ulp->lock);
  
- static inline int register_cpu_notifier(struct notifier_block *nb)
- {
-@@ -87,10 +88,16 @@ static inline void cpu_hotplug_init(void
- {
- }
+ 	list_for_each_entry_safe(un, tmp, &ulp->list_proc, list_proc) {
+-  		struct sem_array *sma;
++		struct sem_array *sma;
+ 		int i;
  
-+static inline void cpu_maps_update_begin(void)
-+{
-+}
-+
-+static inline void cpu_maps_update_done(void)
-+{
-+}
-+
- #endif /* CONFIG_SMP */
- extern struct sysdev_class cpu_sysdev_class;
--extern void cpu_maps_update_begin(void);
--extern void cpu_maps_update_done(void);
+-		if(un->semid == -1)
++		if (un->semid == -1)
+ 			goto free;
  
- #ifdef CONFIG_HOTPLUG_CPU
- /* Stop CPUs going up and down. */
+ 		sma = sem_lock(tsk->nsproxy->ipc_ns, un->semid);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -111,7 +159,7 @@ memcg-remove-refcnt-from-page_cgroup.patch
 memcg-limit-change-shrink-usage.patch
 coredump-format_corename-fix-the-core_uses_pid-logic.patch
 workqueues-make-get_online_cpus-useable-for-work-func.patch
-workqueues-make-get_online_cpus-useable-for-work-func-fix.patch
+ipc-semc-convert-undo-structures-to-struct-list_head.patch
 ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
 ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
 ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
